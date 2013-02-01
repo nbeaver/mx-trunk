@@ -633,6 +633,45 @@ mxd_sapera_lt_camera_show_features( MX_SAPERA_LT_CAMERA *sapera_lt_camera )
 		}
 
 		fprintf( stderr, "\n" );
+
+		/* If this feature is an Enum, then display the allowed
+		 * values of the Enum.
+		 */
+
+		if( feature_type == SapFeature::TypeEnum ) {
+			int j, enum_count;
+
+			sapera_status = feature->GetEnumCount( &enum_count );
+
+			fprintf( stderr, "    %d enum values = ", enum_count );
+
+			for ( j = 0; j < enum_count; j++ ) {
+				BOOL enum_enabled;
+				int enum_value;
+				char enum_string[80];
+
+				sapera_status =
+				    feature->IsEnumEnabled( j, &enum_enabled );
+
+				sapera_status =
+				    feature->GetEnumValue( j, &enum_value );
+
+				sapera_status =
+				    feature->GetEnumString( j, enum_string,
+							sizeof(enum_string) );
+
+				if ( j > 0 ) {
+					fprintf( stderr, ", " );
+				}
+				fprintf( stderr, "%s (%d)",
+					enum_string, enum_value );
+
+				if ( enum_enabled == FALSE ) {
+					fprintf( stderr, " (DISABLED)" );
+				}
+			}
+			fprintf( stderr, "\n" );
+		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1152,6 +1191,7 @@ mxd_sapera_lt_camera_arm( MX_VIDEO_INPUT *vinput )
 	unsigned long trigger_mask;
 	double exposure_time, frame_time;
 	unsigned long num_frames;
+	SapAcqDevice *acq_device;
 	BOOL sapera_status;
 	mx_status_type mx_status;
 
@@ -1237,7 +1277,79 @@ mxd_sapera_lt_camera_arm( MX_VIDEO_INPUT *vinput )
 
 	mx_status = mxd_sapera_lt_camera_set_extended_exposure(
 					sapera_lt_camera, exposure_time );
-					
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if 1
+	/* Set the SynchronizationMode feature to match the trigger
+	 * and sequence settings.
+	 */
+
+	acq_device = sapera_lt_camera->acq_device;
+
+	if ( vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
+		sapera_status = acq_device->SetFeatureValue(
+					"SynchronizationMode",
+					"ExtTrigger" );
+
+		if ( sapera_status == FALSE ) {
+			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+			"The attempt to set the 'SynchronizationMode' "
+			"to 'ExtTrigger' for camera '%s' failed.",
+			vinput->record->name );
+		}
+
+		/* If we are to be externally triggered, then we start
+		 * the Snap() now and wait for the external trigger to
+		 * start the acquisition.
+		 */
+
+		sapera_status = sapera_lt_camera->transfer->Snap( num_frames );
+
+		if ( sapera_status == FALSE ) {
+			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+			"The attempt to call Snap() for camera '%s' failed.",
+			vinput->record->name );
+		}
+	} else
+	if ( vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
+#if 0
+		if ( sp->sequence_type == MXT_SQ_ONE_SHOT ) {
+			sapera_status = acq_device->SetFeatureValue(
+					"SynchronizationMode",
+					"Snapshot" );
+
+			if ( sapera_status == FALSE ) {
+				return mx_error(MXE_DEVICE_ACTION_FAILED, fname,
+				"The attempt to set the 'SynchronizationMode' "
+				"to 'Snapshot' for camera '%s' failed.",
+				vinput->record->name );
+			}
+		} else {
+#endif
+			/* Multiframe sequence */
+
+			sapera_status = acq_device->SetFeatureValue(
+					"SynchronizationMode",
+					"FreeRunning" );
+
+			if ( sapera_status == FALSE ) {
+				return mx_error(MXE_DEVICE_ACTION_FAILED, fname,
+				"The attempt to set the 'SynchronizationMode' "
+				"to 'FreeRunning' for camera '%s' failed.",
+				vinput->record->name );
+			}
+#if 0
+		}
+#endif
+
+		/* For internal triggering, the trigger will occur in
+		 * the mxd_sapera_lt_camera_trigger() routine.
+		 */
+	}
+#endif
+
 #if MXD_SAPERA_LT_CAMERA_DEBUG_ARM
 	MX_DEBUG(-2,("%s complete for video input '%s'.",
 		fname, vinput->record->name ));
@@ -1287,6 +1399,12 @@ mxd_sapera_lt_camera_trigger( MX_VIDEO_INPUT *vinput )
 		break;
 	}
 
+	if ( vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
+
+		/* For external triggering, this function does nothing. */
+
+		return MX_SUCCESSFUL_RESULT;
+	} else
 	if ( vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
 
 #if MXD_SAPERA_LT_CAMERA_DEBUG_TRIGGER
@@ -1307,8 +1425,8 @@ mxd_sapera_lt_camera_trigger( MX_VIDEO_INPUT *vinput )
 
 	} else {
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"External triggering is not supported for camera '%s'.",
-			vinput->record->name );
+		"Trigger mode %ld is not supported for camera '%s'.",
+			vinput->trigger_mode, vinput->record->name );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
