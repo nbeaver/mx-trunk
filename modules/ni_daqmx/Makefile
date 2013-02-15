@@ -6,6 +6,8 @@
 
 USE_DAQMX_BASE = FALSE
 
+USE_64_BITS = FALSE
+
 #
 # Supported values of MX_ARCH:  linux win32
 #
@@ -25,24 +27,33 @@ ifeq ($(MX_ARCH),linux)
 endif
 
 ifeq ($(MX_ARCH),win32)
-	ifeq ($(USE_DAQMX_BASE),TRUE)
-		NI_DAQMX_ANSI_C_DIR = c:\\progra~1\\nation~1\\ni-daq~1
-	else
-		NI_DAQMX_ANSI_C_DIR = \
-		    c:\\progra~2\\nation~1\\Shared\\ExternalCompilerSupport\\C
-	endif
+
 
 	CFLAGS += -DWIN32
 	CFLAGS += -I$(NI_DAQMX_ANSI_C_DIR)\\include
 
 	ifeq ($(USE_DAQMX_BASE),TRUE)
+		NI_DAQMX_ANSI_C_DIR = c:\\progra~1\\nation~1\\ni-daq~1
 		NI_DAQMX_LIBRARY = $(NI_DAQMX_ANSI_C_DIR)\\lib\\nidaqmxbase.lib
 	else
-		#NI_DAQMX_LIBRARY = \
-		#	$(NI_DAQMX_ANSI_C_DIR)\\lib32\\msvc\\NIDAQmx.lib
+		##NI_DAQMX_ANSI_C_DIR = \
+		##    c:\\progra~2\\nation~1\\Shared\\ExternalCompilerSupport\\C
 
-		NI_DAQMX_LIBRARY = \
-			$(NI_DAQMX_ANSI_C_DIR)\\lib64\\msvc\\NIDAQmx.lib
+		NI_DAQMX_ANSI_C_DIR = \
+		    d:\\progra~1\\nation~1\\Shared\\ExternalCompilerSupport\\C
+
+		ifeq ($(USE_64_BITS),TRUE)
+			NI_DAQMX_LIBRARY = \
+			    $(NI_DAQMX_ANSI_C_DIR)\\lib64\\msvc\\NIDAQmx.lib
+		else
+			NI_DAQMX_LIBRARY = \
+			    $(NI_DAQMX_ANSI_C_DIR)\\lib32\\msvc\\NIDAQmx.lib
+		endif
+	endif
+
+	ifeq ($(USE_DAQMX_BASE),TRUE)
+	else
+
 	endif
 endif
 
