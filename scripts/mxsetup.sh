@@ -88,3 +88,9 @@ esac
 
 export MXDIR PATH PYTHONPATH
 
+# If present, run a local setup script.
+
+if [ -f $MXDIR/etc/mxlocal.sh ]; then
+	source $MXDIR/etc/mxlocal.sh
+fi
+
