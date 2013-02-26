@@ -41,6 +41,9 @@ typedef struct {
 	struct timespec *frame_time;
 	mx_bool_type    *frame_buffer_is_unsaved;
 
+	long old_total_num_frames;
+	unsigned long old_status;
+
 	mx_bool_type buffer_overrun_occurred;
 
 	mx_bool_type show_features;

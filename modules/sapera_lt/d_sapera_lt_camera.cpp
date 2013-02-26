@@ -30,11 +30,11 @@
 
 #define MXD_SAPERA_LT_CAMERA_DEBUG_EXTENDED_STATUS		FALSE
 
-#define MXD_SAPERA_LT_CAMERA_DEBUG_EXTENDED_STATUS_WHEN_BUSY	TRUE
+#define MXD_SAPERA_LT_CAMERA_DEBUG_EXTENDED_STATUS_WHEN_BUSY	FALSE
+
+#define MXD_SAPERA_LT_CAMERA_DEBUG_EXTENDED_STATUS_WHEN_CHANGED	TRUE
 
 #define MXD_SAPERA_LT_CAMERA_DEBUG_NUM_FRAMES_LEFT_TO_ACQUIRE	TRUE
-
-#define MXD_SAPERA_LT_CAMERA_DEBUG_RESOURCE_INDICES		TRUE
 
 #define MXD_SAPERA_LT_CAMERA_DEBUG_CALLBACK			TRUE
 
@@ -279,24 +279,6 @@ mxd_sapera_lt_camera_acquisition_callback( SapXferCallbackInfo *info )
 		sapera_lt_camera->num_frames_left_to_acquire ));
 
 #endif /* MXD_SAPERA_LT_CAMERA_DEBUG_NUM_FRAMES_LEFT_TO_ACQUIRE */
-
-#if MXD_SAPERA_LT_CAMERA_DEBUG_RESOURCE_INDICES
-	{
-		/* Print out the resource indices for the transfer object. */
-
-		SapXferPair *xfer_pair =
-			sapera_lt_camera->transfer->GetPair(0);
-
-		if ( xfer_pair == NULL ) {
-			MX_DEBUG(-2,("%s: SapXferPair pointer is NULL!",fname));
-		} else {
-			int source_index = xfer_pair->GetSrcIndex();
-
-			MX_DEBUG(-2,("%s: SapXferPair source_index = %d",
-					fname, source_index));
-		}
-	}
-#endif /* MXD_SAPERA_LT_CAMERA_DEBUG_RESOURCE_INDICES */
 
 	/* Did we have a buffer overrun? */
 
@@ -1075,6 +1057,9 @@ mxd_sapera_lt_camera_open( MX_RECORD *record )
 			record->name );
 	}
 
+	sapera_lt_camera->old_total_num_frames = -1;
+	sapera_lt_camera->old_status = 0xffffffff;
+
 	/*---------------------------------------------------------------*/
 
 	/* Initialize the video parameters. */
@@ -1297,6 +1282,10 @@ mxd_sapera_lt_camera_arm( MX_VIDEO_INPUT *vinput )
 		exposure_time = sp->parameter_array[1];
 		frame_time = sp->parameter_array[2];
 		break;
+	case MXT_SQ_DURATION:
+		num_frames = sp->parameter_array[0];
+		exposure_time = 1;
+		break;
 	default:
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 		    "Sequence type %ld has not yet been implemented for '%s'.",
@@ -1304,15 +1293,6 @@ mxd_sapera_lt_camera_arm( MX_VIDEO_INPUT *vinput )
 		break;
 	}
 	
-	/* We use the "Extended Exposure" feature to set the exposure time. */
-
-	mx_status = mxd_sapera_lt_camera_set_extended_exposure(
-					sapera_lt_camera, exposure_time );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if 1
 	/* Set the SynchronizationMode feature to match the trigger
 	 * and sequence settings.
 	 */
@@ -1320,6 +1300,13 @@ mxd_sapera_lt_camera_arm( MX_VIDEO_INPUT *vinput )
 	acq_device = sapera_lt_camera->acq_device;
 
 	if ( vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
+
+		if ( sp->sequence_type != MXT_SQ_DURATION ) {
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Only 'duration' mode scans can be run with an "
+			"external trigger for camera '%s'.",
+				vinput->record->name );
+		}
 
 		/* According to Teledyne Dalsa, external triggering requires
 		 * you to use Grab() instead of Snap().
@@ -1345,7 +1332,7 @@ mxd_sapera_lt_camera_arm( MX_VIDEO_INPUT *vinput )
 		 * start the acquisition.
 		 */
 
-#if 1
+#if 0
 		sapera_status = sapera_lt_camera->transfer->Grab();
 #else
 		sapera_status = sapera_lt_camera->transfer->Snap( num_frames );
@@ -1358,8 +1345,10 @@ mxd_sapera_lt_camera_arm( MX_VIDEO_INPUT *vinput )
 		}
 	} else
 	if ( vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
+
+		switch( sp->sequence_type ) {
+		case MXT_SQ_ONE_SHOT:
 #if 0
-		if ( sp->sequence_type == MXT_SQ_ONE_SHOT ) {
 			sapera_status = acq_device->SetFeatureValue(
 					"SynchronizationMode",
 					"Snapshot" );
@@ -1370,8 +1359,10 @@ mxd_sapera_lt_camera_arm( MX_VIDEO_INPUT *vinput )
 				"to 'Snapshot' for camera '%s' failed.",
 				vinput->record->name );
 			}
-		} else {
+			break;
 #endif
+		case MXT_SQ_MULTIFRAME:
+
 			/* Multiframe sequence */
 
 			sapera_status = acq_device->SetFeatureValue(
@@ -1384,15 +1375,31 @@ mxd_sapera_lt_camera_arm( MX_VIDEO_INPUT *vinput )
 				"to 'FreeRunning' for camera '%s' failed.",
 				vinput->record->name );
 			}
-#if 0
+			break;
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Only 'one shot and multiframe' mode scans can be "
+			"run with an internal trigger for camera '%s'.",
+				vinput->record->name );
+			break;
 		}
-#endif
+
+		/* We use the "ExtendedExposure" feature to set
+		 * the exposure time.  ExtendedExposure can only
+		 * be used in FreeRunning mode.
+		 */
+
+		mx_status = mxd_sapera_lt_camera_set_extended_exposure(
+					sapera_lt_camera, exposure_time );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
 
 		/* For internal triggering, the trigger will occur in
 		 * the mxd_sapera_lt_camera_trigger() routine.
 		 */
 	}
-#endif
 
 #if MXD_SAPERA_LT_CAMERA_DEBUG_ARM
 	MX_DEBUG(-2,("%s complete for video input '%s'.",
@@ -1435,6 +1442,10 @@ mxd_sapera_lt_camera_trigger( MX_VIDEO_INPUT *vinput )
 		num_frames = sp->parameter_array[0];
 		exposure_time = sp->parameter_array[1];
 		frame_time = sp->parameter_array[2];
+		break;
+	case MXT_SQ_DURATION:
+		num_frames = sp->parameter_array[0];
+		exposure_time = 1;
 		break;
 	default:
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
@@ -1662,7 +1673,21 @@ mxd_sapera_lt_camera_get_extended_status( MX_VIDEO_INPUT *vinput )
 			vinput->status));
 	}
 
+#elif MXD_SAPERA_LT_CAMERA_DEBUG_EXTENDED_STATUS_WHEN_CHANGED
+
+	if ((vinput->total_num_frames != sapera_lt_camera->old_total_num_frames)
+	 || (vinput->status           != sapera_lt_camera->old_status) )
+	{
+		MX_DEBUG(-2,("%s: last_frame_number = %ld, "
+			"total_num_frames = %ld, status = %#lx",
+			fname, vinput->last_frame_number,
+			vinput->total_num_frames,
+			vinput->status));
+	}
+
 #endif
+	sapera_lt_camera->old_total_num_frames = vinput->total_num_frames;
+	sapera_lt_camera->old_status           = vinput->status;
 
 	/* If our callback says that all of the frames we want have been
 	 * acquired, check to see if the camera is in Grab mode.  If it

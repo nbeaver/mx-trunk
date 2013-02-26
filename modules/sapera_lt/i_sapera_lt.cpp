@@ -94,12 +94,11 @@ mxi_sapera_lt_error_callback( SapManCallbackInfo *callback_info )
 	int info   = CORSTATUS_INFO(sapera_error_value);
 	int id     = CORSTATUS_ID(sapera_error_value);
 
-	fprintf( stderr, "SAPERA LT ERROR (%#x)\n"
-			"  (module %#x, level %#x, info %#x, id %#x :\n"
-			"  %s\n",
-				(int) sapera_error_value,
-				module, level, info, id,
-				sapera_error_message );
+	fprintf( stderr,
+"SAPERA LT ERROR (%#x)  (module %#x, level %#x, info %#x, id %#x):\n  %s\n",
+		(int) sapera_error_value,
+		module, level, info, id,
+		sapera_error_message );
 }
 
 /*------*/
