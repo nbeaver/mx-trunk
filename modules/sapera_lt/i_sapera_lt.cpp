@@ -83,9 +83,14 @@ mxi_sapera_lt_get_pointers( MX_RECORD *record,
 void
 mxi_sapera_lt_error_callback( SapManCallbackInfo *info )
 {
+	SAPSTATUS sapera_error_value = info->GetErrorValue();
+
 	const char *sapera_error_message = info->GetErrorMessage();
 
-	fprintf( stderr, "SAPERA LT ERROR: %s\n", sapera_error_message );
+	MX_RECORD *mx_record = (MX_RECORD *) info->GetContext();
+
+	fprintf( stderr, "SAPERA LT ERROR (%#x): %s\n",
+			(int) sapera_error_value, sapera_error_message );
 }
 
 /*------*/

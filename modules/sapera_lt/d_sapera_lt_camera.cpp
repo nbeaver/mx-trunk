@@ -34,6 +34,8 @@
 
 #define MXD_SAPERA_LT_CAMERA_DEBUG_NUM_FRAMES_LEFT_TO_ACQUIRE	TRUE
 
+#define MXD_SAPERA_LT_CAMERA_DEBUG_RESOURCE_INDICES		TRUE
+
 #define MXD_SAPERA_LT_CAMERA_DEBUG_CALLBACK			TRUE
 
 #define MXD_SAPERA_LT_CAMERA_DEBUG_MX_PARAMETERS		FALSE
@@ -277,6 +279,24 @@ mxd_sapera_lt_camera_acquisition_callback( SapXferCallbackInfo *info )
 		sapera_lt_camera->num_frames_left_to_acquire ));
 
 #endif /* MXD_SAPERA_LT_CAMERA_DEBUG_NUM_FRAMES_LEFT_TO_ACQUIRE */
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG_RESOURCE_INDICES
+	{
+		/* Print out the resource indices for the transfer object. */
+
+		SapXferPair *xfer_pair =
+			sapera_lt_camera->transfer->GetPair(0);
+
+		if ( xfer_pair == NULL ) {
+			MX_DEBUG(-2,("%s: SapXferPair pointer is NULL!",fname));
+		} else {
+			int source_index = xfer_pair->GetSrcIndex();
+
+			MX_DEBUG(-2,("%s: SapXferPair source_index = %d",
+					fname, source_index));
+		}
+	}
+#endif /* MXD_SAPERA_LT_CAMERA_DEBUG_RESOURCE_INDICES */
 
 	/* Did we have a buffer overrun? */
 
@@ -1192,7 +1212,7 @@ mxd_sapera_lt_camera_arm( MX_VIDEO_INPUT *vinput )
 	double exposure_time, frame_time;
 	unsigned long num_frames;
 	SapAcqDevice *acq_device;
-	BOOL sapera_status;
+	BOOL sapera_status, is_grabbing;
 	mx_status_type mx_status;
 
 	mx_status = mxd_sapera_lt_camera_get_pointers( vinput,
@@ -1211,6 +1231,17 @@ mxd_sapera_lt_camera_arm( MX_VIDEO_INPUT *vinput )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* If the camera is Grabbing, then stop it. */
+
+	is_grabbing = sapera_lt_camera->transfer->IsGrabbing();
+
+	if ( is_grabbing ) {
+		mx_status = mxd_sapera_lt_camera_stop( vinput );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
 	/* Clear the buffer overrun flag. */
 
@@ -1233,9 +1264,9 @@ mxd_sapera_lt_camera_arm( MX_VIDEO_INPUT *vinput )
 	}
 
 	/* For this video input, the input frame buffer must be set up
-	 * before we can execute the Snap() method.  For that reason,
-	 * we do mx_image_alloc() here to make sure that the frame
-	 * is set up.
+	 * before we can execute the Snap() or Grab() methods.  For that
+	 * reason, we do mx_image_alloc() here to make sure that the
+	 * frame is set up.
 	 */
 
 	mx_status = mx_image_alloc( &(vinput->frame),
@@ -1289,6 +1320,15 @@ mxd_sapera_lt_camera_arm( MX_VIDEO_INPUT *vinput )
 	acq_device = sapera_lt_camera->acq_device;
 
 	if ( vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
+
+		/* According to Teledyne Dalsa, external triggering requires
+		 * you to use Grab() instead of Snap().
+		 * 
+		 * FIXME: However, the camera may grab more frames than we
+		 * want, so we will have to check for this possiblity in
+		 * the code that handles autosaving of files.
+		 */
+
 		sapera_status = acq_device->SetFeatureValue(
 					"SynchronizationMode",
 					"ExtTrigger" );
@@ -1301,15 +1341,19 @@ mxd_sapera_lt_camera_arm( MX_VIDEO_INPUT *vinput )
 		}
 
 		/* If we are to be externally triggered, then we start
-		 * the Snap() now and wait for the external trigger to
+		 * the Grab() now and then let the external trigger 
 		 * start the acquisition.
 		 */
 
+#if 1
+		sapera_status = sapera_lt_camera->transfer->Grab();
+#else
 		sapera_status = sapera_lt_camera->transfer->Snap( num_frames );
+#endif
 
 		if ( sapera_status == FALSE ) {
 			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-			"The attempt to call Snap() for camera '%s' failed.",
+			"The attempt to call Grab() for camera '%s' failed.",
 			vinput->record->name );
 		}
 	} else
@@ -1619,6 +1663,22 @@ mxd_sapera_lt_camera_get_extended_status( MX_VIDEO_INPUT *vinput )
 	}
 
 #endif
+
+	/* If our callback says that all of the frames we want have been
+	 * acquired, check to see if the camera is in Grab mode.  If it
+	 * is, then we want to turn that off so that the camera is idle.
+	 */
+
+	if ( vinput->busy == FALSE ) {
+		BOOL is_grabbing;
+
+		is_grabbing = sapera_lt_camera->transfer->IsGrabbing();
+
+		if ( is_grabbing ) {
+			mx_status = mxd_sapera_lt_camera_stop( vinput );
+		}
+	}
+
 	return mx_status;
 }
 
