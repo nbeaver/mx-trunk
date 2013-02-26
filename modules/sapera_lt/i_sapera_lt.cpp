@@ -81,16 +81,25 @@ mxi_sapera_lt_get_pointers( MX_RECORD *record,
 /*------*/
 
 void
-mxi_sapera_lt_error_callback( SapManCallbackInfo *info )
+mxi_sapera_lt_error_callback( SapManCallbackInfo *callback_info )
 {
-	SAPSTATUS sapera_error_value = info->GetErrorValue();
+	SAPSTATUS sapera_error_value = callback_info->GetErrorValue();
 
-	const char *sapera_error_message = info->GetErrorMessage();
+	const char *sapera_error_message = callback_info->GetErrorMessage();
 
-	MX_RECORD *mx_record = (MX_RECORD *) info->GetContext();
+	MX_RECORD *mx_record = (MX_RECORD *) callback_info->GetContext();
 
-	fprintf( stderr, "SAPERA LT ERROR (%#x): %s\n",
-			(int) sapera_error_value, sapera_error_message );
+	int module = CORSTATUS_MODULE(sapera_error_value);
+	int level  = CORSTATUS_LEVEL(sapera_error_value);
+	int info   = CORSTATUS_INFO(sapera_error_value);
+	int id     = CORSTATUS_ID(sapera_error_value);
+
+	fprintf( stderr, "SAPERA LT ERROR (%#x)\n"
+			"  (module %#x, level %#x, info %#x, id %#x :\n"
+			"  %s\n",
+				(int) sapera_error_value,
+				module, level, info, id,
+				sapera_error_message );
 }
 
 /*------*/
