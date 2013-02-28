@@ -65,7 +65,7 @@ all: build
 
 #MODULES += radicon_taurus
 
-MODULES += radicon_xineos
+MODULES += radicon_xineos_gige
 
 MODULES += sapera_lt
 
