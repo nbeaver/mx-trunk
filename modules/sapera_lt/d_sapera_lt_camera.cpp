@@ -1526,6 +1526,9 @@ mxd_sapera_lt_camera_stop( MX_VIDEO_INPUT *vinput )
 	case MXT_SQ_MULTIFRAME:
 		exposure_time = sp->parameter_array[1];
 		break;
+	case MXT_SQ_DURATION:
+		exposure_time = 1;
+		break;
 	default:
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 		"Sequence type %ld has not yet been implemented for '%s'.",
@@ -1836,6 +1839,9 @@ mxd_sapera_lt_camera_get_frame( MX_VIDEO_INPUT *vinput )
 		break;
 	case MXT_SQ_MULTIFRAME:
 		exposure_time = sp->parameter_array[1];
+		break;
+	case MXT_SQ_DURATION:
+		exposure_time = 1;
 		break;
 	default:
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
