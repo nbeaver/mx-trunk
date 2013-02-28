@@ -65,6 +65,8 @@ all: build
 
 #MODULES += radicon_taurus
 
+MODULES += radicon_xineos
+
 MODULES += sapera_lt
 
 #MODULES += u500
