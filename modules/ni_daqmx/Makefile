@@ -28,10 +28,6 @@ endif
 
 ifeq ($(MX_ARCH),win32)
 
-
-	CFLAGS += -DWIN32
-	CFLAGS += -I$(NI_DAQMX_ANSI_C_DIR)\\include
-
 	ifeq ($(USE_DAQMX_BASE),TRUE)
 		NI_DAQMX_ANSI_C_DIR = c:\\progra~1\\nation~1\\ni-daq~1
 		NI_DAQMX_LIBRARY = $(NI_DAQMX_ANSI_C_DIR)\\lib\\nidaqmxbase.lib
@@ -40,7 +36,10 @@ ifeq ($(MX_ARCH),win32)
 		##    c:\\progra~2\\nation~1\\Shared\\ExternalCompilerSupport\\C
 
 		NI_DAQMX_ANSI_C_DIR = \
-		    d:\\progra~1\\nation~1\\Shared\\ExternalCompilerSupport\\C
+		    c:\\progra~1\\nation~1\\Shared\\ExternalCompilerSupport\\C
+
+		##NI_DAQMX_ANSI_C_DIR = \
+		##    d:\\progra~1\\nation~1\\Shared\\ExternalCompilerSupport\\C
 
 		ifeq ($(USE_64_BITS),TRUE)
 			NI_DAQMX_LIBRARY = \
@@ -51,10 +50,8 @@ ifeq ($(MX_ARCH),win32)
 		endif
 	endif
 
-	ifeq ($(USE_DAQMX_BASE),TRUE)
-	else
-
-	endif
+	CFLAGS += -DWIN32
+	CFLAGS += -I$(NI_DAQMX_ANSI_C_DIR)\\include
 endif
 
 ifeq ($(USE_DAQMX_BASE),TRUE)
