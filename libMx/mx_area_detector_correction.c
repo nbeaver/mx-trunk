@@ -6713,7 +6713,8 @@ mx_rdi_dbl_image_correction( MX_AREA_DETECTOR *ad,
 			"The number of pixels in the image frame (%lu) is not "
 			"the same as the number of pixels in the mask frame "
 			"(%lu) for area detector '%s'.",
-				num_pixels_per_frame, num_mask_pixels );
+				num_pixels_per_frame, num_mask_pixels,
+				ad->record->name );
 		    } else {
 			u16_mask_data_array = mask_frame->image_data;
 
@@ -6753,7 +6754,8 @@ mx_rdi_dbl_image_correction( MX_AREA_DETECTOR *ad,
 			"The number of pixels in the image frame (%lu) is not "
 			"the same as the number of pixels in the bias frame "
 			"(%lu) for area detector '%s'.",
-				num_pixels_per_frame, num_bias_pixels );
+				num_pixels_per_frame, num_bias_pixels,
+				ad->record->name );
 		    } else {
 			u16_bias_data_array = bias_frame->image_data;
 
@@ -6826,7 +6828,8 @@ mx_rdi_dbl_image_correction( MX_AREA_DETECTOR *ad,
 			"The number of pixels in the image frame (%lu) "
 			"is not " "the same as the number of pixels in "
 			"the dark current frame (%lu) for area detector '%s'.",
-				num_pixels_per_frame, num_dark_current_pixels );
+				num_pixels_per_frame, num_dark_current_pixels,
+				ad->record->name );
 		    } else {
 			flt_dark_current_data_array =
 					dark_current_frame->image_data;
@@ -6870,7 +6873,8 @@ mx_rdi_dbl_image_correction( MX_AREA_DETECTOR *ad,
 			"The number of pixels in the image frame (%lu) "
 			"is not " "the same as the number of pixels in "
 			"the dark current frame (%lu) for area detector '%s'.",
-			    num_pixels_per_frame, num_non_uniformity_pixels );
+			    num_pixels_per_frame, num_non_uniformity_pixels,
+			    ad->record->name );
 		    } else {
 			flt_non_uniformity_data_array =
 					non_uniformity_frame->image_data;

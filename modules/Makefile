@@ -23,7 +23,7 @@ all: build
 
 #MODULES += libusb-0.1		# linux,
 
-#MODULES += k8055		# linux,
+MODULES += k8055		# linux,
 
 #MODULES += ni488		# linux,
 
@@ -65,20 +65,20 @@ all: build
 
 #MODULES += radicon_taurus
 
-MODULES += radicon_xineos_gige
+#MODULES += radicon_xineos_gige
 
-MODULES += sapera_lt
+#MODULES += sapera_lt
 
 #MODULES += u500
 
 #-------------------------------------------------------------------
 # EPICS modules.
 
-#MODULES += epics
+MODULES += epics
 
-#MODULES += epics_aps
+MODULES += epics_aps
 
-#MODULES += epics_pmac_biocat
+MODULES += epics_pmac_biocat
 
 #MODULES += epics_mbc
 
