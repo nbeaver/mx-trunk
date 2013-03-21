@@ -28,6 +28,12 @@ typedef struct {
 
 	MX_RECORD *video_input_record;
 	unsigned long radicon_xineos_gige_flags;
+	char pulse_generator_name[MXU_RECORD_NAME_LENGTH+1];
+
+	MX_RECORD *pulse_generator_record;
+
+	mx_bool_type use_pulse_generator;
+	double pulse_generator_time_threshold;
 
 	double minimum_pixel_value;
 	double saturation_pixel_value;
@@ -46,6 +52,12 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_RADICON_XINEOS_GIGE, radicon_xineos_gige_flags), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "pulse_generator_name", MXFT_STRING, NULL, \
+					1, {MXU_RECORD_NAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_RADICON_XINEOS_GIGE, pulse_generator_name), \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {-1, -1, "minimum_pixel_value", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \

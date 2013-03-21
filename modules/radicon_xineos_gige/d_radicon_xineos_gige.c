@@ -287,6 +287,55 @@ mxd_radicon_xineos_gige_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Does this detector have an MX pulse generator to use in generating
+	 * "internal" triggers?
+	 */
+
+	if ( strlen( radicon_xineos_gige->pulse_generator_name ) == 0 ) {
+		radicon_xineos_gige->pulse_generator_record = NULL;
+	} else {
+		radicon_xineos_gige->pulse_generator_record =
+			mx_get_record( record,
+				radicon_xineos_gige->pulse_generator_name );
+
+		if ( radicon_xineos_gige->pulse_generator_record == NULL ) {
+			(void) mx_error( MXE_NOT_FOUND, fname,
+			"Internal trigger record '%s' for detector '%s' "
+			"was not found in the MX database.",
+				radicon_xineos_gige->pulse_generator_name,
+				record->name );
+
+		} else {
+			/* Is the trigger record a pulse generator record? */
+
+			unsigned long mx_class;
+
+			mx_class =
+			 radicon_xineos_gige->pulse_generator_record->mx_class;
+
+			if ( mx_class != MXC_PULSE_GENERATOR ) {
+				(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+				"Internal trigger record '%s' for "
+				"detector '%s' is NOT a pulse generator "
+				"record.  It will be IGNORED!",
+				    radicon_xineos_gige->pulse_generator_name,
+				    record->name );
+				
+				radicon_xineos_gige->pulse_generator_record
+							= NULL;
+			}
+		}
+	}
+
+	radicon_xineos_gige->use_pulse_generator = FALSE;
+
+	/* Internally triggered one shot and multiframe sequences will
+	 * use the pulse generator for exposures greater than or equal
+	 * to this time if a pulse generator is present.
+	 */
+
+	radicon_xineos_gige->pulse_generator_time_threshold = 1.0;
+
 	/* The detector will default to internal triggering. */
 
 	mx_status = mx_area_detector_set_trigger_mode( record,
@@ -348,6 +397,9 @@ mxd_radicon_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 
 	MX_RADICON_XINEOS_GIGE *radicon_xineos_gige = NULL;
 	MX_RECORD *video_input_record = NULL;
+	MX_SEQUENCE_PARAMETERS *sp = NULL;
+	double exposure_time;
+	long vinput_trigger_mode;
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_xineos_gige_get_pointers( ad,
@@ -404,6 +456,47 @@ mxd_radicon_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 			return mx_status;
 	}
 
+	/* Get the exposure time, since we will need it in a moment. */
+
+	sp = &(ad->sequence_parameters);
+
+	mx_status = mx_sequence_get_exposure_time( sp, 0, &exposure_time );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Is this an internally triggered sequence that needs to
+	 * use a pulse generator?
+	 */
+
+	radicon_xineos_gige->use_pulse_generator = FALSE;
+
+	if ( ( radicon_xineos_gige->pulse_generator_record != NULL )
+	  && ( ad->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER )
+	  && ( exposure_time >=
+		radicon_xineos_gige->pulse_generator_time_threshold ) )
+	{
+		radicon_xineos_gige->use_pulse_generator = TRUE;
+	}
+
+	/* If we are using a pulse generator to generate "internal" triggers,
+	 * then tell the video card to expect an _external_ trigger.
+	 * Otherwise, just pass the area detector record's trigger mode
+	 * through to the video card.
+	 */
+
+	if ( radicon_xineos_gige->use_pulse_generator ) {
+		vinput_trigger_mode = MXT_IMAGE_EXTERNAL_TRIGGER;
+	} else {
+		vinput_trigger_mode = ad->trigger_mode;
+	}
+
+	mx_status = mx_video_input_set_trigger_mode( video_input_record,
+							vinput_trigger_mode );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/* Tell the video capture card to get ready for frames. */
 
 	mx_status = mx_video_input_arm( video_input_record );
@@ -417,12 +510,9 @@ mxd_radicon_xineos_gige_trigger( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_radicon_xineos_gige_trigger()";
 
 	MX_RADICON_XINEOS_GIGE *radicon_xineos_gige = NULL;
-#if 0
 	MX_SEQUENCE_PARAMETERS *sp;
-	double exposure_time;
 	double pulse_period, pulse_width;
 	unsigned long num_pulses;
-#endif
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_xineos_gige_get_pointers( ad,
@@ -435,8 +525,87 @@ mxd_radicon_xineos_gige_trigger( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
-	mx_status = mx_video_input_trigger(
+
+	if ( ( ad->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) == 0 ) {
+		/* If the area detector is using a 'real' external trigger,
+		 * then we do not need to do anything in this function.
+		 */
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	if ( radicon_xineos_gige->use_pulse_generator == FALSE ) {
+		/* If we are not using a pulse generator, then we just
+		 * pass the request on to the video card.
+		 */
+
+		mx_status = mx_video_input_trigger(
 				radicon_xineos_gige->video_input_record );
+
+		return mx_status;
+	}
+
+	/* If we are using the pulse generator, then we need to calculate
+	 * the pulse width, pulse period, and number of pulses.
+	 */
+
+	sp = &(ad->sequence_parameters);
+
+	switch( sp->sequence_type ) {
+	case MXT_SQ_ONE_SHOT:
+		pulse_width = sp->parameter_array[0];
+		pulse_period = 1.001 * pulse_width;
+		num_pulses = 1;
+		break;
+
+	case MXT_SQ_MULTIFRAME:
+		pulse_width = sp->parameter_array[1];
+		pulse_period = sp->parameter_array[2];
+		num_pulses = sp->parameter_array[0];
+		break;
+
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Only one-shot and multiframe sequences can be used "
+		"with internal triggering for area detector '%s'.",
+			ad->record->name );
+		break;
+	}
+
+	/* Configure the pulse generator for this sequence. */
+
+	mx_status = mx_pulse_generator_set_mode(
+				radicon_xineos_gige->pulse_generator_record,
+				MXF_PGN_PULSE );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_pulse_generator_set_pulse_period(
+				radicon_xineos_gige->pulse_generator_record,
+				pulse_period );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_pulse_generator_set_pulse_width(
+				radicon_xineos_gige->pulse_generator_record,
+				pulse_width );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_pulse_generator_set_num_pulses(
+				radicon_xineos_gige->pulse_generator_record,
+				num_pulses );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Finish by starting the pulse generator. */
+
+	mx_status = mx_pulse_generator_start(
+				radicon_xineos_gige->pulse_generator_record );
 
 	return mx_status;
 }
