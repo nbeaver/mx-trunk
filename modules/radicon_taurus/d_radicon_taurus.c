@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2012 Illinois Institute of Technology
+ * Copyright 2012-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1998,7 +1998,7 @@ mxd_radicon_taurus_correct_frame( MX_AREA_DETECTOR *ad )
 
 	mx_status = mx_rdi_correct_frame( ad,
 				radicon_taurus->minimum_pixel_value,
-				radicon_taurus->saturation_pixel_value );
+				radicon_taurus->saturation_pixel_value, 0 );
 
 	return mx_status;
 }

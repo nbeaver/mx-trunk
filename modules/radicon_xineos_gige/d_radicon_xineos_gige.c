@@ -37,6 +37,7 @@
 #include "mx_pulse_generator.h"
 #include "mx_video_input.h"
 #include "mx_area_detector.h"
+#include "mx_area_detector_rdi.h"
 #include "d_radicon_xineos_gige.h"
 
 /*---*/
@@ -726,6 +727,7 @@ mxd_radicon_xineos_gige_correct_frame( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_radicon_xineos_gige_correct_frame()";
 
 	MX_RADICON_XINEOS_GIGE *radicon_xineos_gige = NULL;
+	unsigned long gige_flags, rdi_flags;
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_xineos_gige_get_pointers( ad,
@@ -734,9 +736,19 @@ mxd_radicon_xineos_gige_correct_frame( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	gige_flags = radicon_xineos_gige->radicon_xineos_gige_flags;
+
+	if (gige_flags & MXF_RADICON_XINEOS_GIGE_BYPASS_DC_EXPOSURE_TIME_TEST)
+	{
+		rdi_flags = MXF_RDI_BYPASS_DARK_CURRENT_EXPOSURE_TIME_TEST;
+	} else {
+		rdi_flags = 0;
+	}
+
 	mx_status = mx_rdi_correct_frame( ad,
 				radicon_xineos_gige->minimum_pixel_value,
-				radicon_xineos_gige->saturation_pixel_value );
+				radicon_xineos_gige->saturation_pixel_value,
+				rdi_flags );
 
 	return mx_status;
 }

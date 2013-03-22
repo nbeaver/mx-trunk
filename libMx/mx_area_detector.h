@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2012 Illinois Institute of Technology
+ * Copyright 2006-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1832,21 +1832,6 @@ MX_API mx_status_type mx_area_detector_dbl_plain_flood_field(
 					MX_IMAGE_FRAME *mask_frame,
 					MX_IMAGE_FRAME *bias_frame,
 					MX_IMAGE_FRAME *flood_field_frame );
-
-/*---*/
-
-MX_API mx_status_type mx_rdi_correct_frame( MX_AREA_DETECTOR *ad,
-					double minimum_pixel_value,
-					double saturation_pixel_value );
-
-MX_API mx_status_type mx_rdi_dbl_image_correction( MX_AREA_DETECTOR *ad,
-					MX_IMAGE_FRAME *correction_calc_frame,
-					MX_IMAGE_FRAME *mask_frame,
-					MX_IMAGE_FRAME *bias_frame,
-					MX_IMAGE_FRAME *dark_current_frame,
-					MX_IMAGE_FRAME *non_uniformity_frame,
-					double minimum_pixel_value,
-					double saturation_pixel_value );
 
 #ifdef __cplusplus
 }

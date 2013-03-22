@@ -15,6 +15,7 @@
 
 MX_CORE_SRCS = mx_amplifier.c mx_analog_input.c mx_analog_output.c \
 	mx_area_detector.c mx_area_detector_correction.c \
+	mx_area_detector_rdi.c \
 	mx_array.c mx_atomic.c mx_autoscale.c mx_bit.c \
 	mx_bluice.c mx_boot.c mx_callback.c mx_camac.c mx_camera_link.c \
 	mx_cfn.c mx_circular_buffer.c mx_clock.c mx_console.c \
