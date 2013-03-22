@@ -230,7 +230,7 @@ mxd_radicon_xineos_gige_open( MX_RECORD *record )
 
 	ad->correction_calc_format = MXT_IMAGE_FORMAT_DOUBLE;
 
-	ad->correction_measurement_sequence_type = MXT_SQ_GATED;
+	ad->correction_measurement_sequence_type = MXT_SQ_MULTIFRAME;
 
 	radicon_xineos_gige->saturation_pixel_value = 14000.0;
 	radicon_xineos_gige->minimum_pixel_value = 5.0;
@@ -499,6 +499,8 @@ mxd_radicon_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 		return mx_status;
 
 	/* Tell the video capture card to get ready for frames. */
+
+	MX_DEBUG(-2,("%s: sequence type = %d", fname, sp->sequence_type));
 
 	mx_status = mx_video_input_arm( video_input_record );
 
