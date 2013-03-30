@@ -141,8 +141,8 @@ mx_library_install:
 	ln -s $(MX_LIBRARY_NAME) $(MX_INSTALL_DIR)/lib/libMx.so
 	/usr/bin/install -m 644 $(MX_LIBRARY_STATIC_NAME) \
 					-f $(MX_INSTALL_DIR)/lib 
-	touch $(MX_INSTALL_DIR)/etc/motor.dat
-	touch $(MX_INSTALL_DIR)/etc/scan.dat
+	touch $(MX_INSTALL_DIR)/etc/mxmotor.dat
+	touch $(MX_INSTALL_DIR)/etc/mxscan.dat
 	/usr/bin/install -m 755 ../plotgnu/plotgnu.pl -f $(MX_INSTALL_DIR)/bin 
 	/usr/bin/install -m 755 ../plotgnu/showdata -f $(MX_INSTALL_DIR)/bin 
 	/usr/bin/install -m 755 ../plotgnu/showplot -f $(MX_INSTALL_DIR)/bin 

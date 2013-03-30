@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2006, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -408,10 +408,10 @@ motor_mjog_fn( int argc, char *argv[] )
 		}
 	}
 
-	/* Rewrite the motor.dat file with the new position. */
+	/* Rewrite the mxmotor.dat file with the new position. */
 
 	if ( allow_motor_database_updates ) {
-		fprintf( output, "Saving new position to 'motor.dat'\n");
+		fprintf( output, "Saving new position to 'mxmotor.dat'\n");
 
 		snprintf( buffer, sizeof(buffer),
 			"save motor %s", motor_savefile );

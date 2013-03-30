@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2009-2010 Illinois Institute of Technology
+ * Copyright 2009-2010, 2012-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -27,8 +27,8 @@ static char msg_help[] =
 "\n"
 "Single word commands are:\n"
 "    exit                           - Exits the motor program, saving the\n"
-"                                       motor parameters in 'motor.dat' and\n"
-"                                       the scan parameters in 'scan.dat'\n"
+"                                       motor parameters in 'mxmotor.dat' and\n"
+"                                       the scan parameters in 'mxscan.dat'\n"
 "    help                           - Displays this message.\n"
 "\n"
 "    help [...]                     - Displays help for individual commands\n"

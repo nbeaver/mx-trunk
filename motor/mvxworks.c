@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 2003, 2005-2006, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,20 +24,20 @@
 #define NUM_ARGUMENTS	6
 #define MAX_ARGV_LENGTH	80
 
-extern void motor_shell( char *device_database_file,
+extern void mxmotor_shell( char *device_database_file,
 			char *scan_database_file );
 
-void motor_shell( char *device_database_file,
+void mxmotor_shell( char *device_database_file,
 		char *scan_database_file )
 {
 	int argc;
 	char **argv;
 
-	char argv0[MAX_ARGV_LENGTH+1] = "motor_shell";
+	char argv0[MAX_ARGV_LENGTH+1] = "mxmotor_shell";
 	char argv1[MAX_ARGV_LENGTH+1] = "-F";
-	char argv2[MAX_ARGV_LENGTH+1] = "motor.dat";
+	char argv2[MAX_ARGV_LENGTH+1] = "mxmotor.dat";
 	char argv3[MAX_ARGV_LENGTH+1] = "-s";
-	char argv4[MAX_ARGV_LENGTH+1] = "scan.dat";
+	char argv4[MAX_ARGV_LENGTH+1] = "mxscan.dat";
 	char argv5[MAX_ARGV_LENGTH+1] = "-N";
 
 	argc = NUM_ARGUMENTS;

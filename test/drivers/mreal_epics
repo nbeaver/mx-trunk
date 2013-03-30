@@ -4,5 +4,5 @@ export MX_MODULES_DIR=../../modules
 
 export LD_LIBRARY_PATH=../../libMx:../../modules/epics
 
-../../motor/motor -F ./mreal_epics.dat -s $HOME/scan.dat $*
+../../motor/mxmotor -F ./mreal_epics.dat -s $HOME/mxscan.dat $*
 

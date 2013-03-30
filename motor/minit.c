@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2007, 2009-2010, 2012 Illinois Institute of Technology
+ * Copyright 1999-2007, 2009-2010, 2012-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -131,7 +131,7 @@ motor_init( char *motor_savefile_name,
 
 	mx_multi_set_debug_flags( motor_record_list, network_debug_flags );
 
-	/* Read 'motor.dat' and add the records therein to the record list. */
+	/* Read 'mxmotor.dat' and add the records therein to the record list. */
 
 	mx_status = mx_read_database_file( motor_record_list, 
 						motor_savefile_name, 0 );

@@ -174,8 +174,8 @@ library_install:
 	install -F $(MX_INSTALL_DIR)/lib -m 644 -O $(MX_LIBRARY_NAME) 
 	install -F $(MX_INSTALL_DIR)/lib -m 644 -O $(MX_LIBRARY_STATIC_NAME) 
 	( cd $(MX_INSTALL_DIR)/lib ; ln -sf $(MX_LIBRARY_NAME) libMx.so )
-	touch $(MX_INSTALL_DIR)/etc/motor.dat
-	touch $(MX_INSTALL_DIR)/etc/scan.dat
+	touch $(MX_INSTALL_DIR)/etc/mxmotor.dat
+	touch $(MX_INSTALL_DIR)/etc/mxscan.dat
 	install -F $(MX_INSTALL_DIR)/bin -m 755 -O \
 					-src ../plotgnu/plotgnu.pl plotgnu.pl
 	install -F $(MX_INSTALL_DIR)/bin -m 755 -O \

@@ -1,4 +1,4 @@
-!include /opt/mx/etc/motor.dat
+!include /opt/mx/etc/mxmotor.dat
 amp    device amplifier aps_quadem_amplifier "" "" 1e12 0 0 17bm:EM1
 i1     device analog_input epics_ainput "" "" 0 1 0 ADU 0x0 0 "" 17bm:EM1Current1
 i2     device analog_input epics_ainput "" "" 0 1 0 ADU 0x0 0 "" 17bm:EM1Current2

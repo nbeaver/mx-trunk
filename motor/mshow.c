@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2007, 2009-2012 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2007, 2009-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -114,7 +114,7 @@ motor_show_fn( int argc, char *argv[] )
 
 	char usage[] =
 "Usage:  show autosave      -- show whether scan changes are automatically\n"
-"                              saved to 'scan.dat' or not\n"
+"                              saved to 'mxscan.dat' or not\n"
 "        show bypass_limit_switch\n"
 "                           -- show if the next move will bypass automatic\n"
 "                              move abort on limits\n"
@@ -257,9 +257,9 @@ motor_show_fn( int argc, char *argv[] )
 
 	} else if ( strncmp( "autosave", argv[2], length ) == 0 ) {
 		if ( motor_autosave_on ) {
-		    fprintf( output, "  'scan.dat' autosaving is on.\n");
+		    fprintf( output, "  'mxscan.dat' autosaving is on.\n");
 		} else {
-		    fprintf( output, "  'scan.dat' autosaving is off.\n");
+		    fprintf( output, "  'mxscan.dat' autosaving is off.\n");
 		}
 		return SUCCESS;
 

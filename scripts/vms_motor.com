@@ -1,6 +1,6 @@
 $!
-$! Example motor script for VMS.
+$! Example mxmotor script for VMS.
 $!
-$ motor := $dua0:[users.lavender.mxtest.bin]motor.exe
+$ mxmotor := $dua0:[users.lavender.mxtest.bin]mxmotor.exe
 $!
-$ motor "-F" dua0:[users.lavender.mxtest.etc]motor.dat "-s" dua0:[users.lavender]scan.dat
+$ mxmotor "-F" dua0:[users.lavender.mxtest.etc]mxmotor.dat "-s" dua0:[users.lavender]mxscan.dat

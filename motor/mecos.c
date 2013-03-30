@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -63,10 +63,10 @@ main( int ecos_argc, char *ecos_argv[] )
 	argv[6] = argv6;
 
 	snprintf( argv2, sizeof(argv2),
-			"TFTP/xxx/motor.dat" );
+			"TFTP/xxx/mxmotor.dat" );
 
 	snprintf( argv4, sizeof(argv4),
-			"/TFTP/xxx/scan.dat" );
+			"/TFTP/xxx/mxscan.dat" );
 
 	motor_main( argc, argv );
 

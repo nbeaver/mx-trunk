@@ -153,8 +153,8 @@ library_install:
 	#### cp $(MX_LIBRARY_NAME) $(MX_INSTALL_DIR)/lib 
 	#### ln -sf $(MX_LIBRARY_NAME) $(MX_INSTALL_DIR)/lib/libMx.so
 	cp $(MX_LIBRARY_STATIC_NAME) $(MX_INSTALL_DIR)/lib 
-	touch $(MX_INSTALL_DIR)/etc/motor.dat
-	touch $(MX_INSTALL_DIR)/etc/scan.dat
+	touch $(MX_INSTALL_DIR)/etc/mxmotor.dat
+	touch $(MX_INSTALL_DIR)/etc/mxscan.dat
 	cp ../plotgnu/plotgnu.pl $(MX_INSTALL_DIR)/bin 
 	cp ../plotgnu/showdata $(MX_INSTALL_DIR)/bin 
 	cp ../plotgnu/showplot $(MX_INSTALL_DIR)/bin 

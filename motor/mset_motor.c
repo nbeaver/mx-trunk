@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2006, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -389,7 +389,7 @@ motor_set_motor( MX_RECORD *motor_record, int argc, char *argv[] )
 		return FAILURE;
 	}
 
-	/* Invoke the save motor function to save the 'motor.dat' file. */
+	/* Invoke the save motor function to save the 'mxmotor.dat' file. */
 
 	if ( allow_motor_database_updates ) {
 		snprintf( buffer, sizeof(buffer),

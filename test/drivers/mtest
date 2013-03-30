@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../../motor/mxmotor.static -F mtest.dat -S $HOME/scan.dat
+../../motor/mxmotor.static -F mtest.dat -S $HOME/mxscan.dat
 

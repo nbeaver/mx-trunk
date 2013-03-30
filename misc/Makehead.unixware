@@ -120,8 +120,8 @@ library_install:
 	/usr/ucb/install -m 644 $(MX_LIBRARY_STATIC_NAME) $(MX_INSTALL_DIR)/lib 
 	-( cd $(MX_INSTALL_DIR)/lib ; rm libMx.so )
 	( cd $(MX_INSTALL_DIR)/lib ; ln -sf $(MX_LIBRARY_NAME) libMx.so )
-	touch $(MX_INSTALL_DIR)/etc/motor.dat
-	touch $(MX_INSTALL_DIR)/etc/scan.dat
+	touch $(MX_INSTALL_DIR)/etc/mxmotor.dat
+	touch $(MX_INSTALL_DIR)/etc/mxscan.dat
 	/usr/ucb/install -m 755 ../plotgnu/plotgnu.pl $(MX_INSTALL_DIR)/bin 
 	/usr/ucb/install -m 755 ../plotgnu/showdata $(MX_INSTALL_DIR)/bin 
 	/usr/ucb/install -m 755 ../plotgnu/showplot $(MX_INSTALL_DIR)/bin 
