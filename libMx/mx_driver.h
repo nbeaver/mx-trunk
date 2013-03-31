@@ -18,7 +18,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2012 Illinois Institute of Technology
+ * Copyright 1999-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -734,6 +734,8 @@ extern "C" {
 #define MXS_QUI_MCS			407001
 
 #define MXS_QUI_ENERGY_MCS		407103
+
+#define MXS_QUI_APS_ID			407201
 
 #define MXS_AD_WEDGE			409001
 

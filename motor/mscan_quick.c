@@ -7,7 +7,8 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2005-2006, 2009-2011 Illinois Institute of Technology
+ * Copyright 1999-2003, 2005-2006, 2009-2011, 2013
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,16 +27,12 @@
 
 #include "motor.h"
 #include "mdialog.h"
+#include "mx_module.h"
 #include "mx_array.h"
 #include "mx_scan_quick.h"
 #include "mx_mcs.h"
 #include "mx_variable.h"
 #include "d_mcs_scaler.h"
-
-#if HAVE_EPICS
-#include "mx_epics.h"
-#include "sq_joerger.h"
-#endif
 
 #define FREE_MOTOR_NAME_ARRAY \
 	do { \
@@ -113,7 +110,6 @@ motor_setup_quick_scan_parameters(
 	MX_MOTOR *motor;
 	MX_RECORD **motor_record_array;
 	MX_RECORD *first_input_device_record;
-	MX_RECORD *joerger_quick_scan_enable_record;
 	MX_RECORD *old_scan_record;
 	MX_QUICK_SCAN *quick_scan;
 	MX_LIST_HEAD *list_head_struct;
@@ -147,6 +143,9 @@ motor_setup_quick_scan_parameters(
 	mx_bool_type energy_pseudomotor_exists;
 	MX_RECORD *energy_record;
 
+	MX_MODULE *module;
+	mx_bool_type epics_aps_module_is_loaded;
+
 	long selection;
 
 	char **motor_name_array;
@@ -154,8 +153,6 @@ motor_setup_quick_scan_parameters(
 
 	static size_t name_element_size_array[2] = {
 		sizeof(char), sizeof(char *) };
-
-	mx_bool_type joerger_quick_scan_enabled;
 
 	int default_precision;
 	long default_long;
@@ -171,12 +168,25 @@ motor_setup_quick_scan_parameters(
 
 	default_precision = (int) list_head_struct->default_precision;
 
+	/* Is the 'epics_aps' module loaded?  If so, then we can use
+	 * MXS_QUI_APS_ID quick scans.
+	 *
+	 * FIXME: We need a more elegant way to setup custom scan types.
+	 *        Perhaps we should go out and enumerate the available
+	 *        quick scan datatypes in the list of drivers.
+	 */
+
+	mx_status = mx_get_module( "epics_aps", old_scan->record, &module );
+
+	if ( module == (MX_MODULE *) NULL ) {
+		epics_aps_module_is_loaded = FALSE;
+	} else {
+		epics_aps_module_is_loaded = TRUE;
+	}
+
 	/* Get the scan type. */
 
 	scan_class = MXS_QUICK_SCAN;
-
-	joerger_quick_scan_enable_record = NULL;
-	joerger_quick_scan_enabled = FALSE;
 
 	energy_pseudomotor_exists = FALSE;
 
@@ -190,29 +200,10 @@ motor_setup_quick_scan_parameters(
 
 	if ( old_scan == (MX_SCAN *) NULL ) {
 
-#if HAVE_EPICS
-		joerger_quick_scan_enable_record = mx_get_record(
-					motor_record_list,
-					MX_JOERGER_QUICK_SCAN_ENABLE_RECORD );
+		if ( energy_pseudomotor_exists ) {
 
-		if ( joerger_quick_scan_enable_record != (MX_RECORD *) NULL ) {
-			mx_status = mx_get_bool_variable(
-					joerger_quick_scan_enable_record,
-					&joerger_quick_scan_enabled );
-		}
+		    if ( epics_aps_module_is_loaded ) {
 
-		if ( joerger_quick_scan_enabled ) {
-			fprintf(output,
-				"Select scan type:\n"
-				"    1.  MCS quick scan.\n"
-				"    2.  Energy MCS quick scan.\n"
-				"    3.  APS insertion device quick scan.\n"
-				"    4.  Joerger quick scan.\n"
-				"\n");
-
-			status = motor_get_long( output, "--> ", TRUE, 1,
-						&selection, 1, 4 );
-		} else {
 			fprintf(output,
 				"Select scan type:\n"
 				"    1.  MCS quick scan.\n"
@@ -222,11 +213,7 @@ motor_setup_quick_scan_parameters(
 
 			status = motor_get_long( output, "--> ", TRUE, 1,
 						&selection, 1, 3 );
-		}
-#else
-		/* Not HAVE_EPICS */
-
-		if ( energy_pseudomotor_exists ) {
+		    } else {
 			fprintf(output,
 				"Select scan type:\n"
 				"    1.  MCS quick scan.\n"
@@ -235,10 +222,10 @@ motor_setup_quick_scan_parameters(
 
 			status = motor_get_long( output, "--> ", TRUE, 1,
 						&selection, 1, 2 );
+		    }
 		} else {
 			selection = 1;
 		}
-#endif
 
 		if ( status == FAILURE ) {
 			return FAILURE;
@@ -250,13 +237,8 @@ motor_setup_quick_scan_parameters(
 		case 2:
 			scan_type = MXS_QUI_ENERGY_MCS;
 			break;
-#if 0
 		case 3:
 			scan_type = MXS_QUI_APS_ID;
-			break;
-		case 4:
-			scan_type = MXS_QUI_JOERGER;
-#endif
 			break;
 		default:
 			fprintf( output,
@@ -296,10 +278,7 @@ motor_setup_quick_scan_parameters(
 	switch( scan_type ) {
 	case MXS_QUI_MCS:
 	case MXS_QUI_ENERGY_MCS:
-#if 0
-	case MXS_QUI_JOERGER:
 	case MXS_QUI_APS_ID:
-#endif
 		scan_num_independent_variables = 1;
 		scan_num_motors = 1;
 		break;
@@ -327,18 +306,11 @@ motor_setup_quick_scan_parameters(
 				"energy_mcs_qscan \"\" \"\" ",
 				record_description_buffer_length );
 		break;
-#if 0
-	case MXS_QUI_JOERGER:
-		strlcat( record_description_buffer,
-				"joerger_qscan \"\" \"\" ",
-				record_description_buffer_length );
-		break;
 	case MXS_QUI_APS_ID:
 		strlcat( record_description_buffer,
 				"aps_id_qscan \"\" \"\" ",
 				record_description_buffer_length );
 		break;
-#endif
 	default:
 		fprintf( output, "Unknown quick scan type = %ld\n",
 			scan_type );
@@ -694,15 +666,6 @@ motor_setup_quick_scan_parameters(
 	 * data files and plot types.
 	 */
 
-#if 0
-	if ( scan_type == MXS_QUI_JOERGER ) {
-		fprintf( output,
-"\n"
-"For Joerger quick scans, the first input device must be the Joerger timer,\n"
-"while the other input devices must be Joerger scalers.\n\n" );
-	}
-#endif
-
 	first_input_device_record = NULL;
 
 	if ( input_devices_string != NULL ) {
@@ -740,9 +703,7 @@ motor_setup_quick_scan_parameters(
 	} else {
 	    switch ( scan_type ) {
 	    case MXS_QUI_MCS:
-#if 0
 	    case MXS_QUI_APS_ID:
-#endif
 		if ( first_input_device_record == NULL ) {
 			strlcpy( default_clock_name, "timer1",
 						sizeof(default_clock_name) );
