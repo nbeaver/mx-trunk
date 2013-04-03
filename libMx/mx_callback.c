@@ -2561,7 +2561,7 @@ mx_poll_callback_handler( MX_CALLBACK_MESSAGE *callback_message )
 			fname, i, handle_struct, handle, callback));
 #endif
 
-#if 1
+#if 0
 	    if ( ((long) callback) < 100L ) {
 		mx_breakpoint();
 	    }
