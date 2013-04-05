@@ -57,6 +57,7 @@
 #include "mx_pulse_generator.h"
 #include "mx_video_input.h"
 #include "mx_area_detector.h"
+#include "mx_area_detector_rdi.h"
 #include "d_radicon_taurus.h"
 
 /*---*/
