@@ -243,6 +243,7 @@ mx_rdi_correct_frame( MX_AREA_DETECTOR *ad,
 				minimum_pixel_value,
 				saturation_pixel_value,
 				rdi_flags );
+		break;
 				
 	case MXT_IMAGE_FORMAT_FLOAT:
 		mx_status = mx_rdi_flt_image_correction( ad,

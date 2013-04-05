@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2012 Illinois Institute of Technology
+ * Copyright 2012-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,8 +21,9 @@
 
 /* Values for the 'radicon_taurus_flags' field. */
 
-#define MXF_RADICON_TAURUS_DO_NOT_FLIP_IMAGE	0x1
-#define MXF_RADICON_TAURUS_SAVE_RAW_IMAGES	0x2
+#define MXF_RADICON_TAURUS_DO_NOT_FLIP_IMAGE		0x1
+#define MXF_RADICON_TAURUS_SAVE_RAW_IMAGES		0x2
+#define MXF_RADICON_TAURUS_USE_DOUBLE_CORRECTION	0x4  /* 64-bit reals */
 
 /* Values for the 'detector_model' field. */
 

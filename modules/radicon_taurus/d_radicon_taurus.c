@@ -32,6 +32,8 @@
 
 #define MXD_RADICON_TAURUS_DEBUG_READOUT_TIMING			FALSE
 
+#define MXD_RADICON_TAURUS_DEBUG_CORRECTION_TIMING		TRUE
+
 #define MXD_RADICON_TAURUS_DEBUG_SAVING_RAW_FILES_SETUP		FALSE
 
 #define MXD_RADICON_TAURUS_DEBUG_SAVING_RAW_FILES		FALSE
@@ -1989,7 +1991,12 @@ mxd_radicon_taurus_correct_frame( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_radicon_taurus_correct_frame()";
 
 	MX_RADICON_TAURUS *radicon_taurus = NULL;
+	unsigned long flags;
 	mx_status_type mx_status;
+
+#if MXD_RADICON_TAURUS_DEBUG_CORRECTION_TIMING
+	MX_HRT_TIMING correction_measurement;
+#endif
 
 	mx_status = mxd_radicon_taurus_get_pointers( ad,
 						&radicon_taurus, fname );
@@ -1997,9 +2004,28 @@ mxd_radicon_taurus_correct_frame( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	flags = radicon_taurus->radicon_taurus_flags;
+
+	if ( flags & MXF_RADICON_TAURUS_USE_DOUBLE_CORRECTION ) {
+		ad->correction_calc_format = MXT_IMAGE_FORMAT_DOUBLE;
+	} else {
+		ad->correction_calc_format = MXT_IMAGE_FORMAT_FLOAT;
+	}
+
+#if MXD_RADICON_TAURUS_DEBUG_CORRECTION_TIMING
+	MX_HRT_START( correction_measurement );
+#endif
+
 	mx_status = mx_rdi_correct_frame( ad,
 				radicon_taurus->minimum_pixel_value,
 				radicon_taurus->saturation_pixel_value, 0 );
+
+#if MXD_RADICON_TAURUS_DEBUG_CORRECTION_TIMING
+	MX_HRT_END( correction_measurement );
+
+	MX_HRT_RESULTS( correction_measurement, fname,
+		"for correction.  Taurus flags = %#x", flags );
+#endif
 
 	return mx_status;
 }
