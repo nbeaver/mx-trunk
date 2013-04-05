@@ -315,10 +315,6 @@ mx_initialize_callback_support( MX_RECORD *record )
 	double callback_timer_interval;
 	mx_status_type mx_status;
 
-#if 0
-	mx_breakpoint();
-#endif
-
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_RECORD pointer passed was NULL." );
@@ -2559,12 +2555,6 @@ mx_poll_callback_handler( MX_CALLBACK_MESSAGE *callback_message )
 	    MX_DEBUG(-2,
     ("%s: handle_struct_array[%lu] = %p, handle = %ld, callback = %p",
 			fname, i, handle_struct, handle, callback));
-#endif
-
-#if 0
-	    if ( ((long) callback) < 100L ) {
-		mx_breakpoint();
-	    }
 #endif
 
 	    /* If this callback has a timer interval,
