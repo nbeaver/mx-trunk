@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2008-2010, 2012 Illinois Institute of Technology
+ * Copyright 1999-2006, 2008-2010, 2012-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -35,6 +35,7 @@ static MX_DRIVER mx_superclass_table[] = {
 {"scan",             0, 0, MXR_SCAN,          NULL, NULL, NULL, NULL, NULL},
 {"variable",         0, 0, MXR_VARIABLE,      NULL, NULL, NULL, NULL, NULL},
 {"server",           0, 0, MXR_SERVER,        NULL, NULL, NULL, NULL, NULL},
+{"special",          0, 0, MXR_SPECIAL,       NULL, NULL, NULL, NULL, NULL},
 
 {"", 0, 0, 0, NULL, NULL, NULL, NULL, NULL}
 };
@@ -175,6 +176,11 @@ static MX_DRIVER mx_class_table[] = {
 {"spec",           0, MXN_SPEC,           MXR_SERVER,
 				NULL, NULL, NULL, NULL, NULL},
 {"bluice",         0, MXN_BLUICE,         MXR_SERVER,
+				NULL, NULL, NULL, NULL, NULL},
+
+  /* ================== Special classes ================== */
+
+{"program",        0, MXZ_PROGRAM, MXR_SPECIAL,
 				NULL, NULL, NULL, NULL, NULL},
 
 {"", 0, 0, 0, NULL, NULL, NULL, NULL, NULL}

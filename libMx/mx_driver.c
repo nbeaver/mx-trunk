@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2012 Illinois Institute of Technology
+ * Copyright 1999-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -519,6 +519,8 @@
 #include "n_bluice_dhs.h"
 #include "n_bluice_dhs_manager.h"
 #endif
+
+#include "z_external_command.h"
 
   /********************** Record Types **********************/
 
@@ -3895,6 +3897,14 @@ MX_DRIVER mx_type_table[] = {
 				&mxn_bluice_dhs_manager_num_record_fields,
 				&mxn_bluice_dhs_manager_rfield_def_ptr},
 #endif
+
+  /* =================== Special driver types ================== */
+
+{"external_command", MXZ_PRG_EXTERNAL_COMMAND, MXZ_PROGRAM, MXR_SPECIAL,
+				&mxz_external_command_record_function_list,
+				NULL, NULL,
+				&mxz_external_command_num_record_fields,
+				&mxz_external_command_rfield_def_ptr},
 
 {"", 0, 0, 0, NULL, NULL, NULL, NULL, NULL}
 };

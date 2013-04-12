@@ -148,7 +148,7 @@ extern "C" {
 
 /* --- Special classes --- */
 
-#define MXZ_GROUP			91
+#define MXZ_PROGRAM			91
 
 /* --- List head type --- */
 
@@ -838,7 +838,7 @@ extern "C" {
 
 /* --- Special types --- */
 
-#define MXZ_GRP_STANDARD		700001
+#define MXZ_PRG_EXTERNAL_COMMAND	700001
 
 #ifdef __cplusplus
 }

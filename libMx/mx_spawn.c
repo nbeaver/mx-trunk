@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2006, 2009-2010 Illinois Institute of Technology
+ * Copyright 2006, 2009-2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -691,8 +691,15 @@ mx_wait_for_process_id( unsigned long process_id,
 	TCHAR message_buffer[100];
 	mx_status_type mx_status;
 
+	/* FIXME: We shouldn't need PROCESS_ALL_ACCESS. */
+
+#if 0
 	process_handle = OpenProcess( PROCESS_QUERY_INFORMATION,
 					FALSE, process_id );
+#else
+	process_handle = OpenProcess( PROCESS_ALL_ACCESS,
+					FALSE, process_id );
+#endif
 
 	if ( process_handle == NULL ) {
 		last_error_code = GetLastError();
