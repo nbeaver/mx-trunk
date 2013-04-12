@@ -9,7 +9,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2011-2012 Illinois Institute of Technology
+ * Copyright 2011-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -146,6 +146,13 @@ mxd_doutput_pulser_update_internal_state( MX_PULSE_GENERATOR *pulser,
 	 */
 
 	if ( pulser->busy == FALSE )
+		return MX_SUCCESSFUL_RESULT;
+
+	/* If we are configured to count forever, then leave the busy flag
+	 * alone and return.
+	 */
+
+	if ( pulser->num_pulses == MXF_PGN_FOREVER )
 		return MX_SUCCESSFUL_RESULT;
 
 	/* If we are busy, has the time of the next state transition
