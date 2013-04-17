@@ -135,25 +135,22 @@ mxd_doutput_pulser_update_internal_state( MX_PULSE_GENERATOR *pulser,
 
 #if MXD_DOUTPUT_PULSER_DEBUG
 	MX_DEBUG(-2,("%s invoked for '%s', busy = %d, "
-		"doutput_is_high = %d, num_pulses_left = %ld",
+		"doutput_is_high = %d, num_pulses_left = %ld, "
+		"count_forever = %d",
 			fname, pulser->record->name, pulser->busy,
 			(int) doutput_pulser->doutput_is_high,
-			doutput_pulser->num_pulses_left));
+			doutput_pulser->num_pulses_left,
+			doutput_pulser->count_forever));
 #endif
 
 	/* If we are marked as not busy, then there is nothing for us
 	 * to do.
 	 */
 
-	if ( pulser->busy == FALSE )
+	if ( pulser->busy == FALSE ) {
+		doutput_pulser->count_forever = FALSE;   /* Just to be sure */
 		return MX_SUCCESSFUL_RESULT;
-
-	/* If we are configured to count forever, then leave the busy flag
-	 * alone and return.
-	 */
-
-	if ( pulser->num_pulses == MXF_PGN_FOREVER )
-		return MX_SUCCESSFUL_RESULT;
+	}
 
 	/* If we are busy, has the time of the next state transition
 	 * arrived yet?
@@ -194,7 +191,11 @@ mxd_doutput_pulser_update_internal_state( MX_PULSE_GENERATOR *pulser,
 				pulser->pulse_period - pulser->pulse_width;
 
 		if ( doutput_pulser->num_pulses_left == 0 ) {
-			pulser->busy = FALSE;
+			if ( doutput_pulser->count_forever ) {
+				pulser->busy = TRUE;
+			} else {
+				pulser->busy = FALSE;
+			}
 		}
 	} else {
 		doutput_pulser->doutput_is_high = TRUE;
@@ -406,6 +407,9 @@ mxd_doutput_pulser_open( MX_RECORD *record )
 		return mx_status;
 
 	doutput_pulser->doutput_is_high = FALSE;
+	doutput_pulser->next_transition_timespec = mx_high_resolution_time();
+	doutput_pulser->num_pulses_left = 0;
+	doutput_pulser->count_forever = FALSE;
 	pulser->busy = FALSE;
 
 	/* See if callbacks are enabled. */
@@ -570,6 +574,12 @@ mxd_doutput_pulser_start( MX_PULSE_GENERATOR *pulser )
 	doutput_pulser->next_transition_timespec = mx_high_resolution_time();
 	doutput_pulser->num_pulses_left          = pulser->num_pulses;
 
+	if ( pulser->num_pulses == MXF_PGN_FOREVER ) {
+		doutput_pulser->count_forever = TRUE;
+	} else {
+		doutput_pulser->count_forever = FALSE;
+	}
+
 	/* Tell the pulse generator to start the first pulse. */
 
 	mx_status = mxd_doutput_pulser_update_internal_state( pulser,
@@ -611,6 +621,7 @@ mxd_doutput_pulser_stop( MX_PULSE_GENERATOR *pulser )
 	doutput_pulser->doutput_is_high          = FALSE;
 	doutput_pulser->next_transition_timespec = mx_high_resolution_time();
 	doutput_pulser->num_pulses_left          = 0;
+	doutput_pulser->count_forever            = FALSE;
 
 	return MX_SUCCESSFUL_RESULT;
 }

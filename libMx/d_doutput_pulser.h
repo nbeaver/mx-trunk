@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2011 Illinois Institute of Technology
+ * Copyright 2011, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,6 +34,7 @@ typedef struct {
 	mx_bool_type doutput_is_high;
 	struct timespec next_transition_timespec;
 	long num_pulses_left;
+	mx_bool_type count_forever;
 } MX_DOUTPUT_PULSER;
 
 /* Define all of the interface functions. */
