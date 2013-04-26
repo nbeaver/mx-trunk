@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2007-2012 Illinois Institute of Technology
+ * Copyright 2007-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
+#if defined(OS_WIN32)
+#include <windows.h>
+#endif
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -30,6 +34,8 @@
 
 /*-------------------------------------------------------------------------*/
 
+static int client_callback_num_beeps = 0;
+
 static mx_status_type
 client_callback_function( MX_CALLBACK *callback, void *argument )
 {
@@ -39,6 +45,7 @@ client_callback_function( MX_CALLBACK *callback, void *argument )
 	MX_TCPIP_SERVER *tcpip_server;
 	char server_id[500];
 	char value_string[200];
+	int i;
 	mx_status_type mx_status;
 
 	if ( callback->callback_class != MXCBC_NETWORK ) {
@@ -69,6 +76,17 @@ client_callback_function( MX_CALLBACK *callback, void *argument )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		exit( mx_status.code );
+
+	for( i = 0; i < client_callback_num_beeps; i++ ) {
+
+#if defined(OS_WIN32)
+		Beep( 440, 200 );
+#else
+		fprintf( stderr, "\a" );
+#endif
+
+		mx_msleep( 200 );
+	}
 
 	mx_info( "callback %#lx: '%s:%s' = '%s'",
 		(unsigned long) callback->callback_id,
@@ -571,7 +589,7 @@ main( int argc, char *argv[] )
 	interactive = TRUE;
 	show_timestamp = FALSE;
 
-	while ( (c = getopt(argc, argv, "aADitx")) != -1 )
+	while ( (c = getopt(argc, argv, "aAb:BDitx")) != -1 )
 	{
 		switch (c) {
 		case 'a':
@@ -579,6 +597,17 @@ main( int argc, char *argv[] )
 			break;
 		case 'A':
 			network_debug_flags = MXF_NETWORK_SERVER_DEBUG_VERBOSE;
+			break;
+
+			/* Note: client_callback_num_beeps is a global variable
+			 * declared just before the callback function at the
+			 * start of this file.
+			 */
+		case 'b':
+			client_callback_num_beeps = atoi( optarg );
+			break;
+		case 'B':
+			client_callback_num_beeps = 1;
 			break;
 		case 'D':
 			start_debugger = TRUE;
