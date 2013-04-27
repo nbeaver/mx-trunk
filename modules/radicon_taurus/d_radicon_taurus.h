@@ -21,9 +21,8 @@
 
 /* Values for the 'radicon_taurus_flags' field. */
 
-#define MXF_RADICON_TAURUS_DO_NOT_FLIP_IMAGE		0x1
+#define MXF_RADICON_TAURUS_USE_DOUBLE_CORRECTION	0x1  /* 64-bit reals */
 #define MXF_RADICON_TAURUS_SAVE_RAW_IMAGES		0x2
-#define MXF_RADICON_TAURUS_USE_DOUBLE_CORRECTION	0x4  /* 64-bit reals */
 
 /* Values for the 'detector_model' field. */
 
@@ -31,6 +30,7 @@
 #define MXT_RADICON_XINEOS	2
 
 #define MXU_RADICON_TAURUS_SERIAL_NUMBER_LENGTH		40
+#define MXU_RADICON_TAURUS_TRANSFORM_TYPE_LENGTH	40
 
 #define MXF_RADICON_TAURUS_MINIMUM_EXPOSURE_TIME	4
 
@@ -47,8 +47,13 @@ typedef struct {
 	MX_RECORD *serial_port_record;
 	unsigned long radicon_taurus_flags;
 	char pulser_record_name[MXU_RECORD_NAME_LENGTH+1];
+	char transform_type_string[MXU_RADICON_TAURUS_TRANSFORM_TYPE_LENGTH+1];
 
 	MX_RECORD *pulser_record;
+
+	mx_bool_type reflect_vertical;
+	mx_bool_type reflect_horizontal;
+	long rotation_angle;
 
 	unsigned long detector_model;
 	char serial_number[MXU_RADICON_TAURUS_SERIAL_NUMBER_LENGTH+1];
@@ -69,13 +74,15 @@ typedef struct {
 
 	MX_IMAGE_FRAME *video_frame;
 
+	uint16_t **video_array_overlay;
+	uint16_t **ad_array_overlay;
+
 	mx_bool_type use_different_si2_value;
 
 	mx_bool_type bypass_arm;
 	mx_bool_type use_video_frames;
 	mx_bool_type have_get_commands;
 	mx_bool_type poll_pulser_status;
-	mx_bool_type flip_image;
 
 	long old_total_num_frames;
 	unsigned long old_status;
@@ -113,11 +120,18 @@ typedef struct {
 		offsetof(MX_RADICON_TAURUS, radicon_taurus_flags), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "pulser_record_name", MXFT_STRING, \
-				NULL, 1, {MXU_RECORD_NAME_LENGTH}, \
+  {-1, -1, "pulser_record_name", MXFT_STRING, NULL, \
+				1, {MXU_RECORD_NAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_RADICON_TAURUS, pulser_record_name), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
+	{sizeof(char)}, NULL, \
+		(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
+  \
+  {-1, -1, "tranform_type_string", MXFT_STRING, NULL, \
+				1, {MXU_RADICON_TAURUS_TRANSFORM_TYPE_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_RADICON_TAURUS, transform_type_string), \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_READ_ONLY)}, \
   \
   {-1, -1, "detector_model", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, detector_model), \
@@ -195,9 +209,17 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, poll_pulser_status), \
 	{0}, NULL, 0 }, \
   \
-  {-1, -1, "flip_image", MXFT_BOOL, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, flip_image), \
-	{0}, NULL, 0 }, \
+  {-1, -1, "reflect_vertical", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, reflect_vertical), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "reflect_horizontal", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, reflect_horizontal), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "rotation_angle", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, rotation_angle), \
+	{0}, NULL, MXFF_READ_ONLY }, \
   \
   {-1, -1, "raw_file_directory", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, raw_file_directory), \

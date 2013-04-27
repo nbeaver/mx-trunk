@@ -44,6 +44,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -55,6 +56,7 @@
 #include "mx_cfn.h"
 #include "mx_motor.h"
 #include "mx_image.h"
+#include "mx_array.h"
 #include "mx_rs232.h"
 #include "mx_pulse_generator.h"
 #include "mx_video_input.h"
@@ -214,6 +216,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	char non_uniformity_filename[MXU_FILENAME_LENGTH+1];
 	long vinput_framesize[2];
 	long video_framesize[2];
+	long array_dimensions[2];
 	long i;
 	char c;
 	double serial_delay_in_seconds;
@@ -221,9 +224,12 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	char command[100];
 	char response[100];
 	char *string_value_ptr;
+	void *void_array_ptr;
 	unsigned long flags;
 	mx_bool_type response_seen;
 	mx_status_type mx_status;
+
+	size_t uint16_sizeof_array[2] = {sizeof(uint16_t), sizeof(uint16_t *)};
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -545,14 +551,40 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Turn on vertical flipping of the image by default. */
+	/* Figure out what kind of image transformation we are performing. */
+
+	radicon_taurus->reflect_vertical = FALSE;
+	radicon_taurus->reflect_horizontal = FALSE;
+	radicon_taurus->rotation_angle = 0;
 
 	flags = radicon_taurus->radicon_taurus_flags;
 
-	if ( flags & MXF_RADICON_TAURUS_DO_NOT_FLIP_IMAGE ) {
-		radicon_taurus->flip_image = FALSE;
+	/* FIXME: The string parsing is inflexible. */
+
+	string_value_ptr = radicon_taurus->transform_type_string;
+
+	if ( strlen( string_value_ptr ) == 0 ) {
+		/* Do nothing. */
+	} else
+	if ( strcmp( string_value_ptr, "reflectvert" ) == 0 ) {
+		radicon_taurus->reflect_vertical = TRUE;
+	} else
+	if ( strcmp( string_value_ptr, "reflectvert,rot90" ) == 0 ) {
+		radicon_taurus->reflect_vertical = TRUE;
+		radicon_taurus->rotation_angle = 90;
 	} else {
-		radicon_taurus->flip_image = TRUE;
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Illegal transform type string '%s' for detector '%s'.",
+			string_value_ptr, record->name );
+	}
+
+	if ( (radicon_taurus->rotation_angle % 90) != 0 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Rotation angle %d is not available, since only multiples "
+		"of 90 degrees are allowed for the "
+		"rotation angle of detector '%s'",
+			radicon_taurus->rotation_angle,
+			record->name );
 	}
 
 	/*---*/
@@ -586,11 +618,21 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	video_framesize[1] = 2964;
 
 	if ( radicon_taurus->use_video_frames ) {
-		ad->maximum_framesize[0] = video_framesize[0];
-		ad->maximum_framesize[1] = video_framesize[1];
+		if ( (radicon_taurus->rotation_angle % 180) == 0 ) {
+			ad->maximum_framesize[0] = video_framesize[0];
+			ad->maximum_framesize[1] = video_framesize[1];
+		} else {
+			ad->maximum_framesize[0] = video_framesize[1];
+			ad->maximum_framesize[1] = video_framesize[0];
+		}
 	} else {
-		ad->maximum_framesize[0] = 2820;
-		ad->maximum_framesize[1] = 2952;
+		if ( (radicon_taurus->rotation_angle % 180) == 0 ) {
+			ad->maximum_framesize[0] = 2820;
+			ad->maximum_framesize[1] = 2952;
+		} else {
+			ad->maximum_framesize[0] = 2952;
+			ad->maximum_framesize[1] = 2820;
+		}
 	}
 
 	ad->framesize[0] = ad->maximum_framesize[0];
@@ -770,6 +812,58 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	MXIF_ROW_BINSIZE(radicon_taurus->video_frame) = 1;
 	MXIF_COLUMN_BINSIZE(radicon_taurus->video_frame) = 1;
 	MXIF_BITS_PER_PIXEL(radicon_taurus->video_frame) = ad->bits_per_pixel;
+
+	/* Create the area detector image array now, since we want to
+	 * setup an array overlay for it.
+	 */
+
+	mx_status = mx_image_alloc( &(ad->image_frame),
+					ad->framesize[0],
+					ad->framesize[1],
+					ad->image_format,
+					ad->byte_order,
+					ad->bytes_per_pixel,
+					ad->header_length,
+					ad->bytes_per_frame );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Create two dimensional array overlays for the video frame
+	 * and the area detector frame.
+	 */
+
+	MX_DEBUG(-2,("%s: vinput_framesize = (%ld,%ld)",
+		fname, vinput_framesize[0], vinput_framesize[1]));
+
+	array_dimensions[0] = vinput_framesize[1];
+	array_dimensions[1] = vinput_framesize[0];
+
+	mx_status = mx_array_add_overlay(
+			radicon_taurus->video_frame->image_data,
+			2, array_dimensions, uint16_sizeof_array,
+			&void_array_ptr );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	radicon_taurus->video_array_overlay = void_array_ptr;
+
+	MX_DEBUG(-2,("%s: ad->framesize = (%ld,%ld)",
+		fname, ad->framesize[0], ad->framesize[1]));
+
+	array_dimensions[0] = ad->framesize[1];
+	array_dimensions[1] = ad->framesize[0];
+
+	mx_status = mx_array_add_overlay(
+			ad->image_frame->image_data,
+			2, array_dimensions, uint16_sizeof_array,
+			&void_array_ptr );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	radicon_taurus->ad_array_overlay = void_array_ptr;
 
 	/* Zero out the ROI boundaries. */
 
@@ -1827,10 +1921,14 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 
 		uint16_t *video_frame_buffer, *trimmed_frame_buffer;
 		uint16_t *video_ptr, *trimmed_ptr;
+		uint16_t **video_array, **ad_array;
 		long video_row_framesize, video_column_framesize;
 		long trimmed_row_framesize, trimmed_column_framesize;
 		long trimmed_row_bytesize;
-		long trimmed_row, row_offset, column_offset;
+		long trimmed_row, trimmed_column;
+		long row_offset, column_offset;
+		long rotated_row_offset, rotated_column_offset;
+		long video_row, video_column;
 		long flipped_trimmed_row;
 
 #if MXD_RADICON_TAURUS_DEBUG_READOUT_TIMING
@@ -1867,48 +1965,137 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 		trimmed_row_bytesize = mx_round( 
 			trimmed_row_framesize * ad->bytes_per_pixel );
 
+		/*----*/
+
 		column_offset =
 		    (video_row_framesize - trimmed_row_framesize) / 2;
 
 		row_offset =
 		    (video_column_framesize - trimmed_column_framesize) / 2;
 
+		/*----*/
+
+		rotated_column_offset =
+		    (video_row_framesize - trimmed_column_framesize) / 2;
+
+		rotated_row_offset = 
+		    (video_column_framesize - trimmed_row_framesize) / 2;
+
+		/*----*/
+
 		video_frame_buffer = radicon_taurus->video_frame->image_data;
 
 		trimmed_frame_buffer = ad->image_frame->image_data;
 
-		/* Note: In the following section, we have two slightly
+		/*----*/
+
+		video_array = radicon_taurus->video_array_overlay;
+		ad_array    = radicon_taurus->ad_array_overlay;
+
+		/* Note: In the following section, we have several slightly
 		 * different versions of the code inside the for() loops,
-		 * depending on whether or not we want to flip the image.
+		 * depending on how we want to modify the raw image.
+		 *
 		 * We have written the code this way since putting an if()
 		 * test in the body of a loop can be a performance killer.
 		 */
 
-		if ( radicon_taurus->flip_image ) {
+		if ( radicon_taurus->reflect_horizontal ) {
+		    return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		    "Horizontal reflection not available for detector '%s'.",
+			ad->record->name );
+
+		} else
+		if ( radicon_taurus->reflect_vertical ) {
 
 		    /* While copying the image to the trimmed frame buffer,
-		     * we _flip_ the image vertically.
+		     * we reflect the image vertically.
 		     */
 
-		    for ( trimmed_row = 0;
-			trimmed_row < trimmed_column_framesize;
-			trimmed_row++ )
-		    {
-			trimmed_ptr = trimmed_frame_buffer
+		    if ( radicon_taurus->rotation_angle == 0 ) {
+			/* Vertical reflection without rotation. */
+
+		        for ( trimmed_row = 0;
+			    trimmed_row < trimmed_column_framesize;
+			    trimmed_row++ )
+		        {
+			    trimmed_ptr = trimmed_frame_buffer
 				+ trimmed_row * trimmed_row_framesize;
 
-			flipped_trimmed_row = trimmed_column_framesize
+			    flipped_trimmed_row = trimmed_column_framesize
 							- trimmed_row - 1;
 			
-			video_ptr = video_frame_buffer
+			    video_ptr = video_frame_buffer
 				+ row_offset * video_row_framesize
 				+ flipped_trimmed_row * video_row_framesize
 				+ column_offset;
 
-			memcpy( trimmed_ptr, video_ptr, trimmed_row_bytesize );
+			    memcpy( trimmed_ptr, video_ptr,
+						trimmed_row_bytesize );
+		        }
+		    } else
+		    if ( radicon_taurus->rotation_angle == 90 ) {
+
+			/* Vertical reflection followed by 90 degree
+			 * rotation (counterclockwise).
+			 */
+
+			for ( trimmed_row = 0;
+			    trimmed_row < trimmed_column_framesize;
+			    trimmed_row++ )
+			{
+			    for ( trimmed_column = 0;
+				trimmed_column < trimmed_row_framesize;
+				trimmed_column++ )
+			    {
+				video_row = video_column_framesize
+				    - trimmed_column - rotated_row_offset - 1;
+
+				video_column = video_row_framesize
+				    - trimmed_row - rotated_column_offset - 1;
+
+				ad_array[ trimmed_row ][ trimmed_column ] =
+				    video_array[ video_row ][ video_column ];
+			    }
+			}
+		    } else
+		    if ( radicon_taurus->rotation_angle == 270 ) {
+
+			/* Vertical reflection followed by 270 degree
+			 * rotation (counterclockwise).
+			 */
+
+			for ( trimmed_row = 0;
+			    trimmed_row < trimmed_column_framesize;
+			    trimmed_row++ )
+			{
+			    for ( trimmed_column = 0;
+				trimmed_column < trimmed_row_framesize;
+				trimmed_column++ )
+			    {
+				video_row = trimmed_column + rotated_row_offset;
+				video_column =
+					trimmed_row + rotated_column_offset;
+
+				ad_array[ trimmed_row ][ trimmed_column ] =
+				    video_array[ video_row ][ video_column ];
+			    }
+			}
+		    } else {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Vertical reflection with %ld degree rotation "
+			"is not available for detector '%s'.",
+				radicon_taurus->rotation_angle,
+				ad->record->name );
 		    }
 		} else {
-		    /* Do _not_ flip the image vertically. */
+		    /* No mirror reflections. */
+
+		    if ( radicon_taurus->rotation_angle != 0 ) {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Rotation without reflection is not available "
+			"for detector '%s'.", ad->record->name );
+		    }
 
 		    for ( trimmed_row = 0;
 			trimmed_row < trimmed_column_framesize;
@@ -2053,15 +2240,8 @@ mxd_radicon_taurus_get_parameter( MX_AREA_DETECTOR *ad )
 
 	switch( ad->parameter_type ) {
 	case MXLV_AD_FRAMESIZE:
-		if ( radicon_taurus->use_video_frames ) {
-			mx_status = mx_video_input_get_framesize(
-				video_input_record,
-				&(ad->framesize[0]),
-				&(ad->framesize[1]) );
-		} else {
-			ad->framesize[0] = ad->maximum_framesize[0];
-			ad->framesize[1] = ad->maximum_framesize[1];
-		}
+		ad->framesize[0] = ad->maximum_framesize[0];
+		ad->framesize[1] = ad->maximum_framesize[1];
 		break;
 	case MXLV_AD_IMAGE_FORMAT:
 	case MXLV_AD_IMAGE_FORMAT_NAME:
@@ -2146,6 +2326,9 @@ mxd_radicon_taurus_set_parameter( MX_AREA_DETECTOR *ad )
 		switch( radicon_taurus->detector_model ) {
 		case MXT_RADICON_TAURUS:
 			/* The Taurus detector does not support binning. */
+
+			ad->framesize[0] = ad->maximum_framesize[0];
+			ad->framesize[1] = ad->maximum_framesize[1];
 
 			ad->binsize[0] = 1;
 			ad->binsize[1] = 1;
