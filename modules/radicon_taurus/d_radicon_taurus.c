@@ -30,7 +30,7 @@
 
 #define MXD_RADICON_TAURUS_DEBUG_EXTENDED_STATUS_WHEN_CHANGED	TRUE
 
-#define MXD_RADICON_TAURUS_DEBUG_READOUT_TIMING			FALSE
+#define MXD_RADICON_TAURUS_DEBUG_READOUT_TIMING			TRUE
 
 #define MXD_RADICON_TAURUS_DEBUG_CORRECTION_TIMING		TRUE
 
@@ -1919,17 +1919,17 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 	} else {
 		/* We generate trimmed frames instead. */
 
-		uint16_t *video_frame_buffer, *trimmed_frame_buffer;
-		uint16_t *video_ptr, *trimmed_ptr;
+		uint16_t *video_frame_buffer, *ad_frame_buffer;
+		uint16_t *video_ptr, *ad_ptr;
 		uint16_t **video_array, **ad_array;
 		long video_row_framesize, video_column_framesize;
-		long trimmed_row_framesize, trimmed_column_framesize;
-		long trimmed_row_bytesize;
-		long trimmed_row, trimmed_column;
+		long ad_row_framesize, ad_column_framesize;
+		long ad_row_bytesize;
+		long ad_row, ad_column;
 		long row_offset, column_offset;
 		long rotated_row_offset, rotated_column_offset;
 		long video_row, video_column;
-		long flipped_trimmed_row;
+		long flipped_ad_row;
 
 #if MXD_RADICON_TAURUS_DEBUG_READOUT_TIMING
 		MX_HRT_START(readout_measurement);
@@ -1959,33 +1959,33 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 		video_column_framesize =
 			MXIF_COLUMN_FRAMESIZE(radicon_taurus->video_frame);
 
-		trimmed_row_framesize    = ad->framesize[0];
-		trimmed_column_framesize = ad->framesize[1];
+		ad_row_framesize    = ad->framesize[0];
+		ad_column_framesize = ad->framesize[1];
 
-		trimmed_row_bytesize = mx_round( 
-			trimmed_row_framesize * ad->bytes_per_pixel );
+		ad_row_bytesize = mx_round( 
+			ad_row_framesize * ad->bytes_per_pixel );
 
 		/*----*/
 
 		column_offset =
-		    (video_row_framesize - trimmed_row_framesize) / 2;
+		    (video_row_framesize - ad_row_framesize) / 2;
 
 		row_offset =
-		    (video_column_framesize - trimmed_column_framesize) / 2;
+		    (video_column_framesize - ad_column_framesize) / 2;
 
 		/*----*/
 
 		rotated_column_offset =
-		    (video_row_framesize - trimmed_column_framesize) / 2;
+		    (video_row_framesize - ad_column_framesize) / 2;
 
 		rotated_row_offset = 
-		    (video_column_framesize - trimmed_row_framesize) / 2;
+		    (video_column_framesize - ad_row_framesize) / 2;
 
 		/*----*/
 
 		video_frame_buffer = radicon_taurus->video_frame->image_data;
 
-		trimmed_frame_buffer = ad->image_frame->image_data;
+		ad_frame_buffer = ad->image_frame->image_data;
 
 		/*----*/
 
@@ -2015,23 +2015,23 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 		    if ( radicon_taurus->rotation_angle == 0 ) {
 			/* Vertical reflection without rotation. */
 
-		        for ( trimmed_row = 0;
-			    trimmed_row < trimmed_column_framesize;
-			    trimmed_row++ )
+		        for ( ad_row = 0;
+			    ad_row < ad_column_framesize;
+			    ad_row++ )
 		        {
-			    trimmed_ptr = trimmed_frame_buffer
-				+ trimmed_row * trimmed_row_framesize;
+			    ad_ptr = ad_frame_buffer
+				+ ad_row * ad_row_framesize;
 
-			    flipped_trimmed_row = trimmed_column_framesize
-							- trimmed_row - 1;
+			    flipped_ad_row = ad_column_framesize
+							- ad_row - 1;
 			
 			    video_ptr = video_frame_buffer
 				+ row_offset * video_row_framesize
-				+ flipped_trimmed_row * video_row_framesize
+				+ flipped_ad_row * video_row_framesize
 				+ column_offset;
 
-			    memcpy( trimmed_ptr, video_ptr,
-						trimmed_row_bytesize );
+			    memcpy( ad_ptr, video_ptr,
+						ad_row_bytesize );
 		        }
 		    } else
 		    if ( radicon_taurus->rotation_angle == 90 ) {
@@ -2040,23 +2040,47 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 			 * rotation (counterclockwise).
 			 */
 
-			for ( trimmed_row = 0;
-			    trimmed_row < trimmed_column_framesize;
-			    trimmed_row++ )
+			for ( ad_row = 0;
+			    ad_row < ad_column_framesize;
+			    ad_row++ )
 			{
-			    for ( trimmed_column = 0;
-				trimmed_column < trimmed_row_framesize;
-				trimmed_column++ )
+#if 1
+			    ad_ptr = ad_frame_buffer
+				+ ad_row * ad_row_framesize;
+
+			    video_ptr = video_frame_buffer
+
+				+ ( ( video_column_framesize - 1 - 6 )
+					* video_row_framesize )
+
+				+ ( video_row_framesize - 1 - ad_row - 14 );
+				
+
+			    for ( ad_column = 0;
+				ad_column < ad_row_framesize;
+				ad_column++ )
+			    {
+				*ad_ptr = *video_ptr;
+
+				ad_ptr    += 1;
+
+				video_ptr -= video_row_framesize;
+			    }
+#else
+			    for ( ad_column = 0;
+				ad_column < ad_row_framesize;
+				ad_column++ )
 			    {
 				video_row = video_column_framesize
-				    - trimmed_column - rotated_row_offset - 1;
+				    - ad_column - rotated_row_offset - 1;
 
 				video_column = video_row_framesize
-				    - trimmed_row - rotated_column_offset - 1;
+				    - ad_row - rotated_column_offset - 1;
 
-				ad_array[ trimmed_row ][ trimmed_column ] =
+				ad_array[ ad_row ][ ad_column ] =
 				    video_array[ video_row ][ video_column ];
 			    }
+#endif
 			}
 		    } else
 		    if ( radicon_taurus->rotation_angle == 270 ) {
@@ -2065,19 +2089,19 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 			 * rotation (counterclockwise).
 			 */
 
-			for ( trimmed_row = 0;
-			    trimmed_row < trimmed_column_framesize;
-			    trimmed_row++ )
+			for ( ad_row = 0;
+			    ad_row < ad_column_framesize;
+			    ad_row++ )
 			{
-			    for ( trimmed_column = 0;
-				trimmed_column < trimmed_row_framesize;
-				trimmed_column++ )
+			    for ( ad_column = 0;
+				ad_column < ad_row_framesize;
+				ad_column++ )
 			    {
-				video_row = trimmed_column + rotated_row_offset;
+				video_row = ad_column + rotated_row_offset;
 				video_column =
-					trimmed_row + rotated_column_offset;
+					ad_row + rotated_column_offset;
 
-				ad_array[ trimmed_row ][ trimmed_column ] =
+				ad_array[ ad_row ][ ad_column ] =
 				    video_array[ video_row ][ video_column ];
 			    }
 			}
@@ -2097,19 +2121,19 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 			"for detector '%s'.", ad->record->name );
 		    }
 
-		    for ( trimmed_row = 0;
-			trimmed_row < trimmed_column_framesize;
-			trimmed_row++ )
+		    for ( ad_row = 0;
+			ad_row < ad_column_framesize;
+			ad_row++ )
 		    {
-			trimmed_ptr = trimmed_frame_buffer
-				+ trimmed_row * trimmed_row_framesize;
+			ad_ptr = ad_frame_buffer
+				+ ad_row * ad_row_framesize;
 			
 			video_ptr = video_frame_buffer
 				+ row_offset * video_row_framesize
-				+ trimmed_row * video_row_framesize
+				+ ad_row * video_row_framesize
 				+ column_offset;
 
-			memcpy( trimmed_ptr, video_ptr, trimmed_row_bytesize );
+			memcpy( ad_ptr, video_ptr, ad_row_bytesize );
 		    }
 		}
 
@@ -2157,9 +2181,14 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 	MX_HRT_END(save_raw_measurement);
 	MX_HRT_END(total_measurement);
 
-	MX_HRT_RESULTS( readout_measurement, fname, "for readout." );
+	MX_HRT_RESULTS( readout_measurement, fname,
+		"for readout (frame %ld).", ad->readout_frame );
 
+#if 1
+	if ( 1 ) {
+#else
 	if ( radicon_taurus->use_video_frames == FALSE ) {
+#endif
 		MX_HRT_RESULTS( trim_measurement, fname, "for trim." );
 	}
 

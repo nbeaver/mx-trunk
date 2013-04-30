@@ -1,5 +1,5 @@
 /*
- * Name:    d_sapera_lt_camera.c
+ * Name:    d_sapera_lt_camera.cpp
  *
  * Purpose: MX video input driver for a DALSA Sapera LT camera.
  *
@@ -17,6 +17,8 @@
 #define MXD_SAPERA_LT_CAMERA_DEBUG				FALSE
 
 #define MXD_SAPERA_LT_CAMERA_DEBUG_OPEN				FALSE
+
+#define MXD_SAPERA_LT_CAMERA_DEBUG_FRAME_BUFFER_ALLOCATION	TRUE
 
 #define MXD_SAPERA_LT_CAMERA_DEBUG_EXTENDED_EXPOSURE		FALSE
 
@@ -920,6 +922,11 @@ mxd_sapera_lt_camera_open( MX_RECORD *record )
 	/* Allocate the SapBuffer object which contains the raw image
 	 * data from all of the frames we take in a sequence.
 	 */
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG_FRAME_BUFFER_ALLOCATION
+	MX_DEBUG(-2,("%s: allocating %ld frame buffers for camera '%s'.",
+		fname, sapera_lt_camera->num_frame_buffers, record->name ));
+#endif
 
 	sapera_lt_camera->buffer =
 		new SapBufferWithTrash( sapera_lt_camera->num_frame_buffers,

@@ -1,5 +1,5 @@
 /*
- * Name:    d_sapera_lt_frame_grabber.c
+ * Name:    d_sapera_lt_frame_grabber.cpp
  *
  * Purpose: MX video input driver for a DALSA Sapera LT frame grabber.
  *
@@ -17,6 +17,8 @@
 #define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG				FALSE
 
 #define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN				FALSE
+
+#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_FRAME_BUFFER_ALLOCATION	TRUE
 
 #define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_ARM				FALSE
 
@@ -921,6 +923,11 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 	/* Create the SapBuffer object which contains the raw image data
 	 * from all of the frames we take in a sequence.
 	 */
+
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_FRAME_BUFFER_ALLOCATION
+	MX_DEBUG(-2,("%s: allocating %ld frame buffers for frame grabber '%s'.",
+	    fname, sapera_lt_frame_grabber->num_frame_buffers, record->name ));
+#endif
 
 	sapera_lt_frame_grabber->buffer =
 		new SapBuffer( sapera_lt_frame_grabber->num_frame_buffers,
