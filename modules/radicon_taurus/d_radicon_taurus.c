@@ -1931,6 +1931,12 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 		long video_row, video_column;
 		long flipped_ad_row;
 
+		long row_subframe, column_subframe;
+		long ad_row_subframe_width, ad_column_subframe_height;
+
+		long ad_row_start, ad_row_end;
+		long ad_column_start, ad_column_end;
+
 #if MXD_RADICON_TAURUS_DEBUG_READOUT_TIMING
 		MX_HRT_START(readout_measurement);
 #endif
@@ -2036,6 +2042,13 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 		    } else
 		    if ( radicon_taurus->rotation_angle == 90 ) {
 
+#if 0	/* Arrays not all in cache. */
+
+			/* NOTE: This does the calculation walking through
+			 * the video and area detector arrays in the most
+			 * obvious way.
+			 */
+
 			/* Vertical reflection followed by 90 degree
 			 * rotation (counterclockwise).
 			 */
@@ -2082,6 +2095,87 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 			    }
 #endif
 			}
+#else	/* Arrays all in cache. */
+
+			/* NOTE: This method divides up the area detector
+			 * and video frames into 64 subframes and does each
+			 * subframe separately.  The virtue of this method
+			 * is that during the process of each subframe
+			 * rotation, the source subarray and the destination
+			 * subarray all fit into the CPU cache, which makes
+			 * everything much faster.
+			 */
+
+			uint16_t num_row_subframes, num_column_subframes;
+
+			/* Vertical reflection followed by 90 degree
+			 * rotation (counterclockwise).
+			 */
+
+			num_row_subframes = 8;
+			num_column_subframes = 8;
+
+			ad_row_subframe_width =
+				ad_row_framesize / num_row_subframes;
+
+			ad_column_subframe_height =
+				ad_column_framesize / num_column_subframes;
+			
+			for ( column_subframe = 0;
+				column_subframe < num_column_subframes;
+				column_subframe++ )
+			{
+			    for ( row_subframe = 0;
+				row_subframe < num_row_subframes;
+				row_subframe++ )
+			    {
+				ad_row_start = column_subframe
+						* ad_column_subframe_height;
+
+				ad_row_end = ad_row_start
+						+ ad_column_subframe_height;
+
+				ad_column_start = row_subframe
+						* ad_row_subframe_width;
+
+				ad_column_end = ad_column_start
+						+ ad_row_subframe_width;
+
+				for ( ad_row = ad_row_start;
+					ad_row < ad_row_end;
+					ad_row++ )
+				{
+				    ad_ptr = ad_frame_buffer
+					+ ad_row * ad_row_framesize
+					+ ad_column_start;
+
+				    video_ptr = video_frame_buffer
+
+					+ ( ( video_column_framesize - 1 - 6 )
+						* video_row_framesize )
+
+					+ ( video_row_framesize - 1
+						- ad_row - 14 )
+
+					- ( ad_column_start
+						* video_row_framesize );
+
+				    for ( ad_column = ad_column_start;
+					ad_column < ad_column_end;
+					ad_column++ )
+				    {
+					*ad_ptr = *video_ptr;
+
+					ad_ptr    += 1;
+
+					video_ptr -= video_row_framesize;
+				    }
+				}
+			    }
+			}
+
+#endif	/* Cacheing. */
+
 		    } else
 		    if ( radicon_taurus->rotation_angle == 270 ) {
 

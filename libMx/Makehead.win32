@@ -34,8 +34,7 @@
 
 #
 # For now the initial definitions of INCLUDES and LIBRARIES should be near
-# the top.
-#
+# the top.  Please do not change the following two lines.
 INCLUDES  = $(MX_INCLUDES)
 LIBRARIES = $(WIN32_LIBS)
 
@@ -67,7 +66,13 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 #RUN_TIME_LIBRARY_FLAGS = -MTd	# statically linked LIBCMT (debugging version)
 
 #
-# 2.  Specify the architecture of the computer you are compiling on.  This is
+# 2.  Optionally turn on optimization.  We normally optimize for speed.
+#
+OPTIMIZE = -O2
+CFLAGS += $(OPTIMIZE)
+
+#
+# 3.  Specify the architecture of the computer you are compiling on.  This is
 #     used mostly to find the directories where platform-specific .LIB files
 #     are located.  Unfortunately, Visual Studio 2012 has changed the way
 #     these directories are laid out, so it has its own special case below.
@@ -80,7 +85,7 @@ MSDEV_ARCH	= x64
 #MSDEV_ARCH	= x64_vs2012
 
 #
-# 3.  You must specify the directory that the libraries for Microsoft
+# 4.  You must specify the directory that the libraries for Microsoft
 #     Visual C++ were installed in.  The name specified for Gnu Make
 #     _MUST_ _NOT_ contain any spaces in it, since Gnu Make does not
 #     handle such directory names well.  That is why the examples below
