@@ -56,6 +56,8 @@ MX_API mx_status_type mx_rdi_flt_image_correction( MX_AREA_DETECTOR *ad,
 					float saturation_pixel_value,
 					unsigned long rdi_flags );
 
+MX_API mx_status_type mx_rdi_load_frame( MX_AREA_DETECTOR *ad );
+
 #ifdef __cplusplus
 }
 #endif

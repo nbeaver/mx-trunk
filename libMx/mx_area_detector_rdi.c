@@ -642,8 +642,7 @@ mx_rdi_dbl_image_correction( MX_AREA_DETECTOR *ad,
 		if ( correction_flags & MXFT_AD_FLOOD_FIELD_FRAME ) {
 			non_uniformity_pixel = flt_non_uniformity_data_array[i];
 
-			image_pixel = image_pixel
-				* ( non_uniformity_pixel / 10000.0 );
+			image_pixel = image_pixel * non_uniformity_pixel;
 		}
 
 		if ( correction_flags & MXFT_AD_BIAS_FRAME ) {
@@ -705,7 +704,7 @@ mx_rdi_flt_image_correction( MX_AREA_DETECTOR *ad,
 
 	correction_flags = ad->correction_flags;
 
-#if 0
+#if 1
 	MX_DEBUG(-2,("%s: correction_flags = %lu", fname, correction_flags));
 #endif
 
@@ -982,8 +981,7 @@ mx_rdi_flt_image_correction( MX_AREA_DETECTOR *ad,
 		if ( correction_flags & MXFT_AD_FLOOD_FIELD_FRAME ) {
 			non_uniformity_pixel = flt_non_uniformity_data_array[i];
 
-			image_pixel = image_pixel
-				* ( non_uniformity_pixel / 10000.0 );
+			image_pixel = image_pixel * non_uniformity_pixel;
 		}
 
 		if ( correction_flags & MXFT_AD_BIAS_FRAME ) {
@@ -1000,6 +998,130 @@ mx_rdi_flt_image_correction( MX_AREA_DETECTOR *ad,
 		}
 
 		flt_image_data_array[i] = image_pixel;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*=======================================================================*/
+
+MX_EXPORT mx_status_type
+mx_rdi_load_frame( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mx_rdi_load_frame()";
+
+	MX_IMAGE_FRAME *non_uniformity_frame;
+	uint32_t non_uniformity_format;
+	float *non_uniformity_array;
+	double sum, mean;
+	double bytes_per_pixel_dbl;
+	unsigned long bytes_per_pixel;
+	unsigned long i, image_size_in_bytes, image_size_in_pixels;
+	mx_status_type mx_status;
+
+	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_AREA_DETECTOR pointer passed was NULL." );
+	}
+
+	/* Initially, we use the default load frame function. */
+
+	mx_status = mx_area_detector_default_load_frame( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* If the frame we just loaded was not a non-uniformity frame,
+	 * then we are done.
+	 */
+
+	if ( ad->load_frame != MXFT_AD_FLOOD_FIELD_FRAME )
+		return MX_SUCCESSFUL_RESULT;
+
+	MX_DEBUG(-2,("%s: analyzing non-uniformity frame for detector '%s'.",
+		fname, ad->record->name ));
+
+	/* Old RDI non-uniformity frames had an average value around 10000,
+	 * while new non-uniformity frames have an average value of 1.0.
+	 *
+	 * In the MX correction code, it is more convenient that the average
+	 * value is around 1, since that reduces the number of multiplications
+	 * or divisions that we have to make in the body of the correction 
+	 * loop.  Therefore, we compute the mean of the values in the 
+	 * non-uniformity frame that we just loaded.  If the mean is greater
+	 * than or equal to 100.0, we assume that this is an old style
+	 * non-uniformity frame and divide all its values by 10000.0.
+	 * Otherwise, we leave the non-uniformity frame alone.
+	 */
+
+	non_uniformity_frame = ad->flood_field_frame;
+
+	if ( non_uniformity_frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The non-uniformity frame pointer for detector '%s' is NULL.",
+			ad->record->name );
+	}
+
+	non_uniformity_format = MXIF_IMAGE_FORMAT( non_uniformity_frame );
+
+	MX_DEBUG(-2,("%s: non_uniformity_format = %lu",
+		fname, (unsigned long) non_uniformity_format ));
+
+	if ( non_uniformity_format != MXT_IMAGE_FORMAT_FLOAT ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The non-uniformity frame that we just loaded for "
+		"detector '%s' is _not_ a 32-bit float image.  "
+		"Instead, it is of type %lu.",
+			ad->record->name,
+			(unsigned long) non_uniformity_format );
+	}
+
+	non_uniformity_array = (float *) non_uniformity_frame->image_data;
+
+	if ( non_uniformity_array == (float *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The non-uniformity data array for detector '%s' is NULL.",
+			ad->record->name );
+	}
+
+	image_size_in_bytes = non_uniformity_frame->image_length;
+
+	bytes_per_pixel_dbl = MXIF_BYTES_PER_PIXEL(non_uniformity_frame);
+
+	MX_DEBUG(-2,("%s: non-uniformity image bytes per pixel = %g",
+		fname, bytes_per_pixel_dbl));
+
+	bytes_per_pixel = mx_round( bytes_per_pixel_dbl );
+
+	image_size_in_pixels = mx_divide_safely( image_size_in_bytes,
+							bytes_per_pixel );
+
+	MX_DEBUG(-2,("%s: non-uniformity image size = %lu pixels",
+		fname, image_size_in_pixels));
+
+	/* Compute the mean value of the non-uniformity pixels. */
+
+	sum = 0.0;
+
+	for ( i = 0; i < image_size_in_pixels; i++ ) {
+		sum += non_uniformity_array[i];
+	}
+
+	mean = sum / image_size_in_pixels;
+
+	MX_DEBUG(-2,("%s: non-uniformity image mean value = %g", fname, mean));
+
+	/* If the mean is greater than or equal to 100.0, then we must
+	 * renormalize the value by dividing it by 10000.0.
+	 */
+
+	if ( mean >= 100.0 ) {
+
+		MX_DEBUG(-2,("%s: renormalizing non-uniformity frame.", fname));
+
+		for ( i = 0; i < image_size_in_pixels; i++ ) {
+			non_uniformity_array[i] /= 10000.0;
+		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;

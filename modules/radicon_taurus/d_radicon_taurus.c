@@ -91,7 +91,7 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_radicon_taurus_ad_function_list = {
 	mxd_radicon_taurus_readout_frame,
 	mxd_radicon_taurus_correct_frame,
 	NULL,
-	NULL,
+	mx_rdi_load_frame,
 	NULL,
 	NULL,
 	NULL,
