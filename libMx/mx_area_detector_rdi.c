@@ -20,7 +20,9 @@
 
 #define MX_RDI_DEBUG_CORRECTION_STATISTICS		FALSE
 
-#define MX_RDI_DEBUG_CORRECTION_TIMING			FALSE
+#define MX_RDI_DEBUG_CORRECTION_TIMING			TRUE
+
+#define MX_RDI_DEBUG_LOOP_TIMING			TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -697,6 +699,20 @@ mx_rdi_flt_image_correction( MX_AREA_DETECTOR *ad,
 	mx_bool_type abort_if_different_exposure_times;
 	mx_status_type mx_status;
 
+#if MX_RDI_DEBUG_LOOP_TIMING
+	MX_HRT_TIMING total_measurement;
+	MX_HRT_TIMING loop_measurement;
+	MX_HRT_TIMING setup_measurement;
+	MX_HRT_TIMING dark_current_measurement;
+	MX_HRT_TIMING non_uniformity_measurement;
+	MX_HRT_TIMING bias_measurement;
+	MX_HRT_TIMING threshold_measurement;
+	MX_HRT_TIMING mask_measurement;
+
+	MX_HRT_START( total_measurement );
+	MX_HRT_START( setup_measurement );
+#endif
+
 	if ( correction_calc_frame == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The correction_calc_frame pointer passed was NULL." );
@@ -704,8 +720,8 @@ mx_rdi_flt_image_correction( MX_AREA_DETECTOR *ad,
 
 	correction_flags = ad->correction_flags;
 
-#if 1
-	MX_DEBUG(-2,("%s: correction_flags = %lu", fname, correction_flags));
+#if 0
+	MX_DEBUG(-2,("%s: correction_flags = %#lx", fname, correction_flags));
 #endif
 
 	correction_calc_format = MXIF_IMAGE_FORMAT(correction_calc_frame);
@@ -952,6 +968,20 @@ mx_rdi_flt_image_correction( MX_AREA_DETECTOR *ad,
 
 	/*----*/
 
+#if 1
+	/*-----------------------------------------------------------------*/
+
+	/* This version is faster than the version below that splits
+	 * everything up into separate loops.  On my test machine, it
+	 * takes ~25 msec, while the separate loop version takes ~36 msec.
+	 * (Tested on mbc-cmos computer - May, 2013).
+	 */
+
+#if MX_RDI_DEBUG_LOOP_TIMING
+	MX_HRT_END( setup_measurement );
+	MX_HRT_START( loop_measurement );
+#endif
+
 	/* Loop over all of the pixels and apply the requested corrections. */
 
 	for ( i = 0; i < num_pixels_per_frame; i++ ) {
@@ -999,6 +1029,129 @@ mx_rdi_flt_image_correction( MX_AREA_DETECTOR *ad,
 
 		flt_image_data_array[i] = image_pixel;
 	}
+
+#if MX_RDI_DEBUG_LOOP_TIMING
+	MX_HRT_END( loop_measurement );
+	MX_HRT_END( total_measurement );
+
+	MX_HRT_RESULTS( setup_measurement, fname, "setup" );
+	MX_HRT_RESULTS( loop_measurement,  fname, "loop"  );
+	MX_HRT_RESULTS( total_measurement, fname, "total" );
+#endif
+
+#else
+	/*-----------------------------------------------------------------*/
+
+	/* In this version, we use a separate loop for handling
+	 * each of the four correction frames.
+	 */
+
+	/* Subtract the dark current correction. */
+
+#if MX_RDI_DEBUG_LOOP_TIMING
+	MX_HRT_END( setup_measurement );
+	MX_HRT_START( dark_current_measurement );
+#endif
+
+	if ( correction_flags & MXFT_AD_DARK_CURRENT_FRAME ) {
+
+		for ( i = 0; i < num_pixels_per_frame; i++ ) {
+			dark_current_pixel = flt_dark_current_data_array[i];
+
+			flt_image_data_array[i] -= dark_current_pixel;
+		}
+	}
+
+	/* Apply the non-uniformity correction. */
+
+#if MX_RDI_DEBUG_LOOP_TIMING
+	MX_HRT_END( dark_current_measurement );
+	MX_HRT_START( non_uniformity_measurement );
+#endif
+
+	if ( correction_flags & MXFT_AD_FLOOD_FIELD_FRAME ) {
+
+		for ( i = 0; i < num_pixels_per_frame; i++ ) {
+			non_uniformity_pixel = flt_non_uniformity_data_array[i];
+
+			flt_image_data_array[i] *= non_uniformity_pixel;
+		}
+	}
+
+	/* Apply the bias offset. */
+
+#if MX_RDI_DEBUG_LOOP_TIMING
+	MX_HRT_END( non_uniformity_measurement );
+	MX_HRT_START( bias_measurement );
+#endif
+
+	if ( correction_flags & MXFT_AD_BIAS_FRAME ) {
+
+		for ( i = 0; i < num_pixels_per_frame; i++ ) {
+			bias_pixel = u16_bias_data_array[i];
+
+			flt_image_data_array[i] += bias_pixel;
+		}
+	}
+
+	/* Apply the minimum and maximum pixel thresholds. */
+
+#if MX_RDI_DEBUG_LOOP_TIMING
+	MX_HRT_END( bias_measurement );
+	MX_HRT_START( threshold_measurement );
+#endif
+
+	for ( i = 0; i < num_pixels_per_frame; i++ ) {
+		image_pixel = flt_image_data_array[i];
+
+		if ( image_pixel > saturation_pixel_value ) {
+			image_pixel = 65535.0;
+		} else
+		if ( image_pixel < minimum_pixel_value ) {
+			image_pixel = minimum_pixel_value;
+		}
+
+		flt_image_data_array[i] = image_pixel;
+	}
+
+	/* Apply the mask last so that we do not have to put an if()
+	 * test inside the main loop of the other corrections.
+	 */
+
+#if MX_RDI_DEBUG_LOOP_TIMING
+	MX_HRT_END( threshold_measurement );
+	MX_HRT_START( mask_measurement );
+#endif
+
+	if ( correction_flags & MXFT_AD_MASK_FRAME ) {
+
+		for ( i = 0; i < num_pixels_per_frame; i++ ) {
+			mask_pixel = u16_mask_data_array[i];
+
+			if ( mask_pixel == 0 ) {
+				/* If this pixel is masked off, then set
+				 * the pixel value to 0.
+				 */
+
+				flt_image_data_array[i] = 0.0;
+			}
+		}
+	}
+
+#if MX_RDI_DEBUG_LOOP_TIMING
+	MX_HRT_END( mask_measurement );
+	MX_HRT_END( total_measurement );
+
+	MX_HRT_RESULTS( setup_measurement, fname, "setup" );
+	MX_HRT_RESULTS( dark_current_measurement, fname, "dark current" );
+	MX_HRT_RESULTS( non_uniformity_measurement, fname, "non-uniformity" );
+	MX_HRT_RESULTS( bias_measurement, fname, "bias" );
+	MX_HRT_RESULTS( threshold_measurement, fname, "threshold" );
+	MX_HRT_RESULTS( mask_measurement, fname, "mask" );
+	MX_HRT_RESULTS( total_measurement, fname, "total" );
+#endif
+
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
