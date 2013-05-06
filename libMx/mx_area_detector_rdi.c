@@ -48,7 +48,10 @@ mx_rdi_correct_frame( MX_AREA_DETECTOR *ad,
 	MX_IMAGE_FRAME *image_frame, *mask_frame, *bias_frame;
 	MX_IMAGE_FRAME *dark_current_frame, *non_uniformity_frame;
 	MX_IMAGE_FRAME *correction_calc_frame;
+	uint16_t *image_array;
+	float *corr_float_array;
 	unsigned long flags;
+	unsigned long i, corr_pixels_per_frame;
 	unsigned long image_format, correction_format;
 	mx_bool_type correction_measurement_in_progress;
 	mx_status_type mx_status;
@@ -196,8 +199,10 @@ mx_rdi_correct_frame( MX_AREA_DETECTOR *ad,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		corr_image_length = mx_round( corr_bytes_per_pixel
-			* (double)( row_framesize * column_framesize ) );
+		corr_pixels_per_frame = row_framesize * column_framesize;
+
+		corr_image_length =
+		    mx_round( corr_bytes_per_pixel * corr_pixels_per_frame );
 
 		mx_status = mx_image_alloc( &(ad->correction_calc_frame),
 					row_framesize,
@@ -211,11 +216,30 @@ mx_rdi_correct_frame( MX_AREA_DETECTOR *ad,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		mx_status = mx_area_detector_copy_and_convert_image_data(
-					ad->correction_calc_frame, image_frame);
+		MXIF_EXPOSURE_TIME_SEC( ad->correction_calc_frame )
+			= MXIF_EXPOSURE_TIME_SEC( image_frame );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+		MXIF_EXPOSURE_TIME_NSEC( ad->correction_calc_frame )
+			= MXIF_EXPOSURE_TIME_NSEC( image_frame );
+
+		image_array = image_frame->image_data;
+
+		switch( ad->correction_calc_format ) {
+		case MXT_IMAGE_FORMAT_FLOAT:
+			corr_float_array =
+				ad->correction_calc_frame->image_data;
+
+			for ( i = 0; i < corr_pixels_per_frame; i++ ) {
+				corr_float_array[i] = image_array[i];
+			}
+			break;
+
+		default:
+			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+			"Correction calc frame types other than 'float' "
+			"are not implemented here." );
+			break;
+		}
 
 		correction_calc_frame = ad->correction_calc_frame;
 	}
@@ -282,11 +306,35 @@ mx_rdi_correct_frame( MX_AREA_DETECTOR *ad,
 	/*--- If needed, convert the data back to the native format ---*/
 
 	if ( correction_calc_frame != image_frame ) {
-		mx_status = mx_area_detector_copy_and_convert_image_data(
-					image_frame, ad->correction_calc_frame);
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+		image_array = image_frame->image_data;
+
+		switch( ad->correction_calc_format ) {
+		case MXT_IMAGE_FORMAT_FLOAT:
+
+			/* NOTE: This copy operation does not do any tests on
+			 * the value before copying it to the 16-bit integer
+			 * array to make sure the value fits in a 16-bit
+			 * unsigned integer.  This is because the function
+			 * mx_rdi_flt_image_correction() above has already
+			 * made more stringent tests on the value than we
+			 * would here.
+			 */
+
+			corr_float_array =
+				ad->correction_calc_frame->image_data;
+
+			for ( i = 0; i < corr_pixels_per_frame; i++ ) {
+				image_array[i] = (uint16_t) corr_float_array[i];
+			}
+			break;
+
+		default:
+			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+			"Correction calc frame types other than 'float' "
+			"are not implemented here." );
+			break;
+		}
 	}
 
 #if MX_RDI_DEBUG_CORRECTION_STATISTICS
@@ -968,14 +1016,7 @@ mx_rdi_flt_image_correction( MX_AREA_DETECTOR *ad,
 
 	/*----*/
 
-#if 1
 	/*-----------------------------------------------------------------*/
-
-	/* This version is faster than the version below that splits
-	 * everything up into separate loops.  On my test machine, it
-	 * takes ~25 msec, while the separate loop version takes ~36 msec.
-	 * (Tested on mbc-cmos computer - May, 2013).
-	 */
 
 #if MX_RDI_DEBUG_LOOP_TIMING
 	MX_HRT_END( setup_measurement );
@@ -1037,120 +1078,6 @@ mx_rdi_flt_image_correction( MX_AREA_DETECTOR *ad,
 	MX_HRT_RESULTS( setup_measurement, fname, "setup" );
 	MX_HRT_RESULTS( loop_measurement,  fname, "loop"  );
 	MX_HRT_RESULTS( total_measurement, fname, "total" );
-#endif
-
-#else
-	/*-----------------------------------------------------------------*/
-
-	/* In this version, we use a separate loop for handling
-	 * each of the four correction frames.
-	 */
-
-	/* Subtract the dark current correction. */
-
-#if MX_RDI_DEBUG_LOOP_TIMING
-	MX_HRT_END( setup_measurement );
-	MX_HRT_START( dark_current_measurement );
-#endif
-
-	if ( correction_flags & MXFT_AD_DARK_CURRENT_FRAME ) {
-
-		for ( i = 0; i < num_pixels_per_frame; i++ ) {
-			dark_current_pixel = flt_dark_current_data_array[i];
-
-			flt_image_data_array[i] -= dark_current_pixel;
-		}
-	}
-
-	/* Apply the non-uniformity correction. */
-
-#if MX_RDI_DEBUG_LOOP_TIMING
-	MX_HRT_END( dark_current_measurement );
-	MX_HRT_START( non_uniformity_measurement );
-#endif
-
-	if ( correction_flags & MXFT_AD_FLOOD_FIELD_FRAME ) {
-
-		for ( i = 0; i < num_pixels_per_frame; i++ ) {
-			non_uniformity_pixel = flt_non_uniformity_data_array[i];
-
-			flt_image_data_array[i] *= non_uniformity_pixel;
-		}
-	}
-
-	/* Apply the bias offset. */
-
-#if MX_RDI_DEBUG_LOOP_TIMING
-	MX_HRT_END( non_uniformity_measurement );
-	MX_HRT_START( bias_measurement );
-#endif
-
-	if ( correction_flags & MXFT_AD_BIAS_FRAME ) {
-
-		for ( i = 0; i < num_pixels_per_frame; i++ ) {
-			bias_pixel = u16_bias_data_array[i];
-
-			flt_image_data_array[i] += bias_pixel;
-		}
-	}
-
-	/* Apply the minimum and maximum pixel thresholds. */
-
-#if MX_RDI_DEBUG_LOOP_TIMING
-	MX_HRT_END( bias_measurement );
-	MX_HRT_START( threshold_measurement );
-#endif
-
-	for ( i = 0; i < num_pixels_per_frame; i++ ) {
-		image_pixel = flt_image_data_array[i];
-
-		if ( image_pixel > saturation_pixel_value ) {
-			image_pixel = 65535.0;
-		} else
-		if ( image_pixel < minimum_pixel_value ) {
-			image_pixel = minimum_pixel_value;
-		}
-
-		flt_image_data_array[i] = image_pixel;
-	}
-
-	/* Apply the mask last so that we do not have to put an if()
-	 * test inside the main loop of the other corrections.
-	 */
-
-#if MX_RDI_DEBUG_LOOP_TIMING
-	MX_HRT_END( threshold_measurement );
-	MX_HRT_START( mask_measurement );
-#endif
-
-	if ( correction_flags & MXFT_AD_MASK_FRAME ) {
-
-		for ( i = 0; i < num_pixels_per_frame; i++ ) {
-			mask_pixel = u16_mask_data_array[i];
-
-			if ( mask_pixel == 0 ) {
-				/* If this pixel is masked off, then set
-				 * the pixel value to 0.
-				 */
-
-				flt_image_data_array[i] = 0.0;
-			}
-		}
-	}
-
-#if MX_RDI_DEBUG_LOOP_TIMING
-	MX_HRT_END( mask_measurement );
-	MX_HRT_END( total_measurement );
-
-	MX_HRT_RESULTS( setup_measurement, fname, "setup" );
-	MX_HRT_RESULTS( dark_current_measurement, fname, "dark current" );
-	MX_HRT_RESULTS( non_uniformity_measurement, fname, "non-uniformity" );
-	MX_HRT_RESULTS( bias_measurement, fname, "bias" );
-	MX_HRT_RESULTS( threshold_measurement, fname, "threshold" );
-	MX_HRT_RESULTS( mask_measurement, fname, "mask" );
-	MX_HRT_RESULTS( total_measurement, fname, "total" );
-#endif
-
 #endif
 
 	return MX_SUCCESSFUL_RESULT;

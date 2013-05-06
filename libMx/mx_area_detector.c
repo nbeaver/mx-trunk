@@ -5349,12 +5349,8 @@ mx_area_detector_copy_and_convert_image_data( MX_IMAGE_FRAME *dest_frame,
 				if ( flt_pixel > 65535.0 ) {
 					uint16_dest[i] = 65535;
 				} else {
-#if 0
-					uint16_dest[i] = mx_round( flt_pixel );
-#else
 					uint16_dest[i] =
 						(uint16_t)(flt_pixel + 0.5);
-#endif
 				}
 			}
 			break;
