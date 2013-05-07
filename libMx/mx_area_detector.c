@@ -22,6 +22,8 @@
 
 #define MX_AREA_DETECTOR_DEBUG_LOAD_SAVE_FRAMES		FALSE
 
+#define MX_AREA_DETECTOR_DEBUG_MANAGEMENT_SAVE_TIMING	TRUE
+
 #define MX_AREA_DETECTOR_DEBUG_FRAME_PARAMETERS		FALSE
 
 #define MX_AREA_DETECTOR_DEBUG_STATUS			FALSE
@@ -50,6 +52,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_hrt_debug.h"
 #include "mx_unistd.h"
 #include "mx_driver.h"
 #include "mx_dirent.h"
@@ -60,10 +63,6 @@
 #include "mx_relay.h"
 #include "mx_image.h"
 #include "mx_area_detector.h"
-
-#if MX_AREA_DETECTOR_DEBUG_FRAME_TIMING
-#include "mx_hrt_debug.h"
-#endif
 
 /*=======================================================================*/
 
@@ -6200,6 +6199,20 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 	}
 
 	if ( save_frame_after_acquisition ) {
+
+#if MX_AREA_DETECTOR_DEBUG_MANAGEMENT_SAVE_TIMING
+		MX_HRT_TIMING total_measurement;
+		MX_HRT_TIMING setup_measurement;
+		MX_HRT_TIMING readout_measurement;
+		MX_HRT_TIMING correct_measurement;
+		MX_HRT_TIMING overwrite_measurement;
+		MX_HRT_TIMING write_file_measurement;
+		MX_HRT_TIMING status_measurement;
+
+		MX_HRT_START( total_measurement );
+		MX_HRT_START( setup_measurement );
+#endif
+
 		if ( ad->image_frame == NULL ) {
 
 #if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
@@ -6213,6 +6226,11 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 				return mx_status;
 		}
 
+#if MX_AREA_DETECTOR_DEBUG_MANAGEMENT_SAVE_TIMING
+		MX_HRT_END( setup_measurement );
+		MX_HRT_START( readout_measurement );
+#endif
+
 #if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_SETUP
 		MX_DEBUG(-2,("%s: Reading out image frame %lu",
 			fname, ad->datafile_last_frame_number));
@@ -6225,6 +6243,11 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
+#if MX_AREA_DETECTOR_DEBUG_MANAGEMENT_SAVE_TIMING
+		MX_HRT_END( readout_measurement );
+		MX_HRT_START( correct_measurement );
+#endif
+
 #if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_SETUP
 		MX_DEBUG(-2,("%s: Correcting the image frame.", fname));
 #endif
@@ -6232,6 +6255,11 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+#if MX_AREA_DETECTOR_DEBUG_MANAGEMENT_SAVE_TIMING
+		MX_HRT_END( correct_measurement );
+		MX_HRT_START( overwrite_measurement );
+#endif
 
 		if ( ad->datafile_allow_overwrite == FALSE ) {
 			/* If datafile overwriting is not allowed, then
@@ -6268,6 +6296,11 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 			}
 		}
 
+#if MX_AREA_DETECTOR_DEBUG_MANAGEMENT_SAVE_TIMING
+		MX_HRT_END( overwrite_measurement );
+		MX_HRT_START( write_file_measurement );
+#endif
+
 #if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_FILE
 		MX_DEBUG(-2,("%s: Saving '%s' image frame to '%s'.",
 			fname, record->name, filename));
@@ -6277,6 +6310,11 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 		mx_status = mx_image_write_file( ad->image_frame,
 						ad->datafile_save_format,
 						filename );
+
+#if MX_AREA_DETECTOR_DEBUG_MANAGEMENT_SAVE_TIMING
+		MX_HRT_END( write_file_measurement );
+		MX_HRT_START( status_measurement );
+#endif
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 
@@ -6317,6 +6355,20 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 
 		mx_status = mx_area_detector_mark_frame_as_saved( record,
 					ad->datafile_last_frame_number - 1 );
+
+#if MX_AREA_DETECTOR_DEBUG_MANAGEMENT_SAVE_TIMING
+		MX_HRT_END( status_measurement );
+		MX_HRT_END( total_measurement );
+
+		MX_HRT_RESULTS( setup_measurement, fname, "for setup" );
+		MX_HRT_RESULTS( readout_measurement, fname, "for readout" );
+		MX_HRT_RESULTS( correct_measurement, fname, "for correction" );
+		MX_HRT_RESULTS( overwrite_measurement, fname, "for overwrite" );
+		MX_HRT_RESULTS( write_file_measurement,
+						fname, "for write file" );
+		MX_HRT_RESULTS( status_measurement, fname, "for status" );
+		MX_HRT_RESULTS( total_measurement, fname, "for TOTAL" );
+#endif
 	}
 
 	ad->datafile_total_num_frames++;

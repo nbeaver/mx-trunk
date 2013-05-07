@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2012 Illinois Institute of Technology
+ * Copyright 2006-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -367,6 +367,14 @@ MX_API mx_status_type mx_image_read_file( MX_IMAGE_FRAME **frame,
 MX_API mx_status_type mx_image_write_file( MX_IMAGE_FRAME *frame,
 					unsigned long datafile_type,
 					char *datafile_name );
+
+/*----*/
+
+MX_API mx_status_type mx_image_read_none_file( MX_IMAGE_FRAME **frame,
+						char *fake_datafile_name );
+
+MX_API mx_status_type mx_image_write_none_file( MX_IMAGE_FRAME *frame,
+						char *fake_datafile_name );
 
 /*----*/
 

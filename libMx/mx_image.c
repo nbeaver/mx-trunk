@@ -343,6 +343,8 @@ static MX_IMAGE_FORMAT_ENTRY mxp_file_format_table[] =
 	{"RAW_FLOAT",	MXT_IMAGE_FILE_RAW_FLOAT},
 	{"RAW_DOUBLE",	MXT_IMAGE_FILE_RAW_DOUBLE},
 
+	{"NONE",   MXT_IMAGE_FILE_NONE},
+
 	{"PNM",    MXT_IMAGE_FILE_PNM},
 
 	{"SMV",    MXT_IMAGE_FILE_SMV},
@@ -2461,6 +2463,9 @@ mx_image_read_file( MX_IMAGE_FRAME **frame_ptr,
 	mx_status_type mx_status;
 
 	switch( datafile_type ) {
+	case MXT_IMAGE_FILE_NONE:
+		mx_status = mx_image_read_none_file( frame_ptr, datafile_name );
+		break;
 	case MXT_IMAGE_FILE_PNM:
 		mx_status = mx_image_read_pnm_file( frame_ptr, datafile_name );
 		break;
@@ -2528,6 +2533,9 @@ mx_image_write_file( MX_IMAGE_FRAME *frame,
 #endif
 
 	switch( datafile_type ) {
+	case MXT_IMAGE_FILE_NONE:
+		mx_status = mx_image_write_none_file( frame, datafile_name );
+		break;
 	case MXT_IMAGE_FILE_PNM:
 		mx_status = mx_image_write_pnm_file( frame, datafile_name );
 		break;
@@ -2558,6 +2566,98 @@ mx_image_write_file( MX_IMAGE_FRAME *frame,
 	}
 
 	return mx_status;
+}
+
+/*----*/
+
+/* If *frame is already filled in with a plausible looking image header,
+ * then mx_image_read_none_file() will just fill the image data array
+ * with 0x0 bytes.
+ *
+ * If *frame is NULL, when this function is invoked, then we just give up
+ * since we do not know how big to make the image data.
+ */
+
+MX_EXPORT mx_status_type
+mx_image_read_none_file( MX_IMAGE_FRAME **frame, char *fake_datafile_name )
+{
+	static const char fname[] = "mx_image_read_none_file()";
+
+	unsigned long pixels_per_frame, bytes_per_frame;
+	double bytes_per_pixel;
+
+	if ( frame == (MX_IMAGE_FRAME **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_IMAGE_FRAME * pointer passed was NULL." );
+	}
+
+	if ( (*frame) == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The MX_IMAGE_FRAME pointer must point to a valid "
+		"MX_IMAGE_FRAME structure when you call this function.  "
+		"Without that, we have no way of knowing how big the "
+		"image data array should be." );
+	}
+
+	/* Figure out what the image size in bytes should be from this
+	 * image frame's header.
+	 */
+
+	pixels_per_frame = MXIF_ROW_FRAMESIZE( *frame )
+				* MXIF_COLUMN_FRAMESIZE( *frame );
+
+	bytes_per_pixel = MXIF_BYTES_PER_PIXEL( *frame );
+
+	bytes_per_frame = mx_round( pixels_per_frame * bytes_per_pixel );
+
+	MX_DEBUG(-2,("%s: bytes_per_frame = %lu", fname, bytes_per_frame));
+
+	/* Create or resize the data array. */
+
+	if ( (*frame)->image_data == NULL ) {
+		(*frame)->image_length = bytes_per_frame;
+
+		(*frame)->image_data = malloc( bytes_per_frame );
+	} else
+	if ( bytes_per_frame != ((*frame)->image_length) ) {
+		mx_free( (*frame)->image_data );
+
+		(*frame)->image_data = malloc( bytes_per_frame );
+	} else {
+		/* If we get here, then the image_data array is supposed
+		 * to already have the correct number of bytes in it.
+		 * In the name of performance, we assume this is true.
+		 */
+	}
+
+	if ( ((*frame)->image_data) == NULL ) {
+		(*frame)->image_length = 0;
+
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+	    "Ran out of memory trying to allocate a %lu byte MX_IMAGE_FRAME",
+			bytes_per_frame );
+	}
+
+	/* Fill the image data array with null bytes. */
+
+	memset( (*frame)->image_data, 0, bytes_per_frame );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_image_write_none_file( MX_IMAGE_FRAME *frame, char *fake_datafile_name )
+{
+	static const char fname[] = "mx_image_write_none_file()";
+
+	if ( frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_IMAGE_FRAME pointer passed was NULL." );
+	}
+
+	/* We do not do anything with the contents of the MX_IMAGE_FRAME. */
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*----*/

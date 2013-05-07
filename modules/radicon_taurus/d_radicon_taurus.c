@@ -2283,7 +2283,7 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 #else
 	if ( radicon_taurus->use_video_frames == FALSE ) {
 #endif
-		MX_HRT_RESULTS( trim_measurement, fname, "for trim." );
+		MX_HRT_RESULTS( trim_measurement, fname, "for rotate." );
 	}
 
 	MX_HRT_RESULTS( save_raw_measurement, fname, "for save raw frames." );

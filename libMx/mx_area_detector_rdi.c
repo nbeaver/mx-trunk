@@ -22,7 +22,7 @@
 
 #define MX_RDI_DEBUG_CORRECTION_TIMING			TRUE
 
-#define MX_RDI_DEBUG_LOOP_TIMING			TRUE
+#define MX_RDI_DEBUG_LOOP_TIMING			FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
