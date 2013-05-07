@@ -751,11 +751,6 @@ mx_rdi_flt_image_correction( MX_AREA_DETECTOR *ad,
 	MX_HRT_TIMING total_measurement;
 	MX_HRT_TIMING loop_measurement;
 	MX_HRT_TIMING setup_measurement;
-	MX_HRT_TIMING dark_current_measurement;
-	MX_HRT_TIMING non_uniformity_measurement;
-	MX_HRT_TIMING bias_measurement;
-	MX_HRT_TIMING threshold_measurement;
-	MX_HRT_TIMING mask_measurement;
 
 	MX_HRT_START( total_measurement );
 	MX_HRT_START( setup_measurement );
