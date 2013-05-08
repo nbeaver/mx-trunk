@@ -7,12 +7,21 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004, 2006-2012 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2004, 2006-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+/* The following macros are used to put the contents of the MX_CFLAGS
+ * preprocessor macro into a string.
+ */
+
+#define MX_STRINGIFY(x) #x
+#define MX_TOSTRING(x) MX_STRINGIFY(x)
+
+/*----*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -183,6 +192,10 @@ mxr_create_list_head( MX_RECORD *record )
 
 	strlcpy( list_head_struct->status, "", MXU_FIELD_NAME_LENGTH );
 
+	/*--- Initialize 'cflags' from the MX_CFLAGS macro passed to us. ---*/
+
+	list_head_struct->cflags = strdup( MX_TOSTRING(MX_CFLAGS) );
+
 	/* Since the list head record itself is a record, we initialize
 	 * the number of records to 1 rather than 0.
 	 */
@@ -204,6 +217,35 @@ mxr_list_head_print_structure( FILE *file, MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxr_list_head_open( MX_RECORD *record )
 {
+	static const char fname[] = "mxr_list_head_open()";
+
+	MX_RECORD_FIELD *cflags_field;
+	MX_LIST_HEAD *list_head_struct;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	list_head_struct = mx_get_record_list_head_struct( record );
+
+	if ( list_head_struct == (MX_LIST_HEAD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_LIST_HEAD pointer for this record list is NULL." );
+	}
+
+	/* Update the parameters in the 'cflags' record field to match
+	 * the above string.
+	 */
+
+	mx_status = mx_find_record_field( record, "cflags", &cflags_field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	cflags_field->dimension[0] = strlen( list_head_struct->cflags );
+
 	return MX_SUCCESSFUL_RESULT;
 }
 

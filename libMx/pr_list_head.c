@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006-2009, 2011-2012 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006-2009, 2011-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -45,20 +45,21 @@ mx_setup_list_head_process_functions( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
+		case MXLV_LHD_BREAKPOINT:
+		case MXLV_LHD_CALLBACKS_ENABLED:
+		case MXLV_LHD_CFLAGS:
 		case MXLV_LHD_DEBUG_LEVEL:
-		case MXLV_LHD_STATUS:
+		case MXLV_LHD_DEBUGGER_STARTED:
+		case MXLV_LHD_FIELDDEF:
 		case MXLV_LHD_REPORT:
 		case MXLV_LHD_REPORT_ALL:
-		case MXLV_LHD_SUMMARY:
-		case MXLV_LHD_SHOW_RECORD_LIST:
-		case MXLV_LHD_FIELDDEF:
-		case MXLV_LHD_SHOW_HANDLE:
 		case MXLV_LHD_SHOW_CALLBACKS:
 		case MXLV_LHD_SHOW_CALLBACK_ID:
-		case MXLV_LHD_BREAKPOINT:
-		case MXLV_LHD_DEBUGGER_STARTED:
+		case MXLV_LHD_SHOW_HANDLE:
 		case MXLV_LHD_SHOW_OPEN_FDS:
-		case MXLV_LHD_CALLBACKS_ENABLED:
+		case MXLV_LHD_SHOW_RECORD_LIST:
+		case MXLV_LHD_STATUS:
+		case MXLV_LHD_SUMMARY:
 			record_field->process_function
 					    = mx_list_head_process_function;
 			break;
@@ -89,6 +90,11 @@ mx_list_head_process_function( void *record_ptr,
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
+		case MXLV_LHD_CFLAGS:
+			/* Just return the value in the cflags field
+			 * of the list head.
+			 */
+			break;
 		case MXLV_LHD_DEBUG_LEVEL:
 			list_head->debug_level = mx_get_debug_level();
 			break;

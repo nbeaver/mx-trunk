@@ -833,6 +833,7 @@ motor_show_field( char *record_field_name )
 void
 motor_show_version( void )
 {
+	MX_LIST_HEAD *list_head;
 	char os_version_string[80];
 	mx_status_type mx_status;
 
@@ -909,6 +910,13 @@ motor_show_version( void )
 #endif /* _MSC_VER */
 
 /*-------------------------------------------------------------------------*/
+
+	list_head = mx_get_record_list_head_struct( motor_record_list );
+
+	if ( list_head->cflags != NULL ) {
+		fprintf( output, "\nCFLAGS: '%s'\n",
+			list_head->cflags );
+	}
 
 	return;
 }

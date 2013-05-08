@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2010, 2012 Illinois Institute of Technology
+ * Copyright 1999-2010, 2012-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -416,6 +416,7 @@ typedef struct {
 	mx_bool_type debugger_started;
 	mx_bool_type show_open_fds;
 	mx_bool_type callbacks_enabled;
+	char *cflags;
 
 	mx_bool_type is_server;
 	void *connection_acl;

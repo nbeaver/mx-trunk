@@ -284,6 +284,7 @@ mx_interval_timer.$(OBJ): mx_interval_timer.c
 	$(COMPILE) $(CFLAGS) mx_interval_timer.c
 
 mx_list_head.$(OBJ): Makefile.version mx_list_head.c mx_version.h
+	$(COMPILE) $(CFLAGS) -DMX_CFLAGS="${CFLAGS}" mx_list_head.c
 
 #---
 
