@@ -349,7 +349,7 @@ mx_vm_set_protection( void *address,
  */
 
 #elif defined(OS_LINUX) | defined(OS_MACOSX) | defined(OS_BSD) \
-	| defined(OS_SOLARIS) | defined(OS_VMS)
+	| defined(OS_SOLARIS) | defined(OS_CYGWIN) | defined(OS_VMS)
 
 #include <errno.h>
 #include <sys/mman.h>
@@ -483,7 +483,7 @@ mx_vm_set_protection( void *address,
 
 /*----- Platform-specific mx_vm_get_protection() for Posix platforms ------*/
 
-#  if defined(OS_LINUX)
+#  if defined(OS_LINUX) | defined(OS_CYGWIN)
 
 #  include <sys/mman.h>
 

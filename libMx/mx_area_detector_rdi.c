@@ -51,7 +51,7 @@ mx_rdi_correct_frame( MX_AREA_DETECTOR *ad,
 	uint16_t *image_array;
 	float *corr_float_array;
 	unsigned long flags;
-	unsigned long i, corr_pixels_per_frame;
+	unsigned long i, corr_pixels_per_frame = 0;
 	unsigned long image_format, correction_format;
 	mx_bool_type correction_measurement_in_progress;
 	mx_status_type mx_status;
@@ -396,10 +396,10 @@ mx_rdi_dbl_image_correction( MX_AREA_DETECTOR *ad,
 	unsigned long num_dark_current_pixels, num_non_uniformity_pixels;
 	double *dbl_image_data_array;
 	double image_pixel;
-	uint16_t *u16_mask_data_array;
-	uint16_t *u16_bias_data_array;
-	float *flt_dark_current_data_array;
-	float *flt_non_uniformity_data_array;
+	uint16_t *u16_mask_data_array = NULL;
+	uint16_t *u16_bias_data_array = NULL;
+	float *flt_dark_current_data_array = NULL;
+	float *flt_non_uniformity_data_array = NULL;
 	uint16_t mask_pixel;
 	double bias_pixel, dark_current_pixel, non_uniformity_pixel;
 	long correction_calc_format, mask_format, bias_format;
@@ -735,10 +735,10 @@ mx_rdi_flt_image_correction( MX_AREA_DETECTOR *ad,
 	unsigned long num_dark_current_pixels, num_non_uniformity_pixels;
 	float *flt_image_data_array;
 	float image_pixel;
-	uint16_t *u16_mask_data_array;
-	uint16_t *u16_bias_data_array;
-	float *flt_dark_current_data_array;
-	float *flt_non_uniformity_data_array;
+	uint16_t *u16_mask_data_array = NULL;
+	uint16_t *u16_bias_data_array = NULL;
+	float *flt_dark_current_data_array = NULL;
+	float *flt_non_uniformity_data_array = NULL;
 	uint16_t mask_pixel;
 	float bias_pixel, dark_current_pixel, non_uniformity_pixel;
 	long correction_calc_format, mask_format, bias_format;
