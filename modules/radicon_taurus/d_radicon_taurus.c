@@ -213,12 +213,10 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	MX_AREA_DETECTOR *ad;
 	MX_RADICON_TAURUS *radicon_taurus = NULL;
 	MX_RECORD *video_input_record, *serial_port_record;
-	char non_uniformity_filename[MXU_FILENAME_LENGTH+1];
 	long vinput_framesize[2];
 	long video_framesize[2];
 	long array_dimensions[2];
 	long i;
-	char c;
 	double serial_delay_in_seconds;
 	unsigned long mask, num_bytes_available;
 	char command[100];
@@ -580,7 +578,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 
 	if ( (radicon_taurus->rotation_angle % 90) != 0 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Rotation angle %d is not available, since only multiples "
+		"Rotation angle %ld is not available, since only multiples "
 		"of 90 degrees are allowed for the "
 		"rotation angle of detector '%s'",
 			radicon_taurus->rotation_angle,
@@ -962,8 +960,10 @@ mxd_radicon_taurus_resynchronize( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_radicon_taurus_special_processing_setup( MX_RECORD *record )
 {
+#if 0
 	static const char fname[] =
 		"mxd_radicon_taurus_special_processing_setup()";
+#endif
 
 	MX_RECORD_FIELD *record_field;
 	MX_RECORD_FIELD *record_field_array;
@@ -1099,7 +1099,7 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 	MX_RADICON_TAURUS *radicon_taurus = NULL;
 	MX_RECORD *video_input_record = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
-	double exposure_time, exposure_time_offset, raw_exposure_time;
+	double exposure_time;
 	unsigned long raw_exposure_time_32;
 	uint64_t long_exposure_time_as_uint64;
 	double long_exposure_time_as_double;
@@ -2334,7 +2334,7 @@ mxd_radicon_taurus_correct_frame( MX_AREA_DETECTOR *ad )
 	MX_HRT_END( correction_measurement );
 
 	MX_HRT_RESULTS( correction_measurement, fname,
-		"for correction.  Taurus flags = %#x", flags );
+		"for correction.  Taurus flags = %#lx", flags );
 #endif
 
 	return mx_status;
@@ -2421,9 +2421,8 @@ mxd_radicon_taurus_set_parameter( MX_AREA_DETECTOR *ad )
 
 	MX_RADICON_TAURUS *radicon_taurus = NULL;
 	MX_RECORD *video_input_record;
-	unsigned long sro_mode, trigger_mask;
+	unsigned long sro_mode;
 	char command[80];
-	char response[80];
 	mx_status_type mx_status;
 
 	static long allowed_binsize[] = { 1, 2 };
@@ -2565,8 +2564,8 @@ mxd_radicon_taurus_measure_correction( MX_AREA_DETECTOR *ad )
 	MX_RADICON_TAURUS *radicon_taurus = NULL;
 	MX_AREA_DETECTOR_CORRECTION_MEASUREMENT *corr = NULL;
 	double gate_time;
-	long last_frame_number, old_last_frame_number;
-	unsigned long i, total_num_frames, ad_status;
+	long last_frame_number, old_last_frame_number, total_num_frames;
+	unsigned long i, ad_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_taurus_get_pointers( ad,
@@ -3208,12 +3207,15 @@ mxd_radicon_taurus_command( MX_RADICON_TAURUS *radicon_taurus, char *command,
 	static const char fname[] = "mxd_radicon_taurus_command()";
 
 	MX_RECORD *serial_port_record;
-	unsigned long num_bytes_available;
 	size_t num_to_discard;
-	char c;
 	MX_CLOCK_TICK current_tick;
 	int comparison;
 	mx_status_type mx_status;
+
+#if 0
+	unsigned long num_bytes_available;
+	char c;
+#endif
 
 	if ( radicon_taurus == (MX_RADICON_TAURUS *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,

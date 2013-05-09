@@ -2,19 +2,25 @@
 # This module is only for the 'win32' platform.
 #
 
-MX_ARCH = win32
+ifndef MX_ARCH
+  MX_ARCH = win32
+endif
 
 all: radicon_taurus.mxo
 
 include ../../libMx/Makehead.$(MX_ARCH)
 
-CFLAGS += -EHsc
+ifeq ($(MX_ARCH),win32)
+  CFLAGS += -EHsc
+endif
+
 CFLAGS += -I../../libMx -D__MX_LIBRARY__
 
 RADICON_TAURUS_OBJS = radicon_taurus.$(OBJ) d_radicon_taurus.$(OBJ) \
 		i_radicon_taurus_rs232.$(OBJ)
 
-radicon_taurus.mxo: $(RADICON_TAURUS_OBJS)
+ifeq ($(MX_ARCH),win32)
+    radicon_taurus.mxo: $(RADICON_TAURUS_OBJS)
 	link /dll /debug /nologo /out:radicon_taurus.mxo /nodefaultlib:libc \
 		$(RADICON_TAURUS_OBJS) \
 		..\\..\\libMx\\$(MX_LIBRARY_NAME)
@@ -27,14 +33,20 @@ radicon_taurus.mxo: $(RADICON_TAURUS_OBJS)
 			-manifest radicon_taurus.mxo.manifest ; \
 		rm -f radicon_taurus.mxo.manifest; \
 	fi
+endif
+
+ifeq ($(MX_ARCH),linux)
+    radicon_taurus.mxo: $(RADICON_TAURUS_OBJS)
+	$(CC) -shared -rdynamic -Wl,-soname,radicon_taurus.mxo \
+		-o radicon_taurus.mxo $(RADICON_TAURUS_OBJS)
+endif
 
 radicon_taurus.$(OBJ): radicon_taurus.c d_radicon_taurus.h \
 						i_radicon_taurus_rs232.h
 	$(COMPILE) $(CFLAGS) radicon_taurus.c
 
 d_radicon_taurus.$(OBJ): d_radicon_taurus.c d_radicon_taurus.h \
-		..\pleora_iport\i_pleora_iport.h \
-		..\pleora_iport\d_pleora_iport_vinput.h
+		../../libMx/mx_area_detector_rdi.h
 	$(COMPILE) $(CFLAGS) d_radicon_taurus.c
 
 i_radicon_taurus_rs232.$(OBJ): i_radicon_taurus_rs232.c i_radicon_taurus_rs232.h
