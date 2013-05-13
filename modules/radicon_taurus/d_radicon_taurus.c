@@ -827,6 +827,15 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Initialize the image frame with an empty image. */
+
+	mx_status = mx_image_read_file( &(ad->image_frame),
+					MXT_IMAGE_FILE_NONE,
+					NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/* Create two dimensional array overlays for the video frame
 	 * and the area detector frame.
 	 */
