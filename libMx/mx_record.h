@@ -412,7 +412,8 @@ typedef struct {
 	unsigned long show_handle[2];
 	mx_bool_type show_callbacks;
 	unsigned long show_callback_id;
-	mx_bool_type breakpoint;
+	mx_bool_type breakpoint;		/* Run mx_breakpoint(). */
+	mx_bool_type crash;			/* Intentional crash. */
 	mx_bool_type debugger_started;
 	mx_bool_type show_open_fds;
 	mx_bool_type callbacks_enabled;

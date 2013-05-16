@@ -48,6 +48,7 @@ mx_setup_list_head_process_functions( MX_RECORD *record )
 		case MXLV_LHD_BREAKPOINT:
 		case MXLV_LHD_CALLBACKS_ENABLED:
 		case MXLV_LHD_CFLAGS:
+		case MXLV_LHD_CRASH:
 		case MXLV_LHD_DEBUG_LEVEL:
 		case MXLV_LHD_DEBUGGER_STARTED:
 		case MXLV_LHD_FIELDDEF:
@@ -181,6 +182,21 @@ mx_list_head_process_function( void *record_ptr,
 			} else {
 				mx_warning(
 				"Request for remote breakpoint ignored." );
+			}
+			break;
+		case MXLV_LHD_CRASH:
+			if ( list_head->remote_breakpoint_enabled ) {
+				/* Cause a segmentation fault by
+				 * dereferencing a NULL pointer.
+				 */
+
+				int *crash;
+				crash = NULL;
+
+				*crash = 1 + *crash;
+			} else {
+				mx_warning(
+				"Request for remote crash ignored." );
 			}
 			break;
 		case MXLV_LHD_DEBUGGER_STARTED:

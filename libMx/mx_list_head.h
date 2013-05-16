@@ -37,10 +37,11 @@ extern "C" {
 #define MXLV_LHD_SHOW_CALLBACKS		1009
 #define MXLV_LHD_SHOW_CALLBACK_ID	1010
 #define MXLV_LHD_BREAKPOINT		1011
-#define MXLV_LHD_DEBUGGER_STARTED	1012
-#define MXLV_LHD_SHOW_OPEN_FDS		1013
-#define MXLV_LHD_CALLBACKS_ENABLED	1014
-#define MXLV_LHD_CFLAGS			1015
+#define MXLV_LHD_CRASH			1012
+#define MXLV_LHD_DEBUGGER_STARTED	1013
+#define MXLV_LHD_SHOW_OPEN_FDS		1014
+#define MXLV_LHD_CALLBACKS_ENABLED	1015
+#define MXLV_LHD_CFLAGS			1016
 
 #define MXR_LIST_HEAD_STANDARD_FIELDS \
   {-1, -1, "list_is_active", MXFT_BOOL, NULL, 0, {0}, \
@@ -115,6 +116,10 @@ extern "C" {
   \
   {MXLV_LHD_BREAKPOINT, -1, "breakpoint", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, breakpoint), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_LHD_CRASH, -1, "crash", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, crash), \
 	{0}, NULL, 0}, \
   \
   {MXLV_LHD_DEBUGGER_STARTED, -1, "debugger_started", MXFT_BOOL, NULL, 0, {0}, \
