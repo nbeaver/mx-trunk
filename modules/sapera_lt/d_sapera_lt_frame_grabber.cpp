@@ -991,7 +991,9 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 	if ( sapera_status == FALSE ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 		"Unable to create the low-level resources used by the "
-		"SapBuffer object of frame grabber '%s'.",
+		"SapBuffer object of frame grabber '%s'.  If this happens "
+		"more than twice in a row, you should try rebooting the "
+		"computer to free up resources (probably memory).",
 			record->name );
 	}
 
@@ -1102,7 +1104,9 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 	if ( sapera_status == FALSE ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 		"Unable to create the low-level resources used by the "
-		"SapAcqToBuf object of frame grabber '%s'.",
+		"SapAcqToBuf object of frame grabber '%s'.  If this happens "
+		"more than twice in a row, you should try rebooting the "
+		"computer to free up resources (probably memory).",
 			record->name );
 	}
 
