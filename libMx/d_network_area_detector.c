@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2011 Illinois Institute of Technology
+ * Copyright 2006-2011, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -70,6 +70,7 @@ mxd_network_area_detector_ad_function_list = {
 MX_RECORD_FIELD_DEFAULTS mxd_network_area_detector_rf_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_AREA_DETECTOR_STANDARD_FIELDS,
+	MX_AREA_DETECTOR_CORRECTION_STANDARD_FIELDS,
 	MXD_NETWORK_AREA_DETECTOR_STANDARD_FIELDS
 };
 
