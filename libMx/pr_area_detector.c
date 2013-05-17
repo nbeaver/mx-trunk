@@ -798,11 +798,14 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_CONSTRUCT_NEXT_DATAFILE_NAME:
 		case MXLV_AD_COPY_FRAME:
 		case MXLV_AD_CORRECT_FRAME:
+		case MXLV_AD_CORRECTION_FLAGS:
 		case MXLV_AD_CORRECTION_LOAD_FORMAT_NAME:
+		case MXLV_AD_CORRECTION_MEASUREMENT_TIME:
 		case MXLV_AD_CORRECTION_MEASUREMENT_TYPE:
 		case MXLV_AD_CORRECTION_SAVE_FORMAT_NAME:
 		case MXLV_AD_DATAFILE_DIRECTORY:
 		case MXLV_AD_DATAFILE_LOAD_FORMAT_NAME:
+		case MXLV_AD_DATAFILE_NAME:
 		case MXLV_AD_DATAFILE_PATTERN:
 		case MXLV_AD_DATAFILE_SAVE_FORMAT_NAME:
 		case MXLV_AD_DETECTOR_READOUT_TIME:
@@ -810,6 +813,7 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_EXPOSURE_TIME:
 		case MXLV_AD_EXPOSURE_TRIGGER_NAME:
 		case MXLV_AD_EXTENDED_STATUS:
+		case MXLV_AD_FRAME_FILENAME:
 		case MXLV_AD_FRAMESIZE:
 		case MXLV_AD_GET_ROI_FRAME:
 		case MXLV_AD_IMAGE_FORMAT:
@@ -821,12 +825,18 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_LOAD_FRAME:
 		case MXLV_AD_MAXIMUM_FRAME_NUMBER:
 		case MXLV_AD_MAXIMUM_FRAMESIZE:
+		case MXLV_AD_NUM_CORRECTION_MEASUREMENTS:
+		case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
 		case MXLV_AD_READOUT_FRAME:
+		case MXLV_AD_READOUT_TIME:
 		case MXLV_AD_REGISTER_VALUE:
 		case MXLV_AD_ROI:
 		case MXLV_AD_ROI_FRAME_BUFFER:
+		case MXLV_AD_ROI_NUMBER:
 		case MXLV_AD_SAVE_FRAME:
+		case MXLV_AD_SEQUENCE_PARAMETER_ARRAY:
 		case MXLV_AD_SEQUENCE_START_DELAY:
+		case MXLV_AD_SEQUENCE_TYPE:
 		case MXLV_AD_SHOW_IMAGE_FRAME:
 		case MXLV_AD_SHOW_IMAGE_STATISTICS:
 		case MXLV_AD_SHUTTER_ENABLE:
@@ -842,13 +852,6 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_TRIGGER_EXPOSURE:
 		case MXLV_AD_TRIGGER_MODE:
 
-#if PR_AREA_DETECTOR_DEBUG
-		case MXLV_AD_ROI_NUMBER:
-		case MXLV_AD_FRAME_FILENAME:
-		case MXLV_AD_SEQUENCE_TYPE:
-		case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
-#endif
-		case MXLV_AD_SEQUENCE_PARAMETER_ARRAY:
 			record_field->process_function
 					= mx_area_detector_process_function;
 			break;
@@ -904,6 +907,10 @@ mx_area_detector_process_function( void *record_ptr,
 			break;
 		case MXLV_AD_BYTES_PER_PIXEL:
 			mx_status = mx_area_detector_get_bytes_per_pixel(
+								record, NULL );
+			break;
+		case MXLV_AD_CORRECTION_FLAGS:
+			mx_status = mx_area_detector_get_correction_flags(
 								record, NULL );
 			break;
 		case MXLV_AD_CORRECTION_LOAD_FORMAT_NAME:
