@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2009-2011 Illinois Institute of Technology
+ * Copyright 2009-2011, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -54,6 +54,7 @@ MX_AREA_DETECTOR_FUNCTION_LIST
 mxd_mlfsom_ad_function_list = {
 	mxd_mlfsom_arm,
 	mxd_mlfsom_trigger,
+	NULL,
 	mxd_mlfsom_stop,
 	NULL,
 	NULL,

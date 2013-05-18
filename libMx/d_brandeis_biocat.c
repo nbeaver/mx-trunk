@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2007, 2009-2011 Illinois Institute of Technology
+ * Copyright 2007, 2009-2011, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -41,6 +41,7 @@ MX_RECORD_FUNCTION_LIST mxd_brandeis_biocat_record_function_list = {
 MX_AREA_DETECTOR_FUNCTION_LIST mxd_brandeis_biocat_ad_function_list = {
 	mxd_brandeis_biocat_arm,
 	mxd_brandeis_biocat_trigger,
+	NULL,
 	mxd_brandeis_biocat_stop,
 	mxd_brandeis_biocat_abort,
 	NULL,

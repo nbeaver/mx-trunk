@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010-2011 Illinois Institute of Technology
+ * Copyright 2010-2011, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -43,6 +43,7 @@ MX_RECORD_FUNCTION_LIST mxd_mar345_record_function_list = {
 MX_AREA_DETECTOR_FUNCTION_LIST mxd_mar345_ad_function_list = {
 	mxd_mar345_arm,
 	mxd_mar345_trigger,
+	NULL,
 	mxd_mar345_abort,
 	mxd_mar345_abort,
 	mxd_mar345_get_last_frame_number,

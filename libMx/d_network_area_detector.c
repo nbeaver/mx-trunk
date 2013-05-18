@@ -46,6 +46,7 @@ MX_AREA_DETECTOR_FUNCTION_LIST
 mxd_network_area_detector_ad_function_list = {
 	mxd_network_area_detector_arm,
 	mxd_network_area_detector_trigger,
+	NULL,
 	mxd_network_area_detector_stop,
 	mxd_network_area_detector_abort,
 	mxd_network_area_detector_get_last_frame_number,

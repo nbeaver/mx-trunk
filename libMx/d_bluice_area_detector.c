@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008-2012 Illinois Institute of Technology
+ * Copyright 2008-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -49,6 +49,7 @@ MX_RECORD_FUNCTION_LIST mxd_bluice_area_detector_record_function_list = {
 MX_AREA_DETECTOR_FUNCTION_LIST mxd_bluice_area_detector_ad_function_list = {
 	mxd_bluice_area_detector_arm,
 	mxd_bluice_area_detector_trigger,
+	NULL,
 	mxd_bluice_area_detector_stop,
 	mxd_bluice_area_detector_stop,
 	NULL,

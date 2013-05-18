@@ -828,7 +828,6 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_NUM_CORRECTION_MEASUREMENTS:
 		case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
 		case MXLV_AD_READOUT_FRAME:
-		case MXLV_AD_READOUT_TIME:
 		case MXLV_AD_REGISTER_VALUE:
 		case MXLV_AD_ROI:
 		case MXLV_AD_ROI_FRAME_BUFFER:
@@ -842,6 +841,7 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_SHUTTER_ENABLE:
 		case MXLV_AD_SHUTTER_NAME:
 		case MXLV_AD_SETUP_EXPOSURE:
+		case MXLV_AD_START:
 		case MXLV_AD_STATUS:
 		case MXLV_AD_STOP:
 		case MXLV_AD_TOTAL_ACQUISITION_TIME:
@@ -1094,7 +1094,9 @@ mx_area_detector_process_function( void *record_ptr,
 			mx_status = mx_area_detector_abort( record );
 			break;
 		case MXLV_AD_ARM:
-			mx_status = mx_area_detector_arm( record );
+			if ( ad->arm != 0 ) {
+				mx_status = mx_area_detector_arm( record );
+			}
 			break;
 		case MXLV_AD_BINSIZE:
 			mx_status = mx_area_detector_set_binsize( record,
@@ -1372,6 +1374,11 @@ mx_area_detector_process_function( void *record_ptr,
 			    }
 			}
 			break;
+		case MXLV_AD_START:
+			if ( ad->start != 0 ) {
+				mx_status = mx_area_detector_start( record );
+			}
+			break;
 		case MXLV_AD_STOP:
 			(void) mxp_area_detector_stop_correction_callback(
 								record, ad );
@@ -1391,7 +1398,9 @@ mx_area_detector_process_function( void *record_ptr,
 					ad->transfer_frame, ad->image_frame );
 			break;
 		case MXLV_AD_TRIGGER:
-			mx_status = mx_area_detector_trigger( record );
+			if ( ad->trigger != 0 ) {
+				mx_status = mx_area_detector_trigger( record );
+			}
 			break;
 		case MXLV_AD_TRIGGER_EXPOSURE:
 			mx_status = mx_area_detector_trigger_exposure( record );

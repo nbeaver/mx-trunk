@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010-2012 Illinois Institute of Technology
+ * Copyright 2010-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -45,6 +45,7 @@ MX_RECORD_FUNCTION_LIST mxd_mbc_noir_record_function_list = {
 MX_AREA_DETECTOR_FUNCTION_LIST mxd_mbc_noir_ad_function_list = {
 	NULL,
 	mxd_mbc_noir_trigger,
+	NULL,
 	mxd_mbc_noir_abort,
 	mxd_mbc_noir_abort,
 	NULL,

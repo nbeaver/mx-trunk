@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010-2011 Illinois Institute of Technology
+ * Copyright 2010-2011, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -41,6 +41,7 @@ MX_RECORD_FUNCTION_LIST mxd_epics_ad_record_function_list = {
 MX_AREA_DETECTOR_FUNCTION_LIST mxd_epics_ad_ad_function_list = {
 	NULL,
 	mxd_epics_ad_trigger,
+	NULL,
 	mxd_epics_ad_abort,
 	mxd_epics_ad_abort,
 	mxd_epics_ad_get_last_frame_number,

@@ -2054,14 +2054,20 @@ mx_area_detector_arm( MX_RECORD *record )
 
 	/* Arm the area detector. */
 
+	ad->arm = 1;
+
 	arm_fn = flist->arm;
 
 	if ( arm_fn != NULL ) {
 		mx_status = (*arm_fn)( ad );
 
+		ad->arm = 0;
+
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	}
+
+	ad->arm = 0;
 
 	/* Compute image frame parameters for later use. */
 
@@ -2111,9 +2117,13 @@ mx_area_detector_trigger( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	ad->trigger = 1;
+
 	trigger_fn = flist->trigger;
 
 	if ( trigger_fn == NULL ) {
+		ad->trigger = 0;
+
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 		"Triggering the taking of image frames has not yet "
 		"been implemented for the driver for record '%s'.",
@@ -2122,20 +2132,42 @@ mx_area_detector_trigger( MX_RECORD *record )
 
 	mx_status = (*trigger_fn)( ad );
 
+	ad->trigger = 0;
+
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mx_area_detector_start( MX_RECORD *record )
 {
+	static const char fname[] = "mx_area_detector_start()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *start_fn ) ( MX_AREA_DETECTOR * );
 	mx_status_type mx_status;
 
-	mx_status = mx_area_detector_arm( record );
+	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_area_detector_trigger( record );
+	start_fn = flist->start;
+
+	if ( start_fn != NULL ) {
+		ad->start = 1;
+
+		mx_status = (*start_fn)( ad );
+
+		ad->start = 0;
+	} else {
+		mx_status = mx_area_detector_arm( record );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_area_detector_trigger( record );
+	}
 
 	return mx_status;
 }

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008-2010 Illinois Institute of Technology
+ * Copyright 2008-2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -48,6 +48,7 @@ MX_RECORD_FUNCTION_LIST mxd_marccd_server_socket_record_function_list = {
 MX_AREA_DETECTOR_FUNCTION_LIST mxd_marccd_server_socket_ad_function_list = {
 	NULL,
 	mxd_marccd_server_socket_trigger,
+	NULL,
 	mxd_marccd_server_socket_stop,
 	mxd_marccd_server_socket_stop,
 	NULL,

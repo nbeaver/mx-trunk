@@ -54,6 +54,7 @@ MX_RECORD_FUNCTION_LIST mxd_radicon_xineos_gige_record_function_list = {
 MX_AREA_DETECTOR_FUNCTION_LIST mxd_radicon_xineos_gige_ad_function_list = {
 	mxd_radicon_xineos_gige_arm,
 	mxd_radicon_xineos_gige_trigger,
+	NULL,
 	mxd_radicon_xineos_gige_stop,
 	NULL,
 	NULL,

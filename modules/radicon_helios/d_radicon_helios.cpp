@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2011-2012 Illinois Institute of Technology
+ * Copyright 2011-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -69,6 +69,7 @@ MX_RECORD_FUNCTION_LIST mxd_radicon_helios_record_function_list = {
 MX_AREA_DETECTOR_FUNCTION_LIST mxd_radicon_helios_ad_function_list = {
 	mxd_radicon_helios_arm,
 	mxd_radicon_helios_trigger,
+	NULL,
 	mxd_radicon_helios_abort,
 	mxd_radicon_helios_abort,
 	NULL,

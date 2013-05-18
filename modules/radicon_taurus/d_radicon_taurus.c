@@ -83,6 +83,7 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_radicon_taurus_ad_function_list = {
 	mxd_radicon_taurus_arm,
 	mxd_radicon_taurus_trigger,
 	NULL,
+	NULL,
 	mxd_radicon_taurus_abort,
 	NULL,
 	NULL,
