@@ -5239,7 +5239,6 @@ mx_sequence_get_exposure_time( MX_SEQUENCE_PARAMETERS *sp,
 		*exposure_time = sp->parameter_array[0];
 		break;
 	case MXT_SQ_MULTIFRAME:
-	case MXT_SQ_CIRCULAR_MULTIFRAME:
 	case MXT_SQ_STROBE:
 	case MXT_SQ_GATED:
 		*exposure_time = sp->parameter_array[1];
@@ -5302,7 +5301,6 @@ mx_sequence_get_frame_time( MX_SEQUENCE_PARAMETERS *sp,
 		*frame_time = sp->parameter_array[0];
 		break;
 	case MXT_SQ_MULTIFRAME:
-	case MXT_SQ_CIRCULAR_MULTIFRAME:
 		*frame_time = sp->parameter_array[2];
 		break;
 	case MXT_SQ_STROBE:
@@ -5379,7 +5377,6 @@ mx_sequence_get_sequence_time( MX_SEQUENCE_PARAMETERS *sp,
 		*sequence_time = sp->parameter_array[0] * num_frames;
 		break;
 	case MXT_SQ_MULTIFRAME:
-	case MXT_SQ_CIRCULAR_MULTIFRAME:
 		*sequence_time = sp->parameter_array[2] * num_frames;
 		break;
 	case MXT_SQ_STROBE:
@@ -5454,7 +5451,6 @@ mx_sequence_get_num_frames( MX_SEQUENCE_PARAMETERS *sp,
 		*num_frames = 1;
 		break;
 	case MXT_SQ_MULTIFRAME:
-	case MXT_SQ_CIRCULAR_MULTIFRAME:
 	case MXT_SQ_STROBE:
 	case MXT_SQ_DURATION:
 	case MXT_SQ_GATED:

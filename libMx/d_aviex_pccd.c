@@ -2220,7 +2220,6 @@ mxd_aviex_pccd_arm( MX_AREA_DETECTOR *ad )
 
 		switch( sp->sequence_type ) {
 		case MXT_SQ_CONTINUOUS:
-		case MXT_SQ_CIRCULAR_MULTIFRAME:
 			circular = TRUE;
 			break;
 		default:
@@ -2292,7 +2291,6 @@ mxd_aviex_pccd_trigger( MX_AREA_DETECTOR *ad )
 	case MXT_SQ_ONE_SHOT:
 	case MXT_SQ_CONTINUOUS:
 	case MXT_SQ_MULTIFRAME:
-	case MXT_SQ_CIRCULAR_MULTIFRAME:
 	case MXT_SQ_STROBE:
 	case MXT_SQ_DURATION:
 	case MXT_SQ_GEOMETRICAL:
@@ -2331,7 +2329,6 @@ mxd_aviex_pccd_trigger( MX_AREA_DETECTOR *ad )
 
 		switch( sp->sequence_type ) {
 		case MXT_SQ_CONTINUOUS:
-		case MXT_SQ_CIRCULAR_MULTIFRAME:
 			circular = TRUE;
 			break;
 		default:
@@ -2751,8 +2748,7 @@ mxd_aviex_pccd_readout_frame( MX_AREA_DETECTOR *ad )
 #endif
 
 	/* Compute the frame number modulo the maximum_number of frames.
-	 * The modulo part is for the sake of MXT_SQ_CIRCULAR_MULTIFRAME
-	 * and MXT_SQ_CONTINUOUS sequences.
+	 * The modulo part is for the sake of MXT_SQ_CONTINUOUS sequences.
 	 */
 
 	ad->parameter_type = MXLV_AD_MAXIMUM_FRAME_NUMBER;
@@ -4053,19 +4049,6 @@ mxd_aviex_pccd_set_parameter( MX_AREA_DETECTOR *ad )
 			 * reach the last frame.
 			 */
 			break;
-		case MXT_SQ_CIRCULAR_MULTIFRAME:
-			if ( num_frames >
-				MXF_AVIEX_PCCD_MAXIMUM_DETECTOR_HEAD_FRAMES )
-			{
-				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-				"The circular multiframe sequence requested "
-				"for area detector '%s' would have more "
-				"frames (%ld) than the maximum number of "
-				"frames available (%d).",
-				ad->record->name, num_frames,
-				MXF_AVIEX_PCCD_MAXIMUM_DETECTOR_HEAD_FRAMES );
-			}
-			break;
 		default:
 			if ( num_frames > (ad->maximum_frame_number + 1) ) {
 				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
@@ -4138,7 +4121,6 @@ mxd_aviex_pccd_set_parameter( MX_AREA_DETECTOR *ad )
 			break;
 
 		case MXT_SQ_MULTIFRAME:
-		case MXT_SQ_CIRCULAR_MULTIFRAME:
 		case MXT_SQ_GEOMETRICAL:
 		case MXT_SQ_STREAK_CAMERA:
 		case MXT_SQ_SUBIMAGE:

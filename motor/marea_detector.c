@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2009, 2011-2012 Illinois Institute of Technology
+ * Copyright 2006-2009, 2011-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -103,8 +103,6 @@ motor_area_detector_fn( int argc, char *argv[] )
 "  area_detector 'name' set one_shot_mode 'exposure time in seconds'\n"
 "  area_detector 'name' set continuous_mode 'exposure time in seconds'\n"
 "  area_detector 'name' set multiframe_mode '# frames'\n"
-"                                                'exposure time' 'frame_time'\n"
-"  area_detector 'name' set circular_multiframe_mode '# frames'\n"
 "                                                'exposure time' 'frame_time'\n"
 "  area_detector 'name' set strobe_mode '# frames' 'exposure time'\n"
 "  area_detector 'name' set duration_mode '# frames'\n"
@@ -445,7 +443,6 @@ motor_area_detector_fn( int argc, char *argv[] )
 			break;
 
 		case MXT_SQ_MULTIFRAME:
-		case MXT_SQ_CIRCULAR_MULTIFRAME:
 		case MXT_SQ_STROBE:
 		case MXT_SQ_DURATION:
 		case MXT_SQ_GEOMETRICAL:
@@ -1991,44 +1988,6 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 			mx_status = mx_area_detector_set_multiframe_mode(
 			    ad_record, num_frames, exposure_time, frame_time );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return FAILURE;
-
-			mx_status = mx_area_detector_get_total_sequence_time(
-					ad_record, &total_sequence_time );
-
-			fprintf( output,
-			"The sequence will take %g seconds.\n",
-				total_sequence_time );
-		} else
-		if ( strncmp("circular_multiframe_mode",
-				argv[4], strlen(argv[4])) == 0)
-		{
-			if ( argc != 8 ) {
-				fprintf( output,
-			"Wrong number of arguments specified for 'set %s'.\n",
-					argv[4] );
-				return FAILURE;
-			}
-
-			num_frames = strtol( argv[5], &endptr, 0 );
-
-			if ( *endptr != '\0' ) {
-				fprintf( output,
-	"%s: Non-numeric characters found in the number of frames '%s'\n",
-					cname, argv[5] );
-
-				return FAILURE;
-			}
-
-			exposure_time = atof( argv[6] );
-
-			frame_time = atof( argv[7] );
-
-			mx_status =
-			    mx_area_detector_set_circular_multiframe_mode(
-			      ad_record, num_frames, exposure_time, frame_time);
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;

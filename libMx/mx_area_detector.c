@@ -1649,26 +1649,6 @@ mx_area_detector_set_multiframe_mode( MX_RECORD *record,
 }
 
 MX_EXPORT mx_status_type
-mx_area_detector_set_circular_multiframe_mode( MX_RECORD *record,
-						long num_frames,
-						double exposure_time,
-						double frame_time )
-{
-	MX_SEQUENCE_PARAMETERS seq_params;
-	mx_status_type mx_status;
-
-	seq_params.sequence_type = MXT_SQ_CIRCULAR_MULTIFRAME;
-	seq_params.num_parameters = 3;
-	seq_params.parameter_array[0] = num_frames;
-	seq_params.parameter_array[1] = exposure_time;
-	seq_params.parameter_array[2] = frame_time;
-
-	mx_status = mx_area_detector_set_sequence_parameters( record,
-								&seq_params );
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
 mx_area_detector_set_strobe_mode( MX_RECORD *record,
 				long num_frames,
 				double exposure_time )
@@ -5064,7 +5044,6 @@ mx_area_detector_default_get_parameter_handler( MX_AREA_DETECTOR *ad )
 						+ ad->detector_readout_time;
 			break;
 		case MXT_SQ_MULTIFRAME:
-		case MXT_SQ_CIRCULAR_MULTIFRAME:
 			num_frames = mx_round( seq.parameter_array[0] );
 			exposure_time = seq.parameter_array[1];
 			frame_time = seq.parameter_array[2];

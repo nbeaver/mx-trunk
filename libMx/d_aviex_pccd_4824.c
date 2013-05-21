@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2009, 2011-2012 Illinois Institute of Technology
+ * Copyright 2006-2009, 2011-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -742,7 +742,6 @@ mxd_aviex_pccd_4824_configure_for_sequence( MX_AREA_DETECTOR *ad,
 	case MXT_SQ_ONE_SHOT:
 	case MXT_SQ_CONTINUOUS:
 	case MXT_SQ_MULTIFRAME:
-	case MXT_SQ_CIRCULAR_MULTIFRAME:
 	case MXT_SQ_STROBE:
 	case MXT_SQ_DURATION:
 
@@ -807,11 +806,6 @@ mxd_aviex_pccd_4824_configure_for_sequence( MX_AREA_DETECTOR *ad,
 			frame_time = exposure_time;
 		} else
 		if ( sp->sequence_type == MXT_SQ_MULTIFRAME ) {
-			num_frames = mx_round( sp->parameter_array[0] );
-			exposure_time = sp->parameter_array[1];
-			frame_time = sp->parameter_array[2];
-		} else
-		if ( sp->sequence_type == MXT_SQ_CIRCULAR_MULTIFRAME ) {
 			num_frames = mx_round( sp->parameter_array[0] );
 			exposure_time = sp->parameter_array[1];
 			frame_time = sp->parameter_array[2];

@@ -278,6 +278,19 @@ typedef struct mx_area_detector_type {
 
 	MX_SEQUENCE_PARAMETERS sequence_parameters;
 
+	/* The following variables provide a way for MX network clients
+	 * to set up certain sequence types in one mx_put() operation.
+	 * The received values are copied into the MX_SEQUENCE_PARAMETERS
+	 * structure above.
+	 */
+
+	double sequence_one_shot[1];
+	double sequence_continuous[1];
+	double sequence_multiframe[3];
+	double sequence_strobe[2];
+	double sequence_duration[1];
+	double sequence_gated[3];
+
 	/* 'exposure_time' is used by mx_area_detector_get_exposure_time()
 	 * to extract the exposure time from the MX_SEQUENCE_PARAMETERS
 	 * structure and put it someplace that a remote client can 
@@ -665,6 +678,14 @@ typedef struct mx_area_detector_type {
 #define MXLV_AD_SHUTTER_TIME			12604
 #define MXLV_AD_SETUP_EXPOSURE			12605
 #define MXLV_AD_TRIGGER_EXPOSURE		12606
+
+#define MXLV_AD_SEQUENCE_ONE_SHOT		12701
+#define MXLV_AD_SEQUENCE_CONTINUOUS		12702
+#define MXLV_AD_SEQUENCE_MULTIFRAME		12703
+/*...*/
+#define MXLV_AD_SEQUENCE_STROBE			12705
+#define MXLV_AD_SEQUENCE_DURATION		12706
+#define MXLV_AD_SEQUENCE_GATED			12707
 
 #define MX_AREA_DETECTOR_STANDARD_FIELDS \
   {MXLV_AD_MAXIMUM_FRAMESIZE, -1, "maximum_framesize", \
@@ -1213,7 +1234,37 @@ typedef struct mx_area_detector_type {
   \
   {MXLV_AD_TRIGGER_EXPOSURE, -1, "trigger_exposure", MXFT_BOOL, NULL, 0, {0}, \
   	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, trigger_exposure), \
-	{0}, NULL, 0}
+	{0}, NULL, 0}, \
+  \
+  {MXLV_AD_SEQUENCE_ONE_SHOT, -1, \
+			"sequence_one_shot", MXFT_DOUBLE, NULL, 1, {1}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, sequence_one_shot), \
+	{sizeof(double)}, NULL, 0}, \
+  \
+  {MXLV_AD_SEQUENCE_CONTINUOUS, -1, \
+			"sequence_continuous", MXFT_DOUBLE, NULL, 1, {1}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, sequence_continuous), \
+	{sizeof(double)}, NULL, 0}, \
+  \
+  {MXLV_AD_SEQUENCE_MULTIFRAME, -1, \
+			"sequence_multiframe", MXFT_DOUBLE, NULL, 1, {3}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, sequence_multiframe), \
+	{sizeof(double)}, NULL, 0}, \
+  \
+  {MXLV_AD_SEQUENCE_STROBE, -1, \
+			"sequence_strobe", MXFT_DOUBLE, NULL, 1, {2}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, sequence_strobe), \
+	{sizeof(double)}, NULL, 0}, \
+  \
+  {MXLV_AD_SEQUENCE_DURATION, -1, \
+			"sequence_duration", MXFT_DOUBLE, NULL, 1, {1}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, sequence_duration), \
+	{sizeof(double)}, NULL, 0}, \
+  \
+  {MXLV_AD_SEQUENCE_GATED, -1, \
+			"sequence_gated", MXFT_DOUBLE, NULL, 1, {3}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, sequence_gated), \
+	{sizeof(double)}, NULL, 0}
 
 typedef struct {
         mx_status_type ( *arm ) ( MX_AREA_DETECTOR *ad );
@@ -1354,12 +1405,6 @@ MX_API mx_status_type mx_area_detector_set_continuous_mode(MX_RECORD *ad_record,
 							double exposure_time );
 
 MX_API mx_status_type mx_area_detector_set_multiframe_mode(MX_RECORD *ad_record,
-							long num_frames,
-							double exposure_time,
-							double frame_time );
-
-MX_API mx_status_type mx_area_detector_set_circular_multiframe_mode(
-							MX_RECORD *ad_record,
 							long num_frames,
 							double exposure_time,
 							double frame_time );

@@ -555,7 +555,6 @@ mxd_epics_ccd_get_parameter( MX_AREA_DETECTOR *ad )
 		case MXT_SQ_ONE_SHOT:
 		case MXT_SQ_CONTINUOUS:
 		case MXT_SQ_MULTIFRAME:
-		case MXT_SQ_CIRCULAR_MULTIFRAME:
 		case MXT_SQ_STROBE:
 		case MXT_SQ_DURATION:
 			/* For these cases, use the default calculation. */

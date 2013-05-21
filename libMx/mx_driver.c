@@ -448,7 +448,6 @@
 #include "d_soft_area_detector.h"
 #include "d_network_area_detector.h"
 #include "d_aviex_pccd.h"
-#include "d_brandeis_biocat.h"
 #include "d_marccd.h"
 #include "d_marccd_server_socket.h"
 #include "d_bluice_area_detector.h"
@@ -3181,13 +3180,6 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_aviex_pccd_ad_function_list,
 				&mxd_aviex_pccd_9785_num_record_fields,
 				&mxd_aviex_pccd_9785_rfield_def_ptr},
-
-{"brandeis_biocat", MXT_AD_BRANDEIS_BIOCAT, MXC_AREA_DETECTOR,  MXR_DEVICE,
-				&mxd_brandeis_biocat_record_function_list,
-				NULL,
-				&mxd_brandeis_biocat_ad_function_list,
-				&mxd_brandeis_biocat_num_record_fields,
-				&mxd_brandeis_biocat_rfield_def_ptr},
 
 {"marccd",         MXT_AD_MARCCD,      MXC_AREA_DETECTOR,  MXR_DEVICE,
 				&mxd_marccd_record_function_list,

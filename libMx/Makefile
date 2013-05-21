@@ -81,7 +81,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_bkprecision_912x_wvout.c d_blind_relay.c \
 	d_bluice_area_detector.c d_bluice_ion_chamber.c d_bluice_motor.c \
 	d_bluice_shutter.c d_bluice_timer.c \
-	d_brandeis_biocat.c d_cm17a_doutput.c \
+	d_cm17a_doutput.c \
 	d_compumotor.c d_compumotor_dio.c d_compumotor_linear.c \
 	d_cryostream600_motor.c d_cryostream600_status.c \
 	d_cubic_spline_motor.c \

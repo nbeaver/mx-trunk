@@ -79,7 +79,7 @@ extern "C" {
 #define MXT_SQ_ONE_SHOT				1
 #define MXT_SQ_CONTINUOUS			2
 #define MXT_SQ_MULTIFRAME			3
-#define MXT_SQ_CIRCULAR_MULTIFRAME		4
+/*...*/
 #define MXT_SQ_STROBE				5
 #define MXT_SQ_DURATION				6
 #define MXT_SQ_GATED				7
