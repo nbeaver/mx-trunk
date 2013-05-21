@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2006-2009, 2011-2012 Illinois Institute of Technology
+ * Copyright 2006-2009, 2011-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1450,6 +1450,10 @@ mx_area_detector_process_function( void *record_ptr,
 			break;
 
 		case MXLV_AD_SEQUENCE_ONE_SHOT:
+#if 1
+			MX_DEBUG(-2,("%s: one_shot ... %f", fname,
+				ad->sequence_one_shot[0]));
+#endif
 			mx_status = mx_area_detector_set_one_shot_mode( record,
 						ad->sequence_one_shot[0] );
 			break;
@@ -1473,11 +1477,21 @@ mx_area_detector_process_function( void *record_ptr,
 			break;
 
 		case MXLV_AD_SEQUENCE_DURATION:
+#if 1
+			MX_DEBUG(-2,("%s: duration ... %f", fname,
+				ad->sequence_duration[0]));
+#endif
 			mx_status = mx_area_detector_set_duration_mode( record,
 						ad->sequence_duration[0] );
 			break;
 
 		case MXLV_AD_SEQUENCE_GATED:
+#if 1
+			MX_DEBUG(-2,("%s: gated ... %f, %f, %f", fname,
+				ad->sequence_gated[0],
+				ad->sequence_gated[1],
+				ad->sequence_gated[2]));
+#endif
 			mx_status = mx_area_detector_set_gated_mode( record,
 						ad->sequence_gated[0],
 						ad->sequence_gated[1],
