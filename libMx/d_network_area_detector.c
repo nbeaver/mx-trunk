@@ -544,6 +544,36 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 		"%s.sequence_parameter_array",
 				network_area_detector->remote_record_name );
 
+	mx_network_field_init( &(network_area_detector->sequence_continuous_nf),
+		network_area_detector->server_record,
+		"%s.sequence_continuous",
+				network_area_detector->remote_record_name );
+
+	mx_network_field_init( &(network_area_detector->sequence_duration_nf),
+		network_area_detector->server_record,
+		"%s.sequence_duration",
+				network_area_detector->remote_record_name );
+
+	mx_network_field_init( &(network_area_detector->sequence_gated_nf),
+		network_area_detector->server_record,
+		"%s.sequence_gated",
+				network_area_detector->remote_record_name );
+
+	mx_network_field_init( &(network_area_detector->sequence_multiframe_nf),
+		network_area_detector->server_record,
+		"%s.sequence_multiframe",
+				network_area_detector->remote_record_name );
+
+	mx_network_field_init( &(network_area_detector->sequence_one_shot_nf),
+		network_area_detector->server_record,
+		"%s.sequence_one_shot",
+				network_area_detector->remote_record_name );
+
+	mx_network_field_init( &(network_area_detector->sequence_strobe_nf),
+		network_area_detector->server_record,
+		"%s.sequence_strobe",
+				network_area_detector->remote_record_name );
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -1905,6 +1935,54 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 			&(network_area_detector->sequence_parameter_array_nf),
 			MXFT_DOUBLE, 1, dimension,
 			&(ad->sequence_parameters.parameter_array));
+		break;
+
+	case MXLV_AD_SEQUENCE_ONE_SHOT:
+		dimension[0] = 1;
+
+		mx_status = mx_put_array(
+			&(network_area_detector->sequence_one_shot_nf),
+			MXFT_DOUBLE, 1, dimension, ad->sequence_one_shot );
+		break;
+
+	case MXLV_AD_SEQUENCE_CONTINUOUS:
+		dimension[0] = 1;
+
+		mx_status = mx_put_array(
+			&(network_area_detector->sequence_continuous_nf),
+			MXFT_DOUBLE, 1, dimension, ad->sequence_continuous );
+		break;
+
+	case MXLV_AD_SEQUENCE_MULTIFRAME:
+		dimension[0] = 3;
+
+		mx_status = mx_put_array(
+			&(network_area_detector->sequence_multiframe_nf),
+			MXFT_DOUBLE, 1, dimension, ad->sequence_multiframe );
+		break;
+
+	case MXLV_AD_SEQUENCE_STROBE:
+		dimension[0] = 2;
+
+		mx_status = mx_put_array(
+			&(network_area_detector->sequence_strobe_nf),
+			MXFT_DOUBLE, 1, dimension, ad->sequence_strobe );
+		break;
+
+	case MXLV_AD_SEQUENCE_DURATION:
+		dimension[0] = 1;
+
+		mx_status = mx_put_array(
+			&(network_area_detector->sequence_duration_nf),
+			MXFT_DOUBLE, 1, dimension, ad->sequence_duration );
+		break;
+
+	case MXLV_AD_SEQUENCE_GATED:
+		dimension[0] = 1;
+
+		mx_status = mx_put_array(
+			&(network_area_detector->sequence_gated_nf),
+			MXFT_DOUBLE, 1, dimension, ad->sequence_gated );
 		break;
 
 	case MXLV_AD_ROI:

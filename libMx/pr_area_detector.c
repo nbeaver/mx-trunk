@@ -881,7 +881,7 @@ mx_area_detector_process_function( void *record_ptr,
 	unsigned long flags;
 	mx_status_type mx_status;
 
-#if PR_AREA_DETECTOR_DEBUG
+#if 1 || PR_AREA_DETECTOR_DEBUG
 	unsigned long i;
 #endif
 
@@ -1063,17 +1063,18 @@ mx_area_detector_process_function( void *record_ptr,
 			MX_DEBUG(-2,("%s: ROI number = %ld",
 				fname, ad->roi_number));
 			break;
+#endif
 		case MXLV_AD_SEQUENCE_TYPE:
+		case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
+		case MXLV_AD_SEQUENCE_PARAMETER_ARRAY:
+			mx_status = mx_area_detector_get_sequence_parameters(
+								record, NULL );
+#if 1 || PR_AREA_DETECTOR_DEBUG
 			MX_DEBUG(-2,("%s: sequence type = %ld",
 				fname, ad->sequence_parameters.sequence_type));
-			break;
-		case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
 			MX_DEBUG(-2,("%s: num_parameters = %ld",
 				fname, ad->sequence_parameters.num_parameters));
-			break;
-#endif
-		case MXLV_AD_SEQUENCE_PARAMETER_ARRAY:
-#if PR_AREA_DETECTOR_DEBUG
+
 			for ( i = 0;
 			    i < ad->sequence_parameters.num_parameters;
 			    i++ )

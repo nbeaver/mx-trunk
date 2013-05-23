@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2011 Illinois Institute of Technology
+ * Copyright 2006-2011, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -74,7 +74,13 @@ typedef struct {
 	MX_NETWORK_FIELD roi_bytes_per_frame_nf;
 	MX_NETWORK_FIELD roi_number_nf;
 	MX_NETWORK_FIELD save_frame_nf;
+	MX_NETWORK_FIELD sequence_continuous_nf;
+	MX_NETWORK_FIELD sequence_duration_nf;
+	MX_NETWORK_FIELD sequence_gated_nf;
+	MX_NETWORK_FIELD sequence_multiframe_nf;
+	MX_NETWORK_FIELD sequence_one_shot_nf;
 	MX_NETWORK_FIELD sequence_start_delay_nf;
+	MX_NETWORK_FIELD sequence_strobe_nf;
 	MX_NETWORK_FIELD shutter_enable_nf;
 	MX_NETWORK_FIELD shutter_name_nf;
 	MX_NETWORK_FIELD shutter_time_nf;
