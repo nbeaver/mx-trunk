@@ -2471,6 +2471,35 @@ mx_print_field_array( FILE *file,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+MX_EXPORT mx_status_type
+mx_print_field( FILE *file,
+		MX_RECORD *record,
+		MX_RECORD_FIELD *field,
+		mx_bool_type verbose )
+{
+	void *value_ptr;
+	mx_status_type mx_status;
+
+	/* Handle scalars and multidimensional arrays separately. */
+
+	if ( (field->num_dimensions > 1)
+	  || ((field->datatype != MXFT_STRING)
+	  	&& (field->num_dimensions > 0)) )
+	{
+
+		mx_status = mx_print_field_array( file,
+				record, field, TRUE );
+	} else {
+		value_ptr =
+		    mx_get_field_value_pointer( field );
+
+		mx_status = mx_print_field_value( file,
+		       record, field, value_ptr, TRUE );
+	}
+
+	return mx_status;
+}
+
 /*----------*/
 
 MX_EXPORT mx_status_type

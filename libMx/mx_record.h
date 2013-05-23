@@ -599,6 +599,11 @@ MX_API mx_status_type  mx_print_field_value( FILE *file,
 					void *value_ptr,
 					mx_bool_type verbose_flag );
 
+MX_API mx_status_type  mx_print_field( FILE *file,
+					MX_RECORD *record,
+					MX_RECORD_FIELD *field,
+					mx_bool_type verbose_flag );
+
 MX_API mx_status_type  mx_open_hardware( MX_RECORD *record );
 MX_API mx_status_type  mx_close_hardware( MX_RECORD *record );
 

@@ -251,6 +251,13 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->detector_readout_time  = 0.0;
 	ad->total_sequence_time    = 0.0;
 
+	memset( ad->sequence_one_shot, 0, sizeof(ad->sequence_one_shot) );
+	memset( ad->sequence_continuous, 0, sizeof(ad->sequence_continuous) );
+	memset( ad->sequence_multiframe, 0, sizeof(ad->sequence_multiframe) );
+	memset( ad->sequence_strobe, 0, sizeof(ad->sequence_strobe) );
+	memset( ad->sequence_duration, 0, sizeof(ad->sequence_duration) );
+	memset( ad->sequence_gated, 0, sizeof(ad->sequence_gated) );
+
 	ad->dark_current_frame = NULL;
 	ad->dark_current_frame_buffer = NULL;
 
