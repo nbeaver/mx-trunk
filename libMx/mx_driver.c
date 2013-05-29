@@ -311,12 +311,14 @@
 #include "d_tangent_arm.h"
 #include "d_aframe_detector_motor.h"
 #include "d_adsc_two_theta.h"
-#include "d_als_dewar_positioner.h"
 #include "d_record_field_motor.h"
 #include "d_gated_backlash.h"
 #include "d_polynomial_motor.h"
 #include "d_cubic_spline_motor.h"
 #include "d_limited_move.h"
+
+#include "d_als_dewar_positioner.h"
+#include "d_biocat_mirror_positioner.h"
 
 #include "d_compumotor_linear.h"
 
@@ -2290,13 +2292,6 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_record_field_motor_num_record_fields,
 				&mxd_record_field_motor_rfield_def_ptr},
 
-{"als_dewar_positioner", MXT_MTR_ALS_DEWAR_POSITIONER, MXC_MOTOR, MXR_DEVICE,
-				&mxd_als_dewar_positioner_record_function_list,
-				NULL,
-				&mxd_als_dewar_positioner_motor_function_list,
-				&mxd_als_dewar_positioner_num_record_fields,
-				&mxd_als_dewar_positioner_rfield_def_ptr},
-
 {"gated_backlash",    MXT_MTR_GATED_BACKLASH, MXC_MOTOR,     MXR_DEVICE,
 				&mxd_gated_backlash_record_function_list,
 				NULL,
@@ -2324,6 +2319,21 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_limited_move_motor_function_list,
 				&mxd_limited_move_num_record_fields,
 				&mxd_limited_move_rfield_def_ptr},
+
+{"als_dewar_positioner", MXT_MTR_ALS_DEWAR_POSITIONER, MXC_MOTOR, MXR_DEVICE,
+				&mxd_als_dewar_positioner_record_function_list,
+				NULL,
+				&mxd_als_dewar_positioner_motor_function_list,
+				&mxd_als_dewar_positioner_num_record_fields,
+				&mxd_als_dewar_positioner_rfield_def_ptr},
+
+{"biocat_mirror_positioner", MXT_MTR_BIOCAT_MIRROR_POSITIONER,
+					MXC_MOTOR, MXR_DEVICE,
+				&mxd_biocat_mirror_pos_record_function_list,
+				NULL,
+				&mxd_biocat_mirror_pos_motor_function_list,
+				&mxd_biocat_mirror_pos_num_record_fields,
+				&mxd_biocat_mirror_pos_rfield_def_ptr},
 
 {"compumotor_lin", MXT_MTR_COMPUMOTOR_LINEAR, MXC_MOTOR, MXR_DEVICE,
 				&mxd_compumotor_linear_record_function_list,
