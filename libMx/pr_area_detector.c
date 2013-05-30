@@ -850,10 +850,6 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_START:
 		case MXLV_AD_STATUS:
 		case MXLV_AD_STOP:
-		case MXLV_AD_TEXT_SEQUENCE_GATED:
-		case MXLV_AD_TEXT_SEQUENCE_MULTIFRAME:
-		case MXLV_AD_TEXT_SEQUENCE_PARAMETER_ARRAY:
-		case MXLV_AD_TEXT_SEQUENCE_STROBE:
 		case MXLV_AD_TOTAL_ACQUISITION_TIME:
 		case MXLV_AD_TOTAL_NUM_FRAMES:
 		case MXLV_AD_TOTAL_SEQUENCE_TIME:
@@ -1110,24 +1106,6 @@ mx_area_detector_process_function( void *record_ptr,
 #endif
 			break;
 
-		case MXLV_AD_TEXT_SEQUENCE_PARAMETER_ARRAY:
-			ad->parameter_type = MXLV_AD_SEQUENCE_PARAMETER_ARRAY;
-
-			mx_status = (*get_parameter_fn)( ad );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			sp = &(ad->sequence_parameters);
-
-			snprintf( ad->text_sequence_parameter_array,
-				sizeof(ad->text_sequence_gated),
-				"%ld %f %f",
-					mx_round(sp->parameter_array[0]),
-					sp->parameter_array[1],
-					sp->parameter_array[2] );
-			break;
-			
 		default:
 			MX_DEBUG( 1,(
 			    "%s: *** Unknown MX_PROCESS_GET label value = %ld",
