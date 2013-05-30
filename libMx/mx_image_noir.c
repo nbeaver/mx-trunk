@@ -126,6 +126,8 @@ mx_image_noir_setup( MX_RECORD *mx_imaging_device_record,
 		 * of the NOIR header.
 		 */
 
+		unsigned long access_type = R_OK | MXF_FILE_MONITOR_QUIET;
+
 #if MX_IMAGE_NOIR_DEBUG_SETUP
 		MX_DEBUG(-2,
 			("%s: Setting up a file monitor for the static NOIR "
@@ -135,10 +137,26 @@ mx_image_noir_setup( MX_RECORD *mx_imaging_device_record,
 
 		mx_status = mx_create_file_monitor(
 				&(image_noir_info->file_monitor),
-				R_OK, static_header_file_name );
+				access_type,
+				static_header_file_name );
 
-		if ( mx_status.code != MXE_SUCCESS )
+		switch( mx_status.code ) {
+		case MXE_SUCCESS:
+			/* Do nothing here. */
+			break;
+
+		case MXE_NOT_FOUND:
+			image_noir_info->file_monitor = NULL;
+
+			mx_warning( "Static NOIR header file '%s' was "
+				"not found and will not be monitored.",
+				static_header_file_name );
+			break;
+
+		default:
 			return mx_status;
+			break;
+		}
 	}
 
 	image_noir_info->static_header_text = NULL;

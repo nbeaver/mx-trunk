@@ -31,6 +31,7 @@
 
 #define MXU_RADICON_TAURUS_SERIAL_NUMBER_LENGTH		40
 #define MXU_RADICON_TAURUS_TRANSFORM_TYPE_LENGTH	40
+#define MXU_RADICON_TAURUS_STATIC_HEADER_TEXT_LENGTH	5120
 
 #define MXF_RADICON_TAURUS_MINIMUM_EXPOSURE_TIME	4
 
@@ -98,11 +99,15 @@ typedef struct {
 
 	MX_IMAGE_NOIR_INFO *image_noir_info;
 
+	char static_header[MXU_RADICON_TAURUS_STATIC_HEADER_TEXT_LENGTH+1];
+
 } MX_RADICON_TAURUS;
 
-#define MXLV_RADICON_TAURUS_SRO		80000
-#define MXLV_RADICON_TAURUS_SI1		80001
-#define MXLV_RADICON_TAURUS_SI2		80002
+#define MXLV_RADICON_TAURUS_SRO			80000
+#define MXLV_RADICON_TAURUS_SI1			80001
+#define MXLV_RADICON_TAURUS_SI2			80002
+
+#define MXLV_RADICON_TAURUS_STATIC_HEADER	80100
 
 #define MXD_RADICON_TAURUS_STANDARD_FIELDS \
   {-1, -1, "video_input_record", MXFT_RECORD, NULL, 0, {0}, \
@@ -227,7 +232,12 @@ typedef struct {
   \
   {-1, -1, "raw_file_name", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, raw_file_name), \
-	{sizeof(char)}, NULL, MXFF_READ_ONLY}
+	{sizeof(char)}, NULL, MXFF_READ_ONLY}, \
+  \
+  {MXLV_RADICON_TAURUS_STATIC_HEADER, -1, "static_header", MXFT_STRING, NULL, \
+			1, {MXU_RADICON_TAURUS_STATIC_HEADER_TEXT_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, static_header), \
+	{sizeof(char)}, NULL, 0}
 
 MX_API mx_status_type mxd_radicon_taurus_initialize_driver(
 							MX_DRIVER *driver );

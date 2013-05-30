@@ -1440,8 +1440,9 @@ mx_create_file_monitor( MX_FILE_MONITOR **monitor_ptr,
 	static const char fname[] = "mx_create_file_monitor()";
 
 	MXP_LINUX_INOTIFY_MONITOR *linux_monitor;
-	unsigned long flags;
+	unsigned long flags, quiet_flag;
 	int saved_errno;
+	mx_status_type mx_status;
 
 	if ( monitor_ptr == (MX_FILE_MONITOR **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -1500,11 +1501,31 @@ mx_create_file_monitor( MX_FILE_MONITOR **monitor_ptr,
 
 		mx_free( linux_monitor );
 		mx_free( *monitor_ptr );
+		*monitor_ptr = NULL;
 
-		return mx_error( MXE_FILE_IO_ERROR, fname,
-		"An error occurred while invoking inotify_add_watch() "
-		"for file '%s'.  Errno = %d, error message = '%s'",
-			filename, saved_errno, strerror( saved_errno ) );
+		if ( access_type & MXF_FILE_MONITOR_QUIET ) {
+			quiet_flag = MXE_QUIET;
+		} else {
+			quiet_flag = 0;
+		}
+
+		switch( saved_errno ) {
+		case ENOENT:
+			mx_status = mx_error( MXE_NOT_FOUND | quiet_flag, fname,
+				"File '%s' not found.  No monitor created.",
+				filename );
+			break;
+
+		default:
+			mx_status = mx_error(
+					MXE_FILE_IO_ERROR | quiet_flag, fname,
+			"An error occurred while invoking inotify_add_watch() "
+			"for file '%s'.  Errno = %d, error message = '%s'",
+				filename, saved_errno, strerror(saved_errno) );
+			break;
+		}
+
+		return mx_status;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1684,7 +1705,8 @@ mx_create_file_monitor( MX_FILE_MONITOR **monitor_ptr,
 	MXP_WIN32_FILE_MONITOR *win32_monitor;
 	char *directory_name, *separator_ptr;
 	int os_status, saved_errno;
-	unsigned long flags;
+	unsigned long flags, quiet_flag;
+	mx_status_type mx_status;
 	DWORD last_error_code;
 	TCHAR message_buffer[100];
 
@@ -1771,11 +1793,31 @@ mx_create_file_monitor( MX_FILE_MONITOR **monitor_ptr,
 
 		mx_free( win32_monitor );
 		mx_free( *monitor_ptr );
+		*monitor_ptr = NULL;
 
-		return mx_error( MXE_FILE_IO_ERROR, fname,
-		"An attempt to get the current file status of file '%s' "
-		"failed with error = %d, error message = '%s'.",
-			filename, saved_errno, strerror(saved_errno) );
+		if ( access_type & MXF_FILE_MONITOR_QUIET ) {
+			quiet_flag = MXE_QUIET;
+		} else {
+			quiet_flag = 0;
+		}
+
+		switch( saved_errno ) {
+		case ENOENT:
+			mx_status = mx_error( MXE_NOT_FOUND | quiet_flag, fname,
+				"File '%s' not found.  No monitor created.",
+				filename );
+			break;
+
+		default:
+			mx_status =  mx_error(
+					MXE_FILE_IO_ERROR | quiet_flag, fname,
+			"An attempt to get the current file status of file "
+			"'%s' failed with errno = %d, error message = '%s'.",
+				filename, saved_errno, strerror(saved_errno) );
+			break;
+		}
+
+		return mx_status;
 	}
 
 	/* FIXME: For the moment we ignore the value of 'access_type'. */
@@ -2032,10 +2074,31 @@ mx_create_file_monitor( MX_FILE_MONITOR **monitor_ptr,
 		close( kqueue_monitor->kqueue_fd );
 		mx_free( kqueue_monitor );
 		mx_free( *monitor_ptr );
+		*monitor_ptr = NULL;
 
-		return mx_error( MXE_FILE_IO_ERROR, fname,
-		"Cannot open file '%s'.  Errno = %d, error message = '%s'",
-			filename, saved_errno, strerror(saved_errno) );
+		if ( access_type & MXF_FILE_MONITOR_QUIET ) {
+			quiet_flag = MXE_QUIET;
+		} else {
+			quiet_flag = 0;
+		}
+
+		switch( saved_errno ) {
+		case ENOENT:
+			mx_status = mx_error( MXE_NOT_FOUND | quiet_flag, fname,
+				"File '%s' not found.  No monitor created.",
+				filename );
+			break;
+
+		default:
+			mx_status = mx_error(
+					MXE_FILE_IO_ERROR | quiet_flag, fname,
+				"Cannot open file '%s'.  "
+				"Errno = %d, error message = '%s'",
+				filename, saved_errno, strerror(saved_errno) );
+			break;
+		}
+
+		return mx_status;
 	}
 
 	/* FIXME: For the moment we ignore the value of 'access_type'. */
@@ -2164,13 +2227,15 @@ typedef struct {
 } MXP_SOLARIS_PORT_MONITOR;
 
 static mx_status_type
-mxp_solaris_port_associate( MX_FILE_MONITOR *file_monitor )
+mxp_solaris_port_associate( MX_FILE_MONITOR *file_monitor,
+				unsigned long quiet_flag )
 {
 	static const char fname[] = "mxp_solaris_port_associate()";
 
 	MXP_SOLARIS_PORT_MONITOR *port_monitor;
 	file_obj_t *file_object;
 	int os_status, saved_errno;
+	mx_status_type mx_status;
 
 	port_monitor = file_monitor->private_ptr;
 
@@ -2187,11 +2252,24 @@ mxp_solaris_port_associate( MX_FILE_MONITOR *file_monitor )
 	if ( os_status == (-1) ) {
 		saved_errno = errno;
 
-		return mx_error( MXE_FILE_IO_ERROR, fname,
-		"A call to port_associate() for file '%s' failed.  "
-		"Errno = %d, error message = '%s'.",
-			file_monitor->filename,
-			saved_errno, strerror(saved_errno) );
+		switch( saved_errno ) {
+		case ENOENT:
+			mx_status = mx_error( MXE_NOT_FOUND | quiet_flag, fname,
+				"File '%s' not found.  No monitor created.",
+				filename );
+			break;
+
+		default:
+			mx_status = mx_error( 
+					MXE_FILE_IO_ERROR | quiet_flag, fname,
+			"A call to port_associate() for file '%s' failed.  "
+			"Errno = %d, error message = '%s'.",
+				file_monitor->filename,
+				saved_errno, strerror(saved_errno) );
+			break;
+		}
+
+		return mx_status;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -2258,7 +2336,17 @@ mx_create_file_monitor( MX_FILE_MONITOR **monitor_ptr,
 
 	mx_status = mxp_solaris_port_associate( *monitor_ptr );
 
-	return mx_status;
+	if ( mx_status.code != MXE_SUCCESS ) {
+		close( port_monitor->port );
+
+		mx_free( port_monitor );
+		mx_free( *monitor_ptr );
+		*monitor_ptr = NULL;
+
+		return mx_status;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -2377,7 +2465,9 @@ mx_create_file_monitor( MX_FILE_MONITOR **monitor_ptr,
 	static const char fname[] = "mx_create_file_monitor()";
 
 	MXP_STAT_MONITOR *stat_monitor;
+	unsigned long quiet_flag;
 	int os_status, saved_errno;
+	mx_status_type mx_status;
 
 	if ( monitor_ptr == (MX_FILE_MONITOR **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -2418,11 +2508,31 @@ mx_create_file_monitor( MX_FILE_MONITOR **monitor_ptr,
 
 		mx_free( stat_monitor );
 		mx_free( *monitor_ptr );
+		*monitor_ptr = NULL;
 
-		return mx_error( MXE_FILE_IO_ERROR, fname,
-		"An error occurred while invoking stat() for file '%s'.  "
-		"Errno = %d, error message = '%s'",
-			filename, saved_errno, strerror( saved_errno ) );
+		if ( access_type & MXF_FILE_MONITOR_QUIET ) {
+			quiet_flag = MXE_QUIET;
+		} else {
+			quiet_flag = 0;
+		}
+
+		switch( saved_errno ) {
+		case ENOENT:
+			mx_status = mx_error( MXE_NOT_FOUND | quiet_flag, fname,
+				"File '%s' not found.  No monitor created.",
+				filename );
+			break;
+
+		default:
+			mx_status = mx_error(
+					MXE_FILE_IO_ERROR | quiet_flag, fname,
+			"An error occurred while invoking stat() for "
+			"file '%s'.  Errno = %d, error message = '%s'",
+				filename, saved_errno, strerror(saved_errno) );
+			break;
+		}
+
+		return mx_status;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

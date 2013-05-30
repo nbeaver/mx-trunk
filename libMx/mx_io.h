@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2010, 2012 Illinois Institute of Technology
+ * Copyright 2010, 2012-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -49,6 +49,16 @@ MX_API void mx_show_fd_names( unsigned long process_id );
 MX_API void mx_win32_show_socket_names( void );
 
 /*----*/
+
+/* Generally, MX uses the Posix-style access type flags R_OK, W_OK, and X_OK.
+ *
+ * However, the access_type argument to mx_create_file_monitor() supports
+ * additional flags:
+ *
+ * MXF_FILE_MONITOR_QUIET - Suppress file access error messages.
+ */
+
+#define MXF_FILE_MONITOR_QUIET	0x10000000
 
 typedef struct {
 	unsigned long access_type;
