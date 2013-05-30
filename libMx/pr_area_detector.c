@@ -850,6 +850,10 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_START:
 		case MXLV_AD_STATUS:
 		case MXLV_AD_STOP:
+		case MXLV_AD_TEXT_SEQUENCE_GATED:
+		case MXLV_AD_TEXT_SEQUENCE_MULTIFRAME:
+		case MXLV_AD_TEXT_SEQUENCE_PARAMETER_ARRAY:
+		case MXLV_AD_TEXT_SEQUENCE_STROBE:
 		case MXLV_AD_TOTAL_ACQUISITION_TIME:
 		case MXLV_AD_TOTAL_NUM_FRAMES:
 		case MXLV_AD_TOTAL_SEQUENCE_TIME:
@@ -874,10 +878,14 @@ mx_area_detector_process_function( void *record_ptr,
 {
 	static const char fname[] = "mx_area_detector_process_function()";
 
-	MX_RECORD *record;
-	MX_RECORD_FIELD *record_field;
-	MX_AREA_DETECTOR *ad;
-	MX_IMAGE_FRAME *frame;
+	MX_RECORD *record = NULL;
+	MX_RECORD_FIELD *record_field = NULL;
+	MX_AREA_DETECTOR *ad = NULL;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist = NULL;
+	MX_SEQUENCE_PARAMETERS *sp = NULL;
+	MX_IMAGE_FRAME *frame = NULL;
+	mx_status_type ( *get_parameter_fn ) ( MX_AREA_DETECTOR * ) = NULL;
+	mx_status_type ( *set_parameter_fn ) ( MX_AREA_DETECTOR * ) = NULL;
 	unsigned long flags;
 	mx_status_type mx_status;
 
@@ -888,6 +896,22 @@ mx_area_detector_process_function( void *record_ptr,
 	record = (MX_RECORD *) record_ptr;
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
 	ad = (MX_AREA_DETECTOR *) (record->record_class_struct);
+	flist = (MX_AREA_DETECTOR_FUNCTION_LIST *)
+			(record->class_specific_function_list);
+
+	get_parameter_fn = flist->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn =
+			mx_area_detector_default_get_parameter_handler;
+	}
+
+	set_parameter_fn = flist->set_parameter;
+
+	if ( set_parameter_fn == NULL ) {
+		set_parameter_fn =
+			mx_area_detector_default_set_parameter_handler;
+	}
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 
@@ -1069,7 +1093,7 @@ mx_area_detector_process_function( void *record_ptr,
 		case MXLV_AD_SEQUENCE_PARAMETER_ARRAY:
 			mx_status = mx_area_detector_get_sequence_parameters(
 								record, NULL );
-#if 1 || PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG
 			MX_DEBUG(-2,("%s: sequence type = %ld",
 				fname, ad->sequence_parameters.sequence_type));
 			MX_DEBUG(-2,("%s: num_parameters = %ld",
@@ -1085,6 +1109,25 @@ mx_area_detector_process_function( void *record_ptr,
 			}
 #endif
 			break;
+
+		case MXLV_AD_TEXT_SEQUENCE_PARAMETER_ARRAY:
+			ad->parameter_type = MXLV_AD_SEQUENCE_PARAMETER_ARRAY;
+
+			mx_status = (*get_parameter_fn)( ad );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			sp = &(ad->sequence_parameters);
+
+			snprintf( ad->text_sequence_parameter_array,
+				sizeof(ad->text_sequence_gated),
+				"%ld %f %f",
+					mx_round(sp->parameter_array[0]),
+					sp->parameter_array[1],
+					sp->parameter_array[2] );
+			break;
+			
 		default:
 			MX_DEBUG( 1,(
 			    "%s: *** Unknown MX_PROCESS_GET label value = %ld",
@@ -1451,7 +1494,7 @@ mx_area_detector_process_function( void *record_ptr,
 			break;
 
 		case MXLV_AD_SEQUENCE_ONE_SHOT:
-#if 1
+#if 0
 			MX_DEBUG(-2,("%s: one_shot ... %f", fname,
 				ad->sequence_one_shot[0]));
 #endif
@@ -1478,7 +1521,7 @@ mx_area_detector_process_function( void *record_ptr,
 			break;
 
 		case MXLV_AD_SEQUENCE_DURATION:
-#if 1
+#if 0
 			MX_DEBUG(-2,("%s: duration ... %f", fname,
 				ad->sequence_duration[0]));
 #endif
@@ -1487,7 +1530,7 @@ mx_area_detector_process_function( void *record_ptr,
 			break;
 
 		case MXLV_AD_SEQUENCE_GATED:
-#if 1
+#if 0
 			MX_DEBUG(-2,("%s: gated ... %f, %f, %f", fname,
 				ad->sequence_gated[0],
 				ad->sequence_gated[1],
@@ -1563,7 +1606,7 @@ mx_area_detector_process_function( void *record_ptr,
 				"by detector '%s'", ad->show_image_statistics,
 					ad->record->name );
 			}
-#if 1
+#if 0
 			MX_DEBUG(-2,("%s: frame = %p, format = %lu",
 				fname, frame,
 				(unsigned long)MXIF_IMAGE_FORMAT(frame) ));

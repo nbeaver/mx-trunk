@@ -30,6 +30,8 @@ extern "C" {
 
 #define MXU_AD_DATAFILE_FORMAT_NAME_LENGTH	20
 
+#define MXU_AD_TEXT_SEQUENCE_LENGTH		40
+
 /* The datafile pattern char and the datafile pattern string
  * should be identical.
  */
@@ -290,6 +292,19 @@ typedef struct mx_area_detector_type {
 	double sequence_strobe[2];
 	double sequence_duration[1];
 	double sequence_gated[3];
+
+	/* If you are running the 'mxca_server' EPICS server on top of MX,
+	 * the MEDM EPICS client does not seem to know how to handle
+	 * multielement arrays of numbers.  For MEDM's sake, we provide
+	 * a way of sending and receiving several sequence related variables
+	 * that natively are numerical arrays as strings.
+	 */
+
+	char text_sequence_parameter_array[MXU_AD_TEXT_SEQUENCE_LENGTH+1];
+
+	char text_sequence_multiframe[MXU_AD_TEXT_SEQUENCE_LENGTH+1];
+	char text_sequence_strobe[MXU_AD_TEXT_SEQUENCE_LENGTH+1];
+	char text_sequence_gated[MXU_AD_TEXT_SEQUENCE_LENGTH+1];
 
 	/* 'exposure_time' is used by mx_area_detector_get_exposure_time()
 	 * to extract the exposure time from the MX_SEQUENCE_PARAMETERS
@@ -686,6 +701,11 @@ typedef struct mx_area_detector_type {
 #define MXLV_AD_SEQUENCE_STROBE			12705
 #define MXLV_AD_SEQUENCE_DURATION		12706
 #define MXLV_AD_SEQUENCE_GATED			12707
+
+#define MXLV_AD_TEXT_SEQUENCE_PARAMETER_ARRAY	12800
+#define MXLV_AD_TEXT_SEQUENCE_MULTIFRAME	12803
+#define MXLV_AD_TEXT_SEQUENCE_STROBE		12805
+#define MXLV_AD_TEXT_SEQUENCE_GATED		12807
 
 #define MX_AREA_DETECTOR_STANDARD_FIELDS \
   {MXLV_AD_MAXIMUM_FRAMESIZE, -1, "maximum_framesize", \
@@ -1264,7 +1284,29 @@ typedef struct mx_area_detector_type {
   {MXLV_AD_SEQUENCE_GATED, -1, \
 			"sequence_gated", MXFT_DOUBLE, NULL, 1, {3}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, sequence_gated), \
-	{sizeof(double)}, NULL, 0}
+	{sizeof(double)}, NULL, 0}, \
+  \
+  {MXLV_AD_TEXT_SEQUENCE_PARAMETER_ARRAY, -1, "text_sequence_parameter_array", \
+		MXFT_STRING, NULL, 1, {MXU_AD_TEXT_SEQUENCE_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_AREA_DETECTOR, text_sequence_parameter_array), \
+	{sizeof(char)}, NULL, 0}, \
+  \
+  {MXLV_AD_TEXT_SEQUENCE_MULTIFRAME, -1, "text_sequence_multiframe", \
+		MXFT_STRING, NULL, 1, {MXU_AD_TEXT_SEQUENCE_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_AREA_DETECTOR, text_sequence_multiframe), \
+	{sizeof(char)}, NULL, 0}, \
+  \
+  {MXLV_AD_TEXT_SEQUENCE_STROBE, -1, "text_sequence_strobe", \
+		MXFT_STRING, NULL, 1, {MXU_AD_TEXT_SEQUENCE_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, text_sequence_strobe),\
+	{sizeof(char)}, NULL, 0}, \
+  \
+  {MXLV_AD_TEXT_SEQUENCE_GATED, -1, "text_sequence_gated", \
+		MXFT_STRING, NULL, 1, {MXU_AD_TEXT_SEQUENCE_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, text_sequence_gated), \
+	{sizeof(char)}, NULL, 0}
 
 typedef struct {
         mx_status_type ( *arm ) ( MX_AREA_DETECTOR *ad );
