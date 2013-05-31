@@ -953,6 +953,9 @@ MX_EXPORT void
 mx_area_detector_cleanup_after_correction( MX_AREA_DETECTOR *ad,
 			MX_AREA_DETECTOR_CORRECTION_MEASUREMENT *corr_ptr )
 {
+	static const char fname[] =
+		"mx_area_detector_cleanup_after_correction()";
+
 	MX_AREA_DETECTOR_CORRECTION_MEASUREMENT *corr;
 
 	if ( corr_ptr != NULL ) {
@@ -961,7 +964,10 @@ mx_area_detector_cleanup_after_correction( MX_AREA_DETECTOR *ad,
 	if ( ad != NULL ) {
 		corr = ad->correction_measurement;
 	} else {
-		ad->correction_measurement_in_progress = FALSE;
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"Both the MX_AREA_DETECTOR_CORRECTION_MEASUREMENT and "
+		"the MX_AREA_DETECTOR pointers are NULL!" );
+
 		return;
 	}
 
@@ -973,6 +979,11 @@ mx_area_detector_cleanup_after_correction( MX_AREA_DETECTOR *ad,
 	if ( ad == NULL ) {
 		ad = corr->area_detector;
 	}
+
+	/* Restore the trigger mode. */
+
+	(void) mx_area_detector_set_trigger_mode( ad->record,
+						corr->saved_trigger_mode );
 
 	/* Enable the area detector shutter. */
 
@@ -1022,7 +1033,7 @@ mx_area_detector_prepare_for_correction( MX_AREA_DETECTOR *ad,
 	static const char fname[] = "mx_area_detector_prepare_for_correction()";
 
 	MX_AREA_DETECTOR_CORRECTION_MEASUREMENT *corr;
-	long pixels_per_frame;
+	long pixels_per_frame, saved_trigger_mode;
 	mx_status_type mx_status;
 
 	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
@@ -1038,6 +1049,14 @@ mx_area_detector_prepare_for_correction( MX_AREA_DETECTOR *ad,
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_RECORD pointer for MX_AREA_DETECTOR %p is NULL.", ad );
 	}
+
+	/* Read the existing trigger mode. */
+
+	mx_status = mx_area_detector_get_trigger_mode( ad->record,
+						&saved_trigger_mode );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Allocate a structure to contain the current state of
 	 * the correction measurement process.
@@ -1063,6 +1082,8 @@ mx_area_detector_prepare_for_correction( MX_AREA_DETECTOR *ad,
 	corr->num_exposures = ad->num_correction_measurements;
 
 	if ( corr->num_exposures <= 0 ) {
+		mx_free(corr);
+
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal number of exposures (%ld) requested for "
 		"area detector '%s'.  The minimum number of exposures "
@@ -1080,6 +1101,10 @@ mx_area_detector_prepare_for_correction( MX_AREA_DETECTOR *ad,
 
 	corr->raw_num_exposures =
 		corr->num_exposures + corr->raw_num_exposures_to_skip;
+
+	/* Save the existing trigger mode for later restoration. */
+
+	corr->saved_trigger_mode = saved_trigger_mode;
 
 	/* Set a flag that says a correction frame measurement is in progress.*/
 
@@ -1378,7 +1403,11 @@ mx_area_detector_finish_correction_calculation( MX_AREA_DETECTOR *ad,
 		    for ( i = 0; i < pixels_per_frame; i++ ) {
 			temp_double = corr->sum_array[i] / corr->num_exposures;
 
+#if 0
 			flt_dest_array[i] = (uint16_t) mx_round( temp_double );
+#else
+			flt_dest_array[i] = (float) temp_double;
+#endif
 		    }
 		    break;
 

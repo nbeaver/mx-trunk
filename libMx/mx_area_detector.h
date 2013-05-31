@@ -173,15 +173,14 @@ typedef struct {
 	MX_IMAGE_FRAME **dezinger_frame_array;
 
 	double *sum_array;
-#if 0
-	uint16_t *destination_array;
-#endif
 
 	long num_unread_frames;
 	long old_last_frame_number;
 	long old_total_num_frames;
 	unsigned long old_status;
 	unsigned long desired_correction_flags;
+	long saved_trigger_mode;
+
 	MX_CALLBACK_MESSAGE *callback_message;
 } MX_AREA_DETECTOR_CORRECTION_MEASUREMENT;
 

@@ -142,7 +142,8 @@ mxp_area_detector_measure_correction_callback_function(
 		switch( ad->correction_measurement_sequence_type ) {
 		case MXT_SQ_MULTIFRAME:
 		case MXT_SQ_GATED:
-			frame_number_to_read = corr->num_frames_read;
+			frame_number_to_read = corr->num_frames_read
+					+ corr->raw_num_exposures_to_skip;
 			break;
 		case MXT_SQ_ONE_SHOT:
 			frame_number_to_read = 0;
