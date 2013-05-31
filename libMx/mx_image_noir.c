@@ -160,6 +160,7 @@ mx_image_noir_setup( MX_RECORD *mx_imaging_device_record,
 	}
 
 	image_noir_info->static_header_text = NULL;
+	image_noir_info->static_header_length = 0;
 
 	/*========= Setup dynamic header information =========*/
 

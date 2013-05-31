@@ -986,9 +986,10 @@ mxd_radicon_taurus_special_processing_setup( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
-		case MXLV_RADICON_TAURUS_SRO:
 		case MXLV_RADICON_TAURUS_SI1:
 		case MXLV_RADICON_TAURUS_SI2:
+		case MXLV_RADICON_TAURUS_SRO:
+		case MXLV_RADICON_TAURUS_STATIC_HEADER:
 			record_field->process_function
 					= mxd_radicon_taurus_process_function;
 			break;
@@ -3157,6 +3158,8 @@ mxd_radicon_taurus_process_function( void *record_ptr,
 	MX_RECORD_FIELD *record_field;
 	MX_AREA_DETECTOR *ad;
 	MX_RADICON_TAURUS *radicon_taurus;
+	MX_IMAGE_NOIR_INFO *image_noir_info;
+	size_t taurus_length, image_noir_length;
 	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
@@ -3178,6 +3181,8 @@ mxd_radicon_taurus_process_function( void *record_ptr,
 		case MXLV_RADICON_TAURUS_SI2:
 			mx_status = mxd_radicon_taurus_get_si2( ad );
 			break;
+		case MXLV_RADICON_TAURUS_STATIC_HEADER:
+			break;
 		default:
 			break;
 		}
@@ -3193,6 +3198,78 @@ mxd_radicon_taurus_process_function( void *record_ptr,
 			break;
 		case MXLV_RADICON_TAURUS_SI2:
 			mx_status = mxd_radicon_taurus_set_si2( ad );
+			break;
+		case MXLV_RADICON_TAURUS_STATIC_HEADER:
+			mx_breakpoint();
+
+			image_noir_info = radicon_taurus->image_noir_info;
+
+			if ( image_noir_info == NULL ) {
+				return mx_error( MXE_NOT_READY, fname,
+				"The image_noir_info pointer for '%s' is NULL.",
+					record->name );
+			}
+
+			/* If a static header text array is not already
+			 * present, then allocate one.
+			 */
+
+			image_noir_length =
+				image_noir_info->static_header_length;
+
+			taurus_length =
+			    strlen( radicon_taurus->static_header ) + 1;
+
+			if ( image_noir_info->static_header_text == NULL ) {
+
+				image_noir_info->static_header_text
+				    = strdup( radicon_taurus->static_header );
+
+				if (image_noir_info->static_header_text == NULL)
+				{
+					return mx_error( MXE_OUT_OF_MEMORY,
+					fname, "Ran out of memory trying to "
+					"allocate a %lu character string "
+					"for detector '%s'.",
+						taurus_length, record->name );
+				}
+
+				image_noir_info->static_header_length
+				    = taurus_length;
+
+				return MX_SUCCESSFUL_RESULT;
+			}
+
+			/* If a static header text array is already present,
+			 * but is too short, then reallocate the array.
+			 */
+
+			if ( taurus_length > image_noir_length ) {
+
+				image_noir_info->static_header_text =
+				   realloc( image_noir_info->static_header_text,
+						taurus_length );
+
+				if (image_noir_info->static_header_text == NULL)
+				{
+					return mx_error( MXE_OUT_OF_MEMORY,
+					fname, "Ran out of memory trying to "
+					"reallocate a %lu character string "
+					"for detector '%s'.",
+						taurus_length, record->name );
+				}
+
+				image_noir_info->static_header_length
+				    = taurus_length;
+			}
+
+			/* Copy the new static header text to the
+			 * image_noir_info structure.
+			 */
+
+			strlcpy( image_noir_info->static_header_text,
+				radicon_taurus->static_header,
+				image_noir_info->static_header_length );
 			break;
 		default:
 			break;
