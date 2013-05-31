@@ -246,6 +246,12 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 #if MXD_RADICON_TAURUS_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
+	/* Always skip the first frame in a correction measurement, since
+	 * it will contain ADUs that accumulated in the time prior to
+	 * the start of the correction measurement sequence.
+	 */
+
+	ad->correction_frames_to_skip = 1;
 
 	/* If a pulse generator record name has been specified in the 
 	 * record description, then try to get a pointer to that record.
@@ -2608,10 +2614,10 @@ mxd_radicon_taurus_measure_correction( MX_AREA_DETECTOR *ad )
 
 	/* Put the area detector in Gated mode. */
 
-	gate_time = 5.0 + ( corr->num_exposures * corr->exposure_time );
+	gate_time = 5.0 + ( corr->raw_num_exposures * corr->exposure_time );
 
 	mx_status = mx_area_detector_set_gated_mode( ad->record,
-						corr->num_exposures,
+						corr->raw_num_exposures,
 						corr->exposure_time,
 						gate_time );
 
@@ -2640,9 +2646,17 @@ mxd_radicon_taurus_measure_correction( MX_AREA_DETECTOR *ad )
 		return mx_status;
 	}
 
-	/* Readout the frames as they appear. */
+	/* Skip over ad->correction_frames_to_skip worth of frames, to 
+	 * skip over the leading frame that contains excess ADUs.
+	 */
 
+#if 0
 	old_last_frame_number = -1;
+#else
+	old_last_frame_number = ad->correction_frames_to_skip - 1;
+#endif
+
+	/* Readout the frames as they appear. */
 
 	for(;;) {
 		mx_status = mx_area_detector_get_extended_status( ad->record,
