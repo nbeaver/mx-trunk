@@ -30,9 +30,9 @@
 
 #define MXD_RADICON_TAURUS_DEBUG_EXTENDED_STATUS_WHEN_CHANGED	TRUE
 
-#define MXD_RADICON_TAURUS_DEBUG_READOUT_TIMING			TRUE
+#define MXD_RADICON_TAURUS_DEBUG_READOUT_TIMING			FALSE
 
-#define MXD_RADICON_TAURUS_DEBUG_CORRECTION_TIMING		TRUE
+#define MXD_RADICON_TAURUS_DEBUG_CORRECTION_TIMING		FALSE
 
 #define MXD_RADICON_TAURUS_DEBUG_SAVING_RAW_FILES_SETUP		FALSE
 
@@ -2989,8 +2989,8 @@ mxd_radicon_taurus_get_si_register( MX_AREA_DETECTOR *ad, long si_type )
 	}
 
 #if MXD_RADICON_TAURUS_DEBUG_RS232_SRO_SI_SUMMARY
-	MX_DEBUG(-2,("%s: SI value read = %" PRIu64,
-		fname, new_si_value));
+	MX_DEBUG(-2,("%s: SI%d value read = %" PRIu64,
+		fname, si_type - MXLV_RADICON_TAURUS_SRO, new_si_value));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
@@ -3033,8 +3033,8 @@ mxd_radicon_taurus_set_si_register( MX_AREA_DETECTOR *ad, long si_type )
 	}
 
 #if MXD_RADICON_TAURUS_DEBUG_RS232_SRO_SI_SUMMARY
-	MX_DEBUG(-2,("%s: New SI value = %" PRIu64,
-		fname, new_si_value));
+	MX_DEBUG(-2,("%s: Writing SI%d = %" PRIu64,
+		fname, si_type - MXLV_RADICON_TAURUS_SRO, new_si_value));
 #endif
 
 	/*---*/
