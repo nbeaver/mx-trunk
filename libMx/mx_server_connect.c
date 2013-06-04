@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2005-2006, 2008, 2010 Illinois Institute of Technology
+ * Copyright 2005-2006, 2008, 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -31,6 +31,7 @@ MX_EXPORT mx_status_type
 mx_connect_to_mx_server( MX_RECORD **server_record,
 				char *server_name,
 				int server_port,
+				double timeout_in_seconds,
 				unsigned long server_flags )
 {
 	static const char fname[] = "mx_connect_to_mx_server()";
@@ -40,7 +41,7 @@ mx_connect_to_mx_server( MX_RECORD **server_record,
 	MX_LIST_HEAD *list_head_struct;
 	MX_TCPIP_SERVER *tcpip_server;
 	static char description[MXU_RECORD_DESCRIPTION_LENGTH + 1];
-	int i, max_retries;
+	int i, max_attempts;
 	unsigned long num_servers;
 	mx_bool_type new_database;
 	mx_status_type mx_status;
@@ -195,9 +196,13 @@ mx_connect_to_mx_server( MX_RECORD **server_record,
 
 	/* Try to connect to the MX server. */
 
-	max_retries = 100;
+	max_attempts = mx_round( timeout_in_seconds );
 
-	for ( i = 0; i < max_retries; i++ ) {
+	if ( max_attempts < 1 ) {
+		max_attempts = 1;
+	}
+
+	for ( i = 0; i < max_attempts; i++ ) {
 		mx_status = mx_open_hardware( *server_record );
 
 		if ( mx_status.code == MXE_SUCCESS )
@@ -214,9 +219,11 @@ mx_connect_to_mx_server( MX_RECORD **server_record,
 	}
 
 	if ( mx_status.code != MXE_SUCCESS ) {
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-"%d attempts to connect to the MX server '%s' at port %d have failed.  "
-"Update process aborting...", max_retries, server_name, server_port );
+		return mx_error( MXE_TIMED_OUT, fname,
+		"The attempt to connect to the MX server '%s' at port %d has "
+		"timed out after %f seconds.",
+			server_name, server_port,
+			timeout_in_seconds );
 	}
 
 #if MX_SERVER_CONNECT_DEBUG

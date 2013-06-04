@@ -3214,7 +3214,6 @@ mxd_radicon_taurus_process_function( void *record_ptr,
 			mx_status = mxd_radicon_taurus_set_si2( ad );
 			break;
 		case MXLV_RADICON_TAURUS_STATIC_HEADER:
-			mx_breakpoint();
 
 			image_noir_info = radicon_taurus->image_noir_info;
 

@@ -148,7 +148,7 @@ add_network_field( MX_RECORD **server_record,
 	/* Connect to the MX server. */
 
 	mx_status = mx_connect_to_mx_server( server_record,
-				server_name, server_port, server_flags);
+				server_name, server_port, 60.0, server_flags);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

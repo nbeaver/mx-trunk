@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2000, 2003-2012 Illinois Institute of Technology
+ * Copyright 1999-2000, 2003-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -325,6 +325,7 @@ typedef struct {
 MX_API mx_status_type mx_connect_to_mx_server( MX_RECORD **server_record,
 						char *server_name,
 						int server_port,
+						double timeout_in_seconds,
 						unsigned long server_flags );
 
 MX_API mx_status_type mx_create_network_field( MX_NETWORK_FIELD **nf,

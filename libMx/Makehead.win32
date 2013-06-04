@@ -330,6 +330,8 @@ SERVER_OBJS       = $(SERVER_SRCS:.c=.$(OBJ))
 AUTOSAVE_OBJS     = $(AUTOSAVE_SRCS:.c=.$(OBJ))
 MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.$(OBJ))
 MXMONITOR_OBJS    = $(MXMONITOR_SRCS:.c=.$(OBJ))
+MXGET_OBJS        = $(MXGET_SRCS:.c=.$(OBJ))
+MXPUT_OBJS        = $(MXPUT_SRCS:.c=.$(OBJ))
 
 #----
 
@@ -533,9 +535,57 @@ mxmonitor.res: mxmonitor.rc
 
 #----
 
+MXGET_NAME    = mxget.exe
+
+$(MXGET_NAME): $(MXGET_OBJS) mxget.res \
+		  $(shell echo $(MX_LIBRARY_PATH) | tr \\\\ / )
+	link /debug /nologo /out:mxget.exe mxget.obj \
+		/nodefaultlib:libc $(DEBUG_OPTS) \
+		$(MX_LIBRARY_PATH) $(WIN32_LIBS)
+
+	# For VC2005 or later, embed the manifest in the executable.
+
+	if test -f $(MXGET_NAME).manifest; then \
+		$(MSMANIFEST_TOOL) -nologo \
+				-outputresource:$(MXGET_NAME)\;1 \
+		  -manifest $(MXGET_NAME).manifest $(EXTRA_MANIFESTS) ; \
+		rm -f $(MXGET_NAME).manifest; \
+	fi
+
+mxget.res: mxget.rc
+	rc -i$(MSDEV_DIR)/include mxget.rc
+
+#----
+
+MXPUT_NAME    = mxput.exe
+
+$(MXPUT_NAME): $(MXPUT_OBJS) mxput.res \
+		  $(shell echo $(MX_LIBRARY_PATH) | tr \\\\ / )
+	link /debug /nologo /out:mxput.exe mxput.obj \
+		/nodefaultlib:libc $(DEBUG_OPTS) \
+		$(MX_LIBRARY_PATH) $(WIN32_LIBS)
+
+	# For VC2005 or later, embed the manifest in the executable.
+
+	if test -f $(MXPUT_NAME).manifest; then \
+		$(MSMANIFEST_TOOL) -nologo \
+				-outputresource:$(MXPUT_NAME)\;1 \
+		  -manifest $(MXPUT_NAME).manifest $(EXTRA_MANIFESTS) ; \
+		rm -f $(MXPUT_NAME).manifest; \
+	fi
+
+mxput.res: mxput.rc
+	rc -i$(MSDEV_DIR)/include mxput.rc
+
+#----
+
 util_install:
 	cp $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
-	cp $(MXMONITOR_NAME) $(MX_INSTALL_DIR)/bin
-	-cp mxdriverinfo.pdb $(MX_INSTALL_DIR)/bin
-	-cp mxmonitor.pdb $(MX_INSTALL_DIR)/bin
+	cp $(MXMONITOR_NAME)    $(MX_INSTALL_DIR)/bin
+	cp $(MXGET_NAME)        $(MX_INSTALL_DIR)/bin
+	cp $(MXPUT_NAME)        $(MX_INSTALL_DIR)/bin
+	-cp mxdriverinfo.pdb    $(MX_INSTALL_DIR)/bin
+	-cp mxmonitor.pdb       $(MX_INSTALL_DIR)/bin
+	-cp mxget.pdb           $(MX_INSTALL_DIR)/bin
+	-cp mxput.pdb           $(MX_INSTALL_DIR)/bin
 

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2009-2012 Illinois Institute of Technology
+ * Copyright 2009-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -334,7 +334,7 @@ mx_multi_create( MX_MULTI_NETWORK_VARIABLE **mnv,
 		 */
 
 		mx_status = mx_connect_to_mx_server( &mx_record,
-						hostname, port, 0x0 );
+						hostname, port, 60.0, 0x0 );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 			mx_free(dup_string);
