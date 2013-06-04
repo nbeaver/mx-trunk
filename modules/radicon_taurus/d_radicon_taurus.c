@@ -3199,11 +3199,10 @@ mxd_radicon_taurus_process_function( void *record_ptr,
 			image_noir_info = radicon_taurus->image_noir_info;
 
 			if ( image_noir_info == NULL ) {
-				return mx_error( MXE_NOT_READY, fname,
-				"The image_noir_info pointer for '%s' is NULL.",
-					record->name );
-			}
-
+				strlcpy( radicon_taurus->static_header,
+					"",
+					sizeof(radicon_taurus->static_header) );
+			} else
 			if ( image_noir_info->static_header_text == NULL ) {
 				strlcpy( radicon_taurus->static_header,
 					"",
