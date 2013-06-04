@@ -29,13 +29,13 @@ main( int argc, char *argv[] )
 	char server_arguments[ MXU_SERVER_ARGUMENTS_LENGTH+1 ];
 	char record_name[ MXU_RECORD_NAME_LENGTH+1 ];
 	char field_name[ MXU_FIELD_NAME_LENGTH+1 ];
-	MX_RECORD *server_record;
+	MX_RECORD *server_record = NULL;
 	int server_port;
 	unsigned long server_flags;
 
-	MX_RECORD *record_list;
-	MX_NETWORK_FIELD *nf;
-	MX_RECORD_FIELD *local_field;
+	MX_RECORD *record_list = NULL;
+	MX_NETWORK_FIELD *nf = NULL;
+	MX_RECORD_FIELD *local_field = NULL;
 	void *value_ptr;
 
 	unsigned char write_buffer[10000];
