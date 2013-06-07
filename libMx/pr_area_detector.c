@@ -879,14 +879,13 @@ mx_area_detector_process_function( void *record_ptr,
 	MX_RECORD_FIELD *record_field = NULL;
 	MX_AREA_DETECTOR *ad = NULL;
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist = NULL;
-	MX_SEQUENCE_PARAMETERS *sp = NULL;
 	MX_IMAGE_FRAME *frame = NULL;
 	mx_status_type ( *get_parameter_fn ) ( MX_AREA_DETECTOR * ) = NULL;
 	mx_status_type ( *set_parameter_fn ) ( MX_AREA_DETECTOR * ) = NULL;
 	unsigned long flags;
 	mx_status_type mx_status;
 
-#if 1 || PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG
 	unsigned long i;
 #endif
 
