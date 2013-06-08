@@ -197,8 +197,6 @@ main( int argc, char *argv[] )
 
 	/* If requested process escape sequences in the incoming text. */
 
-	MX_DEBUG(-2,("write_buffer before = '%s'", write_buffer));
-
 	if ( use_escape_sequences ) {
 		length = strlen( write_buffer );
 
@@ -221,8 +219,6 @@ main( int argc, char *argv[] )
 			}
 		}
 	}
-
-	MX_DEBUG(-2,("write_buffer after = '%s'", write_buffer));
 
 	mx_status = mx_create_field_from_description( local_field->record,
 							local_field,

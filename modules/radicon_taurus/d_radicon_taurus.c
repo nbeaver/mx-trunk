@@ -117,6 +117,11 @@ MX_RECORD_FIELD_DEFAULTS *mxd_radicon_taurus_rfield_def_ptr
 
 /*---*/
 
+static mx_status_type mxd_radicon_taurus_process_function( void *record_ptr,
+							void *record_field_ptr,
+							int operation );
+/*---*/
+
 static mx_status_type
 mxd_radicon_taurus_get_pointers( MX_AREA_DETECTOR *ad,
 			MX_RADICON_TAURUS **radicon_taurus,
@@ -148,9 +153,37 @@ mxd_radicon_taurus_get_pointers( MX_AREA_DETECTOR *ad,
 
 /*---*/
 
-static mx_status_type mxd_radicon_taurus_process_function( void *record_ptr,
-							void *record_field_ptr,
-							int operation );
+static mx_status_type
+mxd_radicon_taurus_setup_noir_info( MX_AREA_DETECTOR *ad,
+				MX_RADICON_TAURUS *radicon_taurus )
+{
+	static const char fname[] = "mxd_radicon_taurus_setup_noir_info()";
+
+	char static_header_filename[MXU_FILENAME_LENGTH+1];
+	mx_status_type mx_status;
+
+	if ( (ad == (MX_AREA_DETECTOR *) NULL)
+	  || (radicon_taurus == (MX_RADICON_TAURUS *) NULL) )
+	{
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+	    "One or more of the arguments passed to this routine are NULL." );
+	}
+
+	mx_status = mx_cfn_construct_filename( MX_CFN_CONFIG,
+				"noir_header.dat",
+				static_header_filename,
+				sizeof(static_header_filename) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_image_noir_setup( ad->record,
+					"",
+					"mx_image_noir_records",
+					static_header_filename,
+					&(radicon_taurus->image_noir_info) );
+	return mx_status;
+}
 
 /*---*/
 
@@ -1184,21 +1217,8 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 	if ( ad->datafile_save_format == MXT_IMAGE_FILE_NOIR ) {
 
 		if ( radicon_taurus->image_noir_info == NULL ) {
-			char static_header_filename[MXU_FILENAME_LENGTH+1];
-
-			mx_status = mx_cfn_construct_filename( MX_CFN_CONFIG,
-						"noir_header.dat",
-						static_header_filename,
-						sizeof(static_header_filename));
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			mx_status = mx_image_noir_setup( ad->record,
-					"",
-					"mx_image_noir_records",
-					static_header_filename,
-					&(radicon_taurus->image_noir_info) );
+			mx_status = mxd_radicon_taurus_setup_noir_info(
+							ad, radicon_taurus );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -3231,13 +3251,16 @@ mxd_radicon_taurus_process_function( void *record_ptr,
 			break;
 		case MXLV_RADICON_TAURUS_STATIC_HEADER:
 
-			image_noir_info = radicon_taurus->image_noir_info;
+			if ( radicon_taurus->image_noir_info == NULL ) {
+				mx_status =
+					mxd_radicon_taurus_setup_noir_info(
+							ad, radicon_taurus );
 
-			if ( image_noir_info == NULL ) {
-				return mx_error( MXE_NOT_READY, fname,
-				"The image_noir_info pointer for '%s' is NULL.",
-					record->name );
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
 			}
+
+			image_noir_info = radicon_taurus->image_noir_info;
 
 			/* Free the memory of any existing static header. */
 
