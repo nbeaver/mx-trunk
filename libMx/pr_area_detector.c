@@ -807,6 +807,7 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_DATAFILE_DIRECTORY:
 		case MXLV_AD_DATAFILE_LOAD_FORMAT_NAME:
 		case MXLV_AD_DATAFILE_NAME:
+		case MXLV_AD_DATAFILE_NUMBER:
 		case MXLV_AD_DATAFILE_PATTERN:
 		case MXLV_AD_DATAFILE_SAVE_FORMAT_NAME:
 		case MXLV_AD_DETECTOR_READOUT_TIME:
@@ -950,6 +951,21 @@ mx_area_detector_process_function( void *record_ptr,
 					ad->correction_save_format,
 					ad->correction_save_format_name,
 					MXU_AD_DATAFILE_FORMAT_NAME_LENGTH );
+			break;
+		case MXLV_AD_DATAFILE_DIRECTORY:
+		case MXLV_AD_DATAFILE_NUMBER:
+		case MXLV_AD_DATAFILE_NAME:
+		case MXLV_AD_DATAFILE_PATTERN:
+		case MXLV_AD_CORRECTION_MEASUREMENT_TIME:
+		case MXLV_AD_CORRECTION_MEASUREMENT_TYPE:
+		case MXLV_AD_NUM_CORRECTION_MEASUREMENTS:
+		case MXLV_AD_FRAME_FILENAME:
+			ad->parameter_type = record_field->label_value;
+
+			mx_status = (flist->get_parameter)( ad );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 			break;
 		case MXLV_AD_DATAFILE_LOAD_FORMAT_NAME:
 			mx_status = mx_image_get_file_format_name_from_type(
@@ -1168,6 +1184,13 @@ mx_area_detector_process_function( void *record_ptr,
 			break;
 		case MXLV_AD_DATAFILE_DIRECTORY:
 		case MXLV_AD_DATAFILE_PATTERN:
+			ad->parameter_type = record_field->label_value;
+
+			mx_status = (flist->set_parameter)( ad );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
 			flags = ad->area_detector_flags;
 
 			if ( (flags & MXF_AD_SAVE_FRAME_AFTER_ACQUISITION)
@@ -1176,6 +1199,17 @@ mx_area_detector_process_function( void *record_ptr,
 				mx_status =
 			    mx_area_detector_initialize_datafile_number(record);
 			}
+			break;
+		case MXLV_AD_DATAFILE_NUMBER:
+		case MXLV_AD_CORRECTION_MEASUREMENT_TIME:
+		case MXLV_AD_NUM_CORRECTION_MEASUREMENTS:
+		case MXLV_AD_FRAME_FILENAME:
+			ad->parameter_type = record_field->label_value;
+
+			mx_status = (flist->set_parameter)( ad );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 			break;
 		case MXLV_AD_DATAFILE_LOAD_FORMAT_NAME:
 			mx_status = mx_image_get_file_format_type_from_name(
@@ -1443,19 +1477,10 @@ mx_area_detector_process_function( void *record_ptr,
 			MX_DEBUG(-2,("%s: ROI number = %ld",
 				fname, ad->roi_number));
 			break;
-		case MXLV_AD_FRAME_FILENAME:
-			MX_DEBUG(-2,("%s: Frame filename = '%s'",
-				fname, ad->frame_filename));
-			break;
-		case MXLV_AD_SEQUENCE_TYPE:
-			MX_DEBUG(-2,("%s: sequence type = %ld",
-				fname, ad->sequence_parameters.sequence_type));
-			break;
-		case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
-			MX_DEBUG(-2,("%s: num_parameters = %ld",
-				fname, ad->sequence_parameters.num_parameters));
-			break;
 #endif
+
+		case MXLV_AD_SEQUENCE_TYPE:
+		case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
 		case MXLV_AD_SEQUENCE_PARAMETER_ARRAY:
 #if PR_AREA_DETECTOR_DEBUG
 			for ( i = 0;

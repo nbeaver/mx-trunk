@@ -4963,21 +4963,29 @@ mx_area_detector_default_get_parameter_handler( MX_AREA_DETECTOR *ad )
 	mx_status_type mx_status;
 
 	switch( ad->parameter_type ) {
-	case MXLV_AD_MAXIMUM_FRAMESIZE:
-	case MXLV_AD_FRAMESIZE:
 	case MXLV_AD_BINSIZE:
 	case MXLV_AD_BITS_PER_PIXEL:
+	case MXLV_AD_BYTES_PER_PIXEL:
+	case MXLV_AD_CORRECTION_FLAGS:
+	case MXLV_AD_CORRECTION_MEASUREMENT_TIME:
+	case MXLV_AD_CORRECTION_MEASUREMENT_TYPE:
+	case MXLV_AD_DATAFILE_DIRECTORY:
+	case MXLV_AD_DATAFILE_NAME:
+	case MXLV_AD_DATAFILE_NUMBER:
+	case MXLV_AD_DATAFILE_PATTERN:
+	case MXLV_AD_EXPOSURE_MODE:
+	case MXLV_AD_FRAMESIZE:
+	case MXLV_AD_FRAME_FILENAME:
 	case MXLV_AD_IMAGE_FORMAT:
 	case MXLV_AD_IMAGE_FORMAT_NAME:
-	case MXLV_AD_SEQUENCE_TYPE:
+	case MXLV_AD_MAXIMUM_FRAMESIZE:
+	case MXLV_AD_NUM_CORRECTION_MEASUREMENTS:
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
-	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY:
-	case MXLV_AD_TRIGGER_MODE:
-	case MXLV_AD_EXPOSURE_MODE:
-	case MXLV_AD_BYTES_PER_PIXEL:
 	case MXLV_AD_ROI_NUMBER:
-	case MXLV_AD_CORRECTION_FLAGS:
+	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY:
+	case MXLV_AD_SEQUENCE_TYPE:
 	case MXLV_AD_SHUTTER_ENABLE:
+	case MXLV_AD_TRIGGER_MODE:
 
 		/* We just return the value that is already in the 
 		 * data structure.
@@ -5140,21 +5148,36 @@ mx_area_detector_default_set_parameter_handler( MX_AREA_DETECTOR *ad )
 	mx_status = MX_SUCCESSFUL_RESULT;
 
 	switch( ad->parameter_type ) {
+	case MXLV_AD_CORRECTION_FLAGS:
+	case MXLV_AD_CORRECTION_MEASUREMENT_TIME:
+	case MXLV_AD_DATAFILE_DIRECTORY:
+	case MXLV_AD_DATAFILE_NAME:
+	case MXLV_AD_DATAFILE_NUMBER:
+	case MXLV_AD_DATAFILE_PATTERN:
+	case MXLV_AD_EXPOSURE_MODE:
+	case MXLV_AD_FRAME_FILENAME:
 	case MXLV_AD_IMAGE_FORMAT:
 	case MXLV_AD_IMAGE_FORMAT_NAME:
-	case MXLV_AD_SEQUENCE_TYPE:
+	case MXLV_AD_NUM_CORRECTION_MEASUREMENTS:
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
-	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY:
-	case MXLV_AD_TRIGGER_MODE:
-	case MXLV_AD_EXPOSURE_MODE:
 	case MXLV_AD_ROI_NUMBER:
-	case MXLV_AD_CORRECTION_FLAGS:
+	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY:
+	case MXLV_AD_SEQUENCE_TYPE:
 	case MXLV_AD_SHUTTER_ENABLE:
+	case MXLV_AD_TRIGGER_MODE:
 
 		/* We do nothing but leave alone the value that is already
 		 * stored in the data structure.
 		 */
 
+		break;
+
+	case MXLV_AD_CORRECTION_MEASUREMENT_TYPE:
+		mx_status = mx_area_detector_measure_correction_frame(
+					ad->record,
+					ad->correction_measurement_type,
+					ad->correction_measurement_time,
+					ad->num_correction_measurements );
 		break;
 
 	case MXLV_AD_MARK_FRAME_AS_SAVED:

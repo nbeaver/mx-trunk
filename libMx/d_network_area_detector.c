@@ -1812,6 +1812,28 @@ mxd_network_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 			&(network_area_detector->datafile_pattern_nf),
 			MXFT_STRING, 1, dimension, ad->datafile_pattern );
 		break;
+	case MXLV_AD_CORRECTION_MEASUREMENT_TIME:
+		mx_status = mx_get(
+		    &(network_area_detector->correction_measurement_time_nf),
+		    MXFT_DOUBLE, &(ad->correction_measurement_time) );
+		break;
+	case MXLV_AD_CORRECTION_MEASUREMENT_TYPE:
+		mx_status = mx_get(
+		    &(network_area_detector->correction_measurement_type_nf),
+		    MXFT_LONG, &(ad->correction_measurement_type) );
+		break;
+	case MXLV_AD_NUM_CORRECTION_MEASUREMENTS:
+		mx_status = mx_get(
+		    &(network_area_detector->num_correction_measurements_nf),
+		    MXFT_LONG, &(ad->num_correction_measurements) );
+		break;
+	case MXLV_AD_FRAME_FILENAME:
+		dimension[0] = MXU_FILENAME_LENGTH;
+
+		mx_status = mx_get_array(
+			&(network_area_detector->frame_filename_nf),
+			MXFT_STRING, 1, dimension, ad->frame_filename );
+		break;
 	default:
 		mx_status =
 			mx_area_detector_default_get_parameter_handler( ad );
@@ -2183,6 +2205,28 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 		mx_status = mx_put_array(
 			&(network_area_detector->datafile_pattern_nf ),
 			MXFT_STRING, 1, dimension, ad->datafile_pattern );
+		break;
+	case MXLV_AD_CORRECTION_MEASUREMENT_TIME:
+		mx_status = mx_put(
+		    &(network_area_detector->correction_measurement_time_nf),
+		    MXFT_DOUBLE, &(ad->correction_measurement_time) );
+		break;
+	case MXLV_AD_CORRECTION_MEASUREMENT_TYPE:
+		mx_status = mx_put(
+		    &(network_area_detector->correction_measurement_type_nf),
+		    MXFT_LONG, &(ad->correction_measurement_type) );
+		break;
+	case MXLV_AD_NUM_CORRECTION_MEASUREMENTS:
+		mx_status = mx_put(
+		    &(network_area_detector->num_correction_measurements_nf),
+		    MXFT_LONG, &(ad->num_correction_measurements) );
+		break;
+	case MXLV_AD_FRAME_FILENAME:
+		dimension[0] = MXU_FILENAME_LENGTH;
+
+		mx_status = mx_put_array(
+			&(network_area_detector->frame_filename_nf),
+			MXFT_STRING, 1, dimension, ad->frame_filename );
 		break;
 	case MXLV_AD_BYTES_PER_FRAME:
 	case MXLV_AD_BYTES_PER_PIXEL:

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004, 2006-2007, 2012
+ * Copyright 1999, 2001-2002, 2004, 2006-2007, 2012-2013
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -81,6 +81,8 @@ mx_record_process_function( void *record_ptr,
 		switch( record_field->label_value ) {
 		case MXLV_REC_PRECISION:
 			record->long_precision = record->precision;
+			break;
+		case MXLV_REC_RESYNCHRONIZE:
 			break;
 		default:
 			MX_DEBUG(-2,(
