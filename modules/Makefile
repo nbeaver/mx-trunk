@@ -15,6 +15,8 @@ all: build
 #-------------------------------------------------------------------
 # Multiplatform modules.
 
+MODULES += avt_vimba		# linux,
+
 #MODULES += edt			# linux,
 
 #MODULES += epix_xclib		# linux, win32
