@@ -40,7 +40,7 @@ main( int argc, char *argv[] )
 	MX_RECORD_FIELD *local_field = NULL;
 	void *value_ptr;
 
-	unsigned char write_buffer[10000];
+	char write_buffer[10000];
 	unsigned long i, j, length;
 	unsigned char character, next_character;
 
@@ -225,7 +225,7 @@ main( int argc, char *argv[] )
 							NULL, write_buffer );
 
 	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		return mx_status.code;
 
 	/* Send the field value to the remote MX server. */
 

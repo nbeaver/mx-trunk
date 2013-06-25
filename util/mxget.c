@@ -188,7 +188,7 @@ main( int argc, char *argv[] )
 				display_buffer, sizeof(display_buffer) );
 
 	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		return mx_status.code;
 
 	if ( verbose ) {
 		printf( "%s: ", argv[optind] );
