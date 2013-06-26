@@ -83,6 +83,12 @@ mxi_avt_vimba_open( MX_RECORD *record )
 
 	MX_AVT_VIMBA *avt_vimba;
 
+	VmbVersionInfo_t version_info;
+	VmbCameraInfo_t *camera_info = NULL;
+	VmbUint32_t num_cameras = 0;
+	VmbBool_t using_gigabit_ethernet = FALSE;
+	VmbError_t vmb_status;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_RECORD pointer passed is NULL.");
@@ -97,6 +103,96 @@ mxi_avt_vimba_open( MX_RECORD *record )
 
 #if MXI_AVT_VIMBA_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name ));
+#endif
+	vmb_status = VmbVersionQuery( &version_info, sizeof(version_info) );
+
+	if ( vmb_status != VmbErrorSuccess ) {
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"The attempt to get the version number of the "
+		"Vimba C API failed with error code %lu.",
+			(unsigned long) vmb_status );
+	}
+
+#if MXI_AVT_VIMBA_DEBUG
+	MX_DEBUG(-2,("%s: Using Vimba C API version %lu.%lu.%lu", fname,
+		(unsigned long) version_info.major,
+		(unsigned long) version_info.minor,
+		(unsigned long) version_info.patch ));
+#endif
+	avt_vimba->vimba_version = 1000000L * version_info.major
+				+ 1000L * version_info.minor
+				+ version_info.patch;
+
+	/* Initialize the Vimba C API. */
+
+	vmb_status = VmbStartup();
+
+	switch( vmb_status ) {
+	case VmbErrorSuccess:
+		break;
+	case VmbErrorInternalFault:
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"VmbStartup() failed with Internal fault." );
+		break;
+	case VmbErrorNoTL:
+		return mx_error( MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
+		"No transport layers were found by the Vimba C API." );
+		break;
+	default:
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"VmbStartup() failed with error %d",
+			(int) vmb_status );
+		break;
+	}
+
+	/*--- Get and display the list of cameras. ---*/
+
+	/* Are we using Gigabit Ethernet? */
+
+	vmb_status = VmbFeatureBoolGet( gVimbaHandle, "GeVTLIsPresent",
+					&using_gigabit_ethernet );
+
+	if ( vmb_status != VmbErrorSuccess ) {
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"An attempt to detect the presence of the GigE Vision "
+		"transport layer failed with error %d",
+			(int) vmb_status );
+	}
+
+	if ( using_gigabit_ethernet == FALSE ) {
+		return mx_error( MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
+		"The GigE Vision transport layer is not present." );
+	}
+
+	/* Start network discovery to find all conected GigE Vision cameras. */
+
+	vmb_status = VmbFeatureCommandRun(gVimbaHandle, "GeVDiscoveryAllOnce");
+
+	if ( vmb_status != VmbErrorSuccess ) {
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"An attempt to start GigE Vision camera discovery "
+		"failed with error code %d", (int) vmb_status );
+	}
+
+	/* Wait 0.2 seconds for the cameras to respond. */
+
+	mx_msleep( 200 );
+
+	/* Find out how many cameras are available. */
+
+	vmb_status = 
+		VmbCamerasList( NULL, 0, &num_cameras, sizeof(*camera_info) );
+
+	if ( vmb_status != VmbErrorSuccess ) {
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"An attempt to get the number of discovered cameras "
+		"failed with error code %d.",
+				(int) vmb_status );
+	}
+
+#if MXI_AVT_VIMBA_DEBUG
+	MX_DEBUG(-2,("%s: %u cameras found.",
+		fname, (unsigned int) num_cameras ));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;

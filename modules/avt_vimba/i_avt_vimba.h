@@ -23,9 +23,19 @@
 typedef struct {
 	MX_RECORD *record;
 
+	unsigned long avt_vimba_flags;
+
+	unsigned long vimba_version;
 } MX_AVT_VIMBA;
 
-#define MXI_AVT_VIMBA_STANDARD_FIELDS
+#define MXI_AVT_VIMBA_STANDARD_FIELDS \
+  {-1, -1, "avt_vimba_flags", MXFT_HEX, NULL, 0, {0}, \
+        MXF_REC_TYPE_STRUCT, offsetof(MX_AVT_VIMBA, avt_vimba_flags), \
+        {0}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {-1, -1, "vimba_version", MXFT_ULONG, NULL, 0, {0}, \
+        MXF_REC_TYPE_STRUCT, offsetof(MX_AVT_VIMBA, vimba_version), \
+        {0}, NULL, 0 }
 
 MX_API mx_status_type mxi_avt_vimba_create_record_structures(
 							MX_RECORD *record );

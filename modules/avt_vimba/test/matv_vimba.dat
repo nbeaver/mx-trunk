@@ -1,0 +1,2 @@
+!load ../avt_vimba.mxo
+vimba interface controller avt_vimba "" "" 0x0

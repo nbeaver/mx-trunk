@@ -1,0 +1,8 @@
+#! /bin/sh
+
+export GENICAM_GENTL64_PATH=/opt/VimbaSDK/AVTGigETL/CTI/x86_64bit
+
+export LD_LIBRARY_PATH=/opt/VimbaSDK/VimbaC/DynamicLib/x86_64bit:$LD_LIBRARY_PATH
+
+../../../motor/mxmotor.static -i -F ./matv_vimba.dat -s ./satv_vimba.dat
+
