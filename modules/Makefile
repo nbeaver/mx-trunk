@@ -15,7 +15,7 @@ all: build
 #-------------------------------------------------------------------
 # Multiplatform modules.
 
-MODULES += avt_vimba		# linux,
+#MODULES += avt_vimba		# linux,
 
 #MODULES += edt			# linux,
 
@@ -51,8 +51,6 @@ MODULES += avt_vimba		# linux,
 #-------------------------------------------------------------------
 # Win32-only modules.
 
-#MODULES += bnc725_lib
-
 #MODULES += driverlinx_portio
 
 #MODULES += fastcam_pcclib
@@ -65,11 +63,11 @@ MODULES += avt_vimba		# linux,
 
 #MODULES += radicon_helios
 
-#MODULES += radicon_taurus
+MODULES += radicon_taurus
 
-#MODULES += radicon_xineos_gige
+MODULES += radicon_xineos_gige
 
-#MODULES += sapera_lt
+MODULES += sapera_lt
 
 #MODULES += u500
 
@@ -78,13 +76,13 @@ MODULES += avt_vimba		# linux,
 
 MODULES += epics
 
-MODULES += epics_aps
+#MODULES += epics_aps
 
-MODULES += epics_pmac_biocat
+#MODULES += epics_pmac_biocat
 
-#MODULES += epics_mbc
+MODULES += epics_mbc
 
-#MODULES += epics_pmac_tc
+MODULES += epics_pmac_tc
 
 #---
 
