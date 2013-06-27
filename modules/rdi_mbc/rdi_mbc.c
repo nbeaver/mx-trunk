@@ -21,19 +21,18 @@
 #include "mx_record.h"
 #include "mx_driver.h"
 #include "mx_module.h"
-#include "mx_image.h"
-#include "mx_video_input.h"
+#include "mx_variable.h"
 
-#include "d_rdi_mbc_filename.h"
+#include "v_rdi_mbc_filename.h"
 
 MX_DRIVER rdi_mbc_driver_table[] = {
 
-{"rdi_mbc_short_filename", -1, MXV_SPECIAL, MXR_VARIABLE,
-		&mxd_rdi_mbc_filename_record_function_list,
+{"rdi_mbc_filename", -1, MXV_SPECIAL, MXR_VARIABLE,
+		&mxv_rdi_mbc_filename_record_function_list,
 		NULL,
 		NULL,
-		&mxd_rdi_mbc_filename_num_record_fields,
-		&mxd_rdi_mbc_filename_rfield_def_ptr},
+		&mxv_rdi_mbc_filename_num_record_fields,
+		&mxv_rdi_mbc_filename_rfield_def_ptr},
 
 {"", 0, 0, 0, NULL, NULL, NULL, NULL, NULL}
 };

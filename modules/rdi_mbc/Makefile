@@ -15,7 +15,7 @@ include ../../libMx/Makehead.$(MX_ARCH)
 
 CFLAGS += -I../../libMx -D__MX_LIBRARY__ -DIS_MX_DRIVER
 
-RDI_MBC_OBJS = rdi_mbc.$(OBJ) d_rdi_mbc_filename.$(OBJ)
+RDI_MBC_OBJS = rdi_mbc.$(OBJ) v_rdi_mbc_filename.$(OBJ)
 
 #--------------------------------------------------------------------------
 
@@ -39,11 +39,11 @@ endif
 
 #--------------------------------------------------------------------------
 
-rdi_mbc.$(OBJ): rdi_mbc.c d_rdi_mbc_filename.h 
+rdi_mbc.$(OBJ): rdi_mbc.c v_rdi_mbc_filename.h 
 	$(COMPILE) $(CFLAGS) rdi_mbc.c
 
-d_rdi_mbc_filename.$(OBJ): d_rdi_mbc_filename.c d_rdi_mbc_filename.h
-	$(COMPILE) $(CFLAGS) d_rdi_mbc_filename.c
+v_rdi_mbc_filename.$(OBJ): v_rdi_mbc_filename.c v_rdi_mbc_filename.h
+	$(COMPILE) $(CFLAGS) v_rdi_mbc_filename.c
 
 install: rdi_mbc.mxo
 	-mkdir $(MX_INSTALL_DIR)/lib/modules
