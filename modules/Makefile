@@ -67,6 +67,8 @@ MODULES += radicon_taurus
 
 MODULES += radicon_xineos_gige
 
+#MODULES += rdi_mbc
+
 MODULES += sapera_lt
 
 #MODULES += u500

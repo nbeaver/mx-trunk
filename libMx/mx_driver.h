@@ -139,6 +139,7 @@ extern "C" {
 #define MXV_U500			69
 #define MXV_POWERPMAC			70
 #define MXV_FIELD			71
+#define MXV_SPECIAL			72
 
 /* --- Server classes --- */
 
