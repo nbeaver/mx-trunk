@@ -14,6 +14,7 @@ all: rdi_mbc.mxo
 include ../../libMx/Makehead.$(MX_ARCH)
 
 CFLAGS += -I../../libMx -D__MX_LIBRARY__ -DIS_MX_DRIVER
+CFLAGS += -I../epics
 
 RDI_MBC_OBJS = rdi_mbc.$(OBJ) v_rdi_mbc_string.$(OBJ)
 

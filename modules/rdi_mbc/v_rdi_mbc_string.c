@@ -22,9 +22,19 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_epics.h"
 #include "mx_variable.h"
 
 #include "v_rdi_mbc_string.h"
+
+/* The suffix is ####.img */
+
+#define MXU_RDI_MBC_SUFFIX_LENGTH	8
+
+#define MXU_RDI_MBC_MAX_PREFIX_LENGTH	\
+		(MXU_EPICS_STRING_LENGTH - MXU_RDI_MBC_SUFFIX_LENGTH)
+
+#define MXU_RDI_MBC_MAX_CHUNK_LENGTH	( (MXU_EPICS_STRING_LENGTH - 1)/2 )
 
 /*---*/
 
@@ -139,8 +149,9 @@ mxv_rdi_mbc_string_finish_record_initialization( MX_RECORD *record )
 	static const char fname[] =
 		"mxv_rdi_mbc_string_finish_record_initialization()";
 
-	MX_VARIABLE *variable;
-	MX_RDI_MBC_STRING *rdi_mbc_string;
+	MX_VARIABLE *variable = NULL;
+	MX_RDI_MBC_STRING *rdi_mbc_string = NULL;
+	MX_DRIVER *mx_driver = NULL;
 	const char *driver_name;
 	char *duplicate;
 	int argc, split_status, saved_errno;
@@ -167,23 +178,38 @@ mxv_rdi_mbc_string_finish_record_initialization( MX_RECORD *record )
 		return mx_status;
 
 	/* Figure out what type of RDI MBC string record this is. */
+#if 1
+	mx_driver = mx_get_driver_for_record( record );
+
+	MX_DEBUG(-2,("%s: '%s' driver = %p", fname, record->name, mx_driver));
+#endif
 
 	driver_name = mx_get_driver_name( record );
 
+#if MXV_RDI_MBC_STRING_DEBUG
+	MX_DEBUG(-2,("%s: '%s' driver_name = '%s'",
+		fname, record->name, driver_name));
+#endif
+
 	if ( strcmp( driver_name, "rdi_mbc_string" ) == 0 ) {
-		rdi_mbc_string->string_type = MXT_RDI_STRING;
+		rdi_mbc_string->string_type = MXT_RDI_MBC_STRING;
 	} else
 	if ( strcmp( driver_name, "rdi_mbc_filename" ) == 0 ) {
-		rdi_mbc_string->string_type = MXT_RDI_FILENAME;
+		rdi_mbc_string->string_type = MXT_RDI_MBC_FILENAME;
 	} else
 	if ( strcmp( driver_name, "rdi_mbc_datafile_prefix" ) == 0 ) {
-		rdi_mbc_string->string_type = MXT_RDI_DATAFILE_PREFIX;
+		rdi_mbc_string->string_type = MXT_RDI_MBC_DATAFILE_PREFIX;
 	} else {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"The driver name '%s' for record '%s' is not recognized.",
 		driver_name, record->name );
 			
 	}
+
+#if MXV_RDI_MBC_STRING_DEBUG
+	MX_DEBUG(-2,("%s: '%s' string_type = %ld",
+		fname, record->name, rdi_mbc_string->string_type));
+#endif
 
 	/* Save a pointer to this record's 'value' field. */
 
@@ -312,6 +338,28 @@ mxv_rdi_mbc_string_finish_record_initialization( MX_RECORD *record )
 	rdi_mbc_string->external_string_length =
 			rdi_mbc_string->external_field->dimension[0];
 
+	/* Check for some string length error conditions. */
+
+	if ( rdi_mbc_string->internal_string_length != 40 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The string length for variable '%s' is not "
+			"40 characters, which is not compatible with "
+			"EPICS string PVs.  Instead, it is %ld characters.",
+			record->name,
+			rdi_mbc_string->internal_string_length );
+	}
+	if ( rdi_mbc_string->external_string_length < 40 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The string length of external field '%s' "
+			"used by variable '%s' is %ld characters, "
+			"which is less than the recommended "
+			"value of 40 characters or more, "
+			"for use with EPICS string PVs.",
+				rdi_mbc_string->external_field_name,
+				record->name,
+				rdi_mbc_string->external_string_length );
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -321,13 +369,7 @@ mxv_rdi_mbc_string_send_variable( MX_VARIABLE *variable )
 	static const char fname[] = "mxv_rdi_mbc_string_send_variable()";
 
 	MX_RDI_MBC_STRING *rdi_mbc_string = NULL;
-	long num_dimensions, field_type;
-	long *dimension_array;
-	void *internal_value_ptr;
-
-	char *internal_string_ptr;
-	size_t internal_string_length;
-
+	size_t prefix_length;
 	mx_status_type mx_status;
 
 	mx_status = mxv_rdi_mbc_string_get_pointers( variable,
@@ -341,9 +383,31 @@ mxv_rdi_mbc_string_send_variable( MX_VARIABLE *variable )
 		fname, rdi_mbc_string->internal_string_ptr));
 #endif
 
-	strlcpy( rdi_mbc_string->external_string_ptr,
-		rdi_mbc_string->internal_string_ptr,
-		rdi_mbc_string->external_string_length );
+	switch( rdi_mbc_string->string_type ) {
+	case MXT_RDI_MBC_DATAFILE_PREFIX:
+		prefix_length = strlen( rdi_mbc_string->internal_string_ptr );
+
+		if ( prefix_length <= MXU_RDI_MBC_MAX_PREFIX_LENGTH ) {
+
+			strlcpy( rdi_mbc_string->external_string_ptr,
+				rdi_mbc_string->internal_string_ptr,
+				rdi_mbc_string->external_string_length );
+		} else {
+			strlcpy( rdi_mbc_string->external_string_ptr,
+				rdi_mbc_string->internal_string_ptr,
+				MXU_RDI_MBC_MAX_PREFIX_LENGTH );
+		}
+		
+		strlcat( rdi_mbc_string->external_string_ptr,
+			"####.img",
+			rdi_mbc_string->external_string_length );
+		break;
+	default:
+		strlcpy( rdi_mbc_string->external_string_ptr,
+			rdi_mbc_string->internal_string_ptr,
+			rdi_mbc_string->external_string_length );
+		break;
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -354,13 +418,8 @@ mxv_rdi_mbc_string_receive_variable( MX_VARIABLE *variable )
 	static const char fname[] = "mxv_rdi_mbc_string_receive_variable()";
 
 	MX_RDI_MBC_STRING *rdi_mbc_string = NULL;
-	long num_dimensions, field_type;
-	long *dimension_array;
-	void *value_ptr;
-
-	char *string_ptr;
-	size_t max_string_length;
-
+	size_t string_length;
+	char *end_chunk_ptr, *suffix_ptr;
 	mx_status_type mx_status;
 
 	mx_status = mxv_rdi_mbc_string_get_pointers( variable,
@@ -374,9 +433,62 @@ mxv_rdi_mbc_string_receive_variable( MX_VARIABLE *variable )
 		fname, rdi_mbc_string->external_string_ptr));
 #endif
 
-	strlcpy( rdi_mbc_string->internal_string_ptr,
-		rdi_mbc_string->external_string_ptr,
-		rdi_mbc_string->internal_string_length );
+	switch( rdi_mbc_string->string_type ) {
+	case MXT_RDI_MBC_FILENAME:
+		string_length = strlen( rdi_mbc_string->external_string_ptr );
+
+		if ( string_length < MXU_EPICS_STRING_LENGTH ) {
+			strlcpy( rdi_mbc_string->internal_string_ptr,
+				rdi_mbc_string->external_string_ptr,
+				rdi_mbc_string->internal_string_length );
+		} else {
+			strlcpy( rdi_mbc_string->internal_string_ptr,
+				rdi_mbc_string->external_string_ptr,
+				MXU_RDI_MBC_MAX_CHUNK_LENGTH );
+
+			strlcat( rdi_mbc_string->internal_string_ptr,
+				"~",
+				rdi_mbc_string->internal_string_length );
+
+			end_chunk_ptr = rdi_mbc_string->external_string_ptr
+					+ string_length
+					- MXU_RDI_MBC_MAX_CHUNK_LENGTH;
+
+			strlcat( rdi_mbc_string->internal_string_ptr,
+				end_chunk_ptr,
+				rdi_mbc_string->internal_string_length );
+		}
+		break;
+	case MXT_RDI_MBC_DATAFILE_PREFIX:
+		string_length = strlen( rdi_mbc_string->external_string_ptr );
+
+		suffix_ptr = rdi_mbc_string->external_string_ptr
+				+ string_length - MXU_RDI_MBC_SUFFIX_LENGTH;
+
+		if ( string_length > (MXU_EPICS_STRING_LENGTH + 1) ) {
+
+			strlcpy( rdi_mbc_string->internal_string_ptr,
+			"** MX DATAFILE PATTERN TOO LONG **",
+			rdi_mbc_string->internal_string_length );
+		} else
+		if ( strcmp( suffix_ptr, "####.img" ) != 0 ) {
+
+			strlcpy( rdi_mbc_string->internal_string_ptr,
+			"** ILLEGAL MX DATAFILE SUFFIX **",
+			rdi_mbc_string->internal_string_length );
+		} else {
+			strlcpy( rdi_mbc_string->internal_string_ptr,
+				rdi_mbc_string->external_string_ptr,
+				rdi_mbc_string->internal_string_length );
+		}
+		break;
+	case MXT_RDI_MBC_STRING:
+	default:
+		strlcpy( rdi_mbc_string->internal_string_ptr,
+			rdi_mbc_string->external_string_ptr,
+			rdi_mbc_string->internal_string_length );
+		break;
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }

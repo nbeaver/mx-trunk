@@ -20,9 +20,9 @@
 
 #define MXU_RDI_MBC_STRING_TYPE_LENGTH	20
 
-#define MXT_RDI_STRING		1
-#define MXT_RDI_FILENAME	2
-#define MXT_RDI_DATAFILE_PREFIX	3
+#define MXT_RDI_MBC_STRING		1
+#define MXT_RDI_MBC_FILENAME		2
+#define MXT_RDI_MBC_DATAFILE_PREFIX	3
 
 typedef struct {
 	MX_RECORD *record;
