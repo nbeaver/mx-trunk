@@ -168,6 +168,8 @@ static MX_DRIVER mx_class_table[] = {
 				NULL, NULL, NULL, NULL, NULL},
 {"field",          0, MXV_FIELD,          MXR_VARIABLE,
 				NULL, NULL, NULL, NULL, NULL},
+{"special_variable", 0, MXV_SPECIAL,      MXR_VARIABLE,
+				NULL, NULL, NULL, NULL, NULL},
 
   /* ================== Server classes ================== */
 
