@@ -65,5 +65,11 @@ extern MX_VARIABLE_FUNCTION_LIST mxv_rdi_mbc_string_variable_function_list;
 extern long mxv_rdi_mbc_string_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_rdi_mbc_string_rfield_def_ptr;
 
+extern long mxv_rdi_mbc_filename_num_record_fields;
+extern MX_RECORD_FIELD_DEFAULTS *mxv_rdi_mbc_filename_rfield_def_ptr;
+
+extern long mxv_rdi_mbc_datafile_prefix_num_record_fields;
+extern MX_RECORD_FIELD_DEFAULTS *mxv_rdi_mbc_datafile_prefix_rfield_def_ptr;
+
 #endif /* __V_RDI_MBC_STRING_H__ */
 

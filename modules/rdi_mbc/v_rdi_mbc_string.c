@@ -49,6 +49,8 @@ MX_VARIABLE_FUNCTION_LIST mxv_rdi_mbc_string_variable_function_list = {
 	mxv_rdi_mbc_string_receive_variable
 };
 
+/* Record field defaults for 'rdi_mbc_string'. */
+
 MX_RECORD_FIELD_DEFAULTS mxv_rdi_mbc_string_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MXV_RDI_MBC_STRING_STANDARD_FIELDS,
@@ -62,6 +64,42 @@ long mxv_rdi_mbc_string_num_record_fields
 
 MX_RECORD_FIELD_DEFAULTS *mxv_rdi_mbc_string_rfield_def_ptr
 			= &mxv_rdi_mbc_string_record_field_defaults[0];
+
+/*---*/
+
+/* Record field defaults for 'rdi_mbc_filename'. */
+
+MX_RECORD_FIELD_DEFAULTS mxv_rdi_mbc_filename_record_field_defaults[] = {
+	MX_RECORD_STANDARD_FIELDS,
+	MXV_RDI_MBC_STRING_STANDARD_FIELDS,
+	MX_VARIABLE_STANDARD_FIELDS,
+	MX_STRING_VARIABLE_STANDARD_FIELDS
+};
+
+long mxv_rdi_mbc_filename_num_record_fields
+		= sizeof( mxv_rdi_mbc_filename_record_field_defaults )
+			/ sizeof( mxv_rdi_mbc_filename_record_field_defaults[0] );
+
+MX_RECORD_FIELD_DEFAULTS *mxv_rdi_mbc_filename_rfield_def_ptr
+			= &mxv_rdi_mbc_filename_record_field_defaults[0];
+
+/*---*/
+
+/* Record field defaults for 'rdi_mbc_datafile_prefix'. */
+
+MX_RECORD_FIELD_DEFAULTS mxv_rdi_mbc_datafile_prefix_record_field_defaults[] = {
+	MX_RECORD_STANDARD_FIELDS,
+	MXV_RDI_MBC_STRING_STANDARD_FIELDS,
+	MX_VARIABLE_STANDARD_FIELDS,
+	MX_STRING_VARIABLE_STANDARD_FIELDS
+};
+
+long mxv_rdi_mbc_datafile_prefix_num_record_fields
+		= sizeof( mxv_rdi_mbc_datafile_prefix_record_field_defaults )
+		/ sizeof( mxv_rdi_mbc_datafile_prefix_record_field_defaults[0]);
+
+MX_RECORD_FIELD_DEFAULTS *mxv_rdi_mbc_datafile_prefix_rfield_def_ptr
+			= &mxv_rdi_mbc_datafile_prefix_record_field_defaults[0];
 
 /*---*/
 
