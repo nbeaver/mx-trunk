@@ -216,18 +216,8 @@ mxv_rdi_mbc_string_finish_record_initialization( MX_RECORD *record )
 		return mx_status;
 
 	/* Figure out what type of RDI MBC string record this is. */
-#if 1
-	mx_driver = mx_get_driver_for_record( record );
-
-	MX_DEBUG(-2,("%s: '%s' driver = %p", fname, record->name, mx_driver));
-#endif
 
 	driver_name = mx_get_driver_name( record );
-
-#if MXV_RDI_MBC_STRING_DEBUG
-	MX_DEBUG(-2,("%s: '%s' driver_name = '%s'",
-		fname, record->name, driver_name));
-#endif
 
 	if ( strcmp( driver_name, "rdi_mbc_string" ) == 0 ) {
 		rdi_mbc_string->string_type = MXT_RDI_MBC_STRING;
@@ -243,11 +233,6 @@ mxv_rdi_mbc_string_finish_record_initialization( MX_RECORD *record )
 		driver_name, record->name );
 			
 	}
-
-#if MXV_RDI_MBC_STRING_DEBUG
-	MX_DEBUG(-2,("%s: '%s' string_type = %ld",
-		fname, record->name, rdi_mbc_string->string_type));
-#endif
 
 	/* Save a pointer to this record's 'value' field. */
 
@@ -416,11 +401,6 @@ mxv_rdi_mbc_string_send_variable( MX_VARIABLE *variable )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXV_RDI_MBC_STRING_DEBUG
-	MX_DEBUG(-2,("%s: sending '%s'",
-		fname, rdi_mbc_string->internal_string_ptr));
-#endif
-
 	switch( rdi_mbc_string->string_type ) {
 	case MXT_RDI_MBC_DATAFILE_PREFIX:
 		prefix_length = strlen( rdi_mbc_string->internal_string_ptr );
@@ -447,6 +427,12 @@ mxv_rdi_mbc_string_send_variable( MX_VARIABLE *variable )
 		break;
 	}
 
+#if MXV_RDI_MBC_STRING_DEBUG
+	MX_DEBUG(-2,("%s: sent '%s' as '%s'",
+		fname, rdi_mbc_string->internal_string_ptr,
+		rdi_mbc_string->external_string_ptr));
+#endif
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -456,7 +442,7 @@ mxv_rdi_mbc_string_receive_variable( MX_VARIABLE *variable )
 	static const char fname[] = "mxv_rdi_mbc_string_receive_variable()";
 
 	MX_RDI_MBC_STRING *rdi_mbc_string = NULL;
-	size_t string_length;
+	size_t string_length, prefix_length;
 	char *end_chunk_ptr, *suffix_ptr;
 	mx_status_type mx_status;
 
@@ -465,11 +451,6 @@ mxv_rdi_mbc_string_receive_variable( MX_VARIABLE *variable )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-#if MXV_RDI_MBC_STRING_DEBUG
-	MX_DEBUG(-2,("%s: receiving '%s'",
-		fname, rdi_mbc_string->external_string_ptr));
-#endif
 
 	switch( rdi_mbc_string->string_type ) {
 	case MXT_RDI_MBC_FILENAME:
@@ -500,10 +481,12 @@ mxv_rdi_mbc_string_receive_variable( MX_VARIABLE *variable )
 	case MXT_RDI_MBC_DATAFILE_PREFIX:
 		string_length = strlen( rdi_mbc_string->external_string_ptr );
 
-		suffix_ptr = rdi_mbc_string->external_string_ptr
-				+ string_length - MXU_RDI_MBC_SUFFIX_LENGTH;
+		prefix_length = string_length - MXU_RDI_MBC_SUFFIX_LENGTH;
 
-		if ( string_length > (MXU_EPICS_STRING_LENGTH + 1) ) {
+		suffix_ptr = rdi_mbc_string->external_string_ptr
+				+ prefix_length;
+
+		if ( prefix_length >= MXU_EPICS_STRING_LENGTH ) {
 
 			strlcpy( rdi_mbc_string->internal_string_ptr,
 			"** MX DATAFILE PATTERN TOO LONG **",
@@ -517,7 +500,7 @@ mxv_rdi_mbc_string_receive_variable( MX_VARIABLE *variable )
 		} else {
 			strlcpy( rdi_mbc_string->internal_string_ptr,
 				rdi_mbc_string->external_string_ptr,
-				rdi_mbc_string->internal_string_length );
+				prefix_length+1 );
 		}
 		break;
 	case MXT_RDI_MBC_STRING:
@@ -527,6 +510,12 @@ mxv_rdi_mbc_string_receive_variable( MX_VARIABLE *variable )
 			rdi_mbc_string->internal_string_length );
 		break;
 	}
+
+#if MXV_RDI_MBC_STRING_DEBUG
+	MX_DEBUG(-2,("%s: received '%s' as '%s'",
+		fname, rdi_mbc_string->external_string_ptr,
+		rdi_mbc_string->internal_string_ptr));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
