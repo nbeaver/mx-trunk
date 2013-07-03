@@ -570,6 +570,15 @@ typedef struct mx_area_detector_type {
 	double shutter_time;
 	mx_bool_type setup_exposure;
 	mx_bool_type trigger_exposure;
+
+	/* The following contains the (calculated ?) motor position
+	 * corresponding to the most recent call to 'readout_frame'.
+	 *
+	 * Sometimes this is generated using the exposure variables
+	 * immediately above.
+	 */
+
+	double motor_position;
 } MX_AREA_DETECTOR;
 
 /* Warning: Do not rely on the following numbers remaining the same
@@ -677,6 +686,8 @@ typedef struct mx_area_detector_type {
 #define MXLV_AD_SHUTTER_TIME			12604
 #define MXLV_AD_SETUP_EXPOSURE			12605
 #define MXLV_AD_TRIGGER_EXPOSURE		12606
+
+#define MXLV_AD_MOTOR_POSITION			12650
 
 #define MXLV_AD_SEQUENCE_ONE_SHOT		12701
 #define MXLV_AD_SEQUENCE_CONTINUOUS		12702
@@ -1233,6 +1244,10 @@ typedef struct mx_area_detector_type {
   \
   {MXLV_AD_TRIGGER_EXPOSURE, -1, "trigger_exposure", MXFT_BOOL, NULL, 0, {0}, \
   	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, trigger_exposure), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_AD_MOTOR_POSITION, -1, "motor_position", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, motor_position), \
 	{0}, NULL, 0}, \
   \
   {MXLV_AD_SEQUENCE_ONE_SHOT, -1, \

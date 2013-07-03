@@ -781,6 +781,32 @@ mx_image_noir_write_header( FILE *file,
 		}
 
 		fprintf( file, "SCAN_TEMPLATE=%s;\n", scan_template );
+
+		if ( ad->exposure_motor_record != (MX_RECORD *) NULL ) {
+			/* Write the (calculated ?) motor position
+			 * for this frame.
+			 */
+
+			char temp_buffer[40];
+			int c;
+
+			snprintf( temp_buffer, sizeof(temp_buffer),
+				"WML_%s=%f;\n",
+				ad->exposure_motor_record->name,
+				ad->motor_position );
+
+			length = strlen( temp_buffer );
+
+			for ( i = 0; i < length; i++ ) {
+				c = temp_buffer[i];
+
+				if ( islower(c) ) {
+					temp_buffer[i] = toupper(c);
+				}
+			}
+
+			fputs( temp_buffer, file );
+		}
 	}
 
 	/* Write out the dynamic header values. */

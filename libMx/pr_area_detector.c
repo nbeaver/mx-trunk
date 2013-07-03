@@ -827,6 +827,7 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_LOAD_FRAME:
 		case MXLV_AD_MAXIMUM_FRAME_NUMBER:
 		case MXLV_AD_MAXIMUM_FRAMESIZE:
+		case MXLV_AD_MOTOR_POSITION:
 		case MXLV_AD_NUM_CORRECTION_MEASUREMENTS:
 		case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
 		case MXLV_AD_READOUT_FRAME:
@@ -920,6 +921,10 @@ mx_area_detector_process_function( void *record_ptr,
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
+		case MXLV_AD_MOTOR_POSITION:
+			/* Just report the value already in the variable. */
+
+			break;
 		case MXLV_AD_BINSIZE:
 			mx_status = mx_area_detector_get_binsize( record,
 								NULL, NULL );
@@ -1131,6 +1136,10 @@ mx_area_detector_process_function( void *record_ptr,
 		break;
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
+		case MXLV_AD_MOTOR_POSITION:
+			/* Just save the value. */
+
+			break;
 		case MXLV_AD_ABORT:
 			(void) mxp_area_detector_stop_correction_callback(
 								record, ad );

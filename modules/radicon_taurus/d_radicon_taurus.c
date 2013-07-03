@@ -2421,6 +2421,25 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 
 	ad->image_frame->application_ptr = radicon_taurus->image_noir_info;
 
+	/* If configured, get the motor position from buffer_info_array. */
+
+	if ( ad->exposure_motor_record != (MX_RECORD *) NULL ) {
+
+		MX_RADICON_TAURUS_BUFFER_INFO *buffer_info;
+		long absolute_frame_number, temp_frame_number;
+
+		temp_frame_number = radicon_taurus->total_num_frames_at_start
+					+ ad->readout_frame;
+
+		absolute_frame_number =
+		    temp_frame_number % ( radicon_taurus->num_capture_buffers );
+
+		buffer_info =
+		  &(radicon_taurus->buffer_info_array[ absolute_frame_number ]);
+
+		ad->motor_position = buffer_info->motor_position;
+	}
+
 	/*---*/
 
 	flags = radicon_taurus->radicon_taurus_flags;
