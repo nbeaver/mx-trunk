@@ -29,7 +29,7 @@ all: build
 
 #MODULES += ni488		# linux,
 
-#MODULES += ni_daqmx		# linux, win32
+MODULES += ni_daqmx		# linux, win32
 
 #MODULES += pmc_mcapi		# linux, win32
 

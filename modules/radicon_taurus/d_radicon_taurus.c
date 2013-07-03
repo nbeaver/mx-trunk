@@ -736,6 +736,8 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	radicon_taurus->old_total_num_frames = -1;
 	radicon_taurus->old_status = 0xffffffff;
 
+	radicon_taurus->total_num_frames_at_start = 0;
+
 	/* Copy other needed parameters from the video input record to
 	 * the area detector record.
 	 */
@@ -1149,6 +1151,15 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 	MX_RADICON_TAURUS *radicon_taurus = NULL;
 	MX_RECORD *video_input_record = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
+	MX_RADICON_TAURUS_BUFFER_INFO *buffer_info = NULL;
+	MX_RADICON_TAURUS_BUFFER_INFO *info_start_ptr = NULL;
+	long total_num_frames_at_start, total_num_frames_at_end;
+	long absolute_frame_number_at_start, absolute_frame_number_at_end;
+	long num_frames_in_sequence, num_frames_to_zero;
+	long num_frames_at_start, num_frames_at_end;
+	long num_capture_buffers;
+	long i, absolute_frame_number;
+	double motor_position, motor_start_position, motor_delta;
 	double exposure_time;
 	unsigned long raw_exposure_time_32;
 	uint64_t long_exposure_time_as_uint64;
@@ -1203,11 +1214,112 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Zero out the contents of the Taurus buffer_info_array. */
+	/* Save a copy of the current value of 'total_num_frames' so
+	 * that we can compute absolute frame numbers in the circular
+	 * capture buffer array.
+	 */
 
-	memset( radicon_taurus->buffer_info_array, 0,
-		radicon_taurus->num_capture_buffers
+	mx_status = mx_area_detector_get_total_num_frames( ad->record,
+						&total_num_frames_at_start );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	radicon_taurus->total_num_frames_at_start = total_num_frames_at_start;
+
+#if 0
+	MX_DEBUG(-2,("%s: total_num_frames_at_start = %ld",
+		fname, radicon_taurus->total_num_frames_at_start));
+#endif
+
+	/* Zero out the part of the Taurus buffer_info_array
+	 * that will be used by the sequence that is starting.
+	 */
+
+	sp = &(ad->sequence_parameters);
+
+	mx_status = mx_sequence_get_num_frames( sp, &num_frames_in_sequence );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	num_capture_buffers = radicon_taurus->num_capture_buffers;
+
+	if ( num_frames_in_sequence >= num_capture_buffers ) {
+
+		memset( radicon_taurus->buffer_info_array, 0,
+			num_capture_buffers
 			  * sizeof(MX_RADICON_TAURUS_BUFFER_INFO) );
+	} else {
+		/*
+		 * If the number of frames to acquire is less than the
+		 * total number of capture buffers, then make sure that
+		 * we only zero out the parts of the buffer_info_array
+		 * that will actually be used in the current sequence.
+		 */
+
+		absolute_frame_number_at_start =
+			total_num_frames_at_start % num_capture_buffers;
+
+		total_num_frames_at_end = total_num_frames_at_start
+					+ num_frames_in_sequence;
+
+		absolute_frame_number_at_end =
+			total_num_frames_at_end % num_capture_buffers;
+
+		info_start_ptr = radicon_taurus->buffer_info_array
+					+ absolute_frame_number_at_start;
+
+		if ( absolute_frame_number_at_end
+			  >= absolute_frame_number_at_start )
+		{
+			num_frames_to_zero = absolute_frame_number_at_end
+					- absolute_frame_number_at_start;
+
+			memset( info_start_ptr, 0, num_frames_to_zero
+				  * sizeof(MX_RADICON_TAURUS_BUFFER_INFO) );
+		} else {
+			/* The first buffer_info_array elements to zero
+			 * appear at the end of the array.
+			 */
+
+			num_frames_at_end = num_capture_buffers
+					- absolute_frame_number_at_start;
+
+			memset( info_start_ptr, 0, num_frames_at_end
+			  	* sizeof(MX_RADICON_TAURUS_BUFFER_INFO) );
+
+			/* The rest of the array elements are at the
+			 * beginning of the buffer_info_array.
+			 */
+
+			num_frames_at_start = num_frames_in_sequence
+						- num_frames_at_end;
+
+			memset( radicon_taurus->buffer_info_array, 0,
+				num_frames_at_start
+			  	* sizeof(MX_RADICON_TAURUS_BUFFER_INFO) );
+		}
+	}
+
+	/* Precompute the motor positions to be written to the NOIR header. */
+
+	/* FIXME: Get motor_start_position and motor_delta. */
+
+	motor_start_position = 15.0;
+	motor_delta          = 0.1;
+
+	for ( i = 0; i < num_frames_in_sequence; i++ ) {
+		motor_position = motor_start_position + i * motor_delta;
+
+		absolute_frame_number = ( total_num_frames_at_start + i )
+						% ( num_capture_buffers );
+
+		buffer_info =
+		  &(radicon_taurus->buffer_info_array[ absolute_frame_number ]);
+
+		buffer_info->motor_position = motor_position;
+	}
 
 	/* If we are currently configured to save files using NOIR format,
 	 * then make sure we have updated the information needed by the
@@ -1246,8 +1358,6 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 	/*--- Otherwise, we continue on to reprogram the detector head. ---*/
 
 	/* Set the exposure time for this sequence. */
-
-	sp = &(ad->sequence_parameters);
 
 	mx_status = mx_sequence_get_exposure_time( sp, 0, &exposure_time );
 

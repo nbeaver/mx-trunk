@@ -38,6 +38,7 @@
 #define MXF_RADICON_TAURUS_CLOCK_FREQUENCY_IN_HZ	(30.0e6)
 
 typedef struct {
+	double motor_position;
 	mx_bool_type raw_frame_is_saved;
 } MX_RADICON_TAURUS_BUFFER_INFO;
 
@@ -87,6 +88,8 @@ typedef struct {
 
 	long old_total_num_frames;
 	unsigned long old_status;
+
+	long total_num_frames_at_start;
 
 	MX_CLOCK_TICK serial_delay_ticks;
 	MX_CLOCK_TICK next_serial_command_tick;
