@@ -1302,12 +1302,25 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 		}
 	}
 
+	/* Get the motor start position and motor delta. */
+
+	if ( ad->exposure_motor_record == (MX_RECORD *) NULL ) {
+		mx_warning( "The '%s.exposure_motor_name' field does not "
+		"have a value.  Using the default start position of "
+		"0.0 degrees.", ad->record->name );
+
+		motor_start_position = 0.0;
+	} else {
+		mx_status = mx_motor_get_position( ad->exposure_motor_record,
+						&motor_start_position );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	motor_delta = ad->exposure_distance;
+
 	/* Precompute the motor positions to be written to the NOIR header. */
-
-	/* FIXME: Get motor_start_position and motor_delta. */
-
-	motor_start_position = 15.0;
-	motor_delta          = 0.1;
 
 	for ( i = 0; i < num_frames_in_sequence; i++ ) {
 		motor_position = motor_start_position + i * motor_delta;
@@ -1319,6 +1332,11 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 		  &(radicon_taurus->buffer_info_array[ absolute_frame_number ]);
 
 		buffer_info->motor_position = motor_position;
+
+#if 1
+		MX_DEBUG(-2,("%s: motor(%ld) = %f",
+			fname, i, motor_position));
+#endif
 	}
 
 	/* If we are currently configured to save files using NOIR format,
