@@ -7,20 +7,20 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2008, 2011-2012 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004-2008, 2011-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define PROCESS_DEBUG		FALSE
+#define PROCESS_DEBUG			TRUE
 
-#define PROCESS_DEBUG_TIMING	FALSE
+#define PROCESS_DEBUG_TIMING		FALSE
 
-#define PROCESS_DEBUG_QUEUEING	FALSE
+#define PROCESS_DEBUG_QUEUEING		FALSE
 
-#define PROCESS_DEBUG_CALLBACKS	FALSE
+#define PROCESS_DEBUG_VALUE_CHANGED	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -287,6 +287,10 @@ mx_process_record_field( MX_RECORD *record,
 "#1 before record processing for '%s.%s'", record->name, record_field->name );
 #endif
 
+#if PROCESS_DEBUG
+		MX_DEBUG(-1,("%s: record_field->label_value = %ld",
+			fname, record_field->label_value));
+#endif
 		if ( record_field->label_value < 0 ) {
 			return  MX_SUCCESSFUL_RESULT;
 		} else {
@@ -312,9 +316,11 @@ mx_process_record_field( MX_RECORD *record,
 
 			record_field->active = FALSE;
 
-			MX_DEBUG( 1,(
+#if PROCESS_DEBUG
+			MX_DEBUG(-1,(
 				"%s: process_fn returned mx_status.code = %ld",
 					fname, mx_status.code ));
+#endif
 		}
 
 #if PROCESS_DEBUG_TIMING && 0
@@ -380,13 +386,13 @@ mx_test_for_value_changed( MX_RECORD_FIELD *record_field,
 				int direction,
 				mx_bool_type *value_changed_ptr )
 {
-#if PROCESS_DEBUG_CALLBACKS
+#if PROCESS_DEBUG_VALUE_CHANGED
 	static const char fname[] = "mx_test_for_value_changed()";
 #endif
 	mx_status_type (*vc_test_fn)( MX_RECORD_FIELD *, int, mx_bool_type * );
 	mx_status_type mx_status;
 
-#if PROCESS_DEBUG_CALLBACKS
+#if PROCESS_DEBUG_VALUE_CHANGED
 	MX_DEBUG(-2,("%s: vvvvvvvvvvvvvvvvvvvv",fname));
 	MX_DEBUG(-2,("%s invoked for field '%s'", fname, record_field->name));
 #endif
@@ -440,7 +446,7 @@ mx_test_for_value_changed( MX_RECORD_FIELD *record_field,
 
 	record_field->value_has_changed_manual_override = FALSE;
 
-#if PROCESS_DEBUG_CALLBACKS
+#if PROCESS_DEBUG_VALUE_CHANGED
 	MX_DEBUG(-2,("%s: *value_changed_ptr = %d",
 		fname, (int) *value_changed_ptr));
 
@@ -485,7 +491,7 @@ mx_default_test_for_value_changed( MX_RECORD_FIELD *record_field,
 		"The value_changed pointer passed was NULL." );
 	}
 
-#if PROCESS_DEBUG_CALLBACKS
+#if PROCESS_DEBUG_VALUE_CHANGED
 	MX_DEBUG(-2,("%s invoked for field '%s'", fname, record_field->name));
 #endif
 
@@ -610,7 +616,7 @@ mx_default_test_for_value_changed( MX_RECORD_FIELD *record_field,
 
 		threshold = record_field->value_change_threshold;
 
-#if PROCESS_DEBUG_CALLBACKS
+#if PROCESS_DEBUG_VALUE_CHANGED
 		MX_DEBUG(-2,("%s: last_value = %g, new_value = %g",
 			fname, record_field->last_value, new_value));
 		MX_DEBUG(-2,("%s: difference = %g, threshold = %g",
