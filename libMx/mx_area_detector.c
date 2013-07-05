@@ -6659,6 +6659,15 @@ mx_area_detector_vctest_extended_status( MX_RECORD_FIELD *record_field,
 			fname, (int) send_status_callbacks));
 	MX_DEBUG(-2,("%s: send_extended_status_callbacks = %d",
 			fname, (int) send_extended_status_callbacks));
+
+	MX_DEBUG(-2,("%s: last_frame_number_field->callback_list = %p",
+		fname, last_frame_number_field->callback_list));
+	MX_DEBUG(-2,("%s: total_num_frames_field->callback_list = %p",
+		fname, total_num_frames_field->callback_list));
+	MX_DEBUG(-2,("%s: status_field->callback_list = %p",
+		fname, status_field->callback_list));
+	MX_DEBUG(-2,("%s: extended_status_field->callback_list = %p",
+		fname, extended_status_field->callback_list));
 #endif
 
 	/* Send out last_frame_number callbacks. */
