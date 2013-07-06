@@ -15,7 +15,7 @@
  *
  */
 
-#define MXV_RDI_MBC_STRING_DEBUG	TRUE
+#define MXV_RDI_MBC_STRING_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
