@@ -1333,7 +1333,7 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 
 		buffer_info->motor_position = motor_position;
 
-#if 1
+#if 0
 		MX_DEBUG(-2,("%s: motor(%ld) = %f",
 			fname, i, motor_position));
 #endif

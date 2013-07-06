@@ -44,6 +44,8 @@ extern "C" {
 #define MXSF_AD_CORRECTION_MEASUREMENT_IN_PROGRESS	0x4
 #define MXSF_AD_CONTROLLER_ACTION_IN_PROGRESS		0x8
 
+#define MXSF_AD_UNSAVED_IMAGE_FRAMES			0x10
+
 #define MXSF_AD_BUFFER_OVERRUN				0x100
 #define MXSF_AD_FILE_IO_ERROR				0x200
 #define MXSF_AD_PERMISSION_DENIED			0x400
@@ -678,6 +680,8 @@ typedef struct mx_area_detector_type {
 #define MXLV_AD_CORRECTION_SAVE_FORMAT		12513
 #define MXLV_AD_CORRECTION_LOAD_FORMAT_NAME	12514
 #define MXLV_AD_CORRECTION_SAVE_FORMAT_NAME	12515
+#define MXLV_AD_DATAFILE_TOTAL_NUM_FRAMES	12516
+#define MXLV_AD_DATAFILE_LAST_FRAME_NUMBER	12517
 
 #define MXLV_AD_EXPOSURE_MOTOR_NAME		12600
 #define MXLV_AD_SHUTTER_NAME			12601
@@ -1170,6 +1174,18 @@ typedef struct mx_area_detector_type {
 	MXF_REC_CLASS_STRUCT, \
 		offsetof(MX_AREA_DETECTOR, correction_save_format_name), \
 	{sizeof(char)}, NULL, 0}, \
+  \
+  {MXLV_AD_DATAFILE_TOTAL_NUM_FRAMES, -1, "datafile_total_num_frames", \
+		MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_AREA_DETECTOR, datafile_total_num_frames), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_AD_DATAFILE_LAST_FRAME_NUMBER, -1, "datafile_last_frame_number", \
+		MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_AREA_DETECTOR, datafile_last_frame_number), \
+	{0}, NULL, 0}, \
   \
   {MXLV_AD_DATAFILE_PATTERN, -1, "datafile_pattern", MXFT_STRING, \
 					NULL, 1, {MXU_FILENAME_LENGTH}, \
