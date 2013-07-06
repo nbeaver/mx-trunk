@@ -14,13 +14,13 @@
  *
  */
 
-#define PROCESS_DEBUG			TRUE
+#define PROCESS_DEBUG			FALSE
 
 #define PROCESS_DEBUG_TIMING		FALSE
 
 #define PROCESS_DEBUG_QUEUEING		FALSE
 
-#define PROCESS_DEBUG_VALUE_CHANGED	TRUE
+#define PROCESS_DEBUG_VALUE_CHANGED	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -493,6 +493,8 @@ mx_default_test_for_value_changed( MX_RECORD_FIELD *record_field,
 
 #if PROCESS_DEBUG_VALUE_CHANGED
 	MX_DEBUG(-2,("%s invoked for field '%s'", fname, record_field->name));
+	MX_DEBUG(-2,("%s: num_dimensions = %ld",
+		fname, record_field->num_dimensions));
 #endif
 
 	value_changed = FALSE;
@@ -507,6 +509,10 @@ mx_default_test_for_value_changed( MX_RECORD_FIELD *record_field,
 		} else {
 			num_elements = record_field->dimension[0];
 		}
+
+#if PROCESS_DEBUG_VALUE_CHANGED
+		MX_DEBUG(-2,("%s: num_elements = %ld", fname, num_elements));
+#endif
 
 		array_ptr = mx_get_field_value_pointer(record_field);
 
