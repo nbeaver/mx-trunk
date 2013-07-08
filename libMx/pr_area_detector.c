@@ -14,7 +14,9 @@
  *
  */
 
-#define PR_AREA_DETECTOR_DEBUG	FALSE
+#define PR_AREA_DETECTOR_DEBUG				FALSE
+
+#define PR_AREA_DETECTOR_DEBUG_IMAGE_FRAME_DATA		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,9 +26,11 @@
 #include "mx_util.h"
 #include "mx_driver.h"
 #include "mx_record.h"
+#include "mx_unistd.h"
 #include "mx_hrt.h"
 #include "mx_hrt_debug.h"
 #include "mx_socket.h"
+#include "mx_vm_alloc.h"
 #include "mx_image.h"
 #include "mx_area_detector.h"
 
@@ -653,6 +657,10 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 static mx_status_type
 mxp_area_detector_update_frame_pointers( MX_AREA_DETECTOR *ad )
 {
+#if PR_AREA_DETECTOR_DEBUG_IMAGE_FRAME_DATA
+	static const char fname[] = "mxp_area_detector_update_frame_pointers()";
+#endif
+
 	MX_IMAGE_FRAME *image_frame;
 	mx_status_type mx_status;
 
@@ -667,6 +675,14 @@ mxp_area_detector_update_frame_pointers( MX_AREA_DETECTOR *ad )
 		ad->image_frame_header = (char *) image_frame->header_data;
 		ad->image_frame_data          = image_frame->image_data;
 	}
+
+#if PR_AREA_DETECTOR_DEBUG_IMAGE_FRAME_DATA
+	MX_DEBUG(-2,("%s: mx_pointer_is_valid(%p) = %d",
+		fname, ad->image_frame_data,
+		mx_pointer_is_valid( ad->image_frame_data,
+					sizeof(uint16_t), R_OK | W_OK ) ));
+	mx_vm_show_os_info( stderr, ad->image_frame_data, sizeof(uint16_t) );
+#endif
 
 	/* Modify the 'image_frame_header' record field to have
 	 * the correct length in bytes.
@@ -1019,6 +1035,17 @@ mx_area_detector_process_function( void *record_ptr,
 								NULL, NULL );
 			break;
 		case MXLV_AD_IMAGE_FRAME_DATA:
+
+#if PR_AREA_DETECTOR_DEBUG_IMAGE_FRAME_DATA
+			MX_DEBUG(-2,("%s: mx_pointer_is_valid(%p) = %d",
+				fname, ad->image_frame_data,
+				mx_pointer_is_valid( ad->image_frame_data,
+					sizeof(uint16_t), R_OK | W_OK ) ));
+
+			mx_vm_show_os_info( stderr,
+					ad->image_frame_data,
+					sizeof(uint16_t) );
+#endif
 			if ( ad->image_frame_data == NULL ) {
 				return mx_error(MXE_INITIALIZATION_ERROR, fname,
 			"Area detector '%s' has not yet taken its first frame.",

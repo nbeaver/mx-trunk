@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2012 Illinois Institute of Technology
+ * Copyright 1999-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -713,6 +713,75 @@ mx_wait_for_debugger( void )
 }
 
 #endif
+
+/*-------------------------------------------------------------------------*/
+
+#define MXU_MAX_NUMBERED_BREAKPOINTS	10
+
+static mx_bool_type
+mxp_numbered_breakpoint_array[MXU_MAX_NUMBERED_BREAKPOINTS] = {0};
+
+MX_EXPORT void
+mx_numbered_breakpoint( unsigned long breakpoint_number )
+{
+	static const char fname[] = "mx_numbered_breakpoint()";
+
+	if ( breakpoint_number >= MXU_MAX_NUMBERED_BREAKPOINTS ) {
+		(void) mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The requested breakpoint number %lu is outside the "
+		"allowed range of values from 0 to %d",
+			breakpoint_number,
+			MXU_MAX_NUMBERED_BREAKPOINTS-1 );
+		return;
+	}
+
+	if ( mxp_numbered_breakpoint_array[breakpoint_number] ) {
+		mx_breakpoint();
+	}
+	return;
+}
+
+MX_EXPORT void
+mx_set_numbered_breakpoint( unsigned long breakpoint_number,
+				int breakpoint_on )
+{
+	static const char fname[] = "mx_set_numbered_breakpoint()";
+
+	if ( breakpoint_number >= MXU_MAX_NUMBERED_BREAKPOINTS ) {
+		(void) mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The requested breakpoint number %lu is outside the "
+		"allowed range of values from 0 to %d",
+			breakpoint_number,
+			MXU_MAX_NUMBERED_BREAKPOINTS-1 );
+		return;
+	}
+
+	mxp_numbered_breakpoint_array[breakpoint_number]
+		= (mx_bool_type) breakpoint_on;
+
+	return;
+}
+
+MX_EXPORT int
+mx_get_numbered_breakpoint( unsigned long breakpoint_number )
+{
+	static const char fname[] = "mx_set_numbered_breakpoint()";
+
+	int result;
+
+	if ( breakpoint_number >= MXU_MAX_NUMBERED_BREAKPOINTS ) {
+		(void) mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The requested breakpoint number %lu is outside the "
+		"allowed range of values from 0 to %d",
+			breakpoint_number,
+			MXU_MAX_NUMBERED_BREAKPOINTS-1 );
+		return FALSE;
+	}
+
+	result = (int) mxp_numbered_breakpoint_array[breakpoint_number];
+
+	return result;
+}
 
 /*-------------------------------------------------------------------------*/
 

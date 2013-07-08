@@ -332,6 +332,53 @@ mx_vm_set_protection( void *address,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/* For definitions of the hex bits below, look in the Microsoft include
+ * file "WinNT.h" and look for the set of definitions that start with
+ * the macro PAGE_NOACCESS.
+ */
+
+MX_EXPORT mx_status_type
+mx_vm_show_os_info( FILE *file,
+		void *address,
+		size_t region_size_in_bytes )
+{
+	static const char fname[] = "mx_vm_show_os_info()";
+
+	MEMORY_BASIC_INFORMATION memory_info;
+	SIZE_T bytes_returned;
+
+	if ( file == (FILE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The FILE pointer passed was NULL." );
+	}
+	if ( address == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The address pointer passed was NULL." );
+	}
+
+	fprintf( file, "    Address =           %p\n", address );
+
+	memset( &memory_info, 0, sizeof(memory_info) );
+
+	bytes_returned = VirtualQuery( address,
+					&memory_info,
+					sizeof(memory_info) );
+
+	fprintf( file, "    BaseAddress =       %p\n",
+						memory_info.BaseAddress );
+	fprintf( file, "    AllocationBase =    %p\n",
+						memory_info.AllocationBase );
+	fprintf( file, "    AllocationProtect = %#lx\n",
+						memory_info.AllocationProtect );
+	fprintf( file, "    RegionSize =        %lu\n",
+						memory_info.RegionSize );
+	fprintf( file, "    State =             %#lx\n", memory_info.State );
+	fprintf( file, "    Protect =           %#lx\n", memory_info.Protect );
+	fprintf( file, "    Type =              %#lx\n", memory_info.Type );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /*================================= Posix =================================*/
 
 /*

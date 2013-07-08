@@ -46,12 +46,14 @@ mx_setup_list_head_process_functions( MX_RECORD *record )
 
 		switch( record_field->label_value ) {
 		case MXLV_LHD_BREAKPOINT:
+		case MXLV_LHD_BREAKPOINT_NUMBER:
 		case MXLV_LHD_CALLBACKS_ENABLED:
 		case MXLV_LHD_CFLAGS:
 		case MXLV_LHD_CRASH:
 		case MXLV_LHD_DEBUG_LEVEL:
 		case MXLV_LHD_DEBUGGER_STARTED:
 		case MXLV_LHD_FIELDDEF:
+		case MXLV_LHD_NUMBERED_BREAKPOINT_STATUS:
 		case MXLV_LHD_REPORT:
 		case MXLV_LHD_REPORT_ALL:
 		case MXLV_LHD_SHOW_CALLBACKS:
@@ -102,6 +104,13 @@ mx_list_head_process_function( void *record_ptr,
 		case MXLV_LHD_DEBUGGER_STARTED:
 			list_head->debugger_started =
 					mx_get_debugger_started_flag();
+			break;
+		case MXLV_LHD_BREAKPOINT_NUMBER:
+			break;
+		case MXLV_LHD_NUMBERED_BREAKPOINT_STATUS:
+			list_head->numbered_breakpoint_status
+				= mx_get_numbered_breakpoint(
+					list_head->breakpoint_number );
 			break;
 		default:
 			MX_DEBUG( 1,(
@@ -197,6 +206,18 @@ mx_list_head_process_function( void *record_ptr,
 			} else {
 				mx_warning(
 				"Request for remote crash ignored." );
+			}
+			break;
+		case MXLV_LHD_BREAKPOINT_NUMBER:
+			break;
+		case MXLV_LHD_NUMBERED_BREAKPOINT_STATUS:
+			if ( list_head->remote_breakpoint_enabled ) {
+				mx_set_numbered_breakpoint(
+					list_head->breakpoint_number,
+					list_head->numbered_breakpoint_status );
+			} else {
+				mx_warning( "Request for numbered breakpoint "
+						"change ignored." );
 			}
 			break;
 		case MXLV_LHD_DEBUGGER_STARTED:

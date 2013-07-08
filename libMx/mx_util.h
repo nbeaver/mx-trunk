@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 1999-2012 Illinois Institute of Technology
+ * Copyright 1999-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -351,6 +351,17 @@ MX_API int mx_breakpoint_helper( void );
  */
 
 MX_API void mx_breakpoint( void );
+
+/* "Numbered breakpoints" only fire when their breakpoint number has
+ * been enabled.
+ */
+
+MX_API void mx_numbered_breakpoint( unsigned long breakpoint_number );
+
+MX_API void mx_set_numbered_breakpoint( unsigned long breakpoint_number,
+					int breakpoint_enable );
+
+MX_API int mx_get_numbered_breakpoint( unsigned long breakpoint_number );
 
 /*
  * mx_set_debugger_started_flag() provides a way to directly set the internal

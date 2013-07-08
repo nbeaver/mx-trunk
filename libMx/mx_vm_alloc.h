@@ -48,6 +48,10 @@ MX_API mx_status_type mx_vm_set_protection( void *address,
 					size_t region_size_in_bytes,
 					unsigned long protection_flags );
 
+MX_API mx_status_type mx_vm_show_os_info( FILE *file,
+					void *address,
+					size_t region_size_in_bytes );
+
 #ifdef __cplusplus
 }
 #endif

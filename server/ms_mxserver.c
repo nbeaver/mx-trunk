@@ -2205,6 +2205,10 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 
 	/* Get the data from the hardware for this get_array request. */
 
+#if 1
+	mx_numbered_breakpoint( 0 );
+#endif
+
 	mx_status = mx_process_record_field( record, record_field,
 						MX_PROCESS_GET, NULL );
 
