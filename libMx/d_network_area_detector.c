@@ -1113,7 +1113,7 @@ mxd_network_area_detector_transfer_frame( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s', transfer_frame = %ld.",
 		fname, ad->record->name, ad->transfer_frame ));
 #endif
-	destination_frame = ad->transfer_destination_frame;
+	destination_frame = *(ad->transfer_destination_frame_ptr);
 
 	/* Tell the server to copy the frame to the image frame buffer. */
 

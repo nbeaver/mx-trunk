@@ -343,7 +343,7 @@ typedef struct mx_area_detector_type {
 	 */
 
 	long transfer_frame;
-	MX_IMAGE_FRAME *transfer_destination_frame;
+	MX_IMAGE_FRAME **transfer_destination_frame_ptr;
 
 	/* 'load_frame' and 'save_frame' are used to tell the software
 	 * what kind of frame to load or save.  'frame_filename' specifies
@@ -1569,7 +1569,7 @@ MX_API mx_status_type mx_area_detector_correct_frame( MX_RECORD *ad_record );
 
 MX_API mx_status_type mx_area_detector_transfer_frame( MX_RECORD *ad_record,
 						long frame_type,
-						MX_IMAGE_FRAME *destination );
+						MX_IMAGE_FRAME **destination );
 
 MX_API mx_status_type mx_area_detector_load_frame( MX_RECORD *ad_record,
 						long frame_type,
@@ -1582,6 +1582,9 @@ MX_API mx_status_type mx_area_detector_save_frame( MX_RECORD *ad_record,
 MX_API mx_status_type mx_area_detector_copy_frame( MX_RECORD *ad_record,
 						long source_frame_type,
 						long destination_frame_type );
+
+MX_API mx_status_type mx_area_detector_update_frame_pointers(
+						MX_AREA_DETECTOR *ad );
 /*---*/
 
 MX_API mx_status_type mx_area_detector_get_frame( MX_RECORD *ad_record,
@@ -1636,6 +1639,10 @@ MX_API mx_status_type mx_area_detector_default_set_register(
 						MX_AREA_DETECTOR *ad );
 
 /*---*/
+
+MX_API mx_status_type mx_area_detector_copy_and_convert_frame(
+					MX_IMAGE_FRAME **destination_frame,
+					MX_IMAGE_FRAME *source_frame );
 
 MX_API mx_status_type mx_area_detector_copy_and_convert_image_data(
 					MX_IMAGE_FRAME *destination_frame,

@@ -1692,8 +1692,8 @@ mx_area_detector_default_dezinger_correction( MX_AREA_DETECTOR *ad )
 		/* Transfer the frame to the image frame array. */
 
 		mx_status = mx_area_detector_transfer_frame( ad->record,
-							MXFT_AD_IMAGE_FRAME,
-							image_frame_array[n] );
+						MXFT_AD_IMAGE_FRAME,
+						&(image_frame_array[n]) );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 			FREE_DEZINGER_ARRAYS;

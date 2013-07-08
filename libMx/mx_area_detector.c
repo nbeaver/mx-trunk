@@ -232,7 +232,7 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->image_frame_header = NULL;
 	ad->image_frame_data = NULL;
 
-	ad->transfer_destination_frame = NULL;
+	ad->transfer_destination_frame_ptr = NULL;
 	ad->dezinger_threshold = DBL_MAX;
 
 	ad->frame_filename[0] = '\0';
@@ -3390,7 +3390,7 @@ mx_area_detector_correct_frame( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mx_area_detector_transfer_frame( MX_RECORD *record,
 				long frame_type,
-				MX_IMAGE_FRAME *destination_frame )
+				MX_IMAGE_FRAME **destination_frame )
 {
 	static const char fname[] = "mx_area_detector_transfer_frame()";
 
@@ -3399,17 +3399,29 @@ mx_area_detector_transfer_frame( MX_RECORD *record,
 	mx_status_type ( *transfer_frame_fn ) ( MX_AREA_DETECTOR * );
 	mx_status_type mx_status;
 
+#if 0
+	MX_LIST_HEAD *list_head;
+
+	/* If we are running in an MX server, then trigger a breakpoint here. */
+
+	list_head = mx_get_record_list_head_struct( record );
+
+	if ( list_head->is_server ) {
+		mx_breakpoint();
+	}
+#endif
+
 	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( destination_frame == (MX_IMAGE_FRAME *) NULL ) {
+	if ( destination_frame == (MX_IMAGE_FRAME **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The destination_frame pointer passed was NULL." );
 	}
 
-	ad->transfer_destination_frame = destination_frame;
+	ad->transfer_destination_frame_ptr = destination_frame;
 
 	transfer_frame_fn = flist->transfer_frame;
 
@@ -3426,7 +3438,7 @@ mx_area_detector_transfer_frame( MX_RECORD *record,
 		uint16_t *destination_data_array;
 		long i;
 
-		destination_data_array = destination_frame->image_data;
+		destination_data_array = (*destination_frame)->image_data;
 
 		for ( i = 0; i < 10; i++ ) {
 			MX_DEBUG(-2,("%s: destination_data_array[%ld] = %d",
@@ -3875,6 +3887,60 @@ mx_area_detector_copy_frame( MX_RECORD *record,
 /*---*/
 
 MX_EXPORT mx_status_type
+mx_area_detector_update_frame_pointers( MX_AREA_DETECTOR *ad )
+{
+#if PR_AREA_DETECTOR_DEBUG_IMAGE_FRAME_DATA
+	static const char fname[] = "mx_area_detector_update_frame_pointers()";
+#endif
+
+	MX_IMAGE_FRAME *image_frame;
+	mx_status_type mx_status;
+
+	image_frame = ad->image_frame;
+
+	if ( image_frame == NULL ) {
+		ad->image_frame_header_length = 0;
+		ad->image_frame_header        = NULL;
+		ad->image_frame_data          = NULL;
+	} else {
+		ad->image_frame_header_length = image_frame->header_length;
+		ad->image_frame_header = (char *) image_frame->header_data;
+		ad->image_frame_data          = image_frame->image_data;
+	}
+
+#if PR_AREA_DETECTOR_DEBUG_IMAGE_FRAME_DATA
+	MX_DEBUG(-2,("%s: mx_pointer_is_valid(%p) = %d",
+		fname, ad->image_frame_data,
+		mx_pointer_is_valid( ad->image_frame_data,
+					sizeof(uint16_t), R_OK | W_OK ) ));
+	mx_vm_show_os_info( stderr, ad->image_frame_data, sizeof(uint16_t) );
+#endif
+
+	/* Modify the 'image_frame_header' record field to have
+	 * the correct length in bytes.
+	 */
+
+	mx_status = mx_set_1d_field_array_length_by_name( ad->record,
+				"image_frame_header",
+				ad->image_frame_header_length );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Modify the 'image_frame_data' record field to have
+	 * the correct length in bytes.
+	 */
+
+	mx_status = mx_set_1d_field_array_length_by_name( ad->record,
+				"image_frame_data",
+				ad->bytes_per_frame );
+
+	return mx_status;
+}
+
+/*---*/
+
+MX_EXPORT mx_status_type
 mx_area_detector_get_frame( MX_RECORD *record,
 			long frame_number,
 			MX_IMAGE_FRAME **image_frame )
@@ -3900,7 +3966,7 @@ mx_area_detector_get_frame( MX_RECORD *record,
 		return mx_status;
 
 	mx_status = mx_area_detector_transfer_frame( record,
-				MXFT_AD_IMAGE_FRAME, ad->image_frame );
+				MXFT_AD_IMAGE_FRAME, &(ad->image_frame) );
 
 	return mx_status;
 }
@@ -4403,10 +4469,9 @@ mx_area_detector_default_transfer_frame( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mx_area_detector_default_transfer_frame()";
 
-	MX_IMAGE_FRAME *destination_frame, *source_frame;
+	MX_IMAGE_FRAME *source_frame;
+	mx_bool_type destination_is_primary_image_frame;
 	mx_status_type mx_status;
-
-	destination_frame = ad->transfer_destination_frame;
 
 	switch( ad->transfer_frame ) {
 	case MXFT_AD_IMAGE_FRAME:
@@ -4436,7 +4501,7 @@ mx_area_detector_default_transfer_frame( MX_AREA_DETECTOR *ad )
 			ad->transfer_frame, ad->record->name );
 	}
 
-	if ( destination_frame == source_frame ) {
+	if ( *(ad->transfer_destination_frame_ptr) == source_frame ) {
 		/* If the destination and the source are the same,
 		 * then we do not need to do any copying.
 		 */
@@ -4444,9 +4509,27 @@ mx_area_detector_default_transfer_frame( MX_AREA_DETECTOR *ad )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	mx_status = mx_image_copy_frame( source_frame, &destination_frame );
+	if ( *(ad->transfer_destination_frame_ptr) == (ad->image_frame) ) {
+		destination_is_primary_image_frame = TRUE;
+	} else {
+		destination_is_primary_image_frame = FALSE;
+	}
 
-	return mx_status;
+	mx_status = mx_area_detector_copy_and_convert_frame(
+					ad->transfer_destination_frame_ptr,
+					source_frame );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( destination_is_primary_image_frame ) {
+		mx_status = mx_area_detector_update_frame_pointers( ad );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -4670,7 +4753,7 @@ mx_area_detector_default_copy_frame( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mx_area_detector_default_copy_frame()";
 
 	MX_IMAGE_FRAME *src_frame;
-	MX_IMAGE_FRAME** dest_frame_ptr;
+	MX_IMAGE_FRAME **dest_frame_ptr;
 	mx_status_type mx_status;
 
 #if MX_AREA_DETECTOR_DEBUG
@@ -4731,8 +4814,8 @@ mx_area_detector_default_copy_frame( MX_AREA_DETECTOR *ad )
 			ad->copy_frame[1], ad->record->name );
 	}
 
-	mx_status = mx_image_copy_frame( src_frame, dest_frame_ptr );
-
+	mx_status = mx_area_detector_copy_and_convert_frame( dest_frame_ptr,
+								src_frame );
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
@@ -5278,6 +5361,90 @@ mx_area_detector_default_set_parameter_handler( MX_AREA_DETECTOR *ad )
 	}
 
 	return mx_status;
+}
+
+/*=======================================================================*/
+
+MX_EXPORT mx_status_type
+mx_area_detector_copy_and_convert_frame( MX_IMAGE_FRAME **dest_frame_ptr,
+					MX_IMAGE_FRAME *src_frame )
+{
+	static const char fname[] = "mx_area_detector_copy_and_convert_frame()";
+
+	long dest_image_format, row_framesize, column_framesize;
+	double bytes_per_pixel;
+	size_t dest_image_size_in_bytes;
+	mx_status_type mx_status;
+
+	if ( src_frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The source frame pointer passed was NULL." );
+	}
+	if ( dest_frame_ptr == (MX_IMAGE_FRAME **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The destination frame pointer passed was NULL." );
+	}
+
+	/* If present, we get the image format for the new destination frame
+	 * from the old destination frame.  If there is not old destination
+	 * frame, then we get the image format from the source frame.
+	 */
+
+	if ( (*dest_frame_ptr) == (MX_IMAGE_FRAME *) NULL ) {
+		dest_image_format = MXIF_IMAGE_FORMAT( src_frame );
+	} else {
+		dest_image_format = MXIF_IMAGE_FORMAT( (*dest_frame_ptr) );
+	}
+
+	mx_status = mx_image_format_get_bytes_per_pixel( dest_image_format,
+							&bytes_per_pixel );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* The other parameters we get from the source frame. */
+
+	row_framesize    = MXIF_ROW_FRAMESIZE( src_frame );
+	column_framesize = MXIF_COLUMN_FRAMESIZE( src_frame );
+
+	dest_image_size_in_bytes = mx_round( bytes_per_pixel
+			* (double)( row_framesize * column_framesize ) );
+
+	/* Update the destination frame pointer. */
+
+	mx_status = mx_image_alloc( dest_frame_ptr,
+					row_framesize,
+					column_framesize,
+					dest_image_format,
+					MXIF_BYTE_ORDER( src_frame ),
+					bytes_per_pixel,
+					MXIF_HEADER_BYTES( src_frame ),
+					dest_image_size_in_bytes );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Copy the exposure time and timestamp to the destination frame. */
+
+	MXIF_EXPOSURE_TIME_SEC(*dest_frame_ptr)
+				= MXIF_EXPOSURE_TIME_SEC(src_frame);
+	MXIF_EXPOSURE_TIME_NSEC(*dest_frame_ptr)
+				= MXIF_EXPOSURE_TIME_NSEC(src_frame);
+
+	MXIF_TIMESTAMP_SEC(*dest_frame_ptr) = MXIF_TIMESTAMP_SEC(src_frame);
+	MXIF_TIMESTAMP_NSEC(*dest_frame_ptr) = MXIF_TIMESTAMP_NSEC(src_frame);
+
+	/* Now copy the source frame data and convert it to an image format 
+	 * that matches the format of the destination frame.
+	 */
+				
+	mx_status = mx_area_detector_copy_and_convert_image_data(
+					*dest_frame_ptr, src_frame );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*=======================================================================*/
