@@ -26,6 +26,8 @@
 
 #define MX_AREA_DETECTOR_DEBUG_FRAME_PARAMETERS		FALSE
 
+#define MX_AREA_DETECTOR_DEBUG_IMAGE_FRAME_DATA		FALSE
+
 #define MX_AREA_DETECTOR_DEBUG_STATUS			FALSE
 
 #define MX_AREA_DETECTOR_DEBUG_VCTEST			FALSE
@@ -3889,7 +3891,7 @@ mx_area_detector_copy_frame( MX_RECORD *record,
 MX_EXPORT mx_status_type
 mx_area_detector_update_frame_pointers( MX_AREA_DETECTOR *ad )
 {
-#if PR_AREA_DETECTOR_DEBUG_IMAGE_FRAME_DATA
+#if MX_AREA_DETECTOR_DEBUG_IMAGE_FRAME_DATA
 	static const char fname[] = "mx_area_detector_update_frame_pointers()";
 #endif
 
@@ -3908,7 +3910,7 @@ mx_area_detector_update_frame_pointers( MX_AREA_DETECTOR *ad )
 		ad->image_frame_data          = image_frame->image_data;
 	}
 
-#if PR_AREA_DETECTOR_DEBUG_IMAGE_FRAME_DATA
+#if MX_AREA_DETECTOR_DEBUG_IMAGE_FRAME_DATA
 	MX_DEBUG(-2,("%s: mx_pointer_is_valid(%p) = %d",
 		fname, ad->image_frame_data,
 		mx_pointer_is_valid( ad->image_frame_data,

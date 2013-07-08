@@ -16,7 +16,7 @@
 
 #define PR_AREA_DETECTOR_DEBUG				FALSE
 
-#define PR_AREA_DETECTOR_DEBUG_IMAGE_FRAME_DATA		TRUE
+#define PR_AREA_DETECTOR_DEBUG_IMAGE_FRAME_DATA		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
