@@ -20,6 +20,8 @@
 
 #define MX_AREA_DETECTOR_DEBUG_FRAME_TIMING		FALSE
 
+#define MX_AREA_DETECTOR_DEBUG_MEMORY_CORRUPTION	TRUE
+
 #define MX_AREA_DETECTOR_DEBUG_CORRECTION		FALSE
 
 #define MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING	FALSE
@@ -1017,6 +1019,10 @@ mx_area_detector_cleanup_after_correction( MX_AREA_DETECTOR *ad,
 		ad->correction_measurement = NULL;
 	}
 
+#if MX_AREA_DETECTOR_DEBUG_MEMORY_CORRUPTION
+	MX_DEBUG(-2,("%s: FREE-ing corr = %p", fname, corr));
+#endif
+
 	mx_free( corr );
 
 	ad->correction_measurement_in_progress = FALSE;
@@ -1064,10 +1070,10 @@ mx_area_detector_prepare_for_correction( MX_AREA_DETECTOR *ad,
 
 	corr = malloc( sizeof(MX_AREA_DETECTOR_CORRECTION_MEASUREMENT) );
 
-#if 1
+#if MX_AREA_DETECTOR_DEBUG_MEMORY_CORRUPTION
 	mx_global_debug_pointer[1] = corr;
 
-	MX_DEBUG(-2,("%s: corr = %p, global[1] = %p",
+	MX_DEBUG(-2,("%s: MALLOC: corr = %p, global[1] = %p",
 		fname, corr, mx_global_debug_pointer[1]));
 #endif
 
@@ -1083,6 +1089,13 @@ mx_area_detector_prepare_for_correction( MX_AREA_DETECTOR *ad,
 	memset( corr, 0, sizeof(MX_AREA_DETECTOR_CORRECTION_MEASUREMENT) );
 
 	corr->area_detector = ad;
+
+#if MX_AREA_DETECTOR_DEBUG_MEMORY_CORRUPTION
+	mx_global_debug_pointer[0] = ad;
+
+	MX_DEBUG(-2,("%s: ad = %p, corr->area_detector = %p, global[0] = %p",
+		fname, ad, corr->area_detector, mx_global_debug_pointer[0]));
+#endif
 
 	corr->exposure_time = ad->correction_measurement_time;
 
