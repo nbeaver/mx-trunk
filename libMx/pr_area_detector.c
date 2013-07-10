@@ -16,6 +16,8 @@
 
 #define PR_AREA_DETECTOR_DEBUG				FALSE
 
+#define PR_AREA_DETECTOR_DEBUG_MEMORY_CORRUPTION	TRUE
+
 #define PR_AREA_DETECTOR_DEBUG_IMAGE_FRAME_DATA		FALSE
 
 #include <stdio.h>
@@ -36,6 +38,15 @@
 
 #include "mx_process.h"
 #include "pr_handlers.h"
+
+/*---------------------------------------------------------------------------*/
+
+#if PR_AREA_DETECTOR_DEBUG_MEMORY_CORRUPTION
+
+int mx_global_debug_initialized[10] = {FALSE};
+void *mx_global_debug_pointer[10] = {NULL};
+
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -66,9 +77,29 @@ mxp_area_detector_measure_correction_callback_function(
 		fname, callback_message));
 #endif
 
+#if PR_AREA_DETECTOR_DEBUG_MEMORY_CORRUPTION
+	MX_DEBUG(-2,("%s: MARKER #1", fname));
+#endif
 	corr = callback_message->u.function.callback_args;
 
+#if PR_AREA_DETECTOR_DEBUG_MEMORY_CORRUPTION
+	MX_DEBUG(-2,("%s: corr = %p, global[1] = %p",
+		fname, corr, mx_global_debug_pointer[1]));
+	mx_vm_show_os_info( stderr, corr, sizeof(corr) );
+#endif
+
 	ad = corr->area_detector;
+
+#if PR_AREA_DETECTOR_DEBUG_MEMORY_CORRUPTION
+	MX_DEBUG(-2,("%s: ad = %p, global[0] = %p",
+		fname, ad, mx_global_debug_pointer[0]));
+
+	mx_vm_show_os_info( stderr, ad, sizeof(ad) );
+	mx_heap_check();
+	MX_DEBUG(-2,("%s: ad->record = %p", fname, ad->record));
+	mx_vm_show_os_info( stderr, ad->record, sizeof(MX_RECORD *) );
+	MX_DEBUG(-2,("%s: ad->record->name = '%s'", fname, ad->record->name));
+#endif
 
 	pixels_per_frame = ad->framesize[0] * ad->framesize[1];
 
@@ -78,6 +109,14 @@ mxp_area_detector_measure_correction_callback_function(
 							&last_frame_number,
 							&total_num_frames,
 							&ad_status );
+#if PR_AREA_DETECTOR_DEBUG_MEMORY_CORRUPTION
+	MX_DEBUG(-2,("%s: MARKER #2", fname));
+	mx_heap_check();
+	MX_DEBUG(-2,("%s: ad->record = %p", fname, ad->record));
+	mx_vm_show_os_info( stderr, ad->record, sizeof(MX_RECORD *) );
+	MX_DEBUG(-2,("%s: ad->record->name = '%s'", fname, ad->record->name));
+#endif
+
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_area_detector_cleanup_after_correction( ad, corr );
 		return mx_status;
@@ -258,6 +297,11 @@ mxp_area_detector_measure_correction_callback_function(
 			mx_area_detector_cleanup_after_correction( ad, corr );
 		}
 
+#if PR_AREA_DETECTOR_DEBUG_MEMORY_CORRUPTION
+		MX_DEBUG(-2,("%s: MARKER #900, ad = %p", fname, ad));
+		mx_vm_show_os_info( stderr, ad, sizeof(ad) );
+#endif
+
 #if PR_AREA_DETECTOR_DEBUG
 		MX_DEBUG(-2,("%s: Callback virtual timer restarted.",fname));
 		MX_DEBUG(-2,
@@ -276,12 +320,22 @@ mxp_area_detector_measure_correction_callback_function(
 		callback_message->u.function.oneshot_timer, NULL );
 #endif
 
+#if PR_AREA_DETECTOR_DEBUG_MEMORY_CORRUPTION
+	MX_DEBUG(-2,("%s: MARKER #990, ad = %p", fname, ad));
+	mx_vm_show_os_info( stderr, ad, sizeof(ad) );
+#endif
+
 	mx_status = mx_area_detector_finish_correction_calculation( ad, corr );
 
 #if PR_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s: Correction sequence complete.", fname));
 	MX_DEBUG(-2,
 		("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"));
+#endif
+
+#if PR_AREA_DETECTOR_DEBUG_MEMORY_CORRUPTION
+	MX_DEBUG(-2,("%s: MARKER #999, ad = %p", fname, ad));
+	mx_vm_show_os_info( stderr, ad, sizeof(ad) );
 #endif
 
 	return mx_status;
@@ -356,6 +410,11 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 		"At present, only GREY16 image format is supported.",
 			ad->image_format );
 	}
+
+#if PR_AREA_DETECTOR_DEBUG_MEMORY_CORRUPTION
+	MX_DEBUG(-2,("%s: MARKER #A, ad = %p, global[0] = %p",
+		fname, ad, mx_global_debug_pointer[0]));
+#endif
 
 	/* See if callbacks are enabled. */
 
@@ -732,7 +791,7 @@ mx_status_type
 mx_setup_area_detector_process_functions( MX_RECORD *record )
 {
 
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG || PR_AREA_DETECTOR_DEBUG_MEMORY_CORRUPTION
 	static const char fname[] =
 			"mx_setup_area_detector_process_functions()";
 #endif
@@ -743,6 +802,14 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 
 #if PR_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
+
+#if PR_AREA_DETECTOR_DEBUG_MEMORY_CORRUPTION
+	mx_global_debug_initialized[0] = TRUE;
+	mx_global_debug_pointer[0] = record->record_class_struct;
+
+	MX_DEBUG(-2,("%s: #1 ad = %p", fname, record->record_class_struct));
+	MX_DEBUG(-2,("%s: #2 ad = %p", fname, mx_global_debug_pointer[0]));
 #endif
 
 	record_field_array = record->record_field_array;

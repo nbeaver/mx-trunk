@@ -1064,6 +1064,13 @@ mx_area_detector_prepare_for_correction( MX_AREA_DETECTOR *ad,
 
 	corr = malloc( sizeof(MX_AREA_DETECTOR_CORRECTION_MEASUREMENT) );
 
+#if 1
+	mx_global_debug_pointer[1] = corr;
+
+	MX_DEBUG(-2,("%s: corr = %p, global[1] = %p",
+		fname, corr, mx_global_debug_pointer[1]));
+#endif
+
 	if ( corr == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Unable to allocate memory for an "

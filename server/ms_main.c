@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2012 Illinois Institute of Technology
+ * Copyright 1999-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1296,6 +1296,11 @@ mxserver_main( int argc, char *argv[] )
 						"*** Mark = %lu ***\n", mark);
 #endif
 					/* Process the event. */
+
+#if 0
+		MX_DEBUG(-2,("%s: MARKER process - global[0] = %p",
+			fname, mx_global_debug_pointer[0]));
+#endif
 
 					(void) ( *process_event_fn )
 						( mx_record_list,

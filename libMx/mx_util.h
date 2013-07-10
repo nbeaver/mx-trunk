@@ -374,6 +374,20 @@ MX_API void mx_set_debugger_started_flag( int started_flag );
 MX_API int mx_get_debugger_started_flag( void );
 
 /*
+ * mx_global_debug_pointer and mx_global_debug_initialized are used to
+ * provide a global "debug" object that can be accessed from anywhere
+ * in MX.  These objects are provided only for debugging and should
+ * not be used in normal operation.  These declarations are only
+ * valid in C.  If you use them from C++ code, you may get multiple
+ * definitions of symbols.
+ */
+
+#ifndef __cplusplus
+MX_API int mx_global_debug_initialized[10];
+MX_API void *mx_global_debug_pointer[10];
+#endif
+
+/*
  * mx_hex_char_to_unsigned_long() converts a hexadecimal character to an
  * unsigned long integer.  mx_hex_string_to_unsigned_long() does the same
  * thing for a string.
