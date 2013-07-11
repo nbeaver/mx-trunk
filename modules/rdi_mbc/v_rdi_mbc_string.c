@@ -19,6 +19,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -189,7 +190,6 @@ mxv_rdi_mbc_string_finish_record_initialization( MX_RECORD *record )
 
 	MX_VARIABLE *variable = NULL;
 	MX_RDI_MBC_STRING *rdi_mbc_string = NULL;
-	MX_DRIVER *mx_driver = NULL;
 	const char *driver_name;
 	char *duplicate;
 	int argc, split_status, saved_errno;

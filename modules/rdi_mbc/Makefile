@@ -40,6 +40,17 @@ endif
 
 #--------------------------------------------------------------------------
 
+# Linux
+
+ifeq ($(MX_ARCH),linux)
+
+rdi_mbc.mxo: $(RDI_MBC_OBJS)
+	gcc -shared -rdynamic -Wl,-soname,rdi_mbc.mxo \
+		-o rdi_mbc.mxo $(RDI_MBC_OBJS)
+endif
+
+#--------------------------------------------------------------------------
+
 rdi_mbc.$(OBJ): rdi_mbc.c v_rdi_mbc_string.h 
 	$(COMPILE) $(CFLAGS) rdi_mbc.c
 
