@@ -422,6 +422,7 @@ typedef struct {
 	mx_bool_type show_open_fds;
 	mx_bool_type callbacks_enabled;
 	char *cflags;
+	unsigned long vm_region[2];
 
 	mx_bool_type is_server;
 	void *connection_acl;

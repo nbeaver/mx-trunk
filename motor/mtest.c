@@ -19,6 +19,7 @@
 #include "motor.h"
 #include "command.h"
 #include "mx_io.h"
+#include "mx_vm_alloc.h"
 
 int
 motor_test_fn( int argc, char *argv[] )
@@ -66,6 +67,31 @@ motor_test_fn( int argc, char *argv[] )
 			mx_win32_show_socket_names();
 #endif
 			return SUCCESS;
+		} else
+		if ( strcmp( argv[2], "address" ) == 0 ) {
+			void *address;
+			size_t region_size_in_bytes;
+
+			if ( argc != 5 ) {
+				fprintf(stderr,
+					"Usage: xyzzy address start size\n" );
+				return FAILURE;
+			}
+
+			address = (void *)
+				mx_hex_string_to_unsigned_long( argv[3] );
+			region_size_in_bytes
+				= mx_hex_string_to_unsigned_long( argv[4] );
+
+			mx_status = mx_vm_show_os_info( stderr,
+							address,
+							region_size_in_bytes );
+
+			if ( mx_status.code == MXE_SUCCESS ) {
+				return SUCCESS;
+			} else {
+				return FAILURE;
+			}
 		}
 		if ( strcmp( argv[2], "monitor" ) == 0 ) {
 			if ( argc > 3 ) {

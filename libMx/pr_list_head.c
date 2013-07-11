@@ -63,6 +63,7 @@ mx_setup_list_head_process_functions( MX_RECORD *record )
 		case MXLV_LHD_SHOW_RECORD_LIST:
 		case MXLV_LHD_STATUS:
 		case MXLV_LHD_SUMMARY:
+		case MXLV_LHD_VM_REGION:
 			record_field->process_function
 					    = mx_list_head_process_function;
 			break;
@@ -184,6 +185,11 @@ mx_list_head_process_function( void *record_ptr,
 		case MXLV_LHD_SHOW_CALLBACK_ID:
 			mx_status =
 			    mx_list_head_record_show_clbk_id( list_head );
+			break;
+		case MXLV_LHD_VM_REGION:
+			fprintf( stderr,
+				(void *) list_head->vm_region[0],
+				list_head->vm_region[1] );
 			break;
 		case MXLV_LHD_BREAKPOINT:
 			if ( list_head->remote_breakpoint_enabled ) {

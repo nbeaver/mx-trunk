@@ -17,7 +17,7 @@
  *
  */
 
-#define MX_VM_ALLOC_DEBUG	TRUE
+#define MX_VM_ALLOC_DEBUG	FALSE
 
 #include <stdio.h>
 
@@ -534,18 +534,21 @@ mx_vm_set_protection( void *address,
 
 #  include <sys/mman.h>
 
-MX_EXPORT mx_status_type
-mx_vm_get_protection( void *address,
+static mx_status_type
+mx_vm_get_protection_entry( void *address,
 		size_t region_size_in_bytes,
 		mx_bool_type *valid_address_range,
-		unsigned long *protection_flags )
+		unsigned long *protection_flags,
+		char *entry_buffer,
+		size_t entry_buffer_size )
 {
-	static const char fname[] = "mx_vm_get_protection()";
+	static const char fname[] = "mx_vm_get_protection_entry()";
 
 	FILE *file;
 	char buffer[300];
 	int i, argc, saved_errno;
 	char **argv;
+	char *buffer_copy;
 	unsigned long start_address, end_address, pointer_address;
 	char permissions[20];
 
@@ -562,7 +565,11 @@ mx_vm_get_protection( void *address,
 		fname, address, (unsigned long) region_size_in_bytes ));
 #endif
 
-	/* Under Linux, the preferred technique is to read the
+	if ( entry_buffer != NULL ) {
+		*entry_buffer = '\0';
+	}
+
+	/* Under Linux and Cygwin, the preferred technique is to read the
 	 * necessary information from /proc/self/maps.
 	 */
 
@@ -610,7 +617,15 @@ mx_vm_get_protection( void *address,
 		 * and '-' characters as delimiters.
 		 */
 
-		mx_string_split( buffer, " -", &argc, &argv );
+		buffer_copy = strdup( buffer );
+
+		if ( buffer_copy == NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"The attempt to duplicate a /proc/self/maps "
+			"entry failed." );
+		}
+
+		mx_string_split( buffer_copy, " -", &argc, &argv );
 
 		start_address = mx_hex_string_to_unsigned_long( argv[0] );
 		end_address   = mx_hex_string_to_unsigned_long( argv[1] );
@@ -618,6 +633,7 @@ mx_vm_get_protection( void *address,
 		strlcpy( permissions, argv[2], sizeof(permissions) );
 
 		mx_free(argv);
+		mx_free(buffer_copy);
 
 #if MX_VM_ALLOC_DEBUG
 		MX_DEBUG(-2,("%s: address = %p, pointer_address = %#lx, "
@@ -673,6 +689,110 @@ mx_vm_get_protection( void *address,
 	if ( protection_flags != NULL ) {
 		*protection_flags = protection_flags_value;
 	}
+
+	if ( entry_buffer != NULL ) {
+		if ( valid ) {
+			strlcpy( entry_buffer, buffer, entry_buffer_size );
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_vm_get_protection( void *address,
+		size_t region_size_in_bytes,
+		mx_bool_type *valid_address_range,
+		unsigned long *protection_flags )
+{
+	mx_status_type mx_status;
+
+	mx_status = mx_vm_get_protection_entry( address,
+					region_size_in_bytes,
+					valid_address_range,
+					protection_flags,
+					NULL, 0 );
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_vm_show_os_info( FILE *file,
+		void *address,
+		size_t region_size_in_bytes )
+{
+	static const char fname[] = "mx_vm_show_os_info()";
+
+	char entry_buffer[250];
+	mx_bool_type valid_address_range;
+	char *address_start, *address_end;
+	int argc, dup_argc;
+	char **argv, **dup_argv;
+	char *dup_argv0;
+	char *dup_entry_buffer;
+	intptr_t vm_base_address, vm_end_address, vm_region_size;
+	mx_status_type mx_status;
+
+	mx_status = mx_vm_get_protection_entry( address,
+					region_size_in_bytes,
+					&valid_address_range,
+					NULL,
+					entry_buffer,
+					sizeof(entry_buffer) );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	address_start = (char *) address;
+	address_end = address_start + ( region_size_in_bytes - 1 );
+
+	if ( valid_address_range == FALSE ) {
+		fprintf( file, "Address range %p to %p is invalid.\n",
+			address_start, address_end );
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+#if 0
+	MX_DEBUG(-2,("%s: entry_buffer = '%s'", fname, entry_buffer));
+#endif
+
+	dup_entry_buffer = strdup( entry_buffer );
+
+	mx_string_split( dup_entry_buffer, " ", &argc, &argv );
+
+	if ( argc <= 4 ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Invalid entry returned from /proc/self/maps.  Entry = '%s'",
+			entry_buffer );
+	}
+
+	dup_argv0 = strdup( argv[0] );
+
+	mx_string_split( dup_argv0, "-", &dup_argc, &dup_argv );
+
+	vm_base_address = mx_hex_string_to_unsigned_long( dup_argv[0] );
+	vm_end_address  = mx_hex_string_to_unsigned_long( dup_argv[1] );
+
+	mx_free( dup_argv );
+	mx_free( dup_argv0 );
+
+	vm_region_size = vm_end_address - vm_base_address;
+
+	fprintf( stderr, "    Address      = %p\n", address );
+	fprintf( stderr, "    Base Address = %p\n", (void *) vm_base_address );
+	fprintf( stderr, "    Region_Size  = %lu\n", vm_region_size );
+	fprintf( stderr, "    Permissions  = %s\n", argv[1] );
+	fprintf( stderr, "    Offset       = %lu\n",
+				mx_hex_string_to_unsigned_long( argv[2] ) );
+	fprintf( stderr, "    Device       = '%s'\n", argv[3] );
+	fprintf( stderr, "    Inode        = %lu\n", atol( argv[4] ) );
+
+	if ( argc == 5 ) {
+		fprintf( stderr, " <No pathname>\n" );
+	} else {
+		fprintf( stderr, "    Pathname     = '%s'\n", argv[5] );
+	}
+
+	mx_free( dup_entry_buffer );
 
 	return MX_SUCCESSFUL_RESULT;
 }

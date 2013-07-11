@@ -44,6 +44,7 @@ extern "C" {
 #define MXLV_LHD_SHOW_OPEN_FDS			1016
 #define MXLV_LHD_CALLBACKS_ENABLED		1017
 #define MXLV_LHD_CFLAGS				1018
+#define MXLV_LHD_VM_REGION			1019
 
 #define MXR_LIST_HEAD_STANDARD_FIELDS \
   {-1, -1, "list_is_active", MXFT_BOOL, NULL, 0, {0}, \
@@ -150,7 +151,11 @@ extern "C" {
   \
   {MXLV_LHD_CFLAGS, -1, "cflags", MXFT_STRING, NULL, 1, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, cflags), \
-	{sizeof(char)}, NULL, (MXFF_VARARGS|MXFF_READ_ONLY) }
+	{sizeof(char)}, NULL, (MXFF_VARARGS|MXFF_READ_ONLY) }, \
+  \
+  {MXLV_LHD_VM_REGION, -1, "vm_region", MXFT_HEX, NULL, 1, {2}, \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, vm_region), \
+	{0}, NULL, 0}
 
 MX_API_PRIVATE mx_status_type mxr_create_list_head( MX_RECORD *record );
 
