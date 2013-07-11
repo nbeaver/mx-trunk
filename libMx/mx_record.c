@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2012 Illinois Institute of Technology
+ * Copyright 1999-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,6 +28,7 @@
 #include "mx_record.h"
 #include "mx_variable.h"
 #include "mx_driver.h"
+#include "mx_ascii.h"
 #include "mx_array.h"
 #include "mx_handle.h"
 #include "mx_signal.h"
@@ -1089,6 +1090,8 @@ mxp_readline_from_file( MXP_DB_SOURCE *db_source,
 {
 	static const char fname[] = "mxp_readline_from_file()";
 
+	char c;
+	size_t length;
 	int saved_errno;
 
 	mx_fgets( buffer, buffer_length, db_source->file );
@@ -1111,6 +1114,24 @@ mxp_readline_from_file( MXP_DB_SOURCE *db_source,
 			"Errno = %d, error message = '%s'.",
 			db_source->line_number, db_source->filename,
 			saved_errno, strerror( saved_errno ) );
+	}
+
+	/* Strip off any trailing newline or carriage return characters. */
+
+	while (1) {
+		length = strlen( buffer );
+
+		if ( length == 0 ) {
+			break;
+		}
+
+		c = buffer[length-1];
+
+		if ( ( c == MX_LF ) || ( c == MX_CR ) ) {
+			buffer[length-1] = '\0';
+		} else {
+			break;
+		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;

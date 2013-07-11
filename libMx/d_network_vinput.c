@@ -639,7 +639,7 @@ mxd_network_vinput_get_extended_status( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if 1 || MXD_NETWORK_VIDEO_INPUT_DEBUG
+#if MXD_NETWORK_VIDEO_INPUT_DEBUG
 	MX_DEBUG(-2,("%s: vinput->extended_status = '%s'",
 		fname, vinput->extended_status));
 #endif
@@ -658,7 +658,7 @@ mxd_network_vinput_get_extended_status( MX_VIDEO_INPUT *vinput )
 			"extended_status", vinput->extended_status );
 	}
 
-#if 1 || MXD_NETWORK_VIDEO_INPUT_DEBUG
+#if MXD_NETWORK_VIDEO_INPUT_DEBUG
 	MX_DEBUG(-2,
 	("%s: last_frame_number = %ld, total_num_frames = %ld, status = %#lx",
 		fname, vinput->last_frame_number,
@@ -988,15 +988,11 @@ mxd_network_vinput_set_parameter( MX_VIDEO_INPUT *vinput )
 			"Directly changing the number of bytes per frame "
 			"for video input '%s' is not supported.",
 				vinput->record->name );
-
-	case MXLV_VIN_SEQUENCE_TYPE:
-		mx_status = mx_put( &(network_vinput->sequence_type_nf),
-		    MXFT_LONG, &(vinput->sequence_parameters.sequence_type) );
-
 		break;
 
 	case MXLV_VIN_NUM_SEQUENCE_PARAMETERS:
 	case MXLV_VIN_SEQUENCE_PARAMETER_ARRAY:
+	case MXLV_VIN_SEQUENCE_TYPE:
 		mx_status = mx_put(
 				&(network_vinput->num_sequence_parameters_nf),
 		    MXFT_LONG, &(vinput->sequence_parameters.num_parameters) );
@@ -1010,6 +1006,12 @@ mxd_network_vinput_set_parameter( MX_VIDEO_INPUT *vinput )
 				&(network_vinput->sequence_parameter_array_nf),
 				MXFT_DOUBLE, 1, dimension,
 				&(vinput->sequence_parameters.parameter_array));
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_put( &(network_vinput->sequence_type_nf),
+		    MXFT_LONG, &(vinput->sequence_parameters.sequence_type) );
 		break;
 
 	default:

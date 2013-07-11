@@ -645,7 +645,7 @@ mxi_network_rs232_getline( MX_RS232 *rs232,
 	dimension_array[0] = max_bytes_to_read;
 
 	mx_status = mx_get_array( &(network_rs232->getline_nf),
-				MXFT_CHAR, 1, dimension_array, buffer );
+				MXFT_STRING, 1, dimension_array, buffer );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -684,7 +684,7 @@ mxi_network_rs232_putline( MX_RS232 *rs232,
 	dimension_array[0] = strlen(buffer) + 1;
 
 	mx_status = mx_put_array( &(network_rs232->putline_nf),
-				MXFT_CHAR, 1, dimension_array, buffer );
+				MXFT_STRING, 1, dimension_array, buffer );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
