@@ -64,14 +64,14 @@ extern "C" {
 
 /* Bit definitions for the 'area_detector_flags' variable. */
 
-#define MXF_AD_GEOM_CORR_AFTER_FLOOD		   	0x1
-#define MXF_AD_CORRECTION_FRAME_GEOM_CORR_LAST	   	0x2
-#define MXF_AD_CORRECTION_FRAME_NO_GEOM_CORR	   	0x4
-#define MXF_AD_DEZINGER_CORRECTION_FRAME           	0x8
-#define MXF_AD_BIAS_CORR_AFTER_FLOOD		   	0x10
+#define MXF_AD_GEOM_CORR_AFTER_FLOOD		   		0x1
+#define MXF_AD_CORRECTION_FRAME_GEOM_CORR_LAST	   		0x2
+#define MXF_AD_CORRECTION_FRAME_NO_GEOM_CORR	   		0x4
+#define MXF_AD_DEZINGER_CORRECTION_FRAME           		0x8
+#define MXF_AD_BIAS_CORR_AFTER_FLOOD		   		0x10
 
-#define MXF_AD_SAVE_FRAME_AFTER_ACQUISITION	   	0x1000
-#define MXF_AD_LOAD_FRAME_AFTER_ACQUISITION	   	0x2000
+#define MXF_AD_SAVE_FRAME_AFTER_ACQUISITION	   		0x1000
+#define MXF_AD_LOAD_FRAME_AFTER_ACQUISITION	   		0x2000
 
   /* If MX is communicating with a vendor provided external
    * control system, then "remote frames" are frames that
@@ -83,14 +83,14 @@ extern "C" {
    * to the "marccd" program.
    */
 
-#define MXF_AD_SAVE_REMOTE_FRAME_AFTER_ACQUISITION 	0x4000
+#define MXF_AD_SAVE_REMOTE_FRAME_AFTER_ACQUISITION 		0x4000
 
   /* If we are debugging correction measurements, then we can turn on
    * the MXF_AD_SAVE_CORRECTION_FRAME_AFTER_ACQUISITION flag to save
    * correction frames as part of the normal sequence of frames.
    */
 
-#define MXF_AD_SAVE_CORRECTION_FRAME_AFTER_ACQUISITION	0x8000
+#define MXF_AD_SAVE_CORRECTION_FRAME_AFTER_ACQUISITION		0x8000
 
   /* If MX is running in a single process (list_head->is_server == FALSE)
    * and the following flag is set, then the function
@@ -104,16 +104,26 @@ extern "C" {
 
 #define MXF_AD_DO_NOT_SAVE_FRAME_IN_SINGLE_PROCESS_MODE	0x10000
 
+  /* The following flags tells the area detector to alway take
+   * correction measurements in a particular trigger mode.  If
+   * both the internal and external flags are selected, internal
+   * trigger will be used.
+   */
+
+#define MXF_AD_CORRECTION_MEASUREMENTS_USE_INTERNAL_TRIGGER	0x100000
+
+#define MXF_AD_CORRECTION_MEASUREMENTS_USE_EXTERNAL_TRIGGER	0x200000
+
   /* The following flag requests that a 6-bit ASCII debugging image
    * be written to the log at the end of each call to the function
    * mx_area_detector_readout_frame().
    */
 
-#define MXF_AD_DISPLAY_ASCII_DEBUGGING_IMAGE		0x40000000
+#define MXF_AD_DISPLAY_ASCII_DEBUGGING_IMAGE			0x40000000
 
   /* The following flag is intended for testing only. */
 
-#define MXF_AD_USE_UNSAFE_EXPOSURE		   	0x80000000
+#define MXF_AD_USE_UNSAFE_EXPOSURE		   		0x80000000
 
 /*-----------------------------------------------------------------*/
 

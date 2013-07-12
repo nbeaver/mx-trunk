@@ -16,7 +16,7 @@
 
 #define PR_AREA_DETECTOR_DEBUG				FALSE
 
-#define PR_AREA_DETECTOR_DEBUG_MEMORY_CORRUPTION	TRUE
+#define PR_AREA_DETECTOR_DEBUG_MEMORY_CORRUPTION	FALSE
 
 #define PR_AREA_DETECTOR_DEBUG_IMAGE_FRAME_DATA		FALSE
 
@@ -393,6 +393,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 	MX_VIRTUAL_TIMER *oneshot_timer;
 	double frame_time, modified_frame_time, gate_time;
 	double detector_readout_time;
+	unsigned long flags;
 	mx_status_type mx_status;
 
 #if PR_AREA_DETECTOR_DEBUG
@@ -539,20 +540,42 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 		return mx_status;
 	}
 
-	/* Put the detector into internal trigger mode. */
+	flags = ad->area_detector_flags;
 
-	MX_DEBUG(-2,("%s: FIXME - This assumes internal trigger mode.", fname));
+	/* If requested, put the detector into a specified trigger mode
+	 * for correction measurements.  After the correction measurements
+	 * are done, the cleanup code will revert the trigger mode back
+	 * to whatever it was before.
+	 */
+
+	if ( flags & MXF_AD_CORRECTION_MEASUREMENTS_USE_INTERNAL_TRIGGER ) {
 
 #if PR_AREA_DETECTOR_DEBUG
-	MX_DEBUG(-2,("%s: Switching to internal trigger mode.", fname));
+		MX_DEBUG(-2,("%s: Switching to internal trigger mode.", fname));
 #endif
 
-	mx_status = mx_area_detector_set_trigger_mode( record,
+		mx_status = mx_area_detector_set_trigger_mode( record,
 						MXT_IMAGE_INTERNAL_TRIGGER );
 
-	if ( mx_status.code != MXE_SUCCESS ) {
-		mx_area_detector_cleanup_after_correction( NULL, corr );
-		return mx_status;
+		if ( mx_status.code != MXE_SUCCESS ) {
+			mx_area_detector_cleanup_after_correction( NULL, corr );
+			return mx_status;
+		}
+
+	} else
+	if ( flags & MXF_AD_CORRECTION_MEASUREMENTS_USE_EXTERNAL_TRIGGER ) {
+
+#if PR_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,("%s: Switching to external trigger mode.", fname));
+#endif
+
+		mx_status = mx_area_detector_set_trigger_mode( record,
+						MXT_IMAGE_EXTERNAL_TRIGGER );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			mx_area_detector_cleanup_after_correction( NULL, corr );
+			return mx_status;
+		}
 	}
 
 #if PR_AREA_DETECTOR_DEBUG
