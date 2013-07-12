@@ -779,7 +779,8 @@ mx_vm_show_os_info( FILE *file,
 
 	fprintf( stderr, "    Address      = %p\n", address );
 	fprintf( stderr, "    Base Address = %p\n", (void *) vm_base_address );
-	fprintf( stderr, "    Region_Size  = %lu\n", vm_region_size );
+	fprintf( stderr, "    Region_Size  = %lu\n",
+					(unsigned long) vm_region_size );
 	fprintf( stderr, "    Permissions  = %s\n", argv[1] );
 	fprintf( stderr, "    Offset       = %lu\n",
 				mx_hex_string_to_unsigned_long( argv[2] ) );

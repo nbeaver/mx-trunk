@@ -63,11 +63,11 @@ MODULES += k8055		# linux,
 
 #MODULES += radicon_helios
 
-MODULES += radicon_taurus
+#MODULES += radicon_taurus
 
 #MODULES += radicon_xineos_gige
 
-MODULES += rdi_mbc
+#MODULES += rdi_mbc
 
 #MODULES += sapera_lt
 
@@ -78,9 +78,9 @@ MODULES += rdi_mbc
 
 MODULES += epics
 
-#MODULES += epics_aps
+MODULES += epics_aps
 
-#MODULES += epics_pmac_biocat
+MODULES += epics_pmac_biocat
 
 MODULES += epics_mbc
 
