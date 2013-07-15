@@ -64,7 +64,7 @@ MX_ARCH = win32
 #MX_INSTALL_DIR = $(HOME)/local/opt/mx
 #MX_INSTALL_DIR = $(HOME)/mxtest
 #MX_INSTALL_DIR = c:/users/lavender/mxtest
-MX_INSTALL_DIR = c:/opt/mx-1.5.5-2013_07_12
+MX_INSTALL_DIR = c:/opt/mx-1.5.5-2013_07_15
 
 MAKECMD = $(MAKE) MX_ARCH=$(MX_ARCH) MX_INSTALL_DIR=$(MX_INSTALL_DIR)
 

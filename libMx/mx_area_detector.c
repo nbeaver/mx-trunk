@@ -22,8 +22,6 @@
 
 #define MX_AREA_DETECTOR_DEBUG_LOAD_SAVE_FRAMES		FALSE
 
-#define MX_AREA_DETECTOR_DEBUG_MANAGEMENT_SAVE_TIMING	FALSE
-
 #define MX_AREA_DETECTOR_DEBUG_FRAME_PARAMETERS		FALSE
 
 #define MX_AREA_DETECTOR_DEBUG_IMAGE_FRAME_DATA		FALSE
@@ -38,9 +36,13 @@
 
 #define MX_AREA_DETECTOR_ENABLE_DATAFILE_AUTOSAVE	TRUE /* Leave this on */
 
+#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_TIMING	TRUE
+
 #define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE	FALSE
 
 #define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_SETUP	FALSE
+
+#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_TIMESTAMP  TRUE
 
 #define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_FILE	FALSE
 
@@ -2032,7 +2034,8 @@ mx_area_detector_arm( MX_RECORD *record )
 
 		ad->datafile_last_frame_number = 0;
 
-#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_SETUP
+#if ( MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_SETUP \
+	|| MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_TIMESTAMP )
 		MX_DEBUG(-2,
 		("%s: area detector '%s', datafile_total_num_frames = %ld",
 			fname, record->name, ad->datafile_total_num_frames));
@@ -6341,7 +6344,8 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 		"for this detector.", record->name );
 	}
 
-#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_SETUP
+#if ( MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_SETUP \
+	|| MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_TIMESTAMP )
 	MX_DEBUG(-2,
 		("%s: total_num_frames = %lu, datafile_total_num_frames = %lu",
 		fname, ad->total_num_frames,
@@ -6457,7 +6461,7 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 
 	if ( save_frame_after_acquisition ) {
 
-#if MX_AREA_DETECTOR_DEBUG_MANAGEMENT_SAVE_TIMING
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_TIMING
 		MX_HRT_TIMING total_measurement;
 		MX_HRT_TIMING setup_measurement;
 		MX_HRT_TIMING readout_measurement;
@@ -6483,7 +6487,7 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 				return mx_status;
 		}
 
-#if MX_AREA_DETECTOR_DEBUG_MANAGEMENT_SAVE_TIMING
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_TIMING
 		MX_HRT_END( setup_measurement );
 		MX_HRT_START( readout_measurement );
 #endif
@@ -6500,7 +6504,7 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-#if MX_AREA_DETECTOR_DEBUG_MANAGEMENT_SAVE_TIMING
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_TIMING
 		MX_HRT_END( readout_measurement );
 		MX_HRT_START( correct_measurement );
 #endif
@@ -6513,7 +6517,7 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-#if MX_AREA_DETECTOR_DEBUG_MANAGEMENT_SAVE_TIMING
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_TIMING
 		MX_HRT_END( correct_measurement );
 		MX_HRT_START( overwrite_measurement );
 #endif
@@ -6553,7 +6557,7 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 			}
 		}
 
-#if MX_AREA_DETECTOR_DEBUG_MANAGEMENT_SAVE_TIMING
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_TIMING
 		MX_HRT_END( overwrite_measurement );
 		MX_HRT_START( write_file_measurement );
 #endif
@@ -6568,7 +6572,7 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 						ad->datafile_save_format,
 						filename );
 
-#if MX_AREA_DETECTOR_DEBUG_MANAGEMENT_SAVE_TIMING
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_TIMING
 		MX_HRT_END( write_file_measurement );
 		MX_HRT_START( status_measurement );
 #endif
@@ -6613,7 +6617,7 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 		mx_status = mx_area_detector_mark_frame_as_saved( record,
 					ad->datafile_last_frame_number - 1 );
 
-#if MX_AREA_DETECTOR_DEBUG_MANAGEMENT_SAVE_TIMING
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_TIMING
 		MX_HRT_END( status_measurement );
 		MX_HRT_END( total_measurement );
 

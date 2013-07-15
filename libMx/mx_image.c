@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2012 Illinois Institute of Technology
+ * Copyright 2006-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,6 +26,8 @@
 #define MX_IMAGE_DEBUG_TIMESTAMP	FALSE
 
 #define MX_IMAGE_DEBUG_NOIR_FD_LEAK	FALSE
+
+#define MX_IMAGE_DEBUG_SMV_TIMING	TRUE
 
 #define MX_IMAGE_TEST_DEZINGER		FALSE
 
@@ -48,6 +50,7 @@
 #include "mx_util.h"
 #include "mx_time.h"
 #include "mx_hrt.h"
+#include "mx_hrt_debug.h"
 #include "mx_stdint.h"
 #include "mx_bit.h"
 #include "mx_array.h"
@@ -4217,6 +4220,18 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 	unsigned long bias_offset_milli_adus;
 	mx_status_type mx_status;
 
+#if MX_IMAGE_DEBUG_SMV_TIMING
+	MX_HRT_TIMING total_measurement;
+	MX_HRT_TIMING startup_measurement;
+	MX_HRT_TIMING fopen_measurement;
+	MX_HRT_TIMING image_header_measurement;
+	MX_HRT_TIMING image_data_measurement;
+	MX_HRT_TIMING fclose_measurement;
+	
+	MX_HRT_START( total_measurement );
+	MX_HRT_START( startup_measurement );
+#endif
+
 	if ( frame == (MX_IMAGE_FRAME *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_IMAGE_FRAME pointer passed was NULL." );
@@ -4296,6 +4311,12 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 	MX_DEBUG(-2,("MARKER #1, num fds = %d",
 		mx_get_number_of_open_file_descriptors() ));
 #endif
+
+#if MX_IMAGE_DEBUG_SMV_TIMING
+	MX_HRT_END( startup_measurement );
+	MX_HRT_START( fopen_measurement );
+#endif
+
 	/* Open the new datafile. */
 
 	file = fopen( datafile_name, "wb" );
@@ -4351,6 +4372,11 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 
 		return mx_status;
 	}
+
+#if MX_IMAGE_DEBUG_SMV_TIMING
+	MX_HRT_END( fopen_measurement );
+	MX_HRT_START( image_header_measurement );
+#endif
 
 	/* Write the SMV header. */
 
@@ -4588,6 +4614,11 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 			saved_errno, strerror( saved_errno ) );
 	}
 
+#if MX_IMAGE_DEBUG_SMV_TIMING
+	MX_HRT_END( image_header_measurement );
+	MX_HRT_START( image_data_measurement );
+#endif
+
 	/* Write out the image data. */
 
 	num_items_written = fwrite( frame->image_data,
@@ -4620,6 +4651,11 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 		return mx_status;
 	}
 
+#if MX_IMAGE_DEBUG_SMV_TIMING
+	MX_HRT_END( image_data_measurement );
+	MX_HRT_START( fclose_measurement );
+#endif
+
 #if MX_IMAGE_DEBUG_NOIR_FD_LEAK
 	MX_DEBUG(-2,("MARKER #3, num fds = %d",
 		mx_get_number_of_open_file_descriptors() ));
@@ -4640,6 +4676,19 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 	MX_DEBUG(-2,("MARKER #4, num fds = %d",
 		mx_get_number_of_open_file_descriptors() ));
 #endif
+
+#if MX_IMAGE_DEBUG_SMV_TIMING
+	MX_HRT_END( fclose_measurement );
+	MX_HRT_END( total_measurement );
+
+	MX_HRT_RESULTS( startup_measurement, fname, "startup" );
+	MX_HRT_RESULTS( fopen_measurement, fname, "fopen" );
+	MX_HRT_RESULTS( image_header_measurement, fname, "image header" );
+	MX_HRT_RESULTS( image_data_measurement, fname, "image data" );
+	MX_HRT_RESULTS( fclose_measurement, fname, "fclose" );
+	MX_HRT_RESULTS( total_measurement, fname, "total" );
+#endif
+
 #if MX_IMAGE_DEBUG
 	MX_DEBUG(-2,
 	("%s: SMV file '%s' successfully written.", fname, datafile_name ));

@@ -14,11 +14,15 @@
  *
  */
 
-#define PR_AREA_DETECTOR_DEBUG				FALSE
+#define PR_AREA_DETECTOR_DEBUG_CORRECTION		FALSE
+
+#define PR_AREA_DETECTOR_DEBUG_IMAGE_FRAME_DATA		FALSE
 
 #define PR_AREA_DETECTOR_DEBUG_MEMORY_CORRUPTION	FALSE
 
-#define PR_AREA_DETECTOR_DEBUG_IMAGE_FRAME_DATA		FALSE
+#define PR_AREA_DETECTOR_DEBUG_PROCESS			FALSE
+
+#define PR_AREA_DETECTOR_DEBUG_ROI			FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -67,11 +71,7 @@ mxp_area_detector_measure_correction_callback_function(
 	mx_bool_type sequence_complete, start_detector;
 	mx_status_type mx_status;
 
-#if 0 && PR_AREA_DETECTOR_DEBUG
-	MX_HRT_TIMING measurement;
-#endif
-
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_CORRECTION
 	MX_DEBUG(-2,("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"));
 	MX_DEBUG(-2,("%s invoked for callback message %p",
 		fname, callback_message));
@@ -122,7 +122,7 @@ mxp_area_detector_measure_correction_callback_function(
 		return mx_status;
 	}
 
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_CORRECTION
 	MX_DEBUG(-2,("%s: last_frame_number = %ld, old_last_frame_number = %ld",
 		fname, last_frame_number, corr->old_last_frame_number));
 	MX_DEBUG(-2,("%s: total_num_frames = %ld, old_total_num_frames = %ld",
@@ -153,7 +153,7 @@ mxp_area_detector_measure_correction_callback_function(
 
 	corr->num_unread_frames += num_frames_difference;
 
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_CORRECTION
 	MX_DEBUG(-2,("%s: num_frames_difference = %ld",
 		fname, num_frames_difference ));
 	MX_DEBUG(-2,("%s: num_unread_frames = %ld",
@@ -171,7 +171,7 @@ mxp_area_detector_measure_correction_callback_function(
 
 		/* Readout the frame into ad->image_frame. */
 
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_CORRECTION
 		MX_DEBUG(-2,("%s: Reading frame %ld",
 				fname, corr->num_frames_read));
 #endif
@@ -213,7 +213,7 @@ mxp_area_detector_measure_correction_callback_function(
 		corr->num_frames_read++;
 		corr->num_unread_frames--;
 
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_CORRECTION
 		MX_DEBUG(-2,("%s: corr->num_frame_read = %ld.",
 			fname, corr->num_frames_read));
 #endif
@@ -260,7 +260,7 @@ mxp_area_detector_measure_correction_callback_function(
 			}
 		}
 
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_CORRECTION
 		MX_DEBUG(-2,
 		("%s: start_detector = %d, busy = %lu, total_num_frames = %lu",
 			fname, (int) start_detector, busy, total_num_frames));
@@ -268,13 +268,13 @@ mxp_area_detector_measure_correction_callback_function(
 
 		if ( start_detector ) {
 
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_CORRECTION
 			MX_DEBUG(-2,
 			("%s: Before mx_area_detector_start()", fname));
 #endif
 			mx_status = mx_area_detector_start( ad->record );
 
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_CORRECTION
 			MX_DEBUG(-2,
 			("%s: After mx_area_detector_start()", fname));
 #endif
@@ -302,7 +302,7 @@ mxp_area_detector_measure_correction_callback_function(
 		mx_vm_show_os_info( stderr, ad, sizeof(ad) );
 #endif
 
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_CORRECTION
 		MX_DEBUG(-2,("%s: Callback virtual timer restarted.",fname));
 		MX_DEBUG(-2,
 		("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"));
@@ -327,7 +327,7 @@ mxp_area_detector_measure_correction_callback_function(
 
 	mx_status = mx_area_detector_finish_correction_calculation( ad, corr );
 
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_CORRECTION
 	MX_DEBUG(-2,("%s: Correction sequence complete.", fname));
 	MX_DEBUG(-2,
 		("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"));
@@ -396,7 +396,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 	unsigned long flags;
 	mx_status_type mx_status;
 
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_CORRECTION
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, record->name ));
 
@@ -426,7 +426,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 		 * wait for the correction measurement to finish.
 		 */
 
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_CORRECTION
 		MX_DEBUG(-2,
 	   ("%s: Performing synchronous correction frame measurement.", fname));
 #endif
@@ -445,7 +445,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 
 	/* Set up all the data structures for the correction process. */
 
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_CORRECTION
 	MX_DEBUG(-2,("%s: Before mx_area_detector_prepare_for_correction()",
 		fname ));
 #endif
@@ -459,7 +459,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 
 	/* Get the detector readout time for the current sequence. */
 
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_CORRECTION
 	MX_DEBUG(-2,("%s: Before mx_area_detector_get_detector_readout_time()",
 		fname ));
 #endif
@@ -472,7 +472,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 		return mx_status;
 	}
 
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_CORRECTION
 	MX_DEBUG(-2,("%s: detector_readout_time = %f",
 		fname, detector_readout_time ));
 #endif
@@ -504,7 +504,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 
 	case MXT_SQ_MULTIFRAME:
 
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_CORRECTION
 		MX_DEBUG(-2,
 		("%s: Setting multiframe mode: raw_num_exposures = %ld, "
 		"exposure_time = %f, modified_frame_time = %f",
@@ -518,7 +518,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 		break;
 
 	case MXT_SQ_ONE_SHOT:
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_CORRECTION
 		MX_DEBUG(-2,("%s: Setting one-shot mode: exposure_time = %f",
 			fname, corr->exposure_time));
 #endif
@@ -550,7 +550,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 
 	if ( flags & MXF_AD_CORRECTION_MEASUREMENTS_USE_INTERNAL_TRIGGER ) {
 
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_CORRECTION
 		MX_DEBUG(-2,("%s: Switching to internal trigger mode.", fname));
 #endif
 
@@ -565,7 +565,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 	} else
 	if ( flags & MXF_AD_CORRECTION_MEASUREMENTS_USE_EXTERNAL_TRIGGER ) {
 
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_CORRECTION
 		MX_DEBUG(-2,("%s: Switching to external trigger mode.", fname));
 #endif
 
@@ -578,7 +578,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 		}
 	}
 
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_CORRECTION
 	MX_DEBUG(-2,("%s: Creating callback message.", fname));
 #endif
 
@@ -610,7 +610,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 	 * correction measurement callback function to be called later.
 	 */
 
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_CORRECTION
 	MX_DEBUG(-2,("%s: Creating callback timer.", fname));
 #endif
 
@@ -643,7 +643,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 		return mx_status;
 	}
 
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_CORRECTION
 	MX_DEBUG(-2,("%s: old_last_frame_number = %ld, "
 	"old_total_num_frames = %ld, old_status = %#lx",
 		fname, corr->old_last_frame_number,
@@ -676,7 +676,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 
 	if ( ad->correction_measurement_type == MXFT_AD_DARK_CURRENT_FRAME ) {
 
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_CORRECTION
 		MX_DEBUG(-2,("%s: Disabling the shutter.", fname));
 #endif
 
@@ -691,13 +691,13 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 
 	/* Start the measurement sequence. */
 
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_CORRECTION
 	MX_DEBUG(-2,("%s: Before mx_area_detector_start()", fname));
 #endif
 
 	mx_status = mx_area_detector_start( record );
 
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_CORRECTION
 	MX_DEBUG(-2,("%s: After mx_area_detector_start()", fname));
 #endif
 
@@ -711,7 +711,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 
 	/* Start the callback virtual timer. */
 
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_CORRECTION
 	MX_DEBUG(-2,("%s: Starting the callback timer.", fname));
 #endif
 
@@ -726,7 +726,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 		return mx_status;
 	}
 
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_CORRECTION
 	MX_DEBUG(-2,("%s: Callback virtual timer started.", fname));
 	MX_DEBUG(-2,("******************************************************"));
 #endif
@@ -746,7 +746,7 @@ mxp_area_detector_get_roi_frame_handler( MX_RECORD *record,
 	MX_IMAGE_FRAME *roi_frame;
 	mx_status_type mx_status;
 
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_ROI
 	MX_DEBUG(-2,("%s invoked for record '%s', field = '%s'",
 			fname, record->name, record_field->name));
 #endif
@@ -779,12 +779,12 @@ mxp_area_detector_get_roi_frame_handler( MX_RECORD *record,
 
 	ad->roi_frame_buffer = roi_frame->image_data;
 
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_ROI
 	MX_DEBUG(-2,("%s: roi_bytes_per_frame = %ld, roi_frame_buffer = %p",
 		fname, ad->roi_bytes_per_frame, ad->roi_frame_buffer));
 #endif
 
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_ROI
 	{
 		int i;
 		unsigned char c;
@@ -823,7 +823,7 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 	MX_RECORD_FIELD *record_field_array;
 	long i;
 
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_PROCESS
 	MX_DEBUG(-2,("%s invoked.", fname));
 #endif
 
@@ -939,7 +939,7 @@ mx_area_detector_process_function( void *record_ptr,
 	unsigned long flags;
 	mx_status_type mx_status;
 
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_PROCESS
 	unsigned long i;
 #endif
 
@@ -965,7 +965,7 @@ mx_area_detector_process_function( void *record_ptr,
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_PROCESS
 	MX_DEBUG(-2,("%s: record '%s', field = '%s', operation = %d",
 		fname, record->name, record_field->name, operation));
 #endif
@@ -1049,7 +1049,7 @@ mx_area_detector_process_function( void *record_ptr,
 
 			mx_area_detector_update_extended_status_string( ad );
 
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_PROCESS
 			MX_DEBUG(-2,("%s: extended_status = %s",
 				fname, ad->extended_status));
 #endif
@@ -1116,7 +1116,7 @@ mx_area_detector_process_function( void *record_ptr,
 		case MXLV_AD_ROI:
 			mx_status = mx_area_detector_get_roi( record,
 							ad->roi_number, NULL );
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_ROI
 			MX_DEBUG(-2,("%s: get ROI(%lu) = (%lu,%lu,%lu,%lu)",
 				fname, ad->roi_number,
 				ad->roi[0], ad->roi[1],
@@ -1162,7 +1162,7 @@ mx_area_detector_process_function( void *record_ptr,
 								record, NULL );
 			break;
 
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_ROI
 		case MXLV_AD_ROI_NUMBER:
 			MX_DEBUG(-2,("%s: ROI number = %ld",
 				fname, ad->roi_number));
@@ -1173,7 +1173,7 @@ mx_area_detector_process_function( void *record_ptr,
 		case MXLV_AD_SEQUENCE_PARAMETER_ARRAY:
 			mx_status = mx_area_detector_get_sequence_parameters(
 								record, NULL );
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_ROI
 			MX_DEBUG(-2,("%s: sequence type = %ld",
 				fname, ad->sequence_parameters.sequence_type));
 			MX_DEBUG(-2,("%s: num_parameters = %ld",
@@ -1423,7 +1423,7 @@ mx_area_detector_process_function( void *record_ptr,
 		case MXLV_AD_ROI:
 			mx_status = mx_area_detector_set_roi( record,
 						ad->roi_number, ad->roi );
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_ROI
 			MX_DEBUG(-2,("%s: set ROI(%lu) = (%lu,%lu,%lu,%lu)",
 				fname, ad->roi_number,
 				ad->roi[0], ad->roi[1],
@@ -1544,7 +1544,7 @@ mx_area_detector_process_function( void *record_ptr,
 						record, ad->trigger_mode );
 			break;
 
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_ROI
 		case MXLV_AD_ROI_NUMBER:
 			MX_DEBUG(-2,("%s: ROI number = %ld",
 				fname, ad->roi_number));
@@ -1554,7 +1554,7 @@ mx_area_detector_process_function( void *record_ptr,
 		case MXLV_AD_SEQUENCE_TYPE:
 		case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
 		case MXLV_AD_SEQUENCE_PARAMETER_ARRAY:
-#if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG_PROCESS
 			for ( i = 0;
 			    i < ad->sequence_parameters.num_parameters;
 			    i++ )

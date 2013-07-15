@@ -34,11 +34,7 @@
 
 #define MXD_RADICON_TAURUS_DEBUG_CORRECTION_TIMING		FALSE
 
-#define MXD_RADICON_TAURUS_DEBUG_SAVING_RAW_FILES_SETUP		FALSE
-
 #define MXD_RADICON_TAURUS_DEBUG_SAVING_RAW_FILES		FALSE
-
-#define MXD_RADICON_TAURUS_DEBUG_RAW_FRAME_IS_SAVED		FALSE
 
 #define MXD_RADICON_TAURUS_DEBUG_MEASURE_CORRECTION		FALSE
 
@@ -1889,7 +1885,6 @@ mxp_radicon_taurus_save_raw_image( MX_AREA_DETECTOR *ad,
 {
 	static const char fname[] = "mxp_radicon_taurus_save_raw_image()";
 
-	MX_RADICON_TAURUS_BUFFER_INFO *buffer_info;
 	long frame_number;
 	char filename_temp[MXU_FILENAME_LENGTH+1];
 	char raw_image_pathname[MXU_FILENAME_LENGTH+1];
@@ -1902,35 +1897,11 @@ mxp_radicon_taurus_save_raw_image( MX_AREA_DETECTOR *ad,
 
 	frame_number = ad->readout_frame;
 
-#if MXD_RADICON_TAURUS_DEBUG_SAVING_RAW_FILES_SETUP
+#if MXD_RADICON_TAURUS_DEBUG_SAVING_RAW_FILES
 	MX_DEBUG(-2,("%s invoked for detector '%s', frame number = %ld, "
 		"next datafile number = %ld",
 		fname, ad->record->name, frame_number, ad->datafile_number));
 #endif
-
-	buffer_info = &(radicon_taurus->buffer_info_array[ frame_number ]);
-
-#if MXD_RADICON_TAURUS_DEBUG_RAW_FRAME_IS_SAVED
-	MX_DEBUG(-2,("%s: #1 buffer_info_array[%ld]->raw_frame_is_saved = %d",
-		fname, frame_number, (int) buffer_info->raw_frame_is_saved ));
-#endif
-
-#if 1
-	if ( 0 ) {
-#else
-	if ( buffer_info->raw_frame_is_saved ) {
-#endif
-
-		/* If this frame has alreay been saved, then we do not
-		 * need to do it again.
-		 */
-
-#if MXD_RADICON_TAURUS_DEBUG_SAVING_RAW_FILES_SETUP
-		MX_DEBUG(-2,("%s: frame already saved.", fname));
-#endif
-		return MX_SUCCESSFUL_RESULT;
-	}
-
 	/* Copy the existing datafile pattern to a temporary filename
 	 * buffer and then replace the # marks with the next datafile
 	 * number.
@@ -2020,13 +1991,6 @@ mxp_radicon_taurus_save_raw_image( MX_AREA_DETECTOR *ad,
 #if MXD_RADICON_TAURUS_DEBUG_SAVING_RAW_FILES
 	MX_DEBUG(-2,("%s: frame was saved to '%s'.",
 		fname, raw_image_pathname));
-#endif
-
-	buffer_info->raw_frame_is_saved = TRUE;
-	
-#if MXD_RADICON_TAURUS_DEBUG_RAW_FRAME_IS_SAVED
-	MX_DEBUG(-2,("%s: #2 buffer_info_array[%ld]->raw_frame_is_saved = %d",
-		fname, frame_number, (int) buffer_info->raw_frame_is_saved ));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
