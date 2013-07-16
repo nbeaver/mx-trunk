@@ -36,7 +36,7 @@
 
 #define MX_AREA_DETECTOR_ENABLE_DATAFILE_AUTOSAVE	TRUE /* Leave this on */
 
-#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_TIMING	TRUE
+#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_TIMING	FALSE
 
 #define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE	FALSE
 
@@ -6309,6 +6309,7 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 	unsigned long flags;
 	int os_status, saved_errno;
 	mx_bool_type save_frame_after_acquisition;
+	mx_bool_type new_frames;
 	mx_status_type mx_status;
 
 	mx_status = mx_area_detector_get_pointers( record, &ad, &flist, fname );
@@ -6344,16 +6345,25 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 		"for this detector.", record->name );
 	}
 
+	if ( ad->total_num_frames <= ad->datafile_total_num_frames ) {
+		new_frames = FALSE;
+	} else {
+		new_frames = TRUE;
+	}
+
 #if ( MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_SETUP \
 	|| MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_TIMESTAMP )
-	MX_DEBUG(-2,
-		("%s: total_num_frames = %lu, datafile_total_num_frames = %lu",
+
+	MX_DEBUG(-2,("%s: total_num_frames = %lu, "
+			"datafile_total_num_frames = %lu, "
+			"new_frames = %d",
 		fname, ad->total_num_frames,
-		ad->datafile_total_num_frames));
+		ad->datafile_total_num_frames,
+		new_frames ));
 #endif
 
-	if ( ad->total_num_frames <= ad->datafile_total_num_frames ) {
-#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_SETUP
+	if ( new_frames == FALSE ) {
+#if 0
 		MX_DEBUG(-2,("%s: No new image frames are available to be "
 		"saved or loaded.", fname));
 #endif
