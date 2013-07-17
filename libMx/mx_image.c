@@ -27,7 +27,9 @@
 
 #define MX_IMAGE_DEBUG_NOIR_FD_LEAK	FALSE
 
-#define MX_IMAGE_DEBUG_SMV_TIMING	FALSE
+#define MX_IMAGE_DEBUG_RAW_TIMING	TRUE
+
+#define MX_IMAGE_DEBUG_SMV_TIMING	TRUE
 
 #define MX_IMAGE_TEST_DEZINGER		FALSE
 
@@ -3372,6 +3374,17 @@ mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
 	char username_buffer[80];
 	mx_status_type mx_status;
 
+#if MX_IMAGE_DEBUG_RAW_TIMING
+	MX_HRT_TIMING total_measurement;
+	MX_HRT_TIMING startup_measurement;
+	MX_HRT_TIMING fopen_measurement;
+	MX_HRT_TIMING image_data_measurement;
+	MX_HRT_TIMING fclose_measurement;
+
+	MX_HRT_START( total_measurement );
+	MX_HRT_START( startup_measurement );
+#endif
+
 	if ( frame == (MX_IMAGE_FRAME *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_IMAGE_FRAME pointer passed was NULL." );
@@ -3399,6 +3412,11 @@ mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
 	}
 
 	mx_status = MX_SUCCESSFUL_RESULT;
+
+#if MX_IMAGE_DEBUG_RAW_TIMING
+	MX_HRT_END( startup_measurement );
+	MX_HRT_START( fopen_measurement );
+#endif
 
 	file = fopen( datafile_name, "wb" );
 
@@ -3450,6 +3468,11 @@ mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
 		return mx_status;
 	}
 
+#if MX_IMAGE_DEBUG_RAW_TIMING
+	MX_HRT_END( fopen_measurement );
+	MX_HRT_START( image_data_measurement );
+#endif
+
 	bytes_written = fwrite(frame->image_data, 1, frame->image_length, file);
 
 	if ( bytes_written < frame->image_length ) {
@@ -3475,6 +3498,11 @@ mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
 		}
 	}
 
+#if MX_IMAGE_DEBUG_RAW_TIMING
+	MX_HRT_END( image_data_measurement );
+	MX_HRT_START( fclose_measurement );
+#endif
+
 	fclose_status = fclose( file );
 
 	if ( fclose_status != 0 ) {
@@ -3489,6 +3517,17 @@ mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if MX_IMAGE_DEBUG_RAW_TIMING
+	MX_HRT_END( fclose_measurement );
+	MX_HRT_END( total_measurement );
+
+	MX_HRT_RESULTS( startup_measurement, fname, "startup" );
+	MX_HRT_RESULTS( fopen_measurement, fname, "fopen" );
+	MX_HRT_RESULTS( image_data_measurement, fname, "image data" );
+	MX_HRT_RESULTS( fclose_measurement, fname, "fclose" );
+	MX_HRT_RESULTS( total_measurement, fname, "total" );
+#endif
 
 #if MX_IMAGE_DEBUG
 	MX_DEBUG(-2,
