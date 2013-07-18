@@ -1018,6 +1018,10 @@ mx_rdi_flt_image_correction( MX_AREA_DETECTOR *ad,
 	MX_HRT_START( loop_measurement );
 #endif
 
+#if 0 /* FIXME: HIDEOUS TESTING KLUDGE - July 18, 2013 */
+	num_pixels_per_frame = 1600;
+#endif
+
 	/* Loop over all of the pixels and apply the requested corrections. */
 
 	for ( i = 0; i < num_pixels_per_frame; i++ ) {
