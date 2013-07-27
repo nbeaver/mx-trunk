@@ -51,6 +51,8 @@ MODULES += ni_daqmx		# linux, win32
 #-------------------------------------------------------------------
 # Win32-only modules.
 
+#MODULES += bnc725_lib
+
 #MODULES += driverlinx_portio
 
 #MODULES += fastcam_pcclib

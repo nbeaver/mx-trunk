@@ -1,0 +1,3 @@
+!load ../bnc725_lib.mxo
+bnc725 interface controller bnc725_lib "" "" com1 38400
+chA    device pulse_generator bnc725_lib_pulser "" "" 0.001 0.0005 1 0.0 1 0 bnc725 A
