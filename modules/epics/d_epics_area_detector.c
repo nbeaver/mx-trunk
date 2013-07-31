@@ -234,6 +234,18 @@ mxd_epics_ad_finish_record_initialization( MX_RECORD *record )
 			"%s%sDetectorState_RBV",
 			epics_ad->prefix_name, epics_ad->camera_name );
 
+	mx_epics_pvname_init( &(epics_ad->file_path_pv),
+			"%s%sFilePath",
+			epics_ad->prefix_name, epics_ad->camera_name );
+
+	mx_epics_pvname_init( &(epics_ad->file_path_rbv_pv),
+			"%s%sFilePath_RBV",
+			epics_ad->prefix_name, epics_ad->camera_name );
+
+	mx_epics_pvname_init( &(epics_ad->file_path_exists_rbv_pv),
+			"%s%sFilePathExists_RBV",
+			epics_ad->prefix_name, epics_ad->camera_name );
+
 	mx_epics_pvname_init( &(epics_ad->image_mode_pv),
 			"%s%sImageMode",
 			epics_ad->prefix_name, epics_ad->camera_name );
@@ -336,7 +348,6 @@ mxd_epics_ad_open( MX_RECORD *record )
 	MX_EPICS_AREA_DETECTOR *epics_ad = NULL;
 	char pvname[ MXU_EPICS_PVNAME_LENGTH+1 ];
 	unsigned long ad_flags, mask, max_size_value;
-	char epics_string[ MXU_EPICS_STRING_LENGTH+1 ];
 	int32_t data_type, color_mode;
 	int32_t num_exposures, num_images;
 	char *max_array_bytes_string;
@@ -376,24 +387,27 @@ mxd_epics_ad_open( MX_RECORD *record )
 	snprintf( pvname, sizeof(pvname), "%s%sManufacturer_RBV",
 			epics_ad->prefix_name, epics_ad->camera_name );
 
-	mx_status = mx_caget_by_name( pvname, MX_CA_STRING, 1, epics_string );
+	mx_status = mx_caget_by_name( pvname,
+			MX_CA_STRING, 1, epics_ad->manufacturer_name );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 #if MXD_EPICS_AREA_DETECTOR_DEBUG
-	MX_DEBUG(-2,("%s: CCD manufacturer = '%s'", fname, epics_string));
+	MX_DEBUG(-2,("%s: Detector manufacturer = '%s'",
+			fname, epics_ad->manufacturer_name));
 #endif
 	snprintf( pvname, sizeof(pvname), "%s%sModel_RBV",
 			epics_ad->prefix_name, epics_ad->camera_name );
 
-	mx_status = mx_caget_by_name( pvname, MX_CA_STRING, 1, epics_string );
+	mx_status = mx_caget_by_name( pvname,
+			MX_CA_STRING, 1, epics_ad->model_name );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 #if MXD_EPICS_AREA_DETECTOR_DEBUG
-	MX_DEBUG(-2,("%s: CCD model = '%s'", fname, epics_string));
+	MX_DEBUG(-2,("%s: Detector model = '%s'", fname, epics_ad->model_name));
 #endif
 
 	/* Set the default file formats. */
@@ -572,26 +586,32 @@ mxd_epics_ad_open( MX_RECORD *record )
 		return mx_status;
 
 	/* Does this version use the NumAcquisitionsCounter_RBV PV?
-	 *
-	 * At present (2010-12-03), only the Roper driver does that.
 	 */
 
-	mx_status = mx_epics_pv_connect(
+	if ( mx_strcasecmp( "roper", epics_ad->manufacturer_name ) == 0 ) {
+		/*
+		 * At present (2010-12-03), only the Roper driver does that.
+		 */
+
+		mx_status = mx_epics_pv_connect(
 			&(epics_ad->num_acquisitions_counter_rbv_pv),
 			MXF_EPVC_QUIET | MXF_EPVC_WAIT_FOR_CONNECTION );
 
-	switch( mx_status.code ) {
-	case MXE_SUCCESS:
-		epics_ad->use_num_acquisitions = TRUE;
-		break;
-	case MXE_TIMED_OUT:
-		epics_ad->use_num_acquisitions = FALSE;
-		break;
-	default:
-		return mx_error( mx_status.code,
+		switch( mx_status.code ) {
+		case MXE_SUCCESS:
+			epics_ad->use_num_acquisitions = TRUE;
+			break;
+		case MXE_TIMED_OUT:
+			epics_ad->use_num_acquisitions = FALSE;
+			break;
+		default:
+			return mx_error( mx_status.code,
 				mx_status.location,
 				"%s", mx_status.message );
-		break;
+			break;
+		}
+	} else {
+		epics_ad->use_num_acquisitions = FALSE;
 	}
 
 	/* Set all of the lower level counter PVs to ratios of 1. */
@@ -1160,6 +1180,12 @@ mxd_epics_ad_get_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_DETECTOR_READOUT_TIME:
 		break;
 
+	case MXLV_AD_DATAFILE_DIRECTORY:
+		mx_status = mx_caget( &(epics_ad->file_path_rbv_pv),
+					MX_CA_CHAR, MXU_FILENAME_LENGTH,
+					ad->datafile_directory );
+		break;
+
 	case MXLV_AD_SEQUENCE_TYPE:
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
 		mx_status = mx_caget( &(epics_ad->image_mode_rbv_pv),
@@ -1345,6 +1371,7 @@ mxd_epics_ad_set_parameter( MX_AREA_DETECTOR *ad )
 	int32_t x_binsize, y_binsize;
 	long x_start, x_size, y_start, y_size;
 	double raw_x_binsize, raw_y_binsize;
+	unsigned long file_path_exists;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_ad_get_pointers( ad, &epics_ad, fname );
@@ -1395,6 +1422,49 @@ mxd_epics_ad_set_parameter( MX_AREA_DETECTOR *ad )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+		break;
+
+	case MXLV_AD_DATAFILE_DIRECTORY:
+		mx_status = mx_caput( &(epics_ad->file_path_pv),
+					MX_CA_CHAR, MXU_FILENAME_LENGTH,
+					ad->datafile_directory );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Check to see if the specified directory actually exists. */
+
+		mx_status = mx_caget( &(epics_ad->file_path_exists_rbv_pv),
+					MX_CA_LONG, 1, &file_path_exists );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		switch( file_path_exists ) {
+		case 1: /* The file path _does_ exist. */
+
+			return MX_SUCCESSFUL_RESULT;
+			break;
+
+		case 0: /* The file path does _not_ exist. */
+
+			return mx_error( MXE_NOT_FOUND, fname,
+			"The datafile directory '%s' requested for "
+			"area detector '%s' does not exist on the "
+			"detector computer or is too long.",
+				ad->datafile_directory,
+				ad->record->name );
+			break;
+
+		default:
+			return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"An unexpected value %lu was returned for "
+			"EPICS PV '%s' used by area detector '%s'.",
+				file_path_exists,
+				epics_ad->file_path_exists_rbv_pv.pvname,
+				ad->record->name );
+			break;
+		}
 		break;
 
 	case MXLV_AD_SEQUENCE_TYPE:

@@ -39,7 +39,10 @@ typedef struct {
 	char camera_name[ MXU_EPICS_PVNAME_LENGTH+1 ];
 	char image_name[ MXU_EPICS_PVNAME_LENGTH+1 ];
 
-	/* The following name is read back from EPICS. */
+	/* The following names are read back from EPICS. */
+
+	char manufacturer_name[ MXU_EPICS_STRING_LENGTH+1 ];
+	char model_name[ MXU_EPICS_STRING_LENGTH+1 ];
 
 	char asyn_port_name[ MXU_EPICS_STRING_LENGTH+1 ];
 
@@ -58,6 +61,9 @@ typedef struct {
 	MX_EPICS_PV biny_pv;
 	MX_EPICS_PV biny_rbv_pv;
 	MX_EPICS_PV detector_state_pv;
+	MX_EPICS_PV file_path_pv;
+	MX_EPICS_PV file_path_rbv_pv;
+	MX_EPICS_PV file_path_exists_rbv_pv;
 	MX_EPICS_PV image_mode_pv;
 	MX_EPICS_PV image_mode_rbv_pv;
 	MX_EPICS_PV num_acquisitions_pv;

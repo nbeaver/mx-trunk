@@ -11,7 +11,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2009-2012 Illinois Institute of Technology
+ * Copyright 1999-2006, 2009-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -68,9 +68,7 @@
 #  endif
 #endif
 
-/* The following header files come from the EPICS base source code
- * distribution.
- */
+/* Detect the EPICS version number. */
 
 #include "epicsVersion.h"
 
@@ -84,6 +82,10 @@
 #if ( defined(EPICS_VERSION) && ( MX_EPICS_VERSION < 3014000L ) )
 #error You are attempting to build MX support for EPICS with EPICS version 3.13 or before.  This is not supported.  Please upgrade to EPICS 3.14 or later.
 #endif
+
+/* The following header files come from the EPICS base source code
+ * distribution.
+ */
 
 #include "tsDefs.h"
 #include "cadef.h"
@@ -1157,6 +1159,9 @@ mx_epics_internal_caget( MX_EPICS_PV *pv,
 {
 	static const char fname[] = "mx_epics_internal_caget()";
 
+#if 1
+	unsigned long max_elements;
+#endif
 	int epics_status;
 	mx_status_type mx_status;
 
@@ -1186,6 +1191,27 @@ mx_epics_internal_caget( MX_EPICS_PV *pv,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if 1
+	max_elements = (unsigned long) ca_element_count( pv->channel_id );
+
+	if ( num_elements > max_elements ) {
+
+		/* Make sure that the rest of the buffer is zeroed out. */
+
+		size_t element_size = mx_epics_get_element_size( epics_type );
+
+		size_t num_bytes = element_size * num_elements;
+
+		memset( data_buffer, 0, num_bytes );
+
+		/* Limit the number of elements to the maximum supported
+		 * by the EPICS server.
+		 */
+
+		num_elements = max_elements;
+	}
+#endif
 
 	epics_status = ca_array_get( epics_type, num_elements,
 					pv->channel_id, data_buffer );
@@ -1530,6 +1556,9 @@ mx_epics_internal_caput( MX_EPICS_PV *pv,
 	MX_EPICS_CALLBACK *callback_object;
 	void (*internal_epics_callback_function)( struct event_handler_args );
 	void *internal_epics_callback_argument;
+#if 1
+	unsigned long max_elements;
+#endif
 	int epics_status;
 	unsigned long i, milliseconds_to_wait, milliseconds_between_polls;
 	mx_status_type mx_status;
@@ -1668,6 +1697,18 @@ mx_epics_internal_caput( MX_EPICS_PV *pv,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if 1
+	/* Limit the number of elements to the maximum supported
+	 * by the EPICS server.
+	 */
+
+	max_elements = (unsigned long) ca_element_count( pv->channel_id );
+
+	if ( num_elements > max_elements ) {
+		num_elements = max_elements;
+	}
+#endif
 
 	LOCK_EPICS_MUTEX;
 
