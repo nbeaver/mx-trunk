@@ -61,9 +61,16 @@ typedef struct {
 	MX_EPICS_PV biny_pv;
 	MX_EPICS_PV biny_rbv_pv;
 	MX_EPICS_PV detector_state_pv;
+	MX_EPICS_PV file_name_pv;
+	MX_EPICS_PV file_name_rbv_pv;
+	MX_EPICS_PV file_number_pv;
+	MX_EPICS_PV file_number_rbv_pv;
 	MX_EPICS_PV file_path_pv;
 	MX_EPICS_PV file_path_rbv_pv;
 	MX_EPICS_PV file_path_exists_rbv_pv;
+	MX_EPICS_PV file_template_pv;
+	MX_EPICS_PV file_template_rbv_pv;
+	MX_EPICS_PV full_file_name_rbv_pv;
 	MX_EPICS_PV image_mode_pv;
 	MX_EPICS_PV image_mode_rbv_pv;
 	MX_EPICS_PV num_acquisitions_pv;

@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_EPICS_AREA_DETECTOR_DEBUG	TRUE
+#define MXD_EPICS_AREA_DETECTOR_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -234,6 +234,22 @@ mxd_epics_ad_finish_record_initialization( MX_RECORD *record )
 			"%s%sDetectorState_RBV",
 			epics_ad->prefix_name, epics_ad->camera_name );
 
+	mx_epics_pvname_init( &(epics_ad->file_name_pv),
+			"%s%sFileName",
+			epics_ad->prefix_name, epics_ad->camera_name );
+
+	mx_epics_pvname_init( &(epics_ad->file_name_rbv_pv),
+			"%s%sFileName_RBV",
+			epics_ad->prefix_name, epics_ad->camera_name );
+
+	mx_epics_pvname_init( &(epics_ad->file_number_pv),
+			"%s%sFileNumber",
+			epics_ad->prefix_name, epics_ad->camera_name );
+
+	mx_epics_pvname_init( &(epics_ad->file_number_rbv_pv),
+			"%s%sFileNumber_RBV",
+			epics_ad->prefix_name, epics_ad->camera_name );
+
 	mx_epics_pvname_init( &(epics_ad->file_path_pv),
 			"%s%sFilePath",
 			epics_ad->prefix_name, epics_ad->camera_name );
@@ -244,6 +260,18 @@ mxd_epics_ad_finish_record_initialization( MX_RECORD *record )
 
 	mx_epics_pvname_init( &(epics_ad->file_path_exists_rbv_pv),
 			"%s%sFilePathExists_RBV",
+			epics_ad->prefix_name, epics_ad->camera_name );
+
+	mx_epics_pvname_init( &(epics_ad->file_template_pv),
+			"%s%sFileTemplate",
+			epics_ad->prefix_name, epics_ad->camera_name );
+
+	mx_epics_pvname_init( &(epics_ad->file_template_rbv_pv),
+			"%s%sFileTemplate_RBV",
+			epics_ad->prefix_name, epics_ad->camera_name );
+
+	mx_epics_pvname_init( &(epics_ad->full_file_name_rbv_pv),
+			"%s%sFullFileName_RBV",
 			epics_ad->prefix_name, epics_ad->camera_name );
 
 	mx_epics_pvname_init( &(epics_ad->image_mode_pv),
@@ -1111,6 +1139,11 @@ mxd_epics_ad_get_parameter( MX_AREA_DETECTOR *ad )
 	int32_t x_binsize, y_binsize, trigger_mode, image_mode, num_frames;
 	int32_t x_start, x_size, y_start, y_size;
 	double acquire_time, acquire_period;
+	unsigned long next_datafile_number;
+	char filename_prefix[MXU_FILENAME_LENGTH+1];
+	char filename_template[MXU_FILENAME_LENGTH+1];
+	char *ptr;
+	unsigned long i, num_digits;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_ad_get_pointers( ad, &epics_ad, fname );
@@ -1184,6 +1217,109 @@ mxd_epics_ad_get_parameter( MX_AREA_DETECTOR *ad )
 		mx_status = mx_caget( &(epics_ad->file_path_rbv_pv),
 					MX_CA_CHAR, MXU_FILENAME_LENGTH,
 					ad->datafile_directory );
+		break;
+
+	case MXLV_AD_DATAFILE_NAME:
+		mx_status = mx_caget( &(epics_ad->full_file_name_rbv_pv),
+					MX_CA_CHAR, MXU_FILENAME_LENGTH,
+					ad->datafile_name );
+		break;
+
+	case MXLV_AD_DATAFILE_NUMBER:
+		mx_status = mx_caget( &(epics_ad->file_number_rbv_pv),
+					MX_CA_LONG, 1, &next_datafile_number );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		ad->datafile_number = next_datafile_number - 1;
+		break;
+
+	case MXLV_AD_DATAFILE_PATTERN:
+		ad->datafile_pattern[0] = '\0';
+
+		mx_status = mx_caget( &(epics_ad->file_name_rbv_pv),
+					MX_CA_CHAR, MXU_FILENAME_LENGTH,
+					filename_prefix );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+#if MXD_EPICS_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,("%s: filename_prefix = '%s'",
+			fname, filename_prefix));
+#endif
+
+		mx_status = mx_caget( &(epics_ad->file_template_rbv_pv),
+					MX_CA_CHAR, MXU_FILENAME_LENGTH,
+					filename_template );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+#if MXD_EPICS_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,("%s: filename_template = '%s'",
+			fname, filename_template));
+#endif
+		/* Here we attempt to turn an EPICS filename template
+		 * into an MX filename pattern.  The current implementation
+		 * is extremely fragile and kludgy.
+		 */
+
+		/* FIXME - This is an ugly, ugly kludge.
+		 * 
+		 * We _assume_ that the first 5 characters of the
+		 * EPICS filename template are %s%s%
+		 */
+
+		if ( strncmp( filename_template, "%s%s%", 5 ) != 0 ) {
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"The filename template '%s' currently used by "
+			"area detector '%s' is not compatible with "
+			"MX datafile pattern strings.  Try setting a "
+			"datafile pattern from MX to fix this.",
+				filename_template,
+				ad->record->name );
+		}
+
+		ptr = filename_template + 5;
+
+		num_digits = atol( ptr );
+
+		/* FIXME - Ugly kludge, the Next Generation 
+		 *
+		 * The current string is _assumed_ to be part of a 'd' format
+		 * printf element.  We look for the character after this
+		 * hypothetical 'd' character for the start of the filename
+		 * trailer.
+		 */
+
+		ptr = strchr( ptr, 'd' );
+
+		if ( ptr == NULL ) {
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"The filename template '%s' currently used by "
+			"area detector '%s' is not compatible with "
+			"MX datafile pattern strings.  Try setting a "
+			"datafile pattern from MX to fix this.",
+				filename_template,
+				ad->record->name );
+		}
+
+		ptr++;
+
+		strlcpy( ad->datafile_pattern, filename_prefix,
+			sizeof( ad->datafile_pattern ) );
+
+		for ( i = 0; i < num_digits; i++ ) {
+			strlcat( ad->datafile_pattern, "#",
+				sizeof( ad->datafile_pattern ) );
+		}
+
+		strlcat( ad->datafile_pattern, ptr,
+			sizeof( ad->datafile_pattern ) );
+
+		/* FIXME - And now the horror is over ... or is it? */
 		break;
 
 	case MXLV_AD_SEQUENCE_TYPE:
@@ -1371,7 +1507,11 @@ mxd_epics_ad_set_parameter( MX_AREA_DETECTOR *ad )
 	int32_t x_binsize, y_binsize;
 	long x_start, x_size, y_start, y_size;
 	double raw_x_binsize, raw_y_binsize;
-	unsigned long file_path_exists;
+	unsigned long file_path_exists, next_datafile_number;
+	char *ptr, *hash_ptr, *suffix_ptr;
+	char filename_prefix[MXU_FILENAME_LENGTH+1];
+	char filename_pattern[MXU_FILENAME_LENGTH+1];
+	unsigned long num_prefix_chars, num_hash_chars, next_file_number;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_ad_get_pointers( ad, &epics_ad, fname );
@@ -1432,6 +1572,16 @@ mxd_epics_ad_set_parameter( MX_AREA_DETECTOR *ad )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
+		/* Reset the EPICS next file number to 0. */
+
+		next_file_number = 0;
+
+		mx_status = mx_caput( &(epics_ad->file_number_pv),
+					MX_CA_LONG, 1, &next_file_number );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
 		/* Check to see if the specified directory actually exists. */
 
 		mx_status = mx_caget( &(epics_ad->file_path_exists_rbv_pv),
@@ -1465,6 +1615,84 @@ mxd_epics_ad_set_parameter( MX_AREA_DETECTOR *ad )
 				ad->record->name );
 			break;
 		}
+		break;
+
+	case MXLV_AD_DATAFILE_NUMBER:
+		next_datafile_number = ad->datafile_number + 1;
+
+		mx_status = mx_caput( &(epics_ad->file_number_pv),
+					MX_CA_LONG, 1, &next_datafile_number );
+		break;
+
+	case MXLV_AD_DATAFILE_PATTERN:
+		/* Convert an MX datafile pattern like mytest####.img
+		 * into an EPICS area detector file template and name
+		 * such as name = 'mytest' and template = '%s%s%4.4d.img'.
+		 */
+
+		/* Look for the first # character in the MX template. */
+
+		hash_ptr = strchr( ad->datafile_pattern, '#' );
+
+		if ( hash_ptr == NULL ) {
+			/* If there are no # characters in the pattern,
+			 * then we set the filename PV to the entire
+			 * contents of the datafile_pattern string
+			 * and set the filename template PV to '%s%s'
+			 * since the filename is now a fixed string.
+			 */
+
+			strlcpy( filename_prefix, ad->datafile_pattern,
+				sizeof( filename_prefix ) );
+
+			strlcpy( filename_pattern, "%s%s",
+				sizeof( filename_pattern ) );
+		} else {
+			num_prefix_chars = hash_ptr - (ad->datafile_pattern);
+
+			num_hash_chars = 0;
+
+			ptr = hash_ptr;
+
+			while (TRUE) {
+				if ( *ptr == '#' ) {
+					num_hash_chars++;
+					ptr++;
+				} else {
+					break;
+				}
+			}
+
+			suffix_ptr = ptr;
+
+			strlcpy( filename_prefix, ad->datafile_pattern,
+					num_prefix_chars + 1 );
+
+			snprintf( filename_pattern, sizeof(filename_pattern),
+				"%%s%%s%%%lu.%lud%s",
+				num_hash_chars, num_hash_chars, suffix_ptr );
+		}
+
+		mx_status = mx_caput( &(epics_ad->file_name_pv),
+					MX_CA_CHAR, MXU_FILENAME_LENGTH,
+					filename_prefix );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_caput( &(epics_ad->file_template_pv),
+					MX_CA_CHAR, MXU_FILENAME_LENGTH,
+					filename_pattern );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Reset the EPICS next file number to 0. */
+
+		next_file_number = 0;
+
+		mx_status = mx_caput( &(epics_ad->file_number_pv),
+					MX_CA_LONG, 1, &next_file_number );
 		break;
 
 	case MXLV_AD_SEQUENCE_TYPE:
