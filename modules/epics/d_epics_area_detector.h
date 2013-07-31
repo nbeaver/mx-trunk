@@ -83,7 +83,6 @@ typedef struct {
 	MX_EPICS_PV trigger_mode_rbv_pv;
 
 	mx_bool_type acquisition_is_starting;
-	mx_bool_type array_data_available;
 
 	unsigned long max_array_bytes;
 	mx_bool_type use_num_acquisitions;

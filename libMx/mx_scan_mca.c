@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2009, 2011 Illinois Institute of Technology
+ * Copyright 1999-2009, 2011, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -451,6 +451,16 @@ mx_scan_save_area_detector_image( MX_SCAN *scan,
 	}
 
 	if ( ad->transfer_image_during_scan == FALSE ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* If MX controls the area detector via an external control system
+	 * and does not have direct access to the data, then there is no
+	 * local copy of the image data to save, so we return without
+	 * doing anything further.
+	 */
+
+	if ( ad->image_data_available == FALSE ) {
 		return MX_SUCCESSFUL_RESULT;
 	}
 

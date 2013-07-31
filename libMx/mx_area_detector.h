@@ -199,8 +199,6 @@ typedef struct {
 typedef struct mx_area_detector_type {
 	MX_RECORD *record;
 
-	long ad_state;
-
 	long parameter_type;
 	long frame_number;
 
@@ -310,8 +308,28 @@ typedef struct mx_area_detector_type {
 
 	double exposure_time;
 
-	/* Note: The readout_frame() method expects to read the new frame
-	 * into the 'image_frame' MX_IMAGE_FRAME structure.
+	/* If 'image_data_available' is TRUE, then it is possible to get
+	 * real image data into the 'image_frame' object using either a
+	 * 'readout_frame' or a 'transfer_frame' operation.
+	 *
+	 * If the 'image_data_available' flag is FALSE, then the 'image_frame'
+	 * object _never_ has valid data in it.
+	 *
+	 * Most area detector drivers will have this flag set to TRUE.
+	 * If the area detector hardware is controlled by an external
+	 * control system, then it may not be possible to get at the
+	 * actual image frames and it will be necessary to set the flag
+	 * to FALSE.  In that case, the MX area detector driver is 
+	 * merely used to send commands to the external control system.
+	 */
+
+	mx_bool_type image_data_available;
+
+	/* The 'image_frame' object normally contains the actual image data 
+	 * read from the detector.
+	 *
+	 * The readout_frame() method expects to read the new frame
+	 * into the 'image_frame' object.
 	 */
 
 	long readout_frame;
@@ -631,39 +649,40 @@ typedef struct mx_area_detector_type {
 #define MXLV_AD_NUM_SEQUENCE_PARAMETERS		12032
 #define MXLV_AD_SEQUENCE_PARAMETER_ARRAY	12033
 #define MXLV_AD_EXPOSURE_TIME			12034
-#define MXLV_AD_READOUT_FRAME			12035
-#define MXLV_AD_IMAGE_FRAME_HEADER_LENGTH	12036
-#define MXLV_AD_IMAGE_FRAME_HEADER		12037
-#define MXLV_AD_IMAGE_FRAME_DATA		12038
-#define MXLV_AD_CORRECT_FRAME			12039
-#define MXLV_AD_CORRECTION_FLAGS		12040
-#define MXLV_AD_TRANSFER_FRAME			12041
-#define MXLV_AD_LOAD_FRAME			12042
-#define MXLV_AD_SAVE_FRAME			12043
-#define MXLV_AD_FRAME_FILENAME			12044
-#define MXLV_AD_COPY_FRAME			12045
-#define MXLV_AD_SEQUENCE_START_DELAY		12046
-#define MXLV_AD_TOTAL_ACQUISITION_TIME		12047
-#define MXLV_AD_DETECTOR_READOUT_TIME		12048
-#define MXLV_AD_TOTAL_SEQUENCE_TIME		12049
-#define MXLV_AD_GEOM_CORR_AFTER_FLOOD		12050
-#define MXLV_AD_BIAS_CORR_AFTER_FLOOD		12051
-#define MXLV_AD_CORRECTION_FRAME_GEOM_CORR_LAST	12052
-#define MXLV_AD_CORRECTION_FRAME_NO_GEOM_CORR	12053
-#define MXLV_AD_CORRECTION_MEASUREMENT_TYPE	12054
-#define MXLV_AD_CORRECTION_MEASUREMENT_TIME	12055
-#define MXLV_AD_NUM_CORRECTION_MEASUREMENTS	12056
-#define MXLV_AD_CORRECTION_FRAMES_TO_SKIP	12057
-#define MXLV_AD_DEZINGER_CORRECTION_FRAME	12058
-#define MXLV_AD_DEZINGER_THRESHOLD		12059
-#define MXLV_AD_USE_SCALED_DARK_CURRENT		12060
-#define MXLV_AD_REGISTER_NAME			12061
-#define MXLV_AD_REGISTER_VALUE			12062
-#define MXLV_AD_SHUTTER_ENABLE			12063
-#define MXLV_AD_TRANSFER_IMAGE_DURING_SCAN	12064
-#define MXLV_AD_MARK_FRAME_AS_SAVED		12065
-#define MXLV_AD_SHOW_IMAGE_FRAME		12066
-#define MXLV_AD_SHOW_IMAGE_STATISTICS		12067
+#define MXLV_AD_IMAGE_DATA_AVAILABLE		12035
+#define MXLV_AD_READOUT_FRAME			12036
+#define MXLV_AD_IMAGE_FRAME_HEADER_LENGTH	12037
+#define MXLV_AD_IMAGE_FRAME_HEADER		12038
+#define MXLV_AD_IMAGE_FRAME_DATA		12039
+#define MXLV_AD_CORRECT_FRAME			12040
+#define MXLV_AD_CORRECTION_FLAGS		12041
+#define MXLV_AD_TRANSFER_FRAME			12042
+#define MXLV_AD_LOAD_FRAME			12043
+#define MXLV_AD_SAVE_FRAME			12044
+#define MXLV_AD_FRAME_FILENAME			12045
+#define MXLV_AD_COPY_FRAME			12046
+#define MXLV_AD_SEQUENCE_START_DELAY		12047
+#define MXLV_AD_TOTAL_ACQUISITION_TIME		12048
+#define MXLV_AD_DETECTOR_READOUT_TIME		12049
+#define MXLV_AD_TOTAL_SEQUENCE_TIME		12050
+#define MXLV_AD_GEOM_CORR_AFTER_FLOOD		12051
+#define MXLV_AD_BIAS_CORR_AFTER_FLOOD		12052
+#define MXLV_AD_CORRECTION_FRAME_GEOM_CORR_LAST	12053
+#define MXLV_AD_CORRECTION_FRAME_NO_GEOM_CORR	12054
+#define MXLV_AD_CORRECTION_MEASUREMENT_TYPE	12055
+#define MXLV_AD_CORRECTION_MEASUREMENT_TIME	12056
+#define MXLV_AD_NUM_CORRECTION_MEASUREMENTS	12057
+#define MXLV_AD_CORRECTION_FRAMES_TO_SKIP	12058
+#define MXLV_AD_DEZINGER_CORRECTION_FRAME	12059
+#define MXLV_AD_DEZINGER_THRESHOLD		12060
+#define MXLV_AD_USE_SCALED_DARK_CURRENT		12061
+#define MXLV_AD_REGISTER_NAME			12062
+#define MXLV_AD_REGISTER_VALUE			12063
+#define MXLV_AD_SHUTTER_ENABLE			12064
+#define MXLV_AD_TRANSFER_IMAGE_DURING_SCAN	12065
+#define MXLV_AD_MARK_FRAME_AS_SAVED		12066
+#define MXLV_AD_SHOW_IMAGE_FRAME		12067
+#define MXLV_AD_SHOW_IMAGE_STATISTICS		12068
 
 #define MXLV_AD_AREA_DETECTOR_FLAGS		12100
 #define MXLV_AD_INITIAL_CORRECTION_FLAGS	12101
@@ -864,6 +883,11 @@ typedef struct mx_area_detector_type {
   \
   {MXLV_AD_EXPOSURE_TIME, -1, "exposure_time", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, exposure_time),\
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {MXLV_AD_IMAGE_DATA_AVAILABLE, -1, "image_data_available", \
+					MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, image_data_available),\
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_AD_READOUT_FRAME, -1, "readout_frame", MXFT_LONG, NULL, 0, {0}, \

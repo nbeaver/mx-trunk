@@ -230,6 +230,8 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->roi_frame = NULL;
 	ad->roi_frame_buffer = NULL;
 
+	ad->image_data_available = TRUE;
+
 	ad->image_frame = NULL;
 
 	ad->image_frame_header_length = 0;

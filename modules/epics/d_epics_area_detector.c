@@ -404,8 +404,9 @@ mxd_epics_ad_open( MX_RECORD *record )
 	ad->total_num_frames = 0;
 	ad->status = 0;
 
+	ad->image_data_available = FALSE;
+
 	epics_ad->acquisition_is_starting = FALSE;
-	epics_ad->array_data_available = FALSE;
 	epics_ad->max_array_bytes = 0;
 
 	/* Detect the presence of the detector by asking it for
@@ -667,7 +668,7 @@ mxd_epics_ad_open( MX_RECORD *record )
 	/* Does the area detector support reading out the image data? */
 
 	if ( strlen( epics_ad->image_name ) == 0 ) {
-		epics_ad->array_data_available = FALSE;
+		ad->image_data_available = FALSE;
 	} else {
 		/* Look for the $(P)$(R)ArrayData PV. */
 
@@ -676,13 +677,13 @@ mxd_epics_ad_open( MX_RECORD *record )
 
 		switch( mx_status.code ) {
 		case MXE_SUCCESS:
-			epics_ad->array_data_available = TRUE;
+			ad->image_data_available = TRUE;
 			break;
 		case MXE_TIMED_OUT:
-			epics_ad->array_data_available = FALSE;
+			ad->image_data_available = FALSE;
 			break;
 		default:
-			epics_ad->array_data_available = FALSE;
+			ad->image_data_available = FALSE;
 
 			return mx_error( mx_status.code,
 					mx_status.location,
@@ -692,8 +693,8 @@ mxd_epics_ad_open( MX_RECORD *record )
 	}
 
 #if MXD_EPICS_AREA_DETECTOR_DEBUG
-	MX_DEBUG(-2,("%s: array_data_available = %d",
-		fname, epics_ad->array_data_available));
+	MX_DEBUG(-2,("%s: ad->image_data_avaliable = %d",
+		fname, ad->image_data_available));
 #endif
 
 	/* Figure out the maximum number of array data elements that can
@@ -974,7 +975,7 @@ mxd_epics_ad_readout_frame( MX_AREA_DETECTOR *ad )
 	 * there is nothing for us to do here.
 	 */
 
-	if ( epics_ad->array_data_available == FALSE ) {
+	if ( ad->image_data_available == FALSE ) {
 
 #if MXD_EPICS_AREA_DETECTOR_DEBUG
 		MX_DEBUG(-2,("%s: image data is not available.", fname));
