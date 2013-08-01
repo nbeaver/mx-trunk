@@ -733,6 +733,18 @@ mxd_network_area_detector_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Initialize the datafile save format to SMV. */
+
+	strlcpy( ad->datafile_save_format_name, "SMV",
+				sizeof( ad->datafile_save_format_name ) );
+
+	mx_status = mx_image_get_file_format_type_from_name(
+				ad->datafile_save_format_name,
+				(long *) &(ad->datafile_save_format) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 #if MXD_NETWORK_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
 #endif

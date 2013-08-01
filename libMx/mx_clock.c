@@ -601,3 +601,22 @@ mx_set_clock_tick_to_zero( void )
 	return result;
 }
 
+MX_EXPORT MX_CLOCK_TICK
+mx_set_clock_tick_to_maximum( void )
+{
+#if MX_CLOCK_DEBUG
+	static const char fname[] = "mx_set_clock_tick_to_maximum()";
+#endif
+
+	MX_CLOCK_TICK result;
+
+	result.low_order = ULONG_MAX;
+	result.high_order = ULONG_MAX;
+
+#if MX_CLOCK_DEBUG
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
+
+	return result;
+}
+

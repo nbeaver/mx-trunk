@@ -57,12 +57,13 @@
 
 MX_ARCH = linux
 
-MX_INSTALL_DIR = /opt/mx
+#MX_INSTALL_DIR = /opt/mx
 #MX_INSTALL_DIR = c:/opt/mx
 #MX_INSTALL_DIR = /mnt/mx
 #MX_INSTALL_DIR = /mnt/sdcard/opt/mx
 #MX_INSTALL_DIR = $(HOME)/local/opt/mx
 #MX_INSTALL_DIR = $(HOME)/mxtest
+MX_INSTALL_DIR = /local/home/marccd/mrcat/mx
 #MX_INSTALL_DIR = c:/users/lavender/mxtest
 #MX_INSTALL_DIR = c:/opt/mx-1.5.5-2013_07_15
 

@@ -255,7 +255,7 @@ mxd_marccd_server_socket_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_marccd_server_socket_open()";
 
-	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR *ad = NULL;
 	MX_MARCCD_SERVER_SOCKET *mss = NULL;
 	mx_status_type mx_status;
 
@@ -274,6 +274,8 @@ mxd_marccd_server_socket_open( MX_RECORD *record )
 #if MXD_MARCCD_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
+
+	mss->finish_time = mx_set_clock_tick_to_maximum();
 
 	ad->maximum_frame_number = 0;
 	ad->last_frame_number = -1;
@@ -313,19 +315,19 @@ mxd_marccd_server_socket_open( MX_RECORD *record )
 
 	/* Get the current framesize. */
 
-	mx_status = mx_area_detector_get_framesize( ad->record, NULL, NULL );
+	mx_status = mx_area_detector_get_framesize( record, NULL, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/* Get the current binsize. */
 
-	mx_status = mx_area_detector_get_binsize( ad->record, NULL, NULL );
+	mx_status = mx_area_detector_get_binsize( record, NULL, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Set the local copy of the area detector frame and bin sizes. */
+	/* Compute the maximum framesize and bytes per frame. */
 
 	ad->maximum_framesize[0] = ad->framesize[0] * ad->binsize[0];
 	ad->maximum_framesize[1] = ad->framesize[1] * ad->binsize[1];
@@ -341,7 +343,7 @@ mxd_marccd_server_socket_close( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_marccd_server_socket_close()";
 
-	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR *ad = NULL;
 	MX_MARCCD_SERVER_SOCKET *mss = NULL;
 	mx_status_type mx_status;
 
@@ -404,7 +406,7 @@ mxd_marccd_server_socket_trigger( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_marccd_server_socket_trigger()";
 
 	MX_MARCCD_SERVER_SOCKET *mss = NULL;
-	MX_SEQUENCE_PARAMETERS *sp;
+	MX_SEQUENCE_PARAMETERS *sp = NULL;
 	double exposure_time;
 	MX_CLOCK_TICK clock_ticks_to_wait, start_time;
 	mx_status_type mx_status;
@@ -551,7 +553,7 @@ mxd_marccd_server_socket_readout_frame( MX_AREA_DETECTOR *ad )
 	char command[40];
 	char response[40];
 	int marccd_state, num_items;
-	unsigned long mask, flags;
+	unsigned long flags, mask;
 	mx_status_type mx_status;
 
 	mx_status = mxd_marccd_server_socket_get_pointers( ad, &mss, fname );
@@ -625,6 +627,8 @@ mxd_marccd_server_socket_readout_frame( MX_AREA_DETECTOR *ad )
 			marccd_state, ad->record->name );
 		break;
 	}
+
+	/* Check to see if we need to save the image file now. */
 
 	flags = ad->area_detector_flags;
 
@@ -712,6 +716,8 @@ mxd_marccd_server_socket_correct_frame( MX_AREA_DETECTOR *ad )
 		break;
 	}
 
+	/* Check to see if we need to save the image file now. */
+
 	flags = ad->area_detector_flags;
 
 	if ( flags & MXF_AD_SAVE_REMOTE_FRAME_AFTER_ACQUISITION ) {
@@ -743,7 +749,7 @@ mxd_marccd_server_socket_transfer_frame( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_MARCCD_SERVER_SOCKET_DEBUG
+#if MXD_MARCCD_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
@@ -771,7 +777,7 @@ mxd_marccd_server_socket_transfer_frame( MX_AREA_DETECTOR *ad )
 			"%s", ad->datafile_name );
 	}
 
-#if MXD_MARCCD_SERVER_SOCKET_DEBUG
+#if MXD_MARCCD_DEBUG
 	MX_DEBUG(-2,("%s: Remote MarCCD filename = '%s'",
 		fname, remote_marccd_filename));
 #endif
@@ -783,7 +789,7 @@ mxd_marccd_server_socket_transfer_frame( MX_AREA_DETECTOR *ad )
 			ad->record->name );
 	}
 
-	/* Usually, this driver is not running on the same computer as 
+	/* Often, this driver is not running on the same computer as 
 	 * the one running the 'marccd' program.  If so, then we can only
 	 * load the MarCCD file if it has been exported to us via somthing
 	 * like NFS or SMB.  If so, the local filename is probably different
@@ -975,7 +981,8 @@ mxd_marccd_server_socket_set_parameter( MX_AREA_DETECTOR *ad )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		snprintf( command, sizeof(command), "set_bin,%lu,%lu",
+		snprintf( command, sizeof(command),
+			"set_bin,%lu,%lu",
 			ad->binsize[0], ad->binsize[1] );
 
 		mx_status = mxd_marccd_server_socket_command( mss, command,
@@ -985,8 +992,9 @@ mxd_marccd_server_socket_set_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_SEQUENCE_TYPE:
 		if ( sp->sequence_type != MXT_SQ_ONE_SHOT ) {
 			mx_status = mx_error( MXE_UNSUPPORTED, fname,
-			"Sequence type %ld is not supported for MarCCD detector"
-		    "'%s'.  Only one-shot sequences (type 1) are supported.",
+			"Sequence type %ld is not supported for MarCCD "
+			"detector '%s'.  "
+			"Only one-shot sequences (type 1) are supported.",
 				sp->sequence_type, ad->record->name );
 
 			sp->sequence_type = MXT_SQ_ONE_SHOT;
@@ -1037,7 +1045,7 @@ mxd_marccd_server_socket_measure_correction( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_MARCCD_SERVER_SOCKET_DEBUG
+#if MXD_MARCCD_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif

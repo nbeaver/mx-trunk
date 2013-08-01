@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2008-2009 Illinois Institute of Technology
+ * Copyright 2003-2004, 2008-2009, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -148,6 +148,7 @@ mxd_marccd_shutter_relay_command( MX_RELAY *relay )
 		marccd = marccd_record->record_type_struct;
 
 		mx_status = mxd_marccd_command( marccd, command,
+						MXF_MARCCD_CMD_SHUTTER,
 						MXD_MARCCD_SHUTTER_DEBUG );
 		break;
 	case MXT_AD_MARCCD_SERVER_SOCKET:

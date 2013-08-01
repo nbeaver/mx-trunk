@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2004, 2007 Illinois Institute of Technology
+ * Copyright 1999, 2004, 2007, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -51,6 +51,8 @@ MX_API int mx_compare_clock_ticks( MX_CLOCK_TICK clock_tick_1,
 					MX_CLOCK_TICK clock_tick_2 );
 
 MX_API MX_CLOCK_TICK mx_set_clock_tick_to_zero( void );
+
+MX_API MX_CLOCK_TICK mx_set_clock_tick_to_maximum( void );
 
 #define mx_clock_tick_is_zero(t) \
 	( ((t).high_order == 0) && ((t).low_order == 0) )
