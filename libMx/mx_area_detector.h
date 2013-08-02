@@ -102,7 +102,19 @@ extern "C" {
    * running in real server (list_head->is_server == TRUE).
    */
 
-#define MXF_AD_DO_NOT_SAVE_FRAME_IN_SINGLE_PROCESS_MODE	0x10000
+#define MXF_AD_DO_NOT_SAVE_FRAME_IN_SINGLE_PROCESS_MODE		0x10000
+
+  /* For some detectors controlled by an external control system
+   * such as MarCCD, the act of reading out and correcting newly
+   * acquired frames is what causes the external control system
+   * to write out its own native copies of the image.  The flag
+   * MXF_AD_READOUT_FRAME_AFTER_ACQUISITION is used to tell the
+   * datafile management callback that it should readout and
+   * correct the image data, even though the callback may not 
+   * itself be responsible for saving the image data to disk.
+   */
+
+#define MXF_AD_READOUT_FRAME_AFTER_ACQUISITION			0x20000
 
   /* The following flags tells the area detector to alway take
    * correction measurements in a particular trigger mode.  If

@@ -40,7 +40,7 @@
 
 #define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE	FALSE
 
-#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_SETUP	FALSE
+#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_SETUP	TRUE
 
 #define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_TIMESTAMP  TRUE
 
@@ -6311,6 +6311,8 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 	unsigned long flags;
 	int os_status, saved_errno;
 	mx_bool_type save_frame_after_acquisition;
+	mx_bool_type load_frame_after_acquisition;
+	mx_bool_type readout_frame_after_acquisition;
 	mx_bool_type new_frames;
 	mx_status_type mx_status;
 
@@ -6372,6 +6374,8 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
+	/* Figure out which operations need to be performed during this call. */
+
 	flags = ad->area_detector_flags;
 
 	if ( ad->inhibit_autosave ) {
@@ -6392,6 +6396,21 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 		save_frame_after_acquisition = FALSE;
 	}
 
+	if ( flags & MXF_AD_LOAD_FRAME_AFTER_ACQUISITION ) {
+		load_frame_after_acquisition = TRUE;
+	} else {
+		load_frame_after_acquisition = FALSE;
+	}
+
+	if ( save_frame_after_acquisition ) {
+		readout_frame_after_acquisition = TRUE;
+	} else
+	if ( flags & MXF_AD_READOUT_FRAME_AFTER_ACQUISITION ) {
+		readout_frame_after_acquisition = TRUE;
+	} else {
+		readout_frame_after_acquisition = FALSE;
+	}
+
 #if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
 	MX_DEBUG(-2,("%s: flags & MXF_AD_SAVE_FRAME_AFTER_ACQUISITION = %lu",
 		fname, flags & MXF_AD_SAVE_FRAME_AFTER_ACQUISITION ));
@@ -6399,7 +6418,77 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 		fname, (int) ad->correction_measurement_in_progress));
 	MX_DEBUG(-2,("%s: save_frame_after_acquisition = %d",
 		fname, (int) save_frame_after_acquisition));
+	MX_DEBUG(-2,("%s: load_frame_after_acquisition = %d",
+		fname, (int) load_frame_after_acquisition));
+	MX_DEBUG(-2,("%s: readout_frame_after_acquisition = %d",
+		fname, (int) readout_frame_after_acquisition));
 #endif
+
+	if ( readout_frame_after_acquisition ) {
+
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_TIMING
+		MX_HRT_TIMING total_measurement;
+		MX_HRT_TIMING setup_measurement;
+		MX_HRT_TIMING readout_measurement;
+		MX_HRT_TIMING correct_measurement;
+
+		MX_HRT_START( total_measurement );
+		MX_HRT_START( setup_measurement );
+#endif
+
+		if ( ad->image_frame == NULL ) {
+
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
+			MX_DEBUG(-2,("%s: Setting up initial image frame "
+			"for area detector '%s'.", fname, record->name ));
+#endif
+			mx_status = mx_area_detector_setup_frame( record,
+							&(ad->image_frame) );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_TIMING
+		MX_HRT_END( setup_measurement );
+		MX_HRT_START( readout_measurement );
+#endif
+
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_SETUP
+		MX_DEBUG(-2,("%s: Reading out image frame %lu",
+			fname, ad->datafile_last_frame_number));
+#endif
+		mx_status = mx_area_detector_readout_frame( record,
+						ad->datafile_last_frame_number);
+
+		ad->datafile_last_frame_number++;
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_TIMING
+		MX_HRT_END( readout_measurement );
+		MX_HRT_START( correct_measurement );
+#endif
+
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_SETUP
+		MX_DEBUG(-2,("%s: Correcting the image frame.", fname));
+#endif
+		mx_status = mx_area_detector_correct_frame( record );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_TIMING
+		MX_HRT_END( correct_measurement );
+		MX_HRT_END( total_measurement );
+
+		MX_HRT_RESULTS( setup_measurement, fname, "for setup" );
+		MX_HRT_RESULTS( readout_measurement, fname, "for readout" );
+		MX_HRT_RESULTS( correct_measurement, fname, "for correction" );
+		MX_HRT_RESULTS( total_measurement, fname, "for readout TOTAL" );
+#endif
+	}
 
 	if ( save_frame_after_acquisition ) {
 		/* If a datafile pattern has been specified, then construct
@@ -6460,7 +6549,7 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 			"%s/%s", ad->datafile_directory, ad->datafile_name );
 	}
 
-	if ( flags & MXF_AD_LOAD_FRAME_AFTER_ACQUISITION ) {
+	if ( load_frame_after_acquisition ) {
 #if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
 		MX_DEBUG(-2,("%s: Loading '%s' image frame from '%s'.",
 			fname, record->name, filename));
@@ -6475,62 +6564,11 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 
 #if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_TIMING
 		MX_HRT_TIMING total_measurement;
-		MX_HRT_TIMING setup_measurement;
-		MX_HRT_TIMING readout_measurement;
-		MX_HRT_TIMING correct_measurement;
 		MX_HRT_TIMING overwrite_measurement;
 		MX_HRT_TIMING write_file_measurement;
 		MX_HRT_TIMING status_measurement;
 
 		MX_HRT_START( total_measurement );
-		MX_HRT_START( setup_measurement );
-#endif
-
-		if ( ad->image_frame == NULL ) {
-
-#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
-			MX_DEBUG(-2,("%s: Setting up initial image frame "
-			"for area detector '%s'.", fname, record->name ));
-#endif
-			mx_status = mx_area_detector_setup_frame( record,
-							&(ad->image_frame) );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-		}
-
-#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_TIMING
-		MX_HRT_END( setup_measurement );
-		MX_HRT_START( readout_measurement );
-#endif
-
-#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_SETUP
-		MX_DEBUG(-2,("%s: Reading out image frame %lu",
-			fname, ad->datafile_last_frame_number));
-#endif
-		mx_status = mx_area_detector_readout_frame( record,
-						ad->datafile_last_frame_number);
-
-		ad->datafile_last_frame_number++;
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_TIMING
-		MX_HRT_END( readout_measurement );
-		MX_HRT_START( correct_measurement );
-#endif
-
-#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_SETUP
-		MX_DEBUG(-2,("%s: Correcting the image frame.", fname));
-#endif
-		mx_status = mx_area_detector_correct_frame( record );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_TIMING
-		MX_HRT_END( correct_measurement );
 		MX_HRT_START( overwrite_measurement );
 #endif
 
@@ -6633,14 +6671,11 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 		MX_HRT_END( status_measurement );
 		MX_HRT_END( total_measurement );
 
-		MX_HRT_RESULTS( setup_measurement, fname, "for setup" );
-		MX_HRT_RESULTS( readout_measurement, fname, "for readout" );
-		MX_HRT_RESULTS( correct_measurement, fname, "for correction" );
 		MX_HRT_RESULTS( overwrite_measurement, fname, "for overwrite" );
 		MX_HRT_RESULTS( write_file_measurement,
 						fname, "for write file" );
 		MX_HRT_RESULTS( status_measurement, fname, "for status" );
-		MX_HRT_RESULTS( total_measurement, fname, "for TOTAL" );
+		MX_HRT_RESULTS( total_measurement, fname, "for save TOTAL" );
 #endif
 	}
 
