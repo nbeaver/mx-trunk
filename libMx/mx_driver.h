@@ -425,6 +425,7 @@ extern "C" {
 #define MXT_DOU_ITC503			40036
 #define MXT_DOU_CRYOJET			40037
 #define MXT_DOU_AOUTPUT			40038
+#define MXT_DOU_RELAY			40039
 
 /* --- Motor subclasses --- */
 

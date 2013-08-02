@@ -135,8 +135,8 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_pmac.c d_pmac_aio.c d_pmac_dio.c d_pmac_mce.c d_pmac_cs_axis.c \
 	d_polynomial_motor.c d_portio_dio.c \
 	d_ptz_motor.c d_pulsed_relay.c \
-	d_qbpm_mcai.c d_qmotor.c d_qs450.c d_record_field_motor.c \
-	d_roentec_rcl_mca.c \
+	d_qbpm_mcai.c d_qmotor.c d_qs450.c \
+	d_record_field_motor.c d_relay_as_doutput.c d_roentec_rcl_mca.c \
 	d_rtc018.c d_scaler_function.c d_scaler_function_mcs.c \
 	d_scipe_aio.c d_scipe_amplifier.c d_scipe_dio.c d_scipe_motor.c \
 	d_scipe_scaler.c d_scipe_timer.c d_sd_m107.c d_segmented_move.c \
