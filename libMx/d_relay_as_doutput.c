@@ -16,6 +16,8 @@
  *
  */
 
+#define MXD_RELAY_AS_DOUTPUT_DEBUG	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -185,6 +187,12 @@ mxd_relay_as_doutput_read( MX_DIGITAL_OUTPUT *doutput )
 		break;
 	}
 
+#if MXD_RELAY_AS_DOUTPUT_DEBUG
+	MX_DEBUG(-2,("%s: relay '%s' = %ld  ==>  doutput '%s' = %ld",
+		fname, relay_record->name, relay_status,
+		doutput->record->name, doutput->value));
+#endif
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -220,6 +228,11 @@ mxd_relay_as_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 		}
 	}
 
+#if MXD_RELAY_AS_DOUTPUT_DEBUG
+	MX_DEBUG(-2,("%s: relay '%s' = %ld  <==  doutput '%s' = %ld",
+		fname, relay_record->name, relay_command,
+		doutput->record->name, doutput->value));
+#endif
 	mx_status = mx_relay_command( relay_record, relay_command );
 
 	return mx_status;
