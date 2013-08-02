@@ -881,7 +881,7 @@ motor_show_version( void )
 #  if (__GLIBC__ < 2)
 #     define MXP_USE_GNU_GET_LIBC_VERSION   0
 #  elif (__GLIBC__ == 2)
-#     if (__GLIBC_MINOR__ < 1)
+#     if (__GLIBC_MINOR__ < 3)
 #        define MXP_USE_GNU_GET_LIBC_VERSION   0
 #     else
 #        define MXP_USE_GNU_GET_LIBC_VERSION   1
