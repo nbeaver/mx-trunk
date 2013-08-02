@@ -70,8 +70,24 @@ extern "C" {
 #define MXF_AD_DEZINGER_CORRECTION_FRAME           		0x8
 #define MXF_AD_BIAS_CORR_AFTER_FLOOD		   		0x10
 
+  /* If MXF_AD_SAVE_FRAME_AFTER_ACQUISITION is set and we are running in an
+   * MX server, then the area detector datafile management routines will
+   * automatically arrange to write the image frame data out to a file.
+   */
+
 #define MXF_AD_SAVE_FRAME_AFTER_ACQUISITION	   		0x1000
-#define MXF_AD_LOAD_FRAME_AFTER_ACQUISITION	   		0x2000
+
+  /* For some detectors controlled by an external control system
+   * such as MarCCD, the act of reading out and correcting newly
+   * acquired frames is what causes the external control system
+   * to write out its own native copies of the image.  The flag
+   * MXF_AD_READOUT_FRAME_AFTER_ACQUISITION is used to tell the
+   * datafile management callback that it should readout and
+   * correct the image data, even though the callback may not 
+   * itself be responsible for saving the image data to disk.
+   */
+
+#define MXF_AD_READOUT_FRAME_AFTER_ACQUISITION			0x2000
 
   /* If MX is communicating with a vendor provided external
    * control system, then "remote frames" are frames that
@@ -103,18 +119,6 @@ extern "C" {
    */
 
 #define MXF_AD_DO_NOT_SAVE_FRAME_IN_SINGLE_PROCESS_MODE		0x10000
-
-  /* For some detectors controlled by an external control system
-   * such as MarCCD, the act of reading out and correcting newly
-   * acquired frames is what causes the external control system
-   * to write out its own native copies of the image.  The flag
-   * MXF_AD_READOUT_FRAME_AFTER_ACQUISITION is used to tell the
-   * datafile management callback that it should readout and
-   * correct the image data, even though the callback may not 
-   * itself be responsible for saving the image data to disk.
-   */
-
-#define MXF_AD_READOUT_FRAME_AFTER_ACQUISITION			0x20000
 
   /* The following flags tells the area detector to alway take
    * correction measurements in a particular trigger mode.  If

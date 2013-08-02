@@ -1265,8 +1265,7 @@ mx_area_detector_process_function( void *record_ptr,
 
 			flags = ad->area_detector_flags;
 
-			if ( (flags & MXF_AD_SAVE_FRAME_AFTER_ACQUISITION)
-			  || (flags & MXF_AD_LOAD_FRAME_AFTER_ACQUISITION) )
+			if ( flags & MXF_AD_SAVE_FRAME_AFTER_ACQUISITION )
 			{
 				mx_status =
 			    mx_area_detector_initialize_datafile_number(record);

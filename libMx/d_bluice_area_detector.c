@@ -1004,14 +1004,6 @@ mxd_bluice_area_detector_finish_delayed_initialization( MX_RECORD *record )
 			record->name, bluice_server->record->name );
 	}
 
-	if ( flags & MXF_AD_LOAD_FRAME_AFTER_ACQUISITION ) {
-	    mx_status = 
-	    	mx_area_detector_setup_datafile_management( record, NULL );
-
-	    if ( mx_status.code != MXE_SUCCESS )
-	    	return mx_status;
-	}
-
 	bluice_area_detector->initialize_datafile_number = TRUE;
 
 	MX_DEBUG(-2,("%s complete.", fname));

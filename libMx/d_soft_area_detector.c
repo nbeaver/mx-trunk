@@ -284,10 +284,10 @@ mxd_soft_area_detector_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Configure automatic saving or loading of image frames. */
+	/* Configure automatic saving or readout of image frames. */
 
 	mask = MXF_AD_SAVE_FRAME_AFTER_ACQUISITION
-		| MXF_AD_LOAD_FRAME_AFTER_ACQUISITION;
+		| MXF_AD_READOUT_FRAME_AFTER_ACQUISITION;
 
 	if ( ad->area_detector_flags & mask ) {
 		mx_status =

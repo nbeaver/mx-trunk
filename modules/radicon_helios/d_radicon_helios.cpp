@@ -1188,11 +1188,11 @@ mxd_radicon_helios_open( MX_RECORD *record )
 
 	ad->correction_frames_to_skip = 0;
 
-	/* Do we need automatic saving and/or loading of image frames by MX? */
+	/* Do we need automatic saving and/or readout of image frames by MX? */
 
 	ad_flags = ad->area_detector_flags;
 
-	mask = MXF_AD_LOAD_FRAME_AFTER_ACQUISITION
+	mask = MXF_AD_READOUT_FRAME_AFTER_ACQUISITION
 		| MXF_AD_SAVE_FRAME_AFTER_ACQUISITION;
 
 	if ( ad_flags & mask ) {

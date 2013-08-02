@@ -6197,16 +6197,16 @@ mx_area_detector_setup_datafile_management( MX_RECORD *record,
 	flags = ad->area_detector_flags;
 
 	mask = MXF_AD_SAVE_FRAME_AFTER_ACQUISITION
-		| MXF_AD_LOAD_FRAME_AFTER_ACQUISITION;
+		| MXF_AD_READOUT_FRAME_AFTER_ACQUISITION;
 
-	/* If neither loading frames or saving frames has been configure,
+	/* If neither reading out or saving frames has been configure,
 	 * then do not install a handler.
 	 */
 
 	if ( ( flags & mask ) == 0 ) {
 		mx_warning(
 		"Skipping datafile management setup for area detector '%s', "
-		"since neither loading frames nor saving frames "
+		"since neither reading out frames nor saving frames "
 		"have been configured.",
 			record->name );
 
@@ -6223,25 +6223,6 @@ mx_area_detector_setup_datafile_management( MX_RECORD *record,
 	/* Save a pointer to the handler function. */
 
 	ad->datafile_management_handler = handler_fn;
-
-	/* It is illegal to have both the save frame and load frame flags
-	 * set at the same time.  If this has been done, we turn off the
-	 * load frame flag and generate a warning message.
-	 */
-
-#if 0
-	if ( (flags & MXF_AD_SAVE_FRAME_AFTER_ACQUISITION)
-	  && (flags & MXF_AD_LOAD_FRAME_AFTER_ACQUISITION) )
-	{
-	    ad->area_detector_flags &= (~MXF_AD_LOAD_FRAME_AFTER_ACQUISITION);
-
-	    mx_warning(
-	    "Area detector '%s' was configure to both save image frames "
-	    "and load image frames after image acquisition completes.  "
-	    "These two actions are contradictory, so only the save image "
-	    "frame operation will be performed.", record->name );
-	}
-#endif
 
 	/* If we are running in a server with an active callback pipe,
 	 * then setup a timer callback with the handler function as the
@@ -6311,7 +6292,6 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 	unsigned long flags;
 	int os_status, saved_errno;
 	mx_bool_type save_frame_after_acquisition;
-	mx_bool_type load_frame_after_acquisition;
 	mx_bool_type readout_frame_after_acquisition;
 	mx_bool_type new_frames;
 	mx_status_type mx_status;
@@ -6394,12 +6374,6 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 		}
 	} else {
 		save_frame_after_acquisition = FALSE;
-	}
-
-	if ( flags & MXF_AD_LOAD_FRAME_AFTER_ACQUISITION ) {
-		load_frame_after_acquisition = TRUE;
-	} else {
-		load_frame_after_acquisition = FALSE;
 	}
 
 	if ( save_frame_after_acquisition ) {
@@ -6491,6 +6465,18 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 	}
 
 	if ( save_frame_after_acquisition ) {
+
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_TIMING
+		MX_HRT_TIMING total_measurement;
+		MX_HRT_TIMING filename_measurement;
+		MX_HRT_TIMING overwrite_measurement;
+		MX_HRT_TIMING write_file_measurement;
+		MX_HRT_TIMING status_measurement;
+
+		MX_HRT_START( total_measurement );
+		MX_HRT_START( filename_measurement );
+#endif
+
 		/* If a datafile pattern has been specified, then construct
 		 * the next filename that fits the pattern.
 		 */
@@ -6512,63 +6498,50 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 				fname, ad->datafile_name));
 #endif
 		}
-	}
 
 #if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
-	MX_DEBUG(-2,("%s: datafile_directory = '%s'",
-		fname, ad->datafile_directory));
-	MX_DEBUG(-2,("%s: datafile_pattern = '%s'",
-		fname, ad->datafile_pattern));
-	MX_DEBUG(-2,("%s: datafile_name = '%s'", fname, ad->datafile_name));
-	MX_DEBUG(-2,("%s: datafile_number = %lu", fname, ad->datafile_number));
+		MX_DEBUG(-2,("%s: datafile_directory = '%s'",
+			fname, ad->datafile_directory));
+		MX_DEBUG(-2,("%s: datafile_pattern = '%s'",
+			fname, ad->datafile_pattern));
+		MX_DEBUG(-2,("%s: datafile_name = '%s'",
+			fname, ad->datafile_name));
+		MX_DEBUG(-2,("%s: datafile_number = %lu",
+			fname, ad->datafile_number));
 #endif
 
-	if ( strlen(ad->datafile_directory) == 0 ) {
+		/* Construct the full pathname of the file that we will save
+		 * the image to.
+		 */
 
+		if ( strlen(ad->datafile_directory) == 0 ) {
+	
+			if ( strlen(ad->datafile_name) == 0 ) {
+				ad->datafile_total_num_frames++;
+	
+				return mx_error(MXE_INITIALIZATION_ERROR, fname,
+			    "The image frame directory and filename have not "
+			    "yet been specified for area detector '%s'.",
+					record->name );
+			} else {
+				strlcpy( filename, ad->datafile_name,
+					sizeof(filename) );
+			}
+		} else
 		if ( strlen(ad->datafile_name) == 0 ) {
 			ad->datafile_total_num_frames++;
-
+	
 			return mx_error( MXE_INITIALIZATION_ERROR, fname,
-			"The image frame directory and filename have not "
-			"yet been specified for area detector '%s'.",
-				record->name );
+			"No image frame filename has been specified for image "
+			"frame directory '%s' used by area detector '%s'.",
+				ad->datafile_directory, record->name );
 		} else {
-			strlcpy( filename, ad->datafile_name,
-				sizeof(filename) );
+			snprintf( filename, sizeof(filename),
+			  "%s/%s", ad->datafile_directory, ad->datafile_name );
 		}
-	} else
-	if ( strlen(ad->datafile_name) == 0 ) {
-		ad->datafile_total_num_frames++;
-
-		return mx_error( MXE_INITIALIZATION_ERROR, fname,
-		"No image frame filename has been specified for "
-		"image frame directory '%s' used by area detector '%s'.",
-			ad->datafile_directory, record->name );
-	} else {
-		snprintf( filename, sizeof(filename),
-			"%s/%s", ad->datafile_directory, ad->datafile_name );
-	}
-
-	if ( load_frame_after_acquisition ) {
-#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
-		MX_DEBUG(-2,("%s: Loading '%s' image frame from '%s'.",
-			fname, record->name, filename));
-#endif
-
-		mx_status = mx_image_read_file( &(ad->image_frame),
-						ad->datafile_load_format,
-						filename );
-	}
-
-	if ( save_frame_after_acquisition ) {
 
 #if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_TIMING
-		MX_HRT_TIMING total_measurement;
-		MX_HRT_TIMING overwrite_measurement;
-		MX_HRT_TIMING write_file_measurement;
-		MX_HRT_TIMING status_measurement;
-
-		MX_HRT_START( total_measurement );
+		MX_HRT_END( filename_measurement );
 		MX_HRT_START( overwrite_measurement );
 #endif
 

@@ -1592,26 +1592,11 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 			video_input_record->name, record->name );
 	}
 
-	/* Automatic loading of image frames does not make any sense for
-	 * this detector.
-	 */
-
-	if ( ad_flags & MXF_AD_LOAD_FRAME_AFTER_ACQUISITION ) {
-	    ad->area_detector_flags &= (~MXF_AD_LOAD_FRAME_AFTER_ACQUISITION);
-
-	    (void) mx_error( MXE_UNSUPPORTED, fname,
-		"Automatic loading of image frames from disk files "
-		"after an acquisition sequence "
-		"is not supported for area detector '%s', since that "
-		"would result in the loss of all data from the detector.  "
-		"The load frame flag has been turned off.",
-			record->name );
-	}
-
 	/* See if the user has requested the saving of image frames by MX. */
 
-	if ( ad_flags & MXF_AD_SAVE_FRAME_AFTER_ACQUISITION ) {
-
+	if ( ( ad_flags & MXF_AD_SAVE_FRAME_AFTER_ACQUISITION )
+	  || ( ad_flags & MXF_AD_READOUT_FRAME_AFTER_ACQUISITION ) )
+	{
 		MX_DEBUG(-2,("%s: Enabling automatic saving of image frames "
 		"for area detector '%s'.", fname, record->name ));
 
