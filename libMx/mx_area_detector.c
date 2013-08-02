@@ -6644,6 +6644,7 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 		MX_HRT_END( status_measurement );
 		MX_HRT_END( total_measurement );
 
+		MX_HRT_RESULTS( filename_measurement, fname, "for filename" );
 		MX_HRT_RESULTS( overwrite_measurement, fname, "for overwrite" );
 		MX_HRT_RESULTS( write_file_measurement,
 						fname, "for write file" );
