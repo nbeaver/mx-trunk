@@ -745,6 +745,52 @@ mxd_network_area_detector_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* If the MXF_AD_SAVE_FRAME_AFTER_ACQUISITION is set and this is
+	 * an MX server, then we configure automatic saving of image frames.
+	 * If this process is _not_ an MX server, then we ignore the flag.
+	 */
+
+	if ( ad->area_detector_flags & MXF_AD_SAVE_FRAME_AFTER_ACQUISITION ) {
+
+		if ( mx_database_is_server( record ) ) {
+			/* Fetch the current value of total_num_frames from
+			 * the remote MX server.
+			 */
+
+			mx_status =
+			  mxd_network_area_detector_get_total_num_frames( ad );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			/* We need to initialize the local copy of the
+			 * datafile_total_num_frames field to the remote
+			 * MX server's value of total_num_frames.  Otherwise,
+			 * the datafile management handler will attempt to
+			 * write out image frames for each and every image
+			 * acquired since the remote MX server started,
+			 * which could easily be thousands of frames.
+			 */
+
+			ad->datafile_total_num_frames = ad->total_num_frames;
+
+			/* Now it is safe to turn on automatic datafile
+			 * management.
+			 */
+
+			MX_DEBUG(-2,
+				("%s: Network area detector '%s' is setting up "
+				"automatic datafile management.",
+				fname, record->name ));
+
+			mx_status =
+		    mx_area_detector_setup_datafile_management( record, NULL );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+	}
+
 #if MXD_NETWORK_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
 #endif

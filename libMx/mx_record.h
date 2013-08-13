@@ -527,6 +527,8 @@ MX_API mx_status_type  mx_shutdown_hardware( MX_RECORD *record_list );
 
 MX_API MX_LIST_HEAD   *mx_get_record_list_head_struct( MX_RECORD *record );
 
+MX_API mx_bool_type    mx_database_is_server( MX_RECORD *record );
+
 MX_API mx_status_type  mx_set_event_interval( MX_RECORD *record,
 					double event_interval_in_seconds );
 

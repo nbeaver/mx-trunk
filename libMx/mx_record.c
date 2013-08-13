@@ -1871,6 +1871,36 @@ mx_get_record_list_head_struct( MX_RECORD *record )
 	return list_head;
 }
 
+MX_EXPORT mx_bool_type
+mx_database_is_server( MX_RECORD *record )
+{
+	static const char fname[] = "mx_database_is_server()";
+
+	MX_LIST_HEAD *list_head;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+
+		return FALSE;
+	}
+
+	list_head = mx_get_record_list_head_struct( record );
+
+	if ( list_head == (MX_LIST_HEAD *) NULL ) {
+		(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_LIST_HEAD pointer for the running database is NULL." );
+	}
+
+	if ( list_head->is_server ) {
+		return TRUE;
+	} else {
+		return FALSE;
+	}
+}
+
+/* ========= */
+
 MX_EXPORT mx_status_type
 mx_set_event_interval( MX_RECORD *record, double event_interval_in_seconds )
 {
