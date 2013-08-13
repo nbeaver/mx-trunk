@@ -27,11 +27,13 @@
 
 #define MX_IMAGE_DEBUG_NOIR_FD_LEAK	FALSE
 
-#define MX_IMAGE_DEBUG_RAW_TIMING	FALSE
+#define MX_IMAGE_DEBUG_RAW_TIMING	TRUE
 
 #define MX_IMAGE_DEBUG_SMV_TIMING	FALSE
 
 #define MX_IMAGE_TEST_DEZINGER		FALSE
+
+#define MX_IMAGE_RAW_SPLIT_FWRITE	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -3473,6 +3475,9 @@ mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
 	MX_HRT_START( image_data_measurement );
 #endif
 
+
+#if ( MX_IMAGE_RAW_SPLIT_FWRITE == FALSE )
+
 	bytes_written = fwrite(frame->image_data, 1, frame->image_length, file);
 
 	if ( bytes_written < frame->image_length ) {
@@ -3497,6 +3502,87 @@ mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
 			break;
 		}
 	}
+
+#else /* MX_IMAGE_RAW_SPLIT_FWRITE */
+
+	{
+		unsigned long i, num_blocks;
+		unsigned long block_size, remainder_size;
+		char *ptr;
+
+		block_size = 50000L;
+
+		num_blocks = (frame->image_length) / block_size;
+
+		remainder_size = (frame->image_length) % block_size;
+
+		ptr = frame->image_data;
+
+		for ( i = 0; i < num_blocks; i++ ) {
+
+		    bytes_written = fwrite( ptr, 1, block_size, file );
+
+		    if ( bytes_written < block_size ) {
+			saved_errno = errno;
+
+			switch( saved_errno ) {
+			case ENOSPC:
+			    mx_status = mx_error( MXE_DISK_FULL, fname,
+				"The disk used by file '%s' is full.",
+				datafile_name );
+			    break;
+
+			default:
+			    mx_status = mx_error( MXE_FILE_IO_ERROR, fname,
+				"Error writing to RAW image file '%s' at "
+				"image offset (%lu).  "
+				"Errno = %d, error message = '%s'>",
+					datafile_name,
+					i * block_size,
+					saved_errno, strerror(saved_errno) );
+			    break;
+			}
+		    }
+#if 1
+		    fflush( file );
+#endif
+
+		    ptr += block_size;
+		}
+
+		if ( remainder_size != 0 ) {
+
+		    bytes_written = fwrite( ptr, 1, block_size, file );
+
+		    if ( bytes_written < block_size ) {
+			saved_errno = errno;
+
+			switch( saved_errno ) {
+			case ENOSPC:
+			    mx_status = mx_error( MXE_DISK_FULL, fname,
+				"The disk used by file '%s' is full.",
+				datafile_name );
+			    break;
+
+			default:
+			    mx_status = mx_error( MXE_FILE_IO_ERROR, fname,
+				"Error writing to RAW image file '%s' at "
+				"image offset (%lu).  "
+				"Errno = %d, error message = '%s'>",
+					datafile_name,
+					i * block_size,
+					saved_errno, strerror(saved_errno) );
+			    break;
+			}
+		    }
+#if 1
+		    fflush( file );
+#endif
+		}
+	}
+
+#endif /* MX_IMAGE_RAW_SPLIT_FWRITE */
+
 
 #if MX_IMAGE_DEBUG_RAW_TIMING
 	MX_HRT_END( image_data_measurement );
@@ -3524,7 +3610,7 @@ mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
 
 	MX_HRT_RESULTS( startup_measurement, fname, "startup" );
 	MX_HRT_RESULTS( fopen_measurement, fname, "fopen" );
-	MX_HRT_RESULTS( image_data_measurement, fname, "image data" );
+	MX_HRT_RESULTS( image_data_measurement, fname, "fwrite" );
 	MX_HRT_RESULTS( fclose_measurement, fname, "fclose" );
 	MX_HRT_RESULTS( total_measurement, fname, "total" );
 #endif
