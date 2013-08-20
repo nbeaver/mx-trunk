@@ -465,6 +465,7 @@
 #include "s_theta_2theta.h"
 #include "s_slit.h"
 #include "s_pseudomotor.h"
+#include "s_k_power_law.h"
 #include "sl_file.h"
 #include "sxafs_std.h"
 #include "sq_mcs.h"
