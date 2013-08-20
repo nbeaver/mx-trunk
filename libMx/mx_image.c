@@ -1250,6 +1250,153 @@ mx_image_get_average_intensity( MX_IMAGE_FRAME *image_frame,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*------*/
+
+MX_EXPORT mx_bool_type
+mx_image_all_pixels_are_equal( MX_IMAGE_FRAME *frame )
+{
+	static const char fname[] = "mx_image_all_pixels_are_equal()";
+
+	uint8_t  *uint8_array  = NULL;
+	uint16_t *uint16_array = NULL;
+	int32_t  *int32_array  = NULL;
+	uint32_t *uint32_array = NULL;
+	float    *float_array  = NULL;
+	double   *double_array = NULL;
+	unsigned long i, num_pixels, image_format;
+	unsigned long row_framesize, column_framesize;
+	uint8_t pixel_u8, first_pixel_u8;
+	uint16_t pixel_u16, first_pixel_u16;
+	uint32_t pixel_i32, first_pixel_i32;
+	uint32_t pixel_u32, first_pixel_u32;
+	float pixel_float, first_pixel_float;
+	double pixel_double, first_pixel_double;
+	mx_bool_type pixels_are_all_equal;
+
+	if ( frame == (MX_IMAGE_FRAME *) NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_IMAGE_FRAME pointer passed was NULL." );
+	}
+
+	row_framesize    = MXIF_ROW_FRAMESIZE(frame);
+	column_framesize = MXIF_COLUMN_FRAMESIZE(frame);
+	image_format     = MXIF_IMAGE_FORMAT(frame);
+
+	num_pixels = row_framesize * column_framesize;
+
+	pixels_are_all_equal = TRUE;
+
+	switch( image_format ) {
+	case MXT_IMAGE_FORMAT_GREY8:
+		uint8_array = frame->image_data;
+
+		first_pixel_u8 = uint8_array[0];
+
+		for ( i = 0; i < num_pixels; i++ ) {
+			pixel_u8 = uint8_array[i];
+
+			if ( pixel_u8 != first_pixel_u8 ) {
+				pixels_are_all_equal = FALSE;
+
+				break;		/* Exit the for() loop. */
+			}
+		}
+		break;
+
+	case MXT_IMAGE_FORMAT_GREY16:
+		uint16_array = frame->image_data;
+
+		first_pixel_u16 = uint16_array[0];
+
+		for ( i = 0; i < num_pixels; i++ ) {
+			pixel_u16 = uint16_array[i];
+
+			if ( pixel_u16 != first_pixel_u16 ) {
+				pixels_are_all_equal = FALSE;
+
+				break;		/* Exit the for() loop. */
+			}
+		}
+		break;
+
+	case MXT_IMAGE_FORMAT_INT32:
+		int32_array = frame->image_data;
+
+		first_pixel_i32 = int32_array[0];
+
+		for ( i = 0; i < num_pixels; i++ ) {
+			pixel_i32 = int32_array[i];
+
+			if ( pixel_i32 != first_pixel_i32 ) {
+				pixels_are_all_equal = FALSE;
+
+				break;		/* Exit the for() loop. */
+			}
+		}
+		break;
+
+	case MXT_IMAGE_FORMAT_GREY32:
+		uint32_array = frame->image_data;
+
+		first_pixel_u32 = uint32_array[0];
+
+		for ( i = 0; i < num_pixels; i++ ) {
+			pixel_u32 = uint32_array[i];
+
+			if ( pixel_u32 != first_pixel_u32 ) {
+				pixels_are_all_equal = FALSE;
+
+				break;		/* Exit the for() loop. */
+			}
+		}
+		break;
+
+	case MXT_IMAGE_FORMAT_FLOAT:
+		float_array = frame->image_data;
+
+		first_pixel_float = float_array[0];
+
+		for ( i = 0; i < num_pixels; i++ ) {
+			pixel_float = float_array[i];
+
+			if ( fabs( pixel_float - first_pixel_float ) > 0.001 ) {
+				pixels_are_all_equal = FALSE;
+
+				break;		/* Exit the for() loop. */
+			}
+		}
+		break;
+
+	case MXT_IMAGE_FORMAT_DOUBLE:
+		double_array = frame->image_data;
+
+		first_pixel_double = double_array[0];
+
+		for ( i = 0; i < num_pixels; i++ ) {
+			pixel_double = double_array[i];
+
+			if ( fabs(pixel_double - first_pixel_double) > 0.001 ) {
+				pixels_are_all_equal = FALSE;
+
+				break;		/* Exit the for() loop. */
+			}
+		}
+		break;
+
+	default:
+		(void) mx_error( MXE_UNSUPPORTED, fname,
+			"Image format %lu for the MX_IMAGE_FRAME passed "
+			"is not supported by this routine.", image_format );
+
+		return FALSE;
+		break;
+	}
+
+	return pixels_are_all_equal;
+}
+
+/*------*/
+
 #define MX_IMAGE_STATISTICS_MAX_SD	10
 
 #define MX_IMAGE_STATISTICS_BINS	(2*MX_IMAGE_STATISTICS_MAX_SD + 1)

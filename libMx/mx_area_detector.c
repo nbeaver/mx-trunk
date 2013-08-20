@@ -3394,6 +3394,82 @@ mx_area_detector_correct_frame( MX_RECORD *record )
 	return mx_status;
 }
 
+static mx_bool_type
+mxp_area_detector_all_mask_pixels_are_set( MX_IMAGE_FRAME *frame )
+{
+	mx_bool_type mask_pixels_are_equal;
+	unsigned long image_format, first_pixel_value;
+
+	if ( frame == (MX_IMAGE_FRAME *) NULL ) {
+		return TRUE;
+	}
+
+	mask_pixels_are_equal = mx_image_all_pixels_are_equal( frame );
+
+	if ( mask_pixels_are_equal ) {
+		return FALSE;
+	} else {
+		image_format = MXIF_IMAGE_FORMAT( frame );
+
+		switch( image_format ) {
+		case MXT_IMAGE_FORMAT_GREY8:
+			first_pixel_value = *( (uint8_t *) frame->image_data );
+			break;
+		case MXT_IMAGE_FORMAT_GREY16:
+			first_pixel_value = *( (uint16_t *) frame->image_data );
+			break;
+		case MXT_IMAGE_FORMAT_GREY32:
+			first_pixel_value = *( (uint32_t *) frame->image_data );
+			break;
+		default:
+			first_pixel_value = 0;
+			break;
+		}
+
+		if ( first_pixel_value == 0 ) {
+			return FALSE;
+		} else {
+			return TRUE;
+		}
+	}
+}
+
+static double
+mxp_area_detector_constant_bias_pixel_offset( MX_IMAGE_FRAME *frame )
+{
+	double first_pixel_value;
+	unsigned long image_format;
+
+	if ( frame == (MX_IMAGE_FRAME *) NULL ) {
+		return TRUE;
+	}
+
+	image_format = MXIF_IMAGE_FORMAT( frame );
+
+	switch( image_format ) {
+	case MXT_IMAGE_FORMAT_GREY8:
+		first_pixel_value = *( (uint8_t *) frame->image_data );
+		break;
+	case MXT_IMAGE_FORMAT_GREY16:
+		first_pixel_value = *( (uint16_t *) frame->image_data );
+		break;
+	case MXT_IMAGE_FORMAT_GREY32:
+		first_pixel_value = *( (uint32_t *) frame->image_data );
+		break;
+	case MXT_IMAGE_FORMAT_FLOAT:
+		first_pixel_value = *( (float *) frame->image_data );
+		break;
+	case MXT_IMAGE_FORMAT_DOUBLE:
+		first_pixel_value = *( (double *) frame->image_data );
+		break;
+	default:
+		first_pixel_value = 0;
+		break;
+	}
+
+	return first_pixel_value;
+}
+
 MX_EXPORT mx_status_type
 mx_area_detector_transfer_frame( MX_RECORD *record,
 				long frame_type,
@@ -3462,11 +3538,34 @@ mx_area_detector_transfer_frame( MX_RECORD *record,
 	 */
 
 	switch( frame_type ) {
+	case MXFT_AD_MASK_FRAME:
+		if ( ad->mask_frame == NULL ) {
+			ad->all_mask_pixels_are_set = TRUE;
+		} else {
+			ad->all_mask_pixels_are_set =
+				mxp_area_detector_all_mask_pixels_are_set(
+							ad->mask_frame );
+		}
+		break;
+
 	case MXFT_AD_BIAS_FRAME:
-		if ( ad->bias_frame != NULL ) {
-			mx_status = mx_image_get_average_intensity(
-					ad->bias_frame, ad->mask_frame,
-					&(ad->bias_average_intensity) );
+		if ( ad->bias_frame == NULL ) {
+			ad->all_bias_pixels_are_equal = TRUE;
+			ad->constant_bias_pixel_offset = 0.0;
+		} else {
+			if ( mx_image_all_pixels_are_equal( ad->bias_frame ) ) {
+				ad->all_bias_pixels_are_equal = TRUE;
+
+				ad->constant_bias_pixel_offset =
+				  mxp_area_detector_constant_bias_pixel_offset(
+					ad->bias_frame );
+			} else {
+				ad->all_bias_pixels_are_equal = FALSE;
+
+				mx_status = mx_image_get_average_intensity(
+						ad->bias_frame, ad->mask_frame,
+						&(ad->bias_average_intensity) );
+			}
 		}
 
 		mx_free( ad->dark_current_offset_array );
@@ -3581,6 +3680,14 @@ mx_area_detector_load_frame( MX_RECORD *record,
 		break;
 
 	case MXFT_AD_MASK_FRAME:
+		if ( ad->mask_frame == NULL ) {
+			ad->all_mask_pixels_are_set = TRUE;
+		} else {
+			ad->all_mask_pixels_are_set =
+				mxp_area_detector_all_mask_pixels_are_set(
+							ad->mask_frame );
+		}
+
 		if ( ad->rebinned_mask_frame != NULL ) {
 			mx_image_free( ad->rebinned_mask_frame );
 
@@ -3591,11 +3698,25 @@ mx_area_detector_load_frame( MX_RECORD *record,
 		break;
 
 	case MXFT_AD_BIAS_FRAME:
-		if ( ad->bias_frame != NULL ) {
-			mx_status = mx_image_get_average_intensity(
-					ad->bias_frame, ad->mask_frame,
-					&(ad->bias_average_intensity) );
+		if ( ad->bias_frame == NULL ) {
+			ad->all_bias_pixels_are_equal = TRUE;
+			ad->constant_bias_pixel_offset = 0.0;
+		} else {
+			if ( mx_image_all_pixels_are_equal( ad->bias_frame ) ) {
+				ad->all_bias_pixels_are_equal = TRUE;
+
+				ad->constant_bias_pixel_offset =
+				  mxp_area_detector_constant_bias_pixel_offset(
+					ad->bias_frame );
+			} else {
+				ad->all_bias_pixels_are_equal = FALSE;
+
+				mx_status = mx_image_get_average_intensity(
+						ad->bias_frame, ad->mask_frame,
+						&(ad->bias_average_intensity) );
+			}
 		}
+
 		if ( ad->rebinned_bias_frame != NULL ) {
 			mx_image_free( ad->rebinned_bias_frame );
 
@@ -3812,6 +3933,14 @@ mx_area_detector_copy_frame( MX_RECORD *record,
 		break;
 
 	case MXFT_AD_MASK_FRAME:
+		if ( ad->mask_frame == NULL ) {
+			ad->all_mask_pixels_are_set = TRUE;
+		} else {
+			ad->all_mask_pixels_are_set =
+				mxp_area_detector_all_mask_pixels_are_set(
+							ad->mask_frame );
+		}
+
 		if ( ad->rebinned_mask_frame != NULL ) {
 			mx_image_free( ad->rebinned_mask_frame );
 
@@ -3821,11 +3950,25 @@ mx_area_detector_copy_frame( MX_RECORD *record,
 		break;
 
 	case MXFT_AD_BIAS_FRAME:
-		if ( ad->bias_frame != NULL ) {
-			mx_status = mx_image_get_average_intensity(
-					ad->bias_frame, ad->mask_frame,
-					&(ad->bias_average_intensity) );
+		if ( ad->bias_frame == NULL ) {
+			ad->all_bias_pixels_are_equal = TRUE;
+			ad->constant_bias_pixel_offset = 0.0;
+		} else {
+			if ( mx_image_all_pixels_are_equal( ad->bias_frame ) ) {
+				ad->all_bias_pixels_are_equal = TRUE;
+
+				ad->constant_bias_pixel_offset =
+				  mxp_area_detector_constant_bias_pixel_offset(
+					ad->bias_frame );
+			} else {
+				ad->all_bias_pixels_are_equal = FALSE;
+
+				mx_status = mx_image_get_average_intensity(
+						ad->bias_frame, ad->mask_frame,
+						&(ad->bias_average_intensity) );
+			}
 		}
+
 		if ( ad->rebinned_bias_frame != NULL ) {
 			mx_image_free( ad->rebinned_bias_frame );
 

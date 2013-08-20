@@ -320,6 +320,8 @@ MX_API mx_status_type mx_image_get_average_intensity(
 					MX_IMAGE_FRAME *mask_frame,
 					double *average_intensity );
 
+MX_API mx_bool_type mx_image_all_pixels_are_equal( MX_IMAGE_FRAME *frame );
+
 MX_API mx_status_type mx_image_statistics( MX_IMAGE_FRAME *frame );
 
 MX_API mx_status_type mx_image_get_image_data_pointer( MX_IMAGE_FRAME *frame,

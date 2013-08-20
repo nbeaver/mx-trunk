@@ -373,6 +373,17 @@ typedef struct mx_area_detector_type {
 
 	mx_bool_type correction_frames_are_unbinned;
 
+	/* 'all_mask_pixels_are_set' and 'all_bias_pixels_are_equal'
+	 * are used by some detector drivers to optimize the correction
+	 * process when they are set.  'constant_bias_pixel_offset' only
+	 * has a valid value if 'all_bias_pixels_are_equal' is set.
+	 */
+
+	mx_bool_type all_mask_pixels_are_set;
+	mx_bool_type all_bias_pixels_are_equal;
+
+	double constant_bias_pixel_offset;
+
 	/*
 	 * 'flood_field_scale_max' and 'flood_field_scale_min' are used
 	 * in flood field correction to limit the maximum and minimum

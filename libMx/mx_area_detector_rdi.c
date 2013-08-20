@@ -22,7 +22,7 @@
 
 #define MX_RDI_DEBUG_CORRECTION_TIMING			FALSE
 
-#define MX_RDI_DEBUG_LOOP_TIMING			FALSE
+#define MX_RDI_DEBUG_LOOP_TIMING			TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -745,6 +745,7 @@ mx_rdi_flt_image_correction( MX_AREA_DETECTOR *ad,
 	long dark_current_format, non_uniformity_format;
 	double image_exposure_time, dark_current_exposure_time;
 	mx_bool_type abort_if_different_exposure_times;
+	mx_bool_type apply_dark_current, apply_gain;
 	mx_status_type mx_status;
 
 #if MX_RDI_DEBUG_LOOP_TIMING
@@ -1018,13 +1019,95 @@ mx_rdi_flt_image_correction( MX_AREA_DETECTOR *ad,
 	MX_HRT_START( loop_measurement );
 #endif
 
-#if 0 /* FIXME: HIDEOUS TESTING KLUDGE - July 18, 2013 */
-	num_pixels_per_frame = 1600;
-#endif
-
 	/* Loop over all of the pixels and apply the requested corrections. */
 
-	for ( i = 0; i < num_pixels_per_frame; i++ ) {
+#if 0
+	MX_DEBUG(-2,
+	("%s: *** all_mask_pixels_are_set = %d, all_bias_pixels_are_equal = %d",
+		fname, (int) ad->all_mask_pixels_are_set,
+		(int) ad->all_bias_pixels_are_equal));
+#endif
+
+#if 1
+	if ( 1 ) {
+#else
+	if ( ad->all_mask_pixels_are_set && ad->all_bias_pixels_are_equal ) {
+#endif
+	    bias_pixel = ad->constant_bias_pixel_offset;
+
+#if 0
+	    MX_DEBUG(-2,("%s: *** bias_pixel = %f", fname, bias_pixel));
+#endif
+
+	    if ( (correction_flags & MXFT_AD_DARK_CURRENT_FRAME) == 0 ) {
+		apply_dark_current = FALSE;
+		apply_gain = FALSE;
+	    } else {
+		apply_dark_current = TRUE;
+
+		if ( correction_flags & MXFT_AD_FLOOD_FIELD_FRAME ) {
+		    apply_gain = TRUE;
+		} else {
+		    apply_gain = FALSE;
+		}
+	    }
+
+#if 0
+	    MX_DEBUG(-2,("%s: *** apply_dark_current = %d, apply_gain = %d",
+		fname, (int) apply_dark_current, (int) apply_gain));
+#endif
+
+	    if ( apply_dark_current ) {
+		if ( apply_gain ) {
+
+		    for ( i = 0; i < num_pixels_per_frame; i++ ) {
+			image_pixel = flt_image_data_array[i];
+
+			image_pixel -= flt_dark_current_data_array[i];
+
+			image_pixel *= flt_non_uniformity_data_array[i];
+
+			image_pixel += bias_pixel;
+
+#if 1
+			if ( image_pixel > saturation_pixel_value ) {
+			    image_pixel = 65535.0;
+			} else
+			if ( image_pixel < minimum_pixel_value ) {
+			    image_pixel = minimum_pixel_value;
+			}
+#endif
+
+			flt_image_data_array[i] = image_pixel;
+		    }
+
+		} else {
+
+		    for ( i = 0; i < num_pixels_per_frame; i++ ) {
+			image_pixel = flt_image_data_array[i];
+
+			image_pixel -= flt_dark_current_data_array[i];
+
+			image_pixel += bias_pixel;
+
+#if 0
+			if ( image_pixel > saturation_pixel_value ) {
+			    image_pixel = 65535.0;
+			} else
+			if ( image_pixel < minimum_pixel_value ) {
+			    image_pixel = minimum_pixel_value;
+			}
+#endif
+
+			flt_image_data_array[i] = image_pixel;
+		    }
+		}
+	    }
+
+	} else {
+	    /* The more generic case. */
+
+	    for ( i = 0; i < num_pixels_per_frame; i++ ) {
 
 		image_pixel = flt_image_data_array[i];
 
@@ -1068,6 +1151,7 @@ mx_rdi_flt_image_correction( MX_AREA_DETECTOR *ad,
 		}
 
 		flt_image_data_array[i] = image_pixel;
+	    }
 	}
 
 #if MX_RDI_DEBUG_LOOP_TIMING
