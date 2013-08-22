@@ -8,7 +8,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2003, 2005-2006, 2008, 2010 Illinois Institute of Technology
+ * Copyright 2002-2003, 2005-2006, 2008, 2010, 2013
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -268,8 +269,7 @@ mxd_cryostream600_motor_delete_record( MX_RECORD *record )
 		dimension_size[1] = sizeof(char *);
 
 		(void) mx_free_array(
-				cryostream600_motor->response_token_array,
-				2, dimension, dimension_size );
+				cryostream600_motor->response_token_array, 2 );
 	}
 	(void) mx_default_delete_record_handler( record );
 

@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2012 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -685,11 +685,11 @@ mx_array_get_vector( void *array_pointer,
 /*---------------------------------------------------------------------------*/
 
 MX_EXPORT void *
-mx_allocate_array_new( long num_dimensions,
-			long *dimension_array,
-			size_t *data_element_size_array )
+mx_allocate_array( long num_dimensions,
+		long *dimension_array,
+		size_t *data_element_size_array )
 {
-	static const char fname[] = "mx_allocate_array_new()";
+	static const char fname[] = "mx_allocate_array()";
 
 	void *vector, *array;
 	unsigned long dim, num_elements, vector_size;
@@ -729,6 +729,16 @@ mx_allocate_array_new( long num_dimensions,
 		return NULL;
 	}
 
+	/* If this is a 1-dimensional array, then just return the vector
+	 * that we just allocated.
+	 */
+
+	if ( num_dimensions < 2 ) {
+		return vector;
+	}
+
+	/* Multidimensional arrays use mx_array_add_overlay(). */
+
 	mx_status = mx_array_add_overlay( vector,
 					num_dimensions,
 					dimension_array,
@@ -744,15 +754,15 @@ mx_allocate_array_new( long num_dimensions,
 /*---------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mx_free_array_new( void *array_pointer,
-		long num_dimensions,
-		long *dimension_array,
-		size_t *data_element_size_array )
+mx_free_array( void *array_pointer,
+		long num_dimensions )
 {
-	static const char fname[] = "mx_free_array_new()";
+	static const char fname[] = "mx_free_array()";
 
 	void *vector;
 	mx_status_type mx_status;
+
+	mx_status = MX_SUCCESSFUL_RESULT;
 
 	if ( array_pointer == NULL ) {
 		mx_error( MXE_NULL_ARGUMENT, fname,
@@ -777,14 +787,14 @@ mx_free_array_new( void *array_pointer,
 			array_pointer );
 	}
 
-	mx_status = mx_array_free_overlay( array_pointer, num_dimensions );
+	if ( num_dimensions >= 2 ) {
+		mx_status = mx_array_free_overlay( array_pointer,
+							num_dimensions );
+	}
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	mx_free( vector );
 
-	free( vector );
-
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 /*---------------------------------------------------------------------------*/

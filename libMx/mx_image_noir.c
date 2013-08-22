@@ -355,8 +355,7 @@ mx_image_noir_setup( MX_RECORD *mx_imaging_device_record,
 		/* If present, destroy the old one. */
 
 		mx_status = mx_free_array(
-		    image_noir_info->dynamic_header_alias_array,
-		    3, alias_dimension_array, char_sizeof );
+		    image_noir_info->dynamic_header_alias_array, 3 );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

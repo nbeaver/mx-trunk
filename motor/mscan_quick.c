@@ -37,9 +37,7 @@
 #define FREE_MOTOR_NAME_ARRAY \
 	do { \
 		if ( scan_num_motors > 0 ) { \
-			(void) mx_free_array( motor_name_array, \
-				2, motor_name_dimension_array, \
-				name_element_size_array ); \
+			(void) mx_free_array( motor_name_array, 2); \
 			motor_name_array = NULL; \
 		} \
 	} while(0)

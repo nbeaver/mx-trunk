@@ -7,12 +7,14 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2006, 2009 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004-2006, 2009, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define USE_NUM_MEASUREMENTS	FALSE
 
 /* If old_scan == NULL, we are doing a new scan setup.  Otherwise, we are
  * modifying a previous scan.
@@ -27,14 +29,10 @@
 #include "mx_array.h"
 #include "mx_scan_linear.h"
 
-#define USE_NUM_MEASUREMENTS	FALSE
-
 #define FREE_MOTOR_NAME_ARRAY \
 	do { \
 		if ( scan_num_motors > 0 ) { \
-			(void) mx_free_array( motor_name_array, \
-				2, motor_name_dimension_array, \
-				name_element_size_array ); \
+			(void) mx_free_array( motor_name_array, 2 ); \
 			motor_name_array = NULL; \
 		} \
 	} while(0)

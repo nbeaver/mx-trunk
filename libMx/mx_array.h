@@ -7,7 +7,8 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2000, 2003, 2005-2007, 2012 Illinois Institute of Technology
+ * Copyright 1999-2000, 2003, 2005-2007, 2012-2013
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,9 +23,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define mx_allocate_array	mx_allocate_array_old
-#define mx_free_array		mx_free_array_old
 
 MX_API void *mx_allocate_array_old( long num_dimensions,
 					long *dimension_array,
@@ -63,14 +61,12 @@ MX_API mx_status_type mx_array_free_overlay( void *array_pointer,
 MX_API void *mx_array_get_vector( void *array_pointer,
 					long num_dimensions );
 
-MX_API void *mx_allocate_array_new( long num_dimensions,
+MX_API void *mx_allocate_array( long num_dimensions,
 					long *dimension_array,
 					size_t *data_element_size_array );
 
-MX_API mx_status_type mx_free_array_new( void *array_pointer,
-					long num_dimensions,
-					long *dimension_array,
-					size_t *data_element_size_array );
+MX_API mx_status_type mx_free_array( void *array_pointer,
+					long num_dimensions );
 
 /*---*/
 

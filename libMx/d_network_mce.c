@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004, 2006-2007, 2010
+ * Copyright 2000-2001, 2003-2004, 2006-2007, 2010, 2013
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -495,7 +495,7 @@ mxd_network_mce_get_motor_record_array( MX_MCE *mce )
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_free( mce->motor_record_array );
-		mx_free_array(motor_name_array, 2, dimension_array, size_array);
+		mx_free_array( motor_name_array, 2 );
 
 		return mx_status;
 	}
@@ -562,7 +562,7 @@ mxd_network_mce_get_motor_record_array( MX_MCE *mce )
 		current_record = current_record->next_record;
 	}
 
-	mx_free_array( motor_name_array, 2, dimension_array, size_array );
+	mx_free_array( motor_name_array, 2 );
 
 	mx_status = mx_mce_fixup_motor_record_array_field( mce );
 

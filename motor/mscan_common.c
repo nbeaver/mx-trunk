@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2007, 2009, 2011 Illinois Institute of Technology
+ * Copyright 1999-2007, 2009, 2011, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -381,8 +381,7 @@ motor_prompt_for_input_devices(
 			if ( status != SUCCESS ) {
 				if ( input_name_array != NULL ) {
 					(void) mx_free_array( input_name_array,
-						2, input_name_dimension_array,
-						name_element_size_array );
+						2 );
 				}
 				return status;
 			}
@@ -514,9 +513,7 @@ motor_prompt_for_input_devices(
 	}
 
 	if ( input_name_array != NULL ) {
-		(void) mx_free_array( input_name_array,
-			2, input_name_dimension_array,
-			name_element_size_array );
+		(void) mx_free_array( input_name_array, 2 );
 	}
 
 #if 0
