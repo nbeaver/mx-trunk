@@ -186,7 +186,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	n_spec.c n_tcpip.c n_unix.c \
 	v_bluice_command.c v_bluice_master.c \
 	v_bluice_operation.c v_bluice_self_operation.c v_bluice_string.c \
-	v_mathop.c v_pmac.c v_position_select.c v_spec.c
+	v_indirect_string.c v_mathop.c v_pmac.c v_position_select.c v_spec.c
 
 MX_LIB_SRCS = mx_driver.c $(MX_CORE_SRCS) $(MX_DRIVER_SRCS)
 

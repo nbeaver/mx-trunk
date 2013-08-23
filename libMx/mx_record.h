@@ -213,6 +213,7 @@ typedef struct {
 #define MXFT_RECORD		31
 #define MXFT_RECORDTYPE		32
 #define MXFT_INTERFACE		33
+#define MXFT_RECORD_FIELD	34
 
 /* MX_NUM_RECORD_ID_FIELDS is the number of fields at the beginning
  * of a record description needed to unambiguously identify

@@ -10,7 +10,7 @@
  *
  *-----------------------------------------------------------------------
  *
- * Copyright 1999-2012 Illinois Institute of Technology
+ * Copyright 1999-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -156,6 +156,7 @@ mx_get_field_type_string( long field_type )
 	{ MXFT_RECORD,		"MXFT_RECORD" },
 	{ MXFT_RECORDTYPE,	"MXFT_RECORDTYPE" },
 	{ MXFT_INTERFACE,	"MXFT_INTERFACE" },
+	{ MXFT_RECORD_FIELD,	"MXFT_RECORD_FIELD" },
 	};
 
 	static int num_field_types
@@ -1668,6 +1669,123 @@ mx_construct_interface_field( void *dataptr,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/* NOTE: ..._field_field below is not a mistake, since it is dealing with
+ * a referenced MX_RECORD_FIELD rather than a referenced MX_RECORD.
+ */
+
+static mx_status_type
+mx_parse_mx_record_field_field( void *memory_location, char *token,
+			MX_RECORD *record, MX_RECORD_FIELD *local_field,
+			MX_RECORD_FIELD_PARSE_STATUS *parse_status )
+{
+	static const char fname[] = "mx_parse_mx_record_field_field()";
+
+	char *ptr, *dup_token;
+	char *record_name, *field_name;
+	MX_RECORD *referenced_record;
+	MX_RECORD_FIELD *referenced_field;
+	mx_status_type mx_status;
+
+	/* Duplicate the token, since we will be writing a null byte
+	 * to the middle of it.
+	 */
+
+	dup_token = strdup( token );
+
+	if ( dup_token == (char *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a duplicate of the "
+		"token passed to us." );
+	}
+
+	/* A valid token for an MX_RECORD_FIELD will look like the
+	 * string 'record_name.field_name'.  Thus, the token must
+	 * have a '.' period character in it.  If the token has
+	 * more than one period in it, we look for the last one.
+	 */
+
+	ptr = strrchr( dup_token, '.' );
+
+	if ( ptr == NULL ) {
+		mx_free( dup_token );
+
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"No period character '.' was found in the record field name "
+		"'%s' that was passed to us.", token );
+	}
+
+	/* Overwrite the period to split the string into two strings. */
+
+	*ptr = '\0';
+
+	record_name = dup_token;
+	field_name  = ptr + 1;
+
+	referenced_record = mx_get_record( record, record_name );
+
+	if ( referenced_record == (MX_RECORD *) NULL ) {
+
+		/* FIXME: We should allow for placeholder records here, just
+		 * like for MXFT_RECORD fields.
+		 */
+
+		mx_status = mx_error( MXE_NOT_FOUND, fname,
+		"No record named '%s' as found in record field name '%s' "
+		"has been found in the MX database before this record.  "
+		"You will also see this error message if the referenced "
+		"record appears after this line in the MX database.",
+			record_name, token );
+
+		mx_free( dup_token );
+
+		return mx_status;
+	}
+
+	/* Look for the requested field name in the record we just found. */
+
+	mx_status = mx_find_record_field( referenced_record, field_name,
+						&referenced_field );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		mx_status = mx_error( MXE_NOT_FOUND, fname,
+		"Field '%s' was not found in record '%s' referenced by "
+		"database token '%s'.",
+			field_name, referenced_record->name, token );
+
+		mx_free( dup_token );
+
+		return mx_status;
+	}
+
+	mx_free( dup_token );
+
+	mx_write_void_pointer_to_memory_location( memory_location,
+						referenced_field );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_construct_mx_record_field_field( void *memory_location,
+			char *token_buffer, size_t token_buffer_length,
+			MX_RECORD *record, MX_RECORD_FIELD *local_record_field )
+{
+	MX_RECORD_FIELD *referenced_record_field;
+
+	referenced_record_field = (MX_RECORD_FIELD *)
+		mx_read_void_pointer_from_memory_location( memory_location );
+
+	if ( referenced_record_field == NULL ) {
+		strlcpy( token_buffer,
+			"NULL_record_field", token_buffer_length );
+	} else {
+		snprintf( token_buffer, token_buffer_length,
+			"%s", referenced_record_field->name );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /*=====================================================================*/
 
 static mx_status_type
@@ -2596,6 +2714,9 @@ mx_get_token_parser( long field_type,
 	case MXFT_INTERFACE:
 		*token_parser = mx_parse_interface_field;
 		break;
+	case MXFT_RECORD_FIELD:
+		*token_parser = mx_parse_mx_record_field_field;
+		break;
 	default:
 		*token_parser = NULL;
 
@@ -2672,6 +2793,9 @@ mx_get_token_constructor( long field_type,
 		break;
 	case MXFT_INTERFACE:
 		*token_constructor = mx_construct_interface_field;
+		break;
+	case MXFT_RECORD_FIELD:
+		*token_constructor = mx_construct_mx_record_field_field;
 		break;
 	default:
 		*token_constructor = NULL;
@@ -3569,6 +3693,7 @@ mx_get_datatype_sizeof_array( long datatype, size_t **sizeof_array )
 	case MXFT_RECORD:
 	case MXFT_RECORDTYPE:
 	case MXFT_INTERFACE:
+	case MXFT_RECORD_FIELD:
 		*sizeof_array = string_sizeof;
 		break;
 	default:

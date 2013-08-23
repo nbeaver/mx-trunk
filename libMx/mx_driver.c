@@ -500,6 +500,8 @@
 
 #include "v_position_select.h"
 
+#include "v_indirect_string.h"
+
 #include "v_pmac.h"
 #include "v_spec.h"
 #include "v_bluice_master.h"
@@ -3600,6 +3602,13 @@ MX_DRIVER mx_type_table[] = {
 				NULL,
 				&mxv_position_select_num_record_fields,
 				&mxv_position_select_rfield_def_ptr},
+
+{"indirect_string", MXV_CAL_INDIRECT_STRING, MXV_CALC,   MXR_VARIABLE,
+				&mxv_indirect_string_record_function_list,
+				&mxv_indirect_string_variable_function_list,
+				NULL,
+				&mxv_indirect_string_num_record_fields,
+				&mxv_indirect_string_rfield_def_ptr},
 
 /*----*/
 
