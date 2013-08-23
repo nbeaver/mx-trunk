@@ -35,245 +35,6 @@
 #  include "mx_xdr.h"
 #endif
 
-MX_EXPORT void *
-mx_allocate_array_old( long num_dimensions,
-		long *dimension_array,
-		size_t *data_element_size_array )
-{
-	static const char fname[] = "mx_allocate_array_old()";
-
-	void *array_pointer;
-	char *array_element_pointer;
-	void *subarray_pointer;
-	long array_size;
-	long i, j;
-	long current_dimension_element_size;
-	mx_status_type mx_status;
-
-	if ( num_dimensions <= 0 ) {
-		mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal number of dimensions = %ld", num_dimensions );
-
-		return NULL;
-	}
-
-	if ( dimension_array == (long *) NULL ) {
-		mx_error( MXE_NULL_ARGUMENT, fname,
-		"dimension_array pointer passed is NULL." );
-
-		return NULL;
-	}
-
-	if ( data_element_size_array == (size_t *) NULL ) {
-		mx_error( MXE_NULL_ARGUMENT, fname,
-		"data_element_size_array pointer passed is NULL." );
-
-		return NULL;
-	}
-
-	MX_DEBUG( 8,("%s: num_dimensions = %ld", fname, num_dimensions));
-
-	for ( i = 0; i < num_dimensions; i++ ) {
-		MX_DEBUG( 8,(
-			"%s:   dimension[%ld] = %ld, element size[%ld] = %ld",
-			fname, i, dimension_array[i],
-			i, (long) data_element_size_array[i]));
-	}
-
-	current_dimension_element_size
-			= (long) (data_element_size_array[num_dimensions - 1]);
-
-	array_size = dimension_array[0] * current_dimension_element_size;
-
-	MX_DEBUG( 8,("%s: array_size = %ld", fname, array_size));
-
-	if ( array_size <= 0 ) {
-		array_pointer = NULL;
-	} else {
-#if 1
-		array_pointer = (char **) malloc( array_size );
-#else
-		array_pointer = (char **) calloc( array_size, 1 );
-#endif
-	}
-
-	MX_DEBUG( 8,("%s: array_pointer = %p", fname, array_pointer));
-
-	if ( array_pointer == NULL ) {
-		(void) mx_error( MXE_OUT_OF_MEMORY, fname,
-	"Ran out of memory trying to allocate %ld elements of size %ld.",
-			dimension_array[0],
-			(long) current_dimension_element_size );
-		return NULL;
-	}
-
-	if ( num_dimensions > 1 ) {
-		for ( i = 0; i < dimension_array[0]; i++ ) {
-			array_element_pointer = (char *)array_pointer
-					+ i * current_dimension_element_size;
-
-			subarray_pointer = mx_allocate_array_old(
-				num_dimensions - 1,
-				&dimension_array[1],
-				data_element_size_array );
-
-			MX_DEBUG( 8,
-		("%s: array_element_pointer = %p, subarray_pointer = %p",
-			fname, array_element_pointer, subarray_pointer));
-
-			/* If the allocation of this part of the array
-			 * failed, attempt to free all the parts of
-			 * the array that we have already allocated.
-			 */
-
-			if ( subarray_pointer == NULL ) {
-				for ( j = 0; j < i; j++ ) {
-					array_element_pointer
-						= (char *)array_pointer
-					+ j * current_dimension_element_size;
-
-					subarray_pointer =
-				mx_read_void_pointer_from_memory_location(
-						array_element_pointer );
-
-					mx_status = mx_free_array_old(
-						subarray_pointer,
-						num_dimensions - 1,
-						&dimension_array[1],
-						data_element_size_array );
-
-					/* If we can't even free memory,
-					 * then there's not much else we
-					 * can do but give up.
-					 */
-
-					if ( mx_status.code != MXE_SUCCESS )
-						return NULL;
-				}
-
-				return NULL;
-			}
-			mx_write_void_pointer_to_memory_location(
-				array_element_pointer, subarray_pointer );
-		}
-	}
-
-	return array_pointer;
-}
-
-MX_EXPORT mx_status_type
-mx_free_array_old( void *array_pointer,
-		long num_dimensions,
-		long *dimension_array,
-		size_t *data_element_size_array )
-{
-	static const char fname[] = "mx_free_array_old()";
-
-	char *array_element_pointer;
-	void *subarray_pointer;
-	long i;
-	size_t current_dimension_element_size;
-	mx_status_type mx_status;
-
-	if ( array_pointer == NULL ) {
-		mx_error( MXE_NULL_ARGUMENT, fname,
-		"array_pointer passed is NULL." );
-	}
-
-	if ( num_dimensions <= 0 ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal number of dimensions = %ld", num_dimensions );
-	}
-
-	if ( dimension_array == (long *) NULL ) {
-		mx_error( MXE_NULL_ARGUMENT, fname,
-		"dimension_array pointer passed is NULL." );
-	}
-
-	if ( data_element_size_array == (size_t *) NULL ) {
-		mx_error( MXE_NULL_ARGUMENT, fname,
-		"data_element_size_array pointer passed is NULL." );
-	}
-
-	MX_DEBUG( 8,("%s: num_dimensions = %ld", fname, num_dimensions));
-
-	MX_DEBUG( 8,("%s: array_pointer = %p", fname, array_pointer));
-
-	for ( i = 0; i < num_dimensions; i++ ) {
-		MX_DEBUG( 8,(
-			"%s:   dimension[%ld] = %ld, element size[%ld] = %ld",
-			fname, i, dimension_array[i],
-			i, (long) data_element_size_array[i]));
-	}
-
-	current_dimension_element_size
-				= data_element_size_array[num_dimensions - 1];
-
-	if ( num_dimensions == 1 ) {
-		if ( array_pointer == NULL ) {
-			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-				"array_pointer at address %p is NULL.",
-				&array_pointer );
-		}
-
-		/* Finally, let's free the memory pointed to by the pointer. */
-
-		MX_DEBUG( 8,( "%s: About to free pointer array_pointer = %p",
-			fname, array_pointer ));
-
-		free( array_pointer );
-
-		/* Set the pointer to NULL, so that we will know that it
-		 * contains an invalid pointer value.
-		 */
-
-		array_pointer = NULL;
-
-		/* free() is defined to have a void return value in ANSI C,
-		 * so there really isn't any way to confirm that things
-		 * worked correctly.
-		 */
-	} else {
-		for ( i = 0; i < dimension_array[0]; i++ ) {
-			array_element_pointer = (char *)array_pointer
-					+ i * current_dimension_element_size;
-
-			if ( array_element_pointer == NULL ) {
-				return mx_error(
-					MXE_CORRUPT_DATA_STRUCTURE, fname, 
-				"array_element_pointer at address %p is NULL.",
-					&array_element_pointer );
-			}
-
-			subarray_pointer
-				= mx_read_void_pointer_from_memory_location(
-						array_element_pointer );
-
-			if ( subarray_pointer == NULL ) {
-				return mx_error(
-					MXE_CORRUPT_DATA_STRUCTURE, fname, 
-				"subarray_pointer at address %p is NULL.",
-					&subarray_pointer );
-			}
-
-			MX_DEBUG( 8,
-		("%s: array_element_pointer = %p, subarray_pointer = %p",
-			fname, array_element_pointer, subarray_pointer ));
-
-			mx_status = mx_free_array_old( subarray_pointer,
-				num_dimensions - 1, &dimension_array[1],
-				data_element_size_array );
-
-			/*If freeing the subarray didn't work, then give up.*/
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-		}
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
 /*---------------------------------------------------------------------------*/
 
 /* The purpose of the following function is to interpret the value
@@ -652,6 +413,81 @@ mx_array_free_overlay( void *array_pointer,
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_subarray_add_overlay( void *array_pointer,
+			long num_dimensions,
+			long *range_array,
+			size_t *data_element_size_array,
+			void **subarray_pointer )
+{
+	static const char fname[] = "mx_subarray_add_overlay()";
+
+	char *char_array_pointer, *char_subarray_pointer;
+
+	if ( array_pointer == (void *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The array pointer passed was NULL." );
+	}
+	if ( range_array == (long *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The range_array pointer is NULL." );
+	}
+	if ( data_element_size_array == (size_t *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The data_element_size_array pointer is NULL." );
+	}
+	if ( subarray_pointer == (void **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The subarray pointer is NULL." );
+	}
+
+	/* FIXME: For now, we only support 1-dimensional arrays. */
+
+	if ( num_dimensions != 1 ) {
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"You requested a subarray of a %lu dimensional array.  "
+		"At present, this function only supports "
+		"1-dimensional arrays.", num_dimensions );
+	}
+
+	if ( *subarray_pointer == (void *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a subarray pointer." );
+	}
+
+	char_array_pointer = array_pointer;
+
+	char_subarray_pointer = char_array_pointer
+		+ ( range_array[0] * data_element_size_array[0] );
+
+	*subarray_pointer = char_subarray_pointer;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_subarray_free_overlay( void *subarray_pointer,
+			long num_dimensions )
+{
+	mx_status_type mx_status;
+
+	/* mx_subarray_add_overlay() is supposed to create a set of row
+	 * pointers that resemble the kind of set created by the 
+	 * mx_array_add_overlay() function.  If this has been done
+	 * correctly, then we do not have to do anything special with
+	 * subarray overlays and can just pass this request on to the
+	 * mx_array_free_overlay() function.
+	 */
+
+	mx_status = mx_array_free_overlay( subarray_pointer, num_dimensions );
+
+	return mx_status;
 }
 
 /*---------------------------------------------------------------------------*/

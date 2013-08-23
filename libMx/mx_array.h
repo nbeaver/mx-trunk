@@ -24,15 +24,6 @@
 extern "C" {
 #endif
 
-MX_API void *mx_allocate_array_old( long num_dimensions,
-					long *dimension_array,
-					size_t *data_element_size_array );
-
-MX_API mx_status_type mx_free_array_old( void *array_pointer,
-					long num_dimensions,
-					long *dimension_array,
-					size_t *data_element_size_array );
-
 MX_API void *mx_read_void_pointer_from_memory_location(
 					void *memory_location );
 
@@ -58,8 +49,23 @@ MX_API mx_status_type mx_array_add_overlay( void *vector_pointer,
 MX_API mx_status_type mx_array_free_overlay( void *array_pointer,
 					long num_dimensions );
 
+/*---*/
+
+MX_API mx_status_type mx_subarray_add_overlay( void *array_pointer,
+					long num_dimensions,
+					long *range_array,
+					size_t *data_element_size_array,
+					void **subarray_pointer );
+
+MX_API mx_status_type mx_subarray_free_overlay( void *subarray_pointer,
+					long num_dimensions );
+
+/*---*/
+
 MX_API void *mx_array_get_vector( void *array_pointer,
 					long num_dimensions );
+
+/*---*/
 
 MX_API void *mx_allocate_array( long num_dimensions,
 					long *dimension_array,
