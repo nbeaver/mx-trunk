@@ -5002,6 +5002,7 @@ mxp_area_detector_find_register_field( MX_RECORD *record,
 	case MXFT_RECORD:
 	case MXFT_RECORDTYPE:
 	case MXFT_INTERFACE:
+	case MXFT_RECORD_FIELD:
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 		"Parameter '%s' has data type '%s' which is incompatible "
 		"with this function.", register_name,

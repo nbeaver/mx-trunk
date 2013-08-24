@@ -2223,6 +2223,7 @@ mx_print_field_value( FILE *file,
 	MX_RECORD *other_record;
 	MX_INTERFACE *interface;
 	MX_DRIVER *driver;
+	MX_RECORD_FIELD *referenced_field;
 	long field_type;
 
 	field_type = field->datatype;
@@ -2319,6 +2320,19 @@ mx_print_field_value( FILE *file,
 
 		fprintf( file, "%s:%s", interface->record->name,
 					interface->address_name );
+		break;
+	case MXFT_RECORD_FIELD:
+		referenced_field = (MX_RECORD_FIELD *)
+			mx_read_void_pointer_from_memory_location( value_ptr );
+
+		if ( referenced_field->record == (MX_RECORD *) NULL ) {
+			fprintf( file, "\?\?\?.%s",
+					referenced_field->name );
+		} else {
+			fprintf( file, "%s.%s",
+					referenced_field->record->name,
+					referenced_field->name );
+		}
 		break;
 	default:
 		if ( verbose ) {

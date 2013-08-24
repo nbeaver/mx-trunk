@@ -129,8 +129,8 @@ MSDEV_ARCH	= x64
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~1\\micros~3\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~1\\micros~4\\Windows\\v7.0A
-MSDEV_DIR	= c:\\progra~2\\micros~1\\Windows\\v7.0A
-#MSDEV_DIR	= c:\\progra~2\\micros~3\\Windows\\v7.0A
+#MSDEV_DIR	= c:\\progra~2\\micros~1\\Windows\\v7.0A
+MSDEV_DIR	= c:\\progra~2\\micros~3\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~2\\micros~4\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~2\\mia713~1\\Windows\\v7.0A
 #MSDEV_DIR	= d:\\progra~1\\micros~3\\Windows\\v7.0A
@@ -309,8 +309,8 @@ DEFINE		= -D
 
 MAKEDEPEND       = \
     ( rm Makefile.depend ; \
-      makedepend -o.obj -Y -I../libMx -f- [a-l]*.c 2>nul > Makefile.depend ; \
-      makedepend -o.obj -Y -I../libMx -f- [m-z]*.c 2>nul >> Makefile.depend )
+makedepend -o.obj -Y -I../libMx -f- [a-l]*.c 2> /dev/null > Makefile.depend ; \
+makedepend -o.obj -Y -I../libMx -f- [m-z]*.c 2> /dev/null >> Makefile.depend )
 
 
 MAKEDEPEND_CLEAN = rm Makefile.depend

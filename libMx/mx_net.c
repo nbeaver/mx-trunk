@@ -1933,6 +1933,7 @@ mx_network_buffer_show_value( void *buffer,
 		case MXFT_RECORD:
 		case MXFT_RECORDTYPE:
 		case MXFT_INTERFACE:
+		case MXFT_RECORD_FIELD:
 #if 0
 			(void) mx_error( MXE_UNSUPPORTED, fname,
 				"Unsupported data type %lu requested.",
@@ -2587,6 +2588,7 @@ mx_network_field_get_parameters( MX_RECORD *server_record,
 	case MXFT_RECORD:
 	case MXFT_RECORDTYPE:
 	case MXFT_INTERFACE:
+	case MXFT_RECORD_FIELD:
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -3446,6 +3448,7 @@ mx_get_field_array( MX_RECORD *server_record,
 	case MXFT_RECORD:
 	case MXFT_RECORDTYPE:
 	case MXFT_INTERFACE:
+	case MXFT_RECORD_FIELD:
 		datatype = MXFT_STRING;
 	}
 
@@ -3523,20 +3526,22 @@ mx_get_field_array( MX_RECORD *server_record,
 	case MX_NETWORK_DATAFMT_XDR:
 #if HAVE_XDR
 		/* For the "special" field types MXFT_RECORD, MXFT_RECORDTYPE,
-		 * and MXFT_INTERFACE, the server does not actually use XDR
-		 * format.  Instead, it just copies a string into the message
-		 * buffer for all data formats, so we must handle those cases
-		 * specially.
+		 * MXFT_INTERFACE, and MXFT_RECORD_FIELD, the server does not
+		 * actually use XDR format.  Instead, it just copies a string
+		 * into the message buffer for all data formats, so we must
+		 * handle those cases specially.
 		 */
 
 		switch( local_field->datatype ) {
 		case MXFT_RECORD:
 		case MXFT_RECORDTYPE:
 		case MXFT_INTERFACE:
+		case MXFT_RECORD_FIELD:
 			if ( num_dimensions != 1 ) {
 				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 				"The receiving array for the MXFT_RECORD, "
-				"MXFT_RECORDTYPE, or MXFT_INTERFACE field "
+				"MXFT_RECORDTYPE, MXFT_INTERFACE field, "
+				"or MXFT_RECORD_FIELD "
 				"'%s' from server '%s' _must_ be a "
 				"1-dimensional string.  Instead, it is "
 				"a %lu-dimensional array of datatype %lu.",

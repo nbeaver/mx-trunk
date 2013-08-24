@@ -183,6 +183,8 @@ mx_get_scalar_element_size( long mx_datatype,
 	case MXFT_RECORD:     element_size = MXU_RECORD_NAME_LENGTH;      break;
 	case MXFT_RECORDTYPE: element_size = MXU_DRIVER_NAME_LENGTH;      break;
 	case MXFT_INTERFACE:  element_size = MXU_INTERFACE_NAME_LENGTH;   break;
+	case MXFT_RECORD_FIELD:
+			      element_size = MXU_RECORD_FIELD_NAME_LENGTH;break;
 	default:              element_size = 0;                           break;
 	}
 
@@ -807,6 +809,7 @@ mx_copy_array_to_buffer( void *array_pointer,
 	MX_RECORD *mx_record;
 	MX_DRIVER *mx_driver;
 	MX_INTERFACE *mx_interface;
+	MX_RECORD_FIELD *mx_field;
 	char *array_row_pointer, *destination_pointer;
 	size_t native_bytes_to_copy, network_bytes_to_copy;
 	size_t array_size, subarray_size, buffer_left;
@@ -854,6 +857,7 @@ mx_copy_array_to_buffer( void *array_pointer,
 	case MXFT_RECORD:
 	case MXFT_RECORDTYPE:
 	case MXFT_INTERFACE:
+	case MXFT_RECORD_FIELD:
 		structure_name_length =
 			mx_get_scalar_element_size( mx_datatype, FALSE );
 		use_structure_name = TRUE;
@@ -997,6 +1001,19 @@ mx_copy_array_to_buffer( void *array_pointer,
 					mx_interface->address_name,
 					network_bytes_to_copy );
 			break;
+		case MXFT_RECORD_FIELD:
+			mx_field = (MX_RECORD_FIELD *) array_pointer;
+
+			if ( mx_field->record == (MX_RECORD *) NULL ) {
+				snprintf( destination_buffer,
+					network_bytes_to_copy,
+					"\?\?\?.%s", mx_field->name );
+			} else {
+				snprintf( destination_buffer,
+					network_bytes_to_copy,
+					"%s.%s", mx_field->record->name,
+						mx_field->name );
+			}
 
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
@@ -1021,6 +1038,7 @@ mx_copy_array_to_buffer( void *array_pointer,
 		case MXFT_RECORD:
 		case MXFT_RECORDTYPE:
 		case MXFT_INTERFACE:
+		case MXFT_RECORD_FIELD:
 			dimension_array[0] = 1;
 			break;
 		}
@@ -1067,6 +1085,7 @@ mx_copy_array_to_buffer( void *array_pointer,
 		case MXFT_RECORD:
 		case MXFT_RECORDTYPE:
 		case MXFT_INTERFACE:
+		case MXFT_RECORD_FIELD:
 			memcpy( destination_buffer,
 					array_pointer, network_bytes_to_copy );
 			break;
@@ -1241,6 +1260,9 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 	case MXFT_INTERFACE:
 		return mx_error( MXE_UNSUPPORTED, fname,
 			"Writing to an MXFT_INTERFACE field is not allowed." );
+	case MXFT_RECORD_FIELD:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		    "Writing to an MXFT_RECORD_FIELD field is not allowed." );
 	}
 
 	if ( num_native_bytes_copied != NULL ) {
@@ -1358,6 +1380,7 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 		case MXFT_RECORD:
 		case MXFT_RECORDTYPE:
 		case MXFT_INTERFACE:
+		case MXFT_RECORD_FIELD:
 			dimension_array[0] = 1;
 			break;
 		}
@@ -1396,6 +1419,7 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 		case MXFT_RECORD:
 		case MXFT_RECORDTYPE:
 		case MXFT_INTERFACE:
+		case MXFT_RECORD_FIELD:
 			memcpy( array_pointer,
 				source_buffer, network_bytes_to_copy );
 			break;
@@ -1524,6 +1548,7 @@ mx_xdr_get_scalar_element_size( long mx_datatype ) {
 	case MXFT_RECORD:
 	case MXFT_RECORDTYPE:
 	case MXFT_INTERFACE:
+	case MXFT_RECORD_FIELD:
 		native_size = mx_get_scalar_element_size( mx_datatype, FALSE );
 
 		element_size = 4 * (native_size / 4);
@@ -1556,6 +1581,8 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 	MX_RECORD *mx_record;
 	MX_DRIVER *mx_driver;
 	MX_INTERFACE *mx_interface;
+	MX_RECORD_FIELD *mx_field;
+	char field_name[ MXU_RECORD_FIELD_NAME_LENGTH+1 ];
 	char *array_row_pointer, *xdr_ptr, *ptr;
 	size_t subarray_size_product;
 	size_t first_dimension_size, last_dimension_size;
@@ -1647,6 +1674,14 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 		if ( direction == MX_XDR_DECODE ) {
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Writing to an MXFT_INTERFACE field is not allowed." );
+		}
+
+		return_structure_name = TRUE;
+		break;
+	case MXFT_RECORD_FIELD:
+		if ( direction == MX_XDR_DECODE ) {
+			return mx_error( MXE_UNSUPPORTED, fname,
+		    "Writing to an MXFT_RECORD_FIELD field is not allowed." );
 		}
 
 		return_structure_name = TRUE;
@@ -1775,6 +1810,22 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 			mx_interface = (MX_INTERFACE *) array_pointer;
 
 			ptr = mx_interface->address_name;
+
+			xdr_status = xdr_string( &xdrs, &ptr,
+		    (u_int) mx_get_scalar_element_size(mx_datatype, FALSE));
+
+			break;
+		case MXFT_RECORD_FIELD:
+			mx_field = (MX_RECORD_FIELD *) array_pointer;
+
+			if ( mx_field->record == (MX_RECORD *) NULL ) {
+				snprintf( field_name, sizeof(field_name),
+					"\?\?\?.%s", mx_field->name );
+			} else {
+				snprintf( field_name, sizeof(field_name),
+					"%s.%s", mx_field->record->name,
+						mx_field->name );
+			}
 
 			xdr_status = xdr_string( &xdrs, &ptr,
 		    (u_int) mx_get_scalar_element_size(mx_datatype, FALSE));
