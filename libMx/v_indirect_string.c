@@ -146,6 +146,42 @@ mxv_indirect_string_send_variable( MX_VARIABLE *variable )
 MX_EXPORT mx_status_type
 mxv_indirect_string_receive_variable( MX_VARIABLE *variable )
 {
+	static const char fname[] = "mxv_indirect_string_receive_variable()";
+
+	MX_RECORD *record;
+	MX_RECORD_FIELD *referenced_field;
+	MX_INDIRECT_STRING *indirect_string;
+	long i;
+
+	if ( variable == (MX_VARIABLE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_VARIABLE pointer passed was NULL." );
+	}
+
+	record = variable->record;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RECORD pointer for variable %p is NULL.",
+			variable );
+	}
+
+	indirect_string = (MX_INDIRECT_STRING *) record->record_type_struct;
+
+	if ( indirect_string == (MX_INDIRECT_STRING *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_INDIRECT_STRING pointer for variable '%s' is NULL.",
+			record->name );
+	}
+
+	for ( i = 0; i < indirect_string->num_fields; i++ ) {
+		referenced_field = indirect_string->record_field_array[i];
+
+		MX_DEBUG(-2,("%s: field[%ld] = '%s.%s'",
+			fname, i, referenced_field->record->name,
+			referenced_field->name ));
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 

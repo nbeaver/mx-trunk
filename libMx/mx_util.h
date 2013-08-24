@@ -506,8 +506,24 @@ MX_API int mx_snprintf( char *dest, size_t maxlen, const char *format, ... );
 
 MX_API int mx_vsnprintf( char *dest, size_t maxlen, const char *format,
 							va_list args );
-
 #endif
+
+/* If you want to use something like snprintf() to print a list of arguments,
+ * but you do not know how many arguments you will have until run time, then 
+ * snprintf() cannot help you, since C does not allow you to manually create
+ * a va_list using portable C code.
+ *
+ * Instead, we use our homebrew mx_snprint_pointer_array(), where you
+ * provide an array of void pointers to individual arguments that you
+ * want to print.  snprintf() is actually used to implement the printing
+ * of individual items from 'pointer_array'.
+ */
+
+MX_API int mx_snprintf_pointer_array( char *dest,
+					size_t maxlen,
+					const char *format,
+					size_t num_pointers,
+					void **pointer_array );
 
 #if defined(OS_LINUX) || defined(OS_WIN32) || defined(OS_IRIX) \
 	|| defined(OS_HPUX) || defined(OS_TRU64) || defined(OS_VMS) \

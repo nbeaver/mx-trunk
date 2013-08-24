@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2012 Illinois Institute of Technology
+ * Copyright 1999-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1258,7 +1258,8 @@ mx_vsnprintf( char *dest, size_t maxlen, const char *format, va_list args  )
 /* Some platforms do not provide snprintf() and vsnprintf().  For those
  * platforms we fall back to sprintf() and vsprintf().  The hope in doing
  * this is that any buffer overruns will be found on the plaforms that
- * _do_ support snprintf() and vsnprint().
+ * _do_ support snprintf() and vsnprint(), since I really do not want to
+ * bundle my own version of vsnprintf() with MX.
  */
 
 MX_EXPORT int
@@ -1283,6 +1284,88 @@ mx_vsnprintf( char *dest, size_t maxlen, const char *format, va_list args  )
 }
 
 #endif
+
+/*-------------------------------------------------------------------------*/
+
+/* If you want to use something like snprintf() to print a list of arguments,
+ * but you do not know how many arguments you will have until run time, then
+ * snprintf() cannot help you, since C does not allow you to manually create
+ * a va_list using portable C code.
+ *
+ * Instead, we use our homebrew mx_snprint_pointer_array(), where you
+ * provide an array of void pointers to individual arguments that you
+ * want to print.  snprintf() is actually used to implement the printing
+ * of individual items from 'pointer_array'.
+ */
+
+#if !defined( MX_DEBUG_SPRINTF_POINTER_ARRAY )
+# define MX_SPA_DEBUG
+#else
+# define MX_SPA_DEBUG \
+    do { \
+	MX_DEBUG(-2,                                                          \
+	("mx_spa: in_conversion = %d, bytes_written = %lu, bytes_left = %lu", \
+		(int) in_conversion, bytes_written, bytes_left));             \
+	MX_DEBUG(-2,                                                          \
+	("mx_spa: percent_ptr = %p, format_ptr = %p, buffer_ptr = %p",        \
+		percent_ptr, format_ptr, buffer_ptr));                        \
+	MX_DEBUG(-2,                                                          \
+	("mx_spa: percent_ptr = '%s', format_ptr = '%s', buffer_ptr = '%s'",  \
+		percent_ptr, format_ptr, buffer_ptr));                        \
+    } while(0)
+
+#endif
+
+MX_API int
+mx_snprintf_pointer_array( char *dest,
+			size_t maxlen,
+			const char *format,
+			size_t num_pointers,
+			void **pointer_array )
+{
+	static const char fname[] = "mx_snprintf_pointer_array()";
+
+	int snprintf_return_code;
+	unsigned long bytes_written, bytes_left, length;
+	char *format_ptr, *buffer_ptr, *percent_ptr;
+	mx_bool_type in_conversion;
+
+	/* We are not in a conversion when we start this function. */
+
+	in_conversion = FALSE;
+	bytes_written = 0;
+	bytes_left = maxlen;
+	format_ptr = (char *) format;
+	buffer_ptr = dest;
+	percent_ptr = NULL;
+
+	MX_SPA_DEBUG;
+
+	while (1) {
+		/* Look for the next occurence of the % character. */
+
+		percent_ptr = strchr( format_ptr, '%' );
+
+		if ( percent_ptr == NULL ) {
+			/* We are now beyond the last conversion character,
+			 * so we just copy the remainder of the format string
+			 * to the destination buffer.
+			 */
+
+			strlcpy( buffer_ptr, format_ptr, bytes_left );
+
+			length = strlen( buffer_ptr );
+
+			bytes_written += length;
+
+			return bytes_written;
+		}
+
+		/* FIXME - Not yet complete (2013-08-24) */
+	}
+
+	return 0;
+}
 
 /*-------------------------------------------------------------------------*/
 
