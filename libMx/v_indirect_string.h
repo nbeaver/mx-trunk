@@ -23,6 +23,7 @@ typedef struct {
 	char format[ MXU_INDIRECT_STRING_FORMAT_LENGTH+1 ];
 	long num_fields;
 	MX_RECORD_FIELD **record_field_array;
+	void **referenced_value_array;
 } MX_INDIRECT_STRING;
 
 #define MX_INDIRECT_STRING_STANDARD_FIELDS \
@@ -43,6 +44,8 @@ typedef struct {
 MX_API_PRIVATE mx_status_type mxv_indirect_string_initialize_driver(
 							MX_DRIVER *driver );
 MX_API_PRIVATE mx_status_type mxv_indirect_string_create_record_structures(
+							MX_RECORD *record );
+MX_API_PRIVATE mx_status_type mxv_indirect_string_finish_record_initialization(
 							MX_RECORD *record );
 
 MX_API_PRIVATE mx_status_type mxv_indirect_string_send_variable(

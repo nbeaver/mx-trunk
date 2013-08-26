@@ -513,13 +513,13 @@ MX_API int mx_vsnprintf( char *dest, size_t maxlen, const char *format,
  * snprintf() cannot help you, since C does not allow you to manually create
  * a va_list using portable C code.
  *
- * Instead, we use our homebrew mx_snprint_pointer_array(), where you
+ * Instead, we use our homebrew mx_snprint_from_pointer_array(), where you
  * provide an array of void pointers to individual arguments that you
  * want to print.  snprintf() is actually used to implement the printing
  * of individual items from 'pointer_array'.
  */
 
-MX_API int mx_snprintf_pointer_array( char *dest,
+MX_API int mx_snprintf_from_pointer_array( char *dest,
 					size_t maxlen,
 					const char *format,
 					size_t num_pointers,

@@ -20,13 +20,16 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
+#include "mx_array.h"
+#include "mx_socket.h"
+#include "mx_process.h"
 #include "mx_variable.h"
 #include "v_indirect_string.h"
 
 MX_RECORD_FUNCTION_LIST mxv_indirect_string_record_function_list = {
 	mxv_indirect_string_initialize_driver,
 	mxv_indirect_string_create_record_structures,
-	NULL,
+	mxv_indirect_string_finish_record_initialization,
 	NULL,
 	NULL,
 	mx_receive_variable
@@ -134,6 +137,87 @@ mxv_indirect_string_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
+mxv_indirect_string_finish_record_initialization( MX_RECORD *record )
+{
+	static const char fname[] =
+		"mxv_indirect_string_finish_record_initialization()";
+
+	MX_RECORD_FIELD *referenced_field;
+	MX_INDIRECT_STRING *indirect_string;
+	long i, num_fields;
+	void *field_value_pointer;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	indirect_string = (MX_INDIRECT_STRING *) record->record_type_struct;
+
+	if ( indirect_string == (MX_INDIRECT_STRING *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_INDIRECT_STRING pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	if ( indirect_string->record_field_array == (MX_RECORD_FIELD **) NULL ){
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The record_field_array pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	/* Create and populate the referenced_value_array with value
+	 * pointers from the record_field_array.
+	 */
+
+	num_fields = indirect_string->num_fields;
+
+	indirect_string->referenced_value_array =
+				malloc( num_fields * sizeof(void *) );
+
+	if ( indirect_string->referenced_value_array == NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %ld element "
+		"referenced_value_array for record '%s'.",
+			num_fields, record->name );
+	}
+
+	for ( i = 0; i < num_fields; i++ ) {
+		referenced_field = indirect_string->record_field_array[i];
+
+		if ( referenced_field == (MX_RECORD_FIELD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"Element %ld of the record_field_array for "
+			"record '%s' is NULL.", i, record->name );
+		}
+
+		if ( referenced_field->record == (MX_RECORD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"Element %ld of the record_field_array for "
+			"record '%s' has a NULL MX_RECORD pointer.",
+				i, record->name );
+		}
+
+		field_value_pointer =
+			mx_get_field_value_pointer( referenced_field );
+
+		if ( field_value_pointer == NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The field value pointer for record field '%s.%s' "
+			"used by record '%s' is NULL.",
+				referenced_field->record->name,
+				referenced_field->name,
+				record->name );
+		}
+
+		indirect_string->referenced_value_array[i]
+						= field_value_pointer;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mxv_indirect_string_send_variable( MX_VARIABLE *variable )
 {
 	static const char fname[] = "mxv_indirect_string_send_variable()";
@@ -151,7 +235,9 @@ mxv_indirect_string_receive_variable( MX_VARIABLE *variable )
 	MX_RECORD *record;
 	MX_RECORD_FIELD *referenced_field;
 	MX_INDIRECT_STRING *indirect_string;
-	long i;
+	long i, bytes_written;
+	char *string_value_ptr;
+	mx_status_type mx_status;
 
 	if ( variable == (MX_VARIABLE *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -174,13 +260,34 @@ mxv_indirect_string_receive_variable( MX_VARIABLE *variable )
 			record->name );
 	}
 
+	/* Make sure all of the referenced fields have been processed. */
+
 	for ( i = 0; i < indirect_string->num_fields; i++ ) {
 		referenced_field = indirect_string->record_field_array[i];
 
 		MX_DEBUG(-2,("%s: field[%ld] = '%s.%s'",
 			fname, i, referenced_field->record->name,
 			referenced_field->name ));
+
+		mx_status = mx_process_record_field( referenced_field->record,
+							referenced_field,
+							MX_PROCESS_GET, NULL );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
+
+	/* Now write the value to the string value pointer. */
+
+	string_value_ptr = mx_read_void_pointer_from_memory_location(
+						variable->pointer_to_value );
+
+	bytes_written = mx_snprintf_from_pointer_array( 
+				string_value_ptr,
+				variable->dimension[0],
+				indirect_string->format,
+				indirect_string->num_fields,
+				indirect_string->referenced_value_array );
 
 	return MX_SUCCESSFUL_RESULT;
 }

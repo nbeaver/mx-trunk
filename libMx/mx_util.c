@@ -1292,57 +1292,38 @@ mx_vsnprintf( char *dest, size_t maxlen, const char *format, va_list args  )
  * snprintf() cannot help you, since C does not allow you to manually create
  * a va_list using portable C code.
  *
- * Instead, we use our homebrew mx_snprint_pointer_array(), where you
+ * Instead, we use our homebrew mx_snprint_from_pointer_array(), where you
  * provide an array of void pointers to individual arguments that you
  * want to print.  snprintf() is actually used to implement the printing
  * of individual items from 'pointer_array'.
  */
 
-#if !defined( MX_DEBUG_SPRINTF_POINTER_ARRAY )
-# define MX_SPA_DEBUG
-#else
-# define MX_SPA_DEBUG \
-    do { \
-	MX_DEBUG(-2,                                                          \
-	("mx_spa: in_conversion = %d, bytes_written = %lu, bytes_left = %lu", \
-		(int) in_conversion, bytes_written, bytes_left));             \
-	MX_DEBUG(-2,                                                          \
-	("mx_spa: percent_ptr = %p, format_ptr = %p, buffer_ptr = %p",        \
-		percent_ptr, format_ptr, buffer_ptr));                        \
-	MX_DEBUG(-2,                                                          \
-	("mx_spa: percent_ptr = '%s', format_ptr = '%s', buffer_ptr = '%s'",  \
-		percent_ptr, format_ptr, buffer_ptr));                        \
-    } while(0)
-
-#endif
-
 MX_API int
-mx_snprintf_pointer_array( char *dest,
-			size_t maxlen,
-			const char *format,
-			size_t num_pointers,
-			void **pointer_array )
+mx_snprintf_from_pointer_array( char *destination,
+				size_t maximum_length,
+				const char *format,
+				size_t num_argument_pointers,
+				void **argument_pointer_array )
 {
-	static const char fname[] = "mx_snprintf_pointer_array()";
+	static const char fname[] = "mx_snprintf_from_pointer_array()";
 
 	int snprintf_return_code;
-	unsigned long bytes_written, bytes_left, length;
-	char *format_ptr, *buffer_ptr, *percent_ptr;
-	mx_bool_type in_conversion;
+	long i, bytes_written, bytes_to_copy, bytes_left;
+	char *format_ptr, *percent_ptr;
+	char *conversion_ptr, *local_format;
+	char *snprintf_destination;
+	void *argument_pointer;
 
-	/* We are not in a conversion when we start this function. */
-
-	in_conversion = FALSE;
-	bytes_written = 0;
-	bytes_left = maxlen;
 	format_ptr = (char *) format;
-	buffer_ptr = dest;
 	percent_ptr = NULL;
 
-	MX_SPA_DEBUG;
+	/* You should note that most calls below use strncat(), but a few
+	 * use strlcat().
+	 */
 
-	while (1) {
-		/* Look for the next occurence of the % character. */
+	for ( i = 0; i < num_argument_pointers; /*nothing*/ ) {
+
+		/* Look for the next occurrence of the % character. */
 
 		percent_ptr = strchr( format_ptr, '%' );
 
@@ -1352,19 +1333,128 @@ mx_snprintf_pointer_array( char *dest,
 			 * to the destination buffer.
 			 */
 
-			strlcpy( buffer_ptr, format_ptr, bytes_left );
+			strlcat( destination, format_ptr, maximum_length );
 
-			length = strlen( buffer_ptr );
-
-			bytes_written += length;
+			bytes_written = strlen( destination );
 
 			return bytes_written;
 		}
 
-		/* FIXME - Not yet complete (2013-08-24) */
+#if 0
+		/* Copy everything before the % character to the output
+		 * buffer.
+		 */
+
+		bytes_written = strlen( destination );
+
+		bytes_left = maximum_length - bytes_written;
+
+		bytes_to_copy = percent_ptr - format_ptr;
+
+		if ( bytes_to_copy > bytes_left ) {
+			strncat( destination, format_ptr, bytes_left );
+
+			bytes_written = strlen( destination );
+
+			return bytes_written;
+		} else
+		if ( bytes_to_copy > 0 ) {
+			strncat( destination, format_ptr, bytes_to_copy );
+		}
+#endif
+
+		/* Is the next character after the % character also a %
+		 * character?  If so, then we skip over both of them and
+		 * copy a % character to the output buffer.
+		 */
+
+		if ( percent_ptr[1] == '%' ) {
+
+			/* FIXME: Restructure this so that it instead
+			 * computes bytes_to_copy and rejoins the
+			 * main control flow at the point where the
+			 * local_format string is malloc-ed.
+			 */
+
+			bytes_written = strlen( destination );
+
+			bytes_left = maximum_length - bytes_written;
+
+			if ( bytes_left < 1 ) {
+				return bytes_written;
+			}
+
+			strncat( destination, "%", 1 );
+
+			format_ptr += 2;
+		} else {
+			/* Search for any occurences of the snprintf()
+			 * conversion characters.
+			 */
+
+			conversion_ptr = strpbrk( format_ptr,
+						"aAcdeEfgGiopsuxX" );
+
+			if ( conversion_ptr == (char *) NULL ) {
+
+				/* No conversion characters were found,
+				 * so just copy the rest of the format
+				 * string to the destination.
+				 */
+
+				strlcat( destination, format_ptr,
+						maximum_length );
+
+				bytes_written = strlen( destination );
+
+				return bytes_written;
+			}
+
+			/* A conversion character was found.  We need
+			 * to copy everything up to and including that
+			 * character to a separate buffer that will be
+			 * used by snprintf() to format the output.
+			 */
+
+			bytes_to_copy = conversion_ptr - format_ptr + 1;
+
+			local_format = malloc( bytes_to_copy );
+
+			if ( local_format == NULL ) {
+				(void) mx_error( MXE_OUT_OF_MEMORY, fname,
+				"Ran out of memory trying to allocate a "
+				"%ld byte snprintf format array.",
+					bytes_to_copy );
+
+				bytes_written = strlen( destination );
+
+				return bytes_written;
+			}
+
+			bytes_written = strlen( destination );
+
+			snprintf_destination = destination + bytes_written;
+
+			strncpy( local_format, format_ptr, bytes_to_copy );
+
+			argument_pointer = argument_pointer_array[i];
+
+			snprintf( snprintf_destination,
+				maximum_length - bytes_written,
+				local_format,
+				argument_pointer );
+
+			mx_free( local_format );
+
+			i++;
+
+			format_ptr += bytes_to_copy;
+		}
 	}
 
-	return 0;
+	bytes_written = strlen( destination );
+
+	return bytes_written;
 }
 
 /*-------------------------------------------------------------------------*/
