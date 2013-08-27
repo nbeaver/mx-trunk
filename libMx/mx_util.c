@@ -1309,11 +1309,9 @@ mx_snprintf_from_pointer_array( char *destination,
 {
 	static const char fname[] = "mx_snprintf_from_pointer_array()";
 
-	int snprintf_return_code;
-	long i, bytes_written, local_format_bytes, bytes_left;
-	char *format_ptr, *percent_ptr;
-	char *conversion_ptr, *local_format;
-	char *snprintf_destination;
+	long i, bytes_written, local_format_bytes;
+	const char *format_ptr, *percent_ptr, *conversion_ptr;
+	char *local_format, *snprintf_destination;
 	void *argument_pointer;
 	double double_value;
 	char char_value;
@@ -1339,7 +1337,7 @@ mx_snprintf_from_pointer_array( char *destination,
 
 	*destination = '\0';
 
-	format_ptr = (char *) format;
+	format_ptr = format;
 	percent_ptr = NULL;
 
 	/* You should note that most calls below use strncat(), but a few

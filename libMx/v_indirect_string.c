@@ -145,7 +145,6 @@ mxv_indirect_string_finish_record_initialization( MX_RECORD *record )
 		"mxv_indirect_string_finish_record_initialization()";
 
 	MX_RECORD_FIELD *string_value_field;
-	char *string_value_pointer;
 
 	MX_RECORD_FIELD *referenced_field;
 	void *referenced_field_value_pointer;
