@@ -14,6 +14,8 @@
  *
  */
 
+#define MXV_INDIRECT_STRING_DEBUG	FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -142,10 +144,15 @@ mxv_indirect_string_finish_record_initialization( MX_RECORD *record )
 	static const char fname[] =
 		"mxv_indirect_string_finish_record_initialization()";
 
+	MX_RECORD_FIELD *string_value_field;
+	char *string_value_pointer;
+
 	MX_RECORD_FIELD *referenced_field;
+	void *referenced_field_value_pointer;
+
 	MX_INDIRECT_STRING *indirect_string;
 	long i, num_fields;
-	void *field_value_pointer;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -165,6 +172,17 @@ mxv_indirect_string_finish_record_initialization( MX_RECORD *record )
 		"The record_field_array pointer for record '%s' is NULL.",
 			record->name );
 	}
+
+	/* Get a pointer to the string field value. */
+
+	mx_status = mx_find_record_field( record, "value",
+					&string_value_field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	indirect_string->string_value_pointer
+		= mx_get_field_value_pointer( string_value_field );
 
 	/* Create and populate the referenced_value_array with value
 	 * pointers from the record_field_array.
@@ -198,10 +216,10 @@ mxv_indirect_string_finish_record_initialization( MX_RECORD *record )
 				i, record->name );
 		}
 
-		field_value_pointer =
+		referenced_field_value_pointer =
 			mx_get_field_value_pointer( referenced_field );
 
-		if ( field_value_pointer == NULL ) {
+		if ( referenced_field_value_pointer == NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"The field value pointer for record field '%s.%s' "
 			"used by record '%s' is NULL.",
@@ -211,8 +229,25 @@ mxv_indirect_string_finish_record_initialization( MX_RECORD *record )
 		}
 
 		indirect_string->referenced_value_array[i]
-						= field_value_pointer;
+					= referenced_field_value_pointer;
+
+#if MXV_INDIRECT_STRING_DEBUG
+		MX_DEBUG(-2,("%s: array[i] = %p, ptr = %p", fname,
+			indirect_string->referenced_value_array[i],
+			referenced_field_value_pointer));
+#endif
 	}
+
+#if MXV_INDIRECT_STRING_DEBUG
+	MX_DEBUG(-2,("%s: indirect_string = %p, referenced_value_array = %p",
+		fname, indirect_string,
+		indirect_string->referenced_value_array));
+
+	for ( i = 0; i < num_fields; i++ ) {
+		MX_DEBUG(-2,("%s: referenced_value_array[%ld] = %p",
+		fname, i, indirect_string->referenced_value_array[i]));
+	}
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -236,7 +271,6 @@ mxv_indirect_string_receive_variable( MX_VARIABLE *variable )
 	MX_RECORD_FIELD *referenced_field;
 	MX_INDIRECT_STRING *indirect_string;
 	long i, bytes_written;
-	char *string_value_ptr;
 	mx_status_type mx_status;
 
 	if ( variable == (MX_VARIABLE *) NULL ) {
@@ -265,9 +299,12 @@ mxv_indirect_string_receive_variable( MX_VARIABLE *variable )
 	for ( i = 0; i < indirect_string->num_fields; i++ ) {
 		referenced_field = indirect_string->record_field_array[i];
 
-		MX_DEBUG(-2,("%s: field[%ld] = '%s.%s'",
+#if MXV_INDIRECT_STRING_DEBUG
+		MX_DEBUG(-2,("%s: field[%ld] = '%s.%s', value_ptr = %p",
 			fname, i, referenced_field->record->name,
-			referenced_field->name ));
+			referenced_field->name,
+			mx_get_field_value_pointer( referenced_field ) ));
+#endif
 
 		mx_status = mx_process_record_field( referenced_field->record,
 							referenced_field,
@@ -279,11 +316,8 @@ mxv_indirect_string_receive_variable( MX_VARIABLE *variable )
 
 	/* Now write the value to the string value pointer. */
 
-	string_value_ptr = mx_read_void_pointer_from_memory_location(
-						variable->pointer_to_value );
-
 	bytes_written = mx_snprintf_from_pointer_array( 
-				string_value_ptr,
+				indirect_string->string_value_pointer,
 				variable->dimension[0],
 				indirect_string->format,
 				indirect_string->num_fields,

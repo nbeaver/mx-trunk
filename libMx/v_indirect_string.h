@@ -24,6 +24,7 @@ typedef struct {
 	long num_fields;
 	MX_RECORD_FIELD **record_field_array;
 	void **referenced_value_array;
+	char *string_value_pointer;
 } MX_INDIRECT_STRING;
 
 #define MX_INDIRECT_STRING_STANDARD_FIELDS \

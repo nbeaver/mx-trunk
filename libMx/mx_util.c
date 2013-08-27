@@ -1287,6 +1287,8 @@ mx_vsnprintf( char *dest, size_t maxlen, const char *format, va_list args  )
 
 /*-------------------------------------------------------------------------*/
 
+#define MX_DEBUG_SNPRINTF_FROM_POINTER_ARRAY	FALSE
+
 /* If you want to use something like snprintf() to print a list of arguments,
  * but you do not know how many arguments you will have until run time, then
  * snprintf() cannot help you, since C does not allow you to manually create
@@ -1308,11 +1310,34 @@ mx_snprintf_from_pointer_array( char *destination,
 	static const char fname[] = "mx_snprintf_from_pointer_array()";
 
 	int snprintf_return_code;
-	long i, bytes_written, bytes_to_copy, bytes_left;
+	long i, bytes_written, local_format_bytes, bytes_left;
 	char *format_ptr, *percent_ptr;
 	char *conversion_ptr, *local_format;
 	char *snprintf_destination;
 	void *argument_pointer;
+	double double_value;
+	char char_value;
+	short short_value;
+	int int_value;
+	long long_value;
+	long long long_long_value;
+	unsigned char uchar_value;
+	unsigned short ushort_value;
+	unsigned int uint_value;
+	unsigned long ulong_value;
+	unsigned long long ulong_long_value;
+
+#if MX_DEBUG_SNPRINTF_FROM_POINTER_ARRAY
+	MX_DEBUG(-2,("%s: argument_pointer_array = %p",
+		fname, argument_pointer_array));
+
+	for ( i = 0; i < num_argument_pointers; i++ ) {
+		MX_DEBUG(-2,("%s: argument_pointer_array[%ld] = %p",
+			fname, i, argument_pointer_array[i]));
+	}
+#endif
+
+	*destination = '\0';
 
 	format_ptr = (char *) format;
 	percent_ptr = NULL;
@@ -1321,7 +1346,9 @@ mx_snprintf_from_pointer_array( char *destination,
 	 * use strlcat().
 	 */
 
-	for ( i = 0; i < num_argument_pointers; /*nothing*/ ) {
+	i = 0;
+
+	while( TRUE ) {
 
 		/* Look for the next occurrence of the % character. */
 
@@ -1337,62 +1364,30 @@ mx_snprintf_from_pointer_array( char *destination,
 
 			bytes_written = strlen( destination );
 
-			return bytes_written;
-		}
-
-#if 0
-		/* Copy everything before the % character to the output
-		 * buffer.
-		 */
-
-		bytes_written = strlen( destination );
-
-		bytes_left = maximum_length - bytes_written;
-
-		bytes_to_copy = percent_ptr - format_ptr;
-
-		if ( bytes_to_copy > bytes_left ) {
-			strncat( destination, format_ptr, bytes_left );
-
-			bytes_written = strlen( destination );
-
-			return bytes_written;
-		} else
-		if ( bytes_to_copy > 0 ) {
-			strncat( destination, format_ptr, bytes_to_copy );
-		}
+#if MX_DEBUG_SNPRINTF_FROM_POINTER_ARRAY
+			MX_DEBUG(-2,("%s: RETURN 1, destination = '%s'",
+				fname, destination));
 #endif
 
-		/* Is the next character after the % character also a %
-		 * character?  If so, then we skip over both of them and
-		 * copy a % character to the output buffer.
-		 */
+			return bytes_written;
+		}
 
 		if ( percent_ptr[1] == '%' ) {
 
-			/* FIXME: Restructure this so that it instead
-			 * computes bytes_to_copy and rejoins the
-			 * main control flow at the point where the
-			 * local_format string is malloc-ed.
+			/* Is the next character after the % character also
+			 * a % character?  Then we need to copy _both_
+			 * % characters to the local format buffer to ensure
+			 * that snprintf() correctly handles this.
 			 */
 
-			bytes_written = strlen( destination );
+			local_format_bytes = percent_ptr - format_ptr + 2;
 
-			bytes_left = maximum_length - bytes_written;
-
-			if ( bytes_left < 1 ) {
-				return bytes_written;
-			}
-
-			strncat( destination, "%", 1 );
-
-			format_ptr += 2;
 		} else {
 			/* Search for any occurences of the snprintf()
 			 * conversion characters.
 			 */
 
-			conversion_ptr = strpbrk( format_ptr,
+			conversion_ptr = strpbrk( percent_ptr,
 						"aAcdeEfgGiopsuxX" );
 
 			if ( conversion_ptr == (char *) NULL ) {
@@ -1407,6 +1402,11 @@ mx_snprintf_from_pointer_array( char *destination,
 
 				bytes_written = strlen( destination );
 
+#if MX_DEBUG_SNPRINTF_FROM_POINTER_ARRAY
+				MX_DEBUG(-2,("%s: RETURN 2, destination = '%s'",
+					fname, destination));
+#endif
+
 				return bytes_written;
 			}
 
@@ -1416,43 +1416,255 @@ mx_snprintf_from_pointer_array( char *destination,
 			 * used by snprintf() to format the output.
 			 */
 
-			bytes_to_copy = conversion_ptr - format_ptr + 1;
+			local_format_bytes = conversion_ptr - format_ptr + 1;
+		}
 
-			local_format = malloc( bytes_to_copy );
+		local_format = malloc( local_format_bytes + 1 );
 
-			if ( local_format == NULL ) {
-				(void) mx_error( MXE_OUT_OF_MEMORY, fname,
-				"Ran out of memory trying to allocate a "
-				"%ld byte snprintf format array.",
-					bytes_to_copy );
-
-				bytes_written = strlen( destination );
-
-				return bytes_written;
-			}
+		if ( local_format == NULL ) {
+			(void) mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate a "
+			"%ld byte snprintf format array.",
+				local_format_bytes + 1 );
 
 			bytes_written = strlen( destination );
 
-			snprintf_destination = destination + bytes_written;
+#if MX_DEBUG_SNPRINTF_FROM_POINTER_ARRAY
+			MX_DEBUG(-2,("%s: RETURN 3, destination = '%s'",
+				fname, destination));
+#endif
 
-			strncpy( local_format, format_ptr, bytes_to_copy );
+			return bytes_written;
+		}
 
-			argument_pointer = argument_pointer_array[i];
+		bytes_written = strlen( destination );
+
+		snprintf_destination = destination + bytes_written;
+
+		strncpy( local_format, format_ptr, local_format_bytes );
+
+		local_format[local_format_bytes] = '\0';
+
+		if ( percent_ptr[1] == '%' ) {
+
+#if MX_DEBUG_SNPRINTF_FROM_POINTER_ARRAY
+			MX_DEBUG(-2,("%s: MARKER 0, i = %ld", fname, i));
+#endif
 
 			snprintf( snprintf_destination,
 				maximum_length - bytes_written,
-				local_format,
-				argument_pointer );
+				local_format );
+		} else
+		if ( i < num_argument_pointers )
+		{
+			argument_pointer = argument_pointer_array[i];
+
+#if MX_DEBUG_SNPRINTF_FROM_POINTER_ARRAY
+			MX_DEBUG(-2,
+			("%s: MARKER 1, i = %ld, argument_pointer = %p",
+				fname, i, argument_pointer));
+#endif
+
+			/* For non-string fields, we must give snprintf()
+			 * the value of the item to be printed, instead
+			 * of the pointer to the value.
+			 */
+
+			switch( *conversion_ptr ) {
+			case 's':	/* string */
+			case 'p':	/* pointer */
+
+				snprintf( snprintf_destination,
+					maximum_length - bytes_written,
+					local_format,
+					argument_pointer );
+				break;
+
+			case 'a':	/* double */
+			case 'A':
+			case 'e':
+			case 'E':
+			case 'f':
+			case 'g':
+			case 'G':
+				double_value = *( (double *) argument_pointer );
+
+				snprintf( snprintf_destination,
+					maximum_length - bytes_written,
+					local_format,
+					double_value );
+				break;
+
+			case 'c':	/* char */
+				char_value = *( (char *) argument_pointer );
+
+				snprintf( snprintf_destination,
+					maximum_length - bytes_written,
+					local_format,
+					char_value );
+				break;
+
+			case 'd':	/* int */
+			case 'i':
+				switch( *(conversion_ptr-1) ) {
+				case 'h':
+
+				    switch ( *(conversion_ptr-2) ) {
+				    case 'h':
+					char_value =
+					    *( (char *) argument_pointer );
+
+					snprintf( snprintf_destination,
+						maximum_length - bytes_written,
+						local_format,
+						char_value );
+					break;
+
+				    default:
+					short_value =
+					    *( (short *) argument_pointer );
+
+					snprintf( snprintf_destination,
+						maximum_length - bytes_written,
+						local_format,
+						short_value );
+					break;
+				}
+				break;
+
+				case 'l':
+
+				    switch ( *(conversion_ptr-2) ) {
+				    case 'l':
+					long_long_value =
+					    *( (long long *) argument_pointer );
+
+					snprintf( snprintf_destination,
+						maximum_length - bytes_written,
+						local_format,
+						long_long_value );
+					break;
+
+				    default:
+					long_value =
+					    *( (long *) argument_pointer );
+
+					snprintf( snprintf_destination,
+						maximum_length - bytes_written,
+						local_format,
+						long_value );
+					break;
+				}
+				break;
+
+				default:
+				    int_value = *( (int *) argument_pointer );
+
+				    snprintf( snprintf_destination,
+					maximum_length - bytes_written,
+					local_format,
+					int_value );
+				}
+				break;
+
+			case 'u':	/* unsigned int */
+			case 'o':
+			case 'x':
+			case 'X':
+				switch( *(conversion_ptr-1) ) {
+				case 'h':
+
+				    switch ( *(conversion_ptr-2) ) {
+				    case 'h':
+					uchar_value =
+					*( (unsigned char *) argument_pointer );
+
+					snprintf( snprintf_destination,
+						maximum_length - bytes_written,
+						local_format,
+						uchar_value );
+					break;
+
+				    default:
+					ushort_value =
+				      *( (unsigned short *) argument_pointer );
+
+					snprintf( snprintf_destination,
+						maximum_length - bytes_written,
+						local_format,
+						ushort_value );
+					break;
+				}
+				break;
+
+				case 'l':
+
+				    switch ( *(conversion_ptr-2) ) {
+				    case 'l':
+					ulong_long_value =
+				  *( (unsigned long long *) argument_pointer );
+
+					snprintf( snprintf_destination,
+						maximum_length - bytes_written,
+						local_format,
+						ulong_long_value );
+					break;
+
+				    default:
+					ulong_value =
+					*( (unsigned long *) argument_pointer );
+
+					snprintf( snprintf_destination,
+						maximum_length - bytes_written,
+						local_format,
+						ulong_value );
+					break;
+				}
+				break;
+
+				default:
+				    uint_value =
+					*( (unsigned int *) argument_pointer );
+
+				    snprintf( snprintf_destination,
+					maximum_length - bytes_written,
+					local_format,
+					uint_value );
+				}
+				break;
+
+			}
+
+			i++;
+		} else {
+			/* i >= num_argument_pointers */
+
+#if MX_DEBUG_SNPRINTF_FROM_POINTER_ARRAY
+			MX_DEBUG(-2,("%s: MARKER 2, i = %ld", fname, i));
+#endif
+
+			strlcat( destination, format_ptr, maximum_length );
 
 			mx_free( local_format );
 
-			i++;
-
-			format_ptr += bytes_to_copy;
+			break;		/* Exit the while() loop. */
 		}
+
+		mx_free( local_format );
+
+		format_ptr += local_format_bytes;
+
+#if MX_DEBUG_SNPRINTF_FROM_POINTER_ARRAY
+		MX_DEBUG(-2,
+		("%s: LOOP, destination = '%s'", fname, destination));
+#endif
 	}
 
 	bytes_written = strlen( destination );
+
+#if MX_DEBUG_SNPRINTF_FROM_POINTER_ARRAY
+	MX_DEBUG(-2,("%s: RETURN X, destination = '%s'", fname, destination));
+#endif
 
 	return bytes_written;
 }
