@@ -490,6 +490,170 @@ mx_image_noir_setup( MX_RECORD *mx_imaging_device_record,
 
 /*-------------------------------------------------------------------------*/
 
+static mx_status_type
+mxp_image_noir_info_update_record_value( MX_RECORD *record,
+			MX_IMAGE_NOIR_DYNAMIC_HEADER_VALUE *array_element )
+{
+	static const char fname[] = "mxp_image_noir_info_update_record_value()";
+
+	MX_RECORD_FIELD *value_field;
+	void *value_pointer;
+	long num_value_elements;
+	int saved_errno;
+	long long_value;
+	double double_value;
+	mx_status_type mx_status;
+
+	switch( record->mx_superclass ) {
+	case MXR_DEVICE:
+		switch( record->mx_class ) {
+		case MXC_MOTOR:
+			mx_status = mx_motor_get_position( record,
+							&double_value );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			array_element->datatype = MXFT_DOUBLE;
+			array_element->u.double_value = double_value;
+			break;
+
+		case MXC_SCALER:
+			mx_status = mx_scaler_read( record,
+						&long_value );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			array_element->datatype = MXFT_LONG;
+			array_element->u.long_value = long_value;
+			break;
+
+		default:
+			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+			"Support for MX device class %lu used by "
+			"record '%s' is not yet implemented.",
+				record->mx_class, record->name );
+			break;
+		}
+		break;
+	case MXR_VARIABLE:
+		/* Cause the variable's value to be updated. */
+
+		mx_status = mx_receive_variable( record );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* What datatype is the variable? */
+
+		mx_status = mx_find_record_field( record, "value",
+						&value_field );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Get a pointer to the value of the variable. */
+
+		mx_status = mx_get_1d_array( record,
+					value_field->datatype,
+					&num_value_elements,
+					&value_pointer );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		switch( value_field->datatype ) {
+		case MXFT_STRING:
+			array_element->datatype = MXFT_STRING;
+
+			strlcpy( array_element->u.string_value,
+				value_pointer,
+				MXU_MAX_IMAGE_NOIR_STRING_LENGTH );
+			break;
+		case MXFT_CHAR:
+			array_element->datatype = MXFT_LONG;
+			array_element->u.long_value =
+					*( (char *) value_pointer );
+			break;
+		case MXFT_UCHAR:
+			array_element->datatype = MXFT_LONG;
+			array_element->u.long_value =
+				*( (unsigned char *) value_pointer );
+			break;
+		case MXFT_SHORT:
+			array_element->datatype = MXFT_LONG;
+			array_element->u.long_value =
+				*( (short *) value_pointer );
+			break;
+		case MXFT_USHORT:
+			array_element->datatype = MXFT_LONG;
+			array_element->u.long_value =
+				*( (unsigned short *) value_pointer );
+			break;
+		case MXFT_BOOL:
+			array_element->datatype = MXFT_LONG;
+			array_element->u.long_value =
+				*( (mx_bool_type *) value_pointer );
+			break;
+		case MXFT_LONG:
+			array_element->datatype = MXFT_LONG;
+			array_element->u.long_value =
+					*( (long *) value_pointer );
+			break;
+		case MXFT_ULONG:
+		case MXFT_HEX:
+			array_element->datatype = MXFT_LONG;
+			array_element->u.long_value =
+				*( (unsigned long *) value_pointer );
+			break;
+		case MXFT_FLOAT:
+			array_element->datatype = MXFT_DOUBLE;
+			array_element->u.double_value =
+					*( (float *) value_pointer );
+			break;
+		case MXFT_DOUBLE:
+			array_element->datatype = MXFT_DOUBLE;
+			array_element->u.double_value =
+					*( (double *) value_pointer );
+			break;
+		case MXFT_INT64:
+			array_element->datatype = MXFT_LONG;
+			array_element->u.long_value =
+					*( (int64_t *) value_pointer );
+			break;
+		case MXFT_UINT64:
+			array_element->datatype = MXFT_LONG;
+			array_element->u.long_value =
+					*( (uint64_t *) value_pointer );
+			break;
+		default:
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"MX record field '%s.value' does not have "
+			"a datatype compatible with being read out "
+			"as a double.", record->name );
+			break;
+		}
+		break;
+
+	default:
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Support for MX superclass %lu used by "
+		"record '%s' is not yet implemented.",
+			record->mx_superclass, record->name );
+		break;
+	}
+
+#if MX_IMAGE_NOIR_DEBUG_READ
+	MX_DEBUG(-2,("%s: record '%s' value read = %f",
+		fname, record->name, double_value ));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mx_image_noir_update( MX_IMAGE_NOIR_INFO *image_noir_info )
 {
@@ -625,150 +789,11 @@ mx_image_noir_update( MX_IMAGE_NOIR_INFO *image_noir_info )
 
 		array_element = &image_noir_info->dynamic_header_value_array[i];
 
-		switch( record->mx_superclass ) {
-		case MXR_DEVICE:
-			switch( record->mx_class ) {
-			case MXC_MOTOR:
-				mx_status = mx_motor_get_position( record,
-								&double_value );
+		mx_status = mxp_image_noir_info_update_record_value( record,
+								array_element );
 
-				if ( mx_status.code != MXE_SUCCESS )
-					return mx_status;
-
-				array_element->datatype = MXFT_DOUBLE;
-				array_element->u.double_value = double_value;
-				break;
-
-			case MXC_SCALER:
-				mx_status = mx_scaler_read( record,
-							&long_value );
-
-				if ( mx_status.code != MXE_SUCCESS )
-					return mx_status;
-
-				array_element->datatype = MXFT_LONG;
-				array_element->u.long_value = long_value;
-				break;
-
-			default:
-				return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-				"Support for MX device class %lu used by "
-				"record '%s' is not yet implemented.",
-					record->mx_class, record->name );
-				break;
-			}
-			break;
-		case MXR_VARIABLE:
-			/* Cause the variable's value to be updated. */
-
-			mx_status = mx_receive_variable( record );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			/* What datatype is the variable? */
-
-			mx_status = mx_find_record_field( record, "value",
-							&value_field );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			/* Get a pointer to the value of the variable. */
-
-			mx_status = mx_get_1d_array( record,
-						value_field->datatype,
-						&num_value_elements,
-						&value_pointer );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			switch( value_field->datatype ) {
-			case MXFT_STRING:
-				array_element->datatype = MXFT_STRING;
-
-				strlcpy( array_element->u.string_value,
-					value_pointer,
-					MXU_MAX_IMAGE_NOIR_STRING_LENGTH );
-				break;
-			case MXFT_CHAR:
-				array_element->datatype = MXFT_LONG;
-				array_element->u.long_value =
-						*( (char *) value_pointer );
-				break;
-			case MXFT_UCHAR:
-				array_element->datatype = MXFT_LONG;
-				array_element->u.long_value =
-					*( (unsigned char *) value_pointer );
-				break;
-			case MXFT_SHORT:
-				array_element->datatype = MXFT_LONG;
-				array_element->u.long_value =
-					*( (short *) value_pointer );
-				break;
-			case MXFT_USHORT:
-				array_element->datatype = MXFT_LONG;
-				array_element->u.long_value =
-					*( (unsigned short *) value_pointer );
-				break;
-			case MXFT_BOOL:
-				array_element->datatype = MXFT_LONG;
-				array_element->u.long_value =
-					*( (mx_bool_type *) value_pointer );
-				break;
-			case MXFT_LONG:
-				array_element->datatype = MXFT_LONG;
-				array_element->u.long_value =
-						*( (long *) value_pointer );
-				break;
-			case MXFT_ULONG:
-			case MXFT_HEX:
-				array_element->datatype = MXFT_LONG;
-				array_element->u.long_value =
-					*( (unsigned long *) value_pointer );
-				break;
-			case MXFT_FLOAT:
-				array_element->datatype = MXFT_DOUBLE;
-				array_element->u.double_value =
-						*( (float *) value_pointer );
-				break;
-			case MXFT_DOUBLE:
-				array_element->datatype = MXFT_DOUBLE;
-				array_element->u.double_value =
-						*( (double *) value_pointer );
-				break;
-			case MXFT_INT64:
-				array_element->datatype = MXFT_LONG;
-				array_element->u.long_value =
-						*( (int64_t *) value_pointer );
-				break;
-			case MXFT_UINT64:
-				array_element->datatype = MXFT_LONG;
-				array_element->u.long_value =
-						*( (uint64_t *) value_pointer );
-				break;
-			default:
-				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-				"MX record field '%s.value' does not have "
-				"a datatype compatible with being read out "
-				"as a double.", record->name );
-				break;
-			}
-			break;
-
-		default:
-			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-			"Support for MX superclass %lu used by "
-			"record '%s' is not yet implemented.",
-				record->mx_superclass, record->name );
-			break;
-		}
-
-#if MX_IMAGE_NOIR_DEBUG_READ
-		MX_DEBUG(-2,("%s: record '%s' value read = %f",
-			fname, record->name, double_value ));
-#endif
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	return mx_status;
@@ -785,12 +810,15 @@ mx_image_noir_write_header( FILE *file,
 	int fputs_status, saved_errno;
 	int i, j, num_records, max_aliases, length;
 	char *alias_name;
-	MX_IMAGE_NOIR_DYNAMIC_HEADER_VALUE *alias_value_struct;
+	MX_IMAGE_NOIR_DYNAMIC_HEADER_VALUE *alias_value_struct = NULL;
+	MX_RECORD *referenced_record = NULL;
 
 	MX_RECORD *imaging_device_record = NULL;
 	MX_AREA_DETECTOR *ad = NULL;
 	char *detector_name;
 	char scan_template[2*MXU_FILENAME_LENGTH+1];
+
+	mx_status_type mx_status;
 
 	if ( file == (FILE *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -863,6 +891,32 @@ mx_image_noir_write_header( FILE *file,
 		}
 
 		fprintf( file, "SCAN_TEMPLATE=%s;\n", scan_template );
+
+		if ( ad->exposure_motor_record != (MX_RECORD *) NULL ) {
+			/* Write the (calculated ?) motor position
+			 * for this frame.
+			 */
+
+			char temp_buffer[40];
+			int c;
+
+			snprintf( temp_buffer, sizeof(temp_buffer),
+				"%s=%f;\n",
+				ad->exposure_motor_record->name,
+				ad->motor_position );
+
+			length = strlen( temp_buffer );
+
+			for ( i = 0; i < length; i++ ) {
+				c = temp_buffer[i];
+
+				if ( islower(c) ) {
+					temp_buffer[i] = toupper(c);
+				}
+			}
+
+			fputs( temp_buffer, file );
+		}
 	}
 
 	/* Write out the dynamic header values. */
@@ -888,6 +942,18 @@ mx_image_noir_write_header( FILE *file,
 
 			alias_value_struct =
 			    &image_noir_info->dynamic_header_value_array[i];
+
+			if ( alias_value_struct->process_field ) {
+
+			    referenced_record =
+				image_noir_info->dynamic_header_record_array[i];
+
+			    mx_status = mxp_image_noir_info_update_record_value(
+				referenced_record, alias_value_struct );
+
+			    if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+			}
 
 #if MX_IMAGE_NOIR_DEBUG_WRITE
 			switch( alias_value_struct->datatype ) {

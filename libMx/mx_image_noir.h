@@ -30,6 +30,7 @@ extern "C" {
 
 typedef struct {
 	long datatype;
+	mx_bool_type process_field;
 	union {
 		double double_value;
 		long long_value;

@@ -52,6 +52,7 @@
 #include "mx_cfn.h"
 #include "mx_motor.h"
 #include "mx_image.h"
+#include "mx_image_noir.h"
 #include "mx_array.h"
 #include "mx_rs232.h"
 #include "mx_pulse_generator.h"
@@ -155,6 +156,10 @@ mxd_radicon_taurus_setup_noir_info( MX_AREA_DETECTOR *ad,
 {
 	static const char fname[] = "mxd_radicon_taurus_setup_noir_info()";
 
+	MX_IMAGE_NOIR_INFO *image_noir_info;
+	MX_RECORD *referenced_record;
+	MX_IMAGE_NOIR_DYNAMIC_HEADER_VALUE *referenced_header_value;
+	long i;
 	char static_header_filename[MXU_FILENAME_LENGTH+1];
 	mx_status_type mx_status;
 
@@ -178,6 +183,30 @@ mxd_radicon_taurus_setup_noir_info( MX_AREA_DETECTOR *ad,
 					"mx_image_noir_records",
 					static_header_filename,
 					&(radicon_taurus->image_noir_info) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Configure the dynamic NOIR headers to process the
+	 * indirect_string records, but none of the others.
+	 */
+
+	image_noir_info = radicon_taurus->image_noir_info;
+
+	for ( i = 0; i < image_noir_info->dynamic_header_num_records; i++ ) {
+		referenced_record =
+			image_noir_info->dynamic_header_record_array[i];
+
+		referenced_header_value =
+			&image_noir_info->dynamic_header_value_array[i];
+
+		if ( referenced_record->mx_type == MXV_CAL_INDIRECT_STRING ) {
+			referenced_header_value->process_field = TRUE;
+		} else {
+			referenced_header_value->process_field = FALSE;
+		}
+	}
+
 	return mx_status;
 }
 
@@ -1167,6 +1196,7 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 	mx_bool_type use_different_si2_value;
 	unsigned long old_sro_mode;
 	unsigned long ad_flags;
+	unsigned long rt_flags;
 	mx_bool_type enable_overrun_checking;
 	mx_status_type mx_status;
 
@@ -1209,6 +1239,19 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	rt_flags = radicon_taurus->radicon_taurus_flags;
+
+	if ( rt_flags & MXF_RADICON_TAURUS_ZERO_EXPOSURE_MOTOR_AT_ARM ) {
+
+		if ( ad->exposure_motor_record != (MX_RECORD *) NULL ) {
+			mx_status = mx_motor_set_position(
+					ad->exposure_motor_record, 0 );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+	}
 
 	/* Save a copy of the current value of 'total_num_frames' so
 	 * that we can compute absolute frame numbers in the circular
@@ -2385,6 +2428,8 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 
 	ad->image_frame->application_ptr = radicon_taurus->image_noir_info;
 
+	flags = radicon_taurus->radicon_taurus_flags;
+
 	/* If configured, get the motor position from buffer_info_array. */
 
 	if ( ad->exposure_motor_record != (MX_RECORD *) NULL ) {
@@ -2402,11 +2447,34 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 		  &(radicon_taurus->buffer_info_array[ absolute_frame_number ]);
 
 		ad->motor_position = buffer_info->motor_position;
+
+		if ( flags & MXF_RADICON_TAURUS_SET_EXPOSURE_MOTOR_POSITION ) {
+			mx_status = mx_motor_set_position(
+					ad->exposure_motor_record,
+					ad->motor_position );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+#if 1
+			{
+				double actual_position;
+
+				mx_status = mx_motor_get_position(
+						ad->exposure_motor_record,
+						&actual_position );
+
+				MX_DEBUG(-2,
+				("%s: '%s' req = %f, act = %f", fname,
+					ad->exposure_motor_record->name,
+					ad->motor_position,
+					actual_position ));
+			}
+#endif
+		}
 	}
 
 	/*---*/
-
-	flags = radicon_taurus->radicon_taurus_flags;
 
 	if ( flags & MXF_RADICON_TAURUS_SAVE_RAW_IMAGES ) {
 

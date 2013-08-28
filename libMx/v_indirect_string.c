@@ -14,7 +14,9 @@
  *
  */
 
-#define MXV_INDIRECT_STRING_DEBUG	FALSE
+#define MXV_INDIRECT_STRING_DEBUG		FALSE
+
+#define MXV_INDIRECT_STRING_DEBUG_VALUE		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -311,6 +313,13 @@ mxv_indirect_string_receive_variable( MX_VARIABLE *variable )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+#if 0 && MXV_INDIRECT_STRING_DEBUG_VALUE
+		MX_DEBUG(-2,("%s: field[%ld] = '%s.%s', last_value = %f",
+			fname, i, referenced_field->record->name,
+			referenced_field->name,
+			referenced_field->last_value));
+#endif
 	}
 
 	/* Now write the value to the string value pointer. */
@@ -321,6 +330,11 @@ mxv_indirect_string_receive_variable( MX_VARIABLE *variable )
 				indirect_string->format,
 				indirect_string->num_fields,
 				indirect_string->referenced_value_array );
+
+#if MXV_INDIRECT_STRING_DEBUG_VALUE
+	MX_DEBUG(-2,("%s: string = '%s'",
+		fname, indirect_string->string_value_pointer));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
