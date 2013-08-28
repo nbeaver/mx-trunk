@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2012 Illinois Institute of Technology
+ * Copyright 2012-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,6 +26,17 @@ extern "C" {
 #include "mx_record.h"
 #include "mx_io.h"
 
+#define MXU_MAX_IMAGE_NOIR_STRING_LENGTH	250
+
+typedef struct {
+	long datatype;
+	union {
+		double double_value;
+		long long_value;
+		char string_value[ MXU_MAX_IMAGE_NOIR_STRING_LENGTH+1 ];
+	} u;
+} MX_IMAGE_NOIR_DYNAMIC_HEADER_VALUE;
+
 typedef struct {
 	MX_RECORD *mx_imaging_device_record;
 
@@ -42,7 +53,7 @@ typedef struct {
 
 	unsigned long dynamic_header_num_records;
 	MX_RECORD **dynamic_header_record_array;
-	double *dynamic_header_value_array;
+	MX_IMAGE_NOIR_DYNAMIC_HEADER_VALUE *dynamic_header_value_array;
 	
 
 	unsigned long dynamic_header_alias_dimension_array[3];

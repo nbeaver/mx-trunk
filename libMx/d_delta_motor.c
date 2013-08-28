@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2007 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2007, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -750,6 +750,7 @@ mxd_delta_motor_get_fixed_position_value(
 		switch( fixed_position_record->mx_type ) {
 		case MXV_NET_DOUBLE:
 		case MXV_EPI_DOUBLE:
+		case MXV_FIELD_DOUBLE:
 			mx_status = mx_receive_variable(fixed_position_record);
 
 			if ( mx_status.code != MXE_SUCCESS )

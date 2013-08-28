@@ -881,6 +881,7 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_MAXIMUM_FRAMESIZE:
 		case MXLV_AD_MOTOR_POSITION:
 		case MXLV_AD_NUM_CORRECTION_MEASUREMENTS:
+		case MXLV_AD_NUM_EXPOSURES:
 		case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
 		case MXLV_AD_READOUT_FRAME:
 		case MXLV_AD_REGISTER_VALUE:
@@ -1155,6 +1156,10 @@ mx_area_detector_process_function( void *record_ptr,
 			break;
 		case MXLV_AD_EXPOSURE_TIME:
 			mx_status = mx_area_detector_get_exposure_time(
+								record, NULL );
+			break;
+		case MXLV_AD_NUM_EXPOSURES:
+			mx_status = mx_area_detector_get_num_exposures(
 								record, NULL );
 			break;
 		case MXLV_AD_TRIGGER_MODE:

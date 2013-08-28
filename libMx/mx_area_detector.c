@@ -1612,6 +1612,34 @@ mx_area_detector_get_exposure_time( MX_RECORD *record,
 /*--------*/
 
 MX_EXPORT mx_status_type
+mx_area_detector_get_num_exposures( MX_RECORD *record,
+					long *num_exposures )
+{
+	static const char fname[] = "mx_area_detector_get_num_exposures()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_SEQUENCE_PARAMETERS *sp;
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers( record, &ad, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	sp = &(ad->sequence_parameters);
+
+	mx_status = mx_sequence_get_num_frames( sp, &(ad->num_exposures));
+
+	if ( num_exposures != (long *) NULL ) {
+		*num_exposures = ad->num_exposures;
+	}
+
+	return mx_status;
+}
+
+/*--------*/
+
+MX_EXPORT mx_status_type
 mx_area_detector_set_one_shot_mode( MX_RECORD *record, double exposure_time )
 {
 	MX_SEQUENCE_PARAMETERS seq_params;
