@@ -499,7 +499,6 @@ mxp_image_noir_info_update_record_value( MX_RECORD *record,
 	MX_RECORD_FIELD *value_field;
 	void *value_pointer;
 	long num_value_elements;
-	int saved_errno;
 	long long_value;
 	double double_value;
 	mx_status_type mx_status;
@@ -660,9 +659,6 @@ mx_image_noir_update( MX_IMAGE_NOIR_INFO *image_noir_info )
 	static const char fname[] = "mx_image_noir_update()";
 
 	MX_RECORD *record;
-	MX_RECORD_FIELD *value_field;
-	void *value_pointer;
-	long num_value_elements;
 	MX_IMAGE_NOIR_DYNAMIC_HEADER_VALUE *array_element;
 	struct stat noir_header_stat_buf;
 	int os_status, saved_errno;
@@ -672,8 +668,6 @@ mx_image_noir_update( MX_IMAGE_NOIR_INFO *image_noir_info )
 	size_t noir_static_header_file_size;
 	size_t bytes_read;
 	unsigned long i;
-	long long_value;
-	double double_value;
 	mx_status_type mx_status;
 
 	mx_status = MX_SUCCESSFUL_RESULT;
