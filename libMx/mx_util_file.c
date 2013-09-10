@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2011 Illinois Institute of Technology
+ * Copyright 1999-2011, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,6 +20,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <ctype.h>
 
 #if defined( OS_WIN32 )
 #include <windows.h>
@@ -41,6 +42,32 @@
 #include "mx_unistd.h"
 #include "mx_stdint.h"
 #include "mx_cfn.h"
+
+/*-------------------------------------------------------------------------*/
+
+#if defined(OS_WIN32)
+
+static HINSTANCE mxp_hinst_shlwapi = NULL;
+
+static mx_bool_type mxp_shlwapi_tested_for = FALSE;
+
+static HINSTANCE
+mxp_get_shlwapi_hinstance( void )
+{
+	if ( mxp_hinst_shlwapi != NULL )
+		return mxp_hinst_shlwapi;
+
+	if ( mxp_shlwapi_tested_for )
+		return NULL;
+
+	mxp_hinst_shlwapi = LoadLibrary( TEXT("shlwapi.dll") );
+
+	mxp_shlwapi_tested_for = TRUE;
+
+	return mxp_hinst_shlwapi;
+}
+
+#endif /* defined(OS_WIN32) */
 
 /*-------------------------------------------------------------------------*/
 
@@ -662,8 +689,6 @@ mx_canonicalize_filename( char *original_filename,
 
 static mx_bool_type mx_canonicalize_filename_is_initialized = FALSE;
 
-static HINSTANCE hinst_shlwapi;
-
 typedef BOOL (*PathCanonicalize_type)( char *, char * );
 
 static PathCanonicalize_type ptrPathCanonicalize = NULL;
@@ -679,12 +704,13 @@ mx_canonicalize_filename( char *original_filename,
 	BOOL os_status;
 	DWORD last_error_code;
 	TCHAR message_buffer[100];
+	HINSTANCE hinst_shlwapi;
 
 	if ( mx_canonicalize_filename_is_initialized == FALSE ) {
 
 		mx_canonicalize_filename_is_initialized = TRUE;
 
-		hinst_shlwapi = LoadLibrary( TEXT("shlwapi.dll") );
+		hinst_shlwapi = mxp_get_shlwapi_hinstance();
 
 		if ( hinst_shlwapi == NULL ) {
 			ptrPathCanonicalize = NULL;
@@ -911,6 +937,178 @@ mx_mkdir( char *pathname, mode_t mode )
 
 	return os_status;
 }
+
+#endif
+
+/*=========================================================================*/
+
+#if defined(OS_WIN32)
+
+typedef int (*mxp_PathGetDriveNumber_type)( LPCTSTR );
+typedef int (*mxp_PathBuildRoot_type)( LPCTSTR, int );
+
+MX_EXPORT mx_status_type
+mx_get_filesystem_type( char *filename,
+			unsigned long *filesystem_type )
+{
+	static const char fname[] = "mx_get_filesystem_type()";
+
+	static mx_bool_type shlwapi_tested_for = FALSE;
+	static mx_bool_type have_shlwapi_path_functions = FALSE;
+
+	static mxp_PathGetDriveNumber_type pPathGetDriveNumber = NULL;
+	static mxp_PathBuildRoot_type pPathBuildRoot = NULL;
+
+	HINSTANCE hinst_shlwapi;
+	char drive_root_name[4];
+	char *drive_root_name_ptr, *colon_ptr;
+	int drive_number;
+	mx_status_type mx_status;
+
+	/* Get a first approximation to the filesystem type.
+	 * This approximation will be refined later on.
+	 */
+
+	if ( shlwapi_tested_for == FALSE ) {
+		hinst_shlwapi = mxp_get_shlwapi_hinstance();
+
+		if ( hinst_shlwapi == NULL ) {
+			have_shlwapi_path_functions = FALSE;
+		} else {
+			have_shlwapi_path_functions = TRUE;
+
+			pPathGetDriveNumber = (mxp_PathGetDriveNumber_type)
+				GetProcAddress( hinst_shlwapi,
+					TEXT("PathGetDriveNumber") );
+
+			if ( pPathGetDriveNumber == NULL ) {
+				have_shlwapi_path_functions = FALSE;
+			} else {
+				pPathBuildRoot = (mxp_PathBuildRoot_type)
+					GetProcAddress( hinst_shlwapi,
+						TEXT("PathBuildRoot") );
+
+				if ( pPathBuildRoot == NULL ) {
+					have_shlwapi_path_functions = FALSE;
+				}
+			}
+		}
+
+		shlwapi_tested_for = TRUE;
+	}
+
+	/* 1. Get the name of the root for the drive that 
+	 *    we are accessing.
+	 */
+
+	if ( have_shlwapi_path_functions ) {
+
+		drive_number = pPathGetDriveNumber( filename );
+
+		if ( drive_number == -1 ) {
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"The attempt to get the drive number for file '%s' "
+			"failed with Win32 error code %lx",
+				filename, GetLastError() );
+		}
+
+		drive_root_name[0] = '\0';
+
+		pPathBuildRoot( drive_root_name, drive_number );
+
+		if ( drive_root_name[0] == '\0' ) {
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"The attempt to find the root directory name "
+			"for file '%s' failed with Win32 error code %lx",
+				filename, GetLastError() );
+		}
+	} else {
+		/* No shlwapi.dll path functions. */
+
+		char *filename_dup = strdup( filename );
+
+		if ( filename_dup == NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate a duplicate "
+			"memory buffer for string '%s'.", filename );
+		}
+
+		/* Find the first colon ':' character in the string. */
+
+		colon_ptr = strchr( filename_dup, ':' );
+
+		if ( colon_ptr == NULL ) {
+			mx_free( filename_dup );
+
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Filename '%s' does not have a drive letter in it.",
+				filename_dup );
+		}
+
+		/* Null terminate after the colon. */
+
+		colon_ptr[1] = '\0';
+
+		/* See if the character before the colon corresponds to
+		 * a valid drive letter.
+		 */
+
+		drive_root_name_ptr = colon_ptr - 1;
+
+		if ( isupper(*drive_root_name_ptr) ) {
+			*drive_root_name_ptr = tolower( *drive_root_name_ptr );
+		} else
+		if ( islower(*drive_root_name_ptr) ) {
+
+			/* We do nothing in this case. */
+		} else {
+			mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+				"The name '%s' found in filename '%s' is not "
+				"a valid drive name.",
+					drive_root_name, filename );
+
+			mx_free( filename_dup );
+
+			return mx_status;
+		}
+
+		mx_free( filename_dup );
+	}
+
+#if 0
+	drive_type = GetDriveType( );
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+#elif defined(OS_LINUX)
+
+MX_EXPORT mx_status_type
+mx_get_filesystem_type( char *filename,
+			unsigned long *filesystem_type )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+#elif 0
+
+MX_EXPORT mx_status_type
+mx_get_filesystem_type( char *filename,
+			unsigned long *filesystem_type )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+#else
+
+#error Getting the filesystem type is not yet supported for this platform.
 
 #endif
 

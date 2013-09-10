@@ -815,6 +815,26 @@ MX_API mx_status_type mx_canonicalize_filename( char *original_name,
 
 /*------------------------------------------------------------------------*/
 
+/* The following flags are used to report the filesystem type below. */
+
+#define MXF_FST_REMOTE		0x80000000
+
+#define MXF_FST_FAT		1
+#define MXF_FST_EXFAT		2
+#define MXF_FST_NTFS		3
+
+#define MXF_FST_CDROM		1001
+#define MXF_FST_UDF		1002
+
+#define MXF_FST_EXT2		2002
+#define MXF_FST_EXT3		2003
+#define MXF_FST_EXT4		2004
+
+MX_API mx_status_type mx_get_filesystem_type( char *filename,
+					unsigned long *filesystem_type );
+
+/*------------------------------------------------------------------------*/
+
 /* Flags for mx_spawn() */
 
 #define MXF_SPAWN_NO_PRELOAD		0x1
