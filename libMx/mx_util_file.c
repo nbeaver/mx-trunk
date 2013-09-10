@@ -948,10 +948,11 @@ typedef int (*mxp_PathGetDriveNumber_type)( LPCTSTR );
 typedef int (*mxp_PathBuildRoot_type)( LPCTSTR, int );
 
 MX_EXPORT mx_status_type
-mx_get_filesystem_type( char *filename,
-			unsigned long *filesystem_type )
+mx_get_filesystem_root_name( char *filename,
+				char *fs_root_name,
+				size_t max_fs_root_name_length )
 {
-	static const char fname[] = "mx_get_filesystem_type()";
+	static const char fname[] = "mx_get_filesystem_root_name()";
 
 	static mx_bool_type shlwapi_tested_for = FALSE;
 	static mx_bool_type have_shlwapi_path_functions = FALSE;
@@ -960,14 +961,28 @@ mx_get_filesystem_type( char *filename,
 	static mxp_PathBuildRoot_type pPathBuildRoot = NULL;
 
 	HINSTANCE hinst_shlwapi;
-	char drive_root_name[4];
-	char *drive_root_name_ptr, *colon_ptr;
+	char *source_fs_root_name_ptr, *source_colon_ptr;
 	int drive_number;
+	DWORD last_error_code;
+	TCHAR error_message[200];
 	mx_status_type mx_status;
 
-	/* Get a first approximation to the filesystem type.
-	 * This approximation will be refined later on.
-	 */
+	if ( filename == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The filename pointer passed was NULL." );
+	}
+	if ( fs_root_name == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The filesystem root name pointer passed was NULL." );
+	}
+	if ( max_fs_root_name_length < 4 ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The specified length (%ld) of the filesystem root name buffer "
+		"is shorter than the minimum value of 4 for Windows.",
+			max_fs_root_name_length );
+	}
+
+	/* Check to see if SHLWAPI.DLL is loaded. */
 
 	if ( shlwapi_tested_for == FALSE ) {
 		hinst_shlwapi = mxp_get_shlwapi_hinstance();
@@ -997,8 +1012,8 @@ mx_get_filesystem_type( char *filename,
 		shlwapi_tested_for = TRUE;
 	}
 
-	/* 1. Get the name of the root for the drive that 
-	 *    we are accessing.
+	/* Now get the name of the filesystem root for the file
+	 * that we are checking.
 	 */
 
 	if ( have_shlwapi_path_functions ) {
@@ -1006,21 +1021,32 @@ mx_get_filesystem_type( char *filename,
 		drive_number = pPathGetDriveNumber( filename );
 
 		if ( drive_number == -1 ) {
+			last_error_code = GetLastError();
+
+			mx_win32_error_message( last_error_code,
+				error_message, sizeof(error_message) );
+
 			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 			"The attempt to get the drive number for file '%s' "
-			"failed with Win32 error code %lx",
-				filename, GetLastError() );
+			"failed.  Win32 error code = %ld, error message = '%s'",
+				filename, last_error_code, error_message );
 		}
 
-		drive_root_name[0] = '\0';
+		fs_root_name[0] = '\0';
 
-		pPathBuildRoot( drive_root_name, drive_number );
+		pPathBuildRoot( fs_root_name, drive_number );
 
-		if ( drive_root_name[0] == '\0' ) {
+		if ( fs_root_name[0] == '\0' ) {
+			last_error_code = GetLastError();
+
+			mx_win32_error_message( last_error_code,
+				error_message, sizeof(error_message) );
+
 			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 			"The attempt to find the root directory name "
-			"for file '%s' failed with Win32 error code %lx",
-				filename, GetLastError() );
+			"for file '%s' failed.  "
+			"Win32 error code = %ld, error message = '%s'",
+				filename, last_error_code, error_message );
 		}
 	} else {
 		/* No shlwapi.dll path functions. */
@@ -1035,9 +1061,9 @@ mx_get_filesystem_type( char *filename,
 
 		/* Find the first colon ':' character in the string. */
 
-		colon_ptr = strchr( filename_dup, ':' );
+		source_colon_ptr = strchr( filename_dup, ':' );
 
-		if ( colon_ptr == NULL ) {
+		if ( source_colon_ptr == NULL ) {
 			mx_free( filename_dup );
 
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -1047,25 +1073,29 @@ mx_get_filesystem_type( char *filename,
 
 		/* Null terminate after the colon. */
 
-		colon_ptr[1] = '\0';
+		source_colon_ptr[1] = '\0';
 
 		/* See if the character before the colon corresponds to
 		 * a valid drive letter.
+		 *
+		 * Warning: This logic will probably only work for
+		 *          the 'C' locale.
 		 */
 
-		drive_root_name_ptr = colon_ptr - 1;
+		source_fs_root_name_ptr = source_colon_ptr - 1;
 
-		if ( isupper(*drive_root_name_ptr) ) {
-			*drive_root_name_ptr = tolower( *drive_root_name_ptr );
+		if ( isupper(*source_fs_root_name_ptr) ) {
+			*source_fs_root_name_ptr =
+				tolower( *source_fs_root_name_ptr );
 		} else
-		if ( islower(*drive_root_name_ptr) ) {
+		if ( islower(*source_fs_root_name_ptr) ) {
 
 			/* We do nothing in this case. */
 		} else {
 			mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 				"The name '%s' found in filename '%s' is not "
 				"a valid drive name.",
-					drive_root_name, filename );
+					fs_root_name, filename );
 
 			mx_free( filename_dup );
 
@@ -1075,9 +1105,100 @@ mx_get_filesystem_type( char *filename,
 		mx_free( filename_dup );
 	}
 
-#if 0
-	drive_type = GetDriveType( );
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#elif defined(OS_MSDOS)
+
+#error Finding the drive root is not yet implemented for this platform.
+
 #endif
+/*=========================================================================*/
+
+#if defined(OS_WIN32)
+
+typedef int (*mxp_PathGetDriveNumber_type)( LPCTSTR );
+typedef int (*mxp_PathBuildRoot_type)( LPCTSTR, int );
+
+#define MXP_MXF_FST_CDROM	999
+
+MX_EXPORT mx_status_type
+mx_get_filesystem_type( char *filename,
+			unsigned long *filesystem_type )
+{
+	static const char fname[] = "mx_get_filesystem_type()";
+
+	UINT drive_type;
+	char drive_root_name[ MXU_FILENAME_LENGTH+1 ];
+	mx_status_type mx_status;
+
+	if ( filename == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The filename pointer passed was NULL." );
+	}
+	if ( filesystem_type == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The filesystem type pointer passed was NULL." );
+	}
+
+	/* Get a first approximation to the filesystem type.
+	 * This approximation will be refined later on.
+	 */
+
+	mx_status = mx_get_filesystem_root_name( filename,
+						drive_root_name,
+						sizeof(drive_root_name) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	drive_type = GetDriveType( drive_root_name );
+
+	switch( drive_type ) {
+	case DRIVE_UNKNOWN:
+	case DRIVE_NO_ROOT_DIR:
+		*filesystem_type = MXF_FST_NOT_FOUND;
+		break;
+
+	case DRIVE_REMOVABLE:
+	case DRIVE_FIXED:
+	case DRIVE_RAMDISK:
+		*filesystem_type = MXF_FST_LOCAL;
+		break;
+
+	case DRIVE_REMOTE:
+		*filesystem_type = MXF_FST_REMOTE;
+		break;
+
+	case DRIVE_CDROM:
+		*filesystem_type = MXP_MXF_FST_CDROM;
+		break;
+
+	default:
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Unrecognized drive type %u returned for drive '%s' "
+		"used by file '%s'.",
+			drive_type, drive_root_name, filename );
+		break;
+	}
+
+	/* For some filesystem types, it is possible to get more precise
+	 * information.
+	 */
+
+	switch( *filesystem_type ) {
+	case MXP_MXF_FST_CDROM:
+		*filesystem_type = MXF_FST_ISO9660;
+		break;
+
+	case MXF_FST_LOCAL:
+		*filesystem_type = MXF_FST_NTFS;
+		break;
+
+	case MXF_FST_REMOTE:
+		*filesystem_type = MXF_FST_SMB;
+		break;
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }

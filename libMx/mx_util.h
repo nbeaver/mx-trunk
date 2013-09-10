@@ -778,12 +778,12 @@ MX_API mx_status_type mx_get_system_boot_time( struct timespec *boot_timespec );
 MX_API mx_status_type mx_get_system_boot_time_from_ticks(
 					struct timespec *boot_timespec );
 
+/*------------------------------------------------------------------------*/
+
 /* mx_copy_file() copies an old file to a new file where new_file_mode
  * specifies the permissions for the new file using the same bit patterns
  * for the mode as the Posix open() and creat() calls.
  */
-
-/*------------------------------------------------------------------------*/
 
 MX_API mx_status_type mx_copy_file( char *original_filename,
 				char *new_filename,
@@ -815,20 +815,32 @@ MX_API mx_status_type mx_canonicalize_filename( char *original_name,
 
 /*------------------------------------------------------------------------*/
 
+MX_API mx_status_type mx_get_filesystem_root_name( char *filename,
+						char *root_name,
+						size_t max_root_name_length );
+
 /* The following flags are used to report the filesystem type below. */
 
-#define MXF_FST_REMOTE		0x80000000
+#define MXF_FST_NOT_FOUND	1
+#define MXF_FST_NOT_MOUNTED	2
 
-#define MXF_FST_FAT		1
-#define MXF_FST_EXFAT		2
-#define MXF_FST_NTFS		3
+#define MXF_FST_LOCAL		0x100000
+#define MXF_FST_REMOTE		0x200000
 
-#define MXF_FST_CDROM		1001
-#define MXF_FST_UDF		1002
+#define MXF_FST_ISO9660		(MXF_FST_LOCAL + 1)
+#define MXF_FST_UDF		(MXF_FST_LOCAL + 2)
 
-#define MXF_FST_EXT2		2002
-#define MXF_FST_EXT3		2003
-#define MXF_FST_EXT4		2004
+#define MXF_FST_FAT		(MXF_FST_LOCAL + 1001)
+#define MXF_FST_EXFAT		(MXF_FST_LOCAL + 1002)
+#define MXF_FST_NTFS		(MXF_FST_LOCAL + 1003)
+
+#define MXF_FST_EXT2		(MXF_FST_LOCAL + 2002)
+#define MXF_FST_EXT3		(MXF_FST_LOCAL + 2003)
+#define MXF_FST_EXT4		(MXF_FST_LOCAL + 2004)
+
+#define MXF_FST_NFS		(MXF_FST_REMOTE + 3001)
+#define MXF_FST_SMB		(MXF_FST_REMOTE + 3002)
+#define MXF_FST_AFP		(MXF_FST_REMOTE + 3003)
 
 MX_API mx_status_type mx_get_filesystem_type( char *filename,
 					unsigned long *filesystem_type );

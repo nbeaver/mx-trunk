@@ -77,24 +77,6 @@ MX_API mx_bool_type mx_file_has_changed( MX_FILE_MONITOR *file_monitor );
 
 /*----*/
 
-/* The following flags are used to report the filesystem_type below. */
-
-#define MXF_FST_REMOTE		0x80000000
-
-#define MXF_FST_FAT		1
-#define MXF_FST_EXFAT		2
-#define MXF_FST_NTFS		3
-
-#define MXF_FST_CDROM		1001
-#define MXF_FST_UDF		1002
-
-#define MXF_FST_EXT2		2002
-#define MXF_FST_EXT3		2003
-#define MXF_FST_EXT4		2004
-
-MX_API mx_status_type mx_get_filesystem_type( char *filename,
-					unsigned long *filesystem_type );
-
 #ifdef __cplusplus
 }
 #endif
