@@ -1102,6 +1102,10 @@ mx_get_filesystem_root_name( char *filename,
 			return mx_status;
 		}
 
+		strlcpy( fs_root_name,
+			source_fs_root_name_ptr,
+			max_fs_root_name_length );
+
 		mx_free( filename_dup );
 	}
 
@@ -1195,7 +1199,7 @@ mx_get_filesystem_type( char *filename,
 
 	case MXF_FST_LOCAL:
 		{
-			BYTE ioctl_buffer[1024];
+			BYTE ioctl_buffer[10240];
 			FILESYSTEM_STATISTICS *fs_statistics;
 			HANDLE file_handle;
 			DWORD bytes_returned;
