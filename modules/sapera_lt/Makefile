@@ -10,9 +10,9 @@ MX_ARCH = win32
 #       acceptable.
 #
 
-SAPERA_LT_DIR = c:\\DALSA\\Sapera
-#SAPERA_LT_DIR = c:\\progra~1\\teledy~1\\Sapera
+SAPERA_LT_DIR = c:\\progra~1\\teledy~1\\Sapera
 #SAPERA_LT_DIR = d:\\progra~1\\teledy~1\\Sapera
+#SAPERA_LT_DIR = c:\\DALSA\\Sapera
 
 all: sapera_lt.mxo
 

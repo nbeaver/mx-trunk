@@ -1129,7 +1129,9 @@ mx_get_filesystem_type( char *filename,
 	static const char fname[] = "mx_get_filesystem_type()";
 
 	UINT drive_type;
+	DWORD last_error_code;
 	char drive_root_name[ MXU_FILENAME_LENGTH+1 ];
+	char error_message[200];
 	mx_status_type mx_status;
 
 	if ( filename == NULL ) {
@@ -1192,7 +1194,88 @@ mx_get_filesystem_type( char *filename,
 		break;
 
 	case MXF_FST_LOCAL:
-		*filesystem_type = MXF_FST_NTFS;
+		{
+			BYTE ioctl_buffer[1024];
+			FILESYSTEM_STATISTICS *fs_statistics;
+			HANDLE file_handle;
+			DWORD bytes_returned;
+			BOOL ioctl_result;
+
+			file_handle = CreateFile( drive_root_name,
+					0,
+					FILE_SHARE_READ
+					  | FILE_SHARE_WRITE
+					  | FILE_SHARE_DELETE,
+					NULL,
+					OPEN_EXISTING,
+					FILE_FLAG_BACKUP_SEMANTICS,
+					NULL );
+
+			if ( file_handle == INVALID_HANDLE_VALUE ) {
+				last_error_code = GetLastError();
+
+				mx_win32_error_message( last_error_code,
+					error_message, sizeof(error_message) );
+
+				return mx_error(
+					MXE_OPERATING_SYSTEM_ERROR, fname,
+				"The attempt to access the drive root '%s' "
+				"used by file '%s' failed.  "
+				"Win32 error code = %ld, error message = '%s'",
+					drive_root_name, filename,
+					last_error_code, error_message );
+			}
+
+			ioctl_result = DeviceIoControl( file_handle,
+					FSCTL_FILESYSTEM_GET_STATISTICS,
+					NULL, 0,
+					ioctl_buffer, sizeof(ioctl_buffer),
+					&bytes_returned, NULL );
+
+			if ( ioctl_result == 0 ) {
+				last_error_code = GetLastError();
+
+				CloseHandle( file_handle );
+
+				mx_win32_error_message( last_error_code,
+				error_message, sizeof(error_message) );
+
+				return mx_error(
+					MXE_OPERATING_SYSTEM_ERROR, fname,
+				"The attempt to get filesystem statistics "
+				"for filesystem '%s' failed.  "
+				"Win32 error code = %ld, error message = '%s'",
+					drive_root_name,
+					last_error_code, error_message );
+			}
+
+			CloseHandle( file_handle );
+
+			fs_statistics = (FILESYSTEM_STATISTICS *) ioctl_buffer;
+
+			switch( fs_statistics->FileSystemType ) {
+			case FILESYSTEM_STATISTICS_TYPE_EXFAT:
+				*filesystem_type = MXF_FST_EXFAT;
+				break;
+
+			case FILESYSTEM_STATISTICS_TYPE_FAT:
+				*filesystem_type = MXF_FST_FAT;
+				break;
+
+			case FILESYSTEM_STATISTICS_TYPE_NTFS:
+				*filesystem_type = MXF_FST_NTFS;
+				break;
+
+			default:
+				return mx_error(
+					MXE_OPERATING_SYSTEM_ERROR, fname,
+					"Filesystem '%s' has unrecognized "
+					"filesystem type %ld.",
+						drive_root_name,
+						fs_statistics->FileSystemType );
+				break;
+			}
+		}
 		break;
 
 	case MXF_FST_REMOTE:
@@ -1211,6 +1294,8 @@ MX_EXPORT mx_status_type
 mx_get_filesystem_type( char *filename,
 			unsigned long *filesystem_type )
 {
+	*filesystem_type = MXF_FST_EXT2;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
