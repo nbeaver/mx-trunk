@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004, 2007-2008, 2010, 2012 Illinois Institute of Technology
+ * Copyright 2004, 2007-2008, 2010, 2012-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,7 +16,7 @@
 
 #define MXI_LIBUSB_01_DEBUG		FALSE
 
-#define MXI_LIBUSB_01_DEBUG_TIMING		FALSE
+#define MXI_LIBUSB_01_DEBUG_TIMING	FALSE
 
 #include <stdio.h>
 #include <errno.h>
@@ -24,7 +24,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_usb.h"
-#include "i_libusb_01.h"
+#include "i_libusb-0.1.h"
 
 #if MXI_LIBUSB_01_DEBUG_TIMING
 #include "mx_hrt_debug.h"
@@ -276,6 +276,13 @@ mxi_libusb_01_enumerate_devices( MX_USB *usb )
 	num_bus_changes = usb_find_busses();
 
 	num_device_changes = usb_find_devices();
+
+#if 1
+	/* Suppress GCC warnings. */
+
+	num_bus_changes = num_bus_changes;
+	num_device_changes = num_device_changes;
+#endif
 
 #if defined(OS_WIN32)
 	libusb_01->usb_busses = usb_get_busses();
@@ -552,6 +559,8 @@ mxi_libusb_01_find_device( MX_USB *usb, MX_USB_DEVICE **usb_device )
 			usb->find_type, usb->record->name );
 		break;
 	}
+
+	serial_number = serial_number;	/* Suppress GCC warning. */
 
 	current_bus = libusb_01->usb_busses;
 

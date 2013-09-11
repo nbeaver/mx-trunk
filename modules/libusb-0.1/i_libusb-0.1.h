@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2004, 2012 Illinois Institute of Technology
+ * Copyright 2004, 2012-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,11 +20,7 @@
 
 typedef struct {
 	MX_RECORD *record;
-
-#if HAVE_LIBUSB_01
 	struct usb_bus *usb_busses;
-#endif
-
 } MX_LIBUSB_01;
 
 extern MX_RECORD_FUNCTION_LIST mxi_libusb_01_record_function_list;

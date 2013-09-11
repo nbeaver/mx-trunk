@@ -3524,9 +3524,7 @@ mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
 #if MX_IMAGE_DEBUG_RAW_TIMING
 	MX_HRT_TIMING total_measurement;
 	MX_HRT_TIMING startup_measurement;
-	MX_HRT_TIMING fs_type_measurement;
 	MX_HRT_TIMING fopen_measurement;
-	MX_HRT_TIMING fs_rewind_measurement;
 	MX_HRT_TIMING fwrite_measurement;
 	MX_HRT_TIMING fclose_measurement;
 
@@ -3564,26 +3562,6 @@ mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
 
 #if MX_IMAGE_DEBUG_RAW_TIMING
 	MX_HRT_END( startup_measurement );
-	MX_HRT_START( fs_type_measurement );
-#endif
-
-#if 0
-	{
-		unsigned long filesystem_type;
-
-		mx_status = mx_get_filesystem_type( datafile_name,
-						&filesystem_type );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		MX_DEBUG(-2,("%s: datafile_name = '%s', filesystem_type = %lu",
-			fname, datafile_name, filesystem_type));
-	}
-#endif
-
-#if MX_IMAGE_DEBUG_RAW_TIMING
-	MX_HRT_END( fs_type_measurement );
 	MX_HRT_START( fopen_measurement );
 #endif
 
@@ -3639,25 +3617,6 @@ mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
 
 #if MX_IMAGE_DEBUG_RAW_TIMING
 	MX_HRT_END( fopen_measurement );
-	MX_HRT_START( fs_rewind_measurement );
-#endif
-
-#if 0
-	{
-		char null_buffer[3072];
-		int os_status;
-
-		memset( null_buffer, 0, sizeof(null_buffer) );
-
-		bytes_written = fwrite( null_buffer,
-				1, sizeof(null_buffer), file );
-
-		os_status = fseek( file, 0, SEEK_SET );
-	}
-#endif
-
-#if MX_IMAGE_DEBUG_RAW_TIMING
-	MX_HRT_END( fs_rewind_measurement );
 	MX_HRT_START( fwrite_measurement );
 #endif
 
@@ -3711,9 +3670,7 @@ mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
 	MX_HRT_END( total_measurement );
 
 	MX_HRT_RESULTS( startup_measurement, fname, "startup" );
-	/* MX_HRT_RESULTS( fs_type_measurement, fname, "fs type" ); */
 	MX_HRT_RESULTS( fopen_measurement, fname, "fopen" );
-	/* MX_HRT_RESULTS( fs_rewind_measurement, fname, "fs rewind" ); */
 	MX_HRT_RESULTS( fwrite_measurement, fname, "fwrite" );
 	MX_HRT_RESULTS( fclose_measurement, fname, "fclose" );
 	MX_HRT_RESULTS( total_measurement, fname, "total" );
