@@ -85,17 +85,15 @@ MX_MODULE __MX_MODULE__ = {
 	NULL
 };
 
+/*===========================================================================*/
+
+#if USE_LABWINDOWS_CVI
+
 #if defined(OS_WIN32)
 
 #include <windows.h>
 
-#if 0
 #include <cvirte.h>
-#else
-int __stdcall InitCVIRTEEx( void *hInstance, char *argv[], void *reserved );
-
-void __stdcall CloseCVIRTE( void );
-#endif
 
 int __stdcall DllMain( void *hinstDLL, int fdwReason, void *lpvReserved )
 {
@@ -104,7 +102,7 @@ int __stdcall DllMain( void *hinstDLL, int fdwReason, void *lpvReserved )
 	switch( fdwReason ) {
 	case DLL_PROCESS_ATTACH:
 
-		init_status = InitCVIRTEEx( hinstDLL, 0, 0 );
+		init_status = InitCVIRTE( hinstDLL, 0, 0 );
 
 #if MX_NI_DAQMX_DEBUG_DLL
 		fprintf( stderr, "DllMain: InitCVIRTE() = %d\n", init_status );
@@ -129,3 +127,6 @@ int __stdcall DllMain( void *hinstDLL, int fdwReason, void *lpvReserved )
 
 #endif /* OS_WIN32 */
 
+/*---------------------------------------------------------------------------*/
+
+#endif /* USE_LABWINDOWS_CVI */
