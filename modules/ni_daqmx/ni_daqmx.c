@@ -7,12 +7,14 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2011-2012 Illinois Institute of Technology
+ * Copyright 2011-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define MX_NI_DAQMX_DEBUG_DLL	TRUE
 
 #include <stdio.h>
 
@@ -82,4 +84,48 @@ MX_MODULE __MX_MODULE__ = {
 	NULL,
 	NULL
 };
+
+#if defined(OS_WIN32)
+
+#include <windows.h>
+
+#if 0
+#include <cvirte.h>
+#else
+int __stdcall InitCVIRTEEx( void *hInstance, char *argv[], void *reserved );
+
+void __stdcall CloseCVIRTE( void );
+#endif
+
+int __stdcall DllMain( void *hinstDLL, int fdwReason, void *lpvReserved )
+{
+	int init_status;
+
+	switch( fdwReason ) {
+	case DLL_PROCESS_ATTACH:
+
+		init_status = InitCVIRTEEx( hinstDLL, 0, 0 );
+
+#if MX_NI_DAQMX_DEBUG_DLL
+		fprintf( stderr, "DllMain: InitCVIRTE() = %d\n", init_status );
+#endif
+		if ( init_status == 0 ) {
+			return 0;	/* out of memory */
+		}
+		break;
+
+	case DLL_PROCESS_DETACH:
+
+#if MX_NI_DAQMX_DEBUG_DLL
+		fprintf( stderr, "DllMain: CloseCIVRTE() invoked.\n" );
+#endif
+		CloseCVIRTE();
+
+		break;
+	}
+
+	return 1;
+}
+
+#endif /* OS_WIN32 */
 
