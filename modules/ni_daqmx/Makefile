@@ -8,8 +8,6 @@ USE_DAQMX_BASE = FALSE
 
 USE_64_BITS = TRUE
 
-USE_LABWINDOWS_CVI = FALSE
-
 #
 # Supported values of MX_ARCH:  linux win32
 #
@@ -26,12 +24,6 @@ ifeq ($(MX_ARCH),linux)
 	NI_DAQMX_ANSI_C_DIR = /usr/local/natinst/nidaqmxbase
 
 	CFLAGS += -I$(NI_DAQMX_ANSI_C_DIR)/include
-
-	ifeq ($(USE_LABWINDOWS_CVI),TRUE)
-		##NI_LABWINDOWS_CVI_DIR = ???
-		##
-		##CFLAGS += -I$(NI_LABWINDOWS_CVI_DIR)/include
-	endif
 endif
 
 ifeq ($(MX_ARCH),win32)
@@ -60,34 +52,10 @@ ifeq ($(MX_ARCH),win32)
 
 	CFLAGS += -DWIN32
 	CFLAGS += -I$(NI_DAQMX_ANSI_C_DIR)\\include
-
-	ifeq ($(USE_LABWINDOWS_CVI),TRUE)
-		NI_LABWINDOWS_CVI_DIR = c:\\progra~1\\nation~1\\CVI2013
-
-		NI_LABWINDOWS_CVI_INCLUDES = $(NI_LABWINDOWS_CVI_DIR)\\include
-		NI_LABWINDOWS_CVI_LIBRARIES = \
-			$(NI_LABWINDOWS_CVI_DIR)\\extlib\\msvc64\\cvisupp.lib \
-			$(NI_LABWINDOWS_CVI_DIR)\\extlib\\msvc64\\cvirt.lib \
-			$(WIN32_LIBS)
-
-		##NI_LABWINDOWS_CVI_DIR = c:\\Util\\cvi
-		##
-		##NI_LABWINDOWS_CVI_INCLUDES = $(NI_LABWINDOWS_CVI_DIR)
-		##NI_LABWINDOWS_CVI_LIBRARIES = \
-		##	$(NI_LABWINDOWS_CVI_DIR)\\cvisupp.lib
-
-		#
-
-		CFLAGS += -I$(NI_LABWINDOWS_CVI_INCLUDES)
-	endif
 endif
 
 ifeq ($(USE_DAQMX_BASE),TRUE)
 	CFLAGS += -DUSE_DAQMX_BASE
-endif
-
-ifeq ($(USE_LABWINDOWS_CVI),TRUE)
-	CFLAGS += -DUSE_LABWINDOWS_CVI
 endif
 
 #--------------------------------------------------------------------------
@@ -132,8 +100,7 @@ ni_daqmx.mxo: $(NI_DAQMX_OBJS)
 		/nodefaultlib:libc /nodefaultlib:libcmt \
 		$(NI_DAQMX_OBJS) \
 		..\\..\\libMx\\$(MX_LIBRARY_NAME) \
-		$(NI_DAQMX_LIBRARY) \
-		$(NI_LABWINDOWS_CVI_LIBRARIES)
+		$(NI_DAQMX_LIBRARY)
 
 	# For VC2005 or later, embed the manifest in the module.
 
