@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2010 Illinois Institute of Technology
+ * Copyright 1999-2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -55,11 +55,7 @@ extern "C" {
 #define MXF_SCAN_REQUIRE_EARLY_MOVE		1
 #define MXF_SCAN_ALLOW_EARLY_MOVE		2
 
-#if 0   /* FIXME - When we get long variable names, change the name here. */
 #define MX_SCAN_EARLY_MOVE_RECORD_NAME		"mx_scan_early_move"
-#else
-#define MX_SCAN_EARLY_MOVE_RECORD_NAME		"scan_early_move"
-#endif
 
 /*---*/
 
@@ -119,6 +115,7 @@ typedef struct {
 	mx_status_type ( *prepare_for_scan_start ) ( MX_SCAN *scan );
 	mx_status_type ( *execute_scan_body ) ( MX_SCAN *scan );
 	mx_status_type ( *cleanup_after_scan_end ) ( MX_SCAN *scan );
+	mx_status_type ( *acquire_data ) ( MX_MEASUREMENT *measurement );
 } MX_SCAN_FUNCTION_LIST;
 
 MX_API_PRIVATE mx_status_type mx_scan_finish_record_initialization(

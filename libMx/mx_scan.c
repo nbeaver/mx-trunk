@@ -1679,9 +1679,33 @@ mx_scan_acquire_and_readout_data( MX_SCAN *scan )
 {
 	static const char fname[] = "mx_scan_acquire_and_readout_data()";
 
+	MX_SCAN_FUNCTION_LIST *flist;
+	mx_status_type (*acquire_data_fn)( MX_MEASUREMENT * );
 	int interrupt;
 	mx_bool_type fault_occurred;
 	mx_status_type mx_status, acquire_data_status;
+
+	if ( scan == (MX_SCAN *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SCAN pointer passed was NULL." );
+	}
+
+	if ( scan->record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX record pointer for scan pointer %p is NULL.", scan );
+	}
+
+	flist = scan->record->superclass_specific_function_list;
+
+	if ( flist == (MX_SCAN_FUNCTION_LIST *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The scan function list pointer for scan '%s' is NULL.",
+			scan->record->name );
+	}
+
+	acquire_data_fn = flist->acquire_data;
+
+	/*----*/
 
 	acquire_data_status = MX_SUCCESSFUL_RESULT;
 
@@ -1729,7 +1753,13 @@ mx_scan_acquire_and_readout_data( MX_SCAN *scan )
 
 		/* Perform the measurement. */
 
-		acquire_data_status = mx_acquire_data( &(scan->measurement) );
+		if ( acquire_data_fn != NULL ) {
+			acquire_data_status =
+				(*acquire_data_fn)( &(scan->measurement) );
+		} else {
+			acquire_data_status =
+				mx_acquire_data( &(scan->measurement) );
+		}
 
 		if ( acquire_data_status.code != MXE_SUCCESS )
 			return acquire_data_status;
@@ -1765,7 +1795,29 @@ mx_scan_acquire_data( MX_SCAN *scan )
 {
 	static const char fname[] = "mx_scan_acquire_data()";
 
+	MX_SCAN_FUNCTION_LIST *flist;
+	mx_status_type (*acquire_data_fn)( MX_MEASUREMENT * );
 	mx_status_type mx_status;
+
+	if ( scan == (MX_SCAN *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SCAN pointer passed was NULL." );
+	}
+
+	if ( scan->record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX record pointer for scan pointer %p is NULL.", scan );
+	}
+
+	flist = scan->record->superclass_specific_function_list;
+
+	if ( flist == (MX_SCAN_FUNCTION_LIST *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The scan function list pointer for scan '%s' is NULL.",
+			scan->record->name );
+	}
+
+	acquire_data_fn = flist->acquire_data;
 
 	/* Reset any faults that have occurred during the interval since
 	 * the last measurement.
@@ -1794,7 +1846,11 @@ mx_scan_acquire_data( MX_SCAN *scan )
 
 	/* Perform the measurement. */
 
-	mx_status = mx_acquire_data( &(scan->measurement) );
+	if ( acquire_data_fn != NULL ) {
+		mx_status = (*acquire_data_fn)( &(scan->measurement) );
+	} else {
+		mx_status = mx_acquire_data( &(scan->measurement) );
+	}
 
 	return mx_status;
 }
