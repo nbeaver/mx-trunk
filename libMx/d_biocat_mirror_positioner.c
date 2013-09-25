@@ -302,7 +302,7 @@ mxd_biocat_mirror_pos_move_absolute( MX_MOTOR *motor )
 			fname, child_delta, child_destination));
 #endif
 
-#if 0
+#if 1
 		mx_status = mx_motor_move_absolute( child_motor_record,
 						child_destination, 0 );
 
@@ -341,6 +341,8 @@ mxd_biocat_mirror_pos_get_position( MX_MOTOR *motor )
 	MX_DEBUG(-2,("%s: '%s' position = %f",
 			fname, motor->record->name, raw_position));
 #endif
+
+	motor->raw_position.analog = raw_position;
 
 	return mx_status;
 }
