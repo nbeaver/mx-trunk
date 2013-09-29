@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2006, 2008, 2010, 2012
+ * Copyright 2000-2001, 2003, 2006, 2008, 2010, 2012-2013
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -54,7 +54,7 @@ MX_MOTOR_FUNCTION_LIST mxd_pcmotion32_motor_function_list = {
 	mxd_pcmotion32_immediate_abort,
 	mxd_pcmotion32_positive_limit_hit,
 	mxd_pcmotion32_negative_limit_hit,
-	mxd_pcmotion32_find_home_position,
+	mxd_pcmotion32_raw_home_command,
 	mxd_pcmotion32_constant_velocity_move,
 	mxd_pcmotion32_get_parameter,
 	mxd_pcmotion32_set_parameter
@@ -869,9 +869,9 @@ mxd_pcmotion32_negative_limit_hit( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_pcmotion32_find_home_position( MX_MOTOR *motor )
+mxd_pcmotion32_raw_home_command( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_pcmotion32_find_home_position()";
+	static const char fname[] = "mxd_pcmotion32_raw_home_command()";
 
 	MX_PCMOTION32_MOTOR *pcmotion32_motor = NULL;
 	MX_PCMOTION32 *pcmotion32 = NULL;
@@ -886,7 +886,7 @@ mxd_pcmotion32_find_home_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( motor->home_search >= 0 ) {
+	if ( motor->raw_home_command >= 0 ) {
 		direction_bits = 0;
 	} else {
 		direction_bits = 0xFFFF;

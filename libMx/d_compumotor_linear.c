@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2007, 2010 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2007, 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -51,7 +51,7 @@ MX_MOTOR_FUNCTION_LIST mxd_compumotor_linear_motor_function_list = {
 	mxd_compumotor_linear_immediate_abort,
 	mxd_compumotor_linear_positive_limit_hit,
 	mxd_compumotor_linear_negative_limit_hit,
-	mxd_compumotor_linear_find_home_position,
+	NULL,
 	NULL,
 	mx_motor_default_get_parameter_handler,
 	mx_motor_default_set_parameter_handler
@@ -1128,16 +1128,5 @@ mxd_compumotor_linear_negative_limit_hit( MX_MOTOR *motor )
 	motor->negative_limit_hit = limit_hit;
 
 	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_compumotor_linear_find_home_position( MX_MOTOR *motor )
-{
-	static const char fname[] = "mxd_compumotor_linear_find_home_position()";
-
-	return mx_error( MXE_UNSUPPORTED, fname,
-"Finding home for a Compumotor linear interpolation motor is _not_ allowed.  "
-"Motor name = '%s'",
-		motor->record->name );
 }
 

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004-2007 Illinois Institute of Technology
+ * Copyright 2004-2007, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -537,7 +537,7 @@ mxd_sercat_als_robot_initialize( MX_SAMPLE_CHANGER *changer )
 	 * in the negative direction.
 	 */
 
-	mx_status = mx_motor_find_home_position(
+	mx_status = mx_motor_raw_home_command(
 			sercat_als_robot->dewar_positioner_record, -1 );
 
 	if ( mx_status.code != MXE_SUCCESS ) {

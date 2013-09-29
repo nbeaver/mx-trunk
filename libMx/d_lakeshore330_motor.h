@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2000, 2007 Illinois Institute of Technology
+ * Copyright 1999-2000, 2007, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -42,9 +42,6 @@ MX_API mx_status_type mxd_ls330_motor_move_absolute( MX_MOTOR *motor );
 MX_API mx_status_type mxd_ls330_motor_get_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_ls330_motor_set_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_ls330_motor_soft_abort( MX_MOTOR *motor );
-MX_API mx_status_type mxd_ls330_motor_positive_limit_hit( MX_MOTOR *motor );
-MX_API mx_status_type mxd_ls330_motor_negative_limit_hit( MX_MOTOR *motor );
-MX_API mx_status_type mxd_ls330_motor_find_home_position( MX_MOTOR *motor );
 
 extern MX_RECORD_FUNCTION_LIST mxd_ls330_motor_record_function_list;
 extern MX_MOTOR_FUNCTION_LIST mxd_ls330_motor_motor_function_list;

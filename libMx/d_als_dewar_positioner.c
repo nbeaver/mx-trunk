@@ -9,7 +9,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2004-2007, 2010 Illinois Institute of Technology
+ * Copyright 2004-2007, 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -52,7 +52,7 @@ MX_MOTOR_FUNCTION_LIST mxd_als_dewar_positioner_motor_function_list = {
 	mxd_als_dewar_positioner_immediate_abort,
 	NULL,
 	NULL,
-	mxd_als_dewar_positioner_find_home_position,
+	mxd_als_dewar_positioner_raw_home_command,
 	NULL,
 	mxd_als_dewar_positioner_get_parameter,
 	mxd_als_dewar_positioner_set_parameter,
@@ -171,7 +171,7 @@ mxd_als_dewar_positioner_finish_record_initialization( MX_RECORD *record )
 
 	motor->motor_flags |= MXF_MTR_IS_PSEUDOMOTOR;
 
-	motor->home_search = 0;
+	motor->raw_home_command = 0;
 
 	if ( fabs( motor->scale - 1.0 ) > 1.0e-6 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -738,10 +738,10 @@ mxd_als_dewar_positioner_restore_after_home_search( MX_MOTOR *motor,
 }
 
 MX_EXPORT mx_status_type
-mxd_als_dewar_positioner_find_home_position( MX_MOTOR *motor )
+mxd_als_dewar_positioner_raw_home_command( MX_MOTOR *motor )
 {
 	static const char fname[] =
-		"mxd_als_dewar_positioner_find_home_position()";
+		"mxd_als_dewar_positioner_raw_home_command()";
 
 	MX_ALS_DEWAR_POSITIONER *als_dewar_positioner;
 	mx_status_type mx_status;
@@ -754,8 +754,8 @@ mxd_als_dewar_positioner_find_home_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( motor->home_search == 0 ) {
-		motor->home_search = 1;
+	if ( motor->raw_home_command == 0 ) {
+		motor->raw_home_command = 1;
 	}
 
 	/* Change the motor speeds for the home search. */
@@ -778,7 +778,7 @@ mxd_als_dewar_positioner_find_home_position( MX_MOTOR *motor )
 
 	/* Start the home search on the dewar rotation stage first. */
 
-	mx_status = mx_motor_find_home_position(
+	mx_status = mx_motor_raw_home_command(
 			als_dewar_positioner->dewar_rot_record, -1 );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
@@ -788,7 +788,7 @@ mxd_als_dewar_positioner_find_home_position( MX_MOTOR *motor )
 
 	/* Then start the home search on the dewar translation stage. */
 
-	mx_status = mx_motor_find_home_position(
+	mx_status = mx_motor_raw_home_command(
 			als_dewar_positioner->dewar_x_record, -1 );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
@@ -919,14 +919,14 @@ mxd_als_dewar_positioner_get_status( MX_MOTOR *motor )
 
 	/* See if it is time to restore the motor speeds. */
 
-	if ( motor->home_search ) {
+	if ( motor->raw_home_command ) {
 		if ( ( motor->status & MXSF_MTR_IS_BUSY ) == 0 ) {
 			/* If the motor is not moving,
 			 * the home search must be over,
 			 * so restore the motor parameters.
 			 */
 
-			motor->home_search = 0;
+			motor->raw_home_command = 0;
 
 			RESTORE_AFTER_HOME_SEARCH;
 		}

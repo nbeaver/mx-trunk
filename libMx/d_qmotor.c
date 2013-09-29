@@ -16,7 +16,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2006-2007, 2010 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2006-2007, 2010, 2013
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -52,7 +53,7 @@ MX_MOTOR_FUNCTION_LIST mxd_q_motor_motor_function_list = {
 	mxd_q_motor_immediate_abort,
 	mxd_q_motor_positive_limit_hit,
 	mxd_q_motor_negative_limit_hit,
-	mxd_q_motor_find_home_position,
+	mxd_q_motor_raw_home_command,
 	mxd_q_motor_constant_velocity_move,
 	mxd_q_motor_get_parameter,
 	mxd_q_motor_set_parameter
@@ -613,9 +614,9 @@ mxd_q_motor_negative_limit_hit( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_q_motor_find_home_position( MX_MOTOR *motor )
+mxd_q_motor_raw_home_command( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_q_motor_find_home_position()";
+	static const char fname[] = "mxd_q_motor_raw_home_command()";
 
 	MX_Q_MOTOR *q_motor;
 	mx_status_type mx_status;
@@ -627,8 +628,8 @@ mxd_q_motor_find_home_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_motor_find_home_position( q_motor->theta_motor_record,
-						motor->home_search );
+	mx_status = mx_motor_raw_home_command( q_motor->theta_motor_record,
+						motor->raw_home_command );
 	return mx_status;
 }
 

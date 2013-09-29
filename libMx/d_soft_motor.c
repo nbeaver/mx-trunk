@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2004, 2006-2007, 2009, 2011
+ * Copyright 1999, 2001-2004, 2006-2007, 2009, 2011, 2013
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -47,7 +47,7 @@ MX_MOTOR_FUNCTION_LIST mxd_soft_motor_motor_function_list = {
 	mxd_soft_motor_immediate_abort,
 	mxd_soft_motor_positive_limit_hit,
 	mxd_soft_motor_negative_limit_hit,
-	mxd_soft_motor_find_home_position,
+	mxd_soft_motor_raw_home_command,
 	mxd_soft_motor_constant_velocity_move,
 	mxd_soft_motor_get_parameter,
 	mxd_soft_motor_set_parameter,
@@ -441,7 +441,7 @@ mxd_soft_motor_negative_limit_hit( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_soft_motor_find_home_position( MX_MOTOR *motor )
+mxd_soft_motor_raw_home_command( MX_MOTOR *motor )
 {
 	motor->status |= MXSF_MTR_HOME_SEARCH_SUCCEEDED;
 

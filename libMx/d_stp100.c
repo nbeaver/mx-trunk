@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2007, 2010 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2007, 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -54,7 +54,7 @@ MX_MOTOR_FUNCTION_LIST mxd_stp100_motor_motor_function_list = {
 	mxd_stp100_motor_immediate_abort,
 	mxd_stp100_motor_positive_limit_hit,
 	mxd_stp100_motor_negative_limit_hit,
-	mxd_stp100_motor_find_home_position,
+	mxd_stp100_motor_raw_home_command,
 	mxd_stp100_motor_constant_velocity_move,
 	mxd_stp100_motor_get_parameter,
 	mxd_stp100_motor_set_parameter
@@ -804,9 +804,9 @@ mxd_stp100_motor_negative_limit_hit( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_stp100_motor_find_home_position( MX_MOTOR *motor )
+mxd_stp100_motor_raw_home_command( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_stp100_motor_find_home_position()";
+	static const char fname[] = "mxd_stp100_motor_raw_home_command()";
 
 	MX_STP100_MOTOR *stp100_motor;
 	char command[80];
@@ -825,7 +825,7 @@ mxd_stp100_motor_find_home_position( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	if ( motor->home_search >= 0 ) {
+	if ( motor->raw_home_command >= 0 ) {
 		snprintf( command, sizeof(command), "TC%ldH+",
 					stp100_motor->home_switch_pin );
 	} else {

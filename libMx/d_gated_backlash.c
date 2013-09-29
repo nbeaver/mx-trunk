@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2007, 2009, 2010 Illinois Institute of Technology
+ * Copyright 2006-2007, 2009, 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -52,7 +52,7 @@ MX_MOTOR_FUNCTION_LIST mxd_gated_backlash_motor_function_list = {
 	mxd_gated_backlash_immediate_abort,
 	NULL,
 	NULL,
-	mxd_gated_backlash_find_home_position,
+	mxd_gated_backlash_raw_home_command,
 	mxd_gated_backlash_constant_velocity_move,
 	mxd_gated_backlash_get_parameter,
 	mxd_gated_backlash_set_parameter,
@@ -479,9 +479,9 @@ mxd_gated_backlash_immediate_abort( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_gated_backlash_find_home_position( MX_MOTOR *motor )
+mxd_gated_backlash_raw_home_command( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_gated_backlash_find_home_position()";
+	static const char fname[] = "mxd_gated_backlash_raw_home_command()";
 
 	MX_GATED_BACKLASH *gated_backlash;
 	mx_status_type mx_status;
@@ -492,9 +492,9 @@ mxd_gated_backlash_find_home_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status =
-		mx_motor_find_home_position( gated_backlash->real_motor_record,
-						motor->home_search );
+	mx_status = mx_motor_raw_home_command(
+				gated_backlash->real_motor_record,
+				motor->raw_home_command );
 	return mx_status;
 }
 

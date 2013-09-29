@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2002, 2007 Illinois Institute of Technology
+ * Copyright 2002, 2007, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -55,7 +55,7 @@ MX_API mx_status_type mxd_tangent_arm_soft_abort( MX_MOTOR *motor );
 MX_API mx_status_type mxd_tangent_arm_immediate_abort( MX_MOTOR *motor );
 MX_API mx_status_type mxd_tangent_arm_positive_limit_hit( MX_MOTOR *motor );
 MX_API mx_status_type mxd_tangent_arm_negative_limit_hit( MX_MOTOR *motor );
-MX_API mx_status_type mxd_tangent_arm_find_home_position( MX_MOTOR *motor );
+MX_API mx_status_type mxd_tangent_arm_raw_home_command( MX_MOTOR *motor );
 MX_API mx_status_type mxd_tangent_arm_constant_velocity_move( MX_MOTOR *motor );
 MX_API mx_status_type mxd_tangent_arm_get_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_tangent_arm_set_parameter( MX_MOTOR *motor );

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006-2007, 2010 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006-2007, 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -47,7 +47,7 @@ MX_MOTOR_FUNCTION_LIST mxd_wavenumber_motor_motor_function_list = {
 	mxd_wavenumber_motor_immediate_abort,
 	NULL,
 	NULL,
-	mxd_wavenumber_motor_find_home_position,
+	mxd_wavenumber_motor_raw_home_command,
 	mxd_wavenumber_motor_constant_velocity_move,
 	mxd_wavenumber_motor_get_parameter,
 	mxd_wavenumber_motor_set_parameter,
@@ -571,9 +571,9 @@ mxd_wavenumber_motor_immediate_abort( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_wavenumber_motor_find_home_position( MX_MOTOR *motor )
+mxd_wavenumber_motor_raw_home_command( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_wavenumber_motor_find_home_position()";
+	static const char fname[] = "mxd_wavenumber_motor_raw_home_command()";
 
 	MX_WAVENUMBER_MOTOR *wavenumber_motor;
 	MX_RECORD *dependent_motor_record;
@@ -586,9 +586,9 @@ mxd_wavenumber_motor_find_home_position( MX_MOTOR *motor )
 	if ( status.code != MXE_SUCCESS )
 		return status;
 
-	direction = - ( motor->home_search );
+	direction = - ( motor->raw_home_command );
 
-	status = mx_motor_find_home_position( dependent_motor_record,
+	status = mx_motor_raw_home_command( dependent_motor_record,
 						direction );
 
 	return status;

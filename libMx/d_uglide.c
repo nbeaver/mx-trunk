@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002-2003, 2010 Illinois Institute of Technology
+ * Copyright 2002-2003, 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -49,7 +49,7 @@ MX_MOTOR_FUNCTION_LIST mxd_uglide_motor_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	mxd_uglide_find_home_position,
+	mxd_uglide_raw_home_command,
 	NULL,
 	mx_motor_default_get_parameter_handler,
 	mx_motor_default_set_parameter_handler,
@@ -512,9 +512,9 @@ mxd_uglide_soft_abort( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_uglide_find_home_position( MX_MOTOR *motor )
+mxd_uglide_raw_home_command( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_uglide_find_home_position()";
+	const char fname[] = "mxd_uglide_raw_home_command()";
 
 	MX_UGLIDE_MOTOR *uglide_motor;
 	MX_UGLIDE *uglide;

@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2006, 2010-2011 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2006, 2010-2011, 2013
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -47,7 +48,7 @@ MX_MOTOR_FUNCTION_LIST mxd_e500_motor_function_list = {
 	mxd_e500_immediate_abort,
 	mxd_e500_positive_limit_hit,
 	mxd_e500_negative_limit_hit,
-	mxd_e500_find_home_position
+	mxd_e500_raw_home_command
 };
 
 /* E500 motor data structures. */
@@ -580,9 +581,9 @@ mxd_e500_negative_limit_hit( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_e500_find_home_position( MX_MOTOR *motor )
+mxd_e500_raw_home_command( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_e500_find_home_position()";
+	static const char fname[] = "mxd_e500_raw_home_command()";
 
 	MX_E500 *e500;
 	mx_status_type status;

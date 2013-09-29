@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2009-2011 Illinois Institute of Technology
+ * Copyright 1999-2006, 2009-2011, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -50,7 +50,7 @@ MX_MOTOR_FUNCTION_LIST mxd_network_motor_motor_function_list = {
 	mxd_network_motor_immediate_abort,
 	mxd_network_motor_positive_limit_hit,
 	mxd_network_motor_negative_limit_hit,
-	mxd_network_motor_find_home_position,
+	mxd_network_motor_raw_home_command,
 	mxd_network_motor_constant_velocity_move,
 	mxd_network_motor_get_parameter,
 	mxd_network_motor_set_parameter,
@@ -901,9 +901,9 @@ mxd_network_motor_negative_limit_hit( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_network_motor_find_home_position( MX_MOTOR *motor )
+mxd_network_motor_raw_home_command( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_network_motor_find_home_position()";
+	static const char fname[] = "mxd_network_motor_raw_home_command()";
 
 	MX_NETWORK_MOTOR *network_motor;
 	long home_search;
@@ -926,7 +926,7 @@ mxd_network_motor_find_home_position( MX_MOTOR *motor )
 			return mx_status;
 	}
 
-	home_search = motor->home_search;
+	home_search = motor->raw_home_command;
 
 	mx_status = mx_put( &(network_motor->home_search_nf),
 				MXFT_BOOL, &home_search );

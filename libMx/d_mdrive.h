@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003, 2006, 2008 Illinois Institute of Technology
+ * Copyright 2003, 2006, 2008, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -78,7 +78,7 @@ MX_API mx_status_type mxd_mdrive_get_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_mdrive_set_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_mdrive_soft_abort( MX_MOTOR *motor );
 MX_API mx_status_type mxd_mdrive_immediate_abort( MX_MOTOR *motor );
-MX_API mx_status_type mxd_mdrive_find_home_position( MX_MOTOR *motor );
+MX_API mx_status_type mxd_mdrive_raw_home_command( MX_MOTOR *motor );
 MX_API mx_status_type mxd_mdrive_constant_velocity_move( MX_MOTOR *motor );
 MX_API mx_status_type mxd_mdrive_get_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_mdrive_set_parameter( MX_MOTOR *motor );

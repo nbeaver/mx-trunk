@@ -10,7 +10,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2003, 2010-2011 Illinois Institute of Technology
+ * Copyright 2001, 2003, 2010-2011, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -38,18 +38,18 @@ MX_RECORD_FUNCTION_LIST mxd_disabled_motor_record_function_list = {
 };
 
 MX_MOTOR_FUNCTION_LIST mxd_disabled_motor_motor_function_list = {
-	mxd_disabled_motor_motor_is_busy,
+	NULL,
 	mxd_disabled_motor_move_absolute,
 	mxd_disabled_motor_get_position,
 	mxd_disabled_motor_set_position,
-	mxd_disabled_motor_disabled_abort,
-	mxd_disabled_motor_immediate_abort,
-	mxd_disabled_motor_positive_limit_hit,
-	mxd_disabled_motor_negative_limit_hit,
-	mxd_disabled_motor_find_home_position,
-	mxd_disabled_motor_constant_velocity_move,
-	mxd_disabled_motor_get_parameter,
-	mxd_disabled_motor_set_parameter
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	mx_motor_default_get_parameter_handler,
+	mx_motor_default_set_parameter_handler
 };
 
 /* Disabled motor data structures. */
@@ -229,14 +229,6 @@ mxd_disabled_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_disabled_motor_motor_is_busy( MX_MOTOR *motor )
-{
-	motor->busy = FALSE;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_disabled_motor_move_absolute( MX_MOTOR *motor )
 {
 	motor->raw_position.stepper = motor->raw_destination.stepper;
@@ -258,57 +250,5 @@ mxd_disabled_motor_set_position( MX_MOTOR *motor )
 	motor->raw_position.stepper = motor->raw_set_position.stepper;
 
 	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_disabled_motor_disabled_abort( MX_MOTOR *motor )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_disabled_motor_immediate_abort( MX_MOTOR *motor )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_disabled_motor_positive_limit_hit( MX_MOTOR *motor )
-{
-	motor->positive_limit_hit = FALSE;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_disabled_motor_negative_limit_hit( MX_MOTOR *motor )
-{
-	motor->negative_limit_hit = FALSE;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_disabled_motor_find_home_position( MX_MOTOR *motor )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_disabled_motor_constant_velocity_move( MX_MOTOR *motor )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_disabled_motor_get_parameter( MX_MOTOR *motor )
-{
-	return mx_motor_default_get_parameter_handler( motor );
-}
-
-MX_EXPORT mx_status_type
-mxd_disabled_motor_set_parameter( MX_MOTOR *motor )
-{
-	return mx_motor_default_set_parameter_handler( motor );
 }
 

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2007 Illinois Institute of Technology
+ * Copyright 2005-2007, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -45,7 +45,7 @@ MX_MOTOR_FUNCTION_LIST mxd_ptz_motor_motor_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	mxd_ptz_motor_find_home_position,
+	mxd_ptz_motor_raw_home_command,
 	NULL,
 	mxd_ptz_motor_get_parameter,
 	mxd_ptz_motor_set_parameter,
@@ -381,9 +381,9 @@ mxd_ptz_motor_soft_abort( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_ptz_motor_find_home_position( MX_MOTOR *motor )
+mxd_ptz_motor_raw_home_command( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_ptz_motor_find_home_position()";
+	static const char fname[] = "mxd_ptz_motor_raw_home_command()";
 
 	MX_PTZ_MOTOR *ptz_motor;
 	mx_status_type mx_status;

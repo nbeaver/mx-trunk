@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2010 Illinois Institute of Technology
+ * Copyright 1999-2001, 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -31,8 +31,6 @@ typedef struct {
 
 MX_API mx_status_type mxd_hsc1_create_record_structures(
 						MX_RECORD *record );
-MX_API mx_status_type mxd_hsc1_finish_record_initialization(
-						MX_RECORD *record );
 MX_API mx_status_type mxd_hsc1_print_structure( FILE *file,
 						MX_RECORD *record );
 MX_API mx_status_type mxd_hsc1_open( MX_RECORD *record );
@@ -42,10 +40,7 @@ MX_API mx_status_type mxd_hsc1_move_absolute( MX_MOTOR *motor );
 MX_API mx_status_type mxd_hsc1_get_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_hsc1_set_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_hsc1_soft_abort( MX_MOTOR *motor );
-MX_API mx_status_type mxd_hsc1_immediate_abort( MX_MOTOR *motor );
-MX_API mx_status_type mxd_hsc1_positive_limit_hit( MX_MOTOR *motor );
-MX_API mx_status_type mxd_hsc1_negative_limit_hit( MX_MOTOR *motor );
-MX_API mx_status_type mxd_hsc1_find_home_position( MX_MOTOR *motor );
+MX_API mx_status_type mxd_hsc1_raw_home_command( MX_MOTOR *motor );
 
 extern MX_RECORD_FUNCTION_LIST mxd_hsc1_record_function_list;
 extern MX_MOTOR_FUNCTION_LIST mxd_hsc1_motor_function_list;

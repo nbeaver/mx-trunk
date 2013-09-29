@@ -21,7 +21,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2006, 2010, 2012 Illinois Institute of Technology
+ * Copyright 1999, 2001-2006, 2010, 2012-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -49,13 +49,10 @@
 MX_RECORD_FUNCTION_LIST mxd_am9513_motor_record_function_list = {
 	mxd_am9513_motor_initialize_driver,
 	mxd_am9513_motor_create_record_structures,
-	mxd_am9513_motor_finish_record_initialization,
+	mx_motor_finish_record_initialization,
 	NULL,
 	mxd_am9513_motor_print_structure,
-	mxd_am9513_motor_open,
-	mxd_am9513_motor_close,
-	NULL,
-	mxd_am9513_motor_resynchronize
+	mxd_am9513_motor_open
 };
 
 MX_MOTOR_FUNCTION_LIST mxd_am9513_motor_motor_function_list = {
@@ -63,11 +60,7 @@ MX_MOTOR_FUNCTION_LIST mxd_am9513_motor_motor_function_list = {
 	mxd_am9513_motor_move_absolute,
 	mxd_am9513_motor_get_position,
 	mxd_am9513_motor_set_position,
-	mxd_am9513_motor_soft_abort,
-	mxd_am9513_motor_immediate_abort,
-	mxd_am9513_motor_positive_limit_hit,
-	mxd_am9513_motor_negative_limit_hit,
-	mxd_am9513_motor_find_home_position
+	mxd_am9513_motor_soft_abort
 };
 
 /* Am9513 motor data structures. */
@@ -154,31 +147,31 @@ mxd_am9513_motor_initialize_driver( MX_DRIVER *driver )
 	MX_RECORD_FIELD_DEFAULTS *field;
 	long num_counters_field_index;
 	long num_counters_varargs_cookie;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( driver == (MX_DRIVER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_DRIVER pointer passed was NULL." );
 	}
 
-	status = mx_find_record_field_defaults_index( driver,
+	mx_status = mx_find_record_field_defaults_index( driver,
 						"num_counters",
 						&num_counters_field_index );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_construct_varargs_cookie(
+	mx_status = mx_construct_varargs_cookie(
 		num_counters_field_index, 0, &num_counters_varargs_cookie );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_find_record_field_defaults( driver,
+	mx_status = mx_find_record_field_defaults( driver,
 					"am9513_interface_array", &field );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	field->dimension[0] = num_counters_varargs_cookie;
 
@@ -188,7 +181,8 @@ mxd_am9513_motor_initialize_driver( MX_DRIVER *driver )
 MX_EXPORT mx_status_type
 mxd_am9513_motor_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_am9513_motor_create_record_structures()";
+	static const char fname[] =
+		"mxd_am9513_motor_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_AM9513_MOTOR *am9513_motor;
@@ -226,16 +220,6 @@ mxd_am9513_motor_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_am9513_motor_finish_record_initialization( MX_RECORD *record )
-{
-	mx_status_type status;
-
-	status = mx_motor_finish_record_initialization( record );
-
-	return status;
-}
-
-MX_EXPORT mx_status_type
 mxd_am9513_motor_print_structure( FILE *file, MX_RECORD *record )
 {
 	static const char fname[] = "mxd_am9513_motor_print_structure()";
@@ -245,7 +229,7 @@ mxd_am9513_motor_print_structure( FILE *file, MX_RECORD *record )
 	MX_INTERFACE *am9513_interface_array;
 	long i, num_counters;
 	double position, move_deadband;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -294,9 +278,9 @@ mxd_am9513_motor_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  step frequency    = %g\n",
 					am9513_motor->step_frequency );
 
-	status = mx_motor_get_position( record, &position );
+	mx_status = mx_motor_get_position( record, &position );
 
-	if ( status.code != MXE_SUCCESS ) {
+	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_error( MXE_FUNCTION_FAILED, fname,
 			"Unable to read position of motor '%s'",
 			record->name );
@@ -612,21 +596,6 @@ mxd_am9513_motor_open( MX_RECORD *record )
 	MX_AM9513_DEBUG( debug_am9513_ptr, 1 );
 
 	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_am9513_motor_close( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_am9513_motor_resynchronize( MX_RECORD *record )
-{
-	static const char fname[] = "mxd_am9513_motor_resynchronize()";
-
-	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-	"Resynchronize is not yet implemented for Am9513 controlled motors." );
 }
 
 /* ============ Motor specific functions ============ */
@@ -1192,36 +1161,5 @@ mxd_am9513_motor_soft_abort( MX_MOTOR *motor )
 	}
 
 	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_am9513_motor_immediate_abort( MX_MOTOR *motor )
-{
-	return mxd_am9513_motor_soft_abort( motor );
-}
-
-MX_EXPORT mx_status_type
-mxd_am9513_motor_positive_limit_hit( MX_MOTOR *motor )
-{
-	motor->positive_limit_hit = FALSE;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_am9513_motor_negative_limit_hit( MX_MOTOR *motor )
-{
-	motor->negative_limit_hit = FALSE;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_am9513_motor_find_home_position( MX_MOTOR *motor )
-{
-	static const char fname[] = "mxd_am9513_motor_find_home_position()";
-
-	return mx_error( MXE_UNSUPPORTED, fname,
-	"The Am9513 motor driver does not support home searches." );
 }
 

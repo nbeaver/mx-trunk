@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2007, 2010 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2007, 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -43,7 +43,7 @@ MX_MOTOR_FUNCTION_LIST mxd_trans_motor_motor_function_list = {
 	mxd_trans_motor_immediate_abort,
 	mxd_trans_motor_positive_limit_hit,
 	mxd_trans_motor_negative_limit_hit,
-	mxd_trans_motor_find_home_position,
+	NULL,
 	mxd_trans_motor_constant_velocity_move,
 	mxd_trans_motor_get_parameter,
 	mxd_trans_motor_set_parameter
@@ -757,16 +757,6 @@ mxd_trans_motor_negative_limit_hit( MX_MOTOR *motor )
 	motor->negative_limit_hit = limit_hit;
 
 	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_trans_motor_find_home_position( MX_MOTOR *motor )
-{
-	static const char fname[] = "mxd_trans_motor_find_home_position()";
-
-	return mx_error( MXE_UNSUPPORTED, fname,
-		"Home searches for translation motor '%s' is _not_ allowed.",
-		motor->record->name );
 }
 
 MX_EXPORT mx_status_type

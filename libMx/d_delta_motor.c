@@ -44,7 +44,7 @@ MX_MOTOR_FUNCTION_LIST mxd_delta_motor_motor_function_list = {
 	mxd_delta_motor_immediate_abort,
 	NULL,
 	NULL,
-	mxd_delta_motor_find_home_position,
+	mxd_delta_motor_raw_home_command,
 	NULL,
 	mxd_delta_motor_get_parameter,
 	mxd_delta_motor_set_parameter,
@@ -454,9 +454,9 @@ mxd_delta_motor_immediate_abort( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_delta_motor_find_home_position( MX_MOTOR *motor )
+mxd_delta_motor_raw_home_command( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_delta_motor_find_home_position()";
+	static const char fname[] = "mxd_delta_motor_raw_home_command()";
 
 	MX_DELTA_MOTOR *delta_motor;
 	MX_RECORD *moving_motor_record;
@@ -473,12 +473,12 @@ mxd_delta_motor_find_home_position( MX_MOTOR *motor )
 		return mx_status;
 
 	if ( motor->scale < 0.0 ) {
-		direction = - ( motor->home_search );
+		direction = - ( motor->raw_home_command );
 	} else {
-		direction = motor->home_search;
+		direction = motor->raw_home_command;
 	}
 
-	mx_status = mx_motor_find_home_position( moving_motor_record,
+	mx_status = mx_motor_raw_home_command( moving_motor_record,
 							direction );
 	return mx_status;
 }

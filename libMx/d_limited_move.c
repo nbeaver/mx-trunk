@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2010 Illinois Institute of Technology
+ * Copyright 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -47,7 +47,7 @@ MX_MOTOR_FUNCTION_LIST mxd_limited_move_motor_function_list = {
 	mxd_limited_move_immediate_abort,
 	NULL,
 	NULL,
-	mxd_limited_move_find_home_position,
+	mxd_limited_move_raw_home_command,
 	mxd_limited_move_constant_velocity_move,
 	mxd_limited_move_get_parameter,
 	mxd_limited_move_set_parameter,
@@ -447,9 +447,9 @@ mxd_limited_move_immediate_abort( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_limited_move_find_home_position( MX_MOTOR *motor )
+mxd_limited_move_raw_home_command( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_limited_move_find_home_position()";
+	static const char fname[] = "mxd_limited_move_raw_home_command()";
 
 	MX_LIMITED_MOVE *limited_move;
 	mx_status_type mx_status;
@@ -460,9 +460,8 @@ mxd_limited_move_find_home_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status =
-		mx_motor_find_home_position( limited_move->real_motor_record,
-						motor->home_search );
+	mx_status = mx_motor_raw_home_command( limited_move->real_motor_record,
+						motor->raw_home_command );
 	return mx_status;
 }
 

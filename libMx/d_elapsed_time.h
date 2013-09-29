@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2010 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -33,15 +33,9 @@ MX_API mx_status_type mxd_elapsed_time_finish_record_initialization(
 MX_API mx_status_type mxd_elapsed_time_print_motor_structure(
 					FILE *file, MX_RECORD *record );
 
-MX_API mx_status_type mxd_elapsed_time_motor_is_busy( MX_MOTOR *motor );
 MX_API mx_status_type mxd_elapsed_time_move_absolute( MX_MOTOR *motor );
 MX_API mx_status_type mxd_elapsed_time_get_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_elapsed_time_set_position( MX_MOTOR *motor );
-MX_API mx_status_type mxd_elapsed_time_soft_abort( MX_MOTOR *motor );
-MX_API mx_status_type mxd_elapsed_time_immediate_abort( MX_MOTOR *motor );
-MX_API mx_status_type mxd_elapsed_time_positive_limit_hit( MX_MOTOR *motor );
-MX_API mx_status_type mxd_elapsed_time_negative_limit_hit( MX_MOTOR *motor );
-MX_API mx_status_type mxd_elapsed_time_find_home_position( MX_MOTOR *motor );
 
 extern MX_RECORD_FUNCTION_LIST mxd_elapsed_time_record_function_list;
 extern MX_MOTOR_FUNCTION_LIST mxd_elapsed_time_motor_function_list;

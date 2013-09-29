@@ -10,7 +10,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010 Illinois Institute of Technology
+ * Copyright 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -53,7 +53,7 @@ MX_MOTOR_FUNCTION_LIST mxd_linkam_t9x_motor_motor_function_list = {
 	mxd_linkam_t9x_motor_immediate_abort,
 	NULL,
 	NULL,
-	mxd_linkam_t9x_motor_find_home_position,
+	mxd_linkam_t9x_motor_raw_home_command,
 	NULL,
 	mxd_linkam_t9x_motor_get_parameter,
 	mxd_linkam_t9x_motor_set_parameter,
@@ -360,9 +360,9 @@ mxd_linkam_t9x_motor_immediate_abort( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_linkam_t9x_motor_find_home_position( MX_MOTOR *motor )
+mxd_linkam_t9x_motor_raw_home_command( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_linkam_t9x_motor_find_home_position()";
+	static const char fname[] = "mxd_linkam_t9x_motor_raw_home_command()";
 
 	MX_LINKAM_T9X_MOTOR *linkam_t9x_motor = NULL;
 	MX_LINKAM_T9X *linkam_t9x = NULL;
@@ -375,7 +375,7 @@ mxd_linkam_t9x_motor_find_home_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( motor->home_search == 0 ) {
+	if ( motor->raw_home_command == 0 ) {
 		strlcpy( command, "MF1", sizeof(command) );
 	} else {
 		strlcpy( command, "MF2", sizeof(command) );

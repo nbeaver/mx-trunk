@@ -8,7 +8,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2007-2008, 2010-2011 Illinois Institute of Technology
+ * Copyright 1999-2003, 2007-2008, 2010-2011, 2013
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -39,15 +40,15 @@ MX_RECORD_FUNCTION_LIST mxd_elapsed_time_record_function_list = {
 };
 
 MX_MOTOR_FUNCTION_LIST mxd_elapsed_time_motor_function_list = {
-	mxd_elapsed_time_motor_is_busy,
+	NULL,
 	mxd_elapsed_time_move_absolute,
 	mxd_elapsed_time_get_position,
 	mxd_elapsed_time_set_position,
-	mxd_elapsed_time_soft_abort,
-	mxd_elapsed_time_immediate_abort,
-	mxd_elapsed_time_positive_limit_hit,
-	mxd_elapsed_time_negative_limit_hit,
-	mxd_elapsed_time_find_home_position,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
 	NULL,
 	mx_motor_default_get_parameter_handler,
 	mx_motor_default_set_parameter_handler
@@ -236,14 +237,6 @@ mxd_elapsed_time_get_current_time( void )
 }
 
 MX_EXPORT mx_status_type
-mxd_elapsed_time_motor_is_busy( MX_MOTOR *motor )
-{
-	motor->busy = FALSE;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_elapsed_time_move_absolute( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_elapsed_time_move_absolute()";
@@ -351,40 +344,6 @@ mxd_elapsed_time_set_position( MX_MOTOR *motor )
 
 	motor->raw_position.analog = set_position;
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_elapsed_time_soft_abort( MX_MOTOR *motor )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_elapsed_time_immediate_abort( MX_MOTOR *motor )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_elapsed_time_positive_limit_hit( MX_MOTOR *motor )
-{
-	motor->positive_limit_hit = FALSE;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_elapsed_time_negative_limit_hit( MX_MOTOR *motor )
-{
-	motor->negative_limit_hit = FALSE;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_elapsed_time_find_home_position( MX_MOTOR *motor )
-{
 	return MX_SUCCESSFUL_RESULT;
 }
 

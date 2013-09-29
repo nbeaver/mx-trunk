@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2006-2007, 2010 Illinois Institute of Technology
+ * Copyright 2003, 2006-2007, 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -57,7 +57,7 @@ MX_MOTOR_FUNCTION_LIST mxd_mdrive_motor_function_list = {
 	mxd_mdrive_immediate_abort,
 	NULL,
 	NULL,
-	mxd_mdrive_find_home_position,
+	mxd_mdrive_raw_home_command,
 	mxd_mdrive_constant_velocity_move,
 	mxd_mdrive_get_parameter,
 	mxd_mdrive_set_parameter,
@@ -285,7 +285,8 @@ mxd_mdrive_get_io_config( MX_MDRIVE *mdrive, int io_point_number )
 			io_point_number, mdrive->record->name );
 	}
 
-	sprintf( command, "PR S%d", io_point_number );
+	snprintf( command, sizeof(command),
+			"PR S%d", io_point_number );
 
 	mx_status = mxd_mdrive_command( mdrive, command,
 			response, sizeof response, MXD_MDRIVE_DEBUG );
@@ -424,7 +425,8 @@ mxd_mdrive_resynchronize( MX_RECORD *record )
 	 * ensure that the controller is in party line mode.
 	 */
 
-	sprintf( command, "%cEM=1", mdrive->axis_name );
+	snprintf( command, sizeof(command),
+			"%cEM=1", mdrive->axis_name );
 
 	mx_status = mx_rs232_putline( mdrive->rs232_record, command,
 					NULL, MXD_MDRIVE_DEBUG );
@@ -505,7 +507,7 @@ mxd_mdrive_move_absolute( MX_MOTOR *motor )
 
 	/* Format the move command and send it. */
 
-	sprintf( command, "MA %ld", motor_steps );
+	snprintf( command, sizeof(command), "MA %ld", motor_steps );
 
 	mx_status = mxd_mdrive_command( mdrive, command,
 						NULL, 0, MXD_MDRIVE_DEBUG );
@@ -569,7 +571,7 @@ mxd_mdrive_set_position( MX_MOTOR *motor )
 
 	motor_steps = motor->raw_set_position.stepper;
 
-	sprintf( command, "P=%ld", motor_steps );
+	snprintf( command, sizeof(command), "P=%ld", motor_steps );
 
 	mx_status = mxd_mdrive_command( mdrive, command,
 						NULL, 0, MXD_MDRIVE_DEBUG );
@@ -628,7 +630,7 @@ mxd_mdrive_immediate_abort( MX_MOTOR *motor )
 	 * and stop the motor with no decel rate.
 	 */
 
-	sprintf( command, "%c", MX_ESC );
+	snprintf( command, sizeof(command), "%c", MX_ESC );
 
 	mx_status = mxd_mdrive_command( mdrive, command,
 						NULL, 0, MXD_MDRIVE_DEBUG );
@@ -637,9 +639,9 @@ mxd_mdrive_immediate_abort( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_mdrive_find_home_position( MX_MOTOR *motor )
+mxd_mdrive_raw_home_command( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_mdrive_find_home_position()";
+	static const char fname[] = "mxd_mdrive_raw_home_command()";
 
 	MX_MDRIVE *mdrive;
 	char command[20];
@@ -655,10 +657,10 @@ mxd_mdrive_find_home_position( MX_MOTOR *motor )
 	mdrive->last_move_was_home_search = TRUE;
 	mdrive->last_home_search_failed = FALSE;
 
-	if ( motor->home_search >= 0 ) {
-		strcpy( command, "HM=3" );
+	if ( motor->raw_home_command >= 0 ) {
+		strlcpy( command, "HM=3", sizeof(command) );
 	} else {
-		strcpy( command, "HM=1" );
+		strlcpy( command, "HM=1", sizeof(command) );
 	}
 		
 	mx_status = mxd_mdrive_command( mdrive, command,
@@ -692,11 +694,11 @@ mxd_mdrive_constant_velocity_move( MX_MOTOR *motor )
 		return mx_status;
 
 	if ( motor->constant_velocity_move >= 0 ) {
-		sprintf( command, "SL=%ld",
-				mx_round( motor->raw_speed ) );
+		snprintf( command, sizeof(command),
+				"SL=%ld", mx_round( motor->raw_speed ) );
 	} else {
-		sprintf( command, "SL=-%ld",
-				mx_round( motor->raw_speed ) );
+		snprintf( command, sizeof(command),
+				"SL=-%ld", mx_round( motor->raw_speed ) );
 	}
 
 	mx_status = mxd_mdrive_command( mdrive, command,
@@ -821,21 +823,23 @@ mxd_mdrive_set_parameter( MX_MOTOR *motor )
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
-		sprintf( command, "VM=%ld", mx_round( motor->raw_speed ) );
+		snprintf( command, sizeof(command),
+				"VM=%ld", mx_round( motor->raw_speed ) );
 
 		mx_status = mxd_mdrive_command( mdrive, command,
 						NULL, 0, MXD_MDRIVE_DEBUG );
 		break;
 
 	case MXLV_MTR_BASE_SPEED:
-		sprintf( command, "VI=%ld", mx_round( motor->raw_base_speed ) );
+		snprintf( command, sizeof(command),
+				"VI=%ld", mx_round( motor->raw_base_speed ) );
 
 		mx_status = mxd_mdrive_command( mdrive, command,
 						NULL, 0, MXD_MDRIVE_DEBUG );
 		break;
 
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
-		sprintf( command, "A=%ld",
+		snprintf( command, sizeof(command), "A=%ld",
 			mx_round( motor->raw_acceleration_parameters[0] ));
 
 		mx_status = mxd_mdrive_command( mdrive, command,
@@ -844,7 +848,7 @@ mxd_mdrive_set_parameter( MX_MOTOR *motor )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		sprintf( command, "D=%ld",
+		snprintf( command, sizeof(command), "D=%ld",
 			mx_round( motor->raw_acceleration_parameters[1] ));
 
 		mx_status = mxd_mdrive_command( mdrive, command,
@@ -866,7 +870,7 @@ mxd_mdrive_get_status( MX_MOTOR *motor )
 	char command[80];
 	char response[80];
 	char *ptr;
-	int i, num_chars_expected;
+	int i, num_chars_expected, num_chars_left;
 	mx_status_type mx_status;
 
 	mdrive = NULL;
@@ -878,26 +882,32 @@ mxd_mdrive_get_status( MX_MOTOR *motor )
 
 	motor->status = 0;
 
-	strcpy( command, "PR MV ST" );
+	strlcpy( command, "PR MV ST", sizeof(command) );
 
 	ptr = command + strlen(command);
 
 	num_chars_expected = 2;
 
+	num_chars_left = sizeof(command) - strlen(command) - 1;
+
 	if ( mdrive->negative_limit_switch != 0 ) {
-		sprintf( ptr, " I%ld", mdrive->negative_limit_switch );
+		snprintf( ptr, num_chars_left,
+				" I%ld", mdrive->negative_limit_switch );
 
 		ptr = command + strlen(command);
 
 		num_chars_expected++;
+		num_chars_left = sizeof(command) - strlen(command) - 1;
 	}
 
 	if ( mdrive->positive_limit_switch != 0 ) {
-		sprintf( ptr, " I%ld", mdrive->positive_limit_switch );
+		snprintf( ptr, num_chars_left,
+				" I%ld", mdrive->positive_limit_switch );
 
 		ptr = command + strlen(command);
 
 		num_chars_expected++;
+		num_chars_left = sizeof(command) - strlen(command) - 1;
 	}
 
 	MX_DEBUG( 2,("%s: num_chars_expected = %d", fname, num_chars_expected));
@@ -985,7 +995,7 @@ mxd_mdrive_command( MX_MDRIVE *mdrive, char *command,
 
 	/* Send the axis name prefix. */
 
-	sprintf( prefix, "%c", mdrive->axis_name );
+	snprintf( prefix, sizeof(prefix), "%c", mdrive->axis_name );
 
 	if ( debug_flag & MXD_MDRIVE_DEBUG ) {
 		MX_DEBUG(-2, ("%s: command = '%s%s'", fname, prefix, command));

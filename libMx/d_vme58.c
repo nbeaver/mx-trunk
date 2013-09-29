@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2003, 2006, 2010 Illinois Institute of Technology
+ * Copyright 1999, 2001-2003, 2006, 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -53,7 +53,7 @@ MX_MOTOR_FUNCTION_LIST mxd_vme58_motor_function_list = {
 	mxd_vme58_immediate_abort,
 	mxd_vme58_positive_limit_hit,
 	mxd_vme58_negative_limit_hit,
-	mxd_vme58_find_home_position,
+	mxd_vme58_raw_home_command,
 	mxd_vme58_constant_velocity_move,
 	mxd_vme58_get_parameter,
 	mxd_vme58_set_parameter
@@ -87,7 +87,7 @@ mxd_vme58_get_pointers( MX_MOTOR *motor,
 			MX_VME58 **vme58,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_vme58_get_pointers()";
+	static const char fname[] = "mxd_vme58_get_pointers()";
 
 	MX_RECORD *vme58_record;
 
@@ -139,7 +139,7 @@ mxd_vme58_get_pointers( MX_MOTOR *motor,
 MX_EXPORT mx_status_type
 mxd_vme58_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_vme58_create_record_structures()";
+	static const char fname[] = "mxd_vme58_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_VME58_MOTOR *vme58_motor;
@@ -182,7 +182,7 @@ mxd_vme58_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_vme58_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxd_vme58_finish_record_initialization()";
+	static const char fname[] = "mxd_vme58_finish_record_initialization()";
 
 	MX_MOTOR *motor;
 	MX_VME58 *vme58;
@@ -276,7 +276,7 @@ mxd_vme58_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_vme58_print_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_vme58_print_structure()";
+	static const char fname[] = "mxd_vme58_print_structure()";
 
 	MX_MOTOR *motor;
 	MX_VME58_MOTOR *vme58_motor;
@@ -355,7 +355,7 @@ mxd_vme58_print_structure( FILE *file, MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_vme58_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_vme58_open()";
+	static const char fname[] = "mxd_vme58_open()";
 
 	MX_MOTOR *motor;
 	MX_VME58_MOTOR *vme58_motor;
@@ -382,9 +382,11 @@ mxd_vme58_open( MX_RECORD *record )
 
 	if ( vme58_motor->flags & MXF_VME58_MOTOR_DISABLE_HARDWARE_LIMITS ) {
 
-		sprintf( command, "A%c LF", VME58_AXIS_NUMBER( vme58_motor ) );
+		snprintf( command, sizeof(command), "A%c LF",
+				VME58_AXIS_NUMBER( vme58_motor ) );
 	} else {
-		sprintf( command, "A%c LN", VME58_AXIS_NUMBER( vme58_motor ) );
+		snprintf( command, sizeof(command), "A%c LN",
+				VME58_AXIS_NUMBER( vme58_motor ) );
 	}
 
 	mx_status = mxi_vme58_command( vme58, command,
@@ -399,9 +401,11 @@ mxd_vme58_open( MX_RECORD *record )
 
 	if ( vme58_motor->flags & MXF_VME58_MOTOR_HOME_HIGH ) {
 
-		sprintf( command, "A%c HH", VME58_AXIS_NUMBER( vme58_motor ) );
+		snprintf( command, sizeof(command), "A%c HH",
+				VME58_AXIS_NUMBER( vme58_motor ) );
 	} else {
-		sprintf( command, "A%c HL", VME58_AXIS_NUMBER( vme58_motor ) );
+		snprintf( command, sizeof(command), "A%c HL",
+				VME58_AXIS_NUMBER( vme58_motor ) );
 	}
 
 	mx_status = mxi_vme58_command( vme58, command,
@@ -445,7 +449,7 @@ mxd_vme58_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_vme58_resynchronize( MX_RECORD *record )
 {
-	const char fname[] = "mxd_vme58_resynchronize()";
+	static const char fname[] = "mxd_vme58_resynchronize()";
 
 	MX_VME58_MOTOR *vme58_motor;
 	mx_status_type mx_status;
@@ -484,7 +488,7 @@ mxd_vme58_resynchronize( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_vme58_motor_is_busy( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_vme58_motor_is_busy()";
+	static const char fname[] = "mxd_vme58_motor_is_busy()";
 
 	MX_VME58_MOTOR *vme58_motor;
 	MX_VME58 *vme58;
@@ -499,7 +503,8 @@ mxd_vme58_motor_is_busy( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "A%c QA", VME58_AXIS_NUMBER( vme58_motor ) );
+	snprintf( command, sizeof(command), "A%c QA",
+			VME58_AXIS_NUMBER( vme58_motor ) );
 
 	mx_status = mxi_vme58_command( vme58, command,
 			response, sizeof response, VME58_MOTOR_DEBUG );
@@ -531,7 +536,7 @@ mxd_vme58_motor_is_busy( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_vme58_move_absolute( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_vme58_move_absolute()";
+	static const char fname[] = "mxd_vme58_move_absolute()";
 
 	MX_VME58_MOTOR *vme58_motor;
 	MX_VME58 *vme58;
@@ -547,7 +552,7 @@ mxd_vme58_move_absolute( MX_MOTOR *motor )
 
 	motor_steps = motor->raw_destination.stepper;
 
-	sprintf( command, "A%c MA%ld GD ID",
+	snprintf( command, sizeof(command), "A%c MA%ld GD ID",
 			VME58_AXIS_NUMBER( vme58_motor ), motor_steps );
 
 	mx_status = mxi_vme58_command( vme58, command,
@@ -559,7 +564,7 @@ mxd_vme58_move_absolute( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_vme58_get_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_vme58_get_position()";
+	static const char fname[] = "mxd_vme58_get_position()";
 
 	MX_VME58_MOTOR *vme58_motor;
 	MX_VME58 *vme58;
@@ -575,7 +580,8 @@ mxd_vme58_get_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "A%c RP", VME58_AXIS_NUMBER( vme58_motor ) );
+	snprintf( command, sizeof(command), "A%c RP",
+			VME58_AXIS_NUMBER( vme58_motor ) );
 
 	mx_status = mxi_vme58_command( vme58, command,
 			response, sizeof response, VME58_MOTOR_DEBUG );
@@ -599,7 +605,7 @@ mxd_vme58_get_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_vme58_set_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_vme58_set_position()";
+	static const char fname[] = "mxd_vme58_set_position()";
 
 	MX_VME58_MOTOR *vme58_motor;
 	MX_VME58 *vme58;
@@ -615,7 +621,7 @@ mxd_vme58_set_position( MX_MOTOR *motor )
 
 	motor_steps = motor->raw_set_position.stepper;
 
-	sprintf( command, "A%c LP%ld",
+	snprintf( command, sizeof(command), "A%c LP%ld",
 			VME58_AXIS_NUMBER(vme58_motor), motor_steps );
 
 	mx_status = mxi_vme58_command( vme58, command,
@@ -627,7 +633,7 @@ mxd_vme58_set_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_vme58_soft_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_vme58_soft_abort()";
+	static const char fname[] = "mxd_vme58_soft_abort()";
 
 	MX_VME58_MOTOR *vme58_motor;
 	MX_VME58 *vme58;
@@ -640,7 +646,8 @@ mxd_vme58_soft_abort( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "A%c ST", VME58_AXIS_NUMBER( vme58_motor ) );
+	snprintf( command, sizeof(command), "A%c ST",
+			VME58_AXIS_NUMBER( vme58_motor ) );
 
 	mx_status = mxi_vme58_command( vme58, command,
 					NULL, 0, VME58_MOTOR_DEBUG );
@@ -651,10 +658,9 @@ mxd_vme58_soft_abort( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_vme58_immediate_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_vme58_immediate_abort()";
+	static const char fname[] = "mxd_vme58_immediate_abort()";
 
-	MX_VME58_MOTOR *vme58_motor;
-	MX_VME58 *vme58;
+	MX_VME58_MOTOR *vme58_motor; MX_VME58 *vme58;
 	mx_status_type mx_status;
 
 	mx_status = mxd_vme58_get_pointers( motor,
@@ -677,7 +683,7 @@ mxd_vme58_immediate_abort( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_vme58_positive_limit_hit( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_vme58_positive_limit_hit()";
+	static const char fname[] = "mxd_vme58_positive_limit_hit()";
 
 	MX_VME58_MOTOR *vme58_motor;
 	MX_VME58 *vme58;
@@ -703,7 +709,8 @@ mxd_vme58_positive_limit_hit( MX_MOTOR *motor )
 
 	/* Construct the status query command. */
 
-	sprintf( command, "A%c QA", VME58_AXIS_NUMBER( vme58_motor ) );
+	snprintf( command, sizeof(command), "A%c QA",
+			VME58_AXIS_NUMBER( vme58_motor ) );
 
 	mx_status = mxi_vme58_command( vme58, command,
 			response, sizeof response, VME58_MOTOR_DEBUG );
@@ -735,7 +742,7 @@ mxd_vme58_positive_limit_hit( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_vme58_negative_limit_hit( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_vme58_negative_limit_hit()";
+	static const char fname[] = "mxd_vme58_negative_limit_hit()";
 
 	MX_VME58_MOTOR *vme58_motor;
 	MX_VME58 *vme58;
@@ -761,7 +768,8 @@ mxd_vme58_negative_limit_hit( MX_MOTOR *motor )
 
 	/* Construct the status query command. */
 
-	sprintf( command, "A%c QA", VME58_AXIS_NUMBER( vme58_motor ) );
+	snprintf( command, sizeof(command), "A%c QA",
+			VME58_AXIS_NUMBER( vme58_motor ) );
 
 	mx_status = mxi_vme58_command( vme58, command,
 			response, sizeof response, VME58_MOTOR_DEBUG );
@@ -791,9 +799,9 @@ mxd_vme58_negative_limit_hit( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_vme58_find_home_position( MX_MOTOR *motor )
+mxd_vme58_raw_home_command( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_vme58_find_home_position()";
+	static const char fname[] = "mxd_vme58_raw_home_command()";
 
 	MX_VME58_MOTOR *vme58_motor;
 	MX_VME58 *vme58;
@@ -811,11 +819,11 @@ mxd_vme58_find_home_position( MX_MOTOR *motor )
 	 * of the home search.
 	 */
 
-	if ( motor->home_search >= 0 ) {
-		sprintf( command, "A%c HM0 MA0 GO",
+	if ( motor->raw_home_command >= 0 ) {
+		snprintf( command, sizeof(command), "A%c HM0 MA0 GO",
 					VME58_AXIS_NUMBER( vme58_motor ) );
 	} else {
-		sprintf( command, "A%c HR0 MA0 GO",
+		snprintf( command, sizeof(command), "A%c HR0 MA0 GO",
 					VME58_AXIS_NUMBER( vme58_motor ) );
 	}
 
@@ -830,7 +838,7 @@ mxd_vme58_find_home_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_vme58_constant_velocity_move( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_vme58_constant_velocity_move()";
+	static const char fname[] = "mxd_vme58_constant_velocity_move()";
 
 	MX_VME58_MOTOR *vme58_motor;
 	MX_VME58 *vme58;
@@ -857,11 +865,11 @@ mxd_vme58_constant_velocity_move( MX_MOTOR *motor )
 	/* Construct the jog command. */
 
 	if ( motor->constant_velocity_move >= 0 ) {
-		sprintf( command, "A%c JG%ld",
+		snprintf( command, sizeof(command), "A%c JG%ld",
 				VME58_AXIS_NUMBER( vme58_motor ),
 				raw_speed );
 	} else {
-		sprintf( command, "A%c JG%ld",
+		snprintf( command, sizeof(command), "A%c JG%ld",
 				VME58_AXIS_NUMBER( vme58_motor ),
 				-raw_speed );
 	}
@@ -887,9 +895,7 @@ mxd_vme58_get_parameter( MX_MOTOR *motor )
 	 * controller, then the returned values will be correct.
 	 */
 #if 0
-	const char fname[] = "mxd_vme58_get_parameter()";
-
-	MX_VME58_MOTOR *vme58_motor;
+	static const char fname[] = "mxd_vme58_get_parameter()"; MX_VME58_MOTOR *vme58_motor;
 	MX_VME58 *vme58;
 	char command[80];
 	char response[80];
@@ -903,7 +909,8 @@ mxd_vme58_get_parameter( MX_MOTOR *motor )
 
 	if ( motor->parameter_type == MXLV_MTR_SPEED ) {
 
-		sprintf( command, "A%c ??", VME58_AXIS_NUMBER( vme58_motor ) );
+		snprintf( command, sizeof(command), "A%c ??",
+				VME58_AXIS_NUMBER( vme58_motor ) );
 
 		mx_status = mxi_vme58_command( vme58, command,
 				response, sizeof(response), VME58_MOTOR_DEBUG );
@@ -921,7 +928,8 @@ mxd_vme58_get_parameter( MX_MOTOR *motor )
 
 	} else if ( motor->parameter_type == MXLV_MTR_BASE_SPEED ) {
 
-		sprintf( command, "A%c ??", VME58_AXIS_NUMBER( vme58_motor ) );
+		snprintf( command, sizeof(command), "A%c ??",
+				VME58_AXIS_NUMBER( vme58_motor ) );
 
 		mx_status = mxi_vme58_command( vme58, command,
 				response, sizeof(response), VME58_MOTOR_DEBUG );
@@ -945,7 +953,8 @@ mxd_vme58_get_parameter( MX_MOTOR *motor )
 			MXLV_MTR_RAW_ACCELERATION_PARAMETERS )
 	{
 
-		sprintf( command, "A%c ??", VME58_AXIS_NUMBER( vme58_motor ) );
+		snprintf( command, sizeof(command), "A%c ??",
+				VME58_AXIS_NUMBER( vme58_motor ) );
 
 		mx_status = mxi_vme58_command( vme58, command,
 				response, sizeof(response), VME58_MOTOR_DEBUG );
@@ -978,7 +987,7 @@ mxd_vme58_get_parameter( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_vme58_set_parameter( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_vme58_set_parameter()";
+	static const char fname[] = "mxd_vme58_set_parameter()";
 
 	MX_VME58_MOTOR *vme58_motor;
 	MX_VME58 *vme58;
@@ -1007,7 +1016,7 @@ mxd_vme58_set_parameter( MX_MOTOR *motor )
 				raw_speed, MX_VME58_MOTOR_MAXIMUM_SPEED );
 		}
 
-		sprintf( command, "A%c VL%ld",
+		snprintf( command, sizeof(command), "A%c VL%ld",
 			VME58_AXIS_NUMBER( vme58_motor ), raw_speed );
 
 	} else if ( motor->parameter_type == MXLV_MTR_BASE_SPEED ) {
@@ -1023,7 +1032,7 @@ mxd_vme58_set_parameter( MX_MOTOR *motor )
 				raw_base_speed, MX_VME58_MOTOR_MAXIMUM_SPEED );
 		}
 
-		sprintf( command, "A%c VB%ld",
+		snprintf( command, sizeof(command), "A%c VB%ld",
 			VME58_AXIS_NUMBER( vme58_motor ), raw_base_speed );
 
 	} else if ( motor->parameter_type == MXLV_MTR_MAXIMUM_SPEED ) {
@@ -1047,7 +1056,7 @@ mxd_vme58_set_parameter( MX_MOTOR *motor )
 			acceleration, MX_VME58_MOTOR_MAXIMUM_ACCELERATION );
 		}
 
-		sprintf( command, "A%c AC%ld",
+		snprintf( command, sizeof(command), "A%c AC%ld",
 			VME58_AXIS_NUMBER( vme58_motor ), acceleration );
 
 	} else {

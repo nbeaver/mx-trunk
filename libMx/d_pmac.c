@@ -10,7 +10,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2010, 2012 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2010, 2012-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -54,7 +54,7 @@ MX_MOTOR_FUNCTION_LIST mxd_pmac_motor_function_list = {
 	mxd_pmac_immediate_abort,
 	NULL,
 	NULL,
-	mxd_pmac_find_home_position,
+	mxd_pmac_raw_home_command,
 	mxd_pmac_constant_velocity_move,
 	mxd_pmac_get_parameter,
 	mxd_pmac_set_parameter,
@@ -603,9 +603,9 @@ mxd_pmac_immediate_abort( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_pmac_find_home_position( MX_MOTOR *motor )
+mxd_pmac_raw_home_command( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_pmac_find_home_position()";
+	static const char fname[] = "mxd_pmac_raw_home_command()";
 
 	MX_PMAC_MOTOR *pmac_motor = NULL;
 	MX_PMAC *pmac = NULL;
@@ -626,7 +626,7 @@ mxd_pmac_find_home_position( MX_MOTOR *motor )
 
 	raw_home_speed = fabs( raw_home_speed );
 
-	if ( motor->home_search < 0 ) {
+	if ( motor->raw_home_command < 0 ) {
 		raw_home_speed = -raw_home_speed;
 	}
 

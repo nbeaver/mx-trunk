@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2004, 2006, 2010-2011 Illinois Institute of Technology
+ * Copyright 2004, 2006, 2010-2011, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -47,7 +47,7 @@ MX_MOTOR_FUNCTION_LIST mxd_spec_motor_motor_function_list = {
 	NULL,
 	mxd_spec_motor_positive_limit_hit,
 	mxd_spec_motor_negative_limit_hit,
-	mxd_spec_motor_find_home_position,
+	mxd_spec_motor_raw_home_command,
 	NULL,
 	mxd_spec_motor_get_parameter,
 	mxd_spec_motor_set_parameter,
@@ -569,9 +569,9 @@ mxd_spec_motor_negative_limit_hit( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_spec_motor_find_home_position( MX_MOTOR *motor )
+mxd_spec_motor_raw_home_command( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_spec_motor_find_home_position()";
+	static const char fname[] = "mxd_spec_motor_raw_home_command()";
 
 	MX_SPEC_MOTOR *spec_motor;
 	char property_name[SV_NAME_LEN];
@@ -584,7 +584,7 @@ mxd_spec_motor_find_home_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	switch( motor->home_search ) {
+	switch( motor->raw_home_command ) {
 	case -2:
 		strcpy( home_search_string, "lim-" );
 		break;
@@ -605,7 +605,7 @@ mxd_spec_motor_find_home_position( MX_MOTOR *motor )
 		"Illegal home search value %ld specified for motor '%s'.  "
 		"The legal values are -1, 1 for home search, "
 		"-2, 2 for limit search, 0 for ***FIXME***",
-			motor->home_search, motor->record->name );
+			motor->raw_home_command, motor->record->name );
 	}
 
 	sprintf( property_name, "motor/%s/search",

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2012 Illinois Institute of Technology
+ * Copyright 1999-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -155,6 +155,10 @@ mx_motor_finish_record_initialization( MX_RECORD *motor_record )
 	 */
 
 	motor->quick_scan_backlash_correction = 0.0;
+
+	/*---*/
+
+	motor->home_search_type = MXHS_MTR_RAW_HOME_COMMAND;
 
 	/*---*/
 
@@ -1451,9 +1455,8 @@ mx_motor_set_position( MX_RECORD *motor_record, double set_position )
 
 	if ( fptr == NULL ) {
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"The '%s' driver for motor '%s' does not define a set_position "
-		"driver function, so there is no way to redefine the position "
-		"of this motor.",
+		"The '%s' driver for motor '%s' does not provide a way to "
+		"redefine the position of this motor.",
 			mx_get_driver_name( motor_record ),
 			motor_record->name );
 	}
@@ -1636,9 +1639,9 @@ mx_motor_negative_limit_hit( MX_RECORD *motor_record, mx_bool_type *limit_hit )
 }
 
 MX_EXPORT mx_status_type
-mx_motor_find_home_position( MX_RECORD *motor_record, long direction )
+mx_motor_raw_home_command( MX_RECORD *motor_record, long direction )
 {
-	static const char fname[] = "mx_motor_find_home_position()";
+	static const char fname[] = "mx_motor_raw_home_command()";
 
 	MX_MOTOR *motor;
 	MX_MOTOR_FUNCTION_LIST *fl_ptr;
@@ -1651,7 +1654,7 @@ mx_motor_find_home_position( MX_RECORD *motor_record, long direction )
 	if ( status.code != MXE_SUCCESS )
 		return status;
 
-	fptr = fl_ptr->find_home_position;
+	fptr = fl_ptr->raw_home_command;
 
 	if ( fptr == NULL ) {
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -1661,9 +1664,9 @@ mx_motor_find_home_position( MX_RECORD *motor_record, long direction )
 	}
 
 	if ( motor->scale >= 0.0 ) {
-		motor->home_search = direction;
+		motor->raw_home_command = direction;
 	} else {
-		motor->home_search = -direction;
+		motor->raw_home_command = -direction;
 	}
 
 	status = ( *fptr ) ( motor );

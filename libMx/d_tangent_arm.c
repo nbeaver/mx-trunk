@@ -77,7 +77,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2002-2003, 2006-2007 Illinois Institute of Technology
+ * Copyright 2002-2003, 2006-2007, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -114,7 +114,7 @@ MX_MOTOR_FUNCTION_LIST mxd_tangent_arm_motor_function_list = {
 	mxd_tangent_arm_immediate_abort,
 	mxd_tangent_arm_positive_limit_hit,
 	mxd_tangent_arm_negative_limit_hit,
-	mxd_tangent_arm_find_home_position,
+	mxd_tangent_arm_raw_home_command,
 	NULL,
 	mxd_tangent_arm_get_parameter,
 	mxd_tangent_arm_set_parameter
@@ -674,9 +674,9 @@ mxd_tangent_arm_negative_limit_hit( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_tangent_arm_find_home_position( MX_MOTOR *motor )
+mxd_tangent_arm_raw_home_command( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_tangent_arm_find_home_position()";
+	static const char fname[] = "mxd_tangent_arm_raw_home_command()";
 
 	MX_TANGENT_ARM *tangent_arm;
 	MX_RECORD *moving_motor_record;
@@ -692,12 +692,12 @@ mxd_tangent_arm_find_home_position( MX_MOTOR *motor )
 		return mx_status;
 
 	if ( motor->scale < 0.0 ) {
-		direction = - ( motor->home_search );
+		direction = - ( motor->raw_home_command );
 	} else {
-		direction = motor->home_search;
+		direction = motor->raw_home_command;
 	}
 
-	mx_status = mx_motor_find_home_position( moving_motor_record,
+	mx_status = mx_motor_raw_home_command( moving_motor_record,
 							direction );
 	return mx_status;
 }

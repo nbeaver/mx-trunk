@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2006-2007, 2009-2010
+ * Copyright 2000-2001, 2003, 2006-2007, 2009-2010, 2013
  *   Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -52,9 +52,9 @@ MX_MOTOR_FUNCTION_LIST mxd_ls330_motor_motor_function_list = {
 	mxd_ls330_motor_set_position,
 	mxd_ls330_motor_soft_abort,
 	mxd_ls330_motor_soft_abort,
-	mxd_ls330_motor_positive_limit_hit,
-	mxd_ls330_motor_negative_limit_hit,
-	mxd_ls330_motor_find_home_position,
+	NULL,
+	NULL,
+	NULL,
 	NULL,
 	mx_motor_default_get_parameter_handler,
 	mx_motor_default_set_parameter_handler
@@ -625,32 +625,6 @@ mxd_ls330_motor_soft_abort( MX_MOTOR *motor )
 			command, NULL, 0, LS330_MOTOR_DEBUG );
 
 	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxd_ls330_motor_positive_limit_hit( MX_MOTOR *motor )
-{
-	motor->positive_limit_hit = FALSE;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_ls330_motor_negative_limit_hit( MX_MOTOR *motor )
-{
-	motor->negative_limit_hit = FALSE;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_ls330_motor_find_home_position( MX_MOTOR *motor )
-{
-	static const char fname[] = "mxd_ls330_motor_find_home_position()";
-
-	return mx_error( MXE_UNSUPPORTED, fname,
-		"LakeShore 330 motor controller '%s' does not support "
-		"home search operations.", motor->record->name );
 }
 
 /* === Extra functions for the use of this driver. === */

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004, 2006, 2008, 2010 Illinois Institute of Technology
+ * Copyright 2004, 2006, 2008, 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -48,7 +48,7 @@ MX_MOTOR_FUNCTION_LIST mxd_kohzu_sc_motor_function_list = {
 	mxd_kohzu_sc_immediate_abort,
 	NULL,
 	NULL,
-	mxd_kohzu_sc_find_home_position,
+	mxd_kohzu_sc_raw_home_command,
 	mxd_kohzu_sc_constant_velocity_move,
 	mxd_kohzu_sc_get_parameter,
 	mxd_kohzu_sc_set_parameter,
@@ -457,9 +457,9 @@ mxd_kohzu_sc_immediate_abort( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_kohzu_sc_find_home_position( MX_MOTOR *motor )
+mxd_kohzu_sc_raw_home_command( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_kohzu_sc_find_home_position()";
+	static const char fname[] = "mxd_kohzu_sc_raw_home_command()";
 
 	MX_KOHZU_SC_MOTOR *kohzu_sc_motor = NULL;
 	MX_KOHZU_SC *kohzu_sc = NULL;

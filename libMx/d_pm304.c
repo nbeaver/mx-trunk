@@ -7,8 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004, 2006-2007, 2009-2010
- *   Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2004, 2006-2007, 2009-2010, 2013
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -55,7 +55,7 @@ MX_MOTOR_FUNCTION_LIST mxd_pm304_motor_function_list = {
 	mxd_pm304_immediate_abort,
 	mxd_pm304_positive_limit_hit,
 	mxd_pm304_negative_limit_hit,
-	mxd_pm304_find_home_position,
+	mxd_pm304_raw_home_command,
 	mxd_pm304_constant_velocity_move,
 	mxd_pm304_get_parameter,
 	mxd_pm304_set_parameter,
@@ -160,11 +160,9 @@ mxd_pm304_finish_record_initialization( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_pm304_finish_record_initialization()";
 
-	MX_MOTOR *motor;
-	MX_PM304 *pm304;
+	MX_MOTOR *motor = NULL;
+	MX_PM304 *pm304 = NULL;
 	mx_status_type mx_status;
-
-	pm304 = NULL;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -207,12 +205,10 @@ mxd_pm304_print_motor_structure( FILE *file, MX_RECORD *record )
 {
 	static const char fname[] = "mxd_pm304_print_motor_structure()";
 
-	MX_MOTOR *motor;
-	MX_PM304 *pm304;
+	MX_MOTOR *motor = NULL;
+	MX_PM304 *pm304 = NULL;
 	double position, move_deadband;
 	mx_status_type mx_status;
-
-	pm304 = NULL;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -279,15 +275,13 @@ mxd_pm304_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_pm304_open()";
 
-	MX_MOTOR *motor;
-	MX_PM304 *pm304;
+	MX_MOTOR *motor = NULL;
+	MX_PM304 *pm304 = NULL;
 	long mclennan_position, position_from_database, difference;
 	double speed;
 	mx_status_type mx_status;
 
 	MX_DEBUG(2, ("%s invoked.", fname));
-
-	pm304 = NULL;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -394,12 +388,10 @@ mxd_pm304_close( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_pm304_close()";
 
-	MX_MOTOR *motor;
-	MX_PM304 *pm304;
+	MX_MOTOR *motor = NULL;
+	MX_PM304 *pm304 = NULL;
 	double position;
 	mx_status_type mx_status;
-
-	pm304 = NULL;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -503,11 +495,9 @@ mxd_pm304_motor_is_busy( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pm304_motor_is_busy()";
 
-	MX_PM304 *pm304;
+	MX_PM304 *pm304 = NULL;
 	char response[80];
 	mx_status_type mx_status;
-
-	pm304 = NULL;
 
 	mx_status = mxd_pm304_get_pointers( motor, &pm304, fname );
 
@@ -543,13 +533,11 @@ mxd_pm304_move_absolute( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pm304_move_absolute()";
 
-	MX_PM304 *pm304;
+	MX_PM304 *pm304 = NULL;
 	char command[20];
 	char response[20];
 	long motor_steps;
 	mx_status_type mx_status;
-
-	pm304 = NULL;
 
 	mx_status = mxd_pm304_get_pointers( motor, &pm304, fname );
 
@@ -584,13 +572,11 @@ mxd_pm304_get_position( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pm304_get_position()";
 
-	MX_PM304 *pm304;
+	MX_PM304 *pm304 = NULL;
 	char response[30];
 	int num_items;
 	long motor_steps;
 	mx_status_type mx_status;
-
-	pm304 = NULL;
 
 	mx_status = mxd_pm304_get_pointers( motor, &pm304, fname );
 
@@ -620,15 +606,13 @@ mxd_pm304_set_position( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pm304_set_position()";
 
-	MX_PM304 *pm304;
+	MX_PM304 *pm304 = NULL;
 	char command[40];
 	char response[40];
 	char expected_response[40];
 	char c;
 	long motor_steps;
 	mx_status_type mx_status;
-
-	pm304 = NULL;
 
 	mx_status = mxd_pm304_get_pointers( motor, &pm304, fname );
 
@@ -690,12 +674,10 @@ mxd_pm304_soft_abort( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pm304_soft_abort()";
 
-	MX_PM304 *pm304;
+	MX_PM304 *pm304 = NULL;
 	char command[40];
 	mx_bool_type busy;
 	mx_status_type mx_status;
-
-	pm304 = NULL;
 
 	mx_status = mxd_pm304_get_pointers( motor, &pm304, fname );
 
@@ -735,11 +717,9 @@ mxd_pm304_immediate_abort( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pm304_immediate_abort()";
 
-	MX_PM304 *pm304;
+	MX_PM304 *pm304 = NULL;
 	char command[40];
 	mx_status_type mx_status;
-
-	pm304 = NULL;
 
 	mx_status = mxd_pm304_get_pointers( motor, &pm304, fname );
 
@@ -763,11 +743,9 @@ mxd_pm304_positive_limit_hit( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pm304_positive_limit_hit()";
 
-	MX_PM304 *pm304;
+	MX_PM304 *pm304 = NULL;
 	char response[80];
 	mx_status_type mx_status;
-
-	pm304 = NULL;
 
 	mx_status = mxd_pm304_get_pointers( motor, &pm304, fname );
 
@@ -800,11 +778,9 @@ mxd_pm304_negative_limit_hit( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pm304_negative_limit_hit()";
 
-	MX_PM304 *pm304;
+	MX_PM304 *pm304 = NULL;
 	char response[80];
 	mx_status_type mx_status;
-
-	pm304 = NULL;
 
 	mx_status = mxd_pm304_get_pointers( motor, &pm304, fname );
 
@@ -833,23 +809,21 @@ mxd_pm304_negative_limit_hit( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_pm304_find_home_position( MX_MOTOR *motor )
+mxd_pm304_raw_home_command( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_pm304_find_home_position()";
+	static const char fname[] = "mxd_pm304_raw_home_command()";
 
-	MX_PM304 *pm304;
+	MX_PM304 *pm304 = NULL;
 	char command[20];
 	char response[80];
 	mx_status_type mx_status;
-
-	pm304 = NULL;
 
 	mx_status = mxd_pm304_get_pointers( motor, &pm304, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( motor->home_search >= 0 ) {
+	if ( motor->raw_home_command >= 0 ) {
 		strlcpy( command, "ix", sizeof(command) );
 	} else {
 		strlcpy( command, "ix-1", sizeof(command) );
@@ -866,12 +840,10 @@ mxd_pm304_constant_velocity_move( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pm304_constant_velocity_move()";
 
-	MX_PM304 *pm304;
+	MX_PM304 *pm304 = NULL;
 	char command[20];
 	char response[80];
 	mx_status_type mx_status;
-
-	pm304 = NULL;
 
 	mx_status = mxd_pm304_get_pointers( motor, &pm304, fname );
 
@@ -895,13 +867,11 @@ mxd_pm304_get_parameter( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pm304_get_parameter()";
 
-	MX_PM304 *pm304;
+	MX_PM304 *pm304 = NULL;
 	char response[80];
 	double dummy;
 	int num_items;
 	mx_status_type mx_status;
-
-	pm304 = NULL;
 
 	mx_status = mxd_pm304_get_pointers( motor, &pm304, fname );
 
@@ -964,12 +934,10 @@ mxd_pm304_set_parameter( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pm304_set_parameter()";
 
-	MX_PM304 *pm304;
+	MX_PM304 *pm304 = NULL;
 	char command[20];
 	char response[80];
 	mx_status_type mx_status;
-
-	pm304 = NULL;
 
 	mx_status = mxd_pm304_get_pointers( motor, &pm304, fname );
 
@@ -1018,11 +986,9 @@ mxd_pm304_get_status( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pm304_get_status()";
 
-	MX_PM304 *pm304;
+	MX_PM304 *pm304 = NULL;
 	char response[80];
 	mx_status_type mx_status;
-
-	pm304 = NULL;
 
 	mx_status = mxd_pm304_get_pointers( motor, &pm304, fname );
 

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2006, 2010 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006, 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -39,23 +39,15 @@ typedef struct {
 MX_API mx_status_type mxd_am9513_motor_initialize_driver( MX_DRIVER *driver );
 MX_API mx_status_type mxd_am9513_motor_create_record_structures(
 						MX_RECORD *record );
-MX_API mx_status_type mxd_am9513_motor_finish_record_initialization(
-						MX_RECORD *record );
 MX_API mx_status_type mxd_am9513_motor_print_structure( FILE *file,
 						MX_RECORD *record );
 MX_API mx_status_type mxd_am9513_motor_open( MX_RECORD *record );
-MX_API mx_status_type mxd_am9513_motor_close( MX_RECORD *record );
-MX_API mx_status_type mxd_am9513_motor_resynchronize( MX_RECORD *record );
 
 MX_API mx_status_type mxd_am9513_motor_motor_is_busy( MX_MOTOR *motor );
 MX_API mx_status_type mxd_am9513_motor_move_absolute( MX_MOTOR *motor );
 MX_API mx_status_type mxd_am9513_motor_get_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_am9513_motor_set_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_am9513_motor_soft_abort( MX_MOTOR *motor );
-MX_API mx_status_type mxd_am9513_motor_immediate_abort( MX_MOTOR *motor );
-MX_API mx_status_type mxd_am9513_motor_positive_limit_hit( MX_MOTOR *motor );
-MX_API mx_status_type mxd_am9513_motor_negative_limit_hit( MX_MOTOR *motor );
-MX_API mx_status_type mxd_am9513_motor_find_home_position( MX_MOTOR *motor );
 
 extern MX_RECORD_FUNCTION_LIST mxd_am9513_motor_record_function_list;
 extern MX_MOTOR_FUNCTION_LIST mxd_am9513_motor_motor_function_list;

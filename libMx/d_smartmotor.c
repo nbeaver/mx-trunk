@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006-2007, 2010 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006-2007, 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -57,7 +57,7 @@ MX_MOTOR_FUNCTION_LIST mxd_smartmotor_motor_function_list = {
 	mxd_smartmotor_immediate_abort,
 	NULL,
 	NULL,
-	mxd_smartmotor_find_home_position,
+	mxd_smartmotor_raw_home_command,
 	mxd_smartmotor_constant_velocity_move,
 	mxd_smartmotor_get_parameter,
 	mxd_smartmotor_set_parameter,
@@ -158,7 +158,7 @@ mxd_smartmotor_create_record_structures( MX_RECORD *record )
 
 	motor->acceleration_type = MXF_MTR_ACCEL_RATE;
 
-	motor->home_search = 0;
+	motor->raw_home_command = 0;
 
 	smartmotor->home_search_succeeded = FALSE;
 	smartmotor->historical_left_limit = FALSE;
@@ -322,7 +322,7 @@ mxd_smartmotor_move_absolute( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	motor->home_search = 0;
+	motor->raw_home_command = 0;
 
 	smartmotor->home_search_succeeded = FALSE;
 	smartmotor->historical_left_limit = FALSE;
@@ -448,9 +448,9 @@ mxd_smartmotor_immediate_abort( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_smartmotor_find_home_position( MX_MOTOR *motor )
+mxd_smartmotor_raw_home_command( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_smartmotor_find_home_position()";
+	static const char fname[] = "mxd_smartmotor_raw_home_command()";
 
 	MX_SMARTMOTOR *smartmotor;
 	char command[20];
@@ -464,8 +464,8 @@ mxd_smartmotor_find_home_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( motor->home_search == 0 ) {
-		motor->home_search = 1;
+	if ( motor->raw_home_command == 0 ) {
+		motor->raw_home_command = 1;
 	}
 
 	/* Animatics smartmotors do not have a function specifically for
@@ -474,7 +474,7 @@ mxd_smartmotor_find_home_position( MX_MOTOR *motor )
 	 * for the motor to trip a limit switch.
 	 */
 
-	motor->constant_velocity_move = motor->home_search;
+	motor->constant_velocity_move = motor->raw_home_command;
 
 	flags = smartmotor->smartmotor_flags;
 
@@ -1004,8 +1004,8 @@ mxd_smartmotor_check_home_search_status( MX_MOTOR *motor,
 	unsigned long flags, limit_bits;
 	mx_status_type mx_status;
 
-	MX_DEBUG( 2,("motor '%s': home_search = %ld",
-		motor->record->name, motor->home_search));
+	MX_DEBUG( 2,("motor '%s': raw_home_command = %ld",
+		motor->record->name, motor->raw_home_command));
 
 	MX_DEBUG( 2,("motor '%s': historical_left_limit = %d",
 		motor->record->name, (int) smartmotor->historical_left_limit));
@@ -1040,7 +1040,7 @@ mxd_smartmotor_check_home_search_status( MX_MOTOR *motor,
 
 	if ( smartmotor->home_search_succeeded ) {
 
-		motor->home_search = FALSE;
+		motor->raw_home_command = 0;
 
 		flags = smartmotor->smartmotor_flags;
 
@@ -1110,7 +1110,7 @@ mxd_smartmotor_get_status( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( motor->home_search ) {
+	if ( motor->raw_home_command ) {
 		mx_status = mxd_smartmotor_check_home_search_status(
 							motor, smartmotor );
 	}
@@ -1169,7 +1169,7 @@ mxd_smartmotor_get_extended_status( MX_MOTOR *motor )
 	mx_status = mxd_smartmotor_parse_status_word( motor,
 						smartmotor, status_word );
 
-	if ( motor->home_search ) {
+	if ( motor->raw_home_command ) {
 		mx_status = mxd_smartmotor_check_home_search_status(
 							motor, smartmotor );
 	}

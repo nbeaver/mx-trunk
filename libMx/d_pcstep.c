@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2002, 2004, 2006, 2010 Illinois Institute of Technology
+ * Copyright 2000-2002, 2004, 2006, 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -49,7 +49,7 @@ MX_MOTOR_FUNCTION_LIST mxd_pcstep_motor_function_list = {
 	mxd_pcstep_immediate_abort,
 	mxd_pcstep_positive_limit_hit,
 	mxd_pcstep_negative_limit_hit,
-	mxd_pcstep_find_home_position,
+	mxd_pcstep_raw_home_command,
 	mxd_pcstep_constant_velocity_move,
 	mxd_pcstep_get_parameter,
 	mxd_pcstep_set_parameter
@@ -940,9 +940,9 @@ mxd_pcstep_negative_limit_hit( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_pcstep_find_home_position( MX_MOTOR *motor )
+mxd_pcstep_raw_home_command( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_pcstep_find_home_position()";
+	static const char fname[] = "mxd_pcstep_raw_home_command()";
 
 	MX_PCSTEP_MOTOR *pcstep_motor;
 	MX_PCSTEP *pcstep;
@@ -992,7 +992,7 @@ mxd_pcstep_find_home_position( MX_MOTOR *motor )
 			pcstep->record->name );
 	}
 
-	if ( motor->home_search >= 0 ) {
+	if ( motor->raw_home_command >= 0 ) {
 		direction_bits = 0;
 	} else {
 		direction_bits = 0xFFFF;

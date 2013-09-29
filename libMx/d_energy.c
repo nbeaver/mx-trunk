@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2007, 2010 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2007, 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -47,7 +47,7 @@ MX_MOTOR_FUNCTION_LIST mxd_energy_motor_motor_function_list = {
 	mxd_energy_motor_immediate_abort,
 	NULL,
 	NULL,
-	mxd_energy_motor_find_home_position,
+	mxd_energy_motor_raw_home_command,
 	mxd_energy_motor_constant_velocity_move,
 	mxd_energy_motor_get_parameter,
 	mxd_energy_motor_set_parameter,
@@ -568,9 +568,9 @@ mxd_energy_motor_immediate_abort( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_energy_motor_find_home_position( MX_MOTOR *motor )
+mxd_energy_motor_raw_home_command( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_energy_motor_find_home_position()";
+	static const char fname[] = "mxd_energy_motor_raw_home_command()";
 
 	MX_ENERGY_MOTOR *energy_motor;
 	MX_RECORD *dependent_motor_record;
@@ -583,10 +583,10 @@ mxd_energy_motor_find_home_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	direction = - ( motor->home_search );
+	direction = - ( motor->raw_home_command );
 
-	mx_status = mx_motor_find_home_position( dependent_motor_record,
-						direction );
+	mx_status = mx_motor_raw_home_command( dependent_motor_record,
+							direction );
 
 	return mx_status;
 }

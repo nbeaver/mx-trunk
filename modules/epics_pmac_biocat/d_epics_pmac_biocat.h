@@ -9,7 +9,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 2011-2012 Illinois Institute of Technology
+ * Copyright 2011-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -98,7 +98,7 @@ MX_API mx_status_type mxd_epics_pmac_biocat_positive_limit_hit(
 							MX_MOTOR *motor );
 MX_API mx_status_type mxd_epics_pmac_biocat_negative_limit_hit(
 							MX_MOTOR *motor );
-MX_API mx_status_type mxd_epics_pmac_biocat_find_home_position(
+MX_API mx_status_type mxd_epics_pmac_biocat_raw_home_command(
 							MX_MOTOR *motor );
 MX_API mx_status_type mxd_epics_pmac_biocat_get_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_epics_pmac_biocat_set_parameter( MX_MOTOR *motor );

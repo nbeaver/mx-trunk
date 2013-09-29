@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004, 2010 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004, 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -89,7 +89,7 @@ MX_API mx_status_type mxd_panther_soft_abort( MX_MOTOR *motor );
 MX_API mx_status_type mxd_panther_immediate_abort( MX_MOTOR *motor );
 MX_API mx_status_type mxd_panther_positive_limit_hit( MX_MOTOR *motor );
 MX_API mx_status_type mxd_panther_negative_limit_hit( MX_MOTOR *motor );
-MX_API mx_status_type mxd_panther_find_home_position( MX_MOTOR *motor );
+MX_API mx_status_type mxd_panther_raw_home_command( MX_MOTOR *motor );
 MX_API mx_status_type mxd_panther_constant_velocity_move( MX_MOTOR *motor );
 MX_API mx_status_type mxd_panther_get_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_panther_set_parameter( MX_MOTOR *motor );

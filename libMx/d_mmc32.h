@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004, 2006, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -46,7 +46,7 @@ MX_API mx_status_type mxd_mmc32_get_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_mmc32_set_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_mmc32_soft_abort( MX_MOTOR *motor );
 MX_API mx_status_type mxd_mmc32_immediate_abort( MX_MOTOR *motor );
-MX_API mx_status_type mxd_mmc32_find_home_position( MX_MOTOR *motor );
+MX_API mx_status_type mxd_mmc32_raw_home_command( MX_MOTOR *motor );
 MX_API mx_status_type mxd_mmc32_get_status( MX_MOTOR *motor );
 
 extern MX_RECORD_FUNCTION_LIST mxd_mmc32_record_function_list;

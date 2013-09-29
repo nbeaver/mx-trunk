@@ -8,7 +8,7 @@
  *
  *-----------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2010 Illinois Institute of Technology
+ * Copyright 1999-2006, 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -51,7 +51,7 @@ MX_MOTOR_FUNCTION_LIST mxd_newport_motor_function_list = {
 	mxd_newport_immediate_abort,
 	mxd_newport_positive_limit_hit,
 	mxd_newport_negative_limit_hit,
-	mxd_newport_find_home_position,
+	mxd_newport_raw_home_command,
 	mxd_newport_constant_velocity_move,
 	mxd_newport_get_parameter,
 	mxd_newport_set_parameter
@@ -113,7 +113,7 @@ mxd_newport_get_pointers( MX_MOTOR *motor,
 			MX_NEWPORT **newport,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_newport_get_pointers()";
+	static const char fname[] = "mxd_newport_get_pointers()";
 
 	MX_RECORD *newport_record;
 
@@ -173,7 +173,7 @@ mxd_newport_get_pointers( MX_MOTOR *motor,
 MX_EXPORT mx_status_type
 mxd_newport_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_newport_create_record_structures()";
+	static const char fname[] = "mxd_newport_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_NEWPORT_MOTOR *newport_motor;
@@ -226,7 +226,8 @@ mxd_newport_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_newport_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxd_newport_finish_record_initialization()";
+	static const char fname[] =
+		"mxd_newport_finish_record_initialization()";
 
 	MX_NEWPORT *newport;
 	MX_NEWPORT_MOTOR *newport_motor;
@@ -282,7 +283,7 @@ mxd_newport_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_newport_print_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_newport_print_structure()";
+	static const char fname[] = "mxd_newport_print_structure()";
 
 	MX_MOTOR *motor;
 	MX_NEWPORT *newport;
@@ -387,7 +388,7 @@ mxd_newport_print_structure( FILE *file, MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_newport_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_newport_open()";
+	static const char fname[] = "mxd_newport_open()";
 
 	MX_MOTOR *motor;
 	MX_NEWPORT_MOTOR *newport_motor;
@@ -442,7 +443,8 @@ mxd_newport_open( MX_RECORD *record )
 
 	} else {	/* Newport ESP */
 
-		sprintf( command, "%ldZH?", newport_motor->axis_number );
+		snprintf( command, sizeof(command),
+				"%ldZH?", newport_motor->axis_number );
 
 		
 		mx_status = mxi_newport_command( newport, command,
@@ -477,7 +479,8 @@ mxd_newport_open( MX_RECORD *record )
 	 */
 
 	if ( record->mx_type == MXT_MTR_ESP ) {
-		sprintf( command, "%ldMO", newport_motor->axis_number );
+		snprintf( command, sizeof(command),
+				"%ldMO", newport_motor->axis_number );
 		
 		mx_status = mxi_newport_command( newport, command,
 						NULL, 0, NEWPORT_DEBUG );
@@ -492,7 +495,7 @@ mxd_newport_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_newport_resynchronize( MX_RECORD *record )
 {
-	const char fname[] = "mxd_newport_resynchronize()";
+	static const char fname[] = "mxd_newport_resynchronize()";
 
 	MX_MOTOR *motor;
 	MX_NEWPORT_MOTOR *newport_motor;
@@ -527,7 +530,8 @@ mxd_newport_resynchronize( MX_RECORD *record )
 	 */
 
 	if ( record->mx_type == MXT_MTR_ESP ) {
-		sprintf( command, "%ldMO", newport_motor->axis_number );
+		snprintf( command, sizeof(command),
+				"%ldMO", newport_motor->axis_number );
 		
 		mx_status = mxi_newport_command( newport, command,
 						NULL, 0, NEWPORT_DEBUG );
@@ -544,7 +548,7 @@ mxd_newport_resynchronize( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_newport_motor_is_busy( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_newport_motor_is_busy()";
+	static const char fname[] = "mxd_newport_motor_is_busy()";
 
 	MX_NEWPORT *newport;
 	MX_NEWPORT_MOTOR *newport_motor;
@@ -560,9 +564,11 @@ mxd_newport_motor_is_busy( MX_MOTOR *motor )
 		return mx_status;
 
 	if ( motor->record->mx_type == MXT_MTR_ESP ) {
-		sprintf( command, "%ldMD?", newport_motor->axis_number );
+		snprintf( command, sizeof(command),
+			"%ldMD?", newport_motor->axis_number );
 	} else {
-		sprintf( command, "%ldMS", newport_motor->axis_number );
+		snprintf( command, sizeof(command),
+			"%ldMS", newport_motor->axis_number );
 	}
 
 	mx_status = mxi_newport_command( newport, command,
@@ -605,7 +611,7 @@ mxd_newport_motor_is_busy( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_newport_move_absolute( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_newport_move_absolute()";
+	static const char fname[] = "mxd_newport_move_absolute()";
 
 	MX_NEWPORT *newport;
 	MX_NEWPORT_MOTOR *newport_motor;
@@ -624,14 +630,14 @@ mxd_newport_move_absolute( MX_MOTOR *motor )
 
 		motor_steps = motor->raw_destination.stepper;
 
-		sprintf( command, "%ldPA%ld",
+		snprintf( command, sizeof(command), "%ldPA%ld",
 				newport_motor->axis_number, motor_steps );
 
 	} else {	/* ESP and MM4000 */
 
 		raw_position = motor->raw_destination.analog;
 
-		sprintf( command, "%ldPA%g",
+		snprintf( command, sizeof(command), "%ldPA%g",
 			newport_motor->axis_number, raw_position );
 	}
 
@@ -644,7 +650,7 @@ mxd_newport_move_absolute( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_newport_get_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_newport_get_position()";
+	static const char fname[] = "mxd_newport_get_position()";
 
 	MX_NEWPORT *newport;
 	MX_NEWPORT_MOTOR *newport_motor;
@@ -661,7 +667,8 @@ mxd_newport_get_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "%ldTP", newport_motor->axis_number );
+	snprintf( command, sizeof(command),
+			"%ldTP", newport_motor->axis_number );
 
 	mx_status = mxi_newport_command( newport, command,
 				response, sizeof response, NEWPORT_DEBUG );
@@ -700,7 +707,7 @@ mxd_newport_get_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_newport_set_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_newport_set_position()";
+	static const char fname[] = "mxd_newport_set_position()";
 
 	MX_NEWPORT *newport;
 	MX_NEWPORT_MOTOR *newport_motor;
@@ -730,11 +737,12 @@ mxd_newport_set_position( MX_MOTOR *motor )
 		"to any value other than zero." );
 		}
 
-		sprintf( command, "%ldZP", newport_motor->axis_number );
+		snprintf( command, sizeof(command),
+				"%ldZP", newport_motor->axis_number );
 
 	} else {	/* ESP */
 
-		sprintf( command, "%ldDH%g",
+		snprintf( command, sizeof(command), "%ldDH%g",
 				newport_motor->axis_number, position );
 	}
 
@@ -750,7 +758,7 @@ mxd_newport_set_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_newport_soft_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_newport_soft_abort()";
+	static const char fname[] = "mxd_newport_soft_abort()";
 
 	MX_NEWPORT *newport;
 	MX_NEWPORT_MOTOR *newport_motor;
@@ -763,7 +771,8 @@ mxd_newport_soft_abort( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "%ldST", newport_motor->axis_number );
+	snprintf( command, sizeof(command),
+			"%ldST", newport_motor->axis_number );
 
 	mx_status = mxi_newport_command( newport, command,
 					NULL, 0, NEWPORT_DEBUG );
@@ -774,7 +783,7 @@ mxd_newport_soft_abort( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_newport_immediate_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_newport_immediate_abort()";
+	static const char fname[] = "mxd_newport_immediate_abort()";
 
 	MX_NEWPORT *newport;
 	MX_NEWPORT_MOTOR *newport_motor;
@@ -789,13 +798,14 @@ mxd_newport_immediate_abort( MX_MOTOR *motor )
 
 	switch( motor->record->mx_type ) {
 	case MXT_MTR_MM3000:
-		sprintf( command, "%ldAB", newport_motor->axis_number );
+		snprintf( command, sizeof(command),
+			"%ldAB", newport_motor->axis_number );
 		break;
 	case MXT_MTR_MM4000:
 	case MXT_MTR_ESP:
 		/* The following actually aborts all of the motors. */
 
-		sprintf( command, "AB" );
+		strlcpy( command, "AB", sizeof(command) );
 		break;
 	default:
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -813,7 +823,7 @@ mxd_newport_immediate_abort( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_newport_positive_limit_hit( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_newport_positive_limit_hit()";
+	static const char fname[] = "mxd_newport_positive_limit_hit()";
 
 	MX_NEWPORT *newport;
 	MX_NEWPORT_MOTOR *newport_motor;
@@ -888,7 +898,8 @@ mxd_newport_positive_limit_hit( MX_MOTOR *motor )
 
 	case MXT_MTR_MM3000:
 	case MXT_MTR_MM4000:
-		sprintf( command, "%ldMS", newport_motor->axis_number );
+		snprintf( command, sizeof(command),
+				"%ldMS", newport_motor->axis_number );
 
 		mx_status = mxi_newport_command( newport, command,
 				response, sizeof response, NEWPORT_DEBUG );
@@ -933,7 +944,7 @@ mxd_newport_positive_limit_hit( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_newport_negative_limit_hit( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_newport_negative_limit_hit()";
+	static const char fname[] = "mxd_newport_negative_limit_hit()";
 
 	MX_NEWPORT *newport;
 	MX_NEWPORT_MOTOR *newport_motor;
@@ -1008,7 +1019,8 @@ mxd_newport_negative_limit_hit( MX_MOTOR *motor )
 
 	case MXT_MTR_MM3000:
 	case MXT_MTR_MM4000:
-		sprintf( command, "%ldMS", newport_motor->axis_number );
+		snprintf( command, sizeof(command),
+				"%ldMS", newport_motor->axis_number );
 
 		mx_status = mxi_newport_command( newport, command,
 				response, sizeof response, NEWPORT_DEBUG );
@@ -1051,9 +1063,9 @@ mxd_newport_negative_limit_hit( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_newport_find_home_position( MX_MOTOR *motor )
+mxd_newport_raw_home_command( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_newport_find_home_position()";
+	static const char fname[] = "mxd_newport_raw_home_command()";
 
 	MX_NEWPORT *newport;
 	MX_NEWPORT_MOTOR *newport_motor;
@@ -1066,7 +1078,8 @@ mxd_newport_find_home_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "%ldOR", newport_motor->axis_number );
+	snprintf( command, sizeof(command),
+			"%ldOR", newport_motor->axis_number );
 
 	mx_status = mxi_newport_command( newport, command,
 					NULL, 0, NEWPORT_DEBUG );
@@ -1080,7 +1093,7 @@ mxd_newport_find_home_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_newport_constant_velocity_move( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_newport_constant_velocity_move()";
+	static const char fname[] = "mxd_newport_constant_velocity_move()";
 
 	MX_NEWPORT *newport;
 	MX_NEWPORT_MOTOR *newport_motor;
@@ -1097,9 +1110,11 @@ mxd_newport_constant_velocity_move( MX_MOTOR *motor )
 	case MXT_MTR_MM3000:
 	case MXT_MTR_ESP:
 		if ( motor->constant_velocity_move >= 0 ) {
-			sprintf( command, "%ldMV+", newport_motor->axis_number);
+			snprintf( command, sizeof(command),
+				"%ldMV+", newport_motor->axis_number);
 		} else {
-			sprintf( command, "%ldMV-", newport_motor->axis_number);
+			snprintf( command, sizeof(command),
+				"%ldMV-", newport_motor->axis_number);
 		}
 
 		mx_status = mxi_newport_command( newport, command,
@@ -1126,7 +1141,7 @@ mxd_newport_constant_velocity_move( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_newport_get_parameter( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_newport_get_parameter()";
+	static const char fname[] = "mxd_newport_get_parameter()";
 
 	MX_NEWPORT_MOTOR *newport_motor;
 	MX_NEWPORT *newport;
@@ -1151,9 +1166,11 @@ mxd_newport_get_parameter( MX_MOTOR *motor )
 	case MXLV_MTR_SPEED:
 
 		if ( motor->record->mx_type == MXT_MTR_ESP ) {
-			sprintf( command, "%ldVA?", newport_motor->axis_number);
+			snprintf( command, sizeof(command),
+				"%ldVA?", newport_motor->axis_number);
 		} else {
-			sprintf( command, "%ldDV", newport_motor->axis_number );
+			snprintf( command, sizeof(command),
+				"%ldDV", newport_motor->axis_number );
 		}
 
 		mx_status = mxi_newport_command( newport, command,
@@ -1187,7 +1204,8 @@ mxd_newport_get_parameter( MX_MOTOR *motor )
 
 		if ( motor->record->mx_type == MXT_MTR_MM3000 ) {
 
-			sprintf( command, "%ldDV", newport_motor->axis_number );
+			snprintf( command, sizeof(command),
+				"%ldDV", newport_motor->axis_number );
 
 			mx_status = mxi_newport_command( newport, command,
 				response, sizeof(response), NEWPORT_DEBUG );
@@ -1216,7 +1234,8 @@ mxd_newport_get_parameter( MX_MOTOR *motor )
 			}
 		} else if ( motor->record->mx_type == MXT_MTR_ESP ) {
 
-			sprintf( command, "%ldVB?", newport_motor->axis_number);
+			snprintf( command, sizeof(command),
+				"%ldVB?", newport_motor->axis_number);
 
 			mx_status = mxi_newport_command( newport, command,
 				response, sizeof(response), NEWPORT_DEBUG );
@@ -1240,9 +1259,11 @@ mxd_newport_get_parameter( MX_MOTOR *motor )
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
 
 		if ( motor->record->mx_type == MXT_MTR_ESP ) {
-			sprintf( command, "%ldAC?", newport_motor->axis_number);
+			snprintf( command, sizeof(command),
+				"%ldAC?", newport_motor->axis_number);
 		} else {
-			sprintf( command, "%ldDA", newport_motor->axis_number );
+			snprintf( command, sizeof(command),
+				"%ldDA", newport_motor->axis_number );
 		}
 
 		mx_status = mxi_newport_command( newport, command,
@@ -1271,10 +1292,12 @@ mxd_newport_get_parameter( MX_MOTOR *motor )
 			motor->proportional_gain = 0.0;
 		} else {
 			if ( motor->record->mx_type == MXT_MTR_ESP ) {
-				sprintf( command, "%ldKP?",
+				snprintf( command, sizeof(command),
+					"%ldKP?",
 					newport_motor->axis_number );
 			} else {
-				sprintf( command, "%ldXP",
+				snprintf( command, sizeof(command),
+					"%ldXP",
 					newport_motor->axis_number );
 			}
 
@@ -1301,10 +1324,12 @@ mxd_newport_get_parameter( MX_MOTOR *motor )
 			motor->integral_gain = 0.0;
 		} else {
 			if ( motor->record->mx_type == MXT_MTR_ESP ) {
-				sprintf( command, "%ldKI?",
+				snprintf( command, sizeof(command),
+					"%ldKI?",
 					newport_motor->axis_number );
 			} else {
-				sprintf( command, "%ldXI",
+				snprintf( command, sizeof(command),
+					"%ldXI",
 					newport_motor->axis_number );
 			}
 
@@ -1331,10 +1356,12 @@ mxd_newport_get_parameter( MX_MOTOR *motor )
 			motor->derivative_gain = 0.0;
 		} else {
 			if ( motor->record->mx_type == MXT_MTR_ESP ) {
-				sprintf( command, "%ldKP?",
+				snprintf( command, sizeof(command),
+					"%ldKP?",
 					newport_motor->axis_number );
 			} else {
-				sprintf( command, "%ldXP",
+				snprintf( command, sizeof(command),
+					"%ldXP",
 					newport_motor->axis_number );
 			}
 
@@ -1361,8 +1388,8 @@ mxd_newport_get_parameter( MX_MOTOR *motor )
 			motor->velocity_feedforward_gain = 0.0;
 
 		} else {
-			sprintf( command, "%ldVF?", newport_motor->axis_number);
-
+			snprintf( command, sizeof(command),
+				"%ldVF?", newport_motor->axis_number); 
 			mx_status = mxi_newport_command( newport, command,
 					response, sizeof(response),
 					NEWPORT_DEBUG );
@@ -1386,7 +1413,8 @@ mxd_newport_get_parameter( MX_MOTOR *motor )
 			motor->acceleration_feedforward_gain = 0.0;
 
 		} else {
-			sprintf( command, "%ldAF?", newport_motor->axis_number);
+			snprintf( command, sizeof(command),
+				"%ldAF?", newport_motor->axis_number);
 
 			mx_status = mxi_newport_command( newport, command,
 					response, sizeof(response),
@@ -1410,7 +1438,8 @@ mxd_newport_get_parameter( MX_MOTOR *motor )
 		if ( motor->record->mx_type == MXT_MTR_MM3000 ) {
 			motor->integral_limit = 0.0;
 		} else {
-			sprintf( command, "%ldKS?", newport_motor->axis_number);
+			snprintf( command, sizeof(command),
+				"%ldKS?", newport_motor->axis_number);
 
 			mx_status = mxi_newport_command( newport, command,
 					response, sizeof(response),
@@ -1440,7 +1469,7 @@ mxd_newport_get_parameter( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_newport_set_parameter( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_newport_set_parameter()";
+	static const char fname[] = "mxd_newport_set_parameter()";
 
 	MX_NEWPORT_MOTOR *newport_motor;
 	MX_NEWPORT *newport;
@@ -1461,8 +1490,9 @@ mxd_newport_set_parameter( MX_MOTOR *motor )
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
-		sprintf( command, "%ldVA%g", newport_motor->axis_number,
-						motor->raw_speed );
+		snprintf( command, sizeof(command), "%ldVA%g",
+				newport_motor->axis_number,
+				motor->raw_speed );
 
 		mx_status = mxi_newport_command( newport,
 				command, NULL, 0, NEWPORT_DEBUG );
@@ -1474,8 +1504,9 @@ mxd_newport_set_parameter( MX_MOTOR *motor )
 
 		} else {		/* ESP and MM3000 */
 
-			sprintf( command, "%ldVB%g", newport_motor->axis_number,
-						motor->raw_base_speed );
+			snprintf( command, sizeof(command), "%ldVB%g",
+					newport_motor->axis_number,
+					motor->raw_base_speed );
 
 			mx_status = mxi_newport_command( newport,
 					command, NULL, 0, NEWPORT_DEBUG );
@@ -1483,8 +1514,9 @@ mxd_newport_set_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
-		sprintf( command, "%ldAC%g", newport_motor->axis_number,
-					motor->raw_acceleration_parameters[0] );
+		snprintf( command, sizeof(command), "%ldAC%g",
+				newport_motor->axis_number,
+				motor->raw_acceleration_parameters[0] );
 
 		mx_status = mxi_newport_command( newport,
 				command, NULL, 0, NEWPORT_DEBUG );
@@ -1492,9 +1524,9 @@ mxd_newport_set_parameter( MX_MOTOR *motor )
 
 	case MXLV_MTR_AXIS_ENABLE:
 		if ( motor->axis_enable ) {
-			strcpy( command, "MO" );
+			strlcpy( command, "MO", sizeof(command) );
 		} else {
-			strcpy( command, "MF" );
+			strlcpy( command, "MF", sizeof(command) );
 		}
 
 		mx_status = mxi_newport_command( newport, command,
@@ -1503,9 +1535,9 @@ mxd_newport_set_parameter( MX_MOTOR *motor )
 
 	case MXLV_MTR_CLOSED_LOOP:
 		if ( motor->closed_loop ) {
-			strcpy( command, "MO" );
+			strlcpy( command, "MO", sizeof(command) );
 		} else {
-			strcpy( command, "MF" );
+			strlcpy( command, "MF", sizeof(command) );
 		}
 
 		mx_status = mxi_newport_command( newport, command,
@@ -1524,13 +1556,15 @@ mxd_newport_set_parameter( MX_MOTOR *motor )
 
 		} else {		/* ESP and MM4000 */
 
-			sprintf( command, "%ldKP%f", newport_motor->axis_number,
+			snprintf( command, sizeof(command), "%ldKP%f",
+					newport_motor->axis_number,
 					motor->proportional_gain );
 
 			mx_status = mxi_newport_command( newport,
 					command, NULL, 0, NEWPORT_DEBUG );
 
-			sprintf( command, "%ldUF", newport_motor->axis_number );
+			snprintf( command, sizeof(command), "%ldUF",
+					newport_motor->axis_number );
 
 			mx_status = mxi_newport_command( newport,
 					command, NULL, 0, NEWPORT_DEBUG );
@@ -1544,13 +1578,15 @@ mxd_newport_set_parameter( MX_MOTOR *motor )
 
 		} else {		/* ESP and MM4000 */
 
-			sprintf( command, "%ldKI%f", newport_motor->axis_number,
+			snprintf( command, sizeof(command), "%ldKI%f",
+					newport_motor->axis_number,
 					motor->integral_gain );
 
 			mx_status = mxi_newport_command( newport,
 					command, NULL, 0, NEWPORT_DEBUG );
 
-			sprintf( command, "%ldUF", newport_motor->axis_number );
+			snprintf( command, sizeof(command), "%ldUF",
+					newport_motor->axis_number );
 
 			mx_status = mxi_newport_command( newport,
 					command, NULL, 0, NEWPORT_DEBUG );
@@ -1564,13 +1600,15 @@ mxd_newport_set_parameter( MX_MOTOR *motor )
 
 		} else {		/* ESP and MM4000 */
 
-			sprintf( command, "%ldKD%f", newport_motor->axis_number,
+			snprintf( command, sizeof(command), "%ldKD%f",
+					newport_motor->axis_number,
 					motor->derivative_gain );
 
 			mx_status = mxi_newport_command( newport,
 					command, NULL, 0, NEWPORT_DEBUG );
 
-			sprintf( command, "%ldUF", newport_motor->axis_number );
+			snprintf( command, sizeof(command), "%ldUF",
+					newport_motor->axis_number );
 
 			mx_status = mxi_newport_command( newport,
 					command, NULL, 0, NEWPORT_DEBUG );
@@ -1584,13 +1622,15 @@ mxd_newport_set_parameter( MX_MOTOR *motor )
 
 		} else {		/* ESP */
 
-			sprintf( command, "%ldVF%f", newport_motor->axis_number,
+			snprintf( command, sizeof(command), "%ldVF%f",
+					newport_motor->axis_number,
 					motor->velocity_feedforward_gain );
 
 			mx_status = mxi_newport_command( newport,
 					command, NULL, 0, NEWPORT_DEBUG );
 
-			sprintf( command, "%ldUF", newport_motor->axis_number );
+			snprintf( command, sizeof(command), "%ldUF",
+					newport_motor->axis_number );
 
 			mx_status = mxi_newport_command( newport,
 					command, NULL, 0, NEWPORT_DEBUG );
@@ -1604,13 +1644,15 @@ mxd_newport_set_parameter( MX_MOTOR *motor )
 
 		} else {		/* ESP */
 
-			sprintf( command, "%ldAF%f", newport_motor->axis_number,
+			snprintf( command, sizeof(command), "%ldAF%f",
+					newport_motor->axis_number,
 					motor->acceleration_feedforward_gain );
 
 			mx_status = mxi_newport_command( newport,
 					command, NULL, 0, NEWPORT_DEBUG );
 
-			sprintf( command, "%ldUF", newport_motor->axis_number );
+			snprintf( command, sizeof(command), "%ldUF",
+					newport_motor->axis_number );
 
 			mx_status = mxi_newport_command( newport,
 					command, NULL, 0, NEWPORT_DEBUG );
@@ -1623,13 +1665,15 @@ mxd_newport_set_parameter( MX_MOTOR *motor )
 			motor->integral_limit = 0.0;
 
 		} else {
-			sprintf( command, "%ldKS%f", newport_motor->axis_number,
+			snprintf( command, sizeof(command), "%ldKS%f",
+					newport_motor->axis_number,
 					motor->integral_limit );
 
 			mx_status = mxi_newport_command( newport,
 					command, NULL, 0, NEWPORT_DEBUG );
 
-			sprintf( command, "%ldUF", newport_motor->axis_number );
+			snprintf( command, sizeof(command),
+					"%ldUF", newport_motor->axis_number );
 
 			mx_status = mxi_newport_command( newport,
 					command, NULL, 0, NEWPORT_DEBUG );

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2000, 2004, 2006 Illinois Institute of Technology
+ * Copyright 1999-2000, 2004, 2006, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -72,7 +72,7 @@ motor_home_fn( int argc, char *argv[] )
 
 	/* Start the home search. */
 
-	mx_status = mx_motor_find_home_position( record, direction );
+	mx_status = mx_motor_raw_home_command( record, direction );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return FAILURE;

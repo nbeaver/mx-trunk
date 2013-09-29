@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004-2006, 2008, 2010 Illinois Institute of Technology
+ * Copyright 2004-2006, 2008, 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -48,7 +48,7 @@ MX_MOTOR_FUNCTION_LIST mxd_picomotor_motor_function_list = {
 	mxd_picomotor_immediate_abort,
 	NULL,
 	NULL,
-	mxd_picomotor_find_home_position,
+	mxd_picomotor_raw_home_command,
 	mxd_picomotor_constant_velocity_move,
 	mxd_picomotor_get_parameter,
 	mxd_picomotor_set_parameter,
@@ -843,9 +843,9 @@ mxd_picomotor_immediate_abort( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_picomotor_find_home_position( MX_MOTOR *motor )
+mxd_picomotor_raw_home_command( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_picomotor_find_home_position()";
+	static const char fname[] = "mxd_picomotor_raw_home_command()";
 
 	MX_PICOMOTOR *picomotor = NULL;
 	MX_PICOMOTOR_CONTROLLER *picomotor_controller = NULL;
@@ -859,7 +859,7 @@ mxd_picomotor_find_home_position( MX_MOTOR *motor )
 		return mx_status;
 
 	if ( picomotor->flags & MXF_PICOMOTOR_HOME_TO_LIMIT_SWITCH ) {
-		if ( motor->home_search >= 0 ) {
+		if ( motor->raw_home_command >= 0 ) {
 			snprintf( command, sizeof(command),
 				"FLI %s", picomotor->driver_name );
 		} else {
@@ -867,7 +867,7 @@ mxd_picomotor_find_home_position( MX_MOTOR *motor )
 				"RLI %s", picomotor->driver_name );
 		}
 	} else {
-		if ( motor->home_search >= 0 ) {
+		if ( motor->raw_home_command >= 0 ) {
 			snprintf( command, sizeof(command),
 				"FIN %s", picomotor->driver_name );
 		} else {

@@ -10,7 +10,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2006, 2008-2009, 2011
+ * Copyright 1999-2001, 2003-2006, 2008-2009, 2011, 2013
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -49,7 +49,7 @@ MX_MOTOR_FUNCTION_LIST mxd_epics_motor_motor_function_list = {
 	mxd_epics_motor_immediate_abort,
 	NULL,
 	NULL,
-	mxd_epics_motor_find_home_position,
+	mxd_epics_motor_raw_home_command,
 	mxd_epics_motor_constant_velocity_move,
 	mxd_epics_motor_get_parameter,
 	mxd_epics_motor_set_parameter,
@@ -502,9 +502,9 @@ mxd_epics_motor_immediate_abort( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_epics_motor_find_home_position( MX_MOTOR *motor )
+mxd_epics_motor_raw_home_command( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_epics_motor_find_home_position()";
+	static const char fname[] = "mxd_epics_motor_raw_home_command()";
 
 	MX_EPICS_MOTOR *epics_motor = NULL;
 	MX_EPICS_PV *pv;
@@ -520,7 +520,7 @@ mxd_epics_motor_find_home_position( MX_MOTOR *motor )
 
 	home_value = 1;
 
-	if ( motor->home_search >= 0 ) {
+	if ( motor->raw_home_command >= 0 ) {
 		pv = &(epics_motor->homf_pv);
 	} else {
 		pv = &(epics_motor->homr_pv);

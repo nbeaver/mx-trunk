@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2011-2012 Illinois Institute of Technology
+ * Copyright 2011-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -43,7 +43,7 @@ MX_MOTOR_FUNCTION_LIST mxd_epics_pmac_biocat_motor_function_list = {
 	NULL,
 	mxd_epics_pmac_biocat_positive_limit_hit,
 	mxd_epics_pmac_biocat_negative_limit_hit,
-	mxd_epics_pmac_biocat_find_home_position,
+	mxd_epics_pmac_biocat_raw_home_command,
 	NULL,
 	mxd_epics_pmac_biocat_get_parameter,
 	mxd_epics_pmac_biocat_set_parameter,
@@ -694,10 +694,10 @@ mxd_epics_pmac_biocat_negative_limit_hit( MX_MOTOR *motor )
 /*------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mxd_epics_pmac_biocat_find_home_position( MX_MOTOR *motor )
+mxd_epics_pmac_biocat_raw_home_command( MX_MOTOR *motor )
 {
 	static const char fname[] =
-			"mxd_epics_pmac_biocat_find_home_position()";
+			"mxd_epics_pmac_biocat_raw_home_command()";
 
 	MX_EPICS_PMAC_BIOCAT *epics_pmac_biocat;
 	long home_value;

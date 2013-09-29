@@ -16,7 +16,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2006-2007 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2006-2007, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -54,7 +54,7 @@ MX_MOTOR_FUNCTION_LIST mxd_xafswn_motor_motor_function_list = {
 	mxd_xafswn_motor_immediate_abort,
 	mxd_xafswn_motor_positive_limit_hit,
 	mxd_xafswn_motor_negative_limit_hit,
-	mxd_xafswn_motor_find_home_position
+	mxd_xafswn_motor_raw_home_command
 };
 
 /* XAFS electron wavenumber motor data structures. */
@@ -571,9 +571,9 @@ mxd_xafswn_motor_negative_limit_hit( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_xafswn_motor_find_home_position( MX_MOTOR *motor )
+mxd_xafswn_motor_raw_home_command( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_xafswn_motor_find_home_position()";
+	static const char fname[] = "mxd_xafswn_motor_raw_home_command()";
 
 	MX_XAFS_WAVENUMBER_MOTOR *xafs_wavenumber_motor;
 	MX_RECORD *energy_motor_record;
@@ -602,9 +602,9 @@ mxd_xafswn_motor_find_home_position( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	direction = motor->home_search;
+	direction = motor->raw_home_command;
 
-	mx_status = mx_motor_find_home_position( energy_motor_record,
+	mx_status = mx_motor_raw_home_command( energy_motor_record,
 							direction );
 
 	return mx_status;

@@ -6,7 +6,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010 Illinois Institute of Technology
+ * Copyright 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -38,7 +38,7 @@ MX_API mx_status_type mxd_limited_move_get_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_limited_move_set_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_limited_move_soft_abort( MX_MOTOR *motor );
 MX_API mx_status_type mxd_limited_move_immediate_abort( MX_MOTOR *motor );
-MX_API mx_status_type mxd_limited_move_find_home_position( MX_MOTOR *motor );
+MX_API mx_status_type mxd_limited_move_raw_home_command( MX_MOTOR *motor );
 MX_API mx_status_type mxd_limited_move_constant_velocity_move(
 							MX_MOTOR *motor );
 MX_API mx_status_type mxd_limited_move_get_parameter( MX_MOTOR *motor );

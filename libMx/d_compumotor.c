@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2005-2007, 2010 Illinois Institute of Technology
+ * Copyright 1999-2003, 2005-2007, 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -50,7 +50,7 @@ MX_MOTOR_FUNCTION_LIST mxd_compumotor_motor_function_list = {
 	mxd_compumotor_immediate_abort,
 	mxd_compumotor_positive_limit_hit,
 	mxd_compumotor_negative_limit_hit,
-	mxd_compumotor_find_home_position,
+	mxd_compumotor_raw_home_command,
 	mxd_compumotor_constant_velocity_move,
 	mxd_compumotor_get_parameter,
 	mxd_compumotor_set_parameter,
@@ -1127,9 +1127,9 @@ mxd_compumotor_negative_limit_hit( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_compumotor_find_home_position( MX_MOTOR *motor )
+mxd_compumotor_raw_home_command( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_compumotor_find_home_position()";
+	static const char fname[] = "mxd_compumotor_raw_home_command()";
 
 	MX_COMPUMOTOR *compumotor;
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
@@ -1153,7 +1153,7 @@ mxd_compumotor_find_home_position( MX_MOTOR *motor )
 	for ( i = 0; i < MX_MAX_COMPUMOTOR_AXES; i++ ) {
 
 		if ( (i+1) == compumotor->axis_number ) {
-			switch( motor->home_search ) {
+			switch( motor->raw_home_command ) {
 			case 1:
 				command[ length + i ] = '0';
 				break;

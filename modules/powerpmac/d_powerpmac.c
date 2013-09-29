@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010, 2012 Illinois Institute of Technology
+ * Copyright 2010, 2012-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -50,7 +50,7 @@ MX_MOTOR_FUNCTION_LIST mxd_powerpmac_motor_function_list = {
 	mxd_powerpmac_immediate_abort,
 	NULL,
 	NULL,
-	mxd_powerpmac_find_home_position,
+	mxd_powerpmac_raw_home_command,
 	mxd_powerpmac_constant_velocity_move,
 	mxd_powerpmac_get_parameter,
 	mxd_powerpmac_set_parameter,
@@ -407,9 +407,9 @@ mxd_powerpmac_immediate_abort( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_powerpmac_find_home_position( MX_MOTOR *motor )
+mxd_powerpmac_raw_home_command( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_powerpmac_find_home_position()";
+	static const char fname[] = "mxd_powerpmac_raw_home_command()";
 
 	MX_POWERPMAC_MOTOR *powerpmac_motor = NULL;
 	MX_POWERPMAC *powerpmac = NULL;
@@ -432,7 +432,7 @@ mxd_powerpmac_find_home_position( MX_MOTOR *motor )
 
 	raw_home_speed = fabs( raw_home_speed );
 
-	if ( motor->home_search < 0 ) {
+	if ( motor->raw_home_command < 0 ) {
 		raw_home_speed = -raw_home_speed;
 	}
 

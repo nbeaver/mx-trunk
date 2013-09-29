@@ -9,7 +9,8 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2006-2007, 2010 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2006-2007, 2010, 2013
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -45,7 +46,7 @@ MX_MOTOR_FUNCTION_LIST mxd_theta_2theta_motor_motor_function_list = {
 	mxd_theta_2theta_motor_immediate_abort,
 	mxd_theta_2theta_motor_positive_limit_hit,
 	mxd_theta_2theta_motor_negative_limit_hit,
-	mxd_theta_2theta_motor_find_home_position,
+	NULL,
 	mxd_theta_2theta_motor_constant_velocity_move,
 	mxd_theta_2theta_motor_get_parameter,
 	mxd_theta_2theta_motor_set_parameter
@@ -538,16 +539,6 @@ mxd_theta_2theta_motor_negative_limit_hit( MX_MOTOR *motor )
 	}
 
 	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_theta_2theta_motor_find_home_position( MX_MOTOR *motor )
-{
-	static const char fname[] = "mxd_theta_2theta_motor_find_home_position()";
-
-	return mx_error( MXE_UNSUPPORTED, fname,
-"A home search for a theta-2 theta motor is not allowed.  Motor name = '%s'",
-		motor->record->name );
 }
 
 MX_EXPORT mx_status_type

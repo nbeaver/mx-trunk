@@ -6,7 +6,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001, 2006, 2010 Illinois Institute of Technology
+ * Copyright 2001, 2006, 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -45,7 +45,7 @@ MX_API mx_status_type mxd_segmented_move_soft_abort( MX_MOTOR *motor );
 MX_API mx_status_type mxd_segmented_move_immediate_abort( MX_MOTOR *motor );
 MX_API mx_status_type mxd_segmented_move_positive_limit_hit( MX_MOTOR *motor );
 MX_API mx_status_type mxd_segmented_move_negative_limit_hit( MX_MOTOR *motor );
-MX_API mx_status_type mxd_segmented_move_find_home_position( MX_MOTOR *motor );
+MX_API mx_status_type mxd_segmented_move_raw_home_command( MX_MOTOR *motor );
 MX_API mx_status_type mxd_segmented_move_constant_velocity_move(
 							MX_MOTOR *motor );
 MX_API mx_status_type mxd_segmented_move_get_parameter( MX_MOTOR *motor );

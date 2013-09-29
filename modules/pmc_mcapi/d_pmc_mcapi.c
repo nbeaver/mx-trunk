@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004, 2008, 2010, 2012 Illinois Institute of Technology
+ * Copyright 2004, 2008, 2010, 2012-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -71,7 +71,7 @@ MX_MOTOR_FUNCTION_LIST mxd_pmc_mcapi_motor_function_list = {
 	mxd_pmc_mcapi_immediate_abort,
 	NULL,
 	NULL,
-	mxd_pmc_mcapi_find_home_position,
+	mxd_pmc_mcapi_raw_home_command,
 	mxd_pmc_mcapi_constant_velocity_move,
 	mxd_pmc_mcapi_get_parameter,
 	mxd_pmc_mcapi_set_parameter,
@@ -878,9 +878,9 @@ mxd_pmc_mcapi_immediate_abort( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_pmc_mcapi_find_home_position( MX_MOTOR *motor )
+mxd_pmc_mcapi_raw_home_command( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_pmc_mcapi_find_home_position()";
+	static const char fname[] = "mxd_pmc_mcapi_raw_home_command()";
 
 	MX_PMC_MCAPI_MOTOR *pmc_mcapi_motor = NULL;
 	MX_PMC_MCAPI *pmc_mcapi = NULL;

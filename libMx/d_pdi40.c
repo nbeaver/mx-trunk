@@ -15,7 +15,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2006, 2010-2011 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006, 2010-2011, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -49,11 +49,8 @@ MX_MOTOR_FUNCTION_LIST mxd_pdi40motor_motor_function_list = {
 	mxd_pdi40motor_move_absolute,
 	mxd_pdi40motor_get_position,
 	mxd_pdi40motor_set_position,
-	mxd_pdi40motor_soft_abort,
-	mxd_pdi40motor_immediate_abort,
-	mxd_pdi40motor_positive_limit_hit,
-	mxd_pdi40motor_negative_limit_hit,
-	mxd_pdi40motor_find_home_position
+	NULL,
+	mxd_pdi40motor_immediate_abort
 };
 
 MX_RECORD_FIELD_DEFAULTS mxd_pdi40motor_record_field_defaults[] = {
@@ -562,12 +559,6 @@ mxd_pdi40motor_set_position( MX_MOTOR *motor )
 /* There is only one kind of abort for the PDI Model 40 stepping motors. */
 
 MX_EXPORT mx_status_type
-mxd_pdi40motor_soft_abort( MX_MOTOR *motor )
-{
-	return mxd_pdi40motor_immediate_abort( motor );
-}
-
-MX_EXPORT mx_status_type
 mxd_pdi40motor_immediate_abort( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pdi40motor_immediate_abort()";
@@ -726,31 +717,5 @@ mxd_pdi40motor_immediate_abort( MX_MOTOR *motor )
 	}
 
 	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxd_pdi40motor_positive_limit_hit( MX_MOTOR *motor )
-{
-	/* PDI Model 40 stepping motors do not have limit switches. */
-
-	motor->positive_limit_hit = FALSE;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_pdi40motor_negative_limit_hit( MX_MOTOR *motor )
-{
-	/* PDI Model 40 stepping motors do not have limit switches. */
-
-	motor->negative_limit_hit = FALSE;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_pdi40motor_find_home_position( MX_MOTOR *motor )
-{
-	return MX_SUCCESSFUL_RESULT;
 }
 

@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2004, 2006-2007, 2010 Illinois Institute of Technology
+ * Copyright 2002-2004, 2006-2007, 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -57,7 +57,7 @@ MX_MOTOR_FUNCTION_LIST mxd_mclennan_motor_function_list = {
 	mxd_mclennan_immediate_abort,
 	NULL,
 	NULL,
-	mxd_mclennan_find_home_position,
+	mxd_mclennan_raw_home_command,
 	mxd_mclennan_constant_velocity_move,
 	mxd_mclennan_get_parameter,
 	mxd_mclennan_set_parameter,
@@ -659,9 +659,9 @@ mxd_mclennan_immediate_abort( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_mclennan_find_home_position( MX_MOTOR *motor )
+mxd_mclennan_raw_home_command( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_mclennan_find_home_position()";
+	static const char fname[] = "mxd_mclennan_raw_home_command()";
 
 	MX_MCLENNAN *mclennan;
 	char command[20];
@@ -675,13 +675,13 @@ mxd_mclennan_find_home_position( MX_MOTOR *motor )
 		return mx_status;
 
 	if ( mclennan->controller_type == MXT_MCLENNAN_PM600 ) {
-		if ( motor->home_search >= 0 ) {
+		if ( motor->raw_home_command >= 0 ) {
 			strcpy( command, "HD" );
 		} else {
 			strcpy( command, "HD-1" );
 		}
 	} else {
-		if ( motor->home_search >= 0 ) {
+		if ( motor->raw_home_command >= 0 ) {
 			strcpy( command, "IX" );
 		} else {
 			strcpy( command, "IX-1" );

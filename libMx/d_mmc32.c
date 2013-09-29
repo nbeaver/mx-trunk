@@ -9,7 +9,8 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2004, 2006, 2010 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2004, 2006, 2010, 2013
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -50,7 +51,7 @@ MX_MOTOR_FUNCTION_LIST mxd_mmc32_motor_function_list = {
 	mxd_mmc32_immediate_abort,
 	NULL,
 	NULL,
-	mxd_mmc32_find_home_position,
+	mxd_mmc32_raw_home_command,
 	NULL,
 	NULL,
 	NULL,
@@ -627,9 +628,9 @@ mxd_mmc32_immediate_abort( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_mmc32_find_home_position( MX_MOTOR *motor )
+mxd_mmc32_raw_home_command( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_mmc32_find_home_position()";
+	static const char fname[] = "mxd_mmc32_raw_home_command()";
 
 	MX_MMC32 *mmc32;
 	MX_RECORD *gpib_record;

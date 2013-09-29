@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2003, 2006, 2010 Illinois Institute of Technology
+ * Copyright 2001, 2003, 2006, 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -48,7 +48,7 @@ MX_MOTOR_FUNCTION_LIST mxd_segmented_move_motor_function_list = {
 	mxd_segmented_move_immediate_abort,
 	mxd_segmented_move_positive_limit_hit,
 	mxd_segmented_move_negative_limit_hit,
-	mxd_segmented_move_find_home_position,
+	mxd_segmented_move_raw_home_command,
 	mxd_segmented_move_constant_velocity_move,
 	mxd_segmented_move_get_parameter,
 	mxd_segmented_move_set_parameter
@@ -559,9 +559,9 @@ mxd_segmented_move_negative_limit_hit( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_segmented_move_find_home_position( MX_MOTOR *motor )
+mxd_segmented_move_raw_home_command( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_segmented_move_find_home_position()";
+	static const char fname[] = "mxd_segmented_move_raw_home_command()";
 
 	MX_SEGMENTED_MOVE *segmented_move;
 	mx_status_type mx_status;
@@ -572,9 +572,10 @@ mxd_segmented_move_find_home_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status =
-		mx_motor_find_home_position( segmented_move->real_motor_record,
-						motor->home_search );
+	mx_status = mx_motor_raw_home_command(
+			segmented_move->real_motor_record,
+			motor->raw_home_command );
+
 	return mx_status;
 }
 
@@ -594,8 +595,9 @@ mxd_segmented_move_constant_velocity_move( MX_MOTOR *motor )
 		return mx_status;
 
 	mx_status = mx_motor_constant_velocity_move(
-					segmented_move->real_motor_record,
-					motor->constant_velocity_move );
+			segmented_move->real_motor_record,
+			motor->constant_velocity_move );
+
 	return mx_status;
 }
 

@@ -8,7 +8,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2002 Illinois Institute of Technology
+ * Copyright 2002, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -33,7 +33,7 @@ MX_API mx_status_type mxd_uglide_resynchronize( MX_RECORD *record );
 MX_API mx_status_type mxd_uglide_move_absolute( MX_MOTOR *motor );
 MX_API mx_status_type mxd_uglide_set_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_uglide_soft_abort( MX_MOTOR *motor );
-MX_API mx_status_type mxd_uglide_find_home_position( MX_MOTOR *motor );
+MX_API mx_status_type mxd_uglide_raw_home_command( MX_MOTOR *motor );
 MX_API mx_status_type mxd_uglide_get_extended_status( MX_MOTOR *motor );
 
 extern MX_RECORD_FUNCTION_LIST mxd_uglide_record_function_list;

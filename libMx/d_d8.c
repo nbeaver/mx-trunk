@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2006, 2010 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2006, 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -48,7 +48,7 @@ MX_MOTOR_FUNCTION_LIST mxd_d8_motor_motor_function_list = {
 	mxd_d8_motor_immediate_abort,
 	mxd_d8_motor_positive_limit_hit,
 	mxd_d8_motor_negative_limit_hit,
-	mxd_d8_motor_find_home_position
+	mxd_d8_motor_raw_home_command
 };
 
 /* D8 motor data structures. */
@@ -624,9 +624,9 @@ mxd_d8_motor_negative_limit_hit( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_d8_motor_find_home_position( MX_MOTOR *motor )
+mxd_d8_motor_raw_home_command( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_d8_motor_find_home_position()";
+	static const char fname[] = "mxd_d8_motor_raw_home_command()";
 
 	MX_D8 *d8;
 	MX_D8_MOTOR *d8_motor;
@@ -639,7 +639,7 @@ mxd_d8_motor_find_home_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( motor->home_search >= 0 ) {
+	if ( motor->raw_home_command >= 0 ) {
 		snprintf( command, sizeof(command),
 					"FR%ld,U", d8_motor->drive_number );
 	} else {

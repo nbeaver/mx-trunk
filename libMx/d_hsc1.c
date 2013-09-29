@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2010 Illinois Institute of Technology
+ * Copyright 1999-2003, 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -36,7 +36,7 @@
 MX_RECORD_FUNCTION_LIST mxd_hsc1_record_function_list = {
 	NULL,
 	mxd_hsc1_create_record_structures,
-	mxd_hsc1_finish_record_initialization,
+	mx_motor_finish_record_initialization,
 	NULL,
 	mxd_hsc1_print_structure,
 	mxd_hsc1_open,
@@ -51,10 +51,10 @@ MX_MOTOR_FUNCTION_LIST mxd_hsc1_motor_function_list = {
 	mxd_hsc1_get_position,
 	mxd_hsc1_set_position,
 	mxd_hsc1_soft_abort,
-	mxd_hsc1_immediate_abort,
-	mxd_hsc1_positive_limit_hit,
-	mxd_hsc1_negative_limit_hit,
-	mxd_hsc1_find_home_position,
+	NULL,
+	NULL,
+	NULL,
+	mxd_hsc1_raw_home_command,
 	NULL,
 	mx_motor_default_get_parameter_handler,
 	mx_motor_default_set_parameter_handler
@@ -175,16 +175,6 @@ mxd_hsc1_create_record_structures( MX_RECORD *record )
 	motor->subclass = MXC_MTR_STEPPER;
 
 	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_hsc1_finish_record_initialization( MX_RECORD *record )
-{
-	mx_status_type status;
-
-	status = mx_motor_finish_record_initialization( record );
-
-	return status;
 }
 
 MX_EXPORT mx_status_type
@@ -589,29 +579,7 @@ mxd_hsc1_soft_abort( MX_MOTOR *motor )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-MX_EXPORT mx_status_type
-mxd_hsc1_immediate_abort( MX_MOTOR *motor )
-{
-	return mxd_hsc1_soft_abort( motor );
-}
-
-MX_EXPORT mx_status_type
-mxd_hsc1_positive_limit_hit( MX_MOTOR *motor )
-{
-	motor->positive_limit_hit = FALSE;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_hsc1_negative_limit_hit( MX_MOTOR *motor )
-{
-	motor->negative_limit_hit = FALSE;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-/* For this driver, 'find_home_position' performs a different HSC-1 command
+/* For this driver, 'raw_home_command' performs a different HSC-1 command
  * depending on the value of motor->home_search.
  *
  * motor->home_search > 0    ---> Manual Calibration Command.
@@ -620,9 +588,9 @@ mxd_hsc1_negative_limit_hit( MX_MOTOR *motor )
  */
 
 MX_EXPORT mx_status_type
-mxd_hsc1_find_home_position( MX_MOTOR *motor )
+mxd_hsc1_raw_home_command( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_hsc1_find_home_position()";
+	static const char fname[] = "mxd_hsc1_raw_home_command()";
 
 	MX_HSC1_INTERFACE *hsc1_interface;
 	MX_HSC1_MOTOR *hsc1_motor;
@@ -635,10 +603,10 @@ mxd_hsc1_find_home_position( MX_MOTOR *motor )
 	if ( status.code != MXE_SUCCESS )
 		return status;
 
-	if ( motor->home_search > 0 ) {
+	if ( motor->raw_home_command > 0 ) {
 		strcpy( command, "0 M" );
 	} else
-	if ( motor->home_search == 0 ) {
+	if ( motor->raw_home_command == 0 ) {
 		strcpy( command, "0 I" );
 	} else {
 		strcpy( command, "0 -" );

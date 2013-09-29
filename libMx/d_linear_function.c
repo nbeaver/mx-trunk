@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2007, 2010 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2007, 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -41,12 +41,11 @@ MX_MOTOR_FUNCTION_LIST mxd_linear_function_motor_function_list = {
 	mxd_linear_function_motor_is_busy,
 	mxd_linear_function_move_absolute,
 	mxd_linear_function_get_position,
-	mxd_linear_function_set_position,
+	NULL,
 	mxd_linear_function_soft_abort,
 	mxd_linear_function_immediate_abort,
 	mxd_linear_function_positive_limit_hit,
-	mxd_linear_function_negative_limit_hit,
-	mxd_linear_function_find_home_position
+	mxd_linear_function_negative_limit_hit
 };
 
 /* Linear function motor data structures. */
@@ -1027,15 +1026,6 @@ mxd_linear_function_get_position( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_linear_function_set_position( MX_MOTOR *motor )
-{
-	static const char fname[] = "mxd_linear_function_set_position()";
-
-	return mx_error( MXE_UNSUPPORTED, fname,
-	"'set position' is not valid for a linear function motor." );
-}
-
-MX_EXPORT mx_status_type
 mxd_linear_function_soft_abort( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_linear_function_soft_abort()";
@@ -1197,15 +1187,5 @@ mxd_linear_function_negative_limit_hit( MX_MOTOR *motor )
 	motor->negative_limit_hit = limit_hit;
 
 	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_linear_function_find_home_position( MX_MOTOR *motor )
-{
-	static const char fname[] = "mxd_linear_function_find_home_position()";
-
-	return mx_error( MXE_UNSUPPORTED, fname,
-"Finding home for a linear function motor is _not_ allowed.  Motor name = '%s'",
-		motor->record->name );
 }
 

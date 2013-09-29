@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004, 2006, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -51,7 +51,7 @@ MX_API mx_status_type mxd_smc24_soft_abort( MX_MOTOR *motor );
 MX_API mx_status_type mxd_smc24_immediate_abort( MX_MOTOR *motor );
 MX_API mx_status_type mxd_smc24_positive_limit_hit( MX_MOTOR *motor );
 MX_API mx_status_type mxd_smc24_negative_limit_hit( MX_MOTOR *motor );
-MX_API mx_status_type mxd_smc24_find_home_position( MX_MOTOR *motor );
+MX_API mx_status_type mxd_smc24_raw_home_command( MX_MOTOR *motor );
 
 extern MX_RECORD_FUNCTION_LIST mxd_smc24_record_function_list;
 extern MX_MOTOR_FUNCTION_LIST mxd_smc24_motor_function_list;

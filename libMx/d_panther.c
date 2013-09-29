@@ -15,7 +15,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2007, 2010 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2007, 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -58,7 +58,7 @@ MX_MOTOR_FUNCTION_LIST mxd_panther_motor_function_list = {
 	mxd_panther_immediate_abort,
 	mxd_panther_positive_limit_hit,
 	mxd_panther_negative_limit_hit,
-	mxd_panther_find_home_position,
+	mxd_panther_raw_home_command,
 	mxd_panther_constant_velocity_move,
 	mxd_panther_get_parameter,
 	mxd_panther_set_parameter
@@ -173,12 +173,12 @@ mxd_panther_finish_record_initialization( MX_RECORD *record )
 
 	MX_MOTOR *motor;
 	MX_PANTHER *panther;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_motor_finish_record_initialization( record );
+	mx_status = mx_motor_finish_record_initialization( record );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Don't need to check the validity of the motor pointer since
 	 * mx_motor_finish_record_initialization() will have done it
@@ -232,7 +232,7 @@ mxd_panther_print_motor_structure( FILE *file, MX_RECORD *record )
 	long motor_steps;
 	double position, backlash, negative_limit, positive_limit;
 	double scale, offset, move_deadband;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	panther = NULL;
 
@@ -243,10 +243,10 @@ mxd_panther_print_motor_structure( FILE *file, MX_RECORD *record )
 
 	motor = (MX_MOTOR *) (record->record_class_struct);
 
-	status = mxd_panther_get_pointers( motor, &panther, fname );
+	mx_status = mxd_panther_get_pointers( motor, &panther, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	fprintf(file, "MOTOR parameters for motor '%s':\n", record->name);
 
@@ -270,7 +270,7 @@ mxd_panther_print_motor_structure( FILE *file, MX_RECORD *record )
 					panther->rs232_record->name);
 
 	if ( panther->axis_name == '0' ) {
-		strcpy( axis_name, "single mode" );
+		strlcpy( axis_name, "single mode", sizeof(axis_name) );
 	} else {
 		axis_name[0] = panther->axis_name;
 		axis_name[1] = '\0';
@@ -278,9 +278,9 @@ mxd_panther_print_motor_structure( FILE *file, MX_RECORD *record )
 
 	fprintf(file, "  axis               = %s\n", axis_name );
 
-	status = mx_motor_get_position_steps( record, &motor_steps );
+	mx_status = mx_motor_get_position_steps( record, &motor_steps );
 
-	if ( status.code != MXE_SUCCESS ) {
+	if ( mx_status.code != MXE_SUCCESS ) {
 		return mx_error( MXE_FUNCTION_FAILED, fname,
 			"Unable to read position of motor '%s'",
 			record->name );
@@ -398,7 +398,7 @@ mxd_panther_read_parms_from_hardware( MX_RECORD *record )
 	char step_resolution_mode_string[20];
 	char *stall_string_ptr;
 	char *ptr;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	panther = NULL;
 
@@ -409,19 +409,19 @@ mxd_panther_read_parms_from_hardware( MX_RECORD *record )
 
 	motor = (MX_MOTOR *) (record->record_class_struct);
 
-	status = mxd_panther_get_pointers( motor, &panther, fname );
+	mx_status = mxd_panther_get_pointers( motor, &panther, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Get the current position.  This has the side effect of
 	 * updating the position value in the MX_MOTOR structure.
 	 */
 
-	status = mx_motor_get_position_steps( record, &motor_steps );
+	mx_status = mx_motor_get_position_steps( record, &motor_steps );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* In Single Mode, reading out the parameters is easy. */
 
@@ -433,11 +433,11 @@ mxd_panther_read_parms_from_hardware( MX_RECORD *record )
 		 * FALSE to indicate this.
 		 */
 
-		status = mxd_panther_putline( panther, "X",
+		mx_status = mxd_panther_putline( panther, "X",
 						FALSE, PANTHER_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		/* ======================================================== */
 		/* The Panther puts out 2, 4 or 5 lines of text in response.*/
@@ -446,13 +446,13 @@ mxd_panther_read_parms_from_hardware( MX_RECORD *record )
 		/* Get the first two lines. */
 
 		for ( i = 0; i < 2; i++ ) {
-			status = mxd_panther_getline( panther,
+			mx_status = mxd_panther_getline( panther,
 					response[i], sizeof(response[i]),
 					PANTHER_DEBUG );
 
-			if ( status.code != MXE_SUCCESS ) {
+			if ( mx_status.code != MXE_SUCCESS ) {
 
-				if ( status.code == MXE_LIMIT_WAS_EXCEEDED ) {
+				if ( mx_status.code == MXE_LIMIT_WAS_EXCEEDED ) {
 					/* Wait for all chars to arrive. */
 					mx_msleep(500);
 
@@ -460,7 +460,7 @@ mxd_panther_read_parms_from_hardware( MX_RECORD *record )
 							panther->rs232_record,
 							PANTHER_DEBUG );
 				}
-				return status;
+				return mx_status;
 			}
 		}
 		
@@ -470,22 +470,22 @@ mxd_panther_read_parms_from_hardware( MX_RECORD *record )
 
 		mx_msleep(100);
 
-		status = mx_rs232_num_input_bytes_available(
+		mx_status = mx_rs232_num_input_bytes_available(
 						panther->rs232_record,
 						&num_input_bytes_available );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		if ( num_input_bytes_available > 0 ) {
 			for ( i = 2; i < 4; i++ ) {
-				status = mxd_panther_getline( panther,
+				mx_status = mxd_panther_getline( panther,
 					response[i], sizeof response[i],
 					PANTHER_DEBUG );
 
-				if ( status.code != MXE_SUCCESS ) {
+				if ( mx_status.code != MXE_SUCCESS ) {
 
-					if ( status.code ==
+					if ( mx_status.code ==
 						    MXE_LIMIT_WAS_EXCEEDED ) {
 						/* Wait for all chars
 						 * to arrive.
@@ -497,7 +497,7 @@ mxd_panther_read_parms_from_hardware( MX_RECORD *record )
 							panther->rs232_record,
 							PANTHER_DEBUG );
 					}
-					return status;
+					return mx_status;
 				}
 			}
 		
@@ -507,8 +507,8 @@ mxd_panther_read_parms_from_hardware( MX_RECORD *record )
 "Did not see a third line of encoder status in response to the X command.  "
 "Disabling encoder support." );
 			}
-			strcpy( response[2], "" );
-			strcpy( response[3], "" );
+			strlcpy( response[2], "", sizeof(response[2]) );
+			strlcpy( response[3], "", sizeof(response[3]) );
 
 			panther->encoder_resolution = 0;
 		}
@@ -523,20 +523,20 @@ mxd_panther_read_parms_from_hardware( MX_RECORD *record )
 
 		if ( length2 > 0 && length3 > 0 && response[3][0] != 's' ) {
 
-			status = mx_rs232_num_input_bytes_available(
+			mx_status = mx_rs232_num_input_bytes_available(
 					panther->rs232_record,
 					&num_input_bytes_available );
 
-			if ( status.code != MXE_SUCCESS )
-				return status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
-			status = mxd_panther_getline( panther,
+			mx_status = mxd_panther_getline( panther,
 					response[i], sizeof response[i],
 					PANTHER_DEBUG );
 
-			if ( status.code != MXE_SUCCESS ) {
+			if ( mx_status.code != MXE_SUCCESS ) {
 
-				if ( status.code == MXE_LIMIT_WAS_EXCEEDED ) {
+				if ( mx_status.code == MXE_LIMIT_WAS_EXCEEDED ) {
 					/* Wait for all chars to arrive. */
 					mx_msleep(500);
 
@@ -544,7 +544,7 @@ mxd_panther_read_parms_from_hardware( MX_RECORD *record )
 							panther->rs232_record,
 							PANTHER_DEBUG );
 				}
-				return status;
+				return mx_status;
 			}
 		}
 
@@ -552,7 +552,7 @@ mxd_panther_read_parms_from_hardware( MX_RECORD *record )
 		 * in case there are, we discard them.
 		 */
 
-		status = mx_rs232_discard_unread_input( panther->rs232_record,
+		mx_status = mx_rs232_discard_unread_input( panther->rs232_record,
 							PANTHER_DEBUG);
 		
 		/* Now parse the response strings. */
@@ -764,7 +764,7 @@ mxd_panther_write_parms_to_hardware( MX_RECORD *record )
 	int old_encoder_resolution;
 	long limit_polarity;
 	unsigned long num_input_bytes_available;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	MX_DEBUG( 2, ("%s invoked.", fname));
 
@@ -777,10 +777,10 @@ mxd_panther_write_parms_to_hardware( MX_RECORD *record )
 
 	motor = (MX_MOTOR *) (record->record_class_struct);
 
-	status = mxd_panther_get_pointers( motor, &panther, fname );
+	mx_status = mxd_panther_get_pointers( motor, &panther, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Send the setup commands.  The calls to mxd_panther_getc()
 	 * are to eat a line feed character that is sent back by the
@@ -790,67 +790,69 @@ mxd_panther_write_parms_to_hardware( MX_RECORD *record )
 
 	/* === Base speed === */
 
-	sprintf( command, "I %ld", panther->default_base_speed );
+	snprintf( command, sizeof(command),
+			"I %ld", panther->default_base_speed );
 
-	status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
+	mx_status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( panther->axis_name == '0' ) {
-		status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
+		mx_status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	/* === Slew speed === */
 
-	sprintf( command, "V %ld", panther->default_speed );
+	snprintf( command, sizeof(command), "V %ld", panther->default_speed );
 
-	status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
+	mx_status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( panther->axis_name == '0' ) {
-		status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
+		mx_status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	/* === Acceleration and deceleration slopes === */
 
-	sprintf( command, "K %ld %ld",
+	snprintf( command, sizeof(command), "K %ld %ld",
 		panther->acceleration_slope, panther->deceleration_slope );
 
-	status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
+	mx_status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( panther->axis_name == '0' ) {
-		status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
+		mx_status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	/* === Microstep divide factor === */
 
-	sprintf( command, "D %ld", panther->microstep_divide_factor );
+	snprintf( command, sizeof(command),
+		"D %ld", panther->microstep_divide_factor );
 
-	status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
+	mx_status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( panther->axis_name == '0' ) {
-		status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
+		mx_status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	/* === Step resolution mode === */
@@ -859,59 +861,60 @@ mxd_panther_write_parms_to_hardware( MX_RECORD *record )
 
 	switch( c ) {
 	case MX_PANTHER_FIXED_RESOLUTION:
-		sprintf( command, "H 0" );
+		strlcpy( command, "H 0", sizeof(command) );
 		break;
 	case MX_PANTHER_VARIABLE_RESOLUTION:
-		sprintf( command, "H 1" );
+		strlcpy( command, "H 1", sizeof(command) );
 		break;
 	default:
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"Unknown step resolution type = '%c'", c );
 	}
 
-	status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
+	mx_status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( panther->axis_name == '0' ) {
-		status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
+		mx_status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	/* === Hold and run currents === */
 
-	sprintf( command, "Y %ld %ld",
+	snprintf( command, sizeof(command), "Y %ld %ld",
 		panther->hold_current, panther->run_current );
 
-	status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
+	mx_status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( panther->axis_name == '0' ) {
-		status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
+		mx_status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	/* === Settling time delay === */
 
-	sprintf( command, "E %ld", panther->settling_time_delay );
+	snprintf( command, sizeof(command),
+		"E %ld", panther->settling_time_delay );
 
-	status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
+	mx_status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( panther->axis_name == '0' ) {
-		status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
+		mx_status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	/* === Limit polarity === */
@@ -924,18 +927,18 @@ mxd_panther_write_parms_to_hardware( MX_RECORD *record )
 		limit_polarity = 0;
 	}
 
-	sprintf( command, "l %ld", limit_polarity );
+	snprintf( command, sizeof(command), "l %ld", limit_polarity );
 
-	status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
+	mx_status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( panther->axis_name == '0' ) {
-		status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
+		mx_status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	/*======================================================*
@@ -961,98 +964,100 @@ mxd_panther_write_parms_to_hardware( MX_RECORD *record )
 
 	/* === Deadband size === */
 
-	sprintf( command, "d %ld", panther->deadband_size );
+	snprintf( command, sizeof(command), "d %ld", panther->deadband_size );
 
-	status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
+	mx_status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( panther->axis_name == '0' ) {
-		status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
+		mx_status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	/* === Hunt velocity === */
 
-	sprintf( command, "v %ld", panther->hunt_velocity );
+	snprintf( command, sizeof(command), "v %ld", panther->hunt_velocity );
 
-	status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
+	mx_status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( panther->axis_name == '0' ) {
-		status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
+		mx_status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	/* === Hunt resolution === */
 
-	sprintf( command, "h %ld", panther->hunt_resolution );
+	snprintf( command, sizeof(command), "h %ld", panther->hunt_resolution );
 
-	status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
+	mx_status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( panther->axis_name == '0' ) {
-		status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
+		mx_status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	/* === Stall factor === */
 
-	sprintf( command, "s %ld", panther->stall_factor );
+	snprintf( command, sizeof(command), "s %ld", panther->stall_factor );
 
-	status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
+	mx_status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( panther->axis_name == '0' ) {
-		status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
+		mx_status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	/* === Stall sample rate === */
 
-	sprintf( command, "t %ld", panther->stall_sample_rate );
+	snprintf( command, sizeof(command),
+		"t %ld", panther->stall_sample_rate );
 
-	status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
+	mx_status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( panther->axis_name == '0' ) {
-		status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
+		mx_status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	/* === Maximum stall retries === */
 
-	sprintf( command, "r %ld", panther->max_stall_retries );
+	snprintf( command, sizeof(command),
+		"r %ld", panther->max_stall_retries );
 
-	status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
+	mx_status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( panther->axis_name == '0' ) {
-		status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
+		mx_status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	/* The encoder resolution is set last, since setting this
@@ -1081,32 +1086,32 @@ mxd_panther_write_parms_to_hardware( MX_RECORD *record )
 		} else {
 			/* Single Mode. */
 
-			status = mxd_panther_putline(panther, "X",
+			mx_status = mxd_panther_putline(panther, "X",
 							FALSE, PANTHER_DEBUG );
 
-			if ( status.code != MXE_SUCCESS )
-				return status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
 			/* Read back the first two lines. */
 
 			for ( i = 0; i < 2; i++ ) {
-				status = mxd_panther_getline( panther,
+				mx_status = mxd_panther_getline( panther,
 				response, sizeof(response), PANTHER_DEBUG );
 
-				if ( status.code != MXE_SUCCESS )
-					return status;
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
 			}
 
 			/* Is there any more? */
 
 			mx_msleep(100);
 
-			status = mx_rs232_num_input_bytes_available(
+			mx_status = mx_rs232_num_input_bytes_available(
 						panther->rs232_record,
 						&num_input_bytes_available );
 
-			if ( status.code != MXE_SUCCESS )
-				return status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
 			if ( num_input_bytes_available == 0 ) {
 				MX_DEBUG(-2,("*** The encoder was not on."));
@@ -1117,11 +1122,11 @@ mxd_panther_write_parms_to_hardware( MX_RECORD *record )
 
 				/* Get the old encoder resolution. */
 
-				status = mxd_panther_getline( panther,
+				mx_status = mxd_panther_getline( panther,
 				response, sizeof(response), PANTHER_DEBUG );
 
-				if ( status.code != MXE_SUCCESS )
-					return status;
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
 
 				num_items = sscanf( response, "e = %d",
 						&old_encoder_resolution );
@@ -1154,28 +1159,29 @@ mxd_panther_write_parms_to_hardware( MX_RECORD *record )
 
 	/* Discard them all. */
 
-	status = mx_rs232_discard_unread_input( panther->rs232_record,
+	mx_status = mx_rs232_discard_unread_input( panther->rs232_record,
 						PANTHER_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Now update the resolution if possible. */
 
 	if ( update_encoder_resolution == TRUE ) {
-		sprintf( command, "e %ld", panther->encoder_resolution );
+		snprintf( command, sizeof(command),
+			"e %ld", panther->encoder_resolution );
 
-		status = mxd_panther_putline( panther, command,
+		mx_status = mxd_panther_putline( panther, command,
 						TRUE, PANTHER_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		if ( panther->axis_name == '0' ) {
-			status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
+			mx_status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
 
-			if ( status.code != MXE_SUCCESS )
-				return status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 		}
 	} else {
 		MX_DEBUG(-2,("Encoder resolution was not changed."));
@@ -1212,7 +1218,7 @@ mxd_panther_resynchronize( MX_RECORD *record )
 	int new_version;
 	int i, max_retries, signon_message_seen;
 	int num_items, indexer_version, encoder_version;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	MX_DEBUG( 2, ("%s invoked.", fname));
 
@@ -1225,26 +1231,26 @@ mxd_panther_resynchronize( MX_RECORD *record )
 
 	motor = (MX_MOTOR *) (record->record_class_struct);
 
-	status = mxd_panther_get_pointers( motor, &panther, fname );
+	mx_status = mxd_panther_get_pointers( motor, &panther, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Flush out any unwritten and unread characters before sending
 	 * commands to the Panther indexer.
 	 */
 
-	status = mx_rs232_discard_unwritten_output( panther->rs232_record,
+	mx_status = mx_rs232_discard_unwritten_output( panther->rs232_record,
 							PANTHER_DEBUG );
 
-	if ( status.code != MXE_SUCCESS && status.code != MXE_UNSUPPORTED )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS && mx_status.code != MXE_UNSUPPORTED )
+		return mx_status;
 
-	status = mx_rs232_discard_unread_input( panther->rs232_record,
+	mx_status = mx_rs232_discard_unread_input( panther->rs232_record,
 							PANTHER_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Our first task is to find out what state the indexer is in.
 	 * In Party Line Mode, the indexer is ready to receive commands
@@ -1261,10 +1267,10 @@ mxd_panther_resynchronize( MX_RECORD *record )
 		 * echoes it back.
 		 */
 
-		status = mxd_panther_putc( panther, ' ', PANTHER_DEBUG );
+		mx_status = mxd_panther_putc( panther, ' ', PANTHER_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		/* We don't want to block here waiting for a timeout if 
 		 * nothing is being echoed back, since we don't necessarily
@@ -1276,10 +1282,10 @@ mxd_panther_resynchronize( MX_RECORD *record )
 		max_retries = 5;
 
 		for ( i = 0; i < max_retries; i++ ) {
-			status = mxd_panther_getc_nowait(
+			mx_status = mxd_panther_getc_nowait(
 					panther, &c, PANTHER_DEBUG);
 
-			if ( status.code == MXE_SUCCESS ) {
+			if ( mx_status.code == MXE_SUCCESS ) {
 				if ( c != ' ' ) {
 					return mx_error( MXE_DEVICE_IO_ERROR,
 						fname,
@@ -1304,11 +1310,11 @@ mxd_panther_resynchronize( MX_RECORD *record )
 		 * a '#' character followed by CR, LF.
 		 */
 
-		status = mxd_panther_putc( panther,
+		mx_status = mxd_panther_putc( panther,
 				MX_PANTHER_SINGLE_MODE_EOS, PANTHER_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		/* Read a line and see if the sign-on message was sent
 		 * by the indexer.
@@ -1316,11 +1322,11 @@ mxd_panther_resynchronize( MX_RECORD *record )
 
 		signon_message_seen = FALSE;
 
-		status = mxd_panther_getline( panther,
+		mx_status = mxd_panther_getline( panther,
 				response, sizeof(response), PANTHER_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		/* Look for the letter "A" in the line. */
 
@@ -1375,11 +1381,11 @@ mxd_panther_resynchronize( MX_RECORD *record )
 			 */
 
 			if ( new_version ) {
-				status = mxd_panther_getline( panther,
+				mx_status = mxd_panther_getline( panther,
 				response, sizeof(response), PANTHER_DEBUG );
 
-				if ( status.code != MXE_SUCCESS )
-					return status;
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
 			}
 		}
 
@@ -1394,27 +1400,27 @@ mxd_panther_resynchronize( MX_RECORD *record )
 		} else {
 			MX_DEBUG(-2, ("Panther sign-on message seen."));
 
-			status = mxd_panther_getline( panther, response,
+			mx_status = mxd_panther_getline( panther, response,
 					sizeof(response), PANTHER_DEBUG );
 
-			if ( status.code != MXE_SUCCESS )
-				return status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 		}
 
 		/* Try to recover from any handshaking errors. */
 
-		status = mx_rs232_discard_unwritten_output(
+		mx_status = mx_rs232_discard_unwritten_output(
 				panther->rs232_record, PANTHER_DEBUG);
 
-		if ( status.code != MXE_SUCCESS
-		  && status.code != MXE_UNSUPPORTED )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS
+		  && mx_status.code != MXE_UNSUPPORTED )
+			return mx_status;
 
-		status = mx_rs232_discard_unread_input(
+		mx_status = mx_rs232_discard_unread_input(
 				panther->rs232_record, PANTHER_DEBUG);
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1427,14 +1433,14 @@ mxd_panther_motor_is_busy( MX_MOTOR *motor )
 	MX_PANTHER *panther;
 	char response[20];
 	int num_items, moving_status;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	panther = NULL;
 
-	status = mxd_panther_get_pointers( motor, &panther, fname );
+	mx_status = mxd_panther_get_pointers( motor, &panther, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* This is a case where the Panther indexer does not
 	 * echo the transmitted end of string character.  The
@@ -1442,16 +1448,16 @@ mxd_panther_motor_is_busy( MX_MOTOR *motor )
 	 * FALSE to indicate this.
 	 */
 
-	status = mxd_panther_putline( panther, "^", FALSE, PANTHER_DEBUG );
+	mx_status = mxd_panther_putline( panther, "^", FALSE, PANTHER_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mxd_panther_getline( panther,
+	mx_status = mxd_panther_getline( panther,
 			response, sizeof(response), PANTHER_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	num_items = sscanf( response, "%d", &moving_status );
 
@@ -1478,30 +1484,30 @@ mxd_panther_move_absolute( MX_MOTOR *motor )
 	char command[20];
 	char c;
 	long motor_steps;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	panther = NULL;
 
-	status = mxd_panther_get_pointers( motor, &panther, fname );
+	mx_status = mxd_panther_get_pointers( motor, &panther, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Format the move command and send it. */
 
 	motor_steps = motor->raw_destination.stepper;
 
-	sprintf( command, "R%+ld", motor_steps );
+	snprintf( command, sizeof(command), "R%+ld", motor_steps );
 
-	status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
+	mx_status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG);
 
 	/* In Single mode, eat a line feed character sent back. */
 
 	if ( panther->axis_name == '0' ) {
-		status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
+		mx_status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -1513,14 +1519,14 @@ mxd_panther_get_position( MX_MOTOR *motor )
 	char response[30];
 	int num_items;
 	long motor_steps;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	panther = NULL;
 
-	status = mxd_panther_get_pointers( motor, &panther, fname );
+	mx_status = mxd_panther_get_pointers( motor, &panther, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* This is a case where the Panther indexer does not
 	 * echo the transmitted end of string character.  The
@@ -1529,21 +1535,21 @@ mxd_panther_get_position( MX_MOTOR *motor )
 	 */
 
 	if ( panther->encoder_resolution > 0 ) {
-		status = mxd_panther_putline( panther, "z0",
+		mx_status = mxd_panther_putline( panther, "z0",
 						FALSE, PANTHER_DEBUG );
 	} else {
-		status = mxd_panther_putline( panther, "Z0",
+		mx_status = mxd_panther_putline( panther, "Z0",
 						FALSE, PANTHER_DEBUG );
 	}
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mxd_panther_getline( panther,
+	mx_status = mxd_panther_getline( panther,
 			response, sizeof(response), PANTHER_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	num_items = sscanf( response, "%ld", &motor_steps );
 
@@ -1565,14 +1571,14 @@ mxd_panther_set_position( MX_MOTOR *motor )
 	MX_PANTHER *panther;
 	char c, command[80];
 	long set_position;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	panther = NULL;
 
-	status = mxd_panther_get_pointers( motor, &panther, fname );
+	mx_status = mxd_panther_get_pointers( motor, &panther, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	set_position = motor->raw_set_position.stepper;
 
@@ -1584,34 +1590,35 @@ mxd_panther_set_position( MX_MOTOR *motor )
 
 	/* Send the set origin command. */
 
-	status = mxd_panther_putline( panther, "O", TRUE, PANTHER_DEBUG );
+	mx_status = mxd_panther_putline( panther, "O", TRUE, PANTHER_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( panther->axis_name == '0' ) {
-		status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
+		mx_status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 	/* Set the encoder resolution.  This is the only time
 	 * that it is safe to set the encoder resolution to
 	 * a non-zero value in Party Line mode.
 	 */
 
-	sprintf( command, "e %ld", panther->encoder_resolution );
+	snprintf( command, sizeof(command),
+		"e %ld", panther->encoder_resolution );
 
-	status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
+	mx_status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG);
 
-	if ( status.code != MXE_SUCCESS )
-			return status;
+	if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 	if ( panther->axis_name == '0' ) {
-		status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
+		mx_status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1625,21 +1632,21 @@ mxd_panther_soft_abort( MX_MOTOR *motor )
 	MX_PANTHER *panther;
 	char response[10];
 	mx_bool_type busy;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	panther = NULL;
 
-	status = mxd_panther_get_pointers( motor, &panther, fname );
+	mx_status = mxd_panther_get_pointers( motor, &panther, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Is the motor currently moving? */
 
-	status = mx_motor_is_busy( motor->record, &busy );
+	mx_status = mx_motor_is_busy( motor->record, &busy );
 
-	if ( status.code != MXE_SUCCESS ) {
-		return status;
+	if ( mx_status.code != MXE_SUCCESS ) {
+		return mx_status;
 	}
 
 	/* Don't need to do anything if the motor is not moving. */
@@ -1650,10 +1657,10 @@ mxd_panther_soft_abort( MX_MOTOR *motor )
 
 	/* Otherwise, we have to send the soft stop command. */
 
-	status = mxd_panther_putline( panther, "@", TRUE, PANTHER_DEBUG );
+	mx_status = mxd_panther_putline( panther, "@", TRUE, PANTHER_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* In Single mode, eat any characters sent back. */
 
@@ -1662,7 +1669,7 @@ mxd_panther_soft_abort( MX_MOTOR *motor )
 			response, sizeof(response), PANTHER_DEBUG );
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -1672,30 +1679,30 @@ mxd_panther_immediate_abort( MX_MOTOR *motor )
 
 	MX_PANTHER *panther;
 	char response[10];
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	panther = NULL;
 
-	status = mxd_panther_get_pointers( motor, &panther, fname );
+	mx_status = mxd_panther_get_pointers( motor, &panther, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Send the immediate abort command (an ESC character). */
 
-	status = mxd_panther_putline( panther, "\033", TRUE, PANTHER_DEBUG );
+	mx_status = mxd_panther_putline( panther, "\033", TRUE, PANTHER_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* In Single mode, eat any characters sent back. */
 
 	if ( panther->axis_name == '0' ) {
-		status = mxd_panther_getline(panther,
+		mx_status = mxd_panther_getline(panther,
 				response, sizeof(response), PANTHER_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		if ( response[0] != '#' || response[1] != '\0' ) {
 			return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -1714,14 +1721,14 @@ mxd_panther_positive_limit_hit( MX_MOTOR *motor )
 	MX_PANTHER *panther;
 	char response[20];
 	int num_items, limit_state;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	panther = NULL;
 
-	status = mxd_panther_get_pointers( motor, &panther, fname );
+	mx_status = mxd_panther_get_pointers( motor, &panther, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* This is a case where the Panther indexer does not
 	 * echo the transmitted end of string character.  The
@@ -1729,16 +1736,16 @@ mxd_panther_positive_limit_hit( MX_MOTOR *motor )
 	 * FALSE to indicate this.
 	 */
 
-	status = mxd_panther_putline( panther, "]0", FALSE, PANTHER_DEBUG );
+	mx_status = mxd_panther_putline( panther, "]0", FALSE, PANTHER_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mxd_panther_getline( panther,
+	mx_status = mxd_panther_getline( panther,
 			response, sizeof(response), PANTHER_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	num_items = sscanf( response, "%d", &limit_state );
 
@@ -1764,14 +1771,14 @@ mxd_panther_negative_limit_hit( MX_MOTOR *motor )
 	MX_PANTHER *panther;
 	char response[20];
 	int num_items, limit_state;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	panther = NULL;
 
-	status = mxd_panther_get_pointers( motor, &panther, fname );
+	mx_status = mxd_panther_get_pointers( motor, &panther, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* This is a case where the Panther indexer does not
 	 * echo the transmitted end of string character.  The
@@ -1779,16 +1786,16 @@ mxd_panther_negative_limit_hit( MX_MOTOR *motor )
 	 * FALSE to indicate this.
 	 */
 
-	status = mxd_panther_putline( panther, "]0", FALSE, PANTHER_DEBUG );
+	mx_status = mxd_panther_putline( panther, "]0", FALSE, PANTHER_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mxd_panther_getline( panther,
+	mx_status = mxd_panther_getline( panther,
 			response, sizeof(response), PANTHER_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	num_items = sscanf( response, "%d", &limit_state );
 
@@ -1807,50 +1814,50 @@ mxd_panther_negative_limit_hit( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_panther_find_home_position( MX_MOTOR *motor )
+mxd_panther_raw_home_command( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_panther_find_home_position()";
+	static const char fname[] = "mxd_panther_raw_home_command()";
 
 	MX_PANTHER *panther;
 	char c;
 	char command[40];
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	panther = NULL;
 
-	status = mxd_panther_get_pointers( motor, &panther, fname );
+	mx_status = mxd_panther_get_pointers( motor, &panther, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	if ( motor->home_search >= 0 ) {
+	if ( motor->raw_home_command >= 0 ) {
 		if ( panther->encoder_resolution > 0 ) {
-			strcpy( command, "f 1" );
+			strlcpy( command, "f 1", sizeof(command) );
 		} else {
-			sprintf( command, "F %ld 1",
-					mx_round( motor->raw_speed ) );
+			snprintf( command, sizeof(command),
+				"F %ld 1", mx_round( motor->raw_speed ) );
 		}
 	} else {
 		if ( panther->encoder_resolution > 0 ) {
-			strcpy( command, "f 0" );
+			strlcpy( command, "f 0", sizeof(command) );
 		} else {
-			sprintf( command, "F %ld 0",
-					mx_round( motor->raw_speed ) );
+			snprintf( command, sizeof(command),
+				"F %ld 0", mx_round( motor->raw_speed ) );
 		}
 	}
 
-	status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
+	mx_status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Is there any response? */
 
 	if ( panther->axis_name == '0' ) {
-		status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
+		mx_status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1865,14 +1872,14 @@ mxd_panther_constant_velocity_move( MX_MOTOR *motor )
 	long slew_speed;
 	char c;
 	char command[40];
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	panther = NULL;
 
-	status = mxd_panther_get_pointers( motor, &panther, fname );
+	mx_status = mxd_panther_get_pointers( motor, &panther, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	slew_speed = mx_round( motor->raw_speed );
 
@@ -1880,20 +1887,20 @@ mxd_panther_constant_velocity_move( MX_MOTOR *motor )
 		slew_speed = -slew_speed;
 	}
 
-	sprintf( command, "M%+ld", slew_speed );
+	snprintf( command, sizeof(command), "M%+ld", slew_speed );
 
-	status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
+	mx_status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Is there any response? */
 
 	if ( panther->axis_name == '0' ) {
-		status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
+		mx_status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1904,7 +1911,7 @@ mxd_panther_get_parameter( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_panther_constant_velocity_move()";
 
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -1913,9 +1920,9 @@ mxd_panther_get_parameter( MX_MOTOR *motor )
 
 	/* There is no way to read any parameter without reading them all. */
 
-	status = mxd_panther_read_parms_from_hardware( motor->record );
+	mx_status = mxd_panther_read_parms_from_hardware( motor->record );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -1928,14 +1935,14 @@ mxd_panther_set_parameter( MX_MOTOR *motor )
 	char command[80];
 	long raw_speed, raw_base_speed, raw_maximum_speed;
 	long accel_slope, decel_slope;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	panther = NULL;
 
-	status = mxd_panther_get_pointers( motor, &panther, fname );
+	mx_status = mxd_panther_get_pointers( motor, &panther, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Format the appropriate parameter setting command. */
 
@@ -1953,7 +1960,7 @@ mxd_panther_set_parameter( MX_MOTOR *motor )
 				mx_round( motor->raw_maximum_speed ) );
 		}
 
-		sprintf( command, "V %ld", raw_speed );
+		snprintf( command, sizeof(command), "V %ld", raw_speed );
 
 	} else if ( motor->parameter_type == MXLV_MTR_BASE_SPEED ) {
 
@@ -1969,7 +1976,7 @@ mxd_panther_set_parameter( MX_MOTOR *motor )
 				mx_round( motor->raw_speed ) );
 		}
 
-		sprintf( command, "I %ld", raw_base_speed );
+		snprintf( command, sizeof(command), "I %ld", raw_base_speed );
 
 	} else if ( motor->parameter_type == MXLV_MTR_MAXIMUM_SPEED ) {
 
@@ -2024,7 +2031,8 @@ mxd_panther_set_parameter( MX_MOTOR *motor )
 				MX_PANTHER_MOTOR_MAXIMUM_ACCEL_SLOPE );
 		}
 
-		sprintf( command, "K %ld %ld", accel_slope, decel_slope );
+		snprintf( command, sizeof(command),
+			"K %ld %ld", accel_slope, decel_slope );
 	} else {
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type %ld is not supported by this driver.",
@@ -2033,16 +2041,16 @@ mxd_panther_set_parameter( MX_MOTOR *motor )
 
 	/* Send the command to the PANTHER controller. */
 
-	status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
+	mx_status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( panther->axis_name == '0' ) {
-		status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
+		mx_status = mxd_panther_getc( panther, &c, PANTHER_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -2059,7 +2067,7 @@ mxd_panther_getline( MX_PANTHER *panther,
 	MX_RECORD *rs232_record;
 	char c;
 	int i;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( debug_flag ) {
 		MX_DEBUG( 2,("%s invoked.", fname));
@@ -2068,9 +2076,9 @@ mxd_panther_getline( MX_PANTHER *panther,
 	rs232_record = panther->rs232_record;
 
 	for ( i = 0; i < (buffer_length - 1) ; i++ ) {
-		status = mx_rs232_getchar( rs232_record, &c, MXF_232_WAIT );
+		mx_status = mx_rs232_getchar( rs232_record, &c, MXF_232_WAIT );
 
-		if ( status.code != MXE_SUCCESS ) {
+		if ( mx_status.code != MXE_SUCCESS ) {
 			/* Make the buffer contents a valid C string
 			 * before returning, so that we can at least
 			 * see what appeared before the error.
@@ -2081,12 +2089,12 @@ mxd_panther_getline( MX_PANTHER *panther,
 			if ( debug_flag ) {
 				MX_DEBUG(-2,
 				("%s failed with status = %ld, c = 0x%x '%c'",
-				fname, status.code, c, c));
+				fname, mx_status.code, c, c));
 
 				MX_DEBUG(-2, ("-> buffer = '%s'", buffer) );
 			}
 
-			return status;
+			return mx_status;
 		}
 
 		if ( debug_flag ) {
@@ -2111,17 +2119,17 @@ mxd_panther_getline( MX_PANTHER *panther,
 				 * to eat.
 				 */
 
-				status = mx_rs232_getchar( rs232_record,
+				mx_status = mx_rs232_getchar( rs232_record,
 						&c, MXF_232_WAIT );
 
-				if ( status.code != MXE_SUCCESS ) {
+				if ( mx_status.code != MXE_SUCCESS ) {
 					if ( debug_flag ) {
 						MX_DEBUG(-2,(
 				"%s: failed to see any characters following "
 				"the single mode end of string.", fname));
 					}
 
-					return status;
+					return mx_status;
 				}
 
 				if ( debug_flag ) {
@@ -2165,24 +2173,24 @@ mxd_panther_getline( MX_PANTHER *panther,
 	if ( panther->axis_name == '0' ) {	/* Single Mode */
 		if ( buffer[i-1] != MX_PANTHER_SINGLE_MODE_EOS ) {
 
-			status = mx_error( MXE_DEVICE_IO_ERROR, fname,
+			mx_status = mx_error( MXE_DEVICE_IO_ERROR, fname,
 			"Did not see correct end of string character.");
 
 			buffer[i] = '\0';
 		} else {
-			status = MX_SUCCESSFUL_RESULT;
+			mx_status = MX_SUCCESSFUL_RESULT;
 
 			buffer[i-1] = '\0';
 		}
 	} else {				/* Party Line Mode */
 		if ( buffer[i-1] != MX_PANTHER_PARTY_LINE_MODE_EOS ) {
 
-			status = mx_error( MXE_DEVICE_IO_ERROR, fname,
+			mx_status = mx_error( MXE_DEVICE_IO_ERROR, fname,
 			"Did not see correct end of string character.");
 
 			buffer[i] = '\0';
 		} else {
-			status = MX_SUCCESSFUL_RESULT;
+			mx_status = MX_SUCCESSFUL_RESULT;
 
 			buffer[i-1] = '\0';
 		}
@@ -2192,7 +2200,7 @@ mxd_panther_getline( MX_PANTHER *panther,
 		MX_DEBUG(-2, ("%s: received '%s'", fname, buffer) );
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -2204,7 +2212,7 @@ mxd_panther_putline( MX_PANTHER *panther,
 	MX_RECORD *rs232_record;
 	char *ptr;
 	char c, echo;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( debug_flag ) {
 		if ( panther->axis_name == '0' ) {
@@ -2229,11 +2237,11 @@ mxd_panther_putline( MX_PANTHER *panther,
 
 	if ( panther->axis_name != '0' ) {
 
-		status = mx_rs232_putchar( rs232_record,
+		mx_status = mx_rs232_putchar( rs232_record,
 					panther->axis_name, MXF_232_WAIT );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		if ( debug_flag ) {
 			MX_DEBUG( 2,("%s: sent 0x%x '%c'", fname,
@@ -2242,11 +2250,11 @@ mxd_panther_putline( MX_PANTHER *panther,
 
 		/* Read back the echoed character. */
 
-		status = mx_rs232_getchar( rs232_record,
+		mx_status = mx_rs232_getchar( rs232_record,
 					&echo, MXF_232_WAIT);
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		if ( debug_flag ) {
 			MX_DEBUG(  2,
@@ -2270,10 +2278,10 @@ mxd_panther_putline( MX_PANTHER *panther,
 	while ( *ptr != '\0' ) {
 		c = *ptr;
 
-		status = mx_rs232_putchar( rs232_record, c, MXF_232_WAIT );
+		mx_status = mx_rs232_putchar( rs232_record, c, MXF_232_WAIT );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		if ( debug_flag ) {
 			MX_DEBUG( 2,("%s: sent 0x%x '%c'", fname, c, c));
@@ -2293,11 +2301,11 @@ mxd_panther_putline( MX_PANTHER *panther,
 		} else {
 			mx_msleep(1);
 
-			status = mx_rs232_getchar(rs232_record,
+			mx_status = mx_rs232_getchar(rs232_record,
 						&echo, MXF_232_WAIT);
 
-			if ( status.code != MXE_SUCCESS )
-				return status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
 			if ( debug_flag ) {
 				MX_DEBUG( 2,("%s: received 0x%x '%c'",
@@ -2331,10 +2339,10 @@ mxd_panther_putline( MX_PANTHER *panther,
 	if ( c != '\0' ) {
 		/* Send the end of string. */
 
-		status = mx_rs232_putchar( rs232_record, c, MXF_232_WAIT );
+		mx_status = mx_rs232_putchar( rs232_record, c, MXF_232_WAIT );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		if ( debug_flag ) {
 			MX_DEBUG( 2,("%s: (EOS) sent 0x%x '%c'", fname, c, c));
@@ -2344,11 +2352,11 @@ mxd_panther_putline( MX_PANTHER *panther,
 
 		if ( echo_end_of_string_flag ) {
 
-			status = mx_rs232_getchar(rs232_record,
+			mx_status = mx_rs232_getchar(rs232_record,
 						&echo, MXF_232_WAIT);
 
-			if ( status.code != MXE_SUCCESS )
-				return status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
 			if ( debug_flag ) {
 				MX_DEBUG( 2,("%s: (EOS) received 0x%x '%c'",
@@ -2376,15 +2384,15 @@ mxd_panther_getc( MX_PANTHER *panther, char *c, int debug_flag )
 {
 	static const char fname[] = "mxd_panther_getc()";
 
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_rs232_getchar( panther->rs232_record, c, MXF_232_WAIT );
+	mx_status = mx_rs232_getchar( panther->rs232_record, c, MXF_232_WAIT );
 
 	if ( debug_flag ) {
 		MX_DEBUG(-2,("%s: received 0x%x '%c'", fname, *c, *c));
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -2392,15 +2400,15 @@ mxd_panther_getc_nowait( MX_PANTHER *panther, char *c, int debug_flag )
 {
 	static const char fname[] = "mxd_panther_getc_nowait()";
 
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_rs232_getchar( panther->rs232_record, c, MXF_232_NOWAIT );
+	mx_status = mx_rs232_getchar( panther->rs232_record, c, MXF_232_NOWAIT);
 
 	if ( debug_flag ) {
 		MX_DEBUG(-2,("%s: received 0x%x '%c'", fname, *c, *c));
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -2408,9 +2416,9 @@ mxd_panther_putc( MX_PANTHER *panther, char c, int debug_flag )
 {
 	static const char fname[] = "mxd_panther_putc()";
 
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_rs232_putchar( panther->rs232_record, c, MXF_232_WAIT );
+	mx_status = mx_rs232_putchar( panther->rs232_record, c, MXF_232_WAIT );
 
 	/* The Panther controllers normally echo most characters sent
 	 * to them, but since mxd_panther_putc() is intended as a low
@@ -2422,6 +2430,6 @@ mxd_panther_putc( MX_PANTHER *panther, char c, int debug_flag )
 		MX_DEBUG(-2,("%s: sent 0x%x '%c'", fname, c, c));
 	}
 
-	return status;
+	return mx_status;
 }
 

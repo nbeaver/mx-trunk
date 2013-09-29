@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2007, 2010 Illinois Institute of Technology
+ * Copyright 2005-2007, 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -50,7 +50,7 @@ MX_MOTOR_FUNCTION_LIST mxd_mcu2_motor_function_list = {
 	mxd_mcu2_immediate_abort,
 	NULL,
 	NULL,
-	mxd_mcu2_find_home_position,
+	mxd_mcu2_raw_home_command,
 	mxd_mcu2_constant_velocity_move,
 	mxd_mcu2_get_parameter,
 	mxd_mcu2_set_parameter,
@@ -128,13 +128,13 @@ mxd_mcu2_command( MX_MCU2 *mcu2,
 	flags = mcu2->mcu2_flags;
 
 	if ( flags & MXF_MCU2_NO_START_CHARACTER ) {
-		sprintf( local_command_buffer, "%02ld%s",
-					mcu2->axis_address, command );
+		snprintf( local_command_buffer, sizeof(local_command_buffer),
+				"%02ld%s", mcu2->axis_address, command );
 
 		address_ptr = local_command_buffer;
 	} else {
-		sprintf( local_command_buffer, "#%02ld%s",
-					mcu2->axis_address, command );
+		snprintf( local_command_buffer, sizeof(local_command_buffer),
+				"#%02ld%s", mcu2->axis_address, command );
 
 		address_ptr = local_command_buffer + 1;
 	}
@@ -408,8 +408,8 @@ mxd_mcu2_move_absolute( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "G%+ld",
-			motor->raw_destination.stepper );
+	snprintf( command, sizeof(command),
+		"G%+ld", motor->raw_destination.stepper );
 
 	mx_status = mxd_mcu2_command( mcu2, command, NULL, 0, MXD_MCU2_DEBUG );
 
@@ -482,8 +482,8 @@ mxd_mcu2_set_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "P=%+ld",
-			motor->raw_set_position.stepper );
+	snprintf( command, sizeof(command),
+		"P=%+ld", motor->raw_set_position.stepper );
 
 	mx_status = mxd_mcu2_command( mcu2, command, NULL, 0, MXD_MCU2_DEBUG );
 
@@ -531,9 +531,9 @@ mxd_mcu2_immediate_abort( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_mcu2_find_home_position( MX_MOTOR *motor )
+mxd_mcu2_raw_home_command( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_mcu2_find_home_position()";
+	static const char fname[] = "mxd_mcu2_raw_home_command()";
 
 	MX_MCU2 *mcu2;
 	char command[80];
@@ -547,16 +547,16 @@ mxd_mcu2_find_home_position( MX_MOTOR *motor )
 		return mx_status;
 
 	if ( mcu2->mcu2_flags & MXF_MCU2_HOME_TO_LIMIT_SWITCH ) {
-		if ( motor->home_search >= 0 ) {
-			strcpy( command, "L+" );
+		if ( motor->raw_home_command >= 0 ) {
+			strlcpy( command, "L+", sizeof(command) );
 		} else {
-			strcpy( command, "L-" );
+			strlcpy( command, "L-", sizeof(command) );
 		}
 	} else {
-		if ( motor->home_search >= 0 ) {
-			strcpy( command, "H+" );
+		if ( motor->raw_home_command >= 0 ) {
+			strlcpy( command, "H+", sizeof(command) );
 		} else {
-			strcpy( command, "H-" );
+			strlcpy( command, "H-", sizeof(command) );
 		}
 	}
 
@@ -584,9 +584,9 @@ mxd_mcu2_constant_velocity_move( MX_MOTOR *motor )
 	/* Set the direction of the move. */
 
 	if ( motor->constant_velocity_move >= 0 ) {
-		strcpy( command, "S+" );
+		strlcpy( command, "S+", sizeof(command) );
 	} else {
-		strcpy( command, "S-" );
+		strlcpy( command, "S-", sizeof(command) );
 	}
 
 	mx_status = mxd_mcu2_command( mcu2, command, NULL, 0, MXD_MCU2_DEBUG );
@@ -622,7 +622,7 @@ mxd_mcu2_get_parameter( MX_MOTOR *motor )
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
-		strcpy( command, "V01" );
+		strlcpy( command, "V01", sizeof(command) );
 
 		mx_status = mxd_mcu2_command( mcu2, command,
 						response, sizeof(response),
@@ -655,7 +655,7 @@ mxd_mcu2_get_parameter( MX_MOTOR *motor )
 		motor->raw_speed = (double) ulong_value;
 		break;
 	case MXLV_MTR_BASE_SPEED:
-		strcpy( command, "B" );
+		strlcpy( command, "B", sizeof(command) );
 
 		mx_status = mxd_mcu2_command( mcu2, command,
 						response, sizeof(response),
@@ -688,7 +688,7 @@ mxd_mcu2_get_parameter( MX_MOTOR *motor )
 		motor->raw_base_speed = (double) ulong_value;
 		break;
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
-		strcpy( command, "R01" );
+		strlcpy( command, "R01", sizeof(command) );
 
 		mx_status = mxd_mcu2_command( mcu2, command,
 						response, sizeof(response),
@@ -760,7 +760,8 @@ mxd_mcu2_set_parameter( MX_MOTOR *motor )
 
 		/* Set the speed for the G command. */
 
-		sprintf( command, "V01=%lu", ulong_value );
+		snprintf( command, sizeof(command),
+				"V01=%lu", ulong_value );
 		
 		mx_status = mxd_mcu2_command( mcu2, command,
 						NULL, 0, MXD_MCU2_DEBUG );
@@ -770,7 +771,8 @@ mxd_mcu2_set_parameter( MX_MOTOR *motor )
 
 		/* Set the speed for the S command. */
 
-		sprintf( command, "V00=%lu", ulong_value );
+		snprintf( command, sizeof(command),
+				"V00=%lu", ulong_value );
 		
 		mx_status = mxd_mcu2_command( mcu2, command,
 						NULL, 0, MXD_MCU2_DEBUG );
@@ -782,7 +784,8 @@ mxd_mcu2_set_parameter( MX_MOTOR *motor )
 	case MXLV_MTR_BASE_SPEED:
 		ulong_value = (unsigned long) mx_round( motor->raw_base_speed );
 
-		sprintf( command, "B=%lu", ulong_value );
+		snprintf( command, sizeof(command),
+				"B=%lu", ulong_value );
 		
 		mx_status = mxd_mcu2_command( mcu2, command,
 						NULL, 0, MXD_MCU2_DEBUG );
@@ -798,7 +801,8 @@ mxd_mcu2_set_parameter( MX_MOTOR *motor )
 
 		/* Set the acceleration for the G command. */
 
-		sprintf( command, "R01=%lu", ulong_value );
+		snprintf( command, sizeof(command),
+				"R01=%lu", ulong_value );
 		
 		mx_status = mxd_mcu2_command( mcu2, command,
 						NULL, 0, MXD_MCU2_DEBUG );
@@ -808,7 +812,8 @@ mxd_mcu2_set_parameter( MX_MOTOR *motor )
 
 		/* Set the acceleration for the S command. */
 
-		sprintf( command, "R00=%lu", ulong_value );
+		snprintf( command, sizeof(command),
+				"R00=%lu", ulong_value );
 		
 		mx_status = mxd_mcu2_command( mcu2, command,
 						NULL, 0, MXD_MCU2_DEBUG );
@@ -821,9 +826,9 @@ mxd_mcu2_set_parameter( MX_MOTOR *motor )
 	case MXLV_MTR_AXIS_ENABLE:
 		if ( motor->axis_enable ) {
 			motor->axis_enable = 1;
-			strcpy( command, "W=1" );
+			strlcpy( command, "W=1", sizeof(command) );
 		} else {
-			strcpy( command, "W=0" );
+			strlcpy( command, "W=0", sizeof(command) );
 		}
 
 		mx_status = mxd_mcu2_command( mcu2, command,
@@ -856,7 +861,7 @@ mxd_mcu2_get_status( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	strcpy( command, "E" );
+	strlcpy( command, "E", sizeof(command) );
 
 	mx_status = mxd_mcu2_command( mcu2, command,
 					response, sizeof response,

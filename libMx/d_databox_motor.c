@@ -47,12 +47,12 @@ MX_MOTOR_FUNCTION_LIST mxd_databox_motor_motor_function_list = {
 	mxd_databox_motor_move_absolute,
 	mxd_databox_motor_get_position,
 	mxd_databox_motor_set_position,
-	mxd_databox_motor_soft_abort,
+	NULL,
 	mxd_databox_motor_immediate_abort,
-	mxd_databox_motor_positive_limit_hit,
-	mxd_databox_motor_negative_limit_hit,
-	mxd_databox_motor_find_home_position,
-	mxd_databox_motor_constant_velocity_move,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
 	mxd_databox_motor_get_parameter,
 	mxd_databox_motor_set_parameter
 };
@@ -701,12 +701,6 @@ mxd_databox_motor_set_position( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_databox_motor_soft_abort( MX_MOTOR *motor )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_databox_motor_immediate_abort( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_databox_motor_immediate_abort()";
@@ -739,42 +733,6 @@ mxd_databox_motor_immediate_abort( MX_MOTOR *motor )
 	mx_status = mxd_databox_motor_resynchronize( motor->record );
 
 	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxd_databox_motor_positive_limit_hit( MX_MOTOR *motor )
-{
-	motor->positive_limit_hit = FALSE;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_databox_motor_negative_limit_hit( MX_MOTOR *motor )
-{
-	motor->negative_limit_hit = FALSE;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_databox_motor_find_home_position( MX_MOTOR *motor )
-{
-	static const char fname[] = "mxd_databox_motor_find_home_position()";
-
-	return mx_error( MXE_UNSUPPORTED, fname,
-	"Home searches are not supported for motor '%s'",
-		motor->record->name );
-}
-
-MX_EXPORT mx_status_type
-mxd_databox_motor_constant_velocity_move( MX_MOTOR *motor )
-{
-	static const char fname[] = "mxd_databox_motor_constant_velocity_move()";
-
-	return mx_error( MXE_UNSUPPORTED, fname,
-	"Constant velocity moves are not supported for motor '%s'",
-		motor->record->name );
 }
 
 /* The following are just stubs to allow Databox quick scans to work. */

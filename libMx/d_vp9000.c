@@ -7,7 +7,8 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2005-2006, 2010 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2005-2006, 2010, 2013
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -48,7 +49,7 @@ MX_MOTOR_FUNCTION_LIST mxd_vp9000_motor_function_list = {
 	mxd_vp9000_immediate_abort,
 	mxd_vp9000_positive_limit_hit,
 	mxd_vp9000_negative_limit_hit,
-	mxd_vp9000_find_home_position
+	mxd_vp9000_raw_home_command
 };
 
 /* VP9000 motor data structures. */
@@ -984,9 +985,9 @@ mxd_vp9000_negative_limit_hit( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_vp9000_find_home_position( MX_MOTOR *motor )
+mxd_vp9000_raw_home_command( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_vp9000_find_home_position()";
+	static const char fname[] = "mxd_vp9000_raw_home_command()";
 
 	MX_VP9000 *vp9000;
 	MX_VP9000_MOTOR *vp9000_motor;
@@ -999,7 +1000,7 @@ mxd_vp9000_find_home_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( motor->home_search >= 0 ) {
+	if ( motor->raw_home_command >= 0 ) {
 		snprintf( command, sizeof(command),
 			"I%ldM0", vp9000_motor->motor_number );
 	} else {

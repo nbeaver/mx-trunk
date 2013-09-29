@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2007, 2010, 2012 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2007, 2010, 2012-2013
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -417,7 +418,7 @@ mx_setup_motor_process_functions( MX_RECORD *record )
 		case MXLV_MTR_IMMEDIATE_ABORT:
 		case MXLV_MTR_POSITIVE_LIMIT_HIT:
 		case MXLV_MTR_NEGATIVE_LIMIT_HIT:
-		case MXLV_MTR_HOME_SEARCH:
+		case MXLV_MTR_RAW_HOME_COMMAND:
 		case MXLV_MTR_CONSTANT_VELOCITY_MOVE:
 		case MXLV_MTR_SPEED:
 		case MXLV_MTR_BASE_SPEED:
@@ -700,9 +701,9 @@ mx_motor_process_function( void *record_ptr,
 			mx_status = mx_motor_constant_velocity_move( record,
 					motor->constant_velocity_move );
 			break;
-		case MXLV_MTR_HOME_SEARCH:
-			mx_status = mx_motor_find_home_position( record,
-					motor->home_search );
+		case MXLV_MTR_RAW_HOME_COMMAND:
+			mx_status = mx_motor_raw_home_command( record,
+					motor->raw_home_command );
 			break;
 		case MXLV_MTR_SPEED:
 			mx_status = mx_motor_set_speed( record, motor->speed );

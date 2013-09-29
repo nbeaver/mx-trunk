@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2010, 2012 Illinois Institute of Technology
+ * Copyright 2010, 2012-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -43,7 +43,7 @@ MX_API mx_status_type mxd_powerpmac_get_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_powerpmac_set_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_powerpmac_soft_abort( MX_MOTOR *motor );
 MX_API mx_status_type mxd_powerpmac_immediate_abort( MX_MOTOR *motor );
-MX_API mx_status_type mxd_powerpmac_find_home_position( MX_MOTOR *motor );
+MX_API mx_status_type mxd_powerpmac_raw_home_command( MX_MOTOR *motor );
 MX_API mx_status_type mxd_powerpmac_constant_velocity_move( MX_MOTOR *motor );
 MX_API mx_status_type mxd_powerpmac_get_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_powerpmac_set_parameter( MX_MOTOR *motor );

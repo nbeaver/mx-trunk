@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005-2006, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -41,7 +41,7 @@ MX_API mx_status_type mxd_ptz_motor_print_structure( FILE *file,
 MX_API mx_status_type mxd_ptz_motor_move_absolute( MX_MOTOR *motor );
 MX_API mx_status_type mxd_ptz_motor_get_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_ptz_motor_soft_abort( MX_MOTOR *motor );
-MX_API mx_status_type mxd_ptz_motor_find_home_position( MX_MOTOR *motor );
+MX_API mx_status_type mxd_ptz_motor_raw_home_command( MX_MOTOR *motor );
 MX_API mx_status_type mxd_ptz_motor_get_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_ptz_motor_set_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_ptz_motor_get_status( MX_MOTOR *motor );

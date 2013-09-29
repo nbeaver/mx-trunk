@@ -7,7 +7,8 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2006, 2010-2011 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2006, 2010-2011, 2013
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -45,11 +46,7 @@ MX_MOTOR_FUNCTION_LIST mxd_table_motor_motor_function_list = {
 	mxd_table_motor_soft_abort,
 	mxd_table_motor_immediate_abort,
 	mxd_table_motor_positive_limit_hit,
-	mxd_table_motor_negative_limit_hit,
-	mxd_table_motor_find_home_position,
-	mxd_table_motor_constant_velocity_move,
-	mxd_table_motor_get_parameter,
-	mxd_table_motor_set_parameter
+	mxd_table_motor_negative_limit_hit
 };
 
 /* Soft motor data structures. */
@@ -499,45 +496,5 @@ mxd_table_motor_negative_limit_hit( MX_MOTOR *motor )
 	motor->negative_limit_hit = limit_hit;
 
 	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxd_table_motor_find_home_position( MX_MOTOR *motor )
-{
-	static const char fname[] = "mxd_table_motor_find_home_position()";
-
-	return mx_error( MXE_UNSUPPORTED, fname,
-	"Home searches are not supported for table pseudomotor '%s'.",
-		motor->record->name );
-}
-
-MX_EXPORT mx_status_type
-mxd_table_motor_constant_velocity_move( MX_MOTOR *motor )
-{
-	static const char fname[] = "mxd_table_motor_constant_velocity_move()";
-
-	return mx_error( MXE_UNSUPPORTED, fname,
-	"Constant velocity moves are not supported for table pseudomotor '%s'.",
-		motor->record->name );
-}
-
-MX_EXPORT mx_status_type
-mxd_table_motor_get_parameter( MX_MOTOR *motor )
-{
-	static const char fname[] = "mxd_table_motor_get_parameter()";
-
-	return mx_error( MXE_UNSUPPORTED, fname,
-	"Getting motor parameters is not supported for table pseudomotor '%s'.",
-		motor->record->name );
-}
-
-MX_EXPORT mx_status_type
-mxd_table_motor_set_parameter( MX_MOTOR *motor )
-{
-	static const char fname[] = "mxd_table_motor_set_parameter()";
-
-	return mx_error( MXE_UNSUPPORTED, fname,
-	"Setting motor parameters is not supported for table pseudomotor '%s'.",
-		motor->record->name );
 }
 

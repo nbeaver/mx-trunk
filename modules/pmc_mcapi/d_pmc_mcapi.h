@@ -8,7 +8,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2004, 2010 Illinois Institute of Technology
+ * Copyright 2004, 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -46,7 +46,7 @@ MX_API mx_status_type mxd_pmc_mcapi_get_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_pmc_mcapi_set_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_pmc_mcapi_soft_abort( MX_MOTOR *motor );
 MX_API mx_status_type mxd_pmc_mcapi_immediate_abort( MX_MOTOR *motor );
-MX_API mx_status_type mxd_pmc_mcapi_find_home_position( MX_MOTOR *motor );
+MX_API mx_status_type mxd_pmc_mcapi_raw_home_command( MX_MOTOR *motor );
 MX_API mx_status_type mxd_pmc_mcapi_constant_velocity_move( MX_MOTOR *motor );
 MX_API mx_status_type mxd_pmc_mcapi_get_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_pmc_mcapi_set_parameter( MX_MOTOR *motor );
