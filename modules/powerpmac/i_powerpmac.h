@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2010 Illinois Institute of Technology
+ * Copyright 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -19,6 +19,12 @@
 
 /*---*/
 
+/* Flag bits for 'powerpmac_flags'. */
+
+#define MXF_POWERPMAC_SHOW_CONFIG		0x1
+
+/*---*/
+
 #define MXU_POWERPMAC_VARIABLE_NAME_LENGTH	80
 
 #define MX_POWERPMAC_MAX_COMMAND_LENGTH		500
@@ -27,6 +33,8 @@
 
 typedef struct {
 	MX_RECORD *record;
+
+	unsigned long powerpmac_flags;
 
 	long major_version;
 	long minor_version;
@@ -42,6 +50,10 @@ typedef struct {
 #define MXLV_POWERPMAC_COMMAND_WITH_RESPONSE	7003
 
 #define MXI_POWERPMAC_STANDARD_FIELDS \
+  {-1, -1, "powerpmac_flags", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_POWERPMAC, powerpmac_flags), \
+	{0}, NULL,  MXFF_IN_DESCRIPTION}, \
+  \
   {MXLV_POWERPMAC_COMMAND, -1, "command", MXFT_STRING,\
 				NULL, 1, {MX_POWERPMAC_MAX_COMMAND_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_POWERPMAC, command), \

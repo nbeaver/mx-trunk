@@ -10,7 +10,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2010, 2012 Illinois Institute of Technology
+ * Copyright 2010, 2012-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -117,6 +117,7 @@ mxi_powerpmac_open( MX_RECORD *record )
 	MX_POWERPMAC *powerpmac;
 	char response[80];
 	int num_items;
+	unsigned long flags;
 	int powerpmac_status;
 	mx_status_type mx_status;
 
@@ -133,6 +134,8 @@ mxi_powerpmac_open( MX_RECORD *record )
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"MX_POWERPMAC pointer for record '%s' is NULL.", record->name);
 	}
+
+	flags = powerpmac->powerpmac_flags;
 
 	/* Initialize the libppmac library. */
 
@@ -174,10 +177,10 @@ mxi_powerpmac_open( MX_RECORD *record )
 			"Response = '%s'", response );
 	}
 
-#if MXI_POWERPMAC_DEBUG
-	MX_DEBUG(-2, ("%s: PowerPMAC version: major = %ld, minor = %ld",
-		fname, powerpmac->major_version, powerpmac->minor_version));
-#endif
+	if ( flags & MXF_POWERPMAC_SHOW_CONFIG ) {
+		mx_info("PowerPMAC version: major = %ld, minor = %ld",
+		powerpmac->major_version, powerpmac->minor_version );
+	}
 
 	/* Get a pointer to the PowerPMAC shared memory. */
 
@@ -188,6 +191,20 @@ mxi_powerpmac_open( MX_RECORD *record )
 		"The attempt to get the shared memory pointer "
 		"for PowerPMAC '%s' using GetSharedMemPtr() failed.",
 			record->name );
+	}
+
+	if ( flags & MXF_POWERPMAC_SHOW_CONFIG ) {
+		mx_info( "  SHM ptr = %p", powerpmac->shared_mem );
+		mx_info( "  Gate1AutoDetect = %#x",
+			powerpmac->shared_mem->Gate1AutoDetect );
+		mx_info( "  Gate2AutoDetect = %#x",
+			powerpmac->shared_mem->Gate2AutoDetect );
+		mx_info( "  Gate3AutoDetect = %#x",
+			powerpmac->shared_mem->Gate3AutoDetect );
+		mx_info( "  CardIOAutoDetect = %#x",
+			powerpmac->shared_mem->CardIOAutoDetect );
+		mx_info( "  CardDPRAutoDetect = %#x",
+			powerpmac->shared_mem->CardDPRAutoDetect );
 	}
 
 	return MX_SUCCESSFUL_RESULT;

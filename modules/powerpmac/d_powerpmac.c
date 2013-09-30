@@ -225,8 +225,7 @@ mxd_powerpmac_open( MX_RECORD *record )
 
 	/* Is the motor number valid? */
 
-	max_motors = mxi_powerpmac_get_long( powerpmac, "Sys.MaxMotors",
-						POWERPMAC_DEBUG );
+	max_motors = powerpmac->shared_mem->MaxMotors;
 
 	if ( ( powerpmac_motor->motor_number < 1 )
 	  || ( powerpmac_motor->motor_number > max_motors ) )
