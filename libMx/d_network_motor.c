@@ -355,6 +355,11 @@ mxd_network_motor_finish_record_initialization( MX_RECORD *record )
 		network_motor->server_record,
 		"%s.integral_limit", network_motor->remote_record_name );
 
+	mx_network_field_init( &(network_motor->limit_switch_as_home_switch_nf),
+		network_motor->server_record,
+		"%s.limit_switch_as_home_switch",
+					network_motor->remote_record_name );
+
 	mx_network_field_init( &(network_motor->maximum_speed_nf),
 		network_motor->server_record,
 		"%s.maximum_speed", network_motor->remote_record_name );
@@ -1160,6 +1165,12 @@ mxd_network_motor_get_parameter( MX_MOTOR *motor )
 				&(motor->compute_real_position) );
 		break;
 
+	case MXLV_MTR_LIMIT_SWITCH_AS_HOME_SWITCH:
+		mx_status = mx_get(
+			&(network_motor->limit_switch_as_home_switch_nf),
+			MXFT_LONG, &(motor->limit_switch_as_home_switch) );
+		break;
+
 	case MXLV_MTR_PROPORTIONAL_GAIN:
 		mx_status = mx_get( &(network_motor->proportional_gain_nf),
 				MXFT_DOUBLE, &(motor->proportional_gain) );
@@ -1288,6 +1299,12 @@ mxd_network_motor_set_parameter( MX_MOTOR *motor )
 	case MXLV_MTR_SYNCHRONOUS_MOTION_MODE:
 		mx_status = mx_put(&(network_motor->synchronous_motion_mode_nf),
 				MXFT_BOOL, &(motor->synchronous_motion_mode) );
+		break;
+
+	case MXLV_MTR_LIMIT_SWITCH_AS_HOME_SWITCH:
+		mx_status = mx_put(
+			&(network_motor->limit_switch_as_home_switch_nf),
+			MXFT_LONG, &(motor->limit_switch_as_home_switch) );
 		break;
 
 	case MXLV_MTR_SAVE_START_POSITIONS:

@@ -213,6 +213,8 @@ typedef struct {
 	unsigned long home_search_type;
 	mx_bool_type home_search_in_progress;
 
+	long limit_switch_as_home_switch;
+
 	long constant_velocity_move;
 
 	unsigned long status;
@@ -275,29 +277,30 @@ typedef struct {
 #define MXLV_MTR_RAW_HOME_COMMAND			1010
 #define MXLV_MTR_HOME_SEARCH				1011
 #define MXLV_MTR_HOME_SEARCH_TYPE			1012
-#define MXLV_MTR_CONSTANT_VELOCITY_MOVE			1013
-#define MXLV_MTR_SPEED					1014
-#define MXLV_MTR_BASE_SPEED				1015
-#define MXLV_MTR_MAXIMUM_SPEED				1016
-#define MXLV_MTR_ACCELERATION_TYPE			1017
-#define MXLV_MTR_RAW_ACCELERATION_PARAMETERS		1018
-#define MXLV_MTR_ACCELERATION_TIME			1019
-#define MXLV_MTR_ACCELERATION_DISTANCE			1020
-#define MXLV_MTR_SPEED_CHOICE_PARAMETERS		1021
-#define MXLV_MTR_SAVE_SPEED				1022
-#define MXLV_MTR_RESTORE_SPEED				1023
-#define MXLV_MTR_SYNCHRONOUS_MOTION_MODE		1024
-#define MXLV_MTR_COMPUTE_EXTENDED_SCAN_RANGE		1025
-#define MXLV_MTR_COMPUTE_PSEUDOMOTOR_POSITION		1026
-#define MXLV_MTR_COMPUTE_REAL_POSITION			1027
-#define MXLV_MTR_GET_REAL_MOTOR_FROM_PSEUDOMOTOR	1028
-#define MXLV_MTR_GET_STATUS				1029
-#define MXLV_MTR_GET_EXTENDED_STATUS			1030
-#define MXLV_MTR_BUSY_START_INTERVAL_ENABLED		1031
-#define MXLV_MTR_BUSY_START_INTERVAL			1032
-#define MXLV_MTR_LAST_START_TIME			1033
-#define MXLV_MTR_SAVE_START_POSITIONS			1034
-#define MXLV_MTR_USE_START_POSITIONS			1035
+#define MXLV_MTR_LIMIT_SWITCH_AS_HOME_SWITCH		1013
+#define MXLV_MTR_CONSTANT_VELOCITY_MOVE			1014
+#define MXLV_MTR_SPEED					1015
+#define MXLV_MTR_BASE_SPEED				1016
+#define MXLV_MTR_MAXIMUM_SPEED				1017
+#define MXLV_MTR_ACCELERATION_TYPE			1018
+#define MXLV_MTR_RAW_ACCELERATION_PARAMETERS		1019
+#define MXLV_MTR_ACCELERATION_TIME			1020
+#define MXLV_MTR_ACCELERATION_DISTANCE			1021
+#define MXLV_MTR_SPEED_CHOICE_PARAMETERS		1022
+#define MXLV_MTR_SAVE_SPEED				1023
+#define MXLV_MTR_RESTORE_SPEED				1024
+#define MXLV_MTR_SYNCHRONOUS_MOTION_MODE		1025
+#define MXLV_MTR_COMPUTE_EXTENDED_SCAN_RANGE		1026
+#define MXLV_MTR_COMPUTE_PSEUDOMOTOR_POSITION		1027
+#define MXLV_MTR_COMPUTE_REAL_POSITION			1028
+#define MXLV_MTR_GET_REAL_MOTOR_FROM_PSEUDOMOTOR	1029
+#define MXLV_MTR_GET_STATUS				1030
+#define MXLV_MTR_GET_EXTENDED_STATUS			1031
+#define MXLV_MTR_BUSY_START_INTERVAL_ENABLED		1032
+#define MXLV_MTR_BUSY_START_INTERVAL			1033
+#define MXLV_MTR_LAST_START_TIME			1034
+#define MXLV_MTR_SAVE_START_POSITIONS			1035
+#define MXLV_MTR_USE_START_POSITIONS			1036
 
 #define MXLV_MTR_VALUE_CHANGED_THRESHOLD		3001
 
@@ -571,6 +574,11 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, home_search_in_progress), \
 	{0}, NULL, 0}, \
   \
+  {MXLV_MTR_LIMIT_SWITCH_AS_HOME_SWITCH, -1, "limit_switch_as_home_switch", \
+					MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, limit_switch_as_home_switch), \
+	{0}, NULL, 0}, \
+  \
   {MXLV_MTR_CONSTANT_VELOCITY_MOVE, -1, "constant_velocity_move", \
 					MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, constant_velocity_move), \
@@ -810,7 +818,16 @@ MX_API mx_status_type mx_motor_raw_home_command( MX_RECORD *motor_record,
 						long direction );
 
 MX_API mx_status_type mx_motor_home_search( MX_RECORD *motor_record,
-						long direction );
+						long direction,
+						unsigned long flags );
+
+MX_API mx_status_type mx_motor_get_limit_switch_as_home_switch(
+					MX_RECORD *motor_record,
+					long *limit_switch_as_home_switch );
+
+MX_API mx_status_type mx_motor_set_limit_switch_as_home_switch(
+					MX_RECORD *motor_record,
+					long limit_switch_as_home_switch );
 
 MX_API mx_status_type mx_motor_zero_position_value( MX_RECORD *motor_record );
 

@@ -72,14 +72,15 @@ motor_home_fn( int argc, char *argv[] )
 
 	/* Start the home search. */
 
-	mx_status = mx_motor_home_search( record, direction );
+	fprintf(output,"*** Home search in progress ***\n");
+
+	mx_status = mx_motor_home_search( record,
+				direction, MXF_MTR_SHOW_MOVE );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return FAILURE;
 
 	/* Wait for the home search to complete. */
-
-	fprintf(output,"*** Home search in progress ***\n");
 
 	for (;;) {
 		mx_status = mx_motor_get_extended_status( record,

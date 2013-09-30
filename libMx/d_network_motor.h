@@ -95,6 +95,7 @@ typedef struct {
 	MX_NETWORK_FIELD immediate_abort_nf;
 	MX_NETWORK_FIELD integral_gain_nf;
 	MX_NETWORK_FIELD integral_limit_nf;
+	MX_NETWORK_FIELD limit_switch_as_home_switch_nf;
 	MX_NETWORK_FIELD maximum_speed_nf;
 	MX_NETWORK_FIELD motor_flags_nf;
 	MX_NETWORK_FIELD mx_type_nf;

@@ -965,7 +965,10 @@ mx_wait_for_motor_stop( MX_RECORD *motor_record, unsigned long flags )
 	unsigned long hardware_limit_bitmask, software_limit_bitmask;
 	unsigned long hardware_limit_hit, software_limit_hit;
 	unsigned long ignore_keyboard, ignore_limit_switches;
-	unsigned long ignore_pause;
+	unsigned long ignore_pause, show_move;
+	MX_CLOCK_TICK show_tick_interval, current_tick, next_show_tick;
+	int comparison;
+	double position;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked for motor '%s'.", fname, motor_record->name ));
@@ -984,11 +987,43 @@ mx_wait_for_motor_stop( MX_RECORD *motor_record, unsigned long flags )
 
 	ignore_pause = flags & MXF_MTR_IGNORE_PAUSE;
 
+	show_move = flags & MXF_MTR_SHOW_MOVE;
+
+	if ( show_move ) {
+		show_tick_interval = mx_convert_seconds_to_clock_ticks( 1.0 );
+
+		current_tick = mx_current_clock_tick();
+
+		next_show_tick = mx_add_clock_ticks( current_tick,
+							show_tick_interval );
+	}
+
 	if ( flags & MXF_MTR_IGNORE_ERRORS ) {
 		error_bitmask = 0;
 	}
 
 	for(;;) {
+		if ( show_move ) {
+			current_tick = mx_current_clock_tick();
+
+			comparison = mx_compare_clock_ticks( current_tick,
+							next_show_tick );
+
+			if ( comparison >= 0 ) {
+				mx_status = mx_motor_get_position(
+						motor_record, &position );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+
+				mx_info( "  %g", position );
+
+				next_show_tick = mx_add_clock_ticks(
+							current_tick,
+							show_tick_interval );
+			}
+		}
+
 		mx_status = mx_motor_get_status( motor_record, &motor_status );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -1680,8 +1715,332 @@ mx_motor_raw_home_command( MX_RECORD *motor_record, long direction )
 
 /*-------------------------------------------------------------------------*/
 
+static mx_status_type
+mxp_motor_home_using_limit_switch( MX_RECORD *motor_record,
+				long direction,
+				unsigned long flags,
+				unsigned long home_search_type )
+{
+	static const char fname[] = "mxp_motor_home_using_limit_switch()";
+
+	unsigned long motor_status;
+	mx_bool_type unexpected_interrupt;
+	mx_bool_type use_two_moves, use_limit_switch_as_home_switch;
+	mx_status_type mx_status;
+
+	switch( home_search_type ) {
+	case MXHS_MTR_LIMIT_SWITCH_THEN_RAW_HOME_COMMAND:
+		use_two_moves = TRUE;
+		use_limit_switch_as_home_switch = FALSE;
+		break;
+	case MXHS_MTR_LIMIT_SWITCH_AS_HOME_SWITCH:
+		use_two_moves = FALSE;
+		use_limit_switch_as_home_switch = TRUE;
+		break;
+	case MXHS_MTR_LIMIT_SWITCH_THEN_LIMIT_SWITCH_AS_HOME_SWITCH:
+		use_two_moves = TRUE;
+		use_limit_switch_as_home_switch = TRUE;
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Illegal home search type %ld was specified for motor '%s'.",
+			home_search_type, motor_record->name );
+		break;
+	}
+
+	if ( use_two_moves ) {
+		mx_status = mx_motor_constant_velocity_move( motor_record,
+								-direction );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_wait_for_motor_stop( motor_record, flags );
+
+#if 0
+		MX_DEBUG(-2,("%s: MX wait status = %ld",
+			fname, mx_status.code));
+#endif
+
+		switch( mx_status.code ) {
+		case MXE_SUCCESS:
+			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+				"Initial motor move of '%s' completed without "
+				"hitting a limit switch.", motor_record->name );
+			break;
+		case MXE_INTERRUPTED:
+			/* Are we at the expected limit switch or did something
+			 * else interrupt us?
+			 */
+
+			unexpected_interrupt = TRUE;
+
+			mx_status = mx_motor_get_status( motor_record,
+							&motor_status );
+		
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+#if 0
+			MX_DEBUG(-2,("%s: direction = %ld, motor status = %#lx",
+				fname, direction, motor_status ));
+#endif
+
+			if ( direction >= 0 ) {
+				/* The final move is in the positive direction,
+				 * so we should have hit the negative limit
+				 * switch during this initial move.
+				 */
+
+				if ( motor_status
+					& MXSF_MTR_NEGATIVE_LIMIT_HIT )
+				{
+					unexpected_interrupt = FALSE;
+				}
+			} else {
+				/* The final move is in the negative direction,
+				 * so we should have hit the positive limit
+				 * switch during this initial move.
+				 */
+
+				if ( motor_status
+					& MXSF_MTR_POSITIVE_LIMIT_HIT )
+				{
+					unexpected_interrupt = FALSE;
+				}
+			}
+
+#if 0
+			MX_DEBUG(-2,("%s: unexpected_interrupt = %d",
+				fname, (int) unexpected_interrupt));
+#endif
+
+			if ( unexpected_interrupt ) {
+				return mx_status;
+			}
+			break;
+		default:
+			return mx_status;
+			break;
+		}
+	}
+
+	if ( use_limit_switch_as_home_switch ) {
+		mx_status = mx_motor_set_limit_switch_as_home_switch(
+						motor_record, direction );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	mx_status = mx_motor_raw_home_command( motor_record, direction );
+
+	if ( use_limit_switch_as_home_switch ) {
+		(void) mx_motor_set_limit_switch_as_home_switch(
+						motor_record, 0 );
+	}
+
+	return mx_status;
+}
+
+/*----*/
+
+static mx_status_type
+mxp_motor_push_motor_off_limit( MX_RECORD *motor_record,
+				long direction,
+				unsigned long flags )
+{
+	mx_status_type mx_status;
+
+	/* Move off of the limit. */
+
+	mx_status = mx_motor_constant_velocity_move( motor_record, direction );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Allow the move to proceed for 1 second. */
+
+	mx_msleep(1000);
+
+	/* Stop the motor and wait for it to stop. */
+
+	mx_status = mx_motor_soft_abort( motor_record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_wait_for_motor_stop( motor_record, flags );
+
+	return mx_status;
+}
+
+static mx_status_type
+mxp_motor_home_halfway_between_limit_switches( MX_RECORD *motor_record,
+						long direction,
+						unsigned long flags )
+{
+	static const char fname[] =
+		"mxp_motor_home_halfway_between_limit_switches()";
+
+	long limit_switch_search_direction;
+	unsigned long motor_status;
+	double position_at_limit_switch;
+	double first_limit_location, second_limit_location;
+	double average_position;
+	mx_bool_type unexpected_interrupt;
+	mx_status_type mx_status;
+
+	/* We find both limit switches by tripping both of them.
+	 * We start by going to the -direction limit_switch.
+	 */
+
+	limit_switch_search_direction = -direction;
+
+	while (TRUE) {
+		mx_status = mx_motor_constant_velocity_move( motor_record,
+						limit_switch_search_direction );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_wait_for_motor_stop( motor_record, flags );
+
+#if 0
+		MX_DEBUG(-2,("%s: MX wait status = %ld",
+			fname, mx_status.code));
+#endif
+
+		switch( mx_status.code ) {
+		case MXE_SUCCESS:
+			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+				"Initial motor move of '%s' completed without "
+				"hitting a limit switch.", motor_record->name );
+			break;
+		case MXE_INTERRUPTED:
+			/* Are we at the expected limit switch or did something
+			 * else interrupt us?
+			 */
+
+			unexpected_interrupt = TRUE;
+
+			mx_status = mx_motor_get_status( motor_record,
+							&motor_status );
+		
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+#if 0
+			MX_DEBUG(-2,("%s: direction = %ld, motor status = %#lx",
+				fname, direction, motor_status ));
+#endif
+
+			if ( limit_switch_search_direction >= 0 ) {
+				if ( motor_status
+					& MXSF_MTR_POSITIVE_LIMIT_HIT )
+				{
+					unexpected_interrupt = FALSE;
+				}
+			} else {
+				if ( motor_status
+					& MXSF_MTR_NEGATIVE_LIMIT_HIT )
+				{
+					unexpected_interrupt = FALSE;
+				}
+			}
+
+#if 0
+			MX_DEBUG(-2,("%s: unexpected_interrupt = %d",
+				fname, (int) unexpected_interrupt));
+#endif
+
+			if ( unexpected_interrupt ) {
+				return mx_status;
+			}
+			break;
+		default:
+			return mx_status;
+			break;
+		}
+
+		mx_status = mx_motor_get_position( motor_record,
+						&position_at_limit_switch );
+
+#if 0
+		MX_DEBUG(-2,("%s: position_at_limit_switch = %f",
+			fname, position_at_limit_switch));
+#endif
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( limit_switch_search_direction != direction ) {
+			first_limit_location = position_at_limit_switch;
+
+			/* Push the motor away from the limit switch. */
+
+			mx_status = mxp_motor_push_motor_off_limit(
+					motor_record, direction, flags );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			/* Now we can now go back and find the other
+			 * limit switch.
+			 */
+
+			limit_switch_search_direction = direction;
+		} else {
+			second_limit_location = position_at_limit_switch;
+
+			/* We have now found both limit switches, so
+			 * break out of this loop.
+			 */
+
+			break;	/* Exit the while() loop. */
+		}
+	}
+
+	/* Push the motor away from the limit switch. */
+
+	mx_status = mxp_motor_push_motor_off_limit( motor_record,
+						-direction, flags );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Move to a position halfway between the limits. */
+
+	average_position =
+		0.5 * ( first_limit_location + second_limit_location );
+
+	mx_status = mx_motor_move_absolute( motor_record, average_position, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_wait_for_motor_stop( motor_record, flags );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* If we successfully get to the position halfway between
+	 * the limit switches, then redefine this location as 0.
+	 */
+
+	mx_status = mx_motor_set_position( motor_record, 0 );
+
+	/* We are done, so return. */
+
+	return mx_status;
+}
+
+/*----*/
+
 MX_EXPORT mx_status_type
-mx_motor_home_search( MX_RECORD *motor_record, long direction )
+mx_motor_home_search( MX_RECORD *motor_record,
+			long direction,
+			unsigned long flags )
 {
 	static const char fname[] = "mx_motor_home_search()";
 
@@ -1713,6 +2072,19 @@ mx_motor_home_search( MX_RECORD *motor_record, long direction )
 							direction );
 		break;
 
+	case MXHS_MTR_LIMIT_SWITCH_THEN_RAW_HOME_COMMAND:
+	case MXHS_MTR_LIMIT_SWITCH_AS_HOME_SWITCH:
+	case MXHS_MTR_LIMIT_SWITCH_THEN_LIMIT_SWITCH_AS_HOME_SWITCH:
+		mx_status = mxp_motor_home_using_limit_switch( motor_record,
+						direction, flags,
+						motor->home_search_type );
+		break;
+
+	case MXHS_MTR_HALFWAY_BETWEEN_LIMIT_SWITCHES:
+		mx_status = mxp_motor_home_halfway_between_limit_switches(
+					motor_record, direction, flags );
+		break;
+
 	case MXHS_MTR_SPECIAL:
 		special_fn = flist->special_home_search;
 
@@ -1736,6 +2108,62 @@ mx_motor_home_search( MX_RECORD *motor_record, long direction )
 		break;
 	}
 	
+	return mx_status;
+}
+
+/*----*/
+
+MX_EXPORT mx_status_type
+mx_motor_get_limit_switch_as_home_switch( MX_RECORD *motor_record,
+				long *limit_switch_as_home_switch )
+{
+	static const char fname[] =
+		"mx_motor_get_limit_switch_as_home_switch()";
+
+	MX_MOTOR *motor;
+	mx_status_type mx_status;
+
+	mx_status = mx_motor_get_pointers( motor_record, &motor, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_motor_get_parameter( motor_record,
+				MXLV_MTR_LIMIT_SWITCH_AS_HOME_SWITCH );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( limit_switch_as_home_switch != (long *) NULL ) {
+		*limit_switch_as_home_switch =
+			motor->limit_switch_as_home_switch;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*----*/
+
+MX_EXPORT mx_status_type
+mx_motor_set_limit_switch_as_home_switch( MX_RECORD *motor_record,
+				long limit_switch_as_home_switch )
+{
+	static const char fname[] =
+		"mx_motor_set_limit_switch_as_home_switch()";
+
+	MX_MOTOR *motor;
+	mx_status_type mx_status;
+
+	mx_status = mx_motor_get_pointers( motor_record, &motor, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	motor->limit_switch_as_home_switch = limit_switch_as_home_switch;
+
+	mx_status = mx_motor_set_parameter( motor_record,
+				MXLV_MTR_LIMIT_SWITCH_AS_HOME_SWITCH );
+
 	return mx_status;
 }
 
@@ -2371,6 +2799,7 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 	case MXLV_MTR_AXIS_ENABLE:
 	case MXLV_MTR_CLOSED_LOOP:
 	case MXLV_MTR_FAULT_RESET:
+	case MXLV_MTR_LIMIT_SWITCH_AS_HOME_SWITCH:
 
 		/* These do not require anything to be done. */
 
@@ -2622,6 +3051,7 @@ mx_motor_default_set_parameter_handler( MX_MOTOR *motor )
 	case MXLV_MTR_MAXIMUM_SPEED:
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
 	case MXLV_MTR_SAVE_START_POSITIONS:
+	case MXLV_MTR_LIMIT_SWITCH_AS_HOME_SWITCH:
 
 		/* By default, nothing more is done with these parameters
 		 * other than saving their new values.

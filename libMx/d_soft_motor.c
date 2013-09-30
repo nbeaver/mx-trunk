@@ -49,7 +49,7 @@ MX_MOTOR_FUNCTION_LIST mxd_soft_motor_motor_function_list = {
 	mxd_soft_motor_move_absolute,
 	mxd_soft_motor_get_position,
 	mxd_soft_motor_set_position,
-	NULL,
+	mxd_soft_motor_immediate_abort,
 	mxd_soft_motor_immediate_abort,
 	NULL,
 	NULL,
@@ -438,6 +438,7 @@ mxd_soft_motor_raw_home_command( MX_MOTOR *motor )
 	static const char fname[] = "mxd_soft_motor_raw_home_command()";
 
 	MX_SOFT_MOTOR *soft_motor = NULL;
+	double destination;
 	mx_status_type mx_status;
 
 	mx_status = mxd_soft_motor_get_pointers( motor, &soft_motor, fname );
@@ -445,8 +446,16 @@ mxd_soft_motor_raw_home_command( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_motor_move_absolute( motor->record,
-				soft_motor->simulated_home_position, 0 );
+	if ( motor->limit_switch_as_home_switch > 0 ) {
+		destination = soft_motor->simulated_positive_limit;
+	} else
+	if ( motor->limit_switch_as_home_switch == 0 ) {
+		destination = soft_motor->simulated_home_position;
+	} else {
+		destination = soft_motor->simulated_negative_limit;
+	}
+
+	mx_status = mx_motor_move_absolute( motor->record, destination, 0 );
 
 	motor->home_search_in_progress = TRUE;
 
