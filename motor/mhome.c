@@ -72,7 +72,7 @@ motor_home_fn( int argc, char *argv[] )
 
 	/* Start the home search. */
 
-	mx_status = mx_motor_raw_home_command( record, direction );
+	mx_status = mx_motor_home_search( record, direction );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return FAILURE;

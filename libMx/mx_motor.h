@@ -211,6 +211,7 @@ typedef struct {
 	long raw_home_command;
 	long home_search;
 	unsigned long home_search_type;
+	mx_bool_type home_search_in_progress;
 
 	long constant_velocity_move;
 
@@ -564,6 +565,10 @@ typedef struct {
   \
   {MXLV_MTR_HOME_SEARCH_TYPE, -1, "home_search_type", MXFT_ULONG, NULL, 0, {0},\
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, home_search_type), \
+	{0}, NULL, 0}, \
+  \
+  {-1, -1, "home_search_in_progress", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, home_search_in_progress), \
 	{0}, NULL, 0}, \
   \
   {MXLV_MTR_CONSTANT_VELOCITY_MOVE, -1, "constant_velocity_move", \

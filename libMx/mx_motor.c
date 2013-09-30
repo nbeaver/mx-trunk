@@ -150,6 +150,8 @@ mx_motor_finish_record_initialization( MX_RECORD *motor_record )
 	motor->backlash_move_in_progress = FALSE;
 	motor->server_backlash_in_progress = FALSE;
 
+	motor->home_search_in_progress = FALSE;
+
 	/* If 'quick_scan_backlash_correction' is changed to be settable
 	 * in the database file, the following will have to be removed.
 	 */
@@ -1638,6 +1640,8 @@ mx_motor_negative_limit_hit( MX_RECORD *motor_record, mx_bool_type *limit_hit )
 	return status;
 }
 
+/*-------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mx_motor_raw_home_command( MX_RECORD *motor_record, long direction )
 {
@@ -1673,6 +1677,69 @@ mx_motor_raw_home_command( MX_RECORD *motor_record, long direction )
 
 	return status;
 }
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_motor_home_search( MX_RECORD *motor_record, long direction )
+{
+	static const char fname[] = "mx_motor_home_search()";
+
+	MX_MOTOR *motor;
+	MX_MOTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *special_fn ) ( MX_MOTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_motor_get_pointers( motor_record,
+					&motor, &flist, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* The action we take depends on the value of 
+	 * the 'home_search_type' field.
+	 */
+
+	switch( motor->home_search_type ) {
+
+	case MXHS_MTR_HOME_SEARCH_NOT_SUPPORTED:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Home searches are not supported for motor '%s'.",
+			motor_record->name );
+		break;
+
+	case MXHS_MTR_RAW_HOME_COMMAND:
+		mx_status = mx_motor_raw_home_command( motor_record,
+							direction );
+		break;
+
+	case MXHS_MTR_SPECIAL:
+		special_fn = flist->special_home_search;
+
+		if ( special_fn == NULL ) {
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"A special home search was requested for motor '%s', "
+			"but the motor driver '%s' used by that motor "
+			"does not implement a special home search algorithm.",
+				motor_record->name,
+				mx_get_driver_name( motor_record ) );
+		}
+
+		mx_status = (*special_fn)( motor );
+		break;
+
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Home search type %lu is not implemented for motor '%s'.",
+			motor->home_search_type,
+			motor_record->name );
+		break;
+	}
+	
+	return mx_status;
+}
+
+/*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mx_motor_zero_position_value( MX_RECORD *motor_record )

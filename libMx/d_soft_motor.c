@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <float.h>
 
 #include "mx_util.h"
 #include "mx_driver.h"
@@ -35,23 +36,29 @@ MX_RECORD_FUNCTION_LIST mxd_soft_motor_record_function_list = {
 	mxd_soft_motor_create_record_structures,
 	mxd_soft_motor_finish_record_initialization,
 	NULL,
-	mxd_soft_motor_print_motor_structure
+	mxd_soft_motor_print_motor_structure,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	mxd_soft_motor_special_processing_setup
 };
 
 MX_MOTOR_FUNCTION_LIST mxd_soft_motor_motor_function_list = {
-	mxd_soft_motor_motor_is_busy,
+	NULL,
 	mxd_soft_motor_move_absolute,
 	mxd_soft_motor_get_position,
 	mxd_soft_motor_set_position,
-	mxd_soft_motor_soft_abort,
+	NULL,
 	mxd_soft_motor_immediate_abort,
-	mxd_soft_motor_positive_limit_hit,
-	mxd_soft_motor_negative_limit_hit,
+	NULL,
+	NULL,
 	mxd_soft_motor_raw_home_command,
 	mxd_soft_motor_constant_velocity_move,
 	mxd_soft_motor_get_parameter,
 	mxd_soft_motor_set_parameter,
-	mxd_soft_motor_simultaneous_start
+	mxd_soft_motor_simultaneous_start,
+	mxd_soft_motor_get_status
 };
 
 /* Soft motor data structures. */
@@ -99,6 +106,12 @@ mxd_soft_motor_get_pointers( MX_MOTOR *motor,
 	}
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/* === */
+
+static mx_status_type mxd_soft_motor_process_function( void *record_ptr,
+							void *record_field_ptr,
+							int operation );
 
 /* === */
 
@@ -173,11 +186,9 @@ mxd_soft_motor_finish_record_initialization( MX_RECORD *record )
 	static const char fname[] =
 		"mxd_soft_motor_finish_record_initialization()";
 
-	MX_MOTOR *motor;
-	MX_SOFT_MOTOR *soft_motor;
+	MX_MOTOR *motor = NULL;
+	MX_SOFT_MOTOR *soft_motor = NULL;
 	mx_status_type mx_status;
-
-	soft_motor = NULL;
 
 	mx_status = mx_motor_finish_record_initialization( record );
 
@@ -211,6 +222,15 @@ mxd_soft_motor_finish_record_initialization( MX_RECORD *record )
 	motor->raw_acceleration_parameters[1] = 0.0;
 	motor->raw_acceleration_parameters[2] = 0.0;
 	motor->raw_acceleration_parameters[3] = 0.0;
+
+	/* Initialize home position. */
+
+	soft_motor->simulated_home_position = 0.0;
+
+	soft_motor->home_search_succeeded = FALSE;
+
+	soft_motor->simulated_negative_limit = -DBL_MAX;
+	soft_motor->simulated_positive_limit = DBL_MAX;
 
 	/* Initialize the dead reckoning structure. */
 
@@ -294,32 +314,30 @@ mxd_soft_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_soft_motor_motor_is_busy( MX_MOTOR *motor )
+mxd_soft_motor_special_processing_setup( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_soft_motor_is_busy()";
+	MX_RECORD_FIELD *record_field;
+	MX_RECORD_FIELD *record_field_array;
+	long i;
 
-	MX_SOFT_MOTOR *soft_motor;
-	mx_status_type mx_status;
+	record_field_array = record->record_field_array;
 
-	soft_motor = NULL;
+	for ( i = 0; i < record->num_record_fields; i++ ) {
 
-	mx_status = mxd_soft_motor_get_pointers( motor, &soft_motor, fname );
+		record_field = &record_field_array[i];
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	if ( motor->busy ) {
-		mx_status = mx_dead_reckoning_predict_motion(
-					&(soft_motor->dead_reckoning),
-					NULL, NULL );
+		switch( record_field->label_value ) {
+		case MXLV_SOFT_MOTOR_RAW_SIMULATED_HOME_POSITION:
+		case MXLV_SOFT_MOTOR_SIMULATED_HOME_POSITION:
+			record_field->process_function
+					= mxd_soft_motor_process_function;
+			break;
+		default:
+			break;
+		}
 	}
 
-#if SOFT_MOTOR_DEBUG
-	MX_DEBUG(-2,("%s: motor '%s', busy = %d",
-		fname, motor->record->name, motor->busy));
-#endif
-
-	return mx_status;
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -327,10 +345,8 @@ mxd_soft_motor_move_absolute( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_soft_motor_move_absolute()";
 
-	MX_SOFT_MOTOR *soft_motor;
+	MX_SOFT_MOTOR *soft_motor = NULL;
 	mx_status_type mx_status;
-
-	soft_motor = NULL;
 
 	mx_status = mxd_soft_motor_get_pointers( motor, &soft_motor, fname );
 
@@ -357,10 +373,8 @@ mxd_soft_motor_get_position( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_soft_motor_get_position()";
 
-	MX_SOFT_MOTOR *soft_motor;
+	MX_SOFT_MOTOR *soft_motor = NULL;
 	mx_status_type mx_status;
-
-	soft_motor = NULL;
 
 	mx_status = mxd_soft_motor_get_pointers( motor, &soft_motor, fname );
 
@@ -392,12 +406,6 @@ mxd_soft_motor_set_position( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_soft_motor_soft_abort( MX_MOTOR *motor )
-{
-	return mxd_soft_motor_immediate_abort( motor );
-}
-
-MX_EXPORT mx_status_type
 mxd_soft_motor_immediate_abort( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_soft_motor_immediate_abort()";
@@ -425,27 +433,26 @@ mxd_soft_motor_immediate_abort( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_soft_motor_positive_limit_hit( MX_MOTOR *motor )
-{
-	motor->positive_limit_hit = FALSE;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_soft_motor_negative_limit_hit( MX_MOTOR *motor )
-{
-	motor->negative_limit_hit = FALSE;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_soft_motor_raw_home_command( MX_MOTOR *motor )
 {
-	motor->status |= MXSF_MTR_HOME_SEARCH_SUCCEEDED;
+	static const char fname[] = "mxd_soft_motor_raw_home_command()";
 
-	return MX_SUCCESSFUL_RESULT;
+	MX_SOFT_MOTOR *soft_motor = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mxd_soft_motor_get_pointers( motor, &soft_motor, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_motor_move_absolute( motor->record,
+				soft_motor->simulated_home_position, 0 );
+
+	motor->home_search_in_progress = TRUE;
+
+	soft_motor->home_search_succeeded = FALSE;
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -541,5 +548,152 @@ mxd_soft_motor_simultaneous_start( long num_motor_records,
 			return mx_status;
 	}
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_soft_motor_get_status( MX_MOTOR *motor )
+{
+	static const char fname[] = "mxd_soft_motor_get_status()";
+
+	MX_SOFT_MOTOR *soft_motor;
+	mx_bool_type at_home_switch;
+	mx_status_type mx_status;
+
+	soft_motor = NULL;
+
+	mx_status = mxd_soft_motor_get_pointers( motor, &soft_motor, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	motor->status = 0;
+
+	if ( motor->busy ) {
+		mx_status = mx_dead_reckoning_predict_motion(
+					&(soft_motor->dead_reckoning),
+					NULL, NULL );
+	}
+
+	if ( motor->busy ) {
+		motor->status |= MXSF_MTR_IS_BUSY;
+	}
+
+	if ( motor->raw_position.stepper ==
+		soft_motor->raw_simulated_home_position )
+	{
+		at_home_switch = TRUE;
+	} else {
+		at_home_switch = FALSE;
+	}
+
+	if ( motor->home_search_in_progress ) {
+		if ( motor->busy == FALSE ) {
+			motor->home_search_in_progress = FALSE;
+
+			if ( at_home_switch ) {
+				soft_motor->home_search_succeeded = TRUE;
+			} else {
+				soft_motor->home_search_succeeded = FALSE;
+			}
+		}
+	}
+
+	if ( at_home_switch ) {
+		motor->status |= MXSF_MTR_AT_HOME_SWITCH;
+	}
+
+	if ( soft_motor->home_search_succeeded ) {
+		motor->status |= MXSF_MTR_HOME_SEARCH_SUCCEEDED;
+	}
+
+	if ( motor->position <= soft_motor->simulated_negative_limit ) {
+		motor->status |= MXSF_MTR_NEGATIVE_LIMIT_HIT;
+	}
+
+	if ( motor->position >= soft_motor->simulated_positive_limit ) {
+		motor->status |= MXSF_MTR_POSITIVE_LIMIT_HIT;
+	}
+
+#if SOFT_MOTOR_DEBUG
+	MX_DEBUG(-2,("%s: motor '%s', busy = %d, status = %#lx",
+		fname, motor->record->name, motor->busy, motor->status));
+#endif
+
+	return mx_status;
+}
+
+/*=== */
+
+#ifndef MX_PROCESS_GET
+
+#define MX_PROCESS_GET	1
+#define MX_PROCESS_PUT	2
+
+#endif
+
+static mx_status_type
+mxd_soft_motor_process_function( void *record_ptr,
+			void *record_field_ptr, int operation )
+{
+	static const char fname[] = "mxd_soft_motor_process_function()";
+
+	MX_RECORD *record;
+	MX_RECORD_FIELD *record_field;
+	MX_MOTOR *motor;
+	MX_SOFT_MOTOR *soft_motor;
+	mx_status_type mx_status;
+
+	record = (MX_RECORD *) record_ptr;
+	record_field = (MX_RECORD_FIELD *) record_field_ptr;
+	motor = (MX_MOTOR *) record->record_class_struct;
+	soft_motor = (MX_SOFT_MOTOR *) record->record_type_struct;
+
+	mx_status = MX_SUCCESSFUL_RESULT;
+
+	switch( operation ) {
+	case MX_PROCESS_GET:
+		switch( record_field->label_value ) {
+		case MXLV_SOFT_MOTOR_SIMULATED_HOME_POSITION:
+			soft_motor->simulated_home_position = motor->offset
+		  + motor->scale * soft_motor->raw_simulated_home_position;
+			break;
+
+		case MXLV_SOFT_MOTOR_RAW_SIMULATED_HOME_POSITION:
+			break;
+
+		default:
+			MX_DEBUG( 1,(
+			    "%s: *** Unknown MX_PROCESS_GET label value = %ld",
+				fname, record_field->label_value));
+			break;
+		}
+		break;
+	case MX_PROCESS_PUT:
+		switch( record_field->label_value ) {
+		case MXLV_SOFT_MOTOR_SIMULATED_HOME_POSITION:
+			soft_motor->raw_simulated_home_position =
+			    mx_divide_safely(
+			    soft_motor->simulated_home_position - motor->offset,
+					motor->scale );
+			break;
+
+		case MXLV_SOFT_MOTOR_RAW_SIMULATED_HOME_POSITION:
+			soft_motor->simulated_home_position = motor->offset
+		  + motor->scale * soft_motor->raw_simulated_home_position;
+			break;
+
+		default:
+			MX_DEBUG( 1,(
+			    "%s: *** Unknown MX_PROCESS_PUT label value = %ld",
+				fname, record_field->label_value));
+			break;
+		}
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Unknown operation code = %d", operation );
+	}
+
+	return mx_status;
 }
 
