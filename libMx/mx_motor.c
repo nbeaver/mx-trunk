@@ -24,6 +24,8 @@
 
 #define MX_MOTOR_DEBUG_WAIT_ARRAY_TIMING		FALSE
 
+#define MX_MOTOR_DEBUG_HOME_SEARCH			FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1007,7 +1009,7 @@ mx_wait_for_motor_stop( MX_RECORD *motor_record, unsigned long flags )
 		error_bitmask = 0;
 	}
 
-#if 1
+#if MX_MOTOR_DEBUG_HOME_SEARCH
 	MX_DEBUG(-2,("%s: error_bitmask = %#lx",
 		fname, error_bitmask));
 #endif
@@ -1067,7 +1069,7 @@ mx_wait_for_motor_stop( MX_RECORD *motor_record, unsigned long flags )
 		}
 
 		if ( motor_status & error_bitmask ) {
-#if 1
+#if MX_MOTOR_DEBUG_HOME_SEARCH
 			MX_DEBUG(-2,
 			("%s: motor_status = %#lx, error_bitmask = %#lx",
 				fname, motor_status, error_bitmask));
@@ -1853,14 +1855,14 @@ mxp_motor_home_using_limit_switch( MX_RECORD *motor_record,
 
 		mx_status = mx_wait_for_motor_stop( motor_record, flags );
 
-#if 1
+#if MX_MOTOR_DEBUG_HOME_SEARCH
 		MX_DEBUG(-2,("%s: MX wait status = %ld",
 			fname, mx_status.code));
 #endif
 
 		switch( mx_status.code ) {
 		case MXE_SUCCESS:
-#if 1
+#if MX_MOTOR_DEBUG_HOME_SEARCH
 			MX_DEBUG(-2,("%s: MXE_SUCCESS", fname));
 #endif
 
@@ -1872,7 +1874,7 @@ mxp_motor_home_using_limit_switch( MX_RECORD *motor_record,
 			/* Are we at the expected limit switch or did something
 			 * else interrupt us?
 			 */
-#if 1
+#if MX_MOTOR_DEBUG_HOME_SEARCH
 			MX_DEBUG(-2,("%s: MXE_INTERRUPTED", fname));
 #endif
 
@@ -1884,7 +1886,7 @@ mxp_motor_home_using_limit_switch( MX_RECORD *motor_record,
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-#if 1
+#if MX_MOTOR_DEBUG_HOME_SEARCH
 			MX_DEBUG(-2,("%s: direction = %ld, motor status = %#lx",
 				fname, direction, motor_status ));
 #endif
@@ -1915,7 +1917,7 @@ mxp_motor_home_using_limit_switch( MX_RECORD *motor_record,
 				}
 			}
 
-#if 1
+#if MX_MOTOR_DEBUG_HOME_SEARCH
 			MX_DEBUG(-2,("%s: unexpected_interrupt = %d",
 				fname, (int) unexpected_interrupt));
 #endif
@@ -1925,7 +1927,7 @@ mxp_motor_home_using_limit_switch( MX_RECORD *motor_record,
 			}
 			break;
 		default:
-#if 1
+#if MX_MOTOR_DEBUG_HOME_SEARCH
 			MX_DEBUG(-2,
 			("%s: FOO - returning due to motor status %ld",
 				fname, mx_status.code));
@@ -1934,13 +1936,13 @@ mxp_motor_home_using_limit_switch( MX_RECORD *motor_record,
 			break;
 		}
 
-#if 1
+#if MX_MOTOR_DEBUG_HOME_SEARCH
 		MX_DEBUG(-2,("%s: MARKER 1", fname));
 #endif
 
 		if ( use_same_limit_direction ) {
 
-#if 1
+#if MX_MOTOR_DEBUG_HOME_SEARCH
 			MX_DEBUG(-2,("%s: pushing off limit.", fname));
 #endif
 			mx_status = mxp_motor_push_motor_off_limit(
@@ -1951,12 +1953,12 @@ mxp_motor_home_using_limit_switch( MX_RECORD *motor_record,
 		}
 	}
 
-#if 1
+#if MX_MOTOR_DEBUG_HOME_SEARCH
 		MX_DEBUG(-2,("%s: MARKER 2", fname));
 #endif
 
 	if ( use_limit_switch_as_home_switch ) {
-#if 1
+#if MX_MOTOR_DEBUG_HOME_SEARCH
 		MX_DEBUG(-2,("%s: Turning limit into home switch.",fname));
 #endif
 		mx_status = mx_motor_set_limit_switch_as_home_switch(
@@ -1966,7 +1968,7 @@ mxp_motor_home_using_limit_switch( MX_RECORD *motor_record,
 			return mx_status;
 	}
 
-#if 1
+#if MX_MOTOR_DEBUG_HOME_SEARCH
 	MX_DEBUG(-2,("%s: Now running the 'real' home command.",fname));
 #endif
 
@@ -1982,7 +1984,7 @@ mxp_motor_home_using_limit_switch( MX_RECORD *motor_record,
 		return mx_status;
 
 	if ( use_limit_switch_as_home_switch ) {
-#if 1
+#if MX_MOTOR_DEBUG_HOME_SEARCH
 		MX_DEBUG(-2,("%s: Reverting to real home switch.",fname));
 #endif
 		(void) mx_motor_set_limit_switch_as_home_switch(
