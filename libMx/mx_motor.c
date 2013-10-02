@@ -989,6 +989,11 @@ mx_wait_for_motor_stop( MX_RECORD *motor_record, unsigned long flags )
 
 	show_move = flags & MXF_MTR_SHOW_MOVE;
 
+	if ( ignore_limit_switches ) {
+		error_bitmask &=
+	   ~(hardware_limit_bitmask | software_limit_bitmask | MXSF_MTR_ERROR);
+	}
+
 	if ( show_move ) {
 		show_tick_interval = mx_convert_seconds_to_clock_ticks( 1.0 );
 
@@ -1001,6 +1006,11 @@ mx_wait_for_motor_stop( MX_RECORD *motor_record, unsigned long flags )
 	if ( flags & MXF_MTR_IGNORE_ERRORS ) {
 		error_bitmask = 0;
 	}
+
+#if 1
+	MX_DEBUG(-2,("%s: error_bitmask = %#lx",
+		fname, error_bitmask));
+#endif
 
 	for(;;) {
 		if ( show_move ) {
@@ -1057,6 +1067,11 @@ mx_wait_for_motor_stop( MX_RECORD *motor_record, unsigned long flags )
 		}
 
 		if ( motor_status & error_bitmask ) {
+#if 1
+			MX_DEBUG(-2,
+			("%s: motor_status = %#lx, error_bitmask = %#lx",
+				fname, motor_status, error_bitmask));
+#endif
 			if ( motor_status & MXSF_MTR_FOLLOWING_ERROR ) {
 				mx_warning( "Following error for motor '%s'.",
 					motor_record->name );
@@ -1716,6 +1731,66 @@ mx_motor_raw_home_command( MX_RECORD *motor_record, long direction )
 /*-------------------------------------------------------------------------*/
 
 static mx_status_type
+mxp_motor_push_motor_off_limit( MX_RECORD *motor_record,
+				long direction,
+				unsigned long flags )
+{
+	static const char fname[] = "mxp_motor_push_motor_off_limit()";
+
+	unsigned long motor_status, limit_bitmask;
+	unsigned long i, max_attempts, sleep_milliseconds;
+	mx_status_type mx_status;
+
+	/* Move off of the limit. */
+
+	mx_status = mx_motor_constant_velocity_move( motor_record, direction );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	max_attempts = 10;
+	sleep_milliseconds = 1000;
+
+	limit_bitmask =
+		MXSF_MTR_POSITIVE_LIMIT_HIT | MXSF_MTR_NEGATIVE_LIMIT_HIT;
+
+	for ( i = 0; i < max_attempts; i++ ) {
+		mx_msleep(sleep_milliseconds);
+
+		mx_status = mx_motor_get_status( motor_record, &motor_status );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( (motor_status & limit_bitmask) == 0 ) {
+			break;
+		}
+	}
+
+	if ( i >= max_attempts ) {
+		return mx_error( MXE_TIMED_OUT, fname,
+		"Timed out after waiting %f seconds for motor '%s' "
+		"to move off the limit switch.",
+			0.001 * max_attempts * sleep_milliseconds,
+			motor_record->name );
+	}
+
+	/* Stop the motor and wait for it to stop. */
+
+	mx_status = mx_motor_soft_abort( motor_record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_wait_for_motor_stop( motor_record,
+					flags | MXF_MTR_IGNORE_LIMIT_SWITCHES );
+
+	return mx_status;
+}
+
+/*-------------------------------------------------------------------------*/
+
+static mx_status_type
 mxp_motor_home_using_limit_switch( MX_RECORD *motor_record,
 				long direction,
 				unsigned long flags,
@@ -1726,18 +1801,32 @@ mxp_motor_home_using_limit_switch( MX_RECORD *motor_record,
 	unsigned long motor_status;
 	mx_bool_type unexpected_interrupt;
 	mx_bool_type use_two_moves, use_limit_switch_as_home_switch;
+	mx_bool_type use_same_limit_direction;
 	mx_status_type mx_status;
 
 	switch( home_search_type ) {
-	case MXHS_MTR_LIMIT_SWITCH_THEN_RAW_HOME_COMMAND:
+	case MXHS_MTR_SAME_DIR_LIMIT_SWITCH_THEN_RAW_HOME_COMMAND:
+		use_same_limit_direction = TRUE;
+		use_two_moves = TRUE;
+		use_limit_switch_as_home_switch = FALSE;
+		break;
+	case MXHS_MTR_OPPOSITE_DIR_LIMIT_SWITCH_THEN_RAW_HOME_COMMAND:
+		use_same_limit_direction = FALSE;
 		use_two_moves = TRUE;
 		use_limit_switch_as_home_switch = FALSE;
 		break;
 	case MXHS_MTR_LIMIT_SWITCH_AS_HOME_SWITCH:
+		use_same_limit_direction = TRUE;
 		use_two_moves = FALSE;
 		use_limit_switch_as_home_switch = TRUE;
 		break;
-	case MXHS_MTR_LIMIT_SWITCH_THEN_LIMIT_SWITCH_AS_HOME_SWITCH:
+	case MXHS_MTR_SAME_DIR_LIMIT_SWITCH_THEN_LIMIT_SWITCH_AS_HOME_SWITCH:
+		use_same_limit_direction = TRUE;
+		use_two_moves = TRUE;
+		use_limit_switch_as_home_switch = TRUE;
+		break;
+       case MXHS_MTR_OPPOSITE_DIR_LIMIT_SWITCH_THEN_LIMIT_SWITCH_AS_HOME_SWITCH:
+		use_same_limit_direction = FALSE;
 		use_two_moves = TRUE;
 		use_limit_switch_as_home_switch = TRUE;
 		break;
@@ -1749,21 +1838,32 @@ mxp_motor_home_using_limit_switch( MX_RECORD *motor_record,
 	}
 
 	if ( use_two_moves ) {
-		mx_status = mx_motor_constant_velocity_move( motor_record,
-								-direction );
+		if ( use_same_limit_direction ) {
+			mx_status = mx_motor_constant_velocity_move(
+						motor_record, direction );
+		} else {
+			mx_status = mx_motor_constant_velocity_move(
+						motor_record, -direction );
+		}
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
+		mx_msleep(1000);
+
 		mx_status = mx_wait_for_motor_stop( motor_record, flags );
 
-#if 0
+#if 1
 		MX_DEBUG(-2,("%s: MX wait status = %ld",
 			fname, mx_status.code));
 #endif
 
 		switch( mx_status.code ) {
 		case MXE_SUCCESS:
+#if 1
+			MX_DEBUG(-2,("%s: MXE_SUCCESS", fname));
+#endif
+
 			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 				"Initial motor move of '%s' completed without "
 				"hitting a limit switch.", motor_record->name );
@@ -1772,6 +1872,9 @@ mxp_motor_home_using_limit_switch( MX_RECORD *motor_record,
 			/* Are we at the expected limit switch or did something
 			 * else interrupt us?
 			 */
+#if 1
+			MX_DEBUG(-2,("%s: MXE_INTERRUPTED", fname));
+#endif
 
 			unexpected_interrupt = TRUE;
 
@@ -1781,36 +1884,38 @@ mxp_motor_home_using_limit_switch( MX_RECORD *motor_record,
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-#if 0
+#if 1
 			MX_DEBUG(-2,("%s: direction = %ld, motor status = %#lx",
 				fname, direction, motor_status ));
 #endif
 
-			if ( direction >= 0 ) {
-				/* The final move is in the positive direction,
-				 * so we should have hit the negative limit
-				 * switch during this initial move.
-				 */
-
-				if ( motor_status
-					& MXSF_MTR_NEGATIVE_LIMIT_HIT )
-				{
-					unexpected_interrupt = FALSE;
-				}
-			} else {
-				/* The final move is in the negative direction,
-				 * so we should have hit the positive limit
-				 * switch during this initial move.
-				 */
-
-				if ( motor_status
-					& MXSF_MTR_POSITIVE_LIMIT_HIT )
-				{
-					unexpected_interrupt = FALSE;
+			if ( motor_status & MXSF_MTR_POSITIVE_LIMIT_HIT ) {
+				if ( direction >= 0 ) {
+					if ( use_same_limit_direction ) {
+						unexpected_interrupt = FALSE;
+					}
+				} else {
+					if ( use_same_limit_direction == FALSE )
+					{
+						unexpected_interrupt = FALSE;
+					}
 				}
 			}
 
-#if 0
+			if ( motor_status & MXSF_MTR_NEGATIVE_LIMIT_HIT ) {
+				if ( direction < 0 ) {
+					if ( use_same_limit_direction ) {
+						unexpected_interrupt = FALSE;
+					}
+				} else {
+					if ( use_same_limit_direction == FALSE )
+					{
+						unexpected_interrupt = FALSE;
+					}
+				}
+			}
+
+#if 1
 			MX_DEBUG(-2,("%s: unexpected_interrupt = %d",
 				fname, (int) unexpected_interrupt));
 #endif
@@ -1820,12 +1925,40 @@ mxp_motor_home_using_limit_switch( MX_RECORD *motor_record,
 			}
 			break;
 		default:
+#if 1
+			MX_DEBUG(-2,
+			("%s: FOO - returning due to motor status %ld",
+				fname, mx_status.code));
+#endif
 			return mx_status;
 			break;
 		}
+
+#if 1
+		MX_DEBUG(-2,("%s: MARKER 1", fname));
+#endif
+
+		if ( use_same_limit_direction ) {
+
+#if 1
+			MX_DEBUG(-2,("%s: pushing off limit.", fname));
+#endif
+			mx_status = mxp_motor_push_motor_off_limit(
+					motor_record, -direction, flags );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
 	}
 
+#if 1
+		MX_DEBUG(-2,("%s: MARKER 2", fname));
+#endif
+
 	if ( use_limit_switch_as_home_switch ) {
+#if 1
+		MX_DEBUG(-2,("%s: Turning limit into home switch.",fname));
+#endif
 		mx_status = mx_motor_set_limit_switch_as_home_switch(
 						motor_record, direction );
 
@@ -1833,9 +1966,25 @@ mxp_motor_home_using_limit_switch( MX_RECORD *motor_record,
 			return mx_status;
 	}
 
+#if 1
+	MX_DEBUG(-2,("%s: Now running the 'real' home command.",fname));
+#endif
+
 	mx_status = mx_motor_raw_home_command( motor_record, direction );
 
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_wait_for_motor_stop( motor_record,
+				flags | MXF_MTR_IGNORE_LIMIT_SWITCHES );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	if ( use_limit_switch_as_home_switch ) {
+#if 1
+		MX_DEBUG(-2,("%s: Reverting to real home switch.",fname));
+#endif
 		(void) mx_motor_set_limit_switch_as_home_switch(
 						motor_record, 0 );
 	}
@@ -1844,36 +1993,6 @@ mxp_motor_home_using_limit_switch( MX_RECORD *motor_record,
 }
 
 /*----*/
-
-static mx_status_type
-mxp_motor_push_motor_off_limit( MX_RECORD *motor_record,
-				long direction,
-				unsigned long flags )
-{
-	mx_status_type mx_status;
-
-	/* Move off of the limit. */
-
-	mx_status = mx_motor_constant_velocity_move( motor_record, direction );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Allow the move to proceed for 1 second. */
-
-	mx_msleep(1000);
-
-	/* Stop the motor and wait for it to stop. */
-
-	mx_status = mx_motor_soft_abort( motor_record );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_wait_for_motor_stop( motor_record, flags );
-
-	return mx_status;
-}
 
 static mx_status_type
 mxp_motor_home_halfway_between_limit_switches( MX_RECORD *motor_record,
@@ -2072,9 +2191,11 @@ mx_motor_home_search( MX_RECORD *motor_record,
 							direction );
 		break;
 
-	case MXHS_MTR_LIMIT_SWITCH_THEN_RAW_HOME_COMMAND:
+	case MXHS_MTR_SAME_DIR_LIMIT_SWITCH_THEN_RAW_HOME_COMMAND:
+	case MXHS_MTR_OPPOSITE_DIR_LIMIT_SWITCH_THEN_RAW_HOME_COMMAND:
 	case MXHS_MTR_LIMIT_SWITCH_AS_HOME_SWITCH:
-	case MXHS_MTR_LIMIT_SWITCH_THEN_LIMIT_SWITCH_AS_HOME_SWITCH:
+	case MXHS_MTR_SAME_DIR_LIMIT_SWITCH_THEN_LIMIT_SWITCH_AS_HOME_SWITCH:
+       case MXHS_MTR_OPPOSITE_DIR_LIMIT_SWITCH_THEN_LIMIT_SWITCH_AS_HOME_SWITCH:
 		mx_status = mxp_motor_home_using_limit_switch( motor_record,
 						direction, flags,
 						motor->home_search_type );

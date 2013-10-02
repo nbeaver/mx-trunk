@@ -419,6 +419,8 @@ mx_setup_motor_process_functions( MX_RECORD *record )
 		case MXLV_MTR_POSITIVE_LIMIT_HIT:
 		case MXLV_MTR_NEGATIVE_LIMIT_HIT:
 		case MXLV_MTR_RAW_HOME_COMMAND:
+		case MXLV_MTR_HOME_SEARCH:
+		case MXLV_MTR_LIMIT_SWITCH_AS_HOME_SWITCH:
 		case MXLV_MTR_CONSTANT_VELOCITY_MOVE:
 		case MXLV_MTR_SPEED:
 		case MXLV_MTR_BASE_SPEED:
@@ -525,6 +527,10 @@ mx_motor_process_function( void *record_ptr,
 			break;
 		case MXLV_MTR_POSITIVE_LIMIT_HIT:
 			mx_status = mx_motor_positive_limit_hit( record, NULL );
+			break;
+		case MXLV_MTR_LIMIT_SWITCH_AS_HOME_SWITCH:
+			mx_status = mx_motor_get_limit_switch_as_home_switch(
+								record, NULL );
 			break;
 		case MXLV_MTR_SPEED:
 			mx_status = mx_motor_get_speed( record, NULL );
@@ -704,6 +710,14 @@ mx_motor_process_function( void *record_ptr,
 		case MXLV_MTR_RAW_HOME_COMMAND:
 			mx_status = mx_motor_raw_home_command( record,
 					motor->raw_home_command );
+			break;
+		case MXLV_MTR_HOME_SEARCH:
+			mx_status = mx_motor_home_search( record,
+						motor->home_search, 0 );
+			break;
+		case MXLV_MTR_LIMIT_SWITCH_AS_HOME_SWITCH:
+			mx_status = mx_motor_set_limit_switch_as_home_switch(
+				record, motor->limit_switch_as_home_switch );
 			break;
 		case MXLV_MTR_SPEED:
 			mx_status = mx_motor_set_speed( record, motor->speed );

@@ -483,6 +483,106 @@ mxd_powerpmac_constant_velocity_move( MX_MOTOR *motor )
 	return mx_status;
 }
 
+static mx_status_type
+mxd_powerpmac_get_capt_flag_sel_name( MX_MOTOR *motor,
+					MX_POWERPMAC_MOTOR *powerpmac_motor,
+					MX_POWERPMAC *powerpmac,
+					char *capt_flag_sel_name,
+					size_t max_name_length )
+{
+	static const char fname[] = "mxd_powerpmac_get_capt_flag_sel_name()";
+
+	char command[100];
+	char response[100];
+	char *capt_flag_name, *ptr;
+	mx_status_type mx_status;
+
+	/* We need to figure out which channel is in use for
+	 * capturing a triggered position.  The current setting
+	 * pCaptFlag gives us a way of figuring that out.
+	 */
+
+	snprintf( command, sizeof(command),
+		"Motor[%ld].pCaptFlag",
+		powerpmac_motor->motor_number );
+
+	mx_status = mxi_powerpmac_command( powerpmac, command,
+				response, sizeof(response),
+				POWERPMAC_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Use the response to construct a command for reading
+	 * the value of CaptFlagSel.
+	 */
+
+	capt_flag_name = strchr( response, '=' );
+
+	if ( capt_flag_name == NULL ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"The response '%s' to command '%s' sent to Power PMAC '%s' "
+		"did not contain an equals sign '='.",
+			response, command, powerpmac->record->name );
+	}
+
+	capt_flag_name++;
+
+#if 0
+	MX_DEBUG(-2,("%s: capt_flag_name = '%s'",
+		fname, capt_flag_name));
+#endif
+
+	/* FIXME: Currently we do not support Macro rings. */
+
+	ptr = strstr( capt_flag_name, "Macro" );
+
+	if ( ptr != NULL ) {
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Macro rings are not yet supported for Power PMAC '%s'.",
+		powerpmac->record->name );
+	}
+
+	/* Look for the _second_ period character '.' in the name. */
+
+	ptr = strchr( capt_flag_name, '.' );
+
+	if ( ptr == NULL ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The Power PMAC variable '%s' has an illegal value of '%s' "
+		"for Power PMAC '%s'.",
+			command, capt_flag_name, powerpmac->record->name );
+	}
+
+	ptr++;
+
+	ptr = strchr( ptr, '.' );
+
+	if ( ptr == NULL ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The Power PMAC variable '%s' has an illegal value of '%s' "
+		"for Power PMAC '%s'.",
+			command, capt_flag_name, powerpmac->record->name );
+	}
+
+	/* Chop off the trailing part of the name. */
+
+	*ptr = '\0';
+
+	/* Append the string '.CaptFlagSel' to the name. */
+
+	strlcat( response, ".CaptFlagSel", sizeof(response) );
+
+	strlcpy( capt_flag_sel_name, capt_flag_name, max_name_length );
+
+#if 0
+	MX_DEBUG(-2,("%s: capt_flag_sel_name = '%s'",
+		fname, capt_flag_sel_name ));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 MX_EXPORT mx_status_type
 mxd_powerpmac_get_parameter( MX_MOTOR *motor )
 {
@@ -492,6 +592,8 @@ mxd_powerpmac_get_parameter( MX_MOTOR *motor )
 	MX_POWERPMAC *powerpmac = NULL;
 	MotorData *motor_data = NULL;
 	double double_value;
+	char capt_flag_sel_name[100];
+	long capt_flag_sel;
 	mx_status_type mx_status;
 
 	mx_status = mxd_powerpmac_get_pointers( motor, &powerpmac_motor,
@@ -532,6 +634,53 @@ mxd_powerpmac_get_parameter( MX_MOTOR *motor )
 		motor->raw_acceleration_parameters[1] = 0.0;
 		motor->raw_acceleration_parameters[2] = 0.0;
 		motor->raw_acceleration_parameters[3] = 0.0;
+		break;
+	case MXLV_MTR_LIMIT_SWITCH_AS_HOME_SWITCH:
+		mx_status = mxd_powerpmac_get_capt_flag_sel_name( motor,
+					powerpmac_motor, powerpmac,
+					capt_flag_sel_name,
+					sizeof(capt_flag_sel_name) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		capt_flag_sel = mxi_powerpmac_get_long( powerpmac,
+							capt_flag_sel_name,
+							POWERPMAC_DEBUG );
+
+		MX_DEBUG(-2,("%s: capt_flag_sel = %ld",
+			fname, capt_flag_sel ));
+
+		switch( capt_flag_sel ) {
+		case 0:		/* HOMEn */
+			motor->limit_switch_as_home_switch = 0;
+			break;
+		case 1:		/* PLIMn */
+			motor->limit_switch_as_home_switch = 1;
+			break;
+		case 2:		/* MLIMn */
+			motor->limit_switch_as_home_switch = -1;
+			break;
+		case 3:		/* USERn */
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"The use of USERn (3) for CaptFlagSel is not supported "
+			"by MX for Power PMAC '%s'.",
+				powerpmac->record->name );
+			break;
+		default:
+			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+			"Power PMAC '%s' returned an illegal value %ld "
+			"for '%s'.",
+				powerpmac->record->name,
+				capt_flag_sel,
+				capt_flag_sel_name );
+			break;
+		}
+
+		MX_DEBUG(-2,("%s: '%s' limit_switch_as_home_switch = %ld",
+			fname, motor->record->name,
+			motor->limit_switch_as_home_switch));
+
 		break;
 	case MXLV_MTR_AXIS_ENABLE:
 		if ( motor_data->ServoCtrl != 0 ) {
@@ -575,6 +724,8 @@ mxd_powerpmac_set_parameter( MX_MOTOR *motor )
 	MX_POWERPMAC *powerpmac = NULL;
 	MotorData *motor_data = NULL;
 	char command[100];
+	char capt_flag_sel_name[100];
+	int capt_flag_sel;
 	double double_value;
 	mx_status_type mx_status;
 
@@ -635,6 +786,36 @@ mxd_powerpmac_set_parameter( MX_MOTOR *motor )
 						powerpmac, "JogTs",
 						MXFT_DOUBLE, double_value,
 						POWERPMAC_DEBUG );
+		break;
+	case MXLV_MTR_LIMIT_SWITCH_AS_HOME_SWITCH:
+		MX_DEBUG(-2,("%s: '%s' limit_switch_as_home_switch = %ld",
+			fname, motor->record->name,
+			motor->limit_switch_as_home_switch));
+
+		mx_status = mxd_powerpmac_get_capt_flag_sel_name( motor,
+						powerpmac_motor, powerpmac,
+						capt_flag_sel_name,
+						sizeof(capt_flag_sel_name) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Construct a command to set a new value for CaptFlagSel. */
+
+		if ( motor->limit_switch_as_home_switch > 0 ) {
+			capt_flag_sel = 1;	/* PLIMn */
+		} else
+		if ( motor->limit_switch_as_home_switch == 0 ) {
+			capt_flag_sel = 0;	/* HOMEn */
+		} else {
+			capt_flag_sel = 2;	/* MLIMn */
+		}
+
+		snprintf( command, sizeof(command), "%s=%d",
+			capt_flag_sel_name, capt_flag_sel );
+
+		mx_status = mxi_powerpmac_command( powerpmac, command,
+						NULL, 0, POWERPMAC_DEBUG );
 		break;
 	case MXLV_MTR_AXIS_ENABLE:
 		if ( motor->axis_enable ) {
