@@ -1,0 +1,8 @@
+#! /bin/sh
+
+LD_LIBRARY_PATH=/usr/local/lib
+
+export LD_LIBRARY_PATH
+
+../../../motor/mxmotor.static -i -F ./mlabjack.dat -s ./slabjack.dat $*
+
