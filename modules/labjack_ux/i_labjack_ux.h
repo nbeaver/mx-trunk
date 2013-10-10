@@ -1,7 +1,7 @@
 /*
  * Name:    i_labjack_ux.h
  *
- * Purpose: Header for the Velleman LABJACK_UX USB Experimenter Board
+ * Purpose: Header for the LabJack U3, U6, and UE9 devices.
  *
  * Author:  William Lavender
  *
@@ -39,6 +39,25 @@
 /*----*/
 
 typedef struct {
+	uint8_t eio_analog;
+	uint8_t fio_analog;
+	mx_bool_type uart_enable;
+	mx_bool_type dac1_enable;
+	uint8_t timer_counter_enable;
+	int8_t timer_counter_pin_offset;
+} MX_LABJACK_U3_CONFIG;
+
+typedef struct {
+	int dummy;
+} MX_LABJACK_U6_CONFIG;
+
+typedef struct {
+	int dummy;
+} MX_LABJACK_UE9_CONFIG;
+
+/*----*/
+
+typedef struct {
 	MX_RECORD *record;
 
 	char product_name[ MXU_LABJACK_UX_PRODUCT_NAME_LENGTH+1 ];
@@ -47,6 +66,12 @@ typedef struct {
 
 	MX_LABJACK_UX_HANDLE handle;
 	unsigned long product_id;
+
+	union {
+		MX_LABJACK_U3_CONFIG u3_config;
+		MX_LABJACK_U6_CONFIG u6_config;
+		MX_LABJACK_UE9_CONFIG ue9_confit;
+	} u;
 
 	long timeout_msec;	/* milliseconds */
 } MX_LABJACK_UX;
@@ -74,19 +99,30 @@ MX_API mx_status_type mxi_labjack_ux_open( MX_RECORD *record );
 
 MX_API mx_status_type mxi_labjack_ux_close( MX_RECORD *record );
 
+MX_API mx_status_type mxi_labjack_ux_finish_delayed_initialization(
+						MX_RECORD *record );
+
 /*-----*/
 
 MX_API_PRIVATE mx_status_type mxi_labjack_ux_read(
 					MX_LABJACK_UX *labjack_ux,
 					uint8_t *buffer,
 					unsigned long num_bytes_to_read,
-					long timeout_ms );
+					long timeout_msec );
 
 MX_API_PRIVATE mx_status_type mxi_labjack_ux_write(
 					MX_LABJACK_UX *labjack_ux,
 					uint8_t *buffer,
 					unsigned long num_bytes_to_write,
-					long timeout_ms );
+					long timeout_msec );
+
+MX_API_PRIVATE mx_status_type mxi_labjack_ux_command(
+					MX_LABJACK_UX *labjack_ux,
+					uint8_t *command,
+					unsigned long command_length,
+					uint8_t *response,
+					unsigned long max_response_length,
+					long timeout_msec );
 
 /*-----*/
 
