@@ -1,2 +1,2 @@
 !load ../labjack_ux.mxo
-labjack interface controller labjack_ux "" "" U3 0 0x1
+labjack interface controller labjack_ux "" "" U3 1 0x1

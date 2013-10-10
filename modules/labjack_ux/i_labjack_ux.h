@@ -47,17 +47,19 @@ typedef struct {
 
 	MX_LABJACK_UX_HANDLE handle;
 	unsigned long product_id;
+
+	long timeout_msec;	/* milliseconds */
 } MX_LABJACK_UX;
 
 #define MXI_LABJACK_UX_STANDARD_FIELDS \
   {-1, -1, "product_name", MXFT_STRING, NULL, \
 			1, {MXU_LABJACK_UX_PRODUCT_NAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_LABJACK_UX, product_name), \
-	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION }, \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
   {-1, -1, "device_number", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_LABJACK_UX, device_number), \
-	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
   {-1, -1, "labjack_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_LABJACK_UX, labjack_flags), \
@@ -71,6 +73,20 @@ MX_API mx_status_type mxi_labjack_ux_create_record_structures(
 MX_API mx_status_type mxi_labjack_ux_open( MX_RECORD *record );
 
 MX_API mx_status_type mxi_labjack_ux_close( MX_RECORD *record );
+
+/*-----*/
+
+MX_API_PRIVATE mx_status_type mxi_labjack_ux_read(
+					MX_LABJACK_UX *labjack_ux,
+					uint8_t *buffer,
+					unsigned long num_bytes_to_read,
+					long timeout_ms );
+
+MX_API_PRIVATE mx_status_type mxi_labjack_ux_write(
+					MX_LABJACK_UX *labjack_ux,
+					uint8_t *buffer,
+					unsigned long num_bytes_to_write,
+					long timeout_ms );
 
 /*-----*/
 
