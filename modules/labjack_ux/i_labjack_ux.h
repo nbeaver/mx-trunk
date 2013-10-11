@@ -95,6 +95,9 @@ typedef struct {
 MX_API mx_status_type mxi_labjack_ux_create_record_structures(
 						MX_RECORD *record );
 
+MX_API mx_status_type mxi_labjack_ux_finish_record_initialization(
+						MX_RECORD *record );
+
 MX_API mx_status_type mxi_labjack_ux_open( MX_RECORD *record );
 
 MX_API mx_status_type mxi_labjack_ux_close( MX_RECORD *record );

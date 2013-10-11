@@ -28,11 +28,12 @@
 MX_RECORD_FUNCTION_LIST mxi_labjack_ux_record_function_list = {
 	NULL,
 	mxi_labjack_ux_create_record_structures,
-	NULL,
+	mxi_labjack_ux_finish_record_initialization,
 	NULL,
 	NULL,
 	mxi_labjack_ux_open,
-	mxi_labjack_ux_close
+	mxi_labjack_ux_close,
+	mxi_labjack_ux_finish_delayed_initialization
 };
 
 MX_RECORD_FIELD_DEFAULTS mxi_labjack_ux_record_field_defaults[] = {
@@ -111,29 +112,19 @@ mxi_labjack_ux_create_record_structures( MX_RECORD *record )
 /*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mxi_labjack_ux_open( MX_RECORD *record )
+mxi_labjack_ux_finish_record_initialization( MX_RECORD *record )
 {
-	static const char fname[] = "mxi_labjack_ux_open()";
+	static const char fname[] =
+		"mxi_labjack_ux_finish_record_initialization()";
 
 	MX_LABJACK_UX *labjack_ux;
 	int i, length;
-	uint8_t command[256];
-	uint8_t response[256];
-	uint8_t timer_counter_config;
-	uint8_t timer_counter_enable;
-	uint8_t timer_counter_pin_offset;
-	uint8_t write_mask;
-	uint8_t dac1_enable;
-	uint8_t error_code;
-	unsigned long flags;
 	mx_status_type mx_status;
 
 	mx_status = mxi_labjack_ux_get_pointers( record, &labjack_ux, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	flags = labjack_ux->labjack_flags;
 
 	length = strlen( labjack_ux->product_name );
 
@@ -163,6 +154,29 @@ mxi_labjack_ux_open( MX_RECORD *record )
 		"LabJack product '%s' is not supported by this driver.",
 			labjack_ux->product_name );
 	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxi_labjack_ux_open( MX_RECORD *record )
+{
+	static const char fname[] = "mxi_labjack_ux_open()";
+
+	MX_LABJACK_UX *labjack_ux;
+	uint8_t command[256];
+	uint8_t response[256];
+	unsigned long flags;
+	mx_status_type mx_status;
+
+	mx_status = mxi_labjack_ux_get_pointers( record, &labjack_ux, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	flags = labjack_ux->labjack_flags;
 
 	labjack_ux->timeout_msec = 5000;	/* 5 seconds */
 
@@ -210,7 +224,7 @@ mxi_labjack_ux_open( MX_RECORD *record )
 		memset( command, 0, sizeof(command) );
 
 		command[1] = 0xF8;	/* extended command */
-		command[2] = 0x0A;	/* data length = 10 */
+		command[2] = 0x0A;	/* data length = 10 words */
 		command[3] = 0x08;	/* command number = 8 */
 
 		/* Set write mask to read-only. */
@@ -258,6 +272,64 @@ mxi_labjack_ux_open( MX_RECORD *record )
 	default:
 		break;
 	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxi_labjack_ux_close( MX_RECORD *record )
+{
+	static const char fname[] = "mxi_labjack_ux_close()";
+
+	MX_LABJACK_UX *labjack_ux;
+	mx_status_type mx_status;
+
+	mx_status = mxi_labjack_ux_get_pointers( record, &labjack_ux, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if defined( OS_WIN32 )
+	if ( labjack_ux->handle != INVALID_HANDLE ) {
+		Close( labjack_ux->handle );
+	}
+#else
+	if ( LJUSB_IsHandleValid( labjack_ux->handle ) ) {
+		LJUSB_CloseDevice( labjack_ux->handle );
+	}
+#endif
+	return mx_status;
+}
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxi_labjack_ux_finish_delayed_initialization( MX_RECORD *record )
+{
+	static const char fname[] =
+		"mxi_labjack_ux_finish_delayed_initialization()";
+
+	MX_LABJACK_UX *labjack_ux;
+	uint8_t command[256];
+	uint8_t response[256];
+	uint8_t timer_counter_config;
+	uint8_t timer_counter_enable;
+	uint8_t timer_counter_pin_offset;
+	uint8_t write_mask;
+	uint8_t dac1_enable;
+	uint8_t error_code;
+	mx_status_type mx_status;
+
+	mx_status = mxi_labjack_ux_get_pointers( record, &labjack_ux, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXI_LABJACK_UX_DEBUG
+	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
+#endif
 
 	/* Configure the LabJack device based on the values that
 	 * should have been set by dependent records during their
@@ -353,33 +425,6 @@ mxi_labjack_ux_open( MX_RECORD *record )
 	}
 
 	return MX_SUCCESSFUL_RESULT;
-}
-
-/*-------------------------------------------------------------------------*/
-
-MX_EXPORT mx_status_type
-mxi_labjack_ux_close( MX_RECORD *record )
-{
-	static const char fname[] = "mxi_labjack_ux_close()";
-
-	MX_LABJACK_UX *labjack_ux;
-	mx_status_type mx_status;
-
-	mx_status = mxi_labjack_ux_get_pointers( record, &labjack_ux, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if defined( OS_WIN32 )
-	if ( labjack_ux->handle != INVALID_HANDLE ) {
-		Close( labjack_ux->handle );
-	}
-#else
-	if ( LJUSB_IsHandleValid( labjack_ux->handle ) ) {
-		LJUSB_CloseDevice( labjack_ux->handle );
-	}
-#endif
-	return mx_status;
 }
 
 /*-------------------------------------------------------------------------*/

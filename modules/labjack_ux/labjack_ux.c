@@ -25,7 +25,9 @@
 #if 0
 #include "d_labjack_ux_ainput.h"
 #include "d_labjack_ux_aoutput.h"
+#endif
 #include "d_labjack_ux_dinput.h"
+#if 0
 #include "d_labjack_ux_doutput.h"
 #include "d_labjack_ux_scaler.h"
 #include "d_labjack_ux_timer.h"
@@ -44,28 +46,30 @@ MX_DRIVER labjack_ux_driver_table[] = {
 {"labjack_ux_ainput", -1, MXC_ANALOG_INPUT, MXR_DEVICE,
 				&mxd_labjack_ux_ainput_record_function_list,
 				NULL,
-				&mxd_labjack_ux_ainput_analog_input_function_list,
+			  &mxd_labjack_ux_ainput_analog_input_function_list,
 				&mxd_labjack_ux_ainput_num_record_fields,
 				&mxd_labjack_ux_ainput_rfield_def_ptr},
 
 {"labjack_ux_aoutput", -1, MXC_ANALOG_OUTPUT, MXR_DEVICE,
 				&mxd_labjack_ux_aoutput_record_function_list,
 				NULL,
-				&mxd_labjack_ux_aoutput_analog_output_function_list,
+			  &mxd_labjack_ux_aoutput_analog_output_function_list,
 				&mxd_labjack_ux_aoutput_num_record_fields,
 				&mxd_labjack_ux_aoutput_rfield_def_ptr},
+#endif
 
 {"labjack_ux_dinput", -1, MXC_DIGITAL_INPUT, MXR_DEVICE,
 				&mxd_labjack_ux_dinput_record_function_list,
 				NULL,
-				&mxd_labjack_ux_dinput_digital_input_function_list,
+			  &mxd_labjack_ux_dinput_digital_input_function_list,
 				&mxd_labjack_ux_dinput_num_record_fields,
 				&mxd_labjack_ux_dinput_rfield_def_ptr},
 
+#if 0
 {"labjack_ux_doutput", -1, MXC_DIGITAL_OUTPUT, MXR_DEVICE,
 				&mxd_labjack_ux_doutput_record_function_list,
 				NULL,
-				&mxd_labjack_ux_doutput_digital_output_function_list,
+			  &mxd_labjack_ux_doutput_digital_output_function_list,
 				&mxd_labjack_ux_doutput_num_record_fields,
 				&mxd_labjack_ux_doutput_rfield_def_ptr},
 

@@ -43,7 +43,8 @@ CFLAGS += -I../../libMx -D__MX_LIBRARY__
 #		d_labjack_ux_dinput.$(OBJ) d_labjack_ux_doutput.$(OBJ) \
 #		d_labjack_ux_scaler.$(OBJ) d_labjack_ux_timer.$(OBJ)
 
-LABJACK_UX_OBJS = labjack_ux.$(OBJ) i_labjack_ux.$(OBJ)
+LABJACK_UX_OBJS = labjack_ux.$(OBJ) i_labjack_ux.$(OBJ) \
+		d_labjack_ux_dinput.$(OBJ)
 
 #--------------------------------------------------------------------------
 

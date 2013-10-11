@@ -1,2 +1,3 @@
 !load ../labjack_ux.mxo
 labjack interface controller labjack_ux "" "" U3 1 0x1
+di0 device digital_input labjack_ux_dinput "" "" 0 labjack 0
