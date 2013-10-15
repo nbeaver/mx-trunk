@@ -15,7 +15,9 @@
  *
  */
 
-#define MXV_RDI_MBC_PATHNAME_BUILDER_DEBUG	TRUE
+#define MXV_RDI_MBC_PATHNAME_BUILDER_DEBUG			TRUE
+
+#define MXV_RDI_MBC_PATHNAME_BUILDER_DEBUG_SOURCE_FIELDS	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -190,18 +192,27 @@ mxv_rdi_mbc_pathname_builder_finish_record_initialization( MX_RECORD *record )
 
 	MX_VARIABLE *variable = NULL;
 	MX_RDI_MBC_PATHNAME_BUILDER *rdi_mbc_pathname_builder = NULL;
-#if 0
-	const char *driver_name;
-#endif
 	char *duplicate;
 	int argc, split_status, saved_errno;
 	char **argv;
 	char destination_record_name[MXU_RECORD_NAME_LENGTH+1];
 	char destination_field_name[MXU_FIELD_NAME_LENGTH+1];
+
 	long internal_num_dimensions;
 	long *internal_dimension_array;
 	long internal_field_type;
 	void *internal_value_ptr;
+
+	char *source_record_field_name;
+	char *source_record_name, *source_field_name;
+	char *period_ptr;
+	long i;
+
+	MX_RECORD *source_record;
+	MX_RECORD_FIELD *source_field;
+
+	static char local_value_field_name[] = "value";
+
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -380,9 +391,86 @@ mxv_rdi_mbc_pathname_builder_finish_record_initialization( MX_RECORD *record )
 			  rdi_mbc_pathname_builder->destination_string_length );
 	}
 
-#if 1
-	mx_warning( "FIXME: Need to allocate and initialize the "
-			"'source_field_array' data structure." );
+	/* Allocate and initialize the 'source_field_array' structure. */
+
+	rdi_mbc_pathname_builder->source_field_array = (MX_RECORD_FIELD **)
+		calloc( rdi_mbc_pathname_builder->num_source_fields,
+			sizeof(MX_RECORD_FIELD *) );
+
+	if ( rdi_mbc_pathname_builder->source_field_array
+		== (MX_RECORD_FIELD **) NULL )
+	{
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %lu element array "
+		"of MX_RECORD_FIELD pointers for record '%s'.",
+			rdi_mbc_pathname_builder->num_source_fields,
+			record->name );
+	}
+
+	for ( i = 0; i < rdi_mbc_pathname_builder->num_source_fields; i++ ) {
+		source_record_field_name =
+		 strdup( rdi_mbc_pathname_builder->source_field_name_array[i] );
+
+		/* Find the _last_ period in the source's record field name */
+
+		period_ptr = strrchr( source_record_field_name, '.' );
+
+		if ( period_ptr == (char *) NULL ) {
+			/* If the source's record field name does not
+			 * have a period '.' in it, then we assume
+			 * that the field name is 'value'.
+			 */
+
+			source_field_name  = local_value_field_name;
+		} else {
+			/* Split the specified record field name into
+			 * the record name part and the field name part.
+			 */
+
+			*period_ptr = '\0';
+
+			source_field_name = ++period_ptr;
+		}
+
+		source_record_name = source_record_field_name;
+
+		source_record = mx_get_record( record, source_record_name );
+
+		if ( source_record == (MX_RECORD *) NULL ) {
+			mx_status = mx_error( MXE_NOT_FOUND, fname,
+			"The specified record '%s' in source name '%s' "
+			"for variable '%s' was not found in the MX database.",
+				source_record_name,
+			   rdi_mbc_pathname_builder->source_field_name_array[i],
+				record->name );
+
+			mx_free( source_record_field_name );
+
+			return mx_status;
+		}
+
+		mx_status = mx_find_record_field( source_record,
+						source_field_name,
+						&source_field );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			mx_free( source_record_field_name );
+
+			return mx_status;
+		}
+
+		rdi_mbc_pathname_builder->source_field_array[i] = source_field;
+
+		mx_free( source_record_field_name );
+	}
+
+#if MXV_RDI_MBC_PATHNAME_BUILDER_DEBUG_SOURCE_FIELDS
+	for ( i = 0; i < rdi_mbc_pathname_builder->num_source_fields; i++ ) {
+		MX_DEBUG(-2,("%s: source_field_array[%lu] = '%s.%s'",
+	  	fname, i,
+		rdi_mbc_pathname_builder->source_field_array[i]->record->name,
+		rdi_mbc_pathname_builder->source_field_array[i]->name ));
+	}
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
@@ -391,52 +479,47 @@ mxv_rdi_mbc_pathname_builder_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxv_rdi_mbc_pathname_builder_send_variable( MX_VARIABLE *variable )
 {
-#if 0
-	static const char fname[] = "mxv_rdi_mbc_pathname_builder_send_variable()";
+	static const char fname[] =
+		"mxv_rdi_mbc_pathname_builder_send_variable()";
 
 	MX_RDI_MBC_PATHNAME_BUILDER *rdi_mbc_pathname_builder = NULL;
-	size_t prefix_length;
+	MX_RECORD_FIELD *record_field = NULL;
+	char *destination_string = NULL;
+	size_t max_destination_chars;
+	long i;
 	mx_status_type mx_status;
 
 	mx_status = mxv_rdi_mbc_pathname_builder_get_pointers( variable,
-						&rdi_mbc_pathname_builder, fname );
+					&rdi_mbc_pathname_builder, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	switch( rdi_mbc_pathname_builder->string_type ) {
-	case MXT_RDI_MBC_DATAFILE_PREFIX:
-		prefix_length = strlen( rdi_mbc_pathname_builder->internal_pathname_builder_ptr );
+	destination_string = rdi_mbc_pathname_builder->destination_string_ptr;
 
-		if ( prefix_length <= MXU_RDI_MBC_MAX_PREFIX_LENGTH ) {
+	max_destination_chars =
+			rdi_mbc_pathname_builder->destination_string_length;
 
-			strlcpy( rdi_mbc_pathname_builder->external_pathname_builder_ptr,
-				rdi_mbc_pathname_builder->internal_pathname_builder_ptr,
-				rdi_mbc_pathname_builder->external_pathname_builder_length );
-		} else {
-			strlcpy( rdi_mbc_pathname_builder->external_pathname_builder_ptr,
-				rdi_mbc_pathname_builder->internal_pathname_builder_ptr,
-				MXU_RDI_MBC_MAX_PREFIX_LENGTH );
-		}
-		
-		strlcat( rdi_mbc_pathname_builder->external_pathname_builder_ptr,
-			"####.img",
-			rdi_mbc_pathname_builder->external_pathname_builder_length );
-		break;
-	default:
-		strlcpy( rdi_mbc_pathname_builder->external_pathname_builder_ptr,
-			rdi_mbc_pathname_builder->internal_pathname_builder_ptr,
-			rdi_mbc_pathname_builder->external_pathname_builder_length );
-		break;
+	/* Copy the first field value to the destination_string. */
+
+	record_field = rdi_mbc_pathname_builder->source_field_array[0];
+
+	strlcpy( destination_string,
+		mx_get_field_value_pointer( record_field ),
+		max_destination_chars );
+
+	/* Concatenate the rest of the field values. */
+
+	for ( i = 1; i < rdi_mbc_pathname_builder->num_source_fields; i++ ) {
+		record_field = rdi_mbc_pathname_builder->source_field_array[i];
+
+		strlcat( destination_string,
+			mx_get_field_value_pointer( record_field ),
+			max_destination_chars );
 	}
 
-#if MXV_RDI_MBC_PATHNAME_BUILDER_DEBUG
-	MX_DEBUG(-2,("%s: sent '%s' as '%s'",
-		fname, rdi_mbc_pathname_builder->internal_pathname_builder_ptr,
-		rdi_mbc_pathname_builder->external_pathname_builder_ptr));
-#endif
+	mx_warning("FIXME: Need to invoke the destination process function.");
 
-#endif
 	return MX_SUCCESSFUL_RESULT;
 }
 

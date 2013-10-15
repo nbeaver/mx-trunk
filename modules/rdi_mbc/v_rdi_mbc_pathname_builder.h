@@ -58,7 +58,8 @@ typedef struct {
 		2, {MXU_VARARGS_LENGTH, MXU_RECORD_FIELD_NAME_LENGTH+1}, \
 	MXF_REC_TYPE_STRUCT, \
 	    offsetof(MX_RDI_MBC_PATHNAME_BUILDER, source_field_name_array), \
-	{sizeof(char), sizeof(char *)}, NULL, MXFF_IN_DESCRIPTION }
+	{sizeof(char), sizeof(char *)}, NULL, \
+		{MXFF_IN_DESCRIPTION | MXFF_VARARGS} }
 
 MX_API_PRIVATE mx_status_type
 		mxv_rdi_mbc_pathname_builder_initialize_driver(

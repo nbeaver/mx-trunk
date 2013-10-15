@@ -24,6 +24,7 @@
 #include "mx_variable.h"
 
 #include "v_rdi_mbc_string.h"
+#include "v_rdi_mbc_pathname_builder.h"
 
 MX_DRIVER rdi_mbc_driver_table[] = {
 
@@ -47,6 +48,13 @@ MX_DRIVER rdi_mbc_driver_table[] = {
 		NULL,
 		&mxv_rdi_mbc_datafile_prefix_num_record_fields,
 		&mxv_rdi_mbc_datafile_prefix_rfield_def_ptr},
+
+{"rdi_mbc_pathname_builder", -1, MXV_SPECIAL, MXR_VARIABLE,
+		&mxv_rdi_mbc_pathname_builder_record_function_list,
+		NULL,
+		NULL,
+		&mxv_rdi_mbc_pathname_builder_num_record_fields,
+		&mxv_rdi_mbc_pathname_builder_rfield_def_ptr},
 
 {"", 0, 0, 0, NULL, NULL, NULL, NULL, NULL}
 };
