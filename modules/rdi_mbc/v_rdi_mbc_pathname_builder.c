@@ -25,7 +25,8 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
-#include "mx_epics.h"
+#include "mx_socket.h"
+#include "mx_process.h"
 #include "mx_variable.h"
 
 #include "v_rdi_mbc_pathname_builder.h"
@@ -518,94 +519,24 @@ mxv_rdi_mbc_pathname_builder_send_variable( MX_VARIABLE *variable )
 			max_destination_chars );
 	}
 
-	mx_warning("FIXME: Need to invoke the destination process function.");
+	/* Invoke the destination string's process function. */
 
-	return MX_SUCCESSFUL_RESULT;
+	mx_status = mx_process_record_field( record_field->record,
+						record_field,
+						MX_PROCESS_PUT, NULL );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxv_rdi_mbc_pathname_builder_receive_variable( MX_VARIABLE *variable )
 {
 #if 0
-	static const char fname[] = "mxv_rdi_mbc_pathname_builder_receive_variable()";
-
-	MX_RDI_MBC_PATHNAME_BUILDER *rdi_mbc_pathname_builder = NULL;
-	size_t string_length, prefix_length;
-	char *end_chunk_ptr, *suffix_ptr;
-	mx_status_type mx_status;
-
-	mx_status = mxv_rdi_mbc_pathname_builder_get_pointers( variable,
-						&rdi_mbc_pathname_builder, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	switch( rdi_mbc_pathname_builder->string_type ) {
-	case MXT_RDI_MBC_FILENAME:
-		string_length = strlen( rdi_mbc_pathname_builder->external_pathname_builder_ptr );
-
-		if ( string_length < MXU_EPICS_PATHNAME_BUILDER_LENGTH ) {
-			strlcpy( rdi_mbc_pathname_builder->internal_pathname_builder_ptr,
-				rdi_mbc_pathname_builder->external_pathname_builder_ptr,
-				rdi_mbc_pathname_builder->internal_pathname_builder_length );
-		} else {
-			strlcpy( rdi_mbc_pathname_builder->internal_pathname_builder_ptr,
-				rdi_mbc_pathname_builder->external_pathname_builder_ptr,
-				MXU_RDI_MBC_MAX_CHUNK_LENGTH );
-
-			strlcat( rdi_mbc_pathname_builder->internal_pathname_builder_ptr,
-				"~",
-				rdi_mbc_pathname_builder->internal_pathname_builder_length );
-
-			end_chunk_ptr = rdi_mbc_pathname_builder->external_pathname_builder_ptr
-					+ string_length
-					- MXU_RDI_MBC_MAX_CHUNK_LENGTH;
-
-			strlcat( rdi_mbc_pathname_builder->internal_pathname_builder_ptr,
-				end_chunk_ptr,
-				rdi_mbc_pathname_builder->internal_pathname_builder_length );
-		}
-		break;
-	case MXT_RDI_MBC_DATAFILE_PREFIX:
-		string_length = strlen( rdi_mbc_pathname_builder->external_pathname_builder_ptr );
-
-		prefix_length = string_length - MXU_RDI_MBC_SUFFIX_LENGTH;
-
-		suffix_ptr = rdi_mbc_pathname_builder->external_pathname_builder_ptr
-				+ prefix_length;
-
-		if ( prefix_length >= MXU_EPICS_PATHNAME_BUILDER_LENGTH ) {
-
-			strlcpy( rdi_mbc_pathname_builder->internal_pathname_builder_ptr,
-			"** MX DATAFILE PATTERN TOO LONG **",
-			rdi_mbc_pathname_builder->internal_pathname_builder_length );
-		} else
-		if ( strcmp( suffix_ptr, "####.img" ) != 0 ) {
-
-			strlcpy( rdi_mbc_pathname_builder->internal_pathname_builder_ptr,
-			"** ILLEGAL MX DATAFILE SUFFIX **",
-			rdi_mbc_pathname_builder->internal_pathname_builder_length );
-		} else {
-			strlcpy( rdi_mbc_pathname_builder->internal_pathname_builder_ptr,
-				rdi_mbc_pathname_builder->external_pathname_builder_ptr,
-				prefix_length+1 );
-		}
-		break;
-	case MXT_RDI_MBC_PATHNAME_BUILDER:
-	default:
-		strlcpy( rdi_mbc_pathname_builder->internal_pathname_builder_ptr,
-			rdi_mbc_pathname_builder->external_pathname_builder_ptr,
-			rdi_mbc_pathname_builder->internal_pathname_builder_length );
-		break;
-	}
-
-#if MXV_RDI_MBC_PATHNAME_BUILDER_DEBUG
-	MX_DEBUG(-2,("%s: received '%s' as '%s'",
-		fname, rdi_mbc_pathname_builder->external_pathname_builder_ptr,
-		rdi_mbc_pathname_builder->internal_pathname_builder_ptr));
+	static const char fname[] =
+		"mxv_rdi_mbc_pathname_builder_receive_variable()";
 #endif
+	/* For now, we just return the value most recently written. */
 
-#endif
 	return MX_SUCCESSFUL_RESULT;
 }
 
