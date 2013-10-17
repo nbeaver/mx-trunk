@@ -33,7 +33,7 @@ MX_CORE_SRCS = mx_amplifier.c mx_analog_input.c mx_analog_output.c \
 	mx_malloc.c mx_math.c mx_mca.c mx_mcai.c mx_mce.c mx_mcs.c \
 	mx_measurement.c mx_memory_process.c mx_memory_system.c \
 	mx_mfault.c mx_modbus.c mx_module.c mx_motor.c mx_mpermit.c mx_multi.c \
-	mx_mutex.c mx_net.c mx_net_socket.c mx_os_version.c \
+	mx_mutex.c mx_net.c mx_net_socket.c mx_operation.c mx_os_version.c \
 	mx_pipe.c mx_plot.c mx_portio.c mx_process.c \
 	mx_ptz.c mx_pulse_generator.c \
 	mx_record.c mx_relay.c mx_rs232.c \
@@ -54,7 +54,7 @@ MX_CORE_SRCS = mx_amplifier.c mx_analog_input.c mx_analog_output.c \
 	pr_area_detector.c pr_autoscale.c \
 	pr_digital_input.c pr_digital_output.c pr_gpib.c \
 	pr_list_head.c pr_mca.c pr_mcai.c pr_mce.c pr_mcs.c \
-	pr_motor.c pr_ptz.c pr_pulser.c pr_record.c \
+	pr_motor.c pr_operation.c pr_ptz.c pr_pulser.c pr_record.c \
 	pr_relay.c pr_rs232.c pr_sample_changer.c pr_sca.c pr_scaler.c \
 	pr_timer.c pr_variable.c pr_video_input.c pr_waveform_output.c \
 	fh_autoscale.c fh_simple.c \

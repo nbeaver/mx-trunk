@@ -35,6 +35,7 @@ static MX_DRIVER mx_superclass_table[] = {
 {"scan",             0, 0, MXR_SCAN,          NULL, NULL, NULL, NULL, NULL},
 {"variable",         0, 0, MXR_VARIABLE,      NULL, NULL, NULL, NULL, NULL},
 {"server",           0, 0, MXR_SERVER,        NULL, NULL, NULL, NULL, NULL},
+{"operation",        0, 0, MXR_OPERATION,     NULL, NULL, NULL, NULL, NULL},
 {"special",          0, 0, MXR_SPECIAL,       NULL, NULL, NULL, NULL, NULL},
 
 {"", 0, 0, 0, NULL, NULL, NULL, NULL, NULL}
@@ -178,6 +179,11 @@ static MX_DRIVER mx_class_table[] = {
 {"spec",           0, MXN_SPEC,           MXR_SERVER,
 				NULL, NULL, NULL, NULL, NULL},
 {"bluice",         0, MXN_BLUICE,         MXR_SERVER,
+				NULL, NULL, NULL, NULL, NULL},
+
+  /* ================== Operation classes ================== */
+
+{"operation_class", 0, MXO_OPERATION, MXR_OPERATION,
 				NULL, NULL, NULL, NULL, NULL},
 
   /* ================== Special classes ================== */

@@ -57,7 +57,8 @@ extern "C" {
 #define MXC_ANY			(-2)	/* any class */
 #define MXT_ANY			(-3)	/* any type */
 
-/* --- Superclasses --- */
+/*========================== Superclasses ===========================*/
+
 
 #define MXR_LIST_HEAD			1
 #define MXR_INTERFACE			2
@@ -65,9 +66,12 @@ extern "C" {
 #define MXR_SCAN			4
 #define MXR_VARIABLE			5
 #define MXR_SERVER			6
-#define MXR_SPECIAL			7
+#define MXR_OPERATION			7
+#define MXR_SPECIAL			8
 
 #define MXR_PLACEHOLDER			32768
+
+/*============================= Classes =============================*/
 
 /* --- List head class --- */
 
@@ -147,9 +151,15 @@ extern "C" {
 #define MXN_SPEC			82
 #define MXN_BLUICE			83
 
+/* --- Operation classes --- */
+
+#define MXO_OPERATION			501
+
 /* --- Special classes --- */
 
-#define MXZ_PROGRAM			91
+#define MXZ_PROGRAM			901
+
+/*============================= Types =============================*/
 
 /* --- List head type --- */
 

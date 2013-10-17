@@ -56,6 +56,13 @@ MX_DRIVER rdi_mbc_driver_table[] = {
 		&mxv_rdi_mbc_pathname_builder_num_record_fields,
 		&mxv_rdi_mbc_pathname_builder_rfield_def_ptr},
 
+{"rdi_mbc_log", -1, MXO_OPERATION, MXR_OPERATION,
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL },
+
 {"", 0, 0, 0, NULL, NULL, NULL, NULL, NULL}
 };
 

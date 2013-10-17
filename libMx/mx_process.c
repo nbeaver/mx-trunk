@@ -77,6 +77,7 @@ static MX_PROCESS_FUNCTION_SETUP mx_process_function_setup_array[] = {
 { MXR_LIST_HEAD, MXC_ANY, mx_setup_list_head_process_functions },
 { MXR_SCAN, MXC_ANY, NULL },
 { MXR_SERVER, MXC_ANY, NULL },
+{ MXR_OPERATION, MXC_ANY, mx_setup_operation_process_functions },
 { MXR_SPECIAL, MXC_ANY, NULL },
 };
 
