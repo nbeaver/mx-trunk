@@ -22,9 +22,11 @@
 #include "mx_driver.h"
 #include "mx_module.h"
 #include "mx_variable.h"
+#include "mx_operation.h"
 
 #include "v_rdi_mbc_string.h"
 #include "v_rdi_mbc_pathname_builder.h"
+#include "v_rdi_mbc_log.h"
 
 MX_DRIVER rdi_mbc_driver_table[] = {
 
@@ -57,11 +59,11 @@ MX_DRIVER rdi_mbc_driver_table[] = {
 		&mxv_rdi_mbc_pathname_builder_rfield_def_ptr},
 
 {"rdi_mbc_log", -1, MXO_OPERATION, MXR_OPERATION,
+		&mxv_rdi_mbc_log_record_function_list,
+		&mxv_rdi_mbc_log_operation_function_list,
 		NULL,
-		NULL,
-		NULL,
-		NULL,
-		NULL },
+		&mxv_rdi_mbc_log_num_record_fields,
+		&mxv_rdi_mbc_log_rfield_def_ptr },
 
 {"", 0, 0, 0, NULL, NULL, NULL, NULL, NULL}
 };

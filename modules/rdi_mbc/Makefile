@@ -17,7 +17,7 @@ CFLAGS += -I../../libMx -D__MX_LIBRARY__ -DIS_MX_DRIVER
 CFLAGS += -I../epics
 
 RDI_MBC_OBJS = rdi_mbc.$(OBJ) v_rdi_mbc_string.$(OBJ) \
-			v_rdi_mbc_pathname_builder.$(OBJ)	
+		v_rdi_mbc_pathname_builder.$(OBJ) v_rdi_mbc_log.$(OBJ)	
 
 #--------------------------------------------------------------------------
 
@@ -52,7 +52,8 @@ endif
 
 #--------------------------------------------------------------------------
 
-rdi_mbc.$(OBJ): rdi_mbc.c v_rdi_mbc_string.h v_rdi_mbc_pathname_builder.h
+rdi_mbc.$(OBJ): rdi_mbc.c v_rdi_mbc_string.h v_rdi_mbc_pathname_builder.h \
+							v_rdi_mbc_log.h
 	$(COMPILE) $(CFLAGS) rdi_mbc.c
 
 v_rdi_mbc_string.$(OBJ): v_rdi_mbc_string.c v_rdi_mbc_string.h
@@ -61,6 +62,9 @@ v_rdi_mbc_string.$(OBJ): v_rdi_mbc_string.c v_rdi_mbc_string.h
 v_rdi_mbc_pathname_builder.$(OBJ): v_rdi_mbc_pathname_builder.c \
 					v_rdi_mbc_pathname_builder.h
 	$(COMPILE) $(CFLAGS) v_rdi_mbc_pathname_builder.c
+
+v_rdi_mbc_log.$(OBJ): v_rdi_mbc_log.c v_rdi_mbc_log.h
+	$(COMPILE) $(CFLAGS) v_rdi_mbc_log.c
 
 install: rdi_mbc.mxo
 	-mkdir $(MX_INSTALL_DIR)/lib/modules
