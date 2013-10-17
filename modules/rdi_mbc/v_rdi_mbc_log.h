@@ -33,7 +33,7 @@ typedef struct {
 #define MXV_RDI_MBC_LOG_STANDARD_FIELDS \
   {-1, -1, "area_detector_record", MXFT_RECORD, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RDI_MBC_LOG, area_detector_record), \
-	{0}, NULL (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
   {-1, -1, "log_file_name", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RDI_MBC_LOG, log_file_name), \

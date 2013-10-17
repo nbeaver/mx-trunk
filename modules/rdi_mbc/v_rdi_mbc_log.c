@@ -23,6 +23,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_cfn.h"
 #include "mx_socket.h"
 #include "mx_process.h"
 #include "mx_image.h"
@@ -53,7 +54,8 @@ MX_OPERATION_FUNCTION_LIST mxv_rdi_mbc_log_operation_function_list = {
 
 MX_RECORD_FIELD_DEFAULTS mxv_rdi_mbc_log_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
-	MX_OPERATION_STANDARD_FIELDS
+	MX_OPERATION_STANDARD_FIELDS,
+	MXV_RDI_MBC_LOG_STANDARD_FIELDS
 };
 
 long mxv_rdi_mbc_log_num_record_fields
@@ -174,6 +176,7 @@ mxv_rdi_mbc_log_open( MX_RECORD *record )
 	MX_OPERATION *operation;
 	MX_RDI_MBC_LOG *rdi_mbc_log;
 	char timestamp[40];
+	char log_file_name[ MXU_FILENAME_LENGTH+1 ];
 	int saved_errno;
 	mx_status_type mx_status;
 
@@ -190,11 +193,24 @@ mxv_rdi_mbc_log_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* If the specified filename is not an absolute filename, then
+	 * we need to construct the name of the log file using the
+	 * control system filename function mx_cfn_construct_filename().
+	 */
+
+	mx_status = mx_cfn_construct_filename( MX_CFN_LOGFILE,
+					rdi_mbc_log->log_file_name,
+					log_file_name,
+					sizeof(log_file_name) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/* Open the log file in append mode so that we do not lose
 	 * preexisting log messages.
 	 */
 
-	rdi_mbc_log->log_file = fopen( rdi_mbc_log->log_file_name, "a" );
+	rdi_mbc_log->log_file = fopen( log_file_name, "a" );
 
 	if ( rdi_mbc_log->log_file == (FILE *) NULL ) {
 		saved_errno = errno;
@@ -202,8 +218,7 @@ mxv_rdi_mbc_log_open( MX_RECORD *record )
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 		"The attempt to append to log file '%s' for record '%s' "
 		"failed.  Errno = %d, error message = '%s'",
-			rdi_mbc_log->log_file_name,
-			record->name,
+			log_file_name, record->name,
 			saved_errno, strerror( saved_errno ) );
 	}
 
@@ -220,6 +235,7 @@ mxv_rdi_mbc_log_open( MX_RECORD *record )
 	mx_timestamp( timestamp, sizeof(timestamp) );
 
 	fprintf( rdi_mbc_log->log_file, "%s open\n", timestamp );
+	fflush( rdi_mbc_log->log_file );
 
 	return mx_status;
 }
@@ -255,6 +271,7 @@ mxv_rdi_mbc_log_close( MX_RECORD *record )
 	mx_timestamp( timestamp, sizeof(timestamp) );
 
 	fprintf( rdi_mbc_log->log_file, "%s close\n", timestamp );
+	fflush( rdi_mbc_log->log_file );
 
 	fclose( rdi_mbc_log->log_file );
 
@@ -310,6 +327,8 @@ mxv_rdi_mbc_log_start( MX_OPERATION *operation )
 	fprintf( rdi_mbc_log->log_file, "%s start %s/%s\n",
 		timestamp, ad->datafile_directory, ad->datafile_pattern );
 
+	fflush( rdi_mbc_log->log_file );
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -338,6 +357,8 @@ mxv_rdi_mbc_log_stop( MX_OPERATION *operation )
 
 	fprintf( rdi_mbc_log->log_file, "%s stop %s/%s\n",
 		timestamp, ad->datafile_directory, ad->datafile_pattern );
+
+	fflush( rdi_mbc_log->log_file );
 
 	return MX_SUCCESSFUL_RESULT;
 }
