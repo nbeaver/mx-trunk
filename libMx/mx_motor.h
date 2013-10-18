@@ -110,6 +110,7 @@ extern "C" {
  */
 
 #define MXU_EXTENDED_STATUS_STRING_LENGTH	40
+#define MXU_RAW_STATUS_STRING_LENGTH		80
 
 /* The MX_MOTOR structure contains the data that is common to all motor types.*/
 
@@ -221,6 +222,7 @@ typedef struct {
 
 	unsigned long status;
 	char extended_status[ MXU_EXTENDED_STATUS_STRING_LENGTH + 1 ];
+	char raw_status[ MXU_RAW_STATUS_STRING_LENGTH + 1 ];
 
 	/* The following fields are used to handle motor controllers that
 	 * do not set the 'busy' flag immediately after the start of a move.
@@ -298,11 +300,12 @@ typedef struct {
 #define MXLV_MTR_GET_REAL_MOTOR_FROM_PSEUDOMOTOR	1029
 #define MXLV_MTR_GET_STATUS				1030
 #define MXLV_MTR_GET_EXTENDED_STATUS			1031
-#define MXLV_MTR_BUSY_START_INTERVAL_ENABLED		1032
-#define MXLV_MTR_BUSY_START_INTERVAL			1033
-#define MXLV_MTR_LAST_START_TIME			1034
-#define MXLV_MTR_SAVE_START_POSITIONS			1035
-#define MXLV_MTR_USE_START_POSITIONS			1036
+#define MXLV_MTR_GET_RAW_STATUS				1032
+#define MXLV_MTR_BUSY_START_INTERVAL_ENABLED		1033
+#define MXLV_MTR_BUSY_START_INTERVAL			1034
+#define MXLV_MTR_LAST_START_TIME			1035
+#define MXLV_MTR_SAVE_START_POSITIONS			1036
+#define MXLV_MTR_USE_START_POSITIONS			1037
 
 #define MXLV_MTR_VALUE_CHANGED_THRESHOLD		3001
 
@@ -592,10 +595,15 @@ typedef struct {
 	0, 0, mx_motor_vctest_extended_status}, \
   \
   {MXLV_MTR_GET_EXTENDED_STATUS, -1, "extended_status", \
-		MXFT_STRING, NULL, 1, {MXU_EXTENDED_STATUS_STRING_LENGTH+1}, \
+		MXFT_STRING, NULL, 1, {MXU_EXTENDED_STATUS_STRING_LENGTH}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, extended_status), \
 	{sizeof(char)}, NULL, MXFF_POLL, \
 	0, 0, mx_motor_vctest_extended_status}, \
+  \
+  {MXLV_MTR_GET_RAW_STATUS, -1, "raw_status", \
+		MXFT_STRING, NULL, 1, {MXU_RAW_STATUS_STRING_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, raw_status), \
+	{sizeof(char)}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_MTR_BUSY_START_INTERVAL_ENABLED, -1, "busy_start_interval_enabled", \
 		MXFT_BOOL, NULL, 0, {0}, \

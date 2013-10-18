@@ -1717,7 +1717,7 @@ mxd_compumotor_get_status( MX_MOTOR *motor )
 	MX_COMPUMOTOR *compumotor;
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
 	char command[80];
-	char response[80];
+	char *response;
 	size_t length;
 	mx_status_type mx_status;
 
@@ -1731,8 +1731,10 @@ mxd_compumotor_get_status( MX_MOTOR *motor )
 					compumotor->controller_number,
 					compumotor->axis_number );
 
+	response = motor->raw_status;
+
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
-			response, sizeof response, COMPUMOTOR_DEBUG );
+		response, MXU_RAW_STATUS_STRING_LENGTH, COMPUMOTOR_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
