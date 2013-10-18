@@ -42,14 +42,14 @@ MX_RECORD_FUNCTION_LIST mxd_compumotor_record_function_list = {
 };
 
 MX_MOTOR_FUNCTION_LIST mxd_compumotor_motor_function_list = {
-	mxd_compumotor_motor_is_busy,
+	NULL,
 	mxd_compumotor_move_absolute,
 	mxd_compumotor_get_position,
 	mxd_compumotor_set_position,
 	mxd_compumotor_soft_abort,
 	mxd_compumotor_immediate_abort,
-	mxd_compumotor_positive_limit_hit,
-	mxd_compumotor_negative_limit_hit,
+	NULL,
+	NULL,
 	mxd_compumotor_raw_home_command,
 	mxd_compumotor_constant_velocity_move,
 	mxd_compumotor_get_parameter,
@@ -84,6 +84,7 @@ mxd_compumotor_get_pointers( MX_MOTOR *motor,
 {
 	static const char fname[] = "mxd_compumotor_get_pointers()";
 
+	MX_COMPUMOTOR *compumotor_ptr;
 	MX_RECORD *compumotor_interface_record;
 
 	if ( motor == (MX_MOTOR *) NULL ) {
@@ -92,85 +93,44 @@ mxd_compumotor_get_pointers( MX_MOTOR *motor,
 			calling_fname );
 	}
 
-	if ( compumotor == (MX_COMPUMOTOR **) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_COMPUMOTOR pointer passed by '%s' was NULL.",
-			calling_fname );
-	}
+	compumotor_ptr = (MX_COMPUMOTOR *) (motor->record->record_type_struct);
 
-	if ( compumotor_interface == (MX_COMPUMOTOR_INTERFACE **) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_COMPUMOTOR_INTERFACE pointer passed by '%s' was NULL.",
-			calling_fname );
-	}
-
-	*compumotor = (MX_COMPUMOTOR *) (motor->record->record_type_struct);
-
-	if ( *compumotor == (MX_COMPUMOTOR *) NULL ) {
+	if ( compumotor_ptr == (MX_COMPUMOTOR *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_COMPUMOTOR pointer for record '%s' is NULL.",
 			motor->record->name );
 	}
 
-	compumotor_interface_record =
-			(*compumotor)->compumotor_interface_record;
-
-	if ( compumotor_interface_record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	"The compumotor_interface_record pointer for record '%s' is NULL.",
-			motor->record->name );
+	if ( compumotor != (MX_COMPUMOTOR **) NULL ) {
+		*compumotor = compumotor_ptr;
 	}
 
-	*compumotor_interface = (MX_COMPUMOTOR_INTERFACE *)
+	if ( compumotor_interface != (MX_COMPUMOTOR_INTERFACE **) NULL ) {
+
+		compumotor_interface_record =
+			compumotor_ptr->compumotor_interface_record;
+
+		if ( compumotor_interface_record == (MX_RECORD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The compumotor_interface_record pointer for "
+			"record '%s' is NULL.",
+				motor->record->name );
+		}
+
+		*compumotor_interface = (MX_COMPUMOTOR_INTERFACE *)
 			compumotor_interface_record->record_type_struct;
 
-	if ( *compumotor_interface == (MX_COMPUMOTOR_INTERFACE *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_COMPUMOTOR_INTERFACE pointer for record '%s' is NULL.",
-			motor->record->name );
+		if ( (*compumotor_interface)
+			== (MX_COMPUMOTOR_INTERFACE *) NULL )
+		{
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_COMPUMOTOR_INTERFACE pointer for "
+			"record '%s' is NULL.",
+				motor->record->name );
+		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;
-}
-
-static mx_status_type
-mxd_compumotor_check_error_response( MX_MOTOR *motor,
-					char *response,
-					const char *calling_fname )
-{
-	char *name;
-	int error_seen;
-
-	name = motor->record->name;
-	error_seen = FALSE;
-
-	if ( response[13] == '1' ) {
-		mx_warning( "Motor '%s' stall detected.", name );
-		error_seen = TRUE;
-	}
-	if ( response[15] == '1' ) {
-		mx_warning( "Motor '%s' drive shut down.", name );
-		error_seen = TRUE;
-	}
-	if ( response[16] == '1' ) {
-		mx_warning( "Motor '%s' drive fault occurred.", name );
-		error_seen = TRUE;
-	}
-	if ( response[27] == '1' ) {
-		mx_warning( "Motor '%s' position error exceeded.", name );
-		error_seen = TRUE;
-	}
-	if ( response[30] == '1' ) {
-		mx_warning( "Motor '%s' target zone timeout occurred.", name );
-		error_seen = TRUE;
-	}
-
-	if ( error_seen ) {
-		return mx_error( MXE_DEVICE_ACTION_FAILED, calling_fname,
-"Motor '%s' axis status command 'TAS' reported one or more errors.", name );
-	} else {
-		return MX_SUCCESSFUL_RESULT;
-	}
 }
 
 MX_EXPORT mx_status_type
@@ -696,52 +656,6 @@ mxd_compumotor_resynchronize( MX_RECORD *record )
 /* ============ Motor specific functions ============ */
 
 MX_EXPORT mx_status_type
-mxd_compumotor_motor_is_busy( MX_MOTOR *motor )
-{
-	static const char fname[] = "mxd_compumotor_motor_is_busy()";
-
-	MX_COMPUMOTOR *compumotor;
-	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
-	char command[80];
-	char response[80];
-	size_t length;
-	mx_status_type mx_status;
-
-	mx_status = mxd_compumotor_get_pointers( motor, &compumotor,
-						&compumotor_interface, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	snprintf( command, sizeof(command), "%ld_!%ldTAS",
-					compumotor->controller_number,
-					compumotor->axis_number );
-
-	mx_status = mxi_compumotor_command( compumotor_interface, command,
-			response, sizeof response, COMPUMOTOR_DEBUG );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	length = strlen( response );
-
-	if ( length == 0 ) {
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"Zero length response to motor status command.");
-	}
-
-	if ( response[0] == '1' ) {
-		motor->busy = TRUE;
-	} else {
-		motor->busy = FALSE;
-	}
-
-	mx_status = mxd_compumotor_check_error_response(motor, response, fname);
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
 mxd_compumotor_move_absolute( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_compumotor_move_absolute()";
@@ -1019,109 +933,6 @@ mxd_compumotor_immediate_abort( MX_MOTOR *motor )
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
 					NULL, 0, COMPUMOTOR_DEBUG );
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxd_compumotor_positive_limit_hit( MX_MOTOR *motor )
-{
-	static const char fname[] = "mxd_compumotor_positive_limit_hit()";
-
-	MX_COMPUMOTOR *compumotor;
-	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
-	char command[80];
-	char response[80];
-	size_t length;
-	mx_status_type mx_status;
-
-	mx_status = mxd_compumotor_get_pointers( motor, &compumotor,
-						&compumotor_interface, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	snprintf( command, sizeof(command), "%ld_!%ldTAS",
-				compumotor->controller_number,
-				compumotor->axis_number );
-
-	mx_status = mxi_compumotor_command( compumotor_interface, command,
-			response, sizeof response, COMPUMOTOR_DEBUG );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	length = strlen( response );
-
-	if ( length == 0 ) {
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"Zero length response to motor status command.");
-	}
-
-	/* When constructing bit indices for the output of the TAS
-	 * command, remember that the output of TAS also has
-	 * embedded underscores in it that you must skip over too.
-	 */
-
-	if ( ( response[17] == '1' ) || ( response[20] == '1' ) ) {
-		motor->positive_limit_hit = TRUE;
-	} else {
-		motor->positive_limit_hit = FALSE;
-	}
-
-	mx_status = mxd_compumotor_check_error_response(motor, response, fname);
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxd_compumotor_negative_limit_hit( MX_MOTOR *motor )
-{
-	static const char fname[] = "mxd_compumotor_negative_limit_hit()";
-
-	MX_COMPUMOTOR *compumotor;
-	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
-	char command[80];
-	char response[80];
-	size_t length;
-	mx_status_type mx_status;
-
-	mx_status = mxd_compumotor_get_pointers( motor, &compumotor,
-						&compumotor_interface, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	snprintf( command, sizeof(command), "%ld_!%ldTAS",
-				compumotor->controller_number,
-				compumotor->axis_number );
-
-
-	mx_status = mxi_compumotor_command( compumotor_interface, command,
-			response, sizeof response, COMPUMOTOR_DEBUG );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	length = strlen( response );
-
-	if ( length == 0 ) {
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"Zero length response to motor status command.");
-	}
-
-	/* When constructing bit indices for the output of the TAS
-	 * command, remember that the output of TAS also has
-	 * embedded underscores in it that you must skip over too.
-	 */
-
-	if ( ( response[18] == '1' ) || ( response[21] == '1' ) ) {
-		motor->negative_limit_hit = TRUE;
-	} else {
-		motor->negative_limit_hit = FALSE;
-	}
-
-	mx_status = mxd_compumotor_check_error_response(motor, response, fname);
 
 	return mx_status;
 }
@@ -2023,11 +1834,7 @@ mxd_compumotor_get_status( MX_MOTOR *motor )
 
 	/* Bits 26 to 32: (ignored) */
 
-	/* Print out a verbose message to the warning log. */
-
-	mx_status = mxd_compumotor_check_error_response(motor, response, fname);
-
-	return mx_status;
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*======================================================================*/

@@ -50,14 +50,11 @@ MX_API mx_status_type mxd_compumotor_open( MX_RECORD *record );
 MX_API mx_status_type mxd_compumotor_close( MX_RECORD *record );
 MX_API mx_status_type mxd_compumotor_resynchronize( MX_RECORD *record );
 
-MX_API mx_status_type mxd_compumotor_motor_is_busy( MX_MOTOR *motor );
 MX_API mx_status_type mxd_compumotor_move_absolute( MX_MOTOR *motor );
 MX_API mx_status_type mxd_compumotor_get_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_compumotor_set_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_compumotor_soft_abort( MX_MOTOR *motor );
 MX_API mx_status_type mxd_compumotor_immediate_abort( MX_MOTOR *motor );
-MX_API mx_status_type mxd_compumotor_positive_limit_hit( MX_MOTOR *motor );
-MX_API mx_status_type mxd_compumotor_negative_limit_hit( MX_MOTOR *motor );
 MX_API mx_status_type mxd_compumotor_raw_home_command( MX_MOTOR *motor );
 MX_API mx_status_type mxd_compumotor_constant_velocity_move( MX_MOTOR *motor );
 MX_API mx_status_type mxd_compumotor_get_parameter( MX_MOTOR *motor );

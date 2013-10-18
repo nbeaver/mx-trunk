@@ -103,7 +103,7 @@ mx_operation_process_function( void *record_ptr,
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Unknown operation code = %d", operation );
+			"Unknown operation code = %d", action );
 	}
 
 	return mx_status;
