@@ -90,6 +90,14 @@ MODULES += epics_pmac_biocat
 
 #MODULES += epics_pmac_tc
 
+#-------------------------------------------------------------------
+# Site specific modules.
+#
+#   BioCAT (APS-18ID) 6K "toast" controller.
+#
+
+MODULES += site_biocat_6k
+
 #---
 
 MAKECMD = $(MAKE) MX_ARCH=$(MX_ARCH) MX_INSTALL_DIR=$(MX_INSTALL_DIR)
