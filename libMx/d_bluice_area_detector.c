@@ -1061,7 +1061,8 @@ mxd_bluice_area_detector_arm( MX_AREA_DETECTOR *ad )
 		bluice_area_detector->initialize_datafile_number = FALSE;
 	}
 
-	mx_status = mx_area_detector_construct_next_datafile_name( ad->record );
+	mx_status = mx_area_detector_construct_next_datafile_name(
+						ad->record, TRUE, NULL, 0 );
 
 	return mx_status;
 }

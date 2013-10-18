@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2008, 2010 Illinois Institute of Technology
+ * Copyright 2008, 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -701,7 +701,8 @@ mxs_area_detector_scan_default_construct_next_datafile_name( MX_SCAN * scan )
 			ad_record->name );
 	}
 
-	mx_status = mx_area_detector_construct_next_datafile_name( ad_record );
+	mx_status = mx_area_detector_construct_next_datafile_name(
+						ad_record, TRUE, NULL, 0 );
 
 	return mx_status;
 }

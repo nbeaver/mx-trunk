@@ -6078,7 +6078,11 @@ mx_area_detector_initialize_datafile_number( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mx_area_detector_construct_next_datafile_name( MX_RECORD *record )
+mx_area_detector_construct_next_datafile_name(
+				MX_RECORD *record,
+				mx_bool_type autoincrement_datafile_number,
+				char *filename_buffer,
+				size_t filename_buffer_size )
 {
 	static const char fname[] =
 		"mx_area_detector_construct_next_datafile_name()";
@@ -6089,6 +6093,9 @@ mx_area_detector_construct_next_datafile_name( MX_RECORD *record )
 	int length_of_varying_number, length_of_leading_segment;
 	char datafile_number_string[40];
 	char format[10];
+	unsigned long next_datafile_number;
+	char *local_filename_buffer_ptr;
+	size_t local_filename_buffer_size;
 	mx_status_type mx_status;
 
 	mx_status = mx_area_detector_get_pointers( record, &ad, NULL, fname );
@@ -6170,29 +6177,57 @@ mx_area_detector_construct_next_datafile_name( MX_RECORD *record )
 
 	/* Construct the new varying string. */
 
-	ad->datafile_number++;
+	next_datafile_number = ad->datafile_number + 1;
+
+	if ( autoincrement_datafile_number ) {
+		ad->datafile_number++;
+	}
 
 	snprintf( format, sizeof(format), "%%0%dlu", length_of_varying_number );
 
 	snprintf( datafile_number_string, sizeof(datafile_number_string),
-				format, ad->datafile_number );
+				format, next_datafile_number );
+
+	/* If the caller has provided a buffer, then we write the new
+	 * filename to that buffer.  Otherwise, we write it to the
+	 * default location of ad->datafile_name.
+	 */
+
+	if ( (filename_buffer != NULL) && (filename_buffer_size > 0) ) {
+		local_filename_buffer_ptr = filename_buffer;
+		local_filename_buffer_size = filename_buffer_size;
+	} else {
+		local_filename_buffer_ptr = ad->datafile_name;
+		local_filename_buffer_size = sizeof( ad->datafile_name );
+	}
+
+	/* Protect against buffer overflows. */
+
+	if ( length_of_leading_segment > local_filename_buffer_size ) {
+		mx_warning( "The name of the next datafile for "
+			"area detector '%s' will be truncated, since it does "
+			"fit into the provided filename buffer.",
+				record->name );
+
+		length_of_leading_segment = local_filename_buffer_size;
+	}
 
 	/* Construct the new datafile name. */
 
-	strlcpy( ad->datafile_name, ad->datafile_pattern,
-				length_of_leading_segment );
+	strlcpy( local_filename_buffer_ptr, ad->datafile_pattern,
+					length_of_leading_segment );
 
-	strlcat( ad->datafile_name, datafile_number_string,
-				sizeof(ad->datafile_name) );
+	strlcat( local_filename_buffer_ptr, datafile_number_string,
+				local_filename_buffer_size );
 
 	trailing_segment = start_of_varying_number + length_of_varying_number;
 
-	strlcat( ad->datafile_name, trailing_segment,
-				sizeof(ad->datafile_name) );
+	strlcat( local_filename_buffer_ptr, trailing_segment,
+				local_filename_buffer_size );
 
 #if MX_AREA_DETECTOR_DEBUG_FILENAME_CONSTRUCTION
-	MX_DEBUG(-2,("%s: ad->datafile_name = '%s'",
-		fname, ad->datafile_name));
+	MX_DEBUG(-2,("%s: datafile name = '%s'",
+		fname, local_filename_buffer_ptr));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
@@ -6660,7 +6695,7 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 				fname, record->name, ad->datafile_pattern));
 #endif
 			mx_status =
-			  mx_area_detector_construct_next_datafile_name(record);
+	mx_area_detector_construct_next_datafile_name( record, TRUE, NULL, 0 );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;

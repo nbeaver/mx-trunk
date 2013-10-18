@@ -388,7 +388,8 @@ mxd_marccd_writefile( MX_AREA_DETECTOR *ad,
 		"The MX_MARCCD pointer passed was NULL." );
 	}
 
-	mx_status = mx_area_detector_construct_next_datafile_name( ad->record );
+	mx_status = mx_area_detector_construct_next_datafile_name(
+						ad->record, TRUE, NULL, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

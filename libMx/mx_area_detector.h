@@ -1733,7 +1733,10 @@ MX_API mx_status_type mx_area_detector_initialize_datafile_number(
 							MX_RECORD *ad_record );
 
 MX_API mx_status_type mx_area_detector_construct_next_datafile_name(
-							MX_RECORD *ad_record );
+				MX_RECORD *ad_record,
+				mx_bool_type autoincrement_datafile_number,
+				char *filename_buffer,
+				size_t filename_buffer_size );
 
 MX_API mx_status_type mx_area_detector_initialize_remote_datafile_number(
 							MX_RECORD *ad_record,

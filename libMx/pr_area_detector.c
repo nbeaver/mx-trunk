@@ -1226,7 +1226,8 @@ mx_area_detector_process_function( void *record_ptr,
 			break;
 		case MXLV_AD_CONSTRUCT_NEXT_DATAFILE_NAME:
 			mx_status =
-			  mx_area_detector_construct_next_datafile_name(record);
+	mx_area_detector_construct_next_datafile_name( record, TRUE, NULL, 0 );
+
 			break;
 		case MXLV_AD_COPY_FRAME:
 			mx_status = mx_area_detector_copy_frame( record,

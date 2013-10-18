@@ -309,10 +309,19 @@ mxv_rdi_mbc_log_start( MX_OPERATION *operation )
 	MX_RDI_MBC_LOG *rdi_mbc_log = NULL;
 	MX_AREA_DETECTOR *ad = NULL;
 	char timestamp[40];
+	char datafile_name_buffer[ MXU_FILENAME_LENGTH+1 ];
 	mx_status_type mx_status;
 
 	mx_status = mxv_rdi_mbc_log_get_pointers( operation,
 					&rdi_mbc_log, &ad, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_area_detector_construct_next_datafile_name(
+					ad->record, FALSE,
+					datafile_name_buffer,
+					sizeof(datafile_name_buffer) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -325,7 +334,7 @@ mxv_rdi_mbc_log_start( MX_OPERATION *operation )
 	mx_timestamp( timestamp, sizeof(timestamp) );
 
 	fprintf( rdi_mbc_log->log_file, "%s start %s/%s\n",
-		timestamp, ad->datafile_directory, ad->datafile_pattern );
+		timestamp, ad->datafile_directory, datafile_name_buffer );
 
 	fflush( rdi_mbc_log->log_file );
 
