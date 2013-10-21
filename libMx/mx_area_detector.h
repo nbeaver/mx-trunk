@@ -120,6 +120,13 @@ extern "C" {
 
 #define MXF_AD_DO_NOT_SAVE_FRAME_IN_SINGLE_PROCESS_MODE		0x10000
 
+  /* If one or more of the directories in the pathname of the image files
+   * does not exist, then this flag below tells MX to automatically create
+   * all of the directories needed to be able to create this file.
+   */
+
+#define MXF_AD_AUTOMATICALLY_CREATE_DIRECTORY_HIERARCHY		0x20000
+
   /* The following flags tells the area detector to alway take
    * correction measurements in a particular trigger mode.  If
    * both the internal and external flags are selected, internal
