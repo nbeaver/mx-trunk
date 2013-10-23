@@ -68,10 +68,6 @@
 #include "mx_image.h"
 #include "mx_area_detector.h"
 
-#if defined(OS_WIN32)
-#include <lm.h>
-#endif
-
 /*=======================================================================*/
 
 MX_EXPORT mx_status_type
@@ -2030,245 +2026,6 @@ mx_area_detector_set_shutter_enable( MX_RECORD *record,
 
 /*---*/
 
-static mx_status_type
-mxp_area_detector_setup_directory_hierarchy( MX_AREA_DETECTOR *ad )
-{
-	static const char fname[] =
-		"mxp_area_detector_setup_directory_hierarchy()";
-
-	char *directory_name, *next_directory_level_ptr;
-	char name_to_test[ MXU_FILENAME_LENGTH+1 ];
-	int access_status, saved_errno;
-	char *start_ptr, *slash_ptr;
-	mx_status_type mx_status;
-
-	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_AREA_DETECTOR pointer passed was NULL." );
-	}
-	if ( ad->datafile_directory == (char *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	    "The datafile_directory pointer for area detector '%s' is NULL.",
-			ad->record->name );
-	}
-
-	/* Make a copy of the directory name, so that we can modify it. */
-
-	directory_name = strdup( ad->datafile_directory );
-
-	if ( directory_name == (const char *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The directory name pointer passed was NULL." );
-	}
-
-#if defined(OS_WIN32)
-	/* For Windows, convert all backslashes to forward slashes. */
-
-	{
-		size_t i, directory_name_length;
-
-		directory_name_length = strlen( directory_name );
-
-		for ( i = 0; i < directory_name_length; i++ ) {
-			if ( directory_name[i] == '\\' ) {
-				directory_name[i] = '/';
-			}
-		}
-	}
-#endif /* OS_WIN32 */
-
-#if MX_AREA_DETECTOR_DEBUG_DIRECTORY_HIERARCHY
-	MX_DEBUG(-2,("%s: ad = '%s', directory_name = '%s'",
-		fname, ad->record->name, directory_name));
-#endif
-
-	/* Does this directory already exist and is it writeable? */
-
-	access_status = access( directory_name, R_OK | W_OK | X_OK );
-
-#if MX_AREA_DETECTOR_DEBUG_DIRECTORY_HIERARCHY
-	MX_DEBUG(-2,("%s: access() returned %d", fname, access_status));
-#endif
-
-	if ( access_status == 0 ) {
-
-#if MX_AREA_DETECTOR_DEBUG_DIRECTORY_HIERARCHY
-		MX_DEBUG(-2,("%s: Directory '%s' is already set up correctly.",
-			fname, directory_name ));
-#endif
-		mx_free( directory_name );
-
-		return MX_SUCCESSFUL_RESULT;
-	}
-
-	saved_errno = errno;
-
-#if MX_AREA_DETECTOR_DEBUG_DIRECTORY_HIERARCHY
-	MX_DEBUG(-2,("%s: Directory '%s' is _not_ yet set up correctly.  "
-			"Errno = %d, error message = '%s'",
-			fname, directory_name,
-			saved_errno, strerror(saved_errno) ));
-#endif
-
-	/* If we get here, then we have been instructed by the flag variable
-	 * to attempt to create the directory that was requested by the user.
-	 */
-
-#if defined(OS_WIN32)
-	/* If we are running on Microsoft Windows, then we must check for
-	 * the optional presence and validity of a drive letter at the
-	 * start of the directory name.
-	 */
-
-	if ( directory_name[1] == ':' ) {
-		UINT drive_type;
-
-		/* Copy the first two characters (the drive name) to a
-		 * test buffer.  Note that a length of 3 is specified
-		 * to leave room for the null byte string terminator.
-		 */
-
-		strlcpy( name_to_test, directory_name, 3 );
-
-		/* We can check for drive validity by trying to get
-		 * the drive type.  Append a backslash character,
-		 * since GetDriveType() will fail without it.
-		 */
-
-		strlcat( name_to_test, "\\", sizeof(name_to_test) );
-
-#if MX_AREA_DETECTOR_DEBUG_DIRECTORY_HIERARCHY
-		MX_DEBUG(-2,("%s: drive name = '%s'", fname, name_to_test));
-#endif
-
-		drive_type = GetDriveType( name_to_test );
-
-#if MX_AREA_DETECTOR_DEBUG_DIRECTORY_HIERARCHY
-		MX_DEBUG(-2,("%s: drive_type = %u", fname, drive_type));
-#endif
-
-		switch( drive_type ) {
-		case DRIVE_UNKNOWN:
-		case DRIVE_NO_ROOT_DIR:
-			mx_free( directory_name );
-
-			return mx_error( MXE_NOT_FOUND, fname,
-			"Drive '%s' requested by area detector '%s' "
-			"is not a valid drive letter for this computer.",
-				name_to_test, ad->record->name );
-			break;
-		default:
-			break;
-		}
-
-		/* Strip off the backslash we added, since we are beyond
-		 * the point where we need it.
-		 */
-
-		name_to_test[2] = '\0';
-
-		/* Initialize next_directory_level_ptr to point to the
-		 * character immediately after the drive name.
-		 */
-
-		next_directory_level_ptr = directory_name + 2;
-	} else
-	if ( (directory_name[0] == '/') && (directory_name[1] == '/') ) {
-
-		NET_API_STATUS net_api_status;
-
-		/* If this is a network share name, then we need to
-		 * verify that it is valid.
-		 */
-
-		/* NetBIOS server names are limited to 15 characters
-		 * and we are still stuck with that in SMB.
-		 */
-
-		char server_name[16];
-
-		/* Share names are similarly limited, but the actual
-		 * limit is 14 characters for it.
-		 */
-
-		char share_name[15];
-
-		size_t chars_to_copy;
-
-		mx_warning("%s: FIXME: This particular code path has not "
-		"yet been tested adequately.  directory_name = '%s'",
-			fname, directory_name);
-
-		/* Extract the server name from 'directory_name'. */
-
-		start_ptr = directory_name + 2;
-
-		slash_ptr = strchr( start_ptr, '/' );
-
-		if ( slash_ptr == (char *) NULL ) {
-			mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-
-			"The directory name '%s' used by area detector '%s' "
-			"appears to have a server name, but not a share name.",
-				directory_name, ad->record->name );
-
-			mx_free( directory_name );
-
-			return mx_status;
-		}
-
-		chars_to_copy = slash_ptr - start_ptr + 1;
-
-		if ( chars_to_copy > sizeof( server_name ) ) {
-			chars_to_copy = sizeof( server_name );
-		}
-
-		strlcpy( server_name, start_ptr, chars_to_copy );
-
-		/* The share name should start at the character after
-		 * the slash character.
-		 */
-
-		start_ptr = slash_ptr + 1;
-
-		slash_ptr = strchr( start_ptr, '/' );
-
-		if ( slash_ptr == (char *) NULL ) {
-			chars_to_copy = strlen( start_ptr ) + 1;
-
-			next_directory_level_ptr = NULL;
-		} else {
-			chars_to_copy = slash_ptr - start_ptr + 1;
-
-			next_directory_level_ptr = slash_ptr;
-		}
-
-		if ( chars_to_copy > sizeof( share_name ) ) {
-			chars_to_copy = sizeof( share_name );
-		}
-
-		strlcpy( share_name, start_ptr, chars_to_copy );
-
-#if MX_AREA_DETECTOR_DEBUG_DIRECTORY_HIERARCHY
-		MX_DEBUG(-2,("%s: server_name = '%s', share_name = '%s'",
-			fname, server_name, share_name ));
-#endif
-
-#if 0
-		/* Verify that this share exists. */
-
-		net_api_status = NetShareGetInfo( server_name, share_name,
-						1, &share_info_1_struct );
-#endif
-	}
-#endif
-	mx_free( directory_name );
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-/*---*/
-
 MX_EXPORT mx_status_type
 mx_area_detector_arm( MX_RECORD *record )
 {
@@ -2288,10 +2045,15 @@ mx_area_detector_arm( MX_RECORD *record )
 	flags = ad->area_detector_flags;
 
 	if ( flags & MXF_AD_AUTOMATICALLY_CREATE_DIRECTORY_HIERARCHY ) {
-		mx_status = mxp_area_detector_setup_directory_hierarchy( ad );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+	    /* Make sure that the user's requested directory exists
+	     * or die trying.
+	     */
+
+	    mx_status = mx_make_directory_hierarchy( ad->datafile_directory );
+
+	    if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 	}
 
 	ad->stop = FALSE;

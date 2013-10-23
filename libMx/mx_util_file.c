@@ -69,7 +69,7 @@ mxp_get_shlwapi_hinstance( void )
 
 #endif /* defined(OS_WIN32) */
 
-/*-------------------------------------------------------------------------*/
+/*=========================================================================*/
 
 #define COPY_FILE_CLEANUP \
 		do {                                           \
@@ -238,7 +238,7 @@ mx_copy_file( char *existing_filename, char *new_filename, int new_file_mode )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*-------------------------------------------------------------------------*/
+/*=========================================================================*/
 
 #if defined( OS_WIN32 ) && !defined( __BORLANDC__ )
 #define getcwd _getcwd
@@ -279,7 +279,7 @@ mx_get_current_directory_name( char *filename_buffer,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*-------------------------------------------------------------------------*/
+/*=========================================================================*/
 
 /* mx_change_filename_prefix() is intended for use in cases where a given
  * system can access a file under two different names and it is necessary
@@ -399,7 +399,435 @@ mx_change_filename_prefix( char *old_filename,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*-------------------------------------------------------------------------*/
+/*=========================================================================*/
+
+#define MX_DEBUG_DIRECTORY_HIERARCHY	TRUE
+
+MX_EXPORT mx_status_type
+mx_make_directory_hierarchy( char *directory_name )
+{
+	static const char fname[] = "mx_make_directory_hierarchy()";
+
+	char *copy_of_directory_name, *next_directory_level_ptr;
+	char name_to_test[ MXU_FILENAME_LENGTH+1 ];
+	struct stat stat_struct;
+	int os_status, saved_errno;
+	char *start_ptr, *slash_ptr;
+	size_t chars_to_copy, chars_used, strlcat_limit;
+	mx_status_type mx_status;
+
+	enum {
+		searching_for_directory = 1,
+		creating_directory
+	} search_state_enum;
+
+	search_state_enum = searching_for_directory;
+
+	/* Make a copy of the directory name, so that we can modify it. */
+
+	copy_of_directory_name = strdup( directory_name );
+
+	if ( copy_of_directory_name == (const char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The directory name pointer passed was NULL." );
+	}
+
+#if defined(OS_WIN32)
+	/* For Windows, convert all backslashes to forward slashes. */
+
+	{
+		size_t i, directory_name_length;
+
+		directory_name_length = strlen( copy_of_directory_name );
+
+		for ( i = 0; i < directory_name_length; i++ ) {
+			if ( copy_of_directory_name[i] == '\\' ) {
+				copy_of_directory_name[i] = '/';
+			}
+		}
+	}
+#endif /* OS_WIN32 */
+
+#if MX_DEBUG_DIRECTORY_HIERARCHY
+	MX_DEBUG(-2,("%s: directory name = '%s'",
+		fname, copy_of_directory_name));
+#endif
+
+	/* Does this directory already exist and is it writeable? */
+
+	os_status = access( copy_of_directory_name, R_OK | W_OK | X_OK );
+
+#if MX_DEBUG_DIRECTORY_HIERARCHY
+	MX_DEBUG(-2,("%s: access() returned %d", fname, os_status));
+#endif
+
+	if ( os_status == 0 ) {
+
+#if MX_DEBUG_DIRECTORY_HIERARCHY
+		MX_DEBUG(-2,("%s: Directory '%s' is already set up correctly.",
+			fname, copy_of_directory_name ));
+#endif
+		mx_free( copy_of_directory_name );
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	saved_errno = errno;
+
+#if MX_DEBUG_DIRECTORY_HIERARCHY
+	MX_DEBUG(-2,("%s: Directory '%s' is _not_ yet set up correctly.  "
+			"Errno = %d, error message = '%s'",
+			fname, copy_of_directory_name,
+			saved_errno, strerror(saved_errno) ));
+#endif
+
+	/* If we get here, then we have been instructed by the flag variable
+	 * to attempt to create the directory that was requested by the user.
+	 */
+
+#if defined(OS_WIN32)
+	/* If we are running on Microsoft Windows, then we must check for
+	 * the optional presence and validity of a drive letter at the
+	 * start of the directory name.
+	 */
+
+	if ( copy_of_directory_name[1] == ':' ) {
+		UINT drive_type;
+
+		/* Copy the first two characters (the drive name) to a
+		 * test buffer.  Note that a length of 3 is specified
+		 * to leave room for the null byte string terminator.
+		 */
+
+		strlcpy( name_to_test, copy_of_directory_name, 3 );
+
+		/* We can check for drive validity by trying to get
+		 * the drive type.  Append a backslash character,
+		 * since GetDriveType() will fail without it.
+		 */
+
+		strlcat( name_to_test, "\\", sizeof(name_to_test) );
+
+#if MX_DEBUG_DIRECTORY_HIERARCHY
+		MX_DEBUG(-2,("%s: drive name = '%s'", fname, name_to_test));
+#endif
+
+		drive_type = GetDriveType( name_to_test );
+
+#if MX_DEBUG_DIRECTORY_HIERARCHY
+		MX_DEBUG(-2,("%s: drive_type = %u", fname, drive_type));
+#endif
+
+		switch( drive_type ) {
+		case DRIVE_UNKNOWN:
+		case DRIVE_NO_ROOT_DIR:
+			mx_free( copy_of_directory_name );
+
+			return mx_error( MXE_NOT_FOUND, fname,
+			"Drive '%s' specified in directory name '%s' "
+			"is not a valid drive letter for this computer.",
+				name_to_test, copy_of_directory_name );
+			break;
+		default:
+			break;
+		}
+
+		/* Strip off the backslash we added, since we are beyond
+		 * the point where we need it.
+		 */
+
+		name_to_test[2] = '\0';
+
+		/* Initialize next_directory_level_ptr to point to the
+		 * character immediately after the drive name.
+		 */
+
+		next_directory_level_ptr = copy_of_directory_name + 2;
+	} else
+	if ( (copy_of_directory_name[0] == '/')
+	  && (copy_of_directory_name[1] == '/') )
+	{
+
+#if 1
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Windows network share support is not yet implemented "
+		"for directory name '%s'.", copy_of_directory_name );
+
+#else  /* Win32 share support */
+
+		NET_API_STATUS net_api_status;
+
+		/* If this is a network share name, then we need to
+		 * verify that it is valid.
+		 */
+
+		/* NetBIOS server names are limited to 15 characters
+		 * and we are still stuck with that in SMB.
+		 */
+
+		char server_name[16];
+
+		/* Share names are similarly limited, but the actual
+		 * limit is 14 characters for it.
+		 */
+
+		char share_name[15];
+
+		mx_warning("%s: FIXME: This particular code path has not "
+		"yet been tested adequately.  copy_of_directory_name = '%s'",
+			fname, copy_of_directory_name);
+
+		/* Extract the server name from 'copy_of_directory_name'. */
+
+		start_ptr = copy_of_directory_name + 2;
+
+		slash_ptr = strchr( start_ptr, '/' );
+
+		if ( slash_ptr == (char *) NULL ) {
+			mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+
+			"The requested directory name '%s' "
+			"appears to have a server name, but not a share name.",
+				copy_of_directory_name );
+
+			mx_free( copy_of_directory_name );
+
+			return mx_status;
+		}
+
+		chars_to_copy = slash_ptr - start_ptr + 1;
+
+		if ( chars_to_copy > sizeof( server_name ) ) {
+			chars_to_copy = sizeof( server_name );
+		}
+
+		strlcpy( server_name, start_ptr, chars_to_copy );
+
+		/* The share name should start at the character after
+		 * the slash character.
+		 */
+
+		start_ptr = slash_ptr + 1;
+
+		slash_ptr = strchr( start_ptr, '/' );
+
+		if ( slash_ptr == (char *) NULL ) {
+			chars_to_copy = strlen( start_ptr ) + 1;
+
+			next_directory_level_ptr = NULL;
+		} else {
+			chars_to_copy = slash_ptr - start_ptr + 1;
+
+			next_directory_level_ptr = slash_ptr;
+		}
+
+		if ( chars_to_copy > sizeof( share_name ) ) {
+			chars_to_copy = sizeof( share_name );
+		}
+
+		strlcpy( share_name, start_ptr, chars_to_copy );
+
+#if MX_DEBUG_DIRECTORY_HIERARCHY
+		MX_DEBUG(-2,("%s: server_name = '%s', share_name = '%s'",
+			fname, server_name, share_name ));
+#endif
+
+		/* Verify that this share exists. */
+
+		net_api_status = NetShareGetInfo( server_name, share_name,
+						1, &share_info_1_struct );
+#endif  /* Have Win32 share support */
+
+	}
+#endif  /* OS_WIN32 */
+
+#if MX_DEBUG_DIRECTORY_HIERARCHY
+	MX_DEBUG(-2,("%s: (before loop) name_to_test = '%s'",
+		fname, name_to_test));
+
+	MX_DEBUG(-2,("%s: (before loop) next_directory_level_ptr = '%s'",
+		fname, next_directory_level_ptr));
+#endif
+
+	/* Work through the components of the directory pathname to see
+	 * if we find a directory that either does not exist or has
+	 * permissions that prevent us from using the directory.
+	 */
+
+	search_state_enum = searching_for_directory;
+
+	while ( next_directory_level_ptr != (char *) NULL ) {
+
+#if MX_DEBUG_DIRECTORY_HIERARCHY
+		MX_DEBUG(-2,("%s: next_directory_level_ptr = '%s'",
+			fname, next_directory_level_ptr));
+#endif
+
+		slash_ptr = strchr( next_directory_level_ptr + 1, '/' );
+
+#if MX_DEBUG_DIRECTORY_HIERARCHY
+		MX_DEBUG(-2,("%s: slash_ptr = '%s'", fname, slash_ptr));
+#endif
+
+		if ( slash_ptr == (char *) NULL ) {
+			strlcat( name_to_test, next_directory_level_ptr,
+						sizeof(name_to_test) );
+
+			next_directory_level_ptr = NULL;
+		} else {
+			chars_to_copy =
+				slash_ptr - next_directory_level_ptr + 1;
+
+#if MX_DEBUG_DIRECTORY_HIERARCHY
+			MX_DEBUG(-2,("%s: chars_to_copy = %ld",
+				fname, chars_to_copy));
+#endif
+
+			chars_used = strlen( name_to_test );
+
+#if MX_DEBUG_DIRECTORY_HIERARCHY
+			MX_DEBUG(-2,("%s: chars_used = %ld", fname,chars_used));
+#endif
+			strlcat_limit = chars_to_copy + chars_used;
+
+			if ( strlcat_limit > sizeof(name_to_test) ) {
+				strlcat_limit = sizeof(name_to_test);
+			}
+
+#if MX_DEBUG_DIRECTORY_HIERARCHY
+			MX_DEBUG(-2,("%s: strlcat_limit = %ld",
+				fname, strlcat_limit));
+#endif
+
+			strlcat( name_to_test, next_directory_level_ptr,
+						strlcat_limit );
+
+			next_directory_level_ptr = slash_ptr;
+		}
+
+#if MX_DEBUG_DIRECTORY_HIERARCHY
+		MX_DEBUG(-2,("%s: name_to_test = '%s'", fname, name_to_test ));
+
+		MX_DEBUG(-2,("%s: #1 search_state_enum = %d",
+				fname, (int) search_state_enum ));
+#endif
+
+		if ( search_state_enum == searching_for_directory ) {
+
+			/* We are still searching for the first directory
+			 * component that either does not exist or is
+			 * not useable.
+			 */
+
+			os_status = stat( name_to_test, &stat_struct );
+
+#if MX_DEBUG_DIRECTORY_HIERARCHY
+			MX_DEBUG(-2,("%s: stat( '%s' ) = %d",
+				fname, name_to_test, os_status ));
+#endif
+			if ( os_status < 0 ) {
+				saved_errno = errno;
+
+#if MX_DEBUG_DIRECTORY_HIERARCHY
+				MX_DEBUG(-2,("%s: saved_errno = %d",
+					fname, saved_errno ));
+#endif
+				switch( saved_errno ) {
+				case ENOENT:
+					search_state_enum = creating_directory;
+					break;
+				default:
+					return mx_error(MXE_FILE_IO_ERROR,fname,
+					"Cannot get file status for "
+					"directory '%s'.  "
+					"Errno = %d, error message = '%s'",
+						name_to_test,
+					saved_errno, strerror( saved_errno ) );
+	
+					break;
+				}
+			}
+
+			if ( ( stat_struct.st_mode & S_IFDIR ) == 0 ) {
+				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+				"Directory component '%s' in pathname '%s' "
+				"is not a directory.",
+					directory_name, name_to_test );
+			}
+		}
+
+#if MX_DEBUG_DIRECTORY_HIERARCHY
+		MX_DEBUG(-2,("%s: #2 search_state_enum = %d",
+				fname, (int) search_state_enum ));
+#endif
+		switch( search_state_enum ) {
+		case searching_for_directory:
+			break;
+
+		case creating_directory:
+
+			/* We have found a directory component in the
+			 * pathname that does not exist and are now
+			 * trying to create it or the directories
+			 * underneath it.
+			 */
+
+#if MX_DEBUG_DIRECTORY_HIERARCHY
+			MX_DEBUG(-2,("%s: mkdir '%s'", fname, name_to_test));
+#endif
+
+			os_status = mkdir( name_to_test, R_OK | W_OK );
+
+			if ( os_status < 0 ) {
+				saved_errno = errno;
+
+				return mx_error( MXE_FILE_IO_ERROR, fname,
+				"The attempt to create directory '%s' as "
+				"part of pathname '%s' failed.  "
+				"Errno = %d, error message = '%s'.",
+					name_to_test, directory_name );
+			}
+			break;
+
+		default:
+			return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"Somehow search_state_enum is in state %d "
+			"which should not be able to exist.",
+				(int) search_state_enum );
+			break;
+		}
+
+#if MX_DEBUG_DIRECTORY_HIERARCHY
+		MX_DEBUG(-2,("%s: #3 search_state_enum = %d",
+				fname, (int) search_state_enum ));
+#endif
+	}
+
+	if ( 0 ) {
+		/* In principle, we should not be able to get here, since
+		 * the status of the directory was tested at the beginning
+		 * of this routine with access().
+		 */
+
+		mx_free( copy_of_directory_name );
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* If the directory at some level of a pathname was not found,
+	 * then we must create that directory and all of the necessary
+	 * directories underneath it.
+	 */
+
+	
+
+	mx_free( copy_of_directory_name );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+
+/*=========================================================================*/
 
 #if defined(OS_UNIX) || defined(OS_WIN32)
 
@@ -544,7 +972,7 @@ mx_command_found( char *command_name )
 
 #endif
 
-/*------------------------------------------------------------------------*/
+/*=========================================================================*/
 
 MX_EXPORT mx_status_type
 mx_verify_directory( char *directory_name, int create_flag )
@@ -657,7 +1085,7 @@ mx_verify_directory( char *directory_name, int create_flag )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*-------------------------------------------------------------------------*/
+/*=========================================================================*/
 
 #if 1
 
@@ -808,136 +1236,6 @@ mx_canonicalize_filename( char *original_filename,
 
 #else
 #error mx_canonicalize_filename() has not been defined for this platform.
-#endif
-
-/*-------------------------------------------------------------------------*/
-
-#if defined(OS_VXWORKS)
-
-/* If the current platform does not have an access() function, then we
- * implement one using stat().
- */
-
-int
-access( const char *pathname, int mode )
-{
-	struct stat status_struct;
-	mode_t file_mode;
-	int status;
-
-	/* FIXME: VxWorks has an incorrect prototype for stat(), namely,
-	 *        the pathname argument is prototyped as "char *",
-	 *        rather than "const char *".  At the moment, the least
-	 *        offensive way around it seems to be to strdup() the
-	 *        pathname and hand that pointer to stat().  Other
-	 *        suggestions are welcome, but remember that they have
-	 *        to work with versions of GCC as old as GCC 2.7.2.
-	 */
-
-#if !defined(OS_VXWORKS)
-	status = stat( pathname, &status_struct );
-#else
-	{
-		/* Ick */
-
-		char *pathname_ptr = strdup( pathname );
-
-		status = stat( pathname_ptr, &status_struct );
-
-		mx_free( pathname_ptr );
-	}
-#endif
-
-	if ( status != 0 )
-		return status;
-
-	/* If we are just checking to see if the file exists and
-	 * stat() succeeded, then the file must exist and we can
-	 * return now.
-	 */
-
-	if ( mode == F_OK )
-		return 0;
-
-	/* Select out the bits from the st_mode field that we need
-	 * to compare with the 'mode' argument to this function.
-	 */
-
-#if defined(OS_VXWORKS)
-	/* Only look at the world permissions. */
-
-	file_mode = 0x7 & status_struct.st_mode;
-#else
-	if ( getuid() == status_struct.st_uid ) {
-
-		/* We need to check the owner permissions. */
-
-		file_mode = 0x7 & ( status_struct.st_mode >> 8 );
-
-	} else if ( getgid() == status_struct.st_gid ) {
-
-		/* We need to check the group permissions. */
-
-		file_mode = 0x7 & ( status_struct.st_mode >> 4 );
-
-	} else {
-
-		/* We need to check the world permissions. */
-
-		file_mode = 0x7 & status_struct.st_mode;
-	}
-#endif
-
-	if ( file_mode == mode ) {
-
-		/* Success: the modes match. */
-
-		return 0;
-	} else {
-		/* The modes do _not_ match. */
-
-		errno = EACCES;
-
-		return -1;
-	}
-}
-
-#endif
-
-/*-------------------------------------------------------------------------*/
-
-#if defined(OS_VXWORKS) || defined(OS_WIN32)
-
-/* Some platforms define mkdir() differently or not at all, so we provide
- * our own front end here.
- */
-
-/* WARNING: This code must be after any calls to mkdir() in this file
- * due to the #undef that follows.
- */
-
-#ifdef mkdir
-#undef mkdir
-#endif
-
-#if defined(__BORLANDC__)
-#include <dir.h>
-#endif
-
-MX_EXPORT int
-mx_mkdir( char *pathname, mode_t mode )
-{
-	int os_status;
-
-#if defined(OS_WIN32)
-	os_status = _mkdir( pathname );
-#else
-	os_status = mkdir( pathname );
-#endif
-
-	return os_status;
-}
-
 #endif
 
 /*=========================================================================*/
@@ -1319,6 +1617,165 @@ mx_get_filesystem_type( char *filename,
 #else
 
 #error Getting the filesystem type is not yet supported for this platform.
+
+#endif
+
+/*=========================================================================*/
+
+#if defined(OS_WIN32)
+
+/* WARNING: This code must be after any calls to access() in this file
+ * due to the #undef that follows.
+ */
+
+#ifdef access
+#undef access
+#endif
+
+/* The _access() function on Win32 does not support the X_OK flag.
+ * It also does not _ignore_ the presence of the X_OK flag.  Instead,
+ * it returns an error if X_OK is present.  Thus, we have to remove
+ * the X_OK bit from the 'mode' argument before sending it on to
+ * _access().
+ */
+
+MX_EXPORT int
+mx_access( const char *pathname, int mode )
+{
+	int access_status;
+
+	mode &= (~X_OK);
+
+	access_status = _access( pathname, mode );
+
+	return access_status;
+}
+
+#elif defined(OS_VXWORKS)
+
+/* If the current platform does not have an access() function, then we
+ * implement one using stat().
+ */
+
+MX_EXPORT int
+access( const char *pathname, int mode )
+{
+	struct stat status_struct;
+	mode_t file_mode;
+	int status;
+
+	/* FIXME: VxWorks has an incorrect prototype for stat(), namely,
+	 *        the pathname argument is prototyped as "char *",
+	 *        rather than "const char *".  At the moment, the least
+	 *        offensive way around it seems to be to strdup() the
+	 *        pathname and hand that pointer to stat().  Other
+	 *        suggestions are welcome, but remember that they have
+	 *        to work with versions of GCC as old as GCC 2.7.2.
+	 */
+
+#if !defined(OS_VXWORKS)
+	status = stat( pathname, &status_struct );
+#else
+	{
+		/* Ick */
+
+		char *pathname_ptr = strdup( pathname );
+
+		status = stat( pathname_ptr, &status_struct );
+
+		mx_free( pathname_ptr );
+	}
+#endif
+
+	if ( status != 0 )
+		return status;
+
+	/* If we are just checking to see if the file exists and
+	 * stat() succeeded, then the file must exist and we can
+	 * return now.
+	 */
+
+	if ( mode == F_OK )
+		return 0;
+
+	/* Select out the bits from the st_mode field that we need
+	 * to compare with the 'mode' argument to this function.
+	 */
+
+#if defined(OS_VXWORKS)
+	/* Only look at the world permissions. */
+
+	file_mode = 0x7 & status_struct.st_mode;
+#else
+	if ( getuid() == status_struct.st_uid ) {
+
+		/* We need to check the owner permissions. */
+
+		file_mode = 0x7 & ( status_struct.st_mode >> 8 );
+
+	} else if ( getgid() == status_struct.st_gid ) {
+
+		/* We need to check the group permissions. */
+
+		file_mode = 0x7 & ( status_struct.st_mode >> 4 );
+
+	} else {
+
+		/* We need to check the world permissions. */
+
+		file_mode = 0x7 & status_struct.st_mode;
+	}
+#endif
+
+	if ( file_mode == mode ) {
+
+		/* Success: the modes match. */
+
+		return 0;
+	} else {
+		/* The modes do _not_ match. */
+
+		errno = EACCES;
+
+		return -1;
+	}
+}
+
+#endif  /* OS_VXWORKS */
+
+/*=========================================================================*/
+
+#if defined(OS_VXWORKS) || defined(OS_WIN32)
+
+/* Some platforms define mkdir() differently or not at all, so we provide
+ * our own front end here.
+ */
+
+/* WARNING: This code must be after any calls to mkdir() in this file
+ * due to the #undef that follows.
+ */
+
+#ifdef mkdir
+#undef mkdir
+#endif
+
+#if defined(__BORLANDC__)
+#include <dir.h>
+#endif
+
+MX_EXPORT int
+mx_mkdir( char *pathname, mode_t mode )
+{
+	int os_status;
+
+#if defined(OS_WIN32)
+	os_status = _mkdir( pathname );
+#else
+	os_status = mkdir( pathname );
+#endif
+
+	return os_status;
+}
 
 #endif
 

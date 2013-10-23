@@ -798,6 +798,8 @@ MX_API mx_status_type mx_change_filename_prefix( char *old_filename,
 						char *new_filename,
 						size_t max_new_filename_length);
 
+MX_API mx_status_type mx_make_directory_hierarchy( char *directory_name );
+
 MX_API int mx_command_found( char *command_name );
 
 /* mx_verify_directory() verifies the existence of the specified directory

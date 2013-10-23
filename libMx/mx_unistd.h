@@ -42,9 +42,15 @@
 #  include <unistd.h>
 #endif
 
-#if defined(OS_VXWORKS)
-extern int access( const char *pathname, int mode );
+#if defined(OS_WIN32)
+   MX_API int mx_access( const char *pathname, int mode );
+#  define access(p, m)	mx_access( (p), (m) )
+
+#elif defined(OS_VXWORKS)
+   MX_API int access( const char *pathname, int mode );
 #endif
+
+/* Values of the 'mode' variable in access(). */
 
 #if defined(OS_WIN32) || defined(OS_VXWORKS)
 #  define R_OK  4
