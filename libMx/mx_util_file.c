@@ -408,13 +408,13 @@ mx_make_directory_hierarchy( char *directory_name )
 {
 	static const char fname[] = "mx_make_directory_hierarchy()";
 
-	char *copy_of_directory_name, *next_directory_level_ptr;
+	char *copy_of_directory_name = NULL;
+	char *next_directory_level_ptr = NULL;
+	char *slash_ptr = NULL;
 	char name_to_test[ MXU_FILENAME_LENGTH+1 ];
 	struct stat stat_struct;
 	int os_status, saved_errno;
-	char *start_ptr, *slash_ptr;
 	size_t chars_to_copy, chars_used, strlcat_limit;
-	mx_status_type mx_status;
 
 	enum {
 		searching_for_directory = 1,
@@ -785,7 +785,8 @@ mx_make_directory_hierarchy( char *directory_name )
 				"The attempt to create directory '%s' as "
 				"part of pathname '%s' failed.  "
 				"Errno = %d, error message = '%s'.",
-					name_to_test, directory_name );
+					name_to_test, directory_name,
+					saved_errno, strerror(saved_errno) );
 			}
 			break;
 
