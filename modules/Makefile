@@ -23,7 +23,7 @@ all: build
 
 #MODULES += esone_camac		# linux, win32
 
-#MODULES = labjack_ux		# linux,
+MODULES = labjack_ux		# linux,
 
 #MODULES += libusb-0.1		# linux,
 
@@ -96,7 +96,7 @@ MODULES += epics_pmac_tc
 #   BioCAT (APS-18ID) 6K "toast" controller.
 #
 
-#MODULES += site_biocat_toast
+MODULES += site_biocat_toast
 
 #---
 

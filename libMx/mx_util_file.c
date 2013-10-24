@@ -680,13 +680,14 @@ mx_make_directory_hierarchy( char *directory_name )
 
 #if MX_DEBUG_DIRECTORY_HIERARCHY
 			MX_DEBUG(-2,("%s: chars_to_copy = %ld",
-				fname, chars_to_copy));
+				fname, (long) chars_to_copy));
 #endif
 
 			chars_used = strlen( name_to_test );
 
 #if MX_DEBUG_DIRECTORY_HIERARCHY
-			MX_DEBUG(-2,("%s: chars_used = %ld", fname,chars_used));
+			MX_DEBUG(-2,("%s: chars_used = %ld",
+					fname, (long) chars_used ));
 #endif
 			strlcat_limit = chars_to_copy + chars_used;
 
@@ -696,7 +697,7 @@ mx_make_directory_hierarchy( char *directory_name )
 
 #if MX_DEBUG_DIRECTORY_HIERARCHY
 			MX_DEBUG(-2,("%s: strlcat_limit = %ld",
-				fname, strlcat_limit));
+				fname, (long) strlcat_limit));
 #endif
 
 			strlcat( name_to_test, next_directory_level_ptr,
