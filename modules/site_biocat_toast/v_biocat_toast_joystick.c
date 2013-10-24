@@ -168,6 +168,7 @@ mxv_biocat_toast_joystick_send_variable( MX_VARIABLE *variable )
 	char format[20];
 	char command[80];
 	char response[80];
+	void *value_ptr;
 	unsigned long joystick_mode;
 	mx_status_type mx_status;
 
@@ -178,10 +179,11 @@ mxv_biocat_toast_joystick_send_variable( MX_VARIABLE *variable )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s: variable->pointer_to_value = %p",
-		fname, variable->pointer_to_value));
+	mx_status = mx_get_variable_pointer( variable->record, &value_ptr );
 
-	joystick_mode = *( (unsigned long *) variable->pointer_to_value );
+	MX_DEBUG(-2,("%s: value_ptr = %p", fname, value_ptr));
+
+	joystick_mode = *( (unsigned long *) value_ptr );
 
 	MX_DEBUG(-2,("%s: joystick_mode = %lu", fname, joystick_mode));
 
