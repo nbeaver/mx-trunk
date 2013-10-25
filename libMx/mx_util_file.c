@@ -401,7 +401,7 @@ mx_change_filename_prefix( char *old_filename,
 
 /*=========================================================================*/
 
-#define MX_DEBUG_DIRECTORY_HIERARCHY	TRUE
+#define MX_DEBUG_DIRECTORY_HIERARCHY	FALSE
 
 MX_EXPORT mx_status_type
 mx_make_directory_hierarchy( char *directory_name )
