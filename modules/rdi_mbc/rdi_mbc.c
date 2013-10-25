@@ -27,6 +27,7 @@
 #include "v_rdi_mbc_string.h"
 #include "v_rdi_mbc_pathname_builder.h"
 #include "v_rdi_mbc_log.h"
+#include "v_rdi_mbc_save_frame.h"
 
 MX_DRIVER rdi_mbc_driver_table[] = {
 
@@ -64,6 +65,13 @@ MX_DRIVER rdi_mbc_driver_table[] = {
 		NULL,
 		&mxv_rdi_mbc_log_num_record_fields,
 		&mxv_rdi_mbc_log_rfield_def_ptr },
+
+{"rdi_mbc_save_frame", -1, MXV_SPECIAL, MXR_VARIABLE,
+		&mxv_rdi_mbc_save_frame_record_function_list,
+		NULL,
+		NULL,
+		&mxv_rdi_mbc_save_frame_num_record_fields,
+		&mxv_rdi_mbc_save_frame_rfield_def_ptr},
 
 {"", 0, 0, 0, NULL, NULL, NULL, NULL, NULL}
 };

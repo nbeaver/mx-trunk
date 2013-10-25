@@ -195,7 +195,7 @@ mx_area_detector_load_correction_files( MX_RECORD *record )
 
 /*=======================================================================*/
 
-MX_API mx_status_type
+MX_EXPORT mx_status_type
 mx_area_detector_get_correction_flags( MX_RECORD *record,
 					unsigned long *correction_flags )
 {
@@ -232,7 +232,7 @@ mx_area_detector_get_correction_flags( MX_RECORD *record,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-MX_API mx_status_type
+MX_EXPORT mx_status_type
 mx_area_detector_set_correction_flags( MX_RECORD *record,
 					unsigned long correction_flags )
 {
@@ -271,7 +271,7 @@ mx_area_detector_set_correction_flags( MX_RECORD *record,
 	return mx_status;
 }
 
-MX_API mx_status_type
+MX_EXPORT mx_status_type
 mx_area_detector_measure_correction_frame( MX_RECORD *record,
 					long correction_measurement_type,
 					double correction_measurement_time,
@@ -283,6 +283,7 @@ mx_area_detector_measure_correction_frame( MX_RECORD *record,
 	MX_AREA_DETECTOR *ad;
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
 	mx_status_type ( *measure_correction_fn ) ( MX_AREA_DETECTOR * );
+	unsigned long ad_flags;
 	mx_status_type mx_status;
 
 	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
@@ -359,10 +360,102 @@ mx_area_detector_measure_correction_frame( MX_RECORD *record,
 		break;
 	}
 
+	ad_flags = ad->area_detector_flags;
+
+	if ( ad_flags & MXF_AD_SAVE_AVERAGED_CORRECTION_FRAME ) {
+		mx_status = mx_area_detector_save_averaged_correction_frame(
+				ad->record, correction_measurement_type );
+	}
+
 	return mx_status;
 }
 
-MX_API mx_status_type
+MX_EXPORT mx_status_type
+mx_area_detector_save_averaged_correction_frame( MX_RECORD *record,
+					long correction_measurement_type )
+{
+	static const char fname[] =
+			"mx_area_detector_save_averaged_correction_frame()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *save_fn ) ( MX_AREA_DETECTOR * );
+
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	ad->correction_measurement_type = correction_measurement_type;
+
+	/* If a custom save function is available, then use that. */
+
+	save_fn = flist->save_averaged_correction_frame;
+
+	if ( save_fn == NULL ) {
+		save_fn =
+		    mx_area_detector_default_save_averaged_correction_frame;
+	}
+
+	mx_status = (*save_fn)( ad );
+
+	return mx_status;
+}
+
+	/* Otherwise, use this generic code. */
+
+MX_EXPORT mx_status_type
+mx_area_detector_default_save_averaged_correction_frame( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] =
+		"mx_area_detector_default_save_averaged_correction_frame()";
+
+	MX_IMAGE_FRAME *averaged_frame;
+	char *averaged_frame_filename;
+	long averaged_frame_image_format;
+	char frame_type_string[20];
+	mx_status_type mx_status;
+
+	switch( ad->correction_measurement_type ) {
+	case MXFT_AD_DARK_CURRENT_FRAME:
+		averaged_frame = ad->dark_current_frame;
+		averaged_frame_filename = ad->saved_dark_current_filename;
+		averaged_frame_image_format = ad->correction_save_format;
+		strlcpy( frame_type_string, "dark current",
+					sizeof(frame_type_string) );
+		break;
+	case MXFT_AD_FLOOD_FIELD_FRAME:
+		averaged_frame = ad->flood_field_frame;
+		averaged_frame_filename = ad->saved_flood_field_filename;
+		averaged_frame_image_format = ad->correction_save_format;
+		strlcpy( frame_type_string, "flood field",
+					sizeof(frame_type_string) );
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+			"Area detector '%s' can only save dark current "
+			"and flood field frames via this function.",
+			ad->record->name );
+		break;
+	}
+
+	if ( strlen( averaged_frame_filename ) == 0 ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"No saved %s filename has been specified yet for "
+		"this function for area detector '%s'.",
+			frame_type_string, ad->record->name );
+	}
+
+	mx_status = mx_image_write_file( averaged_frame,
+					averaged_frame_image_format,
+					averaged_frame_filename );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
 mx_area_detector_get_use_scaled_dark_current_flag( MX_RECORD *record,
 					mx_bool_type *use_scaled_dark_current )
 {
@@ -400,7 +493,7 @@ mx_area_detector_get_use_scaled_dark_current_flag( MX_RECORD *record,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-MX_API mx_status_type
+MX_EXPORT mx_status_type
 mx_area_detector_set_use_scaled_dark_current_flag( MX_RECORD *record,
 					mx_bool_type use_scaled_dark_current )
 {
@@ -1238,7 +1331,7 @@ mx_area_detector_prepare_for_correction( MX_AREA_DETECTOR *ad,
 
 /*-----------------------------------------------------------------------*/
 
-MX_API mx_status_type
+MX_EXPORT mx_status_type
 mx_area_detector_process_correction_frame( MX_AREA_DETECTOR *ad,
 					long frame_number,
 					unsigned long desired_correction_flags,

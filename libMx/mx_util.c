@@ -1300,7 +1300,7 @@ mx_vsnprintf( char *dest, size_t maxlen, const char *format, va_list args  )
  * of individual items from 'pointer_array'.
  */
 
-MX_API int
+MX_EXPORT int
 mx_snprintf_from_pointer_array( char *destination,
 				size_t maximum_length,
 				const char *format,

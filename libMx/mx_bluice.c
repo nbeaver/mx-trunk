@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2008, 2010-2012 Illinois Institute of Technology
+ * Copyright 2005-2008, 2010-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -828,7 +828,7 @@ mx_bluice_is_master( MX_BLUICE_SERVER *bluice_server,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-MX_API mx_status_type
+MX_EXPORT mx_status_type
 mx_bluice_take_master( MX_BLUICE_SERVER *bluice_server,
 			mx_bool_type take_master )
 {
@@ -870,7 +870,7 @@ mx_bluice_take_master( MX_BLUICE_SERVER *bluice_server,
 	return mx_status;
 }
 
-MX_API mx_status_type
+MX_EXPORT mx_status_type
 mx_bluice_check_for_master( MX_BLUICE_SERVER *bluice_server )
 {
 	static const char fname[] = "mx_bluice_check_for_master()";

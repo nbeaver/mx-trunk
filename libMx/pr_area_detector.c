@@ -67,7 +67,7 @@ mxp_area_detector_measure_correction_callback_function(
 	long pixels_per_frame;
 	long last_frame_number, total_num_frames, num_frames_difference;
 	long frame_number_to_read;
-	unsigned long ad_status, busy;
+	unsigned long ad_status, busy, ad_flags;
 	mx_bool_type sequence_complete, start_detector;
 	mx_status_type mx_status;
 
@@ -326,6 +326,19 @@ mxp_area_detector_measure_correction_callback_function(
 #endif
 
 	mx_status = mx_area_detector_finish_correction_calculation( ad, corr );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	ad_flags = ad->area_detector_flags;
+
+	if ( ad_flags & MXF_AD_SAVE_AVERAGED_CORRECTION_FRAME ) {
+		mx_status = mx_area_detector_save_averaged_correction_frame(
+				ad->record, ad->correction_measurement_type );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
 #if PR_AREA_DETECTOR_DEBUG_CORRECTION
 	MX_DEBUG(-2,("%s: Correction sequence complete.", fname));

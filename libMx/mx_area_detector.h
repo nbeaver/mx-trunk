@@ -103,22 +103,20 @@ extern "C" {
 
   /* If we are debugging correction measurements, then we can turn on
    * the MXF_AD_SAVE_CORRECTION_FRAME_AFTER_ACQUISITION flag to save
-   * correction frames as part of the normal sequence of frames.
+   * correction frames as part of the normal sequence of frames.  This
+   * will create a separate file for each frame of the correction
+   * measurement sequence.
    */
 
 #define MXF_AD_SAVE_CORRECTION_FRAME_AFTER_ACQUISITION		0x8000
 
-  /* If MX is running in a single process (list_head->is_server == FALSE)
-   * and the following flag is set, then the function
-   * mx_area_detector_finish_record_initialization() will force
-   * off the MXF_AD_SAVE_FRAME_AFTER_ACQUISITION flag.  This flag
-   * exists to make it easier to debug drivers when running in 
-   * single process mode by eliminating attempts to do server-style
-   * background frame saving.  This flag has no effect if you are
-   * running in real server (list_head->is_server == TRUE).
+  /*
+   * MXF_AD_SAVE_AVERAGED_CORRECTION_FRAME tells the detector software
+   * to save a copy of the averaged result of a correction sequence to a
+   * user-specified location and filename.
    */
 
-#define MXF_AD_DO_NOT_SAVE_FRAME_IN_SINGLE_PROCESS_MODE		0x10000
+#define MXF_AD_SAVE_AVERAGED_CORRECTION_FRAME			0x10000
 
   /* If one or more of the directories in the pathname of the image files
    * does not exist, then this flag below tells MX to automatically create
@@ -136,6 +134,18 @@ extern "C" {
 #define MXF_AD_CORRECTION_MEASUREMENTS_USE_INTERNAL_TRIGGER	0x100000
 
 #define MXF_AD_CORRECTION_MEASUREMENTS_USE_EXTERNAL_TRIGGER	0x200000
+
+  /* If MX is running in a single process (list_head->is_server == FALSE)
+   * and the following flag is set, then the function
+   * mx_area_detector_finish_record_initialization() will force
+   * off the MXF_AD_SAVE_FRAME_AFTER_ACQUISITION flag.  This flag
+   * exists to make it easier to debug drivers when running in 
+   * single process mode by eliminating attempts to do server-style
+   * background frame saving.  This flag has no effect if you are
+   * running in a real server (list_head->is_server == TRUE).
+   */
+
+#define MXF_AD_DO_NOT_SAVE_FRAME_IN_SINGLE_PROCESS_MODE		0x10000000
 
   /* The following flag requests that a 6-bit ASCII debugging image
    * be written to the log at the end of each call to the function
@@ -221,6 +231,8 @@ typedef struct {
 
 typedef struct mx_area_detector_type {
 	MX_RECORD *record;
+
+	void *application_ptr;
 
 	long parameter_type;
 	long frame_number;
@@ -427,6 +439,16 @@ typedef struct mx_area_detector_type {
 	 */
 
 	long copy_frame[2];
+
+	/* mx_area_detector_save_averaged_correction_frame() uses the
+	 * following two fields to get the name of the file to save an
+	 * averaged correction_frame to.  These two fields do not have
+	 * a process function, so writing to them does not, by itself,
+	 * cause anything to happen.
+	 */
+
+	char saved_dark_current_filename[MXU_FILENAME_LENGTH+1];
+	char saved_flood_field_filename[MXU_FILENAME_LENGTH+1];
 
 	/* The following fields are used for measuring dark current and
 	 * flood field image frames.
@@ -1013,6 +1035,18 @@ typedef struct mx_area_detector_type {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, copy_frame), \
 	{sizeof(long)}, NULL, 0}, \
   \
+  {-1, -1, "saved_dark_current_filename", MXFT_STRING, \
+					NULL, 1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_AREA_DETECTOR, saved_dark_current_filename), \
+	{sizeof(char)}, NULL, 0}, \
+  \
+  {-1, -1, "saved_flood_field_filename", MXFT_STRING, \
+					NULL, 1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_AREA_DETECTOR, saved_flood_field_filename), \
+	{sizeof(char)}, NULL, 0}, \
+  \
   {MXLV_AD_SEQUENCE_START_DELAY, -1, \
 		"sequence_start_delay", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
@@ -1403,6 +1437,8 @@ typedef struct {
 							MX_IMAGE_FRAME *frame );
 	mx_status_type ( *setup_exposure ) ( MX_AREA_DETECTOR *ad );
 	mx_status_type ( *trigger_exposure ) ( MX_AREA_DETECTOR *ad );
+	mx_status_type ( *save_averaged_correction_frame )
+						 ( MX_AREA_DETECTOR *ad );
 } MX_AREA_DETECTOR_FUNCTION_LIST;
 
 MX_API mx_status_type mx_area_detector_get_pointers( MX_RECORD *record,
@@ -1807,12 +1843,19 @@ MX_API mx_status_type mx_area_detector_measure_correction_frame(
 						MXFT_AD_FLOOD_FIELD_FRAME, \
 						(t), (n) )
 
+MX_API mx_status_type mx_area_detector_save_averaged_correction_frame(
+					MX_RECORD *ad_record,
+					long correction_measurement_type );
+
+MX_API mx_status_type mx_area_detector_default_save_averaged_correction_frame(
+					MX_AREA_DETECTOR *ad );
+
 MX_API mx_status_type mx_area_detector_get_use_scaled_dark_current_flag(
-						MX_RECORD *ad_record,
+					MX_RECORD *ad_record,
 					mx_bool_type *use_scaled_dark_current );
 
 MX_API mx_status_type mx_area_detector_set_use_scaled_dark_current_flag(
-						MX_RECORD *ad_record,
+					MX_RECORD *ad_record,
 					mx_bool_type use_scaled_dark_current );
 
 /*---*/

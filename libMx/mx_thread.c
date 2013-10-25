@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005-2007, 2010-2011 Illinois Institute of Technology
+ * Copyright 2005-2007, 2010-2011, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -3326,7 +3326,7 @@ mx_tls_set_value( MX_THREAD_LOCAL_STORAGE *key, void *value )
 
 /******************* Cross platform functions ******************/
 
-MX_API MX_THREAD *
+MX_EXPORT MX_THREAD *
 mx_get_current_thread_pointer( void )
 {
 	MX_THREAD *thread;

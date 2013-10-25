@@ -63,7 +63,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 2004-2007, 2010-2012 Illinois Institute of Technology
+ * Copyright 2004-2007, 2010-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2298,7 +2298,7 @@ mx_interval_timer_thread( MX_THREAD *thread, void *args )
 
 /*---*/
 
-MX_API mx_status_type
+MX_EXPORT mx_status_type
 mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 				int timer_type,
 				MX_INTERVAL_TIMER_CALLBACK *callback_function,
@@ -2390,7 +2390,7 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-MX_API mx_status_type
+MX_EXPORT mx_status_type
 mx_interval_timer_destroy( MX_INTERVAL_TIMER *itimer )
 {
 	static const char fname[] = "mx_interval_timer_destroy()";
@@ -2419,7 +2419,7 @@ mx_interval_timer_destroy( MX_INTERVAL_TIMER *itimer )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-MX_API mx_status_type
+MX_EXPORT mx_status_type
 mx_interval_timer_is_busy( MX_INTERVAL_TIMER *itimer, mx_bool_type *busy )
 {
 	static const char fname[] = "mx_interval_timer_is_busy()";
@@ -2440,7 +2440,7 @@ mx_interval_timer_is_busy( MX_INTERVAL_TIMER *itimer, mx_bool_type *busy )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-MX_API mx_status_type
+MX_EXPORT mx_status_type
 mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 			double timer_period_in_seconds )
 {
@@ -2505,7 +2505,7 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-MX_API mx_status_type
+MX_EXPORT mx_status_type
 mx_interval_timer_stop( MX_INTERVAL_TIMER *itimer, double *seconds_left )
 {
 	static const char fname[] = "mx_interval_timer_stop()";
@@ -2557,7 +2557,7 @@ mx_interval_timer_stop( MX_INTERVAL_TIMER *itimer, double *seconds_left )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-MX_API mx_status_type
+MX_EXPORT mx_status_type
 mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 			double *seconds_till_expiration )
 {
@@ -2847,7 +2847,7 @@ mx_interval_timer_thread( MX_THREAD *thread, void *args )
 
 /*---*/
 
-MX_API mx_status_type
+MX_EXPORT mx_status_type
 mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 				int timer_type,
 				MX_INTERVAL_TIMER_CALLBACK *callback_function,
@@ -2961,7 +2961,7 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-MX_API mx_status_type
+MX_EXPORT mx_status_type
 mx_interval_timer_destroy( MX_INTERVAL_TIMER *itimer )
 {
 	static const char fname[] = "mx_interval_timer_destroy()";
@@ -3026,7 +3026,7 @@ mx_interval_timer_destroy( MX_INTERVAL_TIMER *itimer )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-MX_API mx_status_type
+MX_EXPORT mx_status_type
 mx_interval_timer_is_busy( MX_INTERVAL_TIMER *itimer, mx_bool_type *busy )
 {
 	static const char fname[] = "mx_interval_timer_is_busy()";
@@ -3083,7 +3083,7 @@ mx_interval_timer_is_busy( MX_INTERVAL_TIMER *itimer, mx_bool_type *busy )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-MX_API mx_status_type
+MX_EXPORT mx_status_type
 mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 			double timer_period_in_seconds )
 {
@@ -3172,7 +3172,7 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-MX_API mx_status_type
+MX_EXPORT mx_status_type
 mx_interval_timer_stop( MX_INTERVAL_TIMER *itimer, double *seconds_left )
 {
 	static const char fname[] = "mx_interval_timer_stop()";
@@ -3264,7 +3264,7 @@ mx_interval_timer_stop( MX_INTERVAL_TIMER *itimer, double *seconds_left )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-MX_API mx_status_type
+MX_EXPORT mx_status_type
 mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 			double *seconds_till_expiration )
 {
