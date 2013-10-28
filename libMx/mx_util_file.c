@@ -14,6 +14,8 @@
  *
  */
 
+#define MX_DEBUG_DIRECTORY_HIERARCHY	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -401,8 +403,6 @@ mx_change_filename_prefix( char *old_filename,
 
 /*=========================================================================*/
 
-#define MX_DEBUG_DIRECTORY_HIERARCHY	FALSE
-
 MX_EXPORT mx_status_type
 mx_make_directory_hierarchy( char *directory_name )
 {
@@ -730,8 +730,10 @@ mx_make_directory_hierarchy( char *directory_name )
 				saved_errno = errno;
 
 #if MX_DEBUG_DIRECTORY_HIERARCHY
-				MX_DEBUG(-2,("%s: saved_errno = %d",
-					fname, saved_errno ));
+				MX_DEBUG(-2,
+				("%s: saved_errno = %d, error message = '%s'",
+					fname, saved_errno,
+					strerror(saved_errno) ));
 #endif
 				switch( saved_errno ) {
 				case ENOENT:
@@ -749,11 +751,15 @@ mx_make_directory_hierarchy( char *directory_name )
 				}
 			}
 
-			if ( ( stat_struct.st_mode & S_IFDIR ) == 0 ) {
-				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-				"Directory component '%s' in pathname '%s' "
-				"is not a directory.",
-					directory_name, name_to_test );
+			if ( search_state_enum == searching_for_directory ) {
+
+				if ( ( stat_struct.st_mode & S_IFDIR ) == 0 ) {
+					return mx_error(
+					MXE_ILLEGAL_ARGUMENT, fname,
+					"Directory component '%s' in "
+					"pathname '%s' is not a directory.",
+						directory_name, name_to_test );
+				}
 			}
 		}
 
