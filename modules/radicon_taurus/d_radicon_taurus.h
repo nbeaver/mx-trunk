@@ -25,6 +25,7 @@
 #define MXF_RADICON_TAURUS_SAVE_RAW_IMAGES		0x2
 #define MXF_RADICON_TAURUS_SET_EXPOSURE_MOTOR_POSITION	0x4
 #define MXF_RADICON_TAURUS_ZERO_EXPOSURE_MOTOR_AT_ARM	0x8
+#define MXF_RADICON_TAURUS_USE_SHADOW_REGISTERS		0x10
 
 /* Values for the 'detector_model' field. */
 
@@ -71,9 +72,15 @@ typedef struct {
 	double minimum_pixel_value;
 	double saturation_pixel_value;
 
-	unsigned long sro_mode;
-	uint64_t si1_register;
-	uint64_t si2_register;
+	unsigned long sro;
+	uint64_t si1;
+	uint64_t si2;
+	uint64_t si;
+
+	unsigned long saved_sro_register;
+	uint64_t saved_si1_register;
+	uint64_t saved_si2_register;
+
 	double si1_si2_ratio;
 
 	MX_IMAGE_FRAME *video_frame;
@@ -111,6 +118,7 @@ typedef struct {
 #define MXLV_RADICON_TAURUS_SRO			80000
 #define MXLV_RADICON_TAURUS_SI1			80001
 #define MXLV_RADICON_TAURUS_SI2			80002
+#define MXLV_RADICON_TAURUS_SI			80003
 
 #define MXLV_RADICON_TAURUS_STATIC_HEADER	80100
 
@@ -183,15 +191,19 @@ typedef struct {
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
   {MXLV_RADICON_TAURUS_SRO, -1, "sro", MXFT_ULONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, sro_mode), \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, sro ), \
 	{0}, NULL, 0 }, \
   \
   {MXLV_RADICON_TAURUS_SI1, -1, "si1", MXFT_UINT64, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, si1_register), \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, si1 ), \
 	{0}, NULL, 0 }, \
   \
   {MXLV_RADICON_TAURUS_SI2, -1, "si2", MXFT_UINT64, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, si2_register), \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, si2 ), \
+	{0}, NULL, 0 }, \
+  \
+  {MXLV_RADICON_TAURUS_SI, -1, "si", MXFT_UINT64, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, si ), \
 	{0}, NULL, 0 }, \
   \
   {-1, -1, "si1_si2_ratio", MXFT_DOUBLE, NULL, 0, {0}, \
@@ -269,14 +281,37 @@ MX_API mx_status_type mxd_radicon_taurus_set_parameter(
 MX_API mx_status_type mxd_radicon_taurus_measure_correction(
 						MX_AREA_DETECTOR *ad );
 
-MX_API mx_status_type mxd_radicon_taurus_get_sro( MX_AREA_DETECTOR *ad );
-MX_API mx_status_type mxd_radicon_taurus_set_sro( MX_AREA_DETECTOR *ad );
+MX_API mx_status_type mxd_radicon_taurus_get_sro( MX_AREA_DETECTOR *ad,
+						unsigned long *sro,
+						mx_bool_type force_read );
 
-MX_API mx_status_type mxd_radicon_taurus_get_si1( MX_AREA_DETECTOR *ad );
-MX_API mx_status_type mxd_radicon_taurus_set_si1( MX_AREA_DETECTOR *ad );
+MX_API mx_status_type mxd_radicon_taurus_set_sro( MX_AREA_DETECTOR *ad,
+						unsigned long sro,
+						mx_bool_type force_write );
 
-MX_API mx_status_type mxd_radicon_taurus_get_si2( MX_AREA_DETECTOR *ad );
-MX_API mx_status_type mxd_radicon_taurus_set_si2( MX_AREA_DETECTOR *ad );
+MX_API mx_status_type mxd_radicon_taurus_get_si1( MX_AREA_DETECTOR *ad,
+						uint64_t *si1,
+						mx_bool_type force_read );
+
+MX_API mx_status_type mxd_radicon_taurus_set_si1( MX_AREA_DETECTOR *ad,
+						uint64_t si1,
+						mx_bool_type force_write );
+
+MX_API mx_status_type mxd_radicon_taurus_get_si2( MX_AREA_DETECTOR *ad,
+						uint64_t *si2,
+						mx_bool_type force_read );
+
+MX_API mx_status_type mxd_radicon_taurus_set_si2( MX_AREA_DETECTOR *ad,
+						uint64_t si2,
+						mx_bool_type force_write );
+
+MX_API mx_status_type mxd_radicon_taurus_get_si( MX_AREA_DETECTOR *ad,
+						uint64_t *si,
+						mx_bool_type force_read );
+
+MX_API mx_status_type mxd_radicon_taurus_set_si( MX_AREA_DETECTOR *ad,
+						uint64_t si,
+						mx_bool_type force_write );
 
 extern MX_RECORD_FUNCTION_LIST mxd_radicon_taurus_record_function_list;
 extern MX_AREA_DETECTOR_FUNCTION_LIST mxd_radicon_taurus_ad_function_list;
