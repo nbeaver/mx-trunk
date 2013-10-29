@@ -22,7 +22,9 @@
 
 #define MX_RDI_DEBUG_CORRECTION_TIMING			FALSE
 
-#define MX_RDI_DEBUG_LOOP_TIMING			TRUE
+#define MX_RDI_DEBUG_LOOP_TIMING			FALSE
+
+#define MX_RDI_DEBUG_LOAD_FRAME				FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -1201,8 +1203,10 @@ mx_rdi_load_frame( MX_AREA_DETECTOR *ad )
 	if ( ad->load_frame != MXFT_AD_FLOOD_FIELD_FRAME )
 		return MX_SUCCESSFUL_RESULT;
 
+#if MX_RDI_DEBUG_LOAD_FRAME
 	MX_DEBUG(-2,("%s: analyzing non-uniformity frame for detector '%s'.",
 		fname, ad->record->name ));
+#endif
 
 	/* Old RDI non-uniformity frames had an average value around 10000,
 	 * while new non-uniformity frames have an average value of 1.0.
@@ -1227,8 +1231,10 @@ mx_rdi_load_frame( MX_AREA_DETECTOR *ad )
 
 	non_uniformity_format = MXIF_IMAGE_FORMAT( non_uniformity_frame );
 
+#if MX_RDI_DEBUG_LOAD_FRAME
 	MX_DEBUG(-2,("%s: non_uniformity_format = %lu",
 		fname, (unsigned long) non_uniformity_format ));
+#endif
 
 	if ( non_uniformity_format != MXT_IMAGE_FORMAT_FLOAT ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -1251,16 +1257,20 @@ mx_rdi_load_frame( MX_AREA_DETECTOR *ad )
 
 	bytes_per_pixel_dbl = MXIF_BYTES_PER_PIXEL(non_uniformity_frame);
 
+#if MX_RDI_DEBUG_LOAD_FRAME
 	MX_DEBUG(-2,("%s: non-uniformity image bytes per pixel = %g",
 		fname, bytes_per_pixel_dbl));
+#endif
 
 	bytes_per_pixel = mx_round( bytes_per_pixel_dbl );
 
 	image_size_in_pixels = mx_divide_safely( image_size_in_bytes,
 							bytes_per_pixel );
 
+#if MX_RDI_DEBUG_LOAD_FRAME
 	MX_DEBUG(-2,("%s: non-uniformity image size = %lu pixels",
 		fname, image_size_in_pixels));
+#endif
 
 	/* Compute the mean value of the non-uniformity pixels. */
 
@@ -1272,7 +1282,9 @@ mx_rdi_load_frame( MX_AREA_DETECTOR *ad )
 
 	mean = sum / image_size_in_pixels;
 
+#if MX_RDI_DEBUG_LOAD_FRAME
 	MX_DEBUG(-2,("%s: non-uniformity image mean value = %g", fname, mean));
+#endif
 
 	/* If the mean is greater than or equal to 100.0, then we must
 	 * renormalize the value by dividing it by 10000.0.
@@ -1280,7 +1292,9 @@ mx_rdi_load_frame( MX_AREA_DETECTOR *ad )
 
 	if ( mean >= 100.0 ) {
 
+#if MX_RDI_DEBUG_LOAD_FRAME
 		MX_DEBUG(-2,("%s: renormalizing non-uniformity frame.", fname));
+#endif
 
 		for ( i = 0; i < image_size_in_pixels; i++ ) {
 			non_uniformity_array[i] /= 10000.0;

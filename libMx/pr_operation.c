@@ -34,8 +34,6 @@ mx_setup_operation_process_functions( MX_RECORD *record )
 	MX_RECORD_FIELD *record_field_array;
 	long i;
 
-	MX_DEBUG(-2,("%s invoked.", fname));
-
 	record_field_array = record->record_field_array;
 
 	for ( i = 0; i < record->num_record_fields; i++ ) {

@@ -18,7 +18,7 @@
 
 #define MXD_RADICON_TAURUS_DEBUG_RS232				TRUE
 
-#define MXD_RADICON_TAURUS_DEBUG_RS232_SRO_SI			TRUE
+#define MXD_RADICON_TAURUS_DEBUG_RS232_SRO_SI			FALSE
 
 #define MXD_RADICON_TAURUS_DEBUG_RS232_SRO_SI_SUMMARY		TRUE
 
@@ -1198,7 +1198,7 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 	char command[80];
 	mx_bool_type set_exposure_times;
 	mx_bool_type use_different_si2_value;
-	unsigned long new_sro_mode;
+	unsigned long old_sro_mode, new_sro_mode;
 	unsigned long ad_flags;
 	unsigned long rt_flags;
 	mx_bool_type enable_overrun_checking;
@@ -1428,6 +1428,12 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 	switch( radicon_taurus->detector_model ) {
 	case MXT_RADICON_TAURUS:
 
+		mx_status = mxd_radicon_taurus_get_sro( ad,
+						&old_sro_mode, FALSE );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
 		/**** Set the Taurus Readout Mode. ****/
 		
 		/* The correct value for the readout mode depends on
@@ -1499,11 +1505,14 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 
 #if 1
 		if ( ad->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
-			mx_status = mxd_radicon_taurus_generate_throwaway_frame(
+			if ( new_sro_mode != old_sro_mode ) {
+				mx_status =
+			    mxd_radicon_taurus_generate_throwaway_frame(
 					ad, radicon_taurus );
 
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+			}
 		}
 #endif
 
