@@ -3035,6 +3035,11 @@ mxd_radicon_taurus_set_sro( MX_AREA_DETECTOR *ad,
 
 			if (new_sro_mode == radicon_taurus->saved_sro_register)
 			{
+
+#if MXD_RADICON_TAURUS_DEBUG_RS232_SRO_SI_SUMMARY
+				MX_DEBUG(-2,
+				("%s: skipping SRO command.", fname));
+#endif
 				return MX_SUCCESSFUL_RESULT;
 			}
 		}
@@ -3291,7 +3296,7 @@ mxd_radicon_taurus_set_si_register( MX_AREA_DETECTOR *ad,
 	int i, max_attempts;
 	unsigned long high_order, middle_order, low_order;
 	unsigned long flags;
-	uint64_t hardware_si_value;
+	uint64_t old_si_value, hardware_si_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_taurus_get_pointers( ad,
@@ -3316,19 +3321,21 @@ mxd_radicon_taurus_set_si_register( MX_AREA_DETECTOR *ad,
 		if ( flags & MXF_RADICON_TAURUS_USE_SHADOW_REGISTERS ) {
 			switch( si_type ) {
 			case MXLV_RADICON_TAURUS_SI1:
-				if ( new_si_value
-					== radicon_taurus->saved_si1_register )
-				{
-					return MX_SUCCESSFUL_RESULT;
-				}
+				old_si_value =
+					radicon_taurus->saved_si1_register;
 				break;
 			case MXLV_RADICON_TAURUS_SI2:
-				if ( new_si_value
-					== radicon_taurus->saved_si2_register )
-				{
-					return MX_SUCCESSFUL_RESULT;
-				}
+				old_si_value =
+					radicon_taurus->saved_si2_register;
 				break;
+			}
+
+			if ( new_si_value == old_si_value ) {
+
+#if MXD_RADICON_TAURUS_DEBUG_RS232_SRO_SI_SUMMARY
+				MX_DEBUG(-2,("%s: skipping SI command.",fname));
+#endif
+				return MX_SUCCESSFUL_RESULT;
 			}
 		}
 	}
