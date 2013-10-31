@@ -28,8 +28,6 @@
 mx_status_type
 mx_setup_operation_process_functions( MX_RECORD *record )
 {
-	static const char fname[] = "mx_setup_operation_process_functions()";
-
 	MX_RECORD_FIELD *record_field;
 	MX_RECORD_FIELD *record_field_array;
 	long i;
