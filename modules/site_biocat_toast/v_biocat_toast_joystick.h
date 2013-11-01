@@ -22,6 +22,7 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *compumotor_interface_record;
+	unsigned long controller_number;
 	unsigned long num_joystick_axes;
 } MX_BIOCAT_TOAST_JOYSTICK;
 
@@ -30,7 +31,12 @@ typedef struct {
   {-1, -1, "compumotor_interface_record", MXFT_RECORD, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 	    offsetof(MX_BIOCAT_TOAST_JOYSTICK, compumotor_interface_record), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY) }, \
+  \
+  {-1, -1, "controller_number", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_BIOCAT_TOAST_JOYSTICK, controller_number), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_READ_ONLY) }, \
   \
   {-1, -1, "num_joystick_axes", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \

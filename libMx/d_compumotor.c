@@ -15,7 +15,7 @@
  *
  */
 
-#define COMPUMOTOR_DEBUG	FALSE
+#define MXD_COMPUMOTOR_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -360,7 +360,7 @@ mxd_compumotor_check_for_servo( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 
 		mx_status = mxi_compumotor_command(
 				compumotor_interface, command,
-				response, sizeof response, COMPUMOTOR_DEBUG );
+				response, sizeof response, MXD_COMPUMOTOR_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -383,7 +383,7 @@ mxd_compumotor_check_for_servo( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 			l = k + skipped;
 		}
 
-#if COMPUMOTOR_DEBUG
+#if MXD_COMPUMOTOR_DEBUG
 		MX_DEBUG(-2,("%s: response[%d] = '%c'",
 				fname, l, response[l]));
 #endif
@@ -405,7 +405,7 @@ mxd_compumotor_check_for_servo( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 		break;
 	}
 
-#if COMPUMOTOR_DEBUG
+#if MXD_COMPUMOTOR_DEBUG
 	MX_DEBUG(-2,("%s: compumotor->is_servo = %d",
 		fname, compumotor->is_servo));
 #endif
@@ -430,7 +430,7 @@ mxd_compumotor_servo_initialization(
 					compumotor->axis_number );
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
-				response, sizeof response, COMPUMOTOR_DEBUG );
+				response, sizeof response, MXD_COMPUMOTOR_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -462,7 +462,7 @@ mxd_compumotor_stepper_initialization(
 					compumotor->axis_number );
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
-				response, sizeof response, COMPUMOTOR_DEBUG );
+				response, sizeof response, MXD_COMPUMOTOR_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -517,7 +517,7 @@ mxd_compumotor_open( MX_RECORD *record )
 					compumotor->axis_number );
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
-			NULL, 0, COMPUMOTOR_DEBUG );
+			NULL, 0, MXD_COMPUMOTOR_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -538,7 +538,7 @@ mxd_compumotor_open( MX_RECORD *record )
 	}
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
-			NULL, 0, COMPUMOTOR_DEBUG );
+			NULL, 0, MXD_COMPUMOTOR_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -698,7 +698,7 @@ mxd_compumotor_move_absolute( MX_MOTOR *motor )
 			compumotor->axis_number, destination );
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
-					NULL, 0, COMPUMOTOR_DEBUG );
+					NULL, 0, MXD_COMPUMOTOR_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -725,7 +725,7 @@ mxd_compumotor_move_absolute( MX_MOTOR *motor )
 	/* Command the move to start. */
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
-					NULL, 0, COMPUMOTOR_DEBUG );
+					NULL, 0, MXD_COMPUMOTOR_DEBUG );
 
 	return mx_status;
 }
@@ -760,7 +760,7 @@ mxd_compumotor_get_position( MX_MOTOR *motor )
 	}
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
-			response, sizeof response, COMPUMOTOR_DEBUG );
+			response, sizeof response, MXD_COMPUMOTOR_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -860,7 +860,7 @@ mxd_compumotor_set_position( MX_MOTOR *motor )
 	/* Send the PSET command. */
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
-			NULL, 0, COMPUMOTOR_DEBUG );
+			NULL, 0, MXD_COMPUMOTOR_DEBUG );
 
 	return mx_status;
 }
@@ -903,7 +903,7 @@ mxd_compumotor_soft_abort( MX_MOTOR *motor )
 	/* Send the stop command. */
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
-					NULL, 0, COMPUMOTOR_DEBUG );
+					NULL, 0, MXD_COMPUMOTOR_DEBUG );
 
 	return mx_status;
 }
@@ -932,7 +932,7 @@ mxd_compumotor_immediate_abort( MX_MOTOR *motor )
 			"%ld_!K", compumotor->controller_number );
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
-					NULL, 0, COMPUMOTOR_DEBUG );
+					NULL, 0, MXD_COMPUMOTOR_DEBUG );
 
 	return mx_status;
 }
@@ -984,7 +984,7 @@ mxd_compumotor_raw_home_command( MX_MOTOR *motor )
 	/* Command the home search to start. */
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
-					NULL, 0, COMPUMOTOR_DEBUG );
+					NULL, 0, MXD_COMPUMOTOR_DEBUG );
 
 	return mx_status;
 }
@@ -1027,7 +1027,7 @@ mxd_compumotor_constant_velocity_move( MX_MOTOR *motor )
 	}
 		
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
-					NULL, 0, COMPUMOTOR_DEBUG );
+					NULL, 0, MXD_COMPUMOTOR_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1049,7 +1049,7 @@ mxd_compumotor_constant_velocity_move( MX_MOTOR *motor )
 	/* Command the move to start. */
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
-					NULL, 0, COMPUMOTOR_DEBUG );
+					NULL, 0, MXD_COMPUMOTOR_DEBUG );
 
 	return mx_status;
 }
@@ -1088,7 +1088,7 @@ mxd_compumotor_get_parameter( MX_MOTOR *motor )
 
 		mx_status = mxi_compumotor_command(
 				compumotor_interface, command,
-				response, sizeof(response), COMPUMOTOR_DEBUG );
+				response, sizeof(response), MXD_COMPUMOTOR_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1115,7 +1115,7 @@ mxd_compumotor_get_parameter( MX_MOTOR *motor )
 
 			mx_status = mxi_compumotor_command(compumotor_interface,
 				command, response, sizeof(response),
-				COMPUMOTOR_DEBUG );
+				MXD_COMPUMOTOR_DEBUG );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -1153,7 +1153,7 @@ mxd_compumotor_get_parameter( MX_MOTOR *motor )
 
 		mx_status = mxi_compumotor_command(
 				compumotor_interface, command,
-				response, sizeof(response), COMPUMOTOR_DEBUG );
+				response, sizeof(response), MXD_COMPUMOTOR_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1181,7 +1181,7 @@ mxd_compumotor_get_parameter( MX_MOTOR *motor )
 		
 		mx_status = mxi_compumotor_command(
 				compumotor_interface, command,
-				response, sizeof(response), COMPUMOTOR_DEBUG );
+				response, sizeof(response), MXD_COMPUMOTOR_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1204,7 +1204,7 @@ mxd_compumotor_get_parameter( MX_MOTOR *motor )
 		
 		mx_status = mxi_compumotor_command(
 				compumotor_interface, command,
-				response, sizeof(response), COMPUMOTOR_DEBUG );
+				response, sizeof(response), MXD_COMPUMOTOR_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1227,7 +1227,7 @@ mxd_compumotor_get_parameter( MX_MOTOR *motor )
 		
 		mx_status = mxi_compumotor_command(
 				compumotor_interface, command,
-				response, sizeof(response), COMPUMOTOR_DEBUG );
+				response, sizeof(response), MXD_COMPUMOTOR_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1250,7 +1250,7 @@ mxd_compumotor_get_parameter( MX_MOTOR *motor )
 		
 		mx_status = mxi_compumotor_command(
 				compumotor_interface, command,
-				response, sizeof(response), COMPUMOTOR_DEBUG );
+				response, sizeof(response), MXD_COMPUMOTOR_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1273,7 +1273,7 @@ mxd_compumotor_get_parameter( MX_MOTOR *motor )
 		
 		mx_status = mxi_compumotor_command(
 				compumotor_interface, command,
-				response, sizeof(response), COMPUMOTOR_DEBUG );
+				response, sizeof(response), MXD_COMPUMOTOR_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1296,7 +1296,7 @@ mxd_compumotor_get_parameter( MX_MOTOR *motor )
 		
 		mx_status = mxi_compumotor_command(
 				compumotor_interface, command,
-				response, sizeof(response), COMPUMOTOR_DEBUG );
+				response, sizeof(response), MXD_COMPUMOTOR_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1355,7 +1355,7 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 						double_value );
 
 		mx_status = mxi_compumotor_command( compumotor_interface,
-				command, NULL, 0, COMPUMOTOR_DEBUG );
+				command, NULL, 0, MXD_COMPUMOTOR_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1403,7 +1403,7 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 						double_value );
 
 			mx_status = mxi_compumotor_command(compumotor_interface,
-				command, NULL, 0, COMPUMOTOR_DEBUG );
+				command, NULL, 0, MXD_COMPUMOTOR_DEBUG );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -1459,7 +1459,7 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 					compumotor->axis_number );
 		
 		mx_status = mxi_compumotor_command( compumotor_interface,
-				command, NULL, 0, COMPUMOTOR_DEBUG );
+				command, NULL, 0, MXD_COMPUMOTOR_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1478,7 +1478,7 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 					double_value );
 
 		mx_status = mxi_compumotor_command( compumotor_interface,
-				command, NULL, 0, COMPUMOTOR_DEBUG );
+				command, NULL, 0, MXD_COMPUMOTOR_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1516,7 +1516,7 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 					(int) motor->axis_enable );
 
 		mx_status = mxi_compumotor_command( compumotor_interface,
-				command, NULL, 0, COMPUMOTOR_DEBUG );
+				command, NULL, 0, MXD_COMPUMOTOR_DEBUG );
 		break;
 
 	case MXLV_MTR_CLOSED_LOOP:
@@ -1529,7 +1529,7 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 					(int) motor->closed_loop );
 
 		mx_status = mxi_compumotor_command( compumotor_interface,
-				command, NULL, 0, COMPUMOTOR_DEBUG );
+				command, NULL, 0, MXD_COMPUMOTOR_DEBUG );
 		break;
 
 	case MXLV_MTR_FAULT_RESET:
@@ -1542,7 +1542,7 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 					(int) motor->fault_reset );
 
 		mx_status = mxi_compumotor_command( compumotor_interface,
-				command, NULL, 0, COMPUMOTOR_DEBUG );
+				command, NULL, 0, MXD_COMPUMOTOR_DEBUG );
 		break;
 
 	/* Servo loop gains. */
@@ -1554,7 +1554,7 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 					motor->proportional_gain );
 
 		mx_status = mxi_compumotor_command( compumotor_interface,
-				command, NULL, 0, COMPUMOTOR_DEBUG );
+				command, NULL, 0, MXD_COMPUMOTOR_DEBUG );
 		break;
 
 	case MXLV_MTR_INTEGRAL_GAIN:
@@ -1564,7 +1564,7 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 					motor->integral_gain );
 
 		mx_status = mxi_compumotor_command( compumotor_interface,
-				command, NULL, 0, COMPUMOTOR_DEBUG );
+				command, NULL, 0, MXD_COMPUMOTOR_DEBUG );
 		break;
 
 	case MXLV_MTR_DERIVATIVE_GAIN:
@@ -1574,7 +1574,7 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 					motor->derivative_gain );
 
 		mx_status = mxi_compumotor_command( compumotor_interface,
-				command, NULL, 0, COMPUMOTOR_DEBUG );
+				command, NULL, 0, MXD_COMPUMOTOR_DEBUG );
 		break;
 
 	case MXLV_MTR_VELOCITY_FEEDFORWARD_GAIN:
@@ -1584,7 +1584,7 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 					motor->velocity_feedforward_gain );
 
 		mx_status = mxi_compumotor_command( compumotor_interface,
-				command, NULL, 0, COMPUMOTOR_DEBUG );
+				command, NULL, 0, MXD_COMPUMOTOR_DEBUG );
 		break;
 
 	case MXLV_MTR_ACCELERATION_FEEDFORWARD_GAIN:
@@ -1594,7 +1594,7 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 					motor->acceleration_feedforward_gain );
 
 		mx_status = mxi_compumotor_command( compumotor_interface,
-				command, NULL, 0, COMPUMOTOR_DEBUG );
+				command, NULL, 0, MXD_COMPUMOTOR_DEBUG );
 		break;
 
 	case MXLV_MTR_INTEGRAL_LIMIT:
@@ -1604,7 +1604,7 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 					motor->integral_limit );
 
 		mx_status = mxi_compumotor_command( compumotor_interface,
-				command, NULL, 0, COMPUMOTOR_DEBUG );
+				command, NULL, 0, MXD_COMPUMOTOR_DEBUG );
 		break;
 
 	default:
@@ -1734,7 +1734,7 @@ mxd_compumotor_get_status( MX_MOTOR *motor )
 	response = motor->raw_status;
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
-		response, MXU_RAW_STATUS_STRING_LENGTH, COMPUMOTOR_DEBUG );
+		response, MXU_RAW_STATUS_STRING_LENGTH, MXD_COMPUMOTOR_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1889,7 +1889,7 @@ mxd_compumotor_enable_continuous_mode( MX_COMPUMOTOR *compumotor,
 	/* Send the MC command. */
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
-			NULL, 0, COMPUMOTOR_DEBUG );
+			NULL, 0, MXD_COMPUMOTOR_DEBUG );
 
 	if ( mx_status.code == MXE_SUCCESS ) {
 		compumotor->continuous_mode_enabled = enable_flag;

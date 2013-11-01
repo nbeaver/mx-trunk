@@ -15,7 +15,7 @@
  *
  */
 
-#define MXV_BIOCAT_TOAST_JOYSTICK_DEBUG			FALSE
+#define MXV_BIOCAT_TOAST_JOYSTICK_DEBUG			TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -165,11 +165,9 @@ mxv_biocat_toast_joystick_send_variable( MX_VARIABLE *variable )
 
 	MX_BIOCAT_TOAST_JOYSTICK *biocat_toast_joystick = NULL;
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface = NULL;
-	char format[20];
 	char command[80];
-	char response[80];
 	void *value_ptr;
-	unsigned long joystick_mode;
+	unsigned long joystick_mode, i, num_axes;
 	mx_status_type mx_status;
 
 	mx_status = mxv_biocat_toast_joystick_get_pointers( variable,
@@ -181,27 +179,27 @@ mxv_biocat_toast_joystick_send_variable( MX_VARIABLE *variable )
 
 	mx_status = mx_get_variable_pointer( variable->record, &value_ptr );
 
-	MX_DEBUG(-2,("%s: value_ptr = %p", fname, value_ptr));
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	joystick_mode = *( (unsigned long *) value_ptr );
 
-	MX_DEBUG(-2,("%s: joystick_mode = %lu", fname, joystick_mode));
+	snprintf( command, sizeof(command), "%ld_!JOY",
+		biocat_toast_joystick->controller_number );
 
-	snprintf( format, sizeof(format),
-		"JOY%%0%lulx",
-		biocat_toast_joystick->num_joystick_axes );
+	num_axes = biocat_toast_joystick->num_joystick_axes;
 
-	MX_DEBUG(-2,("%s: format = '%s'", fname, format));
+	for ( i = 0; i < num_axes; i++ ) {
 
-	snprintf( command, sizeof(command), format, joystick_mode );
-
-	MX_DEBUG(-2,("%s: command = '%s'", fname, command));
-
-	return MX_SUCCESSFUL_RESULT;
+		if ( (joystick_mode >> ( num_axes - i - 1 )) & 0x1 ) {
+			strlcat( command, "1", sizeof(command) );
+		} else {
+			strlcat( command, "0", sizeof(command) );
+		}
+	}
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
-					response, sizeof(response),
-					MXV_BIOCAT_TOAST_JOYSTICK_DEBUG );
+				NULL, 0, MXV_BIOCAT_TOAST_JOYSTICK_DEBUG );
 
 	return mx_status;
 }
@@ -209,11 +207,78 @@ mxv_biocat_toast_joystick_send_variable( MX_VARIABLE *variable )
 MX_EXPORT mx_status_type
 mxv_biocat_toast_joystick_receive_variable( MX_VARIABLE *variable )
 {
-#if 0
 	static const char fname[] =
 		"mxv_biocat_toast_joystick_receive_variable()";
-#endif
-	/* For now, we just return the value most recently written. */
+
+	MX_BIOCAT_TOAST_JOYSTICK *biocat_toast_joystick = NULL;
+	MX_COMPUMOTOR_INTERFACE *compumotor_interface = NULL;
+	char command[80];
+	char response[80];
+	unsigned long joystick_mode;
+	void *value_ptr;
+	char *ptr;
+	mx_status_type mx_status;
+
+	mx_status = mxv_biocat_toast_joystick_get_pointers( variable,
+						&biocat_toast_joystick,
+						&compumotor_interface, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	snprintf( command, sizeof(command), "%ld_!JOY",
+		biocat_toast_joystick->controller_number );
+
+	mx_status = mxi_compumotor_command( compumotor_interface, command,
+					response, sizeof(response),
+					MXV_BIOCAT_TOAST_JOYSTICK_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	joystick_mode = 0;
+
+	ptr = response;
+
+	while (1) {
+		if ( *ptr == '*' ) {
+			/* Skip over asterisk characters. */
+		} else
+		if ( *ptr == '_' ) {
+			/* Skip over underscore characters. */
+
+		} else
+		if ( *ptr == '\0' ) {
+			/* If we see a null byte, then we have reached
+			 * the end of the string and must break out
+			 * of the while loop.
+			 */
+
+			break;
+		} else
+		if ( *ptr == '1' ) {
+			joystick_mode <<= 1;
+			joystick_mode++;
+		} else
+		if ( *ptr == '0' ) {
+			joystick_mode <<= 1;
+		} else {
+			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+			"Unexpected character '%c' (%#lx) seen in "
+			"response '%s' to command '%s' for joystick '%s'.",
+				*ptr, (unsigned long) *ptr,
+				response, command, variable->record->name );
+		}
+
+		ptr++;
+	}
+
+	mx_status = mx_get_variable_pointer( variable->record, &value_ptr );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	*( (unsigned long *) value_ptr ) = joystick_mode;
 
 	return MX_SUCCESSFUL_RESULT;
 }

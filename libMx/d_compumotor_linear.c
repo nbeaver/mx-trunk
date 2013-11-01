@@ -15,7 +15,7 @@
  *
  */
 
-#define COMPUMOTOR_LINEAR_DEBUG  FALSE
+#define MXD_COMPUMOTOR_LINEAR_DEBUG  TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -848,7 +848,7 @@ mxd_compumotor_linear_get_position( MX_MOTOR *motor )
 				compumotor_interface->controller_number[n] );
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
-			response, sizeof(response), COMPUMOTOR_LINEAR_DEBUG );
+			response, sizeof(response), MXD_COMPUMOTOR_LINEAR_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -986,7 +986,7 @@ mxd_compumotor_linear_soft_abort( MX_MOTOR *motor )
 	/* Stop the motion. */
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
-			NULL, 0, COMPUMOTOR_LINEAR_DEBUG );
+			NULL, 0, MXD_COMPUMOTOR_LINEAR_DEBUG );
 
 	return mx_status;
 }
@@ -1027,7 +1027,7 @@ mxd_compumotor_linear_immediate_abort( MX_MOTOR *motor )
 				compumotor_interface->controller_number[n] );
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
-					NULL, 0, COMPUMOTOR_LINEAR_DEBUG );
+					NULL, 0, MXD_COMPUMOTOR_LINEAR_DEBUG );
 
 	return mx_status;
 }
