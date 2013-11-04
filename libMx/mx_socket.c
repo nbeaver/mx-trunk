@@ -14,7 +14,11 @@
  *
  */
 
-#define MX_SOCKET_DEBUG		FALSE
+#define MX_SOCKET_DEBUG				FALSE
+
+#define MX_SOCKET_DEBUG_OPEN			FALSE
+
+#define MX_SOCKET_USE_MX_RECEIVE_BUFFER		FALSE
 
 #include <stdio.h>
 
@@ -37,6 +41,8 @@
 #include "mx_stdint.h"
 #include "mx_record.h"
 #include "mx_ascii.h"
+#include "mx_mutex.h"
+#include "mx_circular_buffer.h"
 #include "mx_socket.h"
 #include "mx_select.h"
 #include "mx_net.h"
@@ -273,7 +279,9 @@ mx_tcp_socket_open_as_client( MX_SOCKET **client_socket,
 	char *error_string;
 	mx_status_type mx_status;
 
-	MX_DEBUG( 2,("%s invoked.", fname));
+#if MX_SOCKET_DEBUG_OPEN
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	if ( client_socket == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -318,6 +326,8 @@ mx_tcp_socket_open_as_client( MX_SOCKET **client_socket,
 		"Ran out of memory creating a TCP client socket." );
 	}
 
+	(*client_socket)->receive_buffer = NULL;
+
 	(*client_socket)->socket_fd = socket( AF_INET, SOCK_STREAM, 0 );
 
 	saved_errno = mx_socket_check_error_status(
@@ -345,7 +355,9 @@ mx_tcp_socket_open_as_client( MX_SOCKET **client_socket,
 
 	/* Open the socket. */
 
-	MX_DEBUG( 2,("%s: About to invoke connect().",fname));
+#if MX_SOCKET_DEBUG_OPEN
+	MX_DEBUG(-2,("%s: About to invoke connect().",fname));
+#endif
 
 	status = connect( (*client_socket)->socket_fd,
 			(struct sockaddr *) &destination_address,
@@ -401,7 +413,27 @@ mx_tcp_socket_open_as_client( MX_SOCKET **client_socket,
 #endif
 	}
 
-	MX_DEBUG( 2,("Leaving %s.", fname));
+#if MX_SOCKET_USE_MX_RECEIVE_BUFFER
+
+	if ( socket_flags & MXF_SOCKET_USE_MX_RECEIVE_BUFFER ) {
+		if ( buffer_size > 0 ) {
+			MX_CIRCULAR_BUFFER *circular_buffer;
+
+			mx_status = mx_circular_buffer_create( &circular_buffer,
+								buffer_size );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			(*client_socket)->receive_buffer = circular_buffer;
+		}		
+	}
+
+#endif /* MX_SOCKET_USE_MX_RECEIVE_BUFFER */
+
+#if MX_SOCKET_DEBUG_OPEN
+	MX_DEBUG(-2,("Leaving %s.", fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -419,8 +451,10 @@ mx_tcp_socket_open_as_server( MX_SOCKET **server_socket,
 	char *error_string;
 	mx_status_type mx_status;
 
-	MX_DEBUG( 2,("%s: port_number = %ld, socket_flags = %#lx",
+#if MX_SOCKET_DEBUG_OPEN
+	MX_DEBUG(-2,("%s: port_number = %ld, socket_flags = %#lx",
 			fname, port_number, socket_flags ));
+#endif
 
 	if ( server_socket == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -449,6 +483,8 @@ mx_tcp_socket_open_as_server( MX_SOCKET **server_socket,
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory creating a TCP server socket." );
 	}
+
+	(*server_socket)->receive_buffer = NULL;
 
 	(*server_socket)->socket_fd = socket( AF_INET, SOCK_STREAM, 0 );
 
@@ -634,7 +670,9 @@ mx_unix_socket_open_as_client( MX_SOCKET **client_socket,
 	char *error_string;
 	mx_status_type mx_status;
 
-	MX_DEBUG( 2,("%s invoked.", fname));
+#if MX_SOCKET_DEBUG_OPEN
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	if ( client_socket == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -671,6 +709,8 @@ mx_unix_socket_open_as_client( MX_SOCKET **client_socket,
 		"Ran out of memory creating a Unix domain client socket." );
 	}
 
+	(*client_socket)->receive_buffer = NULL;
+
 	(*client_socket)->socket_fd = socket( AF_LOCAL, SOCK_STREAM, 0 );
 
 	saved_errno = mx_socket_check_error_status(
@@ -698,7 +738,9 @@ mx_unix_socket_open_as_client( MX_SOCKET **client_socket,
 
 	/* Open the socket. */
 
-	MX_DEBUG( 2,("%s: About to invoke connect().",fname));
+#if MX_SOCKET_DEBUG_OPEN
+	MX_DEBUG(-2,("%s: About to invoke connect().",fname));
+#endif
 
 	/* Assignment to a void pointer avoids warning messages like
 	 * 'cast increases required alignment of target type' on Irix.
@@ -731,7 +773,9 @@ mx_unix_socket_open_as_client( MX_SOCKET **client_socket,
 				pathname, saved_errno, error_string );
 	}
 
-	MX_DEBUG( 2,("Leaving %s.", fname));
+#if MX_SOCKET_DEBUG_OPEN
+	MX_DEBUG(-2,("Leaving %s.", fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -759,8 +803,10 @@ mx_unix_socket_open_as_server( MX_SOCKET **server_socket,
 		"Null pathname string pointer given as an argument." );
 	}
 
-	MX_DEBUG( 2,("%s: pathname = '%s', socket_flags = %#lx",
+#if MX_SOCKET_DEBUG_OPEN
+	MX_DEBUG(-2,("%s: pathname = '%s', socket_flags = %#lx",
 			fname, pathname, socket_flags ));
+#endif
 
 	if ( mx_sockets_are_initialized == FALSE ) {
 
@@ -796,6 +842,8 @@ mx_unix_socket_open_as_server( MX_SOCKET **server_socket,
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory creating a Unix domain server socket." );
 	}
+
+	(*server_socket)->receive_buffer = NULL;
 
 	(*server_socket)->socket_fd = socket( AF_LOCAL, SOCK_STREAM, 0 );
 
@@ -941,7 +989,9 @@ mx_socket_close( MX_SOCKET *mx_socket )
 
 	socket_fd = mx_socket->socket_fd;
 
-	MX_DEBUG( 2,("%s invoked for socket %d.", fname, socket_fd));
+#if MX_SOCKET_DEBUG_OPEN
+	MX_DEBUG(-2,("%s invoked for socket %d.", fname, socket_fd));
+#endif
 
 	/* Set the socket to non-blocking mode.
 	 *
