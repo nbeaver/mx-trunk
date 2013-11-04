@@ -18,7 +18,7 @@
 
 #define MX_SOCKET_DEBUG_OPEN			FALSE
 
-#define MX_SOCKET_USE_MX_RECEIVE_BUFFER		FALSE
+#define MX_SOCKET_USE_MX_RECEIVE_BUFFER		TRUE
 
 #include <stdio.h>
 
@@ -425,6 +425,10 @@ mx_tcp_socket_open_as_client( MX_SOCKET **client_socket,
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
+			MX_DEBUG(-2,
+			("%s: circular_buffer = %p, buffer_size = %ld",
+				fname, circular_buffer, buffer_size));
+
 			(*client_socket)->receive_buffer = circular_buffer;
 		}		
 	}
@@ -772,6 +776,24 @@ mx_unix_socket_open_as_client( MX_SOCKET **client_socket,
 			"Errno = %d.  Error string = '%s'.",
 				pathname, saved_errno, error_string );
 	}
+
+#if MX_SOCKET_USE_MX_RECEIVE_BUFFER
+
+	if ( socket_flags & MXF_SOCKET_USE_MX_RECEIVE_BUFFER ) {
+		if ( buffer_size > 0 ) {
+			MX_CIRCULAR_BUFFER *circular_buffer;
+
+			mx_status = mx_circular_buffer_create( &circular_buffer,
+								buffer_size );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			(*client_socket)->receive_buffer = circular_buffer;
+		}		
+	}
+
+#endif /* MX_SOCKET_USE_MX_RECEIVE_BUFFER */
 
 #if MX_SOCKET_DEBUG_OPEN
 	MX_DEBUG(-2,("Leaving %s.", fname));
@@ -1835,9 +1857,17 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 {
 	static const char fname[] = "mx_socket_receive()";
 
-	long bytes_left, bytes_received, total_bytes_received, error_code;
+	long bytes_left, bytes_received, total_bytes_received, bytes_unread;
+	long error_code;
 	int i, saved_errno, num_terminators_seen;
 	char *ptr, *terminators;
+
+#if MX_SOCKET_USE_MX_RECEIVE_BUFFER
+	MX_CIRCULAR_BUFFER *circular_buffer = NULL;
+	char *start_of_next_line = NULL;
+	unsigned long bytes_saved;
+	mx_status_type mx_status;
+#endif
 
 	if ( mx_socket == (MX_SOCKET *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -1926,44 +1956,110 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 #endif
 
 			if ( input_terminators == NULL ) {
-				total_bytes_received += bytes_received;
+			    total_bytes_received += bytes_received;
 			} else {
-				/* Input terminators are _not_ NULL. */
+			    /* Input terminators are _not_ NULL. */
 
-				for ( i = 0; i < bytes_received; i++ ) {
-				    total_bytes_received++;
+			    for ( i = 0; i < bytes_received; i++ ) {
+				total_bytes_received++;
 
-				    if ( ptr[i] == 
-					     terminators[num_terminators_seen] )
-				    {
-					num_terminators_seen++;
-				    } else {
-					num_terminators_seen = 0;
-				    }
-				    if ( num_terminators_seen >=
+				if (ptr[i] == terminators[num_terminators_seen])
+				{
+				    num_terminators_seen++;
+				} else {
+				    num_terminators_seen = 0;
+				}
+				if ( num_terminators_seen >=
 					     input_terminators_length_in_bytes )
-				    {
-					if ( num_bytes_received != NULL ) {
-					    *num_bytes_received =
+				{
+				    if ( num_bytes_received != NULL ) {
+					*num_bytes_received =
 							total_bytes_received;
-					}
+				    }
 
-					if ( i >= ( bytes_received - 1 ) ) {
-					    return MX_SUCCESSFUL_RESULT;
-					} else {
-					    return mx_error(
+				    if ( i >= ( bytes_received - 1 ) ) {
+					return MX_SUCCESSFUL_RESULT;
+				    } else {
+					bytes_unread = bytes_received - i - i;
+
+#if ( MX_SOCKET_USE_MX_RECEIVE_BUFFER == FALSE )
+					return mx_error(
 						MXE_LIMIT_WAS_EXCEEDED, fname,
 		"%ld unread bytes were lost after the input terminators.",
-						bytes_received - 1 - i );
+						bytes_unread );
+#else /* MX_SOCKET_USE_MX_RECEIVE_BUFFER  */
+
+					circular_buffer =
+						mx_socket->receive_buffer;
+
+					if ( circular_buffer == NULL ) {
+					    return mx_error(
+						MXE_LIMIT_WAS_EXCEEDED, fname,
+		"%ld unread bytes were discarded after the input terminators.",
+						bytes_unread );
 					}
+
+					/* Copy the unread lines to the
+					 * circular buffer.
+					 */
+
+					start_of_next_line = &ptr[i+1];
+
+					MX_DEBUG(-2,
+					("%s: start_of_next_line = '%s'",
+						fname, start_of_next_line));
+
+					mx_status = mx_circular_buffer_write(
+						circular_buffer,
+						start_of_next_line,
+						bytes_unread,
+						&bytes_saved );
+
+					if ( mx_status.code != MXE_SUCCESS )
+					    return mx_status;
+
+					if ( bytes_saved != bytes_unread ) {
+					    return mx_error(
+						MXE_DATA_WAS_LOST, fname,
+						"Socket data after the line "
+						"terminators was not fully "
+						"saved to the circular buffer "
+						"for socket %d.  "
+						"Bytes lost = %ld.",
+						    mx_socket->socket_fd,
+						    bytes_unread - bytes_saved);
+					}
+
+					/* Null terminate the line we are
+					 * sending to the caller.
+					 */
+
+					*start_of_next_line = '\0';
+
+					/* Force an early return to
+					 * the calling routine.
+					 */
+
+					/* Normal return version 2. */
+
+					if ( num_bytes_received != NULL ) {
+						*num_bytes_received
+							= total_bytes_received;
+					}
+
+					return MX_SUCCESSFUL_RESULT;
+#endif /* MX_SOCKET_USE_MX_RECEIVE_BUFFER  */
 				    }
 				}
+			    }
 			}
 
 			ptr += bytes_received;
 			break;
 		}
 	}
+
+	/* Normal return version 1. */
 
 	if ( num_bytes_received != NULL ) {
 		*num_bytes_received = total_bytes_received;

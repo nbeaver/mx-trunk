@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2006, 2010 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2006, 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -54,6 +54,7 @@ MX_API mx_status_type mxi_tcp232_discard_unwritten_output( MX_RS232 *rs232 );
 
 #define MXF_TCP232_OPEN_DURING_TRANSACTION	0x1
 #define MXF_TCP232_QUIET			0x2
+#define MXF_TCP232_USE_MX_RECEIVE_BUFFER	0x4
 
 /* Define the data structures used by this type of interface. */
 

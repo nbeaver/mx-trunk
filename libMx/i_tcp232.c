@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2007, 2010 Illinois Institute of Technology
+ * Copyright 1999-2007, 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -149,6 +149,7 @@ mxi_tcp232_open_socket( MX_RS232 *rs232, MX_TCP232 *tcp232 )
 	static const char fname[] = "mxi_tcp232_open_socket()";
 
 	unsigned long socket_flags;
+	long receive_buffer_size;
 	mx_status_type mx_status;
 
 	if ( rs232 == (MX_RS232 *) NULL ) {
@@ -193,11 +194,18 @@ mxi_tcp232_open_socket( MX_RS232 *rs232, MX_TCP232 *tcp232 )
 			return mx_status;
 	}
 
+	if ( tcp232->tcp232_flags & MXF_TCP232_USE_MX_RECEIVE_BUFFER ) {
+		socket_flags |= MXF_SOCKET_USE_MX_RECEIVE_BUFFER;
+		receive_buffer_size = 2500;
+	} else {
+		receive_buffer_size = MX_SOCKET_DEFAULT_BUFFER_SIZE;
+	}
+
 	/* Now open the tcp232 device. */
 
 	mx_status = mx_tcp_socket_open_as_client( &(tcp232->socket),
 				tcp232->hostname, tcp232->port_number,
-				socket_flags, MX_SOCKET_DEFAULT_BUFFER_SIZE );
+				socket_flags, receive_buffer_size );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		(void) mx_error( mx_status.code, fname,
