@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2009, 2011 Illinois Institute of Technology
+ * Copyright 1999-2009, 2011, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -261,7 +261,7 @@ MX_EXPORT mx_status_type
 mx_tcp_socket_open_as_client( MX_SOCKET **client_socket,
 		char *hostname, long port_number,
 		unsigned long socket_flags,
-		size_t buffer_size )
+		long buffer_size )
 {
 	static char fname[] = "mx_tcp_socket_open_as_client()";
 
@@ -410,7 +410,7 @@ MX_EXPORT mx_status_type
 mx_tcp_socket_open_as_server( MX_SOCKET **server_socket,
 				long port_number,
 				unsigned long socket_flags,
-				size_t buffer_size )
+				long buffer_size )
 {
 	static char fname[] = "mx_tcp_socket_open_as_server()";
 
@@ -622,7 +622,7 @@ MX_EXPORT mx_status_type
 mx_unix_socket_open_as_client( MX_SOCKET **client_socket,
 				char *pathname,
 				unsigned long socket_flags,
-				size_t buffer_size )
+				long buffer_size )
 {
 	static char fname[] = "mx_unix_socket_open_as_client()";
 
@@ -740,7 +740,7 @@ MX_EXPORT mx_status_type
 mx_unix_socket_open_as_server( MX_SOCKET **server_socket,
 				char *pathname,
 				unsigned long socket_flags,
-				size_t buffer_size )
+				long buffer_size )
 {
 	static char fname[] = "mx_unix_socket_open_as_server()";
 

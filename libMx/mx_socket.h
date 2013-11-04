@@ -14,7 +14,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 1999-2012 Illinois Institute of Technology
+ * Copyright 1999-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -123,16 +123,17 @@ extern "C" {
 #  error "Socket definitions not configured for this operating system."
 #endif
 
+/* Note: The receive_buffer item in MX_SOCKET is actually an
+ * MX_CIRCULAR_BUFFER structure, but we do not want to expose
+ * that to callers or require them to include mx_circular_buffer.h
+ */
 
 typedef struct {
 	MX_SOCKET_FD socket_fd;
 	unsigned long socket_flags;
 	mx_bool_type is_non_blocking;
+	void *receive_buffer;
 } MX_SOCKET;
-
-/* ***** Various define's ***** */
-
-#define MX_SOCKET_DEFAULT_BUFFER_SIZE		0
 
 /* Redefine some error codes for Win32. */
 
@@ -199,13 +200,21 @@ typedef struct {
 
 #endif
 
-/* The following are flags for the various mx_..._socket_open_as_...()
- * functions below.
+/* The following are used by the 'socket_flags' arguments for the various
+ * mx_..._socket_open_as_...() functions below.
  */
 
 #define MXF_SOCKET_DISABLE_NAGLE_ALGORITHM	0x1
 #define MXF_SOCKET_QUIET			0x2
 #define MXF_SOCKET_QUIET_CONNECTION		0x4
+#define MXF_SOCKET_USE_MX_RECEIVE_BUFFER	0x8
+
+/* The various mx_..._socket_open_as_...() functions below use the macro
+ * MX_SOCKET_DEFAULT_BUFFER_SIZE to request MX to pick a buffer size
+ * for them.
+ */
+
+#define MX_SOCKET_DEFAULT_BUFFER_SIZE		(-1L)
 
 /* The following defines are for the second argument to the function
  * mx_socket_check_error_status().
@@ -225,22 +234,22 @@ MX_API mx_status_type mx_tcp_socket_open_as_client( MX_SOCKET **client_socket,
 						char *hostname,
 						long port_number,
 						unsigned long socket_flags,
-						size_t buffer_size );
+						long receive_buffer_size );
 
 MX_API mx_status_type mx_tcp_socket_open_as_server( MX_SOCKET **server_socket,
 						long port_number,
 						unsigned long socket_flags,
-						size_t buffer_size );
+						long receive_buffer_size );
 
 MX_API mx_status_type mx_unix_socket_open_as_client( MX_SOCKET **client_socket,
 						char *pathname,
 						unsigned long socket_flags,
-						size_t buffer_size );
+						long receive_buffer_size );
 
 MX_API mx_status_type mx_unix_socket_open_as_server( MX_SOCKET **server_socket,
 						char *pathname,
 						unsigned long socket_flags,
-						size_t buffer_size );
+						long receive_buffer_size );
 
 MX_API mx_status_type mx_socket_close( MX_SOCKET *mx_socket );
 
