@@ -1015,6 +1015,16 @@ mx_socket_close( MX_SOCKET *mx_socket )
 	MX_DEBUG(-2,("%s invoked for socket %d.", fname, socket_fd));
 #endif
 
+#if MX_SOCKET_USE_MX_RECEIVE_BUFFER
+	if ( mx_socket->receive_buffer != NULL ) {
+		mx_status = mx_circular_buffer_destroy(
+						mx_socket->receive_buffer );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+#endif
+
 	/* Set the socket to non-blocking mode.
 	 *
 	 * Note: This is the last point in the function where we still
@@ -1865,7 +1875,8 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 #if MX_SOCKET_USE_MX_RECEIVE_BUFFER
 	MX_CIRCULAR_BUFFER *circular_buffer = NULL;
 	char *start_of_next_line = NULL;
-	unsigned long bytes_saved;
+	unsigned long bytes_saved, bytes_read;
+	unsigned long flags;
 	mx_status_type mx_status;
 #endif
 
@@ -1884,6 +1895,41 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 	num_terminators_seen = 0;
 
 	while( bytes_left > 0 ) {
+
+#if MX_SOCKET_USE_MX_RECEIVE_BUFFER
+		/* First see if there are any bytes left in the circular buffer
+		 * from previous recv() calls.
+		 */
+
+		flags = mx_socket->socket_flags;
+
+		if ( flags & MXF_SOCKET_USE_MX_RECEIVE_BUFFER ) {
+			mx_status = mx_circular_buffer_read(
+					mx_socket->receive_buffer,
+					ptr, bytes_left, &bytes_read );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( bytes_read > bytes_left ) {
+				return mx_error( MXE_LIMIT_WAS_EXCEEDED, fname,
+				"More bytes (%lu) were read from the circular "
+				"buffer for MX socket %d than were available "
+				"in the caller's message buffer size (%lu).  "
+				"This should not be able to happen.",
+					bytes_read,
+					mx_socket->socket_fd,
+					bytes_left );
+			}
+
+			ptr += bytes_read;
+
+			bytes_left -= bytes_read;
+		}
+#endif
+
+		/* Now try reading from the socket itself. */
+
 		bytes_received = recv( mx_socket->socket_fd,
 					ptr, (int) bytes_left, 0 );
 
@@ -2135,6 +2181,12 @@ mx_socket_num_input_bytes_available( MX_SOCKET *mx_socket,
 	int num_fds, select_status, socket_errno;
 	struct timeval timeout;
 	char *error_string;
+	long num_socket_bytes_available;
+
+#if MX_SOCKET_USE_MX_RECEIVE_BUFFER
+	unsigned long flags;
+	mx_status_type mx_status;
+#endif
 
 #if HAVE_FD_SET
 	fd_set read_mask;
@@ -2151,7 +2203,29 @@ mx_socket_num_input_bytes_available( MX_SOCKET *mx_socket,
 		"The num_input_bytes_available pointer passed was NULL." );
 	}
 
-	/* First, we check with select().  select() is capable of detecting
+	*num_input_bytes_available = 0;
+
+#if MX_SOCKET_USE_MX_RECEIVE_BUFFER
+	/* First check for bytes in the MX circular receive buffer. */
+
+	flags = mx_socket->socket_flags;
+
+	if ( flags & MXF_SOCKET_USE_MX_RECEIVE_BUFFER ) {
+		unsigned long bytes_in_receive_buffer;
+
+		mx_status = mx_circular_buffer_num_bytes_available(
+						mx_socket->receive_buffer,
+						&bytes_in_receive_buffer );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		(*num_input_bytes_available) += bytes_in_receive_buffer;
+	}
+
+#endif /* MX_SOCKET_USE_MX_RECEIVE_BUFFER */
+
+	/* Now we check with select().  select() is capable of detecting
 	 * whether or not the remote server connection has gone away.
 	 */
 
@@ -2188,8 +2262,6 @@ mx_socket_num_input_bytes_available( MX_SOCKET *mx_socket,
 	}
 
 	if ( select_status == 0 ) {
-		*num_input_bytes_available = 0;
-
 		return MX_SUCCESSFUL_RESULT;
 	}
 
@@ -2204,7 +2276,7 @@ mx_socket_num_input_bytes_available( MX_SOCKET *mx_socket,
 	 */
 
 	socket_errno = mx_socket_ioctl( mx_socket, FIONREAD,
-					num_input_bytes_available );
+					&num_socket_bytes_available );
 
 	if ( socket_errno != 0 ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -2220,7 +2292,7 @@ mx_socket_num_input_bytes_available( MX_SOCKET *mx_socket,
 	 * has disconnected.
 	 */
 
-	if ( *num_input_bytes_available == 0 ) {
+	if ( num_socket_bytes_available == 0 ) {
 		long mask, error_code;
 
 		mask = MXF_SOCKET_QUIET | MXF_SOCKET_QUIET_CONNECTION;
@@ -2240,8 +2312,10 @@ mx_socket_num_input_bytes_available( MX_SOCKET *mx_socket,
 	 * that 1 input byte is available.  This is inefficient, but safe.
 	 */
 
-	*num_input_bytes_available = 1;
+	num_socket_bytes_available = 1;
 #endif
+
+	(*num_input_bytes_available) += num_socket_bytes_available;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -2261,6 +2335,20 @@ mx_socket_discard_unread_input( MX_SOCKET *mx_socket )
 
 #if MX_SOCKET_DEBUG
 	unsigned long k;
+#endif
+
+#if MX_SOCKET_USE_MX_RECEIVE_BUFFER
+	unsigned long flags;
+
+	flags = mx_socket->socket_flags;
+
+	if ( flags & MXF_SOCKET_USE_MX_RECEIVE_BUFFER ) {
+		mx_status = mx_circular_buffer_discard_available_bytes(
+						mx_socket->receive_buffer );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 #endif
 
 	/* If input is available, read until there is no more input.

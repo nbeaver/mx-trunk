@@ -15,9 +15,11 @@
  *
  */
 
-#define MXI_TCP232_DEBUG	FALSE
+#define MXI_TCP232_DEBUG			FALSE
 
-#define MXI_TCP232_DEBUG_TIMING	FALSE
+#define MXI_TCP232_DEBUG_TIMING			FALSE
+
+#define MXI_TCP232_USE_MX_RECEIVE_BUFFER	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -163,7 +165,7 @@ mxi_tcp232_open_socket( MX_RS232 *rs232, MX_TCP232 *tcp232 )
 	}
 
 #if MXI_TCP232_DEBUG
-	MX_DEBUG(-2, ("%s invoked for host '%s', port %d.",
+	MX_DEBUG(-2, ("%s invoked for host '%s', port %ld.",
 		fname, tcp232->hostname, tcp232->port_number));
 #endif
 
@@ -632,6 +634,69 @@ mxi_tcp232_putline( MX_RS232 *rs232,
 	return mx_status;
 }
 
+#if MXI_TCP232_USE_MX_RECEIVE_BUFFER
+
+MX_EXPORT mx_status_type
+mxi_tcp232_num_input_bytes_available( MX_RS232 *rs232 )
+{
+	static const char fname[] = "mxi_tcp232_num_input_bytes_available()";
+
+	MX_TCP232 *tcp232;
+	long num_socket_bytes_available;
+	mx_status_type mx_status;
+
+	tcp232 = (MX_TCP232 *) (rs232->record->record_type_struct);
+
+	if ( tcp232 == (MX_TCP232 *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"MX_TCP232 structure for TCP232 port '%s' is NULL.",
+			rs232->record->name);
+	}
+
+	if ( mx_socket_is_open( tcp232->socket ) == FALSE ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"TCP232 socket '%s' is not open.", rs232->record->name);
+	}
+
+	mx_status = mx_socket_num_input_bytes_available( tcp232->socket,
+						&num_socket_bytes_available );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	rs232->num_input_bytes_available = num_socket_bytes_available;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxi_tcp232_discard_unread_input( MX_RS232 *rs232 )
+{
+	static const char fname[] = "mxi_tcp232_discard_unread_input()";
+
+	MX_TCP232 *tcp232;
+	mx_status_type mx_status;
+
+	tcp232 = (MX_TCP232 *) (rs232->record->record_type_struct);
+
+	if ( tcp232 == (MX_TCP232 *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"MX_TCP232 structure for TCP232 port '%s' is NULL.",
+			rs232->record->name);
+	}
+
+	if ( mx_socket_is_open( tcp232->socket ) == FALSE ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"TCP232 socket '%s' is not open.", rs232->record->name);
+	}
+
+	mx_status = mx_socket_discard_unread_input( tcp232->socket );
+
+	return mx_status;
+}
+
+#else /* not MXI_TCP232_USE_MX_RECEIVE_BUFFER */
+
 MX_EXPORT mx_status_type
 mxi_tcp232_num_input_bytes_available( MX_RS232 *rs232 )
 {
@@ -793,6 +858,8 @@ mxi_tcp232_discard_unread_input( MX_RS232 *rs232 )
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+#endif /* not MXI_TCP232_USE_MX_RECEIVE_BUFFER */
 
 MX_EXPORT mx_status_type
 mxi_tcp232_discard_unwritten_output( MX_RS232 *rs232 )

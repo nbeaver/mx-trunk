@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2012 Illinois Institute of Technology
+ * Copyright 2012-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -55,6 +55,12 @@ MX_API mx_status_type mx_circular_buffer_write( MX_CIRCULAR_BUFFER *buffer,
 					unsigned long max_bytes_to_write,
 					unsigned long *num_bytes_written );
 						
+MX_API mx_status_type mx_circular_buffer_num_bytes_available(
+					MX_CIRCULAR_BUFFER *buffer,
+					unsigned long *num_bytes_available );
+
+MX_API mx_status_type mx_circular_buffer_discard_available_bytes(
+					MX_CIRCULAR_BUFFER *buffer );
 						
 
 #ifdef __cplusplus

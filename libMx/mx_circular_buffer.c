@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2012 Illinois Institute of Technology
+ * Copyright 2012-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -320,6 +320,93 @@ mx_circular_buffer_write( MX_CIRCULAR_BUFFER *buffer,
 	if ( num_bytes_written != (unsigned long *) NULL ) {
 		*num_bytes_written = num_bytes_to_write;
 	}
+
+	mx_status_code = mx_mutex_unlock( buffer->mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"The attempt to unlock MX_CIRCULAR_BUFFER %p failed.",
+			buffer );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_circular_buffer_num_bytes_available( MX_CIRCULAR_BUFFER *buffer,
+					unsigned long *num_bytes_available )
+{
+	static const char fname[] = "mx_circular_buffer_num_bytes_available()";
+
+	unsigned long num_bytes_in_use;
+	long mx_status_code;
+
+	if ( buffer == (MX_CIRCULAR_BUFFER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_CIRCULAR_BUFFER pointer passed was NULL." );
+	}
+	if ( num_bytes_available == (unsigned long *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The num_bytes_available pointer passed was NULL." );
+	}
+
+	/* Lock the mutex */
+
+	mx_status_code = mx_mutex_lock( buffer->mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"The attempt to lock MX_CIRCULAR_BUFFER %p failed.",
+			buffer );
+	}
+
+	num_bytes_in_use = buffer->bytes_written - buffer->bytes_read;
+
+	/* Unlock the mutex */
+
+	mx_status_code = mx_mutex_unlock( buffer->mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"The attempt to unlock MX_CIRCULAR_BUFFER %p failed.",
+			buffer );
+	}
+
+	*num_bytes_available = num_bytes_in_use;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_circular_buffer_discard_available_bytes( MX_CIRCULAR_BUFFER *buffer )
+{
+	static const char fname[] =
+		"mx_circular_buffer_discard_available_bytes()";
+
+	long mx_status_code;
+
+	if ( buffer == (MX_CIRCULAR_BUFFER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_CIRCULAR_BUFFER pointer passed was NULL." );
+	}
+
+	/* Lock the mutex */
+
+	mx_status_code = mx_mutex_lock( buffer->mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"The attempt to lock MX_CIRCULAR_BUFFER %p failed.",
+			buffer );
+	}
+
+	/* All we need to do here is to declare all of the unread bytes
+	 * as read.
+	 */
+
+	buffer->bytes_written = buffer->bytes_read;
+
+	/* Unlock the mutex */
 
 	mx_status_code = mx_mutex_unlock( buffer->mutex );
 
