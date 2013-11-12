@@ -385,7 +385,7 @@ mxd_compumotor_check_for_servo( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 
 #if MXD_COMPUMOTOR_DEBUG
 		MX_DEBUG(-2,("%s: response[%d] = '%c'",
-				fname, l, response[l]));
+				fname, (int) l, response[l]));
 #endif
 
 		if ( response[l] == '1' ) {
