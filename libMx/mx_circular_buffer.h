@@ -50,6 +50,11 @@ MX_API mx_status_type mx_circular_buffer_read( MX_CIRCULAR_BUFFER *buffer,
 					unsigned long max_bytes_to_read,
 					unsigned long *num_bytes_read );
 
+MX_API mx_status_type mx_circular_buffer_peek( MX_CIRCULAR_BUFFER *buffer,
+					char *data_destination,
+					unsigned long max_bytes_to_peek,
+					unsigned long *num_bytes_peeked );
+
 MX_API mx_status_type mx_circular_buffer_write( MX_CIRCULAR_BUFFER *buffer,
 					char *data_source,
 					unsigned long max_bytes_to_write,
@@ -58,6 +63,10 @@ MX_API mx_status_type mx_circular_buffer_write( MX_CIRCULAR_BUFFER *buffer,
 MX_API mx_status_type mx_circular_buffer_num_bytes_available(
 					MX_CIRCULAR_BUFFER *buffer,
 					unsigned long *num_bytes_available );
+
+MX_API mx_status_type mx_circular_buffer_increment_read_bytes(
+					MX_CIRCULAR_BUFFER *buffer,
+					unsigned long num_bytes_to_increment );
 
 MX_API mx_status_type mx_circular_buffer_discard_available_bytes(
 					MX_CIRCULAR_BUFFER *buffer );

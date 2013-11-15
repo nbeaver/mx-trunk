@@ -114,12 +114,65 @@ mx_circular_buffer_read( MX_CIRCULAR_BUFFER *buffer,
 {
 	static const char fname[] = "mx_circular_buffer_read()";
 
-	unsigned long num_bytes_in_use, num_bytes_to_read;
+	unsigned long num_bytes_peeked;
+	long mx_status_code;
+	mx_status_type mx_status;
+
+	/* Lock the mutex. */
+
+	mx_status_code = mx_mutex_lock( buffer->mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"The attempt to lock MX_CIRCULAR_BUFFER %p failed.",
+			buffer );
+	}
+
+	/* Copy the data from the buffer. */
+
+	mx_status = mx_circular_buffer_peek( buffer,
+					data_destination,
+					max_bytes_to_read,
+					&num_bytes_peeked );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Mark the data as read. */
+
+	mx_status = mx_circular_buffer_increment_read_bytes( buffer,
+							num_bytes_peeked );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Unlock the mutex. */
+
+	mx_status_code = mx_mutex_unlock( buffer->mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"The attempt to unlock MX_CIRCULAR_BUFFER %p failed.",
+			buffer );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_circular_buffer_peek( MX_CIRCULAR_BUFFER *buffer,
+			char *data_destination,
+			unsigned long max_bytes_to_peek,
+			unsigned long *num_bytes_peeked )
+{
+	static const char fname[] = "mx_circular_buffer_peek()";
+
+	unsigned long num_bytes_in_use, num_bytes_to_peek;
 	unsigned long bytes_read_modulo;
 	unsigned long future_value_of_bytes_read;
 	unsigned long future_value_of_bytes_read_modulo;
 	unsigned long bytes_until_end_of_buffer;
-	char *read_ptr;
+	char *peek_ptr;
 	long mx_status_code;
 
 	if ( buffer == (MX_CIRCULAR_BUFFER *) NULL ) {
@@ -141,7 +194,7 @@ mx_circular_buffer_read( MX_CIRCULAR_BUFFER *buffer,
 			buffer );
 	}
 
-	/* How many bytes are available to read from the buffer?
+	/* How many bytes are available to peek from the buffer?
 	 *
 	 * If bytes_read > bytes_written due to bytes_written wrapping
 	 * around at ULONG_MAX, then the underflow due to the subtraction
@@ -153,10 +206,10 @@ mx_circular_buffer_read( MX_CIRCULAR_BUFFER *buffer,
 
 	num_bytes_in_use = buffer->bytes_written - buffer->bytes_read;
 
-	if ( num_bytes_in_use >= max_bytes_to_read ) {
-		num_bytes_to_read = max_bytes_to_read;
+	if ( num_bytes_in_use >= max_bytes_to_peek ) {
+		num_bytes_to_peek = max_bytes_to_peek;
 	} else {
-		num_bytes_to_read = num_bytes_in_use;
+		num_bytes_to_peek = num_bytes_in_use;
 	}
 
 	bytes_read_modulo = buffer->bytes_read % ( buffer->buffer_size );
@@ -166,7 +219,7 @@ mx_circular_buffer_read( MX_CIRCULAR_BUFFER *buffer,
 	 * operation into two separate copies.
 	 */
 
-	future_value_of_bytes_read = buffer->bytes_read + num_bytes_to_read;
+	future_value_of_bytes_read = buffer->bytes_read + num_bytes_to_peek;
 
 	future_value_of_bytes_read_modulo
 		= future_value_of_bytes_read % ( buffer->buffer_size );
@@ -174,20 +227,20 @@ mx_circular_buffer_read( MX_CIRCULAR_BUFFER *buffer,
 	if ( future_value_of_bytes_read_modulo >= bytes_read_modulo ) {
 		/* This case we can do as one copy. */
 
-		read_ptr = buffer->data_array + bytes_read_modulo;
+		peek_ptr = buffer->data_array + bytes_read_modulo;
 
-		memcpy( data_destination, read_ptr, num_bytes_to_read );
+		memcpy( data_destination, peek_ptr, num_bytes_to_peek );
 	} else {
 		/* This case must be split into two copies. */
 
-		read_ptr = buffer->data_array + bytes_read_modulo;
+		peek_ptr = buffer->data_array + bytes_read_modulo;
 
 		bytes_until_end_of_buffer
 			= buffer->buffer_size - bytes_read_modulo;
 
 		/* This is the part at the end of the buffer. */
 
-		memcpy( data_destination, read_ptr, bytes_until_end_of_buffer );
+		memcpy( data_destination, peek_ptr, bytes_until_end_of_buffer );
 
 		/* This is the remaining part that has wrapped around
 		 * back to the beginning of the buffer.
@@ -198,10 +251,8 @@ mx_circular_buffer_read( MX_CIRCULAR_BUFFER *buffer,
 				future_value_of_bytes_read_modulo );
 	}
 
-	buffer->bytes_read = future_value_of_bytes_read;
-
-	if ( num_bytes_read != (unsigned long *) NULL ) {
-		*num_bytes_read = num_bytes_to_read;
+	if ( num_bytes_peeked != (unsigned long *) NULL ) {
+		*num_bytes_peeked = num_bytes_to_peek;
 	}
 
 	mx_status_code = mx_mutex_unlock( buffer->mutex );
@@ -373,6 +424,44 @@ mx_circular_buffer_num_bytes_available( MX_CIRCULAR_BUFFER *buffer,
 	}
 
 	*num_bytes_available = num_bytes_in_use;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_circular_buffer_increment_read_bytes( MX_CIRCULAR_BUFFER *buffer,
+					unsigned long num_bytes_to_increment )
+{
+	static const char fname[] = "mx_circular_buffer_increment_read_bytes()";
+
+	long mx_status_code;
+
+	if ( buffer == (MX_CIRCULAR_BUFFER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_CIRCULAR_BUFFER pointer passed was NULL." );
+	}
+
+	/* Lock the mutex */
+
+	mx_status_code = mx_mutex_lock( buffer->mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"The attempt to lock MX_CIRCULAR_BUFFER %p failed.",
+			buffer );
+	}
+
+	buffer->bytes_read += num_bytes_to_increment;
+
+	/* Unlock the mutex */
+
+	mx_status_code = mx_mutex_unlock( buffer->mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"The attempt to unlock MX_CIRCULAR_BUFFER %p failed.",
+			buffer );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
