@@ -18,8 +18,6 @@
 
 #define MX_SOCKET_DEBUG_OPEN			TRUE
 
-#define MX_SOCKET_USE_MX_RECEIVE_BUFFER		TRUE
-
 #include <stdio.h>
 
 #include "mx_osdef.h"
@@ -413,8 +411,6 @@ mx_tcp_socket_open_as_client( MX_SOCKET **client_socket,
 #endif
 	}
 
-#if MX_SOCKET_USE_MX_RECEIVE_BUFFER
-
 	if ( socket_flags & MXF_SOCKET_USE_MX_RECEIVE_BUFFER ) {
 		if ( buffer_size > 0 ) {
 			MX_CIRCULAR_BUFFER *circular_buffer;
@@ -432,8 +428,6 @@ mx_tcp_socket_open_as_client( MX_SOCKET **client_socket,
 			(*client_socket)->receive_buffer = circular_buffer;
 		}		
 	}
-
-#endif /* MX_SOCKET_USE_MX_RECEIVE_BUFFER */
 
 #if MX_SOCKET_DEBUG_OPEN
 	MX_DEBUG(-2,("Leaving %s.", fname));
@@ -777,8 +771,6 @@ mx_unix_socket_open_as_client( MX_SOCKET **client_socket,
 				pathname, saved_errno, error_string );
 	}
 
-#if MX_SOCKET_USE_MX_RECEIVE_BUFFER
-
 	if ( socket_flags & MXF_SOCKET_USE_MX_RECEIVE_BUFFER ) {
 		if ( buffer_size > 0 ) {
 			MX_CIRCULAR_BUFFER *circular_buffer;
@@ -792,8 +784,6 @@ mx_unix_socket_open_as_client( MX_SOCKET **client_socket,
 			(*client_socket)->receive_buffer = circular_buffer;
 		}		
 	}
-
-#endif /* MX_SOCKET_USE_MX_RECEIVE_BUFFER */
 
 #if MX_SOCKET_DEBUG_OPEN
 	MX_DEBUG(-2,("Leaving %s.", fname));
@@ -1015,7 +1005,6 @@ mx_socket_close( MX_SOCKET *mx_socket )
 	MX_DEBUG(-2,("%s invoked for socket %d.", fname, socket_fd));
 #endif
 
-#if MX_SOCKET_USE_MX_RECEIVE_BUFFER
 	if ( mx_socket->receive_buffer != NULL ) {
 		mx_status = mx_circular_buffer_destroy(
 						mx_socket->receive_buffer );
@@ -1023,7 +1012,6 @@ mx_socket_close( MX_SOCKET *mx_socket )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	}
-#endif
 
 	/* Set the socket to non-blocking mode.
 	 *
@@ -1859,8 +1847,8 @@ mx_socket_send( MX_SOCKET *mx_socket,
 
 MX_EXPORT mx_status_type
 mx_socket_receive( MX_SOCKET *mx_socket,
-		void *message_buffer,
-		size_t message_length_in_bytes,
+		void *callers_buffer,
+		size_t callers_buffer_length_in_bytes,
 		size_t *num_bytes_received,
 		void *input_terminators,
 		size_t input_terminators_length_in_bytes )
@@ -1868,38 +1856,37 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 	static const char fname[] = "mx_socket_receive()";
 
 	long bytes_left, bytes_received_from_socket;
-	long total_bytes_received, bytes_unread;
+	long total_bytes_in_callers_buffer;
+	long num_bytes_to_send_to_caller;
+	long bytes_unread;
 	long error_code;
 	int i, saved_errno, num_terminators_seen;
 	char *ptr, *terminators;
 
-#if MX_SOCKET_USE_MX_RECEIVE_BUFFER
 	MX_CIRCULAR_BUFFER *circular_buffer = NULL;
 	char *start_of_next_line = NULL;
 	unsigned long bytes_saved, bytes_peeked_from_buffer;
 	unsigned long flags;
 	mx_status_type mx_status;
-#endif
 
 	if ( mx_socket == (MX_SOCKET *) NULL ) {
 	    return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_SOCKET pointer passed was NULL." );
 	}
 
-	bytes_left = (long) message_length_in_bytes;
+	bytes_left = (long) callers_buffer_length_in_bytes;
 
-	ptr = (char *) message_buffer;
+	ptr = (char *) callers_buffer;
 
 	terminators = (char *) input_terminators;
 
-	total_bytes_received = 0;
+	total_bytes_in_callers_buffer = 0;
 	num_terminators_seen = 0;
 
 	while( bytes_left > 0 ) {
 
 	    bytes_received_from_socket = 0;
 
-#if MX_SOCKET_USE_MX_RECEIVE_BUFFER
 	    bytes_peeked_from_buffer = 0;
 
 	    /* First see if there are any bytes left in the circular buffer
@@ -1930,11 +1917,13 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 		ptr += bytes_peeked_from_buffer;
 
 		bytes_left -= bytes_peeked_from_buffer;
+
+		total_bytes_in_callers_buffer += bytes_peeked_from_buffer;
 	    }
-#endif
+
+	    /* If there is room available, try reading from the socket itself.*/
 
 	    if ( bytes_left > 0 ) {
-		/* Now try reading from the socket itself. */
 
 		bytes_received_from_socket = recv( mx_socket->socket_fd,
 						ptr, (int) bytes_left, 0 );
@@ -1952,7 +1941,7 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 		    *ptr = '\0';
 
 		    if ( num_bytes_received != NULL ) {
-			*num_bytes_received = total_bytes_received;
+			*num_bytes_received = total_bytes_in_callers_buffer;
 		    }
 
 		    if ( mx_socket->socket_flags & MXF_SOCKET_QUIET ) {
@@ -1967,7 +1956,7 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 		    saved_errno = mx_socket_get_last_error();
 
 		    if ( num_bytes_received != NULL ) {
-			*num_bytes_received = total_bytes_received;
+			*num_bytes_received = total_bytes_in_callers_buffer;
 		    }
 
 		    switch( saved_errno ) {
@@ -2003,17 +1992,26 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 			fprintf( stderr, "   bytes_left = %ld\n", bytes_left );
 		    }
 #endif
+		    total_bytes_in_callers_buffer += bytes_received_from_socket;
+
 		    break;
-		}
-	    }
+
+		} /* End of "switch(bytes_received_from_socket)" */
+
+	    } /* End of "if ( bytes_left > 0 )" */
 
 	    if ( input_terminators == NULL ) {
-		total_bytes_received += bytes_received_from_socket;
+		if ( num_bytes_received != NULL ) {
+		    *num_bytes_received = total_bytes_in_callers_buffer;
+		}
 	    } else {
 		/* Input terminators are _not_ NULL. */
 
-		for ( i = 0; i < bytes_received_from_socket; i++ ) {
-		    total_bytes_received++;
+		num_bytes_to_send_to_caller = 0;
+		num_terminators_seen = 0;
+
+		for ( i = 0; i < total_bytes_in_callers_buffer; i++ ) {
+		    num_bytes_to_send_to_caller++;
 
 		    if (ptr[i] == terminators[num_terminators_seen]) {
 			num_terminators_seen++;
@@ -2025,45 +2023,49 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 					     input_terminators_length_in_bytes )
 		    {
 			if ( num_bytes_received != NULL ) {
-			*num_bytes_received = total_bytes_received;
-		    }
-
-		    if ( i >= ( bytes_received_from_socket - 1 ) ) {
-			return MX_SUCCESSFUL_RESULT;
-		    } else {
-			bytes_unread = bytes_received_from_socket - i - i;
-
-#if ( MX_SOCKET_USE_MX_RECEIVE_BUFFER == FALSE )
-			return mx_error( MXE_LIMIT_WAS_EXCEEDED, fname,
-		"%ld unread bytes were lost after the input terminators.",
-						bytes_unread );
-#else /* MX_SOCKET_USE_MX_RECEIVE_BUFFER  */
-
-			circular_buffer = mx_socket->receive_buffer;
-
-			if ( circular_buffer == NULL ) {
-			    return mx_error( MXE_LIMIT_WAS_EXCEEDED, fname,
-		"%ld unread bytes were discarded after the input terminators.",
-						bytes_unread );
+			    *num_bytes_received = num_bytes_to_send_to_caller;
 			}
 
-			/* Copy the unread lines to the circular buffer. */
+			/* FIXME - FIXME - FIXME */
 
-			start_of_next_line = &ptr[i+1];
+			/* Fix the circular buffer logic here. */
 
-			MX_DEBUG(-2,("%s: start_of_next_line = '%s'",
+			/* If we found the end of the line before the end
+			 * of the bytes that we read into the caller's
+			 * buffer, then we need to do something with the
+			 * extra bytes.
+			 */
+
+			if ( i < ( total_bytes_in_callers_buffer - 1 ) ) {
+
+			    bytes_unread = bytes_received_from_socket - i - i;
+
+			    circular_buffer = mx_socket->receive_buffer;
+
+			    if ( circular_buffer == NULL ) {
+				return mx_error( MXE_LIMIT_WAS_EXCEEDED, fname,
+		"%ld unread bytes were discarded after the input terminators.",
+						bytes_unread );
+			    }
+
+			    /* Copy the unread lines to the circular buffer. */
+
+			    start_of_next_line = &ptr[i+1];
+
+			    MX_DEBUG(-2,("%s: start_of_next_line = '%s'",
 					fname, start_of_next_line));
 
-			mx_status = mx_circular_buffer_write( circular_buffer,
+			    mx_status = mx_circular_buffer_write(
+							circular_buffer,
 							start_of_next_line,
 							bytes_unread,
 							&bytes_saved );
 
-			if ( mx_status.code != MXE_SUCCESS )
-			    return mx_status;
+			    if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
-			if ( bytes_saved != bytes_unread ) {
-			    return mx_error( MXE_DATA_WAS_LOST, fname,
+			    if ( bytes_saved != bytes_unread ) {
+				return mx_error( MXE_DATA_WAS_LOST, fname,
 					"Socket data after the line "
 					"terminators was not fully "
 					"saved to the circular buffer "
@@ -2071,27 +2073,34 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 					"Bytes lost = %ld.",
 					    mx_socket->socket_fd,
 					    bytes_unread - bytes_saved);
-			}
+			    }
 
-			/* Null terminate the line we are sending
-			 * to the caller.
+			    /* Null terminate the line we are sending
+			     * to the caller.
+			     */
+
+			    *start_of_next_line = '\0';
+
+			    /* Force an early return to the calling routine. */
+
+			    /* Normal return version 2. */
+
+			    if ( num_bytes_received != NULL ) {
+				*num_bytes_received =
+					num_bytes_to_send_to_caller;
+			    }
+
+			    return MX_SUCCESSFUL_RESULT;
+
+			} /* End "if (i<(total_bytes_in_callers_buffer-1))" */
+
+			/* We successfully found line terminators,
+			 * so we can now return to the caller.
 			 */
-
-			*start_of_next_line = '\0';
-
-			/* Force an early return to the calling routine. */
-
-			/* Normal return version 2. */
-
-			if ( num_bytes_received != NULL ) {
-			    *num_bytes_received = total_bytes_received;
-			}
 
 			return MX_SUCCESSFUL_RESULT;
 		    }
-#endif /* MX_SOCKET_USE_MX_RECEIVE_BUFFER  */
 		}
-	    }
 
 		ptr += bytes_received_from_socket;
 		break;
@@ -2101,7 +2110,7 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 	/* Normal return version 1. */
 
 	if ( num_bytes_received != NULL ) {
-		*num_bytes_received = total_bytes_received;
+		*num_bytes_received = total_bytes_in_callers_buffer;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -2176,10 +2185,8 @@ mx_socket_num_input_bytes_available( MX_SOCKET *mx_socket,
 	char *error_string;
 	long num_socket_bytes_available;
 
-#if MX_SOCKET_USE_MX_RECEIVE_BUFFER
 	unsigned long flags;
 	mx_status_type mx_status;
-#endif
 
 #if HAVE_FD_SET
 	fd_set read_mask;
@@ -2198,7 +2205,6 @@ mx_socket_num_input_bytes_available( MX_SOCKET *mx_socket,
 
 	*num_input_bytes_available = 0;
 
-#if MX_SOCKET_USE_MX_RECEIVE_BUFFER
 	/* First check for bytes in the MX circular receive buffer. */
 
 	flags = mx_socket->socket_flags;
@@ -2215,8 +2221,6 @@ mx_socket_num_input_bytes_available( MX_SOCKET *mx_socket,
 
 		(*num_input_bytes_available) += bytes_in_receive_buffer;
 	}
-
-#endif /* MX_SOCKET_USE_MX_RECEIVE_BUFFER */
 
 	/* Now we check with select().  select() is capable of detecting
 	 * whether or not the remote server connection has gone away.
@@ -2330,7 +2334,6 @@ mx_socket_discard_unread_input( MX_SOCKET *mx_socket )
 	unsigned long k;
 #endif
 
-#if MX_SOCKET_USE_MX_RECEIVE_BUFFER
 	unsigned long flags;
 
 	flags = mx_socket->socket_flags;
@@ -2342,7 +2345,6 @@ mx_socket_discard_unread_input( MX_SOCKET *mx_socket )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	}
-#endif
 
 	/* If input is available, read until there is no more input.
 	 * If we do this to a socket that is constantly generating
