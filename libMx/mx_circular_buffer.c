@@ -140,7 +140,7 @@ mx_circular_buffer_read( MX_CIRCULAR_BUFFER *buffer,
 
 	/* Mark the data as read. */
 
-	mx_status = mx_circular_buffer_increment_read_bytes( buffer,
+	mx_status = mx_circular_buffer_increment_bytes_read( buffer,
 							num_bytes_peeked );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -429,10 +429,10 @@ mx_circular_buffer_num_bytes_available( MX_CIRCULAR_BUFFER *buffer,
 }
 
 MX_EXPORT mx_status_type
-mx_circular_buffer_increment_read_bytes( MX_CIRCULAR_BUFFER *buffer,
+mx_circular_buffer_increment_bytes_read( MX_CIRCULAR_BUFFER *buffer,
 					unsigned long num_bytes_to_increment )
 {
-	static const char fname[] = "mx_circular_buffer_increment_read_bytes()";
+	static const char fname[] = "mx_circular_buffer_increment_bytes_read()";
 
 	long mx_status_code;
 

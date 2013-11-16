@@ -64,7 +64,7 @@ MX_API mx_status_type mx_circular_buffer_num_bytes_available(
 					MX_CIRCULAR_BUFFER *buffer,
 					unsigned long *num_bytes_available );
 
-MX_API mx_status_type mx_circular_buffer_increment_read_bytes(
+MX_API mx_status_type mx_circular_buffer_increment_bytes_read(
 					MX_CIRCULAR_BUFFER *buffer,
 					unsigned long num_bytes_to_increment );
 
