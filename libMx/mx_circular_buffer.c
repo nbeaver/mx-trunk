@@ -183,6 +183,13 @@ mx_circular_buffer_peek( MX_CIRCULAR_BUFFER *buffer,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The data_destination pointer passed was NULL." );
 	}
+	if ( max_bytes_to_peek > buffer->buffer_size ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"Attempted to get %lu bytes from circular buffer %p, "
+		"but the circular buffer can only hold %lu bytes.",
+			max_bytes_to_peek, buffer,
+			buffer->buffer_size );
+	}
 
 	/* Lock the mutex. */
 
@@ -290,6 +297,13 @@ mx_circular_buffer_write( MX_CIRCULAR_BUFFER *buffer,
 	if ( data_source == (char *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The data_source pointer passed was NULL." );
+	}
+	if ( max_bytes_to_write > buffer->buffer_size ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"Attempted to write %lu bytes to circular buffer %p, "
+		"but the circular buffer can only hold %lu bytes.",
+			max_bytes_to_write, buffer,
+			buffer->buffer_size );
 	}
 
 	/* Lock the mutex. */

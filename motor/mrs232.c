@@ -36,7 +36,7 @@ static int
 motor_rs232_readline( MX_RECORD *record )
 {
 	MX_RS232 *rs232;
-	static char receive_buffer[2000];
+	static char receive_buffer[10000];
 	unsigned long num_input_bytes_available;
 	unsigned long transfer_flags;
 	mx_bool_type ignore_nulls;
