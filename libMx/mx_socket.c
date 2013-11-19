@@ -14,11 +14,11 @@
  *
  */
 
-#define MX_SOCKET_DEBUG				FALSE
+#define MX_SOCKET_DEBUG				TRUE
 
-#define MX_SOCKET_DEBUG_OPEN			FALSE
+#define MX_SOCKET_DEBUG_OPEN			TRUE
 
-#define MX_SOCKET_DEBUG_RECEIVE			FALSE
+#define MX_SOCKET_DEBUG_RECEIVE			TRUE
 
 #include <stdio.h>
 
@@ -2211,6 +2211,13 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 		    /* We successfully found line terminators,
 		     * so we can now return to the caller.
 		     */
+
+#if 0
+		    if ( strncmp( callers_buffer,
+				"*5 Programs Defined; Scale", 25 ) == 0 ) {
+			mx_breakpoint();
+		    }
+#endif
 
 		    return MX_SUCCESSFUL_RESULT;
 		}
