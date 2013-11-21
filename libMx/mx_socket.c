@@ -1011,12 +1011,14 @@ mx_socket_close( MX_SOCKET *mx_socket )
 	MX_DEBUG(-2,("%s invoked for socket %d.", fname, socket_fd));
 #endif
 
-	if ( mx_socket->receive_buffer != NULL ) {
-		mx_status = mx_circular_buffer_destroy(
+	if ( (mx_socket->socket_flags) & MXF_SOCKET_USE_MX_RECEIVE_BUFFER ) {
+		if ( mx_socket->receive_buffer != NULL ) {
+			mx_status = mx_circular_buffer_destroy(
 						mx_socket->receive_buffer );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
 	}
 
 	/* Set the socket to non-blocking mode.
@@ -2032,16 +2034,19 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 		 * we received to the caller.
 		 */
 
-		/* First, tell the circular buffer to treat the bytes
-		 * we peeked as having been read.
-		 */
+		if ( flags & MXF_SOCKET_USE_MX_RECEIVE_BUFFER ) {
 
-		mx_status = mx_circular_buffer_increment_bytes_read(
+		    /* First, tell the circular buffer to treat the bytes
+		     * we peeked as having been read.
+		     */
+
+		    mx_status = mx_circular_buffer_increment_bytes_read(
 						circular_buffer,
 						bytes_peeked_from_buffer );
 
-		if ( mx_status.code != MXE_SUCCESS )
-		    return mx_status;
+		    if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+		}
 
 		/* If requested, tell the caller the number of bytes
 		 * we are sending to it.
@@ -2092,69 +2097,71 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 		     *      bytes_received_from_socket
 		     */
 
-		    if (num_bytes_to_send_to_caller <= bytes_peeked_from_buffer)
-		    {
-			/* In this case, all of the bytes we are sending
-			 * to the caller came from the circular buffer.
-			 * Thus, we must increment the circular_buffer's
-			 * bytes_read value to match.
-			 *
-			 * We can only get here if no bytes were received
-			 * from the socket, so we do not have to worry about
-			 * handling socket bytes in this case.
-			 */
+		    if ( flags & MXF_SOCKET_USE_MX_RECEIVE_BUFFER ) {
+			if (num_bytes_to_send_to_caller
+					<= bytes_peeked_from_buffer)
+			{
+			    /* In this case, all of the bytes we are sending
+			     * to the caller came from the circular buffer.
+			     * Thus, we must increment the circular buffer's
+			     * bytes_read value to match.
+			     *
+			     * We can only get here if no bytes were received
+			     * from the socket, so we do not have to worry about
+			     * handling socket bytes in this case.
+			     */
 
-			mx_status = mx_circular_buffer_increment_bytes_read(
+			    mx_status = mx_circular_buffer_increment_bytes_read(
 						circular_buffer,
 						num_bytes_to_send_to_caller );
 
-			if ( mx_status.code != MXE_SUCCESS )
-			    return mx_status;
-		    } else {
+			    if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+			} else {
 
-			/* All of the bytes we peeked from the circular buffer
-			 * (if any) are going to be sent to the caller.  So
-			 * inform the circular buffer that those bytes have
-			 * been read.
-			 */
+			    /* All of the bytes we peeked from the circular
+			     * buffer (if any) are going to be sent to the
+			     * caller.  So inform the circular buffer that
+			     * those bytes have been read.
+			     */
 
-			mx_status = mx_circular_buffer_increment_bytes_read(
+			    mx_status = mx_circular_buffer_increment_bytes_read(
 						circular_buffer,
 						bytes_peeked_from_buffer );
 
-			if ( mx_status.code != MXE_SUCCESS )
-			    return mx_status;
+			    if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
-			/* Any bytes received from the socket that are not
-			 * going to be sent to the caller need to be saved
-			 * in the circular buffer.
-			 */
+			    /* Any bytes received from the socket that are not
+			     * going to be sent to the caller need to be saved
+			     * in the circular buffer.
+			     */
 
-			num_bytes_to_save = total_bytes_in_callers_buffer
+			    num_bytes_to_save = total_bytes_in_callers_buffer
 						- num_bytes_to_send_to_caller;
 
-			start_of_next_line = &scan_ptr[i+1];
+			    start_of_next_line = &scan_ptr[i+1];
 
 #if MX_SOCKET_DEBUG_RECEIVE
-			MX_DEBUG(-2,("%s: num_bytes_to_save = %ld",
+			    MX_DEBUG(-2,("%s: num_bytes_to_save = %ld",
 				fname, num_bytes_to_save));
-			MX_DEBUG(-2,("%s: start_of_next_line = '%s'",
+			    MX_DEBUG(-2,("%s: start_of_next_line = '%s'",
 				fname, start_of_next_line));
 #endif
 
-			/* Copy the leftover bytes to the circular buffer. */
+			    /* Copy the leftover bytes to the circular buffer.*/
 
-			mx_status = mx_circular_buffer_write(
+			    mx_status = mx_circular_buffer_write(
 						circular_buffer,
 						start_of_next_line,
 						num_bytes_to_save,
 						&bytes_saved );
 
-			if ( mx_status.code != MXE_SUCCESS )
-			    return mx_status;
+			    if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
-			if ( bytes_saved != num_bytes_to_save ) {
-			    return mx_error( MXE_DATA_WAS_LOST, fname,
+			    if ( bytes_saved != num_bytes_to_save ) {
+				return mx_error( MXE_DATA_WAS_LOST, fname,
 					"Socket data after the line "
 					"terminators was not fully "
 					"saved to the circular buffer "
@@ -2162,6 +2169,7 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 					"Bytes lost = %ld.",
 					    mx_socket->socket_fd,
 					    num_bytes_to_save - bytes_saved);
+			    }
 			}
 		    }
 
@@ -2221,16 +2229,21 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 	    }
 	}
 
-	/* We filled the caller's buffer without finding any line terminators,
-	 * so just return what we received.  Make sure to tell the circular
-	 * buffer that the bytes we peeked are now read.
-	 */
+	if ( flags & MXF_SOCKET_USE_MX_RECEIVE_BUFFER ) {
 
-	mx_status = mx_circular_buffer_increment_bytes_read( circular_buffer,
+	    /* We filled the caller's buffer without finding any line
+	     * terminators, so just return what we received.  Make sure
+	     * to tell the circular buffer that the bytes we peeked are
+	     * now read.
+	     */
+
+	    mx_status = mx_circular_buffer_increment_bytes_read(
+						circular_buffer,
 						bytes_peeked_from_buffer );
 
-	if ( mx_status.code != MXE_SUCCESS )
+	    if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+	}
 
 	if ( num_bytes_received != NULL ) {
 		*num_bytes_received = total_bytes_in_callers_buffer;
