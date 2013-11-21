@@ -19,8 +19,6 @@
 
 #define MXI_TCP232_DEBUG_TIMING			FALSE
 
-#define MXI_TCP232_USE_MX_RECEIVE_BUFFER	TRUE
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -634,8 +632,6 @@ mxi_tcp232_putline( MX_RS232 *rs232,
 	return mx_status;
 }
 
-#if MXI_TCP232_USE_MX_RECEIVE_BUFFER
-
 MX_EXPORT mx_status_type
 mxi_tcp232_num_input_bytes_available( MX_RS232 *rs232 )
 {
@@ -695,172 +691,6 @@ mxi_tcp232_discard_unread_input( MX_RS232 *rs232 )
 	return mx_status;
 }
 
-#else /* not MXI_TCP232_USE_MX_RECEIVE_BUFFER */
-
-MX_EXPORT mx_status_type
-mxi_tcp232_num_input_bytes_available( MX_RS232 *rs232 )
-{
-	static const char fname[] = "mxi_tcp232_num_input_bytes_available()";
-
-	MX_TCP232 *tcp232;
-	int num_fds, select_status, saved_errno;
-	struct timeval timeout;
-	char *error_string;
-
-#if HAVE_FD_SET
-	fd_set read_mask;
-#else
-	long read_mask;
-#endif
-
-	tcp232 = (MX_TCP232 *) (rs232->record->record_type_struct);
-
-	if ( tcp232 == (MX_TCP232 *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"MX_TCP232 structure for TCP232 port '%s' is NULL.",
-			rs232->record->name);
-	}
-
-	if ( mx_socket_is_open( tcp232->socket ) == FALSE ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"TCP232 socket '%s' is not open.", rs232->record->name);
-	}
-#ifdef OS_WIN32
-	num_fds = -1;  /* Win32 doesn't really use this argument. */
-#else
-	num_fds = 1 + tcp232->socket->socket_fd;
-#endif
-
-#if HAVE_FD_SET
-	FD_ZERO( &read_mask );
-	FD_SET( (tcp232->socket->socket_fd), &read_mask );
-#else
-	read_mask = 1 << (tcp232->socket);
-#endif
-	/* Set timeout to zero. */
-
-	timeout.tv_usec = 0;
-	timeout.tv_sec = 0;
-	
-	/* Do the test. */
-
-	select_status = select( num_fds, &read_mask, NULL, NULL, &timeout );
-
-	saved_errno = mx_socket_check_error_status(
-		&select_status, MXF_SOCKCHK_INVALID, &error_string );
-
-	if ( saved_errno != 0 ) {
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-			"Error while testing input ready status of '%s'.  "
-			"Errno = %d.  Error string = '%s'.",
-			rs232->record->name, saved_errno, error_string );
-	}
-
-	if ( select_status ) {
-		rs232->num_input_bytes_available = 1;
-	} else {
-		rs232->num_input_bytes_available = 0;
-	}
-
-#if MXI_TCP232_DEBUG
-	MX_DEBUG(-2,("%s: num_input_bytes_available = %ld",
-			fname, rs232->num_input_bytes_available));
-#endif
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_tcp232_discard_unread_input( MX_RS232 *rs232 )
-{
-	static const char fname[] = "mxi_tcp232_discard_unread_input()";
-
-	unsigned long i, timeout, debug_flag;
-	char c;
-	mx_status_type mx_status;
-
-	char buffer[2500];
-	unsigned long j, k;
-	unsigned long buffer_length = sizeof(buffer) / sizeof(buffer[0]);
-
-	timeout = 10000L;
-
-	/* If input is available, read until there is no more input.
-	 * If we do this to a device that is constantly generating
-	 * output, then we will never get to the end.  Thus, we have
-	 * built a timeout into the function.
-	 */
-
-	rs232->transfer_flags &= ( ~ MXF_232_NOWAIT );
-
-	debug_flag = rs232->transfer_flags & MXF_232_DEBUG;
-
-	for ( i=0; i < timeout; i++ ) {
-
-		mx_msleep(5);
-
-		mx_status = mxi_tcp232_num_input_bytes_available( rs232 );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		if ( rs232->num_input_bytes_available == 0 ) {
-
-			break;	/* Here we exit the for() loop. */
-
-		} else {
-			mx_status = mxi_tcp232_getchar( rs232, &c );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			if ( debug_flag ) {
-				if ( i < buffer_length ) {
-					buffer[i] = c;
-				}
-			}
-		}
-	}
-
-	if ( debug_flag ) {
-		if ( i > buffer_length )
-			k = buffer_length;
-		else
-			k = i;
-
-		if ( i > 0 ) {
-			fprintf(stderr,
-				"%s: First %lu characters discarded were:\n\n",
-				fname,k);
-
-			for ( j = 0; j < k; j++ ) {
-				c = buffer[j];
-
-				if ( isprint( (int) c ) ) {
-					fputc( c, stderr );
-				} else {
-					fprintf( stderr, "(0x%x)", c & 0xff );
-				}
-			}
-			fprintf(stderr,"\n\n");
-		}
-	}
-
-	if ( i >= timeout ) {
-		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-"As many as %lu characters were read while trying to empty the input buffer.  "
-"Perhaps this device continuously generates output?", timeout );
-
-	} else if ( i > 0 ) {
-
-		MX_DEBUG( 2,("%s: %lu characters discarded.", fname, i));
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-#endif /* not MXI_TCP232_USE_MX_RECEIVE_BUFFER */
-
 MX_EXPORT mx_status_type
 mxi_tcp232_discard_unwritten_output( MX_RS232 *rs232 )
 {
@@ -873,3 +703,4 @@ mxi_tcp232_discard_unwritten_output( MX_RS232 *rs232 )
 }
 
 #endif /* HAVE_TCPIP */
+
