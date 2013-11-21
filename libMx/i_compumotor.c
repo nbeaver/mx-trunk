@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2010, 2012 Illinois Institute of Technology
+ * Copyright 1999-2006, 2010, 2012-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -415,13 +415,6 @@ mxi_compumotor_close( MX_RECORD *record )
 
 	mx_status = mx_rs232_discard_unread_input(
 				compumotor_interface->rs232_record, FALSE );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Close the RS-232 connection. */
-
-	mx_status = mx_close_hardware( compumotor_interface->rs232_record );
 
 	return mx_status;
 }

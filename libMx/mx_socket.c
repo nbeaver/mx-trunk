@@ -14,11 +14,13 @@
  *
  */
 
-#define MX_SOCKET_DEBUG				TRUE
+#define MX_SOCKET_DEBUG				FALSE
 
-#define MX_SOCKET_DEBUG_OPEN			TRUE
+#define MX_SOCKET_DEBUG_OPEN			FALSE
 
-#define MX_SOCKET_DEBUG_RECEIVE			TRUE
+#define MX_SOCKET_DEBUG_CLOSE			FALSE
+
+#define MX_SOCKET_DEBUG_RECEIVE			FALSE
 
 #include <stdio.h>
 
@@ -423,9 +425,11 @@ mx_tcp_socket_open_as_client( MX_SOCKET **client_socket,
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
+#if MX_SOCKET_DEBUG_OPEN
 			MX_DEBUG(-2,
 			("%s: circular_buffer = %p, buffer_size = %ld",
 				fname, circular_buffer, buffer_size));
+#endif
 
 			(*client_socket)->receive_buffer = circular_buffer;
 		}		
@@ -1003,7 +1007,7 @@ mx_socket_close( MX_SOCKET *mx_socket )
 
 	socket_fd = mx_socket->socket_fd;
 
-#if MX_SOCKET_DEBUG_OPEN
+#if MX_SOCKET_DEBUG_CLOSE
 	MX_DEBUG(-2,("%s invoked for socket %d.", fname, socket_fd));
 #endif
 
@@ -2211,13 +2215,6 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 		    /* We successfully found line terminators,
 		     * so we can now return to the caller.
 		     */
-
-#if 0
-		    if ( strncmp( callers_buffer,
-				"*5 Programs Defined; Scale", 25 ) == 0 ) {
-			mx_breakpoint();
-		    }
-#endif
 
 		    return MX_SUCCESSFUL_RESULT;
 		}
