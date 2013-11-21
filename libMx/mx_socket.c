@@ -2225,10 +2225,15 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 	}
 
 	/* We filled the caller's buffer without finding any line terminators,
-	 * so just return what we received.
-	 *
-	 * FIXME:  It is arguable that this is an error condition.
+	 * so just return what we received.  Make sure to tell the circular
+	 * buffer that the bytes we peeked are now read.
 	 */
+
+	mx_status = mx_circular_buffer_increment_bytes_read( circular_buffer,
+						bytes_peeked_from_buffer );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( num_bytes_received != NULL ) {
 		*num_bytes_received = total_bytes_in_callers_buffer;

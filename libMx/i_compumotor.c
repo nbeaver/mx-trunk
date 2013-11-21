@@ -416,6 +416,13 @@ mxi_compumotor_close( MX_RECORD *record )
 	mx_status = mx_rs232_discard_unread_input(
 				compumotor_interface->rs232_record, FALSE );
 
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Close the RS-232 connection. */
+
+	mx_status = mx_close_hardware( compumotor_interface->rs232_record );
+
 	return mx_status;
 }
 
