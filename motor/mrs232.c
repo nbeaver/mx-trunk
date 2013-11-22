@@ -139,10 +139,7 @@ motor_rs232_sendfile( MX_RECORD *record,
 	}
 
 	fprintf( output, "Sending file '%s' to serial port '%s'.\n",
-		filename, record->name );
-
-	fprintf( output, "Sending file '%s' to serial port '%s'.\n",
-						filename, record->name );
+					filename, record->name );
 
 	file_size = mx_get_file_size( filename );
 
@@ -206,6 +203,7 @@ motor_rs232_fn( int argc, char *argv[] )
 	int cmd_type, status;
 	size_t length;
 	unsigned long signal_state;
+	unsigned long num_input_bytes_available;
 	char *endptr;
 	mx_status_type mx_status;
 
@@ -218,7 +216,8 @@ motor_rs232_fn( int argc, char *argv[] )
 		"       rs232 'record_name' get signal_state\n"
 		"       rs232 'record_name' set signal_state 'value'\n"
 		"       rs232 'record_name' sendfile 'filename'\n"
-		"       rs232 'record_name' discard\n\n";
+		"       rs232 'record_name' discard\n"
+		"       rs232 'record_name' get input_bytes\n\n";
 
 	if ( argc <= 3 ) {
 		fputs( usage, output );
@@ -264,6 +263,9 @@ motor_rs232_fn( int argc, char *argv[] )
 	} else if ( strncmp( "sendfile", argv[3], max(1,length) ) == 0 ) {
 		cmd_type = RS232_SENDFILE_CMD;
 
+	} else if ( strncmp( "discard", argv[3], max(1,length) ) == 0 ) {
+		cmd_type = RS232_DISCARD_CMD;
+
 	} else {
 		fputs( usage, output );
 		return FAILURE;
@@ -276,6 +278,11 @@ motor_rs232_fn( int argc, char *argv[] )
 		}
 	} else if ( cmd_type == RS232_SET_CMD ) {
 		if ( argc != 6 ) {
+			fputs( usage, output );
+			return FAILURE;
+		}
+	} else if ( cmd_type == RS232_DISCARD_CMD ) {
+		if ( argc != 4 ) {
 			fputs( usage, output );
 			return FAILURE;
 		}
@@ -348,6 +355,17 @@ motor_rs232_fn( int argc, char *argv[] )
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
+		} else if (strncmp("input_bytes", argv[4], max(1,length)) == 0)
+		{
+			mx_status = mx_rs232_num_input_bytes_available( record,
+						&num_input_bytes_available );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+
+			fprintf( output,
+			"rs232: %lu input bytes available for '%s'.\n",
+				num_input_bytes_available, record->name );
 		} else {
 			fputs( usage, output );
 			return FAILURE;
@@ -393,6 +411,16 @@ motor_rs232_fn( int argc, char *argv[] )
 
 	case RS232_DISCARD_CMD:
 		(void) mx_rs232_discard_unwritten_output( record, RS232_DEBUG );
+
+		mx_status = mx_rs232_num_input_bytes_available( record,
+						&num_input_bytes_available );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+
+		fprintf( output,
+		"rs232: Discarding %lu input bytes for '%s'.\n",
+			num_input_bytes_available, record->name );
 
 		(void) mx_rs232_discard_unread_input( record, RS232_DEBUG );
 		break;

@@ -2279,7 +2279,7 @@ mx_socket_getline( MX_SOCKET *mx_socket, char *buffer, size_t buffer_length,
 					char *line_terminators )
 {
 	mx_status_type mx_status;
-	size_t i, string_length, line_terminator_length, num_bytes_received;
+	size_t line_terminator_length, num_bytes_received;
 
 	*buffer = '\0';
 
@@ -2295,19 +2295,7 @@ mx_socket_getline( MX_SOCKET *mx_socket, char *buffer, size_t buffer_length,
 					line_terminators,
 					line_terminator_length );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Strip off the line terminators. */
-
-	string_length = num_bytes_received;
-
-	for (i = string_length - line_terminator_length; i < string_length; i++)
-	{
-		buffer[i] = '\0';
-	}
-
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -2472,16 +2460,6 @@ mx_socket_discard_unread_input( MX_SOCKET *mx_socket )
 
 	unsigned long flags;
 
-	flags = mx_socket->socket_flags;
-
-	if ( flags & MXF_SOCKET_USE_MX_RECEIVE_BUFFER ) {
-		mx_status = mx_circular_buffer_discard_available_bytes(
-						mx_socket->receive_buffer );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-	}
-
 	/* If input is available, read until there is no more input.
 	 * If we do this to a socket that is constantly generating
 	 * output, then we will never get to the end.  Thus, we have
@@ -2555,6 +2533,20 @@ mx_socket_discard_unread_input( MX_SOCKET *mx_socket )
 
 		mx_msleep( wait_ms );
 	}
+
+	/* Discard anything left in the circular buffer. */
+
+	flags = mx_socket->socket_flags;
+
+	if ( flags & MXF_SOCKET_USE_MX_RECEIVE_BUFFER ) {
+		mx_status = mx_circular_buffer_discard_available_bytes(
+						mx_socket->receive_buffer );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	/* Warn if we didn't successfully discard everything. */
 
 	if ( i >= max_attempts ) {
 		return mx_error( MXE_TIMED_OUT, fname,

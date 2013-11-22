@@ -183,6 +183,8 @@ mx_circular_buffer_peek( MX_CIRCULAR_BUFFER *buffer,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The data_destination pointer passed was NULL." );
 	}
+
+#if 0
 	if ( max_bytes_to_peek > buffer->buffer_size ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"Attempted to get %lu bytes from circular buffer %p, "
@@ -190,6 +192,11 @@ mx_circular_buffer_peek( MX_CIRCULAR_BUFFER *buffer,
 			max_bytes_to_peek, buffer,
 			buffer->buffer_size );
 	}
+#else
+	if ( max_bytes_to_peek > buffer->buffer_size ) {
+		max_bytes_to_peek = buffer->buffer_size;
+	}
+#endif
 
 	/* Lock the mutex. */
 
@@ -217,6 +224,13 @@ mx_circular_buffer_peek( MX_CIRCULAR_BUFFER *buffer,
 		num_bytes_to_peek = max_bytes_to_peek;
 	} else {
 		num_bytes_to_peek = num_bytes_in_use;
+	}
+
+	if ( num_bytes_in_use > buffer->buffer_size ) {
+		mx_warning( "%s: Buffer overrun detected for circular "
+		"buffer %p.  %lu bytes in use, but buffer is %lu bytes.",
+			fname, buffer, num_bytes_in_use,
+			buffer->buffer_size );
 	}
 
 	bytes_read_modulo = buffer->bytes_read % ( buffer->buffer_size );
@@ -298,6 +312,8 @@ mx_circular_buffer_write( MX_CIRCULAR_BUFFER *buffer,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The data_source pointer passed was NULL." );
 	}
+
+#if 0
 	if ( max_bytes_to_write > buffer->buffer_size ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"Attempted to write %lu bytes to circular buffer %p, "
@@ -305,6 +321,19 @@ mx_circular_buffer_write( MX_CIRCULAR_BUFFER *buffer,
 			max_bytes_to_write, buffer,
 			buffer->buffer_size );
 	}
+#else
+	if ( max_bytes_to_write > buffer->buffer_size ) {
+		mx_warning(
+		"%s: Attempted to write %lu bytes to circular buffer %p, "
+		"but the circular buffer can only hold %lu bytes.  "
+		"The last %lu bytes will be discarded.",
+			fname, max_bytes_to_write, buffer,
+			buffer->buffer_size,
+			max_bytes_to_write - buffer->buffer_size );
+
+		max_bytes_to_write = buffer->buffer_size;
+	}
+#endif
 
 	/* Lock the mutex. */
 
@@ -319,6 +348,8 @@ mx_circular_buffer_write( MX_CIRCULAR_BUFFER *buffer,
 	num_bytes_in_use = buffer->bytes_written - buffer->bytes_read;
 
 	if ( num_bytes_in_use > buffer->buffer_size ) {
+		(void) mx_mutex_unlock( buffer->mutex );
+
 		return mx_error( MXE_LIMIT_WAS_EXCEEDED, fname,
 		"Buffer overrun for MX_CIRCULAR_BUFFER %p.  "
 		"The difference (%lu) between bytes_written (%lu) "
@@ -338,6 +369,12 @@ mx_circular_buffer_write( MX_CIRCULAR_BUFFER *buffer,
 		num_bytes_to_write = max_bytes_to_write;
 	} else {
 		num_bytes_to_write = num_unused_bytes;
+	}
+
+	if ( num_bytes_to_write < max_bytes_to_write ) {
+		mx_warning( "%s: %lu bytes were discarded since they "
+		"would not fit into circular buffer %p",
+		fname, max_bytes_to_write - num_bytes_to_write, buffer );
 	}
 
 	bytes_written_modulo = buffer->bytes_written % ( buffer->buffer_size );
