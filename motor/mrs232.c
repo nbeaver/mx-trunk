@@ -16,9 +16,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #include "motor.h"
 #include "mx_rs232.h"
+#include "mx_io.h"
 
 #ifndef max
 #define max(a,b) ((a) >= (b) ? (a) : (b))
@@ -31,6 +33,8 @@
 #define RS232_COMMAND_CMD	3
 #define RS232_GET_CMD		4
 #define RS232_SET_CMD		5
+#define RS232_SENDFILE_CMD	6
+#define RS232_DISCARD_CMD	7
 
 static int
 motor_rs232_readline( MX_RECORD *record )
@@ -113,6 +117,86 @@ motor_rs232_readline( MX_RECORD *record )
 	return SUCCESS;
 }
 
+static int
+motor_rs232_sendfile( MX_RECORD *record,
+			const char *filename )
+{
+	MX_RS232 *rs232;
+	FILE *file;
+	size_t file_size, block_size, bytes_read;
+	int64_t remaining_file_size;
+	int saved_errno;
+	char buffer[512];
+	mx_status_type mx_status;
+
+	rs232 = (MX_RS232 *) record->record_class_struct;
+
+	if ( rs232 == (MX_RS232 *) NULL ) {
+		fprintf( output,
+		"Program bug: The MX_RS232 pointer for record '%s' is NULL.\n",
+			record->name );
+		return FAILURE;
+	}
+
+	fprintf( output, "Sending file '%s' to serial port '%s'.\n",
+		filename, record->name );
+
+	fprintf( output, "Sending file '%s' to serial port '%s'.\n",
+						filename, record->name );
+
+	file_size = mx_get_file_size( filename );
+
+	if ( file_size < 0 ) {
+		saved_errno = errno;
+
+		fprintf( output,
+		"The attempt to get the size of file '%s' failed.  "
+		"Errno = %d, error message = '%s'\n",
+			filename, saved_errno, strerror(saved_errno) );
+
+		return FAILURE;
+	}
+
+	file = fopen( filename, "rb" );
+
+	if ( file == (FILE *) NULL ) {
+		saved_errno = errno;
+
+		fprintf( output,
+		"The attempt to open file '%s' failed.  "
+		"Errno = %d, error message = '%s'\n",
+			filename, saved_errno, strerror(saved_errno) );
+
+		return FAILURE;
+	}
+
+	remaining_file_size = file_size;
+		
+	block_size = sizeof(buffer);
+
+	while( remaining_file_size > 0 ) {
+		bytes_read = fread( buffer, 1, block_size, file );
+
+		if ( bytes_read == 0 ) {
+			(void) fclose( file );
+
+			return SUCCESS;
+		}
+		
+		mx_status = mx_rs232_write( record, buffer,
+					bytes_read, NULL, RS232_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+
+		remaining_file_size -= bytes_read;
+	}
+
+	(void) fclose( file );
+
+	return SUCCESS;
+}
+
 int
 motor_rs232_fn( int argc, char *argv[] )
 {
@@ -132,7 +216,9 @@ motor_rs232_fn( int argc, char *argv[] )
 		"       rs232 'record_name' command \"text to send\"\n"
 		"       rs232 'record_name' cmd \"text to send\"\n"
 		"       rs232 'record_name' get signal_state\n"
-		"       rs232 'record_name' set signal_state 'value'\n\n";
+		"       rs232 'record_name' set signal_state 'value'\n"
+		"       rs232 'record_name' sendfile 'filename'\n"
+		"       rs232 'record_name' discard\n\n";
 
 	if ( argc <= 3 ) {
 		fputs( usage, output );
@@ -172,8 +258,11 @@ motor_rs232_fn( int argc, char *argv[] )
 	} else if ( strncmp( "get", argv[3], max(1,length) ) == 0 ) {
 		cmd_type = RS232_GET_CMD;
 
-	} else if ( strncmp( "set", argv[3], max(1,length) ) == 0 ) {
+	} else if ( strncmp( "set", argv[3], max(3,length) ) == 0 ) {
 		cmd_type = RS232_SET_CMD;
+
+	} else if ( strncmp( "sendfile", argv[3], max(1,length) ) == 0 ) {
+		cmd_type = RS232_SENDFILE_CMD;
 
 	} else {
 		fputs( usage, output );
@@ -289,6 +378,25 @@ motor_rs232_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 		break;
+
+	case RS232_SENDFILE_CMD:
+		status = motor_rs232_sendfile( record, argv[4] );
+
+		if ( status == FAILURE ) {
+			fprintf( output,
+		"rs232: The attempt to send file '%s' to port '%s' failed.\n",
+				argv[4], record->name );
+
+			return FAILURE;
+		}
+		break;
+
+	case RS232_DISCARD_CMD:
+		(void) mx_rs232_discard_unwritten_output( record, RS232_DEBUG );
+
+		(void) mx_rs232_discard_unread_input( record, RS232_DEBUG );
+		break;
+
 	default:
 		fprintf( output,
 		"rs232: Unrecognized command line.\n" );

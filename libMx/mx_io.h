@@ -24,6 +24,7 @@ extern "C" {
 #endif
 
 #include "mx_socket.h"
+#include "mx_stdint.h"
 
 /* mx_fd_num_input_bytes_available() tells us how many bytes can be read
  * from a Unix-style file descriptor without blocking.
@@ -38,6 +39,12 @@ MX_API int mx_get_max_file_descriptors( void );
 MX_API int mx_get_number_of_open_file_descriptors( void );
 
 MX_API mx_bool_type mx_fd_is_valid( int fd );
+
+/*----*/
+
+MX_API int64_t mx_get_file_size( const char *filename );
+
+/*----*/
 
 MX_API char *mx_get_fd_name( unsigned long process_id, int fd,
 				char *buffer, size_t buffer_size );

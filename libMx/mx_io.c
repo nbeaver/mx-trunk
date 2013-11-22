@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <errno.h>
+#include <sys/stat.h>
 
 #include "mx_osdef.h"
 #include "mx_util.h"
@@ -35,7 +36,6 @@
 #  define pclose(x)  _pclose(x)
 
 #  include <aclapi.h>
-#  include <sys/stat.h>
 #endif
 
 /*-------------------------------------------------------------------------*/
@@ -305,6 +305,120 @@ mx_fd_is_valid( int fd )
 #else
 
 #error mx_fd_is_valid() has not been implemented for this platform.
+
+#endif
+
+/*=========================================================================*/
+
+#if defined(OS_WIN32)
+
+MX_EXPORT int64_t
+mx_get_file_size( const char *filename )
+{
+	int64_t file_size;
+
+	HANDLE file_handle;
+	DWORD low_doubleword, high_doubleword;
+	long last_error_code;
+	char error_message[1000];
+
+	file_handle = CreateFile( filename,
+				0,
+				FILE_SHARE_READ,
+				NULL,
+				OPEN_EXISTING,
+				FILE_ATTRIBUTE_NORMAL,
+				NULL );
+
+	if ( file_handle == INVALID_HANDLE_VALUE ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			error_message, sizeof(error_message) );
+
+		(void) mx_error( MXE_FILE_IO_ERROR, fname,
+		"The attempt to open file '%s' for read access failed.  "
+		"Win32 error code = %ld, error message = '%s'",
+			filename, last_error_code, error_message );
+
+		return (-1);
+	}
+
+	low_doubleword = GetFileSize( file_handle, &high_doubleword );
+
+	if ( low_doubleword == INVALID_FILE_SIZE ) [
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			error_message, sizeof(error_message) );
+
+		(void) mx_error( MXE_FILE_IO_ERROR, fname,
+		"The attempt to get the file size of file '%s' failed.  "
+		"Win32 error code = %ld, error message = '%s'",
+			filename, last_error_code, error_message );
+
+		return (-1);
+	}
+
+	CloseHandle( file_handle );
+
+	file_size = (int64_t) low_doubleword
+			+ ( ( (int64_t) high_doubleword ) << 32 );
+
+	return file_size;
+}
+
+#elif defined(OS_LINUX)
+
+#if (MX_WORDSIZE == 32)   /* 32-bit version */
+
+MX_EXPORT int64_t
+mx_get_file_size( const char *filename )
+{
+	int64_t file_size;
+
+	struct stat stat_buffer;
+	int os_status;
+
+	os_status = stat( filename, &stat_buffer );
+
+	if ( os_status < 0 ) {
+		return (-1);
+	}
+
+	file_size = stat_buffer.st_size;
+
+	return file_size;
+}
+
+#else	/* 64 bit version */
+
+#error 64-bit foobar
+
+MX_EXPORT int64_t
+mx_get_file_size( const char *filename )
+{
+	int64_t file_size;
+
+	struct stat64 stat64_buffer;
+	int os_status;
+
+	os_status = stat64( filename, &stat64_buffer );
+
+	if ( os_status < 0 ) {
+		return (-1);
+	}
+
+	file_size = stat64_buffer.st_size;
+
+	return file_size;
+}
+
+#endif	/* 64 bit version */
+
+#else
+
+#error mx_get_file_size() has not yet been implemented for this platform.
 
 #endif
 
