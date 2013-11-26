@@ -26,9 +26,17 @@
 
 #define MXF_COMPUMOTOR_ROUND_POSITION_OUTPUT_TO_NEAREST_INTEGER	0x0002
 
+#define MXF_COMPUMOTOR_DETECT_SERVO				0x0010
+
+#define MXF_COMPUMOTOR_IS_STEPPER				0x0020
+
+#define MXF_COMPUMOTOR_IS_SERVO					0x0040
+
 #define MXF_COMPUMOTOR_DISABLE_HARDWARE_LIMITS			0x1000
 
 typedef struct {
+	MX_RECORD *record;
+
 	MX_RECORD *compumotor_interface_record;
 	long controller_number;
 	long axis_number;

@@ -46,6 +46,8 @@ typedef struct {
 MX_API_PRIVATE mx_status_type
 		mxv_biocat_toast_joystick_create_record_structures(
 							MX_RECORD *record );
+MX_API_PRIVATE mx_status_type
+		mxv_biocat_toast_joystick_open( MX_RECORD *record );
 
 MX_API_PRIVATE mx_status_type mxv_biocat_toast_joystick_send_variable(
 							MX_VARIABLE *variable );

@@ -165,6 +165,7 @@ mxd_compumotor_create_record_structures( MX_RECORD *record )
 				= &mxd_compumotor_motor_function_list;
 
 	motor->record = record;
+	compumotor->record = record;
 
 	/* A Compumotor motor is treated as an analog motor. */
 
@@ -333,9 +334,10 @@ mxd_compumotor_check_for_servo( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 {
 	static const char fname[] = "mxd_compumotor_check_for_servo()";
 
-	size_t i, j, k, l, num_axes, skipped;
+	size_t i, j, k, l, skipped;
 	char command[80];
 	char response[80];
+	unsigned long flags;
 	mx_status_type mx_status;
 
 	i = compumotor->controller_index;
@@ -351,24 +353,75 @@ mxd_compumotor_check_for_servo( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 		break;
 
 	case MXT_COMPUMOTOR_6K:
-		j = compumotor->axis_number - 1;
+		/* In principle, the AXSDEF command can be use to determine
+		 * whether or not a drive is a stepper or a servo motor.
+		 * The drive has to be disabled for this test to work
+		 * reliably.  For example, if a joystick is enabled, the
+		 * AXSDEF command will generate a "MOTION IN PROGRESS"
+		 * error message.  However, there are cases where it is
+		 * not safe to disable the drive.  For those cases, we
+		 * provide an alternate way to explicitly specify whether
+		 * we have a servo or a stepper.
+		 */
 
-		num_axes = (int) (compumotor_interface->num_axes)[i];
+		flags = compumotor->flags;
+
+		if ( flags & MXF_COMPUMOTOR_IS_SERVO ) {
+			compumotor->is_servo = TRUE;
+			break;
+		} else
+		if ( flags & MXF_COMPUMOTOR_IS_STEPPER ) {
+			compumotor->is_servo = FALSE;
+			break;
+		} else
+		if ( (flags & MXF_COMPUMOTOR_DETECT_SERVO) == 0 ) {
+			/* If we are not doing servo detection, then
+			 * we assume the motor is a stepper motor.
+			 */
+			compumotor->is_servo = FALSE;
+			break;
+		}
+
+		/* If we get here, then the MXF_COMPUMOTOR_DETECT_SERVO
+		 * flag is set.
+		 */
+
+		/* Disable the drive. */
+
+		mx_status = mx_motor_send_control_command( compumotor->record,
+						MXLV_MTR_AXIS_ENABLE, FALSE );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Now it is safe to run the AXSDEF command. */
 
 		snprintf( command, sizeof(command),
 			"%ld_!AXSDEF", compumotor->controller_number);
 
 		mx_status = mxi_compumotor_command(
 				compumotor_interface, command,
-				response, sizeof response, MXD_COMPUMOTOR_DEBUG );
+				response, sizeof(response),
+				MXD_COMPUMOTOR_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		/* Find the character in the response corresponding to
-		 * this axis.  There may be an underscore '_' character
-		 * in the response, so we must skip over that.
+		/* Reenable the drive. */
+
+		mx_status = mx_motor_send_control_command( compumotor->record,
+						MXLV_MTR_AXIS_ENABLE, TRUE );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Find the character in the response to the AXSDEF
+		 * command corresponding to this axis.  There may be
+		 * an underscore '_' character in the response, so we
+		 * must skip over that.
 		 */
+
+		j = compumotor->axis_number - 1;
 
 		l = 0; skipped = 0;
 
@@ -430,7 +483,7 @@ mxd_compumotor_servo_initialization(
 					compumotor->axis_number );
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
-				response, sizeof response, MXD_COMPUMOTOR_DEBUG );
+				response, sizeof(response), MXD_COMPUMOTOR_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -462,7 +515,8 @@ mxd_compumotor_stepper_initialization(
 					compumotor->axis_number );
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
-				response, sizeof response, MXD_COMPUMOTOR_DEBUG );
+						response, sizeof(response),
+						MXD_COMPUMOTOR_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -760,7 +814,7 @@ mxd_compumotor_get_position( MX_MOTOR *motor )
 	}
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
-			response, sizeof response, MXD_COMPUMOTOR_DEBUG );
+			response, sizeof(response), MXD_COMPUMOTOR_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

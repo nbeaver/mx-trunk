@@ -33,7 +33,11 @@
 
 MX_RECORD_FUNCTION_LIST mxv_biocat_toast_joystick_record_function_list = {
 	mx_variable_initialize_driver,
-	mxv_biocat_toast_joystick_create_record_structures
+	mxv_biocat_toast_joystick_create_record_structures,
+	NULL,
+	NULL,
+	NULL,
+	mxv_biocat_toast_joystick_open
 };
 
 MX_VARIABLE_FUNCTION_LIST mxv_biocat_toast_joystick_variable_function_list = {
@@ -153,6 +157,85 @@ mxv_biocat_toast_joystick_create_record_structures( MX_RECORD *record )
 
 	variable->record = record;
 	biocat_toast_joystick->record = record;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxv_biocat_toast_joystick_open( MX_RECORD *record )
+{
+	static const char fname[] = "mxv_biocat_toast_joystick_open()";
+
+	MX_VARIABLE *variable = NULL;
+	MX_BIOCAT_TOAST_JOYSTICK *biocat_toast_joystick = NULL;
+	MX_COMPUMOTOR_INTERFACE *compumotor_interface = NULL;
+	char command[80];
+	char response[80];
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	variable = (MX_VARIABLE *) record->record_superclass_struct;
+
+	mx_status = mxv_biocat_toast_joystick_get_pointers( variable,
+						&biocat_toast_joystick,
+						&compumotor_interface, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* If the joystick is on at the time that MX starts up, it can
+	 * interfere with some of the commands executed in the
+	 * mxd_compumotor_open() method of that driver.  If you need
+	 * to preserve the state of the joystick over restarts of the
+	 * MX server, then add the joystick variable to the list of
+	 * variables saved and restored by the 'mxautosave' program.
+	 */
+
+	snprintf( command, sizeof(command), "%ld_!JOY00000000",
+		biocat_toast_joystick->controller_number );
+
+	mx_status = mxi_compumotor_command( compumotor_interface, command,
+				NULL, 0, MXV_BIOCAT_TOAST_JOYSTICK_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Read back the joystick settings to verify that they have
+	 * taken effect.
+	 */
+
+	snprintf( command, sizeof(command), "%ld_!JOY",
+		biocat_toast_joystick->controller_number );
+
+	mx_status = mxi_compumotor_command( compumotor_interface, command,
+					response, sizeof(response),
+					MXV_BIOCAT_TOAST_JOYSTICK_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* If we got a "MOTION IN PROGRESS" message here, then we have
+	 * one more line to read.
+	 */
+
+	if ( strncmp( response, "MOTION IN PROGRESS", 18 ) == 0 ) {
+		mx_status = mx_rs232_getline(compumotor_interface->rs232_record,
+					response, sizeof(response),
+					NULL, MXV_BIOCAT_TOAST_JOYSTICK_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	/* It takes a while for the controller to react to this command,
+	 * so we insert a wait here.
+	 */
+
+	mx_msleep(1000);
 
 	return MX_SUCCESSFUL_RESULT;
 }
