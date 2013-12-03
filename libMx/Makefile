@@ -177,8 +177,8 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	i_scipe.c i_sim900.c i_sim900_port.c i_sis3807.c \
 	i_soft_camac.c i_soft_camera_link.c i_soft_rs232.c \
 	i_sony_visca.c i_spec_command.c i_spellman_df3.c \
-	i_sr630.c i_tcp232.c i_telnet.c i_tpg262.c i_tty.c \
-	i_uglide.c \
+	i_sr630.c i_synaccess_netbooter.c \
+	i_tcp232.c i_telnet.c i_tpg262.c i_tty.c i_uglide.c \
 	i_vme58.c i_vms_terminal.c i_vp9000.c i_vsc16.c \
 	i_vxworks_rs232.c i_vxworks_vme.c \
 	i_wago750_serial.c i_win32_com.c \

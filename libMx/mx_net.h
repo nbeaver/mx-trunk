@@ -314,6 +314,7 @@ typedef struct {
 #define MXNA_VALUE_CHANGE_THRESHOLD		1
 #define MXNA_POLL				2
 #define MXNA_READ_ONLY				3
+#define MXNA_NO_ACCESS				4
 
 /*---*/
 

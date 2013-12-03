@@ -81,10 +81,11 @@ extern "C" {
 
 #define MXFF_IN_DESCRIPTION		0x1
 #define MXFF_IN_SUMMARY			0x2
-#define MXFF_VARARGS			0x4
-#define MXFF_READ_ONLY			0x8
-#define MXFF_NO_NEXT_EVENT_TIME_UPDATE	0x10
-#define MXFF_POLL			0x20
+#define MXFF_READ_ONLY			0x4
+#define MXFF_NO_ACCESS			0x8
+#define MXFF_VARARGS			0x10
+#define MXFF_NO_NEXT_EVENT_TIME_UPDATE	0x20
+#define MXFF_POLL			0x40
 
 /* The following value is used only by mx_print_structure(). */
 
@@ -656,16 +657,6 @@ MX_API mx_status_type  mx_construct_ptr_to_field_value(
 			MX_RECORD *record,
 			MX_RECORD_FIELD_DEFAULTS *record_field_defaults,
 			void **field_value_ptr );
-
-/* --- */
-
-MX_API mx_status_type mx_record_field_get_read_only_flag(
-					MX_RECORD_FIELD *record_field,
-					mx_bool_type *field_is_read_only );
-
-MX_API mx_status_type mx_record_field_set_read_only_flag(
-					MX_RECORD_FIELD *record_field,
-					mx_bool_type field_is_read_only );
 
 /* --- */
 

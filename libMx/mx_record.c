@@ -2220,11 +2220,36 @@ mx_print_field_value( FILE *file,
 			void *value_ptr,
 			mx_bool_type verbose )
 {
+	static const char fname[] = "mx_print_field_value()";
+
 	MX_RECORD *other_record;
 	MX_INTERFACE *interface;
 	MX_DRIVER *driver;
 	MX_RECORD_FIELD *referenced_field;
 	long field_type;
+
+	if ( file == (FILE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The FILE pointer passed was NULL." );
+	}
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+	if ( field == (MX_RECORD_FIELD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD_FIELD pointer passed was NULL." );
+	}
+	if ( value_ptr == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The value pointer passed was NULL." );
+	}
+
+	if ( field->flags & MXFF_NO_ACCESS ) {
+		fprintf( file, "<no access>" );
+
+		return MX_SUCCESSFUL_RESULT;
+	}
 
 	field_type = field->datatype;
 

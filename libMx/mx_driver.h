@@ -254,20 +254,20 @@ extern "C" {
 
 #define MXI_CTRL_SIM900			461
 #define MXI_CTRL_I404			462
+#define MXI_CTRL_SYNACCESS_NETBOOTER	463
 
-#define MXI_PIO_PORTIO			500
-#define MXI_PIO_DOS			501
+#define MXI_PIO_PORTIO			600
+#define MXI_PIO_DOS			601
+#define MXI_PIO_IOPL			602
+#define MXI_PIO_IOPERM			603
+#define MXI_PIO_VXWORKS			604
 
-#define MXI_PIO_IOPL			503
-#define MXI_PIO_IOPERM			504
-#define MXI_PIO_VXWORKS			505
+#define MXI_VME_VXWORKS			700
+#define MXI_VME_MMAP			701
+#define MXI_VME_RTEMS			702
 
-#define MXI_VME_VXWORKS			603
-#define MXI_VME_MMAP			604
-#define MXI_VME_RTEMS			605
-
-#define MXI_MOD_TCP			700
-#define MXI_MOD_SERIAL_RTU		701
+#define MXI_MOD_TCP			800
+#define MXI_MOD_SERIAL_RTU		801
 
 #define MXI_CL_SOFTWARE			900
 #define MXI_CL_NETWORK			901
@@ -318,6 +318,7 @@ extern "C" {
 #define MXT_AIN_MCA_WEIGHTED_SUM	10042
 
 #define MXT_AIN_SIM980			10046
+#define MXT_AIN_SYNACCESS_NETBOOTER	10047
 
 /* --- Analog input subclasses -- */
 
@@ -616,6 +617,7 @@ extern "C" {
 #define MXT_RLY_MARDTB_SHUTTER		100008
 #define MXT_RLY_BLUICE_DCSS_SHUTTER	100009
 #define MXT_RLY_BLUICE_DHS_SHUTTER	100010
+#define MXT_RLY_SYNACCESS_NETBOOTER	100011
 
 /* --- Multichannel analyzer types --- */
 

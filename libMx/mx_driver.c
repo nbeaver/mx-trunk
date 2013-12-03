@@ -420,6 +420,8 @@
 #include "d_i404_amp.h"
 #include "d_i404_mcai.h"
 
+#include "i_synaccess_netbooter.h"
+
 #include "d_network_pulser.h"
 #include "d_sis3807.h"
 #include "d_sis3801_pulser.h"
@@ -1032,6 +1034,14 @@ MX_DRIVER mx_type_table[] = {
 				NULL,
 				&mxi_i404_num_record_fields,
 				&mxi_i404_rfield_def_ptr},
+
+{"synaccess_netbooter",
+		MXI_CTRL_SYNACCESS_NETBOOTER, MXI_CONTROLLER, MXR_INTERFACE,
+				&mxi_synaccess_netbooter_record_function_list,
+				NULL,
+				NULL,
+				&mxi_synaccess_netbooter_num_record_fields,
+				&mxi_synaccess_netbooter_rfield_def_ptr},
 
 #if ( defined(OS_LINUX) && (MX_GLIBC_VERSION >= 2002000L) )
 

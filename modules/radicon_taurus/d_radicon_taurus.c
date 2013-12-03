@@ -287,7 +287,6 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	char response[100];
 	char *string_value_ptr;
 	void *void_array_ptr;
-	unsigned long flags;
 	mx_bool_type response_seen;
 	mx_status_type mx_status;
 
@@ -371,10 +370,8 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		mx_status = mx_record_field_set_read_only_flag( poll_field,
-								TRUE );
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+		poll_field->flags |= MXFF_READ_ONLY;
+
 	} else {
 		/* If there _is_ a pulser record, but we are running in
 		 * an MX server, then we turn off the poll_pulser_status
@@ -622,8 +619,6 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	radicon_taurus->reflect_vertical = FALSE;
 	radicon_taurus->reflect_horizontal = FALSE;
 	radicon_taurus->rotation_angle = 0;
-
-	flags = radicon_taurus->radicon_taurus_flags;
 
 	/* FIXME: The string parsing is inflexible. */
 
@@ -1944,6 +1939,8 @@ mxp_radicon_taurus_save_raw_image( MX_AREA_DETECTOR *ad,
 	mx_status_type mx_status;
 
 	frame_number = ad->readout_frame;
+
+	frame_number = frame_number;  /* Suppress 'set but not used' warning. */
 
 #if MXD_RADICON_TAURUS_DEBUG_SAVING_RAW_FILES
 	MX_DEBUG(-2,("%s invoked for detector '%s', frame number = %ld, "

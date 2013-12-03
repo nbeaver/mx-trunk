@@ -2149,6 +2149,8 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 			MX_RECORD_FIELD *record_field,
 			MX_NETWORK_MESSAGE_BUFFER *network_message )
 {
+	static const char fname[] = "mxsrv_handle_get_array()";
+
 	uint32_t *receive_buffer_header;
 	uint32_t receive_buffer_header_length;
 	uint32_t receive_buffer_message_type, receive_buffer_message_id;
@@ -2157,60 +2159,105 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 	mx_status_type mx_status;
 
 #if NETWORK_DEBUG_TIMING
-	static const char fname[] = "mxsrv_handle_get_array()";
-
 	MX_HRT_TIMING measurement;
 
 	MX_HRT_START( measurement );
 #endif
 
-	/* Save the message type and message id for later. */
+	/* If the socket handler pointer is NULL, then we have no way
+	 * to return a response to the (hypothetical?) client.
+	 */
 
-	receive_buffer_header = network_message->u.uint32_buffer;
+	if ( socket_handler == (MX_SOCKET_HANDLER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"the MX_SOCKET_HANDLER pointer passed was NULL." );
+	}
 
-	receive_buffer_header_length =
+	mx_status = MX_SUCCESSFUL_RESULT;
+
+	/* The do...while(0) loop below is just a trick to make it easy
+	 * to jump to the end of this block of code, since we need to send
+	 * a message to the client even if an error occurred.
+	 */
+
+	do {
+		if ( record == (MX_RECORD *) NULL ) {
+			mx_status = mx_error( MXE_NULL_ARGUMENT, fname,
+			"The MX_RECORD pointer passed was NULL." );
+
+			break;		/* Exit the do...while(0) loop. */
+		}
+		if ( record_field == (MX_RECORD_FIELD *) NULL ) {
+			mx_status = mx_error( MXE_NULL_ARGUMENT, fname,
+			"The MX_RECORD_FIELD pointer passed was NULL." );
+
+			break;		/* Exit the do...while(0) loop. */
+		}
+		if ( network_message == (MX_NETWORK_MESSAGE_BUFFER *) NULL ) {
+			mx_status = mx_error( MXE_NULL_ARGUMENT, fname,
+		    "The MX_NETWORK_MESSAGE_BUFFER pointer passed was NULL." );
+
+			break;		/* Exit the do...while(0) loop. */
+		}
+
+		/* Save the message type and message id for later. */
+
+		receive_buffer_header = network_message->u.uint32_buffer;
+
+		receive_buffer_header_length =
 		   mx_ntohl(receive_buffer_header[ MX_NETWORK_HEADER_LENGTH ]);
 
-	receive_buffer_message_type =
+		receive_buffer_message_type =
 		   mx_ntohl(receive_buffer_header[ MX_NETWORK_MESSAGE_TYPE ]);
 
-	if ( mx_client_supports_message_ids(socket_handler) == FALSE ) {
-		/* Handle clients from MX 1.4 or before. */
+		if ( mx_client_supports_message_ids(socket_handler) == FALSE ) {
+			/* Handle clients from MX 1.4 or before. */
 
-		receive_datatype = record_field->datatype;
-		receive_buffer_message_id = 0;
-	} else {
-		receive_datatype = (long)
+			receive_datatype = record_field->datatype;
+			receive_buffer_message_id = 0;
+		} else {
+			receive_datatype = (long)
 		   mx_ntohl(receive_buffer_header[ MX_NETWORK_DATA_TYPE ]);
 
-		receive_buffer_message_id =
+			receive_buffer_message_id =
 		   mx_ntohl(receive_buffer_header[ MX_NETWORK_MESSAGE_ID ]);
-	}
+		}
 
-	/* Bug compatibility for old MX clients. */
+		/* Bug compatibility for old MX clients. */
 
-	if ( ( mx_client_supports_message_ids(socket_handler) == FALSE )
+		if ( ( mx_client_supports_message_ids(socket_handler) == FALSE )
 	  && ( receive_buffer_message_type == MX_NETMSG_GET_ARRAY_BY_HANDLE ) )
-	{
-		/* MX clients prior to MX 1.5 expected the wrong server
-		 * response type for 'get array by handle' messages.
-		 */
+		{
+			/* MX clients prior to MX 1.5 expected the wrong server
+			 * response type for 'get array by handle' messages.
+			 */
 
-		send_buffer_message_type =
-			mx_server_response(MX_NETMSG_GET_ARRAY_BY_NAME);
-	} else {
-		send_buffer_message_type =
-			mx_server_response( receive_buffer_message_type );
-	}
+			send_buffer_message_type =
+				mx_server_response(MX_NETMSG_GET_ARRAY_BY_NAME);
+		} else {
+			send_buffer_message_type =
+			    mx_server_response( receive_buffer_message_type );
+		}
 
-	/* Get the data from the hardware for this get_array request. */
+		/* Check the record field's permissions. */
+
+		if ( record_field->flags & MXFF_NO_ACCESS ) {
+			mx_status = mx_error( MXE_PERMISSION_DENIED, fname,
+			"MX record field '%s.%s' can not be accessed by "
+			"an MX client program.",
+				record->name, record_field->name );
+		}
+
+		/* Get the data from the hardware for this get_array request. */
 
 #if 1
-	mx_numbered_breakpoint( 0 );
+		mx_numbered_breakpoint( 0 );
 #endif
 
-	mx_status = mx_process_record_field( record, record_field,
-						MX_PROCESS_GET, NULL );
+		mx_status = mx_process_record_field( record, record_field,
+							MX_PROCESS_GET, NULL );
+
+	} while (0);
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_status = mx_network_socket_send_error_message(
@@ -2669,14 +2716,23 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 
 	char separators[] = MX_RECORD_FIELD_SEPARATORS;
 
-	receive_buffer_message_type = 0;
-	receive_buffer_message_id = 0;
-
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_TIMING measurement;
 
 	MX_HRT_START( measurement );
 #endif
+
+	/* If the socket handler pointer is NULL, then we have no way
+	 * to return a response to the (hypothetical?) client.
+	 */
+
+	if ( socket_handler == (MX_SOCKET_HANDLER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SOCKET_HANDLER pointer passed was NULL." );
+	}
+
+	receive_buffer_message_type = 0;
+	receive_buffer_message_id = 0;
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 
@@ -2685,44 +2741,36 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 	MX_DEBUG( 1,("***** %s invoked for socket %d *****",
 		fname, mx_socket->socket_fd));
 
-	if ( record_field->flags & MXFF_VARARGS ) {
-		array_is_dynamically_allocated = TRUE;
-	} else {
-		array_is_dynamically_allocated = FALSE;
-	}
-
 	/* The do...while(0) loop below is just a trick to make it easy
-	 * to jump to the end of this block of code.
+	 * to jump to the end of this block of code, since we need to send
+	 * a message to the client even if an error occurred.
 	 */
 
 	do {
 		if ( record == (MX_RECORD *) NULL ) {
 			mx_status =  mx_error( MXE_NULL_ARGUMENT, fname,
-			"MX_RECORD pointer passed was NULL." );
+			"The MX_RECORD pointer passed was NULL." );
 
 			break;		/* Exit the do...while(0) loop. */
 		}
-
 		if ( record_field == (MX_RECORD_FIELD *) NULL ) {
 			mx_status =  mx_error( MXE_NULL_ARGUMENT, fname,
-			"MX_RECORD_FIELD pointer passed was NULL." );
+			"The MX_RECORD_FIELD pointer passed was NULL." );
 
 			break;		/* Exit the do...while(0) loop. */
 		}
+		if ( network_message == (MX_NETWORK_MESSAGE_BUFFER *) NULL ) {
+			mx_status = mx_error( MXE_NULL_ARGUMENT, fname,
+		    "The MX_NETWORK_MESSAGE_BUFFER pointer passed was NULL." );
 
-#if NETWORK_DEBUG_DEBUG_FIELD_NAMES
-	        MX_DEBUG(-2,("%s: record_name = '%s'", fname, record->name));
-		MX_DEBUG(-2,("%s: field_name = '%s'", fname,
-						record_field->name));
-#endif
-
-		pointer_to_value = mx_get_field_value_pointer( record_field );
-
-	        mx_status = mx_get_token_parser(
-                        record_field->datatype, &token_parser );
-
-		if ( mx_status.code != MXE_SUCCESS )
 			break;		/* Exit the do...while(0) loop. */
+		}
+		if ( value_buffer_ptr == NULL ) {
+			mx_status = mx_error( MXE_NULL_ARGUMENT, fname,
+			"The value buffer pointer passed was NULL." );
+
+			break;		/* Exit the do...while(0) loop. */
+		}
 
 		/* Save the message type and message id for later. */
 
@@ -2746,6 +2794,46 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 			receive_buffer_message_id =
 		      mx_ntohl(receive_buffer_header[ MX_NETWORK_MESSAGE_ID ]);
 		}
+
+		/* Check the record field's permissions. */
+
+		if ( record_field->flags & MXFF_NO_ACCESS ) {
+			mx_status = mx_error( MXE_PERMISSION_DENIED, fname,
+			"MX record field '%s.%s' can not be accessed by "
+			"an MX client program.",
+				record->name, record_field->name );
+
+			break;		/* Exit the do...while(0) loop. */
+		}
+		if ( record_field->flags & MXFF_READ_ONLY ) {
+			mx_status = mx_error( MXE_READ_ONLY, fname,
+			"MX record field '%s.%s' is read-only.",
+				record->name, record_field->name );
+
+			break;		/* Exit the do...while(0) loop. */
+		}
+
+		/* Get some parameters from the field. */
+
+		if ( record_field->flags & MXFF_VARARGS ) {
+			array_is_dynamically_allocated = TRUE;
+		} else {
+			array_is_dynamically_allocated = FALSE;
+		}
+
+#if NETWORK_DEBUG_DEBUG_FIELD_NAMES
+	        MX_DEBUG(-2,("%s: record_name = '%s'", fname, record->name));
+		MX_DEBUG(-2,("%s: field_name = '%s'", fname,
+						record_field->name));
+#endif
+
+		pointer_to_value = mx_get_field_value_pointer( record_field );
+
+	        mx_status = mx_get_token_parser(
+                        record_field->datatype, &token_parser );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			break;		/* Exit the do...while(0) loop. */
 
 		/* Get a pointer to the start of the value string. */
 
@@ -3438,6 +3526,13 @@ mxsrv_handle_get_attribute( MX_RECORD *record_list,
 			attribute_value = 0;
 		}
 		break;
+	case MXNA_NO_ACCESS:
+		if ( record_field->flags & MXFF_NO_ACCESS ) {
+			attribute_value = 1;
+		} else {
+			attribute_value = 0;
+		}
+		break;
 	default:
 		attribute_value = 0;
 		illegal_attribute_number = TRUE;
@@ -3668,6 +3763,7 @@ mxsrv_handle_set_attribute( MX_RECORD *record_list,
 		break;
 
 	case MXNA_READ_ONLY:
+	case MXNA_NO_ACCESS:
 		permission_denied = TRUE;
 		break;
 

@@ -759,6 +759,13 @@ motor_show_field( char *record_field_name )
 	if ( mx_status.code != MXE_SUCCESS )
 		return FAILURE;
 
+	if ( record_field->flags & MXFF_NO_ACCESS ) {
+		fprintf( output,
+	"You are not permitted to access the record field '%s.%s'.\n",
+			record_name, field_name );
+		return FAILURE;
+	}
+
 	if ( record_field->flags & MXFF_VARARGS ) {
 		pointer_to_value
 			= mx_read_void_pointer_from_memory_location(

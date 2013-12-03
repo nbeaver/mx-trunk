@@ -7,7 +7,8 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2006-2007, 2009-2010 Illinois Institute of Technology
+ * Copyright 1999-2003, 2006-2007, 2009-2010, 2013
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -473,6 +474,13 @@ motor_set_fn( int argc, char *argv[] )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
+
+		if ( record_field->flags & MXFF_NO_ACCESS ) {
+			fprintf( output,
+		"You are not permitted to access the record field '%s.%s'.\n",
+				record_name, field_name );
+			return FAILURE;
+		}
 
 		if ( record_field->flags & MXFF_READ_ONLY ) {
 			fprintf( output,
