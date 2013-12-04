@@ -15,7 +15,9 @@
  *
  */
 
-#define MXI_SYNACCESS_NETBOOTER_DEBUG	FALSE
+#define MXI_SYNACCESS_NETBOOTER_DEBUG		TRUE
+
+#define MXI_SYNACCESS_NETBOOTER_DEBUG_RAW	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,6 +26,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
+#include "mx_ascii.h"
 #include "mx_rs232.h"
 #include "mx_motor.h"
 #include "i_synaccess_netbooter.h"
@@ -89,6 +92,7 @@ mxi_synaccess_netbooter_open( MX_RECORD *record )
 	static const char fname[] = "mxi_synaccess_netbooter_open()";
 
 	MX_SYNACCESS_NETBOOTER *synaccess_netbooter;
+	char response[80];
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -114,11 +118,18 @@ mxi_synaccess_netbooter_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_msleep(500);
-
 	/* Verify that the Synaccess netBooter controller is present by asking
-	 * for its status.
+	 * for its version number.
 	 */
+
+	mx_status = mxi_synaccess_netbooter_command( synaccess_netbooter,
+					"ver", response, sizeof(response),
+					MXI_SYNACCESS_NETBOOTER_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/*---*/
 
 	mx_status = mxi_synaccess_netbooter_get_status( synaccess_netbooter,
 						MXI_SYNACCESS_NETBOOTER_DEBUG );
@@ -128,17 +139,17 @@ mxi_synaccess_netbooter_open( MX_RECORD *record )
 
 MX_EXPORT mx_status_type
 mxi_synaccess_netbooter_command( MX_SYNACCESS_NETBOOTER *synaccess_netbooter,
-			char *command,
-			char *response,
-			size_t response_buffer_length,
-			mx_bool_type debug_flag )
+					char *command,
+					char *response,
+					size_t response_buffer_length,
+					mx_bool_type debug_flag )
 {
 	static const char fname[] = "mxi_synaccess_netbooter_command()";
 
 	char local_buffer[80];
 	char *local_response;
-	size_t local_response_length;
-	size_t bytes_read;
+	size_t i, local_response_length;
+	char c, terminator_char;
 	mx_status_type mx_status;
 
 	if ( synaccess_netbooter == (MX_SYNACCESS_NETBOOTER *) NULL ) {
@@ -157,11 +168,44 @@ mxi_synaccess_netbooter_command( MX_SYNACCESS_NETBOOTER *synaccess_netbooter,
 		    fname, command, synaccess_netbooter->record->name ));
 	}
 
-	mx_status = mx_rs232_putline( synaccess_netbooter->rs232_record,
-					command, NULL, 0 );
+	mx_status = mx_rs232_write( synaccess_netbooter->rs232_record,
+					command, strlen(command), NULL, FALSE );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Send a carriage return after the command. */
+
+	mx_status = mx_rs232_putchar( synaccess_netbooter->rs232_record,
+					MX_CR, FALSE );
+
+	/* The Synaccess netBooter will echo the command we just sent.
+	 * Read and discard characters until we get the terminator
+	 * character for this type of command.
+	 */
+
+	if ( command[0] == '$' ) {
+		terminator_char = MX_CR;
+	} else {
+		terminator_char = MX_NUL;
+	}
+
+	while( TRUE ) {
+		mx_status = mx_rs232_getchar_with_timeout(
+					synaccess_netbooter->rs232_record,
+					&c, FALSE, 5.0 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+#if MXI_SYNACCESS_NETBOOTER_DEBUG_RAW
+		MX_DEBUG(-2,("%s: MARKER 1: c = %#x '%c'", fname, c, c));
+#endif
+
+		if ( c == terminator_char ) {
+			break;		/* Exit the while() loop. */
+		}
+	}
 
 	/* Read the response. */
 
@@ -173,33 +217,52 @@ mxi_synaccess_netbooter_command( MX_SYNACCESS_NETBOOTER *synaccess_netbooter,
 		local_response_length = response_buffer_length;
 	}
 
-	mx_status = mx_rs232_getline( synaccess_netbooter->rs232_record,
-					local_response, local_response_length,
-					&bytes_read, 0 );
+	memset( local_response, 0, local_response_length );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	for ( i = 0; i < local_response_length; i++ ) {
+		mx_status = mx_rs232_getchar_with_timeout(
+					synaccess_netbooter->rs232_record,
+					&c, FALSE, 5.0 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+#if MXI_SYNACCESS_NETBOOTER_DEBUG_RAW
+		MX_DEBUG(-2,("%s: MARKER 2: c = %#x '%c'", fname, c, c));
+#endif
+
+		response[i] = c;
+
+		if ( c == MX_NUL ) {
+			break;		/* Exit the for() loop. */
+		}
+	}
+
+	/* If the command did not start with a '$' character, then 
+	 * we need to discard the trailing prompt as well.
+	 */
+
+	if ( command[0] != '$' ) {
+		while( TRUE ) {
+			mx_status = mx_rs232_getchar_with_timeout(
+					synaccess_netbooter->rs232_record,
+					&c, FALSE, 5.0 );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+#if MXI_SYNACCESS_NETBOOTER_DEBUG_RAW
+			MX_DEBUG(-2,
+			("%s: MARKER 3: c = %#x '%c'", fname, c, c));
+#endif
+
+			if ( c == MX_NUL ) {
+				break;		/* Exit the while() loop. */
+			}
+		}
+	}
 
 	if ( debug_flag ) {
-#if 0
-		{
-			char *ptr = local_response;
-
-			fprintf( stderr,
-			"%s: response (%d bytes) = ( ", fname, (int)bytes_read);
-
-			while (1) {
-				fprintf( stderr, "%#x ", ((*ptr) & 0xff) );
-
-				if ( (*ptr) == '\0' )
-					break;
-
-				ptr++;
-			}
-
-			fprintf( stderr, ")\n" );
-		}
-#endif
 		MX_DEBUG(-2,("%s: received '%s' from '%s'",
 		    fname, local_response, synaccess_netbooter->record->name ));
 	}
@@ -222,9 +285,9 @@ mxi_synaccess_netbooter_get_status(
 		"The MX_SYNACCESS_NETBOOTER pointer passed was NULL." );
 	}
 
-	mx_status = mxi_synaccess_netbooter_command( synaccess_netbooter, "T",
-					response, sizeof(response),
-					debug_flag );
+	mx_status = mxi_synaccess_netbooter_command( synaccess_netbooter,
+				"$A5", response, sizeof(response),
+				debug_flag );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

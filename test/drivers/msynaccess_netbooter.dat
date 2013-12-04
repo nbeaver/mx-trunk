@@ -1,0 +1,2 @@
+np02_rs232 interface rs232 tty "" "" 9600 8 N 1 N 0x0 0x0 5 0x0 /dev/ttyUSB0
+np02       interface controller synaccess_netbooter "" "" np02_rs232
