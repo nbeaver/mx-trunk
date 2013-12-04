@@ -58,10 +58,6 @@ MX_API mx_status_type mxi_synaccess_netbooter_command(
 				size_t response_buffer_length,
 				mx_bool_type debug_flag );
 
-MX_API mx_status_type mxi_synaccess_netbooter_get_status(
-				MX_SYNACCESS_NETBOOTER *synaccess_netbooter,
-				mx_bool_type debug_flag );
-
 extern MX_RECORD_FUNCTION_LIST mxi_synaccess_netbooter_record_function_list;
 
 extern long mxi_synaccess_netbooter_num_record_fields;

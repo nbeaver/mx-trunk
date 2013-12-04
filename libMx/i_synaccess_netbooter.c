@@ -47,7 +47,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_synaccess_netbooter_record_field_defaults[] = {
 
 long mxi_synaccess_netbooter_num_record_fields
 		= sizeof( mxi_synaccess_netbooter_record_field_defaults )
-		    / sizeof( mxi_synaccess_netbooter_record_field_defaults[0] );
+		    / sizeof( mxi_synaccess_netbooter_record_field_defaults[0]);
 
 MX_RECORD_FIELD_DEFAULTS *mxi_synaccess_netbooter_rfield_def_ptr
 			= &mxi_synaccess_netbooter_record_field_defaults[0];
@@ -125,15 +125,6 @@ mxi_synaccess_netbooter_open( MX_RECORD *record )
 	mx_status = mxi_synaccess_netbooter_command( synaccess_netbooter,
 					"ver", response, sizeof(response),
 					MXI_SYNACCESS_NETBOOTER_DEBUG );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/*---*/
-
-	mx_status = mxi_synaccess_netbooter_get_status( synaccess_netbooter,
-						MXI_SYNACCESS_NETBOOTER_DEBUG );
-
 	return mx_status;
 }
 
@@ -268,30 +259,5 @@ mxi_synaccess_netbooter_command( MX_SYNACCESS_NETBOOTER *synaccess_netbooter,
 	}
 
 	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxi_synaccess_netbooter_get_status(
-			MX_SYNACCESS_NETBOOTER *synaccess_netbooter,
-			mx_bool_type debug_flag )
-{
-	static const char fname[] = "mxi_synaccess_netbooter_get_status()";
-
-	char response[80];
-	mx_status_type mx_status;
-
-	if ( synaccess_netbooter == (MX_SYNACCESS_NETBOOTER *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_SYNACCESS_NETBOOTER pointer passed was NULL." );
-	}
-
-	mx_status = mxi_synaccess_netbooter_command( synaccess_netbooter,
-				"$A5", response, sizeof(response),
-				debug_flag );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	return MX_SUCCESSFUL_RESULT;
 }
 
