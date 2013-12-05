@@ -67,7 +67,7 @@ all: build
 
 #MODULES += radicon_helios
 
-MODULES += radicon_taurus
+#MODULES += radicon_taurus
 
 #MODULES += radicon_xineos_gige
 

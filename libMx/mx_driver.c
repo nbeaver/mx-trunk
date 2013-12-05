@@ -252,6 +252,7 @@
 #include "d_sd_m107.h"
 #include "d_linkam_t9x_pump.h"
 #include "d_sim980.h"
+#include "d_synaccess_netbooter.h"
 #include "d_keyboard_dinput.h"
 #include "d_file_dinput.h"
 #include "d_ainput_as_dinput.h"
