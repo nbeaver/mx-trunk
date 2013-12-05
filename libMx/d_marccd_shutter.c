@@ -92,6 +92,7 @@ mxd_marccd_shutter_create_record_structures( MX_RECORD *record )
 			= &mxd_marccd_shutter_rly_function_list;
 
         relay->record = record;
+	marccd_shutter->record = record;
 
         return MX_SUCCESSFUL_RESULT;
 }

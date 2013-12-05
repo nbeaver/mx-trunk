@@ -39,12 +39,12 @@ typedef struct {
   {-1, -1, "username", MXFT_STRING, NULL, \
 			1, {MXI_SYNACCESS_NETBOOTER_USERNAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SYNACCESS_NETBOOTER, username), \
-	{0}, NULL, MXFF_NO_ACCESS}, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_NO_ACCESS) }, \
   \
   {-1, -1, "password", MXFT_STRING, NULL, \
 			1, {MXI_SYNACCESS_NETBOOTER_PASSWORD_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SYNACCESS_NETBOOTER, username), \
-	{0}, NULL, MXFF_NO_ACCESS}
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_NO_ACCESS) }
 
 MX_API mx_status_type mxi_synaccess_netbooter_create_record_structures(
 							MX_RECORD *record );

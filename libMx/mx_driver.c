@@ -252,7 +252,6 @@
 #include "d_sd_m107.h"
 #include "d_linkam_t9x_pump.h"
 #include "d_sim980.h"
-#include "d_synaccess_netbooter.h"
 #include "d_keyboard_dinput.h"
 #include "d_file_dinput.h"
 #include "d_ainput_as_dinput.h"
@@ -359,6 +358,7 @@
 #include "d_marccd_shutter.h"
 #include "d_mardtb_shutter.h"
 #include "d_bluice_shutter.h"
+#include "d_synaccess_netbooter_relay.h"
 
 #include "d_soft_amplifier.h"
 #include "d_net_amplifier.h"
@@ -2977,6 +2977,13 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_bluice_shutter_relay_function_list,
 				&mxd_bluice_shutter_num_record_fields,
 				&mxd_bluice_shutter_rfield_def_ptr},
+
+{"synaccess_netbooter_relay",MXT_RLY_SYNACCESS_NETBOOTER, MXC_RELAY, MXR_DEVICE,
+				&mxd_sa_netbooter_relay_record_function_list,
+				NULL,
+				&mxd_sa_netbooter_relay_relay_function_list,
+				&mxd_sa_netbooter_relay_num_record_fields,
+				&mxd_sa_netbooter_relay_rfield_def_ptr},
 
 {"adc_table",      MXT_TAB_ADC,       MXC_TABLE,          MXR_DEVICE,
 				&mxd_adc_table_record_function_list,
