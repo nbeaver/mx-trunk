@@ -1529,9 +1529,9 @@ mx_show_fd_names( unsigned long process_id )
 
 /*=========================================================================*/
 
-#if defined(OS_LINUX) && ( MX_GLIBC_VERSION >= 2003006L )
+#if defined(OS_LINUX) && ( MX_GLIBC_VERSION > 2003006L )
 
-	/*** Use Linux inotify via Glibc >= 2.3.6 ***/
+	/*** Use Linux inotify via Glibc > 2.3.6 ***/
 
 #include <sys/inotify.h>
 #include <stddef.h>
