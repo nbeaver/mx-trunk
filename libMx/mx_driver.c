@@ -252,6 +252,7 @@
 #include "d_sd_m107.h"
 #include "d_linkam_t9x_pump.h"
 #include "d_sim980.h"
+#include "d_synaccess_netbooter_ainput.h"
 #include "d_keyboard_dinput.h"
 #include "d_file_dinput.h"
 #include "d_ainput_as_dinput.h"
@@ -1844,6 +1845,14 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_sim980_analog_input_function_list,
 				&mxd_sim980_num_record_fields,
 				&mxd_sim980_rfield_def_ptr},
+
+{"synaccess_netbooter_ainput", \
+		MXT_AIN_SYNACCESS_NETBOOTER, MXC_ANALOG_INPUT, MXR_DEVICE,
+				&mxd_sa_netbooter_ainput_record_function_list,
+				NULL,
+			    &mxd_sa_netbooter_ainput_analog_input_function_list,
+				&mxd_sa_netbooter_ainput_num_record_fields,
+				&mxd_sa_netbooter_ainput_rfield_def_ptr},
 
 {"keyboard_dinput",  MXT_DIN_KEYBOARD,   MXC_DIGITAL_INPUT,  MXR_DEVICE,
 				&mxd_keyboard_dinput_record_function_list,

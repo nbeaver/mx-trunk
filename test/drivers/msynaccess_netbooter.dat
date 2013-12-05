@@ -1,4 +1,7 @@
 np02_rs232 interface rs232 tty "" "" 9600 8 N 1 N 0x0 0x0 5 0x0 /dev/ttyUSB0
-np02       interface controller synaccess_netbooter "" "" np02_rs232 "" ""
-port1      device relay synaccess_netbooter_relay "" "" np02 1
-port2      device relay synaccess_netbooter_relay "" "" np02 2
+np02  interface controller synaccess_netbooter "" "" np02_rs232 "" ""
+port1 device relay synaccess_netbooter_relay "" "" np02 1
+port2 device relay synaccess_netbooter_relay "" "" np02 2
+cur1  device analog_input synaccess_netbooter_ainput "" "" 0 1 0 V 0x0 0 "" np02 current 1
+cur2  device analog_input synaccess_netbooter_ainput "" "" 0 1 0 V 0x0 0 "" np02 current 2
+temp  device analog_input synaccess_netbooter_ainput "" "" 0 1 0 C 0x0 0 "" np02 temp 0
