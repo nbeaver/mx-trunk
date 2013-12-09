@@ -370,8 +370,6 @@ mx_get_file_size( const char *filename )
 
 #elif defined(OS_LINUX)
 
-#if (MX_WORDSIZE == 32)   /* 32-bit version */
-
 MX_EXPORT int64_t
 mx_get_file_size( const char *filename )
 {
@@ -390,31 +388,6 @@ mx_get_file_size( const char *filename )
 
 	return file_size;
 }
-
-#else	/* 64 bit version */
-
-#error 64-bit foobar
-
-MX_EXPORT int64_t
-mx_get_file_size( const char *filename )
-{
-	int64_t file_size;
-
-	struct stat64 stat64_buffer;
-	int os_status;
-
-	os_status = stat64( filename, &stat64_buffer );
-
-	if ( os_status < 0 ) {
-		return (-1);
-	}
-
-	file_size = stat64_buffer.st_size;
-
-	return file_size;
-}
-
-#endif	/* 64 bit version */
 
 #else
 
