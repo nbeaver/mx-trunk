@@ -1025,12 +1025,21 @@ mx_socket_close( MX_SOCKET *mx_socket )
 	 *
 	 * Note: This is the last point in the function where we still
 	 * need the MX_SOCKET structure, so we free that structure
-	 * immediately after the call.
+	 * immediately after the call.  However, we sanitize the
+	 * MX_SOCKET structure to have an invalid socket fd and
+	 * a NULL receive buffer pointer before freeing the socket,
+	 * just in case someone still has a pointer to the memory
+	 * that was just free.
 	 */
 
 	mx_status = mx_socket_set_non_blocking_mode( mx_socket, TRUE );
 
-	mx_free(mx_socket);
+	mx_socket->socket_fd = MX_INVALID_SOCKET_FD;
+	mx_socket->socket_flags = 0;
+	mx_socket->is_non_blocking = FALSE;
+	mx_socket->receive_buffer = NULL;
+
+	mx_free( mx_socket );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_closesocket( socket_fd );
