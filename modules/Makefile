@@ -19,7 +19,7 @@ all: build
 
 #MODULES += edt			# linux,
 
-#MODULES += epix_xclib		# linux, win32
+MODULES += epix_xclib		# linux, win32
 
 #MODULES += esone_camac		# linux, win32
 

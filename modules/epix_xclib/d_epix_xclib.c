@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2012 Illinois Institute of Technology
+ * Copyright 2006-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1325,7 +1325,7 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 	mx_bool_type continuous_select;
 	char error_message[80];
 	int epix_status;
-	long num_frames, maximum_buffer_number;
+	long num_frames, maximum_num_frames;
 	unsigned long flags;
 	mx_status_type mx_status;
 
@@ -1424,28 +1424,16 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 		break;
 
 	case MXT_SQ_MULTIFRAME:
-		startbuf = 1;
-		endbuf = mx_round( sp->parameter_array[0] );
-		numbuf = endbuf;
-
-		frame_time = sp->parameter_array[2];
-
-		trigger_time = epix_xclib_vinput->default_trigger_time;
-		break;
-
-	case MXT_SQ_CIRCULAR_MULTIFRAME:
-		vinput->maximum_frame_number = pxd_imageZdim() - 1;
-
-		maximum_buffer_number = vinput->maximum_frame_number + 1;
+		maximum_num_frames = vinput->maximum_frame_number + 1;
 
 		num_frames = mx_round( sp->parameter_array[0] );
 
 		startbuf = 1;
 
-		if ( num_frames < maximum_buffer_number ) {
+		if ( num_frames < maximum_num_frames ) {
 			endbuf = num_frames;
 		} else {
-			endbuf = maximum_buffer_number;
+			endbuf = maximum_num_frames;
 		}
 
 		numbuf = endbuf;
@@ -1600,6 +1588,7 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 	pxbuffer_t startbuf, endbuf, numbuf;
 	double trigger_time, exposure_time;
 	mx_bool_type continuous_select;
+	long num_frames, maximum_num_frames;
 	char error_message[80];
 	int epix_status;
 	unsigned long flags;
@@ -1669,7 +1658,6 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 		exposure_time = sp->parameter_array[0];
 		break;
 	case MXT_SQ_MULTIFRAME:
-	case MXT_SQ_CIRCULAR_MULTIFRAME:
 	case MXT_SQ_GEOMETRICAL:
 		exposure_time = sp->parameter_array[1];
 		break;
@@ -1678,8 +1666,7 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 		break;
 	case MXT_SQ_SUBIMAGE:
 		exposure_time = sp->parameter_array[1] * sp->parameter_array[3];
-		break;
-	default:
+		break; default:
 		exposure_time = -1;
 		break;
 	}
@@ -1767,7 +1754,6 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 		break;
 
 	case MXT_SQ_MULTIFRAME:
-	case MXT_SQ_CIRCULAR_MULTIFRAME:
 	case MXT_SQ_GEOMETRICAL:
 		if ( sp->num_parameters < 1 ) {
 			return mx_error( MXE_NOT_VALID_FOR_CURRENT_STATE, fname,
@@ -1781,19 +1767,24 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 
 		startbuf = 1;
 
-		endbuf = mx_round( sp->parameter_array[0] );
+		num_frames = mx_round( sp->parameter_array[0] );
 
-		if ( endbuf > pxd_imageZdim() ) {
-			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-			"The requested number of sequence frames (%ld) for "
-			"video input '%s' is larger than the maximum value "
-			"of %d.",
-			    endbuf, vinput->record->name, pxd_imageZdim());
-		}
+		maximum_num_frames = vinput->maximum_frame_number + 1;
 
-		if ( sp->sequence_type == MXT_SQ_CIRCULAR_MULTIFRAME ) {
-			numbuf = 0;
+		if ( num_frames > maximum_num_frames ) {
+			if ( sp->sequence_type == MXT_SQ_MULTIFRAME ) {
+				endbuf = maximum_num_frames;
+				numbuf = 0;
+			} else {
+				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+				"The requested number of sequence frames (%ld) "
+				"for video input '%s' is larger than the "
+				"maximum value of %ld.",
+					num_frames, vinput->record->name,
+					maximum_num_frames );
+			}
 		} else {
+			endbuf = num_frames;
 			numbuf = endbuf;
 		}
 
@@ -2371,7 +2362,7 @@ mxd_epix_xclib_get_status( MX_VIDEO_INPUT *vinput )
 #if MXD_EPIX_XCLIB_DEBUG_EXTENDED_STATUS
 			MX_DEBUG(-2,("%s: SIGN 1.1", fname));
 #endif
-			if ( sp->sequence_type == MXT_SQ_CIRCULAR_MULTIFRAME )
+			if ( sp->sequence_type == MXT_SQ_MULTIFRAME )
 			{
 				/* See if the circular multiframe sequence
 				 * has reached its end.
