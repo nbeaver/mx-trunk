@@ -1,0 +1,66 @@
+#! /bin/sh
+#
+# Name:    /etc/init.d/pixci
+#
+# Purpose: This System V style init script for Linux is used to load or
+#          unload the EPIX PIXCI driver module.  It also creates the
+#          /dev/pixci device file with the appropriate major number.
+#
+# NOTE:    This version is for use when the Linux operating system has
+#          been assigned all memory.  The number of image frames available
+#          this way is smaller.
+#
+# Author:  William Lavender
+#
+#--------------------------------------------------------------------------
+#
+# Copyright 2007 Illinois Institute of Technology
+#
+# See the file "LICENSE" in the MX source code tree for information on usage
+# and redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+
+# 'modulename' is the name of the PIXCI driver module to be loaded.
+
+modulename="pixci_x86_64"
+
+# 'kbytes' is the number of kilobytes to be allocated for image buffers
+# by the PIXCI driver.
+
+kbytes=2097152
+
+case $1 in
+    'start' )
+	echo "Loading EPIX PIXCI driver with $kbytes kilobyte kernel buffer."
+
+	/bin/rm -f /dev/pixci
+
+	# /sbin/modprobe $modulename "PIXCIPARM=-IM_$kbytes"
+
+	/sbin/modprobe $modulename
+
+	major=`cat /proc/devices | grep PIXCI | cut -f1 -d' '`
+
+	/bin/mknod /dev/pixci c $major 0
+
+	/bin/chmod 0666 /dev/pixci
+	;;
+
+    'stop' )
+	echo "Unloading EPIX PIXCI driver."
+
+	/bin/rm -f /dev/pixci
+
+	/sbin/rmmod pixci
+	;;
+
+    'restart' )
+	$0 stop
+	$0 start
+	;;
+
+    *)
+	echo "Usage: $0 {start|stop|restart}"
+	;;
+esac
+
