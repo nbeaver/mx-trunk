@@ -859,7 +859,7 @@ mxsrv_mx_server_socket_init( MX_RECORD *list_head_record,
 	}
 
 	socket_handler = (MX_SOCKET_HANDLER *)
-				malloc( sizeof(MX_SOCKET_HANDLER) );
+				calloc( 1, sizeof(MX_SOCKET_HANDLER) );
 
 	if ( socket_handler == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -1036,7 +1036,7 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 
 	/* Allocate memory for the client MX_SOCKET structure. */
 
-	client_socket = (MX_SOCKET *) malloc( sizeof(MX_SOCKET) );
+	client_socket = (MX_SOCKET *) calloc( 1, sizeof(MX_SOCKET) );
 
 	if ( client_socket == (MX_SOCKET *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -1067,7 +1067,7 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 	/* Allocate a socket handler for the new socket. */
 
 	new_socket_handler = (MX_SOCKET_HANDLER *)
-				malloc( sizeof(MX_SOCKET_HANDLER) );
+				calloc( 1, sizeof(MX_SOCKET_HANDLER) );
 
 	if ( new_socket_handler == (MX_SOCKET_HANDLER *) NULL ) {
 		mx_free( client_socket );
