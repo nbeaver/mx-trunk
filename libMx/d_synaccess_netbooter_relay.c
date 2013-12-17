@@ -15,7 +15,7 @@
  *
  */
 
-#define MXD_SA_NETBOOTER_RELAY_DEBUG 	TRUE
+#define MXD_SA_NETBOOTER_RELAY_DEBUG 	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

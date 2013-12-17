@@ -1890,6 +1890,11 @@ mxd_compumotor_get_status( MX_MOTOR *motor )
 
 	/* Bits 26 to 32: (ignored) */
 
+#if MXD_COMPUMOTOR_DEBUG 
+	MX_DEBUG(-2,("%s: motor '%s' status = %#lx",
+		fname, motor->record->name, motor->status));
+#endif
+
 	return MX_SUCCESSFUL_RESULT;
 }
 

@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_SYNACCESS_NETBOOTER_AINPUT_DEBUG	TRUE
+#define MXD_SYNACCESS_NETBOOTER_AINPUT_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

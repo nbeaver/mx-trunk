@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2006, 2010 Illinois Institute of Technology
+ * Copyright 1999-2002, 2006, 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,16 +25,17 @@
 
 /* Flag values used by the compumotor_int driver. */
 
-#define MXF_COMPUMOTOR_AUTO_ADDRESS_CONFIG	0x1
-#define MXF_COMPUMOTOR_ECHO_ON			0x2
+#define MXF_COMPUMOTOR_AUTO_ADDRESS_CONFIG		0x1
+#define MXF_COMPUMOTOR_ECHO_ON				0x2
+#define MXF_COMPUMOTOR_AUTO_COMMUNICATION_CONFIG	0x4
 
 /* Flag values used by the compumotor_lin and compumotor_trans drivers. */
 
-#define MXF_COMPUMOTOR_SIMULTANEOUS_START	0x1
+#define MXF_COMPUMOTOR_SIMULTANEOUS_START		0x1
 
 /* Define the data structures used by a Compumotor interface. */
 
-#define MX_MAX_COMPUMOTOR_AXES	8
+#define MX_MAX_COMPUMOTOR_AXES		8
 
 #define MX_COMPUMOTOR_MAX_COMMAND_LENGTH	200
 

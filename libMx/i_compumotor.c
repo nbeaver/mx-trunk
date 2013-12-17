@@ -26,6 +26,7 @@
 #include "mx_osdef.h"
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_ascii.h"
 #include "mx_driver.h"
 #include "mx_array.h"
 #include "mx_rs232.h"
@@ -280,6 +281,7 @@ mxi_compumotor_open( MX_RECORD *record )
 	static const char fname[] = "mxi_compumotor_open()";
 
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
+	MX_RECORD *rs232_record;
 	MX_RS232 *rs232;
 	long i;
 	mx_status_type mx_status;
@@ -300,14 +302,15 @@ mxi_compumotor_open( MX_RECORD *record )
 
 	/* Are the line terminators set correctly? */
 
-	if ( compumotor_interface->rs232_record == (MX_RECORD *) NULL ) {
+	rs232_record = compumotor_interface->rs232_record;
+
+	if ( rs232_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"rs232_record pointer for Compumotor interface '%s' is NULL.",
 			record->name );
 	}
 
-	rs232 = (MX_RS232 *)
-		compumotor_interface->rs232_record->record_class_struct;
+	rs232 = (MX_RS232 *) rs232_record->record_class_struct;
 
 	if ( rs232 == (MX_RS232 *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -327,6 +330,62 @@ mxi_compumotor_open( MX_RECORD *record )
 		rs232->read_terminators, rs232->write_terminators );
 	}
 #endif
+
+	/* If requested, attempt to automatically configure the parameter
+	 * settings needed for correct communication handshaking with the
+	 * Compumotor controller.  The most important ones are
+	 *     EOT13,10,0
+	 *     ERRLVL1
+	 *     ECHO1
+	 *     MA11111111
+	 */
+
+	if ( compumotor_interface->interface_flags
+		& MXF_COMPUMOTOR_AUTO_COMMUNICATION_CONFIG )
+	{
+
+#if MXI_COMPUMOTOR_INTERFACE_DEBUG
+		MX_DEBUG(-2,
+	  ("%s: Attempting automatic communication config for controller '%s'.",
+			fname, record->name));
+#endif
+
+		/* Since we do not necessarily have correct handshaking set up
+		 * yet, we send the first three commands in the blind.
+		 */
+
+		(void) mx_rs232_discard_unwritten_output( rs232_record,
+					MXI_COMPUMOTOR_INTERFACE_DEBUG );
+
+		mx_status = mx_rs232_putline( rs232_record,
+					"!EOT13,10,0", NULL,
+					MXI_COMPUMOTOR_INTERFACE_DEBUG );
+
+		mx_status = mx_rs232_putline( rs232_record,
+					"!ERRLVL1", NULL,
+					MXI_COMPUMOTOR_INTERFACE_DEBUG );
+
+		mx_status = mx_rs232_putline( rs232_record,
+					"!ECHO1", NULL,
+					MXI_COMPUMOTOR_INTERFACE_DEBUG );
+
+		mx_status = mx_rs232_putline( rs232_record,
+					"!MA11111111", NULL,
+					MXI_COMPUMOTOR_INTERFACE_DEBUG );
+
+		/* If all went well, the controllers have been configured
+		 * to handshake correctly with the MX driver.  We discard
+		 * any responses from the controller so far.
+		 */
+
+		mx_msleep(100);
+
+		mx_status = mx_rs232_discard_unread_input( rs232_record,
+					MXI_COMPUMOTOR_INTERFACE_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
 	/* If requested, send an '!ADDR1' command to automatically configure
 	 * unit addresses.  This will not do the right thing for an RS-485
@@ -355,12 +414,10 @@ mxi_compumotor_open( MX_RECORD *record )
 
 		/* Send the automatic configuration command. */
 
-		(void) mx_rs232_discard_unwritten_output(
-					compumotor_interface->rs232_record,
+		(void) mx_rs232_discard_unwritten_output( rs232_record,
 					MXI_COMPUMOTOR_INTERFACE_DEBUG );
 
-		mx_status = mx_rs232_putline(
-					compumotor_interface->rs232_record,
+		mx_status = mx_rs232_putline( rs232_record,
 					"!ADDR1", NULL,
 					MXI_COMPUMOTOR_INTERFACE_DEBUG );
 
@@ -676,7 +733,7 @@ mxi_compumotor_command( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 
 	unsigned long sleep_ms, num_bytes_available;
 	long i, max_attempts;
-	size_t length;
+	size_t command_length, response_length;
 	char c;
 	char echoed_command_string[200];
 	mx_status_type mx_status;
@@ -698,16 +755,16 @@ mxi_compumotor_command( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 
 	if ( compumotor_interface->interface_flags & MXF_COMPUMOTOR_ECHO_ON ) {
 
-		length = strlen( command );
+		command_length = strlen( command );
 
-		if ( length > ( sizeof(echoed_command_string) - 1 ) ) {
+		if ( command_length > ( sizeof(echoed_command_string) - 1 ) ) {
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 	"Compumotor interface record '%s' has ECHO set to 1.  When ECHO is "
 	"set to 1, commands are limited to a maximum of %ld characters, but "
 	"the command string passed is %ld characters long.  command = '%s'",
 			compumotor_interface->record->name,
 			(long) sizeof( echoed_command_string ) - 1L,
-			(long) length, command );
+			(long) command_length, command );
 		}
 	}
 
@@ -871,6 +928,17 @@ mxi_compumotor_command( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 				compumotor_interface->record->name );
 		}
 
+		/* Sometimes, the response string after the asterisk '*'
+		 * character starts with a newline character.  If this
+		 * has happened, strip off the leading newline.
+		 */
+
+		if ( response[0] == MX_LF ) {
+			response_length = strlen(response);
+
+			memmove( response, response+1, response_length );
+		}
+
 #if MXI_COMPUMOTOR_INTERFACE_DEBUG_TIMING
 		MX_HRT_RS232_END_RESPONSE( response_timing, strlen(response) );
 
@@ -885,6 +953,18 @@ mxi_compumotor_command( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 				fname, response,
 				compumotor_interface->record->name));
 		}
+#if 0
+		{
+			long j;
+
+			response_length = strlen(response);
+
+			for ( j = 0; j < response_length; j++ ) {
+				MX_DEBUG(-2,("%s: response[%ld] = %#x '%c'",
+				fname, j, response[j], response[j]));
+			}
+		}
+#endif
 	}
 
 	MX_DEBUG(2,("%s complete.", fname));

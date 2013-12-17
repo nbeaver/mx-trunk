@@ -6,15 +6,11 @@
 #          unload the EPIX PIXCI driver module.  It also creates the
 #          /dev/pixci device file with the appropriate major number.
 #
-# NOTE:    This version is for use when the Linux operating system has
-#          been assigned all memory.  The number of image frames available
-#          this way is smaller.
-#
 # Author:  William Lavender
 #
 #--------------------------------------------------------------------------
 #
-# Copyright 2007 Illinois Institute of Technology
+# Copyright 2007, 2013 Illinois Institute of Technology
 #
 # See the file "LICENSE" in the MX source code tree for information on usage
 # and redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -35,9 +31,7 @@ case $1 in
 
 	/bin/rm -f /dev/pixci
 
-	# /sbin/modprobe $modulename "PIXCIPARM=-IM_$kbytes"
-
-	/sbin/modprobe $modulename
+	/sbin/modprobe $modulename "PIXCIPARM=-IM_$kbytes"
 
 	major=`cat /proc/devices | grep PIXCI | cut -f1 -d' '`
 
