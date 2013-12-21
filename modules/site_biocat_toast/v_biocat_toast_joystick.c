@@ -19,6 +19,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -274,7 +275,7 @@ mxv_biocat_toast_joystick_send_variable( MX_VARIABLE *variable )
 
 	for ( i = 0; i < num_axes; i++ ) {
 
-		if ( (joystick_mode >> ( num_axes - i - 1 )) & 0x1 ) {
+		if ( (joystick_mode >> i) & 0x1 ) {
 			strlcat( command, "1", sizeof(command) );
 		} else {
 			strlcat( command, "0", sizeof(command) );
@@ -297,7 +298,7 @@ mxv_biocat_toast_joystick_receive_variable( MX_VARIABLE *variable )
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface = NULL;
 	char command[80];
 	char response[80];
-	unsigned long joystick_mode;
+	unsigned long joystick_mode, axis;
 	void *value_ptr;
 	char *ptr;
 	mx_status_type mx_status;
@@ -323,6 +324,8 @@ mxv_biocat_toast_joystick_receive_variable( MX_VARIABLE *variable )
 
 	ptr = response;
 
+	axis = 0;
+
 	while (1) {
 		if ( *ptr == '*' ) {
 			/* Skip over asterisk characters. */
@@ -340,11 +343,11 @@ mxv_biocat_toast_joystick_receive_variable( MX_VARIABLE *variable )
 			break;
 		} else
 		if ( *ptr == '1' ) {
-			joystick_mode <<= 1;
-			joystick_mode++;
+			joystick_mode += mx_round( pow( 2.0, axis ) );
+			axis++;
 		} else
 		if ( *ptr == '0' ) {
-			joystick_mode <<= 1;
+			axis++;
 		} else {
 			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 			"Unexpected character '%c' (%#lx) seen in "
