@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2010-2013 Illinois Institute of Technology
+ * Copyright 2010-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -315,6 +315,8 @@ mx_fd_is_valid( int fd )
 MX_EXPORT int64_t
 mx_get_file_size( const char *filename )
 {
+	static const char fname[] = "mx_get_file_size()";
+
 	int64_t file_size;
 
 	HANDLE file_handle;
@@ -346,7 +348,7 @@ mx_get_file_size( const char *filename )
 
 	low_doubleword = GetFileSize( file_handle, &high_doubleword );
 
-	if ( low_doubleword == INVALID_FILE_SIZE ) [
+	if ( low_doubleword == INVALID_FILE_SIZE ) {
 		last_error_code = GetLastError();
 
 		mx_win32_error_message( last_error_code,
