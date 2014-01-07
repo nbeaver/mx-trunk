@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2013 Illinois Institute of Technology
+ * Copyright 1999-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -974,6 +974,8 @@ mx_wait_for_motor_stop( MX_RECORD *motor_record, unsigned long flags )
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked for motor '%s'.", fname, motor_record->name ));
+
+	memset( &next_show_tick, 0, sizeof(next_show_tick) );
 
 	hardware_limit_bitmask =
 		MXSF_MTR_POSITIVE_LIMIT_HIT | MXSF_MTR_NEGATIVE_LIMIT_HIT;
@@ -2011,6 +2013,8 @@ mxp_motor_home_halfway_between_limit_switches( MX_RECORD *motor_record,
 	double average_position;
 	mx_bool_type unexpected_interrupt;
 	mx_status_type mx_status;
+
+	first_limit_location = second_limit_location = 0.0;
 
 	/* We find both limit switches by tripping both of them.
 	 * We start by going to the -direction limit_switch.

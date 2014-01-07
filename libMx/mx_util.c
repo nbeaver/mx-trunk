@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2013 Illinois Institute of Technology
+ * Copyright 1999-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1339,6 +1339,7 @@ mx_snprintf_from_pointer_array( char *destination,
 
 	format_ptr = format;
 	percent_ptr = NULL;
+	conversion_ptr = NULL;
 
 	/* You should note that most calls below use strncat(), but a few
 	 * use strlcat().
@@ -1448,10 +1449,16 @@ mx_snprintf_from_pointer_array( char *destination,
 #if MX_DEBUG_SNPRINTF_FROM_POINTER_ARRAY
 			MX_DEBUG(-2,("%s: MARKER 0, i = %ld", fname, i));
 #endif
+			/* Note: The unused trailing "" argument is to 
+			 * suppress a warning from the GCC compiler on
+			 * MacOS X that says:
+			 *   "format not a string literal and no
+			 *   format arguments"
+			 */
 
 			snprintf( snprintf_destination,
 				maximum_length - bytes_written,
-				local_format );
+				local_format, "" );
 		} else
 		if ( i < num_argument_pointers )
 		{

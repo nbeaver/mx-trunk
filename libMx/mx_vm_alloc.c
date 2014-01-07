@@ -10,7 +10,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2013 Illinois Institute of Technology
+ * Copyright 2013-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -915,6 +915,17 @@ mx_vm_get_protection( void *address,
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_vm_show_os_info( FILE *file,
+		void *address,
+		size_t region_size_in_bytes )
+{
+	static const char fname[] = "mx_vm_show_os_info()";
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+	"mx_vm_show_os_info() is not yet implemented on MacOS X." );
 }
 
 /*-------------------------------------------------------------------------*/

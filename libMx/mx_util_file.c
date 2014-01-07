@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2011, 2013 Illinois Institute of Technology
+ * Copyright 1999-2011, 2013-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1598,13 +1598,18 @@ mx_get_filesystem_type( char *filename,
 
 /*-------------------------------------------------------------------------*/
 
-#elif defined(OS_LINUX)
+#elif defined(OS_LINUX) || defined(OS_MACOSX)
+
+/* FIXME: On Linux, at least, it should be possible to do something
+ * with statfs().  On MacOS X, statfs() does not appear to return the
+ * necessary information in the f_type field.
+ */
 
 MX_EXPORT mx_status_type
 mx_get_filesystem_type( char *filename,
 			unsigned long *filesystem_type )
 {
-	*filesystem_type = MXF_FST_EXT2;
+	*filesystem_type = MXF_FST_LOCAL;
 
 	return MX_SUCCESSFUL_RESULT;
 }

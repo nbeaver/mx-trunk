@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2013 Illinois Institute of Technology
+ * Copyright 1999-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2153,8 +2153,9 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 
 	uint32_t *receive_buffer_header;
 	uint32_t receive_buffer_header_length;
-	uint32_t receive_buffer_message_type, receive_buffer_message_id;
-	uint32_t send_buffer_message_type;
+	uint32_t receive_buffer_message_type = 0;
+	uint32_t receive_buffer_message_id = 0;
+	uint32_t send_buffer_message_type = 0;
 	long receive_datatype;
 	mx_status_type mx_status;
 

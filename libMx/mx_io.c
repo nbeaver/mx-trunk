@@ -370,7 +370,7 @@ mx_get_file_size( const char *filename )
 	return file_size;
 }
 
-#elif defined(OS_LINUX)
+#elif defined(OS_LINUX) || defined(OS_MACOSX)
 
 MX_EXPORT int64_t
 mx_get_file_size( const char *filename )
@@ -2112,7 +2112,9 @@ mx_create_file_monitor( MX_FILE_MONITOR **monitor_ptr,
 
 	MXP_KQUEUE_VNODE_MONITOR *kqueue_monitor;
 	int num_events, saved_errno;
+	long quiet_flag;
 	struct kevent event;
+	mx_status_type mx_status;
 
 	if ( monitor_ptr == (MX_FILE_MONITOR **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
