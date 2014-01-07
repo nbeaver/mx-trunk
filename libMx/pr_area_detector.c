@@ -865,15 +865,19 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_COPY_FRAME:
 		case MXLV_AD_CORRECT_FRAME:
 		case MXLV_AD_CORRECTION_FLAGS:
+		case MXLV_AD_CORRECTION_LOAD_FORMAT:
 		case MXLV_AD_CORRECTION_LOAD_FORMAT_NAME:
 		case MXLV_AD_CORRECTION_MEASUREMENT_TIME:
 		case MXLV_AD_CORRECTION_MEASUREMENT_TYPE:
+		case MXLV_AD_CORRECTION_SAVE_FORMAT:
 		case MXLV_AD_CORRECTION_SAVE_FORMAT_NAME:
 		case MXLV_AD_DATAFILE_DIRECTORY:
+		case MXLV_AD_DATAFILE_LOAD_FORMAT:
 		case MXLV_AD_DATAFILE_LOAD_FORMAT_NAME:
 		case MXLV_AD_DATAFILE_NAME:
 		case MXLV_AD_DATAFILE_NUMBER:
 		case MXLV_AD_DATAFILE_PATTERN:
+		case MXLV_AD_DATAFILE_SAVE_FORMAT:
 		case MXLV_AD_DATAFILE_SAVE_FORMAT_NAME:
 		case MXLV_AD_DETECTOR_READOUT_TIME:
 		case MXLV_AD_EXPOSURE_MOTOR_NAME:
@@ -987,6 +991,31 @@ mx_area_detector_process_function( void *record_ptr,
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
+
+		case MXLV_AD_CORRECTION_LOAD_FORMAT:
+		case MXLV_AD_CORRECTION_LOAD_FORMAT_NAME:
+		case MXLV_AD_CORRECTION_MEASUREMENT_TIME:
+		case MXLV_AD_CORRECTION_MEASUREMENT_TYPE:
+		case MXLV_AD_CORRECTION_SAVE_FORMAT:
+		case MXLV_AD_CORRECTION_SAVE_FORMAT_NAME:
+		case MXLV_AD_DATAFILE_DIRECTORY:
+		case MXLV_AD_DATAFILE_LOAD_FORMAT:
+		case MXLV_AD_DATAFILE_LOAD_FORMAT_NAME:
+		case MXLV_AD_DATAFILE_NAME:
+		case MXLV_AD_DATAFILE_NUMBER:
+		case MXLV_AD_DATAFILE_PATTERN:
+		case MXLV_AD_DATAFILE_SAVE_FORMAT:
+		case MXLV_AD_DATAFILE_SAVE_FORMAT_NAME:
+		case MXLV_AD_FRAME_FILENAME:
+		case MXLV_AD_NUM_CORRECTION_MEASUREMENTS:
+			ad->parameter_type = record_field->label_value;
+
+			mx_status = (flist->get_parameter)( ad );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+			break;
+
 		case MXLV_AD_MOTOR_POSITION:
 			/* Just report the value already in the variable. */
 
@@ -1010,45 +1039,6 @@ mx_area_detector_process_function( void *record_ptr,
 		case MXLV_AD_CORRECTION_FLAGS:
 			mx_status = mx_area_detector_get_correction_flags(
 								record, NULL );
-			break;
-		case MXLV_AD_CORRECTION_LOAD_FORMAT_NAME:
-			mx_status = mx_image_get_file_format_name_from_type(
-					ad->correction_load_format,
-					ad->correction_load_format_name,
-					MXU_AD_DATAFILE_FORMAT_NAME_LENGTH );
-			break;
-		case MXLV_AD_CORRECTION_SAVE_FORMAT_NAME:
-			mx_status = mx_image_get_file_format_name_from_type(
-					ad->correction_save_format,
-					ad->correction_save_format_name,
-					MXU_AD_DATAFILE_FORMAT_NAME_LENGTH );
-			break;
-		case MXLV_AD_DATAFILE_DIRECTORY:
-		case MXLV_AD_DATAFILE_NUMBER:
-		case MXLV_AD_DATAFILE_NAME:
-		case MXLV_AD_DATAFILE_PATTERN:
-		case MXLV_AD_CORRECTION_MEASUREMENT_TIME:
-		case MXLV_AD_CORRECTION_MEASUREMENT_TYPE:
-		case MXLV_AD_NUM_CORRECTION_MEASUREMENTS:
-		case MXLV_AD_FRAME_FILENAME:
-			ad->parameter_type = record_field->label_value;
-
-			mx_status = (flist->get_parameter)( ad );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-			break;
-		case MXLV_AD_DATAFILE_LOAD_FORMAT_NAME:
-			mx_status = mx_image_get_file_format_name_from_type(
-					ad->datafile_load_format,
-					ad->datafile_load_format_name,
-					MXU_AD_DATAFILE_FORMAT_NAME_LENGTH );
-			break;
-		case MXLV_AD_DATAFILE_SAVE_FORMAT_NAME:
-			mx_status = mx_image_get_file_format_name_from_type(
-					ad->datafile_save_format,
-					ad->datafile_save_format_name,
-					MXU_AD_DATAFILE_FORMAT_NAME_LENGTH );
 			break;
 		case MXLV_AD_DETECTOR_READOUT_TIME:
 			mx_status = mx_area_detector_get_detector_readout_time(
@@ -1217,6 +1207,23 @@ mx_area_detector_process_function( void *record_ptr,
 		break;
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
+
+		case MXLV_AD_CORRECTION_LOAD_FORMAT_NAME:
+		case MXLV_AD_CORRECTION_MEASUREMENT_TIME:
+		case MXLV_AD_CORRECTION_SAVE_FORMAT_NAME:
+		case MXLV_AD_DATAFILE_LOAD_FORMAT_NAME:
+		case MXLV_AD_DATAFILE_NUMBER:
+		case MXLV_AD_DATAFILE_SAVE_FORMAT_NAME:
+		case MXLV_AD_FRAME_FILENAME:
+		case MXLV_AD_NUM_CORRECTION_MEASUREMENTS:
+			ad->parameter_type = record_field->label_value;
+
+			mx_status = (flist->set_parameter)( ad );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+			break;
+
 		case MXLV_AD_MOTOR_POSITION:
 			/* Just save the value. */
 
@@ -1263,20 +1270,10 @@ mx_area_detector_process_function( void *record_ptr,
 							record,
 							ad->correction_flags );
 			break;
-		case MXLV_AD_CORRECTION_LOAD_FORMAT_NAME:
-			mx_status = mx_image_get_file_format_type_from_name(
-						ad->correction_load_format_name,
-					(long *) &(ad->correction_load_format));
-			break;
 		case MXLV_AD_CORRECTION_MEASUREMENT_TYPE:
 			mx_status =
 	    mxp_area_detector_measure_correction_frame_handler( record, ad );
 
-			break;
-		case MXLV_AD_CORRECTION_SAVE_FORMAT_NAME:
-			mx_status = mx_image_get_file_format_type_from_name(
-						ad->correction_save_format_name,
-					(long *) &(ad->correction_save_format));
 			break;
 		case MXLV_AD_DATAFILE_DIRECTORY:
 		case MXLV_AD_DATAFILE_PATTERN:
@@ -1294,27 +1291,6 @@ mx_area_detector_process_function( void *record_ptr,
 				mx_status =
 			    mx_area_detector_initialize_datafile_number(record);
 			}
-			break;
-		case MXLV_AD_DATAFILE_NUMBER:
-		case MXLV_AD_CORRECTION_MEASUREMENT_TIME:
-		case MXLV_AD_NUM_CORRECTION_MEASUREMENTS:
-		case MXLV_AD_FRAME_FILENAME:
-			ad->parameter_type = record_field->label_value;
-
-			mx_status = (flist->set_parameter)( ad );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-			break;
-		case MXLV_AD_DATAFILE_LOAD_FORMAT_NAME:
-			mx_status = mx_image_get_file_format_type_from_name(
-						ad->datafile_load_format_name,
-					(long *) &(ad->datafile_load_format) );
-			break;
-		case MXLV_AD_DATAFILE_SAVE_FORMAT_NAME:
-			mx_status = mx_image_get_file_format_type_from_name(
-						ad->datafile_save_format_name,
-					(long *) &(ad->datafile_save_format) );
 			break;
 		case MXLV_AD_EXPOSURE_MOTOR_NAME:
 			/* If the exposure motor name has changed, then
