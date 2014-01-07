@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2006-2009, 2011-2013 Illinois Institute of Technology
+ * Copyright 2006-2009, 2011-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1257,6 +1257,11 @@ mx_area_detector_process_function( void *record_ptr,
 		case MXLV_AD_CORRECT_FRAME:
 			mx_status = mx_area_detector_correct_frame( record );
 
+			break;
+		case MXLV_AD_CORRECTION_FLAGS:
+			mx_status = mx_area_detector_set_correction_flags(
+							record,
+							ad->correction_flags );
 			break;
 		case MXLV_AD_CORRECTION_LOAD_FORMAT_NAME:
 			mx_status = mx_image_get_file_format_type_from_name(

@@ -5266,11 +5266,15 @@ mx_area_detector_default_get_parameter_handler( MX_AREA_DETECTOR *ad )
 		"mx_area_detector_default_get_parameter_handler()";
 
 	MX_SEQUENCE_PARAMETERS seq;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist = NULL;
 	unsigned long i;
 	double double_value;
 	long num_frames;
 	double exposure_time, frame_time;
 	mx_status_type mx_status;
+
+	flist = (MX_AREA_DETECTOR_FUNCTION_LIST *)
+				ad->record->class_specific_function_list;
 
 	switch( ad->parameter_type ) {
 	case MXLV_AD_BINSIZE:
@@ -5301,6 +5305,34 @@ mx_area_detector_default_get_parameter_handler( MX_AREA_DETECTOR *ad )
 		 * data structure.
 		 */
 
+		break;
+
+	case MXLV_AD_CORRECTION_LOAD_FORMAT:
+	case MXLV_AD_CORRECTION_LOAD_FORMAT_NAME:
+		mx_status = mx_image_get_file_format_type_from_name(
+					ad->correction_load_format_name,
+					(long *) &(ad->correction_load_format));
+		break;
+
+	case MXLV_AD_CORRECTION_SAVE_FORMAT:
+	case MXLV_AD_CORRECTION_SAVE_FORMAT_NAME:
+		mx_status = mx_image_get_file_format_type_from_name(
+					ad->correction_save_format_name,
+					(long *) &(ad->correction_save_format));
+		break;
+
+	case MXLV_AD_DATAFILE_LOAD_FORMAT:
+	case MXLV_AD_DATAFILE_LOAD_FORMAT_NAME:
+		mx_status = mx_image_get_file_format_type_from_name(
+					ad->datafile_load_format_name,
+					(long *) &(ad->datafile_load_format));
+		break;
+
+	case MXLV_AD_DATAFILE_SAVE_FORMAT:
+	case MXLV_AD_DATAFILE_SAVE_FORMAT_NAME:
+		mx_status = mx_image_get_file_format_type_from_name(
+					ad->datafile_save_format_name,
+					(long *) &(ad->datafile_save_format));
 		break;
 
 	case MXLV_AD_REGISTER_VALUE:
@@ -5481,6 +5513,68 @@ mx_area_detector_default_set_parameter_handler( MX_AREA_DETECTOR *ad )
 		 */
 
 		break;
+
+		/*---*/
+
+	case MXLV_AD_CORRECTION_LOAD_FORMAT:
+		mx_status = mx_image_get_file_format_name_from_type(
+					ad->correction_load_format,
+					ad->correction_load_format_name,
+					MXU_AD_DATAFILE_FORMAT_NAME_LENGTH );
+		break;
+
+	case MXLV_AD_CORRECTION_LOAD_FORMAT_NAME:
+		mx_status = mx_image_get_file_format_type_from_name(
+					ad->correction_load_format_name,
+					(long *) &(ad->correction_load_format));
+
+		break;
+
+	case MXLV_AD_CORRECTION_SAVE_FORMAT:
+		mx_status = mx_image_get_file_format_name_from_type(
+					ad->correction_save_format,
+					ad->correction_save_format_name,
+					MXU_AD_DATAFILE_FORMAT_NAME_LENGTH );
+		break;
+
+	case MXLV_AD_CORRECTION_SAVE_FORMAT_NAME:
+		mx_status = mx_image_get_file_format_type_from_name(
+					ad->correction_save_format_name,
+					(long *) &(ad->correction_save_format));
+
+		break;
+
+		/*---*/
+
+	case MXLV_AD_DATAFILE_LOAD_FORMAT:
+		mx_status = mx_image_get_file_format_name_from_type(
+					ad->datafile_load_format,
+					ad->datafile_load_format_name,
+					MXU_AD_DATAFILE_FORMAT_NAME_LENGTH );
+		break;
+
+	case MXLV_AD_DATAFILE_LOAD_FORMAT_NAME:
+		mx_status = mx_image_get_file_format_type_from_name(
+					ad->datafile_load_format_name,
+					(long *) &(ad->datafile_load_format));
+
+		break;
+
+	case MXLV_AD_DATAFILE_SAVE_FORMAT:
+		mx_status = mx_image_get_file_format_name_from_type(
+					ad->datafile_save_format,
+					ad->datafile_save_format_name,
+					MXU_AD_DATAFILE_FORMAT_NAME_LENGTH );
+		break;
+
+	case MXLV_AD_DATAFILE_SAVE_FORMAT_NAME:
+		mx_status = mx_image_get_file_format_type_from_name(
+					ad->datafile_save_format_name,
+					(long *) &(ad->datafile_save_format));
+
+		break;
+
+		/*---*/
 
 	case MXLV_AD_CORRECTION_MEASUREMENT_TYPE:
 		mx_status = mx_area_detector_measure_correction_frame(

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2013 Illinois Institute of Technology
+ * Copyright 2006-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1195,8 +1195,6 @@ mx_area_detector_prepare_for_correction( MX_AREA_DETECTOR *ad,
 	corr->num_exposures = ad->num_correction_measurements;
 
 	if ( corr->num_exposures <= 0 ) {
-		mx_free(corr);
-
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal number of exposures (%ld) requested for "
 		"area detector '%s'.  The minimum number of exposures "
