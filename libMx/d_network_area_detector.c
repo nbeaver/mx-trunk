@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2011, 2013 Illinois Institute of Technology
+ * Copyright 2006-2011, 2013-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2285,6 +2285,14 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 		mx_status = mx_put_array(
 			&(network_area_detector->frame_filename_nf),
 			MXFT_STRING, 1, dimension, ad->frame_filename );
+		break;
+	case MXLV_AD_RAW_LOAD_FRAME:
+		mx_status = mx_put( &(network_area_detector->load_frame_nf),
+						MXFT_LONG, &(ad->load_frame) );
+		break;
+	case MXLV_AD_RAW_SAVE_FRAME:
+		mx_status = mx_put( &(network_area_detector->save_frame_nf),
+						MXFT_LONG, &(ad->save_frame) );
 		break;
 	case MXLV_AD_BYTES_PER_FRAME:
 	case MXLV_AD_BYTES_PER_PIXEL:

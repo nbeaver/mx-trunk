@@ -900,6 +900,8 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_NUM_CORRECTION_MEASUREMENTS:
 		case MXLV_AD_NUM_EXPOSURES:
 		case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
+		case MXLV_AD_RAW_LOAD_FRAME:
+		case MXLV_AD_RAW_SAVE_FRAME:
 		case MXLV_AD_READOUT_FRAME:
 		case MXLV_AD_REGISTER_VALUE:
 		case MXLV_AD_ROI:
@@ -1216,6 +1218,8 @@ mx_area_detector_process_function( void *record_ptr,
 		case MXLV_AD_DATAFILE_SAVE_FORMAT_NAME:
 		case MXLV_AD_FRAME_FILENAME:
 		case MXLV_AD_NUM_CORRECTION_MEASUREMENTS:
+		case MXLV_AD_RAW_LOAD_FRAME:
+		case MXLV_AD_RAW_SAVE_FRAME:
 			ad->parameter_type = record_field->label_value;
 
 			mx_status = (flist->set_parameter)( ad );
