@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2013 Illinois Institute of Technology
+ * Copyright 2006-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -38,7 +38,7 @@
 
 #define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE	FALSE
 
-#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_SETUP	TRUE
+#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_SETUP	FALSE
 
 #define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_TIMESTAMP  FALSE
 
