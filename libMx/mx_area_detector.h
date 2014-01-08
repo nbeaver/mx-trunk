@@ -135,6 +135,12 @@ extern "C" {
 
 #define MXF_AD_CORRECTION_MEASUREMENTS_USE_EXTERNAL_TRIGGER	0x200000
 
+  /* Set the following flag if you want to suppress the check by
+   * mx_area_detector_arm() for exposure time conflicts.
+   */
+
+#define MXF_AD_BYPASS_DARK_CURRENT_EXPOSURE_TIME_TEST		0x1000000
+
   /* If MX is running in a single process (list_head->is_server == FALSE)
    * and the following flag is set, then the function
    * mx_area_detector_finish_record_initialization() will force

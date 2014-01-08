@@ -2032,7 +2032,9 @@ mx_area_detector_arm( MX_RECORD *record )
 	MX_AREA_DETECTOR *ad;
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
 	mx_status_type ( *arm_fn ) ( MX_AREA_DETECTOR * );
-	unsigned long flags;
+	unsigned long ad_flags;
+	unsigned long corr_flags;
+	double dark_current_exposure_time, sequence_exposure_time;
 	mx_status_type mx_status;
 
 	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
@@ -2040,12 +2042,59 @@ mx_area_detector_arm( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	flags = ad->area_detector_flags;
+	ad_flags = ad->area_detector_flags;
 
-	if ( flags & MXF_AD_AUTOMATICALLY_CREATE_DIRECTORY_HIERARCHY ) {
+	corr_flags = ad->correction_flags;
+
+	if ( (ad_flags & MXF_AD_BYPASS_DARK_CURRENT_EXPOSURE_TIME_TEST) == 0 ) {
+
+	    if ( ad->use_scaled_dark_current == FALSE ) {
+
+		/* If we are not using a scaled dark current, then
+		 * check to see if there is an exposure time conflict.
+		 */
+
+		if ( ad->dark_current_frame != (MX_IMAGE_FRAME *) NULL ) {
+
+		    if ( (corr_flags & MXFT_AD_DARK_CURRENT_FRAME) != 0 ) {
+
+			mx_status = mx_image_get_exposure_time(
+						ad->dark_current_frame,
+						&dark_current_exposure_time );
+
+			if ( mx_status.code != MXE_SUCCESS )
+			    return mx_status;
+
+			mx_status = mx_area_detector_get_exposure_time(
+					record, &sequence_exposure_time );
+
+			if ( mx_status.code != MXE_SUCCESS )
+			    return mx_status;
+
+			if ( mx_difference( dark_current_exposure_time,
+					     sequence_exposure_time ) > 0.001 )
+			{
+			   ad->latched_status |= MXSF_AD_EXPOSURE_TIME_CONFLICT;
+
+			   return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+				"Area detector '%s' is configured for a "
+				"sequence exposure time (%g seconds) that "
+				"is different from the exposure time for "
+				"the currently loaded dark current "
+				"image (%g seconds).",
+					record->name,
+					sequence_exposure_time,
+					dark_current_exposure_time );
+			}
+		    }
+		}
+	    }
+	}
+
+	if ( ad_flags & MXF_AD_AUTOMATICALLY_CREATE_DIRECTORY_HIERARCHY ) {
 
 	    /* Make sure that the user's requested directory exists
-	     * or die trying.
+	     * or else abort the 'arm'.
 	     */
 
 	    mx_status = mx_make_directory_hierarchy( ad->datafile_directory );

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2013 Illinois Institute of Technology
+ * Copyright 2013-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -392,6 +392,7 @@ mx_rdi_dbl_image_correction( MX_AREA_DETECTOR *ad,
 {
 	static const char fname[] = "mx_rdi_dbl_image_correction()";
 
+	unsigned long ad_flags;
 	unsigned long correction_flags;
 	unsigned long i, num_pixels_per_frame;
 	unsigned long num_mask_pixels, num_bias_pixels;
@@ -414,6 +415,8 @@ mx_rdi_dbl_image_correction( MX_AREA_DETECTOR *ad,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The correction_calc_frame pointer passed was NULL." );
 	}
+
+	ad_flags = ad->area_detector_flags;
 
 	correction_flags = ad->correction_flags;
 
@@ -539,8 +542,7 @@ mx_rdi_dbl_image_correction( MX_AREA_DETECTOR *ad,
 		 * a different exposure time than the dark current frame.
 		 */
 
-		if (rdi_flags & MXF_RDI_BYPASS_DARK_CURRENT_EXPOSURE_TIME_TEST)
-		{
+		if (ad_flags & MXF_AD_BYPASS_DARK_CURRENT_EXPOSURE_TIME_TEST) {
 			abort_if_different_exposure_times = FALSE;
 		} else {
 			abort_if_different_exposure_times = TRUE;
@@ -731,6 +733,7 @@ mx_rdi_flt_image_correction( MX_AREA_DETECTOR *ad,
 {
 	static const char fname[] = "mx_rdi_flt_image_correction()";
 
+	unsigned long ad_flags;
 	unsigned long correction_flags;
 	unsigned long i, num_pixels_per_frame;
 	unsigned long num_mask_pixels, num_bias_pixels;
@@ -763,6 +766,8 @@ mx_rdi_flt_image_correction( MX_AREA_DETECTOR *ad,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The correction_calc_frame pointer passed was NULL." );
 	}
+
+	ad_flags = ad->area_detector_flags;
 
 	correction_flags = ad->correction_flags;
 
@@ -888,8 +893,7 @@ mx_rdi_flt_image_correction( MX_AREA_DETECTOR *ad,
 		 * a different exposure time than the dark current frame.
 		 */
 
-		if (rdi_flags & MXF_RDI_BYPASS_DARK_CURRENT_EXPOSURE_TIME_TEST)
-		{
+		if (ad_flags & MXF_AD_BYPASS_DARK_CURRENT_EXPOSURE_TIME_TEST) {
 			abort_if_different_exposure_times = FALSE;
 		} else {
 			abort_if_different_exposure_times = TRUE;

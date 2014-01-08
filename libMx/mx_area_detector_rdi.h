@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2013 Illinois Institute of Technology
+ * Copyright 2013-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,8 +26,6 @@ extern "C" {
 /* Values for the 'rdi_flags' argument to these functions. */
 
 #define MXF_RDI_USE_DOUBLE_PRECISION_CORRECTION		0x1
-
-#define MXF_RDI_BYPASS_DARK_CURRENT_EXPOSURE_TIME_TEST	0x2
 
 /*---*/
 
