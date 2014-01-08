@@ -69,8 +69,8 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 #
 # 2.  Optionally turn on optimization.  We normally optimize for speed.
 #
-OPTIMIZE = -O2
-CFLAGS += $(OPTIMIZE)
+#OPTIMIZE = -O2
+#CFLAGS += $(OPTIMIZE)
 
 #
 # 3.  Specify the architecture of the computer you are compiling on.  This is
@@ -129,9 +129,9 @@ MSDEV_ARCH	= x64
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~1\\micros~3\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~1\\micros~4\\Windows\\v7.0A
-MSDEV_DIR	= c:\\progra~2\\micros~1\\Windows\\v7.0A
+#MSDEV_DIR	= c:\\progra~2\\micros~1\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~2\\micros~3\\Windows\\v7.0A
-#MSDEV_DIR	= c:\\progra~2\\micros~4\\Windows\\v7.0A
+MSDEV_DIR	= c:\\progra~2\\micros~4\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~2\\mia713~1\\Windows\\v7.0A
 #MSDEV_DIR	= d:\\progra~1\\micros~3\\Windows\\v7.0A
 #

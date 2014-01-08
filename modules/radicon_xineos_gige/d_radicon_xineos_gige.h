@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013 Illinois Institute of Technology
+ * Copyright 2013-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -19,13 +19,9 @@
 
 #include "mx_image_noir.h"
 
-/* Values for the 'radicon_xineos_gige_flags' field.
- *
- * _DC_ below means 'dark current'.
- */
+/* Values for the 'radicon_xineos_gige_flags' field. */
 
 #define MXF_RADICON_XINEOS_GIGE_DO_NOT_ROTATE_IMAGE		0x1
-#define MXF_RADICON_XINEOS_GIGE_BYPASS_DC_EXPOSURE_TIME_TEST	0x2
 
 /* Values for the 'detector_model' field. */
 
