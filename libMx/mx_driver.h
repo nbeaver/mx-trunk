@@ -18,7 +18,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2013 Illinois Institute of Technology
+ * Copyright 1999-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -854,9 +854,13 @@ extern "C" {
 
 #define MXN_BLUICE_DHS_MANAGER		602101
 
+/* --- Operation types --- */
+
+#define MXO_TOAST			700001
+
 /* --- Special types --- */
 
-#define MXZ_PRG_EXTERNAL_COMMAND	700001
+#define MXZ_PRG_EXTERNAL_COMMAND	800001
 
 #ifdef __cplusplus
 }

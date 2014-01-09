@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2013 Illinois Institute of Technology
+ * Copyright 1999-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -91,6 +91,8 @@
 #include "mx_list_head.h"
 
 #include "mx_dead_reckoning.h"
+
+#include "mx_operation.h"
 
 /* Include the header files for all of the interfaces and devices. */
 
@@ -528,6 +530,8 @@
 #include "n_bluice_dhs.h"
 #include "n_bluice_dhs_manager.h"
 #endif
+
+#include "o_toast.h"
 
 #include "z_external_command.h"
 
@@ -3944,6 +3948,15 @@ MX_DRIVER mx_type_table[] = {
 				&mxn_bluice_dhs_manager_num_record_fields,
 				&mxn_bluice_dhs_manager_rfield_def_ptr},
 #endif
+
+  /* =================== Operation driver types ================== */
+
+{"toast",        MXO_TOAST,   MXO_OPERATION,  MXR_OPERATION,
+				&mxo_toast_record_function_list,
+				&mxo_toast_operation_function_list,
+				NULL,
+				&mxo_toast_num_record_fields,
+				&mxo_toast_rfield_def_ptr },
 
   /* =================== Special driver types ================== */
 
