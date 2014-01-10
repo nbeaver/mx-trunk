@@ -23,6 +23,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_callback.h"
 #include "mx_motor.h"
 #include "mx_operation.h"
 
@@ -123,6 +124,35 @@ mxo_toast_get_pointers( MX_OPERATION *operation,
 
 /*---*/
 
+static mx_status_type
+mxo_toast_callback( MX_CALLBACK_MESSAGE *message )
+{
+	static const char fname[] = "mxo_toast_callback()";
+
+	MX_OPERATION *operation;
+
+	if ( message == (MX_CALLBACK_MESSAGE *) NULL ) {
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"This callback was invoked with a NULL callback message!" );
+	}
+
+	MX_DEBUG(-2,("%s: callback_message = %p, callback_type = %lu",
+		fname, message, message->callback_type));
+
+	if ( message->callback_type != MXCBT_FUNCTION ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Callback message %p sent to this callback function is not "
+		"of type MXCBT_FUNCTION.  Instead, it is of type %lu",
+			message, message->callback_type );
+	}
+
+	operation = (MX_OPERATION *) NULL;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
 MX_EXPORT mx_status_type
 mxo_toast_create_record_structures( MX_RECORD *record )
 {
@@ -181,6 +211,12 @@ mxo_toast_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Send a stop command, just in case the operation was started
+	 * by a previous instance of MX.
+	 */
+
+	mx_status = mxo_toast_stop( operation );
+
 	return mx_status;
 }
 
@@ -223,6 +259,23 @@ mxo_toast_get_status( MX_OPERATION *operation )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	switch( toast->toast_state ) {
+	case MXST_TOAST_IDLE:
+	case MXST_TOAST_FAULT:
+	case MXST_TOAST_TIMED_OUT:
+		operation->status = FALSE;
+		break;
+
+	case MXST_TOAST_MOVING_TO_HIGH:
+	case MXST_TOAST_MOVING_TO_LOW:
+	case MXST_TOAST_IN_TURNAROUND:
+	case MXST_TOAST_STOPPING:
+	default:
+		operation->status = TRUE;
+		break;
+
+	}
+
 	return mx_status;
 }
 
@@ -240,6 +293,21 @@ mxo_toast_start( MX_OPERATION *operation )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( toast->callback_message != (MX_CALLBACK_MESSAGE *) NULL ) {
+		return mx_error( MXE_NOT_READY, fname,
+		"Operation '%s' is already running.",
+			operation->record->name );
+	}
+
+	/* Start the toast callback with a callback interval of 0.1 seconds. */
+
+	mx_status = mx_function_add_callback( operation->record,
+						mxo_toast_callback,
+						NULL,
+						operation,
+						0.1,
+						&(toast->callback_message) );
+
 	return mx_status;
 }
 
@@ -250,6 +318,9 @@ mxo_toast_stop( MX_OPERATION *operation )
 
 	MX_TOAST *toast = NULL;
 	MX_MOTOR *motor = NULL;
+	unsigned long motor_status;
+	MX_CLOCK_TICK timeout_ticks, current_tick, finish_tick;
+	int comparison;
 	mx_status_type mx_status;
 
 	mx_status = mxo_toast_get_pointers( operation, &toast, &motor, fname );
@@ -257,6 +328,59 @@ mxo_toast_stop( MX_OPERATION *operation )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	return mx_status;
+	/* Unconditionally stop the motor and set the current state to IDLE. */
+
+	toast->toast_state = MXST_TOAST_STOPPING;
+
+	toast->next_toast_state = MXST_TOAST_IDLE;
+
+	mx_status = mx_motor_soft_abort( toast->motor_record );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		toast->toast_state = MXST_TOAST_FAULT;
+
+		return mx_status;
+	}
+
+	timeout_ticks = mx_convert_seconds_to_clock_ticks( toast->timeout );
+
+	finish_tick = mx_add_clock_ticks( mx_current_clock_tick(),
+						timeout_ticks );
+
+	while (1) {
+		mx_status = mx_motor_get_status( toast->motor_record,
+						&motor_status );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			toast->toast_state = MXST_TOAST_FAULT;
+
+			return mx_status;
+		}
+
+		if ( ( motor_status & MXSF_MTR_IS_BUSY ) == 0 ) {
+			break;
+		}
+
+		current_tick = mx_current_clock_tick();
+
+		comparison = mx_compare_clock_ticks(finish_tick, current_tick);
+
+		if ( comparison >= 0 ) {
+			toast->toast_state = MXST_TOAST_TIMED_OUT;
+
+			return mx_error( MXE_TIMED_OUT, fname,
+			"Operation '%s' timed out after waiting %g seconds "
+			"for motor '%s' to stop.",
+				operation->record->name,
+				toast->timeout,
+				toast->motor_record->name );
+		}
+
+		mx_msleep(100);
+	}
+
+	toast->toast_state = MXST_TOAST_IDLE;
+
+	return MX_SUCCESSFUL_RESULT;
 }
 

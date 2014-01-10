@@ -19,14 +19,33 @@
 #ifndef __O_TOAST_H__
 #define __O_TOAST_H__
 
+/* Values for 'toast_state'. */
+
+#define MXST_TOAST_ILLEGAL	0
+
+#define MXST_TOAST_IDLE		1
+#define MXST_TOAST_FAULT	2
+#define MXST_TOAST_TIMED_OUT	3
+
+#define MXST_TOAST_MOVING_TO_HIGH	10
+#define MXST_TOAST_MOVING_TO_LOW	11
+#define MXST_TOAST_IN_TURNAROUND	12
+#define MXST_TOAST_STOPPING		13
+
 typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *motor_record;
-	double start_position;
-	double end_position;
-	double idle_position;
+	double high_position;
+	double low_position;
+	double finish_position;
 	double turnaround_delay;	/* In seconds. */
+	double timeout;			/* In seconds. */
+
+	unsigned long toast_state;
+	unsigned long next_toast_state;
+
+	MX_CALLBACK_MESSAGE *callback_message;
 } MX_TOAST;
 
 #define MXO_TOAST_STANDARD_FIELDS \
@@ -34,21 +53,33 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TOAST, motor_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "start_position", MXFT_DOUBLE, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_TOAST, start_position), \
+  {-1, -1, "high_position", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_TOAST, high_position), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "end_position", MXFT_DOUBLE, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_TOAST, end_position), \
+  {-1, -1, "low_position", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_TOAST, low_position), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "idle_position", MXFT_DOUBLE, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_TOAST, idle_position), \
+  {-1, -1, "finish_position", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_TOAST, finish_position), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
   {-1, -1, "turnaround_delay", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TOAST, turnaround_delay), \
-	{0}, NULL, MXFF_IN_DESCRIPTION}
+	{0}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
+  {-1, -1, "timeout", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_TOAST, timeout), \
+	{0}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
+  {-1, -1, "toast_state", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_TOAST, toast_state), \
+	{0}, NULL, 0}, \
+  \
+  {-1, -1, "next_toast_state", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_TOAST, next_toast_state), \
+	{0}, NULL, 0}
 
 MX_API_PRIVATE mx_status_type mxo_toast_create_record_structures(
 							MX_RECORD *record );
