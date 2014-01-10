@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013 Illinois Institute of Technology
+ * Copyright 2013-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -372,8 +372,13 @@ mxd_sapera_lt_camera_set_extended_exposure(
 		"mxd_sapera_lt_camera_set_extended_exposure()";
 
 	double pixel_data_rate_in_khz = 40000.0;
+#if 0
 	double clock_cycles_per_line_factor = 676.0;
 	double minimum_vertical_blanking_interval_factor = 1320.0;
+#else
+	double clock_cycles_per_line_factor = 2112.0;
+	double minimum_vertical_blanking_interval_factor = 690.0;
+#endif
 
 	double exposure_time_in_milliseconds;
 	int32_t extended_exposure_value;
@@ -833,11 +838,18 @@ mxd_sapera_lt_camera_open( MX_RECORD *record )
 	 * functions below.
 	 */
 
+	size_t filename_length = strlen( sapera_lt_camera->config_filename );
+
 	SapLocation location( sapera_lt->server_name,
 				sapera_lt_camera->camera_number );
 
-	sapera_lt_camera->acq_device = new SapAcqDevice( location,
+	if ( filename_length == 0 ) {
+		sapera_lt_camera->acq_device =
+			new SapAcqDevice( location, NULL );
+	} else {
+		sapera_lt_camera->acq_device = new SapAcqDevice( location,
 					sapera_lt_camera->config_filename );
+	}
 
 	if ( sapera_lt_camera->acq_device == NULL ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
@@ -855,11 +867,18 @@ mxd_sapera_lt_camera_open( MX_RECORD *record )
 #endif
 
 	if ( sapera_status == FALSE ) {
-		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-		"Unable to read from the configuration file '%s' "
-		"used by camera '%s'.",
-			sapera_lt_camera->config_filename,
-			record->name );
+		if ( filename_length == 0 ) {
+			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+			"Unable to create the acquisition device used for "
+			"camera '%s'",
+				record->name );
+		} else {
+			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+			"Unable to read from the configuration file '%s' "
+			"used by camera '%s'.",
+				sapera_lt_camera->config_filename,
+				record->name );
+		}
 	}
 
 	/* -------- */
@@ -869,6 +888,9 @@ mxd_sapera_lt_camera_open( MX_RECORD *record )
 	 * SapLocation object created just above.
 	 */
 
+#if ( MXD_SAPERA_LT_CAMERA_SHOW_FEATURES == FALSE )
+	sapera_lt_camera->feature = NULL;
+#else
 	sapera_lt_camera->feature = new SapFeature( location );
 
 	sapera_status = sapera_lt_camera->feature->Create();
@@ -879,6 +901,7 @@ mxd_sapera_lt_camera_open( MX_RECORD *record )
 		"for camera '%s'.",
 			record->name );
 	}
+#endif
 
 	/* -------- */
 
