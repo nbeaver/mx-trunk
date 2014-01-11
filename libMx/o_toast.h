@@ -42,6 +42,8 @@ typedef struct {
 	double turnaround_delay;	/* In seconds. */
 	double timeout;			/* In seconds. */
 
+	MX_CLOCK_TICK interval_finish_tick;
+
 	unsigned long toast_state;
 	unsigned long next_toast_state;
 
