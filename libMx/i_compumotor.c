@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2010, 2012-2013 Illinois Institute of Technology
+ * Copyright 1999-2006, 2010, 2012-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 #include <ctype.h>
 
 #include "mx_osdef.h"
@@ -29,6 +30,7 @@
 #include "mx_ascii.h"
 #include "mx_driver.h"
 #include "mx_array.h"
+#include "mx_cfn.h"
 #include "mx_rs232.h"
 #include "i_compumotor.h"
 #include "d_compumotor.h"
@@ -90,6 +92,135 @@ mxi_compumotor_get_pointers( MX_RECORD *record,
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_COMPUMOTOR_INTERFACE pointer for record '%s' is NULL.",
 			record->name );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mxi_compumotor_run_program( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
+				char *program_type,
+				char *program_filename )
+{
+	static const char fname[] = "mxi_compumotor_run_program()";
+
+	int saved_errno;
+	FILE *program_file;
+	char program_line[200];
+	char *ptr;
+	size_t i, length;
+	mx_bool_type suppress_comments;
+	mx_status_type mx_status;
+
+	if ( compumotor_interface->interface_flags
+			& MXF_COMPUMOTOR_SUPPRESS_COMMENTS )
+	{
+		suppress_comments = TRUE;
+	} else {
+		suppress_comments = FALSE;
+	}
+
+	/* Try to open the startup program file. */
+
+	program_file = mx_cfn_fopen( MX_CFN_CONFIG, program_filename, "r" );
+
+	if ( program_file == ( FILE * ) NULL ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"The attempt by record '%s' to open %s program "
+		"file '%s' failed.  Errno = %d, error message = '%s'.",
+			compumotor_interface->record->name,
+			program_type, program_filename,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	/* Read the startup program one line at a time
+	 * and send it to the Compumotor controller.
+	 */
+
+	mx_breakpoint();
+
+	while (1) {
+		mx_fgets( program_line, sizeof(program_line),
+						program_file );
+
+		if ( feof(program_file) ) {
+			fclose( program_file );
+			program_file = NULL;
+			break;		/* Exit the while() loop. */
+		} else
+		if ( ferror(program_file) ) {
+			saved_errno = errno;
+			fclose( program_file );
+
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"An error occurred while reading from "
+			"%s program file '%s' for record '%s'.  "
+			"Errno = %d, error message = '%s'.",
+				program_type, program_filename,
+				compumotor_interface->record->name,
+				saved_errno, strerror(saved_errno) );
+		}
+
+		if ( suppress_comments ) {
+			/* Look for the comment character ';'. */
+
+			ptr = strchr( program_line, ';' );
+
+			if ( ptr != NULL ) {
+				*ptr = '\0';
+			}
+
+			/* Suppress trailing spaces or tabs. */
+
+			length = strlen( program_line );
+
+			for ( i = length-1; i >= 0; i-- ) {
+
+				if ( ptr[i] == ' ' ) {
+					ptr[i] = '\0';
+				} else
+				if ( ptr[i] == '\t' ) {
+					ptr[i] = '\0';
+				} else {
+					break;	/* Exit the for() loop. */
+				}
+			}
+
+			if ( strlen( program_line ) == 0 ) {
+				/* If we have an empty line, do not send it
+				 * to the controller and go back to the top
+				 * of the while() loop.
+				 */
+
+				continue;
+			}
+		}
+
+		mx_status = mxi_compumotor_command(
+				compumotor_interface,
+				program_line,
+				NULL, 0,
+				MXI_COMPUMOTOR_INTERFACE_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			fclose( program_file );
+			return mx_status;
+		}
+	}
+
+	/* This should never happen, but we check anyway. */
+
+	if ( program_file != NULL ) {
+		fclose( program_file );
+
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The FILE pointer for file '%s' used by record '%s' "
+		"was not NULL at a time when the file should "
+		"already be closed.",
+			program_filename,
+			compumotor_interface->record->name );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -438,6 +569,18 @@ mxi_compumotor_open( MX_RECORD *record )
 
 	mx_status = mxi_compumotor_resynchronize( record );
 
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* If a startup program is defined, then run it. */
+
+	if ( strlen( compumotor_interface->startup_program ) > 0 ) {
+		mx_status = mxi_compumotor_run_program(
+				compumotor_interface,
+				"startup",
+				compumotor_interface->startup_program );
+	}
+
 	return mx_status;
 }
 
@@ -472,6 +615,18 @@ mxi_compumotor_close( MX_RECORD *record )
 
 	mx_status = mx_rs232_discard_unread_input(
 				compumotor_interface->rs232_record, FALSE );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* If a shutdown program is defined, then run it. */
+
+	if ( strlen( compumotor_interface->shutdown_program ) > 0 ) {
+		mx_status = mxi_compumotor_run_program(
+				compumotor_interface,
+				"shutdown",
+				compumotor_interface->shutdown_program );
+	}
 
 	return mx_status;
 }

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2006, 2010, 2013 Illinois Institute of Technology
+ * Copyright 1999-2002, 2006, 2010, 2013-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,6 +28,9 @@
 #define MXF_COMPUMOTOR_AUTO_ADDRESS_CONFIG		0x1
 #define MXF_COMPUMOTOR_ECHO_ON				0x2
 #define MXF_COMPUMOTOR_AUTO_COMMUNICATION_CONFIG	0x4
+
+/* Suppress comments in debugging output. */
+#define MXF_COMPUMOTOR_SUPPRESS_COMMENTS		0x1000
 
 /* Flag values used by the compumotor_lin and compumotor_trans drivers. */
 
@@ -57,6 +60,9 @@ typedef struct {
 	long num_controllers;
 	long *controller_number;
 	long *num_axes;
+
+	char startup_program[MXU_FILENAME_LENGTH+1];
+	char shutdown_program[MXU_FILENAME_LENGTH+1];
 
 	unsigned long *controller_type;
 	MX_RECORD *(*motor_array)[MX_MAX_COMPUMOTOR_AXES];
@@ -95,6 +101,16 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_COMPUMOTOR_INTERFACE, num_axes), \
 	{sizeof(int)}, NULL, \
 		(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS)}, \
+  \
+  {-1, -1, "startup_program", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_COMPUMOTOR_INTERFACE, startup_program),\
+	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
+  {-1, -1, "shutdown_program", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_COMPUMOTOR_INTERFACE, shutdown_program),\
+	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}, \
   \
   {-1, -1, "controller_type", MXFT_HEX, NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, \

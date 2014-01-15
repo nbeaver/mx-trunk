@@ -27,7 +27,7 @@ all: build
 
 #MODULES += libusb-0.1		# linux,
 
-MODULES += k8055		# linux,
+#MODULES += k8055		# linux,
 
 #MODULES += ni488		# linux,
 
@@ -48,7 +48,7 @@ MODULES += k8055		# linux,
 
 #MODULES += powerpmac
 
-MODULES += v4l2_input
+#MODULES += v4l2_input
 
 #-------------------------------------------------------------------
 # Win32-only modules.
@@ -82,9 +82,9 @@ MODULES += v4l2_input
 
 MODULES += epics
 
-#MODULES += epics_aps
+MODULES += epics_aps
 
-#MODULES += epics_pmac_biocat
+MODULES += epics_pmac_biocat
 
 #MODULES += epics_mbc
 
@@ -96,7 +96,7 @@ MODULES += epics
 #   BioCAT (APS-18ID) 6K "toast" controller.
 #
 
-#MODULES += site_biocat_toast
+MODULES += site_biocat_toast
 
 #---
 
