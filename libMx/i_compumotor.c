@@ -108,7 +108,7 @@ mxi_compumotor_run_program( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 	FILE *program_file;
 	char program_line[200];
 	char *ptr;
-	size_t i, length;
+	long i, length;
 	mx_bool_type suppress_comments;
 	mx_status_type mx_status;
 
@@ -178,11 +178,11 @@ mxi_compumotor_run_program( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 
 			for ( i = length-1; i >= 0; i-- ) {
 
-				if ( ptr[i] == ' ' ) {
-					ptr[i] = '\0';
+				if ( program_line[i] == ' ' ) {
+					program_line[i] = '\0';
 				} else
-				if ( ptr[i] == '\t' ) {
-					ptr[i] = '\0';
+				if ( program_line[i] == '\t' ) {
+					program_line[i] = '\0';
 				} else {
 					break;	/* Exit the for() loop. */
 				}
