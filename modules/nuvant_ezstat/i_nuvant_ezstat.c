@@ -20,6 +20,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_digital_output.h"
 #include "i_nuvant_ezstat.h"
 
 MX_RECORD_FUNCTION_LIST mxi_nuvant_ezstat_record_function_list = {
@@ -109,11 +110,11 @@ mxi_nuvant_ezstat_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_nuvant_ezstat_open()";
 
-	MX_NUVANT_EZSTAT *nuvant_ezstat;
+	MX_NUVANT_EZSTAT *ezstat = NULL;
+	unsigned long ezstat_mode;
 	mx_status_type mx_status;
 
-	mx_status = mxi_nuvant_ezstat_get_pointers( record,
-						&nuvant_ezstat, fname );
+	mx_status = mxi_nuvant_ezstat_get_pointers( record, &ezstat, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -121,6 +122,26 @@ mxi_nuvant_ezstat_open( MX_RECORD *record )
 #if MXI_NUVANT_EZSTAT_DEBUG
 	MX_DEBUG(-2,("%s invoked for '%s'.", fname, record->name));
 #endif
+
+	mx_status = mx_digital_output_read( ezstat->p10_record, &ezstat_mode );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	switch( ezstat_mode ) {
+	case 0:
+		ezstat->mode = MXF_NUVANT_EZSTAT_POTENTIOSTAT_MODE;
+		break;
+	case 1:
+		ezstat->mode = MXF_NUVANT_EZSTAT_GALVANOSTAT_MODE;
+		break;
+	default:
+		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+		"The current EZstat mode %lu for device '%s' is illegal.  "
+		"The allowed modes are 0 and 1.",
+			ezstat_mode, record->name );
+		break;
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
