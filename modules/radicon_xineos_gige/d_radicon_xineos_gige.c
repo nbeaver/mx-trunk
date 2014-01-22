@@ -229,7 +229,7 @@ mxd_radicon_xineos_gige_open( MX_RECORD *record )
 	ad->correction_load_format = MXT_IMAGE_FILE_SMV;
 	ad->correction_save_format = MXT_IMAGE_FILE_SMV;
 
-	ad->correction_calc_format = MXT_IMAGE_FORMAT_DOUBLE;
+	ad->correction_calc_format = MXT_IMAGE_FORMAT_FLOAT;
 
 	ad->correction_measurement_sequence_type = MXT_SQ_MULTIFRAME;
 
