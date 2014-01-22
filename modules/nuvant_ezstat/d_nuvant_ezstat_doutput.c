@@ -164,6 +164,8 @@ mxd_nuvant_ezstat_doutput_open( MX_RECORD *record )
 	MX_DIGITAL_OUTPUT *doutput = NULL;
 	MX_NUVANT_EZSTAT_DOUTPUT *ezstat_doutput = NULL;
 	MX_NUVANT_EZSTAT *ezstat = NULL;
+	char *type_name = NULL;
+	size_t len;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -179,21 +181,19 @@ mxd_nuvant_ezstat_doutput_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( mx_strcasecmp("cell_enable", ezstat_doutput->output_type_name)
-									== 0 )
-	{
+	type_name = ezstat_doutput->output_type_name;
+
+	len = strlen( type_name );
+
+	if ( mx_strncasecmp( type_name, "cell_enable", len ) == 0 ) {
 		ezstat_doutput->output_type =
 				MXT_NUVANT_EZSTAT_DOUTPUT_CELL_ENABLE;
 	} else
-	if ( mx_strcasecmp("external_switch", ezstat_doutput->output_type_name)
-									== 0 )
-	{
+	if ( mx_strncasecmp( type_name, "external_switch", len ) == 0 ) {
 		ezstat_doutput->output_type =
 				MXT_NUVANT_EZSTAT_DOUTPUT_EXTERNAL_SWITCH;
 	} else
-	if ( mx_strcasecmp("mode_select", ezstat_doutput->output_type_name)
-									== 0 )
-	{
+	if ( mx_strncasecmp( type_name, "mode_select", len ) == 0 ) {
 		ezstat_doutput->output_type =
 				MXT_NUVANT_EZSTAT_DOUTPUT_MODE_SELECT;
 	} else {
@@ -255,7 +255,8 @@ mxd_nuvant_ezstat_doutput_read( MX_DIGITAL_OUTPUT *doutput )
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal output type %lu requested for record '%s'.",
-			doutput->value, doutput->record->name );
+			ezstat_doutput->output_type,
+			doutput->record->name );
 		break;
 	}
 
