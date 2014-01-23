@@ -7,14 +7,16 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2011-2012 Illinois Institute of Technology
+ * Copyright 2011-2012, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXI_NI_DAQMX_DEBUG		FALSE
+#define MXI_NI_DAQMX_DEBUG			FALSE
+
+#define MXI_NI_DAQMX_DEBUG_TASK_POINTER		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,6 +24,12 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "i_ni_daqmx.h"
+
+#if MXI_NI_DAQMX_DEBUG_TASK_POINTER
+#  if defined( OS_WIN32 )
+#    include <windows.h>
+#  endif
+#endif
 
 MX_RECORD_FUNCTION_LIST mxi_ni_daqmx_record_function_list = {
 	NULL,
@@ -302,6 +310,81 @@ mxi_ni_daqmx_finish_delayed_initialization( MX_RECORD *record )
 	return mx_status;
 }
 
+/*------------------------------------------------------------------*/
+
+static void
+mxi_ni_daqmx_task_list_entry_destructor( void *list_entry_data )
+{
+	static const char fname[] = "mxi_ni_daqmx_task_list_entry_destructor()";
+
+	MX_NI_DAQMX_TASK *task;
+
+	if ( list_entry_data == NULL ) {
+		(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The list_entry_data pointer passed was NULL.  "
+		"Stack traceback will be shown." );
+
+		mx_stack_traceback();
+
+		return;
+	}
+
+	task = (MX_NI_DAQMX_TASK *) list_entry_data;
+
+#if 0
+	MX_DEBUG(-2,("%s: task = %p", fname, task));
+	MX_DEBUG(-2,("%s: task_name = '%s'", fname, task->task_name));
+	MX_DEBUG(-2,("%s: task_handle = %lu",
+			fname, (unsigned long) task->task_handle));
+	MX_DEBUG(-2,("%s: mx_datatype = %ld", fname, task->mx_datatype));
+	MX_DEBUG(-2,("%s: num_channels = %lu", fname, task->num_channels));
+#endif
+
+	if ( mx_heap_pointer_is_valid( task ) ) {
+		free( task );
+		return;
+	}
+
+	/* FIXME: If we get here, then something is wrong with the pointer. */
+
+	MX_DEBUG(-2,("%s: Task pointer %p was invalid", fname, task));
+	MX_DEBUG(-2,("%s: Task pointer %p was used by DAQmx task '%s'.",
+		fname, task, task->task_name));
+
+#if MXI_NI_DAQMX_DEBUG_TASK_POINTER
+#  if defined( OS_WIN32 )
+	{
+		MEMORY_BASIC_INFORMATION memory_info;
+		SIZE_T bytes_returned;
+
+		bytes_returned = VirtualQuery( task,
+					&memory_info, sizeof(memory_info) );
+
+		MX_DEBUG(-2,("%s: bytes_returned = %lu",
+			fname, bytes_returned));
+
+		MX_DEBUG(-2,("%s: base address = %p",
+			fname, memory_info.BaseAddress));
+		MX_DEBUG(-2,("%s: allocation base = %p",
+			fname, memory_info.AllocationBase));
+		MX_DEBUG(-2,("%s: allocation protect = %#lx",
+			fname, memory_info.AllocationProtect));
+		MX_DEBUG(-2,("%s: region size = %lu",
+			fname, (unsigned long) memory_info.RegionSize));
+		MX_DEBUG(-2,("%s: state = %#lx", fname, memory_info.State));
+		MX_DEBUG(-2,("%s: protect = %#lx", fname, memory_info.Protect));
+		MX_DEBUG(-2,("%s: type = %#lx", fname, memory_info.Type));
+
+		free( task );
+
+		MX_DEBUG(-2,("%s: The task pointer has been freed.",fname));
+	}
+#  else
+#    error mxi_ni_daqmx_task_list_entry_destructor() does not yet handle invalid pointers for this platform.
+#  endif
+#endif /* MXI_NI_DAQMX_DEBUG_TASK_POINTER */
+}
+
 /*--------------- Exported driver-specific functions ---------------*/
 
 MX_EXPORT mx_status_type
@@ -423,8 +506,8 @@ mxi_ni_daqmx_create_task( MX_NI_DAQMX *ni_daqmx,
 
 	/* Add the task to the master list of tasks. */
 
-	mx_status = mx_list_entry_create_and_add( ni_daqmx->task_list,
-						 *task, mx_free_pointer );
+	mx_status = mx_list_entry_create_and_add( ni_daqmx->task_list, *task,
+				mxi_ni_daqmx_task_list_entry_destructor );
 
 	return mx_status;
 }

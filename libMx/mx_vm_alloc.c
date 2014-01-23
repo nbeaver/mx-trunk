@@ -1598,7 +1598,12 @@ mx_pointer_is_valid( void *pointer, size_t length, int access_mode )
 
 		protection_flags &= 0x7;
 
-		if ( protection_flags == access_mode ) {
+		if ( ( protection_flags & access_mode ) == access_mode ) {
+
+			/* All of the bits requested in 'access_mode'
+			 * are set in 'protection_flags'.
+			 */
+
 			valid = TRUE;
 		} else {
 			valid = FALSE;
