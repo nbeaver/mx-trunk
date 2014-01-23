@@ -14,7 +14,7 @@
  *
  */
 
-#define MXI_NUVANT_EZSTAT_DEBUG		TRUE
+#define MXI_NUVANT_EZSTAT_DEBUG		FALSE
 
 #include <stdio.h>
 
@@ -112,6 +112,7 @@ mxi_nuvant_ezstat_open( MX_RECORD *record )
 
 	MX_NUVANT_EZSTAT *ezstat = NULL;
 	unsigned long ezstat_mode;
+	double current_range;
 	mx_status_type mx_status;
 
 	mx_status = mxi_nuvant_ezstat_get_pointers( record, &ezstat, fname );
@@ -143,6 +144,215 @@ mxi_nuvant_ezstat_open( MX_RECORD *record )
 		break;
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	mx_status = mxi_nuvant_ezstat_get_potentiostat_current_range(
+						ezstat, &current_range );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxi_nuvant_ezstat_get_galvanostat_current_range(
+						ezstat, &current_range );
+
+	return mx_status;
+}
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxi_nuvant_ezstat_get_potentiostat_current_range( MX_NUVANT_EZSTAT *ezstat,
+						double *current_range )
+{
+	static const char fname[] =
+		"mxi_nuvant_ezstat_get_potentiostat_current_range()";
+
+	unsigned long p13_value, p14_value;
+	mx_status_type mx_status;
+
+	if ( ezstat == (MX_NUVANT_EZSTAT *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_NUVANT_EZSTAT pointer passed was NULL." );
+	}
+	if ( current_range == (double *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The double pointer passed was NULL." );
+	}
+
+	mx_status = mx_digital_output_read( ezstat->p13_record,
+						&p13_value );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_digital_output_read( ezstat->p14_record,
+						&p14_value );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( p13_value == 0 ) {
+		if ( p14_value == 0 ) {
+			*current_range = 1.0e-6;
+			ezstat->potentiostat_resistance = 499.0e3;
+		} else {
+			*current_range = 100.0e-6;
+			ezstat->potentiostat_resistance = 49.9e3;
+		}
+	} else {
+		if ( p14_value == 0 ) {
+			*current_range = 10.0e-3;
+			ezstat->potentiostat_resistance = 499.0;
+		} else {
+			*current_range = 1.0;
+			ezstat->potentiostat_resistance = 9.09;
+		}
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxi_nuvant_ezstat_get_galvanostat_current_range( MX_NUVANT_EZSTAT *ezstat,
+						double *current_range )
+{
+	static const char fname[] =
+		"mxi_nuvant_ezstat_get_galvanostat_current_range()";
+
+	unsigned long p11_value, p12_value;
+	mx_status_type mx_status;
+
+	if ( ezstat == (MX_NUVANT_EZSTAT *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_NUVANT_EZSTAT pointer passed was NULL." );
+	}
+	if ( current_range == (double *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The double pointer passed was NULL." );
+	}
+
+	mx_status = mx_digital_output_read( ezstat->p11_record,
+						&p11_value );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_digital_output_read( ezstat->p12_record,
+						&p12_value );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( p11_value == 0 ) {
+		if ( p12_value == 0 ) {
+			*current_range = 100.0e-6;
+			ezstat->galvanostat_resistance  = 100.0e3;
+		} else {
+			*current_range = 1.0e-3;
+			ezstat->galvanostat_resistance  = 10.0e3;
+		}
+	} else {
+		if ( p12_value == 0 ) {
+			*current_range = 100.0e-3;
+			ezstat->galvanostat_resistance  = 100.0;
+		} else {
+			*current_range = 1.0;
+			ezstat->galvanostat_resistance  = 9.09;
+		}
+	}
+
+	return mx_status;
+}
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxi_nuvant_ezstat_set_potentiostat_current_range( MX_NUVANT_EZSTAT *ezstat,
+						double current_range )
+{
+	static const char fname[] =
+		"mxi_nuvant_ezstat_set_galvanostat_current_range()";
+
+	unsigned long p13_value, p14_value;
+	mx_status_type mx_status;
+
+	if ( ezstat == (MX_NUVANT_EZSTAT *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_NUVANT_EZSTAT pointer passed was NULL." );
+	}
+
+	if ( current_range <= 1.0e-6 ) {
+		p13_value = 0;
+		p14_value = 0;
+		ezstat->potentiostat_resistance = 499.0e3;
+	} else
+	if ( current_range <= 100.0e-6 ) {
+		p13_value = 0;
+		p14_value = 1;
+		ezstat->potentiostat_resistance = 49.9e3;
+	} else
+	if ( current_range <= 10.0e-3 ) {
+		p13_value = 1;
+		p14_value = 0;
+		ezstat->potentiostat_resistance = 499.0;
+	} else {
+		p13_value = 1;
+		p14_value = 1;
+		ezstat->potentiostat_resistance = 9.09;
+	}
+
+	mx_status = mx_digital_output_write( ezstat->p13_record,
+							p13_value );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_digital_output_write( ezstat->p14_record,
+							p14_value );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxi_nuvant_ezstat_set_galvanostat_current_range( MX_NUVANT_EZSTAT *ezstat,
+						double current_range )
+{
+	static const char fname[] =
+		"mxi_nuvant_ezstat_set_galvanostat_current_range()";
+
+	unsigned long p11_value, p12_value;
+	mx_status_type mx_status;
+
+	if ( ezstat == (MX_NUVANT_EZSTAT *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_NUVANT_EZSTAT pointer passed was NULL." );
+	}
+
+	if ( current_range <= 100.0e-6 ) {
+		p11_value = 0;
+		p12_value = 0;
+		ezstat->galvanostat_resistance = 100.0e3;
+	} else
+	if ( current_range <= 1.0e-3 ) {
+		p11_value = 0;
+		p12_value = 1;
+		ezstat->galvanostat_resistance = 10.0e3;
+	} else
+	if ( current_range <= 100.0e-3 ) {
+		p11_value = 1;
+		p12_value = 0;
+		ezstat->galvanostat_resistance = 100.0;
+	} else {
+		p11_value = 1;
+		p12_value = 1;
+		ezstat->galvanostat_resistance = 9.09;
+	}
+
+	mx_status = mx_digital_output_write( ezstat->p11_record, p11_value );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_digital_output_write( ezstat->p12_record, p12_value );
+
+	return mx_status;
 }
 

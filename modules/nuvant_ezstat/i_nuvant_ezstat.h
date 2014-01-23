@@ -109,5 +109,23 @@ extern MX_RECORD_FUNCTION_LIST mxi_nuvant_ezstat_record_function_list;
 extern long mxi_nuvant_ezstat_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_nuvant_ezstat_rfield_def_ptr;
 
+/*---*/
+
+MX_API mx_status_type mxi_nuvant_ezstat_get_potentiostat_current_range(
+						MX_NUVANT_EZSTAT *ezstat,
+						double *current_range );
+
+MX_API mx_status_type mxi_nuvant_ezstat_get_galvanostat_current_range(
+						MX_NUVANT_EZSTAT *ezstat,
+						double *current_range );
+
+MX_API mx_status_type mxi_nuvant_ezstat_set_potentiostat_current_range(
+						MX_NUVANT_EZSTAT *ezstat,
+						double current_range );
+
+MX_API mx_status_type mxi_nuvant_ezstat_set_galvanostat_current_range(
+						MX_NUVANT_EZSTAT *ezstat,
+						double current_range );
+
 #endif /* __I_NUVANT_EZSTAT_H__ */
 

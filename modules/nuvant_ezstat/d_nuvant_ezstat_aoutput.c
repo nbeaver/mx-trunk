@@ -253,66 +253,14 @@ mxd_nuvant_ezstat_aoutput_read( MX_ANALOG_OUTPUT *aoutput )
 
 		break;
 	case MXT_NUVANT_EZSTAT_AOUTPUT_POTENTIOSTAT_CURRENT_RANGE:
-		mx_status = mx_digital_output_read( ezstat->p13_record,
-							&p13_value );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		mx_status = mx_digital_output_read( ezstat->p14_record,
-							&p14_value );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		if ( p13_value == 0 ) {
-			if ( p14_value == 0 ) {
-				aoutput->raw_value.double_value = 1.0e-6;
-				ezstat->potentiostat_resistance = 499.0e3;
-			} else {
-				aoutput->raw_value.double_value = 100.0e-6;
-				ezstat->potentiostat_resistance = 49.9e3;
-			}
-		} else {
-			if ( p14_value == 0 ) {
-				aoutput->raw_value.double_value = 10.0e-3;
-				ezstat->potentiostat_resistance = 499.0;
-			} else {
-				aoutput->raw_value.double_value = 1.0;
-				ezstat->potentiostat_resistance = 9.09;
-			}
-		}
+		mx_status = mxi_nuvant_ezstat_get_potentiostat_current_range(
+				ezstat, &(aoutput->raw_value.double_value) );
 		break;
 	case MXT_NUVANT_EZSTAT_AOUTPUT_GALVANOSTAT_CURRENT_RANGE:
-		mx_status = mx_digital_output_read( ezstat->p11_record,
-							&p11_value );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		mx_status = mx_digital_output_read( ezstat->p12_record,
-							&p12_value );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		if ( p11_value == 0 ) {
-			if ( p12_value == 0 ) {
-				aoutput->raw_value.double_value = 100.0e-6;
-				ezstat->galvanostat_resistance  = 100.0e3;
-			} else {
-				aoutput->raw_value.double_value = 1.0e-3;
-				ezstat->galvanostat_resistance  = 10.0e3;
-			}
-		} else {
-			if ( p12_value == 0 ) {
-				aoutput->raw_value.double_value = 100.0e-3;
-				ezstat->galvanostat_resistance  = 100.0;
-			} else {
-				aoutput->raw_value.double_value = 1.0;
-				ezstat->galvanostat_resistance  = 9.09;
-			}
-		}
+		mx_status = mxi_nuvant_ezstat_get_galvanostat_current_range(
+				ezstat, &(aoutput->raw_value.double_value) );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -344,10 +292,20 @@ mxd_nuvant_ezstat_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 
 	switch( ezstat_aoutput->output_type ) {
 	case MXT_NUVANT_EZSTAT_AOUTPUT_POTENTIOSTAT_VOLTAGE:
+		mx_status = mx_digital_output_write( ezstat->p10_record, 0 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
 		mx_status = mx_analog_output_write( ezstat->ao0_record,
 					aoutput->raw_value.double_value );
 		break;
 	case MXT_NUVANT_EZSTAT_AOUTPUT_GALVANOSTAT_CURRENT:
+		mx_status = mx_digital_output_write( ezstat->p10_record, 1 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
 		ao0_value = aoutput->raw_value.double_value
 				* ezstat->galvanostat_resistance;
 			
@@ -355,68 +313,14 @@ mxd_nuvant_ezstat_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 								ao0_value );
 		break;
 	case MXT_NUVANT_EZSTAT_AOUTPUT_POTENTIOSTAT_CURRENT_RANGE:
-		raw_value = aoutput->raw_value.double_value;
 
-		if ( raw_value <= 1.0e-6 ) {
-			p13_value = 0;
-			p14_value = 0;
-			ezstat->potentiostat_resistance = 499.0e3;
-		} else
-		if ( raw_value <= 100.0e-6 ) {
-			p13_value = 0;
-			p14_value = 1;
-			ezstat->potentiostat_resistance = 49.9e3;
-		} else
-		if ( raw_value <= 10.0e-3 ) {
-			p13_value = 1;
-			p14_value = 0;
-			ezstat->potentiostat_resistance = 499.0;
-		} else {
-			p13_value = 1;
-			p14_value = 1;
-			ezstat->potentiostat_resistance = 9.09;
-		}
-
-		mx_status = mx_digital_output_write( ezstat->p13_record,
-								p13_value );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		mx_status = mx_digital_output_write( ezstat->p14_record,
-								p14_value );
+		mx_status = mxi_nuvant_ezstat_set_potentiostat_current_range(
+				ezstat, aoutput->raw_value.double_value );
 		break;
 	case MXT_NUVANT_EZSTAT_AOUTPUT_GALVANOSTAT_CURRENT_RANGE:
-		raw_value = aoutput->raw_value.double_value;
 
-		if ( raw_value <= 100.0e-6 ) {
-			p11_value = 0;
-			p12_value = 0;
-			ezstat->galvanostat_resistance = 100.0e3;
-		} else
-		if ( raw_value <= 1.0e-3 ) {
-			p11_value = 0;
-			p12_value = 1;
-			ezstat->galvanostat_resistance = 10.0e3;
-		} else
-		if ( raw_value <= 100.0e-3 ) {
-			p11_value = 1;
-			p12_value = 0;
-			ezstat->galvanostat_resistance = 100.0;
-		} else {
-			p11_value = 1;
-			p12_value = 1;
-			ezstat->galvanostat_resistance = 9.09;
-		}
-
-		mx_status = mx_digital_output_write( ezstat->p11_record,
-								p11_value );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		mx_status = mx_digital_output_write( ezstat->p12_record,
-								p12_value );
+		mx_status = mxi_nuvant_ezstat_set_galvanostat_current_range(
+				ezstat, aoutput->raw_value.double_value );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
