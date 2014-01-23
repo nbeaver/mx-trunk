@@ -16,7 +16,8 @@ include ../../libMx/Makehead.$(MX_ARCH)
 CFLAGS += -I../../libMx -D__MX_LIBRARY__ -DIS_MX_DRIVER
 
 NUVANT_EZSTAT_OBJS = nuvant_ezstat.$(OBJ) i_nuvant_ezstat.$(OBJ) \
-	d_nuvant_ezstat_ainput.$(OBJ) d_nuvant_ezstat_doutput.$(OBJ)
+	d_nuvant_ezstat_ainput.$(OBJ) d_nuvant_ezstat_aoutput.$(OBJ) \
+	d_nuvant_ezstat_doutput.$(OBJ)
 
 #--------------------------------------------------------------------------
 
@@ -51,7 +52,8 @@ endif
 #--------------------------------------------------------------------------
 
 nuvant_ezstat.$(OBJ): nuvant_ezstat.c i_nuvant_ezstat.h \
-			d_nuvant_ezstat_ainput.h d_nuvant_ezstat_doutput.h
+			d_nuvant_ezstat_ainput.h d_nuvant_ezstat_aoutput.h \
+			d_nuvant_ezstat_doutput.h
 	$(COMPILE) $(CFLAGS) nuvant_ezstat.c
 
 i_nuvant_ezstat.$(OBJ): i_nuvant_ezstat.c i_nuvant_ezstat.h
@@ -60,6 +62,10 @@ i_nuvant_ezstat.$(OBJ): i_nuvant_ezstat.c i_nuvant_ezstat.h
 d_nuvant_ezstat_ainput.$(OBJ): d_nuvant_ezstat_ainput.c \
 				d_nuvant_ezstat_ainput.h i_nuvant_ezstat.h
 	$(COMPILE) $(CFLAGS) d_nuvant_ezstat_ainput.c
+
+d_nuvant_ezstat_aoutput.$(OBJ): d_nuvant_ezstat_aoutput.c \
+				d_nuvant_ezstat_aoutput.h i_nuvant_ezstat.h
+	$(COMPILE) $(CFLAGS) d_nuvant_ezstat_aoutput.c
 
 d_nuvant_ezstat_doutput.$(OBJ): d_nuvant_ezstat_doutput.c \
 				d_nuvant_ezstat_doutput.h i_nuvant_ezstat.h

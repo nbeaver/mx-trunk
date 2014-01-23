@@ -42,6 +42,9 @@ typedef struct {
 
 	unsigned long mode;
 
+	double potentiostat_resistance;
+	double galvanostat_resistance;
+
 } MX_NUVANT_EZSTAT;
 
 #define MXI_NUVANT_EZSTAT_STANDARD_FIELDS \
