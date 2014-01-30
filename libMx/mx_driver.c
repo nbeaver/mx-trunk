@@ -71,6 +71,7 @@
 #include "mx_ptz.h"
 #include "mx_video_input.h"
 #include "mx_area_detector.h"
+#include "mx_waveform_input.h"
 #include "mx_waveform_output.h"
 
 #include "mx_scan.h"
@@ -462,6 +463,8 @@
 #include "d_bluice_area_detector.h"
 #include "d_mlfsom.h"
 #include "d_mar345.h"
+
+#include "d_network_wvin.h"
 
 #include "d_network_wvout.h"
 #include "d_bkprecision_912x_wvout.h"
@@ -3389,6 +3392,13 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_am9513_timer_timer_function_list,
 				&mxd_am9513_timer_num_record_fields,
 				&mxd_am9513_timer_rfield_def_ptr},
+
+{"network_wvin",  MXT_WVI_NETWORK,   MXC_WAVEFORM_INPUT, MXR_DEVICE,
+			&mxd_network_wvin_record_function_list,
+			NULL,
+			&mxd_network_wvin_wvin_function_list,
+			&mxd_network_wvin_num_record_fields,
+			&mxd_network_wvin_rfield_def_ptr},
 
 {"network_wvout",  MXT_WVO_NETWORK,   MXC_WAVEFORM_OUTPUT, MXR_DEVICE,
 			&mxd_network_wvout_record_function_list,

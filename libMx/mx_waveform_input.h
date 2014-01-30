@@ -81,7 +81,7 @@ typedef struct {
 #define MXLV_WVI_STOP		26508
 #define MXLV_WVI_BUSY		26509
 
-#define mx_waveform_input_STANDARD_FIELDS \
+#define MX_WAVEFORM_INPUT_STANDARD_FIELDS \
   {-1, -1, "maximum_num_channels", MXFT_LONG, NULL, 0, {0}, \
   	MXF_REC_CLASS_STRUCT, \
 		offsetof(MX_WAVEFORM_INPUT, maximum_num_channels), \

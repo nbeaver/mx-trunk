@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008, 2010 Illinois Institute of Technology
+ * Copyright 2008, 2010, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -47,7 +47,7 @@ typedef struct {
   {-1, -1, "remote_record_name", MXFT_STRING, NULL, \
 					1, {MXU_RECORD_NAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NETWORK_WVOUT, remote_record_name), \
-	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
 MX_API mx_status_type mxd_network_wvout_initialize_driver( MX_DRIVER *driver );
 MX_API mx_status_type mxd_network_wvout_create_record_structures(

@@ -726,6 +726,11 @@ extern "C" {
 
 #define MXT_AD_MAR345			240016
 
+/* --- Waveform input types --- */
+
+#define MXT_WVI_SOFTWARE		250001
+#define MXT_WVI_NETWORK			250002
+
 /* --- Waveform output types --- */
 
 #define MXT_WVO_SOFTWARE		260001
