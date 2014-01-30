@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004-2008, 2011, 2013 Illinois Institute of Technology
+ * Copyright 2004-2008, 2011, 2013-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -250,6 +250,14 @@ extern mx_status_type mx_setup_video_input_process_functions(
 					MX_RECORD *record_list );
 
 extern mx_status_type mx_video_input_process_function(
+			void *record, void *record_field, int operation );
+
+/*---*/
+
+extern mx_status_type mx_setup_waveform_input_process_functions(
+					MX_RECORD *record_list );
+
+extern mx_status_type mx_waveform_input_process_function(
 			void *record, void *record_field, int operation );
 
 /*---*/

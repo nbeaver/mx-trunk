@@ -49,14 +49,15 @@ MX_CORE_SRCS = mx_amplifier.c mx_analog_input.c mx_analog_output.c \
 	mx_variable.c mx_version.c mx_vfield.c mx_vfile.c \
 	mx_video_input.c mx_vinline.c \
 	mx_virtual_timer.c mx_vm_alloc.c mx_vme.c mx_vnet.c mx_warning.c \
-	mx_waveform_output.c \
+	mx_waveform_input.c mx_waveform_output.c \
 	pr_amplifier.c pr_analog_input.c pr_analog_output.c \
 	pr_area_detector.c pr_autoscale.c \
 	pr_digital_input.c pr_digital_output.c pr_gpib.c \
 	pr_list_head.c pr_mca.c pr_mcai.c pr_mce.c pr_mcs.c \
 	pr_motor.c pr_operation.c pr_ptz.c pr_pulser.c pr_record.c \
 	pr_relay.c pr_rs232.c pr_sample_changer.c pr_sca.c pr_scaler.c \
-	pr_timer.c pr_variable.c pr_video_input.c pr_waveform_output.c \
+	pr_timer.c pr_variable.c pr_video_input.c \
+	pr_waveform_input.c pr_waveform_output.c \
 	fh_autoscale.c fh_simple.c \
 	f_child.c f_custom.c f_none.c f_sff.c f_text.c f_xafs.c \
 	m_count.c m_none.c m_pulse_period.c m_time.c \
