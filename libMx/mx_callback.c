@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2007-2013 Illinois Institute of Technology
+ * Copyright 2007-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2035,8 +2035,10 @@ mx_function_delete_callback( MX_CALLBACK_MESSAGE *callback_message )
 	mx_status_type (*callback_destructor)(MX_CALLBACK_MESSAGE *);
 	mx_status_type mx_status;
 
+#if 0
 	MX_DEBUG(-2,("%s invoked for callback message %p",
 		fname, callback_message));
+#endif
 
 	if ( callback_message == (MX_CALLBACK_MESSAGE *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,

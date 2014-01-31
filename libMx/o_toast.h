@@ -19,6 +19,10 @@
 #ifndef __O_TOAST_H__
 #define __O_TOAST_H__
 
+/* Values for 'toast_flags'. */
+
+#define MXSF_TOAST_USE_FINISH_POSITION	0x1
+
 /* Values for 'toast_state'. */
 
 #define MXST_TOAST_ILLEGAL	0
@@ -31,16 +35,18 @@
 #define MXST_TOAST_MOVING_TO_LOW	11
 #define MXST_TOAST_IN_TURNAROUND	12
 #define MXST_TOAST_STOPPING		13
+#define MXST_TOAST_MOVING_TO_FINISH	14
 
 typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *motor_record;
-	double high_position;
 	double low_position;
+	double high_position;
 	double finish_position;
 	double turnaround_delay;	/* In seconds. */
 	double timeout;			/* In seconds. */
+	unsigned long toast_flags;
 
 	MX_CLOCK_TICK interval_finish_tick;
 
@@ -55,12 +61,12 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TOAST, motor_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "high_position", MXFT_DOUBLE, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_TOAST, high_position), \
-	{0}, NULL, MXFF_IN_DESCRIPTION}, \
-  \
   {-1, -1, "low_position", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TOAST, low_position), \
+	{0}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
+  {-1, -1, "high_position", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_TOAST, high_position), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
   {-1, -1, "finish_position", MXFT_DOUBLE, NULL, 0, {0}, \
@@ -73,6 +79,10 @@ typedef struct {
   \
   {-1, -1, "timeout", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TOAST, timeout), \
+	{0}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
+  {-1, -1, "toast_flags", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_TOAST, toast_flags), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
   {-1, -1, "toast_state", MXFT_ULONG, NULL, 0, {0}, \

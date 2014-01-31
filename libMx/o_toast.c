@@ -16,7 +16,7 @@
  *
  */
 
-#define MXO_TOAST_DEBUG		TRUE
+#define MXO_TOAST_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -141,8 +141,10 @@ mxo_toast_callback( MX_CALLBACK_MESSAGE *message )
 		"This callback was invoked with a NULL callback message!" );
 	}
 
+#if 0
 	MX_DEBUG(-2,("%s: callback_message = %p, callback_type = %lu",
 		fname, message, message->callback_type));
+#endif
 
 	if ( message->callback_type != MXCBT_FUNCTION ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -178,6 +180,11 @@ mxo_toast_callback( MX_CALLBACK_MESSAGE *message )
 
 	/* Update toast operation state. */
 
+#if MXO_TOAST_DEBUG
+	MX_DEBUG(-2,("%s: BEFORE: state = %lu, next state = %lu",
+		fname, toast->toast_state, toast->next_toast_state));
+#endif
+
 	switch( toast->toast_state ) {
 	case MXST_TOAST_FAULT:
 	case MXST_TOAST_TIMED_OUT:
@@ -193,14 +200,32 @@ mxo_toast_callback( MX_CALLBACK_MESSAGE *message )
 		case MXST_TOAST_MOVING_TO_HIGH:
 			mx_status = mx_motor_move_absolute( toast->motor_record,
 					toast->high_position, MXF_MTR_NOWAIT );
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+				toast->toast_state = MXST_TOAST_FAULT;
+				return mx_status;
+			}
+
+			toast->toast_state = toast->next_toast_state;
+			toast->next_toast_state = MXST_TOAST_IN_TURNAROUND;
 			break;
 
 		case MXST_TOAST_MOVING_TO_LOW:
 			mx_status = mx_motor_move_absolute( toast->motor_record,
 					toast->low_position, MXF_MTR_NOWAIT );
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+				toast->toast_state = MXST_TOAST_FAULT;
+				return mx_status;
+			}
+
+			toast->toast_state = toast->next_toast_state;
+			toast->next_toast_state = MXST_TOAST_IN_TURNAROUND;
 			break;
 
 		default:
+			toast->toast_state = MXST_TOAST_FAULT;
+
 			return mx_error( MXE_UNKNOWN_ERROR, fname,
 			"Unexpected next_toast_state %lu for operation '%s' "
 			"currently in the 'idle' state.",
@@ -217,8 +242,10 @@ mxo_toast_callback( MX_CALLBACK_MESSAGE *message )
 		mx_status = mx_motor_get_status( toast->motor_record,
 							&motor_status );
 
-		if ( mx_status.code != MXE_SUCCESS )
+		if ( mx_status.code != MXE_SUCCESS ) {
+			toast->toast_state = MXST_TOAST_FAULT;
 			return mx_status;
+		}
 
 		if ( motor_status & MXSF_MTR_IS_BUSY ) {
 			/* The motor is still moving, so just return. */
@@ -250,8 +277,19 @@ mxo_toast_callback( MX_CALLBACK_MESSAGE *message )
 
 		current_tick = mx_current_clock_tick();
 
-		comparison = mx_compare_clock_ticks(
-			toast->interval_finish_tick, current_tick );
+		comparison = mx_compare_clock_ticks( current_tick,
+					toast->interval_finish_tick );
+
+#if MXO_TOAST_DEBUG
+		MX_DEBUG(-2,("%s: current tick = (%lu,%lu), "
+			"finish tick = (%lu,%lu), comparison = %d",
+			fname,
+			current_tick.high_order,
+			current_tick.low_order,
+			toast->interval_finish_tick.high_order,
+			toast->interval_finish_tick.low_order,
+			comparison));
+#endif
 
 		if ( comparison < 0 ) {
 			/* The turnaround delay is not finished yet so return.*/
@@ -265,27 +303,38 @@ mxo_toast_callback( MX_CALLBACK_MESSAGE *message )
 		case MXST_TOAST_MOVING_TO_HIGH:
 			mx_status = mx_motor_move_absolute( toast->motor_record,
 					toast->high_position, MXF_MTR_NOWAIT );
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+				toast->toast_state = MXST_TOAST_FAULT;
+				return mx_status;
+			}
+
+			toast->toast_state = toast->next_toast_state;
+			toast->next_toast_state = MXST_TOAST_IN_TURNAROUND;
 			break;
 
 		case MXST_TOAST_MOVING_TO_LOW:
 			mx_status = mx_motor_move_absolute( toast->motor_record,
 					toast->low_position, MXF_MTR_NOWAIT );
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+				toast->toast_state = MXST_TOAST_FAULT;
+				return mx_status;
+			}
+
+			toast->toast_state = toast->next_toast_state;
+			toast->next_toast_state = MXST_TOAST_IN_TURNAROUND;
 			break;
 
 		default:
+			toast->toast_state = MXST_TOAST_FAULT;
+
 			return mx_error( MXE_UNKNOWN_ERROR, fname,
 			"Unexpected next_toast_state %lu for operation '%s' "
 			"currently in the 'in turnaround' state.",
 				toast->next_toast_state,
 				operation_record->name );
 		}
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		toast->toast_state = toast->next_toast_state;
-
-		toast->next_toast_state = MXST_TOAST_IN_TURNAROUND;
 		break;
 
 	case MXST_TOAST_STOPPING:
@@ -294,20 +343,101 @@ mxo_toast_callback( MX_CALLBACK_MESSAGE *message )
 		mx_status = mx_motor_get_status( toast->motor_record,
 							&motor_status );
 
-		if ( mx_status.code != MXE_SUCCESS )
+		if ( mx_status.code != MXE_SUCCESS ) {
+			toast->toast_state = MXST_TOAST_FAULT;
 			return mx_status;
+		}
 
 		if ( (motor_status & MXSF_MTR_IS_BUSY) == 0 ) {
+			/* The motor has stopped moving. */
+
+			if ( toast->toast_flags
+				& MXSF_TOAST_USE_FINISH_POSITION )
+			{
+				/* If requested, command a move
+				 * to the finish position.
+				 */
+
+				toast->toast_state =
+					MXST_TOAST_MOVING_TO_FINISH;
+				toast->next_toast_state = MXST_TOAST_IDLE;
+
+				mx_status = mx_motor_move_absolute(
+						toast->motor_record,
+						toast->finish_position,
+						MXF_MTR_NOWAIT );
+
+				if ( mx_status.code != MXE_SUCCESS ) {
+					toast->toast_state = MXST_TOAST_FAULT;
+					return mx_status;
+				}
+			} else {
+				/* Otherwise, delete the toast callback. */
+
+				toast->toast_state = MXST_TOAST_IDLE;
+				toast->next_toast_state = MXST_TOAST_IDLE;
+
+				if ( toast->callback_message
+					!= (MX_CALLBACK_MESSAGE *) NULL )
+				{
+					mx_status = mx_function_delete_callback(
+						toast->callback_message );
+
+					if ( mx_status.code != MXE_SUCCESS )
+						return mx_status;
+	
+					toast->callback_message = NULL;
+				}
+			}
+		}
+		break;
+
+	case MXST_TOAST_MOVING_TO_FINISH:
+		/* Is the motor still moving? */
+
+		mx_status = mx_motor_get_status( toast->motor_record,
+							&motor_status );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			toast->toast_state = MXST_TOAST_FAULT;
+			return mx_status;
+		}
+
+		if ( (motor_status & MXSF_MTR_IS_BUSY) == 0 ) {
+			/* The motor has stopped moving. */
+
+			/* Delete the toast callback. */
+
 			toast->toast_state = MXST_TOAST_IDLE;
+			toast->next_toast_state = MXST_TOAST_IDLE;
+
+			if ( toast->callback_message
+					!= (MX_CALLBACK_MESSAGE *) NULL )
+			{
+				mx_status = mx_function_delete_callback(
+					toast->callback_message );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+	
+				toast->callback_message = NULL;
+			}
 		}
 		break;
 
 	default:
+		toast->toast_state = MXST_TOAST_FAULT;
+
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Unrecognized toast state %lu for operation '%s'.",
 			toast->toast_state, operation_record->name );
 		break;
 	}
+
+#if MXO_TOAST_DEBUG
+	MX_DEBUG(-2,("%s: AFTER: state = %lu, next state = %lu",
+		fname, toast->toast_state, toast->next_toast_state));
+#endif
 
 	return mx_status;
 }
@@ -483,27 +613,12 @@ mxo_toast_stop( MX_OPERATION *operation )
 
 	MX_TOAST *toast = NULL;
 	MX_MOTOR *motor = NULL;
-	unsigned long motor_status;
-	MX_CLOCK_TICK timeout_ticks, current_tick, finish_tick;
-	int comparison;
 	mx_status_type mx_status;
 
 	mx_status = mxo_toast_get_pointers( operation, &toast, &motor, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	/* Delete the toast callback. */
-
-	if ( toast->callback_message != (MX_CALLBACK_MESSAGE *) NULL ) {
-		mx_status = mx_function_delete_callback(
-				toast->callback_message );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		toast->callback_message = NULL;
-	}
 
 	/* Unconditionally stop the motor and set the current state to IDLE. */
 
@@ -518,45 +633,6 @@ mxo_toast_stop( MX_OPERATION *operation )
 
 		return mx_status;
 	}
-
-	timeout_ticks = mx_convert_seconds_to_clock_ticks( toast->timeout );
-
-	finish_tick = mx_add_clock_ticks( mx_current_clock_tick(),
-						timeout_ticks );
-
-	while (1) {
-		mx_status = mx_motor_get_status( toast->motor_record,
-						&motor_status );
-
-		if ( mx_status.code != MXE_SUCCESS ) {
-			toast->toast_state = MXST_TOAST_FAULT;
-
-			return mx_status;
-		}
-
-		if ( ( motor_status & MXSF_MTR_IS_BUSY ) == 0 ) {
-			break;
-		}
-
-		current_tick = mx_current_clock_tick();
-
-		comparison = mx_compare_clock_ticks(finish_tick, current_tick);
-
-		if ( comparison >= 0 ) {
-			toast->toast_state = MXST_TOAST_TIMED_OUT;
-
-			return mx_error( MXE_TIMED_OUT, fname,
-			"Operation '%s' timed out after waiting %g seconds "
-			"for motor '%s' to stop.",
-				operation->record->name,
-				toast->timeout,
-				toast->motor_record->name );
-		}
-
-		mx_msleep(100);
-	}
-
-	toast->toast_state = MXST_TOAST_IDLE;
 
 	return MX_SUCCESSFUL_RESULT;
 }

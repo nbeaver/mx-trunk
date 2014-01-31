@@ -384,50 +384,6 @@ mxd_network_wvin_read_channel( MX_WAVEFORM_INPUT *wvin )
 }
 
 MX_EXPORT mx_status_type
-mxd_network_wvin_write_channel( MX_WAVEFORM_INPUT *wvin )
-{
-	static const char fname[] = "mxd_network_wvin_write_channel()";
-
-	MX_NETWORK_WVIN *network_wvin = NULL;
-	long dimension_array[1];
-	long ch;
-	mx_status_type mx_status;
-
-	mx_status = mxd_network_wvin_get_pointers( wvin,
-					&network_wvin, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MXD_NETWORK_WVIN_DEBUG
-	MX_DEBUG(-2,("%s invoked for record '%s'.",
-		fname, wvin->record->name));
-#endif
-
-	/* Repoint 'channel_data' to the correct row in 'data_array'. */
-
-	ch = (long) wvin->channel_index;
-
-	wvin->channel_data = (wvin->data_array)[ch];
-
-	mx_status = mx_put( &(network_wvin->channel_index_nf),
-				MXFT_LONG, &(wvin->channel_index) );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Write the channel data itself. */
-
-	dimension_array[0] = wvin->maximum_num_steps;
-
-	mx_status = mx_put_array( &(network_wvin->channel_data_nf),
-				MXFT_DOUBLE, 1, dimension_array,
-				wvin->channel_data );
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
 mxd_network_wvin_get_parameter( MX_WAVEFORM_INPUT *wvin )
 {
 	static const char fname[] =
