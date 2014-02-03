@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2007, 2009-2013 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2007, 2009-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -842,6 +842,7 @@ motor_show_version( void )
 {
 	MX_LIST_HEAD *list_head;
 	char os_version_string[80];
+	unsigned long num_cores;
 	mx_status_type mx_status;
 
 	fprintf( output, "MX version: %s\n", mx_get_version_string() );
@@ -923,6 +924,17 @@ motor_show_version( void )
 	if ( list_head->cflags != NULL ) {
 		fprintf( output, "\nCFLAGS: '%s'\n",
 			list_head->cflags );
+	}
+
+/*-------------------------------------------------------------------------*/
+
+	mx_status = mx_get_number_of_cpu_cores( &num_cores );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		fprintf( output,
+			"\nError: Could not get number of CPU cores.\n" );
+	} else {
+		fprintf( output, "\nCPU cores: %lu\n", num_cores );
 	}
 
 	return;

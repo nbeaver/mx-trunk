@@ -1,14 +1,13 @@
 /*
  * Name:    mx_cpu.c
  *
- * Purpose: Functions for controlling the use by programs of the available
- *          CPUs.
+ * Purpose: Functions for controlling the use of the available CPUs.
  *
  * Author:  William Lavender
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2007-2011 Illinois Institute of Technology
+ * Copyright 2007-2011, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,6 +23,164 @@
 #endif
 
 #include "mx_util.h"
+
+/*===================================================================*/
+
+/* For multithreaded programs, mx_get_number_of_cpu_cores() can be used
+ * to find out how many processor cores are available.  This can be used
+ * to figure out how many threads to create for parallel operations such
+ * as copying multiple files.
+ *
+ * Inspired by
+ *     http://stackoverflow.com/questions/150355/programmatically-find-the-number-of-cores-on-a-machine
+ */
+
+/*------------------------------ Win32 ------------------------------*/
+
+#if defined(OS_WIN32)
+
+MX_EXPORT mx_status_type
+mx_get_number_of_cpu_cores( unsigned long *num_cores )
+{
+	static const char fname[] = "mx_get_number_of_cpu_cores()";
+
+	SYSTEM_INFO sysinfo;
+
+	if ( num_cores == (unsigned long *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The num_cores pointer passed was NULL." );
+	}
+
+	GetSystemInfo( &sysinfo );
+
+	*num_cores = sysinfo.dwNumberOfProcessors;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*----------------------- Linux, Solaris, AIX -----------------------*/
+
+#elif defined(OS_LINUX) || defined(OS_SOLARIS) || defined(OS_AIX)
+
+MX_EXPORT mx_status_type
+mx_get_number_of_cpu_cores( unsigned long *num_cores )
+{
+	static const char fname[] = "mx_get_number_of_cpu_cores()";
+
+	if ( num_cores == (unsigned long *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The num_cores pointer passed was NULL." );
+	}
+
+	*num_cores = sysconf( _SC_NPROCESSORS_ONLN );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*------------------------------- Irix -----------------------------*/
+
+#elif defined(OS_IRIX)
+
+MX_EXPORT mx_status_type
+mx_get_number_of_cpu_cores( unsigned long *num_cores )
+{
+	static const char fname[] = "mx_get_number_of_cpu_cores()";
+
+	if ( num_cores == (unsigned long *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The num_cores pointer passed was NULL." );
+	}
+
+	*num_cores = sysconf( _SC_NPROC_ONLN );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*------------------------------- HP/UX ----------------------------*/
+
+#elif defined(OS_HPUX)
+
+MX_EXPORT mx_status_type
+mx_get_number_of_cpu_cores( unsigned long *num_cores )
+{
+	static const char fname[] = "mx_get_number_of_cpu_cores()";
+
+	if ( num_cores == (unsigned long *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The num_cores pointer passed was NULL." );
+	}
+
+	*num_cores = mpctl( MPC_GETNUMSPUS, NULL, NULL );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---------------------------- MacOS X, BSD ------------------------*/
+
+#elif defined(OS_MACOSX) || defined(OS_BSD)
+
+MX_EXPORT mx_status_type
+mx_get_number_of_cpu_cores( unsigned long *num_cores )
+{
+	static const char fname[] = "mx_get_number_of_cpu_cores()";
+
+	int mib[4];
+	size_t ul_length = sizeof(unsigned long);
+
+	if ( num_cores == (unsigned long *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The num_cores pointer passed was NULL." );
+	}
+
+	mib[0] = CTL_HW;
+	mib[1] = HW_AVAILCPU;
+
+	os_status = sysctl( mib, 2, num_cores, &ul_length, NULL, 0 );
+
+	if ( os_status != 0 ) {
+		saved_errno = errno;
+
+		if ( saved_errno != ENOENT ) {
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"An attempt to read the value of HW_AVAILCPU failed.  "
+			"Errno = %d, error message = '%s'",
+				saved_errno, strerror(saved_errno) );
+		} else {
+		`	/* If we get here, HW_AVAILCPU does not exist,
+			 * so we try HW_NCPU instead.
+			 */
+
+			mib[1] = HW_NCPU;
+
+			os_status = sysctl( mib, 2,
+					num_cores, &ul_length, NULL, 0 );
+
+			if ( os_status != 0 ) {
+				saved_errno = errno;
+
+				if ( saved_errno != ENOENT ) {
+					return mx_error(
+					MXE_OPERATING_SYSTEM_ERROR, fname,
+					"An attempt to read the value of "
+					"HW_NCPU failed.  "
+					"Errno = %d, error message = '%s'",
+						saved_errno,
+						strerror(saved_errno) );
+				} else {
+					*num_cores = 1;
+				}
+			}
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#else
+#  error mx_get_number_of_cpu_cores() not yet implemented for this platform.
+#endif
+
+/*===================================================================*/
 
 /*
  * Process affinity masks are used in multiprocessor systems to constrain
