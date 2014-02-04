@@ -73,6 +73,41 @@ mxp_get_shlwapi_hinstance( void )
 
 /*=========================================================================*/
 
+#if 0 && defined(OS_WIN32) 
+
+/* FIXME: Ifdef-ed out until we have a chance to test it. */
+
+MX_EXPORT mx_status_type
+mx_copy_file( char *existing_filename, char *new_filename, int new_file_mode )
+{
+	static const char fname[] = "mx_copy_file()";
+
+	BOOL os_status;
+	DWORD last_error_code;
+	TCHAR message_buffer[100];
+
+	os_status = CopyFile( existing_filename, new_filename, FALSE );
+
+	if ( os_status == 0 ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Unable to copy file '%s' to '%s'.  "
+		"Win32 error code = %ld, error message = '%s'.",
+			existing_filename, new_filename,
+			last_error_code, message_buffer );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+#else /* not OS_WIN32 */
+
 #define COPY_FILE_CLEANUP \
 		do {                                           \
 			if ( existing_fd >= 0 ) {              \
@@ -239,6 +274,8 @@ mx_copy_file( char *existing_filename, char *new_filename, int new_file_mode )
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+#endif /* not OS_WIN32 */
 
 /*=========================================================================*/
 
