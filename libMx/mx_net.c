@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2013 Illinois Institute of Technology
+ * Copyright 1999-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1869,10 +1869,23 @@ mx_network_buffer_show_value( void *buffer,
 					((int64_t *) raw_buffer)[i] );
 			    }
 			} else {
+#if ( MX_WORDSIZE == 32 )
 			    for ( i = 0; i < max_display_values; i++ ) {
 				fprintf( stderr, "%ld ",
 				    (0xffffffff & ((long *) raw_buffer)[i]) );
 			    }
+#elif ( MX_WORDSIZE == 64 )
+			    for ( i = 0; i < max_display_values; i++ ) {
+				int32_t int32_value;
+
+				int32_value = 
+				    (0xffffffff & ((long *) raw_buffer)[i]);
+
+				fprintf( stderr, "%ld ", (long) int32_value );
+			    }
+#else
+#  error Unsupported MX_WORDSIZE value.
+#endif
 			}
 			break;
 		case MXFT_ULONG:

@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2013 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -647,6 +647,14 @@ mx_copy_32bits_to_64bits( void *destination, void *source, size_t num_elements )
 #endif
 	uint64_t *uint64_ptr;
 	uint32_t *uint32_ptr;
+
+	uint64_t uint64_value;
+
+	union {
+		int32_t int32_value;
+		uint32_t uint32_value;
+	} u_32bit;
+
 	size_t i;
 
 #if MX_ARRAY_DEBUG_64BIT_COPY
@@ -674,9 +682,31 @@ mx_copy_32bits_to_64bits( void *destination, void *source, size_t num_elements )
 			(int) i, uint32_ptr[i] );
 	}
 #endif
+
+#if 0
 	for ( i = 0; i < num_elements; i++ ) {
 		uint64_ptr[i] = (uint64_t) uint32_ptr[i];
 	}
+#else
+	for ( i = 0; i < num_elements; i++ ) {
+		u_32bit.uint32_value = uint32_ptr[i];
+
+		uint64_value = (uint64_t) u_32bit.uint32_value;
+
+		/* If uint32_value is negative, then sign extend the
+		 * 64 bit value.
+		 *
+		 * Warning: This _ASSUMES_ we are using two's complement
+		 * integer arithmetic.
+		 */
+
+		if ( u_32bit.int32_value < 0 ) {
+			uint64_value |= UINT64_C( 0xffffffff00000000 );
+		}
+
+		uint64_ptr[i] = uint64_value;
+	}
+#endif
 
 #if MX_ARRAY_DEBUG_64BIT_COPY
 	for ( i = 0; i < max_elements; i++ ) {
