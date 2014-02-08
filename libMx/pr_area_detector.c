@@ -1587,15 +1587,15 @@ mx_area_detector_process_function( void *record_ptr,
 
 		case MXLV_AD_SEQUENCE_MULTIFRAME:
 			mx_status = mx_area_detector_set_multiframe_mode(record,
-						ad->sequence_multiframe[0],
-						ad->sequence_multiframe[1],
-						ad->sequence_multiframe[2] );
+					mx_round( ad->sequence_multiframe[0] ),
+					ad->sequence_multiframe[1],
+					ad->sequence_multiframe[2] );
 			break;
 
 		case MXLV_AD_SEQUENCE_STROBE:
 			mx_status = mx_area_detector_set_strobe_mode( record,
-						ad->sequence_strobe[0],
-						ad->sequence_strobe[1] );
+					mx_round( ad->sequence_strobe[0] ),
+					ad->sequence_strobe[1] );
 			break;
 
 		case MXLV_AD_SEQUENCE_DURATION:
@@ -1604,7 +1604,7 @@ mx_area_detector_process_function( void *record_ptr,
 				ad->sequence_duration[0]));
 #endif
 			mx_status = mx_area_detector_set_duration_mode( record,
-						ad->sequence_duration[0] );
+					mx_round( ad->sequence_duration[0] ) );
 			break;
 
 		case MXLV_AD_SEQUENCE_GATED:
@@ -1615,9 +1615,9 @@ mx_area_detector_process_function( void *record_ptr,
 				ad->sequence_gated[2]));
 #endif
 			mx_status = mx_area_detector_set_gated_mode( record,
-						ad->sequence_gated[0],
-						ad->sequence_gated[1],
-						ad->sequence_gated[2] );
+					mx_round( ad->sequence_gated[0] ),
+					ad->sequence_gated[1],
+					ad->sequence_gated[2] );
 			break;
 
 		case MXLV_AD_SHOW_IMAGE_FRAME:

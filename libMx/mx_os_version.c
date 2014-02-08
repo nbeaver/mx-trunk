@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2005, 2009-2010, 2012 Illinois Institute of Technology
+ * Copyright 2005, 2009-2010, 2012, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -81,7 +81,7 @@ mx_split_version_number_string( char *version_number_string,
 
 #if defined( OS_WIN32 )
 
-#if ( defined(_MSC_VER) && (_MSC_VER >= 1200) )
+#if ( defined(_MSC_VER) && (_MSC_VER > 1200) )
 # define HAVE_OSVERSIONINFOEX	TRUE
 #elif ( defined(__BORLANDC__) || defined(__GNUC__) )
 # define HAVE_OSVERSIONINFOEX	TRUE
@@ -93,13 +93,13 @@ mx_split_version_number_string( char *version_number_string,
 
 /*----*/
 
-static mx_status_type
-mxp_win32_get_osversioninfo( DWORD *win32_major_version,
-			DWORD *win32_minor_version,
-			DWORD *win32_platform_id,
-			BYTE *win32_product_type )
+MX_EXPORT mx_status_type
+mx_win32_get_osversioninfo( unsigned long *win32_major_version,
+			unsigned long *win32_minor_version,
+			unsigned long *win32_platform_id,
+			unsigned char *win32_product_type )
 {
-	static const char fname[] = "mxp_win32_get_osversioninfo()";
+	static const char fname[] = "mx_win32_get_osversioninfo()";
 
 #if HAVE_OSVERSIONINFOEX
 	OSVERSIONINFOEX osvi;
@@ -197,6 +197,58 @@ mxp_win32_get_osversioninfo( DWORD *win32_major_version,
 /*----*/
 
 MX_EXPORT mx_status_type
+mx_win32_is_windows_9x( int *is_windows_9x )
+{
+	static const char fname[] = "mx_win32_is_windows_9x()";
+
+	unsigned long major, minor, platform_id;
+	unsigned char product_type;
+	mx_status_type mx_status;
+
+	if ( is_windows_9x == (int *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The is_windows_9x pointer passed was NULL." );
+	}
+
+	mx_status = mx_win32_get_osversioninfo( &major, &minor,
+						&platform_id, &product_type );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	switch( major ) {
+	case 4:
+		switch( minor ) {
+		case 0:
+		case 1:
+		case 3:
+			if ( platform_id == VER_PLATFORM_WIN32_NT ) {
+				*is_windows_9x = FALSE;
+			} else {
+				*is_windows_9x = TRUE;
+			}
+			break;
+		case 10:
+		case 90:
+			*is_windows_9x = TRUE;
+			break;
+		default:
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unrecognized Windows operating system type." );
+			break;
+		}
+		break;
+	default:
+		*is_windows_9x = FALSE;
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*----*/
+
+MX_EXPORT mx_status_type
 mx_get_os_version_string( char *version_string,
 			size_t max_version_string_length )
 {
@@ -211,7 +263,7 @@ mx_get_os_version_string( char *version_string,
 		"The version_string pointer passed was NULL." );
 	}
 
-	mx_status = mxp_win32_get_osversioninfo( &win32_major_version,
+	mx_status = mx_win32_get_osversioninfo( &win32_major_version,
 						&win32_minor_version,
 						&win32_platform_id,
 						&win32_product_type );
@@ -354,7 +406,7 @@ mx_get_os_version( int *os_major, int *os_minor, int *os_update )
 		"One or more of the arguments passed were NULL." );
 	}
 
-	mx_status = mxp_win32_get_osversioninfo( &win32_major_version,
+	mx_status = mx_win32_get_osversioninfo( &win32_major_version,
 						&win32_minor_version,
 						&win32_platform_id,
 						&win32_product_type );

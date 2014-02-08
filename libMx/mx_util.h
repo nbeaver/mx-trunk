@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 1999-2013 Illinois Institute of Technology
+ * Copyright 1999-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -767,6 +767,15 @@ MX_API mx_status_type mx_get_os_version_string( char *version_string,
 MX_API mx_status_type mx_get_os_version( int *os_major,
 					int *os_minor,
 					int *os_update );
+
+#if defined(OS_WIN32)
+MX_API mx_status_type mx_win32_get_osversioninfo( unsigned long *major,
+						unsigned long *minor,
+						unsigned long *platform_id,
+						unsigned char *product_type );
+
+MX_API mx_status_type mx_win32_is_windows_9x( int *is_windows_9x );
+#endif
 
 MX_API mx_status_type mx_get_cpu_architecture( char *architecture_type,
 					size_t max_architecture_type_length,

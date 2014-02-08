@@ -1318,12 +1318,12 @@ mx_snprintf_from_pointer_array( char *destination,
 	short short_value;
 	int int_value;
 	long long_value;
-	long long long_long_value;
+	int64_t int64_value;
 	unsigned char uchar_value;
 	unsigned short ushort_value;
 	unsigned int uint_value;
 	unsigned long ulong_value;
-	unsigned long long ulong_long_value;
+	uint64_t uint64_value;
 
 #if MX_DEBUG_SNPRINTF_FROM_POINTER_ARRAY
 	MX_DEBUG(-2,("%s: argument_pointer_array = %p",
@@ -1541,13 +1541,13 @@ mx_snprintf_from_pointer_array( char *destination,
 
 				    switch ( *(conversion_ptr-2) ) {
 				    case 'l':
-					long_long_value =
-					    *( (long long *) argument_pointer );
+					int64_value =
+					    *( (int64_t *) argument_pointer );
 
 					snprintf( snprintf_destination,
 						maximum_length - bytes_written,
 						local_format,
-						long_long_value );
+						int64_value );
 					break;
 
 				    default:
@@ -1606,13 +1606,13 @@ mx_snprintf_from_pointer_array( char *destination,
 
 				    switch ( *(conversion_ptr-2) ) {
 				    case 'l':
-					ulong_long_value =
-				  *( (unsigned long long *) argument_pointer );
+					uint64_value =
+				  *( (uint64_t *) argument_pointer );
 
 					snprintf( snprintf_destination,
 						maximum_length - bytes_written,
 						local_format,
-						ulong_long_value );
+						uint64_value );
 					break;
 
 				    default:

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2009, 2011-2012 Illinois Institute of Technology
+ * Copyright 2009, 2011-2012, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -51,10 +51,10 @@ mx_atomic_initialize( void )
 MX_EXPORT int32_t
 mx_atomic_add32( int32_t *value_ptr, int32_t increment )
 {
-	volatile LONG *long_ptr;
+	LONG *long_ptr;
 	LONG long_result, original_value;
 
-	long_ptr = (volatile LONG *) value_ptr;
+	long_ptr = (LONG *) value_ptr;
 
 	original_value = InterlockedExchangeAdd( long_ptr, (LONG) increment );
 

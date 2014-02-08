@@ -26,6 +26,7 @@
 
 #if defined( OS_WIN32 )
 #include <windows.h>
+#include <winioctl.h>
 #include <direct.h>
 #endif
 
@@ -1601,9 +1602,12 @@ mx_get_filesystem_type( char *filename,
 			fs_statistics = (FILESYSTEM_STATISTICS *) ioctl_buffer;
 
 			switch( fs_statistics->FileSystemType ) {
+
+#if defined(FILESYSTEM_STATISTICS_TYPE_EXFAT)
 			case FILESYSTEM_STATISTICS_TYPE_EXFAT:
 				*filesystem_type = MXF_FST_EXFAT;
 				break;
+#endif
 
 			case FILESYSTEM_STATISTICS_TYPE_FAT:
 				*filesystem_type = MXF_FST_FAT;

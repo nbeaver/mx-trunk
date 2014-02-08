@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2007-2008, 2011 Illinois Institute of Technology
+ * Copyright 2007-2008, 2011, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -393,6 +393,7 @@ mx_pipe_set_blocking_mode( MX_PIPE *mx_pipe,
 	DWORD pipe_mode;
 	DWORD last_error_code;
 	TCHAR message_buffer[100];
+	int is_windows_9x;
 	mx_status_type mx_status;
 
 	mx_status = mx_pipe_get_pointers( mx_pipe, &win32_pipe, fname );
@@ -405,6 +406,19 @@ mx_pipe_set_blocking_mode( MX_PIPE *mx_pipe,
 	("%s invoked for MX pipe %p, flags = %#x, blocking_mode = %d",
 		fname, mx_pipe, flags, blocking_mode));
 #endif
+
+	mx_status = mx_win32_is_windows_9x( &is_windows_9x );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( is_windows_9x ) {
+		/* Windows 9x does not appear to support changing the blocking
+		 * mode of pipes, so we just return without doing anything.
+		 */
+
+		return MX_SUCCESSFUL_RESULT;
+	}
 
 	if ( (flags & MXF_PIPE_READ)
 	  && (win32_pipe->read_handle != INVALID_HANDLE_VALUE)
