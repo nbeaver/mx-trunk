@@ -1542,6 +1542,12 @@ mx_get_filesystem_type( char *filename,
 		break;
 
 	case MXF_FST_LOCAL:
+
+#if (_MSC_VER < 1200)
+		/* For Visual C++ 5.0 or before. */
+		*filesystem_type = MXF_FST_LOCAL;
+
+#else /* _MSC_VER >= 1200 */
 		{
 			BYTE ioctl_buffer[10240];
 			FILESYSTEM_STATISTICS *fs_statistics;
@@ -1627,6 +1633,7 @@ mx_get_filesystem_type( char *filename,
 				break;
 			}
 		}
+#endif /* _MSC_VER >= 1200 */
 		break;
 
 	case MXF_FST_REMOTE:

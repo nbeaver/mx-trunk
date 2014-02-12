@@ -131,6 +131,10 @@ mx_vm_free( void *address )
  * is very _slow_.
  */
 
+#ifndef SIZE_T
+#define SIZE_T  DWORD
+#endif
+
 MX_EXPORT mx_status_type
 mx_vm_get_protection( void *address,
 		size_t mx_region_size_in_bytes,
