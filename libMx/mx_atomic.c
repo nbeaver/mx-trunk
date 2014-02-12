@@ -48,6 +48,56 @@ mx_atomic_initialize( void )
 
 /*---*/
 
+#if ( defined( MX_WIN32_WINDOWS ) && ( MX_WIN32_WINDOWS <= 0x400 ) )
+
+/* Windows 95 did not have InterlockedExchangeAdd(), so we
+ * have to do something ugly with a mutex.
+ */
+
+MX_EXPORT int32_t
+mx_atomic_add32( int32_t *value_ptr, int32_t increment )
+{
+	static MX_MUTEX *mx_atomic_add32_mutex = NULL;
+
+	int32_t int32_result;
+	mx_status_type mx_status;
+
+	/* Create the mutex if it does not already exist. */
+
+	if ( mx_atomic_add32_mutex == (MX_MUTEX *) NULL ) {
+
+		mx_status = mx_mutex_create( &mx_atomic_add32_mutex );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			/* This really has to be a fatal error, because
+			 * if synchronization fails, then we cannot 
+			 * count on our system being consistent.
+			 */
+
+			(void) mx_error( MXE_OPERATING_SYSTEM_ERROR,
+				"mx_atomic_add32()",
+			"Unable to create a mutex for the Windows 95 "
+			"version of mx_atomic_add32().  This is fatal." );
+
+			mx_force_core_dump();
+
+			exit(1);	/* Should not get here. */
+		}
+	}
+
+	mx_mutex_lock( mx_atomic_add32_mutex );
+
+	int32_result = *value_ptr + increment;
+
+	mx_mutex_unlock( mx_atomic_add32_mutex );
+
+	return int32_result;
+}
+
+#else
+
+/* Not Windows 95 */
+
 MX_EXPORT int32_t
 mx_atomic_add32( int32_t *value_ptr, int32_t increment )
 {
@@ -62,6 +112,7 @@ mx_atomic_add32( int32_t *value_ptr, int32_t increment )
 
 	return long_result;
 }
+#endif
 
 MX_EXPORT int32_t
 mx_atomic_decrement32( int32_t *value_ptr )

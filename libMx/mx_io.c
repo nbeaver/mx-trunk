@@ -35,7 +35,10 @@
 #  define popen(x,p) _popen(x,p)
 #  define pclose(x)  _pclose(x)
 
+#if 0
 #  include <aclapi.h>
+#endif
+
 #endif
 
 /*-------------------------------------------------------------------------*/

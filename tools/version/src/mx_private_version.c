@@ -10,7 +10,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2008-2009, 2011 Illinois Institute of Technology
+ * Copyright 2008-2009, 2011, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,6 +25,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+
+#if defined(OS_WIN32)
+#  include <windows.h>
+#endif
 
 static void mxp_generate_macros( FILE *file );
 
@@ -292,7 +296,223 @@ mxp_generate_gnuc_macros( FILE *version_file )
 
 /*-------------------------------------------------------------------------*/
 
-#if defined(OS_SOLARIS) || defined(OS_MACOSX) || defined(OS_UNIXWARE)
+#if defined(OS_WIN32)
+
+#if ( defined(_MSC_VER) && (_MSC_VER > 1200) )
+# define HAVE_OSVERSIONINFOEX   TRUE
+#elif ( defined(__BORLANDC__) || defined(__GNUC__) )
+# define HAVE_OSVERSIONINFOEX   TRUE
+#else
+# define HAVE_OSVERSIONINFOEX   FALSE
+#endif
+
+static void
+mxp_generate_macros( FILE *version_file )
+{
+	BOOL status;
+	int use_extended_struct;
+
+	unsigned long win32_major_version;
+	unsigned long win32_minor_version;
+	unsigned long win32_platform_id;
+	unsigned char win32_product_type;
+
+#if HAVE_OSVERSIONINFOEX
+	OSVERSIONINFOEX osvi;
+#else
+	OSVERSIONINFO osvi;
+#endif
+
+	/* Try using OSVERSIONINFOEX first. */
+
+#if HAVE_OSVERSIONINFOEX
+	memset( &osvi, 0, sizeof(OSVERSIONINFOEX) );
+
+	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
+
+	status = GetVersionEx( (OSVERSIONINFO *) &osvi );
+#else
+	status = 0;
+#endif
+
+	if ( status != 0 ) {
+		use_extended_struct = TRUE;
+	} else {
+		use_extended_struct = FALSE;
+
+		/* Using OSVERSIONINFOEX failed, so try again
+		 * with OSVERSIONINFO.
+		 */
+
+		memset( &osvi, 0, sizeof(OSVERSIONINFO) );
+
+		osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+
+		status = GetVersionEx( (OSVERSIONINFO *) &osvi );
+
+		if ( status == 0 ) {
+			fprintf( version_file,
+			"#error Cannot detect Windows version.\n" );
+		
+			fprintf( stderr,
+			"GetVersionEx() could not detect the version "
+			"of Windows we are using.\n" );
+
+			return;
+                }
+        }
+
+	win32_major_version = osvi.dwMajorVersion;
+	win32_minor_version = osvi.dwMinorVersion;
+	win32_platform_id = osvi.dwPlatformId;
+
+#if HAVE_OSVERSIONEX
+	if ( use_extended_struct ) {
+		win32_product_type = osvi.wProductType;
+	} else {
+		win32_product_type = 0;
+	}
+#else
+	win32_product_type = 0;
+#endif
+
+	/* Now we know enough to generate the macros. */
+
+	switch( win32_major_version ) {
+	case 3:
+		/* Windows NT 3.51 */
+
+		fprintf( version_file, "#define MX_WINVER        0x030A\n" );
+		fprintf( version_file, "#define MX_WIN32_WINNT   0x030A\n" );
+		break;
+	case 4:
+		switch( win32_minor_version ) {
+		case 0:
+		case 1:
+		case 3:
+			fprintf( version_file,
+					"#define MX_WINVER        0x0400\n" );
+
+			if ( win32_platform_id == VER_PLATFORM_WIN32_NT ) {
+				/* Windows NT 4.0 */
+
+				fprintf( version_file,
+					"#define MX_WIN32_WINNT   0x0400\n" );
+			} else {
+				/* Windows 95 */
+
+				fprintf( version_file,
+					"#define MX_WIN32_WINDOWS 0x0400\n" );
+			}
+			break;
+		case 10:
+			/* Windows 98 */
+
+			fprintf( version_file,
+					"#define MX_WINVER        0x0410\n" );
+			fprintf( version_file,
+					"#define MX_WIN32_WINDOWS 0x0410\n" );
+			break;
+		case 90:
+			/* Windows Me */
+
+			fprintf( version_file,
+					"#define MX_WINVER        0x0500\n" );
+			fprintf( version_file,
+					"#define MX_WIN32_WINDOWS 0x0500\n" );
+			break;
+		default:
+			fprintf( version_file,
+				"#error Unrecognized Windows version 4\n" );
+			fprintf( stderr,
+				"Error: Unrecognized Windows version 4\n" );
+			break;
+		}
+		break;
+	case 5:
+		switch( win32_minor_version ) {
+		case 0:
+			/* Windows 2000 */
+
+			fprintf( version_file,
+					"#define MX_WINVER        0x0500\n" );
+			fprintf( version_file,
+					"#define MX_WIN32_WINNT   0x0500\n" );
+			break;
+		case 1:
+			/* Windows XP */
+
+			fprintf( version_file,
+					"#define MX_WINVER        0x0501\n" );
+			fprintf( version_file,
+					"#define MX_WIN32_WINNT   0x0501\n" );
+			break;
+		case 2:
+			/* Windows Server 2003 */
+
+			fprintf( version_file,
+					"#define MX_WINVER        0x0502\n" );
+			fprintf( version_file,
+					"#define MX_WIN32_WINNT   0x05022n" );
+			break;
+		default:
+			fprintf( version_file,
+				"#error Unrecognized Windows version 5\n" );
+			fprintf( stderr,
+				"Error: Unrecognized Windows version 5\n" );
+			break;
+		}
+		break;
+	case 6:
+		switch( win32_minor_version ) {
+		case 0:
+			/* Windows Vista or Windows Server 2008 */
+
+			fprintf( version_file,
+					"#define MX_WINVER        0x0600\n" );
+			fprintf( version_file,
+					"#define MX_WIN32_WINNT   0x0600\n" );
+			break;
+		case 1:
+			/* Windows 7 or Windows Server 2008 R2 */
+
+			fprintf( version_file,
+					"#define MX_WINVER        0x0601\n" );
+			fprintf( version_file,
+					"#define MX_WIN32_WINNT   0x0601\n" );
+			break;
+		case 2:
+			/* Windows 8 or Windows Server 2012 */
+
+			fprintf( version_file,
+					"#define MX_WINVER        0x0602\n" );
+			fprintf( version_file,
+					"#define MX_WIN32_WINNT   0x0602\n" );
+			break;
+		default:
+			fprintf( version_file,
+				"#error Unrecognized Windows version 6\n" );
+			fprintf( stderr,
+				"Error: Unrecognized Windows version 6\n" );
+			break;
+		}
+		break;
+	default:
+		fprintf( version_file,
+				"#error Unrecognized Windows major version\n" );
+		fprintf( stderr,
+				"Error: Unrecognized Windows major version\n" );
+		break;
+	}
+
+	fprintf( version_file, "\n" );
+
+	return;
+}
+
+/*-------------------------------------------------------------------------*/
+
+#elif defined(OS_SOLARIS) || defined(OS_MACOSX) || defined(OS_UNIXWARE)
 
 #include <sys/utsname.h>
 
@@ -424,7 +644,7 @@ mxp_generate_macros( FILE *version_file )
 
 /*---*/
 
-#elif defined(OS_IRIX) || defined(OS_WIN32) || defined(OS_VMS)
+#elif defined(OS_IRIX) || defined(OS_VMS)
 
 static void
 mxp_generate_macros( FILE *version_file )
