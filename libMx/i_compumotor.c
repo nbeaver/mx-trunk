@@ -139,8 +139,6 @@ mxi_compumotor_run_program( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 	 * and send it to the Compumotor controller.
 	 */
 
-	mx_breakpoint();
-
 	while (1) {
 		mx_fgets( program_line, sizeof(program_line),
 						program_file );
@@ -223,7 +221,17 @@ mxi_compumotor_run_program( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 			compumotor_interface->record->name );
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	/* If the commands we sent generated any output,
+	 * we throw the output away now.
+	 */
+
+	mx_msleep(100);
+
+	mx_status = mx_rs232_discard_unread_input(
+					compumotor_interface->rs232_record,
+					MXI_COMPUMOTOR_INTERFACE_DEBUG );
+
+	return mx_status;
 }
 
 /*==========================*/

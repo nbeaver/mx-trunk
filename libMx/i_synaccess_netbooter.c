@@ -1,14 +1,14 @@
 /*
  * Name:    i_synaccess_netbooter.c
  *
- * Purpose: MX interface driver for the Linkam T92, T93, T94, and T95 series
- *          of temperature controllers.
+ * Purpose: MX interface driver for Synaccess netBooter Remote Power
+ *          Management systems.
  *
  * Author:  William Lavender
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010 Illinois Institute of Technology
+ * Copyright 2013-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.

@@ -8,7 +8,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2005-2007, 2010, 2013 Illinois Institute of Technology
+ * Copyright 1999-2003, 2005-2007, 2010, 2013-2014
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -463,6 +464,16 @@ mxd_compumotor_check_for_servo( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 		fname, compumotor->is_servo));
 #endif
 
+#if 1
+	if ( compumotor->is_servo ) {
+		/* If the axis is a servo, then unconditionally force on
+		 * the 'use encoder position' bit in the 'flags' variable.
+		 */
+
+		compumotor->flags |= MXF_COMPUMOTOR_USE_ENCODER_POSITION;
+	}
+#endif
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -478,23 +489,52 @@ mxd_compumotor_servo_initialization(
 	int num_items;
 	mx_status_type mx_status;
 
+	/* Get the motor resolution (steps per revolution) */
+
 	snprintf( command, sizeof(command),
-			"%ld_!%ldERES", compumotor->controller_number,
+			"%ld_!%ldDRES", compumotor->controller_number,
 					compumotor->axis_number );
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
-				response, sizeof(response), MXD_COMPUMOTOR_DEBUG );
+					response, sizeof(response),
+					MXD_COMPUMOTOR_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf( response, "%lg", &(compumotor->axis_resolution) );
+	num_items = sscanf( response, "%lg", &(compumotor->motor_resolution) );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_UNPARSEABLE_STRING, fname,
 		"Unable to parse response '%s' to Compumotor command '%s'.",
 			response, command );
 	}
+
+	/* Get the encoder resolution (ticks per revolution) */
+
+	snprintf( command, sizeof(command),
+			"%ld_!%ldERES", compumotor->controller_number,
+					compumotor->axis_number );
+
+	mx_status = mxi_compumotor_command( compumotor_interface, command,
+					response, sizeof(response),
+					MXD_COMPUMOTOR_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	num_items = sscanf( response, "%lg", &(compumotor->encoder_resolution));
+
+	if ( num_items != 1 ) {
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Unable to parse response '%s' to Compumotor command '%s'.",
+			response, command );
+	}
+
+	/* For a servo, velocity units are multiplied by ERES. */
+
+	compumotor->velocity_resolution = compumotor->encoder_resolution;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -510,6 +550,8 @@ mxd_compumotor_stepper_initialization(
 	int num_items;
 	mx_status_type mx_status;
 
+	/* This case is for stepper motors without encoder feedback. */
+
 	snprintf( command, sizeof(command),
 			"%ld_!%ldDRES", compumotor->controller_number,
 					compumotor->axis_number );
@@ -521,13 +563,39 @@ mxd_compumotor_stepper_initialization(
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf( response, "%lg", &(compumotor->axis_resolution) );
+	num_items = sscanf( response, "%lg", &(compumotor->motor_resolution) );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_UNPARSEABLE_STRING, fname,
 		"Unable to parse response '%s' to Compumotor command '%s'.",
 			response, command );
 	}
+
+	/* Get the encoder resolution (ticks per revolution) */
+
+	snprintf( command, sizeof(command),
+			"%ld_!%ldERES", compumotor->controller_number,
+					compumotor->axis_number );
+
+	mx_status = mxi_compumotor_command( compumotor_interface, command,
+					response, sizeof(response),
+					MXD_COMPUMOTOR_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	num_items = sscanf( response, "%lg", &(compumotor->encoder_resolution));
+
+	if ( num_items != 1 ) {
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Unable to parse response '%s' to Compumotor command '%s'.",
+			response, command );
+	}
+
+	/* For a stepper, velocity units are multiplied by DRES. */
+
+	compumotor->velocity_resolution = compumotor->motor_resolution;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -747,6 +815,12 @@ mxd_compumotor_move_absolute( MX_MOTOR *motor )
 		destination = motor->raw_destination.analog;
 	}
 
+	if ( compumotor->flags & MXF_COMPUMOTOR_USE_ENCODER_POSITION ) {
+		destination = destination * mx_divide_safely(
+					compumotor->motor_resolution,
+					compumotor->encoder_resolution );
+	}
+
 	snprintf( command, sizeof(command), "%ld_!%ldD%f",
 			compumotor->controller_number,
 			compumotor->axis_number, destination );
@@ -845,6 +919,7 @@ mxd_compumotor_set_position( MX_MOTOR *motor )
 	char buffer[80];
 	unsigned long flags;
 	size_t i, j, num_axes;
+	mx_bool_type use_peset_command;
 	mx_status_type mx_status;
 
 	mx_status = mxd_compumotor_get_pointers( motor, &compumotor,
@@ -875,10 +950,30 @@ mxd_compumotor_set_position( MX_MOTOR *motor )
 		new_set_position = motor->raw_set_position.analog;
 	}
 
-	/* Construct a PSET command. */
+	/* If this axis is configured as a stepper motor, but we are using
+	 * encoder positions, then we need to use the PESET command instead
+	 * of a PSET command.
+	 */
 
-	snprintf( command, sizeof(command),
+	if ( compumotor->is_servo ) {
+		use_peset_command = FALSE;
+	} else {
+		if ( flags & MXF_COMPUMOTOR_USE_ENCODER_POSITION ) {
+			use_peset_command = TRUE;
+		} else {
+			use_peset_command = FALSE;
+		}
+	}
+
+	/* Construct the necessary command. */
+
+	if ( use_peset_command ) {
+		snprintf( command, sizeof(command),
+			"%ld_!PESET", compumotor->controller_number );
+	} else {
+		snprintf( command, sizeof(command),
 			"%ld_!PSET", compumotor->controller_number );
+	}
 
 	for ( j = 0; j < num_axes; j++ ) {
 
@@ -1141,8 +1236,9 @@ mxd_compumotor_get_parameter( MX_MOTOR *motor )
 					compumotor->axis_number );
 
 		mx_status = mxi_compumotor_command(
-				compumotor_interface, command,
-				response, sizeof(response), MXD_COMPUMOTOR_DEBUG );
+					compumotor_interface, command,
+					response, sizeof(response),
+					MXD_COMPUMOTOR_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1155,7 +1251,8 @@ mxd_compumotor_get_parameter( MX_MOTOR *motor )
 				motor->record->name, response );
 		}
 
-		motor->raw_speed = double_value * compumotor->axis_resolution;
+		motor->raw_speed = double_value
+					* compumotor->velocity_resolution;
 		break;
 
 	case MXLV_MTR_BASE_SPEED:
@@ -1167,9 +1264,10 @@ mxd_compumotor_get_parameter( MX_MOTOR *motor )
 						compumotor->controller_number,
 						compumotor->axis_number );
 
-			mx_status = mxi_compumotor_command(compumotor_interface,
-				command, response, sizeof(response),
-				MXD_COMPUMOTOR_DEBUG );
+			mx_status = mxi_compumotor_command(
+					compumotor_interface, command,
+					response, sizeof(response),
+					MXD_COMPUMOTOR_DEBUG );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -1183,7 +1281,7 @@ mxd_compumotor_get_parameter( MX_MOTOR *motor )
 			}
 
 			motor->raw_base_speed = double_value
-						* compumotor->axis_resolution;
+					* compumotor->velocity_resolution;
 			break;
 		default:
 			/* All others, including the 6K series, return zero. */
@@ -1220,8 +1318,8 @@ mxd_compumotor_get_parameter( MX_MOTOR *motor )
 				motor->record->name, response );
 		}
 
-		motor->raw_acceleration_parameters[0]
-				= double_value * compumotor->axis_resolution;
+		motor->raw_acceleration_parameters[0] = double_value
+					* compumotor->velocity_resolution;
 
 		motor->raw_acceleration_parameters[1] = 0.0;
 		motor->raw_acceleration_parameters[2] = 0.0;
@@ -1401,7 +1499,7 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 		new_raw_value = motor->raw_speed;
 
 		double_value = mx_divide_safely( motor->raw_speed,
-						compumotor->axis_resolution );
+					compumotor->velocity_resolution );
 
 		snprintf( command, sizeof(command), "%ld_!%ldV%f",
 						compumotor->controller_number,
@@ -1449,7 +1547,7 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 			new_raw_value = motor->raw_base_speed;
 
 			double_value = mx_divide_safely( motor->raw_base_speed,
-						compumotor->axis_resolution );
+					compumotor->velocity_resolution );
 
 			snprintf( command, sizeof(command), "%ld_!%ldSSV%f",
 						compumotor->controller_number,
@@ -1524,7 +1622,7 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 
 		double_value = mx_divide_safely(
 					motor->raw_acceleration_parameters[0],
-					compumotor->axis_resolution );
+					compumotor->velocity_resolution );
 
 		snprintf( command, sizeof(command), "%ld_!%ldA%f",
 					compumotor->controller_number,

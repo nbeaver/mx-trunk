@@ -8,7 +8,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2005-2006, 2013 Illinois Institute of Technology
+ * Copyright 1999-2002, 2005-2006, 2013-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -45,7 +45,13 @@ typedef struct {
 	long controller_index;
 	mx_bool_type continuous_mode_enabled;
 	mx_bool_type is_servo;
-	double axis_resolution;
+
+	double motor_resolution;	/* Steps per revolution = DRES */
+	double encoder_resolution;	/* Ticks per revolution = ERES */
+
+	/* Velocity resolution is also used for acceleration and deceleration.*/
+
+	double velocity_resolution;	/* Ticks OR steps per revolution. */
 } MX_COMPUMOTOR;
 
 MX_API mx_status_type mxd_compumotor_create_record_structures(
@@ -100,6 +106,30 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_compumotor_rfield_def_ptr;
   \
   {-1, -1, "flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_COMPUMOTOR, flags), \
-	{0}, NULL, MXFF_IN_DESCRIPTION }
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {-1, -1, "controller_index", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_COMPUMOTOR, controller_index), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "continuous_mode_enabled", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_COMPUMOTOR, continuous_mode_enabled), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "is_servo", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_COMPUMOTOR, is_servo), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "motor_resolution", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_COMPUMOTOR, motor_resolution), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "encoder_resolution", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_COMPUMOTOR, encoder_resolution), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "velocity_resolution", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_COMPUMOTOR, velocity_resolution), \
+	{0}, NULL, MXFF_READ_ONLY }
 
 #endif /* __D_COMPUMOTOR_H__ */

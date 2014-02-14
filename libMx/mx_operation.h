@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2013 Illinois Institute of Technology
+ * Copyright 2013-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -68,11 +68,11 @@ MX_API mx_status_type mx_operation_stop( MX_RECORD *op_record );
 #define MX_OPERATION_STANDARD_FIELDS \
   {-1, -1, "operation_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof( MX_OPERATION, operation_flags ), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
   \
   {MXLV_OP_STATUS, -1, "status", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof( MX_OPERATION, status ), \
-	{0}, NULL, 0 }, \
+	{0}, NULL, MXFF_IN_SUMMARY }, \
   \
   {MXLV_OP_START, -1, "start", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof( MX_OPERATION, start ), \

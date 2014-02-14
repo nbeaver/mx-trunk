@@ -1,13 +1,13 @@
 /*
  * Name:    d_synaccess_netbooter_ainput.c
  *
- * Purpose: Driver for the Stanford Research Systems SIM980 summing ainput.
+ * Purpose: Driver for Synaccess netBooter current and temperature measurements.
  *
  * Author:  William Lavender
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013 Illinois Institute of Technology
+ * Copyright 2013-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
