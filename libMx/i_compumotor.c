@@ -771,7 +771,16 @@ mxi_compumotor_resynchronize( MX_RECORD *record )
 					command, NULL, 0,
 					MXI_COMPUMOTOR_INTERFACE_DEBUG );
 	}
-	return MX_SUCCESSFUL_RESULT;
+
+	/* Discard any unread output from the controller. */
+
+	mx_msleep(100);
+
+	mx_status = mx_rs232_discard_unread_input(
+					compumotor_interface->rs232_record,
+					MXI_COMPUMOTOR_INTERFACE_DEBUG );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
