@@ -808,17 +808,18 @@ mxd_compumotor_move_absolute( MX_MOTOR *motor )
 
 	flags = compumotor->flags;
 
-	if (flags & MXF_COMPUMOTOR_ROUND_POSITION_OUTPUT_TO_NEAREST_INTEGER) {
+	destination = motor->raw_destination.analog;
 
-		destination = (double) mx_round(motor->raw_destination.analog);
-	} else {
-		destination = motor->raw_destination.analog;
-	}
-
-	if ( compumotor->flags & MXF_COMPUMOTOR_USE_ENCODER_POSITION ) {
+	if ( ( compumotor->flags & MXF_COMPUMOTOR_USE_ENCODER_POSITION )
+	  && ( compumotor->is_servo == FALSE ) )
+	{
 		destination = destination * mx_divide_safely(
 					compumotor->motor_resolution,
 					compumotor->encoder_resolution );
+	}
+
+	if (flags & MXF_COMPUMOTOR_ROUND_POSITION_OUTPUT_TO_NEAREST_INTEGER) {
+		destination = (double) mx_round( destination );
 	}
 
 	snprintf( command, sizeof(command), "%ld_!%ldD%f",
@@ -912,13 +913,16 @@ mxd_compumotor_set_position( MX_MOTOR *motor )
 	MX_COMPUMOTOR *compumotor;
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
 	MX_RECORD **motor_array;
-	MX_MOTOR *other_motor;
-	double new_set_position;
+	double new_motor_position, new_encoder_position;
 	double other_motor_position;
-	char command[500];
+	char pset_command[500];
+	char peset_command[500];
+	char tpx_command[100];
+	char response[80];
 	char buffer[80];
 	unsigned long flags;
 	size_t i, j, num_axes;
+	int num_tokens;
 	mx_bool_type use_peset_command;
 	mx_status_type mx_status;
 
@@ -942,74 +946,156 @@ mxd_compumotor_set_position( MX_MOTOR *motor )
 
 	flags = compumotor->flags;
 
-	if (flags & MXF_COMPUMOTOR_ROUND_POSITION_OUTPUT_TO_NEAREST_INTEGER) {
-
-		new_set_position = (double)
-				mx_round( motor->raw_set_position.analog );
-	} else {
-		new_set_position = motor->raw_set_position.analog;
-	}
-
 	/* If this axis is configured as a stepper motor, but we are using
-	 * encoder positions, then we need to use the PESET command instead
-	 * of a PSET command.
+	 * encoder positions, then we need to use the PESET command in 
+	 * addition to a PSET command.
 	 */
+
+	new_encoder_position = 0.0;
 
 	if ( compumotor->is_servo ) {
 		use_peset_command = FALSE;
+
+		new_motor_position = motor->raw_set_position.analog;
 	} else {
 		if ( flags & MXF_COMPUMOTOR_USE_ENCODER_POSITION ) {
 			use_peset_command = TRUE;
+
+			new_encoder_position = motor->raw_set_position.analog;
+
+			new_motor_position = new_encoder_position
+			    * mx_divide_safely( compumotor->motor_resolution,
+						compumotor->encoder_resolution);
 		} else {
 			use_peset_command = FALSE;
+
+			new_motor_position = motor->raw_set_position.analog;
 		}
 	}
 
-	/* Construct the necessary command. */
+	/*----*/
 
-	if ( use_peset_command ) {
-		snprintf( command, sizeof(command),
-			"%ld_!PESET", compumotor->controller_number );
-	} else {
-		snprintf( command, sizeof(command),
-			"%ld_!PSET", compumotor->controller_number );
+	if (flags & MXF_COMPUMOTOR_ROUND_POSITION_OUTPUT_TO_NEAREST_INTEGER) {
+		new_motor_position = (double) mx_round( new_motor_position );
+		new_encoder_position = (double) mx_round( new_encoder_position);
 	}
+
+	/* Construct the PSET command. */
+
+	snprintf( pset_command, sizeof(pset_command),
+			"%ld_!PSET", compumotor->controller_number );
 
 	for ( j = 0; j < num_axes; j++ ) {
 
-		if ( j != 0 ) {
-			strlcat( command, ",", sizeof(command) );
-		}
-		if ( j+1 == compumotor->axis_number ) {
-			snprintf( buffer, sizeof(buffer),
-					"%f", new_set_position );
+	    if ( j != 0 ) {
+		strlcat( pset_command, ",", sizeof(pset_command) );
+	    }
+	    if ( j+1 == compumotor->axis_number ) {
+		snprintf( buffer, sizeof(buffer), "%f", new_motor_position );
+	    } else {
+		if ( motor_array[j] == (MX_RECORD *) NULL ) {
+		    strlcpy( buffer, "0", sizeof(buffer) );
 		} else {
-			if ( motor_array[j] == (MX_RECORD *) NULL ) {
-				strlcpy( buffer, "0", sizeof(buffer) );
-			} else {
-				mx_status = mx_motor_get_position(
-							motor_array[j], NULL );
+		    if ( ( flags & MXF_COMPUMOTOR_USE_ENCODER_POSITION )
+		      && ( compumotor->is_servo == FALSE ) )
+		    {
+		        snprintf( tpx_command, sizeof(tpx_command),
+				"%ld_!%ldTPE",
+				compumotor->controller_number,
+				(long)(j+1) );
+		    } else {
+			snprintf( tpx_command, sizeof(tpx_command),
+				"%ld_!%ldTPM",
+				compumotor->controller_number,
+				(long)(j+1) );
+		    }
 
-				if ( mx_status.code != MXE_SUCCESS )
-					return mx_status;
+		    mx_status = mxi_compumotor_command(
+				compumotor_interface, tpx_command,
+				response, sizeof(response),
+				MXD_COMPUMOTOR_DEBUG );
 
-				other_motor = (MX_MOTOR *)
-					motor_array[j]->record_class_struct;
+		    if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-				other_motor_position =
-					other_motor->raw_position.analog;
+		    num_tokens = sscanf( response, "%lg",
+					&other_motor_position );
 
-				snprintf( buffer, sizeof(buffer),
-					"%f", other_motor_position );
-			}
+		    if ( num_tokens != 1 ) {
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"No position value seen in response to '%s' command.  "
+			"Response seen = '%s'", tpx_command, response );
+		    }
+
+		    snprintf( buffer, sizeof(buffer),
+				"%f", other_motor_position );
 		}
-		strlcat( command, buffer, sizeof(command) );
+	    }
+	    strlcat( pset_command, buffer, sizeof(pset_command) );
 	}
 
 	/* Send the PSET command. */
 
-	mx_status = mxi_compumotor_command( compumotor_interface, command,
-			NULL, 0, MXD_COMPUMOTOR_DEBUG );
+	mx_status = mxi_compumotor_command( compumotor_interface,
+			pset_command, NULL, 0, MXD_COMPUMOTOR_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* If we are _not_ sending a PESET command, then we are done now. */
+
+	if ( use_peset_command == FALSE )
+		return MX_SUCCESSFUL_RESULT;
+
+	/*--------------- If needed, construct a PESET command. ------------*/
+
+	snprintf( peset_command, sizeof(peset_command),
+		"%ld_!PESET", compumotor->controller_number );
+
+	for ( j = 0; j < num_axes; j++ ) {
+
+	    if ( j != 0 ) {
+		strlcat( peset_command, ",", sizeof(peset_command) );
+	    }
+	    if ( j+1 == compumotor->axis_number ) {
+		snprintf( buffer, sizeof(buffer), "%f", new_encoder_position );
+	    } else {
+		if ( motor_array[j] == (MX_RECORD *) NULL ) {
+		    strlcpy( buffer, "0", sizeof(buffer) );
+		} else {
+	            snprintf( tpx_command, sizeof(tpx_command),
+				"%ld_!%ldTPE",
+				compumotor->controller_number,
+				(long)(j+1) );
+
+		    mx_status = mxi_compumotor_command(
+				compumotor_interface, tpx_command,
+				response, sizeof(response),
+				MXD_COMPUMOTOR_DEBUG );
+
+		    if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		    num_tokens = sscanf( response, "%lg",
+					&other_motor_position );
+
+		    if ( num_tokens != 1 ) {
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"No position value seen in response to '%s' command.  "
+			"Response seen = '%s'", tpx_command, response );
+		    }
+
+		    snprintf( buffer, sizeof(buffer),
+				"%f", other_motor_position );
+		}
+	    }
+	    strlcat( peset_command, buffer, sizeof(peset_command) );
+	}
+
+	/* Send the PESET command. */
+
+	mx_status = mxi_compumotor_command( compumotor_interface,
+			peset_command, NULL, 0, MXD_COMPUMOTOR_DEBUG );
 
 	return mx_status;
 }
