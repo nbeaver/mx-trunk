@@ -7,7 +7,8 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2003, 2005-2008, 2011, 2013 Illinois Institute of Technology
+ * Copyright 2001, 2003, 2005-2008, 2011, 2013-2014
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -123,8 +124,8 @@ motor_rs232_sendfile( MX_RECORD *record,
 {
 	MX_RS232 *rs232;
 	FILE *file;
-	size_t file_size, block_size, bytes_read;
-	int64_t remaining_file_size;
+	size_t block_size, bytes_read;
+	int64_t file_size, remaining_file_size;
 	int saved_errno;
 	char buffer[512];
 	mx_status_type mx_status;

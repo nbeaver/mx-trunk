@@ -1,9 +1,9 @@
 #
-# Name:    Makehead.macosx
+# Name:    Makehead.macosx-clang
 #
 # Purpose: This file is used to customize operating system and installation
 #          dependent features of the MX makefiles.  This version is customized
-#          for MacOS X running on a PPC Macintosh.
+#          for MacOS X running on an x86_64 system using the Clang compiler.
 #
 # Normally, the only things that end users may have to modify in this file are
 # the definitions of INCLUDES, LIB_DIRS, and LIBRARIES.
@@ -45,20 +45,19 @@ READLINE_LIBRARIES = ../tools/unix/src/editline/libedit.a
 #
 # gcc specific flags
 #
-# These flags _should_ include -Wstrict-prototypes, but some of Apple's
-# own header files such as <math.h> have declarations like the declaration
-# for cabs() that are not valid prototypes, so I can't do it.  Ack!
+# Clang implements most GCC-specific flags.
 #
 GCCFLAGS = -Wall -Werror \
 -Wpointer-arith \
 -Wcast-align \
 -Wcast-qual \
+-Wstrict-prototypes \
 -Wmissing-prototypes \
 -Wnested-externs \
 -Winline
 
 #
-CC		= gcc
+CC		= clang
 CFLAGS		= -g -O -fPIC -fno-common $(GCCFLAGS) $(INCLUDES) -DOS_MACOSX \
 				$(EXTRA_FLAGS) -DDEBUG
 CFLAGS_EPICS	= $(CFLAGS) -Wno-strict-prototypes -Wno-shadow
@@ -97,7 +96,7 @@ MXMONITOR_OBJS    = $(MXMONITOR_SRCS:.c=.$(OBJ))
 
 #----
 
-MX_LIB_OBJS += ../tools/smvspatial.o ../tools/xdr_hyper.o
+MX_LIB_OBJS += ../tools/smvspatial.o
 
 #
 #---------------------------------------------------
@@ -129,7 +128,7 @@ MX_LIBRARY_DELETE = rm $(MX_LIBRARY_NAME) $(MX_LIBRARY_STATIC_NAME)
 
 $(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
 	-$(MX_LIBRARY_DELETE)
-	gcc -dynamiclib -o $(MX_LIBRARY_NAME) \
+	$(CC) -dynamiclib -o $(MX_LIBRARY_NAME) \
 			$(LIB_DIRS) $(MX_LIB_OBJS) $(LIBRARIES) 
 	ar rc $(MX_LIBRARY_STATIC_NAME) $(MX_LIB_OBJS)
 	ranlib $(MX_LIBRARY_STATIC_NAME)

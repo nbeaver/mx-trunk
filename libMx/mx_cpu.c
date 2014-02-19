@@ -17,13 +17,19 @@
 #define MX_CPU_DEBUG	FALSE
 
 #include <stdio.h>
+#include <errno.h>
 
 #if defined(OS_WIN32)
 #include <windows.h>
 #endif
 
+#if defined(OS_MACOSX)
+#include <sys/sysctl.h>
+#endif
+
 #include "mx_util.h"
 #include "mx_unistd.h"
+#include "mx_program_model.h"
 
 /*===================================================================*/
 
@@ -125,6 +131,7 @@ mx_get_number_of_cpu_cores( unsigned long *num_cores )
 {
 	static const char fname[] = "mx_get_number_of_cpu_cores()";
 
+	int os_status, saved_errno;
 	int mib[4];
 	size_t ul_length = sizeof(unsigned long);
 
@@ -138,6 +145,10 @@ mx_get_number_of_cpu_cores( unsigned long *num_cores )
 
 	os_status = sysctl( mib, 2, num_cores, &ul_length, NULL, 0 );
 
+#if ( MX_WORDSIZE > 32 )
+	(*num_cores) &= 0xffffffff;
+#endif
+
 	if ( os_status != 0 ) {
 		saved_errno = errno;
 
@@ -147,7 +158,7 @@ mx_get_number_of_cpu_cores( unsigned long *num_cores )
 			"Errno = %d, error message = '%s'",
 				saved_errno, strerror(saved_errno) );
 		} else {
-		`	/* If we get here, HW_AVAILCPU does not exist,
+			/* If we get here, HW_AVAILCPU does not exist,
 			 * so we try HW_NCPU instead.
 			 */
 
@@ -155,7 +166,9 @@ mx_get_number_of_cpu_cores( unsigned long *num_cores )
 
 			os_status = sysctl( mib, 2,
 					num_cores, &ul_length, NULL, 0 );
-
+#if ( MX_WORDSIZE > 32 )
+			(*num_cores) &= 0xffffffff;
+#endif
 			if ( os_status != 0 ) {
 				saved_errno = errno;
 

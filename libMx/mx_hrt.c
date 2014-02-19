@@ -29,7 +29,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002-2004, 2006-2007, 2009-2012 Illinois Institute of Technology
+ * Copyright 2002-2004, 2006-2007, 2009-2012, 2014
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -60,6 +61,8 @@
 #elif defined(OS_MACOSX)
 #  if defined(__i386__)
 #    define MX_NEED_HRT_FALLBACK	TRUE
+#  elif defined(__amd64__)
+#    define MX_NEED_HRT_FALLBACK	FALSE
 #  elif defined(__ppc__)
 #    define MX_NEED_HRT_FALLBACK	FALSE
 #  else

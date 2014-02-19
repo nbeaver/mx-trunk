@@ -808,6 +808,14 @@ mx_vm_show_os_info( FILE *file,
 
 #include <mach/mach.h>
 
+#if ( MX_DARWIN_VERSION >= 9000000L)
+#  include <mach/mach_vm.h>
+
+#  define vm_region	mach_vm_region
+#  define vm_address_t	mach_vm_address_t
+#  define vm_size_t	mach_vm_size_t
+#endif
+
 MX_EXPORT mx_status_type
 mx_vm_get_protection( void *address,
 		size_t region_size_in_bytes,

@@ -11,7 +11,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2005-2006, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -41,10 +41,46 @@ mx_install_syslog_handler( char *ident_string,
 
 #else /* MX_SYSLOG_IS_AVAILABLE */
 
+/*---*/
+
+
 static void mx_syslog_handler( int level, char *message )
 {
+	size_t i, length;
+
+	if ( message == NULL ) {
+		fprintf( stderr,
+		"mx_syslog_handler(): Discarded NULL message pointer.\n" );
+
+		return;
+	}
+
+	/* Sanitize format characters in the incoming string by changing
+	 * all % characters into # characters.
+	 */
+
+	length = strlen( message );
+
+	for ( i = 0; i < length; i++ ) {
+		if ( message[i] == '%' ) {
+			message[i] = '#';
+		}
+	}
+
+	/* Now that we have sanitized the message, we can safely send
+	 * it on to syslog().
+	 */
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+
 	syslog( level, message );
+
+#pragma GCC diagnostic pop
+
 }
+
+/*---*/
 
 static void mx_syslog_info_handler( char *message )
 {

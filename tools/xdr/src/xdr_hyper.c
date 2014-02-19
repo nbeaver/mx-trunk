@@ -3,13 +3,13 @@
  *
  * Purpose: This file supplies the 64-bit xdr_hyper() and xdr_u_hyper()
  *          functions for those platforms whose XDR implemtations do not
- *          already include them such as MacOS X.
+ *          already include them such as old versions of MacOS X.
  *
  * Author:  William Lavender
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.

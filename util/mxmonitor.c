@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2007-2013 Illinois Institute of Technology
+ * Copyright 2007-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -289,7 +289,9 @@ callback_list_traverse( MX_RECORD *record_list,
 
 	/* Suppress GCC set but not used error. */
 
+#if ( defined(__GNUC__) && ( ! defined(__clang__) ) )
 	mx_status = mx_status;
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -316,7 +318,9 @@ add_new_callback( MX_RECORD *record_list )
 
 	/* Suppress GCC set but not used error. */
 
+#if ( defined(__GNUC__) && ( ! defined(__clang__) ) )
 	mx_status = mx_status;
+#endif
 
 	return;
 }
@@ -421,7 +425,9 @@ scod_traverse_fn( MX_LIST *callback_list,
 
 	/* Suppress GCC set but not used error. */
 
+#if ( defined(__GNUC__) && ( ! defined(__clang__) ) )
 	mx_status = mx_status;
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -508,7 +514,9 @@ list_callbacks_function( MX_RECORD *record_list )
 
 	/* Suppress GCC set but not used error. */
 
+#if ( defined(__GNUC__) && ( ! defined(__clang__) ) )
 	mx_status = mx_status;
+#endif
 
 	return;
 }

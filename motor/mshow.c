@@ -873,7 +873,8 @@ motor_show_version( void )
 
 /*-------------------------------------------------------------------------*/
 
-#if defined(__GNUC__)
+#if ( defined(__GNUC__) && ( ! defined(__clang__) ) )
+
 #  if !defined(__GNUC_PATCHLEVEL__)
 #    define __GNUC_PATCHLEVEL__ 0
 #  endif
@@ -881,6 +882,15 @@ motor_show_version( void )
 		__GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__ );
 
 #endif /* __GNUC__ */
+
+/*-------------------------------------------------------------------------*/
+
+#if defined(__clang__)
+
+	fprintf( output, "Clang version: %d.%d.%d\n",
+		__clang_major__, __clang_minor__, __clang_patchlevel__ );
+
+#endif /* __clang__ */
 
 /*-------------------------------------------------------------------------*/
 

@@ -1,0 +1,40 @@
+#
+# tools/Makefile.macosx-clang
+#
+
+all: ../libMx/mx_private_version.h smvspatial.o \
+			unix/src/editline/libedit.a
+
+include ../libMx/Makefile.version
+
+include ../libMx/Makehead.macosx-clang
+
+EDITLINE_DEFS = -DANSI_ARROWS -DHAVE_STDLIB -DHAVE_TCGETATTR -DHIDE \
+		-DUSE_DIRENT -DSYS_UNIX
+
+EDITLINE_CC = clang
+EDITLINE_CFLAGS = "$(EDITLINE_DEFS) -g"
+EDITLINE_RANLIB = ranlib
+
+EDITLINE_MAKECMD = \
+  make CC=$(EDITLINE_CC) CFLAGS=$(EDITLINE_CFLAGS) RANLIB=$(EDITLINE_RANLIB)
+
+CC = clang
+
+mx_clean:
+	-rm *.o mx_private_version
+	( cd unix/src/editline ; make clean )
+
+mx_private_version: ../libMx/Makefile.version version/src/mx_private_version.c
+	$(CC) $(CFLAGS_MX_VERS) -o mx_private_version \
+		version/src/mx_private_version.c
+
+../libMx/mx_private_version.h: mx_private_version
+	./mx_private_version > ../libMx/mx_private_version.h
+
+smvspatial.o: xgen/smvspatial.c
+	$(CC) -c $(CFLAGS) -DOS_MACOSX -D__MX_LIBRARY__ xgen/smvspatial.c
+
+unix/src/editline/libedit.a:
+	( cd unix/src/editline ; $(EDITLINE_MAKECMD) )
+

@@ -221,6 +221,23 @@ mxp_generate_gnuc_macros( FILE *version_file )
 
 /*-------------------------------------------------------------------------*/
 
+#if defined(__clang__)
+
+static void
+mxp_generate_clang_macros( FILE *version_file )
+{
+	fprintf( version_file, "#define MX_CLANG_VERSION    %luL\n",
+		__clang_major__ * 1000000L
+		+ __clang_minor__ * 1000L
+		+ __clang_patchlevel__ );
+
+	fprintf( version_file, "\n" );
+}
+
+#endif	/* __clang__ */
+
+/*-------------------------------------------------------------------------*/
+
 #if defined(OS_RTEMS) || defined(OS_VXWORKS)
 
       static void
@@ -529,6 +546,10 @@ mxp_generate_macros( FILE *version_file )
 	struct utsname uname_struct;
 	int os_status, saved_errno;
 	int num_items, os_major, os_minor, os_update;
+
+#if defined(__clang__)
+	mxp_generate_clang_macros( version_file );
+#endif
 
 	os_status = uname( &uname_struct );
 

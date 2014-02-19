@@ -1515,7 +1515,7 @@ MX_EXPORT mx_status_type
 mx_socket_set_non_blocking_mode( MX_SOCKET *mx_socket,
 				mx_bool_type non_blocking_flag )
 {
-	static const char fname[] = "mx_socket_set_non_blocking_flag()";
+	static const char fname[] = "mx_socket_set_non_blocking_mode()";
 
 	int socket_errno, non_blocking;
 
@@ -1584,7 +1584,32 @@ mx_socket_set_non_blocking_mode( MX_SOCKET *mx_socket,
 		mx_socket->is_non_blocking = FALSE;
 	}
 
+#if defined(OS_MACOSX)
+	{
+		/* This method is the POSIX method. */
+
+		int socket_flags, fcntl_status;
+
+		socket_flags = fcntl( mx_socket->socket_fd, F_GETFL, 0 );
+
+		if ( non_blocking ) {
+			socket_flags |= O_NONBLOCK;
+		} else {
+			socket_flags &= ( ~ O_NONBLOCK );
+		}
+			
+		fcntl_status = fcntl( mx_socket->socket_fd,
+					F_SETFL, socket_flags );
+
+		if ( fcntl_status == (-1) ) {
+			socket_errno = errno;
+		} else {
+			socket_errno = 0;
+		}
+	}
+#else
 	socket_errno = mx_socket_ioctl( mx_socket, FIONBIO, &non_blocking );
+#endif
 
 	if ( socket_errno != 0 ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,

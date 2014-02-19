@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005-2007, 2011 Illinois Institute of Technology
+ * Copyright 2005-2007, 2011, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -66,7 +66,11 @@
 #   include <rpc/types.h>
 #   include <rpc/xdr.h>
 
-#   if defined(OS_MACOSX) || defined(OS_QNX)
+#   if defined(OS_MACOSX) && ( ! defined(__clang__) )
+#      include "../tools/xdr/src/xdr_hyper.h"
+#   endif
+
+#   if defined(OS_QNX)
 #      include "../tools/xdr/src/xdr_hyper.h"
 #   endif
 #endif
