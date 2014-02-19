@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2013 Illinois Institute of Technology
+ * Copyright 2013-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,6 +22,22 @@
 #include "mx_record.h"
 #include "mx_multi.h"
 #include "mx_net.h"
+
+static void
+print_usage( void )
+{
+	fprintf( stderr,
+"\n"
+"Usage: mxput <options> record_name.field <value> ...\n"
+"       mxput <options> hostname:record_name.field <value> ...\n"
+"       mxput <options> hostname@port:record_name.field <value> ...\n"
+"\n"
+"where the options are:\n"
+"   -a   Enable network debugging.\n"
+"   -D   Start the source code debugger.\n"
+"   -e   Enable escape sequences.\n"
+	);
+}
 
 int
 main( int argc, char *argv[] )
@@ -48,23 +64,12 @@ main( int argc, char *argv[] )
 	mx_bool_type network_debugging, start_debugger, use_escape_sequences;
 	mx_status_type mx_status;
 
-	char usage[] =
-"\n"
-"Usage: mxput <options> record_name.field <value> ...\n"
-"       mxput <options> hostname:record_name.field <value> ...\n"
-"       mxput <options> hostname@port:record_name.field <value> ...\n"
-"\n"
-"where the options are:\n"
-"   -a   Enable network debugging.\n"
-"   -D   Start the source code debugger.\n"
-"   -e   Enable escape sequences.\n";
-
 	network_debugging = FALSE;
 	start_debugger = FALSE;
 	use_escape_sequences = FALSE;
 
 	if ( argc < 3 ) {
-		fprintf( stderr, usage );
+		print_usage();
 		exit(1);
 	}
 
@@ -83,7 +88,7 @@ main( int argc, char *argv[] )
 			use_escape_sequences = TRUE;
 			break;
 		default:
-			fprintf( stderr, usage );
+			print_usage();
 			break;
 		}
 	}

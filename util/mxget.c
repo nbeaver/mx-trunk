@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2013 Illinois Institute of Technology
+ * Copyright 2013-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,6 +22,22 @@
 #include "mx_record.h"
 #include "mx_multi.h"
 #include "mx_net.h"
+
+static void
+print_usage( void )
+{
+	fprintf( stderr,
+"\n"
+"Usage: mxget <options> record_name.field\n"
+"       mxget <options> hostname:record_name.field\n"
+"       mxget <options> hostname@port:record_name.field\n"
+"\n"
+"where the options are:\n"
+"   -a   Enable network debugging.\n"
+"   -D   Start the source code debugger.\n"
+"   -v   Verbose output (show the field name)\n"
+	);
+}
 
 int
 main( int argc, char *argv[] )
@@ -45,23 +61,12 @@ main( int argc, char *argv[] )
 	mx_bool_type network_debugging, start_debugger, verbose;
 	mx_status_type mx_status;
 
-	char usage[] =
-"\n"
-"Usage: mxget <options> record_name.field\n"
-"       mxget <options> hostname:record_name.field\n"
-"       mxget <options> hostname@port:record_name.field\n"
-"\n"
-"where the options are:\n"
-"   -a   Enable network debugging.\n"
-"   -D   Start the source code debugger.\n"
-"   -v   Verbose output (show the field name)\n";
-
 	network_debugging = FALSE;
 	start_debugger = FALSE;
 	verbose = FALSE;
 
 	if ( argc < 2 ) {
-		fprintf( stderr, usage );
+		print_usage();
 		exit(1);
 	}
 
@@ -80,7 +85,7 @@ main( int argc, char *argv[] )
 			verbose = TRUE;
 			break;
 		default:
-			fprintf( stderr, usage );
+			print_usage();
 			break;
 		}
 	}
