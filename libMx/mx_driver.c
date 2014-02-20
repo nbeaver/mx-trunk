@@ -534,6 +534,7 @@
 #include "n_bluice_dhs_manager.h"
 #endif
 
+#include "o_network.h"
 #include "o_toast.h"
 
 #include "z_external_command.h"
@@ -3960,6 +3961,13 @@ MX_DRIVER mx_type_table[] = {
 #endif
 
   /* =================== Operation driver types ================== */
+
+{"network_operation",  MXO_NETWORK,   MXO_OPERATION,  MXR_OPERATION,
+				&mxo_network_record_function_list,
+				&mxo_network_operation_function_list,
+				NULL,
+				&mxo_network_num_record_fields,
+				&mxo_network_rfield_def_ptr },
 
 {"toast",        MXO_TOAST,   MXO_OPERATION,  MXR_OPERATION,
 				&mxo_toast_record_function_list,

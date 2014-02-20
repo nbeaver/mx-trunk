@@ -861,7 +861,8 @@ extern "C" {
 
 /* --- Operation types --- */
 
-#define MXO_TOAST			700001
+#define MXO_NETWORK			700001
+#define MXO_TOAST			700002
 
 /* --- Special types --- */
 

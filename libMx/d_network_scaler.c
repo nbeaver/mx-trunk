@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2004, 2006-2007 Illinois Institute of Technology
+ * Copyright 1999, 2001-2004, 2006-2007, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -128,6 +128,7 @@ mxd_network_scaler_create_record_structures( MX_RECORD *record )
 			= &mxd_network_scaler_scaler_function_list;
 
 	scaler->record = record;
+	network_scaler->record = record;
 
 	return MX_SUCCESSFUL_RESULT;
 }
