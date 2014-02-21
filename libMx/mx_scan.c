@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2012 Illinois Institute of Technology
+ * Copyright 1999-2012, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -44,6 +44,7 @@
 #include "mx_amplifier.h"
 #include "mx_mca.h"
 #include "mx_variable.h"
+#include "mx_operation.h"
 #include "mx_array.h"
 #include "mx_hrt.h"
 #include "mx_hrt_debug.h"
@@ -2264,6 +2265,7 @@ mx_clear_scan_input_devices( MX_SCAN *scan )
 		switch( input_device->mx_superclass ) {
 		case MXR_VARIABLE:
 		case MXR_SCAN:
+		case MXR_OPERATION:
 			/* No clear operation needed. */
 			break;
 
@@ -2584,6 +2586,12 @@ mx_compute_normalized_device_value( MX_RECORD *input_device,
 	mx_status_type mx_status;
 
 	switch( input_device->mx_superclass ) {
+	case MXR_OPERATION:
+		mx_status = mx_operation_get_status( input_device,
+							&ulong_value );
+		*returned_value = (double) ulong_value;
+		break;
+
 	case MXR_DEVICE:
 		switch( input_device->mx_class ) {
 		case MXC_ANALOG_INPUT:
@@ -2717,8 +2725,8 @@ mx_compute_normalized_device_value( MX_RECORD *input_device,
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 			"Computing normalized values is only supported for "
-			"device and variable records.  Record '%s' is "
-			"not a device record or a variable record.",
+			"device, variable, and operation records.  "
+			"Record '%s' is not one of these types of records.",
 				input_device->name );
 	}
 
@@ -2745,6 +2753,7 @@ mx_convert_normalized_device_value_to_string( MX_RECORD *input_device,
 	MX_TIMER *timer;
 	MX_RELAY *relay;
 	MX_AMPLIFIER *amplifier;
+	MX_OPERATION *operation;
 	void *field_value_ptr;
 	double position, raw_position, double_value;
 	mx_status_type mx_status;
@@ -2757,6 +2766,12 @@ mx_convert_normalized_device_value_to_string( MX_RECORD *input_device,
 	switch( input_device->mx_superclass ) {
 	case MXR_SCAN:
 		strcpy(buffer, "");
+		break;
+	case MXR_OPERATION:
+		operation = (MX_OPERATION *)
+				(input_device->record_superclass_struct);
+
+		sprintf( buffer, "%#10lx", operation->status );
 		break;
 	case MXR_DEVICE:
 		if ( buffer_length <= 10 ) {

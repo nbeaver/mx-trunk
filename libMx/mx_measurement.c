@@ -7,7 +7,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004-2007, 2009, 2012 Illinois Institute of Technology
+ * Copyright 1999-2002, 2004-2007, 2009, 2012, 2014
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -35,6 +36,7 @@
 #include "mx_area_detector.h"
 #include "mx_variable.h"
 #include "mx_scan.h"
+#include "mx_operation.h"
 
 #include "mx_measurement.h"
 
@@ -459,6 +461,11 @@ mx_readout_data( MX_MEASUREMENT *measurement )
 			if ( mx_status.code != MXE_SUCCESS ) {
 				return mx_status;
 			}
+			break;
+
+		case MXR_OPERATION:
+			mx_status = mx_operation_get_status( input_device,
+								&ulong_value );
 			break;
 
 		case MXR_DEVICE:

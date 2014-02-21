@@ -30,6 +30,11 @@ extern "C" {
 
 #define MXF_OP_AUTOSTART	0x1
 
+/* Values for status. */
+
+#define MXSF_OP_BUSY		0x1
+#define MXSF_OP_FAULT		0x2
+
 /*---*/
 
 typedef struct {

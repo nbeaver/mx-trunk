@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2007, 2009, 2011, 2013 Illinois Institute of Technology
+ * Copyright 1999-2007, 2009, 2011, 2013-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -411,6 +411,7 @@ motor_prompt_for_input_devices(
 				} else {
 				    switch ( current_record->mx_superclass ) {
 				    case MXR_VARIABLE:
+				    case MXR_OPERATION:
 					fprintf( output, "%s ",
 						current_record->name );
 					break;
@@ -457,6 +458,7 @@ motor_prompt_for_input_devices(
 				} else {
 				    switch ( record->mx_superclass ) {
 				    case MXR_VARIABLE:
+				    case MXR_OPERATION:
 					strlcpy( input_name_array[i],
 					    buffer,MXU_RECORD_NAME_LENGTH );
 
