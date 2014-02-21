@@ -34,13 +34,15 @@
 
 #define MXF_COMPUMOTOR_DISABLE_HARDWARE_LIMITS			0x1000
 
+#define MXF_COMPUMOTOR_SYNC_POSITION_ON_RESYNC			0x2000
+
 typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *compumotor_interface_record;
 	long controller_number;
 	long axis_number;
-	unsigned long flags;
+	unsigned long compumotor_flags;
 
 	long controller_index;
 	mx_bool_type continuous_mode_enabled;
@@ -104,8 +106,8 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_compumotor_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_COMPUMOTOR, axis_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "flags", MXFT_HEX, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_COMPUMOTOR, flags), \
+  {-1, -1, "compumotor_flags", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_COMPUMOTOR, compumotor_flags), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }, \
   \
   {-1, -1, "controller_index", MXFT_LONG, NULL, 0, {0}, \

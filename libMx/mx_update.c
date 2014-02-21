@@ -11,7 +11,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2009 Illinois Institute of Technology
+ * Copyright 1999-2009, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -43,6 +43,7 @@
 #include "mx_pulse_generator.h"
 #include "mx_ptz.h"
 #include "mx_variable.h"
+#include "mx_operation.h"
 
 MX_EXPORT mx_status_type
 mx_update_record_values( MX_RECORD *record )
@@ -244,6 +245,10 @@ mx_update_record_values( MX_RECORD *record )
 
 	case MXR_VARIABLE:
 		status = mx_receive_variable( record );
+		break;
+
+	case MXR_OPERATION:
+		status = mx_operation_get_status( record, NULL );
 		break;
 
 	default:

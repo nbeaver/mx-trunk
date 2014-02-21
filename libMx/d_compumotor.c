@@ -279,7 +279,8 @@ mxd_compumotor_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  controller number = %ld\n",
 					compumotor->controller_number);
 	fprintf(file, "  axis number       = %ld\n", compumotor->axis_number);
-	fprintf(file, "  flags             = %#lx\n", compumotor->flags);
+	fprintf(file, "  compumotor_flags  = %#lx\n",
+					compumotor->compumotor_flags);
 
 	mx_status = mx_motor_get_position( record, &position );
 
@@ -348,7 +349,7 @@ mxd_compumotor_check_for_servo( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 	case MXT_COMPUMOTOR_6000_SERIES:
 		compumotor->is_servo = FALSE;
 
-		compumotor->flags
+		compumotor->compumotor_flags
 		    |= MXF_COMPUMOTOR_ROUND_POSITION_OUTPUT_TO_NEAREST_INTEGER;
 
 		break;
@@ -365,7 +366,7 @@ mxd_compumotor_check_for_servo( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 		 * we have a servo or a stepper.
 		 */
 
-		flags = compumotor->flags;
+		flags = compumotor->compumotor_flags;
 
 		if ( flags & MXF_COMPUMOTOR_IS_SERVO ) {
 			compumotor->is_servo = TRUE;
@@ -470,7 +471,8 @@ mxd_compumotor_check_for_servo( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 		 * the 'use encoder position' bit in the 'flags' variable.
 		 */
 
-		compumotor->flags |= MXF_COMPUMOTOR_USE_ENCODER_POSITION;
+		compumotor->compumotor_flags
+			|= MXF_COMPUMOTOR_USE_ENCODER_POSITION;
 	}
 #endif
 
@@ -608,6 +610,7 @@ mxd_compumotor_open( MX_RECORD *record )
 	MX_COMPUMOTOR *compumotor;
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
 	char command[80];
+	unsigned long flags;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -648,8 +651,9 @@ mxd_compumotor_open( MX_RECORD *record )
 	 * enable them.
 	 */
 
-	if ( compumotor->flags & MXF_COMPUMOTOR_DISABLE_HARDWARE_LIMITS ) {
+	flags = compumotor->compumotor_flags;
 
+	if ( flags & MXF_COMPUMOTOR_DISABLE_HARDWARE_LIMITS ) {
 		snprintf( command, sizeof(command), "%ld_!%ldLH0",
 					compumotor->controller_number,
 					compumotor->axis_number );
@@ -754,6 +758,8 @@ mxd_compumotor_resynchronize( MX_RECORD *record )
 	static const char fname[] = "mxd_compumotor_resynchronize()";
 
 	MX_COMPUMOTOR *compumotor;
+	unsigned long flags, mask;
+	double position;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -771,6 +777,29 @@ mxd_compumotor_resynchronize( MX_RECORD *record )
 
 	mx_status = mxi_compumotor_resynchronize(
 			compumotor->compumotor_interface_record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	flags = compumotor->compumotor_flags;
+
+	mask = MXF_COMPUMOTOR_USE_ENCODER_POSITION
+			| MXF_COMPUMOTOR_SYNC_POSITION_ON_RESYNC;
+
+	if ( ( (flags & mask) == mask ) && ( compumotor->is_servo == FALSE ) )
+	{
+		/* If the motor is not a servo, but we _are_ using the encoder,
+		 * then set the motor steps to be consistent with the encoder
+		 * ticks.
+		 */
+
+		mx_status = mx_motor_get_position( record, &position );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_motor_set_position( record, position );
+	}
 
 	return mx_status;
 }
@@ -806,11 +835,11 @@ mxd_compumotor_move_absolute( MX_MOTOR *motor )
 
 	/* Set the position to move to. */
 
-	flags = compumotor->flags;
+	flags = compumotor->compumotor_flags;
 
 	destination = motor->raw_destination.analog;
 
-	if ( ( compumotor->flags & MXF_COMPUMOTOR_USE_ENCODER_POSITION )
+	if ( ( flags & MXF_COMPUMOTOR_USE_ENCODER_POSITION )
 	  && ( compumotor->is_servo == FALSE ) )
 	{
 		destination = destination * mx_divide_safely(
@@ -869,6 +898,7 @@ mxd_compumotor_get_position( MX_MOTOR *motor )
 	char command[80];
 	char response[80];
 	int num_tokens;
+	unsigned long flags;
 	mx_status_type mx_status;
 
 	mx_status = mxd_compumotor_get_pointers( motor, &compumotor,
@@ -877,7 +907,9 @@ mxd_compumotor_get_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( compumotor->flags & MXF_COMPUMOTOR_USE_ENCODER_POSITION ) {
+	flags = compumotor->compumotor_flags;
+
+	if ( flags & MXF_COMPUMOTOR_USE_ENCODER_POSITION ) {
 
 		snprintf( command, sizeof(command), "%ld_!%ldTPE",
 					compumotor->controller_number,
@@ -944,7 +976,7 @@ mxd_compumotor_set_position( MX_MOTOR *motor )
 
 	motor_array = compumotor_interface->motor_array[i];
 
-	flags = compumotor->flags;
+	flags = compumotor->compumotor_flags;
 
 	/* If this axis is configured as a stepper motor, but we are using
 	 * encoder positions, then we need to use the PESET command in 

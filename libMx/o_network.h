@@ -41,8 +41,8 @@ typedef struct {
 
 MX_API_PRIVATE mx_status_type mxo_network_create_record_structures(
 							MX_RECORD *record );
-MX_API_PRIVATE mx_status_type mxo_network_open( MX_RECORD *record );
-MX_API_PRIVATE mx_status_type mxo_network_close( MX_RECORD *record );
+MX_API_PRIVATE mx_status_type mxo_network_finish_record_initialization(
+							MX_RECORD *record );
 
 MX_API_PRIVATE mx_status_type mxo_network_get_status( MX_OPERATION *op );
 MX_API_PRIVATE mx_status_type mxo_network_start( MX_OPERATION *op );

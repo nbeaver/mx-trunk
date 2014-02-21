@@ -31,11 +31,7 @@
 MX_RECORD_FUNCTION_LIST mxo_network_record_function_list = {
 	NULL,
 	mxo_network_create_record_structures,
-	NULL,
-	NULL,
-	NULL,
-	mxo_network_open,
-	mxo_network_close
+	mxo_network_finish_record_initialization
 };
 
 MX_OPERATION_FUNCTION_LIST mxo_network_operation_function_list = {
@@ -136,9 +132,10 @@ mxo_network_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxo_network_open( MX_RECORD *record )
+mxo_network_finish_record_initialization( MX_RECORD *record )
 {
-	static const char fname[] = "mxo_network_open()";
+	static const char fname[] =
+		"mxo_network_finish_record_initialization()";
 
 	MX_OPERATION *operation = NULL;
 	MX_NETWORK_OPERATION *network_op = NULL;
@@ -156,31 +153,19 @@ mxo_network_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	return mx_status;
-}
+	mx_network_field_init( &(network_op->start_nf),
+		network_op->server_record,
+		"%s.start", network_op->remote_record_name );
 
-MX_EXPORT mx_status_type
-mxo_network_close( MX_RECORD *record )
-{
-	static const char fname[] = "mxo_network_close()";
+	mx_network_field_init( &(network_op->status_nf),
+		network_op->server_record,
+		"%s.status", network_op->remote_record_name );
 
-	MX_OPERATION *operation = NULL;
-	MX_NETWORK_OPERATION *network_op = NULL;
-	mx_status_type mx_status;
+	mx_network_field_init( &(network_op->stop_nf),
+		network_op->server_record,
+		"%s.stop", network_op->remote_record_name );
 
-	if ( record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_RECORD pointer passed was NULL." );
-	}
-
-	operation = (MX_OPERATION *) record->record_superclass_struct;
-
-	mx_status = mxo_network_get_pointers( operation, &network_op, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	return mx_status;
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -189,6 +174,7 @@ mxo_network_get_status( MX_OPERATION *operation )
 	static const char fname[] = "mxo_network_get_status()";
 
 	MX_NETWORK_OPERATION *network_op = NULL;
+	unsigned long op_status;
 	mx_status_type mx_status;
 
 	mx_status = mxo_network_get_pointers( operation, &network_op, fname );
@@ -196,7 +182,14 @@ mxo_network_get_status( MX_OPERATION *operation )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	return mx_status;
+	mx_status = mx_get( &(network_op->status_nf), MXFT_HEX, &op_status );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	operation->status = op_status;
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -211,6 +204,9 @@ mxo_network_start( MX_OPERATION *operation )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	mx_status = mx_put( &(network_op->start_nf),
+				MXFT_BOOL, &(operation->start) );
 
 	return mx_status;
 }
@@ -228,6 +224,9 @@ mxo_network_stop( MX_OPERATION *operation )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	return MX_SUCCESSFUL_RESULT;
+	mx_status = mx_put( &(network_op->stop_nf),
+				MXFT_BOOL, &(operation->stop) );
+
+	return mx_status;
 }
 

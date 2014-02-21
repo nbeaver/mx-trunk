@@ -92,6 +92,10 @@ mx_operation_get_status( MX_RECORD *op_record,
 		mx_status = (*get_status_fn)( operation );
 	}
 
+	if ( op_status != (unsigned long *) NULL ) {
+		*op_status = operation->status;
+	}
+
 	return mx_status;
 }
 
