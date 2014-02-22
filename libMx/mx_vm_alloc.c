@@ -400,7 +400,8 @@ mx_vm_show_os_info( FILE *file,
  */
 
 #elif defined(OS_LINUX) | defined(OS_MACOSX) | defined(OS_BSD) \
-	| defined(OS_SOLARIS) | defined(OS_CYGWIN) | defined(OS_VMS)
+	| defined(OS_SOLARIS) | defined(OS_UNIXWARE) | defined(OS_CYGWIN) \
+	| defined(OS_VMS)
 
 #include <errno.h>
 #include <sys/mman.h>
@@ -444,7 +445,7 @@ mx_vm_alloc( void *requested_address,
 				vm_visibility_flags,
 				-1, 0 );
 
-	if ( actual_address == MAP_FAILED ) {
+	if ( actual_address == (void *) MAP_FAILED ) {
 		saved_errno = errno;
 
 		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
@@ -942,7 +943,7 @@ mx_vm_show_os_info( FILE *file,
 
 /*-------------------------------------------------------------------------*/
 
-#  elif defined(OS_BSD)
+#  elif defined(OS_BSD) || defined(OS_UNIXWARE)
 
 /* On some BSD based operating systems, mincore() can be used to determine
  * whether or not an address range is valid, since mincore() will return
@@ -1046,6 +1047,17 @@ mx_vm_get_protection( void *address,
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_vm_show_os_info( FILE *file,
+		void *address,
+		size_t region_size_in_bytes )
+{
+	static const char fname[] = "mx_vm_show_os_info()";
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+	"mx_vm_show_os_info() is not yet implemented on this platform." );
 }
 
 /*-------------------------------------------------------------------------*/

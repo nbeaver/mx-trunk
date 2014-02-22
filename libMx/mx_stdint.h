@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2007, 2009-2010, 2012-2013 Illinois Institute of Technology
+ * Copyright 2006-2007, 2009-2010, 2012-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -110,7 +110,7 @@ typedef uint64_t		uintmax_t;
 
 #  include <types/vxTypes.h>
 
-#  if MX_WORDSIZE == 64
+#  if ( MX_WORDSIZE == 64 )
 typedef long			int64_t;
 typedef unsigned long		uint64_t;
 #  define INT64_C(c)		c ## L
@@ -191,6 +191,23 @@ typedef uint64_t		uintmax_t;
       typedef uint32_t             uintmax_t;
 
 #  endif
+
+/*=======================================================================*/
+#elif defined(OS_UNIXWARE)
+
+   /* UnixWare defines int32_t and friends in <sys/types.h> */
+
+   /* However, it does not define INT64_C() and UINT64_C(). */
+
+#  if ( MX_WORDSIZE == 64 )
+#  define INT64_C(c)		c ## L
+#  define UINT64_C(c)		c ## UL
+#  else
+#  define INT64_C(c)		c ## LL
+#  define UINT64_C(c)		c ## ULL
+#  endif
+
+#include <sys/types.h>
 
 /*=======================================================================*/
 #else

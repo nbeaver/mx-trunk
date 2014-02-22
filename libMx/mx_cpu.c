@@ -67,7 +67,8 @@ mx_get_number_of_cpu_cores( unsigned long *num_cores )
 
 /*----------------------- Linux, Solaris, AIX -----------------------*/
 
-#elif defined(OS_LINUX) || defined(OS_SOLARIS) || defined(OS_AIX)
+#elif defined(OS_LINUX) || defined(OS_SOLARIS) || defined(OS_AIX) \
+	|| defined(OS_UNIXWARE)
 
 MX_EXPORT mx_status_type
 mx_get_number_of_cpu_cores( unsigned long *num_cores )

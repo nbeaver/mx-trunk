@@ -265,7 +265,8 @@ mx_get_number_of_open_file_descriptors( void )
 /*=========================================================================*/
 
 #if defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
-	|| defined(OS_BSD) || defined(OS_HURD) || defined(OS_CYGWIN)
+	|| defined(OS_BSD) || defined(OS_HURD) || defined(OS_CYGWIN) \
+	|| defined(OS_UNIXWARE)
 
 MX_EXPORT mx_bool_type
 mx_fd_is_valid( int fd )
@@ -394,6 +395,27 @@ mx_get_file_size( const char *filename )
 	return file_size;
 }
 
+#elif defined(OS_UNIXWARE)
+
+MX_EXPORT int64_t
+mx_get_file_size( const char *filename )
+{
+	int64_t file_size;
+
+	struct stat64 stat_buffer;
+	int os_status;
+
+	os_status = stat64( filename, &stat_buffer );
+
+	if ( os_status < 0 ) {
+		return (-1);
+	}
+
+	file_size = stat_buffer.st_size;
+
+	return file_size;
+}
+
 #else
 
 #error mx_get_file_size() has not yet been implemented for this platform.
@@ -402,7 +424,7 @@ mx_get_file_size( const char *filename )
 
 /*=========================================================================*/
 
-#if defined(OS_MACOSX) || defined(OS_BSD)
+#if defined(OS_MACOSX) || defined(OS_BSD) || defined(OS_UNIXWARE)
 
 #define MXP_LSOF_FILE	1
 #define MXP_LSOF_PIPE	2
@@ -1303,7 +1325,7 @@ mx_win32_show_socket_names( void )
 
 /*-------------------------------------------------------------------------*/
 
-#elif defined(OS_MACOSX) || defined(OS_BSD)
+#elif defined(OS_MACOSX) || defined(OS_BSD) || defined(OS_UNIXWARE)
 
 /* Use the external 'lsof' program to get the fd name. */
 
@@ -2534,7 +2556,7 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
 /*-------------------------------------------------------------------------*/
 
 #elif defined(OS_LINUX) || defined(OS_SOLARIS) || defined(OS_HURD) \
-	|| defined(OS_CYGWIN) || defined(OS_VXWORKS)
+	|| defined(OS_UNIXWARE) || defined(OS_CYGWIN) || defined(OS_VXWORKS)
 
 /*
  * This is a generic stat()-based implementation that requires polling.

@@ -25,9 +25,9 @@ all: build
 
 #MODULES = labjack_ux		# linux,
 
-#MODULES += libusb-0.1		# linux,
+MODULES += libusb-0.1		# linux,
 
-#MODULES += k8055		# linux,
+MODULES += k8055		# linux,
 
 #MODULES += ni488		# linux,
 
@@ -50,7 +50,7 @@ all: build
 
 #MODULES += powerpmac
 
-#MODULES += v4l2_input
+MODULES += v4l2_input
 
 #-------------------------------------------------------------------
 # Win32-only modules.
@@ -84,9 +84,9 @@ all: build
 
 MODULES += epics
 
-MODULES += epics_aps
+#MODULES += epics_aps
 
-MODULES += epics_pmac_biocat
+#MODULES += epics_pmac_biocat
 
 #MODULES += epics_mbc
 
