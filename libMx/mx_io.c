@@ -395,7 +395,7 @@ mx_get_file_size( const char *filename )
 	return file_size;
 }
 
-#elif defined(OS_UNIXWARE)
+#elif defined(OS_SOLARIS) || defined(OS_UNIXWARE)
 
 MX_EXPORT int64_t
 mx_get_file_size( const char *filename )

@@ -21,6 +21,7 @@
 #   solaris-gcc   - Compile for sparc/x86 with Solaris 8 or above using GCC
 #   tru64         - Compile for alpha with HP Tru64 Unix 5.1b
 #   tru64-gcc     - Compile for alpha with HP Tru64 Unix 5.1b using GCC
+#   unixware      - Compile for Unixware
 #   vms           - Compile for alpha/vax/ia64 with OpenVMS 7.3.1 or 8.x
 #   vms-gnv       - Compile for ia64 with OpenVMS 8.3 using GNV 1.6-4
 #   vxworks       - Compile for VxWorks Tornado 2.0 using GCC

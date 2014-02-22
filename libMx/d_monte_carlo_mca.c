@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2012 Illinois Institute of Technology
+ * Copyright 2012-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -206,7 +206,7 @@ mxd_monte_carlo_mca_create_uniform( MX_MCA *mca,
 	monte_carlo_mca_source->u.uniform.events_per_second = atof( argv[1] );
 
 	return MX_SUCCESSFUL_RESULT;
-};
+}
 
 /*-------------------------------------------------------------------------*/
 
@@ -316,7 +316,7 @@ mxd_monte_carlo_mca_create_peak( MX_MCA *mca,
 	monte_carlo_mca_source->u.peak.peak_width = atof( argv[3] );
 
 	return MX_SUCCESSFUL_RESULT;
-};
+}
 
 /*-------------------------------------------------------------------------*/
 
@@ -424,7 +424,9 @@ mxd_monte_carlo_mca_event_thread( MX_THREAD *thread, void *args )
 		mx_usleep( monte_carlo_mca->sleep_microseconds );
 	}
 
+#if !defined(OS_SOLARIS)
 	return MX_SUCCESSFUL_RESULT;
+#endif
 }
 
 /*-------------------------------------------------------------------------*/

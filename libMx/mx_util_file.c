@@ -1646,7 +1646,8 @@ mx_get_filesystem_type( char *filename,
 
 /*-------------------------------------------------------------------------*/
 
-#elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_UNIXWARE)
+#elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
+	|| defined(OS_UNIXWARE)
 
 /* FIXME: On Linux, at least, it should be possible to do something
  * with statfs().  On MacOS X, statfs() does not appear to return the

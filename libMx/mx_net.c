@@ -1109,7 +1109,9 @@ mx_network_wait_for_messages( MX_RECORD *record,
 		}
 	}
 
+#if !defined(OS_SOLARIS)
 	return MX_SUCCESSFUL_RESULT;
+#endif
 }
 
 /* ====================================================================== */

@@ -943,7 +943,7 @@ mx_vm_show_os_info( FILE *file,
 
 /*-------------------------------------------------------------------------*/
 
-#  elif defined(OS_BSD) || defined(OS_UNIXWARE)
+#  elif defined(OS_BSD) || defined(OS_SOLARIS) || defined(OS_UNIXWARE)
 
 /* On some BSD based operating systems, mincore() can be used to determine
  * whether or not an address range is valid, since mincore() will return
