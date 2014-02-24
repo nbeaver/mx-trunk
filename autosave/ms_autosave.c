@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2007, 2009-2012 Illinois Institute of Technology
+ * Copyright 1999-2007, 2009-2012, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1924,7 +1924,7 @@ msauto_restore_fields_from_autosave_files(
 		fname, autosave_backup_filename));
 
 	mx_status = mx_copy_file( filename_to_use,
-				autosave_backup_filename, 0644 );
+				autosave_backup_filename, 0644, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_warning( "The attempt to backup autosave file '%s' failed.",

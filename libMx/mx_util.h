@@ -768,6 +768,10 @@ MX_API mx_status_type mx_get_os_version( int *os_major,
 					int *os_minor,
 					int *os_update );
 
+#if defined(OS_LINUX)
+MX_API unsigned long mx_get_linux_version( void );
+#endif /* OS_LINUX */
+
 #if defined(OS_WIN32)
 MX_API mx_status_type mx_win32_get_osversioninfo( unsigned long *major,
 						unsigned long *minor,
@@ -775,7 +779,7 @@ MX_API mx_status_type mx_win32_get_osversioninfo( unsigned long *major,
 						unsigned char *product_type );
 
 MX_API mx_status_type mx_win32_is_windows_9x( int *is_windows_9x );
-#endif
+#endif /* OS_WIN32 */
 
 MX_API mx_status_type mx_get_cpu_architecture( char *architecture_type,
 					size_t max_architecture_type_length,
@@ -789,12 +793,21 @@ MX_API mx_status_type mx_get_system_boot_time_from_ticks(
 
 /*------------------------------------------------------------------------*/
 
+/* Flag bits for mx_copy_file(). */
+
+#define MXF_CP_USE_CLASSIC_COPY		0x80000000
+
 /* mx_copy_file() copies an old file to a new file where new_file_mode
  * specifies the permissions for the new file using the same bit patterns
  * for the mode as the Posix open() and creat() calls.
  */
 
 MX_API mx_status_type mx_copy_file( char *original_filename,
+				char *new_filename,
+				int new_file_mode,
+				unsigned long copy_flags );
+
+MX_API mx_status_type mx_copy_file_classic( char *original_filename,
 				char *new_filename,
 				int new_file_mode );
 

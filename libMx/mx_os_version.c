@@ -678,3 +678,29 @@ mx_get_os_version( int *os_major, int *os_minor, int *os_update )
 
 #endif
 
+/*--------------------------------------------------------------------------*/
+
+#if defined(OS_LINUX)
+
+MX_EXPORT unsigned long
+mx_get_linux_version( void )
+{
+	int os_major, os_minor, os_update;
+	unsigned long linux_version;
+	mx_status_type mx_status;
+
+	mx_status = mx_get_os_version( &os_major, &os_minor, &os_update );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		return 0;
+	}
+
+	linux_version = ( 1000000L * os_major )
+			+ ( 1000L * os_minor )
+			+ os_update;
+
+	return linux_version;
+}
+
+#endif /* OS_LINUX */
+

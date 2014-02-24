@@ -16,13 +16,22 @@
 
 #define MX_DEBUG_DIRECTORY_HIERARCHY	TRUE
 
+
+/* On Linux, we must define _GNU_SOURCE before including any C library header
+ * in order to get splice() from fcntl.h 
+ */
+
+#if defined(OS_LINUX)
+#  define _GNU_SOURCE
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <ctype.h>
 
 #if defined( OS_WIN32 )
 #include <windows.h>
@@ -74,18 +83,32 @@ mxp_get_shlwapi_hinstance( void )
 
 /*=========================================================================*/
 
-#if 0 && defined(OS_WIN32) 
-
-/* FIXME: Ifdef-ed out until we have a chance to test it. */
+#if defined(OS_WIN32) 
 
 MX_EXPORT mx_status_type
-mx_copy_file( char *existing_filename, char *new_filename, int new_file_mode )
+mx_copy_file( char *existing_filename,
+		char *new_filename,
+		int new_file_mode,
+		unsigned long copy_flags )
 {
 	static const char fname[] = "mx_copy_file()";
 
 	BOOL os_status;
 	DWORD last_error_code;
 	TCHAR message_buffer[100];
+
+	mx_status_type mx_status;
+
+	/*---*/
+
+	if ( copy_flags & MXF_CP_USE_CLASSIC_COPY ) {
+		mx_status = mx_copy_file_classic( existing_filename,
+						new_filename,
+						new_file_mode );
+		return mx_status;
+	}
+
+	/*---*/
 
 	os_status = CopyFile( existing_filename, new_filename, FALSE );
 
@@ -107,7 +130,178 @@ mx_copy_file( char *existing_filename, char *new_filename, int new_file_mode )
 
 /*-------------------------------------------------------------------------*/
 
-#else /* not OS_WIN32 */
+#elif ( defined(OS_LINUX) && (MX_GLIBC_VERSION >= 2005000L) )
+
+/* If Linux and Glibc are new enough, use splice() to do the copy. */
+
+MX_EXPORT mx_status_type
+mx_copy_file( char *existing_filename,
+		char *new_filename,
+		int new_file_mode,
+		unsigned long copy_flags )
+{
+	static const char fname[] = "mx_copy_file()";
+
+	int existing_file_fd, new_file_fd;
+	int pipe_fd[2];
+	ssize_t bytes_read, bytes_written;
+	int os_status, saved_errno;
+	size_t buffer_size;
+	unsigned long linux_version;
+	mx_status_type mx_status;
+
+	/*---------------------------------------------------------------*/
+
+	/* Check to see if the kernel we are running supports splice(). */
+
+	linux_version = mx_get_linux_version();
+
+	MX_DEBUG(-2,("mx_copy_file(): linux_version = %lu", linux_version));
+
+	if ( linux_version < 2006017L ) {
+		mx_status = mx_copy_file_classic( existing_filename,
+						new_filename,
+						new_file_mode );
+		return mx_status;
+	}
+
+	/*---------------------------------------------------------------*/
+
+	/* Check to see if the caller requested the classic copy function. */
+
+	if ( copy_flags & MXF_CP_USE_CLASSIC_COPY ) {
+		mx_status = mx_copy_file_classic( existing_filename,
+						new_filename,
+						new_file_mode );
+		return mx_status;
+	}
+
+	/*---------------------------------------------------------------*/
+
+	/* If we get here, we use splice(). */
+
+	/* First, create a pipe, since splice() uses the pipe buffer
+	 * for in-kernel data transfer.
+	 */
+
+	os_status = pipe( pipe_fd );
+
+	if ( os_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"An attempt to create a pipe for use by splice() failed.  "
+		"Errno = %d, error message = '%s'",
+			saved_errno, strerror(saved_errno) );
+	}
+
+	/* Create file descriptors for the existing and new files. */
+
+	existing_file_fd = open( existing_filename, O_RDONLY );
+
+	if ( existing_file_fd < 0 ) {
+		saved_errno = errno;
+
+		close( pipe_fd[0] );
+		close( pipe_fd[1] );
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"An attempt to create a file descriptor for reading from "
+		"existing file '%s' failed.  Errno = %d, error message = '%s'",
+		existing_filename, saved_errno, strerror(saved_errno) );
+	}
+
+	new_file_fd = open( new_filename, O_WRONLY );
+
+	if ( new_file_fd < 0 ) {
+		saved_errno = errno;
+
+		close( existing_file_fd );
+		close( pipe_fd[0] );
+		close( pipe_fd[1] );
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"An attempt to create a file descriptor for writing to "
+		"new file '%s' failed.  Errno = %d, error message = '%s'",
+		new_filename, saved_errno, strerror(saved_errno) );
+	}
+
+	/* Now copy the file contents using splice(). */
+
+	mx_status = MX_SUCCESSFUL_RESULT;
+
+	buffer_size = 16384;	/* FIXME: Where should this number come from? */
+
+	while(1) {
+		/* Read from the existing file into the kernel pipe buffer. */
+
+		bytes_read = splice( existing_file_fd, NULL, pipe_fd[0], NULL,
+					buffer_size, 0 );
+
+		if ( bytes_read == 0 ) {
+			/* We have reached the end of the file, so it is
+			 * time to break out of the while() loop.
+			 */
+			break;
+		} else
+		if ( bytes_read < 0 ) {
+			saved_errno = errno;
+
+			mx_status = mx_error( MXE_FILE_IO_ERROR, fname,
+			"An error occurred while reading from existing "
+			"file '%s' into a kernel pipe buffer.  "
+			"Errno = %d, error message = '%s'",
+			existing_filename, saved_errno, strerror(saved_errno) );
+
+			break;	/* Exit the while() loop. */
+		}
+
+		/* Write the kernel pipe buffer contents to the new file. */
+
+		bytes_written = splice( pipe_fd[1], NULL, new_file_fd, NULL,
+					bytes_read, 0 );
+
+		if ( bytes_written < 0 ) {
+			saved_errno = errno;
+
+			mx_status = mx_error( MXE_FILE_IO_ERROR, fname,
+			"An error occurred while writing from a kernel pipe "
+			"buffer into new file '%s'.  "
+			"Errno = %d, error message = '%s'",
+			new_filename, saved_errno, strerror(saved_errno) );
+
+			break;	/* Exit the while() loop. */
+		}
+	}
+
+	close( existing_file_fd );
+	close( pipe_fd[0] );
+	close( pipe_fd[1] );
+	close( new_file_fd );
+
+	return mx_status;
+}
+
+#else /* mx_copy_file() */
+
+MX_EXPORT mx_status_type
+mx_copy_file( char *existing_filename,
+		char *new_filename,
+		int new_file_mode,
+		unsigned long copy_flags )
+{
+	mx_status_type mx_status;
+
+	mx_status = mx_copy_file_classic( existing_filename,
+					new_filename,
+					new_file_mode );
+
+	return mx_status;
+}
+
+#endif /* mx_copy_file() */
+
+/*-------------------------------------------------------------------------*/
 
 #define COPY_FILE_CLEANUP \
 		do {                                           \
@@ -123,9 +317,11 @@ mx_copy_file( char *existing_filename, char *new_filename, int new_file_mode )
 		} while(0)
 
 MX_EXPORT mx_status_type
-mx_copy_file( char *existing_filename, char *new_filename, int new_file_mode )
+mx_copy_file_classic( char *existing_filename,
+			char *new_filename,
+			int new_file_mode )
 {
-	static const char fname[] = "mx_copy_file()";
+	static const char fname[] = "mx_copy_file_classic()";
 
 	int existing_fd, new_fd, saved_errno;
 	struct stat stat_struct;
@@ -133,6 +329,8 @@ mx_copy_file( char *existing_filename, char *new_filename, int new_file_mode )
 	unsigned long bytes_already_written, bytes_to_write;
 	long bytes_read, bytes_written;
 	char *buffer;
+
+	/*---*/
 
 	existing_fd = -1;
 	new_fd      = -1;
@@ -275,8 +473,6 @@ mx_copy_file( char *existing_filename, char *new_filename, int new_file_mode )
 
 	return MX_SUCCESSFUL_RESULT;
 }
-
-#endif /* not OS_WIN32 */
 
 /*=========================================================================*/
 
