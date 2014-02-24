@@ -110,6 +110,9 @@ mx_copy_file( char *existing_filename,
 
 	/*---*/
 
+	MX_DEBUG(-2,("%s: Invoking CopyFile( '%s', '%s', FALSE )",
+		fname, existing_filename, new_filename));
+
 	os_status = CopyFile( existing_filename, new_filename, FALSE );
 
 	if ( os_status == 0 ) {
