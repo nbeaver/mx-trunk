@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2004, 2006-2008 2012
+ * Copyright 1999, 2001, 2003-2004, 2006-2008 2012, 2014
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -166,6 +166,12 @@ extern mx_status_type mxsrv_handle_delete_callback(
 			MX_RECORD *record_list,
 			MX_SOCKET_HANDLER *socket_handler,
 			MX_NETWORK_MESSAGE_BUFFER *message_buffer );
+
+/*---*/
+
+extern void mxsrv_process_sockets_with_select( MX_RECORD *record_list,
+				int handler_array_size,
+				MX_SOCKET_HANDLER_LIST *socket_handler_list );
 
 #if HAVE_UNIX_DOMAIN_SOCKETS
 
