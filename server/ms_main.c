@@ -1171,7 +1171,6 @@ mxserver_main( int argc, char *argv[] )
 		/* Process incoming MX events. */
 
 		mxsrv_process_sockets_with_select( mx_record_list,
-						handler_array_size,
 						&socket_handler_list );
 
 		/* Check for callbacks. */

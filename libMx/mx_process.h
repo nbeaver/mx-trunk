@@ -7,7 +7,8 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2008, 2010-2012 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2008, 2010-2012, 2014
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -78,8 +79,10 @@ typedef struct {
 typedef struct {
 	int max_sockets;
 	int num_sockets_in_use;
+	int highest_socket_in_use;
 	int handler_array_size;
 	MX_SOCKET_HANDLER **array;
+	fd_set select_readfds;
 } MX_SOCKET_HANDLER_LIST;
 
 /* Define values for the 'event_type' member of MX_QUEUED_EVENT. */

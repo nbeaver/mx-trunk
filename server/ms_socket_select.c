@@ -29,17 +29,18 @@
 /*-------------------------------------------------------------------------*/
 
 void
-mxsrv_update_select_fds( fd_set *select_readfds,
-			int *max_fd,
-			int handler_array_size,
-			MX_SOCKET_HANDLER_LIST *socket_handler_list )
+mxsrv_update_select_fds( MX_SOCKET_HANDLER_LIST *socket_handler_list )
 {
-	int i;
+	int i, handler_array_size;
+	int highest_socket_in_use;
 	MX_SOCKET *current_socket;
+	fd_set select_readfds;
 
-	FD_ZERO(select_readfds);
+	handler_array_size = socket_handler_list->handler_array_size;
 
-	*max_fd = -1;
+	FD_ZERO(&select_readfds);
+
+	highest_socket_in_use = -1;
 
 	for ( i = 0; i < handler_array_size; i++ ) {
 		if ( socket_handler_list->array[i] != NULL ) {
@@ -47,36 +48,41 @@ mxsrv_update_select_fds( fd_set *select_readfds,
 		    = socket_handler_list->array[i]->synchronous_socket;
 
 			if ( current_socket->socket_fd < 0 ) {
-				MX_DEBUG(0,
+			    MX_DEBUG(0,
 ("main #1: socket_handler_list->array[%d] = %p, current_socket fd = %d",
 	i, socket_handler_list->array[i], current_socket->socket_fd));
 			}
 
-			FD_SET( current_socket->socket_fd, select_readfds );
+			FD_SET( current_socket->socket_fd, &select_readfds );
 
-			if ( current_socket->socket_fd > (*max_fd) ) {
-				*max_fd = current_socket->socket_fd;
+			if ( current_socket->socket_fd > highest_socket_in_use )
+			{
+			    highest_socket_in_use = current_socket->socket_fd;
 			}
 		}
 	}
 
+	socket_handler_list->highest_socket_in_use = highest_socket_in_use;
+	socket_handler_list->select_readfds = select_readfds;
+
+	return;
 }
 
 /*-------------------------------------------------------------------------*/
 
 void
 mxsrv_process_sockets_with_select( MX_RECORD *mx_record_list,
-				int handler_array_size,
 				MX_SOCKET_HANDLER_LIST *socket_handler_list )
 {
 	static const char fname[] = "mxsrv_process_sockets_with_select()";
 
-	int i, saved_errno;
-	int num_fds, max_fd;
+	int i, handler_array_size;
+	int saved_errno;
+	int num_fds_to_check, num_fds_with_activity;
 	MX_SOCKET *current_socket;
+	fd_set *select_readfds;
 
 	MX_EVENT_HANDLER *event_handler;
-	fd_set select_readfds;
 	struct timeval timeout;
 
 	mx_status_type ( *process_event_fn ) ( MX_RECORD *,
@@ -84,18 +90,18 @@ mxsrv_process_sockets_with_select( MX_RECORD *mx_record_list,
 					MX_SOCKET_HANDLER_LIST *,
 					MX_EVENT_HANDLER * );
 
+	mx_breakpoint();
+
+	handler_array_size = socket_handler_list->handler_array_size;
+
+	select_readfds = &(socket_handler_list->select_readfds);
 
 	/* Initialize the arguments to select(). */
 
-	mxsrv_update_select_fds( &select_readfds,
-				&max_fd,
-				handler_array_size,
-				socket_handler_list );
-
 #ifdef OS_WIN32
-	max_fd = -1;
+	num_fds_to_check = -1;
 #else
-	max_fd++;
+	num_fds_to_check = socket_handler_list->highest_socket_in_use + 1;
 #endif
 
 	timeout.tv_sec = 0;
@@ -103,11 +109,12 @@ mxsrv_process_sockets_with_select( MX_RECORD *mx_record_list,
 	
 	/* Use select() to look for events. */
 
-	num_fds = select( max_fd, &select_readfds, NULL, NULL, &timeout );
+	num_fds_with_activity = select( num_fds_to_check,
+					select_readfds, NULL, NULL, &timeout );
 
 	saved_errno = errno;
 
-	if ( num_fds < 0 ) {
+	if ( num_fds_with_activity < 0 ) {
 		if ( saved_errno == EINTR ) {
 
 #if MS_PROCESS_SOCKETS_DEBUG_SIGNALS
@@ -126,13 +133,14 @@ mxsrv_process_sockets_with_select( MX_RECORD *mx_record_list,
 			"Errno = %d.  Error string = '%s'.",
 			saved_errno, strerror( saved_errno ) );
 		}
-	} else if ( num_fds == 0 ) {
+	} else if ( num_fds_with_activity == 0 ) {
 
 		/* Didn't get any events, so do nothing here. */
 
 	} else {
-		MX_DEBUG( 2,("%s: select() returned.  num_fds = %d",
-				fname, num_fds));
+		MX_DEBUG(2,
+		("%s: select() returned.  num_fds_with_activity = %d",
+				fname, num_fds_with_activity));
 
 		/* Figure out which sockets had events and
 		 * then process the events.
@@ -151,7 +159,7 @@ mxsrv_process_sockets_with_select( MX_RECORD *mx_record_list,
 			}
 
 			if ( FD_ISSET(current_socket->socket_fd,
-						&select_readfds) )
+						select_readfds) )
 			{
 				event_handler =
 			socket_handler_list->array[i]->event_handler;

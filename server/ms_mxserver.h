@@ -170,12 +170,9 @@ extern mx_status_type mxsrv_handle_delete_callback(
 /*---*/
 
 extern void mxsrv_process_sockets_with_select( MX_RECORD *record_list,
-				int handler_array_size,
 				MX_SOCKET_HANDLER_LIST *socket_handler_list );
 
-extern void mxsrv_update_select_fds( fd_set *select_readfds,
-				int *max_fd,
-				int handler_array_size,
+extern void mxsrv_update_select_fds(
 				MX_SOCKET_HANDLER_LIST *socket_handler_list );
 
 /*---*/
