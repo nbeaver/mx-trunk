@@ -26,32 +26,20 @@
 
 #include "ms_mxserver.h"
 
-void
-mxsrv_process_sockets_with_select( MX_RECORD *mx_record_list,
-				int handler_array_size,
-				MX_SOCKET_HANDLER_LIST *socket_handler_list )
-{
-	static const char fname[] = "mxsrv_process_sockets_with_select()";
+/*-------------------------------------------------------------------------*/
 
-	int i, saved_errno;
-	int num_fds, max_fd;
+void
+mxsrv_update_select_fds( fd_set *select_readfds,
+			int *max_fd,
+			int handler_array_size,
+			MX_SOCKET_HANDLER_LIST *socket_handler_list )
+{
+	int i;
 	MX_SOCKET *current_socket;
 
-	MX_EVENT_HANDLER *event_handler;
-	fd_set readfds;
-	struct timeval timeout;
+	FD_ZERO(select_readfds);
 
-	mx_status_type ( *process_event_fn ) ( MX_RECORD *,
-					MX_SOCKET_HANDLER *,
-					MX_SOCKET_HANDLER_LIST *,
-					MX_EVENT_HANDLER * );
-
-
-	/* Initialize the arguments to select(). */
-
-	FD_ZERO(&readfds);
-
-	max_fd = -1;
+	*max_fd = -1;
 
 	for ( i = 0; i < handler_array_size; i++ ) {
 		if ( socket_handler_list->array[i] != NULL ) {
@@ -64,13 +52,45 @@ mxsrv_process_sockets_with_select( MX_RECORD *mx_record_list,
 	i, socket_handler_list->array[i], current_socket->socket_fd));
 			}
 
-			FD_SET( current_socket->socket_fd, &readfds );
+			FD_SET( current_socket->socket_fd, select_readfds );
 
-			if ( current_socket->socket_fd > max_fd ) {
-				max_fd = current_socket->socket_fd;
+			if ( current_socket->socket_fd > (*max_fd) ) {
+				*max_fd = current_socket->socket_fd;
 			}
 		}
 	}
+
+}
+
+/*-------------------------------------------------------------------------*/
+
+void
+mxsrv_process_sockets_with_select( MX_RECORD *mx_record_list,
+				int handler_array_size,
+				MX_SOCKET_HANDLER_LIST *socket_handler_list )
+{
+	static const char fname[] = "mxsrv_process_sockets_with_select()";
+
+	int i, saved_errno;
+	int num_fds, max_fd;
+	MX_SOCKET *current_socket;
+
+	MX_EVENT_HANDLER *event_handler;
+	fd_set select_readfds;
+	struct timeval timeout;
+
+	mx_status_type ( *process_event_fn ) ( MX_RECORD *,
+					MX_SOCKET_HANDLER *,
+					MX_SOCKET_HANDLER_LIST *,
+					MX_EVENT_HANDLER * );
+
+
+	/* Initialize the arguments to select(). */
+
+	mxsrv_update_select_fds( &select_readfds,
+				&max_fd,
+				handler_array_size,
+				socket_handler_list );
 
 #ifdef OS_WIN32
 	max_fd = -1;
@@ -83,7 +103,7 @@ mxsrv_process_sockets_with_select( MX_RECORD *mx_record_list,
 	
 	/* Use select() to look for events. */
 
-	num_fds = select( max_fd, &readfds, NULL, NULL, &timeout );
+	num_fds = select( max_fd, &select_readfds, NULL, NULL, &timeout );
 
 	saved_errno = errno;
 
@@ -131,7 +151,7 @@ mxsrv_process_sockets_with_select( MX_RECORD *mx_record_list,
 			}
 
 			if ( FD_ISSET(current_socket->socket_fd,
-						&readfds) )
+						&select_readfds) )
 			{
 				event_handler =
 			socket_handler_list->array[i]->event_handler;

@@ -173,6 +173,13 @@ extern void mxsrv_process_sockets_with_select( MX_RECORD *record_list,
 				int handler_array_size,
 				MX_SOCKET_HANDLER_LIST *socket_handler_list );
 
+extern void mxsrv_update_select_fds( fd_set *select_readfds,
+				int *max_fd,
+				int handler_array_size,
+				MX_SOCKET_HANDLER_LIST *socket_handler_list );
+
+/*---*/
+
 #if HAVE_UNIX_DOMAIN_SOCKETS
 
 extern mx_status_type mxsrv_get_unix_domain_socket_credentials(
