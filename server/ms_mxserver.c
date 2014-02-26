@@ -155,8 +155,6 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 	MX_RECORD_FIELD *field;
 	mx_status_type mx_status, mx_status1, mx_status2;
 
-	mx_breakpoint();
-
 	n = socket_handler->handler_array_index;
 
 	if ( socket_handler_list != NULL ) {
@@ -1247,8 +1245,6 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 	socket_handler_list->num_sockets_in_use++;
 
 	/* Update the list of fds to check in select(). */
-
-	mx_breakpoint();
 
 	mxsrv_update_select_fds( socket_handler_list );
 

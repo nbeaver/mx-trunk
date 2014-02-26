@@ -55,6 +55,10 @@ mxsrv_update_select_fds( MX_SOCKET_HANDLER_LIST *socket_handler_list )
 
 			FD_SET( current_socket->socket_fd, &select_readfds );
 
+			if ( highest_socket_in_use < 0 ) {
+			    highest_socket_in_use = current_socket->socket_fd;
+
+			} else
 			if ( current_socket->socket_fd > highest_socket_in_use )
 			{
 			    highest_socket_in_use = current_socket->socket_fd;
@@ -63,6 +67,9 @@ mxsrv_update_select_fds( MX_SOCKET_HANDLER_LIST *socket_handler_list )
 	}
 
 	socket_handler_list->highest_socket_in_use = highest_socket_in_use;
+
+	/* Note: The following is an ANSI C structure copy. */
+
 	socket_handler_list->select_readfds = select_readfds;
 
 	return;
@@ -80,7 +87,8 @@ mxsrv_process_sockets_with_select( MX_RECORD *mx_record_list,
 	int saved_errno;
 	int num_fds_to_check, num_fds_with_activity;
 	MX_SOCKET *current_socket;
-	fd_set *select_readfds;
+	fd_set select_readfds;
+	mx_bool_type socket_data_available;
 
 	MX_EVENT_HANDLER *event_handler;
 	struct timeval timeout;
@@ -90,11 +98,29 @@ mxsrv_process_sockets_with_select( MX_RECORD *mx_record_list,
 					MX_SOCKET_HANDLER_LIST *,
 					MX_EVENT_HANDLER * );
 
-	mx_breakpoint();
+	if ( socket_handler_list->highest_socket_in_use < 0 ) {
+		/* If no sockets are in use, then there is no point
+		 * to calling select().
+		 */
+
+		MX_DEBUG(-2,
+		("%s: NO SOCKETS AVAILABLE FOR SELECT()!!!", fname));
+
+		return;
+	}
+
+	/* At least one socket is in use, so we will call select(). */
 
 	handler_array_size = socket_handler_list->handler_array_size;
 
-	select_readfds = &(socket_handler_list->select_readfds);
+	/* Note: The following is an ANSI C structure copy.
+	 * 
+	 * We work here using a _copy_ of the master version of
+	 * select_readfds, since select() actually changes the copy
+	 * of select_readfds that is passed to it.
+	 */
+
+	select_readfds = socket_handler_list->select_readfds;
 
 	/* Initialize the arguments to select(). */
 
@@ -106,11 +132,37 @@ mxsrv_process_sockets_with_select( MX_RECORD *mx_record_list,
 
 	timeout.tv_sec = 0;
 	timeout.tv_usec = 1;     /* Wait 1 microsecond. */
+
+	socket_data_available = FALSE;
 	
 	/* Use select() to look for events. */
 
 	num_fds_with_activity = select( num_fds_to_check,
-					select_readfds, NULL, NULL, &timeout );
+					&select_readfds, NULL, NULL, &timeout );
+
+#if defined(OS_WIN32)
+
+	if ( num_fds_with_activity == SOCKET_ERROR ) {
+		int last_error_code;
+
+		last_error_code = WSAGetLastError();
+
+		(void) mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"select() generated a Windows Socket error code of %d",
+			last_error_code );
+
+		socket_data_available = FALSE;
+
+	} else if ( num_fds_with_activity == 0 ) {
+
+		/* Didn't get any events, so do nothing here. */
+
+		socket_data_available = FALSE;
+	} else {
+		socket_data_available = TRUE;
+	}
+
+#else /* Not OS_WIN32 */
 
 	saved_errno = errno;
 
@@ -133,11 +185,20 @@ mxsrv_process_sockets_with_select( MX_RECORD *mx_record_list,
 			"Errno = %d.  Error string = '%s'.",
 			saved_errno, strerror( saved_errno ) );
 		}
+		socket_data_available = FALSE;
+
 	} else if ( num_fds_with_activity == 0 ) {
 
 		/* Didn't get any events, so do nothing here. */
 
+		socket_data_available = FALSE;
 	} else {
+		socket_data_available = TRUE;
+	}
+
+#endif /* Not OS_WIN32 */
+
+	if ( socket_data_available ) {
 		MX_DEBUG(2,
 		("%s: select() returned.  num_fds_with_activity = %d",
 				fname, num_fds_with_activity));
@@ -159,7 +220,7 @@ mxsrv_process_sockets_with_select( MX_RECORD *mx_record_list,
 			}
 
 			if ( FD_ISSET(current_socket->socket_fd,
-						select_readfds) )
+						&select_readfds) )
 			{
 				event_handler =
 			socket_handler_list->array[i]->event_handler;

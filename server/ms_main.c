@@ -820,6 +820,8 @@ mxserver_main( int argc, char *argv[] )
 		socket_handler_list.array[i] = NULL;
 	}
 
+	mxsrv_update_select_fds( &socket_handler_list );
+
 	/* Initialize the MX device drivers. */
 
 	mx_status = mx_initialize_drivers();
@@ -1104,6 +1106,10 @@ mxserver_main( int argc, char *argv[] )
 			exit( mx_status.code );
 		}
 	}
+
+	/* Update the select_readfds value in socket_handler_list. */
+
+	mxsrv_update_select_fds( &socket_handler_list );
 
 	/* We must have at least one socket in use to act as a server. */
 
