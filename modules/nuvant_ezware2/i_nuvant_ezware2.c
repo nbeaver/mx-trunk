@@ -22,6 +22,14 @@
 #include "mx_record.h"
 #include "i_nuvant_ezware2.h"
 
+#if 0
+typedef uint8_t LVBoolean;
+
+#include "EZWare2.h"
+#endif
+
+int32_t __cdecl GetEzWareVersion(void);
+
 MX_RECORD_FUNCTION_LIST mxi_nuvant_ezware2_record_function_list = {
 	NULL,
 	mxi_nuvant_ezware2_create_record_structures,
@@ -111,6 +119,7 @@ mxi_nuvant_ezware2_open( MX_RECORD *record )
 	static const char fname[] = "mxi_nuvant_ezware2_open()";
 
 	MX_NUVANT_EZWARE2 *ezware2 = NULL;
+	int32_t ezware_version;
 	mx_status_type mx_status;
 
 	mx_status = mxi_nuvant_ezware2_get_pointers( record, &ezware2, fname );
@@ -118,8 +127,11 @@ mxi_nuvant_ezware2_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	ezware_version = GetEzWareVersion();
+
 #if MXI_NUVANT_EZWARE2_DEBUG
-	MX_DEBUG(-2,("%s invoked for '%s'.", fname, record->name));
+	MX_DEBUG(-2,("%s invoked for '%s', EZware version = %ld.",
+		fname, record->name, (long) ezware_version ));
 #endif
 
 	return mx_status;

@@ -7,13 +7,15 @@ ifndef MX_ARCH
   MX_ARCH = win32
 endif
 
+NUVANT_EZWARE2_DIR = C:\\Users\\lavender\\software\\nuvant\\CETRDLL_LP\\ezware~1
+
 #--------------------------------------------------------------------------
 
 all: nuvant_ezware2.mxo
 
 include ../../libMx/Makehead.$(MX_ARCH)
 
-CFLAGS += -I../../libMx -D__MX_LIBRARY__ -DIS_MX_DRIVER
+CFLAGS += -I../../libMx -D__MX_LIBRARY__ -DIS_MX_DRIVER -I$(NUVANT_EZWARE2_DIR)
 
 #NUVANT_EZWARE2_OBJS = nuvant_ezware2.$(OBJ) i_nuvant_ezware2.$(OBJ) \
 #	d_nuvant_ezware2_ainput.$(OBJ) d_nuvant_ezware2_aoutput.$(OBJ) \
@@ -38,7 +40,8 @@ ifeq ($(MX_ARCH),win32)
 
 nuvant_ezware2.mxo: $(NUVANT_EZWARE2_OBJS)
 	link /dll /debug /nologo /out:nuvant_ezware2.mxo /nodefaultlib:libc \
-		$(NUVANT_EZWARE2_OBJS) ..\\..\\libMx\\$(MX_LIBRARY_NAME)
+		$(NUVANT_EZWARE2_OBJS) $(NUVANT_EZWARE2_DIR)\\EZWare2.lib \
+		..\\..\\libMx\\$(MX_LIBRARY_NAME)
 
 	# For VC2005 or later, embed the manifest in the module.
 
