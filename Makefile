@@ -13,6 +13,7 @@
 #   irix-gcc      - Compile for SGI with Irix 6.5 using GCC
 #   linux         - Compile for Linux 2.2 or above using GCC
 #   linux-icc     - Compile for Linux 2.6 or above using Intel C++.
+#   linux-clang   - Compile for Linux 3.12 or above using Clang
 #   macosx        - Compile for x86/powerpc with MacOS X using GCC
 #   macosx-clang  - Compile for x86 with MacOS X using Clang
 #   qnx           - Compile for x86 with QNX Neutrino
@@ -57,9 +58,9 @@
 # mx/module/epics/Makefile.config.
 #
 
-MX_ARCH = win32
+MX_ARCH = linux-clang
 
-#MX_INSTALL_DIR = /opt/mx
+MX_INSTALL_DIR = /opt/mx
 #MX_INSTALL_DIR = c:/opt/mx
 #MX_INSTALL_DIR = /mnt/mx
 #MX_INSTALL_DIR = /mnt/sdcard/opt/mx
@@ -67,7 +68,7 @@ MX_ARCH = win32
 #MX_INSTALL_DIR = $(HOME)/mxtest
 #MX_INSTALL_DIR = /local/home/marccd/mrcat/mx
 #MX_INSTALL_DIR = c:/users/lavender/mxtest
-MX_INSTALL_DIR = c:/opt/mx-1.5.5-2014_02_26
+#MX_INSTALL_DIR = c:/opt/mx-1.5.5-2014_02_26
 
 MAKECMD = $(MAKE) MX_ARCH=$(MX_ARCH) MX_INSTALL_DIR=$(MX_INSTALL_DIR)
 

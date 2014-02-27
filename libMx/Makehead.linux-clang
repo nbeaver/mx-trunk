@@ -1,9 +1,7 @@
 #
-# Name:    Makehead.linux
+# Name:    Makehead.linux-clang
 #
-# Purpose: This file is used to customize operating system and installation
-#          dependent features of the MX makefiles.  This version is customized
-#          for Linux.
+# Purpose: This file is customized for the Clang compiler on Linux.
 #
 # Normally, the only things that end users may have to modify in this file are
 # the definitions of INCLUDES, LIB_DIRS, and LIBRARIES.
@@ -38,47 +36,6 @@ LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
 #
 
 MX_LINUX_TARGET = default
-
-#--------
-
-#
-# MX_LINUX_TARGET_MVME162 has been used successfully with a 16 megabyte
-# MVME162-532A VME system controller.
-#
-
-#MX_LINUX_TARGET = mvme162
-
-# MX drivers to load for the MVME162.
-
-MX_DRIVER_MVME162_SRCS = i_tty.c i_mmap_vme.c \
-	i_pdi40.c i_pdi45.c i_vme58.c i_vsc16.c i_iseries.c \
-	d_soft_ainput.c d_soft_aoutput.c d_soft_dinput.c d_soft_doutput.c \
-	d_pdi45_aio.c d_pdi45_dio.c d_iseries_aio.c d_iseries_dio.c \
-	d_bit.c d_vme_dio.c \
-	d_soft_motor.c d_pdi40.c d_stp100.c d_vme58.c d_elapsed_time.c \
-	d_soft_scaler.c d_vsc16_scaler.c d_vsc16_timer.c \
-	d_pdi45_scaler.c d_pdi45_timer.c d_soft_timer.c d_interval_timer.c \
-	d_soft_amplifier.c d_generic_relay.c d_blind_relay.c \
-	d_pdi45_pulser.c v_mathop.c
-
-#--------
-
-#--------------------------------------------------------------------------
-
-# If you want to use the dmalloc debugging package from http://dmalloc.com/,
-# uncomment the following statements.
-
-#CFLAGS += -DDEBUG_DMALLOC
-#LIBRARIES += -ldmallocth
-
-#--------------------------------------------------------------------------
-
-# If you want to use the mpatrol debugging package from 
-# http://mpatrol.sourceforge.net, uncomment the following
-# statements.
-
-#CFLAGS += -DDEBUG_MPATROL
-#LIBRARIES += -lmpatrol -lmptools -lbfd
 
 #--------------------------------------------------------------------------
 #
@@ -128,49 +85,23 @@ GCCFLAGS = -Wall -Werror \
 -Wcast-qual \
 -Wshadow \
 -Winline \
--Wno-format-security
-
-GCCFLAGS_C = \
+-Wno-format-security \
 -Wstrict-prototypes \
 -Wmissing-prototypes \
 -Wnested-externs
 
-#--------------------------------------------------------------------------
-#
-# Modify GCCFLAGS depending on the version of GCC.
-#
-
-# For some reason, using 'test' here and then testing below for equality
-# with '0' does not work.
-#
-#    _have_mx_config := $(shell test -x ../tools/mx_config ; echo \$\? )
-#
-# However, using ../scripts/file_exists _does_ work.  Note that 
-# file_exists returns true or false rather than 0 or 1.
-#
-
-_have_mx_config := $(shell ../scripts/file_exists ../tools/mx_config )
-
-ifeq ($(_have_mx_config),true)
-  _gccver := $(shell ../tools/mx_config gcc )
-
-  _need_no_unused_but_set_variable := $(shell expr $(_gccver) \> 4006000 )
-
-  ifeq ($(_need_no_unused_but_set_variable),1)
-      GCCFLAGS += -Wno-unused-but-set-variable
-  endif
-endif
+CLANG_FLAGS =
 
 #--------------------------------------------------------------------------
 #
-# Intel x86/m68k/sparc with GCC under Linux.
+# Intel x86 with GCC under Linux.
 #
-CC      = gcc
+CC      = clang
 
-CFLAGS  += -g -fPIC $(GCCFLAGS) $(GCCFLAGS_C) $(INCLUDES) -DOS_LINUX \
+CFLAGS  += -g -fPIC $(GCCFLAGS) $(CLANG_FLAGS) $(INCLUDES) -DOS_LINUX \
 				$(EXTRA_FLAGS) -DDEBUG $(USER_CFLAGS)
 
-CXXFLAGS  = -g -fPIC $(GCCFLAGS) $(INCLUDES) -DOS_LINUX \
+CXXFLAGS  = -g -fPIC $(GCCFLAGS) $(CLANG_FLAGS) $(INCLUDES) -DOS_LINUX \
 				$(EXTRA_FLAGS) -DDEBUG $(USER_CFLAGS)
 
 LINKFLAGS = $(CFLAGS)
@@ -204,11 +135,6 @@ MAKEDEPEND_CLEAN = rm Makefile.depend
 
 ifeq ($(MX_LINUX_TARGET),default)
 	MX_LIB_SRCS = mx_driver.c $(MX_CORE_SRCS) $(MX_DRIVER_SRCS)
-endif
-
-ifeq ($(MX_LINUX_TARGET),mvme162)
-	MX_LIB_SRCS = mx_driver_linux_mvme162.c \
-			$(MX_CORE_SRCS) $(MX_DRIVER_MVME162_SRCS)
 endif
 
 #

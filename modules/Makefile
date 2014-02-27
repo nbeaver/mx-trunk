@@ -35,7 +35,7 @@ all: build
 
 #MODULES += nuvant_ezstat	# linux, win32
 
-MODULES += nuvant_ezware2	# win32
+#MODULES += nuvant_ezware2	# win32
 
 #MODULES += pmc_mcapi		# linux, win32
 

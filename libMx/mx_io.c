@@ -1689,7 +1689,8 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
 	static const char fname[] = "mx_file_has_changed()";
 
 	MXP_LINUX_INOTIFY_MONITOR *linux_monitor;
-	size_t num_bytes_available, read_length;
+	size_t num_bytes_available;
+	ssize_t read_length;
 	int saved_errno;
 	char *buffer_ptr, *end_of_buffer_ptr;
 	union {
