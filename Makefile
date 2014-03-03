@@ -22,7 +22,7 @@
 #   solaris-gcc   - Compile for sparc/x86 with Solaris 8 or above using GCC
 #   tru64         - Compile for alpha with HP Tru64 Unix 5.1b
 #   tru64-gcc     - Compile for alpha with HP Tru64 Unix 5.1b using GCC
-#   unixware      - Compile for Unixware
+#   unixware      - Compile for UnixWare 7
 #   vms           - Compile for alpha/vax/ia64 with OpenVMS 7.3.1 or 8.x
 #   vms-gnv       - Compile for ia64 with OpenVMS 8.3 using GNV 1.6-4
 #   vxworks       - Compile for VxWorks Tornado 2.0 using GCC
@@ -67,8 +67,8 @@ MX_ARCH = win32
 #MX_INSTALL_DIR = $(HOME)/local/opt/mx
 #MX_INSTALL_DIR = $(HOME)/mxtest
 #MX_INSTALL_DIR = /local/home/marccd/mrcat/mx
-#MX_INSTALL_DIR = c:/users/lavender/mxtest
-MX_INSTALL_DIR = c:/opt/mx-1.5.5-2014_02_26
+MX_INSTALL_DIR = c:/users/lavender/mxtest
+#MX_INSTALL_DIR = c:/opt/mx-1.5.5-2014_02_26
 
 MAKECMD = $(MAKE) MX_ARCH=$(MX_ARCH) MX_INSTALL_DIR=$(MX_INSTALL_DIR)
 
