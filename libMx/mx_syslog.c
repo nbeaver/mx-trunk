@@ -43,7 +43,6 @@ mx_install_syslog_handler( char *ident_string,
 
 /*---*/
 
-
 static void mx_syslog_handler( int level, char *message )
 {
 	size_t i, length;
@@ -71,13 +70,18 @@ static void mx_syslog_handler( int level, char *message )
 	 * it on to syslog().
 	 */
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#if ( MX_GNUC_VERSION >= 4006000L )
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#endif
 
 	syslog( level, message );
 
-#pragma GCC diagnostic pop
+#if ( MX_GNUC_VERSION >= 4006000L )
+#  pragma GCC diagnostic pop
+#endif
 
+	return;
 }
 
 /*---*/
