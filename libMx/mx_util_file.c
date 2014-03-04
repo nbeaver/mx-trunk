@@ -480,26 +480,36 @@ mx_copy_file_classic( char *existing_filename,
 /*=========================================================================*/
 
 MX_EXPORT mx_status_type
-mx_get_num_lines_in_file( FILE *file, size_t *num_lines_in_file )
+mx_get_num_lines_in_file( char *filename, size_t *num_lines_in_file )
 {
 	static const char fname[] = "mx_get_num_lines_in_file()";
 
+	int fd, saved_errno;
 	char buffer[1000];
 	size_t num_lines, line_length;
+	size_t i, bytes_read;
 	mx_bool_type have_read_a_partial_line;
 
-	if ( file == (FILE *) NULL ) {
+	if ( filename == (char *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The FILE pointer passed was NULL." );
+		"The filename pointer passed was NULL." );
 	}
 	if ( num_lines_in_file == (size_t *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The num_lines_in_file pointer passed was NULL." );
 	}
 
-	/* Go back to the start of the file. */
+	/* Open the file. */
 
-	rewind( file );
+	fd = open( filename, O_RDONLY );
+
+	if ( fd < 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"Unable to open file '%s'.  Errno = %d, error message = '%s'",
+			filename, saved_errno, strerror(saved_errno) );
+	}
 
 	/* Now figure out how many lines are currently in this file.
 	 *
@@ -511,32 +521,43 @@ mx_get_num_lines_in_file( FILE *file, size_t *num_lines_in_file )
 	have_read_a_partial_line = FALSE;
 
 	while (1) {
-		fgets( buffer, sizeof(buffer), file );
+		bytes_read = read( fd, buffer, sizeof(buffer) );
 
-		if ( feof(file) ) {
+		if ( bytes_read < 0 ) {
+			saved_errno = errno;
+
+			close(fd);
+
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"Read from file '%s' failed.  "
+			"Errno = %d, error_message = '%s'",
+			filename, saved_errno, strerror(saved_errno) );
+		} else
+		if ( bytes_read == 0 ) {
+			/* We are at the end of the file.  We test for the
+			 * possibility that there was an incomplete final
+			 * line in the data.
+			 */
+
 			if ( have_read_a_partial_line ) {
 				num_lines++;
 			}
+
 			*num_lines_in_file = num_lines;
+
+			close(fd);
+
 			return MX_SUCCESSFUL_RESULT;
-		} else
-		if ( ferror(file) ) {
-			return mx_error( MXE_FILE_IO_ERROR, fname,
-			"An I/O error occured while counting line %lu "
-			"in the file.", num_lines );
-		}
-
-		line_length = strlen( buffer );
-
-		if ( buffer[line_length - 1] == '\n' ) {
-			/* If there is a newline at the end of the line,
-			 * then we have finished reading the current line.
+		} else {
+			/* We read some bytes from the file.  Look for
+			 * newlines in the data we just read.
 			 */
 
-			have_read_a_partial_line = FALSE;
-			num_lines++;
-		} else {
-			have_read_a_partial_line = TRUE;
+			for ( i = 0; i < bytes_read; i++ ) {
+				if ( buffer[i] == '\n' ) {
+					num_lines++;
+				}
+			}
 		}
 	}
 
