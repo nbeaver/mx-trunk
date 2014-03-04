@@ -811,6 +811,12 @@ MX_API mx_status_type mx_copy_file_classic( char *original_filename,
 				char *new_filename,
 				int new_file_mode );
 
+MX_API mx_status_type mx_get_num_lines_in_file( FILE *file,
+						size_t *num_lines_in_file );
+
+MX_API mx_status_type mx_skip_num_lines_in_file( FILE *file,
+						size_t num_lines_to_skip );
+
 MX_API mx_status_type mx_get_current_directory_name( char *filename_buffer,
 						size_t max_filename_length );
 

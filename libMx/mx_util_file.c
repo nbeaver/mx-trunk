@@ -479,6 +479,130 @@ mx_copy_file_classic( char *existing_filename,
 
 /*=========================================================================*/
 
+MX_EXPORT mx_status_type
+mx_get_num_lines_in_file( FILE *file, size_t *num_lines_in_file )
+{
+	static const char fname[] = "mx_get_num_lines_in_file()";
+
+	char buffer[1000];
+	size_t num_lines, line_length;
+	mx_bool_type have_read_a_partial_line;
+
+	if ( file == (FILE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The FILE pointer passed was NULL." );
+	}
+	if ( num_lines_in_file == (size_t *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The num_lines_in_file pointer passed was NULL." );
+	}
+
+	/* Go back to the start of the file. */
+
+	rewind( file );
+
+	/* Now figure out how many lines are currently in this file.
+	 *
+	 * WARNING: If the file is being written to more rapidly than
+	 * we can read from it, then this function may never return!
+	 */
+
+	num_lines = 0;
+	have_read_a_partial_line = FALSE;
+
+	while (1) {
+		fgets( buffer, sizeof(buffer), file );
+
+		if ( feof(file) ) {
+			if ( have_read_a_partial_line ) {
+				num_lines++;
+			}
+			*num_lines_in_file = num_lines;
+			return MX_SUCCESSFUL_RESULT;
+		} else
+		if ( ferror(file) ) {
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"An I/O error occured while counting line %lu "
+			"in the file.", num_lines );
+		}
+
+		line_length = strlen( buffer );
+
+		if ( buffer[line_length - 1] == '\n' ) {
+			/* If there is a newline at the end of the line,
+			 * then we have finished reading the current line.
+			 */
+
+			have_read_a_partial_line = FALSE;
+			num_lines++;
+		} else {
+			have_read_a_partial_line = TRUE;
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*=========================================================================*/
+
+MX_EXPORT mx_status_type
+mx_skip_num_lines_in_file( FILE *file, size_t num_lines_to_skip )
+{
+	static const char fname[] = "mx_skip_num_lines_in_file()";
+
+	char buffer[1000];
+	size_t num_lines, line_length;
+	mx_bool_type have_read_a_partial_line;
+
+	if ( file == (FILE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The FILE pointer passed was NULL." );
+	}
+
+	num_lines = 0;
+	have_read_a_partial_line = FALSE;
+
+	while (1) {
+		fgets( buffer, sizeof(buffer), file );
+
+		if ( feof(file) ) {
+			if ( have_read_a_partial_line ) {
+				num_lines++;
+			}
+			if ( num_lines >= num_lines_to_skip ) {
+				return MX_SUCCESSFUL_RESULT;
+			} else {
+			}
+		} else
+		if ( ferror(file) ) {
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"An I/O error occured while skipping line %lu "
+			"in the file.", num_lines );
+		}
+
+		line_length = strlen( buffer );
+
+		if ( buffer[line_length - 1] == '\n' ) {
+			/* If there is a newline at the end of the line,
+			 * then we have finished reading the current line.
+			 */
+
+			have_read_a_partial_line = FALSE;
+			num_lines++;
+		} else {
+			have_read_a_partial_line = TRUE;
+		}
+
+		if ( num_lines >= num_lines_to_skip ) {
+			return MX_SUCCESSFUL_RESULT;
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*=========================================================================*/
+
 #if defined( OS_WIN32 ) && !defined( __BORLANDC__ )
 #define getcwd _getcwd
 #endif
