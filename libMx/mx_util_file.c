@@ -598,7 +598,7 @@ mx_skip_num_lines_in_file( FILE *file, size_t num_lines_to_skip )
 		if ( ferror(file) ) {
 			return mx_error( MXE_FILE_IO_ERROR, fname,
 			"An I/O error occured while skipping line %lu "
-			"in the file.", num_lines );
+			"in the file.", (unsigned long) num_lines );
 		}
 
 		line_length = strlen( buffer );
