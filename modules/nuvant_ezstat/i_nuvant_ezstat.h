@@ -17,6 +17,16 @@
 #ifndef __I_NUVANT_EZSTAT_H__
 #define __I_NUVANT_EZSTAT_H__
 
+/*---*/
+
+#include "NIDAQmx.h"		/* National Instruments include file. */
+
+/*---*/
+
+#define MXU_NUVANT_DEVICE_NAME_LENGTH	64
+
+/* Values of the 'mode' field below. */
+
 #define MXF_NUVANT_EZSTAT_POTENTIOSTAT_MODE	0
 #define MXF_NUVANT_EZSTAT_GALVANOSTAT_MODE	1
 
@@ -24,26 +34,17 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *ni_daqmx_record;
+	char device_name[MXU_NUVANT_DEVICE_NAME_LENGTH+1];
 
-	MX_RECORD *ai0_record;
-	MX_RECORD *ai1_record;
-	MX_RECORD *ai2_record;
-	MX_RECORD *ai3_record;
-
-	MX_RECORD *ao0_record;
-
-	MX_RECORD *p00_record;
-	MX_RECORD *p01_record;
-	MX_RECORD *p10_record;
-	MX_RECORD *p11_record;
-	MX_RECORD *p12_record;
-	MX_RECORD *p13_record;
-	MX_RECORD *p14_record;
+	mx_bool_type cell_on;
 
 	unsigned long mode;
 
 	double potentiostat_resistance;
 	double galvanostat_resistance;
+
+	double potentiostat_current_range;
+	double galvanostat_current_range;
 
 } MX_NUVANT_EZSTAT;
 
@@ -52,53 +53,9 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NUVANT_EZSTAT, ni_daqmx_record), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }, \
   \
-  {-1, -1, "ai0_record", MXFT_RECORD, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_NUVANT_EZSTAT, ai0_record), \
-	{0}, NULL, MXFF_IN_DESCRIPTION }, \
-  \
-  {-1, -1, "ai1_record", MXFT_RECORD, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_NUVANT_EZSTAT, ai1_record), \
-	{0}, NULL, MXFF_IN_DESCRIPTION }, \
-  \
-  {-1, -1, "ai2_record", MXFT_RECORD, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_NUVANT_EZSTAT, ai2_record), \
-	{0}, NULL, MXFF_IN_DESCRIPTION }, \
-  \
-  {-1, -1, "ai3_record", MXFT_RECORD, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_NUVANT_EZSTAT, ai3_record), \
-	{0}, NULL, MXFF_IN_DESCRIPTION }, \
-  \
-  {-1, -1, "ao0_record", MXFT_RECORD, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_NUVANT_EZSTAT, ao0_record), \
-	{0}, NULL, MXFF_IN_DESCRIPTION }, \
-  \
-  {-1, -1, "p00_record", MXFT_RECORD, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_NUVANT_EZSTAT, p00_record), \
-	{0}, NULL, MXFF_IN_DESCRIPTION }, \
-  \
-  {-1, -1, "p01_record", MXFT_RECORD, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_NUVANT_EZSTAT, p01_record), \
-	{0}, NULL, MXFF_IN_DESCRIPTION }, \
-  \
-  {-1, -1, "p10_record", MXFT_RECORD, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_NUVANT_EZSTAT, p10_record), \
-	{0}, NULL, MXFF_IN_DESCRIPTION }, \
-  \
-  {-1, -1, "p11_record", MXFT_RECORD, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_NUVANT_EZSTAT, p11_record), \
-	{0}, NULL, MXFF_IN_DESCRIPTION }, \
-  \
-  {-1, -1, "p12_record", MXFT_RECORD, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_NUVANT_EZSTAT, p12_record), \
-	{0}, NULL, MXFF_IN_DESCRIPTION }, \
-  \
-  {-1, -1, "p13_record", MXFT_RECORD, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_NUVANT_EZSTAT, p13_record), \
-	{0}, NULL, MXFF_IN_DESCRIPTION }, \
-  \
-  {-1, -1, "p14_record", MXFT_RECORD, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_NUVANT_EZSTAT, p14_record), \
-	{0}, NULL, MXFF_IN_DESCRIPTION }
+  {-1, -1, "device_name", MXFT_STRING, NULL, 1,{MXU_NUVANT_DEVICE_NAME_LENGTH},\
+	MXF_REC_TYPE_STRUCT, offsetof(MX_NUVANT_EZSTAT, device_name), \
+	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION }
 
 MX_API mx_status_type mxi_nuvant_ezstat_create_record_structures(
 							MX_RECORD *record );
@@ -111,21 +68,18 @@ extern MX_RECORD_FIELD_DEFAULTS *mxi_nuvant_ezstat_rfield_def_ptr;
 
 /*---*/
 
-MX_API mx_status_type mxi_nuvant_ezstat_get_potentiostat_current_range(
-						MX_NUVANT_EZSTAT *ezstat,
-						double *current_range );
+MX_API mx_status_type mxi_nuvant_ezstat_create_task( char *task_name,
+						TaskHandle *task_handle );
 
-MX_API mx_status_type mxi_nuvant_ezstat_get_galvanostat_current_range(
-						MX_NUVANT_EZSTAT *ezstat,
-						double *current_range );
+MX_API mx_status_type mxi_nuvant_ezstat_start_task( TaskHandle task_handle );
 
-MX_API mx_status_type mxi_nuvant_ezstat_set_potentiostat_current_range(
-						MX_NUVANT_EZSTAT *ezstat,
-						double current_range );
+MX_API mx_status_type mxi_nuvant_ezstat_shutdown_task( TaskHandle task_handle );
 
-MX_API mx_status_type mxi_nuvant_ezstat_set_galvanostat_current_range(
-						MX_NUVANT_EZSTAT *ezstat,
-						double current_range );
+/*---*/
+
+MX_API mx_status_type mxi_nuvant_ezstat_read_ai_values(
+					MX_NUVANT_EZSTAT *ezstat,
+					double *ai_values );
 
 #endif /* __I_NUVANT_EZSTAT_H__ */
 

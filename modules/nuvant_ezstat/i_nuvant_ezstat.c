@@ -111,8 +111,6 @@ mxi_nuvant_ezstat_open( MX_RECORD *record )
 	static const char fname[] = "mxi_nuvant_ezstat_open()";
 
 	MX_NUVANT_EZSTAT *ezstat = NULL;
-	unsigned long ezstat_mode;
-	double current_range;
 	mx_status_type mx_status;
 
 	mx_status = mxi_nuvant_ezstat_get_pointers( record, &ezstat, fname );
@@ -124,235 +122,243 @@ mxi_nuvant_ezstat_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s invoked for '%s'.", fname, record->name));
 #endif
 
-	mx_status = mx_digital_output_read( ezstat->p10_record, &ezstat_mode );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	switch( ezstat_mode ) {
-	case 0:
-		ezstat->mode = MXF_NUVANT_EZSTAT_POTENTIOSTAT_MODE;
-		break;
-	case 1:
-		ezstat->mode = MXF_NUVANT_EZSTAT_GALVANOSTAT_MODE;
-		break;
-	default:
-		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
-		"The current EZstat mode %lu for device '%s' is illegal.  "
-		"The allowed modes are 0 and 1.",
-			ezstat_mode, record->name );
-		break;
-	}
-
-	mx_status = mxi_nuvant_ezstat_get_potentiostat_current_range(
-						ezstat, &current_range );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mxi_nuvant_ezstat_get_galvanostat_current_range(
-						ezstat, &current_range );
-
 	return mx_status;
 }
 
 /*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mxi_nuvant_ezstat_get_potentiostat_current_range( MX_NUVANT_EZSTAT *ezstat,
-						double *current_range )
+mxi_nuvant_ezstat_create_task( char *task_name, TaskHandle *task_handle )
 {
-	static const char fname[] =
-		"mxi_nuvant_ezstat_get_potentiostat_current_range()";
+	static const char fname[] = "mxi_nuvant_ezstat_create_task()";
 
-	unsigned long p13_value, p14_value;
+	char daqmx_error_message[200];
+	int32 daqmx_status;
 	mx_status_type mx_status;
 
-	if ( ezstat == (MX_NUVANT_EZSTAT *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_NUVANT_EZSTAT pointer passed was NULL." );
-	}
-	if ( current_range == (double *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The double pointer passed was NULL." );
-	}
+	daqmx_status = DAQmxCreateTask( task_name, task_handle );
 
-	mx_status = mx_digital_output_read( ezstat->p13_record,
-						&p13_value );
+	if ( daqmx_status != 0 ) {
+		DAQmxGetExtendedErrorInfo( daqmx_error_message,
+					sizeof(daqmx_error_message) );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_digital_output_read( ezstat->p14_record,
-						&p14_value );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	if ( p13_value == 0 ) {
-		if ( p14_value == 0 ) {
-			*current_range = 1.0e-6;
-			ezstat->potentiostat_resistance = 499.0e3;
-		} else {
-			*current_range = 100.0e-6;
-			ezstat->potentiostat_resistance = 49.9e3;
-		}
-	} else {
-		if ( p14_value == 0 ) {
-			*current_range = 10.0e-3;
-			ezstat->potentiostat_resistance = 499.0;
-		} else {
-			*current_range = 1.0;
-			ezstat->potentiostat_resistance = 9.09;
-		}
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"The attempt to create a DAQmx task named '%s' failed.  "
+		"DAQmx error code = %d, error message = '%s'",
+			task_name, (int) daqmx_status, daqmx_error_message );
 	}
 
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxi_nuvant_ezstat_get_galvanostat_current_range( MX_NUVANT_EZSTAT *ezstat,
-						double *current_range )
-{
-	static const char fname[] =
-		"mxi_nuvant_ezstat_get_galvanostat_current_range()";
-
-	unsigned long p11_value, p12_value;
-	mx_status_type mx_status;
-
-	if ( ezstat == (MX_NUVANT_EZSTAT *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_NUVANT_EZSTAT pointer passed was NULL." );
-	}
-	if ( current_range == (double *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The double pointer passed was NULL." );
-	}
-
-	mx_status = mx_digital_output_read( ezstat->p11_record,
-						&p11_value );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_digital_output_read( ezstat->p12_record,
-						&p12_value );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	if ( p11_value == 0 ) {
-		if ( p12_value == 0 ) {
-			*current_range = 100.0e-6;
-			ezstat->galvanostat_resistance  = 100.0e3;
-		} else {
-			*current_range = 1.0e-3;
-			ezstat->galvanostat_resistance  = 10.0e3;
-		}
-	} else {
-		if ( p12_value == 0 ) {
-			*current_range = 100.0e-3;
-			ezstat->galvanostat_resistance  = 100.0;
-		} else {
-			*current_range = 1.0;
-			ezstat->galvanostat_resistance  = 9.09;
-		}
-	}
-
-	return mx_status;
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mxi_nuvant_ezstat_set_potentiostat_current_range( MX_NUVANT_EZSTAT *ezstat,
-						double current_range )
+mxi_nuvant_ezstat_start_task( TaskHandle task_handle )
 {
-	static const char fname[] =
-		"mxi_nuvant_ezstat_set_galvanostat_current_range()";
+	static const char fname[] = "mxi_nuvant_ezstat_start_task()";
 
-	unsigned long p13_value, p14_value;
+	char daqmx_error_message[200];
+	int32 daqmx_status;
 	mx_status_type mx_status;
 
-	if ( ezstat == (MX_NUVANT_EZSTAT *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_NUVANT_EZSTAT pointer passed was NULL." );
+	/* Start the task. */
+
+	daqmx_status = DAQmxStartTask( task_handle );
+
+	if ( daqmx_status != 0 ) {
+		DAQmxGetExtendedErrorInfo( daqmx_error_message,
+					sizeof(daqmx_error_message) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"The attempt to start DAQmx task handle %#lx failed.  "
+		"DAQmx error code = %d, error message = '%s'",
+			(unsigned long) task_handle, 
+			(int) daqmx_status,
+			daqmx_error_message );
 	}
 
-	if ( current_range <= 1.0e-6 ) {
-		p13_value = 0;
-		p14_value = 0;
-		ezstat->potentiostat_resistance = 499.0e3;
-	} else
-	if ( current_range <= 100.0e-6 ) {
-		p13_value = 0;
-		p14_value = 1;
-		ezstat->potentiostat_resistance = 49.9e3;
-	} else
-	if ( current_range <= 10.0e-3 ) {
-		p13_value = 1;
-		p14_value = 0;
-		ezstat->potentiostat_resistance = 499.0;
-	} else {
-		p13_value = 1;
-		p14_value = 1;
-		ezstat->potentiostat_resistance = 9.09;
-	}
-
-	mx_status = mx_digital_output_write( ezstat->p13_record,
-							p13_value );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_digital_output_write( ezstat->p14_record,
-							p14_value );
-
-	return mx_status;
+	return MX_SUCCESSFUL_RESULT;
 }
 
-MX_EXPORT mx_status_type
-mxi_nuvant_ezstat_set_galvanostat_current_range( MX_NUVANT_EZSTAT *ezstat,
-						double current_range )
-{
-	static const char fname[] =
-		"mxi_nuvant_ezstat_set_galvanostat_current_range()";
+/*-------------------------------------------------------------------------*/
 
-	unsigned long p11_value, p12_value;
+MX_EXPORT mx_status_type
+mxi_nuvant_ezstat_shutdown_task( TaskHandle task_handle )
+{
+	static const char fname[] = "mxi_nuvant_ezstat_shutdown_task()";
+
+	char daqmx_error_message[200];
+	int32 daqmx_status;
 	mx_status_type mx_status;
 
-	if ( ezstat == (MX_NUVANT_EZSTAT *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_NUVANT_EZSTAT pointer passed was NULL." );
+	/* Stop the task. */
+
+	daqmx_status = DAQmxStopTask( task_handle );
+
+	if ( daqmx_status != 0 ) {
+		DAQmxGetExtendedErrorInfo( daqmx_error_message,
+					sizeof(daqmx_error_message) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"The attempt to stop DAQmx task handle %#lx failed.  "
+		"DAQmx error code = %d, error message = '%s'",
+			(unsigned long) task_handle, 
+			(int) daqmx_status,
+			daqmx_error_message );
 	}
 
-	if ( current_range <= 100.0e-6 ) {
-		p11_value = 0;
-		p12_value = 0;
-		ezstat->galvanostat_resistance = 100.0e3;
-	} else
-	if ( current_range <= 1.0e-3 ) {
-		p11_value = 0;
-		p12_value = 1;
-		ezstat->galvanostat_resistance = 10.0e3;
-	} else
-	if ( current_range <= 100.0e-3 ) {
-		p11_value = 1;
-		p12_value = 0;
-		ezstat->galvanostat_resistance = 100.0;
-	} else {
-		p11_value = 1;
-		p12_value = 1;
-		ezstat->galvanostat_resistance = 9.09;
+	/* Release the resources used by the task. */
+
+	daqmx_status = DAQmxClearTask( task_handle );
+
+	if ( daqmx_status != 0 ) {
+		DAQmxGetExtendedErrorInfo( daqmx_error_message,
+					sizeof(daqmx_error_message) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"The attempt to clear DAQmx task handle %#lx failed.  "
+		"DAQmx error code = %d, error message = '%s'",
+			(unsigned long) task_handle, 
+			(int) daqmx_status,
+			daqmx_error_message );
 	}
 
-	mx_status = mx_digital_output_write( ezstat->p11_record, p11_value );
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+#define MXI_NUVANT_EZSTAT_NUM_AI_CHANNELS	4
+#define MXI_NUVANT_EZSTAT_NUM_AI_MEASUREMENTS	40
+
+#define MXI_NUVANT_EZSTAT_NUM_AI_SAMPLES \
+    (MXI_NUVANT_EZSTAT_NUM_AI_CHANNELS * MXI_NUVANT_EZSTAT_NUM_AI_MEASUREMENTS)
+
+MX_EXPORT mx_status_type
+mxi_nuvant_ezstat_read_ai_values( MX_NUVANT_EZSTAT *ezstat,
+				double *ai_value_array )
+{
+	static const char fname[] = "mxi_nuvant_ezstat_read_ai_values()";
+
+	char channel_names[80];
+	TaskHandle task_handle;
+	double ai_measurement_array[MXI_NUVANT_EZSTAT_NUM_AI_SAMPLES];
+	double sum[MXI_NUVANT_EZSTAT_NUM_AI_CHANNELS];
+	int32 num_samples_read;
+
+	int i, j;
+	double *ai_ptr;
+
+	char daqmx_error_message[200];
+	int32 daqmx_status;
+
+	mx_status_type mx_status;
+
+	snprintf( channel_names, sizeof(channel_names),
+			"%s/ai0:3", ezstat->device_name );
+
+	/* Create a DAQmx task for the read operation. */
+
+	mx_status = mxi_nuvant_ezstat_create_task( "ezstat_read_ai_values",
+							&task_handle );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_digital_output_write( ezstat->p12_record, p12_value );
+	/* Associate the analog input channels with the task. */
 
-	return mx_status;
+	daqmx_status = DAQmxCreateAIVoltageChan( task_handle,
+					channel_names, NULL,
+					DAQmx_Val_RSE,
+					-10.0, 10.0,
+					DAQmx_Val_Volts, NULL );
+
+	if ( daqmx_status != 0 ) {
+		DAQmxGetExtendedErrorInfo( daqmx_error_message,
+					sizeof(daqmx_error_message) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"The attempt to associate analog input channels '%s' with "
+		"DAQmx task %#lx failed.  "
+		"DAQmx error code = %d, error message = '%s'",
+			channel_names,
+			(unsigned long) task_handle,
+			(int) daqmx_status, daqmx_error_message );
+	}
+
+	/* Setup the sample clock for this measurement. */
+
+	daqmx_status = DAQmxCfgSampClkTiming( task_handle, NULL,
+						40000.0,
+						DAQmx_Val_Rising,
+						DAQmx_Val_FiniteSamps,
+					MXI_NUVANT_EZSTAT_NUM_AI_MEASUREMENTS );
+
+	if ( daqmx_status != 0 ) {
+		DAQmxGetExtendedErrorInfo( daqmx_error_message,
+					sizeof(daqmx_error_message) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"The attempt to configure the sample clock for "
+		"DAQmx task %#lx failed.  "
+		"DAQmx error code = %d, error message = '%s'",
+			(unsigned long) task_handle,
+			(int) daqmx_status, daqmx_error_message );
+	}
+
+	/* Start the task. */
+
+	mx_status = mxi_nuvant_ezstat_start_task( task_handle );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Readout the acquired values. */
+
+	daqmx_status = DAQmxReadAnalogF64( task_handle,
+					MXI_NUVANT_EZSTAT_NUM_AI_MEASUREMENTS,
+					10.0,
+					DAQmx_Val_GroupByChannel,
+					ai_measurement_array,
+					MXI_NUVANT_EZSTAT_NUM_AI_SAMPLES,
+					&num_samples_read,
+					NULL );
+
+	if ( daqmx_status != 0 ) {
+		DAQmxGetExtendedErrorInfo( daqmx_error_message,
+					sizeof(daqmx_error_message) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"The attempt to read the analog input samples for "
+		"DAQmx task %#lx failed.  "
+		"DAQmx error code = %d, error message = '%s'",
+			(unsigned long) task_handle,
+			(int) daqmx_status, daqmx_error_message );
+	}
+
+	/* Shutdown the task. */
+
+	mx_status = mxi_nuvant_ezstat_shutdown_task( task_handle );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Compute the averages of the measurements for each channel. */
+
+	ai_ptr = ai_measurement_array;
+
+	for ( i = 0; i < MXI_NUVANT_EZSTAT_NUM_AI_CHANNELS; i++ ) {
+		sum[i] = 0.0;
+
+		for ( j = 0; i < MXI_NUVANT_EZSTAT_NUM_AI_MEASUREMENTS; j++ ) {
+			sum[i] += *ai_ptr;
+		}
+
+		ai_value_array[i]
+			= sum[i] / MXI_NUVANT_EZSTAT_NUM_AI_MEASUREMENTS;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 

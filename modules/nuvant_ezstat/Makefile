@@ -7,6 +7,8 @@ ifndef MX_ARCH
   MX_ARCH = win32
 endif
 
+include ../ni_daqmx/Makefile.config
+
 #--------------------------------------------------------------------------
 
 all: nuvant_ezstat.mxo

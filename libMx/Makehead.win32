@@ -130,10 +130,10 @@ MSDEV_ARCH	= x64
 #MSDEV_DIR	= c:\\progra~1\\micros~3\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~1\\micros~4\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~1\\mi2578~1\\Windows\\v7.0A
-MSDEV_DIR	= c:\\progra~2\\micros~1\\Windows\\v7.0A
+#MSDEV_DIR	= c:\\progra~2\\micros~1\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~2\\micros~3\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~2\\micros~4\\Windows\\v7.0A
-#MSDEV_DIR	= c:\\progra~2\\mia713~1\\Windows\\v7.0A
+MSDEV_DIR	= c:\\progra~2\\mia713~1\\Windows\\v7.0A
 #MSDEV_DIR	= d:\\progra~1\\micros~3\\Windows\\v7.0A
 #
 # Visual C++ 2008 Express        (_MSC_VER == 1500)

@@ -185,9 +185,13 @@ mxd_nuvant_ezstat_ainput_open( MX_RECORD *record )
 
 	len = strlen( type_name );
 
-	if ( mx_strncasecmp( type_name, "fuel_cell_current", len ) == 0 ) {
+	if ( mx_strncasecmp( type_name, "potentiostat_current", len ) == 0 ) {
 		ezstat_ainput->input_type =
-			MXT_NUVANT_EZSTAT_AINPUT_FUEL_CELL_CURRENT;
+			MXT_NUVANT_EZSTAT_AINPUT_POTENTIOSTAT_CURRENT;
+	} else
+	if ( mx_strncasecmp( type_name, "galvanostat_current", len ) == 0 ) {
+		ezstat_ainput->input_type =
+			MXT_NUVANT_EZSTAT_AINPUT_GALVANOSTAT_CURRENT;
 	} else
 	if ( mx_strncasecmp( type_name, "fuel_cell_voltage_drop", len ) == 0 ) {
 		ezstat_ainput->input_type =
@@ -213,7 +217,7 @@ mxd_nuvant_ezstat_ainput_read( MX_ANALOG_INPUT *ainput )
 
 	MX_NUVANT_EZSTAT_AINPUT *ezstat_ainput = NULL;
 	MX_NUVANT_EZSTAT *ezstat = NULL;
-	double value;
+	double ai_value_array[4];
 	mx_status_type mx_status;
 
 	mx_status = mxd_nuvant_ezstat_ainput_get_pointers( ainput,
@@ -222,27 +226,32 @@ mxd_nuvant_ezstat_ainput_read( MX_ANALOG_INPUT *ainput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	mx_status = mxi_nuvant_ezstat_read_ai_values( ezstat, ai_value_array );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	switch( ezstat_ainput->input_type ) {
-	case MXT_NUVANT_EZSTAT_AINPUT_FUEL_CELL_CURRENT:
-		mx_status = mx_analog_input_read( ezstat->ai0_record, &value );
+	case MXT_NUVANT_EZSTAT_AINPUT_POTENTIOSTAT_CURRENT:
+		ainput->raw_value.double_value 
+			= mx_divide_safely( ai_value_array[3],
+				ezstat->potentiostat_resistance );
+		break;
+	case MXT_NUVANT_EZSTAT_AINPUT_GALVANOSTAT_CURRENT:
+		ainput->raw_value.double_value 
+			= mx_divide_safely( ai_value_array[0],
+				ezstat->galvanostat_resistance );
 		break;
 	case MXT_NUVANT_EZSTAT_AINPUT_FUEL_CELL_VOLTAGE_DROP:
-		mx_status = mx_analog_input_read( ezstat->ai1_record, &value );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		if ( value < 0.05 ) {
-			/* If the AI1 value is smaller than 0.05 volts,
-			 * then read a better value from AI2.
-			 */
-
-			mx_status = mx_analog_input_read( ezstat->ai2_record,
-								&value );
+		if ( fabs(ai_value_array[1]) >= 0.05 ) {
+			ainput->raw_value.double_value = - ai_value_array[1];
+		} else {
+			ainput->raw_value.double_value
+				= 101.0 * ai_value_array[2];
 		}
 		break;
 	case MXT_NUVANT_EZSTAT_AINPUT_CURRENT_FEEDBACK_RESISTOR_VOLTAGE:
-		mx_status = mx_analog_input_read( ezstat->ai3_record, &value );
+		ainput->raw_value.double_value = ai_value_array[3];
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -251,8 +260,6 @@ mxd_nuvant_ezstat_ainput_read( MX_ANALOG_INPUT *ainput )
 			ainput->record->name );
 		break;
 	}
-
-	ainput->raw_value.double_value = value;
 
 	return mx_status;
 }

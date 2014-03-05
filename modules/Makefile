@@ -25,15 +25,15 @@ all: build
 
 #MODULES = labjack_ux		# linux,
 
-MODULES += libusb-0.1		# linux,
+#MODULES += libusb-0.1		# linux,
 
-MODULES += k8055		# linux,
+#MODULES += k8055		# linux,
 
 #MODULES += ni488		# linux,
 
-#MODULES += ni_daqmx		# linux, win32
+MODULES += ni_daqmx		# linux, win32
 
-#MODULES += nuvant_ezstat	# linux, win32
+MODULES += nuvant_ezstat	# linux, win32
 
 #MODULES += pmc_mcapi		# linux, win32
 
@@ -82,7 +82,7 @@ MODULES += k8055		# linux,
 #-------------------------------------------------------------------
 # EPICS modules.
 
-MODULES += epics
+#MODULES += epics
 
 #MODULES += epics_aps
 
