@@ -25,9 +25,9 @@ all: build
 
 #MODULES = labjack_ux		# linux,
 
-#MODULES += libusb-0.1		# linux,
+MODULES += libusb-0.1		# linux,
 
-#MODULES += k8055		# linux,
+MODULES += k8055		# linux,
 
 #MODULES += ni488		# linux,
 
@@ -82,7 +82,7 @@ all: build
 #-------------------------------------------------------------------
 # EPICS modules.
 
-#MODULES += epics
+MODULES += epics
 
 #MODULES += epics_aps
 
