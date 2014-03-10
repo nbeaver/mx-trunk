@@ -223,44 +223,21 @@ mxd_nuvant_ezstat_doutput_read( MX_DIGITAL_OUTPUT *doutput )
 
 	switch( ezstat_doutput->output_type ) {
 	case MXT_NUVANT_EZSTAT_DOUTPUT_CELL_ENABLE:
-		mx_status = mx_digital_output_read( ezstat->p00_record,
-							&(doutput->value) );
-		break;
-	case MXT_NUVANT_EZSTAT_DOUTPUT_EXTERNAL_SWITCH:
-		mx_status = mx_digital_output_read( ezstat->p01_record,
-							&(doutput->value) );
+		/* For this case, we just return the value that is
+		 * already in doutput->value.
+		 */
 		break;
 	case MXT_NUVANT_EZSTAT_DOUTPUT_MODE_SELECT:
-		mx_status = mx_digital_output_read( ezstat->p10_record,
-							&(doutput->value) );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		switch( doutput->value ) {
-		case 0:
-			ezstat->mode = MXF_NUVANT_EZSTAT_POTENTIOSTAT_MODE;
-			break;
-		case 1:
-			ezstat->mode = MXF_NUVANT_EZSTAT_GALVANOSTAT_MODE;
-			break;
-		default:
-			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-			"The mode %lu reported by device '%s' is illegal.  "
-			"The allowed mode values are 0 and 1.",
-				doutput->value, doutput->record->name );
-			break;
-		}
+		doutput->value = ezstat->mode;
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal output type %lu requested for record '%s'.",
-			ezstat_doutput->output_type,
-			doutput->record->name );
+			doutput->value, doutput->record->name );
 		break;
 	}
 
-	return mx_status;
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -270,6 +247,12 @@ mxd_nuvant_ezstat_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 
 	MX_NUVANT_EZSTAT_DOUTPUT *ezstat_doutput = NULL;
 	MX_NUVANT_EZSTAT *ezstat = NULL;
+	char channel_names[80];
+	TaskHandle task_handle;
+	char daqmx_error_message[400];
+	int32 daqmx_status;
+	uInt32 write_array[1];
+	uInt32 samples_written;
 	mx_status_type mx_status;
 
 	mx_status = mxd_nuvant_ezstat_doutput_get_pointers( doutput,
@@ -280,31 +263,21 @@ mxd_nuvant_ezstat_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 
 	switch( ezstat_doutput->output_type ) {
 	case MXT_NUVANT_EZSTAT_DOUTPUT_CELL_ENABLE:
-		mx_status = mx_digital_output_write( ezstat->p00_record,
-							doutput->value );
-		break;
-	case MXT_NUVANT_EZSTAT_DOUTPUT_EXTERNAL_SWITCH:
-		mx_status = mx_digital_output_write( ezstat->p01_record,
-							doutput->value );
+		snprintf( channel_names, sizeof(channel_names),
+			"%s/port0/line0", ezstat->device_name );
 		break;
 	case MXT_NUVANT_EZSTAT_DOUTPUT_MODE_SELECT:
-		switch( doutput->value ) {
-		case 0:
+		if ( doutput->value == 0 ) {
 			ezstat->mode = MXF_NUVANT_EZSTAT_POTENTIOSTAT_MODE;
-			break;
-		case 1:
+		} else {
 			ezstat->mode = MXF_NUVANT_EZSTAT_GALVANOSTAT_MODE;
-			break;
-		default:
-			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"The mode %lu specified for device '%s' is illegal.  "
-			"The allowed mode values are 0 and 1.",
-				doutput->value, doutput->record->name );
-			break;
 		}
 
-		mx_status = mx_digital_output_write( ezstat->p10_record,
-							doutput->value );
+		/* No USB I/O needed, since we are just saving the value
+		 * for later.
+		 */
+
+		return MX_SUCCESSFUL_RESULT;
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -312,6 +285,60 @@ mxd_nuvant_ezstat_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 			doutput->value, doutput->record->name );
 		break;
 	}
+
+	/* If we get here, we are doing actual I/O to the USB hardware. */
+
+	mx_status = mxi_nuvant_ezstat_create_task( "ezstat_doutput",
+							&task_handle );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	daqmx_status = DAQmxCreateDOChan( task_handle,
+					channel_names, NULL,
+					DAQmx_Val_ChanForAllLines );
+
+	if ( daqmx_status != 0 ) {
+		DAQmxGetExtendedErrorInfo( daqmx_error_message,
+					sizeof(daqmx_error_message) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"The attempt to associate channels '%s' for "
+		"digital output '%s' with DAQmx task %#lx failed.  "
+		"DAQmx error code = %d, error message = '%s'",
+			channel_names,
+			doutput->record->name,
+			(unsigned long) task_handle,
+			(int) daqmx_status, daqmx_error_message );
+	}
+
+	mx_status = mxi_nuvant_ezstat_start_task( task_handle );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	write_array[0] = (uInt32) doutput->value;
+
+	daqmx_status = DAQmxWriteDigitalU32( task_handle,
+					1, FALSE, 1.0,
+					DAQmx_Val_GroupByChannel,
+					write_array,
+					&samples_written, NULL );
+
+	if ( daqmx_status != 0 ) {
+		DAQmxGetExtendedErrorInfo( daqmx_error_message,
+					sizeof(daqmx_error_message) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"The attempt to write the digital output samples for "
+		"DAQmx task %#lx used by record '%s' failed.  "
+		"DAQmx error code = %d, error message = '%s'",
+			(unsigned long) task_handle,
+			doutput->record->name,
+			(int) daqmx_status, daqmx_error_message );
+	}
+
+	mx_status = mxi_nuvant_ezstat_shutdown_task( task_handle );
 
 	return mx_status;
 }

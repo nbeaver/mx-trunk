@@ -38,7 +38,8 @@ ifeq ($(MX_ARCH),win32)
 
 nuvant_ezstat.mxo: $(NUVANT_EZSTAT_OBJS)
 	link /dll /debug /nologo /out:nuvant_ezstat.mxo /nodefaultlib:libc \
-		$(NUVANT_EZSTAT_OBJS) ..\\..\\libMx\\$(MX_LIBRARY_NAME)
+		$(NUVANT_EZSTAT_OBJS) ..\\..\\libMx\\$(MX_LIBRARY_NAME) \
+		$(NI_DAQMX_LIBRARY)
 
 	# For VC2005 or later, embed the manifest in the module.
 

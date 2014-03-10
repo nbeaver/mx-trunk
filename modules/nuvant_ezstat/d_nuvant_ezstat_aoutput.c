@@ -42,7 +42,7 @@ MX_RECORD_FUNCTION_LIST mxd_nuvant_ezstat_aoutput_record_function_list = {
 MX_ANALOG_OUTPUT_FUNCTION_LIST
 		mxd_nuvant_ezstat_aoutput_analog_output_function_list =
 {
-	mxd_nuvant_ezstat_aoutput_read,
+	NULL,
 	mxd_nuvant_ezstat_aoutput_write
 };
 
@@ -217,63 +217,6 @@ mxd_nuvant_ezstat_aoutput_open( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_nuvant_ezstat_aoutput_read( MX_ANALOG_OUTPUT *aoutput )
-{
-	static const char fname[] = "mxd_nuvant_ezstat_aoutput_read()";
-
-	MX_NUVANT_EZSTAT_AOUTPUT *ezstat_aoutput = NULL;
-	MX_NUVANT_EZSTAT *ezstat = NULL;
-	unsigned long p11_value, p12_value, p13_value, p14_value;
-	double ao0_value;
-	mx_status_type mx_status;
-
-	mx_status = mxd_nuvant_ezstat_aoutput_get_pointers( aoutput,
-					&ezstat_aoutput, &ezstat, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	switch( ezstat_aoutput->output_type ) {
-	case MXT_NUVANT_EZSTAT_AOUTPUT_POTENTIOSTAT_VOLTAGE:
-		mx_status = mx_analog_output_read( ezstat->ao0_record,
-							&ao0_value );
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		aoutput->raw_value.double_value = ao0_value;
-		break;
-	case MXT_NUVANT_EZSTAT_AOUTPUT_GALVANOSTAT_CURRENT:
-		mx_status = mx_analog_output_read( ezstat->ao0_record,
-							&ao0_value );
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		aoutput->raw_value.double_value =
-		  mx_divide_safely( ao0_value, ezstat->galvanostat_resistance );
-
-		break;
-	case MXT_NUVANT_EZSTAT_AOUTPUT_POTENTIOSTAT_CURRENT_RANGE:
-
-		mx_status = mxi_nuvant_ezstat_get_potentiostat_current_range(
-				ezstat, &(aoutput->raw_value.double_value) );
-		break;
-	case MXT_NUVANT_EZSTAT_AOUTPUT_GALVANOSTAT_CURRENT_RANGE:
-
-		mx_status = mxi_nuvant_ezstat_get_galvanostat_current_range(
-				ezstat, &(aoutput->raw_value.double_value) );
-		break;
-	default:
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal output type %lu requested for record '%s'.",
-			ezstat_aoutput->output_type,
-			aoutput->record->name );
-		break;
-	}
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
 mxd_nuvant_ezstat_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 {
 	static const char fname[] = "mxd_nuvant_ezstat_aoutput_write()";
@@ -292,35 +235,12 @@ mxd_nuvant_ezstat_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 
 	switch( ezstat_aoutput->output_type ) {
 	case MXT_NUVANT_EZSTAT_AOUTPUT_POTENTIOSTAT_VOLTAGE:
-		mx_status = mx_digital_output_write( ezstat->p10_record, 0 );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		mx_status = mx_analog_output_write( ezstat->ao0_record,
-					aoutput->raw_value.double_value );
 		break;
 	case MXT_NUVANT_EZSTAT_AOUTPUT_GALVANOSTAT_CURRENT:
-		mx_status = mx_digital_output_write( ezstat->p10_record, 1 );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		ao0_value = aoutput->raw_value.double_value
-				* ezstat->galvanostat_resistance;
-			
-		mx_status = mx_analog_output_write( ezstat->ao0_record,
-								ao0_value );
 		break;
 	case MXT_NUVANT_EZSTAT_AOUTPUT_POTENTIOSTAT_CURRENT_RANGE:
-
-		mx_status = mxi_nuvant_ezstat_set_potentiostat_current_range(
-				ezstat, aoutput->raw_value.double_value );
 		break;
 	case MXT_NUVANT_EZSTAT_AOUTPUT_GALVANOSTAT_CURRENT_RANGE:
-
-		mx_status = mxi_nuvant_ezstat_set_galvanostat_current_range(
-				ezstat, aoutput->raw_value.double_value );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
