@@ -328,6 +328,9 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 
 	ad->transfer_image_during_scan = TRUE;
 
+	ad->image_log_file = NULL;
+	ad->image_log_filename[0] = '\0';
+
 	/*-------*/
 
 	mx_status = mx_find_record_field( record, "extended_status",

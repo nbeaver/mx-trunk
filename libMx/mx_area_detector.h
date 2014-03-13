@@ -674,6 +674,19 @@ typedef struct mx_area_detector_type {
 	 */
 
 	double motor_position;
+
+	/* Support for an optional image log file, which writes
+	 * information about currently running sequences to a file 
+	 * which can be used by programs that copy image files from
+	 * a local directory to an archive directory.  An example
+	 * of this is the 'mx_ad_copy' program.  If a filename is
+	 * written to the 'image_log_filename' field, any existing
+	 * image log is closed and the code switches to appending
+	 * to the new log file (which may actually be the same file).
+	 */
+
+	FILE *image_log_file;
+	char image_log_filename[MXU_FILENAME_LENGTH+1];
 } MX_AREA_DETECTOR;
 
 /* Warning: Do not rely on the following numbers remaining the same
@@ -798,6 +811,8 @@ typedef struct mx_area_detector_type {
 #define MXLV_AD_SEQUENCE_STROBE			12705
 #define MXLV_AD_SEQUENCE_DURATION		12706
 #define MXLV_AD_SEQUENCE_GATED			12707
+
+#define MXLV_AD_IMAGE_LOG_FILENAME		12800
 
 #define MX_AREA_DETECTOR_STANDARD_FIELDS \
   {MXLV_AD_MAXIMUM_FRAMESIZE, -1, "maximum_framesize", \
@@ -1427,7 +1442,12 @@ typedef struct mx_area_detector_type {
   {MXLV_AD_SEQUENCE_GATED, -1, \
 			"sequence_gated", MXFT_DOUBLE, NULL, 1, {3}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, sequence_gated), \
-	{sizeof(double)}, NULL, 0}
+	{sizeof(double)}, NULL, 0}, \
+  \
+  {MXLV_AD_IMAGE_LOG_FILENAME, -1, "image_log_filename", \
+			MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, image_log_filename), \
+	{sizeof(char)}, NULL, 0}
 
 typedef struct {
         mx_status_type ( *arm ) ( MX_AREA_DETECTOR *ad );
@@ -1529,6 +1549,14 @@ MX_API mx_status_type mx_area_detector_get_bytes_per_pixel( MX_RECORD *record,
 
 MX_API mx_status_type mx_area_detector_get_bits_per_pixel( MX_RECORD *record,
 						long *bits_per_pixel );
+
+MX_API mx_status_type mx_area_detector_get_bytes_per_image_header(
+						MX_RECORD *record,
+						size_t *bytes_per_image_header);
+
+MX_API mx_status_type mx_area_detector_get_bytes_per_image_file(
+						MX_RECORD *record,
+						size_t *bytes_per_image_file );
 
 /*---*/
 
