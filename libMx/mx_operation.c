@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2013 Illinois Institute of Technology
+ * Copyright 2013-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -125,6 +125,8 @@ mx_operation_start( MX_RECORD *op_record )
 		mx_status = (*start_fn)( operation );
 	}
 
+	operation->start = FALSE;
+
 	return mx_status;
 }
 
@@ -153,6 +155,8 @@ mx_operation_stop( MX_RECORD *op_record )
 	} else {
 		mx_status = (*stop_fn)( operation );
 	}
+
+	operation->stop = FALSE;
 
 	return mx_status;
 }
