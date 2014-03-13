@@ -43,6 +43,9 @@ typedef struct {
 	double potentiostat_resistance;
 	double galvanostat_resistance;
 
+	unsigned long potentiostat_current_range_bits;
+	unsigned long galvanostat_current_range_bits;
+
 	double potentiostat_current_range;
 	double galvanostat_current_range;
 
