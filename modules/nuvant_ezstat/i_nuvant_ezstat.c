@@ -362,3 +362,240 @@ mxi_nuvant_ezstat_read_ai_values( MX_NUVANT_EZSTAT *ezstat,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxi_nuvant_ezstat_set_binary_range( MX_NUVANT_EZSTAT *ezstat,
+				unsigned long ezstat_mode,
+				unsigned long binary_range )
+{
+	static const char fname[] = "mxi_nuvant_ezstat_set_binary_range()";
+
+	TaskHandle doutput_task_handle;
+	char doutput_channel_names[200];
+	int32 daqmx_status;
+	char daqmx_error_message[200];
+	uInt32 pin_values;
+	uInt32 digital_write_array[1];
+	uInt32 samples_written;
+	mx_status_type mx_status;
+
+	if ( ezstat == (MX_NUVANT_EZSTAT *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_NUVANT_EZSTAT pointer passed was NULL." );
+	}
+	if ( binary_range > 0x3 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Illegal EZStat binary range %#lx requested for record '%s'.  "
+		"The allowed binary ranges are from 0x0 to 0x3.",
+			binary_range, ezstat->record->name );
+	}
+
+	ezstat->ezstat_mode = ezstat_mode;
+
+	switch( ezstat_mode ) {
+	case MXF_NUVANT_EZSTAT_POTENTIOSTAT_MODE:
+
+		snprintf( doutput_channel_names, sizeof(doutput_channel_names),
+		"%s/port1/line0,%s/port1/line3:4,%s/port1/line5",
+		ezstat->device_name, ezstat->device_name, ezstat->device_name );
+
+		ezstat->potentiostat_binary_range = binary_range;
+
+		switch( binary_range ) {
+		case 0x3:
+			ezstat->potentiostat_current_range = 1.0;
+			ezstat->potentiostat_resistance = 9.0998;
+			break;
+		case 0x2:
+			ezstat->potentiostat_current_range = 0.01;
+			ezstat->potentiostat_resistance = 499.19;
+			break;
+		case 0x1:
+			ezstat->potentiostat_current_range = 100.0e-6;
+			ezstat->potentiostat_resistance = 45408.7;
+			break;
+		case 0x0:
+			ezstat->potentiostat_current_range = 0.01e-6;
+			ezstat->potentiostat_resistance = 499000.0;
+			break;
+		}
+		break;
+	case MXF_NUVANT_EZSTAT_GALVANOSTAT_MODE:
+
+		snprintf( doutput_channel_names, sizeof(doutput_channel_names),
+		"%s/port1/line0,%s/port1/line1:2,%s/port1/line5",
+		ezstat->device_name, ezstat->device_name, ezstat->device_name );
+
+		ezstat->galvanostat_binary_range = binary_range;
+
+		switch( binary_range ) {
+		case 0x3:
+			ezstat->galvanostat_current_range = 1.0;
+			ezstat->galvanostat_resistance = 9.07;
+			break;
+		case 0x2:
+			ezstat->galvanostat_current_range = 0.1;
+			ezstat->galvanostat_resistance = 100.0;
+			break;
+		case 0x1:
+			ezstat->galvanostat_current_range = 0.001;
+			ezstat->galvanostat_resistance = 10000.0;
+			break;
+		case 0x0:
+			ezstat->galvanostat_current_range = 100.0e-6;
+			ezstat->galvanostat_resistance = 100000.0;
+			break;
+		}
+		break;
+
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Illegal EZStat mode %lu requested for record '%s'.  "
+		"The allowed mode values are "
+		"'potentiostat mode' (0) and 'galvanostat mode' (1).",
+			ezstat_mode,
+			ezstat->record->name );
+		break;
+	}
+
+	/* Prepare to reprogram the digital output bits. */
+
+	mx_status = mxi_nuvant_ezstat_create_task( "ezstat_set_range",
+						&doutput_task_handle );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Construct the value to send to the digital I/O pins. */
+
+	pin_values = 0x1;			/* Cell enable selected. */
+
+	pin_values |= ( binary_range << 1 );	/* Select the current range. */
+
+	pin_values = 0x8;	/* Enable range change with /port1/line5. */
+
+	daqmx_status = DAQmxCreateDOChan( doutput_task_handle,
+					doutput_channel_names, NULL,
+					DAQmx_Val_ChanForAllLines );
+
+	if ( daqmx_status != 0 ) {
+		DAQmxGetExtendedErrorInfo( daqmx_error_message,
+					sizeof(daqmx_error_message) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"The attempt to associate digital I/O pins '%s' for "
+		"EZStat '%s' with DAQmx task %#lx failed.  "
+		"DAQmx error code = %d, error message = '%s'",
+			doutput_channel_names,
+			ezstat->record->name,
+			(unsigned long) doutput_task_handle,
+			(int) daqmx_status, daqmx_error_message );
+	}
+
+	digital_write_array[0] = pin_values;
+
+	daqmx_status = DAQmxWriteDigitalU32( doutput_task_handle,
+					1, FALSE, 1.0,
+					DAQmx_Val_GroupByChannel,
+					digital_write_array,
+					&samples_written, NULL );
+
+	if ( daqmx_status != 0 ) {
+		DAQmxGetExtendedErrorInfo( daqmx_error_message,
+					sizeof(daqmx_error_message) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"The attempt to write the digital output samples for "
+		"DAQmx task %#lx used by record '%s' failed.  "
+		"DAQmx error code = %d, error message = '%s'",
+			(unsigned long) doutput_task_handle,
+			ezstat->record->name,
+			(int) daqmx_status, daqmx_error_message );
+	}
+
+	/* We are done with the digital I/O task now, so shut it down. */
+
+	mx_status = mxi_nuvant_ezstat_shutdown_task( doutput_task_handle );
+
+	return mx_status;
+}
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxi_nuvant_ezstat_set_current_range( MX_NUVANT_EZSTAT *ezstat,
+				unsigned long ezstat_mode,
+				double current_range )
+{
+	static const char fname[] = "mxi_nuvant_ezstat_set_current_range()";
+
+	unsigned long binary_range;
+	mx_status_type mx_status;
+
+	if ( ezstat == (MX_NUVANT_EZSTAT *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_NUVANT_EZSTAT pointer passed was NULL." );
+	}
+
+	switch( ezstat_mode ) {
+	case MXF_NUVANT_EZSTAT_POTENTIOSTAT_MODE:
+		if ( current_range > 1.0 ) {
+			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+			"The requested potentiostat current range (%g amps) "
+			"is greater than the maximum allowed current range "
+			"of 1.0 amps for record '%s'.",
+				current_range,
+				ezstat->record->name );
+		} else
+		if ( current_range > 0.01 ) {	/* 10 mA to 1 A range */
+			binary_range = 0x3;
+		} else
+		if ( current_range > 0.0001 ) {	/* 100 uA to 10 mA range */
+			binary_range = 0x2;
+		} else
+		if ( current_range > 1.0e-6 ) {	/* 1 uA to 100 uA range */
+			binary_range = 0x1;
+		} else {			/* 1 nA to 1 uA range */
+			binary_range = 0x0;
+		}
+		break;
+	case MXF_NUVANT_EZSTAT_GALVANOSTAT_MODE:
+		if ( current_range > 1.0 ) {
+			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+			"The requested galvanostat current range (%g amps) "
+			"is greater than the maximum allowed current range "
+			"of 1.0 amps for record '%s'.",
+				current_range,
+				ezstat->record->name );
+		} else
+		if ( current_range > 0.1 ) {	/* 100 mA to 1 A range */
+			binary_range = 0x3;
+		} else
+		if ( current_range > 0.001 ) {	/* 1 mA to 100 mA range */
+			binary_range = 0x2;
+		} else
+		if ( current_range > 100.0e-6 ) { /* 100 uA to 1 mA range */
+			binary_range = 0x1;
+		} else {			/* 1 uA to 100 uA range */
+			binary_range = 0x0;
+		}
+		break;
+
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Illegal EZStat mode %lu requested for record '%s'.  "
+		"The allowed mode values are "
+		"'potentiostat mode' (0) and 'galvanostat mode' (1).",
+			ezstat_mode,
+			ezstat->record->name );
+		break;
+	}
+
+	mx_status = mxi_nuvant_ezstat_set_binary_range( ezstat,
+							ezstat_mode,
+							binary_range );
+
+	return mx_status;
+}
+

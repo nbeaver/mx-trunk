@@ -25,7 +25,7 @@
 
 #define MXU_NUVANT_DEVICE_NAME_LENGTH	64
 
-/* Values of the 'mode' field below. */
+/* Values of the 'ezstat_mode' field below. */
 
 #define MXF_NUVANT_EZSTAT_POTENTIOSTAT_MODE	0
 #define MXF_NUVANT_EZSTAT_GALVANOSTAT_MODE	1
@@ -38,16 +38,16 @@ typedef struct {
 
 	mx_bool_type cell_on;
 
-	unsigned long mode;
+	unsigned long ezstat_mode;
 
-	double potentiostat_resistance;
-	double galvanostat_resistance;
-
-	unsigned long potentiostat_current_range_bits;
-	unsigned long galvanostat_current_range_bits;
+	unsigned long potentiostat_binary_range;
+	unsigned long galvanostat_binary_range;
 
 	double potentiostat_current_range;
 	double galvanostat_current_range;
+
+	double potentiostat_resistance;
+	double galvanostat_resistance;
 
 } MX_NUVANT_EZSTAT;
 
@@ -83,6 +83,16 @@ MX_API mx_status_type mxi_nuvant_ezstat_shutdown_task( TaskHandle task_handle );
 MX_API mx_status_type mxi_nuvant_ezstat_read_ai_values(
 					MX_NUVANT_EZSTAT *ezstat,
 					double *ai_values );
+
+MX_API mx_status_type mxi_nuvant_ezstat_set_binary_range(
+					MX_NUVANT_EZSTAT *ezstat,
+					unsigned long ezstat_mode,
+					unsigned long binary_range );
+
+MX_API mx_status_type mxi_nuvant_ezstat_set_current_range(
+					MX_NUVANT_EZSTAT *ezstat,
+					unsigned long ezstat_mode,
+					double current_range );
 
 #endif /* __I_NUVANT_EZSTAT_H__ */
 

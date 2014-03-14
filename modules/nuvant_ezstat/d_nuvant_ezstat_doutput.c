@@ -228,7 +228,7 @@ mxd_nuvant_ezstat_doutput_read( MX_DIGITAL_OUTPUT *doutput )
 		 */
 		break;
 	case MXT_NUVANT_EZSTAT_DOUTPUT_MODE_SELECT:
-		doutput->value = ezstat->mode;
+		doutput->value = ezstat->ezstat_mode;
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -268,9 +268,9 @@ mxd_nuvant_ezstat_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 		break;
 	case MXT_NUVANT_EZSTAT_DOUTPUT_MODE_SELECT:
 		if ( doutput->value == 0 ) {
-			ezstat->mode = MXF_NUVANT_EZSTAT_POTENTIOSTAT_MODE;
+		    ezstat->ezstat_mode = MXF_NUVANT_EZSTAT_POTENTIOSTAT_MODE;
 		} else {
-			ezstat->mode = MXF_NUVANT_EZSTAT_GALVANOSTAT_MODE;
+		    ezstat->ezstat_mode = MXF_NUVANT_EZSTAT_GALVANOSTAT_MODE;
 		}
 
 		/* No USB I/O needed, since we are just saving the value

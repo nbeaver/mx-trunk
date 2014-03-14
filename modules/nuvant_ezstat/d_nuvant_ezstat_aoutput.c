@@ -230,7 +230,7 @@ mxd_nea_set_potentiostat_voltage( MX_ANALOG_OUTPUT *aoutput,
 	char voltage_channel_name[40];
 	int32 daqmx_status;
 	char daqmx_error_message[200];
-	uInt32 pin_values, potentiostat_range_bits;
+	uInt32 pin_values, potentiostat_binary_range;
 	uInt32 digital_write_array[1];
 	float64 voltage_write_array[1];
 	uInt32 samples_written;
@@ -286,7 +286,7 @@ mxd_nea_set_potentiostat_voltage( MX_ANALOG_OUTPUT *aoutput,
 
 	pin_values = 0x1;	/* Cell enable selected.  All others clear. */
 
-	potentiostat_range_bits = ezstat->potentiostat_current_range_bits;
+	potentiostat_binary_range = ezstat->potentiostat_binary_range;
 
 	/*** Replace bits 3 and 4 with the potentiostat current range. ***/
 
@@ -294,10 +294,10 @@ mxd_nea_set_potentiostat_voltage( MX_ANALOG_OUTPUT *aoutput,
 	pin_values &= (~ 0x18);
 
 	/* Mask off all but the two low order bits */
-	potentiostat_range_bits &= 0x3;
+	potentiostat_binary_range &= 0x3;
 
 	/* Replace bits 3 and 4 with the potentiostat range bits. */
-	pin_values |= ( potentiostat_range_bits << 3 );
+	pin_values |= ( potentiostat_binary_range << 3 );
 
 	digital_write_array[0] = pin_values;
 
@@ -417,8 +417,14 @@ mxd_nuvant_ezstat_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 	case MXT_NUVANT_EZSTAT_AOUTPUT_GALVANOSTAT_CURRENT:
 		break;
 	case MXT_NUVANT_EZSTAT_AOUTPUT_POTENTIOSTAT_CURRENT_RANGE:
+		mx_status = mxi_nuvant_ezstat_set_current_range( ezstat,
+					MXF_NUVANT_EZSTAT_POTENTIOSTAT_MODE,
+					aoutput->raw_value.double_value );
 		break;
 	case MXT_NUVANT_EZSTAT_AOUTPUT_GALVANOSTAT_CURRENT_RANGE:
+		mx_status = mxi_nuvant_ezstat_set_current_range( ezstat,
+					MXF_NUVANT_EZSTAT_GALVANOSTAT_MODE,
+					aoutput->raw_value.double_value );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
