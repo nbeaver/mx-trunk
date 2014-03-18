@@ -687,6 +687,13 @@ typedef struct mx_area_detector_type {
 
 	FILE *image_log_file;
 	char image_log_filename[MXU_FILENAME_LENGTH+1];
+
+	/* 'image_log_error_seen' is used to ensure that a given error
+	 * condition is written to the image log only once during a
+	 * given sequence.
+	 */
+
+	mx_bool_type image_log_error_seen;
 } MX_AREA_DETECTOR;
 
 /* Warning: Do not rely on the following numbers remaining the same
@@ -1697,6 +1704,10 @@ MX_API mx_status_type mx_area_detector_get_extended_status(
 						long *last_frame_number,
 						long *total_num_frames,
 						unsigned long *status_flags );
+
+MX_API mx_status_type mx_area_detector_image_log_show_error(
+						MX_AREA_DETECTOR *ad,
+						mx_status_type mx_status );
 
 /*---*/
 

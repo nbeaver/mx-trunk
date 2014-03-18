@@ -28,11 +28,13 @@
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
+#include <errno.h>
 
 #include "mx_util.h"
 #include "mx_driver.h"
 #include "mx_record.h"
 #include "mx_unistd.h"
+#include "mx_cfn.h"
 #include "mx_hrt.h"
 #include "mx_hrt_debug.h"
 #include "mx_socket.h"
@@ -892,6 +894,7 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_IMAGE_FRAME_DATA:
 		case MXLV_AD_IMAGE_FRAME_HEADER:
 		case MXLV_AD_IMAGE_FRAME_HEADER_LENGTH:
+		case MXLV_AD_IMAGE_LOG_FILENAME:
 		case MXLV_AD_LAST_FRAME_NUMBER:
 		case MXLV_AD_LOAD_FRAME:
 		case MXLV_AD_MAXIMUM_FRAME_NUMBER:
@@ -957,6 +960,9 @@ mx_area_detector_process_function( void *record_ptr,
 	mx_status_type ( *get_parameter_fn ) ( MX_AREA_DETECTOR * ) = NULL;
 	mx_status_type ( *set_parameter_fn ) ( MX_AREA_DETECTOR * ) = NULL;
 	unsigned long flags;
+	int fclose_status, saved_errno;
+	char new_filename[MXU_FILENAME_LENGTH+1];
+	char timestamp_buffer[80];
 	mx_status_type mx_status;
 
 #if PR_AREA_DETECTOR_DEBUG_PROCESS
@@ -1406,6 +1412,77 @@ mx_area_detector_process_function( void *record_ptr,
 		case MXLV_AD_IMAGE_FORMAT:
 			mx_status = mx_area_detector_set_image_format( record,
 							ad->image_format );
+			break;
+		case MXLV_AD_IMAGE_LOG_FILENAME:
+			/* If an existing image log file is open, close it. */
+
+			if ( ad->image_log_file != NULL ) {
+				fprintf( ad->image_log_file, "%s close\n",
+					mx_timestamp( timestamp_buffer,
+						sizeof(timestamp_buffer) ) );
+
+				fflush( ad->image_log_file );
+
+				fclose_status = fclose( ad->image_log_file );
+
+				ad->image_log_file = NULL;
+
+				if ( fclose_status != 0 ) {
+					saved_errno = errno;
+
+					return mx_error(MXE_FILE_IO_ERROR,fname,
+				"The attempt to close image log file '%s' "
+				"failed.  Errno = %d, error message = '%s'",
+					ad->image_log_filename,
+					saved_errno,
+					strerror(saved_errno) );
+				}
+			}
+
+			/* If the length of the log filename is greater
+			 * than 0, then interpret this as a request to
+			 * append to a log file with the specified name.
+			 */
+
+			if ( strlen( ad->image_log_filename ) > 0 ) {
+				mx_status = mx_cfn_construct_filename(
+						MX_CFN_LOGFILE,
+						ad->image_log_filename,
+						new_filename,
+						sizeof(new_filename) );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+
+				ad->image_log_file = fopen( new_filename, "a" );
+
+				if ( ad->image_log_file == (FILE *) NULL ) {
+					saved_errno = errno;
+
+					return mx_error(MXE_FILE_IO_ERROR,fname,
+					"The attempt to open image log file "
+					"'%s' failed.  "
+					"Errno = %d, error message = '%s'",
+						new_filename,
+						saved_errno,
+						strerror(saved_errno) );
+				}
+
+				/* Configure the log file to be line buffered,
+				 * and write out a message saying that we
+				 * have opened the file.
+				 */
+
+				setvbuf( ad->image_log_file, (char *) NULL,
+					_IOLBF, BUFSIZ );
+
+				fprintf( ad->image_log_file, "%s open %s\n",
+					mx_timestamp( timestamp_buffer,
+						sizeof(timestamp_buffer) ),
+					new_filename );
+
+				fflush( ad->image_log_file );
+			}
 			break;
 		case MXLV_AD_LOAD_FRAME:
 			mx_status = mx_area_detector_load_frame( record,

@@ -878,8 +878,15 @@ mx_divide_safely( double numerator, double denominator )
 MX_EXPORT const char *
 mx_timestamp( char *buffer, size_t buffer_length )
 {
+	static const char fname[] = "mx_timestamp()";
+
 	time_t time_struct;
 	struct tm current_time;
+
+	if ( buffer == NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"The buffer pointer passed to this function was NULL." );
+	}
 
 	time( &time_struct );
 

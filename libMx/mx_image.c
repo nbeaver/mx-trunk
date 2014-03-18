@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2013 Illinois Institute of Technology
+ * Copyright 2006-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -4519,14 +4519,29 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 
 		last_error_code = GetLastError();
 
-		mx_win32_error_message( last_error_code,
-			message_buffer, sizeof(message_buffer) );
+		switch( last_error_code ) {
+		case ERROR_ACCESS_DENIED:
+			mx_status = mx_error( MXE_PERMISSION_DENIED, fname,
+			"Cannot write to file '%s' since this process does "
+			"not have the necessary permissions.",
+				datafile_name );
+			break;
+		case ERROR_HANDLE_DISK_FULL:
+			mx_status = mx_error( MXE_DISK_FULL, fname,
+			"Cannot write to file '%s' since the disk is full.",
+				datafile_name );
+			break;
+		default:
+			mx_win32_error_message( last_error_code,
+				message_buffer, sizeof(message_buffer) );
 
-		mx_status = mx_error( MXE_FILE_IO_ERROR, fname,
+			mx_status = mx_error( MXE_FILE_IO_ERROR, fname,
 				"Opening file '%s' failed with "
 				"Win32 error code %ld, error message = '%s'.",
 				datafile_name,
 				last_error_code, message_buffer );
+			break;
+		}
 #else
 		saved_errno = errno;
 

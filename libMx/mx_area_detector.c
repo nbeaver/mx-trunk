@@ -2135,6 +2135,37 @@ mx_area_detector_arm( MX_RECORD *record )
 #endif
 	}
 
+	/* If requested, write a 'start' message to the image log file
+	 * before we arm the detector.
+	 */
+
+	if ( ad->image_log_file != (FILE *) NULL ) {
+		unsigned long first_datafile_number;
+		long num_exposures;
+		char timestamp[40];
+
+		ad->image_log_error_seen = FALSE;
+
+		first_datafile_number = ad->datafile_number + 1;
+
+		mx_status = mx_area_detector_get_num_exposures( record,
+							&num_exposures );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_timestamp( timestamp, sizeof(timestamp) );
+
+		fprintf( ad->image_log_file, "%s start %lu %ld %s/%s\n",
+			timestamp,
+			first_datafile_number,
+			num_exposures,
+			ad->datafile_directory,
+			ad->datafile_pattern );
+
+		fflush( ad->image_log_file );
+	}
+
 	/* Arm the area detector. */
 
 	ad->arm = 1;
@@ -2289,6 +2320,19 @@ mx_area_detector_stop( MX_RECORD *record )
 		mx_area_detector_cleanup_after_correction( ad, NULL );
 	}
 
+	/* If requested, write a message to the image log file. */
+
+	if ( ad->image_log_file != (FILE *) NULL ) {
+		char timestamp[40];
+
+		mx_timestamp( timestamp, sizeof(timestamp) );
+
+		fprintf( ad->image_log_file, "%s stop %lu\n",
+			timestamp, ad->datafile_number );
+
+		fflush( ad->image_log_file );
+	}
+
 	return mx_status;
 }
 
@@ -2324,6 +2368,19 @@ mx_area_detector_abort( MX_RECORD *record )
 
 	if ( ad->correction_measurement != NULL ) {
 		mx_area_detector_cleanup_after_correction( ad, NULL );
+	}
+
+	/* If requested, write a message to the image log file. */
+
+	if ( ad->image_log_file != (FILE *) NULL ) {
+		char timestamp[40];
+
+		mx_timestamp( timestamp, sizeof(timestamp) );
+
+		fprintf( ad->image_log_file, "%s abort %lu\n",
+			timestamp, ad->datafile_number );
+
+		fflush( ad->image_log_file );
 	}
 
 	return mx_status;
@@ -2420,9 +2477,19 @@ mx_area_detector_get_last_frame_number( MX_RECORD *record,
 
 	if ( get_last_frame_number_fn != NULL ) {
 		mx_status = (*get_last_frame_number_fn)( ad );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			(void) mx_area_detector_image_log_show_error(
+								ad, mx_status );
+		}
 	} else
 	if ( get_extended_status_fn != NULL ) {
 		mx_status = (*get_extended_status_fn)( ad );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			(void) mx_area_detector_image_log_show_error(
+								ad, mx_status );
+		}
 	} else {
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Getting the last frame number for area detector '%s' "
@@ -2473,9 +2540,19 @@ mx_area_detector_get_total_num_frames( MX_RECORD *record,
 
 	if ( get_total_num_frames_fn != NULL ) {
 		mx_status = (*get_total_num_frames_fn)( ad );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			(void) mx_area_detector_image_log_show_error(
+								ad, mx_status );
+		}
 	} else
 	if ( get_extended_status_fn != NULL ) {
 		mx_status = (*get_extended_status_fn)( ad );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			(void) mx_area_detector_image_log_show_error(
+								ad, mx_status );
+		}
 	} else {
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Getting the total number of frames for area detector '%s' "
@@ -2558,6 +2635,19 @@ mx_area_detector_get_status( MX_RECORD *record,
 		"is unsupported.", record->name );
 	}
 
+	/* If the image log file is enabled and an error occurred,
+	 * then write a message about that error to the log file.
+	 */
+
+	if ( ad->image_log_file != (FILE *) NULL ) {
+		if ( mx_status.code != MXE_SUCCESS ) {
+			(void) mx_area_detector_image_log_show_error(
+							ad, mx_status );
+		}
+	}
+
+	/*---*/
+
 	if ( ad->correction_measurement_in_progress
 	   || ( ad->correction_measurement != NULL ) )
 	{
@@ -2631,15 +2721,24 @@ mx_area_detector_get_extended_status( MX_RECORD *record,
 
 	if ( get_extended_status_fn != NULL ) {
 		mx_status = (*get_extended_status_fn)( ad );
+
+		if ( ad->image_log_file != (FILE *) NULL ) {
+			if ( mx_status.code != MXE_SUCCESS ) {
+				(void) mx_area_detector_image_log_show_error(
+								ad, mx_status );
+			}
+		}
 	} else {
 		if ( get_last_frame_number_fn == NULL ) {
 			ad->last_frame_number = -1;
 		} else {
 			mx_status = (*get_last_frame_number_fn)( ad );
 
-			if ( mx_status.code != MXE_SUCCESS )
+			if ( mx_status.code != MXE_SUCCESS ) {
+				(void) mx_area_detector_image_log_show_error(
+								ad, mx_status );
 				return mx_status;
-
+			}
 		}
 
 		if ( get_total_num_frames_fn == NULL ) {
@@ -2647,8 +2746,11 @@ mx_area_detector_get_extended_status( MX_RECORD *record,
 		} else {
 			mx_status = (*get_total_num_frames_fn)( ad );
 
-			if ( mx_status.code != MXE_SUCCESS )
+			if ( mx_status.code != MXE_SUCCESS ) {
+				(void) mx_area_detector_image_log_show_error(
+								ad, mx_status );
 				return mx_status;
+			}
 		}
 
 		if ( get_status_fn == NULL ) {
@@ -2658,8 +2760,11 @@ mx_area_detector_get_extended_status( MX_RECORD *record,
 		} else {
 			mx_status = (*get_status_fn)( ad );
 
-			if ( mx_status.code != MXE_SUCCESS )
+			if ( mx_status.code != MXE_SUCCESS ) {
+				(void) mx_area_detector_image_log_show_error(
+								ad, mx_status );
 				return mx_status;
+			}
 		}
 	}
 
@@ -2742,6 +2847,50 @@ mx_area_detector_get_extended_status( MX_RECORD *record,
 	}
 
 	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_image_log_show_error( MX_AREA_DETECTOR *ad,
+					mx_status_type caller_mx_status )
+{
+	static const char fname[] = "mx_area_detector_image_log_show_error()";
+
+	char timestamp[40];
+
+	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_AREA_DETECTOR pointer passed was NULL." );
+	}
+
+	/* If the image log file is not open, then return without
+	 * doing anything.
+	 */
+
+	if ( ad->image_log_file == (FILE *) NULL )
+		return MX_SUCCESSFUL_RESULT;
+
+	/* If an error has already been displayed since the most recent
+	 * arm() of the area detector, then we return without showing
+	 * anything to prevent a flood of error messages in the image log.
+	 */
+
+	if ( ad->image_log_error_seen )
+		return MX_SUCCESSFUL_RESULT;
+
+	/* Display the error message. */
+
+	ad->image_log_error_seen = TRUE;
+
+	mx_timestamp( timestamp, sizeof(timestamp) );
+
+	fprintf( ad->image_log_file, "%s error %lu %s\n",
+		timestamp,
+		ad->datafile_number,
+		mx_status_code_string( caller_mx_status.code ) );
+
+	fflush( ad->image_log_file );
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -6683,6 +6832,10 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 		"for this detector.", record->name );
 	}
 
+	if ( mx_status.code != MXE_SUCCESS ) {
+		(void) mx_area_detector_image_log_show_error( ad, mx_status );
+	}
+
 	if ( ad->total_num_frames <= ad->datafile_total_num_frames ) {
 		new_frames = FALSE;
 	} else {
@@ -6955,6 +7108,8 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 #endif
 
 		if ( mx_status.code != MXE_SUCCESS ) {
+
+			mx_area_detector_image_log_show_error( ad, mx_status );
 
 #if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_FAILURE
 			MX_DEBUG(-2,("%s: Autosave of '%s' by '%s' failed "
