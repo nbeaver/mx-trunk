@@ -261,6 +261,7 @@
 #include "d_ainput_as_dinput.h"
 #include "d_aoutput_as_doutput.h"
 #include "d_relay_as_doutput.h"
+#include "d_digital_fanout.h"
 
 #include "d_soft_motor.h"
 #include "d_e500.h"
@@ -1896,6 +1897,13 @@ MX_DRIVER mx_type_table[] = {
 			&mxd_relay_as_doutput_digital_output_function_list,
 				&mxd_relay_as_doutput_num_record_fields,
 				&mxd_relay_as_doutput_rfield_def_ptr},
+
+{"digital_fanout", MXT_DOU_FANOUT, MXC_DIGITAL_OUTPUT, MXR_DEVICE,
+				&mxd_digital_fanout_record_function_list,
+				NULL,
+			&mxd_digital_fanout_digital_output_function_list,
+				&mxd_digital_fanout_num_record_fields,
+				&mxd_digital_fanout_rfield_def_ptr},
 
 #if ( defined(OS_LINUX) && (MX_GLIBC_VERSION >= 2002000L) )
 

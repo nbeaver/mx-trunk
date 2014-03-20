@@ -352,6 +352,7 @@ extern "C" {
 #define MXT_AOU_CRYOJET			20024
 #define MXT_AOU_SYSTRON_DONNER_M107	20025
 #define MXT_AOU_LINKAM_T9X_PUMP		20026
+#define MXT_AOU_FANOUT			20027
 
 /* --- Analog output subclasses -- */
 
@@ -437,6 +438,7 @@ extern "C" {
 #define MXT_DOU_CRYOJET			40037
 #define MXT_DOU_AOUTPUT			40038
 #define MXT_DOU_RELAY			40039
+#define MXT_DOU_FANOUT			40040
 
 /* --- Motor subclasses --- */
 
