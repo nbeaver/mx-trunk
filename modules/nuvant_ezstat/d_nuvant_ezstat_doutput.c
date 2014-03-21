@@ -266,10 +266,14 @@ mxd_nuvant_ezstat_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 	case MXT_NUVANT_EZSTAT_DOUTPUT_CELL_ENABLE:
 		snprintf( channel_names, sizeof(channel_names),
 			"%s/port0/line0", ezstat->device_name );
+
+		ezstat->cell_on = doutput->value;
 		break;
 	case MXT_NUVANT_EZSTAT_DOUTPUT_EXTERNAL_SWITCH:
 		snprintf( channel_names, sizeof(channel_names),
 			"%s/port0/line1", ezstat->device_name );
+
+		ezstat->ezstat_mode = doutput->value;
 		break;
 	case MXT_NUVANT_EZSTAT_DOUTPUT_MODE_SELECT:
 		if ( doutput->value == 0 ) {
@@ -325,7 +329,7 @@ mxd_nuvant_ezstat_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 	write_array[0] = (uInt32) doutput->value;
 
 	daqmx_status = DAQmxWriteDigitalU32( task_handle,
-					1, FALSE, 1.0,
+					1, TRUE, 1.0,
 					DAQmx_Val_GroupByChannel,
 					write_array,
 					&samples_written, NULL );

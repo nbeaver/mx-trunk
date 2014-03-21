@@ -305,7 +305,7 @@ mxd_nea_set_potentiostat_voltage( MX_ANALOG_OUTPUT *aoutput,
 	/* Send the bit values to the I/O pins. */
 
 	daqmx_status = DAQmxWriteDigitalU32( doutput_task_handle,
-					1, FALSE, 1.0,
+					1, TRUE, 1.0,
 					DAQmx_Val_GroupByChannel,
 					digital_write_array,
 					&samples_written, NULL );
@@ -377,7 +377,7 @@ mxd_nea_set_potentiostat_voltage( MX_ANALOG_OUTPUT *aoutput,
 	voltage_write_array[0] = potentiostat_voltage;
 
 	daqmx_status = DAQmxWriteAnalogF64( voltage_task_handle,
-					1, FALSE, 1.0,
+					1, TRUE, 1.0,
 					DAQmx_Val_GroupByChannel,
 					voltage_write_array,
 					&samples_written, NULL );
@@ -387,7 +387,7 @@ mxd_nea_set_potentiostat_voltage( MX_ANALOG_OUTPUT *aoutput,
 					sizeof(daqmx_error_message) );
 
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"The attempt to write the potentiostat voltage %g for "
+		"The attempt to write the potentiostat voltage of %g for "
 		"DAQmx task %#lx used by record '%s' failed.  "
 		"DAQmx error code = %d, error message = '%s'",
 			aoutput->raw_value.double_value,
@@ -489,7 +489,7 @@ mxd_nea_set_galvanostat_current( MX_ANALOG_OUTPUT *aoutput,
 	/* Send the bit values to the I/O pins. */
 
 	daqmx_status = DAQmxWriteDigitalU32( doutput_task_handle,
-					1, FALSE, 1.0,
+					1, TRUE, 1.0,
 					DAQmx_Val_GroupByChannel,
 					digital_write_array,
 					&samples_written, NULL );
@@ -563,7 +563,7 @@ mxd_nea_set_galvanostat_current( MX_ANALOG_OUTPUT *aoutput,
 	voltage_write_array[0] = output_voltage;
 
 	daqmx_status = DAQmxWriteAnalogF64( voltage_task_handle,
-					1, FALSE, 1.0,
+					1, TRUE, 1.0,
 					DAQmx_Val_GroupByChannel,
 					voltage_write_array,
 					&samples_written, NULL );

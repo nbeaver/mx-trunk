@@ -20,6 +20,8 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_socket.h"
+#include "mx_process.h"
 #include "mx_digital_output.h"
 #include "i_nuvant_ezstat.h"
 
@@ -29,7 +31,11 @@ MX_RECORD_FUNCTION_LIST mxi_nuvant_ezstat_record_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	mxi_nuvant_ezstat_open
+	mxi_nuvant_ezstat_open,
+	NULL,
+	NULL,
+	NULL,
+	mxi_nuvant_ezstat_special_processing_setup
 };
 
 MX_RECORD_FIELD_DEFAULTS mxi_nuvant_ezstat_record_field_defaults[] = {
@@ -123,6 +129,114 @@ mxi_nuvant_ezstat_open( MX_RECORD *record )
 #endif
 
 	return mx_status;
+}
+
+/*-------------------------------------------------------------------------*/
+
+static mx_status_type
+mxi_nuvant_ezstat_process_function( void *record_ptr,
+				void *record_field_ptr,
+				int operation )
+{
+	static const char fname[] = "mxi_nuvant_ezstat_process_function()";
+
+	MX_RECORD *record = NULL;
+	MX_RECORD_FIELD *record_field = NULL;
+	MX_NUVANT_EZSTAT *ezstat = NULL;
+	mx_status_type mx_status;
+
+	record = (MX_RECORD *) record_ptr;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	record_field = (MX_RECORD_FIELD *) record_field_ptr;
+
+	if ( record_field == (MX_RECORD_FIELD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD_FIELD pointer passed was NULL." );
+	}
+
+	ezstat = (MX_NUVANT_EZSTAT *) record->record_type_struct;
+
+	if ( ezstat == (MX_NUVANT_EZSTAT *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_NUVANT_EZSTAT pointer for record '%s' is NULL." );
+	}
+
+	mx_status = MX_SUCCESSFUL_RESULT;
+
+	switch( operation ) {
+	case MX_PROCESS_GET:
+		switch( record_field->label_value ) {
+		case MXLV_NUVANT_EZSTAT_SHOW_PARAMETERS:
+			fprintf( stderr, "Record '%s'\n", record->name );
+			fprintf( stderr, "  cell_on = %d\n",
+						(int) ezstat->cell_on );
+			fprintf( stderr, "  ezstat_mode = %d\n",
+						(int) ezstat->ezstat_mode );
+			fprintf( stderr, "  potentiostat_binary_range = %lu\n",
+					ezstat->potentiostat_binary_range );
+			fprintf( stderr, "  galvanostat_binary_range = %lu\n",
+					ezstat->galvanostat_binary_range );
+			fprintf( stderr, "  potentiostat_current_range = %g\n",
+					ezstat->potentiostat_current_range );
+			fprintf( stderr, "  galvanostat_current_range = %g\n",
+					ezstat->galvanostat_current_range );
+			fprintf( stderr, "  potentiostat_resistance = %g\n",
+					ezstat->potentiostat_resistance );
+			fprintf( stderr, "  galvanostat_resistance = %g\n",
+					ezstat->galvanostat_resistance );
+			fflush( stderr );
+			break;
+		default:
+			break;
+		}
+		break;
+
+	case MX_PROCESS_PUT:
+		break;
+	}
+
+	return mx_status;
+}
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxi_nuvant_ezstat_special_processing_setup( MX_RECORD *record )
+{
+	static const char fname[] =
+		"mxi_nuvant_ezstat_special_processing_setup()";
+
+	MX_RECORD_FIELD *record_field;
+	MX_RECORD_FIELD *record_field_array;
+	long i;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	record_field_array = record->record_field_array;
+
+	for ( i = 0; i < record->num_record_fields; i++ ) {
+
+		record_field = &record_field_array[i];
+
+		switch( record_field->label_value ) {
+		case MXLV_NUVANT_EZSTAT_SHOW_PARAMETERS:
+			record_field->process_function
+					= mxi_nuvant_ezstat_process_function;
+			break;
+		default:
+			break;
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*-------------------------------------------------------------------------*/
@@ -249,6 +363,7 @@ mxi_nuvant_ezstat_read_ai_values( MX_NUVANT_EZSTAT *ezstat,
 
 	int i, j;
 	double *ai_ptr;
+	double ai_value;
 
 	char daqmx_error_message[200];
 	int32 daqmx_status;
@@ -351,12 +466,24 @@ mxi_nuvant_ezstat_read_ai_values( MX_NUVANT_EZSTAT *ezstat,
 	for ( i = 0; i < MXI_NUVANT_EZSTAT_NUM_AI_CHANNELS; i++ ) {
 		sum[i] = 0.0;
 
-		for ( j = 0; i < MXI_NUVANT_EZSTAT_NUM_AI_MEASUREMENTS; j++ ) {
-			sum[i] += *ai_ptr;
+		for ( j = 0; j < MXI_NUVANT_EZSTAT_NUM_AI_MEASUREMENTS; j++ ) {
+			ai_value = *ai_ptr;
+
+#if 0
+			MX_DEBUG(-2,("%s: ai_value (%lu)(%lu) = %g",
+				fname, i, j, ai_value));
+#endif
+
+			sum[i] += ai_value;
+
+			ai_ptr++;
 		}
 
 		ai_value_array[i]
 			= sum[i] / MXI_NUVANT_EZSTAT_NUM_AI_MEASUREMENTS;
+
+		MX_DEBUG(-2,("%s: ai_value_array[%lu] = %g",
+			fname, i, ai_value_array[i]));
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -496,7 +623,7 @@ mxi_nuvant_ezstat_set_binary_range( MX_NUVANT_EZSTAT *ezstat,
 	digital_write_array[0] = pin_values;
 
 	daqmx_status = DAQmxWriteDigitalU32( doutput_task_handle,
-					1, FALSE, 1.0,
+					1, TRUE, 1.0,
 					DAQmx_Val_GroupByChannel,
 					digital_write_array,
 					&samples_written, NULL );

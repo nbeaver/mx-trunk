@@ -36,6 +36,8 @@ typedef struct {
 	MX_RECORD *ni_daqmx_record;
 	char device_name[MXU_NUVANT_DEVICE_NAME_LENGTH+1];
 
+	mx_bool_type show_parameters;
+
 	mx_bool_type cell_on;
 
 	unsigned long ezstat_mode;
@@ -51,6 +53,8 @@ typedef struct {
 
 } MX_NUVANT_EZSTAT;
 
+#define MXLV_NUVANT_EZSTAT_SHOW_PARAMETERS	31001
+
 #define MXI_NUVANT_EZSTAT_STANDARD_FIELDS \
   {-1, -1, "ni_daqmx_record", MXFT_RECORD, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NUVANT_EZSTAT, ni_daqmx_record), \
@@ -58,11 +62,18 @@ typedef struct {
   \
   {-1, -1, "device_name", MXFT_STRING, NULL, 1,{MXU_NUVANT_DEVICE_NAME_LENGTH},\
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NUVANT_EZSTAT, device_name), \
-	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION }
+	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {MXLV_NUVANT_EZSTAT_SHOW_PARAMETERS, -1, "show_parameters", \
+		MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_NUVANT_EZSTAT, show_parameters), \
+	{0}, NULL, 0 }
 
 MX_API mx_status_type mxi_nuvant_ezstat_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxi_nuvant_ezstat_open( MX_RECORD *record );
+MX_API mx_status_type mxi_nuvant_ezstat_special_processing_setup(
+							MX_RECORD *record );
 
 extern MX_RECORD_FUNCTION_LIST mxi_nuvant_ezstat_record_function_list;
 
