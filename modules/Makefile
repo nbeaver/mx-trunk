@@ -31,9 +31,9 @@ all: build
 
 #MODULES += ni488		# linux,
 
-#MODULES += ni_daqmx		# linux, win32
+MODULES += ni_daqmx		# linux, win32
 
-#MODULES += nuvant_ezstat	# linux, win32
+MODULES += nuvant_ezstat	# linux, win32
 
 #MODULES += pmc_mcapi		# linux, win32
 
@@ -82,7 +82,7 @@ all: build
 #-------------------------------------------------------------------
 # EPICS modules.
 
-MODULES += epics
+#MODULES += epics
 
 #MODULES += epics_aps
 

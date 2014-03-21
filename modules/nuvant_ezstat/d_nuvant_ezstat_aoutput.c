@@ -230,6 +230,7 @@ mxd_nea_set_potentiostat_voltage( MX_ANALOG_OUTPUT *aoutput,
 	char voltage_channel_name[40];
 	int32 daqmx_status;
 	char daqmx_error_message[200];
+	double potentiostat_voltage;
 	uInt32 pin_values, potentiostat_binary_range;
 	uInt32 digital_write_array[1];
 	float64 voltage_write_array[1];
@@ -360,9 +361,20 @@ mxd_nea_set_potentiostat_voltage( MX_ANALOG_OUTPUT *aoutput,
 			(int) daqmx_status, daqmx_error_message );
 	}
 
-	/* Now write the actual voltage. */
+	/* See if the voltage is within the limits. */
 
-	voltage_write_array[0] = aoutput->raw_value.double_value;
+	potentiostat_voltage = aoutput->raw_value.double_value;
+
+	if ( potentiostat_voltage > 10.0 ) {
+		potentiostat_voltage = 10.0;
+	} else
+	if ( potentiostat_voltage < -10.0 ) {
+		potentiostat_voltage = -10.0;
+	}
+
+	/* Now write the voltage. */
+
+	voltage_write_array[0] = potentiostat_voltage;
 
 	daqmx_status = DAQmxWriteAnalogF64( voltage_task_handle,
 					1, FALSE, 1.0,
@@ -379,6 +391,192 @@ mxd_nea_set_potentiostat_voltage( MX_ANALOG_OUTPUT *aoutput,
 		"DAQmx task %#lx used by record '%s' failed.  "
 		"DAQmx error code = %d, error message = '%s'",
 			aoutput->raw_value.double_value,
+			(unsigned long) doutput_task_handle,
+			aoutput->record->name,
+			(int) daqmx_status, daqmx_error_message );
+	}
+
+	mx_status = mxi_nuvant_ezstat_shutdown_task( voltage_task_handle );
+
+	return mx_status;
+}
+
+/*-----------------------------------------------------------------------*/
+
+static mx_status_type
+mxd_nea_set_galvanostat_current( MX_ANALOG_OUTPUT *aoutput,
+				MX_NUVANT_EZSTAT_AOUTPUT *ezstat_aoutput,
+				MX_NUVANT_EZSTAT *ezstat )
+{
+	static const char fname[] = "mxd_nea_set_galvanostat_current()";
+
+	TaskHandle doutput_task_handle, voltage_task_handle;
+	char doutput_channel_names[200];
+	char voltage_channel_name[40];
+	int32 daqmx_status;
+	char daqmx_error_message[200];
+	double galvanostat_current, output_voltage;
+	uInt32 pin_values, galvanostat_binary_range;
+	uInt32 digital_write_array[1];
+	float64 voltage_write_array[1];
+	uInt32 samples_written;
+	mx_status_type mx_status;
+
+	/* First, we must setup the digital control pins correctly.
+	 * 
+	 * We set up the following array of digital output channels:
+	 * Bit 0 = P0.0 (cell enable)
+	 * Bit 1 = P0.1 (external switch)
+	 * Bit 2 = P1.0 (select galvanostat or potentiostat mode)
+	 * Bit 3 = P1.1 (bits 1 and 2 select the galvanostat current range)
+	 * Bit 4 = P1.2
+	 * Bit 5 = P1.5 (controls sample and hold circuit for range changes)
+	 */
+
+	mx_status = mxi_nuvant_ezstat_create_task(
+				"ezstat_configure_galvanostat_bits",
+				&doutput_task_handle );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	snprintf( doutput_channel_names, sizeof(doutput_channel_names),
+	"%s/port0/line0:1,%s/port1/line0:2,%s/port1/line5",
+		ezstat->device_name, ezstat->device_name, ezstat->device_name );
+
+	daqmx_status = DAQmxCreateDOChan( doutput_task_handle,
+					doutput_channel_names, NULL,
+					DAQmx_Val_ChanForAllLines );
+
+	if ( daqmx_status != 0 ) {
+		DAQmxGetExtendedErrorInfo( daqmx_error_message,
+					sizeof(daqmx_error_message) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"The attempt to associate digital I/O pins '%s' for "
+		"galvanostat current output '%s' with DAQmx task %#lx failed."
+		"  DAQmx error code = %d, error message = '%s'",
+			doutput_channel_names,
+			aoutput->record->name,
+			(unsigned long) doutput_task_handle,
+			(int) daqmx_status, daqmx_error_message );
+	}
+
+	mx_status = mxi_nuvant_ezstat_start_task( doutput_task_handle );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Construct the value to send to the digital I/O pins. */
+
+	pin_values = 0x1;	/* Cell enable selected.  All others clear. */
+
+	galvanostat_binary_range = ezstat->galvanostat_binary_range;
+
+	/*** Replace bits 3 and 4 with the galvanostat current range. ***/
+
+	/* Mask off bits 3 and 4. */
+	pin_values &= (~ 0x18);
+
+	/* Mask off all but the two low order bits */
+	galvanostat_binary_range &= 0x3;
+
+	/* Replace bits 3 and 4 with the potentiostat range bits. */
+	pin_values |= ( galvanostat_binary_range << 3 );
+
+	digital_write_array[0] = pin_values;
+
+	/* Send the bit values to the I/O pins. */
+
+	daqmx_status = DAQmxWriteDigitalU32( doutput_task_handle,
+					1, FALSE, 1.0,
+					DAQmx_Val_GroupByChannel,
+					digital_write_array,
+					&samples_written, NULL );
+
+	if ( daqmx_status != 0 ) {
+		DAQmxGetExtendedErrorInfo( daqmx_error_message,
+					sizeof(daqmx_error_message) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"The attempt to write the digital output samples for "
+		"DAQmx task %#lx used by record '%s' failed.  "
+		"DAQmx error code = %d, error message = '%s'",
+			(unsigned long) doutput_task_handle,
+			aoutput->record->name,
+			(int) daqmx_status, daqmx_error_message );
+	}
+
+	/* We are done with the digital output task, so get rid of it. */
+
+	mx_status = mxi_nuvant_ezstat_shutdown_task( doutput_task_handle );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Now we send the galvanostat output current. */
+
+	mx_status = mxi_nuvant_ezstat_create_task(
+				"ezstat_set_galvanostat_current",
+				&voltage_task_handle );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	snprintf( voltage_channel_name, sizeof(voltage_channel_name),
+		"%s/ao0", ezstat->device_name );
+
+	daqmx_status = DAQmxCreateAOVoltageChan( voltage_task_handle,
+						voltage_channel_name, NULL,
+						-10.0, 10.0,
+						DAQmx_Val_Volts, NULL );
+
+	if ( daqmx_status != 0 ) {
+		DAQmxGetExtendedErrorInfo( daqmx_error_message,
+					sizeof(daqmx_error_message) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"The attempt to associate analog output pin '%s' for "
+		"galvanostat current output '%s' with DAQmx task %#lx failed."
+		"  DAQmx error code = %d, error message = '%s'",
+			voltage_channel_name,
+			aoutput->record->name,
+			(unsigned long) voltage_task_handle,
+			(int) daqmx_status, daqmx_error_message );
+	}
+
+	/* Compute the output voltage from the requested galvanostat current. */
+
+	galvanostat_current = aoutput->raw_value.double_value;
+
+	output_voltage = galvanostat_current * ezstat->galvanostat_resistance;
+
+	if ( output_voltage > 10.0 ) {
+		output_voltage = 10.0;
+	} else
+	if ( output_voltage < -10.0 ) {
+		output_voltage = -10.0;
+	}
+
+	/* Now write the voltage. */
+
+	voltage_write_array[0] = output_voltage;
+
+	daqmx_status = DAQmxWriteAnalogF64( voltage_task_handle,
+					1, FALSE, 1.0,
+					DAQmx_Val_GroupByChannel,
+					voltage_write_array,
+					&samples_written, NULL );
+
+	if ( daqmx_status != 0 ) {
+		DAQmxGetExtendedErrorInfo( daqmx_error_message,
+					sizeof(daqmx_error_message) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"The attempt to write the galvanostat current %g for "
+		"DAQmx task %#lx used by record '%s' failed.  "
+		"DAQmx error code = %d, error message = '%s'",
+			galvanostat_current,
 			(unsigned long) doutput_task_handle,
 			aoutput->record->name,
 			(int) daqmx_status, daqmx_error_message );
@@ -415,6 +613,9 @@ mxd_nuvant_ezstat_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 							ezstat );
 		break;
 	case MXT_NUVANT_EZSTAT_AOUTPUT_GALVANOSTAT_CURRENT:
+		mx_status = mxd_nea_set_galvanostat_current( aoutput,
+							ezstat_aoutput,
+							ezstat );
 		break;
 	case MXT_NUVANT_EZSTAT_AOUTPUT_POTENTIOSTAT_CURRENT_RANGE:
 		mx_status = mxi_nuvant_ezstat_set_current_range( ezstat,

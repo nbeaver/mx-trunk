@@ -223,7 +223,8 @@ mxd_nuvant_ezstat_doutput_read( MX_DIGITAL_OUTPUT *doutput )
 
 	switch( ezstat_doutput->output_type ) {
 	case MXT_NUVANT_EZSTAT_DOUTPUT_CELL_ENABLE:
-		/* For this case, we just return the value that is
+	case MXT_NUVANT_EZSTAT_DOUTPUT_EXTERNAL_SWITCH:
+		/* For these cases, we just return the value that is
 		 * already in doutput->value.
 		 */
 		break;
@@ -265,6 +266,10 @@ mxd_nuvant_ezstat_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 	case MXT_NUVANT_EZSTAT_DOUTPUT_CELL_ENABLE:
 		snprintf( channel_names, sizeof(channel_names),
 			"%s/port0/line0", ezstat->device_name );
+		break;
+	case MXT_NUVANT_EZSTAT_DOUTPUT_EXTERNAL_SWITCH:
+		snprintf( channel_names, sizeof(channel_names),
+			"%s/port0/line1", ezstat->device_name );
 		break;
 	case MXT_NUVANT_EZSTAT_DOUTPUT_MODE_SELECT:
 		if ( doutput->value == 0 ) {
