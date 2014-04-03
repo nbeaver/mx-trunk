@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2006-2008, 2011-2012 Illinois Institute of Technology
+ * Copyright 2006-2008, 2011-2012, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -135,8 +135,10 @@
 
 #if ( MX_PROGRAM_MODEL == MX_PROGRAM_MODEL_LLP64 )
 #  define MX_WORDSIZE		32
+#  define MX_POINTER_SIZE	64
 #else
 #  define MX_WORDSIZE		( MX_PROGRAM_MODEL & ~0xf )
+#  define MX_POINTER_SIZE	MX_WORDSIZE
 #endif
 
 #endif /* __MX_PROGRAM_MODEL_H__ */

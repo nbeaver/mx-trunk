@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2008, 2010, 2013 Illinois Institute of Technology
+ * Copyright 1999-2008, 2010, 2013-4 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -307,7 +307,7 @@ typedef struct {
 #define MXLV_MTR_SAVE_START_POSITIONS			1036
 #define MXLV_MTR_USE_START_POSITIONS			1037
 
-#define MXLV_MTR_VALUE_CHANGED_THRESHOLD		3001
+#define MXLV_MTR_VALUE_CHANGE_THRESHOLD			3001
 
 #define MXLV_MTR_AXIS_ENABLE				4001
 #define MXLV_MTR_CLOSED_LOOP				4002
@@ -382,7 +382,7 @@ typedef struct {
 	{0}, NULL, 0}
 
 #define MX_MOTOR_STANDARD_FIELDS \
-  {MXLV_MTR_VALUE_CHANGED_THRESHOLD, -1, "value_change_threshold", \
+  {MXLV_MTR_VALUE_CHANGE_THRESHOLD, -1, "value_change_threshold", \
   						MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, value_change_threshold),\
 	{0}, NULL, 0}, \

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2007, 2010, 2012-2013
+ * Copyright 1999-2004, 2006-2007, 2010, 2012-2014
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -441,7 +441,7 @@ mx_setup_motor_process_functions( MX_RECORD *record )
 		case MXLV_MTR_LAST_START_TIME:
 		case MXLV_MTR_SAVE_START_POSITIONS:
 
-		case MXLV_MTR_VALUE_CHANGED_THRESHOLD:
+		case MXLV_MTR_VALUE_CHANGE_THRESHOLD:
 
 		case MXLV_MTR_AXIS_ENABLE:
 		case MXLV_MTR_CLOSED_LOOP:
@@ -820,7 +820,7 @@ mx_motor_process_function( void *record_ptr,
 					MXLV_MTR_EXTRA_GAIN,
 					motor->extra_gain );
 			break;
-		case MXLV_MTR_VALUE_CHANGED_THRESHOLD:
+		case MXLV_MTR_VALUE_CHANGE_THRESHOLD:
 			{
 				MX_RECORD_FIELD *position_field;
 
