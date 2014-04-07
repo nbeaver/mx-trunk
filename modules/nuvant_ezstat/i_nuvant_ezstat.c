@@ -502,8 +502,7 @@ mxi_nuvant_ezstat_set_binary_range( MX_NUVANT_EZSTAT *ezstat,
 	char doutput_channel_names[200];
 	int32 daqmx_status;
 	char daqmx_error_message[200];
-	uInt32 pin_values;
-	uInt32 digital_write_array[1];
+	uInt32 pin_value_array[4];
 	uInt32 samples_written;
 	mx_status_type mx_status;
 
@@ -596,11 +595,17 @@ mxi_nuvant_ezstat_set_binary_range( MX_NUVANT_EZSTAT *ezstat,
 
 	/* Construct the value to send to the digital I/O pins. */
 
-	pin_values = 0x1;			/* Cell enable selected. */
+	if ( ezstat_mode == MXF_NUVANT_EZSTAT_POTENTIOSTAT_MODE ) {
+		pin_value_array[0] = 0;
+	} else {
+		pin_value_array[0] = 1;
+	}
 
-	pin_values |= ( binary_range << 1 );	/* Select the current range. */
+	pin_value_array[1] = ( binary_range & 0x1 );
 
-	pin_values = 0x8;	/* Enable range change with /port1/line5. */
+	pin_value_array[2] = ( binary_range & 0x2 ) >> 1;
+
+	pin_value_array[3] = 1;	/* Enable range change with /port1/line5. */
 
 	daqmx_status = DAQmxCreateDOChan( doutput_task_handle,
 					doutput_channel_names, NULL,
@@ -620,12 +625,10 @@ mxi_nuvant_ezstat_set_binary_range( MX_NUVANT_EZSTAT *ezstat,
 			(int) daqmx_status, daqmx_error_message );
 	}
 
-	digital_write_array[0] = pin_values;
-
 	daqmx_status = DAQmxWriteDigitalU32( doutput_task_handle,
 					1, TRUE, 1.0,
 					DAQmx_Val_GroupByChannel,
-					digital_write_array,
+					pin_value_array,
 					&samples_written, NULL );
 
 	if ( daqmx_status != 0 ) {

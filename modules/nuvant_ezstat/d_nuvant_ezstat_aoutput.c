@@ -231,8 +231,8 @@ mxd_nea_set_potentiostat_voltage( MX_ANALOG_OUTPUT *aoutput,
 	int32 daqmx_status;
 	char daqmx_error_message[200];
 	double potentiostat_voltage;
-	uInt32 pin_values, potentiostat_binary_range;
-	uInt32 digital_write_array[1];
+	uInt32 potentiostat_binary_range;
+	uInt32 pin_value_array[6];
 	float64 voltage_write_array[1];
 	uInt32 samples_written;
 	mx_status_type mx_status;
@@ -283,31 +283,28 @@ mxd_nea_set_potentiostat_voltage( MX_ANALOG_OUTPUT *aoutput,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Construct the value to send to the digital I/O pins. */
+	/* Construct the values to send to the digital I/O pins. */
 
-	pin_values = 0x1;	/* Cell enable selected.  All others clear. */
+	pin_value_array[0] = 0x1;	/* Cell enable selected. */
+
+	pin_value_array[1] = 0;		/* External switch off. */
+
+	pin_value_array[2] = 0;		/* Potentiostat mode. */
 
 	potentiostat_binary_range = ezstat->potentiostat_binary_range;
 
-	/*** Replace bits 3 and 4 with the potentiostat current range. ***/
+	pin_value_array[3] = ( potentiostat_binary_range & 0x1 );
 
-	/* Mask off bits 3 and 4. */
-	pin_values &= (~ 0x18);
+	pin_value_array[4] = ( potentiostat_binary_range & 0x2 ) >> 1;
 
-	/* Mask off all but the two low order bits */
-	potentiostat_binary_range &= 0x3;
-
-	/* Replace bits 3 and 4 with the potentiostat range bits. */
-	pin_values |= ( potentiostat_binary_range << 3 );
-
-	digital_write_array[0] = pin_values;
+	pin_value_array[5] = 1;		/* Enable range change. */
 
 	/* Send the bit values to the I/O pins. */
 
 	daqmx_status = DAQmxWriteDigitalU32( doutput_task_handle,
 					1, TRUE, 1.0,
 					DAQmx_Val_GroupByChannel,
-					digital_write_array,
+					pin_value_array,
 					&samples_written, NULL );
 
 	if ( daqmx_status != 0 ) {
@@ -416,8 +413,8 @@ mxd_nea_set_galvanostat_current( MX_ANALOG_OUTPUT *aoutput,
 	int32 daqmx_status;
 	char daqmx_error_message[200];
 	double galvanostat_current, output_voltage;
-	uInt32 pin_values, galvanostat_binary_range;
-	uInt32 digital_write_array[1];
+	uInt32 galvanostat_binary_range;
+	uInt32 pin_value_array[6];
 	float64 voltage_write_array[1];
 	uInt32 samples_written;
 	mx_status_type mx_status;
@@ -469,29 +466,26 @@ mxd_nea_set_galvanostat_current( MX_ANALOG_OUTPUT *aoutput,
 
 	/* Construct the value to send to the digital I/O pins. */
 
-	pin_values = 0x1;	/* Cell enable selected.  All others clear. */
+	pin_value_array[0] = 0x1;	/* Cell enable selected. */
+
+	pin_value_array[1] = 0;		/* External switch off. */
+
+	pin_value_array[2] = 1;		/* Galvanostat mode. */
 
 	galvanostat_binary_range = ezstat->galvanostat_binary_range;
 
-	/*** Replace bits 3 and 4 with the galvanostat current range. ***/
+	pin_value_array[3] = ( galvanostat_binary_range & 0x1 );
 
-	/* Mask off bits 3 and 4. */
-	pin_values &= (~ 0x18);
+	pin_value_array[4] = ( galvanostat_binary_range & 0x2 ) >> 1;
 
-	/* Mask off all but the two low order bits */
-	galvanostat_binary_range &= 0x3;
-
-	/* Replace bits 3 and 4 with the potentiostat range bits. */
-	pin_values |= ( galvanostat_binary_range << 3 );
-
-	digital_write_array[0] = pin_values;
+	pin_value_array[5] = 1;		/* Enable range change. */
 
 	/* Send the bit values to the I/O pins. */
 
 	daqmx_status = DAQmxWriteDigitalU32( doutput_task_handle,
 					1, TRUE, 1.0,
 					DAQmx_Val_GroupByChannel,
-					digital_write_array,
+					pin_value_array,
 					&samples_written, NULL );
 
 	if ( daqmx_status != 0 ) {
