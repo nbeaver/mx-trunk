@@ -16,7 +16,7 @@ include ../../libMx/Makehead.$(MX_ARCH)
 CFLAGS += -I../../libMx -D__MX_LIBRARY__ -DIS_MX_DRIVER
 
 SITE_BIOCAT_TOAST_OBJS = site_biocat_toast.$(OBJ) \
-			v_biocat_toast_joystick.$(OBJ)
+			v_biocat_6k_joystick.$(OBJ)
 
 #--------------------------------------------------------------------------
 
@@ -52,12 +52,11 @@ endif
 
 #--------------------------------------------------------------------------
 
-site_biocat_toast.$(OBJ): site_biocat_toast.c v_biocat_toast_joystick.h
+site_biocat_toast.$(OBJ): site_biocat_toast.c v_biocat_6k_joystick.h
 	$(COMPILE) $(CFLAGS) site_biocat_toast.c
 
-v_biocat_toast_joystick.$(OBJ): v_biocat_toast_joystick.c \
-					v_biocat_toast_joystick.h
-	$(COMPILE) $(CFLAGS) v_biocat_toast_joystick.c
+v_biocat_6k_joystick.$(OBJ): v_biocat_6k_joystick.c v_biocat_6k_joystick.h
+	$(COMPILE) $(CFLAGS) v_biocat_6k_joystick.c
 
 install: site_biocat_toast.mxo
 	-mkdir $(MX_INSTALL_DIR)/lib/modules

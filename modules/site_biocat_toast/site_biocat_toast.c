@@ -1,14 +1,14 @@
 /*
  * Name:    site_biocat_toast.c
  *
- * Purpose: Module wrapper for custom additions for RDI detectors
- *          at the Molecular Biology Consortium.
+ * Purpose: Module wrapper for BioCAT-specific drivers used with the
+ *          18-ID Compumotor 6K "toast" motors.
  *
  * Author:  William Lavender
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013 Illinois Institute of Technology
+ * Copyright 2013-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,16 +24,16 @@
 #include "mx_variable.h"
 #include "mx_operation.h"
 
-#include "v_biocat_toast_joystick.h"
+#include "v_biocat_6k_joystick.h"
 
 MX_DRIVER site_biocat_toast_driver_table[] = {
 
-{"biocat_toast_joystick", -1, MXV_SPECIAL, MXR_VARIABLE,
-		&mxv_biocat_toast_joystick_record_function_list,
+{"biocat_6k_joystick", -1, MXV_SPECIAL, MXR_VARIABLE,
+		&mxv_biocat_6k_joystick_record_function_list,
 		NULL,
 		NULL,
-		&mxv_biocat_toast_joystick_num_record_fields,
-		&mxv_biocat_toast_joystick_rfield_def_ptr},
+		&mxv_biocat_6k_joystick_num_record_fields,
+		&mxv_biocat_6k_joystick_rfield_def_ptr},
 
 {"", 0, 0, 0, NULL, NULL, NULL, NULL, NULL}
 };
