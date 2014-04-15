@@ -2458,7 +2458,7 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-#if 1
+#if 0
 			{
 				double actual_position;
 

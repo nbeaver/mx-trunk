@@ -2140,30 +2140,32 @@ mx_area_detector_arm( MX_RECORD *record )
 	 */
 
 	if ( ad->image_log_file != (FILE *) NULL ) {
-		unsigned long first_datafile_number;
-		long num_exposures;
-		char timestamp[40];
+		if ( ad->correction_measurement_in_progress == FALSE ) {
+			unsigned long first_datafile_number;
+			long num_exposures;
+			char timestamp[40];
 
-		ad->image_log_error_seen = FALSE;
+			ad->image_log_error_seen = FALSE;
 
-		first_datafile_number = ad->datafile_number + 1;
+			first_datafile_number = ad->datafile_number + 1;
 
-		mx_status = mx_area_detector_get_num_exposures( record,
-							&num_exposures );
+			mx_status = mx_area_detector_get_num_exposures(
+						record, &num_exposures );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
-		mx_timestamp( timestamp, sizeof(timestamp) );
+			mx_timestamp( timestamp, sizeof(timestamp) );
 
-		fprintf( ad->image_log_file, "%s start %lu %ld %s/%s\n",
-			timestamp,
-			first_datafile_number,
-			num_exposures,
-			ad->datafile_directory,
-			ad->datafile_pattern );
+			fprintf( ad->image_log_file, "%s start %lu %ld %s/%s\n",
+				timestamp,
+				first_datafile_number,
+				num_exposures,
+				ad->datafile_directory,
+				ad->datafile_pattern );
 
-		fflush( ad->image_log_file );
+			fflush( ad->image_log_file );
+		}
 	}
 
 	/* Arm the area detector. */
