@@ -58,7 +58,7 @@
 # mx/module/epics/Makefile.config.
 #
 
-MX_ARCH = linux
+MX_ARCH = hurd
 
 MX_INSTALL_DIR = /opt/mx
 #MX_INSTALL_DIR = c:/opt/mx

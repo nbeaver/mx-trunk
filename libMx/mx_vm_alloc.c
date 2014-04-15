@@ -399,9 +399,9 @@ mx_vm_show_os_info( FILE *file,
  * later in this section of the file.
  */
 
-#elif defined(OS_LINUX) | defined(OS_MACOSX) | defined(OS_BSD) \
-	| defined(OS_SOLARIS) | defined(OS_UNIXWARE) | defined(OS_CYGWIN) \
-	| defined(OS_VMS)
+#elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_BSD) \
+	|| defined(OS_SOLARIS) || defined(OS_UNIXWARE) || defined(OS_CYGWIN) \
+	|| defined(OS_VMS) || defined(OS_HURD)
 
 #include <errno.h>
 #include <sys/mman.h>
@@ -535,7 +535,7 @@ mx_vm_set_protection( void *address,
 
 /*----- Platform-specific mx_vm_get_protection() for Posix platforms ------*/
 
-#  if defined(OS_LINUX) | defined(OS_CYGWIN)
+#  if defined(OS_LINUX) || defined(OS_CYGWIN)
 
 #  include <sys/mman.h>
 
@@ -1470,9 +1470,20 @@ mx_vm_get_protection( void *address,
 
 /*-------------------------------------------------------------------------*/
 
-#  elif 0
+#  elif defined(OS_HURD)
 
 #  define MX_VM_GET_PROTECTION_USES_STUB
+
+MX_EXPORT mx_status_type
+mx_vm_show_os_info( FILE *file,
+		void *address,
+		size_t region_size_in_bytes )
+{
+	static const char fname[] = "mx_vm_show_os_info()";
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+	"mx_vm_show_os_info() is not yet implemented on this platform." );
+}
 
 /*-------------------------------------------------------------------------*/
 #  else

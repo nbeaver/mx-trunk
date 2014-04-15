@@ -191,6 +191,25 @@ mx_get_number_of_cpu_cores( unsigned long *num_cores )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*---------------------------- Hurd ------------------------*/
+
+#elif defined(OS_HURD)
+
+MX_EXPORT mx_status_type
+mx_get_number_of_cpu_cores( unsigned long *num_cores )
+{
+	static const char fname[] = "mx_get_number_of_cpu_cores()";
+
+	if ( num_cores == (unsigned long *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The num_cores pointer passed was NULL." );
+	}
+
+	*num_cores = 1;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 #else
 #  error mx_get_number_of_cpu_cores() not yet implemented for this platform.
 #endif

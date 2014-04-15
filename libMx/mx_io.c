@@ -374,7 +374,7 @@ mx_get_file_size( const char *filename )
 	return file_size;
 }
 
-#elif defined(OS_LINUX) || defined(OS_MACOSX)
+#elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_HURD)
 
 MX_EXPORT int64_t
 mx_get_file_size( const char *filename )
