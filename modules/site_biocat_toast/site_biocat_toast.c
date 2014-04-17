@@ -24,9 +24,17 @@
 #include "mx_variable.h"
 #include "mx_operation.h"
 
+#include "o_biocat_6k_toast.h"
 #include "v_biocat_6k_joystick.h"
 
 MX_DRIVER site_biocat_toast_driver_table[] = {
+
+{"biocat_6k_toast", -1, MXO_OPERATION, MXR_OPERATION,
+		&mxo_biocat_6k_toast_record_function_list,
+		&mxo_biocat_6k_toast_operation_function_list,
+		NULL,
+		&mxo_biocat_6k_toast_num_record_fields,
+		&mxo_biocat_6k_toast_rfield_def_ptr},
 
 {"biocat_6k_joystick", -1, MXV_SPECIAL, MXR_VARIABLE,
 		&mxv_biocat_6k_joystick_record_function_list,
