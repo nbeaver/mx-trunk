@@ -15,7 +15,7 @@
  *
  */
 
-#define MXO_BIOCAT_6K_TOAST_DEBUG		FALSE
+#define MXO_BIOCAT_6K_TOAST_DEBUG		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -122,35 +122,44 @@ mxo_biocat_6k_toast_get_pointers( MX_OPERATION *operation,
 		}
 	}
 
+
 	compumotor_ptr = (MX_COMPUMOTOR *)motor_record->record_type_struct;
 
 	if ( compumotor_ptr == (MX_COMPUMOTOR *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_COMPUMOTOR pointer for record '%s' "
-		"used by operation '%s' is NULL.",
-			motor_record->name,
-			operation->record->name );
+			"The MX_COMPUMOTOR pointer for record '%s' "
+			"used by operation '%s' is NULL.",
+				motor_record->name,
+				operation->record->name );
 	}
 
 	if ( compumotor != (MX_COMPUMOTOR **) NULL ) {
 		*compumotor = compumotor_ptr;
 	}
 
-	compumotor_interface_record =
+	if ( compumotor_interface != (MX_COMPUMOTOR_INTERFACE **) NULL ) {
+
+		compumotor_interface_record =
 			compumotor_ptr->compumotor_interface_record;
 
-	if ( compumotor_interface_record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The compumotor_interface_record pointer for compumotor "
-		"record '%s' is NULL.", motor_record->name );
-	}
+		if ( compumotor_interface_record == (MX_RECORD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The compumotor_interface_record pointer for "
+			"compumotor record '%s' is NULL.",
+				motor_record->name );
+		}
 
-	if ( compumotor_interface == (MX_COMPUMOTOR_INTERFACE **) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_COMPUMOTOR_INTERFACE pointer for interface record '%s' "
-		"used by record '%s' is NULL.",
-			compumotor_interface_record->name,
-			motor_record->name );
+		*compumotor_interface = (MX_COMPUMOTOR_INTERFACE *)
+			compumotor_interface_record->record_type_struct;
+
+		if ((*compumotor_interface) == (MX_COMPUMOTOR_INTERFACE *) NULL)
+		{
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_COMPUMOTOR_INTERFACE pointer for record '%s' "
+			"used by operation '%s' is NULL.",
+				compumotor_interface_record->name,
+				operation->record->name );
+		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -291,6 +300,11 @@ mxo_biocat_6k_toast_get_status( MX_OPERATION *operation )
 		operation->status = 0;
 	}
 
+#if MXO_BIOCAT_6K_TOAST_DEBUG
+	MX_DEBUG(-2,("%s: motor '%s' status = %#lx, operation status = %#lx",
+	fname, motor->record->name, motor->status, operation->status));
+#endif
+
 	return mx_status;
 }
 
@@ -365,6 +379,7 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 
 	/* Construct the command to send to the controller. */
 
+#if 0
 	snprintf( command, sizeof(command),
 		"%ld_!WHILE(%ldAS=bX):%ldD%f:%s:%ldD%f:%s:NWHILE",
 			compumotor->controller_number,
@@ -373,9 +388,33 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 			high_6k_destination, go_cmd,
 			compumotor->axis_number,
 			low_6k_destination, go_cmd );
+#else
+	snprintf( command, sizeof(command),
+"%ld_WHILE(%ldAS=bX):%ldD%f:%s:WAIT(%ldAS.1=b0):%ldD%f:%s:WAIT(%ldAS.1=b0):NWHILE",
+			compumotor->controller_number,
+			compumotor->axis_number,
+			compumotor->axis_number,
+			high_6k_destination, go_cmd,
+			compumotor->axis_number,
+			compumotor->axis_number,
+			low_6k_destination, go_cmd,
+			compumotor->axis_number );
+#endif
+
+#if MXO_BIOCAT_6K_TOAST_DEBUG
+	MX_DEBUG(-2,("%s: sending '%s' to '%s'.",
+		fname, command, compumotor_interface->record->name));
+#endif
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
 					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		operation->status = MXSF_OP_FAULT;
+		return mx_status;
+	}
+
+	operation->status = MXSF_OP_BUSY;
 
 	return mx_status;
 }
@@ -398,10 +437,21 @@ mxo_biocat_6k_toast_stop( MX_OPERATION *operation )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXO_BIOCAT_6K_TOAST_DEBUG
+	MX_DEBUG(-2,("%s: stopping motor '%s'",
+		fname, toast->motor_record->name));
+#endif
+
 	mx_status = mx_motor_soft_abort( toast->motor_record );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	operation->status = 0;
+
+#if MXO_BIOCAT_6K_TOAST_DEBUG
+	MX_DEBUG(-2,("%s: operation->status = 0", fname));
+#endif
 
 	return mx_status;
 }
