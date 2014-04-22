@@ -255,6 +255,7 @@ extern "C" {
 #define MXI_CTRL_SIM900			461
 #define MXI_CTRL_I404			462
 #define MXI_CTRL_SYNACCESS_NETBOOTER	463
+#define MXI_CTRL_NEWPORT_XPS		464
 
 #define MXI_PIO_PORTIO			600
 #define MXI_PIO_DOS			601
@@ -503,6 +504,7 @@ extern "C" {
 #define MXT_MTR_LINKAM_T9X_MOTOR	50055
 
 #define MXT_MTR_SIM960			50057
+#define MXT_MTR_NEWPORT_XPS		50058
 
    /* Pseudomotors. */
 

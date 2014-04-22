@@ -190,6 +190,7 @@
 #include "i_ilm.h"
 #include "i_linkam_t9x.h"
 #include "i_sim900.h"
+#include "i_newport_xps.h"
 
 #include "d_ks3512.h"
 #include "d_ks3112.h"
@@ -299,6 +300,7 @@
 #include "d_linkam_t9x_motor.h"
 #include "d_linkam_t9x_temp.h"
 #include "d_sim960.h"
+#include "d_newport_xps.h"
 
 #include "d_energy.h"
 #include "d_wavelength.h"
@@ -736,6 +738,13 @@ MX_DRIVER mx_type_table[] = {
 				NULL,
 				&mxi_esp_num_record_fields,
 				&mxi_esp_rfield_def_ptr},
+
+{"newport_xps",    MXI_CTRL_NEWPORT_XPS, MXI_CONTROLLER,      MXR_INTERFACE,
+				&mxi_newport_xps_record_function_list,
+				NULL,
+				NULL,
+				&mxi_newport_xps_num_record_fields,
+				&mxi_newport_xps_rfield_def_ptr},
 
 {"pmac",           MXI_CTRL_PMAC,      MXI_CONTROLLER,        MXR_INTERFACE,
                                 &mxi_pmac_record_function_list,
@@ -2092,6 +2101,14 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_newport_motor_function_list,
 				&mxd_esp_num_record_fields,
 				&mxd_esp_rfield_def_ptr},
+
+
+{"newport_xps_motor", MXT_MTR_NEWPORT_XPS, MXC_MOTOR,     MXR_DEVICE,
+				&mxd_newport_xps_record_function_list,
+				NULL,
+				&mxd_newport_xps_motor_function_list,
+				&mxd_newport_xps_num_record_fields,
+				&mxd_newport_xps_rfield_def_ptr},
 
 
 {"dac_motor",      MXT_MTR_DAC_MOTOR, MXC_MOTOR,          MXR_DEVICE,
