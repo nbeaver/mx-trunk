@@ -797,6 +797,7 @@ mx_make_directory_hierarchy( char *directory_name )
 	struct stat stat_struct;
 	int os_status, saved_errno;
 	size_t chars_to_copy, chars_used, strlcat_limit;
+	mx_status_type mx_status;
 
 	enum {
 		searching_for_directory = 1,
@@ -862,6 +863,21 @@ mx_make_directory_hierarchy( char *directory_name )
 			fname, copy_of_directory_name,
 			saved_errno, strerror(saved_errno) ));
 #endif
+
+	switch( saved_errno ) {
+	case EACCES:
+		mx_status = mx_error( MXE_PERMISSION_DENIED, fname,
+		"MX does not have permission to create new files "
+		"in the directory '%s'.",
+			copy_of_directory_name );
+
+		mx_free( copy_of_directory_name );
+
+		return mx_status;
+		break;
+	default:
+		break;
+	}
 
 	/* If we get here, then we have been instructed by the flag variable
 	 * to attempt to create the directory that was requested by the user.

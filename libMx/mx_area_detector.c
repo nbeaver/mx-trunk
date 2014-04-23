@@ -2140,7 +2140,9 @@ mx_area_detector_arm( MX_RECORD *record )
 	 */
 
 	if ( ad->image_log_file != (FILE *) NULL ) {
-		if ( ad->correction_measurement_in_progress == FALSE ) {
+		if ( ( ad->correction_measurement_in_progress == FALSE )
+		  && ( ad_flags & MXF_AD_SAVE_FRAME_AFTER_ACQUISITION ) )
+		{
 			unsigned long first_datafile_number;
 			long num_exposures;
 			char timestamp[40];
