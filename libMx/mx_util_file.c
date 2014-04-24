@@ -159,7 +159,9 @@ mx_copy_file( char *existing_filename,
 
 	linux_version = mx_get_linux_version();
 
+#if 0
 	MX_DEBUG(-2,("mx_copy_file(): linux_version = %lu", linux_version));
+#endif
 
 	if ( linux_version < 2006017L ) {
 		mx_status = mx_copy_file_classic( existing_filename,
@@ -678,15 +680,15 @@ mx_get_current_directory_name( char *filename_buffer,
  */
 
 MX_EXPORT mx_status_type
-mx_change_filename_prefix( char *old_filename,
-			char *old_filename_prefix,
-			char *new_filename_prefix,
+mx_change_filename_prefix( const char *old_filename,
+			const char *old_filename_prefix,
+			const char *new_filename_prefix,
 			char *new_filename,
 			size_t max_new_filename_length )
 {
 	static const char fname[] = "mx_change_filename_prefix()";
 
-	char *old_filename_ptr;
+	const char *old_filename_ptr;
 	size_t old_prefix_length, new_prefix_length;
 	char end_char;
 
@@ -778,6 +780,122 @@ mx_change_filename_prefix( char *old_filename,
 	MX_DEBUG(-2,("%s: new_filename_prefix = '%s'",
 					fname, new_filename_prefix));
 	MX_DEBUG(-2,("%s: new_filename = '%s'", fname, new_filename));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*=========================================================================*/
+
+MX_EXPORT mx_status_type
+mx_construct_file_name_from_file_pattern( char *filename_buffer,
+					size_t filename_buffer_size,
+					const char filename_pattern_char,
+					unsigned long file_number,
+					const char *filename_pattern )
+{
+	static const char fname[] =
+		"mx_construct_file_name_from_file_pattern()";
+
+	char *start_of_varying_number, *trailing_segment;
+	unsigned long length_of_varying_number;
+	unsigned long length_of_leading_segment;
+	char filename_pattern_string[2];
+	char file_number_string[200];
+	char format[20];
+
+#if 0
+	MX_DEBUG(-2,("%s: filename_pattern_char = '%c'",
+				fname, filename_pattern_char));
+	MX_DEBUG(-2,("%s: file_number = %lu", fname, file_number));
+	MX_DEBUG(-2,("%s: filename_pattern = '%s'", fname, filename_pattern));
+#endif
+
+	if ( filename_buffer == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The filename_buffer pointer passed was NULL." );
+	}
+	if ( filename_buffer_size == 0 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The specified filename buffer size is 0." );
+	}
+	if ( filename_pattern == (const char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The file_pattern pointer passed was NULL." );
+	}
+
+	filename_pattern_string[0] = filename_pattern_char;
+	filename_pattern_string[1] = '\0';
+
+	/* Look for the start of the varying number in the filename pattern. */
+
+	start_of_varying_number = strchr( filename_pattern,
+					filename_pattern_char );
+
+	/* If there is no varying part, then copy the pattern to the filename
+	 * and then return.
+	 */
+
+	if ( start_of_varying_number == NULL ) {
+		strlcpy( filename_buffer, filename_pattern,
+				filename_buffer_size );
+#if 0
+		MX_DEBUG(-2,("%s: Using filename pattern as the filename '%s'.",
+			fname, filename_buffer ));
+#endif
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	length_of_leading_segment =
+		start_of_varying_number - filename_pattern + 1;
+
+	/* How long is the varying number? */
+
+	length_of_varying_number = strspn( start_of_varying_number,
+						filename_pattern_string );
+
+	if ( length_of_varying_number <= 0 ) {
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"The length of the varying number is %lu in the "
+		"filename pattern '%s', even though the the "
+		"filename pattern char '%c' was found.  "
+		"It should be impossible for this to happen.",
+			length_of_varying_number,
+			filename_pattern,
+			filename_pattern_char );
+	}
+
+	/* Construct the new varying part of the string. */
+
+	snprintf( format, sizeof(format),
+		"%%0%lulu", length_of_varying_number );
+
+	snprintf( file_number_string, sizeof(file_number_string),
+		format, file_number );
+
+	/* Protect against buffer overflows. */
+
+	if ( length_of_leading_segment > filename_buffer_size ) {
+		mx_warning( "The filename for file number %lu and "
+		"file pattern '%s' will be truncated, since it does not "
+		"fit into the provided buffer.",
+			file_number, filename_pattern );
+
+		length_of_leading_segment = filename_buffer_size;
+	}
+
+	/* Construct the new filename. */
+
+	strlcpy( filename_buffer, filename_pattern, length_of_leading_segment );
+
+	strlcat( filename_buffer, file_number_string, filename_buffer_size );
+
+	trailing_segment = start_of_varying_number + length_of_varying_number;
+
+	strlcat( filename_buffer, trailing_segment, filename_buffer_size );
+
+#if 0
+	MX_DEBUG(-2,("%s: filename_buffer = '%s'", fname, filename_buffer));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;

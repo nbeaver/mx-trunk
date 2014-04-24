@@ -6377,6 +6377,10 @@ mx_area_detector_initialize_datafile_number( MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/* FIXME: The following should be rewritten to use the generic function
+ *        mx_construct_file_name_from_file_pattern().
+ */
+
 MX_EXPORT mx_status_type
 mx_area_detector_construct_next_datafile_name(
 				MX_RECORD *record,

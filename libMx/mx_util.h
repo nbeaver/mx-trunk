@@ -820,11 +820,18 @@ MX_API mx_status_type mx_skip_num_lines_in_file( FILE *file,
 MX_API mx_status_type mx_get_current_directory_name( char *filename_buffer,
 						size_t max_filename_length );
 
-MX_API mx_status_type mx_change_filename_prefix( char *old_filename,
-						char *old_prefix,
-						char *new_prefix,
+MX_API mx_status_type mx_change_filename_prefix( const char *old_filename,
+						const char *old_prefix,
+						const char *new_prefix,
 						char *new_filename,
 						size_t max_new_filename_length);
+
+MX_API mx_status_type mx_construct_file_name_from_file_pattern(
+						char *filename_buffer,
+						size_t filename_buffer_size,
+						const char file_pattern_char,
+						unsigned long file_number,
+						const char *file_pattern );
 
 MX_API mx_status_type mx_make_directory_hierarchy( char *directory_name );
 
