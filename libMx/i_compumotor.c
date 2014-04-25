@@ -423,6 +423,7 @@ mxi_compumotor_open( MX_RECORD *record )
 	MX_RECORD *rs232_record;
 	MX_RS232 *rs232;
 	long i;
+	unsigned long interface_flags;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -479,9 +480,9 @@ mxi_compumotor_open( MX_RECORD *record )
 	 *     MA11111111
 	 */
 
-	if ( compumotor_interface->interface_flags
-		& MXF_COMPUMOTOR_AUTO_COMMUNICATION_CONFIG )
-	{
+	interface_flags = compumotor_interface->interface_flags;
+
+	if ( interface_flags & MXF_COMPUMOTOR_AUTO_COMMUNICATION_CONFIG ) {
 
 #if MXI_COMPUMOTOR_INTERFACE_DEBUG
 		MX_DEBUG(-2,
@@ -511,6 +512,13 @@ mxi_compumotor_open( MX_RECORD *record )
 		mx_status = mx_rs232_putline( rs232_record,
 					"!MA11111111", NULL,
 					MXI_COMPUMOTOR_INTERFACE_DEBUG );
+
+		if ( interface_flags & MXF_COMPUMOTOR_KILL_ON_STARTUP ) {
+			mx_status = mx_rs232_putline( rs232_record,
+					"!K", NULL,
+					MXI_COMPUMOTOR_INTERFACE_DEBUG );
+
+		}
 
 		/* If all went well, the controllers have been configured
 		 * to handshake correctly with the MX driver.  We discard

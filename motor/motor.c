@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2013 Illinois Institute of Technology
+ * Copyright 1999-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -227,7 +227,7 @@ motor_main( int argc, char *argv[] )
 	}
 #endif
 
-	cmd_set_program_name( "motor" );
+	cmd_set_program_name( "mxmotor" );
 
 	command_list_length = sizeof(command_list) / sizeof(COMMAND);
 

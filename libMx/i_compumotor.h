@@ -32,6 +32,8 @@
 /* Suppress comments in debugging output. */
 #define MXF_COMPUMOTOR_SUPPRESS_COMMENTS		0x1000
 
+#define MXF_COMPUMOTOR_KILL_ON_STARTUP			0x80000000
+
 /* Flag values used by the compumotor_lin and compumotor_trans drivers. */
 
 #define MXF_COMPUMOTOR_SIMULTANEOUS_START		0x1
