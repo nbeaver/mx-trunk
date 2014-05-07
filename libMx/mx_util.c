@@ -1732,13 +1732,17 @@ mx_fgets( char *buffer, int buffer_size, FILE *stream )
 
 	ptr[ buffer_size - 1 ] = '\0';
 
-	/* Delete any trailing newline. */
+	/* Delete a trailing newline <NL> or <CR><NL> pair if present. */
 
 	length = strlen( ptr );
 
 	if ( length > 0 ) {
 		if ( ptr[ length - 1 ] == '\n' ) {
 			ptr[ length - 1 ] = '\0';
+
+			if ( ptr[ length - 2 ] == '\r' ) {
+				ptr[ length - 2 ] = '\0';
+			}
 		}
 	}
 
