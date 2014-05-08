@@ -35,7 +35,7 @@ MX_API mx_status_type mx_condition_variable_create(
 						MX_CONDITION_VARIABLE **cv );
 
 MX_API mx_status_type mx_condition_variable_destroy(
-						MX_CONDITION_VARIABLE **cv );
+						MX_CONDITION_VARIABLE *cv );
 
 MX_API mx_status_type mx_condition_variable_wait( MX_CONDITION_VARIABLE *cv,
 							MX_MUTEX *mutex );
