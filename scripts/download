@@ -1,0 +1,71 @@
+#! /bin/sh
+#
+#  Name: download
+#
+#  Author: William Lavender
+#
+#  This is a helper script for downloading a file from the URL
+#  specified on the command line.  It first tries to download
+#  the file using 'wget'.  If that fails, then it tries again
+#  with 'curl'.  If neither 'wget' or 'curl' are installed on
+#  this computer, then the script dies with an error.
+#
+
+if [ $# != 1 ]; then
+	echo "$0: Wrong number of parameters specified."
+	echo ""
+	echo "Usage: $0 'url'"
+	echo ""
+	echo "  where 'url' is the name of the file to be downloaded."
+	echo ""
+	exit 1
+fi
+
+URL=$1
+
+case ${URL} in
+*/)
+	echo "$0: URLs that end in a trailing slash are not supported."
+	echo "    This utility is intended to download a single file"
+	echo "    at a time, rather than an entire directory."
+	exit 1
+esac
+
+DIRNAME="`dirname ${URL}`/"
+FILENAME=`basename ${URL}`
+
+if [ -f ${FILENAME} ]; then
+	echo "${FILENAME} already downloaded."
+	exit 0
+fi
+
+MXDISCARD=`which wget`
+
+if [ $? = 0 ]; then
+	DOWNLOAD_CMD='wget'
+else
+    MXDISCARD=`which curl`
+
+    if [ $? = 0 ]; then
+        DOWNLOAD_CMD='curl'
+    else
+        echo "$0: Neither 'wget' or 'curl' are installed on" \
+		"this computer, so we cannot download files."
+        exit 1
+    fi
+fi
+
+if [ ${DOWNLOAD_CMD} = 'wget' ]; then
+    wget -O${FILENAME} ${URL}
+    STATUS="$?"
+    if [ $STATUS != 0 ]; then
+        rm ${FILENAME}
+    fi
+    exit ${STATUS}
+fi
+
+if [ ${DOWNLOAD_CMD} = 'curl' ]; then
+    curl -o${FILENAME} ${URL}
+    exit $?
+fi
+
