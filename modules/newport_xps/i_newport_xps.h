@@ -41,11 +41,11 @@ typedef struct {
   \
   {-1, -1, "username", MXFT_STRING, NULL, 1, {MXU_NEWPORT_USERNAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, username), \
-	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION }, \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_NO_ACCESS) }, \
   \
   {-1, -1, "password", MXFT_STRING, NULL, 1, {MXU_NEWPORT_PASSWORD_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, password), \
-	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION }
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_NO_ACCESS) }
 
 MX_API mx_status_type mxi_newport_xps_create_record_structures(
 						MX_RECORD *record );

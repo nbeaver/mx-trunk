@@ -14,7 +14,7 @@
 
 NEWPORT_XPS_SOURCE = ftp://download.newport.com/MotionControl/Current/MotionControllers/XPS-C/Software/Drivers/DLL/
 
-VENDOR_OBJS = XPS_C8_drivers.$(OBJ)
+VENDOR_OBJS = XPS_C8_drivers.$(OBJ) Socket.$(OBJ)
 
 #
 # Tested values of MX_ARCH:  linux
@@ -43,7 +43,7 @@ ifeq ($(MX_ARCH),linux)
 
 newport_xps.mxo: vendor_downloads $(NEWPORT_XPS_OBJS) $(VENDOR_OBJS)
 	$(CC) -shared -rdynamic -Wl,-soname,newport_xps.mxo \
-		-o newport_xps.mxo $(NEWPORT_XPS_OBJS)
+		-o newport_xps.mxo $(NEWPORT_XPS_OBJS) $(VENDOR_OBJS)
 
 endif
 
@@ -76,13 +76,18 @@ vendor_downloads:
 	../../scripts/download $(NEWPORT_XPS_SOURCE)/XPS_C8_drivers.h 
 	#
 	cat XPS_C8_drivers.cpp | sed s/^#typedef/typedef/ > tmp.sed
+	chmod 666 tmp.sed
 	mv tmp.sed XPS_C8_drivers.cpp
 	#
 	cat XPS_C8_drivers.h | sed s/^#typedef/typedef/ > tmp.sed
+	chmod 666 tmp.sed
 	mv tmp.sed XPS_C8_drivers.h
 	#
 	ln -sf XPS_C8_drivers.h xps_c8_drivers.h
 
 XPS_C8_drivers.$(OBJ):
 	$(COMPILE) XPS_C8_drivers.cpp
+
+Socket.$(OBJ):
+	$(COMPILE) Socket.cpp
 

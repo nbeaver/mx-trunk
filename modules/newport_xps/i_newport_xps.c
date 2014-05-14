@@ -86,6 +86,7 @@ mxi_newport_xps_open( MX_RECORD *record )
 	static const char fname[] = "mxi_newport_xps_open()";
 
 	MX_NEWPORT_XPS *newport_xps = NULL;
+	int xps_socket_id;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -99,6 +100,14 @@ mxi_newport_xps_open( MX_RECORD *record )
 		"MX_NEWPORT_XPS pointer for record '%s' is NULL.",
 			record->name );
 	}
+
+	/* Connect to the Newport XPS controller. */
+
+	xps_socket_id = TCP_ConnectToServer( newport_xps->hostname,
+						newport_xps->port_number,
+						5.0 );
+
+	MX_DEBUG(-2,("%s: xps_socket_id = %d", fname, xps_socket_id));
 
 	return MX_SUCCESSFUL_RESULT;
 }
