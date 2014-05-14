@@ -24,6 +24,10 @@
 #include "mx_rs232.h"
 #include "i_newport_xps.h"
 
+/* Vendor include file. */
+
+#include "XPS_C8_drivers.h"
+
 MX_RECORD_FUNCTION_LIST mxi_newport_xps_record_function_list = {
 	NULL,
 	mxi_newport_xps_create_record_structures,

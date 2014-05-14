@@ -14,11 +14,7 @@
 
 NEWPORT_XPS_SOURCE = ftp://download.newport.com/MotionControl/Current/MotionControllers/XPS-C/Software/Drivers/DLL/
 
-VENDOR_SRCS = XPS_C8_drivers.cpp XPS_C8_drivers.h Socket.cpp Socket.h
-
 VENDOR_OBJS = XPS_C8_drivers.$(OBJ)
-
-VENDOR_FLAGS = -Wno-strict-prototypes
 
 #
 # Tested values of MX_ARCH:  linux
@@ -61,7 +57,7 @@ install: newport_xps.mxo
 	cp newport_xps.mxo $(MX_INSTALL_DIR)/lib/modules
 
 clean:
-	-$(RM) *.mxo *.o *.obj *.exp *.ilk *.lib *.pdb *.manifest
+	-$(RM) *.mxo *.o *.obj *.exp *.ilk *.lib *.pdb *.manifest tmp.*
 
 distclean: clean
 	-$(RM) xps_c8_drivers.*
@@ -78,6 +74,13 @@ vendor_downloads:
 	../../scripts/download $(NEWPORT_XPS_SOURCE)/Socket.h 
 	../../scripts/download $(NEWPORT_XPS_SOURCE)/XPS_C8_drivers.cpp 
 	../../scripts/download $(NEWPORT_XPS_SOURCE)/XPS_C8_drivers.h 
+	#
+	cat XPS_C8_drivers.cpp | sed s/^#typedef/typedef/ > tmp.sed
+	mv tmp.sed XPS_C8_drivers.cpp
+	#
+	cat XPS_C8_drivers.h | sed s/^#typedef/typedef/ > tmp.sed
+	mv tmp.sed XPS_C8_drivers.h
+	#
 	ln -sf XPS_C8_drivers.h xps_c8_drivers.h
 
 XPS_C8_drivers.$(OBJ):

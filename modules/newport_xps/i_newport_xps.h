@@ -17,18 +17,38 @@
 #ifndef __I_NEWPORT_XPS_H__
 #define __I_NEWPORT_XPS_H__
 
+#define MXU_NEWPORT_USERNAME_LENGTH	40
+#define MXU_NEWPORT_PASSWORD_LENGTH	40
+
 typedef struct {
 	MX_RECORD *record;
 
-	MX_RECORD *rs232_record;
+	char hostname[MXU_HOSTNAME_LENGTH+1];
+	unsigned long port_number;
+
+	char username[MXU_NEWPORT_USERNAME_LENGTH+1];
+	char password[MXU_NEWPORT_PASSWORD_LENGTH+1];
 } MX_NEWPORT_XPS;
 
 #define MXI_NEWPORT_XPS_STANDARD_FIELDS \
-  {-1, -1, "rs232_record", MXFT_RECORD, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, rs232_record), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+  {-1, -1, "hostname", MXFT_STRING, NULL, 1, {MXU_HOSTNAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, hostname), \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "port_number", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, port_number), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "username", MXFT_STRING, NULL, 1, {MXU_NEWPORT_USERNAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, username), \
+	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {-1, -1, "password", MXFT_STRING, NULL, 1, {MXU_NEWPORT_PASSWORD_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, password), \
+	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION }
 
-MX_API mx_status_type mxi_newport_xps_create_record_structures( MX_RECORD *record );
+MX_API mx_status_type mxi_newport_xps_create_record_structures(
+						MX_RECORD *record );
 
 MX_API mx_status_type mxi_newport_xps_open( MX_RECORD *record );
 
