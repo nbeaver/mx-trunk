@@ -17,13 +17,13 @@
 #ifndef __D_NEWPORT_XPS_H__
 #define __D_NEWPORT_XPS_H__
 
-/* Values for the axis_number variable. */
+#define MXU_NEWPORT_XPS_POSITIONER_NAME_LENGTH  80
 
 typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *newport_xps_record;
-	unsigned long axis_number;
+	char positioner_name[MXU_NEWPORT_XPS_POSITIONER_NAME_LENGTH+1];
 } MX_NEWPORT_XPS_MOTOR;
 
 MX_API mx_status_type mxd_newport_xps_create_record_structures(
@@ -49,8 +49,9 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_newport_xps_rfield_def_ptr;
 		offsetof(MX_NEWPORT_XPS_MOTOR, newport_xps_record), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }, \
   \
-  {-1, -1, "axis_number", MXFT_HEX, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS_MOTOR, axis_number), \
-	{0}, NULL, MXFF_IN_DESCRIPTION }
+  {-1, -1, "positioner_name", MXFT_STRING, NULL, \
+				1, {MXU_NEWPORT_XPS_POSITIONER_NAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS_MOTOR, positioner_name), \
+	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION }
 
 #endif /* __D_NEWPORT_XPS_H__ */

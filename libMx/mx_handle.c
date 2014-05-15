@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2006, 2009 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004-2006, 2009, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -386,6 +386,48 @@ mx_get_pointer_from_handle( void **pointer,
 		"The pointer for handle %ld in handle table %p is NULL.",
 			handle, handle_table );
 	}
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_replace_handle( signed long handle, 
+		MX_HANDLE_TABLE *handle_table,
+		void *pointer )
+{
+	static const char fname[] = "mx_replace_handle()";
+
+	MX_HANDLE_STRUCT *handle_struct_array;
+	unsigned long array_size;
+
+	if ( handle_table == (MX_HANDLE_TABLE *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"MX_HANDLE_TABLE pointer is NULL." );
+	}
+	if ( pointer == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"NULL pointer argument passed." );
+	}
+
+	handle_struct_array = handle_table->handle_struct_array;
+
+	if ( handle_struct_array == (MX_HANDLE_STRUCT *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"handle_struct_array for handle table %p is NULL.",
+			handle_table );
+	}
+
+	array_size = handle_table->block_size * handle_table->num_blocks;
+
+	if ( (handle < 0) || (handle >= array_size) ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The requested handle %ld is outside the range of allowed "
+		"range of handle values (0-%lu) for handle table %p",
+			handle, array_size-1, handle_table );
+	}
+
+	handle_struct_array[ handle ].handle = handle;
+	handle_struct_array[ handle ].pointer = pointer;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 

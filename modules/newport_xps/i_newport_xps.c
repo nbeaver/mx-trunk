@@ -86,7 +86,12 @@ mxi_newport_xps_open( MX_RECORD *record )
 	static const char fname[] = "mxi_newport_xps_open()";
 
 	MX_NEWPORT_XPS *newport_xps = NULL;
-	int xps_socket_id;
+	int xps_status;
+	int controller_status_code;
+	char controller_status_string[200];
+	char firmware_version[200];
+	char hardware_date_and_time[200];
+	double elapsed_seconds_since_power_on;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -101,13 +106,66 @@ mxi_newport_xps_open( MX_RECORD *record )
 			record->name );
 	}
 
+	MX_DEBUG(-2,("%s: '%s'", fname, GetLibraryVersion() ));
+
 	/* Connect to the Newport XPS controller. */
 
-	xps_socket_id = TCP_ConnectToServer( newport_xps->hostname,
-						newport_xps->port_number,
-						5.0 );
+	newport_xps->socket_id = TCP_ConnectToServer(
+					newport_xps->hostname,
+					newport_xps->port_number,
+					5.0 );
 
-	MX_DEBUG(-2,("%s: xps_socket_id = %d", fname, xps_socket_id));
+	MX_DEBUG(-2,("%s: newport_xps->socket_id = %d",
+			fname, newport_xps->socket_id));
+
+	/* Login to the Newport XPS controller. */
+
+	xps_status = Login( newport_xps->socket_id,
+				newport_xps->username,
+				newport_xps->password );
+
+	MX_DEBUG(-2,("%s: Login() status = %d", fname, xps_status));
+
+	if ( xps_status == 0 ) {
+		MX_DEBUG(-2,("%s: Login() successfully completed.", fname));
+	} else {
+		MX_DEBUG(-2,("%s: Login() failed.", fname));
+	}
+
+	/*---*/
+
+	xps_status = FirmwareVersionGet( newport_xps->socket_id,
+					firmware_version );
+
+	MX_DEBUG(-2,("%s: firmware version = '%s'", fname, firmware_version));
+
+	/*---*/
+
+	xps_status = ElapsedTimeGet( newport_xps->socket_id,
+					&elapsed_seconds_since_power_on );
+
+	MX_DEBUG(-2,("%s: %f seconds since power on.",
+		fname, elapsed_seconds_since_power_on));
+
+	/*---*/
+
+	xps_status = HardwareDateAndTimeGet( newport_xps->socket_id,
+					hardware_date_and_time );
+
+	MX_DEBUG(-2,("%s: hardware date and time = '%s'",
+		fname, hardware_date_and_time ));
+
+	/*---*/
+
+	xps_status = ControllerStatusGet( newport_xps->socket_id,
+					&controller_status_code );
+
+	xps_status = ControllerStatusStringGet( newport_xps->socket_id,
+						controller_status_code,
+						controller_status_string );
+
+	MX_DEBUG(-2,("%s: controller status = %d, '%s'",
+		fname, controller_status_code, controller_status_string));
 
 	return MX_SUCCESSFUL_RESULT;
 }

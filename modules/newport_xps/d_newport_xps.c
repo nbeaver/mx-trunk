@@ -31,6 +31,10 @@
 #include "i_newport_xps.h"
 #include "d_newport_xps.h"
 
+/* Vendor include file. */
+
+#include "XPS_C8_drivers.h"
+
 /* ============ Motor channels ============ */
 
 MX_RECORD_FUNCTION_LIST mxd_newport_xps_record_function_list = {
@@ -191,6 +195,8 @@ mxd_newport_xps_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	mx_status = mxd_newport_xps_get_status( motor );
+
 	return mx_status;
 }
 
@@ -203,6 +209,7 @@ mxd_newport_xps_move_absolute( MX_MOTOR *motor )
 
 	MX_NEWPORT_XPS_MOTOR *newport_xps_motor = NULL;
 	MX_NEWPORT_XPS *newport_xps = NULL;
+	double raw_destination;
 	mx_status_type mx_status;
 
 	mx_status = mxd_newport_xps_get_pointers( motor, &newport_xps_motor,
@@ -210,6 +217,12 @@ mxd_newport_xps_move_absolute( MX_MOTOR *motor )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	raw_destination = motor->raw_destination.analog;
+
+	(void) GroupMoveAbsolute( newport_xps->socket_id,
+				newport_xps_motor->positioner_name,
+				1, &raw_destination );
 
 	return mx_status;
 }
@@ -221,6 +234,7 @@ mxd_newport_xps_get_position( MX_MOTOR *motor )
 
 	MX_NEWPORT_XPS_MOTOR *newport_xps_motor = NULL;
 	MX_NEWPORT_XPS *newport_xps = NULL;
+	double raw_position;
 	mx_status_type mx_status;
 
 	mx_status = mxd_newport_xps_get_pointers( motor, &newport_xps_motor,
@@ -228,6 +242,12 @@ mxd_newport_xps_get_position( MX_MOTOR *motor )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	(void) GroupPositionCurrentGet( newport_xps->socket_id,
+					newport_xps_motor->positioner_name,
+					1, &raw_position );
+
+	motor->raw_position.analog = raw_position;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -246,6 +266,9 @@ mxd_newport_xps_soft_abort( MX_MOTOR *motor )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	(void) GroupMoveAbort( newport_xps->socket_id,
+				newport_xps_motor->positioner_name );
 
 	return mx_status;
 }
@@ -351,6 +374,7 @@ mxd_newport_xps_get_status( MX_MOTOR *motor )
 
 	MX_NEWPORT_XPS_MOTOR *newport_xps_motor = NULL;
 	MX_NEWPORT_XPS *newport_xps = NULL;
+	int group_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_newport_xps_get_pointers( motor, &newport_xps_motor,
@@ -361,7 +385,13 @@ mxd_newport_xps_get_status( MX_MOTOR *motor )
 
 	motor->status = 0;
 
+	(void) GroupStatusGet( newport_xps->socket_id,
+					newport_xps_motor->positioner_name,
+					&group_status );
+
 #if MXD_NEWPORT_XPS_MOTOR_DEBUG
+	MX_DEBUG(-2,("%s: Motor '%s', group_status = %d",
+		fname, motor->record->name, motor->status));
 	MX_DEBUG(-2,("%s: Motor '%s', status = %#lx",
 		fname, motor->record->name, motor->status));
 #endif

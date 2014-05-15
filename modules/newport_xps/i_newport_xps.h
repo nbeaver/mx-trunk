@@ -28,6 +28,8 @@ typedef struct {
 
 	char username[MXU_NEWPORT_USERNAME_LENGTH+1];
 	char password[MXU_NEWPORT_PASSWORD_LENGTH+1];
+
+	int socket_id;
 } MX_NEWPORT_XPS;
 
 #define MXI_NEWPORT_XPS_STANDARD_FIELDS \
