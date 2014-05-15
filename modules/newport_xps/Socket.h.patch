@@ -1,0 +1,23 @@
+*** Socket.h.orig	2014-05-15 13:26:16.344599632 -0500
+--- Socket.h	2014-05-15 13:47:50.418840816 -0500
+***************
+*** 6,14 ****
+--- 6,23 ----
+  	#include <afxsock.h>		/* MFC socket extensions */
+  #endif
+  
++ #ifdef __cplusplus
++ extern "C" {
++ #endif
++ 
+  int  ConnectToServer (char *Ip_Address, int Ip_Port, double TimeOut);
+  void SetTCPTimeout (int SocketID, double Timeout);
+  void SendAndReceive(int socketID, char sSendString[], char sReturnString[], int iReturnStringSize);
+  void CloseSocket (int SocketID);
+  char * GetError (int SocketID);
+  void strncpyWithEOS(char * szStringOut, const char * szStringIn, int nNumberOfCharToCopy, int nStringOutSize);
++ 
++ #ifdef __cplusplus
++ }
++ #endif
++ 

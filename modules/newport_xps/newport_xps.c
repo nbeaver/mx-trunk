@@ -1,5 +1,5 @@
 /*
- * Name: pmc_mcapi.c
+ * Name:    newport_xps.c
  *
  * Purpose: Module wrapper for the Newport XPS-C and XPS-Q series of
  *          motion controllers.
