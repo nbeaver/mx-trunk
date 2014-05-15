@@ -60,10 +60,14 @@ clean:
 	-$(RM) *.mxo *.o *.obj *.exp *.ilk *.lib *.pdb *.manifest tmp.*
 
 distclean: clean
-	-$(RM) xps_c8_drivers.*
-	-$(RM) XPS_C8_drivers.*
-	-$(RM) Socket.*
-	-$(RM) strtok_r.*
+	-$(RM) XPS_C8_drivers.cpp
+	-$(RM) XPS_C8_drivers.h
+	-$(RM) xps_c8_drivers.h
+	-$(RM) Socket.cpp
+	-$(RM) Socket.h
+	-$(RM) strtok_r.cpp
+	-$(RM) strtok_r.h
+	-$(RM) *.orig
 
 depend:
 
@@ -75,19 +79,11 @@ vendor_downloads:
 	../../scripts/download $(NEWPORT_XPS_SOURCE)/XPS_C8_drivers.cpp 
 	../../scripts/download $(NEWPORT_XPS_SOURCE)/XPS_C8_drivers.h 
 	#
-	cat XPS_C8_drivers.cpp | sed s/^#typedef/typedef/ > tmp.sed
-	chmod 666 tmp.sed
-	mv tmp.sed XPS_C8_drivers.cpp
-	#
-	cat XPS_C8_drivers.h | sed s/^#typedef/typedef/ > tmp.sed
-	chmod 666 tmp.sed
-	mv tmp.sed XPS_C8_drivers.h
-	#
 	ln -sf XPS_C8_drivers.h xps_c8_drivers.h
 
 XPS_C8_drivers.$(OBJ):
 	$(COMPILE) XPS_C8_drivers.cpp
 
 Socket.$(OBJ):
-	$(COMPILE) Socket.cpp
+	$(COMPILE) -I../../libMx -D__MX_LIBRARY__ -DOS_LINUX Socket.cpp
 

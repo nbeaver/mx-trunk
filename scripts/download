@@ -33,11 +33,24 @@ esac
 
 DIRNAME="`dirname ${URL}`/"
 FILENAME=`basename ${URL}`
+PATCHNAME="${FILENAME}.patch"
+
+STATUS=0
 
 if [ -f ${FILENAME} ]; then
-	echo "${FILENAME} already downloaded."
+	echo "*** ${FILENAME} already downloaded ***"
 	exit 0
 fi
+
+MXDISCARD=`which patch`
+
+if [ $? = 0 ]; then
+	PATCH_CMD='patch'
+else
+	PATCH_CMD=''
+fi
+
+# Figure out whether to use wget or curl.
 
 MXDISCARD=`which wget`
 
@@ -55,17 +68,41 @@ else
     fi
 fi
 
+# Download the raw file.
+
+echo "*** Downloading ${FILENAME} ***"
+
 if [ ${DOWNLOAD_CMD} = 'wget' ]; then
     wget -O${FILENAME} ${URL}
     STATUS="$?"
     if [ $STATUS != 0 ]; then
         rm ${FILENAME}
     fi
-    exit ${STATUS}
 fi
 
 if [ ${DOWNLOAD_CMD} = 'curl' ]; then
     curl -o${FILENAME} ${URL}
-    exit $?
+    STATUS="$?"
 fi
+
+# If a patch file is available, then patch the raw file using it.
+
+if [ -f ${PATCHNAME} ]; then
+	if [ ${PATCH_CMD} = '' ]; then
+		echo "Patch file '${PATCHNAME}' is available, but" \
+			"the 'patch' command is not installed.  Skipping."
+		exit 0
+	fi
+
+	echo "*** Patching ${FILENAME} ***"
+
+	${PATCH_CMD} -b < ${PATCHNAME}
+
+	STATUS="$?"
+	exit ${STATUS}
+else
+	echo "*** No patch needed for ${FILENAME} ***"
+fi
+
+exit ${STATUS}
 

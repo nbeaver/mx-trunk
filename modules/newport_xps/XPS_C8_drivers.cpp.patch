@@ -1,0 +1,36 @@
+*** XPS_C8_drivers.cpp.orig	2014-05-14 19:15:12.391746693 -0500
+--- XPS_C8_drivers.cpp	2014-05-14 19:16:12.025257396 -0500
+***************
+*** 16,22 ****
+  	#define DLL 
+  #endif
+  
+! #include "xps_c8_drivers.h" 
+  
+  #define SIZE_SMALL 1024
+  #define SIZE_NOMINAL 1024
+--- 16,22 ----
+  	#define DLL 
+  #endif
+  
+! #include "XPS_C8_drivers.h" 
+  
+  #define SIZE_SMALL 1024
+  #define SIZE_NOMINAL 1024
+***************
+*** 30,36 ****
+  extern "C"
+  {
+  #else
+! #typedef int bool;  /* C does not know bool, only C++ */
+  #endif
+  
+  #define DLL_VERSION "Library version for XPS-C8 Firmware V2.6.x"
+--- 30,36 ----
+  extern "C"
+  {
+  #else
+! typedef int bool;  /* C does not know bool, only C++ */
+  #endif
+  
+  #define DLL_VERSION "Library version for XPS-C8 Firmware V2.6.x"

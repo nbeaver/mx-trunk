@@ -1,0 +1,19 @@
+*** XPS_C8_drivers.h.orig	2014-04-22 12:55:23.989948105 -0500
+--- XPS_C8_drivers.h	2014-05-14 19:06:35.725290971 -0500
+***************
+*** 17,23 ****
+  extern "C"
+  {
+  #else
+! #typedef int bool;  /* C does not know bool, only C++ */
+  #endif
+  
+  
+--- 17,23 ----
+  extern "C"
+  {
+  #else
+! typedef int bool;  /* C does not know bool, only C++ */
+  #endif
+  
+  
