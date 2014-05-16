@@ -54,12 +54,9 @@ MX_API mx_status_type mxi_newport_xps_create_record_structures(
 
 MX_API mx_status_type mxi_newport_xps_open( MX_RECORD *record );
 
-MX_API mx_status_type mxi_newport_xps_command(
-					MX_NEWPORT_XPS *newport_xps,
-					char *command,
-					char *response,
-					size_t max_response_length,
-					unsigned long newport_xps_flags );
+MX_API mx_status_type mxi_newport_xps_error( MX_NEWPORT_XPS *newport_xps,
+						char *api_name,
+						int error_code );
 
 extern MX_RECORD_FUNCTION_LIST mxi_newport_xps_record_function_list;
 

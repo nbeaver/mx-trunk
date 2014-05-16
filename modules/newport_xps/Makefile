@@ -82,6 +82,7 @@ vendor_downloads:
 	../../scripts/download $(NEWPORT_XPS_SOURCE)/Socket.h 
 	../../scripts/download $(NEWPORT_XPS_SOURCE)/XPS_C8_drivers.cpp 
 	../../scripts/download $(NEWPORT_XPS_SOURCE)/XPS_C8_drivers.h 
+	../../scripts/download $(NEWPORT_XPS_SOURCE)/XPS_C8_errors.h 
 
 XPS_C8_drivers.$(OBJ): XPS_C8_drivers.cpp XPS_C8_drivers.h Socket.h
 	$(CXX) $(VENDOR_DEBUG) -c XPS_C8_drivers.cpp

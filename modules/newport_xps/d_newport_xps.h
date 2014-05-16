@@ -24,6 +24,8 @@ typedef struct {
 
 	MX_RECORD *newport_xps_record;
 	char positioner_name[MXU_NEWPORT_XPS_POSITIONER_NAME_LENGTH+1];
+
+	char group_name[MXU_NEWPORT_XPS_POSITIONER_NAME_LENGTH+1];
 } MX_NEWPORT_XPS_MOTOR;
 
 MX_API mx_status_type mxd_newport_xps_create_record_structures(
