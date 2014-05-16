@@ -44,7 +44,10 @@ MX_RECORD_FUNCTION_LIST mxd_newport_xps_record_function_list = {
 	mx_motor_finish_record_initialization,
 	NULL,
 	NULL,
-	mxd_newport_xps_open
+	mxd_newport_xps_open,
+	NULL,
+	NULL,
+	mxd_newport_xps_resynchronize
 };
 
 MX_MOTOR_FUNCTION_LIST mxd_newport_xps_motor_function_list = {
@@ -56,7 +59,7 @@ MX_MOTOR_FUNCTION_LIST mxd_newport_xps_motor_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	NULL,
+	mxd_newport_xps_raw_home_command,
 	NULL,
 	mxd_newport_xps_get_parameter,
 	mxd_newport_xps_set_parameter,
@@ -218,6 +221,42 @@ mxd_newport_xps_open( MX_RECORD *record )
 	return mx_status;
 }
 
+MX_EXPORT mx_status_type
+mxd_newport_xps_resynchronize( MX_RECORD *record )
+{
+	static const char fname[] = "mxd_newport_xps_resynchronize()";
+
+	MX_MOTOR *motor = NULL;
+	MX_NEWPORT_XPS_MOTOR *newport_xps_motor = NULL;
+	MX_NEWPORT_XPS *newport_xps = NULL;
+	int xps_status;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"MX_RECORD pointer passed was NULL." );
+	}
+
+	motor = (MX_MOTOR *) record->record_class_struct;
+
+	mx_status = mxd_newport_xps_get_pointers( motor, &newport_xps_motor,
+							&newport_xps, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	xps_status = GroupInitialize( newport_xps->socket_id,
+					newport_xps_motor->group_name );
+
+	if ( xps_status != SUCCESS ) {
+		return mxi_newport_xps_error( newport_xps,
+						"GroupInitialize()",
+						xps_status );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /* ============ Motor specific functions ============ */
 
 MX_EXPORT mx_status_type
@@ -240,7 +279,7 @@ mxd_newport_xps_move_absolute( MX_MOTOR *motor )
 	raw_destination = motor->raw_destination.analog;
 
 	xps_status = GroupMoveAbsolute( newport_xps->socket_id,
-				newport_xps_motor->group_name,
+				newport_xps_motor->positioner_name,
 				1, &raw_destination );
 
 	if ( xps_status != SUCCESS ) {
@@ -309,7 +348,35 @@ mxd_newport_xps_soft_abort( MX_MOTOR *motor )
 						xps_status );
 	}
 
-	return mx_status;
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_newport_xps_raw_home_command( MX_MOTOR *motor )
+{
+	static const char fname[] = "mxd_newport_xps_raw_home_command()";
+
+	MX_NEWPORT_XPS_MOTOR *newport_xps_motor = NULL;
+	MX_NEWPORT_XPS *newport_xps = NULL;
+	int xps_status;
+	mx_status_type mx_status;
+
+	mx_status = mxd_newport_xps_get_pointers( motor, &newport_xps_motor,
+							&newport_xps, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	xps_status = GroupHomeSearch( newport_xps->socket_id,
+					newport_xps_motor->group_name );
+
+	if ( xps_status != SUCCESS ) {
+		return mxi_newport_xps_error( newport_xps,
+						"GroupHomeSearch()",
+						xps_status );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -414,6 +481,7 @@ mxd_newport_xps_get_status( MX_MOTOR *motor )
 	MX_NEWPORT_XPS_MOTOR *newport_xps_motor = NULL;
 	MX_NEWPORT_XPS *newport_xps = NULL;
 	int group_status, xps_status;
+	char group_status_string[300];
 	mx_status_type mx_status;
 
 	mx_status = mxd_newport_xps_get_pointers( motor, &newport_xps_motor,
@@ -434,9 +502,23 @@ mxd_newport_xps_get_status( MX_MOTOR *motor )
 						xps_status );
 	}
 
+	xps_status = GroupStatusStringGet( newport_xps->socket_id,
+					group_status,
+					group_status_string );
+
+	if ( xps_status != SUCCESS ) {
+		return mxi_newport_xps_error( newport_xps,
+						"GroupStatusStringGet()",
+						xps_status );
+	}
+
 #if MXD_NEWPORT_XPS_MOTOR_DEBUG
-	MX_DEBUG(-2,("%s: Motor '%s', group_status = %d",
-		fname, motor->record->name, motor->status));
+	MX_DEBUG(-2,("%s: Motor '%s', group_status = %d, '%s'",
+		fname, motor->record->name,
+		group_status, group_status_string ))
+#endif
+
+#if MXD_NEWPORT_XPS_MOTOR_DEBUG
 	MX_DEBUG(-2,("%s: Motor '%s', status = %#lx",
 		fname, motor->record->name, motor->status));
 #endif

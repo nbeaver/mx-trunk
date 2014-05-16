@@ -31,10 +31,12 @@ typedef struct {
 MX_API mx_status_type mxd_newport_xps_create_record_structures(
 						MX_RECORD *record );
 MX_API mx_status_type mxd_newport_xps_open( MX_RECORD *record );
+MX_API mx_status_type mxd_newport_xps_resynchronize( MX_RECORD *record );
 
 MX_API mx_status_type mxd_newport_xps_move_absolute( MX_MOTOR *motor );
 MX_API mx_status_type mxd_newport_xps_get_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_newport_xps_soft_abort( MX_MOTOR *motor );
+MX_API mx_status_type mxd_newport_xps_raw_home_command( MX_MOTOR *motor );
 MX_API mx_status_type mxd_newport_xps_get_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_newport_xps_set_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_newport_xps_get_status( MX_MOTOR *motor );

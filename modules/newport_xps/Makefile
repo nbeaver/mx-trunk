@@ -12,6 +12,8 @@
 # that contains the needed C code.
 #
 
+all: newport_xps.mxo
+
 NEWPORT_XPS_SOURCE = ftp://download.newport.com/MotionControl/Current/MotionControllers/XPS-C/Software/Drivers/DLL/
 
 VENDOR_OBJS = XPS_C8_drivers.$(OBJ)
@@ -28,8 +30,6 @@ ifndef MX_ARCH
 endif
 
 #--------------------------------------------------------------------------
-
-all: newport_xps.mxo
 
 include ../../libMx/Makehead.$(MX_ARCH)
 
@@ -53,8 +53,14 @@ endif
 
 #--------------------------------------------------------------------------
 
-newport_xps.$(OBJ): newport_xps.c
+newport_xps.$(OBJ): newport_xps.c i_newport_xps.h d_newport_xps.h
 	$(COMPILE) $(CFLAGS) newport_xps.c
+
+i_newport_xps.$(OBJ): i_newport_xps.c i_newport_xps.h
+	$(COMPILE) $(CFLAGS) i_newport_xps.c
+
+d_newport_xps.$(OBJ): d_newport_xps.c d_newport_xps.h i_newport_xps.h
+	$(COMPILE) $(CFLAGS) d_newport_xps.c
 
 install: newport_xps.mxo
 	-mkdir $(MX_INSTALL_DIR)/lib/modules
@@ -77,12 +83,21 @@ depend:
 
 #--------------------------------------------------------------------------
 
-vendor_downloads:
-	../../scripts/download $(NEWPORT_XPS_SOURCE)/Socket.cpp 
+vendor_downloads: Socket.h XPS_C8_drivers.h XPS_C8_errors.h XPS_C8_drivers.cpp
+
+Socket.h:
 	../../scripts/download $(NEWPORT_XPS_SOURCE)/Socket.h 
-	../../scripts/download $(NEWPORT_XPS_SOURCE)/XPS_C8_drivers.cpp 
+
+XPS_C8_drivers.h:
 	../../scripts/download $(NEWPORT_XPS_SOURCE)/XPS_C8_drivers.h 
+
+XPS_C8_errors.h:
 	../../scripts/download $(NEWPORT_XPS_SOURCE)/XPS_C8_errors.h 
+
+XPS_C8_drivers.cpp:
+	../../scripts/download $(NEWPORT_XPS_SOURCE)/XPS_C8_drivers.cpp 
+
+#--------------------------------------------------------------------------
 
 XPS_C8_drivers.$(OBJ): XPS_C8_drivers.cpp XPS_C8_drivers.h Socket.h
 	$(CXX) $(VENDOR_DEBUG) -c XPS_C8_drivers.cpp

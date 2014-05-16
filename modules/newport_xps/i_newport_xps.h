@@ -54,6 +54,8 @@ MX_API mx_status_type mxi_newport_xps_create_record_structures(
 
 MX_API mx_status_type mxi_newport_xps_open( MX_RECORD *record );
 
+MX_API mx_status_type mxi_newport_xps_resynchronize( MX_RECORD *record );
+
 MX_API mx_status_type mxi_newport_xps_error( MX_NEWPORT_XPS *newport_xps,
 						char *api_name,
 						int error_code );
