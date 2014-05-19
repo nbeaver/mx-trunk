@@ -113,7 +113,7 @@ mxi_newport_xps_open( MX_RECORD *record )
 
 	MX_DEBUG(-2,("%s: '%s'", fname, GetLibraryVersion() ));
 
-	/* Connect to the Newport XPS controller. */
+	/*** Connect to the Newport XPS controller. ***/
 
 	newport_xps->socket_id = TCP_ConnectToServer(
 					newport_xps->hostname,
@@ -122,6 +122,12 @@ mxi_newport_xps_open( MX_RECORD *record )
 
 	MX_DEBUG(-2,("%s: newport_xps->socket_id = %d",
 			fname, newport_xps->socket_id));
+
+	if ( newport_xps->socket_id < 0 ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"The attempt to connect to Newport XPS controller '%s' failed.",
+			record->name );
+	}
 
 	/* Login to the Newport XPS controller. */
 
@@ -135,12 +141,11 @@ mxi_newport_xps_open( MX_RECORD *record )
 		MX_DEBUG(-2,("%s: Login() successfully completed.", fname));
 	} else {
 		return mxi_newport_xps_error( newport_xps,
-						"ControllerStatusStringGet()",
+						"Login()",
 						xps_status );
 	}
 
-
-	/*---*/
+	/*** Display some information about the controller's configuration. ***/
 
 	xps_status = FirmwareVersionGet( newport_xps->socket_id,
 					firmware_version );
@@ -204,6 +209,54 @@ mxi_newport_xps_open( MX_RECORD *record )
 
 	MX_DEBUG(-2,("%s: controller status = %d, '%s'",
 		fname, controller_status_code, controller_status_string));
+
+	/*******************************************************************/
+
+	/*** Create move thread ***/
+
+	/* Move commands _block_ until the move is complete, so we need to 
+	 * create a second thread with its own socket connection to the
+	 * XPS controller.  This allows us to put blocking "move" commands
+	 * into this separate "move thread", so that other communication
+	 * with the XPS controller does not block until the move is complete.
+	 */
+
+	/* First, we create the additional socket connection to the XPS.
+	 * This is the operation that is probably most likely to fail,
+	 * so we do it first.
+	 */
+
+	newport_xps->move_thread_socket_id = TCP_ConnectToServer(
+					newport_xps->hostname,
+					newport_xps->port_number,
+					5.0 );
+
+	MX_DEBUG(-2,("%s: newport_xps->move_thread_socket_id = %d",
+			fname, newport_xps->move_thread_socket_id));
+
+	if ( newport_xps->move_thread_socket_id < 0 ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"The attempt to make a second connection to Newport XPS "
+		"controller '%s' for move commands failed.",
+			record->name );
+	}
+
+	/* Login to the Newport XPS controller (on the additional socket). */
+
+	xps_status = Login( newport_xps->move_thread_socket_id,
+				newport_xps->username,
+				newport_xps->password );
+
+	MX_DEBUG(-2,("%s: Login() status = %d", fname, xps_status));
+
+	if ( xps_status == SUCCESS ) {
+		MX_DEBUG(-2,
+		("%s: Login() successfully completed for move thread.", fname));
+	} else {
+		return mxi_newport_xps_error( newport_xps,
+						"Login() (for move thread)",
+						xps_status );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }

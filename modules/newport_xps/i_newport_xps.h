@@ -17,6 +17,11 @@
 #ifndef __I_NEWPORT_XPS_H__
 #define __I_NEWPORT_XPS_H__
 
+#include "mx_thread.h"
+#include "mx_mutex.h"
+#include "mx_condition_variable.h"
+
+
 #define MXU_NEWPORT_USERNAME_LENGTH	40
 #define MXU_NEWPORT_PASSWORD_LENGTH	40
 
@@ -30,6 +35,19 @@ typedef struct {
 	char password[MXU_NEWPORT_PASSWORD_LENGTH+1];
 
 	int socket_id;
+
+	/* Move commands _block_, so they have to have their own
+	 * separate socket and thread in order to avoid having
+	 * the entire driver block during a move.
+	 */
+
+	int move_thread_socket_id;
+
+	MX_THREAD *move_thread;
+	MX_MUTEX *move_thread_mutex;
+	MX_CONDITION_VARIABLE *move_thread_cv;
+	char move_thread_command[100];
+	mx_bool_type move_in_progress;
 } MX_NEWPORT_XPS;
 
 #define MXI_NEWPORT_XPS_STANDARD_FIELDS \
