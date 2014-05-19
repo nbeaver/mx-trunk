@@ -85,6 +85,82 @@ mxi_newport_xps_create_record_structures( MX_RECORD *record )
 
 /*--------------------------------------------------------------------------*/
 
+static mx_status_type
+mxi_newport_xps_move_thread( MX_THREAD *thread, void *thread_argument )
+{
+	static const char fname[] = "mxi_newport_xps_move_thread()";
+
+	MX_NEWPORT_XPS *newport_xps;
+	char *type;
+	int xps_status;
+	unsigned long mx_status_code;
+	mx_status_type mx_status;
+
+	if ( thread_argument == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The thread_argument pointer for this thread is NULL." );
+	}
+
+	newport_xps = (MX_NEWPORT_XPS *) thread_argument;
+
+	/* Lock the mutex in preparation for entering the thread's
+	 * event handler loop.
+	 */
+
+	mx_status_code = mx_mutex_lock( newport_xps->move_thread_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"The attempt to lock the move_thread_mutex for "
+		"Newport XPS controller '%s' failed.",
+			newport_xps->record->name );
+	}
+
+	while (TRUE) {
+
+		/* Wait on the condition variable. */
+
+		if ( newport_xps->move_in_progress == FALSE ) {
+			mx_status = mx_condition_variable_wait(
+					newport_xps->move_thread_cv,
+					newport_xps->move_thread_mutex );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
+		type = newport_xps->command_type;
+
+		MX_DEBUG(-2,("%s: executing command '%s'", fname, type ));
+
+		if ( strcmp( type, "GroupMoveAbsolute" ) == 0 ) {
+			xps_status = GroupMoveAbsolute(
+					newport_xps->move_thread_socket_id,
+					newport_xps->commanded_object_name,
+					1,
+					&(newport_xps->commanded_destination) );
+
+			if ( xps_status != SUCCESS ) {
+				(void) mxi_newport_xps_error( newport_xps,
+						"GroupMoveAbsolute()",
+						xps_status );
+			}
+		} else {
+			(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Unrecognized command type '%s' for controller '%s'.",
+				type, newport_xps->record->name );
+		}
+
+		newport_xps->move_in_progress = FALSE;
+
+		MX_DEBUG(-2,("%s: command complete", fname));
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mxi_newport_xps_open( MX_RECORD *record )
 {
@@ -97,6 +173,7 @@ mxi_newport_xps_open( MX_RECORD *record )
 	char firmware_version[200];
 	char hardware_date_and_time[200];
 	double elapsed_seconds_since_power_on;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -258,7 +335,38 @@ mxi_newport_xps_open( MX_RECORD *record )
 						xps_status );
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	/* Set 'move_in_progress' to FALSE so that the thread will not
+	 * prematurely try to send a move command.
+	 */
+
+	newport_xps->move_in_progress = FALSE;
+
+	newport_xps->command_type[0] = '\0';
+	newport_xps->commanded_object_name[0] = '\0';
+	newport_xps->commanded_destination = 0.0;
+
+	/* Create the mutex and condition variable that the thread will
+	 * use to synchronize with the main thread.
+	 */
+
+	mx_status = mx_mutex_create( &(newport_xps->move_thread_mutex) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_condition_variable_create(
+				&(newport_xps->move_thread_cv) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Start the move thread. */
+
+	mx_status = mx_thread_create( &(newport_xps->move_thread),
+					mxi_newport_xps_move_thread,
+					newport_xps );
+
+	return mx_status;
 }
 
 /*--------------------------------------------------------------------------*/

@@ -267,7 +267,10 @@ mxd_newport_xps_move_absolute( MX_MOTOR *motor )
 	MX_NEWPORT_XPS_MOTOR *newport_xps_motor = NULL;
 	MX_NEWPORT_XPS *newport_xps = NULL;
 	double raw_destination;
+#if 0
 	int xps_status;
+#endif
+	unsigned long mx_status_code;
 	mx_status_type mx_status;
 
 	mx_status = mxd_newport_xps_get_pointers( motor, &newport_xps_motor,
@@ -278,6 +281,7 @@ mxd_newport_xps_move_absolute( MX_MOTOR *motor )
 
 	raw_destination = motor->raw_destination.analog;
 
+#if 0
 	xps_status = GroupMoveAbsolute( newport_xps->socket_id,
 				newport_xps_motor->positioner_name,
 				1, &raw_destination );
@@ -287,6 +291,36 @@ mxd_newport_xps_move_absolute( MX_MOTOR *motor )
 						"GroupMoveAbsolute()",
 						xps_status );
 	}
+#else
+	/* Prepare to tell the "move" thread to start a move command. */
+
+	mx_status_code = mx_mutex_lock( newport_xps->move_thread_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"The attempt to lock the move thread mutex for "
+		"XPS controller '%s' failed.",
+			newport_xps->record->name );
+	}
+
+	if ( newport_xps->move_in_progress ) {
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"Unknown error." );
+	}
+
+	strlcpy( newport_xps->command_type,
+		"GroupMoveAbsolute",
+		sizeof(newport_xps->command_type) );
+
+	strlcpy( newport_xps->commanded_object_name,
+		newport_xps_motor->positioner_name,
+		sizeof(newport_xps->commanded_object_name) );
+
+	newport_xps->commanded_destination = raw_destination;
+
+	/* FIXME */
+	
+#endif
 
 	return mx_status;
 }

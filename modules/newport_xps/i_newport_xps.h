@@ -22,8 +22,7 @@
 #include "mx_condition_variable.h"
 
 
-#define MXU_NEWPORT_USERNAME_LENGTH	40
-#define MXU_NEWPORT_PASSWORD_LENGTH	40
+#define MXU_NEWPORT_XPS_LENGTH	40
 
 typedef struct {
 	MX_RECORD *record;
@@ -31,8 +30,8 @@ typedef struct {
 	char hostname[MXU_HOSTNAME_LENGTH+1];
 	unsigned long port_number;
 
-	char username[MXU_NEWPORT_USERNAME_LENGTH+1];
-	char password[MXU_NEWPORT_PASSWORD_LENGTH+1];
+	char username[MXU_NEWPORT_XPS_LENGTH+1];
+	char password[MXU_NEWPORT_XPS_LENGTH+1];
 
 	int socket_id;
 
@@ -46,8 +45,11 @@ typedef struct {
 	MX_THREAD *move_thread;
 	MX_MUTEX *move_thread_mutex;
 	MX_CONDITION_VARIABLE *move_thread_cv;
-	char move_thread_command[100];
 	mx_bool_type move_in_progress;
+
+	char command_type[MXU_NEWPORT_XPS_LENGTH+1];
+	char commanded_object_name[MXU_NEWPORT_XPS_LENGTH+1];
+	double commanded_destination;
 } MX_NEWPORT_XPS;
 
 #define MXI_NEWPORT_XPS_STANDARD_FIELDS \
@@ -59,11 +61,11 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, port_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "username", MXFT_STRING, NULL, 1, {MXU_NEWPORT_USERNAME_LENGTH}, \
+  {-1, -1, "username", MXFT_STRING, NULL, 1, {MXU_NEWPORT_XPS_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, username), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_NO_ACCESS) }, \
   \
-  {-1, -1, "password", MXFT_STRING, NULL, 1, {MXU_NEWPORT_PASSWORD_LENGTH}, \
+  {-1, -1, "password", MXFT_STRING, NULL, 1, {MXU_NEWPORT_XPS_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, password), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_NO_ACCESS) }
 
