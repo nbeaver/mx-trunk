@@ -17,6 +17,10 @@
 #ifndef __D_NEWPORT_XPS_H__
 #define __D_NEWPORT_XPS_H__
 
+#include "mx_thread.h"
+#include "mx_mutex.h"
+#include "mx_condition_variable.h"
+
 #define MXU_NEWPORT_XPS_POSITIONER_NAME_LENGTH  80
 
 /*---*/

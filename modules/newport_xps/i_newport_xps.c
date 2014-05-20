@@ -21,6 +21,8 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_socket.h"
+#include "mx_process.h"
 #include "mx_rs232.h"
 #include "i_newport_xps.h"
 
@@ -35,7 +37,11 @@ MX_RECORD_FUNCTION_LIST mxi_newport_xps_record_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	mxi_newport_xps_open
+	mxi_newport_xps_open,
+	NULL,
+	NULL,
+	NULL,
+	mxi_newport_xps_special_processing_setup
 };
 
 MX_RECORD_FIELD_DEFAULTS mxi_newport_xps_record_field_defaults[] = {
@@ -49,6 +55,12 @@ long mxi_newport_xps_num_record_fields
 
 MX_RECORD_FIELD_DEFAULTS *mxi_newport_xps_rfield_def_ptr
 			= &mxi_newport_xps_record_field_defaults[0];
+
+/*---*/
+
+static mx_status_type mxi_newport_xps_process_function( void *record_ptr,
+							void *record_field_ptr,
+							int operation );
 
 /*--------------------------------------------------------------------------*/
 
@@ -212,6 +224,35 @@ mxi_newport_xps_open( MX_RECORD *record )
 /*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
+mxi_newport_xps_special_processing_setup( MX_RECORD *record )
+{
+	MX_RECORD_FIELD *record_field;
+	MX_RECORD_FIELD *record_field_array;
+	long i;
+
+	record_field_array = record->record_field_array;
+
+	for ( i = 0; i < record->num_record_fields; i++ ) {
+
+		record_field = &record_field_array[i];
+
+		switch( record_field->label_value ) {
+		case MXLV_NEWPORT_XPS_CONTROLLER_STATUS:
+		case MXLV_NEWPORT_XPS_CONTROLLER_STATUS_MESSAGE:
+			record_field->process_function
+					= mxi_newport_xps_process_function;
+			break;
+		default:
+			break;
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
 mxi_newport_xps_error( int socket_id,
 			char *api_name,
 			int error_code )
@@ -242,6 +283,93 @@ mxi_newport_xps_error( int socket_id,
 				socket_id,
 				error_code,
 				error_message );
+
+	return mx_status;
+}
+
+/*--------------------------------------------------------------------------*/
+
+static mx_status_type
+mxi_newport_xps_process_function( void *record_ptr,
+			void *record_field_ptr, int operation )
+{
+	static const char fname[] = "mxi_newport_xps_process_function()";
+
+	MX_RECORD *record;
+	MX_RECORD_FIELD *record_field;
+	MX_NEWPORT_XPS *newport_xps;
+	int xps_status, controller_status;
+	mx_status_type mx_status;
+
+	record = (MX_RECORD *) record_ptr;
+	record_field = (MX_RECORD_FIELD *) record_field_ptr;
+	newport_xps = (MX_NEWPORT_XPS *) (record->record_type_struct);
+
+	mx_status = MX_SUCCESSFUL_RESULT;
+
+	switch( operation ) {
+	case MX_PROCESS_GET:
+		switch( record_field->label_value ) {
+		case MXLV_NEWPORT_XPS_CONTROLLER_STATUS:
+			xps_status = ControllerStatusGet(
+						newport_xps->socket_id,
+						&controller_status );
+
+			if ( xps_status != SUCCESS ) {
+				return mxi_newport_xps_error(
+					newport_xps->socket_id,
+					"ControllerStatusGet()",
+					xps_status );
+			}
+
+			newport_xps->controller_status = controller_status;
+			break;
+		case MXLV_NEWPORT_XPS_CONTROLLER_STATUS_MESSAGE:
+			xps_status = ControllerStatusGet(
+						newport_xps->socket_id,
+						&controller_status );
+
+			if ( xps_status != SUCCESS ) {
+				return mxi_newport_xps_error(
+					newport_xps->socket_id,
+					"ControllerStatusGet()",
+					xps_status );
+			}
+
+			newport_xps->controller_status = controller_status;
+
+			xps_status = ControllerStatusStringGet(
+						newport_xps->socket_id,
+						controller_status,
+					newport_xps->controller_status_message);
+
+			if ( xps_status != SUCCESS ) {
+				return mxi_newport_xps_error(
+					newport_xps->socket_id,
+					"ControllerStatusStringGet()",
+					xps_status );
+			}
+			break;
+		default:
+			MX_DEBUG( 1,(
+			    "%s: *** Unknown MX_PROCESS_GET label value = %ld",
+				fname, record_field->label_value));
+			break;
+		}
+		break;
+	case MX_PROCESS_PUT:
+		switch( record_field->label_value ) {
+		default:
+			MX_DEBUG( 1,(
+			    "%s: *** Unknown MX_PROCESS_PUT label value = %ld",
+				fname, record_field->label_value));
+			break;
+		}
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Unknown operation code = %d", operation );
+	}
 
 	return mx_status;
 }
