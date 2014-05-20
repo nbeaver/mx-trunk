@@ -15,7 +15,7 @@
  *
  */
 
-#define MXD_NEWPORT_XPS_MOTOR_DEBUG	FALSE
+#define MXD_NEWPORT_XPS_MOTOR_DEBUG		FALSE
 
 #define MXD_NEWPORT_XPS_MOTOR_ERROR_DEBUG	FALSE
 
@@ -133,6 +133,99 @@ mxd_newport_xps_get_pointers( MX_MOTOR *motor,
 
 /*---*/
 
+static mx_status_type
+mxd_newport_xps_move_thread( MX_THREAD *thread, void *thread_argument )
+{
+	static const char fname[] = "mxd_newport_xps_move_thread()";
+
+	MX_NEWPORT_XPS_MOTOR *newport_xps_motor;
+	MX_MOTOR *motor;
+	int xps_status;
+	unsigned long mx_status_code;
+	mx_status_type mx_status;
+
+	if ( thread_argument == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The thread_argument pointer for this thread is NULL." );
+	}
+
+	newport_xps_motor = (MX_NEWPORT_XPS_MOTOR *) thread_argument;
+
+	if ( newport_xps_motor->record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RECORD pointer for MX_NEWPORT_XPS_MOTOR ptr %p is NULL",
+			newport_xps_motor );
+	}
+
+	motor = (MX_MOTOR *) newport_xps_motor->record->record_class_struct;
+
+	if ( motor == (MX_MOTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_MOTOR pointer for motor '%s' is NULL.",
+			newport_xps_motor->record->name );
+	}
+
+	/* Lock the mutex in preparation for entering the thread's
+	 * event handler loop.
+	 */
+
+	mx_status_code = mx_mutex_lock( newport_xps_motor->move_thread_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"The attempt to lock the move_thread_mutex for "
+		"Newport XPS motor '%s' failed.",
+			newport_xps_motor->record->name );
+	}
+
+	while (TRUE) {
+
+		/* Wait on the condition variable. */
+
+		if ( newport_xps_motor->move_in_progress == FALSE ) {
+			mx_status = mx_condition_variable_wait(
+					newport_xps_motor->move_thread_cv,
+					newport_xps_motor->move_thread_mutex );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
+		switch( newport_xps_motor->command_type ) {
+		case MXT_NEWPORT_XPS_GROUP_MOVE_ABSOLUTE:
+
+			xps_status = GroupMoveAbsolute(
+				newport_xps_motor->move_thread_socket_id,
+				newport_xps_motor->positioner_name,
+				1,
+				&(newport_xps_motor->command_destination) );
+
+			if ( xps_status != SUCCESS ) {
+				(void) mxi_newport_xps_error(
+				newport_xps_motor->move_thread_socket_id,
+					"GroupMoveAbsolute()",
+					xps_status );
+			}
+			break;
+
+		default:
+			(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Unrecognized command type %lu for motor '%s'.",
+				newport_xps_motor->command_type,
+				newport_xps_motor->record->name );
+			break;
+		}
+
+		newport_xps_motor->move_in_progress = FALSE;
+
+		MX_DEBUG(-2,("%s: command complete", fname));
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mxd_newport_xps_create_record_structures( MX_RECORD *record )
 {
@@ -176,6 +269,8 @@ mxd_newport_xps_create_record_structures( MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*--------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mxd_newport_xps_open( MX_RECORD *record )
 {
@@ -185,6 +280,7 @@ mxd_newport_xps_open( MX_RECORD *record )
 	MX_NEWPORT_XPS_MOTOR *newport_xps_motor = NULL;
 	MX_NEWPORT_XPS *newport_xps = NULL;
 	char *ptr;
+	int xps_status;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -218,8 +314,90 @@ mxd_newport_xps_open( MX_RECORD *record )
 
 	mx_status = mxd_newport_xps_get_status( motor );
 
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/*** Create move thread ***/
+
+	/* Move commands _block_ until the move is complete, so we need to 
+	 * create a second thread with its own socket connection to the
+	 * XPS controller.  This allows us to put blocking "move" commands
+	 * into this separate "move thread", so that other communication
+	 * with the XPS controller does not block until the move is complete.
+	 */
+
+	/* First, we create the additional socket connection to the XPS.
+	 * This is the operation that is probably most likely to fail,
+	 * so we do it first.
+	 */
+
+	newport_xps_motor->move_thread_socket_id
+				= TCP_ConnectToServer(
+					newport_xps->hostname,
+					newport_xps->port_number,
+					5.0 );
+
+	MX_DEBUG(-2,("%s: newport_xps_motor->move_thread_socket_id = %d",
+			fname, newport_xps_motor->move_thread_socket_id));
+
+	if ( newport_xps_motor->move_thread_socket_id < 0 ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"The attempt to make another connection to Newport XPS "
+		"controller '%s' for move commands failed.",
+			record->name );
+	}
+
+	/* Login to the Newport XPS controller (on the additional socket). */
+
+	xps_status = Login( newport_xps_motor->move_thread_socket_id,
+				newport_xps->username,
+				newport_xps->password );
+
+	MX_DEBUG(-2,("%s: Login() status = %d", fname, xps_status));
+
+	if ( xps_status == SUCCESS ) {
+		MX_DEBUG(-2,
+		("%s: Login() successfully completed for move thread.", fname));
+	} else {
+		return mxi_newport_xps_error(
+				newport_xps_motor->move_thread_socket_id,
+				"Login() (for move thread)",
+				xps_status );
+	}
+
+	/* Set 'move_in_progress' to FALSE so that the thread will not
+	 * prematurely try to send a move command.
+	 */
+
+	newport_xps_motor->move_in_progress = FALSE;
+
+	newport_xps_motor->command_type = 0;
+
+	/* Create the mutex and condition variable that the thread will
+	 * use to synchronize with the main thread.
+	 */
+
+	mx_status = mx_mutex_create( &(newport_xps_motor->move_thread_mutex) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_condition_variable_create(
+				&(newport_xps_motor->move_thread_cv) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Start the move thread. */
+
+	mx_status = mx_thread_create( &(newport_xps_motor->move_thread),
+					mxd_newport_xps_move_thread,
+					newport_xps_motor );
+
 	return mx_status;
 }
+
+/*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mxd_newport_xps_resynchronize( MX_RECORD *record )
@@ -249,9 +427,10 @@ mxd_newport_xps_resynchronize( MX_RECORD *record )
 					newport_xps_motor->group_name );
 
 	if ( xps_status != SUCCESS ) {
-		return mxi_newport_xps_error( newport_xps,
-						"GroupInitialize()",
-						xps_status );
+		return mxi_newport_xps_error(
+			newport_xps_motor->move_thread_socket_id,
+				"GroupInitialize()",
+				xps_status );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -266,10 +445,6 @@ mxd_newport_xps_move_absolute( MX_MOTOR *motor )
 
 	MX_NEWPORT_XPS_MOTOR *newport_xps_motor = NULL;
 	MX_NEWPORT_XPS *newport_xps = NULL;
-	double raw_destination;
-#if 0
-	int xps_status;
-#endif
 	unsigned long mx_status_code;
 	mx_status_type mx_status;
 
@@ -279,48 +454,41 @@ mxd_newport_xps_move_absolute( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	raw_destination = motor->raw_destination.analog;
-
-#if 0
-	xps_status = GroupMoveAbsolute( newport_xps->socket_id,
-				newport_xps_motor->positioner_name,
-				1, &raw_destination );
-
-	if ( xps_status != SUCCESS ) {
-		return mxi_newport_xps_error( newport_xps,
-						"GroupMoveAbsolute()",
-						xps_status );
-	}
-#else
 	/* Prepare to tell the "move" thread to start a move command. */
 
-	mx_status_code = mx_mutex_lock( newport_xps->move_thread_mutex );
+	mx_status_code = mx_mutex_lock( newport_xps_motor->move_thread_mutex );
 
 	if ( mx_status_code != MXE_SUCCESS ) {
 		return mx_error( mx_status_code, fname,
 		"The attempt to lock the move thread mutex for "
-		"XPS controller '%s' failed.",
-			newport_xps->record->name );
+		"XPS motor '%s' failed.",
+			motor->record->name );
 	}
 
-	if ( newport_xps->move_in_progress ) {
+	if ( newport_xps_motor->move_in_progress ) {
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
 		"Unknown error." );
 	}
 
-	strlcpy( newport_xps->command_type,
-		"GroupMoveAbsolute",
-		sizeof(newport_xps->command_type) );
+	newport_xps_motor->command_type = MXT_NEWPORT_XPS_GROUP_MOVE_ABSOLUTE;
 
-	strlcpy( newport_xps->commanded_object_name,
-		newport_xps_motor->positioner_name,
-		sizeof(newport_xps->commanded_object_name) );
+	newport_xps_motor->command_destination = motor->raw_destination.analog;
 
-	newport_xps->commanded_destination = raw_destination;
+	newport_xps_motor->move_in_progress = TRUE;
 
-	/* FIXME */
-	
-#endif
+	mx_status_code = mx_mutex_unlock( newport_xps_motor->move_thread_mutex);
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"The attempt to unlock the move thread mutex for "
+		"XPS motor '%s' failed.",
+			motor->record->name );
+	}
+
+	/* Tell the "move" thread to start a move command. */
+
+	mx_status = mx_condition_variable_signal(
+				newport_xps_motor->move_thread_cv );
 
 	return mx_status;
 }
@@ -347,7 +515,7 @@ mxd_newport_xps_get_position( MX_MOTOR *motor )
 					1, &raw_position );
 
 	if ( xps_status != SUCCESS ) {
-		return mxi_newport_xps_error( newport_xps,
+		return mxi_newport_xps_error( newport_xps->socket_id,
 						"GroupPositionCurrentGet()",
 						xps_status );
 	}
@@ -377,7 +545,7 @@ mxd_newport_xps_soft_abort( MX_MOTOR *motor )
 				newport_xps_motor->group_name );
 
 	if ( xps_status != SUCCESS ) {
-		return mxi_newport_xps_error( newport_xps,
+		return mxi_newport_xps_error( newport_xps->socket_id,
 						"GroupMoveAbort()",
 						xps_status );
 	}
@@ -405,7 +573,7 @@ mxd_newport_xps_raw_home_command( MX_MOTOR *motor )
 					newport_xps_motor->group_name );
 
 	if ( xps_status != SUCCESS ) {
-		return mxi_newport_xps_error( newport_xps,
+		return mxi_newport_xps_error( newport_xps->socket_id,
 						"GroupHomeSearch()",
 						xps_status );
 	}
@@ -526,12 +694,20 @@ mxd_newport_xps_get_status( MX_MOTOR *motor )
 
 	motor->status = 0;
 
+	/* FIXME: Reading move_in_progress from the main thread
+	 * without a mutex may have concurrency issues.
+	 */
+
+	if ( newport_xps_motor->move_in_progress ) {
+		motor->status |= MXSF_MTR_IS_BUSY;
+	}
+
 	xps_status = GroupStatusGet( newport_xps->socket_id,
 					newport_xps_motor->group_name,
 					&group_status );
 
 	if ( xps_status != SUCCESS ) {
-		return mxi_newport_xps_error( newport_xps,
+		return mxi_newport_xps_error( newport_xps->socket_id,
 						"GroupStatusGet()",
 						xps_status );
 	}
@@ -541,7 +717,7 @@ mxd_newport_xps_get_status( MX_MOTOR *motor )
 					group_status_string );
 
 	if ( xps_status != SUCCESS ) {
-		return mxi_newport_xps_error( newport_xps,
+		return mxi_newport_xps_error( newport_xps->socket_id,
 						"GroupStatusStringGet()",
 						xps_status );
 	}

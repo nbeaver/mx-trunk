@@ -47,7 +47,8 @@ VENDOR_DEBUG = -g
 
 newport_xps.mxo: vendor_downloads $(NEWPORT_XPS_OBJS) $(VENDOR_OBJS)
 	$(CXX) -shared -rdynamic -Wl,-soname,newport_xps.mxo \
-		-o newport_xps.mxo $(NEWPORT_XPS_OBJS) $(VENDOR_OBJS)
+		-o newport_xps.mxo $(NEWPORT_XPS_OBJS) $(VENDOR_OBJS) \
+		../../libMx/libMx.so
 
 endif
 

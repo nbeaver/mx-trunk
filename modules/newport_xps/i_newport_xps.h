@@ -34,22 +34,6 @@ typedef struct {
 	char password[MXU_NEWPORT_XPS_LENGTH+1];
 
 	int socket_id;
-
-	/* Move commands _block_, so they have to have their own
-	 * separate socket and thread in order to avoid having
-	 * the entire driver block during a move.
-	 */
-
-	int move_thread_socket_id;
-
-	MX_THREAD *move_thread;
-	MX_MUTEX *move_thread_mutex;
-	MX_CONDITION_VARIABLE *move_thread_cv;
-	mx_bool_type move_in_progress;
-
-	char command_type[MXU_NEWPORT_XPS_LENGTH+1];
-	char commanded_object_name[MXU_NEWPORT_XPS_LENGTH+1];
-	double commanded_destination;
 } MX_NEWPORT_XPS;
 
 #define MXI_NEWPORT_XPS_STANDARD_FIELDS \
@@ -76,7 +60,7 @@ MX_API mx_status_type mxi_newport_xps_open( MX_RECORD *record );
 
 MX_API mx_status_type mxi_newport_xps_resynchronize( MX_RECORD *record );
 
-MX_API mx_status_type mxi_newport_xps_error( MX_NEWPORT_XPS *newport_xps,
+MX_API mx_status_type mxi_newport_xps_error( int socket_id,
 						char *api_name,
 						int error_code );
 

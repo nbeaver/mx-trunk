@@ -19,6 +19,15 @@
 
 #define MXU_NEWPORT_XPS_POSITIONER_NAME_LENGTH  80
 
+/*---*/
+
+/* Command types for the move thread. */
+
+#define MXT_NEWPORT_XPS_GROUP_MOVE_ABSOLUTE	1
+#define MXT_NEWPORT_XPS_GROUP_HOME_SEARCH	2
+
+/*---*/
+
 typedef struct {
 	MX_RECORD *record;
 
@@ -26,6 +35,21 @@ typedef struct {
 	char positioner_name[MXU_NEWPORT_XPS_POSITIONER_NAME_LENGTH+1];
 
 	char group_name[MXU_NEWPORT_XPS_POSITIONER_NAME_LENGTH+1];
+
+	/* Move commands _block_, so they have to have their own
+	 * separate socket and thread in order to avoid having
+	 * the entire 'newport_xps' module block during a move.
+	 */
+
+	int move_thread_socket_id;
+
+	MX_THREAD *move_thread;
+	MX_MUTEX *move_thread_mutex;
+	MX_CONDITION_VARIABLE *move_thread_cv;
+	mx_bool_type move_in_progress;
+
+	unsigned long command_type;
+	double command_destination;
 } MX_NEWPORT_XPS_MOTOR;
 
 MX_API mx_status_type mxd_newport_xps_create_record_structures(

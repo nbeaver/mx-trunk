@@ -19,13 +19,13 @@
 #ifndef __MX_CONDITION_VARIABLE_H__
 #define __MX_CONDITION_VARIABLE_H__
 
+#include "mx_mutex.h"
+
 /* Make the header file C++ safe. */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "mx_mutex.h"
 
 typedef struct {
 	void *cv_private;
