@@ -15,9 +15,9 @@
  *
  */
 
-#define MXD_NEWPORT_XPS_MOTOR_DEBUG		FALSE
+#define MXD_NEWPORT_XPS_MOTOR_DEBUG			FALSE
 
-#define MXD_NEWPORT_XPS_MOTOR_ERROR_DEBUG	FALSE
+#define MXD_NEWPORT_XPS_MOTOR_MOVE_THREAD_DEBUG		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -191,6 +191,12 @@ mxd_newport_xps_move_thread( MX_THREAD *thread, void *thread_argument )
 				return mx_status;
 		}
 
+#if MXD_NEWPORT_XPS_MOTOR_MOVE_THREAD_DEBUG
+		MX_DEBUG(-2,("%s: '%s' command = %lu, destination = %f",
+			fname, newport_xps_motor->record->name,
+			newport_xps_motor->command_type,
+			newport_xps_motor->command_destination));
+#endif
 		switch( newport_xps_motor->command_type ) {
 		case MXT_NEWPORT_XPS_GROUP_MOVE_ABSOLUTE:
 
@@ -232,7 +238,10 @@ mxd_newport_xps_move_thread( MX_THREAD *thread, void *thread_argument )
 
 		newport_xps_motor->move_in_progress = FALSE;
 
-		MX_DEBUG(-2,("%s: command complete", fname));
+#if MXD_NEWPORT_XPS_MOTOR_MOVE_THREAD_DEBUG
+		MX_DEBUG(-2,("%s: '%s' command complete",
+			fname, newport_xps_motor->record->name));
+#endif
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -414,8 +423,10 @@ mxd_newport_xps_open( MX_RECORD *record )
 					newport_xps->port_number,
 					newport_xps->timeout );
 
+#if MXD_NEWPORT_XPS_MOTOR_MOVE_THREAD_DEBUG
 	MX_DEBUG(-2,("%s: newport_xps_motor->move_thread_socket_id = %d",
 			fname, newport_xps_motor->move_thread_socket_id));
+#endif
 
 	if ( newport_xps_motor->move_thread_socket_id < 0 ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,

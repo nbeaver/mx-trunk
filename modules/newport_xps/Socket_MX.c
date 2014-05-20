@@ -224,8 +224,7 @@ SendAndReceive( int SocketID,
 
 		if ( strstr(sReturnString, "EndOfAPI") ) {
 			exit_loop = TRUE;
-		}
-
+		} else
 		if ( check_for_timeouts ) {
 			current_tick = mx_current_clock_tick();
 
