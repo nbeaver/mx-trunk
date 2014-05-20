@@ -26,6 +26,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
+#include "mx_process.h"
 #include "mx_rs232.h"
 #include "mx_motor.h"
 #include "i_newport_xps.h"
@@ -47,7 +48,8 @@ MX_RECORD_FUNCTION_LIST mxd_newport_xps_record_function_list = {
 	mxd_newport_xps_open,
 	NULL,
 	NULL,
-	mxd_newport_xps_resynchronize
+	mxd_newport_xps_resynchronize,
+	mxd_newport_xps_special_processing_setup
 };
 
 MX_MOTOR_FUNCTION_LIST mxd_newport_xps_motor_function_list = {
@@ -83,7 +85,12 @@ long mxd_newport_xps_num_record_fields
 MX_RECORD_FIELD_DEFAULTS *mxd_newport_xps_rfield_def_ptr
 			= &mxd_newport_xps_record_field_defaults[0];
 
-/* A private function for the use of the driver. */
+/*---*/
+
+static mx_status_type mxd_newport_xps_process_function( void *record_ptr,
+							void *record_field_ptr,
+							int operation );
+/*---*/
 
 static mx_status_type
 mxd_newport_xps_get_pointers( MX_MOTOR *motor,
@@ -348,6 +355,9 @@ mxd_newport_xps_create_record_structures( MX_RECORD *record )
 	motor->record = record;
 	newport_xps_motor->record = record;
 
+	newport_xps_motor->group_status = 0;
+	newport_xps_motor->group_status_string[0] = '\0';
+
 	/* A NEWPORT_XPS_MOTOR is treated as an analog motor. */
 
 	motor->subclass = MXC_MTR_ANALOG;
@@ -519,6 +529,124 @@ mxd_newport_xps_resynchronize( MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxd_newport_xps_special_processing_setup( MX_RECORD *record )
+{
+	MX_RECORD_FIELD *record_field;
+	MX_RECORD_FIELD *record_field_array;
+	long i;
+
+	record_field_array = record->record_field_array;
+
+	for ( i = 0; i < record->num_record_fields; i++ ) {
+
+		record_field = &record_field_array[i];
+
+		switch( record_field->label_value ) {
+		case MXLV_NEWPORT_XPS_GROUP_STATUS:
+		case MXLV_NEWPORT_XPS_GROUP_STATUS_STRING:
+			record_field->process_function
+					= mxd_newport_xps_process_function;
+			break;
+		default:
+			break;
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
+
+static mx_status_type
+mxd_newport_xps_process_function( void *record_ptr,
+			void *record_field_ptr, int operation )
+{
+	static const char fname[] = "mxd_newport_xps_process_function()";
+
+	MX_RECORD *record;
+	MX_RECORD_FIELD *record_field;
+	MX_NEWPORT_XPS_MOTOR *newport_xps_motor;
+	int xps_status, group_status;
+	mx_status_type mx_status;
+
+	record = (MX_RECORD *) record_ptr;
+	record_field = (MX_RECORD_FIELD *) record_field_ptr;
+	newport_xps_motor = (MX_NEWPORT_XPS_MOTOR *) record->record_type_struct;
+
+	mx_status = MX_SUCCESSFUL_RESULT;
+
+	switch( operation ) {
+	case MX_PROCESS_GET:
+		switch( record_field->label_value ) {
+		case MXLV_NEWPORT_XPS_GROUP_STATUS:
+			xps_status = GroupStatusGet(
+				newport_xps_motor->move_thread_socket_id,
+				newport_xps_motor->group_name,
+				&group_status );
+
+			if ( xps_status != SUCCESS ) {
+				return mxi_newport_xps_error(
+				    newport_xps_motor->move_thread_socket_id,
+					"GroupStatusGet()",
+					xps_status );
+			}
+
+			newport_xps_motor->group_status = group_status;
+			break;
+		case MXLV_NEWPORT_XPS_GROUP_STATUS_STRING:
+			xps_status = GroupStatusGet(
+				newport_xps_motor->move_thread_socket_id,
+				newport_xps_motor->group_name,
+				&group_status );
+
+			if ( xps_status != SUCCESS ) {
+				return mxi_newport_xps_error(
+				    newport_xps_motor->move_thread_socket_id,
+					"GroupStatusGet()",
+					xps_status );
+			}
+
+			newport_xps_motor->group_status = group_status;
+
+			xps_status = GroupStatusStringGet(
+				newport_xps_motor->move_thread_socket_id,
+				group_status,
+				newport_xps_motor->group_status_string );
+
+			if ( xps_status != SUCCESS ) {
+				return mxi_newport_xps_error(
+				    newport_xps_motor->move_thread_socket_id,
+					"GroupStatusStringGet()",
+					xps_status );
+			}
+			break;
+		default:
+			MX_DEBUG( 1,(
+			    "%s: *** Unknown MX_PROCESS_GET label value = %ld",
+				fname, record_field->label_value));
+			break;
+		}
+		break;
+	case MX_PROCESS_PUT:
+		switch( record_field->label_value ) {
+		default:
+			MX_DEBUG( 1,(
+			    "%s: *** Unknown MX_PROCESS_PUT label value = %ld",
+				fname, record_field->label_value));
+			break;
+		}
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Unknown operation code = %d", operation );
+	}
+
+	return mx_status;
+}
+
 /* ============ Motor specific functions ============ */
 
 MX_EXPORT mx_status_type
@@ -543,6 +671,8 @@ mxd_newport_xps_move_absolute( MX_MOTOR *motor )
 
 	return mx_status;
 }
+
+/*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mxd_newport_xps_get_position( MX_MOTOR *motor )
@@ -576,6 +706,8 @@ mxd_newport_xps_get_position( MX_MOTOR *motor )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*--------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mxd_newport_xps_soft_abort( MX_MOTOR *motor )
 {
@@ -604,6 +736,8 @@ mxd_newport_xps_soft_abort( MX_MOTOR *motor )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*--------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mxd_newport_xps_raw_home_command( MX_MOTOR *motor )
 {
@@ -626,6 +760,8 @@ mxd_newport_xps_raw_home_command( MX_MOTOR *motor )
 
 	return mx_status;
 }
+
+/*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mxd_newport_xps_get_parameter( MX_MOTOR *motor )
@@ -671,6 +807,8 @@ mxd_newport_xps_get_parameter( MX_MOTOR *motor )
 	}
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mxd_newport_xps_set_parameter( MX_MOTOR *motor )
@@ -720,6 +858,8 @@ mxd_newport_xps_set_parameter( MX_MOTOR *motor )
 
 	return mx_status;
 }
+
+/*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mxd_newport_xps_get_status( MX_MOTOR *motor )

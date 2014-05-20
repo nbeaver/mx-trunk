@@ -92,6 +92,9 @@ mxi_newport_xps_create_record_structures( MX_RECORD *record )
 
 	newport_xps->record = record;
 
+	newport_xps->controller_status = 0;
+	newport_xps->controller_status_string[0] = '\0';
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -238,7 +241,7 @@ mxi_newport_xps_special_processing_setup( MX_RECORD *record )
 
 		switch( record_field->label_value ) {
 		case MXLV_NEWPORT_XPS_CONTROLLER_STATUS:
-		case MXLV_NEWPORT_XPS_CONTROLLER_STATUS_MESSAGE:
+		case MXLV_NEWPORT_XPS_CONTROLLER_STATUS_STRING:
 			record_field->process_function
 					= mxi_newport_xps_process_function;
 			break;
@@ -324,7 +327,7 @@ mxi_newport_xps_process_function( void *record_ptr,
 
 			newport_xps->controller_status = controller_status;
 			break;
-		case MXLV_NEWPORT_XPS_CONTROLLER_STATUS_MESSAGE:
+		case MXLV_NEWPORT_XPS_CONTROLLER_STATUS_STRING:
 			xps_status = ControllerStatusGet(
 						newport_xps->socket_id,
 						&controller_status );
@@ -341,7 +344,7 @@ mxi_newport_xps_process_function( void *record_ptr,
 			xps_status = ControllerStatusStringGet(
 						newport_xps->socket_id,
 						controller_status,
-					newport_xps->controller_status_message);
+					newport_xps->controller_status_string );
 
 			if ( xps_status != SUCCESS ) {
 				return mxi_newport_xps_error(

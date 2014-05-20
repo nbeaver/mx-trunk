@@ -23,6 +23,8 @@
 
 #define MXU_NEWPORT_XPS_POSITIONER_NAME_LENGTH  80
 
+#define MXU_NEWPORT_XPS_GROUP_STATUS_LENGTH	250
+
 /*---*/
 
 /* Command types for the move thread. */
@@ -39,6 +41,9 @@ typedef struct {
 	char positioner_name[MXU_NEWPORT_XPS_POSITIONER_NAME_LENGTH+1];
 
 	char group_name[MXU_NEWPORT_XPS_POSITIONER_NAME_LENGTH+1];
+
+	long group_status;
+	char group_status_string[MXU_NEWPORT_XPS_GROUP_STATUS_LENGTH+1];
 
 	/* Move commands _block_, so they have to have their own
 	 * separate socket and thread in order to avoid having
@@ -60,6 +65,8 @@ MX_API mx_status_type mxd_newport_xps_create_record_structures(
 						MX_RECORD *record );
 MX_API mx_status_type mxd_newport_xps_open( MX_RECORD *record );
 MX_API mx_status_type mxd_newport_xps_resynchronize( MX_RECORD *record );
+MX_API mx_status_type mxd_newport_xps_special_processing_setup(
+							MX_RECORD *record );
 
 MX_API mx_status_type mxd_newport_xps_move_absolute( MX_MOTOR *motor );
 MX_API mx_status_type mxd_newport_xps_get_position( MX_MOTOR *motor );
@@ -75,6 +82,9 @@ extern MX_MOTOR_FUNCTION_LIST mxd_newport_xps_motor_function_list;
 extern long mxd_newport_xps_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_newport_xps_rfield_def_ptr;
 
+#define MXLV_NEWPORT_XPS_GROUP_STATUS		88001
+#define MXLV_NEWPORT_XPS_GROUP_STATUS_STRING	88002
+
 #define MXD_NEWPORT_XPS_MOTOR_STANDARD_FIELDS \
   {-1, -1, "newport_xps_record", MXFT_RECORD, NULL, 0, {0},\
 	MXF_REC_TYPE_STRUCT, \
@@ -84,6 +94,23 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_newport_xps_rfield_def_ptr;
   {-1, -1, "positioner_name", MXFT_STRING, NULL, \
 				1, {MXU_NEWPORT_XPS_POSITIONER_NAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS_MOTOR, positioner_name), \
-	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION }
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_READ_ONLY) }, \
+  \
+  {-1, -1, "group_name", MXFT_STRING, NULL, \
+				1, {MXU_NEWPORT_XPS_POSITIONER_NAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS_MOTOR, group_name), \
+	{sizeof(char)}, NULL, MXFF_READ_ONLY }, \
+  \
+  {MXLV_NEWPORT_XPS_GROUP_STATUS, -1, "group_status", \
+			MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS_MOTOR, group_status), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {MXLV_NEWPORT_XPS_GROUP_STATUS_STRING, -1, "group_status_string",\
+		MXFT_STRING, NULL, 1, {MXU_NEWPORT_XPS_GROUP_STATUS_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_NEWPORT_XPS_MOTOR, group_status_string), \
+	{sizeof(char)}, NULL, MXFF_READ_ONLY}
+
 
 #endif /* __D_NEWPORT_XPS_H__ */

@@ -17,9 +17,9 @@
 #ifndef __I_NEWPORT_XPS_H__
 #define __I_NEWPORT_XPS_H__
 
-#define MXU_NEWPORT_XPS_AUTH_LENGTH	40
+#define MXU_NEWPORT_XPS_AUTH_LENGTH			40
 
-#define MXU_NEWPORT_XPS_STATUS_LENGTH	250
+#define MXU_NEWPORT_XPS_CONTROLLER_STATUS_LENGTH	250
 
 typedef struct {
 	MX_RECORD *record;
@@ -31,26 +31,28 @@ typedef struct {
 	char password[MXU_NEWPORT_XPS_AUTH_LENGTH+1];
 
 	long controller_status;
-	char controller_status_message[MXU_NEWPORT_XPS_STATUS_LENGTH+1];
+	char
+	  controller_status_string[MXU_NEWPORT_XPS_CONTROLLER_STATUS_LENGTH+1];
 
 	int socket_id;
 } MX_NEWPORT_XPS;
 
 #define MXLV_NEWPORT_XPS_CONTROLLER_STATUS		87001
-#define MXLV_NEWPORT_XPS_CONTROLLER_STATUS_MESSAGE	87002
+#define MXLV_NEWPORT_XPS_CONTROLLER_STATUS_STRING	87002
 
 #define MXI_NEWPORT_XPS_STANDARD_FIELDS \
   {-1, -1, "hostname", MXFT_STRING, NULL, 1, {MXU_HOSTNAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, hostname), \
-	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+	{sizeof(char)}, NULL, \
+		(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
   \
   {-1, -1, "port_number", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, port_number), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
   \
   {-1, -1, "timeout", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, timeout), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
   \
   {-1, -1, "username", MXFT_STRING, NULL, 1, {MXU_NEWPORT_XPS_AUTH_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, username), \
@@ -63,13 +65,13 @@ typedef struct {
   {MXLV_NEWPORT_XPS_CONTROLLER_STATUS, -1, "controller_status", \
 			MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, controller_status), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
-  {MXLV_NEWPORT_XPS_CONTROLLER_STATUS_MESSAGE, -1, "controller_status_message",\
-			MXFT_STRING, NULL, 1, {MXU_NEWPORT_XPS_STATUS_LENGTH}, \
+  {MXLV_NEWPORT_XPS_CONTROLLER_STATUS_STRING, -1, "controller_status_string",\
+	    MXFT_STRING, NULL, 1, {MXU_NEWPORT_XPS_CONTROLLER_STATUS_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, \
-			offsetof(MX_NEWPORT_XPS, controller_status_message), \
-	{sizeof(char)}, NULL, 0}
+			offsetof(MX_NEWPORT_XPS, controller_status_string), \
+	{sizeof(char)}, NULL, MXFF_READ_ONLY}
 
 MX_API mx_status_type mxi_newport_xps_create_record_structures(
 						MX_RECORD *record );

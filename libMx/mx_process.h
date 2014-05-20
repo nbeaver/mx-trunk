@@ -25,6 +25,7 @@ extern "C" {
 #endif
 
 #include "mx_osdef.h"
+#include "mx_socket.h"
 #include "mx_net.h"
 
 #define MXU_ADDRESS_STRING_LENGTH	20
