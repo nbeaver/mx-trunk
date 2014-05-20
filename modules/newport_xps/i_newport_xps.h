@@ -29,6 +29,7 @@ typedef struct {
 
 	char hostname[MXU_HOSTNAME_LENGTH+1];
 	unsigned long port_number;
+	double timeout;
 
 	char username[MXU_NEWPORT_XPS_LENGTH+1];
 	char password[MXU_NEWPORT_XPS_LENGTH+1];
@@ -43,6 +44,10 @@ typedef struct {
   \
   {-1, -1, "port_number", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, port_number), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "timeout", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, timeout), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {-1, -1, "username", MXFT_STRING, NULL, 1, {MXU_NEWPORT_XPS_LENGTH}, \

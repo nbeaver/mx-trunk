@@ -15,16 +15,24 @@
  *
  */
 
+#define SOCKET_MX_DEBUG		TRUE
+
 #include <stdio.h>
+#include <stdlib.h>
 #include <errno.h>
 
 #include "Socket.h"
 
 #include "mx_util.h"
 #include "mx_handle.h"
+#include "mx_clock.h"
 #include "mx_socket.h"
 
 /*---*/
+
+#define NUM_SOCKETS		65536
+#define TIMEOUT			300	/* As specified in the Newport code. */
+#define SMALL_BUFFER_SIZE	1024
 
 /* MX maintains information about sockets in an MX_SOCKET structure.
  * However, the Newport XPS library manipulates the socket file
@@ -35,6 +43,10 @@
 
 static MX_HANDLE_TABLE *handle_table = NULL;
 
+/* The timeout_table array contains the internal timeouts for each socket. */
+
+static double *timeout_table = NULL;	/* in seconds */
+
 /*---*/
 
 int
@@ -42,15 +54,28 @@ ConnectToServer( char *Ip_Address,
 		int Ip_Port,
 		double Timeout )
 {
+	static const char fname[] = "ConnectToServer()";
+
 	MX_SOCKET *client_socket;
 	int fd;
 	mx_status_type mx_status;
 
 	if ( handle_table == NULL ) {
-		mx_status = mx_create_handle_table( &handle_table, 65536, 1 );
+		mx_status = mx_create_handle_table( &handle_table,
+						NUM_SOCKETS, 1 );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return (-1);
+
+		timeout_table = (double *) calloc(NUM_SOCKETS, sizeof(double));
+
+		if ( timeout_table == (double *) NULL ) {
+			(void) mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate a %d element "
+			"array of socket timeout values.", NUM_SOCKETS );
+
+			return (-1);
+		}
 	}
 
 	mx_status = mx_tcp_socket_open_as_client( &client_socket,
@@ -68,6 +93,8 @@ ConnectToServer( char *Ip_Address,
 	if ( mx_status.code != MXE_SUCCESS )
 		return (-1);
 
+	SetTCPTimeout( fd, Timeout );
+
 	return fd;
 }
 
@@ -75,6 +102,25 @@ void
 SetTCPTimeout( int SocketID,
 		double Timeout )
 {
+	static const char fname[] = "SetTCPTimeout()";
+
+	if ( timeout_table == (double *) NULL ) {
+		(void) mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"SetTCPTimeout() invoked, but no timeout table has been "
+		"allocated yet.  Have you invoked ConnectToServer() yet?" );
+
+		return;
+	}
+
+	if ( Timeout <= 0.0 ) {
+		Timeout = TIMEOUT;
+	} else
+	if ( Timeout < 1.0e-3 ) {
+		Timeout = 1.0e-3;
+	}
+
+	timeout_table[ SocketID ] = Timeout;	/* in seconds */
+
 	return;
 }
 
@@ -86,11 +132,16 @@ SendAndReceive( int SocketID,
 {
 	static const char fname[] = "SendAndReceive()";
 
-	char receive_buffer[1024];
+	char receive_buffer[SMALL_BUFFER_SIZE];
 	MX_SOCKET *client_socket;
 	void *client_socket_ptr;
 	size_t num_bytes_received;
 	mx_bool_type exit_loop;
+	double timeout;
+	MX_CLOCK_TICK timeout_in_ticks;
+	MX_CLOCK_TICK current_tick, finish_tick;
+	int comparison;
+	mx_bool_type check_for_timeouts;
 	mx_status_type mx_status;
 
 	mx_status = mx_get_pointer_from_handle( &client_socket_ptr,
@@ -102,7 +153,18 @@ SendAndReceive( int SocketID,
 
 	client_socket = (MX_SOCKET *) client_socket_ptr;
 
+	/*---*/
+
+	mx_status = mx_socket_discard_unread_input( client_socket );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return;
+
+	/*---*/
+
+#if SOCKET_MX_DEBUG
 	MX_DEBUG(-2,("%s: sending '%s'", fname, sSendString));
+#endif
 
 	mx_status = mx_socket_send( client_socket,
 				sSendString,
@@ -110,6 +172,25 @@ SendAndReceive( int SocketID,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return;
+
+	/*---*/
+
+	timeout = timeout_table[ SocketID ];
+
+	if ( timeout < 1.0e-6 ) {
+		check_for_timeouts = FALSE;
+	} else {
+		check_for_timeouts = TRUE;
+
+		timeout_in_ticks = mx_convert_seconds_to_clock_ticks( timeout );
+
+		current_tick = mx_current_clock_tick();
+
+		finish_tick = mx_add_clock_ticks( current_tick,
+						timeout_in_ticks );
+	}
+
+	/*---*/
 
 	exit_loop = FALSE;
 
@@ -126,8 +207,10 @@ SendAndReceive( int SocketID,
 		case MXE_SUCCESS:
 			break;
 		case MXE_TIMED_OUT:
+#if SOCKET_MX_DEBUG
 			MX_DEBUG(-2,("%s: mx_socket_receive() timed out.",
 				fname));
+#endif
 			exit_loop = TRUE;
 			break;
 		default:
@@ -143,9 +226,27 @@ SendAndReceive( int SocketID,
 			exit_loop = TRUE;
 		}
 
+		if ( check_for_timeouts ) {
+			current_tick = mx_current_clock_tick();
+
+			comparison = mx_compare_clock_ticks( current_tick,
+								finish_tick );
+
+			if ( comparison >= 0 ) {
+				exit_loop = TRUE;
+
+				(void) mx_error( MXE_TIMED_OUT, fname,
+				"Timed out after waiting %f seconds for "
+				"a response from socket %d",
+					timeout, client_socket->socket_fd );
+			}
+		}
+
 	} while ( exit_loop == FALSE );
 
+#if SOCKET_MX_DEBUG
 	MX_DEBUG(-2,("%s: received '%s'", fname, sReturnString));
+#endif
 
 	return;
 }
@@ -168,6 +269,8 @@ CloseSocket( int SocketID )
 
 	mx_status = mx_delete_handle( client_socket->socket_fd,
 					handle_table );
+
+	timeout_table[ SocketID ] = TIMEOUT;
 
 	mx_status = mx_socket_close( client_socket );
 

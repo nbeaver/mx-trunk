@@ -87,7 +87,7 @@ depend:
 vendor_downloads: Socket.h XPS_C8_drivers.h XPS_C8_errors.h XPS_C8_drivers.cpp
 
 Socket.h:
-	../../scripts/download $(NEWPORT_XPS_SOURCE)/Socket.h 
+	../../scripts/download $(NEWPORT_XPS_SOURCE)/Socket.h
 
 XPS_C8_drivers.h:
 	../../scripts/download $(NEWPORT_XPS_SOURCE)/XPS_C8_drivers.h 

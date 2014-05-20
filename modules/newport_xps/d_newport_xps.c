@@ -335,7 +335,7 @@ mxd_newport_xps_open( MX_RECORD *record )
 				= TCP_ConnectToServer(
 					newport_xps->hostname,
 					newport_xps->port_number,
-					5.0 );
+					newport_xps->timeout );
 
 	MX_DEBUG(-2,("%s: newport_xps_motor->move_thread_socket_id = %d",
 			fname, newport_xps_motor->move_thread_socket_id));
