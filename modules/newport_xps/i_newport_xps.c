@@ -135,11 +135,7 @@ mxi_newport_xps_open( MX_RECORD *record )
 				newport_xps->username,
 				newport_xps->password );
 
-	MX_DEBUG(-2,("%s: Login() status = %d", fname, xps_status));
-
-	if ( xps_status == SUCCESS ) {
-		MX_DEBUG(-2,("%s: Login() successfully completed.", fname));
-	} else {
+	if ( xps_status != SUCCESS ) {
 		return mxi_newport_xps_error( newport_xps->socket_id,
 						"Login()",
 						xps_status );
