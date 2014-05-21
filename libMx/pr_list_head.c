@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006-2009, 2011-2013 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006-2009, 2011-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -63,6 +63,7 @@ mx_setup_list_head_process_functions( MX_RECORD *record )
 		case MXLV_LHD_SHOW_RECORD_LIST:
 		case MXLV_LHD_STATUS:
 		case MXLV_LHD_SUMMARY:
+		case MXLV_LHD_UPDATE_ALL:
 		case MXLV_LHD_VM_REGION:
 			record_field->process_function
 					    = mx_list_head_process_function;
@@ -164,6 +165,9 @@ mx_list_head_process_function( void *record_ptr,
 			break;
 		case MXLV_LHD_REPORT_ALL:
 			mx_status = mx_list_head_record_report_all( list_head );
+			break;
+		case MXLV_LHD_UPDATE_ALL:
+			mx_status = mx_list_head_record_update_all( list_head );
 			break;
 		case MXLV_LHD_SUMMARY:
 			mx_status = mx_list_head_record_summary( list_head );
@@ -480,6 +484,34 @@ mx_list_head_record_report_all( MX_LIST_HEAD *list_head )
 	}
 
 	mx_status = mx_print_structure( stderr, record, MXFF_SHOW_ALL );
+
+	return mx_status;
+}
+
+mx_status_type
+mx_list_head_record_update_all( MX_LIST_HEAD *list_head )
+{
+	MX_RECORD *record;
+	char *record_name;
+	mx_status_type mx_status;
+
+	record_name = list_head->update_all;
+
+	record = mx_get_record( list_head->record, record_name );
+
+	if ( record == NULL ) {
+		fprintf( stderr, "Record '%s' not found.\n", record_name );
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	mx_status = mx_initialize_record_processing( record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_print_structure( stderr, record,
+				MXFF_SHOW_ALL | MXFF_UPDATE_ALL );
 
 	return mx_status;
 }

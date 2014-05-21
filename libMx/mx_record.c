@@ -34,6 +34,7 @@
 #include "mx_signal.h"
 #include "mx_list_head.h"
 #include "mx_net.h"
+#include "mx_process.h"
 #include "mx_motor.h"
 #include "mx_cfn.h"
 #include "mx_export.h"
@@ -1996,7 +1997,9 @@ mx_print_structure( FILE *file, MX_RECORD *record, unsigned long mask )
 		 * consistent with the current hardware status.
 		 */
 
-		(void) mx_update_record_values( record );
+		if ( (mask & MXFF_UPDATE_ALL) == 0 ) {
+			(void) mx_update_record_values( record );
+		}
 
 		/* Now go through all the record fields looking for
 		 * fields to display
@@ -2015,7 +2018,10 @@ mx_print_structure( FILE *file, MX_RECORD *record, unsigned long mask )
 					"ERROR: Field %lu is NULL!!!\n", i );
 			}
 
-			if ( mask == (unsigned long) MXFF_SHOW_ALL ) {
+			if ( mask == MXFF_SHOW_ALL ) {
+				show_field = TRUE;
+			} else
+			if ( mask == (MXFF_SHOW_ALL | MXFF_UPDATE_ALL) ) {
 				show_field = TRUE;
 			} else {
 				if ( field->flags & mask ) {
@@ -2026,6 +2032,13 @@ mx_print_structure( FILE *file, MX_RECORD *record, unsigned long mask )
 			}
 
 			if ( show_field ) {
+
+				if ( mask & MXFF_UPDATE_ALL ) {
+					mx_status = mx_process_record_field(
+							record, field,
+							MX_PROCESS_GET,
+							NULL );
+				}
 
 				fprintf( file, "  %*s = ",
 					-(MXU_FIELD_NAME_LENGTH + 1),

@@ -55,6 +55,7 @@ motor_showall_fn( int argc, char *argv[] )
 
 	char usage[] = 
 		"Usage:  showall record 'record_name'\n"
+		"        showall update 'record_name'\n"
 		"        showall fielddef 'record_name'\n";
 
 	if ( argc != 4 ) {
@@ -69,7 +70,11 @@ motor_showall_fn( int argc, char *argv[] )
 
 	if ( strncmp( "record", argv[2], length ) == 0 ) {
 		status = motor_show_record(
-			MXR_ANY, MXC_ANY, MXT_ANY, argv[2], argv[3], TRUE );
+		    MXR_ANY, MXC_ANY, MXT_ANY, argv[2], argv[3], TRUE, FALSE );
+	} else
+	if ( strncmp( "update", argv[2], length ) == 0 ) {
+		status = motor_show_record(
+		    MXR_ANY, MXC_ANY, MXT_ANY, argv[2], argv[3], TRUE, TRUE );
 	} else
 	if ( strncmp( "fielddef", argv[2], 6 ) == 0 ) {
 		record = mx_get_record( motor_record_list, argv[3] );
@@ -474,7 +479,7 @@ motor_show_fn( int argc, char *argv[] )
 	} else {
 		status = motor_show_record(
 			record_superclass, record_class, record_type,
-			record_type_phrase, argv[3], FALSE );
+			record_type_phrase, argv[3], FALSE, FALSE );
 	}
 
 	return status;
@@ -643,7 +648,8 @@ motor_show_record(
 	long record_type,
 	char *record_type_name,
 	char *record_name,
-	int show_all )
+	int show_all,
+	int update_all )
 {
 	MX_RECORD *record;
 	mx_status_type mx_status;
@@ -694,6 +700,16 @@ motor_show_record(
 		mask = MXFF_SHOW_ALL;
 	} else {
 		mask = MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY;
+	}
+
+	if ( update_all ) {
+		mask |= MXFF_UPDATE_ALL;
+
+		mx_status = mx_initialize_record_processing( record );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			return FAILURE;
+		}
 	}
 
 	mx_status = mx_print_structure( output, record, mask );

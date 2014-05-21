@@ -101,6 +101,8 @@ extern mx_status_type mx_list_head_record_report( MX_LIST_HEAD *list_head );
 
 extern mx_status_type mx_list_head_record_report_all( MX_LIST_HEAD *list_head );
 
+extern mx_status_type mx_list_head_record_update_all( MX_LIST_HEAD *list_head );
+
 extern mx_status_type mx_list_head_record_summary( MX_LIST_HEAD *list_head );
 
 extern mx_status_type mx_list_head_record_show_record_list(

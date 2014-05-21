@@ -14,7 +14,7 @@
  *
  */
 
-#define MXI_NEWPORT_XPS_DEBUG	TRUE
+#define MXI_NEWPORT_XPS_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -107,11 +107,14 @@ mxi_newport_xps_open( MX_RECORD *record )
 
 	MX_NEWPORT_XPS *newport_xps = NULL;
 	int xps_status;
+
+#if MXI_NEWPORT_XPS_DEBUG
 	int controller_status_code;
 	char controller_status_string[200];
 	char firmware_version[200];
 	char hardware_date_and_time[200];
 	double elapsed_seconds_since_power_on;
+#endif
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -126,7 +129,9 @@ mxi_newport_xps_open( MX_RECORD *record )
 			record->name );
 	}
 
+#if MXI_NEWPORT_XPS_DEBUG
 	MX_DEBUG(-2,("%s: '%s'", fname, GetLibraryVersion() ));
+#endif
 
 	/*** Connect to the Newport XPS controller. ***/
 
@@ -135,8 +140,10 @@ mxi_newport_xps_open( MX_RECORD *record )
 					newport_xps->port_number,
 					newport_xps->timeout );
 
-	MX_DEBUG(-2,("%s: newport_xps->socket_id = %d",
+#if MXI_NEWPORT_XPS_DEBUG
+	MX_DEBUG(-2,("%s: newport_xps->socket_id = %ld",
 			fname, newport_xps->socket_id));
+#endif
 
 	if ( newport_xps->socket_id < 0 ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -155,6 +162,8 @@ mxi_newport_xps_open( MX_RECORD *record )
 						"Login()",
 						xps_status );
 	}
+
+#if MXI_NEWPORT_XPS_DEBUG
 
 	/*** Display some information about the controller's configuration. ***/
 
@@ -220,6 +229,7 @@ mxi_newport_xps_open( MX_RECORD *record )
 
 	MX_DEBUG(-2,("%s: controller status = %d, '%s'",
 		fname, controller_status_code, controller_status_string));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -242,6 +252,9 @@ mxi_newport_xps_special_processing_setup( MX_RECORD *record )
 		switch( record_field->label_value ) {
 		case MXLV_NEWPORT_XPS_CONTROLLER_STATUS:
 		case MXLV_NEWPORT_XPS_CONTROLLER_STATUS_STRING:
+		case MXLV_NEWPORT_XPS_ELAPSED_TIME:
+		case MXLV_NEWPORT_XPS_FIRMWARE_VERSION:
+		case MXLV_NEWPORT_XPS_HARDWARE_TIME:
 			record_field->process_function
 					= mxi_newport_xps_process_function;
 			break;
@@ -251,43 +264,6 @@ mxi_newport_xps_special_processing_setup( MX_RECORD *record )
 	}
 
 	return MX_SUCCESSFUL_RESULT;
-}
-
-/*--------------------------------------------------------------------------*/
-
-MX_EXPORT mx_status_type
-mxi_newport_xps_error( int socket_id,
-			char *api_name,
-			int error_code )
-{
-	static const char fname[] = "mxi_newport_xps_error()";
-
-	int status_of_error_string_get;
-	char error_message[300];
-	mx_status_type mx_status;
-
-	if ( error_code == SUCCESS ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-
-	status_of_error_string_get = ErrorStringGet( socket_id,
-						error_code, error_message );
-
-	if ( status_of_error_string_get != SUCCESS ) {
-		return mx_error( MXE_UNKNOWN_ERROR, fname,
-		"The attempt to get the error string for XPS error code %d "
-		"failed for socket ID %d",
-			error_code, socket_id );
-	}
-
-	mx_status = mx_error( MXE_DEVICE_ACTION_FAILED, api_name,
-			"The XPS function call for socket ID %d "
-			"failed.  XPS error code = %d, error message = '%s'",
-				socket_id,
-				error_code,
-				error_message );
-
-	return mx_status;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -353,6 +329,41 @@ mxi_newport_xps_process_function( void *record_ptr,
 					xps_status );
 			}
 			break;
+		case MXLV_NEWPORT_XPS_ELAPSED_TIME:
+			xps_status = ElapsedTimeGet( newport_xps->socket_id,
+						&(newport_xps->elapsed_time) );
+
+			if ( xps_status != SUCCESS ) {
+				return mxi_newport_xps_error(
+					newport_xps->socket_id,
+					"ElapsedTimeGet()",
+					xps_status );
+			}
+			break;
+		case MXLV_NEWPORT_XPS_FIRMWARE_VERSION:
+			xps_status = FirmwareVersionGet(
+						newport_xps->socket_id,
+						newport_xps->firmware_version );
+
+			if ( xps_status != SUCCESS ) {
+				return mxi_newport_xps_error(
+					newport_xps->socket_id,
+					"FirmwareVersionGet()",
+					xps_status );
+			}
+			break;
+		case MXLV_NEWPORT_XPS_HARDWARE_TIME:
+			xps_status = HardwareDateAndTimeGet(
+						newport_xps->socket_id,
+						newport_xps->hardware_time );
+
+			if ( xps_status != SUCCESS ) {
+				return mxi_newport_xps_error(
+					newport_xps->socket_id,
+					"HardwareDateAndTimeGet()",
+					xps_status );
+			}
+			break;
 		default:
 			MX_DEBUG( 1,(
 			    "%s: *** Unknown MX_PROCESS_GET label value = %ld",
@@ -373,6 +384,43 @@ mxi_newport_xps_process_function( void *record_ptr,
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Unknown operation code = %d", operation );
 	}
+
+	return mx_status;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxi_newport_xps_error( int socket_id,
+			char *api_name,
+			int error_code )
+{
+	static const char fname[] = "mxi_newport_xps_error()";
+
+	int status_of_error_string_get;
+	char error_message[300];
+	mx_status_type mx_status;
+
+	if ( error_code == SUCCESS ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	status_of_error_string_get = ErrorStringGet( socket_id,
+						error_code, error_message );
+
+	if ( status_of_error_string_get != SUCCESS ) {
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"The attempt to get the error string for XPS error code %d "
+		"failed for socket ID %d",
+			error_code, socket_id );
+	}
+
+	mx_status = mx_error( MXE_DEVICE_ACTION_FAILED, api_name,
+			"The XPS function call for socket ID %d "
+			"failed.  XPS error code = %d, error message = '%s'",
+				socket_id,
+				error_code,
+				error_message );
 
 	return mx_status;
 }

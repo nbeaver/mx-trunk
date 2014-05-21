@@ -17,9 +17,9 @@
 #ifndef __I_NEWPORT_XPS_H__
 #define __I_NEWPORT_XPS_H__
 
-#define MXU_NEWPORT_XPS_AUTH_LENGTH			40
+#define MXU_NEWPORT_XPS_AUTH_LENGTH	40
 
-#define MXU_NEWPORT_XPS_CONTROLLER_STATUS_LENGTH	250
+#define MXU_NEWPORT_XPS_STATUS_LENGTH	250
 
 typedef struct {
 	MX_RECORD *record;
@@ -30,15 +30,23 @@ typedef struct {
 	char username[MXU_NEWPORT_XPS_AUTH_LENGTH+1];
 	char password[MXU_NEWPORT_XPS_AUTH_LENGTH+1];
 
+	long socket_id;
+
 	long controller_status;
 	char
-	  controller_status_string[MXU_NEWPORT_XPS_CONTROLLER_STATUS_LENGTH+1];
+	  controller_status_string[MXU_NEWPORT_XPS_STATUS_LENGTH+1];
 
-	int socket_id;
+	double elapsed_time;
+	char firmware_version[MXU_NEWPORT_XPS_STATUS_LENGTH+1];
+	char hardware_time[MXU_NEWPORT_XPS_STATUS_LENGTH+1];
 } MX_NEWPORT_XPS;
 
-#define MXLV_NEWPORT_XPS_CONTROLLER_STATUS		87001
-#define MXLV_NEWPORT_XPS_CONTROLLER_STATUS_STRING	87002
+#define MXLV_NEWPORT_XPS_SOCKET_ID			87001
+#define MXLV_NEWPORT_XPS_CONTROLLER_STATUS		87002
+#define MXLV_NEWPORT_XPS_CONTROLLER_STATUS_STRING	87003
+#define MXLV_NEWPORT_XPS_ELAPSED_TIME			87004
+#define MXLV_NEWPORT_XPS_FIRMWARE_VERSION		87005
+#define MXLV_NEWPORT_XPS_HARDWARE_TIME			87006
 
 #define MXI_NEWPORT_XPS_STANDARD_FIELDS \
   {-1, -1, "hostname", MXFT_STRING, NULL, 1, {MXU_HOSTNAME_LENGTH}, \
@@ -62,15 +70,34 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, password), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_NO_ACCESS) }, \
   \
+  {MXLV_NEWPORT_XPS_SOCKET_ID, -1, "socket_id", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, socket_id), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
   {MXLV_NEWPORT_XPS_CONTROLLER_STATUS, -1, "controller_status", \
 			MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, controller_status), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_NEWPORT_XPS_CONTROLLER_STATUS_STRING, -1, "controller_status_string",\
-	    MXFT_STRING, NULL, 1, {MXU_NEWPORT_XPS_CONTROLLER_STATUS_LENGTH}, \
+	    MXFT_STRING, NULL, 1, {MXU_NEWPORT_XPS_STATUS_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, \
 			offsetof(MX_NEWPORT_XPS, controller_status_string), \
+	{sizeof(char)}, NULL, MXFF_READ_ONLY}, \
+  \
+  {MXLV_NEWPORT_XPS_ELAPSED_TIME, -1, "elapsed_time", \
+			MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, elapsed_time), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {MXLV_NEWPORT_XPS_FIRMWARE_VERSION, -1, "firmware_version",\
+	    MXFT_STRING, NULL, 1, {MXU_NEWPORT_XPS_STATUS_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, firmware_version), \
+	{sizeof(char)}, NULL, MXFF_READ_ONLY}, \
+  \
+  {MXLV_NEWPORT_XPS_HARDWARE_TIME, -1, "hardware_time",\
+	    MXFT_STRING, NULL, 1, {MXU_NEWPORT_XPS_STATUS_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, hardware_time), \
 	{sizeof(char)}, NULL, MXFF_READ_ONLY}
 
 MX_API mx_status_type mxi_newport_xps_create_record_structures(

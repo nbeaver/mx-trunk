@@ -9,7 +9,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004, 2006-2010, 2012-2013
+ * Copyright 2000-2001, 2003-2004, 2006-2010, 2012-2014
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -30,21 +30,22 @@ extern "C" {
 #define MXLV_LHD_STATUS				1002
 #define MXLV_LHD_REPORT				1003
 #define MXLV_LHD_REPORT_ALL			1004
-#define MXLV_LHD_SUMMARY			1005
-#define MXLV_LHD_SHOW_RECORD_LIST		1006
-#define MXLV_LHD_FIELDDEF			1007
-#define MXLV_LHD_SHOW_HANDLE			1008
-#define MXLV_LHD_SHOW_CALLBACKS			1009
-#define MXLV_LHD_SHOW_CALLBACK_ID		1010
-#define MXLV_LHD_BREAKPOINT_NUMBER		1011
-#define MXLV_LHD_NUMBERED_BREAKPOINT_STATUS	1012
-#define MXLV_LHD_BREAKPOINT			1013
-#define MXLV_LHD_CRASH				1014
-#define MXLV_LHD_DEBUGGER_STARTED		1015
-#define MXLV_LHD_SHOW_OPEN_FDS			1016
-#define MXLV_LHD_CALLBACKS_ENABLED		1017
-#define MXLV_LHD_CFLAGS				1018
-#define MXLV_LHD_VM_REGION			1019
+#define MXLV_LHD_UPDATE_ALL			1005
+#define MXLV_LHD_SUMMARY			1006
+#define MXLV_LHD_SHOW_RECORD_LIST		1007
+#define MXLV_LHD_FIELDDEF			1008
+#define MXLV_LHD_SHOW_HANDLE			1009
+#define MXLV_LHD_SHOW_CALLBACKS			1010
+#define MXLV_LHD_SHOW_CALLBACK_ID		1011
+#define MXLV_LHD_BREAKPOINT_NUMBER		1012
+#define MXLV_LHD_NUMBERED_BREAKPOINT_STATUS	1013
+#define MXLV_LHD_BREAKPOINT			1014
+#define MXLV_LHD_CRASH				1015
+#define MXLV_LHD_DEBUGGER_STARTED		1016
+#define MXLV_LHD_SHOW_OPEN_FDS			1017
+#define MXLV_LHD_CALLBACKS_ENABLED		1018
+#define MXLV_LHD_CFLAGS				1019
+#define MXLV_LHD_VM_REGION			1020
 
 #define MXR_LIST_HEAD_STANDARD_FIELDS \
   {-1, -1, "list_is_active", MXFT_BOOL, NULL, 0, {0}, \
@@ -88,6 +89,11 @@ extern "C" {
   {MXLV_LHD_REPORT_ALL, -1, "report_all", MXFT_STRING, NULL, \
 	  				1, {MXU_RECORD_NAME_LENGTH}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, report_all), \
+	{sizeof(char)}, NULL, 0}, \
+  \
+  {MXLV_LHD_UPDATE_ALL, -1, "update_all", MXFT_STRING, NULL, \
+	  				1, {MXU_RECORD_NAME_LENGTH}, \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, update_all), \
 	{sizeof(char)}, NULL, 0}, \
   \
   {MXLV_LHD_SUMMARY, -1, "summary", MXFT_STRING, NULL, \

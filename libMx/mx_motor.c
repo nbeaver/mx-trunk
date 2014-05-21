@@ -2927,6 +2927,7 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 	case MXLV_MTR_CLOSED_LOOP:
 	case MXLV_MTR_FAULT_RESET:
 	case MXLV_MTR_LIMIT_SWITCH_AS_HOME_SWITCH:
+	case MXLV_MTR_SYNCHRONOUS_MOTION_MODE:
 
 		/* These do not require anything to be done. */
 

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2010, 2012-2013 Illinois Institute of Technology
+ * Copyright 1999-2010, 2012-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -87,8 +87,9 @@ extern "C" {
 #define MXFF_NO_NEXT_EVENT_TIME_UPDATE	0x20
 #define MXFF_POLL			0x40
 
-/* The following value is used only by mx_print_structure(). */
+/* The following values are used only by mx_print_structure(). */
 
+#define MXFF_UPDATE_ALL			0x40000000
 #define MXFF_SHOW_ALL			0x80000000
 
 typedef struct mx_record_field_type {
@@ -408,6 +409,7 @@ typedef struct {
 
 	char report[ MXU_RECORD_NAME_LENGTH + 1 ];
 	char report_all[ MXU_RECORD_NAME_LENGTH + 1 ];
+	char update_all[ MXU_RECORD_NAME_LENGTH + 1 ];
 	char summary[ MXU_RECORD_NAME_LENGTH + 1 ];
 	mx_bool_type show_record_list;
 	char fielddef[ MXU_FIELD_NAME_LENGTH + 1 ];

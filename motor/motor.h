@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------
  *
- * Copyright 1999-2011 Illinois Institute of Technology
+ * Copyright 1999-2011, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -163,7 +163,7 @@ extern int motor_show_records( long superclass, long class, long type,
 				char *match_string );
 extern int motor_show_record( long superclass, long class, long type,
 				char *record_type_name, char *record_name,
-				int showall );
+				int show_all, int update_all );
 extern int motor_show_field( char *fieldname );
 
 extern int motor_check_for_datafile_name_collision( MX_SCAN *scan );
