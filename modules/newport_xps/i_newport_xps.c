@@ -255,6 +255,7 @@ mxi_newport_xps_special_processing_setup( MX_RECORD *record )
 		case MXLV_NEWPORT_XPS_ELAPSED_TIME:
 		case MXLV_NEWPORT_XPS_FIRMWARE_VERSION:
 		case MXLV_NEWPORT_XPS_HARDWARE_TIME:
+		case MXLV_NEWPORT_XPS_LIBRARY_VERSION:
 			record_field->process_function
 					= mxi_newport_xps_process_function;
 			break;
@@ -363,6 +364,11 @@ mxi_newport_xps_process_function( void *record_ptr,
 					"HardwareDateAndTimeGet()",
 					xps_status );
 			}
+			break;
+		case MXLV_NEWPORT_XPS_LIBRARY_VERSION:
+			strlcpy( newport_xps->library_version,
+				GetLibraryVersion(),
+				sizeof(newport_xps->library_version) );
 			break;
 		default:
 			MX_DEBUG( 1,(

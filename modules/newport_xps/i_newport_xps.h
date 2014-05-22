@@ -39,6 +39,7 @@ typedef struct {
 	double elapsed_time;
 	char firmware_version[MXU_NEWPORT_XPS_STATUS_LENGTH+1];
 	char hardware_time[MXU_NEWPORT_XPS_STATUS_LENGTH+1];
+	char library_version[MXU_NEWPORT_XPS_STATUS_LENGTH+1];
 } MX_NEWPORT_XPS;
 
 #define MXLV_NEWPORT_XPS_SOCKET_ID			87001
@@ -47,6 +48,7 @@ typedef struct {
 #define MXLV_NEWPORT_XPS_ELAPSED_TIME			87004
 #define MXLV_NEWPORT_XPS_FIRMWARE_VERSION		87005
 #define MXLV_NEWPORT_XPS_HARDWARE_TIME			87006
+#define MXLV_NEWPORT_XPS_LIBRARY_VERSION		87007
 
 #define MXI_NEWPORT_XPS_STANDARD_FIELDS \
   {-1, -1, "hostname", MXFT_STRING, NULL, 1, {MXU_HOSTNAME_LENGTH}, \
@@ -98,6 +100,11 @@ typedef struct {
   {MXLV_NEWPORT_XPS_HARDWARE_TIME, -1, "hardware_time",\
 	    MXFT_STRING, NULL, 1, {MXU_NEWPORT_XPS_STATUS_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, hardware_time), \
+	{sizeof(char)}, NULL, MXFF_READ_ONLY}, \
+  \
+  {MXLV_NEWPORT_XPS_LIBRARY_VERSION, -1, "library_version",\
+	    MXFT_STRING, NULL, 1, {MXU_NEWPORT_XPS_STATUS_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, library_version), \
 	{sizeof(char)}, NULL, MXFF_READ_ONLY}
 
 MX_API mx_status_type mxi_newport_xps_create_record_structures(
