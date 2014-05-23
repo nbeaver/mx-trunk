@@ -224,6 +224,8 @@ typedef struct {
 	char extended_status[ MXU_EXTENDED_STATUS_STRING_LENGTH + 1 ];
 	char raw_status[ MXU_RAW_STATUS_STRING_LENGTH + 1 ];
 
+	unsigned long latched_status;
+
 	/* The following fields are used to handle motor controllers that
 	 * do not set the 'busy' flag immediately after the start of a move.
 	 */
@@ -301,11 +303,12 @@ typedef struct {
 #define MXLV_MTR_GET_STATUS				1030
 #define MXLV_MTR_GET_EXTENDED_STATUS			1031
 #define MXLV_MTR_GET_RAW_STATUS				1032
-#define MXLV_MTR_BUSY_START_INTERVAL_ENABLED		1033
-#define MXLV_MTR_BUSY_START_INTERVAL			1034
-#define MXLV_MTR_LAST_START_TIME			1035
-#define MXLV_MTR_SAVE_START_POSITIONS			1036
-#define MXLV_MTR_USE_START_POSITIONS			1037
+#define MXLV_MTR_GET_LATCHED_STATUS			1033
+#define MXLV_MTR_BUSY_START_INTERVAL_ENABLED		1034
+#define MXLV_MTR_BUSY_START_INTERVAL			1035
+#define MXLV_MTR_LAST_START_TIME			1036
+#define MXLV_MTR_SAVE_START_POSITIONS			1037
+#define MXLV_MTR_USE_START_POSITIONS			1038
 
 #define MXLV_MTR_VALUE_CHANGE_THRESHOLD			3001
 
@@ -604,6 +607,10 @@ typedef struct {
 		MXFT_STRING, NULL, 1, {MXU_RAW_STATUS_STRING_LENGTH}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, raw_status), \
 	{sizeof(char)}, NULL, MXFF_READ_ONLY}, \
+  \
+  {MXLV_MTR_GET_LATCHED_STATUS, -1, "latched_status", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, latched_status), \
+	{0}, NULL, 0}, \
   \
   {MXLV_MTR_BUSY_START_INTERVAL_ENABLED, -1, "busy_start_interval_enabled", \
 		MXFT_BOOL, NULL, 0, {0}, \

@@ -1445,141 +1445,159 @@ mxd_compumotor_get_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_PROPORTIONAL_GAIN:
-		snprintf( command, sizeof(command), "%ld_!%ldSGP",
+		if ( compumotor->is_servo ) {
+			snprintf( command, sizeof(command), "%ld_!%ldSGP",
 					compumotor->controller_number,
 					compumotor->axis_number );
 		
-		mx_status = mxi_compumotor_command(
-				compumotor_interface, command,
-				response, sizeof(response), MXD_COMPUMOTOR_DEBUG );
+			mx_status = mxi_compumotor_command(
+					compumotor_interface, command,
+					response, sizeof(response),
+					MXD_COMPUMOTOR_DEBUG );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
-		num_items = sscanf( response, "%lg", &double_value );
+			num_items = sscanf( response, "%lg", &double_value );
 
-		if ( num_items != 1 ) {
-			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			if ( num_items != 1 ) {
+				return mx_error( MXE_DEVICE_IO_ERROR, fname,
 "Unable to parse returned proportional gain for motor '%s'.  Response = '%s'",
-				motor->record->name, response );
-		}
+					motor->record->name, response );
+			}
 
-		motor->proportional_gain = double_value;
+			motor->proportional_gain = double_value;
+		}
 		break;
 
 	case MXLV_MTR_INTEGRAL_GAIN:
-		snprintf( command, sizeof(command), "%ld_!%ldSGI",
+		if ( compumotor->is_servo ) {
+			snprintf( command, sizeof(command), "%ld_!%ldSGI",
 					compumotor->controller_number,
 					compumotor->axis_number );
 		
-		mx_status = mxi_compumotor_command(
-				compumotor_interface, command,
-				response, sizeof(response), MXD_COMPUMOTOR_DEBUG );
+			mx_status = mxi_compumotor_command(
+					compumotor_interface, command,
+					response, sizeof(response),
+					MXD_COMPUMOTOR_DEBUG );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
-		num_items = sscanf( response, "%lg", &double_value );
+			num_items = sscanf( response, "%lg", &double_value );
 
-		if ( num_items != 1 ) {
-			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			if ( num_items != 1 ) {
+				return mx_error( MXE_DEVICE_IO_ERROR, fname,
 "Unable to parse returned integral gain for motor '%s'.  Response = '%s'",
-				motor->record->name, response );
-		}
+					motor->record->name, response );
+			}
 
-		motor->integral_gain = double_value;
+			motor->integral_gain = double_value;
+		}
 		break;
 
 	case MXLV_MTR_DERIVATIVE_GAIN:
-		snprintf( command, sizeof(command), "%ld_!%ldSGV",
+		if ( compumotor->is_servo ) {
+			snprintf( command, sizeof(command), "%ld_!%ldSGV",
 					compumotor->controller_number,
 					compumotor->axis_number );
 		
-		mx_status = mxi_compumotor_command(
-				compumotor_interface, command,
-				response, sizeof(response), MXD_COMPUMOTOR_DEBUG );
+			mx_status = mxi_compumotor_command(
+					compumotor_interface, command,
+					response, sizeof(response),
+					MXD_COMPUMOTOR_DEBUG );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
-		num_items = sscanf( response, "%lg", &double_value );
+			num_items = sscanf( response, "%lg", &double_value );
 
-		if ( num_items != 1 ) {
-			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			if ( num_items != 1 ) {
+				return mx_error( MXE_DEVICE_IO_ERROR, fname,
 "Unable to parse returned differential gain for motor '%s'.  Response = '%s'",
-				motor->record->name, response );
-		}
+					motor->record->name, response );
+			}
 
-		motor->derivative_gain = double_value;
+			motor->derivative_gain = double_value;
+		}
 		break;
 
 	case MXLV_MTR_VELOCITY_FEEDFORWARD_GAIN:
-		snprintf( command, sizeof(command), "%ld_!%ldSGVF",
+		if ( compumotor->is_servo ) {
+			snprintf( command, sizeof(command), "%ld_!%ldSGVF",
 					compumotor->controller_number,
 					compumotor->axis_number );
 		
-		mx_status = mxi_compumotor_command(
-				compumotor_interface, command,
-				response, sizeof(response), MXD_COMPUMOTOR_DEBUG );
+			mx_status = mxi_compumotor_command(
+					compumotor_interface, command,
+					response, sizeof(response),
+					MXD_COMPUMOTOR_DEBUG );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
-		num_items = sscanf( response, "%lg", &double_value );
+			num_items = sscanf( response, "%lg", &double_value );
 
-		if ( num_items != 1 ) {
-			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			if ( num_items != 1 ) {
+				return mx_error( MXE_DEVICE_IO_ERROR, fname,
 "Unable to parse returned velocity_feedforward gain for motor '%s'.  "
 "Response = '%s'", motor->record->name, response );
-		}
+			}
 
-		motor->velocity_feedforward_gain = double_value;
+			motor->velocity_feedforward_gain = double_value;
+		}
 		break;
 
 	case MXLV_MTR_ACCELERATION_FEEDFORWARD_GAIN:
-		snprintf( command, sizeof(command), "%ld_!%ldSGAF",
+		if ( compumotor->is_servo ) {
+			snprintf( command, sizeof(command), "%ld_!%ldSGAF",
 					compumotor->controller_number,
 					compumotor->axis_number );
 		
-		mx_status = mxi_compumotor_command(
-				compumotor_interface, command,
-				response, sizeof(response), MXD_COMPUMOTOR_DEBUG );
+			mx_status = mxi_compumotor_command(
+					compumotor_interface, command,
+					response, sizeof(response),
+					MXD_COMPUMOTOR_DEBUG );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
-		num_items = sscanf( response, "%lg", &double_value );
+			num_items = sscanf( response, "%lg", &double_value );
 
-		if ( num_items != 1 ) {
-			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			if ( num_items != 1 ) {
+				return mx_error( MXE_DEVICE_IO_ERROR, fname,
 "Unable to parse returned acceleration_feedforward gain for motor '%s'.  "
 "Response = '%s'", motor->record->name, response );
-		}
+			}
 
-		motor->acceleration_feedforward_gain = double_value;
+			motor->acceleration_feedforward_gain = double_value;
+		}
 		break;
 
 	case MXLV_MTR_INTEGRAL_LIMIT:
-		snprintf( command, sizeof(command), "%ld_!%ldSGILIM",
+		if ( compumotor->is_servo ) {
+			snprintf( command, sizeof(command), "%ld_!%ldSGILIM",
 					compumotor->controller_number,
 					compumotor->axis_number );
 		
-		mx_status = mxi_compumotor_command(
-				compumotor_interface, command,
-				response, sizeof(response), MXD_COMPUMOTOR_DEBUG );
+			mx_status = mxi_compumotor_command(
+					compumotor_interface, command,
+					response, sizeof(response),
+					MXD_COMPUMOTOR_DEBUG );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
-		num_items = sscanf( response, "%lg", &double_value );
+			num_items = sscanf( response, "%lg", &double_value );
 
-		if ( num_items != 1 ) {
-			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			if ( num_items != 1 ) {
+				return mx_error( MXE_DEVICE_IO_ERROR, fname,
 "Unable to parse returned integral limit for motor '%s'.  "
 "Response = '%s'", motor->record->name, response );
-		}
+			}
 
-		motor->integral_limit = double_value;
+			motor->integral_limit = double_value;
+		}
 		break;
 
 	default:

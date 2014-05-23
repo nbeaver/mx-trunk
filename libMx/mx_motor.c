@@ -144,6 +144,8 @@ mx_motor_finish_record_initialization( MX_RECORD *motor_record )
 
 	motor->synchronous_motion_mode = FALSE;
 
+	motor->latched_status = 0;
+
 	motor->real_motor_record = NULL;
 
 	motor->busy_start_interval_enabled = FALSE;
@@ -854,6 +856,8 @@ mx_motor_array_internal_move_with_report( long num_motors,
 			}
 
 			motor->old_destination = motor->destination;
+
+			motor->latched_status = 0;
 		}
 
 		/* Execute the simultaneous start. */
@@ -1387,6 +1391,8 @@ mx_motor_internal_move_absolute( MX_RECORD *motor_record, double destination )
 	if ( status.code != MXE_SUCCESS )
 		return status;
 
+	motor->latched_status = 0;
+
 	fptr = fl_ptr->move_absolute;
 
 	if ( fptr == NULL ) {
@@ -1712,6 +1718,8 @@ mx_motor_raw_home_command( MX_RECORD *motor_record, long direction )
 	if ( status.code != MXE_SUCCESS )
 		return status;
 
+	motor->latched_status = 0;
+
 	fptr = fl_ptr->raw_home_command;
 
 	if ( fptr == NULL ) {
@@ -1796,6 +1804,7 @@ mxp_motor_push_motor_off_limit( MX_RECORD *motor_record,
 
 static mx_status_type
 mxp_motor_home_using_limit_switch( MX_RECORD *motor_record,
+				MX_MOTOR *motor,
 				long direction,
 				unsigned long flags,
 				unsigned long home_search_type )
@@ -1993,13 +2002,20 @@ mxp_motor_home_using_limit_switch( MX_RECORD *motor_record,
 						motor_record, 0 );
 	}
 
-	return mx_status;
+	/* We have reached the end of the home search procedure,
+	 * so record that as a latched status bit.
+	 */
+
+	motor->latched_status |= MXSF_MTR_HOME_SEARCH_SUCCEEDED;
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*----*/
 
 static mx_status_type
 mxp_motor_home_halfway_between_limit_switches( MX_RECORD *motor_record,
+						MX_MOTOR *motor,
 						long direction,
 						unsigned long flags )
 {
@@ -2155,9 +2171,18 @@ mxp_motor_home_halfway_between_limit_switches( MX_RECORD *motor_record,
 
 	mx_status = mx_motor_set_position( motor_record, 0 );
 
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* We have reached the end of the home search procedure,
+	 * so record that as a latched status bit.
+	 */
+
+	motor->latched_status |= MXSF_MTR_HOME_SEARCH_SUCCEEDED;
+
 	/* We are done, so return. */
 
-	return mx_status;
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*----*/
@@ -2179,6 +2204,8 @@ mx_motor_home_search( MX_RECORD *motor_record,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	motor->latched_status = 0;
 
 	/* The action we take depends on the value of 
 	 * the 'home_search_type' field.
@@ -2202,14 +2229,16 @@ mx_motor_home_search( MX_RECORD *motor_record,
 	case MXHS_MTR_LIMIT_SWITCH_AS_HOME_SWITCH:
 	case MXHS_MTR_SAME_DIR_LIMIT_SWITCH_THEN_LIMIT_SWITCH_AS_HOME_SWITCH:
        case MXHS_MTR_OPPOSITE_DIR_LIMIT_SWITCH_THEN_LIMIT_SWITCH_AS_HOME_SWITCH:
-		mx_status = mxp_motor_home_using_limit_switch( motor_record,
+		mx_status = mxp_motor_home_using_limit_switch(
+						motor_record, motor,
 						direction, flags,
 						motor->home_search_type );
 		break;
 
 	case MXHS_MTR_HALFWAY_BETWEEN_LIMIT_SWITCHES:
 		mx_status = mxp_motor_home_halfway_between_limit_switches(
-					motor_record, direction, flags );
+						motor_record, motor,
+						direction, flags );
 		break;
 
 	case MXHS_MTR_SPECIAL:
@@ -2321,6 +2350,8 @@ mx_motor_constant_velocity_move( MX_RECORD *motor_record, long direction )
 
 	if ( status.code != MXE_SUCCESS )
 		return status;
+
+	motor->latched_status = 0;
 
 	fptr = fl_ptr->constant_velocity_move;
 
@@ -2523,6 +2554,12 @@ mx_motor_get_status( MX_RECORD *motor_record,
 		}
 	}
 
+	/* Add latched status bits, if any. */
+
+	if ( motor->latched_status ) {
+		motor->status |= motor->latched_status;
+	}
+
 	/* If any error are set, turn the error bit on. */
 
 	if ( motor->status & MXSF_MTR_ERROR_BITMASK ) {
@@ -2637,6 +2674,14 @@ mx_motor_get_extended_status( MX_RECORD *motor_record,
 			motor->busy = TRUE;
 		}
 	}
+
+	/* Add latched status bits, if any. */
+
+	if ( motor->latched_status ) {
+		motor->status |= motor->latched_status;
+	}
+
+	/*---*/
 
 	if ( motor->backlash_move_in_progress ) {
 		if ( ( motor->status & MXSF_MTR_IS_BUSY ) == 0 ) {
@@ -4232,6 +4277,8 @@ mx_motor_send_control_command( MX_RECORD *motor_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	motor->latched_status = 0;
+
 	fptr = fl_ptr->set_parameter;
 
 	if ( fptr == NULL ) {
@@ -5136,6 +5183,8 @@ mx_motor_move_absolute_steps_with_report(MX_RECORD *motor_record,
 	if ( status.code != MXE_SUCCESS )
 		return status;
 
+	motor->latched_status = 0;
+
 	if ( motor->subclass != MXC_MTR_STEPPER ) {
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 			"Motor '%s' is not a stepper motor.",
@@ -5532,6 +5581,8 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 
 	if ( status.code != MXE_SUCCESS )
 		return status;
+
+	motor->latched_status = 0;
 
 	if ( motor->subclass != MXC_MTR_ANALOG ) {
 		return mx_error( MXE_TYPE_MISMATCH, fname,

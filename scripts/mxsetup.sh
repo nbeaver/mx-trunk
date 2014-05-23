@@ -9,13 +9,13 @@
 
 # MX files all live in the $MXDIR directory tree.
 
-if [ x${MXDIR} = x ]; then
+if [ "x${MXDIR}" = x ]; then
 	MXDIR=/opt/mx
 fi
 
 # User applications should go in ${MXDIR}/bin.
 
-if [ x${PATH} = x ]; then
+if [ "x${PATH}" = x ]; then
 	PATH="${MXDIR}/bin"
 else
 	PATH="${MXDIR}/bin:${PATH}"
@@ -23,7 +23,7 @@ fi
 
 # Used by Python to find loadable modules.
 
-if [ x${PYTHONPATH} = x ]; then
+if [ "x${PYTHONPATH}" = x ]; then
 	PYTHONPATH="${MXDIR}/lib/mp"
 else
 	PYTHONPATH="${MXDIR}/lib/mp:${PYTHONPATH}"
@@ -31,7 +31,7 @@ fi
 
 # Used by Tcl to find loadable packages.
 
-if [ x${TCLLIBPATH} = x ]; then
+if [ "x${TCLLIBPATH}" = x ]; then
 	TCLLIBPATH="${MXDIR}/lib/mxtcl"
 else
 	TCLLIBPATH="${MXDIR}/lib/mxtcl ${TCLLIBPATH}"
@@ -45,7 +45,7 @@ case $osname in
     Darwin )
 	# Shared library path for MacOS X.
 
-	if [ x${DYLD_LIBRARY_PATH} = x ]; then
+	if [ "x${DYLD_LIBRARY_PATH}" = x ]; then
 		DYLD_LIBRARY_PATH="${MXDIR}/lib"
 	else
 		DYLD_LIBRARY_PATH="${MXDIR}/lib:${DYLD_LIBRARY_PATH}"
@@ -56,7 +56,7 @@ case $osname in
     HP-UX )
 	# Shared library path for HP-UX.
 
-	if [ x${SHLIB_PATH} = x ]; then
+	if [ "x${SHLIB_PATH}" = x ]; then
 		SHLIB_PATH="${MXDIR}/lib"
 	else
 		SHLIB_PATH="${MXDIR}/lib:${SHLIB_PATH}"
@@ -76,7 +76,7 @@ case $osname in
 	# /sbin/ldconfig.
 	#
 
-	if [ x${LD_LIBRARY_PATH} = x ]; then
+	if [ "x${LD_LIBRARY_PATH}" = x ]; then
 		LD_LIBRARY_PATH="${MXDIR}/lib:${MXDIR}/lib/modules"
 	else
 		LD_LIBRARY_PATH="${MXDIR}/lib:${MXDIR}/lib/modules:${LD_LIBRARY_PATH}"
