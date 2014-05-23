@@ -223,15 +223,22 @@ mxd_newport_xps_move_thread( MX_THREAD *thread, void *thread_argument )
 
 		case MXT_NEWPORT_XPS_GROUP_HOME_SEARCH:
 
+			newport_xps_motor->home_search_succeeded = FALSE;
+
 			xps_status = GroupHomeSearch(
 				newport_xps_motor->move_thread_socket_id,
 				newport_xps_motor->group_name );
 
 			if ( xps_status != SUCCESS ) {
+				newport_xps_motor->home_search_succeeded
+							= FALSE;
+
 				(void) mxi_newport_xps_error(
 				newport_xps_motor->move_thread_socket_id,
 					"GroupHomeSearch()",
 					xps_status );
+			} else {
+				newport_xps_motor->home_search_succeeded = TRUE;
 			}
 			break;
 
@@ -1008,7 +1015,7 @@ mxd_newport_xps_get_status( MX_MOTOR *motor )
 	MX_NEWPORT_XPS_MOTOR *newport_xps_motor = NULL;
 	MX_NEWPORT_XPS *newport_xps = NULL;
 	int xps_status, int_value;
-	unsigned long hw_status;
+	unsigned long hw_status, gs;
 	mx_status_type mx_status;
 
 	mx_status = mxd_newport_xps_get_pointers( motor, &newport_xps_motor,
@@ -1117,6 +1124,81 @@ mxd_newport_xps_get_status( MX_MOTOR *motor )
 	}
 
 	newport_xps_motor->group_status = int_value;
+
+	/* Interpret the group status.
+	 *
+	 * It is really annoying to have to read tea leaves in this fashion,
+	 * rather than having a simple, clear "home search succeeded" bit.
+	 *
+	 * If we end up needing to handle more than just home_search_succeeded,
+	 * then we should probably change to a switch() statement.
+	 */
+
+	gs = newport_xps_motor->group_status;
+
+	if ( gs <= 9 ) {	/* Various not-initialized states */
+		newport_xps_motor->home_search_succeeded = FALSE;
+	} else
+	if ( gs <= 39 ) {	/* Various ready or disabled states */
+		newport_xps_motor->home_search_succeeded = TRUE;
+	} else
+	if ( gs == 40 ) {	/* Emergency Braking */
+		newport_xps_motor->home_search_succeeded = FALSE;
+	} else
+	if ( gs == 41 ) {	/* Motor Initialization state */
+		newport_xps_motor->home_search_succeeded = FALSE;
+	} else
+	if ( gs == 42 ) {	/* Not Referenced state */
+		newport_xps_motor->home_search_succeeded = FALSE;
+	} else
+	if ( gs == 43 ) {	/* Homing state (not yet finished) */
+		newport_xps_motor->home_search_succeeded = FALSE;
+	} else
+	if ( gs <= 48 ) {	/* Various motion states */
+		newport_xps_motor->home_search_succeeded = TRUE;
+	} else
+	if ( gs == 49 ) {    /* Analog Interpolated Encoder Calibrating state */
+		newport_xps_motor->home_search_succeeded = FALSE;
+	} else
+	if ( gs == 50 ) {	/* Another Not Initialized state */
+		newport_xps_motor->home_search_succeeded = FALSE;
+	} else
+	if ( gs == 51 ) {	/* Spinning state */
+		newport_xps_motor->home_search_succeeded = TRUE;
+	} else
+	if ( gs <= 62 ) {	/* (undefined states) */
+		newport_xps_motor->home_search_succeeded = FALSE;
+	} else
+	if ( gs <= 67 ) {   /* Various referenced and not initializing states */
+		newport_xps_motor->home_search_succeeded = FALSE;
+	} else
+	if ( gs == 68 ) {	/* Auto-tuning state */
+		newport_xps_motor->home_search_succeeded = TRUE;
+	} else
+	if ( gs == 69 ) {	/* Scaling calibration state */
+		newport_xps_motor->home_search_succeeded = FALSE;
+	} else
+	if ( gs == 70 ) {	/* Ready state from auto-tuning */
+		newport_xps_motor->home_search_succeeded = TRUE;
+	} else
+	if ( gs <= 72 ) {	/* More Not Initialized states */
+		newport_xps_motor->home_search_succeeded = FALSE;
+	} else
+	if ( gs == 73 ) {	/* Excitation signal generation state */
+		newport_xps_motor->home_search_succeeded = TRUE;
+	} else
+	if ( gs <= 77 ) {	/* Various disabled and ready states */
+		newport_xps_motor->home_search_succeeded = TRUE;
+	} else {
+		/* Anything above 77 */
+		newport_xps_motor->home_search_succeeded = FALSE;
+	}
+
+	/*---*/
+
+	if ( newport_xps_motor->home_search_succeeded ) {
+		motor->status |= MXSF_MTR_HOME_SEARCH_SUCCEEDED;
+	}
 
 	/*---*/
 

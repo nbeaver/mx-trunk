@@ -49,6 +49,8 @@ typedef struct {
 	unsigned long hardware_status;
 	unsigned long driver_status;
 
+	mx_bool_type home_search_succeeded;
+
 	/* Move commands _block_, so they have to have their own
 	 * separate socket and thread in order to avoid having
 	 * the entire 'newport_xps' module block during a move.
@@ -134,6 +136,11 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_newport_xps_rfield_def_ptr;
   {MXLV_NEWPORT_XPS_DRIVER_STATUS, -1, "driver_status", \
 						MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS_MOTOR, driver_status), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "home_search_succeeded", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_NEWPORT_XPS_MOTOR, home_search_succeeded), \
 	{0}, NULL, MXFF_READ_ONLY }
 
 #endif /* __D_NEWPORT_XPS_H__ */
