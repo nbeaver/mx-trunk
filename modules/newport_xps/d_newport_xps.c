@@ -58,7 +58,7 @@ MX_MOTOR_FUNCTION_LIST mxd_newport_xps_motor_function_list = {
 	mxd_newport_xps_get_position,
 	NULL,
 	mxd_newport_xps_soft_abort,
-	NULL,
+	mxd_newport_xps_immediate_abort,
 	NULL,
 	NULL,
 	mxd_newport_xps_raw_home_command,
@@ -362,6 +362,10 @@ mxd_newport_xps_create_record_structures( MX_RECORD *record )
 
 	motor->subclass = MXC_MTR_ANALOG;
 
+	/* The XPS motor reports acceleration in units/sec**2 */
+
+	motor->acceleration_type = MXF_MTR_ACCEL_RATE;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -545,8 +549,11 @@ mxd_newport_xps_special_processing_setup( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
+		case MXLV_NEWPORT_XPS_DRIVER_STATUS:
 		case MXLV_NEWPORT_XPS_GROUP_STATUS:
 		case MXLV_NEWPORT_XPS_GROUP_STATUS_STRING:
+		case MXLV_NEWPORT_XPS_HARDWARE_STATUS:
+		case MXLV_NEWPORT_XPS_POSITIONER_ERROR:
 			record_field->process_function
 					= mxd_newport_xps_process_function;
 			break;
@@ -569,7 +576,8 @@ mxd_newport_xps_process_function( void *record_ptr,
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;
 	MX_NEWPORT_XPS_MOTOR *newport_xps_motor;
-	int xps_status, group_status;
+	int driver_status, group_status, hardware_status, positioner_error;
+	int xps_status;
 	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
@@ -581,6 +589,21 @@ mxd_newport_xps_process_function( void *record_ptr,
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
+		case MXLV_NEWPORT_XPS_DRIVER_STATUS:
+			xps_status = PositionerDriverStatusGet(
+				newport_xps_motor->move_thread_socket_id,
+				newport_xps_motor->positioner_name,
+				&driver_status );
+
+			if ( xps_status != SUCCESS ) {
+				return mxi_newport_xps_error(
+				    newport_xps_motor->move_thread_socket_id,
+					"PositionerDriverStatusGet()",
+					xps_status );
+			}
+
+			newport_xps_motor->driver_status = driver_status;
+			break;
 		case MXLV_NEWPORT_XPS_GROUP_STATUS:
 			xps_status = GroupStatusGet(
 				newport_xps_motor->move_thread_socket_id,
@@ -623,6 +646,38 @@ mxd_newport_xps_process_function( void *record_ptr,
 					xps_status );
 			}
 			break;
+		case MXLV_NEWPORT_XPS_HARDWARE_STATUS:
+			xps_status = PositionerHardwareStatusGet(
+				newport_xps_motor->move_thread_socket_id,
+				newport_xps_motor->positioner_name,
+				&hardware_status );
+
+			if ( xps_status != SUCCESS ) {
+				return mxi_newport_xps_error(
+				    newport_xps_motor->move_thread_socket_id,
+					"PositionerHardwareStatusGet()",
+					xps_status );
+			}
+
+			newport_xps_motor->hardware_status = hardware_status;
+			break;
+		case MXLV_NEWPORT_XPS_POSITIONER_ERROR:
+			/* A Read() does not clear the error. */
+
+			xps_status = PositionerErrorRead(
+				newport_xps_motor->move_thread_socket_id,
+				newport_xps_motor->positioner_name,
+				&positioner_error );
+
+			if ( xps_status != SUCCESS ) {
+				return mxi_newport_xps_error(
+				    newport_xps_motor->move_thread_socket_id,
+					"PositionerErrorRead()",
+					xps_status );
+			}
+
+			newport_xps_motor->positioner_error = positioner_error;
+			break;
 		default:
 			MX_DEBUG( 1,(
 			    "%s: *** Unknown MX_PROCESS_GET label value = %ld",
@@ -632,6 +687,23 @@ mxd_newport_xps_process_function( void *record_ptr,
 		break;
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
+		case MXLV_NEWPORT_XPS_POSITIONER_ERROR:
+			/* Clear the error by Get()-ing it. */
+
+			xps_status = PositionerErrorGet(
+				newport_xps_motor->move_thread_socket_id,
+				newport_xps_motor->positioner_name,
+				&positioner_error );
+
+			if ( xps_status != SUCCESS ) {
+				return mxi_newport_xps_error(
+				    newport_xps_motor->move_thread_socket_id,
+					"PositionerErrorRead()",
+					xps_status );
+			}
+
+			newport_xps_motor->positioner_error = 0;
+			break;
 		default:
 			MX_DEBUG( 1,(
 			    "%s: *** Unknown MX_PROCESS_PUT label value = %ld",
@@ -739,6 +811,36 @@ mxd_newport_xps_soft_abort( MX_MOTOR *motor )
 /*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
+mxd_newport_xps_immediate_abort( MX_MOTOR *motor )
+{
+	static const char fname[] = "mxd_newport_xps_immediate_abort()";
+
+	MX_NEWPORT_XPS_MOTOR *newport_xps_motor = NULL;
+	MX_NEWPORT_XPS *newport_xps = NULL;
+	int xps_status;
+	mx_status_type mx_status;
+
+	mx_status = mxd_newport_xps_get_pointers( motor, &newport_xps_motor,
+							&newport_xps, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	xps_status = GroupKill( newport_xps->socket_id,
+				newport_xps_motor->group_name );
+
+	if ( xps_status != SUCCESS ) {
+		return mxi_newport_xps_error( newport_xps->socket_id,
+						"GroupKill()",
+						xps_status );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
 mxd_newport_xps_raw_home_command( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_newport_xps_raw_home_command()";
@@ -770,6 +872,7 @@ mxd_newport_xps_get_parameter( MX_MOTOR *motor )
 
 	MX_NEWPORT_XPS_MOTOR *newport_xps_motor = NULL;
 	MX_NEWPORT_XPS *newport_xps = NULL;
+	int xps_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_newport_xps_get_pointers( motor, &newport_xps_motor,
@@ -788,18 +891,25 @@ mxd_newport_xps_get_parameter( MX_MOTOR *motor )
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
-		break;
+	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
+		/* Acceleration parameter 0 = acceleration (units/sec**2)
+		 * Acceleration parameter 1 = minimum jerk time (sec)
+		 * Acceleration parameter 2 = maximum jerk time (sec)
+		 */
 
-	case MXLV_MTR_PROPORTIONAL_GAIN:
-		break;
+		xps_status = PositionerSGammaParametersGet(
+					newport_xps->socket_id,
+					newport_xps_motor->positioner_name,
+					&(motor->raw_speed),
+				&(motor->raw_acceleration_parameters[0]),
+				&(motor->raw_acceleration_parameters[1]),
+				&(motor->raw_acceleration_parameters[2]) );
 
-	case MXLV_MTR_INTEGRAL_GAIN:
-		break;
-
-	case MXLV_MTR_DERIVATIVE_GAIN:
-		break;
-
-	case MXLV_MTR_EXTRA_GAIN:
+		if ( xps_status != SUCCESS ) {
+			return mxi_newport_xps_error( newport_xps->socket_id,
+					"PositionerSGammaParametersGet()",
+					xps_status );
+		}
 		break;
 
 	default:
@@ -817,6 +927,7 @@ mxd_newport_xps_set_parameter( MX_MOTOR *motor )
 
 	MX_NEWPORT_XPS_MOTOR *newport_xps_motor = NULL;
 	MX_NEWPORT_XPS *newport_xps = NULL;
+	int xps_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_newport_xps_get_pointers( motor, &newport_xps_motor,
@@ -835,21 +946,49 @@ mxd_newport_xps_set_parameter( MX_MOTOR *motor )
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
+	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
+		/* Acceleration parameter 0 = acceleration (units/sec**2)
+		 * Acceleration parameter 1 = minimum jerk time (sec)
+		 * Acceleration parameter 2 = maximum jerk time (sec)
+		 */
+
+		xps_status = PositionerSGammaParametersSet(
+					newport_xps->socket_id,
+					newport_xps_motor->positioner_name,
+					motor->raw_speed,
+					motor->raw_acceleration_parameters[0],
+					motor->raw_acceleration_parameters[1],
+					motor->raw_acceleration_parameters[2] );
+
+		if ( xps_status != SUCCESS ) {
+			return mxi_newport_xps_error( newport_xps->socket_id,
+					"PositionerSGammaParametersGet()",
+					xps_status );
+		}
 		break;
 
 	case MXLV_MTR_AXIS_ENABLE:
-		break;
+		if ( motor->axis_enable ) {
+			xps_status = GroupMotionEnable( newport_xps->socket_id,
+						newport_xps_motor->group_name );
 
-	case MXLV_MTR_PROPORTIONAL_GAIN:
-		break;
+			if ( xps_status != SUCCESS ) {
+				return mxi_newport_xps_error(
+					newport_xps->socket_id,
+					"GroupMotionEnable()",
+					xps_status );
+			}
+		} else {
+			xps_status = GroupMotionDisable( newport_xps->socket_id,
+						newport_xps_motor->group_name );
 
-	case MXLV_MTR_INTEGRAL_GAIN:
-		break;
-
-	case MXLV_MTR_DERIVATIVE_GAIN:
-		break;
-
-	case MXLV_MTR_EXTRA_GAIN:
+			if ( xps_status != SUCCESS ) {
+				return mxi_newport_xps_error(
+					newport_xps->socket_id,
+					"GroupMotionDisable()",
+					xps_status );
+			}
+		}
 		break;
 
 	default:
@@ -868,8 +1007,8 @@ mxd_newport_xps_get_status( MX_MOTOR *motor )
 
 	MX_NEWPORT_XPS_MOTOR *newport_xps_motor = NULL;
 	MX_NEWPORT_XPS *newport_xps = NULL;
-	int group_status, xps_status;
-	char group_status_string[300];
+	int xps_status, int_value;
+	unsigned long hw_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_newport_xps_get_pointers( motor, &newport_xps_motor,
@@ -888,9 +1027,88 @@ mxd_newport_xps_get_status( MX_MOTOR *motor )
 		motor->status |= MXSF_MTR_IS_BUSY;
 	}
 
+	/*---*/
+
+	xps_status = PositionerErrorRead( newport_xps->socket_id,
+					newport_xps_motor->positioner_name,
+					&int_value );
+
+	if ( xps_status != SUCCESS ) {
+		return mxi_newport_xps_error( newport_xps->socket_id,
+						"PositionerErrorRead()",
+						xps_status );
+	}
+
+	newport_xps_motor->positioner_error = int_value;
+
+	/*---*/
+
+	xps_status = PositionerHardwareStatusGet( newport_xps->socket_id,
+					newport_xps_motor->positioner_name,
+					&int_value );
+
+	if ( xps_status != SUCCESS ) {
+		return mxi_newport_xps_error( newport_xps->socket_id,
+						"PositionerHardwareStatusGet()",
+						xps_status );
+	}
+
+	newport_xps_motor->hardware_status = int_value;
+
+	/* Translate the hardware status bits into MX status bits. */
+
+	hw_status = newport_xps_motor->hardware_status;
+
+	if ( hw_status & 0x100 ) {
+		motor->status |= MXSF_MTR_NEGATIVE_LIMIT_HIT;
+	} else
+	if ( hw_status & 0x200 ) {
+		motor->status |= MXSF_MTR_POSITIVE_LIMIT_HIT;
+	} else
+	if ( hw_status & 0x400 ) {
+		motor->status |= MXSF_MTR_HARDWARE_ERROR;
+	} else
+	if ( hw_status & 0x800 ) {
+		motor->status |= MXSF_MTR_HARDWARE_ERROR;
+	} else
+	if ( hw_status & 0x1000 ) {
+		motor->status |= MXSF_MTR_HARDWARE_ERROR;
+	} else
+	if ( hw_status & 0x2000 ) {
+		motor->status |= MXSF_MTR_HARDWARE_ERROR;
+	} else
+	if ( hw_status & 0x10000 ) {
+		motor->status |= MXSF_MTR_HARDWARE_ERROR;
+	} else
+	if ( hw_status & 0x20000 ) {
+		motor->status |= MXSF_MTR_HARDWARE_ERROR;
+	} else
+	if ( hw_status & 0x100000 ) {
+		motor->status |= MXSF_MTR_DRIVE_FAULT;
+	} else
+	if ( hw_status & 0x200000 ) {
+		motor->status |= MXSF_MTR_DRIVE_FAULT;
+	}
+
+	/*---*/
+
+	xps_status = PositionerDriverStatusGet( newport_xps->socket_id,
+					newport_xps_motor->positioner_name,
+					&int_value );
+
+	if ( xps_status != SUCCESS ) {
+		return mxi_newport_xps_error( newport_xps->socket_id,
+						"PositionerDriverStatusGet()",
+						xps_status );
+	}
+
+	newport_xps_motor->hardware_status = int_value;
+
+	/*---*/
+
 	xps_status = GroupStatusGet( newport_xps->socket_id,
 					newport_xps_motor->group_name,
-					&group_status );
+					&int_value );
 
 	if ( xps_status != SUCCESS ) {
 		return mxi_newport_xps_error( newport_xps->socket_id,
@@ -898,25 +1116,19 @@ mxd_newport_xps_get_status( MX_MOTOR *motor )
 						xps_status );
 	}
 
-	xps_status = GroupStatusStringGet( newport_xps->socket_id,
-					group_status,
-					group_status_string );
+	newport_xps_motor->group_status = int_value;
 
-	if ( xps_status != SUCCESS ) {
-		return mxi_newport_xps_error( newport_xps->socket_id,
-						"GroupStatusStringGet()",
-						xps_status );
-	}
-
-#if MXD_NEWPORT_XPS_MOTOR_DEBUG
-	MX_DEBUG(-2,("%s: Motor '%s', group_status = %d, '%s'",
-		fname, motor->record->name,
-		group_status, group_status_string ))
-#endif
+	/*---*/
 
 #if MXD_NEWPORT_XPS_MOTOR_DEBUG
 	MX_DEBUG(-2,("%s: Motor '%s', status = %#lx",
 		fname, motor->record->name, motor->status));
+	MX_DEBUG(-2,("%s:     positioner_error = %#lx, hardware_status = %#lx",
+		fname, newport_xps_motor->positioner_error,
+		newport_xps_motor->hardware_status));
+	MX_DEBUG(-2,("%s:     driver_status = %#lx, group_status = %lu",
+		fname, newport_xps_motor->driver_status,
+		newport_xps_motor->group_status));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;

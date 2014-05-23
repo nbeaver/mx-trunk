@@ -45,6 +45,10 @@ typedef struct {
 	long group_status;
 	char group_status_string[MXU_NEWPORT_XPS_GROUP_STATUS_LENGTH+1];
 
+	unsigned long positioner_error;
+	unsigned long hardware_status;
+	unsigned long driver_status;
+
 	/* Move commands _block_, so they have to have their own
 	 * separate socket and thread in order to avoid having
 	 * the entire 'newport_xps' module block during a move.
@@ -71,7 +75,9 @@ MX_API mx_status_type mxd_newport_xps_special_processing_setup(
 MX_API mx_status_type mxd_newport_xps_move_absolute( MX_MOTOR *motor );
 MX_API mx_status_type mxd_newport_xps_get_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_newport_xps_soft_abort( MX_MOTOR *motor );
+MX_API mx_status_type mxd_newport_xps_immediate_abort( MX_MOTOR *motor );
 MX_API mx_status_type mxd_newport_xps_raw_home_command( MX_MOTOR *motor );
+MX_API mx_status_type mxd_newport_xps_constant_velocity_move( MX_MOTOR *motor );
 MX_API mx_status_type mxd_newport_xps_get_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_newport_xps_set_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_newport_xps_get_status( MX_MOTOR *motor );
@@ -84,12 +90,15 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_newport_xps_rfield_def_ptr;
 
 #define MXLV_NEWPORT_XPS_GROUP_STATUS		88001
 #define MXLV_NEWPORT_XPS_GROUP_STATUS_STRING	88002
+#define MXLV_NEWPORT_XPS_POSITIONER_ERROR	88003
+#define MXLV_NEWPORT_XPS_HARDWARE_STATUS	88004
+#define MXLV_NEWPORT_XPS_DRIVER_STATUS		88005
 
 #define MXD_NEWPORT_XPS_MOTOR_STANDARD_FIELDS \
   {-1, -1, "newport_xps_record", MXFT_RECORD, NULL, 0, {0},\
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_NEWPORT_XPS_MOTOR, newport_xps_record), \
-	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_READ_ONLY) }, \
   \
   {-1, -1, "positioner_name", MXFT_STRING, NULL, \
 				1, {MXU_NEWPORT_XPS_POSITIONER_NAME_LENGTH}, \
@@ -110,7 +119,21 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_newport_xps_rfield_def_ptr;
 		MXFT_STRING, NULL, 1, {MXU_NEWPORT_XPS_GROUP_STATUS_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_NEWPORT_XPS_MOTOR, group_status_string), \
-	{sizeof(char)}, NULL, MXFF_READ_ONLY}
-
+	{sizeof(char)}, NULL, MXFF_READ_ONLY}, \
+  \
+  {MXLV_NEWPORT_XPS_POSITIONER_ERROR, -1, "positioner_error", \
+						MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS_MOTOR, positioner_error), \
+	{0}, NULL, 0 }, \
+  \
+  {MXLV_NEWPORT_XPS_HARDWARE_STATUS, -1, "hardware_status", \
+						MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS_MOTOR, hardware_status), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {MXLV_NEWPORT_XPS_DRIVER_STATUS, -1, "driver_status", \
+						MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS_MOTOR, driver_status), \
+	{0}, NULL, MXFF_READ_ONLY }
 
 #endif /* __D_NEWPORT_XPS_H__ */
