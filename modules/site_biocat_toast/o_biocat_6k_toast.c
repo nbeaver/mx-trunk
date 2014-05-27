@@ -334,17 +334,6 @@ mxo_biocat_6k_toast_compute_6k_destination( MX_COMPUMOTOR *compumotor,
 	return raw_destination;
 }
 
-static void
-mxo_biocat_6k_toast_get_position(MX_COMPUMOTOR_INTERFACE *compumotor_interface)
-{
-	char response[80];
-
-	(void) mxi_compumotor_command( compumotor_interface, "2TPE",
-					response, sizeof(response),
-					MXO_BIOCAT_6K_TOAST_DEBUG );
-	return;
-}
-
 MX_EXPORT mx_status_type
 mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 {
@@ -356,8 +345,7 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface = NULL;
 	double low_6k_destination, high_6k_destination;
 	char command[1000];
-	char go_cmd[100];
-	size_t i;
+	char response[2000];
 	mx_status_type mx_status;
 
 	mx_status = mxo_biocat_6k_toast_get_pointers( operation,
@@ -375,161 +363,176 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 							compumotor, 
 							toast->high_position );
 
-	/* Construct a GO command string that will start just this axis. */
+	/* Delete any preexisting program. */
 
-	strlcpy( go_cmd, "GO", sizeof(go_cmd) );
+	snprintf( command, sizeof(command), "DEL %s", toast->program_name );
 
-	for ( i = 0; i < MX_MAX_COMPUMOTOR_AXES; i++ ) {
+	mx_status = mxi_compumotor_command( compumotor_interface, command,
+					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
 
-		if ( (i+1) == compumotor->axis_number ) {
-			strlcat( go_cmd, "1", sizeof(go_cmd) );
-		} else {
-			strlcat( go_cmd, "X", sizeof(go_cmd) );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/***** START OF PROGRAM *****/
+
+	/* Turn off continuous command execution. */
+
+	mx_status = mxi_compumotor_command( compumotor_interface, "COMEXC0",
+					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Start defining a motion program that implements the toast op. */
+
+	snprintf( command, sizeof(command), "DEF %s", toast->program_name );
+
+	mx_status = mxi_compumotor_command( compumotor_interface, command,
+					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Start the infinite while loop. */
+
+	mx_status = mxi_compumotor_command( compumotor_interface,
+					"WHILE(AS=bX)",
+					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Set the destination for the move to the high position. */
+
+	snprintf( command, sizeof(command), "%ldD%f",
+					compumotor->axis_number,
+					high_6k_destination );
+
+	mx_status = mxi_compumotor_command( compumotor_interface, command,
+					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Start the move. */
+
+	snprintf( command, sizeof(command), "%ldGO1", compumotor->axis_number );
+
+	mx_status = mxi_compumotor_command( compumotor_interface, command,
+					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Set the destination for the move to the low position. */
+
+	snprintf( command, sizeof(command), "%ldD%f",
+					compumotor->axis_number,
+					low_6k_destination );
+
+	mx_status = mxi_compumotor_command( compumotor_interface, command,
+					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Start the move. */
+
+	snprintf( command, sizeof(command), "%ldGO1", compumotor->axis_number );
+
+	mx_status = mxi_compumotor_command( compumotor_interface, command,
+					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Specify the end of the while loop. */
+
+	mx_status = mxi_compumotor_command( compumotor_interface, "NWHILE",
+					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Specify the end of the program. */
+
+	mx_status = mxi_compumotor_command( compumotor_interface, "END",
+					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/***** END OF PROGRAM *****/
+
+#if 1
+	/* Display the program that we just defined. */
+
+	snprintf( command, sizeof(command), "TPROG %s", toast->program_name );
+
+	mx_status = mxi_compumotor_command( compumotor_interface, command,
+					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	while (1) {
+		unsigned long num_bytes_available;
+
+		mx_msleep(200);
+
+		mx_status = mx_rs232_num_input_bytes_available(
+					compumotor_interface->rs232_record,
+					&num_bytes_available );
+
+		MX_DEBUG(-2,("%s: num_bytes_available = %lu",
+			fname, num_bytes_available));
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( num_bytes_available == 0 ) {
+			MX_DEBUG(-2,("%s: MARKER 0.0", fname));
+			break;
+		}
+
+		mx_status = mx_rs232_getline(
+				compumotor_interface->rs232_record,
+				response, sizeof(response),
+				NULL, MXO_BIOCAT_6K_TOAST_DEBUG );
+
+		switch( mx_status.code ) {
+		case MXE_SUCCESS:
+			break;
+		case MXE_TIMED_OUT:
+			MX_DEBUG(-2,("%s: MARKER 0.1", fname));
+			num_bytes_available = 0;
+			break;
+		default:
+			return mx_status;
+			break;
 		}
 	}
-
-#if 0
-	/* Construct the command to send to the controller. */
-
-	snprintf( command, sizeof(command),
-"%ld_WHILE(%ldAS=bX):%ldD%f:%s:WAIT(%ldAS.1=b0):%ldD%f:%s:WAIT(%ldAS.1=b0):NWHILE",
-			compumotor->controller_number,
-			compumotor->axis_number,
-			compumotor->axis_number,
-			high_6k_destination, go_cmd,
-			compumotor->axis_number,
-			compumotor->axis_number,
-			low_6k_destination, go_cmd,
-			compumotor->axis_number );
-
-#if MXO_BIOCAT_6K_TOAST_DEBUG
-	MX_DEBUG(-2,("%s: sending '%s' to '%s'.",
-		fname, command, compumotor_interface->record->name));
 #endif
+	MX_DEBUG(-2,("%s: MARKER 1", fname));
 
-	mx_status = mxi_compumotor_command( compumotor_interface, command,
+	/* Start the program. */
+
+	mx_status = mxi_compumotor_command( compumotor_interface,
+					toast->program_name,
 					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
 
-	if ( mx_status.code != MXE_SUCCESS ) {
-		operation->status = MXSF_OP_FAULT;
+	MX_DEBUG(-2,("%s: MARKER 2", fname));
+
+	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-	}
+
+	/*---*/
+
+	MX_DEBUG(-2,("%s: MARKER 3", fname));
 
 	operation->status = MXSF_OP_BUSY;
-#else
-	/*--- Tell the 6K to execute a WHILE loop. ---*/
 
-	mxo_biocat_6k_toast_get_position( compumotor_interface );
-
-	snprintf( command, sizeof(command), "WHILE(AS=bX)" );
-
-	mx_status = mxi_compumotor_command( compumotor_interface, command,
-					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
-
-	if ( mx_status.code != MXE_SUCCESS ) {
-		operation->status = MXSF_OP_FAULT;
-		return mx_status;
-	}
-
-	/*---- Command a move to the high position ----*/
-		
-	mxo_biocat_6k_toast_get_position( compumotor_interface );
-
-	snprintf( command, sizeof(command), "%luD%lf",
-			compumotor->axis_number,
-			high_6k_destination );
-
-	mx_status = mxi_compumotor_command( compumotor_interface, command,
-					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
-
-	if ( mx_status.code != MXE_SUCCESS ) {
-		operation->status = MXSF_OP_FAULT;
-		return mx_status;
-	}
-		
-	/*--- Start the motion ---*/
-		
-	mxo_biocat_6k_toast_get_position( compumotor_interface );
-
-	mx_status = mxi_compumotor_command( compumotor_interface, go_cmd,
-					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
-
-	if ( mx_status.code != MXE_SUCCESS ) {
-		operation->status = MXSF_OP_FAULT;
-		return mx_status;
-	}
-		
-	/*--- Wait for the motion to complete ---*/
-		
-	mxo_biocat_6k_toast_get_position( compumotor_interface );
-
-	snprintf( command, sizeof(command), "WAIT(AS.1=b0)" );
-
-	mx_status = mxi_compumotor_command( compumotor_interface, command,
-					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
-
-	if ( mx_status.code != MXE_SUCCESS ) {
-		operation->status = MXSF_OP_FAULT;
-		return mx_status;
-	}
-		
-	/*---- Command a move to the low position ----*/
-		
-	mxo_biocat_6k_toast_get_position( compumotor_interface );
-
-	snprintf( command, sizeof(command), "%luD%lf",
-			compumotor->axis_number,
-			low_6k_destination );
-
-	mx_status = mxi_compumotor_command( compumotor_interface, command,
-					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
-
-	if ( mx_status.code != MXE_SUCCESS ) {
-		operation->status = MXSF_OP_FAULT;
-		return mx_status;
-	}
-		
-	/*--- Start the motion ---*/
-		
-	mxo_biocat_6k_toast_get_position( compumotor_interface );
-
-	mx_status = mxi_compumotor_command( compumotor_interface, go_cmd,
-					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
-
-	if ( mx_status.code != MXE_SUCCESS ) {
-		operation->status = MXSF_OP_FAULT;
-		return mx_status;
-	}
-		
-	/*--- Wait for the motion to complete ---*/
-		
-	mxo_biocat_6k_toast_get_position( compumotor_interface );
-
-	snprintf( command, sizeof(command), "WAIT(AS.1=b0)" );
-
-	mx_status = mxi_compumotor_command( compumotor_interface, command,
-					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
-
-	if ( mx_status.code != MXE_SUCCESS ) {
-		operation->status = MXSF_OP_FAULT;
-		return mx_status;
-	}
-		
-	/*--- Tell the 6K that this is the end of the WHILE loop. ---*/
-
-	mxo_biocat_6k_toast_get_position( compumotor_interface );
-
-	snprintf( command, sizeof(command), "NWHILE" );
-
-	mx_status = mxi_compumotor_command( compumotor_interface, command,
-					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
-
-	if ( mx_status.code != MXE_SUCCESS ) {
-		operation->status = MXSF_OP_FAULT;
-		return mx_status;
-	}
-
-#endif
+	MX_DEBUG(-2,("%s: MARKER 4", fname));
 
 	return mx_status;
 }
@@ -557,10 +560,23 @@ mxo_biocat_6k_toast_stop( MX_OPERATION *operation )
 		fname, toast->motor_record->name));
 #endif
 
-	mx_status = mx_motor_soft_abort( toast->motor_record );
+	/* Send a kill command. */
+
+	mx_status = mxi_compumotor_command( compumotor_interface, "!K",
+					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Turn on continuous command execution. */
+
+	mx_status = mxi_compumotor_command( compumotor_interface, "COMEXC1",
+					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/*---*/
 
 	operation->status = 0;
 

@@ -18,6 +18,8 @@
 #ifndef __O_BIOCAT_6K_TOAST_H__
 #define __O_BIOCAT_6K_TOAST_H__
 
+#define MXU_6K_PROGRAM_NAME_LENGTH	40
+
 /* Values for 'toast_flags'. */
 
 #define MXSF_TOAST_USE_FINISH_POSITION	0x1
@@ -32,6 +34,7 @@ typedef struct {
 	double turnaround_delay;	/* In seconds. */
 	double timeout;			/* In seconds. */
 	unsigned long toast_flags;
+	char program_name[MXU_6K_PROGRAM_NAME_LENGTH+1];
 } MX_BIOCAT_6K_TOAST;
 
 #define MXO_BIOCAT_6K_TOAST_STANDARD_FIELDS \
@@ -61,7 +64,11 @@ typedef struct {
   \
   {-1, -1, "toast_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_BIOCAT_6K_TOAST, toast_flags), \
-	{0}, NULL, MXFF_IN_DESCRIPTION}
+	{0}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
+  {-1, -1, "program_name", MXFT_STRING, NULL, 1, {MXU_6K_PROGRAM_NAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_BIOCAT_6K_TOAST, program_name), \
+	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}
 
 MX_API_PRIVATE mx_status_type mxo_biocat_6k_toast_create_record_structures(
 							MX_RECORD *record );
