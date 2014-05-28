@@ -17,6 +17,8 @@
 
 #define MXO_BIOCAT_6K_TOAST_DEBUG		TRUE
 
+#define MXO_BIOCAT_6K_TOAST_DEBUG_PROGRAM	FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -293,11 +295,6 @@ mxo_biocat_6k_toast_get_status( MX_OPERATION *operation )
 
 	if ( motor_status & MXSF_MTR_ERROR ) {
 		operation->status = MXSF_OP_FAULT;
-	} else
-	if ( motor_status & MXSF_MTR_IS_BUSY ) {
-		operation->status = MXSF_OP_BUSY;
-	} else {
-		operation->status = 0;
 	}
 
 #if MXO_BIOCAT_6K_TOAST_DEBUG
@@ -309,29 +306,41 @@ mxo_biocat_6k_toast_get_status( MX_OPERATION *operation )
 }
 
 static double
-mxo_biocat_6k_toast_compute_6k_destination( MX_COMPUMOTOR *compumotor,
+mxo_biocat_6k_toast_compute_6k_destination( MX_MOTOR *motor,
+						MX_COMPUMOTOR *compumotor,
 						double mx_destination )
 {
-	double raw_destination;
+#if MXO_BIOCAT_6K_TOAST_DEBUG
+	static const char fname[] =
+		"mxo_biocat_6k_toast_compute_6k_destination()";
+#endif
+
+	double c6k_destination;
 	unsigned long flags;
 
 	flags = compumotor->compumotor_flags;
 
-	raw_destination = mx_destination;
-
 	if ( ( flags & MXF_COMPUMOTOR_USE_ENCODER_POSITION )
 	  && ( compumotor->is_servo == FALSE ) )
 	{
-		raw_destination = raw_destination * mx_divide_safely(
+		mx_destination = mx_destination * mx_divide_safely(
 					compumotor->motor_resolution,
 					compumotor->encoder_resolution );
 	}
 
 	if ( flags & MXF_COMPUMOTOR_ROUND_POSITION_OUTPUT_TO_NEAREST_INTEGER ) {
-		raw_destination = (double) mx_round( raw_destination );
+		mx_destination = (double) mx_round( mx_destination );
 	}
 
-	return raw_destination;
+	c6k_destination = mx_divide_safely( mx_destination - motor->offset,
+						motor->scale );
+
+#if MXO_BIOCAT_6K_TOAST_DEBUG
+	MX_DEBUG(-2,("%s: mx_destination = %f, c6k_destination = %f",
+		fname, mx_destination, c6k_destination));
+#endif
+
+	return c6k_destination;
 }
 
 MX_EXPORT mx_status_type
@@ -345,8 +354,11 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface = NULL;
 	double low_6k_destination, high_6k_destination;
 	char command[1000];
-	char response[2000];
 	mx_status_type mx_status;
+
+#if MXO_BIOCAT_6K_TOAST_DEBUG_PROGRAM
+	char response[2000];
+#endif
 
 	mx_status = mxo_biocat_6k_toast_get_pointers( operation,
 					&toast, &motor, &compumotor,
@@ -356,12 +368,22 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 		return mx_status;
 
 	low_6k_destination = mxo_biocat_6k_toast_compute_6k_destination(
+							motor,
 							compumotor, 
 							toast->low_position );
 
 	high_6k_destination = mxo_biocat_6k_toast_compute_6k_destination(
+							motor,
 							compumotor, 
 							toast->high_position );
+
+	/* Turn off continuous command execution. */
+
+	mx_status = mxi_compumotor_command( compumotor_interface, "COMEXC0",
+					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Delete any preexisting program. */
 
@@ -374,14 +396,6 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 		return mx_status;
 
 	/***** START OF PROGRAM *****/
-
-	/* Turn off continuous command execution. */
-
-	mx_status = mxi_compumotor_command( compumotor_interface, "COMEXC0",
-					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
 
 	/* Start defining a motion program that implements the toast op. */
 
@@ -464,13 +478,24 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 
 	/***** END OF PROGRAM *****/
 
-#if 1
+	mx_msleep(100);
+
+	mx_status = mx_rs232_discard_unread_input(
+					compumotor_interface->rs232_record,
+					MXO_BIOCAT_6K_TOAST_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXO_BIOCAT_6K_TOAST_DEBUG_PROGRAM
+
 	/* Display the program that we just defined. */
 
 	snprintf( command, sizeof(command), "TPROG %s", toast->program_name );
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
-					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
+						response, sizeof(response),
+						MXO_BIOCAT_6K_TOAST_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -512,8 +537,10 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 			break;
 		}
 	}
-#endif
+
 	MX_DEBUG(-2,("%s: MARKER 1", fname));
+
+#endif /* MXO_BIOCAT_6K_TOAST_DEBUG_PROGRAM */
 
 	/* Start the program. */
 
@@ -528,11 +555,7 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 
 	/*---*/
 
-	MX_DEBUG(-2,("%s: MARKER 3", fname));
-
 	operation->status = MXSF_OP_BUSY;
-
-	MX_DEBUG(-2,("%s: MARKER 4", fname));
 
 	return mx_status;
 }
