@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2008, 2010-2011 Illinois Institute of Technology
+ * Copyright 1999-2008, 2010-2011, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -158,7 +158,10 @@ MX_RS232_FUNCTION_LIST mxi_tty_rs232_function_list = {
 	NULL,
 	NULL,
 #endif
-	mxi_tty_send_break
+	mxi_tty_send_break,
+	NULL,
+	mxi_tty_get_echo,
+	mxi_tty_set_echo
 };
 
 MX_RECORD_FIELD_DEFAULTS mxi_tty_record_field_defaults[] = {
@@ -2387,6 +2390,122 @@ mxi_tty_send_break( MX_RS232 *rs232 )
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+/*------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxi_tty_get_echo( MX_RS232 *rs232 )
+{
+	static const char fname[] = "mxi_tty_get_echo()";
+
+	MX_TTY *tty = NULL;
+	mx_status_type mx_status;
+
+#if USE_POSIX_TERMIOS
+	struct termios attr;
+	int termios_status, saved_errno;
+#endif
+
+	mx_status = mxi_tty_get_pointers( rs232, &tty, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if USE_POSIX_TERMIOS
+
+	termios_status = tcgetattr( tty->file_handle, &attr );
+
+	if ( termios_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"Error getting termios attributes for record '%s', tty '%s'.  "
+		"Errno = %d, error message = '%s'.",
+			rs232->record->name, tty->filename,
+			saved_errno, strerror( saved_errno ) );
+	}
+
+	if ( attr.c_lflag & ECHO ) {
+		rs232->echo = TRUE;
+	} else {
+		rs232->echo = FALSE;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+
+#else /* USE_POSIX_TERMIOS */
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+	"Getting the echo state is not yet implemented for record '%s'.",
+		rs232->record->name );
+
+#endif /* USE_POSIX_TERMIOS */
+
+}
+
+/*------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxi_tty_set_echo( MX_RS232 *rs232 )
+{
+	static const char fname[] = "mxi_tty_set_echo()";
+
+	MX_TTY *tty = NULL;
+	mx_status_type mx_status;
+
+#if USE_POSIX_TERMIOS
+	struct termios attr;
+	int termios_status, saved_errno;
+#endif
+
+	mx_status = mxi_tty_get_pointers( rs232, &tty, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if USE_POSIX_TERMIOS
+
+	termios_status = tcgetattr( tty->file_handle, &attr );
+
+	if ( termios_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"Error getting termios attributes for record '%s', tty '%s'.  "
+		"Errno = %d, error message = '%s'.",
+			rs232->record->name, tty->filename,
+			saved_errno, strerror( saved_errno ) );
+	}
+
+	if ( rs232->echo ) {
+		attr.c_lflag |= ECHO;
+	} else {
+		attr.c_lflag &= ~ECHO;
+	}
+
+	termios_status = tcsetattr( tty->file_handle, TCSANOW, &attr );
+
+	if ( termios_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"Error setting termios attributes for record '%s', tty '%s'.  "
+		"Errno = %d, error message = '%s'.",
+			rs232->record->name, tty->filename,
+			saved_errno, strerror( saved_errno ) );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+
+#else /* USE_POSIX_TERMIOS */
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+	"Setting the echo state is not yet implemented for record '%s'.",
+		rs232->record->name );
+
+#endif /* USE_POSIX_TERMIOS */
+
 }
 
 #endif /* OS_UNIX || OS_CYGWIN || OS_RTEMS */

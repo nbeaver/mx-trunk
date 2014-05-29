@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2008, 2010-2012 Illinois Institute of Technology
+ * Copyright 1999-2008, 2010-2012, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -149,6 +149,7 @@ typedef struct {
 	mx_bool_type get_configuration;
 	mx_bool_type set_configuration;
 	mx_bool_type send_break;
+	mx_bool_type echo;
 } MX_RS232;
 
 #define MXLV_232_GETCHAR			101
@@ -164,6 +165,7 @@ typedef struct {
 #define MXLV_232_GET_CONFIGURATION		111
 #define MXLV_232_SET_CONFIGURATION		112
 #define MXLV_232_SEND_BREAK			113
+#define MXLV_232_ECHO				114
 
 #define MX_RS232_STANDARD_FIELDS \
   {-1, -1, "speed", MXFT_LONG, NULL, 0, {0}, \
@@ -259,6 +261,10 @@ typedef struct {
   \
   {MXLV_232_SEND_BREAK, -1, "send_break", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_RS232, send_break), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_232_ECHO, -1, "echo", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_RS232, echo), \
 	{0}, NULL, 0}
 
 /*
@@ -295,6 +301,8 @@ typedef struct {
 	mx_status_type ( *send_break ) ( MX_RS232 *rs232 );
 	mx_status_type ( *wait_for_input_available ) ( MX_RS232 *rs232,
 					double wait_timeout_in_seconds );
+	mx_status_type ( *get_echo ) ( MX_RS232 *rs232 );
+	mx_status_type ( *set_echo ) ( MX_RS232 *rs232 );
 } MX_RS232_FUNCTION_LIST;
 
 /* ============== Internal driver function prototypes. ============== */
@@ -426,6 +434,12 @@ MX_API mx_status_type mx_rs232_verify_configuration( MX_RECORD *rs232_record,
 					unsigned long write_terminators );
 
 MX_API mx_status_type mx_rs232_send_break( MX_RECORD *rs232_record );
+
+MX_API mx_status_type mx_rs232_get_echo( MX_RECORD *rs232_record,
+					mx_bool_type *echo_state );
+
+MX_API mx_status_type mx_rs232_set_echo( MX_RECORD *rs232_record,
+					mx_bool_type echo_state );
 
 #ifdef __cplusplus
 }

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001, 2003-2006, 2010, 2012 Illinois Institute of Technology
+ * Copyright 2001, 2003-2006, 2010, 2012, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -36,6 +36,7 @@ typedef struct {
 	MX_NETWORK_FIELD bytes_written_nf;
 	MX_NETWORK_FIELD discard_unread_input_nf;
 	MX_NETWORK_FIELD discard_unwritten_output_nf;
+	MX_NETWORK_FIELD echo_nf;
 	MX_NETWORK_FIELD flow_control_nf;
 	MX_NETWORK_FIELD getchar_nf;
 	MX_NETWORK_FIELD getline_nf;
@@ -92,6 +93,8 @@ MX_API mx_status_type mxi_network_rs232_set_signal_state( MX_RS232 *rs232 );
 MX_API mx_status_type mxi_network_rs232_get_configuration( MX_RS232 *rs232 );
 MX_API mx_status_type mxi_network_rs232_set_configuration( MX_RS232 *rs232 );
 MX_API mx_status_type mxi_network_rs232_send_break( MX_RS232 *rs232 );
+MX_API mx_status_type mxi_network_rs232_get_echo( MX_RS232 *rs232 );
+MX_API mx_status_type mxi_network_rs232_set_echo( MX_RS232 *rs232 );
 
 extern MX_RECORD_FUNCTION_LIST mxi_network_rs232_record_function_list;
 extern MX_RS232_FUNCTION_LIST mxi_network_rs232_rs232_function_list;

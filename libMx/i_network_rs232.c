@@ -10,7 +10,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2001-2006, 2008, 2010, 2012 Illinois Institute of Technology
+ * Copyright 2001-2006, 2008, 2010, 2012, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -54,7 +54,10 @@ MX_RS232_FUNCTION_LIST mxi_network_rs232_rs232_function_list = {
 	mxi_network_rs232_set_signal_state,
 	mxi_network_rs232_get_configuration,
 	mxi_network_rs232_set_configuration,
-	mxi_network_rs232_send_break
+	mxi_network_rs232_send_break,
+	NULL,
+	mxi_network_rs232_get_echo,
+	mxi_network_rs232_set_echo
 };
 
 MX_RECORD_FIELD_DEFAULTS mxi_network_rs232_record_field_defaults[] = {
@@ -213,6 +216,10 @@ mxi_network_rs232_finish_record_initialization( MX_RECORD *record )
 	mx_network_field_init( &(network_rs232->discard_unwritten_output_nf),
 		network_rs232->server_record,
 	    "%s.discard_unwritten_output", network_rs232->remote_record_name );
+
+	mx_network_field_init( &(network_rs232->echo_nf),
+		network_rs232->server_record,
+		"%s.echo", network_rs232->remote_record_name );
 
 	mx_network_field_init( &(network_rs232->flow_control_nf),
 		network_rs232->server_record,
@@ -952,6 +959,46 @@ mxi_network_rs232_send_break( MX_RS232 *rs232 )
 
 	mx_status = mx_put( &(network_rs232->send_break_nf),
 			MXFT_BOOL, &(rs232->send_break) );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxi_network_rs232_get_echo( MX_RS232 *rs232 )
+{
+	static const char fname[] = "mxi_network_rs232_get_echo()";
+
+	MX_NETWORK_RS232 *network_rs232 = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mxi_network_rs232_get_pointers( rs232,
+						&network_rs232, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_get( &(network_rs232->echo_nf),
+			MXFT_BOOL, &(rs232->echo) );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxi_network_rs232_set_echo( MX_RS232 *rs232 )
+{
+	static const char fname[] = "mxi_network_rs232_set_echo()";
+
+	MX_NETWORK_RS232 *network_rs232 = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mxi_network_rs232_get_pointers( rs232,
+						&network_rs232, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_put( &(network_rs232->echo_nf),
+			MXFT_BOOL, &(rs232->echo) );
 
 	return mx_status;
 }

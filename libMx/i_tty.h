@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006, 2010, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -69,6 +69,9 @@ MX_API mx_status_type mxi_tty_posix_termios_set_configuration(
 						MX_RS232 *rs232 );
 
 MX_API mx_status_type mxi_tty_send_break( MX_RS232 *rs232 );
+
+MX_API mx_status_type mxi_tty_get_echo( MX_RS232 *rs232 );
+MX_API mx_status_type mxi_tty_set_echo( MX_RS232 *rs232 );
 
 /* Define the data structures used by a Unix TTY interface. */
 

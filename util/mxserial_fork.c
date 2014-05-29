@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2006, 2012 Illinois Institute of Technology
+ * Copyright 2002-2006, 2012, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -27,14 +27,12 @@
 #include "mx_osdef.h"
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_multi.h"
+#include "mx_net.h"
 #include "mx_rs232.h"
 #include "mx_key.h"
 
 static char DEFAULT_HOST[] = "localhost";
-
-#ifndef USE_GETOPT
-#define USE_GETOPT	TRUE
-#endif
 
 #define DEFAULT_PORT	9727
 
@@ -50,7 +48,8 @@ mxser_connect_to_mx_server( MX_RECORD **record_list,
 				MX_RECORD **server_record,
 				char *server_name,
 				int server_port,
-				int default_display_precision );
+				int default_display_precision,
+				mx_bool_type network_debugging );
 
 mx_status_type
 mxser_find_port_record( MX_RECORD **port_record,
@@ -69,6 +68,8 @@ mxser_receive_characters_from_the_server( MX_RECORD *port_record,
 static void
 mxser_termination_handler( int signal_number )
 {
+	mx_key_echo_on();
+
 	if ( original_pid == getpid() ) {
 		mx_info("*** mxserial shutting down ***");
 	}
@@ -147,6 +148,9 @@ main( int argc, char *argv[] )
 	int default_display_precision;
 	int max_receive_speed;
 	mx_bool_type start_debugger;
+	mx_bool_type echo_state;
+	mx_bool_type set_echo_state;
+	mx_bool_type network_debugging;
 	mx_status_type mx_status;
 
 	static char usage[] =
@@ -162,6 +166,7 @@ main( int argc, char *argv[] )
 "    and options are\n"
 "\n"
 "      -d debug_level\n"
+"      -e value              (1 for on, 0 for off)\n"
 "      -f file_to_send\n"
 "      -n newline_chars      (in hex; default = 0x0d0a)\n"
 "      -s max_receive_speed  (in bits per second; default = 10000)\n"
@@ -169,9 +174,7 @@ main( int argc, char *argv[] )
 "Example: %s localhost@9727:theta_rs232\n"
 "\n";
 
-#if USE_GETOPT
 	int c, error_flag;
-#endif
 
 	mx_status = mx_initialize_runtime();
 
@@ -204,18 +207,34 @@ main( int argc, char *argv[] )
 
 	start_debugger = FALSE;
 
-#if USE_GETOPT
+	set_echo_state = FALSE;
+
+	echo_state = TRUE;
+
+	network_debugging = FALSE;
+
 	/* Process command line arguments via getopt, if any. */
 
 	error_flag = FALSE;
 
-	while ((c = getopt(argc, argv, "d:Df:n:s:x")) != -1 ) {
+	while ((c = getopt(argc, argv, "ad:De:f:n:s:x")) != -1 ) {
 		switch(c) {
+		case 'a':
+			network_debugging = TRUE;
+			break;
 		case 'd':
 			debug_level = atoi( optarg );
 			break;
 		case 'D':
 			start_debugger = TRUE;
+			break;
+		case 'e':
+			if ( atoi( optarg ) == 0 ) {
+				echo_state = FALSE;
+			} else {
+				echo_state = TRUE;
+			}
+			set_echo_state = TRUE;
 			break;
 		case 'f':
 			file = fopen( optarg, "r" );
@@ -244,14 +263,6 @@ main( int argc, char *argv[] )
 	i = optind;
 
 	num_non_option_arguments = argc - optind;
-
-#else  /* USE_GETOPT */
-
-	i = 1;
-
-	num_non_option_arguments = argc - 1;
-
-#endif /* USE_GETOPT */
 
 	if ( start_debugger ) {
 		mx_breakpoint();
@@ -316,24 +327,35 @@ main( int argc, char *argv[] )
 
 	mx_status = mxser_connect_to_mx_server( &record_list, &server_record,
 						server_name, server_port,
-						default_display_precision );
+						default_display_precision,
+						network_debugging );
 
-	if ( mx_status.code != MXE_SUCCESS )
+	if ( mx_status.code != MXE_SUCCESS ) {
 		exit( (int) mx_status.code );
+	}
 
 	/* Find the serial port record. */
 
 	mx_status = mxser_find_port_record( &port_record, record_list,
 						server_record, port_name );
 
-	if ( mx_status.code != MXE_SUCCESS )
+	if ( mx_status.code != MXE_SUCCESS ) {
 		exit( (int) mx_status.code );
+	}
 
 	/* From now on, the child sends characters to the serial port,
 	 * while the parent receives characters from the serial port.
 	 */
 
 	if ( child_pid == 0 ) {
+
+		if ( echo_state ) {
+			mx_key_echo_on();
+		} else {
+			mx_key_echo_off();
+		}
+
+		/* Send characters to the server. */
 
 		mxser_send_characters_to_the_server( port_record,
 						newline_chars, file );
@@ -354,7 +376,8 @@ mxser_connect_to_mx_server( MX_RECORD **record_list,
 				MX_RECORD **server_record,
 				char *server_name,
 				int server_port,
-				int default_display_precision )
+				int default_display_precision,
+				mx_bool_type network_debugging )
 {
 	static const char fname[] = "mxser_connect_to_mx_server()";
 
@@ -376,6 +399,12 @@ mxser_connect_to_mx_server( MX_RECORD **record_list,
 	if ( *record_list == NULL ) {
 		return mx_error( MXE_FUNCTION_FAILED, fname,
 			"Unable to setup an MX record list." );
+	}
+
+	/* If requested, turn on network debugging. */
+
+	if ( network_debugging ) {
+		mx_multi_set_debug_flags( *record_list, MXF_NETDBG_SUMMARY );
 	}
 
 	/* Set the default floating point display precision. */

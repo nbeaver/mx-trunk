@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2005, 2010, 2012 Illinois Institute of Technology
+ * Copyright 2001-2005, 2010, 2012, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -45,6 +45,7 @@ mx_setup_rs232_process_functions( MX_RECORD *record )
 		switch( record_field->label_value ) {
 		case MXLV_232_DISCARD_UNREAD_INPUT:
 		case MXLV_232_DISCARD_UNWRITTEN_OUTPUT:
+		case MXLV_232_ECHO:
 		case MXLV_232_GETCHAR:
 		case MXLV_232_GETLINE:
 		case MXLV_232_GET_CONFIGURATION:
@@ -94,6 +95,9 @@ mx_rs232_process_function( void *record_ptr,
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
+		case MXLV_232_ECHO:
+			mx_status = mx_rs232_get_echo( record, NULL );
+			break;
 		case MXLV_232_GETCHAR:
 			mx_status = mx_rs232_getchar( record,
 						&(rs232->getchar_value), 0 );
@@ -132,6 +136,9 @@ mx_rs232_process_function( void *record_ptr,
 		break;
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
+		case MXLV_232_ECHO:
+			mx_status = mx_rs232_set_echo( record, rs232->echo );
+			break;
 		case MXLV_232_PUTCHAR:
 			mx_status = mx_rs232_putchar( record,
 						rs232->putchar_value, 0 );
