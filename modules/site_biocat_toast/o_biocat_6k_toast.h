@@ -35,6 +35,10 @@ typedef struct {
 	double timeout;			/* In seconds. */
 	unsigned long toast_flags;
 	char program_name[MXU_6K_PROGRAM_NAME_LENGTH+1];
+	unsigned long task_number;
+
+	char task_prefix[4];
+	mx_bool_type move_to_finish_in_progress;
 } MX_BIOCAT_6K_TOAST;
 
 #define MXO_BIOCAT_6K_TOAST_STANDARD_FIELDS \
@@ -68,7 +72,11 @@ typedef struct {
   \
   {-1, -1, "program_name", MXFT_STRING, NULL, 1, {MXU_6K_PROGRAM_NAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_BIOCAT_6K_TOAST, program_name), \
-	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}
+	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
+  {-1, -1, "task_number", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_BIOCAT_6K_TOAST, task_number), \
+	{0}, NULL, MXFF_IN_DESCRIPTION}
 
 MX_API_PRIVATE mx_status_type mxo_biocat_6k_toast_create_record_structures(
 							MX_RECORD *record );
@@ -86,3 +94,4 @@ extern long mxo_biocat_6k_toast_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxo_biocat_6k_toast_rfield_def_ptr;
 
 #endif /* __O_BIOCAT_6K_TOAST_H__ */
+

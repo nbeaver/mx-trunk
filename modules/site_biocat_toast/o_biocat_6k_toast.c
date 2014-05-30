@@ -231,6 +231,20 @@ mxo_biocat_6k_toast_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( toast->task_number == 0 ) {
+		toast->task_prefix[0] = '\0';
+	} else
+	if ( toast->task_number <= 10 ) {
+		snprintf( toast->task_prefix, sizeof(toast->task_prefix),
+			"%lu%%", toast->task_number );
+	} else {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+	"The requested task number %lu for record '%s' is outside the "
+	"allowed range of 0 to 10.", toast->task_number, record->name );
+	}
+
+	toast->move_to_finish_in_progress = FALSE;
+
 	/* Send a stop command, just in case the operation was started
 	 * by a previous instance of MX.
 	 */
@@ -279,6 +293,9 @@ mxo_biocat_6k_toast_get_status( MX_OPERATION *operation )
 	MX_COMPUMOTOR *compumotor = NULL;
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface = NULL;
 	unsigned long motor_status;
+	int program_status = 0;
+	char command[20];
+	char response[20];
 	mx_status_type mx_status;
 
 	mx_status = mxo_biocat_6k_toast_get_pointers( operation,
@@ -287,6 +304,10 @@ mxo_biocat_6k_toast_get_status( MX_OPERATION *operation )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	operation->status = 0;
+
+	/* See if the motor has a fault. */
 
 	mx_status = mx_motor_get_status( motor->record, &motor_status );
 
@@ -297,9 +318,57 @@ mxo_biocat_6k_toast_get_status( MX_OPERATION *operation )
 		operation->status = MXSF_OP_FAULT;
 	}
 
+	program_status = 0;
+
+	if ( operation->status != MXSF_OP_FAULT ) {
+
+		if ( toast->move_to_finish_in_progress ) {
+
+			/* If a move to the finish position is in progress,
+			 * we check to see if the motor is still moving.
+			 */
+
+			if ( motor_status & MXSF_MTR_IS_BUSY ) {
+				operation->status = MXSF_OP_BUSY;
+			} else {
+				operation->status = 0;
+
+				toast->move_to_finish_in_progress = FALSE;
+			}
+
+		} else {
+			/* Otherwise, we check to see if a program is running
+			 * for this task.
+			 */
+
+			snprintf( command, sizeof(command),
+				"!%sTSS.3", toast->task_prefix );
+
+			mx_status = mxi_compumotor_command(
+						compumotor_interface,
+						command,
+						response, sizeof(response),
+						MXO_BIOCAT_6K_TOAST_DEBUG );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			program_status = atoi( response );
+
+			if ( program_status == 0 ) {
+				operation->status = 0;
+			} else {
+				operation->status = MXSF_OP_BUSY;
+			}
+		}
+	}
+
 #if MXO_BIOCAT_6K_TOAST_DEBUG
-	MX_DEBUG(-2,("%s: motor '%s' status = %#lx, operation status = %#lx",
-	fname, motor->record->name, motor->status, operation->status));
+	MX_DEBUG(-2,("%s: motor '%s' status = %#lx, move to finish = %d, "
+		"program status = %d, operation status = %#lx",
+			fname, motor->record->name, motor->status,
+			toast->move_to_finish_in_progress,
+			program_status, operation->status));
 #endif
 
 	return mx_status;
@@ -353,7 +422,7 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 	MX_COMPUMOTOR *compumotor = NULL;
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface = NULL;
 	double low_6k_destination, high_6k_destination;
-	char command[1000];
+	char command[100];
 	mx_status_type mx_status;
 
 #if MXO_BIOCAT_6K_TOAST_DEBUG_PROGRAM
@@ -379,7 +448,9 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 
 	/* Turn off continuous command execution. */
 
-	mx_status = mxi_compumotor_command( compumotor_interface, "COMEXC0",
+	snprintf( command, sizeof(command), "%sCOMEXC0", toast->task_prefix );
+
+	mx_status = mxi_compumotor_command( compumotor_interface, command,
 					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -409,8 +480,10 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 
 	/* Start the infinite while loop. */
 
-	mx_status = mxi_compumotor_command( compumotor_interface,
-					"WHILE(AS=bX)",
+	snprintf( command, sizeof(command), "WHILE(%luAS=bX)",
+					compumotor->axis_number );
+
+	mx_status = mxi_compumotor_command( compumotor_interface, command,
 					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -544,11 +617,15 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 
 	/* Start the program. */
 
-	mx_status = mxi_compumotor_command( compumotor_interface,
-					toast->program_name,
+	snprintf( command, sizeof(command), "%s%s",
+		toast->task_prefix, toast->program_name );
+
+	mx_status = mxi_compumotor_command( compumotor_interface, command,
 					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
 
+#if 0
 	MX_DEBUG(-2,("%s: MARKER 2", fname));
+#endif
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -569,6 +646,7 @@ mxo_biocat_6k_toast_stop( MX_OPERATION *operation )
 	MX_MOTOR *motor = NULL;
 	MX_COMPUMOTOR *compumotor = NULL;
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface = NULL;
+	char command[100];
 	mx_status_type mx_status;
 
 	mx_status = mxo_biocat_6k_toast_get_pointers( operation,
@@ -585,7 +663,9 @@ mxo_biocat_6k_toast_stop( MX_OPERATION *operation )
 
 	/* Send a kill command. */
 
-	mx_status = mxi_compumotor_command( compumotor_interface, "!K",
+	snprintf( command, sizeof(command), "!%sK", toast->task_prefix );
+
+	mx_status = mxi_compumotor_command( compumotor_interface, command,
 					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -593,19 +673,33 @@ mxo_biocat_6k_toast_stop( MX_OPERATION *operation )
 
 	/* Turn on continuous command execution. */
 
-	mx_status = mxi_compumotor_command( compumotor_interface, "COMEXC1",
+	snprintf( command, sizeof(command), "%sCOMEXC1", toast->task_prefix );
+
+	mx_status = mxi_compumotor_command( compumotor_interface, command,
 					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/*---*/
+	/* If requested, command the motor to move to the finish position. */
 
-	operation->status = 0;
+	if ( toast->toast_flags & MXSF_TOAST_USE_FINISH_POSITION ) {
 
-#if MXO_BIOCAT_6K_TOAST_DEBUG
-	MX_DEBUG(-2,("%s: operation->status = 0", fname));
-#endif
+		toast->move_to_finish_in_progress = TRUE;
+
+		mx_status = mx_motor_move_absolute( motor->record,
+						toast->finish_position,
+						MXF_MTR_NOWAIT );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Wait a little while for the motor to start moving. */
+
+		mx_msleep(100);
+	} else {
+		toast->move_to_finish_in_progress = FALSE;
+	}
 
 	return mx_status;
 }
