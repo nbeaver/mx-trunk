@@ -17,7 +17,7 @@
 
 #define MXD_NEWPORT_XPS_MOTOR_DEBUG			FALSE
 
-#define MXD_NEWPORT_XPS_MOTOR_MOVE_THREAD_DEBUG		TRUE
+#define MXD_NEWPORT_XPS_MOTOR_MOVE_THREAD_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

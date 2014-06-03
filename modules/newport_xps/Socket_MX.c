@@ -15,7 +15,7 @@
  *
  */
 
-#define SOCKET_MX_DEBUG		TRUE
+#define SOCKET_MX_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
