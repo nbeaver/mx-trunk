@@ -43,7 +43,7 @@ NEWPORT_XPS_OBJS = newport_xps.$(OBJ) \
 
 ifeq ($(MX_ARCH),linux)
 
-VENDOR_DEBUG = -g
+XPS_C8_DRIVERS_FLAGS = -g -fPIC
 
 newport_xps.mxo: vendor_downloads $(NEWPORT_XPS_OBJS) $(VENDOR_OBJS)
 	$(CXX) -shared -rdynamic -Wl,-soname,newport_xps.mxo \
@@ -101,7 +101,7 @@ XPS_C8_drivers.cpp:
 #--------------------------------------------------------------------------
 
 XPS_C8_drivers.$(OBJ): XPS_C8_drivers.cpp XPS_C8_drivers.h Socket.h
-	$(CXX) $(VENDOR_DEBUG) -c XPS_C8_drivers.cpp
+	$(CXX) $(XPS_C8_DRIVERS_FLAGS) -c XPS_C8_drivers.cpp
 
 Socket_MX.$(OBJ): Socket_MX.c Socket.h
 	$(COMPILE) $(CFLAGS) Socket_MX.c

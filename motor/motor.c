@@ -539,7 +539,6 @@ motor_main( int argc, char *argv[] )
 				fprintf( stderr,
 	 	"Attempt to execute global startup file '%s' failed.\n",
 					global_motorrc );
-				exit(1);
 			}
 		}
 
@@ -556,7 +555,6 @@ motor_main( int argc, char *argv[] )
 					fprintf( stderr,
 			"Attempt to execute user startup file '%s' failed.\n",
 						user_motorrc );
-					exit(1);
 				}
 			}
 		}
@@ -576,7 +574,6 @@ motor_main( int argc, char *argv[] )
 			fprintf( stderr,
 	"Attempt to execute command line startup script '%s' failed.\n",
 				argv[optind] );
-			exit(1);
 		}
 	}
 #else
@@ -587,7 +584,6 @@ motor_main( int argc, char *argv[] )
 			fprintf( stderr,
 	"Attempt to execute command line startup script '%s' failed.\n",
 				argv[1] );
-			exit(1);
 		}
 	}
 #endif

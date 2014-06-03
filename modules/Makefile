@@ -29,7 +29,7 @@ all: build
 
 #MODULES += k8055		# linux,
 
-#MODULES += newport_xps		# linux,
+MODULES += newport_xps		# linux,
 
 #MODULES += ni488		# linux,
 
@@ -100,7 +100,7 @@ MODULES += epics_pmac_biocat
 #   BioCAT (APS-18ID) 6K "toast" controller.
 #
 
-MODULES += site_biocat_toast
+#MODULES += site_biocat_toast
 
 #---
 
