@@ -305,7 +305,7 @@ mxd_nuvant_ezstat_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 
 	daqmx_status = DAQmxCreateDOChan( task_handle,
 					channel_names, NULL,
-					DAQmx_Val_ChanForAllLines );
+					DAQmx_Val_ChanPerLine );
 
 	if ( daqmx_status != 0 ) {
 		DAQmxGetExtendedErrorInfo( daqmx_error_message,

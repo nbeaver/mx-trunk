@@ -609,7 +609,7 @@ mxi_nuvant_ezstat_set_binary_range( MX_NUVANT_EZSTAT *ezstat,
 
 	daqmx_status = DAQmxCreateDOChan( doutput_task_handle,
 					doutput_channel_names, NULL,
-					DAQmx_Val_ChanForAllLines );
+					DAQmx_Val_ChanPerLine );
 
 	if ( daqmx_status != 0 ) {
 		DAQmxGetExtendedErrorInfo( daqmx_error_message,

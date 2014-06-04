@@ -262,7 +262,7 @@ mxd_nea_set_potentiostat_voltage( MX_ANALOG_OUTPUT *aoutput,
 
 	daqmx_status = DAQmxCreateDOChan( doutput_task_handle,
 					doutput_channel_names, NULL,
-					DAQmx_Val_ChanForAllLines );
+					DAQmx_Val_ChanPerLine );
 
 	if ( daqmx_status != 0 ) {
 		DAQmxGetExtendedErrorInfo( daqmx_error_message,
@@ -443,7 +443,7 @@ mxd_nea_set_galvanostat_current( MX_ANALOG_OUTPUT *aoutput,
 
 	daqmx_status = DAQmxCreateDOChan( doutput_task_handle,
 					doutput_channel_names, NULL,
-					DAQmx_Val_ChanForAllLines );
+					DAQmx_Val_ChanPerLine );
 
 	if ( daqmx_status != 0 ) {
 		DAQmxGetExtendedErrorInfo( daqmx_error_message,

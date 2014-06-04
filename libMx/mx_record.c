@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2013 Illinois Institute of Technology
+ * Copyright 1999-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -464,7 +464,7 @@ mx_delete_placeholder_handler( MX_RECORD *record,
 	static const char fname[] = "mx_delete_placeholder_handler()";
 
 	MX_RECORD *placeholder_record;
-	MX_INTERFACE *interface;
+	MX_INTERFACE *mx_interface;
 	MX_LIST_HEAD *list_head;
 	long fixup_record_index;
 	void **fixup_record_array;
@@ -484,8 +484,8 @@ mx_delete_placeholder_handler( MX_RECORD *record,
 
 	switch( record_field->datatype ) {
 	case MXFT_INTERFACE:
-		interface = (MX_INTERFACE *) array_ptr;
-		placeholder_record = interface->record;
+		mx_interface = (MX_INTERFACE *) array_ptr;
+		placeholder_record = mx_interface->record;
 		break;
 	case MXFT_RECORD:
 		value_ptr = mx_read_void_pointer_from_memory_location(
@@ -2236,7 +2236,7 @@ mx_print_field_value( FILE *file,
 	static const char fname[] = "mx_print_field_value()";
 
 	MX_RECORD *other_record;
-	MX_INTERFACE *interface;
+	MX_INTERFACE *mx_interface;
 	MX_DRIVER *driver;
 	MX_RECORD_FIELD *referenced_field;
 	long field_type;
@@ -2354,10 +2354,10 @@ mx_print_field_value( FILE *file,
 		}
 		break;
 	case MXFT_INTERFACE:
-		interface = (MX_INTERFACE *) value_ptr;
+		mx_interface = (MX_INTERFACE *) value_ptr;
 
-		fprintf( file, "%s:%s", interface->record->name,
-					interface->address_name );
+		fprintf( file, "%s:%s", mx_interface->record->name,
+					mx_interface->address_name );
 		break;
 	case MXFT_RECORD_FIELD:
 		referenced_field = (MX_RECORD_FIELD *)
@@ -2757,7 +2757,7 @@ mx_record_array_dependency_handler( MX_RECORD *record,
 
 	MX_RECORD_ARRAY_DEPENDENCY_STRUCT *dependency_struct;
 	MX_RECORD *dependent_record;
-	MX_INTERFACE *interface;
+	MX_INTERFACE *mx_interface;
 	void *value_ptr;
 	mx_status_type mx_status;
 
@@ -2775,8 +2775,8 @@ mx_record_array_dependency_handler( MX_RECORD *record,
 
 	switch( field->datatype ) {
 	case MXFT_INTERFACE:
-		interface = (MX_INTERFACE *) array_ptr;
-		dependent_record = interface->record;
+		mx_interface = (MX_INTERFACE *) array_ptr;
+		dependent_record = mx_interface->record;
 		break;
 	case MXFT_RECORD:
 		value_ptr = mx_read_void_pointer_from_memory_location(
