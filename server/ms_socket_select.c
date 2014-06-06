@@ -31,10 +31,19 @@
 void
 mxsrv_update_select_fds( MX_SOCKET_HANDLER_LIST *socket_handler_list )
 {
+	static const char fname[] = "mxsrv_update_select_fds()";
 	int i, handler_array_size;
 	int highest_socket_in_use;
 	MX_SOCKET *current_socket;
 	fd_set select_readfds;
+
+	if ( socket_handler_list == (MX_SOCKET_HANDLER_LIST *) NULL ) {
+		mx_warning( "%s: socket_handler_list is NULL!", fname );
+
+		mx_stack_traceback();
+
+		mx_warning( "%s: continuing anyway.", fname );
+	}
 
 	handler_array_size = socket_handler_list->handler_array_size;
 

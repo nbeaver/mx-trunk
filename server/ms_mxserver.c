@@ -159,11 +159,11 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 
 	if ( socket_handler_list != NULL ) {
 		socket_handler_list->array[n] = NULL;
+
+		/* Update the list of fds to check in select(). */
+
+		mxsrv_update_select_fds( socket_handler_list );
 	}
-
-	/* Update the list of fds to check in select(). */
-
-	mxsrv_update_select_fds( socket_handler_list );
 
 	/* Announce that the client socket has gone away. */
 
