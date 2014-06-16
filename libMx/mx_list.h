@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2007-2008 Illinois Institute of Technology
+ * Copyright 2007-2008, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -55,8 +55,8 @@ MX_API mx_status_type mx_list_delete_entry( MX_LIST *list,
 					MX_LIST_ENTRY *list_entry );
 
 MX_API mx_status_type mx_list_entry_create( MX_LIST_ENTRY **,
-						void *list_entry_data,
-						void (*destructor)( void * ) );
+					void *list_entry_data,
+					void (*mx_destructor)( void * ) );
 
 MX_API void           mx_list_entry_destroy( MX_LIST_ENTRY * );
 
@@ -73,8 +73,8 @@ MX_API mx_status_type mx_list_find_list_entry( MX_LIST *list,
 /*---*/
 
 MX_API mx_status_type mx_list_entry_create_and_add( MX_LIST *list,
-						void *list_entry_data,
-						void (*destructor)( void * ) );
+					void *list_entry_data,
+					void (*mx_destructor)( void * ) );
 
 MX_API mx_status_type mx_list_entry_find_and_destroy( MX_LIST *list,
 						void *list_entry_data );
