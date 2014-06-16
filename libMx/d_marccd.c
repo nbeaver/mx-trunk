@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008-2010, 2013 Illinois Institute of Technology
+ * Copyright 2008-2010, 2013-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -431,7 +431,7 @@ mxd_marccd_writefile( MX_AREA_DETECTOR *ad,
 	 * to create an empty file with this name and then set up a file
 	 * monitor on this file so that we can detect when the file
 	 * is changed.
-	/*/
+	 */
 
 	file = fopen( filename, "wb" );
 
