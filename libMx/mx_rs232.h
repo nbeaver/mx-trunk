@@ -81,6 +81,7 @@ extern "C" {
 #define MXF_232_SUPPRESS_TIMEOUT_ERROR_MESSAGES	0x1000
 #define MXF_232_POSIX_VMIN_FIX			0x2000
 
+#define MXF_232_DEBUG_SERIAL			0x10000000
 #define MXF_232_NO_REMOTE_ACCESS		0x80000000
 
 /* 'signal_state' field bit definitions. */

@@ -10,7 +10,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2010, 2012-2013 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2010, 2012-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -64,7 +64,7 @@ MX_MOTOR_FUNCTION_LIST mxd_pmac_motor_function_list = {
 
 MX_RECORD_FIELD_DEFAULTS mxd_pmac_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
-	MX_STEPPER_MOTOR_STANDARD_FIELDS,
+	MX_ANALOG_MOTOR_STANDARD_FIELDS,
 	MX_MOTOR_STANDARD_FIELDS,
 	MXD_PMAC_STANDARD_FIELDS
 };
@@ -164,9 +164,9 @@ mxd_pmac_create_record_structures( MX_RECORD *record )
 	motor->record = record;
 	pmac_motor->record = record;
 
-	/* A PMAC motor is treated as an stepper motor. */
+	/* A PMAC motor is treated as an analog motor. */
 
-	motor->subclass = MXC_MTR_STEPPER;
+	motor->subclass = MXC_MTR_ANALOG;
 
 	/* We express accelerations in counts/sec**2. */
 
@@ -253,31 +253,25 @@ mxd_pmac_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  offset         = %g %s.\n",
 			motor->offset, motor->units);
 	
-	backlash = motor->scale
-			* (double) (motor->raw_backlash_correction.stepper);
+	backlash = motor->scale * motor->raw_backlash_correction.analog;
 	
-	fprintf(file, "  backlash       = %ld steps (%g %s)\n",
-			motor->raw_backlash_correction.stepper,
-			backlash, motor->units);
+	fprintf(file, "  backlash       = %g %s\n", backlash, motor->units);
 	
 	negative_limit = motor->offset
-	+ motor->scale * (double)(motor->raw_negative_limit.stepper);
+			+ motor->scale * motor->raw_negative_limit.analog;
 	
-	fprintf(file, "  negative limit = %ld steps (%g %s)\n",
-			motor->raw_negative_limit.stepper,
+	fprintf(file, "  negative limit = %g %s\n",
 			negative_limit, motor->units);
 
 	positive_limit = motor->offset
-	+ motor->scale * (double)(motor->raw_positive_limit.stepper);
+	+ motor->scale * motor->raw_positive_limit.analog;
 
-	fprintf(file, "  positive limit = %ld steps (%g %s)\n",
-			motor->raw_positive_limit.stepper,
+	fprintf(file, "  positive limit = %g %s\n",
 			positive_limit, motor->units);
 
-	move_deadband = motor->scale * (double)motor->raw_move_deadband.stepper;
+	move_deadband = motor->scale * motor->raw_move_deadband.analog;
 
-	fprintf(file, "  move deadband  = %ld steps (%g %s)\n\n",
-			motor->raw_move_deadband.stepper,
+	fprintf(file, "  move deadband  = %g %s\n\n",
 			move_deadband, motor->units );
 
 	return MX_SUCCESSFUL_RESULT;
@@ -357,7 +351,6 @@ mxd_pmac_move_absolute( MX_MOTOR *motor )
 	MX_PMAC_MOTOR *pmac_motor = NULL;
 	MX_PMAC *pmac = NULL;
 	char command[20];
-	long motor_steps;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, &pmac, fname );
@@ -365,9 +358,8 @@ mxd_pmac_move_absolute( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	motor_steps = motor->raw_destination.stepper;
-
-	snprintf( command, sizeof(command), "J=%ld", motor_steps );
+	snprintf( command, sizeof(command), "J=%f",
+			motor->raw_destination.analog );
 
 	mx_status = mxd_pmac_jog_command( pmac_motor, pmac,
 					command, NULL, 0, PMAC_DEBUG );
@@ -398,10 +390,6 @@ mxd_pmac_get_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* The PMAC may report values back in terms of fractions of
-	 * an encoder count.
-	 */
-
 	num_tokens = sscanf( response, "%lg", &double_value );
 
 	if ( num_tokens != 1 ) {
@@ -410,9 +398,7 @@ mxd_pmac_get_position( MX_MOTOR *motor )
 		"num_tokens = %d, Response seen = '%s'", num_tokens, response );
 	}
 
-	/* We round this to the nearest encoder count. */
-
-	motor->raw_position.stepper = mx_round( double_value );
+	motor->raw_position.analog = double_value;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -553,7 +539,7 @@ mxd_pmac_set_position( MX_MOTOR *motor )
 			"#%ldHOMEZ M%ld64=%ld*32*I%ld08",
 			pmac_motor->motor_number,
 			pmac_motor->motor_number,
-			motor->raw_set_position.stepper,
+			mx_round(motor->raw_set_position.analog),
 			pmac_motor->motor_number );
 
 	mx_status = mxi_pmac_command( pmac, command,

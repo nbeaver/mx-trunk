@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2004, 2006, 2009-2010, 2012
+ * Copyright 1999, 2001-2004, 2006, 2009-2010, 2012, 2014
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -22,8 +22,6 @@
 #define MXI_PMAC_DEBUG_TIMING		FALSE
 
 #define MXI_PMAC_DEBUG_LOGIN		FALSE
-
-#define MXI_PMAC_DEBUG_RS232		FALSE
 
 #define MXI_PMAC_DEBUG_TCP		FALSE
 
@@ -732,6 +730,10 @@ mxi_pmac_command( MX_PMAC *pmac, char *command,
 	if ( pmac == (MX_PMAC *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"MX_PMAC pointer passed was NULL." );
+	}
+
+	if ( pmac->pmac_flags & MXF_PMAC_DEBUG_SERIAL ) {
+		debug_flag = TRUE;
 	}
 
 	if ( debug_flag ) {

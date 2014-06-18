@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2006, 2009-2010 Illinois Institute of Technology
+ * Copyright 1999-2003, 2006, 2009-2010, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -70,6 +70,12 @@
 
 #define MX_PMAC_MAX_COMMAND_LENGTH	500
 
+/* Values for the 'pmac_flags' field. */
+
+#define MXF_PMAC_DEBUG_SERIAL	0x1
+
+/*---*/
+
 typedef struct {
 	MX_RECORD *record;
 	long pmac_type;
@@ -89,6 +95,8 @@ typedef struct {
 	char port_type_name[MX_PMAC_PORT_TYPE_LENGTH+1];
 	char port_args[MX_PMAC_PORT_ARGS_LENGTH+1];
 	long num_cards;
+
+	unsigned long pmac_flags;
 
 	char command[MX_PMAC_MAX_COMMAND_LENGTH+1];
 	char response[MX_PMAC_MAX_COMMAND_LENGTH+1];
@@ -132,6 +140,10 @@ typedef struct {
   {-1, -1, "num_cards", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PMAC, num_cards), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "pmac_flags", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PMAC, pmac_flags), \
+	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
   {MXLV_PMAC_COMMAND, -1, "command", MXFT_STRING,\
 				NULL, 1, {MX_PMAC_MAX_COMMAND_LENGTH}, \
