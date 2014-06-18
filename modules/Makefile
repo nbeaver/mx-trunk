@@ -25,7 +25,7 @@ all: build
 
 #MODULES = labjack_ux		# linux,
 
-MODULES += libusb-0.1		# linux,
+#MODULES += libusb-0.1		# linux,
 
 #MODULES += k8055		# linux,
 
@@ -52,7 +52,7 @@ MODULES += newport_xps		# linux,
 
 #MODULES += powerpmac
 
-MODULES += v4l2_input
+#MODULES += v4l2_input
 
 #-------------------------------------------------------------------
 # Win32-only modules.
@@ -100,7 +100,7 @@ MODULES += epics_pmac_biocat
 #   BioCAT (APS-18ID) 6K "toast" controller.
 #
 
-#MODULES += site_biocat_toast
+MODULES += site_biocat_toast
 
 #---
 
