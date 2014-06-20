@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2012 Illinois Institute of Technology
+ * Copyright 2012, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -459,6 +459,16 @@ mxv_field_variable_send_variable( MX_VARIABLE *variable )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/*---*/
+
+	mx_status = mx_initialize_record_processing(
+				field_variable->external_record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/*---*/
+
 	internal_field = field_variable->internal_field;
 
 	internal_value_ptr = mx_get_field_value_pointer( internal_field );
@@ -511,6 +521,16 @@ mxv_field_variable_receive_variable( MX_VARIABLE *variable )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/*---*/
+
+	mx_status = mx_initialize_record_processing(
+				field_variable->external_record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/*---*/
 
 	internal_field = field_variable->internal_field;
 
