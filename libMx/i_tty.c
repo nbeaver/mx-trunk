@@ -1155,8 +1155,9 @@ mxi_tty_discard_unread_input( MX_RS232 *rs232 )
 	static const char fname[] = "mxi_tty_discard_unread_input()";
 
 	int debug_level;
-	unsigned long i, timeout, debug_flag;
+	unsigned long i, timeout;
 	char c;
+	mx_bool_type debug_flag;
 	mx_status_type mx_status;
 
 	char buffer[100];
@@ -1175,7 +1176,7 @@ mxi_tty_discard_unread_input( MX_RS232 *rs232 )
 
 	rs232->transfer_flags &= ( ~ MXF_232_NOWAIT );
 
-	debug_flag = rs232->transfer_flags & MXF_232_DEBUG;
+	debug_flag = mx_rs232_show_debugging( rs232, rs232->transfer_flags );
 
 	for ( i=0; i < timeout; i++ ) {
 

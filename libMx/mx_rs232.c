@@ -30,7 +30,8 @@ MX_EXPORT mx_status_type
 mx_rs232_unbuffered_getline( MX_RS232 *rs232,
 			char *buffer,
 			size_t max_bytes_to_read,
-			size_t *bytes_read )
+			size_t *bytes_read,
+			unsigned long local_transfer_flags )
 {
 	static const char fname[] = "mx_rs232_unbuffered_getline()";
 
@@ -165,9 +166,9 @@ mx_rs232_unbuffered_getline( MX_RS232 *rs232,
 				/* Go to the top of the for loop. */
 				continue;
 			} else {
-
-				if ( (rs232->transfer_flags) & MXF_232_DEBUG ) {
-
+				if ( mx_rs232_show_debugging( rs232,
+						MXF_232_HIDE_FROM_DEBUG ))
+				{
 					MX_DEBUG(-2,
 					("%s failed.\nbuffer = '%s'",
 						fname, buffer));
@@ -181,8 +182,7 @@ mx_rs232_unbuffered_getline( MX_RS232 *rs232,
 		}
 
 #if MX_RS232_DEBUG_GETLINE_PUTLINE
-
-		if ( (rs232->transfer_flags) & MXF_232_DEBUG ) {
+		if ( mx_rs232_show_debugging(rs232) ) {
 			MX_DEBUG(-2,
 			("%s: received c = 0x%x '%c'", fname, c, c));
 		}
@@ -271,7 +271,8 @@ mx_rs232_unbuffered_getline( MX_RS232 *rs232,
 MX_EXPORT mx_status_type
 mx_rs232_unbuffered_putline( MX_RS232 *rs232,
 				char *buffer,
-				size_t *bytes_written )
+				size_t *bytes_written,
+				unsigned long local_transfer_flags )
 {
 	static const char fname[] = "mx_rs232_unbuffered_putline()";
 
@@ -310,10 +311,10 @@ mx_rs232_unbuffered_putline( MX_RS232 *rs232,
 			break;
 		}
 
-		if ( (rs232->transfer_flags) & MXF_232_DEBUG ) {
+		if ( mx_rs232_show_debugging( rs232, MXF_232_HIDE_FROM_DEBUG ) )
+		{
 			MX_DEBUG(-2,
-			("%s: sending write terminator 0x%x",
-				fname, c));
+			("%s: sending write terminator 0x%x", fname, c));
 		}
 
 		mx_status = mx_rs232_putchar( rs232->record, c, MXF_232_WAIT );
@@ -326,6 +327,36 @@ mx_rs232_unbuffered_putline( MX_RS232 *rs232,
 }
 
 /*----------------------------- Public functions ----------------------------*/
+
+MX_EXPORT mx_bool_type
+mx_rs232_show_debugging( MX_RS232 *rs232,
+			unsigned long transfer_flags )
+{
+	static const char fname[] = "mx_rs232_show_debugging()";
+
+	if ( rs232 == (MX_RS232 *) NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RS232 pointer passed to this function was NULL." );
+
+		return FALSE;
+	}
+
+	if ( transfer_flags & MXF_232_DEBUG ) {
+		return TRUE;
+	} else
+	if ( rs232->rs232_flags & MXF_232_DEBUG_SERIAL_VERBOSE ) {
+		return TRUE;
+	} else
+	if ( rs232->rs232_flags & MXF_232_DEBUG_SERIAL ) {
+		if ( transfer_flags & MXF_232_HIDE_FROM_DEBUG ) {
+			return FALSE;
+		} else {
+			return TRUE;
+		}
+	} else {
+		return FALSE;
+	}
+}
 
 MX_EXPORT mx_status_type
 mx_rs232_check_port_parameters( MX_RECORD *rs232_record )
@@ -864,7 +895,7 @@ mx_rs232_read( MX_RECORD *record,
 
 	buffer[bytes_read_by_driver] = '\0';
 
-	if ( transfer_flags & MXF_232_DEBUG ) {
+	if ( mx_rs232_show_debugging( rs232, transfer_flags ) ) {
 		MX_DEBUG(-2,("%s: received buffer = '%s'", fname, buffer));
 	}
 
@@ -898,8 +929,9 @@ mx_rs232_write( MX_RECORD *record,
 
 	fptr = fl_ptr->write;
 
-	if ( transfer_flags & MXF_232_DEBUG ) {
-		MX_DEBUG(-2, ("%s: sending buffer = '%s'", fname, buffer));
+	if ( mx_rs232_show_debugging( rs232, transfer_flags ) ) {
+		MX_DEBUG(-2,
+		("%s: sending buffer = '%s'", fname, buffer));
 	}
 
 	if ( rs232->rs232_flags & MXF_232_UNBUFFERED_IO ) {
@@ -991,7 +1023,7 @@ mx_rs232_read_with_timeout( MX_RECORD *record,
 
 	buffer[bytes_read_by_driver] = '\0';
 
-	if ( transfer_flags & MXF_232_DEBUG ) {
+	if ( mx_rs232_show_debugging( rs232, transfer_flags ) ) {
 		MX_DEBUG(-2,("%s: received buffer = '%s'", fname, buffer));
 	}
 
@@ -1003,8 +1035,7 @@ mx_rs232_read_with_timeout( MX_RECORD *record,
 }
 
 /* mx_rs232_getline() and mx_rs232_putline() are intended for reading
- * ASCII character strings.  Use mx_rs232_read() and mx_rs232_write()
- * for binary data.
+ * text strings.  Use mx_rs232_read() and mx_rs232_write() for binary data.
  */
 
 MX_EXPORT mx_status_type
@@ -1057,13 +1088,15 @@ mx_rs232_getline( MX_RECORD *record,
 	} else {
 		/* Otherwise, handle input a character at a time. */
 
-		mx_status = mx_rs232_unbuffered_getline( rs232,
-							buffer,
-							max_bytes_to_read,
-							bytes_read );
+		mx_status = mx_rs232_unbuffered_getline(
+						rs232,
+						buffer,
+						max_bytes_to_read,
+						bytes_read,
+						MXF_232_HIDE_FROM_DEBUG );
 	}
 
-	if ( transfer_flags & MXF_232_DEBUG ) {
+	if ( mx_rs232_show_debugging( rs232, transfer_flags ) ) {
 		MX_DEBUG(-2,("%s: received buffer = '%s'", fname, buffer));
 	}
 
@@ -1091,7 +1124,7 @@ mx_rs232_putline( MX_RECORD *record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( transfer_flags & MXF_232_DEBUG ) {
+	if ( mx_rs232_show_debugging( rs232, transfer_flags ) ) {
 		MX_DEBUG(-2, ("%s: sending buffer = '%s'", fname, buffer));
 	}
 
@@ -1152,8 +1185,11 @@ mx_rs232_putline( MX_RECORD *record,
 	} else {
 		/* Otherwise, handle output a character at a time. */
 
-		mx_status = mx_rs232_unbuffered_putline( rs232, buffer,
-							bytes_written );
+		mx_status = mx_rs232_unbuffered_putline(
+						rs232,
+						buffer,
+						bytes_written,
+						MXF_232_HIDE_FROM_DEBUG );
 	}
 
 	return mx_status;;

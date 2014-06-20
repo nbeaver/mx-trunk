@@ -64,6 +64,19 @@ extern "C" {
  * In particular, MXF_232_DEBUG must be 0x1 to be compatible with
  * drivers that pass their internal debugging flags to RS232
  * functions.
+ *
+ * MXF_232_HIDE_FROM_DEBUG is used to prevent a character from 
+ * appearing in debug output twice.  For example, suppose that
+ * a particular RS232 driver implements getline() by making calls
+ * to getchar().  If implemented in a naive way, serial debugging
+ * might result in a character being displayed once by getchar()
+ * and a second time by getline().
+ *
+ * If MXF_232_DEBUG and MXF_232_HIDE_FROM_DEBUG are both specified,
+ * then MXF_232_DEBUG wins.
+ *
+ * The function mx_rs232_show_debugging() can be used to determine
+ * whether serial debugging output should be displayed.
  */
 
 #define MXF_232_WAIT			0x0
@@ -71,6 +84,8 @@ extern "C" {
 #define MXF_232_DEBUG			0x1
 #define MXF_232_NOWAIT			0x2
 #define MXF_232_IGNORE_NULLS		0x4
+
+#define MXF_232_HIDE_FROM_DEBUG		0x10000000
 
 /* 'rs232_flags' field bit definitions. */
 
@@ -81,7 +96,9 @@ extern "C" {
 #define MXF_232_SUPPRESS_TIMEOUT_ERROR_MESSAGES	0x1000
 #define MXF_232_POSIX_VMIN_FIX			0x2000
 
-#define MXF_232_DEBUG_SERIAL			0x10000000
+#define MXF_232_DEBUG_SERIAL			0x1000000
+#define MXF_232_DEBUG_SERIAL_VERBOSE		0x2000000
+
 #define MXF_232_NO_REMOTE_ACCESS		0x80000000
 
 /* 'signal_state' field bit definitions. */
@@ -308,16 +325,23 @@ typedef struct {
 
 /* ============== Internal driver function prototypes. ============== */
 
-MX_API mx_status_type mx_rs232_unbuffered_getline( MX_RS232 *rs232,
-						char *buffer,
-						size_t max_bytes_to_read,
-						size_t *bytes_read );
+MX_API_PRIVATE mx_status_type mx_rs232_unbuffered_getline(
+					MX_RS232 *rs232,
+					char *buffer,
+					size_t max_bytes_to_read,
+					size_t *bytes_read,
+					unsigned long local_transfer_flags );
 
-MX_API mx_status_type mx_rs232_unbuffered_putline( MX_RS232 *rs232,
-						char *buffer,
-						size_t *bytes_written );
+MX_API_PRIVATE mx_status_type mx_rs232_unbuffered_putline(
+					MX_RS232 *rs232,
+					char *buffer,
+					size_t *bytes_written,
+					unsigned long local_transfer_flags );
 
 /* ============== Interface function prototypes. ============== */
+
+MX_API mx_bool_type mx_rs232_show_debugging( MX_RS232 *rs232,
+					unsigned long transfer_flags );
 
 MX_API mx_status_type mx_rs232_check_port_parameters(MX_RECORD *rs232_record);
 
