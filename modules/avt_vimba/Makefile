@@ -9,6 +9,9 @@ endif
 
 AVT_VIMBA_DIR = /opt/VimbaSDK
 
+#AVT_VIMBA_WORDLENGTH = 64
+AVT_VIMBA_WORDLENGTH = 32
+
 #--------------------------------------------------------------------------
 
 all: avt_vimba.mxo
@@ -58,7 +61,8 @@ avt_vimba.mxo: $(AVT_VIMBA_OBJS)
 	gcc -shared -rdynamic -Wl,-zmuldefs \
 		-Wl,-soname,avt_vimba.mxo -o avt_vimba.mxo \
 		$(AVT_VIMBA_OBJS) ../../libMx/libMx.so \
-		-L$(AVT_VIMBA_DIR)/VimbaC/DynamicLib/x86_64bit -lVimbaC
+	  -L$(AVT_VIMBA_DIR)/VimbaC/DynamicLib/x86_$(AVT_VIMBA_WORDLENGTH)bit \
+		-lVimbaC
 endif
 
 #--------------------------------------------------------------------------

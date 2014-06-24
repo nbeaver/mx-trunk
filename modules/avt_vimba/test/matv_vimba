@@ -1,8 +1,18 @@
 #! /bin/sh
 
-export GENICAM_GENTL64_PATH=/opt/VimbaSDK/AVTGigETL/CTI/x86_64bit
+MACHINE=`uname -m`
 
-export LD_LIBRARY_PATH=/opt/VimbaSDK/VimbaC/DynamicLib/x86_64bit:$LD_LIBRARY_PATH
+if [ $MACHINE = 'x86_64' ]; then
+	export GENICAM_GENTL64_PATH=/opt/VimbaSDK/AVTGigETL/CTI/x86_64bit
+
+	export LD_LIBRARY_PATH=/opt/VimbaSDK/VimbaC/DynamicLib/x86_64bit:$LD_LIBRARY_PATH
+fi
+
+if [ $MACHINE = 'i686' ]; then
+	export GENICAM_GENTL32_PATH=/opt/VimbaSDK/AVTGigETL/CTI/x86_32bit
+
+	export LD_LIBRARY_PATH=/opt/VimbaSDK/VimbaC/DynamicLib/x86_32bit:$LD_LIBRARY_PATH
+fi
 
 ../../../motor/mxmotor.static -i -F ./matv_vimba.dat -s ./satv_vimba.dat
 

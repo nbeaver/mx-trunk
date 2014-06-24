@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013 Illinois Institute of Technology
+ * Copyright 2013-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -87,6 +87,7 @@ mxi_avt_vimba_open( MX_RECORD *record )
 	VmbCameraInfo_t *camera_info = NULL;
 	VmbUint32_t num_cameras = 0;
 	VmbBool_t using_gigabit_ethernet = FALSE;
+	VmbUint32_t i;
 	VmbError_t vmb_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -194,6 +195,44 @@ mxi_avt_vimba_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: %u cameras found.",
 		fname, (unsigned int) num_cameras ));
 #endif
+
+	camera_info = (VmbCameraInfo_t *)
+			malloc( num_cameras * sizeof(*camera_info) );
+
+	if ( camera_info == (VmbCameraInfo_t *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a "
+		"%d camera info array for record '%s'.",
+			num_cameras, record->name );
+	}
+
+	/* Fill in the camera info array. */
+
+	vmb_status = VmbCamerasList( camera_info, num_cameras,
+					&num_cameras, sizeof(*camera_info) );
+
+	if ( vmb_status != VmbErrorSuccess ) {
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"An attempt to get a list of discovered cameras "
+		"failed with error code %d.",
+				(int) vmb_status );
+	}
+
+	/* Print the camera info out. */
+
+	for ( i = 0; i < num_cameras; i++ ) {
+		MX_DEBUG(-2,("%s: Camera %d", fname, i));
+		MX_DEBUG(-2,("%s:   Camera Name: '%s'",
+				fname, camera_info[i].cameraName));
+		MX_DEBUG(-2,("%s:   Model Name: '%s'",
+				fname, camera_info[i].modelName));
+		MX_DEBUG(-2,("%s:   Camera ID: '%s'",
+				fname, camera_info[i].cameraIdString));
+		MX_DEBUG(-2,("%s:   Serial Number: '%s'",
+				fname, camera_info[i].serialString));
+		MX_DEBUG(-2,("%s:   @ Interface ID: '%s'",
+				fname, camera_info[i].interfaceIdString));
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
