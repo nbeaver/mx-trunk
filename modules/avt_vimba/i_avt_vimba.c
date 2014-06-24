@@ -31,7 +31,8 @@ MX_RECORD_FUNCTION_LIST mxi_avt_vimba_record_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	mxi_avt_vimba_open
+	mxi_avt_vimba_open,
+	mxi_avt_vimba_close
 };
 
 MX_RECORD_FIELD_DEFAULTS mxi_avt_vimba_record_field_defaults[] = {
@@ -81,11 +82,12 @@ mxi_avt_vimba_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_avt_vimba_open()";
 
-	MX_AVT_VIMBA *avt_vimba;
+	MX_AVT_VIMBA *avt_vimba = NULL;
+	unsigned long camera_array_size;
 
 	VmbVersionInfo_t version_info;
-	VmbCameraInfo_t *camera_info = NULL;
 	VmbUint32_t num_cameras = 0;
+	VmbCameraInfo_t *camera_info = NULL;
 	VmbBool_t using_gigabit_ethernet = FALSE;
 	VmbUint32_t i;
 	VmbError_t vmb_status;
@@ -182,7 +184,7 @@ mxi_avt_vimba_open( MX_RECORD *record )
 	/* Find out how many cameras are available. */
 
 	vmb_status = 
-		VmbCamerasList( NULL, 0, &num_cameras, sizeof(*camera_info) );
+	    VmbCamerasList( NULL, 0, &num_cameras, sizeof(*camera_info) );
 
 	if ( vmb_status != VmbErrorSuccess ) {
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
@@ -191,13 +193,14 @@ mxi_avt_vimba_open( MX_RECORD *record )
 				(int) vmb_status );
 	}
 
-#if MXI_AVT_VIMBA_DEBUG
-	MX_DEBUG(-2,("%s: %u cameras found.",
-		fname, (unsigned int) num_cameras ));
-#endif
+	avt_vimba->num_cameras = num_cameras;
 
-	camera_info = (VmbCameraInfo_t *)
-			malloc( num_cameras * sizeof(*camera_info) );
+#if MXI_AVT_VIMBA_DEBUG
+	MX_DEBUG(-2,("%s: %lu cameras found.", fname, avt_vimba->num_cameras ));
+#endif
+	camera_array_size = num_cameras * sizeof( *camera_info );
+
+	camera_info = (VmbCameraInfo_t *) malloc(camera_array_size);
 
 	if ( camera_info == (VmbCameraInfo_t *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -208,8 +211,10 @@ mxi_avt_vimba_open( MX_RECORD *record )
 
 	/* Fill in the camera info array. */
 
-	vmb_status = VmbCamerasList( camera_info, num_cameras,
-					&num_cameras, sizeof(*camera_info) );
+	vmb_status = VmbCamerasList( camera_info,
+					avt_vimba->num_cameras,
+					&num_cameras,
+					camera_array_size );
 
 	if ( vmb_status != VmbErrorSuccess ) {
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
@@ -218,21 +223,45 @@ mxi_avt_vimba_open( MX_RECORD *record )
 				(int) vmb_status );
 	}
 
+	/* The number of cameras might have changed between the two calls
+	 * to VmbCameraList().
+	 */
+
+	avt_vimba->num_cameras = num_cameras;
+
+	avt_vimba->camera_info = camera_info;
+
 	/* Print the camera info out. */
 
 	for ( i = 0; i < num_cameras; i++ ) {
 		MX_DEBUG(-2,("%s: Camera %d", fname, i));
 		MX_DEBUG(-2,("%s:   Camera Name: '%s'",
-				fname, camera_info[i].cameraName));
+			fname, avt_vimba->camera_info[i].cameraName));
 		MX_DEBUG(-2,("%s:   Model Name: '%s'",
-				fname, camera_info[i].modelName));
+			fname, avt_vimba->camera_info[i].modelName));
 		MX_DEBUG(-2,("%s:   Camera ID: '%s'",
-				fname, camera_info[i].cameraIdString));
+			fname, avt_vimba->camera_info[i].cameraIdString));
 		MX_DEBUG(-2,("%s:   Serial Number: '%s'",
-				fname, camera_info[i].serialString));
+			fname, avt_vimba->camera_info[i].serialString));
+		MX_DEBUG(-2,("%s:   Permitted Access: %#x",
+			fname, avt_vimba->camera_info[i].permittedAccess));
 		MX_DEBUG(-2,("%s:   @ Interface ID: '%s'",
-				fname, camera_info[i].interfaceIdString));
+			fname, avt_vimba->camera_info[i].interfaceIdString));
 	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxi_avt_vimba_close( MX_RECORD *record )
+{
+#if MXI_AVT_VIMBA_DEBUG
+	static const char fname[] = "mxi_avt_vimba_close()";
+
+	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name ));
+#endif
+
+	VmbShutdown();
 
 	return MX_SUCCESSFUL_RESULT;
 }

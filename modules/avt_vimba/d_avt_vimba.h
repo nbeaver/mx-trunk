@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013 Illinois Institute of Technology
+ * Copyright 2013-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,7 +25,10 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *avt_vimba_record;
+	unsigned long camera_number;
 	unsigned long avt_vimba_camera_flags;
+
+	VmbHandle_t *camera_handle;
 
 #if IS_MX_DRIVER
 #endif
@@ -36,6 +39,10 @@ typedef struct {
 #define MXD_AVT_VIMBA_STANDARD_FIELDS \
   {-1, -1, "avt_vimba_record", MXFT_RECORD, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_AVT_VIMBA_CAMERA, avt_vimba_record), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "camera_number", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_AVT_VIMBA_CAMERA, camera_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {-1, -1, "avt_vimba_camera_flags", MXFT_HEX, NULL, 0, {0}, \

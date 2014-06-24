@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013 Illinois Institute of Technology
+ * Copyright 2013-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -181,6 +181,9 @@ mxd_avt_vimba_open( MX_RECORD *record )
 	MX_AVT_VIMBA *avt_vimba = NULL;
 	mx_status_type mx_status;
 
+	VmbCameraInfo_t *camera_info_element;
+	VmbError_t vmb_status;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_RECORD pointer passed was NULL." );
@@ -197,6 +200,26 @@ mxd_avt_vimba_open( MX_RECORD *record )
 #if MXD_AVT_VIMBA_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
+
+	/* Open a connection to the camera. */
+
+	camera_info_element =
+		&(avt_vimba->camera_info[ avt_vimba_camera->camera_number ]);
+
+	vmb_status = VmbCameraOpen(
+		camera_info_element->cameraIdString,
+		VmbAccessModeFull, 
+		avt_vimba_camera->camera_handle );
+
+	if ( vmb_status != VmbErrorSuccess ) {
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"The attempt to get the handle of camera '%s' failed.  "
+		"Vimba error code = %d",
+			record->name, vmb_status );
+	}
+
+	MX_DEBUG(-2,("%s: Camera '%s' handle = %p",
+		fname, record->name, (void *)avt_vimba_camera->camera_handle ));
 
 	/* Initialize a bunch of driver parameters. */
 

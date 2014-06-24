@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013 Illinois Institute of Technology
+ * Copyright 2013-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,8 +24,10 @@ typedef struct {
 	MX_RECORD *record;
 
 	unsigned long avt_vimba_flags;
-
 	unsigned long vimba_version;
+
+	unsigned long num_cameras;
+	VmbCameraInfo_t *camera_info;
 } MX_AVT_VIMBA;
 
 #define MXI_AVT_VIMBA_STANDARD_FIELDS \
@@ -41,6 +43,7 @@ MX_API mx_status_type mxi_avt_vimba_create_record_structures(
 							MX_RECORD *record );
 
 MX_API mx_status_type mxi_avt_vimba_open( MX_RECORD *record );
+MX_API mx_status_type mxi_avt_vimba_close( MX_RECORD *record );
 
 extern MX_RECORD_FUNCTION_LIST mxi_avt_vimba_record_function_list;
 

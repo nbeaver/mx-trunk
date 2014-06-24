@@ -1,2 +1,3 @@
 !load ../avt_vimba.mxo
 vimba interface controller avt_vimba "" "" 0x0
+camera device video_input avt_vimba_camera "" "" -1 -1 GREY16 -1 vimba 0 0x0
