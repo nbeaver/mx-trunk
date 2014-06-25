@@ -1,0 +1,20 @@
+#! /bin/sh
+
+MACHINE=`uname -m`
+
+if [ $MACHINE = 'x86_64' ]; then
+	export GENICAM_GENTL64_PATH=/opt/VimbaSDK/AVTGigETL/CTI/x86_64bit
+
+	export LD_LIBRARY_PATH=/opt/VimbaSDK/VimbaC/DynamicLib/x86_64bit:$LD_LIBRARY_PATH
+fi
+
+if [ $MACHINE = 'i686' ]; then
+	export GENICAM_GENTL32_PATH=/opt/VimbaSDK/AVTGigETL/CTI/x86_32bit
+
+	export LD_LIBRARY_PATH=/opt/VimbaSDK/VimbaC/DynamicLib/x86_32bit:$LD_LIBRARY_PATH
+fi
+
+export LD_LIBRARY_PATH=..:$LD_LIBRARY_PATH
+
+../../../motor/mxmotor.static -i -F ./matv_pvapi.dat -s ./satv_pvapi.dat $*
+

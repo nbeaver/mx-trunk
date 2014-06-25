@@ -1,7 +1,7 @@
 /*
- * Name:    avt_vimba.c
+ * Name:    avt_pvapi.c
  *
- * Purpose: Module wrapper for the Vimba C API used by cameras
+ * Purpose: Module wrapper for the PvAPI C API used by cameras
  *          from Allied Vision Technologies.
  *
  * Author:  William Lavender
@@ -24,33 +24,33 @@
 #include "mx_image.h"
 #include "mx_video_input.h"
 
-#include "i_avt_vimba.h"
-#include "d_avt_vimba.h"
+#include "i_avt_pvapi.h"
+#include "d_avt_pvapi.h"
 
-MX_DRIVER avt_vimba_driver_table[] = {
+MX_DRIVER avt_pvapi_driver_table[] = {
 
-{"avt_vimba", -1, MXI_CONTROLLER, MXR_INTERFACE,
-		&mxi_avt_vimba_record_function_list,
+{"avt_pvapi", -1, MXI_CONTROLLER, MXR_INTERFACE,
+		&mxi_avt_pvapi_record_function_list,
 		NULL,
 		NULL,
-		&mxi_avt_vimba_num_record_fields,
-		&mxi_avt_vimba_rfield_def_ptr},
+		&mxi_avt_pvapi_num_record_fields,
+		&mxi_avt_pvapi_rfield_def_ptr},
 
-{"avt_vimba_camera", -1, MXC_VIDEO_INPUT, MXR_DEVICE,
-		&mxd_avt_vimba_record_function_list,
+{"avt_pvapi_camera", -1, MXC_VIDEO_INPUT, MXR_DEVICE,
+		&mxd_avt_pvapi_record_function_list,
 		NULL,
 		NULL,
-		&mxd_avt_vimba_num_record_fields,
-		&mxd_avt_vimba_rfield_def_ptr},
+		&mxd_avt_pvapi_num_record_fields,
+		&mxd_avt_pvapi_rfield_def_ptr},
 
 {"", 0, 0, 0, NULL, NULL, NULL, NULL, NULL}
 };
 
 MX_EXPORT
 MX_MODULE __MX_MODULE__ = {
-        "avt_vimba",
+        "avt_pvapi",
         MX_VERSION,
-        avt_vimba_driver_table,
+        avt_pvapi_driver_table,
         NULL,
         NULL
 };

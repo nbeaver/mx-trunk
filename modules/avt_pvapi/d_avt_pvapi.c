@@ -1,7 +1,7 @@
 /*
- * Name:    d_avt_vimba.c
+ * Name:    d_avt_pvapi.c
  *
- * Purpose: MX driver for video inputs using the Vimba C API
+ * Purpose: MX driver for video inputs using the PvAPI C API
  *          for cameras from Allied Vision Technologies.
  *
  * Author:  William Lavender
@@ -15,7 +15,7 @@
  *
  */
 
-#define MXD_AVT_VIMBA_DEBUG	TRUE
+#define MXD_AVT_PVAPI_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,61 +26,61 @@
 #include "mx_image.h"
 #include "mx_video_input.h"
 
-#include "i_avt_vimba.h"
-#include "d_avt_vimba.h"
+#include "i_avt_pvapi.h"
+#include "d_avt_pvapi.h"
 
 /*---*/
 
-MX_RECORD_FUNCTION_LIST mxd_avt_vimba_record_function_list = {
+MX_RECORD_FUNCTION_LIST mxd_avt_pvapi_record_function_list = {
 	NULL,
-	mxd_avt_vimba_create_record_structures,
+	mxd_avt_pvapi_create_record_structures,
 	mx_video_input_finish_record_initialization,
 	NULL,
 	NULL,
-	mxd_avt_vimba_open,
-	mxd_avt_vimba_close
+	mxd_avt_pvapi_open,
+	mxd_avt_pvapi_close
 };
 
-MX_VIDEO_INPUT_FUNCTION_LIST mxd_avt_vimba_video_input_function_list = {
-	mxd_avt_vimba_arm,
-	mxd_avt_vimba_trigger,
-	mxd_avt_vimba_stop,
-	mxd_avt_vimba_abort,
+MX_VIDEO_INPUT_FUNCTION_LIST mxd_avt_pvapi_video_input_function_list = {
+	mxd_avt_pvapi_arm,
+	mxd_avt_pvapi_trigger,
+	mxd_avt_pvapi_stop,
+	mxd_avt_pvapi_abort,
 	NULL,
 	NULL,
 	NULL,
-	mxd_avt_vimba_get_status,
+	mxd_avt_pvapi_get_status,
 	NULL,
-	mxd_avt_vimba_get_frame,
-	mxd_avt_vimba_get_parameter,
-	mxd_avt_vimba_set_parameter,
+	mxd_avt_pvapi_get_frame,
+	mxd_avt_pvapi_get_parameter,
+	mxd_avt_pvapi_set_parameter,
 };
 
-MX_RECORD_FIELD_DEFAULTS mxd_avt_vimba_record_field_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxd_avt_pvapi_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_VIDEO_INPUT_STANDARD_FIELDS,
-	MXD_AVT_VIMBA_STANDARD_FIELDS
+	MXD_AVT_PVAPI_STANDARD_FIELDS
 };
 
-long mxd_avt_vimba_num_record_fields
-		= sizeof( mxd_avt_vimba_record_field_defaults )
-			/ sizeof( mxd_avt_vimba_record_field_defaults[0] );
+long mxd_avt_pvapi_num_record_fields
+		= sizeof( mxd_avt_pvapi_record_field_defaults )
+			/ sizeof( mxd_avt_pvapi_record_field_defaults[0] );
 
-MX_RECORD_FIELD_DEFAULTS *mxd_avt_vimba_rfield_def_ptr
-			= &mxd_avt_vimba_record_field_defaults[0];
+MX_RECORD_FIELD_DEFAULTS *mxd_avt_pvapi_rfield_def_ptr
+			= &mxd_avt_pvapi_record_field_defaults[0];
 
 /*---*/
 
 static mx_status_type
-mxd_avt_vimba_get_pointers( MX_VIDEO_INPUT *vinput,
-			MX_AVT_VIMBA_CAMERA **avt_vimba_camera,
-			MX_AVT_VIMBA **avt_vimba,
+mxd_avt_pvapi_get_pointers( MX_VIDEO_INPUT *vinput,
+			MX_AVT_PVAPI_CAMERA **avt_pvapi_camera,
+			MX_AVT_PVAPI **avt_pvapi,
 			const char *calling_fname )
 {
-	static const char fname[] = "mxd_avt_vimba_get_pointers()";
+	static const char fname[] = "mxd_avt_pvapi_get_pointers()";
 
-	MX_AVT_VIMBA_CAMERA *avt_vimba_camera_ptr;
-	MX_RECORD *avt_vimba_record;
+	MX_AVT_PVAPI_CAMERA *avt_pvapi_camera_ptr;
+	MX_RECORD *avt_pvapi_record;
 
 	if ( vinput == (MX_VIDEO_INPUT *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -88,32 +88,32 @@ mxd_avt_vimba_get_pointers( MX_VIDEO_INPUT *vinput,
 			calling_fname );
 	}
 
-	avt_vimba_camera_ptr = vinput->record->record_type_struct;
+	avt_pvapi_camera_ptr = vinput->record->record_type_struct;
 
-	if ( avt_vimba_camera_ptr == (MX_AVT_VIMBA_CAMERA *) NULL ) {
+	if ( avt_pvapi_camera_ptr == (MX_AVT_PVAPI_CAMERA *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_AVT_VIMBA_CAMERA pointer for record '%s' is NULL.",
+		"The MX_AVT_PVAPI_CAMERA pointer for record '%s' is NULL.",
 			vinput->record->name );
 	}
 
-	if ( avt_vimba_camera != (MX_AVT_VIMBA_CAMERA **) NULL ) {
-		*avt_vimba_camera = avt_vimba_camera_ptr;
+	if ( avt_pvapi_camera != (MX_AVT_PVAPI_CAMERA **) NULL ) {
+		*avt_pvapi_camera = avt_pvapi_camera_ptr;
 	}
 
-	if ( avt_vimba != (MX_AVT_VIMBA **) NULL ) {
-		avt_vimba_record = avt_vimba_camera_ptr->avt_vimba_record;
+	if ( avt_pvapi != (MX_AVT_PVAPI **) NULL ) {
+		avt_pvapi_record = avt_pvapi_camera_ptr->avt_pvapi_record;
 
-		if ( avt_vimba_record == (MX_RECORD *) NULL ) {
+		if ( avt_pvapi_record == (MX_RECORD *) NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"The avt_vimba_record pointer for record '%s' is NULL.",
+			"The avt_pvapi_record pointer for record '%s' is NULL.",
 				vinput->record->name );
 		}
 
-		*avt_vimba = avt_vimba_record->record_type_struct;
+		*avt_pvapi = avt_pvapi_record->record_type_struct;
 
-		if ( (*avt_vimba) == (MX_AVT_VIMBA *) NULL ) {
+		if ( (*avt_pvapi) == (MX_AVT_PVAPI *) NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"The MX_AVT_VIMBA pointer for record '%s' is NULL.",
+			"The MX_AVT_PVAPI pointer for record '%s' is NULL.",
 				vinput->record->name );
 		}
 	}
@@ -124,12 +124,12 @@ mxd_avt_vimba_get_pointers( MX_VIDEO_INPUT *vinput,
 /*---*/
 
 MX_EXPORT mx_status_type
-mxd_avt_vimba_create_record_structures( MX_RECORD *record )
+mxd_avt_pvapi_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_avt_vimba_create_record_structures()";
+	static const char fname[] = "mxd_avt_pvapi_create_record_structures()";
 
 	MX_VIDEO_INPUT *vinput;
-	MX_AVT_VIMBA_CAMERA *avt_vimba_camera = NULL;
+	MX_AVT_PVAPI_CAMERA *avt_pvapi_camera = NULL;
 
 	vinput = (MX_VIDEO_INPUT *) malloc( sizeof(MX_VIDEO_INPUT) );
 
@@ -138,24 +138,24 @@ mxd_avt_vimba_create_record_structures( MX_RECORD *record )
 		"Cannot allocate memory for an MX_VIDEO_INPUT structure." );
 	}
 
-	avt_vimba_camera = (MX_AVT_VIMBA_CAMERA *)
-				malloc( sizeof(MX_AVT_VIMBA_CAMERA));
+	avt_pvapi_camera = (MX_AVT_PVAPI_CAMERA *)
+				malloc( sizeof(MX_AVT_PVAPI_CAMERA));
 
-	if ( avt_vimba_camera == (MX_AVT_VIMBA_CAMERA *) NULL ) {
+	if ( avt_pvapi_camera == (MX_AVT_PVAPI_CAMERA *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-	"Cannot allocate memory for an MX_AVT_VIMBA_CAMERA structure." );
+	"Cannot allocate memory for an MX_AVT_PVAPI_CAMERA structure." );
 	}
 
 	record->record_class_struct = vinput;
-	record->record_type_struct = avt_vimba_camera;
+	record->record_type_struct = avt_pvapi_camera;
 	record->class_specific_function_list = 
-			&mxd_avt_vimba_video_input_function_list;
+			&mxd_avt_pvapi_video_input_function_list;
 
 	memset( &(vinput->sequence_parameters),
 			0, sizeof(vinput->sequence_parameters) );
 
 	vinput->record = record;
-	avt_vimba_camera->record = record;
+	avt_pvapi_camera->record = record;
 
 	vinput->bytes_per_frame = 0;
 	vinput->bytes_per_pixel = 0;
@@ -172,18 +172,16 @@ mxd_avt_vimba_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_avt_vimba_open( MX_RECORD *record )
+mxd_avt_pvapi_open( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_avt_vimba_open()";
+	static const char fname[] = "mxd_avt_pvapi_open()";
 
 	MX_VIDEO_INPUT *vinput;
-	MX_AVT_VIMBA_CAMERA *avt_vimba_camera = NULL;
-	MX_AVT_VIMBA *avt_vimba = NULL;
+	MX_AVT_PVAPI_CAMERA *avt_pvapi_camera = NULL;
+	MX_AVT_PVAPI *avt_pvapi = NULL;
+	tPvHandle camera_handle;
+	unsigned long pvapi_status;
 	mx_status_type mx_status;
-
-	VmbCameraInfo_t *camera_info_element;
-	VmbHandle_t camera_handle = NULL;
-	VmbError_t vmb_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -192,35 +190,39 @@ mxd_avt_vimba_open( MX_RECORD *record )
 
 	vinput = (MX_VIDEO_INPUT *) record->record_class_struct;
 
-	mx_status = mxd_avt_vimba_get_pointers( vinput,
-					&avt_vimba_camera, &avt_vimba, fname );
+	mx_status = mxd_avt_pvapi_get_pointers( vinput,
+					&avt_pvapi_camera, &avt_pvapi, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_AVT_VIMBA_DEBUG
+#if MXD_AVT_PVAPI_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
 
 	/* Open a connection to the camera. */
 
-	camera_info_element =
-		&(avt_vimba->camera_info[ avt_vimba_camera->camera_number ]);
+	MX_DEBUG(-2,("%s: UniqueId = %lu", fname, avt_pvapi_camera->unique_id));
 
-	vmb_status = VmbCameraOpen(
-		camera_info_element->cameraIdString,
-		VmbAccessModeFull, 
-		camera_handle );
+	pvapi_status = PvCameraOpen( avt_pvapi_camera->unique_id,
+					0xf, &camera_handle );
 
-	if ( vmb_status != VmbErrorSuccess ) {
+	switch( pvapi_status ) {
+	case ePvErrSuccess:
+		break;
+	case ePvErrNotFound:
+		return mx_error( MXE_NOT_FOUND, fname,
+	    "A PvAPI camera with UniqueId %lu was not found for record '%s'.",
+			avt_pvapi_camera->unique_id, record->name );
+		break;
+	default:
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
-		"The attempt to get the handle of camera '%s' failed.  "
-		"Vimba error code = %d",
-			record->name, vmb_status );
+		"The attempt to camera '%s' (UniqueID = %lu) failed.  "
+		"PvApi error code = %lu",
+			record->name, avt_pvapi_camera->unique_id,
+			pvapi_status );
+		break;
 	}
-
-	MX_DEBUG(-2,("%s: Camera '%s' handle = %p",
-		fname, record->name, (void *)camera_handle ));
 
 	/* Initialize a bunch of driver parameters. */
 
@@ -257,7 +259,7 @@ mxd_avt_vimba_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_AVT_VIMBA_DEBUG
+#if MXD_AVT_PVAPI_DEBUG
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
 #endif
 
@@ -265,12 +267,12 @@ mxd_avt_vimba_open( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_avt_vimba_close( MX_RECORD *record )
+mxd_avt_pvapi_close( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_avt_vimba_close()";
+	static const char fname[] = "mxd_avt_pvapi_close()";
 
 	MX_VIDEO_INPUT *vinput;
-	MX_AVT_VIMBA_CAMERA *avt_vimba_camera = NULL;
+	MX_AVT_PVAPI_CAMERA *avt_pvapi_camera = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -280,13 +282,13 @@ mxd_avt_vimba_close( MX_RECORD *record )
 
 	vinput = (MX_VIDEO_INPUT *) record->record_class_struct;
 
-	mx_status = mxd_avt_vimba_get_pointers( vinput,
-					&avt_vimba_camera, NULL, fname );
+	mx_status = mxd_avt_pvapi_get_pointers( vinput,
+					&avt_pvapi_camera, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_AVT_VIMBA_DEBUG
+#if MXD_AVT_PVAPI_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
 
@@ -294,20 +296,20 @@ mxd_avt_vimba_close( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_avt_vimba_arm( MX_VIDEO_INPUT *vinput )
+mxd_avt_pvapi_arm( MX_VIDEO_INPUT *vinput )
 {
-	static const char fname[] = "mxd_avt_vimba_arm()";
+	static const char fname[] = "mxd_avt_pvapi_arm()";
 
-	MX_AVT_VIMBA_CAMERA *avt_vimba_camera = NULL;
+	MX_AVT_PVAPI_CAMERA *avt_pvapi_camera = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_avt_vimba_get_pointers( vinput,
-					&avt_vimba_camera, NULL, fname );
+	mx_status = mxd_avt_pvapi_get_pointers( vinput,
+					&avt_pvapi_camera, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_AVT_VIMBA_DEBUG
+#if MXD_AVT_PVAPI_DEBUG
 	MX_DEBUG(-2,("%s invoked for video input '%s'",
 		fname, vinput->record->name ));
 #endif
@@ -318,7 +320,7 @@ mxd_avt_vimba_arm( MX_VIDEO_INPUT *vinput )
 
 	if ( ( vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) == 0 ) {
 
-#if MXD_AVT_VIMBA_DEBUG
+#if MXD_AVT_PVAPI_DEBUG
 		MX_DEBUG(-2,
 		("%s: external trigger disabled for video input '%s'",
 			fname, vinput->record->name));
@@ -330,23 +332,23 @@ mxd_avt_vimba_arm( MX_VIDEO_INPUT *vinput )
 }
 
 MX_EXPORT mx_status_type
-mxd_avt_vimba_trigger( MX_VIDEO_INPUT *vinput )
+mxd_avt_pvapi_trigger( MX_VIDEO_INPUT *vinput )
 {
-	static const char fname[] = "mxd_avt_vimba_trigger()";
+	static const char fname[] = "mxd_avt_pvapi_trigger()";
 
-	MX_AVT_VIMBA_CAMERA *avt_vimba_camera = NULL;
+	MX_AVT_PVAPI_CAMERA *avt_pvapi_camera = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
 	int num_frames, milliseconds;
 	double exposure_time;
 	mx_status_type mx_status;
 
-	mx_status = mxd_avt_vimba_get_pointers( vinput,
-					&avt_vimba_camera, NULL, fname );
+	mx_status = mxd_avt_pvapi_get_pointers( vinput,
+					&avt_pvapi_camera, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_AVT_VIMBA_DEBUG
+#if MXD_AVT_PVAPI_DEBUG
 	MX_DEBUG(-2,("%s invoked for video input '%s'",
 		fname, vinput->record->name ));
 #endif
@@ -356,7 +358,7 @@ mxd_avt_vimba_trigger( MX_VIDEO_INPUT *vinput )
 		 * return without doing anything
 		 */
 
-#if MXD_AVT_VIMBA_DEBUG
+#if MXD_AVT_PVAPI_DEBUG
 		MX_DEBUG(-2,
 		("%s: internal trigger disabled for video input '%s'",
 			fname, vinput->record->name));
@@ -388,7 +390,7 @@ mxd_avt_vimba_trigger( MX_VIDEO_INPUT *vinput )
 
 		milliseconds = mx_round( 1000.0 * exposure_time );
 
-#if MXD_AVT_VIMBA_DEBUG
+#if MXD_AVT_PVAPI_DEBUG
 		MX_DEBUG(-2,
 	("%s: Setting exposure to %u milliseconds using pdv_set_exposure()",
 			fname, milliseconds ));
@@ -396,14 +398,14 @@ mxd_avt_vimba_trigger( MX_VIDEO_INPUT *vinput )
 
 	}
 
-#if MXD_AVT_VIMBA_DEBUG
+#if MXD_AVT_PVAPI_DEBUG
 	MX_DEBUG(-2,("%s: About to trigger using pdv_start_images()", fname ));
 #endif
 
 	/* Start the actual data acquisition. */
 
 
-#if MXD_AVT_VIMBA_DEBUG
+#if MXD_AVT_PVAPI_DEBUG
 	MX_DEBUG(-2,("%s: Started taking %d frame(s) using video input '%s'.",
 		fname, num_frames, vinput->record->name ));
 #endif
@@ -412,20 +414,20 @@ mxd_avt_vimba_trigger( MX_VIDEO_INPUT *vinput )
 }
 
 MX_EXPORT mx_status_type
-mxd_avt_vimba_stop( MX_VIDEO_INPUT *vinput )
+mxd_avt_pvapi_stop( MX_VIDEO_INPUT *vinput )
 {
-	static const char fname[] = "mxd_avt_vimba_stop()";
+	static const char fname[] = "mxd_avt_pvapi_stop()";
 
-	MX_AVT_VIMBA_CAMERA *avt_vimba_camera = NULL;
+	MX_AVT_PVAPI_CAMERA *avt_pvapi_camera = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_avt_vimba_get_pointers( vinput,
-					&avt_vimba_camera, NULL, fname );
+	mx_status = mxd_avt_pvapi_get_pointers( vinput,
+					&avt_pvapi_camera, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_AVT_VIMBA_DEBUG
+#if MXD_AVT_PVAPI_DEBUG
 	MX_DEBUG(-2,("%s invoked for video input '%s'.",
 		fname, vinput->record->name ));
 #endif
@@ -434,20 +436,20 @@ mxd_avt_vimba_stop( MX_VIDEO_INPUT *vinput )
 }
 
 MX_EXPORT mx_status_type
-mxd_avt_vimba_abort( MX_VIDEO_INPUT *vinput )
+mxd_avt_pvapi_abort( MX_VIDEO_INPUT *vinput )
 {
-	static const char fname[] = "mxd_avt_vimba_abort()";
+	static const char fname[] = "mxd_avt_pvapi_abort()";
 
-	MX_AVT_VIMBA_CAMERA *avt_vimba_camera = NULL;
+	MX_AVT_PVAPI_CAMERA *avt_pvapi_camera = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_avt_vimba_get_pointers( vinput,
-					&avt_vimba_camera, NULL, fname );
+	mx_status = mxd_avt_pvapi_get_pointers( vinput,
+					&avt_pvapi_camera, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_AVT_VIMBA_DEBUG
+#if MXD_AVT_PVAPI_DEBUG
 	MX_DEBUG(-2,("%s invoked for video input '%s'.",
 		fname, vinput->record->name ));
 #endif
@@ -456,15 +458,15 @@ mxd_avt_vimba_abort( MX_VIDEO_INPUT *vinput )
 }
 
 MX_EXPORT mx_status_type
-mxd_avt_vimba_get_status( MX_VIDEO_INPUT *vinput )
+mxd_avt_pvapi_get_status( MX_VIDEO_INPUT *vinput )
 {
-	static const char fname[] = "mxd_avt_vimba_get_status()";
+	static const char fname[] = "mxd_avt_pvapi_get_status()";
 
-	MX_AVT_VIMBA_CAMERA *avt_vimba_camera = NULL;
+	MX_AVT_PVAPI_CAMERA *avt_pvapi_camera = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_avt_vimba_get_pointers( vinput,
-					&avt_vimba_camera, NULL, fname );
+	mx_status = mxd_avt_pvapi_get_pointers( vinput,
+					&avt_pvapi_camera, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -473,16 +475,16 @@ mxd_avt_vimba_get_status( MX_VIDEO_INPUT *vinput )
 }
 
 MX_EXPORT mx_status_type
-mxd_avt_vimba_get_frame( MX_VIDEO_INPUT *vinput )
+mxd_avt_pvapi_get_frame( MX_VIDEO_INPUT *vinput )
 {
-	static const char fname[] = "mxd_avt_vimba_get_frame()";
+	static const char fname[] = "mxd_avt_pvapi_get_frame()";
 
-	MX_AVT_VIMBA_CAMERA *avt_vimba_camera = NULL;
+	MX_AVT_PVAPI_CAMERA *avt_pvapi_camera = NULL;
 	MX_IMAGE_FRAME *frame;
 	mx_status_type mx_status;
 
-	mx_status = mxd_avt_vimba_get_pointers( vinput,
-					&avt_vimba_camera, NULL, fname );
+	mx_status = mxd_avt_pvapi_get_pointers( vinput,
+					&avt_pvapi_camera, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -494,12 +496,12 @@ mxd_avt_vimba_get_frame( MX_VIDEO_INPUT *vinput )
 		"The MX_IMAGE_FRAME pointer passed was NULL." );
 	}
 
-#if MXD_AVT_VIMBA_DEBUG
+#if MXD_AVT_PVAPI_DEBUG
 	MX_DEBUG(-2,("%s invoked for video input '%s'.",
 		fname, vinput->record->name ));
 #endif
 
-#if MXD_AVT_VIMBA_DEBUG
+#if MXD_AVT_PVAPI_DEBUG
 	MX_DEBUG(-2,("%s: Finished reading out frame.", fname));
 #endif
 
@@ -507,20 +509,20 @@ mxd_avt_vimba_get_frame( MX_VIDEO_INPUT *vinput )
 }
 
 MX_EXPORT mx_status_type
-mxd_avt_vimba_get_parameter( MX_VIDEO_INPUT *vinput )
+mxd_avt_pvapi_get_parameter( MX_VIDEO_INPUT *vinput )
 {
-	static const char fname[] = "mxd_avt_vimba_get_parameter()";
+	static const char fname[] = "mxd_avt_pvapi_get_parameter()";
 
-	MX_AVT_VIMBA_CAMERA *avt_vimba_camera = NULL;
+	MX_AVT_PVAPI_CAMERA *avt_pvapi_camera = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_avt_vimba_get_pointers( vinput,
-					&avt_vimba_camera, NULL, fname );
+	mx_status = mxd_avt_pvapi_get_pointers( vinput,
+					&avt_pvapi_camera, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_AVT_VIMBA_DEBUG
+#if MXD_AVT_PVAPI_DEBUG
 	MX_DEBUG(-2,("%s: record '%s', parameter type %ld",
 		fname, vinput->record->name, vinput->parameter_type));
 #endif
@@ -584,19 +586,19 @@ mxd_avt_vimba_get_parameter( MX_VIDEO_INPUT *vinput )
 }
 
 MX_EXPORT mx_status_type
-mxd_avt_vimba_set_parameter( MX_VIDEO_INPUT *vinput )
+mxd_avt_pvapi_set_parameter( MX_VIDEO_INPUT *vinput )
 {
-	static const char fname[] = "mxd_avt_vimba_set_parameter()";
+	static const char fname[] = "mxd_avt_pvapi_set_parameter()";
 
-	MX_AVT_VIMBA_CAMERA *avt_vimba_camera = NULL;
+	MX_AVT_PVAPI_CAMERA *avt_pvapi_camera = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_avt_vimba_get_pointers( vinput, &avt_vimba_camera, NULL, fname );
+	mx_status = mxd_avt_pvapi_get_pointers( vinput, &avt_pvapi_camera, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_AVT_VIMBA_DEBUG
+#if MXD_AVT_PVAPI_DEBUG
 	MX_DEBUG(-2,("%s: record '%s', parameter type %ld",
 		fname, vinput->record->name, vinput->parameter_type));
 #endif
@@ -610,7 +612,7 @@ mxd_avt_vimba_set_parameter( MX_VIDEO_INPUT *vinput )
 
 	case MXLV_VIN_FORMAT:
 	case MXLV_VIN_FORMAT_NAME:
-		(void) mxd_avt_vimba_get_parameter( vinput );
+		(void) mxd_avt_pvapi_get_parameter( vinput );
 
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Changing the video format for video input '%s' via "
@@ -625,7 +627,7 @@ mxd_avt_vimba_set_parameter( MX_VIDEO_INPUT *vinput )
 
 	case MXLV_VIN_FRAMESIZE:
 
-#if MXD_AVT_VIMBA_DEBUG
+#if MXD_AVT_PVAPI_DEBUG
 		MX_DEBUG(-2,("%s: setting '%s' framesize to (%lu, %lu)",
 			fname, vinput->record->name,
 			vinput->framesize[0], vinput->framesize[1]));
