@@ -15,7 +15,9 @@ all: build
 #-------------------------------------------------------------------
 # Multiplatform modules.
 
-MODULES += avt_vimba		# linux,
+MODULES += avt_pvapi		# linux,
+
+#MODULES += avt_vimba		# linux,
 
 #MODULES += edt			# linux,
 

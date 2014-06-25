@@ -14,5 +14,7 @@ if [ $MACHINE = 'i686' ]; then
 	export LD_LIBRARY_PATH=/opt/VimbaSDK/VimbaC/DynamicLib/x86_32bit:$LD_LIBRARY_PATH
 fi
 
-../../../motor/mxmotor.static -i -F ./matv_vimba.dat -s ./satv_vimba.dat
+export LD_LIBRARY_PATH=..:$LD_LIBRARY_PATH
+
+../../../motor/mxmotor.static -i -F ./matv_vimba.dat -s ./satv_vimba.dat $*
 
