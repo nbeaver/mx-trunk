@@ -198,6 +198,12 @@ mxi_avt_vimba_open( MX_RECORD *record )
 #if MXI_AVT_VIMBA_DEBUG
 	MX_DEBUG(-2,("%s: %lu cameras found.", fname, avt_vimba->num_cameras ));
 #endif
+	if ( avt_vimba->num_cameras == 0 ) {
+		return mx_error( MXE_NOT_FOUND, fname,
+		"No AVT Vimba cameras were found for record '%s'.",
+			record->name );
+	}
+
 	camera_array_size = num_cameras * sizeof( *camera_info );
 
 	camera_info = (VmbCameraInfo_t *) malloc(camera_array_size);

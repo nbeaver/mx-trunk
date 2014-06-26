@@ -201,6 +201,12 @@ mxd_avt_vimba_open( MX_RECORD *record )
 #if MXD_AVT_VIMBA_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
+	if ( avt_vimba->num_cameras == 0 ) {
+		return mx_error( MXE_NOT_FOUND, fname,
+		"No AVT Vimba cameras were detected by record '%s' "
+		"for record '%s'.",
+			avt_vimba->record->name, record->name );
+	}
 
 	/* Open a connection to the camera. */
 
