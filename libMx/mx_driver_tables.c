@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2008-2010, 2012-2013 Illinois Institute of Technology
+ * Copyright 1999-2006, 2008-2010, 2012-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -200,6 +200,10 @@ static MX_DRIVER mx_class_table[] = {
 extern MX_DRIVER mx_type_table[];
 
 /*-----*/
+
+/* All of the loaded MX drivers are found via the static mx_driver_list
+ * variable which is only visible to functions in this file.
+ */
 
 static MX_DRIVER *mx_driver_list = NULL;
 
@@ -870,6 +874,212 @@ mx_verify_driver_type( MX_RECORD *record, long mx_superclass,
 
 	return record_matches;
 }
+
+/*=====================================================================*/
+
+/* These variables are used below by the test for verifying that the 
+ * minimum number of record fields are present.
+ */
+
+static MX_RECORD_FIELD_DEFAULTS mxp_field_test_table[] =
+				{MX_RECORD_STANDARD_FIELDS};
+
+static unsigned long mxp_minimum_number_of_fields = 
+	( sizeof(mxp_field_test_table) / sizeof(MX_RECORD_FIELD_DEFAULTS) );
+
+/* mx_verify_driver() checks to see if there is anything wrong with
+ * the specified driver.
+ */
+
+MX_EXPORT mx_status_type
+mx_verify_driver( MX_DRIVER *driver )
+{
+	static const char fname[] = "mx_verify_driver()";
+
+	MX_RECORD_FIELD_DEFAULTS *record_field_defaults_array;
+	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
+	MX_RECORD_FIELD_DEFAULTS *their_record_field_defaults;
+	long i, j, num_record_fields;
+	short our_structure_id, their_structure_id;
+	size_t our_structure_offset, their_structure_offset;
+	mx_bool_type driver_failed;
+
+	if ( driver == (MX_DRIVER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_DRIVER pointer passed was NULL." );
+	}
+
+	mx_info( "Verifying driver '%s'", driver->name );
+
+	driver_failed = FALSE;
+
+	/*----------------------------------------------------------------*/
+
+	/* Every driver must have a create_record_structures method defined,
+	 * except for the list head driver.
+	 */
+
+	if ( driver->mx_superclass != MXR_LIST_HEAD ) {
+
+		if ( driver->record_function_list->create_record_structures
+			== NULL )
+		{
+			driver_failed = TRUE;
+
+			(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"Driver '%s' does not have a create_record_structures method.",
+				driver->name );
+		}
+	}
+
+	/*----------------------------------------------------------------*/
+
+	/* Every driver must have at least as many record fields as
+	 * are defined in MX_RECORD_STANDARD_FIELDS.
+	 */
+
+	num_record_fields = *(driver->num_record_fields);
+
+	if ( num_record_fields < mxp_minimum_number_of_fields ) {
+		driver_failed = TRUE;
+
+		(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The number of record fields (%ld) defined by the "
+		"driver '%s' is less than the minimum of %lu "
+		"as defined by MX_RECORD_STANDARD_FIELDS.",
+			num_record_fields,
+			driver->name,
+			mxp_minimum_number_of_fields );
+	}
+
+	/*----------------------------------------------------------------*/
+
+	/* Now we need to loop through the entries in the array of
+	 * MX_RECORD_FIELD_DEFAULTS structures.
+	 */
+
+	record_field_defaults_array = *(driver->record_field_defaults_ptr);
+
+	if ( record_field_defaults_array == NULL ) {
+	    driver_failed = TRUE;
+
+	    (void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	  "The MX_RECORD_FIELD_DEFAULTS array pointer for driver '%s' is NULL.",
+			driver->name );
+	} else {
+	    for ( i = 0; i < num_record_fields; i++ ) {
+
+		record_field_defaults = &(record_field_defaults_array[i]);
+
+		if ( record_field_defaults == NULL ) {
+		    driver_failed = TRUE;
+
+		    (void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_RECORD_FIELD_DEFAULTS pointer for field %ld "
+			"of driver '%s' is NULL.", i, driver->name );
+		} else {
+#if 0
+		    MX_DEBUG(-2,("%s: field '%s'",
+			fname, record_field_defaults->name));
+#endif
+		    /* Verify that no other fields share this field's
+		     * combination of structure_id and structure_offset.
+		     * If one does, then the wrong data structure may
+		     * be assigned to the wrong field.
+		     */
+
+		    /* FIXME: We need to add an MXFF_ALIAS field for fields
+		     * that are intentional duplicates of each other, such
+		     * as the motor 'stop' and 'soft_abort' fields.
+		     * Otherwise, we will get lots of false positives.
+		     */
+
+		    our_structure_id = record_field_defaults->structure_id;
+		    our_structure_offset =
+				record_field_defaults->structure_offset;
+
+		    for ( j = i+1; j < num_record_fields; j++ ) {
+			their_record_field_defaults =
+				&(record_field_defaults_array[j]);
+
+			their_structure_id =
+				their_record_field_defaults->structure_id;
+
+			their_structure_offset =
+				their_record_field_defaults->structure_offset;
+
+			if ( (our_structure_id == their_structure_id)
+			  && (our_structure_offset == their_structure_offset) )
+			{
+			    driver_failed = TRUE;
+
+			    (void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			    "Driver '%s' has the same structure_id and "
+			    "structure_offset for both fields '%s' and '%s'.",
+				driver->name,
+				record_field_defaults->name,
+				their_record_field_defaults->name );
+			}
+		    }
+		}
+	    }
+	}
+
+	/*----------------------------------------------------------------*/
+
+	if ( driver_failed == TRUE ) {
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"Driver '%s' has failed its verification tests.",
+			driver->name );
+	} else {
+		return MX_SUCCESSFUL_RESULT;
+	}
+}
+
+/*=====================================================================*/
+
+MX_EXPORT mx_status_type
+mx_verify_driver_tables( void )
+{
+	static const char fname[] = "mx_verify_driver_tables()";
+
+	MX_DRIVER *current_driver;
+	mx_bool_type at_least_one_driver_failed;
+	mx_status_type mx_status;
+
+	at_least_one_driver_failed = FALSE;
+
+	current_driver = mx_driver_list;
+
+#if 0
+	/* The list head's driver comes first (and is special),
+	 * so we skip over it.
+	 */
+
+	current_driver = current_driver->next_driver;
+#endif
+
+	/* Now walk through the drivers. */
+
+	while ( current_driver != (MX_DRIVER *) NULL ) {
+
+		mx_status =  mx_verify_driver( current_driver );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			at_least_one_driver_failed = TRUE;
+		}
+
+		current_driver = current_driver->next_driver;
+	}
+
+	if ( at_least_one_driver_failed ) {
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"At least one MX driver failed its verification checks." );
+	} else {
+		return MX_SUCCESSFUL_RESULT;
+	}
+}
+
 
 /*=====================================================================*/
 

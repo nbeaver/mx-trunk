@@ -191,13 +191,14 @@ motor_main( int argc, char *argv[] )
 	char *split_buffer = NULL;
 	char *name;
 	int status, debug_level, unbuffered_io;
-	int init_hw_flags, start_debugger;
-	int run_startup_scripts, ignore_scan_savefiles;
+	mx_bool_type init_hw_flags, start_debugger;
+	mx_bool_type run_startup_scripts, ignore_scan_savefiles;
 	unsigned long network_debug_flags;
 	mx_status_type mx_status;
 	char prompt[80];
 	char saved_command_name[80];
 	mx_bool_type wait_for_debugger, just_in_time_debugging;
+	mx_bool_type verify_drivers;
 
 	static char
 	    scan_savefile_array[ MAX_SCAN_SAVEFILES ][ MXU_FILENAME_LENGTH+1 ];
@@ -262,6 +263,7 @@ motor_main( int argc, char *argv[] )
 	start_debugger = FALSE;
 	wait_for_debugger = FALSE;
 	just_in_time_debugging = FALSE;
+	verify_drivers = FALSE;
 
 	network_debug_flags = 0;
 
@@ -270,7 +272,7 @@ motor_main( int argc, char *argv[] )
 
 	error_flag = FALSE;
 
-	while ((c = getopt(argc,argv,"aAd:DF:f:Hg:iJNnP:p:S:s:tT:uwxz")) != -1)
+	while ((c = getopt(argc,argv,"aAd:DF:f:Hg:iJNnP:p:S:s:tT:uVwxz")) != -1)
 	{
 		switch (c) {
 		case 'a':
@@ -353,6 +355,9 @@ motor_main( int argc, char *argv[] )
 			break;
 		case 'u':
 			unbuffered_io = TRUE;
+			break;
+		case 'V':
+			verify_drivers = TRUE;
 			break;
 		case 'w':
 			wait_for_debugger = TRUE;
@@ -484,7 +489,8 @@ motor_main( int argc, char *argv[] )
 
 	status = motor_init( motor_savefile,
 			num_scan_savefiles, scan_savefile_array,
-			init_hw_flags, network_debug_flags );
+			init_hw_flags, verify_drivers,
+			network_debug_flags );
 
 	if ( status == FAILURE ) {
 		fprintf(output,"motor: Initialization failed.  Exiting...\n");

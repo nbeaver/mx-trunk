@@ -324,7 +324,7 @@
 #include "d_limited_move.h"
 
 #include "d_als_dewar_positioner.h"
-#include "d_biocat_mirror_positioner.h"
+#include "d_coordinated_angle.h"
 
 #include "d_compumotor_linear.h"
 
@@ -2374,13 +2374,12 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_als_dewar_positioner_num_record_fields,
 				&mxd_als_dewar_positioner_rfield_def_ptr},
 
-{"biocat_mirror_positioner", MXT_MTR_BIOCAT_MIRROR_POSITIONER,
-					MXC_MOTOR, MXR_DEVICE,
-				&mxd_biocat_mirror_pos_record_function_list,
+{"coordinated_angle", MXT_MTR_COORDINATED_ANGLE, MXC_MOTOR, MXR_DEVICE,
+				&mxd_coordinated_angle_record_function_list,
 				NULL,
-				&mxd_biocat_mirror_pos_motor_function_list,
-				&mxd_biocat_mirror_pos_num_record_fields,
-				&mxd_biocat_mirror_pos_rfield_def_ptr},
+				&mxd_coordinated_angle_motor_function_list,
+				&mxd_coordinated_angle_num_record_fields,
+				&mxd_coordinated_angle_rfield_def_ptr},
 
 {"compumotor_lin", MXT_MTR_COMPUMOTOR_LINEAR, MXC_MOTOR, MXR_DEVICE,
 				&mxd_compumotor_linear_record_function_list,

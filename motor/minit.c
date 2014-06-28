@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2007, 2009-2010, 2012-2013 Illinois Institute of Technology
+ * Copyright 1999-2007, 2009-2010, 2012-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -27,7 +27,8 @@ int
 motor_init( char *motor_savefile_name,
 		int num_scan_savefiles,
 		char scan_savefile_array[][MXU_FILENAME_LENGTH+1],
-		int init_hw_flags,
+		mx_bool_type init_hw_flags,
+		mx_bool_type verify_drivers,
 		unsigned long network_debug_flags )
 {
 	static const char fname[] = "motor_init()";
@@ -179,6 +180,19 @@ motor_init( char *motor_savefile_name,
 					fname, scan_savefile_array[i] );
 				exit(1);
 			}
+		}
+	}
+
+	/* If we were asked to verify loaded drivers, then this is
+	 * the correct time to do that since all !load statements in
+	 * MX databases have now been executed.
+	 */
+
+	if ( verify_drivers ) {
+		mx_status = mx_verify_driver_tables();
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			exit(mx_status.code);
 		}
 	}
 

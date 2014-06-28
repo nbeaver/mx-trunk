@@ -497,6 +497,12 @@ MX_API MX_DRIVER *mx_get_class_driver_by_type( long class_type );
 
 MX_API mx_status_type mx_add_driver_table( MX_DRIVER *driver_table );
 
+MX_API mx_status_type mx_verify_driver( MX_DRIVER *driver );
+
+MX_API mx_status_type mx_verify_driver_tables( void );
+
+/*---*/
+
 MX_API long  mx_get_parameter_type_from_name( MX_RECORD *record, char *name );
 MX_API char *mx_get_parameter_name_from_type( MX_RECORD *record, long type,
 						char *name_buffer,

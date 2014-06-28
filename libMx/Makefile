@@ -79,13 +79,13 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_auto_filter_amplifier.c d_auto_net.c d_auto_scaler.c \
 	d_aviex_pccd.c d_aviex_pccd_170170.c d_aviex_pccd_16080.c \
 	d_aviex_pccd_4824.c d_aviex_pccd_9785.c \
-	d_biocat_mirror_positioner.c \
 	d_bit.c d_bkprecision_912x_aio.c d_bkprecision_912x_dio.c \
 	d_bkprecision_912x_wvout.c d_blind_relay.c \
 	d_bluice_area_detector.c d_bluice_ion_chamber.c d_bluice_motor.c \
 	d_bluice_shutter.c d_bluice_timer.c \
 	d_cm17a_doutput.c \
 	d_compumotor.c d_compumotor_dio.c d_compumotor_linear.c \
+	d_coordinated_angle.c \
 	d_cryostream600_motor.c d_cryostream600_status.c \
 	d_cubic_spline_motor.c \
 	d_cyberstar_x1000.c d_cyberstar_x1000_aout.c d_cxtilt02.c \
