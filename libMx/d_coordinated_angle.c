@@ -49,8 +49,8 @@ MX_MOTOR_FUNCTION_LIST mxd_coordinated_angle_motor_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	NULL,
-	NULL,
+	mxd_coordinated_angle_get_parameter,
+	mxd_coordinated_angle_set_parameter,
 	NULL,
 	mxd_coordinated_angle_get_status
 };
@@ -433,8 +433,8 @@ mxd_coordinated_angle_get_position( MX_MOTOR *motor )
 	double tangent_of_angle, sine_of_angle;
 	double raw_angle_error;
 	double sum, sum_of_squares;
-	double mean, sample_variance;
-	unsigned long i;
+	double mean, standard_deviation, variance;
+	unsigned long i, flags;
 	mx_status_type mx_status;
 
 	mx_status = mxd_coordinated_angle_get_pointers( motor,
@@ -442,6 +442,8 @@ mxd_coordinated_angle_get_position( MX_MOTOR *motor )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	flags = coordinated_angle->angle_flags;
 
 	/* We get the angles of the child motors, convert them to radians,
 	 * and add them up to get the mean angle.
@@ -514,7 +516,13 @@ mxd_coordinated_angle_get_position( MX_MOTOR *motor )
 
 	mean = mx_divide_safely( sum, coordinated_angle->num_motors );
 
-	motor->raw_position.analog = mean;
+	coordinated_angle->mean = mean * motor->scale + motor->offset;
+
+	if ( flags & MXF_COORDINATED_ANGLE_REPORT_MEAN_AS_POSITION ) {
+		motor->raw_position.analog = mean;
+	} else {
+		motor->raw_position.analog = motor->raw_destination.analog;
+	}
 
 	/* Now let us go back and compute the standard deviation
 	 * and the motor angle errors.
@@ -529,35 +537,48 @@ mxd_coordinated_angle_get_position( MX_MOTOR *motor )
 		raw_angle = coordinated_angle->raw_angle_array[i];
 
 		raw_angle_error = raw_angle - mean;
-
+	
 		sum_of_squares += ( raw_angle_error * raw_angle_error );
+
+		if ( flags & MXF_COORDINATED_ANGLE_REPORT_MEAN_AS_POSITION ) {
+
+			/* If this flag is set, then the user wants to see
+			 * the error relative to the commanded angle.
+			 */
+
+			raw_angle_error =
+				raw_angle - motor->raw_destination.analog;
+		}
 
 		/* Save a copy of the raw angle error expressed
 		 * in user units.
 		 */
 
 		coordinated_angle->motor_error_array[i] =
-			raw_angle_error * motor->scale + motor->offset;
+				raw_angle_error * motor->scale;
 	}
 
-	/* Compute the sample standard deviation. */
+	/* Compute the standard deviation. */
 
-	sample_variance = mx_divide_safely( sum_of_squares,
+	variance = mx_divide_safely( sum_of_squares,
 			coordinated_angle->num_motors - 1 );
 
-	if ( sample_variance < 0.0 ) {
+	if ( variance < 0.0 ) {
 
 		/* EEK! The sky is falling! */
 
 		mx_warning(
 		"The angle sample variance detected for record '%s' "
 		"is %f.  This should never happen.",
-			motor->record->name, sample_variance );
+			motor->record->name, variance );
 
-		sample_variance = 0.0;
+		variance = 0.0;
 	}
 
-	coordinated_angle->standard_deviation = sqrt( sample_variance );
+	standard_deviation = sqrt( variance );
+
+	coordinated_angle->standard_deviation =
+		standard_deviation * motor->scale;
 
 	return mx_status;
 }
@@ -631,6 +652,11 @@ mxd_coordinated_angle_get_status( MX_MOTOR *motor )
 
 		mx_status = mx_motor_get_status( motor_record, &motor_status );
 
+#if MXD_COORDINATED_ANGLE_DEBUG
+		MX_DEBUG(-2,("%s: '%s' status = %lx",
+			fname, motor_record->name, motor_status));
+#endif
+
 		if ( motor_status & MXSF_MTR_IS_BUSY ) {
 			pseudomotor_status |= MXSF_MTR_IS_BUSY;
 
@@ -646,6 +672,18 @@ mxd_coordinated_angle_get_status( MX_MOTOR *motor )
 
 	motor->status = pseudomotor_status;
 
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_coordinated_angle_get_parameter( MX_MOTOR *motor )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_coordinated_angle_set_parameter( MX_MOTOR *motor )
+{
 	return MX_SUCCESSFUL_RESULT;
 }
 

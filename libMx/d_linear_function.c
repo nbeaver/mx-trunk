@@ -8,7 +8,8 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2007, 2010, 2013 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2007, 2010, 2013-2014
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -45,7 +46,11 @@ MX_MOTOR_FUNCTION_LIST mxd_linear_function_motor_function_list = {
 	mxd_linear_function_soft_abort,
 	mxd_linear_function_immediate_abort,
 	mxd_linear_function_positive_limit_hit,
-	mxd_linear_function_negative_limit_hit
+	mxd_linear_function_negative_limit_hit,
+	NULL,
+	NULL,
+	mxd_linear_function_get_parameter,
+	mxd_linear_function_set_parameter,
 };
 
 /* Linear function motor data structures. */
@@ -1186,6 +1191,18 @@ mxd_linear_function_negative_limit_hit( MX_MOTOR *motor )
 
 	motor->negative_limit_hit = limit_hit;
 
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_linear_function_get_parameter( MX_MOTOR *motor )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_linear_function_set_parameter( MX_MOTOR *motor )
+{
 	return MX_SUCCESSFUL_RESULT;
 }
 

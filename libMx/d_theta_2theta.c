@@ -9,7 +9,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2006-2007, 2010, 2013
+ * Copyright 2000-2001, 2003, 2006-2007, 2010, 2013-2014
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -649,6 +649,7 @@ mxd_theta_2theta_motor_set_parameter( MX_MOTOR *motor )
 
 	MX_THETA_2THETA_MOTOR *theta_2theta_motor;
 	double theta_speed, two_theta_speed;
+	unsigned long flags;
 	mx_status_type mx_status;
 
 	theta_2theta_motor = NULL;
@@ -659,7 +660,13 @@ mxd_theta_2theta_motor_set_parameter( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	flags = theta_2theta_motor->theta_2theta_flags;
+
 	if ( motor->parameter_type == MXLV_MTR_SPEED ) {
+
+		if ( (flags & MXF_THETA_2THETA_SYNCHRONIZE_SPEED) == 0 ) {
+			return MX_SUCCESSFUL_RESULT;
+		}
 
 		theta_speed = motor->raw_speed;
 

@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2010, 2013 Illinois Institute of Technology
+ * Copyright 2000-2001, 2010, 2013-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,11 +23,16 @@
 
 /* ===== MX theta-2 theta motor data structures ===== */
 
+/* Values for the 'theta_2theta_flags' field. */
+
+#define MXF_THETA_2THETA_SYNCHRONIZE_SPEED	0x1
+
 typedef struct {
 	MX_MOTOR *motor;	/* Parent motor structure. */
 
 	MX_RECORD *theta_motor_record;
 	MX_RECORD *two_theta_motor_record;
+	unsigned long theta_2theta_flags;
 } MX_THETA_2THETA_MOTOR;
 
 /* Define all of the interface functions. */
@@ -70,6 +75,11 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_theta_2theta_motor_rfield_def_ptr;
   {-1, -1, "two_theta_motor_record", MXFT_RECORD, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_THETA_2THETA_MOTOR, two_theta_motor_record),\
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+  \
+  {-1, -1, "theta_2theta_flags", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_THETA_2THETA_MOTOR, theta_2theta_flags),\
+	{0}, NULL, MXFF_IN_DESCRIPTION }
 
 #endif /* __D_THETA_2THETA_H__ */
