@@ -455,6 +455,7 @@
 #include "d_soft_vinput.h"
 #include "d_network_vinput.h"
 #include "d_file_vinput.h"
+#include "d_sony_snc.h"
 
 #include "d_soft_area_detector.h"
 #include "d_network_area_detector.h"
@@ -3201,6 +3202,13 @@ MX_DRIVER mx_type_table[] = {
 				NULL,
 				&mxd_file_vinput_num_record_fields,
 				&mxd_file_vinput_rfield_def_ptr},
+
+{"sony_snc",        MXT_VIN_SONY_SNC,     MXC_VIDEO_INPUT,  MXR_DEVICE,
+				&mxd_sony_snc_record_function_list,
+				NULL,
+				NULL,
+				&mxd_sony_snc_num_record_fields,
+				&mxd_sony_snc_rfield_def_ptr},
 
 {"soft_area_detector",     MXT_AD_SOFTWARE,  MXC_AREA_DETECTOR,  MXR_DEVICE,
 				&mxd_soft_area_detector_record_function_list,

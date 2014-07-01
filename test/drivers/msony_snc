@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../motor/mxmotor.static -i -F ./msony_snc.dat -s ./ssony_snc.dat $*
+

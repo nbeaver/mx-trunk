@@ -705,6 +705,7 @@ extern "C" {
 #define MXT_VIN_SOFTWARE		220001
 #define MXT_VIN_NETWORK			220002
 #define MXT_VIN_FILE			220003
+#define MXT_VIN_SONY_SNC		220004
 
 /* --- Video output types --- */
 

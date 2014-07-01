@@ -41,6 +41,7 @@ extern "C" {
 #define MXT_IMAGE_FORMAT_DOUBLE			5
 
 #define MXT_IMAGE_FORMAT_RGB			10
+#define MXT_IMAGE_FORMAT_JPEG			11
 
 #define MXT_IMAGE_FORMAT_RGB565			1001
 #define MXT_IMAGE_FORMAT_YUYV			1002
@@ -62,6 +63,7 @@ extern "C" {
 #define MXT_IMAGE_FILE_RAW_DOUBLE		5
 
 #define MXT_IMAGE_FILE_PNM			10
+#define MXT_IMAGE_FILE_JPEG			11
 
     /* The following are area detector file formats. */
 
