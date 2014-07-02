@@ -15,7 +15,7 @@
  *
  */
 
-#define MXV_BIOCAT_6K_JOYSTICK_DEBUG			TRUE
+#define MXV_BIOCAT_6K_JOYSTICK_DEBUG			FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
