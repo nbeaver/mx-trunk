@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_COMPUMOTOR_DIO_DEBUG	TRUE
+#define MXD_COMPUMOTOR_DIO_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
