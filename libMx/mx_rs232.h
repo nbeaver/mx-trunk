@@ -168,6 +168,8 @@ typedef struct {
 	mx_bool_type set_configuration;
 	mx_bool_type send_break;
 	mx_bool_type echo;
+
+	unsigned long serial_debug;
 } MX_RS232;
 
 #define MXLV_232_GETCHAR			101
@@ -184,6 +186,7 @@ typedef struct {
 #define MXLV_232_SET_CONFIGURATION		112
 #define MXLV_232_SEND_BREAK			113
 #define MXLV_232_ECHO				114
+#define MXLV_232_SERIAL_DEBUG			115
 
 #define MX_RS232_STANDARD_FIELDS \
   {-1, -1, "speed", MXFT_LONG, NULL, 0, {0}, \
@@ -283,6 +286,10 @@ typedef struct {
   \
   {MXLV_232_ECHO, -1, "echo", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_RS232, echo), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_232_SERIAL_DEBUG, -1, "serial_debug", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_RS232, serial_debug), \
 	{0}, NULL, 0}
 
 /*
@@ -343,7 +350,13 @@ MX_API_PRIVATE mx_status_type mx_rs232_unbuffered_putline(
 MX_API mx_bool_type mx_rs232_show_debugging( MX_RS232 *rs232,
 					unsigned long transfer_flags );
 
-MX_API mx_status_type mx_rs232_check_port_parameters(MX_RECORD *rs232_record);
+MX_API mx_status_type mx_rs232_get_serial_debug( MX_RECORD *rs232_record,
+						unsigned long *debug_flags );
+
+MX_API mx_status_type mx_rs232_set_serial_debug( MX_RECORD *rs232_record,
+						unsigned long debug_flags );
+
+MX_API mx_status_type mx_rs232_check_port_parameters( MX_RECORD *rs232_record );
 
 MX_API mx_status_type mx_rs232_convert_terminator_characters(
 						MX_RECORD *rs232_record);

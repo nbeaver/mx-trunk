@@ -95,8 +95,6 @@ typedef struct {
 
 MX_API_PRIVATE mx_status_type mxo_toast_create_record_structures(
 							MX_RECORD *record );
-MX_API_PRIVATE mx_status_type mxo_toast_open( MX_RECORD *record );
-MX_API_PRIVATE mx_status_type mxo_toast_close( MX_RECORD *record );
 
 MX_API_PRIVATE mx_status_type mxo_toast_get_status( MX_OPERATION *op );
 MX_API_PRIVATE mx_status_type mxo_toast_start( MX_OPERATION *op );
@@ -109,3 +107,4 @@ extern long mxo_toast_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxo_toast_rfield_def_ptr;
 
 #endif /* __O_TOAST_H__ */
+

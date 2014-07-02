@@ -53,6 +53,7 @@ mx_setup_rs232_process_functions( MX_RECORD *record )
 		case MXLV_232_PUTCHAR:
 		case MXLV_232_PUTLINE:
 		case MXLV_232_SEND_BREAK:
+		case MXLV_232_SERIAL_DEBUG:
 		case MXLV_232_SET_CONFIGURATION:
 		case MXLV_232_SIGNAL_STATE:
 			record_field->process_function
@@ -124,6 +125,10 @@ mx_rs232_process_function( void *record_ptr,
 
 			rs232->num_input_bytes_available = ulong_value;
 			break;
+		case MXLV_232_SERIAL_DEBUG:
+			mx_status = mx_rs232_get_serial_debug( record,
+						&(rs232->serial_debug) );
+			break;
 		case MXLV_232_SIGNAL_STATE:
 			mx_status = mx_rs232_get_signal_state( record, NULL );
 			break;
@@ -162,6 +167,10 @@ mx_rs232_process_function( void *record_ptr,
 			break;
 		case MXLV_232_SEND_BREAK:
 			mx_status = mx_rs232_send_break( record );
+			break;
+		case MXLV_232_SERIAL_DEBUG:
+			mx_status = mx_rs232_set_serial_debug( record,
+							rs232->serial_debug );
 			break;
 		case MXLV_232_SET_CONFIGURATION:
 			mx_status = mx_rs232_set_configuration( record,

@@ -39,8 +39,7 @@ MX_RECORD_FUNCTION_LIST mxo_biocat_6k_toast_record_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	mxo_biocat_6k_toast_open,
-	mxo_biocat_6k_toast_close
+	mxo_biocat_6k_toast_open
 };
 
 MX_OPERATION_FUNCTION_LIST mxo_biocat_6k_toast_operation_function_list = {
@@ -244,41 +243,6 @@ mxo_biocat_6k_toast_open( MX_RECORD *record )
 	}
 
 	toast->move_to_finish_in_progress = FALSE;
-
-	/* Send a stop command, just in case the operation was started
-	 * by a previous instance of MX.
-	 */
-
-	mx_status = mxo_biocat_6k_toast_stop( operation );
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxo_biocat_6k_toast_close( MX_RECORD *record )
-{
-	static const char fname[] = "mxo_biocat_6k_toast_close()";
-
-	MX_OPERATION *operation = NULL;
-	MX_BIOCAT_6K_TOAST *toast = NULL;
-	MX_MOTOR *motor = NULL;
-	MX_COMPUMOTOR *compumotor = NULL;
-	MX_COMPUMOTOR_INTERFACE *compumotor_interface = NULL;
-	mx_status_type mx_status;
-
-	if ( record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_RECORD pointer passed was NULL." );
-	}
-
-	operation = (MX_OPERATION *) record->record_superclass_struct;
-
-	mx_status = mxo_biocat_6k_toast_get_pointers( operation,
-					&toast, &motor, &compumotor,
-					&compumotor_interface, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
 
 	return mx_status;
 }

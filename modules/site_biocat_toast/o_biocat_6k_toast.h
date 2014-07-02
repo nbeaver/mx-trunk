@@ -81,7 +81,6 @@ typedef struct {
 MX_API_PRIVATE mx_status_type mxo_biocat_6k_toast_create_record_structures(
 							MX_RECORD *record );
 MX_API_PRIVATE mx_status_type mxo_biocat_6k_toast_open( MX_RECORD *record );
-MX_API_PRIVATE mx_status_type mxo_biocat_6k_toast_close( MX_RECORD *record );
 
 MX_API_PRIVATE mx_status_type mxo_biocat_6k_toast_get_status( MX_OPERATION *op );
 MX_API_PRIVATE mx_status_type mxo_biocat_6k_toast_start( MX_OPERATION *op );

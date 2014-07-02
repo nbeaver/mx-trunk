@@ -359,6 +359,78 @@ mx_rs232_show_debugging( MX_RS232 *rs232,
 }
 
 MX_EXPORT mx_status_type
+mx_rs232_get_serial_debug( MX_RECORD *rs232_record,
+				unsigned long *debug_flags )
+{
+	static const char fname[] = "mx_rs232_get_serial_debug()";
+
+	MX_RS232 *rs232;
+	unsigned long rs232_flags;
+
+	if ( rs232_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RS232 pointer passed was NULL." );
+	}
+	if ( debug_flags == (unsigned long *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The debug_flags pointer passed was NULL." );
+	}
+
+	rs232 = (MX_RS232 *) rs232_record->record_class_struct;
+
+	if ( rs232 == (MX_RS232 *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RS232 pointer for record '%s' is NULL.",
+			rs232_record->name );
+	}
+
+	rs232_flags = rs232->rs232_flags;
+
+	rs232_flags >>= 24;
+
+	rs232_flags &= 0x3;
+
+	*debug_flags = rs232_flags;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_rs232_set_serial_debug( MX_RECORD *rs232_record,
+				unsigned long debug_flags )
+{
+	static const char fname[] = "mx_rs232_get_serial_debug()";
+
+	MX_RS232 *rs232;
+	unsigned long mask;
+
+	if ( rs232_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RS232 pointer passed was NULL." );
+	}
+
+	rs232 = (MX_RS232 *) rs232_record->record_class_struct;
+
+	if ( rs232 == (MX_RS232 *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RS232 pointer for record '%s' is NULL.",
+			rs232_record->name );
+	}
+
+	debug_flags &= 0x3;
+
+	debug_flags <<= 24;
+
+	mask = MXF_232_DEBUG_SERIAL | MXF_232_DEBUG_SERIAL_VERBOSE;
+
+	rs232->rs232_flags &= (~mask);
+
+	rs232->rs232_flags |= debug_flags;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mx_rs232_check_port_parameters( MX_RECORD *rs232_record )
 {
 	static const char fname[] = "mx_rs232_check_port_parameters()";
@@ -896,7 +968,8 @@ mx_rs232_read( MX_RECORD *record,
 	buffer[bytes_read_by_driver] = '\0';
 
 	if ( mx_rs232_show_debugging( rs232, transfer_flags ) ) {
-		MX_DEBUG(-2,("%s: received buffer = '%s'", fname, buffer));
+		MX_DEBUG(-2,("%s: received '%s' from '%s'",
+				fname, buffer, record->name));
 	}
 
 	if ( bytes_read != NULL ) {
@@ -931,7 +1004,7 @@ mx_rs232_write( MX_RECORD *record,
 
 	if ( mx_rs232_show_debugging( rs232, transfer_flags ) ) {
 		MX_DEBUG(-2,
-		("%s: sending buffer = '%s'", fname, buffer));
+		("%s: sending '%s' to '%s'", fname, buffer, record->name));
 	}
 
 	if ( rs232->rs232_flags & MXF_232_UNBUFFERED_IO ) {
@@ -1024,7 +1097,8 @@ mx_rs232_read_with_timeout( MX_RECORD *record,
 	buffer[bytes_read_by_driver] = '\0';
 
 	if ( mx_rs232_show_debugging( rs232, transfer_flags ) ) {
-		MX_DEBUG(-2,("%s: received buffer = '%s'", fname, buffer));
+		MX_DEBUG(-2,("%s: received '%s' from '%s'",
+				fname, buffer, record->name));
 	}
 
 	if ( bytes_read != NULL ) {
@@ -1097,7 +1171,8 @@ mx_rs232_getline( MX_RECORD *record,
 	}
 
 	if ( mx_rs232_show_debugging( rs232, transfer_flags ) ) {
-		MX_DEBUG(-2,("%s: received buffer = '%s'", fname, buffer));
+		MX_DEBUG(-2,("%s: received '%s' from '%s'",
+				fname, buffer, record->name));
 	}
 
 	return mx_status;
@@ -1125,7 +1200,8 @@ mx_rs232_putline( MX_RECORD *record,
 		return mx_status;
 
 	if ( mx_rs232_show_debugging( rs232, transfer_flags ) ) {
-		MX_DEBUG(-2, ("%s: sending buffer = '%s'", fname, buffer));
+		MX_DEBUG(-2, ("%s: sending '%s' to '%s'",
+			fname, buffer, record->name));
 	}
 
 	if ( rs232->rs232_flags & MXF_232_UNBUFFERED_IO ) {
