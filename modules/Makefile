@@ -17,7 +17,7 @@ all: build
 
 #MODULES += avt_pvapi		# linux,
 
-MODULES += avt_vimba		# linux,
+#MODULES += avt_vimba		# linux,
 
 #MODULES += edt			# linux,
 
@@ -31,7 +31,7 @@ MODULES += avt_vimba		# linux,
 
 #MODULES += k8055		# linux,
 
-MODULES += newport_xps		# linux,
+#MODULES += newport_xps		# linux,
 
 #MODULES += ni488		# linux,
 

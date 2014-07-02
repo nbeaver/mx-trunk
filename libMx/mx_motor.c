@@ -4573,6 +4573,10 @@ mx_motor_home_search_succeeded( MX_RECORD *motor_record,
 		motor->status &= ( ~ MXSF_MTR_HOME_SEARCH_SUCCEEDED );
 	}
 
+	/* Be sure to add in any latched status bits. */
+
+	motor->status |= motor->latched_status;
+
 	if ( home_search_succeeded != NULL ) {
 		if ( motor->status & MXSF_MTR_HOME_SEARCH_SUCCEEDED ) {
 			*home_search_succeeded = TRUE;

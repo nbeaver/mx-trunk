@@ -221,6 +221,7 @@ mx_process_record_field( MX_RECORD *record,
 	static const char fname[] = "mx_process_record_field()";
 
 	mx_status_type (*process_fn) ( void *, void *, int );
+	unsigned long rp_flags;
 	mx_bool_type value_changed;
 	mx_status_type mx_status;
 
@@ -239,6 +240,19 @@ mx_process_record_field( MX_RECORD *record,
 			"The MX_RECORD_FIELD pointer passed was NULL." );
 	}
 
+	/* Check to see if record processing has been set up for this record. */
+
+	rp_flags = record->record_processing_flags;
+
+	if ( (rp_flags & MXF_PROC_PROCESSING_IS_INITIALIZED) == 0 ) {
+		mx_status = mx_initialize_record_processing( record );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	/*---*/
+
 	value_changed = FALSE;
 
 	if ( value_changed_ptr != NULL ) {
@@ -246,7 +260,7 @@ mx_process_record_field( MX_RECORD *record,
 	}
 
 	/* If there is one, call the process function to read data
-	 * from the hardware.
+	 * from the hardware or server or whatever.
 	 */
 
 	process_fn = record_field->process_function;
