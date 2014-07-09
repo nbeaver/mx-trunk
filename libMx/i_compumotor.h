@@ -32,7 +32,12 @@
 /* Suppress comments in debugging output. */
 #define MXF_COMPUMOTOR_SUPPRESS_COMMENTS		0x1000
 
+#define MXF_COMPUMOTOR_AUTOMATIC_RESYNCHRONIZE		0x40000000
 #define MXF_COMPUMOTOR_KILL_ON_STARTUP			0x80000000
+
+/* Flag value used by mxi_compumotor_command() to prevent recursion. */
+
+#define MXF_COMPUMOTOR_NO_RECURSION			0x2
 
 /* Flag values used by the compumotor_lin and compumotor_trans drivers. */
 

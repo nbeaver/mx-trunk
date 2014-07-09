@@ -1160,9 +1160,10 @@ mxi_tty_discard_unread_input( MX_RS232 *rs232 )
 	mx_bool_type debug_flag;
 	mx_status_type mx_status;
 
-	char buffer[100];
+	char discarded_buffer[1000];
 	unsigned long j, k;
-	unsigned long buffer_length = sizeof(buffer) / sizeof(buffer[0]);
+	unsigned long discarded_buffer_length
+		= sizeof(discarded_buffer) / sizeof(discarded_buffer[0]);
 
 	MX_DEBUG( 2,("%s invoked.", fname));
 
@@ -1198,8 +1199,8 @@ mxi_tty_discard_unread_input( MX_RS232 *rs232 )
 				return mx_status;
 
 			if ( debug_flag ) {
-				if ( i < buffer_length ) {
-					buffer[i] = c;
+				if ( i < discarded_buffer_length ) {
+					discarded_buffer[i] = c;
 				}
 			}
 		}
@@ -1209,8 +1210,8 @@ mxi_tty_discard_unread_input( MX_RS232 *rs232 )
 		debug_level = mx_get_debug_level();
 
 		if ( debug_level >= -2 ) {
-			if ( i > buffer_length )
-				k = buffer_length;
+			if ( i > discarded_buffer_length )
+				k = discarded_buffer_length;
 			else
 				k = i;
 
@@ -1220,7 +1221,7 @@ mxi_tty_discard_unread_input( MX_RS232 *rs232 )
 					fname,k);
 
 				for ( j = 0; j < k; j++ ) {
-					c = buffer[j];
+					c = discarded_buffer[j];
 
 					if ( isprint( (int) c ) ) {
 						fputc( c, stderr );

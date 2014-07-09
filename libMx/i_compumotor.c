@@ -656,7 +656,7 @@ mxi_compumotor_resynchronize( MX_RECORD *record )
 	char command[80], response[80];
 	char version_string[80], type_string[80];
 	long i, j;
-	int num_items;
+	int num_items, command_flags;
 	mx_status_type mx_status;
 
 	/* Suppress bogus GCC 4 uninitialized variable warnings. */
@@ -693,6 +693,9 @@ mxi_compumotor_resynchronize( MX_RECORD *record )
 	 * for their revision number.
 	 */
 
+	command_flags = MXI_COMPUMOTOR_INTERFACE_DEBUG
+			| MXF_COMPUMOTOR_NO_RECURSION;
+
 	for ( i = 0; i < compumotor_interface->num_controllers; i++ ) {
 
 		snprintf( command, sizeof(command), "%ld_!TREV",
@@ -700,7 +703,7 @@ mxi_compumotor_resynchronize( MX_RECORD *record )
 	
 		mx_status = mxi_compumotor_command( compumotor_interface,
 				command, response, sizeof response,
-				MXI_COMPUMOTOR_INTERFACE_DEBUG);
+				command_flags );
 
 		switch( mx_status.code ) {
 		case MXE_SUCCESS:
@@ -777,7 +780,7 @@ mxi_compumotor_resynchronize( MX_RECORD *record )
 
 		(void) mxi_compumotor_command( compumotor_interface,
 					command, NULL, 0,
-					MXI_COMPUMOTOR_INTERFACE_DEBUG );
+					command_flags );
 	}
 
 	/* Discard any unread output from the controller. */
@@ -907,15 +910,18 @@ mxi_compumotor_process_function( void *record_ptr,
 MX_EXPORT mx_status_type
 mxi_compumotor_command( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 		char *command, char *response, size_t response_buffer_length,
-		int debug_flag )
+		int command_flags )
 {
 	static const char fname[] = "mxi_compumotor_command()";
 
+	unsigned long interface_flags;
 	unsigned long sleep_ms, num_bytes_available;
-	long i, max_attempts;
+	long num_command_attempts;
+	long i, max_response_attempts;
 	size_t command_length, response_length;
 	char c;
 	char echoed_command_string[200];
+	mx_bool_type debug_flag;
 	mx_status_type mx_status;
 #if MXI_COMPUMOTOR_INTERFACE_DEBUG_TIMING	
 	MX_HRT_RS232_TIMING command_timing, response_timing;
@@ -933,7 +939,9 @@ mxi_compumotor_command( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 		"'command' buffer pointer passed was NULL.  No command sent.");
 	}
 
-	if ( compumotor_interface->interface_flags & MXF_COMPUMOTOR_ECHO_ON ) {
+	interface_flags = compumotor_interface->interface_flags;
+
+	if ( interface_flags & MXF_COMPUMOTOR_ECHO_ON ) {
 
 		command_length = strlen( command );
 
@@ -948,6 +956,21 @@ mxi_compumotor_command( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 		}
 	}
 
+	if ( command_flags & MXI_COMPUMOTOR_INTERFACE_DEBUG ) {
+		debug_flag = TRUE;
+	} else {
+		debug_flag = FALSE;
+	}
+
+	if ( command_flags & MXF_COMPUMOTOR_NO_RECURSION ) {
+		num_command_attempts = 1;
+	} else
+	if ( interface_flags & MXF_COMPUMOTOR_AUTOMATIC_RESYNCHRONIZE ) {
+		num_command_attempts = 2;
+	} else {
+		num_command_attempts = 1;
+	}
+
 	/* Send the command string. */
 
 	if ( debug_flag ) {
@@ -955,25 +978,29 @@ mxi_compumotor_command( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 			fname, command, compumotor_interface->record->name));
 	}
 
+	while ( num_command_attempts > 0 ) {
+
+	    num_command_attempts--;
+
 #if MXI_COMPUMOTOR_INTERFACE_DEBUG_TIMING	
-	MX_HRT_RS232_START_COMMAND( command_timing, 2 + strlen(command) );
+	    MX_HRT_RS232_START_COMMAND( command_timing, 2 + strlen(command) );
 #endif
 
-	mx_status = mx_rs232_putline( compumotor_interface->rs232_record,
+	    mx_status = mx_rs232_putline( compumotor_interface->rs232_record,
 					command, NULL, 0 );
 
 #if MXI_COMPUMOTOR_INTERFACE_DEBUG_TIMING
-	MX_HRT_RS232_END_COMMAND( command_timing );
+	    MX_HRT_RS232_END_COMMAND( command_timing );
 #endif
 
-	if ( mx_status.code != MXE_SUCCESS )
+	    if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 #if MXI_COMPUMOTOR_INTERFACE_DEBUG_TIMING
 	MX_HRT_RS232_COMMAND_RESULTS( command_timing, command, fname );
 #endif
 
-	if ( compumotor_interface->interface_flags & MXF_COMPUMOTOR_ECHO_ON ) {
+	    if ( interface_flags & MXF_COMPUMOTOR_ECHO_ON ) {
 
 		/* If the Compumotor is configured to echo commands,
 		 * read the echoed command string.
@@ -999,16 +1026,27 @@ mxi_compumotor_command( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
-	}
+	    }
 
-	/* Get the response, if one is expected. */
+	    /* Get the response, if one is expected. */
 
-	i = 0;
+	    i = 0;
 
-	max_attempts = 1000;
-	sleep_ms = 1;
+	    max_response_attempts = 1000;
+	    sleep_ms = 1;
 
-	if ( response != NULL ) {
+	    if ( response == NULL ) {
+
+		/* If we are not checking for a response, then we have no
+		 * way to tell whether or not the command succeeded.  That
+		 * means that we have no justification for retrying a
+		 * command, so we suppress command retries.
+		 */
+
+		num_command_attempts = 0;
+
+	    } else {
+		/* If we get here, a response is expected. */
 
 #if MXI_COMPUMOTOR_INTERFACE_DEBUG_TIMING
 #if 0
@@ -1027,7 +1065,7 @@ mxi_compumotor_command( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 
 		c = '\0';
 
-		for ( i=0; i < max_attempts; i++ ) {
+		for ( i = 0; i < max_response_attempts; i++ ) {
 
 			mx_status = mx_rs232_num_input_bytes_available(
 					compumotor_interface->rs232_record,
@@ -1089,9 +1127,24 @@ mxi_compumotor_command( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 				return mx_status;
 			}
 			mx_msleep(sleep_ms);
-		}
 
-		if ( i >= max_attempts ) {
+		}   /* End of response attempt loop (i) */
+
+		if ( i >= max_response_attempts ) {
+
+		    if ( num_command_attempts > 0 ) {
+			mx_warning( "Resynchronizing '%s'.",
+					compumotor_interface->record->name );
+
+			mx_status = mxi_compumotor_resynchronize(
+					compumotor_interface->record );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			mx_warning( "Resynchronization of '%s' complete.",
+					compumotor_interface->record->name );
+		    } else {
 			mx_status = mx_rs232_discard_unread_input(
 					compumotor_interface->rs232_record,
 					debug_flag );
@@ -1103,38 +1156,47 @@ mxi_compumotor_command( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 			}
 
 			return mx_error( MXE_TIMED_OUT, fname,
-				"No response seen to '%s' command for "
-				"Compumotor interface '%s'.", command,
-				compumotor_interface->record->name );
-		}
+				"No response seen to '%s' command after "
+				"%ld attempts to read from Compumotor "
+				"interface '%s'.",
+					command, max_response_attempts,
+					compumotor_interface->record->name );
+		    }
+		} else {
 
-		/* Sometimes, the response string after the asterisk '*'
-		 * character starts with a newline character.  If this
-		 * has happened, strip off the leading newline.
-		 */
+		    /* Successfully got a response. */
 
-		if ( response[0] == MX_LF ) {
+		    num_command_attempts = 0;    /* No more attempts needed. */
+
+		    /* Sometimes, the response string after the asterisk '*'
+		     * character starts with a newline character.  If this
+		     * has happened, strip off the leading newline.
+		     */
+
+		    if ( response[0] == MX_LF ) {
 			response_length = strlen(response);
 
 			memmove( response, response+1, response_length );
-		}
+		    }
 
 #if MXI_COMPUMOTOR_INTERFACE_DEBUG_TIMING
-		MX_HRT_RS232_END_RESPONSE( response_timing, strlen(response) );
+		    MX_HRT_RS232_END_RESPONSE( response_timing,
+						strlen(response) );
 
-		MX_HRT_TIME_BETWEEN_MEASUREMENTS( command_timing,
+		    MX_HRT_TIME_BETWEEN_MEASUREMENTS( command_timing,
 						response_timing, fname );
 
-		MX_HRT_RS232_RESPONSE_RESULTS(response_timing, response, fname);
+		    MX_HRT_RS232_RESPONSE_RESULTS( response_timing,
+						response, fname);
 #endif
 
-		if ( debug_flag ) {
+		    if ( debug_flag ) {
 			MX_DEBUG(-2,("%s: received '%s' from '%s'",
 				fname, response,
 				compumotor_interface->record->name));
-		}
+		    }
 #if 0
-		{
+		    {
 			long j;
 
 			response_length = strlen(response);
@@ -1143,9 +1205,13 @@ mxi_compumotor_command( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 				MX_DEBUG(-2,("%s: response[%ld] = %#x '%c'",
 				fname, j, response[j], response[j]));
 			}
-		}
+		    }
 #endif
-	}
+		}
+
+	    } /* End of ( response != NULL ) block */
+
+	} /* End of while() command attempt loop. */
 
 	MX_DEBUG(2,("%s complete.", fname));
 
