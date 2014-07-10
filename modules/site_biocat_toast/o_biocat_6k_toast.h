@@ -18,7 +18,7 @@
 #ifndef __O_BIOCAT_6K_TOAST_H__
 #define __O_BIOCAT_6K_TOAST_H__
 
-#define MXU_6K_PROGRAM_NAME_LENGTH	40
+#define MXU_6K_NAME_LENGTH	40
 
 /* Values for 'toast_flags'. */
 
@@ -34,7 +34,8 @@ typedef struct {
 	double turnaround_delay;	/* In seconds. */
 	double timeout;			/* In seconds. */
 	unsigned long toast_flags;
-	char program_name[MXU_6K_PROGRAM_NAME_LENGTH+1];
+	char program_name[MXU_6K_NAME_LENGTH+1];
+	char variable_name[MXU_6K_NAME_LENGTH+1];
 	unsigned long task_number;
 
 	char task_prefix[4];
@@ -70,8 +71,12 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_BIOCAT_6K_TOAST, toast_flags), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "program_name", MXFT_STRING, NULL, 1, {MXU_6K_PROGRAM_NAME_LENGTH}, \
+  {-1, -1, "program_name", MXFT_STRING, NULL, 1, {MXU_6K_NAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_BIOCAT_6K_TOAST, program_name), \
+	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
+  {-1, -1, "variable_name", MXFT_STRING, NULL, 1, {MXU_6K_NAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_BIOCAT_6K_TOAST, variable_name), \
 	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}, \
   \
   {-1, -1, "task_number", MXFT_ULONG, NULL, 0, {0}, \

@@ -444,6 +444,7 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 
 	/* Start the infinite while loop. */
 
+#if 0
 	snprintf( command, sizeof(command), "WHILE(%luAS=bX)",
 					compumotor->axis_number );
 
@@ -452,6 +453,32 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+#elif 0
+	snprintf( command, sizeof(command), "%s=1", toast->variable_name );
+
+	mx_status = mxi_compumotor_command( compumotor_interface, command,
+					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	snprintf( command, sizeof(command), "WHILE(%s=1)",
+					toast->variable_name );
+
+	mx_status = mxi_compumotor_command( compumotor_interface, command,
+					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+#else
+	snprintf( command, sizeof(command), "$%s", toast->variable_name );
+
+	mx_status = mxi_compumotor_command( compumotor_interface, command,
+					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+#endif
 
 	/* Set the destination for the move to the high position. */
 
@@ -499,8 +526,15 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 
 	/* Specify the end of the while loop. */
 
+#if 0
 	mx_status = mxi_compumotor_command( compumotor_interface, "NWHILE",
 					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
+#else
+	snprintf( command, sizeof(command), "GOTO %s", toast->variable_name );
+
+	mx_status = mxi_compumotor_command( compumotor_interface, command,
+					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
+#endif
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
