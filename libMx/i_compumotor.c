@@ -497,6 +497,9 @@ mxi_compumotor_open( MX_RECORD *record )
 		(void) mx_rs232_discard_unwritten_output( rs232_record,
 					MXI_COMPUMOTOR_INTERFACE_DEBUG );
 
+		(void) mx_rs232_discard_unread_input( rs232_record,
+					MXI_COMPUMOTOR_INTERFACE_DEBUG );
+
 		mx_status = mx_rs232_putline( rs232_record,
 					"!EOT13,10,0", NULL,
 					MXI_COMPUMOTOR_INTERFACE_DEBUG );
@@ -652,16 +655,12 @@ mxi_compumotor_resynchronize( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_compumotor_resynchronize()";
 
-	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
+	MX_COMPUMOTOR_INTERFACE *compumotor_interface = NULL;
 	char command[80], response[80];
 	char version_string[80], type_string[80];
 	long i, j;
 	int num_items, command_flags;
 	mx_status_type mx_status;
-
-	/* Suppress bogus GCC 4 uninitialized variable warnings. */
-
-	compumotor_interface = NULL;
 
 	mx_status = mxi_compumotor_get_pointers( record,
 				&compumotor_interface, fname );
