@@ -489,7 +489,7 @@ mx_get_num_lines_in_file( char *filename, size_t *num_lines_in_file )
 	int fd, saved_errno;
 	char buffer[1000];
 	size_t num_lines;
-	size_t i, bytes_read;
+	ssize_t i, bytes_read;
 	mx_bool_type have_read_a_partial_line;
 
 	if ( filename == (char *) NULL ) {

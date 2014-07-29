@@ -881,11 +881,11 @@ mx_verify_driver_type( MX_RECORD *record, long mx_superclass,
  * minimum number of record fields are present.
  */
 
-static MX_RECORD_FIELD_DEFAULTS mxp_field_test_table[] =
+MX_RECORD_FIELD_DEFAULTS mxp_field_test_table_xyzzy[] =
 				{MX_RECORD_STANDARD_FIELDS};
 
 static unsigned long mxp_minimum_number_of_fields = 
-	( sizeof(mxp_field_test_table) / sizeof(MX_RECORD_FIELD_DEFAULTS) );
+    ( sizeof(mxp_field_test_table_xyzzy) / sizeof(MX_RECORD_FIELD_DEFAULTS) );
 
 /* mx_verify_driver() checks to see if there is anything wrong with
  * the specified driver.

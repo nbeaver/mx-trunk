@@ -70,14 +70,14 @@ static void mx_syslog_handler( int level, char *message )
 	 * it on to syslog().
 	 */
 
-#if ( MX_GNUC_VERSION >= 4006000L )
+#if ( MX_GNUC_VERSION >= 4006000L ) || defined( MX_CLANG_VERSION )
 #  pragma GCC diagnostic push
 #  pragma GCC diagnostic ignored "-Wformat-nonliteral"
 #endif
 
 	syslog( level, message );
 
-#if ( MX_GNUC_VERSION >= 4006000L )
+#if ( MX_GNUC_VERSION >= 4006000L ) || defined( MX_CLANG_VERSION )
 #  pragma GCC diagnostic pop
 #endif
 
