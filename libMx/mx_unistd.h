@@ -9,7 +9,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2006-2007, 2009, 2013
+ * Copyright 2000-2001, 2003, 2006-2007, 2009, 2013-2014
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -35,7 +35,13 @@
    }
 #  endif
 
-#else
+/* On Windows, to have ssize_t we must do the following. */
+
+#  include <BaseTsd.h>
+   typedef SSIZE_T ssize_t;
+
+#else /* _not_ OS_WIN32 */
+
 #  include <stdlib.h>
 #  include <sys/stat.h>
 #  include <sys/types.h>
