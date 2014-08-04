@@ -218,6 +218,13 @@ mxd_nuvant_ezstat_aoutput_open( MX_RECORD *record )
 
 /*-----------------------------------------------------------------------*/
 
+/* Warning: The order in which the DAQmx calls are done seems to matter
+ *          very much to the NuVant EZstat hardware, so do not change
+ *          the order without a _very_ good reason.  Please note that
+ *          this fact is not obvious from the way the original LabVIEW
+ *          code was written.
+ */
+
 static mx_status_type
 mxd_nea_set_potentiostat_voltage( MX_ANALOG_OUTPUT *aoutput,
 				MX_NUVANT_EZSTAT_AOUTPUT *ezstat_aoutput,
@@ -226,6 +233,8 @@ mxd_nea_set_potentiostat_voltage( MX_ANALOG_OUTPUT *aoutput,
 	static const char fname[] = "mxd_nea_set_potentiostat_voltage()";
 
 	TaskHandle doutput_task_handle, voltage_task_handle;
+	char doutput_task_name[40];
+	char voltage_task_name[40];
 	char doutput_channel_names[200];
 	char voltage_channel_name[40];
 	int32 daqmx_status;
@@ -237,23 +246,31 @@ mxd_nea_set_potentiostat_voltage( MX_ANALOG_OUTPUT *aoutput,
 	uInt32 samples_written;
 	mx_status_type mx_status;
 
-	/* First, we must setup the digital control pins correctly.
-	 * 
-	 * We set up the following array of digital output channels:
-	 * Bit 0 = P0.0 (cell enable)
-	 * Bit 1 = P0.1 (external switch)
-	 * Bit 2 = P1.0 (select galvanostat or potentiostat mode)
-	 * Bit 3 = P1.3 (bits 3 and 4 select the potentiostat current range)
-	 * Bit 4 = P1.4
-	 * Bit 5 = P1.5 (controls sample and hold circuit for range changes)
+	/* See if the voltage is within the limits and clip it to
+	 * those limits if necessary.
 	 */
 
-	mx_status = mxi_nuvant_ezstat_create_task(
-				"ezstat_configure_potentiostat_bits",
-				&doutput_task_handle );
+	potentiostat_voltage = aoutput->raw_value.double_value;
+
+	if ( potentiostat_voltage > 10.0 ) {
+		potentiostat_voltage = 10.0;
+	} else
+	if ( potentiostat_voltage < -10.0 ) {
+		potentiostat_voltage = -10.0;
+	}
+
+	/* 1.  Create the digital output task that we will use. */
+
+	snprintf( doutput_task_name, sizeof(doutput_task_name),
+		"%s_potentiostat_doutput", ezstat->device_name );
+
+	mx_status = mxi_nuvant_ezstat_create_task( doutput_task_name,
+						&doutput_task_handle );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* 2.  Create the digital output channels for this task. */
 
 	snprintf( doutput_channel_names, sizeof(doutput_channel_names),
 	"%s/port0/line0:1,%s/port1/line0,%s/port1/line3:4,%s/port1/line5",
@@ -278,63 +295,20 @@ mxd_nea_set_potentiostat_voltage( MX_ANALOG_OUTPUT *aoutput,
 			(int) daqmx_status, daqmx_error_message );
 	}
 
-	mx_status = mxi_nuvant_ezstat_start_task( doutput_task_handle );
+	/* 3.  Before starting the digital output task, we create the
+	 *     output voltage task.
+	 */
+
+	snprintf( voltage_task_name, sizeof(voltage_task_name),
+		"%s_potentiostat_voltage", ezstat->device_name );
+
+	mx_status = mxi_nuvant_ezstat_create_task( voltage_task_name,
+						&voltage_task_handle );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Construct the values to send to the digital I/O pins. */
-
-	pin_value_array[0] = 0x1;	/* Cell enable selected. */
-
-	pin_value_array[1] = 0;		/* External switch off. */
-
-	pin_value_array[2] = 0;		/* Potentiostat mode. */
-
-	potentiostat_binary_range = ezstat->potentiostat_binary_range;
-
-	pin_value_array[3] = ( potentiostat_binary_range & 0x1 );
-
-	pin_value_array[4] = ( potentiostat_binary_range & 0x2 ) >> 1;
-
-	pin_value_array[5] = 1;		/* Enable range change. */
-
-	/* Send the bit values to the I/O pins. */
-
-	daqmx_status = DAQmxWriteDigitalU32( doutput_task_handle,
-					1, TRUE, 1.0,
-					DAQmx_Val_GroupByChannel,
-					pin_value_array,
-					&samples_written, NULL );
-
-	if ( daqmx_status != 0 ) {
-		DAQmxGetExtendedErrorInfo( daqmx_error_message,
-					sizeof(daqmx_error_message) );
-
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"The attempt to write the digital output samples for "
-		"DAQmx task %#lx used by record '%s' failed.  "
-		"DAQmx error code = %d, error message = '%s'",
-			(unsigned long) doutput_task_handle,
-			aoutput->record->name,
-			(int) daqmx_status, daqmx_error_message );
-	}
-
-	/* We are done with the digital output task, so get rid of it. */
-
-	mx_status = mxi_nuvant_ezstat_shutdown_task( doutput_task_handle );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Now we send the potentiostat output voltage. */
-
-	mx_status = mxi_nuvant_ezstat_create_task(
-				"ezstat_set_potentiostat_voltage",
-				&voltage_task_handle );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	/* 4.  Create the analog output channel for this task. */
 
 	snprintf( voltage_channel_name, sizeof(voltage_channel_name),
 		"%s/ao0", ezstat->device_name );
@@ -358,18 +332,14 @@ mxd_nea_set_potentiostat_voltage( MX_ANALOG_OUTPUT *aoutput,
 			(int) daqmx_status, daqmx_error_message );
 	}
 
-	/* See if the voltage is within the limits. */
+	/* 5.  Start the _digital_ output task (not the analog task). */
 
-	potentiostat_voltage = aoutput->raw_value.double_value;
+	mx_status = mxi_nuvant_ezstat_start_task( doutput_task_handle );
 
-	if ( potentiostat_voltage > 10.0 ) {
-		potentiostat_voltage = 10.0;
-	} else
-	if ( potentiostat_voltage < -10.0 ) {
-		potentiostat_voltage = -10.0;
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	/* Now write the voltage. */
+	/* 6.  Now write the voltage.  This also starts the task. */
 
 	voltage_write_array[0] = potentiostat_voltage;
 
@@ -393,7 +363,76 @@ mxd_nea_set_potentiostat_voltage( MX_ANALOG_OUTPUT *aoutput,
 			(int) daqmx_status, daqmx_error_message );
 	}
 
+	/* We must setup the digital control pins correctly for 
+	 * potentiostat mode.
+	 * 
+	 * We set up the following array of digital output channels:
+	 * Bit 0 = P0.0 (cell enable)
+	 * Bit 1 = P0.1 (external switch)
+	 * Bit 2 = P1.0 (select galvanostat or potentiostat mode)
+	 * Bit 3 = P1.3 (bits 3 and 4 select the potentiostat current range)
+	 * Bit 4 = P1.4
+	 * Bit 5 = P1.5 (controls sample and hold circuit for range changes)
+	 */
+
+	/* Construct the values to send to the digital I/O pins. */
+
+	pin_value_array[0] = 0x1;	/* Cell enable selected. */
+
+	pin_value_array[1] = 0;		/* External switch off. */
+
+	pin_value_array[2] = 0;		/* Potentiostat mode. */
+
+	potentiostat_binary_range = ezstat->potentiostat_binary_range;
+
+	pin_value_array[3] = ( potentiostat_binary_range & 0x1 );
+
+	pin_value_array[4] = ( potentiostat_binary_range & 0x2 ) >> 1;
+
+	pin_value_array[5] = 1;		/* Enable range change. */
+
+	/* 7.  Send the bit values to the I/O pins. */
+
+#if 1
+	{
+		int n;
+
+		for ( n = 0; n < 6; n++ ) {
+			MX_DEBUG(-2,("%s: pin[%d] = %#x",
+				fname, n, pin_value_array[n]));
+		}
+	}
+#endif
+
+	daqmx_status = DAQmxWriteDigitalU32( doutput_task_handle,
+					1, TRUE, 1.0,
+					DAQmx_Val_GroupByChannel,
+					pin_value_array,
+					&samples_written, NULL );
+
+	if ( daqmx_status != 0 ) {
+		DAQmxGetExtendedErrorInfo( daqmx_error_message,
+					sizeof(daqmx_error_message) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"The attempt to write the digital output samples for "
+		"DAQmx task %#lx used by record '%s' failed.  "
+		"DAQmx error code = %d, error message = '%s'",
+			(unsigned long) doutput_task_handle,
+			aoutput->record->name,
+			(int) daqmx_status, daqmx_error_message );
+	}
+
+	/* 8.  Shut down the voltage task. */
+
 	mx_status = mxi_nuvant_ezstat_shutdown_task( voltage_task_handle );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* 9.  Shut down the digital output task. */
+
+	mx_status = mxi_nuvant_ezstat_shutdown_task( doutput_task_handle );
 
 	return mx_status;
 }
