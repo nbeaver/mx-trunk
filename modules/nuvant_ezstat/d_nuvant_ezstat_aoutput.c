@@ -219,10 +219,17 @@ mxd_nuvant_ezstat_aoutput_open( MX_RECORD *record )
 /*-----------------------------------------------------------------------*/
 
 /* Warning: The order in which the DAQmx calls are done seems to matter
- *          very much to the NuVant EZstat hardware, so do not change
- *          the order without a _very_ good reason.  Please note that
- *          this fact is not obvious from the way the original LabVIEW
- *          code was written.
+ *          very much to the NuVant EZstat hardware, so do not change the
+ *          order without a _very_ good reason.  Currently, this function
+ *          makes calls to DAQmx in exactly the same order as was used in
+ *          the original LabVIEW code.
+ *
+ *          It appears that the crucial point is that the analog output
+ *          voltage must be set _before_ you write to the digital output.
+ *          This is because the actual visible external voltage change
+ *          occurs at the moment of the write to the _digital_ output.
+ *          A write to the analog output by itself has no visible effect
+ *          on the measured voltage.
  */
 
 static mx_status_type
@@ -270,7 +277,10 @@ mxd_nea_set_potentiostat_voltage( MX_ANALOG_OUTPUT *aoutput,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* 2.  Create the digital output channels for this task. */
+	/* 2.  Create the digital output channels for this task.
+	 *     Note that port1/line3:4 select the current range
+	 *     for potentiostat mode.
+	 */
 
 	snprintf( doutput_channel_names, sizeof(doutput_channel_names),
 	"%s/port0/line0:1,%s/port1/line0,%s/port1/line3:4,%s/port1/line5",

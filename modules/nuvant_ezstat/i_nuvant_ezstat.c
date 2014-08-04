@@ -14,7 +14,9 @@
  *
  */
 
-#define MXI_NUVANT_EZSTAT_DEBUG		FALSE
+#define MXI_NUVANT_EZSTAT_DEBUG			FALSE
+
+#define MXI_NUVANT_EZSTAT_DEBUG_READ_AI		TRUE
 
 #include <stdio.h>
 
@@ -356,6 +358,7 @@ mxi_nuvant_ezstat_read_ai_values( MX_NUVANT_EZSTAT *ezstat,
 	static const char fname[] = "mxi_nuvant_ezstat_read_ai_values()";
 
 	char channel_names[80];
+	char task_name[40];
 	TaskHandle task_handle;
 	double ai_measurement_array[MXI_NUVANT_EZSTAT_NUM_AI_SAMPLES];
 	double sum[MXI_NUVANT_EZSTAT_NUM_AI_CHANNELS];
@@ -375,8 +378,10 @@ mxi_nuvant_ezstat_read_ai_values( MX_NUVANT_EZSTAT *ezstat,
 
 	/* Create a DAQmx task for the read operation. */
 
-	mx_status = mxi_nuvant_ezstat_create_task( "ezstat_read_ai_values",
-							&task_handle );
+	snprintf( task_name, sizeof(task_name),
+		"%s_read_ai_values", ezstat->device_name );
+
+	mx_status = mxi_nuvant_ezstat_create_task( task_name, &task_handle );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -463,6 +468,10 @@ mxi_nuvant_ezstat_read_ai_values( MX_NUVANT_EZSTAT *ezstat,
 
 	ai_ptr = ai_measurement_array;
 
+#if MXI_NUVANT_EZSTAT_DEBUG_READ_AI
+	MX_DEBUG(-2,(""));
+#endif
+
 	for ( i = 0; i < MXI_NUVANT_EZSTAT_NUM_AI_CHANNELS; i++ ) {
 		sum[i] = 0.0;
 
@@ -482,8 +491,10 @@ mxi_nuvant_ezstat_read_ai_values( MX_NUVANT_EZSTAT *ezstat,
 		ai_value_array[i]
 			= sum[i] / MXI_NUVANT_EZSTAT_NUM_AI_MEASUREMENTS;
 
+#if MXI_NUVANT_EZSTAT_DEBUG_READ_AI
 		MX_DEBUG(-2,("%s: ai_value_array[%lu] = %g",
 			fname, i, ai_value_array[i]));
+#endif
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -498,6 +509,7 @@ mxi_nuvant_ezstat_set_binary_range( MX_NUVANT_EZSTAT *ezstat,
 {
 	static const char fname[] = "mxi_nuvant_ezstat_set_binary_range()";
 
+	char doutput_task_name[40];
 	TaskHandle doutput_task_handle;
 	char doutput_channel_names[200];
 	int32 daqmx_status;
@@ -587,25 +599,16 @@ mxi_nuvant_ezstat_set_binary_range( MX_NUVANT_EZSTAT *ezstat,
 
 	/* Prepare to reprogram the digital output bits. */
 
-	mx_status = mxi_nuvant_ezstat_create_task( "ezstat_set_range",
+	snprintf( doutput_task_name, sizeof(doutput_task_name),
+		"%s_set_range", ezstat->device_name );
+
+	mx_status = mxi_nuvant_ezstat_create_task( doutput_task_name,
 						&doutput_task_handle );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Construct the value to send to the digital I/O pins. */
-
-	if ( ezstat_mode == MXF_NUVANT_EZSTAT_POTENTIOSTAT_MODE ) {
-		pin_value_array[0] = 0;
-	} else {
-		pin_value_array[0] = 1;
-	}
-
-	pin_value_array[1] = ( binary_range & 0x1 );
-
-	pin_value_array[2] = ( binary_range & 0x2 ) >> 1;
-
-	pin_value_array[3] = 1;	/* Enable range change with /port1/line5. */
+	/* Create the digital output channel. */
 
 	daqmx_status = DAQmxCreateDOChan( doutput_task_handle,
 					doutput_channel_names, NULL,
@@ -624,6 +627,27 @@ mxi_nuvant_ezstat_set_binary_range( MX_NUVANT_EZSTAT *ezstat,
 			(unsigned long) doutput_task_handle,
 			(int) daqmx_status, daqmx_error_message );
 	}
+
+	/* Start the task. */
+
+	mx_status = mxi_nuvant_ezstat_start_task( doutput_task_handle );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Construct the value to send to the digital I/O pins. */
+
+	if ( ezstat_mode == MXF_NUVANT_EZSTAT_POTENTIOSTAT_MODE ) {
+		pin_value_array[0] = 0;
+	} else {
+		pin_value_array[0] = 1;
+	}
+
+	pin_value_array[1] = ( binary_range & 0x1 );
+
+	pin_value_array[2] = ( binary_range & 0x2 ) >> 1;
+
+	pin_value_array[3] = 1;	/* Enable range change with /port1/line5. */
 
 	daqmx_status = DAQmxWriteDigitalU32( doutput_task_handle,
 					1, TRUE, 1.0,
