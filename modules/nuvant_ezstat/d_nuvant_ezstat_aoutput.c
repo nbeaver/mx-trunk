@@ -456,6 +456,11 @@ mxd_nea_set_potentiostat_voltage( MX_ANALOG_OUTPUT *aoutput,
 
 /*-----------------------------------------------------------------------*/
 
+/* Warning: Do not change the order of the DAQmx calls in this function
+ *          without a very good reason!  Read the comment at the beginning
+ *          of mxd_nea_set_potentiostat_voltage() for the reason why.
+ */
+
 static mx_status_type
 mxd_nea_set_galvanostat_current( MX_ANALOG_OUTPUT *aoutput,
 				MX_NUVANT_EZSTAT_AOUTPUT *ezstat_aoutput,
@@ -464,6 +469,8 @@ mxd_nea_set_galvanostat_current( MX_ANALOG_OUTPUT *aoutput,
 	static const char fname[] = "mxd_nea_set_galvanostat_current()";
 
 	TaskHandle doutput_task_handle, voltage_task_handle;
+	char doutput_task_name[40];
+	char voltage_task_name[40];
 	char doutput_channel_names[200];
 	char voltage_channel_name[40];
 	int32 daqmx_status;
@@ -475,23 +482,34 @@ mxd_nea_set_galvanostat_current( MX_ANALOG_OUTPUT *aoutput,
 	uInt32 samples_written;
 	mx_status_type mx_status;
 
-	/* First, we must setup the digital control pins correctly.
-	 * 
-	 * We set up the following array of digital output channels:
-	 * Bit 0 = P0.0 (cell enable)
-	 * Bit 1 = P0.1 (external switch)
-	 * Bit 2 = P1.0 (select galvanostat or potentiostat mode)
-	 * Bit 3 = P1.1 (bits 1 and 2 select the galvanostat current range)
-	 * Bit 4 = P1.2
-	 * Bit 5 = P1.5 (controls sample and hold circuit for range changes)
-	 */
+	/* Compute the output voltage from the requested galvanostat current. */
 
-	mx_status = mxi_nuvant_ezstat_create_task(
-				"ezstat_configure_galvanostat_bits",
-				&doutput_task_handle );
+	galvanostat_current = aoutput->raw_value.double_value;
+
+	output_voltage = galvanostat_current * ezstat->galvanostat_resistance;
+
+	if ( output_voltage > 10.0 ) {
+		output_voltage = 10.0;
+	} else
+	if ( output_voltage < -10.0 ) {
+		output_voltage = -10.0;
+	}
+
+	/* 1.  Create the digital output task that we will use. */
+
+	snprintf( doutput_task_name, sizeof(doutput_task_name),
+		"%s_galvanostat_doutput", ezstat->device_name );
+
+	mx_status = mxi_nuvant_ezstat_create_task( doutput_task_name,
+						&doutput_task_handle );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* 2.  Create the digital output channels for this task.
+	 *     Note that port1/line1:2 (part of port1/line0:2)
+	 *     selects the current range for galvanostat mode.
+	 */
 
 	snprintf( doutput_channel_names, sizeof(doutput_channel_names),
 	"%s/port0/line0:1,%s/port1/line0:2,%s/port1/line5",
@@ -515,63 +533,20 @@ mxd_nea_set_galvanostat_current( MX_ANALOG_OUTPUT *aoutput,
 			(int) daqmx_status, daqmx_error_message );
 	}
 
-	mx_status = mxi_nuvant_ezstat_start_task( doutput_task_handle );
+	/* 3.  Before starting the digital output task, we create the
+	 *     output voltage task.
+	 */
+
+	snprintf( voltage_task_name, sizeof(voltage_task_name),
+		"%s_galvanostat_voltage", ezstat->device_name );
+
+	mx_status = mxi_nuvant_ezstat_create_task( voltage_task_name,
+						&voltage_task_handle );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Construct the value to send to the digital I/O pins. */
-
-	pin_value_array[0] = 0x1;	/* Cell enable selected. */
-
-	pin_value_array[1] = 0;		/* External switch off. */
-
-	pin_value_array[2] = 1;		/* Galvanostat mode. */
-
-	galvanostat_binary_range = ezstat->galvanostat_binary_range;
-
-	pin_value_array[3] = ( galvanostat_binary_range & 0x1 );
-
-	pin_value_array[4] = ( galvanostat_binary_range & 0x2 ) >> 1;
-
-	pin_value_array[5] = 1;		/* Enable range change. */
-
-	/* Send the bit values to the I/O pins. */
-
-	daqmx_status = DAQmxWriteDigitalU32( doutput_task_handle,
-					1, TRUE, 1.0,
-					DAQmx_Val_GroupByChannel,
-					pin_value_array,
-					&samples_written, NULL );
-
-	if ( daqmx_status != 0 ) {
-		DAQmxGetExtendedErrorInfo( daqmx_error_message,
-					sizeof(daqmx_error_message) );
-
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"The attempt to write the digital output samples for "
-		"DAQmx task %#lx used by record '%s' failed.  "
-		"DAQmx error code = %d, error message = '%s'",
-			(unsigned long) doutput_task_handle,
-			aoutput->record->name,
-			(int) daqmx_status, daqmx_error_message );
-	}
-
-	/* We are done with the digital output task, so get rid of it. */
-
-	mx_status = mxi_nuvant_ezstat_shutdown_task( doutput_task_handle );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Now we send the galvanostat output current. */
-
-	mx_status = mxi_nuvant_ezstat_create_task(
-				"ezstat_set_galvanostat_current",
-				&voltage_task_handle );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	/* 4.  Create the analog output channel for this task. */
 
 	snprintf( voltage_channel_name, sizeof(voltage_channel_name),
 		"%s/ao0", ezstat->device_name );
@@ -595,25 +570,26 @@ mxd_nea_set_galvanostat_current( MX_ANALOG_OUTPUT *aoutput,
 			(int) daqmx_status, daqmx_error_message );
 	}
 
-	/* Compute the output voltage from the requested galvanostat current. */
+	/* 5.  Start the _digital_ output task (not the analog task). */
 
-	galvanostat_current = aoutput->raw_value.double_value;
+	mx_status = mxi_nuvant_ezstat_start_task( doutput_task_handle );
 
-	output_voltage = galvanostat_current * ezstat->galvanostat_resistance;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	if ( output_voltage > 10.0 ) {
-		output_voltage = 10.0;
-	} else
-	if ( output_voltage < -10.0 ) {
-		output_voltage = -10.0;
-	}
+	/* 6.  Start the analog output task. */
 
-	/* Now write the voltage. */
+	mx_status = mxi_nuvant_ezstat_start_task( voltage_task_handle );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* 7.  Write the new voltage value. */
 
 	voltage_write_array[0] = output_voltage;
 
 	daqmx_status = DAQmxWriteAnalogF64( voltage_task_handle,
-					1, TRUE, 1.0,
+					1, FALSE, 1.0,
 					DAQmx_Val_GroupByChannel,
 					voltage_write_array,
 					&samples_written, NULL );
@@ -632,7 +608,76 @@ mxd_nea_set_galvanostat_current( MX_ANALOG_OUTPUT *aoutput,
 			(int) daqmx_status, daqmx_error_message );
 	}
 
+	/* We must setup the digital control pins correctly for
+	 * galvanostat mode.
+	 * 
+	 * We set up the following array of digital output channels:
+	 * Bit 0 = P0.0 (cell enable)
+	 * Bit 1 = P0.1 (external switch)
+	 * Bit 2 = P1.0 (select galvanostat or potentiostat mode)
+	 * Bit 3 = P1.1 (bits 1 and 2 select the galvanostat current range)
+	 * Bit 4 = P1.2
+	 * Bit 5 = P1.5 (controls sample and hold circuit for range changes)
+	 */
+
+	/* Construct the value to send to the digital I/O pins. */
+
+	pin_value_array[0] = 0x1;	/* Cell enable selected. */
+
+	pin_value_array[1] = 0;		/* External switch off. */
+
+	pin_value_array[2] = 1;		/* Galvanostat mode. */
+
+	galvanostat_binary_range = ezstat->galvanostat_binary_range;
+
+	pin_value_array[3] = ( galvanostat_binary_range & 0x1 );
+
+	pin_value_array[4] = ( galvanostat_binary_range & 0x2 ) >> 1;
+
+	pin_value_array[5] = 1;		/* Enable range change. */
+
+#if MXD_NUVANT_EZSTAT_AOUTPUT_DEBUG
+	{
+		int n;
+
+		for ( n = 0; n < 6; n++ ) {
+			MX_DEBUG(-2,("%s: pin[%d] = %#x",
+				fname, n, pin_value_array[n]));
+		}
+	}
+#endif
+
+	/* 8.  Send the bit values to the I/O pins. */
+
+	daqmx_status = DAQmxWriteDigitalU32( doutput_task_handle,
+					1, TRUE, 1.0,
+					DAQmx_Val_GroupByChannel,
+					pin_value_array,
+					&samples_written, NULL );
+
+	if ( daqmx_status != 0 ) {
+		DAQmxGetExtendedErrorInfo( daqmx_error_message,
+					sizeof(daqmx_error_message) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"The attempt to write the digital output samples for "
+		"DAQmx task %#lx used by record '%s' failed.  "
+		"DAQmx error code = %d, error message = '%s'",
+			(unsigned long) doutput_task_handle,
+			aoutput->record->name,
+			(int) daqmx_status, daqmx_error_message );
+	}
+
+	/* 9.  Shut down the voltage task. */
+
 	mx_status = mxi_nuvant_ezstat_shutdown_task( voltage_task_handle );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* 10.  Shut down the digital output task. */
+
+	mx_status = mxi_nuvant_ezstat_shutdown_task( doutput_task_handle );
 
 	return mx_status;
 }
