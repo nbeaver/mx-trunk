@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_NUVANT_EZSTAT_AOUTPUT_DEBUG	TRUE
+#define MXD_NUVANT_EZSTAT_AOUTPUT_DEBUG		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -349,7 +349,7 @@ mxd_nea_set_potentiostat_voltage( MX_ANALOG_OUTPUT *aoutput,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* 6.  Now write the voltage.  This also starts the task. */
+	/* 6.  Now write the voltage.  This also starts the AO task. */
 
 	voltage_write_array[0] = potentiostat_voltage;
 
@@ -401,9 +401,7 @@ mxd_nea_set_potentiostat_voltage( MX_ANALOG_OUTPUT *aoutput,
 
 	pin_value_array[5] = 1;		/* Enable range change. */
 
-	/* 7.  Send the bit values to the I/O pins. */
-
-#if 1
+#if MXD_NUVANT_EZSTAT_AOUTPUT_DEBUG
 	{
 		int n;
 
@@ -414,8 +412,10 @@ mxd_nea_set_potentiostat_voltage( MX_ANALOG_OUTPUT *aoutput,
 	}
 #endif
 
+	/* 7.  Send the bit values to the I/O pins. */
+
 	daqmx_status = DAQmxWriteDigitalU32( doutput_task_handle,
-					1, TRUE, 1.0,
+					1, FALSE, 1.0,
 					DAQmx_Val_GroupByChannel,
 					pin_value_array,
 					&samples_written, NULL );

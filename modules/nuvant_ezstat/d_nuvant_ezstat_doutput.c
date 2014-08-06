@@ -329,7 +329,7 @@ mxd_nuvant_ezstat_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 	write_array[0] = (uInt32) doutput->value;
 
 	daqmx_status = DAQmxWriteDigitalU32( task_handle,
-					1, TRUE, 1.0,
+					1, FALSE, 1.0,
 					DAQmx_Val_GroupByChannel,
 					write_array,
 					&samples_written, NULL );

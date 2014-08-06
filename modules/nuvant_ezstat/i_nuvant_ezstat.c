@@ -650,7 +650,7 @@ mxi_nuvant_ezstat_set_binary_range( MX_NUVANT_EZSTAT *ezstat,
 	pin_value_array[3] = 1;	/* Enable range change with /port1/line5. */
 
 	daqmx_status = DAQmxWriteDigitalU32( doutput_task_handle,
-					1, TRUE, 1.0,
+					1, FALSE, 1.0,
 					DAQmx_Val_GroupByChannel,
 					pin_value_array,
 					&samples_written, NULL );
