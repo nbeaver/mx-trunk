@@ -119,6 +119,13 @@ mxi_nuvant_ezstat_open( MX_RECORD *record )
 	static const char fname[] = "mxi_nuvant_ezstat_open()";
 
 	MX_NUVANT_EZSTAT *ezstat = NULL;
+	char task_name[40];
+	TaskHandle task_handle;
+	char channel_names[100];
+	int32 daqmx_status;
+	char daqmx_error_message[200];
+	uInt32 pin_value_array[5];
+	uInt32 num_samples_read;
 	mx_status_type mx_status;
 
 	mx_status = mxi_nuvant_ezstat_get_pointers( record, &ezstat, fname );
@@ -129,6 +136,94 @@ mxi_nuvant_ezstat_open( MX_RECORD *record )
 #if MXI_NUVANT_EZSTAT_DEBUG
 	MX_DEBUG(-2,("%s invoked for '%s'.", fname, record->name));
 #endif
+
+	/* We need to initialize the internal potentiostat/galvanostat current
+	 * range variables and potentiostat/galvanostat resistance variables
+	 * to match what the hardware is set to so that we report the correct
+	 * values to the user.
+	 */
+
+	/* Create the task to use. */
+
+	snprintf(task_name, sizeof(task_name), "%s_open", ezstat->device_name);
+
+	mx_status = mxi_nuvant_ezstat_create_task( task_name, &task_handle );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Create the digital input channel. */
+
+	/* Use the values of port1/line0:4 to get both the setting of the
+	 * potentiostat/galvanostat selector as well as the binary range
+	 * settings.
+	 */
+
+	snprintf( channel_names, sizeof(channel_names),
+		"%s/port1/line0:4", ezstat->device_name );
+
+	daqmx_status = DAQmxCreateDIChan( task_handle, channel_names,
+					NULL, DAQmx_Val_ChanPerLine );
+
+	if ( daqmx_status != 0 ) {
+		DAQmxGetExtendedErrorInfo( daqmx_error_message,
+					sizeof(daqmx_error_message) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"The attempt to associate digital I/O pins '%s' for "
+		"EZStat '%s' with DAQmx task %#lx failed.  "
+		"DAQmx error code = %d, error message = '%s'",
+			channel_names,
+			ezstat->record->name,
+			(unsigned long) task_handle,
+			(int) daqmx_status, daqmx_error_message );
+	}
+
+	/* Start the task. */
+
+	mx_status = mxi_nuvant_ezstat_start_task( task_handle );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Read the current values of the pin settings. */
+
+	daqmx_status = DAQmxReadDigitalU32( task_handle, 1, 1.0, 
+					DAQmx_Val_GroupByChannel,
+					pin_value_array, 5,
+					&num_samples_read, NULL );
+
+	if ( daqmx_status != 0 ) {
+		DAQmxGetExtendedErrorInfo( daqmx_error_message,
+					sizeof(daqmx_error_message) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"The attempt to read the digital inputs for "
+		"DAQmx task %#lx failed.  "
+		"DAQmx error code = %d, error message = '%s'",
+			(unsigned long) task_handle,
+			(int) daqmx_status, daqmx_error_message );
+	}
+
+	/* Shutdown the task. */
+
+	mx_status = mxi_nuvant_ezstat_shutdown_task( task_handle );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXI_NUVANT_EZSTAT_DEBUG
+	{
+		int n;
+
+		for ( n = 0; n < 5; n++ ) {
+			MX_DEBUG(-2,("%s: pin[%d] = %#x",
+			fname, n, pin_value_array[n]));
+		}
+	}
+#endif
+
+	/* FIXME: For some reason, the pin values are all reading as 0. */
 
 	return mx_status;
 }
