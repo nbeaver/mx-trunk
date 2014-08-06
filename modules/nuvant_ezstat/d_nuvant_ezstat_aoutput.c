@@ -349,12 +349,19 @@ mxd_nea_set_potentiostat_voltage( MX_ANALOG_OUTPUT *aoutput,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* 6.  Now write the voltage.  This also starts the AO task. */
+	/* 6.  Start the analog output task. */
+
+	mx_status = mxi_nuvant_ezstat_start_task( voltage_task_handle );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* 7.  Write the new voltage value. */
 
 	voltage_write_array[0] = potentiostat_voltage;
 
 	daqmx_status = DAQmxWriteAnalogF64( voltage_task_handle,
-					1, TRUE, 1.0,
+					1, FALSE, 1.0,
 					DAQmx_Val_GroupByChannel,
 					voltage_write_array,
 					&samples_written, NULL );
@@ -412,7 +419,7 @@ mxd_nea_set_potentiostat_voltage( MX_ANALOG_OUTPUT *aoutput,
 	}
 #endif
 
-	/* 7.  Send the bit values to the I/O pins. */
+	/* 8.  Send the bit values to the I/O pins. */
 
 	daqmx_status = DAQmxWriteDigitalU32( doutput_task_handle,
 					1, FALSE, 1.0,
@@ -433,14 +440,14 @@ mxd_nea_set_potentiostat_voltage( MX_ANALOG_OUTPUT *aoutput,
 			(int) daqmx_status, daqmx_error_message );
 	}
 
-	/* 8.  Shut down the voltage task. */
+	/* 9.  Shut down the voltage task. */
 
 	mx_status = mxi_nuvant_ezstat_shutdown_task( voltage_task_handle );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* 9.  Shut down the digital output task. */
+	/* 10.  Shut down the digital output task. */
 
 	mx_status = mxi_nuvant_ezstat_shutdown_task( doutput_task_handle );
 
