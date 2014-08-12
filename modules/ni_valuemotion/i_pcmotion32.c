@@ -9,7 +9,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2006, 2010, 2012 Illinois Institute of Technology
+ * Copyright 2000-2001, 2006, 2010, 2012, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -277,15 +277,15 @@ static int mxi_pcmotion32_num_error_messages
 MX_EXPORT char *
 mxi_pcmotion32_strerror( int status_code )
 {
-	static char error_string[40];
+	static char error_string[200];
 
 	if ( (status_code < 0)
 	  || (status_code >= mxi_pcmotion32_num_error_messages) )
 	{
-		sprintf( error_string,
+		snprintf( error_string, sizeof(error_string),
 			"The error status code (%d) is outside the normal "
 			"range of error codes (0 to 27).  This should not "
-			"be able to happen, but it has." );
+			"be able to happen, but it has.", status_code );
 
 		return &error_string[0];
 	}

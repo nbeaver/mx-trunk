@@ -1246,6 +1246,8 @@ mx_get_fd_name( unsigned long process_id, int fd,
 						buffer, buffer_size );
 	} else {
 		snprintf( buffer, buffer_size, "FD %d", fd );
+
+		mx_status = MX_SUCCESSFUL_RESULT;
 	}
 
 	if ( mx_status.code != MXE_SUCCESS ) {

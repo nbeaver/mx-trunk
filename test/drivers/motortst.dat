@@ -64,7 +64,7 @@ hmu             device motor soft_motor "" "" 0 0 -100000000 100000000 0 -1 -1 0
 hnu             device motor soft_motor "" "" 0 0 -100000000 100000000 0 -1 -1 0.001 0 deg 1000 0 500
 hdettheta       device motor soft_motor "" "" 0 0 -100000000 100000000 0 -1 -1 0.001 0 deg 1000 0 500
 hdet2theta      device motor soft_motor "" "" 0 0 -100000000 100000000 0 -1 -1 0.001 0 deg 1000 0 500
-hth2th          device motor theta_2theta "" "" 0.626 0 -1e+09 1e+09 0 -1 -1 1 0 deg htheta hdelta
+hth2th          device motor theta_2theta "" "" 0.626 0 -1e+09 1e+09 0 -1 -1 1 0 deg htheta hdelta 0x0
 q               device motor q_motor "" "" 0.10880874 0 -100000 100000 0 -1 -1 1 0 A-1 hdelta lambda 0.01745329251994330
 I0              device scaler soft_scaler "" "" 157555 0 0 timer1 energy 101 ./i0.dat 0 
 I               device scaler soft_scaler "" "" 395527 0 0 timer1 energy 101 ./i.dat 0 
