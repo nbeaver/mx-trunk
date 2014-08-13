@@ -349,8 +349,10 @@ mx_copy_file_classic( char *existing_filename,
 		saved_errno = errno;
 
 		return mx_error( MXE_FILE_IO_ERROR, fname,
-		"The file '%s' could not be opened.  Reason = '%s'",
-			existing_filename, strerror( saved_errno ) );
+		"The file '%s' could not be opened.  "
+		"Errno = %d, error message = '%s'",
+			existing_filename,
+			saved_errno, strerror( saved_errno ) );
 	}
 
 	/* Get information about the existing file. */
@@ -361,8 +363,10 @@ mx_copy_file_classic( char *existing_filename,
 		COPY_FILE_CLEANUP;
 
 		return mx_error( MXE_FILE_IO_ERROR, fname,
-		"Could not fstat() the file '%s'.  Reason = '%s'",
-			existing_filename, strerror( saved_errno ) );
+		"Could not fstat() the file '%s'.  "
+		"Errno = %d, error message = '%s'",
+			existing_filename,
+			saved_errno, strerror( saved_errno ) );
 	}
 
 	existing_file_size = (unsigned long) stat_struct.st_size;
@@ -399,8 +403,10 @@ mx_copy_file_classic( char *existing_filename,
 		COPY_FILE_CLEANUP;
 
 		return mx_error( MXE_FILE_IO_ERROR, fname,
-		"New file '%s' could not be opened.  Reason = '%s'",
-			new_filename, strerror( saved_errno ) );
+		"New file '%s' could not be opened.  "
+		"Errno = %d, error message = '%s'",
+			new_filename,
+			saved_errno, strerror( saved_errno ) );
 	}
 
 	/* Copy the contents of the existing file to the new file. */
@@ -417,9 +423,10 @@ mx_copy_file_classic( char *existing_filename,
 
 			return mx_error( MXE_FILE_IO_ERROR, fname,
 	"An error occurred while reading the existing file '%s', so the "
-	"new file '%s' is probably incomplete.  Error = '%s'.",
+	"new file '%s' is probably incomplete.  "
+	"Errno = %d, error message = '%s'.",
 				existing_filename, new_filename,
-				strerror( saved_errno ) );
+				saved_errno, strerror( saved_errno ) );
 		} else
 		if ( bytes_read == 0 ) {
 			/* This means end of file. */
@@ -446,9 +453,10 @@ mx_copy_file_classic( char *existing_filename,
 
 				return mx_error( MXE_FILE_IO_ERROR, fname,
 	"An error occurred while writing the new file '%s', so the "
-	"new file is probably incomplete.  Error = '%s'",
+	"new file is probably incomplete.  "
+	"Errno = %d, error message = '%s'",
 					new_filename,
-					strerror( saved_errno ) );
+					saved_errno, strerror( saved_errno ) );
 			} else
 			if ( bytes_written == 0 ) {
 				return mx_error( MXE_FILE_IO_ERROR, fname,

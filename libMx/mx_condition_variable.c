@@ -104,9 +104,6 @@ typedef struct {
   // Keeps track of whether we were broadcasting or signaling.  This
   // allows us to optimize the code if we're just signaling.
 
-  CRITICAL_SECTION serialize_lock_;
-  // Serialize access to signal, broadcast, wait, and timed wait calls.
-
 } MX_WIN32_CONDITION_VARIABLE;
 
 MX_EXPORT mx_status_type
@@ -190,8 +187,6 @@ mx_condition_variable_create( MX_CONDITION_VARIABLE **cv )
 	                                       FALSE, // non-signaled initially
 	                                       NULL); // unnamed
 
-	InitializeCriticalSection( &(win32_cv->serialize_lock_) );
-
 	/*---*/
 
 	(*cv)->cv_private = win32_cv;
@@ -227,8 +222,6 @@ mx_condition_variable_destroy( MX_CONDITION_VARIABLE *cv )
 	}
 
 	/*---*/
-
-	DeleteCriticalSection( &(win32_cv->serialize_lock_) );
 
 	os_status = CloseHandle( &(win32_cv->waiters_done_) );
 
@@ -335,8 +328,6 @@ mx_condition_variable_timed_wait( MX_CONDITION_VARIABLE *cv,
 
 	/*---*/
 
-	EnterCriticalSection( &(win32_cv->serialize_lock_) );
-
 	// Avoid race conditions
 
 	EnterCriticalSection( &(win32_cv->waiters_count_lock_) );
@@ -385,8 +376,6 @@ mx_condition_variable_timed_wait( MX_CONDITION_VARIABLE *cv,
 				*win32_mutex_handle_ptr, INFINITE );
 	}
 
-	LeaveCriticalSection( &(win32_cv->serialize_lock_) );
-
 	/*---*/
 
 	return MX_SUCCESSFUL_RESULT;
@@ -415,8 +404,6 @@ mx_condition_variable_signal( MX_CONDITION_VARIABLE *cv )
 
 	/*---*/
 
-	EnterCriticalSection( &(win32_cv->serialize_lock_) );
-
 	EnterCriticalSection( &(win32_cv->waiters_count_lock_) );
 	have_waiters = (win32_cv->waiters_count_ > 0);
 	LeaveCriticalSection( &(win32_cv->waiters_count_lock_) );
@@ -425,8 +412,6 @@ mx_condition_variable_signal( MX_CONDITION_VARIABLE *cv )
 
 	if (have_waiters)
 		ReleaseSemaphore( win32_cv->sema_, 1, 0 );
-
-	LeaveCriticalSection( &(win32_cv->serialize_lock_) );
 
 	/*---*/
 
@@ -456,8 +441,6 @@ mx_condition_variable_broadcast( MX_CONDITION_VARIABLE *cv )
 	}
 
 	/*---*/
-
-	EnterCriticalSection( &(win32_cv->serialize_lock_) );
 
 	// This is needed to ensure that <waiters_count_> and
 	// <was_broadcast_> are consistent relative to each other.
@@ -494,8 +477,6 @@ mx_condition_variable_broadcast( MX_CONDITION_VARIABLE *cv )
 	} else {
 		LeaveCriticalSection( &(win32_cv->waiters_count_lock_) );
 	}
-
-	LeaveCriticalSection( &(win32_cv->serialize_lock_) );
 
 	/*---*/
 
