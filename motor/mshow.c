@@ -963,6 +963,9 @@ motor_show_version( void )
 		fprintf( output, "\nCPU cores: %lu\n", num_cores );
 	}
 
+	fprintf( output, "Current CPU number: %lu\n",
+				mx_get_current_cpu_number() );
+
 	return;
 }
 

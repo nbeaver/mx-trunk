@@ -907,6 +907,8 @@ MX_API char *mx_username( char *buffer, size_t buffer_length );
 
 MX_API mx_status_type mx_get_number_of_cpu_cores( unsigned long *num_cores );
 
+MX_API unsigned long mx_get_current_cpu_number( void );
+
 MX_API mx_status_type mx_get_process_affinity_mask( unsigned long process_id,
 							unsigned long *mask );
 

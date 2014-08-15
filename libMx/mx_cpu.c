@@ -216,6 +216,47 @@ mx_get_number_of_cpu_cores( unsigned long *num_cores )
 
 /*===================================================================*/
 
+#if ( defined(OS_WIN32) && defined(_MSC_VER) )
+
+static DWORD
+mxp_get_current_processor_number( void )
+{
+	_asm {mov eax, 1}
+	_asm {cpuid}
+	_asm {shr ebx, 24}
+	_asm {mov eax, ebx}
+}
+
+MX_EXPORT unsigned long
+mx_get_current_cpu_number( void )
+{
+	unsigned long cpu_number;
+
+	cpu_number =  mxp_get_current_processor_number();
+
+	return cpu_number;
+}
+
+#elif ( defined(MX_GLIBC_VERSION) && (MX_GLIBC_VERSION >= 2006000L) )
+
+extern int sched_getcpu( void );
+
+MX_EXPORT unsigned long
+mx_get_current_cpu_number( void )
+{
+	unsigned long cpu_number;
+
+	cpu_number = sched_getcpu();
+
+	return cpu_number;
+}
+
+#else
+#  error mx_get_current_cpu_number() not yet implemented for this platform.
+#endif
+
+/*===================================================================*/
+
 /*
  * Process affinity masks are used in multiprocessor systems to constrain
  * the set of CPUs on which the process is eligible to run.  For MX, this
