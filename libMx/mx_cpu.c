@@ -218,6 +218,8 @@ mx_get_number_of_cpu_cores( unsigned long *num_cores )
 
 #if ( defined(OS_WIN32) && defined(_MSC_VER) )
 
+#  if defined(_M_IX86)
+
 static DWORD
 mxp_get_current_processor_number( void )
 {
@@ -226,6 +228,12 @@ mxp_get_current_processor_number( void )
 	_asm {shr ebx, 24}
 	_asm {mov eax, ebx}
 }
+
+#  else /* not 32-bit */
+
+#  define mxp_get_current_processor_number()	GetCurrentProcessorNumber()
+
+#  endif
 
 MX_EXPORT unsigned long
 mx_get_current_cpu_number( void )
