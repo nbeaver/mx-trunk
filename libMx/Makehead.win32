@@ -39,6 +39,8 @@
 INCLUDES  = $(MX_INCLUDES)
 LIBRARIES = $(WIN32_LIBS)
 
+CFLAGS += -RTCsu
+
 #
 # Things you may need to change:
 #

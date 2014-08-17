@@ -14,6 +14,8 @@
  *
  */
 
+#define MX_ARRAY_DEBUG_ALLOCATE		FALSE
+
 #define MX_ARRAY_DEBUG_OVERLAY		FALSE
 
 #define MX_ARRAY_DEBUG_64BIT		FALSE
@@ -549,6 +551,20 @@ mx_allocate_array( long num_dimensions,
 		return NULL;
 	}
 
+#if MX_ARRAY_DEBUG_ALLOCATE
+	{
+		long i;
+
+		MX_DEBUG(-2,("%s: num_dimensions = %ld", fname,num_dimensions));
+
+		for ( i = 0; i < num_dimensions; i++ ) {
+			MX_DEBUG(-2,("%s: dim[%ld] = %lu, size[%ld] = %lu",
+			fname, i, (unsigned long) dimension_array[i],
+			i, (unsigned long) data_element_size_array[i] ));
+		}
+	}
+#endif
+
 	/* Allocate the 1-dimensional vector that goes at the bottom
 	 * of the array.
 	 */
@@ -561,7 +577,15 @@ mx_allocate_array( long num_dimensions,
 
 	vector_size = num_elements * data_element_size_array[0];
 
+#if MX_ARRAY_DEBUG_ALLOCATE
+	MX_DEBUG(-2,("%s: vector_size = %lu", fname, vector_size));
+#endif
+
 	vector = malloc( vector_size );
+
+#if MX_ARRAY_DEBUG_ALLOCATE
+	MX_DEBUG(-2,("%s: vector = %p", fname, vector));
+#endif
 
 	if ( vector == NULL ) {
 		return NULL;
