@@ -259,7 +259,9 @@ mx_get_current_cpu_number( void )
 	return cpu_number;
 }
 
-#elif ( defined(OS_LINUX) )
+#elif ( defined(OS_LINUX) || defined(OS_MACOSX) )
+
+/* FIXME: put GCC/Clang inline assembly here. */
 
 MX_EXPORT unsigned long
 mx_get_current_cpu_number( void )
