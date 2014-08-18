@@ -1122,7 +1122,7 @@ mx_area_detector_get_bytes_per_pixel(MX_RECORD *record, double *bytes_per_pixel)
 }
 
 MX_EXPORT mx_status_type
-mx_area_detector_get_bits_per_pixel(MX_RECORD *record, long *bits_per_pixel)
+mx_area_detector_get_bits_per_pixel( MX_RECORD *record, long *bits_per_pixel )
 {
 	static const char fname[] = "mx_area_detector_get_bits_per_pixel()";
 
@@ -1155,6 +1155,47 @@ mx_area_detector_get_bits_per_pixel(MX_RECORD *record, long *bits_per_pixel)
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_get_bytes_per_image_file( MX_RECORD *record,
+					unsigned long datafile_type,
+					size_t *bytes_per_image_file )
+{
+	static const char fname[] =
+		"mx_area_detector_get_bytes_per_image_file()";
+
+	MX_AREA_DETECTOR *ad;
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers( record, &ad, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Initialize the area detector image frame data structures
+	 * by asking the MX server to transfer it's currently loaded
+	 * image.  This will cause all the necessary data structures
+	 * to be set up correctly here on the client side as a side
+	 * effect.
+	 */
+
+	mx_status = mx_area_detector_transfer_frame( record,
+						MXFT_AD_IMAGE_FRAME,
+						&(ad->image_frame) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Now extract the predicted datafile size and return it to
+	 * our caller.
+	 */
+
+	mx_status = mx_image_get_filesize( ad->image_frame,
+					datafile_type,
+					bytes_per_image_file );
+
+	return mx_status;
 }
 
 /*---*/

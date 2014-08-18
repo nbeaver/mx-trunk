@@ -2605,6 +2605,92 @@ mx_image_display_ascii( FILE *output,
 
 /*--------------------------------------------------------------------------*/
 
+/* FIXME - Try to implement this in a more extendable fashion.
+ *         The existing implementation is excessively hard coded.
+ */
+
+MX_EXPORT mx_status_type
+mx_image_get_filesize( MX_IMAGE_FRAME *frame,
+			unsigned long datafile_type,
+			size_t *datafile_size )
+{
+	static const char fname[] = "mx_image_get_filesize()";
+
+	double raw_image_size;
+	unsigned long file_header_size, file_body_size;
+	char image_file_format_name[100];
+	mx_status_type mx_status;
+
+	if ( frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_IMAGE_FRAME pointer passed was NULL." );
+	}
+	if ( datafile_size == (size_t *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The datafile_size pointer passed was NULL." );
+	}
+
+	mx_status = mx_image_get_file_format_name_from_type( datafile_type,
+						image_file_format_name,
+						sizeof(image_file_format_name));
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/*---*/
+
+	raw_image_size = MXIF_ROW_FRAMESIZE(frame)
+			* MXIF_COLUMN_FRAMESIZE(frame)
+			* MXIF_BYTES_PER_PIXEL(frame);
+
+	file_body_size = mx_round_up( raw_image_size );
+
+	/*---*/
+
+	switch( datafile_type ) {
+	case MXT_IMAGE_FILE_RAW_GREY8:
+	case MXT_IMAGE_FILE_RAW_GREY16:
+	case MXT_IMAGE_FILE_RAW_GREY32:
+	case MXT_IMAGE_FILE_RAW_FLOAT:
+	case MXT_IMAGE_FILE_RAW_DOUBLE:
+	case MXT_IMAGE_FILE_NONE:
+		file_header_size = 0;
+
+	case MXT_IMAGE_FILE_PNM:
+	case MXT_IMAGE_FILE_JPEG:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Image format '%s' does not have an easily predictable size.",
+			image_file_format_name );
+		break;
+
+	case MXT_IMAGE_FILE_SMV:
+		file_header_size = 512;
+		break;
+	case MXT_IMAGE_FILE_MARCCD:
+		file_header_size = 4096;
+		break;
+	case MXT_IMAGE_FILE_EDF:
+		file_header_size = 0;	/* FIXME: Wrong! */
+		break;
+	case MXT_IMAGE_FILE_NOIR:
+		file_header_size = 3072;
+		break;
+
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Computing the size of images using file format '%s' "
+		"is not supported by this version of MX.",
+			image_file_format_name );
+		break;
+	}
+
+	*datafile_size = file_header_size + file_body_size;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mx_image_read_file( MX_IMAGE_FRAME **frame_ptr,
 			unsigned long datafile_type,

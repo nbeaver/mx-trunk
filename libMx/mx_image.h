@@ -364,14 +364,9 @@ MX_API mx_status_type mx_image_display_ascii( FILE *output_file,
 
 /*----*/
 
-MX_API mx_status_type mx_image_get_filesize_from_header(
-						MX_IMAGE_FRAME *frame,
-						size_t *filesize );
-
-MX_API mx_status_type mx_image_get_filesize_from_file_header(
-						char *filename,
-						unsigned long datafile_type,
-						size_t *filesize );
+MX_API mx_status_type mx_image_get_filesize( MX_IMAGE_FRAME *frame,
+					unsigned long datafile_type,
+					size_t *filesize );
 
 /*----*/
 

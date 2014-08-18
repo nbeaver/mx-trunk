@@ -1557,12 +1557,9 @@ MX_API mx_status_type mx_area_detector_get_bytes_per_pixel( MX_RECORD *record,
 MX_API mx_status_type mx_area_detector_get_bits_per_pixel( MX_RECORD *record,
 						long *bits_per_pixel );
 
-MX_API mx_status_type mx_area_detector_get_bytes_per_image_header(
-						MX_RECORD *record,
-						size_t *bytes_per_image_header);
-
 MX_API mx_status_type mx_area_detector_get_bytes_per_image_file(
 						MX_RECORD *record,
+						unsigned long datafile_type,
 						size_t *bytes_per_image_file );
 
 /*---*/
