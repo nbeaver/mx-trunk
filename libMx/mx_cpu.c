@@ -245,7 +245,7 @@ mx_get_current_cpu_number( void )
 	return cpu_number;
 }
 
-#elif ( defined(MX_GLIBC_VERSION) && (MX_GLIBC_VERSION >= 2006000L) )
+#elif ( defined(OS_LINUX) && (MX_GLIBC_VERSION >= 2006000L) )
 
 extern int sched_getcpu( void );
 
@@ -257,6 +257,14 @@ mx_get_current_cpu_number( void )
 	cpu_number = sched_getcpu();
 
 	return cpu_number;
+}
+
+#elif ( defined(OS_LINUX) )
+
+MX_EXPORT unsigned long
+mx_get_current_cpu_number( void )
+{
+	return 0;
 }
 
 #else
