@@ -440,7 +440,7 @@ mxi_nuvant_ezstat_shutdown_task( TaskHandle task_handle )
 
 /*-------------------------------------------------------------------------*/
 
-#define MXI_NUVANT_EZSTAT_NUM_AI_CHANNELS	4
+#define MXI_NUVANT_EZSTAT_NUM_AI_CHANNELS	6
 #define MXI_NUVANT_EZSTAT_NUM_AI_MEASUREMENTS	40
 
 #define MXI_NUVANT_EZSTAT_NUM_AI_SAMPLES \
@@ -469,7 +469,8 @@ mxi_nuvant_ezstat_read_ai_values( MX_NUVANT_EZSTAT *ezstat,
 	mx_status_type mx_status;
 
 	snprintf( channel_names, sizeof(channel_names),
-			"%s/ai0:3", ezstat->device_name );
+			"%s/ai0:3,%s/ai14:15",
+			ezstat->device_name, ezstat->device_name );
 
 	/* Create a DAQmx task for the read operation. */
 

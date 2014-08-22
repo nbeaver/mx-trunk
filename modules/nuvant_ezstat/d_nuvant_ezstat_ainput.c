@@ -165,7 +165,6 @@ mxd_nuvant_ezstat_ainput_open( MX_RECORD *record )
 	MX_NUVANT_EZSTAT_AINPUT *ezstat_ainput = NULL;
 	MX_NUVANT_EZSTAT *ezstat = NULL;
 	char *type_name = NULL;
-	size_t len;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -183,24 +182,33 @@ mxd_nuvant_ezstat_ainput_open( MX_RECORD *record )
 
 	type_name = ezstat_ainput->input_type_name;
 
-	len = strlen( type_name );
-
-	if ( mx_strncasecmp( type_name, "potentiostat_current", len ) == 0 ) {
+	if ( mx_strcasecmp( type_name, "galvanostat_fuel_cell_current" ) == 0 )
+	{
 		ezstat_ainput->input_type =
-			MXT_NUVANT_EZSTAT_AINPUT_POTENTIOSTAT_CURRENT;
+			MXT_NE_AINPUT_GALVANOSTAT_FUEL_CELL_CURRENT;
 	} else
-	if ( mx_strncasecmp( type_name, "galvanostat_current", len ) == 0 ) {
+	if ( mx_strcasecmp( type_name, "fuel_cell_voltage_drop" ) == 0 )
+	{
 		ezstat_ainput->input_type =
-			MXT_NUVANT_EZSTAT_AINPUT_GALVANOSTAT_CURRENT;
+			MXT_NE_AINPUT_FUEL_CELL_VOLTAGE_DROP;
 	} else
-	if ( mx_strncasecmp( type_name, "fuel_cell_voltage_drop", len ) == 0 ) {
+	if ( mx_strcasecmp( type_name,
+	    "potentiostat_current_feedback_resistor_voltage" ) == 0 )
+	{
 		ezstat_ainput->input_type =
-			MXT_NUVANT_EZSTAT_AINPUT_FUEL_CELL_VOLTAGE_DROP;
+		  MXT_NE_AINPUT_POTENTIOSTAT_CURRENT_FEEDBACK_RESISTOR_VOLTAGE;
 	} else
-	if ( mx_strncasecmp( type_name,
-			"current_feedback_resistor_voltage", len ) == 0 ) {
+	if ( mx_strcasecmp( type_name,
+	    "potentiostat_fast_scan_fuel_cell_current" ) == 0 )
+	{
 		ezstat_ainput->input_type =
-		    MXT_NUVANT_EZSTAT_AINPUT_CURRENT_FEEDBACK_RESISTOR_VOLTAGE;
+			MXT_NE_AINPUT_POTENTIOSTAT_FAST_SCAN_FUEL_CELL_CURRENT;
+	} else
+	if ( mx_strcasecmp( type_name,
+	    "fast_scan_fuel_cell_voltage_drop" ) == 0 )
+	{
+		ezstat_ainput->input_type =
+			MXT_NE_AINPUT_FAST_SCAN_FUEL_CELL_VOLTAGE_DROP;
 	} else {
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Input type '%s' is not supported for "
@@ -217,7 +225,7 @@ mxd_nuvant_ezstat_ainput_read( MX_ANALOG_INPUT *ainput )
 
 	MX_NUVANT_EZSTAT_AINPUT *ezstat_ainput = NULL;
 	MX_NUVANT_EZSTAT *ezstat = NULL;
-	double ai_value_array[4];
+	double ai_value_array[6];
 	mx_status_type mx_status;
 
 	mx_status = mxd_nuvant_ezstat_ainput_get_pointers( ainput,
@@ -232,17 +240,12 @@ mxd_nuvant_ezstat_ainput_read( MX_ANALOG_INPUT *ainput )
 		return mx_status;
 
 	switch( ezstat_ainput->input_type ) {
-	case MXT_NUVANT_EZSTAT_AINPUT_POTENTIOSTAT_CURRENT:
-		ainput->raw_value.double_value 
-			= mx_divide_safely( ai_value_array[3],
-				ezstat->potentiostat_resistance );
-		break;
-	case MXT_NUVANT_EZSTAT_AINPUT_GALVANOSTAT_CURRENT:
+	case MXT_NE_AINPUT_GALVANOSTAT_FUEL_CELL_CURRENT:
 		ainput->raw_value.double_value 
 			= mx_divide_safely( ai_value_array[0],
 				ezstat->galvanostat_resistance );
 		break;
-	case MXT_NUVANT_EZSTAT_AINPUT_FUEL_CELL_VOLTAGE_DROP:
+	case MXT_NE_AINPUT_FUEL_CELL_VOLTAGE_DROP:
 		if ( fabs(ai_value_array[1]) >= 0.05 ) {
 			ainput->raw_value.double_value = - ai_value_array[1];
 		} else {
@@ -250,8 +253,14 @@ mxd_nuvant_ezstat_ainput_read( MX_ANALOG_INPUT *ainput )
 				= 101.0 * ai_value_array[2];
 		}
 		break;
-	case MXT_NUVANT_EZSTAT_AINPUT_CURRENT_FEEDBACK_RESISTOR_VOLTAGE:
+	case MXT_NE_AINPUT_POTENTIOSTAT_CURRENT_FEEDBACK_RESISTOR_VOLTAGE:
 		ainput->raw_value.double_value = ai_value_array[3];
+		break;
+	case MXT_NE_AINPUT_POTENTIOSTAT_FAST_SCAN_FUEL_CELL_CURRENT:
+		ainput->raw_value.double_value = 0.2 * ai_value_array[4];
+		break;
+	case MXT_NE_AINPUT_FAST_SCAN_FUEL_CELL_VOLTAGE_DROP:
+		ainput->raw_value.double_value = ai_value_array[5];
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,

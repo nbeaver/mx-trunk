@@ -228,8 +228,10 @@ mxd_nuvant_ezstat_aoutput_open( MX_RECORD *record )
  *          voltage must be set _before_ you write to the digital output.
  *          This is because the actual visible external voltage change
  *          occurs at the moment of the write to the _digital_ output.
- *          A write to the analog output by itself has no visible effect
- *          on the measured voltage.
+ *          At that moment, the EZstat looks at the current value of the
+ *          commanded analog output voltage and uses it to generate the
+ *          output of the potentiostat.  A write to the analog output by
+ *          itself has no visible effect on the measured voltage.
  */
 
 static mx_status_type
