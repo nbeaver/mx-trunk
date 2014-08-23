@@ -29,21 +29,33 @@ NI_DAQMX_OBJS = ni_daqmx.$(OBJ) i_ni_daqmx.$(OBJ) \
 
 ifeq ($(MX_ARCH),linux)
 
+# Tested with Scientific Linux 6.5 and NI DAQmx Base 3.7.0.
+
+CFLAGS += -DUSE_DAQMX_BASE
+
+ni_daqmx.mxo: $(NI_DAQMX_OBJS)
+	$(CC) -shared -rdynamic -Wl,-soname,ni_daqmx.mxo \
+		-o ni_daqmx.mxo $(NI_DAQMX_OBJS) \
+		-lnidaqmxbase \
+		/usr/local/lib/LabVIEW-2012/libniCPULib.so
+
+endif
+
 #
 # Read http://decibel.ni.com/content/thread/5902?decorator=print&displayFullThread=true
 # for an explanation of why the line starting with -Wl,... must be present
 # on Linux distributions derived from Red Hat Enterprise Linux 5.
 #
 
-ni_daqmx.mxo: $(NI_DAQMX_OBJS)
-	$(CC) -shared -rdynamic -Wl,-soname,ni_daqmx.mxo \
-		-o ni_daqmx.mxo $(NI_DAQMX_OBJS) \
-		-lnidaqmxbase -lnidaqmxbaselv \
-		/usr/local/lib/liblvrtdark.so.10.0 \
-		/usr/local/lib/LabVIEW-2010/libniCPULib.so \
-	-Wl,-rpath,'$$ORIGIN',-rpath,'/usr/local/lib/LabVIEW-2010/patchlib'
-
-endif
+#ni_daqmx.mxo: $(NI_DAQMX_OBJS)
+#	$(CC) -shared -rdynamic -Wl,-soname,ni_daqmx.mxo \
+#		-o ni_daqmx.mxo $(NI_DAQMX_OBJS) \
+#		-lnidaqmxbase -lnidaqmxbaselv \
+#		/usr/local/lib/liblvrtdark.so.10.0 \
+#		/usr/local/lib/LabVIEW-2010/libniCPULib.so \
+#	-Wl,-rpath,'$$ORIGIN',-rpath,'/usr/local/lib/LabVIEW-2010/patchlib'
+#
+#endif
 
 #--------------------------------------------------------------------------
 

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2011-2012 Illinois Institute of Technology
+ * Copyright 2011-2012, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -244,7 +244,7 @@ mxd_ni_daqmx_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 	MX_NI_DAQMX *ni_daqmx = NULL;
 	MX_NI_DAQMX_TASK *task = NULL;
 	unsigned long channel;
-	int32 *channel_buffer;
+	uInt32 *channel_buffer;
 	char daqmx_error_message[400];
 	int32 daqmx_status;
 	int32 num_samples;

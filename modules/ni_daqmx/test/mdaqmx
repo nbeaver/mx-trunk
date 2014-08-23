@@ -1,6 +1,7 @@
 #! /bin/sh
 
-LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib/LabVIEW-2010
+#LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib/LabVIEW-2010
+LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib/LabVIEW-2012
 
 export LD_LIBRARY_PATH
 

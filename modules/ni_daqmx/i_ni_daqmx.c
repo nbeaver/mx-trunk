@@ -130,7 +130,7 @@ mxi_ni_daqmx_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if USE_DAQMX_BASE
+#if 0 && USE_DAQMX_BASE
 	mx_warning( "The National Instruments DAQmx Base system "
 	"takes a _long_ time to initialize itself, so please be patient." );
 #endif
@@ -188,7 +188,7 @@ mxi_ni_daqmx_close( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if USE_DAQMX_BASE
+#if 0 && USE_DAQMX_BASE
 	mx_warning( "Shutting down the National Instruments DAQmx Base "
 	"system.  This can take a _long_ time." );
 #endif
@@ -245,7 +245,9 @@ mxp_ni_daqmx_task_init_traverse_fn( MX_LIST_ENTRY *list_entry,
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Attempted to allocate a channel buffer for DAQmx task '%s' "
 		"(handle %#lx) with unsupported MX datatype %ld.",
-			task->task_name, task->task_handle, task->mx_datatype );
+			task->task_name,
+			(unsigned long) task->task_handle,
+			task->mx_datatype );
 		break;
 	}
 
@@ -253,7 +255,9 @@ mxp_ni_daqmx_task_init_traverse_fn( MX_LIST_ENTRY *list_entry,
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"The attempt to allocate a %ld element channel buffer "
 		"for DAQmx task '%s' (handle %#lx) failed.",
-			task->num_channels, task->task_name, task->task_handle);
+			task->num_channels,
+			task->task_name,
+			(unsigned long) task->task_handle);
 	}
 
 	/* Start the task. */
@@ -394,7 +398,6 @@ mxi_ni_daqmx_create_task( MX_NI_DAQMX *ni_daqmx,
 {
 	static const char fname[] = "mxi_ni_daqmx_create_task()";
 
-	MX_LIST_ENTRY *task_list_entry;
 	TaskHandle task_handle;
 	char daqmx_error_message[80];
 	int32 daqmx_status;
@@ -517,7 +520,6 @@ mxi_ni_daqmx_shutdown_task( MX_NI_DAQMX *ni_daqmx, MX_NI_DAQMX_TASK *task )
 {
 	static const char fname[] = "mxi_ni_daqmx_shutdown_task()";
 
-	MX_LIST_ENTRY *task_list_entry;
 	char daqmx_error_message[80];
 	int32 daqmx_status;
 	mx_status_type mx_status;
@@ -578,7 +580,7 @@ mxi_ni_daqmx_shutdown_task( MX_NI_DAQMX *ni_daqmx, MX_NI_DAQMX_TASK *task )
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 		"The attempt to clear DAQmx task '%s' (handle %#lx) failed.  "
 		"DAQmx error code = %d",
-			task->task_handle,
+			task->task_name,
 			(unsigned long) task->task_handle,
 			(int) daqmx_status );
 	}
@@ -653,7 +655,7 @@ mxi_ni_daqmx_find_task( MX_NI_DAQMX *ni_daqmx,
 	mx_status = mx_list_traverse( ni_daqmx->task_list,
 					mxp_ni_daqmx_task_list_traverse_fn,
 					task_name,
-					&task_ptr );
+					(void **) &task_ptr );
 
 	switch( mx_status.code ) {
 	case MXE_EARLY_EXIT:
@@ -733,7 +735,7 @@ mxi_ni_daqmx_set_task_datatype( MX_NI_DAQMX_TASK *task,
 		"The requested MX datatype %ld does not match the "
 		"existing datatype %ld for DAQmx task '%s' (handle %#lx).",
 			mx_datatype, task->mx_datatype,
-			task->task_name, task->task_handle );
+			task->task_name, (unsigned long) task->task_handle );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
