@@ -253,7 +253,7 @@ mxd_nuvant_ezstat_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 	char daqmx_error_message[400];
 	int32 daqmx_status;
 	uInt32 write_array[1];
-	uInt32 samples_written;
+	int32 samples_written;
 	mx_status_type mx_status;
 
 	mx_status = mxd_nuvant_ezstat_doutput_get_pointers( doutput,

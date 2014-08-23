@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2012 Illinois Institute of Technology
+ * Copyright 2012, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -17,6 +17,9 @@
 
 #ifndef __I_NI_DAQMX_BASE_H__
 #define __I_NI_DAQMX_BASE_H__
+
+#define DAQmxCfgSampClkTiming( a, b, c, d, e, f ) \
+		DAQmxBaseCfgSampClkTiming((a),(b),(c),(d),(e),(f))
 
 #define DAQmxClearTask( a )		DAQmxBaseClearTask( a )
 

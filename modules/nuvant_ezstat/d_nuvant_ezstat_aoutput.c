@@ -252,7 +252,7 @@ mxd_nea_set_potentiostat_voltage( MX_ANALOG_OUTPUT *aoutput,
 	uInt32 potentiostat_binary_range;
 	uInt32 pin_value_array[6];
 	float64 voltage_write_array[1];
-	uInt32 samples_written;
+	int32 samples_written;
 	mx_status_type mx_status;
 
 	/* See if the voltage is within the limits and clip it to
@@ -416,7 +416,7 @@ mxd_nea_set_potentiostat_voltage( MX_ANALOG_OUTPUT *aoutput,
 
 		for ( n = 0; n < 6; n++ ) {
 			MX_DEBUG(-2,("%s: pin[%d] = %#x",
-				fname, n, pin_value_array[n]));
+				fname, n, (unsigned int) pin_value_array[n]));
 		}
 	}
 #endif
@@ -481,7 +481,7 @@ mxd_nea_set_galvanostat_current( MX_ANALOG_OUTPUT *aoutput,
 	uInt32 galvanostat_binary_range;
 	uInt32 pin_value_array[6];
 	float64 voltage_write_array[1];
-	uInt32 samples_written;
+	int32 samples_written;
 	mx_status_type mx_status;
 
 	/* Compute the output voltage from the requested galvanostat current. */
@@ -644,7 +644,7 @@ mxd_nea_set_galvanostat_current( MX_ANALOG_OUTPUT *aoutput,
 
 		for ( n = 0; n < 6; n++ ) {
 			MX_DEBUG(-2,("%s: pin[%d] = %#x",
-				fname, n, pin_value_array[n]));
+				fname, n, (unsigned int) pin_value_array[n]));
 		}
 	}
 #endif
@@ -693,8 +693,6 @@ mxd_nuvant_ezstat_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 
 	MX_NUVANT_EZSTAT_AOUTPUT *ezstat_aoutput = NULL;
 	MX_NUVANT_EZSTAT *ezstat = NULL;
-	unsigned long p11_value, p12_value, p13_value, p14_value;
-	double ao0_value, raw_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_nuvant_ezstat_aoutput_get_pointers( aoutput,

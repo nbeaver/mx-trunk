@@ -19,7 +19,12 @@
 
 /*---*/
 
-#include "NIDAQmx.h"		/* National Instruments include file. */
+#if USE_DAQMX_BASE
+#  include "i_ni_daqmx_base.h"
+#  include "NIDAQmxBase.h"	/* National Instruments include file. */
+#else
+#  include "NIDAQmx.h"		/* National Instruments include file. */
+#endif
 
 /*---*/
 

@@ -19,6 +19,7 @@
 #define MXI_NUVANT_EZSTAT_DEBUG_READ_AI		TRUE
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -125,7 +126,7 @@ mxi_nuvant_ezstat_open( MX_RECORD *record )
 	int32 daqmx_status;
 	char daqmx_error_message[200];
 	uInt32 pin_value_array[5];
-	uInt32 num_samples_read;
+	int32 num_samples_read;
 	mx_status_type mx_status;
 
 	mx_status = mxi_nuvant_ezstat_get_pointers( record, &ezstat, fname );
@@ -260,7 +261,8 @@ mxi_nuvant_ezstat_process_function( void *record_ptr,
 
 	if ( ezstat == (MX_NUVANT_EZSTAT *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_NUVANT_EZSTAT pointer for record '%s' is NULL." );
+		"The MX_NUVANT_EZSTAT pointer for record '%s' is NULL.",
+			record->name );
 	}
 
 	mx_status = MX_SUCCESSFUL_RESULT;
@@ -345,7 +347,6 @@ mxi_nuvant_ezstat_create_task( char *task_name, TaskHandle *task_handle )
 
 	char daqmx_error_message[200];
 	int32 daqmx_status;
-	mx_status_type mx_status;
 
 	daqmx_status = DAQmxCreateTask( task_name, task_handle );
 
@@ -371,7 +372,6 @@ mxi_nuvant_ezstat_start_task( TaskHandle task_handle )
 
 	char daqmx_error_message[200];
 	int32 daqmx_status;
-	mx_status_type mx_status;
 
 	/* Start the task. */
 
@@ -401,7 +401,6 @@ mxi_nuvant_ezstat_shutdown_task( TaskHandle task_handle )
 
 	char daqmx_error_message[200];
 	int32 daqmx_status;
-	mx_status_type mx_status;
 
 	/* Stop the task. */
 
@@ -565,7 +564,7 @@ mxi_nuvant_ezstat_read_ai_values( MX_NUVANT_EZSTAT *ezstat,
 	ai_ptr = ai_measurement_array;
 
 #if MXI_NUVANT_EZSTAT_DEBUG_READ_AI
-	MX_DEBUG(-2,(""));
+	MX_DEBUG(-2,(" "));
 #endif
 
 	for ( i = 0; i < MXI_NUVANT_EZSTAT_NUM_AI_CHANNELS; i++ ) {
@@ -588,7 +587,7 @@ mxi_nuvant_ezstat_read_ai_values( MX_NUVANT_EZSTAT *ezstat,
 			= sum[i] / MXI_NUVANT_EZSTAT_NUM_AI_MEASUREMENTS;
 
 #if MXI_NUVANT_EZSTAT_DEBUG_READ_AI
-		MX_DEBUG(-2,("%s: ai_value_array[%lu] = %g",
+		MX_DEBUG(-2,("%s: ai_value_array[%d] = %g",
 			fname, i, ai_value_array[i]));
 #endif
 	}
@@ -611,7 +610,7 @@ mxi_nuvant_ezstat_set_binary_range( MX_NUVANT_EZSTAT *ezstat,
 	int32 daqmx_status;
 	char daqmx_error_message[200];
 	uInt32 pin_value_array[4];
-	uInt32 samples_written;
+	int32 samples_written;
 	mx_status_type mx_status;
 
 	if ( ezstat == (MX_NUVANT_EZSTAT *) NULL ) {

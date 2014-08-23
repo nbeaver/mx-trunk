@@ -25,10 +25,16 @@ NUVANT_EZSTAT_OBJS = nuvant_ezstat.$(OBJ) i_nuvant_ezstat.$(OBJ) \
 
 ifeq ($(MX_ARCH),linux)
 
+CFLAGS += -I../ni_daqmx
+
+# Tested with Scientific Linux 6.5 and NI DAQmx Base 3.7.0.
+
+CFLAGS += -DUSE_DAQMX_BASE
+
 nuvant_ezstat.mxo: $(NUVANT_EZSTAT_OBJS)
-	gcc -shared -rdynamic \
-		-Wl,-soname,nuvant_ezstat.mxo -o nuvant_ezstat.mxo \
-		$(NUVANT_EZSTAT_OBJS) ../../libMx/libMx.so
+	gcc -shared -rdynamic -Wl,-soname,nuvant_ezstat.mxo \
+		-o nuvant_ezstat.mxo $(NUVANT_EZSTAT_OBJS) \
+		../ni_daqmx/ni_daqmx.mxo
 
 endif
 
