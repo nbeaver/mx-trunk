@@ -259,10 +259,21 @@ mx_get_current_cpu_number( void )
 	return cpu_number;
 }
 
-#elif ( defined(__GNUC__) || defined(__clang__) ) \
-	 && ( defined(__i386__) || defined(__amd64__) )
+#elif defined(OS_MACOSX) || defined(OS_BSD)
 
-/* Use inline assembly for GCC and Clang on i386 and amd64. */
+/* FIXME: The GCC inline assembly in the next case below
+ * does not work for Clang.
+ */
+
+MX_EXPORT unsigned long
+mx_get_current_cpu_number( void )
+{
+	return 0;
+}
+
+#elif defined(__GNUC__) && ( defined(__i386__) || defined(__amd64__) )
+
+/* Use inline assembly for GCC on i386 and amd64. */
 
 MX_EXPORT unsigned long
 mx_get_current_cpu_number( void )
