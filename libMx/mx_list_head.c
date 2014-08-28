@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004, 2006-2013 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2004, 2006-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -68,6 +68,7 @@ mxr_create_list_head( MX_RECORD *record )
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
 	void *field_data_ptr;
 	long i;
+	size_t cflags_length;
 	mx_status_type mx_status;
 
 	record->mx_superclass = MXR_LIST_HEAD;
@@ -194,7 +195,14 @@ mxr_create_list_head( MX_RECORD *record )
 
 	/*--- Initialize 'cflags' from the MX_CFLAGS macro passed to us. ---*/
 
-	list_head_struct->cflags = strdup( MX_TOSTRING(MX_CFLAGS) );
+	cflags_length = strlen( MX_TOSTRING(MX_CFLAGS) ) + 1;
+
+	list_head_struct->cflags = malloc( cflags_length );
+
+	if ( list_head_struct->cflags != NULL ) {
+		strlcpy( list_head_struct->cflags,
+			MX_TOSTRING(MX_CFLAGS), cflags_length );
+	}
 
 	/* Since the list head record itself is a record, we initialize
 	 * the number of records to 1 rather than 0.
@@ -244,7 +252,7 @@ mxr_list_head_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	cflags_field->dimension[0] = strlen( list_head_struct->cflags );
+	cflags_field->dimension[0] = strlen( list_head_struct->cflags ) + 1;
 
 	return MX_SUCCESSFUL_RESULT;
 }
