@@ -183,6 +183,30 @@ mxd_nuvant_ezstat_ainput_open( MX_RECORD *record )
 
 	type_name = ezstat_ainput->input_type_name;
 
+	if ( mx_strcasecmp( type_name, "ai0" ) == 0 )
+	{
+		ezstat_ainput->input_type = MXT_NE_AINPUT_AI0;
+	} else
+	if ( mx_strcasecmp( type_name, "ai1" ) == 0 )
+	{
+		ezstat_ainput->input_type = MXT_NE_AINPUT_AI1;
+	} else
+	if ( mx_strcasecmp( type_name, "ai2" ) == 0 )
+	{
+		ezstat_ainput->input_type = MXT_NE_AINPUT_AI2;
+	} else
+	if ( mx_strcasecmp( type_name, "ai3" ) == 0 )
+	{
+		ezstat_ainput->input_type = MXT_NE_AINPUT_AI3;
+	} else
+	if ( mx_strcasecmp( type_name, "ai14" ) == 0 )
+	{
+		ezstat_ainput->input_type = MXT_NE_AINPUT_AI14;
+	} else
+	if ( mx_strcasecmp( type_name, "ai15" ) == 0 )
+	{
+		ezstat_ainput->input_type = MXT_NE_AINPUT_AI15;
+	} else
 	if ( mx_strcasecmp( type_name, "galvanostat_fuel_cell_current" ) == 0 )
 	{
 		ezstat_ainput->input_type =
@@ -241,6 +265,25 @@ mxd_nuvant_ezstat_ainput_read( MX_ANALOG_INPUT *ainput )
 		return mx_status;
 
 	switch( ezstat_ainput->input_type ) {
+	case MXT_NE_AINPUT_AI0:
+		ainput->raw_value.double_value = ai_value_array[0];
+		break;
+	case MXT_NE_AINPUT_AI1:
+		ainput->raw_value.double_value = ai_value_array[1];
+		break;
+	case MXT_NE_AINPUT_AI2:
+		ainput->raw_value.double_value = ai_value_array[2];
+		break;
+	case MXT_NE_AINPUT_AI3:
+		ainput->raw_value.double_value = ai_value_array[3];
+		break;
+	case MXT_NE_AINPUT_AI14:
+		ainput->raw_value.double_value = ai_value_array[4];
+		break;
+	case MXT_NE_AINPUT_AI15:
+		ainput->raw_value.double_value = ai_value_array[5];
+		break;
+
 	case MXT_NE_AINPUT_GALVANOSTAT_FUEL_CELL_CURRENT:
 		ainput->raw_value.double_value 
 			= mx_divide_safely( ai_value_array[0],
