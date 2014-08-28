@@ -37,7 +37,7 @@ all: build
 
 MODULES += ni_daqmx		# linux, win32
 
-MODULES += nuvant_ezstat	# linux, win32
+#MODULES += nuvant_ezstat	# linux, win32
 
 #MODULES += pmc_mcapi		# linux, win32
 

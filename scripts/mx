@@ -54,13 +54,21 @@ fi
 # Construct a prefix for the server startup commands below.
 
 if [ $SCRIPTUSER = $MXUSER ]; then
-	PREFIX=
+	COMMAND_PREFIX=
 elif [ $SCRIPTUSER = "root" ]; then
-	PREFIX="/bin/su $MXUSER -c"
+	COMMAND_PREFIX="/bin/su $MXUSER -c"
 else
 	echo "This script must be run either as the MX user '$MXUSER' or as 'root'."
 	echo "You are '$SCRIPTUSER', so this script is aborting."
 	exit 1
+fi
+
+#---
+
+MXSERVER_PRELOAD_FILE=${MXDIR}/etc/mxserver.pre
+
+if [ -f ${MXSERVER_PRELOAD_FILE} ]; then
+	MXSERVER_PRELOAD=`cat ${MXSERVER_PRELOAD_FILE}`
 fi
 
 #---
@@ -71,7 +79,11 @@ if [ -f ${MXSERVER_OPTIONS_FILE} ]; then
 	MXSERVER_OPTIONS=`cat ${MXSERVER_OPTIONS_FILE}`
 fi
 
-START_MXSERVER_CMD="$START_MXSERVER ${MXSERVER_OPTIONS}"
+if [ x${MXSERVER_PRELOAD} = x ]; then
+    START_MXSERVER_CMD="${START_MXSERVER} ${MXSERVER_OPTIONS}"
+else
+    START_MXSERVER_CMD="${MXSERVER_PRELOAD} ${START_MXSERVER} ${MXSERVER_OPTIONS}"
+fi
 
 #---
 
@@ -87,7 +99,7 @@ START_MXAUTOSAVE_CMD="$START_MXAUTOSAVE ${MXAUTOSAVE_OPTIONS}"
 
 #echo "SCRIPTUSER=$SCRIPTUSER"
 #echo "MXUSER=$MXUSER"
-#echo "PREFIX=$PREFIX"
+#echo "COMMAND_PREFIX=$COMMAND_PREFIX"
 #echo "START_MXSERVER_CMD=$START_MXSERVER_CMD"
 #echo "START_MXAUTOSAVE_CMD=$START_MXAUTOSAVE_CMD"
 
@@ -112,9 +124,9 @@ case $1 in
 	if [ -x $START_MXSERVER ]; then
 
 		if [ $SCRIPTUSER = "root" ]; then
-			$PREFIX "touch ${MXLOG}/mxserver.log"
+			$COMMAND_PREFIX "touch ${MXLOG}/mxserver.log"
 
-			( $PREFIX "$START_MXSERVER_CMD" < /dev/null >> ${MXLOG}/mxserver.log 2>&1 & )
+			( $COMMAND_PREFIX "$START_MXSERVER_CMD" < /dev/null >> ${MXLOG}/mxserver.log 2>&1 & )
 		else
 			touch ${MXLOG}/mxserver.log
 
@@ -123,9 +135,9 @@ case $1 in
 
 		if [ -x $START_MXAUTOSAVE ]; then
 			if [ $SCRIPTUSER = "root" ]; then
-				$PREFIX "touch ${MXLOG}/mxautosave.log"
+				$COMMAND_PREFIX "touch ${MXLOG}/mxautosave.log"
 
-				( $PREFIX "$START_MXAUTOSAVE_CMD" < /dev/null >> ${MXLOG}/mxautosave.log 2>&1 & )
+				( $COMMAND_PREFIX "$START_MXAUTOSAVE_CMD" < /dev/null >> ${MXLOG}/mxautosave.log 2>&1 & )
 			else
 				touch ${MXLOG}/mxautosave.log
 
