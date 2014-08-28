@@ -485,7 +485,8 @@ mx_condition_variable_broadcast( MX_CONDITION_VARIABLE *cv )
 
 /************************ Posix pthreads ***********************/
 
-#elif defined(OS_LINUX) || defined(OS_MACOSX)
+#elif defined(OS_LINUX) || defined(OS_MACOSX) \
+	|| defined(OS_HURD)
 
 #include <pthread.h>
 

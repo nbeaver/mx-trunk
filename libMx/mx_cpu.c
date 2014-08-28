@@ -259,9 +259,43 @@ mx_get_current_cpu_number( void )
 	return cpu_number;
 }
 
-#elif ( defined(OS_LINUX) || defined(OS_MACOSX) )
+#elif ( defined(__GNUC__) || defined(__clang__) ) \
+	 && ( defined(__i386__) || defined(__amd64__) )
 
-/* FIXME: put GCC/Clang inline assembly here. */
+/* Use inline assembly for GCC and Clang on i386 and amd64. */
+
+MX_EXPORT unsigned long
+mx_get_current_cpu_number( void )
+{
+	unsigned long cpu_number;
+
+	/* Note: For i386, the PIC register is %ebx,
+	 *       so we must save and restore it there.
+	 */
+
+	asm volatile (
+#if defined(__i386__)
+		"pushl %%ebx;\n\t"
+#endif
+		"movl $1, %%eax;\n\t"
+		"cpuid;\n\t"
+		"shr $24, %%ebx;\n\t"
+		"movl %%ebx, %0;\n\t"
+#if defined(__i386__)
+		"popl %%ebx;\n\t"
+#endif
+		: "=r" (cpu_number)
+		: /* no inputs */
+		: "%eax"
+#if !defined(__i386__)
+		  , "%ebx"	/* %ebx clobbered on amd64 */
+#endif
+		);
+
+	return cpu_number;
+}
+
+#elif 0
 
 MX_EXPORT unsigned long
 mx_get_current_cpu_number( void )
