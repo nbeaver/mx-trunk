@@ -142,7 +142,12 @@ mx_get_number_of_cpu_cores( unsigned long *num_cores )
 	}
 
 	mib[0] = CTL_HW;
+
+#if defined(__NetBSD__)
+	mib[1] = HW_NCPUONLINE;
+#else
 	mib[1] = HW_AVAILCPU;
+#endif
 
 	os_status = sysctl( mib, 2, num_cores, &ul_length, NULL, 0 );
 

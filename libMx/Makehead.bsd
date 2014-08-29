@@ -63,7 +63,7 @@ GCCFLAGS = -Wall -Werror \
 #
 # Intel x86 with GCC under FreeBSD, NetBSD, or OpenBSD.
 #
-CC		= cc
+CC		= gcc
 CFLAGS		= -g -O -fPIC $(GCCFLAGS) $(INCLUDES) -DOS_BSD \
 				$(EXTRA_FLAGS) -DDEBUG
 CFLAGS_EPICS	= $(CFLAGS) -Wno-strict-prototypes -Wno-shadow
@@ -80,7 +80,7 @@ CFLAGS_MAKEDEPEND = $(CFLAGS) $(READLINE_INCLUDES)
 
 COMPILE		= $(CC) -c
 DEFINE		= -D
-MAKEDEPEND	= cc -MM $(CFLAGS_MAKEDEPEND) *.c > Makefile.depend
+MAKEDEPEND	= gcc -MM $(CFLAGS_MAKEDEPEND) *.c > Makefile.depend
 
 MAKEDEPEND_CLEAN = rm Makefile.depend
 

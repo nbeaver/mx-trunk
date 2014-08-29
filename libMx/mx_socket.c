@@ -1584,7 +1584,7 @@ mx_socket_set_non_blocking_mode( MX_SOCKET *mx_socket,
 		mx_socket->is_non_blocking = FALSE;
 	}
 
-#if defined(OS_MACOSX)
+#if defined(OS_MACOSX) || defined(__NetBSD__)
 	{
 		/* This method is the POSIX method. */
 

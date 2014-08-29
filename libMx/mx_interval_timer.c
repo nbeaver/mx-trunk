@@ -63,7 +63,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 2004-2007, 2010-2013 Illinois Institute of Technology
+ * Copyright 2004-2007, 2010-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1505,8 +1505,10 @@ mx_interval_timer_create_event_handler( MX_INTERVAL_TIMER *itimer,
 	posix_itimer_private->evp.sigev_value.sival_ptr = itimer;
 
 	posix_itimer_private->evp.sigev_notify = SIGEV_THREAD;
+
 	posix_itimer_private->evp.sigev_notify_function =
-					mx_interval_timer_thread_handler;
+				(void *) mx_interval_timer_thread_handler;
+
 	posix_itimer_private->evp.sigev_notify_attributes = NULL;
 
 	return MX_SUCCESSFUL_RESULT;
