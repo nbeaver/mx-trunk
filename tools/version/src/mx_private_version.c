@@ -642,6 +642,18 @@ mxp_generate_macros( FILE *version_file )
 
 /*---*/
 
+#elif defined(__clang__)
+
+static void
+mxp_generate_macros( FILE *version_file )
+{
+	mxp_generate_clang_macros( version_file );
+
+	return;
+}
+
+/*---*/
+
 #elif defined(__GNUC__)
 
 static void
