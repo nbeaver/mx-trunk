@@ -1,0 +1,14 @@
+This MX extension provides a plugin that allows C-based MX programs like
+mxmotor, mxserver, etc. to use Python as a macro language.  Python scripts
+are invoked using a function signature like this:
+
+    def main( mx_database, argv ):
+	# Python statements ...
+
+WARNING: You must build the Mp Python module _BEFORE_ you attempt to build
+         this extension.  If you attempt to build the 'python' extension
+         before the Mp module is built, the build will fail.
+
+Another WARNING: This extension is nowhere near ready to be used.  Do not be
+         surprised when you discover that it does not work.
+
