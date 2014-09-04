@@ -150,6 +150,19 @@ motor_script_fn( int argc, char *argv[] )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
+
+		language_struct->extension = extension;
+	} else {
+		extension = language_struct->extension;
+
+		flist = extension->extension_function_list;
+
+		if ( flist == NULL ) {
+			fprintf( output, "Error: Extension '%s' does not "
+			"have an extension function list.\n", extension->name );
+
+			return FAILURE;
+		}
 	}
 
 	/* Invoke the call function for this extension. */

@@ -37,8 +37,11 @@ mxext_python_init( MX_EXTENSION *extension )
 
 	MX_RECORD *mx_database = NULL;
 	MX_LIST_HEAD *list_head = NULL;
-	PyObject *py_main = NULL;
-	PyObject *py_dict = NULL;
+	MX_DYNAMIC_LIBRARY *main_executable = NULL;
+	void *motor_record_list_ptr = NULL;
+	mx_status_type mx_status;
+
+	MX_PYTHON_EXTENSION_PRIVATE *py_ext = NULL;
 	PyObject *result = NULL;
 
 	MX_DEBUG(-2,("%s invoked.", fname));
@@ -60,47 +63,99 @@ mxext_python_init( MX_EXTENSION *extension )
 			mx_database, extension->name );
 	}
 
+	py_ext = (MX_PYTHON_EXTENSION_PRIVATE *)
+			malloc( sizeof(MX_PYTHON_EXTENSION_PRIVATE) );
+
+	if ( py_ext == (MX_PYTHON_EXTENSION_PRIVATE *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate an "
+		"MX_PYTHON_EXTENSION_PRIVATE structure." );
+	}
+
+	extension->ext_private = py_ext;
+
 	/* Initialize the Python environment. */
 
 	Py_SetProgramName( list_head->program_name );
 
 	Py_Initialize();
 
-	/* Try to load the Mp module. */
+	/* Save some Python objects we may need later. */
 
-	py_main = PyImport_AddModule("__main__");
+	py_ext->py_main = PyImport_AddModule("__main__");
 
-	if ( py_main == NULL ) {
+	if ( py_ext->py_main == NULL ) {
 		PyErr_Print();
 
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
 		"The Python __main__ routine was not found." );
 	}
 
-	py_dict = PyModule_GetDict( py_main );
+	py_ext->py_dict = PyModule_GetDict( py_ext->py_main );
 
-	if ( py_dict == NULL ) {
+	if ( py_ext->py_dict == NULL ) {
 		PyErr_Print();
 
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
 	    "The dictionary for the Python __main__ routine was not found.");
 	}
 
-	MX_DEBUG(-2,("%s: LD_LIBRARY_PATH = '%s'",
-		fname, getenv("LD_LIBRARY_PATH") ));
-	MX_DEBUG(-2,("%s: PYTHONPATH = '%s'",
-		fname, getenv("PYTHONPATH") ));
-
-	PyRun_SimpleString("import sys\nprint sys.path");
+	/* Try to load the Mp module. */
 
 	result = PyRun_String( "import Mp",
-			Py_single_input, py_dict, py_dict );
+			Py_single_input, py_ext->py_dict, py_ext->py_dict );
 
 	if ( result == NULL ) {
 		PyErr_Print();
 
 		return mx_error( MXE_NOT_FOUND, fname,
 		"Could not load the 'Mp' module." );
+	}
+
+#if 1
+	return MX_SUCCESSFUL_RESULT;
+#endif
+
+	/* Are we running in the context of the 'mxmotor' process?
+	 *
+	 * We find out by searching for the 'motor_record_list' pointer
+	 * in the executable that contains main().  We can get an
+	 * MX_DYNAMIC_LIBRARY handle that refers to the main() executable
+	 * by passing NULL as the filename in a call to the function
+	 * mx_dynamic_library_open().
+	 */
+
+	mx_status = mx_dynamic_library_open( NULL, &main_executable );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	motor_record_list_ptr =
+		mx_dynamic_library_get_symbol_pointer( main_executable,
+							"motor_record_list" );
+
+	if ( motor_record_list_ptr == NULL ) {
+
+		/* We are _not_ running in the 'mxmotor' process,
+		 * so we are done now.
+		 */
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* If we get here, we _are_ running in the 'mxmotor' process.
+	 *
+	 * In that case, try to load the 'Mtr' module.
+	 */
+
+	result = PyRun_String( "import Mtr",
+			Py_single_input, py_ext->py_dict, py_ext->py_dict );
+
+	if ( result == NULL ) {
+		PyErr_Print();
+
+		return mx_error( MXE_NOT_FOUND, fname,
+		"Could not load the 'Mtr' module." );
 	}
 
 	return MX_SUCCESSFUL_RESULT;

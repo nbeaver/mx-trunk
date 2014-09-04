@@ -33,7 +33,7 @@ typedef struct {
 	struct mx_extension_function_list_type *extension_function_list;
 	struct mx_module_type *module;
 	MX_RECORD *record_list;
-	void *module_private;
+	void *ext_private;
 } MX_EXTENSION;
 
 typedef struct mx_extension_function_list_type {

@@ -19,6 +19,13 @@
 
 /*----*/
 
+#include "Python.h"
+
+typedef struct {
+	PyObject *py_main;	/* The __main__ module. */
+	PyObject *py_dict;	/* The dictionary of the __main__ module. */
+} MX_PYTHON_EXTENSION_PRIVATE;
+
 extern MX_EXTENSION_FUNCTION_LIST mxext_python_extension_function_list;
 
 MX_API mx_status_type mxext_python_init( MX_EXTENSION *extension );

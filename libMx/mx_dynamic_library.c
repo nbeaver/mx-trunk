@@ -11,7 +11,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2007, 2009, 2011-2012 Illinois Institute of Technology
+ * Copyright 2007, 2009, 2011-2012, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -49,6 +49,10 @@ mx_dynamic_library_get_symbol_pointer( MX_DYNAMIC_LIBRARY *library,
  * LoadLibrary() multiple times on the same DLL, then you must
  * call FreeLibrary() the same number of times before it is really
  * unloaded.
+ *
+ * However, if you passed in a NULL filename, GetModuleHandle(NULL)
+ * will be invoked instead to get a handle to the .EXE.  In this
+ * case, you should _not_ call FreeLibrary() on that.
  */
 
 #include "windows.h"
@@ -62,10 +66,6 @@ mx_dynamic_library_open( const char *filename,
 	DWORD last_error_code;
 	TCHAR message_buffer[100];
 
-	if ( filename == (char *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The filename pointer passed was NULL." );
-	}
 	if ( library == (MX_DYNAMIC_LIBRARY **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_DYNAMIC_LIBRARY pointer passed was NULL." );
@@ -79,7 +79,11 @@ mx_dynamic_library_open( const char *filename,
 			"an MX_DYNAMIC_LIBRARY structure." );
 	}
 
-	(*library)->object = LoadLibrary( filename );
+	if ( filename == (char *) NULL ) {
+		(*library)->object = GetModuleHandle(NULL);
+	} else {
+		(*library)->object = LoadLibrary( filename );
+	}
 
 	if ( (*library)->object == NULL ) {
 
@@ -410,6 +414,9 @@ mx_dynamic_library_get_function_name_from_address( void *address,
 /* Note: On most systems, calls to dlopen() are reference counted.  If you
  * dlopen() a library multiple times, then you must dlclose() it the same
  * number of times before it is really unloaded.
+ * 
+ * However, if you passed in a NULL filename pointer, the handle you get
+ * back refers to the process as a whole, so you should not dlclose() that.
  */
 
 #if defined(__GLIBC__)
@@ -424,10 +431,6 @@ mx_dynamic_library_open( const char *filename,
 {
 	static const char fname[] = "mx_dynamic_library_open()";
 
-	if ( filename == (char *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The filename pointer passed was NULL." );
-	}
 	if ( library == (MX_DYNAMIC_LIBRARY **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_DYNAMIC_LIBRARY pointer passed was NULL." );
@@ -452,7 +455,12 @@ mx_dynamic_library_open( const char *filename,
 			"dlopen() error message = '%s'.", filename, dlerror() );
 	}
 
-	strlcpy( (*library)->filename, filename, sizeof((*library)->filename) );
+	if ( filename == (char *) NULL ) {
+		(*library)->filename[0] = '\0';
+	} else {
+		strlcpy( (*library)->filename, filename,
+				sizeof((*library)->filename) );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
