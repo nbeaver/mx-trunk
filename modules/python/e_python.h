@@ -21,10 +21,11 @@
 
 extern MX_EXTENSION_FUNCTION_LIST mxext_python_extension_function_list;
 
+MX_API mx_status_type mxext_python_init( MX_EXTENSION *extension );
+
 MX_API mx_status_type mxext_python_call( MX_EXTENSION *extension,
-					MX_RECORD *mx_record,
 					int argc,
-					const void **argv );
+					void **argv );
 
 #endif /* __E_PYTHON_H__ */
 

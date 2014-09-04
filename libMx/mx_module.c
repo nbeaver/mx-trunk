@@ -16,7 +16,7 @@
 
 #define MX_MODULE_DEBUG			FALSE
 
-#define MX_MODULE_DEBUG_EXTENSION	TRUE
+#define MX_MODULE_DEBUG_EXTENSION	FALSE
 
 #include <stdio.h>
 
@@ -534,6 +534,8 @@ mx_get_extension( char *extension_name, MX_RECORD *record_list,
 		/* We found the extension. */
 
 		*extension = extension_ptr;
+
+		(*extension)->record_list = record_list;
 
 		return MX_SUCCESSFUL_RESULT;
 		break;

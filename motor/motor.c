@@ -94,6 +94,7 @@ COMMAND command_list[] = {
 		            3, "sample_changer"},
 	{ motor_sca_fn,     3, "sca"           },
 	{ motor_scan_fn,    4, "scan"          },
+	{ motor_script_fn,  3, "script"        },
 	{ motor_set_fn,     3, "set"           },
 	{ motor_setup_fn,   4, "setup"         },
 	{ motor_showall_fn, 5, "showall"       },
@@ -101,7 +102,6 @@ COMMAND command_list[] = {
 	{ motor_start_fn,   3, "start"         },
 	{ motor_stop_fn,    3, "stop"          },
 	{ motor_system_fn,  2, "system"        },
-	{ motor_take_fn,    1, "take"          },
 	{ motor_vinput_fn,  3, "vinput"        },
 	{ motor_vinput_fn,  3, "video_input"   },
 	{ motor_writep_fn, 11, "writeparams"   },
@@ -110,7 +110,7 @@ COMMAND command_list[] = {
 	{ motor_exec_fn,    1, "@"             },     /* alias for 'exec' */
 	{ motor_system_fn,  1, "!"             },     /* alias for 'system' */
 	{ motor_system_fn,  1, "$"             },     /* alias for 'system' */
-	{ motor_take_fn,    1, "&"             },     /* alias for 'take' */
+	{ motor_script_fn,  1, "&"             },     /* alias for 'script' */
 };
 int command_list_length;
 

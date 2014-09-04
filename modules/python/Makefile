@@ -2,13 +2,13 @@
 # Supported values of MX_ARCH:   linux
 #
 
-ifndef MX_ARCH
-  MX_ARCH = linux
-endif
+MX_ARCH = linux
+MX_INSTALL_DIR = /opt/mx
 
-ifndef MX_INSTALL_DIR
-  MX_INSTALL_DIR = /opt/mx
-endif
+PYTHON_VERSION = 2.7
+
+PYTHON_INCLUDES = /usr/include/python$(PYTHON_VERSION)
+PYTHON_LINK = $(shell python$(PYTHON_VERSION)-config --ldflags)
 
 #--------------------------------------------------------------------------
 
@@ -16,7 +16,7 @@ all: python.mxo
 
 include ../../libMx/Makehead.$(MX_ARCH)
 
-CFLAGS += -I../../libMx -D__MX_LIBRARY__
+CFLAGS += -I../../libMx -D__MX_LIBRARY__ -I$(PYTHON_INCLUDES)
 
 PYTHON_OBJS = python.$(OBJ) e_python.$(OBJ)
 
@@ -26,7 +26,8 @@ ifeq ($(MX_ARCH),linux)
 
 python.mxo: $(PYTHON_OBJS)
 	$(CC) -shared -rdynamic -Wl,-soname,python.mxo \
-		-o python.mxo $(PYTHON_OBJS)
+		-o python.mxo $(PYTHON_OBJS) \
+		$(PYTHON_LINK)
 
 endif
 

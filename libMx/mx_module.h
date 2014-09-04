@@ -32,13 +32,13 @@ typedef struct {
 	char name[MXU_EXTENSION_NAME_LENGTH+1];
 	struct mx_extension_function_list_type *extension_function_list;
 	struct mx_module_type *module;
+	MX_RECORD *record_list;
+	void *module_private;
 } MX_EXTENSION;
 
 typedef struct mx_extension_function_list_type {
-	mx_status_type ( *call )( MX_EXTENSION *,
-				MX_RECORD *mx_database,
-				int argc,
-				const void **argv );
+	mx_status_type ( *init )( MX_EXTENSION * );
+	mx_status_type ( *call )( MX_EXTENSION *, int argc, void **argv );
 } MX_EXTENSION_FUNCTION_LIST;
 
 typedef struct mx_module_type {
