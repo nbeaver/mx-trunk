@@ -172,6 +172,14 @@ mxext_python_call( MX_EXTENSION *extension,
 
 	MX_RECORD *mx_database = NULL;
 	int i;
+	char *script_filename = NULL;
+	char del_command[80];
+	char execfile_command[MXU_FILENAME_LENGTH+20];
+	char main_command[2000];
+
+	MX_PYTHON_EXTENSION_PRIVATE *py_ext = NULL;
+	PyObject *result = NULL;
+	PyObject *main_object = NULL;
 
 	if ( extension == (MX_EXTENSION *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -180,6 +188,14 @@ mxext_python_call( MX_EXTENSION *extension,
 	if ( argc < 0 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"argc (%d) is supposed to have a non-negative value.", argc );
+	}
+
+	py_ext = extension->ext_private;
+
+	if ( py_ext == (MX_PYTHON_EXTENSION_PRIVATE *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_PYTHON_EXTENSION_PRIVATE pointer for extension '%s' "
+		"is NULL.", extension->name );
 	}
 
 	MX_DEBUG(-2,("%s invoked", fname));
@@ -196,6 +212,70 @@ mxext_python_call( MX_EXTENSION *extension,
 		MX_DEBUG(-2,("%s: argv[%d] = '%s'",
 		fname, i, (char *) argv[i]));
 	}
+
+	/* Get rid of any preexisting main() function. */
+
+	strlcpy( del_command,
+			"try:\n"
+			"  del main\n"
+			"except:\n"
+			"  pass\n",
+		sizeof(del_command) );
+
+	result = PyRun_String( del_command,
+			Py_single_input, py_ext->py_dict, py_ext->py_dict );
+
+	if ( result == NULL ) {
+		PyErr_Print();
+
+		return mx_error( MXE_NOT_FOUND, fname,
+		"Running the script '%s' failed.", (char *) argv[0] );
+	}
+
+	/* The first argument in argv should be the name of the external
+	 * python script to run.
+	 */
+
+	script_filename = (char *) argv[0];
+
+	snprintf( execfile_command, sizeof(execfile_command),
+			"execfile('%s')", script_filename );
+
+	result = PyRun_String( execfile_command,
+			Py_single_input, py_ext->py_dict, py_ext->py_dict );
+
+	if ( result == NULL ) {
+		PyErr_Print();
+
+		return mx_error( MXE_NOT_FOUND, fname,
+		"Running the script '%s' failed.", script_filename );
+	}
+
+	/* Did the script create a main() function? */
+
+	main_object = PyDict_GetItemString( py_ext->py_dict, "main" );
+
+	if ( main_object == NULL ) {
+		/* No it did not, so return. */
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	MX_DEBUG(-2,("%s: main_object = %p", fname, main_object ));
+
+	/* Is the main object a function? */
+
+	if ( PyFunction_Check(main_object) == FALSE ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+	    "The script '%s' contains a 'main' object which is not a function.",
+			script_filename );
+	}
+
+	/* Now construct a command to invoke the main() function. */
+
+	/* FIXME - Not yet finished. */
+
+	strlcpy( main_command, "main()", sizeof(main_command) );
 
 	return MX_SUCCESSFUL_RESULT;
 }
