@@ -289,6 +289,46 @@ mx_copy_file( char *existing_filename,
 	return mx_status;
 }
 
+#elif ( defined(OS_MACOSX) && (MX_DARWIN_VERSION >= 9000000L) )
+
+#include <copyfile.h>
+
+MX_EXPORT mx_status_type
+mx_copy_file( char *existing_filename,
+		char *new_filename,
+		int new_file_mode,
+		unsigned long copy_flags )
+{
+	static const char fname[] = "mx_copy_file()";
+
+	int os_status, saved_errno;
+	mx_status_type mx_status;
+
+	/* Check to see if the caller requested the classic copy function. */
+
+	if ( copy_flags & MXF_CP_USE_CLASSIC_COPY ) {
+		mx_status = mx_copy_file_classic( existing_filename,
+						new_filename,
+						new_file_mode );
+		return mx_status;
+	}
+
+	os_status = copyfile( existing_filename, new_filename,
+					NULL, COPYFILE_ALL );
+
+	if ( os_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"The attempt to copy file '%s' to file '%s' failed.  "
+		"Errno = %d, error message = '%s'",
+			existing_filename, new_filename,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 #else /* mx_copy_file() */
 
 MX_EXPORT mx_status_type
