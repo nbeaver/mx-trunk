@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2011 Illinois Institute of Technology
+ * Copyright 2011, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -76,7 +76,7 @@ main( int argc, char **argv )
 	if ( strcmp( argv[1], "os" ) == 0 ) {
 
 #if defined(MX_CYGWIN_VERSION)
-		printf( "%d\n", MX_CYGWIN_VERSION );
+		printf( "%ld\n", MX_CYGWIN_VERSION );
 #elif defined(MX_DARWIN_VERSION)
 		printf( "%d\n", MX_DARWIN_VERSION );
 #elif defined(MX_RTEMS_VERSION)

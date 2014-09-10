@@ -67,6 +67,34 @@ GCCFLAGS = -Wall -Werror \
 -Wnested-externs \
 -Winline
 
+#--------------------------------------------------------------------------
+#
+# Modify GCCFLAGS depending on the version of GCC.
+#
+
+# For some reason, using 'test' here and then testing below for equality
+# with '0' does not work.
+#
+#    _have_mx_config := $(shell test -x ../tools/mx_config ; echo \$\? )
+#
+# However, using ../scripts/file_exists _does_ work.  Note that 
+# file_exists returns true or false rather than 0 or 1.
+#
+
+_have_mx_config := $(shell ../scripts/file_exists ../tools/mx_config )
+
+ifeq ($(_have_mx_config),true)
+  _gccver := $(shell ../tools/mx_config gcc )
+
+  _need_no_unused_but_set_variable := $(shell expr $(_gccver) \> 4006000 )
+
+  ifeq ($(_need_no_unused_but_set_variable),1)
+      GCCFLAGS += -Wno-unused-but-set-variable
+  endif
+endif
+
+#--------------------------------------------------------------------------
+#
 # Intel x86 or amd64 with Cygwin under Microsoft Windows.
 #
 CC		= gcc
