@@ -25,7 +25,8 @@
 
 /*=======================================================================*/
 #if defined(OS_DJGPP) || defined(OS_RTEMS) || defined(OS_ECOS) \
-	|| defined(__OpenBSD__) || defined(OS_UNIXWARE)
+	|| defined(OS_UNIXWARE) \
+	|| ( defined(__OpenBSD__) && ( !defined(PRId8) ) )
 
 #define PRId8	"hhd"
 #define PRIu8	"hhu"

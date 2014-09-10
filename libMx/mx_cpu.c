@@ -145,6 +145,8 @@ mx_get_number_of_cpu_cores( unsigned long *num_cores )
 
 #if defined(__NetBSD__)
 	mib[1] = HW_NCPUONLINE;
+#elif defined(__OpenBSD__)
+	mib[1] = HW_NCPU;
 #else
 	mib[1] = HW_AVAILCPU;
 #endif
