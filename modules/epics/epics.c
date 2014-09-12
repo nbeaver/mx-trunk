@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2011-2012 Illinois Institute of Technology
+ * Copyright 2011-2012, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -54,6 +54,7 @@
 #include "d_epics_mcs.h"
 #include "d_epics_motor.h"
 #include "d_epics_scaler.h"
+#include "d_epics_scaler_mcs.h"
 #include "d_epics_timer.h"
 #include "i_epics_camac.h"
 #include "i_epics_gpib.h"
@@ -132,6 +133,13 @@ MX_DRIVER epics_driver_table[] = {
 				&mxd_epics_scaler_scaler_function_list,
 				&mxd_epics_scaler_num_record_fields,
 				&mxd_epics_scaler_rfield_def_ptr},
+
+{"epics_scaler_mcs", -1, MXC_MULTICHANNEL_SCALER,  MXR_DEVICE,
+				&mxd_epics_scaler_mcs_record_function_list,
+				NULL,
+				&mxd_epics_scaler_mcs_mcs_function_list,
+				&mxd_epics_scaler_mcs_num_record_fields,
+				&mxd_epics_scaler_mcs_rfield_def_ptr},
 
 {"epics_timer", -1,	MXC_TIMER,  MXR_DEVICE,
 				&mxd_epics_timer_record_function_list,
