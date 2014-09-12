@@ -1,13 +1,13 @@
 /*
  * Name:    d_epics_mcs.h 
  *
- * Purpose: Header file for EPICS multichannel support.
+ * Purpose: Header file for EPICS multichannel scaler support.
  *
  * Author:  William Lavender
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2005, 2009-2010 Illinois Institute of Technology
+ * Copyright 1999-2003, 2005, 2009-2010, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
