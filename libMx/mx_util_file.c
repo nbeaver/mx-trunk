@@ -159,7 +159,7 @@ mx_copy_file( char *existing_filename,
 
 	/* Check to see if the kernel we are running supports splice(). */
 
-	linux_version = mx_get_linux_version();
+	linux_version = mx_get_os_version_number();
 
 #if 0
 	MX_DEBUG(-2,("mx_copy_file(): linux_version = %lu", linux_version));

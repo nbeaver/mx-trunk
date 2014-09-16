@@ -768,9 +768,7 @@ MX_API mx_status_type mx_get_os_version( int *os_major,
 					int *os_minor,
 					int *os_update );
 
-#if defined(OS_LINUX)
-MX_API unsigned long mx_get_linux_version( void );
-#endif /* OS_LINUX */
+MX_API unsigned long mx_get_os_version_number( void );
 
 #if defined(OS_WIN32)
 MX_API mx_status_type mx_win32_get_osversioninfo( unsigned long *major,
