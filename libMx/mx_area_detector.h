@@ -383,8 +383,8 @@ typedef struct mx_area_detector_type {
 	 * 'image_frame_data' are used to provide places for MX event
 	 * handlers to find the current contents of the 'ad->image_frame'
 	 * object.  They must only be modified by the functions in
-	 * in libMx/pr_area_detector.c.  No other functions should
-	 * modify them.
+	 * in libMx/pr_area_detector.c and libMx/mx_area_detector.c.
+	 * No other functions should modify them.
 	 */
 
 	unsigned long image_frame_header_length;

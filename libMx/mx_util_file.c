@@ -14,7 +14,7 @@
  *
  */
 
-#define MX_DEBUG_DIRECTORY_HIERARCHY	TRUE
+#define MX_DEBUG_DIRECTORY_HIERARCHY	FALSE
 
 
 /* On Linux, we must define _GNU_SOURCE before including any C library header
@@ -120,14 +120,24 @@ mx_copy_file( char *existing_filename,
 	if ( os_status == 0 ) {
 		last_error_code = GetLastError();
 
-		mx_win32_error_message( last_error_code,
-			message_buffer, sizeof(message_buffer) );
+		switch( last_error_code ) {
+		case ERROR_ACCESS_DENIED:
+			return mx_error( MXE_PERMISSION_DENIED, fname,
+			"You do not have the permissions required "
+			"to copy file '%s' to file '%s'.",
+				existing_filename, new_filename );
+			break;
+		default:
+			mx_win32_error_message( last_error_code,
+				message_buffer, sizeof(message_buffer) );
 
-		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-		"Unable to copy file '%s' to '%s'.  "
-		"Win32 error code = %ld, error message = '%s'.",
-			existing_filename, new_filename,
-			last_error_code, message_buffer );
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unable to copy file '%s' to '%s'.  "
+			"Win32 error code = %ld, error message = '%s'.",
+				existing_filename, new_filename,
+				last_error_code, message_buffer );
+			break;
+		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -558,9 +568,18 @@ mx_get_num_lines_in_file( char *filename, size_t *num_lines_in_file )
 	if ( fd < 0 ) {
 		saved_errno = errno;
 
-		return mx_error( MXE_FILE_IO_ERROR, fname,
-		"Unable to open file '%s'.  Errno = %d, error message = '%s'",
-			filename, saved_errno, strerror(saved_errno) );
+		switch( saved_errno ) {
+		case ENOENT:
+			return mx_error( MXE_NOT_FOUND | MXE_QUIET, fname,
+			"File '%s' was not found.", filename );
+			break;
+		default:
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"Unable to open file '%s'.  "
+			"Errno = %d, error message = '%s'",
+				filename, saved_errno, strerror(saved_errno) );
+			break;
+		}
 	}
 
 	/* Now figure out how many lines are currently in this file.

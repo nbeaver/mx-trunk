@@ -823,6 +823,48 @@ mxp_area_detector_get_roi_frame_handler( MX_RECORD *record,
 	return mx_status;
 }
 
+static mx_status_type
+mxp_area_detector_initialize_image_frame( MX_RECORD *record,
+					MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] =
+		"mxp_area_detector_initialize_image_frame()";
+
+	long bytes_per_frame;
+	void *image_data_ptr;
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_setup_frame( record, &(ad->image_frame) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_area_detector_update_frame_pointers( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Zero out the image frame buffer. */
+
+	mx_status = mx_area_detector_get_bytes_per_frame( record,
+							&bytes_per_frame );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	image_data_ptr = ad->image_frame->image_data;
+
+	if ( image_data_ptr == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The ad->image_frame->image_data pointer is NULL.  "
+		"This should not be able to happen." );
+	}
+
+	memset( image_data_ptr, 0, bytes_per_frame );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /*---------------------------------------------------------------------------*/
 
 mx_status_type
@@ -1095,19 +1137,57 @@ mx_area_detector_process_function( void *record_ptr,
 					sizeof(uint16_t) );
 #endif
 			if ( ad->image_frame_data == NULL ) {
-				return mx_error(MXE_INITIALIZATION_ERROR, fname,
-			"Area detector '%s' has not yet taken its first frame.",
-					record->name );
+				mx_status = 
+				    mxp_area_detector_initialize_image_frame(
+								record, ad );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+
+				if ( ad->image_frame_data == NULL ) {
+					return mx_error(
+					MXE_INITIALIZATION_ERROR, fname,
+					"The attempt to initialize the image "
+					"frame of area detector '%s' failed.",
+						record->name );
+				}
 			}
 			break;
 		case MXLV_AD_IMAGE_FRAME_HEADER:
 			if ( ad->image_frame_header == NULL ) {
-				return mx_error(MXE_INITIALIZATION_ERROR, fname,
-			"Area detector '%s' has not yet taken its first frame.",
-					record->name );
+				mx_status = 
+				    mxp_area_detector_initialize_image_frame(
+								record, ad );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+
+				if ( ad->image_frame_header == NULL ) {
+					return mx_error(
+					MXE_INITIALIZATION_ERROR, fname,
+					"The attempt to initialize the image "
+					"frame of area detector '%s' failed.",
+						record->name );
+				}
 			}
 			break;
 		case MXLV_AD_IMAGE_FRAME_HEADER_LENGTH:
+			if ( ad->image_frame_header_length == 0 ) {
+				mx_status = 
+				    mxp_area_detector_initialize_image_frame(
+								record, ad );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+
+				if ( ad->image_frame_header_length == 0 ) {
+					return mx_error(
+					MXE_INITIALIZATION_ERROR, fname,
+					"The attempt to initialize the image "
+					"frame of area detector '%s' failed.",
+						record->name );
+				}
+			}
 			break;
 		case MXLV_AD_LAST_FRAME_NUMBER:
 			mx_status = mx_area_detector_get_last_frame_number(
