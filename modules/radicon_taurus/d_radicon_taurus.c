@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2012-2013 Illinois Institute of Technology
+ * Copyright 2012-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -3123,7 +3123,7 @@ mxd_radicon_taurus_set_sro( MX_AREA_DETECTOR *ad,
 static mx_status_type
 mxd_radicon_taurus_get_si_register( MX_AREA_DETECTOR *ad,
 					long si_type,
-					uint64_t *si_value,
+					uint64_t *si_value_ptr,
 					mx_bool_type force_read )
 {
 	static const char fname[] = "mxd_radicon_taurus_get_si_register()";
@@ -3164,13 +3164,13 @@ mxd_radicon_taurus_get_si_register( MX_AREA_DETECTOR *ad,
 
 	    if ( flags & MXF_RADICON_TAURUS_USE_SHADOW_REGISTERS ) {
 
-		if ( si_value != (uint64_t *) NULL ) {
+		if ( si_value_ptr != (uint64_t *) NULL ) {
 		    switch( si_type ) {
 		    case MXLV_RADICON_TAURUS_SI1:
-			*si_value = radicon_taurus->saved_si1_register;
+			*si_value_ptr = radicon_taurus->saved_si1_register;
 			break;
 		    case MXLV_RADICON_TAURUS_SI2:
-			*si_value = radicon_taurus->saved_si2_register;
+			*si_value_ptr = radicon_taurus->saved_si2_register;
 			break;
 		    default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -3273,8 +3273,8 @@ mxd_radicon_taurus_get_si_register( MX_AREA_DETECTOR *ad,
 		fname, (int)(si_type - MXLV_RADICON_TAURUS_SRO), new_si_value));
 #endif
 
-	if ( si_value != (uint64_t *) NULL ) {
-		*si_value = new_si_value;
+	if ( si_value_ptr != (uint64_t *) NULL ) {
+		*si_value_ptr = new_si_value;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
