@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2010, 2012-2013 Illinois Institute of Technology
+ * Copyright 2010, 2012-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,6 +20,8 @@
 
 #include "i_powerpmac.h"
 
+#define MXU_POWERPMAC_PLIMITS_LENGTH	80
+
 /* ============ Motor channels ============ */
 
 typedef struct {
@@ -30,13 +32,16 @@ typedef struct {
 	struct MotorData *motor_data;
 
 	mx_bool_type use_shm;
+
+	char original_plimits[MXU_POWERPMAC_PLIMITS_LENGTH+1];
 } MX_POWERPMAC_MOTOR;
 
 MX_API mx_status_type mxd_powerpmac_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_powerpmac_finish_record_initialization(
-							MX_RECORD *record);
+							MX_RECORD *record );
 MX_API mx_status_type mxd_powerpmac_open( MX_RECORD *record );
+MX_API mx_status_type mxd_powerpmac_special_processing_setup(MX_RECORD *record);
 
 MX_API mx_status_type mxd_powerpmac_move_absolute( MX_MOTOR *motor );
 MX_API mx_status_type mxd_powerpmac_get_position( MX_MOTOR *motor );
@@ -59,6 +64,8 @@ extern MX_MOTOR_FUNCTION_LIST mxd_powerpmac_motor_function_list;
 extern long mxd_powerpmac_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_powerpmac_rfield_def_ptr;
 
+#define MXLV_POWERPMAC_ORIGINAL_PLIMITS		11500
+
 #define MXD_POWERPMAC_STANDARD_FIELDS \
   {-1, -1, "powerpmac_record", MXFT_RECORD, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_POWERPMAC_MOTOR, powerpmac_record), \
@@ -66,7 +73,12 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_powerpmac_rfield_def_ptr;
   \
   {-1, -1, "motor_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_POWERPMAC_MOTOR, motor_number), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {MXLV_POWERPMAC_ORIGINAL_PLIMITS, -1, "original_plimits", MXFT_STRING, NULL, \
+					1, {MXU_POWERPMAC_PLIMITS_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_POWERPMAC_MOTOR, original_plimits), \
+	{sizeof(char)}, NULL, MXFF_READ_ONLY}
 
 /* === Driver specific functions === */
 

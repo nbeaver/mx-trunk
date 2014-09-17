@@ -38,7 +38,11 @@ MX_RECORD_FUNCTION_LIST mxd_powerpmac_record_function_list = {
 	mxd_powerpmac_finish_record_initialization,
 	NULL,
 	NULL,
-	mxd_powerpmac_open
+	mxd_powerpmac_open,
+	NULL,
+	NULL,
+	NULL,
+	mxd_powerpmac_special_processing_setup
 };
 
 MX_MOTOR_FUNCTION_LIST mxd_powerpmac_motor_function_list = {
@@ -72,7 +76,13 @@ long mxd_powerpmac_num_record_fields
 MX_RECORD_FIELD_DEFAULTS *mxd_powerpmac_rfield_def_ptr
 			= &mxd_powerpmac_record_field_defaults[0];
 
-/* A private function for the use of the driver. */
+/*--------*/
+
+static mx_status_type mxd_powerpmac_process_function( void *record,
+						void *record_field,
+						int operation );
+
+/*--------*/
 
 static mx_status_type
 mxd_powerpmac_get_pointers( MX_MOTOR *motor,
@@ -208,6 +218,9 @@ mxd_powerpmac_open( MX_RECORD *record )
 	MX_POWERPMAC_MOTOR *powerpmac_motor = NULL;
 	MX_POWERPMAC *powerpmac = NULL;
 	long max_motors;
+	char command[40];
+	char response[100];
+	char *ptr;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -259,7 +272,36 @@ mxd_powerpmac_open( MX_RECORD *record )
 
 	mx_status = mx_motor_set_busy_start_interval( record, 0.01 );
 
-	return mx_status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Save a copy of the original value of the pLimits data structure. */
+
+	snprintf( command, sizeof(command),
+		"Motor[%lu].pLimits", powerpmac_motor->motor_number );
+
+	mx_status = mxi_powerpmac_command( powerpmac, command,
+					response, sizeof(response),
+					POWERPMAC_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	ptr = strchr( response, '=' );
+
+	if ( ptr == (char *) NULL ) {
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"The command '%s' sent to Power PMAC '%s' received "
+		"a response '%s' that does not contain a '=' character.",
+			command, record->name, response );
+	}
+
+	ptr++;
+
+	strlcpy( powerpmac_motor->original_plimits,
+		ptr, MXU_POWERPMAC_PLIMITS_LENGTH );
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /* ============ Motor specific functions ============ */
@@ -1129,6 +1171,32 @@ mxd_powerpmac_get_status( MX_MOTOR *motor )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+MX_EXPORT mx_status_type
+mxd_powerpmac_special_processing_setup( MX_RECORD *record )
+{
+	MX_RECORD_FIELD *record_field;
+	MX_RECORD_FIELD *record_field_array;
+	long i;
+
+	record_field_array = record->record_field_array;
+
+	for ( i = 0; i < record->num_record_fields; i++ ) {
+
+		record_field = &record_field_array[i];
+
+		switch( record_field->label_value ) {
+		case MXLV_POWERPMAC_ORIGINAL_PLIMITS:
+			record_field->process_function
+					= mxd_powerpmac_process_function;
+			break;
+		default:
+			break;
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /*-----------*/
 
 MX_EXPORT mx_status_type
@@ -1314,6 +1382,65 @@ mxd_powerpmac_set_motor_variable( MX_POWERPMAC_MOTOR *powerpmac_motor,
 
 	mx_status = mxi_powerpmac_command( powerpmac, command_buffer,
 				response, sizeof response, debug_flag );
+
+	return mx_status;
+}
+
+/*--------*/
+
+#ifndef MX_PROCESS_GET
+
+#define MX_PROCESS_GET	1
+#define MX_PROCESS_PUT	2
+
+#endif
+
+static mx_status_type
+mxd_powerpmac_process_function( void *record_ptr,
+			void *record_field_ptr, int operation )
+{
+	static const char fname[] = "mxd_powerpmac_process_function()";
+
+	MX_RECORD *record;
+	MX_RECORD_FIELD *record_field;
+	MX_POWERPMAC_MOTOR *powerpmac_motor;
+	mx_status_type mx_status;
+
+	record = (MX_RECORD *) record_ptr;
+	record_field = (MX_RECORD_FIELD *) record_field_ptr;
+	powerpmac_motor = (MX_POWERPMAC_MOTOR *) record->record_type_struct;
+
+	mx_status = MX_SUCCESSFUL_RESULT;
+
+	switch( operation ) {
+	case MX_PROCESS_GET:
+		switch( record_field->label_value ) {
+		case MXLV_POWERPMAC_ORIGINAL_PLIMITS:
+			/* Nothing to do since the necessary string is
+			 * already stored in the field.
+			 */
+
+			break;
+		default:
+			MX_DEBUG( 1,(
+			    "%s: *** Unknown MX_PROCESS_GET label value = %ld",
+				fname, record_field->label_value));
+			break;
+		}
+		break;
+	case MX_PROCESS_PUT:
+		switch( record_field->label_value ) {
+		default:
+			MX_DEBUG( 1,(
+			    "%s: *** Unknown MX_PROCESS_PUT label value = %ld",
+				fname, record_field->label_value));
+			break;
+		}
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Unknown operation code = %d", operation );
+	}
 
 	return mx_status;
 }
