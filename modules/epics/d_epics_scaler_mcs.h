@@ -33,6 +33,10 @@ typedef struct {
 
 	MX_EPICS_PV motor_position_pv;
 	double version;
+
+	unsigned long current_measurement_number;
+
+	MX_CALLBACK_MESSAGE *callback_message;
 } MX_EPICS_SCALER_MCS;
 
 MX_API mx_status_type mxd_epics_scaler_mcs_initialize_driver(

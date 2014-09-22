@@ -21,11 +21,14 @@
  *
  */
 
+#define MXD_EPICS_SCALER_MCS_DEBUG_CALLBACK	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_callback.h"
 #include "mx_epics.h"
 #include "mx_mcs.h"
 #include "d_epics_scaler_mcs.h"
@@ -63,7 +66,7 @@ long mxd_epics_scaler_mcs_num_record_fields
 MX_RECORD_FIELD_DEFAULTS *mxd_epics_scaler_mcs_rfield_def_ptr
 			= &mxd_epics_scaler_mcs_record_field_defaults[0];
 
-/* === */
+/*-------------------------------------------------------------------*/
 
 static mx_status_type
 mxd_epics_scaler_mcs_get_pointers( MX_MCS *mcs,
@@ -102,7 +105,128 @@ mxd_epics_scaler_mcs_get_pointers( MX_MCS *mcs,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/* === */
+/*-------------------------------------------------------------------*/
+
+static mx_status_type
+mxd_epics_scaler_mcs_callback( MX_CALLBACK_MESSAGE *message )
+{
+	static const char fname[] = "mxd_epics_scaler_mcs_callback()";
+
+	MX_RECORD *record;
+	MX_MCS *mcs;
+	MX_EPICS_SCALER_MCS *epics_scaler_mcs;
+	MX_EPICS_GROUP epics_group;
+	unsigned long i, j;
+	long **data_array;
+	int32_t cnt;
+	int32_t s_value_array[64];
+	mx_status_type mx_status;
+
+	if ( message == (MX_CALLBACK_MESSAGE *) NULL ) {
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"This callback was invoked with a NULL callback message!" );
+	}
+
+	if ( message->callback_type != MXCBT_FUNCTION ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Callback message %p sent to this callback function is not "
+		"of type MXCBT_FUNCTION.  Instead, it is of type %lu",
+			message, message->callback_type );
+	}
+
+	record = (MX_RECORD *) message->u.function.callback_args;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RECORD pointer for callback message %p is NULL.",
+			message );
+	}
+
+	mcs = (MX_MCS *) record->record_class_struct;
+
+	mx_status = mxd_epics_scaler_mcs_get_pointers( mcs,
+						&epics_scaler_mcs, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Restart the virtual timer to arrange for the next callback. */
+
+	mx_status = mx_virtual_timer_start(
+			message->u.function.oneshot_timer,
+			message->u.function.callback_interval );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/********************************************************************/
+
+	/* All of our EPICS I/O needs to be synchronized as well as possible,
+	 * so we make all of the calls in an EPICS synchronous group.
+	 */
+
+	mx_status = mx_epics_start_group( &epics_group );
+
+	/* What is the current status of the EPICS Scaler record? */
+
+	mx_status = mx_caget( &(epics_scaler_mcs->cnt_pv),
+				MX_CA_LONG, 1, &cnt );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Read out all of the scaler channels. */
+
+	for ( i = 0; i < epics_scaler_mcs->num_channels; i++ ) {
+		mx_status = mx_caget( &(epics_scaler_mcs->s_pv_array[i]),
+					MX_CA_LONG, 1, &(s_value_array[i]) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	/* Send the synchronous group to EPICS. */
+
+	mx_epics_end_group( &epics_group );
+
+	/********************************************************************/
+
+#if MXD_EPICS_SCALER_MCS_DEBUG_CALLBACK
+	MX_DEBUG(-2,("%s: cnt = %ld", fname, (long) cnt));
+#endif
+
+	if ( cnt ) {
+		mcs->busy = TRUE;
+	} else {
+		mcs->busy = FALSE;
+	}
+
+	/* Copy the scaler data into the MCS data array. */
+
+	j = epics_scaler_mcs->current_measurement_number;
+
+	data_array = mcs->data_array;
+
+	for ( i = 0; i < epics_scaler_mcs->num_channels; i++ ) {
+		data_array[i][j] = s_value_array[i];
+	}
+
+	/* If the EPICS Scaler record is no longer busy, then
+	 * delete this callback.
+	 */
+
+	if ( mcs->busy == FALSE ) {
+		mx_status = mx_function_delete_callback(
+				epics_scaler_mcs->callback_message );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mxd_epics_scaler_mcs_initialize_driver( MX_DRIVER *driver )
@@ -164,6 +288,7 @@ mxd_epics_scaler_mcs_open( MX_RECORD *record )
 
 	MX_MCS *mcs = NULL;
 	MX_EPICS_SCALER_MCS *epics_scaler_mcs = NULL;
+	MX_LIST_HEAD *list_head = NULL;
 	char pvname[MXU_EPICS_PVNAME_LENGTH+1];
 	uint16_t num_channels;
 	int i;
@@ -181,6 +306,32 @@ mxd_epics_scaler_mcs_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Check to see if this database process has a callback pipe.
+	 * If it does not, then warn the user that this driver cannot
+	 * operate correctly.
+	 */
+
+	list_head = mx_get_record_list_head_struct( record );
+
+	if ( list_head == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_LIST_HEAD pointer for the database containing "
+		"record '%s' is NULL.  This should not be possible.",
+			record->name );
+	}
+
+	if ( list_head->callback_pipe == NULL ) {
+
+		return mx_error( MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
+		"The driver '%s' for record '%s' uses the MX callback pipe "
+		"to service its callbacks.  However, this process does not "
+		"have an MX callback pipe, so the driver _CANNOT_ run "
+		"correctly.  Perhaps you need to be running this driver in "
+		"an MX server?",
+			mx_get_driver_name( record ),
+			record->name );
+	}
 
 	/* Verify that the EPICS scaler record is there by asking for
 	 * its software version.
@@ -242,7 +393,7 @@ mxd_epics_scaler_mcs_open( MX_RECORD *record )
 
 	for ( i = 0; i < num_channels; i++ ) {
 		mx_epics_pvname_init( &(epics_scaler_mcs->s_pv_array[i]),
-			"%s.S%d", epics_scaler_mcs->epics_record_name, i );
+			"%s.S%d", epics_scaler_mcs->epics_record_name, (i+1) );
 	}
 
 	return mx_status;
@@ -263,10 +414,28 @@ mxd_epics_scaler_mcs_start( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	epics_scaler_mcs->current_measurement_number = 0;
+
+	/* Start the "MCS" counting. */
+
 	cnt = 1;
 
 	mx_status = mx_caput_nowait( &(epics_scaler_mcs->cnt_pv),
 					MX_CA_LONG, 1, &cnt );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Setup the callback that we will use to monitor "MCS" data 
+	 * acquisition.
+	 */
+
+	mx_status = mx_function_add_callback( mcs->record,
+					mxd_epics_scaler_mcs_callback,
+					NULL,
+					mcs->record,
+					0.1,
+					&(epics_scaler_mcs->callback_message) );
 
 	return mx_status;
 }
@@ -297,27 +466,11 @@ mxd_epics_scaler_mcs_stop( MX_MCS *mcs )
 MX_EXPORT mx_status_type
 mxd_epics_scaler_mcs_busy( MX_MCS *mcs )
 {
-	static const char fname[] = "mxd_epics_scaler_mcs_busy()";
+	/* mcs->busy will have been set by the callback function
+	 * mxd_epics_scaler_mcs_callback(), so we just return the
+	 * value already in the variable.
+	 */
 
-	MX_EPICS_SCALER_MCS *epics_scaler_mcs;
-	int32_t cnt;
-	mx_status_type mx_status;
-
-	mx_status = mxd_epics_scaler_mcs_get_pointers( mcs,
-						&epics_scaler_mcs, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_caput_nowait( &(epics_scaler_mcs->cnt_pv),
-					MX_CA_LONG, 1, &cnt );
-
-	if ( cnt ) {
-		mcs->busy = TRUE;
-	} else {
-		mcs->busy = FALSE;
-	}
-
-	return mx_status;
+	return MX_SUCCESSFUL_RESULT;
 }
 
