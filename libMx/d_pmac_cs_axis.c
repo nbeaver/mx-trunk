@@ -20,7 +20,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2005-2007, 2010-2011 Illinois Institute of Technology
+ * Copyright 2003, 2005-2007, 2010-2011, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -236,7 +236,6 @@ mxd_pmac_cs_axis_print_structure( FILE *file, MX_RECORD *record )
 
 	MX_MOTOR *motor;
 	MX_PMAC_COORDINATE_SYSTEM_AXIS *axis;
-	long motor_steps;
 	double position, backlash;
 	double negative_limit, positive_limit, move_deadband;
 	mx_status_type mx_status;
@@ -271,7 +270,7 @@ mxd_pmac_cs_axis_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  move program number  = %ld\n",
 					axis->move_program_number);
 
-	mx_status = mx_motor_get_position_steps( record, &motor_steps );
+	mx_status = mx_motor_get_position( record, &position );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_error( MXE_FUNCTION_FAILED, fname,
@@ -279,12 +278,8 @@ mxd_pmac_cs_axis_print_structure( FILE *file, MX_RECORD *record )
 				record->name );
 	}
 	
-	position = motor->offset + motor->scale
-			* (double) motor_steps;
-	
-	fprintf(file, "  position       = %ld steps (%g %s)\n",
-			motor_steps, position, motor->units);
-	fprintf(file, "  scale          = %g %s per step.\n",
+	fprintf(file, "  position       = %g %s\n", position, motor->units);
+	fprintf(file, "  scale          = %g %s per raw unit.\n",
 			motor->scale, motor->units);
 	fprintf(file, "  offset         = %g %s.\n",
 			motor->offset, motor->units);

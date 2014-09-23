@@ -210,7 +210,6 @@ mxd_pmac_print_structure( FILE *file, MX_RECORD *record )
 
 	MX_MOTOR *motor;
 	MX_PMAC_MOTOR *pmac_motor = NULL;
-	long motor_steps;
 	double position, backlash;
 	double negative_limit, positive_limit, move_deadband;
 	mx_status_type mx_status;
@@ -235,20 +234,16 @@ mxd_pmac_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  port name      = %s\n", pmac_motor->pmac_record->name);
 	fprintf(file, "  motor number   = %ld\n", pmac_motor->motor_number);
 
-	mx_status = mx_motor_get_position_steps( record, &motor_steps );
+	mx_status = mx_motor_get_position( record, &position );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_error( MXE_FUNCTION_FAILED, fname,
 			"Unable to read position of motor '%s'",
 				record->name );
 	}
-	
-	position = motor->offset + motor->scale
-			* (double) motor_steps;
-	
-	fprintf(file, "  position       = %ld steps (%g %s)\n",
-			motor_steps, position, motor->units);
-	fprintf(file, "  scale          = %g %s per step.\n",
+
+	fprintf(file, "  position       = %g %s\n", position, motor->units);
+	fprintf(file, "  scale          = %g %s per raw unit.\n",
 			motor->scale, motor->units);
 	fprintf(file, "  offset         = %g %s.\n",
 			motor->offset, motor->units);
@@ -370,7 +365,7 @@ mxd_pmac_move_absolute( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_pmac_get_position( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_pmac_get_position_steps()";
+	static const char fname[] = "mxd_pmac_get_position()";
 
 	MX_PMAC_MOTOR *pmac_motor = NULL;
 	MX_PMAC *pmac = NULL;
@@ -945,7 +940,7 @@ mxd_pmac_simultaneous_start( long num_motor_records,
 	char command_buffer[500];
 	char *ptr;
 	double raw_position;
-	long i, raw_steps;
+	long i;
 	size_t length, buffer_left;
 	mx_status_type mx_status;
 
@@ -1001,8 +996,6 @@ mxd_pmac_simultaneous_start( long num_motor_records,
 			mx_divide_safely( position_array[i] - motor->offset,
 						motor->scale );
 
-		raw_steps = mx_round( raw_position );
-
 		/* Append the part of the command referring to this motor. */
 
 		if ( pmac->num_cards > 1 ) {
@@ -1019,8 +1012,8 @@ mxd_pmac_simultaneous_start( long num_motor_records,
 		buffer_left = sizeof(command_buffer) - length;
 		ptr = command_buffer + length;
 
-		snprintf( ptr, buffer_left,
-			"#%ldJ=%ld ", pmac_motor->motor_number, raw_steps );
+		snprintf( ptr, buffer_left, "#%ldJ=%ld ",
+			pmac_motor->motor_number, mx_round( raw_position ) );
 	}
 
 	if ( pmac_interface_record == (MX_RECORD *) NULL ) {
