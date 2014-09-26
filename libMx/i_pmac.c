@@ -384,6 +384,12 @@ mxi_pmac_open( MX_RECORD *record )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
+		if ( pmac->pmac_flags & MXF_PMAC_DEBUG_SERIAL ) {
+			MX_DEBUG(-2,
+			("%s: successfully connected to PMAC at '%s', port %d",
+			    fname, pmac->hostname, MX_PMAC_TCP_PORT_NUMBER));
+		}
+
 		mx_status = mxi_pmac_tcp_flush( pmac, MXI_PMAC_DEBUG );
 		break;
 
@@ -1462,6 +1468,10 @@ mxi_pmac_tcp_flush( MX_PMAC *pmac,
 	if ( pmac == (MX_PMAC *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"MX_PMAC pointer passed was NULL." );
+	}
+
+	if ( pmac->pmac_flags & MXF_PMAC_DEBUG_SERIAL ) {
+		debug_flag = TRUE;
 	}
 
 	if ( debug_flag ) {
