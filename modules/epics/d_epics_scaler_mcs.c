@@ -207,9 +207,21 @@ mxd_epics_scaler_mcs_callback( MX_CALLBACK_MESSAGE *message )
 
 	data_array = mcs->data_array;
 
+#if MXD_EPICS_SCALER_MCS_DEBUG_CALLBACK
+	fprintf(stderr,"%s: meas(%lu) ", fname, j);
+#endif
+
 	for ( i = 0; i < epics_scaler_mcs->num_channels; i++ ) {
 		data_array[i][j] = s_value_array[i];
+
+#if MXD_EPICS_SCALER_MCS_DEBUG_CALLBACK
+		fprintf(stderr,"%lu ", data_array[i][j]);
+#endif
 	}
+
+#if MXD_EPICS_SCALER_MCS_DEBUG_CALLBACK
+	fprintf(stderr,"\n");
+#endif
 
 	/* If the EPICS Scaler record is no longer busy, then
 	 * delete this callback.
@@ -406,6 +418,7 @@ mxd_epics_scaler_mcs_start( MX_MCS *mcs )
 
 	MX_EPICS_SCALER_MCS *epics_scaler_mcs;
 	int32_t cnt;
+	double time_preset;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_scaler_mcs_get_pointers( mcs,
@@ -415,6 +428,16 @@ mxd_epics_scaler_mcs_start( MX_MCS *mcs )
 		return mx_status;
 
 	epics_scaler_mcs->current_measurement_number = 0;
+
+	/* Compute and set the EPICS scaler time preset. */
+
+	time_preset = mcs->measurement_time * mcs->current_num_measurements;
+
+	mx_status = mx_caput( &(epics_scaler_mcs->tp_pv),
+				MX_CA_DOUBLE, 1, &time_preset );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Start the "MCS" counting. */
 
@@ -434,7 +457,7 @@ mxd_epics_scaler_mcs_start( MX_MCS *mcs )
 					mxd_epics_scaler_mcs_callback,
 					NULL,
 					mcs->record,
-					0.1,
+					mcs->measurement_time,
 					&(epics_scaler_mcs->callback_message) );
 
 	return mx_status;

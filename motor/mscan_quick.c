@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2005-2006, 2009-2011, 2013
+ * Copyright 1999-2003, 2005-2006, 2009-2011, 2013-2014
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -174,7 +174,7 @@ motor_setup_quick_scan_parameters(
 	 *        quick scan datatypes in the list of drivers.
 	 */
 
-	mx_status = mx_get_module( "epics_aps", old_scan->record, &module );
+	mx_status = mx_get_module( "epics_aps", motor_record_list, &module );
 
 	if ( module == (MX_MODULE *) NULL ) {
 		epics_aps_module_is_loaded = FALSE;

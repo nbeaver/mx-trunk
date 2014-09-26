@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004, 2010 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003-2004, 2010, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -41,7 +41,7 @@ typedef struct {
 	MX_NETWORK_FIELD start_nf;
 	MX_NETWORK_FIELD stop_nf;
 	MX_NETWORK_FIELD timer_data_nf;
-	MX_NETWORK_FIELD timer_record_name_nf;
+	MX_NETWORK_FIELD timer_name_nf;
 } MX_NETWORK_MCS;
 
 #define MXD_NETWORK_MCS_STANDARD_FIELDS \

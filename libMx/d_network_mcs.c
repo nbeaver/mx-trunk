@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2000-2006, 2008, 2010, 2012 Illinois Institute of Technology
+ * Copyright 2000-2006, 2008, 2010, 2012, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -242,9 +242,9 @@ mxd_network_mcs_finish_record_initialization( MX_RECORD *record )
 		network_mcs->server_record,
 		"%s.timer_data", network_mcs->remote_record_name );
 
-	mx_network_field_init( &(network_mcs->timer_record_name_nf),
+	mx_network_field_init( &(network_mcs->timer_name_nf),
 		network_mcs->server_record,
-		"%s.timer_record_name", network_mcs->remote_record_name );
+		"%s.timer_name", network_mcs->remote_record_name );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -295,7 +295,7 @@ mxd_network_mcs_open( MX_RECORD *record )
 	MX_NETWORK_TIMER *network_timer;
 	MX_MCS_TIMER *mcs_timer;
 	MX_RECORD *current_record, *list_head_record;
-	char timer_record_name[ MXU_RECORD_NAME_LENGTH + 1 ];
+	char timer_name[ MXU_RECORD_NAME_LENGTH + 1 ];
 	long dimension[1];
 	int current_record_matches, is_a_timer;
 	mx_status_type mx_status;
@@ -325,9 +325,9 @@ mxd_network_mcs_open( MX_RECORD *record )
 		dimension[0] = MXU_RECORD_NAME_LENGTH;
 
 		mx_status = mx_get_array(
-				&(network_mcs->timer_record_name_nf),
+				&(network_mcs->timer_name_nf),
 				MXFT_STRING, 1, dimension,
-				timer_record_name );
+				timer_name );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -359,7 +359,7 @@ mxd_network_mcs_open( MX_RECORD *record )
 					== network_mcs->server_record )
 			    {
 				if ( strcmp( network_timer->remote_record_name,
-					timer_record_name ) == 0 ) {
+					timer_name ) == 0 ) {
 
 				    /* We have a match!  The remote server and
 				     * remote record names match, so this must
