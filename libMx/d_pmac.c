@@ -1178,15 +1178,17 @@ mxd_pmac_get_turbo_pmac_status( MX_MOTOR *motor,
 {
 	static const char fname[] = "mxd_pmac_get_turbo_pmac_status()";
 
-	char response[50];
+	char *response;
 	unsigned long status[ MX_PMAC_NUM_STATUS_CHARACTERS ];
 	int i, length;
 	mx_status_type mx_status;
 
 	/* Request the motor status. */
 
+	response = motor->raw_status;
+
 	mx_status = mxd_pmac_jog_command( pmac_motor, pmac, "?",
-				response, sizeof response, PMAC_DEBUG );
+			response, MXU_RAW_STATUS_STRING_LENGTH, PMAC_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
