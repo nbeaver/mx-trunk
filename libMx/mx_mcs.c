@@ -94,7 +94,7 @@ mx_mcs_initialize_driver( MX_DRIVER *driver,
 
 	MX_RECORD_FIELD_DEFAULTS *field;
 	long referenced_field_index;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( driver == (MX_DRIVER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -113,64 +113,64 @@ mx_mcs_initialize_driver( MX_DRIVER *driver,
 	 * of 'maximum_num_scalers' and 'maximum_num_measurements'.
 	 */
 
-	status = mx_find_record_field_defaults( driver, "data_array", &field );
+	mx_status = mx_find_record_field_defaults( driver, "data_array", &field );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_find_record_field_defaults_index( driver,
+	mx_status = mx_find_record_field_defaults_index( driver,
 			"maximum_num_scalers", &referenced_field_index );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_construct_varargs_cookie( referenced_field_index, 0,
+	mx_status = mx_construct_varargs_cookie( referenced_field_index, 0,
 					maximum_num_scalers_varargs_cookie );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_find_record_field_defaults_index( driver,
+	mx_status = mx_find_record_field_defaults_index( driver,
 			"maximum_num_measurements", &referenced_field_index );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_construct_varargs_cookie( referenced_field_index, 0,
+	mx_status = mx_construct_varargs_cookie( referenced_field_index, 0,
 				maximum_num_measurements_varargs_cookie );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	field->dimension[0] = *maximum_num_scalers_varargs_cookie;
 	field->dimension[1] = *maximum_num_measurements_varargs_cookie;
 
 	/* 'timer_data' depends on 'maximum_num_measurements'. */
 
-	status = mx_find_record_field_defaults( driver, "timer_data", &field );
+	mx_status = mx_find_record_field_defaults( driver, "timer_data", &field );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	field->dimension[0] = *maximum_num_measurements_varargs_cookie;
 
 	/* 'measurement_data' depends on 'maximum_num_scalers'. */
 
-	status = mx_find_record_field_defaults( driver,
+	mx_status = mx_find_record_field_defaults( driver,
 					"measurement_data", &field );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	field->dimension[0] = *maximum_num_scalers_varargs_cookie;
 
 	/* 'dark_current_array' depends on 'maximum_num_scalers'. */
 
-	status = mx_find_record_field_defaults( driver,
+	mx_status = mx_find_record_field_defaults( driver,
 					"dark_current_array", &field );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	field->dimension[0] = *maximum_num_scalers_varargs_cookie;
 
@@ -189,13 +189,13 @@ mx_mcs_finish_record_initialization( MX_RECORD *mcs_record )
 	MX_RECORD_FIELD *timer_data_field;
 	long i;
 	int valid_type;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( mcs->maximum_num_scalers == 0 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -237,11 +237,11 @@ mx_mcs_finish_record_initialization( MX_RECORD *mcs_record )
 	 * of the 'scaler_data' field to be 'maximum_num_measurements' long.
 	 */
 
-	status = mx_find_record_field( mcs_record, "scaler_data",
+	mx_status = mx_find_record_field( mcs_record, "scaler_data",
 					&scaler_data_field );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	scaler_data_field->dimension[0] = mcs->maximum_num_measurements;
 
@@ -249,17 +249,17 @@ mx_mcs_finish_record_initialization( MX_RECORD *mcs_record )
 
 	mcs->scaler_data = mcs->data_array[0];
 
-	status = mx_find_record_field( mcs_record, "measurement_data",
+	mx_status = mx_find_record_field( mcs_record, "measurement_data",
 					&measurement_data_field );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_find_record_field( mcs_record, "timer_data",
+	mx_status = mx_find_record_field( mcs_record, "timer_data",
 					&timer_data_field );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* If the 'external_channel_advance_name' field has a non-zero
 	 * length value then make mcs->external_channel_advance_record
@@ -315,10 +315,10 @@ mx_mcs_finish_record_initialization( MX_RECORD *mcs_record )
 	mcs->clear_deadband = 0;		/* in seconds */
 
 #if 0
-	status = mx_mcs_set_parameter( mcs_record, MXLV_MCS_CLEAR_DEADBAND );
+	mx_status = mx_mcs_set_parameter( mcs_record, MXLV_MCS_CLEAR_DEADBAND );
 #endif
 
-	return status;
+	return mx_status;
 }
 
 /*=======================================================================*/
@@ -331,13 +331,13 @@ mx_mcs_start( MX_RECORD *mcs_record )
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *start_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	start_fn = function_list->start;
 
@@ -347,10 +347,10 @@ mx_mcs_start( MX_RECORD *mcs_record )
 			mcs_record->name );
 	}
 
-	status = (*start_fn)( mcs );
+	mx_status = (*start_fn)( mcs );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	mcs->new_data_available = TRUE;
 
@@ -365,13 +365,13 @@ mx_mcs_stop( MX_RECORD *mcs_record )
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *stop_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	stop_fn = function_list->stop;
 
@@ -381,9 +381,9 @@ mx_mcs_stop( MX_RECORD *mcs_record )
 			mcs_record->name );
 	}
 
-	status = (*stop_fn)( mcs );
+	mx_status = (*stop_fn)( mcs );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -394,13 +394,13 @@ mx_mcs_clear( MX_RECORD *mcs_record )
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *clear_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	clear_fn = function_list->clear;
 
@@ -411,9 +411,9 @@ mx_mcs_clear( MX_RECORD *mcs_record )
 	}
 
 #if ( ENABLE_CLEAR_DEADBAND == FALSE )
-	status = (*clear_fn)( mcs );
+	mx_status = (*clear_fn)( mcs );
 
-	return status;
+	return mx_status;
 #else
 	{
 		MX_CLOCK_TICK current_tick;
@@ -450,10 +450,10 @@ mx_mcs_clear( MX_RECORD *mcs_record )
 #endif
 
 		if ( do_clear ) {
-			status = (*clear_fn)( mcs );
+			mx_status = (*clear_fn)( mcs );
 
-			if ( status.code != MXE_SUCCESS )
-				return status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
 			mcs->new_data_available = FALSE;
 
@@ -485,13 +485,13 @@ mx_mcs_is_busy( MX_RECORD *mcs_record, mx_bool_type *busy )
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *busy_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	busy_fn = function_list->busy;
 
@@ -501,10 +501,10 @@ mx_mcs_is_busy( MX_RECORD *mcs_record, mx_bool_type *busy )
 			mcs_record->name );
 	}
 
-	status = (*busy_fn)( mcs );
+	mx_status = (*busy_fn)( mcs );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( busy != NULL ) {
 		*busy = mcs->busy;
@@ -528,21 +528,21 @@ mx_mcs_read_all( MX_RECORD *mcs_record,
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *read_all_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	read_all_fn = function_list->read_all;
 
 	if ( read_all_fn != NULL ) {
-		status = (*read_all_fn)( mcs );
+		mx_status = (*read_all_fn)( mcs );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	if ( num_scalers != NULL ) {
@@ -569,13 +569,13 @@ mx_mcs_read_scaler( MX_RECORD *mcs_record,
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *read_scaler_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( ((long) scaler_index) >= mcs->maximum_num_scalers ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -589,10 +589,10 @@ mx_mcs_read_scaler( MX_RECORD *mcs_record,
 	read_scaler_fn = function_list->read_scaler;
 
 	if ( read_scaler_fn != NULL ) {
-		status = (*read_scaler_fn)( mcs );
+		mx_status = (*read_scaler_fn)( mcs );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	mcs->scaler_data = (mcs->data_array) [ mcs->scaler_index ];
@@ -619,13 +619,13 @@ mx_mcs_read_measurement( MX_RECORD *mcs_record,
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *read_measurement_fn ) ( MX_MCS * );
 	unsigned long i;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( ((long) measurement_index) >= mcs->maximum_num_measurements ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -640,10 +640,10 @@ mx_mcs_read_measurement( MX_RECORD *mcs_record,
 	read_measurement_fn = function_list->read_measurement;
 
 	if ( read_measurement_fn != NULL ) {
-		status = (*read_measurement_fn)( mcs );
+		mx_status = (*read_measurement_fn)( mcs );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	} else {
 		for ( i = 0; i < mcs->current_num_scalers; i++ ) {
 			mcs->measurement_data[i] =
@@ -658,7 +658,7 @@ mx_mcs_read_measurement( MX_RECORD *mcs_record,
 		*measurement_data = mcs->measurement_data;
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -672,13 +672,13 @@ mx_mcs_read_timer( MX_RECORD *mcs_record,
 	MX_MCS_FUNCTION_LIST *function_list;
 	unsigned long i;
 	mx_status_type ( *read_timer_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	read_timer_fn = function_list->read_timer;
 
@@ -687,7 +687,7 @@ mx_mcs_read_timer( MX_RECORD *mcs_record,
 			(mcs->timer_data)[i] = 0.0;
 		}
 	} else {
-		status = (*read_timer_fn)( mcs );
+		mx_status = (*read_timer_fn)( mcs );
 	}
 
 	if ( num_measurements != NULL ) {
@@ -697,7 +697,7 @@ mx_mcs_read_timer( MX_RECORD *mcs_record,
 		*timer_data = mcs->timer_data;
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -708,13 +708,13 @@ mx_mcs_get_mode( MX_RECORD *mcs_record, long *mode )
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *get_parameter_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	get_parameter_fn = function_list->get_parameter;
 
@@ -724,13 +724,13 @@ mx_mcs_get_mode( MX_RECORD *mcs_record, long *mode )
 
 	mcs->parameter_type = MXLV_MCS_MODE;
 
-	status = (*get_parameter_fn)( mcs );
+	mx_status = (*get_parameter_fn)( mcs );
 
 	if ( mode != NULL ) {
 		*mode = mcs->mode;
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -741,13 +741,13 @@ mx_mcs_set_mode( MX_RECORD *mcs_record, long mode )
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *set_parameter_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	set_parameter_fn = function_list->set_parameter;
 
@@ -759,9 +759,9 @@ mx_mcs_set_mode( MX_RECORD *mcs_record, long mode )
 
 	mcs->mode = mode;
 
-	status = (*set_parameter_fn)( mcs );
+	mx_status = (*set_parameter_fn)( mcs );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -773,13 +773,13 @@ mx_mcs_get_external_channel_advance( MX_RECORD *mcs_record,
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *get_parameter_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	get_parameter_fn = function_list->get_parameter;
 
@@ -789,13 +789,13 @@ mx_mcs_get_external_channel_advance( MX_RECORD *mcs_record,
 
 	mcs->parameter_type = MXLV_MCS_EXTERNAL_CHANNEL_ADVANCE;
 
-	status = (*get_parameter_fn)( mcs );
+	mx_status = (*get_parameter_fn)( mcs );
 
 	if ( external_channel_advance != NULL ) {
 		*external_channel_advance = mcs->external_channel_advance;
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -807,13 +807,13 @@ mx_mcs_set_external_channel_advance( MX_RECORD *mcs_record,
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *set_parameter_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	set_parameter_fn = function_list->set_parameter;
 
@@ -825,9 +825,9 @@ mx_mcs_set_external_channel_advance( MX_RECORD *mcs_record,
 
 	mcs->external_channel_advance = external_channel_advance;
 
-	status = (*set_parameter_fn)( mcs );
+	mx_status = (*set_parameter_fn)( mcs );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -839,13 +839,13 @@ mx_mcs_get_external_prescale( MX_RECORD *mcs_record,
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *get_parameter_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	get_parameter_fn = function_list->get_parameter;
 
@@ -855,13 +855,13 @@ mx_mcs_get_external_prescale( MX_RECORD *mcs_record,
 
 	mcs->parameter_type = MXLV_MCS_EXTERNAL_PRESCALE;
 
-	status = (*get_parameter_fn)( mcs );
+	mx_status = (*get_parameter_fn)( mcs );
 
 	if ( external_prescale != NULL ) {
 		*external_prescale = mcs->external_prescale;
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -873,13 +873,13 @@ mx_mcs_set_external_prescale( MX_RECORD *mcs_record,
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *set_parameter_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	set_parameter_fn = function_list->set_parameter;
 
@@ -891,9 +891,9 @@ mx_mcs_set_external_prescale( MX_RECORD *mcs_record,
 
 	mcs->external_prescale = external_prescale;
 
-	status = (*set_parameter_fn)( mcs );
+	mx_status = (*set_parameter_fn)( mcs );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -904,13 +904,13 @@ mx_mcs_get_measurement_time( MX_RECORD *mcs_record, double *measurement_time )
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *get_parameter_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	get_parameter_fn = function_list->get_parameter;
 
@@ -920,13 +920,13 @@ mx_mcs_get_measurement_time( MX_RECORD *mcs_record, double *measurement_time )
 
 	mcs->parameter_type = MXLV_MCS_MEASUREMENT_TIME;
 
-	status = (*get_parameter_fn)( mcs );
+	mx_status = (*get_parameter_fn)( mcs );
 
 	if ( measurement_time != NULL ) {
 		*measurement_time = mcs->measurement_time;
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -937,13 +937,13 @@ mx_mcs_set_measurement_time( MX_RECORD *mcs_record, double measurement_time )
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *set_parameter_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	set_parameter_fn = function_list->set_parameter;
 
@@ -955,9 +955,9 @@ mx_mcs_set_measurement_time( MX_RECORD *mcs_record, double measurement_time )
 
 	mcs->measurement_time = measurement_time;
 
-	status = (*set_parameter_fn)( mcs );
+	mx_status = (*set_parameter_fn)( mcs );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -969,13 +969,13 @@ mx_mcs_get_measurement_counts( MX_RECORD *mcs_record,
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *get_parameter_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	get_parameter_fn = function_list->get_parameter;
 
@@ -985,13 +985,13 @@ mx_mcs_get_measurement_counts( MX_RECORD *mcs_record,
 
 	mcs->parameter_type = MXLV_MCS_MEASUREMENT_COUNTS;
 
-	status = (*get_parameter_fn)( mcs );
+	mx_status = (*get_parameter_fn)( mcs );
 
 	if ( measurement_counts != NULL ) {
 		*measurement_counts = mcs->measurement_counts;
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -1003,13 +1003,13 @@ mx_mcs_set_measurement_counts( MX_RECORD *mcs_record,
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *set_parameter_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	set_parameter_fn = function_list->set_parameter;
 
@@ -1021,9 +1021,9 @@ mx_mcs_set_measurement_counts( MX_RECORD *mcs_record,
 
 	mcs->measurement_counts = measurement_counts;
 
-	status = (*set_parameter_fn)( mcs );
+	mx_status = (*set_parameter_fn)( mcs );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -1035,13 +1035,13 @@ mx_mcs_get_num_measurements( MX_RECORD *mcs_record,
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *get_parameter_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	get_parameter_fn = function_list->get_parameter;
 
@@ -1051,13 +1051,13 @@ mx_mcs_get_num_measurements( MX_RECORD *mcs_record,
 
 	mcs->parameter_type = MXLV_MCS_CURRENT_NUM_MEASUREMENTS;
 
-	status = (*get_parameter_fn)( mcs );
+	mx_status = (*get_parameter_fn)( mcs );
 
 	if ( num_measurements != NULL ) {
 		*num_measurements = mcs->current_num_measurements;
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -1069,13 +1069,13 @@ mx_mcs_set_num_measurements( MX_RECORD *mcs_record,
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *set_parameter_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	MX_DEBUG( 2,("%s: num_measurements = %lu", fname, num_measurements));
 
@@ -1097,9 +1097,9 @@ mx_mcs_set_num_measurements( MX_RECORD *mcs_record,
 
 	mcs->current_num_measurements = num_measurements;
 
-	status = (*set_parameter_fn)( mcs );
+	mx_status = (*set_parameter_fn)( mcs );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -1311,13 +1311,13 @@ mx_mcs_get_parameter( MX_RECORD *mcs_record, long parameter_type )
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *fl_ptr;
 	mx_status_type ( *fptr ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &fl_ptr, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	fptr = fl_ptr->get_parameter;
 
@@ -1329,9 +1329,9 @@ mx_mcs_get_parameter( MX_RECORD *mcs_record, long parameter_type )
 
 	mcs->parameter_type = parameter_type;
 
-	status = ( *fptr ) ( mcs );
+	mx_status = ( *fptr ) ( mcs );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -1342,13 +1342,13 @@ mx_mcs_set_parameter( MX_RECORD *mcs_record, long parameter_type )
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *fl_ptr;
 	mx_status_type ( *fptr ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &fl_ptr, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	fptr = fl_ptr->set_parameter;
 
@@ -1360,9 +1360,9 @@ mx_mcs_set_parameter( MX_RECORD *mcs_record, long parameter_type )
 
 	mcs->parameter_type = parameter_type;
 
-	status = ( *fptr ) ( mcs );
+	mx_status = ( *fptr ) ( mcs );
 
-	return status;
+	return mx_status;
 }
 
 /*-----------------------------------------------------------------------*/
