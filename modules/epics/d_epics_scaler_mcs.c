@@ -47,7 +47,7 @@ MX_RECORD_FUNCTION_LIST mxd_epics_scaler_mcs_record_function_list = {
 MX_MCS_FUNCTION_LIST mxd_epics_scaler_mcs_mcs_function_list = {
 	mxd_epics_scaler_mcs_start,
 	mxd_epics_scaler_mcs_stop,
-	NULL,
+	mxd_epics_scaler_mcs_clear,
 	mxd_epics_scaler_mcs_busy,
 };
 
@@ -211,12 +211,23 @@ mxd_epics_scaler_mcs_callback( MX_CALLBACK_MESSAGE *message )
 	fprintf(stderr,"%s: meas(%lu) ", fname, j);
 #endif
 
-	for ( i = 0; i < epics_scaler_mcs->num_channels; i++ ) {
-		data_array[i][j] = s_value_array[i];
+	if ( j == 0 ) {
+		for ( i = 0; i < epics_scaler_mcs->num_channels; i++ ) {
+			data_array[i][j] = s_value_array[i];
 
 #if MXD_EPICS_SCALER_MCS_DEBUG_CALLBACK
-		fprintf(stderr,"%lu ", data_array[i][j]);
+			fprintf(stderr,"%lu ", data_array[i][j]);
 #endif
+		}
+	} else {
+		for ( i = 0; i < epics_scaler_mcs->num_channels; i++ ) {
+			data_array[i][j] =
+				s_value_array[i] - data_array[i][j-1];
+
+#if MXD_EPICS_SCALER_MCS_DEBUG_CALLBACK
+			fprintf(stderr,"%lu ", data_array[i][j]);
+#endif
+		}
 	}
 
 #if MXD_EPICS_SCALER_MCS_DEBUG_CALLBACK
@@ -482,6 +493,32 @@ mxd_epics_scaler_mcs_stop( MX_MCS *mcs )
 
 	mx_status = mx_caput_nowait( &(epics_scaler_mcs->cnt_pv),
 					MX_CA_LONG, 1, &cnt );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_epics_scaler_mcs_clear( MX_MCS *mcs )
+{
+	static const char fname[] = "mxd_epics_scaler_mcs_clear()";
+
+	MX_EPICS_SCALER_MCS *epics_scaler_mcs;
+	unsigned long data_array_bytes;
+	mx_status_type mx_status;
+
+	mx_status = mxd_epics_scaler_mcs_get_pointers( mcs,
+						&epics_scaler_mcs, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s invoked for '%s'", fname, mcs->record->name));
+
+	data_array_bytes = mcs->maximum_num_scalers
+				* mcs->maximum_num_measurements
+				* sizeof(unsigned long);
+
+	memset( mcs->data_array, 0, data_array_bytes );
 
 	return mx_status;
 }
