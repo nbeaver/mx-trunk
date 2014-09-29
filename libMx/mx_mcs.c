@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2006, 2009-2010, 2012 Illinois Institute of Technology
+ * Copyright 2000-2006, 2009-2010, 2012, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -538,16 +538,12 @@ mx_mcs_read_all( MX_RECORD *mcs_record,
 
 	read_all_fn = function_list->read_all;
 
-	if ( read_all_fn == NULL ) {
-		return mx_error( MXE_UNSUPPORTED, fname,
-	"Reading the MCS data as one big block is not supported for MCS '%s'.",
-			mcs_record->name );
+	if ( read_all_fn != NULL ) {
+		status = (*read_all_fn)( mcs );
+
+		if ( status.code != MXE_SUCCESS )
+			return status;
 	}
-
-	status = (*read_all_fn)( mcs );
-
-	if ( status.code != MXE_SUCCESS )
-		return status;
 
 	if ( num_scalers != NULL ) {
 		*num_scalers = mcs->current_num_scalers;
@@ -581,15 +577,6 @@ mx_mcs_read_scaler( MX_RECORD *mcs_record,
 	if ( status.code != MXE_SUCCESS )
 		return status;
 
-	read_scaler_fn = function_list->read_scaler;
-
-	if ( read_scaler_fn == NULL ) {
-		return mx_error( MXE_UNSUPPORTED, fname,
-			"Reading the MCS data one scaler channel at a time "
-			"is not supported for MCS '%s'.",
-			mcs_record->name );
-	}
-
 	if ( ((long) scaler_index) >= mcs->maximum_num_scalers ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "Scaler index %lu for MCS record '%s' is outside the allowed range of 0-%ld.",
@@ -599,10 +586,14 @@ mx_mcs_read_scaler( MX_RECORD *mcs_record,
 
 	mcs->scaler_index = (long) scaler_index;
 
-	status = (*read_scaler_fn)( mcs );
+	read_scaler_fn = function_list->read_scaler;
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( read_scaler_fn != NULL ) {
+		status = (*read_scaler_fn)( mcs );
+
+		if ( status.code != MXE_SUCCESS )
+			return status;
+	}
 
 	mcs->scaler_data = (mcs->data_array) [ mcs->scaler_index ];
 
@@ -627,6 +618,7 @@ mx_mcs_read_measurement( MX_RECORD *mcs_record,
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *read_measurement_fn ) ( MX_MCS * );
+	unsigned long i;
 	mx_status_type status;
 
 	status = mx_mcs_get_pointers( mcs_record,
@@ -634,15 +626,6 @@ mx_mcs_read_measurement( MX_RECORD *mcs_record,
 
 	if ( status.code != MXE_SUCCESS )
 		return status;
-
-	read_measurement_fn = function_list->read_measurement;
-
-	if ( read_measurement_fn == NULL ) {
-		return mx_error( MXE_UNSUPPORTED, fname,
-			"Reading the MCS data one measurement at a time "
-			"is not supported for MCS '%s'.",
-			mcs_record->name );
-	}
 
 	if ( ((long) measurement_index) >= mcs->maximum_num_measurements ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -654,7 +637,19 @@ mx_mcs_read_measurement( MX_RECORD *mcs_record,
 
 	mcs->measurement_index = (long) measurement_index;
 
-	status = (*read_measurement_fn)( mcs );
+	read_measurement_fn = function_list->read_measurement;
+
+	if ( read_measurement_fn != NULL ) {
+		status = (*read_measurement_fn)( mcs );
+
+		if ( status.code != MXE_SUCCESS )
+			return status;
+	} else {
+		for ( i = 0; i < mcs->current_num_scalers; i++ ) {
+			mcs->measurement_data[i] =
+				(mcs->data_array)[i][measurement_index];
+		}
+	}
 
 	if ( num_scalers != NULL ) {
 		*num_scalers = mcs->current_num_scalers;
