@@ -54,6 +54,7 @@
 #include "d_epics_mcs.h"
 #include "d_epics_motor.h"
 #include "d_epics_scaler.h"
+#include "d_epics_scaler_mce.h"
 #include "d_epics_scaler_mcs.h"
 #include "d_epics_timer.h"
 #include "i_epics_camac.h"
@@ -133,6 +134,13 @@ MX_DRIVER epics_driver_table[] = {
 				&mxd_epics_scaler_scaler_function_list,
 				&mxd_epics_scaler_num_record_fields,
 				&mxd_epics_scaler_rfield_def_ptr},
+
+{"epics_scaler_mce", -1, MXC_MULTICHANNEL_ENCODER,  MXR_DEVICE,
+				&mxd_epics_scaler_mce_record_function_list,
+				NULL,
+				&mxd_epics_scaler_mce_mce_function_list,
+				&mxd_epics_scaler_mce_num_record_fields,
+				&mxd_epics_scaler_mce_rfield_def_ptr},
 
 {"epics_scaler_mcs", -1, MXC_MULTICHANNEL_SCALER,  MXR_DEVICE,
 				&mxd_epics_scaler_mcs_record_function_list,

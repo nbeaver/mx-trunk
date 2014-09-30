@@ -21,7 +21,8 @@ EPICS_OBJS = epics.$(OBJ) \
 	d_epics_aio.$(OBJ) d_epics_area_detector.$(OBJ) d_epics_ccd.$(OBJ) \
 	d_epics_dio.$(OBJ) d_epics_mca.$(OBJ) d_epics_mcs.$(OBJ) \
 	d_epics_motor.$(OBJ) d_epics_scaler.$(OBJ) \
-	d_epics_scaler_mcs.$(OBJ) d_epics_timer.$(OBJ) \
+	d_epics_scaler_mcs.$(OBJ) d_epics_scaler_mce.$(OBJ) \
+	d_epics_timer.$(OBJ) \
 	i_epics_camac.$(OBJ) i_epics_gpib.$(OBJ) \
 	i_epics_rs232.$(OBJ) i_epics_vme.$(OBJ) \
 	mx_epics.$(OBJ) mx_vepics.$(OBJ) v_epics_timeout.$(OBJ)
@@ -122,9 +123,6 @@ d_epics_ccd.$(OBJ): d_epics_ccd.c
 d_epics_dio.$(OBJ): d_epics_dio.c
 	$(COMPILE) $(CFLAGS) d_epics_dio.c
 
-d_epics_scaler_mcs.$(OBJ): d_epics_scaler_mcs.c
-	$(COMPILE) $(CFLAGS) d_epics_scaler_mcs.c
-
 d_epics_mca.$(OBJ): d_epics_mca.c
 	$(COMPILE) $(CFLAGS) d_epics_mca.c
 
@@ -136,6 +134,12 @@ d_epics_motor.$(OBJ): d_epics_motor.c
 
 d_epics_scaler.$(OBJ): d_epics_scaler.c
 	$(COMPILE) $(CFLAGS) d_epics_scaler.c
+
+d_epics_scaler_mce.$(OBJ): d_epics_scaler_mce.c
+	$(COMPILE) $(CFLAGS) -I../epics_pmac_biocat d_epics_scaler_mce.c
+
+d_epics_scaler_mcs.$(OBJ): d_epics_scaler_mcs.c
+	$(COMPILE) $(CFLAGS) d_epics_scaler_mcs.c
 
 d_epics_timer.$(OBJ): d_epics_timer.c
 	$(COMPILE) $(CFLAGS) d_epics_timer.c

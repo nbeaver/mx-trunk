@@ -32,6 +32,8 @@ typedef struct {
 	MX_EPICS_PV *s_pv_array;
 
 	MX_EPICS_PV motor_position_pv;
+	double *motor_position_array;
+
 	double version;
 
 	unsigned long current_measurement_number;
