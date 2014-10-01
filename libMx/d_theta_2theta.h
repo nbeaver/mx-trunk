@@ -26,6 +26,7 @@
 /* Values for the 'theta_2theta_flags' field. */
 
 #define MXF_THETA_2THETA_SYNCHRONIZE_SPEED	0x1
+#define MXF_THETA_2THETA_USE_AVERAGE_POSITION	0x2
 
 typedef struct {
 	MX_MOTOR *motor;	/* Parent motor structure. */
@@ -47,7 +48,6 @@ MX_API mx_status_type mxd_theta_2theta_motor_print_motor_structure(
 MX_API mx_status_type mxd_theta_2theta_motor_motor_is_busy( MX_MOTOR *motor );
 MX_API mx_status_type mxd_theta_2theta_motor_move_absolute( MX_MOTOR *motor );
 MX_API mx_status_type mxd_theta_2theta_motor_get_position( MX_MOTOR *motor );
-MX_API mx_status_type mxd_theta_2theta_motor_set_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_theta_2theta_motor_soft_abort( MX_MOTOR *motor );
 MX_API mx_status_type mxd_theta_2theta_motor_immediate_abort(
 							MX_MOTOR *motor );

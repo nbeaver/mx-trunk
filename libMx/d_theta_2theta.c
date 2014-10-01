@@ -41,7 +41,7 @@ MX_MOTOR_FUNCTION_LIST mxd_theta_2theta_motor_motor_function_list = {
 	mxd_theta_2theta_motor_motor_is_busy,
 	mxd_theta_2theta_motor_move_absolute,
 	mxd_theta_2theta_motor_get_position,
-	mxd_theta_2theta_motor_set_position,
+	NULL,
 	mxd_theta_2theta_motor_soft_abort,
 	mxd_theta_2theta_motor_immediate_abort,
 	mxd_theta_2theta_motor_positive_limit_hit,
@@ -264,8 +264,9 @@ mxd_theta_2theta_motor_motor_is_busy( MX_MOTOR *motor )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	mx_status = mx_motor_is_busy( theta_2theta_motor->two_theta_motor_record,
-					&busy );
+	mx_status = mx_motor_is_busy(
+			theta_2theta_motor->two_theta_motor_record,
+				&busy );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -322,7 +323,8 @@ mxd_theta_2theta_motor_move_absolute( MX_MOTOR *motor )
 
 	/* Now start the commanded move for the two motors. */
 
-	mx_status = mx_motor_move_absolute( theta_2theta_motor->theta_motor_record,
+	mx_status = mx_motor_move_absolute(
+				theta_2theta_motor->theta_motor_record,
 						theta_destination,
 						MXF_MTR_NOWAIT );
 
@@ -352,7 +354,8 @@ mxd_theta_2theta_motor_get_position( MX_MOTOR *motor )
 	static const char fname[] = "mxd_theta_2theta_motor_get_position()";
 
 	MX_THETA_2THETA_MOTOR *theta_2theta_motor;
-	double theta_motor_position;
+	double theta_motor_position, two_theta_motor_position;
+	unsigned long flags;
 	mx_status_type mx_status;
 
 	theta_2theta_motor = NULL;
@@ -363,26 +366,47 @@ mxd_theta_2theta_motor_get_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* The reported position depends only on the theta position. */
+	flags = theta_2theta_motor->theta_2theta_flags;
 
-	mx_status = mx_motor_get_position( theta_2theta_motor->theta_motor_record,
+	if ( flags & MXF_THETA_2THETA_USE_AVERAGE_POSITION ) {
+
+		/* If requested, we report the position as the
+		 * average of theta and 0.5 * 2theta.
+		 */
+
+		mx_status = mx_motor_get_position(
+					theta_2theta_motor->theta_motor_record,
 						&theta_motor_position );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-	motor->raw_position.analog = theta_motor_position;
+		mx_status = mx_motor_get_position(
+				theta_2theta_motor->two_theta_motor_record,
+						&two_theta_motor_position );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		motor->raw_position.analog =
+	    0.5 * ( theta_motor_position + 0.5 * two_theta_motor_position );
+
+	} else {
+		/* Otherwise, the reported position depends only on
+		 * the theta position.
+		 */
+
+		mx_status = mx_motor_get_position(
+					theta_2theta_motor->theta_motor_record,
+						&theta_motor_position );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		motor->raw_position.analog = theta_motor_position;
+	}
 
 	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_theta_2theta_motor_set_position( MX_MOTOR *motor )
-{
-	static const char fname[] = "mxd_theta_2theta_motor_set_position()";
-
-	return mx_error( MXE_UNSUPPORTED, fname,
-	"'set position' is not valid for a theta-2 theta motor." );
 }
 
 MX_EXPORT mx_status_type
@@ -452,7 +476,8 @@ mxd_theta_2theta_motor_immediate_abort( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_theta_2theta_motor_positive_limit_hit( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_theta_2theta_motor_positive_limit_hit()";
+	static const char fname[] =
+				"mxd_theta_2theta_motor_positive_limit_hit()";
 
 	MX_THETA_2THETA_MOTOR *theta_2theta_motor;
 	mx_bool_type limit_hit;
@@ -498,7 +523,8 @@ mxd_theta_2theta_motor_positive_limit_hit( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_theta_2theta_motor_negative_limit_hit( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_theta_2theta_motor_negative_limit_hit()";
+	static const char fname[] =
+			"mxd_theta_2theta_motor_negative_limit_hit()";
 
 	MX_THETA_2THETA_MOTOR *theta_2theta_motor;
 	mx_bool_type limit_hit;

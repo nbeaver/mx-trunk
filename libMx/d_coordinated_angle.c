@@ -13,7 +13,7 @@
  *
  */
 
-#define MXD_COORDINATED_ANGLE_DEBUG	TRUE
+#define MXD_COORDINATED_ANGLE_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
