@@ -913,6 +913,7 @@ mxi_compumotor_command( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 {
 	static const char fname[] = "mxi_compumotor_command()";
 
+	MX_RS232 *rs232;
 	unsigned long interface_flags;
 	unsigned long sleep_ms, num_bytes_available;
 	long num_command_attempts;
@@ -920,7 +921,7 @@ mxi_compumotor_command( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 	size_t command_length, response_length;
 	char c;
 	char echoed_command_string[200];
-	mx_bool_type debug_flag;
+	mx_bool_type debug_flag, debug_getchar_flag;
 	mx_status_type mx_status;
 #if MXI_COMPUMOTOR_INTERFACE_DEBUG_TIMING	
 	MX_HRT_RS232_TIMING command_timing, response_timing;
@@ -932,10 +933,24 @@ mxi_compumotor_command( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"MX_COMPUMOTOR_INTERFACE pointer passed was NULL." );
 	}
-
 	if ( command == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"'command' buffer pointer passed was NULL.  No command sent.");
+	}
+	if ( compumotor_interface->rs232_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The rs232_record pointer for record '%s' is NULL.",
+			compumotor_interface->record->name );
+	}
+
+	rs232 = (MX_RS232 *)
+			compumotor_interface->rs232_record->record_class_struct;
+
+	if ( rs232 == (MX_RS232 *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RS232 pointer for record '%s' used by '%s' is NULL.",
+			compumotor_interface->rs232_record->name,
+			compumotor_interface->record->name );
 	}
 
 	interface_flags = compumotor_interface->interface_flags;
@@ -957,6 +972,8 @@ mxi_compumotor_command( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 
 	if ( command_flags & MXI_COMPUMOTOR_INTERFACE_DEBUG ) {
 		debug_flag = TRUE;
+	} else
+	if ( interface_flags & MXF_COMPUMOTOR_DEBUG_SERIAL ) {
 	} else {
 		debug_flag = FALSE;
 	}
@@ -968,6 +985,22 @@ mxi_compumotor_command( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 		num_command_attempts = 2;
 	} else {
 		num_command_attempts = 1;
+	}
+
+	if ( interface_flags & MXF_COMPUMOTOR_DEBUG_SERIAL_GETCHAR ) {
+		if ( interface_flags & MXF_COMPUMOTOR_DEBUG_SERIAL ) {
+			debug_getchar_flag = TRUE;
+		} else
+		if ( rs232->rs232_flags & MXF_232_DEBUG_SERIAL ) {
+			debug_getchar_flag = TRUE;
+		} else
+		if ( rs232->rs232_flags & MXF_232_DEBUG_SERIAL_VERBOSE ) {
+			debug_getchar_flag = TRUE;
+		} else {
+			debug_getchar_flag = FALSE;
+		}
+	} else {
+		debug_getchar_flag = FALSE;
 	}
 
 	/* Send the command string. */
@@ -1085,6 +1118,12 @@ mxi_compumotor_command( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 			mx_status = mx_rs232_getchar(
 					compumotor_interface->rs232_record,
 					&c, MXF_232_WAIT );
+
+			if ( debug_getchar_flag ) {
+				MX_DEBUG(-2,
+				("%s: mx_rs232_getchar() = '%c' %#x",
+					fname, c, c));
+			}
 
 			if ( mx_status.code != MXE_SUCCESS ) {
 				response[0] = '\0';
