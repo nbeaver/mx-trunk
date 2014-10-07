@@ -479,6 +479,10 @@ MX_API mx_status_type mx_rs232_get_echo( MX_RECORD *rs232_record,
 MX_API mx_status_type mx_rs232_set_echo( MX_RECORD *rs232_record,
 					mx_bool_type echo_state );
 
+MX_API mx_status_type mx_rs232_send_file( MX_RECORD *rs232_record,
+					char *filename,
+					mx_bool_type use_raw_io );
+
 #ifdef __cplusplus
 }
 #endif

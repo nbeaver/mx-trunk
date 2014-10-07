@@ -18,6 +18,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 #include <limits.h>
 
 #include "mx_util.h"
@@ -1938,6 +1939,141 @@ mx_rs232_set_echo( MX_RECORD *record,
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_rs232_send_file( MX_RECORD *record,
+			char *filename,
+			mx_bool_type use_raw_io )
+{
+	static const char fname[] = "mx_rs232_send_file()";
+	MX_RS232 *rs232;
+	FILE *file;
+	int saved_errno;
+	char buffer[4096];
+	size_t bytes_read;
+	char *ptr;
+	mx_status_type mx_status;
+
+	mx_status = mx_rs232_get_pointers( record, &rs232, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( filename == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The filename pointer passed for rs232 port '%s' was NULL.",
+			record->name );
+	}
+
+	/* Attempt to open the file. */
+
+	file = fopen( filename, "r" );
+
+	if ( file == (FILE *) NULL ) {
+		saved_errno = errno;
+
+		switch( saved_errno ) {
+		case ENOENT:
+			return mx_error( MXE_NOT_FOUND, fname,
+			"The requested file '%s' for RS232 port '%s' "
+			"does not exist.",
+				filename, record->name );
+			break;
+		case EACCES:
+			return mx_error( MXE_PERMISSION_DENIED, fname,
+			"You do not have the permissions necessary to access "
+			"file '%s' for RS232 port '%s'.",
+				filename, record->name );
+			break;
+		default:
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"The attempt to open file '%s' "
+			"for RS232 port '%s' failed.  "
+			"Errno = %d, error message = '%s'",
+				filename, record->name,
+				saved_errno, strerror(saved_errno) );
+			break;
+		}
+	}
+
+	/* Read in bytes from the file and send them to the RS-232 port. */
+
+	if ( use_raw_io ) {
+
+		while (1) {
+			bytes_read = fread( buffer, 1, sizeof(buffer), file );
+
+			if ( bytes_read == 0 ) {
+				if ( feof(file) ) {
+					(void) fclose( file );
+					return MX_SUCCESSFUL_RESULT;
+				}
+				if ( ferror(file) ) {
+					(void) fclose( file );
+					return mx_error(MXE_FILE_IO_ERROR,fname,
+					"An error occurred while reading "
+					"from file '%s'.",
+						filename );
+				} else {
+					MX_DEBUG(-2,("%s: bytes_read == 0 "
+					"for file '%s', but EOF or error "
+					"did not occur.", fname, filename ));
+				}
+			}
+
+			mx_status = mx_rs232_write( record, buffer,
+						bytes_read, 0, 0 );
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+				(void) fclose( file );
+				return mx_status;
+			}
+		}
+	} else {
+		/* We have been requested to use line-oriented I/O.  This is
+		 * normally done if we want the RS-232 record to deal with
+		 * handling line terminators.
+		 */
+
+		/* Set the FILE structure to be line buffered. */
+
+		setvbuf( file, (char *)NULL, _IOLBF, BUFSIZ );
+
+		/* Now copy the lines. */
+
+		while (1) {
+			ptr = mx_fgets( buffer, sizeof(buffer), file );
+
+			if ( ptr == (char *) NULL ) {
+				if ( feof(file) ) {
+					(void) fclose( file );
+					return MX_SUCCESSFUL_RESULT;
+				}
+				if ( ferror(file) ) {
+					(void) fclose( file );
+					return mx_error(MXE_FILE_IO_ERROR,fname,
+					"An error occurred while reading "
+					"from file '%s'.",
+						filename );
+				} else {
+					MX_DEBUG(-2,("%s: NULL pointer "
+					"from mx_fgets() "
+					"for file '%s', but EOF or error "
+					"did not occur.", fname, filename ));
+				}
+			}
+
+			mx_status = mx_rs232_putline( record, buffer, NULL, 0 );
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+				(void) fclose( file );
+				return mx_status;
+			}
+		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;
