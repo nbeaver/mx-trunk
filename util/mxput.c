@@ -16,6 +16,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #include "mx_util.h"
 #include "mx_unistd.h"
@@ -64,6 +65,89 @@ main( int argc, char *argv[] )
 	mx_bool_type network_debugging, start_debugger, use_escape_sequences;
 	mx_status_type mx_status;
 
+	/* For MX network fields that use signed integer types, it must
+	 * be possible for the user to send a negative value to the field.
+	 * However, by default getopt() assumes that _anything_ that starts
+	 * with a '-' character is an option unless the special character
+	 * sequence '--' has previously appeared in the argv list.  Users
+	 * will hate having to prefix negative numbers with '--' arguments,
+	 * so we have to insert the '--' for them so that the users do not
+	 * have to deal with the issue.
+	 *
+	 * The way we deal with this is to create a new array of strings
+	 * to take the place of the 'argv' array passed to us.  We walk
+	 * through the 'argv' array copying strings to the 'fixed_argv'.
+	 * If along the way, we find an array element in 'argv' that
+	 * consists of '-' followed by a number or '-' followed by a '.'
+	 * character (for cases like -.325), we copy to the 'fixed_argv'
+	 * array the special string '--'.  We then continue on copying
+	 * from 'argv' to 'fixed_argv' using 'i' as the index of 'argv'
+	 * and 'i+1' as the index of 'fixed_argv'.
+	 *
+	 * Comments that this is incompatible with the normal behavior
+	 * of getopt() will be ignored.  (W. Lavender, 2014-10-09)
+	 */
+
+	int fixed_argc;
+	char **fixed_argv;
+	mx_bool_type double_hyphen_inserted;
+
+	double_hyphen_inserted = FALSE;
+
+	fixed_argc = argc;
+
+	fixed_argv = calloc( argc+1, sizeof(char *) );
+
+	if ( fixed_argv == (char **) NULL ) {
+		fprintf( stderr, "The attempt to allocate the fixed_argv "
+			"array with %d elements failed.\n", argc+1 );
+		exit(1);
+	}
+
+	for ( i = 0; i < argc; i++ ) {
+
+#if 0
+		fprintf(stderr, "argv[%lu] = '%s'\n", i, argv[i]);
+#endif
+		if ( double_hyphen_inserted ) {
+			fixed_argv[i+1] = strdup( argv[i] );
+		} else {
+			if ( argv[i][0] == '-' ) {
+				if ( (argv[i][1] == '.')
+				  || isdigit( argv[i][1] ) )
+				{
+					fixed_argv[i] = strdup( "--" );
+
+					fixed_argc = argc + 1;
+
+					double_hyphen_inserted = TRUE;
+
+					fixed_argv[i+1] = strdup( argv[i] );
+				} else {
+					fixed_argv[i] = strdup( argv[i] );
+				}
+			} else {
+				fixed_argv[i] = strdup( argv[i] );
+			}
+		}
+	}
+
+	/* Verify that all of the strdup() calls succeeded. */
+
+	for ( i = 0; i < fixed_argc; i++ ) {
+		if ( fixed_argv[i] == (char *) NULL ) {
+			fprintf( stderr, "fixed_argv[%lu] is NULL.\n", i );
+			exit(1);
+		}
+#if 0
+		fprintf(stderr, "fixed_argv[%lu] = '%s'\n", i, fixed_argv[i] );
+#endif
+	}
+
+	/* Now that we have fixed the 'argv' array, we can continue
+	 * on to the getopt() parsing stage.
+	 */
+
 	network_debugging = FALSE;
 	start_debugger = FALSE;
 	use_escape_sequences = FALSE;
@@ -75,7 +159,7 @@ main( int argc, char *argv[] )
 
 	/* See if any command line arguments were specified. */
 
-	while ( (c = getopt(argc, argv, "aDe")) != -1 )
+	while ( (c = getopt(fixed_argc, fixed_argv, "aDe")) != -1 )
 	{
 		switch(c) {
 		case 'a':
@@ -122,9 +206,9 @@ main( int argc, char *argv[] )
 		mx_multi_set_debug_flags( mx_record_list, MXF_NETDBG_SUMMARY );
 	}
 
-	/* Parse argv[optind] to get the network field arguments. */
+	/* Parse fixed_argv[optind] to get the network field arguments. */
 
-	mx_status = mx_parse_network_field_id( argv[optind],
+	mx_status = mx_parse_network_field_id( fixed_argv[optind],
 				server_name, sizeof(server_name) - 1,
 				server_arguments, sizeof(server_arguments) - 1,
 				record_name, sizeof(record_name) - 1,
@@ -185,18 +269,18 @@ main( int argc, char *argv[] )
 	/* Concatenate the strings passed via the command line
 	 * into one big string with quotes around each item.
 	 *
-	 * We skip over argv[optind] since that contains the
+	 * We skip over fixed_argv[optind] since that contains the
 	 * name of the network field we are writing to.  The
 	 * values we want to send to that network field start
-	 * at argv[optind+1].
+	 * at fixed_argv[optind+1].
 
 	 */
 
 	strlcpy( write_buffer, "", sizeof(write_buffer) );
 
-	for ( i = optind+1; i < argc; i++ ) {
+	for ( i = optind+1; i < fixed_argc; i++ ) {
 		strlcat( write_buffer, "\"", sizeof(write_buffer) );
-		strlcat( write_buffer, argv[i], sizeof(write_buffer) );
+		strlcat( write_buffer, fixed_argv[i], sizeof(write_buffer) );
 		strlcat( write_buffer, "\" ", sizeof(write_buffer) );
 	}
 
