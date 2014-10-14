@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2006, 2009-2010, 2013 Illinois Institute of Technology
+ * Copyright 2006, 2009-2010, 2013-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -55,9 +55,49 @@ mx_spawn( char *command_line,
 	MX_DEBUG(-2,("%s: command_line = '%s'", fname, command_line));
 #endif
 
-	parent_pid = getpid();
+	/* Parse the command line.
+	 *
+	 * We have to do this here before we call fork(), because
+	 * mx_parse_command_line() does a bunch of things that are
+	 * not safe to do in a threaded program between fork() and
+	 * execvp().  In the parent, we will need to discard the
+	 * argv and envp pointers to prevent a memory leak.
+	 *    
+	 * Note that third-party libraries (such as glibc!) may use
+	 * threads behind the scenes.
+	 *    
+	 * Some reasons for why this is necessary can be found here
+	 *
+	 *     http://www.linuxprogrammingblog.com/threads-and-fork-think-twice-before-using-them
+	 *
+	 */
+
+	result = mx_parse_command_line( command_line,
+					&argc, &argv, &envc, &envp );
+
+	if ( result != 0 ) {
+		saved_errno = errno;
+
+		fprintf( stderr,
+		"Attempt to parse the command line '%s' failed.  "
+		"Errno = %d, error message = '%s'",
+		    command_line, saved_errno, strerror( saved_errno ));
+
+		exit(1);
+	}
+
+#if MX_SPAWN_DEBUG
+	if ( argv != NULL ) {
+		for ( i = 0; i < argc; i++ ) {
+			MX_DEBUG(-2,("%s: argv[%d] = '%s'", fname, i, argv[i]));
+		}
+		MX_DEBUG(-2,("%s: argv[%d] = '%s'", fname, i, argv[i]));
+	}
+#endif
 
 	/* Create the child process. */
+
+	parent_pid = getpid();
 
 	fork_pid = fork();
 
@@ -122,39 +162,9 @@ mx_spawn( char *command_line,
 
 		/*--------------------------------------------------------*/
 
-		/* Parse the command line. */
-
-#if MX_SPAWN_DEBUG
-		MX_DEBUG(-2,("%s: command_line = '%s'",
-			fname, command_line));
-#endif
-
-		result = mx_parse_command_line( command_line,
-					&argc, &argv, &envc, &envp );
-
-		if ( result != 0 ) {
-			saved_errno = errno;
-
-			fprintf( stderr,
-			"Attempt to parse the command line '%s' failed.  "
-			"Errno = %d, error message = '%s'",
-			    command_line, saved_errno, strerror( saved_errno ));
-
-			exit(1);
-		}
-
-#if MX_SPAWN_DEBUG
-		if ( argv != NULL ) {
-			for ( i = 0; i < argc; i++ ) {
-				MX_DEBUG(-2,("%s: argv[%d] = '%s'",
-					fname, i, argv[i]));
-			}
-			MX_DEBUG(-2,("%s: argv[%d] = '%s'",
-					fname, i, argv[i]));
-		}
-#endif
-
-		/* Add the environment variables found to the environment. */
+		/* Add the environment variables found by the earlier call
+		 * to mx_parse_command_line() to the environment.
+		 */
 
 		if ( envp != NULL ) {
 			for ( i = 0; i < envc; i++ ) {
@@ -180,6 +190,8 @@ mx_spawn( char *command_line,
 			MX_DEBUG(-2,("%s: envp[%d] = '%s'", fname, i, envp[i]));
 #endif
 		}
+
+		/*--------------------------------------------------------*/
 
 		/* Now execute the external command. */
 
@@ -221,7 +233,12 @@ mx_spawn( char *command_line,
 			*child_process_id = (unsigned long) child_pid;
 		}
 
-		/* Nothing else to do at this point. */
+		/* Free the argv and envp pointers that were malloced
+		 * by mx_parse_command_line().
+		 */
+
+		mx_free( argv );
+		mx_free( envp );
 	}
 
 	return MX_SUCCESSFUL_RESULT;

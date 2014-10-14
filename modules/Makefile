@@ -25,11 +25,11 @@ all: build
 
 #MODULES += esone_camac		# linux, win32
 
-#MODULES += k8055		# linux,
+MODULES += k8055		# linux,
 
 #MODULES = labjack_ux		# linux,
 
-#MODULES += libusb-0.1		# linux,
+MODULES += libusb-0.1		# linux,
 
 #MODULES += newport_xps		# linux,
 
