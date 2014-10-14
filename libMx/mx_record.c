@@ -297,7 +297,7 @@ mx_delete_record( MX_RECORD *record )
 			parent_record = record->parent_record_array[0];
 
 			mx_status = mx_delete_parent_dependency(
-					record, TRUE, parent_record );
+					record, NULL, TRUE, parent_record );
 
 			if ( mx_status.code != MXE_SUCCESS )
 					return mx_status;
@@ -2802,20 +2802,20 @@ mx_record_array_dependency_handler( MX_RECORD *record,
 	if ( dependency_struct->add_dependency ) {
 		if ( dependency_struct->dependency_is_to_parent ) {
 
-			mx_status = mx_add_parent_dependency( record, TRUE,
-							dependent_record );
+			mx_status = mx_add_parent_dependency( record, field,
+						TRUE, dependent_record );
 		} else {
-			mx_status = mx_add_child_dependency( record, TRUE,
-							dependent_record );
+			mx_status = mx_add_child_dependency( record, field,
+						TRUE, dependent_record );
 		}
 	} else {
 		if ( dependency_struct->dependency_is_to_parent ) {
 
-			mx_status = mx_delete_parent_dependency( record, TRUE,
-							dependent_record );
+			mx_status = mx_delete_parent_dependency( record, field,
+						TRUE, dependent_record );
 		} else {
-			mx_status = mx_delete_child_dependency( record, TRUE,
-							dependent_record );
+			mx_status = mx_delete_child_dependency( record, field,
+						TRUE, dependent_record );
 		}
 	}
 	return mx_status;
@@ -2823,6 +2823,7 @@ mx_record_array_dependency_handler( MX_RECORD *record,
 
 MX_EXPORT mx_status_type
 mx_add_parent_dependency(MX_RECORD *current_record,
+		MX_RECORD_FIELD *current_field,
 		mx_bool_type add_child_pointer_in_parent,
 		MX_RECORD *parent_record )
 {
@@ -2840,9 +2841,35 @@ mx_add_parent_dependency(MX_RECORD *current_record,
 		"current_record pointer passed is NULL." );
 	}
 
+	if ( current_field != (MX_RECORD_FIELD *) NULL ) {
+		unsigned long flags;
+
+		flags = current_field->flags;
+
+		/* If the MXFF_NO_PARENT_DEPENDENCY flag is set for
+		 * the current field, then we do not attempt to add
+		 * an entry to current_record->parent_record_array.
+		 * Instead, we return without doing anything.
+		 */
+
+		if ( flags & MXFF_NO_PARENT_DEPENDENCY ) {
+			return MX_SUCCESSFUL_RESULT;
+		}
+	}
+
 	if ( parent_record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"parent_record pointer passed is NULL." );
+
+		if ( current_field == (MX_RECORD_FIELD *) NULL ) {
+			return mx_error( MXE_NULL_ARGUMENT, fname,
+		    "The parent_record pointer passed for record '%s' is NULL.",
+				current_record->name );
+		} else {
+			return mx_error( MXE_NULL_ARGUMENT, fname,
+			"The parent_record pointer passed for record field "
+			"'%s.%s' is NULL.",
+				current_record->name,
+				current_field->name );
+		}
 	}
 
 	/* If the current record doesn't support record fields, then there
@@ -2865,8 +2892,9 @@ mx_add_parent_dependency(MX_RECORD *current_record,
 
 	if ( old_num_parent_records < 0 ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"Old number of parent records (%ld) was less than zero.  "
-		"This should not happen.", old_num_parent_records );
+		"Old number of parent records (%ld) for record '%s' was "
+		"less than zero.  This should not happen.",
+			old_num_parent_records, current_record->name );
 	}
 
 	/* We attempt to avoid calling realloc() too often. */
@@ -2918,8 +2946,10 @@ mx_add_parent_dependency(MX_RECORD *current_record,
 
 		if ( parent_record_array == NULL ) {
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
-"Ran out of memory trying to increase the size of parent_record_array to %ld",
-				new_num_parent_array_elements );
+			"Ran out of memory trying to increase the size of "
+			"parent_record_array to %ld for record '%s'",
+				new_num_parent_array_elements,
+				current_record->name );
 		}
 
 		MX_DEBUG( 8,("%s: New size of parent record array = %lu",fname,
@@ -2937,8 +2967,8 @@ mx_add_parent_dependency(MX_RECORD *current_record,
 		parent_record_array[old_num_parent_records]));
 
 	if ( add_child_pointer_in_parent ) {
-		mx_status = mx_add_child_dependency( parent_record, FALSE,
-						current_record );
+		mx_status = mx_add_child_dependency( parent_record, NULL,
+						FALSE, current_record );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 			return mx_status;
@@ -2961,6 +2991,7 @@ mx_add_parent_dependency(MX_RECORD *current_record,
 
 MX_EXPORT mx_status_type
 mx_delete_parent_dependency(MX_RECORD *current_record,
+		MX_RECORD_FIELD *current_field,
 		mx_bool_type delete_child_pointer_in_parent,
 		MX_RECORD *parent_record )
 {
@@ -3046,7 +3077,8 @@ mx_delete_parent_dependency(MX_RECORD *current_record,
 
 			if ( delete_child_pointer_in_parent ) {
 				mx_status = mx_delete_child_dependency(
-					parent_record, FALSE, current_record );
+						parent_record, NULL,
+						FALSE, current_record );
 
 				if ( mx_status.code != MXE_SUCCESS ) {
 					return mx_status;
@@ -3128,6 +3160,7 @@ mx_delete_parent_dependency(MX_RECORD *current_record,
 
 MX_EXPORT mx_status_type
 mx_add_child_dependency(MX_RECORD *current_record,
+		MX_RECORD_FIELD *current_field,
 		mx_bool_type add_parent_pointer_in_child,
 		MX_RECORD *child_record )
 {
@@ -3234,8 +3267,8 @@ mx_add_child_dependency(MX_RECORD *current_record,
 	child_record_array[ old_num_child_records ] = child_record;
 
 	if ( add_parent_pointer_in_child ) {
-		mx_status = mx_add_parent_dependency( child_record, FALSE,
-						current_record );
+		mx_status = mx_add_parent_dependency( child_record, NULL,
+						FALSE, current_record );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 			return mx_status;
@@ -3258,6 +3291,7 @@ mx_add_child_dependency(MX_RECORD *current_record,
 
 MX_EXPORT mx_status_type
 mx_delete_child_dependency(MX_RECORD *current_record,
+		MX_RECORD_FIELD *current_field,
 		mx_bool_type delete_parent_pointer_in_child,
 		MX_RECORD *child_record )
 {
@@ -3343,8 +3377,8 @@ mx_delete_child_dependency(MX_RECORD *current_record,
 
 			if ( delete_parent_pointer_in_child ) {
 				mx_status = mx_delete_parent_dependency(
-						child_record, FALSE,
-						current_record );
+						child_record, NULL,
+						FALSE, current_record );
 
 				if ( mx_status.code != MXE_SUCCESS ) {
 					return mx_status;

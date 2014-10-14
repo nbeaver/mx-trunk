@@ -86,6 +86,7 @@ extern "C" {
 #define MXFF_VARARGS			0x10
 #define MXFF_NO_NEXT_EVENT_TIME_UPDATE	0x20
 #define MXFF_POLL			0x40
+#define MXFF_NO_PARENT_DEPENDENCY	0x80
 
 /* The following values are used only by mx_print_structure(). */
 
@@ -861,18 +862,22 @@ MX_API_PRIVATE mx_status_type  mx_record_array_dependency_handler(
 
 MX_API_PRIVATE mx_status_type  mx_add_parent_dependency(
 				MX_RECORD *current_record,
+				MX_RECORD_FIELD *current_field,
 				mx_bool_type add_child_pointer_in_parent,
 				MX_RECORD *parent_record );
 MX_API_PRIVATE mx_status_type  mx_delete_parent_dependency(
 				MX_RECORD *current_record,
+				MX_RECORD_FIELD *current_field,
 				mx_bool_type delete_child_pointer_in_parent,
 				MX_RECORD *parent_record );
 MX_API_PRIVATE mx_status_type  mx_add_child_dependency(
 				MX_RECORD *current_record,
+				MX_RECORD_FIELD *current_field,
 				mx_bool_type add_parent_pointer_in_child,
 				MX_RECORD *child_record );
 MX_API_PRIVATE mx_status_type  mx_delete_child_dependency(
 				MX_RECORD *current_record,
+				MX_RECORD_FIELD *current_field,
 				mx_bool_type delete_parent_pointer_in_child,
 				MX_RECORD *child_record );
 

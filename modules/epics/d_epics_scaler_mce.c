@@ -252,6 +252,15 @@ mxd_epics_scaler_mce_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* For this driver, motor_record_array field[0] may be NULL to 
+	 * indicate that no motor is currently attached to this MCE.
+	 * However, the generic part of the finish record initialization
+	 * logic will complain about this unless we set the flag bit
+	 * MXFF_NO_PARENT_DEPENDENCY for the 'motor_record_array' field.
+	 */
+
+	/* FIXME - FIXME - FIXME (Oct. 14, 2014) WE MUST DO THIS! */
+
 	/* The EPICS synchronous group will record absolute positions of
 	 * the motors, so this is an absolute MCE.
 	 */
