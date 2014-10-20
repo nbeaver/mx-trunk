@@ -201,6 +201,7 @@ mxd_epics_scaler_mce_finish_record_initialization( MX_RECORD *record )
 	MX_EPICS_SCALER_MCE *epics_scaler_mce = NULL;
 	MX_MCS *mcs = NULL;
 	MX_EPICS_SCALER_MCS *epics_scaler_mcs = NULL;
+	MX_RECORD_FIELD *motor_record_array_field = NULL;
 	const char *driver_name = NULL;
 	mx_status_type mx_status;
 
@@ -259,7 +260,14 @@ mxd_epics_scaler_mce_finish_record_initialization( MX_RECORD *record )
 	 * MXFF_NO_PARENT_DEPENDENCY for the 'motor_record_array' field.
 	 */
 
-	/* FIXME - FIXME - FIXME (Oct. 14, 2014) WE MUST DO THIS! */
+	mx_status = mx_find_record_field( record,
+					"motor_record_array",
+					&motor_record_array_field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	motor_record_array_field->flags |= MXFF_NO_PARENT_DEPENDENCY;
 
 	/* The EPICS synchronous group will record absolute positions of
 	 * the motors, so this is an absolute MCE.
