@@ -229,6 +229,22 @@ mxd_epics_motor_finish_record_initialization( MX_RECORD *record )
 
 	epics_motor->epics_position_pv_ptr = (char *) &(epics_motor->rbv_pv);
 
+#if 0
+	MX_DEBUG(-2,("%s: epics_motor->rbv_pv.pvname = '%s'",
+		fname, epics_motor->rbv_pv.pvname));
+	MX_DEBUG(-2,("%s: epics_motor->epics_position_pv_ptr = %p",
+		fname, epics_motor->epics_position_pv_ptr));
+
+	{
+		MX_EPICS_PV *test_pv = (MX_EPICS_PV *)
+			epics_motor->epics_position_pv_ptr;
+
+		MX_DEBUG(-2,
+		("%s: epics_motor->epics_position_pv_ptr->pvname = '%s'",
+			fname, test_pv->pvname));
+	}
+#endif
+
 	return mx_status;
 }
 

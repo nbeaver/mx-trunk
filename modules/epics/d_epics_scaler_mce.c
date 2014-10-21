@@ -23,6 +23,7 @@
 
 #include "mx_util.h"
 #include "mx_driver.h"
+#include "mx_array.h"
 #include "mx_measurement.h"
 #include "mx_callback.h"
 #include "mx_mce.h"
@@ -207,7 +208,7 @@ mxd_epics_scaler_mce_finish_record_initialization( MX_RECORD *record )
 	MX_RECORD *list_head_record;
 	MX_RECORD *current_record;
 	MX_RECORD_FIELD *field;
-	MX_EPICS_PV *pv;
+	MX_EPICS_PV **pv_ptr;
 	unsigned long i;
 	const char *driver_name = NULL;
 	mx_status_type mx_status;
@@ -238,6 +239,15 @@ mxd_epics_scaler_mce_finish_record_initialization( MX_RECORD *record )
 
 	mce->current_num_values = mce->maximum_num_values;
 
+	/* Initialize the number of motors to zero. */
+
+	mce->num_motors = 0;
+
+	mx_status = mx_mce_fixup_motor_record_array_field( mce );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/* We must find all of the motor records implemented using EPICS
 	 * and then add them to the motor_record_array data structure.
 	 * The records we are interested in are expected to have an MX field
@@ -246,8 +256,6 @@ mxd_epics_scaler_mce_finish_record_initialization( MX_RECORD *record )
 	 * The first step is to find out how many of these motor records
 	 * there are in the current database.
 	 */
-
-	mce->num_motors = 0;
 
 	list_head_record = record->list_head;
 
@@ -330,9 +338,9 @@ mxd_epics_scaler_mce_finish_record_initialization( MX_RECORD *record )
 			if ( field != NULL ) {
 				mce->motor_record_array[i] = current_record;
 
-				pv = mx_get_field_value_pointer( field );
+				pv_ptr = mx_get_field_value_pointer( field );
 
-				if ( pv == NULL ) {
+				if ( pv_ptr == NULL ) {
 					return mx_error(
 					MXE_CORRUPT_DATA_STRUCTURE, fname,
 					"The epics_position_pv_ptr for "
@@ -340,7 +348,7 @@ mxd_epics_scaler_mce_finish_record_initialization( MX_RECORD *record )
 						current_record->name );
 				}
 
-				epics_scaler_mce->epics_pv_array[i] = pv;
+				epics_scaler_mce->epics_pv_array[i] = *pv_ptr;
 
 				i++;
 			}
@@ -349,7 +357,13 @@ mxd_epics_scaler_mce_finish_record_initialization( MX_RECORD *record )
 		current_record = current_record->next_record;
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	/* Update the motor_record_array field to match the number
+	 * of EPICS motors that we have found.
+	 */
+
+	mx_status = mx_mce_fixup_motor_record_array_field( mce );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -374,6 +388,7 @@ mxd_epics_scaler_mce_open( MX_RECORD *record )
 
 	for ( i = 0; i < mce->num_motors; i++ ) {
 		current_record = mce->motor_record_array[i];
+
 		pv = epics_scaler_mce->epics_pv_array[i];
 
 		MX_DEBUG(-2,("%s: record '%s', pv = '%s'",
