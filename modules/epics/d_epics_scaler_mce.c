@@ -201,7 +201,8 @@ mxd_epics_scaler_mce_finish_record_initialization( MX_RECORD *record )
 	MX_EPICS_SCALER_MCE *epics_scaler_mce = NULL;
 	MX_MCS *mcs = NULL;
 	MX_EPICS_SCALER_MCS *epics_scaler_mcs = NULL;
-	MX_RECORD_FIELD *motor_record_array_field = NULL;
+	MX_RECORD *list_head_record;
+	MX_RECORD *current_record;
 	const char *driver_name = NULL;
 	mx_status_type mx_status;
 
@@ -223,6 +224,7 @@ mxd_epics_scaler_mce_finish_record_initialization( MX_RECORD *record )
 			mcs->record->name, driver_name, record->name );
 	}
 
+#if 0
 	/* There will be only one motor attached to this MCE at a time,
 	 * but it may come from an indefinitely large number of motors
 	 * attached to this system.  For now, we deal with this by
@@ -268,6 +270,7 @@ mxd_epics_scaler_mce_finish_record_initialization( MX_RECORD *record )
 		return mx_status;
 
 	motor_record_array_field->flags |= MXFF_NO_PARENT_DEPENDENCY;
+#endif /* 0 */
 
 	/* The EPICS synchronous group will record absolute positions of
 	 * the motors, so this is an absolute MCE.
@@ -276,6 +279,47 @@ mxd_epics_scaler_mce_finish_record_initialization( MX_RECORD *record )
 	mce->encoder_type = MXT_MCE_ABSOLUTE_ENCODER;
 
 	mce->current_num_values = mce->maximum_num_values;
+
+	/* We must find all of the motor records implemented using EPICS
+	 * and then add them to the motor_record_array data structure.
+	 *
+	 * The first step is to find out how many of these motor records
+	 * there are in the current database.
+	 */
+
+	mce->num_motors = 0;
+
+	list_head_record = record->list_head;
+
+	if ( list_head_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The list head record for MX record '%s' is NULL.  "
+		"It should not be possible for this to happen.",
+			record->name );
+	}
+
+	current_record = list_head_record->next_record;
+
+	while ( current_record != list_head_record ) {
+
+		/* Is this record a motor record? */
+
+		if ( current_record->mx_class == MXC_MOTOR ) {
+			driver_name = mx_get_driver_name( current_record );
+
+			if ( strstr( driver_name, "epics" ) ) {
+				MX_DEBUG(-2,("%s: '%s' is a '%s'.",
+					fname, current_record->name,
+					driver_name));
+
+				mce->num_motors++;
+			}
+		}
+
+		current_record = current_record->next_record;
+	}
+
+	MX_DEBUG(-2,("%s: num_motors = %lu", fname, mce->num_motors));
 
 	return MX_SUCCESSFUL_RESULT;
 }

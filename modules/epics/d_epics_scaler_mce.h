@@ -25,6 +25,8 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *mcs_record;
+
+	MX_EPICS_PV *epics_pv_array;
 } MX_EPICS_SCALER_MCE;
 
 #define MXD_EPICS_SCALER_MCE_STANDARD_FIELDS \
