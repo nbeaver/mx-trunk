@@ -26,7 +26,7 @@ typedef struct {
 
 	MX_RECORD *mcs_record;
 
-	MX_EPICS_PV *epics_pv_array;
+	MX_EPICS_PV **epics_pv_array;
 } MX_EPICS_SCALER_MCE;
 
 #define MXD_EPICS_SCALER_MCE_STANDARD_FIELDS \
@@ -39,6 +39,7 @@ MX_API mx_status_type mxd_epics_scaler_mce_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_epics_scaler_mce_finish_record_initialization(
 							MX_RECORD *record );
+MX_API mx_status_type mxd_epics_scaler_mce_open( MX_RECORD *record );
 
 MX_API mx_status_type mxd_epics_scaler_mce_read( MX_MCE *mce );
 MX_API mx_status_type mxd_epics_scaler_mce_get_current_num_values(MX_MCE *mce);

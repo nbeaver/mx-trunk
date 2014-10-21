@@ -39,7 +39,10 @@
 MX_RECORD_FUNCTION_LIST mxd_epics_scaler_mce_record_function_list = {
 	mxd_epics_scaler_mce_initialize_driver,
 	mxd_epics_scaler_mce_create_record_structures,
-	mxd_epics_scaler_mce_finish_record_initialization
+	mxd_epics_scaler_mce_finish_record_initialization,
+	NULL,
+	NULL,
+	mxd_epics_scaler_mce_open
 };
 
 MX_MCE_FUNCTION_LIST mxd_epics_scaler_mce_mce_function_list = {
@@ -203,6 +206,9 @@ mxd_epics_scaler_mce_finish_record_initialization( MX_RECORD *record )
 	MX_EPICS_SCALER_MCS *epics_scaler_mcs = NULL;
 	MX_RECORD *list_head_record;
 	MX_RECORD *current_record;
+	MX_RECORD_FIELD *field;
+	MX_EPICS_PV *pv;
+	unsigned long i;
 	const char *driver_name = NULL;
 	mx_status_type mx_status;
 
@@ -224,54 +230,6 @@ mxd_epics_scaler_mce_finish_record_initialization( MX_RECORD *record )
 			mcs->record->name, driver_name, record->name );
 	}
 
-#if 0
-	/* There will be only one motor attached to this MCE at a time,
-	 * but it may come from an indefinitely large number of motors
-	 * attached to this system.  For now, we deal with this by
-	 * setting up a 1 element array of MX_RECORD pointers and set
-	 * that one element to NULL, for now.
-	 */
-
-	mce->num_motors = 1;
-
-	mce->motor_record_array = (MX_RECORD **) malloc( sizeof(MX_RECORD *) );
-
-	if ( mce->motor_record_array == NULL ) {
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Cannot allocate a 1 element array of MX_RECORD pointers for "
-		"the mce->motor_record_array belonging to MCE '%s'.",
-			record->name );
-	}
-
-	mce->motor_record_array[0] = NULL;
-
-	strlcpy( mce->selected_motor_name, "",
-			sizeof(mce->selected_motor_name) );
-
-	/* Set the array size in the 'motor_record_array' field. */
-
-	mx_status = mx_mce_fixup_motor_record_array_field( mce );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* For this driver, motor_record_array field[0] may be NULL to 
-	 * indicate that no motor is currently attached to this MCE.
-	 * However, the generic part of the finish record initialization
-	 * logic will complain about this unless we set the flag bit
-	 * MXFF_NO_PARENT_DEPENDENCY for the 'motor_record_array' field.
-	 */
-
-	mx_status = mx_find_record_field( record,
-					"motor_record_array",
-					&motor_record_array_field );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	motor_record_array_field->flags |= MXFF_NO_PARENT_DEPENDENCY;
-#endif /* 0 */
-
 	/* The EPICS synchronous group will record absolute positions of
 	 * the motors, so this is an absolute MCE.
 	 */
@@ -282,6 +240,8 @@ mxd_epics_scaler_mce_finish_record_initialization( MX_RECORD *record )
 
 	/* We must find all of the motor records implemented using EPICS
 	 * and then add them to the motor_record_array data structure.
+	 * The records we are interested in are expected to have an MX field
+	 * named 'epics_position_pv_ptr'.
 	 *
 	 * The first step is to find out how many of these motor records
 	 * there are in the current database.
@@ -306,17 +266,14 @@ mxd_epics_scaler_mce_finish_record_initialization( MX_RECORD *record )
 
 		if ( current_record->mx_class == MXC_MOTOR ) {
 
-			/* FIXME: Finding the motors this way 
-			 * is a kludge.
+			/* Look for records containing an MX field named
+			 * 'epics_position_pv_ptr'.
 			 */
 
-			driver_name = mx_get_driver_name( current_record );
+			field = mx_get_record_field( current_record,
+						"epics_position_pv_ptr" );
 
-			if ( strstr( driver_name, "epics" ) ) {
-				MX_DEBUG(-2,("%s: '%s' is a '%s'.",
-					fname, current_record->name,
-					driver_name));
-
+			if ( field != NULL ) {
 				mce->num_motors++;
 			}
 		}
@@ -338,10 +295,10 @@ mxd_epics_scaler_mce_finish_record_initialization( MX_RECORD *record )
 			mce->num_motors, record->name );
 	}
 
-	epics_scaler_mce->epics_pv_array = (MX_EPICS_PV *)
-		calloc( mce->num_motors, sizeof(MX_EPICS_PV) );
+	epics_scaler_mce->epics_pv_array = (MX_EPICS_PV **)
+		calloc( mce->num_motors, sizeof(MX_EPICS_PV *) );
 
-	if ( epics_scaler_mce->epics_pv_array == (MX_EPICS_PV *) NULL ) {
+	if ( epics_scaler_mce->epics_pv_array == (MX_EPICS_PV **) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to allocate a %lu element array "
 		"of MX_EPICS_PV structures for record '%s'.",
@@ -355,28 +312,72 @@ mxd_epics_scaler_mce_finish_record_initialization( MX_RECORD *record )
 
 	current_record = list_head_record->next_record;
 
+	i = 0;
+
 	while ( current_record != list_head_record ) {
 
 		/* Is this record a motor record? */
 
 		if ( current_record->mx_class == MXC_MOTOR ) {
 
-			/* FIXME: Finding the motors this way 
-			 * is a kludge.
+			/* Look for records containing an MX field named
+			 * 'epics_position_pv_ptr'.
 			 */
 
-			driver_name = mx_get_driver_name( current_record );
+			field = mx_get_record_field( current_record,
+						"epics_position_pv_ptr" );
 
-			if ( strstr( driver_name, "epics" ) ) {
-				MX_DEBUG(-2,("%s: '%s' is a '%s'.",
-					fname, current_record->name,
-					driver_name));
+			if ( field != NULL ) {
+				mce->motor_record_array[i] = current_record;
 
-				mce->num_motors++;
+				pv = mx_get_field_value_pointer( field );
+
+				if ( pv == NULL ) {
+					return mx_error(
+					MXE_CORRUPT_DATA_STRUCTURE, fname,
+					"The epics_position_pv_ptr for "
+					"record '%s' is NULL.",
+						current_record->name );
+				}
+
+				epics_scaler_mce->epics_pv_array[i] = pv;
+
+				i++;
 			}
 		}
 
 		current_record = current_record->next_record;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_epics_scaler_mce_open( MX_RECORD *record )
+{
+	static const char fname[] = "mxd_epics_scaler_mce_open()";
+
+	MX_MCE *mce = NULL;
+	MX_EPICS_SCALER_MCE *epics_scaler_mce = NULL;
+	MX_RECORD *current_record;
+	MX_EPICS_PV *pv;
+	unsigned long i;
+	mx_status_type mx_status;
+
+	mce = (MX_MCE *) record->record_class_struct;
+
+	mx_status = mxd_epics_scaler_mce_get_pointers( mce, &epics_scaler_mce,
+							NULL, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	for ( i = 0; i < mce->num_motors; i++ ) {
+		current_record = mce->motor_record_array[i];
+		pv = epics_scaler_mce->epics_pv_array[i];
+
+		MX_DEBUG(-2,("%s: record '%s', pv = '%s'",
+			fname, current_record->name, pv->pvname));
 	}
 
 	return MX_SUCCESSFUL_RESULT;
