@@ -9,7 +9,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 2011-2013 Illinois Institute of Technology
+ * Copyright 2011-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -80,6 +80,10 @@ typedef struct {
 	MX_EPICS_PV ix34_bo_pv;
 	MX_EPICS_PV ix35_li_pv;
 	MX_EPICS_PV ix35_lo_pv;
+
+	/* The following is used by the 'epics_scaler_mce' driver. */
+
+	char *epics_position_pv_ptr;
 
 } MX_EPICS_PMAC_BIOCAT;
 
@@ -174,7 +178,12 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_epics_pmac_biocat_rfield_def_ptr;
   \
   {-1, -1, "end_delay", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EPICS_PMAC_BIOCAT, end_delay), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "epics_position_pv_ptr", MXFT_STRING, NULL, 1, {1}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_EPICS_PMAC_BIOCAT, epics_position_pv_ptr), \
+	{0}, NULL, MXFF_READ_ONLY}
 
 #endif /* __D_EPICS_PMAC_BIOCAT_H__ */
 

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999, 2001-2003, 2005-2006, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -30,6 +30,10 @@ typedef struct {
 	MX_EPICS_PV access_security_pv;
 	MX_EPICS_PV start_pv;
 	MX_EPICS_PV stop_pv;
+
+	/* The following is used by the 'epics_scaler_mce' driver. */
+
+	char *epics_position_pv_ptr;
 } MX_APS_GAP;
 
 /* The subtypes of the aps_gap motor. */
@@ -67,6 +71,11 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_aps_gap_record_field_def_ptr;
   \
   {-1, -1, "motor_subtype", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_APS_GAP, motor_subtype), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "epics_position_pv_ptr", MXFT_STRING, NULL, 1, {1}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_APS_GAP, epics_position_pv_ptr), \
+	{0}, NULL, MXFF_READ_ONLY}
 
 #endif /* __D_APS_GAP_H__ */
+

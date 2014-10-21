@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2011-2013 Illinois Institute of Technology
+ * Copyright 2011-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -368,6 +368,11 @@ mxd_epics_pmac_biocat_finish_record_initialization( MX_RECORD *record )
 				epics_pmac_biocat->device_name );
 
 	}
+
+	/* The following is used by the 'epics_scaler_mce' driver. */
+
+	epics_pmac_biocat->epics_position_pv_ptr =
+			(char *) &(epics_pmac_biocat->actpos_pv);
 
 	return MX_SUCCESSFUL_RESULT;
 }

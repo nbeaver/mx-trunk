@@ -10,7 +10,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2006, 2008-2009, 2011, 2013
+ * Copyright 1999-2001, 2003-2006, 2008-2009, 2011, 2013-2014
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -224,6 +224,10 @@ mxd_epics_motor_finish_record_initialization( MX_RECORD *record )
 
 	epics_motor->driver_type          = MXT_EPICS_MOTOR_UNKNOWN;
 	epics_motor->epics_record_version = -1.0;
+
+	/* The following is used by the 'epics_scaler_mce' driver. */
+
+	epics_motor->epics_position_pv_ptr = (char *) &(epics_motor->rbv_pv);
 
 	return mx_status;
 }

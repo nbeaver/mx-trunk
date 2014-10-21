@@ -8,7 +8,8 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 1999-2000, 2003-2004, 2006, 2011 Illinois Institute of Technology
+ * Copyright 1999-2000, 2003-2004, 2006, 2011, 2014
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -65,6 +66,10 @@ typedef struct {
 	MX_EPICS_PV i20li_pv;
 
 	long database_type;
+
+	/* The following is used by the 'epics_scaler_mce' driver. */
+
+	char *epics_position_pv_ptr;
 } MX_PMAC_TC_MOTOR;
 
 /* Speeds and accelerations in the PMAC are expressed using milliseconds. */
@@ -141,6 +146,12 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_pmac_tc_motor_rfield_def_ptr;
   \
   {-1, -1, "end_delay", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PMAC_TC_MOTOR, end_delay), \
-	{0}, NULL, MXFF_IN_DESCRIPTION}
+	{0}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
+  {-1, -1, "epics_position_pv_ptr", MXFT_STRING, NULL, 1, {1}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_PMAC_TC_MOTOR, epics_position_pv_ptr), \
+	{0}, NULL, MXFF_READ_ONLY}
 
 #endif /* __D_PMACTC_H__ */
+

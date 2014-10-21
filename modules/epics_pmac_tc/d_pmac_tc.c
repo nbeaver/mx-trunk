@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004, 2006, 2008-2011
+ * Copyright 1999-2001, 2003-2004, 2006, 2008-2011, 2014
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -234,6 +234,11 @@ mxd_pmac_tc_motor_finish_record_initialization( MX_RECORD *record )
 				"%s:StrRsp.VAL", pmac_tc_motor->pmac_name);
 		break;
 	}
+
+	/* The following is used by the 'epics_scaler_mce' driver. */
+
+	pmac_tc_motor->epics_position_pv_ptr =
+			(char *) &(pmac_tc_motor->actual_position_pv);
 
 #if MXD_PMACTC_DEBUG
 	mx_epics_set_debug_flag( TRUE );

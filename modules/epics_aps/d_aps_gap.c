@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2005-2006, 2008-2009, 2011
+ * Copyright 1999-2003, 2005-2006, 2008-2009, 2011, 2014
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -261,6 +261,10 @@ mxd_aps_gap_finish_record_initialization( MX_RECORD *record )
 
 	mx_epics_pvname_init( &(aps_gap->stop_pv),
 			"ID%02d:Stop.VAL", aps_gap->sector_number );
+
+	/* The following is used by the 'epics_scaler_mce' driver. */
+
+	aps_gap->epics_position_pv_ptr = (char *) &(aps_gap->position_pv);
 
 	return MX_SUCCESSFUL_RESULT;
 }

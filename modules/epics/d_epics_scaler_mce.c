@@ -305,6 +305,11 @@ mxd_epics_scaler_mce_finish_record_initialization( MX_RECORD *record )
 		/* Is this record a motor record? */
 
 		if ( current_record->mx_class == MXC_MOTOR ) {
+
+			/* FIXME: Finding the motors this way 
+			 * is a kludge.
+			 */
+
 			driver_name = mx_get_driver_name( current_record );
 
 			if ( strstr( driver_name, "epics" ) ) {
@@ -320,6 +325,59 @@ mxd_epics_scaler_mce_finish_record_initialization( MX_RECORD *record )
 	}
 
 	MX_DEBUG(-2,("%s: num_motors = %lu", fname, mce->num_motors));
+
+	/* Allocate memory for the data structures we need. */
+
+	mce->motor_record_array = (MX_RECORD **)
+		calloc( mce->num_motors, sizeof(MX_RECORD *) );
+
+	if ( mce->motor_record_array == (MX_RECORD **) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %lu element array "
+		"for the motor_record_array field of record '%s'.",
+			mce->num_motors, record->name );
+	}
+
+	epics_scaler_mce->epics_pv_array = (MX_EPICS_PV *)
+		calloc( mce->num_motors, sizeof(MX_EPICS_PV) );
+
+	if ( epics_scaler_mce->epics_pv_array == (MX_EPICS_PV *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %lu element array "
+		"of MX_EPICS_PV structures for record '%s'.",
+			mce->num_motors, record->name );
+	}
+
+	/* Now walk through the record list a second time so that we
+	 * can save a copy of the motor record and EPICS PV pointers
+	 * for each EPICS-implemented motor record.
+	 */
+
+	current_record = list_head_record->next_record;
+
+	while ( current_record != list_head_record ) {
+
+		/* Is this record a motor record? */
+
+		if ( current_record->mx_class == MXC_MOTOR ) {
+
+			/* FIXME: Finding the motors this way 
+			 * is a kludge.
+			 */
+
+			driver_name = mx_get_driver_name( current_record );
+
+			if ( strstr( driver_name, "epics" ) ) {
+				MX_DEBUG(-2,("%s: '%s' is a '%s'.",
+					fname, current_record->name,
+					driver_name));
+
+				mce->num_motors++;
+			}
+		}
+
+		current_record = current_record->next_record;
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }

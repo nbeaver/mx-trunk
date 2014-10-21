@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2006, 2013 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2006, 2013-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -47,6 +47,10 @@ typedef struct {
 	MX_EPICS_PV val_pv;
 	MX_EPICS_PV vbas_pv;
 	MX_EPICS_PV velo_pv;
+
+	/* The following is used by the 'epics_scaler_mce' driver. */
+
+	char *epics_position_pv_ptr;
 } MX_EPICS_MOTOR;
 
 /* Values for the 'driver_type' field. */
@@ -94,7 +98,11 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_epics_motor_rfield_def_ptr;
   {-1, -1, "epics_record_name", MXFT_STRING, \
 		NULL, 1, {MXU_EPICS_PVNAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EPICS_MOTOR, epics_record_name), \
-	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "epics_position_pv_ptr", MXFT_STRING, NULL, 1, {1}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EPICS_MOTOR, epics_position_pv_ptr), \
+	{0}, NULL, MXFF_READ_ONLY}
 
 #endif /* __D_EPICS_MOTOR_H__ */
 
