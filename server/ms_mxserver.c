@@ -2325,6 +2325,12 @@ mxsrv_send_field_value_to_client(
 		(void *, char *, size_t, MX_RECORD *, MX_RECORD_FIELD *);
 	mx_status_type mx_status;
 
+#if 0
+	if ( record_field->datatype == MXFT_RECORD ) {
+		mx_breakpoint();
+	}
+#endif
+
 	mx_status = MX_SUCCESSFUL_RESULT;
 
 	MX_DEBUG( 2,("%s: socket_handler = %p, network_message = %p",
