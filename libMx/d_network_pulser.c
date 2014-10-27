@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002-2007 Illinois Institute of Technology
+ * Copyright 2002-2007, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -100,7 +100,8 @@ mxd_network_pulser_get_pointers( MX_PULSE_GENERATOR *pulse_generator,
 MX_EXPORT mx_status_type
 mxd_network_pulser_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_network_pulser_create_record_structures()";
+	static const char fname[] =
+		"mxd_network_pulser_create_record_structures()";
 
 	MX_PULSE_GENERATOR *pulse_generator;
 	MX_NETWORK_PULSER *network_pulser;
@@ -158,6 +159,8 @@ mxd_network_pulser_finish_record_initialization( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	strlcpy(record->network_type_name, "mx", MXU_NETWORK_TYPE_NAME_LENGTH);
 
 	mx_network_field_init( &(network_pulser->busy_nf),
 		network_pulser->server_record,

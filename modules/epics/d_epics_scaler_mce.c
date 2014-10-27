@@ -221,6 +221,9 @@ mxd_epics_scaler_mce_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	strlcpy( record->network_type_name, "epics",
+				MXU_NETWORK_TYPE_NAME_LENGTH );
+
 	driver_name = mx_get_driver_name( mcs->record );
 
 	if ( strcmp( driver_name, "epics_scaler_mcs" ) != 0 ) {

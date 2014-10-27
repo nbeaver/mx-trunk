@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2004, 2006-2007, 2011
+ * Copyright 1999, 2001, 2003-2004, 2006-2007, 2011, 2014
  *   Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -125,12 +125,10 @@ mxd_network_dinput_finish_record_initialization( MX_RECORD *record )
 	static const char fname[] =
 		"mxd_network_dinput_finish_record_initialization()";
 
-	MX_DIGITAL_INPUT *dinput;
-	MX_NETWORK_DINPUT *network_dinput;
+	MX_DIGITAL_INPUT *dinput = NULL;
+	MX_NETWORK_DINPUT *network_dinput = NULL;
 	char *name;
 	mx_status_type mx_status;
-
-	network_dinput = NULL;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -144,6 +142,8 @@ mxd_network_dinput_finish_record_initialization( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	strlcpy(record->network_type_name, "mx", MXU_NETWORK_TYPE_NAME_LENGTH);
 
 	name = network_dinput->remote_record_field_name;
 

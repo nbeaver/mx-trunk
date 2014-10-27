@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2008 Illinois Institute of Technology
+ * Copyright 2002-2008, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -88,7 +88,8 @@ mxd_network_relay_get_pointers( MX_RELAY *relay,
 MX_EXPORT mx_status_type
 mxd_network_relay_create_record_structures( MX_RECORD *record )
 {
-        static const char fname[] = "mxd_network_relay_create_record_structures()";
+        static const char fname[] =
+			"mxd_network_relay_create_record_structures()";
 
         MX_RELAY *relay;
         MX_NETWORK_RELAY *network_relay;
@@ -146,6 +147,8 @@ mxd_network_relay_finish_record_initialization( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	strlcpy(record->network_type_name, "mx", MXU_NETWORK_TYPE_NAME_LENGTH);
 
 	mx_network_field_init( &(network_relay->pulse_duration_nf),
 		network_relay->server_record,

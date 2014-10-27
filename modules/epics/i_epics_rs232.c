@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2011 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003-2011, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -183,6 +183,9 @@ mxi_epics_rs232_finish_record_initialization( MX_RECORD *record )
 			"MX_EPICS_RS232 structure pointer for '%s' is NULL.",
 			record->name );
 	}
+
+	strlcpy( record->network_type_name, "epics",
+				MXU_NETWORK_TYPE_NAME_LENGTH );
 
 	epics_rs232->input_buffer = NULL;
 	epics_rs232->next_unread_char_ptr = NULL;

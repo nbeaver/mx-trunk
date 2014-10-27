@@ -180,6 +180,9 @@ mxd_epics_pmac_biocat_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	strlcpy( record->network_type_name, "epics",
+				MXU_NETWORK_TYPE_NAME_LENGTH );
+
 	/*---*/
 
 	/* FIXME: Surely there is a better way of determining whether

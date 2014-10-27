@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004, 2006-2007, 2010, 2013
+ * Copyright 2000-2001, 2003-2004, 2006-2007, 2010, 2013-2014
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -169,6 +169,8 @@ mxd_network_mce_finish_record_initialization( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	strlcpy(record->network_type_name, "mx", MXU_NETWORK_TYPE_NAME_LENGTH);
 
 	mce->encoder_type = MXT_MCE_UNKNOWN_ENCODER_TYPE;
 

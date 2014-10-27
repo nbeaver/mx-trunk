@@ -168,6 +168,9 @@ mxd_pmac_tc_motor_finish_record_initialization( MX_RECORD *record )
 
 	/*--------*/
 
+	strlcpy( record->network_type_name, "epics",
+				MXU_NETWORK_TYPE_NAME_LENGTH );
+
 	driver = mx_get_driver_for_record( record );
 
 	if ( driver == (MX_DRIVER *) NULL ) {

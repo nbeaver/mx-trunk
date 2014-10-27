@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2009-2011, 2013 Illinois Institute of Technology
+ * Copyright 2009-2011, 2013-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -173,6 +173,9 @@ mxd_epics_ccd_finish_record_initialization( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	strlcpy( record->network_type_name, "epics",
+				MXU_NETWORK_TYPE_NAME_LENGTH );
 
 	/* Initialize MX EPICS data structures. */
 

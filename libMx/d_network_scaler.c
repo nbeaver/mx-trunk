@@ -158,6 +158,8 @@ mxd_network_scaler_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	strlcpy(record->network_type_name, "mx", MXU_NETWORK_TYPE_NAME_LENGTH);
+
 	mx_status = mx_scaler_finish_record_initialization( record );
 
 	if ( mx_status.code != MXE_SUCCESS )

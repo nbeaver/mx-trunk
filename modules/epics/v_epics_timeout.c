@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2012 Illinois Institute of Technology
+ * Copyright 2012, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -114,6 +114,9 @@ mxv_epics_timeout_finish_record_initialization( MX_RECORD *record )
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_RECORD pointer passed was NULL." );
 	}
+
+	strlcpy( record->network_type_name, "epics",
+				MXU_NETWORK_TYPE_NAME_LENGTH );
 
 	variable = (MX_VARIABLE *) record->record_superclass_struct;
 

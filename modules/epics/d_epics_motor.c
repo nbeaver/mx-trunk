@@ -170,6 +170,9 @@ mxd_epics_motor_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	strlcpy( record->network_type_name, "epics",
+				MXU_NETWORK_TYPE_NAME_LENGTH );
+
 	motor = (MX_MOTOR *) record->record_class_struct;
 
 	mx_status = mxd_epics_motor_get_pointers( motor, &epics_motor, fname );

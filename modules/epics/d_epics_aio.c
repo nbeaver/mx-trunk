@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006, 2008-2011 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006, 2008-2011, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -196,6 +196,9 @@ mxd_epics_ain_create_record_structures( MX_RECORD *record )
 	/* Raw analog input values are stored as doubles. */
 
 	analog_input->subclass = MXT_AIN_DOUBLE;
+
+	strlcpy( record->network_type_name, "epics",
+				MXU_NETWORK_TYPE_NAME_LENGTH );
 
         return MX_SUCCESSFUL_RESULT;
 }

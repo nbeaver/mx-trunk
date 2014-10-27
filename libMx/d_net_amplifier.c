@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2004, 2006, 2010 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2004, 2006, 2010, 2014
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -165,6 +166,8 @@ mxd_network_amplifier_finish_record_initialization( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	strlcpy(record->network_type_name, "mx", MXU_NETWORK_TYPE_NAME_LENGTH);
 
 	mx_network_field_init( &(network_amplifier->gain_nf),
 		network_amplifier->server_record,

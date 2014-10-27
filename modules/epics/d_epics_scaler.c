@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006, 2008-2012 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006, 2008-2012, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -145,6 +145,9 @@ mxd_epics_scaler_create_record_structures( MX_RECORD *record )
 			= &mxd_epics_scaler_scaler_function_list;
 
 	scaler->record = record;
+
+	strlcpy( record->network_type_name, "epics",
+				MXU_NETWORK_TYPE_NAME_LENGTH );
 
 	return MX_SUCCESSFUL_RESULT;
 }

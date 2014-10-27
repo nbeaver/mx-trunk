@@ -163,6 +163,9 @@ mxd_aps_gap_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	strlcpy( record->network_type_name, "epics",
+				MXU_NETWORK_TYPE_NAME_LENGTH );
+
 	aps_gap = (MX_APS_GAP *) (record->record_type_struct);
 
 	if ( aps_gap == (MX_APS_GAP *) NULL ) {

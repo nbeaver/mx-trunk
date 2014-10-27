@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005, 2008 Illinois Institute of Technology
+ * Copyright 2005, 2008, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -153,6 +153,8 @@ mxd_network_ptz_finish_record_initialization( MX_RECORD *record )
 #if MXD_NETWORK_PTZ_DEBUG
 	MX_DEBUG(-2,("%s invoked for PTZ '%s'.", fname, record->name));
 #endif
+
+	strlcpy(record->network_type_name, "mx", MXU_NETWORK_TYPE_NAME_LENGTH);
 
 	mx_network_field_init( &(network_ptz->command_nf),
 		network_ptz->server_record,

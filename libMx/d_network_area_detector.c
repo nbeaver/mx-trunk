@@ -195,6 +195,9 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 #if MXD_NETWORK_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
+
+	strlcpy(record->network_type_name, "mx", MXU_NETWORK_TYPE_NAME_LENGTH);
+
 	mx_status = mx_area_detector_finish_record_initialization( record );
 
 	if ( mx_status.code != MXE_SUCCESS )

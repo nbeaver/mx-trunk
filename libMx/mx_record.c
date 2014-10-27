@@ -176,8 +176,8 @@ mx_create_record( void )
 		new_record->mx_superclass = 0;
 		new_record->mx_class = 0;
 		new_record->mx_type = 0;
-		strcpy( (new_record->name), "" );
-		strcpy( (new_record->label), "" );
+		new_record->name[0] = '\0';
+		new_record->label[0] = '\0';
 		new_record->handle = MX_ILLEGAL_HANDLE;
 		new_record->precision = 3;
 		new_record->resynchronize = 0;
@@ -198,6 +198,7 @@ mx_create_record( void )
 		new_record->parent_record_array = NULL;
 		new_record->num_child_records = 0;
 		new_record->child_record_array = NULL;
+		new_record->network_type_name[0] = '\0';
 		new_record->event_time_manager = NULL;
 		new_record->event_queue = NULL;
 		new_record->application_ptr = NULL;

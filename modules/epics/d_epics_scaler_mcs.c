@@ -341,6 +341,9 @@ mxd_epics_scaler_mcs_create_record_structures( MX_RECORD *record )
 	mcs->record = record;
 	epics_scaler_mcs->record = record;
 
+	strlcpy( record->network_type_name, "epics",
+				MXU_NETWORK_TYPE_NAME_LENGTH );
+
 	return MX_SUCCESSFUL_RESULT;
 }
 

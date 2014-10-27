@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2004, 2006-2007, 2010 Illinois Institute of Technology
+ * Copyright 2002-2004, 2006-2007, 2010, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -145,11 +145,12 @@ mxd_network_sca_finish_record_initialization( MX_RECORD *record )
 
 	sca = (MX_SCA *) record->record_class_struct;
 
-	mx_status = mxd_network_sca_get_pointers(
-				sca, &network_sca, fname);
+	mx_status = mxd_network_sca_get_pointers( sca, &network_sca, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	strlcpy(record->network_type_name, "mx", MXU_NETWORK_TYPE_NAME_LENGTH);
 
 	mx_network_field_init( &(network_sca->gain_nf),
 		network_sca->server_record,

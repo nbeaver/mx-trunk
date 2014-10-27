@@ -158,6 +158,8 @@ mxd_network_timer_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	strlcpy(record->network_type_name, "mx", MXU_NETWORK_TYPE_NAME_LENGTH);
+
 	timer->mode = MXCM_UNKNOWN_MODE;
 
 	mx_status = mx_timer_finish_record_initialization( record );

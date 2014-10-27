@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2008-2010 Illinois Institute of Technology
+ * Copyright 2008-2010, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -178,6 +178,8 @@ mxd_network_wvout_finish_record_initialization( MX_RECORD *record )
 	MX_DEBUG(-2,("%s invoked for record '%s'.",
 		fname, wvout->record->name));
 #endif
+
+	strlcpy(record->network_type_name, "mx", MXU_NETWORK_TYPE_NAME_LENGTH);
 
 	mx_status = mx_waveform_output_finish_record_initialization( record );
 

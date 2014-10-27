@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2005, 2007 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2005, 2007, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -132,14 +132,10 @@ mxd_network_aoutput_finish_record_initialization( MX_RECORD *record )
 	static const char fname[] =
 		"mxd_network_aoutput_finish_record_initialization()";
 
-	MX_ANALOG_OUTPUT *aoutput;
-	MX_NETWORK_AOUTPUT *network_aoutput;
+	MX_ANALOG_OUTPUT *aoutput = NULL;
+	MX_NETWORK_AOUTPUT *network_aoutput = NULL;
 	char *name;
 	mx_status_type mx_status;
-
-	/* Suppress bogus GCC 4 uninitialized variable warning. */
-
-	network_aoutput = NULL;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -153,6 +149,8 @@ mxd_network_aoutput_finish_record_initialization( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	strlcpy(record->network_type_name, "mx", MXU_NETWORK_TYPE_NAME_LENGTH);
 
 	name = network_aoutput->remote_record_field_name;
 

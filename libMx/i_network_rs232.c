@@ -176,6 +176,8 @@ mxi_network_rs232_finish_record_initialization( MX_RECORD *record )
 	if ( status.code != MXE_SUCCESS )
 		return status;
 
+	strlcpy(record->network_type_name, "mx", MXU_NETWORK_TYPE_NAME_LENGTH);
+
 #if 0
 	/* Force the read and write terminators to zero. */
 

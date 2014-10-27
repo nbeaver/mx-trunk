@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2009-2011, 2013 Illinois Institute of Technology
+ * Copyright 1999-2006, 2009-2011, 2013-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -264,6 +264,8 @@ mxd_network_motor_finish_record_initialization( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	strlcpy(record->network_type_name, "mx", MXU_NETWORK_TYPE_NAME_LENGTH);
 
 	motor->motor_flags |= MXF_MTR_IS_REMOTE_MOTOR;
 

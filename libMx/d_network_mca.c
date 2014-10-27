@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2006, 2010, 2012 Illinois Institute of Technology
+ * Copyright 2000-2006, 2010, 2012, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -192,6 +192,8 @@ mxd_network_mca_finish_record_initialization( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	strlcpy(record->network_type_name, "mx", MXU_NETWORK_TYPE_NAME_LENGTH);
 
 	mca->channel_array = ( unsigned long * )
 		malloc( mca->maximum_num_channels * sizeof( unsigned long ) );

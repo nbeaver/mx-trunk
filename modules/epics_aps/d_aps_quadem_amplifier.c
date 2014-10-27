@@ -9,7 +9,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006, 2008, 2010-2011 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006, 2008, 2010-2011, 2014
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -177,6 +178,9 @@ mxd_aps_quadem_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	strlcpy( record->network_type_name, "epics",
+				MXU_NETWORK_TYPE_NAME_LENGTH );
 
 	mx_epics_pvname_init( &(aps_quadem_amplifier->gain_pv),
 			"%sGain", aps_quadem_amplifier->epics_record_namestem );

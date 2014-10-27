@@ -125,6 +125,9 @@ mxv_aps_topup_create_record_structures( MX_RECORD *record )
 	mx_epics_pvname_init( &(aps_topup->topup_time_to_inject_pv),
 					"Mt:TopUpTime2Inject" );
 
+	strlcpy( record->network_type_name, "epics",
+				MXU_NETWORK_TYPE_NAME_LENGTH );
+
 	return MX_SUCCESSFUL_RESULT;
 }
 

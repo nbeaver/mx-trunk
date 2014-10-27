@@ -50,6 +50,8 @@ extern "C" {
 #define MXU_LABEL_LENGTH			40
 #define MXU_UNITS_NAME_LENGTH			16
 
+#define MXU_NETWORK_TYPE_NAME_LENGTH		40
+
 #define MXU_FIELD_MAX_DIMENSIONS		8
 #define MXU_RECORD_DESCRIPTION_LENGTH		2500
 
@@ -164,17 +166,22 @@ typedef struct mx_record_type {
 	mx_bool_type resynchronize;
 	unsigned long record_flags;
 	unsigned long record_processing_flags;
+
 	struct mx_record_type *list_head;
 	struct mx_record_type *previous_record;
 	struct mx_record_type *next_record;
+
 	void *record_superclass_struct; /* Ptr to MX_SCAN, MX_VARIABLE, etc. */
 	void *record_class_struct;	/* Ptr to MX_CAMAC, MX_MOTOR, etc. */
 	void *record_type_struct;	/* Ptr to MX_DSP6001, MX_E500, etc. */
+
 	void *record_function_list;	/* Ptr to MX_RECORD_FUNCTION_LIST */
 	void *superclass_specific_function_list;
 	void *class_specific_function_list;
+
 	long                  num_record_fields;
 	MX_RECORD_FIELD       *record_field_array;
+
 	struct mx_record_type *allocated_by;
 	long                  num_groups;
 	struct mx_record_type **group_array;
@@ -182,8 +189,12 @@ typedef struct mx_record_type {
 	struct mx_record_type **parent_record_array;
 	long                  num_child_records;
 	struct mx_record_type **child_record_array;
+
+	char network_type_name[MXU_NETWORK_TYPE_NAME_LENGTH+1];
+
 	MX_EVENT_TIME_MANAGER *event_time_manager;
 	void *event_queue;		/* Ptr to MXSRV_QUEUED_EVENT */
+
 	void *application_ptr;
 } MX_RECORD;
 
@@ -236,6 +247,7 @@ typedef struct {
 #define MXLV_REC_GROUP_ARRAY		104
 #define MXLV_REC_PARENT_RECORD_ARRAY	105
 #define MXLV_REC_CHILD_RECORD_ARRAY	106
+#define MXLV_REC_NETWORK_TYPE_NAME	107
 
 #define MX_RECORD_STANDARD_FIELDS  \
   {-1, -1, "name", MXFT_STRING, NULL, 1, {MXU_RECORD_NAME_LENGTH}, \
@@ -318,7 +330,12 @@ typedef struct {
 	NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, child_record_array), \
 	{sizeof(MX_RECORD *)}, NULL, \
-	    (MXFF_VARARGS | MXFF_READ_ONLY | MXFF_NO_NEXT_EVENT_TIME_UPDATE)}
+	    (MXFF_VARARGS | MXFF_READ_ONLY | MXFF_NO_NEXT_EVENT_TIME_UPDATE)}, \
+  \
+  {MXLV_REC_NETWORK_TYPE_NAME, -1, "network_type_name", MXFT_STRING, \
+		NULL, 1, {MXU_NETWORK_TYPE_NAME_LENGTH}, \
+	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, network_type_name), \
+	{sizeof(char)}, NULL, MXFF_READ_ONLY}
 
 /* Definition of bits in the 'record_flags' field of the record. */
 

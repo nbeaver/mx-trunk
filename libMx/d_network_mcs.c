@@ -123,7 +123,8 @@ mxd_network_mcs_initialize_driver( MX_DRIVER *driver )
 MX_EXPORT mx_status_type
 mxd_network_mcs_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_network_mcs_create_record_structures()";
+	static const char fname[] =
+			"mxd_network_mcs_create_record_structures()";
 
 	MX_MCS *mcs;
 	MX_NETWORK_MCS *network_mcs = NULL;
@@ -172,6 +173,8 @@ mxd_network_mcs_finish_record_initialization( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	strlcpy(record->network_type_name, "mx", MXU_NETWORK_TYPE_NAME_LENGTH);
 
 	mx_status = mx_mcs_finish_record_initialization( record );
 

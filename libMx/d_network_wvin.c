@@ -176,6 +176,8 @@ mxd_network_wvin_finish_record_initialization( MX_RECORD *record )
 		fname, wvin->record->name));
 #endif
 
+	strlcpy(record->network_type_name, "mx", MXU_NETWORK_TYPE_NAME_LENGTH);
+
 	mx_status = mx_waveform_input_finish_record_initialization( record );
 
 	if ( mx_status.code != MXE_SUCCESS )

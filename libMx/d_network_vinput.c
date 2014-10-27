@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2007, 2009-2010 Illinois Institute of Technology
+ * Copyright 2006-2007, 2009-2010, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -169,6 +169,9 @@ mxd_network_vinput_finish_record_initialization( MX_RECORD *record )
 #if MXD_NETWORK_VINPUT_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
+
+	strlcpy(record->network_type_name, "mx", MXU_NETWORK_TYPE_NAME_LENGTH);
+
 	mx_status = mx_video_input_finish_record_initialization( record );
 
 	if ( mx_status.code != MXE_SUCCESS )
