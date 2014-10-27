@@ -234,6 +234,8 @@ mxd_epics_scaler_mcs_callback( MX_CALLBACK_MESSAGE *message )
 	fprintf(stderr,"\n");
 #endif
 
+	epics_scaler_mcs->current_measurement_number++;
+
 	/* If the EPICS Scaler record is no longer busy, then
 	 * delete this callback.
 	 */
@@ -503,7 +505,7 @@ mxd_epics_scaler_mcs_clear( MX_MCS *mcs )
 	static const char fname[] = "mxd_epics_scaler_mcs_clear()";
 
 	MX_EPICS_SCALER_MCS *epics_scaler_mcs;
-	unsigned long data_array_bytes;
+	long i, j;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_scaler_mcs_get_pointers( mcs,
@@ -514,11 +516,13 @@ mxd_epics_scaler_mcs_clear( MX_MCS *mcs )
 
 	MX_DEBUG(-2,("%s invoked for '%s'", fname, mcs->record->name));
 
-	data_array_bytes = mcs->maximum_num_scalers
-				* mcs->maximum_num_measurements
-				* sizeof(unsigned long);
+	epics_scaler_mcs->current_measurement_number = 0;
 
-	memset( mcs->data_array, 0, data_array_bytes );
+	for ( i = 0; i < mcs->maximum_num_scalers; i++ ) {
+		for ( j = 0; j < mcs->maximum_num_measurements; j++ ) {
+			mcs->data_array[i][j] = 0;
+		}
+	}
 
 	return mx_status;
 }

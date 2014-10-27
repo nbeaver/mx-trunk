@@ -1088,16 +1088,6 @@ mx_copy_array_to_buffer( void *array_pointer,
 
 		MX_RECORD **record_array = NULL;
 
-#if 0
-		switch( mx_datatype ) {
-		case MXFT_RECORD:
-		case MXFT_RECORDTYPE:
-		case MXFT_INTERFACE:
-		case MXFT_RECORD_FIELD:
-			dimension_array[0] = 1;
-			break;
-		}
-#endif
 		element_size = mx_get_scalar_element_size( mx_datatype,
 						native_longs_are_64bits );
 
@@ -1166,11 +1156,6 @@ mx_copy_array_to_buffer( void *array_pointer,
 			}
 			break;
 		case MXFT_RECORD:
-			MX_DEBUG(-2,("%s: native_bytes_to_copy = %lu",
-				fname, native_bytes_to_copy));
-			MX_DEBUG(-2,("%s: network_bytes_to_copy = %lu",
-				fname, network_bytes_to_copy));
-
 			record_array = array_pointer;
 
 			if ( network_bytes_to_copy > destination_buffer_length )
@@ -1198,7 +1183,7 @@ mx_copy_array_to_buffer( void *array_pointer,
 					record_array[i]->name,
 					element_size );
 
-#if 1
+#if 0
 				MX_DEBUG(-2,
 				("%s: i = %ld, destination_pointer = %p",
 					fname, i, destination_pointer));
