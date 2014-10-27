@@ -33,6 +33,8 @@
 #include "mx_mcs.h"
 #include "d_epics_scaler_mcs.h"
 
+#define MXD_EPICS_SCALER_MCS_MAX_CHANNELS	64
+
 /* MCS driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_epics_scaler_mcs_record_function_list = {
@@ -119,7 +121,10 @@ mxd_epics_scaler_mcs_callback( MX_CALLBACK_MESSAGE *message )
 	unsigned long i, j;
 	long **data_array;
 	int32_t cnt;
-	int32_t s_value_array[64];
+	static int32_t s_value_array_A[MXD_EPICS_SCALER_MCS_MAX_CHANNELS];
+	static int32_t s_value_array_B[MXD_EPICS_SCALER_MCS_MAX_CHANNELS];
+	static int32_t *s_value_array_curr = NULL;
+	static int32_t *s_value_array_prev = NULL;
 	mx_status_type mx_status;
 
 	if ( message == (MX_CALLBACK_MESSAGE *) NULL ) {
@@ -161,6 +166,44 @@ mxd_epics_scaler_mcs_callback( MX_CALLBACK_MESSAGE *message )
 
 	/********************************************************************/
 
+	j = epics_scaler_mcs->current_measurement_number;
+
+	/* If this is the first step in a quick scan sequence, set both
+	 * of the data arrays to 0.
+	 */
+
+	if ( j == 0 ) {
+		memset( s_value_array_A, 0,
+			MXD_EPICS_SCALER_MCS_MAX_CHANNELS * sizeof(int32_t) );
+		memset( s_value_array_B, 0,
+			MXD_EPICS_SCALER_MCS_MAX_CHANNELS * sizeof(int32_t) );
+
+		s_value_array_curr = s_value_array_A;
+		s_value_array_prev = s_value_array_B;
+
+#if 0
+		MX_DEBUG(-2,("%s: starting with A", fname));
+#endif
+	} else {
+		/* Otherwise, switch the buffers that we are using. */
+
+		if ( s_value_array_curr == s_value_array_A ) {
+			s_value_array_curr = s_value_array_B;
+			s_value_array_prev = s_value_array_A;
+
+#if 0
+			MX_DEBUG(-2,("%s: switching to B", fname));
+#endif
+		} else {
+			s_value_array_curr = s_value_array_A;
+			s_value_array_prev = s_value_array_B;
+
+#if 0
+			MX_DEBUG(-2,("%s: switching to A", fname));
+#endif
+		}
+	}
+
 	/* All of our EPICS I/O needs to be synchronized as well as possible,
 	 * so we make all of the calls in an EPICS synchronous group.
 	 */
@@ -179,7 +222,7 @@ mxd_epics_scaler_mcs_callback( MX_CALLBACK_MESSAGE *message )
 
 	for ( i = 0; i < epics_scaler_mcs->num_channels; i++ ) {
 		mx_status = mx_caget( &(epics_scaler_mcs->s_pv_array[i]),
-					MX_CA_LONG, 1, &(s_value_array[i]) );
+				MX_CA_LONG, 1, &(s_value_array_curr[i]) );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -203,31 +246,26 @@ mxd_epics_scaler_mcs_callback( MX_CALLBACK_MESSAGE *message )
 
 	/* Copy the scaler data into the MCS data array. */
 
-	j = epics_scaler_mcs->current_measurement_number;
-
 	data_array = mcs->data_array;
 
 #if MXD_EPICS_SCALER_MCS_DEBUG_CALLBACK
 	fprintf(stderr,"%s: meas(%lu) ", fname, j);
 #endif
 
-	if ( j == 0 ) {
-		for ( i = 0; i < epics_scaler_mcs->num_channels; i++ ) {
-			data_array[i][j] = s_value_array[i];
+	for ( i = 0; i < epics_scaler_mcs->num_channels; i++ ) {
+
+		data_array[i][j] =
+			s_value_array_curr[i] - s_value_array_prev[i];
 
 #if MXD_EPICS_SCALER_MCS_DEBUG_CALLBACK
-			fprintf(stderr,"%lu ", data_array[i][j]);
+#if 1
+		fprintf(stderr,"%lu ", data_array[i][j]);
+#else
+		fprintf(stderr,"A%lu ",(unsigned long)s_value_array_prev[i]);
+		fprintf(stderr,"B%lu ",(unsigned long)s_value_array_curr[i]);
+		fprintf(stderr,"C%lu ", data_array[i][j]);
 #endif
-		}
-	} else {
-		for ( i = 0; i < epics_scaler_mcs->num_channels; i++ ) {
-			data_array[i][j] =
-				s_value_array[i] - data_array[i][j-1];
-
-#if MXD_EPICS_SCALER_MCS_DEBUG_CALLBACK
-			fprintf(stderr,"%lu ", data_array[i][j]);
 #endif
-		}
 	}
 
 #if MXD_EPICS_SCALER_MCS_DEBUG_CALLBACK
@@ -331,6 +369,8 @@ mxd_epics_scaler_mcs_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	epics_scaler_mcs->current_measurement_number = 0;
 
 	/* Check to see if this database process has a callback pipe.
 	 * If it does not, then warn the user that this driver cannot
