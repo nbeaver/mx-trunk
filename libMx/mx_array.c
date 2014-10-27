@@ -182,11 +182,11 @@ mx_get_scalar_element_size( long mx_datatype,
 		}
 		break;
 
-	case MXFT_RECORD:     element_size = MXU_RECORD_NAME_LENGTH+1;    break;
-	case MXFT_RECORDTYPE: element_size = MXU_DRIVER_NAME_LENGTH+1;    break;
-	case MXFT_INTERFACE:  element_size = MXU_INTERFACE_NAME_LENGTH+1; break;
+	case MXFT_RECORD:     element_size = MXU_RECORD_NAME_LENGTH;    break;
+	case MXFT_RECORDTYPE: element_size = MXU_DRIVER_NAME_LENGTH;    break;
+	case MXFT_INTERFACE:  element_size = MXU_INTERFACE_NAME_LENGTH; break;
 	case MXFT_RECORD_FIELD:
-			      element_size = MXU_RECORD_FIELD_NAME_LENGTH+1;
+			      element_size = MXU_RECORD_FIELD_NAME_LENGTH;
 									  break;
 	default:              element_size = 0;                           break;
 	}
