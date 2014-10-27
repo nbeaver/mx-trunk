@@ -182,11 +182,12 @@ mx_get_scalar_element_size( long mx_datatype,
 		}
 		break;
 
-	case MXFT_RECORD:     element_size = MXU_RECORD_NAME_LENGTH;      break;
-	case MXFT_RECORDTYPE: element_size = MXU_DRIVER_NAME_LENGTH;      break;
-	case MXFT_INTERFACE:  element_size = MXU_INTERFACE_NAME_LENGTH;   break;
+	case MXFT_RECORD:     element_size = MXU_RECORD_NAME_LENGTH+1;    break;
+	case MXFT_RECORDTYPE: element_size = MXU_DRIVER_NAME_LENGTH+1;    break;
+	case MXFT_INTERFACE:  element_size = MXU_INTERFACE_NAME_LENGTH+1; break;
 	case MXFT_RECORD_FIELD:
-			      element_size = MXU_RECORD_FIELD_NAME_LENGTH;break;
+			      element_size = MXU_RECORD_FIELD_NAME_LENGTH+1;
+									  break;
 	default:              element_size = 0;                           break;
 	}
 
@@ -867,6 +868,7 @@ mx_copy_array_to_buffer( void *array_pointer,
 	char *array_row_pointer, *destination_pointer;
 	size_t native_bytes_to_copy, network_bytes_to_copy;
 	size_t array_size, subarray_size, buffer_left;
+	size_t element_size;
 	mx_bool_type native_longs_are_64bits;
 	long i, n, mx_type;
 	int num_subarray_elements;
@@ -1082,12 +1084,11 @@ mx_copy_array_to_buffer( void *array_pointer,
 		return MX_SUCCESSFUL_RESULT;
 	}
 
+	if ( num_dimensions == 1 ) { 
+
+		MX_RECORD **record_array = NULL;
+
 #if 0
-	if ( ( num_dimensions == 1 ) && ( use_structure_name == FALSE ) )
-#else
-	if ( num_dimensions == 1 )
-#endif
-	{ 
 		switch( mx_datatype ) {
 		case MXFT_RECORD:
 		case MXFT_RECORDTYPE:
@@ -1096,10 +1097,11 @@ mx_copy_array_to_buffer( void *array_pointer,
 			dimension_array[0] = 1;
 			break;
 		}
-
-		native_bytes_to_copy = dimension_array[0]
-				* mx_get_scalar_element_size( mx_datatype,
+#endif
+		element_size = mx_get_scalar_element_size( mx_datatype,
 						native_longs_are_64bits );
+
+		native_bytes_to_copy = dimension_array[0] * element_size;
 
 		network_bytes_to_copy = mx_get_network_bytes_from_native_bytes(
 						mx_datatype,
@@ -1136,10 +1138,6 @@ mx_copy_array_to_buffer( void *array_pointer,
 		case MXFT_UINT64:
 		case MXFT_FLOAT:
 		case MXFT_DOUBLE:
-		case MXFT_RECORD:
-		case MXFT_RECORDTYPE:
-		case MXFT_INTERFACE:
-		case MXFT_RECORD_FIELD:
 			memcpy( destination_buffer,
 					array_pointer, network_bytes_to_copy );
 			break;
@@ -1166,6 +1164,54 @@ mx_copy_array_to_buffer( void *array_pointer,
 					array_pointer, network_bytes_to_copy );
 			    }
 			}
+			break;
+		case MXFT_RECORD:
+			MX_DEBUG(-2,("%s: native_bytes_to_copy = %lu",
+				fname, native_bytes_to_copy));
+			MX_DEBUG(-2,("%s: network_bytes_to_copy = %lu",
+				fname, network_bytes_to_copy));
+
+			record_array = array_pointer;
+
+			if ( network_bytes_to_copy > destination_buffer_length )
+			{
+				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+				"Copying the record names from the %lu element "
+				"array of MX_RECORD names starting with '%s' "
+				"would take %lu network bytes.  "
+				"However, the destination buffer has a "
+				"maximum length of %lu.",
+					dimension_array[0],
+					record_array[0]->name,
+					network_bytes_to_copy,
+					destination_buffer_length );
+			}
+
+			memset( destination_buffer, 0, network_bytes_to_copy );
+
+			for ( i = 0; i < dimension_array[0]; i++ ) {
+				destination_pointer =
+					(char *) destination_buffer
+						+ i * element_size;
+
+				strlcpy( destination_pointer,
+					record_array[i]->name,
+					element_size );
+
+#if 1
+				MX_DEBUG(-2,
+				("%s: i = %ld, destination_pointer = %p",
+					fname, i, destination_pointer));
+				MX_DEBUG(-2,("%s: destination_pointer = '%s'",
+					fname, destination_pointer));
+#endif
+			}
+
+			break;
+		case MXFT_RECORDTYPE:
+		case MXFT_INTERFACE:
+		case MXFT_RECORD_FIELD:
+			mx_breakpoint();
 			break;
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
