@@ -1720,6 +1720,8 @@ mx_motor_raw_home_command( MX_RECORD *motor_record, long direction )
 
 	motor->latched_status = 0;
 
+	motor->home_search_in_progress = TRUE;
+
 	fptr = fl_ptr->raw_home_command;
 
 	if ( fptr == NULL ) {
@@ -2207,6 +2209,8 @@ mx_motor_home_search( MX_RECORD *motor_record,
 
 	motor->latched_status = 0;
 
+	motor->home_search_in_progress = TRUE;
+
 	/* The action we take depends on the value of 
 	 * the 'home_search_type' field.
 	 */
@@ -2560,6 +2564,14 @@ mx_motor_get_status( MX_RECORD *motor_record,
 		motor->status |= motor->latched_status;
 	}
 
+	/* If a home search was in progress, see if it is over. */
+
+	if ( motor->home_search_in_progress ) {
+		if ( ( motor->status & MXSF_MTR_IS_BUSY ) == 0 ) {
+			motor->home_search_in_progress = FALSE;
+		}
+	}
+
 	/* If any error are set, turn the error bit on. */
 
 	if ( motor->status & MXSF_MTR_ERROR_BITMASK ) {
@@ -2679,6 +2691,14 @@ mx_motor_get_extended_status( MX_RECORD *motor_record,
 
 	if ( motor->latched_status ) {
 		motor->status |= motor->latched_status;
+	}
+
+	/* If a home search was in progress, see if it is over. */
+
+	if ( motor->home_search_in_progress ) {
+		if ( ( motor->status & MXSF_MTR_IS_BUSY ) == 0 ) {
+			motor->home_search_in_progress = FALSE;
+		}
 	}
 
 	/*---*/
