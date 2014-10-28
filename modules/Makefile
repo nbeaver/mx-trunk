@@ -96,7 +96,7 @@ MODULES += epics_pmac_biocat
 
 #MODULES += epics_mbc
 
-MODULES += epics_pmac_tc
+#MODULES += epics_pmac_tc
 
 #-------------------------------------------------------------------
 # Site specific modules.
@@ -104,7 +104,7 @@ MODULES += epics_pmac_tc
 #   BioCAT (APS-18ID) 6K "toast" controller.
 #
 
-#MODULES += site_biocat_toast
+MODULES += site_biocat_toast
 
 #---
 

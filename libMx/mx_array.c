@@ -1168,8 +1168,8 @@ mx_copy_array_to_buffer( void *array_pointer,
 				"maximum length of %lu.",
 					dimension_array[0],
 					record_array[0]->name,
-					network_bytes_to_copy,
-					destination_buffer_length );
+				    (unsigned long) network_bytes_to_copy,
+				    (unsigned long) destination_buffer_length );
 			}
 
 			memset( destination_buffer, 0, network_bytes_to_copy );
