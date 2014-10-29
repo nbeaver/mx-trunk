@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2008, 2010-2013 Illinois Institute of Technology
+ * Copyright 1999-2006, 2008, 2010-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -42,6 +42,7 @@
 #include "sq_mcs.h"
 #include "m_time.h"
 #include "m_pulse_period.h"
+#include "d_network_motor.h"
 #include "d_mcs_mce.h"
 #include "d_mcs_scaler.h"
 #include "d_mcs_timer.h"
@@ -527,7 +528,8 @@ mxs_mcs_quick_scan_compute_backlash_position(
 			double end_position,
 			double *backlash_position )
 {
-	static const char fname[] = "mxs_mcs_quick_scan_compute_backlash_position()";
+	static const char fname[] =
+		"mxs_mcs_quick_scan_compute_backlash_position()";
 
 	MX_RECORD *real_motor_record;
 	MX_MOTOR *real_motor;
@@ -799,10 +801,14 @@ mxs_mcs_quick_scan_compute_scan_parameters(
 MX_EXPORT MX_RECORD *
 mxs_mcs_quick_scan_find_encoder_readout( MX_RECORD *motor_record )
 {
+	static const char fname[] = "mxs_mcs_quick_scan_find_encoder_readout()";
+
 	MX_RECORD *record_list;
 	MX_RECORD *current_record, *encoder_record;
+	MX_MCE *mce;
 	long i, num_motors;
 	MX_RECORD **motor_record_array;
+	MX_NETWORK_MOTOR *network_motor;
 	mx_status_type mx_status;
 
 	if ( motor_record == (MX_RECORD *) NULL )
@@ -831,11 +837,54 @@ mxs_mcs_quick_scan_find_encoder_readout( MX_RECORD *motor_record )
 				}
 			}
 
-			if ( encoder_record != NULL ) {
+			if ( encoder_record != (MX_RECORD *) NULL ) {
 				break;		/* Exit the while() loop. */
 			}
 		}
 		current_record = current_record->next_record;
+	}
+
+	if ( encoder_record != (MX_RECORD *) NULL ) {
+		mce = (MX_MCE *) encoder_record->record_class_struct;
+
+		if ( mce == (MX_MCE *) NULL ) {
+			(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_MCE pointer for MCE record '%s' is NULL.",
+				encoder_record->name );
+
+			return NULL;
+		}
+
+		/* Save the 'name' of the selected motor. */
+
+		if ( motor_record->mx_type != MXT_MTR_NETWORK ) {
+
+			/* For non-MX network protocols, we _ASSUME_ that
+			 * the foreign motor has the same name in the
+			 * remote MX server's database as is used in our
+			 * local database.  If this is not true, then
+			 * the MCS quick scan will fail later on.
+			 */
+
+			strlcpy( mce->selected_motor_name,
+				motor_record->name,
+				MXU_RECORD_NAME_LENGTH );
+		} else {
+			network_motor = (MX_NETWORK_MOTOR *)
+					motor_record->record_type_struct;
+
+			if ( network_motor == (MX_NETWORK_MOTOR *) NULL ) {
+			    (void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			    "The MX_NETWORK_MOTOR pointer for motor record "
+				"'%s' is NULL.", motor_record->name );
+
+			    return NULL;
+			}
+
+			strlcpy( mce->selected_motor_name,
+				network_motor->remote_record_name,
+				MXU_RECORD_NAME_LENGTH );
+		}
 	}
 
 	return encoder_record;

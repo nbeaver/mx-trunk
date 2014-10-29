@@ -6,7 +6,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2004, 2009-2010, 2013 Illinois Institute of Technology
+ * Copyright 1999, 2001-2004, 2009-2010, 2013-2014
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -68,7 +69,7 @@ typedef struct {
 	char remote_driver_name[ MXU_DRIVER_NAME_LENGTH+1 ];
 	double remote_scale;
 
-/* On the other hand, you _can_ count on motor flag bit
+	/* On the other hand, you _can_ count on motor flag bit
 	 * definitions being the same in both servers and clients.
 	 */
 

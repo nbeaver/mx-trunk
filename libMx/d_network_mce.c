@@ -390,7 +390,7 @@ mxd_network_mce_get_motor_record_array( MX_MCE *mce )
 	static const char fname[] = "mxd_network_mce_get_motor_record_array()";
 
 	MX_NETWORK_MCE *network_mce;
-	mx_bool_type is_network_motor, name_matches;
+	mx_bool_type name_matches;
 	long i, num_remote_motors;
 	char **motor_name_array;
 	long dimension_array[2];
@@ -398,6 +398,7 @@ mxd_network_mce_get_motor_record_array( MX_MCE *mce )
 	MX_RECORD *list_head_record, *current_record;
 	MX_NETWORK_MOTOR *network_motor;
 	char *remote_motor_name;
+	char *non_mx_motor_name;
 	mx_status_type mx_status;
 
 	network_mce = NULL;
@@ -509,9 +510,7 @@ mxd_network_mce_get_motor_record_array( MX_MCE *mce )
 	}
 #endif
 
-	/* We now must look for the listed motors in our local database.
-	 * We only need to look at 'network_motor' records.
-	 */
+	/* We now must look for the listed motors in our local database. */
 
 	list_head_record = mce->record->list_head;
 
@@ -519,10 +518,13 @@ mxd_network_mce_get_motor_record_array( MX_MCE *mce )
 
 	while ( current_record != list_head_record ) {
 
-		is_network_motor = mx_verify_driver_type( current_record,
-				    MXR_DEVICE, MXC_MOTOR, MXT_MTR_NETWORK );
+	    /* Is this a motor record? */
 
-		if ( is_network_motor ) {
+	    if ( current_record->mx_class == MXC_MOTOR ) {
+
+		/* Is this motor an MX network_motor record? */
+
+		if ( current_record->mx_type == MXT_MTR_NETWORK ) {
 
 			network_motor = (MX_NETWORK_MOTOR *)
 					current_record->record_type_struct;
@@ -560,8 +562,47 @@ mxd_network_mce_get_motor_record_array( MX_MCE *mce )
 				    (mce->num_motors)++;
 				}
 			}
+		} else {
+			/* If this motor record is _not_ a network_motor
+			 * record, see if it uses another network protocol
+			 * by checking to see if the network_type_name
+			 * field has a non-empty name in it.
+			 */
+
+			if ( current_record->network_type_name[0] != '\0' ) {
+
+				/* Non-MX network protocols are typically
+				 * opaque to us, so we just _hope_ that the
+				 * client database is using the same name
+				 * for the motor as is used in the MX server
+				 * that contains the MCE record.
+				 */
+
+				non_mx_motor_name = current_record->name;
+
+				name_matches = FALSE;
+
+				for ( i = 0; i < num_remote_motors; i++ ) {
+
+					if ( strcmp( non_mx_motor_name,
+						motor_name_array[i] ) == 0 )
+					{
+						name_matches = TRUE;
+						break;
+					}
+				}
+
+				if ( name_matches ) {
+				    mce->motor_record_array[ mce->num_motors ]
+						= current_record;
+
+				    (mce->num_motors)++;
+				}
+			}
 		}
-		current_record = current_record->next_record;
+	    }
+
+	    current_record = current_record->next_record;
 	}
 
 	mx_free_array( motor_name_array, 2 );
@@ -572,6 +613,8 @@ mxd_network_mce_get_motor_record_array( MX_MCE *mce )
 		return mx_status;
 
 #if MXD_NETWORK_MCE_DEBUG_MOTOR_ARRAY
+	MX_DEBUG(-2,("%s: Found the following local matches:", fname));
+
 	for ( i = 0; i < mce->num_motors; i++ ) {
 		MX_DEBUG(-2,("%s: mce->motor_record_array[%ld] = '%s'",
 			fname, i, mce->motor_record_array[i]->name ));
@@ -589,9 +632,7 @@ mxd_network_mce_connect_mce_to_motor( MX_MCE *mce, MX_RECORD *motor_record )
 	static const char fname[] = "mxd_network_mce_connect_mce_to_motor()";
 
 	MX_NETWORK_MCE *network_mce;
-	MX_NETWORK_MOTOR *network_motor;
 	long dimension_array[1];
-	int is_network_motor;
 	mx_status_type mx_status;
 
 	network_mce = NULL;
@@ -609,23 +650,20 @@ mxd_network_mce_connect_mce_to_motor( MX_MCE *mce, MX_RECORD *motor_record )
 	MX_DEBUG( 2,("%s invoked for MCE '%s'",
 			fname, mce->record->name));
 
-	/* The specified motor record must be a 'network_motor' record. */
+	/* The specified motor record must be one that uses a recognized
+	 * network protocol.  We check for this by looking at the
+	 * network_type_name field in the MX_RECORD object.  If this string
+	 * has a non-zero length, then it is a supported motor type for this.
+	 */
 
-	is_network_motor = mx_verify_driver_type( motor_record,
-				MXR_DEVICE, MXC_MOTOR, MXT_MTR_NETWORK );
+	if ( motor_record->network_type_name[0] == '\0' ) {
 
-	if ( is_network_motor == FALSE ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-    "Record '%s' selected for network MCE '%s' is not a network motor record.",
-    			motor_record->name, mce->record->name );
-	}
-
-	network_motor = (MX_NETWORK_MOTOR *) motor_record->record_type_struct;
-
-	if ( network_motor == (MX_NETWORK_MOTOR *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"The MX_NETWORK_MOTOR pointer for motor '%s' is NULL.",
-			motor_record->name );
+		"The '%s' driver used by record '%s' selected for "
+		"network MCE '%s' is not supported for MX network MCEs.",
+			mx_get_driver_name( motor_record ),
+    			motor_record->name,
+			mce->record->name );
 	}
 
 	network_mce->selected_motor_record = motor_record;
@@ -636,7 +674,7 @@ mxd_network_mce_connect_mce_to_motor( MX_MCE *mce, MX_RECORD *motor_record )
 
 	mx_status = mx_put_array( &(network_mce->selected_motor_name_nf),
 				MXFT_STRING, 1, dimension_array,
-				network_motor->remote_record_name );
+				mce->selected_motor_name );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
