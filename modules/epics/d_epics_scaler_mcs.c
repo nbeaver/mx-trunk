@@ -23,12 +23,16 @@
 
 #define MXD_EPICS_SCALER_MCS_DEBUG_CALLBACK	TRUE
 
+#define MXD_EPICS_SCALER_MCS_DEBUG_TIMING	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_callback.h"
+#include "mx_hrt_debug.h"
+
 #include "mx_epics.h"
 #include "mx_mcs.h"
 #include "d_epics_scaler_mcs.h"
@@ -128,6 +132,10 @@ mxd_epics_scaler_mcs_callback( MX_CALLBACK_MESSAGE *message )
 	static int32_t *s_value_array_prev = NULL;
 	mx_status_type mx_status;
 
+#if MXD_EPICS_SCALER_MCS_DEBUG_TIMING
+	MX_HRT_TIMING epics_measurement;
+#endif
+
 	if ( message == (MX_CALLBACK_MESSAGE *) NULL ) {
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
 		"This callback was invoked with a NULL callback message!" );
@@ -205,6 +213,10 @@ mxd_epics_scaler_mcs_callback( MX_CALLBACK_MESSAGE *message )
 		}
 	}
 
+#if MXD_EPICS_SCALER_MCS_DEBUG_TIMING
+	MX_HRT_START( epics_measurement );
+#endif
+
 	/* All of our EPICS I/O needs to be synchronized as well as possible,
 	 * so we make all of the calls in an EPICS synchronous group.
 	 */
@@ -243,6 +255,11 @@ mxd_epics_scaler_mcs_callback( MX_CALLBACK_MESSAGE *message )
 	/* Send the synchronous group to EPICS. */
 
 	mx_epics_end_group( &epics_group );
+
+#if MXD_EPICS_SCALER_MCS_DEBUG_TIMING
+	MX_HRT_END( epics_measurement );
+	MX_HRT_RESULTS( epics_measurement, fname, "acquisition" );
+#endif
 
 	/********************************************************************/
 
