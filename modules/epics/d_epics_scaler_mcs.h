@@ -31,6 +31,7 @@ typedef struct {
 
 	MX_EPICS_PV *s_pv_array;
 
+	MX_RECORD *motor_record;
 	MX_EPICS_PV motor_position_pv;
 	double *motor_position_array;
 

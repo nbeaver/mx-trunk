@@ -519,18 +519,18 @@ mxd_epics_scaler_mce_connect_mce_to_motor( MX_MCE *mce,
 	 * motor record, then we do not need to change anything.
 	 */
 
-	if ( motor_record == mce->motor_record_array[0] ) {
+	if ( motor_record == epics_scaler_mcs->motor_record ) {
 		return MX_SUCCESSFUL_RESULT;
 	}
-
-	mce->motor_record_array[0] = NULL;
-	mce->selected_motor_name[0] = '\0';
 
 	mx_status = mx_epics_pv_disconnect(
 			&(epics_scaler_mcs->motor_position_pv) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	epics_scaler_mcs->motor_record = NULL;
+	mce->selected_motor_name[0] = '\0';
 
 	/* See if this is a supported motor record type. */
 
@@ -583,9 +583,9 @@ mxd_epics_scaler_mce_connect_mce_to_motor( MX_MCE *mce,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/*---*/
+	/* Save the newly configured motor's information. */
 
-	mce->motor_record_array[0] = motor_record;
+	epics_scaler_mcs->motor_record = motor_record;
 
 	strlcpy( mce->selected_motor_name, motor_record->name,
 			sizeof(mce->selected_motor_name) );

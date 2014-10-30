@@ -119,6 +119,7 @@ mxd_epics_scaler_mcs_callback( MX_CALLBACK_MESSAGE *message )
 	MX_EPICS_SCALER_MCS *epics_scaler_mcs;
 	MX_EPICS_GROUP epics_group;
 	unsigned long i, j;
+	double motor_position;
 	long **data_array;
 	int32_t cnt;
 	static int32_t s_value_array_A[MXD_EPICS_SCALER_MCS_MAX_CHANNELS];
@@ -218,6 +219,17 @@ mxd_epics_scaler_mcs_callback( MX_CALLBACK_MESSAGE *message )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* If requested, read out the position of the motor. */
+
+	if ( epics_scaler_mcs->motor_record != (MX_RECORD *) NULL ) {
+
+		mx_status = mx_caget( &(epics_scaler_mcs->motor_position_pv),
+				MX_CA_DOUBLE, 1, &motor_position );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
 	/* Read out all of the scaler channels. */
 
 	for ( i = 0; i < epics_scaler_mcs->num_channels; i++ ) {
@@ -244,13 +256,24 @@ mxd_epics_scaler_mcs_callback( MX_CALLBACK_MESSAGE *message )
 		mcs->busy = FALSE;
 	}
 
+#if MXD_EPICS_SCALER_MCS_DEBUG_CALLBACK
+	fprintf( stderr, "%s: meas(%lu) ", fname, j );
+#endif
+
+	/* If requested, save the position of the motor. */
+
+	if ( epics_scaler_mcs->motor_record != (MX_RECORD *) NULL ) {
+
+		epics_scaler_mcs->motor_position_array[j] = motor_position;
+
+#if MXD_EPICS_SCALER_MCS_DEBUG_CALLBACK
+		fprintf( stderr, "%g ", motor_position );
+#endif
+	}
+
 	/* Copy the scaler data into the MCS data array. */
 
 	data_array = mcs->data_array;
-
-#if MXD_EPICS_SCALER_MCS_DEBUG_CALLBACK
-	fprintf(stderr,"%s: meas(%lu) ", fname, j);
-#endif
 
 	for ( i = 0; i < epics_scaler_mcs->num_channels; i++ ) {
 
@@ -374,6 +397,26 @@ mxd_epics_scaler_mcs_open( MX_RECORD *record )
 		return mx_status;
 
 	epics_scaler_mcs->current_measurement_number = 0;
+
+	epics_scaler_mcs->motor_record = NULL;
+
+	/* Invalidate the contents of the motor position PV. */
+
+	epics_scaler_mcs->motor_position_pv.pvname[0] = '\0';
+	epics_scaler_mcs->motor_position_pv.channel_id = NULL;
+
+	/* Allocate memory for the motor position array. */
+
+	epics_scaler_mcs->motor_position_array =
+		(double *) calloc( 1, sizeof(double) );
+
+	if ( epics_scaler_mcs->motor_position_array == (double *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %lu element "
+		"array of motor positions for record '%s'.",
+			mcs->maximum_num_measurements,
+			record->name );
+	}
 
 	/* Check to see if this database process has a callback pipe.
 	 * If it does not, then warn the user that this driver cannot
