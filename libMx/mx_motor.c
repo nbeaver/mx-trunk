@@ -2875,7 +2875,8 @@ mx_motor_check_speed_limits( MX_MOTOR *motor,
 		"current base speed of %g %s/sec.  This is not allowed.",
 				speed_type_name, proposed_speed, motor->units,
 				motor->record->name,
-				motor->base_speed, motor->units );
+				motor->scale * motor->raw_base_speed,
+				motor->units );
 		}
 		break;
 
@@ -2886,7 +2887,8 @@ mx_motor_check_speed_limits( MX_MOTOR *motor,
 		"current speed of %g %s/sec.  This is not allowed.",
 				speed_type_name, proposed_speed, motor->units,
 				motor->record->name,
-				motor->speed, motor->units );
+				motor->scale * motor->raw_speed,
+				motor->units );
 		}
 		break;
 
@@ -3107,6 +3109,11 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 		switch( motor->acceleration_type ) {
 		case MXF_MTR_ACCEL_RATE:
 		case MXF_MTR_ACCEL_TIME:
+
+			MX_DEBUG( 2,(
+			    "%s: motor->raw_acceleration_parameters[0] = %g",
+				fname, motor->raw_acceleration_parameters[0]));
+
 			raw_speed = motor->raw_speed;
 
 			raw_base_speed = motor->raw_base_speed;
@@ -3114,38 +3121,40 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 			MX_DEBUG( 2,("%s: raw_speed = %g, raw_base_speed = %g",
 				fname, raw_speed, raw_base_speed ));
 
-			squared_raw_speed = raw_speed * raw_speed;
-
-			MX_DEBUG( 2,("%s: squared_raw_speed = %g",
-					fname, squared_raw_speed));
-
-			squared_raw_base_speed =
-					raw_base_speed * raw_base_speed;
-
-			MX_DEBUG( 2,("%s: squared_raw_base_speed = %g",
-					fname, squared_raw_base_speed));
-
-			MX_DEBUG( 2,(
-			    "%s: motor->raw_acceleration_parameters[0] = %g",
-				fname, motor->raw_acceleration_parameters[0]));
-
 			if ( motor->acceleration_type == MXF_MTR_ACCEL_RATE )
 			{
-				MX_DEBUG( 2,("%s: using accel. rate",fname));
+				MX_DEBUG( 2,("%s: using accel rate",fname));
+
+				squared_raw_speed = raw_speed * raw_speed;
+
+				MX_DEBUG( 2,("%s: squared_raw_speed = %g",
+						fname, squared_raw_speed));
+
+				squared_raw_base_speed =
+						raw_base_speed * raw_base_speed;
+
+				MX_DEBUG( 2,("%s: squared_raw_base_speed = %g",
+						fname, squared_raw_base_speed));
 
 				raw_acceleration =
 					motor->raw_acceleration_parameters[0];
-			} else {
-				MX_DEBUG( 2,("%s: using accel. time",fname));
 
-				raw_acceleration = mx_divide_safely(
-					raw_speed - raw_base_speed,
-					motor->raw_acceleration_parameters[0] );
-			}
+				MX_DEBUG( 2,("%s: raw_acceleration = %g",
+						fname, raw_acceleration));
 
-			raw_acceleration_distance = mx_divide_safely(
-				squared_raw_speed - squared_raw_base_speed,
+				raw_acceleration_distance = mx_divide_safely(
+				    squared_raw_speed - squared_raw_base_speed,
 					2.0 * raw_acceleration );
+			} else {
+				MX_DEBUG( 2,("%s: using accel time",fname));
+
+				acceleration_time = 
+					motor->raw_acceleration_parameters[0];
+
+				raw_acceleration_distance =
+				    0.5 * ( raw_speed + raw_base_speed )
+					* acceleration_time;
+			}
 
 			MX_DEBUG( 2,("%s: raw_acceleration_distance = %g",
 				fname, raw_acceleration_distance));

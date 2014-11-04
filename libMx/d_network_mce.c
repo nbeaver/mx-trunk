@@ -15,7 +15,7 @@
  *
  */
 
-#define MXD_NETWORK_MCE_DEBUG_MOTOR_ARRAY	TRUE
+#define MXD_NETWORK_MCE_DEBUG_MOTOR_ARRAY	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

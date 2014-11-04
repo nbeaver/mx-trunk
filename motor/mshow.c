@@ -147,6 +147,7 @@ motor_show_fn( int argc, char *argv[] )
 "        show dinputs        <or>  show dinput 'name'\n"
 "        show doutputs       <or>  show doutput 'name'\n"
 "        show mcas           <or>  show mca 'name'\n"
+"        show mces           <or>  show mce 'name'\n"
 "        show mcses          <or>  show mcs 'name'\n"
 "        show motors         <or>  show motor 'name'\n"
 "        show pulsers        <or>  show pulser 'name'\n"
@@ -385,6 +386,14 @@ motor_show_fn( int argc, char *argv[] )
 		record_type = MXT_ANY;
 
 		strlcpy( record_type_phrase, "an MCA",
+					sizeof(record_type_phrase) );
+
+	} else if ( strncmp( "mces", argv[2], length ) == 0 ) {
+		record_superclass = MXR_DEVICE;
+		record_class = MXC_MULTICHANNEL_ENCODER;
+		record_type = MXT_ANY;
+
+		strlcpy( record_type_phrase, "an MCE",
 					sizeof(record_type_phrase) );
 
 	} else if ( strncmp( "mcses", argv[2], length ) == 0 ) {

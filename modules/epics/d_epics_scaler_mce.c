@@ -16,7 +16,9 @@
  *
  */
 
-#define MXD_EPICS_SCALER_MCE_DEBUG	TRUE
+#define MXD_EPICS_SCALER_MCE_DEBUG		FALSE
+
+#define MXD_EPICS_SCALER_MCE_DEBUG_MOTOR_ARRAY	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -292,7 +294,9 @@ mxd_epics_scaler_mce_finish_record_initialization( MX_RECORD *record )
 		current_record = current_record->next_record;
 	}
 
+#if MXD_EPICS_SCALER_MCE_DEBUG_MOTOR_ARRAY
 	MX_DEBUG(-2,("%s: num_motors = %lu", fname, mce->num_motors));
+#endif
 
 	/* Allocate memory for the data structures we need. */
 
@@ -372,6 +376,8 @@ mxd_epics_scaler_mce_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_epics_scaler_mce_open( MX_RECORD *record )
 {
+#if MXD_EPICS_SCALER_MCE_DEBUG_MOTOR_ARRAY
+
 	static const char fname[] = "mxd_epics_scaler_mce_open()";
 
 	MX_MCE *mce = NULL;
@@ -398,6 +404,7 @@ mxd_epics_scaler_mce_open( MX_RECORD *record )
 			fname, current_record->name, pv->pvname));
 	}
 
+#endif
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -421,8 +428,10 @@ mxd_epics_scaler_mce_read( MX_MCE *mce )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXD_EPICS_SCALER_MCE_DEBUG
 	MX_DEBUG(-2,("%s invoked for MCE '%s'",
 			fname, mce->record->name));
+#endif
 
 	motor_record = mce->motor_record_array[0];
 
@@ -477,12 +486,12 @@ mxd_epics_scaler_mce_get_current_num_values( MX_MCE *mce )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s invoked for MCE '%s'", fname, mce->record->name));
-
 	mce->current_num_values = (long) mcs->current_num_measurements;
 
+#if MXD_EPICS_SCALER_MCE_DEBUG
 	MX_DEBUG(-2,("%s: mce->current_num_values = %ld",
 		fname, mce->current_num_values));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -513,7 +522,9 @@ mxd_epics_scaler_mce_connect_mce_to_motor( MX_MCE *mce,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXD_EPICS_SCALER_MCE_DEBUG
 	MX_DEBUG(-2,("%s invoked for MCE '%s'", fname, mce->record->name));
+#endif
 
 	/* If the new motor record is the same as the already assigned
 	 * motor record, then we do not need to change anything.
