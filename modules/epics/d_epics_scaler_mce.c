@@ -16,9 +16,9 @@
  *
  */
 
-#define MXD_EPICS_SCALER_MCE_DEBUG		FALSE
+#define MXD_EPICS_SCALER_MCE_DEBUG		TRUE
 
-#define MXD_EPICS_SCALER_MCE_DEBUG_MOTOR_ARRAY	FALSE
+#define MXD_EPICS_SCALER_MCE_DEBUG_MOTOR_ARRAY	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -400,8 +400,8 @@ mxd_epics_scaler_mce_open( MX_RECORD *record )
 
 		pv = epics_scaler_mce->epics_pv_array[i];
 
-		MX_DEBUG(-2,("%s: record '%s', pv = '%s'",
-			fname, current_record->name, pv->pvname));
+		MX_DEBUG(-2,("%s: (%lu) record '%s', pv = '%s'",
+			fname, i, current_record->name, pv->pvname));
 	}
 
 #endif
