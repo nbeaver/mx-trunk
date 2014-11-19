@@ -634,6 +634,7 @@ mxd_powerpmac_get_parameter( MX_MOTOR *motor )
 	MX_POWERPMAC *powerpmac = NULL;
 	MotorData *motor_data = NULL;
 	double double_value;
+	double jog_ta_in_seconds, jog_ts_in_seconds;
 	char capt_flag_sel_name[100];
 	long capt_flag_sel;
 	mx_status_type mx_status;
@@ -662,20 +663,43 @@ mxd_powerpmac_get_parameter( MX_MOTOR *motor )
 		break;
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
 		mx_status = mxd_powerpmac_get_motor_variable( powerpmac_motor,
-						powerpmac, "AbortTs",
+						powerpmac, "JogTa",
 						MXFT_DOUBLE, &double_value,
 						POWERPMAC_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		double_value = 1000000.0 * double_value;
+		motor->raw_acceleration_parameters[0] = 0.001 * double_value;
 
-		motor->raw_acceleration_parameters[0] = double_value;
+		mx_status = mxd_powerpmac_get_motor_variable( powerpmac_motor,
+						powerpmac, "JogTs",
+						MXFT_DOUBLE, &double_value,
+						POWERPMAC_DEBUG );
 
-		motor->raw_acceleration_parameters[1] = 0.0;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		motor->raw_acceleration_parameters[1] = 0.001 * double_value;
+
 		motor->raw_acceleration_parameters[2] = 0.0;
 		motor->raw_acceleration_parameters[3] = 0.0;
+		break;
+        case MXLV_MTR_ACCELERATION_TIME:
+		mx_status =
+		    mx_motor_update_speed_and_acceleration_parameters( motor );
+
+		jog_ta_in_seconds = motor->raw_acceleration_parameters[0];
+		jog_ts_in_seconds = motor->raw_acceleration_parameters[1];
+
+		if ( jog_ta_in_seconds > jog_ts_in_seconds ) {
+			motor->acceleration_time =
+				jog_ta_in_seconds + jog_ts_in_seconds;
+		} else {
+			motor->acceleration_time =
+				2.0 * jog_ts_in_seconds;
+		}
+
 		break;
 	case MXLV_MTR_LIMIT_SWITCH_AS_HOME_SWITCH:
 		mx_status = mxd_powerpmac_get_capt_flag_sel_name( motor,
@@ -768,7 +792,6 @@ mxd_powerpmac_set_parameter( MX_MOTOR *motor )
 	char command[100];
 	char capt_flag_sel_name[100];
 	int capt_flag_sel;
-	double double_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_powerpmac_get_pointers( motor, &powerpmac_motor,
@@ -792,41 +815,28 @@ mxd_powerpmac_set_parameter( MX_MOTOR *motor )
 		break;
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
 
-		/* These acceleration parameters are chosen such that the
-		 * value of Motor[x].AbortTs is used as counts/msec**2.
+		/* If JogTa >= 0, then JogTa and JogTs specify acceleration
+		 * times in milliseconds.  If JogTa < 0, then JogTa and JogTs
+		 * are peak accelerations in motor units per msec squared.
 		 */
-
-		double_value = motor->raw_acceleration_parameters[0];
-
-		double_value = 1.0e-6 * double_value;
-
-		mx_status = mxd_powerpmac_set_motor_variable( powerpmac_motor,
-						powerpmac, "AbortTs",
-						MXFT_DOUBLE, double_value,
-						POWERPMAC_DEBUG );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		/* Set Motor[x].JogTa (jog acceleration time) to 1.0 msec. */
-
-		double_value = 1.0;
 
 		mx_status = mxd_powerpmac_set_motor_variable( powerpmac_motor,
 						powerpmac, "JogTa",
-						MXFT_DOUBLE, double_value,
+						MXFT_DOUBLE,
+					motor->raw_acceleration_parameters[0],
 						POWERPMAC_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		/* Set Motor[x].JogTs (jog acceleration S-curve time) to 0. */
-
-		double_value = 0.0;
+		/* Motor[x].JogTs (jog acceleration S-curve time) is in
+		 * milliseconds.
+		 */
 
 		mx_status = mxd_powerpmac_set_motor_variable( powerpmac_motor,
 						powerpmac, "JogTs",
-						MXFT_DOUBLE, double_value,
+						MXFT_DOUBLE,
+					motor->raw_acceleration_parameters[1],
 						POWERPMAC_DEBUG );
 		break;
 	case MXLV_MTR_LIMIT_SWITCH_AS_HOME_SWITCH:

@@ -63,6 +63,8 @@ extern "C" {
 #define MXF_MTR_ACCEL_RATE			1	/* in units/sec**2 */
 #define MXF_MTR_ACCEL_TIME			2	/* in sec */
 
+#define MXF_MTR_ACCEL_OTHER			0x10000
+
 /* Status bit definitions for the 'status' and 'extended_status' fields. */
 
 #define MXSF_MTR_IS_BUSY			0x1

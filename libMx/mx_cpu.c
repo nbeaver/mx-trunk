@@ -313,7 +313,11 @@ mx_get_current_cpu_number( void )
 	return cpu_number;
 }
 
-#elif 0
+#elif ( defined(OS_LINUX) )
+
+/* Select this case if this particular platform does not implement
+ * the concept of a CPU number.
+ */
 
 MX_EXPORT unsigned long
 mx_get_current_cpu_number( void )
