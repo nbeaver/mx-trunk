@@ -319,6 +319,12 @@ mx_get_current_cpu_number( void )
  * the concept of a CPU number.
  */
 
+/* NOTE: The presence of this case allows 'make depend' to complete
+ * successfully on non-x86 versions of Linux, since MX_GLIBC_VERSION
+ * is not defined at 'make depend' time, and special inline assembly
+ * code is currently only defined for __i386__ and __amd64__.
+ */
+
 MX_EXPORT unsigned long
 mx_get_current_cpu_number( void )
 {

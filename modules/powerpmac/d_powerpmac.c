@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010, 2012-2013 Illinois Institute of Technology
+ * Copyright 2010, 2012-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include "gplib.h"	/* Delta Tau-provided include file. */
 
@@ -633,8 +634,8 @@ mxd_powerpmac_get_parameter( MX_MOTOR *motor )
 	MX_POWERPMAC_MOTOR *powerpmac_motor = NULL;
 	MX_POWERPMAC *powerpmac = NULL;
 	MotorData *motor_data = NULL;
-	double double_value;
-	double jog_ta_in_seconds, jog_ts_in_seconds;
+	double jog_ta, jog_ts, jog_speed;
+	double top_accel, jerk_accel, jerk_accel_sq;
 	char capt_flag_sel_name[100];
 	long capt_flag_sel;
 	mx_status_type mx_status;
@@ -664,40 +665,118 @@ mxd_powerpmac_get_parameter( MX_MOTOR *motor )
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
 		mx_status = mxd_powerpmac_get_motor_variable( powerpmac_motor,
 						powerpmac, "JogTa",
-						MXFT_DOUBLE, &double_value,
+						MXFT_DOUBLE, &jog_ta,
 						POWERPMAC_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
-
-		motor->raw_acceleration_parameters[0] = 0.001 * double_value;
 
 		mx_status = mxd_powerpmac_get_motor_variable( powerpmac_motor,
 						powerpmac, "JogTs",
-						MXFT_DOUBLE, &double_value,
+						MXFT_DOUBLE, &jog_ts,
 						POWERPMAC_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		motor->raw_acceleration_parameters[1] = 0.001 * double_value;
+		if ( jog_ta >= 0.0 ) {
+			if ( jog_ts >= 0.0 ) {
+				motor->acceleration_type = MXF_MTR_ACCEL_TIME;
+			} else {
+				return mx_error(
+				MXE_CONFIGURATION_CONFLICT, fname,
+				"JogTa (%g) is greater than zero, but "
+				"JogTs (%g) is less than zero for motor '%s'.  "
+				"This is not a supported configuration.",
+					jog_ta, jog_ts, motor->record->name );
+			}
+		} else {
+			if ( jog_ts <= 0.0 ) {
+				motor->acceleration_type = MXF_MTR_ACCEL_RATE;
+			} else {
+				return mx_error(
+				MXE_CONFIGURATION_CONFLICT, fname,
+				"JogTa (%g) is less than zero, but JogTs (%g) "
+				"is greater than zero for motor '%s'.  "
+				"This is not a supported configuration.",
+					jog_ta, jog_ts, motor->record->name );
+			}
+		}
 
+		motor->raw_acceleration_parameters[0] = jog_ta;
+		motor->raw_acceleration_parameters[1] = jog_ts;
 		motor->raw_acceleration_parameters[2] = 0.0;
 		motor->raw_acceleration_parameters[3] = 0.0;
 		break;
+	case MXLV_MTR_ACCELERATION_DISTANCE:
         case MXLV_MTR_ACCELERATION_TIME:
 		mx_status =
 		    mx_motor_update_speed_and_acceleration_parameters( motor );
 
-		jog_ta_in_seconds = motor->raw_acceleration_parameters[0];
-		jog_ts_in_seconds = motor->raw_acceleration_parameters[1];
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-		if ( jog_ta_in_seconds > jog_ts_in_seconds ) {
-			motor->acceleration_time =
-				jog_ta_in_seconds + jog_ts_in_seconds;
-		} else {
-			motor->acceleration_time =
-				2.0 * jog_ts_in_seconds;
+		jog_speed = motor_data->JogSpeed;
+
+		jog_ta = motor->raw_acceleration_parameters[0];
+		jog_ts = motor->raw_acceleration_parameters[1];
+
+		switch( motor->acceleration_type ) {
+		case MXF_MTR_ACCEL_TIME:
+			if ( jog_ta > jog_ts ) {
+				motor->acceleration_time =
+					0.001 * (jog_ta + jog_ts);
+
+				motor->acceleration_distance = 0.5 * jog_speed
+					* ( jog_ts + jog_ta );
+			} else {
+				motor->acceleration_time =
+					0.001 * (2.0 * jog_ts);
+
+				motor->acceleration_distance =
+					jog_speed * jog_ts;
+			}
+			break;
+		case MXF_MTR_ACCEL_RATE:
+			top_accel = mx_divide_safely( 1.0, -jog_ta );
+
+			jerk_accel_sq = mx_divide_safely( jog_speed, -jog_ts );
+
+			if ( jerk_accel_sq < 0.0 ) {
+				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+				"For motor '%s', JogSpeed (%g) divided by "
+				"JogTs (%g) is a negative number.  The "
+				"Power PMAC should not allow this to happen "
+				"if JogTa (%g) is a negative number.",
+					motor->record->name,
+					jog_speed, jog_ts, jog_ta );
+			}
+
+			jerk_accel = sqrt( jerk_accel_sq );
+
+			if ( top_accel < jerk_accel ) {
+				motor->acceleration_time = 0.001 * (
+					( jog_ts / jog_ta )
+					+ ( (-jog_ta) * jog_speed ) );
+
+				motor->acceleration_distance = 0.5 *
+			    ( jog_speed * mx_divide_safely( jog_ts, jog_ta )
+			    - jog_speed * jog_speed * jog_ta );
+
+			} else {
+				motor->acceleration_time = 0.001 *
+					sqrt( (-jog_ts) * jog_speed );
+
+				motor->acceleration_distance =
+			  sqrt( (-jog_ts) * jog_speed * jog_speed * jog_speed );
+			}
+			break;
+		default:
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		    "Unsupported acceleration type (%lu) set for motor '%s'.",
+				motor->acceleration_type,
+				motor->record->name );
+			break;
 		}
 
 		break;
