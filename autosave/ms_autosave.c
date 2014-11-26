@@ -382,7 +382,7 @@ main( int argc, char *argv[] )
 
 	if ( (save_only == FALSE) && (restore_only == FALSE) ) {
 		mx_info( "*** MX autosave utility %s started ***",
-				mx_get_version_string() );
+				mx_get_version_full_string() );
 
 		mx_info(
 		"%g clock ticks per second, current time = (%lu,%lu)",

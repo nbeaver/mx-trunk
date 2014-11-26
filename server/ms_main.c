@@ -754,7 +754,8 @@ mxserver_main( int argc, char *argv[] )
 			exit(1);
 	}
 
-	mx_info( "***** MX server %s started *****", mx_get_version_string() );
+	mx_info( "***** MX server %s started *****",
+		mx_get_version_full_string() );
 
 	for ( i = 0; i < mxsrv_num_event_handlers; i++ ) {
 		if ( mxsrv_event_handler_list[i].type

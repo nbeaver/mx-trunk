@@ -7,7 +7,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004-2007, 2009-2010 Illinois Institute of Technology
+ * Copyright 1999-2002, 2004-2007, 2009-2010, 2014
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -97,14 +98,15 @@ typedef struct {
 #define MXLV_MCS_MEASUREMENT_COUNTS		1013
 #define MXLV_MCS_CURRENT_NUM_SCALERS		1014
 #define MXLV_MCS_CURRENT_NUM_MEASUREMENTS	1015
-#define MXLV_MCS_SCALER_INDEX			1016
-#define MXLV_MCS_MEASUREMENT_INDEX		1017
-#define MXLV_MCS_DARK_CURRENT			1018
-#define MXLV_MCS_DARK_CURRENT_ARRAY		1019
-#define MXLV_MCS_SCALER_DATA			1020
-#define MXLV_MCS_MEASUREMENT_DATA		1021
-#define MXLV_MCS_TIMER_DATA			1022
-#define MXLV_MCS_CLEAR_DEADBAND			1023
+#define MXLV_MCS_READOUT_PREFERENCE		1016
+#define MXLV_MCS_SCALER_INDEX			1017
+#define MXLV_MCS_MEASUREMENT_INDEX		1018
+#define MXLV_MCS_DARK_CURRENT			1019
+#define MXLV_MCS_DARK_CURRENT_ARRAY		1020
+#define MXLV_MCS_SCALER_DATA			1021
+#define MXLV_MCS_MEASUREMENT_DATA		1022
+#define MXLV_MCS_TIMER_DATA			1023
+#define MXLV_MCS_CLEAR_DEADBAND			1024
 
 #define MX_MCS_STANDARD_FIELDS \
   {MXLV_MCS_MAXIMUM_NUM_SCALERS, -1, "maximum_num_scalers",\
@@ -183,6 +185,11 @@ typedef struct {
   {MXLV_MCS_CURRENT_NUM_MEASUREMENTS, -1, "current_num_measurements", \
 						MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, current_num_measurements), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_MCS_READOUT_PREFERENCE, -1, "readout_preference", \
+						MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, readout_preference), \
 	{0}, NULL, 0}, \
   \
   {MXLV_MCS_SCALER_INDEX, -1, "scaler_index", MXFT_LONG, NULL, 0, {0}, \

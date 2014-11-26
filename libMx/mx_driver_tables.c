@@ -15,7 +15,7 @@
  *
  */
 
-#define DEBUG_DRIVER_TABLES	FALSE
+#define MX_DRIVER_TABLES_DEBUG	FALSE
 
 #include <stdio.h>
 
@@ -564,7 +564,7 @@ mxp_initialize_driver_entry( MX_DRIVER *driver )
 	long i, num_record_fields;
 	mx_status_type mx_status;
 
-#if DEBUG_DRIVER_TABLES
+#if MX_DRIVER_TABLES_DEBUG
 	MX_DEBUG(-8,
 	("superclass = %ld, class = %ld, type = %ld, name = '%s'",
 		driver->mx_superclass, driver->mx_class,
@@ -577,7 +577,7 @@ mxp_initialize_driver_entry( MX_DRIVER *driver )
 	  && (driver->record_field_defaults_ptr != NULL) )
 	{
 
-#if DEBUG_DRIVER_TABLES
+#if MX_DRIVER_TABLES_DEBUG
 		MX_DEBUG(-8,
 		("num_record_fields = %ld, *record_field_defaults_ptr = %p",
 		    *(driver->num_record_fields),
@@ -594,7 +594,7 @@ mxp_initialize_driver_entry( MX_DRIVER *driver )
 
 	flist = (MX_RECORD_FUNCTION_LIST *) driver->record_function_list;
 
-#if DEBUG_DRIVER_TABLES
+#if MX_DRIVER_TABLES_DEBUG
 	MX_DEBUG(-8,("  record_function_list pointer = %p",
 		flist));
 #endif
@@ -602,7 +602,7 @@ mxp_initialize_driver_entry( MX_DRIVER *driver )
 	if ( flist != NULL ) {
 		fptr = flist->initialize_driver;
 
-#if DEBUG_DRIVER_TABLES
+#if MX_DRIVER_TABLES_DEBUG
 		MX_DEBUG(-8,("  initialize_driver pointer = %p",
 			fptr));
 #endif

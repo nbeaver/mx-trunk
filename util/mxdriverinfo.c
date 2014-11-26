@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2003-2012 Illinois Institute of Technology
+ * Copyright 2001, 2003-2012, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -273,7 +273,8 @@ main( int argc, char *argv[] ) {
 					show_all_fields, show_handles, debug );
 		break;
 	case MXDI_VERSION:
-		fprintf(stderr, "\nMX version %s\n\n", mx_get_version_string());
+		fprintf(stderr, "\nMX version %s\n\n",
+					mx_get_version_full_string());
 
 		status = SUCCESS;
 		break;

@@ -422,7 +422,10 @@ typedef struct {
 	unsigned long network_debug_flags;
 	long debug_level;
 	char status[ MXU_FIELD_NAME_LENGTH + 1 ];
+
 	unsigned long mx_version;
+	unsigned long mx_version_time;
+
 	unsigned long num_records;
 
 	char report[ MXU_RECORD_NAME_LENGTH + 1 ];

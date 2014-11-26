@@ -425,7 +425,7 @@ motor_main( int argc, char *argv[] )
 
 	mx_set_debug_level( debug_level );
 
-	fprintf(output, "\nMX version %s\n", mx_get_version_string() );
+	fprintf(output, "\nMX version %s\n", mx_get_version_full_string() );
 
 	/* Here is some test code to check the operation of the
 	 * mx_pointer_is_valid() function.  This code should 

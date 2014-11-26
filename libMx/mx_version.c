@@ -17,10 +17,15 @@
 #include <stdio.h>
 #include <string.h>
 
+#if defined(__GNUC__)
+#  define __USE_XOPEN		/* For strptime() */
+#endif
+
 #include "mx_util.h"
+#include "mx_time.h"
 #include "mx_version.h"
 
-#define MX_DATE "November 19, 2014"
+#define MX_DATE "November 25, 2014"
 
 static char buffer[60];
 
@@ -43,19 +48,67 @@ mx_get_update_version( void )
 }
 
 MX_EXPORT char *
-mx_get_version_date( void )
+mx_get_version_full_string( void )
+{
+	snprintf( buffer, sizeof(buffer), "%d.%d.%d (%s)",
+	    MX_MAJOR_VERSION, MX_MINOR_VERSION, MX_UPDATE_VERSION, MX_DATE );
+
+	return &buffer[0];
+}
+
+MX_EXPORT char *
+mx_get_version_date_string( void )
 {
 	strlcpy( buffer, MX_DATE, sizeof(buffer) );
 
 	return &buffer[0];
 }
 
-MX_EXPORT char *
-mx_get_version_string( void )
+MX_EXPORT struct tm
+mx_get_version_date_tm( void )
 {
-	snprintf( buffer, sizeof(buffer), "%d.%d.%d (%s)",
-	    MX_MAJOR_VERSION, MX_MINOR_VERSION, MX_UPDATE_VERSION, MX_DATE );
+	struct tm tm;
+	char *ptr;
 
-	return &buffer[0];
+	memset( &tm, 0, sizeof(tm) );
+
+	ptr = strptime( MX_DATE, "%B %d, %Y", &tm );
+
+	if ( ptr == NULL ) {
+		memset( &tm, 0, sizeof(tm) );
+		return tm;
+	}
+
+#if 0
+	MX_DEBUG(-2,("mx_get_version_date_tm():"));
+	MX_DEBUG(-2,("  tm_sec   = %d", tm.tm_sec));
+	MX_DEBUG(-2,("  tm_min   = %d", tm.tm_min));
+	MX_DEBUG(-2,("  tm_hour  = %d", tm.tm_hour));
+	MX_DEBUG(-2,("  tm_mday  = %d", tm.tm_mday));
+	MX_DEBUG(-2,("  tm_mon   = %d", tm.tm_mon));
+	MX_DEBUG(-2,("  tm_year  = %d", tm.tm_year));
+	MX_DEBUG(-2,("  tm_wday  = %d", tm.tm_wday));
+	MX_DEBUG(-2,("  tm_yday  = %d", tm.tm_yday));
+	MX_DEBUG(-2,("  tm_isdst = %d", tm.tm_isdst));
+#endif
+
+	return tm;
+}
+
+MX_EXPORT time_t
+mx_get_version_date_time( void )
+{
+	struct tm tm;
+	time_t result;
+
+	tm = mx_get_version_date_tm();
+
+	result = mktime( &tm );
+
+#if 0
+	MX_DEBUG(-2,("mx_get_version_date_time(): time = %lu", result));
+#endif
+
+	return result;
 }
 

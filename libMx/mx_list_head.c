@@ -168,6 +168,7 @@ mxr_create_list_head( MX_RECORD *record )
 	list_head_struct->default_precision = 8;
 
 	list_head_struct->mx_version = MX_VERSION;
+	list_head_struct->mx_version_time = mx_get_version_date_time();
 
 	list_head_struct->num_server_records = 0;
 	list_head_struct->server_record_array = NULL;

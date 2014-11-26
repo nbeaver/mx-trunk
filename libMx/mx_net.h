@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2000, 2003-2013 Illinois Institute of Technology
+ * Copyright 1999-2000, 2003-2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -104,6 +104,7 @@ typedef struct {
 
 	MX_NETWORK_MESSAGE_BUFFER *message_buffer;
 	unsigned long remote_mx_version;
+	unsigned long remote_mx_version_time;
 	unsigned long data_format;
 
 	mx_bool_type server_supports_network_handles;
@@ -154,6 +155,11 @@ typedef struct {
   \
   {-1, -1, "remote_mx_version", MXFT_ULONG, NULL, 0, {0}, \
         MXF_REC_CLASS_STRUCT, offsetof(MX_NETWORK_SERVER, remote_mx_version), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "remote_mx_version_time", MXFT_ULONG, NULL, 0, {0}, \
+        MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_NETWORK_SERVER, remote_mx_version_time), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
   {-1, -1, "data_format", MXFT_HEX, NULL, 0, {0}, \

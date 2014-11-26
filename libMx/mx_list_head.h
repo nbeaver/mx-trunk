@@ -75,7 +75,11 @@ extern "C" {
   \
   {-1, -1, "mx_version", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, mx_version), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {-1, -1, "mx_version_time", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, mx_version_time), \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {-1, -1, "num_records", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, num_records), \

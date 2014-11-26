@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2008, 2010-2012 Illinois Institute of Technology
+ * Copyright 1999-2008, 2010-2012, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -184,7 +184,8 @@ mxn_tcpip_server_open( MX_RECORD *record )
 	MX_NETWORK_SERVER *network_server;
 	MX_TCPIP_SERVER *tcpip_server;
 	MX_SOCKET *server_socket;
-	unsigned long version, flags, requested_data_format, socket_flags;
+	unsigned long version, version_time;
+	unsigned long flags, requested_data_format, socket_flags;
 	long mx_status_code;
 	mx_bool_type quiet_open;
 	mx_status_type mx_status;
@@ -336,6 +337,7 @@ mxn_tcpip_server_open( MX_RECORD *record )
 	/* Get the MX version number for the remote server. */
 
 	network_server->remote_mx_version = 0UL;
+	network_server->remote_mx_version_time = 0UL;
 
 	mx_status = mx_get_by_name( record, "mx_database.mx_version",
 					MXFT_ULONG, &version );
@@ -355,6 +357,22 @@ mxn_tcpip_server_open( MX_RECORD *record )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	}
+
+	/* For version 1.5.7 and above, ask for the version time.  The
+	 * version time specifies the date of the remote version in seconds
+	 * since the Unix epoch (Midnight, January 1, 1970 UTC).
+	 */
+
+	if ( network_server->remote_mx_version >= 1005007L ) {
+		mx_status = mx_get_by_name( record,
+					"mx_database.mx_version_time",
+					MXFT_ULONG, &version_time );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	network_server->remote_mx_version_time = version_time;
 
 	/* Tell the server who we are in an insecure manner. */
 

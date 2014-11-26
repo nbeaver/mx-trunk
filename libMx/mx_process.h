@@ -66,6 +66,7 @@ typedef struct {
 	unsigned long last_rpc_message_id;
 	unsigned long remote_header_length;
 	unsigned long remote_mx_version;
+	unsigned long remote_mx_version_time;
 
 	long authentication_type;
 	union {
