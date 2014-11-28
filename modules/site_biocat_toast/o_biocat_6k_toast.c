@@ -376,6 +376,98 @@ mxo_biocat_6k_toast_compute_6k_destination( MX_MOTOR *motor,
 	return c6k_destination;
 }
 
+#define IDLE (-1)
+#define END   (0)
+#define START (1)
+
+static mx_status_type
+mxo_biocat_6k_toast_signal( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
+				MX_BIOCAT_6K_TOAST *toast,
+				int new_state )
+{
+	char command[40];
+	unsigned long flags;
+	mx_bool_type use_gate, use_trigger;
+	mx_status_type mx_status;
+
+	flags = toast->toast_flags;
+
+	use_gate = FALSE;
+	use_trigger = FALSE;
+
+	if ( flags & MXSF_TOAST_GENERATE_GATE_SIGNAL ) {
+		use_gate = TRUE;
+
+		use_gate = use_gate;	/* Suppress set but not used error. */
+	} else
+	if ( flags & MXSF_TOAST_GENERATE_TRIGGER_SIGNAL ) {
+		use_trigger = TRUE;
+	} else {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	if ( new_state == IDLE ) {
+		snprintf(command, sizeof(command), "%s-0", toast->output_name);
+
+		mx_status = mxi_compumotor_command( compumotor_interface,
+						command, NULL, 0,
+						MXO_BIOCAT_6K_TOAST_DEBUG );
+	} else
+	if ( use_trigger ) {
+		/* Trigger start and trigger end do the same thing. */
+
+		/* Raise the trigger high. */
+
+		snprintf(command, sizeof(command), "%s-1", toast->output_name);
+
+		mx_status = mxi_compumotor_command( compumotor_interface,
+						command, NULL, 0,
+						MXO_BIOCAT_6K_TOAST_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Wait for the trigger delay. */
+
+		snprintf(command, sizeof(command), "T%f", toast->trigger_width);
+
+		mx_status = mxi_compumotor_command( compumotor_interface,
+						command, NULL, 0,
+						MXO_BIOCAT_6K_TOAST_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Lower the trigger low. */
+
+		snprintf(command, sizeof(command), "%s-1", toast->output_name);
+
+		mx_status = mxi_compumotor_command( compumotor_interface,
+						command, NULL, 0,
+						MXO_BIOCAT_6K_TOAST_DEBUG );
+	} else
+	if ( new_state == END ) {
+		/* End of the gate signal */
+
+		snprintf(command, sizeof(command), "%s-0", toast->output_name);
+
+		mx_status = mxi_compumotor_command( compumotor_interface,
+						command, NULL, 0,
+						MXO_BIOCAT_6K_TOAST_DEBUG );
+	} else
+	if ( new_state == START ) {
+		/* Start of the gate signal */
+
+		snprintf(command, sizeof(command), "%s-1", toast->output_name);
+
+		mx_status = mxi_compumotor_command( compumotor_interface,
+						command, NULL, 0,
+						MXO_BIOCAT_6K_TOAST_DEBUG );
+	}
+
+	return mx_status;
+}
+
 MX_EXPORT mx_status_type
 mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 {
@@ -399,6 +491,16 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Set the trigger signal to idle. */
+
+	mx_status = mxo_biocat_6k_toast_signal( compumotor_interface,
+							toast, IDLE );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Compute the destinations. */
 
 	low_6k_destination = mxo_biocat_6k_toast_compute_6k_destination(
 							motor,
@@ -442,35 +544,8 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Start the infinite while loop. */
+	/* Define a label for the start of the loop. */
 
-#if 0
-	snprintf( command, sizeof(command), "WHILE(%luAS=bX)",
-					compumotor->axis_number );
-
-	mx_status = mxi_compumotor_command( compumotor_interface, command,
-					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-#elif 0
-	snprintf( command, sizeof(command), "%s=1", toast->variable_name );
-
-	mx_status = mxi_compumotor_command( compumotor_interface, command,
-					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	snprintf( command, sizeof(command), "WHILE(%s=1)",
-					toast->variable_name );
-
-	mx_status = mxi_compumotor_command( compumotor_interface, command,
-					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-#else
 	snprintf( command, sizeof(command), "$%s", toast->variable_name );
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
@@ -478,9 +553,8 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-#endif
 
-	/* Set the destination for the move to the high position. */
+	/**** Set the destination for the move to the high position. ****/
 
 	snprintf( command, sizeof(command), "%ldD%f",
 					compumotor->axis_number,
@@ -492,6 +566,14 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Signal the start of the move. */
+
+	mx_status = mxo_biocat_6k_toast_signal( compumotor_interface,
+							toast, START );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/* Start the move. */
 
 	snprintf( command, sizeof(command), "%ldGO1", compumotor->axis_number );
@@ -502,7 +584,15 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Set the destination for the move to the low position. */
+	/* Signal the end of the move. */
+
+	mx_status = mxo_biocat_6k_toast_signal( compumotor_interface,
+							toast, END );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/**** Set the destination for the move to the low position. ****/
 
 	snprintf( command, sizeof(command), "%ldD%f",
 					compumotor->axis_number,
@@ -514,6 +604,14 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Signal the start of the move. */
+
+	mx_status = mxo_biocat_6k_toast_signal( compumotor_interface,
+							toast, START );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/* Start the move. */
 
 	snprintf( command, sizeof(command), "%ldGO1", compumotor->axis_number );
@@ -524,17 +622,20 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Specify the end of the while loop. */
+	/* Signal the end of the move. */
 
-#if 0
-	mx_status = mxi_compumotor_command( compumotor_interface, "NWHILE",
-					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
-#else
+	mx_status = mxo_biocat_6k_toast_signal( compumotor_interface,
+							toast, END );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Jump back to the start of the loop. */
+
 	snprintf( command, sizeof(command), "GOTO %s", toast->variable_name );
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
 					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
-#endif
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -620,10 +721,6 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
 					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
-
-#if 0
-	MX_DEBUG(-2,("%s: MARKER 2", fname));
-#endif
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

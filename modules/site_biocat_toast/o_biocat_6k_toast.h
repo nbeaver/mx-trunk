@@ -22,7 +22,9 @@
 
 /* Values for 'toast_flags'. */
 
-#define MXSF_TOAST_USE_FINISH_POSITION	0x1
+#define MXSF_TOAST_USE_FINISH_POSITION		0x1
+#define MXSF_TOAST_GENERATE_GATE_SIGNAL		0x2
+#define MXSF_TOAST_GENERATE_TRIGGER_SIGNAL	0x4
 
 typedef struct {
 	MX_RECORD *record;
@@ -37,6 +39,8 @@ typedef struct {
 	char program_name[MXU_6K_NAME_LENGTH+1];
 	char variable_name[MXU_6K_NAME_LENGTH+1];
 	unsigned long task_number;
+	char output_name[MXU_6K_NAME_LENGTH+1];
+	double trigger_width;		/* In seconds. */
 
 	char task_prefix[4];
 	mx_bool_type move_to_finish_in_progress;
@@ -81,6 +85,14 @@ typedef struct {
   \
   {-1, -1, "task_number", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_BIOCAT_6K_TOAST, task_number), \
+	{0}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
+  {-1, -1, "output_name", MXFT_STRING, NULL, 1, {MXU_6K_NAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_BIOCAT_6K_TOAST, output_name), \
+	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
+  {-1, -1, "trigger_width", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_BIOCAT_6K_TOAST, trigger_width), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}
 
 MX_API_PRIVATE mx_status_type mxo_biocat_6k_toast_create_record_structures(

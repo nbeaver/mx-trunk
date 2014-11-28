@@ -39,7 +39,7 @@ all: build
 
 #MODULES += nuvant_ezstat	# linux, win32
 
-MODULES += python		# (Warning: not yet usable)
+#MODULES += python		# (Warning: not yet usable)
 
 #MODULES += pmc_mcapi		# linux, win32
 
@@ -104,7 +104,7 @@ MODULES += epics_pmac_biocat
 #   BioCAT (APS-18ID) 6K "toast" controller.
 #
 
-#MODULES += site_biocat_toast
+MODULES += site_biocat_toast
 
 #---
 
