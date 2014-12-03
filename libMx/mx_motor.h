@@ -333,7 +333,7 @@ typedef struct {
   \
   {-1, -1, "raw_position", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, raw_position.stepper), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_POLL)}, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_POLL | MXFF_READ_ONLY)}, \
   \
   {-1, -1, "raw_backlash_correction", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, \
@@ -363,7 +363,7 @@ typedef struct {
   \
   {-1, -1, "raw_position", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, raw_position.analog), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_POLL)}, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_POLL | MXFF_READ_ONLY)}, \
   \
   {-1, -1, "raw_backlash_correction", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, \
@@ -438,7 +438,7 @@ typedef struct {
   \
   {MXLV_MTR_POSITION, -1, "position", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, position), \
-	{0}, NULL, MXFF_POLL, \
+	{0}, NULL, ( MXFF_POLL | MXFF_READ_ONLY ), \
 	0, 0, mx_motor_vctest_extended_status}, \
   \
   {MXLV_MTR_SET_POSITION, -1, "set_position", MXFT_DOUBLE, NULL, 0, {0}, \
