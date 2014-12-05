@@ -381,7 +381,7 @@ mxi_tty_open( MX_RECORD *record )
 		saved_errno = errno;
 
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-		"Error opening TTY device '%s, device filename = '%s''.  "
+		"Error opening TTY device '%s, device filename = '%s'.  "
 		"Errno = %d, error text = '%s'",
 			record->name, tty->filename,
 			saved_errno, strerror( saved_errno ) );
