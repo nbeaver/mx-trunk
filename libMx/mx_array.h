@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2000, 2003, 2005-2007, 2012-2013
+ * Copyright 1999-2000, 2003, 2005-2007, 2012-2014
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -24,19 +24,60 @@
 extern "C" {
 #endif
 
+/*---------------------------------------------------------------------------*/
+
+#if defined(__GNUC__)
+#  if defined(__BIGGEST_ALIGNMENT__)
+#    define MX_MAXIMUM_ALIGNMENT	__BIGGEST_ALIGNMENT__
+#  else
+#    error This version of GCC does not implement the __BIGGEST_ALIGNMENT__ macro.
+#  endif
+#elif 0
+#  define MX_MAXIMUM_ALIGNMENT		16
+#else
+#  error This platform does not yet implement the MX_MAXIMUM_ALIGNMENT macro.
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+#define MX_ARRAY_HEADER_MAGIC		0xd6d8ebed
+
+#define MX_ARRAY_OFFSET_MAGIC		(-1)
+#define MX_ARRAY_OFFSET_HEADER_LENGTH	(-2)
+#define MX_ARRAY_OFFSET_NUM_DIMENSIONS	(-3)
+#define MX_ARRAY_OFFSET_DIMENSION_ARRAY	(-4)
+
+/*---------------------------------------------------------------------------*/
+
 MX_API void *mx_read_void_pointer_from_memory_location(
 					void *memory_location );
 
 MX_API void mx_write_void_pointer_to_memory_location(
 					void *memory_location, void *ptr );
 
-MX_API mx_status_type mx_get_array_size( long num_dimensions,
+/*---*/
+
+MX_API mx_status_type mx_compute_array_size( long num_dimensions,
 					long *dimension_array,
 					size_t *data_element_size_array,
 					size_t *array_size );
 
 MX_API size_t mx_get_scalar_element_size( long mx_datatype,
 					mx_bool_type longs_are_64bits );
+
+/*---*/
+
+MX_API mx_status_type mx_compute_array_header_length(
+					unsigned long *array_header_length,
+					long num_dimensions,
+					long *dimension_array,
+					size_t *data_element_size_array );
+
+MX_API mx_status_type mx_setup_array_header( void *array_pointer,
+					unsigned long array_header_length,
+					long num_dimensions,
+					long *dimension_array,
+					size_t *data_element_size_array );
 
 /*---*/
 

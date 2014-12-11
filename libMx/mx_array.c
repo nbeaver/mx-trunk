@@ -37,7 +37,17 @@
 #  include "mx_xdr.h"
 #endif
 
+/* Verify that MX_MAXIMUM_ALIGNMENT is defined on this platform. */
+
+unsigned long __mx_maximum_alignment = MX_MAXIMUM_ALIGNMENT;
+
 /*---------------------------------------------------------------------------*/
+
+/* WARNING: Strictly speaking, mx_read_void_pointer_from_memory_location()
+ * and mx_write_void_pointer_to_memory_location() are not portable.  But
+ * they work on all supported MX platforms and they _probably_ will work
+ * on any platform that uses a flat memory address space.
+ */
 
 /* The purpose of the following function is to interpret the value
  * stored at a memory location pointed to by a void * as if it were
@@ -64,8 +74,10 @@ mx_read_void_pointer_from_memory_location( void *ptr )
 
 	result = *( u.ptr_to_ptr_to_void );
 
+#if 0
 	MX_DEBUG( 9, ("readvp: read pointer %p from memory location %p",
 				result, ptr));
+#endif
 
 	return result;
 }
@@ -86,8 +98,10 @@ mx_write_void_pointer_to_memory_location( void *memory_location, void *ptr )
 
 	*( u.ptr_to_ptr_to_void ) = ptr;
 
+#if 0
 	MX_DEBUG( 9, ("writevp: wrote pointer %p to memory location %p",
 					ptr, memory_location));
+#endif
 
 	return;
 }
@@ -95,12 +109,12 @@ mx_write_void_pointer_to_memory_location( void *memory_location, void *ptr )
 /*---------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mx_get_array_size( long num_dimensions,
+mx_compute_array_size( long num_dimensions,
 		long *dimension_array,
 		size_t *data_element_size_array,
 		size_t *array_size )
 {
-	static const char fname[] = "mx_get_array_size()";
+	static const char fname[] = "mx_compute_array_size()";
 
 	long i;
 	
@@ -205,6 +219,113 @@ mx_get_scalar_element_size( long mx_datatype,
 
 /*---------------------------------------------------------------------------*/
 
+MX_EXPORT mx_status_type
+mx_compute_array_header_length( unsigned long *array_header_length,
+				long num_dimensions,
+				long *dimension_array,
+				size_t *data_element_size_array )
+{
+	static const char fname[] = "mx_compute_array_header_length()";
+
+	unsigned long raw_array_header_length, modulo_value, num_blocks;
+
+	if ( array_header_length == (unsigned long *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The array_header_length pointer passed was NULL." );
+	}
+	if ( num_dimensions < 1 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The array num_dimensions (%ld) is illegal.  "
+		"The minimum num_dimensions is 1.",
+			num_dimensions );
+	}
+
+	/* The raw array header length contains space for the
+	 * magic, header length, and num_dimensions fields,
+	 * as well as space for both the dimension_array
+	 * and the data_element_size_array.
+	 */
+
+	raw_array_header_length = 3 + 2 * num_dimensions;
+
+	/* This header length will be used to compute an offset
+	 * to the nominal start of the top level array pointer.
+	 * This nominal start pointer will be used _as_ the
+	 * array pointer by most other routines, so it is best
+	 * if it is maximally aligned.  We do this by rounding
+	 * up to the next multiple of the maximal alignment size.
+	 */
+
+	modulo_value = raw_array_header_length % MX_MAXIMUM_ALIGNMENT;
+
+	if ( modulo_value == 0 ) {
+		*array_header_length = raw_array_header_length;
+	} else {
+		num_blocks = 
+			1 + ( raw_array_header_length / MX_MAXIMUM_ALIGNMENT );
+
+		*array_header_length = num_blocks * MX_MAXIMUM_ALIGNMENT;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_setup_array_header( void *array_pointer,
+			unsigned long array_header_length,
+			long num_dimensions,
+			long *dimension_array,
+			size_t *data_element_size_array )
+{
+	static const char fname[] = "mx_setup_array_header()";
+
+	uint32_t *header, *header_ptr;
+	long i;
+
+	if ( array_pointer == (void *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The array pointer passed was NULL." );
+	}
+	if ( num_dimensions < 1 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The array num_dimensions (%ld) is illegal.  "
+		"The minimum num_dimensions is 1.",
+			num_dimensions );
+	}
+	if ( dimension_array == (long *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The dimension_array pointer passed was NULL." );
+	}
+	if ( data_element_size_array == (size_t *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The data_element_size_array pointer passed was NULL." );
+	}
+
+	header = (uint32_t *) array_pointer;
+
+	header[ MX_ARRAY_OFFSET_MAGIC ] = MX_ARRAY_HEADER_MAGIC;
+	header[ MX_ARRAY_OFFSET_HEADER_LENGTH ] = array_header_length;
+	header[ MX_ARRAY_OFFSET_NUM_DIMENSIONS ] = num_dimensions;
+
+	header_ptr = header + MX_ARRAY_OFFSET_DIMENSION_ARRAY;
+
+	for ( i = 0; i < num_dimensions; i++ ) {
+		*header_ptr = dimension_array[i];
+
+		header_ptr--;
+	}
+
+	for ( i = 0; i < num_dimensions; i++ ) {
+		*header_ptr = data_element_size_array[i];
+
+		header_ptr--;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---------------------------------------------------------------------------*/
+
 /* mx_array_add_overlay() adds a multidimensional veneer on top of the
  * 1-dimensional array passed as vector_pointer.
  */
@@ -265,6 +386,7 @@ mx_array_add_overlay( void *vector_pointer,
 	 * of pointers to the next level below.
 	 */
 
+#if 1
 	array_of_level_pointers = calloc( num_dimensions, sizeof(void *) );
 
 	if ( array_of_level_pointers == (void **) NULL ) {
@@ -272,6 +394,58 @@ mx_array_add_overlay( void *vector_pointer,
 		"Ran out of memory trying to allocate a %ld element array "
 		"of level pointers.", num_dimensions - 1 );
 	}
+#else
+	/* The top level array of pointers is special, since we prepend
+	 * the array of pointer with an array header that tells us the
+	 * dimensions and size of the array.
+	 */
+
+	{
+		char *raw_top_level_array;
+		unsigned long array_header_length, top_level_array_bytes;
+		mx_status_type mx_status;
+
+		mx_status = mx_compute_array_header_length(
+					&array_header_length,
+					num_dimensions,
+					dimension_array,
+					element_size_array );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		top_level_array_bytes = array_header_length * sizeof(uint32_t)
+					 + num_dimensions * sizeof(void *);;
+
+		raw_top_level_array = malloc( top_level_array_bytes );
+
+		if ( raw_top_level_array == (char *) NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate the raw "
+			"top level array for an array of %ld dimensions.",
+				num_dimensions );
+		}
+
+		memset( raw_top_level_array, 0, top_level_array_bytes );
+
+		/* Construct the top level array_of_level_pointers
+		 * from the raw_top_level_array using an offset to
+		 * skip over the array header.
+		 */
+
+		array_of_level_pointers = (void *)( raw_top_level_array
+				+ array_header_length * sizeof(uint32_t) );
+
+		mx_status = mx_setup_array_header( array_of_level_pointers,
+						array_header_length,
+						num_dimensions,
+						dimension_array,
+						element_size_array );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+#endif
 
 #if MX_ARRAY_DEBUG_OVERLAY
 	MX_DEBUG(-2,("%s: array_of_level_pointers = %p",
