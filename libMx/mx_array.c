@@ -22,6 +22,10 @@
 
 #define MX_ARRAY_DEBUG_64BIT_COPY	FALSE
 
+/* FIXME - Soon the following will be the default. */
+
+#define MX_ARRAY_USE_ARRAY_HEADER	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -347,6 +351,10 @@ mx_array_add_overlay( void *vector_pointer,
 	unsigned long upper_step_size, lower_step_size;
 	char *upper_pointer, *lower_pointer;
 
+#if MX_ARRAY_USE_ARRAY_HEADER
+	char *raw_top_level_array;
+#endif
+
 	if ( vector_pointer == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The vector_pointer passed was NULL." );
@@ -386,7 +394,8 @@ mx_array_add_overlay( void *vector_pointer,
 	 * of pointers to the next level below.
 	 */
 
-#if 1
+#if ( MX_ARRAY_USE_ARRAY_HEADER == FALSE )
+
 	array_of_level_pointers = calloc( num_dimensions, sizeof(void *) );
 
 	if ( array_of_level_pointers == (void **) NULL ) {
@@ -401,7 +410,6 @@ mx_array_add_overlay( void *vector_pointer,
 	 */
 
 	{
-		char *raw_top_level_array;
 		unsigned long array_header_length, top_level_array_bytes;
 		mx_status_type mx_status;
 
@@ -554,12 +562,18 @@ mx_array_add_overlay( void *vector_pointer,
 
 	*array_pointer = array_of_level_pointers[num_dimensions - 1];
 
+#if ( MX_ARRAY_USE_ARRAY_HEADER == FALSE )
 	free( array_of_level_pointers );
+#else
+	free( raw_top_level_array );
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
 /*---------------------------------------------------------------------------*/
+
+#if ( MX_ARRAY_USE_ARRAY_HEADER == FALSE )
 
 MX_EXPORT mx_status_type
 mx_array_free_overlay( void *array_pointer,
@@ -593,6 +607,114 @@ mx_array_free_overlay( void *array_pointer,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+#else
+
+MX_EXPORT mx_status_type
+mx_array_free_overlay( void *array_pointer,
+			long num_dimensions )
+{
+	static const char fname[] = "mx_array_free_overlay()";
+
+	void *level_pointer, *next_level_pointer;
+	uint32_t *header, *raw_array_pointer;
+	long num_header_words, header_num_dimensions;
+	long dim;
+
+	if ( array_pointer == (void *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The array_pointer argument passed was NULL." );
+	}
+
+	/* See if the top level array pointer has an array header.
+	 *
+	 * This is a potentially hazardous operation that may result in
+	 * a segmentation fault if it does _not_ have an array header.
+	 */
+
+	header = (uint32_t *) array_pointer;
+
+	/* First look for the header magic number. */
+
+	if ( header[MX_ARRAY_OFFSET_MAGIC] != MX_ARRAY_HEADER_MAGIC ) {
+		mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The array_pointer %p is not an array that was created "
+		"using mx_array_add_offset().  "
+		"This is a fatal error, so we are intentionally crashing now.",
+			array_pointer );
+
+		mx_sleep(2);
+
+		raise( SIGSEGV );
+	}
+
+	/* Get the number of 32-bit words in the header and the number
+	 * of dimensions in the array.
+	 */
+
+	num_header_words      = header[MX_ARRAY_OFFSET_HEADER_LENGTH];
+	header_num_dimensions = header[MX_ARRAY_OFFSET_NUM_DIMENSIONS];
+
+	if ( header_num_dimensions < 2 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"This function is only meant for arrays with 2 or more "
+		"dimensions.  The array pointer %p has %ld dimensions.",
+			array_pointer, header_num_dimensions );
+	}
+
+	if ( header_num_dimensions != num_dimensions ) {
+		mx_warning( "The num_dimensions argument (%ld) passed to "
+		"this function for array %p does not have the same value as "
+		"the header_num_dimensions value (%ld) read from the header.  "
+		"We will proceed anyway using the value from the header.",
+			num_dimensions, array_pointer,
+			header_num_dimensions );
+
+		num_dimensions = header_num_dimensions;
+	}
+
+	/* The top level array of pointers must be handled specially,
+	 * since the array_pointer passed to us does _not_ point to
+	 * the start of the array that was initially allocated using
+	 * malloc().  The _real_ start of the array starts at the
+	 * beginning of the header.
+	 */
+
+	raw_array_pointer = ((uint32_t *) array_pointer) - num_header_words;
+
+	if ( num_dimensions == 2 ) {
+		mx_free( raw_array_pointer );
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* If we have 3 dimensions or more, then we must continue on. */
+
+	level_pointer =
+		mx_read_void_pointer_from_memory_location( array_pointer );
+
+	mx_free( raw_array_pointer );
+
+	/* Do _not_ free the 1-D vector at the bottom of the array!
+	 * It may be in use by other code such as an MX_IMAGE_FRAME.
+	 * This means that we must stop at dim == 2.
+	 */
+
+	level_pointer = array_pointer;
+
+	for ( dim = num_dimensions-1; dim >= 2; dim-- ) {
+		next_level_pointer =
+		    mx_read_void_pointer_from_memory_location( level_pointer );
+
+		free(level_pointer);
+
+		level_pointer = next_level_pointer;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#endif
 
 /*---------------------------------------------------------------------------*/
 
