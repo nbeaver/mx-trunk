@@ -878,6 +878,8 @@ mx_allocate_array( long num_dimensions,
 	MX_DEBUG(-2,("%s: vector_size = %lu", fname, vector_size));
 #endif
 
+#if ( MX_ARRAY_USE_ARRAY_HEADER == FALSE )	/*---*/
+
 	vector = malloc( vector_size );
 
 #if MX_ARRAY_DEBUG_ALLOCATE
@@ -895,6 +897,69 @@ mx_allocate_array( long num_dimensions,
 	if ( num_dimensions < 2 ) {
 		return vector;
 	}
+
+#else /* MX_ARRAY_USE_ARRAY_HEADER */
+
+	if ( num_dimensions == 1 ) {
+
+		/* For 1-dimensional arrays, we must encode the information
+		 * about the array size in an array header before the start
+		 * of the vector.
+		 */
+
+		unsigned long array_header_length, raw_vector_size;
+		char *raw_vector;
+
+		mx_status = mx_compute_array_header_length(
+					&array_header_length,
+					num_dimensions,
+					dimension_array,
+					data_element_size_array );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return NULL;
+
+		raw_vector_size = vector_size
+				+ array_header_length * sizeof(uint32_t);
+
+		raw_vector = malloc( raw_vector_size );
+
+		if ( raw_vector == (char *) NULL ) {
+			(void) mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate the raw "
+			"vector for a 1-dimensional array of %lu bytes.",
+				raw_vector_size );
+				
+			return NULL;
+		}
+
+		memset( raw_vector, 0, raw_vector_size );
+
+		vector = (void *)( raw_vector
+				+ array_header_length * sizeof(uint32_t) );
+
+		mx_status = mx_setup_array_header( vector,
+					array_header_length,
+					num_dimensions,
+					dimension_array,
+					data_element_size_array );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return NULL;
+
+		return vector;
+	}
+
+	/* If we get here, we are making a multidimensional array
+	 * and mx_array_add_overlay() will handle making the header.
+	 */
+
+	vector = malloc( vector_size );
+
+	if ( vector == NULL ) {
+		return NULL;
+	}
+#endif /* MX_ARRAY_USE_ARRAY_HEADER */
 
 	/* Multidimensional arrays use mx_array_add_overlay(). */
 
@@ -946,12 +1011,60 @@ mx_free_array( void *array_pointer,
 			array_pointer );
 	}
 
+#if ( MX_ARRAY_USE_ARRAY_HEADER == FALSE )
+
 	if ( num_dimensions >= 2 ) {
 		mx_status = mx_array_free_overlay( array_pointer,
 							num_dimensions );
 	}
 
 	mx_free( vector );
+
+#else /* MX_ARRAY_USE_ARRAY_HEADER */
+
+	if ( num_dimensions >= 2 ) {
+		mx_status = mx_array_free_overlay( array_pointer,
+							num_dimensions );
+
+		mx_free( vector );
+
+		return mx_status;
+	}
+
+	{
+		uint32_t *header, *raw_vector;
+		long num_header_words;
+
+		/* For 1-dimensional arrays, we need to find the start of the
+		 * array header.
+		 */
+
+		header = (uint32_t *) vector;
+
+		/* Look for the header magic number. */
+
+		if ( header[MX_ARRAY_OFFSET_MAGIC] != MX_ARRAY_HEADER_MAGIC ) {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The array_pointer %p is not an array that was created "
+			"using mx_allocate_array().  This is a fatal error, "
+			"so we are intentionally crashing now.",
+				array_pointer );
+
+			mx_sleep(2);
+
+			raise( SIGSEGV );
+		}
+
+		num_header_words = header[MX_ARRAY_OFFSET_HEADER_LENGTH];
+
+		raw_vector = ((uint32_t *) vector) - num_header_words;
+
+		mx_free( vector );
+
+		mx_status = MX_SUCCESSFUL_RESULT;
+	}
+
+#endif /* MX_ARRAY_USE_ARRAY_HEADER */
 
 	return mx_status;
 }
