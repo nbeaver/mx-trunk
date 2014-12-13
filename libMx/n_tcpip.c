@@ -370,9 +370,22 @@ mxn_tcpip_server_open( MX_RECORD *record )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+		network_server->remote_mx_version_time = version_time;
+	} else {
+		network_server->remote_mx_version_time = 0;
 	}
 
-	network_server->remote_mx_version_time = version_time;
+	/* If the remote MX server is version 1.5.7 or newer, then tell
+	 * it what our version time is.
+	 */
+
+	if ( network_server->remote_mx_version >= 1005007L ) {
+		mx_status = mx_network_send_client_version_time( record );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
 	/* Tell the server who we are in an insecure manner. */
 

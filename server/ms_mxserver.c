@@ -4317,6 +4317,14 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 #endif
 		break;
 
+	case MX_NETWORK_OPTION_CLIENT_VERSION_TIME:
+		socket_handler->remote_mx_version_time = option_value;
+#if 0
+		MX_DEBUG(-2,("%s: remote_mx_version_time = %lu",
+			fname, socket_handler->remote_mx_version_time));
+#endif
+		break;
+
 	default:
 		illegal_option_number = TRUE;
 		break;

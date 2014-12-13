@@ -6119,11 +6119,6 @@ mx_network_send_client_version( MX_RECORD *server_record )
 
 	client_mx_version = list_head->mx_version;
 
-#if 0
-	MX_DEBUG(-2,("%s: sending MX version %lu to server '%s'.",
-		fname, client_mx_version, server_record->name ));
-#endif
-
 	mx_status = mx_network_set_option( server_record,
 				MX_NETWORK_OPTION_CLIENT_VERSION | MXE_QUIET,
 				client_mx_version );
@@ -6132,6 +6127,49 @@ mx_network_send_client_version( MX_RECORD *server_record )
 	 * an MXE_ILLEGAL_ARGUMENT error code.  This just
 	 * means that this MX server does not know about the
 	 * MX_NETWORK_OPTION_CLIENT_VERSION option code.
+	 */
+
+	if ( mx_status.code == MXE_ILLEGAL_ARGUMENT ) {
+		return MX_SUCCESSFUL_RESULT;
+	} else {
+		return mx_status;
+	}
+}
+
+/* ====================================================================== */
+
+MX_EXPORT mx_status_type
+mx_network_send_client_version_time( MX_RECORD *server_record )
+{
+	static const char fname[] = "mx_network_send_client_version_time()";
+
+	MX_LIST_HEAD *list_head;
+	unsigned long client_mx_version_time;
+	mx_status_type mx_status;
+
+	if ( server_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"server_record argument passed was NULL." );
+	}
+
+	list_head = mx_get_record_list_head_struct( server_record );
+
+	if ( list_head == (MX_LIST_HEAD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_LIST_HEAD pointer found for record '%s' is NULL.",
+			server_record->name );
+	}
+
+	client_mx_version_time = list_head->mx_version_time;
+
+	mx_status = mx_network_set_option( server_record,
+			MX_NETWORK_OPTION_CLIENT_VERSION_TIME | MXE_QUIET,
+			client_mx_version_time );
+
+	/* Do _NOT_ return an error if the MX server sent us
+	 * an MXE_ILLEGAL_ARGUMENT error code.  This just
+	 * means that this MX server does not know about the
+	 * MX_NETWORK_OPTION_CLIENT_VERSION_TIME option code.
 	 */
 
 	if ( mx_status.code == MXE_ILLEGAL_ARGUMENT ) {
