@@ -24,10 +24,11 @@
 
 /* FIXME - Soon the following will be the default. */
 
-#define MX_ARRAY_USE_ARRAY_HEADER	TRUE
+#define MX_ARRAY_USE_ARRAY_HEADER	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <signal.h>
 
 #include "mx_util.h"
 #include "mx_record.h"

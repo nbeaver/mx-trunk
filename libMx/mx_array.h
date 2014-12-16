@@ -32,8 +32,8 @@ extern "C" {
 #  else
 #    error This version of GCC does not implement the __BIGGEST_ALIGNMENT__ macro.
 #  endif
-#elif 0
-#  define MX_MAXIMUM_ALIGNMENT		16
+#elif defined(_MSC_VER)
+#  define MX_MAXIMUM_ALIGNMENT		8
 #else
 #  error This platform does not yet implement the MX_MAXIMUM_ALIGNMENT macro.
 #endif
