@@ -1116,7 +1116,7 @@ mx_reallocate_array( void *array_pointer,
 		return NULL;
 	}
 
-	header = (unsigned long *) array_pointer;
+	header = (uint32_t *) array_pointer;
 
 	header_magic = header[MX_ARRAY_OFFSET_MAGIC];
 
