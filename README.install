@@ -29,42 +29,41 @@ Steps for building MX:
 2.  Set MX_INSTALL_DIR to the directory that you want to install MX in,
     such as /opt/mx.
 
-3.  Check "mx/libMx/mxconfig.h" to see if any of the defines need to be
-    changed.  These defines indicate the presence or absence of optional
-    external packages such as EPICS.  Setting a define to "1" indicates
-    the presence of the package, while setting it to "0" indicates its
-    absence.
+3.  Look at the makefile variables configured near the top of the file
+    "mx/libMx/Makehead.$(MX_ARCH)" to see if any need to be modified.
+    For example, if MX_ARCH = linux, then the file to modify is
+    "mx/libMx/Makehead.linux".
 
-    Please note that many of the optional external packages have now
-    been converted to use dynamically loaded MX modules.  You will
-    configure the building of MX modules later in this procedure.
-    Eventually mxconfig.h will go away and all configuration of optional
-    MX modules will be done in the mx/modules directory.
+    The most common thing to modify here is to either comment out or
+    uncomment the OPTIMIZE macro, since this is what turns on or off
+    compiler optimization of the code.  There may also be macros for
+    selecting whether or not to compile 32-bit binaries or a 64-bit
+    binaries.
 
-4.  Modify the definitions of the makefile variables INCLUDES, LIB_DIRS,
-    and LIBRARIES in the file "mx/libMx/Makehead.$(MX_ARCH)" to reflect the
-    optional packages configured in step 3.  For example, if MX_ARCH = linux,
-    then the file to modify is "mx/libMx/Makehead.linux".  Other defines
-    relating to particular external packages may have to be modified as
-    well, but you should not modify anything in the makefile after the
+    On most platforms, this is all you need to modify.  However, on
+    "win32", you will need to correctly set the MSDEV_ARCH and MSDEV_DIR
+    macros for MX to be able to find the necessary runtime DLLs for
+    your compiler.
+
+    In addition, you should not modify anything in the makefile after the
     line that says
 
       "Generally, you should not have to modify anything after this point."
 
-5.  Do a "make distclean" command.
+4.  Do a "make distclean" command.
 
-6.  Do a "make depend" command.
+5.  Do a "make depend" command.
 
-7.  Do a "make" command.
+6.  Do a "make" command.
 
-8.  If MX builds correctly, do "make install" to install the binaries
+7.  If MX builds correctly, do "make install" to install the binaries
     in the requested location.  The directory $(MX_INSTALL_DIR) must exist
     before you do "make install".
 
     On Win32, $(MX_INSTALL_DIR) should use forward slashes like / rather
     than backslashes.
 
-9.  If you are using MX drivers that now are in dynamically loaded MX modules,
+8.  If you are using MX drivers that now are in dynamically loaded MX modules,
     then you select the modules to build by uncommenting the appropriate
     lines in the file mx/modules/Makefile.  The build configuration of
     the various MX modules is done in module-specific make files found
@@ -81,7 +80,7 @@ Steps for building MX:
         make modules
         make modules-install
 
-10. Now you must edit the configuration files in $(MX_INSTALL_DIR)/etc.
+9.  Now you must edit the configuration files in $(MX_INSTALL_DIR)/etc.
     This process is sufficiently long-winded that it deserves its own
     manual.  I haven't written that manual yet, but for the moment you
     can use the program "mxdriverinfo" as a guide to figuring out the
@@ -90,19 +89,19 @@ Steps for building MX:
     a variety of test databases in the "mx/test" and "mx/testserv"
     directories that can be used for inspiration.
 
-11. Set up the environment variable MXDIR equal to the value defined
+10. Set up the environment variable MXDIR equal to the value defined
     for $(MX_INSTALL_DIR) above.  Many tools will default to MXDIR = "/opt/mx",
     but it is better to just set up the define.
 
-12. Add the directory "$(MX_INSTALL_DIR)/bin" to the PATH.
+11. Add the directory "$(MX_INSTALL_DIR)/bin" to the PATH.
 
-13. Add the shared library directory "$(MX_INSTALL_DIR)/lib" to the shared
+12. Add the shared library directory "$(MX_INSTALL_DIR)/lib" to the shared
     library path.  On most unix systems, this is LD_LIBRARY_PATH, but on
     MacOS X it is DYLD_LIBRARY_PATH, while on HP/UX it is SHLIB_PATH.
     On Win32, the necessary DLLs automatically get copied to the directory
     $(MX_INSTALL_DIR)/bin, so Win32 users can skip this step.
 
-14. If you are setting up an MX server on a Unix system with System V style
+13. If you are setting up an MX server on a Unix system with System V style
     startup scripts (Linux, Solaris, etc.), then you can use the file
     "$(MX_INSTALL_DIR)/sbin/mx" as a startup and shutdown script.  All that
     should be necessary is to create the appropriate links in the /etc/rc?.d
@@ -114,7 +113,7 @@ Steps for building MX:
     done to start up the MX server.  An alternate, more flexible way of
     setting up MX Win32 startup files can be found in mx/scripts/windows.
 
-15. The source code for MX extension packages should be unpacked in the same
+14. The source code for MX extension packages should be unpacked in the same
     directory that you unpacked the MX tar file in.  Thus, you should end
     up with a directory containing subdirectories like "mx", "mp", "mxtcl",
     and so forth.  In general, the procedure for building and installing them

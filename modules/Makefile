@@ -75,11 +75,11 @@ MODULES += ni_daqmx		# linux, win32
 
 #MODULES += radicon_helios
 
-#MODULES += radicon_taurus
+MODULES += radicon_taurus
 
-MODULES += radicon_xineos_gige
+#MODULES += radicon_xineos_gige
 
-#MODULES += rdi_mbc
+MODULES += rdi_mbc
 
 MODULES += sapera_lt
 

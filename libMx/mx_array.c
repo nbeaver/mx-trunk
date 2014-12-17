@@ -24,7 +24,7 @@
 
 /* FIXME - Soon the following will be the default. */
 
-#define MX_ARRAY_USE_ARRAY_HEADER	FALSE
+#define MX_ARRAY_USE_ARRAY_HEADER	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -1068,6 +1068,157 @@ mx_free_array( void *array_pointer,
 #endif /* MX_ARRAY_USE_ARRAY_HEADER */
 
 	return mx_status;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static mx_status_type
+mxp_realloc_handle_array_level( long new_num_dimensions,
+				void *array_pointer,
+				void *new_array_pointer,
+				long *old_dimension_array,
+				long *new_dimension_array,
+				size_t *old_element_size_array )
+{
+	static const char fname[] = "mxp_realloc_handle_array_level()";
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+	"This function has not yet been implemented." );
+}
+
+/*----*/
+
+MX_EXPORT void *
+mx_reallocate_array( void *array_pointer,
+			long new_num_dimensions,
+			long *new_dimension_array )
+{
+	static const char fname[] = "mx_reallocate_array()";
+
+	void *new_array_pointer;
+	uint32_t *header;
+	unsigned long header_magic, header_length, computed_header_length;
+	long i, j, num_dimensions;
+	long *old_dimension_array;
+	size_t *old_element_size_array;
+	mx_status_type mx_status;
+
+	if ( array_pointer == (void *) NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"The array pointer passed is NULL." );
+
+		return NULL;
+	}
+	if ( new_dimension_array == (long *) NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"The dimension array pointer passed was NULL." );
+
+		return NULL;
+	}
+
+	header = (unsigned long *) array_pointer;
+
+	header_magic = header[MX_ARRAY_OFFSET_MAGIC];
+
+	if ( header_magic != MX_ARRAY_HEADER_MAGIC ) {
+		(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The array pointer (%p) was not created by "
+		"mx_allocate_array().", array_pointer );
+
+		return NULL;
+	}
+
+	header_length = header[MX_ARRAY_OFFSET_HEADER_LENGTH];
+
+	num_dimensions = header[MX_ARRAY_OFFSET_NUM_DIMENSIONS];
+
+	if ( new_num_dimensions < 0 ) {
+		new_num_dimensions = num_dimensions;
+	}
+
+	if ( num_dimensions != new_num_dimensions ) {
+		(void) mx_error( MXE_UNSUPPORTED, fname,
+		"This function does not support changing the number "
+		"of dimensions of an array.  Only changing the size "
+		"of each dimension is supported." );
+
+		return NULL;
+	}
+
+	computed_header_length = 3 + 2 * num_dimensions;
+
+	if ( computed_header_length != header_length ) {
+		(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The computed header length (%lu) of array %p does not "
+		"match the header length (%lu) found in the array's header.",
+			computed_header_length,
+			array_pointer,
+			header_length );
+
+		return NULL;
+	}
+
+	old_dimension_array = calloc( header_length, sizeof(size_t) );
+
+	if ( old_dimension_array == (long *) NULL ) {
+		(void) mx_error( MXE_OUT_OF_MEMORY, fname,
+		"The attempt to allocate a %lu element array "
+		"of dimension sizes failed.",
+			header_length );
+
+		return NULL;
+	}
+
+	old_element_size_array = calloc( header_length, sizeof(size_t) );
+
+	if ( old_element_size_array == (size_t *) NULL ) {
+		(void) mx_error( MXE_OUT_OF_MEMORY, fname,
+		"The attempt to allocate a %lu element array "
+		"of data element sizes failed.",
+			header_length );
+
+		mx_free( old_dimension_array );
+		return NULL;
+	}
+
+	for ( i = 0; i < num_dimensions; i++ ) {
+		j = 4 + i;
+
+		old_dimension_array[i] = header[ -j ];
+	}
+
+	for ( i = 0; i < num_dimensions; i++ ) {
+		j = 4 + num_dimensions + i;
+
+		old_element_size_array[i] = header[ -j ];
+	}
+
+	new_array_pointer = mx_allocate_array( new_num_dimensions,
+						new_dimension_array,
+						old_element_size_array );
+
+	if ( new_array_pointer == (void *) NULL ) {
+		mx_free( old_dimension_array );
+		mx_free( old_element_size_array );
+		return NULL;
+	}
+
+	mx_status = mxp_realloc_handle_array_level( new_num_dimensions,
+						array_pointer,
+						new_array_pointer,
+						old_dimension_array,
+						new_dimension_array,
+						old_element_size_array );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		mx_free( old_dimension_array );
+		mx_free( old_element_size_array );
+		mx_free_array( new_array_pointer, new_num_dimensions );
+
+		return NULL;
+	}
+
+	return new_array_pointer;
 }
 
 /*---------------------------------------------------------------------------*/

@@ -117,6 +117,12 @@ MX_API mx_status_type mx_free_array( void *array_pointer,
 
 /*---*/
 
+MX_API void *mx_reallocate_array( void *array_pointer,
+					long num_dimensions,
+					long *dimension_array );
+
+/*---*/
+
 MX_API mx_status_type mx_copy_array_to_buffer( void *array_pointer,
 		mx_bool_type array_is_dynamically_allocated,
 		long mx_datatype, long num_dimensions,
