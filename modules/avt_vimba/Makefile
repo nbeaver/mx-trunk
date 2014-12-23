@@ -7,7 +7,9 @@ ifndef MX_ARCH
   MX_ARCH = linux
 endif
 
-AVT_VIMBA_DIR = /opt/VimbaSDK
+#AVT_VIMBA_DIR = /opt/VimbaSDK
+
+AVT_VIMBA_DIR = /home/biocat/lavender/opt/VimbaSDK
 
 #AVT_VIMBA_WORDLENGTH = 64
 AVT_VIMBA_WORDLENGTH = 32

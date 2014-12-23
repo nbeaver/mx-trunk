@@ -7,7 +7,9 @@ ifndef MX_ARCH
   MX_ARCH = linux
 endif
 
-AVT_PVAPI_DIR = "/opt/AVT GigE SDK"
+#AVT_PVAPI_DIR = "/opt/AVT GigE SDK"
+
+AVT_PVAPI_DIR = "/home/biocat/lavender/opt/AVT GigE SDK"
 
 AVT_PVAPI_PLATFORM = x86
 AVT_PVAPI_RELEASE  = 4.5

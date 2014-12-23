@@ -15,9 +15,9 @@ all: build
 #-------------------------------------------------------------------
 # Multiplatform modules.
 
-#MODULES += avt_pvapi		# linux,
+MODULES += avt_pvapi		# linux,
 
-#MODULES += avt_vimba		# linux,
+MODULES += avt_vimba		# linux,
 
 #MODULES += edt			# linux,
 
@@ -35,7 +35,7 @@ all: build
 
 #MODULES += ni488		# linux,
 
-MODULES += ni_daqmx		# linux, win32
+#MODULES += ni_daqmx		# linux, win32
 
 #MODULES += nuvant_ezstat	# linux, win32
 
@@ -75,24 +75,24 @@ MODULES += ni_daqmx		# linux, win32
 
 #MODULES += radicon_helios
 
-MODULES += radicon_taurus
+#MODULES += radicon_taurus
 
 #MODULES += radicon_xineos_gige
 
-MODULES += rdi_mbc
+#MODULES += rdi_mbc
 
-MODULES += sapera_lt
+#MODULES += sapera_lt
 
 #MODULES += u500
 
 #-------------------------------------------------------------------
 # EPICS modules.
 
-#MODULES += epics
+MODULES += epics
 
-#MODULES += epics_aps 
+MODULES += epics_aps 
 
-#MODULES += epics_pmac_biocat
+MODULES += epics_pmac_biocat
 
 #MODULES += epics_mbc
 
