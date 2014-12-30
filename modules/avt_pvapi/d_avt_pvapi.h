@@ -32,8 +32,11 @@ typedef struct {
 	char camera_name[MXU_HOSTNAME_LENGTH+1];
 	unsigned long avt_pvapi_camera_flags;
 
+	unsigned long unique_id;
+
 #if IS_MX_DRIVER
-	tPvHandle *camera_handle;
+	tPvHandle camera_handle;
+	tPvCameraInfoEx camera_info;
 #endif
 
 } MX_AVT_PVAPI_CAMERA;

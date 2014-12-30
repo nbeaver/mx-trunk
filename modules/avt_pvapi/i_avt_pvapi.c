@@ -85,9 +85,6 @@ mxi_avt_pvapi_open( MX_RECORD *record )
 	MX_AVT_PVAPI *avt_pvapi = NULL;
 	unsigned long major_version, minor_version;
 	unsigned long pvapi_status;
-	unsigned long num_cameras, num_connected;
-
-	tPvCameraInfoEx camera_list[10];
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -128,15 +125,9 @@ mxi_avt_pvapi_open( MX_RECORD *record )
 		"with error code %lu", pvapi_status );
 	}
 
-	/* List the available cameras. */
+	/* Give PvAPI a while to find the cameras. */
 
-	num_cameras = PvCameraListEx( camera_list, 10, &num_connected,
-					sizeof(tPvCameraInfoEx) );
-
-#if MXI_AVT_PVAPI_DEBUG
-	MX_DEBUG(-2,("%s: num_cameras = %lu, num_connected = %lu",
-		fname, num_cameras, num_connected));
-#endif
+	mx_sleep(5);
 
 	return MX_SUCCESSFUL_RESULT;
 }

@@ -19,6 +19,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -180,11 +181,14 @@ mxd_avt_pvapi_open( MX_RECORD *record )
 	MX_VIDEO_INPUT *vinput;
 	MX_AVT_PVAPI_CAMERA *avt_pvapi_camera = NULL;
 	MX_AVT_PVAPI *avt_pvapi = NULL;
+	char *camera_name;
+	unsigned long i, camera_name_length;
+#if 0
 	tPvAccessFlags access_flag;
-	char *ptr;
-	unsigned long inet_address_in_host_form;
-	unsigned long inet_address_in_network_form;
+#endif
+	unsigned long inet_address;
 	unsigned long unique_id;
+	mx_bool_type is_unique_id;
 	unsigned long pvapi_status;
 	mx_status_type mx_status;
 
@@ -205,76 +209,138 @@ mxd_avt_pvapi_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
 
-	if ( strlen( avt_pvapi_camera->camera_name ) == 0 ) {
+	camera_name = avt_pvapi_camera->camera_name;
+
+	if ( strlen( camera_name ) == 0 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"The camera_name field for camera '%s' is empty.",
 			record->name );
 	}
 
-	/* If the camera name has a period '.' character in the name,
-	 * then we assume it is an IP address in dotted decimal form.
+	/* If the camera name contains only numbers in the range 0 to 9,
+	 * then we assume the string contains the unique_id.  Otherwise,
+	 * we assume that it is an IP address or IP name.
 	 */
 
-	access_flag = 0xf;
+	camera_name_length = strlen( camera_name );
 
-	ptr = strchr( avt_pvapi_camera->camera_name, '.' );
+	is_unique_id = TRUE;
 
-	if ( ptr != NULL ) {
-		/* Assume that the user has specified an IP address. */
+	for ( i = 0; i < camera_name_length; i++ ) {
+		if ( isdigit( camera_name[i] ) == FALSE ) {
+			is_unique_id = FALSE;
+		}
+	}
 
-		MX_DEBUG(-2,("%s: Camera IP address = '%s'",
-			fname, avt_pvapi_camera->camera_name));
+	if ( is_unique_id ) {
+		unique_id = atol( camera_name );
+
+		MX_DEBUG(-2,
+		("%s: Attempting to use camera '%s' unique_id = %lu",
+			fname, record->name, unique_id));
+
+		pvapi_status = PvCameraInfoEx( unique_id,
+					&( avt_pvapi_camera->camera_info ),
+					sizeof(tPvCameraInfoEx) );
+
+	} else {
+		/* Assume that the user has specified an IP address or name. */
+
+		MX_DEBUG(-2,
+		("%s: Attempting to use camera '%s' IP name or address = '%s'",
+			fname, record->name, camera_name));
 
 		mx_status = mx_socket_get_inet_address(
 					avt_pvapi_camera->camera_name,
-					&inet_address_in_host_form );
+					&inet_address );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		inet_address_in_network_form =
-				mx_htonl( inet_address_in_host_form );
+		pvapi_status = PvCameraInfoByAddrEx( inet_address,
+					&( avt_pvapi_camera->camera_info ),
+					NULL,
+					sizeof(tPvCameraInfoEx) );
 
-		/* Open a connection to the camera using the IP address. */
-
-		pvapi_status = PvCameraOpenByAddr( inet_address_in_network_form,
-					access_flag,
-					avt_pvapi_camera->camera_handle );
-	} else {
-		/* Otherwise, we assume that the user has provided a
-		 * PvAPI unique ID for the camera.
-		 */
-
-		MX_DEBUG(-2,("%s: Camera UniqueId = '%s'",
-			fname, avt_pvapi_camera->camera_name));
-
-		unique_id = mx_string_to_unsigned_long(
-					avt_pvapi_camera->camera_name );
-
-		pvapi_status = PvCameraOpen( unique_id,
-					access_flag,
-					avt_pvapi_camera->camera_handle );
+		unique_id = avt_pvapi_camera->camera_info.UniqueId;
 	}
+
+	MX_DEBUG(-2,("%s: pvapi_status = %lu", fname, pvapi_status));
 
 	switch( pvapi_status ) {
 	case ePvErrSuccess:
+		MX_DEBUG(-2,("%s: Camera '%s' successfully found.",
+			fname, record->name ));
 		break;
 	case ePvErrNotFound:
 		return mx_error( MXE_NOT_FOUND, fname,
-	  "A PvAPI camera with camera name '%s' was not found for record '%s'.",
-			avt_pvapi_camera->camera_name, record->name );
+		"Camera '%s' with unique id %lu was not found.",
+				record->name, unique_id );
 		break;
 	default:
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
-		"The attempt to connect to camera '%s' (camera name = '%s') "
-		"failed.  PvApi error code = %lu",
-			record->name,
-			avt_pvapi_camera->camera_name,
-			pvapi_status );
+		"The attempt to get camera info for camera '%s' "
+		"with camera id '%s' failed with error code %lu.",
+			record->name, camera_name, pvapi_status );
 		break;
 	}
 
-	/* Initialize a bunch of driver parameters. */
+	avt_pvapi_camera->unique_id = avt_pvapi_camera->camera_info.UniqueId;
+
+	MX_DEBUG(-2,("%s: Camera '%s' has unique_id = %lu",
+		fname, record->name,
+		avt_pvapi_camera->unique_id));
+
+	/* Display some information about the camera. */
+
+#if 1
+	MX_DEBUG(-2,("%s: Camera '%s':", fname, record->name ));
+	MX_DEBUG(-2,("%s:   Version = %lu",
+		fname, avt_pvapi_camera->camera_info.StructVer ));
+	MX_DEBUG(-2,("%s:   Unique ID = %lu",
+		fname, avt_pvapi_camera->camera_info.UniqueId ));
+	MX_DEBUG(-2,("%s:   Camera Name = '%s'",
+		fname, avt_pvapi_camera->camera_info.CameraName ));
+	MX_DEBUG(-2,("%s:   Model Name = '%s'",
+		fname, avt_pvapi_camera->camera_info.ModelName ));
+	MX_DEBUG(-2,("%s:   Part Number = '%s'",
+		fname, avt_pvapi_camera->camera_info.PartNumber ));
+	MX_DEBUG(-2,("%s:   Serial Number = '%s'",
+		fname, avt_pvapi_camera->camera_info.SerialNumber ));
+	MX_DEBUG(-2,("%s:   Firmware Version = '%s'",
+		fname, avt_pvapi_camera->camera_info.FirmwareVersion ));
+	MX_DEBUG(-2,("%s:   Permitted Access = %lu",
+		fname, avt_pvapi_camera->camera_info.PermittedAccess ));
+	MX_DEBUG(-2,("%s:   Interface ID = %lu",
+		fname, avt_pvapi_camera->camera_info.InterfaceId ));
+	MX_DEBUG(-2,("%s:   Interface Type = %u",
+		fname, avt_pvapi_camera->camera_info.InterfaceType ));
+#endif
+
+	/* Now try to open the camera and get a PvAPI handle. */
+
+	pvapi_status = PvCameraOpen( unique_id,
+				ePvAccessMaster,
+				&(avt_pvapi_camera->camera_handle) );
+
+	switch( pvapi_status ) {
+	case ePvErrSuccess:
+		MX_DEBUG(-2,("%s: Camera '%s' was successfully opened.",
+			fname, record->name));
+		break;
+	case ePvErrUnplugged:
+		return mx_error( MXE_NOT_READY, fname,
+			"Camera '%s' is unplugged.", record->name );
+		break;
+	default:
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"Unable to open camera '%s' (camera name = '%s').  "
+		"PvAPI error code = %lu",
+			record->name, camera_name, pvapi_status );
+		break;
+	}
+
+	/* Initialize a bunch of MX driver parameters. */
 
 	vinput->parameter_type = -1;
 	vinput->frame_number   = -100;
