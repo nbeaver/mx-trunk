@@ -20,15 +20,20 @@
 
 /* Flag values for the 'avt_pvapi_camera_flags' field. */
 
+/* Flag values for the 'id_type' field. */
+
+#define MXT_USE_AVT_PVAPI_UNIQUE_ID	1
+#define MXT_USE_AVT_PVAPI_IP_ADDRESS	2
 
 typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *avt_pvapi_record;
-	unsigned long unique_id;
+	char camera_name[MXU_HOSTNAME_LENGTH+1];
 	unsigned long avt_pvapi_camera_flags;
 
 #if IS_MX_DRIVER
+	tPvHandle *camera_handle;
 #endif
 
 } MX_AVT_PVAPI_CAMERA;
@@ -39,9 +44,9 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_AVT_PVAPI_CAMERA, avt_pvapi_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "unique_id", MXFT_ULONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_AVT_PVAPI_CAMERA, unique_id), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  {-1, -1, "camera_name", MXFT_STRING, NULL, 1, {MXU_HOSTNAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_AVT_PVAPI_CAMERA, camera_name), \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {-1, -1, "avt_pvapi_camera_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
