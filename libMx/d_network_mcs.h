@@ -7,7 +7,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004, 2010, 2014 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003-2004, 2010, 2014-2015
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -36,6 +37,7 @@ typedef struct {
 	MX_NETWORK_FIELD measurement_index_nf;
 	MX_NETWORK_FIELD measurement_time_nf;
 	MX_NETWORK_FIELD mode_nf;
+	MX_NETWORK_FIELD readout_preference_nf;
 	MX_NETWORK_FIELD scaler_data_nf;
 	MX_NETWORK_FIELD scaler_index_nf;
 	MX_NETWORK_FIELD start_nf;

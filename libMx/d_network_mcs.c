@@ -7,7 +7,8 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2000-2006, 2008, 2010, 2012, 2014 Illinois Institute of Technology
+ * Copyright 2000-2006, 2008, 2010, 2012, 2014-2015
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -225,6 +226,10 @@ mxd_network_mcs_finish_record_initialization( MX_RECORD *record )
 		network_mcs->server_record,
 		"%s.mode", network_mcs->remote_record_name );
 
+	mx_network_field_init( &(network_mcs->readout_preference_nf),
+		network_mcs->server_record,
+		"%s.readout_preference", network_mcs->remote_record_name );
+
 	mx_network_field_init( &(network_mcs->scaler_data_nf),
 		network_mcs->server_record,
 		"%s.scaler_data", network_mcs->remote_record_name );
@@ -297,6 +302,7 @@ mxd_network_mcs_open( MX_RECORD *record )
 	MX_NETWORK_MCS *network_mcs = NULL;
 	MX_NETWORK_TIMER *network_timer;
 	MX_MCS_TIMER *mcs_timer;
+	MX_NETWORK_SERVER *network_server;
 	MX_RECORD *current_record, *list_head_record;
 	char timer_name[ MXU_RECORD_NAME_LENGTH + 1 ];
 	long dimension[1];
@@ -314,6 +320,38 @@ mxd_network_mcs_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* If the remote MX server is using MX 1.5.7 or higher, then ask for
+	 * the readout preference of the remote network_mcs record.
+	 */
+
+	network_server = (MX_NETWORK_SERVER *)
+			network_mcs->server_record->record_class_struct;
+
+	if ( network_server == (MX_NETWORK_SERVER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_NETWORK_SERVER pointer for the MX server record '%s' "
+		"used by record '%s' is NULL.",
+			network_mcs->server_record->name,
+			record->name );
+	}
+
+	if ( network_server->remote_mx_version < 1005007L ) {
+		mcs->readout_preference = MXF_MCS_PREFER_READ_SCALER;
+	} else {
+		mx_status = mx_get( &(network_mcs->readout_preference_nf),
+				MXFT_LONG, &(mcs->readout_preference) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+#if 1
+	MX_DEBUG(-2,("%s: network MCS '%s' remote_mx_version = %lu",
+		fname, record->name, network_server->remote_mx_version));
+	MX_DEBUG(-2,("%s: network MCS '%s' readout_preference = %ld",
+		fname, record->name, mcs->readout_preference));
+#endif
 
 	/* If the timer record has not already been found for this record,
 	 * then we must go looking for it.

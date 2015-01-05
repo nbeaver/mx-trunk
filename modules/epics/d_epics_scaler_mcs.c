@@ -14,7 +14,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2014 Illinois Institute of Technology
+ * Copyright 2014-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -421,6 +421,13 @@ mxd_epics_scaler_mcs_open( MX_RECORD *record )
 
 	epics_scaler_mcs->motor_position_pv.pvname[0] = '\0';
 	epics_scaler_mcs->motor_position_pv.channel_id = NULL;
+
+	/* The 'epics_scaler_mcs' driver acquires a measurement at a time
+	 * rather than a scaler at a time, so we configure the readout
+	 * preference to reflect that.
+	 */
+
+	mcs->readout_preference = MXF_MCS_PREFER_READ_MEASUREMENT;
 
 	/* Allocate memory for the motor position array. */
 

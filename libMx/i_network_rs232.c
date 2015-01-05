@@ -10,7 +10,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2001-2006, 2008, 2010, 2012, 2014 Illinois Institute of Technology
+ * Copyright 2001-2006, 2008, 2010, 2012, 2014-2015
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -478,40 +479,6 @@ mxi_network_rs232_open( MX_RECORD *record )
 		}
 
 	}
-#endif
-
-#if 0	/* FIXME: This is turned off since it requires extra network I/O */
-
-	/* Initialize the line terminators from the remote server.
-	 * This is an interim kludge to last until I make fully
-	 * buffered getline and putline work across the network.
-	 */
-
-	sprintf( rfname, "%s.read_terminators",
-				network_rs232->remote_record_name );
-
-	mx_status = mx_get( network_rs232->server_record,
-				rfname, MXFT_HEX,
-				&(rs232->read_terminators) );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	sprintf( rfname, "%s.write_terminators",
-				network_rs232->remote_record_name );
-
-	mx_status = mx_get( network_rs232->server_record,
-				rfname, MXFT_HEX,
-				&(rs232->write_terminators) );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_rs232_convert_terminator_characters( record );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
