@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004, 2006-2007, 2010, 2013-2014
+ * Copyright 2000-2001, 2003-2004, 2006-2007, 2010, 2013-2015
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -389,7 +389,7 @@ mxd_network_mce_get_motor_record_array( MX_MCE *mce )
 {
 	static const char fname[] = "mxd_network_mce_get_motor_record_array()";
 
-	MX_NETWORK_MCE *network_mce;
+	MX_NETWORK_MCE *network_mce = NULL;
 	mx_bool_type name_matches;
 	long i, num_remote_motors;
 	char **motor_name_array;
@@ -401,7 +401,7 @@ mxd_network_mce_get_motor_record_array( MX_MCE *mce )
 	char *non_mx_motor_name;
 	mx_status_type mx_status;
 
-	network_mce = NULL;
+	mx_breakpoint();
 
 	mx_status = mxd_network_mce_get_pointers( mce, &network_mce, fname );
 
