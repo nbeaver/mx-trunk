@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2014 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -225,18 +225,20 @@ mx_get_scalar_element_size( long mx_datatype,
 /*---------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mx_compute_array_header_length( unsigned long *array_header_length,
+mx_compute_array_header_length( unsigned long *array_header_length_in_bytes,
 				long num_dimensions,
 				long *dimension_array,
 				size_t *data_element_size_array )
 {
 	static const char fname[] = "mx_compute_array_header_length()";
 
-	unsigned long raw_array_header_length, modulo_value, num_blocks;
+	unsigned long raw_array_header_length_in_words;
+	unsigned long raw_array_header_length_in_bytes;
+	unsigned long modulo_value, num_blocks;
 
-	if ( array_header_length == (unsigned long *) NULL ) {
+	if ( array_header_length_in_bytes == (unsigned long *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The array_header_length pointer passed was NULL." );
+		"The array_header_length_in_bytes pointer passed was NULL." );
 	}
 	if ( num_dimensions < 1 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -251,7 +253,10 @@ mx_compute_array_header_length( unsigned long *array_header_length,
 	 * and the data_element_size_array.
 	 */
 
-	raw_array_header_length = 3 + 2 * num_dimensions;
+	raw_array_header_length_in_words = 3 + 2 * num_dimensions;
+
+	raw_array_header_length_in_bytes =
+		raw_array_header_length_in_words * MX_ARRAY_HEADER_WORDSIZE;
 
 	/* This header length will be used to compute an offset
 	 * to the nominal start of the top level array pointer.
@@ -261,15 +266,17 @@ mx_compute_array_header_length( unsigned long *array_header_length,
 	 * up to the next multiple of the maximal alignment size.
 	 */
 
-	modulo_value = raw_array_header_length % MX_MAXIMUM_ALIGNMENT;
+	modulo_value = raw_array_header_length_in_bytes % MX_MAXIMUM_ALIGNMENT;
 
 	if ( modulo_value == 0 ) {
-		*array_header_length = raw_array_header_length;
+		*array_header_length_in_bytes =
+			raw_array_header_length_in_bytes;
 	} else {
 		num_blocks = 
-			1 + ( raw_array_header_length / MX_MAXIMUM_ALIGNMENT );
+	    1 + ( raw_array_header_length_in_bytes / MX_MAXIMUM_ALIGNMENT );
 
-		*array_header_length = num_blocks * MX_MAXIMUM_ALIGNMENT;
+		*array_header_length_in_bytes =
+			num_blocks * MX_MAXIMUM_ALIGNMENT;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -277,7 +284,7 @@ mx_compute_array_header_length( unsigned long *array_header_length,
 
 MX_EXPORT mx_status_type
 mx_setup_array_header( void *array_pointer,
-			unsigned long array_header_length,
+			unsigned long array_header_length_in_bytes,
 			long num_dimensions,
 			long *dimension_array,
 			size_t *data_element_size_array )
@@ -309,7 +316,8 @@ mx_setup_array_header( void *array_pointer,
 	header = (uint32_t *) array_pointer;
 
 	header[ MX_ARRAY_OFFSET_MAGIC ] = MX_ARRAY_HEADER_MAGIC;
-	header[ MX_ARRAY_OFFSET_HEADER_LENGTH ] = array_header_length;
+	header[ MX_ARRAY_OFFSET_HEADER_LENGTH ] =
+			array_header_length_in_bytes / MX_ARRAY_HEADER_WORDSIZE;
 	header[ MX_ARRAY_OFFSET_NUM_DIMENSIONS ] = num_dimensions;
 
 	header_ptr = header + MX_ARRAY_OFFSET_DIMENSION_ARRAY;
@@ -411,11 +419,12 @@ mx_array_add_overlay( void *vector_pointer,
 	 */
 
 	{
-		unsigned long array_header_length, top_level_array_bytes;
+		unsigned long array_header_length_in_bytes;
+		unsigned long top_level_array_bytes;
 		mx_status_type mx_status;
 
 		mx_status = mx_compute_array_header_length(
-					&array_header_length,
+					&array_header_length_in_bytes,
 					num_dimensions,
 					dimension_array,
 					element_size_array );
@@ -423,7 +432,7 @@ mx_array_add_overlay( void *vector_pointer,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		top_level_array_bytes = array_header_length * sizeof(uint32_t)
+		top_level_array_bytes = array_header_length_in_bytes
 					 + num_dimensions * sizeof(void *);;
 
 		raw_top_level_array = malloc( top_level_array_bytes );
@@ -443,10 +452,10 @@ mx_array_add_overlay( void *vector_pointer,
 		 */
 
 		array_of_level_pointers = (void *)( raw_top_level_array
-				+ array_header_length * sizeof(uint32_t) );
+				+ array_header_length_in_bytes );
 
 		mx_status = mx_setup_array_header( array_of_level_pointers,
-						array_header_length,
+						array_header_length_in_bytes,
 						num_dimensions,
 						dimension_array,
 						element_size_array );

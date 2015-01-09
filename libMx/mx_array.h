@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2000, 2003, 2005-2007, 2012-2014
+ * Copyright 1999-2000, 2003, 2005-2007, 2012-2015
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -40,6 +40,8 @@ extern "C" {
 
 /*---------------------------------------------------------------------------*/
 
+#define MX_ARRAY_HEADER_WORDSIZE	sizeof(uint32_t)
+
 #define MX_ARRAY_HEADER_MAGIC		0xd6d8ebed
 
 #define MX_ARRAY_OFFSET_MAGIC		(-1)
@@ -68,10 +70,10 @@ MX_API size_t mx_get_scalar_element_size( long mx_datatype,
 /*---*/
 
 MX_API mx_status_type mx_compute_array_header_length(
-					unsigned long *array_header_length,
-					long num_dimensions,
-					long *dimension_array,
-					size_t *data_element_size_array );
+				unsigned long *array_header_length_in_bytes,
+				long num_dimensions,
+				long *dimension_array,
+				size_t *data_element_size_array );
 
 MX_API mx_status_type mx_setup_array_header( void *array_pointer,
 					unsigned long array_header_length,
