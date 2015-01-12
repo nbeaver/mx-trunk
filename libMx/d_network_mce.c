@@ -401,8 +401,6 @@ mxd_network_mce_get_motor_record_array( MX_MCE *mce )
 	char *non_mx_motor_name;
 	mx_status_type mx_status;
 
-	mx_breakpoint();
-
 	mx_status = mxd_network_mce_get_pointers( mce, &network_mce, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
