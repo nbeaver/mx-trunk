@@ -24,7 +24,7 @@
 
 /* FIXME - Soon the following will be the default. */
 
-#define MX_ARRAY_USE_ARRAY_HEADER	FALSE
+#define MX_ARRAY_USE_ARRAY_HEADER	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -339,6 +339,91 @@ mx_setup_array_header( void *array_pointer,
 
 /*---------------------------------------------------------------------------*/
 
+/* The highest level dimension of an array is where the array header info
+ * is stored.  This function encapsulates the logic necessary to embed the
+ * array header before the start of the actual array.
+ */
+
+#if MX_ARRAY_USE_ARRAY_HEADER
+
+static mx_status_type
+mxp_create_top_level_row( void **top_level_row,
+			long num_dimensions,
+			long *dimension_array,
+			size_t *element_size_array )
+{
+	static const char fname[] = "mxp_create_top_level_row()";
+
+	unsigned long array_header_length_in_bytes;
+	size_t top_level_bytes, raw_top_level_bytes;
+	char *raw_top_level_row_ptr;
+	mx_status_type mx_status;
+
+	if ( top_level_row == (void **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The top_level_row pointer passed is NULL." );
+	}
+	if ( num_dimensions < 1 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Illegal value for num_dimensions (%ld).  "
+		"num_dimensions must be greater than or equal to 1.",
+			num_dimensions );
+	}
+	if ( dimension_array == (long *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The dimension_array pointer passed is NULL." );
+	}
+	if ( element_size_array == (size_t *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The element_size_array pointer passed is NULL." );
+	}
+
+	mx_status = mx_compute_array_header_length(
+						&array_header_length_in_bytes,
+						num_dimensions,
+						dimension_array,
+						element_size_array );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Compute the size of the top level row, as seen by ordinary code. */
+
+	top_level_bytes = dimension_array[0]
+			    * element_size_array[ num_dimensions - 1 ];
+
+	/* Add onto that the size of the array header. */
+
+	raw_top_level_bytes = top_level_bytes + array_header_length_in_bytes;
+
+	/* Allocate memory for the top level row including the array header. */
+
+	raw_top_level_row_ptr = calloc( 1, raw_top_level_bytes );
+
+	if ( raw_top_level_row_ptr == (char *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memroy trying to allocate the raw top level row "
+		"of a %ld-dimensional array.", num_dimensions );
+	}
+
+	/* Compute the user visible top level ptr and initialize the header.*/
+
+	*top_level_row = (void *)( raw_top_level_row_ptr
+					+ array_header_length_in_bytes );
+
+	mx_status = mx_setup_array_header( *top_level_row,
+					array_header_length_in_bytes,
+					num_dimensions,
+					dimension_array,
+					element_size_array );
+
+	return mx_status;
+}
+
+#endif /* MX_ARRAY_USE_ARRAY_HEADER */
+
+/*---------------------------------------------------------------------------*/
+
 /* mx_array_add_overlay() adds a multidimensional veneer on top of the
  * 1-dimensional array passed as vector_pointer.
  */
@@ -353,16 +438,14 @@ mx_array_add_overlay( void *vector_pointer,
 	static const char fname[] = "mx_array_add_overlay()";
 
 	void **array_of_level_pointers;
-	unsigned long i, dim, dimx, pointer_size;
+	unsigned long num_bytes_in_this_level;
+	unsigned long i, dim, dimx, pointer_size_in_this_level;
 	unsigned long num_pointers_in_this_level;
 	unsigned long num_pointers_in_previous_level;
 	unsigned long upper_pointer_size, lower_data_size;
 	unsigned long upper_step_size, lower_step_size;
 	char *upper_pointer, *lower_pointer;
-
-#if MX_ARRAY_USE_ARRAY_HEADER
-	char *raw_top_level_array;
-#endif
+	mx_status_type mx_status;
 
 	if ( vector_pointer == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -380,7 +463,6 @@ mx_array_add_overlay( void *vector_pointer,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The overlay_pointer passed was NULL." );
 	}
-
 	if ( num_dimensions < 2 ) {
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"The requested number of dimensions (%ld) is not supported.",
@@ -403,8 +485,6 @@ mx_array_add_overlay( void *vector_pointer,
 	 * of pointers to the next level below.
 	 */
 
-#if ( MX_ARRAY_USE_ARRAY_HEADER == FALSE )
-
 	array_of_level_pointers = calloc( num_dimensions, sizeof(void *) );
 
 	if ( array_of_level_pointers == (void **) NULL ) {
@@ -412,58 +492,6 @@ mx_array_add_overlay( void *vector_pointer,
 		"Ran out of memory trying to allocate a %ld element array "
 		"of level pointers.", num_dimensions - 1 );
 	}
-#else
-	/* The top level array of pointers is special, since we prepend
-	 * the array of pointer with an array header that tells us the
-	 * dimensions and size of the array.
-	 */
-
-	{
-		unsigned long array_header_length_in_bytes;
-		unsigned long top_level_array_bytes;
-		mx_status_type mx_status;
-
-		mx_status = mx_compute_array_header_length(
-					&array_header_length_in_bytes,
-					num_dimensions,
-					dimension_array,
-					element_size_array );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		top_level_array_bytes = array_header_length_in_bytes
-					 + num_dimensions * sizeof(void *);;
-
-		raw_top_level_array = malloc( top_level_array_bytes );
-
-		if ( raw_top_level_array == (char *) NULL ) {
-			return mx_error( MXE_OUT_OF_MEMORY, fname,
-			"Ran out of memory trying to allocate the raw "
-			"top level array for an array of %ld dimensions.",
-				num_dimensions );
-		}
-
-		memset( raw_top_level_array, 0, top_level_array_bytes );
-
-		/* Construct the top level array_of_level_pointers
-		 * from the raw_top_level_array using an offset to
-		 * skip over the array header.
-		 */
-
-		array_of_level_pointers = (void *)( raw_top_level_array
-				+ array_header_length_in_bytes );
-
-		mx_status = mx_setup_array_header( array_of_level_pointers,
-						array_header_length_in_bytes,
-						num_dimensions,
-						dimension_array,
-						element_size_array );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-	}
-#endif
 
 #if MX_ARRAY_DEBUG_OVERLAY
 	MX_DEBUG(-2,("%s: array_of_level_pointers = %p",
@@ -476,14 +504,36 @@ mx_array_add_overlay( void *vector_pointer,
 		num_pointers_in_this_level
 			*= dimension_array[num_dimensions - dim];
 
-		pointer_size = element_size_array[dim-1];
+		pointer_size_in_this_level = element_size_array[dim-1];
+
+		num_bytes_in_this_level =
+			num_pointers_in_this_level * pointer_size_in_this_level;
 
 #if MX_ARRAY_DEBUG_OVERLAY
-		MX_DEBUG(-2,("%s: allocating %lu pointers of size %lu",
-			fname, num_pointers_in_this_level, pointer_size ));
+		MX_DEBUG(-2,
+		("%s: allocating %lu pointers of size %lu (total bytes = %lu)",
+			fname, num_pointers_in_this_level,
+			pointer_size_in_this_level,
+			num_bytes_in_this_level ));
 #endif
-		array_of_level_pointers[dim-1] =
-			calloc( num_pointers_in_this_level, pointer_size );
+		if ( dim != num_dimensions ) {
+			array_of_level_pointers[dim-1] =
+				calloc( 1, num_bytes_in_this_level );
+		} else {
+			mx_status = mxp_create_top_level_row(
+				&(array_of_level_pointers[dim-1]),
+				num_dimensions,
+				dimension_array,
+				element_size_array );
+
+			switch ( mx_status.code ) {
+			case MXE_SUCCESS:
+				break;
+			default:
+				array_of_level_pointers[dim-1] = NULL;
+				break;
+			}
+		}
 
 		if ( array_of_level_pointers[dim-1] == NULL ) {
 
@@ -572,11 +622,7 @@ mx_array_add_overlay( void *vector_pointer,
 
 	*array_pointer = array_of_level_pointers[num_dimensions - 1];
 
-#if ( MX_ARRAY_USE_ARRAY_HEADER == FALSE )
 	free( array_of_level_pointers );
-#else
-	free( raw_top_level_array );
-#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -917,42 +963,10 @@ mx_allocate_array( long num_dimensions,
 		 * of the vector.
 		 */
 
-		unsigned long array_header_length, raw_vector_size;
-		char *raw_vector;
-
-		mx_status = mx_compute_array_header_length(
-					&array_header_length,
-					num_dimensions,
-					dimension_array,
-					data_element_size_array );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return NULL;
-
-		raw_vector_size = vector_size
-				+ array_header_length * sizeof(uint32_t);
-
-		raw_vector = malloc( raw_vector_size );
-
-		if ( raw_vector == (char *) NULL ) {
-			(void) mx_error( MXE_OUT_OF_MEMORY, fname,
-			"Ran out of memory trying to allocate the raw "
-			"vector for a 1-dimensional array of %lu bytes.",
-				raw_vector_size );
-				
-			return NULL;
-		}
-
-		memset( raw_vector, 0, raw_vector_size );
-
-		vector = (void *)( raw_vector
-				+ array_header_length * sizeof(uint32_t) );
-
-		mx_status = mx_setup_array_header( vector,
-					array_header_length,
-					num_dimensions,
-					dimension_array,
-					data_element_size_array );
+		mx_status = mxp_create_top_level_row( &vector,
+						num_dimensions,
+						dimension_array,
+						data_element_size_array );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return NULL;
