@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2011, 2013-2014 Illinois Institute of Technology
+ * Copyright 1999-2011, 2013-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -85,6 +85,8 @@ mxp_get_shlwapi_hinstance( void )
 
 #if defined(OS_WIN32) 
 
+#define MX_USE_COPYFILE_EX	TRUE
+
 MX_EXPORT mx_status_type
 mx_copy_file( char *existing_filename,
 		char *new_filename,
@@ -99,6 +101,11 @@ mx_copy_file( char *existing_filename,
 
 	mx_status_type mx_status;
 
+#if 0
+	MX_DEBUG(-2,("%s: mx_copy_file( '%s', '%s', %#lx )",
+		fname, existing_filename, new_filename, copy_flags));
+#endif
+
 	/*---*/
 
 	if ( copy_flags & MXF_CP_USE_CLASSIC_COPY ) {
@@ -110,12 +117,16 @@ mx_copy_file( char *existing_filename,
 
 	/*---*/
 
-#if 0
-	MX_DEBUG(-2,("%s: Invoking CopyFile( '%s', '%s', FALSE )",
-		fname, existing_filename, new_filename));
-#endif
+#if ( MX_USE_COPYFILE_EX == FALSE )
 
 	os_status = CopyFile( existing_filename, new_filename, FALSE );
+
+#else /* MX_USE_COPYFILE_EX */
+
+	os_status = CopyFileEx( existing_filename, new_filename,
+					NULL, NULL, NULL, 0 );
+
+#endif /* MX_USE_COPYFILE_EX */
 
 	if ( os_status == 0 ) {
 		last_error_code = GetLastError();
