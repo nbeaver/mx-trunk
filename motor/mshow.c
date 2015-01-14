@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2007, 2009-2014 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2007, 2009-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -110,6 +110,7 @@ motor_show_fn( int argc, char *argv[] )
 
 	MX_PROCESS_MEMINFO process_meminfo;
 	MX_SYSTEM_MEMINFO system_meminfo;
+	MX_LIST_HEAD *list_head;
 	char record_type_phrase[80];
 	char *match_string;
 	int multiple_records, enable_flag;
@@ -123,7 +124,9 @@ motor_show_fn( int argc, char *argv[] )
 "        show bypass_limit_switch\n"
 "                           -- show if the next move will bypass automatic\n"
 "                              move abort on limits\n"
+"        show debug         -- show MX debugging level\n"
 "        show header_prompt -- show whether scan headers are prompted for\n"
+"        show netdebug      -- show MX network debugging flags\n"
 "        show overwrite     -- show whether old datafiles are automatically\n"
 "                              overwritten\n"
 "        show plot          -- show current plot type\n"
@@ -168,6 +171,14 @@ motor_show_fn( int argc, char *argv[] )
 	record_type = 0;
 	strlcpy( record_type_phrase, "", sizeof(record_type_phrase) );
 	match_string = NULL;
+
+	list_head = mx_get_record_list_head_struct( motor_record_list );
+
+	if ( list_head == (MX_LIST_HEAD *) NULL ) {
+		fprintf( output,
+	  "The MX_LIST_HEAD pointer is NULL!!!  This should be impossible!\n" );
+		return FAILURE;
+	}
 
 	switch( argc ) {
 	case 3:
@@ -290,6 +301,22 @@ motor_show_fn( int argc, char *argv[] )
 		    fprintf( output, "  header prompting is on.\n");
 		} else {
 		    fprintf( output, "  header prompting is off.\n");
+		}
+		return SUCCESS;
+
+	} else if ( strncmp( "debug", argv[2], length ) == 0 ) {
+		fprintf( output, "  debug level = %d\n",
+			mx_get_debug_level() );
+
+		return SUCCESS;
+
+	} else if ( strncmp( "netdebug", argv[2], length ) == 0 ) {
+		if ( list_head->network_debug_flags
+			& MXF_NETWORK_SERVER_DEBUG_ANY )
+		{
+			fprintf( output, "  network debug = on\n" );
+		} else {
+			fprintf( output, "  network debug = off\n" );
 		}
 		return SUCCESS;
 

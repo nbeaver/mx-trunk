@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2006-2007, 2009-2010, 2013
+ * Copyright 1999-2003, 2006-2007, 2009-2010, 2013, 2015
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -38,6 +38,7 @@
 #include "mx_array.h"
 #include "mx_socket.h"
 #include "mx_process.h"
+#include "mx_multi.h"
 #include "motor.h"
 #include "mdialog.h"
 
@@ -66,6 +67,7 @@ motor_set_fn( int argc, char *argv[] )
 	size_t length2, length3, string_length;
 	int status;
 	int int_value, debug_level, num_items;
+	unsigned long do_netdebug;
 	long long_value;
 	double double_value;
 	mx_status_type mx_status;
@@ -91,7 +93,8 @@ motor_set_fn( int argc, char *argv[] )
 "        set overwrite { on | off }\n"
 "        set plot { on | off | nowait | end }\n"
 "        set scanlog { on | off }\n"
-"        set debug 'debug-value'";
+"        set debug 'debug-value'"
+"        set netdebug 'network-debug-value'\n";
 
 	if ( argc == 2 ) {
 		fprintf(output,"%s\n",usage);
@@ -987,6 +990,41 @@ motor_set_fn( int argc, char *argv[] )
 		}
 
 		mx_set_debug_level( debug_level );
+
+	/* SET NETDEBUG function. */
+
+	} else if ( strncmp( argv[2], "netdebug", length2 ) == 0 ) {
+
+		if ( argc <= 3 ) {
+			fprintf(output,
+			"Usage: 'set netdebug network-debug-value'\n");
+
+			return FAILURE;
+		}
+
+		if ( strcmp( argv[3], "on" ) == 0 ) {
+			do_netdebug = TRUE;
+		} else
+		if ( strcmp( argv[3], "off" ) == 0 ) {
+			do_netdebug = FALSE;
+		} else {
+			num_items = sscanf( argv[3], "%lx", &do_netdebug );
+
+			if ( num_items != 1 ) {
+				fprintf( output,
+		"%s: Argument '%s' is not an integer number.\n\n"
+		"Usage: 'set netdebug network-debug-value'\n", cname, argv[3] );
+
+				return FAILURE;
+			}
+		}
+
+		if ( do_netdebug ) {
+			mx_multi_set_debug_flags( motor_record_list,
+					MXF_NETWORK_SERVER_DEBUG_SUMMARY );
+		} else {
+			mx_multi_set_debug_flags( motor_record_list, 0 );
+		}
 
 	} else {
 		fprintf(output,"%s: Unrecognized option '%s'\n\n",
