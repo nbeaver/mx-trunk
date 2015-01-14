@@ -1007,7 +1007,7 @@ mx_free_array( void *array_pointer )
 
 	mx_free( raw_vector );
 
-	return mx_status;
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*---------------------------------------------------------------------------*/
