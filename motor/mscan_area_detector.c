@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2006, 2009-2011, 2013
+ * Copyright 1999-2001, 2004-2006, 2009-2011, 2013, 2015
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -34,7 +34,7 @@
 #define FREE_MOTOR_NAME_ARRAY \
 	do { \
 		if ( scan_num_motors > 0 ) { \
-			(void) mx_free_array( motor_name_array, 2 ); \
+			(void) mx_free_array( motor_name_array ); \
 			motor_name_array = NULL; \
 		} \
 	} while(0)

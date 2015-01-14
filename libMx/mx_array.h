@@ -40,7 +40,8 @@ extern "C" {
 
 /*---------------------------------------------------------------------------*/
 
-#define MX_ARRAY_HEADER_WORDSIZE	sizeof(uint32_t)
+#define MX_ARRAY_HEADER_WORD_TYPE	uint32_t
+#define MX_ARRAY_HEADER_WORD_SIZE	sizeof(MX_ARRAY_HEADER_WORD_TYPE)
 
 #define MX_ARRAY_HEADER_MAGIC		0xd6d8ebed
 
@@ -89,8 +90,7 @@ MX_API mx_status_type mx_array_add_overlay( void *vector_pointer,
 					size_t *data_element_size_array,
 					void **array_pointer );
 
-MX_API mx_status_type mx_array_free_overlay( void *array_pointer,
-					long num_dimensions );
+MX_API mx_status_type mx_array_free_overlay( void *array_pointer );
 
 /*---*/
 
@@ -100,13 +100,11 @@ MX_API mx_status_type mx_subarray_add_overlay( void *array_pointer,
 					size_t *data_element_size_array,
 					void **subarray_pointer );
 
-MX_API mx_status_type mx_subarray_free_overlay( void *subarray_pointer,
-					long num_dimensions );
+MX_API mx_status_type mx_subarray_free_overlay( void *subarray_pointer );
 
 /*---*/
 
-MX_API void *mx_array_get_vector( void *array_pointer,
-					long num_dimensions );
+MX_API void *mx_array_get_vector( void *array_pointer );
 
 /*---*/
 
@@ -114,14 +112,17 @@ MX_API void *mx_allocate_array( long num_dimensions,
 					long *dimension_array,
 					size_t *data_element_size_array );
 
-MX_API mx_status_type mx_free_array( void *array_pointer,
-					long num_dimensions );
+MX_API mx_status_type mx_free_array( void *array_pointer );
 
 /*---*/
 
 MX_API void *mx_reallocate_array( void *array_pointer,
 					long num_dimensions,
 					long *dimension_array );
+
+/*---*/
+
+MX_API void mx_show_array_info( void *array_pointer );
 
 /*---*/
 

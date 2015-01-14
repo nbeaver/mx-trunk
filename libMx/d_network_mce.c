@@ -496,7 +496,7 @@ mxd_network_mce_get_motor_record_array( MX_MCE *mce )
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_free( mce->motor_record_array );
-		mx_free_array( motor_name_array, 2 );
+		mx_free_array( motor_name_array );
 
 		return mx_status;
 	}
@@ -603,7 +603,7 @@ mxd_network_mce_get_motor_record_array( MX_MCE *mce )
 	    current_record = current_record->next_record;
 	}
 
-	mx_free_array( motor_name_array, 2 );
+	mx_free_array( motor_name_array );
 
 	mx_status = mx_mce_fixup_motor_record_array_field( mce );
 

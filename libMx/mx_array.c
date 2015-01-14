@@ -22,10 +22,6 @@
 
 #define MX_ARRAY_DEBUG_64BIT_COPY	FALSE
 
-/* FIXME - Soon the following will be the default. */
-
-#define MX_ARRAY_USE_ARRAY_HEADER	TRUE
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -256,7 +252,7 @@ mx_compute_array_header_length( unsigned long *array_header_length_in_bytes,
 	raw_array_header_length_in_words = 3 + 2 * num_dimensions;
 
 	raw_array_header_length_in_bytes =
-		raw_array_header_length_in_words * MX_ARRAY_HEADER_WORDSIZE;
+		raw_array_header_length_in_words * MX_ARRAY_HEADER_WORD_SIZE;
 
 	/* This header length will be used to compute an offset
 	 * to the nominal start of the top level array pointer.
@@ -291,7 +287,7 @@ mx_setup_array_header( void *array_pointer,
 {
 	static const char fname[] = "mx_setup_array_header()";
 
-	uint32_t *header, *header_ptr;
+	MX_ARRAY_HEADER_WORD_TYPE *header, *header_ptr;
 	long i;
 
 	if ( array_pointer == (void *) NULL ) {
@@ -313,11 +309,11 @@ mx_setup_array_header( void *array_pointer,
 		"The data_element_size_array pointer passed was NULL." );
 	}
 
-	header = (uint32_t *) array_pointer;
+	header = (MX_ARRAY_HEADER_WORD_TYPE *) array_pointer;
 
 	header[ MX_ARRAY_OFFSET_MAGIC ] = MX_ARRAY_HEADER_MAGIC;
 	header[ MX_ARRAY_OFFSET_HEADER_LENGTH ] =
-			array_header_length_in_bytes / MX_ARRAY_HEADER_WORDSIZE;
+		array_header_length_in_bytes / MX_ARRAY_HEADER_WORD_SIZE;
 	header[ MX_ARRAY_OFFSET_NUM_DIMENSIONS ] = num_dimensions;
 
 	header_ptr = header + MX_ARRAY_OFFSET_DIMENSION_ARRAY;
@@ -343,8 +339,6 @@ mx_setup_array_header( void *array_pointer,
  * is stored.  This function encapsulates the logic necessary to embed the
  * array header before the start of the actual array.
  */
-
-#if MX_ARRAY_USE_ARRAY_HEADER
 
 static mx_status_type
 mxp_create_top_level_row( void **top_level_row,
@@ -420,8 +414,6 @@ mxp_create_top_level_row( void **top_level_row,
 	return mx_status;
 }
 
-#endif /* MX_ARRAY_USE_ARRAY_HEADER */
-
 /*---------------------------------------------------------------------------*/
 
 /* mx_array_add_overlay() adds a multidimensional veneer on top of the
@@ -446,6 +438,15 @@ mx_array_add_overlay( void *vector_pointer,
 	unsigned long upper_step_size, lower_step_size;
 	char *upper_pointer, *lower_pointer;
 	mx_status_type mx_status;
+
+	/* FIXME: Take this breakpoint out when we convince ourselves that
+	 * allocation of arrays with three or more dimensions still works
+	 * with the newly-modified array routines.
+	 */
+
+	if ( num_dimensions >= 3 ) {
+		mx_breakpoint();
+	}
 
 	if ( vector_pointer == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -629,52 +630,14 @@ mx_array_add_overlay( void *vector_pointer,
 
 /*---------------------------------------------------------------------------*/
 
-#if ( MX_ARRAY_USE_ARRAY_HEADER == FALSE )
-
 MX_EXPORT mx_status_type
-mx_array_free_overlay( void *array_pointer,
-			long num_dimensions )
+mx_array_free_overlay( void *array_pointer )
 {
 	static const char fname[] = "mx_array_free_overlay()";
 
 	void *level_pointer, *next_level_pointer;
-	long dim;
-
-	if ( array_pointer == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The array_pointer argument passed was NULL." );
-	}
-
-	/* Do _not_ free the 1-D vector at the bottom of the array!
-	 * It may be in use by other code such as an MX_IMAGE_FRAME.
-	 * This means that we must stop at dim == 2.
-	 */
-
-	level_pointer = array_pointer;
-
-	for ( dim = num_dimensions; dim >= 2; dim-- ) {
-		next_level_pointer =
-		    mx_read_void_pointer_from_memory_location( level_pointer );
-
-		free(level_pointer);
-
-		level_pointer = next_level_pointer;
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-#else
-
-MX_EXPORT mx_status_type
-mx_array_free_overlay( void *array_pointer,
-			long num_dimensions )
-{
-	static const char fname[] = "mx_array_free_overlay()";
-
-	void *level_pointer, *next_level_pointer;
-	uint32_t *header, *raw_array_pointer;
-	long num_header_words, header_num_dimensions;
+	MX_ARRAY_HEADER_WORD_TYPE *header, *raw_array_pointer;
+	long num_header_words, num_dimensions;
 	long dim;
 
 	if ( array_pointer == (void *) NULL ) {
@@ -688,7 +651,7 @@ mx_array_free_overlay( void *array_pointer,
 	 * a segmentation fault if it does _not_ have an array header.
 	 */
 
-	header = (uint32_t *) array_pointer;
+	header = (MX_ARRAY_HEADER_WORD_TYPE *) array_pointer;
 
 	/* First look for the header magic number. */
 
@@ -708,25 +671,14 @@ mx_array_free_overlay( void *array_pointer,
 	 * of dimensions in the array.
 	 */
 
-	num_header_words      = header[MX_ARRAY_OFFSET_HEADER_LENGTH];
-	header_num_dimensions = header[MX_ARRAY_OFFSET_NUM_DIMENSIONS];
+	num_header_words = header[MX_ARRAY_OFFSET_HEADER_LENGTH];
+	num_dimensions   = header[MX_ARRAY_OFFSET_NUM_DIMENSIONS];
 
-	if ( header_num_dimensions < 2 ) {
+	if ( num_dimensions < 2 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"This function is only meant for arrays with 2 or more "
 		"dimensions.  The array pointer %p has %ld dimensions.",
-			array_pointer, header_num_dimensions );
-	}
-
-	if ( header_num_dimensions != num_dimensions ) {
-		mx_warning( "The num_dimensions argument (%ld) passed to "
-		"this function for array %p does not have the same value as "
-		"the header_num_dimensions value (%ld) read from the header.  "
-		"We will proceed anyway using the value from the header.",
-			num_dimensions, array_pointer,
-			header_num_dimensions );
-
-		num_dimensions = header_num_dimensions;
+			array_pointer, num_dimensions );
 	}
 
 	/* The top level array of pointers must be handled specially,
@@ -736,7 +688,7 @@ mx_array_free_overlay( void *array_pointer,
 	 * beginning of the header.
 	 */
 
-	raw_array_pointer = ((uint32_t *) array_pointer) - num_header_words;
+	raw_array_pointer = ((MX_ARRAY_HEADER_WORD_TYPE *) array_pointer) - num_header_words;
 
 	if ( num_dimensions == 2 ) {
 		mx_free( raw_array_pointer );
@@ -769,8 +721,6 @@ mx_array_free_overlay( void *array_pointer,
 
 	return MX_SUCCESSFUL_RESULT;
 }
-
-#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -829,8 +779,7 @@ mx_subarray_add_overlay( void *array_pointer,
 /*---------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mx_subarray_free_overlay( void *subarray_pointer,
-			long num_dimensions )
+mx_subarray_free_overlay( void *subarray_pointer )
 {
 	mx_status_type mx_status;
 
@@ -842,7 +791,7 @@ mx_subarray_free_overlay( void *subarray_pointer,
 	 * mx_array_free_overlay() function.
 	 */
 
-	mx_status = mx_array_free_overlay( subarray_pointer, num_dimensions );
+	mx_status = mx_array_free_overlay( subarray_pointer );
 
 	return mx_status;
 }
@@ -850,13 +799,13 @@ mx_subarray_free_overlay( void *subarray_pointer,
 /*---------------------------------------------------------------------------*/
 
 MX_EXPORT void *
-mx_array_get_vector( void *array_pointer,
-			long num_dimensions )
+mx_array_get_vector( void *array_pointer )
 {
 	static const char fname[] = "mx_array_get_vector()";
 
+	MX_ARRAY_HEADER_WORD_TYPE *header;
 	void *level_pointer;
-	long dim;
+	long dim, num_dimensions;
 
 	if ( array_pointer == NULL ) {
 		mx_error( MXE_NULL_ARGUMENT, fname,
@@ -864,6 +813,22 @@ mx_array_get_vector( void *array_pointer,
 
 		return NULL;
 	}
+
+	header = (MX_ARRAY_HEADER_WORD_TYPE *) array_pointer;
+
+	if ( header[MX_ARRAY_OFFSET_MAGIC] != MX_ARRAY_HEADER_MAGIC ) {
+		mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The array_pointer %p is not an array that was created "
+		"using mx_array_add_offset().  "
+		"This is a fatal error, so we are intentionally crashing now.",
+			array_pointer );
+
+		mx_sleep(2);
+
+		raise( SIGSEGV );
+	}
+
+	num_dimensions = header[MX_ARRAY_OFFSET_NUM_DIMENSIONS];
 
 	level_pointer = array_pointer;
 
@@ -934,28 +899,6 @@ mx_allocate_array( long num_dimensions,
 	MX_DEBUG(-2,("%s: vector_size = %lu", fname, vector_size));
 #endif
 
-#if ( MX_ARRAY_USE_ARRAY_HEADER == FALSE )	/*---*/
-
-	vector = malloc( vector_size );
-
-#if MX_ARRAY_DEBUG_ALLOCATE
-	MX_DEBUG(-2,("%s: vector = %p", fname, vector));
-#endif
-
-	if ( vector == NULL ) {
-		return NULL;
-	}
-
-	/* If this is a 1-dimensional array, then just return the vector
-	 * that we just allocated.
-	 */
-
-	if ( num_dimensions < 2 ) {
-		return vector;
-	}
-
-#else /* MX_ARRAY_USE_ARRAY_HEADER */
-
 	if ( num_dimensions == 1 ) {
 
 		/* For 1-dimensional arrays, we must encode the information
@@ -983,7 +926,6 @@ mx_allocate_array( long num_dimensions,
 	if ( vector == NULL ) {
 		return NULL;
 	}
-#endif /* MX_ARRAY_USE_ARRAY_HEADER */
 
 	/* Multidimensional arrays use mx_array_add_overlay(). */
 
@@ -1002,32 +944,44 @@ mx_allocate_array( long num_dimensions,
 /*---------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mx_free_array( void *array_pointer,
-		long num_dimensions )
+mx_free_array( void *array_pointer )
 {
 	static const char fname[] = "mx_free_array()";
 
+	MX_ARRAY_HEADER_WORD_TYPE *header, *raw_vector;
+	size_t num_dimensions;
+	long num_header_words;
 	void *vector;
 	mx_status_type mx_status;
-
-	mx_status = MX_SUCCESSFUL_RESULT;
 
 	if ( array_pointer == NULL ) {
 		mx_error( MXE_NULL_ARGUMENT, fname,
 		"The array_pointer value passed was NULL." );
 	}
-	if ( num_dimensions < 1 ) {
-		return mx_error(MXE_ILLEGAL_ARGUMENT, fname,
-			"The number of dimensions (%ld) requested was less "
-			"than the minimum allowed value of 1.", num_dimensions);
-	}
 
-	/* We do not actually use the dimension_array or the
-	 * data_element_size_array arguments which are present
-	 * only for compatibility with mx_free_array_old().
+	/* If this array was created by mx_allocate_array() or friends,
+	 * we can get the number of dimensions from the array header.
 	 */
 
-	vector = mx_array_get_vector( array_pointer, num_dimensions );
+	header = (MX_ARRAY_HEADER_WORD_TYPE *) array_pointer;
+
+	if ( header[MX_ARRAY_OFFSET_MAGIC] != MX_ARRAY_HEADER_MAGIC ) {
+		mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The array_pointer %p is not an array that was created "
+		"using mx_array_add_offset().  "
+		"This is a fatal error, so we are intentionally crashing now.",
+			array_pointer );
+
+		mx_sleep(2);
+
+		raise( SIGSEGV );
+	}
+
+	num_dimensions = header[MX_ARRAY_OFFSET_NUM_DIMENSIONS];
+
+	/*---*/
+
+	vector = mx_array_get_vector( array_pointer );
 
 	if ( vector == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1035,60 +989,23 @@ mx_free_array( void *array_pointer,
 			array_pointer );
 	}
 
-#if ( MX_ARRAY_USE_ARRAY_HEADER == FALSE )
-
 	if ( num_dimensions >= 2 ) {
-		mx_status = mx_array_free_overlay( array_pointer,
-							num_dimensions );
-	}
-
-	mx_free( vector );
-
-#else /* MX_ARRAY_USE_ARRAY_HEADER */
-
-	if ( num_dimensions >= 2 ) {
-		mx_status = mx_array_free_overlay( array_pointer,
-							num_dimensions );
+		mx_status = mx_array_free_overlay( array_pointer );
 
 		mx_free( vector );
 
 		return mx_status;
 	}
 
-	{
-		uint32_t *header, *raw_vector;
-		long num_header_words;
+	/* For 1-dimensional arrays, we need to find the start of the
+	 * array header.
+	 */
 
-		/* For 1-dimensional arrays, we need to find the start of the
-		 * array header.
-		 */
+	num_header_words = header[MX_ARRAY_OFFSET_HEADER_LENGTH];
 
-		header = (uint32_t *) vector;
+	raw_vector = ((MX_ARRAY_HEADER_WORD_TYPE *) vector) - num_header_words;
 
-		/* Look for the header magic number. */
-
-		if ( header[MX_ARRAY_OFFSET_MAGIC] != MX_ARRAY_HEADER_MAGIC ) {
-			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"The array_pointer %p is not an array that was created "
-			"using mx_allocate_array().  This is a fatal error, "
-			"so we are intentionally crashing now.",
-				array_pointer );
-
-			mx_sleep(2);
-
-			raise( SIGSEGV );
-		}
-
-		num_header_words = header[MX_ARRAY_OFFSET_HEADER_LENGTH];
-
-		raw_vector = ((uint32_t *) vector) - num_header_words;
-
-		mx_free( vector );
-
-		mx_status = MX_SUCCESSFUL_RESULT;
-	}
-
-#endif /* MX_ARRAY_USE_ARRAY_HEADER */
+	mx_free( raw_vector );
 
 	return mx_status;
 }
@@ -1119,7 +1036,7 @@ mx_reallocate_array( void *array_pointer,
 	static const char fname[] = "mx_reallocate_array()";
 
 	void *new_array_pointer;
-	uint32_t *header;
+	MX_ARRAY_HEADER_WORD_TYPE *header;
 	unsigned long header_magic, header_length, computed_header_length;
 	long i, j, num_dimensions;
 	long *old_dimension_array;
@@ -1139,7 +1056,7 @@ mx_reallocate_array( void *array_pointer,
 		return NULL;
 	}
 
-	header = (uint32_t *) array_pointer;
+	header = (MX_ARRAY_HEADER_WORD_TYPE *) array_pointer;
 
 	header_magic = header[MX_ARRAY_OFFSET_MAGIC];
 
@@ -1236,7 +1153,7 @@ mx_reallocate_array( void *array_pointer,
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_free( old_dimension_array );
 		mx_free( old_element_size_array );
-		mx_free_array( new_array_pointer, new_num_dimensions );
+		mx_free_array( new_array_pointer );
 
 		return NULL;
 	}
@@ -1245,6 +1162,58 @@ mx_reallocate_array( void *array_pointer,
 }
 
 /*---------------------------------------------------------------------------*/
+
+MX_EXPORT void
+mx_show_array_info( void *array_pointer )
+{
+	MX_ARRAY_HEADER_WORD_TYPE *header;
+	unsigned long header_magic, num_header_words;
+	unsigned long i, num_dimensions;
+
+	mx_info( "MX array info for %p:", array_pointer );
+
+	if ( array_pointer == NULL ) {
+		mx_info( "  The array is NULL." );
+		return;
+	}
+
+	header = (MX_ARRAY_HEADER_WORD_TYPE *) array_pointer;
+
+	header_magic = header[MX_ARRAY_OFFSET_MAGIC];
+
+	if ( header_magic != MX_ARRAY_HEADER_MAGIC ) {
+		mx_info("Header magic for this array is %#lx, which is not "
+			"the correct magic number for an MX array.",
+				header_magic );
+
+		return;
+	}
+
+	num_header_words = header[MX_ARRAY_OFFSET_HEADER_LENGTH];
+
+	mx_info("  Num header words = %lu", num_header_words);
+
+	num_dimensions = header[MX_ARRAY_OFFSET_NUM_DIMENSIONS];
+
+	mx_info("  Num dimensions = %lu", num_dimensions);
+
+	header += MX_ARRAY_OFFSET_DIMENSION_ARRAY;
+
+	for ( i = 0; i < num_dimensions; i++ ) {
+		mx_info("    dimension[%lu] = %lu", i, (unsigned long) *header);
+		header--;
+	}
+
+	for ( i = 0; i < num_dimensions; i++ ) {
+		mx_info("    element_size[%lu] = %lu",
+				i, (unsigned long) *header);
+		header--;
+	}
+
+	return;
+}
+
+/*===========================================================================*/
 
 static void
 mx_copy_32bits_to_64bits( void *destination, void *source, size_t num_elements )

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2012-2013 Illinois Institute of Technology
+ * Copyright 2012-2013, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -356,7 +356,7 @@ mx_image_noir_setup( MX_RECORD *mx_imaging_device_record,
 		/* If present, destroy the old one. */
 
 		mx_status = mx_free_array(
-		    image_noir_info->dynamic_header_alias_array, 3 );
+		    image_noir_info->dynamic_header_alias_array );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

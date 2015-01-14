@@ -7,7 +7,8 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004, 2006, 2009, 2013 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004, 2006, 2009, 2013, 2015
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -239,7 +240,7 @@ motor_setup_list_scan_parameters(
 			motor_record_array,
 			motor_name_array );
 
-	(void) mx_free_array( motor_name_array, 2 );
+	(void) mx_free_array( motor_name_array );
 
 	if ( status != SUCCESS ) {
 		return status;

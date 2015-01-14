@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2014 Illinois Institute of Technology
+ * Copyright 2006-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2216,9 +2216,9 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 
 	/* Finish by freeing the overlay arrays. */
 
-	mx_status = mx_array_free_overlay( original_array, 2 );
+	mx_status = mx_array_free_overlay( original_array );
 
-	mx_status2 = mx_array_free_overlay( rebinned_array, 2 );
+	mx_status2 = mx_array_free_overlay( rebinned_array );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

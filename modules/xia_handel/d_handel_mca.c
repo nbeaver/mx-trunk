@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2006, 2008-2012 Illinois Institute of Technology
+ * Copyright 2001-2006, 2008-2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -3486,7 +3486,7 @@ mxd_handel_mca_show_parameters( MX_MCA *mca )
 			malloc( num_parameters * sizeof(unsigned short) );
 
 	if ( parameter_values == (unsigned short *) NULL ) {
-		mx_free_array( string_array, 2, dimension_array, size_array );
+		mx_free_array( string_array );
 
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Cannot allocate a %hu element array "
@@ -3500,7 +3500,7 @@ mxd_handel_mca_show_parameters( MX_MCA *mca )
 					"values", (void *) parameter_values );
 
 	if ( xia_status != XIA_SUCCESS ) {
-		mx_free_array( string_array, 2, dimension_array, size_array );
+		mx_free_array( string_array );
 		mx_free( parameter_values );
 
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
@@ -3542,7 +3542,7 @@ mxd_handel_mca_show_parameters( MX_MCA *mca )
 
 	/* We are done, so discard the string array. */
 
-	mx_free_array( string_array, 2, dimension_array, size_array );
+	mx_free_array( string_array );
 
 	return MX_SUCCESSFUL_RESULT;
 }

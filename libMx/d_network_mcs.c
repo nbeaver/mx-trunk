@@ -346,7 +346,7 @@ mxd_network_mcs_open( MX_RECORD *record )
 			return mx_status;
 	}
 
-#if 1
+#if 0
 	MX_DEBUG(-2,("%s: network MCS '%s' remote_mx_version = %lu",
 		fname, record->name, network_server->remote_mx_version));
 	MX_DEBUG(-2,("%s: network MCS '%s' readout_preference = %ld",

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2007-2010, 2013 Illinois Institute of Technology
+ * Copyright 2007-2010, 2013, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -549,7 +549,7 @@ mxd_file_vinput_close( MX_RECORD *record )
 	sizeof_array[0] = sizeof(char);
 	sizeof_array[1] = sizeof(char *);
 
-	mx_status = mx_free_array( file_vinput->filename_array, 2 );
+	mx_status = mx_free_array( file_vinput->filename_array );
 
 	return mx_status;
 }

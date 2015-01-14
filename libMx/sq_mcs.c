@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2008, 2010-2014 Illinois Institute of Technology
+ * Copyright 1999-2006, 2008, 2010-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -109,7 +109,7 @@ mxs_mcs_quick_scan_free_arrays( MX_SCAN *scan,
 		element_size[0] = sizeof(double);
 		element_size[1] = sizeof(double *);
 
-		(void) mx_free_array( scan->datafile.x_position_array, 2 );
+		(void) mx_free_array( scan->datafile.x_position_array );
 	}
 
 	if ( scan->plot.x_position_array != NULL ) {
@@ -119,7 +119,7 @@ mxs_mcs_quick_scan_free_arrays( MX_SCAN *scan,
 		element_size[0] = sizeof(double);
 		element_size[1] = sizeof(double *);
 
-		(void) mx_free_array( scan->plot.x_position_array, 2 );
+		(void) mx_free_array( scan->plot.x_position_array );
 	}
 }
 

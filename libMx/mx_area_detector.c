@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2014 Illinois Institute of Technology
+ * Copyright 2006-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -4748,7 +4748,7 @@ mx_area_detector_get_roi_frame( MX_RECORD *record,
 						&array_ptr );
 
 			if ( mx_status.code != MXE_SUCCESS ) {
-				mx_array_free_overlay( image_array_u16, 2 );
+				mx_array_free_overlay( image_array_u16 );
 				return mx_status;
 			}
 
@@ -4773,8 +4773,8 @@ mx_area_detector_get_roi_frame( MX_RECORD *record,
 				}
 			}
 
-			mx_array_free_overlay( image_array_u16, 2 );
-			mx_array_free_overlay( roi_array_u16, 2 );
+			mx_array_free_overlay( image_array_u16 );
+			mx_array_free_overlay( roi_array_u16 );
 			break;
 
 		default:

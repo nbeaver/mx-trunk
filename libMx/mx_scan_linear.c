@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2010, 2013 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2010, 2013, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -427,8 +427,7 @@ mxs_linear_scan_delete_record( MX_RECORD *record )
 			element_size[0] = sizeof(double);
 			element_size[1] = sizeof(double *);
 
-			(void) mx_free_array( scan->datafile.x_position_array,
-					      2 );
+			(void) mx_free_array( scan->datafile.x_position_array );
 		}
 
 		if ( scan->plot.x_motor_array != NULL ) {
@@ -442,7 +441,7 @@ mxs_linear_scan_delete_record( MX_RECORD *record )
 			element_size[0] = sizeof(double);
 			element_size[1] = sizeof(double *);
 
-			(void) mx_free_array( scan->plot.x_position_array, 2 );
+			(void) mx_free_array( scan->plot.x_position_array );
 		}
 
 		mx_free( scan );

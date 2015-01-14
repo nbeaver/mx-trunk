@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2010, 2012 Illinois Institute of Technology
+ * Copyright 2006-2010, 2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -865,7 +865,7 @@ mxd_soft_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 
 		switch( vinput->image_format ) {
 		case MXT_IMAGE_FORMAT_GREY16:
-			mx_array_free_overlay( image_array_u16, 2 );
+			mx_array_free_overlay( image_array_u16 );
 			break;
 		}
 		break;
