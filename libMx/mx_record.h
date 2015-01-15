@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2010, 2012-2014 Illinois Institute of Technology
+ * Copyright 1999-2010, 2012-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -914,7 +914,7 @@ MX_API mx_status_type  mx_set_field_application_ptr(
 /* --- */
 
 MX_API mx_status_type  mx_set_program_name( MX_RECORD *record_list,
-						char *program_name );
+						const char *program_name );
 
 MX_API mx_status_type  mx_get_fast_mode( MX_RECORD *record_list,
 						mx_bool_type *mode_flag );

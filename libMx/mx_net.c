@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2014 Illinois Institute of Technology
+ * Copyright 1999-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -4565,8 +4565,8 @@ mx_get_field_type( MX_RECORD *server_record,
 
 MX_EXPORT mx_status_type
 mx_set_client_info( MX_RECORD *server_record,
-			char *username,
-			char *program_name )
+			const char *username,
+			const char *program_name )
 {
 	static const char fname[] = "mx_set_client_info()";
 
@@ -4579,6 +4579,7 @@ mx_set_client_info( MX_RECORD *server_record,
 	uint32_t message_type, status_code;
 	mx_bool_type connection_is_up;
 	long i, string_length;
+	char *local_username, *local_program_name;
 	mx_status_type mx_status;
 
 #if NETWORK_DEBUG_TIMING
@@ -4601,34 +4602,51 @@ mx_set_client_info( MX_RECORD *server_record,
 	/*--------------------------------------------------------------*/
 
 	/* Change "illegal" characters in user names and program names
-	 * to underscore or null characters.
+	 * to underscore or null characters.  However, we must not change
+	 * these strings in our caller, so we make local copies of them.
 	 */
 
-	string_length = strlen( username );
+	local_username = strdup( username );
+
+	if ( local_username == (char *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory allocating a copy of the username." );
+	}
+
+	string_length = strlen( local_username );
 
 	for ( i = 0; i < string_length; i++ ) {
-		if ( username[i] == ' ' ) {
-			username[i] = '_';
+		if ( local_username[i] == ' ' ) {
+			local_username[i] = '_';
 		} else
-		if ( username[i] == '\t' ) {
-			username[i] = '_';
+		if ( local_username[i] == '\t' ) {
+			local_username[i] = '_';
 		} else
-		if ( username[i] == '\n' ) {
-			username[i] = '\0';
+		if ( local_username[i] == '\n' ) {
+			local_username[i] = '\0';
 		}
 	}
 
-	string_length = strlen( program_name );
+	local_program_name = strdup( program_name );
+
+	if ( local_program_name == (char *) NULL ) {
+		mx_free( local_username );
+
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory allocating a copy of the program name." );
+	}
+
+	string_length = strlen( local_program_name );
 
 	for ( i = 0; i < string_length; i++ ) {
-		if ( program_name[i] == ' ' ) {
-			program_name[i] = '_';
+		if ( local_program_name[i] == ' ' ) {
+			local_program_name[i] = '_';
 		} else
-		if ( program_name[i] == '\t' ) {
-			program_name[i] = '_';
+		if ( local_program_name[i] == '\t' ) {
+			local_program_name[i] = '_';
 		} else
-		if ( program_name[i] == '\n' ) {
-			program_name[i] = '\0';
+		if ( local_program_name[i] == '\n' ) {
+			local_program_name[i] = '\0';
 		}
 	}
 
@@ -4639,7 +4657,9 @@ mx_set_client_info( MX_RECORD *server_record,
 	if ( list_head->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		MX_DEBUG(-2,
     ("\n*** SET CLIENT INFO for server '%s', username '%s', program name '%s'.",
-			server_record->name, username, program_name));
+			server_record->name,
+			local_username,
+			local_program_name));
 	}
 
 	if ( list_head->network_debug_flags & MXF_NETDBG_SUMMARY ) {
@@ -4650,7 +4670,7 @@ mx_set_client_info( MX_RECORD *server_record,
 
 		fprintf( stderr,
 		"MX SET_CLIENT_INFO('%s', user = '%s', program = '%s')\n",
-			nf_label, username, program_name );
+			nf_label, local_username, local_program_name );
 	}
 
 	/* If the network connection is not currently up for some reason,
@@ -4660,13 +4680,18 @@ mx_set_client_info( MX_RECORD *server_record,
 	mx_status = mx_network_connection_is_up( server_record,
 						&connection_is_up );
 
-	if ( mx_status.code != MXE_SUCCESS )
+	if ( mx_status.code != MXE_SUCCESS ) {
+		mx_free( local_username );
+		mx_free( local_program_name );
 		return mx_status;
+	}
 
 	MX_DEBUG( 2,("%s: server '%s', connection_is_up = %d",
 		fname, server_record->name, (int) connection_is_up));
 
 	if ( connection_is_up == FALSE ) {
+		mx_free( local_username );
+		mx_free( local_program_name );
 		return MX_SUCCESSFUL_RESULT;
 	}
 
@@ -4686,11 +4711,11 @@ mx_set_client_info( MX_RECORD *server_record,
 
 	message = buffer + header_length;
 
-	strlcpy( message, username, MXU_USERNAME_LENGTH );
+	strlcpy( message, local_username, MXU_USERNAME_LENGTH );
 
 	strncat( message, " ", 1 );
 
-	strncat( message, program_name, MXU_PROGRAM_NAME_LENGTH );
+	strncat( message, local_program_name, MXU_PROGRAM_NAME_LENGTH );
 
 	strncat( message, " ", 1 );
 
@@ -4715,6 +4740,9 @@ mx_set_client_info( MX_RECORD *server_record,
 		header[MX_NETWORK_MESSAGE_ID] =
 				mx_htonl( server->last_rpc_message_id );
 	}
+
+	mx_free( local_username );
+	mx_free( local_program_name );
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_START( measurement );

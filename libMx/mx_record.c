@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2014 Illinois Institute of Technology
+ * Copyright 1999-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -3639,7 +3639,7 @@ mx_set_fast_mode( MX_RECORD *record, mx_bool_type mode_flag )
 /*---*/
 
 MX_EXPORT mx_status_type
-mx_set_program_name( MX_RECORD *record, char *program_name )
+mx_set_program_name( MX_RECORD *record, const char *program_name )
 {
 	static const char fname[] = "mx_set_program_name()";
 

@@ -897,7 +897,11 @@ motor_show_version( void )
 	unsigned long num_cores;
 	mx_status_type mx_status;
 
-	fprintf( output, "MX version: %s\n", mx_get_version_full_string() );
+	list_head = mx_get_record_list_head_struct( motor_record_list );
+
+	fprintf( output, "MX version: %s   [Posix timestamp = %lu]\n",
+		mx_get_version_full_string(),
+		list_head->mx_version_time );
 
 	mx_status = mx_get_os_version_string( os_version_string,
 						sizeof( os_version_string ) );

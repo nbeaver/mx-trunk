@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2000, 2003-2014 Illinois Institute of Technology
+ * Copyright 1999-2000, 2003-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -507,8 +507,8 @@ MX_API mx_status_type mx_get_field_type( MX_RECORD *server_record,
 			long *dimension_array );
 
 MX_API mx_status_type mx_set_client_info( MX_RECORD *server_record,
-			char *username,
-			char *program_name );
+			const char *username,
+			const char *program_name );
 
 MX_API mx_status_type mx_network_get_option( MX_RECORD *server_record,
 			unsigned long option_number,
