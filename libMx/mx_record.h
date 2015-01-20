@@ -424,7 +424,8 @@ typedef struct {
 	char status[ MXU_FIELD_NAME_LENGTH + 1 ];
 
 	unsigned long mx_version;
-	unsigned long mx_version_time;
+	uint64_t mx_version_time;
+	uint64_t posix_time;
 
 	unsigned long num_records;
 

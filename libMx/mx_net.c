@@ -5192,6 +5192,409 @@ mx_network_set_option( MX_RECORD *server_record,
 /* ====================================================================== */
 
 MX_EXPORT mx_status_type
+mx_network_get_64bit_option( MX_RECORD *server_record,
+			unsigned long option_number,
+			uint64_t *option_value )
+{
+	static const char fname[] = "mx_network_get_64bit_option()";
+
+	MX_NETWORK_SERVER *server;
+	MX_LIST_HEAD *list_head;
+	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
+	uint32_t *header, *uint32_message;
+	char *buffer, *message;
+	uint32_t header_length, message_length, message_type;
+	uint64_t low_order, high_order;
+	long status_code;
+	uint32_t header_length_in_32bit_words;
+	mx_bool_type quiet;
+	mx_status_type mx_status;
+
+#if NETWORK_DEBUG_TIMING
+	MX_HRT_TIMING measurement;
+#endif
+
+	MX_DEBUG( 2,("%s invoked, option_number = '%#lx'",
+			fname, option_number));
+
+	if ( server_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"server_record argument passed was NULL." );
+	}
+	if ( option_value == (uint64_t *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"option_value pointer passed was NULL." );
+	}
+
+	if ( option_number & MXE_QUIET ) {
+		quiet = TRUE;
+
+		option_number &= (~MXE_QUIET);
+	} else {
+		quiet = FALSE;
+	}
+
+	server = (MX_NETWORK_SERVER *) server_record->record_class_struct;
+
+	if ( server == (MX_NETWORK_SERVER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"MX_NETWORK_SERVER pointer for server record '%s' is NULL.",
+			server_record->name );
+	}
+
+	list_head = mx_get_record_list_head_struct( server_record );
+
+	if ( list_head->network_debug_flags & MXF_NETDBG_VERBOSE ) {
+		MX_DEBUG(-2,("\n*** GET OPTION %lu for server '%s'.",
+			option_number, server_record->name ));
+	}
+
+	/************ Send the 'get 64-bit option' message. *************/
+
+	aligned_buffer = server->message_buffer;
+
+	header = &(aligned_buffer->u.uint32_buffer[0]);
+	buffer = &(aligned_buffer->u.char_buffer[0]);
+
+	header_length = mx_remote_header_length(server);
+
+	header[MX_NETWORK_MAGIC]         = mx_htonl(MX_NETWORK_MAGIC_VALUE);
+	header[MX_NETWORK_HEADER_LENGTH] = mx_htonl(header_length);
+	header[MX_NETWORK_MESSAGE_TYPE]  = mx_htonl(MX_NETMSG_GET_64BIT_OPTION);
+	header[MX_NETWORK_STATUS_CODE]   = mx_htonl(MXE_SUCCESS);
+
+	message = buffer + header_length;
+	uint32_message = header + (header_length / sizeof(uint32_t));
+
+	uint32_message[0] = mx_htonl( option_number );
+
+	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( sizeof(uint32_t) );
+
+	if ( mx_server_supports_message_ids(server) ) {
+
+		header[MX_NETWORK_DATA_TYPE] = mx_htonl( MXFT_ULONG );
+
+		mx_network_update_message_id( &(server->last_rpc_message_id) );
+
+		header[MX_NETWORK_MESSAGE_ID] =
+				mx_htonl( server->last_rpc_message_id );
+	}
+
+#if NETWORK_DEBUG_TIMING
+	MX_HRT_START( measurement );
+#endif
+
+	mx_status = mx_network_send_message( server_record, aligned_buffer );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/************** Wait for the response. **************/
+
+	mx_status = mx_network_wait_for_message_id( server_record,
+						aligned_buffer,
+						server->last_rpc_message_id,
+						server->timeout );
+#if NETWORK_DEBUG_TIMING
+	MX_HRT_END( measurement );
+
+	MX_HRT_RESULTS( measurement, fname, " " );
+#endif
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Update these pointers in case they were
+	 * changed by mx_reallocate_network_buffer()
+	 * in mx_network_wait_for_message_id().
+	 */
+
+	header = &(aligned_buffer->u.uint32_buffer[0]);
+	buffer = &(aligned_buffer->u.char_buffer[0]);
+
+	header_length  = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
+	message_length = mx_ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
+	message_type   = mx_ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
+	status_code = (long) mx_ntohl( header[ MX_NETWORK_STATUS_CODE ] );
+
+	if ( message_type != mx_server_response( MX_NETMSG_GET_OPTION ) ) {
+
+		if ( message_type == MX_NETMSG_UNEXPECTED_ERROR ) {
+
+			if ( status_code == MXE_NOT_YET_IMPLEMENTED ) {
+
+				/* The remote server is an old server that
+				 * does not implement the 'get option'
+				 * message.
+				 */
+
+				return mx_error(
+				( status_code | MXE_QUIET ), fname,
+					"The MX 'get option' message type is "
+					"not implemented by server '%s'.",
+						server_record->name );
+			} else {
+				/* Some other error occurred. */
+
+				return mx_error( MXE_NETWORK_IO_ERROR, fname,
+	"Unexpected server error for MX server '%s'.  "
+	"Server error was '%s -> %s'", server_record->name,
+				mx_status_code_string((long) status_code ),
+					message );
+			}
+		}
+
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+"Message type for response was not MX_NETMSG_GET_OPTION.  "
+"Instead it was of type = %#lx", (unsigned long) message_type );
+	}
+
+	/* If the remote command failed, the message field will include
+	 * the text of the error message rather than the field type
+	 * data we requested.
+	 */
+
+	if ( status_code != MXE_SUCCESS ) {
+		if ( quiet ) {
+			status_code |= MXE_QUIET;
+		}
+
+		return mx_error( (long)status_code, fname, "%s", message );
+	}
+
+	if ( message_length < sizeof(uint32_t) ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+			"Incomplete message received.  Message length = %ld",
+			(long) message_length );
+	}
+
+	header_length_in_32bit_words = (uint32_t)
+				( header_length / sizeof(uint32_t) );
+
+	uint32_message = header + header_length_in_32bit_words;
+
+	/* The value is sent as a 64-bit big-endian integer. */
+
+	high_order = mx_ntohl( uint32_message[0] );
+	low_order  = mx_ntohl( uint32_message[1] );
+
+	*option_value = ( (high_order << 32) | low_order );
+
+	MX_DEBUG( 2,("%s invoked, *option_value = '%#" PRIx64 "'",
+			fname, *option_value));
+
+	if ( list_head->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		char nf_label[ NF_LABEL_LENGTH ];
+
+		mx_network_get_nf_label( server_record, NULL,
+					nf_label, sizeof(nf_label) );
+
+		fprintf( stderr,
+			"MX GET_64BIT_OPTION('%s', %lu ) = %" PRIu64 "\n",
+			nf_label, option_number, *option_value );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/* ====================================================================== */
+
+MX_EXPORT mx_status_type
+mx_network_set_64bit_option( MX_RECORD *server_record,
+			unsigned long option_number,
+			uint64_t option_value )
+{
+	static const char fname[] = "mx_network_set_64bit_option()";
+
+	MX_NETWORK_SERVER *server;
+	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
+	MX_LIST_HEAD *list_head;
+	uint32_t *header, *uint32_message;
+	char *buffer, *message;
+	uint32_t header_length, message_length, message_type;
+	uint64_t low_order, high_order;
+	long status_code;
+	mx_bool_type quiet;
+	mx_status_type mx_status;
+
+#if NETWORK_DEBUG_TIMING
+	MX_HRT_TIMING measurement;
+#endif
+
+	MX_DEBUG( 2,
+	("%s invoked, option_number = '%#lx', option_value = '%#" PRIx64 "'",
+			fname, option_number, option_value));
+
+	if ( server_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"server_record argument passed was NULL." );
+	}
+
+	if ( option_number & MXE_QUIET ) {
+		quiet = TRUE;
+
+		option_number &= (~MXE_QUIET);
+	} else {
+		quiet = FALSE;
+	}
+
+	server = (MX_NETWORK_SERVER *) server_record->record_class_struct;
+
+	if ( server == (MX_NETWORK_SERVER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"MX_NETWORK_SERVER pointer for server record '%s' is NULL.",
+			server_record->name );
+	}
+
+	list_head = mx_get_record_list_head_struct( server_record );
+
+	if ( list_head->network_debug_flags & MXF_NETDBG_VERBOSE ) {
+		MX_DEBUG(-2,("\n*** SET OPTION %lu for server '%s'.",
+			option_number, server_record->name ));
+	}
+
+	if ( list_head->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		char nf_label[ NF_LABEL_LENGTH ];
+
+		mx_network_get_nf_label( server_record, NULL,
+					nf_label, sizeof(nf_label) );
+
+		fprintf( stderr,
+		"MX SET_64BIT_OPTION('%s') Set option %lu to %" PRIu64 "\n",
+			nf_label, option_number, option_value );
+	}
+
+	/************ Send the 'set 64-bit option' message. *************/
+
+	aligned_buffer = server->message_buffer;
+
+	header = &(aligned_buffer->u.uint32_buffer[0]);
+	buffer = &(aligned_buffer->u.char_buffer[0]);
+
+	header_length = mx_remote_header_length(server);
+
+	header[MX_NETWORK_MAGIC]         = mx_htonl(MX_NETWORK_MAGIC_VALUE);
+	header[MX_NETWORK_HEADER_LENGTH] = mx_htonl(header_length );
+	header[MX_NETWORK_MESSAGE_TYPE]  = mx_htonl(MX_NETMSG_SET_64BIT_OPTION);
+	header[MX_NETWORK_STATUS_CODE]   = mx_htonl(MXE_SUCCESS);
+
+	message = buffer + header_length;
+	uint32_message = header + (header_length / sizeof(uint32_t));
+
+	uint32_message[0] = mx_htonl( option_number );
+
+	/* The value is sent as a 64-bit big-endian integer. */
+
+	high_order = ( option_value >> 32 ) & 0xffffffff;
+
+	low_order = option_value & 0xffffffff;
+
+	uint32_message[1] = mx_htonl( high_order );
+	uint32_message[2] = mx_htonl( low_order );
+
+	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( 3 * sizeof(uint32_t) );
+
+	if ( mx_server_supports_message_ids(server) ) {
+
+		header[MX_NETWORK_DATA_TYPE] = mx_htonl( MXFT_ULONG );
+
+		mx_network_update_message_id( &(server->last_rpc_message_id) );
+
+		header[MX_NETWORK_MESSAGE_ID] =
+				mx_htonl( server->last_rpc_message_id );
+	}
+
+#if NETWORK_DEBUG_TIMING
+	MX_HRT_START( measurement );
+#endif
+
+	mx_status = mx_network_send_message( server_record, aligned_buffer );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/************** Wait for the response. **************/
+
+	mx_status = mx_network_wait_for_message_id( server_record,
+						aligned_buffer,
+						server->last_rpc_message_id,
+						server->timeout );
+#if NETWORK_DEBUG_TIMING
+	MX_HRT_END( measurement );
+
+	MX_HRT_RESULTS( measurement, fname, " " );
+#endif
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Update these pointers in case they were
+	 * changed by mx_reallocate_network_buffer()
+	 * in mx_network_wait_for_message_id().
+	 */
+
+	header = &(aligned_buffer->u.uint32_buffer[0]);
+	buffer = &(aligned_buffer->u.char_buffer[0]);
+
+	header_length  = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
+	message_length = mx_ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
+	message_type   = mx_ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
+	status_code = (long) mx_ntohl( header[ MX_NETWORK_STATUS_CODE ] );
+
+	if ( message_type != mx_server_response( MX_NETMSG_SET_OPTION ) ) {
+
+		if ( message_type == MX_NETMSG_UNEXPECTED_ERROR ) {
+
+			if ( status_code == MXE_NOT_YET_IMPLEMENTED ) {
+
+				/* The remote server is an old server that
+				 * does not implement the 'set option'
+				 * message.
+				 */
+
+				return mx_error(
+				( status_code | MXE_QUIET ), fname,
+					"The MX 'set option' message type is "
+					"not implemented by server '%s'.",
+						server_record->name );
+			} else {
+				/* Some other error occurred. */
+
+				return mx_error( MXE_NETWORK_IO_ERROR, fname,
+	"Unexpected server error for MX server '%s'.  "
+	"Server error was '%s -> %s'", server_record->name,
+				mx_status_code_string((long) status_code ),
+					message );
+			}
+		}
+
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+"Message type for response was not MX_NETMSG_SET_OPTION.  "
+"Instead it was of type = %#lx", (unsigned long) message_type );
+	}
+
+	/* If the remote command failed, the message field will include
+	 * the text of the error message rather than the field type
+	 * data we requested.
+	 */
+
+	if ( status_code != MXE_SUCCESS ) {
+
+		if ( quiet ) {
+			status_code |= MXE_QUIET;
+		}
+
+		return mx_error( (long)status_code, fname, "%s", message );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/* ====================================================================== */
+
+/* ====================================================================== */
+
+MX_EXPORT mx_status_type
 mx_network_field_get_attribute( MX_NETWORK_FIELD *nf,
 				unsigned long attribute_number,
 				double *attribute_value )
@@ -6172,7 +6575,7 @@ mx_network_send_client_version_time( MX_RECORD *server_record )
 	static const char fname[] = "mx_network_send_client_version_time()";
 
 	MX_LIST_HEAD *list_head;
-	unsigned long client_mx_version_time;
+	uint64_t client_mx_version_time;
 	mx_status_type mx_status;
 
 	if ( server_record == (MX_RECORD *) NULL ) {
@@ -6190,7 +6593,7 @@ mx_network_send_client_version_time( MX_RECORD *server_record )
 
 	client_mx_version_time = list_head->mx_version_time;
 
-	mx_status = mx_network_set_option( server_record,
+	mx_status = mx_network_set_64bit_option( server_record,
 			MX_NETWORK_OPTION_CLIENT_VERSION_TIME | MXE_QUIET,
 			client_mx_version_time );
 

@@ -9,7 +9,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2010 Illinois Institute of Technology
+ * Copyright 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -423,5 +423,42 @@ mx_current_time_string( char *buffer, size_t buffer_length )
 
 	return ptr;
 }
+
+/*-------------------------------------------------------------------------*/
+
+/* FIXME: The time() system call does not return a 64-bit time on 32-bit
+ *        platforms.  We need to find a way to get the correct 64-bit time
+ *        relative to the Posix epoch on such platforms.
+ */
+
+#if ( defined(OS_WIN32) && (_MSC_VER >= 800) )
+
+MX_EXPORT uint64_t
+mx_posix_time( void ) {
+
+	uint64_t posix_time;
+
+	posix_time = _time64( NULL );
+
+	return posix_time;
+}
+
+#elif defined(OS_LINUX)
+
+MX_EXPORT uint64_t
+mx_posix_time( void ) {
+
+	uint64_t posix_time;
+
+	posix_time = time( NULL );
+
+	return posix_time;
+}
+
+#else
+
+#error mx_posix_time() is not yet defined for this platform.
+
+#endif
 
 /*-------------------------------------------------------------------------*/

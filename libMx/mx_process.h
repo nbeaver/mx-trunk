@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2008, 2010-2012, 2014
+ * Copyright 1999-2001, 2003-2008, 2010-2012, 2014-2015
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -66,7 +66,7 @@ typedef struct {
 	unsigned long last_rpc_message_id;
 	unsigned long remote_header_length;
 	unsigned long remote_mx_version;
-	unsigned long remote_mx_version_time;
+	uint64_t      remote_mx_version_time;
 
 	long authentication_type;
 	union {

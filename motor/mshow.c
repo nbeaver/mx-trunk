@@ -19,6 +19,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
+#include <time.h>
 
 #include "mx_inttypes.h"
 #include "mx_amplifier.h"
@@ -899,7 +900,7 @@ motor_show_version( void )
 
 	list_head = mx_get_record_list_head_struct( motor_record_list );
 
-	fprintf( output, "MX version: %s   [Posix timestamp = %lu]\n",
+	fprintf( output, "MX version: %s   [Posix timestamp = %" PRIu64 "]\n",
 		mx_get_version_full_string(),
 		list_head->mx_version_time );
 
@@ -1005,6 +1006,10 @@ motor_show_version( void )
 
 	fprintf( output, "Current CPU number: %lu\n",
 				mx_get_current_cpu_number() );
+
+	fprintf( output, "\nPosix time: %lu seconds\n", time( NULL ) );
+
+	fprintf( output, "\n" );
 
 	return;
 }

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2004, 2006-2008 2012, 2014
+ * Copyright 1999, 2001, 2003-2004, 2006-2008 2012, 2014-2015
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -151,6 +151,16 @@ extern mx_status_type mxsrv_handle_get_option(
 			MX_NETWORK_MESSAGE_BUFFER *message_buffer );
 
 extern mx_status_type mxsrv_handle_set_option(
+			MX_RECORD *record_list,
+			MX_SOCKET_HANDLER *socket_handler,
+			MX_NETWORK_MESSAGE_BUFFER *message_buffer );
+
+extern mx_status_type mxsrv_handle_get_64bit_option(
+			MX_RECORD *record_list,
+			MX_SOCKET_HANDLER *socket_handler,
+			MX_NETWORK_MESSAGE_BUFFER *message_buffer );
+
+extern mx_status_type mxsrv_handle_set_64bit_option(
 			MX_RECORD *record_list,
 			MX_SOCKET_HANDLER *socket_handler,
 			MX_NETWORK_MESSAGE_BUFFER *message_buffer );

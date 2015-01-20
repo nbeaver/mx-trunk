@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006-2009, 2011-2014 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006-2009, 2011-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,6 +26,7 @@
 #include "mx_bit.h"
 #include "mx_list_head.h"
 #include "mx_dynamic_library.h"
+#include "mx_time.h"
 
 #include "mx_callback.h"
 #include "mx_process.h"
@@ -65,6 +66,7 @@ mx_setup_list_head_process_functions( MX_RECORD *record )
 		case MXLV_LHD_SUMMARY:
 		case MXLV_LHD_UPDATE_ALL:
 		case MXLV_LHD_VM_REGION:
+		case MXLV_LHD_POSIX_TIME:
 			record_field->process_function
 					    = mx_list_head_process_function;
 			break;
@@ -113,6 +115,9 @@ mx_list_head_process_function( void *record_ptr,
 			list_head->numbered_breakpoint_status
 				= mx_get_numbered_breakpoint(
 					list_head->breakpoint_number );
+			break;
+		case MXLV_LHD_POSIX_TIME:
+			list_head->posix_time = mx_posix_time();
 			break;
 		default:
 			MX_DEBUG( 1,(

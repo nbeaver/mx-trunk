@@ -25,7 +25,7 @@
 #include "mx_time.h"
 #include "mx_version.h"
 
-#define MX_DATE "January 14, 2015"
+#define MX_DATE "January 19, 2015"
 
 static char buffer[60];
 
@@ -95,7 +95,7 @@ mx_get_version_date_tm( void )
 	return tm;
 }
 
-MX_EXPORT time_t
+MX_EXPORT uint64_t
 mx_get_version_date_time( void )
 {
 	struct tm tm;

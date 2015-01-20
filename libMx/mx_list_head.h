@@ -9,7 +9,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004, 2006-2010, 2012-2014
+ * Copyright 2000-2001, 2003-2004, 2006-2010, 2012-2015
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -46,6 +46,7 @@ extern "C" {
 #define MXLV_LHD_CALLBACKS_ENABLED		1018
 #define MXLV_LHD_CFLAGS				1019
 #define MXLV_LHD_VM_REGION			1020
+#define MXLV_LHD_POSIX_TIME			1021
 
 #define MXR_LIST_HEAD_STANDARD_FIELDS \
   {-1, -1, "list_is_active", MXFT_BOOL, NULL, 0, {0}, \
@@ -77,7 +78,7 @@ extern "C" {
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, mx_version), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
-  {-1, -1, "mx_version_time", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "mx_version_time", MXFT_UINT64, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, mx_version_time), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
@@ -165,7 +166,11 @@ extern "C" {
   \
   {MXLV_LHD_VM_REGION, -1, "vm_region", MXFT_HEX, NULL, 1, {2}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, vm_region), \
-	{0}, NULL, 0}
+	{0}, NULL, 0}, \
+  \
+  {MXLV_LHD_POSIX_TIME, -1, "posix_time", MXFT_UINT64, NULL, 0, {0}, \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, posix_time), \
+	{0}, NULL, MXFF_READ_ONLY}
 
 MX_API_PRIVATE mx_status_type mxr_create_list_head( MX_RECORD *record );
 
