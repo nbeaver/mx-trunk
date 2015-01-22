@@ -54,7 +54,7 @@ MX_MCS_FUNCTION_LIST mxd_epics_scaler_mcs_mcs_function_list = {
 	mxd_epics_scaler_mcs_start,
 	mxd_epics_scaler_mcs_stop,
 	mxd_epics_scaler_mcs_clear,
-	mxd_epics_scaler_mcs_busy,
+	mxd_epics_scaler_mcs_busy
 };
 
 /* MCS data structures. */
@@ -175,7 +175,17 @@ mxd_epics_scaler_mcs_callback( MX_CALLBACK_MESSAGE *message )
 
 	/********************************************************************/
 
-	j = epics_scaler_mcs->current_measurement_number;
+	if ( mcs->measurement_number < 0 ) {
+		mcs->measurement_number = -1;
+	}
+
+	/* We are about to readout a new measurement using an EPICS
+	 * synchronous group, so increment the measurement number.
+	 */
+
+	mcs->measurement_number++;
+
+	j = mcs->measurement_number;
 
 	/* If this is the first step in a quick scan sequence, set both
 	 * of the data arrays to 0.
@@ -312,8 +322,6 @@ mxd_epics_scaler_mcs_callback( MX_CALLBACK_MESSAGE *message )
 	fprintf(stderr,"\n");
 #endif
 
-	epics_scaler_mcs->current_measurement_number++;
-
 	/* If the EPICS Scaler record is no longer busy, then
 	 * delete this callback.
 	 */
@@ -413,7 +421,7 @@ mxd_epics_scaler_mcs_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	epics_scaler_mcs->current_measurement_number = 0;
+	mcs->measurement_number = -1;
 
 	epics_scaler_mcs->motor_record = NULL;
 
@@ -550,7 +558,7 @@ mxd_epics_scaler_mcs_start( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	epics_scaler_mcs->current_measurement_number = 0;
+	mcs->measurement_number = -1;
 
 	/* Compute and set the EPICS scaler time preset. */
 
@@ -626,7 +634,7 @@ mxd_epics_scaler_mcs_clear( MX_MCS *mcs )
 
 	MX_DEBUG(-2,("%s invoked for '%s'", fname, mcs->record->name));
 
-	epics_scaler_mcs->current_measurement_number = 0;
+	mcs->measurement_number = -1;
 
 	for ( i = 0; i < mcs->maximum_num_scalers; i++ ) {
 		for ( j = 0; j < mcs->maximum_num_measurements; j++ ) {

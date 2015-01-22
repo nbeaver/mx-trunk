@@ -35,6 +35,7 @@ typedef struct {
 	MX_NETWORK_FIELD measurement_counts_nf;
 	MX_NETWORK_FIELD measurement_data_nf;
 	MX_NETWORK_FIELD measurement_index_nf;
+	MX_NETWORK_FIELD measurement_number_nf;
 	MX_NETWORK_FIELD measurement_time_nf;
 	MX_NETWORK_FIELD mode_nf;
 	MX_NETWORK_FIELD readout_preference_nf;

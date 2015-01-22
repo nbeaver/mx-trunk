@@ -2044,6 +2044,7 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	MX_RECORD *quick_scan_motor_record;
 	MX_RECORD *mce_record;
 	MX_RECORD *mcs_record;
+	MX_MCS *mcs;
 	MX_MOTOR *motor;
 	MX_MOTOR *quick_scan_motor;
 	MX_QUICK_SCAN *quick_scan;
@@ -2057,6 +2058,7 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	long i, j;
 	long dimension[2];
 	size_t element_size[2];
+	long readout_preference;
 	mx_bool_type correct_for_quick_scan_backlash;
 	mx_status_type mx_status;
 
@@ -2367,6 +2369,79 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	MX_HRT_RESULTS( timing_measurement, fname,
 			"Total time for move to start position" );
 #endif
+
+	/* Figure out what kind of MCS readout preference to use for this scan.
+	 *
+	 * The available preference types in order from most desirable to
+	 * least desirable is:
+	 *
+	 *   MXF_MCS_PREFER_READ_MEASUREMENT
+	 *   MXF_MCS_PREFER_READ_SCALER
+         *   MXF_MCS_PREFER_READ_ALL
+	 *
+	 * MXF_MCS_PREFER_READ_MEASUREMENT is most desirable since it gives
+	 * the user the quickest feedback, while MXF_MCS_PREFER_READ_ALL is
+	 * the least desirable, since it may require reading out data from
+	 * MCS channels the user is not using.
+	 *
+	 * We loop through all of the MCS records to see what is the most
+	 * restrictive preference used by any of the MCS records.
+	 */
+
+	readout_preference = MXF_MCS_PREFER_READ_MEASUREMENT;
+
+	for ( i = 0; i < mcs_quick_scan->num_mcs; i++ ) {
+		mcs_record = mcs_quick_scan->mcs_record_array[i];
+
+		mcs = (MX_MCS *) mcs_record->record_class_struct;
+
+		switch( mcs->readout_preference ) {
+		case MXF_MCS_PREFER_READ_MEASUREMENT:
+			switch( readout_preference ) {
+			case MXF_MCS_PREFER_READ_ALL:
+			case MXF_MCS_PREFER_READ_SCALER:
+				break;
+			case MXF_MCS_PREFER_READ_MEASUREMENT:
+				readout_preference =
+					MXF_MCS_PREFER_READ_MEASUREMENT;
+				break;
+			}
+			break;
+		case MXF_MCS_PREFER_READ_SCALER:
+			switch( readout_preference ) {
+			case MXF_MCS_PREFER_READ_ALL:
+				break;
+			case MXF_MCS_PREFER_READ_SCALER:
+			case MXF_MCS_PREFER_READ_MEASUREMENT:
+				readout_preference = MXF_MCS_PREFER_READ_SCALER;
+				break;
+			}
+			break;
+		case MXF_MCS_PREFER_READ_ALL:
+			switch( readout_preference ) {
+			case MXF_MCS_PREFER_READ_ALL:
+			case MXF_MCS_PREFER_READ_SCALER:
+			case MXF_MCS_PREFER_READ_MEASUREMENT:
+				readout_preference = MXF_MCS_PREFER_READ_ALL;
+				break;
+			}
+			break;
+		default:
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"MCS '%s' is configured with illegal readout "
+			"preference %ld.  The allowed values are "
+			"'read scaler' (1), 'read measurement' (2), "
+			"and 'read all' (3).",
+				mcs_record->name,
+				mcs->readout_preference );
+			break;
+		}
+	}
+
+	MX_DEBUG(-2,("%s: Scan '%s' MCS readout preference = %ld",
+		fname, scan->record->name, readout_preference ));
+
+	mcs_quick_scan->mcs_readout_preference = readout_preference;
 
 	/* Reprogram all of the MCSs for this scan. */
 
@@ -2990,7 +3065,78 @@ mxs_mcs_quick_scan_display_scan_parameters( MX_SCAN *scan,
 
 #endif
 
-/* Do not use FREE_MOTOR_POSITION_ARRAYS in the execute_scan_body() function
+/*--------------------------------------------------------------------------*/
+
+static mx_status_type
+mxp_mcs_quick_scan_readout_measurement( MX_SCAN * scan,
+					MX_QUICK_SCAN *quick_scan,
+					MX_MCS_QUICK_SCAN *mcs_quick_scan,
+					long *old_measurement_number )
+{
+#if 0
+	static const char fname[] = "mxp_mcs_quick_scan_readout_measurement()";
+#endif
+	MX_RECORD *mcs_record;
+	long i, n, mcs_measurement_number, scan_measurement_number;
+	long first_new_measurement;
+	mx_status_type mx_status;
+
+	scan_measurement_number = LONG_MAX;
+
+	for ( n = 0; n < mcs_quick_scan->num_mcs; n++ ) {
+		mcs_record = mcs_quick_scan->mcs_record_array[n];
+
+		mx_status = mx_mcs_get_measurement_number( mcs_record,
+						&mcs_measurement_number );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( mcs_measurement_number < scan_measurement_number ) {
+			scan_measurement_number = mcs_measurement_number;
+		}
+	}
+
+	/* If a new measurement has not shown up, then we have nothing
+	 * to do and should return.
+	 */
+
+	if ( scan_measurement_number <= *old_measurement_number ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	first_new_measurement = *old_measurement_number + 1;
+
+	for ( i = first_new_measurement; i <= scan_measurement_number; i++ ) {
+		fprintf( stderr, "Scan '%s': Reading out measurement %ld: ",
+			scan->record->name, i );
+
+		for ( n = 0; n < mcs_quick_scan->num_mcs; n++ ) {
+			mcs_record = mcs_quick_scan->mcs_record_array[n];
+
+			fprintf( stderr, "MCS '%s' ", mcs_record->name );
+
+			mx_status = mx_mcs_read_measurement( mcs_record,
+							i, NULL, NULL );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
+		fprintf( stderr, "\n" );
+	}
+
+	/* Save the updated MCS measurement number for our next call. */
+
+	*old_measurement_number = scan_measurement_number;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
+
+/* WARNING!!!
+ * Do not use FREE_MOTOR_POSITION_ARRAYS in the execute_scan_body() function
  * since the cleanup_after_scan_end() function will attempt to use the arrays
  * regardless of what error code this routine returns.
  */
@@ -3011,6 +3157,8 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 	mx_bool_type busy;
 	long i;
 	unsigned long measurement_milliseconds;
+	mx_bool_type readout_by_measurement;
+	long old_measurement_number;
 
 #if MX_WAIT_FOR_MCS_TO_START
 	MX_RECORD *mcs_record;
@@ -3202,6 +3350,19 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 	MX_HRT_START( timing_measurement );
 #endif
 
+	old_measurement_number = -1;
+
+	if ( mcs_quick_scan->mcs_readout_preference
+		== MXF_MCS_PREFER_READ_MEASUREMENT )
+	{
+		readout_by_measurement = TRUE;
+	} else {
+		readout_by_measurement = FALSE;
+	}
+
+	MX_DEBUG(-2,("%s: readout_by_measurement = %d",
+		fname, (int) readout_by_measurement));
+
 	/* Wait for the counting to finish. */
 
 	do {
@@ -3222,6 +3383,15 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 
 			return mx_error( MXE_INTERRUPTED, fname,
 			"Quick scan was interrupted." );
+		}
+
+		if ( readout_by_measurement ) {
+			mx_status = mxp_mcs_quick_scan_readout_measurement(
+					scan, quick_scan, mcs_quick_scan,
+					&old_measurement_number );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 		}
 
 		if ( scan->measurement.type == MXM_PRESET_TIME ) {

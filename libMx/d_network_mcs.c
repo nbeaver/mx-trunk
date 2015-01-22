@@ -218,6 +218,10 @@ mxd_network_mcs_finish_record_initialization( MX_RECORD *record )
 		network_mcs->server_record,
 		"%s.measurement_index", network_mcs->remote_record_name );
 
+	mx_network_field_init( &(network_mcs->measurement_number_nf),
+		network_mcs->server_record,
+		"%s.measurement_number", network_mcs->remote_record_name );
+
 	mx_network_field_init( &(network_mcs->measurement_time_nf),
 		network_mcs->server_record,
 		"%s.measurement_time", network_mcs->remote_record_name );
@@ -752,6 +756,7 @@ mxd_network_mcs_get_parameter( MX_MCS *mcs )
 	mx_bool_type external_channel_advance;
 	unsigned long external_prescale;
 	unsigned long num_measurements, measurement_counts;
+	long measurement_number;
 	double measurement_time, dark_current;
 	mx_status_type mx_status;
 
@@ -763,49 +768,56 @@ mxd_network_mcs_get_parameter( MX_MCS *mcs )
 	MX_DEBUG( 2,("%s invoked for MCS '%s', type = %ld",
 		fname, mcs->record->name, mcs->parameter_type));
 
-	if ( mcs->parameter_type == MXLV_MCS_MODE ) {
-
+	switch( mcs->parameter_type ) {
+	case MXLV_MCS_MODE:
 		mx_status = mx_get( &(network_mcs->mode_nf), MXFT_LONG, &mode );
 
 		mcs->mode = mode;
+		break;
 
-	} else if ( mcs->parameter_type == MXLV_MCS_EXTERNAL_CHANNEL_ADVANCE ) {
-
+	case MXLV_MCS_EXTERNAL_CHANNEL_ADVANCE:
 		mx_status = mx_get( &(network_mcs->external_channel_advance_nf),
 					MXFT_BOOL, &external_channel_advance );
 
 		mcs->external_channel_advance = external_channel_advance;
+		break;
 
-	} else if ( mcs->parameter_type == MXLV_MCS_EXTERNAL_PRESCALE ) {
-
+	case MXLV_MCS_EXTERNAL_PRESCALE:
 		mx_status = mx_get( &(network_mcs->external_prescale_nf),
 					MXFT_ULONG, &external_prescale );
 
 		mcs->external_prescale = external_prescale;
+		break;
 
-	} else if ( mcs->parameter_type == MXLV_MCS_MEASUREMENT_TIME ) {
-
+	case MXLV_MCS_MEASUREMENT_TIME:
 		mx_status = mx_get( &(network_mcs->measurement_time_nf),
 					MXFT_DOUBLE, &measurement_time );
 
 		mcs->measurement_time = measurement_time;
+		break;
 
-	} else if ( mcs->parameter_type == MXLV_MCS_MEASUREMENT_COUNTS ) {
-
+	case MXLV_MCS_MEASUREMENT_COUNTS:
 		mx_status = mx_get( &(network_mcs->measurement_counts_nf),
 					MXFT_ULONG, &measurement_counts );
 
 		mcs->measurement_counts = measurement_counts;
+		break;
 
-	} else if ( mcs->parameter_type == MXLV_MCS_CURRENT_NUM_MEASUREMENTS ){
-
+	case MXLV_MCS_CURRENT_NUM_MEASUREMENTS:
 		mx_status = mx_get( &(network_mcs->current_num_measurements_nf),
 					MXFT_ULONG, &num_measurements );
 
 		mcs->current_num_measurements = num_measurements;
+		break;
 
-	} else if ( mcs->parameter_type == MXLV_MCS_DARK_CURRENT ) {
+	case MXLV_MCS_MEASUREMENT_NUMBER:
+		mx_status = mx_get( &(network_mcs->measurement_number_nf),
+					MXFT_LONG, &measurement_number );
 
+		mcs->measurement_number = measurement_number;
+		break;
+
+	case MXLV_MCS_DARK_CURRENT:
 		mx_status = mx_put( &(network_mcs->scaler_index_nf),
 					MXFT_LONG, &(mcs->scaler_index) );
 
@@ -820,10 +832,13 @@ mxd_network_mcs_get_parameter( MX_MCS *mcs )
 		MX_DEBUG( 2,("%s: mcs->dark_current_array[%ld] = %g",
 			fname, mcs->scaler_index,
 			mcs->dark_current_array[mcs->scaler_index]));
+		break;
 
-	} else {
+	default:
 		mx_status = mx_mcs_default_get_parameter_handler( mcs );
+		break;
 	}
+
 	MX_DEBUG( 2,("%s complete.", fname));
 
 	return mx_status;
@@ -850,14 +865,14 @@ mxd_network_mcs_set_parameter( MX_MCS *mcs )
 	MX_DEBUG( 2,("%s invoked for MCS '%s', type = %ld",
 		fname, mcs->record->name, mcs->parameter_type));
 
-	if ( mcs->parameter_type == MXLV_MCS_MODE ) {
-
+	switch( mcs->parameter_type ) {
+	case MXLV_MCS_MODE:
 		mode = mcs->mode;
 
 		mx_status = mx_put( &(network_mcs->mode_nf), MXFT_LONG, &mode );
+		break;
 
-	} else if ( mcs->parameter_type == MXLV_MCS_EXTERNAL_CHANNEL_ADVANCE ) {
-
+	case MXLV_MCS_EXTERNAL_CHANNEL_ADVANCE:
 		external_channel_advance = mcs->external_channel_advance;
 
 		MX_DEBUG( 2,("%s: sending %d to '%s'",
@@ -866,9 +881,9 @@ mxd_network_mcs_set_parameter( MX_MCS *mcs )
 
 		mx_status = mx_put( &(network_mcs->external_channel_advance_nf),
 					MXFT_BOOL, &external_channel_advance );
+		break;
 
-	} else if ( mcs->parameter_type == MXLV_MCS_EXTERNAL_PRESCALE ) {
-
+	case MXLV_MCS_EXTERNAL_PRESCALE:
 		external_prescale = mcs->external_prescale;
 
 		MX_DEBUG( 2,("%s: sending %lu to '%s'",
@@ -877,9 +892,9 @@ mxd_network_mcs_set_parameter( MX_MCS *mcs )
 
 		mx_status = mx_put( &(network_mcs->external_prescale_nf),
 					MXFT_ULONG, &external_prescale );
+		break;
 
-	} else if ( mcs->parameter_type == MXLV_MCS_MEASUREMENT_TIME ) {
-
+	case MXLV_MCS_MEASUREMENT_TIME:
 		measurement_time = mcs->measurement_time;
 
 		MX_DEBUG( 2,("%s: sending %g to '%s'",
@@ -888,9 +903,9 @@ mxd_network_mcs_set_parameter( MX_MCS *mcs )
 
 		mx_status = mx_put( &(network_mcs->measurement_time_nf),
 					MXFT_DOUBLE, &measurement_time );
+		break;
 
-	} else if ( mcs->parameter_type == MXLV_MCS_MEASUREMENT_COUNTS ) {
-
+	case MXLV_MCS_MEASUREMENT_COUNTS:
 		measurement_counts = mcs->measurement_counts;
 
 		MX_DEBUG( 2,("%s: sending %lu to '%s'",
@@ -899,9 +914,9 @@ mxd_network_mcs_set_parameter( MX_MCS *mcs )
 
 		mx_status = mx_put( &(network_mcs->measurement_counts_nf),
 					MXFT_ULONG, &measurement_counts );
+		break;
 
-	} else if ( mcs->parameter_type == MXLV_MCS_CURRENT_NUM_MEASUREMENTS ){
-
+	case MXLV_MCS_CURRENT_NUM_MEASUREMENTS:
 		num_measurements = mcs->current_num_measurements;
 
 		MX_DEBUG( 2,("%s: sending %lu to '%s'",
@@ -910,9 +925,9 @@ mxd_network_mcs_set_parameter( MX_MCS *mcs )
 
 		mx_status = mx_put( &(network_mcs->current_num_measurements_nf),
 					MXFT_ULONG, &num_measurements );
+		break;
 
-	} else if ( mcs->parameter_type == MXLV_MCS_DARK_CURRENT ) {
-
+	case MXLV_MCS_DARK_CURRENT:
 		mx_status = mx_put( &(network_mcs->scaler_index_nf),
 					MXFT_LONG, &(mcs->scaler_index) );
 
@@ -927,10 +942,13 @@ mxd_network_mcs_set_parameter( MX_MCS *mcs )
 
 		mx_status = mx_put( &(network_mcs->dark_current_nf),
 					MXFT_DOUBLE, &dark_current );
+		break;
 
-	} else {
+	default:
 		mx_status = mx_mcs_default_set_parameter_handler( mcs );
+		break;
 	}
+
 	MX_DEBUG( 2,("%s complete.", fname));
 
 	return mx_status;

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2000, 2002-2003, 2010 Illinois Institute of Technology
+ * Copyright 1999-2000, 2002-2003, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -31,6 +31,8 @@ typedef struct mx_mcs_quick_scan_type {
 	MX_RECORD **mcs_record_array;
 
 	unsigned long mcs_array_size;
+
+	long mcs_readout_preference;
 
 	double premove_measurement_time;
 	double acceleration_time;

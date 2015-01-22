@@ -37,8 +37,6 @@ typedef struct {
 
 	double version;
 
-	unsigned long current_measurement_number;
-
 	MX_CALLBACK_MESSAGE *callback_message;
 } MX_EPICS_SCALER_MCS;
 
@@ -54,11 +52,6 @@ MX_API mx_status_type mxd_epics_scaler_mcs_start( MX_MCS *mcs );
 MX_API mx_status_type mxd_epics_scaler_mcs_stop( MX_MCS *mcs );
 MX_API mx_status_type mxd_epics_scaler_mcs_clear( MX_MCS *mcs );
 MX_API mx_status_type mxd_epics_scaler_mcs_busy( MX_MCS *mcs );
-MX_API mx_status_type mxd_epics_scaler_mcs_read_all( MX_MCS *mcs );
-MX_API mx_status_type mxd_epics_scaler_mcs_read_scaler( MX_MCS *mcs );
-MX_API mx_status_type mxd_epics_scaler_mcs_read_measurement( MX_MCS *mcs );
-MX_API mx_status_type mxd_epics_scaler_mcs_get_parameter( MX_MCS *mcs );
-MX_API mx_status_type mxd_epics_scaler_mcs_set_parameter( MX_MCS *mcs );
 
 extern MX_RECORD_FUNCTION_LIST mxd_epics_scaler_mcs_record_function_list;
 extern MX_MCS_FUNCTION_LIST mxd_epics_scaler_mcs_mcs_function_list;

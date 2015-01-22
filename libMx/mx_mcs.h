@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004-2007, 2009-2010, 2014
+ * Copyright 1999-2002, 2004-2007, 2009-2010, 2014-2015
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -60,6 +60,8 @@ typedef struct {
 	unsigned long current_num_scalers;
 	unsigned long current_num_measurements;
 
+	long measurement_number;
+
 	long readout_preference;
 
 	long scaler_index;
@@ -98,15 +100,16 @@ typedef struct {
 #define MXLV_MCS_MEASUREMENT_COUNTS		1013
 #define MXLV_MCS_CURRENT_NUM_SCALERS		1014
 #define MXLV_MCS_CURRENT_NUM_MEASUREMENTS	1015
-#define MXLV_MCS_READOUT_PREFERENCE		1016
-#define MXLV_MCS_SCALER_INDEX			1017
-#define MXLV_MCS_MEASUREMENT_INDEX		1018
-#define MXLV_MCS_DARK_CURRENT			1019
-#define MXLV_MCS_DARK_CURRENT_ARRAY		1020
-#define MXLV_MCS_SCALER_DATA			1021
-#define MXLV_MCS_MEASUREMENT_DATA		1022
-#define MXLV_MCS_TIMER_DATA			1023
-#define MXLV_MCS_CLEAR_DEADBAND			1024
+#define MXLV_MCS_MEASUREMENT_NUMBER		1016
+#define MXLV_MCS_READOUT_PREFERENCE		1017
+#define MXLV_MCS_SCALER_INDEX			1018
+#define MXLV_MCS_MEASUREMENT_INDEX		1019
+#define MXLV_MCS_DARK_CURRENT			1020
+#define MXLV_MCS_DARK_CURRENT_ARRAY		1021
+#define MXLV_MCS_SCALER_DATA			1022
+#define MXLV_MCS_MEASUREMENT_DATA		1023
+#define MXLV_MCS_TIMER_DATA			1024
+#define MXLV_MCS_CLEAR_DEADBAND			1025
 
 #define MX_MCS_STANDARD_FIELDS \
   {MXLV_MCS_MAXIMUM_NUM_SCALERS, -1, "maximum_num_scalers",\
@@ -186,6 +189,11 @@ typedef struct {
 						MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, current_num_measurements), \
 	{0}, NULL, 0}, \
+  \
+  {MXLV_MCS_MEASUREMENT_NUMBER, -1, "measurement_number", \
+						MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, measurement_number), \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_MCS_READOUT_PREFERENCE, -1, "readout_preference", \
 						MXFT_LONG, NULL, 0, {0}, \
@@ -319,6 +327,9 @@ MX_API mx_status_type mx_mcs_get_num_measurements( MX_RECORD *mcs_record,
 					unsigned long *num_measurements );
 MX_API mx_status_type mx_mcs_set_num_measurements( MX_RECORD *mcs_record,
 					unsigned long num_measurements );
+
+MX_API mx_status_type mx_mcs_get_measurement_number( MX_RECORD *mcs_record,
+					long *measurement_number );
 
 MX_API mx_status_type mx_mcs_get_dark_current_array( MX_RECORD *mcs_record,
 					unsigned long num_scalers,
