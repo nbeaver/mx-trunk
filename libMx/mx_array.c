@@ -954,9 +954,10 @@ mx_free_array( void *array_pointer )
 	void *vector;
 	mx_status_type mx_status;
 
+	/* Attempting to free a NULL pointer is not regarded as an error. */
+
 	if ( array_pointer == NULL ) {
-		mx_error( MXE_NULL_ARGUMENT, fname,
-		"The array_pointer value passed was NULL." );
+		return MX_SUCCESSFUL_RESULT;
 	}
 
 	/* If this array was created by mx_allocate_array() or friends,

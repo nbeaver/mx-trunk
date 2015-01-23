@@ -9,7 +9,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2014 Illinois Institute of Technology
+ * Copyright 2014-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -18,7 +18,7 @@
 
 #define MXD_EPICS_SCALER_MCE_DEBUG		TRUE
 
-#define MXD_EPICS_SCALER_MCE_DEBUG_MOTOR_ARRAY	TRUE
+#define MXD_EPICS_SCALER_MCE_DEBUG_MOTOR_ARRAY	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -17,15 +17,15 @@
 #ifndef __SQ_MCS_H__
 #define __SQ_MCS_H__
 
-#define MXS_SQ_MCS_MAX_MOTORS			8
-
 #define MXS_SQ_MCS_NUM_PREMOVE_MEASUREMENTS	2
 
 #define MXS_SQ_MCS_ARRAY_BLOCK_SIZE		10
 
 typedef struct mx_mcs_quick_scan_type {
-	double *motor_position_array[ MXS_SQ_MCS_MAX_MOTORS ];
-	void *extension_ptr;
+	double **motor_position_array;
+
+	MX_RECORD **real_motor_record_array;
+	MX_RECORD **mce_record_array;
 
 	unsigned long num_mcs;
 	MX_RECORD **mcs_record_array;
@@ -40,10 +40,10 @@ typedef struct mx_mcs_quick_scan_type {
 	double deceleration_time;
 	double postmove_measurement_time;
 
-	double real_start_position[ MXS_SQ_MCS_MAX_MOTORS ];
-	double real_end_position[ MXS_SQ_MCS_MAX_MOTORS ];
+	double *real_start_position;
+	double *real_end_position;
 
-	double backlash_position[ MXS_SQ_MCS_MAX_MOTORS ];
+	double *backlash_position;
 
 	mx_status_type (*move_to_start_fn)( MX_SCAN *,
 					MX_QUICK_SCAN *,
@@ -55,6 +55,9 @@ typedef struct mx_mcs_quick_scan_type {
 						MX_QUICK_SCAN *,
 						struct mx_mcs_quick_scan_type *,
 						MX_MCS * );
+
+	void *extension_ptr;
+
 } MX_MCS_QUICK_SCAN;
 
 MX_API mx_status_type mxs_mcs_quick_scan_create_record_structures(

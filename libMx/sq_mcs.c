@@ -82,45 +82,30 @@ mxs_mcs_quick_scan_free_arrays( MX_SCAN *scan,
 				MX_QUICK_SCAN *quick_scan,
 				MX_MCS_QUICK_SCAN *mcs_quick_scan )
 {
-	long dimension[2];
-	size_t element_size[2];
-	long i;
-
 	if ( scan == NULL )
 		return;
 
 	if ( mcs_quick_scan == NULL )
 		return;
 
-	if ( mcs_quick_scan->motor_position_array != NULL ) {
-	    for ( i = 0; i < scan->num_motors; i++ ) {
-		if ( mcs_quick_scan->motor_position_array[i] != NULL ) {
-		    mx_free( mcs_quick_scan->motor_position_array[i] );
+	/* Free all of the arrays whose size depends on scan->num_motors. */
 
-		    mcs_quick_scan->motor_position_array[i] = NULL;
-		}
-	    }
-	}
+	/* Please note that mx_free() and mx_free_array() both check 
+	 * for NULL pointer arguments and will merely return if you feed
+	 * a NULL pointer to them.
+	 */
 
-	if ( scan->datafile.x_position_array != NULL ) {
-		dimension[0] = scan->datafile.num_x_motors;
-		dimension[1] = quick_scan->actual_num_measurements;
+	(void) mx_free_array( mcs_quick_scan->motor_position_array );
 
-		element_size[0] = sizeof(double);
-		element_size[1] = sizeof(double *);
+	mx_free( mcs_quick_scan->real_start_position );
+	mx_free( mcs_quick_scan->real_end_position );
+	mx_free( mcs_quick_scan->backlash_position );
+	
+	(void) mx_free_array( scan->datafile.x_position_array );
+	(void) mx_free_array( scan->plot.x_position_array );
 
-		(void) mx_free_array( scan->datafile.x_position_array );
-	}
-
-	if ( scan->plot.x_position_array != NULL ) {
-		dimension[0] = scan->plot.num_x_motors;
-		dimension[1] = quick_scan->actual_num_measurements;
-
-		element_size[0] = sizeof(double);
-		element_size[1] = sizeof(double *);
-
-		(void) mx_free_array( scan->plot.x_position_array );
-	}
+	mx_free( mcs_quick_scan->real_motor_record_array );
+	mx_free( mcs_quick_scan->mce_record_array );
 }
 
 MX_EXPORT mx_status_type
@@ -178,7 +163,6 @@ mxs_mcs_quick_scan_create_record_structures( MX_RECORD *record )
 	MX_SCAN *scan;
 	MX_QUICK_SCAN *quick_scan;
 	MX_MCS_QUICK_SCAN *mcs_quick_scan;
-	int i;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -229,9 +213,19 @@ mxs_mcs_quick_scan_create_record_structures( MX_RECORD *record )
 	scan->num_missing_records = 0;
 	scan->missing_record_array = NULL;
 
-	for ( i = 0; i < MXS_SQ_MCS_MAX_MOTORS; i++ ) {
-		mcs_quick_scan->motor_position_array[i] = NULL;
-	}
+	/* motor_position_array is allocated in the
+	 * prepare_for_scan_start() function.
+	 */
+
+	mcs_quick_scan->motor_position_array = NULL;
+
+	/* The following arrays are allocated in the
+	 * finish_record_initialization() function.
+	 */
+
+	mcs_quick_scan->real_start_position = NULL;
+	mcs_quick_scan->real_end_position = NULL;
+	mcs_quick_scan->backlash_position = NULL;
 
 	mcs_quick_scan->extension_ptr = NULL;
 
@@ -277,15 +271,58 @@ mxs_mcs_quick_scan_finish_record_initialization( MX_RECORD *record )
 	if ( scan->num_input_devices <= 0 )
 		return MX_SUCCESSFUL_RESULT;
 
-	if ( ( scan->num_motors < 0 )
-	  || ( scan->num_motors > MXS_SQ_MCS_MAX_MOTORS ) )
-	{
+	if ( scan->num_motors < 0 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal number of motors %ld for scan '%s'.  "
-		"The allowed range is (0-%d)",
-			scan->num_motors, record->name,
-			MXS_SQ_MCS_MAX_MOTORS );
+		"The number of motors must not be negative.",
+			scan->num_motors, record->name );
+	} else
+	if ( scan->num_motors == 0 ) {
+		mcs_quick_scan->real_start_position = NULL;
+		mcs_quick_scan->real_end_position = NULL;
+		mcs_quick_scan->backlash_position = NULL;
+	} else {
+		/* Allocate some start and end position arrays. */
+
+		mcs_quick_scan->real_start_position = (double *)
+			calloc( scan->num_motors, sizeof(double) );
+
+		if ( mcs_quick_scan->real_start_position == (double *) NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate a %ld motor "
+			"array of real start positions for scan '%s'.",
+				scan->num_motors, record->name );
+		}
+
+		mcs_quick_scan->real_end_position = (double *)
+			calloc( scan->num_motors, sizeof(double) );
+
+		if ( mcs_quick_scan->real_end_position == (double *) NULL ) {
+			mx_free( mcs_quick_scan->real_start_position );
+
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate a %ld motor "
+			"array of real end positions for scan '%s'.",
+				scan->num_motors, record->name );
+		}
+
+		mcs_quick_scan->backlash_position = (double *)
+			calloc( scan->num_motors, sizeof(double) );
+
+		if ( mcs_quick_scan->backlash_position == (double *) NULL ) {
+			mx_free( mcs_quick_scan->real_start_position );
+			mx_free( mcs_quick_scan->real_end_position );
+
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate a %ld motor "
+			"array of backlash positions for scan '%s'.",
+				scan->num_motors, record->name );
+		}
 	}
+
+	if ( mcs_quick_scan->real_start_position == (double *) NULL ) 
+
+	/*---*/
 
 	for ( i = 0; i < scan->num_motors; i++ ) {
 		scan->motor_is_independent_variable[i] = TRUE;
@@ -2042,7 +2079,6 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	MX_RECORD *clock_record;
 	MX_RECORD *synchronous_motion_mode_record;
 	MX_RECORD *quick_scan_motor_record;
-	MX_RECORD *mce_record;
 	MX_RECORD *mcs_record;
 	MX_MCS *mcs;
 	MX_MOTOR *motor;
@@ -2053,7 +2089,6 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	MX_MEASUREMENT_PRESET_PULSE_PERIOD *preset_pulse_period_struct;
 	double measurement_time;
 	double qs_backlash, qs_ratio;
-	MX_RECORD **real_motor_array;
 	int motor_is_compatible, this_motor_is_compatible;
 	long i, j;
 	long dimension[2];
@@ -2146,21 +2181,26 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	MX_HRT_START( timing_measurement );
 #endif
 
-	/* Connect the real motor(s) to their multichannel encoders.
-	 *
-	 * We also keep a temporary list of the real motors so that
-	 * we can check to see if the MCEs used by the real motors
-	 * will generate motor positions that can be used by the
-	 * alternate X motors or not.
-	 */
+	/* Connect the real motor(s) to their multichannel encoders. */
 
-	real_motor_array = (MX_RECORD **)
-		malloc( scan->num_motors * sizeof(MX_RECORD *) );
+	mcs_quick_scan->real_motor_record_array = (MX_RECORD **)
+			malloc( scan->num_motors * sizeof(MX_RECORD *) );
 
-	if ( real_motor_array == (MX_RECORD **) NULL ) {
+	if ( mcs_quick_scan->real_motor_record_array == (MX_RECORD **) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-	"Could not allocate a %ld element array of MX_RECORD pointers for "
-	"the real_motor_array data structure.", scan->num_motors );
+		"Could not allocate a %ld element real_motor_record_array "
+		"for scan '%s'.", scan->num_motors, scan->record->name );
+	}
+
+	mcs_quick_scan->mce_record_array = (MX_RECORD **)
+			malloc( scan->num_motors * sizeof(MX_RECORD *) );
+
+	if ( mcs_quick_scan->mce_record_array == (MX_RECORD **) NULL ) {
+		mx_free( mcs_quick_scan->real_motor_record_array );
+
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Could not allocate a %ld element mce_record_array "
+		"for scan '%s'.", scan->num_motors, scan->record->name );
 	}
 
 	for ( i = 0; i < scan->num_motors; i++ ) {
@@ -2173,9 +2213,13 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 				motor_record, &quick_scan_motor_record );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
-			mx_free( real_motor_array );
+			mx_free( mcs_quick_scan->real_motor_record_array );
+			mx_free( mcs_quick_scan->mce_record_array );
 			return mx_status;
 		}
+
+		mcs_quick_scan->real_motor_record_array[i]
+					= quick_scan_motor_record;
 
 		/* Only perform quick scan backlash correction if one or
 		 * more of the quick scan motors has a non-zero value
@@ -2200,10 +2244,11 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 			correct_for_quick_scan_backlash = TRUE;
 		}
 
-		mce_record = mxs_mcs_quick_scan_find_encoder_readout(
-						quick_scan_motor_record );
+		mcs_quick_scan->mce_record_array[i]
+			= mxs_mcs_quick_scan_find_encoder_readout(
+					quick_scan_motor_record );
 
-		if ( mce_record == (MX_RECORD *) NULL ) {
+		if ( mcs_quick_scan->mce_record_array[i] == (MX_RECORD *) NULL )		{
 			for ( j = 0; j < 3; j++ ) {
 				mx_info("\007");
 				mx_msleep(150);
@@ -2223,18 +2268,16 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 				mx_info("\007");
 				mx_msleep(150);
 			}
-
-			real_motor_array[i] = NULL;
 		} else {
-			mx_status = mx_mce_connect_mce_to_motor( mce_record,
-						quick_scan_motor_record );
+			mx_status = mx_mce_connect_mce_to_motor(
+				mcs_quick_scan->mce_record_array[i],
+				mcs_quick_scan->real_motor_record_array[i] );
 
 			if ( mx_status.code != MXE_SUCCESS ) {
-				mx_free( real_motor_array );
-				return mx_status;
+			    mx_free( mcs_quick_scan->mce_record_array );
+			    mx_free( mcs_quick_scan->real_motor_record_array );
+			    return mx_status;
 			}
-
-			real_motor_array[i] = quick_scan_motor_record;
 		}
 	}
 
@@ -2257,24 +2300,26 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 		for ( j = 0; j < scan->num_motors; j++ ) {
 
 			mx_status = mx_alternate_motor_can_use_this_motors_mce(
-					real_motor_array[j],
-					scan->datafile.x_motor_array[i],
-					&this_motor_is_compatible );
+				mcs_quick_scan->real_motor_record_array[j],
+				scan->datafile.x_motor_array[i],
+				&this_motor_is_compatible );
 
 			if ( mx_status.code != MXE_SUCCESS ) {
-				mx_free( real_motor_array );
-				return mx_status;
+			    mx_free( mcs_quick_scan->mce_record_array );
+			    mx_free( mcs_quick_scan->real_motor_record_array );
+			    return mx_status;
 			}
 
 			if ( this_motor_is_compatible ) {
-				motor_is_compatible = TRUE;
+			    motor_is_compatible = TRUE;
 
-				break;	/* Exit the inner for() loop. */
+			    break;	/* Exit the inner for() loop. */
 			}
 		}
 
 		if ( motor_is_compatible == FALSE ) {
-			mx_free( real_motor_array );
+			mx_free( mcs_quick_scan->mce_record_array );
+			mx_free( mcs_quick_scan->real_motor_record_array );
 
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"Alternate datafile X motor '%s' cannot be used by quick scan '%s' "
@@ -2303,24 +2348,26 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 		for ( j = 0; j < scan->num_motors; j++ ) {
 
 			mx_status = mx_alternate_motor_can_use_this_motors_mce(
-					real_motor_array[j],
-					scan->plot.x_motor_array[i],
-					&this_motor_is_compatible );
+				mcs_quick_scan->real_motor_record_array[j],
+				scan->plot.x_motor_array[i],
+				&this_motor_is_compatible );
 
 			if ( mx_status.code != MXE_SUCCESS ) {
-				mx_free( real_motor_array );
-				return mx_status;
+			    mx_free( mcs_quick_scan->mce_record_array );
+			    mx_free( mcs_quick_scan->real_motor_record_array );
+			    return mx_status;
 			}
 
 			if ( this_motor_is_compatible ) {
-				motor_is_compatible = TRUE;
+			    motor_is_compatible = TRUE;
 
-				break;	/* Exit the inner for() loop. */
+			    break;	/* Exit the inner for() loop. */
 			}
 		}
 
 		if ( motor_is_compatible == FALSE ) {
-			mx_free( real_motor_array );
+			mx_free( mcs_quick_scan->mce_record_array );
+			mx_free( mcs_quick_scan->real_motor_record_array );
 
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"Alternate plot X motor '%s' cannot be used by quick scan '%s' "
@@ -2331,8 +2378,6 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 				scan->plot.x_motor_array[i]->name );
 		}
 	}
-
-	mx_free( real_motor_array );
 
 #if DEBUG_TIMING
 	MX_HRT_END( timing_measurement );
@@ -2669,23 +2714,14 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	MX_HRT_START( timing_measurement );
 #endif
 
-	for ( i = 0; i < scan->num_motors; i++ ) {
+	dimension[0] = scan->num_motors;
+	dimension[1] = quick_scan->actual_num_measurements;
 
-		mcs_quick_scan->motor_position_array[i] = (double *)
-		  malloc(quick_scan->actual_num_measurements * sizeof(double));
+	element_size[0] = sizeof(double);
+	element_size[1] = sizeof(double *);
 
-		if ( mcs_quick_scan->motor_position_array[i] == NULL ) {
-			mx_status = mx_error( MXE_OUT_OF_MEMORY, fname,
-			"Ran out of memory trying to allocate an %ld array "
-			"of motor positions for motor %ld.",
-				quick_scan->actual_num_measurements, i );
-
-			(void) mx_scan_restore_speeds( scan );
-			FREE_MOTOR_POSITION_ARRAYS;
-
-			return mx_status;
-		}
-	}
+	mcs_quick_scan->motor_position_array =
+		mx_allocate_array( 2, dimension, element_size );
 
 #if DEBUG_TIMING
 	MX_HRT_END( timing_measurement );
@@ -3496,8 +3532,8 @@ mxs_mcs_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 	MX_QUICK_SCAN *quick_scan;
 	MX_MCS_QUICK_SCAN *mcs_quick_scan;
 	long **data_array;
-	double motor_datafile_positions[ MXS_SQ_MCS_MAX_MOTORS ];
-	double motor_plot_positions[ MXS_SQ_MCS_MAX_MOTORS ];
+	double *motor_datafile_positions;
+	double *motor_plot_positions;
 	double measurement_time;
 	long *data_values;
 	long i, j, scaler_index;
@@ -3665,6 +3701,31 @@ mxs_mcs_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 			scan->num_input_devices );
 	}
 
+	/* Allocate arrays for the motor datafile and plot positions. */
+
+	motor_datafile_positions = (double *) malloc( scan->num_motors );
+
+	if ( motor_datafile_positions == (double *) NULL ) {
+		mx_free( data_values );
+		FREE_MOTOR_POSITION_ARRAYS;
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Cannot allocate a %ld element of motor datafile positions.",
+			scan->num_motors );
+	}
+
+	motor_plot_positions = (double *) malloc( scan->num_motors );
+
+	if ( motor_plot_positions == (double *) NULL ) {
+		mx_free( data_values );
+		mx_free( motor_datafile_positions );
+		FREE_MOTOR_POSITION_ARRAYS;
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Cannot allocate a %ld element of motor plot positions.",
+			scan->num_motors );
+	}
+
+	/*---*/
+
 	measurement_time = mx_quick_scan_get_measurement_time( quick_scan );
 
 	if ( scan->datafile.num_x_motors > 0 ) {
@@ -3800,8 +3861,10 @@ mxs_mcs_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 			 * all is lost, so we abort.
 			 */
 
-			FREE_MOTOR_POSITION_ARRAYS;
 			mx_free(data_values);
+			mx_free(motor_datafile_positions);
+			mx_free(motor_plot_positions);
+			FREE_MOTOR_POSITION_ARRAYS;
 			return mx_status;
 		}
 
@@ -3865,8 +3928,10 @@ mxs_mcs_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 
 	MX_DEBUG( 2,("%s: freeing the arrays.", fname));
 
-	FREE_MOTOR_POSITION_ARRAYS;
 	mx_free(data_values);
+	mx_free(motor_datafile_positions);
+	mx_free(motor_plot_positions);
+	FREE_MOTOR_POSITION_ARRAYS;
 
 	MX_DEBUG( 2,("%s complete.", fname));
 
