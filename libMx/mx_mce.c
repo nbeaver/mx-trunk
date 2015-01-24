@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005-2006, 2010, 2012
+ * Copyright 1999-2001, 2003, 2005-2006, 2010, 2012, 2015
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -231,8 +231,8 @@ mx_mce_read( MX_RECORD *mce_record,
 
 	if ( read_fn == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"read function ptr for MX_MCE ptr 0x%p is NULL.",
-			mce);
+		"read function ptr for MX_MCE '%s' is NULL.",
+			mce_record->name );
 	}
 
 	mx_status = ( *read_fn )( mce );
@@ -268,14 +268,81 @@ mx_mce_get_current_num_values( MX_RECORD *mce_record,
 
 	if ( get_current_num_values_fn == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	"get_current_num_values function ptr for MX_MCE ptr 0x%p is NULL.",
-			mce);
+		"get_current_num_values function ptr for MX_MCE '%s' is NULL.",
+			mce_record->name );
 	}
 
 	mx_status = ( *get_current_num_values_fn )( mce );
 
 	if ( num_values != NULL ) {
 		*num_values = mce->current_num_values;
+	}
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_mce_get_last_measurement_number( MX_RECORD *mce_record,
+		long *last_measurement_number )
+{
+	static const char fname[] = "mx_mce_get_last_measurement_number()";
+
+	MX_MCE *mce;
+	MX_MCE_FUNCTION_LIST *function_list;
+	mx_status_type ( *last_measurement_number_fn ) ( MX_MCE * );
+	mx_status_type mx_status;
+
+	mx_status = mx_mce_get_pointers( mce_record, &mce,
+					&function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	last_measurement_number_fn = function_list->last_measurement_number;
+
+	if ( last_measurement_number_fn == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"last_measurement_number function ptr for MX_MCE '%s' is NULL.",
+			mce_record->name );
+	}
+
+	mx_status = ( *last_measurement_number_fn )( mce );
+
+	if ( last_measurement_number != NULL ) {
+		*last_measurement_number = mce->last_measurement_number;
+	}
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_mce_read_measurement( MX_RECORD *mce_record,
+		long measurement_index,
+		double *mce_value )
+{
+	static const char fname[] = "mx_mce_get_last_measurement_number()";
+
+	MX_MCE *mce;
+	MX_MCE_FUNCTION_LIST *function_list;
+	mx_status_type ( *read_measurement_fn ) ( MX_MCE * );
+	mx_status_type mx_status;
+
+	mx_status = mx_mce_get_pointers( mce_record, &mce,
+					&function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	read_measurement_fn = function_list->read_measurement;
+
+	if ( read_measurement_fn == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"read_measurement function ptr for MX_MCE '%s' is NULL.",
+			mce_record->name );
+	}
+
+	mx_status = ( *read_measurement_fn )( mce );
+
+	if ( mce_value != NULL ) {
+		*mce_value = mce->value;
 	}
 	return mx_status;
 }

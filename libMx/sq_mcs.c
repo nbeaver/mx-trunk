@@ -3104,17 +3104,16 @@ mxs_mcs_quick_scan_display_scan_parameters( MX_SCAN *scan,
 /*--------------------------------------------------------------------------*/
 
 static mx_status_type
-mxp_mcs_quick_scan_readout_measurement( MX_SCAN * scan,
+mxs_mcs_quick_scan_readout_measurement( MX_SCAN * scan,
 					MX_QUICK_SCAN *quick_scan,
 					MX_MCS_QUICK_SCAN *mcs_quick_scan,
 					long *old_measurement_number )
 {
-#if 0
-	static const char fname[] = "mxp_mcs_quick_scan_readout_measurement()";
-#endif
-	MX_RECORD *mcs_record;
+	MX_RECORD *pseudomotor_record, *real_motor_record;
+	MX_RECORD *mcs_record, *mce_record;
 	long i, n, mcs_measurement_number, scan_measurement_number;
 	long first_new_measurement;
+	double encoder_value;
 	mx_status_type mx_status;
 
 	scan_measurement_number = LONG_MAX;
@@ -3146,6 +3145,46 @@ mxp_mcs_quick_scan_readout_measurement( MX_SCAN * scan,
 	for ( i = first_new_measurement; i <= scan_measurement_number; i++ ) {
 		fprintf( stderr, "Scan '%s': Reading out measurement %ld: ",
 			scan->record->name, i );
+
+		/* Readout the motor positions.  Since some of the motors may
+		 * not have multichannel encoders attached, it is important
+		 * to get this information quickly.
+		 */
+
+		for ( n = 0; n < scan->num_motors; n++ ) {
+			pseudomotor_record = scan->motor_record_array[n];
+
+			real_motor_record =
+				mcs_quick_scan->real_motor_record_array[n];
+
+			mce_record = mcs_quick_scan->mce_record_array[n];
+
+			if ( mce_record == (MX_RECORD *) NULL ) {
+				/* FIXME: At the moment, if the motor is
+				 * not attached to an MCE, then we just
+				 * skip that motor.  Ultimately, we may
+				 * want to just readout that motor's
+				 * position _now_.
+				 */
+
+				continue;	/* Cycle the for(n) loop. */
+			}
+
+			/* Get the recorded MCE position. */
+
+			mx_status = mx_mce_read_measurement( mce_record,
+							i, &encoder_value );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			fprintf( stderr, "Encoder[%ld] = %g, ",
+				n, encoder_value );
+		}
+
+		/* Then, we read out the MCS channel values from the array
+		 * stored by the callback routine.
+		 */
 
 		for ( n = 0; n < mcs_quick_scan->num_mcs; n++ ) {
 			mcs_record = mcs_quick_scan->mcs_record_array[n];
@@ -3422,7 +3461,7 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 		}
 
 		if ( readout_by_measurement ) {
-			mx_status = mxp_mcs_quick_scan_readout_measurement(
+			mx_status = mxs_mcs_quick_scan_readout_measurement(
 					scan, quick_scan, mcs_quick_scan,
 					&old_measurement_number );
 

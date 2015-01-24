@@ -7,7 +7,8 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2006-2007, 2010 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2006-2007, 2010, 2015
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -35,6 +36,10 @@ typedef struct {
 	long maximum_num_values;
 
 	long current_num_values;
+	long last_measurement_number;
+	long measurement_index;
+
+	double value;
 	double *value_array;
 
 	double scale;
@@ -46,11 +51,14 @@ typedef struct {
 	char selected_motor_name[ MXU_RECORD_NAME_LENGTH + 1 ];
 } MX_MCE;
 
-#define MXLV_MCE_CURRENT_NUM_VALUES	1001
-#define MXLV_MCE_VALUE_ARRAY		1002
-#define MXLV_MCE_NUM_MOTORS		1003
-#define MXLV_MCE_MOTOR_RECORD_ARRAY	1004
-#define MXLV_MCE_SELECTED_MOTOR_NAME	1005
+#define MXLV_MCE_CURRENT_NUM_VALUES		1001
+#define MXLV_MCE_LAST_MEASUREMENT_NUMBER	1002
+#define MXLV_MCE_MEASUREMENT_INDEX		1003
+#define MXLV_MCE_VALUE				1004
+#define MXLV_MCE_VALUE_ARRAY			1005
+#define MXLV_MCE_NUM_MOTORS			1006
+#define MXLV_MCE_MOTOR_RECORD_ARRAY		1007
+#define MXLV_MCE_SELECTED_MOTOR_NAME		1008
 
 #define MX_MCE_STANDARD_FIELDS \
   {-1, -1, "encoder_type", MXFT_LONG, NULL, 0, {0}, \
@@ -72,6 +80,19 @@ typedef struct {
   {MXLV_MCE_CURRENT_NUM_VALUES, -1, "current_num_values", \
 				MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCE, current_num_values), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_MCE_LAST_MEASUREMENT_NUMBER, -1, "last_measurement_number", \
+				MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCE, last_measurement_number), \
+	{0}, NULL, 0}, \
+  {MXLV_MCE_MEASUREMENT_INDEX, -1, "measurement_index", \
+				MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCE, measurement_index), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_MCE_VALUE, -1, "value", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCE, value), \
 	{0}, NULL, 0}, \
   \
   {MXLV_MCE_VALUE_ARRAY, -1, "value_array", MXFT_DOUBLE, \
@@ -120,6 +141,8 @@ typedef struct {
 	mx_status_type ( *reset_overflow_status ) ( MX_MCE *encoder );
 	mx_status_type ( *read ) ( MX_MCE *encoder );
 	mx_status_type ( *get_current_num_values ) ( MX_MCE *encoder );
+	mx_status_type ( *last_measurement_number ) ( MX_MCE *encoder );
+	mx_status_type ( *read_measurement ) ( MX_MCE *encoder );
 	mx_status_type ( *get_motor_record_array ) ( MX_MCE *encoder );
 	mx_status_type ( *connect_mce_to_motor ) ( MX_MCE *encoder,
 						MX_RECORD *motor_record );
@@ -146,6 +169,14 @@ MX_API mx_status_type mx_mce_read( MX_RECORD *mce_record,
 
 MX_API mx_status_type mx_mce_get_current_num_values( MX_RECORD *mce_record,
 						unsigned long *num_values );
+
+MX_API mx_status_type mx_mce_get_last_measurement_number(
+						MX_RECORD *mce_record,
+						long *last_measurement_number );
+
+MX_API mx_status_type mx_mce_read_measurement( MX_RECORD *mce_record,
+						long measurement_index,
+						double *mce_value );
 
 MX_API mx_status_type mx_mce_get_motor_record_array( MX_RECORD *mce_record,
 			long *num_motors, MX_RECORD ***motor_record_array );

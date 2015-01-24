@@ -8,7 +8,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006, 2008, 2010-2011 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006, 2008, 2010-2011, 2015
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -45,6 +46,8 @@ MX_MCE_FUNCTION_LIST mxd_pmac_mce_mce_function_list = {
 	NULL,
 	mxd_pmac_mce_read,
 	mxd_pmac_mce_get_current_num_values,
+	NULL,
+	NULL,
 	NULL,
 	mxd_pmac_mce_connect_mce_to_motor
 };

@@ -54,6 +54,8 @@ MX_MCE_FUNCTION_LIST mxd_epics_scaler_mce_mce_function_list = {
 	mxd_epics_scaler_mce_read,
 	mxd_epics_scaler_mce_get_current_num_values,
 	NULL,
+	NULL,
+	NULL,
 	mxd_epics_scaler_mce_connect_mce_to_motor
 };
 
