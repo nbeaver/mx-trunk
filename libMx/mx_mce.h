@@ -39,6 +39,11 @@ typedef struct {
 	long last_measurement_number;
 	long measurement_index;
 
+	unsigned long status;
+	mx_bool_type start;
+	mx_bool_type stop;
+	mx_bool_type clear;
+
 	double value;
 	double *value_array;
 
@@ -53,12 +58,16 @@ typedef struct {
 
 #define MXLV_MCE_CURRENT_NUM_VALUES		1001
 #define MXLV_MCE_LAST_MEASUREMENT_NUMBER	1002
-#define MXLV_MCE_MEASUREMENT_INDEX		1003
-#define MXLV_MCE_VALUE				1004
-#define MXLV_MCE_VALUE_ARRAY			1005
-#define MXLV_MCE_NUM_MOTORS			1006
-#define MXLV_MCE_MOTOR_RECORD_ARRAY		1007
-#define MXLV_MCE_SELECTED_MOTOR_NAME		1008
+#define MXLV_MCE_STATUS				1003
+#define MXLV_MCE_START				1004
+#define MXLV_MCE_STOP				1005
+#define MXLV_MCE_CLEAR				1006
+#define MXLV_MCE_MEASUREMENT_INDEX		1007
+#define MXLV_MCE_VALUE				1008
+#define MXLV_MCE_VALUE_ARRAY			1009
+#define MXLV_MCE_NUM_MOTORS			1010
+#define MXLV_MCE_MOTOR_RECORD_ARRAY		1011
+#define MXLV_MCE_SELECTED_MOTOR_NAME		1012
 
 #define MX_MCE_STANDARD_FIELDS \
   {-1, -1, "encoder_type", MXFT_LONG, NULL, 0, {0}, \
@@ -86,6 +95,23 @@ typedef struct {
 				MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCE, last_measurement_number), \
 	{0}, NULL, 0}, \
+  \
+  {MXLV_MCE_STATUS, -1, "status", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCE, status), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_MCE_START, -1, "start", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCE, start), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_MCE_STOP, -1, "stop", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCE, stop), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_MCE_CLEAR, -1, "clear", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCE, clear), \
+	{0}, NULL, 0}, \
+  \
   {MXLV_MCE_MEASUREMENT_INDEX, -1, "measurement_index", \
 				MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCE, measurement_index), \
@@ -141,7 +167,11 @@ typedef struct {
 	mx_status_type ( *reset_overflow_status ) ( MX_MCE *encoder );
 	mx_status_type ( *read ) ( MX_MCE *encoder );
 	mx_status_type ( *get_current_num_values ) ( MX_MCE *encoder );
-	mx_status_type ( *last_measurement_number ) ( MX_MCE *encoder );
+	mx_status_type ( *get_last_measurement_number ) ( MX_MCE *encoder );
+	mx_status_type ( *get_status ) ( MX_MCE *encoder );
+	mx_status_type ( *start ) ( MX_MCE *encoder );
+	mx_status_type ( *stop ) ( MX_MCE *encoder );
+	mx_status_type ( *clear ) ( MX_MCE *encoder );
 	mx_status_type ( *read_measurement ) ( MX_MCE *encoder );
 	mx_status_type ( *get_motor_record_array ) ( MX_MCE *encoder );
 	mx_status_type ( *connect_mce_to_motor ) ( MX_MCE *encoder,
@@ -173,6 +203,15 @@ MX_API mx_status_type mx_mce_get_current_num_values( MX_RECORD *mce_record,
 MX_API mx_status_type mx_mce_get_last_measurement_number(
 						MX_RECORD *mce_record,
 						long *last_measurement_number );
+
+MX_API mx_status_type mx_mce_get_status( MX_RECORD *mce_record,
+					unsigned long *mce_status );
+
+MX_API mx_status_type mx_mce_start( MX_RECORD *mce_record );
+
+MX_API mx_status_type mx_mce_stop( MX_RECORD *mce_record );
+
+MX_API mx_status_type mx_mce_clear( MX_RECORD *mce_record );
 
 MX_API mx_status_type mx_mce_read_measurement( MX_RECORD *mce_record,
 						long measurement_index,

@@ -46,6 +46,10 @@ MX_MCE_FUNCTION_LIST mxd_network_mce_mce_function_list = {
 	mxd_network_mce_get_current_num_values,
 	NULL,
 	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
 	mxd_network_mce_get_motor_record_array,
 	mxd_network_mce_connect_mce_to_motor
 };

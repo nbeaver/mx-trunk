@@ -49,6 +49,10 @@ MX_MCE_FUNCTION_LIST mxd_pmac_mce_mce_function_list = {
 	NULL,
 	NULL,
 	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
 	mxd_pmac_mce_connect_mce_to_motor
 };
 

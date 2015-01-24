@@ -288,7 +288,7 @@ mx_mce_get_last_measurement_number( MX_RECORD *mce_record,
 
 	MX_MCE *mce;
 	MX_MCE_FUNCTION_LIST *function_list;
-	mx_status_type ( *last_measurement_number_fn ) ( MX_MCE * );
+	mx_status_type ( *get_last_measurement_number_fn ) ( MX_MCE * );
 	mx_status_type mx_status;
 
 	mx_status = mx_mce_get_pointers( mce_record, &mce,
@@ -297,19 +297,140 @@ mx_mce_get_last_measurement_number( MX_RECORD *mce_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	last_measurement_number_fn = function_list->last_measurement_number;
+	get_last_measurement_number_fn =
+		function_list->get_last_measurement_number;
 
-	if ( last_measurement_number_fn == NULL ) {
+	if ( get_last_measurement_number_fn == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"last_measurement_number function ptr for MX_MCE '%s' is NULL.",
+	"get_last_measurement_number function ptr for MX_MCE '%s' is NULL.",
 			mce_record->name );
 	}
 
-	mx_status = ( *last_measurement_number_fn )( mce );
+	mx_status = ( *get_last_measurement_number_fn )( mce );
 
 	if ( last_measurement_number != NULL ) {
 		*last_measurement_number = mce->last_measurement_number;
 	}
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_mce_get_status( MX_RECORD *mce_record,
+		unsigned long *mce_status )
+{
+	static const char fname[] = "mx_mce_get_status()";
+
+	MX_MCE *mce;
+	MX_MCE_FUNCTION_LIST *function_list;
+	mx_status_type ( *get_status_fn ) ( MX_MCE * );
+	mx_status_type mx_status;
+
+	mx_status = mx_mce_get_pointers( mce_record, &mce,
+					&function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_status_fn = function_list->get_status;
+
+	if ( get_status_fn == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"status function ptr for MX_MCE '%s' is NULL.",
+			mce_record->name );
+	}
+
+	mx_status = ( *get_status_fn )( mce );
+
+	if ( mce_status != NULL ) {
+		*mce_status = mce->status;
+	}
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_mce_start( MX_RECORD *mce_record )
+{
+	static const char fname[] = "mx_mce_start()";
+
+	MX_MCE *mce;
+	MX_MCE_FUNCTION_LIST *function_list;
+	mx_status_type ( *start_fn ) ( MX_MCE * );
+	mx_status_type mx_status;
+
+	mx_status = mx_mce_get_pointers( mce_record, &mce,
+					&function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	start_fn = function_list->start;
+
+	if ( start_fn == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"status function ptr for MX_MCE '%s' is NULL.",
+			mce_record->name );
+	}
+
+	mx_status = ( *start_fn )( mce );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_mce_stop( MX_RECORD *mce_record )
+{
+	static const char fname[] = "mx_mce_stop()";
+
+	MX_MCE *mce;
+	MX_MCE_FUNCTION_LIST *function_list;
+	mx_status_type ( *stop_fn ) ( MX_MCE * );
+	mx_status_type mx_status;
+
+	mx_status = mx_mce_get_pointers( mce_record, &mce,
+					&function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	stop_fn = function_list->stop;
+
+	if ( stop_fn == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"status function ptr for MX_MCE '%s' is NULL.",
+			mce_record->name );
+	}
+
+	mx_status = ( *stop_fn )( mce );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_mce_clear( MX_RECORD *mce_record )
+{
+	static const char fname[] = "mx_mce_clear()";
+
+	MX_MCE *mce;
+	MX_MCE_FUNCTION_LIST *function_list;
+	mx_status_type ( *clear_fn ) ( MX_MCE * );
+	mx_status_type mx_status;
+
+	mx_status = mx_mce_get_pointers( mce_record, &mce,
+					&function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	clear_fn = function_list->clear;
+
+	if ( clear_fn == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"status function ptr for MX_MCE '%s' is NULL.",
+			mce_record->name );
+	}
+
+	mx_status = ( *clear_fn )( mce );
+
 	return mx_status;
 }
 
