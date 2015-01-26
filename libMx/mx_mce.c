@@ -334,12 +334,10 @@ mx_mce_get_status( MX_RECORD *mce_record,
 	get_status_fn = function_list->get_status;
 
 	if ( get_status_fn == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"status function ptr for MX_MCE '%s' is NULL.",
-			mce_record->name );
+		mce->status = 0;
+	} else {
+		mx_status = ( *get_status_fn )( mce );
 	}
-
-	mx_status = ( *get_status_fn )( mce );
 
 	if ( mce_status != NULL ) {
 		*mce_status = mce->status;
@@ -365,13 +363,9 @@ mx_mce_start( MX_RECORD *mce_record )
 
 	start_fn = function_list->start;
 
-	if ( start_fn == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"status function ptr for MX_MCE '%s' is NULL.",
-			mce_record->name );
+	if ( start_fn != NULL ) {
+		mx_status = ( *start_fn )( mce );
 	}
-
-	mx_status = ( *start_fn )( mce );
 
 	return mx_status;
 }
@@ -394,13 +388,9 @@ mx_mce_stop( MX_RECORD *mce_record )
 
 	stop_fn = function_list->stop;
 
-	if ( stop_fn == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"status function ptr for MX_MCE '%s' is NULL.",
-			mce_record->name );
+	if ( stop_fn != NULL ) {
+		mx_status = ( *stop_fn )( mce );
 	}
-
-	mx_status = ( *stop_fn )( mce );
 
 	return mx_status;
 }
@@ -423,13 +413,9 @@ mx_mce_clear( MX_RECORD *mce_record )
 
 	clear_fn = function_list->clear;
 
-	if ( clear_fn == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"status function ptr for MX_MCE '%s' is NULL.",
-			mce_record->name );
+	if ( clear_fn != NULL ) {
+		mx_status = ( *clear_fn )( mce );
 	}
-
-	mx_status = ( *clear_fn )( mce );
 
 	return mx_status;
 }
@@ -455,10 +441,12 @@ mx_mce_read_measurement( MX_RECORD *mce_record,
 	read_measurement_fn = function_list->read_measurement;
 
 	if ( read_measurement_fn == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"read_measurement function ptr for MX_MCE '%s' is NULL.",
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Reading a single measurement from MCE '%s' is not supported.",
 			mce_record->name );
 	}
+
+	mce->measurement_index = measurement_index;
 
 	mx_status = ( *read_measurement_fn )( mce );
 

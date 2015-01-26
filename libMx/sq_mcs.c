@@ -97,10 +97,6 @@ mxs_mcs_quick_scan_free_arrays( MX_SCAN *scan,
 
 	(void) mx_free_array( mcs_quick_scan->motor_position_array );
 
-	mx_free( mcs_quick_scan->real_start_position );
-	mx_free( mcs_quick_scan->real_end_position );
-	mx_free( mcs_quick_scan->backlash_position );
-	
 	(void) mx_free_array( scan->datafile.x_position_array );
 	(void) mx_free_array( scan->plot.x_position_array );
 
@@ -750,6 +746,26 @@ mxs_mcs_quick_scan_compute_scan_parameters(
 
 	MX_DEBUG( 2,("%s: quick_scan->requested_num_measurements = %ld",
 		fname, quick_scan->requested_num_measurements));
+
+	/*---*/
+
+	if ( mcs_quick_scan->real_start_position == (double *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	    "The real_start_position pointer for MCS quick scan '%s' is NULL.",
+			scan->record->name );
+	}
+	if ( mcs_quick_scan->real_end_position == (double *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	    "The real_end_position pointer for MCS quick scan '%s' is NULL.",
+			scan->record->name );
+	}
+	if ( mcs_quick_scan->backlash_position == (double *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	    "The backlash_position pointer for MCS quick scan '%s' is NULL.",
+			scan->record->name );
+	}
+
+	/*---*/
 
 	/* Compute the actual number of measurements required for this scan.
 	 * For this case, we always round up.

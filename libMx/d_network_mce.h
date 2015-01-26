@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004, 2010 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003-2004, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,9 +29,11 @@ typedef struct {
 
 	MX_NETWORK_FIELD current_num_values_nf;
 	MX_NETWORK_FIELD encoder_type_nf;
+	MX_NETWORK_FIELD measurement_index_nf;
 	MX_NETWORK_FIELD motor_record_array_nf;
 	MX_NETWORK_FIELD num_motors_nf;
 	MX_NETWORK_FIELD selected_motor_name_nf;
+	MX_NETWORK_FIELD value_nf;
 	MX_NETWORK_FIELD value_array_nf;
 } MX_NETWORK_MCE;
 
@@ -56,6 +58,7 @@ MX_API mx_status_type mxd_network_mce_delete_record( MX_RECORD *record );
 
 MX_API mx_status_type mxd_network_mce_read( MX_MCE *mce );
 MX_API mx_status_type mxd_network_mce_get_current_num_values( MX_MCE *mce );
+MX_API mx_status_type mxd_network_mce_read_measurement( MX_MCE *mce );
 MX_API mx_status_type mxd_network_mce_get_motor_record_array( MX_MCE *mce );
 MX_API mx_status_type mxd_network_mce_connect_mce_to_motor( MX_MCE *mce,
 						MX_RECORD *motor_record );

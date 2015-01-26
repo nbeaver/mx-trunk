@@ -58,7 +58,7 @@ MX_MCE_FUNCTION_LIST mxd_epics_scaler_mce_mce_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	NULL,
+	mxd_epics_scaler_mce_read_measurement,
 	NULL,
 	mxd_epics_scaler_mce_connect_mce_to_motor
 };
@@ -458,7 +458,7 @@ mxd_epics_scaler_mce_read( MX_MCE *mce )
 	if ( epics_scaler_mcs->motor_position_array == (double *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The motor_position_array pointer for 'epics_scaler_mcs' "
-		"record '%s'.", mcs->record->name );
+		"record '%s' is NULL.", mcs->record->name );
 	}
 
 	/*---*/
@@ -498,6 +498,68 @@ mxd_epics_scaler_mce_get_current_num_values( MX_MCE *mce )
 	MX_DEBUG(-2,("%s: mce->current_num_values = %ld",
 		fname, mce->current_num_values));
 #endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_epics_scaler_mce_read_measurement( MX_MCE *mce )
+{
+	static const char fname[] = "mxd_epics_scaler_mce_read_measurement()";
+
+	MX_EPICS_SCALER_MCE *epics_scaler_mce = NULL;
+	MX_MCS *mcs = NULL;
+	MX_EPICS_SCALER_MCS *epics_scaler_mcs = NULL;
+	MX_RECORD *motor_record = NULL;
+	MX_MOTOR *motor = NULL;
+	unsigned long i;
+	double raw_encoder_value;
+	mx_status_type mx_status;
+
+	mx_status = mxd_epics_scaler_mce_get_pointers( mce, &epics_scaler_mce,
+					&mcs, &epics_scaler_mcs, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( ( mce->measurement_index < 0 )
+	  || ( mce->measurement_index >= mce->current_num_values ) )
+	{
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The requested measurement index (%ld) for MCE '%s' "
+		"is outside the allowed range of 0 to %ld.",
+			mce->measurement_index, mce->record->name,
+			mce->current_num_values - 1 );
+	}
+
+	motor_record = mce->motor_record_array[0];
+
+	if ( motor_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NOT_READY, fname,
+		"No motor has been assigned to MCE record '%s' yet.",
+			mce->record->name );
+	}
+
+	motor = (MX_MOTOR *) motor_record->record_class_struct;
+
+	if ( motor == (MX_MOTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_MOTOR pointer for record '%s' is NULL.",
+			motor_record->name );
+	}
+
+	if ( epics_scaler_mcs->motor_position_array == (double *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The motor_position_array pointer for 'epics_scaler_mcs' "
+		"record '%s' is NULL.", mcs->record->name );
+	}
+
+	i = mce->measurement_index;
+
+	raw_encoder_value = motor->offset
+		+ motor->scale * epics_scaler_mcs->motor_position_array[i];
+		
+	mce->value = mce->offset + mce->scale * raw_encoder_value;
 
 	return MX_SUCCESSFUL_RESULT;
 }

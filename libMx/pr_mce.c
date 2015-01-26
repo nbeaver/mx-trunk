@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2000-2004, 2006, 2012 Illinois Institute of Technology
+ * Copyright 2000-2004, 2006, 2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -44,10 +44,11 @@ mx_setup_mce_process_functions( MX_RECORD *record )
 
 		switch( record_field->label_value ) {
 		case MXLV_MCE_CURRENT_NUM_VALUES:
-		case MXLV_MCE_VALUE_ARRAY:
-		case MXLV_MCE_NUM_MOTORS:
 		case MXLV_MCE_MOTOR_RECORD_ARRAY:
+		case MXLV_MCE_NUM_MOTORS:
 		case MXLV_MCE_SELECTED_MOTOR_NAME:
+		case MXLV_MCE_VALUE:
+		case MXLV_MCE_VALUE_ARRAY:
 			record_field->process_function
 					= mx_mce_process_function;
 			break;
@@ -68,26 +69,31 @@ mx_mce_process_function( void *record_ptr,
 	MX_RECORD_FIELD *record_field;
 	MX_MCE *mce;
 	MX_RECORD *motor_record;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
 	mce = (MX_MCE *) (record->record_class_struct);
 
-	status = MX_SUCCESSFUL_RESULT;
+	mx_status = MX_SUCCESSFUL_RESULT;
 
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
 		case MXLV_MCE_CURRENT_NUM_VALUES:
-			status = mx_mce_get_current_num_values( record, NULL );
+			mx_status = mx_mce_get_current_num_values(
+						record, NULL );
+			break;
+		case MXLV_MCE_VALUE:
+			mx_status = mx_mce_read_measurement( record,
+						mce->measurement_index, NULL );
 			break;
 		case MXLV_MCE_VALUE_ARRAY:
-			status = mx_mce_read( record, NULL, NULL );
+			mx_status = mx_mce_read( record, NULL, NULL );
 			break;
 		case MXLV_MCE_NUM_MOTORS:
 		case MXLV_MCE_MOTOR_RECORD_ARRAY:
-			status = mx_mce_get_motor_record_array( record,
+			mx_status = mx_mce_get_motor_record_array( record,
 								NULL, NULL );
 			break;
 		default:
@@ -104,12 +110,12 @@ mx_mce_process_function( void *record_ptr,
 						mce->selected_motor_name );
 
 			if ( motor_record == (MX_RECORD *) NULL ) {
-				status = mx_error( MXE_NOT_FOUND, fname,
+				mx_status = mx_error( MXE_NOT_FOUND, fname,
 				  "Record '%s' was not found in this database.",
 					mce->selected_motor_name );
 			} else {
-				status = mx_mce_connect_mce_to_motor( record,
-							motor_record );
+				mx_status = mx_mce_connect_mce_to_motor(
+							record, motor_record );
 			}
 			break;
 		default:
@@ -124,6 +130,6 @@ mx_mce_process_function( void *record_ptr,
 			"Unknown operation code = %d", operation );
 	}
 
-	return status;
+	return mx_status;
 }
 

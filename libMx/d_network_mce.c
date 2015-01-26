@@ -49,7 +49,7 @@ MX_MCE_FUNCTION_LIST mxd_network_mce_mce_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	NULL,
+	mxd_network_mce_read_measurement,
 	mxd_network_mce_get_motor_record_array,
 	mxd_network_mce_connect_mce_to_motor
 };
@@ -203,6 +203,10 @@ mxd_network_mce_finish_record_initialization( MX_RECORD *record )
 		network_mce->server_record,
 		"%s.encoder_type", network_mce->remote_record_name );
 
+	mx_network_field_init( &(network_mce->measurement_index_nf),
+		network_mce->server_record,
+		"%s.measurement_index", network_mce->remote_record_name );
+
 	mx_network_field_init( &(network_mce->motor_record_array_nf),
 		network_mce->server_record,
 		"%s.motor_record_array", network_mce->remote_record_name );
@@ -214,6 +218,10 @@ mxd_network_mce_finish_record_initialization( MX_RECORD *record )
 	mx_network_field_init( &(network_mce->selected_motor_name_nf),
 		network_mce->server_record,
 		"%s.selected_motor_name", network_mce->remote_record_name );
+
+	mx_network_field_init( &(network_mce->value_nf),
+		network_mce->server_record,
+		"%s.value", network_mce->remote_record_name );
 
 	mx_network_field_init( &(network_mce->value_array_nf),
 		network_mce->server_record,
@@ -353,11 +361,9 @@ mxd_network_mce_get_current_num_values( MX_MCE *mce )
 {
 	static const char fname[] = "mxd_network_mce_get_current_num_values()";
 
-	MX_NETWORK_MCE *network_mce;
+	MX_NETWORK_MCE *network_mce = NULL;
 	long num_values;
 	mx_status_type mx_status;
-
-	network_mce = NULL;
 
 	mx_status = mxd_network_mce_get_pointers( mce, &network_mce, fname );
 
@@ -388,6 +394,34 @@ mxd_network_mce_get_current_num_values( MX_MCE *mce )
 			fname, mce->current_num_values ));
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_network_mce_read_measurement( MX_MCE *mce )
+{
+	static const char fname[] = "mxd_network_mce_read_measurement()";
+
+	MX_NETWORK_MCE *network_mce = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mxd_network_mce_get_pointers( mce, &network_mce, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_put( &(network_mce->measurement_index_nf),
+				MXFT_ULONG, &(mce->measurement_index) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_get( &(network_mce->value_nf),
+				MXFT_DOUBLE, &(mce->value) );
+
+	MX_DEBUG(-2,("%s: MCE '%s', index = %ld, value = %f",
+		fname, mce->record->name, mce->measurement_index, mce->value));
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
