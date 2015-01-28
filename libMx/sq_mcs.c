@@ -3293,11 +3293,20 @@ mxs_mcs_quick_scan_readout_measurement( MX_SCAN * scan,
 
 			input_device_record = scan->input_device_array[n];
 
+			mx_status = mx_scaler_read( input_device_record, NULL );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
 			scaler = (MX_SCALER *)
 				input_device_record->record_class_struct;
 
 			mcs_scaler = (MX_MCS_SCALER *)
 				input_device_record->record_type_struct;
+
+			mcs_record = mcs_scaler->mcs_record;
+
+			mcs = (MX_MCS *) mcs_record->record_class_struct;
 
 			data_array = mcs->data_array;
 
@@ -3834,11 +3843,11 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
  * that may occur.
  */
 
-MX_EXPORT mx_status_type
-mxs_mcs_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
+static mx_status_type
+mxs_mcs_quick_scan_cl_read_scaler( MX_SCAN *scan )
 {
 	static const char fname[] =
-		"mxs_mcs_quick_scan_cleanup_after_scan_end()";
+		"mxs_mcs_quick_scan_cl_read_scaler()";
 
 	MX_RECORD *input_device_record;
 	MX_MCS *mcs;
@@ -4255,6 +4264,59 @@ mxs_mcs_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 	MX_HRT_RESULTS( timing_measurement, fname,
 			"data arrays freed" );
 #endif
+
+	return mx_status;
+}
+
+static mx_status_type
+mxs_mcs_quick_scan_cl_read_measurement( MX_SCAN *scan )
+{
+	static const char fname[] = "mxs_mcs_quick_scan_cl_read_measurement()";
+
+	mx_status_type mx_status;
+
+	MX_DEBUG(-2,("%s invoked for scan '%s'.", fname, scan->record->name ));
+
+	/* Close the datafile and shut down the plot. */
+
+	mx_status = mx_standard_cleanup_after_scan_end( scan );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxs_mcs_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
+{
+	static const char fname[] =
+		"mxs_mcs_quick_scan_cleanup_after_scan_end()";
+
+	MX_QUICK_SCAN *quick_scan = NULL;
+	MX_MCS_QUICK_SCAN *mcs_quick_scan = NULL;
+	mx_bool_type readout_by_measurement;
+	mx_status_type mx_status;
+
+	mx_status = mxs_mcs_quick_scan_get_pointers( scan,
+			&quick_scan, &mcs_quick_scan, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( mcs_quick_scan->mcs_readout_preference
+		== MXF_MCS_PREFER_READ_MEASUREMENT )
+	{
+		readout_by_measurement = TRUE;
+	} else {
+		readout_by_measurement = FALSE;
+	}
+
+	MX_DEBUG(-2,("%s: readout_by_measurement = %d",
+		fname, (int) readout_by_measurement));
+
+	if ( readout_by_measurement ) {
+		mx_status = mxs_mcs_quick_scan_cl_read_measurement( scan );
+	} else {
+		mx_status = mxs_mcs_quick_scan_cl_read_scaler( scan );
+	}
 
 	return mx_status;
 }
