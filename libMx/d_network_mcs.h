@@ -29,7 +29,9 @@ typedef struct {
 	MX_NETWORK_FIELD busy_nf;
 	MX_NETWORK_FIELD clear_nf;
 	MX_NETWORK_FIELD current_num_measurements_nf;
+	MX_NETWORK_FIELD current_num_scalers_nf;
 	MX_NETWORK_FIELD dark_current_nf;
+	MX_NETWORK_FIELD dark_current_array_nf;
 	MX_NETWORK_FIELD external_channel_advance_nf;
 	MX_NETWORK_FIELD external_prescale_nf;
 	MX_NETWORK_FIELD measurement_counts_nf;

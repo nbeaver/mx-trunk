@@ -43,24 +43,25 @@ mx_setup_mcs_process_functions( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
-		case MXLV_MCS_START:
-		case MXLV_MCS_STOP:
-		case MXLV_MCS_CLEAR:
 		case MXLV_MCS_BUSY:
-		case MXLV_MCS_MODE:
+		case MXLV_MCS_CLEAR:
+		case MXLV_MCS_CLEAR_DEADBAND:
+		case MXLV_MCS_CURRENT_NUM_MEASUREMENTS:
+		case MXLV_MCS_CURRENT_NUM_SCALERS:
+		case MXLV_MCS_DARK_CURRENT:
+		case MXLV_MCS_DARK_CURRENT_ARRAY:
 		case MXLV_MCS_EXTERNAL_CHANNEL_ADVANCE:
 		case MXLV_MCS_EXTERNAL_PRESCALE:
-		case MXLV_MCS_MEASUREMENT_TIME:
 		case MXLV_MCS_MEASUREMENT_COUNTS:
-		case MXLV_MCS_CURRENT_NUM_SCALERS:
-		case MXLV_MCS_CURRENT_NUM_MEASUREMENTS:
-		case MXLV_MCS_SCALER_INDEX:
-		case MXLV_MCS_MEASUREMENT_INDEX:
-		case MXLV_MCS_DARK_CURRENT:
-		case MXLV_MCS_SCALER_DATA:
 		case MXLV_MCS_MEASUREMENT_DATA:
+		case MXLV_MCS_MEASUREMENT_INDEX:
+		case MXLV_MCS_MEASUREMENT_TIME:
+		case MXLV_MCS_MODE:
+		case MXLV_MCS_SCALER_DATA:
+		case MXLV_MCS_SCALER_INDEX:
+		case MXLV_MCS_START:
+		case MXLV_MCS_STOP:
 		case MXLV_MCS_TIMER_DATA:
-		case MXLV_MCS_CLEAR_DEADBAND:
 			record_field->process_function
 					    = mx_mcs_process_function;
 			break;
@@ -80,56 +81,60 @@ mx_mcs_process_function( void *record_ptr,
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;
 	MX_MCS *mcs;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
 	mcs = (MX_MCS *) (record->record_class_struct);
 
-	status = MX_SUCCESSFUL_RESULT;
+	mx_status = MX_SUCCESSFUL_RESULT;
 
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
 		case MXLV_MCS_BUSY:
-			status = mx_mcs_is_busy( record, NULL );
+			mx_status = mx_mcs_is_busy( record, NULL );
 			break;
 		case MXLV_MCS_MODE:
-			status = mx_mcs_get_mode( record, NULL );
+			mx_status = mx_mcs_get_mode( record, NULL );
 			break;
 		case MXLV_MCS_EXTERNAL_CHANNEL_ADVANCE:
-			status = mx_mcs_get_external_channel_advance(
+			mx_status = mx_mcs_get_external_channel_advance(
 								record, NULL );
 			break;
 		case MXLV_MCS_EXTERNAL_PRESCALE:
-			status = mx_mcs_get_external_prescale( record, NULL );
+			mx_status = mx_mcs_get_external_prescale( record, NULL );
 			break;
 		case MXLV_MCS_MEASUREMENT_TIME:
-			status = mx_mcs_get_measurement_time( record, NULL );
+			mx_status = mx_mcs_get_measurement_time( record, NULL );
 			break;
 		case MXLV_MCS_MEASUREMENT_COUNTS:
-			status = mx_mcs_get_measurement_counts( record, NULL );
+			mx_status = mx_mcs_get_measurement_counts( record, NULL );
 			break;
 		case MXLV_MCS_CURRENT_NUM_MEASUREMENTS:
-			status = mx_mcs_get_num_measurements( record, NULL );
+			mx_status = mx_mcs_get_num_measurements( record, NULL );
 			break;
 		case MXLV_MCS_DARK_CURRENT:
-			status = mx_mcs_get_dark_current( record,
+			mx_status = mx_mcs_get_dark_current( record,
 						mcs->scaler_index, NULL );
 
 			mcs->dark_current = 
 				mcs->dark_current_array[mcs->scaler_index];
 			break;
+		case MXLV_MCS_DARK_CURRENT_ARRAY:
+			mx_status = mx_mcs_get_dark_current_array( record,
+								-1, NULL );
+			break;
 		case MXLV_MCS_SCALER_DATA:
-			status = mx_mcs_read_scaler( record,
+			mx_status = mx_mcs_read_scaler( record,
 					mcs->scaler_index, NULL, NULL );
 			break;
 		case MXLV_MCS_MEASUREMENT_DATA:
-			status = mx_mcs_read_measurement( record,
+			mx_status = mx_mcs_read_measurement( record,
 					mcs->measurement_index, NULL, NULL );
 			break;
 		case MXLV_MCS_TIMER_DATA:
-			status = mx_mcs_read_timer( record, NULL, NULL );
+			mx_status = mx_mcs_read_timer( record, NULL, NULL );
 			break;
 		default:
 			MX_DEBUG( 1,(
@@ -141,35 +146,35 @@ mx_mcs_process_function( void *record_ptr,
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
 		case MXLV_MCS_START:
-			status = mx_mcs_start( record );
+			mx_status = mx_mcs_start( record );
 			break;
 		case MXLV_MCS_STOP:
-			status = mx_mcs_stop( record );
+			mx_status = mx_mcs_stop( record );
 			break;
 		case MXLV_MCS_CLEAR:
-			status = mx_mcs_clear( record );
+			mx_status = mx_mcs_clear( record );
 			break;
 		case MXLV_MCS_MODE:
-			status = mx_mcs_set_mode( record, mcs->mode );
+			mx_status = mx_mcs_set_mode( record, mcs->mode );
 			break;
 		case MXLV_MCS_EXTERNAL_CHANNEL_ADVANCE:
-			status = mx_mcs_set_external_channel_advance( record,
+			mx_status = mx_mcs_set_external_channel_advance( record,
 						mcs->external_channel_advance );
 			break;
 		case MXLV_MCS_EXTERNAL_PRESCALE:
-			status = mx_mcs_set_external_prescale( record,
+			mx_status = mx_mcs_set_external_prescale( record,
 						mcs->external_prescale );
 			break;
 		case MXLV_MCS_MEASUREMENT_TIME:
-			status = mx_mcs_set_measurement_time( record,
+			mx_status = mx_mcs_set_measurement_time( record,
 						mcs->measurement_time );
 			break;
 		case MXLV_MCS_MEASUREMENT_COUNTS:
-			status = mx_mcs_set_measurement_counts( record,
+			mx_status = mx_mcs_set_measurement_counts( record,
 						mcs->measurement_counts );
 			break;
 		case MXLV_MCS_CURRENT_NUM_MEASUREMENTS:
-			status = mx_mcs_set_num_measurements( record,
+			mx_status = mx_mcs_set_num_measurements( record,
 						mcs->current_num_measurements );
 			break;
 		case MXLV_MCS_SCALER_INDEX:
@@ -177,12 +182,12 @@ mx_mcs_process_function( void *record_ptr,
 		case MXLV_MCS_MEASUREMENT_INDEX:
 			break;
 		case MXLV_MCS_DARK_CURRENT:
-			status = mx_mcs_set_dark_current( record,
+			mx_status = mx_mcs_set_dark_current( record,
 						mcs->scaler_index,
 						mcs->dark_current );
 			break;
 		case MXLV_MCS_CLEAR_DEADBAND:
-			status = mx_mcs_set_parameter( record,
+			mx_status = mx_mcs_set_parameter( record,
 						MXLV_MCS_CLEAR_DEADBAND );
 			break;
 		default:
@@ -197,6 +202,6 @@ mx_mcs_process_function( void *record_ptr,
 			"Unknown operation code = %d", operation );
 	}
 
-	return status;
+	return mx_status;
 }
 

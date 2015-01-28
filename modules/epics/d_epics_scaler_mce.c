@@ -561,6 +561,8 @@ mxd_epics_scaler_mce_read_measurement( MX_MCE *mce )
 		
 	mce->value = mce->offset + mce->scale * raw_encoder_value;
 
+	mce->value_array[i] = mce->value;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 

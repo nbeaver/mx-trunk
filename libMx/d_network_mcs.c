@@ -194,9 +194,17 @@ mxd_network_mcs_finish_record_initialization( MX_RECORD *record )
 		network_mcs->server_record,
 	    "%s.current_num_measurements", network_mcs->remote_record_name );
 
+	mx_network_field_init( &(network_mcs->current_num_scalers_nf),
+		network_mcs->server_record,
+	    "%s.current_num_scalers", network_mcs->remote_record_name );
+
 	mx_network_field_init( &(network_mcs->dark_current_nf),
 		network_mcs->server_record,
 		"%s.dark_current", network_mcs->remote_record_name );
+
+	mx_network_field_init( &(network_mcs->dark_current_array_nf),
+		network_mcs->server_record,
+		"%s.dark_current_array", network_mcs->remote_record_name );
 
 	mx_network_field_init( &(network_mcs->external_channel_advance_nf),
 		network_mcs->server_record,
@@ -756,8 +764,9 @@ mxd_network_mcs_get_parameter( MX_MCS *mcs )
 	mx_bool_type external_channel_advance;
 	unsigned long external_prescale;
 	unsigned long num_measurements, measurement_counts;
-	long measurement_number;
+	long measurement_number, current_num_scalers;
 	double measurement_time, dark_current;
+	long dimension_array[1];
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_mcs_get_pointers( mcs, &network_mcs, fname );
@@ -832,6 +841,33 @@ mxd_network_mcs_get_parameter( MX_MCS *mcs )
 		MX_DEBUG( 2,("%s: mcs->dark_current_array[%ld] = %g",
 			fname, mcs->scaler_index,
 			mcs->dark_current_array[mcs->scaler_index]));
+		break;
+
+	case MXLV_MCS_DARK_CURRENT_ARRAY:
+		mx_status = mx_get( &(network_mcs->current_num_scalers_nf),
+					MXFT_LONG, &current_num_scalers );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( current_num_scalers > mcs->maximum_num_scalers ) {
+			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+			"The value of 'current_num_scalers' (%ld) reported for "
+			"network field '%s' is larger than the maximum allowed "
+			"scalers (%ld) for local MCS record '%s'.",
+				current_num_scalers,
+				network_mcs->current_num_scalers_nf.nfname,
+				mcs->maximum_num_scalers,
+				mcs->record->name );
+		}
+
+		mcs->current_num_scalers = current_num_scalers;
+
+		dimension_array[0] = current_num_scalers;
+
+		mx_status = mx_get_array( &(network_mcs->dark_current_array_nf),
+				MXFT_DOUBLE, 1, dimension_array,
+				mcs->dark_current_array );
 		break;
 
 	default:

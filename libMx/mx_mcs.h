@@ -332,7 +332,7 @@ MX_API mx_status_type mx_mcs_get_measurement_number( MX_RECORD *mcs_record,
 					long *measurement_number );
 
 MX_API mx_status_type mx_mcs_get_dark_current_array( MX_RECORD *mcs_record,
-					unsigned long num_scalers,
+					long num_scalers,
 					double *dark_current_array );
 
 MX_API mx_status_type mx_mcs_set_dark_current_array( MX_RECORD *mcs_record,

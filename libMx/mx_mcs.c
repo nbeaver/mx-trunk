@@ -1141,7 +1141,7 @@ mx_mcs_get_measurement_number( MX_RECORD *mcs_record,
 
 MX_EXPORT mx_status_type
 mx_mcs_get_dark_current_array( MX_RECORD *mcs_record,
-				unsigned long num_scalers,
+				long num_scalers,
 				double *dark_current_array )
 {
 	static const char fname[] = "mx_mcs_get_dark_current_array()";
@@ -1158,7 +1158,7 @@ mx_mcs_get_dark_current_array( MX_RECORD *mcs_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( num_scalers > mcs->current_num_scalers ) {
+	if ( (num_scalers >= 0) && (num_scalers > mcs->current_num_scalers) ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 	"The requested number of scalers %lu for MCS '%s' exceeds the "
 	"current number of scalers %lu.",
@@ -1179,7 +1179,7 @@ mx_mcs_get_dark_current_array( MX_RECORD *mcs_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( dark_current_array != NULL ) {
+	if ( ( dark_current_array != NULL ) && ( num_scalers >= 0 ) ) {
 		for ( i = 0; i < num_scalers; i++ ) {
 			dark_current_array[i] = mcs->dark_current_array[i];
 		}
@@ -1418,6 +1418,7 @@ mx_mcs_default_get_parameter_handler( MX_MCS *mcs )
 	case MXLV_MCS_CURRENT_NUM_MEASUREMENTS:
 	case MXLV_MCS_MEASUREMENT_NUMBER:
 	case MXLV_MCS_DARK_CURRENT:
+	case MXLV_MCS_DARK_CURRENT_ARRAY:
 	case MXLV_MCS_CLEAR_DEADBAND:
 
 		/* We just return the value that is already in the 
@@ -1450,6 +1451,7 @@ mx_mcs_default_set_parameter_handler( MX_MCS *mcs )
 	case MXLV_MCS_MEASUREMENT_COUNTS:
 	case MXLV_MCS_CURRENT_NUM_MEASUREMENTS:
 	case MXLV_MCS_DARK_CURRENT:
+	case MXLV_MCS_DARK_CURRENT_ARRAY:
 
 		/* We do nothing but leave alone the value that is already
 		 * stored in the data structure.

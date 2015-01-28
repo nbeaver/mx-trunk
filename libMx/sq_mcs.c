@@ -23,6 +23,8 @@
 
 #define DEBUG_PAUSE_REQUEST	FALSE
 
+#define DEBUG_READ_MEASUREMENT	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -3123,13 +3125,27 @@ static mx_status_type
 mxs_mcs_quick_scan_readout_measurement( MX_SCAN * scan,
 					MX_QUICK_SCAN *quick_scan,
 					MX_MCS_QUICK_SCAN *mcs_quick_scan,
+					long *data_values,
+					double *motor_datafile_positions,
+					double *motor_plot_positions,
 					long *old_measurement_number )
 {
-	MX_RECORD *pseudomotor_record, *real_motor_record;
-	MX_RECORD *mcs_record, *mce_record;
-	long i, n, mcs_measurement_number, scan_measurement_number;
+	MX_RECORD *pseudomotor_record = NULL;
+	MX_RECORD *real_motor_record = NULL;
+	MX_RECORD *mcs_record = NULL;
+	MX_MCS *mcs = NULL;
+	MX_RECORD *mce_record = NULL;
+	MX_RECORD *input_device_record = NULL;
+	MX_SCALER *scaler = NULL;
+	MX_MCS_SCALER *mcs_scaler = NULL;
+	long **data_array = NULL;
+	long i, n, scaler_index;
+	long mcs_measurement_number, scan_measurement_number;
 	long first_new_measurement;
-	double encoder_value;
+	long num_datafile_motors, num_plot_motors;
+	unsigned long mask;
+	double encoder_value, measurement_time;
+	char output_buffer[250], value_buffer[30];
 	mx_status_type mx_status;
 
 	scan_measurement_number = LONG_MAX;
@@ -3156,11 +3172,38 @@ mxs_mcs_quick_scan_readout_measurement( MX_SCAN * scan,
 		return MX_SUCCESSFUL_RESULT;
 	}
 
+	/* If we get here, then we have measurements to read out. */
+
+	/* FIXME: At the moment, we are not yet copying the necessary values to
+	 * scan->datafile.x.position_array or to scan->plot.x_position_array,
+	 * so alternate datafile and plot motors will not yet work correctly
+	 * and will either print garbage or all zeros.
+	 */
+
+	measurement_time = mx_quick_scan_get_measurement_time( quick_scan );
+
+	if ( scan->datafile.num_x_motors > 0 ) {
+		num_datafile_motors = scan->datafile.num_x_motors;
+	} else {
+		num_datafile_motors = scan->num_motors;
+	}
+
+	if ( scan->plot.num_x_motors > 0 ) {
+		num_plot_motors = scan->plot.num_x_motors;
+	} else {
+		num_plot_motors = scan->num_motors;
+	}
+
+	/*---*/
+
 	first_new_measurement = *old_measurement_number + 1;
 
 	for ( i = first_new_measurement; i <= scan_measurement_number; i++ ) {
+
+#if DEBUG_READ_MEASUREMENT
 		fprintf( stderr, "Scan '%s': Reading out measurement %ld: ",
 			scan->record->name, i );
+#endif
 
 		/* Readout the motor positions.  Since some of the motors may
 		 * not have multichannel encoders attached, it is important
@@ -3194,8 +3237,13 @@ mxs_mcs_quick_scan_readout_measurement( MX_SCAN * scan,
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
+			mcs_quick_scan->motor_position_array[n][i]
+						= encoder_value;
+
+#if DEBUG_READ_MEASUREMENT
 			fprintf( stderr, "Encoder[%ld] = %g, ",
 				n, encoder_value );
+#endif
 		}
 
 		/* Then, we read out the MCS channel values from the array
@@ -3205,7 +3253,9 @@ mxs_mcs_quick_scan_readout_measurement( MX_SCAN * scan,
 		for ( n = 0; n < mcs_quick_scan->num_mcs; n++ ) {
 			mcs_record = mcs_quick_scan->mcs_record_array[n];
 
+#if DEBUG_READ_MEASUREMENT
 			fprintf( stderr, "MCS '%s' ", mcs_record->name );
+#endif
 
 			mx_status = mx_mcs_read_measurement( mcs_record,
 							i, NULL, NULL );
@@ -3214,7 +3264,111 @@ mxs_mcs_quick_scan_readout_measurement( MX_SCAN * scan,
 				return mx_status;
 		}
 
+#if DEBUG_READ_MEASUREMENT
 		fprintf( stderr, "\n" );
+#endif
+		/* Add the measurement to the datafile and the plot. */
+
+		for ( n = 0; n < num_datafile_motors; n++ ) {
+			if ( scan->datafile.num_x_motors > 0 ) {
+				motor_datafile_positions[n] =
+				    scan->datafile.x_position_array[n][i];
+			} else {
+				motor_datafile_positions[n] =
+				    mcs_quick_scan->motor_position_array[n][i];
+			}
+		}
+
+		for ( n = 0; n < num_plot_motors; n++ ) {
+			if ( scan->plot.num_x_motors > 0 ) {
+				motor_plot_positions[n] =
+				    scan->plot.x_position_array[n][i];
+			} else {
+				motor_plot_positions[n] =
+				    mcs_quick_scan->motor_position_array[n][i];
+			}
+		}
+
+		for ( n = 0; n < scan->num_input_devices; n++ ) {
+
+			input_device_record = scan->input_device_array[n];
+
+			scaler = (MX_SCALER *)
+				input_device_record->record_class_struct;
+
+			mcs_scaler = (MX_MCS_SCALER *)
+				input_device_record->record_type_struct;
+
+			data_array = mcs->data_array;
+
+			scaler_index = mcs_scaler->scaler_number;
+
+			data_values[n] = data_array[ scaler_index ][i];
+
+			/* Subtract a dark current value if necessary. */
+
+			mask = MXF_SCL_SUBTRACT_DARK_CURRENT
+				| MXF_SCL_SERVER_SUBTRACTS_DARK_CURRENT;
+
+			if ( scaler->scaler_flags & mask ) {
+				data_values[n] -= mx_round(scaler->dark_current
+							* measurement_time);
+			}
+		}
+
+		/* Show the new motor positions and measurement to the user. */
+
+		strlcpy( output_buffer, "", sizeof(output_buffer) );
+
+		for ( n = 0; n < num_plot_motors; n++ ) {
+
+			snprintf( value_buffer, sizeof(value_buffer),
+				" %-8g", motor_plot_positions[n] );
+
+			strlcat( output_buffer, value_buffer,
+				sizeof(output_buffer) );
+		}
+
+		for ( n = 0; n < scan->num_input_devices; n++ ) {
+
+			snprintf( value_buffer, sizeof(value_buffer),
+				" %ld", data_values[n] );
+
+			strlcat( output_buffer, value_buffer,
+				sizeof(output_buffer) );
+		}
+
+		mx_info( "%s", output_buffer );
+
+		/* Add the measurement to the data file. */
+
+		mx_status = mx_add_array_to_datafile( &(scan->datafile),
+			MXFT_DOUBLE, num_datafile_motors,
+						motor_datafile_positions,
+			MXFT_LONG, scan->num_input_devices, data_values );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+
+			/* If we cannot write the data to the datafile,
+			 * then all is lost, so we abort.
+			 */
+
+			return mx_status;
+		}
+
+		/* Add the measurement to the plot. */
+
+		if ( mx_plotting_is_enabled( scan->record ) ) {
+
+			/* Failing to update the plot correctly is not
+			 * a reason to abort, since that would interrupt
+			 * the writing of the datafile.
+			 */
+
+			(void) mx_add_array_to_plot_buffer( &(scan->plot),
+			    MXFT_DOUBLE, num_plot_motors, motor_plot_positions,
+			    MXFT_LONG, scan->num_input_devices, data_values );
+		}
 	}
 
 	/* Save the updated MCS measurement number for our next call. */
@@ -3246,10 +3400,14 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 	MX_MEASUREMENT_PRESET_TIME *preset_time_struct;
 	MX_MEASUREMENT_PRESET_PULSE_PERIOD *preset_pulse_period_struct;
 	mx_bool_type busy;
-	long i;
+	long i, n;
 	unsigned long measurement_milliseconds;
 	mx_bool_type readout_by_measurement;
 	long old_measurement_number;
+
+	long *data_values = NULL;
+	double *motor_datafile_positions = NULL;
+	double *motor_plot_positions = NULL;
 
 #if MX_WAIT_FOR_MCS_TO_START
 	MX_RECORD *mcs_record;
@@ -3271,10 +3429,77 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( mcs_quick_scan->mcs_readout_preference
+		== MXF_MCS_PREFER_READ_MEASUREMENT )
+	{
+		readout_by_measurement = TRUE;
+	} else {
+		readout_by_measurement = FALSE;
+	}
+
+	MX_DEBUG(-2,("%s: readout_by_measurement = %d",
+		fname, (int) readout_by_measurement));
+
+	if ( readout_by_measurement ) {
+		/* If we are reading things out of the MCSs as they come in,
+		 * we need some arrays to hold temporary values in.
+		 */
+
+		data_values = (long *)
+			malloc( scan->num_input_devices * sizeof(long) );
+
+		if ( data_values == (long *) NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+				"Cannot allocate a %ld element array "
+				"of scaler values.",
+					scan->num_input_devices );
+		}
+
+		motor_datafile_positions = (double *) malloc(scan->num_motors);
+
+		if ( motor_datafile_positions == (double *) NULL ) {
+			mx_free( data_values );
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+				"Cannot allocate a %ld element array "
+				"of motor datafile positions.",
+					scan->num_motors );
+		}
+
+		motor_plot_positions = (double *) malloc(scan->num_motors);
+
+		if ( motor_plot_positions == (double *) NULL ) {
+			mx_free( data_values );
+			mx_free( motor_datafile_positions );
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+				"Cannot allocate a %ld element array "
+				"of motor plot positions.",
+					scan->num_motors );
+		}
+	}
+
 #if DEBUG_SPEED
 	mx_status = mxs_mcs_quick_scan_display_scan_parameters( scan,
 						quick_scan, mcs_quick_scan );
 #endif
+	/* If we will be reading out the MCS values by measurement in
+	 * this routine, then we need to update the dark current values
+	 * before we start the hardware running.
+	 */
+
+	if ( readout_by_measurement ) {
+		for ( n = 0; n < mcs_quick_scan->num_mcs; n++ ) {
+			mx_status = mx_mcs_get_dark_current_array(
+					mcs_quick_scan->mcs_record_array[n],
+					-1, NULL );
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+				mx_free( data_values );
+				mx_free( motor_datafile_positions );
+				mx_free( motor_plot_positions );
+				return mx_status;
+			}
+		}
+	}
 
 #if DEBUG_TIMING
 	MX_HRT_START( timing_measurement );
@@ -3299,8 +3524,12 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 
 		mx_status = mx_mcs_start( mcs_timer->mcs_record );
 
-		if ( mx_status.code != MXE_SUCCESS )
+		if ( mx_status.code != MXE_SUCCESS ) {
+			mx_free( data_values );
+			mx_free( motor_datafile_positions );
+			mx_free( motor_plot_positions );
 			return mx_status;
+		}
 		break;
 	case MXM_PRESET_PULSE_PERIOD:
 		preset_pulse_period_struct =
@@ -3312,15 +3541,27 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 
 		mx_status = mx_pulse_generator_start( clock_record );
 
-		if ( mx_status.code != MXE_SUCCESS )
+		if ( mx_status.code != MXE_SUCCESS ) {
+			mx_free( data_values );
+			mx_free( motor_datafile_positions );
+			mx_free( motor_plot_positions );
 			return mx_status;
+		}
 		break;
 	case MXM_PRESET_COUNT:
+		mx_free( data_values );
+		mx_free( motor_datafile_positions );
+		mx_free( motor_plot_positions );
+
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Preset count measurements are not currently supported "
 		"for MCS quick scan '%s'.",
 			scan->record->name );
 	default:
+		mx_free( data_values );
+		mx_free( motor_datafile_positions );
+		mx_free( motor_plot_positions );
+
 		return mx_error( MXE_UNSUPPORTED, fname,
 	"Measurement type '%ld' for MCS quick scan '%s' is unsupported.",
 			scan->measurement.type, scan->record->name );
@@ -3368,8 +3609,12 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 
 			mx_status = mx_mcs_is_busy( mcs_record, &busy );
 
-			if ( mx_status.code != MXE_SUCCESS )
+			if ( mx_status.code != MXE_SUCCESS ) {
+				mx_free( data_values );
+				mx_free( motor_datafile_positions );
+				mx_free( motor_plot_positions );
 				return mx_status;
+			}
 
 			if ( busy == FALSE ) {
 				all_busy = FALSE;
@@ -3390,6 +3635,10 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 #endif
 
 	if ( i >= max_attempts ) {
+		mx_free( data_values );
+		mx_free( motor_datafile_positions );
+		mx_free( motor_plot_positions );
+
 		return mx_error( MXE_TIMED_OUT, fname,
 		"Timed out after waiting %g seconds for MCS '%s' used by "
 		"quick scan '%s' to start counting.",
@@ -3429,8 +3678,12 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 			mcs_quick_scan->real_end_position,
 			MXF_MTR_NOWAIT | MXF_MTR_IGNORE_BACKLASH );
 
-	if ( mx_status.code != MXE_SUCCESS )
+	if ( mx_status.code != MXE_SUCCESS ) {
+		mx_free( data_values );
+		mx_free( motor_datafile_positions );
+		mx_free( motor_plot_positions );
 		return mx_status;
+	}
 
 	mx_info("Quick scan is in progress...");
 
@@ -3442,17 +3695,6 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 #endif
 
 	old_measurement_number = -1;
-
-	if ( mcs_quick_scan->mcs_readout_preference
-		== MXF_MCS_PREFER_READ_MEASUREMENT )
-	{
-		readout_by_measurement = TRUE;
-	} else {
-		readout_by_measurement = FALSE;
-	}
-
-	MX_DEBUG(-2,("%s: readout_by_measurement = %d",
-		fname, (int) readout_by_measurement));
 
 	/* Wait for the counting to finish. */
 
@@ -3472,6 +3714,10 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 					mcs_quick_scan->mcs_record_array[i] );
 			}
 
+			mx_free( data_values );
+			mx_free( motor_datafile_positions );
+			mx_free( motor_plot_positions );
+
 			return mx_error( MXE_INTERRUPTED, fname,
 			"Quick scan was interrupted." );
 		}
@@ -3479,10 +3725,17 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 		if ( readout_by_measurement ) {
 			mx_status = mxs_mcs_quick_scan_readout_measurement(
 					scan, quick_scan, mcs_quick_scan,
+					data_values,
+					motor_datafile_positions,
+					motor_plot_positions,
 					&old_measurement_number );
 
-			if ( mx_status.code != MXE_SUCCESS )
+			if ( mx_status.code != MXE_SUCCESS ) {
+				mx_free( data_values );
+				mx_free( motor_datafile_positions );
+				mx_free( motor_plot_positions );
 				return mx_status;
+			}
 		}
 
 		if ( scan->measurement.type == MXM_PRESET_TIME ) {
@@ -3492,8 +3745,12 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 							clock_record, &busy );
 		}
 
-		if ( mx_status.code != MXE_SUCCESS )
+		if ( mx_status.code != MXE_SUCCESS ) {
+			mx_free( data_values );
+			mx_free( motor_datafile_positions );
+			mx_free( motor_plot_positions );
 			return mx_status;
+		}
 
 		mx_msleep(100);
 
@@ -3508,6 +3765,9 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 
 	MX_HRT_START( timing_measurement );
 #endif
+	mx_free( data_values );
+	mx_free( motor_datafile_positions );
+	mx_free( motor_plot_positions );
 
 	/* See if any of the motors used by the scan generated any errors. */
 
