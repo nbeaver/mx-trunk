@@ -2931,6 +2931,8 @@ mx_epics_end_group( MX_EPICS_GROUP *epics_group )
 	if ( mx_epics_debug_flag ) {
 		if ( epics_group->caget_pv_list != NULL ) {
 
+			MX_DEBUG(-2,("%s: group caget start.", fname));
+
 			mx_status = mx_list_traverse(
 					epics_group->caget_pv_list,
 					mx_epics_group_caget_traverse_fn,
@@ -2938,6 +2940,8 @@ mx_epics_end_group( MX_EPICS_GROUP *epics_group )
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
+
+			MX_DEBUG(-2,("%s: group caget end.", fname));
 		}
 	}
 

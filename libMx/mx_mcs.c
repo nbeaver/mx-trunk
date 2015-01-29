@@ -582,7 +582,8 @@ mx_mcs_read_scaler( MX_RECORD *mcs_record,
 
 	if ( ((long) scaler_index) >= mcs->maximum_num_scalers ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-"Scaler index %lu for MCS record '%s' is outside the allowed range of 0-%ld.",
+		"Scaler index %lu for MCS record '%s' is outside "
+		"the allowed range of 0-%ld.",
 			scaler_index, mcs_record->name,
 			mcs->maximum_num_scalers - 1L );
 	}
@@ -662,6 +663,61 @@ mx_mcs_read_measurement( MX_RECORD *mcs_record,
 	}
 
 	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_mcs_read_scaler_measurement( MX_RECORD *mcs_record,
+			unsigned long scaler_index,
+			unsigned long measurement_index,
+			long *scaler_measurement )
+{
+	static const char fname[] = "mx_mcs_read_scaler_measurement()";
+
+	MX_MCS *mcs;
+	MX_MCS_FUNCTION_LIST *function_list;
+	mx_status_type ( *read_scaler_measurement_fn ) ( MX_MCS * );
+	mx_status_type mx_status;
+
+	mx_status = mx_mcs_get_pointers( mcs_record,
+					&mcs, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( ((long) scaler_index) >= mcs->maximum_num_scalers ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Scaler index %lu for MCS record '%s' is outside "
+		"the allowed range of 0-%ld.",
+			scaler_index, mcs_record->name,
+			mcs->maximum_num_scalers - 1L );
+	}
+
+	if ( ((long) measurement_index) >= mcs->maximum_num_measurements ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Measurement index %lu for MCS record '%s' is outside "
+		"the allowed range of 0-%ld.",
+			measurement_index, mcs_record->name,
+			mcs->maximum_num_measurements - 1L );
+	}
+
+	mcs->scaler_index = (long) scaler_index;
+	mcs->measurement_index = (long) measurement_index;
+
+	read_scaler_measurement_fn = function_list->read_scaler_measurement;
+
+	if ( read_scaler_measurement_fn != NULL ) {
+		mx_status = (*read_scaler_measurement_fn)( mcs );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	} else {
+		if ( scaler_measurement != NULL ) {
+			*scaler_measurement =
+			    (mcs->data_array)[scaler_index][measurement_index];
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type

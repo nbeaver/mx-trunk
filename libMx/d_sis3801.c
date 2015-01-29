@@ -57,6 +57,7 @@ MX_MCS_FUNCTION_LIST mxd_sis3801_mcs_function_list = {
 	mxd_sis3801_read_scaler,
 	mxd_sis3801_read_measurement,
 	NULL,
+	NULL,
 	mxd_sis3801_get_parameter,
 	mxd_sis3801_set_parameter
 };

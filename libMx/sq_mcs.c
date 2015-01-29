@@ -3293,11 +3293,6 @@ mxs_mcs_quick_scan_readout_measurement( MX_SCAN * scan,
 
 			input_device_record = scan->input_device_array[n];
 
-			mx_status = mx_scaler_read( input_device_record, NULL );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
 			scaler = (MX_SCALER *)
 				input_device_record->record_class_struct;
 
@@ -3312,7 +3307,14 @@ mxs_mcs_quick_scan_readout_measurement( MX_SCAN * scan,
 
 			scaler_index = mcs_scaler->scaler_number;
 
+			mx_status = mx_mcs_read_scaler_measurement( mcs_record,
+					scaler_index, i, &(data_values[n]) );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+#if 0
 			data_values[n] = data_array[ scaler_index ][i];
+#endif
 
 			/* Subtract a dark current value if necessary. */
 

@@ -47,6 +47,7 @@ MX_MCS_FUNCTION_LIST mxd_soft_mcs_mcs_function_list = {
 	mxd_soft_mcs_read_scaler,
 	mxd_soft_mcs_read_measurement,
 	NULL,
+	NULL,
 	mxd_soft_mcs_get_parameter,
 	mxd_soft_mcs_set_parameter
 };

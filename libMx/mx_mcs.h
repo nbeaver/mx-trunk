@@ -73,6 +73,7 @@ typedef struct {
 
 	long *scaler_data;
 	long *measurement_data;
+	long scaler_measurement;
 	double *timer_data;
 
 	mx_bool_type new_data_available;
@@ -108,8 +109,9 @@ typedef struct {
 #define MXLV_MCS_DARK_CURRENT_ARRAY		1021
 #define MXLV_MCS_SCALER_DATA			1022
 #define MXLV_MCS_MEASUREMENT_DATA		1023
-#define MXLV_MCS_TIMER_DATA			1024
-#define MXLV_MCS_CLEAR_DEADBAND			1025
+#define MXLV_MCS_SCALER_MEASUREMENT		1024
+#define MXLV_MCS_TIMER_DATA			1025
+#define MXLV_MCS_CLEAR_DEADBAND			1026
 
 #define MX_MCS_STANDARD_FIELDS \
   {MXLV_MCS_MAXIMUM_NUM_SCALERS, -1, "maximum_num_scalers",\
@@ -228,6 +230,11 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, measurement_data), \
 	{sizeof(long)}, NULL, MXFF_VARARGS}, \
   \
+  {MXLV_MCS_SCALER_MEASUREMENT, -1, "scaler_measurement", \
+			MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, scaler_measurement), \
+	{0}, NULL, 0}, \
+  \
   {MXLV_MCS_TIMER_DATA, -1, "timer_data", \
 		MXFT_DOUBLE, NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, timer_data), \
@@ -252,6 +259,7 @@ typedef struct {
 	mx_status_type ( *read_all ) ( MX_MCS *mcs );
 	mx_status_type ( *read_scaler ) ( MX_MCS *mcs );
 	mx_status_type ( *read_measurement ) ( MX_MCS *mcs );
+	mx_status_type ( *read_scaler_measurement ) ( MX_MCS *mcs );
 	mx_status_type ( *read_timer ) ( MX_MCS * );
 	mx_status_type ( *get_parameter ) ( MX_MCS *mcs );
 	mx_status_type ( *set_parameter ) ( MX_MCS *mcs );
@@ -291,6 +299,11 @@ MX_API mx_status_type mx_mcs_read_measurement( MX_RECORD *mcs_record,
 					unsigned long measurement_index,
 					unsigned long *num_scalers,
 					long **measurement_data );
+
+MX_API mx_status_type mx_mcs_read_scaler_measurement( MX_RECORD *mcs_record,
+					unsigned long scaler_index,
+					unsigned long measurement_index,
+					long *scaler_measurement );
 
 MX_API mx_status_type mx_mcs_read_timer( MX_RECORD *mcs_record,
 					unsigned long *num_measurements,

@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2000-2004, 2006, 2009, 2012 Illinois Institute of Technology
+ * Copyright 2000-2004, 2006, 2009, 2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -59,6 +59,7 @@ mx_setup_mcs_process_functions( MX_RECORD *record )
 		case MXLV_MCS_MODE:
 		case MXLV_MCS_SCALER_DATA:
 		case MXLV_MCS_SCALER_INDEX:
+		case MXLV_MCS_SCALER_MEASUREMENT:
 		case MXLV_MCS_START:
 		case MXLV_MCS_STOP:
 		case MXLV_MCS_TIMER_DATA:
@@ -132,6 +133,12 @@ mx_mcs_process_function( void *record_ptr,
 		case MXLV_MCS_MEASUREMENT_DATA:
 			mx_status = mx_mcs_read_measurement( record,
 					mcs->measurement_index, NULL, NULL );
+			break;
+		case MXLV_MCS_SCALER_MEASUREMENT:
+			mx_status = mx_mcs_read_scaler_measurement( record,
+					mcs->scaler_index,
+					mcs->measurement_index,
+					NULL );
 			break;
 		case MXLV_MCS_TIMER_DATA:
 			mx_status = mx_mcs_read_timer( record, NULL, NULL );

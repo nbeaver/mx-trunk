@@ -43,6 +43,7 @@ typedef struct {
 	MX_NETWORK_FIELD readout_preference_nf;
 	MX_NETWORK_FIELD scaler_data_nf;
 	MX_NETWORK_FIELD scaler_index_nf;
+	MX_NETWORK_FIELD scaler_measurement_nf;
 	MX_NETWORK_FIELD start_nf;
 	MX_NETWORK_FIELD stop_nf;
 	MX_NETWORK_FIELD timer_data_nf;
@@ -77,6 +78,7 @@ MX_API mx_status_type mxd_network_mcs_busy( MX_MCS *mcs );
 MX_API mx_status_type mxd_network_mcs_read_all( MX_MCS *mcs );
 MX_API mx_status_type mxd_network_mcs_read_scaler( MX_MCS *mcs );
 MX_API mx_status_type mxd_network_mcs_read_measurement( MX_MCS *mcs );
+MX_API mx_status_type mxd_network_mcs_read_scaler_measurement( MX_MCS *mcs );
 MX_API mx_status_type mxd_network_mcs_read_timer( MX_MCS *mcs );
 MX_API mx_status_type mxd_network_mcs_get_parameter( MX_MCS *mcs );
 MX_API mx_status_type mxd_network_mcs_set_parameter( MX_MCS *mcs );

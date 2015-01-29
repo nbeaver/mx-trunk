@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2006, 2010 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003-2006, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -46,6 +46,7 @@ MX_MCS_FUNCTION_LIST mxd_databox_mcs_mcs_function_list = {
 	mxd_databox_mcs_read_all,
 	mxd_databox_mcs_read_scaler,
 	mxd_databox_mcs_read_measurement,
+	NULL,
 	mxd_databox_mcs_read_timer,
 	mxd_databox_mcs_get_parameter,
 	mxd_databox_mcs_set_parameter

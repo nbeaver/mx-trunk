@@ -47,6 +47,7 @@ MX_MCS_FUNCTION_LIST mxd_network_mcs_mcs_function_list = {
 	mxd_network_mcs_read_all,
 	mxd_network_mcs_read_scaler,
 	mxd_network_mcs_read_measurement,
+	mxd_network_mcs_read_scaler_measurement,
 	mxd_network_mcs_read_timer,
 	mxd_network_mcs_get_parameter,
 	mxd_network_mcs_set_parameter
@@ -249,6 +250,10 @@ mxd_network_mcs_finish_record_initialization( MX_RECORD *record )
 	mx_network_field_init( &(network_mcs->scaler_index_nf),
 		network_mcs->server_record,
 		"%s.scaler_index", network_mcs->remote_record_name );
+
+	mx_network_field_init( &(network_mcs->scaler_measurement_nf),
+		network_mcs->server_record,
+		"%s.scaler_measurement", network_mcs->remote_record_name );
 
 	mx_network_field_init( &(network_mcs->start_nf),
 		network_mcs->server_record,
@@ -709,6 +714,37 @@ mxd_network_mcs_read_measurement( MX_MCS *mcs )
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_network_mcs_read_scaler_measurement( MX_MCS *mcs )
+{
+	static const char fname[] = "mxd_network_mcs_read_scaler_measurement()";
+
+	MX_NETWORK_MCS *network_mcs = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mxd_network_mcs_get_pointers( mcs, &network_mcs, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_put( &(network_mcs->scaler_index_nf),
+			MXFT_LONG, &(mcs->scaler_index) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_put( &(network_mcs->measurement_index_nf),
+			MXFT_LONG, &(mcs->measurement_index) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_get( &(network_mcs->scaler_measurement_nf),
+			MXFT_LONG, &(mcs->scaler_measurement) );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
