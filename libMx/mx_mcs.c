@@ -711,11 +711,18 @@ mx_mcs_read_scaler_measurement( MX_RECORD *mcs_record,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	} else {
-		if ( scaler_measurement != NULL ) {
-			*scaler_measurement =
+		mcs->scaler_measurement = 
 			    (mcs->data_array)[scaler_index][measurement_index];
-		}
 	}
+
+	if ( scaler_measurement != NULL ) {
+		*scaler_measurement = mcs->scaler_measurement;
+	}
+
+	MX_DEBUG(-2,("%s: '%s' (%lu, %lu) = %ld",
+		fname, mcs_record->name,
+		scaler_index, measurement_index,
+		mcs->scaler_measurement));
 
 	return MX_SUCCESSFUL_RESULT;
 }
