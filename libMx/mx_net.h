@@ -287,9 +287,6 @@ typedef struct {
 #define MX_NETMSG_GET_OPTION		0x3002
 #define MX_NETMSG_SET_OPTION		0x3003
 
-#define MX_NETMSG_GET_64BIT_OPTION	0x3012
-#define MX_NETMSG_SET_64BIT_OPTION	0x3013
-
 #define MX_NETMSG_ADD_CALLBACK		0x4001
 #define MX_NETMSG_DELETE_CALLBACK	0x4002
 
@@ -303,12 +300,7 @@ typedef struct {
 #define MX_NETWORK_MAGIC_VALUE		0xe7e9fcfe
 
 
-/* Option values for MX_NETMSG_GET_OPTION, MX_NETMSG_SET_OPTION,
- * MX_NETMSG_GET_64BIT_OPTION, and MX_NETMSG_SET_64BIT_OPTION.
- *
- * Options that are _not_ labeled below as 64-bit options should be
- * used as 32-bit options.
- */
+/* Option values for MX_NETMSG_GET_OPTION and MX_NETMSG_SET_OPTION. */
 
 	/* MX_NETWORK_OPTION_DATAFMT and MX_NETWORK_OPTION_NATIVE_DATAFMT
 	 * currently can have the values MX_NETWORK_DATAFMT_ASCII,
@@ -320,7 +312,7 @@ typedef struct {
 #define MX_NETWORK_OPTION_64BIT_LONG		3
 #define MX_NETWORK_OPTION_WORDSIZE		4
 #define MX_NETWORK_OPTION_CLIENT_VERSION	5
-#define MX_NETWORK_OPTION_CLIENT_VERSION_TIME	6	/* 64-bit option */
+#define MX_NETWORK_OPTION_CLIENT_VERSION_TIME	6
 
 /*---*/
 
@@ -525,14 +517,6 @@ MX_API mx_status_type mx_network_get_option( MX_RECORD *server_record,
 MX_API mx_status_type mx_network_set_option( MX_RECORD *server_record,
 			unsigned long option_number,
 			unsigned long option_value );
-
-MX_API mx_status_type mx_network_get_64bit_option( MX_RECORD *server_record,
-			unsigned long option_number,
-			uint64_t *option_value );
-
-MX_API mx_status_type mx_network_set_64bit_option( MX_RECORD *server_record,
-			unsigned long option_number,
-			uint64_t option_value );
 
 MX_API mx_status_type mx_network_field_get_attribute( MX_NETWORK_FIELD *nf,
 						unsigned long attribute_number,

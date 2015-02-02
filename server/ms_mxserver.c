@@ -112,8 +112,6 @@ mxsrv_get_returning_message_type( uint32_t message_type )
 {MX_NETMSG_SET_CLIENT_INFO,   mx_server_response(MX_NETMSG_SET_CLIENT_INFO)},
 {MX_NETMSG_GET_OPTION,        mx_server_response(MX_NETMSG_GET_OPTION)},
 {MX_NETMSG_SET_OPTION,        mx_server_response(MX_NETMSG_SET_OPTION)},
-{MX_NETMSG_GET_64BIT_OPTION,  mx_server_response(MX_NETMSG_GET_64BIT_OPTION)},
-{MX_NETMSG_SET_64BIT_OPTION,  mx_server_response(MX_NETMSG_SET_64BIT_OPTION)},
 {MX_NETMSG_ADD_CALLBACK,      mx_server_response(MX_NETMSG_ADD_CALLBACK)},
 {MX_NETMSG_DELETE_CALLBACK,   mx_server_response(MX_NETMSG_DELETE_CALLBACK)},
 
@@ -1669,8 +1667,6 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 	case MX_NETMSG_SET_CLIENT_INFO:
 	case MX_NETMSG_GET_OPTION:
 	case MX_NETMSG_SET_OPTION:
-	case MX_NETMSG_GET_64BIT_OPTION:
-	case MX_NETMSG_SET_64BIT_OPTION:
 	case MX_NETMSG_DELETE_CALLBACK:
 		value_at_message_start = MXS_START_NOTHING;
 		break;
@@ -1943,16 +1939,6 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 		break;
 	case MX_NETMSG_SET_OPTION:
 		mx_status = mxsrv_handle_set_option( record_list,
-						socket_handler,
-						received_message );
-		break;
-	case MX_NETMSG_GET_64BIT_OPTION:
-		mx_status = mxsrv_handle_get_64bit_option( record_list,
-						socket_handler,
-						received_message );
-		break;
-	case MX_NETMSG_SET_64BIT_OPTION:
-		mx_status = mxsrv_handle_set_64bit_option( record_list,
 						socket_handler,
 						received_message );
 		break;
@@ -4338,321 +4324,15 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 #endif
 		break;
 
-	default:
-		illegal_option_number = TRUE;
-		break;
-	}
+		/* FIXME: The following case is not Y2038 safe, since
+		 * years after 2038 will need 64-bit timestamps.
+		 */
 
-	/* Allocate a buffer to construct the message to be sent
-	 * back to the client.
-	 */
-
-	send_buffer_header_length = mx_remote_header_length(socket_handler);
-
-	send_buffer_header = network_message->u.uint32_buffer;
-
-	send_buffer_char_message  = network_message->u.char_buffer;
-	send_buffer_char_message += send_buffer_header_length;
-
-	/* Construct the header of the message. */
-
-	send_buffer_header[ MX_NETWORK_MAGIC ]
-				= mx_htonl( MX_NETWORK_MAGIC_VALUE );
-
-	send_buffer_header[ MX_NETWORK_MESSAGE_TYPE ]
-		= mx_htonl( mx_server_response(MX_NETMSG_SET_OPTION) );
-
-	send_buffer_header[ MX_NETWORK_HEADER_LENGTH ]
-				= mx_htonl( send_buffer_header_length );
-
-	/* Construct the body of the message. */
-
-	if ( illegal_option_number ) {
-		sprintf( send_buffer_char_message,
-				"Illegal option number %#lx",
-				(unsigned long) option_number );
-
-		send_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ]
-			= mx_htonl( strlen(send_buffer_char_message) + 1 );
-
-		send_buffer_header[ MX_NETWORK_STATUS_CODE ]
-				= mx_htonl( MXE_ILLEGAL_ARGUMENT );
-	} else
-	if ( illegal_option_value ) {
-		switch( option_number ) {
-		case MX_NETWORK_OPTION_64BIT_LONG:
-			list_head = mx_get_record_list_head_struct(
-						record_list );
-
-			if ( list_head == NULL ) {
-				mx_info(
-				"Exiting due to corrupt list head record." );
-
-				exit( MXE_CORRUPT_DATA_STRUCTURE );
-			}
-
-			sprintf( send_buffer_char_message,
-				"Server '%s' does not support the 64-bit longs "
-				"option, since it is not a 64-bit computer.",
-					list_head->hostname );
-			break;
-		default:
-			sprintf( send_buffer_char_message,
-				"Illegal option value %#lx for option %#lx",
-					(unsigned long) option_value,
-					(unsigned long) option_number );
-		}
-
-		send_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ]
-			= mx_htonl( strlen(send_buffer_char_message) + 1 );
-
-		send_buffer_header[ MX_NETWORK_STATUS_CODE ]
-			= mx_htonl( MXE_ILLEGAL_ARGUMENT );
-	} else {
-		send_buffer_char_message[0] = '\0';
-
-		send_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ] = mx_htonl( 1 );
-
-		send_buffer_header[ MX_NETWORK_STATUS_CODE ]
-				= mx_htonl( MXE_SUCCESS );
-	}
-
-	if ( mx_client_supports_message_ids(socket_handler) ) {
-
-		send_buffer_header[ MX_NETWORK_DATA_TYPE ]
-			= mx_htonl( MXFT_ULONG );
-
-		send_buffer_header[ MX_NETWORK_MESSAGE_ID ]
-			= mx_htonl( socket_handler->last_rpc_message_id );
-	}
-
-#if NETWORK_DEBUG_MESSAGES
-	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
-		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
-				socket_handler->synchronous_socket->socket_fd );
-
-		mx_network_display_message( network_message, NULL,
-				socket_handler->use_64bit_network_longs );
-	}
-
-	if ( socket_handler->network_debug_flags & MXF_NETDBG_SUMMARY ) {
-		mxsrv_print_timestamp();
-
-		fprintf( stderr,
-			"MX (socket %d) SET_OPTION: Set option %lu to %lu\n",
-			socket_handler->synchronous_socket->socket_fd,
-			(unsigned long) option_number,
-			(unsigned long) option_value );
-	}
-#endif
-
-	/* Send the option information back to the client. */
-
-	mx_status = mx_network_socket_send_message(
-		socket_handler->synchronous_socket, -1.0, network_message );
-
-	if ( mx_status.code != MXE_SUCCESS ) {
-		sprintf( location, "%s to client socket %d",
-			fname, socket_handler->synchronous_socket->socket_fd );
-
-		return mx_error( mx_status.code, location,
-					"%s", mx_status.message );
-	}
-
-	MX_DEBUG( 1,("***** %s successful *****", fname));
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-mx_status_type
-mxsrv_handle_get_64bit_option( MX_RECORD *record_list,
-			MX_SOCKET_HANDLER *socket_handler,
-			MX_NETWORK_MESSAGE_BUFFER *network_message )
-{
-	static const char fname[] = "mxsrv_handle_get_64bit_option()";
-
-	char location[ sizeof(fname) + 40 ];
-	uint32_t *send_buffer_header, *send_buffer_message;
-	uint32_t send_buffer_header_length;
-	uint32_t *option_array;
-	uint32_t option_number;
-	uint64_t option_value, high_order, low_order;
-	int illegal_option_number;
-	mx_status_type mx_status;
-
-	option_array  = network_message->u.uint32_buffer;
-	option_array +=
-		(mx_remote_header_length(socket_handler) / sizeof(uint32_t));
-
-	option_number = mx_ntohl( option_array[0] );
-
-	MX_DEBUG( 2,("%s: option_number = %#lx",
-		fname, (unsigned long) option_number));
-
-	/* Get the requested option value. */
-
-	illegal_option_number = FALSE;
-
-	switch( option_number ) {
-	/* NOTE: There are no readable 64-bit options so far. */
-	default:
-		option_value = 0;
-		illegal_option_number = TRUE;
-		break;
-	}
-
-	/* Allocate a buffer to construct the message to be sent
-	 * back to the client.
-	 */
-
-	send_buffer_header_length = mx_remote_header_length(socket_handler);
-
-	send_buffer_header = network_message->u.uint32_buffer;
-
-	send_buffer_message = send_buffer_header
-			+ ( send_buffer_header_length / sizeof(uint32_t) );
-
-	/* Construct the header of the message. */
-
-	send_buffer_header[ MX_NETWORK_MAGIC ]
-				= mx_htonl( MX_NETWORK_MAGIC_VALUE );
-
-	send_buffer_header[ MX_NETWORK_MESSAGE_TYPE ]
-		= mx_htonl( mx_server_response(MX_NETMSG_GET_OPTION) );
-
-	send_buffer_header[ MX_NETWORK_HEADER_LENGTH ]
-				= mx_htonl( send_buffer_header_length );
-
-	/* Construct the body of the message. */
-
-	if ( illegal_option_number == FALSE ) {
-		/* The value is sent as a 64-bit big-endian integer. */
-
-		high_order = ( option_value >> 32 ) & 0xffffffff;
-		low_order = option_value & 0xffffffff;
-
-		send_buffer_message[0] = mx_htonl( high_order );
-		send_buffer_message[1] = mx_htonl( low_order );
-
-		send_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ]
-				= mx_htonl( 2 * sizeof(uint32_t) );
-
-		send_buffer_header[ MX_NETWORK_STATUS_CODE ]
-				= mx_htonl( MXE_SUCCESS );
-	} else {
-		char *error_message;
-
-		error_message = (char *) send_buffer_message;
-
-		sprintf( error_message, "Illegal option number %#lx",
-					(unsigned long) option_number );
-
-		send_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ]
-				= mx_htonl( strlen(error_message) + 1 );
-
-		send_buffer_header[ MX_NETWORK_STATUS_CODE ]
-				= mx_htonl( MXE_ILLEGAL_ARGUMENT );
-	}
-
-	if ( mx_client_supports_message_ids(socket_handler) ) {
-
-		send_buffer_header[ MX_NETWORK_DATA_TYPE ]
-			= mx_htonl( MXFT_ULONG );
-
-		send_buffer_header[ MX_NETWORK_MESSAGE_ID ]
-			= mx_htonl( socket_handler->last_rpc_message_id );
-	}
-
-#if 1 | NETWORK_DEBUG_MESSAGES
-	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
-		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
-				socket_handler->synchronous_socket->socket_fd );
-
-		mx_network_display_message( network_message, NULL,
-				socket_handler->use_64bit_network_longs );
-	}
-
-#if 1
-	if ( 1 ) {
-#else
-	if ( socket_handler->network_debug_flags & MXF_NETDBG_SUMMARY ) {
-#endif
-		mxsrv_print_timestamp();
-
-		fprintf( stderr,
-		"MX (socket %d) GET_64BIT_OPTION( %lu ) = %" PRIu64 "\n",
-			socket_handler->synchronous_socket->socket_fd,
-			(unsigned long) option_number,
-			option_value );
-	}
-#endif
-
-	/* Send the option information back to the client. */
-
-	mx_status = mx_network_socket_send_message(
-		socket_handler->synchronous_socket, -1.0, network_message );
-
-	if ( mx_status.code != MXE_SUCCESS ) {
-		sprintf( location, "%s to client socket %d",
-			fname, socket_handler->synchronous_socket->socket_fd );
-
-		return mx_error( mx_status.code, location,
-					"%s", mx_status.message );
-	}
-
-	MX_DEBUG( 1,("***** %s successful *****", fname));
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-mx_status_type
-mxsrv_handle_set_64bit_option( MX_RECORD *record_list,
-			MX_SOCKET_HANDLER *socket_handler,
-			MX_NETWORK_MESSAGE_BUFFER *network_message )
-{
-	static const char fname[] = "mxsrv_handle_set_64bit_option()";
-
-	MX_LIST_HEAD *list_head;
-	char location[ sizeof(fname) + 40 ];
-	char *send_buffer_char_message;
-	uint32_t *send_buffer_header;
-	uint32_t send_buffer_header_length;
-	uint32_t *option_array;
-	uint32_t option_number;
-	uint64_t option_value, high_order, low_order;
-	int illegal_option_number, illegal_option_value;
-	mx_status_type mx_status;
-
-	option_array  = network_message->u.uint32_buffer;
-	option_array +=
-		(mx_remote_header_length(socket_handler) / sizeof(uint32_t));
-
-	option_number = mx_ntohl( option_array[0] );
-
-	/* The value is sent as a 64-bit big-endian integer. */
-
-	high_order = mx_ntohl( option_array[1] );
-	low_order  = mx_ntohl( option_array[2] );
-
-	option_value = ( high_order << 32 ) | low_order;
-
-	MX_DEBUG( 2,
-	("%s: option_number = %#lx, option_value = %#" PRIx64, fname,
-		(unsigned long) option_number,
-		option_value));
-
-	/* Set the requested option value. */
-
-	illegal_option_number = FALSE;
-	illegal_option_value = FALSE;
-
-	switch( option_number ) {
 	case MX_NETWORK_OPTION_CLIENT_VERSION_TIME:
 		socket_handler->remote_mx_version_time = option_value;
-#if 0
+
 		MX_DEBUG(-2,("%s: remote_mx_version_time = %" PRIu64,
 			fname, socket_handler->remote_mx_version_time));
-#endif
 		break;
 
 	default:
