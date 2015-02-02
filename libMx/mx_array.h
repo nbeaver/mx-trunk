@@ -30,7 +30,7 @@ extern "C" {
 #  if defined(__BIGGEST_ALIGNMENT__)
 #    define MX_MAXIMUM_ALIGNMENT	__BIGGEST_ALIGNMENT__
 #  else
-#    error This version of GCC does not implement the __BIGGEST_ALIGNMENT__ macro.
+#    define MX_MAXIMUM_ALIGNMENT	16
 #  endif
 #elif defined(_MSC_VER)
 #  define MX_MAXIMUM_ALIGNMENT		8
