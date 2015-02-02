@@ -719,10 +719,12 @@ mx_mcs_read_scaler_measurement( MX_RECORD *mcs_record,
 		*scaler_measurement = mcs->scaler_measurement;
 	}
 
+#if 0
 	MX_DEBUG(-2,("%s: '%s' (%lu, %lu) = %ld",
 		fname, mcs_record->name,
 		scaler_index, measurement_index,
 		mcs->scaler_measurement));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }

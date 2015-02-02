@@ -23,7 +23,7 @@
 
 #define DEBUG_PAUSE_REQUEST	FALSE
 
-#define DEBUG_READ_MEASUREMENT	TRUE
+#define DEBUG_READ_MEASUREMENT	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

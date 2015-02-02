@@ -1599,12 +1599,6 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 		case MX_NETMSG_SET_OPTION:
 			strcpy( message_type_string, "SET_OPTION" );
 			break;
-		case MX_NETMSG_GET_64BIT_OPTION:
-			strcpy( message_type_string, "GET_64BIT_OPTION" );
-			break;
-		case MX_NETMSG_SET_64BIT_OPTION:
-			strcpy( message_type_string, "SET_64BIT_OPTION" );
-			break;
 		case MX_NETMSG_ADD_CALLBACK:
 			strcpy( message_type_string, "ADD_CALLBACK" );
 			break;
@@ -4331,8 +4325,10 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 	case MX_NETWORK_OPTION_CLIENT_VERSION_TIME:
 		socket_handler->remote_mx_version_time = option_value;
 
+#if 0
 		MX_DEBUG(-2,("%s: remote_mx_version_time = %" PRIu64,
 			fname, socket_handler->remote_mx_version_time));
+#endif
 		break;
 
 	default:
