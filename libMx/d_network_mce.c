@@ -17,6 +17,8 @@
 
 #define MXD_NETWORK_MCE_DEBUG_MOTOR_ARRAY	FALSE
 
+#define MXD_NETWORK_MCE_DEBUG_READ_MEASUREMENT	FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -418,8 +420,10 @@ mxd_network_mce_read_measurement( MX_MCE *mce )
 	mx_status = mx_get( &(network_mce->value_nf),
 				MXFT_DOUBLE, &(mce->value) );
 
+#if MXD_NETWORK_MCE_DEBUG_READ_MEASUREMENT
 	MX_DEBUG(-2,("%s: MCE '%s', index = %ld, value = %f",
 		fname, mce->record->name, mce->measurement_index, mce->value));
+#endif
 
 	return mx_status;
 }

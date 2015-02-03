@@ -322,6 +322,18 @@ mxs_mcs_quick_scan_finish_record_initialization( MX_RECORD *record )
 
 	/*---*/
 
+	/* FIXME: If the following MX_DEBUG() macro is not present, then
+	 * the 'show scan' command in 'mxmotor' does not show the scan
+	 * range, implying that scan->motor_is_independent_variable[i]
+	 * has the wrong value.  This is very odd.
+	 *   W. Lavender (2015-02-03)
+	 */
+
+	MX_DEBUG( 2,("%s: scan '%s' num_motors = %ld",
+		fname, scan->record->name, scan->num_motors));
+
+	/*---*/
+
 	for ( i = 0; i < scan->num_motors; i++ ) {
 		scan->motor_is_independent_variable[i] = TRUE;
 	}
