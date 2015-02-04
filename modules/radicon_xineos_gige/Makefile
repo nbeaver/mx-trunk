@@ -2,19 +2,25 @@
 # This module is only for the 'win32' platform.
 #
 
-MX_ARCH = win32
+ifndef MX_ARCH
+  MX_ARCH = win32
+endif
 
 all: radicon_xineos_gige.mxo
 
 include ../../libMx/Makehead.$(MX_ARCH)
 
-CFLAGS += -EHsc
+ifeq ($(MX_ARCH),win32)
+  CFLAGS += -EHsc
+endif
+
 CFLAGS += -I../../libMx -D__MX_LIBRARY__
 
 RADICON_XINEOS_GIGE_OBJS = radicon_xineos_gige.$(OBJ) \
 			d_radicon_xineos_gige.$(OBJ)
 
-radicon_xineos_gige.mxo: $(RADICON_XINEOS_GIGE_OBJS)
+ifeq ($(MX_ARCH),win32)
+    radicon_xineos_gige.mxo: $(RADICON_XINEOS_GIGE_OBJS)
 	link /dll /debug /nologo /out:radicon_xineos_gige.mxo \
 		/nodefaultlib:libc \
 		$(RADICON_XINEOS_GIGE_OBJS) \
@@ -28,6 +34,13 @@ radicon_xineos_gige.mxo: $(RADICON_XINEOS_GIGE_OBJS)
 			-manifest radicon_xineos_gige.mxo.manifest ; \
 		rm -f radicon_xineos_gige.mxo.manifest; \
 	fi
+endif
+
+ifeq ($(MX_ARCH),linux)
+    radicon_xineos_gige.mxo: $(RADICON_XINEOS_GIGE_OBJS)
+	$(CC) -shared -rdynamic -Wl,-soname,radicon_xineos_gige.mxo \
+		-o radicon_xineos_gige.mxo $(RADICON_XINEOS_GIGE_OBJS)
+endif
 
 radicon_xineos_gige.$(OBJ): radicon_xineos_gige.c d_radicon_xineos_gige.h
 	$(COMPILE) $(CFLAGS) radicon_xineos_gige.c

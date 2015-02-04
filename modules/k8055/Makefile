@@ -34,8 +34,8 @@ ifndef MX_INSTALL_DIR
 endif
 
 ifeq ($(MX_ARCH),linux)
-	LIBK8055_DIR = /usr/local
-	#LIBK8055_DIR = /home/lavender/local
+	#LIBK8055_DIR = /usr/local
+	LIBK8055_DIR = /home/lavender/local
 
 	CFLAGS += -I$(LIBK8055_DIR)/include
 endif

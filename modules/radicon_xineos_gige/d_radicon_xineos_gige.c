@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013-2014 Illinois Institute of Technology
+ * Copyright 2013-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -180,13 +180,8 @@ mxd_radicon_xineos_gige_open( MX_RECORD *record )
 	MX_AREA_DETECTOR *ad;
 	MX_RADICON_XINEOS_GIGE *radicon_xineos_gige = NULL;
 	MX_RECORD *video_input_record;
-	char non_uniformity_filename[MXU_FILENAME_LENGTH+1];
-	long vinput_framesize[2];
-	long video_framesize[2];
 	long i;
-	char c;
-	unsigned long mask, num_bytes_available;
-	unsigned long flags;
+	unsigned long mask;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -501,7 +496,7 @@ mxd_radicon_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 
 	/* Tell the video capture card to get ready for frames. */
 
-	MX_DEBUG(-2,("%s: sequence type = %d", fname, sp->sequence_type));
+	MX_DEBUG(-2,("%s: sequence type = %ld", fname, sp->sequence_type));
 
 	mx_status = mx_video_input_arm( video_input_record );
 
@@ -825,9 +820,6 @@ mxd_radicon_xineos_gige_set_parameter( MX_AREA_DETECTOR *ad )
 
 	MX_RADICON_XINEOS_GIGE *radicon_xineos_gige = NULL;
 	MX_RECORD *video_input_record;
-	unsigned long sro_mode, trigger_mask;
-	char command[80];
-	char response[80];
 	mx_status_type mx_status;
 
 	static long allowed_binsize[] = { 1, 2 };
@@ -910,7 +902,8 @@ mxd_radicon_xineos_gige_measure_correction( MX_AREA_DETECTOR *ad )
 	double gate_time;
 #endif
 	long last_frame_number, old_last_frame_number;
-	unsigned long i, total_num_frames, ad_status;
+	long total_num_frames;
+	unsigned long i, ad_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_xineos_gige_get_pointers( ad,
@@ -962,7 +955,7 @@ mxd_radicon_xineos_gige_measure_correction( MX_AREA_DETECTOR *ad )
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Requested trigger mode %d is not supported for detector '%s'.",
+	    "Requested trigger mode %ld is not supported for detector '%s'.",
 				ad->trigger_mode, ad->record->name );
 		break;
 	}

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013 Illinois Institute of Technology
+ * Copyright 2013, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -248,7 +248,6 @@ mxv_rdi_mbc_log_close( MX_RECORD *record )
 	MX_OPERATION *operation;
 	MX_RDI_MBC_LOG *rdi_mbc_log;
 	char timestamp[40];
-	int saved_errno;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {

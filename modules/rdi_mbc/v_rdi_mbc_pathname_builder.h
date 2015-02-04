@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013 Illinois Institute of Technology
+ * Copyright 2013, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -59,7 +59,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, \
 	    offsetof(MX_RDI_MBC_PATHNAME_BUILDER, source_field_name_array), \
 	{sizeof(char), sizeof(char *)}, NULL, \
-		{MXFF_IN_DESCRIPTION | MXFF_VARARGS} }
+		(MXFF_IN_DESCRIPTION | MXFF_VARARGS) }
 
 MX_API_PRIVATE mx_status_type
 		mxv_rdi_mbc_pathname_builder_initialize_driver(

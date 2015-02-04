@@ -25,7 +25,7 @@ all: build
 
 #MODULES += esone_camac		# linux, win32
 
-#MODULES += k8055		# linux,
+MODULES += k8055		# linux,
 
 #MODULES = labjack_ux		# linux,
 
@@ -77,11 +77,11 @@ all: build
 
 #MODULES += radicon_helios
 
-#MODULES += radicon_taurus
+MODULES += radicon_taurus
 
-#MODULES += radicon_xineos_gige
+MODULES += radicon_xineos_gige
 
-#MODULES += rdi_mbc
+MODULES += rdi_mbc
 
 #MODULES += sapera_lt
 
