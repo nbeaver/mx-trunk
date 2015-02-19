@@ -1,5 +1,5 @@
-*** XPS_C8_drivers.h.orig	2014-04-22 12:55:23.989948105 -0500
---- XPS_C8_drivers.h	2014-05-14 19:06:35.725290971 -0500
+*** XPS_C8_drivers.h.orig	2015-02-18 18:36:34.000000000 -0600
+--- XPS_C8_drivers.h	2015-02-18 18:49:20.000000000 -0600
 ***************
 *** 17,23 ****
   extern "C"
@@ -17,3 +17,20 @@
   #endif
   
   
+***************
+*** 25,31 ****
+  DLL void __stdcall TCP_SetTimeout(int SocketIndex, double Timeout); 
+  DLL void __stdcall TCP_CloseSocket(int SocketIndex); 
+  DLL char * __stdcall TCP_GetError(int SocketIndex); 
+! DLL char * __stdcall GetLibraryVersion(void); 
+  DLL int __stdcall ControllerMotionKernelTimeLoadGet (int SocketIndex, double * CPUTotalLoadRatio, double * CPUCorrectorLoadRatio, double * CPUProfilerLoadRatio, double * CPUServitudesLoadRatio);  /* Get controller motion kernel time load */
+  DLL int __stdcall ControllerStatusGet (int SocketIndex, int * ControllerStatus);  /* Read controller current status */
+  DLL int __stdcall ControllerStatusStringGet (int SocketIndex, int ControllerStatusCode, char * ControllerStatusString);  /* Return the controller status string corresponding to the controller status code */
+--- 25,31 ----
+  DLL void __stdcall TCP_SetTimeout(int SocketIndex, double Timeout); 
+  DLL void __stdcall TCP_CloseSocket(int SocketIndex); 
+  DLL char * __stdcall TCP_GetError(int SocketIndex); 
+! DLL const char * __stdcall GetLibraryVersion(void); 
+  DLL int __stdcall ControllerMotionKernelTimeLoadGet (int SocketIndex, double * CPUTotalLoadRatio, double * CPUCorrectorLoadRatio, double * CPUProfilerLoadRatio, double * CPUServitudesLoadRatio);  /* Get controller motion kernel time load */
+  DLL int __stdcall ControllerStatusGet (int SocketIndex, int * ControllerStatus);  /* Read controller current status */
+  DLL int __stdcall ControllerStatusStringGet (int SocketIndex, int ControllerStatusCode, char * ControllerStatusString);  /* Return the controller status string corresponding to the controller status code */

@@ -1,5 +1,5 @@
-*** XPS_C8_drivers.cpp.orig	2014-05-14 19:15:12.391746693 -0500
---- XPS_C8_drivers.cpp	2014-05-14 19:16:12.025257396 -0500
+*** XPS_C8_drivers.cpp.orig	2015-02-18 18:36:35.000000000 -0600
+--- XPS_C8_drivers.cpp	2015-02-18 18:51:11.000000000 -0600
 ***************
 *** 16,22 ****
   	#define DLL 
@@ -34,3 +34,20 @@
   #endif
   
   #define DLL_VERSION "Library version for XPS-C8 Firmware V2.6.x"
+***************
+*** 56,62 ****
+  	return (GetError(SocketIndex));
+  }
+  /***********************************************************************/
+! char * __stdcall GetLibraryVersion(void) 
+  {
+  	return (DLL_VERSION);
+  }
+--- 56,62 ----
+  	return (GetError(SocketIndex));
+  }
+  /***********************************************************************/
+! const char * __stdcall GetLibraryVersion(void) 
+  {
+  	return (DLL_VERSION);
+  }

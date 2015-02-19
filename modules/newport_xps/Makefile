@@ -19,6 +19,20 @@ NEWPORT_XPS_SOURCE = ftp://download.newport.com/MotionControl/Current/MotionCont
 VENDOR_OBJS = XPS_C8_drivers.$(OBJ)
 
 #
+# If NEWPORT_XPS_DISTCLEAN_DELETE is set to "true", then invoking 
+#
+#    make modules-distclean
+#
+# from the top level MX makefile will cause the distclean to delete the
+# source code that was downloaded from Newport's FTP site.  If this 
+# variable is set to anything other than "true" then the Newport source
+# code will not be deleted.  Normally, you should leave this variable
+# set to "false".
+#
+
+NEWPORT_XPS_DISTCLEAN_DELETE = false
+
+#
 # Tested values of MX_ARCH:  linux
 #
 # Note that the Newport C code seems fairly portable, so it can probably
@@ -70,7 +84,12 @@ install: newport_xps.mxo
 clean:
 	-$(RM) *.mxo *.o *.obj *.exp *.ilk *.lib *.pdb *.manifest tmp.*
 
+#----
+
+ifeq ($(NEWPORT_XPS_DISTCLEAN_DELETE),true)
+
 distclean: clean
+	echo "*** Deleting downloaded Newport source code ***"
 	-$(RM) XPS_C8_drivers.cpp
 	-$(RM) XPS_C8_drivers.h
 	-$(RM) xps_c8_drivers.h
@@ -79,6 +98,14 @@ distclean: clean
 	-$(RM) strtok_r.cpp
 	-$(RM) strtok_r.h
 	-$(RM) *.orig
+
+else
+
+distclean: clean
+
+endif
+
+#----
 
 depend:
 
