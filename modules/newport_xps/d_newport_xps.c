@@ -15,9 +15,11 @@
  *
  */
 
-#define MXD_NEWPORT_XPS_MOTOR_DEBUG			TRUE
+#define MXD_NEWPORT_XPS_MOTOR_DEBUG			FALSE
 
-#define MXD_NEWPORT_XPS_MOTOR_MOVE_THREAD_DEBUG		TRUE
+#define MXD_NEWPORT_XPS_MOTOR_POSITION_DEBUG		FALSE
+
+#define MXD_NEWPORT_XPS_MOTOR_MOVE_THREAD_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -764,7 +766,7 @@ mxd_newport_xps_get_position( MX_MOTOR *motor )
 
 	MX_NEWPORT_XPS_MOTOR *newport_xps_motor = NULL;
 	MX_NEWPORT_XPS *newport_xps = NULL;
-	double raw_position;
+	double raw_encoder_position;
 	int xps_status;
 	mx_status_type mx_status;
 
@@ -776,7 +778,7 @@ mxd_newport_xps_get_position( MX_MOTOR *motor )
 
 	xps_status = GroupPositionCurrentGet( newport_xps->socket_id,
 					newport_xps_motor->group_name,
-					1, &raw_position );
+					1, &raw_encoder_position );
 
 	if ( xps_status != SUCCESS ) {
 		return mxi_newport_xps_error( newport_xps->socket_id,
@@ -784,7 +786,37 @@ mxd_newport_xps_get_position( MX_MOTOR *motor )
 						xps_status );
 	}
 
-	motor->raw_position.analog = raw_position;
+#if MXD_NEWPORT_XPS_MOTOR_POSITION_DEBUG
+	{
+	    double raw_setpoint_position, raw_following_error;
+
+	    xps_status = GroupPositionSetpointGet( newport_xps->socket_id,
+					newport_xps_motor->group_name,
+					1, &raw_setpoint_position );
+
+	    if ( xps_status != SUCCESS ) {
+		return mxi_newport_xps_error( newport_xps->socket_id,
+						"GroupPositionSetpointGet()",
+						xps_status );
+	    }
+
+	    xps_status = GroupCurrentFollowingErrorGet( newport_xps->socket_id,
+					newport_xps_motor->group_name,
+					1, &raw_following_error );
+
+	    if ( xps_status != SUCCESS ) {
+		return mxi_newport_xps_error( newport_xps->socket_id,
+					"GroupCurrentFollowingErrorGet()",
+					xps_status );
+	    }
+
+	    MX_DEBUG(-2,("%s: encoder = %g, setpoint = %g, error = %g",
+		fname, raw_encoder_position, raw_setpoint_position,
+		raw_following_error));
+	}
+#endif
+
+	motor->raw_position.analog = raw_encoder_position;
 
 	return MX_SUCCESSFUL_RESULT;
 }
