@@ -14,7 +14,7 @@
  *
  */
 
-#define MXI_NEWPORT_XPS_DEBUG	FALSE
+#define MXI_NEWPORT_XPS_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>

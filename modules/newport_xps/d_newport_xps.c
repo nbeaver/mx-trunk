@@ -8,16 +8,16 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2014 Illinois Institute of Technology
+ * Copyright 2014-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXD_NEWPORT_XPS_MOTOR_DEBUG			FALSE
+#define MXD_NEWPORT_XPS_MOTOR_DEBUG			TRUE
 
-#define MXD_NEWPORT_XPS_MOTOR_MOVE_THREAD_DEBUG		FALSE
+#define MXD_NEWPORT_XPS_MOTOR_MOVE_THREAD_DEBUG		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -456,11 +456,15 @@ mxd_newport_xps_open( MX_RECORD *record )
 			record->name );
 	}
 
+#if 0
 	/* Login to the Newport XPS controller (on the additional socket). */
 
 	xps_status = Login( newport_xps_motor->move_thread_socket_id,
 				newport_xps->username,
 				newport_xps->password );
+#else
+	xps_status = 0;
+#endif
 
 	if ( xps_status != SUCCESS ) {
 		return mxi_newport_xps_error(
