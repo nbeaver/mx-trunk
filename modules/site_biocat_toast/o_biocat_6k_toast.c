@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2014 Illinois Institute of Technology
+ * Copyright 2014-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -479,6 +479,7 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface = NULL;
 	double low_6k_destination, high_6k_destination;
 	char command[100];
+	mx_bool_type use_toast_signal;
 	mx_status_type mx_status;
 
 #if MXO_BIOCAT_6K_TOAST_DEBUG_PROGRAM
@@ -492,13 +493,21 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( strlen(toast->output_name) > 0 ) {
+		use_toast_signal = TRUE;
+	} else {
+		use_toast_signal = FALSE;
+	}
+
 	/* Set the trigger signal to idle. */
 
-	mx_status = mxo_biocat_6k_toast_signal( compumotor_interface,
+	if ( use_toast_signal ) {
+		mx_status = mxo_biocat_6k_toast_signal( compumotor_interface,
 							toast, IDLE );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
 	/* Compute the destinations. */
 
@@ -568,11 +577,13 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 
 	/* Signal the start of the move. */
 
-	mx_status = mxo_biocat_6k_toast_signal( compumotor_interface,
+	if ( use_toast_signal ) {
+		mx_status = mxo_biocat_6k_toast_signal( compumotor_interface,
 							toast, START );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
 	/* Start the move. */
 
@@ -586,11 +597,13 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 
 	/* Signal the end of the move. */
 
-	mx_status = mxo_biocat_6k_toast_signal( compumotor_interface,
+	if ( use_toast_signal ) {
+		mx_status = mxo_biocat_6k_toast_signal( compumotor_interface,
 							toast, END );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
 	/**** Set the destination for the move to the low position. ****/
 
@@ -606,11 +619,13 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 
 	/* Signal the start of the move. */
 
-	mx_status = mxo_biocat_6k_toast_signal( compumotor_interface,
+	if ( use_toast_signal ) {
+		mx_status = mxo_biocat_6k_toast_signal( compumotor_interface,
 							toast, START );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
 	/* Start the move. */
 
@@ -624,11 +639,13 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 
 	/* Signal the end of the move. */
 
-	mx_status = mxo_biocat_6k_toast_signal( compumotor_interface,
+	if ( use_toast_signal ) {
+		mx_status = mxo_biocat_6k_toast_signal( compumotor_interface,
 							toast, END );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
 	/* Jump back to the start of the loop. */
 
