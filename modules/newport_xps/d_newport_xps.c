@@ -58,7 +58,7 @@ MX_MOTOR_FUNCTION_LIST mxd_newport_xps_motor_function_list = {
 	NULL,
 	mxd_newport_xps_move_absolute,
 	mxd_newport_xps_get_position,
-	NULL,
+	mxd_newport_xps_set_position,
 	mxd_newport_xps_soft_abort,
 	mxd_newport_xps_immediate_abort,
 	NULL,
@@ -741,6 +741,7 @@ mxd_newport_xps_move_absolute( MX_MOTOR *motor )
 
 	MX_NEWPORT_XPS_MOTOR *newport_xps_motor = NULL;
 	MX_NEWPORT_XPS *newport_xps = NULL;
+	double new_controller_destination;
 	mx_status_type mx_status;
 
 	mx_status = mxd_newport_xps_get_pointers( motor, &newport_xps_motor,
@@ -749,10 +750,18 @@ mxd_newport_xps_move_absolute( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* The Newport XPS does not provide a way to redefine the position
+	 * inside the controller itself, so we must emulate this in the
+	 * MX driver itself.
+	 */
+
+	new_controller_destination = motor->raw_destination.analog
+			- newport_xps_motor->internal_position_offset;
+
 	mx_status = mxd_newport_xps_send_command_to_move_thread(
 				newport_xps_motor,
 				MXT_NEWPORT_XPS_GROUP_MOVE_ABSOLUTE,
-				motor->raw_destination.analog );
+				new_controller_destination );
 
 	return mx_status;
 }
@@ -816,7 +825,54 @@ mxd_newport_xps_get_position( MX_MOTOR *motor )
 	}
 #endif
 
-	motor->raw_position.analog = raw_encoder_position;
+	/* The Newport XPS does not provide a way to redefine the position
+	 * inside the controller itself, so we must emulate this in the
+	 * MX driver itself.
+	 */
+
+	motor->raw_position.analog =
+	    raw_encoder_position + newport_xps_motor->internal_position_offset;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxd_newport_xps_set_position( MX_MOTOR *motor )
+{
+	static const char fname[] = "mxd_newport_xps_set_position()";
+
+	MX_NEWPORT_XPS_MOTOR *newport_xps_motor = NULL;
+	MX_NEWPORT_XPS *newport_xps = NULL;
+	double old_user_position, new_user_position, raw_difference;
+	mx_status_type mx_status;
+
+	mx_status = mxd_newport_xps_get_pointers( motor, &newport_xps_motor,
+							&newport_xps, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* The Newport XPS does not provide a way to redefine the position
+	 * inside the controller itself, so we must emulate this in the
+	 * MX driver itself.
+	 */
+
+	new_user_position = motor->set_position;
+
+	mx_status = mx_motor_get_position( motor->record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	old_user_position = motor->position;
+
+	raw_difference = mx_divide_safely(
+				new_user_position - old_user_position,
+				motor->scale );
+
+	newport_xps_motor->internal_position_offset += raw_difference;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -842,10 +898,15 @@ mxd_newport_xps_soft_abort( MX_MOTOR *motor )
 	xps_status = GroupMoveAbort( newport_xps->socket_id,
 				newport_xps_motor->group_name );
 
-	if ( xps_status != SUCCESS ) {
+	switch( xps_status ) {
+	case SUCCESS:
+	case ERR_NOT_ALLOWED_ACTION:   /* Abort while not moving. */
+		break;
+	default:
 		return mxi_newport_xps_error( newport_xps->socket_id,
 						"GroupMoveAbort()",
 						xps_status );
+		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

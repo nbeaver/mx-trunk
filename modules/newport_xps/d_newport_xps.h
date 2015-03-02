@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2014 Illinois Institute of Technology
+ * Copyright 2014-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -51,6 +51,13 @@ typedef struct {
 
 	mx_bool_type home_search_succeeded;
 
+	/* The Newport XPS does not provide a way to redefine the position
+	 * inside the controller itself, so we must emulate this in the
+	 * MX driver itself.
+	 */
+
+	double internal_position_offset;
+
 	/* Move commands _block_, so they have to have their own
 	 * separate socket and thread in order to avoid having
 	 * the entire 'newport_xps' module block during a move.
@@ -76,6 +83,7 @@ MX_API mx_status_type mxd_newport_xps_special_processing_setup(
 
 MX_API mx_status_type mxd_newport_xps_move_absolute( MX_MOTOR *motor );
 MX_API mx_status_type mxd_newport_xps_get_position( MX_MOTOR *motor );
+MX_API mx_status_type mxd_newport_xps_set_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_newport_xps_soft_abort( MX_MOTOR *motor );
 MX_API mx_status_type mxd_newport_xps_immediate_abort( MX_MOTOR *motor );
 MX_API mx_status_type mxd_newport_xps_raw_home_command( MX_MOTOR *motor );
@@ -141,6 +149,11 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_newport_xps_rfield_def_ptr;
   {-1, -1, "home_search_succeeded", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_NEWPORT_XPS_MOTOR, home_search_succeeded), \
-	{0}, NULL, MXFF_READ_ONLY }
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "internal_position_offset", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_NEWPORT_XPS_MOTOR, internal_position_offset), \
+	{0}, NULL, 0 }
 
 #endif /* __D_NEWPORT_XPS_H__ */
