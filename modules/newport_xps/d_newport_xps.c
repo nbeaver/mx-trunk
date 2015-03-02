@@ -215,7 +215,11 @@ mxd_newport_xps_move_thread( MX_THREAD *thread, void *thread_argument )
 				1,
 				&(newport_xps_motor->command_destination) );
 
-			if ( xps_status != SUCCESS ) {
+			switch( xps_status ) {
+			case SUCCESS:
+			case ERR_GROUP_ABORT_MOTION:   /* Move was aborted. */
+				break;
+			default:
 				(void) mxi_newport_xps_error(
 				newport_xps_motor->move_thread_socket_id,
 					"GroupMoveAbsolute()",
