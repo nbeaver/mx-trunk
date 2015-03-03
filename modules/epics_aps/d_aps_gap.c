@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2005-2006, 2008-2009, 2011, 2014
+ * Copyright 1999-2003, 2005-2006, 2008-2009, 2011, 2014-2015
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -432,12 +432,29 @@ mxd_aps_gap_soft_abort( MX_MOTOR *motor )
 
 	MX_APS_GAP *aps_gap = NULL;
 	short stop_field;
+	int32_t access_mode;
 	mx_status_type mx_status;
 
 	mx_status = mxd_aps_gap_get_pointers( motor, &aps_gap, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Do we have permission to write to the stop field right now? */
+
+	mx_status = mx_caget( &(aps_gap->access_security_pv),
+				MX_CA_LONG, 1, &access_mode );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( access_mode != 0 ) {
+		/* If we do not have permission to stop an undulator motion,
+		 * then we just return without generating an error.
+		 */
+
+		return MX_SUCCESSFUL_RESULT;
+	}
 
 	/* Stop the gap change. */
 
