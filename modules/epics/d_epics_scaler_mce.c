@@ -439,7 +439,7 @@ mxd_epics_scaler_mce_read( MX_MCE *mce )
 			fname, mce->record->name));
 #endif
 
-	motor_record = mce->motor_record_array[0];
+	motor_record = epics_scaler_mcs->motor_record;
 
 	if ( motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NOT_READY, fname,
@@ -532,7 +532,7 @@ mxd_epics_scaler_mce_read_measurement( MX_MCE *mce )
 			mce->current_num_values - 1 );
 	}
 
-	motor_record = mce->motor_record_array[0];
+	motor_record = epics_scaler_mcs->motor_record;
 
 	if ( motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NOT_READY, fname,
