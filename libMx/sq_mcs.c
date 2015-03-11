@@ -19,6 +19,8 @@
 
 #define DEBUG_SPEED		FALSE
 
+#define DEBUG_SCAN_PROGRESS	FALSE
+
 #define DEBUG_WAIT_FOR_MCS	FALSE
 
 #define DEBUG_PAUSE_REQUEST	FALSE
@@ -2513,8 +2515,10 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 		}
 	}
 
+#if DEBUG_SCAN_PROGRESS
 	MX_DEBUG(-2,("%s: Scan '%s' MCS readout preference = %ld",
 		fname, scan->record->name, readout_preference ));
+#endif
 
 	mcs_quick_scan->mcs_readout_preference = readout_preference;
 
@@ -3460,8 +3464,10 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 		readout_by_measurement = FALSE;
 	}
 
+#if DEBUG_SCAN_PROGRESS
 	MX_DEBUG(-2,("%s: readout_by_measurement = %d",
 		fname, (int) readout_by_measurement));
+#endif
 
 	if ( readout_by_measurement ) {
 		/* If we are reading things out of the MCSs as they come in,
@@ -4285,11 +4291,15 @@ mxs_mcs_quick_scan_cl_read_scaler( MX_SCAN *scan )
 static mx_status_type
 mxs_mcs_quick_scan_cl_read_measurement( MX_SCAN *scan )
 {
+#if DEBUG_SCAN_PROGRESS
 	static const char fname[] = "mxs_mcs_quick_scan_cl_read_measurement()";
+#endif
 
 	mx_status_type mx_status;
 
+#if DEBUG_SCAN_PROGRESS
 	MX_DEBUG(-2,("%s invoked for scan '%s'.", fname, scan->record->name ));
+#endif
 
 	/* Close the datafile and shut down the plot. */
 
@@ -4323,8 +4333,10 @@ mxs_mcs_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 		readout_by_measurement = FALSE;
 	}
 
+#if DEBUG_SCAN_PROGRESS
 	MX_DEBUG(-2,("%s: readout_by_measurement = %d",
 		fname, (int) readout_by_measurement));
+#endif
 
 	if ( readout_by_measurement ) {
 		mx_status = mxs_mcs_quick_scan_cl_read_measurement( scan );

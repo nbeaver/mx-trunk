@@ -900,7 +900,7 @@ motor_show_version( void )
 
 	list_head = mx_get_record_list_head_struct( motor_record_list );
 
-	fprintf( output, "MX version: %s   [Posix timestamp = %" PRIu64 "]\n",
+	fprintf( output, "MX version: %s   [Version timestamp = %" PRIu64 "]\n",
 		mx_get_version_full_string(),
 		list_head->mx_version_time );
 
