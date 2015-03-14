@@ -147,9 +147,10 @@ mxd_newport_xps_move_thread( MX_THREAD *thread, void *thread_argument )
 {
 	static const char fname[] = "mxd_newport_xps_move_thread()";
 
-	MX_NEWPORT_XPS_MOTOR *newport_xps_motor;
-	MX_MOTOR *motor;
-	int xps_status;
+	MX_NEWPORT_XPS_MOTOR *newport_xps_motor = NULL;
+	MX_MOTOR *motor = NULL;
+	MX_NEWPORT_XPS *newport_xps = NULL;
+	int xps_status, group_status;
 	unsigned long mx_status_code;
 	mx_status_type mx_status;
 
@@ -158,20 +159,20 @@ mxd_newport_xps_move_thread( MX_THREAD *thread, void *thread_argument )
 		"The thread_argument pointer for this thread is NULL." );
 	}
 
-	newport_xps_motor = (MX_NEWPORT_XPS_MOTOR *) thread_argument;
+	motor = (MX_MOTOR *) thread_argument;
+
+	/*---*/
+
+	mx_status = mxd_newport_xps_get_pointers( motor, &newport_xps_motor,
+						&newport_xps, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( newport_xps_motor->record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_RECORD pointer for MX_NEWPORT_XPS_MOTOR ptr %p is NULL",
 			newport_xps_motor );
-	}
-
-	motor = (MX_MOTOR *) newport_xps_motor->record->record_class_struct;
-
-	if ( motor == (MX_MOTOR *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_MOTOR pointer for motor '%s' is NULL.",
-			newport_xps_motor->record->name );
 	}
 
 	/* Lock the mutex in preparation for entering the thread's
@@ -231,9 +232,107 @@ mxd_newport_xps_move_thread( MX_THREAD *thread, void *thread_argument )
 
 			newport_xps_motor->home_search_succeeded = FALSE;
 
+			/* Check to see if the motor is in the Ready state. */
+
+			xps_status = GroupStatusGet( newport_xps->socket_id,
+						newport_xps_motor->group_name,
+						&group_status );
+
+			if ( xps_status != SUCCESS ) {
+				return mxi_newport_xps_error(
+					newport_xps->socket_id,
+					"GroupStatusGet() (Home #1)",
+					xps_status );
+			}
+
+			MX_DEBUG(-2,("Home search '%s': group_status #1 = %d",
+				motor->record->name, group_status ));
+
+			if ( (group_status >= 10) && (group_status <= 18) )
+			{
+				/* We cannot start a home search if the group
+				 * is in the ready state.  If so, then we
+				 * must kill the group to put it into the
+				 * "NOT INITIALIZED" state.
+				 */
+
+				MX_DEBUG(-2,
+				("Home search '%s': Calling GroupKill()",
+					motor->record->name ));
+
+				xps_status = GroupKill( newport_xps->socket_id,
+						newport_xps_motor->group_name );
+
+				if ( xps_status != SUCCESS ) {
+					return mxi_newport_xps_error(
+						newport_xps->socket_id,
+						"GroupKill() (Home)",
+						xps_status );
+				}
+			}
+
+			/* We must make sure that the axis is now initialized.
+			 * It is possible for an Initialized axis to get here,
+			 * so we must check to see if it is already initialized.
+			 */
+
+			xps_status = GroupStatusGet( newport_xps->socket_id,
+						newport_xps_motor->group_name,
+						&group_status );
+
+			if ( xps_status != SUCCESS ) {
+				return mxi_newport_xps_error(
+					newport_xps->socket_id,
+					"GroupStatusGet() (Home #2)",
+					xps_status );
+			}
+
+			MX_DEBUG(-2,("Home search '%s': group_status #2 = %d",
+				motor->record->name, group_status ));
+
+			if ( ((group_status >= 0) && (group_status <= 9))
+			  || (group_status == 50) || (group_status == 63) )
+			{
+				/* The axis is not initialized, so we must
+				 * initialize it.
+				 */
+
+				MX_DEBUG(-2,
+				("Home search '%s': Calling GroupInitialize()",
+					motor->record->name ));
+
+				xps_status = GroupInitialize(
+					newport_xps->socket_id,
+					newport_xps_motor->group_name );
+
+				if ( xps_status != SUCCESS ) {
+					return mxi_newport_xps_error(
+						newport_xps->socket_id,
+						"GroupInitialize() (Home)",
+						xps_status );
+				}
+			}
+
+			/* Now start the actual home search.  This thread
+			 * will block until the home search completes.
+			 */
+
+			MX_DEBUG(-2,
+			("Home search '%s': Calling GroupHomeSearch()",
+				motor->record->name ));
+
 			xps_status = GroupHomeSearch(
 				newport_xps_motor->move_thread_socket_id,
 				newport_xps_motor->group_name );
+
+			/* When we get here, the home search has
+			 * completed and/or aborted.  Check to see
+			 * what happened.
+			 */
+
+			MX_DEBUG(-2,
+			("Home search '%s': GroupHomeSearch() status = %d",
+				motor->record->name, xps_status ));
 
 			if ( xps_status != SUCCESS ) {
 				newport_xps_motor->home_search_succeeded
@@ -243,8 +342,37 @@ mxd_newport_xps_move_thread( MX_THREAD *thread, void *thread_argument )
 				newport_xps_motor->move_thread_socket_id,
 					"GroupHomeSearch()",
 					xps_status );
+			}
+
+			/* If all went well, we should be in group state 11
+			 * (Ready state from homing).  If we are _not_ in
+			 * group state 11, then something went wrong and
+			 * we mark the home search as having failed.
+			 */
+
+			xps_status = GroupStatusGet( newport_xps->socket_id,
+						newport_xps_motor->group_name,
+						&group_status );
+
+			if ( xps_status != SUCCESS ) {
+				return mxi_newport_xps_error(
+					newport_xps->socket_id,
+					"GroupStatusGet() (Home #3)",
+					xps_status );
+			}
+
+			MX_DEBUG(-2,("Home search '%s': group_status #3 = %d",
+				motor->record->name, group_status ));
+
+			if ( group_status == 11 ) {
+			    newport_xps_motor->home_search_succeeded = TRUE;
 			} else {
-				newport_xps_motor->home_search_succeeded = TRUE;
+			    newport_xps_motor->home_search_succeeded = FALSE;
+
+			    mx_warning( "Home search failed for motor '%s'.  "
+				"Newport group status = %d",
+					motor->record->name,
+					group_status );
 			}
 			break;
 
@@ -505,8 +633,7 @@ mxd_newport_xps_open( MX_RECORD *record )
 	/* Start the move thread. */
 
 	mx_status = mx_thread_create( &(newport_xps_motor->move_thread),
-					mxd_newport_xps_move_thread,
-					newport_xps_motor );
+					mxd_newport_xps_move_thread, motor );
 
 	return mx_status;
 }
@@ -593,6 +720,8 @@ mxd_newport_xps_process_function( void *record_ptr,
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;
 	MX_NEWPORT_XPS_MOTOR *newport_xps_motor;
+	MX_RECORD *newport_xps_record;
+	MX_NEWPORT_XPS *newport_xps;
 	int driver_status, group_status, hardware_status, positioner_error;
 	int xps_status;
 	mx_status_type mx_status;
@@ -600,6 +729,8 @@ mxd_newport_xps_process_function( void *record_ptr,
 	record = (MX_RECORD *) record_ptr;
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
 	newport_xps_motor = (MX_NEWPORT_XPS_MOTOR *) record->record_type_struct;
+	newport_xps_record = newport_xps_motor->newport_xps_record;
+	newport_xps = (MX_NEWPORT_XPS *) newport_xps_record->record_type_struct;
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 
@@ -608,13 +739,13 @@ mxd_newport_xps_process_function( void *record_ptr,
 		switch( record_field->label_value ) {
 		case MXLV_NEWPORT_XPS_DRIVER_STATUS:
 			xps_status = PositionerDriverStatusGet(
-				newport_xps_motor->move_thread_socket_id,
+				newport_xps->socket_id,
 				newport_xps_motor->positioner_name,
 				&driver_status );
 
 			if ( xps_status != SUCCESS ) {
 				return mxi_newport_xps_error(
-				    newport_xps_motor->move_thread_socket_id,
+					newport_xps->socket_id,
 					"PositionerDriverStatusGet()",
 					xps_status );
 			}
@@ -622,14 +753,13 @@ mxd_newport_xps_process_function( void *record_ptr,
 			newport_xps_motor->driver_status = driver_status;
 			break;
 		case MXLV_NEWPORT_XPS_GROUP_STATUS:
-			xps_status = GroupStatusGet(
-				newport_xps_motor->move_thread_socket_id,
-				newport_xps_motor->group_name,
-				&group_status );
+			xps_status = GroupStatusGet( newport_xps->socket_id,
+						newport_xps_motor->group_name,
+						&group_status );
 
 			if ( xps_status != SUCCESS ) {
 				return mxi_newport_xps_error(
-				    newport_xps_motor->move_thread_socket_id,
+					newport_xps->socket_id,
 					"GroupStatusGet()",
 					xps_status );
 			}
@@ -637,14 +767,13 @@ mxd_newport_xps_process_function( void *record_ptr,
 			newport_xps_motor->group_status = group_status;
 			break;
 		case MXLV_NEWPORT_XPS_GROUP_STATUS_STRING:
-			xps_status = GroupStatusGet(
-				newport_xps_motor->move_thread_socket_id,
-				newport_xps_motor->group_name,
-				&group_status );
+			xps_status = GroupStatusGet( newport_xps->socket_id,
+						newport_xps_motor->group_name,
+						&group_status );
 
 			if ( xps_status != SUCCESS ) {
 				return mxi_newport_xps_error(
-				    newport_xps_motor->move_thread_socket_id,
+					newport_xps->socket_id,
 					"GroupStatusGet()",
 					xps_status );
 			}
@@ -652,26 +781,26 @@ mxd_newport_xps_process_function( void *record_ptr,
 			newport_xps_motor->group_status = group_status;
 
 			xps_status = GroupStatusStringGet(
-				newport_xps_motor->move_thread_socket_id,
+				newport_xps->socket_id,
 				group_status,
 				newport_xps_motor->group_status_string );
 
 			if ( xps_status != SUCCESS ) {
 				return mxi_newport_xps_error(
-				    newport_xps_motor->move_thread_socket_id,
+					newport_xps->socket_id,
 					"GroupStatusStringGet()",
 					xps_status );
 			}
 			break;
 		case MXLV_NEWPORT_XPS_HARDWARE_STATUS:
 			xps_status = PositionerHardwareStatusGet(
-				newport_xps_motor->move_thread_socket_id,
+				newport_xps->socket_id,
 				newport_xps_motor->positioner_name,
 				&hardware_status );
 
 			if ( xps_status != SUCCESS ) {
 				return mxi_newport_xps_error(
-				    newport_xps_motor->move_thread_socket_id,
+					newport_xps->socket_id,
 					"PositionerHardwareStatusGet()",
 					xps_status );
 			}
@@ -682,13 +811,13 @@ mxd_newport_xps_process_function( void *record_ptr,
 			/* A Read() does not clear the error. */
 
 			xps_status = PositionerErrorRead(
-				newport_xps_motor->move_thread_socket_id,
+				newport_xps->socket_id,
 				newport_xps_motor->positioner_name,
 				&positioner_error );
 
 			if ( xps_status != SUCCESS ) {
 				return mxi_newport_xps_error(
-				    newport_xps_motor->move_thread_socket_id,
+					newport_xps->socket_id,
 					"PositionerErrorRead()",
 					xps_status );
 			}
@@ -708,13 +837,13 @@ mxd_newport_xps_process_function( void *record_ptr,
 			/* Clear the error by Get()-ing it. */
 
 			xps_status = PositionerErrorGet(
-				newport_xps_motor->move_thread_socket_id,
+				newport_xps->socket_id,
 				newport_xps_motor->positioner_name,
 				&positioner_error );
 
 			if ( xps_status != SUCCESS ) {
 				return mxi_newport_xps_error(
-				    newport_xps_motor->move_thread_socket_id,
+					newport_xps->socket_id,
 					"PositionerErrorRead()",
 					xps_status );
 			}

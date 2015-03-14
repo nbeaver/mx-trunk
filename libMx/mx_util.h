@@ -884,7 +884,9 @@ MX_API mx_status_type mx_get_filesystem_type( char *filename,
 
 /* Flags for mx_spawn() */
 
-#define MXF_SPAWN_NO_PRELOAD		0x1
+#define MXF_SPAWN_NEW_SESSION		0x1
+
+#define MXF_SPAWN_NO_PRELOAD		0x10000000
 
 MX_API mx_status_type mx_spawn( char *command_line,
 				unsigned long flags,

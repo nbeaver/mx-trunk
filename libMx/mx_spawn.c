@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2006, 2009-2010, 2013-2014 Illinois Institute of Technology
+ * Copyright 2006, 2009-2010, 2013-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -41,7 +41,7 @@ mx_spawn( char *command_line,
 {
 	static const char fname[] = "mx_spawn()";
 
-	pid_t fork_pid, parent_pid, child_pid;
+	pid_t fork_pid, parent_pid, child_pid, session_id;
 	int result, saved_errno;
 	int i, argc, envc;
 	char **argv, **envp;
@@ -119,6 +119,24 @@ mx_spawn( char *command_line,
 		MX_DEBUG(-2,("%s: This is child process %lu.",
 			fname, (unsigned long) child_pid ));
 #endif
+
+		if ( flags & MXF_SPAWN_NEW_SESSION ) {
+			session_id = setsid();
+
+			if ( session_id < 0 ) {
+				saved_errno = errno;
+
+				(void) mx_error( MXE_FUNCTION_FAILED, fname,
+				"The attempt by child process %lu (parent %lu) "
+				"to create a new session using setsid() "
+				"failed.  Errno = %d, error message = '%s'",
+					(unsigned long) child_pid,
+					(unsigned long) parent_pid,
+					saved_errno,
+					strerror( saved_errno ) );
+				exit(1);
+			}
+		}
 
 #if defined(OS_LINUX)
 		/*--------------------------------------------------------*/
@@ -260,8 +278,15 @@ mx_spawn( char *command_line,
 	BOOL status;
 	STARTUPINFO startup_info;
 	PROCESS_INFORMATION process_info;
+	DWORD cpflags;
 	DWORD last_error_code;
 	TCHAR message_buffer[100];
+
+	if ( flags & MXF_SPAWN_NEW_SESSION ) {
+		cpflags = CREATE_DEFAULT_ERROR_MODE | CREATE_NEW_PROCESS_GROUP;
+	} else {
+		cpflags = CREATE_DEFAULT_ERROR_MODE;
+	}
 
 	memset( &startup_info, 0, sizeof(startup_info) );
 
@@ -274,7 +299,7 @@ mx_spawn( char *command_line,
 				NULL,
 				NULL,
 				FALSE,
-				CREATE_DEFAULT_ERROR_MODE,
+				cpflags,
 				NULL,
 				NULL,
 				&startup_info,

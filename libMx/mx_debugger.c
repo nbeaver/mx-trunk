@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2013 Illinois Institute of Technology
+ * Copyright 1999-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -489,7 +489,7 @@ mx_start_debugger( char *command )
 		fputs( mx_debugger_command, stderr );
 		fputs( "'.\n", stderr );
 
-		spawn_flags = 0;
+		spawn_flags = MXF_SPAWN_NEW_SESSION;
 
 #if defined(OS_LINUX)
 		spawn_flags |= MXF_SPAWN_NO_PRELOAD;
