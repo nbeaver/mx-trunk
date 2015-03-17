@@ -489,7 +489,11 @@ mx_start_debugger( char *command )
 		fputs( mx_debugger_command, stderr );
 		fputs( "'.\n", stderr );
 
+#if 0
 		spawn_flags = MXF_SPAWN_NEW_SESSION;
+#else
+		spawn_flags = 0;
+#endif
 
 #if defined(OS_LINUX)
 		spawn_flags |= MXF_SPAWN_NO_PRELOAD;

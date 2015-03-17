@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2014 Illinois Institute of Technology
+ * Copyright 2014-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -40,6 +40,9 @@ typedef struct {
 	char firmware_version[MXU_NEWPORT_XPS_STATUS_LENGTH+1];
 	char hardware_time[MXU_NEWPORT_XPS_STATUS_LENGTH+1];
 	char library_version[MXU_NEWPORT_XPS_STATUS_LENGTH+1];
+
+	long num_motors;
+	MX_RECORD **motor_record_array;
 } MX_NEWPORT_XPS;
 
 #define MXLV_NEWPORT_XPS_SOCKET_ID			87001
@@ -108,6 +111,9 @@ typedef struct {
 	{sizeof(char)}, NULL, MXFF_READ_ONLY}
 
 MX_API mx_status_type mxi_newport_xps_create_record_structures(
+						MX_RECORD *record );
+
+MX_API mx_status_type mxi_newport_xps_finish_record_initialization(
 						MX_RECORD *record );
 
 MX_API mx_status_type mxi_newport_xps_open( MX_RECORD *record );

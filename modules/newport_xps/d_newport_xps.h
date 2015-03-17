@@ -51,9 +51,23 @@ typedef struct {
 
 	mx_bool_type home_search_succeeded;
 
+	/* 'array_index' is an index into the motor axis data structures
+	 * found in the controller's 'newport_xps' record.
+	 */
+
+	long array_index;
+
+	/* We need to keep a list of the motor records that are in the same
+	 * group as this motor.  This is used by the 'set_position' driver
+	 * method.
+	 */
+
+	long num_motors_in_group;
+	MX_RECORD **motor_records_in_group;
+
 	/* The Newport XPS does not provide a way to redefine the position
 	 * inside the controller itself, so we must emulate this in the
-	 * MX driver itself.
+	 * MX driver itself.  (NOT TRUE!)
 	 */
 
 	double internal_position_offset;

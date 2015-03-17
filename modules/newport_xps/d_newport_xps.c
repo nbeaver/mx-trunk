@@ -15,11 +15,15 @@
  *
  */
 
-#define MXD_NEWPORT_XPS_MOTOR_DEBUG			FALSE
+#define MXD_NEWPORT_XPS_MOTOR_DEBUG				FALSE
 
-#define MXD_NEWPORT_XPS_MOTOR_POSITION_DEBUG		FALSE
+#define MXD_NEWPORT_XPS_MOTOR_DEBUG_MOTOR_GROUPS		TRUE
 
-#define MXD_NEWPORT_XPS_MOTOR_MOVE_THREAD_DEBUG		FALSE
+#define MXD_NEWPORT_XPS_MOTOR_POSITION_DEBUG			FALSE
+
+#define MXD_NEWPORT_XPS_MOTOR_MOVE_THREAD_DEBUG			FALSE
+
+#define MXD_NEWPORT_XPS_MOTOR_USE_INTERNAL_POSITION_OFFSET	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -496,8 +500,12 @@ mxd_newport_xps_create_record_structures( MX_RECORD *record )
 	motor->record = record;
 	newport_xps_motor->record = record;
 
+	newport_xps_motor->internal_position_offset = 0;
+
 	newport_xps_motor->group_status = 0;
 	newport_xps_motor->group_status_string[0] = '\0';
+
+	newport_xps_motor->array_index = -1;
 
 	/* A NEWPORT_XPS_MOTOR is treated as an analog motor. */
 
@@ -520,7 +528,10 @@ mxd_newport_xps_open( MX_RECORD *record )
 	MX_MOTOR *motor = NULL;
 	MX_NEWPORT_XPS_MOTOR *newport_xps_motor = NULL;
 	MX_NEWPORT_XPS *newport_xps = NULL;
-	char *ptr;
+	char *ptr = NULL;
+	long i, j, num_motors_in_group;
+	const char *our_group_name = NULL;
+	MX_NEWPORT_XPS_MOTOR *other_newport_xps_motor = NULL;
 	int xps_status;
 	mx_status_type mx_status;
 
@@ -557,6 +568,76 @@ mxd_newport_xps_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* We need a list of the motors that are in the same group as 
+	 * this motor.  We will lists the current motor as part of that
+	 * list for convenience sake.
+	 */
+
+	/* First find out how many motors are in our group. */
+
+	our_group_name = newport_xps_motor->group_name;
+
+	num_motors_in_group = 0;
+
+	for ( i = 0; i < newport_xps->num_motors; i++ ) {
+		other_newport_xps_motor = (MX_NEWPORT_XPS_MOTOR *)
+			newport_xps->motor_record_array[i]->record_type_struct;
+
+		if ( strcmp( our_group_name,
+		    other_newport_xps_motor->group_name ) == 0 )
+		{
+			num_motors_in_group++;
+		}
+	}
+
+#if MXD_NEWPORT_XPS_MOTOR_DEBUG_MOTOR_GROUPS
+	MX_DEBUG(-2,("%s: motor '%s', group '%s', num_motors_in_group = %ld",
+		fname, record->name,
+		newport_xps_motor->group_name,
+		num_motors_in_group));
+#endif
+
+	newport_xps_motor->num_motors_in_group = num_motors_in_group;
+
+	/* Now go back and make an array of these motors for future
+	 * uses in places like 'set_position'.
+	 */
+
+	newport_xps_motor->motor_records_in_group = (MX_RECORD **)
+		calloc( num_motors_in_group, sizeof(MX_RECORD *) );
+
+	if ( newport_xps_motor->motor_records_in_group == (MX_RECORD **) NULL )
+	{
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %ld element array "
+		"of group motor record pointers for motor '%s'.",
+			newport_xps_motor->num_motors_in_group,
+			record->name );
+	}
+
+	j = 0;
+
+	for ( i = 0; i < newport_xps->num_motors; i++ ) {
+		other_newport_xps_motor = (MX_NEWPORT_XPS_MOTOR *)
+			newport_xps->motor_record_array[i]->record_type_struct;
+
+		if ( strcmp( our_group_name,
+		    other_newport_xps_motor->group_name ) == 0 )
+		{
+			newport_xps_motor->motor_records_in_group[j]
+				= newport_xps->motor_record_array[i];
+
+#if MXD_NEWPORT_XPS_MOTOR_DEBUG_MOTOR_GROUPS
+			MX_DEBUG(-2,
+			("%s: motor '%s', motor_records_in_group[%ld] = '%s'",
+			   fname, record->name, j,
+			   newport_xps_motor->motor_records_in_group[j]->name));
+#endif
+			j++;
+		}
+	}
+
 
 	/*** Create move thread ***/
 
@@ -978,7 +1059,6 @@ mxd_newport_xps_set_position( MX_MOTOR *motor )
 
 	MX_NEWPORT_XPS_MOTOR *newport_xps_motor = NULL;
 	MX_NEWPORT_XPS *newport_xps = NULL;
-	double old_user_position, new_user_position, raw_difference;
 	mx_status_type mx_status;
 
 	mx_status = mxd_newport_xps_get_pointers( motor, &newport_xps_motor,
@@ -987,25 +1067,106 @@ mxd_newport_xps_set_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* The Newport XPS does not provide a way to redefine the position
-	 * inside the controller itself, so we must emulate this in the
-	 * MX driver itself.
-	 */
+#if MXD_NEWPORT_XPS_MOTOR_USE_INTERNAL_POSITION_OFFSET
+	{
+		double old_user_position, new_user_position, raw_difference;
 
-	new_user_position = motor->set_position;
+		/* The Newport XPS does not provide a way to redefine the
+		 * position inside the controller itself, so we must emulate
+		 * this in the MX driver itself.
+		 */
 
-	mx_status = mx_motor_get_position( motor->record, NULL );
+		new_user_position = motor->set_position;
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		mx_status = mx_motor_get_position( motor->record, NULL );
 
-	old_user_position = motor->position;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-	raw_difference = mx_divide_safely(
-				new_user_position - old_user_position,
-				motor->scale );
+		old_user_position = motor->position;
 
-	newport_xps_motor->internal_position_offset += raw_difference;
+		raw_difference = mx_divide_safely(
+					new_user_position - old_user_position,
+					motor->scale );
+
+		newport_xps_motor->internal_position_offset += raw_difference;
+	}
+#else /* not MXD_NEWPORT_XPS_MOTOR_USE_INTERNAL_POSITION_OFFSET */
+
+	newport_xps_motor->internal_position_offset = 0;
+
+	if ( newport_xps_motor->num_motors_in_group == 1 ) {
+		int xps_status;
+
+		/* If this motor is the only motor in its group, then
+		 * implementing 'set_position' is easy.
+		 */
+
+		/* First we must put the group into the NOT REFERENCED state
+		 * by killing and then initializing the positioner.
+		 */
+
+		xps_status = GroupKill( newport_xps->socket_id,
+					newport_xps_motor->group_name );
+
+		if ( xps_status != SUCCESS ) {
+			return mxi_newport_xps_error( newport_xps->socket_id,
+						"GroupKill()",
+						xps_status );
+		}
+
+		xps_status = GroupInitialize( newport_xps->socket_id,
+					newport_xps_motor->group_name );
+
+		if ( xps_status != SUCCESS ) {
+			return mxi_newport_xps_error( newport_xps->socket_id,
+						"GroupInitialize()",
+						xps_status );
+		}
+
+		/* Now we redefine the current position. */
+
+		xps_status = GroupReferencingStart(
+				newport_xps->socket_id,
+				newport_xps_motor->group_name );
+
+		if ( xps_status != SUCCESS ) {
+			return mxi_newport_xps_error( newport_xps->socket_id,
+						"GroupReferencingStart()",
+						xps_status );
+		}
+
+		xps_status = GroupReferencingActionExecute(
+				newport_xps->socket_id,
+				newport_xps_motor->positioner_name,
+				"SetPosition", "None",
+				motor->raw_set_position.analog );
+
+		if ( xps_status != SUCCESS ) {
+			return mxi_newport_xps_error( newport_xps->socket_id,
+					"GroupReferencingActionExecute()",
+					xps_status );
+		}
+
+		xps_status = GroupReferencingStop(
+				newport_xps->socket_id,
+				newport_xps_motor->group_name );
+
+		if ( xps_status != SUCCESS ) {
+			return mxi_newport_xps_error( newport_xps->socket_id,
+						"GroupReferencingStop()",
+						xps_status );
+		}
+	} else {
+		mx_warning("%s: motor '%s', group '%s', has %ld motors in "
+			"its group, which has not yet been implemented.",
+			fname, motor->record->name,
+			newport_xps_motor->group_name,
+			newport_xps_motor->num_motors_in_group);
+	}
+
+#endif /* MXD_NEWPORT_XPS_MOTOR_USE_INTERNAL_POSITION_OFFSET */
+
 
 	return MX_SUCCESSFUL_RESULT;
 }

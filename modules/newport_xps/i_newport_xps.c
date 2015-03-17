@@ -14,7 +14,9 @@
  *
  */
 
-#define MXI_NEWPORT_XPS_DEBUG	FALSE
+#define MXI_NEWPORT_XPS_DEBUG			FALSE
+
+#define MXI_NEWPORT_XPS_FIND_MOTOR_RECORDS	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,7 +26,9 @@
 #include "mx_socket.h"
 #include "mx_process.h"
 #include "mx_rs232.h"
+#include "mx_motor.h"
 #include "i_newport_xps.h"
+#include "d_newport_xps.h"
 
 /* Vendor include files. */
 
@@ -34,7 +38,7 @@
 MX_RECORD_FUNCTION_LIST mxi_newport_xps_record_function_list = {
 	NULL,
 	mxi_newport_xps_create_record_structures,
-	NULL,
+	mxi_newport_xps_finish_record_initialization,
 	NULL,
 	NULL,
 	mxi_newport_xps_open,
@@ -94,6 +98,120 @@ mxi_newport_xps_create_record_structures( MX_RECORD *record )
 
 	newport_xps->controller_status = 0;
 	newport_xps->controller_status_string[0] = '\0';
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxi_newport_xps_finish_record_initialization( MX_RECORD *record )
+{
+	static const char fname[] =
+		"mxi_newport_xps_finish_record_initialization()";
+
+	MX_NEWPORT_XPS *newport_xps = NULL;
+	MX_NEWPORT_XPS_MOTOR *newport_xps_motor = NULL;
+	MX_RECORD *current_record = NULL;
+	MX_RECORD *list_head_record = NULL;
+	long i, num_motors;
+	const char *driver_name = NULL;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"MX_RECORD pointer passed is NULL.");
+	}
+
+	newport_xps = (MX_NEWPORT_XPS *) record->record_type_struct;
+
+	if ( newport_xps == (MX_NEWPORT_XPS *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"MX_NEWPORT_XPS pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	/* Figure out how many Newport motors are attached to this
+	 * controller in the MX database.
+	 */
+
+	num_motors = 0;
+
+	list_head_record = record->list_head;
+
+	current_record = list_head_record->next_record;
+
+	while ( current_record != list_head_record ) {
+		driver_name = mx_get_driver_name( current_record );
+
+		if ( strcmp( driver_name, "newport_xps_motor" ) == 0 ) {
+			/* If there are more than one Newport XPS motor
+			 * controllers in use, then we only want to count
+			 * motor axes attached to this record instance's
+			 * MX record.
+			 */
+
+			newport_xps_motor = current_record->record_type_struct;
+
+			if ( record == newport_xps_motor->newport_xps_record ) {
+				num_motors++;
+			}
+		}
+
+		current_record = current_record->next_record;
+	}
+
+#if MXI_NEWPORT_XPS_FIND_MOTOR_RECORDS
+	MX_DEBUG(-2,("%s: num_motors = %ld", fname, num_motors));
+#endif
+
+	newport_xps->num_motors = num_motors;
+
+	/* Now that we know how many child motor instances are attached to this
+	 * controller's MX record, then we need to create some data structures
+	 * that save information about the individual motor axes.
+	 */
+
+	newport_xps->motor_record_array = (MX_RECORD **)
+		calloc( num_motors, sizeof(MX_RECORD *) );
+
+	if ( newport_xps->motor_record_array == (MX_RECORD **) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %ld element array "
+		"of motor record pointers for controller '%s'.",
+			num_motors, record->name );
+	}
+
+	/* Loop over the motor records for this controller. */
+
+	i = 0;
+
+	current_record = list_head_record->next_record;
+
+	while ( current_record != list_head_record ) {
+	    driver_name = mx_get_driver_name( current_record );
+
+	    if ( strcmp( driver_name, "newport_xps_motor" ) == 0 ) {
+		newport_xps_motor = current_record->record_type_struct;
+
+		if ( record == newport_xps_motor->newport_xps_record ) {
+		    newport_xps->motor_record_array[i] = current_record;
+
+#if MXI_NEWPORT_XPS_FIND_MOTOR_RECORDS
+		    MX_DEBUG(-2,("%s: motor_record_array[%ld] = '%s'",
+			fname, i, newport_xps->motor_record_array[i]->name));
+#endif
+		    /* Save a copy of the array index 'i' into the motor
+		     * record's data structures.
+		     */
+
+		    newport_xps_motor->array_index = i;
+
+		    i++;
+		}
+	    }
+	    current_record = current_record->next_record;
+	}
+	
 
 	return MX_SUCCESSFUL_RESULT;
 }
