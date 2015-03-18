@@ -64,10 +64,19 @@ typedef struct {
 
 	long num_motors_in_group;
 	MX_RECORD **motor_records_in_group;
+	double *old_motor_positions_in_group;
+
+	/* During a 'set_position' operation, the motor group that the
+	 * motor is in will be killed and then reinitialized.  After this
+	 * is done, the driver will wait for 'set_position_sleep_ms' in
+	 * milliseconds before going on to reprogram the motor position.
+	 */
+
+	double set_position_sleep_ms;
 
 	/* The Newport XPS does not provide a way to redefine the position
 	 * inside the controller itself, so we must emulate this in the
-	 * MX driver itself.  (NOT TRUE!)
+	 * MX driver itself.  (NOT TRUE!  This variable is going away.)
 	 */
 
 	double internal_position_offset;
@@ -164,6 +173,11 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_newport_xps_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_NEWPORT_XPS_MOTOR, home_search_succeeded), \
 	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "set_position_sleep_ms", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_NEWPORT_XPS_MOTOR, set_position_sleep_ms), \
+	{0}, NULL, 0 }, \
   \
   {-1, -1, "internal_position_offset", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \

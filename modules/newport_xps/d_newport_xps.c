@@ -507,6 +507,8 @@ mxd_newport_xps_create_record_structures( MX_RECORD *record )
 
 	newport_xps_motor->array_index = -1;
 
+	newport_xps_motor->set_position_sleep_ms = 500;   /* in milliseconds */
+
 	/* A NEWPORT_XPS_MOTOR is treated as an analog motor. */
 
 	motor->subclass = MXC_MTR_ANALOG;
@@ -615,6 +617,20 @@ mxd_newport_xps_open( MX_RECORD *record )
 			newport_xps_motor->num_motors_in_group,
 			record->name );
 	}
+
+	newport_xps_motor->old_motor_positions_in_group = (double *)
+		calloc( num_motors_in_group, sizeof(MX_RECORD *) );
+
+	if ( newport_xps_motor->old_motor_positions_in_group == (double *)NULL )
+	{
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %ld element array "
+		"of group old motor positions for motor '%s'.",
+			newport_xps_motor->num_motors_in_group,
+			record->name );
+	}
+
+	/*---*/
 
 	j = 0;
 
@@ -1096,6 +1112,9 @@ mxd_newport_xps_set_position( MX_MOTOR *motor )
 	newport_xps_motor->internal_position_offset = 0;
 
 	if ( newport_xps_motor->num_motors_in_group == 1 ) {
+
+		/**** Only 1 motor in group ****/
+
 		int xps_status;
 
 		/* If this motor is the only motor in its group, then
@@ -1123,6 +1142,12 @@ mxd_newport_xps_set_position( MX_MOTOR *motor )
 						"GroupInitialize()",
 						xps_status );
 		}
+
+		/* The motor may move a bit after initialization, so wait
+		 * a while to give that time to happen.
+		 */
+
+		mx_msleep( newport_xps_motor->set_position_sleep_ms );
 
 		/* Now we redefine the current position. */
 
@@ -1158,11 +1183,186 @@ mxd_newport_xps_set_position( MX_MOTOR *motor )
 						xps_status );
 		}
 	} else {
+		/**** Multiple motors in group ****/
+
+		MX_RECORD *other_newport_xps_motor_record = NULL;
+		MX_NEWPORT_XPS_MOTOR *other_newport_xps_motor = NULL;
+		long i, index_of_self;
+		int xps_status;
+
 		mx_warning("%s: motor '%s', group '%s', has %ld motors in "
-			"its group, which has not yet been implemented.",
+			"its group. 'set position' for more than one motor "
+			"has not yet been tested (as of 2015/03/18).",
 			fname, motor->record->name,
 			newport_xps_motor->group_name,
 			newport_xps_motor->num_motors_in_group);
+
+		/* First, save the positions of all of the motors in
+		 * the group.
+		 */
+
+		index_of_self = -1;
+
+		for ( i = 0; i < newport_xps_motor->num_motors_in_group; i++ ) {
+		    other_newport_xps_motor_record =
+			newport_xps_motor->motor_records_in_group[i];
+
+		    if ( other_newport_xps_motor_record == (MX_RECORD *) NULL )
+		    {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_RECORD pointer at "
+			"newport_xps_motor->motor_records_in_group[%ld] "
+			"for Newport XPS motor '%s' is NULL.",
+				i, motor->record->name );
+		    }
+
+		    other_newport_xps_motor = (MX_NEWPORT_XPS_MOTOR *)
+			other_newport_xps_motor_record->record_type_struct;
+
+		    if ( other_newport_xps_motor ==
+			(MX_NEWPORT_XPS_MOTOR *) NULL ) 
+		    {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_NEWPORT_XPS_MOTOR pointer for Newport XPS "
+			"motor '%s' is NULL.",
+				other_newport_xps_motor_record->name );
+		    }
+
+		    /* Along the way, we figure out which motor in this array
+		     * is the same as the caller's motor.
+		     */
+
+		    if ( other_newport_xps_motor == newport_xps_motor ) {
+			index_of_self = i;
+		    }
+
+		    xps_status = GroupPositionCurrentGet(
+			newport_xps->socket_id,
+			other_newport_xps_motor->positioner_name,
+			1,
+			&(newport_xps_motor->old_motor_positions_in_group[i]) );
+
+		    if ( xps_status != SUCCESS ) {
+			return mxi_newport_xps_error( newport_xps->socket_id,
+						"GroupReferencingStop()",
+						xps_status );
+		    }
+#if MXD_NEWPORT_XPS_MOTOR_DEBUG_MOTOR_GROUPS
+		    MX_DEBUG(-2,("%s: motor '%s' saved position = %g",
+			fname, other_newport_xps_motor_record->name,
+			newport_xps_motor->old_motor_positions_in_group[i] ));
+#endif
+		}
+
+		/* Did we find ourself in the motor_records_in_group array? */
+
+		if ( index_of_self < 0 ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"Motor '%s' was not found in its internal array "
+			"newport_xps_motor->motor_records_in_group.",
+				motor->record->name );
+		}
+
+		/* Overwrite old_motor_positions_in_group[ index_of_self ]
+		 * with the requested new position of this motor.
+		 */
+
+		newport_xps_motor->old_motor_positions_in_group[ index_of_self ]
+			= motor->raw_set_position.analog;
+
+		/* Now put the group into the NOT REFERENCED state
+		 * by killing and then reinitializing the group.
+		 */
+
+		xps_status = GroupKill( newport_xps->socket_id,
+					newport_xps_motor->group_name );
+
+		if ( xps_status != SUCCESS ) {
+			return mxi_newport_xps_error( newport_xps->socket_id,
+						"GroupKill()",
+						xps_status );
+		}
+
+		xps_status = GroupInitialize( newport_xps->socket_id,
+					newport_xps_motor->group_name );
+
+		if ( xps_status != SUCCESS ) {
+			return mxi_newport_xps_error( newport_xps->socket_id,
+						"GroupInitialize()",
+						xps_status );
+		}
+
+		/* The motor may move a bit after initialization, so wait
+		 * a while to give that time to happen.
+		 */
+
+		mx_msleep( newport_xps_motor->set_position_sleep_ms );
+
+		/* Set positions for all of the motors using the cached values
+		 * in the old_motor_positions_in_group array.  Remember that
+		 * we overwrote the value for the caller's motor using the
+		 * new 'set_position' value requested by the user.
+		 */
+
+		/* Put us into the REFERENCING state. */
+
+		xps_status = GroupReferencingStart(
+				newport_xps->socket_id,
+				newport_xps_motor->group_name );
+
+		if ( xps_status != SUCCESS ) {
+			return mxi_newport_xps_error( newport_xps->socket_id,
+						"GroupReferencingStart()",
+						xps_status );
+		}
+
+		/* Note that we skip some pointer checking this time around
+		 * since we did that already in the first for() loop.
+		 */
+
+		for ( i = 0; i < newport_xps_motor->num_motors_in_group; i++ ) {
+		    other_newport_xps_motor_record =
+			newport_xps_motor->motor_records_in_group[i];
+
+		    other_newport_xps_motor = (MX_NEWPORT_XPS_MOTOR *)
+			other_newport_xps_motor_record->record_type_struct;
+
+		    xps_status = GroupReferencingActionExecute(
+			newport_xps->socket_id,
+			other_newport_xps_motor->positioner_name,
+			"SetPosition",
+			"None",
+			newport_xps_motor->old_motor_positions_in_group[i] );
+
+		    if ( xps_status != SUCCESS ) {
+			return mxi_newport_xps_error( newport_xps->socket_id,
+						"GroupReferencingStop()",
+						xps_status );
+		    }
+		}
+
+#if MXD_NEWPORT_XPS_MOTOR_DEBUG_MOTOR_GROUPS
+		MX_DEBUG(-2,("%s: Set motor '%s' position to %g",
+			fname, motor->record->name,
+	    newport_xps_motor->old_motor_positions_in_group[index_of_self] ));
+#endif
+		/* We have finished doing REFERENCING state actions,
+		 * so leave that state.
+		 */
+
+		xps_status = GroupReferencingStop(
+				newport_xps->socket_id,
+				newport_xps_motor->group_name );
+
+		if ( xps_status != SUCCESS ) {
+			return mxi_newport_xps_error( newport_xps->socket_id,
+						"GroupReferencingStop()",
+						xps_status );
+		}
+
+		/* We are now finished with 'set position' for the
+		 * case of multiple motors in a group.
+		 */
 	}
 
 #endif /* MXD_NEWPORT_XPS_MOTOR_USE_INTERNAL_POSITION_OFFSET */
