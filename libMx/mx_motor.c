@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2014 Illinois Institute of Technology
+ * Copyright 1999-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -135,6 +135,12 @@ mx_motor_finish_record_initialization( MX_RECORD *motor_record )
 	motor->destination     = motor->position;
 	motor->old_destination = motor->position;
 	motor->set_position    = motor->position;
+
+	motor->predicted_position = motor->destination;
+	motor->following_error    = 0;
+
+	motor->use_internal_position_offset = FALSE;
+	motor->internal_position_offset     = 0.0;
 
 	motor->raw_saved_speed = motor->raw_speed;
 
@@ -544,6 +550,10 @@ mx_motor_move_absolute_with_report(MX_RECORD *motor_record,
 
 	MX_DEBUG( 2,("%s: moving '%s' to %g",
 			fname, motor_record->name, destination ));
+
+	if ( motor->use_internal_position_offset ) {
+		destination -= motor->internal_position_offset;
+	}
 
 	raw_destination = mx_divide_safely( destination - motor->offset,
 						motor->scale );
@@ -1408,6 +1418,10 @@ mx_motor_internal_move_absolute( MX_RECORD *motor_record, double destination )
 
 	motor->destination = destination;
 
+	if ( motor->use_internal_position_offset ) {
+		destination -= motor->internal_position_offset;
+	}
+
 	raw_destination = mx_divide_safely( destination - motor->offset,
 						motor->scale );
 
@@ -1485,9 +1499,13 @@ mx_motor_get_position( MX_RECORD *motor_record, double *position )
 			motor->subclass, motor_record->name );
 	}
 
-	/* Update position. */
+	/* Update position variables. */
 
 	motor->position = motor->offset + (motor->scale) * raw_position;
+
+	if ( motor->use_internal_position_offset ) {
+		motor->position += motor->internal_position_offset;
+	}
 
 	if ( position != NULL ) {
 		*position = motor->position;
@@ -1504,7 +1522,8 @@ mx_motor_set_position( MX_RECORD *motor_record, double set_position )
 	MX_MOTOR *motor;
 	MX_MOTOR_FUNCTION_LIST *fl_ptr;
 	mx_status_type ( *fptr ) ( MX_MOTOR * );
-	double raw_set_position;
+	double raw_set_position, new_set_position;
+	double old_position, difference;
 	mx_status_type status;
 
 	status = mx_motor_get_pointers( motor_record,
@@ -1523,7 +1542,23 @@ mx_motor_set_position( MX_RECORD *motor_record, double set_position )
 			motor_record->name );
 	}
 
-	raw_set_position = mx_divide_safely( set_position - motor->offset,
+	if ( motor->use_internal_position_offset ) {
+		status = mx_motor_get_position( motor_record, &old_position );
+
+		if ( status.code != MXE_SUCCESS )
+			return status;
+
+		difference = set_position - old_position;
+
+		motor->internal_position_offset += difference;
+
+		new_set_position = set_position
+				- motor->internal_position_offset;
+	} else {
+		new_set_position = set_position;
+	}
+
+	raw_set_position = mx_divide_safely( new_set_position - motor->offset,
 							motor->scale );
 
 	switch( motor->subclass ) {
@@ -1539,9 +1574,13 @@ mx_motor_set_position( MX_RECORD *motor_record, double set_position )
 
 	motor->set_position = motor->offset + motor->scale * raw_set_position;
 
-	/* Invoke the function. */
+	/* Invoke the driver function if we are directly changing
+	 * the position in the motor controller.
+	 */
 
-	status = ( *fptr ) ( motor );
+	if ( motor->use_internal_position_offset == FALSE) {
+		status = ( *fptr ) ( motor );
+	}
 
 	return status;
 }

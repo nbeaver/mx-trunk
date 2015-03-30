@@ -74,13 +74,6 @@ typedef struct {
 
 	double set_position_sleep_ms;
 
-	/* The Newport XPS does not provide a way to redefine the position
-	 * inside the controller itself, so we must emulate this in the
-	 * MX driver itself.  (NOT TRUE!  This variable is going away.)
-	 */
-
-	double internal_position_offset;
-
 	/* Move commands _block_, so they have to have their own
 	 * separate socket and thread in order to avoid having
 	 * the entire 'newport_xps' module block during a move.
@@ -177,11 +170,6 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_newport_xps_rfield_def_ptr;
   {-1, -1, "set_position_sleep_ms", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_NEWPORT_XPS_MOTOR, set_position_sleep_ms), \
-	{0}, NULL, 0 }, \
-  \
-  {-1, -1, "internal_position_offset", MXFT_DOUBLE, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, \
-		offsetof(MX_NEWPORT_XPS_MOTOR, internal_position_offset), \
 	{0}, NULL, 0 }
 
 #endif /* __D_NEWPORT_XPS_H__ */

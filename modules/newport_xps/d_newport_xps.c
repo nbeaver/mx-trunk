@@ -23,8 +23,6 @@
 
 #define MXD_NEWPORT_XPS_MOTOR_MOVE_THREAD_DEBUG			FALSE
 
-#define MXD_NEWPORT_XPS_MOTOR_USE_INTERNAL_POSITION_OFFSET	FALSE
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -500,8 +498,6 @@ mxd_newport_xps_create_record_structures( MX_RECORD *record )
 	motor->record = record;
 	newport_xps_motor->record = record;
 
-	newport_xps_motor->internal_position_offset = 0;
-
 	newport_xps_motor->group_status = 0;
 	newport_xps_motor->group_status_string[0] = '\0';
 
@@ -971,7 +967,6 @@ mxd_newport_xps_move_absolute( MX_MOTOR *motor )
 
 	MX_NEWPORT_XPS_MOTOR *newport_xps_motor = NULL;
 	MX_NEWPORT_XPS *newport_xps = NULL;
-	double new_controller_destination;
 	mx_status_type mx_status;
 
 	mx_status = mxd_newport_xps_get_pointers( motor, &newport_xps_motor,
@@ -980,18 +975,10 @@ mxd_newport_xps_move_absolute( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* The Newport XPS does not provide a way to redefine the position
-	 * inside the controller itself, so we must emulate this in the
-	 * MX driver itself.
-	 */
-
-	new_controller_destination = motor->raw_destination.analog
-			- newport_xps_motor->internal_position_offset;
-
 	mx_status = mxd_newport_xps_send_command_to_move_thread(
 				newport_xps_motor,
 				MXT_NEWPORT_XPS_GROUP_MOVE_ABSOLUTE,
-				new_controller_destination );
+				motor->raw_destination.analog );
 
 	return mx_status;
 }
@@ -1060,8 +1047,7 @@ mxd_newport_xps_get_position( MX_MOTOR *motor )
 	 * MX driver itself.
 	 */
 
-	motor->raw_position.analog =
-	    raw_encoder_position + newport_xps_motor->internal_position_offset;
+	motor->raw_position.analog = raw_encoder_position;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1082,34 +1068,6 @@ mxd_newport_xps_set_position( MX_MOTOR *motor )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-#if MXD_NEWPORT_XPS_MOTOR_USE_INTERNAL_POSITION_OFFSET
-	{
-		double old_user_position, new_user_position, raw_difference;
-
-		/* The Newport XPS does not provide a way to redefine the
-		 * position inside the controller itself, so we must emulate
-		 * this in the MX driver itself.
-		 */
-
-		new_user_position = motor->set_position;
-
-		mx_status = mx_motor_get_position( motor->record, NULL );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		old_user_position = motor->position;
-
-		raw_difference = mx_divide_safely(
-					new_user_position - old_user_position,
-					motor->scale );
-
-		newport_xps_motor->internal_position_offset += raw_difference;
-	}
-#else /* not MXD_NEWPORT_XPS_MOTOR_USE_INTERNAL_POSITION_OFFSET */
-
-	newport_xps_motor->internal_position_offset = 0;
 
 	if ( newport_xps_motor->num_motors_in_group == 1 ) {
 
@@ -1364,9 +1322,6 @@ mxd_newport_xps_set_position( MX_MOTOR *motor )
 		 * case of multiple motors in a group.
 		 */
 	}
-
-#endif /* MXD_NEWPORT_XPS_MOTOR_USE_INTERNAL_POSITION_OFFSET */
-
 
 	return MX_SUCCESSFUL_RESULT;
 }

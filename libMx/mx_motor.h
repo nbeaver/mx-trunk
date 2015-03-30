@@ -149,6 +149,14 @@ typedef struct {
 		double analog;
 	} raw_set_position;
 
+	union { long stepper;
+		double analog;
+	} raw_predicted_position;
+
+	union { long stepper;
+		double analog;
+	} raw_following_error;
+
 	double value_change_threshold;
 
 	double raw_minimum_speed_limit;
@@ -181,6 +189,8 @@ typedef struct {
 
 	mx_bool_type use_internal_position_offset;
 	double internal_position_offset;
+
+	/*---*/
 
 	mx_bool_type backlash_move_in_progress;
 	mx_bool_type server_backlash_in_progress;
@@ -458,6 +468,27 @@ typedef struct {
   \
   {MXLV_MTR_SET_POSITION, -1, "set_position", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, set_position), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_MTR_PREDICTED_POSITION, -1, \
+		"predicted_position", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, predicted_position), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {MXLV_MTR_FOLLOWING_ERROR, -1, \
+		"following_error", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, following_error), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {MXLV_MTR_USE_INTERNAL_POSITION_OFFSET, -1, \
+		"use_internal_position_offset", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_MOTOR, use_internal_position_offset), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_MTR_INTERNAL_POSITION_OFFSET, -1, \
+		"internal_position_offset", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, internal_position_offset), \
 	{0}, NULL, 0}, \
   \
   {-1, -1, "backlash_move_in_progress", MXFT_BOOL, NULL, 0, {0}, \
