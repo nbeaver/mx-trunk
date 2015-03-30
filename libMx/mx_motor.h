@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2008, 2010, 2013-4 Illinois Institute of Technology
+ * Copyright 1999-2008, 2010, 2013-5 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -51,11 +51,11 @@ extern "C" {
 
 /* Motor record flags. */
 
-#define MXF_MTR_IS_PSEUDOMOTOR				1
-#define MXF_MTR_IS_REMOTE_MOTOR				2
-#define MXF_MTR_CANNOT_CHANGE_SPEED			4
-#define MXF_MTR_CANNOT_QUICK_SCAN			8
-#define MXF_MTR_PSEUDOMOTOR_RECURSION_IS_NOT_NECESSARY	16
+#define MXF_MTR_IS_PSEUDOMOTOR				0x1
+#define MXF_MTR_IS_REMOTE_MOTOR				0x2
+#define MXF_MTR_CANNOT_CHANGE_SPEED			0x4
+#define MXF_MTR_CANNOT_QUICK_SCAN			0x8
+#define MXF_MTR_PSEUDOMOTOR_RECURSION_IS_NOT_NECESSARY	0x10
 
 /* Acceleration types. */
 
@@ -171,6 +171,17 @@ typedef struct {
 	double position;
 	double set_position;
 
+	double predicted_position;
+	double following_error;
+
+	/* If 'use_internal_position_offset' is TRUE, then 'set_position'
+	 * commands will adjust the value of 'internal_position_offset'
+	 * rather than change the motor controller's internal position.
+	 */
+
+	mx_bool_type use_internal_position_offset;
+	double internal_position_offset;
+
 	mx_bool_type backlash_move_in_progress;
 	mx_bool_type server_backlash_in_progress;
 	double backlash_correction;
@@ -277,40 +288,44 @@ typedef struct {
 #define MXLV_MTR_DESTINATION				1002
 #define MXLV_MTR_POSITION				1003
 #define MXLV_MTR_SET_POSITION				1004
-#define MXLV_MTR_BACKLASH_CORRECTION			1005
-#define MXLV_MTR_SOFT_ABORT				1006
-#define MXLV_MTR_IMMEDIATE_ABORT			1007
-#define MXLV_MTR_NEGATIVE_LIMIT_HIT			1008
-#define MXLV_MTR_POSITIVE_LIMIT_HIT			1009
-#define MXLV_MTR_RAW_HOME_COMMAND			1010
-#define MXLV_MTR_HOME_SEARCH				1011
-#define MXLV_MTR_HOME_SEARCH_TYPE			1012
-#define MXLV_MTR_LIMIT_SWITCH_AS_HOME_SWITCH		1013
-#define MXLV_MTR_CONSTANT_VELOCITY_MOVE			1014
-#define MXLV_MTR_SPEED					1015
-#define MXLV_MTR_BASE_SPEED				1016
-#define MXLV_MTR_MAXIMUM_SPEED				1017
-#define MXLV_MTR_ACCELERATION_TYPE			1018
-#define MXLV_MTR_RAW_ACCELERATION_PARAMETERS		1019
-#define MXLV_MTR_ACCELERATION_TIME			1020
-#define MXLV_MTR_ACCELERATION_DISTANCE			1021
-#define MXLV_MTR_SPEED_CHOICE_PARAMETERS		1022
-#define MXLV_MTR_SAVE_SPEED				1023
-#define MXLV_MTR_RESTORE_SPEED				1024
-#define MXLV_MTR_SYNCHRONOUS_MOTION_MODE		1025
-#define MXLV_MTR_COMPUTE_EXTENDED_SCAN_RANGE		1026
-#define MXLV_MTR_COMPUTE_PSEUDOMOTOR_POSITION		1027
-#define MXLV_MTR_COMPUTE_REAL_POSITION			1028
-#define MXLV_MTR_GET_REAL_MOTOR_FROM_PSEUDOMOTOR	1029
-#define MXLV_MTR_GET_STATUS				1030
-#define MXLV_MTR_GET_EXTENDED_STATUS			1031
-#define MXLV_MTR_GET_RAW_STATUS				1032
-#define MXLV_MTR_GET_LATCHED_STATUS			1033
-#define MXLV_MTR_BUSY_START_INTERVAL_ENABLED		1034
-#define MXLV_MTR_BUSY_START_INTERVAL			1035
-#define MXLV_MTR_LAST_START_TIME			1036
-#define MXLV_MTR_SAVE_START_POSITIONS			1037
-#define MXLV_MTR_USE_START_POSITIONS			1038
+#define MXLV_MTR_PREDICTED_POSITION			1005
+#define MXLV_MTR_FOLLOWING_ERROR			1006
+#define MXLV_MTR_USE_INTERNAL_POSITION_OFFSET		1007
+#define MXLV_MTR_INTERNAL_POSITION_OFFSET		1008
+#define MXLV_MTR_BACKLASH_CORRECTION			1009
+#define MXLV_MTR_SOFT_ABORT				1010
+#define MXLV_MTR_IMMEDIATE_ABORT			1011
+#define MXLV_MTR_NEGATIVE_LIMIT_HIT			1012
+#define MXLV_MTR_POSITIVE_LIMIT_HIT			1013
+#define MXLV_MTR_RAW_HOME_COMMAND			1014
+#define MXLV_MTR_HOME_SEARCH				1015
+#define MXLV_MTR_HOME_SEARCH_TYPE			1016
+#define MXLV_MTR_LIMIT_SWITCH_AS_HOME_SWITCH		1017
+#define MXLV_MTR_CONSTANT_VELOCITY_MOVE			1018
+#define MXLV_MTR_SPEED					1019
+#define MXLV_MTR_BASE_SPEED				1020
+#define MXLV_MTR_MAXIMUM_SPEED				1021
+#define MXLV_MTR_ACCELERATION_TYPE			1022
+#define MXLV_MTR_RAW_ACCELERATION_PARAMETERS		1023
+#define MXLV_MTR_ACCELERATION_TIME			1024
+#define MXLV_MTR_ACCELERATION_DISTANCE			1025
+#define MXLV_MTR_SPEED_CHOICE_PARAMETERS		1026
+#define MXLV_MTR_SAVE_SPEED				1027
+#define MXLV_MTR_RESTORE_SPEED				1028
+#define MXLV_MTR_SYNCHRONOUS_MOTION_MODE		1029
+#define MXLV_MTR_COMPUTE_EXTENDED_SCAN_RANGE		1030
+#define MXLV_MTR_COMPUTE_PSEUDOMOTOR_POSITION		1031
+#define MXLV_MTR_COMPUTE_REAL_POSITION			1032
+#define MXLV_MTR_GET_REAL_MOTOR_FROM_PSEUDOMOTOR	1033
+#define MXLV_MTR_GET_STATUS				1034
+#define MXLV_MTR_GET_EXTENDED_STATUS			1035
+#define MXLV_MTR_GET_RAW_STATUS				1036
+#define MXLV_MTR_GET_LATCHED_STATUS			1037
+#define MXLV_MTR_BUSY_START_INTERVAL_ENABLED		1038
+#define MXLV_MTR_BUSY_START_INTERVAL			1039
+#define MXLV_MTR_LAST_START_TIME			1040
+#define MXLV_MTR_SAVE_START_POSITIONS			1041
+#define MXLV_MTR_USE_START_POSITIONS			1042
 
 #define MXLV_MTR_VALUE_CHANGE_THRESHOLD			3001
 
@@ -824,6 +839,12 @@ MX_API mx_status_type mx_motor_get_position( MX_RECORD *motor_record,
 							double *position );
 MX_API mx_status_type mx_motor_set_position( MX_RECORD *motor_record, 
 							double position );
+
+MX_API mx_status_type mx_motor_get_predicted_position( MX_RECORD *motor_record,
+						double *predicted_position );
+
+MX_API mx_status_type mx_motor_get_following_error( MX_RECORD *motor_record,
+						double *following_error );
 
 MX_API mx_status_type mx_motor_positive_limit_hit(
 				MX_RECORD *motor_record,

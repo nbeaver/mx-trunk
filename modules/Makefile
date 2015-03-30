@@ -25,7 +25,7 @@ all: build
 
 #MODULES += esone_camac		# linux, win32
 
-#MODULES += k8055		# linux,
+MODULES += k8055		# linux,
 
 #MODULES = labjack_ux		# linux,
 
