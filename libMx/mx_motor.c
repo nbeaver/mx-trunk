@@ -2767,6 +2767,10 @@ mx_motor_get_extended_status( MX_RECORD *motor_record,
 
 	motor->position = motor->offset + (motor->scale) * raw_position;
 
+	if ( motor->use_internal_position_offset ) {
+		motor->position += motor->internal_position_offset;
+	}
+
 	/* Save a string version of the extended status in the MX_MOTOR
 	 * structure.
 	 */
@@ -2779,7 +2783,6 @@ mx_motor_get_extended_status( MX_RECORD *motor_record,
 	} else if ( motor_record->precision < 0 ) {
 		motor_record->precision = 0;
 	}
-
 
 	snprintf( motor->extended_status, sizeof(motor->extended_status),
 		MXP_MOTOR_EXTENDED_STATUS_FORMAT,
