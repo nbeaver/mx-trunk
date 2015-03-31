@@ -1,8 +1,8 @@
-*** Socket.h.orig	2014-05-15 13:26:16.344599632 -0500
---- Socket.h	2014-05-15 13:47:50.418840816 -0500
+*** Socket.h.orig	2015-03-31 18:06:00.000000000 -0500
+--- Socket.h	2015-03-31 18:07:55.000000000 -0500
 ***************
 *** 6,14 ****
---- 6,23 ----
+--- 6,28 ----
   	#include <afxsock.h>		/* MFC socket extensions */
   #endif
   
@@ -16,6 +16,11 @@
   void CloseSocket (int SocketID);
   char * GetError (int SocketID);
   void strncpyWithEOS(char * szStringOut, const char * szStringIn, int nNumberOfCharToCopy, int nStringOutSize);
++ 
++ /* MX functions for enabling or disabling communication socket debugging. */
++ 
++ int  mxp_newport_xps_get_comm_debug_flag(void);
++ void mxp_newport_xps_set_comm_debug_flag(int debug_flag);
 + 
 + #ifdef __cplusplus
 + }

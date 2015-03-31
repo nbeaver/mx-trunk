@@ -16,7 +16,7 @@
 
 #define MXI_NEWPORT_XPS_DEBUG			FALSE
 
-#define MXI_NEWPORT_XPS_FIND_MOTOR_RECORDS	TRUE
+#define MXI_NEWPORT_XPS_FIND_MOTOR_RECORDS	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,6 +32,7 @@
 
 /* Vendor include files. */
 
+#include "Socket.h"
 #include "XPS_C8_drivers.h"
 #include "XPS_C8_errors.h"
 
@@ -115,6 +116,7 @@ mxi_newport_xps_finish_record_initialization( MX_RECORD *record )
 	MX_RECORD *current_record = NULL;
 	MX_RECORD *list_head_record = NULL;
 	long i, num_motors;
+	unsigned long flags;
 	const char *driver_name = NULL;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -128,6 +130,14 @@ mxi_newport_xps_finish_record_initialization( MX_RECORD *record )
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"MX_NEWPORT_XPS pointer for record '%s' is NULL.",
 			record->name );
+	}
+
+	/* Check to see if we need to turn on XPS socket debugging. */
+
+	flags = newport_xps->newport_xps_flags;
+
+	if ( flags & MXF_NEWPORT_XPS_DEBUG_XPS_SOCKET ) {
+		mxp_newport_xps_set_comm_debug_flag( TRUE );
 	}
 
 	/* Figure out how many Newport motors are attached to this

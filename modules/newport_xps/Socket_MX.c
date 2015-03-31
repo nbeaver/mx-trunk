@@ -8,14 +8,12 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2014 Illinois Institute of Technology
+ * Copyright 2014-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
-
-#define SOCKET_MX_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -48,6 +46,24 @@ static MX_HANDLE_TABLE *handle_table = NULL;
 static double *timeout_table = NULL;	/* in seconds */
 
 /*---*/
+
+/* mxp_newport_xps_comm_debug_flag enables XPS socket communication debugging.*/
+
+static int mxp_newport_xps_comm_debug_flag = FALSE;
+
+int
+mxp_newport_xps_get_comm_debug_flag( void )
+{
+	return mxp_newport_xps_comm_debug_flag;
+}
+
+void
+mxp_newport_xps_set_comm_debug_flag( int debug_flag )
+{
+	mxp_newport_xps_comm_debug_flag = debug_flag;
+}
+
+/*---------------------------------------------------------------------------*/
 
 int
 ConnectToServer( char *Ip_Address,
@@ -93,6 +109,12 @@ ConnectToServer( char *Ip_Address,
 	if ( mx_status.code != MXE_SUCCESS )
 		return (-1);
 
+	if ( mxp_newport_xps_comm_debug_flag ) {
+		MX_DEBUG(-2,
+		("* XPS: XPS socket %d opened for host '%s', port %d. *",
+			fd, Ip_Address, Ip_Port ));
+	}
+
 	SetTCPTimeout( fd, Timeout );
 
 	return fd;
@@ -120,6 +142,11 @@ SetTCPTimeout( int SocketID,
 	}
 
 	timeout_table[ SocketID ] = Timeout;	/* in seconds */
+
+	if ( mxp_newport_xps_comm_debug_flag ) {
+		MX_DEBUG(-2,("XPS: TCP timeout set to %f for XPS socket %d.",
+			Timeout, SocketID ));
+	}
 
 	return;
 }
@@ -162,9 +189,10 @@ SendAndReceive( int SocketID,
 
 	/*---*/
 
-#if SOCKET_MX_DEBUG
-	MX_DEBUG(-2,("%s: sending '%s'", fname, sSendString));
-#endif
+	if ( mxp_newport_xps_comm_debug_flag ) {
+		MX_DEBUG(-2,("XPS: sending '%s' to XPS socket %d",
+			sSendString, SocketID ));
+	}
 
 	mx_status = mx_socket_send( client_socket,
 				sSendString,
@@ -206,13 +234,16 @@ SendAndReceive( int SocketID,
 		switch( mx_status.code ) {
 		case MXE_SUCCESS:
 			break;
+
 		case MXE_TIMED_OUT:
-#if SOCKET_MX_DEBUG
-			MX_DEBUG(-2,("%s: mx_socket_receive() timed out.",
-				fname));
-#endif
+			if ( mxp_newport_xps_comm_debug_flag ) {
+				MX_DEBUG(-2,("XPS: mx_socket_receive() "
+				"timed out for XPS socket %d.",
+					SocketID ));
+			}
 			exit_loop = TRUE;
 			break;
+
 		default:
 			exit_loop = TRUE;
 			break;
@@ -243,9 +274,10 @@ SendAndReceive( int SocketID,
 
 	} while ( exit_loop == FALSE );
 
-#if SOCKET_MX_DEBUG
-	MX_DEBUG(-2,("%s: received '%s'", fname, sReturnString));
-#endif
+	if ( mxp_newport_xps_comm_debug_flag ) {
+		MX_DEBUG(-2,("XPS: received '%s' from XPS socket %d",
+			sReturnString, SocketID ));
+	}
 
 	return;
 }
@@ -272,6 +304,10 @@ CloseSocket( int SocketID )
 	timeout_table[ SocketID ] = TIMEOUT;
 
 	mx_status = mx_socket_close( client_socket );
+
+	if ( mxp_newport_xps_comm_debug_flag ) {
+		MX_DEBUG(-2,("* XPS: XPS socket %d closed. *", SocketID ));
+	}
 
 	return;
 }

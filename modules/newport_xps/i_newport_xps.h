@@ -17,9 +17,13 @@
 #ifndef __I_NEWPORT_XPS_H__
 #define __I_NEWPORT_XPS_H__
 
-#define MXU_NEWPORT_XPS_AUTH_LENGTH	40
+#define MXU_NEWPORT_XPS_AUTH_LENGTH		40
 
-#define MXU_NEWPORT_XPS_STATUS_LENGTH	250
+#define MXU_NEWPORT_XPS_STATUS_LENGTH		250
+
+/* Flag bits for the 'newport_xps_flags' variable. */
+
+#define MXF_NEWPORT_XPS_DEBUG_XPS_SOCKET	0x1
 
 typedef struct {
 	MX_RECORD *record;
@@ -29,6 +33,7 @@ typedef struct {
 	double timeout;
 	char username[MXU_NEWPORT_XPS_AUTH_LENGTH+1];
 	char password[MXU_NEWPORT_XPS_AUTH_LENGTH+1];
+	unsigned long newport_xps_flags;
 
 	long socket_id;
 
@@ -74,6 +79,10 @@ typedef struct {
   {-1, -1, "password", MXFT_STRING, NULL, 1, {MXU_NEWPORT_XPS_AUTH_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, password), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_NO_ACCESS) }, \
+  \
+  {-1, -1, "newport_xps_flags", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, newport_xps_flags), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {MXLV_NEWPORT_XPS_SOCKET_ID, -1, "socket_id", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, socket_id), \
