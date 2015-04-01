@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2012, 2014 Illinois Institute of Technology
+ * Copyright 2012, 2014-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -31,7 +31,10 @@
 MX_RECORD_FUNCTION_LIST mxv_field_variable_record_function_list = {
 	mx_variable_initialize_driver,
 	mxv_field_variable_create_record_structures,
-	mxv_field_variable_finish_record_initialization
+	mxv_field_variable_finish_record_initialization,
+	NULL,
+	NULL,
+	mxv_field_variable_open,
 };
 
 MX_VARIABLE_FUNCTION_LIST mxv_field_variable_variable_function_list = {
@@ -444,6 +447,38 @@ mxv_field_variable_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
+mxv_field_variable_open( MX_RECORD *record )
+{
+	static const char fname[] = "mxv_field_variable_open()";
+
+	MX_VARIABLE *variable = NULL;
+	MX_FIELD_VARIABLE *field_variable = NULL;
+	unsigned long flags;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	variable = (MX_VARIABLE *) record->record_superclass_struct;
+
+	mx_status = mxv_field_variable_get_pointers( variable,
+						&field_variable, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	flags = field_variable->external_field_flags;
+
+	if ( flags & MXF_FIELD_VARIABLE_WRITE_ON_OPEN ) {
+		mx_status = mxv_field_variable_send_variable( variable );
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
 mxv_field_variable_send_variable( MX_VARIABLE *variable )
 {
 	static const char fname[] = "mxv_field_variable_send_variable()";
@@ -451,6 +486,7 @@ mxv_field_variable_send_variable( MX_VARIABLE *variable )
 	MX_FIELD_VARIABLE *field_variable;
 	MX_RECORD_FIELD *internal_field, *external_field;
 	void *internal_value_ptr, *external_value_ptr;
+	unsigned long flags;
 	mx_status_type mx_status;
 
 	mx_status = mxv_field_variable_get_pointers( variable,
@@ -458,6 +494,16 @@ mxv_field_variable_send_variable( MX_VARIABLE *variable )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/*---*/
+
+	flags = field_variable->external_field_flags;
+
+	if ( flags & MXF_FIELD_VARIABLE_READ_ONLY ) {
+		return mx_error( MXE_PERMISSION_DENIED, fname,
+		"MX local field variable '%s' is configured to be read only.",
+			variable->record->name );
+	}
 
 	/*---*/
 

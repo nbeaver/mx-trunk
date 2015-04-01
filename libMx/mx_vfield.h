@@ -1,5 +1,5 @@
 /*
- * Name:    mx_field.h
+ * Name:    mx_vfield.h
  *
  * Purpose: Header file for local field variables in MX database files.
  *
@@ -7,7 +7,7 @@
  *
  *-----------------------------------------------------------------------------
  *
- * Copyright 2012 Illinois Institute of Technology
+ * Copyright 2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,11 +23,17 @@
 extern "C" {
 #endif
 
+/* Available flag bits for the 'external_field_flags' field. */
+
+#define MXF_FIELD_VARIABLE_READ_ONLY		0x1
+#define MXF_FIELD_VARIABLE_WRITE_ON_OPEN	0x2
+
 typedef struct {
 	MX_RECORD *record;
 	MX_RECORD_FIELD *internal_field;
 
 	char external_field_name[ MXU_RECORD_FIELD_NAME_LENGTH+1 ];
+	unsigned long external_field_flags;
 
 	MX_RECORD *external_record;
 	MX_RECORD_FIELD *external_field;
@@ -36,8 +42,12 @@ typedef struct {
 #define MX_FIELD_VARIABLE_STANDARD_FIELDS \
   {-1, -1, "external_field_name", MXFT_STRING, \
 		NULL, 1, {MXU_RECORD_FIELD_NAME_LENGTH}, \
-	MXF_REC_CLASS_STRUCT, offsetof(MX_FIELD_VARIABLE, external_field_name),\
-	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION }
+	MXF_REC_CLASS_STRUCT, offsetof(MX_FIELD_VARIABLE,external_field_name),\
+	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {-1, -1, "external_field_flags", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_FIELD_VARIABLE,external_field_flags),\
+	{0}, NULL, MXFF_IN_DESCRIPTION }
 
 MX_API_PRIVATE mx_status_type mxv_field_variable_initialize_driver(
 							MX_DRIVER *driver );
@@ -45,6 +55,7 @@ MX_API_PRIVATE mx_status_type mxv_field_variable_create_record_structures(
 							MX_RECORD *record );
 MX_API_PRIVATE mx_status_type mxv_field_variable_finish_record_initialization(
 							MX_RECORD *record );
+MX_API_PRIVATE mx_status_type mxv_field_variable_open( MX_RECORD *record );
 
 MX_API_PRIVATE mx_status_type mxv_field_variable_send_variable(
 						MX_VARIABLE *variable );
