@@ -234,42 +234,67 @@ mxd_newport_xps_move_thread( MX_THREAD *thread, void *thread_argument )
 
 			newport_xps_motor->home_search_succeeded = FALSE;
 
-			/* Check to see if the motor is in the Ready state. */
+			/* We must get the group for this axis into
+			 * the NOT INITIALIZED state before we do
+			 * anything else.
+			 */
 
-			xps_status = GroupStatusGet( newport_xps->socket_id,
-						newport_xps_motor->group_name,
-						&group_status );
+			max_attempts = 10;
 
-			if ( xps_status != SUCCESS ) {
-				return mxi_newport_xps_error(
-					newport_xps->socket_id,
-					"GroupStatusGet() (Home #1)",
-					xps_status );
-			}
+			for ( n = 0; n < max_attempts; n++ ) {
 
-			MX_DEBUG(-2,("Home search '%s': group_status #1 = %d",
-				motor->record->name, group_status ));
-
-			if ( (group_status >= 10) && (group_status <= 18) )
-			{
-				/* We cannot start a home search if the group
-				 * is in the ready state.  If so, then we
-				 * must kill the group to put it into the
-				 * "NOT INITIALIZED" state.
+				/* Check to see what state the motor's group
+				 * is in.
 				 */
 
-				MX_DEBUG(-2,
-				("Home search '%s': Calling GroupKill()",
-					motor->record->name ));
-
-				xps_status = GroupKill( newport_xps->socket_id,
-						newport_xps_motor->group_name );
+				xps_status = GroupStatusGet(
+						newport_xps->socket_id,
+						newport_xps_motor->group_name,
+						&group_status );
 
 				if ( xps_status != SUCCESS ) {
 					return mxi_newport_xps_error(
 						newport_xps->socket_id,
-						"GroupKill() (Home)",
+						"GroupStatusGet() (Home Loop)",
 						xps_status );
+				}
+
+				MX_DEBUG(-2,
+				("Home search '%s': Loop group_status = %d",
+					motor->record->name, group_status ));
+
+				if ( group_status <= 9 ) {
+
+					/* The group is NOT INITIALIZED,
+					 * so leave the for() loop.
+					 */
+
+					break;	/* Exiting the for() loop. */
+				} else
+				if ( (group_status >= 10)
+				  && (group_status <= 19) )
+				{
+					/* We cannot start a home search if
+					 * the group is in the ready state.
+					 * If so, then we must kill the group
+					 * to put it into the NOT INITIALIZED
+					 * state.
+					 */
+
+					MX_DEBUG(-2,
+				("Home search '%s': Calling GroupKill() Loop",
+						motor->record->name ));
+
+					xps_status = GroupKill(
+						newport_xps->socket_id,
+						newport_xps_motor->group_name );
+
+					if ( xps_status != SUCCESS ) {
+						return mxi_newport_xps_error(
+							newport_xps->socket_id,
+						"GroupKill() (Home Loop)",
+							xps_status );
+					}
 				}
 			}
 
