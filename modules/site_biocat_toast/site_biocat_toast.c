@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013-2014 Illinois Institute of Technology
+ * Copyright 2013-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,6 +23,10 @@
 #include "mx_module.h"
 #include "mx_variable.h"
 #include "mx_operation.h"
+
+#include "mx_motor.h"
+#include "d_compumotor.h"
+#include "d_linear_function.h"
 
 #include "o_biocat_6k_toast.h"
 #include "v_biocat_6k_joystick.h"

@@ -28,6 +28,7 @@
 #include "mx_motor.h"
 #include "mx_operation.h"
 #include "d_compumotor.h"
+#include "d_linear_function.h"
 
 #include "o_biocat_6k_toast.h"
 
@@ -36,7 +37,7 @@
 MX_RECORD_FUNCTION_LIST mxo_biocat_6k_toast_record_function_list = {
 	NULL,
 	mxo_biocat_6k_toast_create_record_structures,
-	NULL,
+	mxo_biocat_6k_toast_finish_record_initialization,
 	NULL,
 	NULL,
 	mxo_biocat_6k_toast_open
@@ -205,6 +206,196 @@ mxo_biocat_6k_toast_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
+mxo_biocat_6k_toast_finish_record_initialization( MX_RECORD *record )
+{
+	static const char fname[] =
+		"mxo_biocat_6k_toast_finish_record_initialization()";
+
+	MX_BIOCAT_6K_TOAST *toast = NULL;
+	MX_RECORD *compumotor_record = NULL;
+	const char *motor_driver_name = NULL;
+	const char *compumotor_driver_name = NULL;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	toast = (MX_BIOCAT_6K_TOAST *) record->record_type_struct;
+
+	if ( toast == (MX_BIOCAT_6K_TOAST *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_BIOCAT_6K_TOAST pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	if ( toast->motor_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The motor_record pointer for toast record '%s' is NULL.",
+			record->name );
+	}
+
+	/* We need to set up some pointers in the MX_BIOCAT_6K_TOAST structure
+	 * that we will use later over and over.
+	 */
+
+	motor_driver_name = mx_get_driver_name( toast->motor_record );
+
+	/* If the motor record uses the 'compumotor' driver, then things
+	 * are relatively simple.
+	 */
+
+	if ( strcmp( motor_driver_name, "compumotor" ) == 0 ) {
+		toast->linear_function_motor = NULL;
+		toast->motor_of_linear_function = NULL;
+
+		toast->compumotor = (MX_COMPUMOTOR *)
+				toast->motor_record->record_type_struct;
+
+		if ( toast->compumotor == (MX_COMPUMOTOR *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_COMPUMOTOR pointer of record '%s' "
+			"used by toast record '%s' is NULL.",
+				toast->motor_record->name,
+				record->name );
+		}
+
+		toast->motor_of_compumotor = (MX_MOTOR *)
+				toast->motor_record->record_class_struct;
+
+		if ( toast->motor_of_compumotor == (MX_MOTOR *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_MOTOR pointer of record '%s' "
+			"used by toast record '%s' is NULL.",
+				toast->motor_record->name,
+				record->name );
+		}
+
+		MX_DEBUG(-2,("%s: compumotor = '%s'",
+			fname, toast->compumotor->record->name ));
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* The only other allowed driver is 'linear_function'. */
+
+	if ( strcmp( motor_driver_name, "linear_function" ) != 0 ) {
+		return mx_error( MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
+		"The motor record '%s' used by toast record '%s' "
+		"has an MX driver of type '%s' which is not allowed.  "
+		"The only supported motor drivers for this toast record "
+		"are of type 'compumotor' and 'linear_function'.",
+			toast->motor_record->name,
+			record->name,
+			motor_driver_name );
+	}
+
+	/* If we get here, the motor record uses a 'linear_function' driver. */
+
+	toast->linear_function_motor = (MX_LINEAR_FUNCTION_MOTOR *)
+		toast->motor_record->record_type_struct;
+
+	if ( toast->linear_function_motor == (MX_LINEAR_FUNCTION_MOTOR *) NULL )
+	{
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_LINEAR_FUNCTION_MOTOR pointer of record '%s' "
+		"used by toast record '%s' is NULL.",
+			toast->motor_record->name,
+			record->name );
+	}
+
+	toast->motor_of_linear_function = (MX_MOTOR *)
+		toast->motor_record->record_class_struct;
+
+	if ( toast->motor_of_linear_function == (MX_MOTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_MOTOR pointer of record '%s' used by record '%s' "
+		"is NULL.", toast->motor_record->name, record->name );
+	}
+
+	/* The linear_function motor should depend on only one motor record
+	 * and no variable records.
+	 */
+
+	if ( (toast->linear_function_motor->num_motors != 1 )
+	  || (toast->linear_function_motor->num_variables != 0) )
+	{
+		return mx_error( MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
+		"The 'linear_function' pseudomotor '%s' used by "
+		"toast record '%s' should only depend on one real motor record "
+		"and zero variable records.  Instead, it depends on "
+		"%ld motor records and %ld variable records.",
+			toast->motor_record->name,
+			record->name,
+			toast->linear_function_motor->num_motors,
+			toast->linear_function_motor->num_variables );
+	}
+
+	if ( toast->linear_function_motor->motor_record_array == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The motor_record_array pointer for 'linear_function' "
+		"pseudomotor '%s' used by toast record '%s' is NULL.",
+			toast->motor_record->name, record->name );
+	}
+
+	/* We now extract information about the underlying Compumotor record
+	 * from the linear_function record.
+	 */
+
+	compumotor_record = toast->linear_function_motor->motor_record_array[0];
+
+	if ( compumotor_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The Compumotor record pointer used by 'linear_function' "
+		"record '%s' of toast record '%s' is NULL.",
+			toast->motor_record->name, record->name );
+	}
+
+	compumotor_driver_name = mx_get_driver_name( compumotor_record );
+
+	if ( strcmp( compumotor_driver_name, "compumotor" ) != 0 ) {
+		return mx_error( MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
+		"The motor record '%s' of 'linear_function' record '%s' "
+		"used by toast record '%s' does not use a 'compumotor' "
+		"driver.  Instead, it uses a driver of type '%s'",
+			compumotor_record->name,
+			toast->motor_record->name,
+			record->name,
+			compumotor_driver_name );
+	}
+
+	toast->compumotor = (MX_COMPUMOTOR *)
+			compumotor_record->record_type_struct;
+
+	if ( toast->compumotor == (MX_COMPUMOTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_COMPUMOTOR pointer of motor record '%s' of "
+		"'linear_function' record '%s' used by toast record '%s' "
+		"is NULL.", compumotor_record->name,
+			toast->motor_record->name,
+			record->name );
+	}
+
+	toast->motor_of_compumotor = (MX_MOTOR *)
+			compumotor_record->record_class_struct;
+
+	if ( toast->motor_of_compumotor == (MX_MOTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_MOTOR pointer of motor record '%s' of "
+		"'linear_function' record '%s' used by toast record '%s' "
+		"is NULL.", compumotor_record->name,
+			toast->motor_record->name,
+			record->name );
+	}
+
+	MX_DEBUG(-2,("%s: linear_function = '%s', compumotor = '%s'",
+		fname, toast->linear_function_motor->record->name,
+		toast->compumotor->record->name ));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mxo_biocat_6k_toast_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxo_biocat_6k_toast_open()";
@@ -338,9 +529,13 @@ mxo_biocat_6k_toast_get_status( MX_OPERATION *operation )
 	return mx_status;
 }
 
+/* mxo_biocat_6k_toast_compute_6k_destination() converts database values
+ * like 'high_position' and 'low_position' into raw Compumotor 6K positions
+ * in controller units.
+ */
+
 static double
-mxo_biocat_6k_toast_compute_6k_destination( MX_MOTOR *motor,
-						MX_COMPUMOTOR *compumotor,
+mxo_biocat_6k_toast_compute_6k_destination( MX_BIOCAT_6K_TOAST *toast,
 						double mx_destination )
 {
 #if MXO_BIOCAT_6K_TOAST_DEBUG
@@ -348,25 +543,59 @@ mxo_biocat_6k_toast_compute_6k_destination( MX_MOTOR *motor,
 		"mxo_biocat_6k_toast_compute_6k_destination()";
 #endif
 
+	MX_LINEAR_FUNCTION_MOTOR *lf;
+	MX_COMPUMOTOR *cr;
+	MX_MOTOR *motor_lf;
+	MX_MOTOR *motor_cr;
+	double lf_destination;
+	double lf_raw_destination;
+	double cr_destination;
 	double c6k_destination;
 	unsigned long flags;
 
-	flags = compumotor->compumotor_flags;
+	lf = toast->linear_function_motor;
+	cr = toast->compumotor;
+
+	motor_lf = toast->motor_of_linear_function;
+	motor_cr = toast->motor_of_compumotor;
+
+	/* If toast->motor_record is a 'linear_function' record, we must
+	 * convert the mx_destination from linear function record units
+	 * into Compumotor motor record units.
+	 */
+
+	if ( lf == (MX_LINEAR_FUNCTION_MOTOR *) NULL ) {
+		cr_destination = mx_destination;
+	} else {
+		lf_destination = mx_destination;
+
+		lf_raw_destination =
+			mx_divide_safely( lf_destination - (motor_lf->offset),
+						(motor_lf->scale) );
+
+		cr_destination = mx_divide_safely(
+			lf_raw_destination - (lf->real_motor_offset[0]),
+				lf->real_motor_scale[0] );
+	}
+
+	/* Now we work with the real Compumotor motor record units. */
+
+	flags = toast->compumotor->compumotor_flags;
 
 	if ( ( flags & MXF_COMPUMOTOR_USE_ENCODER_POSITION )
-	  && ( compumotor->is_servo == FALSE ) )
+	  && ( toast->compumotor->is_servo == FALSE ) )
 	{
-		mx_destination = mx_destination * mx_divide_safely(
-					compumotor->motor_resolution,
-					compumotor->encoder_resolution );
+		cr_destination = cr_destination * mx_divide_safely(
+					cr->motor_resolution,
+					cr->encoder_resolution );
 	}
 
 	if ( flags & MXF_COMPUMOTOR_ROUND_POSITION_OUTPUT_TO_NEAREST_INTEGER ) {
-		mx_destination = (double) mx_round( mx_destination );
+		cr_destination = (double) mx_round( cr_destination );
 	}
 
-	c6k_destination = mx_divide_safely( mx_destination - motor->offset,
-						motor->scale );
+	c6k_destination = mx_divide_safely( cr_destination - (motor_cr->offset),
+						(motor_cr->scale) );
 
 #if MXO_BIOCAT_6K_TOAST_DEBUG
 	MX_DEBUG(-2,("%s: mx_destination = %f, c6k_destination = %f",
@@ -512,13 +741,11 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 	/* Compute the destinations. */
 
 	low_6k_destination = mxo_biocat_6k_toast_compute_6k_destination(
-							motor,
-							compumotor, 
+							toast,
 							toast->low_position );
 
 	high_6k_destination = mxo_biocat_6k_toast_compute_6k_destination(
-							motor,
-							compumotor, 
+							toast,
 							toast->high_position );
 
 	/* Turn off continuous command execution. */

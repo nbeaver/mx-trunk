@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2014 Illinois Institute of Technology
+ * Copyright 2014-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -44,6 +44,12 @@ typedef struct {
 
 	char task_prefix[4];
 	mx_bool_type move_to_finish_in_progress;
+
+	MX_LINEAR_FUNCTION_MOTOR *linear_function_motor;
+	MX_COMPUMOTOR *compumotor;
+
+	MX_MOTOR *motor_of_linear_function;
+	MX_MOTOR *motor_of_compumotor;
 } MX_BIOCAT_6K_TOAST;
 
 #define MXO_BIOCAT_6K_TOAST_STANDARD_FIELDS \
@@ -96,6 +102,8 @@ typedef struct {
 	{0}, NULL, MXFF_IN_DESCRIPTION}
 
 MX_API_PRIVATE mx_status_type mxo_biocat_6k_toast_create_record_structures(
+							MX_RECORD *record );
+MX_API_PRIVATE mx_status_type mxo_biocat_6k_toast_finish_record_initialization(
 							MX_RECORD *record );
 MX_API_PRIVATE mx_status_type mxo_biocat_6k_toast_open( MX_RECORD *record );
 

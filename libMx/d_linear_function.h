@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2010, 2013-2014 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2010, 2013-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,6 +23,7 @@
 /* ===== MX linear function motor data structures ===== */
 
 typedef struct {
+	MX_RECORD *record;
 	long linear_function_flags;
 
 	long num_records;

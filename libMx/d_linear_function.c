@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2007, 2010, 2013-2014
+ * Copyright 1999-2004, 2006-2007, 2010, 2013-2015
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -191,6 +191,7 @@ mxd_linear_function_create_record_structures( MX_RECORD *record )
 				= &mxd_linear_function_motor_function_list;
 
 	motor->record = record;
+	linear_function->record = record;
 
 	/* A linear function motor is treated as an analog motor. */
 
