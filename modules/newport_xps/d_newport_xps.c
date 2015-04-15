@@ -153,6 +153,7 @@ mxd_newport_xps_move_thread( MX_THREAD *thread, void *thread_argument )
 	MX_MOTOR *motor = NULL;
 	MX_NEWPORT_XPS *newport_xps = NULL;
 	int xps_status, group_status;
+	unsigned long n, max_attempts;
 	unsigned long mx_status_code;
 	mx_status_type mx_status;
 
