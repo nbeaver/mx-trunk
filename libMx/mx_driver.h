@@ -670,7 +670,7 @@ extern "C" {
 #define MXT_PGN_PDI45			160005
 
 #define MXT_PGN_DIGITAL_OUTPUT		160008
-#define MXT_PGN_GITTELSON		160009
+#define MXT_PGN_GITTELSOHN		160009
 
 /* --- Single channel analyzer types --- */
 

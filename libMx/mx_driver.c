@@ -433,7 +433,7 @@
 #include "d_sis3801_pulser.h"
 #include "d_pdi45_pulser.h"
 #include "d_doutput_pulser.h"
-#include "d_gittelson_pulser.h"
+#include "d_gittelsohn_pulser.h"
 
 #include "d_soft_sca.h"
 #include "d_network_sca.h"
@@ -3082,12 +3082,12 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_doutput_pulser_num_record_fields,
 				&mxd_doutput_pulser_rfield_def_ptr},
 
-{"gittelson_pulser", MXT_PGN_GITTELSON, MXC_PULSE_GENERATOR, MXR_DEVICE,
-				&mxd_gittelson_pulser_record_function_list,
+{"gittelsohn_pulser", MXT_PGN_GITTELSOHN, MXC_PULSE_GENERATOR, MXR_DEVICE,
+				&mxd_gittelsohn_pulser_record_function_list,
 				NULL,
-				&mxd_gittelson_pulser_pulser_function_list,
-				&mxd_gittelson_pulser_num_record_fields,
-				&mxd_gittelson_pulser_rfield_def_ptr},
+				&mxd_gittelsohn_pulser_pulser_function_list,
+				&mxd_gittelsohn_pulser_num_record_fields,
+				&mxd_gittelsohn_pulser_rfield_def_ptr},
 
 {"soft_sca",       MXT_SCA_SOFTWARE,  MXC_SINGLE_CHANNEL_ANALYZER, MXR_DEVICE,
 				&mxd_soft_sca_record_function_list,
