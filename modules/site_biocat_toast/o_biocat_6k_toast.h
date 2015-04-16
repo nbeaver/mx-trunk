@@ -47,6 +47,7 @@ typedef struct {
 
 	MX_LINEAR_FUNCTION_MOTOR *linear_function_motor;
 	MX_COMPUMOTOR *compumotor;
+	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
 
 	MX_MOTOR *motor_of_linear_function;
 	MX_MOTOR *motor_of_compumotor;

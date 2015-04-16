@@ -67,23 +67,21 @@ MX_RECORD_FIELD_DEFAULTS *mxo_biocat_6k_toast_rfield_def_ptr
 static mx_status_type
 mxo_biocat_6k_toast_get_pointers( MX_OPERATION *operation,
 			MX_BIOCAT_6K_TOAST **toast,
-			MX_MOTOR **motor,
-			MX_COMPUMOTOR **compumotor,
-			MX_COMPUMOTOR_INTERFACE **compumotor_interface,
 			const char *calling_fname )
 {
 	static const char fname[] =
 			"mxo_biocat_6k_toast_get_pointers()";
 
 	MX_BIOCAT_6K_TOAST *toast_ptr = NULL;
-	MX_RECORD *motor_record = NULL;
-	MX_COMPUMOTOR *compumotor_ptr = NULL;
-	MX_RECORD *compumotor_interface_record = NULL;
 
 	if ( operation == (MX_OPERATION *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_OPERATION pointer passed by '%s' was NULL.",
 			calling_fname );
+	}
+	if ( toast == (MX_BIOCAT_6K_TOAST **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_BIOCAT_6K_TOAST pointer passed was NULL." );
 	}
 
 	if ( operation->record == (MX_RECORD *) NULL ) {
@@ -100,69 +98,7 @@ mxo_biocat_6k_toast_get_pointers( MX_OPERATION *operation,
 			operation->record->name );
 	}
 
-	if ( toast != (MX_BIOCAT_6K_TOAST **) NULL ) {
-		*toast = toast_ptr;
-	}
-
-	motor_record = toast_ptr->motor_record;
-
-	if ( motor_record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The motor_record pointer for operation record '%s' is NULL.",
-			operation->record->name );
-	}
-
-	if ( motor != (MX_MOTOR **) NULL ) {
-		*motor = (MX_MOTOR *) motor_record->record_class_struct;
-
-		if ( (*motor) == (MX_MOTOR *) NULL ) {
-			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"The MX_MOTOR pointer for record '%s' "
-			"used by operation '%s' is NULL.",
-				motor_record->name,
-				operation->record->name );
-		}
-	}
-
-
-	compumotor_ptr = (MX_COMPUMOTOR *)motor_record->record_type_struct;
-
-	if ( compumotor_ptr == (MX_COMPUMOTOR *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"The MX_COMPUMOTOR pointer for record '%s' "
-			"used by operation '%s' is NULL.",
-				motor_record->name,
-				operation->record->name );
-	}
-
-	if ( compumotor != (MX_COMPUMOTOR **) NULL ) {
-		*compumotor = compumotor_ptr;
-	}
-
-	if ( compumotor_interface != (MX_COMPUMOTOR_INTERFACE **) NULL ) {
-
-		compumotor_interface_record =
-			compumotor_ptr->compumotor_interface_record;
-
-		if ( compumotor_interface_record == (MX_RECORD *) NULL ) {
-			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"The compumotor_interface_record pointer for "
-			"compumotor record '%s' is NULL.",
-				motor_record->name );
-		}
-
-		*compumotor_interface = (MX_COMPUMOTOR_INTERFACE *)
-			compumotor_interface_record->record_type_struct;
-
-		if ((*compumotor_interface) == (MX_COMPUMOTOR_INTERFACE *) NULL)
-		{
-			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"The MX_COMPUMOTOR_INTERFACE pointer for record '%s' "
-			"used by operation '%s' is NULL.",
-				compumotor_interface_record->name,
-				operation->record->name );
-		}
-	}
+	*toast = toast_ptr;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -213,6 +149,7 @@ mxo_biocat_6k_toast_finish_record_initialization( MX_RECORD *record )
 
 	MX_BIOCAT_6K_TOAST *toast = NULL;
 	MX_RECORD *compumotor_record = NULL;
+	MX_RECORD *compumotor_interface_record = NULL;
 	const char *motor_driver_name = NULL;
 	const char *compumotor_driver_name = NULL;
 
@@ -271,8 +208,40 @@ mxo_biocat_6k_toast_finish_record_initialization( MX_RECORD *record )
 				record->name );
 		}
 
-		MX_DEBUG(-2,("%s: compumotor = '%s'",
-			fname, toast->compumotor->record->name ));
+		/* We also need a pointer to MX_COMPUMOTOR_INTERFACE object,
+		 * since we will use that for mxi_compumotor_command().
+		 */
+
+		compumotor_interface_record =
+			toast->compumotor->compumotor_interface_record;
+
+		if ( compumotor_interface_record == (MX_RECORD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The 'compumotor_interface_record' pointer for "
+			"motor '%s' used by toast record '%s' is NULL.",
+				toast->compumotor->record->name,
+				record->name );
+		}
+
+		toast->compumotor_interface = (MX_COMPUMOTOR_INTERFACE *)
+			compumotor_interface_record->record_type_struct;
+
+		if ( toast->compumotor_interface ==
+				(MX_COMPUMOTOR_INTERFACE *) NULL )
+		{
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_COMPUMOTOR_INTERFACE pointer for interface "
+			"record '%s' of motor '%s' used by toast record '%s' "
+			"is NULL.",
+				compumotor_interface_record->name,
+				toast->compumotor->record->name,
+				record->name );
+		}
+
+		MX_DEBUG(-2,
+		("%s: compumotor = '%s', compumotor_interface = '%s'",
+			fname, toast->compumotor->record->name,
+			toast->compumotor_interface->record->name));
 
 		return MX_SUCCESSFUL_RESULT;
 	}
@@ -388,9 +357,41 @@ mxo_biocat_6k_toast_finish_record_initialization( MX_RECORD *record )
 			record->name );
 	}
 
-	MX_DEBUG(-2,("%s: linear_function = '%s', compumotor = '%s'",
+	/* We also need a pointer to MX_COMPUMOTOR_INTERFACE object, since
+	 * we will use that for mxi_compumotor_command().
+	 */
+
+	compumotor_interface_record =
+		toast->compumotor->compumotor_interface_record;
+
+	if ( compumotor_interface_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The 'compumotor_interface_record' pointer for motor '%s' "
+		"used by toast record '%s' is NULL.",
+			toast->compumotor->record->name,
+			record->name );
+	}
+
+	toast->compumotor_interface = (MX_COMPUMOTOR_INTERFACE *)
+		compumotor_interface_record->record_type_struct;
+
+	if ( toast->compumotor_interface == (MX_COMPUMOTOR_INTERFACE *) NULL )
+	{
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_COMPUMOTOR_INTERFACE pointer for interface record '%s' "
+		"of motor '%s' used by toast record '%s' is NULL.",
+			compumotor_interface_record->name,
+			toast->compumotor->record->name,
+			record->name );
+	}
+
+	/*---*/
+
+	MX_DEBUG(-2,("%s: linear_function = '%s', compumotor = '%s', "
+	    "compumotor_interface = '%s'",
 		fname, toast->linear_function_motor->record->name,
-		toast->compumotor->record->name ));
+		toast->compumotor->record->name,
+		toast->compumotor_interface->record->name ));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -402,9 +403,6 @@ mxo_biocat_6k_toast_open( MX_RECORD *record )
 
 	MX_OPERATION *operation = NULL;
 	MX_BIOCAT_6K_TOAST *toast = NULL;
-	MX_MOTOR *motor = NULL;
-	MX_COMPUMOTOR *compumotor = NULL;
-	MX_COMPUMOTOR_INTERFACE *compumotor_interface = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -414,9 +412,7 @@ mxo_biocat_6k_toast_open( MX_RECORD *record )
 
 	operation = (MX_OPERATION *) record->record_superclass_struct;
 
-	mx_status = mxo_biocat_6k_toast_get_pointers( operation,
-					&toast, &motor, &compumotor,
-					&compumotor_interface, fname );
+	mx_status = mxo_biocat_6k_toast_get_pointers(operation, &toast, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -444,18 +440,13 @@ mxo_biocat_6k_toast_get_status( MX_OPERATION *operation )
 	static const char fname[] = "mxo_biocat_6k_toast_get_status()";
 
 	MX_BIOCAT_6K_TOAST *toast = NULL;
-	MX_MOTOR *motor = NULL;
-	MX_COMPUMOTOR *compumotor = NULL;
-	MX_COMPUMOTOR_INTERFACE *compumotor_interface = NULL;
 	unsigned long motor_status;
 	int program_status = 0;
 	char command[20];
 	char response[20];
 	mx_status_type mx_status;
 
-	mx_status = mxo_biocat_6k_toast_get_pointers( operation,
-					&toast, &motor, &compumotor,
-					&compumotor_interface, fname );
+	mx_status = mxo_biocat_6k_toast_get_pointers(operation, &toast, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -464,7 +455,8 @@ mxo_biocat_6k_toast_get_status( MX_OPERATION *operation )
 
 	/* See if the motor has a fault. */
 
-	mx_status = mx_motor_get_status( motor->record, &motor_status );
+	mx_status = mx_motor_get_status( toast->compumotor->record,
+						&motor_status );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -500,7 +492,7 @@ mxo_biocat_6k_toast_get_status( MX_OPERATION *operation )
 				"!%sTSS.3", toast->task_prefix );
 
 			mx_status = mxi_compumotor_command(
-						compumotor_interface,
+						toast->compumotor_interface,
 						command,
 						response, sizeof(response),
 						MXO_BIOCAT_6K_TOAST_DEBUG );
@@ -610,9 +602,7 @@ mxo_biocat_6k_toast_compute_6k_destination( MX_BIOCAT_6K_TOAST *toast,
 #define START (1)
 
 static mx_status_type
-mxo_biocat_6k_toast_signal( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
-				MX_BIOCAT_6K_TOAST *toast,
-				int new_state )
+mxo_biocat_6k_toast_signal( MX_BIOCAT_6K_TOAST *toast, int new_state )
 {
 	char command[40];
 	unsigned long flags;
@@ -638,7 +628,7 @@ mxo_biocat_6k_toast_signal( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 	if ( new_state == IDLE ) {
 		snprintf(command, sizeof(command), "%s-0", toast->output_name);
 
-		mx_status = mxi_compumotor_command( compumotor_interface,
+		mx_status = mxi_compumotor_command( toast->compumotor_interface,
 						command, NULL, 0,
 						MXO_BIOCAT_6K_TOAST_DEBUG );
 	} else
@@ -649,7 +639,7 @@ mxo_biocat_6k_toast_signal( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 
 		snprintf(command, sizeof(command), "%s-1", toast->output_name);
 
-		mx_status = mxi_compumotor_command( compumotor_interface,
+		mx_status = mxi_compumotor_command( toast->compumotor_interface,
 						command, NULL, 0,
 						MXO_BIOCAT_6K_TOAST_DEBUG );
 
@@ -660,7 +650,7 @@ mxo_biocat_6k_toast_signal( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 
 		snprintf(command, sizeof(command), "T%f", toast->trigger_width);
 
-		mx_status = mxi_compumotor_command( compumotor_interface,
+		mx_status = mxi_compumotor_command( toast->compumotor_interface,
 						command, NULL, 0,
 						MXO_BIOCAT_6K_TOAST_DEBUG );
 
@@ -671,7 +661,7 @@ mxo_biocat_6k_toast_signal( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 
 		snprintf(command, sizeof(command), "%s-1", toast->output_name);
 
-		mx_status = mxi_compumotor_command( compumotor_interface,
+		mx_status = mxi_compumotor_command( toast->compumotor_interface,
 						command, NULL, 0,
 						MXO_BIOCAT_6K_TOAST_DEBUG );
 	} else
@@ -680,7 +670,7 @@ mxo_biocat_6k_toast_signal( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 
 		snprintf(command, sizeof(command), "%s-0", toast->output_name);
 
-		mx_status = mxi_compumotor_command( compumotor_interface,
+		mx_status = mxi_compumotor_command( toast->compumotor_interface,
 						command, NULL, 0,
 						MXO_BIOCAT_6K_TOAST_DEBUG );
 	} else
@@ -689,7 +679,7 @@ mxo_biocat_6k_toast_signal( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 
 		snprintf(command, sizeof(command), "%s-1", toast->output_name);
 
-		mx_status = mxi_compumotor_command( compumotor_interface,
+		mx_status = mxi_compumotor_command( toast->compumotor_interface,
 						command, NULL, 0,
 						MXO_BIOCAT_6K_TOAST_DEBUG );
 	}
@@ -703,9 +693,6 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 	static const char fname[] = "mxo_biocat_6k_toast_start()";
 
 	MX_BIOCAT_6K_TOAST *toast = NULL;
-	MX_MOTOR *motor = NULL;
-	MX_COMPUMOTOR *compumotor = NULL;
-	MX_COMPUMOTOR_INTERFACE *compumotor_interface = NULL;
 	double low_6k_destination, high_6k_destination;
 	char command[100];
 	mx_bool_type use_toast_signal;
@@ -715,9 +702,7 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 	char response[2000];
 #endif
 
-	mx_status = mxo_biocat_6k_toast_get_pointers( operation,
-					&toast, &motor, &compumotor,
-					&compumotor_interface, fname );
+	mx_status = mxo_biocat_6k_toast_get_pointers(operation, &toast, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -731,8 +716,7 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 	/* Set the trigger signal to idle. */
 
 	if ( use_toast_signal ) {
-		mx_status = mxo_biocat_6k_toast_signal( compumotor_interface,
-							toast, IDLE );
+		mx_status = mxo_biocat_6k_toast_signal( toast, IDLE );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -752,8 +736,8 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 
 	snprintf( command, sizeof(command), "%sCOMEXC0", toast->task_prefix );
 
-	mx_status = mxi_compumotor_command( compumotor_interface, command,
-					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
+	mx_status = mxi_compumotor_command( toast->compumotor_interface,
+				command, NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -762,8 +746,8 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 
 	snprintf( command, sizeof(command), "DEL %s", toast->program_name );
 
-	mx_status = mxi_compumotor_command( compumotor_interface, command,
-					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
+	mx_status = mxi_compumotor_command( toast->compumotor_interface,
+				command, NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -774,8 +758,8 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 
 	snprintf( command, sizeof(command), "DEF %s", toast->program_name );
 
-	mx_status = mxi_compumotor_command( compumotor_interface, command,
-					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
+	mx_status = mxi_compumotor_command( toast->compumotor_interface,
+				command, NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -784,8 +768,8 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 
 	snprintf( command, sizeof(command), "$%s", toast->variable_name );
 
-	mx_status = mxi_compumotor_command( compumotor_interface, command,
-					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
+	mx_status = mxi_compumotor_command( toast->compumotor_interface,
+				command, NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -793,11 +777,11 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 	/**** Set the destination for the move to the high position. ****/
 
 	snprintf( command, sizeof(command), "%ldD%f",
-					compumotor->axis_number,
+					toast->compumotor->axis_number,
 					high_6k_destination );
 
-	mx_status = mxi_compumotor_command( compumotor_interface, command,
-					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
+	mx_status = mxi_compumotor_command( toast->compumotor_interface,
+				command, NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -805,8 +789,7 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 	/* Signal the start of the move. */
 
 	if ( use_toast_signal ) {
-		mx_status = mxo_biocat_6k_toast_signal( compumotor_interface,
-							toast, START );
+		mx_status = mxo_biocat_6k_toast_signal( toast, START );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -814,10 +797,11 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 
 	/* Start the move. */
 
-	snprintf( command, sizeof(command), "%ldGO1", compumotor->axis_number );
+	snprintf( command, sizeof(command),
+		"%ldGO1", toast->compumotor->axis_number );
 
-	mx_status = mxi_compumotor_command( compumotor_interface, command,
-					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
+	mx_status = mxi_compumotor_command( toast->compumotor_interface,
+				command, NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -825,8 +809,7 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 	/* Signal the end of the move. */
 
 	if ( use_toast_signal ) {
-		mx_status = mxo_biocat_6k_toast_signal( compumotor_interface,
-							toast, END );
+		mx_status = mxo_biocat_6k_toast_signal( toast, END );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -835,11 +818,11 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 	/**** Set the destination for the move to the low position. ****/
 
 	snprintf( command, sizeof(command), "%ldD%f",
-					compumotor->axis_number,
+					toast->compumotor->axis_number,
 					low_6k_destination );
 
-	mx_status = mxi_compumotor_command( compumotor_interface, command,
-					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
+	mx_status = mxi_compumotor_command( toast->compumotor_interface,
+				command, NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -847,8 +830,7 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 	/* Signal the start of the move. */
 
 	if ( use_toast_signal ) {
-		mx_status = mxo_biocat_6k_toast_signal( compumotor_interface,
-							toast, START );
+		mx_status = mxo_biocat_6k_toast_signal( toast, START );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -856,10 +838,11 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 
 	/* Start the move. */
 
-	snprintf( command, sizeof(command), "%ldGO1", compumotor->axis_number );
+	snprintf( command, sizeof(command),
+		"%ldGO1", toast->compumotor->axis_number );
 
-	mx_status = mxi_compumotor_command( compumotor_interface, command,
-					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
+	mx_status = mxi_compumotor_command( toast->compumotor_interface,
+				command, NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -867,8 +850,7 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 	/* Signal the end of the move. */
 
 	if ( use_toast_signal ) {
-		mx_status = mxo_biocat_6k_toast_signal( compumotor_interface,
-							toast, END );
+		mx_status = mxo_biocat_6k_toast_signal( toast, END );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -878,16 +860,16 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 
 	snprintf( command, sizeof(command), "GOTO %s", toast->variable_name );
 
-	mx_status = mxi_compumotor_command( compumotor_interface, command,
-					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
+	mx_status = mxi_compumotor_command( toast->compumotor_interface,
+				command, NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/* Specify the end of the program. */
 
-	mx_status = mxi_compumotor_command( compumotor_interface, "END",
-					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
+	mx_status = mxi_compumotor_command( toast->compumotor_interface,
+				"END", NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -897,8 +879,8 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 	mx_msleep(100);
 
 	mx_status = mx_rs232_discard_unread_input(
-					compumotor_interface->rs232_record,
-					MXO_BIOCAT_6K_TOAST_DEBUG );
+				toast->compumotor_interface->rs232_record,
+				MXO_BIOCAT_6K_TOAST_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -963,8 +945,8 @@ mxo_biocat_6k_toast_start( MX_OPERATION *operation )
 	snprintf( command, sizeof(command), "%s%s",
 		toast->task_prefix, toast->program_name );
 
-	mx_status = mxi_compumotor_command( compumotor_interface, command,
-					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
+	mx_status = mxi_compumotor_command( toast->compumotor_interface,
+				command, NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -982,15 +964,10 @@ mxo_biocat_6k_toast_stop( MX_OPERATION *operation )
 	static const char fname[] = "mxo_biocat_6k_toast_stop()";
 
 	MX_BIOCAT_6K_TOAST *toast = NULL;
-	MX_MOTOR *motor = NULL;
-	MX_COMPUMOTOR *compumotor = NULL;
-	MX_COMPUMOTOR_INTERFACE *compumotor_interface = NULL;
 	char command[100];
 	mx_status_type mx_status;
 
-	mx_status = mxo_biocat_6k_toast_get_pointers( operation,
-					&toast, &motor, &compumotor,
-					&compumotor_interface, fname );
+	mx_status = mxo_biocat_6k_toast_get_pointers(operation, &toast, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1004,8 +981,8 @@ mxo_biocat_6k_toast_stop( MX_OPERATION *operation )
 
 	snprintf( command, sizeof(command), "!%sK", toast->task_prefix );
 
-	mx_status = mxi_compumotor_command( compumotor_interface, command,
-					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
+	mx_status = mxi_compumotor_command( toast->compumotor_interface,
+				command, NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1014,8 +991,8 @@ mxo_biocat_6k_toast_stop( MX_OPERATION *operation )
 
 	snprintf( command, sizeof(command), "%sCOMEXC1", toast->task_prefix );
 
-	mx_status = mxi_compumotor_command( compumotor_interface, command,
-					NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
+	mx_status = mxi_compumotor_command( toast->compumotor_interface,
+				command, NULL, 0, MXO_BIOCAT_6K_TOAST_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1026,9 +1003,9 @@ mxo_biocat_6k_toast_stop( MX_OPERATION *operation )
 
 		toast->move_to_finish_in_progress = TRUE;
 
-		mx_status = mx_motor_move_absolute( motor->record,
-						toast->finish_position,
-						MXF_MTR_NOWAIT );
+		mx_status = mx_motor_move_absolute( toast->compumotor->record,
+							toast->finish_position,
+							MXF_MTR_NOWAIT );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
