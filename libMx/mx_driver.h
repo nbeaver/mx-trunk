@@ -18,7 +18,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2014 Illinois Institute of Technology
+ * Copyright 1999-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -670,6 +670,7 @@ extern "C" {
 #define MXT_PGN_PDI45			160005
 
 #define MXT_PGN_DIGITAL_OUTPUT		160008
+#define MXT_PGN_GITTELSON		160009
 
 /* --- Single channel analyzer types --- */
 
