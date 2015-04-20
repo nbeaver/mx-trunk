@@ -580,7 +580,7 @@ mx_list_head_record_fielddef( MX_LIST_HEAD *list_head )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	mx_status = mx_print_field_definitions( stderr, record );
+	mx_status = mx_print_all_field_definitions( stderr, record );
 
 	return mx_status;
 }

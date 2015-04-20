@@ -86,7 +86,7 @@ motor_showall_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 
-		mx_status = mx_print_field_definitions( output, record );
+		mx_status = mx_print_all_field_definitions( output, record );
 
 		if ( mx_status.code == MXE_SUCCESS ) {
 			return SUCCESS;

@@ -82,6 +82,7 @@ extern long mxv_field_int64_variable_num_record_fields;
 extern long mxv_field_uint64_variable_num_record_fields;
 extern long mxv_field_float_variable_num_record_fields;
 extern long mxv_field_double_variable_num_record_fields;
+extern long mxv_field_hex_variable_num_record_fields;
 extern long mxv_field_record_variable_num_record_fields;
 
 extern MX_RECORD_FIELD_DEFAULTS *mxv_field_string_variable_dptr;
@@ -96,6 +97,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxv_field_int64_variable_dptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_field_uint64_variable_dptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_field_float_variable_dptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_field_double_variable_dptr;
+extern MX_RECORD_FIELD_DEFAULTS *mxv_field_hex_variable_dptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_field_record_variable_dptr;
 
 #ifdef __cplusplus

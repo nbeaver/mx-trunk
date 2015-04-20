@@ -2159,9 +2159,9 @@ mx_print_summary( FILE *output, MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mx_print_field_definitions( FILE *output, MX_RECORD *record )
+mx_print_all_field_definitions( FILE *output, MX_RECORD *record )
 {
-	static const char fname[] = "mx_print_field_definitions()";
+	static const char fname[] = "mx_print_all_field_definitions()";
 
 	MX_RECORD_FIELD *field_array, *field;
 	char name_format[40];
@@ -2186,7 +2186,7 @@ mx_print_field_definitions( FILE *output, MX_RECORD *record )
 			record->name, num_fields );
 
 	fprintf(output,
-"Field name                           label  num  type  #dim dim[0] siz[0]\n");
+"Field name                                  label  num  type  #dim dim[0] siz[0]\n");
 
 	snprintf( name_format, sizeof(name_format),
 		"  %%-%ds ", MXU_FIELD_NAME_LENGTH );
@@ -2222,6 +2222,42 @@ mx_print_field_definitions( FILE *output, MX_RECORD *record )
 		}
 
 		fprintf(output, "\n");
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_print_field_definition( FILE *output, MX_RECORD_FIELD *field )
+{
+	static const char fname[] = "mx_print_field_definition()";
+
+	unsigned long i;
+
+	if ( field == (MX_RECORD_FIELD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD_FIELD pointer passed was NULL." );
+	}
+
+	if ( field->record == NULL ) {
+		fprintf(output, "Field '<none>.%s':\n", field->name);
+	} else {
+		fprintf(output, "Field '%s.%s':\n",
+				field->record->name, field->name );
+	}
+
+	fprintf(output, "   label_value  = %ld\n", field->label_value);
+	fprintf(output, "   field_number = %ld\n", field->field_number);
+	fprintf(output, "   datatype     = %ld\n", field->datatype);
+	fprintf(output, "   # dimensions = %ld\n", field->num_dimensions);
+
+	if ( field->num_dimensions > 0 ) {
+		fprintf(output, "   dimensions   = [ %ld", field->dimension[0]);
+
+		for ( i = 1; i < field->num_dimensions; i++ ) {
+			fprintf(output, ", %ld", field->dimension[i]);
+		}
+		fprintf(output, " ]\n" );
 	}
 
 	return MX_SUCCESSFUL_RESULT;

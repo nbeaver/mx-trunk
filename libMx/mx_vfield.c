@@ -236,6 +236,22 @@ MX_RECORD_FIELD_DEFAULTS *mxv_field_double_variable_dptr
 
 /* ==== */
 
+MX_RECORD_FIELD_DEFAULTS mxv_field_hex_variable_defaults[] = {
+	MX_RECORD_STANDARD_FIELDS,
+	MX_FIELD_VARIABLE_STANDARD_FIELDS,
+	MX_VARIABLE_STANDARD_FIELDS,
+	MX_HEX_VARIABLE_STANDARD_FIELDS
+};
+
+long mxv_field_hex_variable_num_record_fields
+			= sizeof( mxv_field_hex_variable_defaults )
+			/ sizeof( mxv_field_hex_variable_defaults[0] );
+
+MX_RECORD_FIELD_DEFAULTS *mxv_field_hex_variable_dptr
+			= &mxv_field_hex_variable_defaults[0];
+
+/* ==== */
+
 MX_RECORD_FIELD_DEFAULTS mxv_field_record_variable_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_FIELD_VARIABLE_STANDARD_FIELDS,
@@ -350,11 +366,13 @@ mxv_field_variable_finish_record_initialization( MX_RECORD *record )
 
 	MX_VARIABLE *variable;
 	MX_FIELD_VARIABLE *field_variable;
+	MX_RECORD_FIELD *internal_field, *external_field;
 	char *duplicate;
 	int argc, split_status, saved_errno;
 	char **argv;
 	char record_name[MXU_RECORD_NAME_LENGTH+1];
 	char field_name[MXU_FIELD_NAME_LENGTH+1];
+	size_t *external_sizeof_array;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -366,14 +384,6 @@ mxv_field_variable_finish_record_initialization( MX_RECORD *record )
 
 	mx_status = mxv_field_variable_get_pointers( variable,
 						&field_variable, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Save a pointer to this record's 'value' field. */
-
-	mx_status = mx_find_record_field( record, "value",
-					&(field_variable->internal_field) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -440,8 +450,60 @@ mxv_field_variable_finish_record_initialization( MX_RECORD *record )
 	/* Find the external record field that is used by this variable. */
 
 	mx_status = mx_find_record_field( field_variable->external_record,
-					field_name,
-					&(field_variable->external_field) );
+						field_name, &external_field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	field_variable->external_field = external_field;
+
+	/* Save a pointer to this record's own 'value' field. */
+
+	mx_status = mx_find_record_field( record, "value", &internal_field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	field_variable->internal_field = internal_field;
+
+	/* Modify the internal field to match the external field. */
+
+	mx_status = mx_get_datatype_sizeof_array( external_field->datatype,
+						&external_sizeof_array );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( external_field->num_dimensions == 0 ) {
+		internal_field->num_dimensions = 1;
+		internal_field->dimension[0] = 1;
+		internal_field->data_element_size[0] = external_sizeof_array[0];
+	} else
+	if ( external_field->num_dimensions == 1 ) {
+		internal_field->num_dimensions = 1;
+		internal_field->dimension[0] = external_field->dimension[0];
+		internal_field->data_element_size[0]
+					= external_field->data_element_size[0];
+	} else {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Field variables with dimensions higher than 1 are "
+		"not supported.  Field record '%s' wanted %ld dimensions.",
+			record->name, external_field->num_dimensions );
+	}
+
+	internal_field->datatype = external_field->datatype;
+	internal_field->data_pointer = external_field->data_pointer;
+
+	internal_field->flags = external_field->flags;
+	internal_field->flags |= MXFF_IN_SUMMARY;
+
+#if 0
+	fprintf( stderr, "Internal " );
+	mx_print_field_definition( stderr, internal_field );
+	fprintf( stderr, "\n" );
+	fprintf( stderr, "External " );
+	mx_print_field_definition( stderr, external_field );
+	fprintf( stderr, "\n" );
+#endif
 
 	return mx_status;
 }
