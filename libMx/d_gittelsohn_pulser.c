@@ -19,6 +19,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -101,11 +102,64 @@ mxd_gittelsohn_pulser_get_pointers( MX_PULSE_GENERATOR *pulser,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#if 0
 static mx_status_type
-mxd_gittelsohn_pulser_command()
-{ return MX_SUCCESSFUL_RESULT; }
-#endif
+mxd_gittelsohn_pulser_command( MX_GITTELSOHN_PULSER *gittelsohn_pulser,
+				char *command,
+				char *response,
+				size_t max_response_size )
+{ 
+	static const char fname[] = "mxd_gittelsohn_pulser_command()";
+
+	MX_RECORD *rs232_record;
+	unsigned long debug_flag, flags;
+	char command_echo_buffer[200];
+	mx_status_type mx_status;
+
+	if ( gittelsohn_pulser == (MX_GITTELSOHN_PULSER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The gittelsohn_pulser pointer passed was NULL." );
+	}
+	if ( command == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The command pointer passed was NULL." );
+	}
+	if ( response == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The response pointer passed was NULL." );
+	}
+
+	rs232_record = gittelsohn_pulser->rs232_record;
+
+	flags = gittelsohn_pulser->gittelsohn_pulser_flags;
+
+	debug_flag = flags & MXF_GITTELSOHN_PULSER_DEBUG;
+
+	/* Send the command to the Arduino. */
+
+	mx_status = mx_rs232_putline( rs232_record, command, NULL, flags );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* The Arduino first sends back a line that just reports back
+	 * the command string that was sent to the caller.  We just 
+	 * throw this away.
+	 */
+
+	mx_status = mx_rs232_getline( rs232_record,
+			command_echo_buffer, sizeof(command_echo_buffer),
+			NULL, flags );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Now read back the _real_ data from the Arduino. */
+
+	mx_status = mx_rs232_getline( rs232_record,
+			response, max_response_size, NULL, flags );
+
+	return mx_status;
+}
 
 /*=======================================================================*/
 
@@ -155,6 +209,8 @@ mxd_gittelsohn_pulser_open( MX_RECORD *record )
 
 	MX_PULSE_GENERATOR *pulser;
 	MX_GITTELSOHN_PULSER *gittelsohn_pulser = NULL;
+	char response[255];
+	unsigned long debug_flag, flags;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -182,7 +238,30 @@ mxd_gittelsohn_pulser_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	return MX_SUCCESSFUL_RESULT;
+        flags = gittelsohn_pulser->gittelsohn_pulser_flags;
+
+        debug_flag = flags & MXF_GITTELSOHN_PULSER_DEBUG;
+
+	/* Print out the Gittelsohn pulser configuration. */
+
+	mx_status = mx_rs232_putline( gittelsohn_pulser->rs232_record,
+				"conf", NULL, debug_flag );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* The first time we send a command to the Arduino, we must put in
+	 * a 1 second delay before trying to read the response.  Otherwise,
+	 * we time out.  Subsequent commands do not seem to have this problem.
+	 */
+
+	mx_msleep(1000);
+
+	mx_status = mx_rs232_getline( gittelsohn_pulser->rs232_record,
+				response, sizeof(response),
+				NULL, debug_flag );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -266,6 +345,9 @@ mxd_gittelsohn_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 	static const char fname[] = "mxd_gittelsohn_pulser_get_parameter()";
 
 	MX_GITTELSOHN_PULSER *gittelsohn_pulser = NULL;
+	char response[200];
+	int argc, fn_status, saved_errno;
+	char **argv;
 	mx_status_type mx_status;
 
 	mx_status = mxd_gittelsohn_pulser_get_pointers( pulser,
@@ -285,6 +367,40 @@ mxd_gittelsohn_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 
 	switch( pulser->parameter_type ) {
 	case MXLV_PGN_NUM_PULSES:
+		mx_status = mxd_gittelsohn_pulser_command( gittelsohn_pulser,
+					"cycles", response, sizeof(response) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		fn_status = mx_string_split( response, " ", &argc, &argv );
+
+		if ( fn_status < 0 ) {
+			saved_errno = errno;
+
+			return mx_error( MXE_FUNCTION_FAILED, fname,
+			"The attempt to split the response '%s' "
+			"to command '%s' for record '%s' "
+			"using mx_string_split() failed with an errno value "
+			"of %d.  Error message = '%'",
+				response, "cycles", pulser->record->name,
+				saved_errno, strerror(saved_errno) );
+		}
+
+		if ( argc < 4 ) {
+			mx_free(argv);
+
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"The response '%s' to the 'cycles' command did not "
+			"have at least 4 tokens in it for record '%s'.",
+				response, pulser->record->name );
+		} else {
+			pulser->num_pulses = atol( argv[3] );
+
+			mx_free(argv);
+
+			return MX_SUCCESSFUL_RESULT;
+		}
 		break;
 
 	case MXLV_PGN_PULSE_WIDTH:
@@ -358,7 +474,10 @@ mxd_gittelsohn_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 		return
 		    mx_pulse_generator_default_set_parameter_handler( pulser );
 	}
-	MX_DEBUG( 2,("%s complete.", fname));
+
+#if MXD_GITTELSOHN_PULSER_DEBUG
+	MX_DEBUG(-2,("%s complete.", fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }

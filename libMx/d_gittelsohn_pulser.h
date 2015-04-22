@@ -19,10 +19,13 @@
 
 #include "mx_pulse_generator.h"
 
+#define MXF_GITTELSOHN_PULSER_DEBUG	0x1
+
 typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *rs232_record;
+	unsigned long gittelsohn_pulser_flags;
 } MX_GITTELSOHN_PULSER;
 
 /* Define all of the interface functions. */
@@ -49,6 +52,11 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_gittelsohn_pulser_rfield_def_ptr;
   {-1, -1, "rs232_record", MXFT_RECORD, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_GITTELSOHN_PULSER, rs232_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+  \
+  {-1, -1, "gittelsohn_pulser_flags", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_GITTELSOHN_PULSER, gittelsohn_pulser_flags), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
 
 #endif /* __D_GITTELSOHN_PULSER_H__ */
 

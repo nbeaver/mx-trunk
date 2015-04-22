@@ -347,7 +347,7 @@ motor_rs232_fn( int argc, char *argv[] )
 		}
 		break;
 	case RS232_GET_CMD:
-
+		
 		length = strlen( argv[4] );
 
 		if ( strncmp( "signal_state", argv[4], max(1,length) ) == 0 ) {
