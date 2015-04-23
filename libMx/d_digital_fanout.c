@@ -8,14 +8,14 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2014 Illinois Institute of Technology
+ * Copyright 2014-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXD_DIGITAL_FANOUT_DEBUG	TRUE
+#define MXD_DIGITAL_FANOUT_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -312,8 +312,10 @@ mxd_digital_fanout_write( MX_DIGITAL_OUTPUT *doutput )
 	for ( i = 0; i < num_fields; i++ ) {
 		field = digital_fanout->field_array[i];
 
+#if MXD_DIGITAL_FANOUT_DEBUG
 		MX_DEBUG(-2,("%s: field[%lu] = '%s.%s'",
 			fname, i, field->record->name, field->name));
+#endif
 
 		value_ptr = digital_fanout->field_value_array[i];
 

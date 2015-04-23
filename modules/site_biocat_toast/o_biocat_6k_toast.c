@@ -238,10 +238,12 @@ mxo_biocat_6k_toast_finish_record_initialization( MX_RECORD *record )
 				record->name );
 		}
 
+#if 0
 		MX_DEBUG(-2,
 		("%s: compumotor = '%s', compumotor_interface = '%s'",
 			fname, toast->compumotor->record->name,
 			toast->compumotor_interface->record->name));
+#endif
 
 		return MX_SUCCESSFUL_RESULT;
 	}
@@ -387,11 +389,13 @@ mxo_biocat_6k_toast_finish_record_initialization( MX_RECORD *record )
 
 	/*---*/
 
+#if 0
 	MX_DEBUG(-2,("%s: linear_function = '%s', compumotor = '%s', "
 	    "compumotor_interface = '%s'",
 		fname, toast->linear_function_motor->record->name,
 		toast->compumotor->record->name,
 		toast->compumotor_interface->record->name ));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
