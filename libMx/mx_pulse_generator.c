@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2006 Illinois Institute of Technology
+ * Copyright 2002, 2006, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -585,20 +585,100 @@ mx_pulse_generator_set_pulse_delay( MX_RECORD *pulse_generator_record,
 }
 
 MX_EXPORT mx_status_type
+mx_pulse_generator_get_last_pulse_number( MX_RECORD *pulse_generator_record,
+						long *last_pulse_number )
+{
+	static const char fname[] =
+			"mx_pulse_generator_get_last_pulse_number()";
+
+	MX_PULSE_GENERATOR *pulse_generator;
+	MX_PULSE_GENERATOR_FUNCTION_LIST *function_list;
+	mx_status_type ( *get_parameter_fn ) ( MX_PULSE_GENERATOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_pulse_generator_get_pointers( pulse_generator_record,
+				&pulse_generator, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = function_list->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn =
+			mx_pulse_generator_default_get_parameter_handler;
+	}
+
+	pulse_generator->parameter_type = MXLV_PGN_LAST_PULSE_NUMBER;
+
+	mx_status = (*get_parameter_fn)( pulse_generator );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( last_pulse_number != NULL ) {
+		*last_pulse_number = pulse_generator->last_pulse_number;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mx_pulse_generator_default_get_parameter_handler(
 			MX_PULSE_GENERATOR *pulse_generator )
 {
 	static const char fname[] =
 		"mx_pulse_generator_default_get_parameter_handler()";
 
+	MX_PULSE_GENERATOR_FUNCTION_LIST *flist;
+	mx_status_type (*busy_fn)( MX_PULSE_GENERATOR * );
+	mx_status_type mx_status;
+
 	switch( pulse_generator->parameter_type ) {
 	case MXLV_PGN_MODE:
+	case MXLV_PGN_NUM_PULSES:
+	case MXLV_PGN_PULSE_DELAY:
 	case MXLV_PGN_PULSE_PERIOD:
+	case MXLV_PGN_PULSE_WIDTH:
 
 		/* We just return the value that is already in the 
 		 * data structure.
 		 */
 
+		break;
+
+	case MXLV_PGN_LAST_PULSE_NUMBER:
+		/* The default response is to return 0 if the pulser is busy
+		 * or -1 if the pulser is _not_ busy.
+		 */
+
+		flist = pulse_generator->record->class_specific_function_list;
+
+		if ( flist == (MX_PULSE_GENERATOR_FUNCTION_LIST *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_PULSE_GENERATOR_FUNCTION_LIST pointer "
+			"for record '%s' is NULL.",
+				pulse_generator->record->name );
+		}
+
+		busy_fn = flist->busy;
+
+		/* If a busy function exists, call it.  In either case,
+		 * we read the pulser status from pulser->busy.
+		 */
+
+		if ( busy_fn == NULL ) {
+			mx_status = (*busy_fn)( pulse_generator );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
+		if ( pulse_generator->busy ) {
+			pulse_generator->last_pulse_number = 0;
+		} else {
+			pulse_generator->last_pulse_number = -1;
+		}
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -622,7 +702,10 @@ mx_pulse_generator_default_set_parameter_handler(
 
 	switch( pulse_generator->parameter_type ) {
 	case MXLV_PGN_MODE:
+	case MXLV_PGN_NUM_PULSES:
+	case MXLV_PGN_PULSE_DELAY:
 	case MXLV_PGN_PULSE_PERIOD:
+	case MXLV_PGN_PULSE_WIDTH:
 
 		/* We do nothing but leave alone the value that is already
 		 * stored in the data structure.

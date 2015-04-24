@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002-2007, 2014 Illinois Institute of Technology
+ * Copyright 2002-2007, 2014-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -165,6 +165,10 @@ mxd_network_pulser_finish_record_initialization( MX_RECORD *record )
 	mx_network_field_init( &(network_pulser->busy_nf),
 		network_pulser->server_record,
 		"%s.busy", network_pulser->remote_record_name );
+
+	mx_network_field_init( &(network_pulser->last_pulse_number_nf),
+		network_pulser->server_record,
+		"%s.last_pulse_number", network_pulser->remote_record_name );
 
 	mx_network_field_init( &(network_pulser->mode_nf),
 		network_pulser->server_record,
@@ -404,6 +408,10 @@ mxd_network_pulser_get_parameter( MX_PULSE_GENERATOR *pulse_generator )
 		mx_status = mx_get( &(network_pulser->pulse_period_nf),
 				MXFT_DOUBLE, &(pulse_generator->pulse_period) );
 
+		break;
+	case MXLV_PGN_LAST_PULSE_NUMBER:
+		mx_status = mx_get( &(network_pulser->last_pulse_number_nf),
+			MXFT_LONG, &(pulse_generator->last_pulse_number) );
 		break;
 	default:
 		return mx_pulse_generator_default_get_parameter_handler(

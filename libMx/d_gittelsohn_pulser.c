@@ -528,9 +528,48 @@ mxd_gittelsohn_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 		}
 		break;
 
+	case MXLV_PGN_LAST_PULSE_NUMBER:
+		mx_status = mxd_gittelsohn_pulser_command( gittelsohn_pulser,
+					"count", response, sizeof(response) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		fn_status = mx_string_split( response, " ", &argc, &argv );
+
+		if ( fn_status < 0 ) {
+			saved_errno = errno;
+
+			return mx_error( MXE_FUNCTION_FAILED, fname,
+			"The attempt to split the response '%s' "
+			"to command '%s' for record '%s' "
+			"using mx_string_split() failed with an errno value "
+			"of %d.  Error message = '%s'",
+				response, "count", pulser->record->name,
+				saved_errno, strerror(saved_errno) );
+		}
+
+		if ( argc < 4 ) {
+			mx_free(argv);
+
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"The response '%s' to the 'count' command did not "
+			"have at least 4 tokens in it for record '%s'.",
+				response, pulser->record->name );
+		} else {
+			pulser->last_pulse_number = atol( argv[3] );
+
+			mx_free(argv);
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+		break;
+
 	default:
 		return
 		    mx_pulse_generator_default_get_parameter_handler( pulser );
+
+		break;
 	}
 
 #if MXD_GITTELSOHN_PULSER_DEBUG
@@ -624,6 +663,8 @@ mxd_gittelsohn_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 	default:
 		return
 		    mx_pulse_generator_default_set_parameter_handler( pulser );
+
+		break;
 	}
 
 #if MXD_GITTELSOHN_PULSER_DEBUG

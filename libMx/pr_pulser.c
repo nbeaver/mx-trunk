@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2002, 2004, 2006, 2012 Illinois Institute of Technology
+ * Copyright 2002, 2004, 2006, 2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -43,12 +43,13 @@ mx_setup_pulser_process_functions( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
-		case MXLV_PGN_PULSE_PERIOD:
-		case MXLV_PGN_PULSE_WIDTH:
+		case MXLV_PGN_BUSY:
+		case MXLV_PGN_LAST_PULSE_NUMBER:
+		case MXLV_PGN_MODE:
 		case MXLV_PGN_NUM_PULSES:
 		case MXLV_PGN_PULSE_DELAY:
-		case MXLV_PGN_MODE:
-		case MXLV_PGN_BUSY:
+		case MXLV_PGN_PULSE_PERIOD:
+		case MXLV_PGN_PULSE_WIDTH:
 		case MXLV_PGN_START:
 		case MXLV_PGN_STOP:
 			record_field->process_function
@@ -95,6 +96,10 @@ mx_pulser_process_function( void *record_ptr,
 			break;
 		case MXLV_PGN_PULSE_DELAY:
 			status = mx_pulse_generator_get_pulse_delay(
+								record, NULL );
+			break;
+		case MXLV_PGN_LAST_PULSE_NUMBER:
+			status = mx_pulse_generator_get_last_pulse_number(
 								record, NULL );
 			break;
 		case MXLV_PGN_MODE:
