@@ -205,6 +205,11 @@ mxr_create_list_head( MX_RECORD *record )
 			MX_TOSTRING(MX_CFLAGS), cflags_length );
 	}
 
+	/*- Initialize 'revision' from the MX_REVISION macro passed to us. -*/
+
+	strlcpy( list_head_struct->mx_revision, MX_REVISION,
+		sizeof(list_head_struct->mx_revision ) );
+
 	/* Since the list head record itself is a record, we initialize
 	 * the number of records to 1 rather than 0.
 	 */

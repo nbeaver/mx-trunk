@@ -410,6 +410,8 @@ typedef struct {
  * as a whole.
  */
 
+#define MXU_REVISION_NAME_LENGTH		80
+
 #define MX_FIXUP_RECORD_ARRAY_BLOCK_SIZE	50
 
 typedef struct {
@@ -426,6 +428,7 @@ typedef struct {
 	unsigned long mx_version;
 	uint64_t mx_version_time;
 	uint64_t posix_time;
+	char mx_revision[ MXU_REVISION_NAME_LENGTH + 1 ];
 
 	unsigned long num_records;
 

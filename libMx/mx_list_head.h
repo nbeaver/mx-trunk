@@ -47,6 +47,7 @@ extern "C" {
 #define MXLV_LHD_CFLAGS				1019
 #define MXLV_LHD_VM_REGION			1020
 #define MXLV_LHD_POSIX_TIME			1021
+#define MXLV_LHD_REVISION			1022
 
 #define MXR_LIST_HEAD_STANDARD_FIELDS \
   {-1, -1, "list_is_active", MXFT_BOOL, NULL, 0, {0}, \
@@ -170,7 +171,12 @@ extern "C" {
   \
   {MXLV_LHD_POSIX_TIME, -1, "posix_time", MXFT_UINT64, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, posix_time), \
-	{0}, NULL, MXFF_READ_ONLY}
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {MXLV_LHD_REVISION, -1, "mx_revision", \
+		MXFT_STRING, NULL, 1, {MXU_REVISION_NAME_LENGTH}, \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, mx_revision), \
+	{sizeof(char)}, NULL, MXFF_READ_ONLY}
 
 MX_API_PRIVATE mx_status_type mxr_create_list_head( MX_RECORD *record );
 

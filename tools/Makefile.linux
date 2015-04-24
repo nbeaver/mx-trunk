@@ -62,7 +62,7 @@ endif
 #------------------------------------------------------------------------
 
 mx_clean:
-	-rm *.o mx_private_version mx_config
+	-rm *.o mx_private_version mx_config mx_revision.*
 	( cd unix/src/editline ; make clean )
 
 mx_revision.h:
