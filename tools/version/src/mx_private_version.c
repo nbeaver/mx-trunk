@@ -10,7 +10,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2008-2009, 2011, 2014 Illinois Institute of Technology
+ * Copyright 2008-2009, 2011, 2014-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,6 +28,12 @@
 
 #if defined(OS_WIN32)
 #  include <windows.h>
+#endif
+
+#if defined(OS_LINUX)
+#include "../../mx_revision.h"
+#else
+define MX_REVISION "none"
 #endif
 
 static void mxp_generate_macros( FILE *file );
@@ -62,6 +68,10 @@ main( int argc, char **argv )
 	fprintf( stdout, "#define MX_MAJOR_VERSION    %d\n", MX_MAJOR_VERSION );
 	fprintf( stdout, "#define MX_MINOR_VERSION    %d\n", MX_MINOR_VERSION );
 	fprintf( stdout, "#define MX_UPDATE_VERSION   %d\n", MX_UPDATE_VERSION);
+
+	fprintf( stdout, "\n" );
+
+	fprintf( stdout, "#define MX_REVISION  \"%s\"\n", MX_REVISION );
 
 	fprintf( stdout, "\n" );
 

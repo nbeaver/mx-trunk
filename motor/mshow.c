@@ -900,9 +900,12 @@ motor_show_version( void )
 
 	list_head = mx_get_record_list_head_struct( motor_record_list );
 
-	fprintf( output, "MX version: %s   [Version timestamp = %" PRIu64 "]\n",
-		mx_get_version_full_string(),
-		list_head->mx_version_time );
+#ifdef MX_REVISION
+	fprintf( output, "MX version: %s   [ Revision: %s ]\n",
+		mx_get_version_full_string(), MX_REVISION );
+#else
+	fprintf( output, "MX version: %s\n", mx_get_version_full_string() );
+#endif
 
 	mx_status = mx_get_os_version_string( os_version_string,
 						sizeof( os_version_string ) );
@@ -1007,7 +1010,11 @@ motor_show_version( void )
 	fprintf( output, "Current CPU number: %lu\n",
 				mx_get_current_cpu_number() );
 
-	fprintf( output, "\nPosix time: %lu seconds\n", time( NULL ) );
+	fprintf( output, "\nRevision timestamp: %" PRIu64 " seconds \n",
+		list_head->mx_version_time );
+
+
+	fprintf( output, "\nCurrent Posix time: %lu seconds\n", time( NULL ) );
 
 	fprintf( output, "\n" );
 

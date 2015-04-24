@@ -10,6 +10,11 @@ include ../libMx/Makefile.version
 
 include ../libMx/Makehead.linux
 
+#------------------------------------------------------------------------
+#
+# Macros for the 'editline' package.
+#
+
 EDITLINE_DEFS = -DANSI_ARROWS -DHAVE_STDLIB -DHAVE_TCGETATTR -DHIDE \
 		-DUSE_DIRENT -DSYS_UNIX
 
@@ -25,11 +30,45 @@ EDITLINE_RANLIB = ranlib
 EDITLINE_MAKECMD = \
   make CC=$(EDITLINE_CC) CFLAGS=$(EDITLINE_CFLAGS) RANLIB=$(EDITLINE_RANLIB)
 
+#------------------------------------------------------------------------
+#
+# Get the Subversion revision number of MX (if available).
+#
+
+_mx_subversion_revision := $(shell svnversion .. 2>/dev/null)
+
+# Create a label for the current version.
+
+ifndef _mx_subversion_revision
+_mx_subversion_label := SVN notfound
+else
+_mx_subversion_label := SVN $(_mx_subversion_revision)
+endif
+
+# Read in the label for the old version.
+
+_mx_subversion_old_label := $(shell cat mx_revision.txt 2>/dev/null)
+
+# Compare the labels and overwrite the old one if they do not match
+
+$(info $(_mx_subversion_label))
+$(info $(_mx_subversion_old_label))
+
+ifneq ($(_mx_subversion_label),$(_mx_subversion_old_label))
+$(shell echo $(_mx_subversion_label) > mx_revision.txt ; \
+  echo \#define MX_REVISION \"$(_mx_subversion_label)\" > mx_revision.h)
+endif
+
+#------------------------------------------------------------------------
+
 mx_clean:
 	-rm *.o mx_private_version mx_config
 	( cd unix/src/editline ; make clean )
 
-mx_private_version: ../libMx/Makefile.version version/src/mx_private_version.c
+mx_revision.h:
+
+mx_private_version: ../libMx/Makefile.version version/src/mx_private_version.c \
+			./mx_revision.h
 	$(CC) $(CFLAGS_MX_VERS) -o mx_private_version \
 		version/src/mx_private_version.c
 
