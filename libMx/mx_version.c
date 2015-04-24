@@ -27,6 +27,12 @@
 
 #define MX_DATE "April 24, 2015"
 
+#include "mx_private_revision.h"
+
+#if !defined(MX_REVISION)
+#  define MX_REVISION ""
+#endif
+
 static char buffer[60];
 
 MX_EXPORT int
@@ -110,5 +116,13 @@ mx_get_version_date_time( void )
 #endif
 
 	return result;
+}
+
+MX_EXPORT char *
+mx_get_revision( void )
+{
+	static char revision[] = MX_REVISION;
+
+	return revision;
 }
 

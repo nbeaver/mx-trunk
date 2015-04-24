@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004, 2006-2014 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2004, 2006-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -31,6 +31,8 @@
 #include "mx_driver.h"
 #include "mx_version.h"
 #include "mx_list_head.h"
+
+/*----*/
 
 MX_RECORD_FUNCTION_LIST mxr_list_head_record_function_list = {
 	NULL,
@@ -205,10 +207,11 @@ mxr_create_list_head( MX_RECORD *record )
 			MX_TOSTRING(MX_CFLAGS), cflags_length );
 	}
 
-	/*- Initialize 'revision' from the MX_REVISION macro passed to us. -*/
+	/* Initialize 'revision' from mx_get_revision(). */
 
-	strlcpy( list_head_struct->mx_revision, MX_REVISION,
-		sizeof(list_head_struct->mx_revision ) );
+	strlcpy( list_head_struct->mx_revision,
+		mx_get_revision(),
+		MXU_REVISION_NAME_LENGTH );
 
 	/* Since the list head record itself is a record, we initialize
 	 * the number of records to 1 rather than 0.

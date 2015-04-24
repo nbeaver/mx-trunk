@@ -30,12 +30,6 @@
 #  include <windows.h>
 #endif
 
-#if defined(OS_LINUX)
-#include "../../mx_revision.h"
-#else
-define MX_REVISION "none"
-#endif
-
 static void mxp_generate_macros( FILE *file );
 
 int
@@ -68,10 +62,6 @@ main( int argc, char **argv )
 	fprintf( stdout, "#define MX_MAJOR_VERSION    %d\n", MX_MAJOR_VERSION );
 	fprintf( stdout, "#define MX_MINOR_VERSION    %d\n", MX_MINOR_VERSION );
 	fprintf( stdout, "#define MX_UPDATE_VERSION   %d\n", MX_UPDATE_VERSION);
-
-	fprintf( stdout, "\n" );
-
-	fprintf( stdout, "#define MX_REVISION  \"%s\"\n", MX_REVISION );
 
 	fprintf( stdout, "\n" );
 

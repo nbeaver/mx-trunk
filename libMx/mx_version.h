@@ -43,6 +43,8 @@ MX_API struct tm mx_get_version_date_tm( void );
 
 MX_API uint64_t mx_get_version_date_time( void );
 
+MX_API char *mx_get_revision( void );
+
 #ifdef __cplusplus
 }
 #endif

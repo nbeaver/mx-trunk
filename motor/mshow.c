@@ -895,17 +895,21 @@ motor_show_version( void )
 {
 	MX_LIST_HEAD *list_head;
 	char os_version_string[80];
+	const char *revision_string;
 	unsigned long num_cores;
 	mx_status_type mx_status;
 
 	list_head = mx_get_record_list_head_struct( motor_record_list );
 
-#ifdef MX_REVISION
-	fprintf( output, "MX version: %s   [ Revision: %s ]\n",
-		mx_get_version_full_string(), MX_REVISION );
-#else
-	fprintf( output, "MX version: %s\n", mx_get_version_full_string() );
-#endif
+	revision_string = mx_get_revision();
+
+	if ( strlen( revision_string ) > 0 ) {
+		fprintf( output, "MX version: %s   [ Revision: %s ]\n",
+			mx_get_version_full_string(), revision_string );
+	} else {
+		fprintf( output, "MX version: %s\n",
+			mx_get_version_full_string() );
+	}
 
 	mx_status = mx_get_os_version_string( os_version_string,
 						sizeof( os_version_string ) );

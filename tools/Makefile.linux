@@ -56,19 +56,16 @@ $(info $(_mx_subversion_old_label))
 
 ifneq ($(_mx_subversion_label),$(_mx_subversion_old_label))
 $(shell echo $(_mx_subversion_label) > mx_revision.txt ; \
-  echo \#define MX_REVISION \"$(_mx_subversion_label)\" > mx_revision.h)
+ echo \#define MX_REVISION \"$(_mx_subversion_label)\" > ../libMx/mx_private_revision.h)
 endif
 
 #------------------------------------------------------------------------
 
 mx_clean:
-	-rm *.o mx_private_version mx_config mx_revision.*
+	-rm *.o mx_private_version mx_config mx_revision.txt
 	( cd unix/src/editline ; make clean )
 
-mx_revision.h:
-
-mx_private_version: ../libMx/Makefile.version version/src/mx_private_version.c \
-			./mx_revision.h
+mx_private_version: ../libMx/Makefile.version version/src/mx_private_version.c
 	$(CC) $(CFLAGS_MX_VERS) -o mx_private_version \
 		version/src/mx_private_version.c
 

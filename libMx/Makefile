@@ -249,9 +249,11 @@ mx_clean:
 mx_distclean: mx_clean
 	-$(MAKEDEPEND_CLEAN)
 	-$(RM) mx_private_version.h
+	-$(RM) mx_private_revision.h
 
 mx_depend:
 	$(TOUCH) mx_private_version.h
+	$(TOUCH) mx_private_revision.h
 	$(MAKEDEPEND)
 
 mx_install: library_install
