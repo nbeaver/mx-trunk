@@ -1,18 +1,27 @@
-*** Socket.h.orig	2015-03-31 18:06:00.000000000 -0500
---- Socket.h	2015-03-31 18:07:55.000000000 -0500
+*** Socket.h.orig	2015-04-27 13:47:49.830762700 -0700
+--- Socket.h	2015-04-27 13:57:09.911546800 -0700
 ***************
-*** 6,14 ****
---- 6,28 ----
-  	#include <afxsock.h>		/* MFC socket extensions */
+*** 2,9 ****
+  * Socket.h
+  */
+  
+! #ifdef _WIN32
+! 	#include <afxsock.h>		/* MFC socket extensions */
   #endif
   
-+ #ifdef __cplusplus
-+ extern "C" {
-+ #endif
-+ 
   int  ConnectToServer (char *Ip_Address, int Ip_Port, double TimeOut);
-  void SetTCPTimeout (int SocketID, double Timeout);
-  void SendAndReceive(int socketID, char sSendString[], char sReturnString[], int iReturnStringSize);
+--- 2,9 ----
+  * Socket.h
+  */
+  
+! #ifdef __cplusplus
+! extern "C" {
+  #endif
+  
+  int  ConnectToServer (char *Ip_Address, int Ip_Port, double TimeOut);
+***************
+*** 12,14 ****
+--- 12,24 ----
   void CloseSocket (int SocketID);
   char * GetError (int SocketID);
   void strncpyWithEOS(char * szStringOut, const char * szStringIn, int nNumberOfCharToCopy, int nStringOutSize);

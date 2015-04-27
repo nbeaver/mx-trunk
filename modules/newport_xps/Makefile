@@ -68,6 +68,23 @@ endif
 
 #--------------------------------------------------------------------------
 
+ifeq ($(MX_ARCH),win32)
+
+XPS_C8_DRIVERS_FLAGS = -D_WIN32
+
+CXX = cl
+
+newport_xps.mxo: vendor_downloads strtok_r_downloads \
+				$(NEWPORT_XPS_OBJS) $(VENDOR_OBJS)
+	link /dll /debug /nologo /out:newport_xps.mxo \
+		/nodefaultlib:libc /nodefaultlib:libcmt \
+		$(NEWPORT_XPS_OBJS) $(VENDOR_OBJS) \
+		..\\..\\libMx\\$(MX_LIBRARY_NAME)
+
+endif
+
+#--------------------------------------------------------------------------
+
 newport_xps.$(OBJ): newport_xps.c i_newport_xps.h d_newport_xps.h
 	$(COMPILE) $(CFLAGS) newport_xps.c
 
@@ -113,6 +130,8 @@ depend:
 
 vendor_downloads: Socket.h XPS_C8_drivers.h XPS_C8_errors.h XPS_C8_drivers.cpp
 
+strtok_r_downloads: strtok_r.h strtok_r.cpp
+
 Socket.h:
 	../../scripts/download $(NEWPORT_XPS_SOURCE)/Socket.h
 
@@ -124,6 +143,12 @@ XPS_C8_errors.h:
 
 XPS_C8_drivers.cpp:
 	../../scripts/download $(NEWPORT_XPS_SOURCE)/XPS_C8_drivers.cpp 
+
+strtok_r.h:
+	../../scripts/download $(NEWPORT_XPS_SOURCE)/strtok_r.h
+
+strtok_r.cpp:
+	../../scripts/download $(NEWPORT_XPS_SOURCE)/strtok_r.cpp
 
 #--------------------------------------------------------------------------
 

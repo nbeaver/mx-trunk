@@ -6,6 +6,10 @@ include ../libMx/Makefile.version
 
 include ../libMx/Makehead.win32
 
+# Get the Subversion revision number of MX (if available)
+
+include Include.subversion
+
 mx_private_version.exe: ../libMx/Makefile.version \
 				version/src/mx_private_version.c
 	cl -nologo -c $(CFLAGS_MX_VERS) version/src/mx_private_version.c
