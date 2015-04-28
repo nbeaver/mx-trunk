@@ -439,15 +439,6 @@ mx_array_add_overlay( void *vector_pointer,
 	char *upper_pointer, *lower_pointer;
 	mx_status_type mx_status;
 
-	/* FIXME: Take this breakpoint out when we convince ourselves that
-	 * allocation of arrays with three or more dimensions still works
-	 * with the newly-modified array routines.
-	 */
-
-	if ( num_dimensions >= 3 ) {
-		mx_breakpoint();
-	}
-
 	if ( vector_pointer == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The vector_pointer passed was NULL." );

@@ -2430,16 +2430,17 @@ mx_print_field_array( FILE *file,
 			MX_RECORD_FIELD *field,
 			mx_bool_type verbose )
 {
-	long num_dimensions, num_elements;
-	long i_elements, j_elements;
+	long num_dimensions;
+	long i_elements, j_elements, k_elements;
 	long *dimension;
 	size_t *data_element_size;
 	long field_type;
-	char *data_ptr, *ptr, *ptr_i, *ptr_j;
+	char *data_ptr, *ptr, *ptr_i, *ptr_j, *ptr_k;
 	char **ptr2;
+	char ***ptr3;
 	void *array_ptr;
-	int i, j;
-	long loop_max, i_loop_max, j_loop_max;
+	int i, j, k;
+	long i_loop_max, j_loop_max, k_loop_max;
 	mx_status_type mx_status;
 
 	num_dimensions = field->num_dimensions;
@@ -2472,26 +2473,80 @@ mx_print_field_array( FILE *file,
 		return MX_SUCCESSFUL_RESULT;
 	}
 
+	ptr3 = NULL;
+
 	if ( field_type == MXFT_STRING ) {
 		if ( num_dimensions == 1 ) {
 			mx_status = mx_print_field_value( file, record, field,
 							array_ptr, verbose );
 		} else if ( num_dimensions == 2 ) {
-			num_elements = dimension[0];
+			i_elements = dimension[0];
 
-			if ( num_elements >= MAX_ELEMENTS_SHOWN ) {
-				loop_max = MAX_ELEMENTS_SHOWN;
+			if ( i_elements >= MAX_ELEMENTS_SHOWN ) {
+				i_loop_max = MAX_ELEMENTS_SHOWN;
 			} else {
-				loop_max = num_elements;
+				i_loop_max = i_elements;
 			}
+
 			ptr2 = (char **) array_ptr;
 
-			for ( i = 0; i < loop_max; i++ ) {
+			fprintf(file, "(");
+
+			for ( i = 0; i < i_loop_max; i++ ) {
 				if ( i != 0 ) {
 					fprintf(file, ",");
 				}
 				mx_status = mx_print_field_value( file,
 					record, field, ptr2[i], verbose );
+			}
+			if ( i_elements > MAX_ELEMENTS_SHOWN ) {
+				fprintf( file, ",...)" );
+			} else {
+				fprintf( file, ")" );
+			}
+		} else if ( num_dimensions == 3 ) {
+			i_elements = dimension[0];
+			j_elements = dimension[1];
+
+			if ( i_elements >= MAX_ELEMENTS_SHOWN ) {
+				i_loop_max = MAX_ELEMENTS_SHOWN;
+			} else {
+				i_loop_max = i_elements;
+			}
+			if ( j_elements >= MAX_ELEMENTS_SHOWN ) {
+				j_loop_max = MAX_ELEMENTS_SHOWN;
+			} else {
+				j_loop_max = j_elements;
+			}
+
+			ptr3 = (char ***) array_ptr;
+
+			fprintf(file, "(");
+
+			for ( i = 0; i < i_loop_max; i++ ) {
+				if ( i != 0 ) {
+					fprintf(file, ",");
+				}
+				fprintf(file, "(");
+
+				for ( j = 0; j < j_loop_max; j++ ) {
+					if ( j != 0 ) {
+						fprintf(file, ",");
+					}
+					mx_status = mx_print_field_value(
+						file, record, field,
+						ptr3[i][j], verbose );
+				}
+				if ( j_elements > MAX_ELEMENTS_SHOWN ) {
+					fprintf( file, ",...)" );
+				} else {
+					fprintf( file, ")" );
+				}
+			}
+			if ( i_elements > MAX_ELEMENTS_SHOWN ) {
+				fprintf( file, ",...)" );
+			} else {
+				fprintf( file, ")" );
 			}
 		} else {
 			fprintf( file, "array(" );
@@ -2507,31 +2562,31 @@ mx_print_field_array( FILE *file,
 	} else {	/* Not a string (! MXFT_STRING) */
 
 		if ( num_dimensions == 1 ) {
-			num_elements = dimension[0];
+			i_elements = dimension[0];
 
-			if ( num_elements <= 0 ) {
+			if ( i_elements <= 0 ) {
 				if ( verbose ) {
-					fprintf(file, "'num_elements = %ld'",
-						num_elements);
+					fprintf(file, "'i_elements = %ld'",
+						i_elements);
 				} else {
 					fprintf(file, "?!");
 				}
 
-			} else if ( num_elements == 1 ) {
+			} else if ( i_elements == 1 ) {
 				mx_status = mx_print_field_value( file,
 					record, field, array_ptr, verbose );
 			} else {
-				if ( num_elements >= MAX_ELEMENTS_SHOWN ) {
-					loop_max = MAX_ELEMENTS_SHOWN;
+				if ( i_elements >= MAX_ELEMENTS_SHOWN ) {
+					i_loop_max = MAX_ELEMENTS_SHOWN;
 				} else {
-					loop_max = num_elements;
+					i_loop_max = i_elements;
 				}
 
 				fprintf(file, "(");
 
 				ptr = array_ptr;
 
-				for ( i = 0; i < loop_max; i++ ) {
+				for ( i = 0; i < i_loop_max; i++ ) {
 					if ( i != 0 ) {
 						fprintf(file, ",");
 					}
@@ -2540,7 +2595,7 @@ mx_print_field_array( FILE *file,
 
 					ptr += data_element_size[0];
 				}
-				if ( num_elements > MAX_ELEMENTS_SHOWN ) {
+				if ( i_elements > MAX_ELEMENTS_SHOWN ) {
 					fprintf( file, ",...)" );
 				} else {
 					fprintf( file, ")" );
@@ -2596,7 +2651,87 @@ mx_print_field_array( FILE *file,
 			} else {
 				fprintf(file, ")");
 			}
+		} else if ( num_dimensions == 3 ) {
+			i_elements = dimension[0];
+			j_elements = dimension[1];
+			k_elements = dimension[2];
+
+			if ( i_elements >= MAX_ELEMENTS_SHOWN ) {
+				i_loop_max = MAX_ELEMENTS_SHOWN;
+			} else {
+				i_loop_max = i_elements;
+			}
+			if ( j_elements >= MAX_ELEMENTS_SHOWN ) {
+				j_loop_max = MAX_ELEMENTS_SHOWN;
+			} else {
+				j_loop_max = j_elements;
+			}
+			if ( k_elements >= MAX_ELEMENTS_SHOWN ) {
+				k_loop_max = MAX_ELEMENTS_SHOWN;
+			} else {
+				k_loop_max = k_elements;
+			}
+
+			fprintf(file, "(");
+
+			ptr_i = array_ptr;
+
+			for ( i = 0; i < i_loop_max; i++ ) {
+				if ( i != 0 ) {
+					fprintf(file, ",");
+				}
+				fprintf(file, "(");
+
+				ptr_j =
+			mx_read_void_pointer_from_memory_location(ptr_i);
+
+				for ( j = 0; j < j_loop_max; j++ ) {
+					if ( j != 0 ) {
+						fprintf(file, ",");
+					}
+					fprintf(file, "(");
+
+					ptr_k =
+			mx_read_void_pointer_from_memory_location(ptr_j);
+
+					for ( k = 0; k < k_loop_max; k++ ) {
+						if ( k != 0 ) {
+							fprintf(file, ",");
+						}
+						mx_status =
+						    mx_print_field_value( file,
+							record, field,
+							ptr_k, verbose);
+
+						ptr_k += data_element_size[0];
+					}
+					if ( k_elements > MAX_ELEMENTS_SHOWN ) {
+						fprintf(file, ",...)" );
+					} else {
+						fprintf(file, ")");
+					}
+
+					ptr_j += data_element_size[1];
+				}
+				if ( j_elements > MAX_ELEMENTS_SHOWN ) {
+					fprintf(file, ",...)" );
+				} else {
+					fprintf(file, ")");
+				}
+
+				ptr_i += data_element_size[2];
+			}
+			if ( i_elements > MAX_ELEMENTS_SHOWN ) {
+				fprintf(file, ",...)" );
+			} else {
+				fprintf(file, ")");
+			}
 		} else {
+			/* FIXME: Handling higher dimensional arrays
+			 * will probably require some sort of recursive
+			 * replacement for this function.
+			 */
+
 			fprintf( file, "array(" );
 			for ( i = 0; i < num_dimensions; i++ ) {
 				if ( i != 0 ) {

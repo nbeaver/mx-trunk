@@ -9,7 +9,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2006, 2011, 2014 Illinois Institute of Technology
+ * Copyright 2006, 2011, 2014-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,8 +26,12 @@
 #  include <rpc/xdr.h>
 #endif
 
+/*---*/
+
 #define xdr_hyper		mx_xdr_hyper
 #define xdr_u_hyper		mx_xdr_u_hyper
+
+/*---*/
 
 #if defined(OS_WIN32)
    typedef __int64		quad_t;
@@ -48,6 +52,16 @@
 #  endif
 
 #endif
+
+/*---*/
+
+#if ( defined(OS_MACOSX) && defined(__LP64__) )
+   typedef int  mx_xdr_getputlong_type;
+#else
+   typedef long mx_xdr_getputlong_type;
+#endif
+
+/*---*/
 
 /* Make these definitions C++ safe. */
 

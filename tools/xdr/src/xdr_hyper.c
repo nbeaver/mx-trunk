@@ -9,7 +9,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2006, 2014 Illinois Institute of Technology
+ * Copyright 2006, 2014-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -42,21 +42,25 @@ mx_xdr_hyper( XDR *xdrs, quad_t *quad_ptr )
 		u_long_array[0] = (u_long) ((*u_quad_ptr >> 32) & 0xffffffff);
 		u_long_array[1] = (u_long) ((*u_quad_ptr) & 0xffffffff);
 
-		status = XDR_PUTLONG( xdrs, (long *) &u_long_array[0] );
+		status = XDR_PUTLONG( xdrs,
+			(mx_xdr_getputlong_type *) &u_long_array[0] );
 
 		if ( status == FALSE )
 			return FALSE;
 
-		status = XDR_PUTLONG( xdrs, (long *) &u_long_array[1] );
+		status = XDR_PUTLONG( xdrs,
+			(mx_xdr_getputlong_type *) &u_long_array[1] );
 
 		return status;
 	case XDR_DECODE:
-		status = XDR_GETLONG( xdrs, (long *) &u_long_array[0] );
+		status = XDR_GETLONG( xdrs,
+			(mx_xdr_getputlong_type *) &u_long_array[0] );
 
 		if ( status == FALSE )
 			return FALSE;
 
-		status = XDR_GETLONG( xdrs, (long *) &u_long_array[1] );
+		status = XDR_GETLONG( xdrs,
+			(mx_xdr_getputlong_type *) &u_long_array[1] );
 
 		if ( status == FALSE )
 			return FALSE;
@@ -83,21 +87,25 @@ mx_xdr_u_hyper( XDR *xdrs, u_quad_t *u_quad_ptr )
 		u_long_array[0] = (u_long) ((*u_quad_ptr >> 32) & 0xffffffff);
 		u_long_array[1] = (u_long) ((*u_quad_ptr) & 0xffffffff);
 
-		status = XDR_PUTLONG( xdrs, (long *) &u_long_array[0] );
+		status = XDR_PUTLONG( xdrs,
+			(mx_xdr_getputlong_type *) &u_long_array[0] );
 
 		if ( status == FALSE )
 			return FALSE;
 
-		status = XDR_PUTLONG( xdrs, (long *) &u_long_array[1] );
+		status = XDR_PUTLONG( xdrs,
+			(mx_xdr_getputlong_type *) &u_long_array[1] );
 
 		return status;
 	case XDR_DECODE:
-		status = XDR_GETLONG( xdrs, (long *) &u_long_array[0] );
+		status = XDR_GETLONG( xdrs,
+			(mx_xdr_getputlong_type *) &u_long_array[0] );
 
 		if ( status == FALSE )
 			return FALSE;
 
-		status = XDR_GETLONG( xdrs, (long *) &u_long_array[1] );
+		status = XDR_GETLONG( xdrs,
+			(mx_xdr_getputlong_type *) &u_long_array[1] );
 
 		if ( status == FALSE )
 			return FALSE;
