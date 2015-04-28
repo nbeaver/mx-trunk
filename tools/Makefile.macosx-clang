@@ -9,6 +9,8 @@ include ../libMx/Makefile.version
 
 include ../libMx/Makehead.macosx-clang
 
+#------------------------------------------------------------------------
+
 EDITLINE_DEFS = -DANSI_ARROWS -DHAVE_STDLIB -DHAVE_TCGETATTR -DHIDE \
 		-DUSE_DIRENT -DSYS_UNIX
 
@@ -20,6 +22,12 @@ EDITLINE_MAKECMD = \
   make CC=$(EDITLINE_CC) CFLAGS=$(EDITLINE_CFLAGS) RANLIB=$(EDITLINE_RANLIB)
 
 CC = clang
+
+# Get the Subversion revision number of MX (if available).
+
+include Include.subversion
+
+#------------------------------------------------------------------------
 
 mx_clean:
 	-rm *.o mx_private_version
