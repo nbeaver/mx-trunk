@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2007, 2010-2012, 2014 Illinois Institute of Technology
+ * Copyright 1999-2007, 2010-2012, 2014-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -183,7 +183,7 @@ mx_rs232_unbuffered_getline( MX_RS232 *rs232,
 		}
 
 #if MX_RS232_DEBUG_GETLINE_PUTLINE
-		if ( mx_rs232_show_debugging(rs232) ) {
+		if ( mx_rs232_show_debugging(rs232, 0) ) {
 			MX_DEBUG(-2,
 			("%s: received c = 0x%x '%c'", fname, c, c));
 		}
@@ -864,7 +864,7 @@ mx_rs232_getchar_with_timeout( MX_RECORD *record,
 	 * control the timeout.
 	 */
 
-	transfer_flags &= MXF_232_NOWAIT;
+	transfer_flags |= MXF_232_NOWAIT;
 
 	timeout_clock_ticks =
 		mx_convert_seconds_to_clock_ticks( timeout_in_seconds );
@@ -900,6 +900,9 @@ mx_rs232_getchar_with_timeout( MX_RECORD *record,
 	}
 
 	if ( rs232->rs232_flags & MXF_232_SUPPRESS_TIMEOUT_ERROR_MESSAGES ) {
+		error_code = (MXE_TIMED_OUT | MXE_QUIET);
+	} else
+	if ( transfer_flags & MXF_232_SUPPRESS_TIMEOUT_ERROR_MESSAGES ) {
 		error_code = (MXE_TIMED_OUT | MXE_QUIET);
 	} else {
 		error_code = MXE_TIMED_OUT;
@@ -1078,7 +1081,7 @@ mx_rs232_read_with_timeout( MX_RECORD *record,
 
 	for ( i = 0; i < max_bytes_to_read; i++ ) {
 		mx_status = mx_rs232_getchar_with_timeout( record, &c,
-							MXF_232_WAIT,
+							transfer_flags,
 							timeout_in_seconds );
 
 		if ( mx_status.code != MXE_SUCCESS )

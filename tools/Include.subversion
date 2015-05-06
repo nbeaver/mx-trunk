@@ -19,8 +19,8 @@ _mx_subversion_old_label := $(shell cat mx_revision.txt 2>/dev/null)
 
 # Compare the labels and overwrite the old one if they do not match
 
-$(info $(_mx_subversion_label))
-$(info $(_mx_subversion_old_label))
+$(info Old = $(_mx_subversion_old_label))
+$(info New = $(_mx_subversion_label))
 
 ifneq ($(_mx_subversion_label),$(_mx_subversion_old_label))
 $(shell echo $(_mx_subversion_label) > mx_revision.txt ; echo \#define MX_REVISION \"$(_mx_subversion_label)\" > ../libMx/mx_private_revision.h)
