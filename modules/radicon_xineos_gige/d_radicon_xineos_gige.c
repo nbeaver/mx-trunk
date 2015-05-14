@@ -395,8 +395,9 @@ mxd_radicon_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 	MX_RADICON_XINEOS_GIGE *radicon_xineos_gige = NULL;
 	MX_RECORD *video_input_record = NULL;
 	MX_SEQUENCE_PARAMETERS *sp = NULL;
+	MX_SEQUENCE_PARAMETERS vinput_sp;
 	double exposure_time;
-	long vinput_trigger_mode;
+	long vinput_trigger_mode, num_frames;
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_xineos_gige_get_pointers( ad,
@@ -493,6 +494,41 @@ mxd_radicon_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* If we are using a pulse generator to generate "internal" triggers,
+	 * then the video card's exposure time will be set by the width of
+	 * the pulse generator's pulses.  That means that we need to force
+	 * the video card to expect a DURATION mode sequence.
+	 */
+
+	if ( radicon_xineos_gige->use_pulse_generator ) {
+		/* Get the number of frames from the area detector sequence. */
+
+		mx_status = mx_sequence_get_num_frames( sp, &num_frames );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Now set the video input sequence. */
+
+		vinput_sp.sequence_type = MXT_SQ_DURATION;
+		vinput_sp.num_parameters = 1;
+		vinput_sp.parameter_array[0] = num_frames;
+
+		mx_status = mx_video_input_set_sequence_parameters(
+				video_input_record, &vinput_sp );
+	} else {
+		/* Otherwise, if we are _not_ using the pulse generator, then
+		 * just make the video input sequence a copy of the area
+		 * detector's sequence.
+		 */
+
+		mx_status = mx_video_input_set_sequence_parameters(
+			video_input_record, &(ad->sequence_parameters) );
+	}
+
+	if ( mx_status.code != MXE_SUCCESS )
+ 		return mx_status;
 
 	/* Tell the video capture card to get ready for frames. */
 
@@ -791,8 +827,18 @@ mxd_radicon_xineos_gige_get_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_TRIGGER_MODE:
-		mx_status = mx_video_input_get_trigger_mode(
+
+		/* If the detector is using the pulse generator, then the
+		 * video card is guaranteed to be in DURATION mode, regardless
+		 * of what mode the area detector thinks it is in.  Thus,
+		 * we only ask the video card for its sequence mode if we
+		 * are _not_ using the pulse generator.
+		 */
+
+		if ( radicon_xineos_gige->use_pulse_generator == FALSE ) {
+			mx_status = mx_video_input_get_trigger_mode(
 				video_input_record, &(ad->trigger_mode) );
+		}
 		break;
 
 	case MXLV_AD_BITS_PER_PIXEL:
