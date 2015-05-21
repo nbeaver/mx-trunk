@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2009-2011, 2013-2014 Illinois Institute of Technology
+ * Copyright 2009-2011, 2013-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -516,7 +516,8 @@ mxd_epics_ccd_get_parameter( MX_AREA_DETECTOR *ad )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		mx_status = mx_caget( &(epics_ccd->biny_pv), MX_CA_LONG, 1, &y_binsize );
+		mx_status = mx_caget( &(epics_ccd->biny_pv),
+					MX_CA_LONG, 1, &y_binsize );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -525,10 +526,10 @@ mxd_epics_ccd_get_parameter( MX_AREA_DETECTOR *ad )
 		ad->binsize[1] = y_binsize;
 
 		if ( ad->binsize[0] > 0 ) {
-			ad->framesize[0] = ad->maximum_framesize[0] / ad->binsize[0];
+		   ad->framesize[0] = ad->maximum_framesize[0] / ad->binsize[0];
 		}
 		if ( ad->binsize[1] > 0 ) {
-			ad->framesize[1] = ad->maximum_framesize[1] / ad->binsize[1];
+		   ad->framesize[1] = ad->maximum_framesize[1] / ad->binsize[1];
 		}
 		break;
 

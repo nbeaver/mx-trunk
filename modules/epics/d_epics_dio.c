@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2006, 2008-2011, 2014 Illinois Institute of Technology
+ * Copyright 2003, 2006, 2008-2011, 2014-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -236,7 +236,8 @@ mxd_epics_din_read( MX_DIGITAL_INPUT *dinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_caget( &(epics_dinput->epics_pv), MX_CA_LONG, 1, &int32_value );
+	mx_status = mx_caget( &(epics_dinput->epics_pv),
+				MX_CA_LONG, 1, &int32_value );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -327,7 +328,8 @@ mxd_epics_dout_read( MX_DIGITAL_OUTPUT *doutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_caget( &(epics_doutput->epics_pv), MX_CA_LONG, 1, &int32_value );
+	mx_status = mx_caget( &(epics_doutput->epics_pv),
+				MX_CA_LONG, 1, &int32_value );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -353,7 +355,8 @@ mxd_epics_dout_write( MX_DIGITAL_OUTPUT *doutput )
 
 	int32_value = doutput->value;
 
-	mx_status = mx_caput( &(epics_doutput->epics_pv), MX_CA_LONG, 1, &int32_value );
+	mx_status = mx_caput( &(epics_doutput->epics_pv),
+				MX_CA_LONG, 1, &int32_value );
 
 	return mx_status;
 }

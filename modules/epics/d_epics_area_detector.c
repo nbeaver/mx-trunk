@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010-2011, 2013-2014 Illinois Institute of Technology
+ * Copyright 2010-2011, 2013-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -378,9 +378,10 @@ mxd_epics_ad_open( MX_RECORD *record )
 	MX_AREA_DETECTOR *ad;
 	MX_EPICS_AREA_DETECTOR *epics_ad = NULL;
 	char pvname[ MXU_EPICS_PVNAME_LENGTH+1 ];
-	unsigned long ad_flags, mask, max_size_value;
+	unsigned long ad_flags, mask;
 	int32_t data_type, color_mode;
 	int32_t num_exposures, num_images;
+	uint32_t max_size_value;
 	char *max_array_bytes_string;
 	mx_status_type mx_status;
 
@@ -1142,8 +1143,8 @@ mxd_epics_ad_get_parameter( MX_AREA_DETECTOR *ad )
 	MX_SEQUENCE_PARAMETERS *sp;
 	int32_t x_binsize, y_binsize, trigger_mode, image_mode, num_frames;
 	int32_t x_start, x_size, y_start, y_size;
+	uint32_t next_datafile_number;
 	double acquire_time, acquire_period;
-	unsigned long next_datafile_number;
 	char filename_prefix[MXU_FILENAME_LENGTH+1];
 	char filename_template[MXU_FILENAME_LENGTH+1];
 	char *ptr;
@@ -1511,11 +1512,11 @@ mxd_epics_ad_set_parameter( MX_AREA_DETECTOR *ad )
 	int32_t x_binsize, y_binsize;
 	long x_start, x_size, y_start, y_size;
 	double raw_x_binsize, raw_y_binsize;
-	unsigned long file_path_exists, next_datafile_number;
 	char *ptr, *hash_ptr, *suffix_ptr;
 	char filename_prefix[MXU_FILENAME_LENGTH+1];
 	char filename_pattern[MXU_FILENAME_LENGTH+1];
-	unsigned long num_prefix_chars, num_hash_chars, next_file_number;
+	unsigned long num_prefix_chars, num_hash_chars;
+	uint32_t file_path_exists, next_file_number, next_datafile_number;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_ad_get_pointers( ad, &epics_ad, fname );
@@ -1614,7 +1615,7 @@ mxd_epics_ad_set_parameter( MX_AREA_DETECTOR *ad )
 			return mx_error( MXE_UNKNOWN_ERROR, fname,
 			"An unexpected value %lu was returned for "
 			"EPICS PV '%s' used by area detector '%s'.",
-				file_path_exists,
+				(unsigned long) file_path_exists,
 				epics_ad->file_path_exists_rbv_pv.pvname,
 				ad->record->name );
 			break;

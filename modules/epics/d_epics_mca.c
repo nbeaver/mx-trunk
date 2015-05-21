@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2003, 2006, 2008-2012, 2014 Illinois Institute of Technology
+ * Copyright 2002-2003, 2006, 2008-2012, 2014-2015
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -896,7 +897,8 @@ mxd_epics_mca_read( MX_MCA *mca )
 		if ( int32_channel_array == NULL ) {
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
 			"Ran out of memory trying to allocate a %lu element of "
-			"32-bit integers for an EPICS channel array.", num_channels );
+			"32-bit integers for an EPICS channel array.",
+				num_channels );
 		}
 
 		mx_status = mx_caget( &(epics_mca->val_pv),
@@ -924,11 +926,12 @@ mxd_epics_mca_read( MX_MCA *mca )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		/* Since an EPICS 'long' is only 32-bits, then only the first half
-		 * of the array mca->channel_array has been used.  We must now
-		 * transfer the int32_t channel array values to their proper
-		 * 64-bit long location.  We must work our way from the end of
-		 * the array to the beginning to avoid overwriting values.
+		/* Since an EPICS 'long' is only 32-bits, then only the
+		 * first half of the array mca->channel_array has been used.
+		 * We must now transfer the int32_t channel array values to
+		 * their proper 64-bit long location.  We must work our way
+		 * from the end of the array to the beginning to avoid
+		 * overwriting values.
 		 * 
 		 * FIXME?  This is a hack and may not work on all machine
 		 * architectures.

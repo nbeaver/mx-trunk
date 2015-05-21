@@ -599,7 +599,7 @@ mxd_epics_mcs_read_scaler( MX_MCS *mcs )
 
 	MX_EPICS_MCS *epics_mcs = NULL;
 	unsigned long num_measurements_from_epics;
-	long read_cmd;
+	int32_t read_cmd;
 	long *destination_ptr;
 	int32_t *data_ptr, *source_ptr;
 	size_t num_bytes_to_copy;
@@ -619,7 +619,8 @@ mxd_epics_mcs_read_scaler( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( epics_mcs->epics_mcs_flags & MXF_EPICS_MCS_DO_NOT_SKIP_FIRST_MEASUREMENT )
+	if ( epics_mcs->epics_mcs_flags
+		& MXF_EPICS_MCS_DO_NOT_SKIP_FIRST_MEASUREMENT )
 	{
 		do_not_skip = TRUE;
 	} else {
@@ -650,9 +651,11 @@ mxd_epics_mcs_read_scaler( MX_MCS *mcs )
 		data_ptr = epics_mcs->scaler_value_buffer;
 
 		if ( do_not_skip ) {
-			num_measurements_from_epics = mcs->current_num_measurements;
+			num_measurements_from_epics =
+				mcs->current_num_measurements;
 		} else {
-			num_measurements_from_epics = mcs->current_num_measurements + 1L;
+			num_measurements_from_epics =
+				mcs->current_num_measurements + 1L;
 		}
 	}
 

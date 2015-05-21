@@ -10,7 +10,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2006, 2008-2009, 2011, 2013-2014
+ * Copyright 1999-2001, 2003-2006, 2008-2009, 2011, 2013-2015
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -806,7 +806,7 @@ mxd_epics_motor_simultaneous_start( long num_motor_records,
 				double *destination_array,
 				unsigned long flags )
 {
-	const char fname[] = "mxd_epics_motor_simultaneous_start()";
+	static const char fname[] = "mxd_epics_motor_simultaneous_start()";
 
 	MX_RECORD *motor_record;
 	MX_MOTOR *motor;
@@ -873,7 +873,7 @@ mxd_epics_motor_simultaneous_start( long num_motor_records,
 MX_EXPORT mx_status_type
 mxd_epics_motor_get_extended_status( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_epics_motor_get_extended_status()";
+	static const char fname[] = "mxd_epics_motor_get_extended_status()";
 
 	MX_EPICS_GROUP epics_group;
 	MX_EPICS_MOTOR *epics_motor = NULL;

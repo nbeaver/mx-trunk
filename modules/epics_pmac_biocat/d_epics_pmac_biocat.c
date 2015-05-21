@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2011-2014 Illinois Institute of Technology
+ * Copyright 2011-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -389,7 +389,7 @@ mxd_epics_pmac_biocat_motor_is_busy( MX_MOTOR *motor )
 
 	MX_CLOCK_TICK current_tick;
 	MX_EPICS_PMAC_BIOCAT *epics_pmac_biocat = NULL;
-	long runprg_value;
+	int32_t runprg_value;
 	int comparison;
 	mx_status_type mx_status;
 
@@ -503,7 +503,7 @@ mxd_epics_pmac_biocat_motor_is_busy( MX_MOTOR *motor )
 			"for EPICS PMAC BioCAT motor '%s' "
 			"had an unexpected value of %ld",
 			epics_pmac_biocat->runprg_pv.pvname,
-			motor->record->name, runprg_value );
+			motor->record->name, (long) runprg_value );
 
 		break;
 	}
@@ -614,7 +614,7 @@ mxd_epics_pmac_biocat_soft_abort( MX_MOTOR *motor )
 	static const char fname[] = "mxd_epics_pmac_biocat_soft_abort()";
 
 	MX_EPICS_PMAC_BIOCAT *epics_pmac_biocat;
-	long abort_value;
+	int32_t abort_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_pmac_biocat_get_pointers( motor,
@@ -740,7 +740,7 @@ mxp_epics_pmac_biocat_update_motor_readbacks(
 {
 	mx_status_type mx_status;
 
-	long ix20_fanout_value = 1;
+	int32_t ix20_fanout_value = 1;
 
 	mx_status = mx_caput( &(epics_pmac_biocat->ix20_fan_pv),
 				MX_CA_LONG, 1, &ix20_fanout_value );
@@ -756,7 +756,7 @@ mxp_epics_pmac_biocat_update_servo_readbacks(
 {
 	mx_status_type mx_status;
 
-	long ix30_fanout_value = 1;
+	int32_t ix30_fanout_value = 1;
 
 	mx_status = mx_caput( &(epics_pmac_biocat->ix20_fan_pv),
 				MX_CA_LONG, 1, &ix30_fanout_value );
@@ -772,7 +772,7 @@ mxd_epics_pmac_biocat_get_parameter( MX_MOTOR *motor )
 	static const char fname[] = "mxd_epics_pmac_biocat_get_parameter()";
 
 	MX_EPICS_PMAC_BIOCAT *epics_pmac_biocat = NULL;
-	long long_value;
+	int32_t int32_value;
 	double double_value;
 	mx_status_type mx_status;
 
@@ -820,13 +820,13 @@ mxd_epics_pmac_biocat_get_parameter( MX_MOTOR *motor )
 			return mx_status;
 
 		mx_status = mx_caget( &(epics_pmac_biocat->ix20_li_pv),
-					MX_CA_LONG, 1, &long_value );
+					MX_CA_LONG, 1, &int32_value );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
 		motor->raw_acceleration_parameters[0] = 
-					1000000.0 * (double) long_value;
+					1000000.0 * (double) int32_value;
 
 		motor->raw_acceleration_parameters[1] = 0.0;
 		motor->raw_acceleration_parameters[2] = 0.0;
@@ -834,12 +834,12 @@ mxd_epics_pmac_biocat_get_parameter( MX_MOTOR *motor )
 		break;
 	case MXLV_MTR_AXIS_ENABLE:
 		mx_status = mx_caget( &(epics_pmac_biocat->ampena_pv),
-					MX_CA_LONG, 1, &long_value );
+					MX_CA_LONG, 1, &int32_value );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		if ( long_value != 0 ) {
+		if ( int32_value != 0 ) {
 			motor->axis_enable = TRUE;
 		} else {
 			motor->axis_enable = FALSE;
@@ -847,12 +847,12 @@ mxd_epics_pmac_biocat_get_parameter( MX_MOTOR *motor )
 		break;
 	case MXLV_MTR_CLOSED_LOOP:
 		mx_status = mx_caget( &(epics_pmac_biocat->opnlpmd_pv),
-					MX_CA_LONG, 1, &long_value );
+					MX_CA_LONG, 1, &int32_value );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		if ( long_value == 0 ) {
+		if ( int32_value == 0 ) {
 			motor->closed_loop = TRUE;
 		} else {
 			motor->closed_loop = TRUE;
@@ -866,12 +866,12 @@ mxd_epics_pmac_biocat_get_parameter( MX_MOTOR *motor )
 			return mx_status;
 
 		mx_status = mx_caget( &(epics_pmac_biocat->ix30_li_pv),
-					MX_CA_LONG, 1, &long_value );
+					MX_CA_LONG, 1, &int32_value );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		motor->proportional_gain = (double) long_value;
+		motor->proportional_gain = (double) int32_value;
 		break;
 	case MXLV_MTR_INTEGRAL_GAIN:
 		mx_status = mxp_epics_pmac_biocat_update_servo_readbacks(
@@ -881,12 +881,12 @@ mxd_epics_pmac_biocat_get_parameter( MX_MOTOR *motor )
 			return mx_status;
 
 		mx_status = mx_caget( &(epics_pmac_biocat->ix33_li_pv),
-					MX_CA_LONG, 1, &long_value );
+					MX_CA_LONG, 1, &int32_value );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		motor->integral_gain = (double) long_value;
+		motor->integral_gain = (double) int32_value;
 		break;
 	case MXLV_MTR_DERIVATIVE_GAIN:
 		mx_status = mxp_epics_pmac_biocat_update_servo_readbacks(
@@ -896,12 +896,12 @@ mxd_epics_pmac_biocat_get_parameter( MX_MOTOR *motor )
 			return mx_status;
 
 		mx_status = mx_caget( &(epics_pmac_biocat->ix31_li_pv),
-					MX_CA_LONG, 1, &long_value );
+					MX_CA_LONG, 1, &int32_value );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		motor->derivative_gain = (double) long_value;
+		motor->derivative_gain = (double) int32_value;
 		break;
 	case MXLV_MTR_VELOCITY_FEEDFORWARD_GAIN:
 		mx_status = mxp_epics_pmac_biocat_update_servo_readbacks(
@@ -911,12 +911,12 @@ mxd_epics_pmac_biocat_get_parameter( MX_MOTOR *motor )
 			return mx_status;
 
 		mx_status = mx_caget( &(epics_pmac_biocat->ix32_li_pv),
-					MX_CA_LONG, 1, &long_value );
+					MX_CA_LONG, 1, &int32_value );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		motor->velocity_feedforward_gain = (double) long_value;
+		motor->velocity_feedforward_gain = (double) int32_value;
 		break;
 	case MXLV_MTR_ACCELERATION_FEEDFORWARD_GAIN:
 		mx_status = mxp_epics_pmac_biocat_update_servo_readbacks(
@@ -926,12 +926,12 @@ mxd_epics_pmac_biocat_get_parameter( MX_MOTOR *motor )
 			return mx_status;
 
 		mx_status = mx_caget( &(epics_pmac_biocat->ix35_li_pv),
-					MX_CA_LONG, 1, &long_value );
+					MX_CA_LONG, 1, &int32_value );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		motor->acceleration_feedforward_gain = (double) long_value;
+		motor->acceleration_feedforward_gain = (double) int32_value;
 		break;
 	case MXLV_MTR_EXTRA_GAIN:
 		mx_status = mxp_epics_pmac_biocat_update_servo_readbacks(
@@ -941,12 +941,12 @@ mxd_epics_pmac_biocat_get_parameter( MX_MOTOR *motor )
 			return mx_status;
 
 		mx_status = mx_caget( &(epics_pmac_biocat->ix34_bi_pv),
-					MX_CA_LONG, 1, &long_value );
+					MX_CA_LONG, 1, &int32_value );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		if ( long_value == 0 ) {
+		if ( int32_value == 0 ) {
 			motor->extra_gain = 0;
 		} else {
 			motor->extra_gain = 1;
@@ -968,7 +968,7 @@ mxd_epics_pmac_biocat_set_parameter( MX_MOTOR *motor )
 	static const char fname[] = "mxd_epics_pmac_biocat_set_parameter()";
 
 	MX_EPICS_PMAC_BIOCAT *epics_pmac_biocat = NULL;
-	long long_value;
+	int32_t int32_value;
 	double double_value;
 	mx_status_type mx_status;
 
@@ -998,32 +998,32 @@ mxd_epics_pmac_biocat_set_parameter( MX_MOTOR *motor )
 		break;
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
 
-		long_value = mx_round( motor->raw_acceleration_parameters[0] );
+		int32_value = mx_round( motor->raw_acceleration_parameters[0] );
 
-		long_value = 1000000L * long_value;
+		int32_value = 1000000L * int32_value;
 
 		mx_status = mx_caput( &(epics_pmac_biocat->ix20_lo_pv),
-					MXFT_LONG, 1, &long_value );
+					MXFT_LONG, 1, &int32_value );
 		break;
 	case MXLV_MTR_AXIS_ENABLE:
 		if ( motor->axis_enable ) {
-			long_value = 1;
+			int32_value = 1;
 		} else {
-			long_value = 0;
+			int32_value = 0;
 		}
 
 		mx_status = mx_caput( &(epics_pmac_biocat->ampena_pv),
-					MXFT_LONG, 1, &long_value );
+					MXFT_LONG, 1, &int32_value );
 		break;
 	case MXLV_MTR_CLOSED_LOOP:
 		if ( motor->closed_loop ) {
-			long_value = 0;
+			int32_value = 0;
 		} else {
-			long_value = 1;
+			int32_value = 1;
 		}
 
 		mx_status = mx_caput( &(epics_pmac_biocat->opnlpmd_pv),
-					MXFT_LONG, 1, &long_value );
+					MXFT_LONG, 1, &int32_value );
 		break;
 	case MXLV_MTR_FAULT_RESET:
 		/* FIXME - The jog mode command would be J/  */
@@ -1033,44 +1033,44 @@ mxd_epics_pmac_biocat_set_parameter( MX_MOTOR *motor )
 					motor->record->name );
 		break;
 	case MXLV_MTR_PROPORTIONAL_GAIN:
-		long_value = mx_round( motor->proportional_gain );
+		int32_value = mx_round( motor->proportional_gain );
 
 		mx_status = mx_caput( &(epics_pmac_biocat->ix30_lo_pv),
-					MXFT_LONG, 1, &long_value );
+					MXFT_LONG, 1, &int32_value );
 		break;
 	case MXLV_MTR_INTEGRAL_GAIN:
-		long_value = mx_round( motor->integral_gain );
+		int32_value = mx_round( motor->integral_gain );
 
 		mx_status = mx_caput( &(epics_pmac_biocat->ix33_lo_pv),
-					MXFT_LONG, 1, &long_value );
+					MXFT_LONG, 1, &int32_value );
 		break;
 	case MXLV_MTR_DERIVATIVE_GAIN:
-		long_value = mx_round( motor->derivative_gain );
+		int32_value = mx_round( motor->derivative_gain );
 
 		mx_status = mx_caput( &(epics_pmac_biocat->ix31_lo_pv),
-					MXFT_LONG, 1, &long_value );
+					MXFT_LONG, 1, &int32_value );
 		break;
 	case MXLV_MTR_VELOCITY_FEEDFORWARD_GAIN:
-		long_value = mx_round( motor->velocity_feedforward_gain );
+		int32_value = mx_round( motor->velocity_feedforward_gain );
 
 		mx_status = mx_caput( &(epics_pmac_biocat->ix32_lo_pv),
-					MXFT_LONG, 1, &long_value );
+					MXFT_LONG, 1, &int32_value );
 		break;
 	case MXLV_MTR_ACCELERATION_FEEDFORWARD_GAIN:
-		long_value = mx_round( motor->acceleration_feedforward_gain );
+		int32_value = mx_round( motor->acceleration_feedforward_gain );
 
 		mx_status = mx_caput( &(epics_pmac_biocat->ix35_lo_pv),
-					MXFT_LONG, 1, &long_value );
+					MXFT_LONG, 1, &int32_value );
 		break;
 	case MXLV_MTR_EXTRA_GAIN:
-		long_value = mx_round( motor->extra_gain );
+		int32_value = mx_round( motor->extra_gain );
 
-		if ( long_value ) {
-			long_value = 1;
+		if ( int32_value ) {
+			int32_value = 1;
 		}
 
 		mx_status = mx_caput( &(epics_pmac_biocat->ix34_bo_pv),
-					MXFT_LONG, 1, &long_value );
+					MXFT_LONG, 1, &int32_value );
 		break;
 	default:
 		mx_status = mx_motor_default_set_parameter_handler( motor );

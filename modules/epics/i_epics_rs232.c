@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2011, 2014 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003-2011, 2014-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -774,7 +774,8 @@ mxi_epics_rs232_set_transaction_mode( MX_EPICS_RS232 *epics_rs232,
 
 	int32_mode = mode;
 
-	mx_status = mx_caput( &(epics_rs232->tmod_pv), MX_CA_LONG, 1, &int32_mode );
+	mx_status = mx_caput( &(epics_rs232->tmod_pv),
+					MX_CA_LONG, 1, &int32_mode );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

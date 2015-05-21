@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010-2013 Illinois Institute of Technology
+ * Copyright 2010-2013, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -251,7 +251,7 @@ mxd_mbc_noir_open( MX_RECORD *record )
 	MX_MBC_NOIR *mbc_noir = NULL;
 	unsigned long ad_flags, mask;
 	char epics_string[ MXU_EPICS_STRING_LENGTH+1 ];
-	long dmd, trigger;
+	int32_t dmd, trigger;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -301,7 +301,7 @@ mxd_mbc_noir_open( MX_RECORD *record )
 		return mx_status;
 
 #if MXD_MBC_NOIR_DEBUG
-	MX_DEBUG(-2,("%s: NOIR dmd = %ld", fname, dmd ));
+	MX_DEBUG(-2,("%s: NOIR dmd = %ld", fname, (long) dmd ));
 #endif
 
 	/* If noir_dmd_pv has a value of 0, then the detector computer

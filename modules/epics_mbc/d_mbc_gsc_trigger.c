@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2011 Illinois Institute of Technology
+ * Copyright 2011, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -238,7 +238,7 @@ mxd_mbc_gsc_trigger_is_busy( MX_PULSE_GENERATOR *pulser )
 	static const char fname[] = "mxd_mbc_gsc_trigger_is_busy()";
 
 	MX_MBC_GSC_TRIGGER *mbc_gsc_trigger;
-	long shutter_status, timer_status;
+	int32_t shutter_status, timer_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_mbc_gsc_trigger_get_pointers( pulser,

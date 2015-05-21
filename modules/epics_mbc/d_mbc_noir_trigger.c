@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2011 Illinois Institute of Technology
+ * Copyright 2011, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -215,7 +215,7 @@ mxd_mbc_noir_trigger_is_busy( MX_PULSE_GENERATOR *pulser )
 	static const char fname[] = "mxd_mbc_noir_trigger_is_busy()";
 
 	MX_MBC_NOIR_TRIGGER *mbc_noir_trigger;
-	long shutter_status;
+	int32_t shutter_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_mbc_noir_trigger_get_pointers( pulser,
@@ -256,7 +256,7 @@ mxd_mbc_noir_trigger_send_command( MX_MBC_NOIR_TRIGGER *mbc_noir_trigger,
 							char *command )
 {
 	char epics_string[ MXU_EPICS_STRING_LENGTH+1 ];
-	long command_trigger;
+	int32_t command_trigger;
 	mx_status_type mx_status;
 
 	strlcpy( epics_string, command, sizeof(epics_string) );

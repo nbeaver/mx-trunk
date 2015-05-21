@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001-2006, 2008-2011, 2014 Illinois Institute of Technology
+ * Copyright 2001-2006, 2008-2011, 2014-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -418,7 +418,7 @@ mxi_epics_vme_transfer_data( MX_VME *vme,
 		if ( vme->num_values == 1 ) {
 
 			MX_DEBUG( 2,("%s: sending %lu to '%s'",
-					fname, (unsigned long) *int32_data_pointer,
+				fname, (unsigned long) *int32_data_pointer,
 					epics_vme->val_pv.pvname ));
 		} else {
 			MX_DEBUG( 2,("%s: sending data to '%s'",
@@ -426,7 +426,7 @@ mxi_epics_vme_transfer_data( MX_VME *vme,
 		}
 
 		mx_status = mx_group_caput( &epics_group, &(epics_vme->val_pv),
-				MX_CA_LONG, vme->num_values, int32_data_pointer);
+			MX_CA_LONG, vme->num_values, int32_data_pointer );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 			mx_epics_delete_group( &epics_group );
@@ -474,7 +474,7 @@ mxi_epics_vme_transfer_data( MX_VME *vme,
 						epics_vme->val_pv.pvname ));
 
 		mx_status = mx_group_caget( &epics_group, &(epics_vme->val_pv),
-				MX_CA_LONG, vme->num_values, int32_data_pointer);
+			MX_CA_LONG, vme->num_values, int32_data_pointer );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 			mx_epics_delete_group( &epics_group );

@@ -10,7 +10,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2012, 2014 Illinois Institute of Technology
+ * Copyright 2012, 2014-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -228,7 +228,7 @@ mxi_epics_camac_controller_command( MX_CAMAC *camac, long command )
 	static const char fname[] = "mxi_epics_camac_controller_command()";
 
 	MX_EPICS_CAMAC *epics_camac = NULL;
-	long ccmd_value;
+	int32_t ccmd_value;
 	mx_status_type mx_status;
 
 	mx_status = mxi_epics_camac_get_pointers( camac, &epics_camac, fname );
@@ -282,8 +282,9 @@ mxi_epics_camac( MX_CAMAC *camac, long slot, long subaddress,
 	static const char fname[] = "mxi_epics_camac()";
 
 	MX_EPICS_CAMAC *epics_camac = NULL;
-	long branch_number, crate_number;
-	long tmod_value, long_data, q_response, x_response;
+	int32_t branch_number, crate_number;
+	int32_t tmod_value, q_response, x_response;
+	int32_t epics_slot, epics_subaddress, epics_data;
 	mx_status_type mx_status;
 
 	mx_status = mxi_epics_camac_get_pointers( camac, &epics_camac, fname );
@@ -328,14 +329,20 @@ mxi_epics_camac( MX_CAMAC *camac, long slot, long subaddress,
 
 	/* Select the Slot. */
 
-	mx_status = mx_caput( &(epics_camac->n_pv), 1, MX_CA_LONG, &slot );
+	epics_slot = slot;
+
+	mx_status = mx_caput( &(epics_camac->n_pv),
+				1, MX_CA_LONG, &epics_slot );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/* Select the Subaddress. */
 
-	mx_status = mx_caput( &(epics_camac->a_pv), 1, MX_CA_LONG, &subaddress);
+	epics_subaddress = subaddress;
+
+	mx_status = mx_caput( &(epics_camac->a_pv),
+				1, MX_CA_LONG, &epics_subaddress );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -345,10 +352,10 @@ mxi_epics_camac( MX_CAMAC *camac, long slot, long subaddress,
 	 */
 
 	if ( function_code >= 8 ) {
-		long_data = (long) (*data);
+		epics_data = (long) (*data);
 
 		mx_status = mx_caput( &(epics_camac->val_pv),
-				1, MX_CA_LONG, &long_data );
+				1, MX_CA_LONG, &epics_data );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -369,12 +376,12 @@ mxi_epics_camac( MX_CAMAC *camac, long slot, long subaddress,
 	if ( ( function_code < 8 ) || ( function_code > 23 ) ) {
 
 		mx_status = mx_caget( &(epics_camac->val_pv),
-				1, MX_CA_LONG, &long_data );
+				1, MX_CA_LONG, &epics_data );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		*data = (int32_t) long_data;
+		*data = epics_data;
 	}
 
 	if ( Q != (int *) NULL ) {

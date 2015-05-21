@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2006, 2008-2011, 2014
+ * Copyright 2000-2001, 2003-2006, 2008-2011, 2014-2015
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -427,7 +427,8 @@ mxi_epics_gpib_read( MX_GPIB *gpib,
 	static const char fname[] = "mxi_epics_gpib_read()";
 
 	MX_EPICS_GPIB *epics_gpib = NULL;
-	int32_t int32_address, int32_eos, timeout, num_chars_read;
+	int32_t timeout, num_chars_read;
+	int32_t int32_address, int32_eos, int32_max_bytes_to_read;
 	mx_status_type mx_status;
 
 	mx_status = mxi_epics_gpib_get_pointers( gpib, &epics_gpib, fname );
@@ -482,7 +483,8 @@ mxi_epics_gpib_read( MX_GPIB *gpib,
 	{
 		int32_eos = gpib->read_terminator[address];
 
-		mx_status = mx_caput( &(epics_gpib->eos_pv), MX_CA_LONG, 1, &int32_eos );
+		mx_status = mx_caput( &(epics_gpib->eos_pv),
+					MX_CA_LONG, 1, &int32_eos );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -495,8 +497,10 @@ mxi_epics_gpib_read( MX_GPIB *gpib,
 
 	if ( epics_gpib->num_chars_to_read != max_bytes_to_read ) {
 
+		int32_max_bytes_to_read = max_bytes_to_read;
+
 		mx_status = mx_caput( &(epics_gpib->nrrd_pv),
-					MX_CA_LONG, 1, &max_bytes_to_read);
+				MX_CA_LONG, 1, &int32_max_bytes_to_read);
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -841,7 +845,8 @@ mxi_epics_gpib_set_address( MX_EPICS_GPIB *epics_gpib,
 
 	int32_address = (int32_t) address;
 
-	mx_status = mx_caput( &(epics_gpib->addr_pv), MX_CA_LONG, 1, &int32_address );
+	mx_status = mx_caput( &(epics_gpib->addr_pv),
+				MX_CA_LONG, 1, &int32_address );
 
 	return mx_status;
 }
@@ -856,7 +861,8 @@ mxi_epics_gpib_set_transaction_mode( MX_EPICS_GPIB *epics_gpib,
 
 	int32_mode = mode;
 
-	mx_status = mx_caput( &(epics_gpib->tmod_pv), MX_CA_LONG, 1, &int32_mode );
+	mx_status = mx_caput( &(epics_gpib->tmod_pv),
+				MX_CA_LONG, 1, &int32_mode );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
