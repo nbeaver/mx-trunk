@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2007-2011, 2014 Illinois Institute of Technology
+ * Copyright 2007-2011, 2014-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -298,9 +298,13 @@ mx_get_current_cpu_number( void )
 		"movl $1, %%eax;\n\t"
 		"cpuid;\n\t"
 		"shr $24, %%ebx;\n\t"
-		"movl %%ebx, %0;\n\t"
 #if defined(__i386__)
+		"movl %%ebx, %0;\n\t"
 		"popl %%ebx;\n\t"
+#elif defined(__amd64__)
+		"movq %%rbx, %0;\n\t"
+#else
+#  error Inline assembly for the current target has not yet been implemented
 #endif
 		: "=r" (cpu_number)
 		: /* no inputs */

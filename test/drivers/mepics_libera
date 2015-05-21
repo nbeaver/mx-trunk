@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../motor/mxmotor.static -i -F ./mepics_libera.dat -s ./sepics_libera.dat $*
+

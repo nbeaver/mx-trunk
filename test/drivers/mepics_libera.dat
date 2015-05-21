@@ -1,0 +1,2 @@
+!load ../../modules/epics/epics.mxo
+libera_array variable epics_variable epics_long "" "" LIBERA01:SA:SA_ARRAY_MONITOR 1 16 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
