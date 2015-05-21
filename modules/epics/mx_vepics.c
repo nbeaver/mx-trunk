@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2006, 2009-2011, 2014
+ * Copyright 1999, 2001, 2003-2006, 2009-2011, 2014-2015
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -20,6 +20,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_program_model.h"
 #include "mx_epics.h"
 #include "mx_variable.h"
 #include "mx_vepics.h"
@@ -27,7 +28,10 @@
 MX_RECORD_FUNCTION_LIST mxv_epics_variable_record_function_list = {
 	mx_variable_initialize_driver,
 	mxv_epics_variable_create_record_structures,
-	mxv_epics_variable_finish_record_initialization
+	mxv_epics_variable_finish_record_initialization,
+	NULL,
+	NULL,
+	mxv_epics_variable_open
 };
 
 MX_VARIABLE_FUNCTION_LIST mxv_epics_variable_variable_function_list = {
@@ -136,7 +140,7 @@ MX_RECORD_FIELD_DEFAULTS *mxv_epics_double_variable_def_ptr
 MX_EXPORT mx_status_type
 mxv_epics_variable_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxv_epics_variable_create_record_structures()";
+	static const char fname[] = "mxv_epics_variable_create_record_structures()";
 
 	MX_VARIABLE *variable_struct;
 	MX_EPICS_VARIABLE *epics_variable;
@@ -176,7 +180,7 @@ mxv_epics_variable_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxv_epics_variable_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[]
+	static const char fname[]
 		= "mxv_epics_variable_finish_record_initialization()";
 
 	MX_EPICS_VARIABLE *epics_variable;
@@ -227,19 +231,27 @@ mxv_epics_variable_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxv_epics_variable_send_variable( MX_VARIABLE *variable )
+mxv_epics_variable_open( MX_RECORD *record )
 {
-	static const char fname[] = "mxv_epics_variable_send_variable()";
+	static const char fname[] = "mxv_epics_variable_open()";
 
+	
 	MX_EPICS_VARIABLE *epics_variable;
-	MX_RECORD_FIELD *value_field;
 	MX_EPICS_PV *pv;
-	void *value_ptr;
-	unsigned long num_elements;
-	mx_status_type mx_status;
+	size_t array_size_in_bytes, num_elements;
 
-	epics_variable = (MX_EPICS_VARIABLE *)
-				variable->record->record_class_struct;
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	epics_variable = (MX_EPICS_VARIABLE *) record->record_class_struct;
+
+	if ( epics_variable == (MX_EPICS_VARIABLE *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_EPICS_VARIABLE pointer for record '%s' is NULL.",
+			record->name );
+	}
 
 	/* If not already known, find out the number of elements in the
 	 * EPICS process variable.
@@ -258,6 +270,50 @@ mxv_epics_variable_send_variable( MX_VARIABLE *variable )
 
 		epics_variable->num_elements = (long) num_elements;
 	}
+
+	/* Figure out whether or not we have to do a 64-bit conversion
+	 * for this PV.
+	 */
+
+	#if ( MX_WORDSIZE == 64 )
+	epics_variable->do_64bit_conversion = TRUE;
+	#else
+	epics_variable->do_64bit_conversion = FALSE;
+	#endif
+
+	if ( epics_variable->do_64bit_conversion == FALSE ) {
+		epics_variable->int32_array = NULL;
+	} else {
+		array_size_in_bytes =
+			epics_variable->num_elements * sizeof(int32_t);
+
+		epics_variable->int32_array = (int32_t *)
+			malloc( array_size_in_bytes );
+
+		if ( epics_variable->int32_array == (int32_t *) NULL ) {
+			epics_variable->do_64bit_conversion = FALSE;
+
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate a %ld element "
+			"array of 32-bit integers for record '%s'.",
+				epics_variable->num_elements, record->name );
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxv_epics_variable_send_variable( MX_VARIABLE *variable )
+{
+	MX_EPICS_VARIABLE *epics_variable;
+	MX_RECORD_FIELD *value_field;
+	void *value_ptr;
+	unsigned long num_elements;
+	mx_status_type mx_status;
+
+	epics_variable = (MX_EPICS_VARIABLE *)
+				variable->record->record_class_struct;
 
 	/* Find the location of the data to be sent and the number of values
 	 * to send.
@@ -277,9 +333,33 @@ mxv_epics_variable_send_variable( MX_VARIABLE *variable )
 
 	value_ptr = mx_get_field_value_pointer( value_field );
 
+	/* The value field for MX 'long' and 'unsigned long' fields always
+	 * use the native wordlength of the system that we are running on,
+	 * either 32-bit or 64-bit.  However, EPICS 'longs' are always
+	 * 32-bits.  Therefore, on a computer with 64-bit longs, we must
+	 * copy and clip the 64-bit long array over to a local int32_t
+	 * array that belongs to this record.  Then we tell mx_caput()
+	 * to send that array instead.
+	 */
+
+	if ( epics_variable->do_64bit_conversion ) {
+		long *long_array;
+		int32_t *int32_array;
+		unsigned long i;
+
+		long_array  = (long *) value_ptr;
+		int32_array = epics_variable->int32_array;
+
+		for ( i = 0; i < epics_variable->num_elements; i++ ) {
+			int32_array[i] = long_array[i];
+		}
+
+		value_ptr = int32_array;
+	}
+
 	/* Send the data. */
 
-	mx_status = mx_caput( pv,
+	mx_status = mx_caput( &(epics_variable->pv),
 			epics_variable->epics_type,
 			num_elements,
 			value_ptr );
@@ -290,35 +370,14 @@ mxv_epics_variable_send_variable( MX_VARIABLE *variable )
 MX_EXPORT mx_status_type
 mxv_epics_variable_receive_variable( MX_VARIABLE *variable )
 {
-	static const char fname[] = "mxv_epics_variable_receive_variable()";
-
 	MX_EPICS_VARIABLE *epics_variable;
 	MX_RECORD_FIELD *value_field;
-	MX_EPICS_PV *pv;
 	void *value_ptr;
 	unsigned long num_elements;
 	mx_status_type mx_status;
 
 	epics_variable = (MX_EPICS_VARIABLE *)
 				variable->record->record_class_struct;
-
-	/* If not already known, find out the number of elements in the
-	 * EPICS process variable.
-	 */
-
-	pv = &(epics_variable->pv);
-
-	if ( epics_variable->num_elements < 0 ) {
-		num_elements = mx_epics_pv_get_element_count( pv );
-
-		if ( num_elements == 0 ) {
-			return mx_error( MXE_FUNCTION_FAILED, fname,
-			"Unable to get the element count for EPICS PV '%s'.",
-				pv->pvname );
-		}
-
-		epics_variable->num_elements = (long) num_elements;
-	}
 
 	/* Find the location that the data is to be written to and the
 	 * number of values to receive.
@@ -336,14 +395,44 @@ mxv_epics_variable_receive_variable( MX_VARIABLE *variable )
 		num_elements = value_field->dimension[0];
 	}
 
-	value_ptr = mx_get_field_value_pointer( value_field );
+	/* The value field for MX 'long' and 'unsigned long' fields always
+	 * use the native wordlength of the system that we are running on,
+	 * either 32-bit or 64-bit.  However, EPICS 'longs' are always
+	 * 32-bits.  Therefore, on a computer with 64-bit longs, we begin
+	 * by copying to a local array that is known to be for 32-bit
+	 * integers.  Then, on a 64-bit long machine, we copy the data
+	 * from the 32-bit temporary array to the MX value field's
+	 * value array.
+	 */
+
+	if ( epics_variable->do_64bit_conversion ) {
+		value_ptr = epics_variable->int32_array;
+	} else {
+		value_ptr = mx_get_field_value_pointer( value_field );
+	}
 
 	/* Receive the data. */
 
-	mx_status = mx_caget( pv,
+	mx_status = mx_caget( &(epics_variable->pv),
 			epics_variable->epics_type,
 			num_elements,
 			value_ptr );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( epics_variable->do_64bit_conversion ) {
+		long *long_array;
+		int32_t *int32_array;
+		unsigned long i;
+
+		long_array = (long *) value_ptr;
+		int32_array = epics_variable->int32_array;
+
+		for ( i = 0; i < epics_variable->num_elements; i++ ) {
+			long_array[i] = int32_array[i];
+		}
+	}
 
 	return mx_status;
 }

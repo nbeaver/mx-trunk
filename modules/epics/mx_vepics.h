@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2006-2007, 2010 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2006-2007, 2010, 2015
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,6 +29,9 @@ typedef struct {
 	long epics_type;
 	long num_elements;
 
+	mx_bool_type do_64bit_conversion;
+	int32_t *int32_array;
+
 	MX_EPICS_PV pv;
 } MX_EPICS_VARIABLE;
 
@@ -42,6 +46,10 @@ typedef struct {
   \
   {-1, -1, "num_elements", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_EPICS_VARIABLE, num_elements), \
+	{0}, NULL, 0}, \
+  \
+  {-1, -1, "do_64bit_conversion", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_EPICS_VARIABLE, do_64bit_conversion),\
 	{0}, NULL, 0}
 
 MX_API_PRIVATE mx_status_type mxv_epics_variable_initialize_driver(
@@ -50,6 +58,7 @@ MX_API_PRIVATE mx_status_type mxv_epics_variable_create_record_structures(
 							MX_RECORD *record );
 MX_API_PRIVATE mx_status_type mxv_epics_variable_finish_record_initialization(
 							MX_RECORD *record );
+MX_API_PRIVATE mx_status_type mxv_epics_variable_open( MX_RECORD *record );
 
 MX_API_PRIVATE mx_status_type mxv_epics_variable_send_variable(
 						MX_VARIABLE *variable );
