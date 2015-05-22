@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2009, 2011-2013 Illinois Institute of Technology
+ * Copyright 2006-2009, 2011-2013, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -339,6 +339,22 @@ mxd_aviex_pccd_9785_initialize_detector( MX_RECORD *record,
 	mx_status = mxd_aviex_pccd_write_register( aviex_pccd,
 					MXLV_AVIEX_PCCD_9785_DH_CONTROL,
 					control_register_value );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Sometimes the PCCD-9785 detector apparently fails to transmit
+	 * the first image frame after the MX server is started.  Stopping
+	 * detector and then running a new sequence seems to clear the
+	 * problem.
+	 *
+	 * Although we don't know for sure what the nature of the problem
+	 * is, we will unilaterally send a stop command to the detector
+	 * right after the MX server initializes it in the hopes that
+	 * this will avoid the problem.
+	 */
+
+	mx_status = mxd_aviex_pccd_stop( ad );
 
 	return mx_status;
 }
