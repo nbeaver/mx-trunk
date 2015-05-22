@@ -331,8 +331,6 @@ mxv_epics_variable_send_variable( MX_VARIABLE *variable )
 		num_elements = value_field->dimension[0];
 	}
 
-	value_ptr = mx_get_field_value_pointer( value_field );
-
 	/* The value field for MX 'long' and 'unsigned long' fields always
 	 * use the native wordlength of the system that we are running on,
 	 * either 32-bit or 64-bit.  However, EPICS 'longs' are always
@@ -347,7 +345,9 @@ mxv_epics_variable_send_variable( MX_VARIABLE *variable )
 		int32_t *int32_array;
 		unsigned long i;
 
-		long_array  = (long *) value_ptr;
+		long_array  =
+			(long *) mx_get_field_value_pointer( value_field );
+
 		int32_array = epics_variable->int32_array;
 
 		for ( i = 0; i < epics_variable->num_elements; i++ ) {
@@ -355,6 +355,8 @@ mxv_epics_variable_send_variable( MX_VARIABLE *variable )
 		}
 
 		value_ptr = int32_array;
+	} else {
+		value_ptr = mx_get_field_value_pointer( value_field );
 	}
 
 	/* Send the data. */
@@ -426,7 +428,7 @@ mxv_epics_variable_receive_variable( MX_VARIABLE *variable )
 		int32_t *int32_array;
 		unsigned long i;
 
-		long_array = (long *) value_ptr;
+		long_array = (long *) mx_get_field_value_pointer( value_field );
 		int32_array = epics_variable->int32_array;
 
 		for ( i = 0; i < epics_variable->num_elements; i++ ) {
