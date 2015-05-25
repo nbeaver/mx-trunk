@@ -346,19 +346,6 @@ mxv_newport_xps_motor_config_send_variable( MX_VARIABLE *variable )
 				"PositionerPositionCompareAquadBAlwaysEnable()",
 					xps_status );
 			}
-
-			xps_status = PositionerPositionCompareEnable(
-					newport_xps->socket_id,
-					newport_xps_motor->positioner_name );
-
-			if ( xps_status != SUCCESS ) {
-				mx_free( argv ); mx_free( value_string_copy );
-
-				return mxi_newport_xps_error(
-					newport_xps->socket_id,
-					"PositionerPositionCompareEnable()",
-					xps_status );
-			}
 		} else {
 			xps_status = PositionerPositionCompareDisable(
 					newport_xps->socket_id,
