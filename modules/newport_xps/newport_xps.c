@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2014 Illinois Institute of Technology
+ * Copyright 2014-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,8 +22,10 @@
 #include "mx_driver.h"
 #include "mx_module.h"
 #include "mx_motor.h"
+#include "mx_variable.h"
 #include "i_newport_xps.h"
 #include "d_newport_xps.h"
+#include "v_newport_xps_motor.h"
 
 MX_DRIVER newport_xps_driver_table[] = {
 
@@ -40,6 +42,13 @@ MX_DRIVER newport_xps_driver_table[] = {
 			&mxd_newport_xps_motor_function_list,
 			&mxd_newport_xps_num_record_fields,
 			&mxd_newport_xps_rfield_def_ptr},
+
+{"newport_xps_motor_config", -1, MXV_SPECIAL, MXR_VARIABLE,
+			&mxv_newport_xps_motor_config_record_function_list,
+			&mxv_newport_xps_motor_config_variable_function_list,
+			NULL,
+			&mxv_newport_xps_motor_config_num_record_fields,
+			&mxv_newport_xps_motor_config_rfield_def_ptr},
 
 {"", 0, 0, 0, NULL, NULL, NULL, NULL, NULL}
 };

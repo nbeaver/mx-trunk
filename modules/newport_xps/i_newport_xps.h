@@ -21,6 +21,8 @@
 
 #define MXU_NEWPORT_XPS_STATUS_LENGTH		250
 
+#define MXU_NEWPORT_XPS_CONFIG_NAME_LENGTH	80
+
 /* Flag bits for the 'newport_xps_flags' variable. */
 
 #define MXF_NEWPORT_XPS_DEBUG_XPS_SOCKET	0x1
