@@ -284,6 +284,16 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 	    "%s.current_num_rois", network_area_detector->remote_record_name );
 
 	mx_network_field_init(
+		&(network_area_detector->datafile_allow_overwrite_nf),
+		network_area_detector->server_record,
+    "%s.datafile_allow_overwrite", network_area_detector->remote_record_name );
+
+	mx_network_field_init(
+		&(network_area_detector->datafile_autoselect_number_nf),
+		network_area_detector->server_record,
+    "%s.datafile_autoselect_number", network_area_detector->remote_record_name);
+
+	mx_network_field_init(
 		&(network_area_detector->datafile_directory_nf),
 		network_area_detector->server_record,
 			"%s.datafile_directory",
@@ -299,6 +309,12 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 		&(network_area_detector->datafile_name_nf),
 		network_area_detector->server_record,
 			"%s.datafile_name",
+			network_area_detector->remote_record_name );
+
+	mx_network_field_init(
+		&(network_area_detector->datafile_number_nf),
+		network_area_detector->server_record,
+			"%s.datafile_number",
 			network_area_detector->remote_record_name );
 
 	mx_network_field_init(
@@ -1852,6 +1868,16 @@ mxd_network_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 					ad->datafile_save_format_name,
 					(long *) &(ad->datafile_save_format) );
 		break;
+	case MXLV_AD_DATAFILE_ALLOW_OVERWRITE:
+		mx_status = mx_get(
+			&(network_area_detector->datafile_allow_overwrite_nf),
+			MXFT_BOOL, &(ad->datafile_allow_overwrite) );
+		break;
+	case MXLV_AD_DATAFILE_AUTOSELECT_NUMBER:
+		mx_status = mx_get(
+		    &(network_area_detector->datafile_autoselect_number_nf),
+			MXFT_BOOL, &(ad->datafile_autoselect_number) );
+		break;
 	case MXLV_AD_DATAFILE_DIRECTORY:
 		dimension[0] = MXU_FILENAME_LENGTH;
 
@@ -1865,6 +1891,11 @@ mxd_network_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 		mx_status = mx_get_array(
 			&(network_area_detector->datafile_name_nf),
 			MXFT_STRING, 1, dimension, ad->datafile_name );
+		break;
+	case MXLV_AD_DATAFILE_NUMBER:
+		mx_status = mx_get(
+			&(network_area_detector->datafile_number_nf),
+			MXFT_ULONG, &(ad->datafile_number) );
 		break;
 	case MXLV_AD_DATAFILE_PATTERN:
 		dimension[0] = MXU_FILENAME_LENGTH;
@@ -2246,6 +2277,16 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 					ad->datafile_save_format_name,
 					(long *) &(ad->datafile_save_format) );
 		break;
+	case MXLV_AD_DATAFILE_ALLOW_OVERWRITE:
+		mx_status = mx_put(
+			&(network_area_detector->datafile_allow_overwrite_nf),
+			MXFT_BOOL, &(ad->datafile_allow_overwrite) );
+		break;
+	case MXLV_AD_DATAFILE_AUTOSELECT_NUMBER:
+		mx_status = mx_put(
+		    &(network_area_detector->datafile_autoselect_number_nf),
+			MXFT_BOOL, &(ad->datafile_autoselect_number) );
+		break;
 	case MXLV_AD_DATAFILE_DIRECTORY:
 		dimension[0] = MXU_FILENAME_LENGTH;
 
@@ -2259,6 +2300,11 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 		mx_status = mx_put_array(
 			&(network_area_detector->datafile_name_nf),
 			MXFT_STRING, 1, dimension, ad->datafile_name );
+		break;
+	case MXLV_AD_DATAFILE_NUMBER:
+		mx_status = mx_put(
+			&(network_area_detector->datafile_number_nf),
+			MXFT_ULONG, &(ad->datafile_number) );
 		break;
 	case MXLV_AD_DATAFILE_PATTERN:
 		dimension[0] = MXU_FILENAME_LENGTH;

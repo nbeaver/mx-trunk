@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2006-2009, 2011-2014 Illinois Institute of Technology
+ * Copyright 2006-2009, 2011-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -915,6 +915,8 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_CORRECTION_MEASUREMENT_TYPE:
 		case MXLV_AD_CORRECTION_SAVE_FORMAT:
 		case MXLV_AD_CORRECTION_SAVE_FORMAT_NAME:
+		case MXLV_AD_DATAFILE_ALLOW_OVERWRITE:
+		case MXLV_AD_DATAFILE_AUTOSELECT_NUMBER:
 		case MXLV_AD_DATAFILE_DIRECTORY:
 		case MXLV_AD_DATAFILE_LOAD_FORMAT:
 		case MXLV_AD_DATAFILE_LOAD_FORMAT_NAME:
@@ -1048,6 +1050,8 @@ mx_area_detector_process_function( void *record_ptr,
 		case MXLV_AD_CORRECTION_MEASUREMENT_TYPE:
 		case MXLV_AD_CORRECTION_SAVE_FORMAT:
 		case MXLV_AD_CORRECTION_SAVE_FORMAT_NAME:
+		case MXLV_AD_DATAFILE_ALLOW_OVERWRITE:
+		case MXLV_AD_DATAFILE_AUTOSELECT_NUMBER:
 		case MXLV_AD_DATAFILE_DIRECTORY:
 		case MXLV_AD_DATAFILE_LOAD_FORMAT:
 		case MXLV_AD_DATAFILE_LOAD_FORMAT_NAME:

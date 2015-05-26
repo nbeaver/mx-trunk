@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2011, 2013 Illinois Institute of Technology
+ * Copyright 2006-2011, 2013, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -40,9 +40,12 @@ typedef struct {
 	MX_NETWORK_FIELD correction_measurement_type_nf;
 	MX_NETWORK_FIELD correction_save_format_name_nf;
 	MX_NETWORK_FIELD current_num_rois_nf;
+	MX_NETWORK_FIELD datafile_allow_overwrite_nf;
+	MX_NETWORK_FIELD datafile_autoselect_number_nf;
 	MX_NETWORK_FIELD datafile_directory_nf;
 	MX_NETWORK_FIELD datafile_load_format_name_nf;
 	MX_NETWORK_FIELD datafile_name_nf;
+	MX_NETWORK_FIELD datafile_number_nf;
 	MX_NETWORK_FIELD datafile_pattern_nf;
 	MX_NETWORK_FIELD datafile_save_format_name_nf;
 	MX_NETWORK_FIELD detector_readout_time_nf;
