@@ -1,5 +1,5 @@
 /*
- * Name:    v_newport_xps_motor.c
+ * Name:    v_newport_xps_motor_config.c
  *
  * Purpose: Support for custom Newport XPS motor configuration.
  *
@@ -28,7 +28,7 @@
 #include "mx_variable.h"
 #include "i_newport_xps.h"
 #include "d_newport_xps.h"
-#include "v_newport_xps_motor.h"
+#include "v_newport_xps_motor_config.h"
 
 #include "XPS_C8_drivers.h"    /* Vendor include file. */
 #include "XPS_C8_errors.h"     /* Vendor include file. */

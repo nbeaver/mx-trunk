@@ -1,5 +1,5 @@
 /*
- * Name:    v_newport_xps_motor.h
+ * Name:    v_newport_xps_motor_config.h
  *
  * Purpose: Header file for custom Newport XPS motor configuration.
  *
@@ -14,8 +14,8 @@
  *
  */
 
-#ifndef __V_NEWPORT_XPS_MOTOR_H__
-#define __V_NEWPORT_XPS_MOTOR_H__
+#ifndef __V_NEWPORT_XPS_MOTOR_CONFIG_H__
+#define __V_NEWPORT_XPS_MOTOR_CONFIG_H__
 
 typedef struct {
 	MX_RECORD *record;
@@ -56,4 +56,5 @@ extern MX_VARIABLE_FUNCTION_LIST
 extern long mxv_newport_xps_motor_config_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_newport_xps_motor_config_rfield_def_ptr;
 
-#endif /* __V_NEWPORT_XPS_MOTOR_H__ */
+#endif /* __V_NEWPORT_XPS_MOTOR_CONFIG_H__ */
+

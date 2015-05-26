@@ -25,7 +25,7 @@
 #include "mx_variable.h"
 #include "i_newport_xps.h"
 #include "d_newport_xps.h"
-#include "v_newport_xps_motor.h"
+#include "v_newport_xps_motor_config.h"
 
 MX_DRIVER newport_xps_driver_table[] = {
 
