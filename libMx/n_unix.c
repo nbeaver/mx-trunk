@@ -242,6 +242,11 @@ mxn_unix_server_open( MX_RECORD *record )
 		quiet_open = FALSE;
 	}
 
+	if ( list_head->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		fprintf( stderr, "MX UNIX_CONNECT to %s\n",
+			unix_server->pathname );
+	}
+
 	if ( quiet_open ) {
 		socket_flags = MXF_SOCKET_QUIET_CONNECTION;
 	} else {
@@ -430,6 +435,7 @@ mxn_unix_server_close( MX_RECORD *record )
 	MX_NETWORK_SERVER *network_server;
 	MX_UNIX_SERVER *unix_server;
 	MX_SOCKET *server_socket;
+	MX_LIST_HEAD *list_head;
 	mx_status_type mx_status;
 
 	network_server = (MX_NETWORK_SERVER *) record->record_class_struct;
@@ -451,6 +457,20 @@ mxn_unix_server_close( MX_RECORD *record )
 	server_socket = unix_server->socket;
 
 	if ( server_socket != NULL ) {
+
+		list_head = mx_get_record_list_head_struct( record );
+
+		if ( list_head == (MX_LIST_HEAD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_LIST_HEAD pointer for record '%s' is NULL.",
+				record->name );
+		}
+
+		if ( list_head->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+			fprintf( stderr, "MX UNIX_CLOSE for %s\n",
+			unix_server->pathname );
+		}
+
 		(void) mx_network_mark_handles_as_invalid( record );
 
 		mx_status = mx_socket_close( server_socket );
