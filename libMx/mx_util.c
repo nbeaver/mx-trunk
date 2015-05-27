@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2014 Illinois Institute of Technology
+ * Copyright 1999-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1774,6 +1774,72 @@ mx_uint64_to_double( unsigned __int64 uint64_value )
 	return result;
 }
 #endif
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT int
+mx_get_true_or_false( char *true_false_string )
+{
+	static const char fname[] = "mx_get_true_or_false()";
+
+	char *duplicate;
+	int argc;
+	char **argv;
+	int result;
+
+	duplicate = strdup( true_false_string );
+
+	if ( duplicate == NULL ) {
+		(void) mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to duplicate the string '%s'.",
+			true_false_string );
+
+		return FALSE;
+	}
+
+	mx_string_split( duplicate, " ,", &argc, &argv );
+
+	if ( argc < 1 ) {
+		mx_free( argv ); mx_free( duplicate );
+
+		(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The supplied string '%s' did not contain any non-blank "
+		"characters in it.", true_false_string );
+
+		result = FALSE;
+	} else
+	if ( mx_strcasecmp( "0", argv[0] ) == 0 ) {
+		result = FALSE;
+	} else
+	if ( mx_strcasecmp( "1", argv[0] ) == 0 ) {
+		result = TRUE;
+	} else
+	if ( mx_strcasecmp( "off", argv[0] ) == 0 ) {
+		result = FALSE;
+	} else
+	if ( mx_strcasecmp( "on", argv[0] ) == 0 ) {
+		result = TRUE;
+	} else
+	if ( mx_strcasecmp( "false", argv[0] ) == 0 ) {
+		result = FALSE;
+	} else
+	if ( mx_strcasecmp( "true", argv[0] ) == 0 ) {
+		result = TRUE;
+	} else {
+		(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Unrecognized truth value '%s' specified for "
+		"true/false string '%s'.  "
+		"The allowed values are '0', '1', 'off', 'on', "
+		"'false', and 'true'.",
+			argv[0], true_false_string );
+
+		result = FALSE;
+	}
+
+	mx_free( argv ); mx_free( duplicate );
+
+	return result;
+}
 
 /*-------------------------------------------------------------------------*/
 

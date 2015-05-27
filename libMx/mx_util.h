@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 1999-2014 Illinois Institute of Technology
+ * Copyright 1999-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -914,6 +914,10 @@ MX_API mx_status_type mx_get_process_affinity_mask( unsigned long process_id,
 
 MX_API mx_status_type mx_set_process_affinity_mask( unsigned long process_id,
 							unsigned long mask );
+
+/*----*/
+
+MX_API int mx_get_true_or_false( char *true_false_string );
 
 /*----*/
 

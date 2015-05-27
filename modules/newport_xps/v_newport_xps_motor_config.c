@@ -246,7 +246,6 @@ mxv_newport_xps_motor_config_send_variable( MX_VARIABLE *variable )
 	int argc;
 	char **argv;
 	int xps_status;
-	mx_bool_type always_enable;
 	mx_status_type mx_status;
 
 	mx_status = mxv_newport_xps_motor_config_get_pointers( variable,
@@ -299,35 +298,9 @@ mxv_newport_xps_motor_config_send_variable( MX_VARIABLE *variable )
 	config_name = newport_xps_motor_config->newport_xps_motor_config_name;
 
 	if ( mx_strcasecmp( "aquadb_always_enable", config_name ) == 0 ) {
-		if ( mx_strcasecmp( "0", argv[0] ) == 0 ) {
-			always_enable = FALSE;
-		} else
-		if ( mx_strcasecmp( "1", argv[0] ) == 0 ) {
-			always_enable = TRUE;
-		} else
-		if ( mx_strcasecmp( "off", argv[0] ) == 0 ) {
-			always_enable = FALSE;
-		} else
-		if ( mx_strcasecmp( "on", argv[0] ) == 0 ) {
-			always_enable = TRUE;
-		} else
-		if ( mx_strcasecmp( "false", argv[0] ) == 0 ) {
-			always_enable = FALSE;
-		} else
-		if ( mx_strcasecmp( "true", argv[0] ) == 0 ) {
-			always_enable = TRUE;
-		} else {
-			mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Unrecognized option value '%s' for config option '%s' "
-			"of variable '%s'.  "
-			"The allowed values are '0', '1', 'off', 'on', "
-			"'false', and 'true'.",
-				argv[0], config_name, variable->record->name );
+		mx_bool_type always_enable;
 
-			mx_free( argv ); mx_free( value_string_copy );
-
-			return mx_status;
-		}
+		always_enable = mx_get_true_or_false( argv[0] );
 
 		MX_DEBUG(-2,("%s: variable '%s', always_enable = %d",
 			fname, variable->record->name, (int) always_enable));
@@ -360,6 +333,84 @@ mxv_newport_xps_motor_config_send_variable( MX_VARIABLE *variable )
 					xps_status );
 			}
 		}
+	} else
+	if ( mx_strcasecmp( "aquadb_windowed", config_name ) == 0 ) {
+		double window_low, window_high;
+
+		if ( argc < 2 ) {
+			mx_free( argv ); mx_free( value_string_copy );
+
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"aquadb_windowed mode for variable '%s' has fewer "
+			"than 2 arguments in its value string '%s'.",
+				variable->record->name, value_string );
+		}
+
+		window_low  = atof( argv[0] );
+		window_high = atof( argv[1] );
+
+		MX_DEBUG(-2,("%s: '%s' aquadb_windowed = %f, %f",
+		    fname, variable->record->name, window_low, window_high));
+
+		/* Set the window. */
+
+		xps_status = PositionerPositionCompareAquadBWindowedSet(
+					newport_xps->socket_id,
+					newport_xps_motor->positioner_name,
+					window_low, window_high );
+
+		if ( xps_status != SUCCESS ) {
+			mx_free( argv ); mx_free( value_string_copy );
+
+			return mxi_newport_xps_error(
+				newport_xps->socket_id,
+				"PositionerPositionCompareAquadBWindowedSet()",
+				xps_status );
+		}
+
+		/* Turn position compare on. */
+
+		xps_status = PositionerPositionCompareEnable(
+					newport_xps->socket_id,
+					newport_xps_motor->positioner_name );
+
+		if ( xps_status != SUCCESS ) {
+			mx_free( argv ); mx_free( value_string_copy );
+
+			return mxi_newport_xps_error(
+				newport_xps->socket_id,
+				"PositionerPositionCompareEnable()",
+				xps_status );
+		}
+
+#if 1
+		{
+		  int enabled;
+
+		  /* Verify that the window was set correctly. */
+
+		  window_low = window_high = 0;
+
+		  xps_status = PositionerPositionCompareAquadBWindowedGet(
+					newport_xps->socket_id,
+					newport_xps_motor->positioner_name,
+					&window_low, &window_high,
+					&enabled );
+
+		  if ( xps_status != SUCCESS ) {
+			mx_free( argv ); mx_free( value_string_copy );
+
+			return mxi_newport_xps_error(
+				newport_xps->socket_id,
+				"PositionerPositionCompareAquadBWindowedSet()",
+				xps_status );
+		  }
+
+		  MX_DEBUG(-2,("%s: '%s' aquadb_windowed values read = %f, %f",
+		    fname, variable->record->name, window_low, window_high));
+		}
+#endif
+
 	} else {
 		mx_free( argv ); mx_free( value_string_copy );
 
