@@ -51,7 +51,7 @@ CFLAGS += -I../../libMx -D__MX_LIBRARY__
 
 NEWPORT_XPS_OBJS = newport_xps.$(OBJ) \
 		i_newport_xps.$(OBJ) d_newport_xps.$(OBJ) \
-		v_newport_xps_motor_config.$(OBJ) \
+		v_newport_xps_motor_pco.$(OBJ) \
 		Socket_MX.$(OBJ)
 
 #--------------------------------------------------------------------------
@@ -95,10 +95,10 @@ i_newport_xps.$(OBJ): i_newport_xps.c i_newport_xps.h
 d_newport_xps.$(OBJ): d_newport_xps.c d_newport_xps.h i_newport_xps.h
 	$(COMPILE) $(CFLAGS) d_newport_xps.c
 
-v_newport_xps_motor_config.$(OBJ): \
-		v_newport_xps_motor_config.c v_newport_xps_motor_config.h \
+v_newport_xps_motor_pco.$(OBJ): \
+		v_newport_xps_motor_pco.c v_newport_xps_motor_pco.h \
 		d_newport_xps.h i_newport_xps.h
-	$(COMPILE) $(CFLAGS) v_newport_xps_motor_config.c
+	$(COMPILE) $(CFLAGS) v_newport_xps_motor_pco.c
 
 install: newport_xps.mxo
 	-mkdir $(MX_INSTALL_DIR)/lib/modules

@@ -21,7 +21,7 @@
 
 #define MXU_NEWPORT_XPS_STATUS_LENGTH		250
 
-#define MXU_NEWPORT_XPS_CONFIG_NAME_LENGTH	80
+#define MXU_NEWPORT_XPS_PCO_CONFIG_LENGTH	80
 
 /* Flag bits for the 'newport_xps_flags' variable. */
 
@@ -91,7 +91,7 @@ typedef struct {
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_NEWPORT_XPS_CONTROLLER_STATUS, -1, "controller_status", \
-			MXFT_LONG, NULL, 0, {0}, \
+			MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, controller_status), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \

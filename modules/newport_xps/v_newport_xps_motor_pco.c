@@ -1,7 +1,7 @@
 /*
- * Name:    v_newport_xps_motor_config.c
+ * Name:    v_newport_xps_motor_pco.c
  *
- * Purpose: Support for custom Newport XPS motor configuration.
+ * Purpose: Support for the Newport XPS motor Pulse Compare Output (PCO).
  *
  * Author:  William Lavender
  *
@@ -28,54 +28,54 @@
 #include "mx_variable.h"
 #include "i_newport_xps.h"
 #include "d_newport_xps.h"
-#include "v_newport_xps_motor_config.h"
+#include "v_newport_xps_motor_pco.h"
 
 #include "XPS_C8_drivers.h"    /* Vendor include file. */
 #include "XPS_C8_errors.h"     /* Vendor include file. */
 
-MX_RECORD_FUNCTION_LIST mxv_newport_xps_motor_config_record_function_list = {
+MX_RECORD_FUNCTION_LIST mxv_newport_xps_motor_pco_record_function_list = {
 	mx_variable_initialize_driver,
-	mxv_newport_xps_motor_config_create_record_structures,
+	mxv_newport_xps_motor_pco_create_record_structures,
 	NULL,
 	NULL,
 	NULL,
-	mxv_newport_xps_motor_config_open
+	mxv_newport_xps_motor_pco_open
 };
 
-MX_VARIABLE_FUNCTION_LIST mxv_newport_xps_motor_config_variable_function_list =
+MX_VARIABLE_FUNCTION_LIST mxv_newport_xps_motor_pco_variable_function_list =
 {
-	mxv_newport_xps_motor_config_send_variable
+	mxv_newport_xps_motor_pco_send_variable
 };
 
 /*---*/
 
-MX_RECORD_FIELD_DEFAULTS mxv_newport_xps_motor_config_field_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxv_newport_xps_motor_pco_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
-	MXV_NEWPORT_XPS_MOTOR_CONFIG_STANDARD_FIELDS,
+	MXV_NEWPORT_XPS_MOTOR_PCO_STANDARD_FIELDS,
 	MX_VARIABLE_STANDARD_FIELDS,
 	MX_STRING_VARIABLE_STANDARD_FIELDS
 };
 
-long mxv_newport_xps_motor_config_num_record_fields
-	= sizeof( mxv_newport_xps_motor_config_field_defaults )
-	/ sizeof( mxv_newport_xps_motor_config_field_defaults[0] );
+long mxv_newport_xps_motor_pco_num_record_fields
+	= sizeof( mxv_newport_xps_motor_pco_field_defaults )
+	/ sizeof( mxv_newport_xps_motor_pco_field_defaults[0] );
 
-MX_RECORD_FIELD_DEFAULTS *mxv_newport_xps_motor_config_rfield_def_ptr
-		= &mxv_newport_xps_motor_config_field_defaults[0];
+MX_RECORD_FIELD_DEFAULTS *mxv_newport_xps_motor_pco_rfield_def_ptr
+		= &mxv_newport_xps_motor_pco_field_defaults[0];
 
 /*---*/
 
 static mx_status_type
-mxv_newport_xps_motor_config_get_pointers( MX_VARIABLE *variable,
-			MX_NEWPORT_XPS_MOTOR_CONFIG **newport_xps_motor_config,
+mxv_newport_xps_motor_pco_get_pointers( MX_VARIABLE *variable,
+			MX_NEWPORT_XPS_MOTOR_PCO **newport_xps_motor_pco,
 			MX_NEWPORT_XPS_MOTOR **newport_xps_motor,
 			MX_NEWPORT_XPS **newport_xps,
 			const char *calling_fname )
 {
 	static const char fname[] =
-		"mxv_newport_xps_motor_config_get_pointers()";
+		"mxv_newport_xps_motor_pco_get_pointers()";
 
-	MX_NEWPORT_XPS_MOTOR_CONFIG *newport_xps_motor_config_ptr;
+	MX_NEWPORT_XPS_MOTOR_PCO *newport_xps_motor_pco_ptr;
 	MX_RECORD *newport_xps_motor_record;
 	MX_NEWPORT_XPS_MOTOR *newport_xps_motor_ptr;
 	MX_RECORD *newport_xps_record;
@@ -91,29 +91,29 @@ mxv_newport_xps_motor_config_get_pointers( MX_VARIABLE *variable,
 			calling_fname );
 	}
 
-	newport_xps_motor_config_ptr = (MX_NEWPORT_XPS_MOTOR_CONFIG *)
+	newport_xps_motor_pco_ptr = (MX_NEWPORT_XPS_MOTOR_PCO *)
 				variable->record->record_type_struct;
 
-	if ( newport_xps_motor_config_ptr
-		== (MX_NEWPORT_XPS_MOTOR_CONFIG *) NULL )
+	if ( newport_xps_motor_pco_ptr
+		== (MX_NEWPORT_XPS_MOTOR_PCO *) NULL )
 	{
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_NEWPORT_XPS_MOTOR_CONFIG pointer "
+		"The MX_NEWPORT_XPS_MOTOR_PCO pointer "
 		"for record '%s' is NULL.",
 			variable->record->name );
 	}
 
-	if (newport_xps_motor_config != (MX_NEWPORT_XPS_MOTOR_CONFIG **) NULL) {
-		*newport_xps_motor_config = newport_xps_motor_config_ptr;
+	if (newport_xps_motor_pco != (MX_NEWPORT_XPS_MOTOR_PCO **) NULL) {
+		*newport_xps_motor_pco = newport_xps_motor_pco_ptr;
 	}
 
 	newport_xps_motor_record =
-		newport_xps_motor_config_ptr->newport_xps_motor_record;
+		newport_xps_motor_pco_ptr->newport_xps_motor_record;
 
 	if ( newport_xps_motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"newport_xps_motor_record pointer for "
-		"'newport_xps_motor_config' variable record '%s' "
+		"'newport_xps_motor_pco' variable record '%s' "
 		"passed by '%s' is NULL.",
 			variable->record->name, calling_fname );
 	}
@@ -164,13 +164,13 @@ mxv_newport_xps_motor_config_get_pointers( MX_VARIABLE *variable,
 /********************************************************************/
 
 MX_EXPORT mx_status_type
-mxv_newport_xps_motor_config_create_record_structures( MX_RECORD *record )
+mxv_newport_xps_motor_pco_create_record_structures( MX_RECORD *record )
 {
 	static const char fname[] =
-		"mxv_newport_xps_motor_config_create_record_structures()";
+		"mxv_newport_xps_motor_pco_create_record_structures()";
 
 	MX_VARIABLE *variable_struct;
-	MX_NEWPORT_XPS_MOTOR_CONFIG *newport_xps_motor_config;
+	MX_NEWPORT_XPS_MOTOR_PCO *newport_xps_motor_pco;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -181,12 +181,12 @@ mxv_newport_xps_motor_config_create_record_structures( MX_RECORD *record )
 		"Can't allocate memory for MX_VARIABLE structure." );
 	}
 
-	newport_xps_motor_config = (MX_NEWPORT_XPS_MOTOR_CONFIG *)
-				malloc( sizeof(MX_NEWPORT_XPS_MOTOR_CONFIG) );
+	newport_xps_motor_pco = (MX_NEWPORT_XPS_MOTOR_PCO *)
+				malloc( sizeof(MX_NEWPORT_XPS_MOTOR_PCO) );
 
-	if ( newport_xps_motor_config == (MX_NEWPORT_XPS_MOTOR_CONFIG *) NULL ) {
+	if ( newport_xps_motor_pco == (MX_NEWPORT_XPS_MOTOR_PCO *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-	  "Cannot allocate memory for MX_NEWPORT_XPS_MOTOR_CONFIG structure." );
+	  "Cannot allocate memory for MX_NEWPORT_XPS_MOTOR_PCO structure." );
 	}
 
 	/* Now set up the necessary pointers. */
@@ -195,19 +195,19 @@ mxv_newport_xps_motor_config_create_record_structures( MX_RECORD *record )
 
 	record->record_superclass_struct = variable_struct;
 	record->record_class_struct = NULL;
-	record->record_type_struct = newport_xps_motor_config;
+	record->record_type_struct = newport_xps_motor_pco;
 
 	record->superclass_specific_function_list =
-			&mxv_newport_xps_motor_config_variable_function_list;
+			&mxv_newport_xps_motor_pco_variable_function_list;
 	record->class_specific_function_list = NULL;
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
-mxv_newport_xps_motor_config_open( MX_RECORD *record )
+mxv_newport_xps_motor_pco_open( MX_RECORD *record )
 {
-	static const char fname[] = "mxv_newport_xps_motor_config_open()";
+	static const char fname[] = "mxv_newport_xps_motor_pco_open()";
 
 	MX_VARIABLE *variable;
 	mx_status_type mx_status;
@@ -219,24 +219,24 @@ mxv_newport_xps_motor_config_open( MX_RECORD *record )
 
 	variable = (MX_VARIABLE *) record->record_superclass_struct;
 
-	mx_status = mxv_newport_xps_motor_config_get_pointers( variable,
+	mx_status = mxv_newport_xps_motor_pco_get_pointers( variable,
 						NULL, NULL, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxv_newport_xps_motor_config_send_variable( variable );
+	mx_status = mxv_newport_xps_motor_pco_send_variable( variable );
 
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mxv_newport_xps_motor_config_send_variable( MX_VARIABLE *variable )
+mxv_newport_xps_motor_pco_send_variable( MX_VARIABLE *variable )
 {
 	static const char fname[] =
-		"mxv_newport_xps_motor_config_send_variable()";
+		"mxv_newport_xps_motor_pco_send_variable()";
 
-	MX_NEWPORT_XPS_MOTOR_CONFIG *newport_xps_motor_config;
+	MX_NEWPORT_XPS_MOTOR_PCO *newport_xps_motor_pco;
 	MX_NEWPORT_XPS_MOTOR *newport_xps_motor;
 	MX_NEWPORT_XPS *newport_xps;
 	MX_RECORD_FIELD *value_field;
@@ -248,8 +248,8 @@ mxv_newport_xps_motor_config_send_variable( MX_VARIABLE *variable )
 	int xps_status;
 	mx_status_type mx_status;
 
-	mx_status = mxv_newport_xps_motor_config_get_pointers( variable,
-						&newport_xps_motor_config,
+	mx_status = mxv_newport_xps_motor_pco_get_pointers( variable,
+						&newport_xps_motor_pco,
 						&newport_xps_motor,
 						&newport_xps,
 						fname );
@@ -287,21 +287,29 @@ mxv_newport_xps_motor_config_send_variable( MX_VARIABLE *variable )
 
 	mx_string_split( value_string_copy, " ,", &argc, &argv );
 
-	config_name = newport_xps_motor_config->newport_xps_motor_config_name;
+	config_name = newport_xps_motor_pco->pco_config;
+
+	/* Disable any previously existing PCO configuration. */
+
+	xps_status = PositionerPositionCompareDisable(
+			newport_xps->socket_id,
+			newport_xps_motor->positioner_name );
+
+	if ( xps_status != SUCCESS ) {
+		mx_free( argv ); mx_free( value_string_copy );
+
+		return mxi_newport_xps_error(
+			newport_xps->socket_id,
+			"PositionerPositionCompareDisable()",
+			xps_status );
+	}
+
+	/* Now setup the new PCO configuration. */
 
 	if ( mx_strcasecmp( "disable", config_name ) == 0 ) {
-		xps_status = PositionerPositionCompareDisable(
-				newport_xps->socket_id,
-				newport_xps_motor->positioner_name );
-
-		if ( xps_status != SUCCESS ) {
-			mx_free( argv ); mx_free( value_string_copy );
-
-			return mxi_newport_xps_error(
-				newport_xps->socket_id,
-				"PositionerPositionCompareDisable()",
-				xps_status );
-		}
+		/* We just disabled the PCO a few lines ago, so there
+		 * is no need to do it a second time.
+		 */
 	} else
 	if ( mx_strcasecmp( "distance_spaced_pulses", config_name ) == 0 ) {
 		double minimum_position, maximum_position, step_size;
@@ -374,6 +382,18 @@ mxv_newport_xps_motor_config_send_variable( MX_VARIABLE *variable )
 
 			return mxi_newport_xps_error( newport_xps->socket_id,
 				"PositionerTimeFlasherSet()",
+				xps_status );
+		}
+
+		xps_status = PositionerTimeFlasherEnable(
+					newport_xps->socket_id,
+					newport_xps_motor->positioner_name );
+
+		if ( xps_status != SUCCESS ) {
+			mx_free( argv ); mx_free( value_string_copy );
+
+			return mxi_newport_xps_error( newport_xps->socket_id,
+				"PositionerTimeFlasherEnable()",
 				xps_status );
 		}
 	} else
