@@ -25,6 +25,8 @@
 
 #define MXU_NEWPORT_XPS_GROUP_STATUS_LENGTH	250
 
+#define MXU_NETWORK_XPS_PCO_CONFIG_NAME_LENGTH  80
+#define MXU_NETWORK_XPS_PCO_CONFIG_VALUE_LENGTH 80
 /*---*/
 
 /* Command types for the move thread. */
@@ -89,6 +91,11 @@ typedef struct {
 
 	unsigned long command_type;
 	double command_destination;
+
+	/* Configuration for the PCO connector. */
+
+	char pco_config_name[ MXU_NETWORK_XPS_PCO_CONFIG_NAME_LENGTH + 1 ];
+	char pco_config_value[ MXU_NETWORK_XPS_PCO_CONFIG_VALUE_LENGTH + 1 ];
 } MX_NEWPORT_XPS_MOTOR;
 
 MX_API mx_status_type mxd_newport_xps_create_record_structures(
@@ -120,6 +127,8 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_newport_xps_rfield_def_ptr;
 #define MXLV_NEWPORT_XPS_POSITIONER_ERROR	88003
 #define MXLV_NEWPORT_XPS_HARDWARE_STATUS	88004
 #define MXLV_NEWPORT_XPS_DRIVER_STATUS		88005
+#define MXLV_NEWPORT_XPS_PCO_CONFIG_NAME	88006
+#define MXLV_NEWPORT_XPS_PCO_CONFIG_VALUE	88007
 
 #define MXD_NEWPORT_XPS_MOTOR_STANDARD_FIELDS \
   {-1, -1, "newport_xps_record", MXFT_RECORD, NULL, 0, {0},\
@@ -171,6 +180,17 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_newport_xps_rfield_def_ptr;
   {-1, -1, "set_position_sleep_ms", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_NEWPORT_XPS_MOTOR, set_position_sleep_ms), \
+	{0}, NULL, 0 }, \
+  \
+  {MXLV_NEWPORT_XPS_PCO_CONFIG_NAME, -1, "pco_config_name", MXFT_STRING, NULL,\
+				1, {MXU_NETWORK_XPS_PCO_CONFIG_NAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_NEWPORT_XPS_MOTOR, pco_config_name), \
+	{0}, NULL, 0 }, \
+  \
+  {MXLV_NEWPORT_XPS_PCO_CONFIG_VALUE, -1, "pco_config_value", \
+	    MXFT_STRING, NULL, 1, {MXU_NETWORK_XPS_PCO_CONFIG_NAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS_MOTOR, pco_config_value),\
 	{0}, NULL, 0 }
 
 #endif /* __D_NEWPORT_XPS_H__ */

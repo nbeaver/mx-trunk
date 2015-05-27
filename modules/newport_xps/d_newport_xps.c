@@ -552,7 +552,7 @@ mxd_newport_xps_home_or_set_position( MX_MOTOR *motor,
 /*--------------------------------------------------------------------------*/
 
 /*
- * mxd_newport_xps_move_thread() is a persisten MX thread function that
+ * mxd_newport_xps_move_thread() is a persistent MX thread function that
  * handles 'move', 'home search', and 'set position' commands.  It must
  * do all of its communication with the Newport controller via the socket
  * newport_xps_motor->move_thread_socket_id to avoid deadlocks.
@@ -737,6 +737,256 @@ mxd_newport_xps_send_command_to_move_thread(
 
 	return mx_status;
 }
+
+/*--------------------------------------------------------------------------*/
+
+static mx_status_type
+mxv_newport_xps_motor_pco_set_config_value( MX_MOTOR *motor,
+					MX_NEWPORT_XPS_MOTOR *newport_xps_motor,
+					MX_NEWPORT_XPS *newport_xps,
+					char *config_name,
+					char *config_value )
+{
+	static const char fname[] =
+		"mxv_newport_xps_motor_pco_set_config_value()";
+
+	char *config_value_copy;
+	int argc;
+	char **argv;
+	int xps_status;
+	mx_status_type mx_status;
+
+	config_value_copy = strdup( config_value );
+
+	if ( config_value_copy == (char *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"The attempt by record '%s' to make a copy "
+		"of string '%s' ran out of memory.",
+			motor->record->name,
+			config_value );
+	}
+
+	mx_string_split( config_value_copy, " ,", &argc, &argv );
+
+	config_name = newport_xps_motor->pco_config_name;
+
+	/* Disable any previously existing PCO configuration. */
+
+	xps_status = PositionerPositionCompareDisable(
+			newport_xps->socket_id,
+			newport_xps_motor->positioner_name );
+
+	if ( xps_status != SUCCESS ) {
+		mx_free( argv ); mx_free( config_value_copy );
+
+		return mxi_newport_xps_error(
+			newport_xps->socket_id,
+			"PositionerPositionCompareDisable()",
+			xps_status );
+	}
+
+	/* Now setup the new PCO configuration. */
+
+	if ( mx_strcasecmp( "disable", config_name ) == 0 ) {
+		/* We just disabled the PCO a few lines ago, so there
+		 * is no need to do it a second time.
+		 */
+	} else
+	if ( mx_strcasecmp( "distance_spaced_pulses", config_name ) == 0 ) {
+		double minimum_position, maximum_position, step_size;
+
+		if ( argc < 3 ) {
+			mx_free( argv ); mx_free( config_value_copy );
+
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"distance_spaced_pulses mode for variable '%s' has "
+			"fewer than 3 arguments in its configuration value "
+			"string '%s'.",
+				motor->record->name, config_value );
+		}
+
+		minimum_position = atof( argv[0] );
+		maximum_position = atof( argv[1] );
+		step_size        = atof( argv[2] );
+
+		xps_status = PositionerPositionCompareSet(
+					newport_xps->socket_id,
+					newport_xps_motor->positioner_name,
+					minimum_position,
+					maximum_position,
+					step_size );
+
+		if ( xps_status != SUCCESS ) {
+			mx_free( argv ); mx_free( config_value_copy );
+
+			return mxi_newport_xps_error( newport_xps->socket_id,
+				"PositionerPositionCompareSet()",
+				xps_status );
+		}
+
+		xps_status = PositionerPositionCompareEnable(
+					newport_xps->socket_id,
+					newport_xps_motor->positioner_name );
+
+		if ( xps_status != SUCCESS ) {
+			mx_free( argv ); mx_free( config_value_copy );
+
+			return mxi_newport_xps_error( newport_xps->socket_id,
+				"PositionerPositionCompareEnable()",
+				xps_status );
+		}
+	} else
+	if ( mx_strcasecmp( "time_spaced_pulses", config_name ) == 0 ) {
+		double minimum_position, maximum_position, time_interval;
+
+		if ( argc < 3 ) {
+			mx_free( argv ); mx_free( config_value_copy );
+
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"time_spaced_pulses mode for variable '%s' has "
+			"fewer than 3 arguments in its configuration value "
+			"string '%s'.",
+				motor->record->name, config_value );
+		}
+
+		minimum_position = atof( argv[0] );
+		maximum_position = atof( argv[1] );
+		time_interval    = atof( argv[2] );
+
+		xps_status = PositionerTimeFlasherSet(
+					newport_xps->socket_id,
+					newport_xps_motor->positioner_name,
+					minimum_position,
+					maximum_position,
+					time_interval );
+
+		if ( xps_status != SUCCESS ) {
+			mx_free( argv ); mx_free( config_value_copy );
+
+			return mxi_newport_xps_error( newport_xps->socket_id,
+				"PositionerTimeFlasherSet()",
+				xps_status );
+		}
+
+		xps_status = PositionerTimeFlasherEnable(
+					newport_xps->socket_id,
+					newport_xps_motor->positioner_name );
+
+		if ( xps_status != SUCCESS ) {
+			mx_free( argv ); mx_free( config_value_copy );
+
+			return mxi_newport_xps_error( newport_xps->socket_id,
+				"PositionerTimeFlasherEnable()",
+				xps_status );
+		}
+	} else
+	if ( mx_strcasecmp( "aquadb_always_enable", config_name ) == 0 ) {
+
+		MX_DEBUG(-2,("%s: motor '%s', aquadb_always_enable",
+			fname, motor->record->name ));
+
+		xps_status = PositionerPositionCompareAquadBAlwaysEnable(
+					newport_xps->socket_id,
+					newport_xps_motor->positioner_name );
+
+		if ( xps_status != SUCCESS ) {
+			mx_free( argv ); mx_free( config_value_copy );
+
+			return mxi_newport_xps_error(
+				newport_xps->socket_id,
+				"PositionerPositionCompareAquadBAlwaysEnable()",
+				xps_status );
+		}
+	} else
+	if ( mx_strcasecmp( "aquadb_windowed", config_name ) == 0 ) {
+		double window_low, window_high;
+
+		if ( argc < 2 ) {
+			mx_free( argv ); mx_free( config_value_copy );
+
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"aquadb_windowed mode for variable '%s' has fewer "
+			"than 3 arguments in its configuration value "
+			"string '%s'.",
+				motor->record->name, config_value );
+		}
+
+		window_low  = atof( argv[0] );
+		window_high = atof( argv[1] );
+
+		MX_DEBUG(-2,("%s: '%s' aquadb_windowed = %f, %f",
+		    fname, motor->record->name, window_low, window_high));
+
+		/* Set the window. */
+
+		xps_status = PositionerPositionCompareAquadBWindowedSet(
+					newport_xps->socket_id,
+					newport_xps_motor->positioner_name,
+					window_low, window_high );
+
+		if ( xps_status != SUCCESS ) {
+			mx_free( argv ); mx_free( config_value_copy );
+
+			return mxi_newport_xps_error(
+				newport_xps->socket_id,
+				"PositionerPositionCompareAquadBWindowedSet()",
+				xps_status );
+		}
+
+		/* Turn position compare on. */
+
+		xps_status = PositionerPositionCompareEnable(
+					newport_xps->socket_id,
+					newport_xps_motor->positioner_name );
+
+		if ( xps_status != SUCCESS ) {
+			mx_free( argv ); mx_free( config_value_copy );
+
+			return mxi_newport_xps_error(
+				newport_xps->socket_id,
+				"PositionerPositionCompareEnable()",
+				xps_status );
+		}
+
+#if 1
+		{
+		  int enabled;
+
+		  /* Verify that the window was set correctly. */
+
+		  window_low = window_high = 0;
+
+		  xps_status = PositionerPositionCompareAquadBWindowedGet(
+					newport_xps->socket_id,
+					newport_xps_motor->positioner_name,
+					&window_low, &window_high,
+					&enabled );
+
+		  if ( xps_status != SUCCESS ) {
+			mx_free( argv ); mx_free( config_value_copy );
+
+			return mxi_newport_xps_error(
+				newport_xps->socket_id,
+				"PositionerPositionCompareAquadBWindowedSet()",
+				xps_status );
+		  }
+
+		  MX_DEBUG(-2,("%s: '%s' aquadb_windowed values read = %f, %f",
+		    fname, motor->record->name, window_low, window_high));
+		}
+#endif
+
+	} else {
+		mx_free( argv ); mx_free( config_value_copy );
+
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Motor '%s' has a config name '%s' that is not recognized.",
+			motor->record->name, config_name );
+	}
+
+	return mx_status;
+}
+
 
 /*--------------------------------------------------------------------------*/
 
@@ -1068,6 +1318,8 @@ mxd_newport_xps_special_processing_setup( MX_RECORD *record )
 		case MXLV_NEWPORT_XPS_GROUP_STATUS:
 		case MXLV_NEWPORT_XPS_GROUP_STATUS_STRING:
 		case MXLV_NEWPORT_XPS_HARDWARE_STATUS:
+		case MXLV_NEWPORT_XPS_PCO_CONFIG_NAME:
+		case MXLV_NEWPORT_XPS_PCO_CONFIG_VALUE:
 		case MXLV_NEWPORT_XPS_POSITIONER_ERROR:
 			record_field->process_function
 					= mxd_newport_xps_process_function;
@@ -1090,6 +1342,7 @@ mxd_newport_xps_process_function( void *record_ptr,
 
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;
+	MX_MOTOR *motor;
 	MX_NEWPORT_XPS_MOTOR *newport_xps_motor;
 	MX_RECORD *newport_xps_record;
 	MX_NEWPORT_XPS *newport_xps;
@@ -1099,6 +1352,7 @@ mxd_newport_xps_process_function( void *record_ptr,
 
 	record = (MX_RECORD *) record_ptr;
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
+	motor = (MX_MOTOR *) record->record_class_struct;
 	newport_xps_motor = (MX_NEWPORT_XPS_MOTOR *) record->record_type_struct;
 	newport_xps_record = newport_xps_motor->newport_xps_record;
 	newport_xps = (MX_NEWPORT_XPS *) newport_xps_record->record_type_struct;
@@ -1220,6 +1474,24 @@ mxd_newport_xps_process_function( void *record_ptr,
 			}
 
 			newport_xps_motor->positioner_error = 0;
+			break;
+
+		case MXLV_NEWPORT_XPS_PCO_CONFIG_NAME:
+			/* If 'pco_config_name' is changed, we must overwrite
+			 * the existing contents of 'pco_config_value' so that
+		`	 * we do not attempt to use a config value string with
+		`	 * a configuration type that is not compatible.
+			 */
+
+			strlcpy( newport_xps_motor->pco_config_value, "",
+				sizeof(newport_xps_motor->pco_config_value) );
+			break;
+
+		case MXLV_NEWPORT_XPS_PCO_CONFIG_VALUE:
+			mx_status = mxv_newport_xps_motor_pco_set_config_value(
+					motor, newport_xps_motor, newport_xps,
+					newport_xps_motor->pco_config_name,
+					newport_xps_motor->pco_config_value );
 			break;
 		default:
 			MX_DEBUG( 1,(
