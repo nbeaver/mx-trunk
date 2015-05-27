@@ -287,51 +287,112 @@ mxv_newport_xps_motor_config_send_variable( MX_VARIABLE *variable )
 
 	mx_string_split( value_string_copy, " ,", &argc, &argv );
 
-	if ( argc < 1 ) {
-		mx_free( argv ); mx_free( value_string_copy );
-
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"The variable value for variable record '%s' is empty.",
-			variable->record->name );
-	}
-
 	config_name = newport_xps_motor_config->newport_xps_motor_config_name;
 
+	if ( mx_strcasecmp( "disable", config_name ) == 0 ) {
+		xps_status = PositionerPositionCompareDisable(
+				newport_xps->socket_id,
+				newport_xps_motor->positioner_name );
+
+		if ( xps_status != SUCCESS ) {
+			mx_free( argv ); mx_free( value_string_copy );
+
+			return mxi_newport_xps_error(
+				newport_xps->socket_id,
+				"PositionerPositionCompareDisable()",
+				xps_status );
+		}
+	} else
+	if ( mx_strcasecmp( "distance_spaced_pulses", config_name ) == 0 ) {
+		double minimum_position, maximum_position, step_size;
+
+		if ( argc < 3 ) {
+			mx_free( argv ); mx_free( value_string_copy );
+
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"distance_spaced_pulses mode for variable '%s' has "
+			"fewer than 3 arguments in its value string '%s'.",
+				variable->record->name, value_string );
+		}
+
+		minimum_position = atof( argv[0] );
+		maximum_position = atof( argv[1] );
+		step_size        = atof( argv[2] );
+
+		xps_status = PositionerPositionCompareSet(
+					newport_xps->socket_id,
+					newport_xps_motor->positioner_name,
+					minimum_position,
+					maximum_position,
+					step_size );
+
+		if ( xps_status != SUCCESS ) {
+			mx_free( argv ); mx_free( value_string_copy );
+
+			return mxi_newport_xps_error( newport_xps->socket_id,
+				"PositionerPositionCompareSet()",
+				xps_status );
+		}
+
+		xps_status = PositionerPositionCompareEnable(
+					newport_xps->socket_id,
+					newport_xps_motor->positioner_name );
+
+		if ( xps_status != SUCCESS ) {
+			mx_free( argv ); mx_free( value_string_copy );
+
+			return mxi_newport_xps_error( newport_xps->socket_id,
+				"PositionerPositionCompareEnable()",
+				xps_status );
+		}
+	} else
+	if ( mx_strcasecmp( "time_spaced_pulses", config_name ) == 0 ) {
+		double minimum_position, maximum_position, time_interval;
+
+		if ( argc < 3 ) {
+			mx_free( argv ); mx_free( value_string_copy );
+
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"time_spaced_pulses mode for variable '%s' has "
+			"fewer than 3 arguments in its value string '%s'.",
+				variable->record->name, value_string );
+		}
+
+		minimum_position = atof( argv[0] );
+		maximum_position = atof( argv[1] );
+		time_interval    = atof( argv[2] );
+
+		xps_status = PositionerTimeFlasherSet(
+					newport_xps->socket_id,
+					newport_xps_motor->positioner_name,
+					minimum_position,
+					maximum_position,
+					time_interval );
+
+		if ( xps_status != SUCCESS ) {
+			mx_free( argv ); mx_free( value_string_copy );
+
+			return mxi_newport_xps_error( newport_xps->socket_id,
+				"PositionerTimeFlasherSet()",
+				xps_status );
+		}
+	} else
 	if ( mx_strcasecmp( "aquadb_always_enable", config_name ) == 0 ) {
-		mx_bool_type always_enable;
 
-		always_enable = mx_get_true_or_false( argv[0] );
+		MX_DEBUG(-2,("%s: variable '%s', aquadb_always_enable",
+			fname, variable->record->name ));
 
-		MX_DEBUG(-2,("%s: variable '%s', always_enable = %d",
-			fname, variable->record->name, (int) always_enable));
-
-		if ( always_enable ) {
-			xps_status =
-			    PositionerPositionCompareAquadBAlwaysEnable(
+		xps_status = PositionerPositionCompareAquadBAlwaysEnable(
 					newport_xps->socket_id,
 					newport_xps_motor->positioner_name );
 
-			if ( xps_status != SUCCESS ) {
-				mx_free( argv ); mx_free( value_string_copy );
+		if ( xps_status != SUCCESS ) {
+			mx_free( argv ); mx_free( value_string_copy );
 
-				return mxi_newport_xps_error(
-					newport_xps->socket_id,
+			return mxi_newport_xps_error(
+				newport_xps->socket_id,
 				"PositionerPositionCompareAquadBAlwaysEnable()",
-					xps_status );
-			}
-		} else {
-			xps_status = PositionerPositionCompareDisable(
-					newport_xps->socket_id,
-					newport_xps_motor->positioner_name );
-
-			if ( xps_status != SUCCESS ) {
-				mx_free( argv ); mx_free( value_string_copy );
-
-				return mxi_newport_xps_error(
-					newport_xps->socket_id,
-					"PositionerPositionCompareDisable()",
-					xps_status );
-			}
+				xps_status );
 		}
 	} else
 	if ( mx_strcasecmp( "aquadb_windowed", config_name ) == 0 ) {
