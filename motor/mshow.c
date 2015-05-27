@@ -895,6 +895,8 @@ motor_show_version( void )
 {
 	MX_LIST_HEAD *list_head;
 	char os_version_string[80];
+	char architecture_type[80];
+	char architecture_subtype[80];
 	const char *revision_string;
 	unsigned long num_cores;
 	mx_status_type mx_status;
@@ -1002,13 +1004,23 @@ motor_show_version( void )
 
 /*-------------------------------------------------------------------------*/
 
+	mx_status = mx_get_cpu_architecture( architecture_type,
+					sizeof(architecture_type),
+					architecture_subtype,
+					sizeof(architecture_subtype) );
+
+	fprintf( output, "\nCPU type: '%s', subtype: '%s'\n",
+		architecture_type, architecture_subtype );
+
+/*-------------------------------------------------------------------------*/
+
 	mx_status = mx_get_number_of_cpu_cores( &num_cores );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		fprintf( output,
-			"\nError: Could not get number of CPU cores.\n" );
+			"Error: Could not get number of CPU cores.\n" );
 	} else {
-		fprintf( output, "\nCPU cores: %lu\n", num_cores );
+		fprintf( output, "CPU cores: %lu\n", num_cores );
 	}
 
 	fprintf( output, "Current CPU number: %lu\n",
