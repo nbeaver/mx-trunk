@@ -190,8 +190,8 @@ SendAndReceive( int SocketID,
 	/*---*/
 
 	if ( mxp_newport_xps_comm_debug_flag ) {
-		MX_DEBUG(-2,("XPS: sending '%s' to XPS socket %d",
-			sSendString, SocketID ));
+		MX_DEBUG(-2,("XPS: sending to XPS socket %d: '%s'",
+			SocketID, sSendString ));
 	}
 
 	mx_status = mx_socket_send( client_socket,
@@ -275,8 +275,8 @@ SendAndReceive( int SocketID,
 	} while ( exit_loop == FALSE );
 
 	if ( mxp_newport_xps_comm_debug_flag ) {
-		MX_DEBUG(-2,("XPS: received '%s' from XPS socket %d",
-			sReturnString, SocketID ));
+		MX_DEBUG(-2,("XPS: received from XPS socket %d: '%s'",
+			SocketID, sReturnString ));
 	}
 
 	return;
