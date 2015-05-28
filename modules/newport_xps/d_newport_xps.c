@@ -1254,6 +1254,7 @@ mxd_newport_xps_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if 0
 	/* Set the Position Compare Output (PCO) configuration. */
 
 	mx_status = mxd_newport_xps_motor_pco_set_config_value(
@@ -1263,6 +1264,7 @@ mxd_newport_xps_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+#endif
 
 	/* Start the move thread. */
 
