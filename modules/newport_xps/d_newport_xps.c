@@ -741,20 +741,23 @@ mxd_newport_xps_send_command_to_move_thread(
 /*--------------------------------------------------------------------------*/
 
 static mx_status_type
-mxv_newport_xps_motor_pco_set_config_value( MX_MOTOR *motor,
+mxd_newport_xps_motor_pco_set_config_value( MX_MOTOR *motor,
 					MX_NEWPORT_XPS_MOTOR *newport_xps_motor,
 					MX_NEWPORT_XPS *newport_xps,
 					char *config_name,
 					char *config_value )
 {
 	static const char fname[] =
-		"mxv_newport_xps_motor_pco_set_config_value()";
+		"mxd_newport_xps_motor_pco_set_config_value()";
 
 	char *config_value_copy;
 	int argc;
 	char **argv;
 	int xps_status;
 	mx_status_type mx_status;
+
+	MX_DEBUG(-2,("%s: motor '%s', config_name = '%s', config_value = '%s'",
+		fname, motor->record->name, config_name, config_value ));
 
 	config_value_copy = strdup( config_value );
 
@@ -1251,6 +1254,16 @@ mxd_newport_xps_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Set the Position Compare Output (PCO) configuration. */
+
+	mx_status = mxd_newport_xps_motor_pco_set_config_value(
+			motor, newport_xps_motor, newport_xps,
+			newport_xps_motor->pco_config_name,
+			newport_xps_motor->pco_config_value );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/* Start the move thread. */
 
 	mx_status = mx_thread_create( &(newport_xps_motor->move_thread),
@@ -1488,7 +1501,7 @@ mxd_newport_xps_process_function( void *record_ptr,
 			break;
 
 		case MXLV_NEWPORT_XPS_PCO_CONFIG_VALUE:
-			mx_status = mxv_newport_xps_motor_pco_set_config_value(
+			mx_status = mxd_newport_xps_motor_pco_set_config_value(
 					motor, newport_xps_motor, newport_xps,
 					newport_xps_motor->pco_config_name,
 					newport_xps_motor->pco_config_value );

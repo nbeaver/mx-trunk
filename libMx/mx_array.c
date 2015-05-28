@@ -2827,24 +2827,26 @@ mx_convert_and_copy_array(
 {
 	static const char fname[] = "mx_convert_and_copy_array()";
 
-	char char_source_value;
-	unsigned char uchar_source_value;
-	short short_source_value;
-	unsigned short ushort_source_value;
-	mx_bool_type bool_source_value;
-	long long_source_value;
-	unsigned long ulong_source_value;
-	float float_source_value;
-	double double_source_value;
-	char *char_dest_ptr;
-	unsigned char *uchar_dest_ptr;
-	short *short_dest_ptr;
-	unsigned short *ushort_dest_ptr;
-	mx_bool_type *bool_dest_ptr;
-	long *long_dest_ptr;
-	unsigned long *ulong_dest_ptr;
-	float *float_dest_ptr;
-	double *double_dest_ptr;
+	size_t i, num_items_to_copy;
+	size_t source_num_items_to_copy, destination_num_items_to_copy;
+	char *char_source_array;
+	char *char_dest_array;
+	unsigned char *uchar_source_array;
+	unsigned char *uchar_dest_array;
+	short *short_source_array;
+	short *short_dest_array;
+	unsigned short *ushort_source_array;
+	unsigned short *ushort_dest_array;
+	mx_bool_type *bool_source_array;
+	mx_bool_type *bool_dest_array;
+	long *long_source_array;
+	long *long_dest_array;
+	unsigned long *ulong_source_array;
+	unsigned long *ulong_dest_array;
+	float *float_source_array;
+	float *float_dest_array;
+	double *double_source_array;
+	double *double_dest_array;
 
 #if 0
 	MX_DEBUG(-2,("%s: source_array_pointer = %p, "
@@ -2857,90 +2859,134 @@ mx_convert_and_copy_array(
 			fname, destination_array_pointer,
 			destination_datatype, destination_num_dimensions));
 #endif
+	/*----*/
 
-	if ( ( source_num_dimensions == 0 )
-	  && ( destination_num_dimensions == 0 ) )
-	{
-		/* This case is supported. */
+	if ( source_num_dimensions == 0 ) {
+		source_num_items_to_copy = 1;
 	} else
-	if ( ( source_num_dimensions == 0 )
-	  && ( destination_num_dimensions == 1 ) )
-	{
-		/* This case is supported. */
-	} else
-	if ( ( source_num_dimensions == 1 )
-	  && ( destination_num_dimensions == 0 ) )
-	{
-		/* This case is supported. */
+	if ( source_num_dimensions == 1 ) {
+		source_num_items_to_copy = source_dimension_array[0];
 	} else {
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"Copying from a %ld-dimensional array to a %ld-dimensional "
-		"array is not yet implemented.",
-			source_num_dimensions, destination_num_dimensions );
+		"Copying from a source (%ld-dimensional) array "
+		"with 2 or more dimensions is not yet implemented.",
+			source_num_dimensions );
 	}
 
+	/*----*/
+
+	if ( destination_num_dimensions == 0 ) {
+		destination_num_items_to_copy = 1;
+	} else
+	if ( destination_num_dimensions == 1 ) {
+		destination_num_items_to_copy = destination_dimension_array[0];
+	} else {
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Copying to a destination (%ld-dimensional) array "
+		"with 2 or more dimensions is not yet implemented.",
+			destination_num_dimensions );
+	}
+
+	/*----*/
+
+	if ( source_num_items_to_copy > destination_num_items_to_copy ) {
+		num_items_to_copy = destination_num_items_to_copy;
+	} else {
+		num_items_to_copy = source_num_items_to_copy;
+	}
+
+	/*----*/
+
 	switch( source_datatype ) {
+	case MXFT_STRING:
+			/* Currently string arrays can only be copied to
+			 * other string arrays.
+			 */
+
+			strlcpy( destination_array_pointer,
+				source_array_pointer,
+				num_items_to_copy );
+			break;
+
 	case MXFT_CHAR:
-		char_source_value = *((char *) source_array_pointer);
+		char_source_array = (char *) source_array_pointer;
 
 		switch( destination_datatype ) {
 		case MXFT_CHAR:
-			char_dest_ptr = (char *) destination_array_pointer;
+			char_dest_array = (char *) destination_array_pointer;
 
-			*char_dest_ptr = char_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				char_dest_array[i] = char_source_array[i];
+			}
 			break;
 
 		case MXFT_UCHAR:
-			uchar_dest_ptr = (unsigned char *)
+			uchar_dest_array = (unsigned char *)
 						destination_array_pointer;
 
-			*uchar_dest_ptr = char_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				uchar_dest_array[i] = char_source_array[i];
+			}
 			break;
 
 		case MXFT_SHORT:
-			short_dest_ptr = (short *) destination_array_pointer;
+			short_dest_array = (short *) destination_array_pointer;
 
-			*short_dest_ptr = char_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				short_dest_array[i] = char_source_array[i];
+			}
 			break;
 
 		case MXFT_USHORT:
-			ushort_dest_ptr = (unsigned short *)
+			ushort_dest_array = (unsigned short *)
 						destination_array_pointer;
 
-			*ushort_dest_ptr = char_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				ushort_dest_array[i] = char_source_array[i];
+			}
 			break;
 
 		case MXFT_BOOL:
-			bool_dest_ptr = (mx_bool_type *)
+			bool_dest_array = (mx_bool_type *)
 						destination_array_pointer;
 
-			*bool_dest_ptr = char_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				bool_dest_array[i] = char_source_array[i];
+			}
 			break;
 
 		case MXFT_LONG:
-			long_dest_ptr = (long *) destination_array_pointer;
+			long_dest_array = (long *) destination_array_pointer;
 
-			*long_dest_ptr = char_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				long_dest_array[i] = char_source_array[i];
+			}
 			break;
 
 		case MXFT_ULONG:
 		case MXFT_HEX:
-			ulong_dest_ptr = (unsigned long *)
+			ulong_dest_array = (unsigned long *)
 						destination_array_pointer;
 
-			*ulong_dest_ptr = char_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				ulong_dest_array[i] = char_source_array[i];
+			}
 			break;
 
 		case MXFT_FLOAT:
-			float_dest_ptr = (float *) destination_array_pointer;
+			float_dest_array = (float *) destination_array_pointer;
 
-			*float_dest_ptr = (float) char_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				float_dest_array[i] = char_source_array[i];
+			}
 			break;
 
 		case MXFT_DOUBLE:
-			double_dest_ptr = (double *) destination_array_pointer;
+			double_dest_array = (double *)destination_array_pointer;
 
-			*double_dest_ptr = (double) char_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				double_dest_array[i] = char_source_array[i];
+			}
 			break;
 
 		default:
@@ -2952,66 +2998,84 @@ mx_convert_and_copy_array(
 		break;
 
 	case MXFT_UCHAR:
-		uchar_source_value = *((unsigned char *) source_array_pointer);
+		uchar_source_array = (unsigned char *) source_array_pointer;
 
 		switch( destination_datatype ) {
 		case MXFT_CHAR:
-			char_dest_ptr = (char *) destination_array_pointer;
+			char_dest_array = (char *) destination_array_pointer;
 
-			*char_dest_ptr = uchar_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				char_dest_array[i] = uchar_source_array[i];
+			}
 			break;
 
 		case MXFT_UCHAR:
-			uchar_dest_ptr = (unsigned char *)
+			uchar_dest_array = (unsigned char *)
 						destination_array_pointer;
 
-			*uchar_dest_ptr = uchar_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				uchar_dest_array[i] = uchar_source_array[i];
+			}
 			break;
 
 		case MXFT_SHORT:
-			short_dest_ptr = (short *) destination_array_pointer;
+			short_dest_array = (short *) destination_array_pointer;
 
-			*short_dest_ptr = uchar_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				short_dest_array[i] = uchar_source_array[i];
+			}
 			break;
 
 		case MXFT_USHORT:
-			ushort_dest_ptr = (unsigned short *)
+			ushort_dest_array = (unsigned short *)
 						destination_array_pointer;
 
-			*ushort_dest_ptr = uchar_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				ushort_dest_array[i] = uchar_source_array[i];
+			}
 			break;
 
 		case MXFT_BOOL:
-			bool_dest_ptr = (mx_bool_type *)
+			bool_dest_array = (mx_bool_type *)
 						destination_array_pointer;
 
-			*bool_dest_ptr = uchar_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				bool_dest_array[i] = uchar_source_array[i];
+			}
 			break;
 
 		case MXFT_LONG:
-			long_dest_ptr = (long *) destination_array_pointer;
+			long_dest_array = (long *) destination_array_pointer;
 
-			*long_dest_ptr = uchar_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				long_dest_array[i] = uchar_source_array[i];
+			}
 			break;
 
 		case MXFT_ULONG:
 		case MXFT_HEX:
-			ulong_dest_ptr = (unsigned long *)
+			ulong_dest_array = (unsigned long *)
 						destination_array_pointer;
 
-			*ulong_dest_ptr = uchar_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				ulong_dest_array[i] = uchar_source_array[i];
+			}
 			break;
 
 		case MXFT_FLOAT:
-			float_dest_ptr = (float *) destination_array_pointer;
+			float_dest_array = (float *) destination_array_pointer;
 
-			*float_dest_ptr = (float) uchar_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				float_dest_array[i] = uchar_source_array[i];
+			}
 			break;
 
 		case MXFT_DOUBLE:
-			double_dest_ptr = (double *) destination_array_pointer;
+			double_dest_array = (double *)destination_array_pointer;
 
-			*double_dest_ptr = (double) uchar_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				double_dest_array[i] = uchar_source_array[i];
+			}
 			break;
 
 		default:
@@ -3023,66 +3087,84 @@ mx_convert_and_copy_array(
 		break;
 
 	case MXFT_SHORT:
-		short_source_value = *((short *) source_array_pointer);
+		short_source_array = (short *) source_array_pointer;
 
 		switch( destination_datatype ) {
 		case MXFT_CHAR:
-			char_dest_ptr = (char *) destination_array_pointer;
+			char_dest_array = (char *) destination_array_pointer;
 
-			*char_dest_ptr = short_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				char_dest_array[i] = short_source_array[i];
+			}
 			break;
 
 		case MXFT_UCHAR:
-			uchar_dest_ptr = (unsigned char *)
+			uchar_dest_array = (unsigned char *)
 						destination_array_pointer;
 
-			*uchar_dest_ptr = short_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				uchar_dest_array[i] = short_source_array[i];
+			}
 			break;
 
 		case MXFT_SHORT:
-			short_dest_ptr = (short *) destination_array_pointer;
+			short_dest_array = (short *) destination_array_pointer;
 
-			*short_dest_ptr = short_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				short_dest_array[i] = short_source_array[i];
+			}
 			break;
 
 		case MXFT_USHORT:
-			ushort_dest_ptr = (unsigned short *)
+			ushort_dest_array = (unsigned short *)
 						destination_array_pointer;
 
-			*ushort_dest_ptr = short_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				ushort_dest_array[i] = short_source_array[i];
+			}
 			break;
 
 		case MXFT_BOOL:
-			bool_dest_ptr = (mx_bool_type *)
+			bool_dest_array = (mx_bool_type *)
 						destination_array_pointer;
 
-			*bool_dest_ptr = short_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				bool_dest_array[i] = short_source_array[i];
+			}
 			break;
 
 		case MXFT_LONG:
-			long_dest_ptr = (long *) destination_array_pointer;
+			long_dest_array = (long *) destination_array_pointer;
 
-			*long_dest_ptr = short_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				long_dest_array[i] = short_source_array[i];
+			}
 			break;
 
 		case MXFT_ULONG:
 		case MXFT_HEX:
-			ulong_dest_ptr = (unsigned long *)
+			ulong_dest_array = (unsigned long *)
 						destination_array_pointer;
 
-			*ulong_dest_ptr = short_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				ulong_dest_array[i] = short_source_array[i];
+			}
 			break;
 
 		case MXFT_FLOAT:
-			float_dest_ptr = (float *) destination_array_pointer;
+			float_dest_array = (float *) destination_array_pointer;
 
-			*float_dest_ptr = (float) short_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				float_dest_array[i] = short_source_array[i];
+			}
 			break;
 
 		case MXFT_DOUBLE:
-			double_dest_ptr = (double *) destination_array_pointer;
+			double_dest_array = (double *)destination_array_pointer;
 
-			*double_dest_ptr = (double) short_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				double_dest_array[i] = short_source_array[i];
+			}
 			break;
 
 		default:
@@ -3094,66 +3176,84 @@ mx_convert_and_copy_array(
 		break;
 
 	case MXFT_USHORT:
-		ushort_source_value = *((unsigned short *)source_array_pointer);
+		ushort_source_array = (unsigned short *) source_array_pointer;
 
 		switch( destination_datatype ) {
 		case MXFT_CHAR:
-			char_dest_ptr = (char *) destination_array_pointer;
+			char_dest_array = (char *) destination_array_pointer;
 
-			*char_dest_ptr = ushort_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				char_dest_array[i] = ushort_source_array[i];
+			}
 			break;
 
 		case MXFT_UCHAR:
-			uchar_dest_ptr = (unsigned char *)
+			uchar_dest_array = (unsigned char *)
 						destination_array_pointer;
 
-			*uchar_dest_ptr = ushort_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				uchar_dest_array[i] = ushort_source_array[i];
+			}
 			break;
 
 		case MXFT_SHORT:
-			short_dest_ptr = (short *) destination_array_pointer;
+			short_dest_array = (short *) destination_array_pointer;
 
-			*short_dest_ptr = ushort_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				short_dest_array[i] = ushort_source_array[i];
+			}
 			break;
 
 		case MXFT_USHORT:
-			ushort_dest_ptr = (unsigned short *)
+			ushort_dest_array = (unsigned short *)
 						destination_array_pointer;
 
-			*ushort_dest_ptr = ushort_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				ushort_dest_array[i] = ushort_source_array[i];
+			}
 			break;
 
 		case MXFT_BOOL:
-			bool_dest_ptr = (mx_bool_type *)
+			bool_dest_array = (mx_bool_type *)
 						destination_array_pointer;
 
-			*bool_dest_ptr = ushort_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				bool_dest_array[i] = ushort_source_array[i];
+			}
 			break;
 
 		case MXFT_LONG:
-			long_dest_ptr = (long *) destination_array_pointer;
+			long_dest_array = (long *) destination_array_pointer;
 
-			*long_dest_ptr = ushort_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				long_dest_array[i] = ushort_source_array[i];
+			}
 			break;
 
 		case MXFT_ULONG:
 		case MXFT_HEX:
-			ulong_dest_ptr = (unsigned long *)
+			ulong_dest_array = (unsigned long *)
 						destination_array_pointer;
 
-			*ulong_dest_ptr = ushort_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				ulong_dest_array[i] = ushort_source_array[i];
+			}
 			break;
 
 		case MXFT_FLOAT:
-			float_dest_ptr = (float *) destination_array_pointer;
+			float_dest_array = (float *) destination_array_pointer;
 
-			*float_dest_ptr = (float) ushort_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				float_dest_array[i] = ushort_source_array[i];
+			}
 			break;
 
 		case MXFT_DOUBLE:
-			double_dest_ptr = (double *) destination_array_pointer;
+			double_dest_array = (double *)destination_array_pointer;
 
-			*double_dest_ptr = (double) ushort_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				double_dest_array[i] = ushort_source_array[i];
+			}
 			break;
 
 		default:
@@ -3165,66 +3265,84 @@ mx_convert_and_copy_array(
 		break;
 
 	case MXFT_BOOL:
-		bool_source_value = *((mx_bool_type *) source_array_pointer);
+		bool_source_array = (mx_bool_type *) source_array_pointer;
 
 		switch( destination_datatype ) {
 		case MXFT_CHAR:
-			char_dest_ptr = (char *) destination_array_pointer;
+			char_dest_array = (char *) destination_array_pointer;
 
-			*char_dest_ptr = bool_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				char_dest_array[i] = bool_source_array[i];
+			}
 			break;
 
 		case MXFT_UCHAR:
-			uchar_dest_ptr = (unsigned char *)
+			uchar_dest_array = (unsigned char *)
 						destination_array_pointer;
 
-			*uchar_dest_ptr = bool_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				uchar_dest_array[i] = bool_source_array[i];
+			}
 			break;
 
 		case MXFT_SHORT:
-			short_dest_ptr = (short *) destination_array_pointer;
+			short_dest_array = (short *) destination_array_pointer;
 
-			*short_dest_ptr = bool_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				short_dest_array[i] = bool_source_array[i];
+			}
 			break;
 
 		case MXFT_USHORT:
-			ushort_dest_ptr = (unsigned short *)
+			ushort_dest_array = (unsigned short *)
 						destination_array_pointer;
 
-			*ushort_dest_ptr = bool_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				ushort_dest_array[i] = bool_source_array[i];
+			}
 			break;
 
 		case MXFT_BOOL:
-			bool_dest_ptr = (mx_bool_type *)
+			bool_dest_array = (mx_bool_type *)
 						destination_array_pointer;
 
-			*bool_dest_ptr = bool_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				bool_dest_array[i] = bool_source_array[i];
+			}
 			break;
 
 		case MXFT_LONG:
-			long_dest_ptr = (long *) destination_array_pointer;
+			long_dest_array = (long *) destination_array_pointer;
 
-			*long_dest_ptr = bool_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				long_dest_array[i] = bool_source_array[i];
+			}
 			break;
 
 		case MXFT_ULONG:
 		case MXFT_HEX:
-			ulong_dest_ptr = (unsigned long *)
+			ulong_dest_array = (unsigned long *)
 						destination_array_pointer;
 
-			*ulong_dest_ptr = bool_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				ulong_dest_array[i] = bool_source_array[i];
+			}
 			break;
 
 		case MXFT_FLOAT:
-			float_dest_ptr = (float *) destination_array_pointer;
+			float_dest_array = (float *) destination_array_pointer;
 
-			*float_dest_ptr = (float) bool_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				float_dest_array[i] = bool_source_array[i];
+			}
 			break;
 
 		case MXFT_DOUBLE:
-			double_dest_ptr = (double *) destination_array_pointer;
+			double_dest_array = (double *)destination_array_pointer;
 
-			*double_dest_ptr = (double) bool_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				double_dest_array[i] = bool_source_array[i];
+			}
 			break;
 
 		default:
@@ -3236,66 +3354,84 @@ mx_convert_and_copy_array(
 		break;
 
 	case MXFT_LONG:
-		long_source_value = *((long *) source_array_pointer);
+		long_source_array = (long *) source_array_pointer;
 
 		switch( destination_datatype ) {
 		case MXFT_CHAR:
-			char_dest_ptr = (char *) destination_array_pointer;
+			char_dest_array = (char *) destination_array_pointer;
 
-			*char_dest_ptr = (char) long_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				char_dest_array[i] = long_source_array[i];
+			}
 			break;
 
 		case MXFT_UCHAR:
-			uchar_dest_ptr = (unsigned char *)
+			uchar_dest_array = (unsigned char *)
 						destination_array_pointer;
 
-			*uchar_dest_ptr = (unsigned char) long_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				uchar_dest_array[i] = long_source_array[i];
+			}
 			break;
 
 		case MXFT_SHORT:
-			short_dest_ptr = (short *) destination_array_pointer;
+			short_dest_array = (short *) destination_array_pointer;
 
-			*short_dest_ptr = (short) long_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				short_dest_array[i] = long_source_array[i];
+			}
 			break;
 
 		case MXFT_USHORT:
-			ushort_dest_ptr = (unsigned short *)
+			ushort_dest_array = (unsigned short *)
 						destination_array_pointer;
 
-			*ushort_dest_ptr = (unsigned short) long_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				ushort_dest_array[i] = long_source_array[i];
+			}
 			break;
 
 		case MXFT_BOOL:
-			bool_dest_ptr = (mx_bool_type *)
+			bool_dest_array = (mx_bool_type *)
 						destination_array_pointer;
 
-			*bool_dest_ptr = long_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				bool_dest_array[i] = long_source_array[i];
+			}
 			break;
 
 		case MXFT_LONG:
-			long_dest_ptr = (long *) destination_array_pointer;
+			long_dest_array = (long *) destination_array_pointer;
 
-			*long_dest_ptr = long_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				long_dest_array[i] = long_source_array[i];
+			}
 			break;
 
 		case MXFT_ULONG:
 		case MXFT_HEX:
-			ulong_dest_ptr = (unsigned long *)
+			ulong_dest_array = (unsigned long *)
 						destination_array_pointer;
 
-			*ulong_dest_ptr = long_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				ulong_dest_array[i] = long_source_array[i];
+			}
 			break;
 
 		case MXFT_FLOAT:
-			float_dest_ptr = (float *) destination_array_pointer;
+			float_dest_array = (float *) destination_array_pointer;
 
-			*float_dest_ptr = (float) long_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				float_dest_array[i] = long_source_array[i];
+			}
 			break;
 
 		case MXFT_DOUBLE:
-			double_dest_ptr = (double *) destination_array_pointer;
+			double_dest_array = (double *)destination_array_pointer;
 
-			*double_dest_ptr = (double) long_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				double_dest_array[i] = long_source_array[i];
+			}
 			break;
 
 		default:
@@ -3308,66 +3444,84 @@ mx_convert_and_copy_array(
 
 	case MXFT_ULONG:
 	case MXFT_HEX:
-		ulong_source_value = *((unsigned long *) source_array_pointer);
+		ulong_source_array = (unsigned long *) source_array_pointer;
 
 		switch( destination_datatype ) {
 		case MXFT_CHAR:
-			char_dest_ptr = (char *) destination_array_pointer;
+			char_dest_array = (char *) destination_array_pointer;
 
-			*char_dest_ptr = (char) ulong_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				char_dest_array[i] = ulong_source_array[i];
+			}
 			break;
 
 		case MXFT_UCHAR:
-			uchar_dest_ptr = (unsigned char *)
+			uchar_dest_array = (unsigned char *)
 						destination_array_pointer;
 
-			*uchar_dest_ptr = (unsigned char) ulong_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				uchar_dest_array[i] = ulong_source_array[i];
+			}
 			break;
 
 		case MXFT_SHORT:
-			short_dest_ptr = (short *) destination_array_pointer;
+			short_dest_array = (short *) destination_array_pointer;
 
-			*short_dest_ptr = (short) ulong_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				short_dest_array[i] = ulong_source_array[i];
+			}
 			break;
 
 		case MXFT_USHORT:
-			ushort_dest_ptr = (unsigned short *)
+			ushort_dest_array = (unsigned short *)
 						destination_array_pointer;
 
-			*ushort_dest_ptr = (unsigned short) ulong_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				ushort_dest_array[i] = ulong_source_array[i];
+			}
 			break;
 
 		case MXFT_BOOL:
-			bool_dest_ptr = (mx_bool_type *)
+			bool_dest_array = (mx_bool_type *)
 						destination_array_pointer;
 
-			*bool_dest_ptr = (mx_bool_type) ulong_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				bool_dest_array[i] = ulong_source_array[i];
+			}
 			break;
 
 		case MXFT_LONG:
-			long_dest_ptr = (long *) destination_array_pointer;
+			long_dest_array = (long *) destination_array_pointer;
 
-			*long_dest_ptr = (long) ulong_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				long_dest_array[i] = ulong_source_array[i];
+			}
 			break;
 
 		case MXFT_ULONG:
 		case MXFT_HEX:
-			ulong_dest_ptr = (unsigned long *)
+			ulong_dest_array = (unsigned long *)
 						destination_array_pointer;
 
-			*ulong_dest_ptr = ulong_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				ulong_dest_array[i] = ulong_source_array[i];
+			}
 			break;
 
 		case MXFT_FLOAT:
-			float_dest_ptr = (float *) destination_array_pointer;
+			float_dest_array = (float *) destination_array_pointer;
 
-			*float_dest_ptr = (float) ulong_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				float_dest_array[i] = ulong_source_array[i];
+			}
 			break;
 
 		case MXFT_DOUBLE:
-			double_dest_ptr = (double *) destination_array_pointer;
+			double_dest_array = (double *)destination_array_pointer;
 
-			*double_dest_ptr = (double) ulong_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				double_dest_array[i] = ulong_source_array[i];
+			}
 			break;
 
 		default:
@@ -3379,69 +3533,84 @@ mx_convert_and_copy_array(
 		break;
 
 	case MXFT_FLOAT:
-		float_source_value = *((float *) source_array_pointer);
+		float_source_array = (float *) source_array_pointer;
 
 		switch( destination_datatype ) {
 		case MXFT_CHAR:
-			char_dest_ptr = (char *) destination_array_pointer;
+			char_dest_array = (char *) destination_array_pointer;
 
-			*char_dest_ptr = (char) mx_round( float_source_value );
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				char_dest_array[i] = float_source_array[i];
+			}
 			break;
 
 		case MXFT_UCHAR:
-			uchar_dest_ptr = (unsigned char *)
+			uchar_dest_array = (unsigned char *)
 						destination_array_pointer;
 
-			*uchar_dest_ptr = (unsigned char)
-						mx_round( float_source_value );
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				uchar_dest_array[i] = float_source_array[i];
+			}
 			break;
 
 		case MXFT_SHORT:
-			short_dest_ptr = (short *) destination_array_pointer;
+			short_dest_array = (short *) destination_array_pointer;
 
-			*short_dest_ptr = (short)
-						mx_round( float_source_value );
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				short_dest_array[i] = float_source_array[i];
+			}
 			break;
 
 		case MXFT_USHORT:
-			ushort_dest_ptr = (unsigned short *)
+			ushort_dest_array = (unsigned short *)
 						destination_array_pointer;
 
-			*ushort_dest_ptr = (unsigned short)
-						mx_round( float_source_value );
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				ushort_dest_array[i] = float_source_array[i];
+			}
 			break;
 
 		case MXFT_BOOL:
-			bool_dest_ptr = (mx_bool_type *)
+			bool_dest_array = (mx_bool_type *)
 						destination_array_pointer;
 
-			*bool_dest_ptr = mx_round( float_source_value );
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				bool_dest_array[i] = float_source_array[i];
+			}
 			break;
 
 		case MXFT_LONG:
-			long_dest_ptr = (long *) destination_array_pointer;
+			long_dest_array = (long *) destination_array_pointer;
 
-			*long_dest_ptr = mx_round( float_source_value );
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				long_dest_array[i] = float_source_array[i];
+			}
 			break;
 
 		case MXFT_ULONG:
 		case MXFT_HEX:
-			ulong_dest_ptr = (unsigned long *)
+			ulong_dest_array = (unsigned long *)
 						destination_array_pointer;
 
-			*ulong_dest_ptr = mx_round( float_source_value );
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				ulong_dest_array[i] = float_source_array[i];
+			}
 			break;
 
 		case MXFT_FLOAT:
-			float_dest_ptr = (float *) destination_array_pointer;
+			float_dest_array = (float *) destination_array_pointer;
 
-			*float_dest_ptr = float_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				float_dest_array[i] = float_source_array[i];
+			}
 			break;
 
 		case MXFT_DOUBLE:
-			double_dest_ptr = (double *) destination_array_pointer;
+			double_dest_array = (double *)destination_array_pointer;
 
-			*double_dest_ptr = float_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				double_dest_array[i] = float_source_array[i];
+			}
 			break;
 
 		default:
@@ -3453,69 +3622,84 @@ mx_convert_and_copy_array(
 		break;
 
 	case MXFT_DOUBLE:
-		double_source_value = *((double *) source_array_pointer);
+		double_source_array = (double *) source_array_pointer;
 
 		switch( destination_datatype ) {
 		case MXFT_CHAR:
-			char_dest_ptr = (char *) destination_array_pointer;
+			char_dest_array = (char *) destination_array_pointer;
 
-			*char_dest_ptr = (char) mx_round( double_source_value );
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				char_dest_array[i] = double_source_array[i];
+			}
 			break;
 
 		case MXFT_UCHAR:
-			uchar_dest_ptr = (unsigned char *)
+			uchar_dest_array = (unsigned char *)
 						destination_array_pointer;
 
-			*uchar_dest_ptr = (unsigned char)
-						mx_round( double_source_value );
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				uchar_dest_array[i] = double_source_array[i];
+			}
 			break;
 
 		case MXFT_SHORT:
-			short_dest_ptr = (short *) destination_array_pointer;
+			short_dest_array = (short *) destination_array_pointer;
 
-			*short_dest_ptr = (short)
-						mx_round( double_source_value );
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				short_dest_array[i] = double_source_array[i];
+			}
 			break;
 
 		case MXFT_USHORT:
-			ushort_dest_ptr = (unsigned short *)
+			ushort_dest_array = (unsigned short *)
 						destination_array_pointer;
 
-			*ushort_dest_ptr = (unsigned short)
-						mx_round( double_source_value );
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				ushort_dest_array[i] = double_source_array[i];
+			}
 			break;
 
 		case MXFT_BOOL:
-			bool_dest_ptr = (mx_bool_type *)
+			bool_dest_array = (mx_bool_type *)
 						destination_array_pointer;
 
-			*bool_dest_ptr = mx_round( double_source_value );
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				bool_dest_array[i] = double_source_array[i];
+			}
 			break;
 
 		case MXFT_LONG:
-			long_dest_ptr = (long *) destination_array_pointer;
+			long_dest_array = (long *) destination_array_pointer;
 
-			*long_dest_ptr = mx_round( double_source_value );
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				long_dest_array[i] = double_source_array[i];
+			}
 			break;
 
 		case MXFT_ULONG:
 		case MXFT_HEX:
-			ulong_dest_ptr = (unsigned long *)
+			ulong_dest_array = (unsigned long *)
 						destination_array_pointer;
 
-			*ulong_dest_ptr = mx_round( double_source_value );
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				ulong_dest_array[i] = double_source_array[i];
+			}
 			break;
 
 		case MXFT_FLOAT:
-			float_dest_ptr = (float *) destination_array_pointer;
+			float_dest_array = (float *) destination_array_pointer;
 
-			*float_dest_ptr = double_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				float_dest_array[i] = double_source_array[i];
+			}
 			break;
 
 		case MXFT_DOUBLE:
-			double_dest_ptr = (double *) destination_array_pointer;
+			double_dest_array = (double *)destination_array_pointer;
 
-			*double_dest_ptr = double_source_value;
+			for ( i = 0; i < num_items_to_copy; i++ ) {
+				double_dest_array[i] = double_source_array[i];
+			}
 			break;
 
 		default:
@@ -3525,6 +3709,7 @@ mx_convert_and_copy_array(
 			break;
 		}
 		break;
+
 	default:
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 		    "MX datatype %ld is not yet implemented for this function.",
