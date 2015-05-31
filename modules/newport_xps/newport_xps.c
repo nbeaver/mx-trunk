@@ -25,7 +25,6 @@
 #include "mx_variable.h"
 #include "i_newport_xps.h"
 #include "d_newport_xps.h"
-#include "v_newport_xps_motor_pco.h"
 
 MX_DRIVER newport_xps_driver_table[] = {
 
@@ -42,13 +41,6 @@ MX_DRIVER newport_xps_driver_table[] = {
 			&mxd_newport_xps_motor_function_list,
 			&mxd_newport_xps_num_record_fields,
 			&mxd_newport_xps_rfield_def_ptr},
-
-{"newport_xps_motor_pco", -1, MXV_SPECIAL, MXR_VARIABLE,
-			&mxv_newport_xps_motor_pco_record_function_list,
-			&mxv_newport_xps_motor_pco_variable_function_list,
-			NULL,
-			&mxv_newport_xps_motor_pco_num_record_fields,
-			&mxv_newport_xps_motor_pco_rfield_def_ptr},
 
 {"", 0, 0, 0, NULL, NULL, NULL, NULL, NULL}
 };

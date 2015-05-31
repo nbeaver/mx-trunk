@@ -2861,6 +2861,15 @@ mx_convert_and_copy_array(
 #endif
 	/*----*/
 
+	if ( source_array_pointer == destination_array_pointer ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The source array pointer and the destination array pointer "
+		"have the same address %p, so they are the same array.",
+			source_array_pointer );
+	}
+
+	/*----*/
+
 	if ( source_num_dimensions == 0 ) {
 		source_num_items_to_copy = 1;
 	} else

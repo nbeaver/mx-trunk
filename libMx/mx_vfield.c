@@ -466,7 +466,22 @@ mxv_field_variable_finish_record_initialization( MX_RECORD *record )
 
 	field_variable->internal_field = internal_field;
 
-	/* Modify the internal field to match the external field. */
+	/* Save some parameters from the original contents of the internal
+	 * field.  If we are supposed to write to the external field at
+	 * startup time, then we will need these values then.
+	 */
+
+	field_variable->original_datatype = internal_field->datatype;
+	field_variable->original_num_dimensions =
+					internal_field->num_dimensions;
+	field_variable->original_dimension = internal_field->dimension;
+	field_variable->original_data_element_size =
+					internal_field->data_element_size;
+	field_variable->original_data_pointer = internal_field->data_pointer;
+	field_variable->original_value_pointer =
+				mx_get_field_value_pointer( internal_field );
+
+	/* Now modify the internal field to match the external field. */
 
 	mx_status = mx_get_datatype_sizeof_array( external_field->datatype,
 						&external_sizeof_array );
@@ -490,11 +505,12 @@ mxv_field_variable_finish_record_initialization( MX_RECORD *record )
 			record->name, external_field->num_dimensions );
 	}
 
-	internal_field->datatype = external_field->datatype;
-	internal_field->data_pointer = external_field->data_pointer;
-
 	internal_field->flags = external_field->flags;
 	internal_field->flags |= MXFF_IN_SUMMARY;
+
+	internal_field->datatype = external_field->datatype;
+
+	internal_field->data_pointer = external_field->data_pointer;
 
 #if 0
 	fprintf( stderr, "Internal " );
@@ -515,6 +531,9 @@ mxv_field_variable_open( MX_RECORD *record )
 
 	MX_VARIABLE *variable = NULL;
 	MX_FIELD_VARIABLE *field_variable = NULL;
+	MX_RECORD_FIELD *internal_field = NULL;
+	MX_RECORD_FIELD *external_field = NULL;
+	void *external_value_ptr = NULL;
 	unsigned long flags;
 	mx_status_type mx_status;
 
@@ -531,10 +550,93 @@ mxv_field_variable_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/*----*/
+
+	internal_field = field_variable->internal_field;
+
+	if ( internal_field == (MX_RECORD_FIELD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The internal_field pointer of variable '%s' is NULL.",
+			variable->record->name );
+	}
+
+	/*----*/
+
+	external_field = field_variable->external_field;
+
+	if ( external_field == (MX_RECORD_FIELD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The external_field pointer of variable '%s' is NULL.",
+			variable->record->name );
+	}
+
+	external_value_ptr = mx_get_field_value_pointer(external_field);
+
+	if ( external_value_ptr == (void *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The external_value_ptr for external field '%s.%s' used by "
+		"variable '%s' is NULL.",
+			external_field->record->name,
+			external_field->name,
+			variable->record->name );
+	}
+
+	/*----*/
+
 	flags = field_variable->external_field_flags;
 
+	if ( flags & MXF_FIELD_VARIABLE_READ_ONLY ) {
+		/* Enforce the read-only nature of this variable by setting
+		 * the MXFF_READ_ONLY flag in the internal 'value' field's
+		 * 'flags' element.
+		 */
+
+		internal_field->flags |= MXFF_READ_ONLY;
+	} else
+	if ( (external_field->flags) & MXFF_READ_ONLY ) {
+		/* In addition, if the external field itself has the
+		 * read-only flag set, then we set the internal 'value'
+		 * field to read-only as well.
+		 */
+
+		internal_field->flags |= MXFF_READ_ONLY;
+	} else
 	if ( flags & MXF_FIELD_VARIABLE_WRITE_ON_OPEN ) {
-		mx_status = mxv_field_variable_send_variable( variable );
+
+		/* If we are to write a value from the field variable to the
+		 * external field at startup time, then we must copy the
+		 * starting value of the field from the original saved value
+		 * array found at field_variable->original_value_pointer.
+		 */
+
+		mx_status = mx_initialize_record_processing(
+				field_variable->external_record );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_convert_and_copy_array(
+				field_variable->original_value_pointer,
+				field_variable->original_datatype,
+				field_variable->original_num_dimensions,
+				field_variable->original_dimension,
+				field_variable->original_data_element_size,
+				external_value_ptr,
+				external_field->datatype,
+				external_field->num_dimensions,
+				external_field->dimension,
+				external_field->data_element_size );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_process_record_field(
+				field_variable->external_record,
+				external_field,
+				MX_PROCESS_PUT, NULL );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	return mx_status;
@@ -546,8 +648,6 @@ mxv_field_variable_send_variable( MX_VARIABLE *variable )
 	static const char fname[] = "mxv_field_variable_send_variable()";
 
 	MX_FIELD_VARIABLE *field_variable;
-	MX_RECORD_FIELD *internal_field, *external_field;
-	void *internal_value_ptr, *external_value_ptr;
 	unsigned long flags;
 	mx_status_type mx_status;
 
@@ -577,37 +677,12 @@ mxv_field_variable_send_variable( MX_VARIABLE *variable )
 
 	/*---*/
 
-	internal_field = field_variable->internal_field;
-
-	internal_value_ptr = mx_get_field_value_pointer( internal_field );
-
-	external_field = field_variable->external_field;
-
-	external_value_ptr = mx_get_field_value_pointer( external_field );
-
-	if ( external_field->flags & MXFF_READ_ONLY ) {
-		return mx_error( MXE_READ_ONLY, fname,
-		"External field '%s' used by record '%s' is read only.",
-			field_variable->external_field_name,
-			variable->record->name );
-	}
-
-	mx_status = mx_convert_and_copy_array( internal_value_ptr,
-					internal_field->datatype,
-					internal_field->num_dimensions,
-					internal_field->dimension,
-					internal_field->data_element_size,
-					external_value_ptr,
-					external_field->datatype,
-					external_field->num_dimensions,
-					external_field->dimension,
-					external_field->data_element_size );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	/* The internal field contents point to the external field contents,
+	 * so all we need to do is to process the external record.
+	 */
 
 	mx_status = mx_process_record_field( field_variable->external_record,
-						external_field,
+						field_variable->external_field,
 						MX_PROCESS_PUT, NULL );
 
 	return mx_status;
@@ -619,8 +694,6 @@ mxv_field_variable_receive_variable( MX_VARIABLE *variable )
 	static const char fname[] = "mxv_field_variable_receive_variable()";
 
 	MX_FIELD_VARIABLE *field_variable;
-	MX_RECORD_FIELD *internal_field, *external_field;
-	void *internal_value_ptr, *external_value_ptr;
 	mx_status_type mx_status;
 
 	mx_status = mxv_field_variable_get_pointers( variable,
@@ -640,31 +713,13 @@ mxv_field_variable_receive_variable( MX_VARIABLE *variable )
 
 	/*---*/
 
-	internal_field = field_variable->internal_field;
-
-	internal_value_ptr = mx_get_field_value_pointer( internal_field );
-
-	external_field = field_variable->external_field;
-
-	external_value_ptr = mx_get_field_value_pointer( external_field );
+	/* The internal field contents point to the external field contents,
+	 * so all we need to do is to process the external record.
+	 */
 
 	mx_status = mx_process_record_field( field_variable->external_record,
-						external_field,
+						field_variable->external_field,
 						MX_PROCESS_GET, NULL );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_convert_and_copy_array( external_value_ptr,
-					external_field->datatype,
-					external_field->num_dimensions,
-					external_field->dimension,
-					external_field->data_element_size,
-					internal_value_ptr,
-					internal_field->datatype,
-					internal_field->num_dimensions,
-					internal_field->dimension,
-					internal_field->data_element_size );
 
 	return mx_status;
 }

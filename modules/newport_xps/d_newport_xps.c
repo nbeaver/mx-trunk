@@ -756,8 +756,10 @@ mxd_newport_xps_motor_pco_set_config_value( MX_MOTOR *motor,
 	int xps_status;
 	mx_status_type mx_status;
 
+#if 0
 	MX_DEBUG(-2,("%s: motor '%s', config_name = '%s', config_value = '%s'",
 		fname, motor->record->name, config_name, config_value ));
+#endif
 
 	config_value_copy = strdup( config_value );
 
@@ -885,8 +887,10 @@ mxd_newport_xps_motor_pco_set_config_value( MX_MOTOR *motor,
 	} else
 	if ( mx_strcasecmp( "aquadb_always_enable", config_name ) == 0 ) {
 
+#if 0
 		MX_DEBUG(-2,("%s: motor '%s', aquadb_always_enable",
 			fname, motor->record->name ));
+#endif
 
 		xps_status = PositionerPositionCompareAquadBAlwaysEnable(
 					newport_xps->socket_id,
@@ -917,8 +921,10 @@ mxd_newport_xps_motor_pco_set_config_value( MX_MOTOR *motor,
 		window_low  = atof( argv[0] );
 		window_high = atof( argv[1] );
 
+#if 0
 		MX_DEBUG(-2,("%s: '%s' aquadb_windowed = %f, %f",
 		    fname, motor->record->name, window_low, window_high));
+#endif
 
 		/* Set the window. */
 
@@ -951,7 +957,7 @@ mxd_newport_xps_motor_pco_set_config_value( MX_MOTOR *motor,
 				xps_status );
 		}
 
-#if 1
+#if 0
 		{
 		  int enabled;
 

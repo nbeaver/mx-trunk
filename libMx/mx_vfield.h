@@ -37,6 +37,13 @@ typedef struct {
 
 	MX_RECORD *external_record;
 	MX_RECORD_FIELD *external_field;
+
+	long original_datatype;
+	long original_num_dimensions;
+	long *original_dimension;
+	size_t *original_data_element_size;
+	void *original_data_pointer;
+	void *original_value_pointer;
 } MX_FIELD_VARIABLE;
 
 #define MX_FIELD_VARIABLE_STANDARD_FIELDS \
