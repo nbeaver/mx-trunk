@@ -756,6 +756,8 @@ mxd_newport_xps_motor_pco_set_config_value( MX_MOTOR *motor,
 	int xps_status;
 	mx_status_type mx_status;
 
+	mx_status = MX_SUCCESSFUL_RESULT;
+
 #if 0
 	MX_DEBUG(-2,("%s: motor '%s', config_name = '%s', config_value = '%s'",
 		fname, motor->record->name, config_name, config_value ));
