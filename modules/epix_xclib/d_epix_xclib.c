@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2013 Illinois Institute of Technology
+ * Copyright 2006-2013, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2777,7 +2777,7 @@ mxd_epix_xclib_get_parameter( MX_VIDEO_INPUT *vinput )
 	case MXLV_VIN_SEQUENCE_PARAMETER_ARRAY:
 		break;
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_TRIGGER
 	case MXLV_VIN_TRIGGER_MODE:
 		MX_DEBUG(-2,("%s: trigger_mode = %ld",
 			fname, vinput->trigger_mode));
@@ -2942,9 +2942,10 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 
 	case MXLV_VIN_TRIGGER_MODE:
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_TRIGGER
 		MX_DEBUG(-2,("%s: trigger_mode = %ld",
 			fname, vinput->trigger_mode));
+		mx_stack_traceback();
 #endif
 		switch( vinput->trigger_mode ) {
 		case MXT_IMAGE_INTERNAL_TRIGGER:

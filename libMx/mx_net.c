@@ -1652,11 +1652,32 @@ mx_network_buffer_show_value( void *buffer,
 		return;
 	}
 
+#if 0
+	MX_DEBUG(-2,
+		("%s: scalar_element_size = %d, use_64bit_network_longs = %d",
+		fname, (int) scalar_element_size, use_64bit_network_longs ));
+#endif
+
 	/* Figure out how many values will be displayed. */
 
 	if ( data_format != MX_NETWORK_DATAFMT_XDR ) {
-		raw_display_values =
-			(long) (message_length / scalar_element_size);
+		if ( use_64bit_network_longs ) {
+			raw_display_values =
+				(long) (message_length / scalar_element_size);
+		} else {
+			switch( data_type ) {
+			case MXFT_LONG:
+			case MXFT_ULONG:
+			case MXFT_HEX:
+				raw_display_values =
+					(long) (message_length / 4L);
+				break;
+			default:
+				raw_display_values =
+				  (long) (message_length / scalar_element_size);
+				break;
+			}
+		}
 	} else {
 		/* For XDR, figuring out the number of values to display
 		 * takes a little bit of work.

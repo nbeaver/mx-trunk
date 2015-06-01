@@ -102,7 +102,9 @@ add_network_field( MX_RECORD **server_record,
 			char *network_field_id,
 			unsigned long network_debug_flags )
 {
+#if 0
 	static const char fname[] = "add_network_field()";
+#endif
 
 	char display_buffer[200];
 
@@ -128,11 +130,13 @@ add_network_field( MX_RECORD **server_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if 0
 	MX_DEBUG(-2,("%s: server_name = '%s', server_arguments = '%s'",
 		fname, server_name, server_arguments));
 
 	MX_DEBUG(-2,("%s: record_name = '%s', field_name = '%s'",
 		fname, record_name, field_name));
+#endif
 
 	num_items = sscanf( server_arguments, "%d", &server_port );
 
@@ -190,8 +194,10 @@ add_network_field( MX_RECORD **server_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if 0
 	MX_DEBUG(-2,
 	("%s: Starting value = '%s'", fname, display_buffer));
+#endif
 
 	/* Create a callback handler for this network field.
 	 *
@@ -209,8 +215,15 @@ add_network_field( MX_RECORD **server_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if 0
 	MX_DEBUG(-2,("%s: Created new callback %#lx",
 		fname, (unsigned long) callback->callback_id ));
+#endif
+
+	mx_info( "New callback %#lx: '%s@%s:%s' = '%s'",
+		(unsigned long) callback->callback_id,
+		server_name, server_arguments,
+		nf->nfname, display_buffer );
 
 	return MX_SUCCESSFUL_RESULT;
 }

@@ -55,7 +55,8 @@ motor_area_detector_fn( int argc, char *argv[] )
 	char *filename_stem;
 	char filename_ext[20];
 	char frame_filename[MXU_FILENAME_LENGTH+1];
-	unsigned long datafile_type, correction_flags, ad_status_mask;
+	unsigned long datafile_type, correction_flags;
+	unsigned long ad_status_mask, trigger_mask;
 	long frame_number, measurement_number;
 	long x_binsize, y_binsize, x_framesize, y_framesize;
 	long trigger_mode, bytes_per_frame, bits_per_pixel, num_frames;
@@ -515,6 +516,13 @@ motor_area_detector_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 
+		trigger_mask =
+		    MXT_IMAGE_INTERNAL_TRIGGER | MXT_IMAGE_EXTERNAL_TRIGGER;
+
+		if ( (trigger_mode & trigger_mask) == trigger_mask ) {
+			fprintf( output,
+		    "Starting sequence in internal/external trigger mode.\n" );
+		} else
 		if ( trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
 			fprintf( output,
 			"Starting sequence in internal trigger mode.\n" );
@@ -1571,6 +1579,14 @@ motor_area_detector_fn( int argc, char *argv[] )
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 
+			trigger_mask =
+		    MXT_IMAGE_INTERNAL_TRIGGER | MXT_IMAGE_EXTERNAL_TRIGGER;
+
+			if ( (trigger_mode & trigger_mask) == trigger_mask ) {
+				fprintf( output,
+		"Area detector '%s': trigger mode = internal/external (%#lx)\n",
+				ad_record->name, trigger_mode );
+			} else
 			if( trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
 				fprintf( output,
 			"Area detector '%s': trigger mode = internal (%#lx)\n",

@@ -13,7 +13,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2013 Illinois Institute of Technology
+ * Copyright 2006-2013, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1956,6 +1956,29 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 			return mx_status;
 	}
 
+	/* Some detector types can hang the first time that they are asked
+	 * to begin a sequence, but do not hang if you had sent them a 'stop'
+	 * request before the first sequence.  To take care of this, we send
+	 * a unilateral 'stop' request at the end of open().
+	 */
+
+	switch( ad->record->mx_type ) {
+	case MXT_AD_PCCD_9785:
+		mx_status = mxd_aviex_pccd_stop( ad );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+		break;
+	}
+
+	/* Make sure the triggering is initialized. */
+
+	mx_status = mx_area_detector_set_trigger_mode( record,
+					aviex_pccd->initial_trigger_mode );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 #if MXD_AVIEX_PCCD_DEBUG
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
 #endif
@@ -3604,7 +3627,7 @@ mxd_aviex_pccd_get_parameter( MX_AREA_DETECTOR *ad )
 	double ad_horiz_binsize, ad_vert_binsize;
 #endif
 	long shutter_disabled;
-	long mask, trigger_mode, vinput_trigger_mode;
+	long mask, vinput_trigger_mode;
 	mx_status_type mx_status;
 
 	aviex_pccd = NULL;
@@ -3767,8 +3790,6 @@ mxd_aviex_pccd_get_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_TRIGGER_MODE:
 		mask = MXT_IMAGE_INTERNAL_TRIGGER | MXT_IMAGE_EXTERNAL_TRIGGER;
 
-		trigger_mode = ad->trigger_mode & (~mask);
-
 		mx_status = mx_video_input_get_trigger_mode(
 				video_input_record, &vinput_trigger_mode );
 
@@ -3777,7 +3798,9 @@ mxd_aviex_pccd_get_parameter( MX_AREA_DETECTOR *ad )
 
 		vinput_trigger_mode &= mask;
 
-		ad->trigger_mode |= vinput_trigger_mode;
+#if 0
+		ad->trigger_mode = vinput_trigger_mode;
+#endif
 		break;
 
 	case MXLV_AD_REGISTER_VALUE:
