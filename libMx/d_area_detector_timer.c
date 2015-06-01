@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2009-2010 Illinois Institute of Technology
+ * Copyright 2009-2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -242,6 +242,7 @@ mxd_area_detector_timer_start( MX_TIMER *timer )
 
 	MX_AREA_DETECTOR_TIMER *ad_timer;
 	MX_RECORD *ad_record = NULL;
+	double measurement_time;
 	mx_status_type mx_status;
 
 	ad_timer = NULL;
@@ -252,8 +253,18 @@ mxd_area_detector_timer_start( MX_TIMER *timer )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( ad_timer->ignore_scan_measurement_time ) {
+		mx_status = mx_area_detector_get_exposure_time( ad_record,
+							&measurement_time );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	} else {
+		measurement_time = timer->value;
+	}
+
 	mx_status = mx_area_detector_set_one_shot_mode( ad_record,
-							timer->value );
+							measurement_time );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
