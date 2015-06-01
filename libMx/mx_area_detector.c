@@ -481,6 +481,10 @@ mx_area_detector_get_register( MX_RECORD *record,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The register_name pointer passed was NULL." );
 	}
+	if ( strlen( register_name ) == 0 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The register name passed was of zero length." );
+	}
 
 	get_parameter_fn = flist->get_parameter;
 
@@ -525,6 +529,10 @@ mx_area_detector_set_register( MX_RECORD *record,
 	if ( register_name == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The register_name pointer passed was NULL." );
+	}
+	if ( strlen( register_name ) == 0 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The register name passed was of zero length." );
 	}
 
 	set_parameter_fn = flist->set_parameter;
