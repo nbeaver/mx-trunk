@@ -6,7 +6,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2004, 2009-2010, 2013-2014
+ * Copyright 1999, 2001-2004, 2009-2010, 2013-2015
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -23,6 +23,8 @@
 #define MX_VERSION_HAS_MOTOR_GET_STATUS    65000UL
 
 typedef struct {
+	MX_RECORD *record;
+
 	MX_RECORD *server_record;
 	char remote_record_name[ MXU_RECORD_NAME_LENGTH+1 ];
 
@@ -50,10 +52,7 @@ typedef struct {
 	 * numerical value of the driver type will be the same   *
 	 * in the client as in the server, because sooner or     *
 	 * later you will encounter a case where they are        *
-	 * different.  Eventually, MX will support dynamically   *
-	 * loaded drivers with dynamically allocated driver      *
-	 * types, so this will become an even bigger problem     *
-	 * later.                                                *
+	 * different.                                            *
 	 *                                                       *
 	 * Incidentally, if the server is using a driver type    *
 	 * that the client does not recognize, the value of the  *

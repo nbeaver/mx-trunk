@@ -220,6 +220,7 @@ mxd_network_motor_create_record_structures( MX_RECORD *record )
 				= &mxd_network_motor_motor_function_list;
 
 	motor->record = record;
+	network_motor->record = record;
 
 	network_motor->need_to_get_remote_record_information = TRUE;
 
