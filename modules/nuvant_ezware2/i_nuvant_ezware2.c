@@ -22,15 +22,6 @@
 #include "mx_record.h"
 #include "i_nuvant_ezware2.h"
 
-#if 0
-typedef uint8_t LVBoolean;
-
-#include "EZWare2.h"
-
-#else
-int32_t __cdecl GetEzWareVersion(void);
-#endif
-
 MX_RECORD_FUNCTION_LIST mxi_nuvant_ezware2_record_function_list = {
 	NULL,
 	mxi_nuvant_ezware2_create_record_structures,
@@ -139,3 +130,16 @@ mxi_nuvant_ezware2_open( MX_RECORD *record )
 }
 
 /*-------------------------------------------------------------------------*/
+
+extern long
+mxp_nuvant_ezware2_get_potentiostat_range_from_voltage( double voltage )
+{
+	return 1;
+}
+
+extern long
+mxp_nuvant_ezware2_get_galvanostat_range_from_current( double current )
+{
+	return 1;
+}
+

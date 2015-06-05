@@ -15,13 +15,11 @@ all: nuvant_ezware2.mxo
 
 include ../../libMx/Makehead.$(MX_ARCH)
 
-CFLAGS += -I../../libMx -D__MX_LIBRARY__ -DIS_MX_DRIVER -I$(NUVANT_EZWARE2_DIR)
+CFLAGS += -I. -I../../libMx -D__MX_LIBRARY__ -DIS_MX_DRIVER -I$(NUVANT_EZWARE2_DIR)
 
-#NUVANT_EZWARE2_OBJS = nuvant_ezware2.$(OBJ) i_nuvant_ezware2.$(OBJ) \
-#	d_nuvant_ezware2_ainput.$(OBJ) d_nuvant_ezware2_aoutput.$(OBJ) \
-#	d_nuvant_ezware2_doutput.$(OBJ)
-
-NUVANT_EZWARE2_OBJS = nuvant_ezware2.$(OBJ) i_nuvant_ezware2.$(OBJ)
+NUVANT_EZWARE2_OBJS = nuvant_ezware2.$(OBJ) i_nuvant_ezware2.$(OBJ) \
+	d_nuvant_ezware2_ainput.$(OBJ) d_nuvant_ezware2_aoutput.$(OBJ) \
+	d_nuvant_ezware2_doutput.$(OBJ)
 
 #--------------------------------------------------------------------------
 
@@ -56,10 +54,9 @@ endif
 
 #--------------------------------------------------------------------------
 
-#nuvant_ezware2.$(OBJ): nuvant_ezware2.c i_nuvant_ezware2.h \
-#			d_nuvant_ezware2_ainput.h d_nuvant_ezware2_aoutput.h \
-#			d_nuvant_ezware2_doutput.h
-nuvant_ezware2.$(OBJ): nuvant_ezware2.c
+nuvant_ezware2.$(OBJ): nuvant_ezware2.c i_nuvant_ezware2.h \
+			d_nuvant_ezware2_ainput.h d_nuvant_ezware2_aoutput.h \
+			d_nuvant_ezware2_doutput.h
 	$(COMPILE) $(CFLAGS) nuvant_ezware2.c
 
 i_nuvant_ezware2.$(OBJ): i_nuvant_ezware2.c i_nuvant_ezware2.h

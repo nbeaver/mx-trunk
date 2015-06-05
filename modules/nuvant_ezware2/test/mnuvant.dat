@@ -1,2 +1,6 @@
 !load ../nuvant_ezware2.mxo
-ezstat interface controller nuvant_ezware2 "" ""
+ezstat interface controller ezware "" "" 5
+voltage_sp device analog_output ezware_aoutput "" "" 0 1 0 V 0x0 ezstat potentiostat_voltage
+current_sp device analog_output ezware_aoutput "" "" 0 1 0 V 0x0 ezstat galvanostat_current
+cell_enable device digital_output ezware_doutput "" "" 0 ezstat cell_enable
+a1 device analog_input ezware_ainput "" ""

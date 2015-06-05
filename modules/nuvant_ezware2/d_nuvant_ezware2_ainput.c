@@ -198,42 +198,6 @@ mxd_nuvant_ezware2_ainput_open( MX_RECORD *record )
 	if ( mx_strcasecmp( type_name, "ai3" ) == 0 )
 	{
 		ezware2_ainput->input_type = MXT_NE_AINPUT_AI3;
-	} else
-	if ( mx_strcasecmp( type_name, "ai14" ) == 0 )
-	{
-		ezware2_ainput->input_type = MXT_NE_AINPUT_AI14;
-	} else
-	if ( mx_strcasecmp( type_name, "ai15" ) == 0 )
-	{
-		ezware2_ainput->input_type = MXT_NE_AINPUT_AI15;
-	} else
-	if ( mx_strcasecmp( type_name, "galvanostat_fuel_cell_current" ) == 0 )
-	{
-		ezware2_ainput->input_type =
-			MXT_NE_AINPUT_GALVANOSTAT_FUEL_CELL_CURRENT;
-	} else
-	if ( mx_strcasecmp( type_name, "fuel_cell_voltage_drop" ) == 0 )
-	{
-		ezware2_ainput->input_type =
-			MXT_NE_AINPUT_FUEL_CELL_VOLTAGE_DROP;
-	} else
-	if ( mx_strcasecmp( type_name,
-	    "potentiostat_current_feedback_resistor_voltage" ) == 0 )
-	{
-		ezware2_ainput->input_type =
-		  MXT_NE_AINPUT_POTENTIOSTAT_CURRENT_FEEDBACK_RESISTOR_VOLTAGE;
-	} else
-	if ( mx_strcasecmp( type_name,
-	    "potentiostat_fast_scan_fuel_cell_current" ) == 0 )
-	{
-		ezware2_ainput->input_type =
-			MXT_NE_AINPUT_POTENTIOSTAT_FAST_SCAN_FUEL_CELL_CURRENT;
-	} else
-	if ( mx_strcasecmp( type_name,
-	    "fast_scan_fuel_cell_voltage_drop" ) == 0 )
-	{
-		ezware2_ainput->input_type =
-			MXT_NE_AINPUT_FAST_SCAN_FUEL_CELL_VOLTAGE_DROP;
 	} else {
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Input type '%s' is not supported for "
@@ -248,23 +212,26 @@ mxd_nuvant_ezware2_ainput_read( MX_ANALOG_INPUT *ainput )
 {
 	static const char fname[] = "mxd_nuvant_ezware2_ainput_read()";
 
-	MX_NUVANT_EZWARE2_AINPUT *ezware2_ainput = NULL;
-	MX_NUVANT_EZWARE2 *ezware2 = NULL;
+	MX_NUVANT_EZWARE2_AINPUT *ezware_ainput = NULL;
+	MX_NUVANT_EZWARE2 *ezware = NULL;
 	double ai_value_array[6];
+	long ez_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_nuvant_ezware2_ainput_get_pointers( ainput,
-						&ezware2_ainput, &ezware2, fname);
+						&ezware_ainput, &ezware, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxi_nuvant_ezware2_read_ai_values( ezware2, ai_value_array );
+	ez_status = ReadAiTest( ezware->device_number,
+			ai_value_array,
+			( sizeof(ai_value_array)/sizeof(ai_value_array[0]) ));
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	switch( ezware2_ainput->input_type ) {
+	switch( ezware_ainput->input_type ) {
 	case MXT_NE_AINPUT_AI0:
 		ainput->raw_value.double_value = ai_value_array[0];
 		break;
@@ -277,39 +244,11 @@ mxd_nuvant_ezware2_ainput_read( MX_ANALOG_INPUT *ainput )
 	case MXT_NE_AINPUT_AI3:
 		ainput->raw_value.double_value = ai_value_array[3];
 		break;
-	case MXT_NE_AINPUT_AI14:
-		ainput->raw_value.double_value = ai_value_array[4];
-		break;
-	case MXT_NE_AINPUT_AI15:
-		ainput->raw_value.double_value = ai_value_array[5];
-		break;
 
-	case MXT_NE_AINPUT_GALVANOSTAT_FUEL_CELL_CURRENT:
-		ainput->raw_value.double_value 
-			= mx_divide_safely( ai_value_array[0],
-				ezware2->galvanostat_resistance );
-		break;
-	case MXT_NE_AINPUT_FUEL_CELL_VOLTAGE_DROP:
-		if ( fabs(ai_value_array[1]) >= 0.05 ) {
-			ainput->raw_value.double_value = - ai_value_array[1];
-		} else {
-			ainput->raw_value.double_value
-				= 101.0 * ai_value_array[2];
-		}
-		break;
-	case MXT_NE_AINPUT_POTENTIOSTAT_CURRENT_FEEDBACK_RESISTOR_VOLTAGE:
-		ainput->raw_value.double_value = ai_value_array[3];
-		break;
-	case MXT_NE_AINPUT_POTENTIOSTAT_FAST_SCAN_FUEL_CELL_CURRENT:
-		ainput->raw_value.double_value = 0.2 * ai_value_array[4];
-		break;
-	case MXT_NE_AINPUT_FAST_SCAN_FUEL_CELL_VOLTAGE_DROP:
-		ainput->raw_value.double_value = ai_value_array[5];
-		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal input type %lu requested for record '%s'.",
-			ezware2_ainput->input_type,
+			ezware_ainput->input_type,
 			ainput->record->name );
 		break;
 	}
