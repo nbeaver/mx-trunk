@@ -26,9 +26,10 @@
 typedef uint8_t LVBoolean;
 
 #include "EZWare2.h"
-#endif
 
+#else
 int32_t __cdecl GetEzWareVersion(void);
+#endif
 
 MX_RECORD_FUNCTION_LIST mxi_nuvant_ezware2_record_function_list = {
 	NULL,

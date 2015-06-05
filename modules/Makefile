@@ -69,7 +69,7 @@ all: build
 
 #MODULES += ni_valuemotion
 
-#MODULES += nuvant_ezware2
+MODULES += nuvant_ezware2
 
 #MODULES += ortec_umcbi
 
@@ -90,11 +90,11 @@ all: build
 #-------------------------------------------------------------------
 # EPICS modules.
 
-MODULES += epics
+#MODULES += epics
 
-MODULES += epics_aps 
+#MODULES += epics_aps 
 
-MODULES += epics_pmac_biocat
+#MODULES += epics_pmac_biocat
 
 #MODULES += epics_mbc
 
