@@ -1352,6 +1352,10 @@ mx_read_database_private( MX_RECORD *record_list_head,
 
 			mx_breakpoint();
 
+		} else if ( strncmp( buffer, "!debug", 6 ) == 0 ) {
+
+			mx_breakpoint();
+
 		} else if ( buffer[0] == '!' ) {
 			mx_warning( "Ignoring unrecognized directive: '%s'",
 				buffer );

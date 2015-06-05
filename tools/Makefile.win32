@@ -70,5 +70,5 @@ mxgnuplt.exe: mxgnuplt.obj
 	fi
 
 mx_clean:
-	-rm *.obj *.exe *.manifest
+	-rm *.obj *.exe *.manifest mx_revision.txt
 

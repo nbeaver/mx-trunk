@@ -1,0 +1,2 @@
+!load ../nuvant_ezware2.mxo
+ezstat interface controller nuvant_ezware2 "" ""

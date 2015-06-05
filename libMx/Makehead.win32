@@ -79,8 +79,8 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 #     these directories are laid out, so it has its own special case below.
 #
 
-#MSDEV_ARCH	= x86
-MSDEV_ARCH	= x64
+MSDEV_ARCH	= x86
+#MSDEV_ARCH	= x64
 
 #MSDEV_ARCH	= x86_vs2012
 #MSDEV_ARCH	= x64_vs2012

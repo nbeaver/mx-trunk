@@ -7,14 +7,14 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2014 Illinois Institute of Technology
+ * Copyright 2014-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXI_NUVANT_EZWARE2_DEBUG		FALSE
+#define MXI_NUVANT_EZWARE2_DEBUG		TRUE
 
 #include <stdio.h>
 
