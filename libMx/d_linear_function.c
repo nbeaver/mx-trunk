@@ -47,7 +47,7 @@ MX_MOTOR_FUNCTION_LIST mxd_linear_function_motor_function_list = {
 	mxd_linear_function_immediate_abort,
 	mxd_linear_function_positive_limit_hit,
 	mxd_linear_function_negative_limit_hit,
-	NULL,
+	mxd_linear_function_raw_home_command,
 	NULL,
 	mxd_linear_function_get_parameter,
 	mxd_linear_function_set_parameter,
@@ -1193,6 +1193,70 @@ mxd_linear_function_negative_limit_hit( MX_MOTOR *motor )
 	motor->negative_limit_hit = limit_hit;
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_linear_function_raw_home_command( MX_MOTOR *motor )
+{
+	static const char fname[] = "mxd_linear_function_raw_home_command()";
+
+	MX_RECORD **motor_record_array = NULL;
+	MX_RECORD *child_motor_record = NULL;
+	MX_LINEAR_FUNCTION_MOTOR *linear_function_motor = NULL;
+	MX_MOTOR *child_motor;
+	long num_motors;
+	double total_scale_factor;
+	mx_status_type mx_status;
+
+	mx_status = mxd_linear_function_get_pointers( motor,
+					&linear_function_motor, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	num_motors = linear_function_motor->num_motors;
+	motor_record_array = linear_function_motor->motor_record_array;
+
+	if ( num_motors != 1 ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"The '%s' driver for pseudomotor '%s' only supports homing "
+		"if the pseudomotor depends on only one real motor.  "
+		"Unfortunately, this pseudomotor depends on %ld motors.  "
+		"You will need to separately home each of the dependent "
+		"motors instead.",
+			mx_get_driver_name( motor->record ),
+			motor->record->name,
+			num_motors );
+	}
+
+	child_motor_record = motor_record_array[0];
+
+	if ( child_motor_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The child motor record pointer for pseudomotor '%s' is NULL.",
+			motor->record->name );
+	}
+
+	child_motor = (MX_MOTOR *) child_motor_record->record_class_struct;
+
+	if ( child_motor == (MX_MOTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_MOTOR pointer for motor '%s' used by "
+		"pseudomotor '%s' is NULL.",
+			child_motor_record->name,
+			motor->record->name );
+	}
+
+	total_scale_factor = linear_function_motor->real_motor_scale[0]
+				* child_motor->scale;
+
+	if ( total_scale_factor >= 0 ) {
+		mx_status = mx_motor_home_search( child_motor_record, 1, 0 );
+	} else {
+		mx_status = mx_motor_home_search( child_motor_record, -1, 0 );
+	}
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type

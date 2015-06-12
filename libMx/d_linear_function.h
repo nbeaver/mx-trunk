@@ -74,6 +74,7 @@ MX_API mx_status_type mxd_linear_function_soft_abort( MX_MOTOR *motor );
 MX_API mx_status_type mxd_linear_function_immediate_abort( MX_MOTOR *motor );
 MX_API mx_status_type mxd_linear_function_positive_limit_hit(MX_MOTOR *motor);
 MX_API mx_status_type mxd_linear_function_negative_limit_hit(MX_MOTOR *motor);
+MX_API mx_status_type mxd_linear_function_raw_home_command(MX_MOTOR *motor);
 MX_API mx_status_type mxd_linear_function_get_parameter(MX_MOTOR *motor);
 MX_API mx_status_type mxd_linear_function_set_parameter(MX_MOTOR *motor);
 
