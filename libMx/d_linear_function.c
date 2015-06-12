@@ -39,18 +39,20 @@ MX_RECORD_FUNCTION_LIST mxd_linear_function_record_function_list = {
 };
 
 MX_MOTOR_FUNCTION_LIST mxd_linear_function_motor_function_list = {
-	mxd_linear_function_motor_is_busy,
+	NULL,
 	mxd_linear_function_move_absolute,
 	mxd_linear_function_get_position,
 	NULL,
 	mxd_linear_function_soft_abort,
 	mxd_linear_function_immediate_abort,
-	mxd_linear_function_positive_limit_hit,
-	mxd_linear_function_negative_limit_hit,
+	NULL,
+	NULL,
 	mxd_linear_function_raw_home_command,
 	NULL,
 	mxd_linear_function_get_parameter,
 	mxd_linear_function_set_parameter,
+	NULL,
+	mxd_linear_function_get_status,
 };
 
 /* Linear function motor data structures. */
@@ -676,54 +678,6 @@ mxd_linear_function_print_motor_structure( FILE *file, MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_linear_function_motor_is_busy( MX_MOTOR *motor )
-{
-	static const char fname[] = "mxd_linear_function_motor_is_busy()";
-
-	MX_LINEAR_FUNCTION_MOTOR *linear_function_motor;
-	MX_RECORD **motor_record_array;
-	MX_RECORD *child_motor_record;
-	long i, num_motors;
-	mx_bool_type busy;
-	mx_status_type mx_status;
-
-	linear_function_motor = NULL;
-
-	mx_status = mxd_linear_function_get_pointers( motor,
-					&linear_function_motor, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	num_motors = linear_function_motor->num_motors;
-	motor_record_array = linear_function_motor->motor_record_array;
-
-	/* Only motors can be busy. */
-
-	for ( i = 0; i < num_motors; i++ ) {
-	
-		child_motor_record = motor_record_array[i];
-
-		mx_status = mx_motor_is_busy( child_motor_record, &busy );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		/* If the child motor is busy, we are done. */
-
-		if ( busy == TRUE ) {
-			motor->busy = TRUE;
-
-			return MX_SUCCESSFUL_RESULT;
-		}
-	}
-
-	motor->busy = FALSE;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_linear_function_move_absolute( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_linear_function_move_absolute()";
@@ -1096,106 +1050,6 @@ mxd_linear_function_immediate_abort( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_linear_function_positive_limit_hit( MX_MOTOR *motor )
-{
-	static const char fname[] = "mxd_linear_function_positive_limit_hit()";
-
-	MX_RECORD **motor_record_array;
-	MX_RECORD *child_motor_record;
-	MX_LINEAR_FUNCTION_MOTOR *linear_function_motor;
-	long i, num_motors;
-	mx_bool_type limit_hit;
-	mx_status_type mx_status;
-
-	linear_function_motor = NULL;
-
-	mx_status = mxd_linear_function_get_pointers( motor,
-					&linear_function_motor, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	num_motors = linear_function_motor->num_motors;
-	motor_record_array = linear_function_motor->motor_record_array;
-
-	limit_hit = FALSE;
-
-	/* Only motor records are checked. */
-
-	for ( i = 0; i < num_motors; i++ ) {
-		child_motor_record = motor_record_array[i];
-
-		mx_status = mx_motor_positive_limit_hit(
-				child_motor_record, &limit_hit );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		if ( limit_hit == TRUE ) {
-			(void) mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-				"Positive limit hit for motor '%s'",
-				child_motor_record->name );
-
-			break;             /* exit the for() loop */
-		}
-	}
-
-	motor->positive_limit_hit = limit_hit;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_linear_function_negative_limit_hit( MX_MOTOR *motor )
-{
-	static const char fname[] = "mxd_linear_function_negative_limit_hit()";
-
-	MX_RECORD **motor_record_array;
-	MX_RECORD *child_motor_record;
-	MX_LINEAR_FUNCTION_MOTOR *linear_function_motor;
-	long i, num_motors;
-	mx_bool_type limit_hit;
-	mx_status_type mx_status;
-
-	linear_function_motor = NULL;
-
-	mx_status = mxd_linear_function_get_pointers( motor,
-					&linear_function_motor, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	num_motors = linear_function_motor->num_motors;
-	motor_record_array = linear_function_motor->motor_record_array;
-
-	limit_hit = FALSE;
-
-	/* Only motor records are checked. */
-
-	for ( i = 0; i < num_motors; i++ ) {
-		child_motor_record = motor_record_array[i];
-
-		mx_status = mx_motor_negative_limit_hit(
-				child_motor_record, &limit_hit );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		if ( limit_hit == TRUE ) {
-			(void) mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-				"Negative limit hit for motor '%s'",
-				child_motor_record->name );
-
-			break;             /* exit the for() loop */
-		}
-	}
-
-	motor->negative_limit_hit = limit_hit;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_linear_function_raw_home_command( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_linear_function_raw_home_command()";
@@ -1262,12 +1116,223 @@ mxd_linear_function_raw_home_command( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_linear_function_get_parameter( MX_MOTOR *motor )
 {
+	static const char fname[] = "mxd_linear_function_get_parameter()";
+
+	MX_RECORD **motor_record_array = NULL;
+	MX_LINEAR_FUNCTION_MOTOR *linear_function_motor = NULL;
+	long num_motors;
+	double child_speed, raw_speed;
+	mx_status_type mx_status;
+
+	mx_status = mxd_linear_function_get_pointers( motor,
+					&linear_function_motor, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	num_motors = linear_function_motor->num_motors;
+	motor_record_array = linear_function_motor->motor_record_array;
+
+	/* We support getting the speed of linear function pseudomotors
+	 * that depend on only 1 real motor.  Everything else is not
+	 * supported and is silently ignored.
+	 */
+
+	switch( motor->parameter_type ) {
+	case MXLV_MTR_SPEED:
+		if ( num_motors != 1 ) {
+			motor->raw_speed = 0;
+		} else {
+			mx_status = mx_motor_get_speed( motor_record_array[0],
+								&child_speed );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			raw_speed = child_speed *
+				linear_function_motor->real_motor_scale[0];
+
+			motor->raw_speed = fabs( raw_speed );
+		}
+		break;
+	default:
+		/* Everything else is not implemented. */
+		break;
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
 mxd_linear_function_set_parameter( MX_MOTOR *motor )
 {
+	static const char fname[] = "mxd_linear_function_set_parameter()";
+
+	MX_RECORD **motor_record_array = NULL;
+	MX_LINEAR_FUNCTION_MOTOR *linear_function_motor = NULL;
+	long num_motors;
+	double child_speed, raw_child_speed;
+	mx_status_type mx_status;
+
+	mx_status = mxd_linear_function_get_pointers( motor,
+					&linear_function_motor, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	num_motors = linear_function_motor->num_motors;
+	motor_record_array = linear_function_motor->motor_record_array;
+
+	/* We support setting the speed of linear function pseudomotors
+	 * that depend on only 1 real motor.  Everything else is not
+	 * supported and is silently ignored.
+	 */
+
+	switch( motor->parameter_type ) {
+	case MXLV_MTR_SPEED:
+		if ( num_motors != 1 ) {
+			motor->raw_speed = 0;
+		} else {
+			raw_child_speed = mx_divide_safely( motor->raw_speed,
+				linear_function_motor->real_motor_scale[0] );
+
+			child_speed = fabs( raw_child_speed );
+
+			mx_status = mx_motor_set_speed( motor_record_array[0],
+								child_speed );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+		break;
+	default:
+		/* Everything else is not implemented. */
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_linear_function_get_status( MX_MOTOR *motor )
+{
+	static const char fname[] = "mxd_linear_function_get_status()";
+
+	MX_LINEAR_FUNCTION_MOTOR *linear_function_motor;
+	MX_RECORD **motor_record_array;
+	double *real_motor_scale;
+	long i, num_motors;
+	MX_RECORD *child_motor_record;
+	unsigned long child_status;
+	double child_scale;
+	mx_status_type mx_status;
+
+	mx_bool_type home_search_succeeded = TRUE;
+	mx_bool_type at_home_switch = TRUE;
+
+	linear_function_motor = NULL;
+
+	mx_status = mxd_linear_function_get_pointers( motor,
+					&linear_function_motor, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	num_motors = linear_function_motor->num_motors;
+	motor_record_array = linear_function_motor->motor_record_array;
+	real_motor_scale = linear_function_motor->real_motor_scale;
+
+	/* Only motor records are checked. */
+
+	motor->status = 0;
+
+	for ( i = 0; i < num_motors; i++ ) {
+		child_motor_record = motor_record_array[i];
+		child_scale = real_motor_scale[i];
+
+		mx_status = mx_motor_get_status( child_motor_record,
+							&child_status );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( child_status & MXSF_MTR_IS_BUSY ) {
+			motor->status |= MXSF_MTR_IS_BUSY;
+		}
+		if ( child_status & MXSF_MTR_POSITIVE_LIMIT_HIT ) {
+			if ( child_scale >= 0.0 ) {
+				motor->status |= MXSF_MTR_POSITIVE_LIMIT_HIT;
+			} else {
+				motor->status |= MXSF_MTR_NEGATIVE_LIMIT_HIT;
+			}
+		}
+		if ( child_status & MXSF_MTR_NEGATIVE_LIMIT_HIT ) {
+			if ( child_scale >= 0.0 ) {
+				motor->status |= MXSF_MTR_NEGATIVE_LIMIT_HIT;
+			} else {
+				motor->status |= MXSF_MTR_POSITIVE_LIMIT_HIT;
+			}
+		}
+		if ( (child_status & MXSF_MTR_HOME_SEARCH_SUCCEEDED) == 0 ) {
+			home_search_succeeded = FALSE;
+		}
+		if ( child_status & MXSF_MTR_FOLLOWING_ERROR ) {
+			motor->status |= MXSF_MTR_FOLLOWING_ERROR;
+		}
+		if ( child_status & MXSF_MTR_DRIVE_FAULT ) {
+			motor->status |= MXSF_MTR_DRIVE_FAULT;
+		}
+		if ( child_status & MXSF_MTR_AXIS_DISABLED ) {
+			motor->status |= MXSF_MTR_AXIS_DISABLED;
+		}
+		if ( child_status & MXSF_MTR_OPEN_LOOP ) {
+			motor->status |= MXSF_MTR_OPEN_LOOP;
+		}
+		if ( child_status & MXSF_MTR_CONTROLLER_DISABLED ) {
+			motor->status |= MXSF_MTR_CONTROLLER_DISABLED;
+		}
+		if ( child_status & MXSF_MTR_SOFT_POSITIVE_LIMIT_HIT ) {
+			if ( child_scale >= 0.0 ) {
+			    motor->status |= MXSF_MTR_SOFT_POSITIVE_LIMIT_HIT;
+			} else {
+			    motor->status |= MXSF_MTR_SOFT_NEGATIVE_LIMIT_HIT;
+			}
+		}
+		if ( child_status & MXSF_MTR_SOFT_NEGATIVE_LIMIT_HIT ) {
+			if ( child_scale >= 0.0 ) {
+			    motor->status |= MXSF_MTR_SOFT_NEGATIVE_LIMIT_HIT;
+			} else {
+			    motor->status |= MXSF_MTR_SOFT_POSITIVE_LIMIT_HIT;
+			}
+		}
+		if ( child_status & MXSF_MTR_SOFTWARE_ERROR ) {
+			motor->status |= MXSF_MTR_SOFTWARE_ERROR;
+		}
+		if ( child_status & MXSF_MTR_HARDWARE_ERROR ) {
+			motor->status |= MXSF_MTR_HARDWARE_ERROR;
+		}
+		if ( child_status & MXSF_MTR_COMMUNICATION_ERROR ) {
+			motor->status |= MXSF_MTR_COMMUNICATION_ERROR;
+		}
+		if ( child_status & MXSF_MTR_CONFIGURATION_ERROR ) {
+			motor->status |= MXSF_MTR_CONFIGURATION_ERROR;
+		}
+		if ( (child_status & MXSF_MTR_AT_HOME_SWITCH) == 0 ) {
+			at_home_switch = FALSE;
+		}
+
+		if ( child_status & MXSF_MTR_ERROR ) {
+			motor->status |= MXSF_MTR_ERROR;
+		}
+	}
+
+	if ( home_search_succeeded ) {
+		motor->status |= MXSF_MTR_HOME_SEARCH_SUCCEEDED;
+	}
+	if ( at_home_switch ) {
+		motor->status |= MXSF_MTR_AT_HOME_SWITCH;
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
