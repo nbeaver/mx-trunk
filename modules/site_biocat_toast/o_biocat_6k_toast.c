@@ -1007,7 +1007,7 @@ mxo_biocat_6k_toast_stop( MX_OPERATION *operation )
 
 		toast->move_to_finish_in_progress = TRUE;
 
-		mx_status = mx_motor_move_absolute( toast->compumotor->record,
+		mx_status = mx_motor_move_absolute( toast->motor_record,
 							toast->finish_position,
 							MXF_MTR_NOWAIT );
 
