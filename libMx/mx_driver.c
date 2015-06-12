@@ -261,6 +261,7 @@
 #include "d_ainput_as_dinput.h"
 #include "d_aoutput_as_doutput.h"
 #include "d_relay_as_doutput.h"
+#include "d_digital_fanin.h"
 #include "d_digital_fanout.h"
 
 #include "d_soft_motor.h"
@@ -1899,6 +1900,13 @@ MX_DRIVER mx_type_table[] = {
 			&mxd_relay_as_doutput_digital_output_function_list,
 				&mxd_relay_as_doutput_num_record_fields,
 				&mxd_relay_as_doutput_rfield_def_ptr},
+
+{"digital_fanin",  MXT_DIN_FANIN, MXC_DIGITAL_INPUT, MXR_DEVICE,
+				&mxd_digital_fanin_record_function_list,
+				NULL,
+				&mxd_digital_fanin_digital_input_function_list,
+				&mxd_digital_fanin_num_record_fields,
+				&mxd_digital_fanin_rfield_def_ptr},
 
 {"digital_fanout", MXT_DOU_FANOUT, MXC_DIGITAL_OUTPUT, MXR_DEVICE,
 				&mxd_digital_fanout_record_function_list,

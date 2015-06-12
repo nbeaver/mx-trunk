@@ -397,6 +397,7 @@ extern "C" {
 #define MXT_DIN_KEYBOARD		30035
 #define MXT_DIN_FILE			30036
 #define MXT_DIN_AINPUT			30037
+#define MXT_DIN_FANIN			30038
 
 /* --- Digital output types --- */
 
