@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2007, 2010, 2012-2014
+ * Copyright 1999-2004, 2006-2007, 2010, 2012-2015
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -409,51 +409,52 @@ mx_setup_motor_process_functions( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
-		case MXLV_MTR_BUSY:
-		case MXLV_MTR_DESTINATION:
-		case MXLV_MTR_POSITION:
-		case MXLV_MTR_SET_POSITION:
-		case MXLV_MTR_BACKLASH_CORRECTION:
-		case MXLV_MTR_SOFT_ABORT:
-		case MXLV_MTR_IMMEDIATE_ABORT:
-		case MXLV_MTR_POSITIVE_LIMIT_HIT:
-		case MXLV_MTR_NEGATIVE_LIMIT_HIT:
-		case MXLV_MTR_RAW_HOME_COMMAND:
-		case MXLV_MTR_HOME_SEARCH:
-		case MXLV_MTR_LIMIT_SWITCH_AS_HOME_SWITCH:
-		case MXLV_MTR_CONSTANT_VELOCITY_MOVE:
-		case MXLV_MTR_SPEED:
-		case MXLV_MTR_BASE_SPEED:
-		case MXLV_MTR_MAXIMUM_SPEED:
-		case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
-		case MXLV_MTR_ACCELERATION_TIME:
 		case MXLV_MTR_ACCELERATION_DISTANCE:
-		case MXLV_MTR_SPEED_CHOICE_PARAMETERS:
-		case MXLV_MTR_SAVE_SPEED:
-		case MXLV_MTR_RESTORE_SPEED:
-		case MXLV_MTR_SYNCHRONOUS_MOTION_MODE:
+		case MXLV_MTR_ACCELERATION_FEEDFORWARD_GAIN:
+		case MXLV_MTR_ACCELERATION_TIME:
+		case MXLV_MTR_AXIS_ENABLE:
+		case MXLV_MTR_BACKLASH_CORRECTION:
+		case MXLV_MTR_BASE_SPEED:
+		case MXLV_MTR_BUSY:
+		case MXLV_MTR_BUSY_START_INTERVAL:
+		case MXLV_MTR_CLOSED_LOOP:
 		case MXLV_MTR_COMPUTE_EXTENDED_SCAN_RANGE:
 		case MXLV_MTR_COMPUTE_PSEUDOMOTOR_POSITION:
 		case MXLV_MTR_COMPUTE_REAL_POSITION:
-		case MXLV_MTR_GET_STATUS:
-		case MXLV_MTR_GET_EXTENDED_STATUS:
-		case MXLV_MTR_BUSY_START_INTERVAL:
-		case MXLV_MTR_LAST_START_TIME:
-		case MXLV_MTR_SAVE_START_POSITIONS:
-
-		case MXLV_MTR_VALUE_CHANGE_THRESHOLD:
-
-		case MXLV_MTR_AXIS_ENABLE:
-		case MXLV_MTR_CLOSED_LOOP:
-		case MXLV_MTR_FAULT_RESET:
-
-		case MXLV_MTR_PROPORTIONAL_GAIN:
-		case MXLV_MTR_INTEGRAL_GAIN:
+		case MXLV_MTR_CONSTANT_VELOCITY_MOVE:
 		case MXLV_MTR_DERIVATIVE_GAIN:
-		case MXLV_MTR_VELOCITY_FEEDFORWARD_GAIN:
-		case MXLV_MTR_ACCELERATION_FEEDFORWARD_GAIN:
-		case MXLV_MTR_INTEGRAL_LIMIT:
+		case MXLV_MTR_DESTINATION:
 		case MXLV_MTR_EXTRA_GAIN:
+		case MXLV_MTR_FAULT_RESET:
+		case MXLV_MTR_GET_EXTENDED_STATUS:
+		case MXLV_MTR_GET_STATUS:
+		case MXLV_MTR_HOME_SEARCH:
+		case MXLV_MTR_IMMEDIATE_ABORT:
+		case MXLV_MTR_INTEGRAL_GAIN:
+		case MXLV_MTR_INTEGRAL_LIMIT:
+		case MXLV_MTR_LAST_START_TIME:
+		case MXLV_MTR_LIMIT_SWITCH_AS_HOME_SWITCH:
+		case MXLV_MTR_MAXIMUM_SPEED:
+		case MXLV_MTR_NEGATIVE_LIMIT_HIT:
+		case MXLV_MTR_POSITION:
+		case MXLV_MTR_POSITIVE_LIMIT_HIT:
+		case MXLV_MTR_PROPORTIONAL_GAIN:
+		case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
+		case MXLV_MTR_RAW_HOME_COMMAND:
+		case MXLV_MTR_RELATIVE_MOVE:
+		case MXLV_MTR_RESTORE_SPEED:
+		case MXLV_MTR_SAVE_SPEED:
+		case MXLV_MTR_SAVE_START_POSITIONS:
+		case MXLV_MTR_SET_POSITION:
+		case MXLV_MTR_SOFT_ABORT:
+		case MXLV_MTR_SPEED:
+		case MXLV_MTR_SPEED_CHOICE_PARAMETERS:
+		case MXLV_MTR_SYNCHRONOUS_MOTION_MODE:
+		case MXLV_MTR_TWEAK_BACKWARD:
+		case MXLV_MTR_TWEAK_DISTANCE:
+		case MXLV_MTR_TWEAK_FORWARD:
+		case MXLV_MTR_VALUE_CHANGE_THRESHOLD:
+		case MXLV_MTR_VELOCITY_FEEDFORWARD_GAIN:
 
 			record_field->process_function
 					    = mx_motor_process_function;
@@ -663,6 +664,18 @@ mx_motor_process_function( void *record_ptr,
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
 		case MXLV_MTR_DESTINATION:
+			mx_status = mxp_motor_move_absolute_handler(
+						record, motor->destination );
+			break;
+		case MXLV_MTR_RELATIVE_MOVE:
+			mx_status = mx_motor_get_position( record, NULL );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			motor->destination = motor->relative_move
+						+ motor->position;
+
 			mx_status = mxp_motor_move_absolute_handler(
 						record, motor->destination );
 			break;
