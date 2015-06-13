@@ -186,7 +186,7 @@ typedef struct {
 
 	double tweak_distance;
 	mx_bool_type tweak_forward;
-	mx_bool_type tweak_backward;
+	mx_bool_type tweak_reverse;
 
 	/* If 'use_internal_position_offset' is TRUE, then 'set_position'
 	 * commands will adjust the value of 'internal_position_offset'
@@ -307,7 +307,7 @@ typedef struct {
 #define MXLV_MTR_RELATIVE_MOVE				1005
 #define MXLV_MTR_TWEAK_DISTANCE				1006
 #define MXLV_MTR_TWEAK_FORWARD				1007
-#define MXLV_MTR_TWEAK_BACKWARD				1008
+#define MXLV_MTR_TWEAK_REVERSE				1008
 #define MXLV_MTR_PREDICTED_POSITION			1009
 #define MXLV_MTR_FOLLOWING_ERROR			1010
 #define MXLV_MTR_USE_INTERNAL_POSITION_OFFSET		1011
@@ -502,8 +502,8 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, tweak_forward), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_MTR_TWEAK_BACKWARD, -1, "tweak_backward", MXFT_BOOL, NULL, 0, {0}, \
-	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, tweak_backward), \
+  {MXLV_MTR_TWEAK_REVERSE, -1, "tweak_reverse", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, tweak_reverse), \
 	{0}, NULL, 0}, \
   \
   {MXLV_MTR_USE_INTERNAL_POSITION_OFFSET, -1, \

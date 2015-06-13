@@ -450,9 +450,9 @@ mx_setup_motor_process_functions( MX_RECORD *record )
 		case MXLV_MTR_SPEED:
 		case MXLV_MTR_SPEED_CHOICE_PARAMETERS:
 		case MXLV_MTR_SYNCHRONOUS_MOTION_MODE:
-		case MXLV_MTR_TWEAK_BACKWARD:
 		case MXLV_MTR_TWEAK_DISTANCE:
 		case MXLV_MTR_TWEAK_FORWARD:
+		case MXLV_MTR_TWEAK_REVERSE:
 		case MXLV_MTR_VALUE_CHANGE_THRESHOLD:
 		case MXLV_MTR_VELOCITY_FEEDFORWARD_GAIN:
 
@@ -663,10 +663,19 @@ mx_motor_process_function( void *record_ptr,
 		break;
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
-		case MXLV_MTR_DESTINATION:
-			mx_status = mxp_motor_move_absolute_handler(
-						record, motor->destination );
-			break;
+		case MXLV_MTR_TWEAK_FORWARD:
+		case MXLV_MTR_TWEAK_REVERSE:
+			if (record_field->label_value == MXLV_MTR_TWEAK_FORWARD)
+			{
+				motor->relative_move = motor->tweak_distance;
+			} else {
+				motor->relative_move = - motor->tweak_distance;
+			}
+
+			/* Fall through to the relative move case with
+			 * the newly computed relative move.
+			 */
+
 		case MXLV_MTR_RELATIVE_MOVE:
 			mx_status = mx_motor_get_position( record, NULL );
 
@@ -676,9 +685,17 @@ mx_motor_process_function( void *record_ptr,
 			motor->destination = motor->relative_move
 						+ motor->position;
 
+			/* Fall through to the destination case with
+			 * the newly computed destination.
+			 */
+
+		case MXLV_MTR_DESTINATION:
 			mx_status = mxp_motor_move_absolute_handler(
 						record, motor->destination );
 			break;
+
+			/*---*/
+
 		case MXLV_MTR_SET_POSITION:
 			mx_status = mx_motor_set_position( record,
 						motor->set_position );
