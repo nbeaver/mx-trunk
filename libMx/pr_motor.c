@@ -481,6 +481,7 @@ mx_motor_process_function( void *record_ptr,
 
 	double start_position, end_position;
 	double pseudomotor_position, real_position;
+	double destination;
 
 	record = (MX_RECORD *) record_ptr;
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
@@ -663,39 +664,40 @@ mx_motor_process_function( void *record_ptr,
 		break;
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
-		case MXLV_MTR_TWEAK_FORWARD:
-		case MXLV_MTR_TWEAK_REVERSE:
-			if (record_field->label_value == MXLV_MTR_TWEAK_FORWARD)
-			{
-				motor->relative_move = motor->tweak_distance;
-			} else {
-				motor->relative_move = - motor->tweak_distance;
-			}
-
-			/* Fall through to the relative move case with
-			 * the newly computed relative move.
-			 */
-
+		case MXLV_MTR_DESTINATION:
+			mx_status = mxp_motor_move_absolute_handler(
+						record, motor->destination );
+			break;
 		case MXLV_MTR_RELATIVE_MOVE:
 			mx_status = mx_motor_get_position( record, NULL );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			motor->destination = motor->relative_move
-						+ motor->position;
+			destination = motor->position + motor->relative_move;
 
-			/* Fall through to the destination case with
-			 * the newly computed destination.
-			 */
-
-		case MXLV_MTR_DESTINATION:
 			mx_status = mxp_motor_move_absolute_handler(
-						record, motor->destination );
+							record, destination );
 			break;
+		case MXLV_MTR_TWEAK_FORWARD:
+		case MXLV_MTR_TWEAK_REVERSE:
+			mx_status = mx_motor_get_position( record, NULL );
 
-			/*---*/
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
+			if (record_field->label_value == MXLV_MTR_TWEAK_FORWARD)
+			{
+				destination = motor->position
+						+ motor->tweak_distance;
+			} else {
+				destination = motor->position
+						- motor->tweak_distance;
+			}
+
+			mx_status = mxp_motor_move_absolute_handler(
+							record, destination );
+			break;
 		case MXLV_MTR_SET_POSITION:
 			mx_status = mx_motor_set_position( record,
 						motor->set_position );
