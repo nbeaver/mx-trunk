@@ -157,6 +157,9 @@ library_install:
 	cp ../plotgnu/*.bat $(MX_INSTALL_DIR)/bin
 	cp ../tools/*.exe $(MX_INSTALL_DIR)/bin
 
+mx_list_head.$(OBJ): Makefile.version mx_list_head.c mx_version.h
+	$(COMPILE) $(CFLAGS) -DMX_CFLAGS="${CFLAGS}" mx_list_head.c
+
 #
 #---------------------------------------------------
 #

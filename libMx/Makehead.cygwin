@@ -198,6 +198,9 @@ library_install:
 	install -m 755 libMx.dll $(MX_INSTALL_DIR)/bin
 	install -m 644 libMx.dll.a $(MX_INSTALL_DIR)/lib
 
+mx_list_head.$(OBJ): Makefile.version mx_list_head.c mx_version.h
+	$(COMPILE) $(CFLAGS) -DMX_CFLAGS="${CFLAGS}" mx_list_head.c
+
 #
 #---------------------------------------------------
 #

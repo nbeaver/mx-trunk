@@ -34,6 +34,8 @@ extern "C" {
 #  endif
 #elif defined(_MSC_VER)
 #  define MX_MAXIMUM_ALIGNMENT		8
+#elif defined(OS_VMS)
+#  define MX_MAXIMUM_ALIGNMENT		8
 #else
 #  error This platform does not yet implement the MX_MAXIMUM_ALIGNMENT macro.
 #endif

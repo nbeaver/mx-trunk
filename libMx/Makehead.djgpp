@@ -153,6 +153,9 @@ library_install:
 	touch /c $(MX_INSTALL_DIR)/etc/mxmotor.dat
 	touch /c $(MX_INSTALL_DIR)/etc/mxscan.dat
 
+mx_list_head.$(OBJ): Makefile.version mx_list_head.c mx_version.h
+	$(COMPILE) $(CFLAGS) -DMX_CFLAGS="${CFLAGS}" mx_list_head.c
+
 #
 #---------------------------------------------------
 #

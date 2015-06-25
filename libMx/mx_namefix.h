@@ -13,7 +13,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2007-2009 Illinois Institute of Technology
+ * Copyright 2007-2009, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,6 +24,20 @@
 #define __MX_NAMEFIX_H__
 
 #if defined(OS_VMS)
+
+/* mx_area_detector_copy_and_convert_image_data() collides with
+ * mx_area_detector_copy_and_convert_frame()
+ */
+
+#define mx_area_detector_copy_and_convert_image_data \
+					mx_ad_copy_and_convert_image_data
+
+/* mx_area_detector_get_bytes_per_image_file() collides with
+ * mx_area_detector_get_bytes_per_frame().
+ */
+
+#define mx_area_detector_get_bytes_per_image_file \
+						mx_ad_get_bytes_per_image_file
 
 /* mx_area_detector_get_bytes_per_pixel() collides with
  * mx_area_detector_get_bytes_per_frame().

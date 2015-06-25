@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2014 Illinois Institute of Technology
+ * Copyright 2014-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -486,7 +486,20 @@ mx_condition_variable_broadcast( MX_CONDITION_VARIABLE *cv )
 /************************ Posix pthreads ***********************/
 
 #elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_BSD) \
-	|| defined(OS_CYGWIN) || defined(OS_HURD)
+	|| defined(OS_CYGWIN) || defined(OS_HURD) || defined(OS_VMS)
+
+/*---*/
+
+/* FIXME: On VAX VMS, we get a mysterious error about redefinition of
+ *        'struct timespec' apparently involving <decc_rtldef/timers.h>
+ *        The following kludge works around that.
+ */
+
+#if defined(OS_VMS) && defined(__VAX) && !defined(_TIMESPEC_T_)
+#  define _TIMESPEC_T_
+#endif
+
+/*---*/
 
 #include <pthread.h>
 

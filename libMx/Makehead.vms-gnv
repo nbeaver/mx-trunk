@@ -151,6 +151,9 @@ library_install:
 	cp mx*.h $(MX_INSTALL_DIR)/include
 	cp $(MX_LIBRARY_NAME) $(MX_INSTALL_DIR)/lib
 
+mx_list_head.$(OBJ): Makefile.version mx_list_head.c mx_version.h
+	$(COMPILE) $(CFLAGS) -DMX_CFLAGS="${CFLAGS}" mx_list_head.c
+
 #
 #---------------------------------------------------
 #

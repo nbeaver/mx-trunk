@@ -1207,6 +1207,42 @@ mx_show_array_info( void *array_pointer )
 
 /*===========================================================================*/
 
+#if defined(OS_VMS) && defined(__VAX)
+
+/* OpenVMS on Vax does not really have a 64-bit integer type, even
+ * though it provides a broken definition for int64_t and uint64_t.
+ * The following sleight of hand allows MX to compile on the Vax,
+ * but does not constitute real 64-bit support.
+ */
+
+static void
+mx_copy_32bits_to_64bits( void *destination, void *source, size_t num_elements )
+{
+	size_t num_bytes;
+
+	num_bytes = num_elements * sizeof(uint32_t);
+
+	memcpy( destination, source, num_bytes );
+
+	return;
+}
+
+static void
+mx_copy_64bits_to_32bits( void *destination, void *source, size_t num_elements )
+{
+	size_t num_bytes;
+
+	num_bytes = num_elements * sizeof(uint32_t);
+
+	memcpy( destination, source, num_bytes );
+
+	return;
+}
+
+#else  /* For platforms that support 64 bit integers. */
+
+/*--------*/
+
 static void
 mx_copy_32bits_to_64bits( void *destination, void *source, size_t num_elements )
 {
@@ -1290,6 +1326,8 @@ mx_copy_32bits_to_64bits( void *destination, void *source, size_t num_elements )
 	return;
 }
 
+/*--------*/
+
 static void
 mx_copy_64bits_to_32bits( void *destination, void *source, size_t num_elements )
 {
@@ -1344,6 +1382,12 @@ mx_copy_64bits_to_32bits( void *destination, void *source, size_t num_elements )
 	return;
 }
 
+/*--------*/
+
+#endif  /* For platforms that support 64 bit integers. */
+
+/*--------*/
+
 static size_t
 mx_get_network_bytes_from_native_bytes( long mx_datatype,
 					size_t native_bytes_to_copy,
@@ -1394,6 +1438,8 @@ mx_get_network_bytes_from_native_bytes( long mx_datatype,
 
 	return network_bytes_to_copy;
 }
+
+/*--------*/
 
 MX_EXPORT mx_status_type
 mx_copy_array_to_buffer( void *array_pointer,

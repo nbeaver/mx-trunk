@@ -176,6 +176,9 @@ library_install:
 	cp ../plotgnu/plot2ps $(MX_INSTALL_DIR)/bin 
 	chmod 755 $(MX_INSTALL_DIR)/bin/*
 
+mx_list_head.$(OBJ): Makefile.version mx_list_head.c mx_version.h
+	$(COMPILE) $(CFLAGS) -DMX_CFLAGS="${CFLAGS}" mx_list_head.c
+
 #
 #---------------------------------------------------
 #

@@ -16,7 +16,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013 Illinois Institute of Technology
+ * Copyright 2013, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -37,18 +37,18 @@ MX_LINEAR_SCAN_FUNCTION_LIST mxs_k_power_law_linear_scan_function_list = {
 	mxs_k_power_law_scan_finish_record_initialization,
 };
 
-MX_RECORD_FIELD_DEFAULTS mxs_k_power_law_linear_scan_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxs_k_power_law_scan_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_SCAN_STANDARD_FIELDS,
 	MX_LINEAR_SCAN_STANDARD_FIELDS
 };
 
-long mxs_k_power_law_linear_scan_num_record_fields
-			= sizeof( mxs_k_power_law_linear_scan_defaults )
-			/ sizeof( mxs_k_power_law_linear_scan_defaults[0] );
+long mxs_k_power_law_scan_num_record_fields
+			= sizeof( mxs_k_power_law_scan_defaults )
+			/ sizeof( mxs_k_power_law_scan_defaults[0] );
 
-MX_RECORD_FIELD_DEFAULTS *mxs_k_power_law_linear_scan_def_ptr
-			= &mxs_k_power_law_linear_scan_defaults[0];
+MX_RECORD_FIELD_DEFAULTS *mxs_k_power_law_scan_def_ptr
+			= &mxs_k_power_law_scan_defaults[0];
 
 static mx_status_type
 mxs_k_power_law_scan_acquire_data( MX_MEASUREMENT *measurement )

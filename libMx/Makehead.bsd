@@ -165,6 +165,9 @@ mx_library_install:
 	/usr/bin/install -c -m 755 ../plotgnu/showplot $(MX_INSTALL_DIR)/bin 
 	/usr/bin/install -c -m 755 ../plotgnu/plot2ps $(MX_INSTALL_DIR)/bin 
 
+mx_list_head.$(OBJ): Makefile.version mx_list_head.c mx_version.h
+	$(COMPILE) $(CFLAGS) -DMX_CFLAGS="${CFLAGS}" mx_list_head.c
+
 #
 #---------------------------------------------------
 #

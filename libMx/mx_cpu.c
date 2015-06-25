@@ -27,7 +27,14 @@
 #include <sys/sysctl.h>
 #endif
 
+#if defined(OS_VMS)
+#include <ssdef.h>
+#include <syidef.h>
+#include <lib$routines.h>
+#endif
+
 #include "mx_util.h"
+#include "mx_stdint.h"
 #include "mx_unistd.h"
 #include "mx_program_model.h"
 
@@ -198,6 +205,40 @@ mx_get_number_of_cpu_cores( unsigned long *num_cores )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*---------------------------- OpenVMS ------------------------*/
+
+#elif defined(OS_VMS)
+
+MX_EXPORT mx_status_type
+mx_get_number_of_cpu_cores( unsigned long *num_cores )
+{
+	static const char fname[] = "mx_get_number_of_cpu_cores()";
+
+	long item_code;
+	int32_t active_core_count;
+	unsigned long vms_status;
+
+	if ( num_cores == (unsigned long *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The num_cores pointer passed was NULL." );
+	}
+
+	item_code = SYI$_ACTIVECPU_CNT;
+
+	vms_status = lib$getsyi( &item_code, &active_core_count, 0, 0, 0, 0 );
+
+	if ( vms_status != SS$_NORMAL ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Cannot get the active core count for this computer.  "
+		"VMS error number %d, error message = '%s'",
+			vms_status, strerror( EVMSERR, vms_status ) );
+	}
+
+	*num_cores = active_core_count;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /*---------------------------- Hurd ------------------------*/
 
 #elif defined(OS_HURD)
@@ -250,6 +291,18 @@ mx_get_current_cpu_number( void )
 	cpu_number =  mxp_get_current_processor_number();
 
 	return cpu_number;
+}
+
+#elif defined(OS_VMS)
+
+/* FIXME: There must be a way to find this out on OpenVMS, but
+ * I have not yet found out what it is.
+ */
+
+MX_EXPORT unsigned long
+mx_get_current_cpu_number( void )
+{
+	return 0;
 }
 
 #elif ( defined(OS_LINUX) && (MX_GLIBC_VERSION >= 2006000L) )

@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2010-2014 Illinois Institute of Technology
+ * Copyright 2010-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -266,7 +266,7 @@ mx_get_number_of_open_file_descriptors( void )
 
 #if defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
 	|| defined(OS_BSD) || defined(OS_HURD) || defined(OS_CYGWIN) \
-	|| defined(OS_UNIXWARE)
+	|| defined(OS_UNIXWARE) || defined(OS_VMS)
 
 MX_EXPORT mx_bool_type
 mx_fd_is_valid( int fd )
@@ -375,7 +375,7 @@ mx_get_file_size( const char *filename )
 }
 
 #elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_BSD) \
-	|| defined(OS_CYGWIN) || defined(OS_HURD)
+	|| defined(OS_CYGWIN) || defined(OS_VMS) || defined(OS_HURD)
 
 MX_EXPORT int64_t
 mx_get_file_size( const char *filename )
@@ -1383,6 +1383,49 @@ mx_get_fd_name( unsigned long process_id, int fd,
 	pclose(file);
 
 	return ptr;
+}
+
+/*-------------------------------------------------------------------------*/
+
+#elif defined(OS_VMS)
+
+#include <unixio.h>
+
+MX_EXPORT char *
+mx_get_fd_name( unsigned long process_id, int fd,
+		char *buffer, size_t buffer_size )
+{
+	static char fname[] = "mx_get_fd_name()";
+
+	char *ptr;
+	char local_buffer[MXU_FILENAME_LENGTH+1];
+
+	if ( fd < 0 ) {
+		(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Illegal file descriptor %d passed.", fd );
+
+		return NULL;
+	}
+	if ( buffer == NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"NULL buffer pointer passed." );
+
+		return NULL;
+	}
+
+	ptr = getname( fd, local_buffer );
+
+	if ( ptr == NULL ) {
+		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+	    "An error occurred when getting the name of file descriptor %d.",
+			fd );
+
+		return NULL;
+	}
+
+	strlcpy( buffer, local_buffer, buffer_size );
+
+	return buffer;
 }
 
 /*-------------------------------------------------------------------------*/
@@ -2560,7 +2603,8 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
 /*-------------------------------------------------------------------------*/
 
 #elif defined(OS_LINUX) || defined(OS_SOLARIS) || defined(OS_HURD) \
-	|| defined(OS_UNIXWARE) || defined(OS_CYGWIN) || defined(OS_VXWORKS)
+	|| defined(OS_UNIXWARE) || defined(OS_CYGWIN) || defined(OS_VXWORKS) \
+	|| defined(OS_VMS)
 
 /*
  * This is a generic stat()-based implementation that requires polling.
@@ -2571,6 +2615,7 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
  *   Solaris 9 and before.
  *   Other Unix-like platforms.
  *   VxWorks.
+ *   OpenVMS.
  */
 
 typedef struct {

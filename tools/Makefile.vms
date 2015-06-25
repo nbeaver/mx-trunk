@@ -24,7 +24,7 @@ mx_private_version.exe: ../libMx/Makefile.version \
 	link /exe=mx_private_version.exe mx_private_version.obj
 
 ../libMx/mx_private_version.h: mx_private_version.exe
-	run /output=[-.libMx]mx_private_version.h mx_private_version
+	run/output=[-.libMx]mx_private_version.h mx_private_version
 
 strlcpy.obj: generic/src/strlcpy.c
 	cc $(CFLAGS) [.generic.src]strlcpy.c

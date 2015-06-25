@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2009, 2011, 2013-2014 Illinois Institute of Technology
+ * Copyright 1999-2009, 2011, 2013-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1163,10 +1163,13 @@ mx_get_socket_name( MX_SOCKET *mx_socket,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The buffer pointer passed was NULL." );
 	}
+
+#if !defined(OS_VMS)
 	if ( buffer_size <= 0 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"The buffer size passed was 0." );
 	}
+#endif
 
 	mx_status = mx_get_socket_name_by_fd( mx_socket->socket_fd,
 						buffer, buffer_size );

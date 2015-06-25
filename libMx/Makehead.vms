@@ -77,7 +77,7 @@ MOTOR_OBJS        = $(MOTOR_SRCS:.c=.obj)
 SERVER_OBJS       = $(SERVER_SRCS:.c=.obj)
 AUTOSAVE_OBJS       = $(AUTOSAVE_SRCS:.c=.obj)
 MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.obj)
-MXMONITOR_OBJS    = $(MXMONITOR_SRCS:.c=..obj)
+MXMONITOR_OBJS    = $(MXMONITOR_SRCS:.c=.obj)
 
 #----
 
@@ -128,6 +128,9 @@ library_install:
 	copy mx*.h $(MX_INSTALL_DIR).include]
 	copy $(MX_LIBRARY_NAME) $(MX_INSTALL_DIR).lib]
 
+mx_list_head.$(OBJ): Makefile.version mx_list_head.c mx_version.h
+	$(COMPILE) $(CFLAGS) mx_list_head.c
+
 #
 #---------------------------------------------------
 #
@@ -163,7 +166,7 @@ server_install:
 AUTOSAVE_NAME	= mxautosave.exe
 
 $(AUTOSAVE_NAME): $(AUTOSAVE_OBJS) $(MX_LIBRARY_PATH)
-	link /exe=$(AUTOSAVE_NAME) mu_autosave.obj, \
+	link /exe=$(AUTOSAVE_NAME) ms_autosave.obj, \
     $(MX_LIBRARY_PATH)/library, $(LIBRARIES)
 
 autosave_install:

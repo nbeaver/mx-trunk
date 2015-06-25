@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013-2014 Illinois Institute of Technology
+ * Copyright 2013-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -40,17 +40,17 @@ MX_RECORD_FUNCTION_LIST mxi_synaccess_netbooter_record_function_list = {
 	mxi_synaccess_netbooter_open
 };
 
-MX_RECORD_FIELD_DEFAULTS mxi_synaccess_netbooter_record_field_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxi_synaccess_netbooter_rf_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MXI_SYNACCESS_NETBOOTER_STANDARD_FIELDS
 };
 
 long mxi_synaccess_netbooter_num_record_fields
-		= sizeof( mxi_synaccess_netbooter_record_field_defaults )
-		    / sizeof( mxi_synaccess_netbooter_record_field_defaults[0]);
+	= sizeof( mxi_synaccess_netbooter_rf_defaults )
+		    / sizeof( mxi_synaccess_netbooter_rf_defaults[0]);
 
 MX_RECORD_FIELD_DEFAULTS *mxi_synaccess_netbooter_rfield_def_ptr
-			= &mxi_synaccess_netbooter_record_field_defaults[0];
+			= &mxi_synaccess_netbooter_rf_defaults[0];
 
 MX_EXPORT mx_status_type
 mxi_synaccess_netbooter_create_record_structures( MX_RECORD *record )

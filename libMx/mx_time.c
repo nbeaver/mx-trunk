@@ -443,7 +443,7 @@ mx_posix_time( void ) {
 	return posix_time;
 }
 
-#elif defined(OS_LINUX) || defined(OS_MACOSX)
+#elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_VMS)
 
 MX_EXPORT uint64_t
 mx_posix_time( void ) {

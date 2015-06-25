@@ -878,8 +878,8 @@ mx_construct_file_name_from_file_pattern( char *filename_buffer,
 		"mx_construct_file_name_from_file_pattern()";
 
 	char *start_of_varying_number, *trailing_segment;
-	unsigned long length_of_varying_number;
-	unsigned long length_of_leading_segment;
+	long length_of_varying_number;
+	long length_of_leading_segment;
 	char filename_pattern_string[2];
 	char file_number_string[200];
 	char format[20];
@@ -2206,7 +2206,7 @@ mx_get_filesystem_type( char *filename,
 
 #elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
 	|| defined(OS_CYGWIN) || defined(OS_BSD) || defined(OS_UNIXWARE) \
-	|| defined(OS_HURD)
+	|| defined(OS_HURD) || defined(OS_VMS)
 
 /* FIXME: On Linux, at least, it should be possible to do something
  * with statfs().  On MacOS X, statfs() does not appear to return the

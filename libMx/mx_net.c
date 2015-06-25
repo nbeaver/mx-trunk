@@ -1943,7 +1943,11 @@ mx_network_buffer_show_value( void *buffer,
 
 				hex_value = ((uint64_t *) raw_buffer)[i];
 
+#if ( defined(OS_VMS) && defined(__VAX) )
+				hex_value &= 0xffffffff;
+#else
 				hex_value &= UINT64_C( 0xffffffffffffffff );
+#endif
 
 				fprintf( stderr, "%#" PRIx64 " ", hex_value );
 			    }
