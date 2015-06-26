@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2002, 2004, 2006, 2012 Illinois Institute of Technology
+ * Copyright 2001-2002, 2004, 2006, 2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -63,19 +63,21 @@ mx_variable_process_function( void *record_ptr,
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;
 	MX_VARIABLE *variable;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
 	variable = (MX_VARIABLE *) (record->record_class_struct);
 
-	status = MX_SUCCESSFUL_RESULT;
+	MXW_SUPPRESS_SET_BUT_NOT_USED( variable );
+
+	mx_status = MX_SUCCESSFUL_RESULT;
 
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
 		case MXLV_VAR_VALUE:
-			status = mx_receive_variable( record );
+			mx_status = mx_receive_variable( record );
 			break;
 		default:
 			MX_DEBUG( 1,(
@@ -87,7 +89,7 @@ mx_variable_process_function( void *record_ptr,
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
 		case MXLV_VAR_VALUE:
-			status = mx_send_variable( record );
+			mx_status = mx_send_variable( record );
 			break;
 		default:
 			MX_DEBUG( 1,(
@@ -101,6 +103,6 @@ mx_variable_process_function( void *record_ptr,
 			"Unknown operation code = %d", operation );
 	}
 
-	return status;
+	return mx_status;
 }
 

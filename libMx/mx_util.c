@@ -1691,11 +1691,10 @@ MX_EXPORT int
 mx_strncmp_end( const char *s1, const char *s2, size_t compare_length )
 {
 	const char *s1_offset;
-	size_t length1, length2;
+	size_t length1;
 	int result;
 
 	length1 = strlen(s1);
-	length2 = strlen(s2);
 
 	if ( compare_length > length1 ) {
 		result = strcmp( s1, s2 );

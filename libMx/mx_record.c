@@ -2747,6 +2747,8 @@ mx_print_field_array( FILE *file,
 		}
 	}
 
+	MXW_SUPPRESS_SET_BUT_NOT_USED( mx_status );
+
 	return MX_SUCCESSFUL_RESULT;
 }
 

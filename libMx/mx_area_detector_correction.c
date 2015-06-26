@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2014 Illinois Institute of Technology
+ * Copyright 2006-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -787,7 +787,6 @@ mx_area_detector_default_correct_frame( MX_AREA_DETECTOR *ad )
 
 	MX_IMAGE_FRAME *image_frame, *mask_frame, *bias_frame;
 	MX_IMAGE_FRAME *dark_current_frame, *flood_field_frame;
-	unsigned long flags;
 	mx_status_type mx_status;
 
 	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
@@ -804,13 +803,6 @@ mx_area_detector_default_correct_frame( MX_AREA_DETECTOR *ad )
 	}
 
 	/* Find the frame pointers for the image frames to be used. */
-
-	flags = ad->correction_flags;
-
-#if MX_AREA_DETECTOR_DEBUG
-	MX_DEBUG(-2,("%s: record '%s', correction_flags = %#lx",
-		fname, ad->record->name, flags));
-#endif
 
 	mx_status = mx_area_detector_get_correction_frame( ad, image_frame,
 							MXFT_AD_MASK_FRAME,
@@ -1594,7 +1586,7 @@ mx_area_detector_default_dezinger_correction( MX_AREA_DETECTOR *ad )
 	MX_IMAGE_FRAME *dest_frame;
 	MX_IMAGE_FRAME **image_frame_array;
 	unsigned long saved_correction_flags, desired_correction_flags;
-	long i, n, z, num_exposures, pixels_per_frame;
+	long i, n, z, num_exposures;
 	double exposure_time;
 	unsigned long ad_status;
 	mx_status_type mx_status, mx_status2;
@@ -1615,8 +1607,6 @@ mx_area_detector_default_dezinger_correction( MX_AREA_DETECTOR *ad )
 		"At present, only GREY16 image format is supported.",
 			ad->image_format );
 	}
-
-	pixels_per_frame = ad->framesize[0] * ad->framesize[1]; 
 
 	exposure_time = ad->correction_measurement_time;
 

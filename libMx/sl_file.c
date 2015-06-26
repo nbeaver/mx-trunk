@@ -8,7 +8,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2004, 2007, 2011 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2004, 2007, 2011, 2015
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -116,11 +117,9 @@ mxs_file_list_scan_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxs_file_list_scan_delete_record( MX_RECORD *record )
 {
-	MX_SCAN *scan;
 	MX_LIST_SCAN *list_scan;
 	MX_FILE_LIST_SCAN *file_list_scan;
 
-	scan = (MX_SCAN *)(record->record_superclass_struct);
 	list_scan = (MX_LIST_SCAN *)(record->record_class_struct);
 	file_list_scan = (MX_FILE_LIST_SCAN *)(record->record_type_struct);
 

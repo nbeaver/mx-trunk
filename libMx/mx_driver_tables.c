@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2008-2010, 2012-2014 Illinois Institute of Technology
+ * Copyright 1999-2006, 2008-2010, 2012-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -462,8 +462,6 @@ mxp_setup_typeinfo_for_record_type_fields( MX_DRIVER *type_driver )
 		"mxp_setup_typeinfo_for_record_type_fields()";
 
 	MX_DRIVER *superclass_driver, *class_driver;
-	MX_RECORD_FIELD_DEFAULTS *record_field_defaults_array;
-	long num_record_fields;
 	MX_RECORD_FIELD_DEFAULTS *superclass_field;
 	MX_RECORD_FIELD_DEFAULTS *class_field;
 	MX_RECORD_FIELD_DEFAULTS *type_field;
@@ -474,10 +472,6 @@ mxp_setup_typeinfo_for_record_type_fields( MX_DRIVER *type_driver )
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_DRIVER pointer passed was NULL." );
 	}
-
-	record_field_defaults_array = *(type_driver->record_field_defaults_ptr);
-
-	num_record_fields = *(type_driver->num_record_fields);
 
 	/* Setup typeinfo for the superclass field. */
 

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2013-2014 Illinois Institute of Technology
+ * Copyright 2013-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -162,6 +162,11 @@ mx_rdi_correct_frame( MX_AREA_DETECTOR *ad,
 
 	correction_measurement_in_progress =
 		ad->correction_measurement_in_progress;
+
+#if 1
+	correction_measurement_in_progress
+		= correction_measurement_in_progress;		/* For GCC */
+#endif
 
 #if MX_RDI_DEBUG_CORRECTION_TIMING
 	MX_HRT_END(setup_measurement);

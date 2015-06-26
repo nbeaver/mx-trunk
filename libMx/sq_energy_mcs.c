@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010, 2012 Illinois Institute of Technology
+ * Copyright 2010, 2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -591,7 +591,6 @@ mxs_energy_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 	MX_QUICK_SCAN *quick_scan;
 	MX_MCS_QUICK_SCAN *mcs_quick_scan;
-	MX_ENERGY_MCS_QUICK_SCAN_EXTENSION *energy_mcs_quick_scan_extension;
 	mx_status_type mx_status;
 
 #if DEBUG_TIMING
@@ -603,8 +602,6 @@ mxs_energy_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	energy_mcs_quick_scan_extension = mcs_quick_scan->extension_ptr;
 
 	mx_status = mxs_mcs_quick_scan_prepare_for_scan_start( scan );
 
@@ -626,7 +623,6 @@ mxs_energy_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 
 	MX_QUICK_SCAN *quick_scan;
 	MX_MCS_QUICK_SCAN *mcs_quick_scan;
-	MX_ENERGY_MCS_QUICK_SCAN_EXTENSION *energy_mcs_quick_scan_extension;
 	mx_status_type mx_status;
 
 #if DEBUG_TIMING
@@ -638,8 +634,6 @@ mxs_energy_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	energy_mcs_quick_scan_extension = mcs_quick_scan->extension_ptr;
 
 	mx_status = mxs_mcs_quick_scan_execute_scan_body( scan );
 
@@ -664,7 +658,6 @@ mxs_energy_mcs_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 
 	MX_QUICK_SCAN *quick_scan;
 	MX_MCS_QUICK_SCAN *mcs_quick_scan;
-	MX_ENERGY_MCS_QUICK_SCAN_EXTENSION *energy_mcs_quick_scan_extension;
 	mx_status_type mx_status;
 
 #if DEBUG_TIMING
@@ -676,8 +669,6 @@ mxs_energy_mcs_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	energy_mcs_quick_scan_extension = mcs_quick_scan->extension_ptr;
 
 	mx_status = mxs_mcs_quick_scan_cleanup_after_scan_end( scan );
 

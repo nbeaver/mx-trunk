@@ -196,6 +196,15 @@ struct timespec {
 
 /*------------------------------------------------------------------------*/
 
+#if defined( __GNUC__ )
+#  define MXW_SUPPRESS_SET_BUT_NOT_USED( x ) \
+	do { (x) = (x); } while(0)
+#else
+#  define MXW_SUPPRESS_SET_BUT_NOT_USED( x )
+#endif
+
+/*------------------------------------------------------------------------*/
+
 #ifndef TRUE
 #define TRUE	1
 #define FALSE	0

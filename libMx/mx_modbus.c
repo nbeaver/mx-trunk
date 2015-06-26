@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -353,6 +353,8 @@ mx_modbus_read_holding_registers( MX_RECORD *modbus_record,
 
 	num_register_bytes = 2 * num_registers;
 
+	MXW_SUPPRESS_SET_BUT_NOT_USED( num_register_bytes );
+
 	request_buffer[ MXF_MOD_PDU_FUNCTION_CODE ]
 					= MXF_MOD_READ_HOLDING_REGISTERS;
 
@@ -424,6 +426,8 @@ mx_modbus_read_input_registers( MX_RECORD *modbus_record,
 	}
 
 	num_register_bytes = 2 * num_registers;
+
+	MXW_SUPPRESS_SET_BUT_NOT_USED( num_register_bytes );
 
 	request_buffer[ MXF_MOD_PDU_FUNCTION_CODE ]
 					= MXF_MOD_READ_INPUT_REGISTERS;
@@ -904,6 +908,8 @@ mx_modbus_read_write_multiple_registers( MX_RECORD *modbus_record,
 		return mx_status;
 
 	num_register_bytes_to_read = response_buffer[ MXF_MOD_PDU_DATA ];
+
+	MXW_SUPPRESS_SET_BUT_NOT_USED( num_register_bytes_to_read );
 
 	for ( i = 0; i < num_registers_to_read; i++ ) {
 

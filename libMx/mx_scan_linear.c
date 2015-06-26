@@ -354,8 +354,6 @@ mxs_linear_scan_delete_record( MX_RECORD *record )
 	MX_LINEAR_SCAN *linear_scan;
 	MX_LINEAR_SCAN_FUNCTION_LIST *flist;
 	mx_status_type (*fptr)( MX_RECORD * );
-	long dimension[2];
-	size_t element_size[2];
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
@@ -421,12 +419,6 @@ mxs_linear_scan_delete_record( MX_RECORD *record )
 		}
 
 		if ( scan->datafile.x_position_array != NULL ) {
-			dimension[0] = scan->datafile.num_x_motors;
-			dimension[1] = 1;
-
-			element_size[0] = sizeof(double);
-			element_size[1] = sizeof(double *);
-
 			(void) mx_free_array( scan->datafile.x_position_array );
 		}
 
@@ -435,12 +427,6 @@ mxs_linear_scan_delete_record( MX_RECORD *record )
 		}
 
 		if ( scan->plot.x_position_array != NULL ) {
-			dimension[0] = scan->plot.num_x_motors;
-			dimension[1] = 1;
-
-			element_size[0] = sizeof(double);
-			element_size[1] = sizeof(double *);
-
 			(void) mx_free_array( scan->plot.x_position_array );
 		}
 

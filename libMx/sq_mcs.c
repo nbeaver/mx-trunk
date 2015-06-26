@@ -898,6 +898,8 @@ mxs_mcs_quick_scan_find_encoder_readout( MX_RECORD *motor_record )
 					current_record, &num_motors,
 					&motor_record_array );
 
+			MXW_SUPPRESS_SET_BUT_NOT_USED( mx_status );
+
 			for ( i = 0; i < num_motors; i++ ) {
 				if ( motor_record == motor_record_array[i] ) {
 					encoder_record = current_record;
@@ -3146,15 +3148,11 @@ mxs_mcs_quick_scan_readout_measurement( MX_SCAN * scan,
 					double *motor_plot_positions,
 					long *old_measurement_number )
 {
-	MX_RECORD *pseudomotor_record = NULL;
-	MX_RECORD *real_motor_record = NULL;
 	MX_RECORD *mcs_record = NULL;
-	MX_MCS *mcs = NULL;
 	MX_RECORD *mce_record = NULL;
 	MX_RECORD *input_device_record = NULL;
 	MX_SCALER *scaler = NULL;
 	MX_MCS_SCALER *mcs_scaler = NULL;
-	long **data_array = NULL;
 	long i, n, scaler_index;
 	long mcs_measurement_number, scan_measurement_number;
 	long first_new_measurement;
@@ -3227,10 +3225,6 @@ mxs_mcs_quick_scan_readout_measurement( MX_SCAN * scan,
 		 */
 
 		for ( n = 0; n < scan->num_motors; n++ ) {
-			pseudomotor_record = scan->motor_record_array[n];
-
-			real_motor_record =
-				mcs_quick_scan->real_motor_record_array[n];
 
 			mce_record = mcs_quick_scan->mce_record_array[n];
 
@@ -3317,10 +3311,6 @@ mxs_mcs_quick_scan_readout_measurement( MX_SCAN * scan,
 
 			mcs_record = mcs_scaler->mcs_record;
 
-			mcs = (MX_MCS *) mcs_record->record_class_struct;
-
-			data_array = mcs->data_array;
-
 			scaler_index = mcs_scaler->scaler_number;
 
 			mx_status = mx_mcs_read_scaler_measurement( mcs_record,
@@ -3328,9 +3318,6 @@ mxs_mcs_quick_scan_readout_measurement( MX_SCAN * scan,
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
-#if 0
-			data_values[n] = data_array[ scaler_index ][i];
-#endif
 
 			/* Subtract a dark current value if necessary. */
 
@@ -4295,15 +4282,13 @@ mxs_mcs_quick_scan_cl_read_measurement( MX_SCAN *scan )
 	static const char fname[] = "mxs_mcs_quick_scan_cl_read_measurement()";
 #endif
 
-	mx_status_type mx_status;
-
 #if DEBUG_SCAN_PROGRESS
 	MX_DEBUG(-2,("%s invoked for scan '%s'.", fname, scan->record->name ));
 #endif
 
 	/* Close the datafile and shut down the plot. */
 
-	mx_status = mx_standard_cleanup_after_scan_end( scan );
+	(void) mx_standard_cleanup_after_scan_end( scan );
 
 	return MX_SUCCESSFUL_RESULT;
 }

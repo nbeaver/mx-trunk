@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2003, 2005-2006, 2010 Illinois Institute of Technology
+ * Copyright 1999, 2001-2003, 2005-2006, 2010, 2015
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -304,6 +305,8 @@ mxp_gnuplot_add_measurement_to_plot_buffer( MX_PLOT *plot )
 
 		for ( i = 0; i < scan->plot.num_x_motors; i++ ) {
 			x_motor_record = scan->plot.x_motor_array[i];
+
+			MXW_SUPPRESS_SET_BUT_NOT_USED( x_motor_record );
 
 			status = fprintf( gnuplot_pipe,
 				" %g", scan->plot.x_position_array[i][0] );

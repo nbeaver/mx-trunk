@@ -574,6 +574,8 @@ mxp_parse_lsof_output( FILE *file,
 		is_self = FALSE;
 	}
 
+	MXW_SUPPRESS_SET_BUT_NOT_USED( is_self );
+
 	c = fgetc( file );
 
 	if ( feof(file) || ferror(file) ) {
@@ -2332,7 +2334,7 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
 
 	MXP_KQUEUE_VNODE_MONITOR *kqueue_monitor;
 	struct kevent event;
-	int num_events, saved_errno;
+	int num_events;
 	struct timespec timeout;
 
 	if ( monitor == (MX_FILE_MONITOR *) NULL ) {
@@ -2360,9 +2362,14 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
 				&event, 1,
 				&timeout );
 
+#if 0
 	if ( num_events < 0 ) {
+		int saved_errno;
+
 		saved_errno = errno;
 	} else
+#endif
+
 	if ( num_events > 0 ) {
 		return TRUE;
 	}

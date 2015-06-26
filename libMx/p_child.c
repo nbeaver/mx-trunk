@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2005, 2007 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2005, 2007, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -201,7 +201,7 @@ mxp_child_add_measurement_to_plot_buffer( MX_PLOT *plot )
 	MX_PLOT_CHILD *child_file_struct;
 	MX_PLOT_FUNCTION_LIST *parent_flist;
 	mx_status_type( *fptr ) ( MX_PLOT * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
 
@@ -236,7 +236,9 @@ mxp_child_add_measurement_to_plot_buffer( MX_PLOT *plot )
 			plot->plot_arguments );
 	}
 
-	status = (*fptr) ( &(child_file_struct->local_parent_copy) );
+	mx_status = (*fptr) ( &(child_file_struct->local_parent_copy) );
+
+	MXW_SUPPRESS_SET_BUT_NOT_USED( mx_status );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -252,7 +254,7 @@ mxp_child_add_array_to_plot_buffer( MX_PLOT *plot,
 	MX_PLOT_FUNCTION_LIST *parent_flist;
 	mx_status_type( *fptr ) ( MX_PLOT *, long, long, void *,
 					long, long, void * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
 
@@ -287,9 +289,11 @@ mxp_child_add_array_to_plot_buffer( MX_PLOT *plot,
 			plot->plot_arguments );
 	}
 
-	status = (*fptr) ( &(child_file_struct->local_parent_copy),
+	mx_status = (*fptr) ( &(child_file_struct->local_parent_copy),
 				position_type, num_positions, position_array,
 				data_type, num_data_points, data_array );
+
+	MXW_SUPPRESS_SET_BUT_NOT_USED( mx_status );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -302,7 +306,7 @@ mxp_child_display_plot( MX_PLOT *plot )
 	MX_PLOT_CHILD *child_file_struct;
 	MX_PLOT_FUNCTION_LIST *parent_flist;
 	mx_status_type( *fptr ) ( MX_PLOT * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
 
@@ -337,7 +341,9 @@ mxp_child_display_plot( MX_PLOT *plot )
 			plot->plot_arguments );
 	}
 
-	status = (*fptr) ( &(child_file_struct->local_parent_copy) );
+	mx_status = (*fptr) ( &(child_file_struct->local_parent_copy) );
+
+	MXW_SUPPRESS_SET_BUT_NOT_USED( mx_status );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -350,7 +356,7 @@ mxp_child_set_x_range( MX_PLOT *plot, double x_min, double x_max )
 	MX_PLOT_CHILD *child_file_struct;
 	MX_PLOT_FUNCTION_LIST *parent_flist;
 	mx_status_type( *fptr ) ( MX_PLOT *, double, double );
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
 
@@ -385,8 +391,10 @@ mxp_child_set_x_range( MX_PLOT *plot, double x_min, double x_max )
 			plot->plot_arguments );
 	}
 
-	status = (*fptr) ( &(child_file_struct->local_parent_copy),
+	mx_status = (*fptr) ( &(child_file_struct->local_parent_copy),
 						x_min, x_max );
+
+	MXW_SUPPRESS_SET_BUT_NOT_USED( mx_status );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -399,7 +407,7 @@ mxp_child_set_y_range( MX_PLOT *plot, double y_min, double y_max )
 	MX_PLOT_CHILD *child_file_struct;
 	MX_PLOT_FUNCTION_LIST *parent_flist;
 	mx_status_type( *fptr ) ( MX_PLOT *, double, double );
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
 
@@ -434,8 +442,10 @@ mxp_child_set_y_range( MX_PLOT *plot, double y_min, double y_max )
 			plot->plot_arguments );
 	}
 
-	status = (*fptr) ( &(child_file_struct->local_parent_copy),
+	mx_status = (*fptr) ( &(child_file_struct->local_parent_copy),
 						y_min, y_max );
+
+	MXW_SUPPRESS_SET_BUT_NOT_USED( mx_status );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -449,7 +459,7 @@ mxp_child_start_plot_section( MX_PLOT *plot )
 	MX_PLOT_CHILD *child_file_struct;
 	MX_PLOT_FUNCTION_LIST *parent_flist;
 	mx_status_type( *fptr ) ( MX_PLOT * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
 
@@ -503,7 +513,9 @@ mxp_child_start_plot_section( MX_PLOT *plot )
 			plot->plot_arguments );
 	}
 
-	status = (*fptr) ( &(child_file_struct->local_parent_copy) );
+	mx_status = (*fptr) ( &(child_file_struct->local_parent_copy) );
+
+	MXW_SUPPRESS_SET_BUT_NOT_USED( mx_status );
 
 	return MX_SUCCESSFUL_RESULT;
 }

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2009, 2011-2012 Illinois Institute of Technology
+ * Copyright 2006-2009, 2011-2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -726,6 +726,8 @@ mxd_aviex_pccd_16080_write_binning_register( MX_AREA_DETECTOR *ad,
 
 	reg = &(aviex_pccd->register_array[register_address]);
 
+	MXW_SUPPRESS_SET_BUT_NOT_USED( reg );
+
 	/* Is this a valid value for this binsize register. */
 
 	mx_status = mxd_aviex_pccd_check_value( aviex_pccd,
@@ -1061,6 +1063,8 @@ mxd_aviex_pccd_16080_configure_for_sequence( MX_AREA_DETECTOR *ad,
 				sp->sequence_type );
 			break;
 		}
+
+		MXW_SUPPRESS_SET_BUT_NOT_USED( num_frames );
 
 #if MXD_AVIEX_PCCD_16080_DEBUG
 		MX_DEBUG(-2,("%s: trigger_mode = %#lx", fname, trigger_mode ));

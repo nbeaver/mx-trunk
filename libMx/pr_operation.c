@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013 Illinois Institute of Technology
+ * Copyright 2013, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -66,6 +66,8 @@ mx_operation_process_function( void *record_ptr,
 	record = (MX_RECORD *) record_ptr;
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
 	operation = (MX_OPERATION *) (record->record_class_struct);
+
+	MXW_SUPPRESS_SET_BUT_NOT_USED( operation );
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 

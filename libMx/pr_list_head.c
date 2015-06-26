@@ -560,6 +560,8 @@ mx_list_head_record_show_record_list( MX_LIST_HEAD *list_head )
 
 	} while ( current_record != list_head_record );
 
+	MXW_SUPPRESS_SET_BUT_NOT_USED( mx_status );
+
 	return MX_SUCCESSFUL_RESULT;
 }
 

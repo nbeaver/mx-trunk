@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005-2007, 2010-2011, 2013 Illinois Institute of Technology
+ * Copyright 2005-2007, 2010-2011, 2013, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1541,6 +1541,8 @@ mx_thread_free_data_structures( MX_THREAD *thread )
 
 	pthread_status = pthread_setspecific( mx_current_thread_key, NULL );
 
+	MXW_SUPPRESS_SET_BUT_NOT_USED( pthread_status );
+
 #if 1
 	/* FIXME - FIXME - FIXME:  Commenting out these two statements
 	 * stops the MX server from crashing under Electric Fence, but
@@ -2169,6 +2171,8 @@ mx_tls_set_value( MX_THREAD_LOCAL_STORAGE *key, void *value )
 	}
 
 	status = pthread_setspecific( *pthread_key_ptr, value );
+
+	MXW_SUPPRESS_SET_BUT_NOT_USED( status );
 
 	return MX_SUCCESSFUL_RESULT;
 }

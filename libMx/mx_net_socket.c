@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2008 Illinois Institute of Technology
+ * Copyright 1999-2008, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -430,6 +430,8 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 	magic_value    = mx_ntohl( header[ MX_NETWORK_MAGIC ] );
 	header_length  = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
 	message_length = mx_ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
+
+	MXW_SUPPRESS_SET_BUT_NOT_USED( magic_value );
 
 #if 0
 	MX_DEBUG(-2,("%s: magic_value    = %#lx", fname, magic_value));

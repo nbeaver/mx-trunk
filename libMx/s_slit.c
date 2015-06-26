@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -111,6 +111,9 @@ mxs_slit_scan_finish_record_initialization( MX_RECORD *record )
 				= &mxs_slit_linear_scan_function_list;
 
 	linear_scan = (MX_LINEAR_SCAN *)(record->record_class_struct);
+
+	MXW_SUPPRESS_SET_BUT_NOT_USED( linear_scan );
+
 	slit_scan = (MX_SLIT_SCAN *)(record->record_type_struct);
 
 	slit_scan->is_slit_motor = (int *) malloc( sizeof(int)

@@ -809,7 +809,6 @@ mx_image_noir_write_header( FILE *file,
 
 	MX_RECORD *imaging_device_record = NULL;
 	MX_AREA_DETECTOR *ad = NULL;
-	char *detector_name;
 	char scan_template[2*MXU_FILENAME_LENGTH+1];
 
 	mx_status_type mx_status;
@@ -834,11 +833,15 @@ mx_image_noir_write_header( FILE *file,
 
 	/* If a detector name is specified, write it to the header. */
 
-	detector_name = image_noir_info->detector_name_for_header;
-
 #if 0
-	if ( strlen(detector_name) > 0 ) {
-		fprintf( file, "DETECTOR_NAMES=%s;\n", detector_name );
+	{
+		char *detector_name;
+
+		detector_name = image_noir_info->detector_name_for_header;
+
+		if ( strlen(detector_name) > 0 ) {
+			fprintf( file, "DETECTOR_NAMES=%s;\n", detector_name );
+		}
 	}
 #endif
 

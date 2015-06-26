@@ -24,6 +24,7 @@
 #endif
 
 #if defined(OS_MACOSX) || defined(OS_BSD)
+#include <sys/types.h>
 #include <sys/sysctl.h>
 #endif
 

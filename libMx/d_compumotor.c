@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2005-2007, 2010, 2013-2014
+ * Copyright 1999-2003, 2005-2007, 2010, 2013-2015
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -191,7 +191,7 @@ mxd_compumotor_finish_record_initialization( MX_RECORD *record )
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
 	MX_COMPUMOTOR *compumotor;
 	MX_RECORD **motor_array;
-	long i, j, num_axes, controller_index;
+	long i, j, controller_index;
 	mx_status_type mx_status;
 
 	motor = (MX_MOTOR *) record->record_class_struct;
@@ -228,8 +228,6 @@ mxd_compumotor_finish_record_initialization( MX_RECORD *record )
 
 	i = compumotor->controller_index;
 	j = compumotor->axis_number - 1;
-
-	num_axes = compumotor_interface->num_axes[i];
 
 	motor_array = compumotor_interface->motor_array[i];
 
@@ -877,6 +875,8 @@ mxd_compumotor_move_absolute( MX_MOTOR *motor )
 			strlcat( command, "X", sizeof(command) );
 		}
 	}
+
+	MXW_SUPPRESS_SET_BUT_NOT_USED( command_buffer_left );
 
 	command[ length + MX_MAX_COMPUMOTOR_AXES ] = '\0';
 
@@ -1911,7 +1911,6 @@ mxd_compumotor_simultaneous_start( long num_motor_records,
 	static const char fname[] = "mxd_compumotor_simultaneous_start()";
 
 	MX_RECORD *motor_record, *current_interface_record;
-	MX_MOTOR *motor;
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
 	MX_COMPUMOTOR_INTERFACE *current_compumotor_interface;
 	MX_COMPUMOTOR *current_compumotor;
@@ -1924,8 +1923,6 @@ mxd_compumotor_simultaneous_start( long num_motor_records,
 
 	for ( i = 0; i < num_motor_records; i++ ) {
 		motor_record = motor_record_array[i];
-
-		motor = (MX_MOTOR *) motor_record->record_class_struct;
 
 		if ( motor_record->mx_type != MXT_MTR_COMPUMOTOR ) {
 			return mx_error( MXE_TYPE_MISMATCH, fname,
@@ -2141,9 +2138,7 @@ mxd_compumotor_enable_continuous_mode( MX_COMPUMOTOR *compumotor,
 {
 	static const char fname[] = "mxd_compumotor_enable_continuous_mode()";
 
-	MX_RECORD **motor_array;
 	char command[80];
-	size_t i, num_axes;
 	mx_status_type mx_status;
 
 	/* Are we being commanded to change to the positioner mode
@@ -2167,12 +2162,6 @@ mxd_compumotor_enable_continuous_mode( MX_COMPUMOTOR *compumotor,
 	"The motor_array pointer for the Compumotor interface '%s' is NULL.",
 			compumotor_interface->record->name );
 	}
-
-	i = compumotor->controller_index;
-
-	num_axes = compumotor_interface->num_axes[i];
-
-	motor_array = compumotor_interface->motor_array[i];
 
 	snprintf( command, sizeof(command), "%ld_!%ldMC%d",
 					compumotor->controller_number,

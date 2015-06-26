@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2011-2012 Illinois Institute of Technology
+ * Copyright 2011-2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -64,19 +64,21 @@ mx_mcai_process_function( void *record_ptr,
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;
 	MX_MCAI *mcai;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
 	mcai = (MX_MCAI *) (record->record_class_struct);
 
-	status = MX_SUCCESSFUL_RESULT;
+	MXW_SUPPRESS_SET_BUT_NOT_USED( mcai );
+
+	mx_status = MX_SUCCESSFUL_RESULT;
 
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
 		case MXLV_MCAI_CHANNEL_ARRAY:
-			status = mx_mcai_read( record, NULL, NULL );
+			mx_status = mx_mcai_read( record, NULL, NULL );
 			break;
 		default:
 			MX_DEBUG( 1,(
@@ -99,6 +101,6 @@ mx_mcai_process_function( void *record_ptr,
 			"Unknown operation code = %d", operation );
 	}
 
-	return status;
+	return mx_status;
 }
 

@@ -10,7 +10,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2003 Illinois Institute of Technology
+ * Copyright 2002-2003, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -332,6 +332,10 @@ h_to_theta( double h )
 	angle = RADC * acos(beta1);
 	if(h < 0)
 		angle = -angle;
+
+	MXW_SUPPRESS_SET_BUT_NOT_USED( sum );
+	MXW_SUPPRESS_SET_BUT_NOT_USED( beta2 );
+
 	return(angle);
 }
 

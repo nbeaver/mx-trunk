@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2006, 2009, 2010 Illinois Institute of Technology
+ * Copyright 1999, 2001-2006, 2009, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -199,6 +199,7 @@ mxp_gnuxafs_close( MX_PLOT *plot )
 	mx_status = mx_coprocess_close( gnuxafs_data->coprocess,
 					MXP_GNUXAFS_TIMEOUT );
 #endif
+	MXW_SUPPRESS_SET_BUT_NOT_USED( mx_status );
 
 	gnuxafs_data->coprocess = NULL;
 	gnuxafs_data->energy_motor_record = NULL;

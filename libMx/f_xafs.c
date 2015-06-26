@@ -11,7 +11,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2009-2010 Illinois Institute of Technology
+ * Copyright 1999-2006, 2009-2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -328,6 +328,8 @@ mxdf_xafs_write_header( MX_DATAFILE *datafile,
 	region_measurement_time = NULL;
 	num_input_devices = 0;
 	input_device_array = NULL;
+
+	MXW_SUPPRESS_SET_BUT_NOT_USED( num_k_regions );
 
 	switch( scan->record->mx_class ) {
 	case MXS_LINEAR_SCAN:

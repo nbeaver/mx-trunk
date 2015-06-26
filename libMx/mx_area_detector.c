@@ -2716,6 +2716,8 @@ mx_area_detector_get_status( MX_RECORD *record,
 	flags = ad->area_detector_flags;
 
 #if 0
+	/* FIXME: Having this work would be useful. */
+
 	if ( flags & MXF_AD_SAVE_FRAME_AFTER_ACQUISITION ) {
 		if ( ad->last_frame_number > 
 				(ad->datafile_last_frame_number - 1) )
@@ -2723,6 +2725,8 @@ mx_area_detector_get_status( MX_RECORD *record,
 			ad->status |= MXSF_AD_UNSAVED_IMAGE_FRAMES;
 		}
 	}
+#else
+	flags = flags;		/* For GCC */
 #endif
 
 	/* Set the bits from the latched status word in the main status word. */
@@ -2839,6 +2843,8 @@ mx_area_detector_get_extended_status( MX_RECORD *record,
 	MX_DEBUG(-2,("%s: MARKER #1, status = %#lx, flags = %#lx",
 			fname, ad->status, flags));
 
+	/* FIXME: Having this work would be useful. */
+
 	if ( flags & MXF_AD_SAVE_FRAME_AFTER_ACQUISITION ) {
 		MX_DEBUG(-2,("%s: MARKER #2", fname));
 
@@ -2852,6 +2858,8 @@ mx_area_detector_get_extended_status( MX_RECORD *record,
 	}
 
 	MX_DEBUG(-2,("%s: MARKER #4, status = %#lx", fname, ad->status));
+#else
+	flags = flags;		/* For GCC */
 #endif
 
 	/* Set the bits from the latched status word in the main status word. */
@@ -5520,15 +5528,11 @@ mx_area_detector_default_get_parameter_handler( MX_AREA_DETECTOR *ad )
 		"mx_area_detector_default_get_parameter_handler()";
 
 	MX_SEQUENCE_PARAMETERS seq;
-	MX_AREA_DETECTOR_FUNCTION_LIST *flist = NULL;
 	unsigned long i;
 	double double_value;
 	long num_frames;
 	double exposure_time, frame_time;
 	mx_status_type mx_status;
-
-	flist = (MX_AREA_DETECTOR_FUNCTION_LIST *)
-				ad->record->class_specific_function_list;
 
 	switch( ad->parameter_type ) {
 	case MXLV_AD_BINSIZE:

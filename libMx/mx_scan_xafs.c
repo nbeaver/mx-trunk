@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2006, 2010 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2006, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -312,6 +312,8 @@ mxs_xafs_scan_print_scan_structure( FILE *file, MX_RECORD *record )
 		return status;
 
 	scan = (MX_SCAN *) record->record_superclass_struct;
+
+	MXW_SUPPRESS_SET_BUT_NOT_USED( scan );
 
 	xafs_scan = (MX_XAFS_SCAN *) record->record_class_struct;
 

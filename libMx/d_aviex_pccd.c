@@ -2834,6 +2834,8 @@ mxd_aviex_pccd_readout_frame( MX_AREA_DETECTOR *ad )
 				= ad->readout_frame
 					+ num_times_looped * maximum_num_frames;
 
+			MXW_SUPPRESS_SET_BUT_NOT_USED(
+			    number_of_frame_that_overwrote_the_frame_we_want );
 #if 0
 			mx_warning(
 		    "%s: Frame %ld has already been overwritten by frame %ld.",
@@ -3850,7 +3852,6 @@ mxd_aviex_pccd_set_parameter( MX_AREA_DETECTOR *ad )
 
 	MX_AVIEX_PCCD *aviex_pccd;
 	MX_SEQUENCE_PARAMETERS *sp;
-	unsigned long flags;
 	long vinput_horiz_framesize, vinput_vert_framesize;
 	long horiz_binsize, vert_binsize;
 	long saved_vert_binsize, saved_vert_framesize;
@@ -3882,7 +3883,6 @@ mxd_aviex_pccd_set_parameter( MX_AREA_DETECTOR *ad )
 				name_buffer, sizeof(name_buffer)) ));
 	}
 #endif
-	flags = aviex_pccd->aviex_pccd_flags;
 
 	switch( ad->parameter_type ) {
 	case MXLV_AD_FRAMESIZE:
@@ -4714,6 +4714,9 @@ mxd_aviex_pccd_geometrical_correction( MX_AREA_DETECTOR *ad,
 	row_framesize = MXIF_ROW_FRAMESIZE(image_frame);
 	column_framesize = MXIF_COLUMN_FRAMESIZE(image_frame);
 
+	MXW_SUPPRESS_SET_BUT_NOT_USED( row_framesize );
+	MXW_SUPPRESS_SET_BUT_NOT_USED( column_framesize );
+
 #if MXD_AVIEX_PCCD_DEBUG_FRAME_CORRECTION
 	MX_DEBUG(-2,("BEFORE smvspatial(), image_frame histogram = "));
 	mx_image_statistics( image_frame );
@@ -5193,15 +5196,13 @@ mxd_aviex_pccd_write_register( MX_AVIEX_PCCD *aviex_pccd,
 
 	MX_AVIEX_PCCD_REGISTER *reg;
 	char command[20], response[20];
-	unsigned long value_read, flags;
+	unsigned long value_read;
 	mx_status_type mx_status;
 
 	if ( aviex_pccd == (MX_AVIEX_PCCD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_AVIEX_PCCD pointer passed was NULL." );
 	}
-
-	flags = aviex_pccd->aviex_pccd_flags;
 
 	if ( register_address >= MXLV_AVIEX_PCCD_DH_BASE ) {
 		register_address -= MXLV_AVIEX_PCCD_DH_BASE;

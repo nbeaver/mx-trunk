@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2007-2014 Illinois Institute of Technology
+ * Copyright 2007-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -767,6 +767,8 @@ mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,
 		    (unsigned long) message_type );
 	}
 
+	MXW_SUPPRESS_SET_BUT_NOT_USED( message_length );
+
 	/* If we got an error status code from the server, return the
 	 * error message to the caller.
 	 */
@@ -788,6 +790,9 @@ mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,
 
 	data_type  = mx_ntohl( header[MX_NETWORK_DATA_TYPE] );
 	message_id = mx_ntohl( header[MX_NETWORK_MESSAGE_ID] );
+
+	MXW_SUPPRESS_SET_BUT_NOT_USED( data_type );
+	MXW_SUPPRESS_SET_BUT_NOT_USED( message_id );
 
 	/* Get the callback ID from the returned message. */
 
@@ -1012,6 +1017,8 @@ mx_remote_field_delete_callback( MX_CALLBACK *callback )
 	        (unsigned long) mx_server_response(MX_NETMSG_DELETE_CALLBACK),
 		    (unsigned long) message_type );
 	}
+
+	MXW_SUPPRESS_SET_BUT_NOT_USED( message_length );
 
 	/* If we got an error status code from the server, return the
 	 * error message to the caller.
@@ -2251,6 +2258,8 @@ mx_process_callbacks( MX_RECORD *record_list, MX_PIPE *callback_pipe )
 	 */
 
 	list_head = mx_get_record_list_head_struct( record_list );
+
+	MXW_SUPPRESS_SET_BUT_NOT_USED( list_head );
 
 	/* Read the next message from the callback pipe. */
 

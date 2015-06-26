@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004, 2006, 2012 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2004, 2006, 2012, 2015
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -70,6 +71,8 @@ mx_analog_input_process_function( void *record_ptr,
 	record = (MX_RECORD *) record_ptr;
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
 	analog_input = (MX_ANALOG_INPUT *) (record->record_class_struct);
+
+	MXW_SUPPRESS_SET_BUT_NOT_USED( analog_input );
 
 	status = MX_SUCCESSFUL_RESULT;
 

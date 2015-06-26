@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -102,7 +102,6 @@ mxd_aps_adcmod2_ainput_read( MX_ANALOG_INPUT *ainput )
 	MX_APS_ADCMOD2_AINPUT *aps_adcmod2_ainput;
 	MX_APS_ADCMOD2 *aps_adcmod2;
 	MX_RECORD *aps_adcmod2_record;
-	unsigned long offset;
 	uint16_t raw_value;
 	mx_status_type mx_status;
 
@@ -125,15 +124,9 @@ mxd_aps_adcmod2_ainput_read( MX_ANALOG_INPUT *ainput )
 
 	aps_adcmod2 = (MX_APS_ADCMOD2 *) aps_adcmod2_record->record_type_struct;
 
-	offset = (unsigned long) ( 4 * aps_adcmod2_ainput->ainput_number );
-
-#if 0
-	mx_status = mxi_aps_adcmod2_in16( aps_adcmod2, offset, &raw_value );
-#else
 	mx_status = mxi_aps_adcmod2_read_value( aps_adcmod2,
 					aps_adcmod2_ainput->ainput_number,
 					&raw_value );
-#endif
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
