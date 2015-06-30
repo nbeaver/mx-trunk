@@ -55,7 +55,6 @@ mx_rdi_correct_frame( MX_AREA_DETECTOR *ad,
 	unsigned long flags;
 	unsigned long i, corr_pixels_per_frame = 0;
 	unsigned long image_format, correction_format;
-	mx_bool_type correction_measurement_in_progress;
 	mx_status_type mx_status;
 
 #if MX_RDI_DEBUG_CORRECTION_TIMING
@@ -158,14 +157,6 @@ mx_rdi_correct_frame( MX_AREA_DETECTOR *ad,
 	} else {
 		mx_image_statistics( non_uniformity_frame );
 	}
-#endif
-
-	correction_measurement_in_progress =
-		ad->correction_measurement_in_progress;
-
-#if 1
-	correction_measurement_in_progress
-		= correction_measurement_in_progress;		/* For GCC */
 #endif
 
 #if MX_RDI_DEBUG_CORRECTION_TIMING

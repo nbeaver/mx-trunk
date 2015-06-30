@@ -2664,7 +2664,6 @@ mx_area_detector_get_status( MX_RECORD *record,
 
 	MX_AREA_DETECTOR *ad;
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
-	unsigned long flags;
 	mx_status_type ( *get_status_fn ) ( MX_AREA_DETECTOR * );
 	mx_status_type ( *get_extended_status_fn ) ( MX_AREA_DETECTOR * );
 	mx_status_type mx_status;
@@ -2713,20 +2712,22 @@ mx_area_detector_get_status( MX_RECORD *record,
 		fname, ad->last_frame_number, ad->datafile_last_frame_number));
 #endif
 
-	flags = ad->area_detector_flags;
-
 #if 0
-	/* FIXME: Having this work would be useful. */
+	{
+		unsigned long flags;
 
-	if ( flags & MXF_AD_SAVE_FRAME_AFTER_ACQUISITION ) {
-		if ( ad->last_frame_number > 
+		flags = ad->area_detector_flags;
+
+		/* FIXME: Having this work would be useful. */
+
+		if ( flags & MXF_AD_SAVE_FRAME_AFTER_ACQUISITION ) {
+			if ( ad->last_frame_number > 
 				(ad->datafile_last_frame_number - 1) )
-		{
-			ad->status |= MXSF_AD_UNSAVED_IMAGE_FRAMES;
+			{
+				ad->status |= MXSF_AD_UNSAVED_IMAGE_FRAMES;
+			}
 		}
 	}
-#else
-	flags = flags;		/* For GCC */
 #endif
 
 	/* Set the bits from the latched status word in the main status word. */
@@ -2759,7 +2760,6 @@ mx_area_detector_get_extended_status( MX_RECORD *record,
 
 	MX_AREA_DETECTOR *ad;
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
-	unsigned long flags;
 	mx_status_type ( *get_last_frame_number_fn ) ( MX_AREA_DETECTOR * );
 	mx_status_type ( *get_total_num_frames_fn ) ( MX_AREA_DETECTOR * );
 	mx_status_type ( *get_status_fn ) ( MX_AREA_DETECTOR * );
@@ -2837,29 +2837,32 @@ mx_area_detector_get_extended_status( MX_RECORD *record,
 		fname, ad->last_frame_number, ad->datafile_last_frame_number));
 #endif
 
-	flags = ad->area_detector_flags;
-
 #if 0
-	MX_DEBUG(-2,("%s: MARKER #1, status = %#lx, flags = %#lx",
+	{
+		unsigned long flags;
+
+		flags = ad->area_detector_flags;
+
+		MX_DEBUG(-2,("%s: MARKER #1, status = %#lx, flags = %#lx",
 			fname, ad->status, flags));
 
-	/* FIXME: Having this work would be useful. */
+		/* FIXME: Having this work would be useful. */
 
-	if ( flags & MXF_AD_SAVE_FRAME_AFTER_ACQUISITION ) {
-		MX_DEBUG(-2,("%s: MARKER #2", fname));
+		if ( flags & MXF_AD_SAVE_FRAME_AFTER_ACQUISITION ) {
+			MX_DEBUG(-2,("%s: MARKER #2", fname));
 
-		if ( ad->last_frame_number > 
+			if ( ad->last_frame_number > 
 				(ad->datafile_last_frame_number - 1) )
-		{
-			MX_DEBUG(-2,("%s: MARKER #3", fname));
+			{
+				MX_DEBUG(-2,("%s: MARKER #3", fname));
 
-			ad->status |= MXSF_AD_UNSAVED_IMAGE_FRAMES;
+				ad->status |= MXSF_AD_UNSAVED_IMAGE_FRAMES;
+			}
 		}
-	}
 
-	MX_DEBUG(-2,("%s: MARKER #4, status = %#lx", fname, ad->status));
-#else
-	flags = flags;		/* For GCC */
+		MX_DEBUG(-2,
+		("%s: MARKER #4, status = %#lx", fname, ad->status));
+	}
 #endif
 
 	/* Set the bits from the latched status word in the main status word. */

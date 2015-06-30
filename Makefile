@@ -67,7 +67,7 @@
 # mx/module/epics/Makefile.config.
 #
 
-MX_ARCH = bsd
+MX_ARCH = bsd-clang
 
 MX_INSTALL_DIR = /opt/mx
 #MX_INSTALL_DIR = c:/opt/mx
@@ -84,7 +84,6 @@ MX_INSTALL_DIR = /opt/mx
 MAKECMD = $(MAKE) MX_ARCH=$(MX_ARCH) MX_INSTALL_DIR=$(MX_INSTALL_DIR)
 
 all: build
-	echo $(ok)
 
 build: depend_files
 	( cd tools ; $(MAKECMD) -f Makefile.$(MX_ARCH) )

@@ -196,7 +196,10 @@ struct timespec {
 
 /*------------------------------------------------------------------------*/
 
-#if defined( __GNUC__ )
+#if defined( __clang__)
+#  define MXW_SUPPRESS_SET_BUT_NOT_USED( x ) \
+	(void) x
+#elif defined( __GNUC__ )
 #  define MXW_SUPPRESS_SET_BUT_NOT_USED( x ) \
 	do { (x) = (x); } while(0)
 #else

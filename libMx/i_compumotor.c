@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2010, 2012-2014 Illinois Institute of Technology
+ * Copyright 1999-2006, 2010, 2012-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -926,6 +926,8 @@ mxi_compumotor_command( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 #if MXI_COMPUMOTOR_INTERFACE_DEBUG_TIMING	
 	MX_HRT_RS232_TIMING command_timing, response_timing;
 #endif
+
+	debug_flag = FALSE;
 
 	MX_DEBUG(2,("%s invoked.", fname));
 
