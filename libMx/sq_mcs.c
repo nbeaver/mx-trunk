@@ -898,7 +898,7 @@ mxs_mcs_quick_scan_find_encoder_readout( MX_RECORD *motor_record )
 					current_record, &num_motors,
 					&motor_record_array );
 
-			MXW_SUPPRESS_SET_BUT_NOT_USED( mx_status );
+			MXW_UNUSED( mx_status );
 
 			for ( i = 0; i < num_motors; i++ ) {
 				if ( motor_record == motor_record_array[i] ) {

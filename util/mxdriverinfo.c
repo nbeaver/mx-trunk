@@ -602,7 +602,7 @@ show_field_list( char *driver_name,
 		}
 	}
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( status );
+	MXW_UNUSED( status );
 
 	return SUCCESS;
 }
@@ -660,7 +660,7 @@ show_field( MX_DRIVER *driver,
 
 	printf( "\n" );
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( field_is_varargs );
+	MXW_UNUSED( field_is_varargs );
 
 	return SUCCESS;
 }
@@ -1008,7 +1008,7 @@ show_latex_field_table( char *driver_name,
 	printf( "  \\end{tabularx}\n" );
 	printf( "}\n" );
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( status );
+	MXW_UNUSED( status );
 
 	return SUCCESS;
 }
@@ -1137,7 +1137,7 @@ show_latex_field( MX_DRIVER *driver,
 
 	printf( "    \\hline\n" );
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( field_is_varargs );
+	MXW_UNUSED( field_is_varargs );
 
 	return SUCCESS;
 }

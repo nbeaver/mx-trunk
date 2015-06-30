@@ -2340,8 +2340,8 @@ motor_area_detector_fn( int argc, char *argv[] )
 		return FAILURE;
 	}
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( ignore_num_frames );
-	MXW_SUPPRESS_SET_BUT_NOT_USED( old_last_frame_number );
+	MXW_UNUSED( ignore_num_frames );
+	MXW_UNUSED( old_last_frame_number );
 
 	return SUCCESS;
 }

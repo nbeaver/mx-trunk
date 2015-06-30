@@ -112,7 +112,7 @@ mxs_slit_scan_finish_record_initialization( MX_RECORD *record )
 
 	linear_scan = (MX_LINEAR_SCAN *)(record->record_class_struct);
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( linear_scan );
+	MXW_UNUSED( linear_scan );
 
 	slit_scan = (MX_SLIT_SCAN *)(record->record_type_struct);
 

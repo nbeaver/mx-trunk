@@ -69,7 +69,7 @@ mx_variable_process_function( void *record_ptr,
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
 	variable = (MX_VARIABLE *) (record->record_class_struct);
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( variable );
+	MXW_UNUSED( variable );
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 

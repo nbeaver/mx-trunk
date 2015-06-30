@@ -781,7 +781,7 @@ motor_mcs_display_plot( MX_RECORD *mcs_record,
 	status = pclose( plotgnu_pipe );
 #endif
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( status );
+	MXW_UNUSED( status );
 
 	return SUCCESS;
 }
@@ -899,7 +899,7 @@ motor_mcs_display_all( MX_RECORD *mcs_record, MX_MCS *mcs )
 	status = pclose( plotgnu_pipe );
 #endif
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( status );
+	MXW_UNUSED( status );
 
 	return SUCCESS;
 }

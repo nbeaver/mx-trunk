@@ -835,7 +835,7 @@ motor_wvout_display_plot( MX_RECORD *wvout_record,
 	status = pclose( plotgnu_pipe );
 #endif
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( status );
+	MXW_UNUSED( status );
 
 	return SUCCESS;
 }
@@ -954,7 +954,7 @@ motor_wvout_display_all( MX_RECORD *wvout_record, MX_WAVEFORM_OUTPUT *wvout )
 	status = pclose( plotgnu_pipe );
 #endif
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( status );
+	MXW_UNUSED( status );
 
 	return SUCCESS;
 }

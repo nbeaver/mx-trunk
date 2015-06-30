@@ -71,7 +71,7 @@ mx_digital_input_process_function( void *record_ptr,
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
 	digital_input = (MX_DIGITAL_INPUT *) (record->record_class_struct);
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( digital_input );
+	MXW_UNUSED( digital_input );
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 

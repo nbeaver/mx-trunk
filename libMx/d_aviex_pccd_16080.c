@@ -726,7 +726,7 @@ mxd_aviex_pccd_16080_write_binning_register( MX_AREA_DETECTOR *ad,
 
 	reg = &(aviex_pccd->register_array[register_address]);
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( reg );
+	MXW_UNUSED( reg );
 
 	/* Is this a valid value for this binsize register. */
 
@@ -1064,7 +1064,7 @@ mxd_aviex_pccd_16080_configure_for_sequence( MX_AREA_DETECTOR *ad,
 			break;
 		}
 
-		MXW_SUPPRESS_SET_BUT_NOT_USED( num_frames );
+		MXW_UNUSED( num_frames );
 
 #if MXD_AVIEX_PCCD_16080_DEBUG
 		MX_DEBUG(-2,("%s: trigger_mode = %#lx", fname, trigger_mode ));

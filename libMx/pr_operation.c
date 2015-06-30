@@ -67,7 +67,7 @@ mx_operation_process_function( void *record_ptr,
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
 	operation = (MX_OPERATION *) (record->record_class_struct);
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( operation );
+	MXW_UNUSED( operation );
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 

@@ -306,7 +306,7 @@ mxp_gnuplot_add_measurement_to_plot_buffer( MX_PLOT *plot )
 		for ( i = 0; i < scan->plot.num_x_motors; i++ ) {
 			x_motor_record = scan->plot.x_motor_array[i];
 
-			MXW_SUPPRESS_SET_BUT_NOT_USED( x_motor_record );
+			MXW_UNUSED( x_motor_record );
 
 			status = fprintf( gnuplot_pipe,
 				" %g", scan->plot.x_position_array[i][0] );

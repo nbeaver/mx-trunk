@@ -191,7 +191,7 @@ mxn_bluice_dhs_manager_register_devices( MX_RECORD *dhs_manager_record,
 		mx_status = mx_bluice_send_message( dhs_record,
 							command, NULL, 0 );
 
-		MXW_SUPPRESS_SET_BUT_NOT_USED( mx_status );
+		MXW_UNUSED( mx_status );
 	    }
 
 	    current_record = current_record->next_record;

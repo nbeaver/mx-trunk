@@ -199,7 +199,7 @@ mxp_gnuxafs_close( MX_PLOT *plot )
 	mx_status = mx_coprocess_close( gnuxafs_data->coprocess,
 					MXP_GNUXAFS_TIMEOUT );
 #endif
-	MXW_SUPPRESS_SET_BUT_NOT_USED( mx_status );
+	MXW_UNUSED( mx_status );
 
 	gnuxafs_data->coprocess = NULL;
 	gnuxafs_data->energy_motor_record = NULL;

@@ -329,7 +329,7 @@ mxdf_xafs_write_header( MX_DATAFILE *datafile,
 	num_input_devices = 0;
 	input_device_array = NULL;
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( num_k_regions );
+	MXW_UNUSED( num_k_regions );
 
 	switch( scan->record->mx_class ) {
 	case MXS_LINEAR_SCAN:

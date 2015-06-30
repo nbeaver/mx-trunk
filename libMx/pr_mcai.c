@@ -70,7 +70,7 @@ mx_mcai_process_function( void *record_ptr,
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
 	mcai = (MX_MCAI *) (record->record_class_struct);
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( mcai );
+	MXW_UNUSED( mcai );
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 

@@ -313,7 +313,7 @@ mxs_xafs_scan_print_scan_structure( FILE *file, MX_RECORD *record )
 
 	scan = (MX_SCAN *) record->record_superclass_struct;
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( scan );
+	MXW_UNUSED( scan );
 
 	xafs_scan = (MX_XAFS_SCAN *) record->record_class_struct;
 

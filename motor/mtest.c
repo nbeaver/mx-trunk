@@ -44,7 +44,7 @@ motor_test_fn( int argc, char *argv[] )
 
 			k = i / j;
 
-			MXW_SUPPRESS_SET_BUT_NOT_USED( k );
+			MXW_UNUSED( k );
 			
 			return SUCCESS;
 		} else

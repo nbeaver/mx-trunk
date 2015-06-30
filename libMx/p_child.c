@@ -238,7 +238,7 @@ mxp_child_add_measurement_to_plot_buffer( MX_PLOT *plot )
 
 	mx_status = (*fptr) ( &(child_file_struct->local_parent_copy) );
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( mx_status );
+	MXW_UNUSED( mx_status );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -293,7 +293,7 @@ mxp_child_add_array_to_plot_buffer( MX_PLOT *plot,
 				position_type, num_positions, position_array,
 				data_type, num_data_points, data_array );
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( mx_status );
+	MXW_UNUSED( mx_status );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -343,7 +343,7 @@ mxp_child_display_plot( MX_PLOT *plot )
 
 	mx_status = (*fptr) ( &(child_file_struct->local_parent_copy) );
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( mx_status );
+	MXW_UNUSED( mx_status );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -394,7 +394,7 @@ mxp_child_set_x_range( MX_PLOT *plot, double x_min, double x_max )
 	mx_status = (*fptr) ( &(child_file_struct->local_parent_copy),
 						x_min, x_max );
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( mx_status );
+	MXW_UNUSED( mx_status );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -445,7 +445,7 @@ mxp_child_set_y_range( MX_PLOT *plot, double y_min, double y_max )
 	mx_status = (*fptr) ( &(child_file_struct->local_parent_copy),
 						y_min, y_max );
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( mx_status );
+	MXW_UNUSED( mx_status );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -515,7 +515,7 @@ mxp_child_start_plot_section( MX_PLOT *plot )
 
 	mx_status = (*fptr) ( &(child_file_struct->local_parent_copy) );
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( mx_status );
+	MXW_UNUSED( mx_status );
 
 	return MX_SUCCESSFUL_RESULT;
 }

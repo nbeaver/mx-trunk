@@ -105,7 +105,7 @@ mxp_area_detector_measure_correction_callback_function(
 
 	pixels_per_frame = ad->framesize[0] * ad->framesize[1];
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( pixels_per_frame );
+	MXW_UNUSED( pixels_per_frame );
 
 	/* See if any new frames are ready to be read out. */
 

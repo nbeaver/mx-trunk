@@ -434,7 +434,7 @@ mx_copy_file_classic( char *existing_filename,
 
 	existing_file_size = (unsigned long) stat_struct.st_size;
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( existing_file_size );
+	MXW_UNUSED( existing_file_size );
 
 #if defined( OS_WIN32 )
 	file_blocksize = 4096;	/* FIXME: This is just a guess. */

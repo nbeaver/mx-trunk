@@ -114,7 +114,7 @@ mx_motor_backlash_callback( MX_CALLBACK_MESSAGE *callback_message )
 
 	list_head         = callback_message->list_head;
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( list_head );
+	MXW_UNUSED( list_head );
 
 	motor_record      = callback_message->u.backlash.motor_record;
 	oneshot_timer     = callback_message->u.backlash.oneshot_timer;
@@ -125,8 +125,8 @@ mx_motor_backlash_callback( MX_CALLBACK_MESSAGE *callback_message )
 
 	backlash_destination = destination + backlash_distance;
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( original_position );
-	MXW_SUPPRESS_SET_BUT_NOT_USED( backlash_destination );
+	MXW_UNUSED( original_position );
+	MXW_UNUSED( backlash_destination );
 
 	motor = (MX_MOTOR *) motor_record->record_class_struct;
 
@@ -495,7 +495,7 @@ mx_motor_process_function( void *record_ptr,
 	motor_function_list = (MX_MOTOR_FUNCTION_LIST *)
 				record->class_specific_function_list;
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( motor_function_list );
+	MXW_UNUSED( motor_function_list );
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 

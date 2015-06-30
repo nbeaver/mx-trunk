@@ -309,7 +309,7 @@ mxd_i404_mcai_read( MX_MCAI *mcai )
 		break;
 	}
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED(num_items);
+	MXW_UNUSED(num_items);
 
 	return MX_SUCCESSFUL_RESULT;
 }

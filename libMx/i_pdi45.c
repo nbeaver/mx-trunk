@@ -161,7 +161,7 @@ mxi_pdi45_open( MX_RECORD *record )
 	power_up_clear_needed = FALSE;
 	communication_configuration = NULL;
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( communication_configuration );
+	MXW_UNUSED( communication_configuration );
 
 	/* Start out by trying to read the communication configuration. */
 

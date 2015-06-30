@@ -882,7 +882,7 @@ mxd_kohzu_sc_get_status( MX_MOTOR *motor )
 
 	error_signal = mx_string_to_unsigned_long( token );
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( error_signal );
+	MXW_UNUSED( error_signal );
 
 	/*----*/
 

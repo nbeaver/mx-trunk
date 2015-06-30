@@ -1075,7 +1075,7 @@ mx_rs232_read_with_timeout( MX_RECORD *record,
 		buffered_io = TRUE;
 	}
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( buffered_io );
+	MXW_UNUSED( buffered_io );
 
 	/* Loop over the requested buffer length with a timeout. */
 

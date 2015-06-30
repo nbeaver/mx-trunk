@@ -933,7 +933,7 @@ motor_mca_display_plot( MX_RECORD *mca_record, MX_MCA *mca )
 
 	status = pclose( plotgnu_pipe );
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( status );
+	MXW_UNUSED( status );
 
 	return SUCCESS;
 }

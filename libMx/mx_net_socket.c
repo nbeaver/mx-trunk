@@ -431,7 +431,7 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 	header_length  = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
 	message_length = mx_ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( magic_value );
+	MXW_UNUSED( magic_value );
 
 #if 0
 	MX_DEBUG(-2,("%s: magic_value    = %#lx", fname, magic_value));

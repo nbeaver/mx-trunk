@@ -72,7 +72,7 @@ mx_analog_input_process_function( void *record_ptr,
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
 	analog_input = (MX_ANALOG_INPUT *) (record->record_class_struct);
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( analog_input );
+	MXW_UNUSED( analog_input );
 
 	status = MX_SUCCESSFUL_RESULT;
 

@@ -333,8 +333,8 @@ h_to_theta( double h )
 	if(h < 0)
 		angle = -angle;
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( sum );
-	MXW_SUPPRESS_SET_BUT_NOT_USED( beta2 );
+	MXW_UNUSED( sum );
+	MXW_UNUSED( beta2 );
 
 	return(angle);
 }

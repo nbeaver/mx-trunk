@@ -876,7 +876,7 @@ mxd_compumotor_move_absolute( MX_MOTOR *motor )
 		}
 	}
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( command_buffer_left );
+	MXW_UNUSED( command_buffer_left );
 
 	command[ length + MX_MAX_COMPUMOTOR_AXES ] = '\0';
 

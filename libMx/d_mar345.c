@@ -668,7 +668,7 @@ mxd_mar345_arm( MX_AREA_DETECTOR *ad )
 
 	sp = &(ad->sequence_parameters);
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( sp );
+	MXW_UNUSED( sp );
 
 #if MXD_MAR345_DEBUG
 	MX_DEBUG(-2,
@@ -1130,12 +1130,12 @@ mxd_mar345_set_parameter( MX_AREA_DETECTOR *ad )
 		break;
 	}
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( acquire_period );
-	MXW_SUPPRESS_SET_BUT_NOT_USED( trigger_mode );
-	MXW_SUPPRESS_SET_BUT_NOT_USED( image_mode );
-	MXW_SUPPRESS_SET_BUT_NOT_USED( num_images );
-	MXW_SUPPRESS_SET_BUT_NOT_USED( x_binsize );
-	MXW_SUPPRESS_SET_BUT_NOT_USED( y_binsize );
+	MXW_UNUSED( acquire_period );
+	MXW_UNUSED( trigger_mode );
+	MXW_UNUSED( image_mode );
+	MXW_UNUSED( num_images );
+	MXW_UNUSED( x_binsize );
+	MXW_UNUSED( y_binsize );
 
 	return mx_status;
 }

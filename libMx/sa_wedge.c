@@ -241,7 +241,7 @@ mxs_wedge_scan_execute_scan_body( MX_SCAN *scan )
 	motor_range     = motor_step_size * ( motor_num_steps - 1 );
 	motor_end       = motor_start + motor_range;
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( motor_end );
+	MXW_UNUSED( motor_end );
 
 	wedge_size = wedge_scan->wedge_size;
 
@@ -280,8 +280,8 @@ mxs_wedge_scan_execute_scan_body( MX_SCAN *scan )
 		wedge_start = motor_start + w * wedge_size;
 		wedge_end   = motor_start + (w+1) * wedge_size;
 
-		MXW_SUPPRESS_SET_BUT_NOT_USED( wedge_start );
-		MXW_SUPPRESS_SET_BUT_NOT_USED( wedge_end );
+		MXW_UNUSED( wedge_start );
+		MXW_UNUSED( wedge_end );
 
 #if MXS_WEDGE_SCAN_DEBUG
 		MX_DEBUG(-2,("%s: w = %lu, wedge_start = %f, wedge_end = %f",
@@ -322,7 +322,7 @@ mxs_wedge_scan_execute_scan_body( MX_SCAN *scan )
 
 			energy = ad_scan->energy_array[n];
 
-			MXW_SUPPRESS_SET_BUT_NOT_USED( energy );
+			MXW_UNUSED( energy );
 
 			for ( i = start_step; i < end_step; i++ ) {
 				ad_scan->current_frame_number = (long) i;
@@ -447,7 +447,7 @@ mxp_wedge_scan_take_frame( MX_SCAN *scan,
 
 	ad = ad_record->record_class_struct;
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( ad );
+	MXW_UNUSED( ad );
 
 	shutter_record = scan->input_device_array[1];
 
@@ -463,7 +463,7 @@ mxp_wedge_scan_take_frame( MX_SCAN *scan,
 
 	motor = motor_record->record_class_struct;
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( motor );
+	MXW_UNUSED( motor );
 
 #if MXS_WEDGE_SCAN_DEBUG
 	MX_DEBUG(-2,("%s: Starting exposure of '%s' for %f seconds "

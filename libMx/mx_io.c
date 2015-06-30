@@ -574,7 +574,7 @@ mxp_parse_lsof_output( FILE *file,
 		is_self = FALSE;
 	}
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( is_self );
+	MXW_UNUSED( is_self );
 
 	c = fgetc( file );
 

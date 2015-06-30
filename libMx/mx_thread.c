@@ -1541,7 +1541,7 @@ mx_thread_free_data_structures( MX_THREAD *thread )
 
 	pthread_status = pthread_setspecific( mx_current_thread_key, NULL );
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( pthread_status );
+	MXW_UNUSED( pthread_status );
 
 #if 1
 	/* FIXME - FIXME - FIXME:  Commenting out these two statements
@@ -2172,7 +2172,7 @@ mx_tls_set_value( MX_THREAD_LOCAL_STORAGE *key, void *value )
 
 	status = pthread_setspecific( *pthread_key_ptr, value );
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( status );
+	MXW_UNUSED( status );
 
 	return MX_SUCCESSFUL_RESULT;
 }

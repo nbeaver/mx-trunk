@@ -290,7 +290,7 @@ mxd_sony_snc_arm( MX_VIDEO_INPUT *vinput )
 	seq = &(vinput->sequence_parameters);
 
 #if 1
-	MXW_SUPPRESS_SET_BUT_NOT_USED( seq );
+	MXW_UNUSED( seq );
 #else
 	switch( seq->sequence_type ) {
 	case MXT_SQ_ONE_SHOT:

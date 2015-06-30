@@ -160,7 +160,7 @@ mx_reallocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 
 	header = message_buffer->u.uint32_buffer;
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( header );
+	MXW_UNUSED( header );
 
 #if NETWORK_DEBUG_BUFFER_ALLOCATION
 	MX_DEBUG(-2,("%s: #1 header = %p", fname, header));
@@ -610,7 +610,7 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 		debug_enabled = FALSE;
 	}
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( debug_enabled );
+	MXW_UNUSED( debug_enabled );
 
 #if NETWORK_DEBUG_MESSAGE_IDS
 	if ( debug_enabled ) {
@@ -784,7 +784,7 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 				
 			} while( list_entry != list_start );
 
-			MXW_SUPPRESS_SET_BUT_NOT_USED( callback_found );
+			MXW_UNUSED( callback_found );
 
 #if NETWORK_DEBUG
 			if ( record_list_head->network_debug_flags
@@ -1466,7 +1466,7 @@ mxp_restore_network_callback( MX_RECORD *server_record,
 	message_type   = mx_ntohl( header[MX_NETWORK_MESSAGE_TYPE] );
 	status_code = (long) mx_ntohl( header[MX_NETWORK_STATUS_CODE] );
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( message_length );
+	MXW_UNUSED( message_length );
 
 	if ( message_type != mx_server_response(MX_NETMSG_ADD_CALLBACK) ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -1497,8 +1497,8 @@ mxp_restore_network_callback( MX_RECORD *server_record,
 	data_type  = mx_ntohl( header[MX_NETWORK_DATA_TYPE] );
 	message_id = mx_ntohl( header[MX_NETWORK_MESSAGE_ID] );
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( data_type );
-	MXW_SUPPRESS_SET_BUT_NOT_USED( message_id );
+	MXW_UNUSED( data_type );
+	MXW_UNUSED( message_id );
 
 	/* Get the new callback ID from the returned message. */
 
@@ -1571,7 +1571,7 @@ mx_network_restore_callbacks( MX_RECORD *server_record )
 			mx_status = mxp_restore_network_callback(
 						server_record, callback );
 
-			MXW_SUPPRESS_SET_BUT_NOT_USED( mx_status );
+			MXW_UNUSED( mx_status );
 			break;
 		case MXCBC_FIELD:
 			rf = callback->u.record_field;
@@ -2063,7 +2063,7 @@ mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 	message_type   = mx_ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
 	status_code    = mx_ntohl( header[ MX_NETWORK_STATUS_CODE ] );
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( magic_number );
+	MXW_UNUSED( magic_number );
 
 	if ( header_length < 28 ) {
 		/* Handle servers and clients from MX 1.4 and before. */
@@ -2479,8 +2479,8 @@ mx_network_display_summary( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 	message_type   = mx_ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
 	status_code    = mx_ntohl( header[ MX_NETWORK_STATUS_CODE ] );
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( magic_number );
-	MXW_SUPPRESS_SET_BUT_NOT_USED( status_code );
+	MXW_UNUSED( magic_number );
+	MXW_UNUSED( status_code );
 
 	if ( header_length < 28 ) {
 		/* Handle servers and clients from MX 1.4 and before. */
@@ -2492,7 +2492,7 @@ mx_network_display_summary( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 		message_id = mx_ntohl( header[ MX_NETWORK_MESSAGE_ID ] );
 	}
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( message_id );
+	MXW_UNUSED( message_id );
 
 	uint32_message = header + header_length / 4;
 	char_message   = buffer + header_length;
@@ -5185,7 +5185,7 @@ mx_network_set_option( MX_RECORD *server_record,
 	message_type   = mx_ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
 	status_code = (long) mx_ntohl( header[ MX_NETWORK_STATUS_CODE ] );
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( message_length );
+	MXW_UNUSED( message_length );
 
 	if ( message_type != mx_server_response( MX_NETMSG_SET_OPTION ) ) {
 
@@ -5455,7 +5455,7 @@ mx_network_field_get_attribute( MX_NETWORK_FIELD *nf,
 
 		xdr_status = xdr_double( &xdrs, attribute_value );
 
-		MXW_SUPPRESS_SET_BUT_NOT_USED( xdr_status );
+		MXW_UNUSED( xdr_status );
 
 		xdr_destroy( &xdrs );
 		break;
@@ -5611,7 +5611,7 @@ mx_network_field_set_attribute( MX_NETWORK_FIELD *nf,
 
 		xdr_status = xdr_double( &xdrs, &attribute_value );
 
-		MXW_SUPPRESS_SET_BUT_NOT_USED( xdr_status );
+		MXW_UNUSED( xdr_status );
 
 		xdr_destroy( &xdrs );
 

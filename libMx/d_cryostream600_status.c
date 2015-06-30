@@ -251,8 +251,8 @@ mxd_cryostream600_status_read( MX_ANALOG_INPUT *ainput )
 	evaporator_temperature = atof( token_array[6] );
 	ice_block_token = token_array[7];
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED(identifier);
-	MXW_SUPPRESS_SET_BUT_NOT_USED(mode);
+	MXW_UNUSED(identifier);
+	MXW_UNUSED(mode);
 
 #if 0
 	MX_DEBUG(-2,("%s: identifier = '%s'", fname, identifier));

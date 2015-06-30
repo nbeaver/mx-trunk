@@ -2834,7 +2834,7 @@ mxd_aviex_pccd_readout_frame( MX_AREA_DETECTOR *ad )
 				= ad->readout_frame
 					+ num_times_looped * maximum_num_frames;
 
-			MXW_SUPPRESS_SET_BUT_NOT_USED(
+			MXW_UNUSED(
 			    number_of_frame_that_overwrote_the_frame_we_want );
 #if 0
 			mx_warning(
@@ -4714,8 +4714,8 @@ mxd_aviex_pccd_geometrical_correction( MX_AREA_DETECTOR *ad,
 	row_framesize = MXIF_ROW_FRAMESIZE(image_frame);
 	column_framesize = MXIF_COLUMN_FRAMESIZE(image_frame);
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( row_framesize );
-	MXW_SUPPRESS_SET_BUT_NOT_USED( column_framesize );
+	MXW_UNUSED( row_framesize );
+	MXW_UNUSED( column_framesize );
 
 #if MXD_AVIEX_PCCD_DEBUG_FRAME_CORRECTION
 	MX_DEBUG(-2,("BEFORE smvspatial(), image_frame histogram = "));

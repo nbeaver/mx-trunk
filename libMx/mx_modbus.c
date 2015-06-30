@@ -353,7 +353,7 @@ mx_modbus_read_holding_registers( MX_RECORD *modbus_record,
 
 	num_register_bytes = 2 * num_registers;
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( num_register_bytes );
+	MXW_UNUSED( num_register_bytes );
 
 	request_buffer[ MXF_MOD_PDU_FUNCTION_CODE ]
 					= MXF_MOD_READ_HOLDING_REGISTERS;
@@ -427,7 +427,7 @@ mx_modbus_read_input_registers( MX_RECORD *modbus_record,
 
 	num_register_bytes = 2 * num_registers;
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( num_register_bytes );
+	MXW_UNUSED( num_register_bytes );
 
 	request_buffer[ MXF_MOD_PDU_FUNCTION_CODE ]
 					= MXF_MOD_READ_INPUT_REGISTERS;
@@ -909,7 +909,7 @@ mx_modbus_read_write_multiple_registers( MX_RECORD *modbus_record,
 
 	num_register_bytes_to_read = response_buffer[ MXF_MOD_PDU_DATA ];
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( num_register_bytes_to_read );
+	MXW_UNUSED( num_register_bytes_to_read );
 
 	for ( i = 0; i < num_registers_to_read; i++ ) {
 

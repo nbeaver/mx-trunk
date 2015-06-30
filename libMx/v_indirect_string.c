@@ -331,7 +331,7 @@ mxv_indirect_string_receive_variable( MX_VARIABLE *variable )
 				indirect_string->num_fields,
 				indirect_string->referenced_value_array );
 
-	MXW_SUPPRESS_SET_BUT_NOT_USED( bytes_written );
+	MXW_UNUSED( bytes_written );
 
 #if MXV_INDIRECT_STRING_DEBUG_VALUE
 	MX_DEBUG(-2,("%s: string = '%s'",
