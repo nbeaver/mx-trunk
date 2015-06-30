@@ -31,6 +31,14 @@
 #   win32-borland - Microsoft Win32 with Borland C++ Builder 5.5.1
 #   win32-mingw   - Microsoft Win32 with MinGW 4.1.1 and MSYS 1.0.10
 #
+#------------------------------------------------------------------------------
+#
+#   WARNING: MX makefiles require GNU make.
+#
+#   BSD make, Microsoft NMAKE, Solaris make, and the like are not supported.
+#
+#------------------------------------------------------------------------------
+#
 # Set MX_INSTALL_DIR to the directory that you want to install MX in.
 # Next, check "mx/libMx/mxconfig.h" to see if any of the defines need to
 # be changed.   Then do the command "make depend" followed by "make".
@@ -71,9 +79,12 @@ MX_INSTALL_DIR = /opt/mx
 #MX_INSTALL_DIR = c:/users/lavender/mxtest
 #MX_INSTALL_DIR = c:/opt/mx-1.5.7-2015_06_04
 
+#------------------------------------------------------------------------------
+
 MAKECMD = $(MAKE) MX_ARCH=$(MX_ARCH) MX_INSTALL_DIR=$(MX_INSTALL_DIR)
 
 all: build
+	echo $(ok)
 
 build: depend_files
 	( cd tools ; $(MAKECMD) -f Makefile.$(MX_ARCH) )

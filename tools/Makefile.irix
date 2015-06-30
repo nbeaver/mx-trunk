@@ -21,6 +21,12 @@ EDITLINE_RANLIB = touch
 EDITLINE_MAKECMD = \
   make CC="$(EDITLINE_CC)" CFLAGS=$(EDITLINE_CFLAGS) RANLIB=$(EDITLINE_RANLIB)
 
+# Get the Subversion revision number of MX (if available).
+
+include Include.subversion
+
+#------------------------------------------------------------------------
+
 mx_clean:
 	-rm *.o mx_private_version
 	( cd unix/src/editline ; make clean )

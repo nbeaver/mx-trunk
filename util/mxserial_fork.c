@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2006, 2012, 2014 Illinois Institute of Technology
+ * Copyright 2002-2006, 2012, 2014-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -149,7 +149,6 @@ main( int argc, char *argv[] )
 	int max_receive_speed;
 	mx_bool_type start_debugger;
 	mx_bool_type echo_state;
-	mx_bool_type set_echo_state;
 	mx_bool_type network_debugging;
 	mx_status_type mx_status;
 
@@ -207,8 +206,6 @@ main( int argc, char *argv[] )
 
 	start_debugger = FALSE;
 
-	set_echo_state = FALSE;
-
 	echo_state = TRUE;
 
 	network_debugging = FALSE;
@@ -234,7 +231,6 @@ main( int argc, char *argv[] )
 			} else {
 				echo_state = TRUE;
 			}
-			set_echo_state = TRUE;
 			break;
 		case 'f':
 			file = fopen( optarg, "r" );

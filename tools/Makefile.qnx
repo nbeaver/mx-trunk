@@ -19,6 +19,12 @@ include ../libMx/Makefile.version
 
 include ../libMx/Makehead.qnx
 
+# Get the Subversion revision number of MX (if available).
+
+include Include.subversion
+
+#------------------------------------------------------------------------
+
 mx_private_version: ../libMx/Makefile.version version/src/mx_private_version.c
 	$(CC) $(CFLAGS_MX_VERS) -o mx_private_version \
 		version/src/mx_private_version.c

@@ -12,18 +12,18 @@
 # We detect the version of BSD using makefile magic specific to the BSD
 # version of Make, so using Gnu Make on a BSD system will not work here.
 
-BSD_UNAME != uname -s
+BSD_UNAME := $(shell uname -s)
 
 #
 INCLUDES	= $(MX_INCLUDES)
 
 LIB_DIRS	= -L$(MX_LIB_DIR)
 
-.if ${BSD_UNAME} == "OpenBSD"
+ifeq ($(BSD_UNAME),OpenBSD)
 LIBRARIES	= -pthread -lpthread -lm
-.else
+else
 LIBRARIES	= -pthread -lpthread -lrt -lm
-.endif
+endif
 
 #
 # Motor will be linked with the bundled copy of 'editline' if you use the
@@ -104,9 +104,9 @@ MXMONITOR_OBJS    = $(MXMONITOR_SRCS:.c=.o)
 # If we are running on OpenBSD, we must add xdr_hyper.o to MX_LIB_OBJS.
 #
 
-.if ${BSD_UNAME} == "OpenBSD"
+ifeq (${BSD_UNAME},OpenBSD)
 MX_LIB_OBJS += ../tools/xdr_hyper.o
-.endif
+endif
 
 #
 #---------------------------------------------------

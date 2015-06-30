@@ -19,6 +19,12 @@ include ../libMx/Makefile.version
 
 include ../libMx/Makehead.solaris-gcc
 
+# Get the Subversion revision number of MX (if available).
+
+include Include.subversion
+
+#------------------------------------------------------------------------
+
 mx_clean:
 	-rm mx_private_version
 	( cd unix/src/editline ; make clean )
