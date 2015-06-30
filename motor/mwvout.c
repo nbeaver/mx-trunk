@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008-2009, 2011 Illinois Institute of Technology
+ * Copyright 2008-2009, 2011, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -835,6 +835,8 @@ motor_wvout_display_plot( MX_RECORD *wvout_record,
 	status = pclose( plotgnu_pipe );
 #endif
 
+	MXW_SUPPRESS_SET_BUT_NOT_USED( status );
+
 	return SUCCESS;
 }
 
@@ -951,6 +953,8 @@ motor_wvout_display_all( MX_RECORD *wvout_record, MX_WAVEFORM_OUTPUT *wvout )
 #if !defined(OS_VXWORKS) && !defined(OS_RTEMS) && !defined(OS_ECOS)
 	status = pclose( plotgnu_pipe );
 #endif
+
+	MXW_SUPPRESS_SET_BUT_NOT_USED( status );
 
 	return SUCCESS;
 }

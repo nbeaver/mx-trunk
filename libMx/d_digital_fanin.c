@@ -329,6 +329,8 @@ mxd_digital_fanin_read( MX_DIGITAL_INPUT *dinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	result = 0;
+
 	num_fields = digital_fanin->num_fields;
 
 	for ( i = 0; i < num_fields; i++ ) {

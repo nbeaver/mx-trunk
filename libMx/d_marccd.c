@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008-2010, 2013-2014 Illinois Institute of Technology
+ * Copyright 2008-2010, 2013-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -298,7 +298,6 @@ mxd_marccd_wait_for_idle( MX_MARCCD *marccd, double timeout )
 	MX_AREA_DETECTOR *ad = NULL;
 	MX_CLOCK_TICK timeout_in_ticks, current_tick, finish_tick;
 	int comparison;
-	mx_bool_type exit_loop;
 	mx_status_type mx_status;
 
 	if ( marccd == (MX_MARCCD *) NULL ) {
@@ -326,8 +325,6 @@ mxd_marccd_wait_for_idle( MX_MARCCD *marccd, double timeout )
 	current_tick = mx_current_clock_tick();
 
 	finish_tick = mx_add_clock_ticks( current_tick, timeout_in_ticks );
-
-	exit_loop = FALSE;
 
 	while(1) {
 		mx_status = mxd_marccd_get_extended_status( ad );

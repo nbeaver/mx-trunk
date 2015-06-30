@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008, 2010 Illinois Institute of Technology
+ * Copyright 2008, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -189,7 +189,7 @@ mxi_isobus_command( MX_ISOBUS *isobus,
 	char *command_ptr;
 	size_t length;
 	long i, j, rs232_retries;
-	unsigned long wait_ms, num_input_bytes_available;
+	unsigned long num_input_bytes_available;
 	mx_bool_type error_occurred;
 	mx_status_type mx_status;
 
@@ -255,7 +255,6 @@ mxi_isobus_command( MX_ISOBUS *isobus,
 				/* Wait for the response. */
 
 				rs232_retries = 50;
-				wait_ms = 100;
 
 				for ( j = 0; j <= rs232_retries; j++ ) {
 

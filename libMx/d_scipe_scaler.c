@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2002, 2010, 2012 Illinois Institute of Technology
+ * Copyright 2000-2002, 2010, 2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -32,7 +32,7 @@
 MX_RECORD_FUNCTION_LIST mxd_scipe_scaler_record_function_list = {
 	NULL,
 	mxd_scipe_scaler_create_record_structures,
-	mxd_scipe_scaler_finish_record_initialization,
+	mx_scaler_finish_record_initialization,
 	NULL,
 	mxd_scipe_scaler_print_structure,
 	mxd_scipe_scaler_open,
@@ -166,22 +166,6 @@ mxd_scipe_scaler_create_record_structures( MX_RECORD *record )
 			= &mxd_scipe_scaler_scaler_function_list;
 
 	scaler->record = record;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_scipe_scaler_finish_record_initialization( MX_RECORD *record )
-{
-	MX_SCALER *scaler;
-	mx_status_type mx_status;
-
-	mx_status = mx_scaler_finish_record_initialization( record );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	scaler = (MX_SCALER *) record->record_class_struct;
 
 	return MX_SUCCESSFUL_RESULT;
 }

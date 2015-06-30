@@ -8,7 +8,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2006, 2010-2011 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2006, 2010-2011, 2015
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -159,6 +160,8 @@ mxi_pdi45_open( MX_RECORD *record )
 	four_step_mode = FALSE;
 	power_up_clear_needed = FALSE;
 	communication_configuration = NULL;
+
+	MXW_SUPPRESS_SET_BUT_NOT_USED( communication_configuration );
 
 	/* Start out by trying to read the communication configuration. */
 

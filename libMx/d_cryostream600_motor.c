@@ -249,8 +249,6 @@ MX_EXPORT mx_status_type
 mxd_cryostream600_motor_delete_record( MX_RECORD *record )
 {
 	MX_CRYOSTREAM600_MOTOR *cryostream600_motor = NULL;
-	long dimension[2];
-	size_t dimension_size[2];
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return MX_SUCCESSFUL_RESULT;
@@ -262,14 +260,7 @@ mxd_cryostream600_motor_delete_record( MX_RECORD *record )
 	if ( ( cryostream600_motor != NULL )
 	  && ( cryostream600_motor->response_token_array != NULL ) )
 	{
-		dimension[0] = cryostream600_motor->max_response_tokens;
-		dimension[1] = cryostream600_motor->max_token_length;
-
-		dimension_size[0] = sizeof(char);
-		dimension_size[1] = sizeof(char *);
-
-		(void) mx_free_array(
-				cryostream600_motor->response_token_array );
+		(void) mx_free_array(cryostream600_motor->response_token_array);
 	}
 	(void) mx_default_delete_record_handler( record );
 

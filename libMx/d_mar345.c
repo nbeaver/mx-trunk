@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010-2011, 2013 Illinois Institute of Technology
+ * Copyright 2010-2011, 2013, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -668,6 +668,8 @@ mxd_mar345_arm( MX_AREA_DETECTOR *ad )
 
 	sp = &(ad->sequence_parameters);
 
+	MXW_SUPPRESS_SET_BUT_NOT_USED( sp );
+
 #if MXD_MAR345_DEBUG
 	MX_DEBUG(-2,
 	("%s: Preparing for taking a frame using area detector '%s'.",
@@ -1127,6 +1129,13 @@ mxd_mar345_set_parameter( MX_AREA_DETECTOR *ad )
 		mx_status = mx_area_detector_default_set_parameter_handler(ad);
 		break;
 	}
+
+	MXW_SUPPRESS_SET_BUT_NOT_USED( acquire_period );
+	MXW_SUPPRESS_SET_BUT_NOT_USED( trigger_mode );
+	MXW_SUPPRESS_SET_BUT_NOT_USED( image_mode );
+	MXW_SUPPRESS_SET_BUT_NOT_USED( num_images );
+	MXW_SUPPRESS_SET_BUT_NOT_USED( x_binsize );
+	MXW_SUPPRESS_SET_BUT_NOT_USED( y_binsize );
 
 	return mx_status;
 }

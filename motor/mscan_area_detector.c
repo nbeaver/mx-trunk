@@ -740,6 +740,8 @@ motor_setup_area_detector_scan_parameters(
 		old_energy_array = area_detector_scan->energy_array;
 	}
 
+	MXW_SUPPRESS_SET_BUT_NOT_USED( old_number_of_energies );
+
 	for ( i = 0; i < number_of_energies; i++ ) {
 		if ( old_energy_array == NULL ) {
 			default_double = 0;

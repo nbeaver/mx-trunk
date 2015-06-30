@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2006-2007, 2010, 2013 Illinois Institute of Technology
+ * Copyright 2003, 2006-2007, 2010, 2013, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -976,7 +976,7 @@ mxd_mdrive_command( MX_MDRIVE *mdrive, char *command,
 
 	char prefix[20], local_response_buffer[100];
 	char *discard_ptr;
-	int command_length, prefix_length, num_chars_to_discard;
+	int prefix_length, num_chars_to_discard;
 	int local_response_buffer_length, discard_buffer_length;
 	int mdrive_error_code;
 	long mx_error_code;
@@ -1003,20 +1003,7 @@ mxd_mdrive_command( MX_MDRIVE *mdrive, char *command,
 
 	prefix_length = (int) strlen( prefix );
 
-	command_length = prefix_length + (int) strlen( command );
-
-#if 0
-	/* The MDrive always echoes the transmitted command line
-	 * _including_ the line terminators and then sends <CR><LF>
-	 * before returning a response.  Figure out how many characters
-	 * will need to be thrown away.
-	 */
-
-	num_chars_to_discard = command_length
-				+ mdrive->num_write_terminator_chars + 2;
-#else
 	num_chars_to_discard = 2;
-#endif
 
 	local_response_buffer_length = sizeof( local_response_buffer ) - 1;
 

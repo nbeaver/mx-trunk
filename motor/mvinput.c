@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2008, 2011 Illinois Institute of Technology
+ * Copyright 2006-2008, 2011, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -33,7 +33,6 @@ motor_vinput_fn( int argc, char *argv[] )
 	MX_IMAGE_FRAME *frame;
 	char *filename;
 	unsigned long datafile_type;
-	int status;
 	double exposure_time;
 	mx_bool_type busy;
 	mx_status_type mx_status;
@@ -73,8 +72,6 @@ motor_vinput_fn( int argc, char *argv[] )
 				vinput_record->name );
 		return FAILURE;
 	}
-
-	status = SUCCESS;
 
 	if ( strncmp( "snap", argv[3], strlen(argv[3]) ) == 0 ) {
 

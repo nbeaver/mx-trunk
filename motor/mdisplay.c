@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2006 Illinois Institute of Technology
+ * Copyright 1999-2002, 2006, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,7 +29,6 @@ motor_move_report_function( unsigned long flags,
 {
 	static const char fname[] = "motor_move_report_function()";
 
-	MX_MOTOR *motor;
 	unsigned long *motor_status;
 	double current_position;
 	int i, motors_busy, abort_motors;
@@ -89,9 +88,6 @@ motor_move_report_function( unsigned long flags,
 		motors_busy = FALSE;
 
 		for ( i = 0; i < num_motors; i++ ) {
-
-			motor = (MX_MOTOR *)
-				(motor_record[i]->record_class_struct);
 
 			/* Get current motor position and status. */
 

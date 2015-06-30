@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2007, 2010-2011 Illinois Institute of Technology
+ * Copyright 2007, 2010-2011, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -235,16 +235,19 @@ mxi_soft_camera_link_get_num_bytes_avail( hSerRef serial_ref,
 		"mxi_soft_camera_link_get_num_bytes_avail()";
 #endif
 
-	MX_SOFT_CAMERA_LINK_PORT *port;
-
 	if ( serial_ref == NULL ) {
 		return CL_ERR_INVALID_REFERENCE;
 	}
 
-	port = serial_ref;
-
 #if MXI_SOFT_CAMERA_LINK_DEBUG
-	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, port->record->name));
+	{
+		MX_SOFT_CAMERA_LINK_PORT *port;
+
+		port = serial_ref;
+
+		MX_DEBUG(-2,
+		("%s invoked for record '%s'.", fname, port->record->name));
+	}
 #endif
 
 	/* How many bytes can be read without blocking? */
@@ -261,8 +264,6 @@ mxi_soft_camera_link_serial_close( hSerRef serial_ref )
 	static const char fname[] = "mxi_soft_camera_link_serial_close()";
 #endif
 
-	MX_SOFT_CAMERA_LINK_PORT *port;
-
 	if ( serial_ref == NULL ) {
 
 #if MXI_SOFT_CAMERA_LINK_DEBUG
@@ -271,10 +272,15 @@ mxi_soft_camera_link_serial_close( hSerRef serial_ref )
 		return;
 	}
 
-	port = serial_ref;
-
 #if MXI_SOFT_CAMERA_LINK_DEBUG
-	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, port->record->name));
+	{
+		MX_SOFT_CAMERA_LINK_PORT *port;
+
+		port = serial_ref;
+
+		MX_DEBUG(-2,
+		("%s invoked for record '%s'.", fname, port->record->name));
+	}
 #endif
 
 	return;
@@ -305,16 +311,19 @@ mxi_soft_camera_link_serial_read( hSerRef serial_ref, INT8 *buffer,
 {
 	static const char fname[] = "mxi_soft_camera_link_serial_read()";
 
-	MX_SOFT_CAMERA_LINK_PORT *port;
-
 	if ( serial_ref == NULL ) {
 		return CL_ERR_INVALID_REFERENCE;
 	}
 
-	port = serial_ref;
-
 #if MXI_SOFT_CAMERA_LINK_DEBUG
-	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, port->record->name));
+	{
+		MX_SOFT_CAMERA_LINK_PORT *port;
+
+		port = serial_ref;
+
+		MX_DEBUG(-2,
+		("%s invoked for record '%s'.", fname, port->record->name));
+	}
 #endif
 
 	if ( buffer == (INT8 *) NULL ) {
@@ -344,20 +353,19 @@ mxi_soft_camera_link_serial_write( hSerRef serial_ref, INT8 *buffer,
 #if MXI_SOFT_CAMERA_LINK_DEBUG
 	static const char fname[] = "mxi_soft_camera_link_serial_write()";
 #endif
-
-	MX_SOFT_CAMERA_LINK_PORT *port;
-
 	if ( serial_ref == NULL ) {
 		return CL_ERR_INVALID_REFERENCE;
 	}
 
-	port = serial_ref;
-
 #if MXI_SOFT_CAMERA_LINK_DEBUG
-	MX_DEBUG(-2,
-		("%s invoked for record '%s'.", fname, port->record->name));
-
 	{
+		MX_SOFT_CAMERA_LINK_PORT *port;
+
+		port = serial_ref;
+
+		MX_DEBUG(-2,
+		    ("%s invoked for record '%s'.", fname, port->record->name));
+
 		int i;
 
 		for ( i = 0; i < *num_bytes; i++ ) {
@@ -377,18 +385,22 @@ mxi_soft_camera_link_set_baud_rate( hSerRef serial_ref, UINT32 baud_rate )
 	static const char fname[] = "mxi_soft_camera_link_set_baud_rate()";
 #endif
 
-	MX_SOFT_CAMERA_LINK_PORT *port;
-
 	if ( serial_ref == NULL ) {
 		return CL_ERR_INVALID_REFERENCE;
 	}
 
-	port = serial_ref;
-
 #if MXI_SOFT_CAMERA_LINK_DEBUG
-	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, port->record->name));
+	{
+		MX_SOFT_CAMERA_LINK_PORT *port;
 
-	MX_DEBUG(-40,("%s: baud_rate = %lu", fname, (unsigned long) baud_rate));
+		port = serial_ref;
+
+		MX_DEBUG(-2,
+		("%s invoked for record '%s'.", fname, port->record->name));
+
+		MX_DEBUG(-40,
+		("%s: baud_rate = %lu", fname, (unsigned long) baud_rate));
+	}
 #endif
 
 	return CL_ERR_NO_ERR;
@@ -403,16 +415,19 @@ mxi_soft_camera_link_set_cc_line( hSerRef serial_ref,
 	static const char fname[] = "mxi_soft_camera_link_set_cc_line()";
 #endif
 
-	MX_SOFT_CAMERA_LINK_PORT *port;
-
 	if ( serial_ref == NULL ) {
 		return CL_ERR_INVALID_REFERENCE;
 	}
 
-	port = serial_ref;
-
 #if MXI_SOFT_CAMERA_LINK_DEBUG
-	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, port->record->name));
+	{
+		MX_SOFT_CAMERA_LINK_PORT *port;
+
+		port = serial_ref;
+
+		MX_DEBUG(-2,
+		("%s invoked for record '%s'.", fname, port->record->name));
+	}
 #endif
 
 #if MXI_SOFT_CAMERA_LINK_DEBUG

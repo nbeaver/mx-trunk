@@ -13,7 +13,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2008, 2010, 2012 Illinois Institute of Technology
+ * Copyright 2008, 2010, 2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -80,7 +80,6 @@ mxn_bluice_dhs_manager_register_devices( MX_RECORD *dhs_manager_record,
 	MX_BLUICE_SHUTTER *bluice_shutter;
 	MX_BLUICE_STRING *bluice_string;
 	char command[200];
-	mx_status_type mx_status;
 
 	list_head_record = dhs_manager_record->list_head;
 
@@ -187,8 +186,12 @@ mxn_bluice_dhs_manager_register_devices( MX_RECORD *dhs_manager_record,
 	    }
 
 	    if ( strlen(command) > 0 ) {
+		mx_status_type mx_status;
+
 		mx_status = mx_bluice_send_message( dhs_record,
 							command, NULL, 0 );
+
+		MXW_SUPPRESS_SET_BUT_NOT_USED( mx_status );
 	    }
 
 	    current_record = current_record->next_record;

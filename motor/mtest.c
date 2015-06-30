@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2009-2010, 2012-2013 Illinois Institute of Technology
+ * Copyright 2009-2010, 2012-2013, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -43,6 +43,8 @@ motor_test_fn( int argc, char *argv[] )
 			int k;
 
 			k = i / j;
+
+			MXW_SUPPRESS_SET_BUT_NOT_USED( k );
 			
 			return SUCCESS;
 		} else

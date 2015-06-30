@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2004-2006, 2010 Illinois Institute of Technology
+ * Copyright 2004-2006, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -109,8 +109,6 @@ mxn_spec_server_open( MX_RECORD *record )
 	size_t hostname_length, program_id_length;
 	char client_id[ MXU_PROGRAM_NAME_LENGTH + 1 ];
 	char server_id[ MXU_PROGRAM_NAME_LENGTH + 1 ];
-	long dimension_array[1];
-	char buffer[20];
 	mx_status_type mx_status;
 
 	mx_status = MX_SUCCESSFUL_RESULT;
@@ -357,18 +355,23 @@ mxn_spec_server_open( MX_RECORD *record )
 	 * is in simulate mode.
 	 */
 
-	dimension_array[0] = sizeof(buffer);
-
 #if 0
-	mx_status = mx_spec_get_array( record, "status/simulate",
+	{
+		long dimension_array[1];
+		char buffer[20];
+
+		dimension_array[0] = sizeof(buffer);
+
+		mx_status = mx_spec_get_array( record, "status/simulate",
 					SV_STRING, 1, dimension_array,
 					buffer );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-	MX_DEBUG(-2,("%s: status/simulate buffer = '%s'",
-		fname, buffer ));
+		MX_DEBUG(-2,("%s: status/simulate buffer = '%s'",
+			fname, buffer ));
+	}
 #endif
 
 	return mx_status;

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004, 2006, 2008, 2010, 2013 Illinois Institute of Technology
+ * Copyright 2004, 2006, 2008, 2010, 2013, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -746,7 +746,6 @@ mxd_kohzu_sc_simultaneous_start( long num_motor_records,
 	static const char fname[] = "mxd_kohzu_sc_simultaneous_start()";
 
 	MX_RECORD *motor_record, *current_interface_record;
-	MX_MOTOR *motor;
 	MX_KOHZU_SC *kohzu_sc = NULL;
 	MX_KOHZU_SC *current_kohzu_sc;
 	MX_KOHZU_SC_MOTOR *current_kohzu_sc_motor;
@@ -758,8 +757,6 @@ mxd_kohzu_sc_simultaneous_start( long num_motor_records,
 
 	for ( i = 0; i < num_motor_records; i++ ) {
 		motor_record = motor_record_array[i];
-
-		motor = (MX_MOTOR *) motor_record->record_class_struct;
 
 		if ( motor_record->mx_type != MXT_MTR_KOHZU_SC ) {
 			return mx_error( MXE_TYPE_MISMATCH, fname,
@@ -884,6 +881,8 @@ mxd_kohzu_sc_get_status( MX_MOTOR *motor )
 		return mx_status;
 
 	error_signal = mx_string_to_unsigned_long( token );
+
+	MXW_SUPPRESS_SET_BUT_NOT_USED( error_signal );
 
 	/*----*/
 

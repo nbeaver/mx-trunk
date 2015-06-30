@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2014 Illinois Institute of Technology
+ * Copyright 2014-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -289,7 +289,9 @@ mxd_sony_snc_arm( MX_VIDEO_INPUT *vinput )
 
 	seq = &(vinput->sequence_parameters);
 
-#if 0
+#if 1
+	MXW_SUPPRESS_SET_BUT_NOT_USED( seq );
+#else
 	switch( seq->sequence_type ) {
 	case MXT_SQ_ONE_SHOT:
 	case MXT_SQ_CONTINUOUS:

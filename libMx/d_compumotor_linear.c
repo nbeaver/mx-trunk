@@ -8,7 +8,8 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2007, 2010, 2013 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2007, 2010, 2013, 2015
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -46,7 +47,7 @@ MX_MOTOR_FUNCTION_LIST mxd_compumotor_linear_motor_function_list = {
 	mxd_compumotor_linear_motor_is_busy,
 	mxd_compumotor_linear_move_absolute,
 	mxd_compumotor_linear_get_position,
-	mxd_compumotor_linear_set_position,
+	NULL,
 	mxd_compumotor_linear_soft_abort,
 	mxd_compumotor_linear_immediate_abort,
 	mxd_compumotor_linear_positive_limit_hit,
@@ -810,8 +811,7 @@ mxd_compumotor_linear_get_position( MX_MOTOR *motor )
 	MX_MOTOR *child_motor;
 	MX_RECORD *compumotor_interface_record;
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
-	double *real_motor_scale, *real_motor_offset;
-	long i, j, n, motor_index, num_motors;
+	long i, j, n, motor_index;
 	int num_items;
 	MX_COMPUMOTOR_LINEAR_MOTOR *compumotor_linear_motor;
 	double motor_position, raw_motor_position;
@@ -829,10 +829,7 @@ mxd_compumotor_linear_get_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_motors = compumotor_linear_motor->num_motors;
 	motor_record_array = compumotor_linear_motor->motor_record_array;
-	real_motor_scale = compumotor_linear_motor->real_motor_scale;
-	real_motor_offset = compumotor_linear_motor->real_motor_offset;
 
 	compumotor_interface_record
 		= compumotor_linear_motor->compumotor_interface_record;
@@ -848,7 +845,8 @@ mxd_compumotor_linear_get_position( MX_MOTOR *motor )
 				compumotor_interface->controller_number[n] );
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
-			response, sizeof(response), MXD_COMPUMOTOR_LINEAR_DEBUG );
+			response, sizeof(response),
+			MXD_COMPUMOTOR_LINEAR_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -910,21 +908,11 @@ mxd_compumotor_linear_get_position( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_compumotor_linear_set_position( MX_MOTOR *motor )
-{
-	static const char fname[] = "mxd_compumotor_linear_set_position()";
-
-	return mx_error( MXE_UNSUPPORTED, fname,
-"'set position' is not valid for a Compumotor linear interpolation motor." );
-}
-
-MX_EXPORT mx_status_type
 mxd_compumotor_linear_soft_abort( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_compumotor_linear_soft_abort()";
 
-	MX_RECORD **motor_record_array;
-	long i, num_motors;
+	long i;
 	MX_COMPUMOTOR_LINEAR_MOTOR *compumotor_linear_motor;
 	MX_RECORD *compumotor_interface_record;
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
@@ -942,9 +930,6 @@ mxd_compumotor_linear_soft_abort( MX_MOTOR *motor )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	num_motors = compumotor_linear_motor->num_motors;
-	motor_record_array = compumotor_linear_motor->motor_record_array;
 
 	compumotor_interface_record
 		= compumotor_linear_motor->compumotor_interface_record;

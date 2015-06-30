@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010-2012 Illinois Institute of Technology
+ * Copyright 2010-2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -85,7 +85,6 @@ mxi_sim900_open( MX_RECORD *record )
 
 	MX_SIM900 *sim900;
 	MX_RECORD *interface_record;
-	unsigned long sim900_flags;
 
 	long speed;
 	char flow_control;
@@ -110,11 +109,15 @@ mxi_sim900_open( MX_RECORD *record )
 		"MX_SIM900 pointer for record '%s' is NULL.", record->name);
 	}
 
-	sim900_flags = sim900->sim900_flags;
-
 #if MXI_SIM900_DEBUG
-	MX_DEBUG(-2,("%s invoked for record '%s', sim900_flags = %#lx.",
-		fname, record->name, sim900_flags ));
+	{
+		unsigned long sim900_flags;
+
+		sim900_flags = sim900->sim900_flags;
+
+		MX_DEBUG(-2,("%s invoked for record '%s', sim900_flags = %#lx.",
+			fname, record->name, sim900_flags ));
+	}
 #endif
 
 	interface_record = sim900->sim900_interface.record;

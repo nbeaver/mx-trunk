@@ -7,7 +7,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2007, 2009-2011 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2007, 2009-2011, 2015
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -120,7 +121,7 @@ cmd_split_command_line( char *command_line,
 	char *command_ptr;
 	unsigned long i, max_tokens;
 	char *src_ptr, *dest_ptr;
-	mx_bool_type in_token, old_in_token, in_quoted_string;
+	mx_bool_type in_token, in_quoted_string;
 
 	if ( split_buffer == NULL ) {
 		fprintf( output, "%s: split_buffer pointer is NULL.\n", fname );
@@ -288,12 +289,9 @@ cmd_split_command_line( char *command_line,
 	src_length = strlen( src_ptr );
 
 	in_token = FALSE;
-	old_in_token = FALSE;
 	in_quoted_string = FALSE;
 
 	for ( i = 0; i < src_length; i++, src_ptr++ ) {
-
-		old_in_token = in_token;
 
 		switch( *src_ptr ) {
 		case ' ':

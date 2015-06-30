@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005-2006, 2009 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2005-2006, 2009, 2015
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -931,6 +932,8 @@ motor_mca_display_plot( MX_RECORD *mca_record, MX_MCA *mca )
 	mx_msleep(500);
 
 	status = pclose( plotgnu_pipe );
+
+	MXW_SUPPRESS_SET_BUT_NOT_USED( status );
 
 	return SUCCESS;
 }

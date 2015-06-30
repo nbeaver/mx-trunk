@@ -521,8 +521,6 @@ mxd_file_vinput_close( MX_RECORD *record )
 
 	MX_VIDEO_INPUT *vinput;
 	MX_FILE_VINPUT *file_vinput = NULL;
-	long dimension_array[2];
-	size_t sizeof_array[2];
 	mx_status_type mx_status;
 
 	file_vinput = NULL;
@@ -543,12 +541,6 @@ mxd_file_vinput_close( MX_RECORD *record )
 	MX_DEBUG(-2,("%s invoked for video input '%s'",
 		fname, vinput->record->name ));
 #endif
-	dimension_array[0] = file_vinput->num_files;
-	dimension_array[1] = MXU_FILENAME_LENGTH;
-
-	sizeof_array[0] = sizeof(char);
-	sizeof_array[1] = sizeof(char *);
-
 	mx_status = mx_free_array( file_vinput->filename_array );
 
 	return mx_status;

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2004, 2006, 2010-2011, 2013 Illinois Institute of Technology
+ * Copyright 2004, 2006, 2010-2011, 2013, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -182,6 +182,9 @@ mxd_spec_motor_finish_record_initialization( MX_RECORD *record )
 	}
 
 	mx_status = mx_motor_finish_record_initialization( record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	motor = (MX_MOTOR *) (record->record_class_struct);
 

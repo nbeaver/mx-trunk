@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2007, 2009-2012, 2014 Illinois Institute of Technology
+ * Copyright 1999-2007, 2009-2012, 2014-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1898,7 +1898,6 @@ msauto_restore_fields_from_autosave_files(
 	int saved_errno;
 	long i;
 	unsigned long autosave_flags;
-	size_t length;
 	mx_status_type mx_status;
 
 	mx_status = msauto_choose_autosave_file_to_use(
@@ -1973,8 +1972,6 @@ msauto_restore_fields_from_autosave_files(
 
 			return MX_SUCCESSFUL_RESULT;
 		}
-
-		length = strlen( buffer );
 
 		buffer_ptr = buffer + strspn( buffer, SEPARATORS );
 

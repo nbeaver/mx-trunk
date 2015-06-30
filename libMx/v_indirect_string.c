@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013 Illinois Institute of Technology
+ * Copyright 2013, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -330,6 +330,8 @@ mxv_indirect_string_receive_variable( MX_VARIABLE *variable )
 				indirect_string->format,
 				indirect_string->num_fields,
 				indirect_string->referenced_value_array );
+
+	MXW_SUPPRESS_SET_BUT_NOT_USED( bytes_written );
 
 #if MXV_INDIRECT_STRING_DEBUG_VALUE
 	MX_DEBUG(-2,("%s: string = '%s'",

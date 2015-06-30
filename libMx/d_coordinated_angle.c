@@ -6,7 +6,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013-2014 Illinois Institute of Technology
+ * Copyright 2013-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -117,7 +117,6 @@ mxd_coordinated_angle_process_function( void *record_ptr,
 {
 	MX_RECORD *record;
 	MX_RECORD_FIELD *field;
-	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
 	field = (MX_RECORD_FIELD *) record_field_ptr;
@@ -127,7 +126,7 @@ mxd_coordinated_angle_process_function( void *record_ptr,
 		switch( field->label_value ) {
 		case MXLV_COORDINATED_ANGLE_MOTOR_ERROR_ARRAY:
 		case MXLV_COORDINATED_ANGLE_STANDARD_DEVIATION:
-			mx_status = mx_motor_get_position( record, NULL );
+			(void) mx_motor_get_position( record, NULL );
 			break;
 		default:
 			break;

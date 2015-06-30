@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2006, 2010 Illinois Institute of Technology
+ * Copyright 2000-2001, 2006, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -602,7 +602,7 @@ mxi_databox_getchar( MX_DATABOX *databox, char *c, int debug_flag )
 		MX_DEBUG(-2,("%s: received character '%c' %#x", fname, *c, *c));
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type

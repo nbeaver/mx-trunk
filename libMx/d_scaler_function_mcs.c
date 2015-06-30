@@ -8,7 +8,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2003-2006, 2010, 2012 Illinois Institute of Technology
+ * Copyright 2003-2006, 2010, 2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -637,8 +637,6 @@ mxd_scaler_function_mcs_read_scaler( MX_MCS *mcs )
 	long *data_ptr;
 	long scaler_index;
 
-	long num_scalers;
-	MX_RECORD **scaler_record_array;
 	double *real_scaler_scale;
 	double *real_scaler_offset;
 
@@ -659,8 +657,6 @@ mxd_scaler_function_mcs_read_scaler( MX_MCS *mcs )
 
 	/* Setup pointers needed by this routine. */
 
-	num_scalers = scaler_function->num_scalers;
-	scaler_record_array = scaler_function->scaler_record_array;
 	real_scaler_scale = scaler_function->real_scaler_scale;
 	real_scaler_offset = scaler_function->real_scaler_offset;
 

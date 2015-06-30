@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2006, 2008, 2010 Illinois Institute of Technology
+ * Copyright 2002, 2006, 2008, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1117,16 +1117,14 @@ static mx_status_type
 mxd_sr570_process_function( void *record_ptr,
 			void *record_field_ptr, int operation )
 {
-	const char fname[] = "mxd_sr570_process_function()";
+	static const char fname[] = "mxd_sr570_process_function()";
 
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;
-	MX_SR570 *sr570 = NULL;
 	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
-	sr570 = (MX_SR570 *) (record->record_type_struct);
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 

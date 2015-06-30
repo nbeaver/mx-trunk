@@ -10,7 +10,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002, 2006, 2008, 2010 Illinois Institute of Technology
+ * Copyright 2002, 2006, 2008, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -585,7 +585,7 @@ mxd_sis3801_pulser_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 
 	MX_SIS3801_PULSER *sis3801_pulser = NULL;
 	double maximum_pulse_period;
-	uint32_t prescale_factor, control_register_value;
+	uint32_t prescale_factor;
 	mx_status_type mx_status;
 
 	mx_status = mxd_sis3801_pulser_get_pointers( pulse_generator,
@@ -593,8 +593,6 @@ mxd_sis3801_pulser_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	control_register_value = 0;
 
 	MX_DEBUG( 2,
 	("%s invoked for PULSE_GENERATOR '%s', parameter type '%s' (%ld)",

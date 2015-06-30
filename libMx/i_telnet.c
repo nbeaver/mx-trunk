@@ -10,7 +10,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010-2011 Illinois Institute of Technology
+ * Copyright 2010-2011, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -674,7 +674,6 @@ mxi_telnet_putchar( MX_RS232 *rs232, char c )
 	static const char fname[] = "mxi_telnet_putchar()";
 
 	MX_TELNET *telnet = NULL;
-	unsigned long flags;
 	mx_status_type mx_status;
 
 #if MXI_TELNET_DEBUG
@@ -686,7 +685,13 @@ mxi_telnet_putchar( MX_RS232 *rs232, char c )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	flags = telnet->telnet_flags;
+#if 0
+	{
+		unsigned long flags;
+
+		flags = telnet->telnet_flags;
+	}
+#endif
 
 	/* Send the character. */
 

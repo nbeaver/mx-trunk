@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2005-2006, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -781,6 +781,8 @@ motor_mcs_display_plot( MX_RECORD *mcs_record,
 	status = pclose( plotgnu_pipe );
 #endif
 
+	MXW_SUPPRESS_SET_BUT_NOT_USED( status );
+
 	return SUCCESS;
 }
 
@@ -896,6 +898,8 @@ motor_mcs_display_all( MX_RECORD *mcs_record, MX_MCS *mcs )
 #if !defined(OS_VXWORKS) && !defined(OS_RTEMS) && !defined(OS_ECOS)
 	status = pclose( plotgnu_pipe );
 #endif
+
+	MXW_SUPPRESS_SET_BUT_NOT_USED( status );
 
 	return SUCCESS;
 }

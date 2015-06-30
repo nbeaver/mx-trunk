@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2009, 2011-2013 Illinois Institute of Technology
+ * Copyright 2006-2009, 2011-2013, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2339,6 +2339,9 @@ motor_area_detector_fn( int argc, char *argv[] )
 		fprintf( output, "%s\n", usage );
 		return FAILURE;
 	}
+
+	MXW_SUPPRESS_SET_BUT_NOT_USED( ignore_num_frames );
+	MXW_SUPPRESS_SET_BUT_NOT_USED( old_last_frame_number );
 
 	return SUCCESS;
 }

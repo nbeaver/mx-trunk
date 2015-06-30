@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004-2006, 2010 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2004-2006, 2010, 2015
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -175,7 +176,6 @@ motor_scan_pause_request_handler( MX_SCAN *scan )
 
 	char buffer[80];
 	int status, string_length;
-	char command;
 
 	fprintf( output, "\n*** The scan '%s' is paused. ***\n\n",
 			scan->record->name );
@@ -197,8 +197,6 @@ motor_scan_pause_request_handler( MX_SCAN *scan )
 
 			continue;
 		}
-
-		command = '\0';
 
 		switch( buffer[0] ) {
 		case 'c':

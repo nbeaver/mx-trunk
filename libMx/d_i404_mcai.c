@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010, 2012 Illinois Institute of Technology
+ * Copyright 2010, 2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -308,6 +308,8 @@ mxd_i404_mcai_read( MX_MCAI *mcai )
 			mcai->record->name );
 		break;
 	}
+
+	MXW_SUPPRESS_SET_BUT_NOT_USED(num_items);
 
 	return MX_SUCCESSFUL_RESULT;
 }

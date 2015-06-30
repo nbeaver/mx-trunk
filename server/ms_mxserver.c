@@ -2029,6 +2029,9 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 	MX_DEBUG(-2,
 	  ("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"));
 #endif
+	MXW_SUPPRESS_SET_BUT_NOT_USED( queue_a_message );
+	MXW_SUPPRESS_SET_BUT_NOT_USED( returned_message_type );
+
 	return mx_status;
 }
 
@@ -2296,6 +2299,8 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 	MX_HRT_RESULTS( measurement, fname,
 		"final for '%s.%s'", record->name, record_field->name );
 #endif
+	MXW_SUPPRESS_SET_BUT_NOT_USED( receive_datatype );
+	MXW_SUPPRESS_SET_BUT_NOT_USED( receive_buffer_header_length );
 
 	return mx_status;
 }
@@ -3170,6 +3175,8 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 		"for '%s.%s'", record->name, record_field->name );
 #endif
 
+	MXW_SUPPRESS_SET_BUT_NOT_USED( receive_datatype );
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -3686,6 +3693,8 @@ mxsrv_handle_get_attribute( MX_RECORD *record_list,
 					"%s", mx_status.message );
 	}
 
+	MXW_SUPPRESS_SET_BUT_NOT_USED( xdr_status );
+
 	MX_DEBUG( 1,("***** %s successful *****", fname));
 
 	return MX_SUCCESSFUL_RESULT;
@@ -3759,6 +3768,8 @@ mxsrv_handle_set_attribute( MX_RECORD *record_list,
 			socket_handler->process_id );
 		break;
 	}
+
+	MXW_SUPPRESS_SET_BUT_NOT_USED( xdr_status );
 
 	MX_DEBUG( 2,
 	("%s: attribute_number = %#lx, attribute_value = %g", fname,
@@ -4640,6 +4651,9 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 	field_handle  = mx_ntohl( uint32_message[1] );
 	callback_type = mx_ntohl( uint32_message[2] );
 
+	MXW_SUPPRESS_SET_BUT_NOT_USED( record_handle );
+	MXW_SUPPRESS_SET_BUT_NOT_USED( field_handle );
+
 #if NETWORK_DEBUG_CALLBACKS
 	MX_DEBUG(-2,("%s: (%lu,%lu) callback_type = %lu",
 		fname, record_handle, field_handle, callback_type ));
@@ -4824,6 +4838,8 @@ mxsrv_handle_delete_callback( MX_RECORD *record,
 	uint32_message = uint32_header + ( header_length / sizeof(uint32_t) );
 
 	callback_id = mx_ntohl( uint32_message[0] );
+
+	MXW_SUPPRESS_SET_BUT_NOT_USED( message_length );
 
 #if NETWORK_DEBUG_CALLBACKS
 	MX_DEBUG(-2,("%s invoked for callback id %#lx",

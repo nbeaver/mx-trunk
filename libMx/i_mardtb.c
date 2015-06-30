@@ -9,7 +9,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002-2007, 2010 Illinois Institute of Technology
+ * Copyright 2002-2007, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -174,7 +174,7 @@ mxi_mardtb_command( MX_MARDTB *mardtb,
 	MX_RECORD *currently_active_record;
 	char error_message[80];
 	char c;
-	int at_start_of_line, carriage_return_seen, non_blank_line_seen;
+	int carriage_return_seen, non_blank_line_seen;
 	int i, line, num_chars, exit_loop;
 	mx_status_type mx_status;
 
@@ -330,7 +330,6 @@ mxi_mardtb_command( MX_MARDTB *mardtb,
 	 * characters are discarded as well.
 	 */
 
-	at_start_of_line = TRUE;
 	non_blank_line_seen = FALSE;
 	num_chars = 0;
 
