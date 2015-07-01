@@ -11,7 +11,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2003-2007, 2010 Illinois Institute of Technology
+ * Copyright 2003-2007, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -217,11 +217,11 @@ mxd_si9650_status_read( MX_ANALOG_INPUT *ainput )
 
 	switch( si9650_status->parameter_type ) {
 	case MXT_SI9650_TEMPERATURE_SENSOR1:
-		strcpy( command, "T" );
+		strlcpy( command, "T", sizeof(command) );
 		break;
 
 	case MXT_SI9650_TEMPERATURE_SENSOR2:
-		strcpy( command, "t" );
+		strlcpy( command, "t", sizeof(command) );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,

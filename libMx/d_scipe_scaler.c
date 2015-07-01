@@ -252,7 +252,8 @@ mxd_scipe_scaler_open( MX_RECORD *record )
 
 	/* Find out whether or not the SCIPE server knows about this scaler. */
 
-	sprintf( command, "%s desc", scipe_scaler->scipe_scaler_name );
+	snprintf( command, sizeof(command),
+			"%s desc", scipe_scaler->scipe_scaler_name );
 
 	mx_status = mxi_scipe_command( scipe_server, command,
 				response, sizeof(response),
@@ -297,7 +298,8 @@ mxd_scipe_scaler_clear( MX_SCALER *scaler )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "%s clear", scipe_scaler->scipe_scaler_name );
+	snprintf( command, sizeof(command),
+			"%s clear", scipe_scaler->scipe_scaler_name );
 
 	mx_status = mxi_scipe_command( scipe_server, command,
 				response, sizeof(response),
@@ -347,7 +349,8 @@ mxd_scipe_scaler_read( MX_SCALER *scaler )
 
 	/* Send a read command to the scaler. */
 
-	sprintf( command, "%s read", scipe_scaler->scipe_scaler_name );
+	snprintf( command, sizeof(command),
+			"%s read", scipe_scaler->scipe_scaler_name );
 
 	mx_status = mxi_scipe_command( scipe_server, command,
 				response, sizeof(response),
@@ -397,7 +400,8 @@ mxd_scipe_scaler_is_busy( MX_SCALER *scaler )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "%s status", scipe_scaler->scipe_scaler_name );
+	snprintf( command, sizeof(command),
+			"%s status", scipe_scaler->scipe_scaler_name );
 
 	mx_status = mxi_scipe_command( scipe_server, command,
 				response, sizeof(response),
@@ -445,7 +449,8 @@ mxd_scipe_scaler_start( MX_SCALER *scaler )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "%s preset %ld",
+	snprintf( command, sizeof(command),
+			"%s preset %ld",
 			scipe_scaler->scipe_scaler_name,
 			scaler->raw_value );
 
@@ -464,7 +469,8 @@ mxd_scipe_scaler_start( MX_SCALER *scaler )
 				command, scaler->record->name, response );
 	}
 
-	sprintf( command, "%s start", scipe_scaler->scipe_scaler_name );
+	snprintf( command, sizeof(command),
+			"%s start", scipe_scaler->scipe_scaler_name );
 
 	mx_status = mxi_scipe_command( scipe_server, command,
 				response, sizeof(response),
@@ -503,7 +509,8 @@ mxd_scipe_scaler_stop( MX_SCALER *scaler )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "%s stop", scipe_scaler->scipe_scaler_name );
+	snprintf( command, sizeof(command),
+			"%s stop", scipe_scaler->scipe_scaler_name );
 
 	mx_status = mxi_scipe_command( scipe_server, command,
 				response, sizeof(response),

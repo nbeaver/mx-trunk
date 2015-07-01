@@ -537,7 +537,8 @@ mxdf_xafs_write_header( MX_DATAFILE *datafile,
 
 	/*=== Keithley settings ===*/
 
-	strcpy( amplifier_list_record_name, "amplifier_list" );
+	strlcpy( amplifier_list_record_name, "amplifier_list",
+				sizeof(amplifier_list_record_name) );
 
 	amplifier_list_record = mx_get_record( scan->record->list_head,
 						amplifier_list_record_name );
@@ -632,7 +633,8 @@ mxdf_xafs_write_header( MX_DATAFILE *datafile,
 
 		/* Use the old 'keithley_gains' record to get a static list. */
 
-		strcpy( keithley_gain_record_name, "keithley_gains" );
+		strlcpy( keithley_gain_record_name, "keithley_gains",
+				sizeof(keithley_gain_record_name) );
 
 		keithley_gain_record = mx_get_record( scan->record->list_head,
 						keithley_gain_record_name );
@@ -713,7 +715,8 @@ mxdf_xafs_write_header( MX_DATAFILE *datafile,
 
 	for ( i = 1; i <= 3; i++ ) {
 
-		sprintf( header_name, "xafs_header%ld", i );
+		snprintf( header_name, sizeof(header_name),
+				"xafs_header%ld", i );
 
 		mx_status = mx_get_string_variable_by_name(
 			scan->record->list_head,

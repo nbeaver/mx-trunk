@@ -8,7 +8,8 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2006, 2008, 2010 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2006, 2008, 2010, 2015
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -378,7 +379,7 @@ mxd_e662_resynchronize( MX_RECORD *record )
 
 	/* Verify that we got the identification message that we expected. */
 
-	strcpy( banner, "PZT Ser" );
+	strlcpy( banner, "PZT Ser", sizeof(banner) );
 
 	length = strlen( banner );
 
@@ -407,7 +408,8 @@ mxd_e662_move_absolute( MX_MOTOR *motor )
 
 	/* Format the move command and send it. */
 
-	sprintf( command, "POS %g", motor->raw_destination.analog );
+	snprintf( command, sizeof(command),
+			"POS %g", motor->raw_destination.analog );
 
 	mx_status = mxd_e662_command( e662, command, NULL, 0, E662_DEBUG );
 

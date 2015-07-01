@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004-2007, 2013 Illinois Institute of Technology
+ * Copyright 2004-2007, 2013, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -484,11 +484,15 @@ mxd_sercat_als_robot_create_record_structures( MX_RECORD *record )
 	changer->record = record;
 	sercat_als_robot->record = record;
 
-	strcpy( changer->current_sample_holder, MX_CHG_NO_SAMPLE_HOLDER );
+	strlcpy( changer->current_sample_holder, MX_CHG_NO_SAMPLE_HOLDER,
+			sizeof(changer->current_sample_holder) );
+
 	changer->current_sample_id = MX_CHG_NO_SAMPLE_ID;
 	changer->sample_is_mounted = FALSE;
 
-	strcpy( changer->requested_sample_holder, MX_CHG_NO_SAMPLE_HOLDER );
+	strlcpy( changer->requested_sample_holder, MX_CHG_NO_SAMPLE_HOLDER,
+			sizeof(changer->requested_sample_holder) );
+
 	changer->requested_sample_id = MX_CHG_NO_SAMPLE_ID;
 
 	changer->status = 0;
@@ -1167,7 +1171,8 @@ mxd_sercat_als_robot_reset( MX_SAMPLE_CHANGER *changer )
 
 	changer->status &= ( ~ MXSF_CHG_ERROR_BITMASK );
 
-	strcpy( changer->current_sample_holder, MX_CHG_NO_SAMPLE_HOLDER );
+	strlcpy( changer->current_sample_holder, MX_CHG_NO_SAMPLE_HOLDER,
+			sizeof(changer->current_sample_holder) );
 
 	changer->current_sample_id = MX_CHG_NO_SAMPLE_ID;
 

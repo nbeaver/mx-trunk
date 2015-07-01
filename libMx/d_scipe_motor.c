@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2003, 2010, 2012 Illinois Institute of Technology
+ * Copyright 2000-2003, 2010, 2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -287,7 +287,8 @@ mxd_scipe_motor_open( MX_RECORD *record )
 
 	/* Find out whether or not the SCIPE server knows about this motor. */
 
-	sprintf( command, "%s desc", scipe_motor->scipe_motor_name );
+	snprintf( command, sizeof(command),
+			"%s desc", scipe_motor->scipe_motor_name );
 
 	mx_status = mxi_scipe_command( scipe_server, command,
 				response, sizeof(response),
@@ -332,7 +333,8 @@ mxd_scipe_motor_move_absolute( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "%s movenow %g",
+	snprintf( command, sizeof(command),
+			"%s movenow %g",
 			scipe_motor->scipe_motor_name, 
 			motor->raw_destination.analog );
 
@@ -374,7 +376,8 @@ mxd_scipe_motor_get_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "%s position", scipe_motor->scipe_motor_name );
+	snprintf( command, sizeof(command),
+			"%s position", scipe_motor->scipe_motor_name );
 
 	mx_status = mxi_scipe_command( scipe_server, command,
 				response, sizeof(response),
@@ -426,7 +429,8 @@ mxd_scipe_motor_soft_abort( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "%s halt", scipe_motor->scipe_motor_name );
+	snprintf( command, sizeof(command),
+			"%s halt", scipe_motor->scipe_motor_name );
 
 	mx_status = mxi_scipe_command( scipe_server, command,
 				response, sizeof(response),
@@ -460,7 +464,8 @@ mxd_scipe_motor_get_status( MX_MOTOR *motor )
 
 	/* Get the current status of this motor. */
 
-	sprintf( command, "%s status", scipe_motor->scipe_motor_name );
+	snprintf( command, sizeof(command),
+			"%s status", scipe_motor->scipe_motor_name );
 
 	mx_status = mxi_scipe_command( scipe_server, command,
 				response, sizeof(response),

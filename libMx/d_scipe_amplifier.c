@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2006, 2010 Illinois Institute of Technology
+ * Copyright 2002, 2006, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -385,8 +385,9 @@ mxd_scipe_amplifier_open( MX_RECORD *record )
 	 * amplifier.
 	 */
 
-	sprintf( command, "%s_gain desc",
-				scipe_amplifier->scipe_amplifier_name );
+	snprintf( command, sizeof(command),
+			"%s_gain desc",
+			scipe_amplifier->scipe_amplifier_name );
 
 	mx_status = mxi_scipe_command( scipe_server, command,
 				response, sizeof(response),
@@ -429,7 +430,8 @@ mxd_scipe_amplifier_get_gain( MX_AMPLIFIER *amplifier )
 
 	/* Read the sensitivity setting (SENS) from the remote SCIPE server. */
 
-	sprintf( command, "%s_gain position",
+	snprintf( command, sizeof(command),
+			"%s_gain position",
 			scipe_amplifier->scipe_amplifier_name );
 
 	mx_status = mxi_scipe_command( scipe_server, command,
@@ -571,7 +573,8 @@ mxd_scipe_amplifier_set_gain( MX_AMPLIFIER *amplifier )
 
 	/* Set the sensitivity calibration mode to calibrated (SUCM0). */
 
-	sprintf( command, "%s_calibration_mode movenow %d",
+	snprintf( command, sizeof(command),
+			"%s_calibration_mode movenow %d",
 			scipe_amplifier->scipe_amplifier_name, 0 );
 
 	mx_status = mxi_scipe_command( scipe_server, command,
@@ -591,8 +594,10 @@ mxd_scipe_amplifier_set_gain( MX_AMPLIFIER *amplifier )
 
 	/* Set the new gain. */
 
-	sprintf( command, "%s_gain movenow %d",
-		scipe_amplifier->scipe_amplifier_name, sensitivity_setting );
+	snprintf( command, sizeof(command),
+			"%s_gain movenow %d",
+			scipe_amplifier->scipe_amplifier_name,
+			sensitivity_setting );
 
 	mx_status = mxi_scipe_command( scipe_server, command,
 				response, sizeof(response),
@@ -641,7 +646,8 @@ mxd_scipe_amplifier_get_offset( MX_AMPLIFIER *amplifier )
 	 * SCIPE server.
 	 */
 
-	sprintf( command, "%s_calibrated_offset_current position",
+	snprintf( command, sizeof(command),
+			"%s_calibrated_offset_current position",
 			scipe_amplifier->scipe_amplifier_name );
 
 	mx_status = mxi_scipe_command( scipe_server, command,
@@ -675,7 +681,8 @@ mxd_scipe_amplifier_get_offset( MX_AMPLIFIER *amplifier )
 	 * SCIPE server.
 	 */
 
-	sprintf( command, "%s_toggle_offset_current position",
+	snprintf( command, sizeof(command),
+			"%s_toggle_offset_current position",
 			scipe_amplifier->scipe_amplifier_name );
 
 	mx_status = mxi_scipe_command( scipe_server, command,
@@ -805,7 +812,8 @@ mxd_scipe_amplifier_set_offset( MX_AMPLIFIER *amplifier )
 		 * using IOON.
 		 */
 
-		sprintf( command, "%s_toggle_offset_current movenow 0",
+		snprintf( command, sizeof(command),
+				"%s_toggle_offset_current movenow 0",
 				scipe_amplifier->scipe_amplifier_name );
 
 		mx_status = mxi_scipe_command( scipe_server, command,
@@ -876,7 +884,8 @@ mxd_scipe_amplifier_set_offset( MX_AMPLIFIER *amplifier )
 
 	/* Set the input offset calibration mode to callibrated (IOUC0). */
 
-	sprintf( command, "%s_offset_current_calibration_mode movenow %d",
+	snprintf( command, sizeof(command),
+			"%s_offset_current_calibration_mode movenow %d",
 			scipe_amplifier->scipe_amplifier_name, 0 );
 
 	mx_status = mxi_scipe_command( scipe_server, command,
@@ -896,7 +905,8 @@ mxd_scipe_amplifier_set_offset( MX_AMPLIFIER *amplifier )
 
 	/* Set the magnitude of the input offset current using IOLV. */
 
-	sprintf( command, "%s_calibrated_offset_current movenow %d",
+	snprintf( command, sizeof(command),
+			"%s_calibrated_offset_current movenow %d",
 			scipe_amplifier->scipe_amplifier_name,
 			offset_current_setting );
 
@@ -918,10 +928,12 @@ mxd_scipe_amplifier_set_offset( MX_AMPLIFIER *amplifier )
 	/* Set the sign of the input offset current using IOSN. */
 
 	if ( sign_offset_current == 1 ) {
-		sprintf( command, "%s_offset_current_sign movenow 1",
+		snprintf( command, sizeof(command),
+				"%s_offset_current_sign movenow 1",
 				scipe_amplifier->scipe_amplifier_name );
 	} else {
-		sprintf( command, "%s_offset_current_sign movenow 0",
+		snprintf( command, sizeof(command),
+				"%s_offset_current_sign movenow 0",
 				scipe_amplifier->scipe_amplifier_name );
 	}
 
@@ -942,7 +954,8 @@ mxd_scipe_amplifier_set_offset( MX_AMPLIFIER *amplifier )
 
 	/* Turn on the input offset current using IOON. */
 
-	sprintf( command, "%s_toggle_offset_current movenow 1",
+	snprintf( command, sizeof(command),
+			"%s_toggle_offset_current movenow 1",
 			scipe_amplifier->scipe_amplifier_name );
 
 	mx_status = mxi_scipe_command( scipe_server, command,
@@ -1020,35 +1033,43 @@ mxd_scipe_amplifier_get_parameter( MX_AMPLIFIER *amplifier )
 
 	switch( amplifier->parameter_type ) {
 	case MXLV_SCIPE_AMPLIFIER_BIAS_VOLTAGE:
-		sprintf( command, "%s_bias_voltage_level position",
+		snprintf( command, sizeof(command),
+				"%s_bias_voltage_level position",
 				scipe_amplifier->scipe_amplifier_name );
 		break;
 	case MXLV_SCIPE_AMPLIFIER_FILTER_TYPE:
-		sprintf( command, "%s_filter_type position",
+		snprintf( command, sizeof(command),
+				"%s_filter_type position",
 				scipe_amplifier->scipe_amplifier_name );
 		break;
 	case MXLV_SCIPE_AMPLIFIER_LOWPASS_FILTER_3DB_POINT:
-		sprintf( command, "%s_lowpass_filter_3dB position",
+		snprintf( command, sizeof(command),
+				"%s_lowpass_filter_3dB position",
 				scipe_amplifier->scipe_amplifier_name );
 		break;
 	case MXLV_SCIPE_AMPLIFIER_HIGHPASS_FILTER_3DB_POINT:
-		sprintf( command, "%s_highpass_filter_3dB position",
+		snprintf( command, sizeof(command),
+				"%s_highpass_filter_3dB position",
 				scipe_amplifier->scipe_amplifier_name );
 		break;
 	case MXLV_SCIPE_AMPLIFIER_RESET_FILTER:
-		sprintf( command, "%s_reset_filter position",
+		snprintf( command, sizeof(command),
+				"%s_reset_filter position",
 				scipe_amplifier->scipe_amplifier_name );
 		break;
 	case MXLV_SCIPE_AMPLIFIER_GAIN_MODE:
-		sprintf( command, "%s_gain_mode position",
+		snprintf( command, sizeof(command),
+				"%s_gain_mode position",
 				scipe_amplifier->scipe_amplifier_name );
 		break;
 	case MXLV_SCIPE_AMPLIFIER_INVERT_SIGNAL:
-		sprintf( command, "%s_invert_signal position",
+		snprintf( command, sizeof(command),
+				"%s_invert_signal position",
 				scipe_amplifier->scipe_amplifier_name );
 		break;
 	case MXLV_SCIPE_AMPLIFIER_BLANK_OUTPUT:
-		sprintf( command, "%s_blank position",
+		snprintf( command, sizeof(command),
+				"%s_blank position",
 				scipe_amplifier->scipe_amplifier_name );
 		break;
 	default:
@@ -1174,7 +1195,8 @@ mxd_scipe_amplifier_set_parameter( MX_AMPLIFIER *amplifier )
 
 		/* Set the bias voltage level using the BSLV command. */
 
-		sprintf( command, "%s_bias_voltage_level movenow %d",
+		snprintf( command, sizeof(command),
+				"%s_bias_voltage_level movenow %d",
 				scipe_amplifier->scipe_amplifier_name,
 				bias_voltage_setting );
 
@@ -1199,10 +1221,12 @@ mxd_scipe_amplifier_set_parameter( MX_AMPLIFIER *amplifier )
 		 */
 
 		if ( bias_voltage_setting == 0 ) {
-			sprintf( command, "%s_toggle_bias_voltage movenow 0",
+			snprintf( command, sizeof(command),
+					"%s_toggle_bias_voltage movenow 0",
 					scipe_amplifier->scipe_amplifier_name );
 		} else {
-			sprintf( command, "%s_toggle_bias_voltage movenow 1",
+			snprintf( command, sizeof(command),
+					"%s_toggle_bias_voltage movenow 1",
 					scipe_amplifier->scipe_amplifier_name );
 		}
 
@@ -1222,7 +1246,8 @@ mxd_scipe_amplifier_set_parameter( MX_AMPLIFIER *amplifier )
 
 		/* Set the filter type using the FLTT command. */
 
-		sprintf( command, "%s_filter_type movenow %ld",
+		snprintf( command, sizeof(command),
+				"%s_filter_type movenow %ld",
 				scipe_amplifier->scipe_amplifier_name,
 				scipe_amplifier->filter_type );
 		break;
@@ -1268,7 +1293,8 @@ mxd_scipe_amplifier_set_parameter( MX_AMPLIFIER *amplifier )
 
 		/* Set the filter 3db point using the LFRQ command. */
 
-		sprintf( command, "%s_lowpass_filter_3dB movenow %d",
+		snprintf( command, sizeof(command),
+				"%s_lowpass_filter_3dB movenow %d",
 				scipe_amplifier->scipe_amplifier_name,
 				three_db_point_setting );
 		break;
@@ -1314,7 +1340,8 @@ mxd_scipe_amplifier_set_parameter( MX_AMPLIFIER *amplifier )
 
 		/* Set the filter 3db point using the HFRQ command. */
 
-		sprintf( command, "%s_highpass_filter_3dB movenow %d",
+		snprintf( command, sizeof(command),
+				"%s_highpass_filter_3dB movenow %d",
 				scipe_amplifier->scipe_amplifier_name,
 				three_db_point_setting );
 		break;
@@ -1328,7 +1355,8 @@ mxd_scipe_amplifier_set_parameter( MX_AMPLIFIER *amplifier )
 			return MX_SUCCESSFUL_RESULT;
 		}
 
-		sprintf( command, "%s_reset_filter movenow 1",
+		snprintf( command, sizeof(command),
+				"%s_reset_filter movenow 1",
 				scipe_amplifier->scipe_amplifier_name );
 
 		scipe_amplifier->reset_filter = 0;
@@ -1347,7 +1375,8 @@ mxd_scipe_amplifier_set_parameter( MX_AMPLIFIER *amplifier )
 
 		/* Set the gain mode using the GNMD command. */
 
-		sprintf( command, "%s_gain_mode movenow %ld",
+		snprintf( command, sizeof(command),
+				"%s_gain_mode movenow %ld",
 				scipe_amplifier->scipe_amplifier_name,
 				scipe_amplifier->gain_mode );
 		break;
@@ -1365,7 +1394,8 @@ mxd_scipe_amplifier_set_parameter( MX_AMPLIFIER *amplifier )
 
 		/* Change the signal inversion using the INVT command. */
 
-		sprintf( command, "%s_invert_signal movenow %ld",
+		snprintf( command, sizeof(command),
+				"%s_invert_signal movenow %ld",
 				scipe_amplifier->scipe_amplifier_name,
 				scipe_amplifier->invert_signal );
 		break;
@@ -1383,7 +1413,8 @@ mxd_scipe_amplifier_set_parameter( MX_AMPLIFIER *amplifier )
 
 		/* Change the blank output via the BLNK command. */
 
-		sprintf( command, "%s_blank movenow %ld",
+		snprintf( command, sizeof(command),
+				"%s_blank movenow %ld",
 				scipe_amplifier->scipe_amplifier_name,
 				scipe_amplifier->blank_output );
 		break;

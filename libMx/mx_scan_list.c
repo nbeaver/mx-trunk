@@ -28,8 +28,6 @@
 #include "mx_scan_list.h"
 #include "sl_file.h"
 
-#include "mx_poison.h"
-
 MX_RECORD_FUNCTION_LIST mxs_list_scan_record_function_list = {
 	mxs_list_scan_initialize_driver,
 	mxs_list_scan_create_record_structures,

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2005-2006, 2010, 2012 Illinois Institute of Technology
+ * Copyright 2003, 2005-2006, 2010, 2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -428,18 +428,22 @@ mxd_pdi45_dout_write( MX_DIGITAL_OUTPUT *doutput )
 	if ( pdi45_doutput->pdi45_doutput_flags & MXF_PDI45_DIO_INVERT ) {
 
 		if ( doutput->value != 0 ) {
-			sprintf( command, "00K%02X",
+			snprintf( command, sizeof(command),
+				"00K%02X",
 				( 1 << (pdi45_doutput->line_number) ) );
 		} else {
-			sprintf( command, "00L%02X",
+			snprintf( command, sizeof(command),
+				"00L%02X",
 				( 1 << (pdi45_doutput->line_number) ) );
 		}
 	} else {
 		if ( doutput->value != 0 ) {
-			sprintf( command, "00L%02X",
+			snprintf( command, sizeof(command),
+				"00L%02X",
 				( 1 << (pdi45_doutput->line_number) ) );
 		} else {
-			sprintf( command, "00K%02X",
+			snprintf( command, sizeof(command),
+				"00K%02X",
 				( 1 << (pdi45_doutput->line_number) ) );
 		}
 	}

@@ -10,7 +10,7 @@
  *
  *-----------------------------------------------------------------------
  *
- * Copyright 1999-2013 Illinois Institute of Technology
+ * Copyright 1999-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -928,7 +928,7 @@ mx_construct_string_field( void *dataptr,
 	/* Are there any whitespace characters in this string? */
 
 	if ( string_length == 0 ) {
-			sprintf( token_buffer, "\"\"" );
+			snprintf( token_buffer, token_buffer_length, "\"\"" );
 	} else {
 		if (strcspn(ptr, MX_RECORD_FIELD_SEPARATORS) < string_length) {
 			whitespace = TRUE;
@@ -936,9 +936,11 @@ mx_construct_string_field( void *dataptr,
 			whitespace = FALSE;
 		}
 		if ( whitespace) {
-			sprintf( token_buffer, "\"%s\"", (char *) dataptr);
+			snprintf( token_buffer, token_buffer_length,
+					"\"%s\"", (char *) dataptr);
 		} else {
-			sprintf( token_buffer, "%s", (char *) dataptr);
+			snprintf( token_buffer, token_buffer_length,
+					"%s", (char *) dataptr);
 		}
 	}
 	return MX_SUCCESSFUL_RESULT;
@@ -967,7 +969,8 @@ mx_construct_char_field( void *dataptr,
 			char *token_buffer, size_t token_buffer_length,
 			MX_RECORD *record, MX_RECORD_FIELD *record_field )
 {
-	sprintf( token_buffer, "%c", *((char *) dataptr) );
+	snprintf( token_buffer, token_buffer_length,
+			"%c", *((char *) dataptr) );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1004,7 +1007,8 @@ mx_construct_uchar_field( void *dataptr,
 			char *token_buffer, size_t token_buffer_length,
 			MX_RECORD *record, MX_RECORD_FIELD *record_field )
 {
-	sprintf( token_buffer, "%c", *((unsigned char *) dataptr) );
+	snprintf( token_buffer, token_buffer_length,
+			"%c", *((unsigned char *) dataptr) );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1032,7 +1036,8 @@ mx_construct_short_field( void *dataptr,
 			char *token_buffer, size_t token_buffer_length,
 			MX_RECORD *record, MX_RECORD_FIELD *record_field )
 {
-	sprintf( token_buffer, "%hd", *((short *) dataptr) );
+	snprintf( token_buffer, token_buffer_length,
+			"%hd", *((short *) dataptr) );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1060,7 +1065,8 @@ mx_construct_ushort_field( void *dataptr,
 			char *token_buffer, size_t token_buffer_length,
 			MX_RECORD *record, MX_RECORD_FIELD *record_field )
 {
-	sprintf( token_buffer, "%hu", *((unsigned short *) dataptr) );
+	snprintf( token_buffer, token_buffer_length,
+			"%hu", *((unsigned short *) dataptr) );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1108,9 +1114,9 @@ mx_construct_bool_field( void *dataptr,
 	bool_value = *((mx_bool_type *) dataptr);
 
 	if ( bool_value ) {
-		sprintf( token_buffer, "1" );
+		snprintf( token_buffer, token_buffer_length, "1" );
 	} else {
-		sprintf( token_buffer, "0" );
+		snprintf( token_buffer, token_buffer_length, "0" );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1139,7 +1145,8 @@ mx_construct_long_field( void *dataptr,
 			char *token_buffer, size_t token_buffer_length,
 			MX_RECORD *record, MX_RECORD_FIELD *record_field )
 {
-	sprintf( token_buffer, "%ld", *((long *) dataptr) );
+	snprintf( token_buffer, token_buffer_length,
+			"%ld", *((long *) dataptr) );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1167,7 +1174,8 @@ mx_construct_ulong_field( void *dataptr,
 			char *token_buffer, size_t token_buffer_length,
 			MX_RECORD *record, MX_RECORD_FIELD *record_field )
 {
-	sprintf( token_buffer, "%lu", *((unsigned long *) dataptr) );
+	snprintf( token_buffer, token_buffer_length,
+			"%lu", *((unsigned long *) dataptr) );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1202,7 +1210,8 @@ mx_construct_int64_field( void *dataptr,
 
 	int64_value = *((int64_t *) dataptr);
 
-	sprintf( token_buffer, "%" PRId64, int64_value );
+	snprintf( token_buffer, token_buffer_length,
+			"%" PRId64, int64_value );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1237,7 +1246,8 @@ mx_construct_uint64_field( void *dataptr,
 
 	uint64_value = *((uint64_t *) dataptr);
 
-	sprintf( token_buffer, "%" PRIu64, uint64_value );
+	snprintf( token_buffer, token_buffer_length,
+			"%" PRIu64, uint64_value );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1272,7 +1282,9 @@ mx_construct_float_field( void *dataptr,
 	} else {
 		precision = 15;
 	}
-	sprintf( token_buffer, "%.*g", precision, *((float *) dataptr) );
+
+	snprintf( token_buffer, token_buffer_length,
+			"%.*g", precision, *((float *) dataptr) );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1307,7 +1319,9 @@ mx_construct_double_field( void *dataptr,
 	} else {
 		precision = 15;
 	}
-	sprintf( token_buffer, "%.*g", precision, *((double *) dataptr) );
+
+	snprintf( token_buffer, token_buffer_length,
+			"%.*g", precision, *((double *) dataptr) );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1354,7 +1368,8 @@ mx_construct_hex_field( void *dataptr,
 		width = 8;
 	}
 
-	sprintf( token_buffer, "%#*lx", width, data_value );
+	snprintf( token_buffer, token_buffer_length,
+			"%#*lx", width, data_value );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1504,13 +1519,10 @@ mx_construct_mx_record_field( void *memory_location,
 		mx_read_void_pointer_from_memory_location( memory_location );
 
 	if ( referenced_record == NULL ) {
-#if 0
-		strlcpy( token_buffer, "\"\"", token_buffer_length );
-#else
-		sprintf( token_buffer, "NULL_record" );
-#endif
+		snprintf( token_buffer, token_buffer_length, "NULL_record" );
 	} else {
-		sprintf( token_buffer, "%s", referenced_record->name );
+		snprintf( token_buffer, token_buffer_length,
+				"%s", referenced_record->name );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1543,7 +1555,8 @@ mx_construct_recordtype_field( void *dataptr,
 			record_field->name, record->name );
 	}
 
-	sprintf( token_buffer, "%s", driver->name );
+	snprintf( token_buffer, token_buffer_length,
+			"%s", driver->name );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1594,7 +1607,7 @@ mx_parse_interface_field( void *dataptr, char *token,
 	if ( ptr == NULL ) {
 		interface->address = 0;
 	} else {
-		strncat( interface->address_name, ptr, 
+		strlcat( interface->address_name, ptr, 
 				MXU_INTERFACE_ADDRESS_NAME_LENGTH );
 
 		interface->address = atol( ptr );
@@ -1613,11 +1626,14 @@ mx_construct_interface_field( void *dataptr,
 	interface = (MX_INTERFACE *) dataptr;
 
 	if ( strlen(interface->address_name) > 0 ) {
-		sprintf( token_buffer, "%s:%s",
+		snprintf( token_buffer, token_buffer_length,
+			"%s:%s",
 			interface->record->name,
 			interface->address_name );
 	} else {
-		strcpy( token_buffer, interface->record->name );
+		strlcpy( token_buffer,
+			interface->record->name,
+			token_buffer_length );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -2813,7 +2829,7 @@ mx_create_array_description( void *array_ptr,
 
 		/**** Strings must be handled specially. ****/
 
-		strcat( buffer_ptr, " " );
+		strlcat( buffer_ptr, " ", max_buffer_length );
 
 		buffer_current_length = (long) strlen(buffer_ptr);
 
@@ -2849,7 +2865,7 @@ mx_create_array_description( void *array_ptr,
 
 		for ( i = 0; i < num_dimension_elements; i++ ) {
 
-			strcat( buffer_ptr, " " );
+			strlcat( buffer_ptr, " ", max_buffer_length );
 
 			buffer_current_length = (long) strlen(buffer_ptr);
 
@@ -3011,7 +3027,7 @@ mx_create_description_from_record(
 		MX_DEBUG( 8,("%s: record '%s' uses new record field support.",
 			fname, current_record->name));
 
-		strcpy( description_buffer, "" );
+		description_buffer[0] = '\0';
 
 		buffer_ptr = description_buffer;
 
@@ -3030,7 +3046,8 @@ mx_create_description_from_record(
 		 * records MUST have this field.
 		 */
 
-		sprintf( description_buffer, "%*s", -(MXU_FIELD_NAME_LENGTH),
+		snprintf( description_buffer, description_buffer_length,
+			"%*s", -(MXU_FIELD_NAME_LENGTH),
 			current_record->name );
 
 		buffer_current_length = (long) strlen(description_buffer);
@@ -3059,7 +3076,14 @@ mx_create_description_from_record(
 
 				/* Put a space between fields. */
 
-				strcat( buffer_ptr, " " );
+				buffer_current_length =
+					(long) strlen(description_buffer);
+
+				buffer_space_left = 
+					(long) description_buffer_length
+					- buffer_current_length - 1;
+
+				strlcat( buffer_ptr, " ", buffer_space_left );
 
 				/* Construct a pointer to the place in the
 				 * description buffer where the token is
@@ -3148,7 +3172,8 @@ mx_create_description_from_record(
 							buffer_space_left );
 					}
 
-					strcat( buffer_ptr, token_buffer );
+					strlcat( buffer_ptr, token_buffer,
+							buffer_space_left );
 				} else {
 					/*** Array of tokens ***/
 
@@ -4353,7 +4378,7 @@ mx_create_description_from_field( MX_RECORD *record,
 
 	/* Construct the string description of this field. */
 
-	strcpy( field_description_buffer, "" );
+	field_description_buffer[0] = '\0';
 
 	if ( (record_field->num_dimensions == 0)
 	  || ((record_field->datatype == MXFT_STRING)

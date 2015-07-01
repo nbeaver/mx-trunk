@@ -226,7 +226,8 @@ mxd_network_motor_create_record_structures( MX_RECORD *record )
 
 	network_motor->remote_driver_type = -1;
 
-	strcpy( network_motor->remote_driver_name, "" );
+	strlcpy( network_motor->remote_driver_name, "",
+		sizeof(network_motor->remote_driver_name) );
 
 	network_motor->remote_motor_flags = 0;
 

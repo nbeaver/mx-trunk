@@ -305,7 +305,8 @@ mxd_keithley2700_ainput_read( MX_ANALOG_INPUT *ainput )
 	 * selects the channel for reading.
 	 */
 
-	sprintf( command, "ROUT:CLOS (@%ld%02ld)", slot, channel );
+	snprintf( command, sizeof(command),
+			"ROUT:CLOS (@%ld%02ld)", slot, channel );
 
 	mx_status = mxi_keithley_command( ainput->record, interface, command,
 					NULL, 0, KEITHLEY2700_AINPUT_DEBUG );

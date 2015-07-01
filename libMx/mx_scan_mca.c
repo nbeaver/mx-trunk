@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2009, 2011, 2013 Illinois Institute of Technology
+ * Copyright 1999-2009, 2011, 2013, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -73,7 +73,8 @@ mx_scan_get_subdirectory_and_filename( MX_SCAN *scan,
 
 	measurement_number = *number_ptr;
 
-	sprintf( number_string, "%03ld", measurement_number );
+	snprintf( number_string, sizeof(number_string),
+			"%03ld", measurement_number );
 
 	/* Construct the name of the scan subdirectory based on the scan
 	 * datafile name.

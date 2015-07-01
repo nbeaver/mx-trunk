@@ -11,7 +11,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2004, 2006-2007, 2010, 2013 Illinois Institute of Technology
+ * Copyright 2002-2004, 2006-2007, 2010, 2013, 2015
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -341,7 +342,7 @@ mxd_mclennan_resynchronize( MX_RECORD *record )
 	 * and figure out what kind of controller it is.
 	 */
 
-	sprintf( command, "%ldID", mclennan->axis_number );
+	snprintf( command, sizeof(command), "%ldID", mclennan->axis_number );
 
 	mx_status = mx_rs232_putline( mclennan->rs232_record, command,
 					NULL, 0 );
@@ -465,7 +466,7 @@ mxd_mclennan_move_absolute( MX_MOTOR *motor )
 
 	/* Format the move command and send it. */
 
-	sprintf( command, "MA%ld", motor_steps );
+	snprintf( command, sizeof(command), "MA%ld", motor_steps );
 
 	mx_status = mxd_mclennan_command( mclennan, command,
 						NULL, 0, MCLENNAN_DEBUG );
@@ -551,7 +552,7 @@ mxd_mclennan_set_position( MX_MOTOR *motor )
 
 	motor_steps = motor->raw_set_position.stepper;
 
-	sprintf( command, "AP%ld", motor_steps );
+	snprintf( command, sizeof(command), "AP%ld", motor_steps );
 
 	mx_status = mxd_mclennan_command( mclennan, command,
 						NULL, 0, MCLENNAN_DEBUG );
@@ -565,7 +566,8 @@ mxd_mclennan_set_position( MX_MOTOR *motor )
 
 	if ( mclennan->axis_encoder_number >= 0 ) {
 
-		sprintf( command, "%ldAP%ld",
+		snprintf( command, sizeof(command),
+				"%ldAP%ld",
 				mclennan->axis_encoder_number, motor_steps );
 
 		mx_status = mx_rs232_putline( mclennan->rs232_record,
@@ -581,7 +583,7 @@ mxd_mclennan_set_position( MX_MOTOR *motor )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		sprintf( expected_response,
+		snprintf( expected_response, sizeof(expected_response),
 				"%ld:OK", mclennan->axis_encoder_number );
 
 		if ( strcmp( response, expected_response ) != 0 ) {
@@ -676,15 +678,15 @@ mxd_mclennan_raw_home_command( MX_MOTOR *motor )
 
 	if ( mclennan->controller_type == MXT_MCLENNAN_PM600 ) {
 		if ( motor->raw_home_command >= 0 ) {
-			strcpy( command, "HD" );
+			strlcpy( command, "HD", sizeof(command) );
 		} else {
-			strcpy( command, "HD-1" );
+			strlcpy( command, "HD-1", sizeof(command) );
 		}
 	} else {
 		if ( motor->raw_home_command >= 0 ) {
-			strcpy( command, "IX" );
+			strlcpy( command, "IX", sizeof(command) );
 		} else {
-			strcpy( command, "IX-1" );
+			strlcpy( command, "IX-1", sizeof(command) );
 		}
 	}
 		
@@ -719,17 +721,19 @@ mxd_mclennan_constant_velocity_move( MX_MOTOR *motor )
 			return mx_status;
 
 		if ( motor->constant_velocity_move >= 0 ) {
-			sprintf( command, "CV%ld",
+			snprintf( command, sizeof(command),
+					"CV%ld",
 					mx_round( motor->raw_speed ) );
 		} else {
-			sprintf( command, "CV-%ld",
+			snprintf( command, sizeof(command),
+					"CV-%ld",
 					mx_round( motor->raw_speed ) );
 		}
 	} else {
 		if ( motor->constant_velocity_move >= 0 ) {
-			strcpy( command, "CV" );
+			strlcpy( command, "CV", sizeof(command) );
 		} else {
-			strcpy( command, "CV-1" );
+			strlcpy( command, "CV-1", sizeof(command) );
 		}
 	}
 
@@ -1009,7 +1013,8 @@ mxd_mclennan_set_parameter( MX_MOTOR *motor )
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
-		sprintf( command, "SV%ld", mx_round( motor->raw_speed ) );
+		snprintf( command, sizeof(command),
+				"SV%ld", mx_round( motor->raw_speed ) );
 
 		mx_status = mxd_mclennan_command( mclennan, command,
 						NULL, 0, MCLENNAN_DEBUG );
@@ -1020,7 +1025,8 @@ mxd_mclennan_set_parameter( MX_MOTOR *motor )
 		  || (mclennan->controller_type == MXT_MCLENNAN_PM341)
 		  || (mclennan->controller_type == MXT_MCLENNAN_PM381) )
 		{
-			sprintf( command, "SB%ld",
+			snprintf( command, sizeof(command),
+					"SB%ld",
 					mx_round( motor->raw_base_speed ) );
 
 			mx_status = mxd_mclennan_command( mclennan, command,
@@ -1029,7 +1035,8 @@ mxd_mclennan_set_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
-		sprintf( command, "SA%ld",
+		snprintf( command, sizeof(command),
+			"SA%ld",
 			mx_round( motor->raw_acceleration_parameters[0] ));
 
 		mx_status = mxd_mclennan_command( mclennan, command,
@@ -1041,7 +1048,8 @@ mxd_mclennan_set_parameter( MX_MOTOR *motor )
 		if ( (mclennan->controller_type == MXT_MCLENNAN_PM600)
 		  || (mclennan->controller_type == MXT_MCLENNAN_PM304) )
 		{
-			sprintf( command, "SD%ld",
+			snprintf( command, sizeof(command),
+			    "SD%ld",
 			    mx_round( motor->raw_acceleration_parameters[1] ));
 
 			mx_status = mxd_mclennan_command( mclennan, command,
@@ -1077,7 +1085,8 @@ mxd_mclennan_set_parameter( MX_MOTOR *motor )
 		switch( mclennan->controller_type ) {
 		case MXT_MCLENNAN_PM600:
 		case MXT_MCLENNAN_PM304:
-			sprintf( command, "KP%ld",
+			snprintf( command, sizeof(command),
+				"KP%ld",
 				mx_round( motor->proportional_gain ) );
 
 			mx_status = mxd_mclennan_command( mclennan, command,
@@ -1103,7 +1112,8 @@ mxd_mclennan_set_parameter( MX_MOTOR *motor )
 		switch( mclennan->controller_type ) {
 		case MXT_MCLENNAN_PM600:
 		case MXT_MCLENNAN_PM304:
-			sprintf( command, "KS%ld",
+			snprintf( command, sizeof(command),
+				"KS%ld",
 				mx_round( motor->integral_gain ) );
 
 			mx_status = mxd_mclennan_command( mclennan, command,
@@ -1119,7 +1129,8 @@ mxd_mclennan_set_parameter( MX_MOTOR *motor )
 		switch( mclennan->controller_type ) {
 		case MXT_MCLENNAN_PM600:
 		case MXT_MCLENNAN_PM304:
-			sprintf( command, "KV%ld",
+			snprintf( command, sizeof(command),
+				"KV%ld",
 				mx_round( motor->derivative_gain ) );
 
 			mx_status = mxd_mclennan_command( mclennan, command,
@@ -1135,7 +1146,8 @@ mxd_mclennan_set_parameter( MX_MOTOR *motor )
 		switch( mclennan->controller_type ) {
 		case MXT_MCLENNAN_PM600:
 		case MXT_MCLENNAN_PM304:
-			sprintf( command, "KF%ld",
+			snprintf( command, sizeof(command),
+				"KF%ld",
 				mx_round( motor->velocity_feedforward_gain ) );
 
 			mx_status = mxd_mclennan_command( mclennan, command,
@@ -1151,7 +1163,8 @@ mxd_mclennan_set_parameter( MX_MOTOR *motor )
 		switch( mclennan->controller_type ) {
 		case MXT_MCLENNAN_PM600:
 		case MXT_MCLENNAN_PM304:
-			sprintf( command, "KX%ld",
+			snprintf( command, sizeof(command),
+				"KX%ld",
 				mx_round( motor->extra_gain ) );
 
 			mx_status = mxd_mclennan_command( mclennan, command,
@@ -1526,7 +1539,7 @@ mxd_mclennan_command( MX_MCLENNAN *mclennan, char *command, char *response,
 
 	/* Send the axis number prefix. */
 
-	sprintf( prefix, "%ld", mclennan->axis_number );
+	snprintf( prefix, sizeof(prefix), "%ld", mclennan->axis_number );
 
 	if ( debug_flag ) {
 		MX_DEBUG(-2, ("mxd_mclennan_command: command = '%s%s'",

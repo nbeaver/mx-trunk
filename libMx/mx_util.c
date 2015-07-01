@@ -1447,7 +1447,7 @@ mx_snprintf_from_pointer_array( char *destination,
 
 		snprintf_destination = destination + bytes_written;
 
-		strncpy( local_format, format_ptr, local_format_bytes );
+		strlcpy( local_format, format_ptr, local_format_bytes+1 );
 
 		local_format[local_format_bytes] = '\0';
 

@@ -468,7 +468,8 @@ mxd_cryostream600_motor_move_absolute( MX_MOTOR *motor )
 
 	/* Send the move command. */
 
-	sprintf( command, "C:R:%.1f:%.1f:$",
+	snprintf( command, sizeof(command),
+			"C:R:%.1f:%.1f:$",
 			motor->raw_destination.analog, ramp_rate );
 
 	mx_status = mxd_cryostream600_motor_command( cryostream600_motor,
@@ -524,7 +525,7 @@ mxd_cryostream600_motor_soft_abort( MX_MOTOR *motor )
 	 * If we are not in slave mode, the command will fail.
 	 */
 
-	strcpy( command, "C:H:$" );
+	strlcpy( command, "C:H:$", sizeof(command) );
 
 	mx_status = mxd_cryostream600_motor_command( cryostream600_motor,
 					command, response, sizeof(response),

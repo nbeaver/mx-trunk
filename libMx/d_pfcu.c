@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2006 Illinois Institute of Technology
+ * Copyright 2004-2006, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -161,14 +161,16 @@ mxd_pfcu_relay_command( MX_RELAY *relay )
 	switch ( relay->record->mx_type ) {
 	case MXT_RLY_PFCU_FILTER:
 		if ( relay->relay_command == MXF_OPEN_RELAY ) {
-			sprintf( command, "R%ld", pfcu_relay->filter_number );
+			snprintf( command, sizeof(command),
+				"R%ld", pfcu_relay->filter_number );
 		} else {
-			sprintf( command, "I%ld", pfcu_relay->filter_number );
+			snprintf( command, sizeof(command),
+				"I%ld", pfcu_relay->filter_number );
 		}
 		break;
 	case MXT_RLY_PFCU_SHUTTER:
 		if ( relay->relay_command == MXF_OPEN_RELAY ) {
-			strcpy( command, "O" );
+			strlcpy( command, "O", sizeof(command) );
 		} else {
 			/* If an exposure is in progress, a shutter close
 			 * command can abort it.
@@ -184,7 +186,7 @@ mxd_pfcu_relay_command( MX_RELAY *relay )
 
 				pfcu->exposure_in_progress = FALSE;
 			}
-			strcpy( command, "C" );
+			strlcpy( command, "C", sizeof(command) );
 		}
 		break;
 	default:

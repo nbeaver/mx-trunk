@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2006, 2012 Illinois Institute of Technology
+ * Copyright 2003-2006, 2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -322,12 +322,12 @@ mxd_smartmotor_din_read( MX_DIGITAL_INPUT *dinput )
 	port_name = smartmotor_dinput->port_name;
 
 	if ( port_name[0] == 'U' ) {
-		sprintf( command, "z=%sI Rz", port_name );
+		snprintf( command, sizeof(command), "z=%sI Rz", port_name );
 
 	} else if ( strcmp( port_name, "TEMP" ) == 0 ) {
-		sprintf( command, "z=TEMP Rz" );
+		snprintf( command, sizeof(command), "z=TEMP Rz" );
 	} else {
-		sprintf( command, "RDIN%s", port_name );
+		snprintf( command, sizeof(command), "RDIN%s", port_name );
 	}
 
 	mx_status = mxd_smartmotor_command( smartmotor, command,
@@ -456,9 +456,11 @@ mxd_smartmotor_dout_write( MX_DIGITAL_OUTPUT *doutput )
 	port_name = smartmotor_doutput->port_name;
 
 	if ( port_name[0] == 'U' ) {
-		sprintf( command, "%sI=%lu", port_name, doutput->value );
+		snprintf( command, sizeof(command),
+			"%sI=%lu", port_name, doutput->value );
 	} else {
-		sprintf( command, "DOUT%s,%lu", port_name, doutput->value );
+		snprintf( command, sizeof(command),
+			"DOUT%s,%lu", port_name, doutput->value );
 	}
 
 	mx_status = mxd_smartmotor_command( smartmotor, command,

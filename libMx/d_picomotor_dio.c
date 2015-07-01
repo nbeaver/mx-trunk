@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2006, 2012 Illinois Institute of Technology
+ * Copyright 2004-2006, 2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -296,7 +296,8 @@ mxd_picomotor_din_read( MX_DIGITAL_INPUT *dinput )
 			dinput->record->name );
 	}
 
-	sprintf( command, "IN %s %ld",
+	snprintf( command, sizeof(command),
+			"IN %s %ld",
 			picomotor_dinput->driver_name,
 			picomotor_dinput->channel_number );
 
@@ -403,7 +404,8 @@ mxd_picomotor_dout_read( MX_DIGITAL_OUTPUT *doutput )
 			doutput->record->name );
 	}
 
-	sprintf( command, "OUT %s %ld",
+	snprintf( command, sizeof(command),
+			"OUT %s %ld",
 			picomotor_doutput->driver_name,
 			picomotor_doutput->channel_number );
 
@@ -468,7 +470,8 @@ mxd_picomotor_dout_write( MX_DIGITAL_OUTPUT *doutput )
 		doutput->value = 1;
 	}
 
-	sprintf( command, "OUT %s %ld=%lu",
+	snprintf( command, sizeof(command),
+			"OUT %s %ld=%lu",
 			picomotor_doutput->driver_name,
 			channel_number, doutput->value );
 

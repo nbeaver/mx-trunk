@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004, 2006, 2010 Illinois Institute of Technology
+ * Copyright 2004, 2006, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -324,8 +324,9 @@ mxd_keithley2700_amp_get_gain( MX_AMPLIFIER *amplifier )
 
 	switch( channel_type ) {
 	case MXT_KEITHLEY2700_DCV:
-		sprintf( command, "SENSE:VOLT:DC:RANG? (@%ld%02ld)",
-						slot, channel );
+		snprintf( command, sizeof(command),
+				"SENSE:VOLT:DC:RANG? (@%ld%02ld)",
+				slot, channel );
 		break;
 	default:
 		mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -382,27 +383,33 @@ mxd_keithley2700_amp_set_gain( MX_AMPLIFIER *amplifier )
 
 	switch( channel_type ) {
 	case MXT_KEITHLEY2700_DCV:
-		sprintf( command, "SENSE:VOLT:DC:RANG %g, (@%ld%02ld)",
+		snprintf( command, sizeof(command),
+				"SENSE:VOLT:DC:RANG %g, (@%ld%02ld)",
 				amplifier->gain, slot, channel );
 		break;
 	case MXT_KEITHLEY2700_ACV:
-		sprintf( command, "SENSE:VOLT:AC:RANG %g, (@%ld%02ld)",
+		snprintf( command, sizeof(command),
+				"SENSE:VOLT:AC:RANG %g, (@%ld%02ld)",
 				amplifier->gain, slot, channel );
 		break;
 	case MXT_KEITHLEY2700_DCI:
-		sprintf( command, "SENSE:CURR:DC:RANG %g, (@%ld%02ld)",
+		snprintf( command, sizeof(command),
+				"SENSE:CURR:DC:RANG %g, (@%ld%02ld)",
 				amplifier->gain, slot, channel );
 		break;
 	case MXT_KEITHLEY2700_ACI:
-		sprintf( command, "SENSE:CURR:AC:RANG %g, (@%ld%02ld)",
+		snprintf( command, sizeof(command),
+				"SENSE:CURR:AC:RANG %g, (@%ld%02ld)",
 				amplifier->gain, slot, channel );
 		break;
 	case MXT_KEITHLEY2700_OHMS_2:
-		sprintf( command, "SENSE:RES:RANG %g, (@%ld%02ld)",
+		snprintf( command, sizeof(command),
+				"SENSE:RES:RANG %g, (@%ld%02ld)",
 				amplifier->gain, slot, channel );
 		break;
 	case MXT_KEITHLEY2700_OHMS_4:
-		sprintf( command, "SENSE:FRES:RANG %g, (@%ld%02ld)",
+		snprintf( command, sizeof(command),
+				"SENSE:FRES:RANG %g, (@%ld%02ld)",
 				amplifier->gain, slot, channel );
 		break;
 	default:

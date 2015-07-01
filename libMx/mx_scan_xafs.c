@@ -30,8 +30,6 @@
 #include "mx_scan_xafs.h"
 #include "d_xafs_wavenumber.h"
 
-#include "mx_poison.h"
-
 MX_RECORD_FUNCTION_LIST mxs_xafs_scan_record_function_list = {
 	mxs_xafs_scan_initialize_driver,
 	mxs_xafs_scan_create_record_structures,

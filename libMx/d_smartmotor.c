@@ -11,7 +11,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006-2007, 2010, 2013 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006-2007, 2010, 2013, 2015
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -250,9 +251,9 @@ mxd_smartmotor_resynchronize( MX_RECORD *record )
 		return mx_status;
 
 	if ( smartmotor->smartmotor_flags & MXF_SMARTMOTOR_ECHO_ON ) {
-		strcpy( command, "ECHO" );
+		strlcpy( command, "ECHO", sizeof(command) );
 	} else {
-		strcpy( command, "ECHO_OFF" );
+		strlcpy( command, "ECHO_OFF", sizeof(command) );
 	}
 
 	mx_status = mx_rs232_putline( smartmotor->rs232_record, command,
@@ -332,7 +333,7 @@ mxd_smartmotor_move_absolute( MX_MOTOR *motor )
 
 	/* Change to position mode, set the destination, and start the move. */
 
-	sprintf( command, "ZS MP P=%ld G", raw_destination );
+	snprintf( command, sizeof(command), "ZS MP P=%ld G", raw_destination );
 
 	mx_status = mxd_smartmotor_command( smartmotor, command,
 					NULL, 0, MXD_SMARTMOTOR_DEBUG );
@@ -397,7 +398,7 @@ mxd_smartmotor_set_position( MX_MOTOR *motor )
 
 	raw_position = motor->raw_set_position.stepper;
 
-	sprintf( command, "O=%ld", raw_position );
+	snprintf( command, sizeof(command), "O=%ld", raw_position );
 
 	mx_status = mxd_smartmotor_command( smartmotor, command,
 					NULL, 0, MXD_SMARTMOTOR_DEBUG );
@@ -480,9 +481,9 @@ mxd_smartmotor_raw_home_command( MX_MOTOR *motor )
 
 	if ( flags & MXF_SMARTMOTOR_ENABLE_LIMIT_DURING_HOME_SEARCH ) {
 		if ( motor->constant_velocity_move > 0 ) {
-			strcpy( command, "UCP" );
+			strlcpy( command, "UCP", sizeof(command) );
 		} else {
-			strcpy( command, "UDM" );
+			strlcpy( command, "UDM", sizeof(command) );
 		}
 		mx_status = mxd_smartmotor_command( smartmotor, command,
 						NULL, 0, MXD_SMARTMOTOR_DEBUG );
@@ -527,10 +528,12 @@ mxd_smartmotor_constant_velocity_move( MX_MOTOR *motor )
 	velocity_factor = motor->raw_speed * smartmotor->velocity_scale_factor;
 
 	if ( motor->constant_velocity_move >= 0 ) {
-		sprintf( command, "MV V=%ld G",
+		snprintf( command, sizeof(command),
+				"MV V=%ld G",
 				mx_round( velocity_factor ) );
 	} else {
-		sprintf( command, "MV V=-%ld G",
+		snprintf( command, sizeof(command),
+				"MV V=-%ld G",
 				mx_round( velocity_factor ) );
 	}
 
@@ -778,7 +781,8 @@ mxd_smartmotor_set_parameter( MX_MOTOR *motor )
 		velocity_factor = motor->raw_speed
 					* smartmotor->velocity_scale_factor;
 
-		sprintf( command, "V=%ld", mx_round( velocity_factor ) );
+		snprintf( command, sizeof(command),
+			"V=%ld", mx_round( velocity_factor ) );
 
 		mx_status = mxd_smartmotor_command( smartmotor, command,
 						NULL, 0, MXD_SMARTMOTOR_DEBUG );
@@ -788,7 +792,8 @@ mxd_smartmotor_set_parameter( MX_MOTOR *motor )
 		acceleration_factor = motor->raw_acceleration_parameters[0]
 					* smartmotor->acceleration_scale_factor;
 
-		sprintf( command, "A=%ld", mx_round( acceleration_factor ) );
+		snprintf( command, sizeof(command),
+			"A=%ld", mx_round( acceleration_factor ) );
 
 		mx_status = mxd_smartmotor_command( smartmotor, command,
 						NULL, 0, MXD_SMARTMOTOR_DEBUG );
@@ -796,7 +801,8 @@ mxd_smartmotor_set_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_PROPORTIONAL_GAIN:
-		sprintf( command, "KP=%ld F",
+		snprintf( command, sizeof(command),
+			"KP=%ld F",
 			mx_round( motor->proportional_gain ) );
 
 		mx_status = mxd_smartmotor_command( smartmotor, command,
@@ -805,7 +811,8 @@ mxd_smartmotor_set_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_INTEGRAL_GAIN:
-		sprintf( command, "KI=%ld F",
+		snprintf( command, sizeof(command),
+			"KI=%ld F",
 			mx_round( motor->proportional_gain ) );
 
 		mx_status = mxd_smartmotor_command( smartmotor, command,
@@ -814,7 +821,8 @@ mxd_smartmotor_set_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_DERIVATIVE_GAIN:
-		sprintf( command, "KD=%ld F",
+		snprintf( command, sizeof(command),
+			"KD=%ld F",
 			mx_round( motor->derivative_gain ) );
 
 		mx_status = mxd_smartmotor_command( smartmotor, command,
@@ -823,7 +831,8 @@ mxd_smartmotor_set_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_VELOCITY_FEEDFORWARD_GAIN:
-		sprintf( command, "KV=%ld F",
+		snprintf( command, sizeof(command),
+			"KV=%ld F",
 			mx_round( motor->velocity_feedforward_gain ) );
 
 		mx_status = mxd_smartmotor_command( smartmotor, command,
@@ -832,7 +841,8 @@ mxd_smartmotor_set_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_ACCELERATION_FEEDFORWARD_GAIN:
-		sprintf( command, "KA=%ld F",
+		snprintf( command, sizeof(command),
+			"KA=%ld F",
 			mx_round( motor->acceleration_feedforward_gain ) );
 
 		mx_status = mxd_smartmotor_command( smartmotor, command,
@@ -841,7 +851,8 @@ mxd_smartmotor_set_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_INTEGRAL_LIMIT:
-		sprintf( command, "KL=%ld F",
+		snprintf( command, sizeof(command),
+			"KL=%ld F",
 			mx_round( motor->integral_limit ) );
 
 		mx_status = mxd_smartmotor_command( smartmotor, command,
@@ -854,7 +865,8 @@ mxd_smartmotor_set_parameter( MX_MOTOR *motor )
 		 * 'sample rate'.
 		 */
 
-		sprintf( command, "KS=%ld F",
+		snprintf( command, sizeof(command),
+			"KS=%ld F",
 			mx_round( motor->extra_gain ) );
 
 		mx_status = mxd_smartmotor_command( smartmotor, command,

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2005-2006, 2012 Illinois Institute of Technology
+ * Copyright 2003, 2005-2006, 2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -293,7 +293,8 @@ mxd_mdrive_din_read( MX_DIGITAL_INPUT *dinput )
 			dinput->record->name );
 	}
 
-	sprintf( command, "PR I%ld", mdrive_dinput->port_number );
+	snprintf( command, sizeof(command),
+			"PR I%ld", mdrive_dinput->port_number );
 
 	mx_status = mxd_mdrive_command( mdrive, command,
 				response, sizeof( response ),
@@ -404,7 +405,8 @@ mxd_mdrive_dout_write( MX_DIGITAL_OUTPUT *doutput )
 		doutput->value = 1;
 	}
 
-	sprintf( command, "I%ld=%lu",
+	snprintf( command, sizeof(command),
+			"I%ld=%lu",
 			mdrive_doutput->port_number, doutput->value );
 
 	mx_status = mxd_mdrive_command( mdrive, command,

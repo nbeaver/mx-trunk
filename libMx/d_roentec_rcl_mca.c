@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2008, 2010 Illinois Institute of Technology
+ * Copyright 2004-2008, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -605,20 +605,20 @@ mxd_roentec_rcl_start( MX_MCA *mca )
 
 	switch( mca->preset_type ) {
 	case MXF_MCA_PRESET_NONE:
-		sprintf( command, "$MT 0" );
+		snprintf( command, sizeof(command), "$MT 0" );
 		break;
 	case MXF_MCA_PRESET_LIVE_TIME:
-		sprintf( command, "$LT %ld",
+		snprintf( command, sizeof(command), "$LT %ld",
 			mx_round( 1000.0 * mca->preset_live_time ) );
 		break;
 	case MXF_MCA_PRESET_REAL_TIME:
-		sprintf( command, "$MT %ld",
+		snprintf( command, sizeof(command), "$MT %ld",
 			mx_round( 1000.0 * mca->preset_real_time ) );
 		break;
 	case MXF_MCA_PRESET_COUNT:
 		/* Initialize the window counter. */
 
-		sprintf( command, "$FI %lu 0 %ld",
+		snprintf( command, sizeof(command), "$FI %lu 0 %ld",
 			mca->preset_count, mca->current_num_channels );
 
 		mx_status = mxd_roentec_rcl_command( roentec_rcl_mca,
@@ -632,7 +632,7 @@ mxd_roentec_rcl_start( MX_MCA *mca )
 		 * window counter value is reached.
 		 */
 
-		sprintf( command, "$MT 0" );
+		snprintf( command, sizeof(command), "$MT 0" );
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -691,8 +691,8 @@ mxd_roentec_rcl_read( MX_MCA *mca )
 	 * the command with the one line response '!SS<cr>'.
 	 */
 
-	sprintf( command, "$SS 0,1,1,%ld",
-			mca->current_num_channels );
+	snprintf( command, sizeof(command),
+		"$SS 0,1,1,%ld", mca->current_num_channels );
 
 	mx_status = mxd_roentec_rcl_command( roentec_rcl_mca,
 				command, NULL, 0, MXD_ROENTEC_RCL_DEBUG );
@@ -911,7 +911,7 @@ mxd_roentec_rcl_get_parameter( MX_MCA *mca )
 
 		i = mca->roi_number;
 
-		sprintf( command, "$GK %lu", i+1 );
+		snprintf( command, sizeof(command), "$GK %lu", i+1 );
 
 		mx_status = mxd_roentec_rcl_command( roentec_rcl_mca,
 				command, response, sizeof(response),
@@ -987,7 +987,8 @@ mxd_roentec_rcl_get_parameter( MX_MCA *mca )
 				summation_width, mca->record->name, i );
 		}
 
-		sprintf( command, "$SS %lu, 1, %ld, 1",
+		snprintf( command, sizeof(command),
+				"$SS %lu, 1, %ld, 1",
 				starting_channel, summation_width );
 
 		mx_status = mxd_roentec_rcl_command( roentec_rcl_mca, command,
@@ -1151,7 +1152,8 @@ mxd_roentec_rcl_set_parameter( MX_MCA *mca )
 		low_ev_rounded = mx_round( low_ev );
 		high_ev_rounded = mx_round( high_ev );
 
-		sprintf( command, "$SK %lu %lu %lu %lu %lu",
+		snprintf( command, sizeof(command),
+			"$SK %lu %lu %lu %lu %lu",
 			i+1, i+1, i+1, low_ev_rounded, high_ev_rounded );
 
 		mx_status = mxd_roentec_rcl_command( roentec_rcl_mca, command,

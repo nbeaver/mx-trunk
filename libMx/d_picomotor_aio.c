@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2006, 2012 Illinois Institute of Technology
+ * Copyright 2004-2006, 2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -179,7 +179,8 @@ mxd_picomotor_ain_read( MX_ANALOG_INPUT *ainput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "AIN %s %ld",
+	snprintf( command, sizeof(command),
+		"AIN %s %ld",
 		picomotor_ainput->driver_name,
 		picomotor_ainput->channel_number );
 

@@ -3871,7 +3871,6 @@ mxs_mcs_quick_scan_cl_read_scaler( MX_SCAN *scan )
 	long num_datafile_motors, num_plot_motors;
 	unsigned long mask;
 	char output_buffer[250], value_buffer[30];
-	size_t string_length, buffer_left;
 	mx_status_type mx_status;
 
 	mx_status_type (*compute_motor_positions_fn)( MX_SCAN *,
@@ -4143,37 +4142,26 @@ mxs_mcs_quick_scan_cl_read_scaler( MX_SCAN *scan )
 			}
 		}
 
-		strcpy( output_buffer, "" );
+		strlcpy( output_buffer, "", sizeof(output_buffer) );
 
 		for ( j = 0; j < num_plot_motors; j++ ) {
 
-			string_length = strlen( output_buffer );
-
-			buffer_left = sizeof( output_buffer )
-							- string_length - 1;
-
-			sprintf( value_buffer,
+			snprintf( value_buffer, sizeof(value_buffer),
 					" %-8g", motor_plot_positions[j] );
 
-			strncat( output_buffer,
-					value_buffer, buffer_left );
+			strlcat( output_buffer, value_buffer,
+					sizeof(output_buffer) );
 		}
 
-		string_length = strlen( output_buffer );
-
-		buffer_left = sizeof( output_buffer ) - string_length - 1;
-
-		strncat( output_buffer, " -", buffer_left );
+		strlcat( output_buffer, " -", sizeof(output_buffer) );
 
 		for ( j = 0; j < scan->num_input_devices; j++ ) {
-			string_length = strlen( output_buffer );
 
-			buffer_left
-			    = sizeof( output_buffer ) - string_length - 1;
+			snprintf( value_buffer, sizeof(value_buffer),
+					" %ld", data_values[j] );
 
-			sprintf( value_buffer, " %ld", data_values[j] );
-
-			strncat( output_buffer, value_buffer, buffer_left );
+			strlcat( output_buffer, value_buffer,
+					sizeof(output_buffer) );
 		}
 
 		mx_info( "%s", output_buffer );

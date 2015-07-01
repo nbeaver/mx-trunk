@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2006, 2008, 2012 Illinois Institute of Technology
+ * Copyright 2003-2006, 2008, 2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -332,12 +332,12 @@ mxd_smartmotor_ain_read( MX_ANALOG_INPUT *ainput )
 	port_name = smartmotor_ainput->port_name;
 
 	if ( port_name[0] == 'U' ) {
-		sprintf( command, "z=%sA Rz", port_name );
+		snprintf( command, sizeof(command), "z=%sA Rz", port_name );
 
 	} else if ( strcmp( port_name, "TEMP" ) == 0 ) {
-		sprintf( command, "z=TEMP Rz" );
+		snprintf( command, sizeof(command), "z=TEMP Rz" );
 	} else {
-		sprintf( command, "RAIN%s", port_name );
+		snprintf( command, sizeof(command), "RAIN%s", port_name );
 	}
 
 	mx_status = mxd_smartmotor_command( smartmotor, command,
@@ -477,7 +477,8 @@ mxd_smartmotor_aout_write( MX_ANALOG_OUTPUT *aoutput )
 			port_name );
 
 	} else {
-		sprintf( command, "AOUT%s,%ld",
+		snprintf( command, sizeof(command),
+			"AOUT%s,%ld",
 			port_name, (long) aoutput->raw_value.long_value );
 	}
 

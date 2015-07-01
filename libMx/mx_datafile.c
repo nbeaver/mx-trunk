@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2005, 2008 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2005, 2008, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -520,7 +520,8 @@ mx_update_datafile_name( MX_DATAFILE *datafile )
 	 * in the number string field by the use of zero fill.
 	 */
 
-	sprintf(number_string_ptr, "%0*lu", (int) number_length, number_value);
+	snprintf( number_string_ptr, strlen(number_string_ptr)+1,
+		"%0*lu", (int) number_length, number_value );
 
 	return MX_SUCCESSFUL_RESULT;
 }

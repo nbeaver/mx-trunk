@@ -7,7 +7,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2005-2006, 2010 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2005-2006, 2010, 2015
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -522,7 +523,8 @@ mxd_databox_motor_move_absolute( MX_MOTOR *motor )
 
 	destination = motor->raw_destination.analog;
 
-	sprintf( command, "G%c%g\r", databox_motor->axis_name, destination );
+	snprintf( command, sizeof(command),
+			"G%c%g\r", databox_motor->axis_name, destination );
 
 	mx_status = mxi_databox_command( databox, command,
 					NULL, 0, DATABOX_MOTOR_DEBUG );
@@ -615,7 +617,7 @@ mxd_databox_motor_get_position( MX_MOTOR *motor )
 			return mx_status;
 	}
 
-	sprintf( command, "A%c\r", databox_motor->axis_name );
+	snprintf( command, sizeof(command), "A%c\r", databox_motor->axis_name );
 
 	mx_status = mxi_databox_command( databox, command,
 			response, sizeof response, DATABOX_MOTOR_DEBUG );
@@ -685,7 +687,8 @@ mxd_databox_motor_set_position( MX_MOTOR *motor )
 
 	position = motor->raw_set_position.analog;
 
-	sprintf( command, "A%c%g\r", databox_motor->axis_name, position );
+	snprintf( command, sizeof(command),
+			"A%c%g\r", databox_motor->axis_name, position );
 
 	mx_status = mxi_databox_command( databox, command,
 					response, sizeof response,

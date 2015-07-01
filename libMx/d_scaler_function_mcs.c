@@ -430,7 +430,7 @@ mxd_scaler_function_mcs_open( MX_RECORD *record )
 
 	if ( mcs->timer_record == (MX_RECORD *) NULL ) {
 
-		strcpy( mcs->timer_name, "" );
+		strlcpy( mcs->timer_name, "", sizeof(mcs->timer_name) );
 
 		if ( scaler_function_mcs->num_mcs == 1 ) {
 

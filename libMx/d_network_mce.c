@@ -186,7 +186,8 @@ mxd_network_mce_finish_record_initialization( MX_RECORD *record )
 
 	network_mce->selected_motor_record = NULL;
 
-	strcpy( mce->selected_motor_name, "" );
+	strlcpy( mce->selected_motor_name, "",
+			sizeof(mce->selected_motor_name) );
 
 	mce->num_motors = 0;
 

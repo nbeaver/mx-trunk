@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2004-2006 Illinois Institute of Technology
+ * Copyright 2004-2006, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -287,7 +287,7 @@ mxd_pfcu_shutter_timer_start( MX_TIMER *timer )
 
 	/* Set the decimation. */
 
-	sprintf( command, "D %lu", decimation );
+	snprintf( command, sizeof(command), "D %lu", decimation );
 
 	mx_status = mxi_pfcu_command( pfcu, pfcu_shutter_timer->module_number,
 					command, NULL, 0,
@@ -298,7 +298,7 @@ mxd_pfcu_shutter_timer_start( MX_TIMER *timer )
 
 	/* Start the exposure. */
 
-	sprintf( command, "E %lu", exposure_time );
+	snprintf( command, sizeof(command), "E %lu", exposure_time );
 
 	mx_status = mxi_pfcu_command( pfcu, pfcu_shutter_timer->module_number,
 					command, NULL, 0,

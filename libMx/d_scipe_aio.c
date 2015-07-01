@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2004-2006, 2010, 2012 Illinois Institute of Technology
+ * Copyright 2002, 2004-2006, 2010, 2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -287,7 +287,8 @@ mxd_scipe_ain_read( MX_ANALOG_INPUT *ainput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "%s read", scipe_ainput->scipe_scaler_name );
+	snprintf( command, sizeof(command),
+			"%s read", scipe_ainput->scipe_scaler_name );
 
 	mx_status = mxi_scipe_command( scipe_server, command,
 				response, sizeof( response ),
@@ -381,7 +382,8 @@ mxd_scipe_aout_read( MX_ANALOG_OUTPUT *aoutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "%s position", scipe_aoutput->scipe_actuator_name );
+	snprintf( command, sizeof(command),
+			"%s position", scipe_aoutput->scipe_actuator_name );
 
 	mx_status = mxi_scipe_command( scipe_server, command,
 				response, sizeof( response ),
@@ -431,7 +433,8 @@ mxd_scipe_aout_write( MX_ANALOG_OUTPUT *aoutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "%s movenow %g",
+	snprintf( command, sizeof(command),
+			"%s movenow %g",
 			scipe_aoutput->scipe_actuator_name,
 			aoutput->value );
 

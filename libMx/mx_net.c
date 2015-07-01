@@ -3171,7 +3171,7 @@ mx_get_array_ascii_error_message( uint32_t status_code,
 {
 	char location[ MXU_GET_PUT_ARRAY_ASCII_LOCATION_LENGTH + 1 ];
 
-	sprintf( location,
+	snprintf( location, sizeof(location),
 		"MX GET from server '%s', record field '%s'",
 		server_name, record_field_name );
 
@@ -3186,7 +3186,7 @@ mx_put_array_ascii_error_message( uint32_t status_code,
 {
 	char location[ MXU_GET_PUT_ARRAY_ASCII_LOCATION_LENGTH + 1 ];
 
-	sprintf( location,
+	snprintf( location, sizeof(location),
 		"MX PUT to server '%s', record field '%s'",
 		server_name, record_field_name );
 
@@ -3686,7 +3686,7 @@ mx_put_field_array( MX_RECORD *server_record,
 	unsigned long i, j, max_attempts;
 	unsigned long ptr_address, remainder_value, gap_size;
 	uint32_t header_length, field_id_length;
-	uint32_t message_length, saved_message_length;
+	uint32_t message_length, saved_message_length, max_message_length;
 	uint32_t send_message_type, receive_message_type;
 	uint32_t status_code;
 	size_t buffer_left, num_network_bytes;
@@ -3775,6 +3775,8 @@ mx_put_field_array( MX_RECORD *server_record,
 
 	message = aligned_buffer->u.char_buffer + header_length;
 
+	max_message_length = aligned_buffer->buffer_length - header_length;
+
 	uint32_message = header + (header_length / sizeof(uint32_t));
 
 	header[MX_NETWORK_MAGIC]         = mx_htonl( MX_NETWORK_MAGIC_VALUE );
@@ -3798,7 +3800,8 @@ mx_put_field_array( MX_RECORD *server_record,
 
 		send_message_type = MX_NETMSG_PUT_ARRAY_BY_NAME;
 
-		sprintf( message, "%*s", -MXU_RECORD_FIELD_NAME_LENGTH,
+		snprintf( message, max_message_length,
+				"%*s", -MXU_RECORD_FIELD_NAME_LENGTH,
 				remote_record_field_name );
 
 		field_id_length = MXU_RECORD_FIELD_NAME_LENGTH;
@@ -4620,7 +4623,7 @@ mx_set_client_info( MX_RECORD *server_record,
 	MX_LIST_HEAD *list_head;
 	uint32_t *header;
 	char *buffer, *message, *ptr;
-	uint32_t header_length, message_length;
+	uint32_t header_length, message_length, max_message_length;
 	uint32_t message_type, status_code;
 	mx_bool_type connection_is_up;
 	long i, string_length;
@@ -4756,19 +4759,22 @@ mx_set_client_info( MX_RECORD *server_record,
 
 	message = buffer + header_length;
 
-	strlcpy( message, local_username, MXU_USERNAME_LENGTH );
+	max_message_length = aligned_buffer->buffer_length - header_length;
 
-	strncat( message, " ", 1 );
+	strlcpy( message, local_username, max_message_length );
 
-	strncat( message, local_program_name, MXU_PROGRAM_NAME_LENGTH );
+	strlcat( message, " ", max_message_length );
 
-	strncat( message, " ", 1 );
+	strlcat( message, local_program_name, max_message_length );
+
+	strlcat( message, " ", max_message_length );
 
 	message_length = (uint32_t) strlen( message );
 
 	ptr = message + message_length;
 
-	sprintf( ptr, "%lu", mx_process_id() );
+	snprintf( ptr, max_message_length - message_length,
+			"%lu", mx_process_id() );
 
 	MX_DEBUG( 2,("%s: message = '%s'", fname, message));
 
@@ -6621,7 +6627,7 @@ mx_get_mx_server_record( MX_RECORD *record_list,
 
 	switch( server_type ) {
 	case MXN_NET_TCPIP:
-		sprintf( format,
+		snprintf( format, sizeof(format),
 	"s%%-.%ds server network tcp_server \"\" \"\" 0x0 %%s %%d",
 			MXU_RECORD_NAME_LENGTH-2 );
 
@@ -6629,12 +6635,12 @@ mx_get_mx_server_record( MX_RECORD *record_list,
 		MX_DEBUG( 2,("%s: server_name = '%s', port_number = %d",
 			fname, server_name, port_number));
 
-		sprintf( description, format,
+		snprintf( description, sizeof(description), format,
 				server_name, server_name, port_number );
 		break;
 
 	case MXN_NET_UNIX:
-		sprintf( format,
+		snprintf( format, sizeof(format),
 	"s%%-.%ds server network unix_server \"\" \"\" 0x0 %%s",
 			MXU_RECORD_NAME_LENGTH-2 );
 
@@ -6642,7 +6648,8 @@ mx_get_mx_server_record( MX_RECORD *record_list,
 		MX_DEBUG( 2,("%s: server_name = '%s', server_arguments = '%s'",
 			fname, server_name, server_arguments));
 
-		sprintf( description, format, server_name, server_arguments );
+		snprintf( description, sizeof(description),
+				format, server_name, server_arguments );
 		break;
 
 	default:

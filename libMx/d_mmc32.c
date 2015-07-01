@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2004, 2006, 2010, 2013
+ * Copyright 1999, 2001, 2003-2004, 2006, 2010, 2013, 2015
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -337,7 +337,7 @@ mxd_mmc32_open( MX_RECORD *record )
 	 * 3) P3 output mode = step and direction.
 	 */
 
-	sprintf( command, "N%ld F4", mmc32->motor_number );
+	snprintf( command, sizeof(command),"N%ld F4", mmc32->motor_number );
 
 	mx_status = mxd_mmc32_command( gpib_record, address,
 					command, NULL, 0, MMC32_DEBUG );
@@ -347,8 +347,9 @@ mxd_mmc32_open( MX_RECORD *record )
 
 	/* Set the velocity multiplication factor. */
 
-	sprintf( command, "N%ld Z%f", mmc32->motor_number,
-					mmc32->multiplication_factor );
+	snprintf( command, sizeof(command),
+			"N%ld Z%f", mmc32->motor_number,
+			mmc32->multiplication_factor );
 
 	mx_status = mxd_mmc32_command( gpib_record, address,
 					command, NULL, 0, MMC32_DEBUG );
@@ -358,7 +359,7 @@ mxd_mmc32_open( MX_RECORD *record )
 
 	/* Set the start velocity */
 
-	sprintf( command, "U%ld", mmc32->start_velocity );
+	snprintf( command, sizeof(command), "U%ld", mmc32->start_velocity );
 
 	mx_status = mxd_mmc32_command( gpib_record, address,
 					command, NULL, 0, MMC32_DEBUG );
@@ -368,7 +369,7 @@ mxd_mmc32_open( MX_RECORD *record )
 
 	/* Set the peak velocity */
 
-	sprintf( command, "V%ld", mmc32->peak_velocity );
+	snprintf( command, sizeof(command), "V%ld", mmc32->peak_velocity );
 
 	mx_status = mxd_mmc32_command( gpib_record, address,
 					command, NULL, 0, MMC32_DEBUG );
@@ -378,7 +379,7 @@ mxd_mmc32_open( MX_RECORD *record )
 
 	/* Set the acceleration steps */
 
-	sprintf( command, "A%ld", mmc32->acceleration_steps );
+	snprintf( command, sizeof(command), "A%ld", mmc32->acceleration_steps );
 
 	mx_status = mxd_mmc32_command( gpib_record, address,
 					command, NULL, 0, MMC32_DEBUG );
@@ -422,7 +423,7 @@ mxd_mmc32_close( MX_RECORD *record )
 
 	/* Get the start velocity. */
 
-	sprintf( command, "N%ld IU", mmc32->motor_number );
+	snprintf( command, sizeof(command), "N%ld IU", mmc32->motor_number );
 
 	mx_status = mxd_mmc32_command( gpib_record, address,
 			command, response, sizeof response, MMC32_DEBUG );
@@ -499,7 +500,8 @@ mxd_mmc32_move_absolute( MX_MOTOR *motor )
 
 	motor_steps = motor->raw_destination.stepper;
 
-	sprintf( command, "N%ld M%ld", mmc32->motor_number, motor_steps );
+	snprintf( command, sizeof(command),
+			"N%ld M%ld", mmc32->motor_number, motor_steps );
 
 	mx_status = mxd_mmc32_command( gpib_record, address,
 				command, NULL, 0, MMC32_DEBUG );
@@ -528,7 +530,7 @@ mxd_mmc32_get_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "N%ld IP", mmc32->motor_number );
+	snprintf( command, sizeof(command), "N%ld IP", mmc32->motor_number );
 
 	mx_status = mxd_mmc32_command( gpib_record, address,
 			command, response, sizeof(response), MMC32_DEBUG );
@@ -571,7 +573,8 @@ mxd_mmc32_set_position( MX_MOTOR *motor )
 
 	motor_steps = motor->raw_set_position.stepper;
 
-	sprintf( command, "N%ld P%ld", mmc32->motor_number, motor_steps );
+	snprintf( command, sizeof(command),
+			"N%ld P%ld", mmc32->motor_number, motor_steps );
 
 	mx_status = mxd_mmc32_command( gpib_record, address,
 				command, NULL, 0, MMC32_DEBUG );
@@ -646,7 +649,7 @@ mxd_mmc32_raw_home_command( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "N%ld H", mmc32->motor_number );
+	snprintf( command, sizeof(command), "N%ld H", mmc32->motor_number );
 
 	mx_status = mxd_mmc32_command( gpib_record, address,
 					command, NULL, 0, MMC32_DEBUG );
@@ -675,7 +678,7 @@ mxd_mmc32_get_status( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "N%ld IO", mmc32->motor_number );
+	snprintf( command, sizeof(command), "N%ld IO", mmc32->motor_number );
 
 	mx_status = mxd_mmc32_command( gpib_record, address, command,
 				response, sizeof(response), MMC32_DEBUG );

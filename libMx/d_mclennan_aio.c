@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2004-2006, 2012 Illinois Institute of Technology
+ * Copyright 2002, 2004-2006, 2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -309,7 +309,7 @@ mxd_mclennan_ain_read( MX_ANALOG_INPUT *ainput )
 			mclennan->num_ainput_ports );
 	}
 
-	sprintf( command, "AI%ld", port_number );
+	snprintf( command, sizeof(command), "AI%ld", port_number );
 
 	mx_status = mxd_mclennan_command( mclennan, command,
 				response, sizeof( response ),
@@ -427,8 +427,9 @@ mxd_mclennan_aout_write( MX_ANALOG_OUTPUT *aoutput )
 			mclennan->num_aoutput_ports );
 	}
 
-	sprintf( command, "AO%ld/%ld", port_number,
-				aoutput->raw_value.long_value );
+	snprintf( command, sizeof(command),
+			"AO%ld/%ld", port_number,
+			aoutput->raw_value.long_value );
 
 	mx_status = mxd_mclennan_command( mclennan, command,
 					NULL, 0, MXD_MCLENNAN_AIO_DEBUG );

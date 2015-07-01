@@ -551,7 +551,7 @@ mxp_gnuxafs_set_x_range( MX_PLOT *plot, double x_min, double x_max )
 		"Pointer to MX_SCAN structure is NULL.");
 	}
 
-	sprintf( buffer, "set xrange [%g:%g]", x_min, x_max );
+	snprintf( buffer, sizeof(buffer), "set xrange [%g:%g]", x_min, x_max );
 
 	if ( fprintf( gnuxafs_pipe, "%s\n", buffer ) < 0 ) {
 		return mx_error( MXE_IPC_IO_ERROR, fname,
@@ -594,7 +594,7 @@ mxp_gnuxafs_set_y_range( MX_PLOT *plot, double y_min, double y_max )
 		"Pointer to MX_SCAN structure is NULL.");
 	}
 
-	sprintf( buffer, "set yrange [%g:%g]", y_min, y_max );
+	snprintf( buffer, sizeof(buffer), "set yrange [%g:%g]", y_min, y_max );
 
 	if ( fprintf( gnuxafs_pipe, "%s\n", buffer ) < 0 ) {
 		return mx_error( MXE_IPC_IO_ERROR, fname,

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004-2006 Illinois Institute of Technology
+ * Copyright 2004-2006, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -762,37 +762,37 @@ mx_spec_get_number( MX_RECORD *spec_server_record,
 	switch( mx_datatype ) {
 	case MXFT_CHAR:
 	case MXFT_UCHAR:
-		strcpy( format, "%c" );
+		strlcpy( format, "%c", sizeof(format) );
 		break;
 	case MXFT_SHORT:
-		strcpy( format, "%hd" );
+		strlcpy( format, "%hd", sizeof(format) );
 		break;
 	case MXFT_USHORT:
-		strcpy( format, "%hu" );
+		strlcpy( format, "%hu", sizeof(format) );
 		break;
 	case MXFT_BOOL:
-		strcpy( format, "%d" );
+		strlcpy( format, "%d", sizeof(format) );
 		break;
 	case MXFT_LONG:
-		strcpy( format, "%ld" );
+		strlcpy( format, "%ld", sizeof(format) );
 		break;
 	case MXFT_ULONG:
-		strcpy( format, "%lu" );
+		strlcpy( format, "%lu", sizeof(format) );
 		break;
 	case MXFT_HEX:
-		strcpy( format, "%lx" );
+		strlcpy( format, "%lx", sizeof(format) );
 		break;
 	case MXFT_INT64:
-		strcpy( format, "%" SCNd64 );
+		strlcpy( format, "%" SCNd64, sizeof(format) );
 		break;
 	case MXFT_UINT64:
-		strcpy( format, "%" SCNu64 );
+		strlcpy( format, "%" SCNu64, sizeof(format) );
 		break;
 	case MXFT_FLOAT:
-		strcpy( format, "%g" );
+		strlcpy( format, "%g", sizeof(format) );
 		break;
 	case MXFT_DOUBLE:
-		strcpy( format, "%lg" );
+		strlcpy( format, "%lg", sizeof(format) );
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -828,37 +828,48 @@ mx_spec_put_number( MX_RECORD *spec_server_record,
 	switch( mx_datatype ) {
 	case MXFT_CHAR:
 	case MXFT_UCHAR:
-		sprintf( string_buffer, "%c", *((char *) value));
+		snprintf( string_buffer, sizeof(string_buffer),
+				"%c", *((char *) value));
 		break;
 	case MXFT_SHORT:
-		sprintf( string_buffer, "%hd", *((short *) value));
+		snprintf( string_buffer, sizeof(string_buffer),
+				"%hd", *((short *) value));
 		break;
 	case MXFT_USHORT:
-		sprintf( string_buffer, "%hu", *((unsigned short *) value));
+		snprintf( string_buffer, sizeof(string_buffer),
+				"%hu", *((unsigned short *) value));
 		break;
 	case MXFT_BOOL:
-		sprintf( string_buffer, "%d", (int) *((mx_bool_type *) value));
+		snprintf( string_buffer, sizeof(string_buffer),
+				"%d", (int) *((mx_bool_type *) value));
 		break;
 	case MXFT_LONG:
-		sprintf( string_buffer, "%ld", *((long *) value));
+		snprintf( string_buffer, sizeof(string_buffer),
+				"%ld", *((long *) value));
 		break;
 	case MXFT_ULONG:
-		sprintf( string_buffer, "%lu", *((unsigned long *) value));
+		snprintf( string_buffer, sizeof(string_buffer),
+				"%lu", *((unsigned long *) value));
 		break;
 	case MXFT_HEX:
-		sprintf( string_buffer, "%lx", *((unsigned long *) value));
+		snprintf( string_buffer, sizeof(string_buffer),
+				"%lx", *((unsigned long *) value));
 		break;
 	case MXFT_INT64:
-		sprintf( string_buffer, "%" PRId64, *((int64_t *) value));
+		snprintf( string_buffer, sizeof(string_buffer),
+				"%" PRId64, *((int64_t *) value));
 		break;
 	case MXFT_UINT64:
-		sprintf( string_buffer, "%" PRIu64, *((uint64_t *) value));
+		snprintf( string_buffer, sizeof(string_buffer),
+				"%" PRIu64, *((uint64_t *) value));
 		break;
 	case MXFT_FLOAT:
-		sprintf( string_buffer, "%g", *((float *) value));
+		snprintf( string_buffer, sizeof(string_buffer),
+				"%g", *((float *) value));
 		break;
 	case MXFT_DOUBLE:
-		sprintf( string_buffer, "%g", *((double *) value));
+		snprintf( string_buffer, sizeof(string_buffer),
+				"%g", *((double *) value));
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,

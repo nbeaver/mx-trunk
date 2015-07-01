@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2006-2007, 2009-2010, 2013
+ * Copyright 2000-2001, 2003, 2006-2007, 2009-2010, 2013, 2015
  *   Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -451,7 +451,7 @@ mxd_ls330_motor_resynchronize( MX_RECORD *record )
 
 	/* Verify that we got the identification message that we expected. */
 
-	strcpy( banner, "LSCI," );
+	strlcpy( banner, "LSCI,", sizeof(banner) );
 
 	length = strlen( banner );
 

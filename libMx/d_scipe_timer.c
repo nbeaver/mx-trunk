@@ -5,7 +5,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2002, 2010, 2012 Illinois Institute of Technology
+ * Copyright 2000-2002, 2010, 2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -202,7 +202,8 @@ mxd_scipe_timer_open( MX_RECORD *record )
 
 	/* Find out whether or not the SCIPE server knows about this timer. */
 
-	sprintf( command, "%s desc", scipe_timer->scipe_timer_name );
+	snprintf( command, sizeof(command),
+			"%s desc", scipe_timer->scipe_timer_name );
 
 	mx_status = mxi_scipe_command( scipe_server, command,
 				response, sizeof(response),
@@ -241,7 +242,8 @@ mxd_scipe_timer_is_busy( MX_TIMER *timer )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "%s status", scipe_timer->scipe_timer_name );
+	snprintf( command, sizeof(command),
+			"%s status", scipe_timer->scipe_timer_name );
 
 	mx_status = mxi_scipe_command( scipe_server, command,
 				response, sizeof(response),
@@ -294,7 +296,8 @@ mxd_scipe_timer_start( MX_TIMER *timer )
 
 	timer_preset = mx_round( seconds * scipe_timer->clock_frequency );
 
-	sprintf( command, "%s preset %lu",
+	snprintf( command, sizeof(command),
+			"%s preset %lu",
 			scipe_timer->scipe_timer_name,
 			timer_preset );
 
@@ -313,7 +316,8 @@ mxd_scipe_timer_start( MX_TIMER *timer )
 				command, timer->record->name, response );
 	}
 
-	sprintf( command, "%s start", scipe_timer->scipe_timer_name );
+	snprintf( command, sizeof(command),
+			"%s start", scipe_timer->scipe_timer_name );
 
 	mx_status = mxi_scipe_command( scipe_server, command,
 				response, sizeof(response),
@@ -352,7 +356,8 @@ mxd_scipe_timer_stop( MX_TIMER *timer )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "%s stop", scipe_timer->scipe_timer_name );
+	snprintf( command, sizeof(command),
+			"%s stop", scipe_timer->scipe_timer_name );
 
 	mx_status = mxi_scipe_command( scipe_server, command,
 				response, sizeof(response),
@@ -393,7 +398,8 @@ mxd_scipe_timer_clear( MX_TIMER *timer )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "%s clear", scipe_timer->scipe_timer_name );
+	snprintf( command, sizeof(command),
+			"%s clear", scipe_timer->scipe_timer_name );
 
 	mx_status = mxi_scipe_command( scipe_server, command,
 				response, sizeof(response),
@@ -435,7 +441,8 @@ mxd_scipe_timer_read( MX_TIMER *timer )
 
 	/* Send a read command to the timer. */
 
-	sprintf( command, "%s read", scipe_timer->scipe_timer_name );
+	snprintf( command, sizeof(command),
+			"%s read", scipe_timer->scipe_timer_name );
 
 	mx_status = mxi_scipe_command( scipe_server, command,
 				response, sizeof(response),

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2006, 2010, 2012 Illinois Institute of Technology
+ * Copyright 2003-2006, 2010, 2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -285,7 +285,8 @@ mxd_pdi45_ain_read( MX_ANALOG_INPUT *ainput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "FFL%02X", 1 << (pdi45_ainput->line_number) );
+	snprintf( command, sizeof(command),
+			"FFL%02X", 1 << (pdi45_ainput->line_number) );
 
 
 	mx_status = mxi_pdi45_command( pdi45, command,
@@ -370,7 +371,8 @@ mxd_pdi45_aout_read( MX_ANALOG_OUTPUT *aoutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "FFK%02X", 1 << (pdi45_aoutput->line_number) );
+	snprintf( command, sizeof(command),
+			"FFK%02X", 1 << (pdi45_aoutput->line_number) );
 
 
 	mx_status = mxi_pdi45_command( pdi45, command,
@@ -428,7 +430,8 @@ mxd_pdi45_aout_write( MX_ANALOG_OUTPUT *aoutput )
 			( 5.0 / 256.0 ) * (double) 0xff );
 	}
 
-	sprintf( command, "FFJ000%01X%03lX",
+	snprintf( command, sizeof(command),
+		"FFJ000%01X%03lX",
 		1 << ( pdi45_aoutput->line_number ), hex_value );
 
 	mx_status = mxi_pdi45_command( pdi45, command, NULL, 0 );

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2005, 2010 Illinois Institute of Technology
+ * Copyright 2004-2005, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -270,13 +270,13 @@ mxd_keithley2400_ainput_read( MX_ANALOG_INPUT *ainput )
 
 	switch( keithley2400_ainput->measurement_type ) {
 	case MXT_KEITHLEY2400_VOLT:
-		strcpy( command, ":MEAS:VOLT?" );
+		strlcpy( command, ":MEAS:VOLT?", sizeof(command) );
 		break;
 	case MXT_KEITHLEY2400_CURR:
-		strcpy( command, ":MEAS:CURR?" );
+		strlcpy( command, ":MEAS:CURR?", sizeof(command) );
 		break;
 	case MXT_KEITHLEY2400_RES:
-		strcpy( command, ":MEAS:RES?" );
+		strlcpy( command, ":MEAS:RES?", sizeof(command) );
 		break;
 	}
 

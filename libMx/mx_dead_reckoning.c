@@ -10,7 +10,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2006 Illinois Institute of Technology
+ * Copyright 2001-2006, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -406,7 +406,7 @@ mx_dead_reckoning_predict_motion( MX_DEAD_RECKONING *dead_reckoning,
 		position = dead_reckoning->end_position;
 		velocity = 0.0;
 
-		strcpy( status_string, "MOVE COMPLETE" );
+		strlcpy( status_string, "MOVE COMPLETE", sizeof(status_string));
 
 		motor->busy = FALSE;
 
@@ -433,7 +433,7 @@ mx_dead_reckoning_predict_motion( MX_DEAD_RECKONING *dead_reckoning,
 
 		velocity = base_speed - acceleration * relative_time;
 
-		strcpy( status_string, "DECELERATING" );
+		strlcpy( status_string, "DECELERATING", sizeof(status_string) );
 
 	} else
 	if ( mx_compare_clock_ticks(current_tick, end_of_accel_tick) >= 0 ) {
@@ -457,7 +457,7 @@ mx_dead_reckoning_predict_motion( MX_DEAD_RECKONING *dead_reckoning,
 
 		velocity = slew_speed;
 
-		strcpy( status_string, "MOVING" );
+		strlcpy( status_string, "MOVING", sizeof(status_string) );
 
 	} else
 	if ( mx_compare_clock_ticks(current_tick, start_of_move_tick) >= 0 ) {
@@ -482,14 +482,14 @@ mx_dead_reckoning_predict_motion( MX_DEAD_RECKONING *dead_reckoning,
 
 		velocity = base_speed + acceleration * relative_time;
 
-		strcpy( status_string, "ACCELERATING" );
+		strlcpy( status_string, "ACCELERATING", sizeof(status_string) );
 
 	} else {
 
 		position = dead_reckoning->start_position;
 		velocity = 0.0;
 
-		strcpy( status_string, "BEFORE START" );
+		strlcpy( status_string, "BEFORE START", sizeof(status_string) );
 	}
 
 #if MX_DEAD_RECKONING_DEBUG

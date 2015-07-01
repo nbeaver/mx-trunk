@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004-2006, 2010-2011
+ * Copyright 1999, 2001-2002, 2004-2006, 2010-2011, 2015
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -229,7 +229,6 @@ mxd_soft_scaler_open( MX_RECORD *record )
 	char *mxdir_ptr;
 	long i;
 	int saved_errno, num_items, filename_needs_expansion;
-	size_t remaining_length;
 	double motor_position, scaler_value;
 
 	soft_scaler = (MX_SOFT_SCALER *)( record->record_type_struct );
@@ -270,16 +269,10 @@ mxd_soft_scaler_open( MX_RECORD *record )
 			strlcpy( datafile_name, mxdir_ptr,
 						MXU_FILENAME_LENGTH );
 
-			remaining_length = sizeof( datafile_name )
-					- strlen( datafile_name ) - 1;
+			strlcat( datafile_name, "/etc/", MXU_FILENAME_LENGTH );
 
-			strncat( datafile_name, "/etc/", remaining_length );
-
-			remaining_length = sizeof( datafile_name )
-					- strlen( datafile_name ) - 1;
-
-			strncat( datafile_name, soft_scaler->datafile_name,
-						remaining_length );
+			strlcat( datafile_name, soft_scaler->datafile_name,
+						MXU_FILENAME_LENGTH );
 		}
 	}
 

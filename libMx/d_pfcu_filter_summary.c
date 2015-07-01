@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2005 Illinois Institute of Technology
+ * Copyright 2004-2005, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -233,34 +233,34 @@ mxd_pfcu_filter_summary_write( MX_DIGITAL_OUTPUT *doutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	strcpy( insert_command, "I" );
+	strlcpy( insert_command, "I", sizeof(insert_command) );
 
-	strcpy( remove_command, "R" );
+	strlcpy( remove_command, "R", sizeof(remove_command) );
 
 	value = doutput->value;
 
 	if ( value & 0x1 ) {
-		strcat( insert_command, "1" );
+		strlcat( insert_command, "1", sizeof(insert_command) );
 	} else {
-		strcat( remove_command, "1" );
+		strlcat( remove_command, "1", sizeof(remove_command) );
 	}
 
 	if ( value & 0x2 ) {
-		strcat( insert_command, "2" );
+		strlcat( insert_command, "2", sizeof(insert_command) );
 	} else {
-		strcat( remove_command, "2" );
+		strlcat( remove_command, "2", sizeof(remove_command) );
 	}
 
 	if ( value & 0x4 ) {
-		strcat( insert_command, "3" );
+		strlcat( insert_command, "3", sizeof(insert_command) );
 	} else {
-		strcat( remove_command, "3" );
+		strlcat( remove_command, "3", sizeof(remove_command) );
 	}
 
 	if ( value & 0x8 ) {
-		strcat( insert_command, "4" );
+		strlcat( insert_command, "4", sizeof(insert_command) );
 	} else {
-		strcat( remove_command, "4" );
+		strlcat( remove_command, "4", sizeof(remove_command) );
 	}
 
 	/* Send the insert command first so that we avoid the possibility of

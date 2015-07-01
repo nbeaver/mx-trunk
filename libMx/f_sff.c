@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2005-2006, 2009-2010
+ * Copyright 1999, 2001, 2003, 2005-2006, 2009-2010, 2015
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -554,16 +554,20 @@ mxdf_sff_write_header( MX_DATAFILE *datafile, FILE *file, int header_type )
 
 	switch( header_type ) {
 	case MX_SFF_MAIN_HEADER:
-		strcpy( header_fmt_name, "sff_header_fmt" );
+		strlcpy( header_fmt_name, "sff_header_fmt",
+				sizeof(header_fmt_name) );
 		break;
 	case MX_SFF_SEGMENT_HEADER:
-		strcpy( header_fmt_name, "sff_segment_fmt" );
+		strlcpy( header_fmt_name, "sff_segment_fmt",
+				sizeof(header_fmt_name) );
 		break;
 	case MX_SFF_TRAILER:
-		strcpy( header_fmt_name, "sff_trailer_fmt" );
+		strlcpy( header_fmt_name, "sff_trailer_fmt",
+				sizeof(header_fmt_name) );
 		break;
 	case MX_SFF_MCA_HEADER:
-		strcpy( header_fmt_name, "sff_mca_fmt" );
+		strlcpy( header_fmt_name, "sff_mca_fmt",
+				sizeof(header_fmt_name) );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -807,7 +811,7 @@ mxdf_sff_write_token_value( MX_DATAFILE *datafile,
 
 	/* Construct the string description of this field. */
 
-	strcpy( token_buffer, "" );
+	strlcpy( token_buffer, "", sizeof(token_buffer) );
 
 	if ( (record_field->num_dimensions == 0)
 	  || ((field_type == MXFT_STRING)
@@ -965,7 +969,8 @@ mxdf_sff_handle_special_token( MX_DATAFILE *datafile,
 
 		if ( record_field != (MX_RECORD_FIELD *) NULL ) {
 
-			sprintf( rfname, "%s.%s", scan->record->name, ptr );
+			snprintf( rfname, sizeof(rfname),
+					"%s.%s", scan->record->name, ptr );
 
 			mx_status = mxdf_sff_write_token_value( datafile,
 				output_file, rfname, record_list );

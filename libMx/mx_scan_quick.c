@@ -7,7 +7,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2006, 2010-2011 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004-2006, 2010-2011, 2015
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,8 +27,6 @@
 #include "mx_scan.h"
 #include "mx_scan_quick.h"
 #include "d_energy.h"
-
-#include "mx_poison.h"
 
 MX_EXPORT mx_status_type
 mx_quick_scan_initialize_driver( MX_DRIVER *driver )

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004, 2006, 2010 Illinois Institute of Technology
+ * Copyright 2004, 2006, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -277,7 +277,7 @@ mxd_keithley2400_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "SOUR2:TTL %lu", doutput->value );
+	snprintf( command, sizeof(command), "SOUR2:TTL %lu", doutput->value );
 
 	mx_status = mxi_keithley_command( doutput->record, interface, command,
 					NULL, 0, KEITHLEY2400_DOUTPUT_DEBUG );

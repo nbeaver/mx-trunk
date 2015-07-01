@@ -7,7 +7,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2006-2007, 2010 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2006-2007, 2010, 2015
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -215,7 +216,8 @@ mxd_ortec974_scaler_clear( MX_SCALER *scaler )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "CLEAR_COUNTERS %d",
+	snprintf( command, sizeof(command),
+			"CLEAR_COUNTERS %d",
 			CHANNEL_MASK(ortec974_scaler->channel_number) );
 
 	mx_status = mxi_ortec974_command( ortec974, command,
@@ -247,7 +249,8 @@ mxd_ortec974_scaler_read( MX_SCALER *scaler )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "SHOW_COUNTS %d",
+	snprintf( command, sizeof(command),
+			"SHOW_COUNTS %d",
 			CHANNEL_MASK(ortec974_scaler->channel_number) );
 
 	mx_status = mxi_ortec974_command( ortec974, command,

@@ -7,7 +7,8 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2003, 2005-2006, 2010 Illinois Institute of Technology
+ * Copyright 1999, 2001-2003, 2005-2006, 2010, 2015
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -75,8 +76,10 @@ mx_log_open( MX_RECORD *record_list )
 	 * and so forth at a later date.
 	 */
 
-	sprintf( buffer_format, "%%%lds %%%lds", (long) sizeof(log_type),
-					(long) sizeof(log_control_string) );
+	snprintf( buffer_format, sizeof(buffer_format),
+			"%%%lds %%%lds",
+			(long) sizeof(log_type),
+			(long) sizeof(log_control_string) );
 
 	num_items = sscanf( log_control_string, buffer_format,
 				log_type, log_name );

@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002, 2006, 2008, 2012 Illinois Institute of Technology
+ * Copyright 2002, 2006, 2008, 2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -79,7 +79,8 @@ mxm_preset_pulse_period_configure( MX_MEASUREMENT *measurement )
 
 	/* Parse the measurement arguments string. */
 
-	sprintf( format_buffer, "%%lg %%%ds", MXU_RECORD_NAME_LENGTH );
+	snprintf( format_buffer, sizeof(format_buffer),
+			"%%lg %%%ds", MXU_RECORD_NAME_LENGTH );
 
 	num_items = sscanf( measurement->measurement_arguments,
 				format_buffer,

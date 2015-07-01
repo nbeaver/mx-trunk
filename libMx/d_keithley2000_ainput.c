@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005-2006, 2010 Illinois Institute of Technology
+ * Copyright 2005-2006, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -288,37 +288,37 @@ mxd_keithley2000_ainput_read( MX_ANALOG_INPUT *ainput )
 	{
 		switch( keithley2000_ainput->measurement_type ) {
 		case MXT_KEITHLEY2000_DCV:
-			strcpy( command, ":CONF:VOLT:DC" );
+			strlcpy( command, ":CONF:VOLT:DC", sizeof(command) );
 			break;
 		case MXT_KEITHLEY2000_ACV:
-			strcpy( command, ":CONF:VOLT:AC" );
+			strlcpy( command, ":CONF:VOLT:AC", sizeof(command) );
 			break;
 		case MXT_KEITHLEY2000_DCI:
-			strcpy( command, ":CONF:CURR:DC" );
+			strlcpy( command, ":CONF:CURR:DC", sizeof(command) );
 			break;
 		case MXT_KEITHLEY2000_ACI:
-			strcpy( command, ":CONF:CURR:AC" );
+			strlcpy( command, ":CONF:CURR:AC", sizeof(command) );
 			break;
 		case MXT_KEITHLEY2000_OHMS_2:
-			strcpy( command, ":CONF:RES" );
+			strlcpy( command, ":CONF:RES", sizeof(command) );
 			break;
 		case MXT_KEITHLEY2000_OHMS_4:
-			strcpy( command, ":CONF:FRES" );
+			strlcpy( command, ":CONF:FRES", sizeof(command) );
 			break;
 		case MXT_KEITHLEY2000_FREQ:
-			strcpy( command, ":CONF:FREQ" );
+			strlcpy( command, ":CONF:FREQ", sizeof(command) );
 			break;
 		case MXT_KEITHLEY2000_PERIOD:
-			strcpy( command, ":CONF:PER" );
+			strlcpy( command, ":CONF:PER", sizeof(command) );
 			break;
 		case MXT_KEITHLEY2000_TEMP:
-			strcpy( command, ":CONF:TEMP" );
+			strlcpy( command, ":CONF:TEMP", sizeof(command) );
 			break;
 		case MXT_KEITHLEY2000_CONT:
-			strcpy( command, ":CONF:CONT" );
+			strlcpy( command, ":CONF:CONT", sizeof(command) );
 			break;
 		case MXT_KEITHLEY2000_DIODE:
-			strcpy( command, ":CONF:DIOD" );
+			strlcpy( command, ":CONF:DIOD", sizeof(command) );
 			break;
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
@@ -347,7 +347,7 @@ mxd_keithley2000_ainput_read( MX_ANALOG_INPUT *ainput )
 
 	/* Read the channel. */
 
-	strcpy( command, ":READ?" );
+	strlcpy( command, ":READ?", sizeof(command) );
 
 	mx_status = mxi_keithley_command( ainput->record, interface, command,
 						response, sizeof(response),

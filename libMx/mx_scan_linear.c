@@ -30,8 +30,6 @@
 #include "mx_scan.h"
 #include "mx_scan_linear.h"
 
-#include "mx_poison.h"
-
 MX_RECORD_FUNCTION_LIST mxs_linear_scan_record_function_list = {
 	mxs_linear_scan_initialize_driver,
 	mxs_linear_scan_create_record_structures,

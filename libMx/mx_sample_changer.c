@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2006 Illinois Institute of Technology
+ * Copyright 2003-2006, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -355,7 +355,8 @@ mx_sample_changer_unselect_sample_holder( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	strcpy( changer->current_sample_holder, MX_CHG_NO_SAMPLE_HOLDER );
+	strlcpy( changer->current_sample_holder, MX_CHG_NO_SAMPLE_HOLDER,
+				sizeof(changer->current_sample_holder) );
 
 	return mx_status;
 }

@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004, 2006, 2008, 2010 Illinois Institute of Technology
+ * Copyright 1999-2002, 2004, 2006, 2008, 2010, 2015
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -264,16 +265,16 @@ mxd_keithley428_open( MX_RECORD *record )
 
 	switch( read_terminator ) {
 	case 0x0d0a:
-		strcpy( command, "Y0X" );	/* CR LF */
+		strlcpy( command, "Y0X", sizeof(command) );	/* CR LF */
 		break;
 	case 0x0a0d:
-		strcpy( command, "Y1X" );	/* LF CR */
+		strlcpy( command, "Y1X", sizeof(command) );	/* LF CR */
 		break;
 	case 0x0d:
-		strcpy( command, "Y2X" );	/* CR */
+		strlcpy( command, "Y2X", sizeof(command) );	/* CR */
 		break;
 	case 0x0a:
-		strcpy( command, "Y3X" );	/* LF */
+		strlcpy( command, "Y3X", sizeof(command) );	/* LF */
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -482,7 +483,7 @@ mxd_keithley428_set_gain( MX_AMPLIFIER *amplifier )
 
 	/* Set the new gain. */
 
-	sprintf( command, "R%dX", gain_setting );
+	snprintf( command, sizeof(command), "R%dX", gain_setting );
 
 	mx_status = mxd_keithley428_command( interface, command,
 						NULL, 0, KEITHLEY428_DEBUG );
@@ -592,7 +593,7 @@ mxd_keithley428_set_offset( MX_AMPLIFIER *amplifier )
 
 	/* Set the Keithley current suppression value. */
 
-	sprintf( command, "S%g,X", current_offset );
+	snprintf( command, sizeof(command), "S%g,X", current_offset );
 
 	mx_status = mxd_keithley428_command( interface, command,
 						NULL, 0, KEITHLEY428_DEBUG );
@@ -776,7 +777,7 @@ mxd_keithley428_set_time_constant( MX_AMPLIFIER *amplifier )
 	/* Set the rise time range. */
 
 	if ( rise_time_range >= 0 ) {
-		sprintf( command, "T%dX", rise_time_range );
+		snprintf( command, sizeof(command),"T%dX", rise_time_range );
 
 		mx_status = mxd_keithley428_command( interface, command,
 						NULL, 0, KEITHLEY428_DEBUG );

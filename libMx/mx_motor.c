@@ -2836,11 +2836,11 @@ mx_motor_check_speed_limits( MX_MOTOR *motor,
 
 	switch( speed_type ) {
 	case MXLV_MTR_SPEED:
-		strcpy( speed_type_name, "speed" );
+		strlcpy( speed_type_name, "speed", sizeof(speed_type_name) );
 		break;
 
 	case MXLV_MTR_BASE_SPEED:
-		strcpy( speed_type_name, "base speed" );
+		strlcpy(speed_type_name, "base speed", sizeof(speed_type_name));
 		break;
 
 	default:
@@ -5754,10 +5754,10 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 			test_var = fabs( fabs( motor->scale ) - 1.0 );
 
 			if ( test_var < MX_MOTOR_ANALOG_FUZZ ) {
-				strcpy( units, " " );
+				strlcpy( units, " ", sizeof(units) );
 				strlcat( units, motor->units, sizeof(units) );
 			} else {
-				strcpy( units, "" );
+				strlcpy( units, "", sizeof(units) );
 			}
 
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
@@ -5773,10 +5773,10 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 			test_var = fabs( fabs( motor->scale ) - 1.0 );
 
 			if ( test_var < MX_MOTOR_ANALOG_FUZZ ) {
-				strcpy( units, " " );
+				strlcpy( units, " ", sizeof(units) );
 				strlcat( units, motor->units, sizeof(units) );
 			} else {
-				strcpy( units, "" );
+				strlcpy( units, "", sizeof(units) );
 			}
 
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
@@ -5898,10 +5898,10 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 		test_var = fabs( fabs( motor->scale ) - 1.0 );
 
 		if ( test_var < MX_MOTOR_ANALOG_FUZZ ) {
-			strcpy( units, " " );
+			strlcpy( units, " ", sizeof(units) );
 			strlcat( units, motor->units, sizeof(units) );
 		} else {
-			strcpy( units, "" );
+			strlcpy( units, "", sizeof(units) );
 		}
 
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
@@ -5917,10 +5917,10 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 		test_var = fabs( fabs( motor->scale ) - 1.0 );
 
 		if ( test_var < MX_MOTOR_ANALOG_FUZZ ) {
-			strcpy( units, " " );
+			strlcpy( units, " ", sizeof(units) );
 			strlcat( units, motor->units, sizeof(units) );
 		} else {
-			strcpy( units, "" );
+			strlcpy( units, "", sizeof(units) );
 		}
 
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
@@ -6219,13 +6219,14 @@ mx_is_analog_motor_position_between_software_limits(
 			test_var = fabs( fabs( motor->scale ) - 1.0 );
 
 			if ( test_var < MX_MOTOR_ANALOG_FUZZ ) {
-				strcpy( units, " " );
+				strlcpy( units, " ", sizeof(units) );
 				strlcat( units, motor->units, sizeof(units) );
 			} else {
-				strcpy( units, "" );
+				strlcpy( units, "", sizeof(units) );
 			}
 
-			sprintf( message_buffer,
+			snprintf( message_buffer,
+				sizeof(message_buffer),
 		"Move of '%s' to %.*g%s would exceed positive limit at %.*g%s.",
 				motor_record->name,
 				motor_record->precision,
@@ -6241,13 +6242,14 @@ mx_is_analog_motor_position_between_software_limits(
 			test_var = fabs( fabs( motor->scale ) - 1.0 );
 
 			if ( test_var < MX_MOTOR_ANALOG_FUZZ ) {
-				strcpy( units, " " );
+				strlcpy( units, " ", sizeof(units) );
 				strlcat( units, motor->units, sizeof(units) );
 			} else {
-				strcpy( units, "" );
+				strlcpy( units, "", sizeof(units) );
 			}
 
-			sprintf( message_buffer,
+			snprintf( message_buffer,
+				sizeof(message_buffer),
 		"Move of '%s' to %.*g%s would exceed negative limit at %.*g%s.",
 				motor_record->name,
 				motor_record->precision,
@@ -6305,7 +6307,8 @@ mx_is_stepper_motor_position_between_software_limits(
 		*result_flag = 1;
 
 		if ( generate_error_message ) {
-			sprintf( message_buffer,
+			snprintf( message_buffer,
+				sizeof(message_buffer),
 	"Move of '%s' to %ld steps would exceed positive limit at %ld steps.",
 				motor_record->name,
 				proposed_step_position,
@@ -6316,7 +6319,8 @@ mx_is_stepper_motor_position_between_software_limits(
 		*result_flag = -1;
 
 		if ( generate_error_message ) {
-			sprintf( message_buffer,
+			snprintf( message_buffer,
+				sizeof(message_buffer),
 	"Move of '%s' to %ld steps would exceed negative limit at %ld steps.",
 				motor_record->name,
 				proposed_step_position,

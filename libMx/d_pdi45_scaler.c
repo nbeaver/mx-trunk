@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003-2004 Illinois Institute of Technology
+ * Copyright 2003-2004, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -200,7 +200,8 @@ mxd_pdi45_scaler_clear( MX_SCALER *scaler )
 	if ( ( io_type == 0x01 )
 	  || ( io_type == 0x02 ) )
 	{
-		sprintf( command, "00Y%02X",
+		snprintf( command, sizeof(command),
+			"00Y%02X",
 			1 << ( pdi45_scaler->line_number ) );
 
 		mx_status = mxi_pdi45_command( pdi45, command, NULL, 0 );
@@ -232,7 +233,8 @@ mxd_pdi45_scaler_read( MX_SCALER *scaler )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "00W%02X", 1 << ( pdi45_scaler->line_number ) );
+	snprintf( command, sizeof(command),
+			"00W%02X", 1 << ( pdi45_scaler->line_number ) );
 
 	mx_status = mxi_pdi45_command( pdi45, command,
 					response, sizeof(response) );

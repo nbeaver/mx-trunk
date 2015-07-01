@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2007 Illinois Institute of Technology
+ * Copyright 2004-2007, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -170,10 +170,10 @@ mxd_mardtb_shutter_relay_command( MX_RELAY *relay )
 
 	switch( relay->relay_command ) {
 	case MXF_CLOSE_RELAY:
-		strcpy( command, "shutter 0" );
+		strlcpy( command, "shutter 0", sizeof(command) );
 		break;
 	case MXF_OPEN_RELAY:
-		strcpy( command, "shutter 1" );
+		strlcpy( command, "shutter 1", sizeof(command) );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,

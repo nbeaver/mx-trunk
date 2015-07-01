@@ -34,6 +34,8 @@
 #include <sys/wtime.h>	/* Sometimes we get 'struct timespec' from here. */
 #endif
 
+#include "mx_poison.h"
+
 #if defined( OS_WIN32 ) || ( defined( OS_VMS ) && (__VMS_VER < 80000000) )
 
 /* However, some operating systems do not define 'struct timespec'.

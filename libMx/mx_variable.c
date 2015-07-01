@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2005, 2010 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2005, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -417,8 +417,9 @@ mx_set_1d_array( MX_RECORD *record,
 	/* Send the data. */
 
 	if ( requested_field_type == MXFT_STRING ) {
-		strcpy( (char *) pointer_to_value,
-			(char *) pointer_to_supplied_value );
+		strlcpy( (char *) pointer_to_value,
+			(char *) pointer_to_supplied_value,
+			dimension_array[0] );
 	} else {
 		switch( requested_field_type ) {
 		case MXFT_CHAR:
@@ -605,9 +606,7 @@ mx_get_string_variable_by_name( MX_RECORD *record_list,
 
 	pointer_to_string = (char *) pointer_to_value;
 
-	strcpy( string_value, "" );
-
-	strncat( string_value, pointer_to_string, max_string_length );
+	strlcpy( string_value, pointer_to_string, max_string_length );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -925,9 +924,7 @@ mx_get_string_variable( MX_RECORD *record,
 
 	pointer_to_string = (char *) pointer_to_value;
 
-	strcpy( string_value, "" );
-
-	strncat( string_value, pointer_to_string, max_string_length );
+	strlcpy( string_value, pointer_to_string, max_string_length );
 
 	return MX_SUCCESSFUL_RESULT;
 }

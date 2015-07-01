@@ -74,7 +74,7 @@ mxs_file_list_scan_create_record_structures( MX_RECORD *record,
 
 	file_list_scan->position_file = NULL;
 
-	strcpy( file_list_scan->position_filename, "" );
+	file_list_scan->position_filename[0] = '\0';
 
 	record->record_type_struct = file_list_scan;
 	list_scan->record_type_struct = file_list_scan;

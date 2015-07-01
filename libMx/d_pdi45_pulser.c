@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003, 2006, 2008, 2010 Illinois Institute of Technology
+ * Copyright 2003, 2006, 2008, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -211,7 +211,8 @@ mxd_pdi45_pulser_is_busy( MX_PULSE_GENERATOR *pulse_generator )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "00*000%02X", 1 << ( pdi45_pulser->line_number ) );
+	snprintf( command, sizeof(command),
+			"00*000%02X", 1 << ( pdi45_pulser->line_number ) );
 
 	mx_status = mxi_pdi45_command( pdi45, command,
 					response, sizeof(response) );
@@ -257,7 +258,8 @@ mxd_pdi45_pulser_start( MX_PULSE_GENERATOR *pulse_generator )
 
 	/* Turn on the pulser. */
 
-	sprintf( command, "00K%02X", 1 << ( pdi45_pulser->line_number ) );
+	snprintf( command, sizeof(command),
+			"00K%02X", 1 << ( pdi45_pulser->line_number ) );
 
 	mx_status = mxi_pdi45_command( pdi45, command, NULL, 0 );
 
@@ -282,7 +284,8 @@ mxd_pdi45_pulser_stop( MX_PULSE_GENERATOR *pulse_generator )
 
 	/* Turn off the pulser. */
 
-	sprintf( command, "00L%02X", 1 << ( pdi45_pulser->line_number ) );
+	snprintf( command, sizeof(command),
+			"00L%02X", 1 << ( pdi45_pulser->line_number ) );
 
 	mx_status = mxi_pdi45_command( pdi45, command, NULL, 0 );
 
@@ -318,7 +321,8 @@ mxd_pdi45_pulser_get_parameter( MX_PULSE_GENERATOR *pulse_generator )
 	switch( pulse_generator->parameter_type ) {
 	case MXLV_PGN_PULSE_WIDTH:
 
-		sprintf( command, "00*000%02X",
+		snprintf( command, sizeof(command),
+			"00*000%02X",
 			1 << ( pdi45_pulser->line_number ) );
 
 		mx_status = mxi_pdi45_command( pdi45, command, NULL, 0 );
@@ -392,7 +396,8 @@ mxd_pdi45_pulser_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 		MX_DEBUG(-2,("%s: pulse width hex_value = %#lx",
 			fname, hex_value));
 
-		sprintf( command, "00*100%02X%04lX",
+		snprintf( command, sizeof(command),
+			"00*100%02X%04lX",
 			1 << ( pdi45_pulser->line_number ), hex_value );
 
 		mx_status = mxi_pdi45_command( pdi45, command, NULL, 0 );

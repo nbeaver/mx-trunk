@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2005, 2007-2008, 2010 Illinois Institute of Technology
+ * Copyright 2003, 2005, 2007-2008, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -407,7 +407,8 @@ mxd_si9650_motor_move_absolute( MX_MOTOR *motor )
 
 	/* Send the move command. */
 
-	sprintf( command, "S04%ld", 
+	snprintf( command, sizeof(command),
+			"S04%ld", 
 			mx_round( 10.0 * motor->raw_destination.analog ) );
 
 	mx_status = mxd_si9650_motor_command( si9650_motor,
@@ -482,9 +483,9 @@ mxd_si9650_motor_get_extended_status( MX_MOTOR *motor )
 	/* Get the temperature of the control sensor. */
 
 	if ( si9650_motor->sensor_number == 1 ) {
-		strcpy( command, "T" );
+		strlcpy( command, "T", sizeof(command) );
 	} else {
-		strcpy( command, "t" );
+		strlcpy( command, "t", sizeof(command) );
 	}
 
 	mx_status = mxd_si9650_motor_command( si9650_motor, command,

@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2003, 2006, 2010 Illinois Institute of Technology
+ * Copyright 2003, 2006, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -257,7 +257,8 @@ mxd_pdi45_timer_is_busy( MX_TIMER *timer )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "00*000%02X", 1 << ( pdi45_timer->line_number ) );
+	snprintf( command, sizeof(command),
+			"00*000%02X", 1 << ( pdi45_timer->line_number ) );
 
 	mx_status = mxi_pdi45_command( pdi45, command,
 					response, sizeof(response) );
@@ -308,7 +309,8 @@ mxd_pdi45_timer_start( MX_TIMER *timer )
 
 	hex_value = mx_round( 100.0 * timer->value );
 
-	sprintf( command, "00*100%02X%04lX",
+	snprintf( command, sizeof(command),
+		"00*100%02X%04lX",
 		1 << ( pdi45_timer->line_number ), hex_value );
 
 	mx_status = mxi_pdi45_command( pdi45, command, NULL, 0 );
@@ -318,7 +320,8 @@ mxd_pdi45_timer_start( MX_TIMER *timer )
 
 	/* Enable gated counters. */
 
-	sprintf( command, "00U%02lX", pdi45_timer->gated_counters_io_field );
+	snprintf( command, sizeof(command),
+			"00U%02lX", pdi45_timer->gated_counters_io_field );
 
 	mx_status = mxi_pdi45_command( pdi45, command, NULL, 0 );
 
@@ -327,7 +330,8 @@ mxd_pdi45_timer_start( MX_TIMER *timer )
 
 	/* Turn on the timer. */
 
-	sprintf( command, "00K%02X", 1 << ( pdi45_timer->line_number ) );
+	snprintf( command, sizeof(command),
+			"00K%02X", 1 << ( pdi45_timer->line_number ) );
 
 	mx_status = mxi_pdi45_command( pdi45, command, NULL, 0 );
 
@@ -352,7 +356,8 @@ mxd_pdi45_timer_stop( MX_TIMER *timer )
 
 	/* Turn off the timer. */
 
-	sprintf( command, "00L%02X", 1 << ( pdi45_timer->line_number ) );
+	snprintf( command, sizeof(command),
+			"00L%02X", 1 << ( pdi45_timer->line_number ) );
 
 	mx_status = mxi_pdi45_command( pdi45, command, NULL, 0 );
 

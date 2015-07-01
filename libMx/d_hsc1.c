@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2010, 2013 Illinois Institute of Technology
+ * Copyright 1999-2003, 2010, 2013, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -365,12 +365,14 @@ mxd_hsc1_move_absolute( MX_MOTOR *motor )
 
 	switch( hsc1_motor->motor_name ) {
 	case 'A':
-		sprintf( command, "M %ld %ld",
+		snprintf( command, sizeof(command),
+			"M %ld %ld",
 			motor->raw_destination.stepper, b_steps );
 
 		break;
 	case 'B':
-		sprintf( command, "M %ld %ld",
+		snprintf( command, sizeof(command),
+			"M %ld %ld",
 			a_steps, motor->raw_destination.stepper );
 
 		break;
@@ -380,7 +382,8 @@ mxd_hsc1_move_absolute( MX_MOTOR *motor )
 		relative_distance
 			= motor->raw_destination.stepper - old_position;
 
-		sprintf( command, "S %+ld", relative_distance );
+		snprintf( command, sizeof(command),
+				"S %+ld", relative_distance );
 		break;
 	case 'S':
 	case 'W':
@@ -395,10 +398,12 @@ mxd_hsc1_move_absolute( MX_MOTOR *motor )
 
 		} else if ( relative_distance > 0L ) {
 
-			sprintf( command, "O %ld", relative_distance );
+			snprintf( command, sizeof(command),
+					"O %ld", relative_distance );
 
 		} else {
-			sprintf( command, "C %ld", -relative_distance );
+			snprintf( command, sizeof(command),
+					"C %ld", -relative_distance );
 		}
 		break;
 	default:
@@ -604,12 +609,12 @@ mxd_hsc1_raw_home_command( MX_MOTOR *motor )
 		return status;
 
 	if ( motor->raw_home_command > 0 ) {
-		strcpy( command, "0 M" );
+		strlcpy( command, "0 M", sizeof(command) );
 	} else
 	if ( motor->raw_home_command == 0 ) {
-		strcpy( command, "0 I" );
+		strlcpy( command, "0 I", sizeof(command) );
 	} else {
-		strcpy( command, "0 -" );
+		strlcpy( command, "0 -", sizeof(command) );
 	}
 
 	/* Send the command. */

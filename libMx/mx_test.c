@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 2002 Illinois Institute of Technology
+ * Copyright 2002, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -43,7 +43,7 @@ mx_test_setup_outputs( MX_RECORD *record_list )
 
 	for ( i = 0; i < MX_TEST_MAX_OUTPUTS; i++ ) {
 
-		sprintf( record_name, "mx_test%d", i );
+		snprintf( record_name, sizeof(record_name), "mx_test%d", i );
 
 		/* Find the specified record, or store a NULL to indicate
 		 * that the record does not exist.

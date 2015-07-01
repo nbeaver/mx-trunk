@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2012, 2014 Illinois Institute of Technology
+ * Copyright 1999-2012, 2014-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -373,7 +373,8 @@ mx_scan_print_scan_structure( FILE *file, MX_RECORD *record )
 	
 		switch( scan->measurement.type ) {
 		case MXM_PRESET_TIME:
-			sprintf(format, "%%lg %%%ds", MXU_RECORD_NAME_LENGTH);
+			snprintf(format, sizeof(format),
+					"%%lg %%%ds", MXU_RECORD_NAME_LENGTH);
 	
 			num_items = sscanf(scan->measurement_arguments, format,
 					&measurement_time, device_name );
@@ -390,7 +391,8 @@ mx_scan_print_scan_structure( FILE *file, MX_RECORD *record )
 			break;
 	
 		case MXM_PRESET_COUNT:
-			sprintf(format, "%%ld %%%ds", MXU_RECORD_NAME_LENGTH);
+			snprintf(format, sizeof(format),
+					"%%ld %%%ds", MXU_RECORD_NAME_LENGTH);
 	
 			num_items = sscanf(scan->measurement_arguments, format,
 					&measurement_counts, device_name );
@@ -407,7 +409,8 @@ mx_scan_print_scan_structure( FILE *file, MX_RECORD *record )
 			break;
 
 		case MXM_PRESET_PULSE_PERIOD:
-			sprintf(format, "%%lg %%%ds", MXU_RECORD_NAME_LENGTH);
+			snprintf(format, sizeof(format),
+					"%%lg %%%ds", MXU_RECORD_NAME_LENGTH);
 
 			num_items = sscanf(scan->measurement_arguments, format,
 					&pulse_period, device_name );
@@ -542,7 +545,6 @@ mx_perform_scan( MX_RECORD *scan_record )
 	if ( scan->missing_record_array != NULL ) {
 		char name_buffer[1000];
 		long max_names_listed;
-		size_t name_buffer_used_length;
 
 		if ( scan->num_missing_records == 1 ) {
 			return mx_error( MXE_NOT_FOUND, fname,
@@ -558,27 +560,25 @@ mx_perform_scan( MX_RECORD *scan_record )
 			max_names_listed = scan->num_missing_records;
 		}
 
-		strcpy( name_buffer, "" );
+		strlcpy( name_buffer, "", sizeof(name_buffer) );
 
 		for ( i = 0; i < max_names_listed; i++ ) {
-			name_buffer_used_length = strlen( name_buffer );
-
-			strncat( name_buffer,
+			strlcat( name_buffer,
 				scan->missing_record_array[i]->name,
-				name_buffer_used_length - 7 );
+				sizeof(name_buffer) - 7 );
 
 			if ( i < (max_names_listed - 1) ) {
-				strncat( name_buffer,
-					", ", name_buffer_used_length );
+				strlcat( name_buffer,
+					", ", sizeof(name_buffer) );
 
 			} else {
 				if ( max_names_listed <= MXP_SCAN_MAX_NAMES ) {
-					strncat( name_buffer,
-					    " ", name_buffer_used_length );
+					strlcat( name_buffer,
+					    " ", sizeof(name_buffer) );
 				} else {
-					strncat( name_buffer,
+					strlcat( name_buffer,
 					    ", ... ",
-					    	name_buffer_used_length );
+					    	sizeof(name_buffer) );
 				}
 			}
 		}
@@ -1239,7 +1239,8 @@ mx_setup_scan_shutter( MX_SCAN *scan )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		sprintf( format_buffer, "%%ld %%%ds", MXU_RECORD_NAME_LENGTH );
+		snprintf( format_buffer, sizeof(format_buffer),
+				"%%ld %%%ds", MXU_RECORD_NAME_LENGTH );
 
 		num_items = sscanf( buffer, format_buffer,
 					&(scan->shutter_policy),
@@ -2078,7 +2079,7 @@ mx_scan_display_scan_progress( MX_SCAN *scan )
 	static char truncation_marker[] = " ... truncated ...";
 	char buffer[2000];
 	char little_buffer[50];
-	size_t buffer_left, max_length, trailing_space;
+	size_t max_length, trailing_space;
 	long i, num_motors, num_input_devices;
 	mx_bool_type early_move_flag;
 	mx_status_type mx_status;
@@ -2098,7 +2099,7 @@ mx_scan_display_scan_progress( MX_SCAN *scan )
 	num_input_devices = scan->num_input_devices;
 	input_device_array = scan->input_device_array;
 
-	strcpy(buffer, "");
+	strlcpy( buffer, "", sizeof(buffer) );
 
 	mx_status = mx_scan_get_early_move_flag( scan, &early_move_flag );
 
@@ -2117,17 +2118,17 @@ mx_scan_display_scan_progress( MX_SCAN *scan )
 
 		if ( num_motors <= 0 ) {
 			if ( scan->record->mx_class == MXS_LINEAR_SCAN ) {
-				buffer_left = max_length - strlen(buffer) - 1;
-
 				linear_scan = (MX_LINEAR_SCAN *)
 					(scan->record->record_class_struct);
-				sprintf( little_buffer, " %ld",
+
+				snprintf( little_buffer, sizeof(little_buffer),
+					" %ld",
 					(linear_scan->step_number)[0] );
-				strncat( buffer, little_buffer, buffer_left );
+
+				strlcat( buffer, little_buffer, max_length );
 			}
 		} else {
 			for ( i = 0; i < num_motors; i++ ) {
-				buffer_left = max_length - strlen(buffer) - 1;
 
 				if ( motor_is_independent_variable[i] ) {
 
@@ -2137,15 +2138,19 @@ mx_scan_display_scan_progress( MX_SCAN *scan )
 				        motor = (MX_MOTOR *)
 					    motor_record->record_class_struct;
 
-					sprintf( little_buffer, " %-.3f",
+					snprintf( little_buffer,
+							sizeof(little_buffer),
+							" %-.3f",
 							motor->old_destination);
-					strncat( buffer, little_buffer,
-							buffer_left );
+					strlcat( buffer, little_buffer,
+							max_length );
 				    } else {
-					sprintf( little_buffer, " %-.3f",
+					snprintf( little_buffer,
+							sizeof(little_buffer),
+							" %-.3f",
 							motor_position[i] );
-					strncat( buffer, little_buffer,
-							buffer_left );
+					strlcat( buffer, little_buffer,
+							max_length );
 				    }
 				}
 			}
@@ -2163,18 +2168,15 @@ mx_scan_display_scan_progress( MX_SCAN *scan )
 
 		for ( i = 0; i < scan->datafile.num_x_motors; i++ ) {
 
-			buffer_left = max_length - strlen(buffer) - 1;
-
-			sprintf( little_buffer, " %-.3f",
+			snprintf( little_buffer, sizeof(little_buffer),
+				" %-.3f",
 				scan->datafile.x_position_array[i][0] );
 
-			strncat( buffer, little_buffer, buffer_left );
+			strlcat( buffer, little_buffer, max_length );
 		}
 	}
 		
-	buffer_left = max_length - strlen(buffer) - 1;
-
-	strncat(buffer, " - ", buffer_left);
+	strlcat( buffer, " - ", max_length );
 
 	/* If we were requested to normalize the data in the data file,
 	 * the 'normalization' variable is set to the scan measurement time.
@@ -2189,10 +2191,6 @@ mx_scan_display_scan_progress( MX_SCAN *scan )
 
 	for ( i = 0; i < num_input_devices; i++ ) {
 
-		if ( buffer_left <= 1 ) {
-			break;			/* Exit the for() loop. */
-		}
-
 		input_device = input_device_array[i];
 
 		mx_status = mx_convert_normalized_device_value_to_string(
@@ -2202,13 +2200,9 @@ mx_scan_display_scan_progress( MX_SCAN *scan )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		buffer_left = max_length - strlen(buffer) - 1;
+		strlcat( buffer, little_buffer, max_length );
 
-		strncat(buffer, little_buffer, buffer_left);
-
-		buffer_left = max_length - strlen(buffer) - 1;
-
-		strncat(buffer, " ", buffer_left);
+		strlcat( buffer, " ", max_length );
 	} 
 
 	if ( ( sizeof(buffer) - strlen(buffer) ) < (trailing_space + 2) ) {
@@ -2217,9 +2211,7 @@ mx_scan_display_scan_progress( MX_SCAN *scan )
 		 * buffer.
 		 */
 
-		buffer_left = sizeof(buffer) - strlen(buffer) - 1;
-
-		strncat(buffer, truncation_marker, buffer_left);
+		strlcat( buffer, truncation_marker, sizeof(buffer) );
 	}
 
 	/* Send the formatted progress string to the user. */
@@ -2343,7 +2335,8 @@ mx_log_scan_start( MX_LIST_HEAD *list_head, MX_SCAN *scan )
 
 	/* Record the fact that the scan has started. */
 
-	sprintf( buffer, "Scan %s started", scan->record->name );
+	snprintf( buffer, sizeof(buffer),
+			"Scan %s started", scan->record->name );
 
 	mx_log_message( list_head->log_handler, buffer );
 
@@ -2372,9 +2365,11 @@ mx_log_scan_end( MX_LIST_HEAD *list_head, MX_SCAN *scan,
 	/* Record the status of the scan. */
 
 	if ( mx_status.code == MXE_SUCCESS ) {
-		sprintf( buffer1, "Scan %s ended", scan->record->name );
+		snprintf( buffer1, sizeof(buffer1),
+			"Scan %s ended", scan->record->name );
 	} else {
-		sprintf( buffer1, "Scan %s ended    %s   %s",
+		snprintf( buffer1, sizeof(buffer1),
+			"Scan %s ended    %s   %s",
 			scan->record->name,
 			mx_strerror(mx_status.code, buffer2, sizeof buffer2),
 			mx_status.message );
@@ -2765,13 +2760,13 @@ mx_convert_normalized_device_value_to_string( MX_RECORD *input_device,
 
 	switch( input_device->mx_superclass ) {
 	case MXR_SCAN:
-		strcpy(buffer, "");
+		strlcpy( buffer, "", buffer_length );
 		break;
 	case MXR_OPERATION:
 		operation = (MX_OPERATION *)
 				(input_device->record_superclass_struct);
 
-		sprintf( buffer, "%#10lx", operation->status );
+		snprintf( buffer, buffer_length, "%#10lx", operation->status );
 		break;
 	case MXR_DEVICE:
 		if ( buffer_length <= 10 ) {
@@ -2785,24 +2780,28 @@ mx_convert_normalized_device_value_to_string( MX_RECORD *input_device,
 
 			double_value = analog_input->value;
 
-			sprintf(buffer, "%-10.*g", input_device->precision,
+			snprintf( buffer, buffer_length,
+					"%-10.*g", input_device->precision,
 					double_value );
 			break;
 		case MXC_ANALOG_OUTPUT:
 			analog_output = (MX_ANALOG_OUTPUT *)
 				(input_device->record_class_struct);
-			sprintf(buffer, "%-10.*g", input_device->precision,
-					analog_output->value);
+			snprintf( buffer, buffer_length,
+					"%-10.*g", input_device->precision,
+					analog_output->value );
 			break;
 		case MXC_DIGITAL_INPUT:
 			digital_input = (MX_DIGITAL_INPUT *)
 				(input_device->record_class_struct);
-			sprintf(buffer, "%10lu", digital_input->value);
+			snprintf( buffer, buffer_length,
+					"%10lu", digital_input->value );
 			break;
 		case MXC_DIGITAL_OUTPUT:
 			digital_output = (MX_DIGITAL_OUTPUT *)
 				(input_device->record_class_struct);
-			sprintf(buffer, "%10lu", digital_output->value);
+			snprintf( buffer, buffer_length,
+					"%10lu", digital_output->value );
 			break;
 		case MXC_MOTOR:
 			motor = (MX_MOTOR *)
@@ -2822,45 +2821,54 @@ mx_convert_normalized_device_value_to_string( MX_RECORD *input_device,
 			}
 			position = motor->offset + motor->scale * raw_position;
 
-			sprintf(buffer, "%-10.*g", input_device->precision,
-					position);
+			snprintf( buffer, buffer_length,
+					"%-10.*g", input_device->precision,
+					position );
 			break;
 		case MXC_SCALER:
 			scaler = (MX_SCALER *)
 				(input_device->record_class_struct);
 
 			if ( measurement_time > 0.0 ) {
-				sprintf( buffer, "%-10.*g",
+				snprintf( buffer, buffer_length,
+					"%-10.*g",
 					input_device->precision,
 					mx_divide_safely( (double)scaler->value,
 						measurement_time ) );
 			} else {
-				sprintf( buffer, "%10ld", scaler->value );
+				snprintf( buffer, buffer_length,
+					"%10ld", scaler->value );
 			}
 			break;
 		case MXC_TIMER:
 			timer = (MX_TIMER *)
 				(input_device->record_class_struct);
-			sprintf(buffer, "%10g", timer->value);
+			snprintf( buffer, buffer_length,
+					"%10g", timer->value );
 			break;
 		case MXC_RELAY:
 			relay = (MX_RELAY *)
 				(input_device->record_class_struct);
-			sprintf(buffer, "%10ld", relay->relay_status);
+
+			snprintf( buffer, buffer_length,
+					"%10ld", relay->relay_status );
 			break;
 		case MXC_AMPLIFIER:
 			amplifier = (MX_AMPLIFIER *)
 				(input_device->record_class_struct);
-			sprintf(buffer, "%10g", amplifier->gain);
+			snprintf( buffer, buffer_length,
+					"%10g", amplifier->gain );
 			break;
 		case MXC_MULTICHANNEL_ANALYZER:
 
 			/* We currently don't print out the values for MCAs. */
 
-			sprintf(buffer, "%10s", input_device->name );
+			snprintf( buffer, buffer_length,
+					"%10s", input_device->name );
 			break;
 		case MXC_AREA_DETECTOR:
-			sprintf(buffer, "%10s", input_device->name );
+			snprintf( buffer, buffer_length,
+					"%10s", input_device->name );
 			break;
 		default:
 			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
@@ -2889,7 +2897,7 @@ mx_convert_normalized_device_value_to_string( MX_RECORD *input_device,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		strcpy( buffer, "" );
+		strlcpy( buffer, "", buffer_length );
 
 		mx_status = mx_create_array_description(
 				field_value_ptr,

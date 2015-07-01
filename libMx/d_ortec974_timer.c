@@ -8,7 +8,8 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2006-2007, 2010 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2006-2007, 2010, 2015
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -372,13 +373,16 @@ mxd_ortec974_timer_start( MX_TIMER *timer )
 
 		switch( timer_mode ) {
 		case MX_974_TIMER_MODE_EXTERNAL:
-			strcpy( command, "SET_MODE_EXTERNAL" );
+			strlcpy( command, "SET_MODE_EXTERNAL",
+					sizeof(command) );
 			break;
 		case MX_974_TIMER_MODE_MINUTES:
-			strcpy( command, "SET_MODE_MINUTES" );
+			strlcpy( command, "SET_MODE_MINUTES",
+					sizeof(command) );
 			break;
 		case MX_974_TIMER_MODE_SECONDS:
-			strcpy( command, "SET_MODE_SECONDS" );
+			strlcpy( command, "SET_MODE_SECONDS",
+					sizeof(command) );
 			break;
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -428,7 +432,8 @@ mxd_ortec974_timer_start( MX_TIMER *timer )
 			seconds_below, seconds_above, seconds );
 	}
 
-	sprintf( command, "SET_COUNT_PRESET %d,%d", multiplier, exponent );
+	snprintf( command, sizeof(command),
+			"SET_COUNT_PRESET %d,%d", multiplier, exponent );
 
 	mx_status = mxi_ortec974_command( ortec974, command,
 					NULL, 0, NULL, 0, ORTEC974_DEBUG );

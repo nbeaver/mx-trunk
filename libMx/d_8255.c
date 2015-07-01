@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2006, 2010-2012 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006, 2010-2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -252,13 +252,13 @@ mxd_8255_in_finish_record_initialization( MX_RECORD *record )
 	case 'A':
 		i8255_in->port_number = MX_8255_PORT_A;
 
-		strcpy( i8255_in->port, "A" );
+		strlcpy( i8255_in->port, "A", sizeof(i8255_in->port) );
 		break;
 	case 'b':
 	case 'B':
 		i8255_in->port_number = MX_8255_PORT_B;
 
-		strcpy( i8255_in->port, "B" );
+		strlcpy( i8255_in->port, "B", sizeof(i8255_in->port) );
 		break;
 	case 'c':
 	case 'C':
@@ -266,19 +266,22 @@ mxd_8255_in_finish_record_initialization( MX_RECORD *record )
 		case '\0':
 			i8255_in->port_number = MX_8255_PORT_C;
 
-			strcpy( i8255_in->port, "C" );
+			strlcpy( i8255_in->port, "C",
+					sizeof(i8255_in->port) );
 			break;
 		case 'h':
 		case 'H':
 			i8255_in->port_number = MX_8255_PORT_CH;
 
-			strcpy( i8255_in->port, "CH" );
+			strlcpy( i8255_in->port, "CH",
+					sizeof(i8255_in->port) );
 			break;
 		case 'l':
 		case 'L':
 			i8255_in->port_number = MX_8255_PORT_CL;
 
-			strcpy( i8255_in->port, "CL" );
+			strlcpy( i8255_in->port, "CL",
+					sizeof(i8255_in->port) );
 			break;
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -496,13 +499,13 @@ mxd_8255_out_finish_record_initialization( MX_RECORD *record )
 	case 'A':
 		i8255_out->port_number = MX_8255_PORT_A;
 
-		strcpy( i8255_out->port, "A" );
+		strlcpy( i8255_out->port, "A", sizeof(i8255_out->port) );
 		break;
 	case 'b':
 	case 'B':
 		i8255_out->port_number = MX_8255_PORT_B;
 
-		strcpy( i8255_out->port, "B" );
+		strlcpy( i8255_out->port, "B", sizeof(i8255_out->port) );
 		break;
 	case 'c':
 	case 'C':
@@ -510,19 +513,22 @@ mxd_8255_out_finish_record_initialization( MX_RECORD *record )
 		case '\0':
 			i8255_out->port_number = MX_8255_PORT_C;
 
-			strcpy( i8255_out->port, "C" );
+			strlcpy( i8255_out->port, "C",
+					sizeof(i8255_out->port) );
 			break;
 		case 'h':
 		case 'H':
 			i8255_out->port_number = MX_8255_PORT_CH;
 
-			strcpy( i8255_out->port, "CH" );
+			strlcpy( i8255_out->port, "CH",
+					sizeof(i8255_out->port) );
 			break;
 		case 'l':
 		case 'L':
 			i8255_out->port_number = MX_8255_PORT_CL;
 
-			strcpy( i8255_out->port, "CL" );
+			strlcpy( i8255_out->port, "CL",
+					sizeof(i8255_out->port) );
 			break;
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,

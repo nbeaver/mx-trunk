@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2006, 2010, 2012 Illinois Institute of Technology
+ * Copyright 2004-2006, 2010, 2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -208,7 +208,8 @@ mxd_qbpm_mcai_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( qbpm_mcai->command, ":READ%ld:CURRALL?", icplus->address );
+	snprintf( qbpm_mcai->command, sizeof(qbpm_mcai->command),
+			":READ%ld:CURRALL?", icplus->address );
 
         return MX_SUCCESSFUL_RESULT;
 }
