@@ -1942,7 +1942,7 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 #else
 		hrt = mx_high_resolution_time();
 #endif
-		srand( hrt.tv_sec );
+		mx_seed_random( hrt.tv_sec );
 
 		ad->dezinger_threshold = 2.0;
 	}
@@ -3063,13 +3063,13 @@ mxd_aviex_pccd_readout_frame( MX_AREA_DETECTOR *ad )
 
 		image_data = ad->image_frame->image_data;
 
-		num_random_values = rand() % 4;
+		num_random_values = mx_random() % 4;
 
 		for ( i = 0; i < num_random_values; i++ ) {
-			random_location = rand()
+			random_location = mx_random()
 			   % (ad->image_frame->image_length / sizeof(uint16_t));
 
-			random_value = rand() % 65536;
+			random_value = mx_random() % 65536;
 
 			image_data[random_location] = random_value;
 

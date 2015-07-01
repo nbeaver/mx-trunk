@@ -957,6 +957,14 @@ MX_API int mx_string_split( char *original_string, const char *delim,
 
 /*------------------------------------------------------------------------*/
 
+MX_API unsigned long mx_random( void );
+
+MX_API void mx_seed_random( unsigned long seed );
+
+MX_API unsigned long mx_get_random_max( void );
+
+/*------------------------------------------------------------------------*/
+
 /* === Define error message codes. === */
 
 #define MXE_SUCCESS				1000	/* No error. */

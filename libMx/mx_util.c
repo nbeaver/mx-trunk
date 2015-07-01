@@ -2048,3 +2048,51 @@ mx_string_split( char *original_string,
 
 /*------------------------------------------------------------------------*/
 
+#if defined(__OpenBSD__)
+
+MX_EXPORT unsigned long
+mx_random( void )
+{
+	return arc4random();
+}
+
+MX_EXPORT void
+mx_seed_random( unsigned long seed )
+{
+	/* Do nothing */
+}
+
+MX_EXPORT unsigned long
+mx_get_random_max( void )
+{
+	return 0xffffffff;
+}
+
+/*--------*/
+
+#elif defined(OS_BSD)
+
+MX_EXPORT unsigned long
+mx_random( void )
+{
+	return random();
+}
+
+MX_EXPORT void
+mx_seed_random( unsigned long seed )
+{
+	srandom( (unsigned int) seed );
+}
+
+MX_EXPORT unsigned long
+mx_get_random_max( void )
+{
+	return 0x7fffffff;
+}
+
+#else
+#error The MX random number functions are not yet implemented for this platform.
+#endif
+
+/*------------------------------------------------------------------------*/
+

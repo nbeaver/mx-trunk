@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2012-2014 Illinois Institute of Technology
+ * Copyright 2012-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -126,6 +126,7 @@ mxd_monte_carlo_mca_process_uniform( MX_MCA *mca,
 	double events_per_second, seconds_per_call;
 	double events_per_call, events_per_call_per_channel, log_ecc;
 	long floor_log_ecc;
+	double max_random_number;
 	double test_value;
 
 	num_channels = mca->maximum_num_channels;
@@ -167,6 +168,8 @@ mxd_monte_carlo_mca_process_uniform( MX_MCA *mca,
 		events_per_call_per_channel /= (double) num_tests_per_channel;
 	}
 
+	max_random_number = mx_get_random_max();
+
 	for ( i = 0; i < num_tests_per_channel; i++ ) {
 
 		/* Walk through the channels to see whether each one
@@ -174,7 +177,7 @@ mxd_monte_carlo_mca_process_uniform( MX_MCA *mca,
 		 */
 
 		for ( j = 0; j < num_channels; j++ ) {
-			test_value = (double) rand() / (double) RAND_MAX;
+			test_value = (double) mx_random() / max_random_number;
 
 			if ( test_value <= events_per_call_per_channel ) {
 				private_array[j]++;
@@ -225,6 +228,7 @@ mxd_monte_carlo_mca_process_peak( MX_MCA *mca,
 	double peak_mean, peak_width;
 	double gaussian, exp_argument, exp_coefficient;
 	double test_value, threshold;
+	double max_random_number;
 
 	num_channels = mca->maximum_num_channels;
 
@@ -245,6 +249,8 @@ mxd_monte_carlo_mca_process_peak( MX_MCA *mca,
 		mx_divide_safely( events_per_call, num_channels );
 
 	exp_coefficient = mx_divide_safely(1.0, peak_width * sqrt(2.0 * MX_PI));
+
+	max_random_number = mx_get_random_max();
 
 	for ( i = 0; i < num_channels; i++ ) {
 
@@ -280,7 +286,7 @@ mxd_monte_carlo_mca_process_peak( MX_MCA *mca,
 
 		for ( j = 0; j < num_tests_per_channel; j++ )  {
 
-			test_value = (double) rand() / (double) RAND_MAX;
+			test_value = (double) mx_random() / max_random_number;
 
 			if ( test_value <= threshold ) {
 				private_array[i]++;
@@ -674,7 +680,7 @@ mxd_monte_carlo_mca_open( MX_RECORD *record )
 
 	/* Seed the random number generator. */
 
-	srand( time(NULL) );
+	mx_seed_random( time(NULL) );
 
 	/* Create an array of event sources. */
 
