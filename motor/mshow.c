@@ -1030,7 +1030,8 @@ motor_show_version( void )
 		list_head->mx_version_time );
 
 
-	fprintf( output, "\nCurrent Posix time: %lu seconds\n", time( NULL ) );
+	fprintf( output, "\nCurrent Posix time: %lu seconds\n",
+					(unsigned long) time( NULL ) );
 
 	fprintf( output, "\n" );
 
