@@ -2745,7 +2745,7 @@ mx_network_field_init( MX_NETWORK_FIELD *nf,
 	}
 
 	va_start(args, name_format);
-	vsprintf(buffer, name_format, args);
+	vsnprintf(buffer, sizeof(buffer), name_format, args);
 	va_end(args);
 
 	/* Save the network field name. */

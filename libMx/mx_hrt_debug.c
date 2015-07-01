@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003-2004 Illinois Institute of Technology
+ * Copyright 2003-2004, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -35,7 +35,7 @@ MX_HRT_RESULTS( MX_HRT_TIMING x, const char *fname, char *format, ... )
 		fname, 1.0e6 * x.time_in_seconds );
 
 	va_start(args, format);
-	vsprintf(buffer, format, args);
+	vsnprintf(buffer, sizeof(buffer), format, args);
 	va_end(args);
 
 	fprintf( stderr, "%s\n", buffer );
