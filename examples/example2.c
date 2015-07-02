@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2006 Illinois Institute of Technology
+ * Copyright 2000-2001, 2006, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -61,10 +61,10 @@ main( int argc, char *argv[] )
 
 	/* Construct a scan description for the requested scan.  The string
 	 * concatenation feature of ANSI C allows us to split the format
-	 * string for sprintf() across several lines.
+	 * string for snprintf() across several lines.
 	 */
 
-	sprintf( description,
+	snprintf( description, sizeof(description),
 		"example2scan scan linear_scan motor_scan \"\" \"\" "
 
 		"1 1 1 energy 2 Io It 0 %g preset_time \"%g timer1\" "

@@ -121,14 +121,16 @@ mxi_network_gpib_display_binary( const char *fname,
 		
 	char debug_msg_buffer[100];
 	char *ptr;
-	long i, bytes_to_display;
+	long i, bytes_to_display, bytes_left;
 
 	max_bytes_to_display = 10;
 
 	if ( is_write_operation ) {
-		sprintf( debug_msg_buffer, "%s: sent ", fname );
+		snprintf( debug_msg_buffer, sizeof(debug_msg_buffer),
+				"%s: sent ", fname );
 	} else {
-		sprintf( debug_msg_buffer, "%s: received ", fname );
+		snprintf( debug_msg_buffer, sizeof(debug_msg_buffer),
+				"%s: received ", fname );
 	}
 
 	if ( bytes_transferred > max_bytes_to_display ) {
@@ -140,22 +142,33 @@ mxi_network_gpib_display_binary( const char *fname,
 	for ( i = 0; i < bytes_to_display; i++ ) {
 		ptr = debug_msg_buffer + strlen( debug_msg_buffer );
 
-		sprintf( ptr, "%#x ", buffer[i] );
+		bytes_left = sizeof(debug_msg_buffer)
+				- strlen(debug_msg_buffer) - 1;
+
+		snprintf( ptr, bytes_left, "%#x ", buffer[i] );
 	}
 
 	if ( bytes_transferred > max_bytes_to_display ) {
 		ptr = debug_msg_buffer + strlen( debug_msg_buffer );
 
-		sprintf( ptr, "... " );
+		bytes_left = sizeof(debug_msg_buffer)
+				- strlen(debug_msg_buffer) - 1;
+
+		snprintf( ptr, bytes_left, "... " );
 	}
 
 	ptr = debug_msg_buffer + strlen( debug_msg_buffer );
 
+	bytes_left = sizeof(debug_msg_buffer)
+			- strlen(debug_msg_buffer) - 1;
+
 	if ( is_write_operation ) {
-		sprintf( ptr, "to GPIB interface '%s', device %d",
+		snprintf( ptr, bytes_left,
+			"to GPIB interface '%s', device %ld",
 			gpib->record->name, address );
 	} else {
-		sprintf( ptr, "from GPIB interface '%s', device %d",
+		snprintf( ptr, bytes_left,
+			"from GPIB interface '%s', device %ld",
 			gpib->record->name, address );
 	}
 
@@ -414,7 +427,7 @@ mxi_network_gpib_open_device( MX_GPIB *gpib, long address )
 		return mx_status;
 
 #if MXI_NETWORK_GPIB_DEBUG
-	MX_DEBUG(-2,("%s: opening GPIB interface '%s', device %d.",
+	MX_DEBUG(-2,("%s: opening GPIB interface '%s', device %ld.",
 			fname, gpib->record->name, address ));
 #endif
 
@@ -441,7 +454,7 @@ mxi_network_gpib_close_device( MX_GPIB *gpib, long address )
 		return mx_status;
 
 #if MXI_NETWORK_GPIB_DEBUG
-	MX_DEBUG(-2,("%s: closing GPIB interface '%s', address %d.",
+	MX_DEBUG(-2,("%s: closing GPIB interface '%s', address %ld.",
 			fname, gpib->record->name, address ));
 #endif
 
@@ -518,7 +531,7 @@ mxi_network_gpib_read( MX_GPIB *gpib,
 #if MXI_NETWORK_GPIB_DEBUG
 	if ( gpib->ascii_read ) {
 		MX_DEBUG(-2,
-		    ("%s: received '%s' from GPIB interface '%s', device %d.",
+		    ("%s: received '%s' from GPIB interface '%s', device %ld.",
 			 fname, buffer, gpib->record->name, address ));
 	} else {
 		mxi_network_gpib_display_binary( fname, gpib, address, buffer,
@@ -593,7 +606,7 @@ mxi_network_gpib_write( MX_GPIB *gpib,
 #if MXI_NETWORK_GPIB_DEBUG
 	if ( gpib->ascii_write ) {
 		MX_DEBUG(-2,
-		    ("%s: sent '%s' to GPIB interface '%s', device %d.",
+		    ("%s: sent '%s' to GPIB interface '%s', device %ld.",
 			 fname, buffer, gpib->record->name, address ));
 	} else {
 		mxi_network_gpib_display_binary( fname, gpib, address, buffer,
@@ -677,7 +690,7 @@ mxi_network_gpib_selective_device_clear( MX_GPIB *gpib, long address )
 
 #if MXI_NETWORK_GPIB_DEBUG
 	MX_DEBUG(-2,
-	("%s: selective device clear for GPIB device '%s', device %d.",
+	("%s: selective device clear for GPIB device '%s', device %ld.",
 			fname, gpib->record->name, address ));
 #endif
 
@@ -734,7 +747,7 @@ mxi_network_gpib_remote_enable( MX_GPIB *gpib, long address )
 
 #if MXI_NETWORK_GPIB_DEBUG
 	MX_DEBUG(-2,
-	("%s: remote enable for GPIB device '%s', device %d.",
+	("%s: remote enable for GPIB device '%s', device %ld.",
 			fname, gpib->record->name, address ));
 #endif
 
@@ -762,7 +775,7 @@ mxi_network_gpib_go_to_local( MX_GPIB *gpib, long address )
 
 #if MXI_NETWORK_GPIB_DEBUG
 	MX_DEBUG(-2,
-	("%s: go to local for GPIB device '%s', device %d.",
+	("%s: go to local for GPIB device '%s', device %ld.",
 			fname, gpib->record->name, address ));
 #endif
 
@@ -789,7 +802,7 @@ mxi_network_gpib_trigger( MX_GPIB *gpib, long address )
 		return mx_status;
 
 #if MXI_NETWORK_GPIB_DEBUG
-	MX_DEBUG(-2,("%s: trigger for GPIB device '%s', device %d.",
+	MX_DEBUG(-2,("%s: trigger for GPIB device '%s', device %ld.",
 			fname, gpib->record->name, address ));
 #endif
 
@@ -862,7 +875,7 @@ mxi_network_gpib_serial_poll( MX_GPIB *gpib,
 
 #if MXI_NETWORK_GPIB_DEBUG
 	MX_DEBUG(-2,
-	("%s: serial poll for GPIB device '%s', device %d returned %#x.",
+	("%s: serial poll for GPIB device '%s', device %ld returned %#x.",
 		fname, gpib->record->name, address, local_serial_poll_byte ));
 #endif
 

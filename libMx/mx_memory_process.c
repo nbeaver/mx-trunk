@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2007, 2009-2011 Illinois Institute of Technology
+ * Copyright 2005-2007, 2009-2011, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -187,7 +187,8 @@ mx_get_process_meminfo( unsigned long process_id,
 
 	/* Open the /proc/PID/status file. */
 
-	sprintf( proc_filename, "/proc/%lu/status", process_id );
+	snprintf( proc_filename, sizeof(proc_filename),
+			"/proc/%lu/status", process_id );
 
 	procfile = fopen( proc_filename, "r" );
 
@@ -1149,7 +1150,7 @@ mx_get_process_meminfo( unsigned long process_id,
 
 	/* Get the process memory map from the 'pmap' command. */
 
-	sprintf( command, "/usr/bin/pmap %lu", process_id );
+	snprintf( command, sizeof(command), "/usr/bin/pmap %lu", process_id );
 
 	MX_DEBUG( 2,("%s: popen() command = '%s'", fname, command));
 
@@ -1512,7 +1513,8 @@ mx_get_process_meminfo( unsigned long process_id,
 
 	/* Open the /proc file for this process id. */
 
-	sprintf( pname, "/proc/pinfo/%010lu", meminfo->process_id );
+	snprintf( pname, sizeof(pname),
+			"/proc/pinfo/%010lu", meminfo->process_id );
 
 	psinfo_fd = open( pname, O_RDONLY );
 

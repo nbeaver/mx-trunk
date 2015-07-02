@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2005 Illinois Institute of Technology
+ * Copyright 2003, 2005, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -62,9 +62,9 @@ main( int ecos_argc, char *ecos_argv[] )
 	argv[3] = argv3;
 	argv[4] = argv4;
 
-	sprintf( argv2, "/TFTP/xxx/mxserver.dat" );
+	snprintf( argv2, sizeof(argv2), "/TFTP/xxx/mxserver.dat" );
 
-	sprintf( argv4, "/TFTP/xxx/mxserver.acl" );
+	snprintf( argv4, sizeof(argv2), "/TFTP/xxx/mxserver.acl" );
 
 	mxserver_main( argc, argv );
 

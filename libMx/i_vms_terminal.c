@@ -5,7 +5,7 @@
  *
  * Author:  William Lavender
  *
- * Copyright 2003, 2005, 2007, 2010 Illinois Institute of Technology
+ * Copyright 2003, 2005, 2007, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -128,7 +128,8 @@ static char *
 mxi_vms_error_message( int vms_status ) {
 	static char buffer[250];
 
-	sprintf( buffer, "VMS error number %d, error message = '%s'",
+	snprintf( buffer, sizeof(buffer),
+ 		"VMS error number %d, error message = '%s'",
 		vms_status, strerror( EVMSERR, vms_status ) );
 
 	return &buffer[0];

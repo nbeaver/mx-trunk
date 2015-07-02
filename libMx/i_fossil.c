@@ -9,7 +9,8 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005-2007, 2010 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2005-2007, 2010, 2015
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -389,7 +390,8 @@ mxi_fossil_getchar( MX_RS232 *rs232, char *c )
 					
 			} else {
 
-			    sprintf( error_message,
+			    snprintf( error_message,
+				sizeof(error_message),
 				"Port '%s' receive error 0x%x on char '%c': ",
 				rs232->record->name, fossil_status,
 				fossil_status & MXF_FOSSIL_DATA );
@@ -397,15 +399,18 @@ mxi_fossil_getchar( MX_RS232 *rs232, char *c )
 			    error_code = MXE_INTERFACE_IO_ERROR;
 
 			    if ( fossil_status & 0x0800 ) {
-				strcat(error_message,"FRAMING_ERROR ");
+				strlcat( error_message,"FRAMING_ERROR ",
+						sizeof(error_message) );
 				error_code = MXE_INTERFACE_IO_ERROR;
 			    }
 			    if ( fossil_status & 0x0400 ) {
-				strcat(error_message,"PARITY_ERROR ");
+				strlcat( error_message,"PARITY_ERROR ",
+						sizeof(error_message) );
 				error_code = MXE_INTERFACE_IO_ERROR;
 			    }
 			    if ( fossil_status & 0x0200 ) {
-				strcat(error_message,"BUFFER_OVERRUN_ERROR ");
+				strlcat( error_message,"BUFFER_OVERRUN_ERROR ",
+						sizeof(error_message) );
 				error_code = MXE_LIMIT_WAS_EXCEEDED;
 			    }
 

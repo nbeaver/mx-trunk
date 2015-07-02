@@ -11,7 +11,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006, 2010 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -107,9 +107,7 @@ mxi_cxtilt02_open( MX_RECORD *record )
 
 	MX_CXTILT02 *cxtilt02;
 	char command[20];
-#if 0
 	char response[20];
-#endif
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -160,13 +158,13 @@ mxi_cxtilt02_open( MX_RECORD *record )
 	  || ( cxtilt02->resolution_level > 9 ) )
 	{
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-			"The requested resolution level %d for "
+			"The requested resolution level %ld for "
 			"CXTILT02 inclinometer '%s' is outside the allowed "
 			"range of 0 to 9.", cxtilt02->resolution_level,
 			record->name );
 	}
 
-	sprintf( command, "N%d", cxtilt02->resolution_level );
+	snprintf( command, sizeof(command), "N%ld", cxtilt02->resolution_level);
 
 	mx_status = mxi_cxtilt02_command( cxtilt02, command, NULL, 0,
 						1.0, MXI_CXTILT02_DEBUG );

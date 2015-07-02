@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005, 2007 Illinois Institute of Technology
+ * Copyright 2005, 2007, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -50,8 +50,8 @@ MX_API mx_status_type mx_semaphore_create( MX_SEMAPHORE **semaphore,
 
 MX_API mx_status_type mx_semaphore_destroy( MX_SEMAPHORE *semaphore );
 
-/* The normal mx_error() function uses sprintf() to format the error messages.
- * However, we should not assume that sprintf() is thread safe, so for the
+/* The normal mx_error() function uses snprintf() to format the error messages.
+ * However, we should not assume that snprintf() is thread safe, so for the
  * functions below, we return raw mx_status codes rather than the full
  * mx_status_type structure.
  */

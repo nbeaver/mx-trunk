@@ -306,11 +306,6 @@ mxi_network_rs232_open( MX_RECORD *record )
 	MX_RECORD *server_record;
 	MX_NETWORK_SERVER *server;
 	unsigned long remote_mx_version;
-#if 0
-	long datatype, num_dimensions;
-	long dimension_array[1];
-	char rfname[ MXU_RECORD_FIELD_NAME_LENGTH + 1 ];
-#endif
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
@@ -371,13 +366,18 @@ mxi_network_rs232_open( MX_RECORD *record )
 #if 0
 	if ( ( rs232->rs232_flags & MXF_232_UNBUFFERED_IO ) == 0 ) {
 
+		long datatype, num_dimensions;
+		long dimension_array[1];
+		char rfname[ MXU_RECORD_FIELD_NAME_LENGTH + 1 ];
+
 		/* Set up for buffered network I/O */
 
 		/* Get the lengths of all of the network transfer buffers. */
 
 		/* read */
 
-		sprintf( rfname, "%s.read", network_rs232->remote_record_name );
+		snprintf( rfname, sizeof(rfname),
+				"%s.read", network_rs232->remote_record_name );
 
 		mx_status = mx_get_field_type( network_rs232->server_record,
 					rfname, 1L, &datatype, &num_dimensions,
@@ -402,7 +402,8 @@ mxi_network_rs232_open( MX_RECORD *record )
 
 		/* write */
 
-		sprintf( rfname, "%s.write",
+		snprintf( rfname, sizeof(rfname),
+				"%s.write",
 				network_rs232->remote_record_name );
 
 		mx_status = mx_get_field_type( network_rs232->server_record,
@@ -428,7 +429,8 @@ mxi_network_rs232_open( MX_RECORD *record )
 
 		/* getline */
 
-		sprintf( rfname, "%s.getline",
+		snprintf( rfname, sizeof(rfname),
+				"%s.getline",
 				network_rs232->remote_record_name );
 
 		mx_status = mx_get_field_type( network_rs232->server_record,
@@ -454,7 +456,8 @@ mxi_network_rs232_open( MX_RECORD *record )
 
 		/* putline */
 
-		sprintf( rfname, "%s.putline",
+		snprintf( rfname, sizeof(rfname),
+				"%s.putline",
 				network_rs232->remote_record_name );
 
 		mx_status = mx_get_field_type( network_rs232->server_record,

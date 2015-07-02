@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004, 2006, 2008-2010
+ * Copyright 2000-2001, 2003-2004, 2006, 2008-2010, 2015
  *      Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -694,7 +694,8 @@ mx_stack_traceback( void )
 	FILE *file;
 	static char buffer[200];
 
-	sprintf( buffer, "/usr/proc/bin/pstack %ld", (long) getpid() );
+	snprintf( buffer, sizeof(buffer),
+		"/usr/proc/bin/pstack %ld", (long) getpid() );
 
 	file = popen( buffer, "r" );
 

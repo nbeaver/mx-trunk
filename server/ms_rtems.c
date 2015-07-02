@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2005, 2010 Illinois Institute of Technology
+ * Copyright 2003, 2005, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -72,9 +72,11 @@ Init( rtems_task_argument ignored )
 	argv[3] = argv3;
 	argv[4] = argv4;
 
-	sprintf( argv2, "/TFTP/%s/mxserver.dat", MX_RTEMS_SERVER_ADDRESS );
+	snprintf( argv2, sizeof(argv2),
+		"/TFTP/%s/mxserver.dat", MX_RTEMS_SERVER_ADDRESS );
 
-	sprintf( argv4, "/TFTP/%s/mxserver.acl", MX_RTEMS_SERVER_ADDRESS );
+	snprintf( argv4, sizeof(argv4),
+		"/TFTP/%s/mxserver.acl", MX_RTEMS_SERVER_ADDRESS );
 
 	mxserver_main( argc, argv );
 

@@ -1569,46 +1569,60 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 
 		switch( message_type ) {
 		case MX_NETMSG_GET_ARRAY_BY_NAME:
-			strcpy( message_type_string, "GET_ARRAY_BY_NAME" );
+			strlcpy( message_type_string, "GET_ARRAY_BY_NAME",
+						sizeof(message_type_string) );
 			break;
 		case MX_NETMSG_PUT_ARRAY_BY_NAME:
-			strcpy( message_type_string, "PUT_ARRAY_BY_NAME" );
+			strlcpy( message_type_string, "PUT_ARRAY_BY_NAME",
+						sizeof(message_type_string) );
 			break;
 		case MX_NETMSG_GET_ARRAY_BY_HANDLE:
-			strcpy( message_type_string, "GET_ARRAY_BY_HANDLE" );
+			strlcpy( message_type_string, "GET_ARRAY_BY_HANDLE",
+						sizeof(message_type_string) );
 			break;
 		case MX_NETMSG_PUT_ARRAY_BY_HANDLE:
-			strcpy( message_type_string, "PUT_ARRAY_BY_HANDLE" );
+			strlcpy( message_type_string, "PUT_ARRAY_BY_HANDLE",
+						sizeof(message_type_string) );
 			break;
 		case MX_NETMSG_GET_NETWORK_HANDLE:
-			strcpy( message_type_string, "GET_NETWORK_HANDLE" );
+			strlcpy( message_type_string, "GET_NETWORK_HANDLE",
+						sizeof(message_type_string) );
 			break;
 		case MX_NETMSG_GET_FIELD_TYPE:
-			strcpy( message_type_string, "GET_FIELD_TYPE" );
+			strlcpy( message_type_string, "GET_FIELD_TYPE",
+						sizeof(message_type_string) );
 			break;
 		case MX_NETMSG_GET_ATTRIBUTE:
-			strcpy( message_type_string, "GET_ATTRIBUTE" );
+			strlcpy( message_type_string, "GET_ATTRIBUTE",
+						sizeof(message_type_string) );
 			break;
 		case MX_NETMSG_SET_ATTRIBUTE:
-			strcpy( message_type_string, "SET_ATTRIBUTE" );
+			strlcpy( message_type_string, "SET_ATTRIBUTE",
+						sizeof(message_type_string) );
 			break;
 		case MX_NETMSG_SET_CLIENT_INFO:
-			strcpy( message_type_string, "SET_CLIENT_INFO" );
+			strlcpy( message_type_string, "SET_CLIENT_INFO",
+						sizeof(message_type_string) );
 			break;
 		case MX_NETMSG_GET_OPTION:
-			strcpy( message_type_string, "GET_OPTION" );
+			strlcpy( message_type_string, "GET_OPTION",
+						sizeof(message_type_string) );
 			break;
 		case MX_NETMSG_SET_OPTION:
-			strcpy( message_type_string, "SET_OPTION" );
+			strlcpy( message_type_string, "SET_OPTION",
+						sizeof(message_type_string) );
 			break;
 		case MX_NETMSG_ADD_CALLBACK:
-			strcpy( message_type_string, "ADD_CALLBACK" );
+			strlcpy( message_type_string, "ADD_CALLBACK",
+						sizeof(message_type_string) );
 			break;
 		case MX_NETMSG_DELETE_CALLBACK:
-			strcpy( message_type_string, "DELETE_CALLBACK" );
+			strlcpy( message_type_string, "DELETE_CALLBACK",
+						sizeof(message_type_string) );
 			break;
 		default:
-			sprintf( message_type_string,
+			snprintf( message_type_string,
+				sizeof(message_type_string),
 				"Unknown message type %#lx",
 				(unsigned long) message_type );
 		}
@@ -1625,11 +1639,7 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 
 		strlcat( text_buffer, message, buffer_left );
 
-		if ( message_length > buffer_left ) {
-			strcat( text_buffer, "***'" );
-		} else {
-			strcat( text_buffer, "'" );
-		}
+		strlcat( text_buffer, "'", buffer_left );
 #endif
 
 		MX_DEBUG( 2,("%s", text_buffer));
@@ -2588,31 +2598,23 @@ mxsrv_send_field_value_to_client(
 #if NETWORK_DEBUG
 	{
 		char text_buffer[200];
-		size_t buffer_left;
 		char *ptr;
-		long i, length;
+		long i, length, bytes_left;
 		long max_length = 20;
 
 		switch( data_format ) {
 		case MX_NETWORK_DATAFMT_ASCII:
-			sprintf( text_buffer,
+			snprintf( text_buffer, sizeof(text_buffer),
 				"%s: sending response = '", fname );
 
-			buffer_left = sizeof(text_buffer)
-					- strlen(text_buffer) - 6;
+			strlcat( text_buffer, send_buffer_message,
+						sizeof(text_buffer) );
 
-			strncat( text_buffer,
-					send_buffer_message, buffer_left );
-
-			if ( buffer_left < send_buffer_message_length ) {
-				strcat( text_buffer, "***'" );
-			} else {
-				strcat( text_buffer, "'" );
-			}
+			strlcat( text_buffer, "'", sizeof(text_buffer) );
 			break;
 
 		case MX_NETWORK_DATAFMT_RAW:
-			sprintf( text_buffer,
+			snprintf( text_buffer, sizeof(text_buffer),
 				"%s: sending response = ", fname );
 
 			ptr = text_buffer + strlen( text_buffer );
@@ -2623,14 +2625,18 @@ mxsrv_send_field_value_to_client(
 				length = max_length;
 
 			for ( i = 0; i < length; i++ ) {
-				sprintf(ptr, "%#02x ", send_buffer_message[i]);
+				bytes_left = sizeof(text_buffer)
+						- strlen(text_buffer) - 1;
+
+				snprintf( ptr, bytes_left,
+					"%#02x ", send_buffer_message[i] );
 
 				ptr += 5;
 			}
 			break;
 
 		default:
-			sprintf( text_buffer,
+			snprintf( text_buffer, sizeof(text_buffer),
 				"%s: sending response in data format %lu.",
 				fname, data_format );
 			break;
@@ -3113,16 +3119,17 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 	{
 		char text_buffer[200];
 
-		sprintf( text_buffer, "%s: sending response = '", fname );
+		snprintf( text_buffer, sizeof(text_buffer),
+			"%s: sending response = '", fname );
 
 		buffer_left = sizeof(text_buffer) - strlen(text_buffer) - 6;
 
-		strncat( text_buffer, send_buffer_message, buffer_left );
+		strlcat( text_buffer, send_buffer_message, sizeof(text_buffer));
 
 		if ( buffer_left < send_buffer_message_length ) {
-			strcat( text_buffer, "***'" );
+			strlcat( text_buffer, "***'", sizeof(text_buffer) );
 		} else {
-			strcat( text_buffer, "'" );
+			strlcat( text_buffer, "'", sizeof(text_buffer) );
 		}
 
 		MX_DEBUG(-2,("%s", text_buffer));

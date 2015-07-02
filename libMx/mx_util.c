@@ -1348,10 +1348,6 @@ mx_snprintf_from_pointer_array( char *destination,
 	percent_ptr = NULL;
 	conversion_ptr = NULL;
 
-	/* You should note that most calls below use strncat(), but a few
-	 * use strlcat().
-	 */
-
 	i = 0;
 
 	while( TRUE ) {
