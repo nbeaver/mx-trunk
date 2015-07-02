@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2014 Illinois Institute of Technology
+ * Copyright 1999-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -521,7 +521,7 @@ mxserver_main( int argc, char *argv[] )
 
 	server_port = -1;
 
-	strcpy( server_pathname, "" );
+	strlcpy( server_pathname, "", sizeof(server_pathname) );
 
 	install_syslog_handler = FALSE;
 
@@ -745,7 +745,8 @@ mxserver_main( int argc, char *argv[] )
 	mx_set_debug_level( debug_level );
 
 	if ( install_syslog_handler ) {
-		sprintf( ident_string, "mxserver@%d", server_port );
+		snprintf( ident_string, sizeof(ident_string),
+				"mxserver@%d", server_port );
 
 		mx_status = mx_install_syslog_handler( ident_string,
 					syslog_number, syslog_options );

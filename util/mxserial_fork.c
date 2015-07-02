@@ -421,7 +421,7 @@ mxser_connect_to_mx_server( MX_RECORD **record_list,
 
 	/* Create a record description for this server. */
 
-	sprintf( description,
+	snprintf( description, sizeof(description),
 		"remote_server server network tcpip_server \"\" \"\" 0x0 %s %d",
 			server_name, server_port );
 
@@ -467,8 +467,8 @@ mxser_find_port_record( MX_RECORD **port_record,
 
 	/* Create a record description for the port. */
 
-	sprintf( description,
-	"%s interface rs232 network_rs232 \"\" \"\" 9600 8 N 1 N 0 0 -1 0 %s %s",
+	snprintf( description, sizeof(description),
+    "%s interface rs232 network_rs232 \"\" \"\" 9600 8 N 1 N 0 0 -1 0 %s %s",
 		port_name, server_record->name, port_name );
 
 	mx_status = mx_create_record_from_description( record_list, description,

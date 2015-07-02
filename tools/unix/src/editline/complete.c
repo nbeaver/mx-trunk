@@ -14,9 +14,12 @@ strdup(p)
     char	*p;
 {
     char	*new;
+    long	length;
 
-    if ((new = NEW(char, strlen(p) + 1)) != NULL)
-	(void)strcpy(new, p);
+    length = strlen(p) + 1;
+
+    if ((new = NEW(char, length)) != NULL)
+	(void)strlcpy(new, p, length);
     return new;
 }
 #endif	/* defined(NEED_STRDUP) */
@@ -147,6 +150,7 @@ rl_complete(pathname, unique)
     SIZE_T	i;
     SIZE_T	j;
     SIZE_T	len;
+    SIZE_T	len2;
 
     if (SplitPath(pathname, &dir, &file) < 0)
 	return NULL;
@@ -164,10 +168,11 @@ rl_complete(pathname, unique)
 	j = strlen(av[0]) - len + 2;
 	if ((p = NEW(char, j + 1)) != NULL) {
 	    COPYFROMTO(p, av[0] + len, j);
-	    if ((new = NEW(char, strlen(dir) + strlen(av[0]) + 2)) != NULL) {
-		(void)strcpy(new, dir);
-		(void)strcat(new, "/");
-		(void)strcat(new, av[0]);
+            len2 = strlen(dir) + strlen(av[0]) + 2;
+	    if ((new = NEW(char, len2)) != NULL) {
+		(void)strlcpy(new, dir, len2);
+		(void)strlcat(new, "/", len2);
+		(void)strlcat(new, av[0], len2);
 		rl_add_slash(new, p);
 		DISPOSE(new);
 	    }

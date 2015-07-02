@@ -43,8 +43,6 @@ include ../libMx/Makehead.$(MX_ARCH)
 
 INCLUDES = $(MX_INCLUDES)
 
-CFLAGS += $(APP_FLAGS)
-
 #
 #--------------------------------------------------------------------------
 #
@@ -84,9 +82,17 @@ mx_install: server_install
 include Makefile.depend
 
 #
-# List targets with non-standard rules or dependencies.
+#--------------------------------------------------------------------------
 #
 
-ms_main.$(OBJ): ms_main.c
-	$(COMPILE) $(CFLAGS) ms_main.c
+APP_FLAGS=$(DEFINE)__MX_APP__
+
+ms_main.$(OBJ):
+	$(COMPILE) $(CFLAGS) $(APP_FLAGS) ms_main.c
+
+ms_mxserver.$(OBJ):
+	$(COMPILE) $(CFLAGS) $(APP_FLAGS) ms_mxserver.c
+
+ms_socket_select.$(OBJ):
+	$(COMPILE) $(CFLAGS) $(APP_FLAGS) ms_socket_select.c
 

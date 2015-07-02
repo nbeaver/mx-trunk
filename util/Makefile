@@ -43,8 +43,6 @@ include ../libMx/Makefile.version
 
 include ../libMx/Makehead.$(MX_ARCH)
 
-CFLAGS += $(APP_FLAGS)
-
 #
 #--------------------------------------------------------------------------
 #
@@ -80,4 +78,22 @@ mx_depend:
 mx_install: util_install
 
 include Makefile.depend
+
+#
+#--------------------------------------------------------------------------
+#
+
+APP_FLAGS=$(DEFINE)__MX_APP__
+
+mxdriverinfo.$(OBJ):
+	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mxdriverinfo.c
+
+mxmonitor.$(OBJ):
+	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mxmonitor.c
+
+mxget.$(OBJ):
+	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mxget.c
+
+mxput.$(OBJ):
+	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mxput.c
 

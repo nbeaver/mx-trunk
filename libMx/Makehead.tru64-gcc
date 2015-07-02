@@ -233,7 +233,7 @@ $(MXSERIAL_NAME): mxserial.o $(MX_LIBRARY_PATH)
 				$(LIB_DIRS) -lMx $(LIBRARIES)
 
 mxserial.o: mxserial_fork.c
-	$(CC) $(CFLAGS) -c mxserial_fork.c -o mxserial.o
+	$(CC) $(CFLAGS) -D__MX_APP__ -c mxserial_fork.c -o mxserial.o
 
 util_install:
 	/usr/bin/install -m 755 $(MXDRIVERINFO_NAME) -f $(MX_INSTALL_DIR)/bin

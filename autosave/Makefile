@@ -34,8 +34,6 @@ include ../libMx/Makefile.version
 
 include ../libMx/Makehead.$(MX_ARCH)
 
-CFLAGS += $(APP_FLAGS)
-
 #
 #--------------------------------------------------------------------------
 #
@@ -73,4 +71,13 @@ mx_depend:
 mx_install: autosave_install
 
 include Makefile.depend
+
+#
+#--------------------------------------------------------------------------
+#
+
+APP_FLAGS=$(DEFINE)__MX_APP__
+
+ms_autosave.$(OBJ):
+	$(COMPILE) $(CFLAGS) $(APP_FLAGS) ms_autosave.c
 

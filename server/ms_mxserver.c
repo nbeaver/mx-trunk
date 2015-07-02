@@ -882,9 +882,11 @@ mxsrv_mx_server_socket_init( MX_RECORD *list_head_record,
 	socket_handler->event_handler = event_handler;
 	socket_handler->network_debug_flags = FALSE;
 
-	strcpy( socket_handler->client_address_string, "" );
+	strlcpy( socket_handler->client_address_string, "",
+			sizeof(socket_handler->client_address_string ) );
+
 	strlcpy( socket_handler->program_name, "mxserver",
-					MXU_PROGRAM_NAME_LENGTH );
+			sizeof(socket_handler->program_name) );
 
 	mx_username( socket_handler->username, MXU_USERNAME_LENGTH );
 
@@ -2408,7 +2410,8 @@ mxsrv_send_field_value_to_client(
 				record_field->datatype, &token_constructor );
 
 			if ( mx_status.code == MXE_SUCCESS ) {
-				strcpy( send_buffer_message, "" );
+				strlcpy( send_buffer_message, "",
+					send_buffer_message_length );
 
 			        if ( (record_field->num_dimensions == 0)
 			          || ((record_field->datatype == MXFT_STRING)
@@ -2552,7 +2555,7 @@ mxsrv_send_field_value_to_client(
         if ( mx_status.code != MXE_SUCCESS ) {
 		*send_buffer_message = '\0';
 
-		strncat( send_buffer_message,
+		strlcat( send_buffer_message,
 			mx_status.message, send_buffer_message_length );
 
 		send_buffer_message_actual_length
@@ -2681,12 +2684,12 @@ mxsrv_send_field_value_to_client(
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		if ( record != NULL ) {
-			sprintf( location,
+			snprintf( location, sizeof(location),
 			"%s to client socket %d for record field '%s.%s'",
 					fname, mx_socket->socket_fd,
 					record->name, record_field->name );
 		} else {
-			sprintf( location,
+			snprintf( location, sizeof(location),
 			"%s to client socket %d for field '%s'",
 					fname, mx_socket->socket_fd,
 					record_field->name );
@@ -3077,9 +3080,10 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 	send_buffer_header[ MX_NETWORK_STATUS_CODE ] = mx_htonl(mx_status.code);
 
         if ( mx_status.code == MXE_SUCCESS ) {
-		strcpy( send_buffer_message, "" );
+		strlcpy( send_buffer_message, "", send_buffer_message_length );
 	} else {
-		strcpy( send_buffer_message, mx_status.message );
+		strlcpy( send_buffer_message, mx_status.message,
+						send_buffer_message_length );
 	}
 
 	send_buffer_header[ MX_NETWORK_MAGIC ]
@@ -3159,7 +3163,8 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 						-1.0, network_message );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
-		sprintf( location, "%s to client socket %d",
+		snprintf( location, sizeof(location),
+				"%s to client socket %d",
 				fname, mx_socket->socket_fd );
 
 		return mx_error( mx_status.code, location,
@@ -3363,7 +3368,8 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 		socket_handler->synchronous_socket, -1.0, network_message );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
-		sprintf( location, "%s to client socket %d",
+		snprintf( location, sizeof(location),
+			"%s to client socket %d",
 			fname, socket_handler->synchronous_socket->socket_fd );
 
 		return mx_error( mx_status.code, location,
@@ -3484,8 +3490,9 @@ mxsrv_handle_get_field_type( MX_RECORD *record_list,
 						-1.0, network_message );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
-		sprintf( location, "%s to client socket %d",
-				fname, mx_socket->socket_fd );
+		snprintf( location, sizeof(location),
+			"%s to client socket %d",
+			fname, mx_socket->socket_fd );
 
 		return mx_error( mx_status.code, location,
 					"%s", mx_status.message );
@@ -3507,7 +3514,7 @@ mxsrv_handle_get_attribute( MX_RECORD *record_list,
 
 	char location[ sizeof(fname) + 40 ];
 	uint32_t *send_buffer_header, *send_buffer_message;
-	uint32_t send_buffer_header_length;
+	uint32_t send_buffer_header_length, send_buffer_message_length;
 	uint32_t *header, *message;
 	uint32_t attribute_number;
 	double attribute_value;
@@ -3577,6 +3584,9 @@ mxsrv_handle_get_attribute( MX_RECORD *record_list,
 	send_buffer_message = send_buffer_header
 			+ ( send_buffer_header_length / sizeof(uint32_t) );
 
+	send_buffer_message_length = (long)
+		( network_message->buffer_length - send_buffer_header_length );
+
 	/* Construct the header of the message. */
 
 	send_buffer_header[ MX_NETWORK_MAGIC ]
@@ -3639,8 +3649,10 @@ mxsrv_handle_get_attribute( MX_RECORD *record_list,
 
 		error_message = (char *) send_buffer_message;
 
-		sprintf( error_message, "Illegal attribute number %#lx",
-					(unsigned long) attribute_number );
+		snprintf( error_message,
+			send_buffer_message_length,
+			"Illegal attribute number %#lx",
+			(unsigned long) attribute_number );
 
 		send_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ]
 				= mx_htonl( strlen(error_message) + 1 );
@@ -3686,7 +3698,8 @@ mxsrv_handle_get_attribute( MX_RECORD *record_list,
 		socket_handler->synchronous_socket, -1.0, network_message );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
-		sprintf( location, "%s to client socket %d",
+		snprintf( location, sizeof(location),
+			"%s to client socket %d",
 			fname, socket_handler->synchronous_socket->socket_fd );
 
 		return mx_error( mx_status.code, location,
@@ -3712,7 +3725,7 @@ mxsrv_handle_set_attribute( MX_RECORD *record_list,
 	char location[ sizeof(fname) + 40 ];
 	char *send_buffer_char_message;
 	uint32_t *send_buffer_header;
-	uint32_t send_buffer_header_length;
+	uint32_t send_buffer_header_length, send_buffer_message_length;
 	uint32_t *header, *message;
 	uint32_t attribute_number;
 	double attribute_value;
@@ -3814,6 +3827,9 @@ mxsrv_handle_set_attribute( MX_RECORD *record_list,
 	send_buffer_char_message  = network_message->u.char_buffer;
 	send_buffer_char_message += send_buffer_header_length;
 
+	send_buffer_message_length = (long)
+		( network_message->buffer_length - send_buffer_header_length );
+
 	/* Construct the header of the message. */
 
 	send_buffer_header[ MX_NETWORK_MAGIC ]
@@ -3828,7 +3844,8 @@ mxsrv_handle_set_attribute( MX_RECORD *record_list,
 	/* Construct the body of the message. */
 
 	if ( permission_denied ) {
-		sprintf( send_buffer_char_message,
+		snprintf( send_buffer_char_message,
+		send_buffer_message_length,
 		"Cannot change the read only status of record field '%s'.",
 				record_field->name );
 
@@ -3839,7 +3856,8 @@ mxsrv_handle_set_attribute( MX_RECORD *record_list,
 				= mx_htonl( MXE_PERMISSION_DENIED );
 	} else
 	if ( illegal_attribute_number ) {
-		sprintf( send_buffer_char_message,
+		snprintf( send_buffer_char_message,
+				send_buffer_message_length,
 				"Illegal attribute number %#lx",
 				(unsigned long) attribute_number );
 
@@ -3894,7 +3912,8 @@ mxsrv_handle_set_attribute( MX_RECORD *record_list,
 		socket_handler->synchronous_socket, -1.0, network_message );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
-		sprintf( location, "%s to client socket %d",
+		snprintf( location, sizeof(location),
+			"%s to client socket %d",
 			fname, socket_handler->synchronous_socket->socket_fd );
 
 		return mx_error( mx_status.code, location,
@@ -4099,7 +4118,8 @@ mxsrv_handle_set_client_info( MX_RECORD *record_list,
 		socket_handler->synchronous_socket, -1.0, network_message );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
-		sprintf( location, "%s to client socket %d",
+		snprintf( location, sizeof(location),
+			"%s to client socket %d",
 			fname, socket_handler->synchronous_socket->socket_fd );
 
 		return mx_error( mx_status.code, location,
@@ -4120,7 +4140,7 @@ mxsrv_handle_get_option( MX_RECORD *record_list,
 
 	char location[ sizeof(fname) + 40 ];
 	uint32_t *send_buffer_header, *send_buffer_message;
-	uint32_t send_buffer_header_length;
+	uint32_t send_buffer_header_length, send_buffer_message_length;
 	uint32_t *option_array;
 	uint32_t option_number, option_value;
 	int illegal_option_number;
@@ -4179,6 +4199,9 @@ mxsrv_handle_get_option( MX_RECORD *record_list,
 	send_buffer_message = send_buffer_header
 			+ ( send_buffer_header_length / sizeof(uint32_t) );
 
+	send_buffer_message_length = (long)
+		( network_message->buffer_length - send_buffer_header_length );
+
 	/* Construct the header of the message. */
 
 	send_buffer_header[ MX_NETWORK_MAGIC ]
@@ -4205,8 +4228,10 @@ mxsrv_handle_get_option( MX_RECORD *record_list,
 
 		error_message = (char *) send_buffer_message;
 
-		sprintf( error_message, "Illegal option number %#lx",
-					(unsigned long) option_number );
+		snprintf( error_message,
+			send_buffer_message_length,
+			"Illegal option number %#lx",
+			(unsigned long) option_number );
 
 		send_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ]
 				= mx_htonl( strlen(error_message) + 1 );
@@ -4250,7 +4275,8 @@ mxsrv_handle_get_option( MX_RECORD *record_list,
 		socket_handler->synchronous_socket, -1.0, network_message );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
-		sprintf( location, "%s to client socket %d",
+		snprintf( location, sizeof(location),
+			"%s to client socket %d",
 			fname, socket_handler->synchronous_socket->socket_fd );
 
 		return mx_error( mx_status.code, location,
@@ -4274,6 +4300,7 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 	char *send_buffer_char_message;
 	uint32_t *send_buffer_header;
 	uint32_t send_buffer_header_length;
+	uint32_t send_buffer_message_length;
 	uint32_t *option_array;
 	uint32_t option_number, option_value;
 	int illegal_option_number, illegal_option_value;
@@ -4358,6 +4385,9 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 	send_buffer_char_message  = network_message->u.char_buffer;
 	send_buffer_char_message += send_buffer_header_length;
 
+	send_buffer_message_length = (long)
+		( network_message->buffer_length - send_buffer_header_length );
+
 	/* Construct the header of the message. */
 
 	send_buffer_header[ MX_NETWORK_MAGIC ]
@@ -4372,9 +4402,10 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 	/* Construct the body of the message. */
 
 	if ( illegal_option_number ) {
-		sprintf( send_buffer_char_message,
-				"Illegal option number %#lx",
-				(unsigned long) option_number );
+		snprintf( send_buffer_char_message,
+			send_buffer_message_length,
+			"Illegal option number %#lx",
+			(unsigned long) option_number );
 
 		send_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ]
 			= mx_htonl( strlen(send_buffer_char_message) + 1 );
@@ -4395,13 +4426,15 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 				exit( MXE_CORRUPT_DATA_STRUCTURE );
 			}
 
-			sprintf( send_buffer_char_message,
+			snprintf( send_buffer_char_message,
+				send_buffer_message_length,
 				"Server '%s' does not support the 64-bit longs "
 				"option, since it is not a 64-bit computer.",
 					list_head->hostname );
 			break;
 		default:
-			sprintf( send_buffer_char_message,
+			snprintf( send_buffer_char_message,
+				send_buffer_message_length,
 				"Illegal option value %#lx for option %#lx",
 					(unsigned long) option_value,
 					(unsigned long) option_number );
@@ -4456,7 +4489,8 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 		socket_handler->synchronous_socket, -1.0, network_message );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
-		sprintf( location, "%s to client socket %d",
+		snprintf( location, sizeof(location),
+			"%s to client socket %d",
 			fname, socket_handler->synchronous_socket->socket_fd );
 
 		return mx_error( mx_status.code, location,

@@ -145,7 +145,7 @@ main( int argc, char *argv[] ) {
 	show_handles = FALSE;
 	show_link = FALSE;
 	start_debugger = FALSE;
-	strcpy( item_name, "" );
+	strlcpy( item_name, "", sizeof(item_name) );
 
 	while ((c = getopt(argc, argv, "a:c:dDf:hlm:Mst:vA:F:LS:x")) != -1 ) {
 		switch (c) {
