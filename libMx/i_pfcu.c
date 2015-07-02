@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2005, 2010 Illinois Institute of Technology
+ * Copyright 2004-2005, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -292,10 +292,12 @@ mxi_pfcu_command( MX_PFCU *pfcu,
 	}
 
 	if ( module_number == MX_PFCU_PFCUALL ) {
-		sprintf( command_buffer, "!PFCUALL %s", command );
+		snprintf( command_buffer, sizeof(command_buffer),
+				"!PFCUALL %s", command );
 	} else {
-		sprintf( command_buffer, "!PFCU%02lu %s",
-					module_number, command );
+		snprintf( command_buffer, sizeof(command_buffer),
+				"!PFCU%02lu %s",
+				module_number, command );
 	}
 
 	if ( debug_flag ) {
@@ -409,7 +411,7 @@ mxi_pfcu_command( MX_PFCU *pfcu,
 		if ( status_end_ptr == NULL ) {
 			/* There was no response text to copy. */
 
-			strcpy( response, "" );
+			strlcpy( response, "", response_buffer_length );
 		} else {
 			response_ptr = status_end_ptr + 1;
 

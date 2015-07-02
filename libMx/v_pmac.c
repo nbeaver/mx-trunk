@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2006, 2010 Illinois Institute of Technology
+ * Copyright 2003-2006, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -234,12 +234,14 @@ mxv_pmac_send_variable( MX_VARIABLE *variable )
 		long_value = *((long *) value_ptr);
 
 		if ( pmac->num_cards > 1 ) {
-			sprintf( command, "@%lx%s=%ld",
+			snprintf( command, sizeof(command),
+				"@%lx%s=%ld",
 				pmac_variable->card_number,
 				pmac_variable->pmac_variable_name,
 				long_value );
 		} else {
-			sprintf( command, "%s=%ld",
+			snprintf( command, sizeof(command),
+				"%s=%ld",
 				pmac_variable->pmac_variable_name,
 				long_value );
 		}
@@ -248,12 +250,14 @@ mxv_pmac_send_variable( MX_VARIABLE *variable )
 		ulong_value = *((unsigned long *) value_ptr);
 
 		if ( pmac->num_cards > 1 ) {
-			sprintf( command, "@%lx%s=%lu",
+			snprintf( command, sizeof(command),
+				"@%lx%s=%lu",
 				pmac_variable->card_number,
 				pmac_variable->pmac_variable_name,
 				ulong_value );
 		} else {
-			sprintf( command, "%s=%lu",
+			snprintf( command, sizeof(command),
+				"%s=%lu",
 				pmac_variable->pmac_variable_name,
 				ulong_value );
 		}
@@ -262,12 +266,14 @@ mxv_pmac_send_variable( MX_VARIABLE *variable )
 		double_value = *((double *) value_ptr);
 
 		if ( pmac->num_cards > 1 ) {
-			sprintf( command, "@%lx%s=%g",
+			snprintf( command, sizeof(command),
+				"@%lx%s=%g",
 				pmac_variable->card_number,
 				pmac_variable->pmac_variable_name,
 				double_value );
 		} else {
-			sprintf( command, "%s=%g",
+			snprintf( command, sizeof(command),
+				"%s=%g",
 				pmac_variable->pmac_variable_name,
 				double_value );
 		}
@@ -310,10 +316,12 @@ mxv_pmac_receive_variable( MX_VARIABLE *variable )
 		return mx_status;
 
 	if ( pmac->num_cards > 1 ) {
-		sprintf( command, "@%lx%s", pmac_variable->card_number,
+		snprintf( command, sizeof(command),
+				"@%lx%s", pmac_variable->card_number,
 				pmac_variable->pmac_variable_name );
 	} else {
-		sprintf( command, "%s", pmac_variable->pmac_variable_name );
+		snprintf( command, sizeof(command),
+				"%s", pmac_variable->pmac_variable_name );
 	}
 
 	mx_status = mxi_pmac_command( pmac, command,

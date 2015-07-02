@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2006, 2008, 2010 Illinois Institute of Technology
+ * Copyright 2004-2006, 2008, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -390,7 +390,8 @@ mxi_keithley2700_open( MX_RECORD *record )
 
 	for ( i = 0; i < keithley2700->num_slots; i++ ) {
 		for ( j = 0; j < keithley2700->num_channels[i]; j++ ) {
-			sprintf( command, "SENS:FUNC? (@%ld%02ld)", i+1, j+1 );
+			snprintf( command, sizeof(command),
+				"SENS:FUNC? (@%ld%02ld)", i+1, j+1 );
 
 			mx_status = mxi_keithley_command( record, interface,
 					command, response, sizeof(response),

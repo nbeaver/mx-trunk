@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2005, 2010, 2012 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2005, 2010, 2012, 2015
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -595,7 +596,9 @@ mxi_d8_construct_error_message( char *d8_response,
 	if ( d8_error_code >= 0 && d8_error_code < num_error_messages ) {
 		error_message_ptr = d8_error_message[ d8_error_code ];
 	} else {
-		sprintf( buffer, "Unknown error code %d", d8_error_code );
+		snprintf( buffer, sizeof(buffer),
+			"Unknown error code %d", d8_error_code );
+
 		error_message_ptr = buffer;
 	}
 

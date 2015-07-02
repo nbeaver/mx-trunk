@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2006, 2008, 2010, 2014 Illinois Institute of Technology
+ * Copyright 2005-2006, 2008, 2010, 2014-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -343,8 +343,9 @@ mxi_network_gpib_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( rfname, "%s.read_buffer_length",
-			network_gpib->remote_record_name );
+	snprintf( rfname, sizeof(rfname),
+		"%s.read_buffer_length",
+		network_gpib->remote_record_name );
 
 	mx_status = mx_get_by_name( network_gpib->server_record,
 				rfname, MXFT_LONG,
@@ -353,8 +354,9 @@ mxi_network_gpib_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( rfname, "%s.write_buffer_length",
-			network_gpib->remote_record_name );
+	snprintf( rfname, sizeof(rfname),
+		"%s.write_buffer_length",
+		network_gpib->remote_record_name );
 
 	mx_status = mx_get_by_name( network_gpib->server_record,
 				rfname, MXFT_LONG,

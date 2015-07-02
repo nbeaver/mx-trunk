@@ -515,7 +515,8 @@ mxn_tcpip_server_receive_message( MX_NETWORK_SERVER *network_server,
 				      network_server->timeout, message_buffer );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
-		sprintf( location, "%s from server '%s'",
+		snprintf( location, sizeof(location),
+			"%s from server '%s'",
 			fname, network_server->record->name );
 
 		if ( ( mx_status.code == MXE_NETWORK_CONNECTION_LOST )
@@ -565,7 +566,8 @@ mxn_tcpip_server_send_message( MX_NETWORK_SERVER *network_server,
 						message_buffer );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
-		sprintf( location, "%s to server '%s'",
+		snprintf( location, sizeof(location),
+			"%s to server '%s'",
 			fname, network_server->record->name );
 
 		if ( ( mx_status.code == MXE_NETWORK_CONNECTION_LOST )

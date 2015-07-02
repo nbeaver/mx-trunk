@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005-2007, 2010-2011
+ * Copyright 1999-2001, 2003, 2005-2007, 2010-2011, 2015
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -333,7 +333,7 @@ mxi_ks3344_getchar( MX_RS232 *rs232, char *c )
 
 			    error_bits &= 0x07;
 
-			    sprintf( error_message,
+			    snprintf( error_message, sizeof(error_message),
 				"Port '%s' receive error 0x%lx on char '%c': ",
 				rs232->record->name,
 				(unsigned long) error_bits, *c );
@@ -341,15 +341,21 @@ mxi_ks3344_getchar( MX_RS232 *rs232, char *c )
 			    error_code = MXE_INTERFACE_IO_ERROR;
 
 			    if ( error_bits & 0x04 ) {
-				strcat( error_message, "PARITY_ERROR " );
+				strlcat( error_message, "PARITY_ERROR ",
+						sizeof(error_message) );
+
 				error_code = MXE_INTERFACE_IO_ERROR;
 			    }
 			    if ( error_bits & 0x02 ) {
-				strcat( error_message, "FRAMING_ERROR " );
+				strlcat( error_message, "FRAMING_ERROR ",
+						sizeof(error_message) );
+
 				error_code = MXE_INTERFACE_IO_ERROR;
 			    }
 			    if ( error_bits & 0x01 ) {
-				strcat( error_message,"BUFFER_OVERRUN_ERROR ");
+				strlcat( error_message,"BUFFER_OVERRUN_ERROR ",
+						sizeof(error_message) );
+
 				error_code = MXE_LIMIT_WAS_EXCEEDED;
 			    }
 

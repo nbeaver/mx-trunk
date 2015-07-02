@@ -10,7 +10,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2001, 2003, 2005, 2008, 2010 Illinois Institute of Technology
+ * Copyright 2001, 2003, 2005, 2008, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -195,7 +195,7 @@ mxi_soft_rs232_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	strcpy( soft_rs232->buffer, "" );
+	strlcpy( soft_rs232->buffer, "", sizeof(soft_rs232->buffer) );
 
 	soft_rs232->read_ptr  = soft_rs232->buffer;
 	soft_rs232->write_ptr = soft_rs232->buffer;

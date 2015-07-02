@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004, 2006, 2010 Illinois Institute of Technology
+ * Copyright 2004, 2006, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -195,12 +195,13 @@ mxi_iseries_open( MX_RECORD *record )
 		 */
 
 		if ( iseries->bus_address >= 0 ) {
-			sprintf( command, "%c%02lxU03",
+			snprintf( command, sizeof(command),
+				"%c%02lxU03",
 				iseries->recognition_character,
 				iseries->bus_address );
 		} else {
-			sprintf( command, "%cU03",
-				iseries->recognition_character );
+			snprintf( command, sizeof(command),
+				"%cU03", iseries->recognition_character );
 		}
 
 #if MXI_ISERIES_DEBUG
@@ -339,7 +340,8 @@ mxi_iseries_command( MX_ISERIES *iseries,
 
 			if ( put_or_write ) {
 				if ( precision != 0 ) {
-				    sprintf( command_buffer,
+				    snprintf( command_buffer,
+					sizeof(command_buffer),
 					"%c%02lX%c%02lX%*g",
 					iseries->recognition_character,
 					iseries->bus_address,
@@ -348,7 +350,8 @@ mxi_iseries_command( MX_ISERIES *iseries,
 					precision,
 					command_value );
 				} else {
-				    sprintf( command_buffer,
+				    snprintf( command_buffer,
+					sizeof(command_buffer),
 					"%c%02lX%c%02lX%*lX",
 					iseries->recognition_character,
 					iseries->bus_address,
@@ -358,7 +361,8 @@ mxi_iseries_command( MX_ISERIES *iseries,
 					mx_round( command_value ) );
 				}
 			} else {
-				sprintf( command_buffer,
+				snprintf( command_buffer,
+					sizeof(command_buffer),
 					"%c%02lX%c%02lX",
 					iseries->recognition_character,
 					iseries->bus_address,
@@ -370,7 +374,8 @@ mxi_iseries_command( MX_ISERIES *iseries,
 
 			if ( put_or_write ) {
 				if ( precision != 0 ) {
-				    sprintf( command_buffer,
+				    snprintf( command_buffer,
+					sizeof(command_buffer),
 					"%c%c%02lX%*g",
 					iseries->recognition_character,
 					command_prefix,
@@ -378,7 +383,8 @@ mxi_iseries_command( MX_ISERIES *iseries,
 					precision,
 					command_value );
 				} else {
-				    sprintf( command_buffer,
+				    snprintf( command_buffer,
+					sizeof(command_buffer),
 					"%c%c%02lX%*lX",
 					iseries->recognition_character,
 					command_prefix,
@@ -387,7 +393,8 @@ mxi_iseries_command( MX_ISERIES *iseries,
 					mx_round( command_value ) );
 				}
 			} else {
-				sprintf( command_buffer,
+				snprintf( command_buffer,
+					sizeof(command_buffer),
 					"%c%c%02lX",
 					iseries->recognition_character,
 					command_prefix,

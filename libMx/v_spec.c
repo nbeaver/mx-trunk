@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2006, 2010 Illinois Institute of Technology
+ * Copyright 2004-2006, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -332,7 +332,7 @@ mxv_spec_send_variable( MX_VARIABLE *variable )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	strcpy( buffer, "" );
+	strlcpy( buffer, "", sizeof(buffer) );
 
 	mx_status = mx_create_array_description( value_ptr, num_dimensions - 1,
 					buffer, sizeof(buffer) - 1,

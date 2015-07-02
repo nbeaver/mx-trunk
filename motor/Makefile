@@ -51,6 +51,8 @@ include ../libMx/Makefile.version
 
 include ../libMx/Makehead.$(MX_ARCH)
 
+CFLAGS += $(APP_FLAGS)
+
 #
 #--------------------------------------------------------------------------
 #

@@ -327,8 +327,9 @@ mxd_spec_motor_motor_is_busy( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( property_name, "motor/%s/move_done",
-				spec_motor->remote_motor_name );
+	snprintf( property_name, sizeof(property_name),
+			"motor/%s/move_done",
+			spec_motor->remote_motor_name );
 
 	mx_status = mx_spec_get_number( spec_motor->spec_server_record,
 				property_name, MXFT_LONG, &move_done );
@@ -388,8 +389,9 @@ mxd_spec_motor_move_absolute( MX_MOTOR *motor )
 
 	new_destination = motor->raw_destination.analog;
 
-	sprintf( property_name, "motor/%s/start_one",
-				spec_motor->remote_motor_name );
+	snprintf( property_name, sizeof(property_name),
+			"motor/%s/start_one",
+			spec_motor->remote_motor_name );
 
 #if MXD_SPEC_MOTOR_DEBUG
 	MX_DEBUG(-2,("%s: '%s' = %g", fname, property_name, new_destination));
@@ -434,8 +436,9 @@ mxd_spec_motor_get_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( property_name, "motor/%s/position",
-				spec_motor->remote_motor_name );
+	snprintf( property_name, sizeof(property_name),
+			"motor/%s/position",
+			spec_motor->remote_motor_name );
 
 	mx_status = mx_spec_get_number( spec_motor->spec_server_record,
 				property_name, MXFT_DOUBLE, &position );
@@ -466,8 +469,9 @@ mxd_spec_motor_set_position( MX_MOTOR *motor )
 
 	new_set_position = motor->raw_set_position.analog;
 
-	sprintf( property_name, "motor/%s/position",
-				spec_motor->remote_motor_name );
+	snprintf( property_name, sizeof(property_name),
+			"motor/%s/position",
+			spec_motor->remote_motor_name );
 
 #if MXD_SPEC_MOTOR_DEBUG
 	MX_DEBUG(-2,("%s: '%s' set position = %g",
@@ -518,8 +522,9 @@ mxd_spec_motor_positive_limit_hit( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( property_name, "motor/%s/high_lim_hit",
-				spec_motor->remote_motor_name );
+	snprintf( property_name, sizeof(property_name),
+			"motor/%s/high_lim_hit",
+			spec_motor->remote_motor_name );
 
 	mx_status = mx_spec_get_number( spec_motor->spec_server_record,
 				property_name, MXFT_LONG, &limit_hit );
@@ -552,8 +557,9 @@ mxd_spec_motor_negative_limit_hit( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( property_name, "motor/%s/low_lim_hit",
-				spec_motor->remote_motor_name );
+	snprintf( property_name, sizeof(property_name),
+			"motor/%s/low_lim_hit",
+			spec_motor->remote_motor_name );
 
 	mx_status = mx_spec_get_number( spec_motor->spec_server_record,
 				property_name, MXFT_LONG, &limit_hit );
@@ -589,19 +595,24 @@ mxd_spec_motor_raw_home_command( MX_MOTOR *motor )
 
 	switch( motor->raw_home_command ) {
 	case -2:
-		strcpy( home_search_string, "lim-" );
+		strlcpy( home_search_string, "lim-",
+			sizeof(home_search_string) );
 		break;
 	case -1:
-		strcpy( home_search_string, "home-" );
+		strlcpy( home_search_string, "home-",
+			sizeof(home_search_string) );
 		break;
 	case 0:
-		strcpy( home_search_string, "home" );
+		strlcpy( home_search_string, "home",
+			sizeof(home_search_string) );
 		break;
 	case 1:
-		strcpy( home_search_string, "home+" );
+		strlcpy( home_search_string, "home+",
+			sizeof(home_search_string) );
 		break;
 	case 2:
-		strcpy( home_search_string, "lim+" );
+		strlcpy( home_search_string, "lim+",
+			sizeof(home_search_string) );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -611,8 +622,9 @@ mxd_spec_motor_raw_home_command( MX_MOTOR *motor )
 			motor->raw_home_command, motor->record->name );
 	}
 
-	sprintf( property_name, "motor/%s/search",
-					spec_motor->remote_motor_name );
+	snprintf( property_name, sizeof(property_name),
+			"motor/%s/search",
+			spec_motor->remote_motor_name );
 
 #if MXD_SPEC_MOTOR_DEBUG
 	MX_DEBUG(-2,("%s: '%s' home_search_string = '%s'",
@@ -648,7 +660,8 @@ mxd_spec_motor_get_parameter( MX_MOTOR *motor )
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
-		sprintf( property_name, "motor/%s/slew_rate",
+		snprintf( property_name, sizeof(property_name),
+				"motor/%s/slew_rate",
 				spec_motor->remote_motor_name );
 
 		mx_status = mx_spec_get_number( spec_motor->spec_server_record,
@@ -657,7 +670,8 @@ mxd_spec_motor_get_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_BASE_SPEED:
-		sprintf( property_name, "motor/%s/base_rate",
+		snprintf( property_name, sizeof(property_name),
+				"motor/%s/base_rate",
 				spec_motor->remote_motor_name );
 
 		mx_status = mx_spec_get_number( spec_motor->spec_server_record,
@@ -666,7 +680,8 @@ mxd_spec_motor_get_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
-		sprintf( property_name, "motor/%s/acceleration",
+		snprintf( property_name, sizeof(property_name),
+				"motor/%s/acceleration",
 				spec_motor->remote_motor_name );
 
 		motor->raw_acceleration_parameters[1] = 0.0;
@@ -679,7 +694,8 @@ mxd_spec_motor_get_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_PROPORTIONAL_GAIN:
-		sprintf( property_name, "motor/%s/dc_proportional_gain",
+		snprintf( property_name, sizeof(property_name),
+				"motor/%s/dc_proportional_gain",
 				spec_motor->remote_motor_name );
 
 		mx_status = mx_spec_get_number( spec_motor->spec_server_record,
@@ -688,7 +704,8 @@ mxd_spec_motor_get_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_INTEGRAL_GAIN:
-		sprintf( property_name, "motor/%s/dc_integral_gain",
+		snprintf( property_name, sizeof(property_name),
+				"motor/%s/dc_integral_gain",
 				spec_motor->remote_motor_name );
 
 		mx_status = mx_spec_get_number( spec_motor->spec_server_record,
@@ -697,7 +714,8 @@ mxd_spec_motor_get_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_DERIVATIVE_GAIN:
-		sprintf( property_name, "motor/%s/dc_derivative_gain",
+		snprintf( property_name, sizeof(property_name),
+				"motor/%s/dc_derivative_gain",
 				spec_motor->remote_motor_name );
 
 		mx_status = mx_spec_get_number( spec_motor->spec_server_record,
@@ -706,7 +724,8 @@ mxd_spec_motor_get_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_INTEGRAL_LIMIT:
-		sprintf( property_name, "motor/%s/dc_integration_limit",
+		snprintf( property_name, sizeof(property_name),
+				"motor/%s/dc_integration_limit",
 				spec_motor->remote_motor_name );
 
 		mx_status = mx_spec_get_number( spec_motor->spec_server_record,
@@ -750,7 +769,8 @@ mxd_spec_motor_set_parameter( MX_MOTOR *motor )
 
 	switch ( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
-		sprintf( property_name, "motor/%s/slew_rate",
+		snprintf( property_name, sizeof(property_name),
+				"motor/%s/slew_rate",
 				spec_motor->remote_motor_name );
 
 		mx_status = mx_spec_put_number( spec_motor->spec_server_record,
@@ -759,7 +779,8 @@ mxd_spec_motor_set_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_BASE_SPEED:
-		sprintf( property_name, "motor/%s/base_rate",
+		snprintf( property_name, sizeof(property_name),
+				"motor/%s/base_rate",
 				spec_motor->remote_motor_name );
 
 		mx_status = mx_spec_put_number( spec_motor->spec_server_record,
@@ -768,7 +789,8 @@ mxd_spec_motor_set_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
-		sprintf( property_name, "motor/%s/acceleration",
+		snprintf( property_name, sizeof(property_name),
+				"motor/%s/acceleration",
 				spec_motor->remote_motor_name );
 
 		mx_status = mx_spec_put_number( spec_motor->spec_server_record,
@@ -777,7 +799,8 @@ mxd_spec_motor_set_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_PROPORTIONAL_GAIN:
-		sprintf( property_name, "motor/%s/dc_proportional_gain",
+		snprintf( property_name, sizeof(property_name),
+				"motor/%s/dc_proportional_gain",
 				spec_motor->remote_motor_name );
 
 		mx_status = mx_spec_put_number( spec_motor->spec_server_record,
@@ -786,7 +809,8 @@ mxd_spec_motor_set_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_INTEGRAL_GAIN:
-		sprintf( property_name, "motor/%s/dc_integral_gain",
+		snprintf( property_name, sizeof(property_name),
+				"motor/%s/dc_integral_gain",
 				spec_motor->remote_motor_name );
 
 		mx_status = mx_spec_put_number( spec_motor->spec_server_record,
@@ -795,7 +819,8 @@ mxd_spec_motor_set_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_DERIVATIVE_GAIN:
-		sprintf( property_name, "motor/%s/dc_deriviative_gain",
+		snprintf( property_name, sizeof(property_name),
+				"motor/%s/dc_deriviative_gain",
 				spec_motor->remote_motor_name );
 
 		mx_status = mx_spec_put_number( spec_motor->spec_server_record,
@@ -804,7 +829,8 @@ mxd_spec_motor_set_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_INTEGRAL_LIMIT:
-		sprintf( property_name, "motor/%s/dc_integration_limit",
+		snprintf( property_name, sizeof(property_name),
+				"motor/%s/dc_integration_limit",
 				spec_motor->remote_motor_name );
 
 		mx_status = mx_spec_put_number( spec_motor->spec_server_record,

@@ -8,7 +8,8 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2007, 2010, 2012 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004-2007, 2010, 2012, 2015
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -667,7 +668,7 @@ mxi_hsc1_command( MX_HSC1_INTERFACE *hsc1_interface,
 		"'command' buffer pointer passed was NULL.  No command sent.");
 	}
 	if ( response != NULL ) {
-		strcpy( response, "" );
+		strlcpy( response, "", response_buffer_length );
 	}
 
 	command_number++;
@@ -814,7 +815,8 @@ mxi_hsc1_command( MX_HSC1_INTERFACE *hsc1_interface,
 
 	/* Now we can send the command to the HSC-1. */
 
-	sprintf( local_buffer, "!%s %s", module_id, command );
+	snprintf( local_buffer, sizeof(local_buffer),
+		"!%s %s", module_id, command );
 
 	if ( debug_flag & MXI_HSC1_INTERFACE_DEBUG ) {
 		MX_DEBUG(-2,("%s: '%s' sending command '%s'",
@@ -854,7 +856,7 @@ mxi_hsc1_command( MX_HSC1_INTERFACE *hsc1_interface,
 				hsc1_interface->record->name, command ));
 			}
 
-			strcpy( local_buffer, "" );
+			strlcpy( local_buffer, "", sizeof(local_buffer) );
 
 			mx_status = mx_rs232_getline(
 				hsc1_interface->rs232_record, local_buffer,
@@ -948,7 +950,7 @@ mxi_hsc1_command( MX_HSC1_INTERFACE *hsc1_interface,
 
 	if ( next_field_ptr == NULL ) {
 		if ( response != NULL ) {
-			strcpy( response, "" );
+			strlcpy( response, "", response_buffer_length );
 		}
 	} else {
 		/* Null terminate the status code. */

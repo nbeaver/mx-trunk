@@ -10,7 +10,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002, 2005-2008, 2010, 2012 Illinois Institute of Technology
+ * Copyright 2002, 2005-2008, 2010, 2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -251,11 +251,11 @@ mxi_uglide_open( MX_RECORD *record )
 			fname, bypass_home_search));
 
 		if ( bypass_home_search ) {
-			strcpy( operation, "bypass the" );
-			strcpy( command, "\r\rs\rs\rs" );
+			strlcpy( operation, "bypass the", sizeof(operation) );
+			strlcpy( command, "\r\rs\rs\rs", sizeof(command) );
 		} else {
-			strcpy( operation, "do a" );
-			strcpy( command, "\r\ri" );
+			strlcpy( operation, "do a", sizeof(operation) );
+			strlcpy( command, "\r\ri", sizeof(command) );
 		}
 
 		mx_info( "u-GLIDE controller '%s' may have been power cycled.  "
@@ -450,7 +450,7 @@ mxi_uglide_open( MX_RECORD *record )
 		mode = 0;
 	}
 
-	sprintf( command, "t %d", mode );
+	snprintf( command, sizeof(command), "t %d", mode );
 
 	mx_status = mxi_uglide_command( uglide, command, MXI_UGLIDE_DEBUG );
 
@@ -549,7 +549,8 @@ mxi_uglide_command( MX_UGLIDE *uglide, char *command, int debug_flag )
 	 * so that the controller can reliably read the commands.
 	 */
 
-	sprintf( local_command, "               %s", command );
+	snprintf( local_command, sizeof(local_command),
+		"               %s", command );
 
 	mx_status = mx_rs232_putline( uglide->rs232_record,
 					local_command, NULL, 0 );

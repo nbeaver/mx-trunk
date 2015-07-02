@@ -579,9 +579,11 @@ mxi_mardtb_raw_read_status_parameter( MX_MARDTB *mardtb,
 				MXF_MARDTB_THREE_PARAMETER_STATUS_DUMP;
 
 	if ( use_three_parameter_status_dump ) {
-		sprintf( command, "status_dump 1, 1, %ld", parameter_number );
+		snprintf( command, sizeof(command),
+			"status_dump 1, 1, %ld", parameter_number );
 	} else {
-		sprintf( command, "status_dump %ld", parameter_number );
+		snprintf( command, sizeof(command),
+			"status_dump %ld", parameter_number );
 	}
 
 	/* Send the command. */

@@ -210,7 +210,8 @@ mxi_databox_open( MX_RECORD *record )
 
 				/* Set the steps per degree. */
 
-				sprintf( command, "S%c%g\r",
+				snprintf( command, sizeof(command),
+					"S%c%g\r",
 					databox_motor->axis_name,
 					databox_motor->steps_per_degree );
 
@@ -222,7 +223,8 @@ mxi_databox_open( MX_RECORD *record )
 
 				/* Set the angle. */
 
-				sprintf( command, "A%c%g\r",
+				snprintf( command, sizeof(command),
+					"A%c%g\r",
 					databox_motor->axis_name,
 					motor->raw_position.analog );
 
@@ -933,10 +935,10 @@ mxi_databox_set_limit_mode( MX_DATABOX *databox, int limit_mode )
 
 	switch( limit_mode ) {
 	case MX_DATABOX_CONSTANT_TIME_MODE:
-		strcpy( command, "LT\r" );
+		strlcpy( command, "LT\r", sizeof(command) );
 		break;
 	case MX_DATABOX_CONSTANT_COUNTS_MODE:
-		strcpy( command, "LC\r" );
+		strlcpy( command, "LC\r", sizeof(command) );
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -1078,7 +1080,7 @@ mxi_databox_define_sequence( MX_DATABOX *databox,
 
 	/* Set the initial angle. */
 
-	sprintf( command, "I%g\r", initial_angle );
+	snprintf( command, sizeof(command), "I%g\r", initial_angle );
 
 	mx_status = mxi_databox_command( databox, command,
 					response, sizeof response,
@@ -1089,7 +1091,7 @@ mxi_databox_define_sequence( MX_DATABOX *databox,
 
 	/* Set the final angle. */
 
-	sprintf( command, "F%g\r", final_angle );
+	snprintf( command, sizeof(command), "F%g\r", final_angle );
 
 	mx_status = mxi_databox_command( databox, command,
 					response, sizeof response,
@@ -1118,7 +1120,7 @@ mxi_databox_define_sequence( MX_DATABOX *databox,
 
 	/* Set the step size. */
 
-	sprintf( command, "S%g\r", rounded_step_size );
+	snprintf( command, sizeof(command), "S%g\r", rounded_step_size );
 
 	mx_status = mxi_databox_command( databox, command,
 					response, sizeof response,
@@ -1172,7 +1174,7 @@ mxi_databox_define_sequence( MX_DATABOX *databox,
 			databox->limit_mode );
 	}
 
-	sprintf( command, "C%ld\r", count_value );
+	snprintf( command, sizeof(command), "C%ld\r", count_value );
 
 	mx_status = mxi_databox_command( databox, command,
 					response, sizeof response,

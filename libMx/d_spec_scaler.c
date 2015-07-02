@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2005 Illinois Institute of Technology
+ * Copyright 2004-2005, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -173,8 +173,9 @@ mxd_spec_scaler_read( MX_SCALER *scaler )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( property_name, "scaler/%s/value",
-					spec_scaler->remote_scaler_name );
+	snprintf( property_name, sizeof(property_name),
+			"scaler/%s/value",
+			spec_scaler->remote_scaler_name );
 
 	mx_status = mx_spec_get_number( spec_scaler->spec_server_record,
 				property_name, MXFT_LONG, &value );

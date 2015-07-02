@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005-2006, 2010 Illinois Institute of Technology
+ * Copyright 2005-2006, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -277,7 +277,8 @@ mxd_sr630_ainput_read( MX_ANALOG_INPUT *ainput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "MEAS? %ld", sr630_ainput->channel_number );
+	snprintf( command, sizeof(command),
+		"MEAS? %ld", sr630_ainput->channel_number );
 
 	mx_status = mxi_sr630_command( sr630, command,
 					response, sizeof(response),

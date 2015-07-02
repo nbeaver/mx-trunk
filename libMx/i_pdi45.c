@@ -50,7 +50,9 @@ MX_RECORD_FIELD_DEFAULTS *mxi_pdi45_rfield_def_ptr
 			= &mxi_pdi45_record_field_defaults[0];
 
 static mx_status_type mxi_pdi45_checksum( MX_PDI45 *pdi45,
-				char *command, char *checksum );
+				char *command,
+				char *checksum,
+				size_t checksum_length );
 
 static mx_status_type mxi_pdi45_check_checksum( char *response );
 
@@ -344,14 +346,16 @@ mxi_pdi45_command( MX_PDI45 *pdi45,
 
 	/* Construct checksum field for outgoing PDI45 command. */
 
-	mx_status = mxi_pdi45_checksum( pdi45, command, checksum );
+	mx_status = mxi_pdi45_checksum( pdi45, command,
+				checksum, sizeof(checksum) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/* Format the command string. */
 
-	sprintf(write_buffer, ">%s%s", command, checksum);
+	snprintf( write_buffer, sizeof(write_buffer),
+			">%s%s", command, checksum );
 
 	/* Send the PDI45 command. */
 
@@ -466,7 +470,10 @@ mxi_pdi45_command( MX_PDI45 *pdi45,
 }
 
 static mx_status_type
-mxi_pdi45_checksum( MX_PDI45 *pdi45, char *command, char *checksum )
+mxi_pdi45_checksum( MX_PDI45 *pdi45,
+			char *command,
+			char *checksum,
+			size_t checksum_length )
 {
 	int i, length, value;
 
@@ -486,7 +493,7 @@ mxi_pdi45_checksum( MX_PDI45 *pdi45, char *command, char *checksum )
 
 	/* Convert to a character string. */
 
-	sprintf( checksum, "%02X", value );
+	snprintf( checksum, checksum_length, "%02X", value );
 
 	return MX_SUCCESSFUL_RESULT;
 }

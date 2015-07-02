@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2006, 2008, 2010 Illinois Institute of Technology
+ * Copyright 2004-2006, 2008, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -594,7 +594,7 @@ mxi_kohzu_sc_command( MX_KOHZU_SC *kohzu_sc, char *command,
 	command_buffer[0] = MX_STX;
 	command_buffer[1] = '\0';
 
-	strncat( command_buffer, command, sizeof(command_buffer) - 1 );
+	strlcat( command_buffer, command, sizeof(command_buffer) );
 
 	/* Send the command. */
 
@@ -738,9 +738,9 @@ mxi_kohzu_sc_multiaxis_move( MX_KOHZU_SC *kohzu_sc,
 	 */
 
 	if ( simultaneous_start ) {
-		sprintf( command, "MPS" );
+		snprintf( command, sizeof(command), "MPS" );
 	} else {
-		sprintf( command, "SPS" );
+		snprintf( command, sizeof(command), "SPS" );
 
 		if ( num_motors > 3 ) {
 			return mx_error( MXE_UNSUPPORTED, fname,
@@ -780,15 +780,16 @@ mxi_kohzu_sc_multiaxis_move( MX_KOHZU_SC *kohzu_sc,
 		MX_DEBUG(-2, ("%s: axis = %ld, target_position = %ld",
 			fname, axis, target_position ));
 
-		sprintf( buffer, "%ld/%ld/", axis, target_position );
+		snprintf( buffer, sizeof(buffer),
+			"%ld/%ld/", axis, target_position );
 
-		strcat( command, buffer );
+		strlcat( command, buffer, sizeof(command) );
 	}
 
 	if ( simultaneous_start ) {
-		strcat( command, "1" );
+		strlcat( command, "1", sizeof(command) );
 	} else {
-		strcat( command, "2/0/0/0/0/0/1" );
+		strlcat( command, "2/0/0/0/0/0/1", sizeof(command) );
 	}
 
 	MX_DEBUG(-2,("%s: command = '%s'", fname, command));

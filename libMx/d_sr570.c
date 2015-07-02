@@ -508,7 +508,8 @@ mxd_sr570_set_gain( MX_AMPLIFIER *amplifier )
 
 	/* Set the new gain. */
 
-	sprintf( command, "SENS %d", sensitivity_setting );
+	snprintf( command, sizeof(command),
+			"SENS %d", sensitivity_setting );
 
 	mx_status = mx_rs232_putline( sr570->rs232_record,
 					command, NULL, SR570_DEBUG );
@@ -640,7 +641,8 @@ mxd_sr570_set_offset( MX_AMPLIFIER *amplifier )
 
 	/* Set the magnitude of the input offset current. */
 
-	sprintf( command, "IOLV %d", offset_current_setting );
+	snprintf( command, sizeof(command),
+			"IOLV %d", offset_current_setting );
 
 	mx_status = mx_rs232_putline( sr570->rs232_record,
 					command, NULL, SR570_DEBUG );
@@ -653,9 +655,9 @@ mxd_sr570_set_offset( MX_AMPLIFIER *amplifier )
 	/* Set the sign of the input offset current. */
 
 	if ( sign_offset_current == 1 ) {
-		strcpy( command, "IOSN 1" );
+		strlcpy( command, "IOSN 1", sizeof(command) );
 	} else {
-		strcpy( command, "IOSN 0" );
+		strlcpy( command, "IOSN 0", sizeof(command) );
 	}
 
 	mx_status = mx_rs232_putline( sr570->rs232_record,
@@ -790,7 +792,8 @@ mxd_sr570_set_parameter( MX_AMPLIFIER *amplifier )
 
 		/* Set the bias voltage level. */
 
-		sprintf( command, "BSLV %d", bias_voltage_setting );
+		snprintf( command, sizeof(command),
+			"BSLV %d", bias_voltage_setting );
 
 		mx_status = mx_rs232_putline( sr570->rs232_record,
 						command, NULL, SR570_DEBUG );
@@ -805,9 +808,9 @@ mxd_sr570_set_parameter( MX_AMPLIFIER *amplifier )
 		 */
 
 		if ( bias_voltage_setting == 0 ) {
-			strcpy( command, "BSON 0" );
+			strlcpy( command, "BSON 0", sizeof(command) );
 		} else {
-			strcpy( command, "BSON 1" );
+			strlcpy( command, "BSON 1", sizeof(command) );
 		}
 
 		mx_status = mx_rs232_putline( sr570->rs232_record,
@@ -836,7 +839,8 @@ mxd_sr570_set_parameter( MX_AMPLIFIER *amplifier )
 
 		/* Set the filter type. */
 
-		sprintf( command, "FLTT %ld", sr570->filter_type );
+		snprintf( command, sizeof(command),
+			"FLTT %ld", sr570->filter_type );
 
 		mx_status = mx_rs232_putline( sr570->rs232_record,
 						command, NULL, SR570_DEBUG );
@@ -894,7 +898,8 @@ mxd_sr570_set_parameter( MX_AMPLIFIER *amplifier )
 
 		/* Set the filter 3db point. */
 
-		sprintf( command, "LFRQ %d", three_db_point_setting );
+		snprintf( command, sizeof(command),
+			"LFRQ %d", three_db_point_setting );
 
 		mx_status = mx_rs232_putline( sr570->rs232_record,
 						command, NULL, SR570_DEBUG );
@@ -954,7 +959,8 @@ mxd_sr570_set_parameter( MX_AMPLIFIER *amplifier )
 
 		/* Set the filter 3db point. */
 
-		sprintf( command, "HFRQ %d", three_db_point_setting );
+		snprintf( command, sizeof(command),
+			"HFRQ %d", three_db_point_setting );
 
 		mx_status = mx_rs232_putline( sr570->rs232_record,
 						command, NULL, SR570_DEBUG );
@@ -995,7 +1001,8 @@ mxd_sr570_set_parameter( MX_AMPLIFIER *amplifier )
 
 		/* Set the gain mode. */
 
-		sprintf( command, "GNMD %ld", sr570->gain_mode );
+		snprintf( command, sizeof(command),
+			"GNMD %ld", sr570->gain_mode );
 
 		mx_status = mx_rs232_putline( sr570->rs232_record,
 						command, NULL, SR570_DEBUG );
@@ -1022,7 +1029,8 @@ mxd_sr570_set_parameter( MX_AMPLIFIER *amplifier )
 				amplifier->record->name );
 		}
 
-		sprintf( command, "INVT %ld", sr570->invert_signal );
+		snprintf( command, sizeof(command),
+			"INVT %ld", sr570->invert_signal );
 
 		mx_status = mx_rs232_putline( sr570->rs232_record,
 						command, NULL, SR570_DEBUG );
@@ -1049,7 +1057,8 @@ mxd_sr570_set_parameter( MX_AMPLIFIER *amplifier )
 				amplifier->record->name );
 		}
 
-		sprintf( command, "BLNK %ld", sr570->blank_output );
+		snprintf( command, sizeof(command),
+			"BLNK %ld", sr570->blank_output );
 
 		mx_status = mx_rs232_putline( sr570->rs232_record,
 						command, NULL, SR570_DEBUG );

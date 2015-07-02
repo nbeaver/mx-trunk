@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2005-2007, 2010 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2005-2007, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -325,10 +325,10 @@ mxi_k500serial_open( MX_RECORD *record )
 	switch( rs232->flow_control ) {
 	case MXF_232_HARDWARE_FLOW_CONTROL:
 	case MXF_232_BOTH_FLOW_CONTROL:
-		strcpy( command, "H;1" );
+		strlcpy( command, "H;1", sizeof(command) );
 		break;
 	default:
-		strcpy( command, "H;0" );
+		strlcpy( command, "H;0", sizeof(command) );
 		break;
 	}
 
@@ -343,10 +343,10 @@ mxi_k500serial_open( MX_RECORD *record )
 	switch( rs232->flow_control ) {
 	case MXF_232_SOFTWARE_FLOW_CONTROL:
 	case MXF_232_BOTH_FLOW_CONTROL:
-		strcpy( command, "X;1" );
+		strlcpy( command, "X;1", sizeof(command) );
 		break;
 	default:
-		strcpy( command, "X;0" );
+		strlcpy( command, "X;0", sizeof(command) );
 		break;
 	}
 
@@ -366,16 +366,16 @@ mxi_k500serial_open( MX_RECORD *record )
 
 	switch( rs232->read_terminators ) {
 	case 0x0a:				/* LF */
-		strcpy( command, "TC;1" );
+		strlcpy( command, "TC;1", sizeof(command) );
 		break;
 	case 0x0d:				/* CR */
-		strcpy( command, "TC;2" );
+		strlcpy( command, "TC;2", sizeof(command) );
 		break;
 	case 0x0a0d:				/* LF CR */
-		strcpy( command, "TC;3" );
+		strlcpy( command, "TC;3", sizeof(command) );
 		break;
 	case 0x0d0a:				/* CR LF */
-		strcpy( command, "TC;4" );
+		strlcpy( command, "TC;4", sizeof(command) );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -403,16 +403,16 @@ mxi_k500serial_open( MX_RECORD *record )
 
 	switch( gpib->default_read_terminator ) {
 	case 0x0a:				/* LF */
-		strcpy( command, "TB;1" );
+		strlcpy( command, "TB;1", sizeof(command) );
 		break;
 	case 0x0d:
-		strcpy( command, "TB;2" );	/* CR */
+		strlcpy( command, "TB;2", sizeof(command) );	/* CR */
 		break;
 	case 0x0a0d:
-		strcpy( command, "TB;3" );	/* LF CR */
+		strlcpy( command, "TB;3", sizeof(command) );	/* LF CR */
 		break;
 	case 0x0d0a:
-		strcpy( command, "TB;4" );	/* CR LF */
+		strlcpy( command, "TB;4", sizeof(command) );	/* CR LF */
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -430,10 +430,10 @@ mxi_k500serial_open( MX_RECORD *record )
 
 	switch( gpib->default_eoi_mode ) {
 	case 1:
-		strcpy( command, "EO;1" );	/* EOI on. */
+		strlcpy( command, "EO;1", sizeof(command) );	/* EOI on. */
 		break;
 	case 0:
-		strcpy( command, "EO;0" ); 	/* EOI off. */
+		strlcpy( command, "EO;0", sizeof(command) ); 	/* EOI off. */
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -558,7 +558,7 @@ mxi_k500serial_read( MX_GPIB *gpib,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "EN;%02ld", address );
+	snprintf( command, sizeof(command), "EN;%02ld", address );
 
 	mx_status = mx_rs232_putline( rs232_record, command, NULL, flags );
 
@@ -597,7 +597,7 @@ mxi_k500serial_write( MX_GPIB *gpib,
 
 	/* Send the 500-SERIAL command prefix. */
 
-	sprintf( prefix, "OA;%02ld;", address );
+	snprintf( prefix, sizeof(prefix), "OA;%02ld;", address );
 
 	mx_status = mx_rs232_write( rs232_record, prefix,
 					MX_PREFIX_BUFFER_LENGTH, NULL, flags );
@@ -679,7 +679,7 @@ mxi_k500serial_selective_device_clear( MX_GPIB *gpib, long address )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "C;%02ld", address );
+	snprintf( command, sizeof(command), "C;%02ld", address );
 
 	mx_status = mx_rs232_putline( rs232_record, command,
 						NULL, K500SERIAL_DEBUG );
@@ -724,7 +724,7 @@ mxi_k500serial_remote_enable( MX_GPIB *gpib, long address )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "RE;%02ld", address );
+	snprintf( command, sizeof(command), "RE;%02ld", address );
 
 	mx_status = mx_rs232_putline( rs232_record, command,
 						NULL, K500SERIAL_DEBUG );
@@ -748,7 +748,7 @@ mxi_k500serial_go_to_local( MX_GPIB *gpib, long address )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "L;%02ld", address );
+	snprintf( command, sizeof(command), "L;%02ld", address );
 
 	mx_status = mx_rs232_putline( rs232_record, command,
 						NULL, K500SERIAL_DEBUG );
@@ -777,9 +777,9 @@ mxi_k500serial_trigger( MX_GPIB *gpib, long address )
 	/* Send the trigger command. */
 
 	if ( address < 0 ) {
-		strcpy( command, "TR" );
+		strlcpy( command, "TR", sizeof(command) );
 	} else {
-		sprintf( command, "TR;%02ld", address );
+		snprintf( command, sizeof(command), "TR;%02ld", address );
 	}
 
 	mx_status = mx_rs232_putline( rs232_record, command,
@@ -821,7 +821,7 @@ mxi_k500serial_serial_poll( MX_GPIB *gpib, long address,
 
 	/* Send the serial poll command. */
 
-	sprintf( command, "SP;%02ld", address );
+	snprintf( command, sizeof(command), "SP;%02ld", address );
 
 	mx_status = mx_rs232_putline( rs232_record, command,
 						NULL, K500SERIAL_DEBUG );

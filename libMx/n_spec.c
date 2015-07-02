@@ -213,7 +213,8 @@ mxn_spec_server_open( MX_RECORD *record )
 		fname, list_head->program_name, process_id ));
 #endif
 
-	sprintf( client_id, "MX %s %lu", list_head->program_name, process_id );
+	snprintf( client_id, sizeof(client_id),
+		"MX %s %lu", list_head->program_name, process_id );
 
 	spec_server->socket = NULL;
 

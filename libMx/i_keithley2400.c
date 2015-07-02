@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2006, 2008, 2010 Illinois Institute of Technology
+ * Copyright 2004-2006, 2008, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -386,13 +386,13 @@ mxi_keithley2400_set_measurement_type( MX_KEITHLEY2400 *keithley2400,
 
 	switch( measurement_type ) {
 	case MXT_KEITHLEY2400_VOLT:
-		strcpy( command, ":FORM:ELEM VOLT" );
+		strlcpy( command, ":FORM:ELEM VOLT", sizeof(command) );
 		break;
 	case MXT_KEITHLEY2400_CURR:
-		strcpy( command, ":FORM:ELEM CURR" );
+		strlcpy( command, ":FORM:ELEM CURR", sizeof(command) );
 		break;
 	case MXT_KEITHLEY2400_RES:
-		strcpy( command, ":FORM:ELEM RES" );
+		strlcpy( command, ":FORM:ELEM RES", sizeof(command) );
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -470,13 +470,13 @@ mxi_keithley2400_set_source_type( MX_KEITHLEY2400 *keithley2400,
 
 	switch( source_type ) {
 	case MXT_KEITHLEY2400_VOLT:
-		strcpy( command, ":FORM:ELEM VOLT" );
+		strlcpy( command, ":FORM:ELEM VOLT", sizeof(command) );
 		break;
 	case MXT_KEITHLEY2400_CURR:
-		strcpy( command, ":FORM:ELEM CURR" );
+		strlcpy( command, ":FORM:ELEM CURR", sizeof(command) );
 		break;
 	case MXT_KEITHLEY2400_RES:
-		strcpy( command, ":FORM:ELEM RES" );
+		strlcpy( command, ":FORM:ELEM RES", sizeof(command) );
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,

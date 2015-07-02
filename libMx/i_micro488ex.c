@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2006, 2008, 2010 Illinois Institute of Technology
+ * Copyright 2004-2006, 2008, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -150,7 +150,7 @@ mxi_micro488ex_check_for_error( MX_MICRO488EX *micro488ex, char *command )
 	int num_items, error_code;
 	mx_status_type mx_status;
 
-	strcpy( command, "STATUS 2" );
+	strlcpy( status_command, "STATUS 2", sizeof(status_command) );
 
 	mx_status = mx_rs232_putline( micro488ex->rs232_record,
 					status_command, NULL, 0 );
@@ -391,9 +391,9 @@ mxi_micro488ex_open( MX_RECORD *record )
 	/* Enable or disable automatic reporting of errors as requested. */
 
 	if ( flags & MXF_MICRO488EX_DISABLE_ERROR_CHECKING ) {
-		strcpy( command, "ERROR OFF" );
+		strlcpy( command, "ERROR OFF", sizeof(command) );
 	} else {
-		strcpy( command, "ERROR NUMBER" );
+		strlcpy( command, "ERROR NUMBER", sizeof(command) );
 	}
 
 	mx_status = mx_rs232_putline( micro488ex->rs232_record,
@@ -492,7 +492,7 @@ mxi_micro488ex_read( MX_GPIB *gpib,
 			fname, command, micro488ex->record->name ));
 	}
 
-	sprintf( command, "ENTER %02ld", address );
+	snprintf( command, sizeof(command), "ENTER %02ld", address );
 
 	mx_status = mx_rs232_putline( micro488ex->rs232_record,
 					command, NULL, transfer_flags );
@@ -557,7 +557,7 @@ mxi_micro488ex_write( MX_GPIB *gpib,
 
 	/* Send the Micro488EX command prefix. */
 
-	sprintf( prefix, "OUTPUT %02ld;", address );
+	snprintf( prefix, sizeof(prefix), "OUTPUT %02ld;", address );
 
 	if ( debug ) {
 		MX_DEBUG(-2,("%s: sending '%s%s' to '%s'.",
@@ -644,7 +644,7 @@ mxi_micro488ex_selective_device_clear( MX_GPIB *gpib, long address )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "CLEAR %02ld", address );
+	snprintf( command, sizeof(command), "CLEAR %02ld", address );
 
 	mx_status = mxi_micro488ex_command( micro488ex, command,
 					NULL, 0, MICRO488EX_DEBUG );
@@ -684,9 +684,9 @@ mxi_micro488ex_remote_enable( MX_GPIB *gpib, long address )
 		return mx_status;
 
 	if ( address < 0 ) {
-		strcpy( command, "REMOTE" );
+		strlcpy( command, "REMOTE", sizeof(command) );
 	} else {
-		sprintf( command, "REMOTE %02ld", address );
+		snprintf( command, sizeof(command), "REMOTE %02ld", address );
 	}
 
 	mx_status = mxi_micro488ex_command( micro488ex, command,
@@ -709,9 +709,9 @@ mxi_micro488ex_go_to_local( MX_GPIB *gpib, long address )
 		return mx_status;
 
 	if ( address < 0 ) {
-		strcpy( command, "LOCAL" );
+		strlcpy( command, "LOCAL", sizeof(command) );
 	} else {
-		sprintf( command, "LOCAL %02ld", address );
+		snprintf( command, sizeof(command), "LOCAL %02ld", address );
 	}
 
 	mx_status = mxi_micro488ex_command( micro488ex, command,
@@ -738,9 +738,9 @@ mxi_micro488ex_trigger( MX_GPIB *gpib, long address )
 	/* Send the trigger command. */
 
 	if ( address < 0 ) {
-		strcpy( command, "TR" );
+		strlcpy( command, "TR", sizeof(command) );
 	} else {
-		sprintf( command, "TRIGGER %02ld", address );
+		snprintf( command, sizeof(command), "TRIGGER %02ld", address );
 	}
 
 	mx_status = mxi_micro488ex_command( micro488ex, command,
@@ -779,7 +779,7 @@ mxi_micro488ex_serial_poll( MX_GPIB *gpib, long address,
 
 	/* Get the serial poll byte. */
 
-	sprintf( command, "SPOLL %02ld", address );
+	snprintf( command, sizeof(command), "SPOLL %02ld", address );
 
 	mx_status = mxi_micro488ex_command( micro488ex, command,
 					response, sizeof(response),

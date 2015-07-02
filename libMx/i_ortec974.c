@@ -11,7 +11,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2005, 2007, 2010, 2012 Illinois Institute of Technology
+ * Copyright 1999-2003, 2005, 2007, 2010, 2012, 2015
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -697,8 +698,8 @@ mxi_ortec974_command( MX_ORTEC974 *ortec974, char *command,
 			 */
 			if ( response != NULL ) {
 
-				strncpy( percent_response, buffer,
-					sizeof( percent_response ) - 1 );
+				strlcpy( percent_response, buffer,
+					sizeof( percent_response ) );
 
 				(void) mxi_ortec974_wait_for_response_line(
 					ortec974, response,

@@ -10,7 +10,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2006-2007, 2010, 2012 Illinois Institute of Technology
+ * Copyright 1999-2002, 2006-2007, 2010, 2012, 2015
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -613,8 +614,9 @@ mxi_am9513_dump( MX_AM9513 *am9513, mx_bool_type do_inquire )
 	char buffer[80];
 	int i;
 
-	sprintf( returned_buffer, "am9513 = %p, do_inquire = %d\n",
-					am9513, (int) do_inquire );
+	snprintf( returned_buffer, sizeof(returned_buffer),
+		"am9513 = %p, do_inquire = %d\n",
+		am9513, (int) do_inquire );
 
 	if ( do_inquire ) {
 		mxi_am9513_outp8( am9513, MX_AM9513_CMD_REGISTER, 0x17 );
@@ -623,44 +625,54 @@ mxi_am9513_dump( MX_AM9513 *am9513, mx_bool_type do_inquire )
 						MX_AM9513_DATA_REGISTER );
 	}
 
-	sprintf( buffer, "Master mode reg = %04lx\n",
-					am9513->master_mode_register );
-	strcat( returned_buffer, buffer );
+	snprintf( buffer, sizeof(buffer),
+		"Master mode reg = %04lx\n",
+		am9513->master_mode_register );
+
+	strlcat( returned_buffer, buffer, sizeof(returned_buffer) );
 
 	for ( i = 0; i < 5; i++ ) {
 		if ( do_inquire ) {
 			(void) mxi_am9513_get_counter_mode_register(am9513, i);
 		}
 
-		sprintf( buffer, "Counter[%d] mode = %04x\n",
-					i, am9513->counter_mode_register[i] );
-		strcat( returned_buffer, buffer );
+		snprintf( buffer, sizeof(buffer),
+			"Counter[%d] mode = %04x\n",
+			i, am9513->counter_mode_register[i] );
+
+		strlcat( returned_buffer, buffer, sizeof(returned_buffer) );
 	}
 	for ( i = 0; i < 5; i++ ) {
 		if ( do_inquire ) {
 			(void) mxi_am9513_get_load_register( am9513, i );
 		}
 
-		sprintf( buffer, "Counter[%d] load = %04x\n",
-					i, am9513->load_register[i] );
-		strcat( returned_buffer, buffer );
+		snprintf( buffer, sizeof(buffer),
+			"Counter[%d] load = %04x\n",
+			i, am9513->load_register[i] );
+
+		strlcat( returned_buffer, buffer, sizeof(returned_buffer) );
 	}
 	for ( i = 0; i < 5; i++ ) {
 		if ( do_inquire ) {
 			(void) mxi_am9513_get_hold_register( am9513, i );
 		}
 
-		sprintf( buffer, "Counter[%d] hold = %04x\n",
-					i, am9513->hold_register[i] );
-		strcat( returned_buffer, buffer );
+		snprintf( buffer, sizeof(buffer),
+			"Counter[%d] hold = %04x\n",
+			i, am9513->hold_register[i] );
+
+		strlcat( returned_buffer, buffer, sizeof(returned_buffer) );
 	}
 
 	if ( do_inquire ) {
 		(void) mxi_am9513_get_status( am9513 );
 	}
 
-	sprintf( buffer, "Status          = %02x\n", am9513->status_register );
-	strcat( returned_buffer, buffer );
+	snprintf( buffer, sizeof(buffer),
+		"Status          = %02x\n", am9513->status_register );
+
+	strlcat( returned_buffer, buffer, sizeof(returned_buffer) );
 
 	return &returned_buffer[0];
 }

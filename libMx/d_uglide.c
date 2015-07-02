@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002-2003, 2010, 2013 Illinois Institute of Technology
+ * Copyright 2002-2003, 2010, 2013, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -84,7 +84,7 @@ mxd_uglide_get_pointers( MX_MOTOR *motor,
 			MX_UGLIDE **uglide,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_uglide_get_pointers()";
+	static const char fname[] = "mxd_uglide_get_pointers()";
 
 	MX_UGLIDE_MOTOR *uglide_motor_ptr;
 	MX_RECORD *uglide_record;
@@ -137,7 +137,7 @@ mxd_uglide_get_pointers( MX_MOTOR *motor,
 MX_EXPORT mx_status_type
 mxd_uglide_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_uglide_create_record_structures()";
+	static const char fname[] = "mxd_uglide_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_UGLIDE_MOTOR *uglide_motor;
@@ -182,7 +182,7 @@ mxd_uglide_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_uglide_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxd_uglide_finish_record_initialization()";
+	static const char fname[] = "mxd_uglide_finish_record_initialization()";
 
 	MX_MOTOR *motor;
 	MX_UGLIDE_MOTOR *uglide_motor;
@@ -240,7 +240,7 @@ mxd_uglide_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_uglide_print_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_uglide_print_structure()";
+	static const char fname[] = "mxd_uglide_print_structure()";
 
 	MX_MOTOR *motor;
 	MX_UGLIDE_MOTOR *uglide_motor;
@@ -321,7 +321,7 @@ mxd_uglide_print_structure( FILE *file, MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_uglide_resynchronize( MX_RECORD *record )
 {
-	const char fname[] = "mxd_uglide_resynchronize()";
+	static const char fname[] = "mxd_uglide_resynchronize()";
 
 	MX_UGLIDE_MOTOR *uglide_motor;
 	mx_status_type mx_status;
@@ -349,7 +349,7 @@ mxd_uglide_resynchronize( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_uglide_move_absolute( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_uglide_move_absolute()";
+	static const char fname[] = "mxd_uglide_move_absolute()";
 
 	MX_UGLIDE_MOTOR *uglide_motor;
 	MX_UGLIDE *uglide;
@@ -379,8 +379,9 @@ mxd_uglide_move_absolute( MX_MOTOR *motor )
 		}
 	}
 
-	sprintf( command, "%c %ld",
-			command_name, motor->raw_destination.stepper );
+	snprintf( command, sizeof(command),
+		"%c %ld",
+		command_name, motor->raw_destination.stepper );
 
 	mx_status = mxi_uglide_command( uglide, command, UGLIDE_DEBUG );
 
@@ -409,7 +410,7 @@ mxd_uglide_move_absolute( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_uglide_set_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_uglide_set_position()";
+	static const char fname[] = "mxd_uglide_set_position()";
 
 	MX_UGLIDE_MOTOR *uglide_motor;
 	MX_UGLIDE *uglide;
@@ -439,9 +440,9 @@ mxd_uglide_set_position( MX_MOTOR *motor )
 	}
 
 	if ( uglide_motor->axis_name == 'X' ) {
-		strcpy( command, "a" );
+		strlcpy( command, "a", sizeof(command) );
 	} else {
-		strcpy( command, "b" );
+		strlcpy( command, "b", sizeof(command) );
 	}
 
 	mx_status = mxi_uglide_command( uglide, command, UGLIDE_DEBUG );
@@ -460,7 +461,7 @@ mxd_uglide_set_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_uglide_soft_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_uglide_soft_abort()";
+	static const char fname[] = "mxd_uglide_soft_abort()";
 
 	MX_UGLIDE_MOTOR *uglide_motor;
 	MX_UGLIDE *uglide;
@@ -514,7 +515,7 @@ mxd_uglide_soft_abort( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_uglide_raw_home_command( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_uglide_raw_home_command()";
+	static const char fname[] = "mxd_uglide_raw_home_command()";
 
 	MX_UGLIDE_MOTOR *uglide_motor;
 	MX_UGLIDE *uglide;
@@ -530,9 +531,9 @@ mxd_uglide_raw_home_command( MX_MOTOR *motor )
 	MX_DEBUG( 2,("%s invoked for motor '%s'.", fname, motor->record->name));
 
 	if ( uglide_motor->axis_name == 'X' ) {
-		strcpy( command, "i" );
+		strlcpy( command, "i", sizeof(command) );
 	} else {
-		strcpy( command, "j" );
+		strlcpy( command, "j", sizeof(command) );
 	}
 
 	mx_status = mxi_uglide_command( uglide, command, UGLIDE_DEBUG );
@@ -550,7 +551,7 @@ mxd_uglide_raw_home_command( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_uglide_get_extended_status( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_uglide_get_extended_status()";
+	static const char fname[] = "mxd_uglide_get_extended_status()";
 
 	MX_UGLIDE_MOTOR *uglide_motor;
 	MX_UGLIDE *uglide;

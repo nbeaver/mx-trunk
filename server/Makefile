@@ -43,6 +43,8 @@ include ../libMx/Makehead.$(MX_ARCH)
 
 INCLUDES = $(MX_INCLUDES)
 
+CFLAGS += $(APP_FLAGS)
+
 #
 #--------------------------------------------------------------------------
 #

@@ -12,7 +12,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2004, 2006, 2010, 2012
+ * Copyright 1999, 2001, 2003-2004, 2006, 2010, 2012, 2015
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -386,13 +386,14 @@ mxi_newport_resynchronize( MX_RECORD *record )
 
 	switch( record->mx_type ) {
 	case MXI_CTRL_MM3000:
-		strcpy( banner, "Newport Corp. MM3000 Version" );
+		strlcpy( banner, "Newport Corp. MM3000 Version",
+				sizeof(banner) );
 		break;
 	case MXI_CTRL_MM4000:
-		strcpy( banner, " MM400" );
+		strlcpy( banner, " MM400", sizeof(banner) );
 		break;
 	case MXI_CTRL_ESP:
-		strcpy( banner, "ESP" );
+		strlcpy( banner, "ESP", sizeof(banner) );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
