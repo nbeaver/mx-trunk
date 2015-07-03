@@ -126,11 +126,13 @@ clean:
 	for i in $(MODULES); do \
 		( cd $$i ; $(MAKECMD) clean ) \
 	done
+	-rm */*.o */*.obj */*.mxo
 	
 distclean:
 	for i in $(MODULES); do \
 		( cd $$i ; $(MAKECMD) distclean ) \
 	done
+	-rm */*.o */*.obj */*.mxo
 	
 depend:
 	for i in $(MODULES); do \

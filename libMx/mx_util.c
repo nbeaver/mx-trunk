@@ -2066,7 +2066,7 @@ mx_get_random_max( void )
 
 /*--------*/
 
-#elif defined(OS_BSD)
+#elif defined(OS_BSD) || defined(OS_LINUX)
 
 MX_EXPORT unsigned long
 mx_random( void )
@@ -2083,8 +2083,36 @@ mx_seed_random( unsigned long seed )
 MX_EXPORT unsigned long
 mx_get_random_max( void )
 {
-	return 0x7fffffff;
+	return RAND_MAX;
 }
+
+/*--------*/
+
+#elif 0
+
+/* WARNING: rand() and srand() are really not that random in general.
+ *          You should not use them unless nothing else is available.
+ */
+
+MX_EXPORT unsigned long
+mx_random( void )
+{
+	return rand();
+}
+
+MX_EXPORT void
+mx_seed_random( unsigned long seed )
+{
+	srand( (unsigned int) seed );
+}
+
+MX_EXPORT unsigned long
+mx_get_random_max( void )
+{
+	return RAND_MAX;
+}
+
+/*--------*/
 
 #else
 #error The MX random number functions are not yet implemented for this platform.
