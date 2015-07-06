@@ -2044,7 +2044,7 @@ mx_string_split( char *original_string,
 
 /*------------------------------------------------------------------------*/
 
-#if defined(OS_MACOSX) || defined(__NetBSD__) || defined(__OpenBSD__)
+#if defined(OS_MACOSX) || defined(OS_BSD)
 
 MX_EXPORT unsigned long
 mx_random( void )
