@@ -2044,7 +2044,45 @@ mx_string_split( char *original_string,
 
 /*------------------------------------------------------------------------*/
 
-#if defined(OS_MACOSX) || defined(OS_BSD)
+#if ( defined(OS_WIN32) && (MX_WINVER >= 0x0501) )
+
+/* For Windows XP and after.  Internally, it depends on RtlGenRandom(). */
+
+MX_EXPORT unsigned long
+mx_random( void )
+{
+	static const char fname[] = "mx_random()";
+
+	unsigned int random_value;
+	errno_t result;
+
+	result = rand_s( &random_value );
+
+	if ( result != 0 ) {
+		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"rand_s() failed with error code = %d.", result );
+
+		return 0;
+	}
+
+	return (unsigned long) random_value;
+}
+
+MX_EXPORT void
+mx_seed_random( unsigned long seed )
+{
+	/* Do nothing */
+}
+
+MX_EXPORT unsigned long
+mx_get_random_max( void )
+{
+	return UINT_MAX;
+}
+
+/*--------*/
+
+#elif defined(OS_MACOSX) || defined(OS_BSD)
 
 MX_EXPORT unsigned long
 mx_random( void )
@@ -2088,7 +2126,9 @@ mx_get_random_max( void )
 
 /*--------*/
 
-#elif 0
+#elif defined(OS_WIN32)
+
+/* Used by: Win32 before Windows XP. */
 
 /* WARNING: rand() and srand() are really not that random in general.
  *          You should not use them unless nothing else is available.
