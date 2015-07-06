@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005-2007, 2009, 2011 Illinois Institute of Technology
+ * Copyright 2005-2007, 2009, 2011, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1289,7 +1289,7 @@ static int mx_use_posix_named_semaphores   = FALSE;
  */
 
 static int mx_use_posix_unnamed_semaphores = FALSE;
-static int mx_use_posix_named_semaphores   = TRUE;
+static int mx_use_posix_named_semaphores   = FALSE;
 
 #elif defined(OS_IRIX) || defined(OS_QNX) || defined(OS_ECOS)
 
@@ -2253,7 +2253,8 @@ mx_sysv_semaphore_get_value( MX_SEMAPHORE *semaphore,
 
 /*======================= Posix Pthreads ======================*/
 
-#if defined(_POSIX_SEMAPHORES) || defined(OS_IRIX) || defined(OS_MACOSX)
+#if ( defined(_POSIX_SEMAPHORES) && (! defined(OS_MACOSX)) ) \
+	|| defined(OS_IRIX) 
 
 #include <fcntl.h>
 #include <semaphore.h>
