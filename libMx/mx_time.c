@@ -431,20 +431,8 @@ mx_current_time_string( char *buffer, size_t buffer_length )
  *        relative to the Posix epoch on such platforms.
  */
 
-#if ( defined(OS_WIN32) && (_MSC_VER >= 800) )
-
-MX_EXPORT uint64_t
-mx_posix_time( void ) {
-
-	uint64_t posix_time;
-
-	posix_time = _time64( NULL );
-
-	return posix_time;
-}
-
-#elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_BSD) \
-	|| defined(OS_CYGWIN) || defined(OS_VMS)
+#if defined(OS_WIN32) || defined(OS_LINUX) || defined(OS_MACOSX) \
+	|| defined(OS_BSD) || defined(OS_CYGWIN) || defined(OS_VMS)
 
 MX_EXPORT uint64_t
 mx_posix_time( void ) {
