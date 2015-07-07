@@ -24,6 +24,7 @@
 #include "mx_osdef.h"
 #include "mx_stdint.h"
 #include "mx_hrt.h"
+#include "mx_dynamic_library.h"
 #include "mx_mutex.h"
 #include "mx_condition_variable.h"
 
@@ -73,8 +74,8 @@
  * In the meantime, I am using an adaptation of the SignalObjectAndWait()
  * code from the web page http://www.cs.wustl.edu/~schmidt/win32-cv-1.html
  * titled "Strategies for Implementing POSIX Condition Variables on Win32".
- * This code has the virtue that it will also run on Windows NT 4.0 and
- * on Windows XP.
+ * This code has the virtue that it will also run on Windows NT 4.0,
+ * Windows 2000, and Windows XP.
  *
  */
 
@@ -83,6 +84,11 @@
 static mx_bool_type mx_win32_type_tested_for = FALSE;
 
 static mx_bool_type mx_win32_signal_object_and_wait_available = FALSE;
+
+typedef DWORD (*SignalObjectAndWait_type)( HANDLE, HANDLE, DWORD, BOOL );
+
+static SignalObjectAndWait_type
+	ptr_SignalObjectAndWait = NULL;
 
 typedef struct {
   int waiters_count_;
@@ -115,32 +121,46 @@ mx_condition_variable_create( MX_CONDITION_VARIABLE **cv )
 	mx_status_type mx_status;
 
 	if ( mx_win32_type_tested_for == FALSE ) {
-		mx_bool_type is_windows_9x;
+	    mx_bool_type is_windows_9x;
 
-		mx_win32_type_tested_for = TRUE;
+	    mx_win32_type_tested_for = TRUE;
 
-		mx_status = mx_win32_is_windows_9x( &is_windows_9x );
+	    mx_status = mx_win32_is_windows_9x( &is_windows_9x );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+	    if ( mx_status.code != MXE_SUCCESS )
+	        return mx_status;
 
-		if ( is_windows_9x ) {
-			mx_win32_signal_object_and_wait_available = FALSE;
-		} else {
-			int os_major, os_minor, os_update;
+	    if ( is_windows_9x ) {
+	        mx_win32_signal_object_and_wait_available = FALSE;
+	    } else {
+	        int os_major, os_minor, os_update;
 
-			mx_status = mx_get_os_version( &os_major,
-						&os_minor, &os_update );
+	        mx_status = mx_get_os_version( &os_major,
+					&os_minor, &os_update );
 
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
+	        if ( mx_status.code != MXE_SUCCESS )
+	            return mx_status;
 
-			if ( os_major < 4 ) {
-			    mx_win32_signal_object_and_wait_available = FALSE;
-			} else {
-			    mx_win32_signal_object_and_wait_available = TRUE;
-			}
-		}
+	        if ( os_major < 4 ) {
+	            mx_win32_signal_object_and_wait_available = FALSE;
+	        } else {
+	            mx_status = mx_dynamic_library_get_library_and_symbol(
+	                "kernel32.dll", "SignalObjectAndWait",
+	                    NULL, (void **) ptr_SignalObjectAndWait );
+
+	            if ( mx_status.code != MXE_SUCCESS ) {
+	                mx_win32_signal_object_and_wait_available = FALSE;
+
+	                return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+	                    "SignalObjectAndWait() was not found, even though "
+	                    "it _should_ exist for this version of Windows.  "
+	                    "Original error = '%s'.",
+	                        mx_status.message );
+	            }
+
+	            mx_win32_signal_object_and_wait_available = TRUE;
+	        }
+	    }
 	}
 
 	if ( mx_win32_signal_object_and_wait_available == FALSE ) {
@@ -338,7 +358,7 @@ mx_condition_variable_timed_wait( MX_CONDITION_VARIABLE *cv,
 	// semaphore until "signal" or "broadcast"
 	// are called by another thread.
 
-	os_status = SignalObjectAndWait( *win32_mutex_handle_ptr,
+	os_status = ptr_SignalObjectAndWait( *win32_mutex_handle_ptr,
 					win32_cv->sema_,
 					dword_timeout,
 					FALSE );
@@ -364,7 +384,7 @@ mx_condition_variable_timed_wait( MX_CONDITION_VARIABLE *cv,
 		// waits until it can acquire *win32_mutex_handle_ptr.
 		// This is required to ensure fairness.
 
-		os_status = SignalObjectAndWait( win32_cv->waiters_done_,
+		os_status = ptr_SignalObjectAndWait( win32_cv->waiters_done_,
 						*win32_mutex_handle_ptr,
 						INFINITE,
 						FALSE );
