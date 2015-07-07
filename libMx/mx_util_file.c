@@ -54,6 +54,7 @@
 #include "mx_unistd.h"
 #include "mx_stdint.h"
 #include "mx_cfn.h"
+#include "mx_dynamic_library.h"
 
 /*-------------------------------------------------------------------------*/
 
@@ -85,7 +86,12 @@ mxp_get_shlwapi_hinstance( void )
 
 #if defined(OS_WIN32) 
 
-#define MX_USE_COPYFILE_EX	TRUE
+static mx_bool_type tested_for_copy_file_ex = FALSE;
+
+typedef BOOL (*CopyFileEx_ptr)( LPCTSTR, LPCTSTR, LPPROGRESS_ROUTINE,
+				LPVOID, LPBOOL, DWORD );
+
+static CopyFileEx_ptr ptrCopyFileEx = NULL;
 
 MX_EXPORT mx_status_type
 mx_copy_file( char *existing_filename,
@@ -117,16 +123,47 @@ mx_copy_file( char *existing_filename,
 
 	/*---*/
 
-#if ( MX_USE_COPYFILE_EX == FALSE )
+	if ( tested_for_copy_file_ex == FALSE ) {
 
-	os_status = CopyFile( existing_filename, new_filename, FALSE );
+#if defined(_UNICODE)
+		mx_status = mx_dynamic_library_get_library_and_symbol(
+				"kernel32.dll", "CopyFileExW",
+				NULL, (void **) &ptrCopyFileEx );
+#else
+		mx_status = mx_dynamic_library_get_library_and_symbol(
+				"kernel32.dll", "CopyFileExA",
+				NULL, (void **) &ptrCopyFileEx );
+#endif
 
-#else /* MX_USE_COPYFILE_EX */
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-	os_status = CopyFileEx( existing_filename, new_filename,
-					NULL, NULL, NULL, 0 );
+		tested_for_copy_file_ex = TRUE;
+	}
 
-#endif /* MX_USE_COPYFILE_EX */
+	if ( ptrCopyFileEx == NULL ) {
+		BOOL fail_if_exists;
+
+		if ( copy_flags & MXF_CP_OVERWRITE ) {
+			fail_if_exists = FALSE;
+		} else {
+			fail_if_exists = TRUE;
+		}
+
+		os_status = CopyFile( existing_filename, new_filename,
+					fail_if_exists );
+	} else {
+		DWORD ex_copy_flags;
+
+		if ( copy_flags & MXF_CP_OVERWRITE ) {
+			ex_copy_flags = 0;
+		} else {
+			ex_copy_flags = COPY_FILE_FAIL_IF_EXISTS;
+		}
+
+		os_status = ptrCopyFileEx( existing_filename, new_filename,
+					NULL, NULL, NULL, ex_copy_flags );
+	}
 
 	if ( os_status == 0 ) {
 		last_error_code = GetLastError();

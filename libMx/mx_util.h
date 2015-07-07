@@ -820,6 +820,8 @@ MX_API mx_status_type mx_get_system_boot_time_from_ticks(
 
 /* Flag bits for mx_copy_file(). */
 
+#define MXF_CP_OVERWRITE		0x1
+
 #define MXF_CP_USE_CLASSIC_COPY		0x80000000
 
 /* mx_copy_file() copies an old file to a new file where new_file_mode
