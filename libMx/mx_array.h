@@ -32,10 +32,22 @@ extern "C" {
 #  else
 #    define MX_MAXIMUM_ALIGNMENT	16
 #  endif
+
 #elif defined(_MSC_VER)
 #  define MX_MAXIMUM_ALIGNMENT		8
+
+#elif defined(__SUNPRO_C)
+#  if defined(__sparcv9)
+#    define MX_MAXIMUM_ALIGNMENT	16
+#  elif defined(__x86_64)
+#    define MX_MAXIMUM_ALIGNMENT	16
+#  else
+#    define MX_MAXIMUM_ALIGNMENT	8
+#  endif
+
 #elif defined(OS_VMS)
 #  define MX_MAXIMUM_ALIGNMENT		8
+
 #else
 #  error This platform does not yet implement the MX_MAXIMUM_ALIGNMENT macro.
 #endif

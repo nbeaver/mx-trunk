@@ -506,7 +506,8 @@ mx_condition_variable_broadcast( MX_CONDITION_VARIABLE *cv )
 /************************ Posix pthreads ***********************/
 
 #elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_BSD) \
-	|| defined(OS_CYGWIN) || defined(OS_HURD) || defined(OS_VMS)
+	|| defined(OS_SOLARIS) || defined(OS_CYGWIN) || defined(OS_HURD) \
+	|| defined(OS_VMS)
 
 /*---*/
 

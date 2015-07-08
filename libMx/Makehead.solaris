@@ -42,9 +42,9 @@ READLINE_LIBRARIES = -ledit
 # /opt/sunstudio12.1/
 #
 
-#CC_CMD = /opt/solarisstudio12.3/bin/cc
+CC_CMD = /opt/solarisstudio12.3/bin/cc
 #CC_CMD = /opt/sunstudio12.1/bin/cc
-CC_CMD = /opt/SUNWspro/bin/cc
+#CC_CMD = /opt/SUNWspro/bin/cc
 
 #
 #========================================================================
