@@ -240,9 +240,9 @@ mx_get_number_of_cpu_cores( unsigned long *num_cores )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*---------------------------- Hurd ------------------------*/
+/*------------------------ Platforms with only one core --------------------*/
 
-#elif defined(OS_HURD)
+#elif defined(OS_HURD) || defined(OS_DJGPP)
 
 MX_EXPORT mx_status_type
 mx_get_number_of_cpu_cores( unsigned long *num_cores )

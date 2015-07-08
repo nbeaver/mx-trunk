@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004-2007, 2014 Illinois Institute of Technology
+ * Copyright 2004-2007, 2014-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -268,7 +268,7 @@ mxd_net_sample_changer_shutdown( MX_SAMPLE_CHANGER *changer )
 	static const char fname[] = "mxd_net_sample_changer_shutdown()";
 
 	MX_NET_SAMPLE_CHANGER *net_sample_changer;
-	mx_bool_type shutdown;
+	mx_bool_type mx_shutdown;
 	mx_status_type mx_status;
 
 	net_sample_changer = NULL;
@@ -282,10 +282,10 @@ mxd_net_sample_changer_shutdown( MX_SAMPLE_CHANGER *changer )
 	MX_DEBUG(-2,("%s invoked for record '%s'.",
 			fname, changer->record->name));
 
-	shutdown = TRUE;
+	mx_shutdown = TRUE;
 
 	mx_status = mx_put( &(net_sample_changer->shutdown_nf),
-				MXFT_BOOL, &shutdown );
+				MXFT_BOOL, &mx_shutdown );
 
 	MX_DEBUG(-2,("%s complete.", fname));
 

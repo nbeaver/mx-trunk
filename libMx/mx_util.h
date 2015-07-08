@@ -177,13 +177,20 @@ struct timespec {
 /*------------------------------------------------------------------------*/
 
 #if defined( OS_DJGPP )
+
+   /* Prevent Watt-32 from making its own definitions of int16_t and int32_t. */
+
+#  define HAVE_INT16_T
+#  define HAVE_INT32_T
+
    /* This has to appear before we include <sys/param.h> below, which
     * includes <sys/swap.h>, which requires these prototypes to exist.
     * They are also used by the mx_socket.h header file.
     */
    extern __inline__ unsigned long  __ntohl( unsigned long );
    extern __inline__ unsigned short __ntohs( unsigned short );
-#endif
+
+#endif /* OS_DJGPP */
 
 #if defined( OS_WIN32 )
 #  include <stdlib.h>

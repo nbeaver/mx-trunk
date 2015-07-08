@@ -1216,84 +1216,6 @@ mx_free_command_line( char **argv, char **envp )
 
 /*-------------------------------------------------------------------------*/
 
-#if defined(OS_WIN32) && defined(_MSC_VER)
-
-/* The Win32 functions _snprintf() and _vsnprintf() do not null terminate
- * the strings they return if the output was truncated.  This is inconsitent
- * with the Unix definition of these functions, so we cannot simply define
- * snprintf() as _snprintf().  Instead, we provide wrapper functions that
- * make sure that the output string is always terminated.  Thanks to the
- * authors of http://www.di-mgt.com.au/cprog.html for pointing this out.
- */
-
-MX_EXPORT int
-mx_snprintf( char *dest, size_t maxlen, const char *format, ... )
-{
-	va_list args;
-	int result;
-
-	va_start( args, format );
-
-	result = _vsnprintf( dest, maxlen-1, format, args );
-
-	if ( result < 0 ) {
-		dest[ maxlen-1 ] = '\0';
-	}
-
-	va_end( args );
-
-	return result;
-}
-
-MX_EXPORT int
-mx_vsnprintf( char *dest, size_t maxlen, const char *format, va_list args  )
-{
-	int result;
-
-	result = _vsnprintf( dest, maxlen-1, format, args );
-
-	if ( result < 0 ) {
-		dest[ maxlen-1 ] = '\0';
-	}
-
-	return result;
-}
-
-#elif defined(OS_VXWORKS) || defined(OS_DJGPP) \
-	|| (defined(OS_VMS) && (__VMS_VER < 70320000))
-
-/* Some platforms do not provide snprintf() and vsnprintf().  For those
- * platforms we fall back to sprintf() and vsprintf().  The hope in doing
- * this is that any buffer overruns will be found on the plaforms that
- * _do_ support snprintf() and vsnprint(), since I really do not want to
- * bundle my own version of vsnprintf() with MX.
- */
-
-MX_EXPORT int
-mx_snprintf( char *dest, size_t maxlen, const char *format, ... )
-{
-	va_list args;
-	int result;
-
-	va_start( args, format );
-
-	result = vsprintf( dest, format, args );
-
-	va_end( args );
-
-	return result;
-}
-
-MX_EXPORT int
-mx_vsnprintf( char *dest, size_t maxlen, const char *format, va_list args  )
-{
-	return vsprintf( dest, format, args );
-}
-
-#endif
-
-/*-------------------------------------------------------------------------*/
-
 #define MX_DEBUG_SNPRINTF_FROM_POINTER_ARRAY	FALSE
 
 /* If you want to use something like snprintf() to print a list of arguments,
@@ -2104,7 +2026,7 @@ mx_get_random_max( void )
 
 /*--------*/
 
-#elif defined(OS_LINUX) || defined(OS_BSD) || defined(OS_CYGWIN)
+#elif defined(OS_LINUX) || defined(OS_CYGWIN) || defined(OS_DJGPP)
 
 MX_EXPORT unsigned long
 mx_random( void )

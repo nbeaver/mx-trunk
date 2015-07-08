@@ -216,24 +216,13 @@ mxi_com_close( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_com_close()";
 
-	MX_RS232 *rs232;
 	MX_COM *com;
-	char *name;
 
 	MX_DEBUG(-2, ("mxi_com_close() invoked."));
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_RECORD pointer passed is NULL." );
-	}
-
-	name = &(record->name[0]);	 /* Get the name of the port. */
-
-	rs232 = (MX_RS232 *) (record->record_class_struct);
-
-	if ( rs232 == (MX_RS232 *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"MX_RS232 structure pointer is NULL." );
 	}
 
 	com = (MX_COM *) (record->record_type_struct);

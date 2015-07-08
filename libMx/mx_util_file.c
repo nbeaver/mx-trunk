@@ -2017,11 +2017,8 @@ mx_get_filesystem_root_name( char *filename,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#elif defined(OS_MSDOS)
-
-#error Finding the drive root is not yet implemented for this platform.
-
 #endif
+
 /*=========================================================================*/
 
 #if defined(OS_WIN32)
@@ -2209,7 +2206,7 @@ mx_get_filesystem_type( char *filename,
 
 #elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
 	|| defined(OS_CYGWIN) || defined(OS_BSD) || defined(OS_UNIXWARE) \
-	|| defined(OS_HURD) || defined(OS_VMS)
+	|| defined(OS_HURD) || defined(OS_VMS) || defined(OS_DJGPP)
 
 /* FIXME: On Linux, at least, it should be possible to do something
  * with statfs().  On MacOS X, statfs() does not appear to return the

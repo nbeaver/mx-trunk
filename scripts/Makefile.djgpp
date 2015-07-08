@@ -19,6 +19,7 @@ MAKECMD = make MX_ARCH=$(MX_ARCH) MX_INSTALL_DIR=$(MX_INSTALL_DIR)
 all: build
 
 build: depend_files
+	touch libMx\mx_private_revision.h
 	cd tools
 	$(MAKECMD) -f Makefile.$(MX_ARCH)
 	cd ..\libMx

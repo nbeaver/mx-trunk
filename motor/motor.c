@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2014 Illinois Institute of Technology
+ * Copyright 1999-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1056,6 +1056,10 @@ motor_expand_pathname( char *filename, int max_filename_length )
 	}
 #else
 	filename[0] = '\0';
+#endif
+
+#if defined( OS_WIN32 ) || defined( OS_MSDOS )
+	MXW_UNUSED( drive_letter );
 #endif
 
 	strlcat( filename, buffer, max_filename_length );

@@ -570,7 +570,7 @@ mx_condition_variable_create( MX_CONDITION_VARIABLE **cv )
 MX_EXPORT mx_status_type
 mx_condition_variable_destroy( MX_CONDITION_VARIABLE *cv )
 {
-	static const char fname[] = "mx_condition_variable_create()";
+	static const char fname[] = "mx_condition_variable_destroy()";
 
 	pthread_cond_t *pthread_cv;
 	int pthread_status;
@@ -792,6 +792,67 @@ mx_condition_variable_broadcast( MX_CONDITION_VARIABLE *cv )
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+#elif defined(OS_DJGPP)
+
+/* Platforms that do not have what is needed to implement condition variables.*/
+
+MX_EXPORT mx_status_type
+mx_condition_variable_create( MX_CONDITION_VARIABLE **cv )
+{
+	static const char fname[] = "mx_condition_variable_create()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"Condition variables are not implemented on this platform." );
+}
+
+MX_EXPORT mx_status_type
+mx_condition_variable_destroy( MX_CONDITION_VARIABLE *cv )
+{
+	static const char fname[] = "mx_condition_variable_destroy()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"Condition variables are not implemented on this platform." );
+}
+
+MX_EXPORT mx_status_type
+mx_condition_variable_wait( MX_CONDITION_VARIABLE *cv,
+					MX_MUTEX *mutex )
+{
+	static const char fname[] = "mx_condition_variable_wait()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"Condition variables are not implemented on this platform." );
+}
+
+MX_EXPORT mx_status_type
+mx_condition_variable_timed_wait( MX_CONDITION_VARIABLE *cv,
+					MX_MUTEX *mutex,
+					const struct timespec *ts )
+{
+	static const char fname[] = "mx_condition_variable_timed_wait()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"Condition variables are not implemented on this platform." );
+}
+
+MX_EXPORT mx_status_type
+mx_condition_variable_signal( MX_CONDITION_VARIABLE *cv )
+{
+	static const char fname[] = "mx_condition_variable_signal()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"Condition variables are not implemented on this platform." );
+}
+
+MX_EXPORT mx_status_type
+mx_condition_variable_broadcast( MX_CONDITION_VARIABLE *cv )
+{
+	static const char fname[] = "mx_condition_variable_broadcast()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"Condition variables are not implemented on this platform." );
 }
 
 #else

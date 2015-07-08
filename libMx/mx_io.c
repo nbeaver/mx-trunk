@@ -266,7 +266,7 @@ mx_get_number_of_open_file_descriptors( void )
 
 #if defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
 	|| defined(OS_BSD) || defined(OS_HURD) || defined(OS_CYGWIN) \
-	|| defined(OS_UNIXWARE) || defined(OS_VMS)
+	|| defined(OS_UNIXWARE) || defined(OS_VMS) || defined(OS_DJGPP)
 
 MX_EXPORT mx_bool_type
 mx_fd_is_valid( int fd )
@@ -375,7 +375,8 @@ mx_get_file_size( const char *filename )
 }
 
 #elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_BSD) \
-	|| defined(OS_CYGWIN) || defined(OS_VMS) || defined(OS_HURD)
+	|| defined(OS_CYGWIN) || defined(OS_VMS) || defined(OS_HURD) \
+	|| defined(OS_DJGPP)
 
 MX_EXPORT int64_t
 mx_get_file_size( const char *filename )
@@ -1432,7 +1433,7 @@ mx_get_fd_name( unsigned long process_id, int fd,
 
 /*-------------------------------------------------------------------------*/
 
-#elif defined(OS_HURD) || defined(OS_VXWORKS)
+#elif defined(OS_HURD) || defined(OS_VXWORKS) || defined(OS_DJGPP)
 
 MX_EXPORT char *
 mx_get_fd_name( unsigned long process_id, int fd,
@@ -2611,12 +2612,13 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
 
 #elif defined(OS_LINUX) || defined(OS_SOLARIS) || defined(OS_HURD) \
 	|| defined(OS_UNIXWARE) || defined(OS_CYGWIN) || defined(OS_VXWORKS) \
-	|| defined(OS_VMS)
+	|| defined(OS_VMS) || defined(OS_DJGPP)
 
 /*
  * This is a generic stat()-based implementation that requires polling.
  * It is used for the following platforms:
  *
+ *   DJGPP
  *   Gnu Hurd.
  *   Linux with Glibc 2.3.5 and before.
  *   Solaris 9 and before.
