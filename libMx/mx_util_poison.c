@@ -1,5 +1,5 @@
 /*
- * Name:    mx_util_no_poison.c
+ * Name:    mx_util_poison.c
  *
  * Purpose: A few MX routines (on some platforms) have to use functions
  *          that are otherwise banned from use elsewhere in MX by
