@@ -1527,6 +1527,7 @@ mx_vm_show_os_info( FILE *file,
 #  define MX_VM_ALLOC_USES_FREE
 #  define MX_VM_SET_PROTECTION_USES_STUB
 #  define MX_VM_GET_PROTECTION_USES_STUB
+#  define MX_VM_SHOW_OS_INFO_USES_STUB
 
 /*=========================================================================*/
 
@@ -1630,6 +1631,20 @@ mx_vm_get_protection( void *address,
 }
 
 #endif /* MX_VM_GET_PROTECTION_USES_STUB */
+
+/*.......................................................................*/
+
+#if defined(MX_VM_SHOW_OS_INFO_USES_STUB)
+
+MX_EXPORT mx_status_type
+mx_vm_show_os_info( FILE *file,
+		void *address,
+		size_t region_size_in_bytes )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#endif /* MX_VM_SHOW_OS_INFO_USES_STUB */
 
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
