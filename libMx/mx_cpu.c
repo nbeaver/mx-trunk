@@ -306,6 +306,20 @@ mx_get_current_cpu_number( void )
 	return 0;
 }
 
+#elif defined(OS_SOLARIS)
+
+#include <sys/processor.h>
+
+MX_EXPORT unsigned long
+mx_get_current_cpu_number( void )
+{
+	processorid_t cpu_number;
+
+	cpu_number = getcpuid();
+
+	return cpu_number;
+}
+
 #elif ( defined(OS_LINUX) && (MX_GLIBC_VERSION >= 2006000L) )
 
 extern int sched_getcpu( void );
@@ -320,7 +334,7 @@ mx_get_current_cpu_number( void )
 	return cpu_number;
 }
 
-#elif defined(OS_MACOSX) || defined(OS_BSD)
+#elif defined(__clang__)
 
 /* FIXME: The GCC inline assembly in the next case below
  * does not work for Clang.
@@ -371,7 +385,7 @@ mx_get_current_cpu_number( void )
 	return cpu_number;
 }
 
-#elif ( defined(OS_LINUX) )
+#elif defined(OS_LINUX)
 
 /* Select this case if this particular platform does not implement
  * the concept of a CPU number.

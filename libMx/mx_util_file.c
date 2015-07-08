@@ -646,7 +646,7 @@ mx_get_num_lines_in_file( char *filename, size_t *num_lines_in_file )
 		}
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	MXW_NOT_REACHED( return MX_SUCCESSFUL_RESULT );
 }
 
 /*=========================================================================*/
@@ -704,7 +704,7 @@ mx_skip_num_lines_in_file( FILE *file, size_t num_lines_to_skip )
 		}
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	MXW_NOT_REACHED( return MX_SUCCESSFUL_RESULT );
 }
 
 /*=========================================================================*/

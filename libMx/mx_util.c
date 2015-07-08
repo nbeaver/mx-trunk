@@ -2026,7 +2026,8 @@ mx_get_random_max( void )
 
 /*--------*/
 
-#elif defined(OS_LINUX) || defined(OS_CYGWIN) || defined(OS_DJGPP)
+#elif defined(OS_LINUX) || defined(OS_SOLARIS) || defined(OS_CYGWIN) \
+	|| defined(OS_DJGPP)
 
 MX_EXPORT unsigned long
 mx_random( void )

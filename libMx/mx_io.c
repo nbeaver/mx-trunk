@@ -2427,7 +2427,7 @@ mxp_solaris_port_associate( MX_FILE_MONITOR *file_monitor,
 		case ENOENT:
 			mx_status = mx_error( MXE_NOT_FOUND | quiet_flag, fname,
 				"File '%s' not found.  No monitor created.",
-				filename );
+				file_monitor->filename );
 			break;
 
 		default:
@@ -2505,7 +2505,7 @@ mx_create_file_monitor( MX_FILE_MONITOR **monitor_ptr,
 
 	memset( &(port_monitor->file_object), 0, sizeof(file_obj_t) );
 
-	mx_status = mxp_solaris_port_associate( *monitor_ptr );
+	mx_status = mxp_solaris_port_associate( *monitor_ptr, FALSE );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		close( port_monitor->port );

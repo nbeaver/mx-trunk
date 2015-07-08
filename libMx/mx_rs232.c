@@ -2081,6 +2081,6 @@ mx_rs232_send_file( MX_RECORD *record,
 		}
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	MXW_NOT_REACHED( return MX_SUCCESSFUL_RESULT );
 }
 

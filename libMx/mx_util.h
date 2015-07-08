@@ -230,6 +230,31 @@ struct timespec {
 
 /*------------------------------------------------------------------------*/
 
+/* Note for Solaris:
+ *   In principle, for the Sun Studio or Solaris Studio compiler you could
+ *   bracket the not reached line with something like this
+ *
+ *   #pragma error_messages (off, E_STATEMENT_NOT_REACHED)
+ *       unreached_line();
+ *   #pragma error_messages (on, E_STATEMENT_NOT_REACHED)
+ *
+ *   But you cannot use #pragmas in a macro definition.
+ *
+ *   Alternately you could use C99's _Pragma() which can go in a macro.
+ *   But older versions of Sun Studio do not have _Pragma(), so we can't
+ *   use it.
+ *
+ *   For now, we deal with this by just not emitting the offending statement.
+ */
+
+#if defined(__SUNPRO_C)
+#  define MXW_NOT_REACHED( x )
+#else
+#  define MXW_NOT_REACHED( x )  (x)
+#endif
+
+/*------------------------------------------------------------------------*/
+
 #ifndef TRUE
 #define TRUE	1
 #define FALSE	0
