@@ -230,7 +230,16 @@ struct timespec {
 
 /*------------------------------------------------------------------------*/
 
-/* Note for Solaris:
+/*
+ * Some compilers will emit a warning message if they find a statement
+ * that can never be reached.  For some other compilers, they will emit
+ * a warning if a statement is _not_ placed at the unreachable location.
+ * An example of this is a while(1) loop that can never be broken out of 
+ * with a return statement following it.
+ *
+ * The MXW_NOT_REACHED() was created to handle this situation.
+ *
+ * Note for Solaris:
  *   In principle, for the Sun Studio or Solaris Studio compiler you could
  *   bracket the not reached line with something like this
  *
@@ -245,12 +254,22 @@ struct timespec {
  *   use it.
  *
  *   For now, we deal with this by just not emitting the offending statement.
+ *
+ * Note for #else case:
+ *
+ *   The 'x' at the end of the macro _must_ _not_ be surrounded by a pair
+ *   of parenthesis.  If you _did_ put in parenthesis, you would end up
+ *   with situations like
+ *
+ *   (return MX_SUCCESSFUL_RESULT);
+ *
+ *   which is not valid C.
  */
 
 #if defined(__SUNPRO_C)
 #  define MXW_NOT_REACHED( x )
 #else
-#  define MXW_NOT_REACHED( x )  (x)
+#  define MXW_NOT_REACHED( x )    x
 #endif
 
 /*------------------------------------------------------------------------*/
