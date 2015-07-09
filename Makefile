@@ -40,11 +40,10 @@
 #------------------------------------------------------------------------------
 #
 # Set MX_INSTALL_DIR to the directory that you want to install MX in.
-# Next, check "mx/libMx/mxconfig.h" to see if any of the defines need to
-# be changed.   Then do the command "make depend" followed by "make".
-# If MX builds correctly, do "make install" to install the binaries
-# in the requested location.  The directory $(MX_INSTALL_DIR) must exist
-# before you do "make install".
+# Then, do the command "make depend" followed by "make".  If MX builds
+# correctly, do "make install" to install the binaries in the requested
+# location.  The directory $(MX_INSTALL_DIR) must exist # before you do
+# "make install".
 #
 # On 'win32', $(MX_INSTALL_DIR) should use forward slashes like / rather
 # than backslashes.
