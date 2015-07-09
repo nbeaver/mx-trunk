@@ -4653,20 +4653,10 @@ mxd_aviex_pccd_geometrical_correction( MX_AREA_DETECTOR *ad,
 	  "The image_frame->image_data pointer for area detector '%s' is NULL.",
 			ad->record->name );
 	}
-	if ( aviex_pccd->geometrical_spline_filename == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The geometrical_spline_filename pointer for "
-		"area detector '%s' is NULL.", ad->record->name );
-	}
 	if ( strlen( aviex_pccd->geometrical_spline_filename ) == 0 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"No geometrical correction spline filename was provided for "
 		"area detector '%s'.", ad->record->name );
-	}
-	if ( aviex_pccd->geometrical_mask_filename == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The geometrical_mask_filename pointer for "
-		"area detector '%s' is NULL.", ad->record->name );
 	}
 	if ( strlen( aviex_pccd->geometrical_mask_filename ) == 0 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,

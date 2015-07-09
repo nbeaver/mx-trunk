@@ -220,12 +220,6 @@ mxd_databox_motor_finish_record_initialization( MX_RECORD *record )
 
 	/* Store a pointer to this record in the MX_DATABOX structure. */
 
-	if ( databox->motor_record_array == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-"The motor_record_array pointer for the DATABOX interface '%s' is NULL.",
-			databox->record->name );
-	}
-
 	if ( islower( (int)(databox_motor->axis_name) ) ) {
 		databox_motor->axis_name
 			= toupper( (int)(databox_motor->axis_name) );
@@ -240,12 +234,6 @@ mxd_databox_motor_finish_record_initialization( MX_RECORD *record )
 		"The only allowed names are 'X', 'Y', and 'Z'.",
 			databox_motor->axis_name,
 			record->name );
-	}
-
-	if ( databox->motor_record_array == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	"The motor_record_array pointer for DATABOX interface '%s' is NULL.",
-			databox->record->name );
 	}
 
 	(databox->motor_record_array)[i] = record;

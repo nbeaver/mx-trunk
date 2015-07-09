@@ -353,12 +353,16 @@ mxd_digital_fanin_read( MX_DIGITAL_INPUT *dinput )
 			field_value = mx_string_to_unsigned_long( value_ptr );
 			break;
 		case MXFT_CHAR:
+			field_value = labs( *((char *) value_ptr) );
+			break;
 		case MXFT_UCHAR:
-			field_value = labs( *((unsigned char *) value_ptr) );
+			field_value = *((unsigned char *) value_ptr);
 			break;
 		case MXFT_SHORT:
+			field_value = labs( *((short *) value_ptr) );
+			break;
 		case MXFT_USHORT:
-			field_value = labs( *((unsigned short *) value_ptr) );
+			field_value = *((unsigned short *) value_ptr);
 			break;
 		case MXFT_BOOL:
 			field_value = labs( *((mx_bool_type *) value_ptr) );
@@ -370,9 +374,11 @@ mxd_digital_fanin_read( MX_DIGITAL_INPUT *dinput )
 			}
 			break;
 		case MXFT_LONG:
+			field_value = labs( *((long *) value_ptr) );
+			break;
 		case MXFT_ULONG:
 		case MXFT_HEX:
-			field_value = labs( *((unsigned long *) value_ptr) );
+			field_value = *((unsigned long *) value_ptr);
 			break;
 		case MXFT_FLOAT:
 			field_value = mx_round(fabs( *((float *) value_ptr) ));

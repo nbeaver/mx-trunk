@@ -7,7 +7,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2003, 2006, 2010, 2013 Illinois Institute of Technology
+ * Copyright 1999, 2001-2003, 2006, 2010, 2013, 2015
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -222,19 +223,7 @@ mxd_vme58_finish_record_initialization( MX_RECORD *record )
 
 	/* Store a pointer to this record in the MX_VME58 structure. */
 
-	if ( vme58->motor_array == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	"The motor_array pointer for the VME58 interface '%s' is NULL.",
-			vme58->record->name );
-	}
-
 	i = (int) vme58_motor->axis_number - 1;
-
-	if ( vme58->motor_array == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The motor_array pointer for VME58 interface '%s' is NULL.",
-			vme58->record->name );
-	}
 
 	(vme58->motor_array)[i] = record;
 
