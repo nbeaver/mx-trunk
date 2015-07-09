@@ -45,7 +45,7 @@ extern "C" {
 #    define MX_MAXIMUM_ALIGNMENT	8
 #  endif
 
-#elif defined(OS_VMS)
+#elif defined(OS_VMS) || defined(OS_UNIXWARE)
 #  define MX_MAXIMUM_ALIGNMENT		8
 
 #else

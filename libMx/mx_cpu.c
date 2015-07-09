@@ -385,10 +385,11 @@ mx_get_current_cpu_number( void )
 	return cpu_number;
 }
 
-#elif defined(OS_LINUX)
+#elif defined(OS_LINUX) || defined(OS_UNIXWARE)
 
 /* Select this case if this particular platform does not implement
- * the concept of a CPU number.
+ * the concept of a CPU number or does not provide a programmatic
+ * way of getting the CPU number.
  */
 
 /* NOTE: The presence of this case allows 'make depend' to complete

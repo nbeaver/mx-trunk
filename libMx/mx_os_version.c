@@ -624,8 +624,13 @@ mx_get_os_version_string( char *version_string,
 	}
 #endif
 
+#if defined(OS_UNIXWARE)
+	snprintf( version_string, max_version_string_length,
+		"%s %s", uname_struct.sysname, uname_struct.version );
+#else
 	snprintf( version_string, max_version_string_length,
 		"%s %s", uname_struct.sysname, uname_struct.release );
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
