@@ -44,6 +44,8 @@
 #include "mx_osdef.h"
 #include "mx_util.h"
 #include "mx_unistd.h"
+#include "mx_stdint.h"
+#include "mx_cfn.h"
 #include "mx_clock.h"
 #include "mx_hrt.h"
 
@@ -76,6 +78,8 @@
 #  define MX_NEED_HRT_FALLBACK		TRUE
 #endif
 
+/*--------------------------------------------------------------------------*/
+
 #if MX_NEED_HRT_FALLBACK
 
 static struct timespec
@@ -99,6 +103,8 @@ mx_high_resolution_time_using_clock_ticks( void )
 }
 
 #endif /* MX_NEED_HRT_FALLBACK */
+
+/*---*/
 
 MX_EXPORT struct timespec
 mx_add_high_resolution_times( struct timespec time1,
@@ -214,6 +220,8 @@ mx_high_resolution_time_as_double( void )
 
 	return result;
 }
+
+/*--------------------------------------------------------------------------*/
 
 #if defined(OS_WIN32)
 
@@ -1035,12 +1043,31 @@ mx_high_resolution_time_init( void )
 
 #else	/* not OS_LINUX */
 
+#  define MX_NEED_HRT_INIT_FROM_FILE	TRUE
+
+double mx_high_resolution_time_init_from_file( void );
+
 MX_EXPORT void
 mx_high_resolution_time_init( void )
 {
 	unsigned long long tsc_before, tsc_after;
 
 	mx_high_resolution_time_init_invoked = TRUE;
+
+	/* Initially, we attempt to to read the calibration from the
+	 * file $MXDIR/etc/mx_timer_calib.dat
+	 */
+
+	mx_hrt_counter_ticks_per_microsecond =
+		mx_high_resolution_time_init_from_file();
+
+	if ( mx_hrt_counter_ticks_per_microsecond > 0.0 ) {
+		return;
+	}
+
+	/* If reading the calibration from a file did not succeed,
+	 * then we try to compute the calibration right now.
+	 */
 
 	mx_info(
 "Calibrating high resolution timer.  This will take around 10 seconds." );
@@ -1179,12 +1206,31 @@ mx_high_resolution_time_init( void )
 
 #else	/* not OS_MACOSX */
 
+#  define MX_NEED_HRT_INIT_FROM_FILE	TRUE
+
+double mx_high_resolution_time_init_from_file( void );
+
 MX_EXPORT void
 mx_high_resolution_time_init( void )
 {
 	unsigned long long timebase_before, timebase_after;
 
 	mx_high_resolution_time_init_invoked = TRUE;
+
+	/* Initially, we attempt to to read the calibration from the
+	 * file $MXDIR/etc/mx_timer_calib.dat
+	 */
+
+	mx_hrt_counter_ticks_per_microsecond =
+		mx_high_resolution_time_init_from_file();
+
+	if ( mx_hrt_counter_ticks_per_microsecond > 0.0 ) {
+		return;
+	}
+
+	/* If reading the calibration from a file did not succeed,
+	 * then we try to compute the calibration right now.
+	 */
 
 	mx_info(
 "Calibrating high resolution timer.  This will take around 10 seconds." );
@@ -1240,3 +1286,56 @@ mx_high_resolution_time_init( void )
 }
 
 #endif
+
+/*--------------------------------------------------------------------------*/
+
+#if defined( MX_NEED_HRT_INIT_FROM_FILE )
+
+double
+mx_high_resolution_time_init_from_file( void )
+{
+	char calib_filename[MXU_FILENAME_LENGTH+1];
+	FILE *calib_file;
+	char buffer[80];
+	int num_items;
+	double hrt_counter_ticks_per_microsecond;
+	mx_status_type mx_status;
+
+	mx_status = mx_cfn_construct_filename( MX_CFN_CONFIG,
+						"mx_timer_calib.dat",
+						calib_filename,
+						sizeof(calib_filename) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return -1;
+
+	calib_file = fopen( calib_filename, "r" );
+
+	if ( calib_file == NULL )
+		return -1;
+
+	mx_fgets( buffer, sizeof(buffer), calib_file );
+
+	fclose( calib_file );
+
+	num_items = sscanf( buffer, "%lg", &hrt_counter_ticks_per_microsecond );
+
+	if ( num_items != 1 ) {
+		mx_warning(
+		"The first line of timer calibration file '%s' did not contain "
+		"an HRT 'counter ticks per microsecond' calibration value.  "
+		"Instead, it contained '%s'.", calib_filename, buffer );
+
+		return -1;
+	}
+
+	mx_info(
+	"Setting high resolution timer to %g ticks per microsecond "
+	"from calibration file '%s'.",
+		hrt_counter_ticks_per_microsecond, calib_filename );
+
+	return hrt_counter_ticks_per_microsecond;
+}
+
+#endif /* MX_NEED_HRT_INIT_FROM_FILE */
+
