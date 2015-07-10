@@ -969,7 +969,7 @@ mx_semaphore_create( MX_SEMAPHORE **semaphore,
 
 	rtems_id *semaphore_id;
 	rtems_name semaphore_name;
-	rtems_unsigned32 initial_state;
+	uint32_t initial_state;
 	rtems_status_code rtems_status;
 
 	MX_DEBUG(-2,("%s invoked.", fname));
@@ -1004,7 +1004,7 @@ mx_semaphore_create( MX_SEMAPHORE **semaphore,
 		"Semaphores with shared names are not supported under RTEMS." );
 	}
 
-	initial_state = (rtems_unsigned32) initial_value;
+	initial_state = (uint32_t) initial_value;
 
 	rtems_status = rtems_semaphore_create(
 	    semaphore_name, initial_state,

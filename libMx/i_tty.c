@@ -90,6 +90,8 @@ static mx_status_type mxi_tty_posix_termios_print_configuration(
 #   if defined(OS_LINUX) || defined(OS_BSD) || defined(OS_MACOSX) \
 		|| defined(OS_HURD)
 #      include <sys/ioctl.h>
+#   elif defined(OS_RTEMS)
+#      include <sys/ioccom.h>
 #   else
        extern int ioctl( int fd, int request, ... );
 #   endif

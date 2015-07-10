@@ -90,7 +90,7 @@ void
 motor_rtems_reboot( void )
 {
 
-#if defined(MX_RTEMS_BSP_PC486) || defined(MX_RTEMS_BSP_MVME2307)
+#if defined(MX_RTEMS_BSP_PC386) || defined(MX_RTEMS_BSP_MVME2307)
 
 	fprintf(stderr,
 "RTEMS does not have a command line to return to, so we will reboot now.\n");

@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2012 Illinois Institute of Technology
+ * Copyright 1999-2006, 2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -99,7 +99,7 @@
 
   /********************** Record Types **********************/
 
-MX_DRIVER mx_type_list[] = {
+MX_DRIVER mx_type_table[] = {
 
 {"list_head",      MXT_LIST_HEAD,    MXL_LIST_HEAD,      MXR_LIST_HEAD,
 				&mxr_list_head_record_function_list,

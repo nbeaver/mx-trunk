@@ -195,7 +195,7 @@ mx_current_cpu_tick( void )
 
 #elif defined(OS_RTEMS)
 	{
-		rtems_unsigned32 ticks_since_boot;
+		uint32_t ticks_since_boot;
 
 		(void) rtems_clock_get( RTEMS_CLOCK_GET_TICKS_SINCE_BOOT,
 					&ticks_since_boot );
@@ -257,7 +257,7 @@ mx_clock_ticks_per_second( void )
 
 #elif defined(OS_RTEMS)
 	{
-		rtems_unsigned32 ticks_per_second;
+		uint32_t ticks_per_second;
 
 		(void) rtems_clock_get( RTEMS_CLOCK_GET_TICKS_PER_SECOND,
 					&ticks_per_second );

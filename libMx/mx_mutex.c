@@ -453,7 +453,7 @@ mx_mutex_create( MX_MUTEX **mutex )
 	static const char fname[] = "mx_mutex_create()";
 
 	rtems_id *semaphore_id;
-	rtems_unsigned32 initial_state;
+	uint32_t initial_state;
 	rtems_status_code rtems_status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));

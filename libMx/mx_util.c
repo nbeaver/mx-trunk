@@ -2049,7 +2049,7 @@ mx_get_random_max( void )
 
 /*--------*/
 
-#elif defined(OS_WIN32)
+#elif defined(OS_WIN32) || defined(OS_RTEMS)
 
 /* Used by: Win32 before Windows XP. */
 

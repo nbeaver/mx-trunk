@@ -1525,7 +1525,8 @@ mx_vm_show_os_info( FILE *file,
  * things out (especially the RTOSes).  But, if so I haven't found them.
  */
 
-#elif defined(OS_DJGPP) || defined(OS_VXWORKS) || defined(OS_QNX)
+#elif defined(OS_DJGPP) || defined(OS_VXWORKS) || defined(OS_QNX) \
+	|| defined(OS_RTEMS)
 
 #  define MX_VM_ALLOC_USES_MALLOC
 #  define MX_VM_ALLOC_USES_FREE

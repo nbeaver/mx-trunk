@@ -77,7 +77,7 @@ mx_get_number_of_cpu_cores( unsigned long *num_cores )
 
 #elif defined(OS_LINUX) || defined(OS_SOLARIS) || defined(OS_AIX) \
 	|| defined(OS_CYGWIN) || defined(OS_UNIXWARE) || defined(__FreeBSD__) \
-	|| defined(OS_QNX)
+	|| defined(OS_QNX) || defined(OS_RTEMS)
 
 MX_EXPORT mx_status_type
 mx_get_number_of_cpu_cores( unsigned long *num_cores )

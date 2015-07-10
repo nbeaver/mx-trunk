@@ -5,17 +5,35 @@
 #          dependent features of the MX makefiles.  This version is customized
 #          for RTEMS.
 #
+# Note:    This version of MX has been tested using the Debian packages
+#          for RTEMS 4.9 from the NSLS II laboratory found at
+#
+#            deb http://epics.nsls2.bnl.gov/debian/ wheezy main contrib
+#
 
-RTEMS_MAKEFILE_PATH = /opt/rtems-4.6/i386-rtems/pc486
+MX_RTEMS_PATH = /usr/i386-rtems4.9
 
-#RTEMS_MAKEFILE_PATH = /opt/rtems-4.6/m68k-rtems/mvme162
+MX_RTEMS_BSP_PATH = $(MX_RTEMS_PATH)/pc386
 
-#RTEMS_MAKEFILE_PATH = /opt/rtems-4.6/powerpc-rtems/mvme2307
+MX_RTEMS_GCC_PATH = /usr/lib/gcc/i386-rtems4.9/4.3.2
+
+#---
 
 INCLUDES	= $(MX_INCLUDES)
 
-LIB_DIRS	= -L$(MX_LIB_DIR)
-LIBRARIES	= -lm
+LIB_DIRS	= -L$(MX_RTEMS_PATH)/lib \
+			-L$(MX_RTEMS_BSP_PATH)/lib \
+			-L$(MX_RTEMS_GCC_PATH) \
+			-L$(MX_LIB_DIR) 
+
+# FIXME: The following definition is an atrocity.  There must be a better way
+#        to do this.
+
+LIBRARIES	= -lrtemsbsp -lrtemscpu -lm -lc -lposix -lgcc \
+			-lrtemsbsp -lrtemscpu \
+			$(MX_RTEMS_BSP_PATH)/lib/start.o \
+			$(MX_RTEMS_GCC_PATH)/crti.o \
+			-lrtemsbsp -lrtemscpu
 
 # 
 # RTEMS often runs on resource constrained systems, so we define here
@@ -71,9 +89,9 @@ MX_DRIVER_RTEMS_SRCS = i_tty.c i_rtems_vme.c \
 # makefile conditionals that use RTEMS_BSP below.
 #
 
-include $(RTEMS_MAKEFILE_PATH)/Makefile.inc
+include $(MX_RTEMS_BSP_PATH)/Makefile.inc
 include $(RTEMS_CUSTOM)
-include $(PROJECT_ROOT)/make/leaf.cfg
+#include $(PROJECT_ROOT)/make/leaf.cfg
 
 #
 # Define a CPP macro describing the board support package (BSP) in use
@@ -87,13 +105,13 @@ include $(PROJECT_ROOT)/make/leaf.cfg
 # directory /opt/rtems-4.6/make/custom for the details.
 #
 
-ifeq ($(RTEMS_BSP),pc486)
-	BSP_FLAGS = -DMX_RTEMS_BSP_PC486
+ifeq ($(RTEMS_BSP),pc386)
+	BSP_FLAGS = -DMX_RTEMS_BSP_PC386
 
 	MX_LIB_SRCS = mx_driver_rtems.c $(MX_CORE_SRCS) $(MX_DRIVER_RTEMS_SRCS)
 
 	HOST_CC = gcc
-	TARGET_CPP = i386-rtems-cpp
+	TARGET_CPP = i386-rtems4.9-cpp
 endif
 
 ifeq ($(RTEMS_BSP),mvme162)
@@ -149,7 +167,8 @@ GCCFLAGS = -Wall -Werror \
 
 #  RTEMS with GCC
 #
-CFLAGS		= -g -O $(GCCFLAGS) -I$(RTEMS_MAKEFILE_PATH)/lib/include \
+CFLAGS		= -g -O $(GCCFLAGS) \
+				-I$(MX_RTEMS_BSP_PATH)/lib/include \
 				$(INCLUDES) -DOS_RTEMS \
 				$(EXTRA_FLAGS) -DDEBUG \
 				$(BSP_FLAGS)
@@ -255,7 +274,9 @@ mx_list_head.$(OBJ): Makefile.version mx_list_head.c mx_version.h
 MOTOR_NAME	= mxmotor.exe
 
 $(MOTOR_NAME): mrtems.o $(MOTOR_OBJS) $(MX_LIBRARY_PATH) $(LINK_FILES)
-	$(make-exe)
+	$(LD) -o $(MOTOR_NAME) $(LIB_DIRS) -T linkcmds \
+		mrtems.o $(MOTOR_OBJS) -lMx \
+		$(LIBRARIES)
 
 mrtems.o: mrtems.c
 	$(COMPILE) $(CFLAGS) mrtems.c
@@ -270,7 +291,9 @@ motor_install:
 SERVER_NAME	= mxserver.exe
 
 $(SERVER_NAME): ms_rtems.o $(SERVER_OBJS) $(MX_LIBRARY_PATH) $(LINK_FILES)
-	$(make-exe)
+	$(LD) -o $(SERVER_NAME) $(LIB_DIRS) -T linkcmds \
+		ms_rtems.o $(SERVER_OBJS) -lMx \
+		$(LIBRARIES)
 
 ms_rtems.o: ms_rtems.c
 	$(COMPILE) $(CFLAGS) ms_rtems.c

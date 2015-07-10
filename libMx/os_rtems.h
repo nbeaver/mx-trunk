@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2005 Illinois Institute of Technology
+ * Copyright 2003, 2005, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -36,7 +36,7 @@
 
 rtems_task Init( rtems_task_argument argument );
 
-#include <confdefs.h>
+#include <rtems/confdefs.h>
 
 #include <stdio.h>
 #include <stdlib.h>
