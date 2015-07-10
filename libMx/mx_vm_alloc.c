@@ -1521,7 +1521,11 @@ mx_vm_show_os_info( FILE *file,
 
 /*===================== Platforms that only use stubs =====================*/
 
-#elif defined(OS_DJGPP) || defined(OS_VXWORKS)
+/* FIXME: Some of the following platforms may provide a way to figure these
+ * things out (especially the RTOSes).  But, if so I haven't found them.
+ */
+
+#elif defined(OS_DJGPP) || defined(OS_VXWORKS) || defined(OS_QNX)
 
 #  define MX_VM_ALLOC_USES_MALLOC
 #  define MX_VM_ALLOC_USES_FREE
@@ -1534,15 +1538,6 @@ mx_vm_show_os_info( FILE *file,
 #else
 #error Virtual memory functions are not yet implemented for this platform.
 #endif
-
-/* FIXME: The following build targets used an empty mx_pointer_is_valid()
- *        function:
- *
- * defined(OS_CYGWIN) || defined(OS_QNX) || defined(OS_ECOS) \
- *      || defined(OS_RTEMS) 
- *      || defined(OS_HPUX) || defined(OS_TRU64) || 
- *      || defined(OS_UNIXWARE) || defined(OS_HURD)
- */
 
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 

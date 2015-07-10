@@ -66,7 +66,7 @@
 # mx/module/epics/Makefile.config.
 #
 
-MX_ARCH = linux-clang
+MX_ARCH = qnx
 
 MX_INSTALL_DIR = /opt/mx
 #MX_INSTALL_DIR = c:/opt/mx
