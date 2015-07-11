@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2003, 2005-2008, 2011, 2013-2014
+ * Copyright 2001, 2003, 2005-2008, 2011, 2013-2015
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -119,8 +119,7 @@ motor_rs232_readline( MX_RECORD *record )
 }
 
 static int
-motor_rs232_sendfile( MX_RECORD *record,
-			const char *filename )
+motor_rs232_sendfile( MX_RECORD *record, char *filename )
 {
 	MX_RS232 *rs232;
 	FILE *file;

@@ -42,7 +42,7 @@ MX_API mx_bool_type mx_fd_is_valid( int fd );
 
 /*----*/
 
-MX_API int64_t mx_get_file_size( const char *filename );
+MX_API int64_t mx_get_file_size( char *filename );
 
 /*----*/
 

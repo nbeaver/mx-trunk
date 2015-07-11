@@ -577,7 +577,11 @@ mx_get_num_lines_in_file( char *filename, size_t *num_lines_in_file )
 
 	/* Open the file. */
 
+#if defined(OS_VXWORKS)
+	fd = open( filename, O_RDONLY, 0 );
+#else
 	fd = open( filename, O_RDONLY );
+#endif
 
 	if ( fd < 0 ) {
 		saved_errno = errno;
@@ -2206,8 +2210,8 @@ mx_get_filesystem_type( char *filename,
 
 #elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
 	|| defined(OS_CYGWIN) || defined(OS_BSD) || defined(OS_UNIXWARE) \
-	|| defined(OS_QNX) || defined(OS_RTEMS) || defined(OS_HURD) \
-	|| defined(OS_VMS) || defined(OS_DJGPP)
+	|| defined(OS_QNX) || defined(OS_RTEMS) || defined(OS_VXWORKS) \
+	|| defined(OS_HURD) || defined(OS_VMS) || defined(OS_DJGPP)
 
 /* FIXME: On Linux, at least, it should be possible to do something
  * with statfs().  On MacOS X, statfs() does not appear to return the

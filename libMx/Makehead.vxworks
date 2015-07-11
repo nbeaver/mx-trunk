@@ -32,7 +32,7 @@
 #
 # Host: Linux, Target: MVME162
 #
-WIND_BASE	= /opt/tornado/tornado2
+WIND_BASE	= /opt/vxworks/tornado202
 WIND_HOST_TYPE	= x86-linux
 WIND_ARCH	= 68k
 WIND_CPU	= MC68040

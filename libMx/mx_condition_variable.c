@@ -796,9 +796,9 @@ mx_condition_variable_broadcast( MX_CONDITION_VARIABLE *cv )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#elif defined(OS_DJGPP)
+#elif defined(OS_DJGPP) || defined(OS_VXWORKS)
 
-/* Platforms that do not have what is needed to implement condition variables.*/
+/* Platforms that do not provide for condition variables.*/
 
 MX_EXPORT mx_status_type
 mx_condition_variable_create( MX_CONDITION_VARIABLE **cv )

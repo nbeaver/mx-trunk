@@ -434,7 +434,7 @@ mx_current_time_string( char *buffer, size_t buffer_length )
 #if defined(OS_WIN32) || defined(OS_LINUX) || defined(OS_MACOSX) \
 	|| defined(OS_SOLARIS) || defined(OS_BSD) || defined(OS_CYGWIN) \
 	|| defined(OS_VMS) || defined(OS_UNIXWARE) || defined(OS_DJGPP) \
-	|| defined(OS_QNX) || defined(OS_RTEMS)
+	|| defined(OS_QNX) || defined(OS_RTEMS) || defined(OS_VXWORKS)
 
 MX_EXPORT uint64_t
 mx_posix_time( void ) {

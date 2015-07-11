@@ -241,9 +241,9 @@ mx_get_number_of_cpu_cores( unsigned long *num_cores )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*------------------------ Platforms with only one core --------------------*/
+/*---------------------- Platforms only using one core ------------------*/
 
-#elif defined(OS_HURD) || defined(OS_DJGPP)
+#elif defined(OS_HURD) || defined(OS_DJGPP) || defined(OS_VXWORKS)
 
 MX_EXPORT mx_status_type
 mx_get_number_of_cpu_cores( unsigned long *num_cores )
@@ -386,7 +386,7 @@ mx_get_current_cpu_number( void )
 	return cpu_number;
 }
 
-#elif defined(OS_LINUX) || defined(OS_UNIXWARE)
+#elif defined(OS_LINUX) || defined(OS_UNIXWARE) || defined(OS_VXWORKS)
 
 /* Select this case if this particular platform does not implement
  * the concept of a CPU number or does not provide a programmatic

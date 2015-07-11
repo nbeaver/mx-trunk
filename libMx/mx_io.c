@@ -318,7 +318,7 @@ mx_fd_is_valid( int fd )
 #if defined(OS_WIN32)
 
 MX_EXPORT int64_t
-mx_get_file_size( const char *filename )
+mx_get_file_size( char *filename )
 {
 	static const char fname[] = "mx_get_file_size()";
 
@@ -377,10 +377,11 @@ mx_get_file_size( const char *filename )
 
 #elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_BSD) \
 	|| defined(OS_CYGWIN) || defined(OS_VMS) || defined(OS_HURD) \
-	|| defined(OS_QNX) || defined(OS_RTEMS) || defined(OS_DJGPP)
+	|| defined(OS_QNX) || defined(OS_RTEMS) || defined(OS_VXWORKS) \
+	|| defined(OS_DJGPP)
 
 MX_EXPORT int64_t
-mx_get_file_size( const char *filename )
+mx_get_file_size( char *filename )
 {
 	int64_t file_size;
 
@@ -401,7 +402,7 @@ mx_get_file_size( const char *filename )
 #elif defined(OS_SOLARIS) || defined(OS_UNIXWARE)
 
 MX_EXPORT int64_t
-mx_get_file_size( const char *filename )
+mx_get_file_size( char *filename )
 {
 	int64_t file_size;
 
