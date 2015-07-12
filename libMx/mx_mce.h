@@ -54,6 +54,11 @@ typedef struct {
 	MX_RECORD **motor_record_array;
 
 	char selected_motor_name[ MXU_RECORD_NAME_LENGTH + 1 ];
+
+	mx_bool_type window_is_available;
+	mx_bool_type use_window;
+
+	double window[2];
 } MX_MCE;
 
 #define MXLV_MCE_CURRENT_NUM_VALUES		1001
@@ -68,6 +73,9 @@ typedef struct {
 #define MXLV_MCE_NUM_MOTORS			1010
 #define MXLV_MCE_MOTOR_RECORD_ARRAY		1011
 #define MXLV_MCE_SELECTED_MOTOR_NAME		1012
+#define MXLV_MCE_WINDOW_IS_AVAILABLE		1013
+#define MXLV_MCE_USE_WINDOW			1014
+#define MXLV_MCE_WINDOW				1015
 
 #define MX_MCE_STANDARD_FIELDS \
   {-1, -1, "encoder_type", MXFT_LONG, NULL, 0, {0}, \
@@ -146,7 +154,20 @@ typedef struct {
   {MXLV_MCE_SELECTED_MOTOR_NAME, -1, "selected_motor_name", \
   			MXFT_STRING, NULL, 1, {MXU_RECORD_NAME_LENGTH}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCE, selected_motor_name), \
-	{sizeof(char)}, NULL, 0}
+	{sizeof(char)}, NULL, 0}, \
+  \
+  {MXLV_MCE_WINDOW_IS_AVAILABLE, -1, "window_is_available", \
+					MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCE, window_is_available), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_MCE_USE_WINDOW, -1, "use_window", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCE, use_window), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_MCE_WINDOW, -1, "window", MXFT_DOUBLE, NULL, 1, {2}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCE, window), \
+	{sizeof(double)}, NULL, 0}
 
 
 /* Encoder types */
