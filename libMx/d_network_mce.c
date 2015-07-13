@@ -53,7 +53,9 @@ MX_MCE_FUNCTION_LIST mxd_network_mce_mce_function_list = {
 	NULL,
 	mxd_network_mce_read_measurement,
 	mxd_network_mce_get_motor_record_array,
-	mxd_network_mce_connect_mce_to_motor
+	mxd_network_mce_connect_mce_to_motor,
+	mxd_network_mce_get_parameter,
+	mxd_network_mce_set_parameter
 };
 
 /* MCS encoder data structures. */
@@ -229,6 +231,18 @@ mxd_network_mce_finish_record_initialization( MX_RECORD *record )
 	mx_network_field_init( &(network_mce->value_array_nf),
 		network_mce->server_record,
 		"%s.value_array", network_mce->remote_record_name );
+
+	mx_network_field_init( &(network_mce->use_window_nf),
+		network_mce->server_record,
+		"%s.use_window", network_mce->remote_record_name );
+
+	mx_network_field_init( &(network_mce->window_nf),
+		network_mce->server_record,
+		"%s.window", network_mce->remote_record_name );
+
+	mx_network_field_init( &(network_mce->window_is_available_nf),
+		network_mce->server_record,
+		"%s.window_is_available", network_mce->remote_record_name );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -730,6 +744,102 @@ mxd_network_mce_connect_mce_to_motor( MX_MCE *mce, MX_RECORD *motor_record )
 
 		mx_status = mx_get( &(network_mce->encoder_type_nf),
 				MXFT_LONG, &(mce->encoder_type) );
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_network_mce_get_parameter( MX_MCE *mce )
+{
+	static const char fname[] = "mxd_network_mce_get_parameter()";
+
+	MX_NETWORK_MCE *network_mce;
+	long dimension[1];
+	mx_status_type mx_status;
+
+	mx_status = mxd_network_mce_get_pointers( mce, &network_mce, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
+		fname, mce->record->name,
+		mx_get_field_label_string( mce->record, mce->parameter_type ),
+		mce->parameter_type ));
+
+	switch( mce->parameter_type ) {
+	case MXLV_MCE_USE_WINDOW:
+		mx_status = mx_get( &(network_mce->use_window_nf),
+				MXFT_BOOL, &(mce->use_window) );
+		break;
+
+	case MXLV_MCE_WINDOW:
+		dimension[0] = 2;	/* window start, window end */
+
+		mx_status = mx_get_array( &(network_mce->window_nf),
+				MXFT_DOUBLE, 1, dimension, mce->window );
+		break;
+
+	case MXLV_MCE_WINDOW_IS_AVAILABLE:
+		mx_status = mx_get( &(network_mce->window_is_available_nf),
+				MXFT_BOOL, &(mce->window_is_available) );
+		break;
+
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Parameter type %ld is not supported by "
+		"the driver for MCE '%s'.",
+			mce->parameter_type, mce->record->name );
+		break;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_network_mce_set_parameter( MX_MCE *mce )
+{
+	static const char fname[] = "mxd_network_mce_set_parameter()";
+
+	MX_NETWORK_MCE *network_mce;
+	long dimension[1];
+	mx_status_type mx_status;
+
+	mx_status = mxd_network_mce_get_pointers( mce, &network_mce, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
+		fname, mce->record->name,
+		mx_get_field_label_string( mce->record, mce->parameter_type ),
+		mce->parameter_type ));
+
+	switch( mce->parameter_type ) {
+	case MXLV_MCE_USE_WINDOW:
+		mx_status = mx_put( &(network_mce->use_window_nf),
+				MXFT_BOOL, &(mce->use_window) );
+		break;
+
+	case MXLV_MCE_WINDOW:
+		dimension[0] = 2;	/* window start, window end */
+
+		mx_status = mx_put_array( &(network_mce->window_nf),
+				MXFT_DOUBLE, 1, dimension, mce->window );
+		break;
+
+	case MXLV_MCE_WINDOW_IS_AVAILABLE:
+		mx_status = mx_put( &(network_mce->window_is_available_nf),
+				MXFT_BOOL, &(mce->window_is_available) );
+		break;
+
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Parameter type %ld is not supported by "
+		"the driver for MCE '%s'.",
+			mce->parameter_type, mce->record->name );
+		break;
 	}
 
 	return mx_status;

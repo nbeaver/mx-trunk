@@ -35,6 +35,9 @@ typedef struct {
 	MX_NETWORK_FIELD selected_motor_name_nf;
 	MX_NETWORK_FIELD value_nf;
 	MX_NETWORK_FIELD value_array_nf;
+	MX_NETWORK_FIELD use_window_nf;
+	MX_NETWORK_FIELD window_nf;
+	MX_NETWORK_FIELD window_is_available_nf;
 } MX_NETWORK_MCE;
 
 #define MXD_NETWORK_MCE_STANDARD_FIELDS \
@@ -62,6 +65,8 @@ MX_API mx_status_type mxd_network_mce_read_measurement( MX_MCE *mce );
 MX_API mx_status_type mxd_network_mce_get_motor_record_array( MX_MCE *mce );
 MX_API mx_status_type mxd_network_mce_connect_mce_to_motor( MX_MCE *mce,
 						MX_RECORD *motor_record );
+MX_API mx_status_type mxd_network_mce_get_parameter( MX_MCE *mce );
+MX_API mx_status_type mxd_network_mce_set_parameter( MX_MCE *mce );
 
 extern MX_RECORD_FUNCTION_LIST mxd_network_mce_record_function_list;
 extern MX_MCE_FUNCTION_LIST mxd_network_mce_mce_function_list;
