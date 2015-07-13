@@ -539,3 +539,284 @@ mx_mce_connect_mce_to_motor( MX_RECORD *mce_record,
 	return mx_status;
 }
 
+MX_EXPORT mx_status_type
+mx_mce_get_window( MX_RECORD *mce_record, double *window )
+{
+	static const char fname[] = "mx_mce_get_window()";
+
+	MX_MCE *mce;
+	MX_MCE_FUNCTION_LIST *function_list;
+	mx_status_type ( *get_parameter ) ( MX_MCE * );
+	mx_status_type mx_status;
+
+	mx_status = mx_mce_get_pointers( mce_record, &mce,
+					&function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mce->parameter_type = MXLV_MCE_WINDOW;
+
+	get_parameter = function_list->get_parameter;
+
+	if ( get_parameter == NULL ) {
+		mx_status = mx_mce_default_get_parameter_handler( mce );
+
+		return mx_status;
+	}
+
+	mx_status = ( *get_parameter) ( mce );
+
+	if ( window != NULL ) {
+		window[0] = mce->window[0];
+		window[1] = mce->window[1];
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_mce_set_window( MX_RECORD *mce_record, double *window )
+{
+	static const char fname[] = "mx_mce_set_window()";
+
+	MX_MCE *mce;
+	MX_MCE_FUNCTION_LIST *function_list;
+	mx_status_type ( *set_parameter ) ( MX_MCE * );
+	mx_status_type mx_status;
+
+	mx_status = mx_mce_get_pointers( mce_record, &mce,
+					&function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( window == (double *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The window pointer passed was NULL." );
+	}
+
+	mce->parameter_type = MXLV_MCE_WINDOW;
+
+	mce->window[0] = window[0];
+	mce->window[1] = window[1];
+
+	set_parameter = function_list->set_parameter;
+
+	if ( set_parameter == NULL ) {
+		mx_status = mx_mce_default_set_parameter_handler( mce );
+
+		return mx_status;
+	}
+
+	mx_status = ( *set_parameter) ( mce );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_mce_get_window_is_available( MX_RECORD *mce_record,
+				mx_bool_type *window_is_available )
+{
+	static const char fname[] = "mx_mce_get_window_is_available()";
+
+	MX_MCE *mce;
+	MX_MCE_FUNCTION_LIST *function_list;
+	mx_status_type ( *get_parameter ) ( MX_MCE * );
+	mx_status_type mx_status;
+
+	mx_status = mx_mce_get_pointers( mce_record, &mce,
+					&function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mce->parameter_type = MXLV_MCE_WINDOW_IS_AVAILABLE;
+
+	get_parameter = function_list->get_parameter;
+
+	if ( get_parameter == NULL ) {
+		mx_status = mx_mce_default_get_parameter_handler( mce );
+
+		return mx_status;
+	}
+
+	mx_status = ( *get_parameter) ( mce );
+
+	if ( window_is_available != NULL ) {
+		*window_is_available = mce->window_is_available;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_mce_set_window_is_available( MX_RECORD *mce_record,
+				mx_bool_type window_is_available )
+{
+	static const char fname[] = "mx_mce_set_window_is_available()";
+
+	MX_MCE *mce;
+	MX_MCE_FUNCTION_LIST *function_list;
+	mx_status_type ( *set_parameter ) ( MX_MCE * );
+	mx_status_type mx_status;
+
+	mx_status = mx_mce_get_pointers( mce_record, &mce,
+					&function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mce->parameter_type = MXLV_MCE_WINDOW_IS_AVAILABLE;
+
+	mce->window_is_available = mce->window_is_available;
+
+	set_parameter = function_list->set_parameter;
+
+	if ( set_parameter == NULL ) {
+		mx_status = mx_mce_default_set_parameter_handler( mce );
+
+		return mx_status;
+	}
+
+	mx_status = ( *set_parameter) ( mce );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_mce_get_use_window( MX_RECORD *mce_record,
+				mx_bool_type *use_window )
+{
+	static const char fname[] = "mx_mce_get_use_window()";
+
+	MX_MCE *mce;
+	MX_MCE_FUNCTION_LIST *function_list;
+	mx_status_type ( *get_parameter ) ( MX_MCE * );
+	mx_status_type mx_status;
+
+	mx_status = mx_mce_get_pointers( mce_record, &mce,
+					&function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mce->parameter_type = MXLV_MCE_USE_WINDOW;
+
+	get_parameter = function_list->get_parameter;
+
+	if ( get_parameter == NULL ) {
+		mx_status = mx_mce_default_get_parameter_handler( mce );
+
+		return mx_status;
+	}
+
+	mx_status = ( *get_parameter) ( mce );
+
+	if ( use_window != NULL ) {
+		*use_window = mce->use_window;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_mce_set_use_window( MX_RECORD *mce_record,
+				mx_bool_type use_window )
+{
+	static const char fname[] = "mx_mce_set_use_window()";
+
+	MX_MCE *mce;
+	MX_MCE_FUNCTION_LIST *function_list;
+	mx_status_type ( *set_parameter ) ( MX_MCE * );
+	mx_status_type mx_status;
+
+	mx_status = mx_mce_get_pointers( mce_record, &mce,
+					&function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mce->parameter_type = MXLV_MCE_USE_WINDOW;
+
+	mce->use_window = mce->use_window;
+
+	set_parameter = function_list->set_parameter;
+
+	if ( set_parameter == NULL ) {
+		mx_status = mx_mce_default_set_parameter_handler( mce );
+
+		return mx_status;
+	}
+
+	mx_status = ( *set_parameter) ( mce );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_mce_default_get_parameter_handler( MX_MCE *mce )
+{
+	static const char fname[] = "mx_mce_default_get_parameter_handler()";
+
+	mx_status_type mx_status;
+
+	MX_DEBUG(-2,("%s invoked for MCE '%s', parameter type '%s' (%ld).",
+		fname, mce->record->name,
+		mx_get_field_label_string( mce->record, mce->parameter_type ),
+		mce->parameter_type ));
+
+	switch( mce->parameter_type ) {
+	case MXLV_MCE_USE_WINDOW:
+	case MXLV_MCE_WINDOW:
+	case MXLV_MCE_WINDOW_IS_AVAILABLE:
+		break;
+
+		/* These do not require anything to be done. */
+
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+"Parameter type '%s' (%ld) is not supported by the MX driver for MCE '%s'.",
+			mx_get_field_label_string( mce->record,
+						mce->parameter_type ),
+			mce->parameter_type,
+			mce->record->name );
+		break;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_mce_default_set_parameter_handler( MX_MCE *mce )
+{
+	static const char fname[] = "mx_mce_default_set_parameter_handler()";
+
+	mx_status_type mx_status;
+
+	MX_DEBUG(-2,("%s invoked for MCE '%s', parameter type '%s' (%ld).",
+		fname, mce->record->name,
+		mx_get_field_label_string( mce->record, mce->parameter_type ),
+		mce->parameter_type ));
+
+	switch( mce->parameter_type ) {
+	case MXLV_MCE_USE_WINDOW:
+	case MXLV_MCE_WINDOW:
+	case MXLV_MCE_WINDOW_IS_AVAILABLE:
+		break;
+
+		/* These do not require anything to be done. */
+
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+"Parameter type '%s' (%ld) is not supported by the MX driver for MCE '%s'.",
+			mx_get_field_label_string( mce->record,
+						mce->parameter_type ),
+			mce->parameter_type,
+			mce->record->name );
+		break;
+	}
+
+	return mx_status;
+}
+

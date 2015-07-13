@@ -47,8 +47,11 @@ mx_setup_mce_process_functions( MX_RECORD *record )
 		case MXLV_MCE_MOTOR_RECORD_ARRAY:
 		case MXLV_MCE_NUM_MOTORS:
 		case MXLV_MCE_SELECTED_MOTOR_NAME:
+		case MXLV_MCE_USE_WINDOW:
 		case MXLV_MCE_VALUE:
 		case MXLV_MCE_VALUE_ARRAY:
+		case MXLV_MCE_WINDOW:
+		case MXLV_MCE_WINDOW_IS_AVAILABLE:
 			record_field->process_function
 					= mx_mce_process_function;
 			break;
@@ -96,6 +99,16 @@ mx_mce_process_function( void *record_ptr,
 			mx_status = mx_mce_get_motor_record_array( record,
 								NULL, NULL );
 			break;
+		case MXLV_MCE_WINDOW:
+			mx_status = mx_mce_get_window( record, NULL );
+			break;
+		case MXLV_MCE_WINDOW_IS_AVAILABLE:
+			mx_status = mx_mce_get_window_is_available(
+							record, NULL );
+			break;
+		case MXLV_MCE_USE_WINDOW:
+			mx_status = mx_mce_get_use_window( record, NULL );
+			break;
 		default:
 			MX_DEBUG( 1,(
 			    "%s: *** Unknown MX_PROCESS_GET label value = %ld",
@@ -117,6 +130,17 @@ mx_mce_process_function( void *record_ptr,
 				mx_status = mx_mce_connect_mce_to_motor(
 							record, motor_record );
 			}
+			break;
+		case MXLV_MCE_WINDOW:
+			mx_status = mx_mce_set_window( record, mce->window );
+			break;
+		case MXLV_MCE_WINDOW_IS_AVAILABLE:
+			mx_status = mx_mce_set_window_is_available(
+					record, mce->window_is_available );
+			break;
+		case MXLV_MCE_USE_WINDOW:
+			mx_status = mx_mce_set_use_window( record,
+							mce->use_window );
 			break;
 		default:
 			MX_DEBUG( 1,(

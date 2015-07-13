@@ -55,6 +55,8 @@ typedef struct {
 
 	char selected_motor_name[ MXU_RECORD_NAME_LENGTH + 1 ];
 
+	long parameter_type;
+
 	mx_bool_type window_is_available;
 	mx_bool_type use_window;
 
@@ -197,6 +199,8 @@ typedef struct {
 	mx_status_type ( *get_motor_record_array ) ( MX_MCE *encoder );
 	mx_status_type ( *connect_mce_to_motor ) ( MX_MCE *encoder,
 						MX_RECORD *motor_record );
+	mx_status_type ( *get_parameter ) ( MX_MCE *encoder );
+	mx_status_type ( *set_parameter ) ( MX_MCE *encoder );
 } MX_MCE_FUNCTION_LIST;
 
 MX_API mx_status_type mx_mce_get_pointers( MX_RECORD *record,
@@ -243,6 +247,28 @@ MX_API mx_status_type mx_mce_get_motor_record_array( MX_RECORD *mce_record,
 
 MX_API mx_status_type mx_mce_connect_mce_to_motor( MX_RECORD *mce_record,
 						MX_RECORD *motor_record );
+
+MX_API mx_status_type mx_mce_get_window( MX_RECORD *mce_record,
+							double *window );
+
+MX_API mx_status_type mx_mce_set_window( MX_RECORD *mce_record,
+							double *window );
+
+MX_API mx_status_type mx_mce_get_window_is_available( MX_RECORD *mce_record,
+					mx_bool_type *window_is_available );
+
+MX_API mx_status_type mx_mce_set_window_is_available( MX_RECORD *mce_record,
+					mx_bool_type window_is_available );
+
+MX_API mx_status_type mx_mce_get_use_window( MX_RECORD *mce_record,
+					mx_bool_type *use_window );
+
+MX_API mx_status_type mx_mce_set_use_window( MX_RECORD *mce_record,
+					mx_bool_type use_window );
+
+MX_API mx_status_type mx_mce_default_get_parameter_handler( MX_MCE *mce );
+
+MX_API mx_status_type mx_mce_default_set_parameter_handler( MX_MCE *mce );
 
 #ifdef __cplusplus
 }
