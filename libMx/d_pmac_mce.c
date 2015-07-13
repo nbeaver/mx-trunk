@@ -192,6 +192,11 @@ mxd_pmac_mce_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	mce->window_is_available = FALSE;
+	mce->use_window = FALSE;
+	mce->window[0] = 0.0;
+	mce->window[1] = 0.0;
+
 	/* Allocate memory for the motor record array.  Since
 	 * this field is marked with the flag MXFF_VARARGS, we
 	 * cannot safely allocate this array until the 

@@ -156,7 +156,8 @@ mxd_mcs_encoder_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_mcs_encoder_finish_record_initialization( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_mcs_encoder_finish_record_initialization()";
+	static const char fname[] =
+			"mxd_mcs_encoder_finish_record_initialization()";
 
 	MX_MCE *mce;
 	MX_MCS_ENCODER *mcs_encoder;
@@ -170,6 +171,11 @@ mxd_mcs_encoder_finish_record_initialization( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	mce->window_is_available = FALSE;
+	mce->use_window = FALSE;
+	mce->window[0] = 0.0;
+	mce->window[1] = 0.0;
 
 	mce->encoder_type = MXT_MCE_DELTA_ENCODER;
 

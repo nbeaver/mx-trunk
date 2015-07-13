@@ -2574,6 +2574,17 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_fg_scaler_num_record_fields,
 				&mxd_fg_scaler_rfield_def_ptr},
 
+/*--------*/
+
+{"mcs_mce",        MXT_MCE_MCS,       MXC_MULTICHANNEL_ENCODER, MXR_DEVICE,
+				&mxd_mcs_encoder_record_function_list,
+				NULL,
+				&mxd_mcs_encoder_mce_function_list,
+				&mxd_mcs_encoder_num_record_fields,
+				&mxd_mcs_encoder_rfield_def_ptr},
+
+/* 'mcs_encoder' is a backward compatibility alias for 'mcs_mce'. */
+
 {"mcs_encoder",    MXT_MCE_MCS,       MXC_MULTICHANNEL_ENCODER, MXR_DEVICE,
 				&mxd_mcs_encoder_record_function_list,
 				NULL,
@@ -2581,12 +2592,25 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_mcs_encoder_num_record_fields,
 				&mxd_mcs_encoder_rfield_def_ptr},
 
+/*--------*/
+
+{"databox_mce",    MXT_MCE_DATABOX,   MXC_MULTICHANNEL_ENCODER, MXR_DEVICE,
+				&mxd_databox_encoder_record_function_list,
+				NULL,
+				&mxd_databox_encoder_mce_function_list,
+				&mxd_databox_encoder_num_record_fields,
+				&mxd_databox_encoder_rfield_def_ptr},
+
+/* 'databox_encoder' is a backward compatibility alias for 'databox_mce'. */
+
 {"databox_encoder",MXT_MCE_DATABOX,   MXC_MULTICHANNEL_ENCODER, MXR_DEVICE,
 				&mxd_databox_encoder_record_function_list,
 				NULL,
 				&mxd_databox_encoder_mce_function_list,
 				&mxd_databox_encoder_num_record_fields,
 				&mxd_databox_encoder_rfield_def_ptr},
+
+/*--------*/
 
 {"network_mce",    MXT_MCE_NETWORK,   MXC_MULTICHANNEL_ENCODER, MXR_DEVICE,
 				&mxd_network_mce_record_function_list,

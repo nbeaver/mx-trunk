@@ -180,6 +180,11 @@ mxd_network_mce_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	mce->window_is_available = FALSE;
+	mce->use_window = FALSE;
+	mce->window[0] = 0.0;
+	mce->window[1] = 0.0;
+
 	strlcpy(record->network_type_name, "mx", MXU_NETWORK_TYPE_NAME_LENGTH);
 
 	mce->encoder_type = MXT_MCE_UNKNOWN_ENCODER_TYPE;

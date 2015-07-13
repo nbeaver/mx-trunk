@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2005, 2010 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2005, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -190,6 +190,11 @@ mxd_databox_encoder_finish_record_initialization( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	mce->window_is_available = FALSE;
+	mce->use_window = FALSE;
+	mce->window[0] = 0.0;
+	mce->window[1] = 0.0;
 
 	mce->encoder_type = MXT_MCE_ABSOLUTE_ENCODER;
 
