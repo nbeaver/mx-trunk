@@ -376,7 +376,7 @@ mx_delete_record( MX_RECORD *record )
 
 	*(record->name) = '\0';   /* Erase the name */
 
-	free( record );
+	mx_free( record );
 
 	MX_DEBUG( 8,("%s is complete.", fname));
 
@@ -389,16 +389,11 @@ mx_default_delete_record_handler( MX_RECORD *record )
 	if ( record == NULL ) {
 		return MX_SUCCESSFUL_RESULT;
 	}
-	if ( record->record_type_struct != NULL ) {
-		free( record->record_type_struct );
 
-		record->record_type_struct = NULL;
-	}
-	if ( record->record_class_struct != NULL ) {
-		free( record->record_class_struct );
+	mx_free( record->record_type_struct );
 
-		record->record_class_struct = NULL;
-	}
+	mx_free( record->record_class_struct );
+
 	return MX_SUCCESSFUL_RESULT;
 }
 

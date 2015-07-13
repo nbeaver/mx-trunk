@@ -92,20 +92,40 @@ mxs_mcs_quick_scan_free_arrays( MX_SCAN *scan,
 	if ( mcs_quick_scan == NULL )
 		return;
 
-	/* Free all of the arrays whose size depends on scan->num_motors. */
-
 	/* Please note that mx_free() and mx_free_array() both check 
 	 * for NULL pointer arguments and will merely return if you feed
 	 * a NULL pointer to them.
 	 */
 
-	(void) mx_free_array( mcs_quick_scan->motor_position_array );
+	if ( mcs_quick_scan != (MX_MCS_QUICK_SCAN *) NULL ) {
+		(void) mx_free_array( mcs_quick_scan->motor_position_array );
 
-	(void) mx_free_array( scan->datafile.x_position_array );
-	(void) mx_free_array( scan->plot.x_position_array );
+		mx_free( mcs_quick_scan->real_motor_record_array );
+		mx_free( mcs_quick_scan->mce_record_array );
+		mx_free( mcs_quick_scan->mcs_record_array );
+		mx_free( mcs_quick_scan->real_start_position );
+		mx_free( mcs_quick_scan->real_end_position );
+		mx_free( mcs_quick_scan->backlash_position );
+		mx_free( mcs_quick_scan->use_window );
 
-	mx_free( mcs_quick_scan->real_motor_record_array );
-	mx_free( mcs_quick_scan->mce_record_array );
+		(void) mx_free_array( mcs_quick_scan->window );
+	}
+
+	if ( scan != (MX_SCAN *) NULL ) {
+		(void) mx_free_array( scan->datafile.x_position_array );
+		(void) mx_free_array( scan->plot.x_position_array );
+
+		if ( scan->missing_record_array != NULL ) {
+			int i;
+
+			for ( i = 0; i < scan->num_missing_records; i++ ) {
+				mx_delete_record(
+					scan->missing_record_array[i] );
+			}
+
+			mx_free( scan->missing_record_array );
+		}
+	}
 }
 
 MX_EXPORT mx_status_type
@@ -226,6 +246,8 @@ mxs_mcs_quick_scan_create_record_structures( MX_RECORD *record )
 	mcs_quick_scan->real_start_position = NULL;
 	mcs_quick_scan->real_end_position = NULL;
 	mcs_quick_scan->backlash_position = NULL;
+	mcs_quick_scan->use_window = NULL;
+	mcs_quick_scan->window = NULL;
 
 	mcs_quick_scan->extension_ptr = NULL;
 
@@ -281,8 +303,13 @@ mxs_mcs_quick_scan_finish_record_initialization( MX_RECORD *record )
 		mcs_quick_scan->real_start_position = NULL;
 		mcs_quick_scan->real_end_position = NULL;
 		mcs_quick_scan->backlash_position = NULL;
+		mcs_quick_scan->use_window = NULL;
+		mcs_quick_scan->window = NULL;
 	} else {
 		/* Allocate some start and end position arrays. */
+
+		long dimension[2];
+		size_t element_size[2];
 
 		mcs_quick_scan->real_start_position = (double *)
 			calloc( scan->num_motors, sizeof(double) );
@@ -316,6 +343,41 @@ mxs_mcs_quick_scan_finish_record_initialization( MX_RECORD *record )
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
 			"Ran out of memory trying to allocate a %ld motor "
 			"array of backlash positions for scan '%s'.",
+				scan->num_motors, record->name );
+		}
+
+		mcs_quick_scan->use_window = (mx_bool_type *)
+			calloc( scan->num_motors, sizeof(mx_bool_type) );
+
+		if ( mcs_quick_scan->use_window == (mx_bool_type *) NULL ) {
+			mx_free( mcs_quick_scan->real_start_position );
+			mx_free( mcs_quick_scan->real_end_position );
+			mx_free( mcs_quick_scan->backlash_position );
+
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate a %ld motor "
+			"array of 'use window' flags for scan '%s'.",
+				scan->num_motors, record->name );
+		}
+
+		dimension[0] = scan->num_motors;
+		dimension[1] = 2;
+
+		element_size[0] = sizeof(double);
+		element_size[1] = sizeof(double *);
+
+		mcs_quick_scan->window = (double **)
+			mx_allocate_array( 2, dimension, element_size );
+
+		if ( mcs_quick_scan->window == (double **) NULL ) {
+			mx_free( mcs_quick_scan->real_start_position );
+			mx_free( mcs_quick_scan->real_end_position );
+			mx_free( mcs_quick_scan->backlash_position );
+			mx_free( mcs_quick_scan->use_window );
+
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to alllocate a (%ld, 2) "
+			"motor array of 'window' positions for scan '%s'.",
 				scan->num_motors, record->name );
 		}
 	}
@@ -465,53 +527,24 @@ MX_EXPORT mx_status_type
 mxs_mcs_quick_scan_delete_record( MX_RECORD *record )
 {
 	MX_SCAN *scan;
+	MX_QUICK_SCAN *quick_scan;
 	MX_MCS_QUICK_SCAN *mcs_quick_scan;
 
 	if ( record == NULL ) {
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	mcs_quick_scan = (MX_MCS_QUICK_SCAN *) record->record_type_struct;
-
-	if ( mcs_quick_scan != NULL ) {
-		if ( mcs_quick_scan->extension_ptr != NULL ) {
-			mx_free( mcs_quick_scan->extension_ptr );
-		}
-		if ( mcs_quick_scan->mcs_record_array != NULL ) {
-			mx_free( mcs_quick_scan->mcs_record_array );
-		}
-
-		mx_free( record->record_type_struct );
-	}
-
-	if ( record->record_class_struct != NULL ) {
-		mx_free( record->record_class_struct );
-	}
-
 	scan = (MX_SCAN *) record->record_superclass_struct;
 
-	if ( scan != NULL ) {
-		if ( scan->missing_record_array != NULL ) {
-			int i;
+	quick_scan = (MX_QUICK_SCAN *) record->record_class_struct;
 
-			for ( i = 0; i < scan->num_missing_records; i++ ) {
-				mx_delete_record(
-				    scan->missing_record_array[i] );
-			}
+	mcs_quick_scan = (MX_MCS_QUICK_SCAN *) record->record_type_struct;
 
-			mx_free( scan->missing_record_array );
-		}
+	FREE_MOTOR_POSITION_ARRAYS;
 
-		if ( scan->datafile.x_motor_array != NULL ) {
-			mx_free( scan->datafile.x_motor_array );
-		}
-
-		if ( scan->plot.x_motor_array != NULL ) {
-			mx_free( scan->plot.x_motor_array );
-		}
-
-		mx_free( scan );
-	}
+	mx_free( record->record_type_struct );
+	mx_free( record->record_class_struct );
+	mx_free( record->record_superclass_struct );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -2629,7 +2662,7 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 			 * value to 1.
 			 */
 
-			mx_status = mx_mcs_set_external_prescale( mcs_record, 1 );
+			mx_status = mx_mcs_set_external_prescale(mcs_record, 1);
 
 			if ( mx_status.code != MXE_SUCCESS ) {
 				(void) mx_scan_restore_speeds( scan );
@@ -2745,6 +2778,13 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	mcs_quick_scan->motor_position_array =
 		mx_allocate_array( 2, dimension, element_size );
 
+	if ( mcs_quick_scan->motor_position_array == NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %ld by %ld array of "
+		"motor position values for scan '%s'.",
+			dimension[0], dimension[1], scan->record->name );
+	}
+
 #if DEBUG_TIMING
 	MX_HRT_END( timing_measurement );
 	MX_HRT_RESULTS( timing_measurement, fname,
@@ -2823,6 +2863,69 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	MX_HRT_END( timing_measurement );
 	MX_HRT_RESULTS( timing_measurement, fname,
 			"check for synchronous motion mode." );
+
+	MX_HRT_START( timing_measurement );
+#endif
+	/**** If requested, set MCE position windows, ****/
+
+	for ( i = 0; i < scan->num_motors; i++ ) {
+		MX_RECORD *mce_record;
+		mx_bool_type window_is_available, use_window;
+		double window[2];
+
+		mce_record = mcs_quick_scan->mce_record_array[i];
+
+		mx_status = mx_mce_get_window_is_available( mce_record,
+							&window_is_available );
+
+		if ( ( mx_status.code != MXE_SUCCESS )
+		  || ( window_is_available == FALSE ) )
+		{
+			mcs_quick_scan->use_window[i] = FALSE;
+			mcs_quick_scan->window[i][0] = 0.0;
+			mcs_quick_scan->window[i][1] = 0.0;
+
+			continue;  /* Go back to the top of the for() loop. */
+		} else {
+			mx_status = mx_mce_get_use_window( mce_record,
+								&use_window );
+
+			if ( ( mx_status.code != MXE_SUCCESS )
+			  || ( use_window == FALSE ) )
+			{
+				mcs_quick_scan->use_window[i] = FALSE;
+				mcs_quick_scan->window[i][0] = 0.0;
+				mcs_quick_scan->window[i][1] = 0.0;
+
+				/* Go back to the top of the for() loop. */
+				continue;
+			} else {
+				window[0] =
+					mcs_quick_scan->real_start_position[i];
+				window[1] =
+					mcs_quick_scan->real_end_position[i];
+
+				mx_status = mx_mce_set_window( mce_record,
+								window );
+
+				if ( mx_status.code != MXE_SUCCESS ) {
+					mcs_quick_scan->use_window[i] = FALSE;
+					mcs_quick_scan->window[i][0] = 0.0;
+					mcs_quick_scan->window[i][1] = 0.0;
+
+					/* Go back to the top
+					 * of the for() loop.
+					 */
+					continue;
+				}
+			}
+		}
+	}
+
+#if DEBUG_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname,
+			"check for position windowing." );
 
 	MX_HRT_START( timing_measurement );
 #endif
@@ -2915,11 +3018,6 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 static void
 mxs_mcs_quick_scan_check_for_motor_errors( MX_SCAN *scan )
 {
-#if 0
-	static const char fname[] =
-		"mxs_mcs_quick_scan_check_for_motor_errors()";
-#endif
-
 	MX_RECORD *motor_record;
 	unsigned long i, motor_status;
 	mx_status_type mx_status;
@@ -3383,7 +3481,7 @@ mxs_mcs_quick_scan_readout_measurement( MX_SCAN * scan,
 /* WARNING!!!
  * Do not use FREE_MOTOR_POSITION_ARRAYS in the execute_scan_body() function
  * since the cleanup_after_scan_end() function will attempt to use the arrays
- * regardless of what error code this routine returns.
+ * regardless of what error code that execute_scan_body() returns.
  */
 
 #define MX_WAIT_FOR_MCS_TO_START	TRUE

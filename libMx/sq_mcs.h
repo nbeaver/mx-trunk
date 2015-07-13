@@ -45,6 +45,9 @@ typedef struct mx_mcs_quick_scan_type {
 
 	double *backlash_position;
 
+	mx_bool_type *use_window;
+	double **window;
+
 	mx_status_type (*move_to_start_fn)( MX_SCAN *,
 					MX_QUICK_SCAN *,
 					struct mx_mcs_quick_scan_type *,
