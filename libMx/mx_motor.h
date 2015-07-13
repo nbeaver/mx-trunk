@@ -274,6 +274,12 @@ typedef struct {
 	long position_field_number;
 	long status_field_number;
 
+	/* The following fields are used to compute the starting and
+	 * finishing positions of a quick scan, including the initial
+	 * acceleration and final deceleration of the motor during
+	 * the scan.
+	 */
+
 	MX_RECORD *real_motor_record;
 
 	double compute_extended_scan_range[ MX_MOTOR_NUM_SCAN_RANGE_PARAMS ];
@@ -282,10 +288,28 @@ typedef struct {
 	double compute_pseudomotor_position[ MX_MOTOR_NUM_POSITION_PARAMS ];
 	double compute_real_position[ MX_MOTOR_NUM_POSITION_PARAMS ];
 
+	/* The following start position fields are used by multiaxis 
+	 * pseudomotors like 'slit_motor' and 'translation_mtr' to
+	 * allow certain constraints like slit width to be preserved
+	 * during the progress of a step scan.
+	 */
+
 	double save_start_positions;
 	double raw_saved_start_position;
 
 	mx_bool_type use_start_positions;
+
+	/* The following window fields are used together with MCE window fields
+	 * to record motor positions only within a "window" specified in the
+	 * motor controller.
+	 */
+
+	mx_bool_type window_is_available;
+	mx_bool_type use_window;
+
+	double window[2];
+
+	/*----*/
 
 	mx_bool_type axis_enable;
 	mx_bool_type closed_loop;
@@ -346,6 +370,9 @@ typedef struct {
 #define MXLV_MTR_LAST_START_TIME			1044
 #define MXLV_MTR_SAVE_START_POSITIONS			1045
 #define MXLV_MTR_USE_START_POSITIONS			1046
+#define MXLV_MTR_WINDOW_IS_AVAILABLE			1047
+#define MXLV_MTR_USE_WINDOW				1048
+#define MXLV_MTR_WINDOW					1049
 
 #define MXLV_MTR_VALUE_CHANGE_THRESHOLD			3001
 
@@ -735,6 +762,19 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, use_start_positions), \
 	{0}, NULL, 0}, \
   \
+  {MXLV_MTR_WINDOW_IS_AVAILABLE, -1, "window_is_available", \
+		MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, window_is_available), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {MXLV_MTR_USE_WINDOW, -1, "use_window", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, use_window), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_MTR_WINDOW, -1, "window", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, window), \
+	{0}, NULL, 0}, \
+  \
   \
   \
   {MXLV_MTR_AXIS_ENABLE, -1, "axis_enable", MXFT_BOOL, NULL, 0, {0}, \
@@ -1076,6 +1116,26 @@ MX_API mx_status_type mx_motor_save_start_positions(
 			MX_RECORD *motor_record, double start_position );
 
 MX_API mx_status_type mx_motor_use_start_positions( MX_RECORD *motor_record );
+
+/*----*/
+
+MX_API mx_status_type mx_motor_get_window( MX_RECORD *motor_record,
+							double *window );
+
+MX_API mx_status_type mx_motor_set_window( MX_RECORD *motor_record,
+							double *window );
+
+MX_API mx_status_type mx_motor_get_window_is_available( MX_RECORD *motor_record,
+					mx_bool_type *window_is_available );
+
+MX_API mx_status_type mx_motor_set_window_is_available( MX_RECORD *motor_record,
+					mx_bool_type window_is_available );
+
+MX_API mx_status_type mx_motor_get_use_window( MX_RECORD *motor_record,
+						mx_bool_type *use_window );
+
+MX_API mx_status_type mx_motor_set_use_window( MX_RECORD *motor_record,
+						mx_bool_type use_window );
 
 /* === Move by steps functions. (MXC_MTR_STEPPER) === */
 

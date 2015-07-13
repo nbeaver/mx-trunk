@@ -161,7 +161,7 @@ typedef struct {
   {MXLV_MCE_WINDOW_IS_AVAILABLE, -1, "window_is_available", \
 					MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCE, window_is_available), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_MCE_USE_WINDOW, -1, "use_window", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCE, use_window), \

@@ -73,6 +73,11 @@ mx_motor_finish_record_initialization( MX_RECORD *motor_record )
 			motor_record->name );
 	}
 
+	motor->window_is_available = FALSE;
+	motor->use_window = FALSE;
+	motor->window[0] = 0.0;
+	motor->window[1] = 0.0;
+
 	/* Initialize motor_flags here to make sure that all bits
 	 * are set to 0.
 	 */
@@ -3037,6 +3042,9 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 	case MXLV_MTR_FAULT_RESET:
 	case MXLV_MTR_LIMIT_SWITCH_AS_HOME_SWITCH:
 	case MXLV_MTR_SYNCHRONOUS_MOTION_MODE:
+	case MXLV_MTR_WINDOW_IS_AVAILABLE:
+	case MXLV_MTR_USE_WINDOW:
+	case MXLV_MTR_WINDOW:
 
 		/* These do not require anything to be done. */
 
@@ -3296,11 +3304,23 @@ mx_motor_default_set_parameter_handler( MX_MOTOR *motor )
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
 	case MXLV_MTR_SAVE_START_POSITIONS:
 	case MXLV_MTR_LIMIT_SWITCH_AS_HOME_SWITCH:
+	case MXLV_MTR_WINDOW_IS_AVAILABLE:
+	case MXLV_MTR_WINDOW:
 
 		/* By default, nothing more is done with these parameters
 		 * other than saving their new values.
 		 */
 
+		break;
+
+	case MXLV_MTR_USE_WINDOW:
+		if ( motor->window_is_available == FALSE ) {
+			motor->use_window = FALSE;
+
+			return mx_error( MXE_NOT_AVAILABLE, fname,
+			"Windowing of position capture is not available "
+			"for motor '%s'.", motor->record->name );
+		}
 		break;
 
 		/* Servo gains are only supported if the individual motor's
@@ -5207,6 +5227,223 @@ mx_motor_use_start_positions( MX_RECORD *motor_record )
 	status = ( *fptr ) ( motor );
 
 	return status;
+}
+
+/*----*/
+
+MX_EXPORT mx_status_type
+mx_motor_get_window( MX_RECORD *motor_record, double *window )
+{
+	static const char fname[] = "mx_motor_get_window()";
+
+	MX_MOTOR *motor;
+	MX_MOTOR_FUNCTION_LIST *function_list;
+	mx_status_type ( *get_parameter ) ( MX_MOTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_motor_get_pointers( motor_record, &motor,
+					&function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	motor->parameter_type = MXLV_MTR_WINDOW;
+
+	get_parameter = function_list->get_parameter;
+
+	if ( get_parameter == NULL ) {
+		mx_status = mx_motor_default_get_parameter_handler( motor );
+
+		return mx_status;
+	}
+
+	mx_status = ( *get_parameter) ( motor );
+
+	if ( window != NULL ) {
+		window[0] = motor->window[0];
+		window[1] = motor->window[1];
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_motor_set_window( MX_RECORD *motor_record, double *window )
+{
+	static const char fname[] = "mx_motor_set_window()";
+
+	MX_MOTOR *motor;
+	MX_MOTOR_FUNCTION_LIST *function_list;
+	mx_status_type ( *set_parameter ) ( MX_MOTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_motor_get_pointers( motor_record, &motor,
+					&function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( window == (double *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The window pointer passed was NULL." );
+	}
+
+	motor->parameter_type = MXLV_MTR_WINDOW;
+
+	motor->window[0] = window[0];
+	motor->window[1] = window[1];
+
+	set_parameter = function_list->set_parameter;
+
+	if ( set_parameter == NULL ) {
+		mx_status = mx_motor_default_set_parameter_handler( motor );
+
+		return mx_status;
+	}
+
+	mx_status = ( *set_parameter) ( motor );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_motor_get_window_is_available( MX_RECORD *motor_record,
+				mx_bool_type *window_is_available )
+{
+	static const char fname[] = "mx_motor_get_window_is_available()";
+
+	MX_MOTOR *motor;
+	MX_MOTOR_FUNCTION_LIST *function_list;
+	mx_status_type ( *get_parameter ) ( MX_MOTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_motor_get_pointers( motor_record, &motor,
+					&function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	motor->parameter_type = MXLV_MTR_WINDOW_IS_AVAILABLE;
+
+	get_parameter = function_list->get_parameter;
+
+	if ( get_parameter == NULL ) {
+		mx_status = mx_motor_default_get_parameter_handler( motor );
+
+		return mx_status;
+	}
+
+	mx_status = ( *get_parameter) ( motor );
+
+	if ( window_is_available != NULL ) {
+		*window_is_available = motor->window_is_available;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_motor_set_window_is_available( MX_RECORD *motor_record,
+				mx_bool_type window_is_available )
+{
+	static const char fname[] = "mx_motor_set_window_is_available()";
+
+	MX_MOTOR *motor;
+	MX_MOTOR_FUNCTION_LIST *function_list;
+	mx_status_type ( *set_parameter ) ( MX_MOTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_motor_get_pointers( motor_record, &motor,
+					&function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	motor->parameter_type = MXLV_MTR_WINDOW_IS_AVAILABLE;
+
+	motor->window_is_available = motor->window_is_available;
+
+	set_parameter = function_list->set_parameter;
+
+	if ( set_parameter == NULL ) {
+		mx_status = mx_motor_default_set_parameter_handler( motor );
+
+		return mx_status;
+	}
+
+	mx_status = ( *set_parameter) ( motor );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_motor_get_use_window( MX_RECORD *motor_record,
+				mx_bool_type *use_window )
+{
+	static const char fname[] = "mx_motor_get_use_window()";
+
+	MX_MOTOR *motor;
+	MX_MOTOR_FUNCTION_LIST *function_list;
+	mx_status_type ( *get_parameter ) ( MX_MOTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_motor_get_pointers( motor_record, &motor,
+					&function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	motor->parameter_type = MXLV_MTR_USE_WINDOW;
+
+	get_parameter = function_list->get_parameter;
+
+	if ( get_parameter == NULL ) {
+		mx_status = mx_motor_default_get_parameter_handler( motor );
+
+		return mx_status;
+	}
+
+	mx_status = ( *get_parameter) ( motor );
+
+	if ( use_window != NULL ) {
+		*use_window = motor->use_window;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_motor_set_use_window( MX_RECORD *motor_record,
+				mx_bool_type use_window )
+{
+	static const char fname[] = "mx_motor_set_use_window()";
+
+	MX_MOTOR *motor;
+	MX_MOTOR_FUNCTION_LIST *function_list;
+	mx_status_type ( *set_parameter ) ( MX_MOTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_motor_get_pointers( motor_record, &motor,
+					&function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	motor->parameter_type = MXLV_MTR_USE_WINDOW;
+
+	motor->use_window = motor->use_window;
+
+	set_parameter = function_list->set_parameter;
+
+	if ( set_parameter == NULL ) {
+		mx_status = mx_motor_default_set_parameter_handler( motor );
+
+		return mx_status;
+	}
+
+	mx_status = ( *set_parameter) ( motor );
+
+	return mx_status;
 }
 
 /* === Move by steps functions. (MXC_MTR_STEPPER) === */

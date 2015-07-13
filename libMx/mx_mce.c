@@ -770,9 +770,10 @@ mx_mce_default_get_parameter_handler( MX_MCE *mce )
 	case MXLV_MCE_USE_WINDOW:
 	case MXLV_MCE_WINDOW:
 	case MXLV_MCE_WINDOW_IS_AVAILABLE:
-		break;
 
 		/* These do not require anything to be done. */
+
+		break;
 
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -800,12 +801,22 @@ mx_mce_default_set_parameter_handler( MX_MCE *mce )
 		mce->parameter_type ));
 
 	switch( mce->parameter_type ) {
-	case MXLV_MCE_USE_WINDOW:
 	case MXLV_MCE_WINDOW:
 	case MXLV_MCE_WINDOW_IS_AVAILABLE:
-		break;
 
 		/* These do not require anything to be done. */
+
+		break;
+
+	case MXLV_MCE_USE_WINDOW:
+		if ( mce->window_is_available == FALSE ) {
+			mce->use_window = FALSE;
+
+			return mx_error( MXE_NOT_AVAILABLE, fname,
+			"Windowing of position capture is not available "
+			"for MCE '%s'.", mce->record->name );
+		}
+		break;
 
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
