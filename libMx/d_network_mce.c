@@ -217,6 +217,11 @@ mxd_network_mce_finish_record_initialization( MX_RECORD *record )
 		network_mce->server_record,
 		"%s.measurement_index", network_mce->remote_record_name );
 
+	mx_network_field_init( &(network_mce->measurement_window_offset_nf),
+		network_mce->server_record,
+		"%s.measurement_window_offset",
+					network_mce->remote_record_name );
+
 	mx_network_field_init( &(network_mce->motor_record_array_nf),
 		network_mce->server_record,
 		"%s.motor_record_array", network_mce->remote_record_name );
@@ -375,7 +380,26 @@ mxd_network_mce_read( MX_MCE *mce )
 		mce->value_array[i] = motor_scale * scaled_encoder_value;
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	/* Read the measurement window offset.  If the remote MCE sends
+	 * all measurements to the client, the measurement window offset
+	 * will be zero.  If the remote MCE skips over some measurements
+	 * at the the start of the data buffer, then reading the value
+	 * of measurement_window_offset will tell you how many measurements
+	 * were skipped over.
+	 * 
+	 * Typically, measurement offsets appear in connection with MCEs
+	 * that use a window to return a subset of the values that the
+	 * original hardware acquires.
+	 *
+	 * An example of the use of this is a Newport XPS motor controller
+	 * that returns encoder quadrature signals only within a position
+	 * window.
+	 */
+
+	mx_status = mx_get( &(network_mce->measurement_window_offset_nf),
+			MXFT_LONG, &(mce->measurement_window_offset) );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -791,6 +815,12 @@ mxd_network_mce_get_parameter( MX_MCE *mce )
 				MXFT_BOOL, &(mce->window_is_available) );
 		break;
 
+	case MXLV_MCE_MEASUREMENT_WINDOW_OFFSET:
+		mx_status = mx_get(
+				&(network_mce->measurement_window_offset_nf),
+				MXFT_LONG, &(mce->measurement_window_offset) );
+		break;
+
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type %ld is not supported by "
@@ -832,11 +862,6 @@ mxd_network_mce_set_parameter( MX_MCE *mce )
 
 		mx_status = mx_put_array( &(network_mce->window_nf),
 				MXFT_DOUBLE, 1, dimension, mce->window );
-		break;
-
-	case MXLV_MCE_WINDOW_IS_AVAILABLE:
-		mx_status = mx_put( &(network_mce->window_is_available_nf),
-				MXFT_BOOL, &(mce->window_is_available) );
 		break;
 
 	default:

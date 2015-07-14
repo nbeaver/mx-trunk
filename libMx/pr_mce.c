@@ -44,6 +44,7 @@ mx_setup_mce_process_functions( MX_RECORD *record )
 
 		switch( record_field->label_value ) {
 		case MXLV_MCE_CURRENT_NUM_VALUES:
+		case MXLV_MCE_MEASUREMENT_WINDOW_OFFSET:
 		case MXLV_MCE_MOTOR_RECORD_ARRAY:
 		case MXLV_MCE_NUM_MOTORS:
 		case MXLV_MCE_SELECTED_MOTOR_NAME:
@@ -94,6 +95,10 @@ mx_mce_process_function( void *record_ptr,
 		case MXLV_MCE_VALUE_ARRAY:
 			mx_status = mx_mce_read( record, NULL, NULL );
 			break;
+		case MXLV_MCE_MEASUREMENT_WINDOW_OFFSET:
+			mx_status = mx_mce_get_measurement_window_offset(
+								record, NULL );
+			break;
 		case MXLV_MCE_NUM_MOTORS:
 		case MXLV_MCE_MOTOR_RECORD_ARRAY:
 			mx_status = mx_mce_get_motor_record_array( record,
@@ -133,10 +138,6 @@ mx_mce_process_function( void *record_ptr,
 			break;
 		case MXLV_MCE_WINDOW:
 			mx_status = mx_mce_set_window( record, mce->window );
-			break;
-		case MXLV_MCE_WINDOW_IS_AVAILABLE:
-			mx_status = mx_mce_set_window_is_available(
-					record, mce->window_is_available );
 			break;
 		case MXLV_MCE_USE_WINDOW:
 			mx_status = mx_mce_set_use_window( record,

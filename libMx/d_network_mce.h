@@ -30,6 +30,7 @@ typedef struct {
 	MX_NETWORK_FIELD current_num_values_nf;
 	MX_NETWORK_FIELD encoder_type_nf;
 	MX_NETWORK_FIELD measurement_index_nf;
+	MX_NETWORK_FIELD measurement_window_offset_nf;
 	MX_NETWORK_FIELD motor_record_array_nf;
 	MX_NETWORK_FIELD num_motors_nf;
 	MX_NETWORK_FIELD selected_motor_name_nf;

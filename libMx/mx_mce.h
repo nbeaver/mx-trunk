@@ -61,6 +61,8 @@ typedef struct {
 	mx_bool_type use_window;
 
 	double window[2];
+
+	long measurement_window_offset;
 } MX_MCE;
 
 #define MXLV_MCE_CURRENT_NUM_VALUES		1001
@@ -78,6 +80,7 @@ typedef struct {
 #define MXLV_MCE_WINDOW_IS_AVAILABLE		1013
 #define MXLV_MCE_USE_WINDOW			1014
 #define MXLV_MCE_WINDOW				1015
+#define MXLV_MCE_MEASUREMENT_WINDOW_OFFSET		1016
 
 #define MX_MCE_STANDARD_FIELDS \
   {-1, -1, "encoder_type", MXFT_LONG, NULL, 0, {0}, \
@@ -169,7 +172,12 @@ typedef struct {
   \
   {MXLV_MCE_WINDOW, -1, "window", MXFT_DOUBLE, NULL, 1, {2}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCE, window), \
-	{sizeof(double)}, NULL, 0}
+	{sizeof(double)}, NULL, 0}, \
+  \
+  {MXLV_MCE_MEASUREMENT_WINDOW_OFFSET, -1, "measurement_window_offset", \
+				MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCE, measurement_window_offset), \
+	{0}, NULL, MXFF_READ_ONLY}
 
 
 /* Encoder types */
@@ -257,14 +265,15 @@ MX_API mx_status_type mx_mce_set_window( MX_RECORD *mce_record,
 MX_API mx_status_type mx_mce_get_window_is_available( MX_RECORD *mce_record,
 					mx_bool_type *window_is_available );
 
-MX_API mx_status_type mx_mce_set_window_is_available( MX_RECORD *mce_record,
-					mx_bool_type window_is_available );
-
 MX_API mx_status_type mx_mce_get_use_window( MX_RECORD *mce_record,
 					mx_bool_type *use_window );
 
 MX_API mx_status_type mx_mce_set_use_window( MX_RECORD *mce_record,
 					mx_bool_type use_window );
+
+MX_API mx_status_type mx_mce_get_measurement_window_offset(
+					MX_RECORD *mce_record,
+					long *measurement_window_offset );
 
 MX_API mx_status_type mx_mce_default_get_parameter_handler( MX_MCE *mce );
 

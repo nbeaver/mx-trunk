@@ -651,40 +651,6 @@ mx_mce_get_window_is_available( MX_RECORD *mce_record,
 }
 
 MX_EXPORT mx_status_type
-mx_mce_set_window_is_available( MX_RECORD *mce_record,
-				mx_bool_type window_is_available )
-{
-	static const char fname[] = "mx_mce_set_window_is_available()";
-
-	MX_MCE *mce;
-	MX_MCE_FUNCTION_LIST *function_list;
-	mx_status_type ( *set_parameter ) ( MX_MCE * );
-	mx_status_type mx_status;
-
-	mx_status = mx_mce_get_pointers( mce_record, &mce,
-					&function_list, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mce->parameter_type = MXLV_MCE_WINDOW_IS_AVAILABLE;
-
-	mce->window_is_available = mce->window_is_available;
-
-	set_parameter = function_list->set_parameter;
-
-	if ( set_parameter == NULL ) {
-		mx_status = mx_mce_default_set_parameter_handler( mce );
-
-		return mx_status;
-	}
-
-	mx_status = ( *set_parameter) ( mce );
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
 mx_mce_get_use_window( MX_RECORD *mce_record,
 				mx_bool_type *use_window )
 {
@@ -750,6 +716,42 @@ mx_mce_set_use_window( MX_RECORD *mce_record,
 	}
 
 	mx_status = ( *set_parameter) ( mce );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_mce_get_measurement_window_offset( MX_RECORD *mce_record,
+				long *measurement_window_offset )
+{
+	static const char fname[] = "mx_mce_get_measurement_window_offset()";
+
+	MX_MCE *mce;
+	MX_MCE_FUNCTION_LIST *function_list;
+	mx_status_type ( *get_parameter ) ( MX_MCE * );
+	mx_status_type mx_status;
+
+	mx_status = mx_mce_get_pointers( mce_record, &mce,
+					&function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mce->parameter_type = MXLV_MCE_MEASUREMENT_WINDOW_OFFSET;
+
+	get_parameter = function_list->get_parameter;
+
+	if ( get_parameter == NULL ) {
+		mx_status = mx_mce_default_get_parameter_handler( mce );
+
+		return mx_status;
+	}
+
+	mx_status = ( *get_parameter) ( mce );
+
+	if ( measurement_window_offset != NULL ) {
+		*measurement_window_offset = mce->measurement_window_offset;
+	}
 
 	return mx_status;
 }

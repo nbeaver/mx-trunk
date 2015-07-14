@@ -380,6 +380,22 @@ mxs_mcs_quick_scan_finish_record_initialization( MX_RECORD *record )
 			"motor array of 'window' positions for scan '%s'.",
 				scan->num_motors, record->name );
 		}
+
+		mcs_quick_scan->mcs_measurement_offset = (long *)
+			calloc( scan->num_motors, sizeof(long) );
+
+		if ( mcs_quick_scan->mcs_measurement_offset == (long *) NULL ) {
+			mx_free( mcs_quick_scan->real_start_position );
+			mx_free( mcs_quick_scan->real_end_position );
+			mx_free( mcs_quick_scan->backlash_position );
+			mx_free( mcs_quick_scan->use_window );
+			(void) mx_free_array( mcs_quick_scan->window );
+
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate a %ld motor "
+			"array of 'mcs_measurement_offset's for scan '%s'.",
+				scan->num_motors, record->name );
+		}
 	}
 
 	/*---*/
@@ -1332,14 +1348,14 @@ mxs_mcs_quick_scan_use_encoder_values(
 		double pseudomotor_real_start_position,
 		MX_RECORD *mce_record,
 		double *motor_position_array,
-		int read_mce )
+		mx_bool_type read_mce )
 {
 	static const char fname[] = "mxs_mcs_quick_scan_use_encoder_values()";
 
 	MX_MCE *mce;
 	MX_RECORD *real_motor_record;
 	MX_MOTOR *real_motor;
-	long i;
+	long i, j;
 	unsigned long num_encoder_values;
 	double *encoder_value_array;
 	double scaled_encoder_value, start_of_bin_value;
@@ -1347,6 +1363,12 @@ mxs_mcs_quick_scan_use_encoder_values(
 	mx_status_type mx_status;
 
 	mce = (MX_MCE *) mce_record->record_class_struct;
+
+	if ( mce == (MX_MCE *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_MCE pointer for record '%s' is NULL.",
+			mce_record->name );
+	}
 
 	/* If requested, read the MCE values.  Otherwise, we assume that
 	 * the values already in the MCE array are correct and current.
@@ -1389,17 +1411,33 @@ mxs_mcs_quick_scan_use_encoder_values(
 				real_motor_record->name );
 		}
 
-		/* Fill in the first element of the motor_position_array
-		 * by converting the provided pseudomotor start position
-		 * to the start position for the real motor.
+		/* Some motor controllers (such as Newport XPS) can do
+		 * things like only send quadrature signals while the
+		 * position of the motor is within a user specified
+		 * window.  If the motor controller is using this feature,
+		 * then we get the real motor's start position from
+		 * the window in the motor controller.
 		 */
+		
+		if ( mce->use_window ) {
+			mx_status = mx_motor_get_window( real_motor_record,
+								NULL );	
 
-		mx_status
+			real_motor_real_start_position = real_motor->window[0];
+		} else {
+			/* If the motor controller does _not_ use a window,
+			 * then we must compute the start position of the
+			 * real motor using the provided pseudomotor
+			 * start position.
+			 */
+
+			mx_status
 		  = mx_motor_compute_real_position_from_pseudomotor_position(
 				pseudomotor_record,
 				pseudomotor_real_start_position,
 				&real_motor_real_start_position,
 				TRUE );
+		}
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1430,13 +1468,17 @@ mxs_mcs_quick_scan_use_encoder_values(
 			fname, motor_position_array[0]));
 #endif
 
-		/* Compute the motor positions from the encoder readout. */
+		if ( mce->use_window == FALSE ) {
+			i = 1;
+		} else {
+			i = mce->measurement_window_offset + 1;
+		}
 
-		i = 0;
+		/* Compute the motor positions from the encoder readout. */
 
 		switch( mce->encoder_type ) {
 		case MXT_MCE_ABSOLUTE_ENCODER:
-			for (i = 1; i < num_encoder_values; i++ ) {
+			for ( j = 1; i < num_encoder_values; i++, j++ ) {
 
 				scaled_encoder_value = real_motor->offset
 				  + real_motor->scale * encoder_value_array[i];
@@ -1445,13 +1487,13 @@ mxs_mcs_quick_scan_use_encoder_values(
 			}
 			break;
 		case MXT_MCE_INCREMENTAL_ENCODER:
-			for (i = 1; i < num_encoder_values; i++ ) {
+			for ( j = 1; i < num_encoder_values; i++, j++ ) {
 
 				scaled_encoder_value =
 				  real_motor->scale * encoder_value_array[i];
 
-				motor_position_array[i] =
-					motor_position_array[0]
+				motor_position_array[j] =
+					motor_position_array[j-1]
 						+ scaled_encoder_value;
 			}
 			break;
@@ -1459,7 +1501,7 @@ mxs_mcs_quick_scan_use_encoder_values(
 
 			start_of_bin_value = motor_position_array[0];
 
-			for (i = 1; i < num_encoder_values; i++ ) {
+			for ( j = 1; i < num_encoder_values; i++, j++ ) {
 
 				scaled_encoder_value =
 				  real_motor->scale * encoder_value_array[i];
@@ -1470,7 +1512,7 @@ mxs_mcs_quick_scan_use_encoder_values(
 				 * in the middle of the bin.
 				 */
 
-				motor_position_array[i] = start_of_bin_value
+				motor_position_array[j] = start_of_bin_value
 						+ 0.5 * scaled_encoder_value;
 
 				start_of_bin_value += scaled_encoder_value;
@@ -1485,7 +1527,7 @@ mxs_mcs_quick_scan_use_encoder_values(
 
 		/* Fill in the rest of the array (if any) with 0. */
 
-		for ( ; i < quick_scan->actual_num_measurements; i++ ) {
+		for ( ; j < quick_scan->actual_num_measurements; j++ ) {
 			motor_position_array[i] = 0.0;
 		}
 	}
