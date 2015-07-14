@@ -186,11 +186,11 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_newport_xps_rfield_def_ptr;
 				1, {MXU_NETWORK_XPS_PCO_CONFIG_NAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_NEWPORT_XPS_MOTOR, pco_config_name), \
-	{0}, NULL, 0 }, \
+	{sizeof(char)}, NULL, 0 }, \
   \
   {MXLV_NEWPORT_XPS_PCO_CONFIG_VALUE, -1, "pco_config_value", \
 	    MXFT_STRING, NULL, 1, {MXU_NETWORK_XPS_PCO_CONFIG_NAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS_MOTOR, pco_config_value),\
-	{0}, NULL, 0 }
+	{sizeof(char)}, NULL, 0 }
 
 #endif /* __D_NEWPORT_XPS_H__ */
