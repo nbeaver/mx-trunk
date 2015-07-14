@@ -25,13 +25,13 @@ all: build
 
 #MODULES += esone_camac		# linux, win32
 
-MODULES += k8055		# linux,
+#MODULES += k8055		# linux,
 
 #MODULES = labjack_ux		# linux,
 
 #MODULES += libusb-0.1		# linux,
 
-MODULES += newport_xps		# linux,
+#MODULES += newport_xps		# linux,
 
 #MODULES += ni488		# linux,
 
@@ -94,11 +94,11 @@ MODULES += epics
 
 MODULES += epics_aps 
 
-MODULES += epics_pmac_biocat
+#MODULES += epics_pmac_biocat
 
-MODULES += epics_mbc
+#MODULES += epics_mbc
 
-MODULES += epics_pmac_tc
+#MODULES += epics_pmac_tc
 
 #-------------------------------------------------------------------
 # Site specific modules.
@@ -106,7 +106,7 @@ MODULES += epics_pmac_tc
 #   BioCAT (APS-18ID) 6K "toast" controller.
 #
 
-MODULES += site_biocat_toast
+#MODULES += site_biocat_toast
 
 #---
 

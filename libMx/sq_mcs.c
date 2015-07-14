@@ -233,16 +233,10 @@ mxs_mcs_quick_scan_create_record_structures( MX_RECORD *record )
 	scan->num_missing_records = 0;
 	scan->missing_record_array = NULL;
 
-	/* motor_position_array is allocated in the
-	 * prepare_for_scan_start() function.
-	 */
-
 	mcs_quick_scan->motor_position_array = NULL;
-
-	/* The following arrays are allocated in the
-	 * finish_record_initialization() function.
-	 */
-
+	mcs_quick_scan->real_motor_record_array = NULL;
+	mcs_quick_scan->mce_record_array = NULL;
+	mcs_quick_scan->mcs_record_array = NULL;
 	mcs_quick_scan->real_start_position = NULL;
 	mcs_quick_scan->real_end_position = NULL;
 	mcs_quick_scan->backlash_position = NULL;
