@@ -5343,40 +5343,6 @@ mx_motor_get_window_is_available( MX_RECORD *motor_record,
 }
 
 MX_EXPORT mx_status_type
-mx_motor_set_window_is_available( MX_RECORD *motor_record,
-				mx_bool_type window_is_available )
-{
-	static const char fname[] = "mx_motor_set_window_is_available()";
-
-	MX_MOTOR *motor;
-	MX_MOTOR_FUNCTION_LIST *function_list;
-	mx_status_type ( *set_parameter ) ( MX_MOTOR * );
-	mx_status_type mx_status;
-
-	mx_status = mx_motor_get_pointers( motor_record, &motor,
-					&function_list, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	motor->parameter_type = MXLV_MTR_WINDOW_IS_AVAILABLE;
-
-	motor->window_is_available = motor->window_is_available;
-
-	set_parameter = function_list->set_parameter;
-
-	if ( set_parameter == NULL ) {
-		mx_status = mx_motor_default_set_parameter_handler( motor );
-
-		return mx_status;
-	}
-
-	mx_status = ( *set_parameter) ( motor );
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
 mx_motor_get_use_window( MX_RECORD *motor_record,
 				mx_bool_type *use_window )
 {

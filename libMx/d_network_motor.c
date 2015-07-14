@@ -444,9 +444,21 @@ mxd_network_motor_finish_record_initialization( MX_RECORD *record )
 		network_motor->server_record,
 		"%s.use_start_positions", network_motor->remote_record_name);
 
+	mx_network_field_init( &(network_motor->use_window_nf),
+		network_motor->server_record,
+		"%s.use_window", network_motor->remote_record_name);
+
 	mx_network_field_init( &(network_motor->velocity_feedforward_gain_nf),
 		network_motor->server_record,
 	  "%s.velocity_feedforward_gain", network_motor->remote_record_name );
+
+	mx_network_field_init( &(network_motor->window_nf),
+		network_motor->server_record,
+		"%s.window", network_motor->remote_record_name);
+
+	mx_network_field_init( &(network_motor->window_is_available_nf),
+		network_motor->server_record,
+		"%s.window_is_available", network_motor->remote_record_name);
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1212,6 +1224,23 @@ mxd_network_motor_get_parameter( MX_MOTOR *motor )
 			MXFT_DOUBLE, &(motor->extra_gain) );
 		break;
 
+	case MXLV_MTR_USE_WINDOW:
+		mx_status = mx_get( &(network_motor->use_window_nf),
+				MXFT_BOOL, &(motor->use_window) );
+		break;
+
+	case MXLV_MTR_WINDOW:
+		dimension_array[0] = 2;	/* window start, window end */
+
+		mx_status = mx_get_array( &(network_motor->window_nf),
+			MXFT_DOUBLE, 1, dimension_array, motor->window );
+		break;
+
+	case MXLV_MTR_WINDOW_IS_AVAILABLE:
+		mx_status = mx_get( &(network_motor->window_is_available_nf),
+				MXFT_BOOL, &(motor->window_is_available) );
+		break;
+
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type %ld is not supported by this driver.",
@@ -1371,6 +1400,18 @@ mxd_network_motor_set_parameter( MX_MOTOR *motor )
 	case MXLV_MTR_EXTRA_GAIN:
 		mx_status = mx_put( &(network_motor->extra_gain_nf),
 			MXFT_DOUBLE, &(motor->extra_gain) );
+		break;
+
+	case MXLV_MTR_USE_WINDOW:
+		mx_status = mx_put( &(network_motor->use_window_nf),
+				MXFT_BOOL, &(motor->use_window) );
+		break;
+
+	case MXLV_MTR_WINDOW:
+		dimension_array[0] = 2;	/* window start, window end */
+
+		mx_status = mx_put_array( &(network_motor->window_nf),
+			MXFT_DOUBLE, 1, dimension_array, motor->window );
 		break;
 
 	default:

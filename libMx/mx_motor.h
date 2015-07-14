@@ -1128,9 +1128,6 @@ MX_API mx_status_type mx_motor_set_window( MX_RECORD *motor_record,
 MX_API mx_status_type mx_motor_get_window_is_available( MX_RECORD *motor_record,
 					mx_bool_type *window_is_available );
 
-MX_API mx_status_type mx_motor_set_window_is_available( MX_RECORD *motor_record,
-					mx_bool_type window_is_available );
-
 MX_API mx_status_type mx_motor_get_use_window( MX_RECORD *motor_record,
 						mx_bool_type *use_window );
 

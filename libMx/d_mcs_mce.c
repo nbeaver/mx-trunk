@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004, 2010 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003-2004, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -39,7 +39,17 @@ MX_MCE_FUNCTION_LIST mxd_mcs_encoder_mce_function_list = {
 	NULL,
 	NULL,
 	mxd_mcs_encoder_read,
-	mxd_mcs_encoder_get_current_num_values
+	mxd_mcs_encoder_get_current_num_values,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	mxd_mcs_encoder_get_parameter,
+	mxd_mcs_encoder_set_parameter,
 };
 
 /* MCS encoder data structures. */
@@ -333,5 +343,102 @@ mxd_mcs_encoder_get_current_num_values( MX_MCE *mce )
 		fname, mce->current_num_values));
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_mcs_encoder_get_parameter( MX_MCE *mce )
+{
+	static const char fname[] = "mxd_mcs_encoder_get_parameter()";
+
+	MX_MCS_ENCODER *mcs_encoder;
+	MX_MCS *mcs;
+	mx_status_type mx_status;
+
+	mx_status = mxd_mcs_encoder_get_pointers( mce,
+					&mcs_encoder, &mcs, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
+		fname, mce->record->name,
+		mx_get_field_label_string( mce->record, mce->parameter_type ),
+		mce->parameter_type ));
+
+	switch( mce->parameter_type ) {
+	case MXLV_MCE_USE_WINDOW:
+		mx_status = mx_motor_get_use_window(
+				mcs_encoder->associated_motor_record,
+				&(mce->use_window) );
+		break;
+
+	case MXLV_MCE_WINDOW:
+		mx_status = mx_motor_get_window(
+				mcs_encoder->associated_motor_record,
+				mce->window );
+		break;
+
+	case MXLV_MCE_WINDOW_IS_AVAILABLE:
+		mx_status = mx_motor_get_window_is_available(
+				mcs_encoder->associated_motor_record,
+				&(mce->window_is_available) );
+		break;
+
+	case MXLV_MCE_MEASUREMENT_WINDOW_OFFSET:
+		break;
+
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Parameter type %ld is not supported by "
+		"the driver for MCE '%s'.",
+			mce->parameter_type, mce->record->name );
+		break;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_mcs_encoder_set_parameter( MX_MCE *mce )
+{
+	static const char fname[] = "mxd_mcs_encoder_set_parameter()";
+
+	MX_MCS_ENCODER *mcs_encoder;
+	MX_MCS *mcs;
+	mx_status_type mx_status;
+
+	mx_status = mxd_mcs_encoder_get_pointers( mce,
+					&mcs_encoder, &mcs, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
+		fname, mce->record->name,
+		mx_get_field_label_string( mce->record, mce->parameter_type ),
+		mce->parameter_type ));
+
+	switch( mce->parameter_type ) {
+	case MXLV_MCE_USE_WINDOW:
+		mx_status = mx_motor_set_use_window(
+				mcs_encoder->associated_motor_record,
+				mce->use_window );
+		break;
+
+	case MXLV_MCE_WINDOW:
+		mx_status = mx_motor_set_window(
+				mcs_encoder->associated_motor_record,
+				mce->window );
+		break;
+
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Parameter type %ld is not supported by "
+		"the driver for MCE '%s'.",
+			mce->parameter_type, mce->record->name );
+		break;
+	}
+
+	return mx_status;
 }
 

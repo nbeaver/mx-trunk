@@ -58,6 +58,8 @@ MX_API mx_status_type mxd_mcs_encoder_finish_record_initialization(
 
 MX_API mx_status_type mxd_mcs_encoder_read( MX_MCE *mce );
 MX_API mx_status_type mxd_mcs_encoder_get_current_num_values( MX_MCE *mce );
+MX_API mx_status_type mxd_mcs_encoder_get_parameter( MX_MCE *mce );
+MX_API mx_status_type mxd_mcs_encoder_set_parameter( MX_MCE *mce );
 
 extern MX_RECORD_FUNCTION_LIST mxd_mcs_encoder_record_function_list;
 extern MX_MCE_FUNCTION_LIST mxd_mcs_encoder_mce_function_list;

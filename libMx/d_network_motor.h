@@ -116,7 +116,10 @@ typedef struct {
 	MX_NETWORK_FIELD status_nf;
 	MX_NETWORK_FIELD synchronous_motion_mode_nf;
 	MX_NETWORK_FIELD use_start_positions_nf;
+	MX_NETWORK_FIELD use_window_nf;
 	MX_NETWORK_FIELD velocity_feedforward_gain_nf;
+	MX_NETWORK_FIELD window_nf;
+	MX_NETWORK_FIELD window_is_available_nf;
 
 } MX_NETWORK_MOTOR;
 
