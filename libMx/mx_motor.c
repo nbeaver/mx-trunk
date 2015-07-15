@@ -5232,12 +5232,16 @@ mx_motor_use_start_positions( MX_RECORD *motor_record )
 /*----*/
 
 MX_EXPORT mx_status_type
-mx_motor_get_window( MX_RECORD *motor_record, double *window )
+mx_motor_get_window( MX_RECORD *motor_record,
+			double *window,
+			long num_window_parameters )
 {
 	static const char fname[] = "mx_motor_get_window()";
 
 	MX_MOTOR *motor;
 	MX_MOTOR_FUNCTION_LIST *function_list;
+	size_t window_bytes, max_window_bytes, bytes_left;
+	char *ptr;
 	mx_status_type ( *get_parameter ) ( MX_MOTOR * );
 	mx_status_type mx_status;
 
@@ -5260,20 +5264,44 @@ mx_motor_get_window( MX_RECORD *motor_record, double *window )
 	mx_status = ( *get_parameter) ( motor );
 
 	if ( window != NULL ) {
-		window[0] = motor->window[0];
-		window[1] = motor->window[1];
+		max_window_bytes =
+			MXU_MTR_NUM_WINDOW_PARAMETERS * sizeof(double);
+
+		memset( window, 0, max_window_bytes );
+
+		if ( num_window_parameters > MXU_MTR_NUM_WINDOW_PARAMETERS ) {
+			num_window_parameters = MXU_MTR_NUM_WINDOW_PARAMETERS;
+		}
+
+		window_bytes = num_window_parameters * sizeof(double);
+
+		/* Allow for the possibility that motor->window == window. */
+
+		memmove( window, motor->window, window_bytes );
+
+		if ( window_bytes < max_window_bytes ) {
+			bytes_left = max_window_bytes - window_bytes;
+
+			ptr = ((char *) window) + window_bytes;
+
+			memset( ptr, 0, bytes_left );
+		}
 	}
 
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mx_motor_set_window( MX_RECORD *motor_record, double *window )
+mx_motor_set_window( MX_RECORD *motor_record,
+			double *window,
+			long num_window_parameters )
 {
 	static const char fname[] = "mx_motor_set_window()";
 
 	MX_MOTOR *motor;
 	MX_MOTOR_FUNCTION_LIST *function_list;
+	size_t window_bytes, max_window_bytes, bytes_left;
+	char *ptr;
 	mx_status_type ( *set_parameter ) ( MX_MOTOR * );
 	mx_status_type mx_status;
 
@@ -5290,8 +5318,29 @@ mx_motor_set_window( MX_RECORD *motor_record, double *window )
 
 	motor->parameter_type = MXLV_MTR_WINDOW;
 
-	motor->window[0] = window[0];
-	motor->window[1] = window[1];
+	/*----*/
+
+	max_window_bytes = MXU_MTR_NUM_WINDOW_PARAMETERS * sizeof(double);
+
+	if ( num_window_parameters > MXU_MTR_NUM_WINDOW_PARAMETERS ) {
+		num_window_parameters = MXU_MTR_NUM_WINDOW_PARAMETERS;
+	}
+
+	window_bytes = num_window_parameters * sizeof(double);
+
+	/* Allow for the possibility that motor->window == window. */
+
+	memmove( motor->window, window, window_bytes );
+
+	if ( window_bytes < max_window_bytes ) {
+		bytes_left = max_window_bytes - window_bytes;
+
+		ptr = ((char *) window) + window_bytes;
+
+		memset( ptr, 0, bytes_left );
+	}
+
+	/*----*/
 
 	set_parameter = function_list->set_parameter;
 

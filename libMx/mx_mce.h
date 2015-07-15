@@ -20,6 +20,8 @@
 
 #include "mx_record.h"
 
+#include "mx_motor.h"    /* MXU_MTR_NUM_WINDOW_PARAMETERS is from mx_motor.h */
+
 /* Make the header file C++ safe. */
 
 #ifdef __cplusplus
@@ -60,7 +62,7 @@ typedef struct {
 	mx_bool_type window_is_available;
 	mx_bool_type use_window;
 
-	double window[2];
+	double window[ MXU_MTR_NUM_WINDOW_PARAMETERS ];
 
 	long measurement_window_offset;
 } MX_MCE;
@@ -170,7 +172,8 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCE, use_window), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_MCE_WINDOW, -1, "window", MXFT_DOUBLE, NULL, 1, {2}, \
+  {MXLV_MCE_WINDOW, -1, "window", MXFT_DOUBLE, \
+				NULL, 1, {MXU_MTR_NUM_WINDOW_PARAMETERS}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCE, window), \
 	{sizeof(double)}, NULL, 0}, \
   \
@@ -257,10 +260,12 @@ MX_API mx_status_type mx_mce_connect_mce_to_motor( MX_RECORD *mce_record,
 						MX_RECORD *motor_record );
 
 MX_API mx_status_type mx_mce_get_window( MX_RECORD *mce_record,
-							double *window );
+						double *window,
+						long num_window_parameters );
 
 MX_API mx_status_type mx_mce_set_window( MX_RECORD *mce_record,
-							double *window );
+						double *window,
+						long num_window_parameters );
 
 MX_API mx_status_type mx_mce_get_window_is_available( MX_RECORD *mce_record,
 					mx_bool_type *window_is_available );

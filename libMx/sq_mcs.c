@@ -1415,7 +1415,7 @@ mxs_mcs_quick_scan_use_encoder_values(
 		
 		if ( mce->use_window ) {
 			mx_status = mx_motor_get_window( real_motor_record,
-								NULL );	
+					NULL, MXU_MTR_NUM_WINDOW_PARAMETERS );
 
 			real_motor_real_start_position = real_motor->window[0];
 		} else {
@@ -2907,7 +2907,8 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	for ( i = 0; i < scan->num_motors; i++ ) {
 		MX_RECORD *mce_record;
 		mx_bool_type window_is_available, use_window;
-		double window[2];
+		double window[ MXU_MTR_NUM_WINDOW_PARAMETERS ];
+		long window_bytes;
 
 		mce_record = mcs_quick_scan->mce_record_array[i];
 
@@ -2936,13 +2937,18 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 				/* Go back to the top of the for() loop. */
 				continue;
 			} else {
+				window_bytes = MXU_MTR_NUM_WINDOW_PARAMETERS
+							* sizeof(double);
+
+				memset( window, 0, window_bytes );
+
 				window[0] =
 					mcs_quick_scan->real_start_position[i];
 				window[1] =
 					mcs_quick_scan->real_end_position[i];
 
 				mx_status = mx_mce_set_window( mce_record,
-								window );
+					window, MXU_MTR_NUM_WINDOW_PARAMETERS );
 
 				if ( mx_status.code != MXE_SUCCESS ) {
 					mcs_quick_scan->use_window[i] = FALSE;

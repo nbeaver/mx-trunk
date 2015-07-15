@@ -181,8 +181,11 @@ mxd_mcs_time_mce_finish_record_initialization( MX_RECORD *record )
 
 	mce->window_is_available = FALSE;
 	mce->use_window = FALSE;
-	mce->window[0] = 0.0;
-	mce->window[1] = 0.0;
+
+	memset( mce->window,
+		0, MXU_MTR_NUM_WINDOW_PARAMETERS * sizeof(double) );
+
+	/*----*/
 
         strlcpy( mce->selected_motor_name,
                         mcs_time_mce->associated_motor_record->name,

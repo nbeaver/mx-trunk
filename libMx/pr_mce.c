@@ -105,7 +105,8 @@ mx_mce_process_function( void *record_ptr,
 								NULL, NULL );
 			break;
 		case MXLV_MCE_WINDOW:
-			mx_status = mx_mce_get_window( record, NULL );
+			mx_status = mx_mce_get_window( record, NULL,
+						MXU_MTR_NUM_WINDOW_PARAMETERS );
 			break;
 		case MXLV_MCE_WINDOW_IS_AVAILABLE:
 			mx_status = mx_mce_get_window_is_available(
@@ -137,7 +138,8 @@ mx_mce_process_function( void *record_ptr,
 			}
 			break;
 		case MXLV_MCE_WINDOW:
-			mx_status = mx_mce_set_window( record, mce->window );
+			mx_status = mx_mce_set_window( record, mce->window,
+						MXU_MTR_NUM_WINDOW_PARAMETERS );
 			break;
 		case MXLV_MCE_USE_WINDOW:
 			mx_status = mx_mce_set_use_window( record,

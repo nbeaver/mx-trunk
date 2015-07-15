@@ -790,6 +790,11 @@ mxd_newport_xps_motor_pco_set_config_value( MX_MOTOR *motor,
 			newport_xps->socket_id,
 			"PositionerPositionCompareDisable()",
 			xps_status );
+
+		motor->window_is_available = FALSE;
+		motor->use_window = FALSE;
+		motor->window[0] = 0.0;
+		motor->window[1] = 0.0;
 	}
 
 	/* Now setup the new PCO configuration. */
@@ -798,6 +803,11 @@ mxd_newport_xps_motor_pco_set_config_value( MX_MOTOR *motor,
 		/* We just disabled the PCO a few lines ago, so there
 		 * is no need to do it a second time.
 		 */
+
+		motor->window_is_available = FALSE;
+		motor->use_window = FALSE;
+		motor->window[0] = 0.0;
+		motor->window[1] = 0.0;
 	} else
 	if ( mx_strcasecmp( "distance_spaced_pulses", config_name ) == 0 ) {
 		double minimum_position, maximum_position, step_size;
@@ -889,10 +899,10 @@ mxd_newport_xps_motor_pco_set_config_value( MX_MOTOR *motor,
 	} else
 	if ( mx_strcasecmp( "aquadb_always_enable", config_name ) == 0 ) {
 
-#if 0
-		MX_DEBUG(-2,("%s: motor '%s', aquadb_always_enable",
-			fname, motor->record->name ));
-#endif
+		motor->window_is_available = FALSE;
+		motor->use_window = FALSE;
+		motor->window[0] = 0.0;
+		motor->window[1] = 0.0;
 
 		xps_status = PositionerPositionCompareAquadBAlwaysEnable(
 					newport_xps->socket_id,
@@ -987,6 +997,11 @@ mxd_newport_xps_motor_pco_set_config_value( MX_MOTOR *motor,
 		}
 #endif
 
+		motor->window_is_available = TRUE;
+		motor->use_window = TRUE;
+
+		motor->window[0] = window_low;
+		motor->window[1] = window_high;
 	} else {
 		mx_free( argv ); mx_free( config_value_copy );
 
@@ -1861,6 +1876,17 @@ mxd_newport_xps_set_parameter( MX_MOTOR *motor )
 					xps_status );
 			}
 		}
+		break;
+
+	case MXLV_MTR_WINDOW:
+		snprintf( newport_xps_motor->pco_config_value,
+			sizeof(newport_xps_motor->pco_config_value),
+			"%g %g", motor->window[0], motor->window[1] );
+
+		mx_status = mxd_newport_xps_motor_pco_set_config_value(
+				motor, newport_xps_motor, newport_xps,
+				newport_xps_motor->pco_config_name,
+				newport_xps_motor->pco_config_value );
 		break;
 
 	default:

@@ -458,8 +458,11 @@ mx_setup_motor_process_functions( MX_RECORD *record )
 		case MXLV_MTR_TWEAK_DISTANCE:
 		case MXLV_MTR_TWEAK_FORWARD:
 		case MXLV_MTR_TWEAK_REVERSE:
+		case MXLV_MTR_USE_WINDOW:
 		case MXLV_MTR_VALUE_CHANGE_THRESHOLD:
 		case MXLV_MTR_VELOCITY_FEEDFORWARD_GAIN:
+		case MXLV_MTR_WINDOW:
+		case MXLV_MTR_WINDOW_IS_AVAILABLE:
 
 			record_field->process_function
 					    = mx_motor_process_function;
@@ -661,6 +664,17 @@ mx_motor_process_function( void *record_ptr,
 		case MXLV_MTR_EXTRA_GAIN:
 			mx_status = mx_motor_get_gain( record,
 					MXLV_MTR_EXTRA_GAIN, NULL );
+			break;
+		case MXLV_MTR_WINDOW:
+			mx_status = mx_motor_get_window( record, NULL,
+						MXU_MTR_NUM_WINDOW_PARAMETERS );
+			break;
+		case MXLV_MTR_WINDOW_IS_AVAILABLE:
+			mx_status = mx_motor_get_window_is_available(
+							record, NULL );
+			break;
+		case MXLV_MTR_USE_WINDOW:
+			mx_status = mx_motor_get_use_window( record, NULL );
 			break;
 		default:
 			MX_DEBUG( 1,(
@@ -872,6 +886,14 @@ mx_motor_process_function( void *record_ptr,
 				position_field->value_change_threshold
 					= motor->value_change_threshold;
 			}
+			break;
+		case MXLV_MTR_WINDOW:
+			mx_status = mx_motor_set_window( record, motor->window,
+						MXU_MTR_NUM_WINDOW_PARAMETERS );
+			break;
+		case MXLV_MTR_USE_WINDOW:
+			mx_status = mx_motor_set_use_window( record,
+							motor->use_window );
 			break;
 		default:
 			MX_DEBUG( 1,(

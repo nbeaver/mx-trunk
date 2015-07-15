@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2008-2011 Illinois Institute of Technology
+ * Copyright 1999-2006, 2008-2011, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1456,6 +1456,25 @@ mxd_monochromator_get_parameter( MX_MOTOR *motor )
 		motor->real_motor_record = theta_record;
 		break;
 
+	case MXLV_MTR_WINDOW_IS_AVAILABLE:
+		mx_status = mx_motor_get_window_is_available(
+					motor->real_motor_record,
+					&(motor->window_is_available) );
+		break;
+
+	case MXLV_MTR_USE_WINDOW:
+		mx_status = mx_motor_get_use_window(
+					motor->real_motor_record,
+					&(motor->use_window) );
+		break;
+
+	case MXLV_MTR_WINDOW:
+		mx_status = mx_motor_get_window(
+					motor->real_motor_record,
+					motor->window,
+					MXU_MTR_NUM_WINDOW_PARAMETERS );
+		break;
+
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 			"Parameter type '%s' (%ld) is not supported by the "
@@ -1570,6 +1589,19 @@ mxd_monochromator_set_parameter( MX_MOTOR *motor )
 							start_position,
 							end_position,
 							time_for_move );
+		break;
+
+	case MXLV_MTR_USE_WINDOW:
+		mx_status = mx_motor_set_use_window(
+					motor->real_motor_record,
+					motor->use_window );
+		break;
+
+	case MXLV_MTR_WINDOW:
+		mx_status = mx_motor_set_window(
+					motor->real_motor_record,
+					motor->window,
+					MXU_MTR_NUM_WINDOW_PARAMETERS );
 		break;
 
 	default:
