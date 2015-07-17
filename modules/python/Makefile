@@ -5,7 +5,7 @@
 MX_ARCH = linux
 MX_INSTALL_DIR = /opt/mx
 
-PYTHON_VERSION = 2.6
+PYTHON_VERSION = 2.7
 
 PYTHON_INCLUDES = /usr/include/python$(PYTHON_VERSION)
 PYTHON_LINK = $(shell python$(PYTHON_VERSION)-config --ldflags)

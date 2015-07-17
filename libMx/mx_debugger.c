@@ -489,6 +489,24 @@ mx_start_debugger( char *command )
 		fputs( mx_debugger_command, stderr );
 		fputs( "'.\n", stderr );
 
+#if 1
+		if ( strncmp( mx_debugger_command, "ddd", 3 ) == 0 ) {
+			char *home_name;
+
+			home_name = getenv( "HOME" );
+
+			if ( home_name != NULL ) {
+				fprintf( stderr,
+"\nWarning: If DDD hangs on startup with an hourglass cursor, try deleting\n"
+"         the directory %s/.ddd and then try DDD again.\n", home_name );
+			} else {
+				fprintf( stderr,
+"\nWarning: If DDD hangs on startup with an hourglass cursor, try deleting\n"
+"         the directory .ddd in your home directory and then try DDD again.\n");
+			}
+		}
+#endif
+
 #if 0
 		spawn_flags = MXF_SPAWN_NEW_SESSION;
 #else
@@ -687,9 +705,11 @@ mx_wait_for_debugger( void )
 "If you are using GDB, follow this procedure:\n"
 "  1.  If not already attached, attach to the process with the command\n"
 "          'gdb -p %lu'\n"
-"  2.  Type 'set loop=0' in the mx_wait_for_debugger() stack frame\n"
+"  2.  Repeatedly type 'finish' until you reach the mx_wait_for_debugger()\n"
+"      stack frame.\n"
+"  3.  Type 'set loop=0' in the mx_wait_for_debugger() stack frame\n"
 "      to break out of the loop.\n"
-"  3.  Use the command 'finish' to run functions to completion.\n\n", pid );
+"  4.  You may now run any debugger commands you want.\n", pid );
 		
 #if defined(OS_SOLARIS) || defined(OS_HPUX) || defined(OS_IRIX)
 	fprintf( stderr,

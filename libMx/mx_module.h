@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2010-2012, 2014 Illinois Institute of Technology
+ * Copyright 2010-2012, 2014-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -39,6 +39,7 @@ typedef struct {
 typedef struct mx_extension_function_list_type {
 	mx_status_type ( *init )( MX_EXTENSION * );
 	mx_status_type ( *call )( MX_EXTENSION *, int argc, void **argv );
+	mx_status_type ( *call_string )( MX_EXTENSION*, char * );
 } MX_EXTENSION_FUNCTION_LIST;
 
 typedef struct mx_module_type {

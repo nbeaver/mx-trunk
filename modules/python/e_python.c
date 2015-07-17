@@ -44,8 +44,6 @@ mxext_python_init( MX_EXTENSION *extension )
 	MX_PYTHON_EXTENSION_PRIVATE *py_ext = NULL;
 	PyObject *result = NULL;
 
-	MX_DEBUG(-2,("%s invoked.", fname));
-
 	mx_database = extension->record_list;
 
 	if ( mx_database == (MX_RECORD *) NULL ) {
@@ -112,10 +110,6 @@ mxext_python_init( MX_EXTENSION *extension )
 		"Could not load the 'Mp' module." );
 	}
 
-#if 1
-	return MX_SUCCESSFUL_RESULT;
-#endif
-
 	/* Are we running in the context of the 'mxmotor' process?
 	 *
 	 * We find out by searching for the 'motor_record_list' pointer
@@ -145,17 +139,17 @@ mxext_python_init( MX_EXTENSION *extension )
 
 	/* If we get here, we _are_ running in the 'mxmotor' process.
 	 *
-	 * In that case, try to load the 'Mtr' module.
+	 * In that case, try to load the 'MpMtr' module.
 	 */
 
-	result = PyRun_String( "import Mtr",
+	result = PyRun_String( "import MpMtr",
 			Py_single_input, py_ext->py_dict, py_ext->py_dict );
 
 	if ( result == NULL ) {
 		PyErr_Print();
 
-		return mx_error( MXE_NOT_FOUND, fname,
-		"Could not load the 'Mtr' module." );
+		mx_warning( "Could not load the 'MpMtr' Python module "
+			"for mxmotor.  We will continue without it." );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -175,7 +169,8 @@ mxext_python_call( MX_EXTENSION *extension,
 	char *script_filename = NULL;
 	char del_command[80];
 	char execfile_command[MXU_FILENAME_LENGTH+20];
-	char main_command[2000];
+	char temp_buffer[500];
+	char main_command[1000];
 
 	MX_PYTHON_EXTENSION_PRIVATE *py_ext = NULL;
 	PyObject *result = NULL;
@@ -198,8 +193,6 @@ mxext_python_call( MX_EXTENSION *extension,
 		"is NULL.", extension->name );
 	}
 
-	MX_DEBUG(-2,("%s invoked", fname));
-
 	mx_database = extension->record_list;
 
 	if ( mx_database == (MX_RECORD *) NULL ) {
@@ -213,7 +206,9 @@ mxext_python_call( MX_EXTENSION *extension,
 		fname, i, (char *) argv[i]));
 	}
 
-	/* Get rid of any preexisting main() function. */
+	/* Get rid of any preexisting main() function, since
+	 * the script we are invoking may provide one.
+	 */
 
 	strlcpy( del_command,
 			"try:\n"
@@ -228,7 +223,7 @@ mxext_python_call( MX_EXTENSION *extension,
 	if ( result == NULL ) {
 		PyErr_Print();
 
-		return mx_error( MXE_NOT_FOUND, fname,
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
 		"Running the script '%s' failed.", (char *) argv[0] );
 	}
 
@@ -271,11 +266,48 @@ mxext_python_call( MX_EXTENSION *extension,
 			script_filename );
 	}
 
-	/* Now construct a command to invoke the main() function. */
+	/*---------------------------------------------------------------*/
 
-	/* FIXME - Not yet finished. */
+	/*---------------------------------------------------------------*/
 
-	strlcpy( main_command, "main()", sizeof(main_command) );
+	/* Construct a string representation of a Python command that
+	 * invokes the script's 'main()' function with the MX database
+	 * object as the first argument.  The contents of the 'argv'
+	 * array is represented as a Python list of strings that is
+	 * passed to the main() function as its second argument.
+	 */
+
+	strlcpy( main_command, "main( mx_database, ["
+				, sizeof(main_command) );
+
+	if ( argc > 1 ) {
+		snprintf( temp_buffer, sizeof(temp_buffer),
+			" \"%s\"", (char *) argv[1] );
+
+		strlcat( main_command, temp_buffer, sizeof(main_command) );
+	}
+
+	for ( i = 2; i < argc; i++ ) {
+		snprintf( temp_buffer, sizeof(temp_buffer),
+			", \"%s\"", (char *) argv[i] );
+
+		strlcat( main_command, temp_buffer, sizeof(main_command) );
+	}
+
+	strlcat( main_command, " ] )", sizeof(main_command) );
+
+	MX_DEBUG(-2,("%s: main_command = '%s'", fname, main_command));
+
+	result = PyRun_String( main_command,
+			Py_single_input, py_ext->py_dict, py_ext->py_dict );
+
+	if ( result == NULL ) {
+		PyErr_Print();
+
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"Executing the main() function from the script '%s' failed.",
+			(char *) argv[0] );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }

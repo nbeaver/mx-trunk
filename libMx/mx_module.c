@@ -37,6 +37,7 @@ mx_load_module( char *filename, MX_RECORD *record_list, MX_MODULE **module )
 	MX_LIST *module_list;
 	MX_LIST_ENTRY *module_list_entry;
 	MX_MODULE_INIT *module_init_fn;
+	unsigned long i;
 	unsigned long module_status_code;
 	char module_init_name[100];
 	mx_status_type mx_status;
@@ -182,7 +183,6 @@ mx_load_module( char *filename, MX_RECORD *record_list, MX_MODULE **module )
 				fname, module_ptr->name));
 		{
 			MX_DRIVER *driver;
-			unsigned long i;
 
 			for ( i = 0; ; i++ ) {
 				driver = &(module_ptr->driver_table[i]);
@@ -203,11 +203,46 @@ mx_load_module( char *filename, MX_RECORD *record_list, MX_MODULE **module )
 			return mx_status;
 	}
 
-	/* FIXME: Currently we ignore the extensions table. */
+	/*-----------------------------------------------------------------*/
+
+	/* If there is an extension table in the module, then initialize it. */
+
+	if ( module_ptr->extension_table != (MX_EXTENSION *) NULL ) {
+
+		MX_EXTENSION *extension;
+		MX_EXTENSION_FUNCTION_LIST *flist;
+#if 0
+		MX_DEBUG(-2,("%s: Initializing extensions for module '%s'.",
+			fname, module_ptr->name));
+#endif
+
+		for ( i = 0; ; i++ ) {
+			extension = &(module_ptr->extension_table[i]);
+
+			extension->record_list = record_list;
+
+			if ( extension->name[0] == '\0' ) {
+				/* We have reached the end of the module table,
+				 * so break out of the for() loop.
+				 */
+
+				break;	/* for(i) */
+			}
+
+			flist = extension->extension_function_list;
+
+			if ( flist != (MX_EXTENSION_FUNCTION_LIST *) NULL ) {
+				if ( flist->init != NULL ) {
+
+					(void) (flist->init)( extension );
+				}
+			}
+		}
+	}
 
 	/*-----------------------------------------------------------------*/
 
-	/* Does the module contain module initialization function?
+	/* Does the module contain a module initialization function?
 	 * 
 	 * The name of the MX module init function is constructed from
 	 * the name of the module read out of the __MX_MODULE__ struct.

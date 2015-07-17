@@ -39,7 +39,7 @@ MODULES += newport_xps		# linux,
 
 #MODULES += nuvant_ezstat	# linux, win32
 
-#MODULES += python		# (Warning: not yet usable)
+MODULES += python		# (Warning: not yet usable)
 
 #MODULES += pmc_mcapi		# linux, win32
 
