@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2007-2008, 2010-2011, 2013
+ * Copyright 1999-2003, 2007-2008, 2010-2011, 2013, 2015
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -290,7 +290,7 @@ mxd_elapsed_time_move_absolute( MX_MOTOR *motor )
 
 				mx_status = mx_error(
 					(MXE_INTERRUPTED | MXE_QUIET) ,fname,
-					"Wait for time %g was interrupted",
+			"Wait for time %g was interrupted due to user request.",
 					requested_time );
 
 				break;      /* Exit the while() loop. */

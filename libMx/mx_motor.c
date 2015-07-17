@@ -1143,7 +1143,7 @@ mx_wait_for_motor_stop( MX_RECORD *motor_record, unsigned long flags )
 				(void) mx_motor_soft_abort( motor_record );
 
 				return mx_error( MXE_INTERRUPTED, fname,
-					"Move to backlash position aborted.");
+		    "Move to backlash position aborted due to user request.");
 
 				break;
 
@@ -1316,7 +1316,7 @@ mx_wait_for_motor_array_stop( long num_motor_records,
 					}
 					return mx_error(
 						MXE_INTERRUPTED, fname,
-						"Motor moves aborted.");
+				    "Motor moves aborted due to user request.");
 
 				case MXF_USER_INT_PAUSE:
 					if ( ignore_pause == FALSE ) {
