@@ -26,8 +26,8 @@ ifeq ($(MX_ARCH),linux)
 
 python.mxo: $(PYTHON_OBJS)
 	$(CC) -shared -rdynamic -Wl,-soname,python.mxo \
-		-o python.mxo $(PYTHON_OBJS) \
-		$(PYTHON_LINK)
+		-o python.mxo $(PYTHON_OBJS) $(PYTHON_LINK) \
+		../../libMx/libMx.so
 
 endif
 
