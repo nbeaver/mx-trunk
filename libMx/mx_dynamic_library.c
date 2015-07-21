@@ -66,6 +66,8 @@ mx_dynamic_library_open( const char *filename,
 	DWORD last_error_code;
 	TCHAR message_buffer[100];
 
+	MX_DEBUG(-2,("%s: filename = %p", fname, filename));
+
 	if ( library == (MX_DYNAMIC_LIBRARY **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_DYNAMIC_LIBRARY pointer passed was NULL." );

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2010-2012, 2014 Illinois Institute of Technology
+ * Copyright 2010-2012, 2014-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,7 +16,9 @@
 
 #define MX_MODULE_DEBUG			FALSE
 
-#define MX_MODULE_DEBUG_EXTENSION	FALSE
+#define MX_MODULE_DEBUG_ENTRY_EXIT	TRUE
+
+#define MX_MODULE_DEBUG_EXTENSION	TRUE
 
 #include <stdio.h>
 
@@ -41,6 +43,10 @@ mx_load_module( char *filename, MX_RECORD *record_list, MX_MODULE **module )
 	unsigned long module_status_code;
 	char module_init_name[100];
 	mx_status_type mx_status;
+
+#if MX_MODULE_DEBUG_ENTRY_EXIT
+	MX_DEBUG(-2,("%s invoked for filename '%s'", fname, filename));
+#endif
 
 	if ( filename == (char *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -211,15 +217,14 @@ mx_load_module( char *filename, MX_RECORD *record_list, MX_MODULE **module )
 
 		MX_EXTENSION *extension;
 		MX_EXTENSION_FUNCTION_LIST *flist;
-#if 0
+
+#if MX_MODULE_DEBUG_EXTENSION
 		MX_DEBUG(-2,("%s: Initializing extensions for module '%s'.",
 			fname, module_ptr->name));
 #endif
 
 		for ( i = 0; ; i++ ) {
 			extension = &(module_ptr->extension_table[i]);
-
-			extension->record_list = record_list;
 
 			if ( extension->name[0] == '\0' ) {
 				/* We have reached the end of the module table,
@@ -229,15 +234,39 @@ mx_load_module( char *filename, MX_RECORD *record_list, MX_MODULE **module )
 				break;	/* for(i) */
 			}
 
+#if MX_MODULE_DEBUG_EXTENSION
+			MX_DEBUG(-2,("%s: extension # %ld = '%s'",
+				fname, i, extension->name));
+#endif
+
+			extension->record_list = record_list;
+
 			flist = extension->extension_function_list;
 
 			if ( flist != (MX_EXTENSION_FUNCTION_LIST *) NULL ) {
+
+#if MX_MODULE_DEBUG_EXTENSION
+				MX_DEBUG(-2,("%s: flist # %ld is not NULL.",
+					fname, i));
+#endif
 				if ( flist->init != NULL ) {
 
+#if MX_MODULE_DEBUG_EXTENSION
+				MX_DEBUG(-2,
+				("%s: flist->init # %ld is not NULL.",
+					fname, i));
+#endif
 					(void) (flist->init)( extension );
 				}
 			}
+
+#if MX_MODULE_DEBUG_EXTENSION
+			MX_DEBUG(-2,("%s: end of extension # %ld", fname, i));
+#endif
 		}
+#if MX_MODULE_DEBUG_EXTENSION
+		MX_DEBUG(-2,("%s: Finished with extensions.", fname));
+#endif
 	}
 
 	/*-----------------------------------------------------------------*/
@@ -277,6 +306,10 @@ mx_load_module( char *filename, MX_RECORD *record_list, MX_MODULE **module )
 	{
 		(*module_init_fn)( module_ptr );
 	}
+
+#if MX_MODULE_DEBUG_ENTRY_EXIT
+	MX_DEBUG(-2,("%s complete.",fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }

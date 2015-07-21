@@ -14,6 +14,8 @@
  *
  */
 
+#define DEBUG_DATABASE_BUFFERS	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1276,7 +1278,10 @@ mx_read_database_private( MX_RECORD *record_list_head,
 	db_source->line_number = 1;
 
 	for (;;) {
-		MX_DEBUG( 2,("line %ld: '%s'", db_source->line_number, buffer));
+
+#if DEBUG_DATABASE_BUFFERS
+		MX_DEBUG(-2,("line %ld: '%s'", db_source->line_number, buffer));
+#endif
 
 		/* Figure out what to do with this line. */
 
