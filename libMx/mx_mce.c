@@ -834,7 +834,7 @@ mx_mce_default_get_parameter_handler( MX_MCE *mce )
 		break;
 	}
 
-	return mx_status;
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -877,6 +877,6 @@ mx_mce_default_set_parameter_handler( MX_MCE *mce )
 		break;
 	}
 
-	return mx_status;
+	return MX_SUCCESSFUL_RESULT;
 }
 
