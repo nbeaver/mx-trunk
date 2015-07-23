@@ -66,8 +66,6 @@ mx_dynamic_library_open( const char *filename,
 	DWORD last_error_code;
 	TCHAR message_buffer[100];
 
-	MX_DEBUG(-2,("%s: filename = %p", fname, filename));
-
 	if ( library == (MX_DYNAMIC_LIBRARY **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_DYNAMIC_LIBRARY pointer passed was NULL." );
@@ -80,6 +78,8 @@ mx_dynamic_library_open( const char *filename,
 			"Ran out of memory trying to allocate "
 			"an MX_DYNAMIC_LIBRARY structure." );
 	}
+
+	(*library)->filename[0] = '\0';
 
 	if ( filename == (char *) NULL ) {
 		(*library)->object = GetModuleHandle(NULL);
@@ -96,13 +96,25 @@ mx_dynamic_library_open( const char *filename,
 		mx_win32_error_message( last_error_code,
 			message_buffer, sizeof(message_buffer) );
 
-		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			"Unable to open dynamic library '%s'.  "
-			"Win32 error code = %ld, error message = '%s'.",
-			filename, last_error_code, message_buffer );
+		if ( filename == (char *) NULL ) {
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+				"Unable to open main executable.  "
+				"Win32 error code = %ld, error message = '%s'.",
+				last_error_code, message_buffer );
+		} else {
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+				"Unable to open dynamic library '%s'.  "
+				"Win32 error code = %ld, error message = '%s'.",
+				filename, last_error_code, message_buffer );
+		}
 	}
 
-	strlcpy( (*library)->filename, filename, sizeof((*library)->filename) );
+	if ( filename == (char *) NULL ) {
+		(*library)->filename[0] = '\0';
+	} else {
+		strlcpy( (*library)->filename, filename,
+			sizeof((*library)->filename) );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -132,18 +144,28 @@ mx_dynamic_library_close( MX_DYNAMIC_LIBRARY *library )
 			"passed was NULL." );
 	}
 
-	os_status = FreeLibrary( library->object );
+	if ( library->filename[0] != '\0' ) {
 
-	if ( os_status == 0 ) {
-		last_error_code = GetLastError();
+		/* Only call FreeLibrary() for handles to DLLs, which are
+		 * acquired using LoadLibrary().  FreeLibrary() should
+		 * _never_ be called on a handle for the main program,
+		 * which is acquired via GetModuleHandle(NULL).
+		 */
+
+		os_status = FreeLibrary( library->object );
+
+		if ( os_status == 0 ) {
+			last_error_code = GetLastError();
 		
-		mx_win32_error_message( last_error_code,
-			message_buffer, sizeof(message_buffer) );
+			mx_win32_error_message( last_error_code,
+				message_buffer, sizeof(message_buffer) );
 
-		mx_status = mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			"Unable to close dynamic library '%s'.  "
-			"Win32 error code = %ld, error message = '%s'.",
-			library->filename, last_error_code, message_buffer );
+			mx_status = mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+				"Unable to close dynamic library '%s'.  "
+				"Win32 error code = %ld, error message = '%s'.",
+				library->filename,
+				last_error_code, message_buffer );
+		}
 	}
 
 	mx_free( library );

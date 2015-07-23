@@ -14,7 +14,7 @@
  *
  */
 
-#define DEBUG_DATABASE_BUFFERS	TRUE
+#define DEBUG_DATABASE_BUFFERS	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
