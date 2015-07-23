@@ -808,8 +808,6 @@ mx_mce_default_get_parameter_handler( MX_MCE *mce )
 {
 	static const char fname[] = "mx_mce_default_get_parameter_handler()";
 
-	mx_status_type mx_status;
-
 	MX_DEBUG(-2,("%s invoked for MCE '%s', parameter type '%s' (%ld).",
 		fname, mce->record->name,
 		mx_get_field_label_string( mce->record, mce->parameter_type ),
@@ -841,8 +839,6 @@ MX_EXPORT mx_status_type
 mx_mce_default_set_parameter_handler( MX_MCE *mce )
 {
 	static const char fname[] = "mx_mce_default_set_parameter_handler()";
-
-	mx_status_type mx_status;
 
 	MX_DEBUG(-2,("%s invoked for MCE '%s', parameter type '%s' (%ld).",
 		fname, mce->record->name,
