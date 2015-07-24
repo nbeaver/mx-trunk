@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2014 Illinois Institute of Technology
+ * Copyright 2014-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -30,6 +30,14 @@ MX_EXTENSION_FUNCTION_LIST mxext_python_extension_function_list = {
 
 /*------*/
 
+/* NOTE:  In order to understand the calls to PyRun_String() below, it is
+ *        very important to know the difference between the following
+ *        start symbols:
+ *
+ *          Py_single_input - used to run a Python statement.
+ *          Py_eval_input   - used to evaluate a Python expression.
+ */
+
 MX_EXPORT mx_status_type
 mxext_python_init( MX_EXTENSION *extension )
 {
@@ -42,7 +50,12 @@ mxext_python_init( MX_EXTENSION *extension )
 	mx_status_type mx_status;
 
 	MX_PYTHON_EXTENSION_PRIVATE *py_ext = NULL;
+	PyObject *mx_database_capsule = NULL;
+	PyObject *record_list_class_object = NULL;
+	PyObject *record_list_class_instance = NULL;
+	PyObject *record_list_constructor_arguments = NULL;
 	PyObject *result = NULL;
+	int python_status;
 
 	mx_database = extension->record_list;
 
@@ -109,6 +122,128 @@ mxext_python_init( MX_EXTENSION *extension )
 		return mx_error( MXE_NOT_FOUND, fname,
 		"Could not load the 'Mp' module." );
 	}
+
+	/*----------------------------------------------------------------*/
+
+	/* We need to put the mx_database pointer into a Python object,
+	 * so that we can create the Python MX database object.  This is
+	 * done using a PyCapsule object.
+	 */
+
+	MX_DEBUG(-2,("%s: mx_database = %p", fname, mx_database));
+
+	mx_database_capsule = PyCapsule_New( mx_database, NULL, NULL );
+
+	if ( mx_database_capsule == NULL ) {
+		PyErr_Print();
+
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"Unable to put the mx_database pointer into a PyCapsule.  "
+		"You are not expected to know what this means, so please "
+		"report it to the MX developer (William Lavender)." );
+	}
+
+	fprintf( stderr, "mx_database_capsule = " );
+
+	PyObject_Print( mx_database_capsule, stderr, 0 );
+
+	fprintf( stderr, "\n" );
+
+	/* Get the callable object for the Mp.RecordList() constructor
+	 * using Py_eval_input to tell the interpreter that we want
+	 * to get the class object, rather than getting the result 
+	 * of running the string.
+	 */
+
+	record_list_class_object = PyRun_String( "Mp.RecordList",
+			Py_eval_input, py_ext->py_dict, py_ext->py_dict );
+
+	if ( record_list_class_object == NULL ) {
+		PyErr_Print();
+
+		return mx_error( MXE_NOT_FOUND, fname,
+		"Could not get the Mp.RecordList class object." );
+	}
+
+	fprintf( stderr, "The class object is " );
+
+	PyObject_Print( record_list_class_object, stderr, 0 );
+
+	fprintf( stderr, "\n" );
+
+	/* Create an Mp.RecordList object that refers to the already 
+	 * existing MX record list object in the C main program.
+	 *
+	 * First, we build the arguments for the constructor.  We will
+	 * not use keyword arguments here.
+	 */
+
+	record_list_constructor_arguments = Py_BuildValue( "(O)",
+						mx_database_capsule );
+
+	if ( record_list_constructor_arguments == NULL ) {
+		PyErr_Print();
+
+		return mx_error( MXE_NOT_FOUND, fname,
+		"Could not build the arguments for the constructor "
+		"of the Mp.RecordList class." );
+	}
+
+	/* Now we invoke the constructor to get a class instance. */
+
+	record_list_class_instance = PyInstance_New( record_list_class_object,
+					record_list_constructor_arguments,
+					NULL );
+
+	if ( record_list_class_instance == NULL ) {
+		PyErr_Print();
+
+		return mx_error( MXE_NOT_FOUND, fname,
+		"Could not create an instance of the Mp.RecordList class." );
+	}
+
+	/* Create the Python linked list that shadows the C linked list. */
+
+#if 0
+	result = PyObject_CallMethod( record_list_class_instance,
+					"create_shadow_linked_list", NULL );
+
+	if ( result == NULL ) {
+		PyErr_Print();
+
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"Could not create the Python shadow linked list." );
+	}
+
+	MX_DEBUG(-2,("%s: create_shadow_linked_list succeeded.", fname));
+#endif
+
+	/* Save the Python wrapper for the MX database. */
+
+	py_ext->py_record_list = record_list_class_instance;
+
+	fprintf( stderr, "The instance object is " );
+
+	PyObject_Print( py_ext->py_record_list, stderr, 0 );
+
+	fprintf( stderr, "\n" );
+
+	/* Add 'mx_database' to the global dictionary so that external
+	 * scripts can find it.
+	 */
+
+	python_status = PyObject_SetAttrString( py_ext->py_main,
+						"mx_database",
+						py_ext->py_record_list );
+
+	if ( python_status == -1 ) {
+		PyErr_Print();
+
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"Could not add 'mx_database' to the main script's dictionary.");
+	}
+
+	/*----------------------------------------------------------------*/
 
 	/* Are we running in the context of the 'mxmotor' process?
 	 *
