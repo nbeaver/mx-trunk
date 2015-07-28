@@ -214,15 +214,19 @@ mx_load_module( char *filename, MX_RECORD *record_list, MX_MODULE **module )
 	mx_status = mx_dynamic_library_find_symbol( library,
 			module_init_name, &init_ptr, TRUE );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return MX_SUCCESSFUL_RESULT;
+	if ( mx_status.code == MXE_SUCCESS ) {
 
-	module_init_fn = init_ptr;
+		/* If a module initialization function symbol was found
+		 * then try to run that function.
+		 */
 
-	if ( ( module_init_fn != NULL )
-	  && ( *module_init_fn != NULL ) )
-	{
-		(*module_init_fn)( module_ptr );
+		module_init_fn = init_ptr;
+
+		if ( ( module_init_fn != NULL )
+		  && ( *module_init_fn != NULL ) )
+		{
+			(*module_init_fn)( module_ptr );
+		}
 	}
 
 	/*-----------------------------------------------------------------*/
