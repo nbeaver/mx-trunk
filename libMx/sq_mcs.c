@@ -1445,7 +1445,7 @@ mxs_mcs_quick_scan_use_encoder_values(
 		    num_encoder_values = quick_scan->actual_num_measurements;
 		}
 
-#if 1
+#if 0
 		MX_DEBUG( 2,("%s: num_encoder_values = %lu",
 					fname, num_encoder_values));
 
@@ -4195,6 +4195,13 @@ mxs_mcs_quick_scan_cl_read_scaler( MX_SCAN *scan )
 	} else {
 		num_plot_motors = scan->num_motors;
 	}
+
+#if 0
+	if ( use_window ) {
+		mx_warning( "MCE position windows are not yet fully "
+		"implemented, so we are ignoring the window." );
+	}
+#endif
 
 	for ( i = 0; i < quick_scan->actual_num_measurements; i++ ) {
 

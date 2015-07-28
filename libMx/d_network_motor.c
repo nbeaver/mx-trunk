@@ -996,6 +996,9 @@ mxd_network_motor_get_parameter( MX_MOTOR *motor )
 	static const char fname[] = "mxd_network_motor_get_parameter()";
 
 	MX_NETWORK_MOTOR *network_motor;
+	MX_NETWORK_SERVER *network_server;
+	MX_RECORD *network_server_record;
+	uint64_t server_version_time;
 	long dimension_array[1];
 	unsigned long flags;
 	int is_pseudomotor;
@@ -1012,6 +1015,39 @@ mxd_network_motor_get_parameter( MX_MOTOR *motor )
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
 		motor->parameter_type));
+
+	/*---*/
+
+	network_server_record = network_motor->server_record;
+
+	if ( network_server_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The network_server_record pointer for "
+		"network motor '%s' is NULL.",
+			motor->record->name );
+	}
+
+	if ( network_server_record->mx_class != MXN_NETWORK_SERVER ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Record '%s' used by network motor '%s' is not "
+		"an MX network server.  Instead, it is a '%s' record.",
+			network_server_record->name,
+			motor->record->name,
+			mx_get_driver_name( network_server_record ) );
+	}
+
+	network_server = (MX_NETWORK_SERVER *)
+				network_server_record->record_class_struct;
+
+	if ( network_server == (MX_NETWORK_SERVER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_NETWORK_SERVER pointer for network server '%s' "
+		"used by network motor '%s' is NULL.",
+			network_server_record->name,
+			motor->record->name );
+	}
+
+	/*---*/
 
 	if ( network_motor->need_to_get_remote_record_information ) {
 
@@ -1237,8 +1273,26 @@ mxd_network_motor_get_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_WINDOW_IS_AVAILABLE:
-		mx_status = mx_get( &(network_motor->window_is_available_nf),
+		server_version_time = network_server->remote_mx_version_time;
+
+		if ( server_version_time < 1438063200 ) {
+
+			/* If the server is too old to support the
+			 * 'window_is_available' parameter, then report
+			 * 'window_is_available' as FALSE without
+			 * sending any messages to the server.
+			 *
+			 * Note: 1438063200 == July 28, 2015
+			 */
+
+			motor->window_is_available = FALSE;
+
+			return MX_SUCCESSFUL_RESULT;
+		} else {
+			mx_status = mx_get(
+				&(network_motor->window_is_available_nf),
 				MXFT_BOOL, &(motor->window_is_available) );
+		}
 		break;
 
 	default:

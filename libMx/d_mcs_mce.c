@@ -363,7 +363,7 @@ mxd_mcs_encoder_get_parameter( MX_MCE *mce )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
+	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
 		fname, mce->record->name,
 		mx_get_field_label_string( mce->record, mce->parameter_type ),
 		mce->parameter_type ));
@@ -417,7 +417,7 @@ mxd_mcs_encoder_set_parameter( MX_MCE *mce )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
+	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
 		fname, mce->record->name,
 		mx_get_field_label_string( mce->record, mce->parameter_type ),
 		mce->parameter_type ));
