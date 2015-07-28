@@ -39,7 +39,7 @@ all: build
 
 #MODULES += nuvant_ezstat	# linux, win32
 
-MODULES += python		# (Warning: not yet usable)
+#MODULES += python		# (Warning: not yet usable)
 
 #MODULES += pmc_mcapi		# linux, win32
 
@@ -90,9 +90,9 @@ MODULES += python		# (Warning: not yet usable)
 #-------------------------------------------------------------------
 # EPICS modules.
 
-#MODULES += epics
+MODULES += epics
 
-#MODULES += epics_aps 
+MODULES += epics_aps 
 
 #MODULES += epics_pmac_biocat
 
