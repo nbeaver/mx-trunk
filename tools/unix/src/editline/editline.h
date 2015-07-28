@@ -46,6 +46,14 @@ typedef unsigned char	CHAR;
 #define COPYFROMTO(new, p, len)	\
 	(void)memcpy((char *)(new), (char *)(p), (int)(len))
 
+#if 1
+/* strlcpy() and strlcat() definitions added by William Lavender (2015-07-28) */
+
+extern size_t strlcpy( char *dest, const char *src, size_t maxlen );
+extern size_t strlcat( char *dest, const char *src, size_t maxlen );
+
+#endif
+
 
 /*
 **  Variables and routines internal to this package.
