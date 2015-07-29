@@ -127,8 +127,9 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_newport_xps_rfield_def_ptr;
 #define MXLV_NEWPORT_XPS_POSITIONER_ERROR	88003
 #define MXLV_NEWPORT_XPS_HARDWARE_STATUS	88004
 #define MXLV_NEWPORT_XPS_DRIVER_STATUS		88005
-#define MXLV_NEWPORT_XPS_PCO_CONFIG_NAME	88006
-#define MXLV_NEWPORT_XPS_PCO_CONFIG_VALUE	88007
+#define MXLV_NEWPORT_XPS_MOVE_THREAD_SOCKET_ID	88006
+#define MXLV_NEWPORT_XPS_PCO_CONFIG_NAME	88007
+#define MXLV_NEWPORT_XPS_PCO_CONFIG_VALUE	88008
 
 #define MXD_NEWPORT_XPS_MOTOR_STANDARD_FIELDS \
   {-1, -1, "newport_xps_record", MXFT_RECORD, NULL, 0, {0},\
@@ -180,6 +181,12 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_newport_xps_rfield_def_ptr;
   {-1, -1, "set_position_sleep_ms", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_NEWPORT_XPS_MOTOR, set_position_sleep_ms), \
+	{0}, NULL, 0 }, \
+  \
+  {MXLV_NEWPORT_XPS_MOVE_THREAD_SOCKET_ID, -1, "move_thread_socket_id", \
+						MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+			offsetof(MX_NEWPORT_XPS_MOTOR, move_thread_socket_id), \
 	{0}, NULL, 0 }, \
   \
   {MXLV_NEWPORT_XPS_PCO_CONFIG_NAME, -1, "pco_config_name", MXFT_STRING, NULL,\

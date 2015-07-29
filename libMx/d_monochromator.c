@@ -1367,6 +1367,10 @@ mxd_monochromator_get_parameter( MX_MOTOR *motor )
 	}
 
 	switch( motor->parameter_type ) {
+	case MXLV_MTR_SYNCHRONOUS_MOTION_MODE:
+		/* Just report the value of this parameter. */
+		break;
+
 	case MXLV_MTR_SPEED:
 		mx_status = mx_motor_get_speed( theta_record, &double_value );
 
@@ -1558,8 +1562,13 @@ mxd_monochromator_set_parameter( MX_MOTOR *motor )
 	}
 
 	switch( motor->parameter_type ) {
+	case MXLV_MTR_SYNCHRONOUS_MOTION_MODE:
+		/* Just save the value of this parameter. */
+		break;
+
 	case MXLV_MTR_SPEED:
-		mx_status = mx_motor_set_speed( theta_record, motor->raw_speed );
+		mx_status = mx_motor_set_speed( theta_record,
+						motor->raw_speed );
 		break;
 
 	case MXLV_MTR_BASE_SPEED:
