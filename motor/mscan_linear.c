@@ -38,6 +38,128 @@
 		} \
 	} while(0)
 
+/*--------*/
+
+static int
+motor_setup_k_power_law_measurements(
+	MX_SCAN * old_scan,
+	char *buffer,
+	size_t buffer_length,
+	double scan_start,
+	double scan_step_size,
+	long scan_num_measurements )
+{
+#if 0
+	static const char fname[] = "motor_setup_k_power_law_measurements()";
+#endif
+
+	char old_timer_name[MXU_RECORD_NAME_LENGTH + 1];
+	char new_timer_name[MXU_RECORD_NAME_LENGTH + 1];
+	char *arguments_copy;
+	double scan_settling_time, base_time, exponent;
+	int status, new_name_length;
+	int argc;
+	char **argv;
+
+	if ( old_scan == NULL ) {
+		scan_settling_time = 0.0;
+		base_time = 1.0;
+		exponent = 2.0;
+
+		strlcpy( old_timer_name, "timer1", sizeof(old_timer_name) );
+	} else {
+		scan_settling_time = old_scan->settling_time;
+
+#if 0
+		MX_DEBUG(-2,("%s: measurement_arguments = '%s'",
+			fname, old_scan->measurement_arguments));
+#endif
+
+		arguments_copy = strdup( old_scan->measurement_arguments );
+
+		if ( arguments_copy == NULL ) {
+			fprintf( output,
+		  "Error: An attempt to copy old scan arguments '%s' failed.\n",
+				old_scan->measurement_arguments );
+
+			return FAILURE;
+		}
+
+		mx_string_split( arguments_copy, " ", &argc, &argv );
+
+#if 0
+		{
+			int i;
+
+			for ( i = 0; i < argc; i++ ) {
+				MX_DEBUG(-2,("%s: argv[%d] = '%s'",
+				fname, i, argv[i] ));
+			}
+		}
+#endif
+
+		base_time = atof( argv[0] );
+		exponent  = atof( argv[3] );
+
+		strlcpy( old_timer_name, argv[4], sizeof( old_timer_name ) );
+
+		mx_free( argv );
+		mx_free( arguments_copy );
+	}
+
+	status = motor_get_double( output,
+			"Enter setting time in seconds -> ",
+			TRUE, scan_settling_time,
+			&scan_settling_time, 0.0, 1.0e30 );
+
+	if ( status != SUCCESS ) {
+		return status;
+	}
+
+	status = motor_get_double( output,
+			"Enter measurement time for the first point -> ",
+			TRUE, base_time,
+			&base_time, 0.0, 1.0e30 );
+
+	if ( status != SUCCESS ) {
+		return status;
+	}
+
+	status = motor_get_double( output,
+			"Enter K power law exponent -> ",
+			TRUE, exponent,
+			&exponent, 0.0, 1.0e30 );
+
+	if ( status != SUCCESS ) {
+		return status;
+	}
+
+	status = motor_get_string( output,
+			"Enter timer name -> ",
+			old_timer_name, &new_name_length, new_timer_name );
+
+	if ( status != SUCCESS ) {
+		return status;
+	}
+
+	snprintf( buffer, buffer_length,
+		"%g k_power_law \"%g %g %g %g %s\" ",
+		scan_settling_time,
+		base_time,
+		scan_start,
+		scan_step_size,
+		exponent,
+		new_timer_name );
+
+#if 0
+	MX_DEBUG(-2,("%s: buffer = '%s'", fname, buffer));
+#endif
+
+	return SUCCESS;
+}
+
+/*--------*/
+
 int
 motor_setup_linear_scan_parameters(
 	char *scan_name,
@@ -73,6 +195,8 @@ motor_setup_linear_scan_parameters(
 	double *scan_step_size;
 	long *scan_num_measurements;
 	int *motor_is_independent_variable;
+	mx_bool_type offer_k_power_law_measurement;
+	mx_bool_type old_scan_measurement_type_is_k_power_law;
 
 #if ( USE_NUM_MEASUREMENTS == FALSE )
 	double requested_end_position, raw_num_measurements;
@@ -631,7 +755,6 @@ motor_setup_linear_scan_parameters(
 				scan_num_measurements[j] );
 #endif
 		}
-		FREE_MOTOR_NAME_ARRAY;
 	}
 
 	/* Prompt for the common scan parameters such as input devices,
@@ -645,8 +768,10 @@ motor_setup_linear_scan_parameters(
 		status = motor_setup_input_devices( old_scan,
 						scan_class, scan_type,
 						buffer, sizeof(buffer), NULL );
-		if ( status != SUCCESS )
+		if ( status != SUCCESS ) {
+			FREE_MOTOR_NAME_ARRAY;
 			return status;
+		}
 
 		strlcat( record_description_buffer, buffer,
 				record_description_buffer_length );
@@ -665,6 +790,51 @@ motor_setup_linear_scan_parameters(
 	strlcat( record_description_buffer, buffer,
 			record_description_buffer_length );
 
+	/* If this is a 1-dimensional scan with an 'xafs_wavenumber' motor,
+	 * then prepare to give the user the option of using a 'k_power_law'
+	 * measurement type.
+	 */
+
+	offer_k_power_law_measurement = FALSE;
+	old_scan_measurement_type_is_k_power_law = FALSE;
+
+	if ( scan_num_motors == 1 ) {
+	    MX_RECORD *test_record = mx_get_record( motor_record_list,
+							motor_name_array[0] );
+
+	    if ( test_record != (MX_RECORD *) NULL ) {
+		const char *driver_name;
+
+		driver_name = mx_get_driver_name( test_record );
+
+		if ( strcmp( driver_name, "xafs_wavenumber" ) == 0 ) {
+		    offer_k_power_law_measurement = TRUE;
+		}
+	    }
+
+
+	    if ( old_scan != (MX_SCAN *) NULL ) {
+		if ( strcmp( old_scan->measurement_type, "k_power_law" ) == 0 )
+		{
+		    old_scan_measurement_type_is_k_power_law = TRUE;
+		}
+	    }
+	}
+
+	if ( old_scan_measurement_type_is_k_power_law ) {
+		if ( offer_k_power_law_measurement == FALSE ) {
+			fprintf( output,
+			"Error: You are attempting to modify an existing scan "
+			"that uses K power law measurement times to depend on "
+			"a motor '%s' that is not an 'xafs_wavenumber' motor."
+			"  This is not possible."
+			"  Try creating a new scan instead.",
+				motor_name_array[0] );
+
+			return FAILURE;
+		}
+	}
+
 	/* Prompt for the measurement parameters. */
 
 	if ( measurement_parameters_string != NULL ) {
@@ -672,14 +842,72 @@ motor_setup_linear_scan_parameters(
 			measurement_parameters_string,
 			record_description_buffer_length );
 	} else {
-		status = motor_setup_measurement_parameters( old_scan,
-						buffer, sizeof(buffer), TRUE );
-		if ( status != SUCCESS )
+		if ( offer_k_power_law_measurement == FALSE ) {
+			/* For most scans, this is the path that we
+			 * will follow.
+			 */
+
+			status = motor_setup_measurement_parameters(
+				 old_scan, buffer, sizeof(buffer), TRUE );
+		} else {
+			char response[20];
+			int response_length;
+
+			mx_bool_type still_want_to_use_k_power_law = TRUE;
+
+			if ( old_scan == (MX_SCAN *) NULL ) {
+			    response_length = sizeof(response) - 1;
+
+			    fprintf( output,
+			    "Motor '%s' is an 'xafs_wavenumber' motor.\n",
+				motor_name_array[0] );
+
+			    strlcpy( prompt,
+		"Do you want to use K power law measurement timing? -> ",
+				sizeof(prompt) );
+
+			    status = motor_get_string( output, prompt,
+				"N", &response_length, response );
+
+			    if ( status != SUCCESS ) {
+				still_want_to_use_k_power_law = FALSE;
+			    }
+
+			    if ( still_want_to_use_k_power_law ) {
+				if ( (response[0] != 'Y')
+				  && (response[0] != 'y') )
+				{
+					still_want_to_use_k_power_law = FALSE;
+				}
+			    }
+			}
+
+			if ( still_want_to_use_k_power_law ) {
+				/* Prompt for K power law parameters. */
+
+				status = motor_setup_k_power_law_measurements(
+					old_scan, buffer, sizeof(buffer),
+					scan_start[0], scan_step_size[0],
+					scan_num_measurements[0] );
+			} else {
+				/* Revert back to a standard scan. */
+
+				status = motor_setup_measurement_parameters(
+				    old_scan, buffer, sizeof(buffer), TRUE );
+			}
+
+		}
+
+		if ( status != SUCCESS ) {
+			FREE_MOTOR_NAME_ARRAY;
 			return status;
+		}
 
 		strlcat( record_description_buffer, buffer,
 				record_description_buffer_length );
 	}
+
+	FREE_MOTOR_NAME_ARRAY;
 
 	/* Prompt for the datafile and plot parameters. */
 
