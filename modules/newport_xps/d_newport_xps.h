@@ -187,7 +187,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_newport_xps_rfield_def_ptr;
 						MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 			offsetof(MX_NEWPORT_XPS_MOTOR, move_thread_socket_id), \
-	{0}, NULL, 0 }, \
+	{0}, NULL, MXFF_READ_ONLY }, \
   \
   {MXLV_NEWPORT_XPS_PCO_CONFIG_NAME, -1, "pco_config_name", MXFT_STRING, NULL,\
 				1, {MXU_NETWORK_XPS_PCO_CONFIG_NAME_LENGTH}, \
