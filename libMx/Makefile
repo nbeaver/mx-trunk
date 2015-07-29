@@ -60,11 +60,10 @@ MX_CORE_SRCS = mx_amplifier.c mx_analog_input.c mx_analog_output.c \
 	pr_waveform_input.c pr_waveform_output.c \
 	fh_autoscale.c fh_simple.c \
 	f_child.c f_custom.c f_none.c f_sff.c f_text.c f_xafs.c \
-	m_count.c m_none.c m_pulse_period.c m_time.c \
+	m_count.c m_k_power_law.c m_none.c m_pulse_period.c m_time.c \
 	p_child.c p_custom.c p_gnuplot.c p_gnuplot_xafs.c p_none.c \
 	ph_aps_topup.c ph_simple.c \
-	s_input.c s_k_power_law.c \
-	s_motor.c s_pseudomotor.c s_slit.c s_theta_2theta.c \
+	s_input.c s_motor.c s_pseudomotor.c s_slit.c s_theta_2theta.c \
 	sa_wedge.c sl_file.c sxafs_std.c sq_energy_mcs.c sq_mcs.c \
 	z_external_command.c
 

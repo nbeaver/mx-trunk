@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2006 Illinois Institute of Technology
+ * Copyright 2002, 2006, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,14 +25,6 @@ typedef struct {
 MX_API mx_status_type mxm_preset_pulse_period_configure(
 					MX_MEASUREMENT *measurement );
 MX_API mx_status_type mxm_preset_pulse_period_deconfigure(
-					MX_MEASUREMENT *measurement );
-MX_API mx_status_type mxm_preset_pulse_period_prescan_processing(
-					MX_MEASUREMENT *measurement );
-MX_API mx_status_type mxm_preset_pulse_period_postscan_processing(
-					MX_MEASUREMENT *measurement );
-MX_API mx_status_type mxm_preset_pulse_period_preslice_processing(
-					MX_MEASUREMENT *measurement );
-MX_API mx_status_type mxm_preset_pulse_period_postslice_processing(
 					MX_MEASUREMENT *measurement );
 MX_API mx_status_type mxm_preset_pulse_period_acquire_data(
 					MX_MEASUREMENT *measurement );

@@ -30,10 +30,10 @@
 MX_MEASUREMENT_FUNCTION_LIST mxm_preset_pulse_period_function_list = {
 			mxm_preset_pulse_period_configure,
 			mxm_preset_pulse_period_deconfigure,
-			mxm_preset_pulse_period_prescan_processing,
-			mxm_preset_pulse_period_postscan_processing,
-			mxm_preset_pulse_period_preslice_processing,
-			mxm_preset_pulse_period_postslice_processing,
+			NULL,
+			NULL,
+			NULL,
+			NULL,
 			mxm_preset_pulse_period_acquire_data,
 };
 
@@ -235,30 +235,6 @@ mxm_preset_pulse_period_deconfigure( MX_MEASUREMENT *measurement )
 		measurement->measurement_type_struct = NULL;
 	}
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxm_preset_pulse_period_prescan_processing( MX_MEASUREMENT *measurement )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxm_preset_pulse_period_postscan_processing( MX_MEASUREMENT *measurement )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxm_preset_pulse_period_preslice_processing( MX_MEASUREMENT *measurement )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxm_preset_pulse_period_postslice_processing( MX_MEASUREMENT *measurement )
-{
 	return MX_SUCCESSFUL_RESULT;
 }
 

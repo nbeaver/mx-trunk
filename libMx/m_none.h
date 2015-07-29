@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,14 +23,6 @@ typedef struct {
 
 MX_API mx_status_type mxm_none_configure( MX_MEASUREMENT *measurement );
 MX_API mx_status_type mxm_none_deconfigure( MX_MEASUREMENT *measurement );
-MX_API mx_status_type mxm_none_prescan_processing(
-					MX_MEASUREMENT *measurement );
-MX_API mx_status_type mxm_none_postscan_processing(
-					MX_MEASUREMENT *measurement );
-MX_API mx_status_type mxm_none_preslice_processing(
-					MX_MEASUREMENT *measurement );
-MX_API mx_status_type mxm_none_postslice_processing(
-					MX_MEASUREMENT *measurement );
 MX_API mx_status_type mxm_none_acquire_data( MX_MEASUREMENT *measurement );
 
 extern MX_MEASUREMENT_FUNCTION_LIST mxm_none_function_list;

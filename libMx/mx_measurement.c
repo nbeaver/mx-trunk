@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004-2007, 2009, 2012, 2014
+ * Copyright 1999-2002, 2004-2007, 2009, 2012, 2014-2015
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -44,6 +44,7 @@
 #include "m_time.h"
 #include "m_count.h"
 #include "m_pulse_period.h"
+#include "m_k_power_law.h"
 
 MX_MEASUREMENT_TYPE_ENTRY mx_measurement_type_list[] = {
 	{ MXM_NONE,         "none",         &mxm_none_function_list },
@@ -51,6 +52,7 @@ MX_MEASUREMENT_TYPE_ENTRY mx_measurement_type_list[] = {
 	{ MXM_PRESET_COUNT, "preset_count", &mxm_preset_count_function_list },
 	{ MXM_PRESET_PULSE_PERIOD, "preset_pulse_period",
 				&mxm_preset_pulse_period_function_list },
+	{ MXM_K_POWER_LAW, "k_power_law", &mxm_k_power_law_function_list },
 	{ -1, "", NULL }
 };
 
@@ -287,9 +289,7 @@ mx_prescan_measurement_processing( MX_MEASUREMENT *measurement )
 	fptr = flist->prescan_processing;
 
 	if ( fptr == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-    "prescan_processing function pointer for measurement type '%s' is NULL.",
-			measurement->mx_typename );
+		return MX_SUCCESSFUL_RESULT;
 	}
 
 	mx_status = (*fptr) ( measurement );
@@ -326,9 +326,7 @@ mx_postscan_measurement_processing( MX_MEASUREMENT *measurement )
 	fptr = flist->postscan_processing;
 
 	if ( fptr == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-    "postscan_processing function pointer for measurement type '%s' is NULL.",
-			measurement->mx_typename );
+		return MX_SUCCESSFUL_RESULT;
 	}
 
 	mx_status = (*fptr) ( measurement );

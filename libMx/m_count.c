@@ -29,10 +29,10 @@
 MX_MEASUREMENT_FUNCTION_LIST mxm_preset_count_function_list = {
 			mxm_preset_count_configure,
 			mxm_preset_count_deconfigure,
-			mxm_preset_count_prescan_processing,
-			mxm_preset_count_postscan_processing,
-			mxm_preset_count_preslice_processing,
-			mxm_preset_count_postslice_processing,
+			NULL,
+			NULL,
+			NULL,
+			NULL,
 			mxm_preset_count_acquire_data,
 };
 
@@ -254,30 +254,6 @@ mxm_preset_count_deconfigure( MX_MEASUREMENT *measurement )
 
 		measurement->measurement_type_struct = NULL;
 	}
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxm_preset_count_prescan_processing( MX_MEASUREMENT *measurement )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxm_preset_count_postscan_processing( MX_MEASUREMENT *measurement )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxm_preset_count_preslice_processing( MX_MEASUREMENT *measurement )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxm_preset_count_postslice_processing( MX_MEASUREMENT *measurement )
-{
 	return MX_SUCCESSFUL_RESULT;
 }
 

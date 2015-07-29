@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2006-2007 Illinois Institute of Technology
+ * Copyright 1999-2002, 2006-2007, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,6 +29,7 @@ extern "C" {
 #define MXM_PRESET_TIME		1
 #define MXM_PRESET_COUNT	2
 #define MXM_PRESET_PULSE_PERIOD	3
+#define MXM_K_POWER_LAW		4
 
 #define MXU_MEASUREMENT_TYPE_NAME_LENGTH	20
 

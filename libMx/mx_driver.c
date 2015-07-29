@@ -478,7 +478,6 @@
 #include "s_theta_2theta.h"
 #include "s_slit.h"
 #include "s_pseudomotor.h"
-#include "s_k_power_law.h"
 #include "sl_file.h"
 #include "sxafs_std.h"
 #include "sq_mcs.h"
@@ -3498,7 +3497,7 @@ MX_DRIVER mx_type_table[] = {
 				&mxs_slit_linear_scan_num_record_fields,
 				&mxs_slit_linear_scan_def_ptr},
 
-{"pseudomotor_scan", MXS_LIN_PSEUDOMOTOR,MXS_LINEAR_SCAN, MXR_SCAN,
+{"pseudomotor_scan", MXS_LIN_PSEUDOMOTOR,  MXS_LINEAR_SCAN, MXR_SCAN,
 				&mxs_linear_scan_record_function_list,
 				&mxs_linear_scan_scan_function_list,
 				&mxs_pseudomotor_linear_scan_function_list,
