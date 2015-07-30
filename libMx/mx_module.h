@@ -28,16 +28,21 @@ extern "C" {
 #define MXU_MODULE_NAME_LENGTH		40
 #define MXU_EXTENSION_NAME_LENGTH	40
 
+#define MXF_EXT_IS_DISABLED		0x1
+#define MXF_EXT_HAS_SCRIPT_LANGUAGE	0x2
+
 typedef struct {
 	char name[MXU_EXTENSION_NAME_LENGTH+1];
 	struct mx_extension_function_list_type *extension_function_list;
 	struct mx_module_type *module;
 	MX_RECORD *record_list;
+	unsigned long extension_flags;
 	void *ext_private;
 } MX_EXTENSION;
 
 typedef struct mx_extension_function_list_type {
-	mx_status_type ( *init )( MX_EXTENSION * );
+	mx_status_type ( *initialize )( MX_EXTENSION * );
+	mx_status_type ( *finalize )( MX_EXTENSION * );
 	mx_status_type ( *call )( MX_EXTENSION *, int argc, void **argv );
 	mx_status_type ( *call_string )( MX_EXTENSION*, char * );
 } MX_EXTENSION_FUNCTION_LIST;
@@ -66,6 +71,8 @@ MX_API mx_status_type mx_get_module( char *module_name,
 MX_API mx_status_type mx_get_extension( char *extension_name,
 					MX_RECORD *record_list,
 					MX_EXTENSION **extension );
+
+MX_API mx_status_type mx_finalize_extensions( MX_RECORD *record_list );
 
 #ifdef __cplusplus
 }

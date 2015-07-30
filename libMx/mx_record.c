@@ -1783,7 +1783,14 @@ mx_initialize_hardware( MX_RECORD *record_list_head,
 
 	} while ( current_record != record_list_head );
 
-	return MX_SUCCESSFUL_RESULT;
+	/* Now that all of the MX records have been created and
+	 * initialized, it is now time to invoke the finalize
+	 * method for all of the loaded extensions.
+	 */
+
+	mx_status = mx_finalize_extensions( record_list_head );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type

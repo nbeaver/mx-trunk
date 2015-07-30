@@ -20,6 +20,8 @@
 
 #define MX_MODULE_DEBUG_EXTENSION	FALSE
 
+#define MX_MODULE_DEBUG_FINALIZE	TRUE
+
 #include <stdio.h>
 
 #include "mx_util.h"
@@ -302,14 +304,14 @@ mx_load_module( char *filename, MX_RECORD *record_list, MX_MODULE **module )
 				MX_DEBUG(-2,("%s: flist # %ld is not NULL.",
 					fname, i));
 #endif
-				if ( flist->init != NULL ) {
+				if ( flist->initialize != NULL ) {
 
 #if MX_MODULE_DEBUG_EXTENSION
 				MX_DEBUG(-2,
-				("%s: flist->init # %ld is not NULL.",
+				("%s: flist->initialize # %ld is not NULL.",
 					fname, i));
 #endif
-					(void) (flist->init)( extension );
+					(void) (flist->initialize)( extension );
 				}
 			}
 
@@ -647,4 +649,142 @@ mx_get_extension( char *extension_name, MX_RECORD *record_list,
 }
 
 /*-------------------------------------------------------------------------*/
+
+static mx_status_type
+mxp_extension_finalize_fn( MX_LIST_ENTRY *list_entry,
+				void *unused_input_ptr,
+				void **unused_output_ptr )
+{
+#if MX_MODULE_DEBUG_FINALIZE
+	static const char fname[] = "mxp_extension_finalize_fn()";
+#endif
+
+	MX_MODULE *module;
+	MX_EXTENSION *extension, *extension_table;
+	MX_EXTENSION_FUNCTION_LIST *flist;
+	mx_status_type (*finalize_fp)( MX_EXTENSION * );
+	unsigned long i, flags;
+
+	module = list_entry->list_entry_data;
+
+	if ( module == (MX_MODULE *) NULL ) {
+		/* There aren't any modules to finalize the extensions of. */
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+#if MX_MODULE_DEBUG_FINALIZE
+	MX_DEBUG(-2,("%s invoked for module '%s'", fname, module->name));
+#endif
+
+	extension_table = module->extension_table;
+
+	if ( extension_table == (MX_EXTENSION *) NULL ) {
+		/* This module does not have any extensions. */
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* Walk through the extensions. */
+
+	for ( i = 0; ; i++ ) {
+		extension = &extension_table[i];
+
+		if ( extension->name[0] == '\0' ) {
+			/* We have reached the end of the extension table. */
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+
+#if MX_MODULE_DEBUG_FINALIZE
+		MX_DEBUG(-2,("%s: extension(%lu) = '%s'",
+			fname, i, extension->name ));
+#endif
+
+		flags = extension->extension_flags;
+
+		if ( flags & MXF_EXT_IS_DISABLED ) {
+			continue;	/* Skip disabled extensions. */
+		}
+
+		flist = extension->extension_function_list;
+
+		if ( flist == (MX_EXTENSION_FUNCTION_LIST *) NULL ) {
+			continue;	/* Skip extensions with empty flist. */
+		}
+
+		finalize_fp = flist->finalize;
+
+		if ( finalize_fp != NULL ) {
+
+#if MX_MODULE_DEBUG_FINALIZE
+			MX_DEBUG(-2,("%s: invoking finalize for extension '%s'",
+				fname, extension->name));
+#endif
+			(void) ( *finalize_fp )( extension );
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+/* mx_finalize_extensions() walks through all of the loaded modules looking
+ * for extensions and runs the 'finalize' method on all of them, except for
+ * extensions that have been marked disabled.
+ */
+
+MX_EXPORT mx_status_type
+mx_finalize_extensions( MX_RECORD *record_list )
+{
+	static const char fname[] = "mx_finalize_extensions()";
+
+	MX_LIST_HEAD *record_list_head;
+	MX_LIST *module_list;
+	mx_status_type mx_status;
+
+	if ( record_list == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX record_list pointer passed was NULL." );
+	}
+
+#if MX_MODULE_DEBUG_FINALIZE
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
+
+	record_list_head = mx_get_record_list_head_struct( record_list );
+
+	if ( record_list_head == (MX_LIST_HEAD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_LIST_HEAD pointer for record '%s' is NULL.",
+			record_list->name );
+	}
+
+	/* If the module_list pointer is NULL, then
+	 * no modules have been loaded.
+	 */
+
+	if ( record_list_head->module_list == NULL ) {
+
+#if MX_MODULE_DEBUG_FINALIZE
+		MX_DEBUG(-2,("%s: No modules are loaded.", fname));
+#endif
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	module_list = record_list_head->module_list;
+
+	mx_status = mx_list_traverse( module_list,
+					mxp_extension_finalize_fn,
+					NULL, NULL );
+
+#if MX_MODULE_DEBUG_FINALIZE
+	MX_DEBUG(-2,("%s: mx_list_traverse() returned status code %lu",
+		fname, mx_status.code));
+	MX_DEBUG(-2,("%s complete.", fname));
+#endif
+
+	return mx_status;
+}
 

@@ -29,7 +29,9 @@ typedef struct {
 
 extern MX_EXTENSION_FUNCTION_LIST mxext_python_extension_function_list;
 
-MX_API mx_status_type mxext_python_init( MX_EXTENSION *extension );
+MX_API mx_status_type mxext_python_initialize( MX_EXTENSION *extension );
+
+MX_API mx_status_type mxext_python_finalize( MX_EXTENSION *extension );
 
 MX_API mx_status_type mxext_python_call( MX_EXTENSION *extension,
 					int argc,

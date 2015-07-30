@@ -14,6 +14,8 @@
  *
  */
 
+#define MX_MODULE_DEBUG_FINALIZE	TRUE
+
 #include <stdio.h>
 
 #include "Python.h"
@@ -24,7 +26,8 @@
 #include "e_python.h"
 
 MX_EXTENSION_FUNCTION_LIST mxext_python_extension_function_list = {
-	mxext_python_init,
+	mxext_python_initialize,
+	mxext_python_finalize,
 	mxext_python_call
 };
 
@@ -39,9 +42,9 @@ MX_EXTENSION_FUNCTION_LIST mxext_python_extension_function_list = {
  */
 
 MX_EXPORT mx_status_type
-mxext_python_init( MX_EXTENSION *extension )
+mxext_python_initialize( MX_EXTENSION *extension )
 {
-	static const char fname[] = "mxext_python_init()";
+	static const char fname[] = "mxext_python_initialize()";
 
 	MX_RECORD *mx_database = NULL;
 	MX_LIST_HEAD *list_head = NULL;
@@ -202,22 +205,6 @@ mxext_python_init( MX_EXTENSION *extension )
 		"Could not create an instance of the Mp.RecordList class." );
 	}
 
-	/* Create the Python linked list that shadows the C linked list. */
-
-#if 0
-	result = PyObject_CallMethod( record_list_class_instance,
-					"create_shadow_linked_list", NULL );
-
-	if ( result == NULL ) {
-		PyErr_Print();
-
-		return mx_error( MXE_UNKNOWN_ERROR, fname,
-		"Could not create the Python shadow linked list." );
-	}
-
-	MX_DEBUG(-2,("%s: create_shadow_linked_list succeeded.", fname));
-#endif
-
 	/* Save the Python wrapper for the MX database. */
 
 	py_ext->py_record_list = record_list_class_instance;
@@ -286,6 +273,66 @@ mxext_python_init( MX_EXTENSION *extension )
 		mx_warning( "Could not load the 'MpMtr' Python module "
 			"for mxmotor.  We will continue without it." );
 	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*------*/
+
+MX_EXPORT mx_status_type
+mxext_python_finalize( MX_EXTENSION *extension )
+{
+	static const char fname[] = "mxext_python_finalize()";
+
+	MX_PYTHON_EXTENSION_PRIVATE *py_ext = NULL;
+	PyObject *py_record_list = NULL;
+	PyObject *result = NULL;
+	unsigned long flags;
+
+	if ( extension == (MX_EXTENSION *) NULL )
+		return MX_SUCCESSFUL_RESULT;
+
+#if MX_MODULE_DEBUG_FINALIZE
+	MX_DEBUG(-2,("%s invoked for extension '%s'", fname, extension->name));
+#endif
+
+	flags = extension->extension_flags;
+
+	if ( flags & MXF_EXT_IS_DISABLED )
+		return MX_SUCCESSFUL_RESULT;
+
+	py_ext = (MX_PYTHON_EXTENSION_PRIVATE *) extension->ext_private;
+
+	if ( py_ext == (MX_PYTHON_EXTENSION_PRIVATE *) NULL )
+		return MX_SUCCESSFUL_RESULT;
+
+	py_record_list = py_ext->py_record_list;
+
+	if ( py_record_list == (PyObject *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The py_record_list object for extension '%s' is NULL.",
+			extension->name );
+	}
+
+#if MX_MODULE_DEBUG_FINALIZE
+	MX_DEBUG(-2,("%s: about to invoke create_shadow_linked_list.", fname));
+#endif
+
+	/* Create the Python linked list that shadows the C linked list. */
+
+	result = PyObject_CallMethod( py_record_list,
+				"create_shadow_linked_list", NULL );
+
+	if ( result == NULL ) {
+		PyErr_Print();
+
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"Could not create the Python shadow linked list." );
+	}
+
+#if MX_MODULE_DEBUG_FINALIZE
+	MX_DEBUG(-2,("%s: create_shadow_linked_list succeeded.", fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
