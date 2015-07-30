@@ -38,9 +38,11 @@ MX_EXTENSION mxext_python_extension_table[] = {
 static mx_bool_type
 python_driver_init( MX_MODULE *module )
 {
+#if 0
 	static const char fname[] = "python_driver_init()";
 
 	MX_DEBUG(-2,("%s invoked for module '%s'", fname, module->name));
+#endif
 
 	return TRUE;
 }

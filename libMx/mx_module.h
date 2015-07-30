@@ -74,6 +74,10 @@ MX_API mx_status_type mx_get_extension( char *extension_name,
 
 MX_API mx_status_type mx_finalize_extensions( MX_RECORD *record_list );
 
+MX_API MX_EXTENSION *mx_get_default_script_extension( void );
+
+MX_API void mx_set_default_script_extension( MX_EXTENSION *extension );
+
 #ifdef __cplusplus
 }
 #endif

@@ -14,7 +14,13 @@
  *
  */
 
-#define MX_MODULE_DEBUG_FINALIZE	TRUE
+#define PYTHON_MODULE_DEBUG_INITIALIZE	FALSE
+
+#define PYTHON_MODULE_DEBUG_FINALIZE	FALSE
+
+#define PYTHON_MODULE_DEBUG_CAPSULE	FALSE
+
+#define PYTHON_MODULE_DEBUG_CALL	TRUE
 
 #include <stdio.h>
 
@@ -49,6 +55,7 @@ mxext_python_initialize( MX_EXTENSION *extension )
 	MX_RECORD *mx_database = NULL;
 	MX_LIST_HEAD *list_head = NULL;
 	MX_DYNAMIC_LIBRARY *main_executable = NULL;
+	MX_EXTENSION *default_extension = NULL;
 	void *motor_record_list_ptr = NULL;
 	mx_status_type mx_status;
 
@@ -67,6 +74,23 @@ mxext_python_initialize( MX_EXTENSION *extension )
 		"The MX_RECORD pointer for extension '%s' is NULL.",
 			extension->name );
 	}
+
+	/*---------------------------------------------------------------*/
+
+	/* If this process already has a Python interpreter running in it,
+	 * then mark this extension as disabled and return now.
+	 */
+
+	if ( Py_IsInitialized() ) {
+		MX_DEBUG(-2,("%s: Disabling the 'python' extension, "
+		"since this process already has a Python interpreter.", fname));
+
+		extension->extension_flags |= MXF_EXT_IS_DISABLED;
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/*---------------------------------------------------------------*/
 
 	list_head = mx_get_record_list_head_struct( mx_database );
 
@@ -87,6 +111,12 @@ mxext_python_initialize( MX_EXTENSION *extension )
 	}
 
 	extension->ext_private = py_ext;
+
+	/* Mark this extension as being for a script language. */
+
+	extension->extension_flags |= MXF_EXT_HAS_SCRIPT_LANGUAGE;
+
+	/*---------------------------------------------------------------*/
 
 	/* Initialize the Python environment. */
 
@@ -133,7 +163,9 @@ mxext_python_initialize( MX_EXTENSION *extension )
 	 * done using a PyCapsule object.
 	 */
 
+#if PYTHON_MODULE_DEBUG_INITIALIZE
 	MX_DEBUG(-2,("%s: mx_database = %p", fname, mx_database));
+#endif
 
 	mx_database_capsule = PyCapsule_New( mx_database, NULL, NULL );
 
@@ -146,11 +178,13 @@ mxext_python_initialize( MX_EXTENSION *extension )
 		"report it to the MX developer (William Lavender)." );
 	}
 
+#if PYTHON_MODULE_DEBUG_CAPSULE
 	fprintf( stderr, "mx_database_capsule = " );
 
 	PyObject_Print( mx_database_capsule, stderr, 0 );
 
 	fprintf( stderr, "\n" );
+#endif
 
 	/* Get the callable object for the Mp.RecordList() constructor
 	 * using Py_eval_input to tell the interpreter that we want
@@ -168,11 +202,13 @@ mxext_python_initialize( MX_EXTENSION *extension )
 		"Could not get the Mp.RecordList class object." );
 	}
 
+#if PYTHON_MODULE_DEBUG_CAPSULE
 	fprintf( stderr, "The class object is " );
 
 	PyObject_Print( record_list_class_object, stderr, 0 );
 
 	fprintf( stderr, "\n" );
+#endif
 
 	/* Create an Mp.RecordList object that refers to the already 
 	 * existing MX record list object in the C main program.
@@ -209,11 +245,13 @@ mxext_python_initialize( MX_EXTENSION *extension )
 
 	py_ext->py_record_list = record_list_class_instance;
 
+#if PYTHON_MODULE_DEBUG_CAPSULE
 	fprintf( stderr, "The instance object is " );
 
 	PyObject_Print( py_ext->py_record_list, stderr, 0 );
 
 	fprintf( stderr, "\n" );
+#endif
 
 	/* Add 'mx_database' to the global dictionary so that external
 	 * scripts can find it.
@@ -228,6 +266,18 @@ mxext_python_initialize( MX_EXTENSION *extension )
 
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
 		"Could not add 'mx_database' to the main script's dictionary.");
+	}
+
+	/*----------------------------------------------------------------*/
+
+	/* If currently there is no default script extension, then set
+	 * 'python' to be the default script extension.
+	 */
+
+	default_extension = mx_get_default_script_extension();
+
+	if ( default_extension == (MX_EXTENSION *) NULL ) {
+		mx_set_default_script_extension( extension );
 	}
 
 	/*----------------------------------------------------------------*/
@@ -292,7 +342,7 @@ mxext_python_finalize( MX_EXTENSION *extension )
 	if ( extension == (MX_EXTENSION *) NULL )
 		return MX_SUCCESSFUL_RESULT;
 
-#if MX_MODULE_DEBUG_FINALIZE
+#if PYTHON_MODULE_DEBUG_FINALIZE
 	MX_DEBUG(-2,("%s invoked for extension '%s'", fname, extension->name));
 #endif
 
@@ -314,7 +364,7 @@ mxext_python_finalize( MX_EXTENSION *extension )
 			extension->name );
 	}
 
-#if MX_MODULE_DEBUG_FINALIZE
+#if PYTHON_MODULE_DEBUG_FINALIZE
 	MX_DEBUG(-2,("%s: about to invoke create_shadow_linked_list.", fname));
 #endif
 
@@ -330,7 +380,7 @@ mxext_python_finalize( MX_EXTENSION *extension )
 		"Could not create the Python shadow linked list." );
 	}
 
-#if MX_MODULE_DEBUG_FINALIZE
+#if PYTHON_MODULE_DEBUG_FINALIZE
 	MX_DEBUG(-2,("%s: create_shadow_linked_list succeeded.", fname));
 #endif
 
@@ -383,10 +433,12 @@ mxext_python_call( MX_EXTENSION *extension,
 			extension->name );
 	}
 
+#if PYTHON_MODULE_DEBUG_CALL
 	for ( i = 0; i < argc; i++ ) {
 		MX_DEBUG(-2,("%s: argv[%d] = '%s'",
 		fname, i, (char *) argv[i]));
 	}
+#endif
 
 	/* Get rid of any preexisting main() function, since
 	 * the script we are invoking may provide one.
@@ -409,11 +461,17 @@ mxext_python_call( MX_EXTENSION *extension,
 		"Running the script '%s' failed.", (char *) argv[0] );
 	}
 
+	/*---------------------------------------------------------------*/
+
 	/* The first argument in argv should be the name of the external
 	 * python script to run.
 	 */
 
 	script_filename = (char *) argv[0];
+
+	/*---------------------------------------------------------------*/
+
+	/* Run the script that we found. */
 
 	snprintf( execfile_command, sizeof(execfile_command),
 			"execfile('%s')", script_filename );
@@ -438,8 +496,6 @@ mxext_python_call( MX_EXTENSION *extension,
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	MX_DEBUG(-2,("%s: main_object = %p", fname, main_object ));
-
 	/* Is the main object a function? */
 
 	if ( PyFunction_Check(main_object) == FALSE ) {
@@ -447,8 +503,6 @@ mxext_python_call( MX_EXTENSION *extension,
 	    "The script '%s' contains a 'main' object which is not a function.",
 			script_filename );
 	}
-
-	/*---------------------------------------------------------------*/
 
 	/*---------------------------------------------------------------*/
 
@@ -478,7 +532,9 @@ mxext_python_call( MX_EXTENSION *extension,
 
 	strlcat( main_command, " ] )", sizeof(main_command) );
 
+#if PYTHON_MODULE_DEBUG_CALL
 	MX_DEBUG(-2,("%s: main_command = '%s'", fname, main_command));
+#endif
 
 	result = PyRun_String( main_command,
 			Py_single_input, py_ext->py_dict, py_ext->py_dict );

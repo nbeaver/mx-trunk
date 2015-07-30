@@ -20,7 +20,7 @@
 
 #define MX_MODULE_DEBUG_EXTENSION	FALSE
 
-#define MX_MODULE_DEBUG_FINALIZE	TRUE
+#define MX_MODULE_DEBUG_FINALIZE	FALSE
 
 #include <stdio.h>
 
@@ -786,5 +786,23 @@ mx_finalize_extensions( MX_RECORD *record_list )
 #endif
 
 	return mx_status;
+}
+
+/*-------------------------------------------------------------------------*/
+
+static MX_EXTENSION *_mxp_default_script_extension = NULL;
+
+MX_EXPORT MX_EXTENSION *
+mx_get_default_script_extension( void )
+{
+	return _mxp_default_script_extension;
+}
+
+MX_EXPORT void
+mx_set_default_script_extension( MX_EXTENSION *extension )
+{
+	_mxp_default_script_extension = extension;
+
+	return;
 }
 
