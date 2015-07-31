@@ -16,6 +16,7 @@
 
 #define MX_DEBUG_DIRECTORY_HIERARCHY	FALSE
 
+#define MX_DEBUG_FIND_FILE_IN_PATH	FALSE
 
 /* On Linux, we must define _GNU_SOURCE before including any C library header
  * in order to get splice() from fcntl.h 
@@ -1582,6 +1583,414 @@ mx_command_found( char *command_name )
 }
 
 #endif
+
+/*=========================================================================*/
+
+#define FREE_FIND_FILE_DATA \
+	do { \
+		mx_free( argv ); \
+		mx_free( path_variable_copy ); \
+		mx_free( original_filename_with_extension ); \
+		mx_free( pathname ); \
+		mx_free( pathname_with_extension ); \
+		mx_free( path_variable_copy ); \
+	} while(0)
+
+MX_EXPORT mx_status_type
+mx_find_file_in_path( const char *original_filename,
+			char *full_filename,
+			size_t full_filename_length,
+			const char *path_variable_name,
+			const char *extension,
+			int file_access_mode,
+			unsigned long flags,
+			int *match_found )
+{
+	static const char fname[] = "mx_find_file_in_path()";
+
+	mx_bool_type look_in_current_directory;
+	mx_bool_type try_without_extension;
+
+	mx_bool_type ignore_case;
+	mx_bool_type already_has_extension;
+
+	int access_status, split_status;
+
+	const char *filename_to_use = NULL;
+	const char *separator_ptr = NULL;
+	const char *path_variable_string = NULL;
+
+	char path_env_separator[2];
+	char *path_variable_copy = NULL;
+	int i, argc;
+	char **argv = NULL;
+
+	char *original_filename_with_extension = NULL;
+
+	char *pathname = NULL;
+	char *pathname_with_extension = NULL;
+
+	if ( original_filename == (const char *) NULL ) {
+		return mx_error( MXE_QUIET | MXE_NULL_ARGUMENT, fname,
+		"The original filename pointer passed was NULL." );
+	}
+	if ( full_filename == (char *) NULL ) {
+		return mx_error( MXE_QUIET | MXE_NULL_ARGUMENT, fname,
+		"The full filename pointer passed was NULL." );
+	}
+	if ( match_found == (int *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The match found pointer passed was NULL" );
+	}
+
+	*match_found = FALSE;
+
+	look_in_current_directory = flags & MXF_FPATH_LOOK_IN_CURRENT_DIRECTORY;
+
+	try_without_extension = flags & MXF_FPATH_TRY_WITHOUT_EXTENSION;
+
+#if ( defined(OS_WIN32) || defined(OS_DOS) )
+	ignore_case = TRUE;
+#else
+	ignore_case = FALSE;
+#endif
+	/*---------------------------------------------------------------*/
+
+	original_filename_with_extension = malloc( MXU_FILENAME_LENGTH + 1 );
+
+	if ( original_filename_with_extension == NULL ) {
+	    return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate an array to contain "
+		"the original filename with an extension." );
+	}
+
+	/* Does the filename already have the extension attached? */
+
+	if ( extension == (const char *) NULL ) {
+	    already_has_extension = TRUE;
+	} else {
+	    const char *extension_ptr = NULL;
+	    size_t original_length = strlen( original_filename );
+	    size_t extension_length = strlen( extension );
+
+	    if ( extension_length > original_length ) {
+		already_has_extension = FALSE;
+	    } else {
+		extension_ptr = original_filename
+				+ ( original_length - extension_length );
+
+		if ( ignore_case ) {
+		    if ( mx_strcasecmp( extension_ptr, extension ) == 0 ) {
+			already_has_extension = TRUE;
+		    } else {
+			already_has_extension = FALSE;
+		    }
+		} else {
+		    if ( strcmp( extension_ptr, extension ) == 0 ) {
+			already_has_extension = TRUE;
+		    } else {
+			already_has_extension = FALSE;
+		    }
+		}
+	    }
+	}
+
+	strlcpy( original_filename_with_extension,
+			original_filename, MXU_FILENAME_LENGTH );
+
+	if ( already_has_extension == FALSE ) {
+		strlcat( original_filename_with_extension,
+			extension, MXU_FILENAME_LENGTH );
+	}
+
+	/*---------------------------------------------------------------*/
+
+	/* Allocate some memory to contain the filenames to test
+	 * with access().
+	 */
+
+	pathname_with_extension = (char *) malloc( MXU_FILENAME_LENGTH + 1 );
+
+	if ( pathname_with_extension == (char *) NULL ) {
+	    FREE_FIND_FILE_DATA;
+
+	    return mx_error( MXE_OUT_OF_MEMORY, fname,
+	    "Ran out of memory trying to allocate a buffer to contain "
+	    "a test pathname with extension." );
+	}
+
+	pathname = (char *) malloc( MXU_FILENAME_LENGTH + 1 );
+
+	if ( pathname == (char *) NULL ) {
+	    FREE_FIND_FILE_DATA;
+
+	    return mx_error( MXE_OUT_OF_MEMORY, fname,
+	    "Ran out of memory trying to allocate a buffer to contain "
+	    "a test pathname." );
+	}
+
+	/*---------------------------------------------------------------*/
+
+	/* Does the filename start with a path separator? */
+
+#if ( defined(OS_WIN32) || defined(OS_DOS) )
+	if ( ( original_filename[0] == '\\' )
+	  || ( original_filename[0] == '/' ) )
+#else
+	if ( original_filename[0] == '/' )
+#endif
+	{
+	    access_status = access( original_filename_with_extension,
+							file_access_mode );
+
+#if MX_DEBUG_FIND_FILE_IN_PATH
+	    MX_DEBUG(-2,("%s: access( '%s', %d ) = %d", fname,
+			original_filename_with_extension,
+			file_access_mode, access_status ));
+#endif
+
+	    if ( access_status == 0 ) {
+		filename_to_use = original_filename_with_extension;
+	    } else {
+		if ( try_without_extension && (already_has_extension==FALSE) )
+		{
+		    access_status = access( original_filename,
+						file_access_mode );
+
+#if MX_DEBUG_FIND_FILE_IN_PATH
+		    MX_DEBUG(-2,("%s: access( '%s', %d ) = %d", fname,
+			original_filename,
+			file_access_mode, access_status ));
+#endif
+
+		    if ( access_status == 0 ) {
+			filename_to_use = original_filename;
+		    }
+		}
+	    }
+	}
+
+	if ( filename_to_use != (const char *) NULL ) {
+	    *match_found = TRUE;
+
+	    strlcpy( full_filename, filename_to_use, full_filename_length );
+
+	    FREE_FIND_FILE_DATA;
+
+	    return MX_SUCCESSFUL_RESULT;
+	}
+
+	/*---------------------------------------------------------------*/
+
+	/* Is this a relative pathname that contains a path separator? */
+
+#if ( defined(OS_WIN32) || defined(OS_DOS) )
+	separator_ptr = strchr( original_filename_with_extension, '\\' );
+
+	if ( separator_ptr == NULL ) {
+	    separator_ptr = strchr( original_filename_with_extension, '/' );
+	}
+#else
+	separator_ptr = strchr( original_filename_with_extension, '/' );
+#endif
+	if ( separator_ptr ) {
+	    access_status = access( original_filename_with_extension,
+						file_access_mode );
+
+#if MX_DEBUG_FIND_FILE_IN_PATH
+	    MX_DEBUG(-2,("%s: access( '%s', %d ) = %d", fname,
+			original_filename_with_extension,
+			file_access_mode, access_status ));
+#endif
+
+	    if ( access_status == 0 ) {
+		filename_to_use = original_filename_with_extension;
+	    } else {
+		if ( try_without_extension && (already_has_extension==FALSE) )
+		{
+		    access_status = access( original_filename,
+						file_access_mode );
+
+#if MX_DEBUG_FIND_FILE_IN_PATH
+		    MX_DEBUG(-2,("%s: access( '%s', %d ) = %d", fname,
+			original_filename,
+			file_access_mode, access_status ));
+#endif
+
+		    if ( access_status == 0 ) {
+			filename_to_use = original_filename;
+		    }
+		}
+	    }
+	}
+
+	if ( filename_to_use != (const char *) NULL ) {
+	    *match_found = TRUE;
+
+	    strlcpy( full_filename, filename_to_use, full_filename_length );
+
+	    FREE_FIND_FILE_DATA;
+
+	    return MX_SUCCESSFUL_RESULT;
+	}
+
+	/*---------------------------------------------------------------*/
+
+	/* If we get here, we have a filename that does not contain a
+	 * directory name.
+	 */
+
+	/* If a path environment variable was specified, then read its value. */
+
+	if ( path_variable_name != (const char *) NULL ) {
+
+	    path_variable_string = getenv( path_variable_name );
+
+#if MX_DEBUG_FIND_FILE_IN_PATH
+	    MX_DEBUG(-2,("%s: getenv('%s') = '%s'",
+		fname, path_variable_name, path_variable_string));
+#endif
+
+	    if ( path_variable_string != (const char *) NULL ) {
+
+		/* Split the path environment variable up. */
+
+		path_variable_copy = strdup( path_variable_string );
+
+#if ( defined(OS_WIN32) || defined(OS_DOS) )
+		strlcpy( path_env_separator, ";", sizeof(path_env_separator) );
+#else
+		strlcpy( path_env_separator, ":", sizeof(path_env_separator) );
+#endif
+
+		split_status = mx_string_split( path_variable_copy,
+						path_env_separator,
+						&argc, &argv );
+
+		if ( split_status != 0 ) {
+		    FREE_FIND_FILE_DATA;
+
+		    return mx_error( MXE_OUT_OF_MEMORY, fname,
+		    "Ran out of memory trying to split up a copy of the "
+		    "environment string '%s'", path_variable_name );
+		}
+
+		for ( i = 0; i < argc; i++ ) {
+		    strlcpy( pathname, argv[i], MXU_FILENAME_LENGTH );
+
+#if ( defined(OS_WIN32) || defined(OS_DOS) )
+		    strlcat( pathname, "\\", MXU_FILENAME_LENGTH );
+#else
+		    strlcat( pathname, "/", MXU_FILENAME_LENGTH );
+#endif
+
+		    strlcat( pathname, original_filename, MXU_FILENAME_LENGTH );
+
+		    strlcpy( pathname_with_extension,
+				pathname, MXU_FILENAME_LENGTH );
+		    strlcat( pathname_with_extension,
+				extension, MXU_FILENAME_LENGTH );
+
+		    access_status = access( pathname_with_extension,
+							file_access_mode );
+
+#if MX_DEBUG_FIND_FILE_IN_PATH
+		    MX_DEBUG(-2,("%s: (%d) access( '%s', %d ) = %d", fname,
+			i, pathname_with_extension,
+			file_access_mode, access_status ));
+#endif
+
+		    if ( access_status == 0 ) {
+			filename_to_use = pathname_with_extension;
+		    } else {
+			if ( try_without_extension
+			  && (already_has_extension == FALSE) )
+			{
+			    access_status = access( pathname,
+							file_access_mode );
+
+#if MX_DEBUG_FIND_FILE_IN_PATH
+			    MX_DEBUG(-2,("%s: (%d) access( '%s', %d ) = %d",
+				fname, i, pathname,
+				file_access_mode, access_status ));
+#endif
+
+			    if ( access_status == 0 ) {
+				filename_to_use = pathname;
+			    }
+			}
+		    }
+
+		    if ( filename_to_use != (const char *) NULL ) {
+			*match_found = TRUE;
+
+			strlcpy( full_filename, filename_to_use,
+					full_filename_length );
+
+			FREE_FIND_FILE_DATA;
+
+			return MX_SUCCESSFUL_RESULT;
+		    }
+		}
+	    }
+	}
+
+	/*---------------------------------------------------------------*/
+
+	/* If we get here, the tests for absolute and relative filenames,
+	 * and filenames from the path have either failed or been skipped.
+	 *
+	 * At this point the only thing left to try is to look in the
+	 * current directory, if requested.
+	 */
+
+	if ( look_in_current_directory ) {
+	    access_status = access( original_filename_with_extension,
+							file_access_mode );
+
+#if MX_DEBUG_FIND_FILE_IN_PATH
+	    MX_DEBUG(-2,("%s: access( '%s', %d ) = %d", fname,
+			original_filename_with_extension,
+			file_access_mode, access_status ));
+#endif
+
+	    if ( access_status == 0 ) {
+		filename_to_use = original_filename_with_extension;
+	    } else {
+		if ( try_without_extension && (already_has_extension==FALSE) )
+		{
+		    access_status = access( original_filename,
+							file_access_mode );
+
+#if MX_DEBUG_FIND_FILE_IN_PATH
+		    MX_DEBUG(-2,("%s: access( '%s', %d ) = %d", fname,
+			original_filename,
+			file_access_mode, access_status ));
+#endif
+
+		    if ( access_status == 0 ) {
+			filename_to_use = original_filename;
+		    }
+		}
+	    }
+
+	    if ( filename_to_use != (const char *) NULL ) {
+		*match_found = TRUE;
+
+		strlcpy( full_filename, filename_to_use, full_filename_length );
+
+		FREE_FIND_FILE_DATA;
+
+		return MX_SUCCESSFUL_RESULT;
+	    }
+	}
+
+	/*---------------------------------------------------------------*/
+
+	FREE_FIND_FILE_DATA;
+
+	return MX_SUCCESSFUL_RESULT;
+}
 
 /*=========================================================================*/
 

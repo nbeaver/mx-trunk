@@ -61,12 +61,9 @@ MX_API char *mx_normalize_filename( const char *original_filename,
 						char *new_filename,
 						size_t max_filename_length );
 
-/*--- Flag bits used by mx_find_file_in_path() ---*/
+/*--- Flag bits used by mx_find_file_in_path_old() ---*/
 
-#define MXF_FPATH_TRY_WITHOUT_EXTENSION		0x1
-#define MXF_FPATH_LOOK_IN_CURRENT_DIRECTORY	0x2
-
-MX_API char *mx_find_file_in_path( const char *original_filename,
+MX_API char *mx_find_file_in_path_old( const char *original_filename,
 					const char *extension,
 					const char *path_variable_name,
 					unsigned long flags );

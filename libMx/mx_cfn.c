@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2006, 2009, 2011-2012 Illinois Institute of Technology
+ * Copyright 2006, 2009, 2011-2012, 2014 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -442,12 +442,12 @@ mxp_search_path( const char *original_filename,
 /*-------*/
 
 MX_EXPORT char *
-mx_find_file_in_path( const char *original_filename,
+mx_find_file_in_path_old( const char *original_filename,
 			const char *extension,
 			const char *path_variable_name,
 			unsigned long flags )
 {
-	static const char fname[] = "mx_find_file_in_path()";
+	static const char fname[] = "mx_find_file_in_path_old()";
 
 	size_t original_length, extension_length;
 	const char *extension_ptr = NULL;

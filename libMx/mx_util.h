@@ -915,6 +915,20 @@ MX_API mx_status_type mx_make_directory_hierarchy( char *directory_name );
 
 MX_API int mx_command_found( char *command_name );
 
+/*--- Flag bits used by mx_find_file_in_path() ---*/
+
+#define MXF_FPATH_LOOK_IN_CURRENT_DIRECTORY	0x1
+#define MXF_FPATH_TRY_WITHOUT_EXTENSION		0x2
+
+MX_API mx_status_type mx_find_file_in_path( const char *original_filename,
+					char *full_filename,
+					size_t full_filename_length,
+					const char *path_variable_name,
+					const char *extension,
+					int file_access_mode,
+					unsigned long flags,
+					int *match_found );
+
 /* mx_verify_directory() verifies the existence of the specified directory
  * and optionally creates it if it does not already exist.
  */

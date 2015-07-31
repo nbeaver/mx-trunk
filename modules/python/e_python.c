@@ -20,7 +20,7 @@
 
 #define PYTHON_MODULE_DEBUG_CAPSULE	FALSE
 
-#define PYTHON_MODULE_DEBUG_CALL	TRUE
+#define PYTHON_MODULE_DEBUG_CALL	FALSE
 
 #include <stdio.h>
 
@@ -403,10 +403,15 @@ mxext_python_call( MX_EXTENSION *extension,
 	char execfile_command[MXU_FILENAME_LENGTH+20];
 	char temp_buffer[500];
 	char main_command[1000];
+	char full_filename[MXU_FILENAME_LENGTH+1];
+	unsigned long script_flags;
+	int match_found;
 
 	MX_PYTHON_EXTENSION_PRIVATE *py_ext = NULL;
 	PyObject *result = NULL;
 	PyObject *main_object = NULL;
+
+	mx_status_type mx_status;
 
 	if ( extension == (MX_EXTENSION *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -469,12 +474,37 @@ mxext_python_call( MX_EXTENSION *extension,
 
 	script_filename = (char *) argv[0];
 
+	/* Look for the requested script in the PATH environment variable. */
+
+	script_flags = MXF_FPATH_TRY_WITHOUT_EXTENSION
+			| MXF_FPATH_LOOK_IN_CURRENT_DIRECTORY;
+
+	mx_status = mx_find_file_in_path( script_filename,
+					full_filename,
+					sizeof(full_filename),
+					"PATH", ".py",
+					F_OK, script_flags,
+					&match_found );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( match_found == FALSE ) {
+		return mx_error( MXE_NOT_FOUND, fname,
+		"The Python script '%s' was not found.",
+			script_filename );
+	}
+
 	/*---------------------------------------------------------------*/
 
 	/* Run the script that we found. */
 
 	snprintf( execfile_command, sizeof(execfile_command),
-			"execfile('%s')", script_filename );
+			"execfile('%s')", full_filename );
+
+#if PYTHON_MODULE_DEBUG_CALL
+	MX_DEBUG(-2,("%s: execfile_command = '%s'", fname, execfile_command));
+#endif
 
 	result = PyRun_String( execfile_command,
 			Py_single_input, py_ext->py_dict, py_ext->py_dict );
@@ -482,9 +512,13 @@ mxext_python_call( MX_EXTENSION *extension,
 	if ( result == NULL ) {
 		PyErr_Print();
 
-		return mx_error( MXE_NOT_FOUND, fname,
+		return mx_error( MXE_FUNCTION_FAILED, fname,
 		"Running the script '%s' failed.", script_filename );
 	}
+
+	full_filename[0] = '\0';
+
+	/*---------------------------------------------------------------*/
 
 	/* Did the script create a main() function? */
 
@@ -543,7 +577,7 @@ mxext_python_call( MX_EXTENSION *extension,
 		PyErr_Print();
 
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
-		"Executing the main() function from the script '%s' failed.",
+		"The main() function from the script '%s' failed.",
 			(char *) argv[0] );
 	}
 

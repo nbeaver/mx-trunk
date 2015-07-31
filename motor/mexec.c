@@ -7,7 +7,8 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2005-2006, 2009-2011 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2005-2006, 2009-2011, 2015
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -108,7 +109,7 @@ motor_exec_common( char *script_name, int verbose_flag )
 	flags = MXF_FPATH_TRY_WITHOUT_EXTENSION \
 		| MXF_FPATH_LOOK_IN_CURRENT_DIRECTORY;
 
-	name_of_found_script = mx_find_file_in_path( script_name,
+	name_of_found_script = mx_find_file_in_path_old( script_name,
 						MTR_EXTENSION,
 						"MX_MOTOR_PATH",
 						flags );
