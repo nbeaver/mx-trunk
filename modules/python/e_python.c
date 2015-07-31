@@ -314,6 +314,7 @@ mxext_python_initialize( MX_EXTENSION *extension )
 	 * In that case, try to load the 'MpMtr' module.
 	 */
 
+#if 0
 	result = PyRun_String( "import MpMtr",
 			Py_single_input, py_ext->py_dict, py_ext->py_dict );
 
@@ -323,6 +324,7 @@ mxext_python_initialize( MX_EXTENSION *extension )
 		mx_warning( "Could not load the 'MpMtr' Python module "
 			"for mxmotor.  We will continue without it." );
 	}
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }

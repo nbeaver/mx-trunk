@@ -30,6 +30,7 @@
 #include "mx_scaler.h"
 #include "mx_timer.h"
 #include "mx_plot.h"
+#include "mx_module.h"
 #include "mx_array.h"
 #include "mx_memory.h"
 #include "mx_socket.h"
@@ -143,6 +144,7 @@ motor_show_fn( int argc, char *argv[] )
 "        show interfaces     <or>  show interface 'name'\n"
 "        show devices        <or>  show device 'name'\n"
 "        show servers        <or>  show server 'name'\n"
+"        show modules        <or>  show module 'name'\n"
 "\n"
 "        show adcs           <or>  show adc 'name'\n"
 "        show amplifiers     <or>  show amplifier 'name'\n"
@@ -320,6 +322,14 @@ motor_show_fn( int argc, char *argv[] )
 			fprintf( output, "  network debug = off\n" );
 		}
 		return SUCCESS;
+
+	} else if ( strncmp( "modules", argv[2], length ) == 0 ) {
+		if ( argc > 3 ) {
+			status = motor_show_modules( argv[3] );
+		} else {
+			status = motor_show_modules( NULL );
+		}
+		return status;
 
 	} else if ( strncmp( "field", argv[2], length ) == 0 ) {
 		if ( argc != 4 ) {
@@ -884,6 +894,134 @@ motor_show_field( char *record_field_name )
 #endif
 
 	fprintf( output, "%s\n", ptr );
+
+	return SUCCESS;
+}
+
+/*=========================================================================*/
+
+static mx_status_type
+motor_module_list_traverse_fn( MX_LIST_ENTRY *list_entry,
+				void *requested_module_name_ptr,
+				void **module_ptr )
+{
+	MX_MODULE *module;
+	MX_DRIVER *driver_table, *driver;
+	MX_EXTENSION *extension_table, *extension;
+	char *requested_module_name;
+	int i;
+
+	module = list_entry->list_entry_data;
+
+	requested_module_name = requested_module_name_ptr;
+
+	/* Are we displaying the entire module list? */
+
+	if ( requested_module_name == (char *) NULL ) {
+		fprintf( output, "    %s\n", module->name );
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* If we get here, we are looking for a particular module. */
+
+	if ( strcmp( module->name, requested_module_name ) != 0 ) {
+		/* We did not find the module we were looking for. */
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* We found the module we were looking for,
+	 * so display information about it.
+	 */
+
+	fprintf( output, "\nModule: '%s'    (MX version %lu)\n",
+		module->name, module->mx_version );
+
+	driver_table = module->driver_table;
+
+	if ( (driver_table != NULL )
+	  && (driver_table->name[0] != '\0') )
+	{
+		fprintf( output, "  Drivers:\n" );
+
+		for ( i = 0; ; i++ ) {
+			driver = &driver_table[i];
+
+			if ( driver->name[0] == '\0' ) {
+				break;
+			}
+
+			fprintf( output, "    %s\n", driver->name );
+		}
+	}
+
+	extension_table = module->extension_table;
+
+	if ( (extension_table != NULL)
+	  && (extension_table->name[0] != '\0') )
+	{
+		fprintf( output, "  Extensions:\n" );
+
+		for ( i = 0; ; i++ ) {
+			extension = &extension_table[i];
+
+			if ( extension->name[0] == '\0' ) {
+				break;
+			}
+
+			fprintf( output, "    %-10s  -  %#lx\n",
+				extension->name, extension->extension_flags );
+		}
+	}
+
+	return mx_error( MXE_EARLY_EXIT | MXE_QUIET, "", " " );
+}
+
+/*----*/
+
+int
+motor_show_modules( char *module_name )
+{
+	static const char fname[] = "motor_show_modules()";
+
+	MX_LIST_HEAD *record_list_head;
+	MX_LIST *module_list;
+	MX_MODULE *module = NULL;
+	void *module_ptr = NULL;
+	mx_status_type mx_status;
+
+	record_list_head = mx_get_record_list_head_struct( motor_record_list );
+
+	if ( record_list_head == (MX_LIST_HEAD *) NULL ) {
+		(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_LIST_HEAD pointer is NULL." );
+
+		return FAILURE;
+	}
+
+	module_list = record_list_head->module_list;
+
+	if ( module_list == NULL ) {
+		fprintf( output, "No modules are loaded.\n" );
+		return SUCCESS;
+	}
+
+	mx_status =  mx_list_traverse( module_list,
+					motor_module_list_traverse_fn,
+					module_name,
+					&module_ptr );
+
+	/* If we were just getting a list of all modules by specifying
+	 * a NULL module name, then we are done now.
+	 */
+
+	if ( module_name == NULL ) {
+		return SUCCESS;
+	}
+
+	/* Otherwise, see if the module we asked for was found. */
+
+	module = (MX_MODULE *) module_ptr;
 
 	return SUCCESS;
 }
