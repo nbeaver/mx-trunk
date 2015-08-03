@@ -39,11 +39,48 @@ MX_EXTENSION_FUNCTION_LIST mxext_python_extension_function_list = {
 
 /*------*/
 
-#if 0
 static mx_status_type
-mxext_python_create_new_record_list_object(
-				MX_PYTHON_EXTENSION_PRIVATE *py_ext )
+mxext_python_find_record_list_object(
+				MX_PYTHON_EXTENSION_PRIVATE *py_ext,
+				PyObject *mx_database_capsule,
+				PyObject **record_list_class_instance )
 {
+	static const char fname[] = "mxext_python_find_record_list_object()";
+
+#if PYTHON_MODULE_DEBUG_CAPSULE
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
+
+	fprintf( stderr, "The py_ext->py_main object is " );
+	PyObject_Print( py_ext->py_main, stderr, 0 );
+	fprintf( stderr, "\n" );
+
+#if PYTHON_MODULE_DEBUG_CAPSULE
+	MX_DEBUG(-2,("%s complete.", fname));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*------*/
+
+static mx_status_type
+mxext_python_create_record_list_object(
+				MX_PYTHON_EXTENSION_PRIVATE *py_ext,
+				PyObject *mx_database_capsule,
+				PyObject **record_list_class_instance )
+{
+	static const char fname[] = "mxext_python_create_record_list_object()";
+
+	PyObject *record_list_class_object = NULL;
+	PyObject *record_list_constructor_arguments = NULL;
+
+#if PYTHON_MODULE_DEBUG_CAPSULE
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
+
+	py_ext->mx_database_initialized_elsewhere = FALSE;
+
 	/* Get the callable object for the Mp.RecordList() constructor
 	 * using Py_eval_input to tell the interpreter that we want
 	 * to get the class object, rather than getting the result 
@@ -88,22 +125,23 @@ mxext_python_create_new_record_list_object(
 
 	/* Now we invoke the constructor to get a class instance. */
 
-	MX_DEBUG(-2,("%s: MARKER 4", fname));
-
-	record_list_class_instance = PyInstance_New( record_list_class_object,
+	*record_list_class_instance = PyInstance_New( record_list_class_object,
 					record_list_constructor_arguments,
 					NULL );
 
-	if ( record_list_class_instance == NULL ) {
+	if ( (*record_list_class_instance) == NULL ) {
 		PyErr_Print();
 
 		return mx_error( MXE_NOT_FOUND, fname,
 		"Could not create an instance of the Mp.RecordList class." );
 	}
 
+#if PYTHON_MODULE_DEBUG_CAPSULE
+	MX_DEBUG(-2,("%s complete.", fname));
+#endif
+
 	return MX_SUCCESSFUL_RESULT;
 }
-#endif
 
 /*------*/
 
@@ -129,9 +167,7 @@ mxext_python_initialize( MX_EXTENSION *extension )
 
 	MX_PYTHON_EXTENSION_PRIVATE *py_ext = NULL;
 	PyObject *mx_database_capsule = NULL;
-	PyObject *record_list_class_object = NULL;
 	PyObject *record_list_class_instance = NULL;
-	PyObject *record_list_constructor_arguments = NULL;
 	PyObject *result_of_mp_detect = NULL;
 	PyObject *result = NULL;
 	int python_status;
@@ -290,61 +326,27 @@ mxext_python_initialize( MX_EXTENSION *extension )
 	fprintf( stderr, "\n" );
 #endif
 
-	/* Get the callable object for the Mp.RecordList() constructor
-	 * using Py_eval_input to tell the interpreter that we want
-	 * to get the class object, rather than getting the result 
-	 * of running the string.
-	 */
+	/* See if there already is an Mp.RecordList instance available. */
 
-	record_list_class_object = PyRun_String( "Mp.RecordList",
-			Py_eval_input, py_ext->py_dict, py_ext->py_dict );
+	mx_status = mxext_python_find_record_list_object(
+						py_ext,
+						mx_database_capsule,
+						&record_list_class_instance );
 
-	if ( record_list_class_object == NULL ) {
-		PyErr_Print();
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-		return mx_error( MXE_NOT_FOUND, fname,
-		"Could not get the Mp.RecordList class object." );
-	}
+	/* If necessary, create a new MX database instance. */
 
-#if PYTHON_MODULE_DEBUG_CAPSULE
-	fprintf( stderr, "The class object is " );
+	if ( py_ext->mx_database_initialized_elsewhere == FALSE ) {
 
-	PyObject_Print( record_list_class_object, stderr, 0 );
+		mx_status = mxext_python_create_record_list_object(
+						py_ext,
+						mx_database_capsule,
+						&record_list_class_instance );
 
-	fprintf( stderr, "\n" );
-#endif
-
-	/* Create an Mp.RecordList object that refers to the already 
-	 * existing MX record list object in the C main program.
-	 *
-	 * First, we build the arguments for the constructor.  We will
-	 * not use keyword arguments here.
-	 */
-
-	record_list_constructor_arguments = Py_BuildValue( "(O)",
-						mx_database_capsule );
-
-	if ( record_list_constructor_arguments == NULL ) {
-		PyErr_Print();
-
-		return mx_error( MXE_NOT_FOUND, fname,
-		"Could not build the arguments for the constructor "
-		"of the Mp.RecordList class." );
-	}
-
-	/* Now we invoke the constructor to get a class instance. */
-
-	MX_DEBUG(-2,("%s: MARKER 4", fname));
-
-	record_list_class_instance = PyInstance_New( record_list_class_object,
-					record_list_constructor_arguments,
-					NULL );
-
-	if ( record_list_class_instance == NULL ) {
-		PyErr_Print();
-
-		return mx_error( MXE_NOT_FOUND, fname,
-		"Could not create an instance of the Mp.RecordList class." );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	/* Save the Python wrapper for the MX database. */

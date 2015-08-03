@@ -33,6 +33,7 @@ typedef struct {
 
 	mx_bool_type python_initialized_elsewhere;
 	mx_bool_type mp_initialized_elsewhere;
+	mx_bool_type mx_database_initialized_elsewhere;
 } MX_PYTHON_EXTENSION_PRIVATE;
 
 extern MX_EXTENSION_FUNCTION_LIST mxext_python_extension_function_list;
