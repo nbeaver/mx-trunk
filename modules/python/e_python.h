@@ -25,6 +25,14 @@ typedef struct {
 	PyObject *py_main;	/* The __main__ module. */
 	PyObject *py_dict;	/* The dictionary of the __main__ module. */
 	PyObject *py_record_list;  /* The Python wrapper for the MX database. */
+
+	/* If this extension is loaded in a process with an already existing
+	 * interpreter, we need to record this in order to modify our
+	 * initialization accordingly.
+	 */
+
+	mx_bool_type python_initialized_elsewhere;
+	mx_bool_type mp_initialized_elsewhere;
 } MX_PYTHON_EXTENSION_PRIVATE;
 
 extern MX_EXTENSION_FUNCTION_LIST mxext_python_extension_function_list;

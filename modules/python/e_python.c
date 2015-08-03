@@ -14,13 +14,13 @@
  *
  */
 
-#define PYTHON_MODULE_DEBUG_INITIALIZE	FALSE
+#define PYTHON_MODULE_DEBUG_INITIALIZE	TRUE
 
-#define PYTHON_MODULE_DEBUG_FINALIZE	FALSE
+#define PYTHON_MODULE_DEBUG_FINALIZE	TRUE
 
-#define PYTHON_MODULE_DEBUG_CAPSULE	FALSE
+#define PYTHON_MODULE_DEBUG_CAPSULE	TRUE
 
-#define PYTHON_MODULE_DEBUG_CALL	FALSE
+#define PYTHON_MODULE_DEBUG_CALL	TRUE
 
 #include <stdio.h>
 
@@ -36,6 +36,74 @@ MX_EXTENSION_FUNCTION_LIST mxext_python_extension_function_list = {
 	mxext_python_finalize,
 	mxext_python_call
 };
+
+/*------*/
+
+#if 0
+static mx_status_type
+mxext_python_create_new_record_list_object(
+				MX_PYTHON_EXTENSION_PRIVATE *py_ext )
+{
+	/* Get the callable object for the Mp.RecordList() constructor
+	 * using Py_eval_input to tell the interpreter that we want
+	 * to get the class object, rather than getting the result 
+	 * of running the string.
+	 */
+
+	record_list_class_object = PyRun_String( "Mp.RecordList",
+			Py_eval_input, py_ext->py_dict, py_ext->py_dict );
+
+	if ( record_list_class_object == NULL ) {
+		PyErr_Print();
+
+		return mx_error( MXE_NOT_FOUND, fname,
+		"Could not get the Mp.RecordList class object." );
+	}
+
+#if PYTHON_MODULE_DEBUG_CAPSULE
+	fprintf( stderr, "The class object is " );
+
+	PyObject_Print( record_list_class_object, stderr, 0 );
+
+	fprintf( stderr, "\n" );
+#endif
+
+	/* Create an Mp.RecordList object that refers to the already 
+	 * existing MX record list object in the C main program.
+	 *
+	 * First, we build the arguments for the constructor.  We will
+	 * not use keyword arguments here.
+	 */
+
+	record_list_constructor_arguments = Py_BuildValue( "(O)",
+						mx_database_capsule );
+
+	if ( record_list_constructor_arguments == NULL ) {
+		PyErr_Print();
+
+		return mx_error( MXE_NOT_FOUND, fname,
+		"Could not build the arguments for the constructor "
+		"of the Mp.RecordList class." );
+	}
+
+	/* Now we invoke the constructor to get a class instance. */
+
+	MX_DEBUG(-2,("%s: MARKER 4", fname));
+
+	record_list_class_instance = PyInstance_New( record_list_class_object,
+					record_list_constructor_arguments,
+					NULL );
+
+	if ( record_list_class_instance == NULL ) {
+		PyErr_Print();
+
+		return mx_error( MXE_NOT_FOUND, fname,
+		"Could not create an instance of the Mp.RecordList class." );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+#endif
 
 /*------*/
 
@@ -64,6 +132,7 @@ mxext_python_initialize( MX_EXTENSION *extension )
 	PyObject *record_list_class_object = NULL;
 	PyObject *record_list_class_instance = NULL;
 	PyObject *record_list_constructor_arguments = NULL;
+	PyObject *result_of_mp_detect = NULL;
 	PyObject *result = NULL;
 	int python_status;
 
@@ -73,21 +142,6 @@ mxext_python_initialize( MX_EXTENSION *extension )
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_RECORD pointer for extension '%s' is NULL.",
 			extension->name );
-	}
-
-	/*---------------------------------------------------------------*/
-
-	/* If this process already has a Python interpreter running in it,
-	 * then mark this extension as disabled and return now.
-	 */
-
-	if ( Py_IsInitialized() ) {
-		MX_DEBUG(-2,("%s: Disabling the 'python' extension, "
-		"since this process already has a Python interpreter.", fname));
-
-		extension->extension_flags |= MXF_EXT_IS_DISABLED;
-
-		return MX_SUCCESSFUL_RESULT;
 	}
 
 	/*---------------------------------------------------------------*/
@@ -118,11 +172,28 @@ mxext_python_initialize( MX_EXTENSION *extension )
 
 	/*---------------------------------------------------------------*/
 
-	/* Initialize the Python environment. */
+	/* Has Python already been initialized in this process?
+	 *
+	 * For example, if an MX 'mpscript' based program loads an
+	 * MX database that has a '!load python.mxo' line in it,
+	 * then 'mpscript' has already initialized Python and
+	 * we must not reinitialize it.
+	 */
 
-	Py_SetProgramName( list_head->program_name );
+	if ( Py_IsInitialized() ) {
+		py_ext->python_initialized_elsewhere = TRUE;
+	} else {
+		py_ext->python_initialized_elsewhere = FALSE;
 
-	Py_Initialize();
+		/* If not, then we need to initialize the Python environment. */
+
+		Py_SetProgramName( list_head->program_name );
+
+		Py_Initialize();
+	}
+
+	MX_DEBUG(-2,("%s: python_initialized_elsewhere = %d",
+		fname, py_ext->python_initialized_elsewhere));
 
 	/* Save some Python objects we may need later. */
 
@@ -135,6 +206,8 @@ mxext_python_initialize( MX_EXTENSION *extension )
 		"The Python __main__ routine was not found." );
 	}
 
+	MX_DEBUG(-2,("%s: py_ext->py_main = %p", fname, py_ext->py_main));
+
 	py_ext->py_dict = PyModule_GetDict( py_ext->py_main );
 
 	if ( py_ext->py_dict == NULL ) {
@@ -144,16 +217,47 @@ mxext_python_initialize( MX_EXTENSION *extension )
 	    "The dictionary for the Python __main__ routine was not found.");
 	}
 
-	/* Try to load the Mp module. */
+	MX_DEBUG(-2,("%s: py_ext->py_dict = %p", fname, py_ext->py_dict));
 
-	result = PyRun_String( "import Mp",
+	/* Is the Mp module already loaded? */
+
+	result_of_mp_detect = PyRun_String( "Mp",
 			Py_single_input, py_ext->py_dict, py_ext->py_dict );
 
-	if ( result == NULL ) {
-		PyErr_Print();
+	if ( PyErr_Occurred() ) {
+		MX_DEBUG(-2,("%s: PyRun_String(\"Mp\",...) caused "
+		"an exception.  This probably means that Mp is not loaded.",
+			fname ));
 
-		return mx_error( MXE_NOT_FOUND, fname,
-		"Could not load the 'Mp' module." );
+		PyErr_Clear();
+
+		py_ext->mp_initialized_elsewhere = FALSE;
+	} else {
+		Py_DECREF( result_of_mp_detect );
+		
+		py_ext->mp_initialized_elsewhere = TRUE;
+	}
+
+	MX_DEBUG(-2,("%s: py_ext->mp_initialized_elsewhere = %d",
+		fname, py_ext->mp_initialized_elsewhere));
+
+	/* Try to load the Mp module. */
+
+	if ( py_ext->mp_initialized_elsewhere == FALSE ) {
+		result = PyRun_String( "import Mp",
+			Py_single_input, py_ext->py_dict, py_ext->py_dict );
+
+		if ( result == NULL ) {
+			PyErr_Print();
+
+			return mx_error( MXE_NOT_FOUND, fname,
+			"Could not load the 'Mp' module." );
+		}
+
+		MX_DEBUG(-2,("%s: Mp module has been loaded.", fname));
+	} else {
+		MX_DEBUG(-2,
+			("%s: Mp module does not need to be loaded.", fname));
 	}
 
 	/*----------------------------------------------------------------*/
@@ -230,6 +334,8 @@ mxext_python_initialize( MX_EXTENSION *extension )
 
 	/* Now we invoke the constructor to get a class instance. */
 
+	MX_DEBUG(-2,("%s: MARKER 4", fname));
+
 	record_list_class_instance = PyInstance_New( record_list_class_object,
 					record_list_constructor_arguments,
 					NULL );
@@ -270,6 +376,8 @@ mxext_python_initialize( MX_EXTENSION *extension )
 
 	/*----------------------------------------------------------------*/
 
+	MX_DEBUG(-2,("%s: MARKER 5", fname));
+
 	/* If currently there is no default script extension, then set
 	 * 'python' to be the default script extension.
 	 */
@@ -291,14 +399,24 @@ mxext_python_initialize( MX_EXTENSION *extension )
 	 * mx_dynamic_library_open().
 	 */
 
+	MX_DEBUG(-2,("%s: MARKER 6", fname));
+
+	/* If currently there is no default script extension, then set
+	 * 'python' to be the default script extension.
+	 */
 	mx_status = mx_dynamic_library_open( NULL, &main_executable );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	MX_DEBUG(-2,("%s: MARKER 7", fname));
+
 	motor_record_list_ptr =
 		mx_dynamic_library_get_symbol_pointer( main_executable,
 							"motor_record_list" );
+
+	MX_DEBUG(-2,("%s: motor_record_list_ptr = %p",
+		fname, motor_record_list_ptr));
 
 	if ( motor_record_list_ptr == NULL ) {
 
@@ -366,25 +484,33 @@ mxext_python_finalize( MX_EXTENSION *extension )
 			extension->name );
 	}
 
+	/* If Mp was not imported before the MX 'python' extension was
+	 * loaded, then we need to set up a Python linked list that
+	 * shadows the the C linked list.
+	 */
+
+	if ( py_ext->mp_initialized_elsewhere == FALSE ) {
+
 #if PYTHON_MODULE_DEBUG_FINALIZE
-	MX_DEBUG(-2,("%s: about to invoke create_shadow_linked_list.", fname));
+		MX_DEBUG(-2,
+		("%s: about to invoke create_shadow_linked_list.", fname));
 #endif
 
-	/* Create the Python linked list that shadows the C linked list. */
-
-	result = PyObject_CallMethod( py_record_list,
+		result = PyObject_CallMethod( py_record_list,
 				"create_shadow_linked_list", NULL );
 
-	if ( result == NULL ) {
-		PyErr_Print();
+		if ( result == NULL ) {
+			PyErr_Print();
 
-		return mx_error( MXE_UNKNOWN_ERROR, fname,
-		"Could not create the Python shadow linked list." );
-	}
+			return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"Could not create the Python shadow linked list." );
+		}
 
 #if PYTHON_MODULE_DEBUG_FINALIZE
-	MX_DEBUG(-2,("%s: create_shadow_linked_list succeeded.", fname));
+		MX_DEBUG(-2,
+		("%s: create_shadow_linked_list succeeded.", fname));
 #endif
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -578,7 +704,7 @@ mxext_python_call( MX_EXTENSION *extension,
 	if ( result == NULL ) {
 		PyErr_Print();
 
-		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		return mx_error( MXE_FUNCTION_FAILED, fname,
 		"The main() function from the script '%s' failed.",
 			(char *) argv[0] );
 	}
