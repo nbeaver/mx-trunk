@@ -597,6 +597,7 @@ mx_get_measurement_time( MX_MEASUREMENT *measurement,
 	
 	MX_MEASUREMENT_PRESET_TIME *preset_time_struct;
 	MX_MEASUREMENT_PRESET_PULSE_PERIOD *preset_pulse_period_struct;
+	MX_MEASUREMENT_K_POWER_LAW *k_power_law_struct;
 
 	MX_DEBUG( 2,("%s invoked.",fname));
 
@@ -627,6 +628,12 @@ mx_get_measurement_time( MX_MEASUREMENT *measurement,
 			measurement->measurement_type_struct;
 
 		*measurement_time = preset_pulse_period_struct->pulse_period;
+		break;
+	case MXM_K_POWER_LAW:
+		k_power_law_struct = (MX_MEASUREMENT_K_POWER_LAW *)
+					measurement->measurement_type_struct;
+
+		*measurement_time = k_power_law_struct->base_time;
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,

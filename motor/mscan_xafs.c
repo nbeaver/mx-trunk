@@ -64,7 +64,7 @@ motor_setup_xafs_scan_parameters(
 	static char old_timer_name[ MXU_RECORD_NAME_LENGTH + 1 ];
 	char prompt[100];
 	char format_buffer[80];
-	char scan_type_string[20];
+	char scan_type_string[40];
 	char region_type_string[5];
 	char *ptr;
 	int status, string_length, num_items;
@@ -127,8 +127,6 @@ motor_setup_xafs_scan_parameters(
 
 		scan_type = old_scan->record->mx_type;
 	}
-
-	MX_DEBUG(-2,("scan setup: scan_type = %ld", scan_type));
 
 	/* Set the number of times to scan. */
 

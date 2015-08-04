@@ -435,10 +435,12 @@ mxs_xafs_scan_execute_scan_body( MX_SCAN *scan )
 	MX_RECORD *scan_region_record, *record_list;
 	char record_description[ MXU_RECORD_DESCRIPTION_LENGTH + 1 ];
 	char timer_name[ MXU_RECORD_NAME_LENGTH + 1 ];
+	char measurement_arguments[80];
+	char preset_type_name[40];
 	char format_buffer[20];
 	double start_position, end_position, step_size, end_of_region;
 	double e_minus_e0_start, k_start_squared;
-	double energy_diff, nominal_measurement_time;
+	double energy_diff, k_power_law_exponent;
 	char *ptr;
 	size_t string_length;
 	long i, j, num_steps;
@@ -542,7 +544,7 @@ mxs_xafs_scan_execute_scan_body( MX_SCAN *scan )
 			"%%lg %%%ds", MXU_RECORD_NAME_LENGTH );
 
 		num_items = sscanf( scan->measurement_arguments, format_buffer,
-					&nominal_measurement_time, timer_name );
+					&k_power_law_exponent, timer_name );
 
 		if ( num_items != 2 ) {
 			return mx_error( MXE_UNPARSEABLE_STRING, fname,
@@ -557,14 +559,68 @@ mxs_xafs_scan_execute_scan_body( MX_SCAN *scan )
 		string_length = strlen( record_description );
 		ptr = record_description + string_length;
 
+		if ( i < xafs_scan->num_energy_regions ) {
+			/* For energy regions. */
+
+			snprintf( measurement_arguments,
+				sizeof(measurement_arguments),
+				"%.*g %s",
+				scan->record->precision,
+				xafs_scan->region_measurement_time[i],
+				timer_name );
+
+			strlcpy( preset_type_name, "preset_time",
+					sizeof(preset_type_name) );
+		} else {
+			/* For K regions */
+
+			switch( scan->record->mx_type ) {
+			case MXS_XAF_STANDARD:
+				snprintf( measurement_arguments,
+					sizeof(measurement_arguments),
+					"%.*g %s",
+					scan->record->precision,
+					xafs_scan->region_measurement_time[i],
+					timer_name );
+
+				strlcpy( preset_type_name,
+					"preset_time",
+					sizeof(preset_type_name) );
+				break;
+
+			case MXS_XAF_K_POWER_LAW:
+				snprintf( measurement_arguments,
+					sizeof(measurement_arguments),
+					"%.*g %.*g %.*g %.*g %s",
+					scan->record->precision,
+					xafs_scan->region_measurement_time[i],
+					scan->record->precision,
+					start_position,
+					scan->record->precision,
+					step_size,
+					scan->record->precision,
+					k_power_law_exponent,
+					timer_name );
+
+				strlcpy( preset_type_name,
+					"k_power_law",
+					sizeof(preset_type_name) );
+				break;
+			default:
+				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Parent scan type %ld is not supported for XAFS scans.",
+					scan->record->mx_type );
+				break;
+			}
+		}
+
 		snprintf( ptr, sizeof(record_description) - string_length,
-  "%#lx %.*g preset_time \"%.*g %s\" child:%s %s child:%s \"%s\" %.*g %.*g %ld",
+	"%#lx %.*g %s \"%s\" child:%s %s child:%s \"%s\" %.*g %.*g %ld",
   			scan->scan_flags,
 			scan->record->precision,
 			scan->settling_time,
-			scan->record->precision,
-			xafs_scan->region_measurement_time[i],
-			timer_name,
+			preset_type_name,
+			measurement_arguments,
 			scan->datafile.options,
 			scan->record->name,
 			scan->plot.options,
@@ -579,8 +635,8 @@ mxs_xafs_scan_execute_scan_body( MX_SCAN *scan )
 		 * have just constructed.
 		 */
 
-		MX_DEBUG( 2,("%s: description = '%s'",
-					fname, record_description));
+		MX_DEBUG( 2,("%s: record_description = '%s'",
+			fname, record_description));
 
 		mx_status = mx_create_record_from_description( record_list,
 				record_description, &scan_region_record, 0 );
