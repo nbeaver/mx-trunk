@@ -134,6 +134,8 @@ motor_setup_k_power_law_measurements(
 		return status;
 	}
 
+	new_name_length = sizeof(new_timer_name) - 1;
+
 	status = motor_get_string( output,
 			"Enter timer name -> ",
 			old_timer_name, &new_name_length, new_timer_name );
@@ -745,7 +747,7 @@ motor_setup_linear_scan_parameters(
 					valid_end_position = TRUE;
 				}
 			}
-#if 1
+
 			fprintf( output,
 	"\n    %s: %g %s to %g %s, %g %s step size, %ld measurements\n\n",
 				record->name,
@@ -753,7 +755,7 @@ motor_setup_linear_scan_parameters(
 				end_position, motor->units,
 				scan_step_size[j], motor->units,
 				scan_num_measurements[j] );
-#endif
+
 		}
 	}
 
