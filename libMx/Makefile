@@ -64,7 +64,7 @@ MX_CORE_SRCS = mx_amplifier.c mx_analog_input.c mx_analog_output.c \
 	p_child.c p_custom.c p_gnuplot.c p_gnuplot_xafs.c p_none.c \
 	ph_aps_topup.c ph_simple.c \
 	s_input.c s_motor.c s_pseudomotor.c s_slit.c s_theta_2theta.c \
-	sa_wedge.c sl_file.c sxafs_std.c sq_energy_mcs.c sq_mcs.c \
+	sa_wedge.c sl_file.c sxafs_kpl.c sxafs_std.c sq_energy_mcs.c sq_mcs.c \
 	z_external_command.c
 
 MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \

@@ -758,6 +758,7 @@ extern "C" {
 #define MXS_LST_MEMORY			403002
 
 #define MXS_XAF_STANDARD		405001
+#define MXS_XAF_K_POWER_LAW		405002
 
 #define MXS_QUI_MCS			407001
 

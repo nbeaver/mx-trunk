@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2006, 2009 Illinois Institute of Technology
+ * Copyright 1999-2001, 2006, 2009, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -63,7 +63,8 @@ motor_setup_xafs_scan_parameters(
 	static char timer_name[ MXU_RECORD_NAME_LENGTH + 1 ];
 	static char old_timer_name[ MXU_RECORD_NAME_LENGTH + 1 ];
 	char prompt[100];
-	char format_buffer[20];
+	char format_buffer[80];
+	char scan_type_string[20];
 	char region_type_string[5];
 	char *ptr;
 	int status, string_length, num_items;
@@ -73,6 +74,7 @@ motor_setup_xafs_scan_parameters(
 	long num_energy_regions, num_k_regions;
 	long scan_num_scans;
 	unsigned long scan_flags;
+	double k_power_law_exponent;
 	double scan_settling_time;
 	double *region_boundary, *region_step_size, *region_measurement_time;
 
@@ -99,6 +101,35 @@ motor_setup_xafs_scan_parameters(
 		}
 	}
 
+	/* Prompt for the XAFS scan type. */
+
+	scan_class = MXS_XAFS_SCAN;
+	scan_type = MXS_XAF_STANDARD;
+
+	if ( old_scan == (MX_SCAN *) NULL ) {
+		fprintf(output,
+			"Select XAFS scan type:\n"
+			"    1.  Standard XAFS scan.\n"
+			"    2,  XAFS scan with K power law regions\n"
+			"\n");
+
+		status = motor_get_long( output, "--> ", TRUE, 1,
+						&scan_type, 1, 2 );
+
+		if ( status == FAILURE ) {
+			return FAILURE;
+		}
+		scan_type += (MXS_XAF_STANDARD - 1);
+	} else {
+		/* 'modify scan' is not allowed to change the scan type.
+		 * Use 'setup scan' if you want a different scan type.
+		 */
+
+		scan_type = old_scan->record->mx_type;
+	}
+
+	MX_DEBUG(-2,("scan setup: scan_type = %ld", scan_type));
+
 	/* Set the number of times to scan. */
 
 	if ( old_scan == NULL ) {
@@ -115,19 +146,32 @@ motor_setup_xafs_scan_parameters(
 		return status;
 	}
 
+	switch( scan_type ) {
+	case MXS_XAF_STANDARD:
+		strlcpy( scan_type_string, "xafs_scan",
+			sizeof(scan_type_string) );
+		break;
+	case MXS_XAF_K_POWER_LAW:
+		strlcpy( scan_type_string, "xafs_k_power_law_scan",
+			sizeof(scan_type_string) );
+		break;
+	default:
+		fprintf( output,
+			"Error: Unrecognized XAFS scan type %ld\n", scan_type );
+		return FAILURE;
+		break;
+	}
+
 	/* Format the beginning of the record description. */
 
 	snprintf( record_description_buffer,
 		record_description_buffer_length,
-		"%s scan xafs_scan_class xafs_scan \"\" \"\" %ld 0 0 ",
-		scan_name, scan_num_scans );
+		"%s scan xafs_scan_class %s \"\" \"\" %ld 0 0 ",
+		scan_name, scan_type_string, scan_num_scans );
 
 	/* Prompt for the common scan parameters such as input devices,
 	 * data files and plot types.
 	 */
-
-	scan_class = MXS_XAFS_SCAN;
-	scan_type = MXS_XAF_STANDARD;
 
 	string_length = (int) strlen(record_description_buffer);
 
@@ -186,7 +230,13 @@ motor_setup_xafs_scan_parameters(
 		snprintf( ptr, record_description_buffer_length - string_length,
 			"%g preset_time ", scan_settling_time );
 
+		/* Get the K power law exponent (if needed)
+		 * and the timer name.
+		 */
+
 		string_length = (int) strlen(record_description_buffer);
+
+		k_power_law_exponent = 0.0;
 
 		if ( old_scan == NULL ) {
 			strlcpy( old_timer_name, "timer1",
@@ -199,7 +249,7 @@ motor_setup_xafs_scan_parameters(
 			num_items = sscanf(
 				old_scan->measurement.measurement_arguments,
 				format_buffer,
-				&default_double,
+				&k_power_law_exponent,
 				old_timer_name );
 
 			if ( num_items != 2 ) {
@@ -208,6 +258,18 @@ motor_setup_xafs_scan_parameters(
 				old_scan->measurement.measurement_arguments );
 
 				return FAILURE;
+			}
+		}
+
+		if ( scan_type == MXS_XAF_K_POWER_LAW ) {
+
+			status = motor_get_double( output,
+				"Enter K power law exponent -> ",
+				TRUE, k_power_law_exponent,
+				&k_power_law_exponent, 0.0, 1.0e30 );
+
+			if ( status != SUCCESS ) {
+				return status;
 			}
 		}
 
@@ -245,7 +307,7 @@ motor_setup_xafs_scan_parameters(
 		ptr = record_description_buffer + string_length;
 
 		snprintf( ptr, record_description_buffer_length - string_length,
-			"\"0 %s\" ", timer_record->name );
+		    "\"%g %s\" ", k_power_law_exponent, timer_record->name );
 	}
 
 	/* Prompt for the datafile and plot parameters. */

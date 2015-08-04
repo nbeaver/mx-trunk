@@ -291,7 +291,7 @@ mx_scan_print_scan_structure( FILE *file, MX_RECORD *record )
 	MX_DRIVER *driver;
 	int num_items;
 	long i, measurement_counts;
-	double measurement_time, pulse_period;
+	double measurement_time, pulse_period, k_power_law_exponent;
 	size_t length;
 	char format[40];
 	char device_name[MXU_RECORD_NAME_LENGTH+1];
@@ -367,7 +367,27 @@ mx_scan_print_scan_structure( FILE *file, MX_RECORD *record )
 	fprintf( file, "  Settling time         = %g seconds\n\n",
 					scan->settling_time );
 
-	if ( record->mx_type != MXS_XAF_STANDARD ) {
+	switch( record->mx_type ) {
+	case MXS_XAF_STANDARD:
+		break;
+	case MXS_XAF_K_POWER_LAW:
+		snprintf(format, sizeof(format),
+				"%%lg %%%ds", MXU_RECORD_NAME_LENGTH);
+	
+		num_items = sscanf(scan->measurement_arguments, format,
+				&k_power_law_exponent, device_name );
+	
+		if ( num_items != 2 ) {
+			return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Cannot parse measurement arguments '%s' for scan '%s'.",
+				scan->measurement_arguments,
+				record->name );
+		}
+		fprintf( file,
+		"  K power law exponent  = %g     ( Timer '%s' )\n\n",
+				k_power_law_exponent, device_name );
+		break;
+	default:
 		fprintf( file, "  Measurement type      = %s\n",
 						scan->measurement_type );
 	
@@ -431,6 +451,7 @@ mx_scan_print_scan_structure( FILE *file, MX_RECORD *record )
 			break;
 		}
 		fprintf( file, "\n" );
+		break;
 	}
 
 	fprintf( file, "  Datafile type         = %s\n",

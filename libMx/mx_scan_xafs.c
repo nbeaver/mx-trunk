@@ -58,7 +58,7 @@ mxs_xafs_scan_initialize_driver( MX_DRIVER *driver )
 	long num_boundaries_varargs_cookie;
 	long num_regions_field_index;
 	long num_regions_varargs_cookie;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( driver == (MX_DRIVER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -67,65 +67,65 @@ mxs_xafs_scan_initialize_driver( MX_DRIVER *driver )
 
 	/**** Fix up the record fields common to all scan types. ****/
 
-	status = mx_scan_fixup_varargs_record_field_defaults( driver,
+	mx_status = mx_scan_fixup_varargs_record_field_defaults( driver,
 				&num_independent_variables_varargs_cookie,
 				&num_motors_varargs_cookie,
 				&num_input_devices_varargs_cookie );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/** Fix up the record fields specific to MX_XAFS_SCAN records **/
 
-	status = mx_find_record_field_defaults_index( driver,
+	mx_status = mx_find_record_field_defaults_index( driver,
 						"num_boundaries",
 						&num_boundaries_field_index );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_construct_varargs_cookie(
+	mx_status = mx_construct_varargs_cookie(
 		num_boundaries_field_index, 0, &num_boundaries_varargs_cookie);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_find_record_field_defaults( driver,
+	mx_status = mx_find_record_field_defaults( driver,
 						"region_boundary", &field );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	field->dimension[0] = num_boundaries_varargs_cookie;
 
 	/*--*/
 
-	status = mx_find_record_field_defaults_index( driver,
+	mx_status = mx_find_record_field_defaults_index( driver,
 						"num_regions",
 						&num_regions_field_index );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_construct_varargs_cookie(
+	mx_status = mx_construct_varargs_cookie(
 		num_regions_field_index, 0, &num_regions_varargs_cookie);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_find_record_field_defaults( driver,
+	mx_status = mx_find_record_field_defaults( driver,
 						"region_step_size", &field );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	field->dimension[0] = num_regions_varargs_cookie;
 
-	status = mx_find_record_field_defaults( driver,
+	mx_status = mx_find_record_field_defaults( driver,
 					"region_measurement_time", &field );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	field->dimension[0] = num_regions_varargs_cookie;
 
@@ -187,10 +187,11 @@ mxs_xafs_scan_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxs_xafs_scan_finish_record_initialization( MX_RECORD *record )
 {
-	static const char fname[] = "mxs_xafs_scan_finish_record_initialization()";
+	static const char fname[] =
+		"mxs_xafs_scan_finish_record_initialization()";
 
 	MX_XAFS_SCAN *xafs_scan;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -205,10 +206,10 @@ mxs_xafs_scan_finish_record_initialization( MX_RECORD *record )
 			record->name );
 	}
 
-	status = mx_scan_finish_record_initialization( record );
+	mx_status = mx_scan_finish_record_initialization( record );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Perform a consistency check on some of the XAFS scan parameters. */
 
@@ -297,17 +298,17 @@ mxs_xafs_scan_print_scan_structure( FILE *file, MX_RECORD *record )
 	MX_XAFS_SCAN *xafs_scan;
 	long i, j;
 	double start, start_squared, last_energy_boundary;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record != NULL ) {
 		fprintf( file, "SCAN parameters for xafs scan '%s':\n",
 				record->name );
 	}
 
-	status = mx_scan_print_scan_structure( file, record );
+	mx_status = mx_scan_print_scan_structure( file, record );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	scan = (MX_SCAN *) record->record_superclass_struct;
 
@@ -378,7 +379,7 @@ mxs_xafs_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 	MX_RECORD *e_minus_e0_record;
 	MX_RECORD *k_record;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	/* Some motor drivers use cached values of variables when 
 	 * scan 'fast mode' is turned on rather than querying a
@@ -408,21 +409,21 @@ mxs_xafs_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 	/* Read the positions. */
 
-	status = mx_motor_get_position( e_minus_e0_record, NULL );
+	mx_status = mx_motor_get_position( e_minus_e0_record, NULL );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_motor_get_position( k_record, NULL );
+	mx_status = mx_motor_get_position( k_record, NULL );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Perform standard scan startup operations. */
 
-	status = mx_standard_prepare_for_scan_start( scan );
+	mx_status = mx_standard_prepare_for_scan_start( scan );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -442,7 +443,7 @@ mxs_xafs_scan_execute_scan_body( MX_SCAN *scan )
 	size_t string_length;
 	long i, j, num_steps;
 	int num_items;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
 
@@ -581,27 +582,28 @@ mxs_xafs_scan_execute_scan_body( MX_SCAN *scan )
 		MX_DEBUG( 2,("%s: description = '%s'",
 					fname, record_description));
 
-		status = mx_create_record_from_description( record_list,
+		mx_status = mx_create_record_from_description( record_list,
 				record_description, &scan_region_record, 0 );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-		status = mx_finish_record_initialization( scan_region_record );
+		mx_status =
+			mx_finish_record_initialization( scan_region_record );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		/* Run the scan. */
 
-		status = mx_perform_scan( scan_region_record );
+		mx_status = mx_perform_scan( scan_region_record );
 
 		/* Make sure the temporary scan region record is deleted. */
 
 		(void) mx_delete_record( scan_region_record );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 #if DEBUG_TIMING
 		MX_HRT_END( total_region_measurement );

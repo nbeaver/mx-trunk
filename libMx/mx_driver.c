@@ -480,6 +480,7 @@
 #include "s_pseudomotor.h"
 #include "sl_file.h"
 #include "sxafs_std.h"
+#include "sxafs_kpl.h"
 #include "sq_mcs.h"
 #include "sq_energy_mcs.h"
 #include "sa_wedge.h"
@@ -3511,12 +3512,19 @@ MX_DRIVER mx_type_table[] = {
 				&mxs_file_list_scan_num_record_fields,
 				&mxs_file_list_scan_def_ptr},
 
-{"xafs_scan",      MXS_XAF_STANDARD,  MXS_XAFS_SCAN,      MXR_SCAN,
+{"xafs_scan",            MXS_XAF_STANDARD,  MXS_XAFS_SCAN,      MXR_SCAN,
 				&mxs_xafs_scan_record_function_list,
 				&mxs_xafs_scan_scan_function_list,
 				NULL,
 				&mxs_xafs_std_scan_num_record_fields,
 				&mxs_xafs_std_scan_def_ptr},
+
+{"xafs_k_power_law_scan", MXS_XAF_K_POWER_LAW,  MXS_XAFS_SCAN,  MXR_SCAN,
+				&mxs_xafs_scan_record_function_list,
+				&mxs_xafs_scan_scan_function_list,
+				NULL,
+				&mxs_xafs_kpl_scan_num_record_fields,
+				&mxs_xafs_kpl_scan_def_ptr},
 
 {"mcs_qscan",      MXS_QUI_MCS,       MXS_QUICK_SCAN,     MXR_SCAN,
 				&mxs_mcs_quick_scan_record_function_list,
