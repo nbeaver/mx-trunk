@@ -96,7 +96,7 @@ mx_scan_get_subdirectory_and_filename( MX_SCAN *scan,
 		 */
 
 		if ( use_subdirectory ) {
-			switch( input_device->mx_class ) {
+			switch( input_device_class ) {
 			case MXC_MULTICHANNEL_ANALYZER:
 				snprintf( subdirectory_name, max_dirname_length,
 					"%s_mca", datafile_filename );

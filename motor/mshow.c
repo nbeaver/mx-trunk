@@ -323,14 +323,6 @@ motor_show_fn( int argc, char *argv[] )
 		}
 		return SUCCESS;
 
-	} else if ( strncmp( "modules", argv[2], length ) == 0 ) {
-		if ( argc > 3 ) {
-			status = motor_show_modules( argv[3] );
-		} else {
-			status = motor_show_modules( NULL );
-		}
-		return status;
-
 	} else if ( strncmp( "field", argv[2], length ) == 0 ) {
 		if ( argc != 4 ) {
 			fprintf(output, "Error: no field name specified.\n" );
@@ -505,6 +497,14 @@ motor_show_fn( int argc, char *argv[] )
 
 		strlcpy( record_type_phrase, "a variable",
 					sizeof(record_type_phrase) );
+
+	} else if ( strncmp( "modules", argv[2], length ) == 0 ) {
+		if ( argc > 3 ) {
+			status = motor_show_modules( argv[3] );
+		} else {
+			status = motor_show_modules( NULL );
+		}
+		return status;
 
 	} else if ( strncmp( "scanlog", argv[2], length ) == 0 ) {
 		if ( mx_get_scanlog_enable() ) {
