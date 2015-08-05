@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002-2003, 2009-2010, 2012 Illinois Institute of Technology
+ * Copyright 2002-2003, 2009-2010, 2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,6 +23,7 @@ typedef struct {
 	char epics_detector_name[ MXU_EPICS_PVNAME_LENGTH+1 ];
 	char epics_mca_name[ MXU_EPICS_PVNAME_LENGTH+1 ];
 	char epics_dxp_name[ MXU_EPICS_PVNAME_LENGTH+1 ];
+	double epics_record_version;
 
 	MX_EPICS_PV acquiring_pv;
 	MX_EPICS_PV erase_pv;
@@ -84,6 +85,10 @@ typedef struct {
 		NULL, 1, {MXU_EPICS_PVNAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EPICS_MCA, epics_dxp_name), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+  \
+  {-1, -1, "epics_record_version", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EPICS_MCA, epics_record_version), \
+	{0}, NULL, MXFF_READ_ONLY }, \
   \
   {-1, -1, "epics_mca_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EPICS_MCA, epics_mca_flags), \

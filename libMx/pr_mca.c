@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2000-2004, 2006, 2010, 2012 Illinois Institute of Technology
+ * Copyright 2000-2004, 2006, 2010, 2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -44,6 +44,7 @@ mx_setup_mca_process_functions( MX_RECORD *record )
 
 		switch( record_field->label_value ) {
 		case MXLV_MCA_BUSY:
+		case MXLV_MCA_BUSY_START_INTERVAL:
 		case MXLV_MCA_CHANNEL_ARRAY:
 		case MXLV_MCA_CHANNEL_VALUE:
 		case MXLV_MCA_CLEAR:
@@ -51,6 +52,7 @@ mx_setup_mca_process_functions( MX_RECORD *record )
 		case MXLV_MCA_ENERGY_OFFSET:
 		case MXLV_MCA_ENERGY_SCALE:
 		case MXLV_MCA_INPUT_COUNT_RATE:
+		case MXLV_MCA_LAST_START_TIME:
 		case MXLV_MCA_LIVE_TIME:
 		case MXLV_MCA_OUTPUT_COUNT_RATE:
 		case MXLV_MCA_PRESET_COUNT:
@@ -115,6 +117,10 @@ mx_mca_process_function( void *record_ptr,
 		case MXLV_MCA_CURRENT_NUM_CHANNELS:
 			status = mx_mca_get_num_channels(
 						record, &ulong_value );
+			break;
+		case MXLV_MCA_LAST_START_TIME:
+			mca->last_start_time =
+		    mx_convert_clock_ticks_to_seconds( mca->last_start_tick );
 			break;
 		case MXLV_MCA_ROI_ARRAY:
 			status = mx_mca_get_roi_array( record,
@@ -213,6 +219,10 @@ mx_mca_process_function( void *record_ptr,
 			status = mx_mca_start_with_preset( record,
 							preset_type,
 							preset_value );
+			break;
+		case MXLV_MCA_BUSY_START_INTERVAL:
+			status = mx_mca_set_busy_start_interval( record,
+						mca->busy_start_interval );
 			break;
 		case MXLV_MCA_ROI_ARRAY:
 			status = mx_mca_set_roi_array( record,

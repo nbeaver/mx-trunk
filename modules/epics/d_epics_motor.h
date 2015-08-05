@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2006, 2013-2014 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2006, 2013-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -99,6 +99,10 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_epics_motor_rfield_def_ptr;
 		NULL, 1, {MXU_EPICS_PVNAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EPICS_MOTOR, epics_record_name), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "epics_record_version", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EPICS_MOTOR, epics_record_version), \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {-1, -1, "epics_position_pv_ptr", MXFT_STRING, NULL, 1, {1}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EPICS_MOTOR, epics_position_pv_ptr), \

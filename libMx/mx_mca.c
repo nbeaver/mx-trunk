@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004-2007, 2010, 2012 Illinois Institute of Technology
+ * Copyright 1999-2002, 2004-2007, 2010, 2012, 2015
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -281,6 +282,9 @@ mx_mca_finish_record_initialization( MX_RECORD *mca_record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	mca->busy_start_interval_enabled = FALSE;
+	mca->busy_start_interval = -1;
+
 	/* Initialize regions of interest. */
 
 	mca->roi[0] = 0;
@@ -344,6 +348,8 @@ mx_mca_start( MX_RECORD *mca_record )
 		fname, mca_record->name, (int) mca->new_data_available));
 #endif
 
+	mca->last_start_tick = mx_current_clock_tick();
+
 	mx_status = (*start_fn)( mca );
 
 	return mx_status;
@@ -374,6 +380,9 @@ mx_mca_stop( MX_RECORD *mca_record )
 		"stop function ptr for record '%s' is NULL.",
 			mca_record->name );
 	}
+
+	mca->last_start_tick.high_order = 0;
+	mca->last_start_tick.low_order  = 0;
 
 	mx_status = (*stop_fn)( mca );
 
@@ -532,6 +541,20 @@ mx_mca_is_busy( MX_RECORD *mca_record, mx_bool_type *busy )
 
 	mx_status = (*busy_fn)( mca );
 
+	if ( mca->busy_start_interval_enabled ) {
+		mx_bool_type busy_start_set;
+
+		mx_status = mx_mca_check_busy_start_interval( mca_record,
+							&busy_start_set );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( busy_start_set ) {
+			mca->busy = TRUE;
+		}
+	}
+
 	if ( busy != NULL ) {
 		*busy = mca->busy;
 	}
@@ -654,6 +677,8 @@ mx_mca_start_without_preset( MX_RECORD *mca_record )
 		fname, mca_record->name, (int) mca->new_data_available));
 #endif
 
+	mca->last_start_tick = mx_current_clock_tick();
+
 	mca->preset_type = MXF_MCA_PRESET_NONE;
 
 	mx_status = (*start_fn)( mca );
@@ -716,6 +741,8 @@ mx_mca_start_with_preset( MX_RECORD *mca_record,
 			preset_type, mca_record->name );
 	}
 
+	mca->last_start_tick = mx_current_clock_tick();
+
 	mx_status = (*start_fn)( mca );
 
 	return mx_status;
@@ -760,6 +787,8 @@ mx_mca_start_for_preset_live_time( MX_RECORD *mca_record,
 	mca->last_measurement_interval = preset_seconds;
 
 	mca->preset_live_time = preset_seconds;
+
+	mca->last_start_tick = mx_current_clock_tick();
 
 	mx_status = (*start_fn)( mca );
 
@@ -806,6 +835,8 @@ mx_mca_start_for_preset_real_time( MX_RECORD *mca_record,
 
 	mca->preset_real_time = preset_seconds;
 
+	mca->last_start_tick = mx_current_clock_tick();
+
 	mx_status = (*start_fn)( mca );
 
 	return mx_status;
@@ -850,6 +881,8 @@ mx_mca_start_for_preset_count( MX_RECORD *mca_record,
 	mca->last_measurement_interval = (double) preset_count;
 
 	mca->preset_count = preset_count;
+
+	mca->last_start_tick = mx_current_clock_tick();
 
 	mx_status = (*start_fn)( mca );
 
@@ -1238,6 +1271,111 @@ mx_mca_set_preset_count_region( MX_RECORD *mca_record,
 	mx_status = (*set_parameter)( mca );
 
 	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_mca_set_busy_start_interval( MX_RECORD *mca_record,
+				double busy_start_interval_in_seconds )
+{
+	static const char fname[] = "mx_mca_set_busy_start_interval()";
+
+	MX_MCA *mca;
+
+	if ( mca_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The motor record pointer passed was NULL." );
+	}
+
+	mca = (MX_MCA *) mca_record->record_class_struct;
+
+	if ( mca == (MX_MCA *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_MCA pointer for record '%s' is NULL.",
+			mca_record->name );
+	}
+
+	mca->busy_start_interval = busy_start_interval_in_seconds;
+
+	if ( busy_start_interval_in_seconds < 0.0 ) {
+		mca->busy_start_interval_enabled = FALSE;
+	} else {
+		mca->busy_start_interval_enabled = TRUE;
+
+		mca->busy_start_ticks =
+	    mx_convert_seconds_to_clock_ticks( busy_start_interval_in_seconds );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/* If the difference between the current time and the time of the last start
+ * command is less than the value of 'busy_start_interval', then the flag
+ * busy_start_set will be set to TRUE.
+ *
+ * There exist MCAs that have the misfeature that when you send them a
+ * 'start' command, there may be a short time after the start of the 
+ * acquisition where the controller reports that the MCA is _not_ busy.
+ *
+ * While this may technically be true, it is not useful for higher level logic
+ * that is trying to figure out when a acquisition sequence has completed.
+ * MX handles this by reporting that the MCA is 'busy' for a period after a
+ * start command equal to the value of 'mca->busy_start_interval' in seconds.
+ * This is only done if the busy start feature is enabled.
+ */
+
+MX_EXPORT mx_status_type
+mx_mca_check_busy_start_interval( MX_RECORD *mca_record,
+				mx_bool_type *busy_start_set )
+{
+	static const char fname[] = "mx_mca_check_busy_start_interval()";
+
+	MX_MCA *mca;
+	MX_CLOCK_TICK start_tick, busy_start_ticks;
+	MX_CLOCK_TICK finish_tick, current_tick;
+	int comparison;
+
+	if ( mca_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The motor record pointer passed was NULL." );
+	}
+	if ( busy_start_set == (mx_bool_type *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The busy_start_set pointer passed was NULL." );
+	}
+
+	mca = (MX_MCA *) mca_record->record_class_struct;
+
+	if ( mca == (MX_MCA *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_MCA pointer for record '%s' is NULL.",
+			mca_record->name );
+	}
+
+	if ( mca->busy_start_interval_enabled == FALSE ) {
+		*busy_start_set = FALSE;
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	mca->last_start_time =
+		mx_convert_clock_ticks_to_seconds( mca->last_start_tick );
+
+	start_tick = mca->last_start_tick;
+
+	busy_start_ticks = mca->busy_start_ticks;
+
+	finish_tick = mx_add_clock_ticks( start_tick, busy_start_ticks );
+
+	current_tick = mx_current_clock_tick();
+
+	comparison = mx_compare_clock_ticks( current_tick, finish_tick );
+
+	if ( comparison <= 0 ) {
+		*busy_start_set = TRUE;
+	} else {
+		*busy_start_set = FALSE;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type

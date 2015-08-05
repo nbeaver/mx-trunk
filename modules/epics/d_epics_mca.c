@@ -413,6 +413,8 @@ mxd_epics_mca_open( MX_RECORD *record )
 	MX_MCA *mca;
 	MX_EPICS_MCA *epics_mca = NULL;
 	unsigned long i, flags, connect_flags;
+	double version_number;
+	char pvname[50];
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -428,6 +430,18 @@ mxd_epics_mca_open( MX_RECORD *record )
 		mca->busy = FALSE;
 
 		return mx_status;
+	}
+
+	snprintf( pvname, sizeof(pvname), "%s%s.VERS",
+			epics_mca->epics_detector_name,
+			epics_mca->epics_mca_name );
+
+	mx_status = mx_caget_by_name(pvname, MX_CA_DOUBLE, 1, &version_number);
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		epics_mca->epics_record_version = 0.0;
+	} else {
+		epics_mca->epics_record_version = version_number;
 	}
 
 	/* Set some reasonable defaults. */

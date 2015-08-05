@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004-2008, 2012 Illinois Institute of Technology
+ * Copyright 1999-2002, 2004-2008, 2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -47,6 +47,20 @@ typedef struct {
 	double start_with_preset[2];
 
 	unsigned long mca_flags;
+
+	/* The following fields are used to handle MCAs that do not set
+	 * the "busy" flag immediately after the start of an acquisition
+	 * sequence.
+	 */
+
+	mx_bool_type busy_start_interval_enabled;
+	double busy_start_interval;	/* in seconds */
+	double last_start_time;		/* in seconds */
+
+	MX_CLOCK_TICK busy_start_ticks;
+	MX_CLOCK_TICK last_start_tick;
+
+	/*----*/
 
 	long maximum_num_rois;
 	long current_num_rois;
@@ -114,32 +128,35 @@ typedef struct {
 #define MXLV_MCA_NEW_DATA_AVAILABLE		1009
 #define MXLV_MCA_PRESET_TYPE			1010
 #define MXLV_MCA_START_WITH_PRESET		1011
-#define MXLV_MCA_MAXIMUM_NUM_ROIS		1012
-#define MXLV_MCA_CURRENT_NUM_ROIS		1013
-#define MXLV_MCA_ROI_ARRAY   			1014
-#define MXLV_MCA_ROI_INTEGRAL_ARRAY   		1015
-#define MXLV_MCA_ROI				1016
-#define MXLV_MCA_ROI_INTEGRAL			1017
-#define MXLV_MCA_CHANNEL_NUMBER			1018
-#define MXLV_MCA_CHANNEL_VALUE			1019
-#define MXLV_MCA_ROI_NUMBER			1020
-#define MXLV_MCA_REAL_TIME			1021
-#define MXLV_MCA_LIVE_TIME			1022
-#define MXLV_MCA_COUNTS				1023
-#define MXLV_MCA_PRESET_REAL_TIME		1024
-#define MXLV_MCA_PRESET_LIVE_TIME		1025
-#define MXLV_MCA_PRESET_COUNT			1026
-#define MXLV_MCA_PRESET_COUNT_REGION		1027
-#define MXLV_MCA_NUM_SOFT_ROIS			1028
-#define MXLV_MCA_SOFT_ROI_NUMBER		1029
-#define MXLV_MCA_SOFT_ROI			1030
-#define MXLV_MCA_SOFT_ROI_INTEGRAL		1031
-#define MXLV_MCA_SOFT_ROI_ARRAY			1032
-#define MXLV_MCA_SOFT_ROI_INTEGRAL_ARRAY	1033
-#define MXLV_MCA_ENERGY_SCALE			1034
-#define MXLV_MCA_ENERGY_OFFSET			1035
-#define MXLV_MCA_INPUT_COUNT_RATE		1036
-#define MXLV_MCA_OUTPUT_COUNT_RATE		1037
+#define MXLV_MCA_BUSY_START_INTERVAL_ENABLED	1012
+#define MXLV_MCA_BUSY_START_INTERVAL		1013
+#define MXLV_MCA_LAST_START_TIME		1014
+#define MXLV_MCA_MAXIMUM_NUM_ROIS		1015
+#define MXLV_MCA_CURRENT_NUM_ROIS		1016
+#define MXLV_MCA_ROI_ARRAY   			1017
+#define MXLV_MCA_ROI_INTEGRAL_ARRAY   		1018
+#define MXLV_MCA_ROI				1019
+#define MXLV_MCA_ROI_INTEGRAL			1020
+#define MXLV_MCA_CHANNEL_NUMBER			1021
+#define MXLV_MCA_CHANNEL_VALUE			1022
+#define MXLV_MCA_ROI_NUMBER			1023
+#define MXLV_MCA_REAL_TIME			1024
+#define MXLV_MCA_LIVE_TIME			1025
+#define MXLV_MCA_COUNTS				1026
+#define MXLV_MCA_PRESET_REAL_TIME		1027
+#define MXLV_MCA_PRESET_LIVE_TIME		1028
+#define MXLV_MCA_PRESET_COUNT			1029
+#define MXLV_MCA_PRESET_COUNT_REGION		1030
+#define MXLV_MCA_NUM_SOFT_ROIS			1031
+#define MXLV_MCA_SOFT_ROI_NUMBER		1032
+#define MXLV_MCA_SOFT_ROI			1033
+#define MXLV_MCA_SOFT_ROI_INTEGRAL		1034
+#define MXLV_MCA_SOFT_ROI_ARRAY			1035
+#define MXLV_MCA_SOFT_ROI_INTEGRAL_ARRAY	1036
+#define MXLV_MCA_ENERGY_SCALE			1037
+#define MXLV_MCA_ENERGY_OFFSET			1038
+#define MXLV_MCA_INPUT_COUNT_RATE		1039
+#define MXLV_MCA_OUTPUT_COUNT_RATE		1040
 
 #define MX_MCA_STANDARD_FIELDS \
   {MXLV_MCA_MAXIMUM_NUM_CHANNELS, -1, "maximum_num_channels", \
@@ -190,6 +207,21 @@ typedef struct {
 					MXFT_DOUBLE, NULL, 1, {2}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCA, start_with_preset), \
 	{sizeof(double)}, NULL, 0}, \
+  \
+  {MXLV_MCA_BUSY_START_INTERVAL_ENABLED, -1, "busy_start_interval_enabled", \
+					MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCA, busy_start_interval_enabled), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_MCA_BUSY_START_INTERVAL, -1, "busy_start_interval", \
+					MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCA, busy_start_interval), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_MCA_LAST_START_TIME, -1, "last_start_time", \
+					MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCA, last_start_time), \
+	{0}, NULL, 0}, \
   \
   {-1, -1, "mca_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCA, mca_flags), \
@@ -387,6 +419,14 @@ MX_API mx_status_type mx_mca_get_preset_count_region( MX_RECORD *mca_record,
 					unsigned long *preset_count_region );
 MX_API mx_status_type mx_mca_set_preset_count_region( MX_RECORD *mca_record,
 					unsigned long *preset_count_region );
+
+MX_API mx_status_type mx_mca_set_busy_start_interval(
+					MX_RECORD *mca_record,
+					double busy_start_interval_in_seconds );
+
+MX_API mx_status_type mx_mca_check_busy_start_interval(
+					MX_RECORD *mca_record,
+					mx_bool_type *busy_start_set );
 
 MX_API mx_status_type mx_mca_get_roi( MX_RECORD *mca_record,
 					unsigned long roi_number,
