@@ -90,9 +90,9 @@ all: build
 #-------------------------------------------------------------------
 # EPICS modules.
 
-MODULES += epics
+#MODULES += epics
 
-MODULES += epics_aps 
+#MODULES += epics_aps 
 
 #MODULES += epics_pmac_biocat
 

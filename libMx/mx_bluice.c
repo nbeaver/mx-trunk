@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2008, 2010-2013 Illinois Institute of Technology
+ * Copyright 2005-2008, 2010-2013, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,7 +25,7 @@
 #include "n_bluice_dhs.h"
 #include "n_bluice_dhs_manager.h"
 
-#define BLUICE_DEBUG_SETUP	FALSE
+#define BLUICE_DEBUG_SETUP	TRUE
 
 #define BLUICE_DEBUG_MESSAGE	TRUE
 
@@ -459,7 +459,7 @@ mx_bluice_device_pointer_fn( MX_BLUICE_SERVER *bluice_server,
 
 #if BLUICE_DEBUG_SETUP
 		MX_DEBUG(-2,("%s: (*foreign_device_array_ptr)[%d] = %p",
-			fname, i, foreign_device));
+			fname, (int) i, foreign_device));
 #endif
 
 		if ( foreign_device == (MX_BLUICE_FOREIGN_DEVICE *) NULL ) {
@@ -474,7 +474,7 @@ mx_bluice_device_pointer_fn( MX_BLUICE_SERVER *bluice_server,
 			if ( strcmp( foreign_device->name, name ) == 0 ) {
 #if BLUICE_DEBUG_SETUP
 				MX_DEBUG(-2,("%s: exiting loop at i = %d",
-					fname, i));
+					fname, (int) i));
 #endif
 
 				break;	/* Exit the for() loop. */
@@ -486,7 +486,7 @@ mx_bluice_device_pointer_fn( MX_BLUICE_SERVER *bluice_server,
 	}
 
 #if BLUICE_DEBUG_SETUP
-	MX_DEBUG(-2,("%s: i = %d", fname, i));
+	MX_DEBUG(-2,("%s: i = %d", fname, (int) i));
 #endif
 
 	/* If a preexisting device has been found, return now. */
