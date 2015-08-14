@@ -1105,6 +1105,7 @@ MX_API unsigned long mx_get_random_max( void );
 #define MXE_PROTOCOL_ERROR			1052
 #define MXE_DISK_FULL				1053
 #define MXE_DATA_WAS_LOST			1054
+#define MXE_NETWORK_CONNECTION_REFUSED		1055
 
 /* If the error message code is OR-ed with MXE_QUIET, then
  * the error message is not displayed to the user.

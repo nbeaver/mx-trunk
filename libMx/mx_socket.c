@@ -369,12 +369,19 @@ mx_tcp_socket_open_as_client( MX_SOCKET **client_socket,
 			&status, MXF_SOCKCHK_INVALID, &error_string );
 
 	if ( saved_errno != 0 ) {
+		switch( saved_errno ) {
+		case ECONNREFUSED:
+			error_code = MXE_NETWORK_CONNECTION_REFUSED;
+			break;
+		default:
+			error_code = MXE_NETWORK_IO_ERROR;
+			break;
+		}
+
 		mask = MXF_SOCKET_QUIET | MXF_SOCKET_QUIET_CONNECTION;
 
 		if ( socket_flags & mask ) {
-			error_code = (MXE_NETWORK_IO_ERROR | MXE_QUIET);
-		} else {
-			error_code = MXE_NETWORK_IO_ERROR;
+			error_code |= MXE_QUIET;
 		}
 
 		mx_socket_close( *client_socket );
@@ -759,12 +766,19 @@ mx_unix_socket_open_as_client( MX_SOCKET **client_socket,
 			&status, MXF_SOCKCHK_INVALID, &error_string );
 
 	if ( saved_errno != 0 ) {
+		switch( saved_errno ) {
+		case ECONNREFUSED:
+			error_code = MXE_NETWORK_CONNECTION_REFUSED;
+			break;
+		default:
+			error_code = MXE_NETWORK_IO_ERROR;
+			break;
+		}
+
 		mask = MXF_SOCKET_QUIET | MXF_SOCKET_QUIET_CONNECTION;
 
 		if ( socket_flags & mask ) {
-			error_code = (MXE_NETWORK_IO_ERROR | MXE_QUIET);
-		} else {
-			error_code = MXE_NETWORK_IO_ERROR;
+			error_code |= MXE_QUIET;
 		}
 
 		mx_socket_close( *client_socket );
