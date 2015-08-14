@@ -31,6 +31,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
+#include "mx_net.h"
 #include "mx_bluice.h"
 #include "d_bluice_ion_chamber.h"
 #include "d_bluice_motor.h"
@@ -695,6 +696,7 @@ mxn_bluice_dhs_manager_open( MX_RECORD *record )
 	MX_RECORD **record_array;
 	MX_BLUICE_DHS_SERVER *bluice_dhs_server;
 	unsigned long i, num_dhs_records;
+	unsigned long mask;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -724,6 +726,14 @@ mxn_bluice_dhs_manager_open( MX_RECORD *record )
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"MX_BLUICE_DHS_MANAGER pointer for record '%s' is NULL.",
 			record->name );
+	}
+
+	/* Enable Blu-Ice network_debugging if requested. */
+
+	mask = MXF_NETDBG_SUMMARY | MXF_NETDBG_VERBOSE;
+
+	if ( list_head->network_debug_flags & mask ) {
+		mx_bluice_enable_network_debugging( TRUE );
 	}
 
 	/* Find out how many DHS records are in the MX database for

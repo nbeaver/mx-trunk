@@ -8,7 +8,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 2005-2008, 2012 Illinois Institute of Technology
+ * Copyright 2005-2008, 2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -285,6 +285,12 @@ mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
 MX_API mx_status_type
 mx_bluice_update_operation_status( MX_BLUICE_SERVER *bluice_server,
 				char *operation_status_message );
+
+/* ----- */
+
+MX_API void mx_bluice_enable_network_debugging( mx_bool_type debug_flag );
+
+MX_API mx_bool_type mx_bluice_network_debugging_is_enabled( void );
 
 #ifdef __cplusplus
 }

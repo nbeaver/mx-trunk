@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005-2006, 2008, 2010-2011 Illinois Institute of Technology
+ * Copyright 2005-2006, 2008, 2010-2011, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,6 +26,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_net.h"
 #include "mx_bluice.h"
 #include "d_bluice_timer.h"
 #include "n_bluice_dcss.h"
@@ -2022,7 +2023,7 @@ mxn_bluice_dcss_server_open( MX_RECORD *record )
 	char *display_name_ptr;
 	int i, num_retries, num_items, need_authentication;
 	long num_bytes_available;
-	unsigned long wait_ms, flags;
+	unsigned long wait_ms, flags, mask;
 	long actual_data_length;
 	mx_status_type mx_status;
 
@@ -2061,6 +2062,14 @@ mxn_bluice_dcss_server_open( MX_RECORD *record )
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"MX_BLUICE_DCSS_SERVER pointer for record '%s' is NULL.",
 			record->name );
+	}
+
+	/* Enable Blu-Ice network debugging if requested. */
+
+	mask = MXF_NETDBG_SUMMARY | MXF_NETDBG_VERBOSE;
+
+	if ( list_head->network_debug_flags & mask ) {
+		mx_bluice_enable_network_debugging( TRUE );
 	}
 
 	/* Allocate memory for the receive buffer. */

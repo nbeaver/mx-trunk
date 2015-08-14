@@ -1558,3 +1558,21 @@ mx_bluice_update_operation_status( MX_BLUICE_SERVER *bluice_server,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/* ====================================================================== */
+
+static mx_bool_type mx_bluice_network_debug_flag = FALSE;
+
+MX_EXPORT void
+mx_bluice_enable_network_debugging( mx_bool_type debug_flag )
+{
+	mx_bluice_network_debug_flag = debug_flag;
+
+	return;
+}
+
+MX_EXPORT mx_bool_type
+mx_bluice_network_debugging_is_enabled( void )
+{
+	return mx_bluice_network_debug_flag;
+}
+
