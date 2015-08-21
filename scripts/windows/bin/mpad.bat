@@ -2,5 +2,5 @@
 
 call c:\opt\mx\etc\version
 
-python %MXWDIR%\bin\mpscript.py %MXWDIR%\bin\mpad
+c:\python27\python %MXWDIR%\bin\mpscript.py %MXWDIR%\bin\mpad
 

@@ -31,7 +31,7 @@ INSTALLATION:
 The installation procedure for MX is documented in the MX Users and Developer's
 Manual which may be found at:
 
-        http://mx.iit.edu/manual/
+        http://mx.iit.edu/manuals/
 
 COPYRIGHT:
 
@@ -45,6 +45,11 @@ include:
 
     tools/generic/src/getopt.c - Written by Henry Spencer and covered by
           a license given at the top of the file.
+
+    tools/generic/src/strlcpy.c and tools/generic/src/strlcat.c - These
+          functions were copied from OpenBSD (dated 2005-08-08).
+
+    tools/generic/src/strptime.c - Copied from NetBSD (dated 2009-05-24).
 
     tools/unix/src/editline/ - The files in this directory are copyrighted
           by Simmule Turner and Rich Salz and are covered by a license found

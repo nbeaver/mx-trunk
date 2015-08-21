@@ -14,6 +14,19 @@ SAPERA_LT_DIR = c:\\progra~1\\teledy~1\\Sapera
 #SAPERA_LT_DIR = d:\\progra~1\\teledy~1\\Sapera
 #SAPERA_LT_DIR = c:\\DALSA\\Sapera
 
+#
+# For Sapera LT 7.2 use this:
+#
+##SAPERA_LT_LIBRARIES = $(SAPERA_LT_DIR)\\Lib\\SapClassBasic.lib \
+##			$(SAPERA_LT_DIR)\\Lib\\corapi.lib
+
+#
+# For Sapera LT 8.0 use this.  Select either Win64 or Win32 as needed.
+#
+SAPERA_LT_LIBRARIES = $(SAPERA_LT_DIR)\\Lib\\Win64\\SapClassBasic.lib \
+			$(SAPERA_LT_DIR)\\Lib\\Win64\\corapi.lib
+
+
 all: sapera_lt.mxo
 
 include ../../libMx/Makehead.$(MX_ARCH)
@@ -30,8 +43,7 @@ SAPERA_LT_OBJS = sapera_lt.$(OBJ) i_sapera_lt.$(OBJ) \
 sapera_lt.mxo: $(SAPERA_LT_OBJS)
 	link /dll /debug /nologo /out:sapera_lt.mxo /nodefaultlib:libc \
 		$(SAPERA_LT_OBJS) ..\\..\\libMx\\$(MX_LIBRARY_NAME) \
-		$(SAPERA_LT_DIR)\\Lib\\SapClassBasic.lib \
-		$(SAPERA_LT_DIR)\\Lib\\corapi.lib
+		$(SAPERA_LT_LIBRARIES)
 
 	# For VC2005 or later, embed the manifest in the module.
 

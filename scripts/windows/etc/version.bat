@@ -1,14 +1,23 @@
 @echo off
 
-set MXDIR=c:/opt/mx-1.5.5-2012_05_16
+set MX_VERSION=mx-1.5.7-2015_08_21
 
-set MXWDIR=c:\opt\mx-1.5.5-2012_05_16
+set MX_PYTHON_VERSION=27
 
-set PATH=c:\opt\mx\bin;%MXWDIR%\bin;%MXWDIR%\lib\modules;c:\python27;c:\python27\scripts;%PATH%;c:\cygwin\bin
+set EPICS_VERSION=3.14.12.3
 
-set EPICSBASE=c:\opt\epics\base-3.14.12.2
+set EPICS_HOST_ARCH=windows-x64
 
-set PATH=%PATH%;%EPICSBASE%\bin\win32-x86
+rem =======================================================================
+
+set MXDIR=c:/opt/%MX_VERSION%
+set MXWDIR=c:\opt\%MX_VERSION%
+
+set EPICSBASE=c:\opt\epics\base-%EPICS_VERSION%
+
+set PATH=c:\opt\mx\bin;%MXWDIR%\bin;%MXWDIR%\lib\modules;c:\python%MX_PYTHON_VERSION%;c:\python%MX_PYTHON_VERSION%\scripts;%PATH%;c:\cygwin\bin
+
+set PATH=%PATH%;%EPICSBASE%\bin\%EPICS_HOST_ARCH%
 
 set PYTHONPATH=%MXWDIR%\lib\mp;%PYTHONPATH%
 

@@ -16,15 +16,15 @@ Steps for building MX:
     There are other build targets available in the top level Makefile 
     beyond the ones listed above.
 
-    At present, you must have Gnu make installed on Win32 platforms in
-    order to build MX.  The "nmake" program that comes with Visual C++
-    is not sufficient.  The easiest way to get this is to install the
-    Cygwin environment from http://www.cygwin.com/.
+    The MX makefiles assume that you are using Gnu Make on all supported
+    platforms.  Other versions of make such as BSD Make, Microsoft Nmake,
+    Solaris Make, and so forth will not work and are not supported.
 
-    At some point in the future, I may well require Gnu make on all platforms
-    so that my makefiles can use the conditionals available in Gnu make.
-    For now though, the vendor supplied "make" still works on the supported
-    commercial Unix platforms.
+    On Microsoft Windows platforms, the MX "win32" build target uses
+    Microsoft Visual C++.  However, it also assumes the presence of the
+    Cygwin environment which provides Posix style utilities like make,
+    cp, rm, touch, and so forth.  This may be installed from its web site
+    at http://www.cygwin.com/.
 
 2.  Set MX_INSTALL_DIR to the directory that you want to install MX in,
     such as /opt/mx.

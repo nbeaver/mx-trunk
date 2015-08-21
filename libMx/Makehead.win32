@@ -130,8 +130,8 @@ MSDEV_ARCH	= x64
 #MSDEV_DIR	= c:\\progra~1\\micros~3\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~1\\micros~4\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~1\\mi2578~1\\Windows\\v7.0A
-#MSDEV_DIR	= c:\\progra~2\\micros~1\\Windows\\v7.0A
-MSDEV_DIR	= c:\\progra~2\\micros~3\\Windows\\v7.0A
+MSDEV_DIR	= c:\\progra~2\\micros~1\\Windows\\v7.0A
+#MSDEV_DIR	= c:\\progra~2\\micros~3\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~2\\micros~4\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~2\\mia713~1\\Windows\\v7.0A
 #MSDEV_DIR	= d:\\progra~1\\micros~3\\Windows\\v7.0A
@@ -413,9 +413,9 @@ mx_list_head.$(OBJ): Makefile.version mx_list_head.c mx_version.h
 #
 MOTOR_NAME	= mxmotor.exe
 
-$(MOTOR_NAME): $(MOTOR_OBJS) motor.res \
+$(MOTOR_NAME): $(MOTOR_OBJS) mxmotor.res \
 		  $(shell echo $(MX_LIBRARY_PATH) | tr \\\\ / )
-	link /debug /nologo /out:$(MOTOR_NAME) $(MOTOR_OBJS) motor.res \
+	link /debug /nologo /out:$(MOTOR_NAME) $(MOTOR_OBJS) mxmotor.res \
 		/nodefaultlib:libc $(DEBUG_OPTS) $(MX_LIBRARY_PATH) $(WIN32_LIBS)
 
 	# For VC2005 or later, embed the manifest in the executable.
@@ -426,8 +426,8 @@ $(MOTOR_NAME): $(MOTOR_OBJS) motor.res \
 		rm -f $(MOTOR_NAME).manifest; \
 	fi
 
-motor.res: motor.rc
-	rc -i$(MSDEV_DIR)/include motor.rc
+mxmotor.res: mxmotor.rc
+	rc -i$(MSDEV_DIR)/include mxmotor.rc
 
 motor_install:
 	cp $(MOTOR_NAME) $(MX_INSTALL_DIR)/bin

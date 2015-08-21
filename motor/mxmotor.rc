@@ -1,5 +1,5 @@
 /*
- * Name:    motor.rc
+ * Name:    mxmotor.rc
  *
  * Purpose: Win32 versioninfo resource file.
  *
@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2007-2012 Illinois Institute of Technology
+ * Copyright 2007-2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -17,8 +17,8 @@
 #include "windows.h"
 
 VS_VERSION_INFO VERSIONINFO
-  FILEVERSION    1,5,5,0
-  PRODUCTVERSION 1,5,5,0
+  FILEVERSION    1,5,7,0
+  PRODUCTVERSION 1,5,7,0
   FILEFLAGSMASK  0x3fL
 #ifdef _DEBUG
   FILEFLAGS 0x1L
@@ -35,12 +35,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Illinois Institute of Technology\0"
             VALUE "FileDescription", "MX Command Line Client\0"
-            VALUE "FileVersion", "1.5.5\0"
-            VALUE "InternalName", "motor\0"
-            VALUE "LegalCopyright", "Copyright 2012 Illinois Institute of Technology\0"
-            VALUE "OriginalFilename", "motor.exe\0"
+            VALUE "FileVersion", "1.5.7\0"
+            VALUE "InternalName", "mxmotor\0"
+            VALUE "LegalCopyright", "Copyright 2015 Illinois Institute of Technology\0"
+            VALUE "OriginalFilename", "mxmotor.exe\0"
             VALUE "ProductName", "MX Data Acquisition and Control System\0"
-            VALUE "ProductVersion", "1.5.5\0"
+            VALUE "ProductVersion", "1.5.7\0"
         END
     END
     BLOCK "VarFileInfo"

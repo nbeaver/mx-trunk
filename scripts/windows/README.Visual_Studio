@@ -1,0 +1,14 @@
+The 'visual_studio' subdirectory provides some Cygwin Bash shell script
+fragments that can be used to provide Visual Studio environment variables
+and Visual Studio executables to the Cygwin Bash environment.  This is to
+support the use of Cygwin's Gnu Make in building Visual C++ versions of MX.
+
+Each version of Visual Studio needs its own different version of the
+shell script fragment.  Usually, the process consists of identifying
+which shell script fragment applies to the Visual Studio version you
+have and then modifying the PROGRAM_FILES_DIR variable to match the
+location that you have installed Visual Studio to.  Typically, this has
+already been set in the script to either "C:\\Program Files (x86)" or
+"C:\\Program Files" depending on whether you are running a 64-bit or
+a 32-bit version of Windows.
+
