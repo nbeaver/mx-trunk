@@ -79,7 +79,7 @@ all: build
 
 #MODULES += radicon_taurus
 
-#MODULES += radicon_xineos_gige
+MODULES += radicon_xineos_gige
 
 #MODULES += rdi_mbc
 
