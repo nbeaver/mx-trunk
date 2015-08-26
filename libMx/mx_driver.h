@@ -732,6 +732,7 @@ extern "C" {
 #define MXT_AD_MLFSOM			240014
 
 #define MXT_AD_MAR345			240016
+#define MXT_AD_PILATUS			240017
 
 /* --- Waveform input types --- */
 

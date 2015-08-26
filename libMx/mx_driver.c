@@ -467,6 +467,7 @@
 #include "d_bluice_area_detector.h"
 #include "d_mlfsom.h"
 #include "d_mar345.h"
+#include "d_pilatus.h"
 
 #include "d_network_wvin.h"
 
@@ -3334,6 +3335,13 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_mar345_ad_function_list,
 				&mxd_mar345_num_record_fields,
 				&mxd_mar345_rfield_def_ptr},
+
+{"pilatus",        MXT_AD_PILATUS,     MXC_AREA_DETECTOR,  MXR_DEVICE,
+				&mxd_pilatus_record_function_list,
+				NULL,
+				&mxd_pilatus_ad_function_list,
+				&mxd_pilatus_num_record_fields,
+				&mxd_pilatus_rfield_def_ptr},
 
 {"cryostream600_status", MXT_AIN_CRYOSTREAM600, MXC_ANALOG_INPUT, MXR_DEVICE,
 				&mxd_cryostream600_status_record_function_list,
