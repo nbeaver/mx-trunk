@@ -64,5 +64,12 @@ extern MX_AREA_DETECTOR_FUNCTION_LIST
 extern long mxd_pilatus_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_pilatus_rfield_def_ptr;
 
+MX_API mx_status_type mxd_pilatus_command( MX_PILATUS *pilatus,
+					char *command,
+					char *response,
+					size_t response_buffer_length,
+					unsigned long *pilatus_return_code,
+					unsigned long debug_flag );
+
 #endif /* __D_PILATUS_H__ */
 

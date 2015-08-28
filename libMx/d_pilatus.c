@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_PILATUS_DEBUG		FALSE
+#define MXD_PILATUS_DEBUG		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,7 +22,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
-#include "mx_net.h"
+#include "mx_rs232.h"
 #include "mx_hrt.h"
 #include "mx_image.h"
 #include "mx_area_detector.h"
@@ -174,6 +174,7 @@ mxd_pilatus_open( MX_RECORD *record )
 
 	MX_AREA_DETECTOR *ad;
 	MX_PILATUS *pilatus = NULL;
+	char response[200];
 	mx_status_type mx_status;
 
 	pilatus = NULL;
@@ -192,6 +193,17 @@ mxd_pilatus_open( MX_RECORD *record )
 
 #if MXD_PILATUS_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
+#endif
+
+	mx_status = mxd_pilatus_command( pilatus, "Version",
+				response, sizeof(response),
+				NULL, TRUE );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_PILATUS_DEBUG
+	MX_DEBUG(-2,("%s: tvx version number = '%s'.", fname, response));
 #endif
 
 #if MXD_PILATUS_DEBUG
@@ -975,3 +987,54 @@ mxd_pilatus_trigger_exposure( MX_AREA_DETECTOR *ad )
 	return mx_status;
 }
 
+/*==========================================================================*/
+
+MX_EXPORT mx_status_type
+mxd_pilatus_command( MX_PILATUS *pilatus,
+			char *command,
+			char *response,
+			size_t response_buffer_length,
+			unsigned long *pilatus_return_code,
+			unsigned long debug_flag )
+{
+	static const char fname[] = "mxd_pilatus_command()";
+
+	mx_status_type mx_status;
+
+	if ( pilatus == (MX_PILATUS *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_PILATUS pointer passed was NULL." );
+	}
+	if ( command == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The command pointer passed was NULL." );
+	}
+	if ( response == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The response pointer passed was NULL." );
+	}
+
+	/* First send the command. */
+
+	if ( debug_flag ) {
+		MX_DEBUG(-2,("%s: sending '%s' to '%s'.",
+		fname, command, pilatus->record->name ));
+	}
+
+	mx_status = mx_rs232_putline( pilatus->rs232_record,
+					command, NULL, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Now read back the first (and maybe only) response line. */
+
+	mx_status = mx_rs232_getline( pilatus->rs232_record,
+					response, response_buffer_length,
+					NULL, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	return MX_SUCCESSFUL_RESULT;
+}
