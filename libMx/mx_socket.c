@@ -2358,7 +2358,7 @@ mx_socket_num_input_bytes_available( MX_SOCKET *mx_socket,
 	int num_fds, select_status, socket_errno;
 	struct timeval timeout;
 	char *error_string;
-	long num_socket_bytes_available;
+	int num_socket_bytes_available;
 
 	unsigned long flags;
 	mx_status_type mx_status;

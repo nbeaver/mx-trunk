@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../motor/mxmotor.static -F ./mpilatus.dat -s ./spilatus.dat $*
+

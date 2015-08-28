@@ -1,0 +1,1 @@
+camserver interface rs232 tcp232 "" "" 115200 8 N 1 N 0x0 0x18 10 0x0 pilatus 41234 0x0

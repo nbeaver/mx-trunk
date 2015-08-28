@@ -33,7 +33,7 @@
 MX_RECORD_FUNCTION_LIST mxd_pilatus_record_function_list = {
 	mxd_pilatus_initialize_driver,
 	mxd_pilatus_create_record_structures,
-	mxd_pilatus_finish_record_initialization,
+	NULL,
 	NULL,
 	NULL,
 	mxd_pilatus_open,
@@ -163,37 +163,6 @@ mxd_pilatus_create_record_structures( MX_RECORD *record )
 
 	ad->trigger_mode = 0;
 	ad->initial_correction_flags = 0;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_pilatus_finish_record_initialization( MX_RECORD *record )
-{
-	static const char fname[] =
-		"mxd_pilatus_finish_record_initialization()";
-
-	MX_AREA_DETECTOR *ad;
-	MX_PILATUS *pilatus = NULL;
-	mx_status_type mx_status;
-
-	pilatus = NULL;
-
-	if ( record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_RECORD pointer passed was NULL." );
-	}
-
-	ad = (MX_AREA_DETECTOR *) record->record_class_struct;
-
-	mx_status = mxd_pilatus_get_pointers( ad, &pilatus, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MXD_PILATUS_DEBUG
-	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
-#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
