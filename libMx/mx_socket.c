@@ -2079,8 +2079,9 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 		fname,total_bytes_in_callers_buffer));
 #endif
 
-	    if ( input_terminators == NULL ) {
-
+	    if ( ( input_terminators == NULL )
+	      || ( input_terminators_length_in_bytes == 0 ) )
+	    {
 		/* If there are no line terminators, then we send everything
 		 * we received to the caller.
 		 */
