@@ -1124,6 +1124,23 @@ motor_show_version( void )
 
 /*-------------------------------------------------------------------------*/
 
+#if defined(MX_MUSL_VERSION)
+	{
+		unsigned long musl_major, musl_minor, musl_update;
+
+		musl_major = MX_MUSL_VERSION / 1000000L;
+
+		musl_minor = ( MX_MUSL_VERSION % 1000000L ) / 1000L;
+
+		musl_update = MX_MUSL_VERSION % 1000L;
+
+		fprintf( output, "MUSL version: %lu.%lu.%lu\n",
+			musl_major, musl_minor, musl_update );
+	}
+#endif
+
+/*-------------------------------------------------------------------------*/
+
 #if defined(_MSC_VER)
 
 	fprintf( output, "Microsoft Visual C/C++ version: %d.%d\n",

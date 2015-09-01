@@ -163,6 +163,18 @@ endif
 
 #--------------------------------------------------------------------------
 #
+# Use of 'musl libc' with MX requires that libtirpc be installed.
+#
+
+_libc_version := $(shell ../tools/mx_config library)
+
+ifeq ($(_libc_version),musl)
+  MUSL_INCLUDES = -I/usr/include/tirpc
+  LIBRARIES += -ltirpc
+endif
+
+#--------------------------------------------------------------------------
+#
 # Intel x86/m68k/sparc with GCC under Linux.
 #
 CC      = gcc
@@ -406,8 +418,8 @@ util_install:
 #----
 
 mx_array.$(OBJ): mx_array.c
-	$(COMPILE) $(CFLAGS) -I/usr/include/tirpc mx_array.c
+	$(COMPILE) $(CFLAGS) $(MUSL_INCLUDES) mx_array.c
 
 mx_net.$(OBJ): mx_net.c
-	$(COMPILE) $(CFLAGS) -I/usr/include/tirpc mx_net.c
+	$(COMPILE) $(CFLAGS) $(MUSL_INCLUDES) mx_net.c
 

@@ -91,7 +91,7 @@ ms_main.$(OBJ):
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) ms_main.c
 
 ms_mxserver.$(OBJ):
-	$(COMPILE) $(CFLAGS) $(APP_FLAGS) ms_mxserver.c
+	$(COMPILE) $(CFLAGS) $(APP_FLAGS) $(MUSL_INCLUDES) ms_mxserver.c
 
 ms_socket_select.$(OBJ):
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) ms_socket_select.c

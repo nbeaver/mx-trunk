@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2011, 2014 Illinois Institute of Technology
+ * Copyright 2011, 2014-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -70,6 +70,25 @@ main( int argc, char **argv )
 		exit(0);
 	}
 #endif
+
+#if defined(MX_MUSL_VERSION)
+	if ( strcmp( argv[1], "musl" ) == 0 ) {
+		printf( "%ld\n", MX_MUSL_VERSION );
+		exit(0);
+	}
+#endif
+
+	if ( strcmp( argv[1], "library" ) == 0 ) {
+
+#if defined(MX_GLIBC_VERSION)
+		printf( "glibc\n" );
+#elif defined(MX_MUSL_VERSION)
+		printf( "musl\n" );
+#else
+		printf( "unknown\n" );
+#endif
+		exit(0);
+	}
 
 /*------------------------------------------------------------------------*/
 
