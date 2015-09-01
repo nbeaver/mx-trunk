@@ -162,10 +162,8 @@ typedef uint64_t		uintmax_t;
 
 #     endif
 
-#  elif defined(MX_MUSL_VERSION)
-
+#  else
 #    include <stdint.h>
-
 #  endif
 
 /*=======================================================================*/
