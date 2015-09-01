@@ -301,7 +301,7 @@ mxp_generate_clang_macros( FILE *version_file )
 
 #   endif /* not MXP_USE_GNU_GET_LIBC_VERSION */
 
-	  fprintf( version_file, "#define MX_GLIBC_VERSION    %luL\n",
+	  fprintf( version_file, "#define MX_GLIBC_VERSION   %luL\n",
 		libc_major * 1000000L
 		+ libc_minor * 1000L
 		+ libc_patchlevel );

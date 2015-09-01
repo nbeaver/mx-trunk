@@ -141,6 +141,38 @@ mx_show_process_allocated_bytes( void )
 
 #if defined( OS_LINUX )
 
+/*---*/
+#  if defined( MX_MUSL_VERSION )
+
+/* Stubs for musl libc. */
+
+struct mallinfo
+{
+  int arena;
+  int ordblks;
+  int smblks;
+  int hblks;
+  int hblkhd;
+  int usmblks;
+  int fsmblks;
+  int uordblks;
+  int fordblks;
+  int keepcost;
+};
+
+static struct mallinfo
+mallinfo( void )
+{
+	struct mallinfo result;
+
+	memset( &result, 0, sizeof(struct mallinfo) );
+
+	return result;
+}
+
+#  endif /* MX_MUSL_VERSION */
+/*---*/
+
 #if defined(DEBUG_MPATROL)
    /* mpatrol.h and malloc.h are deliberately incompatible. */
 #else

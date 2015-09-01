@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005-2007 Illinois Institute of Technology
+ * Copyright 2005-2007, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -728,7 +728,7 @@ mx_mutex_trylock( MX_MUTEX *mutex )
 
 /*---*/
 
-#if defined(OS_LINUX) || defined(OS_HURD)
+#if ( defined(OS_LINUX) && defined(MX_GLIBC_VERSION) ) || defined(OS_HURD)
 
 /* FIXME: For some future version of Linux, explicitly providing these
  *        definitions will not be necessary.  It might not be necessary

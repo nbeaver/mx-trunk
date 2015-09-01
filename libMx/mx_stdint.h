@@ -124,11 +124,13 @@ typedef uint64_t		uintmax_t;
 #  endif
 
 /*=======================================================================*/
-#elif ( defined(OS_LINUX) && (MX_GLIBC_VERSION < 2001000L) )
+#elif defined(OS_LINUX)
 
-   /* For very old Linux distributions, we must code this by hand. */
+#  if ( defined(MX_GLIBC_VERSION) && (MX_GLIBC_VERSION < 2001000L) )
 
-#  if ( MX_PROGRAM_MODEL == MX_PROGRAM_MODEL_LP64 )
+      /* For very old Linux distributions, we must code this by hand. */
+
+#     if ( MX_PROGRAM_MODEL == MX_PROGRAM_MODEL_LP64 )
 
       typedef char                 int8_t;
       typedef short                int16_t;
@@ -143,7 +145,7 @@ typedef uint64_t		uintmax_t;
       typedef int32_t              intmax_t;
       typedef uint32_t             uintmax_t;
 
-#  else
+#     else
 
       typedef char                 int8_t;
       typedef short                int16_t;
@@ -157,6 +159,12 @@ typedef uint64_t		uintmax_t;
 
       typedef int32_t              intmax_t;
       typedef uint32_t             uintmax_t;
+
+#     endif
+
+#  elif defined(MX_MUSL_VERSION)
+
+#    include <stdint.h>
 
 #  endif
 

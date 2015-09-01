@@ -403,3 +403,11 @@ util_install:
 	install -m 755 $(MXGET_NAME) $(MX_INSTALL_DIR)/bin
 	install -m 755 $(MXPUT_NAME) $(MX_INSTALL_DIR)/bin
 
+#----
+
+mx_array.$(OBJ): mx_array.c
+	$(COMPILE) $(CFLAGS) -I/usr/include/tirpc mx_array.c
+
+mx_net.$(OBJ): mx_net.c
+	$(COMPILE) $(CFLAGS) -I/usr/include/tirpc mx_net.c
+
