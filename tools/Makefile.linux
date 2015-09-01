@@ -37,10 +37,11 @@ include Include.subversion
 #------------------------------------------------------------------------
 
 mx_clean:
-	-rm *.o mx_private_version mx_config mx_revision.txt
+	-rm *.o mx_private_version mx_config mx_revision.txt ldd_temp.txt
 	( cd unix/src/editline ; make clean )
 
 mx_private_version: ../libMx/Makefile.version version/src/mx_private_version.c
+	-ldd --version > ldd_temp.txt 2>&1
 	$(CC) $(CFLAGS_MX_VERS) -o mx_private_version \
 		version/src/mx_private_version.c
 

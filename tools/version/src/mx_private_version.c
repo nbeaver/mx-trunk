@@ -591,7 +591,7 @@ mxp_generate_macros( FILE *version_file )
 	return;
 }
 
-/*---*/
+/*-------------------------------------------------------------------------*/
 
 #elif defined(OS_CYGWIN)
 
@@ -640,7 +640,115 @@ mxp_generate_macros( FILE *version_file )
 	return;
 }
 
-/*---*/
+/*-------------------------------------------------------------------------*/
+
+#elif defined(OS_LINUX)
+
+static void
+mxp_generate_macros( FILE *version_file )
+{
+	/* Detect the compiler. */
+
+#  if defined(__clang__)
+	mxp_generate_clang_macros( version_file );
+
+#  elif defined(__GNUC__)
+	mxp_generate_gnuc_macros( version_file );
+#  else
+#     error Unrecognized Linux C compiler.
+#  endif
+
+	/* Detect the C runtime library. */
+
+#if defined(__GLIBC__)
+	mxp_generate_glibc_macros( version_file );
+#else
+	/* Attempt to detect the runtime library by looking at
+	 * the output of 'ldd --version', which was written to
+	 * the file 'ldd_temp.txt' by tools/Makefile.linux.
+	 */
+
+	{
+	    FILE *ldd_temp_file;
+	    char buffer[80];
+
+	    ldd_temp_file = fopen( "ldd_temp.txt", "r" );
+
+	    if ( ldd_temp_file == NULL )
+		return;
+
+	    while (1) {
+		fgets( buffer, sizeof(buffer), ldd_temp_file );
+
+		if ( feof(ldd_temp_file) || ferror(ldd_temp_file) ) {
+		    fclose( ldd_temp_file );
+		    break;		/* Exit the while() loop. */
+		}
+
+		if ( strncmp( buffer, "musl libc", 9 ) == 0 ) {
+
+		    /*--- musl libc ---*/
+
+		    unsigned long musl_major_version;
+		    unsigned long musl_minor_version;
+		    unsigned long musl_update_version;
+
+		    /* The next line contains the musl version number,
+		     * which should resemble this:
+		     *   Version 1.1.9
+		     */
+
+		    fgets( buffer, sizeof(buffer), ldd_temp_file );
+
+		    if ( feof(ldd_temp_file) || ferror(ldd_temp_file) ) {
+		 	fclose( ldd_temp_file );
+			break;	/* Exit the while() loop. */
+		    }
+
+		    if ( strncmp( buffer, "Version", 7 ) == 0 ) {
+
+		    	char *ptr;
+			int num_items;
+
+		        /* Note: We cannot use libMx functions here,
+			 * since libMx probably has not yet been built
+			 * at the time mx_private_version is executed.
+			 */
+
+			ptr = strchr( buffer, ' ' );
+			ptr++;
+
+			num_items = sscanf( ptr, "%lu.%lu.%lu",
+					&musl_major_version,
+					&musl_minor_version,
+					&musl_update_version );
+
+			if ( num_items < 2 ) {
+			    fclose( ldd_temp_file );
+			    break;	/* Exit the while() loop. */
+			} else
+			if ( num_items < 3 ) {
+			    musl_update_version = 0;
+			}
+
+			fprintf( version_file,
+			"#define MX_MUSL_VERSION    %luL\n\n",
+				musl_major_version * 1000000L
+				+ musl_minor_version * 1000L
+				+ musl_update_version );
+
+			fclose( ldd_temp_file );
+			break;	/* Exit the while() loop. */
+		    }
+		}
+	    }
+	}
+#endif   /* Not __GLIBC__ */
+
+	return;
+}
+
+/*-------------------------------------------------------------------------*/
 
 #elif defined(__clang__)
 
@@ -652,7 +760,7 @@ mxp_generate_macros( FILE *version_file )
 	return;
 }
 
-/*---*/
+/*-------------------------------------------------------------------------*/
 
 #elif defined(__GNUC__)
 
@@ -675,7 +783,7 @@ mxp_generate_macros( FILE *version_file )
 	return;
 }
 
-/*---*/
+/*-------------------------------------------------------------------------*/
 
 #elif defined(OS_IRIX) || defined(OS_VMS)
 
@@ -689,5 +797,5 @@ mxp_generate_macros( FILE *version_file )
 
 #  error mx_private_version.c has not been configured for this build target.
 
-#endif   /* OS_LINUX */
+#endif
 
