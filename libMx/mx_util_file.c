@@ -158,7 +158,8 @@ mx_copy_file( char *existing_filename,
 
 /*-------------------------------------------------------------------------*/
 
-#elif ( defined(OS_LINUX) && (MX_GLIBC_VERSION >= 2005000L) )
+#elif ( defined(OS_LINUX) && \
+	( (MX_GLIBC_VERSION >= 2005000L) || defined(MX_MUSL_VERSION) ) )
 
 /* If Linux and Glibc are new enough, use splice() to do the copy. */
 

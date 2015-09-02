@@ -11,7 +11,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2007, 2009, 2011-2012, 2014 Illinois Institute of Technology
+ * Copyright 2007, 2009, 2011-2012, 2014-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -574,7 +574,7 @@ mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#if defined(__GLIBC__)
+#if ( defined(__GLIBC__) || defined(MX_MUSL_VERSION) )
 
 MX_EXPORT mx_status_type
 mx_dynamic_library_get_function_name_from_address( void *address,
@@ -606,7 +606,7 @@ mx_dynamic_library_get_function_name_from_address( void *address,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#else  /* Not __GLIBC__ */
+#else  /* Not __GLIBC__ or MX_MUSL_VERSION */
 
 MX_EXPORT mx_status_type
 mx_dynamic_library_get_function_name_from_address( void *address,
@@ -620,7 +620,7 @@ mx_dynamic_library_get_function_name_from_address( void *address,
 	"Not yet implemented for this platform." );
 }
 
-#endif  /* __GLIBC__ */
+#endif  /* Not __GLIBC__ or MX_MUSL_VERSION */
 
 /************************ Not available ***********************/
 
