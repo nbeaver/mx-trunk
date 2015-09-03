@@ -17,18 +17,44 @@
 #ifndef __D_PILATUS_H__
 #define __D_PILATUS_H__
 
+#define MXU_PILATUS_TVX_VERSION_LENGTH	80
+#define MXU_PILATUS_CAMERA_NAME_LENGTH	80
+
 typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *rs232_record;
+
+	mx_bool_type pilatus_debug_flag;
+
+	char tvx_version[MXU_PILATUS_TVX_VERSION_LENGTH+1];
+	char camera_name[MXU_PILATUS_CAMERA_NAME_LENGTH+1];
+	unsigned long camserver_pid;
 } MX_PILATUS;
 
 
 #define MXD_PILATUS_STANDARD_FIELDS \
   {-1, -1, "rs232_record", MXFT_RECORD, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, \
-		offsetof(MX_PILATUS, rs232_record), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, rs232_record), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+  \
+  {-1, -1, "pilatus_debug_flag", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, pilatus_debug_flag), \
+	{0}, NULL, 0}, \
+  \
+  {-1, -1, "tvx_version", MXFT_STRING, NULL, \
+			1, {MXU_PILATUS_TVX_VERSION_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, tvx_version), \
+	{sizeof(char)}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "camera_name", MXFT_STRING, NULL, \
+			1, {MXU_PILATUS_CAMERA_NAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, camera_name), \
+	{sizeof(char)}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "camserver_pid", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, camserver_pid), \
+	{0}, NULL, MXFF_READ_ONLY }
 
 MX_API mx_status_type mxd_pilatus_initialize_driver( MX_DRIVER *driver );
 MX_API mx_status_type mxd_pilatus_create_record_structures( MX_RECORD *record );

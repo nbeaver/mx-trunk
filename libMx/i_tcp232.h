@@ -8,7 +8,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2006, 2010, 2013 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2006, 2010, 2013, 2015
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -66,6 +67,8 @@ typedef struct {
 	long port_number;
 	unsigned long tcp232_flags;
 
+	long receive_buffer_size;
+
 	unsigned long resync_delay_milliseconds;
 } MX_TCP232;
 
@@ -86,7 +89,11 @@ extern MX_RECORD_FIELD_DEFAULTS *mxi_tcp232_rfield_def_ptr;
   \
   {-1, -1, "tcp232_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TCP232, tcp232_flags), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "receive_buffer_size", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_TCP232, receive_buffer_size), \
+	{0}, NULL, 0 }
 
 #endif /* __I_TCP232_H__ */
 

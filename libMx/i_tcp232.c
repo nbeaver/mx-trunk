@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2007, 2010, 2013 Illinois Institute of Technology
+ * Copyright 1999-2007, 2010, 2013, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -114,6 +114,7 @@ mxi_tcp232_create_record_structures( MX_RECORD *record )
 	rs232->record = record;
 	tcp232->record = record;
 
+	tcp232->receive_buffer_size = -1;
 	tcp232->resync_delay_milliseconds = 0;
 
 	return MX_SUCCESSFUL_RESULT;
@@ -149,7 +150,6 @@ mxi_tcp232_open_socket( MX_RS232 *rs232, MX_TCP232 *tcp232 )
 	static const char fname[] = "mxi_tcp232_open_socket()";
 
 	unsigned long socket_flags;
-	long receive_buffer_size;
 	mx_status_type mx_status;
 
 	if ( rs232 == (MX_RS232 *) NULL ) {
@@ -196,16 +196,19 @@ mxi_tcp232_open_socket( MX_RS232 *rs232, MX_TCP232 *tcp232 )
 
 	if ( tcp232->tcp232_flags & MXF_TCP232_USE_MX_RECEIVE_BUFFER ) {
 		socket_flags |= MXF_SOCKET_USE_MX_RECEIVE_BUFFER;
-		receive_buffer_size = 2500;
+		tcp232->receive_buffer_size = 2500;
+	} else
+	if ( tcp232->receive_buffer_size >= 0 ) {
+		socket_flags |= MXF_SOCKET_USE_MX_RECEIVE_BUFFER;
 	} else {
-		receive_buffer_size = MX_SOCKET_DEFAULT_BUFFER_SIZE;
+		tcp232->receive_buffer_size = MX_SOCKET_DEFAULT_BUFFER_SIZE;
 	}
 
 	/* Now open the tcp232 device. */
 
 	mx_status = mx_tcp_socket_open_as_client( &(tcp232->socket),
 				tcp232->hostname, tcp232->port_number,
-				socket_flags, receive_buffer_size );
+				socket_flags, tcp232->receive_buffer_size );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		(void) mx_error( mx_status.code, fname,

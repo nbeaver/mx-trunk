@@ -8,7 +8,7 @@ _mx_subversion_revision := $(shell svnversion .. 2>/dev/null)
 # Create a label for the current version.
 
 ifndef _mx_subversion_revision
-_mx_subversion_label := SVN notfound
+_mx_subversion_label := unknown
 else
 _mx_subversion_label := SVN $(_mx_subversion_revision)
 endif

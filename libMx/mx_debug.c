@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2006, 2008-2009, 2011
+ * Copyright 1999, 2001, 2003, 2006, 2008-2009, 2011, 2015
  *     Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -28,7 +28,7 @@ MX_EXPORT void
 mx_debug_function( const char *format, ... )
 {
 	va_list args;
-	static char buffer[250];
+	static char buffer[2500];
 
 	va_start(args, format);
 	vsnprintf(buffer, sizeof(buffer), format, args);

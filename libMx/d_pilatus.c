@@ -164,6 +164,8 @@ mxd_pilatus_create_record_structures( MX_RECORD *record )
 	ad->trigger_mode = 0;
 	ad->initial_correction_flags = 0;
 
+	pilatus->pilatus_debug_flag = FALSE;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -172,12 +174,16 @@ mxd_pilatus_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_pilatus_open()";
 
-	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR *ad = NULL;
 	MX_PILATUS *pilatus = NULL;
-	char response[200];
+	MX_RECORD_FIELD *framesize_field = NULL;
+	char response[500];
+	char *ptr;
+	size_t i, length;
+	char *buffer_ptr, *line_ptr;
+	int num_items;
+	unsigned long mask;
 	mx_status_type mx_status;
-
-	pilatus = NULL;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -195,16 +201,172 @@ mxd_pilatus_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
 
+	(void) mx_rs232_discard_unwritten_output( pilatus->rs232_record,
+						pilatus->pilatus_debug_flag );
+
+	(void) mx_rs232_discard_unread_input( pilatus->rs232_record,
+						pilatus->pilatus_debug_flag );
+
+	/* Get the version of the TVX software. */
+
 	mx_status = mxd_pilatus_command( pilatus, "Version",
 				response, sizeof(response),
-				NULL, TRUE );
+				NULL, pilatus->pilatus_debug_flag );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_PILATUS_DEBUG
-	MX_DEBUG(-2,("%s: tvx version number = '%s'.", fname, response));
-#endif
+	/* The TVX version is located after the string 'Code release:'. */
+
+	ptr = strchr( response, ':' );
+
+	if ( ptr == NULL ) {
+		strlcpy( pilatus->tvx_version, response,
+			sizeof(pilatus->tvx_version) );
+	} else {
+		ptr++;
+
+		length = strspn( ptr, " " );
+
+		ptr += length;
+
+		strlcpy( pilatus->tvx_version, ptr,
+			sizeof(pilatus->tvx_version) );
+	}
+
+	/* Send a CamSetup command and parse the responses back from it. */
+
+	mx_status = mxd_pilatus_command( pilatus, "CamSetup",
+				response, sizeof(response),
+				NULL, pilatus->pilatus_debug_flag );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	buffer_ptr = response;
+	line_ptr   = buffer_ptr;
+
+	for ( i = 0; ; i++ ) {
+		buffer_ptr = strchr( buffer_ptr, '\n' );
+
+		if ( buffer_ptr != NULL ) {
+			*buffer_ptr = '\0';
+			buffer_ptr++;
+
+			length = strspn( buffer_ptr, " \t" );
+			buffer_ptr += length;
+		}
+
+		if ( strncmp( line_ptr, "Controlling PID is: ", 20 ) == 0 ) {
+			pilatus->camserver_pid = atof( line_ptr + 20 );
+		} else
+		if ( strncmp( line_ptr, "Camera name: ", 13 ) == 0 ) {
+			strlcpy( pilatus->camera_name, line_ptr + 13,
+				sizeof(pilatus->camera_name) );
+		}
+
+		if ( buffer_ptr == NULL ) {
+			break;		/* Exit the for() loop. */
+		}
+
+		line_ptr = buffer_ptr;
+	}
+
+	/* Send a Telemetry command and look for the image dimensions in it. */
+
+	mx_status = mxd_pilatus_command( pilatus, "Telemetry",
+				response, sizeof(response),
+				NULL, pilatus->pilatus_debug_flag );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	buffer_ptr = response;
+	line_ptr   = buffer_ptr;
+
+	for ( i = 0; ; i++ ) {
+		buffer_ptr = strchr( buffer_ptr, '\n' );
+
+		if ( buffer_ptr != NULL ) {
+			*buffer_ptr = '\0';
+			buffer_ptr++;
+
+			length = strspn( buffer_ptr, " \t" );
+			buffer_ptr += length;
+		}
+
+		if ( strncmp( line_ptr, "Image format: ", 14 ) == 0 ) {
+
+			num_items = sscanf( line_ptr,
+					"Image format: %lu(w) x %lu(h) pixels",
+					&(ad->framesize[0]),
+					&(ad->framesize[1]) );
+
+			if ( num_items != 2 ) {
+				return mx_error( MXE_UNPARSEABLE_STRING, fname,
+				"Could not find the area detector resolution "
+				"in Telemetry response line '%s' for "
+				"detector '%s'.",
+					line_ptr, pilatus->record->name );
+			}
+		}
+
+		if ( buffer_ptr == NULL ) {
+			break;		/* Exit the for() loop. */
+		}
+
+		line_ptr = buffer_ptr;
+	}
+
+	/* The framesize of the Pilatus detector is fixed, so we set
+	 * the 'framesize' field to be read only.
+	 */
+
+	framesize_field = mx_get_record_field( record, "framesize" );
+
+	if ( framesize_field == (MX_RECORD_FIELD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"Area detector '%s' somehow does not have a 'framesize' field.",
+			record->name );
+	}
+
+	framesize_field->flags |= MXFF_READ_ONLY;
+
+	/* Set generic area detector parameters. */
+
+	ad->maximum_frame_number = 0;
+	ad->last_frame_number = -1;
+	ad->total_num_frames = 0;
+	ad->status = 0;
+
+	ad->bytes_per_pixel = 2;
+	ad->bits_per_pixel = 16;
+
+	ad->bytes_per_frame =
+	  mx_round( ad->bytes_per_pixel * ad->framesize[0] * ad->framesize[1] );
+
+	ad->image_format = MXT_IMAGE_FORMAT_GREY16;
+
+	mx_status = mx_image_get_image_format_name_from_type(
+						ad->image_format,
+						ad->image_format_name,
+						MXU_IMAGE_FORMAT_NAME_LENGTH );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Configure automatic saving or readout of image frames. */
+
+	mask = MXF_AD_SAVE_FRAME_AFTER_ACQUISITION
+		| MXF_AD_READOUT_FRAME_AFTER_ACQUISITION;
+
+	if ( ad->area_detector_flags & mask ) {
+		mx_status =
+		  mx_area_detector_setup_datafile_management( record, NULL );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
 #if MXD_PILATUS_DEBUG
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
@@ -999,6 +1161,10 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 {
 	static const char fname[] = "mxd_pilatus_command()";
 
+	char error_status_string[20];
+	char *ptr, *return_code_arg, *error_status_arg;
+	size_t length, bytes_to_move;
+	unsigned long return_code;
 	mx_status_type mx_status;
 
 	if ( pilatus == (MX_PILATUS *) NULL ) {
@@ -1035,6 +1201,87 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/*--- Split off the return code and the error status. ---*/
+
+	/* 1. Skip over any leading spaces. */
+
+	length = strspn( response, " " );
+
+	return_code_arg = response + length;
+
+	/* 2. Find the end of the return code string and null terminate it. */
+
+	length = strcspn( return_code_arg, " " );
+
+	ptr = return_code_arg + length;
+
+	*ptr = '\0';
+
+	ptr++;
+
+	/* 3. Parse the return code string. */
+
+	return_code = atol( return_code_arg );
+
+	if ( pilatus_return_code != (unsigned long *) NULL ) {
+		*pilatus_return_code = return_code;
+	}
+
+	/* 4. Find the start of the error status argument. */
+
+	length = strspn( ptr, " " );
+
+	error_status_arg = ptr + length;
+
+	/* 5. Find the end of the error status argument and null terminate it.*/
+
+	length = strcspn( error_status_arg, " " );
+
+	ptr = error_status_arg + length;
+
+	*ptr = '\0';
+
+	ptr++;
+
+	strlcpy( error_status_string, error_status_arg,
+			sizeof(error_status_string) );
+
+	/* 6. Find the beginning of the remaining text of the response. */
+
+	length = strspn( ptr, " " );
+
+	ptr += length;
+
+	/* 7. Move the remaining text to the beginning of the response buffer.*/
+
+	bytes_to_move = strlen( ptr );
+
+	if ( bytes_to_move >= (response_buffer_length + ( ptr-response )) ) {
+		return mx_error( MXE_UNPARSEABLE_STRING,
+		"The string received from Pilatus detector '%s' "
+		"was not null terminated.", pilatus->record->name );
+	}
+
+	memmove( response, ptr, bytes_to_move );
+
+	response[bytes_to_move] = '\0';
+
+	/*---*/
+
+	if ( strcmp( error_status_string, "OK" ) != 0 ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+	    "Command '%s' sent to detector '%s' returned an error (%lu) '%s'.",
+			command, pilatus->record->name, return_code, response );
+	}
+
+	/*---*/
+
+	if (debug_flag) {
+		MX_DEBUG(-2,("%s: received (%lu %s) '%s' from '%s'.",
+			fname, return_code, error_status_string,
+			response, pilatus->record->name ));
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
