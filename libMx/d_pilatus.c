@@ -37,9 +37,6 @@ MX_RECORD_FUNCTION_LIST mxd_pilatus_record_function_list = {
 	NULL,
 	NULL,
 	mxd_pilatus_open,
-	mxd_pilatus_close,
-	NULL,
-	mxd_pilatus_resynchronize
 };
 
 MX_AREA_DETECTOR_FUNCTION_LIST
@@ -52,14 +49,14 @@ mxd_pilatus_ad_function_list = {
 	mxd_pilatus_get_last_frame_number,
 	mxd_pilatus_get_total_num_frames,
 	mxd_pilatus_get_status,
-	mxd_pilatus_get_extended_status,
+	NULL,
 	mxd_pilatus_readout_frame,
 	mxd_pilatus_correct_frame,
 	mxd_pilatus_transfer_frame,
 	mxd_pilatus_load_frame,
 	mxd_pilatus_save_frame,
 	mxd_pilatus_copy_frame,
-	mxd_pilatus_get_roi_frame,
+	NULL,
 	mxd_pilatus_get_parameter,
 	mxd_pilatus_set_parameter,
 	mxd_pilatus_measure_correction,
@@ -165,6 +162,7 @@ mxd_pilatus_create_record_structures( MX_RECORD *record )
 	ad->initial_correction_flags = 0;
 
 	pilatus->pilatus_debug_flag = FALSE;
+	pilatus->exposure_in_progress = FALSE;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -376,48 +374,15 @@ mxd_pilatus_open( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_pilatus_close( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_pilatus_resynchronize( MX_RECORD *record )
-{
-	static const char fname[] = "mxd_pilatus_resynchronize()";
-
-	MX_AREA_DETECTOR *ad;
-	MX_PILATUS *pilatus = NULL;
-	mx_status_type mx_status;
-
-	pilatus = NULL;
-
-	if ( record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_RECORD pointer passed was NULL." );
-	}
-
-	ad = record->record_class_struct;
-
-	mx_status = mxd_pilatus_get_pointers( ad, &pilatus, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MXD_PILATUS_DEBUG
-	MX_DEBUG(-2,("%s invoked for area detector '%s'",
-		fname, ad->record->name ));
-#endif
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
 mxd_pilatus_arm( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_pilatus_arm()";
 
 	MX_PILATUS *pilatus = NULL;
+	MX_SEQUENCE_PARAMETERS *sp = NULL;
+	double exposure_time;
+	char command[80];
+	char response[80];
 	mx_status_type mx_status;
 
 	pilatus = NULL;
@@ -432,7 +397,42 @@ mxd_pilatus_arm( MX_AREA_DETECTOR *ad )
 		fname, ad->record->name ));
 #endif
 
-	return mx_status;
+	sp = &(ad->sequence_parameters);
+
+	/* Set the exposure sequence parameters. */
+
+	switch( sp->sequence_type ) {
+	case MXT_SQ_ONE_SHOT:
+		exposure_time = sp->parameter_array[0];
+		break;
+	default:
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Detector '%s' sequence types other than 'one-shot' "
+		"are not yet implemented.", ad->record->name );
+		break;
+	}
+
+	snprintf( command, sizeof(command), "ExpTime %f", exposure_time );
+
+	mx_status = mxd_pilatus_command( pilatus, command,
+				response, sizeof(response),
+				NULL, pilatus->pilatus_debug_flag );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Enable the shutter. */
+
+	mx_status = mxd_pilatus_command( pilatus, "ShutterEnable 1",
+				response, sizeof(response),
+				NULL, pilatus->pilatus_debug_flag );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	pilatus->exposure_in_progress = TRUE;
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -441,6 +441,7 @@ mxd_pilatus_trigger( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_pilatus_trigger()";
 
 	MX_PILATUS *pilatus = NULL;
+	char response[80];
 	mx_status_type mx_status;
 
 	pilatus = NULL;
@@ -454,6 +455,10 @@ mxd_pilatus_trigger( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
+
+	mx_status = mxd_pilatus_command( pilatus, "Exposure test.cbf",
+				response, sizeof(response),
+				NULL, pilatus->pilatus_debug_flag );
 
 	return mx_status;
 }
@@ -464,6 +469,7 @@ mxd_pilatus_stop( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_pilatus_stop()";
 
 	MX_PILATUS *pilatus = NULL;
+	char response[80];
 	mx_status_type mx_status;
 
 	mx_status = mxd_pilatus_get_pointers( ad, &pilatus, fname );
@@ -475,6 +481,12 @@ mxd_pilatus_stop( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+
+	pilatus->exposure_in_progress = FALSE;
+
+	mx_status = mxd_pilatus_command( pilatus, "Stop",
+				response, sizeof(response),
+				NULL, pilatus->pilatus_debug_flag );
 
 	return mx_status;
 }
@@ -485,6 +497,7 @@ mxd_pilatus_abort( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_pilatus_abort()";
 
 	MX_PILATUS *pilatus = NULL;
+	char response[80];
 	mx_status_type mx_status;
 
 	mx_status = mxd_pilatus_get_pointers( ad, &pilatus, fname );
@@ -496,6 +509,12 @@ mxd_pilatus_abort( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+
+	pilatus->exposure_in_progress = FALSE;
+
+	mx_status = mxd_pilatus_command( pilatus, "K",
+				response, sizeof(response),
+				NULL, pilatus->pilatus_debug_flag );
 
 	return mx_status;
 }
@@ -518,6 +537,12 @@ mxd_pilatus_get_last_frame_number( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s: area detector '%s', last_frame_number = %ld",
 		fname, ad->record->name, ad->last_frame_number ));
 #endif
+
+	if ( pilatus->exposure_in_progress ) {
+		ad->last_frame_number = -1;
+	} else {
+		ad->last_frame_number = 0;
+	}
 
 	return mx_status;
 }
@@ -550,6 +575,8 @@ mxd_pilatus_get_status( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_pilatus_get_status()";
 
 	MX_PILATUS *pilatus = NULL;
+	char response[80];
+	unsigned long num_input_bytes_available;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pilatus_get_pointers( ad, &pilatus, fname );
@@ -558,37 +585,51 @@ mxd_pilatus_get_status( MX_AREA_DETECTOR *ad )
 		return mx_status;
 
 #if MXD_PILATUS_DEBUG
-	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+	MX_DEBUG( 2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
 
-	return mx_status;
-}
+#if 0
+	mx_status = mxd_pilatus_command( pilatus, "Status",
+				response, sizeof(response),
+				NULL, pilatus->pilatus_debug_flag );
 
-MX_EXPORT mx_status_type
-mxd_pilatus_get_extended_status( MX_AREA_DETECTOR *ad )
-{
-	static const char fname[] =
-			"mxd_pilatus_get_extended_status()";
-
-	MX_PILATUS *pilatus = NULL;
-	mx_status_type mx_status;
-
-	mx_status = mxd_pilatus_get_pointers( ad, &pilatus, fname );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+#else
+	mx_status = mx_rs232_num_input_bytes_available( pilatus->rs232_record,
+						&num_input_bytes_available );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_PILATUS_DEBUG
-	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
-		fname, ad->record->name ));
+	if ( num_input_bytes_available > 0 ) {
+		mx_status = mx_rs232_getline( pilatus->rs232_record,
+					response, sizeof(response),
+					NULL, pilatus->pilatus_debug_flag );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( strncmp( response, "7 OK", 4 ) == 0 ) {
+			if ( pilatus->exposure_in_progress ) {
+				pilatus->exposure_in_progress = FALSE;
+				ad->total_num_frames++;
+			}
+		}
+	}
 #endif
 
+	ad->status = 0;
+
+	if ( pilatus->exposure_in_progress ) {
+		ad->status |= MXSF_AD_ACQUISITION_IN_PROGRESS;
+	}
+
 #if MXD_PILATUS_DEBUG
-	MX_DEBUG(-2,
-	("%s: last_frame_number = %ld, total_num_frames = %ld, status = %#lx",
-	    fname, ad->last_frame_number, ad->total_num_frames, ad->status));
+	MX_DEBUG(-2,("%s: ad->status = %#lx", fname, ad->status));
 #endif
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -711,37 +752,6 @@ mxd_pilatus_copy_frame( MX_AREA_DETECTOR *ad )
 #endif
 
 	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxd_pilatus_get_roi_frame( MX_AREA_DETECTOR *ad )
-{
-	static const char fname[] = "mxd_pilatus_get_roi_frame()";
-
-	MX_PILATUS *pilatus = NULL;
-	MX_IMAGE_FRAME *roi_frame;
-	mx_status_type mx_status;
-
-	pilatus = NULL;
-
-	mx_status = mxd_pilatus_get_pointers( ad, &pilatus, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	roi_frame = ad->roi_frame;
-
-	if ( roi_frame == (MX_IMAGE_FRAME *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The ROI MX_IMAGE_FRAME pointer passed was NULL." );
-	}
-
-#if MXD_PILATUS_DEBUG
-	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
-		fname, ad->record->name ));
-#endif
-
-	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -1161,6 +1171,7 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 {
 	static const char fname[] = "mxd_pilatus_command()";
 
+	MX_AREA_DETECTOR *ad = NULL;
 	char error_status_string[20];
 	char *ptr, *return_code_arg, *error_status_arg;
 	size_t length, bytes_to_move;
@@ -1180,6 +1191,8 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 		"The response pointer passed was NULL." );
 	}
 
+	ad = pilatus->record->record_class_struct;
+
 	/* First send the command. */
 
 	if ( debug_flag ) {
@@ -1193,14 +1206,31 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Now read back the first (and maybe only) response line. */
+	/* Now read back the response line.
+	 *
+	 * The response line we want may be preceded by an asynchronous
+	 * notification such as '7 OK' (exposure complete).  If we get
+	 * an asynchronous notification, then we have to go back and
+	 * read another line for the response we actually want.
+	 */
 
-	mx_status = mx_rs232_getline( pilatus->rs232_record,
+	while (1) {
+		mx_status = mx_rs232_getline( pilatus->rs232_record,
 					response, response_buffer_length,
 					NULL, 0 );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( strncmp( response, "7 OK", 4 ) == 0 ) {
+			if ( pilatus->exposure_in_progress ) {
+				pilatus->exposure_in_progress = FALSE;
+				ad->total_num_frames++;
+			}
+		} else {
+			break;	/* Exit the while() loop. */
+		}
+	}
 
 	/*--- Split off the return code and the error status. ---*/
 

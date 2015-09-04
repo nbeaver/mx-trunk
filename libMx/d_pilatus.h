@@ -30,6 +30,8 @@ typedef struct {
 	char tvx_version[MXU_PILATUS_TVX_VERSION_LENGTH+1];
 	char camera_name[MXU_PILATUS_CAMERA_NAME_LENGTH+1];
 	unsigned long camserver_pid;
+
+	mx_bool_type exposure_in_progress;
 } MX_PILATUS;
 
 
@@ -59,8 +61,6 @@ typedef struct {
 MX_API mx_status_type mxd_pilatus_initialize_driver( MX_DRIVER *driver );
 MX_API mx_status_type mxd_pilatus_create_record_structures( MX_RECORD *record );
 MX_API mx_status_type mxd_pilatus_open( MX_RECORD *record );
-MX_API mx_status_type mxd_pilatus_close( MX_RECORD *record );
-MX_API mx_status_type mxd_pilatus_resynchronize( MX_RECORD *record );
 
 MX_API mx_status_type mxd_pilatus_arm( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_pilatus_trigger( MX_AREA_DETECTOR *ad );
@@ -69,14 +69,12 @@ MX_API mx_status_type mxd_pilatus_abort( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_pilatus_get_last_frame_number( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_pilatus_get_total_num_frames( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_pilatus_get_status( MX_AREA_DETECTOR *ad );
-MX_API mx_status_type mxd_pilatus_get_extended_status( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_pilatus_readout_frame( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_pilatus_correct_frame( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_pilatus_transfer_frame( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_pilatus_load_frame( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_pilatus_save_frame( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_pilatus_copy_frame( MX_AREA_DETECTOR *ad );
-MX_API mx_status_type mxd_pilatus_get_roi_frame( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_pilatus_get_parameter( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_pilatus_set_parameter( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_pilatus_measure_correction( MX_AREA_DETECTOR *ad );
