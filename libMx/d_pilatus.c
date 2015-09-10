@@ -789,6 +789,8 @@ mxd_pilatus_get_parameter( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_pilatus_get_parameter()";
 
 	MX_PILATUS *pilatus = NULL;
+	char response[MXU_FILENAME_LENGTH + 80];
+	unsigned long pilatus_return_code;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pilatus_get_pointers( ad, &pilatus, fname );
@@ -910,6 +912,16 @@ mxd_pilatus_get_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_DATAFILE_DIRECTORY:
+		mx_status = mxd_pilatus_command( pilatus, "ImgPath",
+					response, sizeof(response),
+					&pilatus_return_code,
+					pilatus->pilatus_debug_flag );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		strlcpy( ad->datafile_directory, response,
+			sizeof( ad->datafile_directory ) );
 		break;
 
 	case MXLV_AD_DATAFILE_NAME:
@@ -948,6 +960,8 @@ mxd_pilatus_set_parameter( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_pilatus_set_parameter()";
 
 	MX_PILATUS *pilatus = NULL;
+	char command[MXU_FILENAME_LENGTH + 80];
+	char response[80];
 	mx_status_type mx_status;
 
 	mx_status = mxd_pilatus_get_pointers( ad, &pilatus, fname );
@@ -1056,6 +1070,12 @@ mxd_pilatus_set_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_DATAFILE_DIRECTORY:
+		snprintf( command, sizeof(command),
+			"ImgPath %s", ad->datafile_directory );
+
+		mx_status = mxd_pilatus_command( pilatus, command,
+					response, sizeof(response),
+					NULL, pilatus->pilatus_debug_flag );
 		break;
 
 	case MXLV_AD_DATAFILE_NAME:
