@@ -430,6 +430,24 @@ mxd_pilatus_arm( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Create the name of the next area detector image file. */
+
+	mx_status = mx_area_detector_construct_next_datafile_name(
+						ad->record, TRUE, NULL, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Check to see if we currently have a valid datafile name. */
+
+	if ( strlen( ad->datafile_name ) == 0 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"No datafile name has been specified for the area detector "
+		"field '%s.datafile_name'.", ad->record->name );
+	}
+
+	/*---*/
+
 	pilatus->exposure_in_progress = TRUE;
 
 	return MX_SUCCESSFUL_RESULT;
@@ -441,6 +459,7 @@ mxd_pilatus_trigger( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_pilatus_trigger()";
 
 	MX_PILATUS *pilatus = NULL;
+	char command[MXU_FILENAME_LENGTH + 80];
 	char response[80];
 	mx_status_type mx_status;
 
@@ -455,8 +474,19 @@ mxd_pilatus_trigger( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
+	/* Check to see if we currently have a valid datafile name. */
 
-	mx_status = mxd_pilatus_command( pilatus, "Exposure test.cbf",
+	if ( strlen( ad->datafile_name ) == 0 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"No datafile name has been specified for the area detector "
+		"field '%s.datafile_name'.", ad->record->name );
+	}
+
+	/* Start the exposure. */
+
+	snprintf( command, sizeof(command), "Exposure %s", ad->datafile_name );
+
+	mx_status = mxd_pilatus_command( pilatus, command,
 				response, sizeof(response),
 				NULL, pilatus->pilatus_debug_flag );
 
@@ -640,8 +670,7 @@ mxd_pilatus_readout_frame( MX_AREA_DETECTOR *ad )
 	MX_PILATUS *pilatus = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_pilatus_get_pointers( ad,
-						&pilatus, fname );
+	mx_status = mxd_pilatus_get_pointers( ad, &pilatus, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
