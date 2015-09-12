@@ -1923,7 +1923,8 @@ msauto_restore_fields_from_autosave_files(
 		fname, autosave_backup_filename));
 
 	mx_status = mx_copy_file( filename_to_use,
-				autosave_backup_filename, 0644, 0 );
+				autosave_backup_filename, 0644,
+				MXF_CP_OVERWRITE );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_warning( "The attempt to backup autosave file '%s' failed.",
