@@ -329,9 +329,12 @@ mxd_radicon_xineos_gige_open( MX_RECORD *record )
 	/* Internally triggered one shot and multiframe sequences will
 	 * use the pulse generator for exposures greater than or equal
 	 * to this time if a pulse generator is present.
+	 *
+	 * Note: Currently supported versions of this use pulse generators
+	 * for everything.
 	 */
 
-	radicon_xineos_gige->pulse_generator_time_threshold = 1.0;
+	radicon_xineos_gige->pulse_generator_time_threshold = 0.0;
 
 	/* The detector will default to internal triggering. */
 
@@ -469,6 +472,17 @@ mxd_radicon_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 
 	radicon_xineos_gige->use_pulse_generator = FALSE;
 
+#if MXD_RADICON_XINEOS_GIGE_DEBUG
+	MX_DEBUG(-2,("%s: pulse_generator_record = %p",
+		fname, radicon_xineos_gige->pulse_generator_record));
+	MX_DEBUG(-2,("%s: ad->trigger_mode = %#lx",
+		fname, ad->trigger_mode));
+	MX_DEBUG(-2,
+	("%s: exposure_time = %f, pulse_generator_time_threshold = %f",
+		fname, exposure_time,
+		radicon_xineos_gige->pulse_generator_time_threshold));
+#endif
+
 	if ( ( radicon_xineos_gige->pulse_generator_record != NULL )
 	  && ( ad->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER )
 	  && ( exposure_time >=
@@ -488,6 +502,12 @@ mxd_radicon_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 	} else {
 		vinput_trigger_mode = ad->trigger_mode;
 	}
+
+#if MXD_RADICON_XINEOS_GIGE_DEBUG
+	MX_DEBUG(-2,("%s: use_pulse_generator = %d, vinput_trigger_mode = %d",
+		fname, radicon_xineos_gige->use_pulse_generator,
+		vinput_trigger_mode));
+#endif
 
 	mx_status = mx_video_input_set_trigger_mode( video_input_record,
 							vinput_trigger_mode );
@@ -532,7 +552,9 @@ mxd_radicon_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 
 	/* Tell the video capture card to get ready for frames. */
 
+#if MXD_RADICON_XINEOS_GIGE_DEBUG
 	MX_DEBUG(-2,("%s: sequence type = %ld", fname, sp->sequence_type));
+#endif
 
 	mx_status = mx_video_input_arm( video_input_record );
 
@@ -786,6 +808,10 @@ mxd_radicon_xineos_gige_get_parameter( MX_AREA_DETECTOR *ad )
 	MX_RECORD *video_input_record;
 	mx_status_type mx_status;
 
+#if MXD_RADICON_XINEOS_GIGE_DEBUG
+	char buffer[100];
+#endif
+
 	mx_status = mxd_radicon_xineos_gige_get_pointers( ad,
 						&radicon_xineos_gige, fname );
 
@@ -793,8 +819,12 @@ mxd_radicon_xineos_gige_get_parameter( MX_AREA_DETECTOR *ad )
 		return mx_status;
 
 #if MXD_RADICON_XINEOS_GIGE_DEBUG
-	MX_DEBUG(-2,("%s: record '%s', parameter type %ld",
-		fname, ad->record->name, ad->parameter_type));
+	MX_DEBUG(-2,("%s: record '%s', parameter '%s' (%ld)",
+		fname, ad->record->name,
+		mx_get_parameter_name_from_type( ad->record,
+						ad->parameter_type,
+						buffer, sizeof(buffer) ),
+		ad->parameter_type));
 #endif
 	video_input_record = radicon_xineos_gige->video_input_record;
 
@@ -868,6 +898,10 @@ mxd_radicon_xineos_gige_set_parameter( MX_AREA_DETECTOR *ad )
 	MX_RECORD *video_input_record;
 	mx_status_type mx_status;
 
+#if MXD_RADICON_XINEOS_GIGE_DEBUG
+	char buffer[100];
+#endif
+
 	static long allowed_binsize[] = { 1, 2 };
 
 	static int num_allowed_binsizes = sizeof( allowed_binsize )
@@ -880,8 +914,12 @@ mxd_radicon_xineos_gige_set_parameter( MX_AREA_DETECTOR *ad )
 		return mx_status;
 
 #if MXD_RADICON_XINEOS_GIGE_DEBUG
-	MX_DEBUG(-2,("%s: record '%s', parameter type %ld",
-		fname, ad->record->name, ad->parameter_type));
+	MX_DEBUG(-2,("%s: record '%s', parameter '%s' (%ld)",
+		fname, ad->record->name,
+		mx_get_parameter_name_from_type( ad->record,
+						ad->parameter_type,
+						buffer, sizeof(buffer) ),
+		ad->parameter_type));
 #endif
 	video_input_record = radicon_xineos_gige->video_input_record;
 
