@@ -158,6 +158,7 @@ extern "C" {
 /* --- Special classes --- */
 
 #define MXZ_PROGRAM			901
+#define MXZ_MOD				902
 
 /*============================= Types =============================*/
 

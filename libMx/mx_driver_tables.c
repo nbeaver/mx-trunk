@@ -190,6 +190,8 @@ static MX_DRIVER mx_class_table[] = {
 
 {"program",        0, MXZ_PROGRAM, MXR_SPECIAL,
 				NULL, NULL, NULL, NULL, NULL},
+{"mod",            0, MXZ_MOD, MXR_SPECIAL,
+				NULL, NULL, NULL, NULL, NULL},
 
 {"", 0, 0, 0, NULL, NULL, NULL, NULL, NULL}
 };

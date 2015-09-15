@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2014 Illinois Institute of Technology
+ * Copyright 2006-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,6 +24,7 @@ extern "C" {
 #endif
 
 #include "mx_callback.h"
+#include "mx_image.h"
 #include "mx_namefix.h"
 
 #define MXU_AD_EXTENDED_STATUS_STRING_LENGTH	40
