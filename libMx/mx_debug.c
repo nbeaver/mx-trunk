@@ -20,28 +20,6 @@
 
 #include "mx_util.h"
 
-/*-------------------------------------------------------------------------*/
-
-/* For debugging purposes, it is sometimes useful to have one or more global
- * pointer variables to stash pointers in, since that makes it easier to
- * reference them in a debugger.  An alternative would be to type the hex
- * addresses directly into a debugger, but Address Space Layout Randomization
- * (ASLR) means that you have to look up the addresses again every run.
- * Another alternative would be to do something with debugger macros, but I
- * have not yet explored that possibility.
- *
- * In normal operation, these pointer are always set to NULL.  In such 
- * situations, you should not reference these pointers or expect them to
- * have any particular value.
- */
-
-void *mx_debug_ptr_1 = NULL;
-void *mx_debug_ptr_2 = NULL;
-void *mx_debug_ptr_3 = NULL;
-void *mx_debug_ptr_4 = NULL;
-
-/*-------------------------------------------------------------------------*/
-
 static int mx_debug_level = 0;
 static void (*mx_debug_output_function)( char * )
 				= mx_debug_default_output_function;
