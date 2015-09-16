@@ -79,13 +79,13 @@ all: build
 
 #MODULES += radicon_taurus
 
-MODULES += radicon_xineos_gige
-
 #MODULES += rdi_mbc
 
 MODULES += sapera_lt
 
 #MODULES += u500
+
+MODULES += xineos_gige
 
 #-------------------------------------------------------------------
 # EPICS modules.

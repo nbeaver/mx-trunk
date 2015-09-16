@@ -1,7 +1,7 @@
 /*
- * Name:    d_radicon_xineos_gige.c
+ * Name:    d_xineos_gige.c
  *
- * Purpose: MX driver for the Radicon Xineos GigE series detectors.
+ * Purpose: MX driver for the DALSA Xineos GigE series detectors.
  *
  * Author:  William Lavender
  *
@@ -14,11 +14,11 @@
  *
  */
 
-#define MXD_RADICON_XINEOS_GIGE_DEBUG				FALSE
+#define MXD_XINEOS_GIGE_DEBUG				FALSE
 
-#define MXD_RADICON_XINEOS_GIGE_DEBUG_READOUT_TIMING		FALSE
+#define MXD_XINEOS_GIGE_DEBUG_READOUT_TIMING		FALSE
 
-#define MXD_RADICON_XINEOS_GIGE_DEBUG_MEASURE_CORRECTION	FALSE
+#define MXD_XINEOS_GIGE_DEBUG_MEASURE_CORRECTION	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,81 +38,81 @@
 #include "mx_video_input.h"
 #include "mx_area_detector.h"
 #include "mx_area_detector_rdi.h"
-#include "d_radicon_xineos_gige.h"
+#include "d_xineos_gige.h"
 
 /*---*/
 
-MX_RECORD_FUNCTION_LIST mxd_radicon_xineos_gige_record_function_list = {
-	mxd_radicon_xineos_gige_initialize_driver,
-	mxd_radicon_xineos_gige_create_record_structures,
+MX_RECORD_FUNCTION_LIST mxd_xineos_gige_record_function_list = {
+	mxd_xineos_gige_initialize_driver,
+	mxd_xineos_gige_create_record_structures,
 	mx_area_detector_finish_record_initialization,
 	NULL,
 	NULL,
-	mxd_radicon_xineos_gige_open
+	mxd_xineos_gige_open
 };
 
-MX_AREA_DETECTOR_FUNCTION_LIST mxd_radicon_xineos_gige_ad_function_list = {
-	mxd_radicon_xineos_gige_arm,
-	mxd_radicon_xineos_gige_trigger,
+MX_AREA_DETECTOR_FUNCTION_LIST mxd_xineos_gige_ad_function_list = {
+	mxd_xineos_gige_arm,
+	mxd_xineos_gige_trigger,
 	NULL,
-	mxd_radicon_xineos_gige_stop,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	mxd_radicon_xineos_gige_get_extended_status,
-	mxd_radicon_xineos_gige_readout_frame,
-	mxd_radicon_xineos_gige_correct_frame,
+	mxd_xineos_gige_stop,
 	NULL,
 	NULL,
 	NULL,
 	NULL,
+	mxd_xineos_gige_get_extended_status,
+	mxd_xineos_gige_readout_frame,
+	mxd_xineos_gige_correct_frame,
 	NULL,
-	mxd_radicon_xineos_gige_get_parameter,
-	mxd_radicon_xineos_gige_set_parameter,
-	mxd_radicon_xineos_gige_measure_correction
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	mxd_xineos_gige_get_parameter,
+	mxd_xineos_gige_set_parameter,
+	mxd_xineos_gige_measure_correction
 };
 
-MX_RECORD_FIELD_DEFAULTS mxd_radicon_xineos_gige_rf_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxd_xineos_gige_rf_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_AREA_DETECTOR_STANDARD_FIELDS,
 	MX_AREA_DETECTOR_CORRECTION_STANDARD_FIELDS,
-	MXD_RADICON_XINEOS_GIGE_STANDARD_FIELDS
+	MXD_XINEOS_GIGE_STANDARD_FIELDS
 };
 
-long mxd_radicon_xineos_gige_num_record_fields
-		= sizeof( mxd_radicon_xineos_gige_rf_defaults )
-		/ sizeof( mxd_radicon_xineos_gige_rf_defaults[0] );
+long mxd_xineos_gige_num_record_fields
+		= sizeof( mxd_xineos_gige_rf_defaults )
+		/ sizeof( mxd_xineos_gige_rf_defaults[0] );
 
-MX_RECORD_FIELD_DEFAULTS *mxd_radicon_xineos_gige_rfield_def_ptr
-			= &mxd_radicon_xineos_gige_rf_defaults[0];
+MX_RECORD_FIELD_DEFAULTS *mxd_xineos_gige_rfield_def_ptr
+			= &mxd_xineos_gige_rf_defaults[0];
 
 /*---*/
 
 static mx_status_type
-mxd_radicon_xineos_gige_get_pointers( MX_AREA_DETECTOR *ad,
-			MX_RADICON_XINEOS_GIGE **radicon_xineos_gige,
+mxd_xineos_gige_get_pointers( MX_AREA_DETECTOR *ad,
+			MX_XINEOS_GIGE **xineos_gige,
 			const char *calling_fname )
 {
-	static const char fname[] = "mxd_radicon_xineos_gige_get_pointers()";
+	static const char fname[] = "mxd_xineos_gige_get_pointers()";
 
 	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_AREA_DETECTOR pointer passed by '%s' was NULL.",
 			calling_fname );
 	}
-	if (radicon_xineos_gige == NULL) {
+	if (xineos_gige == NULL) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"MX_RADICON_XINEOS_GIGE pointer passed by '%s' was NULL.",
+		"MX_XINEOS_GIGE pointer passed by '%s' was NULL.",
 			calling_fname );
 	}
 
-	*radicon_xineos_gige = (MX_RADICON_XINEOS_GIGE *)
+	*xineos_gige = (MX_XINEOS_GIGE *)
 				ad->record->record_type_struct;
 
-	if ( *radicon_xineos_gige == (MX_RADICON_XINEOS_GIGE *) NULL ) {
+	if ( *xineos_gige == (MX_XINEOS_GIGE *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-  "MX_RADICON_XINEOS_GIGE pointer for record '%s' passed by '%s' is NULL.",
+  "MX_XINEOS_GIGE pointer for record '%s' passed by '%s' is NULL.",
 			ad->record->name, calling_fname );
 	}
 	return MX_SUCCESSFUL_RESULT;
@@ -121,7 +121,7 @@ mxd_radicon_xineos_gige_get_pointers( MX_AREA_DETECTOR *ad,
 /*---*/
 
 MX_EXPORT mx_status_type
-mxd_radicon_xineos_gige_initialize_driver( MX_DRIVER *driver )
+mxd_xineos_gige_initialize_driver( MX_DRIVER *driver )
 {
 	long maximum_num_rois_varargs_cookie;
 	mx_status_type mx_status;
@@ -132,13 +132,13 @@ mxd_radicon_xineos_gige_initialize_driver( MX_DRIVER *driver )
 }
 
 MX_EXPORT mx_status_type
-mxd_radicon_xineos_gige_create_record_structures( MX_RECORD *record )
+mxd_xineos_gige_create_record_structures( MX_RECORD *record )
 {
 	static const char fname[] =
-			"mxd_radicon_xineos_gige_create_record_structures()";
+			"mxd_xineos_gige_create_record_structures()";
 
 	MX_AREA_DETECTOR *ad;
-	MX_RADICON_XINEOS_GIGE *radicon_xineos_gige;
+	MX_XINEOS_GIGE *xineos_gige;
 
 	/* Use calloc() here instead of malloc(), so that a bunch of
 	 * fields that are never touched will be initialized to 0.
@@ -151,34 +151,34 @@ mxd_radicon_xineos_gige_create_record_structures( MX_RECORD *record )
 		"Cannot allocate memory for an MX_AREA_DETECTOR structure." );
 	}
 
-	radicon_xineos_gige = (MX_RADICON_XINEOS_GIGE *)
-				calloc( 1, sizeof(MX_RADICON_XINEOS_GIGE) );
+	xineos_gige = (MX_XINEOS_GIGE *)
+				calloc( 1, sizeof(MX_XINEOS_GIGE) );
 
-	if ( radicon_xineos_gige == (MX_RADICON_XINEOS_GIGE *) NULL ) {
+	if ( xineos_gige == (MX_XINEOS_GIGE *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-	    "Cannot allocate memory for an MX_RADICON_XINEOS_GIGE structure." );
+	    "Cannot allocate memory for an MX_XINEOS_GIGE structure." );
 	}
 
 	record->record_class_struct = ad;
-	record->record_type_struct = radicon_xineos_gige;
+	record->record_type_struct = xineos_gige;
 	record->class_specific_function_list = 
-			&mxd_radicon_xineos_gige_ad_function_list;
+			&mxd_xineos_gige_ad_function_list;
 
 	ad->record = record;
-	radicon_xineos_gige->record = record;
+	xineos_gige->record = record;
 
-	radicon_xineos_gige->image_noir_info = NULL;
+	xineos_gige->image_noir_info = NULL;
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
-mxd_radicon_xineos_gige_open( MX_RECORD *record )
+mxd_xineos_gige_open( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_radicon_xineos_gige_open()";
+	static const char fname[] = "mxd_xineos_gige_open()";
 
 	MX_AREA_DETECTOR *ad;
-	MX_RADICON_XINEOS_GIGE *radicon_xineos_gige = NULL;
+	MX_XINEOS_GIGE *xineos_gige = NULL;
 	MX_RECORD *video_input_record;
 	long i;
 	unsigned long mask;
@@ -191,17 +191,17 @@ mxd_radicon_xineos_gige_open( MX_RECORD *record )
 
 	ad = (MX_AREA_DETECTOR *) record->record_class_struct;
 
-	mx_status = mxd_radicon_xineos_gige_get_pointers( ad,
-						&radicon_xineos_gige, fname );
+	mx_status = mxd_xineos_gige_get_pointers( ad,
+						&xineos_gige, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_RADICON_XINEOS_GIGE_DEBUG
+#if MXD_XINEOS_GIGE_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
 
-	video_input_record = radicon_xineos_gige->video_input_record;
+	video_input_record = xineos_gige->video_input_record;
 
 	if ( video_input_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -228,8 +228,8 @@ mxd_radicon_xineos_gige_open( MX_RECORD *record )
 
 	ad->correction_measurement_sequence_type = MXT_SQ_MULTIFRAME;
 
-	radicon_xineos_gige->saturation_pixel_value = 14000.0;
-	radicon_xineos_gige->minimum_pixel_value = 5.0;
+	xineos_gige->saturation_pixel_value = 14000.0;
+	xineos_gige->minimum_pixel_value = 5.0;
 
 	/* --- */
 
@@ -288,18 +288,18 @@ mxd_radicon_xineos_gige_open( MX_RECORD *record )
 	 * "internal" triggers?
 	 */
 
-	if ( strlen( radicon_xineos_gige->pulse_generator_name ) == 0 ) {
-		radicon_xineos_gige->pulse_generator_record = NULL;
+	if ( strlen( xineos_gige->pulse_generator_name ) == 0 ) {
+		xineos_gige->pulse_generator_record = NULL;
 	} else {
-		radicon_xineos_gige->pulse_generator_record =
+		xineos_gige->pulse_generator_record =
 			mx_get_record( record,
-				radicon_xineos_gige->pulse_generator_name );
+				xineos_gige->pulse_generator_name );
 
-		if ( radicon_xineos_gige->pulse_generator_record == NULL ) {
+		if ( xineos_gige->pulse_generator_record == NULL ) {
 			(void) mx_error( MXE_NOT_FOUND, fname,
 			"Internal trigger record '%s' for detector '%s' "
 			"was not found in the MX database.",
-				radicon_xineos_gige->pulse_generator_name,
+				xineos_gige->pulse_generator_name,
 				record->name );
 
 		} else {
@@ -308,23 +308,23 @@ mxd_radicon_xineos_gige_open( MX_RECORD *record )
 			unsigned long mx_class;
 
 			mx_class =
-			 radicon_xineos_gige->pulse_generator_record->mx_class;
+			 xineos_gige->pulse_generator_record->mx_class;
 
 			if ( mx_class != MXC_PULSE_GENERATOR ) {
 				(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 				"Internal trigger record '%s' for "
 				"detector '%s' is NOT a pulse generator "
 				"record.  It will be IGNORED!",
-				    radicon_xineos_gige->pulse_generator_name,
+				    xineos_gige->pulse_generator_name,
 				    record->name );
 				
-				radicon_xineos_gige->pulse_generator_record
+				xineos_gige->pulse_generator_record
 							= NULL;
 			}
 		}
 	}
 
-	radicon_xineos_gige->use_pulse_generator = FALSE;
+	xineos_gige->use_pulse_generator = FALSE;
 
 	/* Internally triggered one shot and multiframe sequences will
 	 * use the pulse generator for exposures greater than or equal
@@ -334,7 +334,7 @@ mxd_radicon_xineos_gige_open( MX_RECORD *record )
 	 * for everything.
 	 */
 
-	radicon_xineos_gige->pulse_generator_time_threshold = 0.0;
+	xineos_gige->pulse_generator_time_threshold = 0.0;
 
 	/* The detector will default to internal triggering. */
 
@@ -381,7 +381,7 @@ mxd_radicon_xineos_gige_open( MX_RECORD *record )
 			return mx_status;
 	}
 
-#if MXD_RADICON_XINEOS_GIGE_DEBUG
+#if MXD_XINEOS_GIGE_DEBUG
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
 #endif
 
@@ -391,11 +391,11 @@ mxd_radicon_xineos_gige_open( MX_RECORD *record )
 /*----*/
 
 MX_EXPORT mx_status_type
-mxd_radicon_xineos_gige_arm( MX_AREA_DETECTOR *ad )
+mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 {
-	static const char fname[] = "mxd_radicon_xineos_gige_arm()";
+	static const char fname[] = "mxd_xineos_gige_arm()";
 
-	MX_RADICON_XINEOS_GIGE *radicon_xineos_gige = NULL;
+	MX_XINEOS_GIGE *xineos_gige = NULL;
 	MX_RECORD *video_input_record = NULL;
 	MX_SEQUENCE_PARAMETERS *sp = NULL;
 	MX_SEQUENCE_PARAMETERS vinput_sp;
@@ -403,18 +403,18 @@ mxd_radicon_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 	long vinput_trigger_mode, num_frames;
 	mx_status_type mx_status;
 
-	mx_status = mxd_radicon_xineos_gige_get_pointers( ad,
-						&radicon_xineos_gige, fname );
+	mx_status = mxd_xineos_gige_get_pointers( ad,
+						&xineos_gige, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_RADICON_XINEOS_GIGE_DEBUG
+#if MXD_XINEOS_GIGE_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
 
-	video_input_record = radicon_xineos_gige->video_input_record;
+	video_input_record = xineos_gige->video_input_record;
 
 	if ( video_input_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -429,7 +429,7 @@ mxd_radicon_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 
 	if ( ad->datafile_save_format == MXT_IMAGE_FILE_NOIR ) {
 
-		if ( radicon_xineos_gige->image_noir_info == NULL ) {
+		if ( xineos_gige->image_noir_info == NULL ) {
 			char static_header_filename[MXU_FILENAME_LENGTH+1];
 
 			mx_status = mx_cfn_construct_filename( MX_CFN_CONFIG,
@@ -444,14 +444,14 @@ mxd_radicon_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 					"",
 					"mx_image_noir_records",
 					static_header_filename,
-				&(radicon_xineos_gige->image_noir_info) );
+				&(xineos_gige->image_noir_info) );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 		}
 
 		mx_status = mx_image_noir_update(
-				radicon_xineos_gige->image_noir_info );
+				xineos_gige->image_noir_info );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -470,25 +470,25 @@ mxd_radicon_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 	 * use a pulse generator?
 	 */
 
-	radicon_xineos_gige->use_pulse_generator = FALSE;
+	xineos_gige->use_pulse_generator = FALSE;
 
-#if MXD_RADICON_XINEOS_GIGE_DEBUG
+#if MXD_XINEOS_GIGE_DEBUG
 	MX_DEBUG(-2,("%s: pulse_generator_record = %p",
-		fname, radicon_xineos_gige->pulse_generator_record));
+		fname, xineos_gige->pulse_generator_record));
 	MX_DEBUG(-2,("%s: ad->trigger_mode = %#lx",
 		fname, ad->trigger_mode));
 	MX_DEBUG(-2,
 	("%s: exposure_time = %f, pulse_generator_time_threshold = %f",
 		fname, exposure_time,
-		radicon_xineos_gige->pulse_generator_time_threshold));
+		xineos_gige->pulse_generator_time_threshold));
 #endif
 
-	if ( ( radicon_xineos_gige->pulse_generator_record != NULL )
+	if ( ( xineos_gige->pulse_generator_record != NULL )
 	  && ( ad->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER )
 	  && ( exposure_time >=
-		radicon_xineos_gige->pulse_generator_time_threshold ) )
+		xineos_gige->pulse_generator_time_threshold ) )
 	{
-		radicon_xineos_gige->use_pulse_generator = TRUE;
+		xineos_gige->use_pulse_generator = TRUE;
 	}
 
 	/* If we are using a pulse generator to generate "internal" triggers,
@@ -497,15 +497,15 @@ mxd_radicon_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 	 * through to the video card.
 	 */
 
-	if ( radicon_xineos_gige->use_pulse_generator ) {
+	if ( xineos_gige->use_pulse_generator ) {
 		vinput_trigger_mode = MXT_IMAGE_EXTERNAL_TRIGGER;
 	} else {
 		vinput_trigger_mode = ad->trigger_mode;
 	}
 
-#if MXD_RADICON_XINEOS_GIGE_DEBUG
+#if MXD_XINEOS_GIGE_DEBUG
 	MX_DEBUG(-2,("%s: use_pulse_generator = %d, vinput_trigger_mode = %d",
-		fname, radicon_xineos_gige->use_pulse_generator,
+		fname, xineos_gige->use_pulse_generator,
 		vinput_trigger_mode));
 #endif
 
@@ -521,7 +521,7 @@ mxd_radicon_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 	 * the video card to expect a DURATION mode sequence.
 	 */
 
-	if ( radicon_xineos_gige->use_pulse_generator ) {
+	if ( xineos_gige->use_pulse_generator ) {
 		/* Get the number of frames from the area detector sequence. */
 
 		mx_status = mx_sequence_get_num_frames( sp, &num_frames );
@@ -552,7 +552,7 @@ mxd_radicon_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 
 	/* Tell the video capture card to get ready for frames. */
 
-#if MXD_RADICON_XINEOS_GIGE_DEBUG
+#if MXD_XINEOS_GIGE_DEBUG
 	MX_DEBUG(-2,("%s: sequence type = %ld", fname, sp->sequence_type));
 #endif
 
@@ -562,23 +562,23 @@ mxd_radicon_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 }
 
 MX_EXPORT mx_status_type
-mxd_radicon_xineos_gige_trigger( MX_AREA_DETECTOR *ad )
+mxd_xineos_gige_trigger( MX_AREA_DETECTOR *ad )
 {
-	static const char fname[] = "mxd_radicon_xineos_gige_trigger()";
+	static const char fname[] = "mxd_xineos_gige_trigger()";
 
-	MX_RADICON_XINEOS_GIGE *radicon_xineos_gige = NULL;
+	MX_XINEOS_GIGE *xineos_gige = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
 	double pulse_period, pulse_width;
 	unsigned long num_pulses;
 	mx_status_type mx_status;
 
-	mx_status = mxd_radicon_xineos_gige_get_pointers( ad,
-						&radicon_xineos_gige, fname );
+	mx_status = mxd_xineos_gige_get_pointers( ad,
+						&xineos_gige, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_RADICON_XINEOS_GIGE_DEBUG
+#if MXD_XINEOS_GIGE_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
@@ -591,13 +591,13 @@ mxd_radicon_xineos_gige_trigger( MX_AREA_DETECTOR *ad )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	if ( radicon_xineos_gige->use_pulse_generator == FALSE ) {
+	if ( xineos_gige->use_pulse_generator == FALSE ) {
 		/* If we are not using a pulse generator, then we just
 		 * pass the request on to the video card.
 		 */
 
 		mx_status = mx_video_input_trigger(
-				radicon_xineos_gige->video_input_record );
+				xineos_gige->video_input_record );
 
 		return mx_status;
 	}
@@ -632,28 +632,28 @@ mxd_radicon_xineos_gige_trigger( MX_AREA_DETECTOR *ad )
 	/* Configure the pulse generator for this sequence. */
 
 	mx_status = mx_pulse_generator_set_mode(
-				radicon_xineos_gige->pulse_generator_record,
+				xineos_gige->pulse_generator_record,
 				MXF_PGN_PULSE );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	mx_status = mx_pulse_generator_set_pulse_period(
-				radicon_xineos_gige->pulse_generator_record,
+				xineos_gige->pulse_generator_record,
 				pulse_period );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	mx_status = mx_pulse_generator_set_pulse_width(
-				radicon_xineos_gige->pulse_generator_record,
+				xineos_gige->pulse_generator_record,
 				pulse_width );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	mx_status = mx_pulse_generator_set_num_pulses(
-				radicon_xineos_gige->pulse_generator_record,
+				xineos_gige->pulse_generator_record,
 				num_pulses );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -662,55 +662,55 @@ mxd_radicon_xineos_gige_trigger( MX_AREA_DETECTOR *ad )
 	/* Finish by starting the pulse generator. */
 
 	mx_status = mx_pulse_generator_start(
-				radicon_xineos_gige->pulse_generator_record );
+				xineos_gige->pulse_generator_record );
 
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mxd_radicon_xineos_gige_stop( MX_AREA_DETECTOR *ad )
+mxd_xineos_gige_stop( MX_AREA_DETECTOR *ad )
 {
-	static const char fname[] = "mxd_radicon_xineos_gige_stop()";
+	static const char fname[] = "mxd_xineos_gige_stop()";
 
-	MX_RADICON_XINEOS_GIGE *radicon_xineos_gige = NULL;
+	MX_XINEOS_GIGE *xineos_gige = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_radicon_xineos_gige_get_pointers( ad,
-						&radicon_xineos_gige, fname );
+	mx_status = mxd_xineos_gige_get_pointers( ad,
+						&xineos_gige, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_RADICON_XINEOS_GIGE_DEBUG
+#if MXD_XINEOS_GIGE_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
 	mx_status = mx_video_input_stop(
-				radicon_xineos_gige->video_input_record );
+				xineos_gige->video_input_record );
 
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mxd_radicon_xineos_gige_get_extended_status( MX_AREA_DETECTOR *ad )
+mxd_xineos_gige_get_extended_status( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] =
-			"mxd_radicon_xineos_gige_get_extended_status()";
+			"mxd_xineos_gige_get_extended_status()";
 
-	MX_RADICON_XINEOS_GIGE *radicon_xineos_gige = NULL;
+	MX_XINEOS_GIGE *xineos_gige = NULL;
 	long vinput_last_frame_number;
 	long vinput_total_num_frames;
 	unsigned long vinput_status;
 	mx_status_type mx_status;
 
-	mx_status = mxd_radicon_xineos_gige_get_pointers( ad,
-						&radicon_xineos_gige, fname );
+	mx_status = mxd_xineos_gige_get_pointers( ad,
+						&xineos_gige, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	mx_status = mx_video_input_get_extended_status(
-				radicon_xineos_gige->video_input_record,
+				xineos_gige->video_input_record,
 				&vinput_last_frame_number,
 				&vinput_total_num_frames,
 				&vinput_status );
@@ -732,14 +732,14 @@ mxd_radicon_xineos_gige_get_extended_status( MX_AREA_DETECTOR *ad )
 }
 
 MX_EXPORT mx_status_type
-mxd_radicon_xineos_gige_readout_frame( MX_AREA_DETECTOR *ad )
+mxd_xineos_gige_readout_frame( MX_AREA_DETECTOR *ad )
 {
-	static const char fname[] = "mxd_radicon_xineos_gige_readout_frame()";
+	static const char fname[] = "mxd_xineos_gige_readout_frame()";
 
-	MX_RADICON_XINEOS_GIGE *radicon_xineos_gige = NULL;
+	MX_XINEOS_GIGE *xineos_gige = NULL;
 	mx_status_type mx_status;
 
-#if MXD_RADICON_XINEOS_GIGE_DEBUG_READOUT_TIMING
+#if MXD_XINEOS_GIGE_DEBUG_READOUT_TIMING
 	MX_HRT_TIMING readout_measurement;
 	MX_HRT_TIMING trim_measurement;
 	MX_HRT_TIMING save_raw_measurement;
@@ -748,19 +748,19 @@ mxd_radicon_xineos_gige_readout_frame( MX_AREA_DETECTOR *ad )
 	MX_HRT_START(total_measurement);
 #endif
 
-	mx_status = mxd_radicon_xineos_gige_get_pointers( ad,
-						&radicon_xineos_gige, fname );
+	mx_status = mxd_xineos_gige_get_pointers( ad,
+						&xineos_gige, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_RADICON_XINEOS_GIGE_DEBUG
+#if MXD_XINEOS_GIGE_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
 
 	mx_status = mx_video_input_get_frame(
-		radicon_xineos_gige->video_input_record,
+		xineos_gige->video_input_record,
 		ad->readout_frame, &(ad->image_frame) );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -770,7 +770,7 @@ mxd_radicon_xineos_gige_readout_frame( MX_AREA_DETECTOR *ad )
 	 * that will be needed if we are going to write a NOIR header.
 	 */
 
-	ad->image_frame->application_ptr = radicon_xineos_gige->image_noir_info;
+	ad->image_frame->application_ptr = xineos_gige->image_noir_info;
 
 	return mx_status;
 }
@@ -778,47 +778,47 @@ mxd_radicon_xineos_gige_readout_frame( MX_AREA_DETECTOR *ad )
 /*----*/
 
 MX_EXPORT mx_status_type
-mxd_radicon_xineos_gige_correct_frame( MX_AREA_DETECTOR *ad )
+mxd_xineos_gige_correct_frame( MX_AREA_DETECTOR *ad )
 {
-	static const char fname[] = "mxd_radicon_xineos_gige_correct_frame()";
+	static const char fname[] = "mxd_xineos_gige_correct_frame()";
 
-	MX_RADICON_XINEOS_GIGE *radicon_xineos_gige = NULL;
+	MX_XINEOS_GIGE *xineos_gige = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_radicon_xineos_gige_get_pointers( ad,
-						&radicon_xineos_gige, fname );
+	mx_status = mxd_xineos_gige_get_pointers( ad,
+						&xineos_gige, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	mx_status = mx_rdi_correct_frame( ad,
-				radicon_xineos_gige->minimum_pixel_value,
-				radicon_xineos_gige->saturation_pixel_value,
+				xineos_gige->minimum_pixel_value,
+				xineos_gige->saturation_pixel_value,
 				0 );
 
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mxd_radicon_xineos_gige_get_parameter( MX_AREA_DETECTOR *ad )
+mxd_xineos_gige_get_parameter( MX_AREA_DETECTOR *ad )
 {
-	static const char fname[] = "mxd_radicon_xineos_gige_get_parameter()";
+	static const char fname[] = "mxd_xineos_gige_get_parameter()";
 
-	MX_RADICON_XINEOS_GIGE *radicon_xineos_gige = NULL;
+	MX_XINEOS_GIGE *xineos_gige = NULL;
 	MX_RECORD *video_input_record;
 	mx_status_type mx_status;
 
-#if MXD_RADICON_XINEOS_GIGE_DEBUG
+#if MXD_XINEOS_GIGE_DEBUG
 	char buffer[100];
 #endif
 
-	mx_status = mxd_radicon_xineos_gige_get_pointers( ad,
-						&radicon_xineos_gige, fname );
+	mx_status = mxd_xineos_gige_get_pointers( ad,
+						&xineos_gige, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_RADICON_XINEOS_GIGE_DEBUG
+#if MXD_XINEOS_GIGE_DEBUG
 	MX_DEBUG(-2,("%s: record '%s', parameter '%s' (%ld)",
 		fname, ad->record->name,
 		mx_get_parameter_name_from_type( ad->record,
@@ -826,7 +826,7 @@ mxd_radicon_xineos_gige_get_parameter( MX_AREA_DETECTOR *ad )
 						buffer, sizeof(buffer) ),
 		ad->parameter_type));
 #endif
-	video_input_record = radicon_xineos_gige->video_input_record;
+	video_input_record = xineos_gige->video_input_record;
 
 	switch( ad->parameter_type ) {
 	case MXLV_AD_FRAMESIZE:
@@ -865,7 +865,7 @@ mxd_radicon_xineos_gige_get_parameter( MX_AREA_DETECTOR *ad )
 		 * are _not_ using the pulse generator.
 		 */
 
-		if ( radicon_xineos_gige->use_pulse_generator == FALSE ) {
+		if ( xineos_gige->use_pulse_generator == FALSE ) {
 			mx_status = mx_video_input_get_trigger_mode(
 				video_input_record, &(ad->trigger_mode) );
 		}
@@ -890,15 +890,15 @@ mxd_radicon_xineos_gige_get_parameter( MX_AREA_DETECTOR *ad )
 }
 
 MX_EXPORT mx_status_type
-mxd_radicon_xineos_gige_set_parameter( MX_AREA_DETECTOR *ad )
+mxd_xineos_gige_set_parameter( MX_AREA_DETECTOR *ad )
 {
-	static const char fname[] = "mxd_radicon_xineos_gige_set_parameter()";
+	static const char fname[] = "mxd_xineos_gige_set_parameter()";
 
-	MX_RADICON_XINEOS_GIGE *radicon_xineos_gige = NULL;
+	MX_XINEOS_GIGE *xineos_gige = NULL;
 	MX_RECORD *video_input_record;
 	mx_status_type mx_status;
 
-#if MXD_RADICON_XINEOS_GIGE_DEBUG
+#if MXD_XINEOS_GIGE_DEBUG
 	char buffer[100];
 #endif
 
@@ -907,13 +907,13 @@ mxd_radicon_xineos_gige_set_parameter( MX_AREA_DETECTOR *ad )
 	static int num_allowed_binsizes = sizeof( allowed_binsize )
 						/ sizeof( allowed_binsize[0] );
 
-	mx_status = mxd_radicon_xineos_gige_get_pointers( ad,
-						&radicon_xineos_gige, fname );
+	mx_status = mxd_xineos_gige_get_pointers( ad,
+						&xineos_gige, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_RADICON_XINEOS_GIGE_DEBUG
+#if MXD_XINEOS_GIGE_DEBUG
 	MX_DEBUG(-2,("%s: record '%s', parameter '%s' (%ld)",
 		fname, ad->record->name,
 		mx_get_parameter_name_from_type( ad->record,
@@ -921,7 +921,7 @@ mxd_radicon_xineos_gige_set_parameter( MX_AREA_DETECTOR *ad )
 						buffer, sizeof(buffer) ),
 		ad->parameter_type));
 #endif
-	video_input_record = radicon_xineos_gige->video_input_record;
+	video_input_record = xineos_gige->video_input_record;
 
 	switch( ad->parameter_type ) {
 	case MXLV_AD_FRAMESIZE:
@@ -975,12 +975,12 @@ mxd_radicon_xineos_gige_set_parameter( MX_AREA_DETECTOR *ad )
 /*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mxd_radicon_xineos_gige_measure_correction( MX_AREA_DETECTOR *ad )
+mxd_xineos_gige_measure_correction( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] =
-		"mxd_radicon_xineos_gige_measure_correction()";
+		"mxd_xineos_gige_measure_correction()";
 
-	MX_RADICON_XINEOS_GIGE *radicon_xineos_gige = NULL;
+	MX_XINEOS_GIGE *xineos_gige = NULL;
 	MX_AREA_DETECTOR_CORRECTION_MEASUREMENT *corr = NULL;
 #if 0
 	double gate_time;
@@ -990,13 +990,13 @@ mxd_radicon_xineos_gige_measure_correction( MX_AREA_DETECTOR *ad )
 	unsigned long i, ad_status;
 	mx_status_type mx_status;
 
-	mx_status = mxd_radicon_xineos_gige_get_pointers( ad,
-						&radicon_xineos_gige, fname );
+	mx_status = mxd_xineos_gige_get_pointers( ad,
+						&xineos_gige, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_RADICON_XINEOS_GIGE_DEBUG_MEASURE_CORRECTION
+#if MXD_XINEOS_GIGE_DEBUG_MEASURE_CORRECTION
 	MX_DEBUG(-2,("%s invoked for detector '%s'", fname, ad->record->name ));
 #endif
 
