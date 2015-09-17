@@ -186,6 +186,8 @@ library_install:
 					-src ../plotgnu/plot2ps plot2ps
 	install -F $(MX_INSTALL_DIR)/bin -m 755 -O \
 					-src ../scripts/mxsetup.sh mxsetup.sh
+	install -F $(MX_INSTALL_DIR)/bin -m 755 -O \
+					-src ../tools/mx_config mx_config
 
 mx_list_head.$(OBJ): Makefile.version mx_list_head.c mx_version.h
 	$(COMPILE) $(CFLAGS) -DMX_CFLAGS="${CFLAGS}" mx_list_head.c

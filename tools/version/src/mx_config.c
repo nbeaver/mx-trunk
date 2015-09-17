@@ -27,12 +27,35 @@
 #  include <sys/utsname.h>
 #endif
 
+void
+print_usage( void )
+{
+	fprintf( stderr,
+	"Usage: mx_config [option]\n"
+	"\n"
+	"  The available options (including all build targets) are:\n"
+	"\n"
+	"  gcc\n"
+	"  glibc\n"
+	"  gnuc\n"
+	"  library\n"
+	"  major\n"
+	"  minor\n"
+	"  musl\n"
+	"  os\n"
+	"  update\n"
+	"  version\n"
+	"\n"
+	);
+
+	return;
+}
+
 int
 main( int argc, char **argv )
 {
 	if ( argc < 2 ) {
-		fprintf( stderr,
-		"Usage: mx_config { version | major | minor | ... }\n" );
+		print_usage();
 		exit(1);
 	}
 
@@ -147,7 +170,9 @@ main( int argc, char **argv )
 		exit(0);
 	}
 
-	fprintf( stderr, "Error: Unrecognized option '%s'.\n", argv[1] );
+	fprintf( stderr, "Error: Unsupported option '%s'.\n\n", argv[1] );
+
+	print_usage();
 
 	exit(1);
 }
