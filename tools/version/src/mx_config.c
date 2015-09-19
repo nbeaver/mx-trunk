@@ -192,6 +192,7 @@ main( int argc, char **argv )
 		 * Python is installed and what version it is.
 		 */
 
+#if 0
 		win32_status = RegOpenKeyEx( HKEY_CURRENT_USER,
 					TEXT("Software\\Python\\PythonCore"),
 					0, KEY_QUERY_READ, &hkey );
@@ -202,6 +203,8 @@ main( int argc, char **argv )
 				win32_status );
 			exit(1);
 		}
+#endif
+		hkey = HKEY_CURRENT_USER;
 
 		buffer_size = sizeof(python_version_name);
 
