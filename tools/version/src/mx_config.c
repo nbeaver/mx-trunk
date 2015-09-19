@@ -22,9 +22,14 @@
 
 #include "mx_osdef.h"
 #include "mx_private_version.h"
+#include "mx_util.h"
 
 #if defined(OS_UNIX)
 #  include <sys/utsname.h>
+#endif
+
+#if defined(OS_WIN32)
+#  include <windows.h>
 #endif
 
 void
@@ -43,6 +48,7 @@ print_usage( void )
 	"  minor\n"
 	"  musl\n"
 	"  os\n"
+	"  python\n"
 	"  update\n"
 	"  version\n"
 	"\n"
@@ -170,9 +176,74 @@ main( int argc, char **argv )
 		exit(0);
 	}
 
+/*------------------------------------------------------------------------*/
+
+#if defined(OS_WIN32)
+	if ( strcmp( argv[1], "python" ) == 0 ) {
+
+		HKEY hkey;
+		char python_version_name[80];
+		char install_dir_keyname[200];
+		char install_dir_pathname[MXU_FILENAME_LENGTH+80];
+		DWORD buffer_size;
+		long win32_status;
+
+		/* We need to figure out from the Windows registry where
+		 * Python is installed and what version it is.
+		 */
+
+		win32_status = RegOpenKeyEx( HKEY_CURRENT_USER,
+					TEXT("Software\\Python\\PythonCore"),
+					0, KEY_QUERY_READ, &hkey );
+
+		if ( win32_status != ERROR_SUCCESS ) {
+			fprintf( stderr,
+			"RegOpenKeyEx() failed with status %ld\n",
+				win32_status );
+			exit(1);
+		}
+
+		buffer_size = sizeof(python_version_name);
+
+		win32_status = RegQueryValueEx( hkey,
+					TEXT("Software\\Python\\PythonCore"),
+					NULL, NULL,
+					(LPBYTE) python_version_name,
+					&buffer_size );
+
+		if ( win32_status != ERROR_SUCCESS ) {
+			fprintf( stderr,
+			"RegQueryValueEx() failed with status %ld\n",
+				win32_status );
+			exit(1);
+		}
+
+		fprintf( stderr, "python_version_name = '%s'\n",
+				python_version_name );
+
+		if ( argc < 3 ) {
+			fprintf( stderr,
+			"\n"
+			"Usage:  mx_config python [option]\n"
+			"\n"
+			"    Where option may be\n"
+			"        includes\n"
+			"        installed\n"
+			"        install_dir\n"
+			"        library\n"
+			"\n"
+			);
+			exit(1);
+		}
+	}
+#endif
+
+/*------------------------------------------------------------------------*/
+
 	fprintf( stderr, "Error: Unsupported option '%s'.\n\n", argv[1] );
 
 	print_usage();
 
 	exit(1);
 }
+
