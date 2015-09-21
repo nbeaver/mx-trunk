@@ -181,21 +181,26 @@ main( int argc, char **argv )
 #if defined(OS_WIN32)
 	if ( strcmp( argv[1], "python" ) == 0 ) {
 
-		HKEY hkey;
-		char python_version_name[80];
+		HKEY python_core_hkey;
+		TCHAR python_version_keyname[80];
 		char install_dir_keyname[200];
 		char install_dir_pathname[MXU_FILENAME_LENGTH+80];
 		DWORD buffer_size;
+		DWORD dwType = REG_SZ;
 		long win32_status;
+
+		/*--------------------------------------------------------*/
 
 		/* We need to figure out from the Windows registry where
 		 * Python is installed and what version it is.
 		 */
 
-#if 0
 		win32_status = RegOpenKeyEx( HKEY_CURRENT_USER,
 					TEXT("Software\\Python\\PythonCore"),
-					0, KEY_QUERY_READ, &hkey );
+					0, KEY_QUERY_VALUE, &python_core_hkey );
+
+		fprintf( stderr, "RegOpenKeyEx() status = %ld\n",
+				win32_status );
 
 		if ( win32_status != ERROR_SUCCESS ) {
 			fprintf( stderr,
@@ -203,16 +208,52 @@ main( int argc, char **argv )
 				win32_status );
 			exit(1);
 		}
-#endif
-		hkey = HKEY_CURRENT_USER;
 
-		buffer_size = sizeof(python_version_name);
+		/*-----*/
 
-		win32_status = RegQueryValueEx( hkey,
-					TEXT("Software\\Python\\PythonCore"),
-					NULL, NULL,
-					(LPBYTE) python_version_name,
+		/* Use RegQueryInfoKey().  See "Enumerating Registry Subkeys"
+		 * example in MSDN.
+		 */
+
+		/*-----*/
+
+		/* Now get the first subkey of PythonCore, which should
+		 * be the name of the Python version.  We _assume_ that 
+		 * there is only one subkey.  If there are more than one,
+		 * we pay attention to only the first one.
+		 */
+
+		buffer_size = sizeof(python_version_keyname);
+
+		win32_status = RegEnumKeyEx( python_core_hkey, 0,
+					(LPSTR) python_version_keyname,
+					&buffer_size, NULL, NULL, NULL, NULL );
+
+		fprintf( stderr, "RegEnumKeyEx() status = %ld\n",
+				win32_status );
+
+		if ( win32_status != ERROR_SUCCESS ) {
+			fprintf( stderr,
+			"RegEnumKeyEx() failed with status %ld\n",
+				win32_status );
+			exit(1);
+		}
+
+		fprintf( stderr, "python_version_keyname = '%s'\n",
+			python_version_keyname );
+
+		/*-----*/
+
+		buffer_size = sizeof(python_version_keyname);
+
+		win32_status = RegQueryValueEx( python_core_hkey,
+					TEXT(""),
+					NULL, &dwType,
+					(LPBYTE) python_version_keyname,
 					&buffer_size );
+
+		fprintf( stderr, "RegQueryValueEx() status = %ld\n",
+				win32_status );
 
 		if ( win32_status != ERROR_SUCCESS ) {
 			fprintf( stderr,
@@ -221,8 +262,8 @@ main( int argc, char **argv )
 			exit(1);
 		}
 
-		fprintf( stderr, "python_version_name = '%s'\n",
-				python_version_name );
+		fprintf( stderr, "python_version_keyname = '%s'\n",
+				python_version_keyname );
 
 		if ( argc < 3 ) {
 			fprintf( stderr,
