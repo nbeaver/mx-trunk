@@ -18,6 +18,7 @@
 
 #include "motor.h"
 #include "command.h"
+#include "mx_inttypes.h"
 #include "mx_io.h"
 #include "mx_vm_alloc.h"
 
@@ -94,7 +95,7 @@ motor_test_fn( int argc, char *argv[] )
 			} else {
 				return FAILURE;
 			}
-		}
+		} else
 		if ( strcmp( argv[2], "monitor" ) == 0 ) {
 			if ( argc > 3 ) {
 				if ( monitor != NULL ) {
@@ -128,6 +129,33 @@ motor_test_fn( int argc, char *argv[] )
 
 			mx_info( "monitor '%s', file_changed = %d",
 				monitor_filename, (int) file_changed );
+
+			return SUCCESS;
+		} else
+		if ( strcmp( argv[2], "disk" ) == 0 ) {
+			uint64_t total_bytes, free_bytes;
+			uint64_t total_quota_bytes, free_quota_bytes;
+
+			if ( argc < 4 ) {
+				fprintf( output,
+					"Usage: test disk 'filename'\n" );
+				return FAILURE;
+			}
+
+			mx_status = mx_get_disk_space( argv[3],
+					&total_bytes, &free_bytes,
+					&total_quota_bytes, &free_quota_bytes );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+
+			mx_info( "Disk containing '%s':\n"
+				"  Total bytes       = %" PRIu64 "\n"
+				"  Free bytes        = %" PRIu64 "\n"
+				"  Total quota bytes = %" PRIu64 "\n"
+				"  Free quota bytes  = %" PRIu64 "\n",
+				argv[3], total_bytes, free_bytes,
+				total_quota_bytes, free_quota_bytes );
 
 			return SUCCESS;
 		}

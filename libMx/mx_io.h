@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2010, 2012-2013 Illinois Institute of Technology
+ * Copyright 2010, 2012-2013, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -43,6 +43,19 @@ MX_API mx_bool_type mx_fd_is_valid( int fd );
 /*----*/
 
 MX_API int64_t mx_get_file_size( char *filename );
+
+/*----*/
+
+/* The values returned by the available_... arguments may be smaller than
+ * the values returned by the total_... arguments if the user calling this
+ * function has a disk quota that constrains their total usage.
+ */
+
+MX_API mx_status_type mx_get_disk_space( char *filename,
+				uint64_t *total_bytes_in_partition,
+				uint64_t *total_free_bytes_in_partition,
+				uint64_t *available_total_bytes_in_quota,
+				uint64_t *available_free_bytes_in_quota );
 
 /*----*/
 

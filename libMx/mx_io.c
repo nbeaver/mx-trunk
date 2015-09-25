@@ -428,6 +428,283 @@ mx_get_file_size( char *filename )
 
 /*=========================================================================*/
 
+#if defined(OS_WIN32)
+
+typedef BOOL (*mxp_GetDiskFreeSpaceEx_type)( LPCTSTR, PULARGE_INTEGER,
+					PULARGE_INTEGER, PULARGE_INTEGER );
+
+/* The values returned by the available_... arguments may be smaller than
+ * the values returned by the total_... arguments if the user calling this
+ * function has a disk quota that constrains their total usage.
+ */
+
+MX_EXPORT mx_status_type
+mx_get_disk_space( char *filename,
+		uint64_t *total_bytes_in_partition,
+		uint64_t *total_free_bytes_in_partition,
+		uint64_t *available_total_bytes_in_quota,
+		uint64_t *available_free_bytes_in_quota )
+{
+	static const char fname[] = "mx_get_disk_space()";
+
+	static mx_bool_type get_disk_free_space_ex_tested_for = FALSE;
+	static mx_bool_type get_disk_free_space_ex_available = FALSE;
+
+	static mxp_GetDiskFreeSpaceEx_type pGetDiskFreeSpaceEx = NULL;
+
+	HINSTANCE hinst_kernel32;
+	BOOL os_status;
+	DWORD last_error_code;
+	TCHAR message_buffer[100];
+
+	char root_name[MXU_FILENAME_LENGTH+1];
+	mx_status_type mx_status;
+
+	if ( filename == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The filename pointer passed was NULL." );
+	}
+
+	/* The functions below require the use of a directory name, rather
+	 * than a filename.  However, the directory name does not need to
+	 * be the root directory of that partition.  Nevertheless, the
+	 * already existing function mx_get_filesystem_root_name() will
+	 * provide a name that can be used below.
+	 */
+
+	mx_status = mx_get_filesystem_root_name( filename,
+					root_name, sizeof(root_name) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s: filename = '%s', root_name = '%s'",
+		fname, filename, root_name));
+
+	/* Check to see if GetDiskFreeSpaceEx() is available.  It _should_ be
+	 * available for Windows NT 4.0 and above, as well as Windows 95 OSR2
+	 * or above, which covers most cases, but we check anyway.
+	 */
+
+	if ( get_disk_free_space_ex_tested_for == FALSE ) {
+		get_disk_free_space_ex_tested_for = TRUE;
+
+		hinst_kernel32 = GetModuleHandle(TEXT("kernel32.dll"));
+
+		if ( hinst_kernel32 == NULL ) {
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"The operating system says that it cannot find "
+			"'KERNEL32.DLL'.  If so, then it is likely that "
+			"Microsoft Windows will crash soon.  In that case, "
+			"attempting to send you this error message is probably "
+			"an exercise in futility, but we try anyway." );
+		}
+
+		pGetDiskFreeSpaceEx = (mxp_GetDiskFreeSpaceEx_type)
+			GetProcAddress( hinst_kernel32,
+				TEXT("GetDiskFreeSpaceEx") );
+
+		if ( pGetDiskFreeSpaceEx != NULL ) {
+			get_disk_free_space_ex_available = TRUE;
+		}
+	}
+
+	if ( get_disk_free_space_ex_available ) {
+		/* Use the modern function. */
+
+		ULARGE_INTEGER free_bytes_available;
+		ULARGE_INTEGER total_number_of_bytes;
+		ULARGE_INTEGER total_number_of_free_bytes;
+
+		os_status = pGetDiskFreeSpaceEx( root_name,
+						&free_bytes_available,
+						&total_number_of_bytes,
+						&total_number_of_free_bytes );
+
+		if ( os_status == 0 ) {
+			last_error_code = GetLastError();
+
+			mx_win32_error_message( last_error_code,
+				message_buffer, sizeof(message_buffer) );
+
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"The attempt to get the disk usage for the disk "
+			"partition containing the file '%s' failed.  "
+			"Win32 error code = %ld, error message = '%s'.",
+				filename, last_error_code, message_buffer );
+		}
+
+		if ( total_free_bytes_in_partition != NULL ) {
+			*total_free_bytes_in_partition
+			    = (uint64_t) total_number_of_free_bytes.QuadPart;
+		}
+		if ( available_total_bytes_in_quota != NULL ) {
+			*available_total_bytes_in_quota
+			    = (uint64_t) total_number_of_bytes.QuadPart;
+		}
+		if ( available_free_bytes_in_quota != NULL ) {
+			*available_free_bytes_in_quota
+			    = (uint64_t) free_bytes_available.QuadPart;
+		}
+
+		if ( total_bytes_in_partition != NULL ) {
+
+			/* GetDiskFreeSpaceEx() does not tell us what we need
+			 * in order to compute *total_bytes_in_partition, so
+			 * we need to call DeviceIoControl() to get it.
+			 */
+#if 1
+			/* Ignore the fact that this is the quota-ed value. */
+
+			*total_bytes_in_partition
+			    = (uint64_t) total_number_of_bytes.QuadPart;
+#else
+			/* FIXME: This method requires Administrator privileges
+			 * so it is mostly useless.
+			 */
+
+			/* FIXME: The IOCTL_DISK_GET_LENGTH_INFO control code
+			 * needs a handle to the actual disk device in order
+			 * to request a GET_LENGTH_INFORMATION structure.
+			 * Currently I do not know how to get the physical
+			 * disk name from my original filename, but the need
+			 * to have Administrator privilege makes it less than
+			 * worthwhile to spend time on this.
+			 */
+
+			HINSTANCE hdisk;
+			GET_LENGTH_INFORMATION output_buffer;
+
+			static const char disk_name[] = "\\\\.\\PhysicalDrive0";
+
+			hdisk = CreateFile( disk_name, GENERIC_READ,
+				FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0 );
+
+			if ( hdisk == INVALID_HANDLE_VALUE ) {
+				DWORD last_error_code = GetLastError();
+
+				if (last_error_code == STATUS_ACCESS_VIOLATION)
+				{
+					MX_DEBUG(-2,
+				  ("%s: Permission denied for access to '%s'.",
+					fname, disk_name ));
+
+					/* Give up and use the quota-ed value.*/
+
+					*total_bytes_in_partition
+				    = (uint64_t) total_number_of_bytes.QuadPart;
+
+					return MX_SUCCESSFUL_RESULT;
+				} else {
+					mx_win32_error_message( last_error_code,
+							message_buffer,
+							sizeof(message_buffer));
+
+					return mx_error(
+					MXE_OPERATING_SYSTEM_ERROR, fname,
+					"An attempt to access the physical "
+					"drive '%s' for file '%s' failed.  "
+					"Win32 error code = %ld, "
+					"error message = '%s'.",
+					    disk_name, filename,
+					    last_error_code, message_buffer );
+				}
+			}
+
+			os_status = DeviceIoControl( hdisk,
+					IOCTL_DISK_GET_LENGTH_INFO,
+					NULL, 0, &output_buffer,
+					sizeof(GET_LENGTH_INFORMATION),
+					NULL, NULL );
+
+			if ( os_status == 0 ) {
+				last_error_code = GetLastError();
+
+				mx_win32_error_message( last_error_code,
+				message_buffer, sizeof(message_buffer) );
+
+				return mx_error(
+				MXE_OPERATING_SYSTEM_ERROR, fname,
+				"A call to DeviceIoControl() "
+				"for disk '%s' failed.  "
+				"Win32 error code = %ld, error message = '%s'.",
+				disk_name, last_error_code, message_buffer );
+			}
+
+			*total_bytes_in_partition
+			    = (uint64_t) output_buffer.Length.QuadPart;
+#endif
+		}
+	} else {
+		/* Use the crufty old function. */
+
+		DWORD sectors_per_cluster;
+		DWORD bytes_per_sector;
+		DWORD number_of_free_clusters;
+		DWORD total_number_of_clusters;
+		uint64_t bytes_per_cluster;
+
+		os_status = GetDiskFreeSpace( root_name,
+						&sectors_per_cluster,
+						&bytes_per_sector,
+						&number_of_free_clusters,
+						&total_number_of_clusters );
+
+		if ( os_status == 0 ) {
+			last_error_code = GetLastError();
+
+			mx_win32_error_message( last_error_code,
+				message_buffer, sizeof(message_buffer) );
+
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"The attempt to get the disk usage via "
+			"GetDiskFreeSpace() for the disk "
+			"partition containing the file '%s' failed.  "
+			"Win32 error code = %ld, error message = '%s'.",
+				filename, last_error_code, message_buffer );
+		}
+
+		bytes_per_cluster = ( (uint64_t) bytes_per_sector )
+				* ( (uint64_t) sectors_per_cluster );
+
+		/* GetDiskFreeSpace() only provides a way to find out the
+		 * number of bytes available in the user's quota, so we
+		 * copied the quota-ed value to the total values.  In any
+		 * case, this code path should only be called by versions
+		 * of Windows from 1995 or before.
+		 */
+
+		if ( total_bytes_in_partition != NULL ) {
+			*total_bytes_in_partition = bytes_per_cluster
+					* (uint64_t) total_number_of_clusters;
+		}
+		if ( total_free_bytes_in_partition != NULL ) {
+			*total_free_bytes_in_partition = bytes_per_cluster
+					* (uint64_t) number_of_free_clusters;
+		}
+		if ( available_total_bytes_in_quota != NULL ) {
+			*available_total_bytes_in_quota = bytes_per_cluster
+					* (uint64_t) total_number_of_clusters;
+		}
+		if ( available_free_bytes_in_quota != NULL ) {
+			*available_free_bytes_in_quota = bytes_per_cluster
+					* (uint64_t) number_of_free_clusters;
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#else
+
+/* FIXME: On Linux, we should use statvfs(). */
+
+#error mx_get_disk_space() has not yet been implemented for this platform.
+
+#endif
+
+/*=========================================================================*/
+
 #if defined(OS_MACOSX) || defined(OS_BSD) || defined(OS_UNIXWARE)
 
 #define MXP_LSOF_FILE	1
