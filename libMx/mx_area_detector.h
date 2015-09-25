@@ -643,6 +643,13 @@ typedef struct mx_area_detector_type {
 
 	mx_bool_type inhibit_autosave;
 
+	/* The following entries report the total disk space and the
+	 * free disk space in bytes available for the disk partition
+	 * that contains the directory specified by 'datafile_directory'.
+	 */
+
+	uint64_t disk_space[2];
+
 	/* The following entries are used for exposures that 
 	 * are synchronized with a motor and a shutter.
 	 */
@@ -801,6 +808,7 @@ typedef struct mx_area_detector_type {
 #define MXLV_AD_CORRECTION_SAVE_FORMAT_NAME	12515
 #define MXLV_AD_DATAFILE_TOTAL_NUM_FRAMES	12516
 #define MXLV_AD_DATAFILE_LAST_FRAME_NUMBER	12517
+#define MXLV_AD_DISK_SPACE			12518
 
 #define MXLV_AD_EXPOSURE_MOTOR_NAME		12600
 #define MXLV_AD_SHUTTER_NAME			12601
@@ -1384,6 +1392,10 @@ typedef struct mx_area_detector_type {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, inhibit_autosave), \
 	{0}, NULL, 0}, \
   \
+  {MXLV_AD_DISK_SPACE, -1, "disk_space", MXFT_UINT64, NULL, 1, {2},\
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, disk_space), \
+	{sizeof(uint64_t)}, NULL, 0}, \
+  \
   {MXLV_AD_EXPOSURE_MOTOR_NAME, -1, "exposure_motor_name", MXFT_STRING, \
   					NULL, 1, {MXU_RECORD_NAME_LENGTH}, \
 	MXF_REC_CLASS_STRUCT, \
@@ -1822,6 +1834,17 @@ MX_API mx_status_type mx_area_detector_copy_and_convert_frame(
 MX_API mx_status_type mx_area_detector_copy_and_convert_image_data(
 					MX_IMAGE_FRAME *destination_frame,
 					MX_IMAGE_FRAME *source_frame );
+
+/*---*/
+
+MX_API mx_status_type mx_area_detector_get_disk_space( MX_RECORD *ad_record,
+	 					uint64_t *total_disk_space,
+	 					uint64_t *free_disk_space );
+
+MX_API mx_status_type mx_area_detector_get_local_disk_space(
+					MX_RECORD *ad_record,
+ 					uint64_t *local_total_disk_space,
+ 					uint64_t *local_free_disk_space );
 
 /*---*/
 

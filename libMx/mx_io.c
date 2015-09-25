@@ -442,7 +442,6 @@ MX_EXPORT mx_status_type
 mx_get_disk_space( char *filename,
 		uint64_t *total_bytes_in_partition,
 		uint64_t *total_free_bytes_in_partition,
-		uint64_t *user_total_bytes_in_partition,
 		uint64_t *user_free_bytes_in_partition )
 {
 	static const char fname[] = "mx_get_disk_space()";
@@ -534,106 +533,17 @@ mx_get_disk_space( char *filename,
 				filename, last_error_code, message_buffer );
 		}
 
+		if ( total_bytes_in_partition != NULL ) {
+			*total_bytes_in_partition
+			    = (uint64_t) total_number_of_bytes.QuadPart;
+		}
 		if ( total_free_bytes_in_partition != NULL ) {
 			*total_free_bytes_in_partition
 			    = (uint64_t) total_number_of_free_bytes.QuadPart;
 		}
-		if ( user_total_bytes_in_partition != NULL ) {
-			*user_total_bytes_in_partition
-			    = (uint64_t) total_number_of_bytes.QuadPart;
-		}
 		if ( user_free_bytes_in_partition != NULL ) {
 			*user_free_bytes_in_partition
 			    = (uint64_t) free_bytes_available.QuadPart;
-		}
-
-		if ( total_bytes_in_partition != NULL ) {
-
-			/* GetDiskFreeSpaceEx() does not tell us what we need
-			 * in order to compute *total_bytes_in_partition, so
-			 * we need to call DeviceIoControl() to get it.
-			 */
-#if 1
-			/* Ignore the fact that this is the quota-ed value. */
-
-			*total_bytes_in_partition
-			    = (uint64_t) total_number_of_bytes.QuadPart;
-#else
-			/* FIXME: This method requires Administrator privileges
-			 * so it is mostly useless.
-			 */
-
-			/* FIXME: The IOCTL_DISK_GET_LENGTH_INFO control code
-			 * needs a handle to the actual disk device in order
-			 * to request a GET_LENGTH_INFORMATION structure.
-			 * Currently I do not know how to get the physical
-			 * disk name from my original filename, but the need
-			 * to have Administrator privilege makes it less than
-			 * worthwhile to spend time on this.
-			 */
-
-			HINSTANCE hdisk;
-			GET_LENGTH_INFORMATION output_buffer;
-
-			static const char disk_name[] = "\\\\.\\PhysicalDrive0";
-
-			hdisk = CreateFile( disk_name, GENERIC_READ,
-				FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0 );
-
-			if ( hdisk == INVALID_HANDLE_VALUE ) {
-				DWORD last_error_code = GetLastError();
-
-				if (last_error_code == STATUS_ACCESS_VIOLATION)
-				{
-					MX_DEBUG(-2,
-				  ("%s: Permission denied for access to '%s'.",
-					fname, disk_name ));
-
-					/* Give up and use the quota-ed value.*/
-
-					*total_bytes_in_partition
-				    = (uint64_t) total_number_of_bytes.QuadPart;
-
-					return MX_SUCCESSFUL_RESULT;
-				} else {
-					mx_win32_error_message( last_error_code,
-							message_buffer,
-							sizeof(message_buffer));
-
-					return mx_error(
-					MXE_OPERATING_SYSTEM_ERROR, fname,
-					"An attempt to access the physical "
-					"drive '%s' for file '%s' failed.  "
-					"Win32 error code = %ld, "
-					"error message = '%s'.",
-					    disk_name, filename,
-					    last_error_code, message_buffer );
-				}
-			}
-
-			os_status = DeviceIoControl( hdisk,
-					IOCTL_DISK_GET_LENGTH_INFO,
-					NULL, 0, &output_buffer,
-					sizeof(GET_LENGTH_INFORMATION),
-					NULL, NULL );
-
-			if ( os_status == 0 ) {
-				last_error_code = GetLastError();
-
-				mx_win32_error_message( last_error_code,
-				message_buffer, sizeof(message_buffer) );
-
-				return mx_error(
-				MXE_OPERATING_SYSTEM_ERROR, fname,
-				"A call to DeviceIoControl() "
-				"for disk '%s' failed.  "
-				"Win32 error code = %ld, error message = '%s'.",
-				disk_name, last_error_code, message_buffer );
-			}
-
-			*total_bytes_in_partition
-			    = (uint64_t) output_buffer.Length.QuadPart;
-#endif
 		}
 	} else {
 		/* Use the crufty old function. */
@@ -682,10 +592,6 @@ mx_get_disk_space( char *filename,
 			*total_free_bytes_in_partition = bytes_per_cluster
 					* (uint64_t) number_of_free_clusters;
 		}
-		if ( user_total_bytes_in_partition != NULL ) {
-			*user_total_bytes_in_partition = bytes_per_cluster
-					* (uint64_t) total_number_of_clusters;
-		}
 		if ( user_free_bytes_in_partition != NULL ) {
 			*user_free_bytes_in_partition = bytes_per_cluster
 					* (uint64_t) number_of_free_clusters;
@@ -703,7 +609,6 @@ MX_EXPORT mx_status_type
 mx_get_disk_space( char *filename,
 		uint64_t *total_bytes_in_partition,
 		uint64_t *total_free_bytes_in_partition,
-		uint64_t *user_total_bytes_in_partition,
 		uint64_t *user_free_bytes_in_partition )
 {
 	static const char fname[] = "mx_get_disk_space()";
@@ -732,10 +637,6 @@ mx_get_disk_space( char *filename,
 	if ( total_free_bytes_in_partition != NULL ) {
 		*total_free_bytes_in_partition = fragment_size
 					* (uint64_t) fs_stats.f_bfree;;
-	}
-	if ( user_total_bytes_in_partition != NULL ) {
-		*user_total_bytes_in_partition = fragment_size
-					* (uint64_t) fs_stats.f_blocks;
 	}
 	if ( user_free_bytes_in_partition != NULL ) {
 		*user_free_bytes_in_partition = fragment_size

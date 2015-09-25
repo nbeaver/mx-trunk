@@ -60,6 +60,7 @@
 #include "mx_dirent.h"
 #include "mx_bit.h"
 #include "mx_array.h"
+#include "mx_io.h"
 #include "mx_motor.h"
 #include "mx_digital_output.h"
 #include "mx_relay.h"
@@ -5622,6 +5623,14 @@ mx_area_detector_default_get_parameter_handler( MX_AREA_DETECTOR *ad )
 		ad->maximum_frame_number = 0;
 		break;
 
+	case MXLV_AD_DISK_SPACE:
+		mx_status = mx_area_detector_get_local_disk_space( ad->record,
+							&(ad->disk_space[0]),
+							&(ad->disk_space[1]));
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+		break;
+
 	case MXLV_AD_SEQUENCE_START_DELAY:
 		ad->sequence_start_delay = 0;
 		break;
@@ -6254,6 +6263,83 @@ mx_area_detector_copy_and_convert_image_data( MX_IMAGE_FRAME *dest_frame,
 	MXIF_TIMESTAMP_NSEC(dest_frame) = MXIF_TIMESTAMP_NSEC(src_frame);
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-----------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_area_detector_get_disk_space( MX_RECORD *record,
+				uint64_t *total_disk_space,
+				uint64_t *free_disk_space )
+{
+	static const char fname[] = "mx_area_detector_get_disk_space()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *get_parameter_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = flist->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn =
+			mx_area_detector_default_get_parameter_handler;
+	}
+
+	ad->parameter_type = MXLV_AD_DISK_SPACE;
+
+	mx_status = (*get_parameter_fn)( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( total_disk_space != NULL ) {
+		*total_disk_space = ad->disk_space[0];
+	}
+	if ( free_disk_space != NULL ) {
+		*free_disk_space = ad->disk_space[1];
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_get_local_disk_space( MX_RECORD *record,
+				uint64_t *local_total_disk_space,
+				uint64_t *local_free_disk_space )
+{
+	static const char fname[] = "mx_area_detector_get_local_disk_space()";
+
+	MX_AREA_DETECTOR *ad;
+	char directory_name[MXU_FILENAME_LENGTH+1];
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers( record, &ad, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( strlen( ad->datafile_directory ) == 0 ) {
+#if defined(OS_WIN32)
+		strlcpy( directory_name, "c:/", sizeof(directory_name) );
+#else
+		strlcpy( directory_name, "/", sizeof(directory_name) );
+#endif
+		mx_status = mx_get_disk_space( directory_name, NULL,
+						local_total_disk_space,
+						local_free_disk_space );
+	} else {
+		mx_status = mx_get_disk_space( ad->datafile_directory, NULL,
+						local_total_disk_space,
+						local_free_disk_space );
+	}
+
+	return mx_status;
 }
 
 /*-----------------------------------------------------------------------*/

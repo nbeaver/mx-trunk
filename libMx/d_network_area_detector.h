@@ -49,6 +49,7 @@ typedef struct {
 	MX_NETWORK_FIELD datafile_pattern_nf;
 	MX_NETWORK_FIELD datafile_save_format_name_nf;
 	MX_NETWORK_FIELD detector_readout_time_nf;
+	MX_NETWORK_FIELD disk_space_nf;
 	MX_NETWORK_FIELD exposure_distance_nf;
 	MX_NETWORK_FIELD exposure_mode_nf;
 	MX_NETWORK_FIELD exposure_motor_name_nf;
@@ -128,7 +129,6 @@ MX_API mx_status_type mxd_network_area_detector_create_record_structures(
 MX_API mx_status_type mxd_network_area_detector_finish_record_initialization(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_network_area_detector_open( MX_RECORD *record );
-MX_API mx_status_type mxd_network_area_detector_close( MX_RECORD *record );
 MX_API mx_status_type mxd_network_area_detector_resynchronize(
 							MX_RECORD *record );
 

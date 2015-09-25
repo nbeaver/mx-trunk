@@ -133,8 +133,8 @@ motor_test_fn( int argc, char *argv[] )
 			return SUCCESS;
 		} else
 		if ( strcmp( argv[2], "disk" ) == 0 ) {
-			uint64_t total_bytes, free_bytes;
-			uint64_t total_user_bytes, free_user_bytes;
+			uint64_t total_bytes, total_free_bytes;
+			uint64_t user_free_bytes;
 
 			if ( argc < 4 ) {
 				fprintf( output,
@@ -143,19 +143,20 @@ motor_test_fn( int argc, char *argv[] )
 			}
 
 			mx_status = mx_get_disk_space( argv[3],
-					&total_bytes, &free_bytes,
-					&total_user_bytes, &free_user_bytes );
+							&total_bytes,
+							&total_free_bytes,
+							&user_free_bytes );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 
 			mx_info( "Disk containing '%s':\n"
 				"  Total bytes      = %" PRIu64 "\n"
-				"  Free bytes       = %" PRIu64 "\n"
-				"  Total user bytes = %" PRIu64 "\n"
-				"  Free user bytes  = %" PRIu64 "\n",
-				argv[3], total_bytes, free_bytes,
-				total_user_bytes, free_user_bytes );
+				"  Total free bytes = %" PRIu64 "\n"
+				"  User free bytes  = %" PRIu64 "\n",
+					argv[3], total_bytes,
+					total_free_bytes,
+					user_free_bytes );
 
 			return SUCCESS;
 		}

@@ -928,6 +928,7 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_DATAFILE_SAVE_FORMAT:
 		case MXLV_AD_DATAFILE_SAVE_FORMAT_NAME:
 		case MXLV_AD_DETECTOR_READOUT_TIME:
+		case MXLV_AD_DISK_SPACE:
 		case MXLV_AD_EXPOSURE_MOTOR_NAME:
 		case MXLV_AD_EXPOSURE_TIME:
 		case MXLV_AD_EXPOSURE_TRIGGER_NAME:
@@ -1062,6 +1063,7 @@ mx_area_detector_process_function( void *record_ptr,
 		case MXLV_AD_DATAFILE_PATTERN:
 		case MXLV_AD_DATAFILE_SAVE_FORMAT:
 		case MXLV_AD_DATAFILE_SAVE_FORMAT_NAME:
+		case MXLV_AD_DISK_SPACE:
 		case MXLV_AD_FRAME_FILENAME:
 		case MXLV_AD_NUM_CORRECTION_MEASUREMENTS:
 			ad->parameter_type = record_field->label_value;

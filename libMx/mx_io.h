@@ -54,7 +54,6 @@ MX_API int64_t mx_get_file_size( char *filename );
 MX_API mx_status_type mx_get_disk_space( char *filename,
 				uint64_t *total_bytes_in_partition,
 				uint64_t *total_free_bytes_in_partition,
-				uint64_t *user_total_bytes_in_partition,
 				uint64_t *user_free_bytes_in_partition );
 
 /*----*/

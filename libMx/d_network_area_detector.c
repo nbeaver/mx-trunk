@@ -37,7 +37,7 @@ MX_RECORD_FUNCTION_LIST mxd_network_area_detector_record_function_list = {
 	NULL,
 	NULL,
 	mxd_network_area_detector_open,
-	mxd_network_area_detector_close,
+	NULL,
 	NULL,
 	mxd_network_area_detector_resynchronize
 };
@@ -333,6 +333,12 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 		&(network_area_detector->detector_readout_time_nf),
 		network_area_detector->server_record,
 			"%s.detector_readout_time",
+			network_area_detector->remote_record_name );
+
+	mx_network_field_init(
+		&(network_area_detector->disk_space_nf),
+		network_area_detector->server_record,
+			"%s.disk_space",
 			network_area_detector->remote_record_name );
 
 	mx_network_field_init(
@@ -814,12 +820,6 @@ mxd_network_area_detector_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
 #endif
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_network_area_detector_close( MX_RECORD *record )
-{
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -1702,6 +1702,13 @@ mxd_network_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 		mx_status =
 		    mx_get( &(network_area_detector->detector_readout_time_nf),
 				MXFT_DOUBLE, &(ad->detector_readout_time) );
+		break;
+	case MXLV_AD_DISK_SPACE:
+		dimension[0] = 2;
+
+		mx_status = mx_get_array(
+				&(network_area_detector->disk_space_nf),
+				MXFT_UINT64, 1, dimension, &(ad->disk_space) );
 		break;
 	case MXLV_AD_SEQUENCE_START_DELAY:
 		mx_status =
