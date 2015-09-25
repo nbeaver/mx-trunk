@@ -433,7 +433,7 @@ mx_get_file_size( char *filename )
 typedef BOOL (*mxp_GetDiskFreeSpaceEx_type)( LPCTSTR, PULARGE_INTEGER,
 					PULARGE_INTEGER, PULARGE_INTEGER );
 
-/* The values returned by the available_... arguments may be smaller than
+/* The values returned by the user_total_... arguments may be smaller than
  * the values returned by the total_... arguments if the user calling this
  * function has a disk quota that constrains their total usage.
  */
@@ -442,8 +442,8 @@ MX_EXPORT mx_status_type
 mx_get_disk_space( char *filename,
 		uint64_t *total_bytes_in_partition,
 		uint64_t *total_free_bytes_in_partition,
-		uint64_t *available_total_bytes_in_quota,
-		uint64_t *available_free_bytes_in_quota )
+		uint64_t *user_total_bytes_in_partition,
+		uint64_t *user_free_bytes_in_partition )
 {
 	static const char fname[] = "mx_get_disk_space()";
 
@@ -538,12 +538,12 @@ mx_get_disk_space( char *filename,
 			*total_free_bytes_in_partition
 			    = (uint64_t) total_number_of_free_bytes.QuadPart;
 		}
-		if ( available_total_bytes_in_quota != NULL ) {
-			*available_total_bytes_in_quota
+		if ( user_total_bytes_in_partition != NULL ) {
+			*user_total_bytes_in_partition
 			    = (uint64_t) total_number_of_bytes.QuadPart;
 		}
-		if ( available_free_bytes_in_quota != NULL ) {
-			*available_free_bytes_in_quota
+		if ( user_free_bytes_in_partition != NULL ) {
+			*user_free_bytes_in_partition
 			    = (uint64_t) free_bytes_available.QuadPart;
 		}
 
@@ -682,12 +682,12 @@ mx_get_disk_space( char *filename,
 			*total_free_bytes_in_partition = bytes_per_cluster
 					* (uint64_t) number_of_free_clusters;
 		}
-		if ( available_total_bytes_in_quota != NULL ) {
-			*available_total_bytes_in_quota = bytes_per_cluster
+		if ( user_total_bytes_in_partition != NULL ) {
+			*user_total_bytes_in_partition = bytes_per_cluster
 					* (uint64_t) total_number_of_clusters;
 		}
-		if ( available_free_bytes_in_quota != NULL ) {
-			*available_free_bytes_in_quota = bytes_per_cluster
+		if ( user_free_bytes_in_partition != NULL ) {
+			*user_free_bytes_in_partition = bytes_per_cluster
 					* (uint64_t) number_of_free_clusters;
 		}
 	}
@@ -695,9 +695,57 @@ mx_get_disk_space( char *filename,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#else
+#elif defined(OS_LINUX)
 
-/* FIXME: On Linux, we should use statvfs(). */
+#include <sys/statvfs.h>
+
+MX_EXPORT mx_status_type
+mx_get_disk_space( char *filename,
+		uint64_t *total_bytes_in_partition,
+		uint64_t *total_free_bytes_in_partition,
+		uint64_t *user_total_bytes_in_partition,
+		uint64_t *user_free_bytes_in_partition )
+{
+	static const char fname[] = "mx_get_disk_space()";
+
+	struct statvfs fs_stats;
+	int os_status, saved_errno;
+	uint64_t fragment_size;
+
+	os_status = statvfs( filename, &fs_stats );
+
+	if ( os_status < 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"The call to statvfs( '%s', &fs_stats ) returned with "
+		"errno = %d, error message = '%s'.",
+			filename, saved_errno, strerror(saved_errno) );
+	}
+
+	fragment_size = fs_stats.f_frsize;
+
+	if ( total_bytes_in_partition != NULL ) {
+		*total_bytes_in_partition = fragment_size
+					* (uint64_t) fs_stats.f_blocks;
+	}
+	if ( total_free_bytes_in_partition != NULL ) {
+		*total_free_bytes_in_partition = fragment_size
+					* (uint64_t) fs_stats.f_bfree;;
+	}
+	if ( user_total_bytes_in_partition != NULL ) {
+		*user_total_bytes_in_partition = fragment_size
+					* (uint64_t) fs_stats.f_blocks;
+	}
+	if ( user_free_bytes_in_partition != NULL ) {
+		*user_free_bytes_in_partition = fragment_size
+					* (uint64_t) fs_stats.f_bavail;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#else
 
 #error mx_get_disk_space() has not yet been implemented for this platform.
 
