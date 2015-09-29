@@ -455,6 +455,9 @@ mx_setup_motor_process_functions( MX_RECORD *record )
 		case MXLV_MTR_SPEED:
 		case MXLV_MTR_SPEED_CHOICE_PARAMETERS:
 		case MXLV_MTR_SYNCHRONOUS_MOTION_MODE:
+		case MXLV_MTR_TRIGGER_MODE:
+		case MXLV_MTR_TRIGGER_MOVE:
+		case MXLV_MTR_TRIGGERED_MOVE_DESTINATION:
 		case MXLV_MTR_TWEAK_DISTANCE:
 		case MXLV_MTR_TWEAK_FORWARD:
 		case MXLV_MTR_TWEAK_REVERSE:
@@ -664,6 +667,9 @@ mx_motor_process_function( void *record_ptr,
 		case MXLV_MTR_EXTRA_GAIN:
 			mx_status = mx_motor_get_gain( record,
 					MXLV_MTR_EXTRA_GAIN, NULL );
+			break;
+		case MXLV_MTR_TRIGGER_MODE:
+			mx_status = mx_motor_get_trigger_mode( record, NULL );
 			break;
 		case MXLV_MTR_WINDOW:
 			mx_status = mx_motor_get_window( record, NULL,
@@ -886,6 +892,17 @@ mx_motor_process_function( void *record_ptr,
 				position_field->value_change_threshold
 					= motor->value_change_threshold;
 			}
+			break;
+		case MXLV_MTR_TRIGGERED_MOVE_DESTINATION:
+			mx_status = mx_motor_setup_triggered_move( record,
+					motor->triggered_move_destination );
+			break;
+		case MXLV_MTR_TRIGGER_MOVE:
+			mx_status = mx_motor_trigger_move( record );
+			break;
+		case MXLV_MTR_TRIGGER_MODE:
+			mx_status = mx_motor_set_trigger_mode( record,
+							motor->trigger_mode );
 			break;
 		case MXLV_MTR_WINDOW:
 			mx_status = mx_motor_set_window( record, motor->window,

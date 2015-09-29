@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2004, 2006-2007, 2009, 2011, 2013
+ * Copyright 1999, 2001-2004, 2006-2007, 2009, 2011, 2013, 2015
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -58,7 +58,11 @@ MX_MOTOR_FUNCTION_LIST mxd_soft_motor_motor_function_list = {
 	mxd_soft_motor_get_parameter,
 	mxd_soft_motor_set_parameter,
 	mxd_soft_motor_simultaneous_start,
-	mxd_soft_motor_get_status
+	mxd_soft_motor_get_status,
+	NULL,
+	NULL,
+	mxd_soft_motor_setup_triggered_move,
+	mxd_soft_motor_trigger_move
 };
 
 /* Soft motor data structures. */
@@ -627,6 +631,60 @@ mxd_soft_motor_get_status( MX_MOTOR *motor )
 	MX_DEBUG(-2,("%s: motor '%s', busy = %d, status = %#lx",
 		fname, motor->record->name, motor->busy, motor->status));
 #endif
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_soft_motor_setup_triggered_move( MX_MOTOR *motor )
+{
+	static const char fname[] = "mxd_soft_motor_setup_triggered_move()";
+
+	/* This function _must_ exist for triggered moves to work,
+	 * but the function does not need to actually do anything,
+	 * since the destination value is already located in the
+	 * motor->triggered_move_destination variable.
+	 */
+
+	MX_DEBUG(-2,("%s invoked for motor '%s', destination = %g",
+		fname, motor->record->name, motor->triggered_move_destination));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_soft_motor_trigger_move( MX_MOTOR *motor )
+{
+	static const char fname[] = "mxd_soft_motor_trigger_move()";
+
+	long mask;
+	mx_status_type mx_status;
+
+	MX_DEBUG(-2,
+	("%s invoked for motor '%s', trigger_mode = %ld, destination = %g",
+		fname, motor->record->name, motor->trigger_mode,
+		motor->triggered_move_destination));
+
+	mx_status = MX_SUCCESSFUL_RESULT;
+
+	mask = ( MXF_MTR_INTERNAL_TRIGGER | MXF_MTR_EXTERNAL_TRIGGER );
+
+	if( motor->trigger_mode == MXF_MTR_NO_TRIGGER ) {
+		/* Ignore the trigger request. */
+	} else
+	if ( motor->trigger_mode & mask ) {
+		/* This simulation driver treats both external and internal
+		 * triggers the same, since there cannot be a _real_
+		 * external trigger.
+		 */
+
+		mx_status = mx_motor_move_absolute( motor->record,
+					motor->triggered_move_destination, 0 );
+	} else {
+		mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Unrecognized trigger mode %#lx specified for motor '%s'.",
+			motor->trigger_mode, motor->record->name );
+	}
 
 	return mx_status;
 }

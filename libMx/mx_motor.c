@@ -73,6 +73,10 @@ mx_motor_finish_record_initialization( MX_RECORD *motor_record )
 			motor_record->name );
 	}
 
+	motor->triggered_move_destination = 0.0;
+	motor->trigger_move = FALSE;
+	motor->trigger_mode = MXF_MTR_NO_TRIGGER;
+
 	motor->window_is_available = FALSE;
 	motor->use_window = FALSE;
 	motor->window[0] = 0.0;
@@ -3042,6 +3046,7 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 	case MXLV_MTR_FAULT_RESET:
 	case MXLV_MTR_LIMIT_SWITCH_AS_HOME_SWITCH:
 	case MXLV_MTR_SYNCHRONOUS_MOTION_MODE:
+	case MXLV_MTR_TRIGGER_MODE:
 	case MXLV_MTR_WINDOW_IS_AVAILABLE:
 	case MXLV_MTR_USE_WINDOW:
 	case MXLV_MTR_WINDOW:
@@ -3304,6 +3309,7 @@ mx_motor_default_set_parameter_handler( MX_MOTOR *motor )
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
 	case MXLV_MTR_SAVE_START_POSITIONS:
 	case MXLV_MTR_LIMIT_SWITCH_AS_HOME_SWITCH:
+	case MXLV_MTR_TRIGGER_MODE:
 	case MXLV_MTR_WINDOW_IS_AVAILABLE:
 	case MXLV_MTR_WINDOW:
 
@@ -5227,6 +5233,145 @@ mx_motor_use_start_positions( MX_RECORD *motor_record )
 	status = ( *fptr ) ( motor );
 
 	return status;
+}
+
+/*----*/
+
+MX_EXPORT mx_status_type
+mx_motor_setup_triggered_move( MX_RECORD *motor_record,
+				double triggered_move_destination )
+{
+	static const char fname[] = "mx_motor_setup_triggered_move()";
+
+	MX_MOTOR *motor;
+	MX_MOTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *setup_triggered_move_fn ) ( MX_MOTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_motor_get_pointers( motor_record, &motor,
+						&flist, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	setup_triggered_move_fn = flist->setup_triggered_move;
+
+	if ( setup_triggered_move_fn == NULL ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Triggered moves are not supported by the driver '%s' "
+		"for motor '%s'.",
+			 mx_get_driver_name( motor_record ),
+			motor_record->name );
+	}
+
+	MX_DEBUG(-2,("%s invoked for motor '%s'.", fname, motor_record->name ));
+
+	motor->triggered_move_destination = triggered_move_destination;
+
+	mx_status = ( *setup_triggered_move_fn ) ( motor );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_motor_trigger_move( MX_RECORD *motor_record )
+{
+	static const char fname[] = "mx_motor_trigger_move()";
+
+	MX_MOTOR *motor;
+	MX_MOTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *trigger_move_fn ) ( MX_MOTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_motor_get_pointers( motor_record, &motor,
+						&flist, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	trigger_move_fn = flist->trigger_move;
+
+	if ( trigger_move_fn == NULL ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Triggered moves are not supported by the driver '%s' "
+		"for motor '%s'.",
+			 mx_get_driver_name( motor_record ),
+			motor_record->name );
+	}
+
+	MX_DEBUG(-2,("%s invoked for motor '%s'.", fname, motor_record->name ));
+
+	mx_status = ( *trigger_move_fn ) ( motor );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_motor_get_trigger_mode( MX_RECORD *motor_record, long *trigger_mode )
+{
+	static const char fname[] = "mx_motor_get_trigger_mode()";
+
+	MX_MOTOR *motor;
+	MX_MOTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *get_parameter_fn ) ( MX_MOTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_motor_get_pointers( motor_record, &motor,
+						&flist, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = flist->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	MX_DEBUG(-2,("%s invoked for motor '%s'.", fname, motor_record->name ));
+
+	motor->parameter_type = MXLV_MTR_TRIGGER_MODE;
+
+	mx_status = ( *get_parameter_fn ) ( motor );
+
+	if ( trigger_mode != (long *) NULL ) {
+		*trigger_mode = motor->trigger_mode;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_motor_set_trigger_mode( MX_RECORD *motor_record, long trigger_mode )
+{
+	static const char fname[] = "mx_motor_set_trigger_mode()";
+
+	MX_MOTOR *motor;
+	MX_MOTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *set_parameter_fn ) ( MX_MOTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_motor_get_pointers( motor_record, &motor,
+						&flist, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	set_parameter_fn = flist->set_parameter;
+
+	if ( set_parameter_fn == NULL ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	MX_DEBUG(-2,("%s invoked for motor '%s'.", fname, motor_record->name ));
+
+	motor->parameter_type = MXLV_MTR_TRIGGER_MODE;
+
+	motor->trigger_mode = trigger_mode;
+
+	mx_status = ( *set_parameter_fn ) ( motor );
+
+	return mx_status;
 }
 
 /*----*/

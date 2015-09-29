@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004, 2006, 2009, 2013
+ * Copyright 1999, 2001-2002, 2004, 2006, 2009, 2013, 2015
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -61,6 +61,8 @@ MX_API mx_status_type mxd_soft_motor_simultaneous_start( long num_motor_records,
 						double *position_array,
 						unsigned long flags );
 MX_API mx_status_type mxd_soft_motor_get_status( MX_MOTOR *motor );
+MX_API mx_status_type mxd_soft_motor_setup_triggered_move( MX_MOTOR *motor );
+MX_API mx_status_type mxd_soft_motor_trigger_move( MX_MOTOR *motor );
 
 extern MX_RECORD_FUNCTION_LIST mxd_soft_motor_record_function_list;
 extern MX_MOTOR_FUNCTION_LIST mxd_soft_motor_motor_function_list;

@@ -56,7 +56,10 @@ MX_MOTOR_FUNCTION_LIST mxd_network_motor_motor_function_list = {
 	mxd_network_motor_set_parameter,
 	NULL,
 	mxd_network_motor_get_status,
-	mxd_network_motor_get_extended_status
+	mxd_network_motor_get_extended_status,
+	NULL,
+	mxd_network_motor_setup_triggered_move,
+	mxd_network_motor_trigger_move
 };
 
 /* Soft motor data structures. */
@@ -439,6 +442,18 @@ mxd_network_motor_finish_record_initialization( MX_RECORD *record )
 	mx_network_field_init( &(network_motor->synchronous_motion_mode_nf),
 		network_motor->server_record,
 	  "%s.synchronous_motion_mode", network_motor->remote_record_name );
+
+	mx_network_field_init( &(network_motor->trigger_mode_nf),
+		network_motor->server_record,
+		"%s.trigger_mode", network_motor->remote_record_name );
+
+	mx_network_field_init( &(network_motor->trigger_move_nf),
+		network_motor->server_record,
+		"%s.trigger_move", network_motor->remote_record_name );
+
+	mx_network_field_init( &(network_motor->triggered_move_destination_nf),
+		network_motor->server_record,
+	  "%s.triggered_move_destination", network_motor->remote_record_name );
 
 	mx_network_field_init( &(network_motor->use_start_positions_nf),
 		network_motor->server_record,
@@ -1260,6 +1275,11 @@ mxd_network_motor_get_parameter( MX_MOTOR *motor )
 			MXFT_DOUBLE, &(motor->extra_gain) );
 		break;
 
+	case MXLV_MTR_TRIGGER_MODE:
+		mx_status = mx_get( &(network_motor->trigger_mode_nf),
+				MXFT_LONG, &(motor->trigger_mode) );
+		break;
+
 	case MXLV_MTR_USE_WINDOW:
 		mx_status = mx_get( &(network_motor->use_window_nf),
 				MXFT_BOOL, &(motor->use_window) );
@@ -1456,6 +1476,11 @@ mxd_network_motor_set_parameter( MX_MOTOR *motor )
 			MXFT_DOUBLE, &(motor->extra_gain) );
 		break;
 
+	case MXLV_MTR_TRIGGER_MODE:
+		mx_status = mx_put( &(network_motor->trigger_mode_nf),
+				MXFT_LONG, &(motor->trigger_mode) );
+		break;
+
 	case MXLV_MTR_USE_WINDOW:
 		mx_status = mx_put( &(network_motor->use_window_nf),
 				MXFT_BOOL, &(motor->use_window) );
@@ -1642,5 +1667,70 @@ mxd_network_motor_get_extended_status( MX_MOTOR *motor )
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_network_motor_setup_triggered_move( MX_MOTOR *motor )
+{
+	static const char fname[] = "mxd_network_motor_setup_triggered_move()";
+
+	MX_NETWORK_MOTOR *network_motor;
+	mx_status_type mx_status;
+
+	mx_status = mxd_network_motor_get_pointers( motor,
+						&network_motor, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s invoked for motor '%s'.", fname, motor->record->name));
+
+	if ( network_motor->need_to_get_remote_record_information ) {
+
+		mx_status = mxd_network_motor_get_remote_record_information(
+				motor, network_motor );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	mx_status = mx_put( &(network_motor->triggered_move_destination_nf),
+			MXFT_DOUBLE, &(motor->triggered_move_destination) );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_network_motor_trigger_move( MX_MOTOR *motor )
+{
+	static const char fname[] = "mxd_network_motor_trigger_move()";
+
+	MX_NETWORK_MOTOR *network_motor;
+	mx_bool_type trigger_move;
+	mx_status_type mx_status;
+
+	mx_status = mxd_network_motor_get_pointers( motor,
+						&network_motor, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s invoked for motor '%s'.", fname, motor->record->name));
+
+	if ( network_motor->need_to_get_remote_record_information ) {
+
+		mx_status = mxd_network_motor_get_remote_record_information(
+				motor, network_motor );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	trigger_move = TRUE;
+
+	mx_status = mx_put( &(network_motor->trigger_move_nf),
+				MXFT_BOOL, &trigger_move );
+
+	return mx_status;
 }
 

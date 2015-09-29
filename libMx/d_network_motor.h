@@ -115,6 +115,9 @@ typedef struct {
 	MX_NETWORK_FIELD speed_choice_parameters_nf;
 	MX_NETWORK_FIELD status_nf;
 	MX_NETWORK_FIELD synchronous_motion_mode_nf;
+	MX_NETWORK_FIELD trigger_mode_nf;
+	MX_NETWORK_FIELD trigger_move_nf;
+	MX_NETWORK_FIELD triggered_move_destination_nf;
 	MX_NETWORK_FIELD use_start_positions_nf;
 	MX_NETWORK_FIELD use_window_nf;
 	MX_NETWORK_FIELD velocity_feedforward_gain_nf;
@@ -148,6 +151,8 @@ MX_API mx_status_type mxd_network_motor_get_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_network_motor_set_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_network_motor_get_status( MX_MOTOR *motor );
 MX_API mx_status_type mxd_network_motor_get_extended_status( MX_MOTOR *motor );
+MX_API mx_status_type mxd_network_motor_setup_triggered_move( MX_MOTOR *motor );
+MX_API mx_status_type mxd_network_motor_trigger_move( MX_MOTOR *motor );
 
 MX_API mx_status_type mxd_network_motor_get_pointers( MX_MOTOR *motor,
 				MX_NETWORK_MOTOR **network_motor,

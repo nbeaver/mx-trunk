@@ -65,6 +65,12 @@ extern "C" {
 
 #define MXF_MTR_ACCEL_OTHER			0x10000
 
+/* Move trigger modes. */
+
+#define MXF_MTR_NO_TRIGGER			0x0
+#define MXF_MTR_INTERNAL_TRIGGER		0x1
+#define MXF_MTR_EXTERNAL_TRIGGER		0x2
+
 /* Status bit definitions for the 'status' and 'extended_status' fields. */
 
 #define MXSF_MTR_IS_BUSY			0x1
@@ -307,6 +313,24 @@ typedef struct {
 
 	mx_bool_type use_start_positions;
 
+	/* triggered_move_destination specifies the destination of a move
+	 * that is started by an external trigger signal.
+	 */
+
+	double triggered_move_destination;
+
+	/* trigger_move does an internal software start of a triggered move
+	 * that normally would be started by an external hardware trigger.
+	 */
+
+	mx_bool_type trigger_move;
+
+	/* trigger_mode specifies whether the motor is supposed to move
+	 * due to an internal trigger, external trigger, or no trigger.
+	 */
+
+	long trigger_mode;
+
 	/* The following window fields are used together with MCE window fields
 	 * to record motor positions only within a "window" specified in the
 	 * motor controller.
@@ -378,9 +402,12 @@ typedef struct {
 #define MXLV_MTR_LAST_START_TIME			1044
 #define MXLV_MTR_SAVE_START_POSITIONS			1045
 #define MXLV_MTR_USE_START_POSITIONS			1046
-#define MXLV_MTR_WINDOW_IS_AVAILABLE			1047
-#define MXLV_MTR_USE_WINDOW				1048
-#define MXLV_MTR_WINDOW					1049
+#define MXLV_MTR_TRIGGERED_MOVE_DESTINATION		1047
+#define MXLV_MTR_TRIGGER_MOVE				1048
+#define MXLV_MTR_TRIGGER_MODE				1049
+#define MXLV_MTR_WINDOW_IS_AVAILABLE			1050
+#define MXLV_MTR_USE_WINDOW				1051
+#define MXLV_MTR_WINDOW					1052
 
 #define MXLV_MTR_VALUE_CHANGE_THRESHOLD			3001
 
@@ -770,6 +797,19 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, use_start_positions), \
 	{0}, NULL, 0}, \
   \
+  {MXLV_MTR_TRIGGERED_MOVE_DESTINATION, -1, "triggered_move_destination", \
+		MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, triggered_move_destination), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_MTR_TRIGGER_MOVE, -1, "trigger_move", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, trigger_move), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_MTR_TRIGGER_MODE, -1, "trigger_mode", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, trigger_mode), \
+	{0}, NULL, 0}, \
+  \
   {MXLV_MTR_WINDOW_IS_AVAILABLE, -1, "window_is_available", \
 		MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, window_is_available), \
@@ -861,6 +901,8 @@ typedef struct {
 	mx_status_type ( *get_status )( MX_MOTOR *motor );
 	mx_status_type ( *get_extended_status )( MX_MOTOR *motor );
 	mx_status_type ( *special_home_search )( MX_MOTOR *motor );
+	mx_status_type ( *setup_triggered_move )( MX_MOTOR *motor );
+	mx_status_type ( *trigger_move )( MX_MOTOR *motor );
 } MX_MOTOR_FUNCTION_LIST;
 
 typedef mx_status_type
@@ -1125,6 +1167,19 @@ MX_API mx_status_type mx_motor_save_start_positions(
 			MX_RECORD *motor_record, double start_position );
 
 MX_API mx_status_type mx_motor_use_start_positions( MX_RECORD *motor_record );
+
+/*----*/
+
+MX_API mx_status_type mx_motor_setup_triggered_move( MX_RECORD *motor_record,
+					double triggered_move_destination );
+
+MX_API mx_status_type mx_motor_trigger_move( MX_RECORD *record );
+
+MX_API mx_status_type mx_motor_get_trigger_mode( MX_RECORD *record,
+						long *trigger_mode );
+
+MX_API mx_status_type mx_motor_set_trigger_mode( MX_RECORD *record,
+						long trigger_mode );
 
 /*----*/
 
