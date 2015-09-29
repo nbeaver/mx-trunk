@@ -126,7 +126,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 "  area_detector 'name' write roiframe 'file_format' 'filename'\n"
 "  area_detector 'name' sequence 'file_format' 'filename'\n"
 "\n"
-"  area_detector 'name' expose 'motor_name' 'shutter_name' 'trigger_name' \n"
+"  area_detector 'name' oscillation 'motor_name' 'shutter_name' 'trigger_name' \n"
 "                             'oscillation_distance' 'exposure_time'\n"
 "  area_detector 'name' arm\n"
 "  area_detector 'name' trigger\n"
@@ -735,11 +735,11 @@ motor_area_detector_fn( int argc, char *argv[] )
 		fflush( output );
 
 	} else
-	if ( strncmp( "expose", argv[3], strlen(argv[3]) ) == 0 ) {
+	if ( strncmp( "oscillation", argv[3], strlen(argv[3]) ) == 0 ) {
 
 		if ( argc != 9 ) {
 			fprintf( output,
-			"%s: not enough arguments to 'expose' command\n",
+			"%s: not enough arguments to 'oscillation' command\n",
 				cname );
 
 			fprintf( output, "%s\n", usage );
@@ -805,7 +805,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 		shutter_time = atof( argv[8] );
 
-		mx_status = mx_area_detector_setup_exposure( ad_record,
+		mx_status = mx_area_detector_setup_oscillation( ad_record,
 							motor_record,
 							shutter_record,
 							trigger_record,
@@ -815,12 +815,12 @@ motor_area_detector_fn( int argc, char *argv[] )
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
 
-		mx_status = mx_area_detector_trigger_exposure( ad_record );
+		mx_status = mx_area_detector_trigger_oscillation( ad_record );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
 
-		mx_status = mx_area_detector_wait_for_exposure_complete(
+		mx_status = mx_area_detector_wait_for_oscillation_complete(
 				ad_record, 10.0 * shutter_time );
 
 		if ( mx_status.code != MXE_SUCCESS )

@@ -57,12 +57,12 @@
 
 #define mx_area_detector_get_maximum_frame_number mx_ad_get_maximum_frame_number
 
-/* mxd_network_area_detector_trigger_exposure() collides with
+/* mxd_network_area_detector_trigger_oscillation() collides with
  * mxd_network_area_detector_trigger().
  */
 
-#define mxd_network_area_detector_trigger_exposure \
-						mxd_network_ad_trigger_exposure
+#define mxd_network_area_detector_trigger_oscillation \
+					mxd_network_ad_trigger_oscillation
 
 /* mx_network_field_get_attribute_number() collides with
  * mx_network_field_get_attribute_by_name().

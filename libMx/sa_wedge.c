@@ -435,7 +435,7 @@ mxp_wedge_scan_take_frame( MX_SCAN *scan,
 	MX_RECORD *motor_record;
 	MX_MOTOR *motor;
 	MX_RECORD *shutter_record;
-	double delta, exposure_time;
+	double delta, oscillation_time;
 	unsigned long ad_status;
 	mx_status_type mx_status;
 
@@ -454,7 +454,7 @@ mxp_wedge_scan_take_frame( MX_SCAN *scan,
 	delta = ad_scan->step_size[0];
 
 	mx_status = mx_get_measurement_time( &(scan->measurement),
-						&exposure_time );
+						&oscillation_time );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -466,34 +466,34 @@ mxp_wedge_scan_take_frame( MX_SCAN *scan,
 	MXW_UNUSED( motor );
 
 #if MXS_WEDGE_SCAN_DEBUG
-	MX_DEBUG(-2,("%s: Starting exposure of '%s' for %f seconds "
-	"using shutter '%s' with an oscillation of '%s' for %f %s",
+	MX_DEBUG(-2,("%s: Starting oscillation of '%s' for %f seconds "
+	"using shutter '%s' with an oscillation distance of '%s' for %f %s",
 		fname, ad_record->name, exposure_time,
 		shutter_record->name, motor_record->name,
 		delta, motor->units ));
 #endif
 
-	/* FIXME - Move this call to mx_area_detector_setup_exposure()
+	/* FIXME - Move this call to mx_area_detector_setup_oscillation()
 	 * to somewhere else, so that we are not doing it for each frame.
 	 */
 
-	mx_status = mx_area_detector_setup_exposure( ad_record,
+	mx_status = mx_area_detector_setup_oscillation( ad_record,
 						motor_record,
 						shutter_record,
 						NULL,
 						delta,
-						exposure_time );
+						oscillation_time );
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Trigger the exposure. */
+	/* Trigger the oscillation. */
 
-	mx_status = mx_area_detector_trigger_exposure( ad_record );
+	mx_status = mx_area_detector_trigger_oscillation( ad_record );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Wait for the exposure to finish. */
+	/* Wait for the oscillation to finish. */
 
 	while(1) {
 		mx_status = mx_area_detector_get_status( ad_record,

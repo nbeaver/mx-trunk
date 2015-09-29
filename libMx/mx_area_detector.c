@@ -314,15 +314,15 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 
 	ad->inhibit_autosave = FALSE;
 
-	ad->exposure_motor_name[0] = '\0';
+	ad->oscillation_motor_name[0] = '\0';
 	ad->shutter_name[0] = '\0';
 
-	ad->exposure_distance = 0.0;
+	ad->oscillation_distance = 0.0;
 	ad->shutter_time = 0.0;
-	ad->trigger_exposure = FALSE;
+	ad->trigger_oscillation = FALSE;
 
-	ad->exposure_motor_record = NULL;
-	ad->last_exposure_motor_name[0] = '\0';
+	ad->oscillation_motor_record = NULL;
+	ad->last_oscillation_motor_name[0] = '\0';
 
 	ad->shutter_record = NULL;
 	ad->last_shutter_name[0] = '\0';
@@ -2959,18 +2959,18 @@ mx_area_detector_image_log_show_error( MX_AREA_DETECTOR *ad,
 }
 
 MX_EXPORT mx_status_type
-mx_area_detector_setup_exposure( MX_RECORD *ad_record,
+mx_area_detector_setup_oscillation( MX_RECORD *ad_record,
 				MX_RECORD *motor_record,
 				MX_RECORD *shutter_record,
 				MX_RECORD *trigger_record,
-				double exposure_distance,
+				double oscillation_distance,
 				double shutter_time )
 {
-	static const char fname[] = "mx_area_detector_setup_exposure()";
+	static const char fname[] = "mx_area_detector_setup_oscillation()";
 
 	MX_AREA_DETECTOR *ad;
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
-	mx_status_type (*setup_exposure)( MX_AREA_DETECTOR * );
+	mx_status_type (*setup_oscillation)( MX_AREA_DETECTOR * );
 	mx_status_type mx_status;
 
 	mx_status = mx_area_detector_get_pointers( ad_record,
@@ -2979,13 +2979,13 @@ mx_area_detector_setup_exposure( MX_RECORD *ad_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	ad->exposure_motor_record = motor_record;
+	ad->oscillation_motor_record = motor_record;
 
 	if ( motor_record == (MX_RECORD *) NULL ) {
-		ad->exposure_motor_name[0] = '\0';
+		ad->oscillation_motor_name[0] = '\0';
 	} else {
-		strlcpy( ad->exposure_motor_name, motor_record->name,
-			sizeof(ad->exposure_motor_name) );
+		strlcpy( ad->oscillation_motor_name, motor_record->name,
+			sizeof(ad->oscillation_motor_name) );
 	}
 
 	ad->shutter_record = shutter_record;
@@ -2997,36 +2997,36 @@ mx_area_detector_setup_exposure( MX_RECORD *ad_record,
 			sizeof(ad->shutter_name) );
 	}
 
-	ad->exposure_trigger_record = trigger_record;
+	ad->oscillation_trigger_record = trigger_record;
 
 	if ( trigger_record == (MX_RECORD *) NULL ) {
-		ad->exposure_trigger_name[0] = '\0';
+		ad->oscillation_trigger_name[0] = '\0';
 	} else {
-		strlcpy( ad->exposure_trigger_name, trigger_record->name,
-			sizeof(ad->exposure_trigger_name) );
+		strlcpy( ad->oscillation_trigger_name, trigger_record->name,
+			sizeof(ad->oscillation_trigger_name) );
 	}
 
-	ad->exposure_distance = exposure_distance;
+	ad->oscillation_distance = oscillation_distance;
 
 	ad->shutter_time = shutter_time;
 
-	setup_exposure = flist->setup_exposure;
+	setup_oscillation = flist->setup_oscillation;
 
-	if ( setup_exposure != NULL ) {
-		mx_status = (*setup_exposure)( ad );
+	if ( setup_oscillation != NULL ) {
+		mx_status = (*setup_oscillation)( ad );
 	}
 
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mx_area_detector_trigger_exposure( MX_RECORD *ad_record )
+mx_area_detector_trigger_oscillation( MX_RECORD *ad_record )
 {
-	static const char fname[] = "mx_area_detector_trigger_exposure()";
+	static const char fname[] = "mx_area_detector_trigger_oscillation()";
 
 	MX_AREA_DETECTOR *ad;
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
-	mx_status_type (*trigger_exposure)( MX_AREA_DETECTOR * );
+	mx_status_type (*trigger_oscillation)( MX_AREA_DETECTOR * );
 	unsigned long flags;
 	mx_status_type mx_status;
 
@@ -3038,25 +3038,26 @@ mx_area_detector_trigger_exposure( MX_RECORD *ad_record )
 
 	flags = ad->area_detector_flags;
 
-	if ( flags & MXF_AD_USE_UNSAFE_EXPOSURE ) {
-		trigger_exposure = mx_area_detector_trigger_unsafe_exposure;
+	if ( flags & MXF_AD_USE_UNSAFE_OSCILLATION ) {
+		trigger_oscillation =
+			mx_area_detector_trigger_unsafe_oscillation;
 	} else {
-		trigger_exposure = flist->trigger_exposure;
+		trigger_oscillation = flist->trigger_oscillation;
 	}
 
-	if ( trigger_exposure == NULL ) {
-		if ( ad->exposure_trigger_record != (MX_RECORD *) NULL ) {
-			trigger_exposure =
-				mx_area_detector_send_exposure_trigger_pulse;
+	if ( trigger_oscillation == NULL ) {
+		if ( ad->oscillation_trigger_record != (MX_RECORD *) NULL ) {
+			trigger_oscillation =
+				mx_area_detector_send_oscillation_trigger_pulse;
 		} else {
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Area detector '%s' does not support "
-			"exposures coordinated with a shutter and a motor.",
+			"oscillations coordinated with a shutter and a motor.",
 				ad_record->name );
 		}
 	}
 
-	mx_status = (*trigger_exposure)( ad );
+	mx_status = (*trigger_oscillation)( ad );
 
 	return mx_status;
 }
@@ -3139,18 +3140,18 @@ mx_area_detector_wait_for_image_complete( MX_RECORD *record, double timeout )
 }
 
 MX_EXPORT mx_status_type
-mx_area_detector_wait_for_exposure_complete( MX_RECORD *record,
+mx_area_detector_wait_for_oscillation_complete( MX_RECORD *record,
 					double timeout )
 {
 	static const char fname[] =
-		"mx_area_detector_wait_for_exposure_complete()";
+		"mx_area_detector_wait_for_oscillation_complete()";
 
 	MX_AREA_DETECTOR *ad = NULL;
 	MX_DIGITAL_OUTPUT *doutput = NULL;
 	MX_RELAY *relay = NULL;
 	MX_MOTOR *motor = NULL;
 
-	MX_CLOCK_TICK current_tick, finish_tick, exposure_ticks;
+	MX_CLOCK_TICK current_tick, finish_tick, oscillation_ticks;
 	int comparison;
 	mx_bool_type check_for_timeout, exit_loop;
 	mx_status_type mx_status;
@@ -3160,7 +3161,7 @@ mx_area_detector_wait_for_exposure_complete( MX_RECORD *record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	motor = ad->exposure_motor_record->record_class_struct;
+	motor = ad->oscillation_motor_record->record_class_struct;
 
 	switch( ad->shutter_record->mx_class ) {
 	case MXC_DIGITAL_OUTPUT:
@@ -3182,16 +3183,17 @@ mx_area_detector_wait_for_exposure_complete( MX_RECORD *record,
 	} else {
 		check_for_timeout = TRUE;
 
-		exposure_ticks =
+		oscillation_ticks =
 			mx_convert_seconds_to_clock_ticks( ad->shutter_time );
 
 		current_tick = mx_current_clock_tick();
 
 		finish_tick = mx_add_clock_ticks( current_tick,
-						exposure_ticks );
+						oscillation_ticks );
 #if 0
-		MX_DEBUG(-2,("%s: exposure_ticks = (%lu,%lu)", fname,
-			exposure_ticks.high_order, exposure_ticks.low_order));
+		MX_DEBUG(-2,("%s: oscillation_ticks = (%lu,%lu)", fname,
+			oscillation_ticks.high_order,
+			oscillation_ticks.low_order));
 
 		MX_DEBUG(-2,
 		("%s: current_tick = (%lu,%lu), finish_tick = (%lu,%lu)",
@@ -3204,7 +3206,7 @@ mx_area_detector_wait_for_exposure_complete( MX_RECORD *record,
 
 	for(;;) {
 		mx_status = mx_motor_get_status(
-				ad->exposure_motor_record, NULL );
+				ad->oscillation_motor_record, NULL );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -3222,7 +3224,7 @@ mx_area_detector_wait_for_exposure_complete( MX_RECORD *record,
 			if ( comparison > 0 ) {
 				return mx_error( MXE_TIMED_OUT, fname,
 				"Timed out after waiting %f seconds for the "
-				"exposure motor to stop moving for "
+				"oscillation motor to stop moving for "
 				"area detector '%s'.",
 					timeout, record->name );
 			}
@@ -3309,7 +3311,7 @@ mx_area_detector_wait_for_exposure_complete( MX_RECORD *record,
 			if ( comparison > 0 ) {
 				return mx_error( MXE_TIMED_OUT, fname,
 				"Timed out after waiting %f seconds for the "
-				"exposure to end for area detector '%s'.",
+				"oscillation to end for area detector '%s'.",
 					timeout, record->name );
 			}
 		}
@@ -3320,16 +3322,16 @@ mx_area_detector_wait_for_exposure_complete( MX_RECORD *record,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/* WARNING: mx_area_detector_trigger_unsafe_exposure() is just for simulation
- * purposes.  You should not regard it as a good example of implementing
- * exposures, since there is absolutely no synchronization.
+/* WARNING: mx_area_detector_trigger_unsafe_oscillation() is just for
+ * simulation purposes.  You should not regard it as a good example of
+ * implementing oscillations, since there is absolutely no synchronization.
  */
 
 MX_EXPORT mx_status_type
-mx_area_detector_trigger_unsafe_exposure( MX_AREA_DETECTOR *ad )
+mx_area_detector_trigger_unsafe_oscillation( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] =
-		"mx_area_detector_trigger_unsafe_exposure()";
+		"mx_area_detector_trigger_unsafe_oscillation()";
 
 	mx_status_type mx_status;
 
@@ -3344,9 +3346,9 @@ mx_area_detector_trigger_unsafe_exposure( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( ad->exposure_motor_record == (MX_RECORD *) NULL ) {
+	if ( ad->oscillation_motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_INITIALIZATION_ERROR, fname,
-	    "No exposure motor has been specified for area detector '%s'.",
+	    "No oscillation motor has been specified for area detector '%s'.",
 			ad->record->name );
 	}
 
@@ -3356,8 +3358,8 @@ mx_area_detector_trigger_unsafe_exposure( MX_AREA_DETECTOR *ad )
 			ad->record->name );
 	}
 
-	mx_status = mx_motor_move_relative( ad->exposure_motor_record,
-						ad->exposure_distance, 0 );
+	mx_status = mx_motor_move_relative( ad->oscillation_motor_record,
+						ad->oscillation_distance, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -3388,10 +3390,10 @@ mx_area_detector_trigger_unsafe_exposure( MX_AREA_DETECTOR *ad )
 }
 
 MX_EXPORT mx_status_type
-mx_area_detector_send_exposure_trigger_pulse( MX_AREA_DETECTOR *ad )
+mx_area_detector_send_oscillation_trigger_pulse( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] =
-		"mx_area_detector_send_exposure_trigger_pulse()";
+		"mx_area_detector_send_oscillation_trigger_pulse()";
 
 	mx_status_type mx_status;
 
@@ -3399,9 +3401,9 @@ mx_area_detector_send_exposure_trigger_pulse( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
-	if ( ad->exposure_trigger_record == (MX_RECORD *) NULL ) {
+	if ( ad->oscillation_trigger_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_INITIALIZATION_ERROR, fname,
-	    "No exposure trigger has been specified for area detector '%s'.",
+	    "No oscillation trigger has been specified for area detector '%s'.",
 			ad->record->name );
 	}
 
@@ -3416,15 +3418,15 @@ mx_area_detector_send_exposure_trigger_pulse( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	switch( ad->exposure_trigger_record->mx_class ) {
+	switch( ad->oscillation_trigger_record->mx_class ) {
 	case MXC_RELAY:
-		mx_status = mx_relay_command( ad->exposure_trigger_record,
+		mx_status = mx_relay_command( ad->oscillation_trigger_record,
 						MXF_CLOSE_RELAY );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"The exposure trigger record '%s' for area detector '%s' "
-		"is not a relay record.", ad->exposure_trigger_record->name,
+		"The oscillation trigger record '%s' for area detector '%s' "
+		"is not a relay record.", ad->oscillation_trigger_record->name,
 			ad->record->name );
 		break;
 	}

@@ -61,8 +61,8 @@ mxd_pilatus_ad_function_list = {
 	mxd_pilatus_set_parameter,
 	mxd_pilatus_measure_correction,
 	NULL,
-	mxd_pilatus_setup_exposure,
-	mxd_pilatus_trigger_exposure
+	mxd_pilatus_setup_oscillation,
+	mxd_pilatus_trigger_oscillation
 };
 
 MX_RECORD_FIELD_DEFAULTS mxd_pilatus_rf_defaults[] = {
@@ -1161,10 +1161,10 @@ mxd_pilatus_measure_correction( MX_AREA_DETECTOR *ad )
 }
 
 MX_EXPORT mx_status_type
-mxd_pilatus_setup_exposure( MX_AREA_DETECTOR *ad )
+mxd_pilatus_setup_oscillation( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] =
-		"mxd_pilatus_setup_exposure()";
+		"mxd_pilatus_setup_oscillation()";
 
 	MX_PILATUS *pilatus = NULL;
 	mx_status_type mx_status;
@@ -1177,20 +1177,20 @@ mxd_pilatus_setup_exposure( MX_AREA_DETECTOR *ad )
 #if MXD_PILATUS_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s', motor '%s', "
 	"shutter '%s', trigger '%s', "
-	"exposure distance = %f, exposure time = %f",
-		fname, ad->record->name, ad->exposure_motor_name,
-		ad->shutter_name, ad->exposure_trigger_name,
-		ad->exposure_distance, ad->exposure_time ));
+	"oscillation distance = %f, oscillation time = %f",
+		fname, ad->record->name, ad->oscillation_motor_name,
+		ad->shutter_name, ad->oscillation_trigger_name,
+		ad->oscillation_distance, ad->exposure_time ));
 #endif
 
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mxd_pilatus_trigger_exposure( MX_AREA_DETECTOR *ad )
+mxd_pilatus_trigger_oscillation( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] =
-		"mxd_pilatus_trigger_exposure()";
+		"mxd_pilatus_trigger_oscillation()";
 
 	MX_PILATUS *pilatus = NULL;
 	mx_status_type mx_status;

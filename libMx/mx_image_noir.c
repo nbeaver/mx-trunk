@@ -889,7 +889,7 @@ mx_image_noir_write_header( FILE *file,
 
 		fprintf( file, "SCAN_TEMPLATE=%s;\n", scan_template );
 
-		if ( ad->exposure_motor_record != (MX_RECORD *) NULL ) {
+		if ( ad->oscillation_motor_record != (MX_RECORD *) NULL ) {
 			/* Write the (calculated ?) motor position
 			 * for this frame.
 			 */
@@ -899,7 +899,7 @@ mx_image_noir_write_header( FILE *file,
 
 			snprintf( temp_buffer, sizeof(temp_buffer),
 				"%s=%f;\n",
-				ad->exposure_motor_record->name,
+				ad->oscillation_motor_record->name,
 				ad->motor_position );
 
 			length = strlen( temp_buffer );

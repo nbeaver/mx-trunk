@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2013 Illinois Institute of Technology
+ * Copyright 2006-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -62,7 +62,7 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_soft_area_detector_ad_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	mx_area_detector_trigger_unsafe_exposure
+	mx_area_detector_trigger_unsafe_oscillation
 };
 
 MX_RECORD_FIELD_DEFAULTS mxd_soft_area_detector_rf_defaults[] = {

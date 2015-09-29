@@ -78,8 +78,8 @@ MX_API mx_status_type mxd_pilatus_copy_frame( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_pilatus_get_parameter( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_pilatus_set_parameter( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_pilatus_measure_correction( MX_AREA_DETECTOR *ad );
-MX_API mx_status_type mxd_pilatus_setup_exposure( MX_AREA_DETECTOR *ad );
-MX_API mx_status_type mxd_pilatus_trigger_exposure( MX_AREA_DETECTOR *ad );
+MX_API mx_status_type mxd_pilatus_setup_oscillation( MX_AREA_DETECTOR *ad );
+MX_API mx_status_type mxd_pilatus_trigger_oscillation( MX_AREA_DETECTOR *ad );
 
 extern MX_RECORD_FUNCTION_LIST mxd_pilatus_record_function_list;
 extern MX_AREA_DETECTOR_FUNCTION_LIST

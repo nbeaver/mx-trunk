@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2011, 2013-2014 Illinois Institute of Technology
+ * Copyright 2006-2011, 2013-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -64,8 +64,8 @@ mxd_network_area_detector_ad_function_list = {
 	mxd_network_area_detector_set_parameter,
 	mxd_network_area_detector_measure_correction,
 	NULL,
-	mxd_network_area_detector_setup_exposure,
-	mxd_network_area_detector_trigger_exposure
+	mxd_network_area_detector_setup_oscillation,
+	mxd_network_area_detector_trigger_oscillation
 };
 
 MX_RECORD_FIELD_DEFAULTS mxd_network_area_detector_rf_defaults[] = {
@@ -342,27 +342,9 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 			network_area_detector->remote_record_name );
 
 	mx_network_field_init(
-		&(network_area_detector->exposure_distance_nf),
-		network_area_detector->server_record,
-			"%s.exposure_distance",
-			network_area_detector->remote_record_name );
-
-	mx_network_field_init(
 		&(network_area_detector->exposure_mode_nf),
 		network_area_detector->server_record,
 		"%s.exposure_mode", network_area_detector->remote_record_name );
-
-	mx_network_field_init(
-		&(network_area_detector->exposure_motor_name_nf),
-		network_area_detector->server_record,
-			"%s.exposure_motor_name",
-			network_area_detector->remote_record_name );
-
-	mx_network_field_init(
-		&(network_area_detector->exposure_trigger_name_nf),
-		network_area_detector->server_record,
-			"%s.exposure_trigger_name",
-			network_area_detector->remote_record_name );
 
 	mx_network_field_init( &(network_area_detector->extended_status_nf),
 		network_area_detector->server_record,
@@ -445,6 +427,24 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 			"%s.num_correction_measurements",
 			network_area_detector->remote_record_name );
 
+	mx_network_field_init(
+		&(network_area_detector->oscillation_distance_nf),
+		network_area_detector->server_record,
+			"%s.oscillation_distance",
+			network_area_detector->remote_record_name );
+
+	mx_network_field_init(
+		&(network_area_detector->oscillation_motor_name_nf),
+		network_area_detector->server_record,
+			"%s.oscillation_motor_name",
+			network_area_detector->remote_record_name );
+
+	mx_network_field_init(
+		&(network_area_detector->oscillation_trigger_name_nf),
+		network_area_detector->server_record,
+			"%s.oscillation_trigger_name",
+			network_area_detector->remote_record_name );
+
 	mx_network_field_init( &(network_area_detector->readout_frame_nf),
 		network_area_detector->server_record,
 		"%s.readout_frame", network_area_detector->remote_record_name );
@@ -482,6 +482,11 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 	    "%s.sequence_start_delay",
 	    		network_area_detector->remote_record_name );
 
+	mx_network_field_init( &(network_area_detector->setup_oscillation_nf),
+		network_area_detector->server_record,
+		"%s.setup_oscillation",
+			network_area_detector->remote_record_name);
+
 	mx_network_field_init( &(network_area_detector->shutter_enable_nf),
 		network_area_detector->server_record,
 		"%s.shutter_enable",
@@ -495,10 +500,6 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 			network_area_detector->server_record,
 			"%s.shutter_time",
 			network_area_detector->remote_record_name );
-
-	mx_network_field_init( &(network_area_detector->setup_exposure_nf),
-		network_area_detector->server_record,
-		"%s.setup_exposure", network_area_detector->remote_record_name);
 
 	mx_network_field_init( &(network_area_detector->status_nf),
 		network_area_detector->server_record,
@@ -537,14 +538,14 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 		network_area_detector->server_record,
 		"%s.trigger", network_area_detector->remote_record_name );
 
-	mx_network_field_init( &(network_area_detector->trigger_exposure_nf),
-		network_area_detector->server_record,
-		"%s.trigger_exposure",
-			network_area_detector->remote_record_name);
-
 	mx_network_field_init( &(network_area_detector->trigger_mode_nf),
 		network_area_detector->server_record,
 		"%s.trigger_mode", network_area_detector->remote_record_name );
+
+	mx_network_field_init( &(network_area_detector->trigger_oscillation_nf),
+		network_area_detector->server_record,
+		"%s.trigger_oscillation",
+			network_area_detector->remote_record_name);
 
 	mx_network_field_init(
 			&(network_area_detector->use_scaled_dark_current_nf),
@@ -2433,10 +2434,10 @@ mxd_network_area_detector_measure_correction( MX_AREA_DETECTOR *ad )
 }
 
 MX_EXPORT mx_status_type
-mxd_network_area_detector_setup_exposure( MX_AREA_DETECTOR *ad )
+mxd_network_area_detector_setup_oscillation( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] =
-		"mxd_network_area_detector_setup_exposure()";
+		"mxd_network_area_detector_setup_oscillation()";
 
 	MX_NETWORK_AREA_DETECTOR *network_area_detector = NULL;
 	long dimension[1];
@@ -2451,17 +2452,17 @@ mxd_network_area_detector_setup_exposure( MX_AREA_DETECTOR *ad )
 #if MXD_NETWORK_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s', motor '%s', "
 	"shutter '%s', trigger '%s', "
-	"exposure distance = %f, exposure time = %f",
-		fname, ad->record->name, ad->exposure_motor_name,
-		ad->shutter_name, ad->exposure_trigger_name,
-		ad->exposure_distance, ad->exposure_time ));
+	"oscillation distance = %f, oscillation time = %f",
+		fname, ad->record->name, ad->oscillation_motor_name,
+		ad->shutter_name, ad->oscillation_trigger_name,
+		ad->oscillation_distance, ad->exposure_time ));
 #endif
 
 	dimension[0] = MXU_RECORD_NAME_LENGTH;
 
 	mx_status = mx_put_array(
-		&(network_area_detector->exposure_motor_name_nf),
-		MXFT_STRING, 1, dimension, ad->exposure_motor_name );
+		&(network_area_detector->oscillation_motor_name_nf),
+		MXFT_STRING, 1, dimension, ad->oscillation_motor_name );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -2473,14 +2474,14 @@ mxd_network_area_detector_setup_exposure( MX_AREA_DETECTOR *ad )
 		return mx_status;
 
 	mx_status = mx_put_array(
-		&(network_area_detector->exposure_trigger_name_nf),
-		MXFT_STRING, 1, dimension, ad->exposure_trigger_name );
+		&(network_area_detector->oscillation_trigger_name_nf),
+		MXFT_STRING, 1, dimension, ad->oscillation_trigger_name );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_put( &(network_area_detector->exposure_distance_nf),
-				MXFT_DOUBLE, &(ad->exposure_distance) );
+	mx_status = mx_put( &(network_area_detector->oscillation_distance_nf),
+				MXFT_DOUBLE, &(ad->oscillation_distance) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -2491,21 +2492,21 @@ mxd_network_area_detector_setup_exposure( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Setup the exposure. */
+	/* Setup the oscillation. */
 
-	ad->setup_exposure = TRUE;
+	ad->setup_oscillation = TRUE;
 
-	mx_status = mx_put( &(network_area_detector->setup_exposure_nf),
-				MXFT_BOOL, &(ad->setup_exposure) );
+	mx_status = mx_put( &(network_area_detector->setup_oscillation_nf),
+				MXFT_BOOL, &(ad->setup_oscillation) );
 
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mxd_network_area_detector_trigger_exposure( MX_AREA_DETECTOR *ad )
+mxd_network_area_detector_trigger_oscillation( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] =
-		"mxd_network_area_detector_trigger_exposure()";
+		"mxd_network_area_detector_trigger_oscillation()";
 
 	MX_NETWORK_AREA_DETECTOR *network_area_detector = NULL;
 	mx_status_type mx_status;
@@ -2521,10 +2522,10 @@ mxd_network_area_detector_trigger_exposure( MX_AREA_DETECTOR *ad )
 		fname, ad->record->name ));
 #endif
 
-	ad->trigger_exposure = TRUE;
+	ad->trigger_oscillation = TRUE;
 
-	mx_status = mx_put( &(network_area_detector->trigger_exposure_nf),
-				MXFT_BOOL, &(ad->trigger_exposure) );
+	mx_status = mx_put( &(network_area_detector->trigger_oscillation_nf),
+				MXFT_BOOL, &(ad->trigger_oscillation) );
 
 	return mx_status;
 }
