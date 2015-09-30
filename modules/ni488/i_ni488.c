@@ -20,7 +20,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004-2006, 2008, 2010
+ * Copyright 1999, 2001-2002, 2004-2006, 2008, 2010, 2015
  *   Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -162,14 +162,16 @@ mxi_ni488_gpib_error_text( int ibsta_value )
 	iberr_value = mx_iberr();
 
 	if ( iberr_value < 0 || iberr_value >= num_error_messages ) {
-		sprintf( dynamic_error_message,
+		snprintf( dynamic_error_message,
+			sizeof(dynamic_error_message),
 			error_message_table[ num_error_messages - 1 ],
 			iberr_value );
 
 		return &dynamic_error_message[0];
 	} else
 	if ( iberr_value == EDVR ) {
-		sprintf( dynamic_error_message,
+		snprintf( dynamic_error_message,
+			sizeof(dynamic_error_message),
 			error_message_table[ EDVR ],
 			mx_ibcntl(), strerror( mx_ibcntl() ) );
 

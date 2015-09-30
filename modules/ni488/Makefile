@@ -100,9 +100,9 @@ ni488.$(OBJ): ni488.c i_ni488.h
 i_ni488.$(OBJ): i_ni488.c i_ni488.h
 	$(COMPILE) $(CFLAGS) i_ni488.c
 
-install: $(MODULE_MXO)
+install: ni488.mxo
 	-mkdir $(MX_INSTALL_DIR)/lib/modules
-	cp $(MODULE_MXO) $(MX_INSTALL_DIR)/lib/modules
+	cp ni488.mxo $(MX_INSTALL_DIR)/lib/modules
 
 clean:
 	-$(RM) *.mxo *.o *.obj *.exp *.ilk *.lib *.pdb *.manifest
