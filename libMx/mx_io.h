@@ -46,14 +46,14 @@ MX_API int64_t mx_get_file_size( char *filename );
 
 /*----*/
 
-/* The values returned by the user_total_... arguments may be smaller than
- * the values returned by the total_... arguments if the user calling this
- * function has a disk quota that constrains their total usage.
+/*
+ * mx_get_disk_space() only reports on disk space available to 
+ * the calling user.  If user quotas are in effect, these values
+ * may be smaller than the values for the whole disk.
  */
 
 MX_API mx_status_type mx_get_disk_space( char *filename,
-				uint64_t *total_bytes_in_partition,
-				uint64_t *total_free_bytes_in_partition,
+				uint64_t *user_total_bytes_in_partition,
 				uint64_t *user_free_bytes_in_partition );
 
 /*----*/

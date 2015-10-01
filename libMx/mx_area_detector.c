@@ -6332,11 +6332,11 @@ mx_area_detector_get_local_disk_space( MX_RECORD *record,
 #else
 		strlcpy( directory_name, "/", sizeof(directory_name) );
 #endif
-		mx_status = mx_get_disk_space( directory_name, NULL,
+		mx_status = mx_get_disk_space( directory_name,
 						local_total_disk_space,
 						local_free_disk_space );
 	} else {
-		mx_status = mx_get_disk_space( ad->datafile_directory, NULL,
+		mx_status = mx_get_disk_space( ad->datafile_directory,
 						local_total_disk_space,
 						local_free_disk_space );
 	}

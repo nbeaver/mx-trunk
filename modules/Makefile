@@ -33,13 +33,13 @@ all: build
 
 #MODULES += newport_xps		# linux,
 
-MODULES += ni488		# linux,
+#MODULES += ni488		# linux,
 
 #MODULES += ni_daqmx		# linux, win32
 
 #MODULES += nuvant_ezstat	# linux, win32
 
-#MODULES += python		# (Warning: nearly finished)
+MODULES += python		# (Warning: nearly finished)
 
 #MODULES += pmc_mcapi		# linux, win32
 
@@ -92,7 +92,7 @@ MODULES += ni488		# linux,
 
 MODULES += epics
 
-MODULES += epics_aps 
+#MODULES += epics_aps 
 
 #MODULES += epics_pmac_biocat
 

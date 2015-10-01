@@ -428,20 +428,20 @@ mx_get_file_size( char *filename )
 
 /*=========================================================================*/
 
+/*
+ * mx_get_disk_space() only reports on disk space available to 
+ * the calling user.  If user quotas are in effect, these values
+ * may be smaller than the values for the whole disk.
+ */
+
 #if defined(OS_WIN32)
 
 typedef BOOL (*mxp_GetDiskFreeSpaceEx_type)( LPCTSTR, PULARGE_INTEGER,
 					PULARGE_INTEGER, PULARGE_INTEGER );
 
-/* The values returned by the user_total_... arguments may be smaller than
- * the values returned by the total_... arguments if the user calling this
- * function has a disk quota that constrains their total usage.
- */
-
 MX_EXPORT mx_status_type
 mx_get_disk_space( char *filename,
-		uint64_t *total_bytes_in_partition,
-		uint64_t *total_free_bytes_in_partition,
+		uint64_t *user_total_bytes_in_partition,
 		uint64_t *user_free_bytes_in_partition )
 {
 	static const char fname[] = "mx_get_disk_space()";
@@ -533,13 +533,9 @@ mx_get_disk_space( char *filename,
 				filename, last_error_code, message_buffer );
 		}
 
-		if ( total_bytes_in_partition != NULL ) {
-			*total_bytes_in_partition
+		if ( user_total_bytes_in_partition != NULL ) {
+			*user_total_bytes_in_partition
 			    = (uint64_t) total_number_of_bytes.QuadPart;
-		}
-		if ( total_free_bytes_in_partition != NULL ) {
-			*total_free_bytes_in_partition
-			    = (uint64_t) total_number_of_free_bytes.QuadPart;
 		}
 		if ( user_free_bytes_in_partition != NULL ) {
 			*user_free_bytes_in_partition
@@ -584,13 +580,9 @@ mx_get_disk_space( char *filename,
 		 * of Windows from 1995 or before.
 		 */
 
-		if ( total_bytes_in_partition != NULL ) {
-			*total_bytes_in_partition = bytes_per_cluster
+		if ( user_total_bytes_in_partition != NULL ) {
+			*user_total_bytes_in_partition = bytes_per_cluster
 					* (uint64_t) total_number_of_clusters;
-		}
-		if ( total_free_bytes_in_partition != NULL ) {
-			*total_free_bytes_in_partition = bytes_per_cluster
-					* (uint64_t) number_of_free_clusters;
 		}
 		if ( user_free_bytes_in_partition != NULL ) {
 			*user_free_bytes_in_partition = bytes_per_cluster
@@ -607,8 +599,7 @@ mx_get_disk_space( char *filename,
 
 MX_EXPORT mx_status_type
 mx_get_disk_space( char *filename,
-		uint64_t *total_bytes_in_partition,
-		uint64_t *total_free_bytes_in_partition,
+		uint64_t *user_total_bytes_in_partition,
 		uint64_t *user_free_bytes_in_partition )
 {
 	static const char fname[] = "mx_get_disk_space()";
@@ -630,13 +621,9 @@ mx_get_disk_space( char *filename,
 
 	fragment_size = fs_stats.f_frsize;
 
-	if ( total_bytes_in_partition != NULL ) {
-		*total_bytes_in_partition = fragment_size
+	if ( user_total_bytes_in_partition != NULL ) {
+		*user_total_bytes_in_partition = fragment_size
 					* (uint64_t) fs_stats.f_blocks;
-	}
-	if ( total_free_bytes_in_partition != NULL ) {
-		*total_free_bytes_in_partition = fragment_size
-					* (uint64_t) fs_stats.f_bfree;;
 	}
 	if ( user_free_bytes_in_partition != NULL ) {
 		*user_free_bytes_in_partition = fragment_size
