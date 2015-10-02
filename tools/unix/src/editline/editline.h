@@ -46,7 +46,7 @@ typedef unsigned char	CHAR;
 #define COPYFROMTO(new, p, len)	\
 	(void)memcpy((char *)(new), (char *)(p), (int)(len))
 
-#if 1
+#if !defined(__APPLE__)
 /* strlcpy() and strlcat() definitions added by William Lavender (2015-07-28) */
 
 extern size_t strlcpy( char *dest, const char *src, size_t maxlen );

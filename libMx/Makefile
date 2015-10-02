@@ -238,7 +238,7 @@ APP_FLAGS=$(DEFINE)__MX_APP__
 # Makefile targets.
 #
 
-mx_build: $(MX_LIBRARY_NAME)
+mx_build: mx_touch $(MX_LIBRARY_NAME)
 
 mx_clean:
 	-$(RM) *.$(OBJ)
@@ -259,12 +259,14 @@ mx_distclean: mx_clean
 	-$(RM) mx_private_version.h
 	-$(RM) mx_private_revision.h
 
-mx_depend:
-	$(TOUCH) mx_private_version.h
-	$(TOUCH) mx_private_revision.h
+mx_depend: mx_touch
 	$(MAKEDEPEND)
 
 mx_install: library_install
+
+mx_touch:
+	$(TOUCH) mx_private_version.h
+	$(TOUCH) mx_private_revision.h
 
 #
 # Include standard header file dependencies here.  If 'Makefile.depend' does

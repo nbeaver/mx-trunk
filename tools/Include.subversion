@@ -23,7 +23,8 @@ $(info Old = $(_mx_subversion_old_label))
 $(info New = $(_mx_subversion_label))
 
 ifneq ($(_mx_subversion_label),$(_mx_subversion_old_label))
-$(shell echo $(_mx_subversion_label) > mx_revision.txt && echo \#define MX_REVISION \"$(_mx_subversion_label)\" > ../libMx/mx_private_revision.h)
+$(shell echo $(_mx_subversion_label) > mx_revision.txt)
+$(shell echo \#define MX_REVISION \"$(_mx_subversion_label)\" > ../libMx/mx_private_revision.h)
 endif
 
 #------------------------------------------------------------------------

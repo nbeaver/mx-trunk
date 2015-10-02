@@ -593,7 +593,7 @@ mx_get_disk_space( char *filename,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#elif defined(OS_LINUX)
+#elif defined(OS_LINUX) | defined(OS_MACOSX)
 
 #include <sys/statvfs.h>
 

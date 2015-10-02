@@ -1337,7 +1337,7 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 	bytes_to_move = strlen( ptr );
 
 	if ( bytes_to_move >= (response_buffer_length + ( ptr-response )) ) {
-		return mx_error( MXE_UNPARSEABLE_STRING,
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
 		"The string received from Pilatus detector '%s' "
 		"was not null terminated.", pilatus->record->name );
 	}
