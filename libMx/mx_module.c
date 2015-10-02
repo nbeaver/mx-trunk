@@ -725,7 +725,7 @@ mxp_extension_finalize_fn( MX_LIST_ENTRY *list_entry,
 		}
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	MXW_NOT_REACHED( return MX_SUCCESSFUL_RESULT );
 }
 
 /*-------------------------------------------------------------------------*/

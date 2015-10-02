@@ -37,6 +37,6 @@ unix/src/editline/libedit.a:
 	( cd unix/src/editline ; $(EDITLINE_MAKECMD) )
 
 mx_clean:
-	-rm mx_private_version
+	-rm *.o mx_private_version mx_config mx_revision.txt
 	( cd unix/src/editline ; make clean )
 
