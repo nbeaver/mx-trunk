@@ -39,7 +39,7 @@ all: build
 
 #MODULES += nuvant_ezstat	# linux, win32
 
-MODULES += python		# (Warning: nearly finished)
+#MODULES += python		# (Warning: nearly finished)
 
 #MODULES += pmc_mcapi		# linux, win32
 
@@ -81,16 +81,16 @@ MODULES += python		# (Warning: nearly finished)
 
 #MODULES += rdi_mbc
 
-#MODULES += sapera_lt
+MODULES += sapera_lt
 
 #MODULES += u500
 
-#MODULES += xineos_gige
+MODULES += xineos_gige
 
 #-------------------------------------------------------------------
 # EPICS modules.
 
-MODULES += epics
+#MODULES += epics
 
 #MODULES += epics_aps 
 

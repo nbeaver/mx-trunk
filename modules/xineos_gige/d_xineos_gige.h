@@ -23,6 +23,10 @@
 
 #define MXF_XINEOS_GIGE_DO_NOT_ROTATE_IMAGE		0x1
 
+/*---*/
+
+#define MXT_XINEOS_GIGE_MIN_INTERFRAME_GAP		0.060	/* in sec */
+
 /* Values for the 'detector_model' field. */
 
 typedef struct {

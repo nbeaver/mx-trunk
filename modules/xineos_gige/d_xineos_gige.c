@@ -896,6 +896,9 @@ mxd_xineos_gige_set_parameter( MX_AREA_DETECTOR *ad )
 
 	MX_XINEOS_GIGE *xineos_gige = NULL;
 	MX_RECORD *video_input_record;
+	MX_SEQUENCE_PARAMETERS *ad_seq = NULL;
+	double *param_array = NULL;
+	double frame_gap;
 	mx_status_type mx_status;
 
 #if MXD_XINEOS_GIGE_DEBUG
@@ -921,6 +924,10 @@ mxd_xineos_gige_set_parameter( MX_AREA_DETECTOR *ad )
 						buffer, sizeof(buffer) ),
 		ad->parameter_type));
 #endif
+	ad_seq = &(ad->sequence_parameters);
+
+	param_array = ad_seq->parameter_array;
+
 	video_input_record = xineos_gige->video_input_record;
 
 	switch( ad->parameter_type ) {
@@ -945,6 +952,25 @@ mxd_xineos_gige_set_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_SEQUENCE_TYPE:
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
 	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY: 
+		/* First make sure that the gap time between frames is
+		 * at least 56 milliseconds.
+		 */
+
+		switch( ad_seq->sequence_type ) {
+		case MXT_SQ_MULTIFRAME:
+			frame_gap = param_array[2] - param_array[1];
+
+			if ( frame_gap < MXT_XINEOS_GIGE_MIN_INTERFRAME_GAP ) {
+				param_array[2] +=
+			    (MXT_XINEOS_GIGE_MIN_INTERFRAME_GAP - frame_gap);
+			}
+			break;
+		default:
+			break;
+		}
+
+		/* Now we send the command to the video capture card. */
+
 		mx_status = mx_video_input_set_sequence_parameters(
 					video_input_record,
 					&(ad->sequence_parameters) );
