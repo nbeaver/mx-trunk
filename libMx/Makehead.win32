@@ -116,6 +116,21 @@ MSDEV_ARCH	= x64
 #
 
 #
+# If MX_MSDEV_DIR has been defined in the environment, then we set the value
+# of MSDEV_DIR from that.  Typically, MX_MSDEV_DIR will be set by a Cygwin
+# bash script that sets up the environment variables to run the compiler for
+# Microsoft Visual C++.  Example scripts for this can be found in the MX
+# source code tree in the directory mx/scripts/windows/visual_studio.
+#
+# If MX_MSDEV_DIR is _not_ defined in the environment, then you must set the
+# value of MSDEV_DIR below manually.
+#
+
+ifdef MX_MSDEV_DIR
+MSDEV_DIR=$(MX_MSDEV_DIR)
+endif
+
+#
 # Visual C++ 2012 Pro (beta)     (_MSC_VER == 1700)
 #
 # Full name: 'c:\Program Files (x86)\Windows Kits\8.0\Lib\win8\um'
@@ -130,7 +145,7 @@ MSDEV_ARCH	= x64
 #MSDEV_DIR	= c:\\progra~1\\micros~3\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~1\\micros~4\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~1\\mi2578~1\\Windows\\v7.0A
-MSDEV_DIR	= c:\\progra~2\\micros~1\\Windows\\v7.0A
+#MSDEV_DIR	= c:\\progra~2\\micros~1\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~2\\micros~3\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~2\\micros~4\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~2\\mia713~1\\Windows\\v7.0A

@@ -93,3 +93,5 @@ new_path="$new_path:$old_path"
 
 export PATH="$new_path"
 
+export MX_MSDEV_DIR=`cygpath -w $cyg_sdk_dir | sed 's/\\\\/\\\\\\\\/g'`
+
