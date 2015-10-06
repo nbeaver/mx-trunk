@@ -22,6 +22,7 @@
 
 #include "mx_osdef.h"
 #include "mx_private_version.h"
+#include "mx_program_model.h"
 #include "mx_util.h"
 
 #if defined(OS_UNIX)
@@ -44,13 +45,16 @@ print_usage( void )
 	"  glibc\n"
 	"  gnuc\n"
 	"  library\n"
-	"  major\n"
-	"  minor\n"
 	"  musl\n"
-	"  os\n"
+	"  mx_arch\n"
+	"  mx_install_dir\n"
+	"  mx_major\n"
+	"  mx_minor\n"
+	"  mx_update\n"
+	"  mx_version\n"
+	"  os_version\n"
 	"  python\n"
-	"  update\n"
-	"  version\n"
+	"  wordsize\n"
 	"\n"
 	);
 
@@ -65,20 +69,28 @@ main( int argc, char **argv )
 		exit(1);
 	}
 
-	if ( strcmp( argv[1], "version" ) == 0 ) {
+	if ( strcmp( argv[1], "mx_arch" ) == 0 ) {
+		printf( "%s\n", MX_ARCH );
+		exit(0);
+	}
+	if ( strcmp( argv[1], "mx_version" ) == 0 ) {
 		printf( "%ld\n", MX_VERSION );
 		exit(0);
 	}
-	if ( strcmp( argv[1], "major" ) == 0 ) {
+	if ( strcmp( argv[1], "mx_major" ) == 0 ) {
 		printf( "%d\n", MX_MAJOR_VERSION );
 		exit(0);
 	}
-	if ( strcmp( argv[1], "minor" ) == 0 ) {
+	if ( strcmp( argv[1], "mx_minor" ) == 0 ) {
 		printf( "%d\n", MX_MINOR_VERSION );
 		exit(0);
 	}
-	if ( strcmp( argv[1], "update" ) == 0 ) {
+	if ( strcmp( argv[1], "mx_update" ) == 0 ) {
 		printf( "%d\n", MX_UPDATE_VERSION );
+		exit(0);
+	}
+	if ( strcmp( argv[1], "wordsize" ) == 0 ) {
+		printf( "%d\n", MX_POINTER_SIZE );
 		exit(0);
 	}
 
@@ -113,6 +125,8 @@ main( int argc, char **argv )
 		printf( "glibc\n" );
 #elif defined(MX_MUSL_VERSION)
 		printf( "musl\n" );
+#elif defined(_MSC_VER)
+		printf( "msvcrt\n" );
 #else
 		printf( "unknown\n" );
 #endif
@@ -121,7 +135,7 @@ main( int argc, char **argv )
 
 /*------------------------------------------------------------------------*/
 
-	if ( strcmp( argv[1], "os" ) == 0 ) {
+	if ( strcmp( argv[1], "os_version" ) == 0 ) {
 
 #if defined(MX_CYGWIN_VERSION)
 		printf( "%ld\n", MX_CYGWIN_VERSION );

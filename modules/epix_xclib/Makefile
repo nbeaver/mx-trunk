@@ -2,8 +2,54 @@
 # This module can be used on the 'linux' and 'win32' platforms.
 #
 
+#---------------------------------------------------------------------------
+# If MX_ARCH is not defined, figure it out from the output of "uname".
+#
+
+os := $(shell uname -o)
+
 ifndef MX_ARCH
-  MX_ARCH = linux
+
+ifeq ($(os),GNU/Linux)
+MX_ARCH = linux
+endif
+
+#----------------------
+# Note that the win32 platform is built from within Cygwin but does not
+# link to Cygwin.  Instead, it links to MSVCRT.
+#
+
+ifeq ($(os),Cygwin)
+MX_ARCH = win32
+endif
+
+endif
+
+#---------------------------------------------------------------------------
+# If EPIX_ARCH is not defined, figure it out from the output of "uname".
+#
+
+ifndef EPIX_ARCH
+
+ifeq ($(MX_ARCH),linux)
+
+machine := $(shell uname -m)
+
+ifeq ($(machine),i686)
+EPIX_ARCH = i386
+endif
+ifeq ($(machine),x86_64)
+EPIX_ARCH = x86_64_pic
+endif
+
+#----------------------
+
+ifeq ($(MX_ARCH),win32)
+
+kernel := $(shell uname -s | cut -f3 -d'-' )
+
+ifeq ($(kernel),WOW64)
+
 endif
 
 #EPIX_ARCH = i386

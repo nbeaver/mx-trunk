@@ -21,7 +21,7 @@ all: build
 
 #MODULES += edt			# linux,
 
-#MODULES += epix_xclib		# linux, win32
+MODULES += epix_xclib		# linux, win32
 
 #MODULES += esone_camac		# linux, win32
 
@@ -31,7 +31,7 @@ all: build
 
 #MODULES += libusb-0.1		# linux,
 
-MODULES += newport_xps		# linux,
+#MODULES += newport_xps		# linux,
 
 #MODULES += ni488		# linux,
 
@@ -90,9 +90,9 @@ MODULES += newport_xps		# linux,
 #-------------------------------------------------------------------
 # EPICS modules.
 
-MODULES += epics
+#MODULES += epics
 
-MODULES += epics_aps 
+#MODULES += epics_aps 
 
 #MODULES += epics_pmac_biocat
 
