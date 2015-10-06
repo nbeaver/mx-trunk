@@ -128,6 +128,8 @@ MSDEV_ARCH	= x64
 
 ifdef MX_MSDEV_DIR
 MSDEV_DIR=$(MX_MSDEV_DIR)
+else
+Error MSDEV_DIR not defined!
 endif
 
 #
