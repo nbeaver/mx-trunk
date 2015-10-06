@@ -1,64 +1,73 @@
 #
 # This module can be used on the 'linux' and 'win32' platforms.
 #
-
 #---------------------------------------------------------------------------
-# If MX_ARCH is not defined, figure it out from the output of "uname".
+#
+# If you need to override the values of MX_ARCH, EPIX_ARCH, or EPIX_XCLIB_DIR,
+# then do so following this comment here.
 #
 
-os := $(shell uname -o)
+#---------------------------------------------------------------------------
+# If MX_ARCH is not defined, get it from 'mx_config'.
+#
 
 ifndef MX_ARCH
-
-ifeq ($(os),GNU/Linux)
-MX_ARCH = linux
-endif
-
-#----------------------
-# Note that the win32 platform is built from within Cygwin but does not
-# link to Cygwin.  Instead, it links to MSVCRT.
-#
-
-ifeq ($(os),Cygwin)
-MX_ARCH = win32
-endif
-
+MX_ARCH := $(shell ../../tools/mx_config mx_arch)
 endif
 
 #---------------------------------------------------------------------------
-# If EPIX_ARCH is not defined, figure it out from the output of "uname".
+# If EPIX_ARCH is not defined, figure it out from the output of 'mx_config'.
 #
 
 ifndef EPIX_ARCH
 
+wordsize := $(shell ../../tools/mx_config wordsize)
+
+#----------------------
+
 ifeq ($(MX_ARCH),linux)
 
-machine := $(shell uname -m)
-
-ifeq ($(machine),i686)
+ifeq ($(wordsize),32)
 EPIX_ARCH = i386
 endif
-ifeq ($(machine),x86_64)
+ifeq ($(wordsize),64)
 EPIX_ARCH = x86_64_pic
+endif
+
 endif
 
 #----------------------
 
 ifeq ($(MX_ARCH),win32)
 
-kernel := $(shell uname -s | cut -f3 -d'-' )
-
-ifeq ($(kernel),WOW64)
+ifeq ($(wordsize),32)
+EPIX_ARCH = w32
+endif
+ifeq ($(wordsize),64)
+EPIX_ARCH = w64
+endif
 
 endif
 
-#EPIX_ARCH = i386
-EPIX_ARCH = x86_64_pic
-#EPIX_ARCH = w64
+#----------------------
 
+endif
+
+#---------------------------------------------------------------------------
+# If EPIX_XCLIB_DIR is not defined, figure from variables defined earlier
+# in this Makefile.
+#
+
+ifndef EPIX_XCLIB_DIR
+
+ifeq ($(MX_ARCH),linux)
 EPIX_XCLIB_DIR = /usr/local/xclib
+endif
+ifeq ($(MX_ARCH),win32)
+EPIX_XCLIB_DIR = c:\\progra~1\\EPIX\\XCLIB
+endif
 
-#EPIX_XCLIB_DIR = c:\\progra~1\\EPIX\\XCLIB
+endif
 
 #--------------------------------------------------------------------------
 
