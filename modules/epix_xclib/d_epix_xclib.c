@@ -28,7 +28,7 @@
 
 #define MXD_EPIX_XCLIB_DEBUG_STOP			FALSE
 
-#define MXD_EPIX_XCLIB_DEBUG_SIGNALS			TRUE	/* Keep on */
+#define MXD_EPIX_XCLIB_DEBUG_CAPTURED_FIELDS		TRUE	/* Keep on */
 
 #define MXD_EPIX_XCLIB_DEBUG_EXTENDED_STATUS		FALSE
 
@@ -187,6 +187,11 @@ mxd_epix_xclib_captured_field_thread_fn( void *args_ptr )
 		return FALSE;
 	}
 
+#if MXD_EPIX_XCLIB_DEBUG_CAPTURED_FIELDS
+	MX_DEBUG(-2,("%s will look for events from captured field event %p",
+	fname, epix_xclib_vinput->captured_field_event ));
+#endif
+
 	/* Wait for captured field events to occur. */
 
 	milliseconds = INFINITE;
@@ -195,6 +200,11 @@ mxd_epix_xclib_captured_field_thread_fn( void *args_ptr )
 		os_status = WaitForSingleObject(
 				epix_xclib_vinput->captured_field_event,
 				milliseconds );
+
+#if MXD_EPIX_XCLIB_DEBUG_CAPTURED_FIELDS
+		MX_DEBUG(-2,("%s: WaitForSingleObject() returned %d.",
+			fname, os_status));
+#endif
 
 		switch( os_status ) {
 		case WAIT_OBJECT_0:
@@ -206,6 +216,10 @@ mxd_epix_xclib_captured_field_thread_fn( void *args_ptr )
 			InterlockedIncrement(
 			    &(epix_xclib_vinput->uint32_total_num_frames) );
 
+#if MXD_EPIX_XCLIB_DEBUG_CAPTURED_FIELDS
+			MX_DEBUG(-2,("CAPTURE: Total num_frames = %lu",
+				epix_xclib_vinput->uint32_total_num_frames));
+#endif
 			break;
 
 		case WAIT_TIMEOUT:
@@ -352,7 +366,7 @@ mxd_epix_xclib_captured_field_signal_handler( int signal_number,
 			:"m" (_total_num_frames_sigusr2));
 	}
 
-#if MXD_EPIX_XCLIB_DEBUG_SIGNALS
+#if MXD_EPIX_XCLIB_DEBUG_CAPTURED_FIELDS
 	/* Show the current value of mxd_epix_xclib_total_num_frames. */
 
 	{
@@ -400,7 +414,7 @@ mxd_epix_xclib_captured_field_signal_handler( int signal_number,
 
 		write( 2, "\n", 1 );
 	}
-#endif  /* MXD_EPIX_XCLIB_DEBUG_SIGNALS */
+#endif  /* MXD_EPIX_XCLIB_DEBUG_CAPTURED_FIELDS */
 
 	return;
 }
