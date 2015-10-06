@@ -1849,7 +1849,7 @@ mxd_newport_xps_set_parameter( MX_MOTOR *motor )
 
 		if ( xps_status != SUCCESS ) {
 			return mxi_newport_xps_error( newport_xps->socket_id,
-					"PositionerSGammaParametersGet()",
+					"PositionerSGammaParametersSet()",
 					xps_status );
 		}
 		break;
