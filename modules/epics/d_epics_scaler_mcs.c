@@ -21,9 +21,13 @@
  *
  */
 
-#define MXD_EPICS_SCALER_MCS_DEBUG_CALLBACK	TRUE
+#define MXD_EPICS_SCALER_MCS_DEBUG_OPEN		FALSE
 
-#define MXD_EPICS_SCALER_MCS_DEBUG_TIMING	TRUE
+#define MXD_EPICS_SCALER_MCS_DEBUG_CLEAR	FALSE
+
+#define MXD_EPICS_SCALER_MCS_DEBUG_CALLBACK	FALSE
+
+#define MXD_EPICS_SCALER_MCS_DEBUG_TIMING	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -489,8 +493,10 @@ mxd_epics_scaler_mcs_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXD_EPICS_SCALER_MCS_DEBUG_OPEN
 	MX_DEBUG(-2,("%s: '%s' = %f",
 		fname, pvname, epics_scaler_mcs->version));
+#endif
 
 	/* Initialize the PVs we will use. */
 
@@ -515,8 +521,10 @@ mxd_epics_scaler_mcs_open( MX_RECORD *record )
 
 	epics_scaler_mcs->num_channels = num_channels;
 
+#if MXD_EPICS_SCALER_MCS_DEBUG_OPEN
 	MX_DEBUG(-2,("%s: '%s' num_channels = %lu",
 		fname, record->name, epics_scaler_mcs->num_channels));
+#endif
 
 	/* Allocate an array of MX_EPICS_PV structures to contain the values
 	 * from the S1 to S64 readout PVs.
@@ -632,7 +640,9 @@ mxd_epics_scaler_mcs_clear( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXD_EPICS_SCALER_MCS_DEBUG_CLEAR
 	MX_DEBUG(-2,("%s invoked for '%s'", fname, mcs->record->name));
+#endif
 
 	mcs->measurement_number = -1;
 
