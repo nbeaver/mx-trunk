@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2006-2007, 2011 Illinois Institute of Technology
+ * Copyright 2006-2007, 2011, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -49,7 +49,11 @@
 #   define MX_CFN_CWD_DIR		"."
 #   define MX_CFN_MODULE_DIR		"${MXDIR}/lib/modules"
 
-#   define MX_CFN_DEFAULT_MXDIR		"/opt/mx"
+#   if defined(OS_WIN32)
+#      define MX_CFN_DEFAULT_MXDIR	"c:/opt/mx"
+#   else
+#      define MX_CFN_DEFAULT_MXDIR	"/opt/mx"
+#   endif
 #endif
 
 #endif /* __MX_CFN_DEFAULTS_H__ */

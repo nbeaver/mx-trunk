@@ -321,6 +321,12 @@ extern "C" {
 
 /*------------------------------------------------------------------------*/
 
+/* Environment variable related functions. */
+
+MX_API int mx_setenv( const char *env_name, const char *env_value );
+
+/*------------------------------------------------------------------------*/
+
 /* Sleep functions with higher resolution than sleep(). */
 
 MX_API void mx_sleep( unsigned long seconds );

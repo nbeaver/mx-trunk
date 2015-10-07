@@ -187,21 +187,25 @@ mxd_epix_xclib_captured_field_thread_fn( void *args_ptr )
 		return FALSE;
 	}
 
-#if MXD_EPIX_XCLIB_DEBUG_CAPTURED_FIELDS
+#if 1
 	MX_DEBUG(-2,("%s will look for events from captured field event %p",
 	fname, epix_xclib_vinput->captured_field_event ));
 #endif
 
 	/* Wait for captured field events to occur. */
 
+#if 1
 	milliseconds = INFINITE;
+#else
+	milliseconds = 1000;
+#endif
 
 	while (1) {
 		os_status = WaitForSingleObject(
 				epix_xclib_vinput->captured_field_event,
 				milliseconds );
 
-#if MXD_EPIX_XCLIB_DEBUG_CAPTURED_FIELDS
+#if 1
 		MX_DEBUG(-2,("%s: WaitForSingleObject() returned %d.",
 			fname, os_status));
 #endif

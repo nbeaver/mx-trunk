@@ -103,156 +103,156 @@ include Makefile.depend
 
 APP_FLAGS=$(DEFINE)__MX_APP__
 
-command.$(OBJ):
+command.$(OBJ): command.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) command.c
 
-marea_detector.$(OBJ):
+marea_detector.$(OBJ): marea_detector.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) marea_detector.c
 
-mcopy.$(OBJ):
+mcopy.$(OBJ): mcopy.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mcopy.c
 
-mcopyfile.$(OBJ):
+mcopyfile.$(OBJ): mcopyfile.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mcopyfile.c
 
-mcount.$(OBJ):
+mcount.$(OBJ): mcount.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mcount.c
 
-mdelete.$(OBJ):
+mdelete.$(OBJ): mdelete.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mdelete.c
 
-mdialog.$(OBJ):
+mdialog.$(OBJ): mdialog.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mdialog.c
 
-mdisplay.$(OBJ):
+mdisplay.$(OBJ): mdisplay.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mdisplay.c
 
-mexec.$(OBJ):
+mexec.$(OBJ): mexec.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mexec.c
 
-mgpib.$(OBJ):
+mgpib.$(OBJ): mgpib.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mgpib.c
 
-mheader.$(OBJ):
+mheader.$(OBJ): mheader.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mheader.c
 
-mhelp.$(OBJ):
+mhelp.$(OBJ): mhelp.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mhelp.c
 
-mhome.$(OBJ):
+mhome.$(OBJ): mhome.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mhome.c
 
-minit.$(OBJ):
+minit.$(OBJ): minit.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) minit.c
 
-mjog.$(OBJ):
+mjog.$(OBJ): mjog.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mjog.c
 
-mkill.$(OBJ):
+mkill.$(OBJ): mkill.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mkill.c
 
-mload.$(OBJ):
+mload.$(OBJ): mload.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mload.c
 
-mmca.$(OBJ):
+mmca.$(OBJ): mmca.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mmca.c
 
-mmcs.$(OBJ):
+mmcs.$(OBJ): mmcs.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mmcs.c
 
-mmeasure.$(OBJ):
+mmeasure.$(OBJ): mmeasure.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mmeasure.c
 
-mmodify.$(OBJ):
+mmodify.$(OBJ): mmodify.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mmodify.c
 
-mmove_absolute.$(OBJ):
+mmove_absolute.$(OBJ): mmove_absolute.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mmove_absolute.c
 
-mmove_relative.$(OBJ):
+mmove_relative.$(OBJ): mmove_relative.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mmove_relative.c
 
-motor.$(OBJ):
+motor.$(OBJ): motor.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) motor.c
 
-moverwrite.$(OBJ):
+moverwrite.$(OBJ): moverwrite.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) moverwrite.c
 
-mparameter.$(OBJ):
+mparameter.$(OBJ): mparameter.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mparameter.c
 
-mptz.$(OBJ):
+mptz.$(OBJ): mptz.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mptz.c
 
-mrelay.$(OBJ):
+mrelay.$(OBJ): mrelay.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mrelay.c
 
-mresync.$(OBJ):
+mresync.$(OBJ): mresync.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mresync.c
 
-mrs232.$(OBJ):
+mrs232.$(OBJ): mrs232.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mrs232.c
 
-msample_changer.$(OBJ):
+msample_changer.$(OBJ): msample_changer.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) msample_changer.c
 
-msave.$(OBJ):
+msave.$(OBJ): msave.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) msave.c
 
-msca.$(OBJ):
+msca.$(OBJ): msca.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) msca.c
 
-mscan.$(OBJ):
+mscan.$(OBJ): mscan.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mscan.c
 
-mscan_common.$(OBJ):
+mscan_common.$(OBJ): mscan_common.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mscan_common.c
 
-mscan_area_detector.$(OBJ):
+mscan_area_detector.$(OBJ): mscan_area_detector.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mscan_area_detector.c
 
-mscan_linear.$(OBJ):
+mscan_linear.$(OBJ): mscan_linear.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mscan_linear.c
 
-mscan_list.$(OBJ):
+mscan_list.$(OBJ): mscan_list.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mscan_list.c
 
-mscan_quick.$(OBJ):
+mscan_quick.$(OBJ): mscan_quick.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mscan_quick.c
 
-mscan_xafs.$(OBJ):
+mscan_xafs.$(OBJ): mscan_xafs.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mscan_xafs.c
 
-mscript.$(OBJ):
+mscript.$(OBJ): mscript.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mscript.c
 
-mset.$(OBJ):
+mset.$(OBJ): mset.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mset.c
 
-mset_motor.$(OBJ):
+mset_motor.$(OBJ): mset_motor.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mset_motor.c
 
-msetup.$(OBJ):
+msetup.$(OBJ): msetup.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) msetup.c
 
-mshow.$(OBJ):
+mshow.$(OBJ): mshow.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mshow.c
 
-mstart.$(OBJ):
+mstart.$(OBJ): mstart.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mstart.c
 
-mstop.$(OBJ):
+mstop.$(OBJ): mstop.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mstop.c
 
-msystem.$(OBJ):
+msystem.$(OBJ): msystem.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) msystem.c
 
-mtest.$(OBJ):
+mtest.$(OBJ): mtest.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mtest.c
 
-mvinput.$(OBJ):
+mvinput.$(OBJ): mvinput.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mvinput.c
 
-mwvout.$(OBJ):
+mwvout.$(OBJ): mwvout.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mwvout.c
 

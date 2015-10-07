@@ -145,6 +145,15 @@ msauto_setup_output_functions( void )
 
 /*------------------------------------------------------------------*/
 
+static void
+wait_at_exit_fn( void )
+{
+	fprintf( stderr, "Press any key to exit...\n" );
+	mx_getch();
+}
+
+/*------------------------------------------------------------------*/
+
 int
 main( int argc, char *argv[] )
 {
@@ -172,6 +181,8 @@ main( int argc, char *argv[] )
 	int syslog_number, syslog_options;
 	int default_display_precision;
 	mx_bool_type start_debugger, install_syslog_handler;
+	mx_bool_type wait_for_debugger, just_in_time_debugging;
+	mx_bool_type wait_at_exit;
 	mx_bool_type no_restore, restore_only, save_only;
 	unsigned long network_debug_flags;
 	mx_status_type mx_status;
@@ -214,6 +225,9 @@ main( int argc, char *argv[] )
 	network_debug_flags = 0;
 
 	start_debugger = FALSE;
+	wait_for_debugger = FALSE;
+	wait_at_exit = FALSE;
+	just_in_time_debugging = FALSE;
 
 	debug_level = 0;
 
@@ -233,7 +247,7 @@ main( int argc, char *argv[] )
 
 	error_flag = FALSE;
 
-	while ((c = getopt(argc, argv, "aAd:Dl:L:P:Rrsu:x")) != -1 ) {
+	while ((c = getopt(argc, argv, "aAd:DJl:L:P:Rrsu:x")) != -1 ) {
 		switch(c) {
 		case 'a':
 			network_debug_flags |= MXF_NETDBG_SUMMARY;
@@ -246,6 +260,9 @@ main( int argc, char *argv[] )
 			break;
 		case 'D':
 			start_debugger = TRUE;
+			break;
+		case 'J':
+			just_in_time_debugging = TRUE;
 			break;
 		case 'l':
 			install_syslog_handler = TRUE;
@@ -275,7 +292,18 @@ main( int argc, char *argv[] )
 			update_interval_in_seconds = atof( optarg );
 			break;
 		case 'x':
-			putenv("MX_DEBUGGER=xterm -e gdbtui -p %lu");
+			putenv("MX_DEBUGGER=xterm -e gdb -tui -p %lu");
+			break;
+		case 'w':
+			wait_for_debugger = TRUE;
+			break;
+		case 'W':
+			wait_at_exit = TRUE;
+			break;
+		case 'Y':
+			/* Directly set the value of MXDIR. */
+
+			mx_setenv( "MXDIR", optarg );
 			break;
 		case '?':
 			error_flag = TRUE;
@@ -302,7 +330,24 @@ main( int argc, char *argv[] )
 #endif /* HAVE_GETOPT */
 
 	if ( start_debugger ) {
-		mx_start_debugger(NULL);
+		mx_prepare_for_debugging( NULL, just_in_time_debugging );
+
+		mx_start_debugger( NULL );
+	} else
+	if ( just_in_time_debugging ) {
+		mx_prepare_for_debugging( NULL, just_in_time_debugging );
+	}
+
+	if ( wait_for_debugger ) {
+		mx_wait_for_debugger();
+	}
+
+	if ( wait_at_exit ) {
+		fprintf( stderr,
+			"This program will wait at exit to be closed.\n" );
+		fflush( stderr );
+
+		atexit( wait_at_exit_fn );
 	}
 
 	if ( save_only && restore_only ) {

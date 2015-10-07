@@ -549,6 +549,25 @@ mx_username( char *buffer, size_t max_buffer_length )
 
 /*-------------------------------------------------------------------------*/
 
+#if defined(OS_WIN32)
+
+MX_EXPORT int
+mx_setenv( const char *env_name,
+		const char *env_value )
+{
+	int saved_errno;
+
+	saved_errno = _putenv_s( env_name, env_value );
+
+	return saved_errno;
+}
+
+#else
+#error mx_setenv() has not been implemented for this platform.
+#endif
+
+/*-------------------------------------------------------------------------*/
+
 MX_EXPORT unsigned long
 mx_hex_char_to_unsigned_long( char c )
 {

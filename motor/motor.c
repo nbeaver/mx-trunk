@@ -166,6 +166,15 @@ timestamp_warning_output( char *string )
 
 /*------------------------------------------------------------------------*/
 
+static void
+wait_at_exit_fn( void )
+{
+	fprintf( stderr, "Press any key to exit...\n" );
+	mx_getch();
+}
+
+/*------------------------------------------------------------------------*/
+
 #define MAX_SCAN_SAVEFILES	5
 
 #define EXIT_WITH_PROMPT		0
@@ -198,6 +207,7 @@ motor_main( int argc, char *argv[] )
 	char prompt[80];
 	char saved_command_name[80];
 	mx_bool_type wait_for_debugger, just_in_time_debugging;
+	mx_bool_type wait_at_exit;
 	mx_bool_type verify_drivers;
 
 	static char
@@ -262,6 +272,7 @@ motor_main( int argc, char *argv[] )
 
 	start_debugger = FALSE;
 	wait_for_debugger = FALSE;
+	wait_at_exit = FALSE;
 	just_in_time_debugging = FALSE;
 	verify_drivers = FALSE;
 
@@ -272,7 +283,8 @@ motor_main( int argc, char *argv[] )
 
 	error_flag = FALSE;
 
-	while ((c = getopt(argc,argv,"aAd:DF:f:Hg:iJNnP:p:S:s:tT:uVwxz")) != -1)
+	while (
+	  (c = getopt(argc,argv,"aAd:DF:f:Hg:iJNnP:p:S:s:tT:uVwWY:xz")) != -1)
 	{
 		switch (c) {
 		case 'a':
@@ -362,8 +374,16 @@ motor_main( int argc, char *argv[] )
 		case 'w':
 			wait_for_debugger = TRUE;
 			break;
+		case 'W':
+			wait_at_exit = TRUE;
+			break;
 		case 'x':
-			putenv("MX_DEBUGGER=xterm -e gdbtui -p %lu");
+			putenv("MX_DEBUGGER=xterm -e gdb -tui -p %lu");
+			break;
+		case 'Y':
+			/* Directly set the value of MXDIR. */
+
+			mx_setenv( "MXDIR", optarg );
 			break;
 		case 'z':
 			ignore_scan_savefiles = TRUE;
@@ -392,6 +412,14 @@ motor_main( int argc, char *argv[] )
 
 	if ( wait_for_debugger ) {
 		mx_wait_for_debugger();
+	}
+
+	if ( wait_at_exit ) {
+		fprintf( stderr,
+			"This program will wait at exit to be closed.\n" );
+		fflush( stderr );
+
+		atexit( wait_at_exit_fn );
 	}
 
 #endif /* HAVE_GETOPT */

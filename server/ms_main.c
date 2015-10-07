@@ -430,6 +430,15 @@ mxsrv_display_resource_usage( int initialize_flag, double event_interval )
 
 /*------------------------------------------------------------------*/
 
+static void
+wait_at_exit_fn( void )
+{
+	fprintf( stderr, "Press any key to exit...\n" );
+	mx_getch();
+}
+
+/*------------------------------------------------------------------*/
+
 #if HAVE_MAIN_ROUTINE
 
 int
@@ -463,6 +472,7 @@ mxserver_main( int argc, char *argv[] )
 	unsigned long network_debug_flags;
 	mx_bool_type enable_remote_breakpoint;
 	mx_bool_type wait_for_debugger, just_in_time_debugging;
+	mx_bool_type wait_at_exit;
 	mx_bool_type monitor_resources;
 	double resource_monitor_interval;
 	double master_timer_period;
@@ -547,6 +557,7 @@ mxserver_main( int argc, char *argv[] )
 
 	wait_for_debugger = FALSE;
 	just_in_time_debugging = FALSE;
+	wait_at_exit = FALSE;
 
 	monitor_resources = FALSE;
 	resource_monitor_interval = -1.0;	/* in seconds */
@@ -563,7 +574,7 @@ mxserver_main( int argc, char *argv[] )
         error_flag = FALSE;
 
         while ((c = getopt(argc, argv,
-		"aAab:BcC:d:De:E:f:Jkl:L:m:M:n:p:P:rsStu:v:wxZ")) != -1)
+		"aAab:BcC:d:De:E:f:Jkl:L:m:M:n:p:P:rsStu:v:wxY:Z")) != -1)
 	{
                 switch (c) {
 		case 'a':
@@ -683,8 +694,16 @@ mxserver_main( int argc, char *argv[] )
 		case 'w':
 			wait_for_debugger = TRUE;
 			break;
+		case 'W':
+			wait_at_exit = TRUE;
+			break;
 		case 'x':
-			putenv("MX_DEBUGGER=xterm -e gdbtui -p %lu");
+			putenv("MX_DEBUGGER=xterm -e gdb -tui -p %lu");
+			break;
+		case 'Y':
+			/* Directly set the value of MXDIR. */
+
+			mx_setenv( "MXDIR", optarg );
 			break;
 		case 'Z':
 			bypass_signal_handlers = TRUE;
@@ -714,6 +733,14 @@ mxserver_main( int argc, char *argv[] )
 
 	if ( wait_for_debugger ) {
 		mx_wait_for_debugger();
+	}
+
+	if ( wait_at_exit ) {
+		fprintf( stderr,
+			"This program will wait at exit to be closed.\n" );
+		fflush( stderr );
+
+		atexit( wait_at_exit_fn );
 	}
 
 #endif /* HAVE_GETOPT */
