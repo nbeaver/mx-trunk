@@ -18,7 +18,7 @@
  *
  */
 
-#include <stdio.h>
+#include <Python.h>
 
 #include "mx_util.h"
 #include "mx_record.h"

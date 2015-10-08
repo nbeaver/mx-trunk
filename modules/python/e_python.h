@@ -19,8 +19,6 @@
 
 /*----*/
 
-#include "Python.h"
-
 typedef struct {
 	PyObject *py_main;	/* The __main__ module. */
 	PyObject *py_dict;	/* The dictionary of the __main__ module. */
