@@ -562,6 +562,23 @@ mx_setenv( const char *env_name,
 	return saved_errno;
 }
 
+#elif defined(OS_LINUX) || defined(OS_MACOSX)
+
+MX_EXPORT int
+mx_setenv( const char *env_name,
+		const char *env_value )
+{
+	int os_status;
+
+	os_status = setenv( env_name, env_value, TRUE );
+
+	if ( os_status == 0 ) {
+		return 0;
+	} else {
+		return errno;
+	}
+}
+
 #else
 #error mx_setenv() has not been implemented for this platform.
 #endif

@@ -28,7 +28,11 @@ CFLAGS += -DHAVE_SNPRINTF
 
 else
 
-PYTHON_VERSION = 2.7
+#PYTHON_VERSION = 2.7
+
+ifndef PYTHON_VERSION
+    PYTHON_VERSION := $(shell python -V 2>&1 | cut -f2 -d' ' | cut -c1-3)
+endif
 
 PYTHON_INCLUDES = /usr/include/python$(PYTHON_VERSION)
 PYTHON_LINK = $(shell python$(PYTHON_VERSION)-config --ldflags)

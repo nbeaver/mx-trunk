@@ -29,6 +29,7 @@
 #include "mx_unistd.h"
 #include "mx_version.h"
 #include "mx_driver.h"
+#include "mx_key.h"
 #include "mx_record.h"
 #include "mx_variable.h"
 #include "mx_socket.h"

@@ -21,7 +21,7 @@ all: build
 
 #MODULES += edt			# linux,
 
-MODULES += epix_xclib		# linux, win32
+#MODULES += epix_xclib		# linux, win32
 
 #MODULES += esone_camac		# linux, win32
 
@@ -39,7 +39,7 @@ MODULES += epix_xclib		# linux, win32
 
 #MODULES += nuvant_ezstat	# linux, win32
 
-#MODULES += python		# (Warning: nearly finished)
+MODULES += python		# (Warning: nearly finished)
 
 #MODULES += pmc_mcapi		# linux, win32
 
@@ -90,9 +90,9 @@ MODULES += epix_xclib		# linux, win32
 #-------------------------------------------------------------------
 # EPICS modules.
 
-#MODULES += epics
+MODULES += epics
 
-#MODULES += epics_aps 
+MODULES += epics_aps 
 
 #MODULES += epics_pmac_biocat
 
