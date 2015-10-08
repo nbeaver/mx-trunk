@@ -298,14 +298,19 @@ mxext_python_initialize( MX_EXTENSION *extension )
 
 	/* We need to put the mx_database pointer into a Python object,
 	 * so that we can create the Python MX database object.  This is
-	 * done using a PyCapsule object.
+	 * done using a PyCapsule object.  On Python 2.6 and before, we
+	 * use PyCObject objects instead.
 	 */
 
 #if PYTHON_MODULE_DEBUG_INITIALIZE
 	MX_DEBUG(-2,("%s: mx_database = %p", fname, mx_database));
 #endif
 
+#if ( PY_VERSION_HEX >= 0x02070000 )
 	mx_database_capsule = PyCapsule_New( mx_database, NULL, NULL );
+#else
+	mx_database_capsule = PyCObject_FromVoidPtr( mx_database, NULL );
+#endif
 
 	if ( mx_database_capsule == NULL ) {
 		PyErr_Print();
