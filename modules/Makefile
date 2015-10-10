@@ -27,7 +27,7 @@ all: build
 
 #MODULES += k8055		# linux,
 
-#MODULES = labjack_ux		# linux,
+#MODULES += labjack_ux		# linux,
 
 #MODULES += libusb-0.1		# linux,
 
