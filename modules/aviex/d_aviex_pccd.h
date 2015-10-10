@@ -45,6 +45,13 @@
 
 #define MXF_AVIEX_PCCD_MAXIMUM_DETECTOR_HEAD_FRAMES	255
 
+/* Values for 'aviex_pccd_type'. */
+
+#define MXT_AD_PCCD_16080	16080
+#define MXT_AD_PCCD_170170	170170
+#define MXT_AD_PCCD_4824	4824
+#define MXT_AD_PCCD_9785	9785
+
 /*-------------------------------------------------------------*/
 
 typedef struct {
@@ -67,6 +74,7 @@ typedef struct {
 
 typedef struct mx_aviex_pccd {
 	MX_RECORD *record;
+	unsigned long aviex_pccd_type;
 
 	MX_RECORD *video_input_record;
 	MX_RECORD *camera_link_record;

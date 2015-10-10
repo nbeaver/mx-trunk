@@ -607,7 +607,7 @@ mxd_aviex_pccd_descramble_image( MX_AREA_DETECTOR *ad,
 	 */
 
 	if ( sp->sequence_type == MXT_SQ_STREAK_CAMERA ) {
-		switch( ad->record->mx_type ) {
+		switch( aviex_pccd->aviex_pccd_type ) {
 		case MXT_AD_PCCD_170170:
 			mx_status =
 			    mxd_aviex_pccd_170170_streak_camera_descramble(
@@ -699,7 +699,7 @@ mxd_aviex_pccd_descramble_image( MX_AREA_DETECTOR *ad,
 	column_framesize = (long) MXIF_COLUMN_FRAMESIZE(image_frame);
 	row_framesize    = (long) MXIF_ROW_FRAMESIZE(image_frame);
 
-	switch( ad->record->mx_type ) {
+	switch( aviex_pccd->aviex_pccd_type ) {
 	case MXT_AD_PCCD_170170:
 		i_framesize = column_framesize / 4;
 		j_framesize = row_framesize / 4;
@@ -734,7 +734,7 @@ mxd_aviex_pccd_descramble_image( MX_AREA_DETECTOR *ad,
 
 	/* Copy and descramble the pixels from the raw frame to the image frame.
 	 */
-	switch( ad->record->mx_type ) {
+	switch( aviex_pccd->aviex_pccd_type ) {
 	case MXT_AD_PCCD_170170:
 		if ( use_linearity_lookup_table ) {
 			mx_status =
@@ -1031,7 +1031,7 @@ mxd_aviex_pccd_simulated_cl_command( MX_AVIEX_PCCD *aviex_pccd,
 
 		reg = &(aviex_pccd->register_array[register_address]);
 
-		switch( aviex_pccd->record->mx_type ) {
+		switch( aviex_pccd->aviex_pccd_type ) {
 		case MXT_AD_PCCD_16080:
 			snprintf( response, max_response_length,
 				"B%05lu", reg->value );
@@ -1044,7 +1044,7 @@ mxd_aviex_pccd_simulated_cl_command( MX_AVIEX_PCCD *aviex_pccd,
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Unsupported Aviex record type %lu",
-				aviex_pccd->record->mx_type );
+				aviex_pccd->aviex_pccd_type );
 			break;
 		}
 		break;
@@ -1065,7 +1065,7 @@ mxd_aviex_pccd_simulated_cl_command( MX_AVIEX_PCCD *aviex_pccd,
 
 		reg = &(aviex_pccd->register_array[register_address]);
 
-		switch( aviex_pccd->record->mx_type ) {
+		switch( aviex_pccd->aviex_pccd_type ) {
 		case MXT_AD_PCCD_16080:
 			snprintf( response, max_response_length,
 				"S%03lu", reg->value );
@@ -1079,7 +1079,7 @@ mxd_aviex_pccd_simulated_cl_command( MX_AVIEX_PCCD *aviex_pccd,
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Unsupported Aviex record type %lu",
-				aviex_pccd->record->mx_type );
+				aviex_pccd->aviex_pccd_type );
 			break;
 		}
 		break;
@@ -1092,7 +1092,7 @@ mxd_aviex_pccd_simulated_cl_command( MX_AVIEX_PCCD *aviex_pccd,
 				command, aviex_pccd->record->name );
 		}
 
-		switch( aviex_pccd->record->mx_type ) {
+		switch( aviex_pccd->aviex_pccd_type ) {
 		case MXT_AD_PCCD_16080:
 			register_address = combined_value / 1000;
 			register_value   = combined_value % 1000;
@@ -1106,7 +1106,7 @@ mxd_aviex_pccd_simulated_cl_command( MX_AVIEX_PCCD *aviex_pccd,
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Unsupported Aviex record type %lu",
-				aviex_pccd->record->mx_type );
+				aviex_pccd->aviex_pccd_type );
 			break;
 		}
 
@@ -1413,7 +1413,7 @@ mxd_aviex_pccd_finish_record_initialization( MX_RECORD *record )
 	 * the 'mx_offline' program.
 	 */
 
-	switch( record->mx_type ) {
+	switch( aviex_pccd->aviex_pccd_type ) {
 	case MXT_AD_PCCD_170170:
 		aviex_pccd->horiz_descramble_factor = 4;
 		aviex_pccd->vert_descramble_factor = 4;
@@ -1611,7 +1611,7 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 	 * detector type.
 	 */
 
-	switch( ad->record->mx_type ) {
+	switch( aviex_pccd->aviex_pccd_type ) {
 	case MXT_AD_PCCD_170170:
 		aviex_pccd->num_sector_rows = 4;
 		aviex_pccd->num_sector_columns = 4;
@@ -1652,7 +1652,7 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 	 * for the exposure time and the gap time.
 	 */
 
-	switch( ad->record->mx_type ) {
+	switch( aviex_pccd->aviex_pccd_type ) {
 	case MXT_AD_PCCD_170170:
 	case MXT_AD_PCCD_4824:
 	case MXT_AD_PCCD_9785:
@@ -1688,7 +1688,7 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 	 * initialization functions here.
 	 */
 
-	switch( record->mx_type ) {
+	switch( aviex_pccd->aviex_pccd_type ) {
 	case MXT_AD_PCCD_170170:
 		mx_status = mxd_aviex_pccd_170170_initialize_detector(
 					    record, ad, aviex_pccd, vinput );
@@ -1707,7 +1707,7 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"Unsupported Aviex detector type %lu", record->mx_type );
+		"Unsupported Aviex detector type %lu", aviex_pccd->aviex_pccd_type );
 		break;
 	}
 
@@ -1799,7 +1799,7 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 
 	/* Configure the video input to use negative Camera Link pulses. */
 
-	if ( record->mx_type == MXT_AD_PCCD_9785 ) {
+	if ( aviex_pccd->aviex_pccd_type == MXT_AD_PCCD_9785 ) {
 		camera_trigger_polarity = MXF_VIN_TRIGGER_HIGH;
 	} else {
 		camera_trigger_polarity = MXF_VIN_TRIGGER_LOW;
@@ -1962,7 +1962,7 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 	 * a unilateral 'stop' request at the end of open().
 	 */
 
-	switch( ad->record->mx_type ) {
+	switch( aviex_pccd->aviex_pccd_type ) {
 	case MXT_AD_PCCD_9785:
 		mx_status = mxd_aviex_pccd_stop( ad );
 
@@ -2105,7 +2105,7 @@ mxd_aviex_pccd_arm( MX_AREA_DETECTOR *ad )
 
 	/* Stop any currently running imaging sequence. */
 
-	if ( ad->record->mx_type != MXT_AD_PCCD_16080 ) {
+	if ( aviex_pccd->aviex_pccd_type != MXT_AD_PCCD_16080 ) {
 		mx_status = mx_video_input_abort(
 					aviex_pccd->video_input_record );
 
@@ -2173,7 +2173,7 @@ mxd_aviex_pccd_arm( MX_AREA_DETECTOR *ad )
 	 * an external trigger.
 	 */
 
-	switch( ad->record->mx_type ) {
+	switch( aviex_pccd->aviex_pccd_type ) {
 	case MXT_AD_PCCD_170170:
 		mx_status = mxd_aviex_pccd_170170_set_trigger_mode( aviex_pccd,
 					external_trigger, edge_trigger );
@@ -2194,7 +2194,7 @@ mxd_aviex_pccd_arm( MX_AREA_DETECTOR *ad )
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Attempted to set external trigger mode for unsupported "
 		"record type %lu of record '%s'.",
-			ad->record->mx_type, ad->record->name );
+			aviex_pccd->aviex_pccd_type, ad->record->name );
 		break;
 	}
 
@@ -2207,7 +2207,7 @@ mxd_aviex_pccd_arm( MX_AREA_DETECTOR *ad )
 	 */
 
 #if 1
-	if ( ad->record->mx_type == MXT_AD_PCCD_16080 ) {
+	if ( aviex_pccd->aviex_pccd_type == MXT_AD_PCCD_16080 ) {
 		mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
 					MXLV_AVIEX_PCCD_16080_DH_HBIN, 1 );
 
@@ -2404,7 +2404,7 @@ mxd_aviex_pccd_trigger( MX_AREA_DETECTOR *ad )
 			MX_DEBUG(-2,
 				("%s: Sending trigger to camera head.", fname));
 #endif
-			switch( ad->record->mx_type ) {
+			switch( aviex_pccd->aviex_pccd_type ) {
 			case MXT_AD_PCCD_170170:
 			case MXT_AD_PCCD_4824:
 			case MXT_AD_PCCD_9785:
@@ -2425,7 +2425,7 @@ mxd_aviex_pccd_trigger( MX_AREA_DETECTOR *ad )
 				return mx_error( MXE_UNSUPPORTED, fname,
 				"Triggering detector type %lu, record '%s', "
 				"is not supported.",
-					ad->record->mx_type,
+					aviex_pccd->aviex_pccd_type,
 					ad->record->name );
 				break;
 			}
@@ -2476,7 +2476,7 @@ mxd_aviex_pccd_stop( MX_AREA_DETECTOR *ad )
 	 * toggling the CC2 line.  (but not for the PCCD-16080)
 	 */
 
-	if ( ad->record->mx_type != MXT_AD_PCCD_16080 ) {
+	if ( aviex_pccd->aviex_pccd_type != MXT_AD_PCCD_16080 ) {
 		mx_status = mx_camera_link_pulse_cc_line(
 					aviex_pccd->camera_link_record, 2,
 					1, 1000 );
@@ -2566,7 +2566,7 @@ mxd_aviex_pccd_abort( MX_AREA_DETECTOR *ad )
 	 * actually pay attention to CC3.  (but not for the PCCD-16080)
 	 */
 
-	if ( ad->record->mx_type != MXT_AD_PCCD_16080 ) {
+	if ( aviex_pccd->aviex_pccd_type != MXT_AD_PCCD_16080 ) {
 		mx_status = mx_camera_link_pulse_cc_line(
 					aviex_pccd->camera_link_record, 3,
 					1, 1000 );
@@ -2603,7 +2603,7 @@ mxd_aviex_pccd_terminate_sequence( MX_AREA_DETECTOR *ad,
 ("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"));
 #endif
 
-	switch( ad->record->mx_type ) {
+	switch( aviex_pccd->aviex_pccd_type ) {
 	case MXT_AD_PCCD_16080:
 		mx_status = mxd_aviex_pccd_16080_terminate_sequence(
 							ad, aviex_pccd );
@@ -3030,7 +3030,7 @@ mxd_aviex_pccd_readout_frame( MX_AREA_DETECTOR *ad )
 	} else {
 		/* Descramble the image. */
 
-		switch( ad->record->mx_type ) {
+		switch( aviex_pccd->aviex_pccd_type ) {
 		case MXT_AD_PCCD_170170:
 		case MXT_AD_PCCD_4824:
 		case MXT_AD_PCCD_16080:
@@ -3472,7 +3472,7 @@ mxd_aviex_pccd_get_register_value( MX_AREA_DETECTOR *ad,
 
 	if ( parameter_type < MXLV_AVIEX_PCCD_DH_PSEUDO_BASE ) {
 
-		switch( aviex_pccd->record->mx_type ) {
+		switch( aviex_pccd->aviex_pccd_type ) {
 		case MXT_AD_PCCD_170170:
 		case MXT_AD_PCCD_4824:
 		case MXT_AD_PCCD_9785:
@@ -3492,7 +3492,7 @@ mxd_aviex_pccd_get_register_value( MX_AREA_DETECTOR *ad,
 	 * the control register.
 	 */
 
-	switch( aviex_pccd->record->mx_type ) {
+	switch( aviex_pccd->aviex_pccd_type ) {
 	case MXT_AD_PCCD_170170:
 	case MXT_AD_PCCD_4824:
 		mx_status = mxd_aviex_pccd_170170_get_pseudo_register(
@@ -3515,7 +3515,7 @@ mxd_aviex_pccd_get_register_value( MX_AREA_DETECTOR *ad,
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 			"Unsupported record type %lu for record '%s'.",
-			aviex_pccd->record->mx_type,
+			aviex_pccd->aviex_pccd_type,
 			aviex_pccd->record->name );
 		break;
 	}
@@ -3565,7 +3565,7 @@ mxd_aviex_pccd_set_register_value( MX_AREA_DETECTOR *ad,
 
 	if ( parameter_type < MXLV_AVIEX_PCCD_DH_PSEUDO_BASE ) {
 
-		switch( aviex_pccd->record->mx_type ) {
+		switch( aviex_pccd->aviex_pccd_type ) {
 		case MXT_AD_PCCD_170170:
 		case MXT_AD_PCCD_4824:
 		case MXT_AD_PCCD_9785:
@@ -3585,7 +3585,7 @@ mxd_aviex_pccd_set_register_value( MX_AREA_DETECTOR *ad,
 	 * the control register.
 	 */
 
-	switch( aviex_pccd->record->mx_type ) {
+	switch( aviex_pccd->aviex_pccd_type ) {
 	case MXT_AD_PCCD_170170:
 	case MXT_AD_PCCD_4824:
 		mx_status = mxd_aviex_pccd_170170_set_pseudo_register(
@@ -3608,7 +3608,7 @@ mxd_aviex_pccd_set_register_value( MX_AREA_DETECTOR *ad,
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 			"Unsupported record type %lu for record '%s'.",
-			aviex_pccd->record->mx_type,
+			aviex_pccd->aviex_pccd_type,
 			aviex_pccd->record->name );
 		break;
 	}
@@ -3752,7 +3752,7 @@ mxd_aviex_pccd_get_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_TOTAL_ACQUISITION_TIME:
 	case MXLV_AD_DETECTOR_READOUT_TIME:
 	case MXLV_AD_TOTAL_SEQUENCE_TIME:
-		switch( ad->record->mx_type ) {
+		switch( aviex_pccd->aviex_pccd_type ) {
 		case MXT_AD_PCCD_170170:
 			mx_status =
 				mxd_aviex_pccd_170170_compute_sequence_times(
@@ -3811,7 +3811,7 @@ mxd_aviex_pccd_get_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_SHUTTER_ENABLE:
-		switch( ad->record->mx_type ) {
+		switch( aviex_pccd->aviex_pccd_type ) {
 		case MXT_AD_PCCD_170170:
 			mx_status = mx_area_detector_get_register( ad->record,
 							"dh_shutter_disable",
@@ -3950,7 +3950,7 @@ mxd_aviex_pccd_set_parameter( MX_AREA_DETECTOR *ad )
 
 		/* Tell the detector head to change its binsize. */
 
-		switch( ad->record->mx_type ) {
+		switch( aviex_pccd->aviex_pccd_type ) {
 		case MXT_AD_PCCD_170170:
 			mx_status = mxd_aviex_pccd_170170_set_binsize( ad,
 								aviex_pccd );
@@ -3970,7 +3970,7 @@ mxd_aviex_pccd_set_parameter( MX_AREA_DETECTOR *ad )
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Unsupported record type %lu for record '%s'.",
-				ad->record->mx_type, ad->record->name );
+				aviex_pccd->aviex_pccd_type, ad->record->name );
 			break;
 		}
 
@@ -4110,7 +4110,7 @@ mxd_aviex_pccd_set_parameter( MX_AREA_DETECTOR *ad )
 		 * for this sequence.
 		 */
 
-		switch( ad->record->mx_type ) {
+		switch( aviex_pccd->aviex_pccd_type ) {
 		case MXT_AD_PCCD_170170:
 			mx_status =
 			    mxd_aviex_pccd_170170_configure_for_sequence(
@@ -4134,7 +4134,7 @@ mxd_aviex_pccd_set_parameter( MX_AREA_DETECTOR *ad )
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Unsupported record type %lu for record '%s'.",
-				ad->record->mx_type, ad->record->name );
+				aviex_pccd->aviex_pccd_type, ad->record->name );
 			break;
 		}
 
@@ -4191,7 +4191,7 @@ mxd_aviex_pccd_set_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_SEQUENCE_START_DELAY:
 		new_delay_time = mx_round( 1.0e5 * ad->sequence_start_delay );
 
-		switch( ad->record->mx_type ) {
+		switch( aviex_pccd->aviex_pccd_type ) {
 		case MXT_AD_PCCD_170170:
 			mx_status =
 			    mxd_aviex_pccd_170170_set_sequence_start_delay(
@@ -4215,7 +4215,7 @@ mxd_aviex_pccd_set_parameter( MX_AREA_DETECTOR *ad )
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Setting the sequence start delay is not supported "
 			"for record type %lu, record '%s'.",
-				ad->record->mx_type, ad->record->name );
+				aviex_pccd->aviex_pccd_type, ad->record->name );
 			break;
 		}
 
@@ -4242,7 +4242,7 @@ mxd_aviex_pccd_set_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_SHUTTER_ENABLE:
-		switch( ad->record->mx_type ) {
+		switch( aviex_pccd->aviex_pccd_type ) {
 		case MXT_AD_PCCD_170170:
 			if ( ad->shutter_enable ) {
 				shutter_disable = 0;
@@ -4885,7 +4885,7 @@ mxd_aviex_pccd_camera_link_command( MX_AVIEX_PCCD *aviex_pccd,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		if ( aviex_pccd->record->mx_type == MXT_AD_PCCD_9785 ) {
+		if ( aviex_pccd->aviex_pccd_type == MXT_AD_PCCD_9785 ) {
 
 			/* The PCCD-9785 will not work if serial commands
 			 * do not have a CR at the end.
@@ -4934,7 +4934,7 @@ mxd_aviex_pccd_camera_link_command( MX_AVIEX_PCCD *aviex_pccd,
 		 * a carriage return character.
 		 */
 
-		switch( aviex_pccd->record->mx_type ) {
+		switch( aviex_pccd->aviex_pccd_type ) {
 		case MXT_AD_PCCD_16080:
 			switch( command[0] ) {
 			case 'A':
@@ -5130,7 +5130,7 @@ mxd_aviex_pccd_read_register( MX_AVIEX_PCCD *aviex_pccd,
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	switch( aviex_pccd->record->mx_type ) {
+	switch( aviex_pccd->aviex_pccd_type ) {
 	case MXT_AD_PCCD_170170:
 		snprintf(command, sizeof(command), "R%03lu", register_address);
 		break;
@@ -5206,7 +5206,7 @@ mxd_aviex_pccd_write_register( MX_AVIEX_PCCD *aviex_pccd,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	switch( aviex_pccd->record->mx_type ) {
+	switch( aviex_pccd->aviex_pccd_type ) {
 	case MXT_AD_PCCD_170170:
 		snprintf( command, sizeof(command),
 			"W%03lu%05lu", register_address, register_value );
@@ -5234,7 +5234,7 @@ mxd_aviex_pccd_write_register( MX_AVIEX_PCCD *aviex_pccd,
 	if ( reg->write_only == FALSE ) {
 
 #if 1
-		if ( aviex_pccd->record->mx_type == MXT_AD_PCCD_4824 ) {
+		if ( aviex_pccd->aviex_pccd_type == MXT_AD_PCCD_4824 ) {
 			mx_msleep(100);
 		}
 #endif

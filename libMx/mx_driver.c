@@ -461,7 +461,6 @@
 
 #include "d_soft_area_detector.h"
 #include "d_network_area_detector.h"
-#include "d_aviex_pccd.h"
 #include "d_marccd.h"
 #include "d_marccd_server_socket.h"
 #include "d_bluice_area_detector.h"
@@ -3264,34 +3263,6 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_network_area_detector_ad_function_list,
 				&mxd_network_area_detector_num_record_fields,
 				&mxd_network_area_detector_rfield_def_ptr},
-
-{"pccd_170170",    MXT_AD_PCCD_170170, MXC_AREA_DETECTOR,  MXR_DEVICE,
-				&mxd_aviex_pccd_record_function_list,
-				NULL,
-				&mxd_aviex_pccd_ad_function_list,
-				&mxd_aviex_pccd_170170_num_record_fields,
-				&mxd_aviex_pccd_170170_rfield_def_ptr},
-
-{"pccd_4824",      MXT_AD_PCCD_4824, MXC_AREA_DETECTOR,  MXR_DEVICE,
-				&mxd_aviex_pccd_record_function_list,
-				NULL,
-				&mxd_aviex_pccd_ad_function_list,
-				&mxd_aviex_pccd_4824_num_record_fields,
-				&mxd_aviex_pccd_4824_rfield_def_ptr},
-
-{"pccd_16080",     MXT_AD_PCCD_16080, MXC_AREA_DETECTOR,  MXR_DEVICE,
-				&mxd_aviex_pccd_record_function_list,
-				NULL,
-				&mxd_aviex_pccd_ad_function_list,
-				&mxd_aviex_pccd_16080_num_record_fields,
-				&mxd_aviex_pccd_16080_rfield_def_ptr},
-
-{"pccd_9785",      MXT_AD_PCCD_9785, MXC_AREA_DETECTOR,  MXR_DEVICE,
-				&mxd_aviex_pccd_record_function_list,
-				NULL,
-				&mxd_aviex_pccd_ad_function_list,
-				&mxd_aviex_pccd_9785_num_record_fields,
-				&mxd_aviex_pccd_9785_rfield_def_ptr},
 
 {"marccd",         MXT_AD_MARCCD,      MXC_AREA_DETECTOR,  MXR_DEVICE,
 				&mxd_marccd_record_function_list,

@@ -273,7 +273,7 @@ mxd_aviex_pccd_170170_initialize_detector( MX_RECORD *record,
 
 	/* Perform camera model specific initialization */
 
-	switch( record->mx_type ) {
+	switch( aviex_pccd->aviex_pccd_type ) {
 	case MXT_AD_PCCD_170170:
 
 		/* In unbinned mode, the PCCD-170170 camera is configured such
@@ -304,7 +304,7 @@ mxd_aviex_pccd_170170_initialize_detector( MX_RECORD *record,
 		return mx_error( MXE_UNSUPPORTED, fname,
 			"Record '%s' has an MX type of %ld which "
 			"is not supported by this driver.",
-				record->name, record->mx_type );
+				record->name, aviex_pccd->aviex_pccd_type );
 		break;
 	}
 
