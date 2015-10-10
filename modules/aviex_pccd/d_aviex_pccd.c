@@ -1524,18 +1524,18 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 	ad->mask_image_format = MXT_IMAGE_FORMAT_GREY16;
 	ad->bias_image_format = MXT_IMAGE_FORMAT_GREY16;
 	ad->dark_current_image_format = MXT_IMAGE_FORMAT_GREY16;
-	ad->flood_field_image_format = MXT_IMAGE_FORMAT_GREY16;
+	ad->flat_field_image_format = MXT_IMAGE_FORMAT_GREY16;
 
-	if ( ad->bias_corr_after_flood ) {
+	if ( ad->bias_corr_after_flat_field ) {
 		ad->measure_dark_current_correction_flags = MXFT_AD_MASK_FRAME;
 
-		ad->measure_flood_field_correction_flags =
+		ad->measure_flat_field_correction_flags =
 				MXFT_AD_MASK_FRAME | MXFT_AD_DARK_CURRENT_FRAME;
 	} else {
 		ad->measure_dark_current_correction_flags =
 				MXFT_AD_MASK_FRAME | MXFT_AD_BIAS_FRAME;
 
-		ad->measure_flood_field_correction_flags =
+		ad->measure_flat_field_correction_flags =
 				MXFT_AD_MASK_FRAME | MXFT_AD_BIAS_FRAME
 				| MXFT_AD_DARK_CURRENT_FRAME;
 	}
@@ -1642,11 +1642,11 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 	aviex_pccd->rebinned_geometrical_mask_frame = NULL;
 
 	/* Set a limit on the range of values for
-	 * the flood field scaling factor.
+	 * the flat field scaling factor.
 	 */
 
-	ad->flood_field_scale_max = 10.0;
-	ad->flood_field_scale_min = 0.1;
+	ad->flat_field_scale_max = 10.0;
+	ad->flat_field_scale_min = 0.1;
 
 	/* Set the step size in seconds per step
 	 * for the exposure time and the gap time.
@@ -3091,13 +3091,13 @@ mxd_aviex_pccd_correct_frame( MX_AREA_DETECTOR *ad )
 	MX_SEQUENCE_PARAMETERS *sp;
 	MX_IMAGE_FRAME *mask_frame;
 	MX_IMAGE_FRAME *bias_frame;
-	MX_IMAGE_FRAME *flood_field_frame;
+	MX_IMAGE_FRAME *flat_field_frame;
 	unsigned long flags;
-	uint16_t *mask_data_ptr, *bias_data_ptr, *flood_field_data_ptr;
+	uint16_t *mask_data_ptr, *bias_data_ptr, *flat_field_data_ptr;
 	uint16_t *image_data_array;
 	uint16_t *image_stripe_ptr, *image_row_ptr, *image_pixel_ptr;
-	uint16_t *mask_pixel_ptr, *bias_pixel_ptr, *flood_field_pixel_ptr;
-	double flood_field_scale_factor;
+	uint16_t *mask_pixel_ptr, *bias_pixel_ptr, *flat_field_pixel_ptr;
+	double flat_field_scale_factor;
 	long big_image_pixel;
 	long image_row_framesize, image_column_framesize;
 	long image_num_stripes, image_pixels_per_stripe;
@@ -3285,19 +3285,19 @@ mxd_aviex_pccd_correct_frame( MX_AREA_DETECTOR *ad )
 	 * or streak camera frames.
 	 */
 
-	if ( (flags & MXFT_AD_FLOOD_FIELD_FRAME) == 0 ) {
-		flood_field_data_ptr = NULL;
+	if ( (flags & MXFT_AD_FLAT_FIELD_FRAME) == 0 ) {
+		flat_field_data_ptr = NULL;
 	} else {
 		mx_status = mx_area_detector_get_correction_frame(
 						ad, ad->image_frame,
-						MXFT_AD_FLOOD_FIELD_FRAME,
-						"flood_field",
-						&flood_field_frame );
+						MXFT_AD_FLAT_FIELD_FRAME,
+						"flat_field",
+						&flat_field_frame );
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		flood_field_data_ptr = flood_field_frame->image_data;
-		flood_field_data_ptr += corr_start_offset;
+		flat_field_data_ptr = flat_field_frame->image_data;
+		flat_field_data_ptr += corr_start_offset;
 	}
 
 	/* Now walk through the stripes in the image data
@@ -3340,18 +3340,18 @@ mxd_aviex_pccd_correct_frame( MX_AREA_DETECTOR *ad )
 			*image_pixel_ptr += *bias_pixel_ptr;
 		    }
 
-		    /* Do the flood field correction. */
+		    /* Do the flat field correction. */
 
-		    if ( flood_field_data_ptr != NULL ) {
-			flood_field_pixel_ptr = flood_field_data_ptr
+		    if ( flat_field_data_ptr != NULL ) {
+			flat_field_pixel_ptr = flat_field_data_ptr
 						+ j * corr_column_framesize + k;
 
-			flood_field_scale_factor =
-			    mx_divide_safely( ad->flood_field_average_intensity,
-					(double) *flood_field_pixel_ptr );
+			flat_field_scale_factor =
+			    mx_divide_safely( ad->flat_field_average_intensity,
+					(double) *flat_field_pixel_ptr );
 
 			big_image_pixel = mx_round(
-			  flood_field_scale_factor * (double) *image_pixel_ptr);
+			  flat_field_scale_factor * (double) *image_pixel_ptr);
 
 			if ( big_image_pixel > 65535 ) {
 			    *image_pixel_ptr = 65535;

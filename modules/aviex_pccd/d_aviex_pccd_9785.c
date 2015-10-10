@@ -252,7 +252,7 @@ mxd_aviex_pccd_9785_initialize_detector( MX_RECORD *record,
 
 		/* We use the float format used by the Dexela SCap program. */
 
-		ad->flood_field_image_format = MXT_IMAGE_FORMAT_FLOAT;
+		ad->flat_field_image_format = MXT_IMAGE_FORMAT_FLOAT;
 
 		/* Figure out what kind of correction measurement sequence
 		 * type to use.  If the video card is not configured for

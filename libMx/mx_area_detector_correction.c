@@ -160,9 +160,9 @@ mx_area_detector_load_correction_files( MX_RECORD *record )
 		}
 	}
 
-	if ( strlen(ad->flood_field_filename) > 0 ) {
+	if ( strlen(ad->flat_field_filename) > 0 ) {
 		mx_status = mx_cfn_construct_filename( MX_CFN_CONFIG,
-						ad->flood_field_filename,
+						ad->flat_field_filename,
 						correction_filename,
 						sizeof(correction_filename) );
 
@@ -170,12 +170,12 @@ mx_area_detector_load_correction_files( MX_RECORD *record )
 			return mx_status;
 
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION_FILENAMES
-		MX_DEBUG(-2,("%s: flood field filename = '%s'",
+		MX_DEBUG(-2,("%s: flat field filename = '%s'",
 			fname, correction_filename));
 #endif
 
 		mx_status = mx_area_detector_load_frame( record,
-						MXFT_AD_FLOOD_FIELD_FRAME,
+						MXFT_AD_FLAT_FIELD_FRAME,
 						correction_filename );
 
 		if ( (mx_status.code != MXE_SUCCESS)
@@ -259,8 +259,8 @@ mx_area_detector_set_correction_flags( MX_RECORD *record,
 		mx_free( ad->dark_current_offset_array );
 	}
 
-	if ( ad->flood_field_scale_can_change ) {
-		mx_free( ad->flood_field_scale_array );
+	if ( ad->flat_field_scale_can_change ) {
+		mx_free( ad->flat_field_scale_array );
 	}
 
 	ad->parameter_type = MXLV_AD_CORRECTION_FLAGS;
@@ -299,10 +299,10 @@ mx_area_detector_measure_correction_frame( MX_RECORD *record,
 				record->name );
 		}
 		break;
-	case MXFT_AD_FLOOD_FIELD_FRAME:
-		if ( ad->flood_field_scale_can_change == FALSE ) {
+	case MXFT_AD_FLAT_FIELD_FRAME:
+		if ( ad->flat_field_scale_can_change == FALSE ) {
 			return mx_error( MXE_PERMISSION_DENIED, fname,
-			"The flood field for detector '%s' cannot be changed.",
+			"The flat field for detector '%s' cannot be changed.",
 				record->name );
 		}
 		break;
@@ -349,14 +349,14 @@ mx_area_detector_measure_correction_frame( MX_RECORD *record,
 		mx_free( ad->dark_current_offset_array );
 		break;
 
-	case MXFT_AD_FLOOD_FIELD_FRAME:
-		if ( ad->flood_field_frame != NULL ) {
+	case MXFT_AD_FLAT_FIELD_FRAME:
+		if ( ad->flat_field_frame != NULL ) {
 			mx_status = mx_image_get_average_intensity(
-					ad->flood_field_frame, ad->mask_frame,
-					&(ad->flood_field_average_intensity) );
+					ad->flat_field_frame, ad->mask_frame,
+					&(ad->flat_field_average_intensity) );
 		}
 
-		mx_free( ad->flood_field_scale_array );
+		mx_free( ad->flat_field_scale_array );
 		break;
 	}
 
@@ -426,17 +426,17 @@ mx_area_detector_default_save_averaged_correction_frame( MX_AREA_DETECTOR *ad )
 		strlcpy( frame_type_string, "dark current",
 					sizeof(frame_type_string) );
 		break;
-	case MXFT_AD_FLOOD_FIELD_FRAME:
-		averaged_frame = ad->flood_field_frame;
-		averaged_frame_filename = ad->saved_flood_field_filename;
+	case MXFT_AD_FLAT_FIELD_FRAME:
+		averaged_frame = ad->flat_field_frame;
+		averaged_frame_filename = ad->saved_flat_field_filename;
 		averaged_frame_image_format = ad->correction_save_format;
-		strlcpy( frame_type_string, "flood field",
+		strlcpy( frame_type_string, "flat field",
 					sizeof(frame_type_string) );
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 			"Area detector '%s' can only save dark current "
-			"and flood field frames via this function.",
+			"and flat field frames via this function.",
 			ad->record->name );
 		break;
 	}
@@ -601,8 +601,8 @@ mx_area_detector_get_correction_frame( MX_AREA_DETECTOR *ad,
 		*correction_frame = ad->dark_current_frame;
 		break;
 
-	case MXFT_AD_FLOOD_FIELD_FRAME:
-		*correction_frame = ad->flood_field_frame;
+	case MXFT_AD_FLAT_FIELD_FRAME:
+		*correction_frame = ad->flat_field_frame;
 		break;
 
 	default:
@@ -712,8 +712,8 @@ mx_area_detector_get_correction_frame( MX_AREA_DETECTOR *ad,
 		rebinned_frame = &(ad->rebinned_dark_current_frame);
 		break;
 
-	case MXFT_AD_FLOOD_FIELD_FRAME:
-		rebinned_frame = &(ad->rebinned_flood_field_frame);
+	case MXFT_AD_FLAT_FIELD_FRAME:
+		rebinned_frame = &(ad->rebinned_flat_field_frame);
 		break;
 	}
 
@@ -786,7 +786,7 @@ mx_area_detector_default_correct_frame( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mx_area_detector_default_correct_frame()";
 
 	MX_IMAGE_FRAME *image_frame, *mask_frame, *bias_frame;
-	MX_IMAGE_FRAME *dark_current_frame, *flood_field_frame;
+	MX_IMAGE_FRAME *dark_current_frame, *flat_field_frame;
 	mx_status_type mx_status;
 
 	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
@@ -827,16 +827,16 @@ mx_area_detector_default_correct_frame( MX_AREA_DETECTOR *ad )
 		return mx_status;
 
 	mx_status = mx_area_detector_get_correction_frame( ad, image_frame,
-						MXFT_AD_FLOOD_FIELD_FRAME,
-						"flood field",
-						&flood_field_frame );
+						MXFT_AD_FLAT_FIELD_FRAME,
+						"flat field",
+						&flat_field_frame );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	mx_status = mx_area_detector_classic_frame_correction( ad->record,
 				image_frame, mask_frame, bias_frame,
-				dark_current_frame, flood_field_frame );
+				dark_current_frame, flat_field_frame );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1239,14 +1239,14 @@ mx_area_detector_prepare_for_correction( MX_AREA_DETECTOR *ad,
 			ad->measure_dark_current_correction_flags;
 		break;
 	
-	case MXFT_AD_FLOOD_FIELD_FRAME:
+	case MXFT_AD_FLAT_FIELD_FRAME:
 
-		corr->destination_frame = ad->flood_field_frame;
+		corr->destination_frame = ad->flat_field_frame;
 
 		corr->desired_correction_flags = 
-			ad->measure_flood_field_correction_flags;
+			ad->measure_flat_field_correction_flags;
 
-	  	if ( ( ad->geom_corr_after_flood == FALSE )
+	  	if ( ( ad->geom_corr_after_flat_field == FALSE )
 		  && ( ad->correction_frame_geom_corr_last == FALSE )
 		  && ( ad->correction_frame_no_geom_corr == FALSE ) )
 		{
@@ -1337,7 +1337,7 @@ mx_area_detector_process_correction_frame( MX_AREA_DETECTOR *ad,
 	size_t image_length;
 
 	unsigned long saved_correction_flags;
-	mx_bool_type saved_bias_corr_after_flood;
+	mx_bool_type saved_bias_corr_after_flat_field;
 	mx_status_type mx_status, mx_status2;
 
 	/* Readout the frame into ad->image_frame. */
@@ -1363,12 +1363,14 @@ mx_area_detector_process_correction_frame( MX_AREA_DETECTOR *ad,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		saved_bias_corr_after_flood = ad->bias_corr_after_flood;
-		ad->bias_corr_after_flood = FALSE;
+		saved_bias_corr_after_flat_field =
+				ad->bias_corr_after_flat_field;
+		ad->bias_corr_after_flat_field = FALSE;
 
 		mx_status = mx_area_detector_correct_frame(ad->record);
 
-		ad->bias_corr_after_flood = saved_bias_corr_after_flood;
+		ad->bias_corr_after_flat_field =
+				saved_bias_corr_after_flat_field;
 
 		mx_status2 = mx_area_detector_set_correction_flags(
 				ad->record, saved_correction_flags );
@@ -1523,16 +1525,16 @@ mx_area_detector_finish_correction_calculation( MX_AREA_DETECTOR *ad,
 	}
 
 	/* If requested, perform a delayed geometrical correction on a
-	 * flood field frame after averaging or dezingering the source
+	 * flat field frame after averaging or dezingering the source
 	 * frames.
 	 */
 
-	if ( ( ad->correction_measurement_type == MXFT_AD_FLOOD_FIELD_FRAME )
+	if ( ( ad->correction_measurement_type == MXFT_AD_FLAT_FIELD_FRAME )
 	  && ( ad->correction_frame_geom_corr_last == TRUE )
 	  && ( ad->correction_frame_no_geom_corr == FALSE ) )
 	{
 		MX_DEBUG(-2,("%s: Invoking delayed geometrical correction "
-				"on measured flood field frame", fname ));
+				"on measured flat field frame", fname ));
 
 		mx_status = (*geometrical_correction_fn)( ad, dest_frame );
 
@@ -1644,11 +1646,11 @@ mx_area_detector_default_dezinger_correction( MX_AREA_DETECTOR *ad )
 		desired_correction_flags = 0;
 		break;
 	
-	case MXFT_AD_FLOOD_FIELD_FRAME:
+	case MXFT_AD_FLAT_FIELD_FRAME:
 		mx_status = mx_area_detector_setup_frame( ad->record,
-						&(ad->flood_field_frame) );
+						&(ad->flat_field_frame) );
 
-		dest_frame = ad->flood_field_frame;
+		dest_frame = ad->flat_field_frame;
 
 		desired_correction_flags = MXFT_AD_DARK_CURRENT_FRAME;
 		break;
@@ -2031,7 +2033,7 @@ mx_area_detector_compute_dark_current_offset( MX_AREA_DETECTOR *ad,
 			break;
 		}
 
-		if ( ad->bias_corr_after_flood ) {
+		if ( ad->bias_corr_after_flat_field ) {
 			bias_offset = 0;
 		} else
 		if ( bias_frame == NULL ) {
@@ -2095,30 +2097,30 @@ mx_area_detector_compute_dark_current_offset( MX_AREA_DETECTOR *ad,
 /*-----------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mx_area_detector_compute_flood_field_scale( MX_AREA_DETECTOR *ad,
+mx_area_detector_compute_flat_field_scale( MX_AREA_DETECTOR *ad,
 					MX_IMAGE_FRAME *bias_frame,
-					MX_IMAGE_FRAME *flood_field_frame )
+					MX_IMAGE_FRAME *flat_field_frame )
 {
 	static const char fname[] =
-		"mx_area_detector_compute_flood_field_scale()";
+		"mx_area_detector_compute_flat_field_scale()";
 
-	uint8_t  *flood_field_data_u8  = NULL;
-	uint16_t *flood_field_data_u16 = NULL;
-	uint32_t *flood_field_data_u32 = NULL;
-	float    *flood_field_data_flt = NULL;
-	double   *flood_field_data_dbl = NULL;
+	uint8_t  *flat_field_data_u8  = NULL;
+	uint16_t *flat_field_data_u16 = NULL;
+	uint32_t *flat_field_data_u32 = NULL;
+	float    *flat_field_data_flt = NULL;
+	double   *flat_field_data_dbl = NULL;
 	uint8_t  *bias_data_u8  = NULL;
 	uint16_t *bias_data_u16 = NULL;
 	uint32_t *bias_data_u32 = NULL;
-	double raw_flood_field = 0.0;
+	double raw_flat_field = 0.0;
 	double bias_offset     = 0.0;
-	unsigned long i, num_pixels, flood_image_format, bias_image_format;
+	unsigned long i, num_pixels, flat_image_format, bias_image_format;
 	double ffs_numerator, ffs_denominator, bias_average;
-	float *flood_field_scale_array;
+	float *flat_field_scale_array;
 	mx_bool_type all_pixels_underflowed;
 
 #if MX_AREA_DETECTOR_DEBUG_FRAME_TIMING
-	MX_HRT_TIMING compute_flood_field_timing;
+	MX_HRT_TIMING compute_flat_field_timing;
 #endif
 
 	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
@@ -2127,47 +2129,47 @@ mx_area_detector_compute_flood_field_scale( MX_AREA_DETECTOR *ad,
 	}
 
 	/* If present, discard the old version
-	 * of the flood field scale array.
+	 * of the flat field scale array.
 	 */
 
-	if ( ad->flood_field_scale_array != NULL ) {
-		mx_free( ad->flood_field_scale_array );
+	if ( ad->flat_field_scale_array != NULL ) {
+		mx_free( ad->flat_field_scale_array );
 	}
 
-	/* If no flood field frame is currently loaded, then we just
-	 * skip over the computation of the flood field scale.
+	/* If no flat field frame is currently loaded, then we just
+	 * skip over the computation of the flat field scale.
 	 */
 
-	if ( flood_field_frame == NULL ) {
+	if ( flat_field_frame == NULL ) {
 		MX_DEBUG(-2,
-		("%s: flood_field_frame is NULL.  Skipping...", fname));
+		("%s: flat_field_frame is NULL.  Skipping...", fname));
 
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	flood_image_format = MXIF_IMAGE_FORMAT(flood_field_frame);
+	flat_image_format = MXIF_IMAGE_FORMAT(flat_field_frame);
 
-	switch( flood_image_format ) {
+	switch( flat_image_format ) {
 	case MXT_IMAGE_FORMAT_GREY8:
-		flood_field_data_u8 = flood_field_frame->image_data;
+		flat_field_data_u8 = flat_field_frame->image_data;
 		break;
 	case MXT_IMAGE_FORMAT_GREY16:
-		flood_field_data_u16 = flood_field_frame->image_data;
+		flat_field_data_u16 = flat_field_frame->image_data;
 		break;
 	case MXT_IMAGE_FORMAT_GREY32:
-		flood_field_data_u32 = flood_field_frame->image_data;
+		flat_field_data_u32 = flat_field_frame->image_data;
 		break;
 	case MXT_IMAGE_FORMAT_FLOAT:
-		flood_field_data_flt = flood_field_frame->image_data;
+		flat_field_data_flt = flat_field_frame->image_data;
 		break;
 	case MXT_IMAGE_FORMAT_DOUBLE:
-		flood_field_data_dbl = flood_field_frame->image_data;
+		flat_field_data_dbl = flat_field_frame->image_data;
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"Flood field correction is not supported for image format %lu "
+		"Flat field correction is not supported for image format %lu "
 		"used by area detector '%s'.",
-			flood_image_format, ad->record->name );
+			flat_image_format, ad->record->name );
 	}
 
 	bias_image_format = 0;
@@ -2197,15 +2199,15 @@ mx_area_detector_compute_flood_field_scale( MX_AREA_DETECTOR *ad,
 		}
 	}
 
-	num_pixels = MXIF_ROW_FRAMESIZE(flood_field_frame)
-			* MXIF_COLUMN_FRAMESIZE(flood_field_frame);
+	num_pixels = MXIF_ROW_FRAMESIZE(flat_field_frame)
+			* MXIF_COLUMN_FRAMESIZE(flat_field_frame);
 	
-	flood_field_scale_array = malloc( num_pixels * sizeof(float) );
+	flat_field_scale_array = malloc( num_pixels * sizeof(float) );
 
-	if ( flood_field_scale_array == (float *) NULL ) {
+	if ( flat_field_scale_array == (float *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to allocate a %lu-element array "
-		"of flood field scale factors for area detector '%s'.",
+		"of flat field scale factors for area detector '%s'.",
 			num_pixels, ad->record->name );
 	}
 
@@ -2215,26 +2217,26 @@ mx_area_detector_compute_flood_field_scale( MX_AREA_DETECTOR *ad,
 	 */
 
 #if MX_AREA_DETECTOR_DEBUG_FRAME_TIMING
-	MX_HRT_START(compute_flood_field_timing);
+	MX_HRT_START(compute_flat_field_timing);
 #endif
 
 	for ( i = 0; i < num_pixels; i++ ) {
 
-		switch( flood_image_format ) {
+		switch( flat_image_format ) {
 		case MXT_IMAGE_FORMAT_GREY8:
-			raw_flood_field = flood_field_data_u8[i];
+			raw_flat_field = flat_field_data_u8[i];
 			break;
 		case MXT_IMAGE_FORMAT_GREY16:
-			raw_flood_field = flood_field_data_u16[i];
+			raw_flat_field = flat_field_data_u16[i];
 			break;
 		case MXT_IMAGE_FORMAT_GREY32:
-			raw_flood_field = flood_field_data_u32[i];
+			raw_flat_field = flat_field_data_u32[i];
 			break;
 		case MXT_IMAGE_FORMAT_FLOAT:
-			raw_flood_field = flood_field_data_flt[i];
+			raw_flat_field = flat_field_data_flt[i];
 			break;
 		case MXT_IMAGE_FORMAT_DOUBLE:
-			raw_flood_field = flood_field_data_dbl[i];
+			raw_flat_field = flat_field_data_dbl[i];
 			break;
 		}
 
@@ -2262,60 +2264,60 @@ mx_area_detector_compute_flood_field_scale( MX_AREA_DETECTOR *ad,
 		 * be used in this loop.
 		 */
 
-		if ( raw_flood_field <= bias_offset ) {
-			flood_field_scale_array[i] = 0.0;
+		if ( raw_flat_field <= bias_offset ) {
+			flat_field_scale_array[i] = 0.0;
 			continue;	/* Skip to the next pixel. */
 		} else {
 			all_pixels_underflowed = FALSE;
 		}
 
-		ffs_denominator = raw_flood_field - bias_offset;
+		ffs_denominator = raw_flat_field - bias_offset;
 
-		ffs_numerator = ad->flood_field_average_intensity
+		ffs_numerator = ad->flat_field_average_intensity
 					- bias_average;
 
-		flood_field_scale_array[i]
+		flat_field_scale_array[i]
 				= ffs_numerator / ffs_denominator;
 
-		if ( flood_field_scale_array[i] > ad->flood_field_scale_max ){
-			flood_field_scale_array[i] = 0.0;
+		if ( flat_field_scale_array[i] > ad->flat_field_scale_max ){
+			flat_field_scale_array[i] = 0.0;
 		} else
-		if ( flood_field_scale_array[i] < ad->flood_field_scale_min ){
-			flood_field_scale_array[i] = 0.0;
+		if ( flat_field_scale_array[i] < ad->flat_field_scale_min ){
+			flat_field_scale_array[i] = 0.0;
 		}
 	}
 
 #if MX_AREA_DETECTOR_DEBUG_FRAME_TIMING
-	MX_HRT_END(compute_flood_field_timing);
-	MX_HRT_RESULTS(compute_flood_field_timing, fname,
-			"for computing new flood field scale array.");
+	MX_HRT_END(compute_flat_field_timing);
+	MX_HRT_RESULTS(compute_flat_field_timing, fname,
+			"for computing new flat field scale array.");
 #endif
 
 	if ( all_pixels_underflowed ) {
-		mx_free( flood_field_scale_array );
+		mx_free( flat_field_scale_array );
 
 		return mx_error(MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
-		"Every pixel in the flood field frame '%s' for "
+		"Every pixel in the flat field frame '%s' for "
 		"area detector '%s' is smaller than the value of the "
 		"corresponding pixel in the bias frame '%s'.",
-			ad->flood_field_filename,
+			ad->flat_field_filename,
 			ad->record->name,
 			ad->bias_filename );
 	}
 
-	/* Save a pointer to the new flood field scale array. */
+	/* Save a pointer to the new flat field scale array. */
 
-	ad->flood_field_scale_array = flood_field_scale_array;
+	ad->flat_field_scale_array = flat_field_scale_array;
 
 #if 0
-	fprintf(stderr, "ad->flood_field_scale_array = ");
+	fprintf(stderr, "ad->flat_field_scale_array = ");
 
 	for ( i = 0; i < 100; i++ ) {
 		if ( (i % 10) == 0 ) {
 			fprintf(stderr, "\n");
 		}
 
-		fprintf(stderr, "%g ", ad->flood_field_scale_array[i]);
+		fprintf(stderr, "%g ", ad->flat_field_scale_array[i]);
 	}
 	fprintf(stderr, "...\n");
 #endif
@@ -2406,7 +2408,7 @@ mx_area_detector_check_for_low_memory( MX_AREA_DETECTOR *ad,
 	if ( ad->dark_current_offset_array == NULL ) {
 		extra_memory_needed += bytes_per_float_array;
 	}
-	if ( ad->flood_field_scale_array == NULL ) {
+	if ( ad->flat_field_scale_array == NULL ) {
 		extra_memory_needed += bytes_per_float_array;
 	}
 
@@ -3445,7 +3447,7 @@ mx_area_detector_u16_plain_dark_correction( MX_AREA_DETECTOR *ad,
 
 		/* Get the bias offset for this pixel. */
 
-		if ( ad->bias_corr_after_flood ) {
+		if ( ad->bias_corr_after_flat_field ) {
 			bias_offset = 0;
 		} else
 		if ( bias_data_array == NULL ) {
@@ -3713,7 +3715,7 @@ mx_area_detector_s32_plain_dark_correction( MX_AREA_DETECTOR *ad,
 
 		/* Get the bias offset for this pixel. */
 
-		if ( ad->bias_corr_after_flood ) {
+		if ( ad->bias_corr_after_flat_field ) {
 			bias_offset = 0;
 		} else
 		if ( bias_data_array == NULL ) {
@@ -3982,7 +3984,7 @@ mx_area_detector_flt_plain_dark_correction( MX_AREA_DETECTOR *ad,
 
 		/* Get the bias offset for this pixel. */
 
-		if ( ad->bias_corr_after_flood ) {
+		if ( ad->bias_corr_after_flat_field ) {
 			bias_offset = 0;
 		} else
 		if ( bias_data_array == NULL ) {
@@ -4246,7 +4248,7 @@ mx_area_detector_dbl_plain_dark_correction( MX_AREA_DETECTOR *ad,
 
 		/* Get the bias offset for this pixel. */
 
-		if ( ad->bias_corr_after_flood ) {
+		if ( ad->bias_corr_after_flat_field ) {
 			bias_offset = 0;
 		} else
 		if ( bias_data_array == NULL ) {
@@ -4336,18 +4338,18 @@ mx_area_detector_dbl_plain_dark_correction( MX_AREA_DETECTOR *ad,
 /*=======================================================================*/
 
 MX_EXPORT mx_status_type
-mx_area_detector_u16_precomp_flood_field( MX_AREA_DETECTOR *ad,
+mx_area_detector_u16_precomp_flat_field( MX_AREA_DETECTOR *ad,
 				MX_IMAGE_FRAME *image_frame,
 				MX_IMAGE_FRAME *mask_frame,
 				MX_IMAGE_FRAME *bias_frame,
-				MX_IMAGE_FRAME *flood_field_frame )
+				MX_IMAGE_FRAME *flat_field_frame )
 {
 	static const char fname[] =
-		"mx_area_detector_u16_precomp_flood_field()";
+		"mx_area_detector_u16_precomp_flat_field()";
 
 	unsigned long i, num_pixels;
 	double image_pixel, bias_offset;
-	float *flood_field_scale_array;
+	float *flat_field_scale_array;
 	uint16_t *mask_data_array, *bias_data_array;
 	uint16_t *u16_image_data_array;
 	long image_format;
@@ -4387,30 +4389,30 @@ mx_area_detector_u16_precomp_flood_field( MX_AREA_DETECTOR *ad,
 
 	/*---*/
 
-	/* Get the flood field scale array, creating a new one if necessary. */
+	/* Get the flat field scale array, creating a new one if necessary. */
 
-	if ( flood_field_frame == NULL ) {
-		flood_field_scale_array = NULL;
+	if ( flat_field_frame == NULL ) {
+		flat_field_scale_array = NULL;
 	} else {
-		if ( ad->flood_field_scale_array == NULL ) {
-		    mx_status = mx_area_detector_compute_flood_field_scale(
-					ad, bias_frame, flood_field_frame );
+		if ( ad->flat_field_scale_array == NULL ) {
+		    mx_status = mx_area_detector_compute_flat_field_scale(
+					ad, bias_frame, flat_field_frame );
 
 		    if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 		}
 
-		flood_field_scale_array = ad->flood_field_scale_array;
+		flat_field_scale_array = ad->flat_field_scale_array;
 	}
 
-	/* If requested, do the flood field correction. */
+	/* If requested, do the flat field correction. */
 
 	/* This loop _must_ _not_ invoke any functions.  Function calls
 	 * have too high an overhead to be used in a loop that may loop
 	 * 32 million times or more.
 	 */
 
-	if ( flood_field_scale_array != NULL ) {
+	if ( flat_field_scale_array != NULL ) {
 
 		num_pixels = MXIF_ROW_FRAMESIZE(image_frame)
 				* MXIF_COLUMN_FRAMESIZE(image_frame);
@@ -4429,7 +4431,7 @@ mx_area_detector_u16_precomp_flood_field( MX_AREA_DETECTOR *ad,
 				}
 			}
 
-			if ( ad->bias_corr_after_flood ) {
+			if ( ad->bias_corr_after_flat_field ) {
 				bias_offset = 0;
 			} else
 			if ( bias_data_array == NULL ) {
@@ -4442,7 +4444,7 @@ mx_area_detector_u16_precomp_flood_field( MX_AREA_DETECTOR *ad,
 
 			image_pixel = image_pixel - bias_offset;
 
-			image_pixel = image_pixel * flood_field_scale_array[i];
+			image_pixel = image_pixel * flat_field_scale_array[i];
 
 			image_pixel = image_pixel + bias_offset;
 
@@ -4468,18 +4470,18 @@ mx_area_detector_u16_precomp_flood_field( MX_AREA_DETECTOR *ad,
 /*-----------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mx_area_detector_s32_precomp_flood_field( MX_AREA_DETECTOR *ad,
+mx_area_detector_s32_precomp_flat_field( MX_AREA_DETECTOR *ad,
 				MX_IMAGE_FRAME *image_frame,
 				MX_IMAGE_FRAME *mask_frame,
 				MX_IMAGE_FRAME *bias_frame,
-				MX_IMAGE_FRAME *flood_field_frame )
+				MX_IMAGE_FRAME *flat_field_frame )
 {
 	static const char fname[] =
-		"mx_area_detector_s32_precomp_flood_field()";
+		"mx_area_detector_s32_precomp_flat_field()";
 
 	unsigned long i, num_pixels;
 	double image_pixel, bias_offset;
-	float *flood_field_scale_array;
+	float *flat_field_scale_array;
 	uint16_t *mask_data_array, *bias_data_array;
 	int32_t *s32_image_data_array;
 	long image_format;
@@ -4519,30 +4521,30 @@ mx_area_detector_s32_precomp_flood_field( MX_AREA_DETECTOR *ad,
 
 	/*---*/
 
-	/* Get the flood field scale array, creating a new one if necessary. */
+	/* Get the flat field scale array, creating a new one if necessary. */
 
-	if ( flood_field_frame == NULL ) {
-		flood_field_scale_array = NULL;
+	if ( flat_field_frame == NULL ) {
+		flat_field_scale_array = NULL;
 	} else {
-		if ( ad->flood_field_scale_array == NULL ) {
-		    mx_status = mx_area_detector_compute_flood_field_scale(
-					ad, bias_frame, flood_field_frame );
+		if ( ad->flat_field_scale_array == NULL ) {
+		    mx_status = mx_area_detector_compute_flat_field_scale(
+					ad, bias_frame, flat_field_frame );
 
 		    if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 		}
 
-		flood_field_scale_array = ad->flood_field_scale_array;
+		flat_field_scale_array = ad->flat_field_scale_array;
 	}
 
-	/* If requested, do the flood field correction. */
+	/* If requested, do the flat field correction. */
 
 	/* This loop _must_ _not_ invoke any functions.  Function calls
 	 * have too high an overhead to be used in a loop that may loop
 	 * 32 million times or more.
 	 */
 
-	if ( flood_field_scale_array != NULL ) {
+	if ( flat_field_scale_array != NULL ) {
 
 		num_pixels = MXIF_ROW_FRAMESIZE(image_frame)
 				* MXIF_COLUMN_FRAMESIZE(image_frame);
@@ -4561,7 +4563,7 @@ mx_area_detector_s32_precomp_flood_field( MX_AREA_DETECTOR *ad,
 				}
 			}
 
-			if ( ad->bias_corr_after_flood ) {
+			if ( ad->bias_corr_after_flat_field ) {
 				bias_offset = 0;
 			} else
 			if ( bias_data_array == NULL ) {
@@ -4574,7 +4576,7 @@ mx_area_detector_s32_precomp_flood_field( MX_AREA_DETECTOR *ad,
 
 			image_pixel = image_pixel - bias_offset;
 
-			image_pixel = image_pixel * flood_field_scale_array[i];
+			image_pixel = image_pixel * flat_field_scale_array[i];
 
 			image_pixel = image_pixel + bias_offset;
 
@@ -4600,18 +4602,18 @@ mx_area_detector_s32_precomp_flood_field( MX_AREA_DETECTOR *ad,
 /*-----------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mx_area_detector_flt_precomp_flood_field( MX_AREA_DETECTOR *ad,
+mx_area_detector_flt_precomp_flat_field( MX_AREA_DETECTOR *ad,
 				MX_IMAGE_FRAME *image_frame,
 				MX_IMAGE_FRAME *mask_frame,
 				MX_IMAGE_FRAME *bias_frame,
-				MX_IMAGE_FRAME *flood_field_frame )
+				MX_IMAGE_FRAME *flat_field_frame )
 {
 	static const char fname[] =
-		"mx_area_detector_flt_precomp_flood_field()";
+		"mx_area_detector_flt_precomp_flat_field()";
 
 	unsigned long i, num_pixels;
 	float image_pixel, bias_offset;
-	float *flood_field_scale_array;
+	float *flat_field_scale_array;
 	uint16_t *mask_data_array, *bias_data_array;
 	float *flt_image_data_array;
 	long image_format;
@@ -4651,30 +4653,30 @@ mx_area_detector_flt_precomp_flood_field( MX_AREA_DETECTOR *ad,
 
 	/*---*/
 
-	/* Get the flood field scale array, creating a new one if necessary. */
+	/* Get the flat field scale array, creating a new one if necessary. */
 
-	if ( flood_field_frame == NULL ) {
-		flood_field_scale_array = NULL;
+	if ( flat_field_frame == NULL ) {
+		flat_field_scale_array = NULL;
 	} else {
-		if ( ad->flood_field_scale_array == NULL ) {
-		    mx_status = mx_area_detector_compute_flood_field_scale(
-					ad, bias_frame, flood_field_frame );
+		if ( ad->flat_field_scale_array == NULL ) {
+		    mx_status = mx_area_detector_compute_flat_field_scale(
+					ad, bias_frame, flat_field_frame );
 
 		    if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 		}
 
-		flood_field_scale_array = ad->flood_field_scale_array;
+		flat_field_scale_array = ad->flat_field_scale_array;
 	}
 
-	/* If requested, do the flood field correction. */
+	/* If requested, do the flat field correction. */
 
 	/* This loop _must_ _not_ invoke any functions.  Function calls
 	 * have too high an overhead to be used in a loop that may loop
 	 * 32 million times or more.
 	 */
 
-	if ( flood_field_scale_array != NULL ) {
+	if ( flat_field_scale_array != NULL ) {
 
 		num_pixels = MXIF_ROW_FRAMESIZE(image_frame)
 				* MXIF_COLUMN_FRAMESIZE(image_frame);
@@ -4693,7 +4695,7 @@ mx_area_detector_flt_precomp_flood_field( MX_AREA_DETECTOR *ad,
 				}
 			}
 
-			if ( ad->bias_corr_after_flood ) {
+			if ( ad->bias_corr_after_flat_field ) {
 				bias_offset = 0;
 			} else
 			if ( bias_data_array == NULL ) {
@@ -4706,7 +4708,7 @@ mx_area_detector_flt_precomp_flood_field( MX_AREA_DETECTOR *ad,
 
 			image_pixel = image_pixel - bias_offset;
 
-			image_pixel = image_pixel * flood_field_scale_array[i];
+			image_pixel = image_pixel * flat_field_scale_array[i];
 
 			image_pixel = image_pixel + bias_offset;
 
@@ -4728,18 +4730,18 @@ mx_area_detector_flt_precomp_flood_field( MX_AREA_DETECTOR *ad,
 /*-----------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mx_area_detector_dbl_precomp_flood_field( MX_AREA_DETECTOR *ad,
+mx_area_detector_dbl_precomp_flat_field( MX_AREA_DETECTOR *ad,
 				MX_IMAGE_FRAME *image_frame,
 				MX_IMAGE_FRAME *mask_frame,
 				MX_IMAGE_FRAME *bias_frame,
-				MX_IMAGE_FRAME *flood_field_frame )
+				MX_IMAGE_FRAME *flat_field_frame )
 {
 	static const char fname[] =
-		"mx_area_detector_dbl_precomp_flood_field()";
+		"mx_area_detector_dbl_precomp_flat_field()";
 
 	unsigned long i, num_pixels;
 	double image_pixel, bias_offset;
-	float *flood_field_scale_array;
+	float *flat_field_scale_array;
 	uint16_t *mask_data_array, *bias_data_array;
 	double *dbl_image_data_array;
 	long image_format;
@@ -4779,30 +4781,30 @@ mx_area_detector_dbl_precomp_flood_field( MX_AREA_DETECTOR *ad,
 
 	/*---*/
 
-	/* Get the flood field scale array, creating a new one if necessary. */
+	/* Get the flat field scale array, creating a new one if necessary. */
 
-	if ( flood_field_frame == NULL ) {
-		flood_field_scale_array = NULL;
+	if ( flat_field_frame == NULL ) {
+		flat_field_scale_array = NULL;
 	} else {
-		if ( ad->flood_field_scale_array == NULL ) {
-		    mx_status = mx_area_detector_compute_flood_field_scale(
-					ad, bias_frame, flood_field_frame );
+		if ( ad->flat_field_scale_array == NULL ) {
+		    mx_status = mx_area_detector_compute_flat_field_scale(
+					ad, bias_frame, flat_field_frame );
 
 		    if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 		}
 
-		flood_field_scale_array = ad->flood_field_scale_array;
+		flat_field_scale_array = ad->flat_field_scale_array;
 	}
 
-	/* If requested, do the flood field correction. */
+	/* If requested, do the flat field correction. */
 
 	/* This loop _must_ _not_ invoke any functions.  Function calls
 	 * have too high an overhead to be used in a loop that may loop
 	 * 32 million times or more.
 	 */
 
-	if ( flood_field_scale_array != NULL ) {
+	if ( flat_field_scale_array != NULL ) {
 
 		num_pixels = MXIF_ROW_FRAMESIZE(image_frame)
 				* MXIF_COLUMN_FRAMESIZE(image_frame);
@@ -4821,7 +4823,7 @@ mx_area_detector_dbl_precomp_flood_field( MX_AREA_DETECTOR *ad,
 				}
 			}
 
-			if ( ad->bias_corr_after_flood ) {
+			if ( ad->bias_corr_after_flat_field ) {
 				bias_offset = 0;
 			} else
 			if ( bias_data_array == NULL ) {
@@ -4834,7 +4836,7 @@ mx_area_detector_dbl_precomp_flood_field( MX_AREA_DETECTOR *ad,
 
 			image_pixel = image_pixel - bias_offset;
 
-			image_pixel = image_pixel * flood_field_scale_array[i];
+			image_pixel = image_pixel * flat_field_scale_array[i];
 
 			image_pixel = image_pixel + bias_offset;
 
@@ -4856,33 +4858,33 @@ mx_area_detector_dbl_precomp_flood_field( MX_AREA_DETECTOR *ad,
 /*=======================================================================*/
 
 MX_EXPORT mx_status_type
-mx_area_detector_u16_plain_flood_field( MX_AREA_DETECTOR *ad,
+mx_area_detector_u16_plain_flat_field( MX_AREA_DETECTOR *ad,
 				MX_IMAGE_FRAME *image_frame,
 				MX_IMAGE_FRAME *mask_frame,
 				MX_IMAGE_FRAME *bias_frame,
-				MX_IMAGE_FRAME *flood_field_frame )
+				MX_IMAGE_FRAME *flat_field_frame )
 {
-	static const char fname[] = "mx_area_detector_u16_plain_flood_field()";
+	static const char fname[] = "mx_area_detector_u16_plain_flat_field()";
 
 	unsigned long i, num_pixels;
 	uint16_t *mask_data_array, *bias_data_array;
-	uint16_t *flood_field_data_array;
+	uint16_t *flat_field_data_array;
 	uint16_t *u16_image_data_array;
 	long image_format;
-	unsigned long raw_flood_field, bias_offset;
+	unsigned long raw_flat_field, bias_offset;
 	double bias_average;
-	double image_pixel, flood_field_scale_factor;
+	double image_pixel, flat_field_scale_factor;
 	double ffs_numerator, ffs_denominator;
-	double flood_field_scale_max, flood_field_scale_min;
+	double flat_field_scale_max, flat_field_scale_min;
 	mx_bool_type all_pixels_underflowed;
 
-	/* Return now if we have not been provided with a flood field frame. */
+	/* Return now if we have not been provided with a flat field frame. */
 
-	if ( flood_field_frame == NULL ) {
+	if ( flat_field_frame == NULL ) {
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	flood_field_data_array = flood_field_frame->image_data;
+	flat_field_data_array = flat_field_frame->image_data;
 
 	if ( image_frame == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -4900,11 +4902,11 @@ mx_area_detector_u16_plain_flood_field( MX_AREA_DETECTOR *ad,
 
 	u16_image_data_array = image_frame->image_data;
 
-	/* Discard the flood field scale array if it is in memory,
+	/* Discard the flat field scale array if it is in memory,
 	 * since we will not use it.
 	 */
 
-	mx_free( ad->flood_field_scale_array );
+	mx_free( ad->flat_field_scale_array );
 
 	/* Get pointers to the mask and bias image data. */
 
@@ -4929,10 +4931,10 @@ mx_area_detector_u16_plain_flood_field( MX_AREA_DETECTOR *ad,
 		all_pixels_underflowed = TRUE;
 	}
 
-	flood_field_scale_max = ad->flood_field_scale_max;
-	flood_field_scale_min = ad->flood_field_scale_min;
+	flat_field_scale_max = ad->flat_field_scale_max;
+	flat_field_scale_min = ad->flat_field_scale_min;
 
-	/* Now do the flood field correction. */
+	/* Now do the flat field correction. */
 
 	for ( i = 0; i < num_pixels; i++ ) {
 
@@ -4953,9 +4955,9 @@ mx_area_detector_u16_plain_flood_field( MX_AREA_DETECTOR *ad,
 
 		image_pixel = (double) u16_image_data_array[i];
 
-		raw_flood_field = flood_field_data_array[i];
+		raw_flat_field = flat_field_data_array[i];
 
-		if ( ad->bias_corr_after_flood ) {
+		if ( ad->bias_corr_after_flat_field ) {
 			bias_offset = 0;
 			bias_average = 0;
 		} else
@@ -4971,32 +4973,32 @@ mx_area_detector_u16_plain_flood_field( MX_AREA_DETECTOR *ad,
 		 * calls have too high of an overhead to be used in this loop.
 		 */
 
-		if ( raw_flood_field <= bias_offset ) {
+		if ( raw_flat_field <= bias_offset ) {
 			u16_image_data_array[i] = 0;
 			continue;	/* Skip to the next pixel. */
 		} else {
 			all_pixels_underflowed = FALSE;
 		}
 
-		ffs_denominator = raw_flood_field - bias_offset;
+		ffs_denominator = raw_flat_field - bias_offset;
 
-		ffs_numerator = ad->flood_field_average_intensity
+		ffs_numerator = ad->flat_field_average_intensity
 					- bias_average;
 
-		flood_field_scale_factor = ffs_numerator / ffs_denominator;
+		flat_field_scale_factor = ffs_numerator / ffs_denominator;
 
-		if ( flood_field_scale_factor > flood_field_scale_max ) {
+		if ( flat_field_scale_factor > flat_field_scale_max ) {
 			u16_image_data_array[i] = 0;
 			continue;		/* Skip to the next pixel. */
 		}
-		if ( flood_field_scale_factor < flood_field_scale_min ) {
+		if ( flat_field_scale_factor < flat_field_scale_min ) {
 			u16_image_data_array[i] = 0;
 			continue;		/* Skip to the next pixel. */
 		}
 
 		image_pixel = image_pixel - bias_offset;
 
-		image_pixel = image_pixel * flood_field_scale_factor;
+		image_pixel = image_pixel * flat_field_scale_factor;
 
 		image_pixel = image_pixel + bias_offset;
 
@@ -5018,10 +5020,10 @@ mx_area_detector_u16_plain_flood_field( MX_AREA_DETECTOR *ad,
 		return mx_error( MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
 		"The entire contents of the corrected image frame for "
 		"area detector '%s' have been set to 0 since each pixel in "
-		"the flood field frame '%s' is less than or equal to the "
+		"the flat field frame '%s' is less than or equal to the "
 		"value of the corresponding pixel in the bias frame '%s'.",
 			ad->record->name,
-			ad->flood_field_filename,
+			ad->flat_field_filename,
 			ad->bias_filename );
 	}
 
@@ -5031,32 +5033,32 @@ mx_area_detector_u16_plain_flood_field( MX_AREA_DETECTOR *ad,
 /*-----------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mx_area_detector_s32_plain_flood_field( MX_AREA_DETECTOR *ad,
+mx_area_detector_s32_plain_flat_field( MX_AREA_DETECTOR *ad,
 				MX_IMAGE_FRAME *image_frame,
 				MX_IMAGE_FRAME *mask_frame,
 				MX_IMAGE_FRAME *bias_frame,
-				MX_IMAGE_FRAME *flood_field_frame )
+				MX_IMAGE_FRAME *flat_field_frame )
 {
-	static const char fname[] = "mx_area_detector_s32_plain_flood_field()";
+	static const char fname[] = "mx_area_detector_s32_plain_flat_field()";
 
 	unsigned long i, num_pixels;
 	uint16_t *mask_data_array, *bias_data_array;
-	uint16_t *flood_field_data_array;
+	uint16_t *flat_field_data_array;
 	int32_t *s32_image_data_array;
 	long image_format;
-	unsigned long raw_flood_field, bias_offset;
+	unsigned long raw_flat_field, bias_offset;
 	double bias_average;
-	double image_pixel, flood_field_scale_factor;
+	double image_pixel, flat_field_scale_factor;
 	double ffs_numerator, ffs_denominator;
-	double flood_field_scale_max, flood_field_scale_min;
+	double flat_field_scale_max, flat_field_scale_min;
 
-	/* Return now if we have not been provided with a flood field frame. */
+	/* Return now if we have not been provided with a flat field frame. */
 
-	if ( flood_field_frame == NULL ) {
+	if ( flat_field_frame == NULL ) {
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	flood_field_data_array = flood_field_frame->image_data;
+	flat_field_data_array = flat_field_frame->image_data;
 
 	if ( image_frame == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -5074,11 +5076,11 @@ mx_area_detector_s32_plain_flood_field( MX_AREA_DETECTOR *ad,
 
 	s32_image_data_array = image_frame->image_data;
 
-	/* Discard the flood field scale array if it is in memory,
+	/* Discard the flat field scale array if it is in memory,
 	 * since we will not use it.
 	 */
 
-	mx_free( ad->flood_field_scale_array );
+	mx_free( ad->flat_field_scale_array );
 
 	/* Get pointers to the mask and bias image data. */
 
@@ -5097,10 +5099,10 @@ mx_area_detector_s32_plain_flood_field( MX_AREA_DETECTOR *ad,
 	num_pixels = MXIF_ROW_FRAMESIZE(image_frame)
 			* MXIF_COLUMN_FRAMESIZE(image_frame);
 
-	flood_field_scale_max = ad->flood_field_scale_max;
-	flood_field_scale_min = ad->flood_field_scale_min;
+	flat_field_scale_max = ad->flat_field_scale_max;
+	flat_field_scale_min = ad->flat_field_scale_min;
 
-	/* Now do the flood field correction. */
+	/* Now do the flat field correction. */
 
 	for ( i = 0; i < num_pixels; i++ ) {
 
@@ -5121,9 +5123,9 @@ mx_area_detector_s32_plain_flood_field( MX_AREA_DETECTOR *ad,
 
 		image_pixel = (double) s32_image_data_array[i];
 
-		raw_flood_field = flood_field_data_array[i];
+		raw_flat_field = flat_field_data_array[i];
 
-		if ( ad->bias_corr_after_flood ) {
+		if ( ad->bias_corr_after_flat_field ) {
 			bias_offset = 0;
 			bias_average = 0;
 		} else
@@ -5137,30 +5139,30 @@ mx_area_detector_s32_plain_flood_field( MX_AREA_DETECTOR *ad,
 
 		/* Skip pixels for which the denominator would be zero. */
 
-		if ( raw_flood_field == bias_offset ) {
+		if ( raw_flat_field == bias_offset ) {
 			s32_image_data_array[i]  = 0;
 			continue;
 		}
 
-		ffs_denominator = raw_flood_field - bias_offset;
+		ffs_denominator = raw_flat_field - bias_offset;
 
-		ffs_numerator = ad->flood_field_average_intensity
+		ffs_numerator = ad->flat_field_average_intensity
 					- bias_average;
 
-		flood_field_scale_factor = ffs_numerator / ffs_denominator;
+		flat_field_scale_factor = ffs_numerator / ffs_denominator;
 
-		if ( flood_field_scale_factor > flood_field_scale_max ) {
+		if ( flat_field_scale_factor > flat_field_scale_max ) {
 			s32_image_data_array[i] = 0;
 			continue;		/* Skip to the next pixel. */
 		}
-		if ( flood_field_scale_factor < flood_field_scale_min ) {
+		if ( flat_field_scale_factor < flat_field_scale_min ) {
 			s32_image_data_array[i] = 0;
 			continue;		/* Skip to the next pixel. */
 		}
 
 		image_pixel = image_pixel - bias_offset;
 
-		image_pixel = image_pixel * flood_field_scale_factor;
+		image_pixel = image_pixel * flat_field_scale_factor;
 
 		image_pixel = image_pixel + bias_offset;
 
@@ -5184,32 +5186,32 @@ mx_area_detector_s32_plain_flood_field( MX_AREA_DETECTOR *ad,
 /*-----------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mx_area_detector_flt_plain_flood_field( MX_AREA_DETECTOR *ad,
+mx_area_detector_flt_plain_flat_field( MX_AREA_DETECTOR *ad,
 				MX_IMAGE_FRAME *image_frame,
 				MX_IMAGE_FRAME *mask_frame,
 				MX_IMAGE_FRAME *bias_frame,
-				MX_IMAGE_FRAME *flood_field_frame )
+				MX_IMAGE_FRAME *flat_field_frame )
 {
-	static const char fname[] = "mx_area_detector_flt_plain_flood_field()";
+	static const char fname[] = "mx_area_detector_flt_plain_flat_field()";
 
 	unsigned long i, num_pixels;
 	uint16_t *mask_data_array, *bias_data_array;
-	uint16_t *flood_field_data_array;
+	uint16_t *flat_field_data_array;
 	float *flt_image_data_array;
 	long image_format;
-	unsigned long raw_flood_field, bias_offset;
+	unsigned long raw_flat_field, bias_offset;
 	float bias_average;
-	float image_pixel, flood_field_scale_factor;
+	float image_pixel, flat_field_scale_factor;
 	float ffs_numerator, ffs_denominator;
-	float flood_field_scale_max, flood_field_scale_min;
+	float flat_field_scale_max, flat_field_scale_min;
 
-	/* Return now if we have not been provided with a flood field frame. */
+	/* Return now if we have not been provided with a flat field frame. */
 
-	if ( flood_field_frame == NULL ) {
+	if ( flat_field_frame == NULL ) {
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	flood_field_data_array = flood_field_frame->image_data;
+	flat_field_data_array = flat_field_frame->image_data;
 
 	if ( image_frame == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -5227,11 +5229,11 @@ mx_area_detector_flt_plain_flood_field( MX_AREA_DETECTOR *ad,
 
 	flt_image_data_array = image_frame->image_data;
 
-	/* Discard the flood field scale array if it is in memory,
+	/* Discard the flat field scale array if it is in memory,
 	 * since we will not use it.
 	 */
 
-	mx_free( ad->flood_field_scale_array );
+	mx_free( ad->flat_field_scale_array );
 
 	/* Get pointers to the mask and bias image data. */
 
@@ -5250,10 +5252,10 @@ mx_area_detector_flt_plain_flood_field( MX_AREA_DETECTOR *ad,
 	num_pixels = MXIF_ROW_FRAMESIZE(image_frame)
 			* MXIF_COLUMN_FRAMESIZE(image_frame);
 
-	flood_field_scale_max = ad->flood_field_scale_max;
-	flood_field_scale_min = ad->flood_field_scale_min;
+	flat_field_scale_max = ad->flat_field_scale_max;
+	flat_field_scale_min = ad->flat_field_scale_min;
 
-	/* Now do the flood field correction. */
+	/* Now do the flat field correction. */
 
 	for ( i = 0; i < num_pixels; i++ ) {
 
@@ -5274,9 +5276,9 @@ mx_area_detector_flt_plain_flood_field( MX_AREA_DETECTOR *ad,
 
 		image_pixel = flt_image_data_array[i];
 
-		raw_flood_field = flood_field_data_array[i];
+		raw_flat_field = flat_field_data_array[i];
 
-		if ( ad->bias_corr_after_flood ) {
+		if ( ad->bias_corr_after_flat_field ) {
 			bias_offset = 0;
 			bias_average = 0;
 		} else
@@ -5290,30 +5292,30 @@ mx_area_detector_flt_plain_flood_field( MX_AREA_DETECTOR *ad,
 
 		/* Skip pixels for which the denominator would be zero. */
 
-		if ( raw_flood_field == bias_offset ) {
+		if ( raw_flat_field == bias_offset ) {
 			flt_image_data_array[i]  = 0;
 			continue;
 		}
 
-		ffs_denominator = raw_flood_field - bias_offset;
+		ffs_denominator = raw_flat_field - bias_offset;
 
-		ffs_numerator = ad->flood_field_average_intensity
+		ffs_numerator = ad->flat_field_average_intensity
 					- bias_average;
 
-		flood_field_scale_factor = ffs_numerator / ffs_denominator;
+		flat_field_scale_factor = ffs_numerator / ffs_denominator;
 
-		if ( flood_field_scale_factor > flood_field_scale_max ) {
+		if ( flat_field_scale_factor > flat_field_scale_max ) {
 			flt_image_data_array[i] = 0;
 			continue;		/* Skip to the next pixel. */
 		}
-		if ( flood_field_scale_factor < flood_field_scale_min ) {
+		if ( flat_field_scale_factor < flat_field_scale_min ) {
 			flt_image_data_array[i] = 0;
 			continue;		/* Skip to the next pixel. */
 		}
 
 		image_pixel = image_pixel - bias_offset;
 
-		image_pixel = image_pixel * flood_field_scale_factor;
+		image_pixel = image_pixel * flat_field_scale_factor;
 
 		image_pixel = image_pixel + bias_offset;
 
@@ -5333,32 +5335,32 @@ mx_area_detector_flt_plain_flood_field( MX_AREA_DETECTOR *ad,
 /*-----------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mx_area_detector_dbl_plain_flood_field( MX_AREA_DETECTOR *ad,
+mx_area_detector_dbl_plain_flat_field( MX_AREA_DETECTOR *ad,
 				MX_IMAGE_FRAME *image_frame,
 				MX_IMAGE_FRAME *mask_frame,
 				MX_IMAGE_FRAME *bias_frame,
-				MX_IMAGE_FRAME *flood_field_frame )
+				MX_IMAGE_FRAME *flat_field_frame )
 {
-	static const char fname[] = "mx_area_detector_dbl_plain_flood_field()";
+	static const char fname[] = "mx_area_detector_dbl_plain_flat_field()";
 
 	unsigned long i, num_pixels;
 	uint16_t *mask_data_array, *bias_data_array;
-	uint16_t *flood_field_data_array;
+	uint16_t *flat_field_data_array;
 	double *dbl_image_data_array;
 	long image_format;
-	unsigned long raw_flood_field, bias_offset;
+	unsigned long raw_flat_field, bias_offset;
 	double bias_average;
-	double image_pixel, flood_field_scale_factor;
+	double image_pixel, flat_field_scale_factor;
 	double ffs_numerator, ffs_denominator;
-	double flood_field_scale_max, flood_field_scale_min;
+	double flat_field_scale_max, flat_field_scale_min;
 
-	/* Return now if we have not been provided with a flood field frame. */
+	/* Return now if we have not been provided with a flat field frame. */
 
-	if ( flood_field_frame == NULL ) {
+	if ( flat_field_frame == NULL ) {
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	flood_field_data_array = flood_field_frame->image_data;
+	flat_field_data_array = flat_field_frame->image_data;
 
 	if ( image_frame == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -5376,11 +5378,11 @@ mx_area_detector_dbl_plain_flood_field( MX_AREA_DETECTOR *ad,
 
 	dbl_image_data_array = image_frame->image_data;
 
-	/* Discard the flood field scale array if it is in memory,
+	/* Discard the flat field scale array if it is in memory,
 	 * since we will not use it.
 	 */
 
-	mx_free( ad->flood_field_scale_array );
+	mx_free( ad->flat_field_scale_array );
 
 	/* Get pointers to the mask and bias image data. */
 
@@ -5399,10 +5401,10 @@ mx_area_detector_dbl_plain_flood_field( MX_AREA_DETECTOR *ad,
 	num_pixels = MXIF_ROW_FRAMESIZE(image_frame)
 			* MXIF_COLUMN_FRAMESIZE(image_frame);
 
-	flood_field_scale_max = ad->flood_field_scale_max;
-	flood_field_scale_min = ad->flood_field_scale_min;
+	flat_field_scale_max = ad->flat_field_scale_max;
+	flat_field_scale_min = ad->flat_field_scale_min;
 
-	/* Now do the flood field correction. */
+	/* Now do the flat field correction. */
 
 	for ( i = 0; i < num_pixels; i++ ) {
 
@@ -5423,9 +5425,9 @@ mx_area_detector_dbl_plain_flood_field( MX_AREA_DETECTOR *ad,
 
 		image_pixel = dbl_image_data_array[i];
 
-		raw_flood_field = flood_field_data_array[i];
+		raw_flat_field = flat_field_data_array[i];
 
-		if ( ad->bias_corr_after_flood ) {
+		if ( ad->bias_corr_after_flat_field ) {
 			bias_offset = 0;
 			bias_average = 0;
 		} else
@@ -5439,30 +5441,30 @@ mx_area_detector_dbl_plain_flood_field( MX_AREA_DETECTOR *ad,
 
 		/* Skip pixels for which the denominator would be zero. */
 
-		if ( raw_flood_field == bias_offset ) {
+		if ( raw_flat_field == bias_offset ) {
 			dbl_image_data_array[i]  = 0;
 			continue;
 		}
 
-		ffs_denominator = raw_flood_field - bias_offset;
+		ffs_denominator = raw_flat_field - bias_offset;
 
-		ffs_numerator = ad->flood_field_average_intensity
+		ffs_numerator = ad->flat_field_average_intensity
 					- bias_average;
 
-		flood_field_scale_factor = ffs_numerator / ffs_denominator;
+		flat_field_scale_factor = ffs_numerator / ffs_denominator;
 
-		if ( flood_field_scale_factor > flood_field_scale_max ) {
+		if ( flat_field_scale_factor > flat_field_scale_max ) {
 			dbl_image_data_array[i] = 0;
 			continue;		/* Skip to the next pixel. */
 		}
-		if ( flood_field_scale_factor < flood_field_scale_min ) {
+		if ( flat_field_scale_factor < flat_field_scale_min ) {
 			dbl_image_data_array[i] = 0;
 			continue;		/* Skip to the next pixel. */
 		}
 
 		image_pixel = image_pixel - bias_offset;
 
-		image_pixel = image_pixel * flood_field_scale_factor;
+		image_pixel = image_pixel * flat_field_scale_factor;
 
 		image_pixel = image_pixel + bias_offset;
 
@@ -5858,7 +5860,7 @@ mx_area_detector_classic_frame_correction( MX_RECORD *record,
 				MX_IMAGE_FRAME *mask_frame,
 				MX_IMAGE_FRAME *bias_frame,
 				MX_IMAGE_FRAME *dark_current_frame,
-				MX_IMAGE_FRAME *flood_field_frame )
+				MX_IMAGE_FRAME *flat_field_frame )
 {
 	static const char fname[] =
 		"mx_area_detector_classic_frame_correction()";
@@ -5871,8 +5873,8 @@ mx_area_detector_classic_frame_correction( MX_RECORD *record,
 	unsigned long flags;
 	unsigned long image_format, correction_format;
 	mx_bool_type memory_is_low = FALSE;
-	mx_bool_type geom_corr_before_flood;
-	mx_bool_type geom_corr_after_flood;
+	mx_bool_type geom_corr_before_flat;
+	mx_bool_type geom_corr_after_flat_field;
 	mx_bool_type correction_measurement_in_progress;
 	mx_bool_type geometrical_correction_requested;
 	mx_status_type mx_status;
@@ -5880,7 +5882,7 @@ mx_area_detector_classic_frame_correction( MX_RECORD *record,
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
 	MX_HRT_TIMING initial_timing = MX_HRT_ZERO;
 	MX_HRT_TIMING geometrical_timing = MX_HRT_ZERO;
-	MX_HRT_TIMING flood_timing = MX_HRT_ZERO;
+	MX_HRT_TIMING flat_timing = MX_HRT_ZERO;
 	MX_HRT_TIMING initial_convert_timing = MX_HRT_ZERO;
 	MX_HRT_TIMING final_convert_timing = MX_HRT_ZERO;
 	MX_HRT_TIMING delayed_bias_timing = MX_HRT_ZERO;
@@ -5932,33 +5934,33 @@ mx_area_detector_classic_frame_correction( MX_RECORD *record,
 		/* We are measuring a correction_frame. */
 
 		if ( ad->correction_frame_no_geom_corr ) {
-			geom_corr_before_flood = FALSE;
-			geom_corr_after_flood = FALSE;
+			geom_corr_before_flat = FALSE;
+			geom_corr_after_flat_field = FALSE;
 		} else
 		if ( ad->correction_frame_geom_corr_last ) {
-			geom_corr_before_flood = FALSE;
-			geom_corr_after_flood = FALSE;
+			geom_corr_before_flat = FALSE;
+			geom_corr_after_flat_field = FALSE;
 		} else
-		if ( ad->geom_corr_after_flood ) {
-			geom_corr_before_flood = FALSE;
-			geom_corr_after_flood = TRUE;
+		if ( ad->geom_corr_after_flat_field ) {
+			geom_corr_before_flat = FALSE;
+			geom_corr_after_flat_field = TRUE;
 		} else {
-			geom_corr_before_flood = TRUE;
-			geom_corr_after_flood = FALSE;
+			geom_corr_before_flat = TRUE;
+			geom_corr_after_flat_field = FALSE;
 		}
 	} else {
 		/* We are _not_ measuring a correction_frame. */
 
 		if ( geometrical_correction_requested == FALSE ) {
-			geom_corr_before_flood = FALSE;
-			geom_corr_after_flood = FALSE;
+			geom_corr_before_flat = FALSE;
+			geom_corr_after_flat_field = FALSE;
 		} else
-		if ( ad->geom_corr_after_flood ) {
-			geom_corr_before_flood = FALSE;
-			geom_corr_after_flood = TRUE;
+		if ( ad->geom_corr_after_flat_field ) {
+			geom_corr_before_flat = FALSE;
+			geom_corr_after_flat_field = TRUE;
 		} else {
-			geom_corr_before_flood = TRUE;
-			geom_corr_after_flood = FALSE;
+			geom_corr_before_flat = TRUE;
+			geom_corr_after_flat_field = FALSE;
 		}
 	}
 
@@ -5971,11 +5973,11 @@ mx_area_detector_classic_frame_correction( MX_RECORD *record,
 		fname, (int) ad->correction_frame_no_geom_corr));
 	MX_DEBUG(-2,("%s: ad->correction_frame_geom_corr_last = %d",
 		fname, (int) ad->correction_frame_geom_corr_last));
-	MX_DEBUG(-2,("%s: ad->geom_corr_after_flood = %d",
-		fname, (int) ad->geom_corr_after_flood));
+	MX_DEBUG(-2,("%s: ad->geom_corr_after_flat_field = %d",
+		fname, (int) ad->geom_corr_after_flat_field));
 	MX_DEBUG(-2,
-	("%s: geom_corr_before_flood = %d, geom_corr_after_flood = %d",
-		fname, geom_corr_before_flood, geom_corr_after_flood));
+	("%s: geom_corr_before_flat = %d, geom_corr_after_flat_field = %d",
+		fname, geom_corr_before_flat, geom_corr_after_flat_field));
 #endif
 
 	/*---*/
@@ -6018,7 +6020,7 @@ mx_area_detector_classic_frame_correction( MX_RECORD *record,
 	/*----*/
 
 	if ( ( ad->correction_calc_format != image_format )
-	  && geom_corr_before_flood )
+	  && geom_corr_before_flat )
 	{
 		char correction_fmt_name[40];
 		char image_fmt_name[40];
@@ -6038,10 +6040,10 @@ mx_area_detector_classic_frame_correction( MX_RECORD *record,
 "\n"
 "\n1.  The image correction format '%s' (%ld) is different from the "
 "\n        image format '%s' %ld."
-"\n2.  Geometrical correction is configured to take place before the flood."
+"\n2.  Geometrical correction is configured to take place before the flat."
 "\n"
 "\nThe recommended solution is to configure geometrical correction to take"
-"\nplace after the flood.", record->name,
+"\nplace after the flat.", record->name,
 		correction_fmt_name, ad->correction_calc_format,
 		image_fmt_name, image_format );
 	}
@@ -6125,7 +6127,7 @@ mx_area_detector_classic_frame_correction( MX_RECORD *record,
 		return mx_status;
 
 	mx_status = mx_area_detector_check_correction_framesize( ad,
-			    image_frame, flood_field_frame, "flood field" );
+			    image_frame, flat_field_frame, "flat field" );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -6251,7 +6253,7 @@ mx_area_detector_classic_frame_correction( MX_RECORD *record,
 
 	/******* Geometrical correction *******/
 
-	if ( geom_corr_before_flood ) {
+	if ( geom_corr_before_flat ) {
 
 		/* If requested, do the geometrical correction. */
 
@@ -6267,52 +6269,52 @@ mx_area_detector_classic_frame_correction( MX_RECORD *record,
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
 	MX_HRT_END( geometrical_timing );
 
-	MX_HRT_START( flood_timing );
+	MX_HRT_START( flat_timing );
 #endif
 
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION_FLAGS
-	MX_DEBUG(-2,("%s: flood_field_frame = %p", fname, flood_field_frame));
+	MX_DEBUG(-2,("%s: flat_field_frame = %p", fname, flat_field_frame));
 #endif
 
-	/******* Flood field correction *******/
+	/******* Flat field correction *******/
 
 	if ( memory_is_low ) {
 		switch( correction_format ) {
 		case MXT_IMAGE_FORMAT_GREY16:
 			mx_status =
-			    mx_area_detector_u16_plain_flood_field( ad,
+			    mx_area_detector_u16_plain_flat_field( ad,
 							correction_calc_frame,
 							mask_frame,
 							bias_frame,
-							flood_field_frame );
+							flat_field_frame );
 			break;
 		case MXT_IMAGE_FORMAT_INT32:
 			mx_status =
-			    mx_area_detector_s32_plain_flood_field( ad,
+			    mx_area_detector_s32_plain_flat_field( ad,
 							correction_calc_frame,
 							mask_frame,
 							bias_frame,
-							flood_field_frame );
+							flat_field_frame );
 			break;
 		case MXT_IMAGE_FORMAT_FLOAT:
 			mx_status =
-			    mx_area_detector_flt_plain_flood_field( ad,
+			    mx_area_detector_flt_plain_flat_field( ad,
 							correction_calc_frame,
 							mask_frame,
 							bias_frame,
-							flood_field_frame );
+							flat_field_frame );
 			break;
 		case MXT_IMAGE_FORMAT_DOUBLE:
 			mx_status =
-			    mx_area_detector_dbl_plain_flood_field( ad,
+			    mx_area_detector_dbl_plain_flat_field( ad,
 							correction_calc_frame,
 							mask_frame,
 							bias_frame,
-							flood_field_frame );
+							flat_field_frame );
 			break;
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Flood field correction requested for illegal "
+			"Flat field correction requested for illegal "
 			"correction calculation frame format %ld "
 			"for area detector '%s'.",
 				correction_format, ad->record->name );
@@ -6321,40 +6323,40 @@ mx_area_detector_classic_frame_correction( MX_RECORD *record,
 	} else {
 		switch( correction_format ) {
 		case MXT_IMAGE_FORMAT_GREY16:
-			mx_status = mx_area_detector_u16_precomp_flood_field(
+			mx_status = mx_area_detector_u16_precomp_flat_field(
 							ad,
 							correction_calc_frame,
 							mask_frame,
 							bias_frame,
-							flood_field_frame );
+							flat_field_frame );
 			break;
 		case MXT_IMAGE_FORMAT_INT32:
-			mx_status = mx_area_detector_s32_precomp_flood_field(
+			mx_status = mx_area_detector_s32_precomp_flat_field(
 							ad,
 							correction_calc_frame,
 							mask_frame,
 							bias_frame,
-							flood_field_frame );
+							flat_field_frame );
 			break;
 		case MXT_IMAGE_FORMAT_FLOAT:
-			mx_status = mx_area_detector_flt_precomp_flood_field(
+			mx_status = mx_area_detector_flt_precomp_flat_field(
 							ad,
 							correction_calc_frame,
 							mask_frame,
 							bias_frame,
-							flood_field_frame );
+							flat_field_frame );
 			break;
 		case MXT_IMAGE_FORMAT_DOUBLE:
-			mx_status = mx_area_detector_dbl_precomp_flood_field(
+			mx_status = mx_area_detector_dbl_precomp_flat_field(
 							ad,
 							correction_calc_frame,
 							mask_frame,
 							bias_frame,
-							flood_field_frame );
+							flat_field_frame );
 			break;
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Flood field correction requested for illegal "
+			"Flat field correction requested for illegal "
 			"correction calculation frame format %ld "
 			"for area detector '%s'.",
 				correction_format, ad->record->name );
@@ -6363,7 +6365,7 @@ mx_area_detector_classic_frame_correction( MX_RECORD *record,
 	}
 
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
-	MX_HRT_END( flood_timing );
+	MX_HRT_END( flat_timing );
 #endif
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -6375,7 +6377,7 @@ mx_area_detector_classic_frame_correction( MX_RECORD *record,
 	MX_HRT_START( delayed_bias_timing );
 #endif
 
-	if ( ad->bias_corr_after_flood && ( bias_frame != NULL ) ) {
+	if ( ad->bias_corr_after_flat_field && ( bias_frame != NULL ) ) {
 
 		mx_status = mxp_area_detector_delayed_bias_offset(
 					correction_calc_frame, bias_frame );
@@ -6408,7 +6410,7 @@ mx_area_detector_classic_frame_correction( MX_RECORD *record,
 
 	/******* Delayed geometrical correction (if requested) *******/
 
-	if ( geom_corr_after_flood ) {
+	if ( geom_corr_after_flat_field ) {
 
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
 		/* If invoked, this code overwrites the earlier
@@ -6442,10 +6444,11 @@ mx_area_detector_classic_frame_correction( MX_RECORD *record,
 	MX_HRT_RESULTS( initial_timing, fname,
 				"Mask, bias, and dark correction time." );
 
-	if ( geom_corr_after_flood ) {
-		MX_HRT_RESULTS( flood_timing, fname, "Flood correction time." );
+	if ( geom_corr_after_flat_field ) {
+		MX_HRT_RESULTS( flat_timing,
+			fname, "Flat field correction time." );
 
-		if ( ad->bias_corr_after_flood ) {
+		if ( ad->bias_corr_after_flat_field ) {
 			MX_HRT_RESULTS( delayed_bias_timing, fname,
 				"Delayed bias offset time." );
 		}
@@ -6455,9 +6458,10 @@ mx_area_detector_classic_frame_correction( MX_RECORD *record,
 	} else {
 		MX_HRT_RESULTS( geometrical_timing, fname,
 				"Geometrical correction time." );
-		MX_HRT_RESULTS( flood_timing, fname, "Flood correction time." );
+		MX_HRT_RESULTS( flat_timing,
+			fname, "Flat field correction time." );
 
-		if ( ad->bias_corr_after_flood ) {
+		if ( ad->bias_corr_after_flat_field ) {
 			MX_HRT_RESULTS( delayed_bias_timing, fname,
 				"Delayed bias offset time." );
 		}

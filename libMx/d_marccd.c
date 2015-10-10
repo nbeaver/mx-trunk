@@ -1130,7 +1130,7 @@ mxd_marccd_readout_frame( MX_AREA_DETECTOR *ad )
 
 	if ( flags & MXF_AD_SAVE_REMOTE_FRAME_AFTER_ACQUISITION ) {
 
-		mask = MXFT_AD_FLOOD_FIELD_FRAME
+		mask = MXFT_AD_FLAT_FIELD_FRAME
 				| MXFT_AD_GEOMETRICAL_CORRECTION;
 
 		/* We save here if no correction is to be performed. */
@@ -1163,7 +1163,7 @@ mxd_marccd_correct_frame( MX_AREA_DETECTOR *ad )
 #endif
 	/* Return if there is no correction to be performed. */
 
-	mask = MXFT_AD_FLOOD_FIELD_FRAME | MXFT_AD_GEOMETRICAL_CORRECTION;
+	mask = MXFT_AD_FLAT_FIELD_FRAME | MXFT_AD_GEOMETRICAL_CORRECTION;
 
 	if ( ( mask & ad->correction_flags ) == 0 ) {
 		return MX_SUCCESSFUL_RESULT;

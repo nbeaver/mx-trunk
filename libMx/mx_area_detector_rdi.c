@@ -148,7 +148,7 @@ mx_rdi_correct_frame( MX_AREA_DETECTOR *ad,
 	}
 #endif
 
-	non_uniformity_frame = ad->flood_field_frame;
+	non_uniformity_frame = ad->flat_field_frame;
 
 #if MX_RDI_DEBUG_CORRECTION_STATISTICS
 	MX_DEBUG(-2,("%s: non-uniformity frame statistics:", fname));
@@ -618,14 +618,14 @@ mx_rdi_dbl_image_correction( MX_AREA_DETECTOR *ad,
 
 	/*--- Check that the non uniformity frame is set up correctly ---*/
 
-	if ( correction_flags & MXFT_AD_FLOOD_FIELD_FRAME ) {
+	if ( correction_flags & MXFT_AD_FLAT_FIELD_FRAME ) {
 
 	    if ( non_uniformity_frame == NULL ) {
 		mx_warning( "Non-uniformity correction skipped, since "
 			"no non-uniformity frame is loaded for detector '%s'.",
 			ad->record->name );
 
-		correction_flags |= (~MXFT_AD_FLOOD_FIELD_FRAME);
+		correction_flags |= (~MXFT_AD_FLAT_FIELD_FRAME);
 	    } else {
 	    	non_uniformity_format = MXIF_IMAGE_FORMAT(non_uniformity_frame);
 
@@ -689,7 +689,7 @@ mx_rdi_dbl_image_correction( MX_AREA_DETECTOR *ad,
 			image_pixel = image_pixel - dark_current_pixel;
 		}
 
-		if ( correction_flags & MXFT_AD_FLOOD_FIELD_FRAME ) {
+		if ( correction_flags & MXFT_AD_FLAT_FIELD_FRAME ) {
 			non_uniformity_pixel = flt_non_uniformity_data_array[i];
 
 			image_pixel = image_pixel * non_uniformity_pixel;
@@ -969,14 +969,14 @@ mx_rdi_flt_image_correction( MX_AREA_DETECTOR *ad,
 
 	/*--- Check that the non uniformity frame is set up correctly ---*/
 
-	if ( correction_flags & MXFT_AD_FLOOD_FIELD_FRAME ) {
+	if ( correction_flags & MXFT_AD_FLAT_FIELD_FRAME ) {
 
 	    if ( non_uniformity_frame == NULL ) {
 		mx_warning( "Non-uniformity correction skipped, since "
 			"no non-uniformity frame is loaded for detector '%s'.",
 			ad->record->name );
 
-		correction_flags |= (~MXFT_AD_FLOOD_FIELD_FRAME);
+		correction_flags |= (~MXFT_AD_FLAT_FIELD_FRAME);
 	    } else {
 	    	non_uniformity_format = MXIF_IMAGE_FORMAT(non_uniformity_frame);
 
@@ -1047,7 +1047,7 @@ mx_rdi_flt_image_correction( MX_AREA_DETECTOR *ad,
 	    } else {
 		apply_dark_current = TRUE;
 
-		if ( correction_flags & MXFT_AD_FLOOD_FIELD_FRAME ) {
+		if ( correction_flags & MXFT_AD_FLAT_FIELD_FRAME ) {
 		    apply_gain = TRUE;
 		} else {
 		    apply_gain = FALSE;
@@ -1133,7 +1133,7 @@ mx_rdi_flt_image_correction( MX_AREA_DETECTOR *ad,
 			image_pixel = image_pixel - dark_current_pixel;
 		}
 
-		if ( correction_flags & MXFT_AD_FLOOD_FIELD_FRAME ) {
+		if ( correction_flags & MXFT_AD_FLAT_FIELD_FRAME ) {
 			non_uniformity_pixel = flt_non_uniformity_data_array[i];
 
 			image_pixel = image_pixel * non_uniformity_pixel;
@@ -1200,7 +1200,7 @@ mx_rdi_load_frame( MX_AREA_DETECTOR *ad )
 	 * then we are done.
 	 */
 
-	if ( ad->load_frame != MXFT_AD_FLOOD_FIELD_FRAME )
+	if ( ad->load_frame != MXFT_AD_FLAT_FIELD_FRAME )
 		return MX_SUCCESSFUL_RESULT;
 
 #if MX_RDI_DEBUG_LOAD_FRAME
@@ -1221,7 +1221,7 @@ mx_rdi_load_frame( MX_AREA_DETECTOR *ad )
 	 * Otherwise, we leave the non-uniformity frame alone.
 	 */
 
-	non_uniformity_frame = ad->flood_field_frame;
+	non_uniformity_frame = ad->flat_field_frame;
 
 	if ( non_uniformity_frame == (MX_IMAGE_FRAME *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,

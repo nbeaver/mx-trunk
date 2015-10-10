@@ -1024,7 +1024,7 @@ mxd_pilatus_set_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_USE_SCALED_DARK_CURRENT:
 		break;
 
-	case MXLV_AD_GEOM_CORR_AFTER_FLOOD:
+	case MXLV_AD_GEOM_CORR_AFTER_FLAT_FIELD:
 		break;
 
 	case MXLV_AD_CORRECTION_FRAME_GEOM_CORR_LAST:
@@ -1148,7 +1148,7 @@ mxd_pilatus_measure_correction( MX_AREA_DETECTOR *ad )
 
 	switch( ad->correction_measurement_type ) {
 	case MXFT_AD_DARK_CURRENT_FRAME:
-	case MXFT_AD_FLOOD_FIELD_FRAME:
+	case MXFT_AD_FLAT_FIELD_FRAME:
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,

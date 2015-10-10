@@ -65,11 +65,11 @@ extern "C" {
 
 /* Bit definitions for the 'area_detector_flags' variable. */
 
-#define MXF_AD_GEOM_CORR_AFTER_FLOOD		   		0x1
+#define MXF_AD_GEOM_CORR_AFTER_FLAT_FIELD	   		0x1
 #define MXF_AD_CORRECTION_FRAME_GEOM_CORR_LAST	   		0x2
 #define MXF_AD_CORRECTION_FRAME_NO_GEOM_CORR	   		0x4
 #define MXF_AD_DEZINGER_CORRECTION_FRAME           		0x8
-#define MXF_AD_BIAS_CORR_AFTER_FLOOD		   		0x10
+#define MXF_AD_BIAS_CORR_AFTER_FLAT_FIELD		   		0x10
 
   /* If MXF_AD_SAVE_FRAME_AFTER_ACQUISITION is set and we are running in an
    * MX server, then the area detector datafile management routines will
@@ -183,7 +183,7 @@ extern "C" {
 #define MXFT_AD_MASK_FRAME		0x1
 #define MXFT_AD_BIAS_FRAME		0x2
 #define MXFT_AD_DARK_CURRENT_FRAME	0x4
-#define MXFT_AD_FLOOD_FIELD_FRAME	0x8
+#define MXFT_AD_FLAT_FIELD_FRAME	0x8
 
 /* The following are only used by 'save_frame', so that we can save
  * rebinned frames to disk files.  Most of the time it should not
@@ -193,7 +193,7 @@ extern "C" {
 #define MXFT_AD_REBINNED_MASK_FRAME		0x10
 #define MXFT_AD_REBINNED_BIAS_FRAME		0x20
 #define MXFT_AD_REBINNED_DARK_CURRENT_FRAME	0x40
-#define MXFT_AD_REBINNED_FLOOD_FIELD_FRAME	0x80
+#define MXFT_AD_REBINNED_FLAT_FIELD_FRAME	0x80
 
 /* The following are used only for the 'correction_flags'
  * member of MX_AREA_DETECTOR.
@@ -260,10 +260,10 @@ typedef struct mx_area_detector_type {
 	long mask_image_format;
 	long bias_image_format;
 	long dark_current_image_format;
-	long flood_field_image_format;
+	long flat_field_image_format;
 
 	unsigned long measure_dark_current_correction_flags;
-	unsigned long measure_flood_field_correction_flags;
+	unsigned long measure_flat_field_correction_flags;
 
 	mx_bool_type arm;
 	mx_bool_type trigger;
@@ -315,9 +315,9 @@ typedef struct mx_area_detector_type {
 
 	mx_bool_type correction_measurement_in_progress;
 
-	mx_bool_type bias_corr_after_flood;
+	mx_bool_type bias_corr_after_flat_field;
 
-	mx_bool_type geom_corr_after_flood;
+	mx_bool_type geom_corr_after_flat_field;
 	mx_bool_type correction_frame_geom_corr_last;
 	mx_bool_type correction_frame_no_geom_corr;
 
@@ -414,13 +414,13 @@ typedef struct mx_area_detector_type {
 	double constant_bias_pixel_offset;
 
 	/*
-	 * 'flood_field_scale_max' and 'flood_field_scale_min' are used
-	 * in flood field correction to limit the maximum and minimum
-	 * values of the flood field scale factor.
+	 * 'flat_field_scale_max' and 'flat_field_scale_min' are used
+	 * in flat field correction to limit the maximum and minimum
+	 * values of the flat field scale factor.
 	 */
 
-	double flood_field_scale_max;
-	double flood_field_scale_min;
+	double flat_field_scale_max;
+	double flat_field_scale_min;
 
 	/* 'transfer_frame' tells the server to send one of the frames
 	 * to the caller.
@@ -455,10 +455,10 @@ typedef struct mx_area_detector_type {
 	 */
 
 	char saved_dark_current_filename[MXU_FILENAME_LENGTH+1];
-	char saved_flood_field_filename[MXU_FILENAME_LENGTH+1];
+	char saved_flat_field_filename[MXU_FILENAME_LENGTH+1];
 
 	/* The following fields are used for measuring dark current and
-	 * flood field image frames.
+	 * flat field image frames.
 	 */
 
 	MX_AREA_DETECTOR_CORRECTION_MEASUREMENT *correction_measurement;
@@ -550,12 +550,12 @@ typedef struct mx_area_detector_type {
 	char *dark_current_frame_buffer;
 	char dark_current_filename[MXU_FILENAME_LENGTH+1];
 
-	double flood_field_average_intensity;
+	double flat_field_average_intensity;
 	double bias_average_intensity;
 
-	MX_IMAGE_FRAME *flood_field_frame;
-	char *flood_field_frame_buffer;
-	char flood_field_filename[MXU_FILENAME_LENGTH+1];
+	MX_IMAGE_FRAME *flat_field_frame;
+	char *flat_field_frame_buffer;
+	char flat_field_filename[MXU_FILENAME_LENGTH+1];
 
 	/* If the image frame is smaller than the correction frames by
 	 * an integer ratio, rebinned versions of the correction frames
@@ -566,7 +566,7 @@ typedef struct mx_area_detector_type {
 	MX_IMAGE_FRAME *rebinned_mask_frame;
 	MX_IMAGE_FRAME *rebinned_bias_frame;
 	MX_IMAGE_FRAME *rebinned_dark_current_frame;
-	MX_IMAGE_FRAME *rebinned_flood_field_frame;
+	MX_IMAGE_FRAME *rebinned_flat_field_frame;
 
 	/* dark_current_offset_array is recomputed any time that
 	 * the exposure time is changed, the bias frame is changed,
@@ -584,18 +584,18 @@ typedef struct mx_area_detector_type {
 
 	mx_bool_type dark_current_offset_can_change;
 
-	/* flood_field_scale_array is recomputed any time that the
-	 * bias frame is changed, the flood field frame is changed
+	/* flat_field_scale_array is recomputed any time that the
+	 * bias frame is changed, the flat field frame is changed
 	 * or the correction flags are changed.
 	 *
-	 * flood_field_scale_array uses 'float' rather than 'double'
+	 * flat_field_scale_array uses 'float' rather than 'double'
 	 * to save memory.  For a 4096 by 4096 image, this means that
 	 * the array uses 64 megabytes rather than 128 megabytes.
 	 */
 
-	float *flood_field_scale_array;
+	float *flat_field_scale_array;
 
-	mx_bool_type flood_field_scale_can_change;
+	mx_bool_type flat_field_scale_can_change;
 
 	/* If correction calculations are performed in a format
 	 * other than the native format of the image frame, then
@@ -762,8 +762,8 @@ typedef struct mx_area_detector_type {
 #define MXLV_AD_TOTAL_ACQUISITION_TIME		12052
 #define MXLV_AD_DETECTOR_READOUT_TIME		12053
 #define MXLV_AD_TOTAL_SEQUENCE_TIME		12054
-#define MXLV_AD_GEOM_CORR_AFTER_FLOOD		12055
-#define MXLV_AD_BIAS_CORR_AFTER_FLOOD		12056
+#define MXLV_AD_GEOM_CORR_AFTER_FLAT_FIELD		12055
+#define MXLV_AD_BIAS_CORR_AFTER_FLAT_FIELD		12056
 #define MXLV_AD_CORRECTION_FRAME_GEOM_CORR_LAST	12057
 #define MXLV_AD_CORRECTION_FRAME_NO_GEOM_CORR	12058
 #define MXLV_AD_CORRECTION_MEASUREMENT_TYPE	12059
@@ -786,7 +786,7 @@ typedef struct mx_area_detector_type {
 #define MXLV_AD_MASK_FILENAME			12102
 #define MXLV_AD_BIAS_FILENAME			12103
 #define MXLV_AD_DARK_CURRENT_FILENAME		12104
-#define MXLV_AD_FLOOD_FIELD_FILENAME		12105
+#define MXLV_AD_FLAT_FIELD_FILENAME		12105
 
 #define MXLV_AD_SUBFRAME_SIZE			12201
 
@@ -1033,19 +1033,19 @@ typedef struct mx_area_detector_type {
 		offsetof(MX_AREA_DETECTOR, constant_bias_pixel_offset), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
-  {-1, -1, "flood_field_scale_max", MXFT_DOUBLE, NULL, 0, {0}, \
+  {-1, -1, "flat_field_scale_max", MXFT_DOUBLE, NULL, 0, {0}, \
   	MXF_REC_CLASS_STRUCT, \
-		offsetof(MX_AREA_DETECTOR, flood_field_scale_max), \
+		offsetof(MX_AREA_DETECTOR, flat_field_scale_max), \
 	{0}, NULL, 0}, \
   \
-  {-1, -1, "flood_field_scale_min", MXFT_DOUBLE, NULL, 0, {0}, \
+  {-1, -1, "flat_field_scale_min", MXFT_DOUBLE, NULL, 0, {0}, \
   	MXF_REC_CLASS_STRUCT, \
-		offsetof(MX_AREA_DETECTOR, flood_field_scale_min), \
+		offsetof(MX_AREA_DETECTOR, flat_field_scale_min), \
 	{0}, NULL, 0}, \
   \
-  {-1, -1, "flood_field_average_intensity", MXFT_DOUBLE, NULL, 0, {0}, \
+  {-1, -1, "flat_field_average_intensity", MXFT_DOUBLE, NULL, 0, {0}, \
         MXF_REC_CLASS_STRUCT, \
-                offsetof(MX_AREA_DETECTOR, flood_field_average_intensity), \
+                offsetof(MX_AREA_DETECTOR, flat_field_average_intensity), \
         {0}, NULL, MXFF_READ_ONLY}, \
   \
   {-1, -1, "bias_average_intensity", MXFT_DOUBLE, NULL, 0, {0}, \
@@ -1088,10 +1088,10 @@ typedef struct mx_area_detector_type {
 		offsetof(MX_AREA_DETECTOR, saved_dark_current_filename), \
 	{sizeof(char)}, NULL, 0}, \
   \
-  {-1, -1, "saved_flood_field_filename", MXFT_STRING, \
+  {-1, -1, "saved_flat_field_filename", MXFT_STRING, \
 					NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_CLASS_STRUCT, \
-		offsetof(MX_AREA_DETECTOR, saved_flood_field_filename), \
+		offsetof(MX_AREA_DETECTOR, saved_flat_field_filename), \
 	{sizeof(char)}, NULL, 0}, \
   \
   {MXLV_AD_SEQUENCE_START_DELAY, -1, \
@@ -1118,16 +1118,16 @@ typedef struct mx_area_detector_type {
 		offsetof(MX_AREA_DETECTOR, total_sequence_time), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
-  {MXLV_AD_GEOM_CORR_AFTER_FLOOD, -1, \
-  		"geom_corr_after_flood", MXFT_BOOL, NULL, 0, {0}, \
+  {MXLV_AD_GEOM_CORR_AFTER_FLAT_FIELD, -1, \
+  		"geom_corr_after_flat_field", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
-		offsetof(MX_AREA_DETECTOR, geom_corr_after_flood), \
+		offsetof(MX_AREA_DETECTOR, geom_corr_after_flat_field), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_AD_BIAS_CORR_AFTER_FLOOD, -1, \
-  		"bias_corr_after_flood", MXFT_BOOL, NULL, 0, {0}, \
+  {MXLV_AD_BIAS_CORR_AFTER_FLAT_FIELD, -1, \
+  		"bias_corr_after_flat_field", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
-		offsetof(MX_AREA_DETECTOR, bias_corr_after_flood), \
+		offsetof(MX_AREA_DETECTOR, bias_corr_after_flat_field), \
 	{0}, NULL, 0}, \
   \
   {MXLV_AD_CORRECTION_FRAME_GEOM_CORR_LAST, -1, \
@@ -1201,9 +1201,9 @@ typedef struct mx_area_detector_type {
 		offsetof(MX_AREA_DETECTOR, dark_current_frame_buffer),\
 	{sizeof(char)}, NULL, (MXFF_READ_ONLY | MXFF_VARARGS)}, \
   \
-  {-1, -1, "flood_field_frame_buffer", MXFT_CHAR, NULL, 1, {0}, \
+  {-1, -1, "flat_field_frame_buffer", MXFT_CHAR, NULL, 1, {0}, \
 	MXF_REC_CLASS_STRUCT, \
-		offsetof(MX_AREA_DETECTOR, flood_field_frame_buffer), \
+		offsetof(MX_AREA_DETECTOR, flat_field_frame_buffer), \
 	{sizeof(char)}, NULL, (MXFF_READ_ONLY | MXFF_VARARGS)}, \
   \
   {MXLV_AD_REGISTER_NAME, -1, "register_name", MXFT_STRING, NULL, \
@@ -1272,10 +1272,10 @@ typedef struct mx_area_detector_type {
 			offsetof(MX_AREA_DETECTOR, dark_current_filename), \
 	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {MXLV_AD_FLOOD_FIELD_FILENAME, -1, "flood_field_filename", MXFT_STRING, \
+  {MXLV_AD_FLAT_FIELD_FILENAME, -1, "flat_field_filename", MXFT_STRING, \
 					NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_CLASS_STRUCT, \
-			offsetof(MX_AREA_DETECTOR, flood_field_filename), \
+			offsetof(MX_AREA_DETECTOR, flat_field_filename), \
 	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}, \
   \
   {-1, -1, "dark_current_offset_can_change", MXFT_BOOL, NULL, 0, {0}, \
@@ -1283,9 +1283,9 @@ typedef struct mx_area_detector_type {
 		offsetof(MX_AREA_DETECTOR, dark_current_offset_can_change), \
 	{0}, NULL, 0}, \
   \
-  {-1, -1, "flood_field_scale_can_change", MXFT_BOOL, NULL, 0, {0}, \
+  {-1, -1, "flat_field_scale_can_change", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
-		offsetof(MX_AREA_DETECTOR, flood_field_scale_can_change), \
+		offsetof(MX_AREA_DETECTOR, flat_field_scale_can_change), \
 	{0}, NULL, 0}, \
   \
   {MXLV_AD_DATAFILE_DIRECTORY, -1, "datafile_directory", MXFT_STRING, \
@@ -1917,9 +1917,9 @@ MX_API mx_status_type mx_area_detector_measure_correction_frame(
 						MXFT_AD_DARK_CURRENT_FRAME, \
 						(t), (n) )
 
-#define mx_area_detector_measure_flood_field_frame( r, t, n ) \
+#define mx_area_detector_measure_flat_field_frame( r, t, n ) \
 	mx_area_detector_measure_correction_frame( (r), \
-						MXFT_AD_FLOOD_FIELD_FRAME, \
+						MXFT_AD_FLAT_FIELD_FRAME, \
 						(t), (n) )
 
 MX_API mx_status_type mx_area_detector_save_averaged_correction_frame(
@@ -1994,10 +1994,10 @@ MX_API mx_status_type mx_area_detector_compute_dark_current_offset(
 					MX_IMAGE_FRAME *bias_frame,
 					MX_IMAGE_FRAME *dark_current_frame );
 
-MX_API mx_status_type mx_area_detector_compute_flood_field_scale(
+MX_API mx_status_type mx_area_detector_compute_flat_field_scale(
 					MX_AREA_DETECTOR *ad,
 					MX_IMAGE_FRAME *bias_frame,
-					MX_IMAGE_FRAME *flood_field_frame );
+					MX_IMAGE_FRAME *flat_field_frame );
 
 MX_API mx_status_type mx_area_detector_check_for_low_memory(
 					MX_AREA_DETECTOR *ad,
@@ -2011,7 +2011,7 @@ MX_API mx_status_type mx_area_detector_classic_frame_correction(
 					MX_IMAGE_FRAME *mask_frame,
 					MX_IMAGE_FRAME *bias_frame,
 					MX_IMAGE_FRAME *dark_current_frame,
-					MX_IMAGE_FRAME *flood_field_frame );
+					MX_IMAGE_FRAME *flat_field_frame );
 
 /* Use precomputed dark_current_offset_array. */
 
@@ -2073,65 +2073,65 @@ MX_API mx_status_type mx_area_detector_dbl_plain_dark_correction(
 					MX_IMAGE_FRAME *bias_frame,
 					MX_IMAGE_FRAME *dark_current_frame );
 
-/* Use precomputed flood_field_scale_array. */
+/* Use precomputed flat_field_scale_array. */
 
-MX_API mx_status_type mx_area_detector_u16_precomp_flood_field(
+MX_API mx_status_type mx_area_detector_u16_precomp_flat_field(
 					MX_AREA_DETECTOR *ad,
 					MX_IMAGE_FRAME *image_frame,
 					MX_IMAGE_FRAME *mask_frame,
 					MX_IMAGE_FRAME *bias_frame,
-					MX_IMAGE_FRAME *flood_field_frame );
+					MX_IMAGE_FRAME *flat_field_frame );
 
-MX_API mx_status_type mx_area_detector_s32_precomp_flood_field(
+MX_API mx_status_type mx_area_detector_s32_precomp_flat_field(
 					MX_AREA_DETECTOR *ad,
 					MX_IMAGE_FRAME *image_frame,
 					MX_IMAGE_FRAME *mask_frame,
 					MX_IMAGE_FRAME *bias_frame,
-					MX_IMAGE_FRAME *flood_field_frame );
+					MX_IMAGE_FRAME *flat_field_frame );
 
-MX_API mx_status_type mx_area_detector_flt_precomp_flood_field(
+MX_API mx_status_type mx_area_detector_flt_precomp_flat_field(
 					MX_AREA_DETECTOR *ad,
 					MX_IMAGE_FRAME *image_frame,
 					MX_IMAGE_FRAME *mask_frame,
 					MX_IMAGE_FRAME *bias_frame,
-					MX_IMAGE_FRAME *flood_field_frame );
+					MX_IMAGE_FRAME *flat_field_frame );
 
-MX_API mx_status_type mx_area_detector_dbl_precomp_flood_field(
+MX_API mx_status_type mx_area_detector_dbl_precomp_flat_field(
 					MX_AREA_DETECTOR *ad,
 					MX_IMAGE_FRAME *image_frame,
 					MX_IMAGE_FRAME *mask_frame,
 					MX_IMAGE_FRAME *bias_frame,
-					MX_IMAGE_FRAME *flood_field_frame );
+					MX_IMAGE_FRAME *flat_field_frame );
 
-/* Compute the flood field scale on the fly. */
+/* Compute the flat field scale on the fly. */
 
-MX_API mx_status_type mx_area_detector_u16_plain_flood_field(
+MX_API mx_status_type mx_area_detector_u16_plain_flat_field(
 					MX_AREA_DETECTOR *ad,
 					MX_IMAGE_FRAME *image_frame,
 					MX_IMAGE_FRAME *mask_frame,
 					MX_IMAGE_FRAME *bias_frame,
-					MX_IMAGE_FRAME *flood_field_frame );
+					MX_IMAGE_FRAME *flat_field_frame );
 
-MX_API mx_status_type mx_area_detector_s32_plain_flood_field(
+MX_API mx_status_type mx_area_detector_s32_plain_flat_field(
 					MX_AREA_DETECTOR *ad,
 					MX_IMAGE_FRAME *image_frame,
 					MX_IMAGE_FRAME *mask_frame,
 					MX_IMAGE_FRAME *bias_frame,
-					MX_IMAGE_FRAME *flood_field_frame );
+					MX_IMAGE_FRAME *flat_field_frame );
 
-MX_API mx_status_type mx_area_detector_flt_plain_flood_field(
+MX_API mx_status_type mx_area_detector_flt_plain_flat_field(
 					MX_AREA_DETECTOR *ad,
 					MX_IMAGE_FRAME *image_frame,
 					MX_IMAGE_FRAME *mask_frame,
 					MX_IMAGE_FRAME *bias_frame,
-					MX_IMAGE_FRAME *flood_field_frame );
+					MX_IMAGE_FRAME *flat_field_frame );
 
-MX_API mx_status_type mx_area_detector_dbl_plain_flood_field(
+MX_API mx_status_type mx_area_detector_dbl_plain_flat_field(
 					MX_AREA_DETECTOR *ad,
 					MX_IMAGE_FRAME *image_frame,
 					MX_IMAGE_FRAME *mask_frame,
 					MX_IMAGE_FRAME *bias_frame,
-					MX_IMAGE_FRAME *flood_field_frame );
+					MX_IMAGE_FRAME *flat_field_frame );
 
 #ifdef __cplusplus
 }

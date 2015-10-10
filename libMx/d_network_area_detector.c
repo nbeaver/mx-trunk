@@ -359,9 +359,9 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 	    "%s.frame_filename", network_area_detector->remote_record_name );
 
 	mx_network_field_init(
-		&(network_area_detector->geom_corr_after_flood_nf),
+		&(network_area_detector->geom_corr_after_flat_field_nf),
 		network_area_detector->server_record,
-			"%s.geom_corr_after_flood",
+			"%s.geom_corr_after_flat_field",
 			network_area_detector->remote_record_name );
 
 	mx_network_field_init( &(network_area_detector->get_roi_frame_nf),
@@ -2128,10 +2128,10 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 			&(network_area_detector->use_scaled_dark_current_nf),
 				MXFT_ULONG, &(ad->use_scaled_dark_current) );
 		break;
-	case MXLV_AD_GEOM_CORR_AFTER_FLOOD:
+	case MXLV_AD_GEOM_CORR_AFTER_FLAT_FIELD:
 		mx_status = mx_put(
-		    &(network_area_detector->geom_corr_after_flood_nf),
-		    	MXFT_BOOL, &(ad->geom_corr_after_flood) );
+		    &(network_area_detector->geom_corr_after_flat_field_nf),
+		    	MXFT_BOOL, &(ad->geom_corr_after_flat_field) );
 		break;
 	case MXLV_AD_CORRECTION_FRAME_GEOM_CORR_LAST:
 		mx_status = mx_put(
@@ -2397,7 +2397,7 @@ mxd_network_area_detector_measure_correction( MX_AREA_DETECTOR *ad )
 
 	switch( ad->correction_measurement_type ) {
 	case MXFT_AD_DARK_CURRENT_FRAME:
-	case MXFT_AD_FLOOD_FIELD_FRAME:
+	case MXFT_AD_FLAT_FIELD_FRAME:
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,

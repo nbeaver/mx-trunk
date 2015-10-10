@@ -1801,8 +1801,8 @@ mx_area_detector_process_function( void *record_ptr,
 			case MXFT_AD_DARK_CURRENT_FRAME:
 				frame = ad->dark_current_frame;
 				break;
-			case MXFT_AD_FLOOD_FIELD_FRAME:
-				frame = ad->flood_field_frame;
+			case MXFT_AD_FLAT_FIELD_FRAME:
+				frame = ad->flat_field_frame;
 				break;
 			default:
 				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -1835,8 +1835,8 @@ mx_area_detector_process_function( void *record_ptr,
 			case MXFT_AD_DARK_CURRENT_FRAME:
 				frame = ad->dark_current_frame;
 				break;
-			case MXFT_AD_FLOOD_FIELD_FRAME:
-				frame = ad->flood_field_frame;
+			case MXFT_AD_FLAT_FIELD_FRAME:
+				frame = ad->flat_field_frame;
 				break;
 			default:
 				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,

@@ -946,10 +946,10 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	ad->mask_image_format = MXT_IMAGE_FORMAT_GREY16;
 	ad->bias_image_format = MXT_IMAGE_FORMAT_GREY16;
 	ad->dark_current_image_format = MXT_IMAGE_FORMAT_FLOAT;
-	ad->flood_field_image_format = MXT_IMAGE_FORMAT_FLOAT;
+	ad->flat_field_image_format = MXT_IMAGE_FORMAT_FLOAT;
 
 	ad->measure_dark_current_correction_flags = MXFT_AD_MASK_FRAME;
-	ad->measure_flood_field_correction_flags =
+	ad->measure_flat_field_correction_flags =
 			MXFT_AD_MASK_FRAME | MXFT_AD_DARK_CURRENT_FRAME;
 
 	mx_status = mx_area_detector_load_correction_files( record );
@@ -2796,7 +2796,7 @@ mxd_radicon_taurus_measure_correction( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for detector '%s'", fname, ad->record->name ));
 #endif
 
-	if ( ad->correction_measurement_type == MXFT_AD_FLOOD_FIELD_FRAME ) {
+	if ( ad->correction_measurement_type == MXFT_AD_FLAT_FIELD_FRAME ) {
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Direct measurement of the non-uniformity frame "
 		"for detector '%s' is not supported.", ad->record->name );

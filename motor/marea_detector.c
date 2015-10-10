@@ -150,7 +150,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 "  area_detector 'name' copy frame 'src_frame_type' 'dest_frame_type'\n"
 "\n"
 "  area_detector 'name' measure dark_current 'measurement_time' '# measurements'\n"
-"  area_detector 'name' measure flood_field 'measurement_time' '# measurements'\n";
+"  area_detector 'name' measure flat_field 'measurement_time' '# measurements'\n";
 
 #if MAREA_DETECTOR_DEBUG_TIMING
 	MX_HRT_TIMING measurement1, measurement2, measurement3, measurement4;
@@ -1195,9 +1195,9 @@ motor_area_detector_fn( int argc, char *argv[] )
 		{
 			correction_type = MXFT_AD_DARK_CURRENT_FRAME;
 		} else
-		if ( strncmp( "flood_field", argv[4], strlen(argv[4]) ) == 0 )
+		if ( strncmp( "flat_field", argv[4], strlen(argv[4]) ) == 0 )
 		{
-			correction_type = MXFT_AD_FLOOD_FIELD_FRAME;
+			correction_type = MXFT_AD_FLAT_FIELD_FRAME;
 		} else {
 			fprintf( output,
     "%s: unsupported correction type '%s' requested for 'measure' command.\n",
@@ -1232,9 +1232,9 @@ motor_area_detector_fn( int argc, char *argv[] )
 			fprintf( output,
 				"Starting dark current measurement:\n");
 			break;
-		case MXFT_AD_FLOOD_FIELD_FRAME:
+		case MXFT_AD_FLAT_FIELD_FRAME:
 			fprintf( output,
-				"Starting flood field measurement:\n");
+				"Starting flat field measurement:\n");
 			break;
 		}
 
@@ -1373,9 +1373,9 @@ motor_area_detector_fn( int argc, char *argv[] )
 			fprintf( output,
 			  "Dark current measurement completed successfully.\n");
 			break;
-		case MXFT_AD_FLOOD_FIELD_FRAME:
+		case MXFT_AD_FLAT_FIELD_FRAME:
 			fprintf( output,
-			  "Flood field measurement completed successfully.\n");
+			  "Flat field measurement completed successfully.\n");
 			break;
 		}
 

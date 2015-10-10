@@ -54,7 +54,7 @@ typedef struct {
 	MX_NETWORK_FIELD extended_status_nf;
 	MX_NETWORK_FIELD framesize_nf;
 	MX_NETWORK_FIELD frame_filename_nf;
-	MX_NETWORK_FIELD geom_corr_after_flood_nf;
+	MX_NETWORK_FIELD geom_corr_after_flat_field_nf;
 	MX_NETWORK_FIELD image_format_name_nf;
 	MX_NETWORK_FIELD image_format_nf;
 	MX_NETWORK_FIELD image_frame_data_nf;

@@ -266,26 +266,26 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->dark_current_frame = NULL;
 	ad->dark_current_frame_buffer = NULL;
 
-	ad->flood_field_average_intensity = 1.0;
+	ad->flat_field_average_intensity = 1.0;
 	ad->bias_average_intensity = 1.0;
 
-	ad->flood_field_frame = NULL;
-	ad->flood_field_frame_buffer = NULL;
+	ad->flat_field_frame = NULL;
+	ad->flat_field_frame_buffer = NULL;
 
-	ad->flood_field_scale_max = DBL_MAX;
-	ad->flood_field_scale_min = DBL_MIN;
+	ad->flat_field_scale_max = DBL_MAX;
+	ad->flat_field_scale_min = DBL_MIN;
 
 	ad->rebinned_mask_frame = NULL;
 	ad->rebinned_bias_frame = NULL;
 	ad->rebinned_dark_current_frame = NULL;
-	ad->rebinned_flood_field_frame = NULL;
+	ad->rebinned_flat_field_frame = NULL;
 
 	ad->dark_current_offset_array = NULL;
 	ad->dark_current_offset_can_change = TRUE;
 	ad->old_exposure_time = -1.0;
 
-	ad->flood_field_scale_array = NULL;
-	ad->flood_field_scale_can_change = TRUE;
+	ad->flat_field_scale_array = NULL;
+	ad->flat_field_scale_can_change = TRUE;
 
 	ad->correction_calc_frame = NULL;
 
@@ -388,17 +388,17 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->mask_image_format = ad->image_format;
 	ad->bias_image_format = ad->image_format;
 	ad->dark_current_image_format = ad->image_format;
-	ad->flood_field_image_format = ad->image_format;
+	ad->flat_field_image_format = ad->image_format;
 
 	ad->measure_dark_current_correction_flags = 0x3;
-	ad->measure_flood_field_correction_flags  = 0x7;
+	ad->measure_flat_field_correction_flags  = 0x7;
 
 	ad_flags = ad->area_detector_flags;
 
-	if ( ad_flags & MXF_AD_GEOM_CORR_AFTER_FLOOD ) {
-		ad->geom_corr_after_flood = TRUE;
+	if ( ad_flags & MXF_AD_GEOM_CORR_AFTER_FLAT_FIELD ) {
+		ad->geom_corr_after_flat_field = TRUE;
 	} else {
-		ad->geom_corr_after_flood = FALSE;
+		ad->geom_corr_after_flat_field = FALSE;
 	}
 
 	if ( ad_flags & MXF_AD_CORRECTION_FRAME_GEOM_CORR_LAST )
@@ -415,10 +415,10 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 		ad->correction_frame_no_geom_corr = FALSE;
 	}
 
-	if ( ad_flags & MXF_AD_BIAS_CORR_AFTER_FLOOD ) {
-		ad->bias_corr_after_flood = TRUE;
+	if ( ad_flags & MXF_AD_BIAS_CORR_AFTER_FLAT_FIELD ) {
+		ad->bias_corr_after_flat_field = TRUE;
 	} else {
-		ad->bias_corr_after_flood = FALSE;
+		ad->bias_corr_after_flat_field = FALSE;
 	}
 
 	if ( ad_flags & MXF_AD_DEZINGER_CORRECTION_FRAME ) {
@@ -2936,7 +2936,7 @@ mx_area_detector_image_log_show_error( MX_AREA_DETECTOR *ad,
 
 	/* If an error has already been displayed since the most recent
 	 * arm() of the area detector, then we return without showing
-	 * anything to prevent a flood of error messages in the image log.
+	 * anything to prevent a torrent of error messages in the image log.
 	 */
 
 	if ( ad->image_log_error_seen )
@@ -3866,7 +3866,7 @@ mx_area_detector_transfer_frame( MX_RECORD *record,
 		}
 
 		mx_free( ad->dark_current_offset_array );
-		mx_free( ad->flood_field_scale_array );
+		mx_free( ad->flat_field_scale_array );
 		break;
 
 	case MXFT_AD_DARK_CURRENT_FRAME:
@@ -3879,14 +3879,14 @@ mx_area_detector_transfer_frame( MX_RECORD *record,
 		mx_free( ad->dark_current_offset_array );
 		break;
 
-	case MXFT_AD_FLOOD_FIELD_FRAME:
-		if ( ad->flood_field_frame != NULL ) {
+	case MXFT_AD_FLAT_FIELD_FRAME:
+		if ( ad->flat_field_frame != NULL ) {
 			mx_status = mx_image_get_average_intensity(
-					ad->flood_field_frame, ad->mask_frame,
-					&(ad->flood_field_average_intensity) );
+					ad->flat_field_frame, ad->mask_frame,
+					&(ad->flat_field_average_intensity) );
 		}
 
-		mx_free( ad->flood_field_scale_array );
+		mx_free( ad->flat_field_scale_array );
 		break;
 	}
 
@@ -4023,7 +4023,7 @@ mx_area_detector_load_frame( MX_RECORD *record,
 					sizeof(ad->bias_filename) );
 
 		mx_free( ad->dark_current_offset_array );
-		mx_free( ad->flood_field_scale_array );
+		mx_free( ad->flat_field_scale_array );
 		break;
 
 	case MXFT_AD_DARK_CURRENT_FRAME:
@@ -4043,21 +4043,21 @@ mx_area_detector_load_frame( MX_RECORD *record,
 		mx_free( ad->dark_current_offset_array );
 		break;
 
-	case MXFT_AD_FLOOD_FIELD_FRAME:
-		if ( ad->flood_field_frame != NULL ) {
+	case MXFT_AD_FLAT_FIELD_FRAME:
+		if ( ad->flat_field_frame != NULL ) {
 			mx_status = mx_image_get_average_intensity(
-					ad->flood_field_frame, ad->mask_frame,
-					&(ad->flood_field_average_intensity) );
+					ad->flat_field_frame, ad->mask_frame,
+					&(ad->flat_field_average_intensity) );
 		}
-		if ( ad->rebinned_flood_field_frame != NULL ) {
-			mx_image_free( ad->rebinned_flood_field_frame );
+		if ( ad->rebinned_flat_field_frame != NULL ) {
+			mx_image_free( ad->rebinned_flat_field_frame );
 
-			ad->rebinned_flood_field_frame = NULL;
+			ad->rebinned_flat_field_frame = NULL;
 		}
-		strlcpy( ad->flood_field_filename, frame_filename,
-					sizeof(ad->flood_field_filename) );
+		strlcpy( ad->flat_field_filename, frame_filename,
+					sizeof(ad->flat_field_filename) );
 
-		mx_free( ad->flood_field_scale_array );
+		mx_free( ad->flat_field_scale_array );
 		break;
 
 	default:
@@ -4131,15 +4131,15 @@ mx_area_detector_save_frame( MX_RECORD *record,
 					sizeof(ad->dark_current_filename) );
 		break;
 
-	case MXFT_AD_FLOOD_FIELD_FRAME:
-		strlcpy( ad->flood_field_filename, frame_filename,
-					sizeof(ad->flood_field_filename) );
+	case MXFT_AD_FLAT_FIELD_FRAME:
+		strlcpy( ad->flat_field_filename, frame_filename,
+					sizeof(ad->flat_field_filename) );
 		break;
 
 	case MXFT_AD_REBINNED_MASK_FRAME:
 	case MXFT_AD_REBINNED_BIAS_FRAME:
 	case MXFT_AD_REBINNED_DARK_CURRENT_FRAME:
-	case MXFT_AD_REBINNED_FLOOD_FIELD_FRAME:
+	case MXFT_AD_REBINNED_FLAT_FIELD_FRAME:
 		/* Nothing to do for the rebinned frames. */
 
 		break;
@@ -4196,8 +4196,8 @@ mx_area_detector_copy_frame( MX_RECORD *record,
 	case MXFT_AD_DARK_CURRENT_FRAME:
 		source_filename = ad->dark_current_filename;
 		break;
-	case MXFT_AD_FLOOD_FIELD_FRAME:
-		source_filename = ad->flood_field_filename;
+	case MXFT_AD_FLAT_FIELD_FRAME:
+		source_filename = ad->flat_field_filename;
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -4274,7 +4274,7 @@ mx_area_detector_copy_frame( MX_RECORD *record,
 		destination_filename = ad->bias_filename;
 
 		mx_free( ad->dark_current_offset_array );
-		mx_free( ad->flood_field_scale_array );
+		mx_free( ad->flat_field_scale_array );
 		break;
 
 	case MXFT_AD_DARK_CURRENT_FRAME:
@@ -4293,20 +4293,20 @@ mx_area_detector_copy_frame( MX_RECORD *record,
 		mx_free( ad->dark_current_offset_array );
 		break;
 
-	case MXFT_AD_FLOOD_FIELD_FRAME:
-		if ( ad->flood_field_frame != NULL ) {
+	case MXFT_AD_FLAT_FIELD_FRAME:
+		if ( ad->flat_field_frame != NULL ) {
 			mx_status = mx_image_get_average_intensity(
-					ad->flood_field_frame, ad->mask_frame,
-					&(ad->flood_field_average_intensity) );
+					ad->flat_field_frame, ad->mask_frame,
+					&(ad->flat_field_average_intensity) );
 		}
-		if ( ad->rebinned_flood_field_frame != NULL ) {
-			mx_image_free( ad->rebinned_flood_field_frame );
+		if ( ad->rebinned_flat_field_frame != NULL ) {
+			mx_image_free( ad->rebinned_flat_field_frame );
 
-			ad->rebinned_flood_field_frame = NULL;
+			ad->rebinned_flat_field_frame = NULL;
 		}
-		destination_filename = ad->flood_field_filename;
+		destination_filename = ad->flat_field_filename;
 
-		mx_free( ad->flood_field_scale_array );
+		mx_free( ad->flat_field_scale_array );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -4933,8 +4933,8 @@ mx_area_detector_default_transfer_frame( MX_AREA_DETECTOR *ad )
 	case MXFT_AD_DARK_CURRENT_FRAME:
 		source_frame = ad->dark_current_frame;
 		break;
-	case MXFT_AD_FLOOD_FIELD_FRAME:
-		source_frame = ad->flood_field_frame;
+	case MXFT_AD_FLAT_FIELD_FRAME:
+		source_frame = ad->flat_field_frame;
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -5015,9 +5015,9 @@ mx_area_detector_default_load_frame( MX_AREA_DETECTOR *ad )
 		frame_ptr = &(ad->dark_current_frame);
 		expected_image_format = ad->dark_current_image_format;
 		break;
-	case MXFT_AD_FLOOD_FIELD_FRAME:
-		frame_ptr = &(ad->flood_field_frame);
-		expected_image_format = ad->flood_field_image_format;
+	case MXFT_AD_FLAT_FIELD_FRAME:
+		frame_ptr = &(ad->flat_field_frame);
+		expected_image_format = ad->flat_field_image_format;
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -5145,8 +5145,8 @@ mx_area_detector_default_save_frame( MX_AREA_DETECTOR *ad )
 	case MXFT_AD_DARK_CURRENT_FRAME:
 		frame = ad->dark_current_frame;
 		break;
-	case MXFT_AD_FLOOD_FIELD_FRAME:
-		frame = ad->flood_field_frame;
+	case MXFT_AD_FLAT_FIELD_FRAME:
+		frame = ad->flat_field_frame;
 		break;
 
 	case MXFT_AD_REBINNED_MASK_FRAME:
@@ -5158,8 +5158,8 @@ mx_area_detector_default_save_frame( MX_AREA_DETECTOR *ad )
 	case MXFT_AD_REBINNED_DARK_CURRENT_FRAME:
 		frame = ad->rebinned_dark_current_frame;
 		break;
-	case MXFT_AD_REBINNED_FLOOD_FIELD_FRAME:
-		frame = ad->rebinned_flood_field_frame;
+	case MXFT_AD_REBINNED_FLAT_FIELD_FRAME:
+		frame = ad->rebinned_flat_field_frame;
 		break;
 
 	default:
@@ -5224,8 +5224,8 @@ mx_area_detector_default_copy_frame( MX_AREA_DETECTOR *ad )
 	case MXFT_AD_DARK_CURRENT_FRAME:
 		src_frame = ad->dark_current_frame;
 		break;
-	case MXFT_AD_FLOOD_FIELD_FRAME:
-		src_frame = ad->flood_field_frame;
+	case MXFT_AD_FLAT_FIELD_FRAME:
+		src_frame = ad->flat_field_frame;
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -5252,8 +5252,8 @@ mx_area_detector_default_copy_frame( MX_AREA_DETECTOR *ad )
 	case MXFT_AD_DARK_CURRENT_FRAME:
 		dest_frame_ptr = &(ad->dark_current_frame);
 		break;
-	case MXFT_AD_FLOOD_FIELD_FRAME:
-		dest_frame_ptr = &(ad->flood_field_frame);
+	case MXFT_AD_FLAT_FIELD_FRAME:
+		dest_frame_ptr = &(ad->flat_field_frame);
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,

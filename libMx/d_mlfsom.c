@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2009-2011, 2013 Illinois Institute of Technology
+ * Copyright 2009-2011, 2013, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -925,7 +925,7 @@ mxd_mlfsom_set_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_USE_SCALED_DARK_CURRENT:
 		break;
 
-	case MXLV_AD_GEOM_CORR_AFTER_FLOOD:
+	case MXLV_AD_GEOM_CORR_AFTER_FLAT_FIELD:
 		break;
 
 	case MXLV_AD_CORRECTION_LOAD_FORMAT:

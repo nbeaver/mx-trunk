@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2011-2013 Illinois Institute of Technology
+ * Copyright 2011-2013, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -874,7 +874,7 @@ mxd_radicon_helios_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	ad->flood_field_scale_can_change = FALSE;
+	ad->flat_field_scale_can_change = FALSE;
 
 	dtname = radicon_helios->detector_type_name;
 
@@ -907,11 +907,11 @@ mxd_radicon_helios_finish_record_initialization( MX_RECORD *record )
 }
 
 static mx_status_type
-mxp_radicon_helios_compute_flood_field_scale_array( MX_AREA_DETECTOR *ad,
+mxp_radicon_helios_compute_flat_field_scale_array( MX_AREA_DETECTOR *ad,
 					MX_RADICON_HELIOS *radicon_helios )
 {
 	static const char fname[] =
-		"mxp_radicon_helios_compute_flood_field_scale_array()";
+		"mxp_radicon_helios_compute_flat_field_scale_array()";
 
 	FILE *gain_file;
 	unsigned long array_size_in_pixels, pixel_size_in_bytes;
@@ -920,12 +920,12 @@ mxp_radicon_helios_compute_flood_field_scale_array( MX_AREA_DETECTOR *ad,
 	double corr_bytes_per_pixel;
 	int saved_errno;
 
-	unsigned long i, num_flood_field_pixels;
-	double flood_field_sum, flood_field_pixel;
+	unsigned long i, num_flat_field_pixels;
+	double flat_field_sum, flat_field_pixel;
 	uint16_t *mask_data_array;
 
-	double flood_average;
-	double flood_field_scale;
+	double flat_average;
+	double flat_field_scale;
 
 	mx_status_type mx_status;
 
@@ -961,17 +961,17 @@ mxp_radicon_helios_compute_flood_field_scale_array( MX_AREA_DETECTOR *ad,
 	array_size_in_bytes =
 		array_size_in_pixels * pixel_size_in_bytes;
 
-	ad->flood_field_scale_array =
+	ad->flat_field_scale_array =
 		(float *) malloc( array_size_in_bytes );
 
-	if ( ad->flood_field_scale_array == NULL ) {
+	if ( ad->flat_field_scale_array == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to allocate a %lu byte "
 		"array of pixels for area detector '%s'.",
 			array_size_in_bytes, ad->record->name );
 	}
 
-	pixels_read = (long) fread( ad->flood_field_scale_array,
+	pixels_read = (long) fread( ad->flat_field_scale_array,
 				pixel_size_in_bytes,
 				array_size_in_pixels,
 				gain_file );
@@ -1012,20 +1012,20 @@ mxp_radicon_helios_compute_flood_field_scale_array( MX_AREA_DETECTOR *ad,
 
 	fclose( gain_file );
 
-	/* At this point, flood_field_scale_array actually contains
-	 * the raw flood field values.  We must convert this to
-	 * the flood field scale using the expression
+	/* At this point, flat_field_scale_array actually contains
+	 * the raw flat field values.  We must convert this to
+	 * the flat field scale using the expression
 	 *
-	 *                   flood_field_average
+	 *                   flat_field_average
 	 *   pixel_scale = --------------------------------------
-	 *                    pixel_flood_field
+	 *                    pixel_flat_field
 	 *
-	 * We begin by summing the flood field values to compute
+	 * We begin by summing the flat field values to compute
 	 * the average intensity.
 	 */
 
-	num_flood_field_pixels = 0;
-	flood_field_sum = 0.0;
+	num_flat_field_pixels = 0;
+	flat_field_sum = 0.0;
 
 	if ( ad->mask_frame == NULL ) {
 		mask_data_array = NULL;
@@ -1035,11 +1035,11 @@ mxp_radicon_helios_compute_flood_field_scale_array( MX_AREA_DETECTOR *ad,
 	}
 
 	for ( i = 0; i < array_size_in_pixels; i++ ) {
-		flood_field_pixel = ad->flood_field_scale_array[i];
+		flat_field_pixel = ad->flat_field_scale_array[i];
 
-		if ( flood_field_pixel >= 0.0 ) {
-			flood_field_sum += flood_field_pixel;
-			num_flood_field_pixels++;
+		if ( flat_field_pixel >= 0.0 ) {
+			flat_field_sum += flat_field_pixel;
+			num_flat_field_pixels++;
 		} else {
 			if ( mask_data_array != NULL ) {
 				mask_data_array[i] = 0;
@@ -1047,39 +1047,39 @@ mxp_radicon_helios_compute_flood_field_scale_array( MX_AREA_DETECTOR *ad,
 		}
 	}
 
-	ad->flood_field_average_intensity =
-	    mx_divide_safely( flood_field_sum, num_flood_field_pixels );
+	ad->flat_field_average_intensity =
+	    mx_divide_safely( flat_field_sum, num_flat_field_pixels );
 
 #if MXD_RADICON_HELIOS_DEBUG_FRAME_CORRECTION
 	MX_DEBUG(-2,
-	("%s: flood field sum = %g, num pixels = %lu, flood field average = %g",
-		fname, flood_field_sum, num_flood_field_pixels,
-		ad->flood_field_average_intensity));
+	("%s: flat field sum = %g, num pixels = %lu, flat field average = %g",
+		fname, flat_field_sum, num_flat_field_pixels,
+		ad->flat_field_average_intensity));
 #endif
 
 	/* Now that we have the average, go back and convert the
-	 * flood field intensities currently in flood_field_scale_array
-	 * into actual flood field scale values.
+	 * flat field intensities currently in flat_field_scale_array
+	 * into actual flat field scale values.
 	 */
 
-	flood_average = ad->flood_field_average_intensity;
+	flat_average = ad->flat_field_average_intensity;
 
 	for ( i = 0; i < array_size_in_pixels; i++ ) {
 
-		/* Set the flood field scale for bad pixels to 1. */
+		/* Set the flat field scale for bad pixels to 1. */
 
 		if ( mask_data_array != NULL ) {
 			if ( mask_data_array[i] == 0 ) {
-				ad->flood_field_scale_array[i] = 1.0;
+				ad->flat_field_scale_array[i] = 1.0;
 			}
 		}
 
-		flood_field_pixel = ad->flood_field_scale_array[i];
+		flat_field_pixel = ad->flat_field_scale_array[i];
 
-		flood_field_scale = mx_divide_safely( flood_average,
-						flood_field_pixel );
+		flat_field_scale = mx_divide_safely( flat_average,
+						flat_field_pixel );
 
-		ad->flood_field_scale_array[i] = flood_field_scale;
+		ad->flat_field_scale_array[i] = flat_field_scale;
 	}
 
 #if MXD_RADICON_HELIOS_DEBUG_FRAME_CORRECTION
@@ -1334,13 +1334,13 @@ mxd_radicon_helios_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* If requested, load the flood_field_scale_array from
+	/* If requested, load the flat_field_scale_array from
 	 * the specified gain array file.
 	 */
 
 	if ( strlen( radicon_helios->gain_array_filename ) > 0 ) {
 
-		mx_status = mxp_radicon_helios_compute_flood_field_scale_array(
+		mx_status = mxp_radicon_helios_compute_flat_field_scale_array(
 					ad, radicon_helios );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -2460,8 +2460,8 @@ mxd_radicon_helios_correct_frame( MX_AREA_DETECTOR *ad )
 	size_t corr_image_length;
 	float flt_image_pixel;
 	float *flt_image_data_array;
-	float flood_field_scale;
-	float *flood_field_scale_array;
+	float flat_field_scale;
+	float *flat_field_scale_array;
 	float bias_offset;
 	uint16_t *mask_data_u16, *bias_data_u16;
 	uint16_t mask_value;
@@ -2504,7 +2504,7 @@ mxd_radicon_helios_correct_frame( MX_AREA_DETECTOR *ad )
 #endif
 	/* If no correction has been requested, then we just return here. */
 
-	mask = MXFT_AD_DARK_CURRENT_FRAME | MXFT_AD_FLOOD_FIELD_FRAME;
+	mask = MXFT_AD_DARK_CURRENT_FRAME | MXFT_AD_FLAT_FIELD_FRAME;
 
 	if ( ( flags & mask ) == 0 ) {
 		return MX_SUCCESSFUL_RESULT;
@@ -2563,13 +2563,13 @@ mxd_radicon_helios_correct_frame( MX_AREA_DETECTOR *ad )
 			return mx_status;
 	}
 
-	/* If requested, perform the flood field correction. */
+	/* If requested, perform the flat field correction. */
 
-	if ( ( flags & MXFT_AD_FLOOD_FIELD_FRAME ) != 0 ) {
+	if ( ( flags & MXFT_AD_FLAT_FIELD_FRAME ) != 0 ) {
 
-		if ( ad->flood_field_scale_array == NULL ) {
+		if ( ad->flat_field_scale_array == NULL ) {
 			return mx_error( MXE_INITIALIZATION_ERROR, fname,
-			"The flood field scale array has not been loaded." );
+			"The flat field scale array has not been loaded." );
 		}
 
 		/* Get a pointer to the mask data array. */
@@ -2596,7 +2596,7 @@ mxd_radicon_helios_correct_frame( MX_AREA_DETECTOR *ad )
 		num_pixels = MXIF_ROW_FRAMESIZE( ad->correction_calc_frame )
 			* MXIF_COLUMN_FRAMESIZE( ad->correction_calc_frame);
 
-		flood_field_scale_array = ad->flood_field_scale_array;
+		flat_field_scale_array = ad->flat_field_scale_array;
 
 		for ( i = 0; i < num_pixels; i++ ) {
 
@@ -2615,16 +2615,16 @@ mxd_radicon_helios_correct_frame( MX_AREA_DETECTOR *ad )
 				bias_offset = bias_data_u16[i];
 			}
 
-			flood_field_scale = flood_field_scale_array[i];
+			flat_field_scale = flat_field_scale_array[i];
 
-			if ( flood_field_scale < 0.0 ) {
-				/* If the flood field scale is less than zero,
+			if ( flat_field_scale < 0.0 ) {
+				/* If the flat field scale is less than zero,
 				 * then this is a bad pixel.  If so, then we
 				 * write the scale value into the image array
 				 * and then go to the next pixel.
 				 */
 
-				flt_image_data_array[i] = flood_field_scale;
+				flt_image_data_array[i] = flat_field_scale;
 				continue;
 			}
 
@@ -2632,7 +2632,7 @@ mxd_radicon_helios_correct_frame( MX_AREA_DETECTOR *ad )
 
 			flt_image_pixel -= bias_offset;
 
-			flt_image_pixel *= flood_field_scale;
+			flt_image_pixel *= flat_field_scale;
 
 			flt_image_pixel += bias_offset;
 
