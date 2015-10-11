@@ -20,7 +20,7 @@
  *
  */
 
-#define MXD_AVIEX_PCCD_DEBUG				FALSE
+#define MXD_AVIEX_PCCD_DEBUG				TRUE
 
 #define MXD_AVIEX_PCCD_DEBUG_LINEARITY_LOOKUP		FALSE
 
@@ -2460,6 +2460,16 @@ mxd_aviex_pccd_trigger( MX_AREA_DETECTOR *ad )
 		}
 
 		aviex_pccd->sequence_in_progress = TRUE;
+	} else {
+		switch( aviex_pccd->aviex_pccd_type ) {
+		case MXT_AD_PCCD_9785:
+			/* For the 9785, we have to send a pulse anyway. */
+
+			mx_status = mx_camera_link_pulse_cc_line(
+				aviex_pccd->camera_link_record, 1,
+				1, 10000 );
+			break;
+		}
 	}
 
 #if MXD_AVIEX_PCCD_DEBUG

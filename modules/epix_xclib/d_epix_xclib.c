@@ -18,23 +18,25 @@
  *
  */
 
-#define MXD_EPIX_XCLIB_DEBUG				FALSE
+#define MXD_EPIX_XCLIB_DEBUG				TRUE
 
 #define MXD_EPIX_XCLIB_DEBUG_IMAGE_TIME			FALSE
 
 #define MXD_EPIX_XCLIB_DEBUG_FAKE_FRAME_NUMBERS		FALSE
 
-#define MXD_EPIX_XCLIB_DEBUG_TRIGGER			FALSE
+#define MXD_EPIX_XCLIB_DEBUG_EXSYNC_PRIN		TRUE
 
-#define MXD_EPIX_XCLIB_DEBUG_STOP			FALSE
+#define MXD_EPIX_XCLIB_DEBUG_TRIGGER			TRUE
+
+#define MXD_EPIX_XCLIB_DEBUG_STOP			TRUE
 
 #define MXD_EPIX_XCLIB_DEBUG_CAPTURED_FIELDS		TRUE	/* Keep on */
 
-#define MXD_EPIX_XCLIB_DEBUG_EXTENDED_STATUS		FALSE
+#define MXD_EPIX_XCLIB_DEBUG_EXTENDED_STATUS		TRUE
 
-#define MXD_EPIX_XCLIB_DEBUG_TERMINATE_SEQUENCE		FALSE
+#define MXD_EPIX_XCLIB_DEBUG_TERMINATE_SEQUENCE		TRUE
 
-#define MXD_EPIX_XCLIB_DEBUG_SEQUENCE_IN_PROGRESS	FALSE
+#define MXD_EPIX_XCLIB_DEBUG_SEQUENCE_IN_PROGRESS	TRUE
 
 #include <stdio.h>
 
@@ -593,7 +595,7 @@ mxd_epix_xclib_set_exsync_princ( MX_VIDEO_INPUT *vinput,
 	unsigned long flags;
 	char error_message[80];
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_EXSYNC_PRIN
 	MX_DEBUG(-2,("%s invoked for video input '%s'",
 			fname, vinput->record->name));
 
@@ -609,7 +611,7 @@ mxd_epix_xclib_set_exsync_princ( MX_VIDEO_INPUT *vinput,
 		exsync_value = pxd_getExsync( epix_xclib_vinput->unitmap );
 		prin_value   = pxd_getPrin( epix_xclib_vinput->unitmap );
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_EXSYNC_PRIN
 		MX_DEBUG(-2,("%s: pxd_getExsync(%ld) = %#x",
 			fname, epix_xclib_vinput->unitmap, exsync_value));
 
@@ -648,7 +650,7 @@ mxd_epix_xclib_set_exsync_princ( MX_VIDEO_INPUT *vinput,
 	
 	princ_mode  = pxd_getPrincMode( epix_xclib_vinput->unitmap );
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_EXSYNC_PRIN
 	MX_DEBUG(-2,("%s: pxd_getExsyncMode(%ld) = %#x",
 		fname, epix_xclib_vinput->unitmap, exsync_mode));
 
@@ -747,14 +749,14 @@ mxd_epix_xclib_set_exsync_princ( MX_VIDEO_INPUT *vinput,
 
 	princ_mode |= tis;
 	
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_EXSYNC_PRIN
 	MX_DEBUG(-2,("%s: new exsync_mode = %#x, new princ_mode = %#x",
 		fname, exsync_mode, princ_mode));
 #endif
 
 	epix_status = pxd_setExsyncPrincMode( epix_xclib_vinput->unitmap,
 						exsync_mode, princ_mode );
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_EXSYNC_PRIN
 	MX_DEBUG(-2,("%s: pxd_setExsyncPrincMode(%ld, %#x, %#x) = %d",
 		fname, epix_xclib_vinput->unitmap,
 		exsync_mode, princ_mode, epix_status));
@@ -2963,7 +2965,6 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 #if MXD_EPIX_XCLIB_DEBUG_TRIGGER
 		MX_DEBUG(-2,("%s: trigger_mode = %ld",
 			fname, vinput->trigger_mode));
-		mx_stack_traceback();
 #endif
 		switch( vinput->trigger_mode ) {
 		case MXT_IMAGE_INTERNAL_TRIGGER:

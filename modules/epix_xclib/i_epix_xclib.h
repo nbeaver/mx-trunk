@@ -18,6 +18,13 @@
 #ifndef __I_EPIX_XCLIB_H__
 #define __I_EPIX_XCLIB_H__
 
+/* Construct EPIX XCLIB version number using values from xclibver.h */
+
+#define MX_EPIX_XCLIB_VERSION \
+	( (XCLIB_IDV0 * 1000000L) + (XCLIB_IDV1 * 1000L) + XCLIB_IDV2 )
+
+/*---*/
+
 #define MXU_EPIX_DRIVER_PARMS_LENGTH	80
 #define MXU_EPIX_FORMAT_NAME_LENGTH	80
 

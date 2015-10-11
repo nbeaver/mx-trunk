@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2007 Illinois Institute of Technology
+ * Copyright 2006-2007, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -43,6 +43,8 @@ extern "C" {
 #define CL_ERR_ERROR_NOT_FOUND		(-10007)
 #define CL_ERR_BAUD_RATE_NOT_SUPPORTED	(-10008)
 #define CL_ERR_OUT_OF_MEMORY		(-10009)
+#define CL_ERR_REGISTRY_KEY_NOT_FOUND	(-10010)
+#define CL_ERR_INVALID_PTR		(-10011)
 
 #define CL_ERR_UNABLE_TO_LOAD_DLL	(-10098)
 #define CL_ERR_FUNCTION_NOT_FOUND	(-10099)

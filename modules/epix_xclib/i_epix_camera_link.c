@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2008, 2010-2011 Illinois Institute of Technology
+ * Copyright 2006-2008, 2010-2011, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,7 +16,7 @@
 
 #define MXI_EPIX_CAMERA_LINK_DEBUG		FALSE
 
-#define MXI_EPIX_CAMERA_LINK_DEBUG_CC		FALSE
+#define MXI_EPIX_CAMERA_LINK_DEBUG_CC		TRUE
 
 #define MXI_EPIX_CAMERA_LINK_DEBUG_GET_PORT	FALSE
 
@@ -868,6 +868,104 @@ mxi_epix_camera_link_set_baud_rate( hSerRef serial_ref, UINT32 baud_rate )
 	return CL_ERR_NO_ERR;
 }
 
+#if ( MX_EPIX_XCLIB_VERSION >= 3007000L )
+
+MX_EXPORT INT32 MX_CLCALL
+mxi_epix_camera_link_set_cc_line( hSerRef serial_ref,
+					UINT32 cc_line_number,
+					UINT32 cc_line_state )
+{
+	static const char fname[] = "mxi_epix_camera_link_set_cc_line()";
+
+	MX_EPIX_CAMERA_LINK_PORT *port = NULL;
+	int epix_status, mask, cc_state_all, unitmap;
+
+	if ( serial_ref == NULL ) {
+		return CL_ERR_INVALID_REFERENCE;
+	}
+	if ( (cc_line_number < 1) || (cc_line_number > 4) ) {
+		return CL_ERR_INVALID_INDEX;
+	}
+
+	port = serial_ref;
+
+	if( port->epix_camera_link == NULL ) {
+		(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_EPIX_CAMERA_LINK pointer for port record '%s' is NULL.",
+			port->record->name );
+
+		return CL_ERR_INVALID_REFERENCE;
+	}
+
+	unitmap = port->epix_camera_link->unitmap;
+
+#if MXI_EPIX_CAMERA_LINK_DEBUG_CC
+	MX_DEBUG(-2,("%s: port '%s', cc_line_number = %d, cc_line_state = %d",
+		fname, port->record->name, cc_line_number, cc_line_state));
+#endif
+
+	/* Get the current values of the CC lines.  If any lines are
+	 * in use for video control, the values read for those lines
+	 * will be garbage.
+	 */
+
+	cc_state_all = pxd_getCameraLinkCCOut( unitmap, 0 );
+
+	if ( cc_state_all < 0 ) {
+		(void) mx_error( MXE_FUNCTION_FAILED, fname,
+		"pxd_getCameraLinkCCout( %d, 0 ) returned %d.",
+			unitmap, cc_state_all );
+
+		/* Camera Link does not seem to have an appropriate
+		 * error code for this situation, so we return
+		 * something semi-plausible.
+		 */
+
+		return CL_ERR_FUNCTION_NOT_FOUND;
+	}
+
+#if MXI_EPIX_CAMERA_LINK_DEBUG_CC
+	MX_DEBUG(-2,("%s: pxd_getCameraLinkCCOut( %d, 0 ) = %d",
+		fname, cc_state_all ));
+#endif
+
+	/* Modify cc_state_all to match the caller's request. */
+
+	mask = 1 << ( cc_line_number - 1 );
+
+	if ( cc_line_state != 0 ) {
+		cc_state_all |= mask;
+	} else {
+		cc_state_all &= (~mask);
+	}
+
+	/* Send the request back to XCLIB. */
+
+	epix_status = pxd_setCameraLinkCCOut( unitmap, cc_state_all );
+
+	if ( epix_status < 0 ) {
+		(void) mx_error( MXE_FUNCTION_FAILED, fname,
+		"pxd_setCameraLinkCCout( %d, %d ) returned %d.",
+			unitmap, cc_state_all, epix_status );
+
+		/* Camera Link does not seem to have an appropriate
+		 * error code for this situation, so we return
+		 * something semi-plausible.
+		 */
+
+		return CL_ERR_FUNCTION_NOT_FOUND;
+	}
+
+#if MXI_EPIX_CAMERA_LINK_DEBUG_CC
+	MX_DEBUG(-2,("%s: pxd_setCameraLinkCCOut( %d, %d ) = %d",
+		fname, cc_state_all, epix_status ));
+#endif
+
+	return CL_ERR_NO_ERR;
+}
+
+#else   /* For old XCLIB */
+
 MX_EXPORT INT32 MX_CLCALL
 mxi_epix_camera_link_set_cc_line( hSerRef serial_ref,
 					UINT32 cc_line_number,
@@ -886,6 +984,9 @@ mxi_epix_camera_link_set_cc_line( hSerRef serial_ref,
 
 	if ( serial_ref == NULL ) {
 		return CL_ERR_INVALID_REFERENCE;
+	}
+	if ( (cc_line_number < 1) || (cc_line_number > 4) ) {
+		return CL_ERR_INVALID_INDEX;
 	}
 
 	port = serial_ref;
@@ -1036,6 +1137,8 @@ mxi_epix_camera_link_set_cc_line( hSerRef serial_ref,
 
 	return CL_ERR_NO_ERR;
 }
+
+#endif   /* For old XCLIB */
 
 /*----*/
 
