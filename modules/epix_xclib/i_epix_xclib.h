@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2007, 2011 Illinois Institute of Technology
+ * Copyright 2006-2007, 2011, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -17,6 +17,9 @@
 
 #ifndef __I_EPIX_XCLIB_H__
 #define __I_EPIX_XCLIB_H__
+
+#define MXU_EPIX_DRIVER_PARMS_LENGTH	80
+#define MXU_EPIX_FORMAT_NAME_LENGTH	80
 
 /* An error message buffer length of 1024 is recommended by the XCLIB manual. */
 
@@ -38,6 +41,8 @@
 typedef struct {
 	MX_RECORD *record;
 
+	char driver_parms[MXU_EPIX_DRIVER_PARMS_LENGTH+1];
+	char format_name[MXU_EPIX_FORMAT_NAME_LENGTH+1];
 	char format_file[MXU_FILENAME_LENGTH+1];
 	unsigned long epix_xclib_flags;
 
@@ -53,6 +58,15 @@ typedef struct {
 } MX_EPIX_XCLIB;
 
 #define MXI_EPIX_XCLIB_STANDARD_FIELDS \
+  {-1, -1, "driver_parms", MXFT_STRING, NULL, \
+					1, {MXU_EPIX_DRIVER_PARMS_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EPIX_XCLIB, driver_parms), \
+	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
+  {-1, -1, "format_name", MXFT_STRING, NULL, 1, {MXU_EPIX_FORMAT_NAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EPIX_XCLIB, format_name), \
+	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
   {-1, -1, "format_file", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EPIX_XCLIB, format_file), \
 	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}, \

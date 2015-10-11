@@ -1483,7 +1483,7 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 	static const char fname[] = "mxd_aviex_pccd_open()";
 
 	MX_AREA_DETECTOR *ad;
-	MX_AVIEX_PCCD *aviex_pccd;
+	MX_AVIEX_PCCD *aviex_pccd = NULL;
 	MX_RECORD *video_input_record;
 	MX_VIDEO_INPUT *vinput;
 	long vinput_framesize[2];
@@ -1494,9 +1494,8 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 	long camera_trigger_polarity;
 	struct timespec hrt;
 	mx_bool_type camera_is_master;
+	const char *driver_name;
 	mx_status_type mx_status;
-
-	aviex_pccd = NULL;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -1513,6 +1512,28 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 #if MXD_AVIEX_PCCD_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
+
+	/* Figure out what kind of PCCD detector this is. */
+
+	driver_name = mx_get_driver_name( record );
+
+	if ( strcmp( driver_name, "pccd_16080" ) == 0 ) {
+		aviex_pccd->aviex_pccd_type = MXT_AD_PCCD_16080;
+	} else
+	if ( strcmp( driver_name, "pccd_170170" ) == 0 ) {
+		aviex_pccd->aviex_pccd_type = MXT_AD_PCCD_170170;
+	} else
+	if ( strcmp( driver_name, "pccd_4824" ) == 0 ) {
+		aviex_pccd->aviex_pccd_type = MXT_AD_PCCD_4824;
+	} else
+	if ( strcmp( driver_name, "pccd_9785" ) == 0 ) {
+		aviex_pccd->aviex_pccd_type = MXT_AD_PCCD_9785;
+	} else {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The driver name '%s' for record '%s' is not supported "
+		"for this open() routine.  This should never happen.",
+			driver_name, record->name );
+	}
 
 	/* Set the default file formats. */
 
@@ -4988,15 +5009,16 @@ mxd_aviex_pccd_camera_link_command( MX_AVIEX_PCCD *aviex_pccd,
 #endif
 			}
 
-#if 0
-			bytes_to_read = 1;
-#else
-			if ( bytes_available > 0 ) {
-				bytes_to_read = 1;
+			if ( aviex_pccd->aviex_pccd_type == MXT_AD_PCCD_16080 )
+			{
+				if ( bytes_available > 0 ) {
+					bytes_to_read = 1;
+				} else {
+					bytes_to_read = 0;
+				}
 			} else {
-				bytes_to_read = 0;
+				bytes_to_read = bytes_available;
 			}
-#endif
 
 			if ( bytes_to_read > buffer_left ) {
 				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,

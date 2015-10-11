@@ -297,6 +297,33 @@ mxi_epix_xclib_open( MX_RECORD *record )
 		}
 	}
 
+	/* Close the driver to reset it to a known state(?) */
+
+	epix_status = pxd_PIXCIclose();
+
+	if ( epix_status == PXERNOTOPEN ) {
+
+		/* If the driver was not open, then do not worry about it. */
+	} else
+	if ( epix_status < 0 ) {
+
+		pxd_mesgFaultText(-1, fault_message, sizeof(fault_message) );
+
+		length = strlen(fault_message);
+
+		for ( i = 0; i < length; i++ ) {
+			if ( fault_message[i] == '\n' )
+				fault_message[i] = ' ';
+		}
+
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"pxd_PIXCIclose() failed for record '%s' "
+		"with error code %d (%s).  Fault description = '%s'.", 
+			record->name,
+			epix_status, pxd_mesgErrorCode( epix_status ),
+			fault_message );
+	}
+
 	/* Initialize XCLIB. */
 
 #if MXI_EPIX_XCLIB_DEBUG
@@ -304,7 +331,9 @@ mxi_epix_xclib_open( MX_RECORD *record )
 		fname, epix_xclib->format_file ));
 #endif
 
-	epix_status = pxd_PIXCIopen( NULL, NULL, epix_xclib->format_file );
+	epix_status = pxd_PIXCIopen( epix_xclib->driver_parms,
+					epix_xclib->format_name,
+					epix_xclib->format_file );
 
 	if ( epix_status < 0 ) {
 

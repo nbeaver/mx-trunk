@@ -194,6 +194,8 @@ mxd_aviex_pccd_9785_initialize_detector( MX_RECORD *record,
 	 * the detector head.
 	 */
 
+	mx_breakpoint();
+
 	mx_status = mxd_aviex_pccd_read_register( aviex_pccd,
 			MXLV_AVIEX_PCCD_9785_DH_CONTROLLER_FPGA_VERSION,
 			&controller_fpga_version );
