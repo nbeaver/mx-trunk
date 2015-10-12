@@ -1752,6 +1752,11 @@ MX_API mx_status_type mx_area_detector_send_oscillation_trigger_pulse(
 MX_API mx_status_type mx_area_detector_setup_frame( MX_RECORD *ad_record,
 						MX_IMAGE_FRAME **frame );
 
+MX_API mx_status_type mx_area_detector_setup_correction_frame(
+						MX_RECORD *ad_record,
+						long frame_format,
+						MX_IMAGE_FRAME **frame );
+
 MX_API mx_status_type mx_area_detector_readout_frame( MX_RECORD *ad_record,
 						long frame_number );
 

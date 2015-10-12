@@ -926,7 +926,7 @@ mxi_epix_camera_link_set_cc_line( hSerRef serial_ref,
 
 #if MXI_EPIX_CAMERA_LINK_DEBUG_CC
 	MX_DEBUG(-2,("%s: pxd_getCameraLinkCCOut( %d, 0 ) = %d",
-		fname, cc_state_all ));
+		fname, unitmap, cc_state_all ));
 #endif
 
 	/* Modify cc_state_all to match the caller's request. */
@@ -958,7 +958,7 @@ mxi_epix_camera_link_set_cc_line( hSerRef serial_ref,
 
 #if MXI_EPIX_CAMERA_LINK_DEBUG_CC
 	MX_DEBUG(-2,("%s: pxd_setCameraLinkCCOut( %d, %d ) = %d",
-		fname, cc_state_all, epix_status ));
+		fname, unitmap, cc_state_all, epix_status ));
 #endif
 
 	return CL_ERR_NO_ERR;

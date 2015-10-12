@@ -89,6 +89,10 @@ mxd_aviex_pccd_9785_initialize_detector( MX_RECORD *record,
 	unsigned long pccd_flags;
 	mx_status_type mx_status;
 
+#if 1
+	aviex_pccd->multiframe_needs_extra_frame = TRUE;
+#endif
+
 	pccd_flags = aviex_pccd->aviex_pccd_flags;
 
 	/* Initialize data structures used to specify attributes
@@ -778,7 +782,7 @@ mxd_aviex_pccd_9785_configure_for_sequence( MX_AREA_DETECTOR *ad,
 	unsigned long old_detector_readout_mode;
 	long vinput_horiz_framesize, vinput_vert_framesize;
 	long num_streak_mode_lines;
-	long num_frames, exposure_steps, gap_steps;
+	long num_frames, frames_per_sequence, exposure_steps, gap_steps;
 	long total_num_subimage_lines;
 	double exposure_time, frame_time, gap_time, subimage_time, line_time;
 	mx_status_type mx_status;
@@ -940,10 +944,27 @@ mxd_aviex_pccd_9785_configure_for_sequence( MX_AREA_DETECTOR *ad,
 				sp->sequence_type );
 		}
 
+		/* For some reason, multiframe sequences need to be 
+		 * configured in the detector head to include one
+		 * more frame.
+		 */
+
+		if ( ( sp->sequence_type == MXT_SQ_MULTIFRAME )
+		  && ( ad->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) 
+		  && ( aviex_pccd->multiframe_needs_extra_frame ) )
+		{
+			frames_per_sequence = num_frames + 1;
+		} else {
+			frames_per_sequence = num_frames;
+		}
+
+		MX_DEBUG(-2,("%s: frames_per_sequence = %ld",
+			fname, frames_per_sequence));
+
 		mx_status = mxd_aviex_pccd_write_register(
 				aviex_pccd,
 				MXLV_AVIEX_PCCD_9785_DH_FRAMES_PER_SEQUENCE,
-				num_frames );
+				frames_per_sequence );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

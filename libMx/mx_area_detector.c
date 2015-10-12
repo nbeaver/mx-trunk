@@ -3489,6 +3489,75 @@ mx_area_detector_setup_frame( MX_RECORD *record,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*-------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_area_detector_setup_correction_frame( MX_RECORD *record,
+				long image_format,
+				MX_IMAGE_FRAME **image_frame )
+{
+	static const char fname[] = "mx_area_detector_setup_correction_frame()";
+
+	MX_AREA_DETECTOR *ad;
+	double bytes_per_pixel;
+	size_t bytes_per_frame;
+	mx_status_type mx_status;
+
+#if MX_AREA_DETECTOR_DEBUG_FRAME_TIMING
+	MX_HRT_TIMING setup_frame_timing;
+#endif
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, NULL, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_image_format_get_bytes_per_pixel( image_format,
+							&bytes_per_pixel );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	bytes_per_frame = mx_round( bytes_per_pixel * ad->framesize[0]
+						* ad->framesize[1] );
+
+	/* Make sure the frame is big enough. */
+
+#if MX_AREA_DETECTOR_DEBUG_MX_IMAGE_ALLOC
+	MX_DEBUG(-2,("%s: Invoking mx_image_alloc() for (*image_frame) = %p",
+		fname, (*image_frame) ));
+#endif
+
+#if MX_AREA_DETECTOR_DEBUG_FRAME_TIMING
+	MX_HRT_START(setup_frame_timing);
+#endif
+
+	mx_status = mx_image_alloc( image_frame,
+					ad->framesize[0],
+					ad->framesize[1],
+					image_format,
+					ad->byte_order,
+					bytes_per_pixel,
+					ad->header_length,
+					bytes_per_frame );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MXIF_ROW_BINSIZE(*image_frame)    = ad->binsize[0];
+	MXIF_COLUMN_BINSIZE(*image_frame) = ad->binsize[1];
+	MXIF_BITS_PER_PIXEL(*image_frame) = mx_round( 8.0 * bytes_per_pixel );
+
+#if MX_AREA_DETECTOR_DEBUG_FRAME_TIMING
+	MX_HRT_END(setup_frame_timing);
+	MX_HRT_RESULTS(setup_frame_timing, fname, "for frame setup.");
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------*/
+
 /* FIXME: This function currently produces garbage results rather than
  * the expected ASCII version of the image.
  */

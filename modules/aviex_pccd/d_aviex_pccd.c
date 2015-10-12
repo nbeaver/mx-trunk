@@ -20,7 +20,7 @@
  *
  */
 
-#define MXD_AVIEX_PCCD_DEBUG				TRUE
+#define MXD_AVIEX_PCCD_DEBUG				FALSE
 
 #define MXD_AVIEX_PCCD_DEBUG_LINEARITY_LOOKUP		FALSE
 
@@ -1381,6 +1381,8 @@ mxd_aviex_pccd_create_record_structures( MX_RECORD *record )
 
 	aviex_pccd->monitor = NULL;
 	aviex_pccd->monitor_callback_interval = 1.0;   /* in seconds */
+
+	aviex_pccd->multiframe_needs_extra_frame = FALSE;
 
 	return MX_SUCCESSFUL_RESULT;
 }

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2011 Illinois Institute of Technology
+ * Copyright 2006-2011, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -95,6 +95,8 @@ typedef struct mx_aviex_pccd {
 
 	MX_AVIEX_PCCD_MONITOR_MEASUREMENT *monitor;
 	double monitor_callback_interval;
+
+	mx_bool_type multiframe_needs_extra_frame;
 
 	double exposure_and_gap_step_size;	/* in seconds */
 
@@ -212,6 +214,11 @@ typedef struct mx_aviex_pccd {
   {MXLV_AVIEX_PCCD_MONITOR_CALLBACK_INTERVAL, \
 		-1, "monitor_callback_interval", MXFT_DOUBLE, NULL, 0, {0}, \
    MXF_REC_TYPE_STRUCT, offsetof(MX_AVIEX_PCCD, monitor_callback_interval), \
+	{0}, NULL, 0}, \
+  \
+  {-1, -1, "multiframe_needs_extra_frame", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_AVIEX_PCCD, multiframe_needs_extra_frame), \
 	{0}, NULL, 0}
 
 MX_API mx_status_type mxd_aviex_pccd_initialize_driver( MX_DRIVER *driver );

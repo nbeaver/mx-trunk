@@ -1233,6 +1233,16 @@ mx_area_detector_prepare_for_correction( MX_AREA_DETECTOR *ad,
 	switch( ad->correction_measurement_type ) {
 	case MXFT_AD_DARK_CURRENT_FRAME:
 
+		if ( ad->dark_current_frame == (MX_IMAGE_FRAME *) NULL ) {
+			mx_status = mx_area_detector_setup_correction_frame(
+					ad->record,
+					ad->dark_current_image_format,
+					&(ad->dark_current_frame) );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
 		corr->destination_frame = ad->dark_current_frame;
 
 		corr->desired_correction_flags =
@@ -1240,6 +1250,16 @@ mx_area_detector_prepare_for_correction( MX_AREA_DETECTOR *ad,
 		break;
 	
 	case MXFT_AD_FLAT_FIELD_FRAME:
+
+		if ( ad->flat_field_frame == (MX_IMAGE_FRAME *) NULL ) {
+			mx_status = mx_area_detector_setup_correction_frame(
+					ad->record,
+					ad->flat_field_image_format,
+					&(ad->flat_field_frame) );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
 
 		corr->destination_frame = ad->flat_field_frame;
 
@@ -1451,6 +1471,13 @@ mx_area_detector_finish_correction_calculation( MX_AREA_DETECTOR *ad,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( corr == (MX_AREA_DETECTOR_CORRECTION_MEASUREMENT *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_AREA_DETECTOR_CORRECTION_MEASUREMENT pointer for "
+		"area detector '%s' is NULL.",
+			ad->record->name );
+	}
+
 	geometrical_correction_fn = flist->geometrical_correction;
 
 	if ( geometrical_correction_fn == NULL ) {
@@ -1459,6 +1486,14 @@ mx_area_detector_finish_correction_calculation( MX_AREA_DETECTOR *ad,
 	}
 
 	dest_frame = corr->destination_frame;
+
+	if ( dest_frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The destination_frame pointer for "
+		"MX_AREA_DETECTOR_CORRECTION_MEASUREMENT structure %p "
+		"used by area detector '%s' is NULL.",
+			corr, ad->record->name );
+	}
 
 	if ( ad->dezinger_correction_frame ) {
 

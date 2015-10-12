@@ -18,7 +18,7 @@
  *
  */
 
-#define MXD_EPIX_XCLIB_DEBUG				TRUE
+#define MXD_EPIX_XCLIB_DEBUG				FALSE
 
 #define MXD_EPIX_XCLIB_DEBUG_IMAGE_TIME			FALSE
 
@@ -32,11 +32,11 @@
 
 #define MXD_EPIX_XCLIB_DEBUG_CAPTURED_FIELDS		TRUE	/* Keep on */
 
-#define MXD_EPIX_XCLIB_DEBUG_EXTENDED_STATUS		TRUE
+#define MXD_EPIX_XCLIB_DEBUG_EXTENDED_STATUS		FALSE
 
-#define MXD_EPIX_XCLIB_DEBUG_TERMINATE_SEQUENCE		TRUE
+#define MXD_EPIX_XCLIB_DEBUG_TERMINATE_SEQUENCE		FALSE
 
-#define MXD_EPIX_XCLIB_DEBUG_SEQUENCE_IN_PROGRESS	TRUE
+#define MXD_EPIX_XCLIB_DEBUG_SEQUENCE_IN_PROGRESS	FALSE
 
 #include <stdio.h>
 
@@ -189,25 +189,21 @@ mxd_epix_xclib_captured_field_thread_fn( void *args_ptr )
 		return FALSE;
 	}
 
-#if 1
+#if 0
 	MX_DEBUG(-2,("%s will look for events from captured field event %p",
 	fname, epix_xclib_vinput->captured_field_event ));
 #endif
 
 	/* Wait for captured field events to occur. */
 
-#if 1
 	milliseconds = INFINITE;
-#else
-	milliseconds = 1000;
-#endif
 
 	while (1) {
 		os_status = WaitForSingleObject(
 				epix_xclib_vinput->captured_field_event,
 				milliseconds );
 
-#if 1
+#if 0
 		MX_DEBUG(-2,("%s: WaitForSingleObject() returned %d.",
 			fname, os_status));
 #endif
@@ -223,8 +219,8 @@ mxd_epix_xclib_captured_field_thread_fn( void *args_ptr )
 			    &(epix_xclib_vinput->uint32_total_num_frames) );
 
 #if MXD_EPIX_XCLIB_DEBUG_CAPTURED_FIELDS
-			MX_DEBUG(-2,("CAPTURE: Total num_frames = %lu",
-				epix_xclib_vinput->uint32_total_num_frames));
+			fprintf( stderr, "CAPTURE: Total num frames = %lu\n",
+				epix_xclib_vinput->uint32_total_num_frames );
 #endif
 			break;
 
