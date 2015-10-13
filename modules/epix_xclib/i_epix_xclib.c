@@ -22,7 +22,9 @@
 #include <errno.h>
 #include <math.h>
 
-#include "xcliball.h"	/* Vendor include file. */
+#if defined(OS_LINUX)
+#include "xcliball.h"	/* Vendor include file */
+#endif
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -38,6 +40,10 @@
 #endif
 
 #include "i_epix_xclib.h"
+
+#if defined(OS_WIN32)
+#include "xcliball.h"	/* Vendor include file */
+#endif
 
 MX_RECORD_FUNCTION_LIST mxi_epix_xclib_record_function_list = {
 	NULL,

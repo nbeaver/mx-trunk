@@ -52,7 +52,9 @@
 #  define OS_LINUX_GNU	/* Needed by the vendor's include file. */
 #endif
 
+#if defined(OS_LINUX)
 #include "xcliball.h"	/* Vendor include file */
+#endif
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -69,6 +71,10 @@
 #include "i_epix_xclib.h"
 #include "i_epix_camera_link.h"
 #include "d_epix_xclib.h"
+
+#if defined(OS_WIN32)
+#include "xcliball.h"	/* Vendor include file */
+#endif
 
 /*---*/
 

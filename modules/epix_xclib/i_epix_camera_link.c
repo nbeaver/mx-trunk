@@ -27,7 +27,9 @@
 #   include <windows.h>
 #endif
 
-#include "xcliball.h"	/* Vendor include file. */
+#if defined(OS_LINUX)
+#include "xcliball.h"	/* Vendor include file */
+#endif
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -36,6 +38,10 @@
 
 #include "i_epix_xclib.h"
 #include "i_epix_camera_link.h"
+
+#if defined(OS_WIN32)
+#include "xcliball.h"	/* Vendor include file */
+#endif
 
 MX_RECORD_FUNCTION_LIST mxi_epix_camera_link_record_function_list = {
 	NULL,

@@ -24,7 +24,9 @@
 #  include <windows.h>
 #endif
 
+#if defined(OS_LINUX)
 #include "xcliball.h"	/* Vendor include file */
+#endif
 
 #include "mx_util.h"
 #include "mx_driver.h"
@@ -36,6 +38,10 @@
 #include "i_epix_xclib.h"
 #include "d_epix_xclib.h"
 #include "d_epix_xclib_dio.h"
+
+#if defined(OS_WIN32)
+#include "xcliball.h"	/* Vendor include file */
+#endif
 
 /* Initialize the EPIX_XCLIB digital I/O driver jump tables. */
 
