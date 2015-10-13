@@ -29,6 +29,7 @@
 #include "mx_unistd.h"
 #include "mx_hrt.h"
 #include "mx_inttypes.h"
+#include "mx_cfn.h"
 #include "mx_image.h"
 #include "mx_video_input.h"
 
@@ -168,6 +169,11 @@ mxi_epix_xclib_open( MX_RECORD *record )
 #if MXI_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name ));
 #endif
+
+#if 1
+	MX_DEBUG(-2,("%s: XCLIB version: %s", fname, XCLIB_IDNVR));
+#endif
+
 	/* Null out the array that contains pointers to
 	 * the child video input records.
 	 */
@@ -323,6 +329,33 @@ mxi_epix_xclib_open( MX_RECORD *record )
 			epix_status, pxd_mesgErrorCode( epix_status ),
 			fault_message );
 	}
+
+	/* Convert the filename specified by the user into an absolute
+	 * filename that can be passed to pxd_PIXCIOpen().
+	 */
+
+#if defined(OS_LINUX)
+	{
+		char *temp_filename = strdup(epix_xclib->format_file);
+
+		if ( temp_filename == (char *) NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to copy the filename '%s' "
+			"from the original '%s.format_file' field.",
+				epix_xclib->format_file,
+				epix_xclib->record->name );
+		}
+
+		mx_status = mx_cfn_construct_filename( MX_CFN_CONFIG,
+							temp_filename,
+							epix_xclib->format_file,
+							MXU_FILENAME_LENGTH );
+		mx_free( temp_filename );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+#endif
 
 	/* Initialize XCLIB. */
 
