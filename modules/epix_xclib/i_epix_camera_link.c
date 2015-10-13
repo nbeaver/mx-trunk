@@ -27,12 +27,12 @@
 #   include <windows.h>
 #endif
 
+#include "xcliball.h"	/* Vendor include file. */
+
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_hrt.h"
 #include "mx_camera_link.h"
-
-#include "xcliball.h"	/* Vendor include file. */
 
 #include "i_epix_xclib.h"
 #include "i_epix_camera_link.h"

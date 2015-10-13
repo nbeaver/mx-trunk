@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2007 Illinois Institute of Technology
+ * Copyright 2007, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,14 +24,14 @@
 #  include <windows.h>
 #endif
 
+#include "xcliball.h"	/* Vendor include file */
+
 #include "mx_util.h"
 #include "mx_driver.h"
 #include "mx_image.h"
 #include "mx_video_input.h"
 #include "mx_digital_input.h"
 #include "mx_digital_output.h"
-
-#include "xcliball.h"	/* Vendor include file */
 
 #include "i_epix_xclib.h"
 #include "d_epix_xclib.h"

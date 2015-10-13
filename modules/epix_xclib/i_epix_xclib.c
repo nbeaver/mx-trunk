@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2008, 2010 Illinois Institute of Technology
+ * Copyright 2006-2008, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,6 +22,8 @@
 #include <errno.h>
 #include <math.h>
 
+#include "xcliball.h"	/* Vendor include file. */
+
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_unistd.h"
@@ -33,8 +35,6 @@
 #if defined(OS_WIN32)
 #include <windows.h>
 #endif
-
-#include "xcliball.h"	/* Vendor include file. */
 
 #include "i_epix_xclib.h"
 
