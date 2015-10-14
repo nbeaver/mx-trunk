@@ -150,7 +150,7 @@ mxi_epix_xclib_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_epix_xclib_open()";
 
-	char fault_message[80];
+	char fault_message[400];
 	MX_EPIX_XCLIB *epix_xclib;
 	int os_major, os_minor, os_update;
 	int i, length, epix_status;
