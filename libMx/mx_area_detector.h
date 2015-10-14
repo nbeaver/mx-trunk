@@ -614,7 +614,7 @@ typedef struct mx_area_detector_type {
 	char datafile_directory[MXU_FILENAME_LENGTH+1];
 	char datafile_pattern[MXU_FILENAME_LENGTH+1];
 	char datafile_name[MXU_FILENAME_LENGTH+1];
-	unsigned long datafile_number;
+	long datafile_number;
 
 	mx_bool_type datafile_allow_overwrite;
 	mx_bool_type datafile_autoselect_number;
@@ -1361,7 +1361,7 @@ typedef struct mx_area_detector_type {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, datafile_name), \
 	{sizeof(char)}, NULL, 0}, \
   \
-  {MXLV_AD_DATAFILE_NUMBER, -1, "datafile_number", MXFT_ULONG, NULL, 0, {0}, \
+  {MXLV_AD_DATAFILE_NUMBER, -1, "datafile_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, datafile_number), \
 	{0}, NULL, 0}, \
   \
