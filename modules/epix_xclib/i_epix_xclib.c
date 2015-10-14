@@ -138,6 +138,8 @@ mxi_epix_xclib_create_record_structures( MX_RECORD *record )
 
 	epix_xclib->record = record;
 
+	epix_xclib->epix_xclib_version = MX_EPIX_XCLIB_VERSION;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -176,7 +178,7 @@ mxi_epix_xclib_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name ));
 #endif
 
-#if 1
+#if 0
 	MX_DEBUG(-2,("%s: XCLIB version: %s", fname, XCLIB_IDNVR));
 #endif
 
@@ -309,7 +311,10 @@ mxi_epix_xclib_open( MX_RECORD *record )
 		}
 	}
 
-	/* Close the driver to reset it to a known state(?) */
+	/* Close the driver to reset it to a known state(?)
+	 *
+	 * Dexela SCap does this, so we do it too.
+	 */
 
 	epix_status = pxd_PIXCIclose();
 
@@ -340,7 +345,7 @@ mxi_epix_xclib_open( MX_RECORD *record )
 	 * filename that can be passed to pxd_PIXCIOpen().
 	 */
 
-#if defined(OS_LINUX)
+#if 1
 	{
 		char *temp_filename = strdup(epix_xclib->format_file);
 
@@ -383,6 +388,22 @@ mxi_epix_xclib_open( MX_RECORD *record )
 		for ( i = 0; i < length; i++ ) {
 			if ( fault_message[i] == '\n' )
 				fault_message[i] = ' ';
+		}
+
+		if ( epix_status == PXERBADSTRUCT ) {
+		return mx_error( MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
+		"Loading PIXCI configuration '%s' failed for record '%s' "
+		"with a PXERBADSTRUCT (-40) error code, which means "
+		"'wrong (version of) parameter'.  One possible cause for this "
+		"(but not the only possible cause) "
+		"is if you tried use a Windows XCLIB configuration file on "
+		"Linux or a Linux XCLIB configuration file on Windows.  "
+		"Unfortunately, the Windows and Linux versions of the "
+		"configuration file for pxd_PIXCopen() are not compatible.  "
+		"If you need to convert the configuration file between "
+		"platforms, you must send your configuration file to "
+		"EPIX, Inc. and have them do the conversion for you.",
+			epix_xclib->format_file, record->name );
 		}
 
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,

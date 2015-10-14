@@ -2904,6 +2904,15 @@ mxd_epix_xclib_get_parameter( MX_VIDEO_INPUT *vinput )
 
 	case MXLV_VIN_MAXIMUM_FRAME_NUMBER:
 		vinput->maximum_frame_number = pxd_imageZdim() - 1;
+
+		if ( vinput->maximum_frame_number < 0 ) {
+			return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		    "Illegal maximum frame number %ld for video input '%s'.  "
+		    "Perhaps the EPIX XCLIB library has not been "
+		    "successfully initialized?",
+				vinput->maximum_frame_number,
+				vinput->record->name );
+		}
 		break;
 
 	case MXLV_VIN_FRAMESIZE:
@@ -2915,6 +2924,16 @@ mxd_epix_xclib_get_parameter( MX_VIDEO_INPUT *vinput )
 		} else {
 			vinput->framesize[0] = pxd_imageXdim();
 			vinput->framesize[1] = pxd_imageYdim();
+		}
+
+		if ((vinput->framesize[0] <= 0) || (vinput->framesize[1] <= 0))
+		{
+			return mx_error( MXE_INITIALIZATION_ERROR, fname,
+			"Illegal framesize (%ld,%ld) for video input '%s'.  "
+			"Perhaps the EPIX XCLIB library has not been "
+			"successfully initialized?",
+				vinput->framesize[0], vinput->framesize[1],
+				vinput->record->name );
 		}
 		break;
 	default:

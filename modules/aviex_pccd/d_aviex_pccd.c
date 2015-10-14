@@ -3745,6 +3745,12 @@ mxd_aviex_pccd_get_parameter( MX_AREA_DETECTOR *ad )
 		MX_DEBUG(-2,("%s: ad->binsize = { %lu, %lu }",
 			fname, ad->binsize[0], ad->binsize[1]));
 #endif
+		if ( (ad->binsize[0] == 0) || (ad->binsize[1] == 0) ) {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Illegal binsize (%ld,%ld) for area detector '%s'.",
+				ad->binsize[0], ad->binsize[1],
+				ad->record->name );
+		}
 
 		ad->framesize[0] = ad->maximum_framesize[0] / ad->binsize[0];
 		ad->framesize[1] = ad->maximum_framesize[1] / ad->binsize[1];

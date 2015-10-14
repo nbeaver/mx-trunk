@@ -53,6 +53,8 @@ typedef struct {
 	char format_file[MXU_FILENAME_LENGTH+1];
 	unsigned long epix_xclib_flags;
 
+	unsigned long epix_xclib_version;
+
 	mx_bool_type use_high_resolution_time_stamps;
 
 	struct timespec system_boot_timespec;	/* since Jan 1, 1970 */
@@ -80,7 +82,11 @@ typedef struct {
   \
   {-1, -1, "epix_xclib_flags", MXFT_HEX, NULL, 0, {0}, \
         MXF_REC_TYPE_STRUCT, offsetof(MX_EPIX_XCLIB, epix_xclib_flags), \
-        {0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+        {0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "epix_xclib_version", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EPIX_XCLIB, epix_xclib_version), \
+	{0}, NULL, MXFF_READ_ONLY}
 
 MX_API mx_status_type mxi_epix_xclib_create_record_structures(
 						MX_RECORD *record );
