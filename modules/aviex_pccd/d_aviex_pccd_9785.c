@@ -347,6 +347,12 @@ mxd_aviex_pccd_9785_initialize_detector( MX_RECORD *record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Setup MX automatic offset correction. */
+
+	aviex_pccd->use_mx_automatic_offset = TRUE;
+	aviex_pccd->mx_automatic_offset_edge = MXF_AUTOMATIC_OFFSET_AT_ROW_EDGE;
+	aviex_pccd->mx_automatic_offset_edge_size = 100;
+
 	/* Sometimes the PCCD-9785 detector apparently fails to transmit
 	 * the first image frame after the MX server is started.  Stopping
 	 * detector and then running a new sequence seems to clear the

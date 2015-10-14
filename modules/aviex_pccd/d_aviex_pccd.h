@@ -41,6 +41,8 @@
 #define MXF_AVIEX_PCCD_ENABLE_MONITOR_CALLBACKS		0x10000
 #define MXF_AVIEX_PCCD_ENABLE_SERIAL_DEBUGGING		0x20000
 
+#define MXF_AVIEX_PCCD_ENABLE_MX_AUTOMATIC_OFFSET	0x100000
+
 /*---*/
 
 #define MXF_AVIEX_PCCD_MAXIMUM_DETECTOR_HEAD_FRAMES	255
@@ -51,6 +53,12 @@
 #define MXT_AD_PCCD_170170	170170
 #define MXT_AD_PCCD_4824	4824
 #define MXT_AD_PCCD_9785	9785
+
+/* Values for the 'mx_automatic_offset_edge' flag. */
+
+#define MXF_AUTOMATIC_OFFSET_NONE		0
+#define MXF_AUTOMATIC_OFFSET_AT_ROW_EDGE	1
+#define MXF_AUTOMATIC_OFFSET_AT_COLUMN_EDGE	2
 
 /*-------------------------------------------------------------*/
 
@@ -123,6 +131,12 @@ typedef struct mx_aviex_pccd {
 	long num_sector_rows;
 	long num_sector_columns;
 	uint16_t ***sector_array;
+
+	double *edge_average;
+
+	mx_bool_type use_mx_automatic_offset;
+	unsigned long mx_automatic_offset_edge;
+	unsigned long mx_automatic_offset_edge_size;
 
 	long num_registers;
 	MX_AVIEX_PCCD_REGISTER *register_array;
@@ -219,6 +233,31 @@ typedef struct mx_aviex_pccd {
   {-1, -1, "multiframe_needs_extra_frame", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_AVIEX_PCCD, multiframe_needs_extra_frame), \
+	{0}, NULL, 0}, \
+  \
+  {-1, -1, "num_sector_rows", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_AVIEX_PCCD, num_sector_rows), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {-1, -1, "num_sector_columns", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_AVIEX_PCCD, num_sector_columns), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {-1, -1, "edge_average", MXFT_DOUBLE, NULL, 1, {MXU_VARARGS_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_AVIEX_PCCD, edge_average), \
+	{0}, NULL, (MXFF_READ_ONLY | MXFF_VARARGS)}, \
+  \
+  {-1, -1, "use_mx_automatic_offset", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_AVIEX_PCCD, use_mx_automatic_offset),\
+	{0}, NULL, 0}, \
+  \
+  {-1, -1, "mx_automatic_offset_edge", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_AVIEX_PCCD, mx_automatic_offset_edge),\
+	{0}, NULL, 0}, \
+  \
+  {-1, -1, "mx_automatic_offset_edge_size", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_AVIEX_PCCD, mx_automatic_offset_edge_size),\
 	{0}, NULL, 0}
 
 MX_API mx_status_type mxd_aviex_pccd_initialize_driver( MX_DRIVER *driver );

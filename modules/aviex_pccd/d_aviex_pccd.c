@@ -548,6 +548,215 @@ mxd_aviex_pccd_load_linearity_lookup_table( MX_AVIEX_PCCD *aviex_pccd )
 /*-------------------------------------------------------------------------*/
 
 static mx_status_type
+mxd_aviex_pccd_automatic_offset_correction( MX_AREA_DETECTOR *ad,
+					MX_AVIEX_PCCD *aviex_pccd )
+{
+	static const char fname[] =
+		"mxd_aviex_pccd_automatic_offset_correction()";
+
+	uint16_t ***image_sector_array;
+	uint16_t **image_sector;
+	double *edge_average;
+	double sum, global_edge_average, edge_diff;
+	unsigned long num_edge_pixels_per_sector;
+	unsigned long sector, num_sectors;
+	unsigned long sector_row;
+	unsigned long sector_width, sector_height;
+	unsigned long row, column;
+	unsigned long column_start;
+	unsigned long edge_size;
+
+	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+		fname, ad->record->name ));
+
+	/* Check for valid combinations of parameters. */
+
+	switch( aviex_pccd->mx_automatic_offset_edge ) {
+	case MXF_AUTOMATIC_OFFSET_AT_ROW_EDGE:
+		if ( aviex_pccd->num_sector_columns != 2 ) {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Automatic offset correction can be performed "
+			"for row edges if there are 2 sector columns.  "
+			"Detector '%s' has %ld sector columns.",
+				ad->record->name,
+				aviex_pccd->num_sector_columns );
+		}
+		break;
+#if 0
+	case MXF_AUTOMATIC_OFFSET_AT_COLUMN_EDGE:
+		if ( aviex_pccd->num_sector_rows != 2 ) {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Automatic offset correction can be performed "
+			"for column edges if there are 2 sector rows.  "
+			"Detector '%s' has %ld sector rows.",
+				ad->record->name,
+				aviex_pccd->num_sector_rows );
+		}
+		break;
+#endif
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"mx_automatic_offset_edge (%ld) is set to an illegal value "
+		"for detector '%s'.  The valid values are 1 (row edge) "
+		"and 2 (column edge).",
+			aviex_pccd->mx_automatic_offset_edge,
+			ad->record->name );
+		break;
+	}
+
+	image_sector_array = aviex_pccd->sector_array;
+
+	edge_average = aviex_pccd->edge_average;
+
+	edge_size = aviex_pccd->mx_automatic_offset_edge_size;
+
+	num_sectors = aviex_pccd->num_sector_rows
+			* aviex_pccd->num_sector_columns;
+
+	sector_width  = ad->framesize[0] / aviex_pccd->num_sector_columns;
+
+	sector_height = ad->framesize[1] / aviex_pccd->num_sector_rows;
+
+	switch( aviex_pccd->mx_automatic_offset_edge ) {
+
+	/*---------------------------------------------------------------*/
+	case MXF_AUTOMATIC_OFFSET_AT_ROW_EDGE:
+
+	    /* Compute the averages in the edge regions of each sector. */
+
+	    num_edge_pixels_per_sector = sector_height * edge_size;
+
+	    for ( sector_row = 0;
+		sector_row < aviex_pccd->num_sector_rows;
+		sector_row++ )
+	    {
+		/* Do the left sector first. */
+
+		image_sector = image_sector_array[ 2 * sector_row ];
+
+		sum = 0.0;
+
+		for ( row = 0; row < sector_height; row++ ) {
+		    for ( column = 0; column < edge_size; column++ ) {
+			sum += image_sector[row][column];
+		    }
+		}
+
+		edge_average[ 2 * sector_row ] =
+			mx_divide_safely( sum, num_edge_pixels_per_sector );
+
+		/* Then the right sector. */
+
+		image_sector = image_sector_array[ (2 * sector_row) + 1 ];
+
+		sum = 0.0;
+
+		column_start = sector_width - edge_size;
+
+		for ( row = 0; row < sector_height; row++ ) {
+		    for ( column = column_start;
+			column < sector_width; column++ )
+		    {
+			sum += image_sector[row][column];
+		    }
+		}
+
+		edge_average[ (2 * sector_row) + 1 ] =
+			mx_divide_safely( sum, num_edge_pixels_per_sector );
+
+	    }
+
+	    sum = 0.0;
+
+	    for ( sector = 0; sector < num_sectors; sector++ ) {
+		sum += edge_average[ sector ];
+	    }
+
+	    global_edge_average = mx_divide_safely( sum, num_sectors );
+
+	    /* Now go back and update the sectors to shift the averages. */
+
+	    for ( sector_row = 0;
+		sector_row < aviex_pccd->num_sector_rows;
+		sector_row++ )
+	    {
+		/* Do the left sector first. */
+
+		image_sector = image_sector_array[ 2 * sector_row ];
+
+		edge_diff = global_edge_average
+				- edge_average[ 2 * sector_row ];
+
+		for ( row = 0; row < sector_height; row++ ) {
+		    for ( column = 0; column < sector_width; column++ ) {
+			image_sector[row][column] += edge_diff;
+		    }
+		}
+
+		/* Then the right sector. */
+
+		image_sector = image_sector_array[ (2 * sector_row) + 1 ];
+
+		edge_diff = global_edge_average
+				- edge_average[ (2 * sector_row) + 1 ];
+
+		for ( row = 0; row < sector_height; row++ ) {
+		    for ( column = 0; column < sector_width; column++ ) {
+			image_sector[row][column] += edge_diff;
+		    }
+		}
+	    }
+	    break;
+
+	/*---------------------------------------------------------------*/
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+static mx_status_type
+mxd_aviex_pccd_realloc_edge_average( MX_AREA_DETECTOR *ad,
+					MX_AVIEX_PCCD *aviex_pccd )
+{
+	static const char fname[] = "mxd_aviex_pccd_realloc_edge_average()";
+
+	MX_RECORD_FIELD *field;
+	unsigned long num_sectors;
+	mx_status_type mx_status;
+
+	mx_free( aviex_pccd->edge_average );
+
+	num_sectors = aviex_pccd->num_sector_rows
+			* aviex_pccd->num_sector_columns;
+
+	aviex_pccd->edge_average =
+		(double *) calloc( num_sectors, sizeof(double) );
+
+	if ( aviex_pccd->edge_average == (double *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %lu element array "
+		"of sector averages for detector '%s'.",
+			num_sectors, ad->record->name );
+	}
+
+	/* Update the size of the record field to match the new value. */
+
+	mx_status = mx_find_record_field( ad->record,
+					"edge_average", &field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	field->dimension[0] = num_sectors;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+static mx_status_type
 mxd_aviex_pccd_descramble_image( MX_AREA_DETECTOR *ad,
 				MX_AVIEX_PCCD *aviex_pccd,
 				MX_IMAGE_FRAME *image_frame,
@@ -730,6 +939,12 @@ mxd_aviex_pccd_descramble_image( MX_AREA_DETECTOR *ad,
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+		mx_status =
+		    mxd_aviex_pccd_realloc_edge_average( ad, aviex_pccd );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	/* Copy and descramble the pixels from the raw frame to the image frame.
@@ -781,6 +996,18 @@ mxd_aviex_pccd_descramble_image( MX_AREA_DETECTOR *ad,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* If requested, do an MX automatic offset correction. */
+
+	if ( aviex_pccd->use_mx_automatic_offset ) {
+		mx_status = mxd_aviex_pccd_automatic_offset_correction(
+							ad, aviex_pccd );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	/* Postprocessing of subimage frames. */
 
 	if (sp->sequence_type == MXT_SQ_SUBIMAGE) {
 
@@ -1384,6 +1611,13 @@ mxd_aviex_pccd_create_record_structures( MX_RECORD *record )
 
 	aviex_pccd->multiframe_needs_extra_frame = FALSE;
 
+	aviex_pccd->sector_array = NULL;
+	aviex_pccd->edge_average = NULL;
+
+	aviex_pccd->use_mx_automatic_offset = FALSE;
+	aviex_pccd->mx_automatic_offset_edge = 0;
+	aviex_pccd->mx_automatic_offset_edge_size = 0;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -1658,6 +1892,11 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 			ad->record->name );
 		break;
 	}
+
+	mx_status = mxd_aviex_pccd_realloc_edge_average( ad, aviex_pccd );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Initialize the geometrical mask frames. */
 
