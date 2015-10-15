@@ -55,6 +55,7 @@
 #include "mx_unistd.h"
 #include "mx_stdint.h"
 #include "mx_cfn.h"
+#include "mx_io.h"
 #include "mx_dynamic_library.h"
 
 /*-------------------------------------------------------------------------*/
@@ -185,10 +186,6 @@ mx_copy_file( char *existing_filename,
 
 	linux_version = mx_get_os_version_number();
 
-#if 0
-	MX_DEBUG(-2,("mx_copy_file(): linux_version = %lu", linux_version));
-#endif
-
 	if ( linux_version < 2006017L ) {
 		mx_status = mx_copy_file_classic( existing_filename,
 						new_filename,
@@ -242,7 +239,7 @@ mx_copy_file( char *existing_filename,
 		existing_filename, saved_errno, strerror(saved_errno) );
 	}
 
-	new_file_fd = open( new_filename, O_WRONLY );
+	new_file_fd = open( new_filename, O_WRONLY | O_CREAT, new_file_mode );
 
 	if ( new_file_fd < 0 ) {
 		saved_errno = errno;
@@ -266,7 +263,7 @@ mx_copy_file( char *existing_filename,
 	while(1) {
 		/* Read from the existing file into the kernel pipe buffer. */
 
-		bytes_read = splice( existing_file_fd, NULL, pipe_fd[0], NULL,
+		bytes_read = splice( existing_file_fd, NULL, pipe_fd[1], NULL,
 					buffer_size, 0 );
 
 		if ( bytes_read == 0 ) {
@@ -289,7 +286,7 @@ mx_copy_file( char *existing_filename,
 
 		/* Write the kernel pipe buffer contents to the new file. */
 
-		bytes_written = splice( pipe_fd[1], NULL, new_file_fd, NULL,
+		bytes_written = splice( pipe_fd[0], NULL, new_file_fd, NULL,
 					bytes_read, 0 );
 
 		if ( bytes_written < 0 ) {

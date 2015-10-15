@@ -250,7 +250,7 @@ main( int argc, char *argv[] )
 
 	error_flag = FALSE;
 
-	while ((c = getopt(argc, argv, "aAd:DJl:L:P:RrsT:u:x")) != -1 ) {
+	while ((c = getopt(argc, argv, "aAd:DJl:L:P:RrsT:u:wWxY")) != -1 ) {
 		switch(c) {
 		case 'a':
 			network_debug_flags |= MXF_NETDBG_SUMMARY;
@@ -297,14 +297,14 @@ main( int argc, char *argv[] )
 		case 'u':
 			update_interval_in_seconds = atof( optarg );
 			break;
-		case 'x':
-			putenv("MX_DEBUGGER=xterm -e gdb -tui -p %lu");
-			break;
 		case 'w':
 			wait_for_debugger = TRUE;
 			break;
 		case 'W':
 			wait_at_exit = TRUE;
+			break;
+		case 'x':
+			putenv("MX_DEBUGGER=xterm -e gdb -tui -p %lu");
 			break;
 		case 'Y':
 			/* Directly set the value of MXDIR. */
