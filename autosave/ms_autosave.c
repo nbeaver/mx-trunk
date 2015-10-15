@@ -170,6 +170,7 @@ main( int argc, char *argv[] )
 	MX_CLOCK_TICK current_time;
 
 	double update_interval_in_seconds = 30.0;
+	double server_connection_timeout = 5.0;
 
 	FILE *autosave_list_file;
 	char autosave_list_filename[MXU_FILENAME_LENGTH+1];
@@ -192,16 +193,17 @@ main( int argc, char *argv[] )
 "*          Usage: mxautosave [options] autosave_list_filename autosave_fn1 [ autosave_fn2 ]\n"
 "\n"
 "The available options are:\n"
-"       -a                   (enable network debugging summary)\n"
-"       -A                   (enable verbose network debugging)\n"
-"       -d debug_level\n"
-"       -l log_number        (log to syslog)\n"
-"       -L log_number        (log to syslog and stderr)\n"
-"       -P display_precision\n"
-"       -R                   (never restore parameters)\n"
-"       -r                   (restore a set of parameters)\n"
-"       -s                   (save a set of parameters)\n"
-"       -u update_interval_in_seconds\n"
+"  -a             (enable network debugging summary)\n"
+"  -A             (enable verbose network debugging)\n"
+"  -d debug_level\n"
+"  -l log_number  (log to syslog)\n"
+"  -L log_number  (log to syslog and stderr)\n"
+"  -P display_precision\n"
+"  -R             (never restore parameters)\n"
+"  -r             (restore a set of parameters)\n"
+"  -s             (save a set of parameters)\n"
+"  -T             (server connection timeout in seconds  (< 0 means forever))\n"
+"  -u             (update_interval_in_seconds)\n"
 "\n";
 
 #if HAVE_GETOPT
@@ -248,7 +250,7 @@ main( int argc, char *argv[] )
 
 	error_flag = FALSE;
 
-	while ((c = getopt(argc, argv, "aAd:DJl:L:P:Rrsu:x")) != -1 ) {
+	while ((c = getopt(argc, argv, "aAd:DJl:L:P:RrsT:u:x")) != -1 ) {
 		switch(c) {
 		case 'a':
 			network_debug_flags |= MXF_NETDBG_SUMMARY;
@@ -288,6 +290,9 @@ main( int argc, char *argv[] )
 			break;
 		case 's':
 			save_only = TRUE;
+			break;
+		case 'T':
+			server_connection_timeout = atof( optarg );
 			break;
 		case 'u':
 			update_interval_in_seconds = atof( optarg );
@@ -483,7 +488,7 @@ main( int argc, char *argv[] )
 
 	mx_status = msauto_construct_autosave_list( &autosave_list,
 				autosave_list_file, autosave_list_filename,
-				record_list );
+				record_list, server_connection_timeout );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		exit( (int) mx_status.code );
@@ -707,7 +712,8 @@ msauto_add_mx_variable_to_database( MX_RECORD *record_list,
 				char *record_name,
 				size_t max_record_name_length,
 				char *field_name,
-				size_t max_field_name_length )
+				size_t max_field_name_length,
+				double server_connection_timeout )
 {
 	static const char fname[] = "msauto_add_mx_variable_to_database()";
 
@@ -763,14 +769,15 @@ msauto_add_mx_variable_to_database( MX_RECORD *record_list,
 		strlcpy( server_arguments, "9727", sizeof(server_arguments) );
 	}
 
-	/* Find the requested server record in the database, or
-	 * create a new one.  Wait up to a maximum of 5 seconds
-	 * to connect to this MX server.
+	/* Find the requested server record in the database, or create a
+         * new one.  Wait up till the specified timeout to connect to this
+	 * MX server.  If ( server_connection_timeout < 0.0 ) then the
+	 * connection attempt will wait forever.
 	 */
 
 	mx_status = mx_get_mx_server_record( record_list,
 			server_name, server_arguments,
-			&server_record, 5.0 );
+			&server_record, server_connection_timeout );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1351,7 +1358,8 @@ mx_status_type
 msauto_construct_autosave_list( MX_AUTOSAVE_LIST *autosave_list,
                 		FILE *autosave_list_file,
 				char *autosave_list_filename,
-				MX_RECORD *record_list )
+				MX_RECORD *record_list,
+				double server_connection_timeout )
 {
 	static const char fname[] = "msauto_construct_autosave_list()";
 
@@ -1471,7 +1479,8 @@ msauto_construct_autosave_list( MX_AUTOSAVE_LIST *autosave_list,
 				record_list,
 				record_field_id, i, &created_read_record,
 				read_record_name, sizeof(read_record_name) - 1,
-				read_field_name, sizeof(read_field_name) - 1 );
+				read_field_name, sizeof(read_field_name) - 1,
+				server_connection_timeout );
 		} else
 		if ( strcmp( protocol_id, "epics" ) == 0 ) {
 			MX_DEBUG( 2,
@@ -1540,7 +1549,8 @@ msauto_construct_autosave_list( MX_AUTOSAVE_LIST *autosave_list,
 					record_list, extra_arguments,
 					i, &created_write_record,
 				write_record_name, sizeof(write_record_name)-1,
-				write_field_name, sizeof(write_field_name)-1 );
+				write_field_name, sizeof(write_field_name)-1,
+					server_connection_timeout );
 			} else
 			if ( strcmp( protocol_id, "epics" ) == 0 ) {
 				MX_DEBUG( 2,

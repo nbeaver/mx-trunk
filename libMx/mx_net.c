@@ -6494,7 +6494,7 @@ mx_get_mx_server_record( MX_RECORD *record_list,
 			char *server_name,
 			char *server_arguments,
 			MX_RECORD **server_record,
-			double timeout )
+			double server_connection_timeout )
 {
 	static const char fname[] = "mx_get_mx_server_record()";
 
@@ -6512,6 +6512,7 @@ mx_get_mx_server_record( MX_RECORD *record_list,
 	unsigned long sleep_ms;
 	int comparison;
 	mx_bool_type wait_forever = FALSE;
+	mx_bool_type exit_while_loop = FALSE;
 	mx_status_type mx_status;
 
 	if ( record_list == (MX_RECORD *) NULL ) {
@@ -6683,13 +6684,13 @@ mx_get_mx_server_record( MX_RECORD *record_list,
 	 * wait forever until the connection succeeds.
 	 */
 
-	if ( timeout < 0.0 ) {
+	if ( server_connection_timeout < 0.0 ) {
 		wait_forever = TRUE;
-	} else
-	if ( timeout >= 0.0 ) {
+	} else {
 		wait_forever = FALSE;
 
-		timeout_ticks = mx_convert_seconds_to_clock_ticks( timeout );
+		timeout_ticks = mx_convert_seconds_to_clock_ticks(
+						server_connection_timeout );
 
 		current_tick = mx_current_clock_tick();
 
@@ -6698,14 +6699,28 @@ mx_get_mx_server_record( MX_RECORD *record_list,
 
 	sleep_ms = 1000;
 
+	exit_while_loop = FALSE;
+
 	while (1) {
 		mx_status = mx_open_hardware( new_record );
 
-		if ( mx_status.code == MXE_SUCCESS )
-			break;			/* Exit the while() loop. */
+		switch( mx_status.code ) {
+		case MXE_SUCCESS:
+			exit_while_loop = TRUE;
+			break;
 
-		if ( mx_status.code != MXE_NETWORK_IO_ERROR )
+		case MXE_NETWORK_CONNECTION_REFUSED:
+		case MXE_NETWORK_IO_ERROR:
+			/* We need to go back and try again. */
+			break;
+
+		default:
 			return mx_status;
+		}
+
+		if ( exit_while_loop ) {
+			break;
+		}
 
 		if ( wait_forever ) {
 			mx_msleep(sleep_ms);
@@ -6720,7 +6735,8 @@ mx_get_mx_server_record( MX_RECORD *record_list,
 			return mx_error( MXE_TIMED_OUT, fname,
 			"Timed out after waiting %f seconds to connect "
 			"to the MX server at '%s' on port %d.",
-				timeout, server_name, port_number );
+				server_connection_timeout,
+				server_name, port_number );
 		}
 
 		mx_msleep(sleep_ms);

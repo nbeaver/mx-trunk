@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2005, 2011 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2005, 2011, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -59,7 +59,8 @@ extern mx_status_type msauto_construct_autosave_list(
 		MX_AUTOSAVE_LIST *autosave_list,
 		FILE *autosave_list_file,
 		char *autosave_list_filename,
-		MX_RECORD *record_list );
+		MX_RECORD *record_list,
+		double server_connection_timeout );
 
 extern mx_status_type msauto_poll_autosave_list( MX_AUTOSAVE_LIST *autosave_list );
 
