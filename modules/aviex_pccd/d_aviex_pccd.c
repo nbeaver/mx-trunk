@@ -3369,7 +3369,7 @@ mxd_aviex_pccd_correct_frame( MX_AREA_DETECTOR *ad )
 	MX_IMAGE_FRAME *mask_frame;
 	MX_IMAGE_FRAME *bias_frame;
 	MX_IMAGE_FRAME *flat_field_frame;
-	unsigned long flags;
+	unsigned long correction_flags, offset_flags;
 	uint16_t *mask_data_ptr, *bias_data_ptr, *flat_field_data_ptr;
 	uint16_t *image_data_array;
 	uint16_t *image_stripe_ptr, *image_row_ptr, *image_pixel_ptr;
@@ -3393,16 +3393,26 @@ mxd_aviex_pccd_correct_frame( MX_AREA_DETECTOR *ad )
 
 	sp = &(ad->sequence_parameters);
 
-	flags = ad->correction_flags;
+	correction_flags = ad->correction_flags;
 
 #if MXD_AVIEX_PCCD_DEBUG_FRAME_CORRECTION
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
-	MX_DEBUG(-2,("%s: ad->correction_flags = %#lx", fname, flags));
+	MX_DEBUG(-2,("%s: ad->correction_flags = %#lx",
+		fname, correction_flags));
 #endif
 
-	if ( flags == 0 ) {
-		/* No corrections have been requested. */
+	offset_flags = aviex_pccd->mx_automatic_offset_flags;
+
+	if ( correction_flags == 0 ) {
+		/* No normal corrections have been requested. */
+
+		/* Do automatic offset correction, if requested. */
+
+		if ( offset_flags & MXF_DO_AUTOMATIC_OFFSET_AFTER_CORRECTION ) {
+			mx_status = mxd_aviex_pccd_automatic_offset_correction(
+							ad, aviex_pccd );
+		}
 
 		return MX_SUCCESSFUL_RESULT;
 	}
@@ -3433,8 +3443,6 @@ mxd_aviex_pccd_correct_frame( MX_AREA_DETECTOR *ad )
 		 * NORMAL FULL FRAMES *
 		 **********************/
 
-		unsigned long offset_flags;
-
 		/* For normal full frame images, first apply the
 		 * default correction function.
 		 */
@@ -3444,7 +3452,7 @@ mxd_aviex_pccd_correct_frame( MX_AREA_DETECTOR *ad )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		offset_flags = aviex_pccd->mx_automatic_offset_flags;
+		/* Do automatic offset correction, if requested. */
 
 		if ( offset_flags & MXF_DO_AUTOMATIC_OFFSET_AFTER_CORRECTION ) {
 			mx_status = mxd_aviex_pccd_automatic_offset_correction(
@@ -3536,7 +3544,7 @@ mxd_aviex_pccd_correct_frame( MX_AREA_DETECTOR *ad )
 	 * will use for the subimage or streak camera frame.
 	 */
 
-	if ( (flags & MXFT_AD_MASK_FRAME) == 0 ) {
+	if ( (correction_flags & MXFT_AD_MASK_FRAME) == 0 ) {
 		mask_data_ptr = NULL;
 	} else {
 #if 0
@@ -3555,7 +3563,7 @@ mxd_aviex_pccd_correct_frame( MX_AREA_DETECTOR *ad )
 		mask_data_ptr += corr_start_offset;
 	}
 
-	if ( (flags & MXFT_AD_BIAS_FRAME) == 0 ) {
+	if ( (correction_flags & MXFT_AD_BIAS_FRAME) == 0 ) {
 		bias_data_ptr = NULL;
 	} else {
 		mx_status = mx_area_detector_get_correction_frame(
@@ -3574,7 +3582,7 @@ mxd_aviex_pccd_correct_frame( MX_AREA_DETECTOR *ad )
 	 * or streak camera frames.
 	 */
 
-	if ( (flags & MXFT_AD_FLAT_FIELD_FRAME) == 0 ) {
+	if ( (correction_flags & MXFT_AD_FLAT_FIELD_FRAME) == 0 ) {
 		flat_field_data_ptr = NULL;
 	} else {
 		mx_status = mx_area_detector_get_correction_frame(
@@ -4575,7 +4583,7 @@ mxd_aviex_pccd_measure_correction( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_aviex_pccd_measure_correction()";
 
 	MX_AVIEX_PCCD *aviex_pccd = NULL;
-	unsigned long flags;
+	unsigned long pccd_flags, saved_offset_flags;
 	mx_status_type mx_status;
 
 	mx_status = mxd_aviex_pccd_get_pointers( ad, &aviex_pccd, fname );
@@ -4583,15 +4591,26 @@ mxd_aviex_pccd_measure_correction( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	flags = aviex_pccd->aviex_pccd_flags;
+	/* Turn off automatic offset after correction if on. */
 
-	if ( (flags & MXF_AVIEX_PCCD_SKIP_FIRST_CORRECTION_FRAME) == 0 ) {
+	saved_offset_flags = aviex_pccd->mx_automatic_offset_flags;
+
+	aviex_pccd->mx_automatic_offset_flags = saved_offset_flags
+				& (~MXF_DO_AUTOMATIC_OFFSET_AFTER_CORRECTION);
+
+	/*---*/
+
+	pccd_flags = aviex_pccd->aviex_pccd_flags;
+
+	if ( (pccd_flags & MXF_AVIEX_PCCD_SKIP_FIRST_CORRECTION_FRAME) == 0 ) {
 
 		/* If we are not supposed to skip the first frame, then
 		 * just invoke the default correction measurement function.
 		 */
 
 		mx_status = mx_area_detector_default_measure_correction( ad );
+
+		aviex_pccd->mx_automatic_offset_flags = saved_offset_flags;
 
 		return mx_status;
 	}
@@ -4610,6 +4629,8 @@ mxd_aviex_pccd_measure_correction( MX_AREA_DETECTOR *ad )
 		return mx_status;
 
 	/* Start the sequence. */
+
+	aviex_pccd->mx_automatic_offset_flags = saved_offset_flags;
 
 	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 	"Skipping the first frame has not yet been implemented." );
