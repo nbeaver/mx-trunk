@@ -769,6 +769,7 @@ mxd_aviex_pccd_descramble_image( MX_AREA_DETECTOR *ad,
 	long row_framesize, column_framesize;
 	uint16_t *frame_data;
 	unsigned long pccd_flags;
+	unsigned long offset_flags;
 	mx_bool_type use_linearity_lookup_table;
 	mx_status_type mx_status;
 
@@ -999,7 +1000,9 @@ mxd_aviex_pccd_descramble_image( MX_AREA_DETECTOR *ad,
 
 	/* If requested, do an MX automatic offset correction. */
 
-	if ( aviex_pccd->use_mx_automatic_offset ) {
+	offset_flags = aviex_pccd->mx_automatic_offset_flags;
+
+	if ( offset_flags & MXF_DO_AUTOMATIC_OFFSET_AFTER_READOUT ) {
 		mx_status = mxd_aviex_pccd_automatic_offset_correction(
 							ad, aviex_pccd );
 
@@ -1614,7 +1617,7 @@ mxd_aviex_pccd_create_record_structures( MX_RECORD *record )
 	aviex_pccd->sector_array = NULL;
 	aviex_pccd->edge_average = NULL;
 
-	aviex_pccd->use_mx_automatic_offset = FALSE;
+	aviex_pccd->mx_automatic_offset_flags = 0;
 	aviex_pccd->mx_automatic_offset_edge = 0;
 	aviex_pccd->mx_automatic_offset_edge_size = 0;
 
@@ -3430,13 +3433,25 @@ mxd_aviex_pccd_correct_frame( MX_AREA_DETECTOR *ad )
 		 * NORMAL FULL FRAMES *
 		 **********************/
 
+		unsigned long offset_flags;
+
 		/* For normal full frame images, first apply the
 		 * default correction function.
 		 */
 
 		mx_status = mx_area_detector_default_correct_frame( ad );
 
-		return mx_status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		offset_flags = aviex_pccd->mx_automatic_offset_flags;
+
+		if ( offset_flags & MXF_DO_AUTOMATIC_OFFSET_AFTER_CORRECTION ) {
+			mx_status = mxd_aviex_pccd_automatic_offset_correction(
+							ad, aviex_pccd );
+		}
+
+		return MX_SUCCESSFUL_RESULT;
 	}
 
 	/*-----*/

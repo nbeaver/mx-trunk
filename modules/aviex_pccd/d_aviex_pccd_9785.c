@@ -349,7 +349,8 @@ mxd_aviex_pccd_9785_initialize_detector( MX_RECORD *record,
 
 	/* Setup MX automatic offset correction. */
 
-	aviex_pccd->use_mx_automatic_offset = TRUE;
+	aviex_pccd->mx_automatic_offset_flags =
+				MXF_DO_AUTOMATIC_OFFSET_AFTER_CORRECTION;
 	aviex_pccd->mx_automatic_offset_edge = MXF_AUTOMATIC_OFFSET_AT_ROW_EDGE;
 	aviex_pccd->mx_automatic_offset_edge_size = 100;
 

@@ -54,7 +54,12 @@
 #define MXT_AD_PCCD_4824	4824
 #define MXT_AD_PCCD_9785	9785
 
-/* Values for the 'mx_automatic_offset_edge' flag. */
+/* Values for the 'mx_automatic_offset_flags'. */
+
+#define MXF_DO_AUTOMATIC_OFFSET_AFTER_READOUT		0x1
+#define MXF_DO_AUTOMATIC_OFFSET_AFTER_CORRECTION	0x2
+
+/* Values for the 'mx_automatic_offset_edge' setting. */
 
 #define MXF_AUTOMATIC_OFFSET_NONE		0
 #define MXF_AUTOMATIC_OFFSET_AT_ROW_EDGE	1
@@ -134,7 +139,7 @@ typedef struct mx_aviex_pccd {
 
 	double *edge_average;
 
-	mx_bool_type use_mx_automatic_offset;
+	unsigned long mx_automatic_offset_flags;
 	unsigned long mx_automatic_offset_edge;
 	unsigned long mx_automatic_offset_edge_size;
 
@@ -250,13 +255,14 @@ typedef struct mx_aviex_pccd {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_AVIEX_PCCD, edge_average), \
 	{0}, NULL, (MXFF_READ_ONLY | MXFF_VARARGS)}, \
   \
-  {-1, -1, "use_mx_automatic_offset", MXFT_BOOL, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_AVIEX_PCCD, use_mx_automatic_offset),\
+  {-1, -1, "mx_automatic_offset_flags", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+			offsetof(MX_AVIEX_PCCD, mx_automatic_offset_flags),\
 	{0}, NULL, 0}, \
   \
   {-1, -1, "mx_automatic_offset_edge", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_AVIEX_PCCD, mx_automatic_offset_edge),\
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {-1, -1, "mx_automatic_offset_edge_size", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
