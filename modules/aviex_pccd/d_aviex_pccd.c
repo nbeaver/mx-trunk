@@ -1618,6 +1618,8 @@ mxd_aviex_pccd_create_record_structures( MX_RECORD *record )
 	aviex_pccd->mx_automatic_offset_edge = 0;
 	aviex_pccd->mx_automatic_offset_edge_size = 0;
 
+	aviex_pccd->dh_offsets_writable = FALSE;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -5617,6 +5619,7 @@ mxd_aviex_pccd_special_processing_setup( MX_RECORD *record )
 			switch( record_field->label_value ) {
 			case MXLV_AVIEX_PCCD_GEOMETRICAL_MASK_FILENAME:
 			case MXLV_AVIEX_PCCD_MONITOR_CALLBACK_INTERVAL:
+			case MXLV_AVIEX_PCCD_DH_OFFSETS_WRITABLE:
 				record_field->process_function
 					= mxd_aviex_pccd_process_function;
 				break;
@@ -5722,6 +5725,26 @@ mxd_aviex_pccd_process_function( void *record_ptr,
 
 				callback_message->u.function.callback_interval
 				    = aviex_pccd->monitor_callback_interval;
+				break;
+			case MXLV_AVIEX_PCCD_DH_OFFSETS_WRITABLE:
+				switch( aviex_pccd->aviex_pccd_type ) {
+				case MXT_AD_PCCD_9785:
+					mx_status =
+					  mxd_aviex_pccd_9785_offsets_writable(
+						ad, aviex_pccd );
+
+					if ( mx_status.code != MXE_SUCCESS )
+						return mx_status;
+					break;
+				default:
+					aviex_pccd->dh_offsets_writable = FALSE;
+
+					return mx_error( MXE_UNSUPPORTED, fname,
+					"dh_offsets_writable is not "
+					"implemented for detector '%s'.",
+						ad->record->name );
+					break;
+				}
 				break;
 			default:
 				break;

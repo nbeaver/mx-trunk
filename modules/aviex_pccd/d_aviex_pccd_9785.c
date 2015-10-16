@@ -171,28 +171,28 @@ mxd_aviex_pccd_9785_initialize_detector( MX_RECORD *record,
 					2,  1,     FALSE, FALSE, 1,  65535 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_9785_DH_OFFSET_W1,
-					2,  0,     FALSE, FALSE, 0,  4095 );
+					2,  0,     FALSE, FALSE, 0,  65535 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_9785_DH_OFFSET_X1,
-					2,  0,     FALSE, FALSE, 0,  4095 );
+					2,  0,     FALSE, FALSE, 0,  65535 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_9785_DH_OFFSET_Y1,
-					2,  0,     FALSE, FALSE, 0,  4095 );
+					2,  0,     FALSE, FALSE, 0,  65535 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_9785_DH_OFFSET_Z1,
-					2,  0,     FALSE, FALSE, 0,  4095 );
+					2,  0,     FALSE, FALSE, 0,  65535 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_9785_DH_OFFSET_W2,
-					2,  0,     FALSE, FALSE, 0,  4095 );
+					2,  0,     FALSE, FALSE, 0,  65535 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_9785_DH_OFFSET_X2,
-					2,  0,     FALSE, FALSE, 0,  4095 );
+					2,  0,     FALSE, FALSE, 0,  65535 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_9785_DH_OFFSET_Y2,
-					2,  0,     FALSE, FALSE, 0,  4095 );
+					2,  0,     FALSE, FALSE, 0,  65535 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_9785_DH_OFFSET_Z2,
-					2,  0,     FALSE, FALSE, 0,  4095 );
+					2,  0,     FALSE, FALSE, 0,  65535 );
 
 	/* Check to find out the firmware versions that are being used by
 	 * the detector head.
@@ -1370,6 +1370,83 @@ mxd_aviex_pccd_9785_configure_for_sequence( MX_AREA_DETECTOR *ad,
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxd_aviex_pccd_9785_offsets_writable( MX_AREA_DETECTOR *ad,
+					MX_AVIEX_PCCD *aviex_pccd )
+{
+	static const char fname[] = "mxd_aviex_pccd_9785_offsets_writable()";
+
+	long offset_register_array[] = {
+		MXLV_AVIEX_PCCD_9785_DH_OFFSET_W1,
+		MXLV_AVIEX_PCCD_9785_DH_OFFSET_X1,
+		MXLV_AVIEX_PCCD_9785_DH_OFFSET_Y1,
+		MXLV_AVIEX_PCCD_9785_DH_OFFSET_Z1,
+		MXLV_AVIEX_PCCD_9785_DH_OFFSET_W2,
+		MXLV_AVIEX_PCCD_9785_DH_OFFSET_X2,
+		MXLV_AVIEX_PCCD_9785_DH_OFFSET_Y2,
+		MXLV_AVIEX_PCCD_9785_DH_OFFSET_Z2
+	};
+
+	long num_offset_registers = sizeof(offset_register_array)
+				/ sizeof(offset_register_array[0]);
+
+	MX_RECORD_FIELD *offset_register_field;
+	long i, control_register_value;
+	mx_bool_type offsets_writable;
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_register( ad->record,
+			"dh_control", &control_register_value );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s: detector '%s' control register = %lu (%#lx).",
+		fname, ad->record->name,
+		control_register_value, control_register_value ));
+
+	if ( control_register_value &
+		MXF_AVIEX_PCCD_9785_AUTOMATIC_OFFSET_CORRECTION_ON )
+	{
+		/* You cannot write to the offsets if the FPGA's automatic
+		 * offset correction is on.
+		 */
+
+		aviex_pccd->dh_offsets_writable = FALSE;
+
+		return mx_error( MXE_NOT_READY, fname,
+		"Automatic offset correction is on for detector '%s'.",
+			ad->record->name );
+	} else {
+		offsets_writable = aviex_pccd->dh_offsets_writable;
+
+		if ( offsets_writable ) {
+			offsets_writable = TRUE;
+		}
+
+		for ( i = 0; i < num_offset_registers; i++ ) {
+
+			mx_status = mx_get_field_by_label_value( ad->record,
+						offset_register_array[i],
+						&offset_register_field );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( offsets_writable ) {
+				offset_register_field->flags
+							&= (~MXFF_READ_ONLY );
+			} else {
+				offset_register_field->flags |= MXFF_READ_ONLY;
+			}
+		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;

@@ -138,6 +138,8 @@ typedef struct mx_aviex_pccd {
 	unsigned long mx_automatic_offset_edge;
 	unsigned long mx_automatic_offset_edge_size;
 
+	mx_bool_type dh_offsets_writable;
+
 	long num_registers;
 	MX_AVIEX_PCCD_REGISTER *register_array;
 
@@ -163,6 +165,7 @@ typedef struct mx_aviex_pccd {
 
 #define MXLV_AVIEX_PCCD_GEOMETRICAL_MASK_FILENAME	50000
 #define MXLV_AVIEX_PCCD_MONITOR_CALLBACK_INTERVAL	50001
+#define MXLV_AVIEX_PCCD_DH_OFFSETS_WRITABLE		50002
 
 /*----*/
 
@@ -258,6 +261,11 @@ typedef struct mx_aviex_pccd {
   {-1, -1, "mx_automatic_offset_edge_size", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_AVIEX_PCCD, mx_automatic_offset_edge_size),\
+	{0}, NULL, 0}, \
+  \
+  {MXLV_AVIEX_PCCD_DH_OFFSETS_WRITABLE, -1, \
+			"dh_offsets_writable", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_AVIEX_PCCD, dh_offsets_writable), \
 	{0}, NULL, 0}
 
 MX_API mx_status_type mxd_aviex_pccd_initialize_driver( MX_DRIVER *driver );
