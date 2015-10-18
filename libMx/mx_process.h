@@ -159,6 +159,12 @@ MX_API mx_status_type mx_process_record_field(
 				int direction,
 				mx_bool_type *value_changed );
 
+MX_API mx_status_type mx_process_record_field_by_name(
+				MX_RECORD *record,
+				const char *field_name,
+				int direction,
+				mx_bool_type *value_changed );
+
 MX_API mx_status_type mx_test_for_value_changed(
 				MX_RECORD_FIELD *record_field,
 				int direction,

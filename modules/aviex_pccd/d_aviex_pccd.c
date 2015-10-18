@@ -162,7 +162,12 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_aviex_pccd_ad_function_list = {
 	mxd_aviex_pccd_get_parameter,
 	mxd_aviex_pccd_set_parameter,
 	mxd_aviex_pccd_measure_correction,
-	mxd_aviex_pccd_geometrical_correction
+	mxd_aviex_pccd_geometrical_correction,
+	NULL,
+	NULL,
+	NULL,
+	mxd_aviex_pccd_prepare_for_correction,
+	mxd_aviex_pccd_cleanup_after_correction
 };
 
 /*---*/
@@ -4577,26 +4582,21 @@ mxd_aviex_pccd_set_parameter( MX_AREA_DETECTOR *ad )
 	return mx_status;
 }
 
+/*-----*/
+
 MX_EXPORT mx_status_type
 mxd_aviex_pccd_measure_correction( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_aviex_pccd_measure_correction()";
 
 	MX_AVIEX_PCCD *aviex_pccd = NULL;
-	unsigned long pccd_flags, saved_offset_flags;
+	unsigned long pccd_flags;
 	mx_status_type mx_status;
 
 	mx_status = mxd_aviex_pccd_get_pointers( ad, &aviex_pccd, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	/* Turn off automatic offset after correction if on. */
-
-	saved_offset_flags = aviex_pccd->mx_automatic_offset_flags;
-
-	aviex_pccd->mx_automatic_offset_flags = saved_offset_flags
-				& (~MXF_DO_AUTOMATIC_OFFSET_AFTER_CORRECTION);
 
 	/*---*/
 
@@ -4609,8 +4609,6 @@ mxd_aviex_pccd_measure_correction( MX_AREA_DETECTOR *ad )
 		 */
 
 		mx_status = mx_area_detector_default_measure_correction( ad );
-
-		aviex_pccd->mx_automatic_offset_flags = saved_offset_flags;
 
 		return mx_status;
 	}
@@ -4630,7 +4628,7 @@ mxd_aviex_pccd_measure_correction( MX_AREA_DETECTOR *ad )
 
 	/* Start the sequence. */
 
-	aviex_pccd->mx_automatic_offset_flags = saved_offset_flags;
+	/*-- not implemented yet --*/
 
 	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 	"Skipping the first frame has not yet been implemented." );
@@ -5108,6 +5106,135 @@ mxd_aviex_pccd_geometrical_correction( MX_AREA_DETECTOR *ad,
 
 	return mx_status;
 }
+
+MX_EXPORT mx_status_type
+mxd_aviex_pccd_prepare_for_correction( MX_AREA_DETECTOR *ad,
+			MX_AREA_DETECTOR_CORRECTION_MEASUREMENT *corr )
+{
+	static const char fname[] = "mxd_aviex_pccd_prepare_for_correction()";
+
+	MX_AVIEX_PCCD *aviex_pccd;
+	mx_status_type mx_status;
+
+	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_AREA_DETECTOR pointer passed was NULL." );
+	}
+
+	aviex_pccd = (MX_AVIEX_PCCD *) ad->record->record_type_struct;
+
+	if ( aviex_pccd == (MX_AVIEX_PCCD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_AVIEX_PCCD pointer for record '%s' is NULL.",
+			ad->record->name );
+	}
+
+	/* Only proceed if this is a PCCD-9785 detector. */
+
+	if ( aviex_pccd->aviex_pccd_type != MXT_AD_PCCD_9785 ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* Adjust normal corrections. */
+
+	if ( ad->correction_flags != 0 ) {
+		ad->saved_correction_flags = ad->correction_flags;
+	}
+
+	switch( ad->correction_measurement_type ) {
+	case MXFT_AD_DARK_CURRENT_FRAME:
+		ad->correction_flags = 0;
+		break;
+	case MXFT_AD_FLAT_FIELD_FRAME:
+		ad->correction_flags = 7;
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Only dark current and flat field measurements are "
+		"supported by this function for detector '%s'.",
+			ad->record->name );
+		break;
+	}
+
+	mx_status = mx_process_record_field_by_name( ad->record,
+						"correction_flags",
+						MX_PROCESS_PUT, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Turn off automatic offsets. */
+
+	aviex_pccd->saved_mx_automatic_offset_flags =
+				aviex_pccd->mx_automatic_offset_flags;
+
+	aviex_pccd->mx_automatic_offset_flags &=
+				(~MXF_DO_AUTOMATIC_OFFSET_AFTER_CORRECTION);
+
+	mx_status = mx_process_record_field_by_name( ad->record,
+						"mx_automatic_offset_flags",
+						MX_PROCESS_PUT, NULL );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_aviex_pccd_cleanup_after_correction( MX_AREA_DETECTOR *ad,
+			MX_AREA_DETECTOR_CORRECTION_MEASUREMENT *corr )
+{
+	static const char fname[] = "mxd_aviex_pccd_cleanup_after_correction()";
+
+	MX_AVIEX_PCCD *aviex_pccd;
+	mx_status_type mx_status1, mx_status2;
+
+
+	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_AREA_DETECTOR pointer passed was NULL." );
+	}
+
+	aviex_pccd = (MX_AVIEX_PCCD *) ad->record->record_type_struct;
+
+	if ( aviex_pccd == (MX_AVIEX_PCCD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_AVIEX_PCCD pointer for record '%s' is NULL.",
+			ad->record->name );
+	}
+
+	/* Only proceed if this is a PCCD-9785 detector. */
+
+	if ( aviex_pccd->aviex_pccd_type != MXT_AD_PCCD_9785 ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	if ( ad->saved_correction_flags != 0 ) {
+		ad->correction_flags = ad->saved_correction_flags;
+	}
+
+	mx_status1 = mx_process_record_field_by_name( ad->record,
+						"correction_flags",
+						MX_PROCESS_PUT, NULL );
+
+	/* We reset the offset flags no matter what happened when we
+	 * tried to reset the correction flags.
+	 */
+
+	aviex_pccd->mx_automatic_offset_flags =
+				aviex_pccd->saved_mx_automatic_offset_flags;
+
+	mx_status2 = mx_process_record_field_by_name( ad->record,
+						"mx_automatic_offset_flags",
+						MX_PROCESS_PUT, NULL );
+
+	if ( mx_status1.code == MXE_SUCCESS ) {
+		return mx_status2;
+	} else {
+		return mx_status1;
+	}
+}
+
+
+/*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mxd_aviex_pccd_camera_link_command( MX_AVIEX_PCCD *aviex_pccd,
@@ -5655,6 +5782,7 @@ mxd_aviex_pccd_special_processing_setup( MX_RECORD *record )
 			switch( record_field->label_value ) {
 			case MXLV_AVIEX_PCCD_GEOMETRICAL_MASK_FILENAME:
 			case MXLV_AVIEX_PCCD_MONITOR_CALLBACK_INTERVAL:
+			case MXLV_AVIEX_PCCD_MX_AUTOMATIC_OFFSET_FLAGS:
 			case MXLV_AVIEX_PCCD_DH_OFFSETS_WRITABLE:
 				record_field->process_function
 					= mxd_aviex_pccd_process_function;
@@ -5761,6 +5889,8 @@ mxd_aviex_pccd_process_function( void *record_ptr,
 
 				callback_message->u.function.callback_interval
 				    = aviex_pccd->monitor_callback_interval;
+				break;
+			case MXLV_AVIEX_PCCD_MX_AUTOMATIC_OFFSET_FLAGS:
 				break;
 			case MXLV_AVIEX_PCCD_DH_OFFSETS_WRITABLE:
 				switch( aviex_pccd->aviex_pccd_type ) {

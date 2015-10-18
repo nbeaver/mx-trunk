@@ -143,6 +143,8 @@ typedef struct mx_aviex_pccd {
 	unsigned long mx_automatic_offset_edge;
 	unsigned long mx_automatic_offset_edge_size;
 
+	unsigned long saved_mx_automatic_offset_flags;
+
 	mx_bool_type dh_offsets_writable;
 
 	long num_registers;
@@ -170,7 +172,8 @@ typedef struct mx_aviex_pccd {
 
 #define MXLV_AVIEX_PCCD_GEOMETRICAL_MASK_FILENAME	50000
 #define MXLV_AVIEX_PCCD_MONITOR_CALLBACK_INTERVAL	50001
-#define MXLV_AVIEX_PCCD_DH_OFFSETS_WRITABLE		50002
+#define MXLV_AVIEX_PCCD_MX_AUTOMATIC_OFFSET_FLAGS	50002
+#define MXLV_AVIEX_PCCD_DH_OFFSETS_WRITABLE		50003
 
 /*----*/
 
@@ -255,7 +258,8 @@ typedef struct mx_aviex_pccd {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_AVIEX_PCCD, edge_average), \
 	{0}, NULL, (MXFF_READ_ONLY | MXFF_VARARGS)}, \
   \
-  {-1, -1, "mx_automatic_offset_flags", MXFT_HEX, NULL, 0, {0}, \
+  {MXLV_AVIEX_PCCD_MX_AUTOMATIC_OFFSET_FLAGS, -1, \
+			"mx_automatic_offset_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 			offsetof(MX_AVIEX_PCCD, mx_automatic_offset_flags),\
 	{0}, NULL, 0}, \
@@ -300,6 +304,12 @@ MX_API mx_status_type mxd_aviex_pccd_measure_correction( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_aviex_pccd_geometrical_correction(
 						MX_AREA_DETECTOR *ad,
 						MX_IMAGE_FRAME *frame );
+MX_API mx_status_type mxd_aviex_pccd_prepare_for_correction(
+				MX_AREA_DETECTOR *ad,
+				MX_AREA_DETECTOR_CORRECTION_MEASUREMENT *corr );
+MX_API mx_status_type mxd_aviex_pccd_cleanup_after_correction(
+				MX_AREA_DETECTOR *ad,
+				MX_AREA_DETECTOR_CORRECTION_MEASUREMENT *corr );
 
 MX_API mx_status_type mxd_aviex_pccd_camera_link_command(
 					MX_AVIEX_PCCD *aviex_pccd,

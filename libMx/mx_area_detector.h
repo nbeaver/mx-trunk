@@ -487,6 +487,12 @@ typedef struct mx_area_detector_type {
 
 	double dezinger_threshold;	/* in units of standard deviation */
 
+	/* saved_correction_flags is a place to store the original value
+	 * of the correction_flags field during a correction measurement.
+	 */
+
+	unsigned long saved_correction_flags;
+
 	/* Used by mx_area_detector_get_register() and
 	 * mx_area_detector_set_register().
 	 */
@@ -1185,6 +1191,11 @@ typedef struct mx_area_detector_type {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, dezinger_threshold), \
 	{0}, NULL, 0}, \
   \
+  {-1, -1, "saved_correction_flags", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_AREA_DETECTOR, saved_correction_flags), \
+	{0}, NULL, 0}, \
+  \
   {MXLV_AD_USE_SCALED_DARK_CURRENT, -1, "use_scaled_dark_current", \
   						MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
@@ -1497,8 +1508,11 @@ typedef struct {
 	mx_status_type ( *trigger_oscillation ) ( MX_AREA_DETECTOR *ad );
 	mx_status_type ( *save_averaged_correction_frame )
 						 ( MX_AREA_DETECTOR *ad );
+	mx_status_type ( *prepare_for_correction ) ( MX_AREA_DETECTOR *ad,
+				MX_AREA_DETECTOR_CORRECTION_MEASUREMENT *corr );
+	mx_status_type ( *cleanup_after_correction ) ( MX_AREA_DETECTOR *ad,
+				MX_AREA_DETECTOR_CORRECTION_MEASUREMENT *corr );
 } MX_AREA_DETECTOR_FUNCTION_LIST;
-
 MX_API mx_status_type mx_area_detector_get_pointers( MX_RECORD *record,
                                         MX_AREA_DETECTOR **ad,
                                 MX_AREA_DETECTOR_FUNCTION_LIST **flist_ptr,

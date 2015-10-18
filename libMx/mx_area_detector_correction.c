@@ -1044,6 +1044,9 @@ mx_area_detector_cleanup_after_correction( MX_AREA_DETECTOR *ad,
 		"mx_area_detector_cleanup_after_correction()";
 
 	MX_AREA_DETECTOR_CORRECTION_MEASUREMENT *corr;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type (*cleanup_after_correction_fn)( MX_AREA_DETECTOR *,
+				MX_AREA_DETECTOR_CORRECTION_MEASUREMENT * );
 
 	if ( corr_ptr != NULL ) {
 		corr = corr_ptr;
@@ -1065,6 +1068,25 @@ mx_area_detector_cleanup_after_correction( MX_AREA_DETECTOR *ad,
 
 	if ( ad == NULL ) {
 		ad = corr->area_detector;
+	}
+
+	/* If there is a driver-specific cleanup_after_correction routine,
+	 * then invoke it first.  During this cleanup, errors are ignored
+	 * if possible.
+	 */
+
+	flist = ad->record->class_specific_function_list;
+
+	if ( flist == (MX_AREA_DETECTOR_FUNCTION_LIST *) NULL ) {
+		mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_AREA_DETECTOR_FUNCTION_LIST pointer for "
+		"area detector '%s' is NULL.", ad->record->name );
+	} else {
+		cleanup_after_correction_fn = flist->cleanup_after_correction;
+
+		if ( cleanup_after_correction_fn != NULL ) {
+			(void) (*cleanup_after_correction_fn)( ad, corr );
+		}
 	}
 
 	/* Restore the trigger mode. */
@@ -1124,6 +1146,11 @@ mx_area_detector_prepare_for_correction( MX_AREA_DETECTOR *ad,
 	static const char fname[] = "mx_area_detector_prepare_for_correction()";
 
 	MX_AREA_DETECTOR_CORRECTION_MEASUREMENT *corr;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+
+	mx_status_type (*prepare_for_correction_fn)( MX_AREA_DETECTOR *,
+				MX_AREA_DETECTOR_CORRECTION_MEASUREMENT * );
+
 	long pixels_per_frame, saved_trigger_mode;
 	mx_status_type mx_status;
 
@@ -1314,8 +1341,9 @@ mx_area_detector_prepare_for_correction( MX_AREA_DETECTOR *ad,
 
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
 			"Ran out of memory trying to allocate "
-			"a %ld element array of MX_IMAGE_FRAME pointers.", 
-				corr->num_exposures );
+			"a %ld element array of MX_IMAGE_FRAME pointers "
+			"for area detector '%s'.",
+				corr->num_exposures, ad->record->name );
 		}
 	} else {
 		/* Do not dezinger */
@@ -1332,8 +1360,31 @@ mx_area_detector_prepare_for_correction( MX_AREA_DETECTOR *ad,
 
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
 			"Ran out of memory trying to allocate "
-			"a %ld element array of doubles.", pixels_per_frame );
+			"a %ld element array of doubles "
+			"for area detector '%s'.",
+				pixels_per_frame, ad->record->name );
 		}
+	}
+
+	/* If there is a driver-specific prepare_for_correction() routine,
+	 * then invoke it last.
+	 */
+
+	flist = ad->record->class_specific_function_list;
+
+	if ( flist == (MX_AREA_DETECTOR_FUNCTION_LIST *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_AREA_DETECTOR_FUNCTION_LIST pointer for "
+		"area detector '%s' is NULL.", ad->record->name );
+	}
+
+	prepare_for_correction_fn = flist->prepare_for_correction;
+
+	if ( prepare_for_correction_fn != NULL ) {
+		mx_status = (*prepare_for_correction_fn)( ad, corr );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

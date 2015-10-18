@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2008, 2011-2014 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004-2008, 2011-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -391,6 +391,40 @@ mx_process_record_field( MX_RECORD *record,
 	MX_HRT_RESULTS( measurement, fname,
 "- end of processing for '%s.%s'", record->name, record_field->name );
 #endif
+
+	return mx_status;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_process_record_field_by_name( MX_RECORD *record,
+				const char *field_name,
+				int direction,
+				mx_bool_type *value_changed )
+{
+	static const char fname[] = "mx_process_record_field_by_name()";
+
+	MX_RECORD_FIELD *field;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+	if ( field_name == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The field name pointer passed for record '%s' is NULL.",
+			record->name );
+	}
+
+	mx_status = mx_find_record_field( record, field_name, &field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_process_record_field( record, field,
+					direction, value_changed );
 
 	return mx_status;
 }
