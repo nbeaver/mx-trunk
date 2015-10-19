@@ -467,6 +467,7 @@
 #include "d_mlfsom.h"
 #include "d_mar345.h"
 #include "d_pilatus.h"
+#include "d_merlin_medipix.h"
 
 #include "d_network_wvin.h"
 
@@ -3313,6 +3314,13 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_pilatus_ad_function_list,
 				&mxd_pilatus_num_record_fields,
 				&mxd_pilatus_rfield_def_ptr},
+
+{"merlin_medipix", MXT_AD_MERLIN_MEDIPIX, MXC_AREA_DETECTOR, MXR_DEVICE,
+				&mxd_merlin_medipix_record_function_list,
+				NULL,
+				&mxd_merlin_medipix_ad_function_list,
+				&mxd_merlin_medipix_num_record_fields,
+				&mxd_merlin_medipix_rfield_def_ptr},
 
 {"cryostream600_status", MXT_AIN_CRYOSTREAM600, MXC_ANALOG_INPUT, MXR_DEVICE,
 				&mxd_cryostream600_status_record_function_list,
