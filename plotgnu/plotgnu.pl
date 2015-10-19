@@ -122,7 +122,7 @@ while ($input_line = <STDIN>) {
 
 	if ( substr( $input_line, 0, 4 ) eq "data" ) {
 
-		if ( ! defined(@parameters) ) {
+		if ( ! @parameters ) {
 		    print GNUPLOT "exit\n";
 
 		    die "Attempted to send plot data before starting a plot";
@@ -187,7 +187,7 @@ while ($input_line = <STDIN>) {
 
 	if ( substr( $input_line, 0, 4 ) eq "plot" ) {
 
-		if ( ! defined(@parameters) ) {
+		if ( ! @parameters ) {
 		    print GNUPLOT "exit\n";
 
     die "Attempted to tell gnuplot to plot before the plot file was created.";
