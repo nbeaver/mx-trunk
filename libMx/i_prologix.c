@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2009-2010 Illinois Institute of Technology
+ * Copyright 2009-2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -224,10 +224,22 @@ mxi_prologix_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Turn on automatic Read-After-Write. */
+	/* Turn off automatic Read-After-Write.  Some Keithley devices
+	 * get confused if they are addressed to read when they have
+	 * nothing to say and send error messages like "-420" or
+	 * "Query Unterminated".
+	 *
+	 * This fix was derived from this forum message:
+	 *
+	 *   http://forum.keithley.com/phpBB3/viewtopic.php?t=37820
+	 *
+	 * which referred to this other forum message:
+	 *
+	 *   http://www.mathworks.com/matlabcentral/fileexchange/43486-kpib--kenny-purpose-interface-bus
+	 */
 
 	mx_status = mx_rs232_putline( prologix->rs232_record,
-					"++auto 1",
+					"++auto 0",
 					NULL, MXI_PROLOGIX_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -383,6 +395,7 @@ mxi_prologix_read( MX_GPIB *gpib,
 
 	MX_PROLOGIX *prologix = NULL;
 	int debug;
+	char command[20];
 	mx_status_type mx_status;
 
 	mx_status = mxi_prologix_get_pointers( gpib, &prologix, fname );
@@ -402,6 +415,23 @@ mxi_prologix_read( MX_GPIB *gpib,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Tell the Prologix to address the device to talk. */
+
+	if ( gpib->read_terminator[0] != '\0' ) {
+		snprintf( command, sizeof(command),
+			"++read %lu", gpib->read_terminator[0] );
+	} else {
+		strlcpy( command, "++read eoi", sizeof(command) );
+	}
+
+	mx_status = mx_rs232_putline( prologix->rs232_record,
+					command, NULL, transfer_flags );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Read the response. */
 
 	mx_status = mx_rs232_getline( prologix->rs232_record,
 					buffer, max_bytes_to_read,
