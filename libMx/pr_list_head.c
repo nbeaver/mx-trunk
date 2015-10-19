@@ -196,6 +196,9 @@ mx_list_head_process_function( void *record_ptr,
 			    mx_list_head_record_show_clbk_id( list_head );
 			break;
 		case MXLV_LHD_VM_REGION:
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"This feature currently does not work." );
+
 			fprintf( stderr,
 				(void *) list_head->vm_region[0],
 				list_head->vm_region[1] );

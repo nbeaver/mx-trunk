@@ -167,7 +167,7 @@ extern "C" {
   \
   {MXLV_LHD_VM_REGION, -1, "vm_region", MXFT_HEX, NULL, 1, {2}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, vm_region), \
-	{0}, NULL, 0}, \
+	{sizeof(unsigned long)}, NULL, 0}, \
   \
   {MXLV_LHD_POSIX_TIME, -1, "posix_time", MXFT_UINT64, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, posix_time), \
