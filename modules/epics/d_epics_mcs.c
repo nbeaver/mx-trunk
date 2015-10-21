@@ -318,7 +318,8 @@ mxd_epics_mcs_open( MX_RECORD *record )
 	 * the first measurement or not.
 	 */
 
-	if ( epics_mcs->epics_mcs_flags & MXF_EPICS_MCS_DO_NOT_SKIP_FIRST_MEASUREMENT )
+	if ( epics_mcs->epics_mcs_flags
+		& MXF_EPICS_MCS_DO_NOT_SKIP_FIRST_MEASUREMENT )
 	{
 		do_not_skip = TRUE;
 	} else {
@@ -328,7 +329,7 @@ mxd_epics_mcs_open( MX_RECORD *record )
 	if ( sizeof(int32_t) == sizeof(long) ) {
 		long_is_32bits = TRUE;
 	} else {
-		long_is_32bits = TRUE;
+		long_is_32bits = FALSE;
 	}
 
 	if ( do_not_skip ) {
