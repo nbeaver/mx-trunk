@@ -1204,7 +1204,6 @@ mxd_newport_xps_open( MX_RECORD *record )
 		}
 	}
 
-
 	/*** Create move thread ***/
 
 	/* Move commands _block_ until the move is complete, so we need to 

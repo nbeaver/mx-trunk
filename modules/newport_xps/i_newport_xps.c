@@ -274,9 +274,13 @@ mxi_newport_xps_open( MX_RECORD *record )
 #endif
 
 	if ( newport_xps->socket_id < 0 ) {
+		newport_xps->connected_to_controller = FALSE;
+
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 		"The attempt to connect to Newport XPS controller '%s' failed.",
 			record->name );
+	} else {
+		newport_xps->connected_to_controller = TRUE;
 	}
 
 #if 0

@@ -48,6 +48,8 @@ typedef struct {
 	char hardware_time[MXU_NEWPORT_XPS_STATUS_LENGTH+1];
 	char library_version[MXU_NEWPORT_XPS_STATUS_LENGTH+1];
 
+	mx_bool_type connected_to_controller;
+
 	long num_motors;
 	MX_RECORD **motor_record_array;
 } MX_NEWPORT_XPS;
@@ -119,7 +121,12 @@ typedef struct {
   {MXLV_NEWPORT_XPS_LIBRARY_VERSION, -1, "library_version",\
 	    MXFT_STRING, NULL, 1, {MXU_NEWPORT_XPS_STATUS_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, library_version), \
-	{sizeof(char)}, NULL, MXFF_READ_ONLY}
+	{sizeof(char)}, NULL, MXFF_READ_ONLY}, \
+  \
+  {-1, -1, "connected_to_controller", \
+			MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_XPS, connected_to_controller),\
+	{0}, NULL, MXFF_READ_ONLY}
 
 MX_API mx_status_type mxi_newport_xps_create_record_structures(
 						MX_RECORD *record );
