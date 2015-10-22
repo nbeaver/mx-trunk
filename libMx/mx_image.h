@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2014 Illinois Institute of Technology
+ * Copyright 2006-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -64,6 +64,7 @@ extern "C" {
 
 #define MXT_IMAGE_FILE_PNM			10
 #define MXT_IMAGE_FILE_JPEG			11
+#define MXT_IMAGE_FILE_TIFF			12
 
     /* The following are area detector file formats. */
 
@@ -402,6 +403,14 @@ MX_API mx_status_type mx_image_read_raw_file( MX_IMAGE_FRAME **frame,
 
 MX_API mx_status_type mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
 						unsigned long datafile_type,
+						char *datafile_name );
+
+/*----*/
+
+MX_API mx_status_type mx_image_read_tiff_file( MX_IMAGE_FRAME **frame,
+						char *datafile_name );
+
+MX_API mx_status_type mx_image_write_tiff_file( MX_IMAGE_FRAME *frame,
 						char *datafile_name );
 
 /*----*/

@@ -20,14 +20,18 @@
 /*----*/
 
 typedef struct {
-	int dummy;
+	MX_DYNAMIC_LIBRARY *libtiff_library;
 } MX_LIBTIFF_EXTENSION_PRIVATE;
 
 extern MX_EXTENSION_FUNCTION_LIST mxext_libtiff_extension_function_list;
 
 MX_API mx_status_type mxext_libtiff_initialize( MX_EXTENSION *extension );
 
-MX_API mx_status_type mxext_libtiff_finalize( MX_EXTENSION *extension );
+MX_API mx_status_type mxext_libtiff_read_tiff_file( MX_IMAGE_FRAME **frame,
+							char *datafile_name );
+
+MX_API mx_status_type mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
+							char *datafile_name );
 
 #endif /* __E_LIBTIFF_H__ */
 

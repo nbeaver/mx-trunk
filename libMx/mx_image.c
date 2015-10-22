@@ -50,6 +50,9 @@
 #endif
 
 #include "mx_util.h"
+#include "mx_record.h"
+#include "mx_module.h"
+#include "mx_dynamic_library.h"
 #include "mx_time.h"
 #include "mx_hrt.h"
 #include "mx_hrt_debug.h"
@@ -2716,6 +2719,10 @@ mx_image_read_file( MX_IMAGE_FRAME **frame_ptr,
 						datafile_type,
 						datafile_name );
 		break;
+	case MXT_IMAGE_FILE_TIFF:
+		mx_status = mx_image_read_tiff_file( frame_ptr,
+						datafile_name );
+		break;
 	case MXT_IMAGE_FILE_SMV:
 	case MXT_IMAGE_FILE_NOIR:
 		mx_status = mx_image_read_smv_file( frame_ptr,
@@ -2785,6 +2792,9 @@ mx_image_write_file( MX_IMAGE_FRAME *frame,
 		mx_status = mx_image_write_raw_file( frame,
 						datafile_type,
 						datafile_name );
+		break;
+	case MXT_IMAGE_FILE_TIFF:
+		mx_status = mx_image_write_tiff_file( frame, datafile_name );
 		break;
 	case MXT_IMAGE_FILE_SMV:
 	case MXT_IMAGE_FILE_NOIR:
@@ -3768,6 +3778,134 @@ mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+/*----*/
+
+static mx_bool_type mxp_tiff_availability_checked = FALSE;
+static mx_bool_type mxp_tiff_is_available         = FALSE;
+
+static mx_status_type
+(*mxp_image_read_tiff_file)( MX_IMAGE_FRAME **, char * ) = NULL;
+
+static mx_status_type
+(*mxp_image_write_tiff_file)( MX_IMAGE_FRAME *, char * ) = NULL;
+
+static mx_status_type
+mxp_image_test_for_libtiff( void )
+{
+	static const char fname[] = "mxp_image_test_for_libtiff()";
+
+	MX_RECORD *mx_database_record = NULL;
+	MX_MODULE *libtiff_module = NULL;
+	MX_DYNAMIC_LIBRARY *libtiff_library = NULL;
+	mx_status_type mx_status;
+
+	mxp_tiff_availability_checked = TRUE;
+
+	/* FIXME!!!!!: We need the MX_RECORD pointer for the MX database
+	 * list head, but there is no good way to get it.  Here are a
+	 * couple of bad ways.  Note that if we call the function
+	 * mx_dynamic_library_get_symbol_pointer() with a NULL first
+	 * argument, then we are _really_ asking it to look for the
+	 * pointer in the main executable.  But different executables
+	 * use different names for it, so we must try a couple of
+	 * different names (arg!).
+	 */
+
+	mx_database_record = mx_dynamic_library_get_symbol_pointer( NULL,
+							"mx_record_list" );
+
+	if ( mx_database_record == NULL ) {
+		mx_database_record = mx_dynamic_library_get_symbol_pointer(
+						NULL, "motor_record_list" );
+	}
+	if ( mx_database_record == NULL ) {
+		return mx_error( MXE_NOT_FOUND, fname,
+		"Could not find the MX record list pointer." );
+	}
+
+	/* Search for the libtiff module. */
+
+	mx_status = mx_get_module( "libtiff",
+				mx_database_record, &libtiff_module );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Get the libtiff library pointer. */
+
+	libtiff_library = libtiff_module->library;
+
+	if ( libtiff_library == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The 'libtiff' module was loaded, but it did not initialize "
+		"a pointer to the matching MX_DYNAMIC_LIBRARY structure." );
+	}
+
+	mxp_image_read_tiff_file = mx_dynamic_library_get_symbol_pointer(
+			libtiff_library, "mxext_libtiff_read_tiff_file" );
+
+	if ( mxp_image_read_tiff_file == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The 'libtiff' module does not seem to have a function "
+		"called 'mxext_libtiff_read_tiff_file()'." );
+	}
+
+	mxp_image_write_tiff_file = mx_dynamic_library_get_symbol_pointer(
+			libtiff_library, "mxext_libtiff_write_tiff_file" );
+
+	if ( mxp_image_read_tiff_file == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The 'libtiff' module does not seem to have a function "
+		"called 'mxext_libtiff_write_tiff_file()'." );
+	}
+
+	mxp_tiff_is_available = TRUE;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*----*/
+
+MX_EXPORT mx_status_type
+mx_image_read_tiff_file( MX_IMAGE_FRAME **frame, char *datafile_name )
+{
+	static const char fname[] = "mx_image_read_tiff_file()";
+
+	mx_status_type mx_status;
+
+	if ( mxp_tiff_availability_checked == FALSE ) {
+		(void) mxp_image_test_for_libtiff();
+	}
+	if ( mxp_tiff_is_available == FALSE ) {
+		return mx_error( MXE_NOT_AVAILABLE, fname,
+		"The 'libtiff' module has not been loaded." );
+	}
+
+	mx_status = (*mxp_image_read_tiff_file)( frame, datafile_name );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_image_write_tiff_file( MX_IMAGE_FRAME *frame, char *datafile_name )
+{
+	static const char fname[] = "mx_image_write_tiff_file()";
+
+	mx_status_type mx_status;
+
+	if ( mxp_tiff_availability_checked == FALSE ) {
+		(void) mxp_image_test_for_libtiff();
+	}
+	if ( mxp_tiff_is_available == FALSE ) {
+		return mx_error( MXE_NOT_AVAILABLE, fname,
+		"The 'libtiff' module has not been loaded." );
+	}
+
+	mx_status = (*mxp_image_write_tiff_file)( frame, datafile_name );
+
+	return mx_status;
 }
 
 /*----*/
