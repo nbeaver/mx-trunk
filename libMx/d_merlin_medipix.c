@@ -162,7 +162,7 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 	mx_bool_type parsing_succeeded;
 	long num_bytes_available, old_num_bytes_available;
 	unsigned long sleep_us;
-	unsigned long message_body_length_z;
+	unsigned long message_body_length;
 	unsigned long message_body_remaining_length;
 	unsigned long new_data_length;
 	char *src_body_ptr, *dest_body_ptr;
@@ -266,7 +266,7 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 		/* How many bytes are in the remainder of the message.*/
 
 		num_items = sscanf( header_buffer, "MPX,%lu,%3s",
-						&message_body_length_z,
+						&message_body_length,
 						message_type_string );
 
 		if ( num_items != 2 ) {
@@ -278,10 +278,20 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 				record->name, header_buffer );
 		}
 
+		/* The message_body_length value reported in the header
+		 * provided by the Merlin Medipix includes a comma ','
+		 * character that appears just before the message type
+		 * string, such as 'HDR' or 'MQ1'.  We do not want to
+		 * copy that comma to the destination, so we leave it
+		 * out of the message_body_length value.
+		 */
+
+		message_body_length--;
+
 		/* Prepare to read in the rest of the message body. */
 
 		MX_DEBUG(-2,("%s: message '%s', %lu bytes",
-			fname, message_type_string, message_body_length_z ));
+			fname, message_type_string, message_body_length ));
 
 		if ( strcmp( message_type_string, "HDR" ) == 0 ) {
 		    message_type = MXT_MPX_ACQUISITION_MESSAGE;
@@ -290,15 +300,19 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 		    data_length_ptr =
 				  &(merlin_medipix->acquisition_header_length);
 
-		    new_data_length = message_body_length_z;
+		    new_data_length = message_body_length;
 		} else
 		if ( strcmp( message_type_string, "MQ1" ) == 0 ) {
 		    message_type = MXT_MPX_IMAGE_MESSAGE;
 
-		    data_ptr = &(merlin_medipix->image_data),
-		    data_length_ptr = &(merlin_medipix->image_data_length);
+		    data_ptr = &(merlin_medipix->image_data_array),
+		    data_length_ptr =
+				&(merlin_medipix->image_data_array_length);
 
-		    new_data_length = message_body_length_z
+		    merlin_medipix->merlin_image_frame_length
+				= message_body_length;
+
+		    new_data_length = message_body_length
 				* merlin_medipix->maximum_num_images;
 
 		    /* Update the frame counter. */
@@ -386,7 +400,7 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 
 		    mx_frame_number = merlin_frame_number - 1L;
 
-		    dest_body_ptr += (mx_frame_number * message_body_length_z);
+		    dest_body_ptr += (mx_frame_number * message_body_length);
 		    break;
 		case MXT_MPX_UNKNOWN_MESSAGE:
 		    mx_warning( "Unknown message type seen in message "
@@ -407,13 +421,13 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 
 		/* Zero out the destination array. */
 
-		memset( dest_body_ptr, 0, message_body_length_z );
+		memset( dest_body_ptr, 0, message_body_length );
 
 		/* Copy the initial part of the message to the 
 		 * destination buffer.
 		 */
 
-		strlcpy( dest_body_ptr, src_body_ptr, message_body_length_z );
+		strlcpy( dest_body_ptr, src_body_ptr, message_body_length );
 
 		/* Update the length of the MX_RECORD_FIELD array. */
 
@@ -425,7 +439,7 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 			break;
 		    case MXT_MPX_IMAGE_MESSAGE:
 			mx_status = mx_find_record_field(
-				record, "image_data", &data_field );
+				record, "image_data_array", &data_field );
 			break;
 		    }
 
@@ -443,7 +457,7 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 			dest_body_ptr + MXU_MPX_INITIAL_BODY_LENGTH;
 
 		message_body_remaining_length =
-			message_body_length_z - MXU_MPX_INITIAL_BODY_LENGTH;
+			message_body_length - MXU_MPX_INITIAL_BODY_LENGTH;
 
 		mx_status = mx_socket_receive( merlin_medipix->data_socket,
 					dest_body_remaining_ptr,
@@ -528,8 +542,8 @@ mxd_merlin_medipix_create_record_structures( MX_RECORD *record )
 	merlin_medipix->acquisition_header_length = 0;
 	merlin_medipix->acquisition_header = NULL;
 
-	merlin_medipix->image_data_length = 0;
-	merlin_medipix->image_data = NULL;
+	merlin_medipix->image_data_array_length = 0;
+	merlin_medipix->image_data_array = NULL;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1048,16 +1062,17 @@ mxd_merlin_medipix_readout_frame( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_merlin_medipix_readout_frame()"; 
 	MX_MERLIN_MEDIPIX *merlin_medipix = NULL;
-	char *image_data;
+	char *image_data_array;
 	char copy_of_beginning_of_image_data[200];
-	long frame_number, offset_to_data, image_width, image_height;
+	char *ptr, *image_binary_ptr, *image_data_ptr;
+	long mx_frame_number, offset_to_data, image_width, image_height;
 	double exposure_time;
 	struct timespec exposure_timespec;
 	struct timespec timestamp;
-	char *ptr, *image_body_ptr;
 	struct tm tm;
 	int num_items;
 	unsigned long nanoseconds;
+	unsigned long merlin_flags;
 	int argc;
 	char **argv;
 	mx_status_type mx_status;
@@ -1073,44 +1088,38 @@ mxd_merlin_medipix_readout_frame( MX_AREA_DETECTOR *ad )
 		fname, ad->record->name, ad->readout_frame ));
 #endif
 
-	image_data = merlin_medipix->image_data;
+	image_data_array = merlin_medipix->image_data_array;
 
-	if ( image_data == (char *) NULL ) {
+	if ( image_data_array == (char *) NULL ) {
 		return mx_error( MXE_NOT_READY, fname,
 		"Area detector '%s' has not yet taken a frame.",
 			ad->record->name );
 	}
 
-	strlcpy( copy_of_beginning_of_image_data, image_data,
+	mx_frame_number = ad->readout_frame;
+
+	image_data_ptr = image_data_array +
+		(mx_frame_number * merlin_medipix->merlin_image_frame_length);
+
+	strlcpy( copy_of_beginning_of_image_data, image_data_ptr,
 		sizeof(copy_of_beginning_of_image_data) );
 
 	/* Parse some information we need from the beginning of the
-	 * image_data array.
+	 * Merlin image frame.
 	 */
 
 	mx_string_split( copy_of_beginning_of_image_data, ",", &argc, &argv );
 
-#if 0
-	{
-		int i;
+	/* MX starts frame numbers at 0 rather than 1. */
 
-		for ( i = 0; i < argc; i++ ) {
-			MX_DEBUG(-2,("%s: argv[%d] = '%s'",
-			fname, i, argv[i] ));
-		}
-	}
-#endif
+	mx_frame_number = atol( argv[1] ) - 1;
+	offset_to_data  = atol( argv[2] );
+	image_width     = atol( argv[4] );
+	image_height    = atol( argv[5] );
+	exposure_time   = atof( argv[10] );
 
-	/* MX starts frame number at 0 rather than 1. */
-
-	frame_number   = atol( argv[1] ) - 1;
-	offset_to_data = atol( argv[2] );
-	image_width    = atol( argv[4] );
-	image_height   = atol( argv[5] );
-	exposure_time  = atof( argv[10] );
-
-	MX_DEBUG(-2,("%s: frame_number = %ld, offset_to_data = %ld",
-		fname, frame_number, offset_to_data));
+	MX_DEBUG(-2,("%s: mx_frame_number = %ld, offset_to_data = %ld",
+		fname, mx_frame_number, offset_to_data));
 	MX_DEBUG(-2,("%s: image_width = %ld, image_height = %ld",
 		fname, image_width, image_height));
 	MX_DEBUG(-2,("%s: image_format_string = '%s'", fname, argv[6]));
@@ -1209,24 +1218,26 @@ mxd_merlin_medipix_readout_frame( MX_AREA_DETECTOR *ad )
 	MXIF_TIMESTAMP_SEC( ad->image_frame )  = timestamp.tv_sec;
 	MXIF_TIMESTAMP_NSEC( ad->image_frame ) = timestamp.tv_nsec;
 
+	merlin_flags = merlin_medipix->merlin_flags;
+
 	/* Finally, we finish by copying the image data from the
 	 * Merlin Medipix's data structure to MX's data structure.
 	 */
 
-	image_body_ptr = image_data + offset_to_data;
+	image_binary_ptr = image_data_ptr + offset_to_data;
 
-#if 0
-	memcpy( ad->image_frame->image_data,
-			image_body_ptr,
+	if ( (merlin_flags & MXF_MERLIN_INVERT_IMAGE) == FALSE ) {
+
+		memcpy( ad->image_frame->image_data,
+			image_binary_ptr,
 			ad->bytes_per_frame );
-#else
-	{
+	} else {
 		/* Merlin Medipix detectors store the image upside down
-		 * compared to the way MX detectors store it.  This must
-		 * mean that they regard the point (0,0) as being in
-		 * the lower left rather than the upper left.  Thus, we
-		 * have to vertically invert the image data as we copy
-		 * it to the MX array.
+		 * compared to the way MX detectors store it.  That is
+		 * because they regard the point (0,0) as being in the
+		 * lower left rather than the upper left.  Thus, we have
+		 * to vertically invert the image data as we copy it to
+		 * the MX array.
 		 */
 
 		uint16_t **mx_array;
@@ -1252,7 +1263,7 @@ mxd_merlin_medipix_readout_frame( MX_AREA_DETECTOR *ad )
 		mx_array = (uint16_t **) void_array_ptr;
 
 		mx_status = mx_array_add_overlay(
-				(void *) image_body_ptr,
+				(void *) image_binary_ptr,
 				2, ad->framesize, element_size,
 				&void_array_ptr );
 
@@ -1274,7 +1285,6 @@ mxd_merlin_medipix_readout_frame( MX_AREA_DETECTOR *ad )
 		mx_array_free_overlay( merlin_array );
 		mx_array_free_overlay( mx_array );
 	}
-#endif
 
 	return mx_status;
 }

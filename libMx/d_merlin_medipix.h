@@ -44,8 +44,10 @@ typedef struct {
 	unsigned long acquisition_header_length;
 	char *acquisition_header;
 
-	unsigned long image_data_length;
-	char *image_data;
+	unsigned long image_data_array_length;
+	char *image_data_array;
+
+	unsigned long merlin_image_frame_length;
 
 	/* The following values are managed via MX atomic ops. */
 
@@ -89,12 +91,13 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MERLIN_MEDIPIX, acquisition_header), \
 	{sizeof(char)}, NULL, (MXFF_READ_ONLY | MXFF_VARARGS) }, \
   \
-  {-1, -1, "image_data_length", MXFT_ULONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_MERLIN_MEDIPIX, image_data_length), \
+  {-1, -1, "image_data_array_length", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+			offsetof(MX_MERLIN_MEDIPIX, image_data_array_length), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
-  {-1, -1, "image_data", MXFT_STRING, NULL, 1, {MXU_VARARGS_LENGTH}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_MERLIN_MEDIPIX, image_data), \
+  {-1, -1, "image_data_array", MXFT_STRING, NULL, 1, {MXU_VARARGS_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_MERLIN_MEDIPIX, image_data_array), \
 	{sizeof(char)}, NULL, (MXFF_READ_ONLY | MXFF_VARARGS) }
 
 MX_API mx_status_type mxd_merlin_medipix_initialize_driver( MX_DRIVER *driver );
