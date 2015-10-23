@@ -18,8 +18,12 @@
 #ifndef __D_MERLIN_MEDIPIX_H__
 #define __D_MERLIN_MEDIPIX_H__
 
+/* Bit flags for the 'merlin_flags' field. */
+
 #define MXF_MERLIN_DEBUG_COMMAND_PORT	0x1
 #define MXF_MERLIN_DEBUG_DATA_PORT	0x2
+
+#define MXF_MERLIN_INVERT_IMAGE		0x1000
 
 typedef struct {
 	MX_RECORD *record;
@@ -28,6 +32,7 @@ typedef struct {
 	unsigned long command_port;
 	unsigned long data_port;
 	unsigned long merlin_flags;
+	unsigned long maximum_num_images;
 
 	unsigned long merlin_software_version;
 
@@ -64,6 +69,10 @@ typedef struct {
   \
   {-1, -1, "merlin_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MERLIN_MEDIPIX, merlin_flags), \
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {-1, -1, "maximum_num_images", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_MERLIN_MEDIPIX, maximum_num_images), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }, \
   \
   {-1, -1, "merlin_software_version", MXFT_ULONG, NULL, 0, {0}, \
