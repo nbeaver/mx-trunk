@@ -579,6 +579,47 @@ mxd_merlin_medipix_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Set some starting guesses at the area detector parameters. */
+
+	ad->maximum_frame_number = 0;
+	ad->last_frame_number = -1;
+	ad->total_num_frames = 0;
+	ad->status = 0;
+
+	ad->bytes_per_pixel = 2;
+	ad->bits_per_pixel = 16;
+	ad->byte_order = mx_native_byteorder();
+
+	ad->framesize[0] = 512;
+	ad->framesize[1] = 512;
+
+	ad->maximum_framesize[0] = ad->framesize[0];
+	ad->maximum_framesize[1] = ad->framesize[1];
+
+	ad->binsize[0] = 1;
+	ad->binsize[1] = 1;
+
+	ad->bytes_per_frame =
+	  mx_round( ad->bytes_per_pixel * ad->framesize[0] * ad->framesize[1] );
+
+	ad->image_format = MXT_IMAGE_FORMAT_GREY16;
+
+	mx_status = mx_image_get_image_format_name_from_type(
+						ad->image_format,
+						ad->image_format_name,
+						MXU_IMAGE_FORMAT_NAME_LENGTH );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	ad->correction_flags = 0;
+
+	mx_status = mx_area_detector_set_trigger_mode( record,
+						MXT_IMAGE_INTERNAL_TRIGGER );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/* Make the connections to the detector controller. */
 
 	mx_status = mx_tcp_socket_open_as_client(
@@ -676,50 +717,6 @@ mxd_merlin_medipix_open( MX_RECORD *record )
 
 	mx_status = mxd_merlin_medipix_command( merlin_medipix,
 						"SET,GAIN,2", NULL, 0 );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Next, we take a _guess_ as to what the dimensions of this
-	 * detector.  This information can only be found out while 
-	 * reading in a frame header for the detector, which is really
-	 * quite a late state in the game to be finding this out.
-	 *
-	 * In the meantime, we start out by assuming that the dimensions
-	 * are that of a single chip detector (128x128).  We will find
-	 * out the real dimensions later in the driver's readout_frame
-	 * method.
-	 */
-
-	ad->maximum_framesize[0] = 128;
-	ad->maximum_framesize[1] = 128;
-
-	ad->framesize[0] = ad->maximum_framesize[0];
-	ad->framesize[1] = ad->maximum_framesize[1];
-
-	ad->binsize[0] = 1;
-	ad->binsize[1] = 1;
-
-	/* Set generic area detector parameters. */
-
-	ad->maximum_frame_number = 0;
-	ad->last_frame_number = -1;
-	ad->total_num_frames = 0;
-	ad->status = 0;
-
-	ad->bytes_per_pixel = 2;
-	ad->bits_per_pixel = 16;
-	ad->byte_order = mx_native_byteorder();
-
-	ad->bytes_per_frame =
-	  mx_round( ad->bytes_per_pixel * ad->framesize[0] * ad->framesize[1] );
-
-	ad->image_format = MXT_IMAGE_FORMAT_GREY16;
-
-	mx_status = mx_image_get_image_format_name_from_type(
-						ad->image_format,
-						ad->image_format_name,
-						MXU_IMAGE_FORMAT_NAME_LENGTH );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
