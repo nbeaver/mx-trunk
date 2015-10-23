@@ -2061,6 +2061,8 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 			fprintf( stderr, "   bytes_left = %ld\n", bytes_left );
 		    }
 #endif
+		    write_ptr += bytes_received_from_socket;
+
 		    total_bytes_in_callers_buffer += bytes_received_from_socket;
 
 		    break;

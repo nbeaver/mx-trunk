@@ -36,8 +36,16 @@ typedef struct {
 
 	MX_THREAD *monitor_thread;
 
-	unsigned long data_buffer_length;
-	char *data_buffer;
+	unsigned long acquisition_header_length;
+	char *acquisition_header;
+
+	unsigned long image_data_length;
+	char *image_data;
+
+	/* The following values are managed via MX atomic ops. */
+
+	int32_t total_num_frames_at_start;
+	int32_t total_num_frames;
 } MX_MERLIN_MEDIPIX;
 
 
@@ -61,7 +69,24 @@ typedef struct {
   {-1, -1, "merlin_software_version", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_MERLIN_MEDIPIX, merlin_software_version), \
-	{0}, NULL, 0 }
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "acquisition_header_length", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_MERLIN_MEDIPIX, acquisition_header_length), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "acquisition_header", MXFT_STRING, NULL, 1, {MXU_VARARGS_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_MERLIN_MEDIPIX, acquisition_header), \
+	{sizeof(char)}, NULL, (MXFF_READ_ONLY | MXFF_VARARGS) }, \
+  \
+  {-1, -1, "image_data_length", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_MERLIN_MEDIPIX, image_data_length), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "image_data", MXFT_STRING, NULL, 1, {MXU_VARARGS_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_MERLIN_MEDIPIX, image_data), \
+	{sizeof(char)}, NULL, (MXFF_READ_ONLY | MXFF_VARARGS) }
 
 MX_API mx_status_type mxd_merlin_medipix_initialize_driver( MX_DRIVER *driver );
 MX_API mx_status_type mxd_merlin_medipix_create_record_structures( MX_RECORD *record );

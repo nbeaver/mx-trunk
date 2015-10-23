@@ -20,10 +20,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#if defined(__GNUC__)
+#  define __USE_XOPEN
+#endif
+
+#include <time.h>
+
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
+#include "mx_atomic.h"
+#include "mx_bit.h"
 #include "mx_socket.h"
+#include "mx_array.h"
 #include "mx_thread.h"
 #include "mx_image.h"
 #include "mx_area_detector.h"
@@ -126,12 +135,15 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 	MX_MERLIN_MEDIPIX *merlin_medipix;
 	long num_bytes_available, old_num_bytes_available;
 	unsigned long sleep_us;
-	mx_bool_type allocation_was_done;
 	int num_items;
 	unsigned long header_length, message_body_length;
 	size_t num_bytes_read;
-	char header_buffer[ MX_MPX_HEADER_LENGTH + 6 ];
+	char header_buffer[ MX_MPX_HEADER_LENGTH + 20 ];
 	char message_type[4];
+	char **data_ptr = NULL;
+	unsigned long *data_length_ptr = NULL;
+	unsigned long old_data_length;
+	MX_RECORD_FIELD *data_field = NULL;
 	mx_status_type mx_status;
 
 	if ( args == NULL ) {
@@ -191,7 +203,7 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 			 * message type in what we read.
 			 */
 
-			header_length = MX_MPX_HEADER_LENGTH + 5;
+			header_length = MX_MPX_HEADER_LENGTH + 4;
 
 			memset( header_buffer, 0, sizeof(header_buffer) );
 
@@ -223,7 +235,7 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 
 			/* How many bytes are in the remainder of the message.*/
 
-			num_items = sscanf( header_buffer, "MPX,%lu,%3s,",
+			num_items = sscanf( header_buffer, "MPX,%lu,%3s",
 						&message_body_length,
 						message_type );
 
@@ -236,77 +248,126 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 					record->name, header_buffer );
 			}
 
-			/* Since we have already read in the first 5 bytes
+			/* Since we have already read in the first 4 bytes
 			 * of the message body to get at the message type,
-			 * we subtract 5 from the message body size that
+			 * we subtract 4 from the message body size that
 			 * we got in sscanf() above.
 			 */
 
-			message_body_length -= 5;
+			message_body_length -= 4;
 
 			MX_DEBUG(-2,("%s: message '%s', %lu bytes",
 				fname, message_type, message_body_length ));
 
 			/* Read in the rest of this message body into
-			 * the data buffer.
+			 * the data buffer and update the frame counter.
 			 */
 
-			allocation_was_done = FALSE;
-
-			if ( merlin_medipix->data_buffer == NULL ) {
-				merlin_medipix->data_buffer_length
-					= message_body_length;
-
-				merlin_medipix->data_buffer
-					= malloc( message_body_length );
-
-				allocation_was_done = TRUE;
+			if ( strcmp( message_type, "HDR" ) == 0 ) {
+			    data_ptr = &(merlin_medipix->acquisition_header);
+			    data_length_ptr =
+				  &(merlin_medipix->acquisition_header_length);
 			} else
-			if ( merlin_medipix->data_buffer_length == 0 ) {
-				mx_free( merlin_medipix->data_buffer );
+			if ( strcmp( message_type, "MQ1" ) == 0 ) {
+			    data_ptr = &(merlin_medipix->image_data),
+			    data_length_ptr =
+				  &(merlin_medipix->image_data_length);
 
-				merlin_medipix->data_buffer
-					= malloc( message_body_length );
+			    data_field = mx_get_record_field( record,
+							"image_data" );
 
-				merlin_medipix->data_buffer_length
-					= message_body_length;
+			    /* Update the frame counter. */
 
-				allocation_was_done = TRUE;
+			    mx_atomic_increment32(
+				&(merlin_medipix->total_num_frames) );
+
+#if 1
+			    MX_DEBUG(-2,("CAPTURE: Total num frames = %lu",
+			    (unsigned long) merlin_medipix->total_num_frames));
+#endif
+			} else {
+			    return mx_error( MXE_PROTOCOL_ERROR, fname,
+				"Message type '%s' is not recognized for "
+				"data socket %d of area detector '%s'.",
+					message_type,
+					merlin_medipix->data_socket->socket_fd,
+					record->name );
+			}
+
+			old_data_length = *data_length_ptr;
+
+			if ( *data_ptr == NULL ) {
+				*data_length_ptr = message_body_length;
+
+				*data_ptr = malloc( message_body_length );
 			} else
-			if ( merlin_medipix->data_buffer_length
-						< message_body_length ) 
-			{
-				merlin_medipix->data_buffer = realloc(
-					merlin_medipix->data_buffer,
-					message_body_length );
+			if ( *data_length_ptr == 0 ) {
+				mx_free( *data_ptr );
 
-				merlin_medipix->data_buffer_length
-					= message_body_length;
+				*data_ptr = malloc( message_body_length );
 
-				allocation_was_done = TRUE;
+				*data_length_ptr = message_body_length;
+			} else
+			if ( *data_length_ptr < message_body_length ) {
+				*data_ptr = realloc( *data_ptr,
+						message_body_length );
+
+				*data_length_ptr = message_body_length;
 			} else {
 				/* The buffer is already the right size
 				 * so we do not need to realloc it.
 				 */
 			}
 
-			if ( merlin_medipix->data_buffer == NULL ) {
+			if ( *data_ptr == NULL ) {
 				return mx_error( MXE_OUT_OF_MEMORY, fname,
 				"The attempt to allocate a %lu byte data "
 				"buffer for detector '%s' failed.",
 					message_body_length, record->name );
 			}
 
-			memset( merlin_medipix->data_buffer, 0,
-				merlin_medipix->data_buffer_length );
+			memset( *data_ptr, 0, *data_length_ptr );
+
+			/* Copy the message type to the start of the
+			 * data buffer.
+			 */
+
+			strlcpy( *data_ptr, message_type, 4 );
+
+			/* Update the length of the MX_RECORD_FIELD array. */
+
+			if ( old_data_length != *data_length_ptr ) {
+				if ( strcmp( message_type, "HDR" ) == 0 ) {
+
+					mx_status = mx_find_record_field(
+						record, "acquisition_header",
+						&data_field );
+				} else
+				if ( strcmp( message_type, "MQ1" ) == 0 ) {
+
+					mx_status = mx_find_record_field(
+						record, "image_data",
+						&data_field );
+				} else {
+					return mx_error( MXE_PROTOCOL_ERROR,
+					fname, "Unrecognized message type "
+					"'%s' for record '%s'.",
+						message_type, record->name );
+				}
+
+				data_field->dimension[0] = message_body_length;
+			}
 
 			/* Read the body of the message into the
-			 * data buffer.
+			 * data buffer.  The offset of 3 causes the
+			 * rest of the buffer to appear after the
+			 * message type that we have already copied
+			 * over.
 			 */
 
 			mx_status = mx_socket_receive(
 					merlin_medipix->data_socket,
-					merlin_medipix->data_buffer,
+					(*data_ptr) + 3,
 					message_body_length,
 					&num_bytes_read, NULL, 0 );
 
@@ -384,8 +445,11 @@ mxd_merlin_medipix_create_record_structures( MX_RECORD *record )
 	ad->trigger_mode = 0;
 	ad->initial_correction_flags = 0;
 
-	merlin_medipix->data_buffer_length = 0;
-	merlin_medipix->data_buffer = NULL;
+	merlin_medipix->acquisition_header_length = 0;
+	merlin_medipix->acquisition_header = NULL;
+
+	merlin_medipix->image_data_length = 0;
+	merlin_medipix->image_data = NULL;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -522,6 +586,26 @@ mxd_merlin_medipix_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Next, we take a _guess_ as to what the dimensions of this
+	 * detector.  This information can only be found out while 
+	 * reading in a frame header for the detector, which is really
+	 * quite a late state in the game to be finding this out.
+	 *
+	 * In the meantime, we start out by assuming that the dimensions
+	 * are that of a single chip detector (128x128).  We will find
+	 * out the real dimensions later in the driver's readout_frame
+	 * method.
+	 */
+
+	ad->maximum_framesize[0] = 128;
+	ad->maximum_framesize[1] = 128;
+
+	ad->framesize[0] = ad->maximum_framesize[0];
+	ad->framesize[1] = ad->maximum_framesize[1];
+
+	ad->binsize[0] = 1;
+	ad->binsize[1] = 1;
+
 	/* Set generic area detector parameters. */
 
 	ad->maximum_frame_number = 0;
@@ -531,6 +615,7 @@ mxd_merlin_medipix_open( MX_RECORD *record )
 
 	ad->bytes_per_pixel = 2;
 	ad->bits_per_pixel = 16;
+	ad->byte_order = mx_native_byteorder();
 
 	ad->bytes_per_frame =
 	  mx_round( ad->bytes_per_pixel * ad->framesize[0] * ad->framesize[1] );
@@ -566,6 +651,11 @@ mxd_merlin_medipix_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Initialize the frame counters. */
+
+	mx_atomic_write32( &(merlin_medipix->total_num_frames_at_start), 0 );
+	mx_atomic_write32( &(merlin_medipix->total_num_frames), 0 );
+
 	/* Create a thread to manage the reading of data from the data port. */
 
 	mx_status = mx_thread_create( &(merlin_medipix->monitor_thread),
@@ -592,6 +682,7 @@ mxd_merlin_medipix_arm( MX_AREA_DETECTOR *ad )
 	char command[80];
 	double exposure_time, frame_time;
 	unsigned long num_frames;
+	int32_t total_num_frames_at_start;
 	mx_status_type mx_status;
 
 	merlin_medipix = NULL;
@@ -633,6 +724,14 @@ mxd_merlin_medipix_arm( MX_AREA_DETECTOR *ad )
 		"are not yet implemented.", ad->record->name );
 		break;
 	}
+
+	/* Update the frame counters. */
+
+	total_num_frames_at_start =
+		mx_atomic_read32( &(merlin_medipix->total_num_frames) );
+
+	mx_atomic_write32( &(merlin_medipix->total_num_frames_at_start),
+					total_num_frames_at_start );
 
 	/* Configure the type of trigger mode we want. */
 
@@ -682,7 +781,7 @@ mxd_merlin_medipix_arm( MX_AREA_DETECTOR *ad )
 		return mx_status;
 
 	snprintf( command, sizeof(command),
-		"SET,ACQUISITIONTIME,%g", exposure_time );
+		"SET,ACQUISITIONTIME,%lu", mx_round( 1000.0 * exposure_time ) );
 
 	mx_status = mxd_merlin_medipix_command( merlin_medipix,
 						command, NULL, 0 );
@@ -691,7 +790,7 @@ mxd_merlin_medipix_arm( MX_AREA_DETECTOR *ad )
 		return mx_status;
 
 	snprintf( command, sizeof(command),
-		"SET,ACQUISITIONPERIOD,%g", frame_time );
+		"SET,ACQUISITIONPERIOD,%lu", mx_round( 1000.0 * frame_time ) );
 
 	mx_status = mxd_merlin_medipix_command( merlin_medipix,
 						command, NULL, 0 );
@@ -785,6 +884,7 @@ mxd_merlin_medipix_get_extended_status( MX_AREA_DETECTOR *ad )
 	int num_items;
 	long detector_status;
 	long num_data_bytes_available;
+	long total_num_frames_at_start;
 	mx_status_type mx_status;
 
 	mx_status = mxd_merlin_medipix_get_pointers( ad,
@@ -797,6 +897,19 @@ mxd_merlin_medipix_get_extended_status( MX_AREA_DETECTOR *ad )
 	MX_DEBUG( 2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+	/* Update the frame counters. */
+
+	total_num_frames_at_start =
+	    mx_atomic_read32( &(merlin_medipix->total_num_frames_at_start) );
+
+	ad->total_num_frames =
+	    mx_atomic_read32( &(merlin_medipix->total_num_frames ) );
+
+	ad->last_frame_number =
+		ad->total_num_frames - total_num_frames_at_start - 1L;
+
+	/* Update the detector status. */
+
 	mx_status = mxd_merlin_medipix_command( merlin_medipix,
 					"GET,DETECTORSTATUS",
 					response, sizeof(response) );
@@ -855,6 +968,18 @@ mxd_merlin_medipix_readout_frame( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_merlin_medipix_readout_frame()"; 
 	MX_MERLIN_MEDIPIX *merlin_medipix = NULL;
+	char *image_data;
+	char copy_of_beginning_of_image_data[200];
+	long frame_number, offset_to_data, image_width, image_height;
+	double exposure_time;
+	struct timespec exposure_timespec;
+	struct timespec timestamp;
+	char *ptr, *image_body_ptr;
+	struct tm tm;
+	int num_items;
+	unsigned long nanoseconds;
+	int argc;
+	char **argv;
 	mx_status_type mx_status;
 
 	mx_status = mxd_merlin_medipix_get_pointers( ad,
@@ -866,6 +991,209 @@ mxd_merlin_medipix_readout_frame( MX_AREA_DETECTOR *ad )
 #if MXD_MERLIN_MEDIPIX_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s', frame %ld.",
 		fname, ad->record->name, ad->readout_frame ));
+#endif
+
+	image_data = merlin_medipix->image_data;
+
+	if ( image_data == (char *) NULL ) {
+		return mx_error( MXE_NOT_READY, fname,
+		"Area detector '%s' has not yet taken a frame.",
+			ad->record->name );
+	}
+
+	strlcpy( copy_of_beginning_of_image_data, image_data,
+		sizeof(copy_of_beginning_of_image_data) );
+
+	/* Parse some information we need from the beginning of the
+	 * image_data array.
+	 */
+
+	mx_string_split( copy_of_beginning_of_image_data, ",", &argc, &argv );
+
+#if 0
+	{
+		int i;
+
+		for ( i = 0; i < argc; i++ ) {
+			MX_DEBUG(-2,("%s: argv[%d] = '%s'",
+			fname, i, argv[i] ));
+		}
+	}
+#endif
+
+	/* MX starts frame number at 0 rather than 1. */
+
+	frame_number   = atol( argv[1] ) - 1;
+	offset_to_data = atol( argv[2] );
+	image_width    = atol( argv[4] );
+	image_height   = atol( argv[5] );
+	exposure_time  = atof( argv[10] );
+
+	MX_DEBUG(-2,("%s: frame_number = %ld, offset_to_data = %ld",
+		fname, frame_number, offset_to_data));
+	MX_DEBUG(-2,("%s: image_width = %ld, image_height = %ld",
+		fname, image_width, image_height));
+	MX_DEBUG(-2,("%s: image_format_string = '%s'", fname, argv[6]));
+	MX_DEBUG(-2,("%s: time_string = '%s'", fname, argv[9]));
+	MX_DEBUG(-2,("%s: exposure_time = %g", fname, exposure_time));
+
+	ad->maximum_framesize[0] = image_width;
+	ad->maximum_framesize[1] = image_height;
+
+	ad->framesize[0] = ad->maximum_framesize[0];
+	ad->framesize[1] = ad->maximum_framesize[1];
+
+	if ( strcmp( argv[6], "U8" ) == 0 ) {
+		ad->image_format = MXT_IMAGE_FORMAT_GREY8;
+		ad->bytes_per_pixel = 1;
+		ad->bits_per_pixel = 8;
+	} else
+	if ( strcmp( argv[6], "U16" ) == 0 ) {
+		ad->image_format = MXT_IMAGE_FORMAT_GREY16;
+		ad->bytes_per_pixel = 2;
+		ad->bits_per_pixel = 16;
+	} else
+	if ( strcmp( argv[6], "U32" ) == 0 ) {
+		ad->image_format = MXT_IMAGE_FORMAT_GREY32;
+		ad->bytes_per_pixel = 4;
+		ad->bits_per_pixel = 32;
+	} else {
+		mx_free( argv );
+		return mx_error( MXE_UNSUPPORTED, fname,
+	    "Unsupported image format '%s' reported for area detector '%s'.",
+			argv[6], ad->record->name );
+	}
+
+	/* Construct the timestamp for the image. */
+
+	ptr = strptime( argv[9], "%Y-%m-%d %H:%M:%S", &tm );
+
+	if ( ptr == NULL ) {
+		mx_free( argv );
+		return mx_error( MXE_PROTOCOL_ERROR, fname,
+		"Cannot parse time string '%s' for area detector '%s'.",
+			argv[9], ad->record->name );
+	}
+
+	timestamp.tv_sec = mktime( &tm );
+
+	if ( *ptr == '.' ) {
+		ptr++;
+
+		num_items = sscanf( ptr, "%lu", &nanoseconds );
+
+		if ( num_items == 0 ) {
+			timestamp.tv_nsec = 0;
+		} else {
+			timestamp.tv_nsec = nanoseconds;
+		}
+	} else {
+		timestamp.tv_nsec = 0;
+	}
+
+	/*----*/
+
+	mx_free( argv );
+
+	mx_status = mx_image_get_image_format_name_from_type(
+						ad->image_format,
+						ad->image_format_name,
+						sizeof(ad->image_format_name) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	ad->bytes_per_frame = mx_round( ad->bytes_per_pixel
+				* ad->framesize[0] * ad->framesize[1] );
+
+	ad->header_length = MXT_IMAGE_HEADER_LENGTH_IN_BYTES;
+
+	mx_status = mx_image_alloc( &(ad->image_frame),
+				ad->framesize[0],
+				ad->framesize[1],
+				ad->image_format,
+				ad->byte_order,
+				ad->bytes_per_pixel,
+				ad->header_length,
+				ad->bytes_per_frame );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	exposure_timespec =
+		mx_convert_seconds_to_high_resolution_time( exposure_time );
+
+	MXIF_EXPOSURE_TIME_SEC( ad->image_frame )  = exposure_timespec.tv_sec;
+	MXIF_EXPOSURE_TIME_NSEC( ad->image_frame ) = exposure_timespec.tv_nsec;
+
+	MXIF_TIMESTAMP_SEC( ad->image_frame )  = timestamp.tv_sec;
+	MXIF_TIMESTAMP_NSEC( ad->image_frame ) = timestamp.tv_nsec;
+
+	/* Finally, we finish by copying the image data from the
+	 * Merlin Medipix's data structure to MX's data structure.
+	 */
+
+	image_body_ptr = image_data + offset_to_data;
+
+#if 0
+	memcpy( ad->image_frame->image_data,
+			image_body_ptr,
+			ad->bytes_per_frame );
+#else
+	{
+		/* Merlin Medipix detectors store the image upside down
+		 * compared to the way MX detectors store it.  This must
+		 * mean that they regard the point (0,0) as being in
+		 * the lower left rather than the upper left.  Thus, we
+		 * have to vertically invert the image data as we copy
+		 * it to the MX array.
+		 */
+
+		uint16_t **mx_array;
+		uint16_t **merlin_array;
+		void *void_array_ptr;
+		size_t element_size[2];
+		long mx_row, merlin_row;
+		long bytes_per_row, num_rows;
+
+		bytes_per_row = ad->framesize[0] * sizeof(uint16_t);
+
+		element_size[0] = sizeof(uint16_t);
+		element_size[1] = sizeof(uint16_t *);
+
+		mx_status = mx_array_add_overlay(
+				(void *) ad->image_frame->image_data,
+				2, ad->framesize, element_size,
+				&void_array_ptr );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_array = (uint16_t **) void_array_ptr;
+
+		mx_status = mx_array_add_overlay(
+				(void *) image_body_ptr,
+				2, ad->framesize, element_size,
+				&void_array_ptr );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		merlin_array = (uint16_t **) void_array_ptr;
+
+		num_rows = ad->framesize[1];
+
+		for ( mx_row = 0; mx_row < num_rows; mx_row++ ) {
+			merlin_row = num_rows - mx_row - 1;
+
+			memcpy( mx_array[mx_row],
+				merlin_array[merlin_row],
+				bytes_per_row );
+		}
+
+		mx_array_free_overlay( merlin_array );
+		mx_array_free_overlay( mx_array );
+	}
 #endif
 
 	return mx_status;
