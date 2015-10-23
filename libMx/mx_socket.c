@@ -1999,11 +1999,10 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 					write_ptr, (int) bytes_left, 0 );
 
 #if MX_SOCKET_DEBUG_RECEIVE
-		if ( bytes_received_from_socket < bytes_left ) {
-		    MX_DEBUG(-2,
-		    ("%s: bytes_left = %ld, bytes_received_from_socket = %ld",
-			fname, bytes_left, bytes_received_from_socket ));
-		}
+		MX_DEBUG(-2,
+    ("%s: socket %d, bytes_left = %ld, bytes_received_from_socket = %ld",
+			fname, mx_socket->socket_fd,
+			bytes_left, bytes_received_from_socket ));
 #endif
 
 		switch( bytes_received_from_socket ) {
@@ -2071,17 +2070,27 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 	    } /* End of "if ( bytes_left > 0 )" */
 
 #if MX_SOCKET_DEBUG_RECEIVE
-	    MX_DEBUG(-2,("%s: bytes_peeked_from_buffer = %ld",
-		fname, bytes_peeked_from_buffer));
-	    MX_DEBUG(-2,("%s: bytes_received_from_socket = %ld",
-		fname, bytes_received_from_socket));
-	    MX_DEBUG(-2,("%s: total_bytes_in_callers_buffer = %ld",
-		fname,total_bytes_in_callers_buffer));
+	    MX_DEBUG(-2,("%s: socket %d, bytes_peeked_from_buffer = %ld",
+		fname, mx_socket->socket_fd, bytes_peeked_from_buffer));
+	    MX_DEBUG(-2,("%s: socket %d, bytes_received_from_socket = %ld",
+		fname, mx_socket->socket_fd, bytes_received_from_socket));
+	    MX_DEBUG(-2,("%s: socket %d, total_bytes_in_callers_buffer = %ld",
+		fname, mx_socket->socket_fd, total_bytes_in_callers_buffer));
 #endif
 
 	    if ( ( input_terminators == NULL )
 	      || ( input_terminators_length_in_bytes == 0 ) )
 	    {
+#if 1
+		/* We should not return here.  Instead, we should continue
+		 * back to the top of the loop, since if line terminators
+		 * were specified, we would not return in this way.
+		 * (WML) 2015-10-22
+		 */
+
+		continue;	/* Back to the top of the while() loop. */
+#endif
+
 		/* If there are no line terminators, then we send everything
 		 * we received to the caller.
 		 */
