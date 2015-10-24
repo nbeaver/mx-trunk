@@ -871,23 +871,25 @@ mxd_merlin_medipix_arm( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	snprintf( command, sizeof(command),
-		"SET,ACQUISITIONTIME,%lu", mx_round( 1000.0 * exposure_time ) );
+	if( sp->sequence_type != MXT_SQ_DURATION ) {
+		snprintf( command, sizeof(command), "SET,ACQUISITIONTIME,%lu",
+			mx_round( 1000.0 * exposure_time ) );
 
-	mx_status = mxd_merlin_medipix_command( merlin_medipix,
+		mx_status = mxd_merlin_medipix_command( merlin_medipix,
+							command, NULL, 0 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		snprintf( command, sizeof(command), "SET,ACQUISITIONPERIOD,%lu",
+			mx_round( 1000.0 * frame_time ) );
+
+		mx_status = mxd_merlin_medipix_command( merlin_medipix,
 						command, NULL, 0 );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	snprintf( command, sizeof(command),
-		"SET,ACQUISITIONPERIOD,%lu", mx_round( 1000.0 * frame_time ) );
-
-	mx_status = mxd_merlin_medipix_command( merlin_medipix,
-						command, NULL, 0 );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
 	/* If we are configured for external triggering, tell the
 	 * acquisition sequence to start.
