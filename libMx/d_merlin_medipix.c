@@ -545,6 +545,8 @@ mxd_merlin_medipix_create_record_structures( MX_RECORD *record )
 	merlin_medipix->image_data_array_length = 0;
 	merlin_medipix->image_data_array = NULL;
 
+	merlin_medipix->external_trigger_debounce_time = 0.01;  /* in seconds */
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -734,11 +736,21 @@ mxd_merlin_medipix_open( MX_RECORD *record )
 			return mx_status;
 	}
 
-	/* Set the detector trigger mode to 'internal'. */
+	/* Set the detector trigger input mode to 'internal'. */
 
 	mx_status = mx_area_detector_set_trigger_mode( record,
 						MXT_IMAGE_INTERNAL_TRIGGER );
 
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Configure the detector output to go high when
+	 * the detector is busy (7).
+	 */
+
+	mx_status = mxd_merlin_medipix_command( merlin_medipix,
+						"SET,TriggerOutTTL,7",
+						NULL, 0 );
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
@@ -772,7 +784,7 @@ mxd_merlin_medipix_arm( MX_AREA_DETECTOR *ad )
 	MX_SEQUENCE_PARAMETERS *sp = NULL;
 	char command[80];
 	double exposure_time, frame_time;
-	unsigned long num_frames;
+	unsigned long num_frames, debounce_milliseconds;
 	int32_t total_num_frames_at_start;
 	mx_status_type mx_status;
 
@@ -803,6 +815,11 @@ mxd_merlin_medipix_arm( MX_AREA_DETECTOR *ad )
 		num_frames = mx_round( sp->parameter_array[0] );
 		exposure_time = sp->parameter_array[1];
 		frame_time = sp->parameter_array[2];
+		break;
+	case MXT_SQ_STROBE:
+		num_frames = mx_round( sp->parameter_array[0] );
+		exposure_time = sp->parameter_array[1];
+		frame_time = 1.001 * exposure_time;
 		break;
 	case MXT_SQ_DURATION:
 		num_frames = mx_round( sp->parameter_array[0] );
@@ -847,8 +864,18 @@ mxd_merlin_medipix_arm( MX_AREA_DETECTOR *ad )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		mx_status = mxd_merlin_medipix_command( merlin_medipix,
-					"SET,TRIGGERSTOP,2", NULL, 0 );
+		if ( sp->sequence_type == MXT_SQ_DURATION ) {
+
+			/* Stop the frame when the trigger goes away. */
+
+			mx_status = mxd_merlin_medipix_command(
+				merlin_medipix, "SET,TRIGGERSTOP,2", NULL, 0 );
+		} else {
+			/* Stop the frame when the exposure time expires. */
+
+			mx_status = mxd_merlin_medipix_command(
+				merlin_medipix, "SET,TRIGGERSTOP,0", NULL, 0 );
+		}
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -871,7 +898,10 @@ mxd_merlin_medipix_arm( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if( sp->sequence_type != MXT_SQ_DURATION ) {
+	switch( sp->sequence_type ) {
+	case MXT_SQ_ONE_SHOT:
+	case MXT_SQ_MULTIFRAME:
+	case MXT_SQ_STROBE:
 		snprintf( command, sizeof(command), "SET,ACQUISITIONTIME,%lu",
 			mx_round( 1000.0 * exposure_time ) );
 
@@ -889,6 +919,66 @@ mxd_merlin_medipix_arm( MX_AREA_DETECTOR *ad )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+		if ( ( sp->sequence_type == MXT_SQ_MULTIFRAME )
+		  && ( ad->trigger_mode == MXT_IMAGE_EXTERNAL_TRIGGER ) )
+		{
+			snprintf( command, sizeof(command),
+				"SET,NUMFRAMESPERTRIGGER,%lu", num_frames );
+
+			mx_status = mxd_merlin_medipix_command(
+					merlin_medipix, command, NULL, 0 );
+		} else {
+			mx_status = mxd_merlin_medipix_command(
+					merlin_medipix,
+					"SET,NUMFRAMESPERTRIGGER,1",
+					NULL, 0 );
+		}
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		break;
+
+	case MXT_SQ_DURATION:
+		/* In duration mode, the Frame Time (ACQUISITIONTIME)
+		 * acts instead as a debouncing time.
+		 */
+
+		debounce_milliseconds = mx_round( 1000.0
+			* (merlin_medipix->external_trigger_debounce_time) );
+
+		snprintf( command, sizeof(command), "SET,ACQUISITIONTIME,%lu",
+						debounce_milliseconds );
+
+		mx_status = mxd_merlin_medipix_command( merlin_medipix,
+							command, NULL, 0 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		snprintf( command, sizeof(command), "SET,ACQUISITIONPERIOD,%lu",
+			debounce_milliseconds + 100L );
+
+		mx_status = mxd_merlin_medipix_command( merlin_medipix,
+						command, NULL, 0 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mxd_merlin_medipix_command( merlin_medipix,
+					"SET,NUMFRAMESPERTRIGGER,1", NULL, 0 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		break;
+
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Sequence type %ld is not supported for area detector '%s'.",
+			sp->sequence_type, ad->record->name );
+		break;
 	}
 
 	/* If we are configured for external triggering, tell the
@@ -1019,12 +1109,19 @@ mxd_merlin_medipix_get_extended_status( MX_AREA_DETECTOR *ad )
 		"to a 'GET,DETECTORSTATUS' command sent to detector '%s'.",
 			response, ad->record->name );
 	}
+
+	/* Sometimes this detector returns undocumented status codes 3 and 4.
+	 * I think that 4 has something to do with external triggering.
+	 * I do not know what 3 means, but if it happens you will need to
+	 * restart the Merlin application program on the Windows box.
+	 */
 		
 	switch( detector_status ) {
 	case 0:
 		ad->status = 0;
 		break;
 	case 1:
+	case 4:
 		ad->status = MXSF_AD_ACQUISITION_IN_PROGRESS;
 		break;
 	case 2:
@@ -1408,8 +1505,16 @@ mxd_merlin_medipix_get_parameter( MX_AREA_DETECTOR *ad )
 		return mx_status;
 
 #if MXD_MERLIN_MEDIPIX_DEBUG
-	MX_DEBUG(-2,("%s: record '%s', parameter type %ld",
-		fname, ad->record->name, ad->parameter_type));
+	{
+		char parameter_name_buffer[80];
+
+		MX_DEBUG(-2,("%s: record '%s', parameter '%s'",
+			fname, ad->record->name,
+			mx_get_parameter_name_from_type( ad->record,
+					ad->parameter_type,
+					parameter_name_buffer,
+					sizeof(parameter_name_buffer) ) ));
+	}
 #endif
 
 	switch( ad->parameter_type ) {
@@ -1568,8 +1673,16 @@ mxd_merlin_medipix_set_parameter( MX_AREA_DETECTOR *ad )
 		return mx_status;
 
 #if MXD_MERLIN_MEDIPIX_DEBUG
-	MX_DEBUG(-2,("%s: record '%s', parameter type %ld",
-		fname, ad->record->name, ad->parameter_type));
+	{
+		char parameter_name_buffer[80];
+
+		MX_DEBUG(-2,("%s: record '%s', parameter '%s'",
+			fname, ad->record->name,
+			mx_get_parameter_name_from_type( ad->record,
+					ad->parameter_type,
+					parameter_name_buffer,
+					sizeof(parameter_name_buffer) ) ));
+	}
 #endif
 
 	switch( ad->parameter_type ) {
@@ -1769,10 +1882,10 @@ mxd_merlin_medipix_command( MX_MERLIN_MEDIPIX *merlin_medipix,
 	size_t command_length;
 	size_t num_integer_characters;
 	mx_bool_type is_get_command, debug_flag;
-	double timeout_in_seconds;
 	int num_items, status_code;
 	char *body_ptr, *value_ptr, *status_code_ptr;
 	unsigned long message_body_length;
+	unsigned long mx_status_code;
 	mx_status_type mx_status;
 
 	if ( merlin_medipix == (MX_MERLIN_MEDIPIX *) NULL ) {
@@ -1828,13 +1941,25 @@ mxd_merlin_medipix_command( MX_MERLIN_MEDIPIX *merlin_medipix,
 
 	/* Now read back the response line. */
 
-	timeout_in_seconds = 5.0;
-
 	mx_status = mx_socket_wait_for_event( merlin_medipix->command_socket,
-						timeout_in_seconds );
+				merlin_medipix->command_socket_timeout );
 
-	if ( mx_status.code != MXE_SUCCESS )
+	mx_status_code = mx_status.code & (~MXE_QUIET);
+
+	switch( mx_status_code ) {
+	case MXE_SUCCESS:
+		break;
+	case MXE_TIMED_OUT:
+		/* Resend the message with the MXE_QUIET flag turned off. */
+
+		return mx_error( MXE_TIMED_OUT,
+			mx_status.location,
+			mx_status.message );
+		break;
+	default:
 		return mx_status;
+		break;
+	}
 
 	/* Read the beginning of the message, including the message
 	 * length field.  This part of the message is 15 bytes long

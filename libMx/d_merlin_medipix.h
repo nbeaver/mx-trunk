@@ -34,6 +34,8 @@ typedef struct {
 	unsigned long merlin_flags;
 	unsigned long maximum_num_images;
 
+	double command_socket_timeout;			/* in seconds */
+
 	unsigned long merlin_software_version;
 
 	MX_SOCKET *command_socket;
@@ -48,6 +50,8 @@ typedef struct {
 	char *image_data_array;
 
 	unsigned long merlin_image_frame_length;
+
+	double external_trigger_debounce_time;		/* in seconds */
 
 	/* The following values are managed via MX atomic ops. */
 
@@ -77,6 +81,11 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MERLIN_MEDIPIX, maximum_num_images), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }, \
   \
+  {-1, -1, "command_socket_timeout", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_MERLIN_MEDIPIX, command_socket_timeout), \
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
   {-1, -1, "merlin_software_version", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_MERLIN_MEDIPIX, merlin_software_version), \
@@ -98,7 +107,17 @@ typedef struct {
   \
   {-1, -1, "image_data_array", MXFT_STRING, NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MERLIN_MEDIPIX, image_data_array), \
-	{sizeof(char)}, NULL, (MXFF_READ_ONLY | MXFF_VARARGS) }
+	{sizeof(char)}, NULL, (MXFF_READ_ONLY | MXFF_VARARGS) }, \
+  \
+  {-1, -1, "merlin_image_frame_length", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_MERLIN_MEDIPIX, merlin_image_frame_length), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "external_trigger_debounce_time", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_MERLIN_MEDIPIX, external_trigger_debounce_time), \
+	{0}, NULL, 0 }
 
 MX_API mx_status_type mxd_merlin_medipix_initialize_driver( MX_DRIVER *driver );
 MX_API mx_status_type mxd_merlin_medipix_create_record_structures( MX_RECORD *record );
