@@ -1167,7 +1167,7 @@ mxd_merlin_medipix_readout_frame( MX_AREA_DETECTOR *ad )
 	struct timespec timestamp;
 	struct tm tm;
 	int num_items;
-	unsigned long nanoseconds;
+	unsigned long microseconds;
 	unsigned long merlin_flags;
 	int argc;
 	char **argv;
@@ -1265,12 +1265,12 @@ mxd_merlin_medipix_readout_frame( MX_AREA_DETECTOR *ad )
 	if ( *ptr == '.' ) {
 		ptr++;
 
-		num_items = sscanf( ptr, "%lu", &nanoseconds );
+		num_items = sscanf( ptr, "%lu", &microseconds );
 
 		if ( num_items == 0 ) {
 			timestamp.tv_nsec = 0;
 		} else {
-			timestamp.tv_nsec = nanoseconds;
+			timestamp.tv_nsec = 1000L * microseconds;
 		}
 	} else {
 		timestamp.tv_nsec = 0;
