@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2013-2014 Illinois Institute of Technology
+ * Copyright 2013-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,6 +20,7 @@
 #include "mx_util.h"
 #include "mx_unistd.h"
 #include "mx_record.h"
+#include "mx_array.h"
 #include "mx_multi.h"
 #include "mx_net.h"
 
@@ -42,6 +43,8 @@ print_usage( void )
 int
 main( int argc, char *argv[] )
 {
+	static const char fname[] = "mxget";
+
 	char server_name[ MXU_HOSTNAME_LENGTH+1 ];
 	char server_arguments[ MXU_SERVER_ARGUMENTS_LENGTH+1 ];
 	char record_name[ MXU_RECORD_NAME_LENGTH+1 ];
@@ -56,14 +59,19 @@ main( int argc, char *argv[] )
 	MX_RECORD_FIELD *local_field = NULL;
 	void *value_ptr;
 
-	char display_buffer[10000];
 	int c;
+	char display_buffer[10000];
+	char *field_array;
+	size_t element_size, array_size_in_bytes;
+	size_t i, bytes_left, block_size;
 	mx_bool_type network_debugging, start_debugger, verbose;
+	mx_bool_type write_binary_to_stdout, longs_are_64bits;
 	mx_status_type mx_status;
 
 	network_debugging = FALSE;
 	start_debugger = FALSE;
 	verbose = FALSE;
+	write_binary_to_stdout = FALSE;
 
 	if ( argc < 2 ) {
 		print_usage();
@@ -72,11 +80,14 @@ main( int argc, char *argv[] )
 
 	/* See if any command line arguments were specified. */
 
-	while ( (c = getopt(argc, argv, "aDv")) != -1 )
+	while ( (c = getopt(argc, argv, "abDv")) != -1 )
 	{
 		switch(c) {
 		case 'a':
 			network_debugging = TRUE;
+			break;
+		case 'b':
+			write_binary_to_stdout = TRUE;
 			break;
 		case 'D':
 			start_debugger = TRUE;
@@ -189,17 +200,73 @@ main( int argc, char *argv[] )
 
 	/* Display the value of the field. */
 
-	mx_status = mx_create_description_from_field( NULL, local_field,
+	if ( write_binary_to_stdout == FALSE ) {
+		mx_status = mx_create_description_from_field(
+				NULL, local_field,
 				display_buffer, sizeof(display_buffer) );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status.code;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status.code;
 
-	if ( verbose ) {
-		printf( "%s: ", argv[optind] );
+		if ( verbose ) {
+			printf( "%s: ", argv[optind] );
+		}
+
+		printf( "%s\n", display_buffer );
+	} else {
+		/* Write the output as binary. */
+
+		/* FIXME: The following should be made more general. */
+
+		if ( local_field->num_dimensions > 1 ) {
+			mx_status = mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+			"Binary 'mxget' for a network field with 2 or more "
+			"dimensions is not yet implemented." );
+
+			return mx_status.code;
+		}
+
+		field_array = mx_get_field_value_pointer( local_field );
+
+		if ( field_array == NULL ) {
+			mx_status = mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The field value pointer for local field '%s' "
+			"is NULL.", local_field->name );
+
+			return mx_status.code;
+		}
+
+		if ( MX_WORDSIZE == 64 ) {
+			longs_are_64bits = TRUE;
+		} else {
+			longs_are_64bits = FALSE;
+		}
+
+		element_size = mx_get_scalar_element_size(
+				local_field->datatype, longs_are_64bits );
+
+		if ( local_field->num_dimensions == 1 ) {
+			array_size_in_bytes = element_size
+						* local_field->dimension[0];
+		}
+
+		block_size = 10000;
+
+		bytes_left = array_size_in_bytes;
+
+		for ( i = 0; ; i += block_size ) {
+
+			if ( bytes_left < block_size ) {
+				fwrite( &(field_array[i]),
+				bytes_left, 1, stdout );
+
+				break;	/* Exit the for() loop. */
+			} else {
+				fwrite( &(field_array[i]),
+				block_size, 1, stdout );
+			}
+		}
 	}
-
-	printf( "%s\n", display_buffer );
 
 	exit(0);
 }
