@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010 Illinois Institute of Technology
+ * Copyright 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -61,6 +61,8 @@ typedef struct {
 	MX_EPICS_PV biny_pv;
 	MX_EPICS_PV biny_rbv_pv;
 	MX_EPICS_PV detector_state_pv;
+	MX_EPICS_PV file_format_pv;
+	MX_EPICS_PV file_format_rbv_pv;
 	MX_EPICS_PV file_name_pv;
 	MX_EPICS_PV file_name_rbv_pv;
 	MX_EPICS_PV file_number_pv;

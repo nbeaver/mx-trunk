@@ -237,6 +237,14 @@ mxd_epics_ad_finish_record_initialization( MX_RECORD *record )
 			"%s%sDetectorState_RBV",
 			epics_ad->prefix_name, epics_ad->camera_name );
 
+	mx_epics_pvname_init( &(epics_ad->file_format_pv),
+			"%s%sFileFormat",
+			epics_ad->prefix_name, epics_ad->camera_name );
+
+	mx_epics_pvname_init( &(epics_ad->file_format_rbv_pv),
+			"%s%sFileFormat_RBV",
+			epics_ad->prefix_name, epics_ad->camera_name );
+
 	mx_epics_pvname_init( &(epics_ad->file_name_pv),
 			"%s%sFileName",
 			epics_ad->prefix_name, epics_ad->camera_name );
@@ -1189,17 +1197,18 @@ mxd_epics_ad_get_parameter( MX_AREA_DETECTOR *ad )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
+		if ( x_binsize == 0 ) {
+			x_binsize = 1;
+		}
+		if ( y_binsize == 0 ) {
+			y_binsize = 1;
+		}
+
 		ad->binsize[0] = x_binsize;
 		ad->binsize[1] = y_binsize;
 
-		if ( ad->binsize[0] > 0 ) {
-			ad->framesize[0] =
-				ad->maximum_framesize[0] / ad->binsize[0];
-		}
-		if ( ad->binsize[1] > 0 ) {
-			ad->framesize[1] =
-				ad->maximum_framesize[1] / ad->binsize[1];
-		}
+		ad->framesize[0] = ad->maximum_framesize[0] / ad->binsize[0];
+		ad->framesize[1] = ad->maximum_framesize[1] / ad->binsize[1];
 
 		ad->bytes_per_frame = mx_round( ad->bytes_per_pixel
 			* ad->framesize[0] * ad->framesize[1] );
