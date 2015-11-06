@@ -35,6 +35,7 @@
 #define MXF_EPICS_AD_CHANGE_RAW_IMAGE_FILE_PREFIX	0x4
 
 #define MXF_EPICS_AD_DO_NOT_ENABLE_ARRAY_CALLBACKS	0x1000
+#define MXF_EPICS_AD_USE_DATATYPE_PV			0x2000
 
 typedef struct {
 	char array_port_name[ MXU_EPICS_STRING_LENGTH+1 ];
@@ -57,8 +58,13 @@ typedef struct {
 	char prefix_name[ MXU_EPICS_PVNAME_LENGTH+1 ];
 	char camera_name[ MXU_EPICS_PVNAME_LENGTH+1 ];
 	char image_name[ MXU_EPICS_PVNAME_LENGTH+1 ];
+	char epics_datatype_name[ MXU_EPICS_STRING_LENGTH+1 ];
 
 	unsigned long epics_area_detector_flags;
+
+	/*---*/
+
+	unsigned long epics_datatype;
 
 	/* The following names are read back from EPICS. */
 
@@ -147,10 +153,20 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EPICS_AREA_DETECTOR, image_name), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
+  {-1, -1, "epics_datatype_name", MXFT_STRING, NULL, \
+		1, {MXU_EPICS_STRING_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_EPICS_AREA_DETECTOR, epics_datatype_name), \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_READ_ONLY) }, \
+  \
   {-1, -1, "epics_area_detector_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_EPICS_AREA_DETECTOR, epics_area_detector_flags), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
+  {-1, -1, "epics_datatype", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EPICS_AREA_DETECTOR, epics_datatype),\
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {-1, -1, "manufacturer_name", MXFT_STRING, NULL, \
 			1, {MXU_EPICS_STRING_LENGTH}, \

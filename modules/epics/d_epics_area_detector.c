@@ -390,8 +390,8 @@ mxd_epics_ad_open( MX_RECORD *record )
 	MX_AREA_DETECTOR *ad;
 	MX_EPICS_AREA_DETECTOR *epics_ad = NULL;
 	char pvname[ MXU_EPICS_PVNAME_LENGTH+1 ];
-	unsigned long ad_flags, mask;
-	int32_t data_type, color_mode;
+	unsigned long ad_flags, mask, epics_ad_flags;
+	int32_t epics_datatype, epics_colormode;
 	int32_t num_exposures, num_images;
 	uint32_t max_size_value;
 	char *max_array_bytes_string;
@@ -493,7 +493,7 @@ mxd_epics_ad_open( MX_RECORD *record )
 	snprintf( pvname, sizeof(pvname), "%s%sDataType_RBV",
 			epics_ad->prefix_name, epics_ad->camera_name );
 
-	mx_status = mx_caget_by_name( pvname, MX_CA_LONG, 1, &data_type );
+	mx_status = mx_caget_by_name( pvname, MX_CA_LONG, 1, &epics_datatype );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -501,7 +501,7 @@ mxd_epics_ad_open( MX_RECORD *record )
 	snprintf( pvname, sizeof(pvname), "%s%sColorMode_RBV",
 			epics_ad->prefix_name, epics_ad->camera_name );
 
-	mx_status = mx_caget_by_name( pvname, MX_CA_LONG, 1, &color_mode );
+	mx_status = mx_caget_by_name( pvname, MX_CA_LONG, 1, &epics_colormode );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -511,11 +511,11 @@ mxd_epics_ad_open( MX_RECORD *record )
 		fname, (long) data_type, (long) color_mode ));
 #endif
 
-	if ( color_mode != 0 ) {
+	if ( epics_colormode != 0 ) {
 		mx_warning(
 		"EPICS Area Detector '%s' is using color mode %ld, "
 		"which is not yet supported by the '%s' MX driver.",
-			ad->record->name, (long) color_mode,
+			ad->record->name, (long) epics_colormode,
 			mx_get_driver_name( ad->record ) );
 	}
 
@@ -523,7 +523,51 @@ mxd_epics_ad_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: bits per pixel = %ld", fname, ad->bits_per_pixel))
 #endif
 
-	switch( data_type ) {
+	epics_ad_flags = epics_ad->epics_area_detector_flags;
+
+	if ( ( epics_ad_flags & MXF_EPICS_AD_USE_DATATYPE_PV ) == 0 ) {
+		char *epics_datatype_name;
+
+		/* If requested, we override the datatype reported by EPICS. */
+
+		epics_datatype_name = epics_ad->epics_datatype_name;
+
+		if ( mx_strcasecmp( epics_datatype_name, "int8" ) == 0 ) {
+			epics_datatype = 0;
+		} else
+		if ( mx_strcasecmp( epics_datatype_name, "uint8" ) == 0 ) {
+			epics_datatype = 1;
+		} else
+		if ( mx_strcasecmp( epics_datatype_name, "int16" ) == 0 ) {
+			epics_datatype = 2;
+		} else
+		if ( mx_strcasecmp( epics_datatype_name, "uint16" ) == 0 ) {
+			epics_datatype = 3;
+		} else
+		if ( mx_strcasecmp( epics_datatype_name, "int32" ) == 0 ) {
+			epics_datatype = 4;
+		} else
+		if ( mx_strcasecmp( epics_datatype_name, "uint32" ) == 0 ) {
+			epics_datatype = 5;
+		} else
+		if ( mx_strcasecmp( epics_datatype_name, "float32" ) == 0 ) {
+			epics_datatype = 6;
+		} else
+		if ( mx_strcasecmp( epics_datatype_name, "float64" ) == 0 ) {
+			epics_datatype = 7;
+		} else {
+			return mx_error( MXE_UNPARSEABLE_STRING, fname,
+			"The specified EPICS datatype '%s' for area detector "
+			"'%s' is not valid.  The valid datatypes are "
+			"Int8, UInt8, Int16, UInt16, Int32, UInt32, "
+			"Float32, and Float64.",
+				epics_datatype_name, record->name );
+		}
+	}
+
+	epics_ad->epics_datatype = epics_datatype;
+
+	switch( epics_datatype ) {
 	case 0:				/* Int8 */
 	case 1:				/* UInt8 */
 		ad->bits_per_pixel = 8;
@@ -561,7 +605,7 @@ mxd_epics_ad_open( MX_RECORD *record )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Unrecognized data type %ld was requested "
 		"for EPICS Area Detector '%s'.",
-			(long) data_type, record->name );
+			(long) epics_datatype, record->name );
 		
 	}
 
