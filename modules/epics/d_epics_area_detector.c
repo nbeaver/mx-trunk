@@ -39,7 +39,7 @@ MX_RECORD_FUNCTION_LIST mxd_epics_ad_record_function_list = {
 };
 
 MX_AREA_DETECTOR_FUNCTION_LIST mxd_epics_ad_ad_function_list = {
-	NULL,
+	mxd_epics_ad_arm,
 	mxd_epics_ad_trigger,
 	NULL,
 	mxd_epics_ad_abort,
@@ -207,6 +207,10 @@ mxd_epics_ad_finish_record_initialization( MX_RECORD *record )
 
 	mx_epics_pvname_init( &(epics_ad->acquire_time_rbv_pv),
 			"%s%sAcquireTime_RBV",
+			epics_ad->prefix_name, epics_ad->camera_name );
+
+	mx_epics_pvname_init( &(epics_ad->array_callbacks_pv),
+			"%s%sArrayCallbacks",
 			epics_ad->prefix_name, epics_ad->camera_name );
 
 	mx_epics_pvname_init( &(epics_ad->array_counter_rbv_pv),
@@ -417,6 +421,9 @@ mxd_epics_ad_open( MX_RECORD *record )
 	ad->status = 0;
 
 	ad->image_data_available = FALSE;
+
+	epics_ad->num_images_counter_is_implemented = FALSE;
+	epics_ad->old_total_num_frames = 0;
 
 	epics_ad->acquisition_is_starting = FALSE;
 	epics_ad->max_array_bytes = 0;
@@ -629,31 +636,30 @@ mxd_epics_ad_open( MX_RECORD *record )
 	/* Does this version use the NumAcquisitionsCounter_RBV PV?
 	 */
 
-	if ( mx_strcasecmp( "roper", epics_ad->manufacturer_name ) == 0 ) {
-		/*
-		 * At present (2010-12-03), only the Roper driver does that.
-		 */
-
-		mx_status = mx_epics_pv_connect(
+	mx_status = mx_epics_pv_connect(
 			&(epics_ad->num_acquisitions_counter_rbv_pv),
 			MXF_EPVC_QUIET | MXF_EPVC_WAIT_FOR_CONNECTION );
 
-		switch( mx_status.code ) {
-		case MXE_SUCCESS:
-			epics_ad->use_num_acquisitions = TRUE;
-			break;
-		case MXE_TIMED_OUT:
-			epics_ad->use_num_acquisitions = FALSE;
-			break;
-		default:
-			return mx_error( mx_status.code,
-				mx_status.location,
-				"%s", mx_status.message );
-			break;
-		}
-	} else {
+	switch( mx_status.code ) {
+	case MXE_SUCCESS:
+		epics_ad->use_num_acquisitions = TRUE;
+		break;
+	case MXE_TIMED_OUT:
 		epics_ad->use_num_acquisitions = FALSE;
+		break;
+	default:
+		epics_ad->use_num_acquisitions = FALSE;
+
+		return mx_error( mx_status.code,
+			mx_status.location,
+			"%s", mx_status.message );
+		break;
 	}
+
+#if 1
+	MX_DEBUG(-2,("%s: '%s' use_num_acquisitions = %d",
+		fname, record->name, epics_ad->use_num_acquisitions));
+#endif
 
 	/* Set all of the lower level counter PVs to ratios of 1. */
 
@@ -704,7 +710,7 @@ mxd_epics_ad_open( MX_RECORD *record )
 		}
 	}
 
-#if MXD_EPICS_AREA_DETECTOR_DEBUG
+#if 1 || MXD_EPICS_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s: ad->image_data_avaliable = %d",
 		fname, ad->image_data_available));
 #endif
@@ -720,6 +726,97 @@ mxd_epics_ad_open( MX_RECORD *record )
 	} else {
 		epics_ad->max_array_bytes = atol( max_array_bytes_string );
 	}
+
+	/* Initialize the raw image frame-related variables to invalid
+	 * values of 0 or NULL, since we may not need them.  If these
+	 * variables _are_ needed, then they will be initialized in the
+	 * readout_frame() method the first time that it is called.
+	 */
+
+	epics_ad->raw_data_type = 0;
+	epics_ad->raw_frame_bytes = 0;
+	epics_ad->raw_frame_array = NULL;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_epics_ad_arm( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mxd_epics_ad_arm()";
+
+	MX_EPICS_AREA_DETECTOR *epics_ad = NULL;
+	int32_t enable_array_callbacks;
+	unsigned long flags;
+	mx_status_type mx_status;
+
+	mx_status = mxd_epics_ad_get_pointers( ad, &epics_ad, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_EPICS_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s invoked for area detector '%s'",
+		fname, ad->record->name ));
+#endif
+
+	if ( epics_ad->num_images_counter_is_implemented == FALSE ) {
+
+		/* If needed, save a snapshot of the value of total_num_frames
+		 * so that it can be used later to compute the value of
+		 * last_frame_number.  This kludge will not work if this
+		 * detector sequence was not started by MX.
+		 */
+
+		mx_status = mx_area_detector_get_trigger_mode(
+							ad->record, NULL );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( (ad->trigger_mode) & MXT_IMAGE_EXTERNAL_TRIGGER ) {
+			mx_status = mx_area_detector_get_total_num_frames(
+							ad->record, NULL );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			epics_ad->old_total_num_frames = ad->total_num_frames;
+		}
+	}
+
+	/* Fully correct behavior of the MX drivers requires that the
+	 * EPICS array callbacks be turned on.  Nevertheless, we do
+	 * provide a way to turn this off.  If you turn it off, then
+	 * the MX 'total_num_frames' field will not return valid values,
+	 * and some parts of MX that depend on 'total_num_frames', will
+	 * not work correctly.
+	 */
+
+	flags = epics_ad->epics_area_detector_flags;
+
+	if ( flags & MXF_EPICS_AD_DO_NOT_ENABLE_ARRAY_CALLBACKS ) {
+		/* Return without enabling array callbacks, even though
+		 * this is a bad idea.
+		 */
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* Turn on array callbacks. */
+
+	enable_array_callbacks = TRUE;
+
+	mx_status = mx_caput( &(epics_ad->array_callbacks_pv),
+				MX_CA_LONG, 1, &enable_array_callbacks );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_EPICS_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s complete for area detector '%s'",
+		fname, ad->record->name ));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -742,6 +839,33 @@ mxd_epics_ad_trigger( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
+
+	if ( epics_ad->num_images_counter_is_implemented == FALSE ) {
+
+		/* If needed, save a snapshot of the value of total_num_frames
+		 * so that it can be used later to compute the value of
+		 * last_frame_number.  This kludge will not work if this
+		 * detector sequence was not started by MX.
+		 */
+
+		mx_status = mx_area_detector_get_trigger_mode(
+							ad->record, NULL );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( (ad->trigger_mode) & MXT_IMAGE_INTERNAL_TRIGGER ) {
+			mx_status = mx_area_detector_get_total_num_frames(
+							ad->record, NULL );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			epics_ad->old_total_num_frames = ad->total_num_frames;
+		}
+	}
+
+	/* Manually start the acquisition. */
 
 	acquire = 1;
 
@@ -812,17 +936,34 @@ mxd_epics_ad_get_last_frame_number( MX_AREA_DETECTOR *ad )
 		fname, ad->record->name ));
 #endif
 
-	if ( epics_ad->use_num_acquisitions ) {
-		next_frame_pv = &(epics_ad->num_acquisitions_counter_rbv_pv);
-	} else {
-		next_frame_pv = &(epics_ad->num_images_counter_rbv_pv);
-	}
+	if ( epics_ad->num_images_counter_is_implemented ) {
+		if ( epics_ad->use_num_acquisitions ) {
+			next_frame_pv =
+				&(epics_ad->num_acquisitions_counter_rbv_pv);
+		} else {
+			next_frame_pv = &(epics_ad->num_images_counter_rbv_pv);
+		}
 
-	mx_status = mx_caget( next_frame_pv,
+		mx_status = mx_caget( next_frame_pv,
 				MX_CA_LONG, 1, &next_frame_number );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	} else {
+		/* The following kludge only does the right thing if
+		 * the currently running acquisition was started by MX.
+		 */
+
+		mx_status = mx_area_detector_get_total_num_frames(
+							ad->record, NULL );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		next_frame_number =
+	    (int32_t)( ad->total_num_frames - epics_ad->old_total_num_frames );
+
+	}
 
 	ad->last_frame_number = next_frame_number - 1;
 

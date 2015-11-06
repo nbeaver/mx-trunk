@@ -31,7 +31,7 @@ all: build
 
 #MODULES += labjack_ux		# linux,
 
-#MODULES += libtiff		# linux
+MODULES += libtiff		# linux
 
 #MODULES += libusb-0.1		# linux,
 

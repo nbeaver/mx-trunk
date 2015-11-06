@@ -24,7 +24,7 @@ LIBTIFF_LIBRARY = $(LIBTIFF_DIR)\\libs\\libtiff5.lib
 
 #----
 
-else ifeq($(MX_ARCH),linux)
+else ifeq ($(MX_ARCH),linux)
 
 LIBTIFF_INCLUDES = 
 
