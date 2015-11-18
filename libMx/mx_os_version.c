@@ -21,6 +21,7 @@
 #include "mx_osdef.h"
 
 #include "mx_util.h"
+#include "mx_dynamic_library.h"
 
 #if !defined( OS_WIN32 )
 
@@ -108,8 +109,48 @@ mx_win32_get_osversioninfo( unsigned long *win32_major_version,
 #endif
 	BOOL status;
 	int use_extended_struct;
+	mx_status_type mx_status;
 
-	/* Try using OSVERSIONINFOEX first. */
+	/* If this is an NT version of Windows, try RtlGetVersion(). */
+
+	if ( TRUE ) {
+		typedef NTSTATUS (*RtlGetVersion_type)( RTL_OSVERSIONINFOW * );
+		RtlGetVersion_type ptr_RtlGetVersion = NULL;
+
+		RTL_OSVERSIONINFOW rtl_osvi;
+		NTSTATUS nt_status;
+		void *void_ptr;
+
+		mx_status = mx_dynamic_library_get_library_and_symbol(
+				"ntdll.dll", "RtlGetVersion",
+				NULL, &void_ptr );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		ptr_RtlGetVersion = void_ptr;
+
+		memset( &rtl_osvi, 0, sizeof(RTL_OSVERSIONINFOW) );
+
+		rtl_osvi.dwOSVersionInfoSize = sizeof(RTL_OSVERSIONINFOW);
+
+		nt_status = ptr_RtlGetVersion( &rtl_osvi );
+
+		if ( nt_status != 0 ) {
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"RtlGetVersion() returned error code %d", nt_status );
+		}
+
+		*win32_major_version = rtl_osvi.dwMajorVersion;
+		*win32_minor_version = rtl_osvi.dwMinorVersion;
+		*win32_platform_id   = rtl_osvi.dwPlatformId;
+
+		*win32_product_type  = 0;
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* Try using OSVERSIONINFOEX next. */
 
 #if HAVE_OSVERSIONINFOEX
 	memset( &osvi, 0, sizeof(OSVERSIONINFOEX) );
@@ -359,6 +400,9 @@ mx_get_os_version_string( char *version_string,
 				strlcpy( version_string, "Windows Server 2012",
 					max_version_string_length );
 			}
+		case 3:
+			strlcpy( version_string, "Windows 8.1",
+					max_version_string_length );
 			break;
 
 #else /* !defined(VER_NT_WORKSTATION) */
@@ -381,6 +425,20 @@ mx_get_os_version_string( char *version_string,
 			break;
 		}
 		break;
+
+	case 10:
+		switch( win32_minor_version ) {
+		case 0:
+			strlcpy( version_string, "Windows 10",
+					max_version_string_length );
+			break;
+		default:
+			snprintf( version_string, max_version_string_length,
+				"Windows 10.%d", win32_minor_version );
+			break;
+		}
+		break;
+
 	default:
 		snprintf( version_string, max_version_string_length,
 			"Windows ??? (major = %lu, minor = %lu)",

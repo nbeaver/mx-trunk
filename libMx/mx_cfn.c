@@ -93,6 +93,12 @@ mxp_setup_home_variable( void )
 
 	length = strlen( os_version_string );
 
+	if ( strncmp( os_version_string, "Windows 10", length ) == 0 ) {
+		setup_type = MXP_SETUP_HOME_USING_HOMEPATH;
+	} else
+	if ( strncmp( os_version_string, "Windows 8.1", length ) == 0 ) {
+		setup_type = MXP_SETUP_HOME_USING_HOMEPATH;
+	} else
 	if ( strncmp( os_version_string, "Windows 8", length ) == 0 ) {
 		setup_type = MXP_SETUP_HOME_USING_HOMEPATH;
 	} else
