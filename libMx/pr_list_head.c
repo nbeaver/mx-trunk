@@ -55,6 +55,7 @@ mx_setup_list_head_process_functions( MX_RECORD *record )
 		case MXLV_LHD_DEBUGGER_STARTED:
 		case MXLV_LHD_FIELDDEF:
 		case MXLV_LHD_NUMBERED_BREAKPOINT_STATUS:
+		case MXLV_LHD_POSIX_TIME:
 		case MXLV_LHD_REPORT:
 		case MXLV_LHD_REPORT_ALL:
 		case MXLV_LHD_SHOW_CALLBACKS:
@@ -66,7 +67,6 @@ mx_setup_list_head_process_functions( MX_RECORD *record )
 		case MXLV_LHD_SUMMARY:
 		case MXLV_LHD_UPDATE_ALL:
 		case MXLV_LHD_VM_REGION:
-		case MXLV_LHD_POSIX_TIME:
 			record_field->process_function
 					    = mx_list_head_process_function;
 			break;

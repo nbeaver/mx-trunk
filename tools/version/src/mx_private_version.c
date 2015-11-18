@@ -65,6 +65,13 @@ main( int argc, char **argv )
 
 	fprintf( stdout, "\n" );
 
+#define MXP_PRINT_REVISION_LABEL(LABEL) \
+	fprintf( stdout, "#define MX_REVISION_LABEL  \"" ## LABEL ## "\"\n" )
+
+	MXP_PRINT_REVISION_LABEL(MX_REVISION_LABEL);
+
+	fprintf( stdout, "\n" );
+
 	mxp_generate_macros( stdout );
 
 	fprintf( stdout, "#endif /* __MX_PRIVATE_VERSION_H__ */\n");

@@ -429,6 +429,7 @@ typedef struct {
 	uint64_t mx_version_time;
 	uint64_t posix_time;
 	char mx_revision[ MXU_REVISION_NAME_LENGTH + 1 ];
+	char mx_revision_label[ MXU_REVISION_NAME_LENGTH + 1 ];
 
 	unsigned long num_records;
 

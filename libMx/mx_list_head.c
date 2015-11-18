@@ -213,6 +213,10 @@ mxr_create_list_head( MX_RECORD *record )
 		mx_get_revision(),
 		MXU_REVISION_NAME_LENGTH );
 
+	strlcpy( list_head_struct->mx_revision_label,
+		mx_get_revision_label(),
+		MXU_REVISION_NAME_LENGTH );
+
 	/* Since the list head record itself is a record, we initialize
 	 * the number of records to 1 rather than 0.
 	 */

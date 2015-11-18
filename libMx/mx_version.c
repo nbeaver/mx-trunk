@@ -25,7 +25,7 @@
 #include "mx_time.h"
 #include "mx_version.h"
 
-#define MX_DATE "November 5, 2015"
+#define MX_DATE "November 17, 2015"
 
 #include "mx_private_revision.h"
 
@@ -51,6 +51,14 @@ MX_EXPORT int
 mx_get_update_version( void )
 {
 	return MX_UPDATE_VERSION;
+}
+
+MX_EXPORT const char *
+mx_get_revision_label( void )
+{
+	static const char label[] = MX_REVISION_LABEL;
+
+	return label;
 }
 
 MX_EXPORT char *

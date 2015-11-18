@@ -1044,8 +1044,9 @@ motor_show_version( void )
 	revision_string = mx_get_revision();
 
 	if ( strlen( revision_string ) > 0 ) {
-		fprintf( output, "MX version: %s   [ Revision: %s ]\n",
-			mx_get_version_full_string(), revision_string );
+		fprintf( output, "MX version: %s  [ Revision: %s  (%s) ]\n",
+			mx_get_version_full_string(), revision_string,
+			mx_get_revision_label() );
 	} else {
 		fprintf( output, "MX version: %s\n",
 			mx_get_version_full_string() );

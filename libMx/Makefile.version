@@ -1,5 +1,5 @@
 #
-# Name: Makefile.ver
+# Name: Makefile.version
 #
 # This file contains the version number of the MX library.  The definitions
 # here are used to generate the version numbers of shared libraries on those
@@ -13,4 +13,6 @@
 MX_MAJOR_VERSION	= 1
 MX_MINOR_VERSION	= 5
 MX_UPDATE_VERSION	= 9
+
+MX_REVISION_LABEL	= trunk
 

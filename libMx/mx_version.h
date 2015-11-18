@@ -35,6 +35,8 @@ MX_API int mx_get_minor_version( void );
 
 MX_API int mx_get_update_version( void );
 
+MX_API const char *mx_get_revision_label( void );
+
 MX_API char *mx_get_version_full_string( void );
 
 MX_API char *mx_get_version_date_string( void );
