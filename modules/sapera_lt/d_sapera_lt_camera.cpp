@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013-2014 Illinois Institute of Technology
+ * Copyright 2013-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -723,6 +723,8 @@ mxd_sapera_lt_camera_create_record_structures( MX_RECORD *record )
 	vinput->record = record;
 	sapera_lt_camera->record = record;
 
+	sapera_lt_camera->acq_device = NULL;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -1247,6 +1249,11 @@ mxd_sapera_lt_camera_arm( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( sapera_lt_camera->acq_device == NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"Camera '%s' is not connected.", vinput->record->name );
+	}
+
 	/* If the camera is Grabbing, then stop it. */
 
 	is_grabbing = sapera_lt_camera->transfer->IsGrabbing();
@@ -1457,6 +1464,11 @@ mxd_sapera_lt_camera_trigger( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( sapera_lt_camera->acq_device == NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"Camera '%s' is not connected.", vinput->record->name );
+	}
+
 #if MXD_SAPERA_LT_CAMERA_DEBUG_TRIGGER
 	MX_DEBUG(-2,("%s invoked for video input '%s'",
 		fname, vinput->record->name ));
@@ -1534,6 +1546,11 @@ mxd_sapera_lt_camera_stop( MX_VIDEO_INPUT *vinput )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	if ( sapera_lt_camera->acq_device == NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"Camera '%s' is not connected.", vinput->record->name );
+	}
 
 #if MXD_SAPERA_LT_CAMERA_DEBUG
 	MX_DEBUG(-2,("%s invoked for video input '%s'.",
@@ -1623,6 +1640,11 @@ mxd_sapera_lt_camera_abort( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( sapera_lt_camera->acq_device == NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"Camera '%s' is not connected.", vinput->record->name );
+	}
+
 #if MXD_SAPERA_LT_CAMERA_DEBUG
 	MX_DEBUG(-2,("%s invoked for video input '%s'.",
 		fname, vinput->record->name ));
@@ -1666,6 +1688,11 @@ mxd_sapera_lt_camera_get_extended_status( MX_VIDEO_INPUT *vinput )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	if ( sapera_lt_camera->acq_device == NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"Camera '%s' is not connected.", vinput->record->name );
+	}
 
 	vinput->status = 0;
 
@@ -1761,6 +1788,11 @@ mxd_sapera_lt_camera_get_frame( MX_VIDEO_INPUT *vinput )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	if ( sapera_lt_camera->acq_device == NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"Camera '%s' is not connected.", vinput->record->name );
+	}
 
 	frame = vinput->frame;
 
@@ -1918,6 +1950,11 @@ mxd_sapera_lt_camera_get_parameter( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( sapera_lt_camera->acq_device == NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"Camera '%s' is not connected.", vinput->record->name );
+	}
+
 #if MXD_SAPERA_LT_CAMERA_DEBUG_MX_PARAMETERS
 	MX_DEBUG(-2,("%s: record '%s', parameter '%s' (%ld)",
 		fname, vinput->record->name,
@@ -2029,6 +2066,11 @@ mxd_sapera_lt_camera_set_parameter( MX_VIDEO_INPUT *vinput )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	if ( sapera_lt_camera->acq_device == NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"Camera '%s' is not connected.", vinput->record->name );
+	}
 
 #if MXD_SAPERA_LT_CAMERA_DEBUG_MX_PARAMETERS
 	MX_DEBUG(-2,("%s: record '%s', parameter '%s' (%ld)",
@@ -2188,6 +2230,11 @@ mxd_sapera_lt_camera_process_function( void *record_ptr,
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_SAPERA_LT_CAMERA pointer for record '%s' is NULL.",
 			record->name );
+	}
+
+	if ( sapera_lt_camera->acq_device == NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"Camera '%s' is not connected.", vinput->record->name );
 	}
 
 	mx_status = MX_SUCCESSFUL_RESULT;

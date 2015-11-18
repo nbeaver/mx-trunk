@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2011-2013 Illinois Institute of Technology
+ * Copyright 2011-2013, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -712,6 +712,8 @@ mxd_sapera_lt_frame_grabber_create_record_structures( MX_RECORD *record )
 	vinput->record = record;
 	sapera_lt_frame_grabber->record = record;
 
+	sapera_lt_frame_grabber->acquisition = NULL;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -1280,6 +1282,11 @@ mxd_sapera_lt_frame_grabber_arm( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( sapera_lt_frame_grabber->acquisition == NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"Frame grabber '%s' is not connected.", vinput->record->name );
+	}
+
 	/* Clear the buffer overrun flag. */
 
 	sapera_lt_frame_grabber->buffer_overrun_occurred = FALSE;
@@ -1431,6 +1438,11 @@ mxd_sapera_lt_frame_grabber_trigger( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( sapera_lt_frame_grabber->acquisition == NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"Frame grabber '%s' is not connected.", vinput->record->name );
+	}
+
 #if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_TRIGGER
 	MX_DEBUG(-2,("%s invoked for video input '%s'",
 		fname, vinput->record->name ));
@@ -1475,6 +1487,11 @@ mxd_sapera_lt_frame_grabber_abort( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( sapera_lt_frame_grabber->acquisition == NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"Frame grabber '%s' is not connected.", vinput->record->name );
+	}
+
 #if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG
 	MX_DEBUG(-2,("%s invoked for video input '%s'.",
 		fname, vinput->record->name ));
@@ -1518,6 +1535,11 @@ mxd_sapera_lt_frame_grabber_get_extended_status( MX_VIDEO_INPUT *vinput )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	if ( sapera_lt_frame_grabber->acquisition == NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"Frame grabber '%s' is not connected.", vinput->record->name );
+	}
 
 	vinput->status = 0;
 
@@ -1583,6 +1605,11 @@ mxd_sapera_lt_frame_grabber_get_frame( MX_VIDEO_INPUT *vinput )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	if ( sapera_lt_frame_grabber->acquisition == NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"Frame grabber '%s' is not connected.", vinput->record->name );
+	}
 
 	frame = vinput->frame;
 
@@ -1741,6 +1768,11 @@ mxd_sapera_lt_frame_grabber_get_parameter( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( sapera_lt_frame_grabber->acquisition == NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"Frame grabber '%s' is not connected.", vinput->record->name );
+	}
+
 #if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_MX_PARAMETERS
 	MX_DEBUG(-2,("%s: record '%s', parameter '%s' (%ld)",
 		fname, vinput->record->name,
@@ -1887,6 +1919,11 @@ mxd_sapera_lt_frame_grabber_set_parameter( MX_VIDEO_INPUT *vinput )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	if ( sapera_lt_frame_grabber->acquisition == NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"Frame grabber '%s' is not connected.", vinput->record->name );
+	}
 
 #if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_MX_PARAMETERS
 	MX_DEBUG(-2,("%s: record '%s', parameter '%s' (%ld)",
