@@ -140,7 +140,7 @@ mx_free_pointer( void *pointer )
  */
 
 MX_EXPORT int
-mx_heap_check( void )
+mx_heap_check( unsigned long heap_flags )
 {
 	static const char fname[] = "mx_heap_check()";
 
@@ -214,20 +214,32 @@ mx_heap_check( void )
 		validate_status = HeapValidate( heap_handle, 0, 0 );
 
 		if ( validate_status == 0 ) {
-			MX_DEBUG( 2,("%s: Heap %lu (%#lx) is CORRUPTED.",
-				fname, i, (unsigned long) heap_handle ));
+			if ( heap_flags & MXF_HEAP_CHECK_CORRUPTED_VERBOSE ) {
+				mx_warning( "%s: Heap %lu (%#lx) is CORRUPTED.",
+					fname, i, (unsigned long) heap_handle );
+			}
 
 			heap_ok = FALSE;
 		} else {
-			MX_DEBUG( 2,("%s: Heap %lu (%#lx) is OK.",
-				fname, i, (unsigned long) heap_handle ));
+			if ( heap_flags & MXF_HEAP_CHECK_OK_VERBOSE ) {
+				mx_info( "%s: Heap %lu (%#lx) is OK.",
+					fname, i, (unsigned long) heap_handle );
+			}
 		}
 	}
 
 	if ( heap_ok ) {
-		mx_info( "%s: Heap is OK", fname );
+		if ( heap_flags & MXF_HEAP_CHECK_OK ) {
+			mx_info( "%s: Heap is OK", fname );
+		}
 	} else {
-		mx_warning("%s: Heap is corrupted.", fname);
+		if ( heap_flags & MXF_HEAP_CHECK_CORRUPTED ) {
+			mx_warning("%s: Heap is corrupted.", fname);
+		}
+	}
+
+	if ( heap_flags & MXF_HEAP_CHECK_STACK_TRACEBACK ) {
+		mx_stack_traceback();
 	}
 
 	return heap_ok;
@@ -238,23 +250,30 @@ mx_heap_check( void )
 #include <malloc/malloc.h>
 
 MX_EXPORT int
-mx_heap_check( void )
+mx_heap_check( unsigned long heap_flags )
 {
 	static const char fname[] = "mx_heap_check()";
 
 	boolean_t ok;
+	mx_bool_type heap_ok;
+
+	heap_ok = TRUE;
 
 	ok = malloc_zone_check( NULL );
 
 	if ( ok ) {
-		mx_info("%s: Heap is OK.", fname);
-
-		return TRUE;
+		if ( heap_flags & MXF_HEAP_CHECK_OK ) {
+			mx_info("%s: Heap is OK.", fname);
+		}
 	} else {
-		mx_warning("%s: Heap is corrupted.", fname);
+		if ( heap_flags & MXF_HEAP_CHECK_CORRUPTED ) {
+			mx_warning("%s: Heap is corrupted.", fname);
+		}
 
-		return FALSE;
+		heap_ok = FALSE;
 	}
+
+	return heap_ok;
 }
 
 #else /* No heap check support. */

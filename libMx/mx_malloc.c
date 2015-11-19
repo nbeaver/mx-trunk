@@ -7,15 +7,16 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2005-2007, 2010 Illinois Institute of Technology
+ * Copyright 2005-2007, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define DEBUG_LOG		FALSE
-#define DEBUG_SHOW_CALLER	FALSE
+#define MX_DEBUG_LOG		FALSE
+#define MX_DEBUG_SHOW_CALLER	FALSE
+#define MX_DEBUG_HEAP		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -124,11 +125,11 @@ mx_win32_calloc( size_t num_items, size_t item_size )
 
 	block_ptr = HeapAlloc( process_heap, HEAP_ZERO_MEMORY, num_bytes );
 
-#if DEBUG_LOG
+#if MX_DEBUG_LOG
 	MX_DEBUG(-2,("HeapAlloc( %p, HEAP_ZERO_MEMORY, %ld ) = %p",
 			process_heap, (long) num_bytes, block_ptr));
 #endif
-#if DEBUG_SHOW_CALLER
+#if MX_DEBUG_SHOW_CALLER
 	mx_stack_traceback();
 #endif
 
@@ -151,13 +152,13 @@ mx_win32_free( void *block_ptr )
 		}
 	}
 
-#if 0
-	mx_heap_check();
+#if MX_DEBUG_HEAP
+	mx_heap_check( MXF_HEAP_CHECK_CORRUPTED_ALL );
 #endif
 
 	status = HeapFree( process_heap, 0, block_ptr );
 
-#if DEBUG_LOG
+#if MX_DEBUG_LOG
 	MX_DEBUG(-2,("HeapFree( %p, 0, %p ) = %d",
 		process_heap, block_ptr, status));
 #endif
@@ -181,7 +182,7 @@ mx_win32_free( void *block_ptr )
 			block_ptr, last_error_code, message_buffer );
 	}
 
-#if DEBUG_SHOW_CALLER
+#if MX_DEBUG_SHOW_CALLER
 	mx_stack_traceback();
 #endif
 	/* If status == 0, then an error occurred and we could get
@@ -208,11 +209,11 @@ mx_win32_malloc( size_t num_bytes )
 
 	block_ptr = HeapAlloc( process_heap, 0, num_bytes );
 
-#if DEBUG_LOG
+#if MX_DEBUG_LOG
 	MX_DEBUG(-2,("HeapAlloc( %p, 0, %ld ) = %p",
 			process_heap, (long) num_bytes, block_ptr));
 #endif
-#if DEBUG_SHOW_CALLER
+#if MX_DEBUG_SHOW_CALLER
 	mx_stack_traceback();
 #endif
 
@@ -235,12 +236,12 @@ mx_win32_realloc( void *old_block_ptr, size_t new_num_bytes )
 	new_block_ptr = HeapReAlloc( process_heap, 0,
 					old_block_ptr, new_num_bytes );
 
-#if DEBUG_LOG
+#if MX_DEBUG_LOG
 	MX_DEBUG(-2,("HeapReAlloc( %p, 0, %p, %ld ) = %p",
 			process_heap, old_block_ptr,
 			(long) new_num_bytes, new_block_ptr));
 #endif
-#if DEBUG_SHOW_CALLER
+#if MX_DEBUG_SHOW_CALLER
 	mx_stack_traceback();
 #endif
 

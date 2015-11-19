@@ -370,7 +370,19 @@ MX_API int mx_heap_pointer_is_valid( void *pointer );
  * is corrupted though.
  */
 
-MX_API int mx_heap_check( void );
+/*--- Flag values for mx_heap_check() ---*/
+
+#define MXF_HEAP_CHECK_OK			0x1
+#define MXF_HEAP_CHECK_OK_VERBOSE		0x2
+#define MXF_HEAP_CHECK_CORRUPTED		0x4
+#define MXF_HEAP_CHECK_CORRUPTED_VERBOSE	0x8
+#define MXF_HEAP_CHECK_STACK_TRACEBACK		0x10
+
+#define MXF_HEAP_CHECK_OK_ALL	(MXF_HEAP_CHECK_OK | MXF_HEAP_CHECK_OK_VERBOSE)
+#define MXF_HEAP_CHECK_CORRUPTED_ALL \
+		(MXF_HEAP_CHECK_CORRUPTED | MXF_HEAP_CHECK_CORRUPTED_VERBOSE)
+
+MX_API int mx_heap_check( unsigned long heap_flags );
 
 /*--- Other debugging tools ---*/
 
