@@ -24,6 +24,8 @@
 
 #define PR_AREA_DETECTOR_DEBUG_ROI			FALSE
 
+#define PR_AREA_DETECTOR_DEBUG_EXPOSURE_TIME_CONFLICT	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -52,6 +54,30 @@
 int mx_global_debug_initialized[10] = {FALSE};
 void *mx_global_debug_pointer[10] = {NULL};
 
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+#if PR_AREA_DETECTOR_DEBUG_EXPOSURE_TIME_CONFLICT
+
+#  define PR_AREA_DETECTOR_DISPLAY_EXPOSURE_TIMES( ad ) \
+	do { \
+	    double zz_exp_time;						\
+	    mx_status_type zz_mx_status;				\
+									\
+	    (void) mx_image_get_exposure_time(				\
+		(ad)->image_frame, &zz_exp_time );			\
+									\
+	    fprintf( stderr, "%s: image frame = %g, ", fname, zz_exp_time );  \
+									\
+	    (void) mx_image_get_exposure_time(				\
+		(ad)->dark_current_frame, &zz_exp_time );		\
+									\
+	    fprintf( stderr, "dark frame = %g\n", zz_exp_time );	\
+	} while (0)
+
+#else
+#  define PR_AREA_DETECTOR_DISPLAY_EXPOSURE_TIMES( ad )
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -102,6 +128,8 @@ mxp_area_detector_measure_correction_callback_function(
 	mx_vm_show_os_info( stderr, ad->record, sizeof(MX_RECORD *) );
 	MX_DEBUG(-2,("%s: ad->record->name = '%s'", fname, ad->record->name));
 #endif
+
+	PR_AREA_DETECTOR_DISPLAY_EXPOSURE_TIMES( ad );
 
 	pixels_per_frame = ad->framesize[0] * ad->framesize[1];
 
@@ -422,6 +450,9 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 		ad->correction_measurement_time,
 		ad->num_correction_measurements ));
 #endif
+
+	PR_AREA_DETECTOR_DISPLAY_EXPOSURE_TIMES( ad );
+
 	if ( ad->image_format != MXT_IMAGE_FORMAT_GREY16 ) {
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"The area detector is currently using an image format of %ld.  "

@@ -2109,6 +2109,10 @@ mx_area_detector_arm( MX_RECORD *record )
 
 		if ( ad->dark_current_frame != (MX_IMAGE_FRAME *) NULL ) {
 
+		    /* Only check for exposure time conflict if the user
+		     * has requested us to subtract a dark current image.
+		     */
+
 		    if ( (corr_flags & MXFT_AD_DARK_CURRENT_FRAME) != 0 ) {
 
 			mx_status = mx_image_get_exposure_time(
