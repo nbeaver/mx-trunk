@@ -65,10 +65,16 @@ main( int argc, char **argv )
 
 	fprintf( stdout, "\n" );
 
-#define MXP_PRINT_REVISION_LABEL(LABEL) \
+#if defined(_MSC_VER)
+#  define MXP_PRINT_REVISION_LABEL(LABEL) \
 	fprintf( stdout, "#define MX_REVISION_LABEL  \"" ## LABEL ## "\"\n" )
 
 	MXP_PRINT_REVISION_LABEL(MX_REVISION_LABEL);
+#else
+	fprintf( stdout,
+		"#define MX_REVISION_LABEL  \"" MX_REVISION_LABEL "\"\n" );
+#endif
+
 
 	fprintf( stdout, "\n" );
 

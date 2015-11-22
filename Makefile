@@ -2,6 +2,7 @@
 # Change the value of the MX_ARCH variable below to match the platform you
 # are compiling the MX system for.  The available platforms are:
 #
+#   android       - Android Bionic with GCC
 #   bsd           - FreeBSD, NetBSD, or OpenBSD
 #   bsd-clang     - FreeBSD with Clang 3.3 or above
 #   cygwin        - Cygwin 1.5 or 1.7
@@ -66,7 +67,7 @@
 # mx/module/epics/Makefile.config.
 #
 
-MX_ARCH = win32
+MX_ARCH = linux
 
 #MX_INSTALL_DIR = /opt/mx
 #MX_INSTALL_DIR = c:/opt/mx
@@ -74,10 +75,10 @@ MX_ARCH = win32
 #MX_INSTALL_DIR = /mnt/sdcard/opt/mx
 #MX_INSTALL_DIR = $(HOME)/local/mx
 #MX_INSTALL_DIR = $(HOME)/lavender/opt/mx
-#MX_INSTALL_DIR = $(HOME)/mxtest
+MX_INSTALL_DIR = $(HOME)/mxtest
 #MX_INSTALL_DIR = /programs/mx/
 #MX_INSTALL_DIR = c:/users/lavender/mxtest
-MX_INSTALL_DIR = c:/opt/mx-1.5.9-2015_11_17
+#MX_INSTALL_DIR = c:/opt/mx-1.5.9-2015_11_17
 
 #------------------------------------------------------------------------------
 

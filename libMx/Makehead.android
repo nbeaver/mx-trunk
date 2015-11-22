@@ -1,0 +1,298 @@
+#
+# Name:    Makehead.android
+#
+# Purpose: This file is used to customize operating system and installation
+#          dependent features of the MX makefiles.  This version is customized
+#          for Android and its Bionic libc.
+#
+# Normally, the only things that end users may have to modify in this file are
+# the definitions of INCLUDES, LIB_DIRS, and LIBRARIES.
+#
+
+# Turn on optimization
+#
+#OPTIMIZE = -O1
+#OPTIMIZE = -O2
+#OPTIMIZE = -O3
+#CFLAGS += $(OPTIMIZE)
+
+NDK       = $(HOME)/android/android-ndk
+TOOLCHAIN = $(NDK)/toolchains/arm-linux-androideabi-4.9
+SYSROOT   = $(NDK)/platforms/android-19/arch-arm
+
+INCLUDES	= $(MX_INCLUDES)
+
+LIB_DIRS	= -L$(MX_LIB_DIR) $(USER_LIB_DIRS)
+LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
+
+#LIB_DIRS	= -L$(MX_LIB_DIR)
+#LIBRARIES	= -lpthread -lrt -ldl -lm
+
+#========================================================================
+#
+# Generally, you should not have to modify anything after this point.
+#
+
+#
+# gcc specific flags
+#
+GCCFLAGS = -Wall -Werror \
+-Wpointer-arith \
+-Wcast-align \
+-Wcast-qual \
+-Wshadow \
+-Winline \
+-Wno-format-security
+
+GCCFLAGS_C = \
+-Wstrict-prototypes \
+-Wmissing-prototypes \
+-Wnested-externs
+
+#--------------------------------------------------------------------------
+#
+# 
+#
+
+CC      = $(TOOLCHAIN)/prebuilt/linux-x86_64/bin/arm-linux-androideabi-gcc \
+    -I$(SYSROOT)/usr/include/
+
+CFLAGS  += -g -fPIC $(GCCFLAGS) $(GCCFLAGS_C) $(INCLUDES) -DOS_ANDROID \
+				$(EXTRA_FLAGS) -DDEBUG $(USER_CFLAGS)
+
+CXXFLAGS  = -g -fPIC $(GCCFLAGS) $(INCLUDES) -DOS_ANDROID \
+				$(EXTRA_FLAGS) -DDEBUG $(USER_CFLAGS)
+
+LINKFLAGS = $(CFLAGS)
+
+LINKFLAGS += -rdynamic
+
+HOST_CC = gcc
+
+#---
+
+CFLAGS_EPICS	= $(CFLAGS) -Wno-strict-prototypes
+
+# Special cases for individual files.
+
+#CFLAGS_MX_CFN   = -DHAVE_LSB
+
+CFLAGS_MX_EPICS = $(CFLAGS_EPICS) -Wno-cast-qual
+
+CFLAGS_MX_VERS  = -DOS_ANDROID -DMX_MAJOR_VERSION=$(MX_MAJOR_VERSION) \
+			-DMX_MINOR_VERSION=$(MX_MINOR_VERSION) \
+			-DMX_UPDATE_VERSION=$(MX_UPDATE_VERSION) \
+			-DMX_REVISION_LABEL="\"$(MX_REVISION_LABEL)\""
+
+COMPILE		= $(CC) -c
+DEFINE		= -D
+MAKEDEPEND	= $(CC) -MM $(CFLAGS) -D__MX_MAKEDEPEND__ \
+	$(READLINE_INCLUDES) *.c > Makefile.depend
+
+MAKEDEPEND_CLEAN = rm Makefile.depend
+
+#
+#---------------------------------------------------
+#
+
+#
+#---------------------------------------------------
+#
+# See libMx/Makehead.irix for why this is here.
+#
+MX_LIB_OBJS       = $(MX_LIB_SRCS:.c=.$(OBJ))
+MOTOR_OBJS        = $(MOTOR_SRCS:.c=.$(OBJ))
+SERVER_OBJS       = $(SERVER_SRCS:.c=.$(OBJ))
+AUTOSAVE_OBJS     = $(AUTOSAVE_SRCS:.c=.$(OBJ))
+MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.$(OBJ))
+MXMONITOR_OBJS    = $(MXMONITOR_SRCS:.c=.$(OBJ))
+MXGET_OBJS        = $(MXGET_SRCS:.c=.$(OBJ))
+MXPUT_OBJS        = $(MXPUT_SRCS:.c=.$(OBJ))
+
+#----
+
+MX_LIB_OBJS += ../tools/strlcpy.o ../tools/strlcat.o
+MX_LIB_OBJS += ../tools/smvspatial.o
+
+#
+#---------------------------------------------------
+#
+
+LN_SF		= $(PWD)/../scripts/ln_sf
+##LN_SF		= ln -sf
+
+MAKE		= make
+MKDIR		= mkdir
+RM		= rm -f
+TOUCH		= touch -a
+
+OBJ		= o
+
+EXEOUT		= -o
+DOTEXE		=
+
+#
+#---------------------------------------------------
+#
+MX_LIB_DIR	= ../libMx
+MX_INC_DIR	= $(MX_LIB_DIR)
+MX_INCLUDES	= -I$(MX_INC_DIR)
+
+MX_SONAME	= libMx.so.$(MX_MAJOR_VERSION)
+
+MX_LIBRARY_NAME = $(MX_SONAME).$(MX_MINOR_VERSION).$(MX_UPDATE_VERSION)
+
+MX_LIBRARY_STATIC_NAME = libMx.a
+
+MX_LIBRARY_PATH = $(MX_LIB_DIR)/$(MX_LIBRARY_NAME)
+
+MX_LIBRARY_DELETE = rm $(MX_LIBRARY_NAME) $(MX_SONAME) libMx.so $(MX_LIBRARY_STATIC_NAME)
+
+$(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
+	-$(MX_LIBRARY_DELETE)
+	$(CC) -shared -Wl,-soname,$(MX_SONAME) -o $(MX_LIBRARY_NAME) \
+			$(LIB_DIRS) $(MX_LIB_OBJS) $(LIBRARIES) -lc
+	$(LN_SF) $(MX_LIBRARY_NAME) $(MX_SONAME)
+	$(LN_SF) $(MX_LIBRARY_NAME) libMx.so
+	ar rcs $(MX_LIBRARY_STATIC_NAME) $(MX_LIB_OBJS)
+	ranlib $(MX_LIBRARY_STATIC_NAME)
+
+library_install:
+	-mkdir $(MX_INSTALL_DIR)/bin
+	-mkdir $(MX_INSTALL_DIR)/etc
+	-mkdir $(MX_INSTALL_DIR)/etc/startup
+	-mkdir $(MX_INSTALL_DIR)/include
+	-mkdir $(MX_INSTALL_DIR)/lib
+	-mkdir $(MX_INSTALL_DIR)/log
+	-mkdir $(MX_INSTALL_DIR)/run
+	-mkdir $(MX_INSTALL_DIR)/sbin
+	-mkdir $(MX_INSTALL_DIR)/state
+	install -m 644 mx*.h $(MX_INSTALL_DIR)/include
+	install -m 644 $(MX_LIBRARY_NAME) $(MX_INSTALL_DIR)/lib
+	install -m 644 $(MX_LIBRARY_STATIC_NAME) $(MX_INSTALL_DIR)/lib
+	( cd $(MX_INSTALL_DIR)/lib ; $(LN_SF) $(MX_LIBRARY_NAME) $(MX_SONAME) )
+	( cd $(MX_INSTALL_DIR)/lib ; $(LN_SF) $(MX_LIBRARY_NAME) libMx.so )
+	touch $(MX_INSTALL_DIR)/etc/mxmotor.dat
+	touch $(MX_INSTALL_DIR)/etc/mxscan.dat
+	install -m 755 ../plotgnu/plotgnu.pl $(MX_INSTALL_DIR)/bin
+	install -m 755 ../plotgnu/showdata $(MX_INSTALL_DIR)/bin
+	install -m 755 ../plotgnu/showplot $(MX_INSTALL_DIR)/bin
+	install -m 755 ../plotgnu/plot2ps $(MX_INSTALL_DIR)/bin
+	install -m 755 ../scripts/mxsetup.sh $(MX_INSTALL_DIR)/bin
+	install -m 755 ../tools/mx_config $(MX_INSTALL_DIR)/bin
+
+mx_list_head.$(OBJ): Makefile.version mx_list_head.c mx_version.h
+	$(COMPILE) $(CFLAGS) -DMX_CFLAGS="${CFLAGS}" mx_list_head.c
+
+#
+#---------------------------------------------------
+#
+MOTOR_NAME	= mxmotor
+MOTOR_NAME2	= mxmotor.static
+
+$(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(LINKFLAGS) -o $(MOTOR_NAME) $(MOTOR_OBJS) \
+			$(LIB_DIRS) $(READLINE_LIB_DIRS) \
+			 -lMx $(LIBRARIES) $(READLINE_LIBRARIES)
+	$(CC) $(LINKFLAGS) -o $(MOTOR_NAME2) $(MOTOR_OBJS) \
+			$(LIB_DIRS) $(READLINE_LIB_DIRS) \
+			../libMx/$(MX_LIBRARY_STATIC_NAME) \
+			$(LIBRARIES) $(READLINE_LIBRARIES)
+
+motor_install:
+	install -m 755 $(MOTOR_NAME) $(MX_INSTALL_DIR)/bin
+	install -m 755 $(MOTOR_NAME2) $(MX_INSTALL_DIR)/bin
+
+#
+#---------------------------------------------------
+#
+SERVER_NAME	= mxserver
+
+$(SERVER_NAME): $(SERVER_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(LINKFLAGS) -o $(SERVER_NAME) $(SERVER_OBJS) \
+			$(LIB_DIRS) -lMx $(LIBRARIES)
+
+server_install:
+	install -m 755 $(SERVER_NAME) $(MX_INSTALL_DIR)/sbin
+	install -m 755 ../scripts/startmxserver $(MX_INSTALL_DIR)/sbin
+	install -m 755 ../scripts/mx $(MX_INSTALL_DIR)/sbin
+	touch $(MX_INSTALL_DIR)/etc/mxserver.dat
+	touch $(MX_INSTALL_DIR)/etc/mxserver.acl
+
+#
+#---------------------------------------------------
+#
+AUTOSAVE_NAME	= mxautosave
+
+$(AUTOSAVE_NAME): $(AUTOSAVE_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(LINKFLAGS) -o $(AUTOSAVE_NAME) $(AUTOSAVE_OBJS) \
+			$(LIB_DIRS) -lMx $(LIBRARIES)
+
+autosave_install:
+	install -m 755 $(AUTOSAVE_NAME) $(MX_INSTALL_DIR)/sbin
+	install -m 755 ../scripts/startmxautosave $(MX_INSTALL_DIR)/sbin
+	install -m 755 ../scripts/mxsave $(MX_INSTALL_DIR)/bin
+	install -m 755 ../scripts/mxrestore $(MX_INSTALL_DIR)/bin
+	touch $(MX_INSTALL_DIR)/etc/mxautosave.dat
+
+#
+#---------------------------------------------------
+#
+MXDRIVERINFO_NAME    = mxdriverinfo
+
+$(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(LINKFLAGS) -o $(MXDRIVERINFO_NAME) \
+		$(MXDRIVERINFO_OBJS) $(LIB_DIRS) -lMx $(LIBRARIES)
+
+#----
+
+MXMONITOR_NAME       = mxmonitor
+
+$(MXMONITOR_NAME): $(MXMONITOR_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(CFLAGS) -o $(MXMONITOR_NAME) \
+		$(MXMONITOR_OBJS) $(LIB_DIRS) -lMx $(LIBRARIES)
+
+#----
+
+MXSERIAL_NAME        = mxserial
+
+$(MXSERIAL_NAME): mxserial.o $(MX_LIBRARY_PATH)
+	$(CC) $(LINKFLAGS) -o $(MXSERIAL_NAME) mxserial.o \
+				$(LIB_DIRS) -lMx $(LIBRARIES)
+
+mxserial.o: mxserial_fork.c
+	$(CC) $(CFLAGS) -D__MX_APP__ -c mxserial_fork.c -o mxserial.o
+
+#----
+
+MXGET_NAME           = mxget
+
+$(MXGET_NAME): $(MXGET_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(CFLAGS) -o $(MXGET_NAME) \
+		$(MXGET_OBJS) $(LIB_DIRS) -lMx $(LIBRARIES)
+
+#----
+
+MXPUT_NAME           = mxput
+
+$(MXPUT_NAME): $(MXPUT_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(CFLAGS) -o $(MXPUT_NAME) \
+		$(MXPUT_OBJS) $(LIB_DIRS) -lMx $(LIBRARIES)
+
+#----
+
+util_install:
+	install -m 755 $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
+	install -m 755 $(MXMONITOR_NAME) $(MX_INSTALL_DIR)/bin
+	install -m 755 $(MXSERIAL_NAME) $(MX_INSTALL_DIR)/bin
+	install -m 755 $(MXGET_NAME) $(MX_INSTALL_DIR)/bin
+	install -m 755 $(MXPUT_NAME) $(MX_INSTALL_DIR)/bin
+
+#----
+
+mx_array.$(OBJ): mx_array.c
+	$(COMPILE) $(CFLAGS) $(MUSL_INCLUDES) mx_array.c
+
+mx_net.$(OBJ): mx_net.c
+	$(COMPILE) $(CFLAGS) $(MUSL_INCLUDES) mx_net.c
+
