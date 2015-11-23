@@ -36,7 +36,7 @@
 #include <direct.h>
 #endif
 
-#if defined( OS_UNIX ) || defined( OS_CYGWIN )
+#if defined( OS_UNIX ) || defined( OS_CYGWIN ) || defined( OS_ANDROID )
 #include <sys/time.h>
 #include <pwd.h>
 #endif
@@ -341,7 +341,7 @@ MX_EXPORT char *
 mx_username( char *buffer, size_t max_buffer_length )
 {
 #if defined( OS_WIN32 ) || defined( OS_LINUX ) || defined( OS_TRU64 ) \
-    || defined( OS_HURD )
+    || defined( OS_HURD ) || defined( OS_ANDROID )
 	static const char fname[] = "mx_username()";
 #endif
 
@@ -361,7 +361,8 @@ mx_username( char *buffer, size_t max_buffer_length )
 	 * extend getpwuid().
 	 */
 
-#if defined( OS_LINUX ) || defined( OS_TRU64 ) || defined(OS_HURD)
+#if defined( OS_LINUX ) || defined( OS_TRU64 ) || defined(OS_HURD) \
+    || defined( OS_ANDROID )
 	{
 		char scratch_buffer[ 1024 ];
 		struct passwd pw_buffer, *pw;
@@ -381,7 +382,8 @@ mx_username( char *buffer, size_t max_buffer_length )
 		 * number of OSes listed above.  Or something like that...
 		 */
 
-#if defined( OS_LINUX ) || defined( OS_TRU64 ) || defined(OS_HURD)
+#if defined( OS_LINUX ) || defined( OS_TRU64 ) || defined(OS_HURD) \
+	|| defined( OS_ANDROID )
 
 		/* FIXME: Valgrind says that this call to getpwuid_r()
 		 * results in a memory leak.  However, the man page
@@ -562,7 +564,7 @@ mx_setenv( const char *env_name,
 	return saved_errno;
 }
 
-#elif defined(OS_LINUX) || defined(OS_MACOSX)
+#elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_ANDROID)
 
 MX_EXPORT int
 mx_setenv( const char *env_name,
@@ -2040,7 +2042,7 @@ mx_get_random_max( void )
 
 /*--------*/
 
-#elif defined(OS_MACOSX) || defined(OS_BSD)
+#elif defined(OS_MACOSX) || defined(OS_BSD) || defined(OS_ANDROID)
 
 MX_EXPORT unsigned long
 mx_random( void )

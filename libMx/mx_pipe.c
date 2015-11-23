@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2007-2008, 2011, 2014 Illinois Institute of Technology
+ * Copyright 2007-2008, 2011, 2014-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -497,7 +497,7 @@ mx_pipe_set_blocking_mode( MX_PIPE *mx_pipe,
 /************************ Unix ***********************/
 
 #elif defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_VMS) \
-	|| defined(OS_DJGPP)
+	|| defined(OS_DJGPP) || defined(OS_ANDROID)
 
 #include <limits.h>
 #include <fcntl.h>

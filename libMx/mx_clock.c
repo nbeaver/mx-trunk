@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2009, 2011 Illinois Institute of Technology
+ * Copyright 1999-2006, 2009, 2011, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -44,7 +44,7 @@
 #include <rtems.h>
 #endif
 
-#if defined(OS_ECOS)
+#if defined(OS_ECOS) || defined(OS_ANDROID)
 #define USE_POSIX_CLOCKS
 #endif
 

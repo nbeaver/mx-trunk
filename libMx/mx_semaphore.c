@@ -1263,7 +1263,8 @@ mx_semaphore_get_value( MX_SEMAPHORE *semaphore,
 
 /*********************** Unix and Posix systems **********************/
 
-#elif defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_ECOS)
+#elif defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_ECOS) \
+	|| defined(OS_ANDROID)
 
 /* NOTE:  On some platforms, such as Linux and MacOS X, it is necessary
  * to include support for both System V and Posix semaphores.  The reason
@@ -1291,7 +1292,8 @@ static int mx_use_posix_named_semaphores   = FALSE;
 static int mx_use_posix_unnamed_semaphores = FALSE;
 static int mx_use_posix_named_semaphores   = FALSE;
 
-#elif defined(OS_IRIX) || defined(OS_QNX) || defined(OS_ECOS)
+#elif defined(OS_IRIX) || defined(OS_QNX) || defined(OS_ECOS) \
+	|| defined(OS_ANDROID)
 
 static int mx_use_posix_unnamed_semaphores = TRUE;
 static int mx_use_posix_named_semaphores   = TRUE;

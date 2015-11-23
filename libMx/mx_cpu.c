@@ -77,7 +77,7 @@ mx_get_number_of_cpu_cores( unsigned long *num_cores )
 
 #elif defined(OS_LINUX) || defined(OS_SOLARIS) || defined(OS_AIX) \
 	|| defined(OS_CYGWIN) || defined(OS_UNIXWARE) || defined(__FreeBSD__) \
-	|| defined(OS_QNX) || defined(OS_RTEMS)
+	|| defined(OS_QNX) || defined(OS_RTEMS) || defined(OS_ANDROID)
 
 MX_EXPORT mx_status_type
 mx_get_number_of_cpu_cores( unsigned long *num_cores )
@@ -386,7 +386,8 @@ mx_get_current_cpu_number( void )
 	return cpu_number;
 }
 
-#elif defined(OS_LINUX) || defined(OS_UNIXWARE) || defined(OS_VXWORKS)
+#elif defined(OS_LINUX) || defined(OS_UNIXWARE) || defined(OS_VXWORKS) \
+	|| defined(OS_ANDROID)
 
 /* Select this case if this particular platform does not implement
  * the concept of a CPU number or does not provide a programmatic
@@ -1097,7 +1098,7 @@ mx_get_process_affinity_mask( unsigned long process_id,
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	return mx_error( MXE_UNSUPPORTED, fname,
+return mx_error( MXE_UNSUPPORTED, fname,
 		"Getting the CPU affinity mask for a different process "
 		"is not supported on QNX." );
 }
@@ -1140,7 +1141,8 @@ mx_set_process_affinity_mask( unsigned long process_id,
 #elif defined(OS_MACOSX) || defined(OS_CYGWIN) || defined(OS_ECOS) \
 	|| defined(OS_RTEMS) || defined(OS_VXWORKS) || defined(OS_BSD) \
 	|| defined(OS_HPUX) || defined(OS_TRU64) || defined(OS_DJGPP) \
-	|| defined(OS_WIN32) || defined(OS_UNIXWARE) || defined(OS_HURD)
+	|| defined(OS_WIN32) || defined(OS_UNIXWARE) || defined(OS_HURD) \
+	|| defined(OS_ANDROID)
 
 /* FIXME for OS_MACOSX:
  *        If you have the CHUD package installed on MacOS X, CHUD apparently

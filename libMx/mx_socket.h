@@ -99,7 +99,7 @@ extern "C" {
 
 #if defined( OS_UNIX ) || defined( OS_CYGWIN ) || defined( OS_VMS ) \
  || defined( OS_DJGPP ) || defined( OS_RTEMS ) || defined( OS_VXWORKS ) \
- || defined( OS_ECOS )
+ || defined( OS_ECOS ) || defined( OS_ANDROID )
 
 #  define MX_SOCKET_FD			int
 #  define MX_INVALID_SOCKET_FD		(-1)

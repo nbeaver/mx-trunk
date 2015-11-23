@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2007, 2010-2012 Illinois Institute of Technology
+ * Copyright 2005-2007, 2010-2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -50,7 +50,7 @@ mx_display_system_meminfo( MX_SYSTEM_MEMINFO *meminfo )
 
 /***************************************************************************/
 
-#if defined( OS_LINUX ) || defined( OS_HURD )
+#if defined( OS_LINUX ) || defined( OS_ANDROID ) || defined( OS_HURD )
 
 /* For system memory information, we read from /proc/meminfo. */
 

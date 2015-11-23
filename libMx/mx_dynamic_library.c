@@ -433,7 +433,7 @@ mx_dynamic_library_get_function_name_from_address( void *address,
 #elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
 	|| defined(OS_BSD) || defined(OS_IRIX) || defined(OS_CYGWIN) \
 	|| defined(OS_QNX) || defined(OS_VMS) || defined(OS_UNIXWARE) \
-	|| defined(OS_HURD)
+	|| defined(OS_HURD) || defined(OS_ANDROID)
 
 /* Note: On most systems, calls to dlopen() are reference counted.  If you
  * dlopen() a library multiple times, then you must dlclose() it the same

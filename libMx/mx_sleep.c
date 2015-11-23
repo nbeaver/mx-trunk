@@ -9,7 +9,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005-2007, 2011 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2005-2007, 2011, 2015
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -44,7 +45,7 @@
 #elif defined(OS_LINUX) || defined(OS_SOLARIS) || defined(OS_IRIX) \
 	|| defined(OS_HPUX) || defined(OS_BSD) || defined(OS_QNX) \
 	|| defined(OS_TRU64) || defined(OS_RTEMS) || defined(OS_VXWORKS) \
-	|| defined(OS_ECOS) || defined(OS_HURD)
+	|| defined(OS_ECOS) || defined(OS_HURD) || defined(OS_ANDROID)
 
 #  define MX_SLEEP_TYPE        USE_NANOSLEEP_MX_SLEEP
 

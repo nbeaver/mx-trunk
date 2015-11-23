@@ -139,7 +139,7 @@ mx_show_process_allocated_bytes( void )
 
 /***************************************************************************/
 
-#if defined( OS_LINUX )
+#if defined( OS_LINUX ) || defined( OS_ANDROID )
 
 /*---*/
 #  if defined( MX_MUSL_VERSION )

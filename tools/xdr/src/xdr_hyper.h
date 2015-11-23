@@ -19,7 +19,8 @@
 #ifndef __XDR_HYPER_H__
 #define __XDR_HYPER_H__
 
-#if defined(OS_WIN32) || defined(OS_DJGPP) || defined(OS_ECOS)
+#if defined(OS_WIN32) || defined(OS_DJGPP) || defined(OS_ECOS) \
+      || defined(OS_ANDROID)
 #  include "xdr.h"
 #else
 #  include <rpc/types.h>
@@ -36,6 +37,11 @@
 #if defined(OS_WIN32)
    typedef __int64		quad_t;
    typedef unsigned __int64	u_quad_t;
+
+#elif defined(OS_ANDROID)
+
+   typedef int64_t		quad_t;
+   typedef uint64_t		u_quad_t;
 
 #elif defined(OS_CYGWIN) || defined(OS_QNX) || defined(OS_RTEMS) \
 	|| defined(OS_VXWORKS) || defined(OS_UNIXWARE)

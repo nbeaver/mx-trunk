@@ -44,7 +44,8 @@
 /*-------------------------------------------------------------------------*/
 
 #if defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_VMS) \
-	|| defined(OS_DJGPP) || defined(OS_RTEMS) || defined(OS_VXWORKS)
+	|| defined(OS_DJGPP) || defined(OS_RTEMS) || defined(OS_VXWORKS) \
+	|| defined(OS_ANDROID)
 
 #include <errno.h>
 #include <fcntl.h>
@@ -61,7 +62,8 @@
 /*---*/
 
 #if defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
-	|| defined(OS_IRIX) || defined(OS_CYGWIN) || defined(OS_RTEMS)
+	|| defined(OS_IRIX) || defined(OS_CYGWIN) || defined(OS_RTEMS) \
+	|| defined(OS_ANDROID)
 
 #  define USE_FIONREAD	TRUE
 #else
@@ -163,7 +165,7 @@ mx_get_max_file_descriptors( void )
 	int result;
 
 #if defined( OS_UNIX ) || defined( OS_CYGWIN ) || defined( OS_DJGPP ) \
-	|| defined( OS_VMS )
+	|| defined( OS_VMS ) || defined( OS_ANDROID )
 
 	result = getdtablesize();
 
@@ -196,7 +198,7 @@ mx_get_max_file_descriptors( void )
 
 #if defined( OS_UNIX ) || defined( OS_CYGWIN ) || defined( OS_DJGPP ) \
 	|| defined( OS_VMS ) || defined( OS_ECOS ) || defined( OS_RTEMS ) \
-	|| defined( OS_VXWORKS )
+	|| defined( OS_VXWORKS ) || defined( OS_ANDROID )
 
 MX_EXPORT int
 mx_get_number_of_open_file_descriptors( void )
@@ -267,7 +269,7 @@ mx_get_number_of_open_file_descriptors( void )
 #if defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
 	|| defined(OS_BSD) || defined(OS_QNX) || defined(OS_RTEMS) \
 	|| defined(OS_CYGWIN) || defined(OS_UNIXWARE) || defined(OS_VMS) \
-	|| defined(OS_HURD) || defined(OS_DJGPP)
+	|| defined(OS_HURD) || defined(OS_DJGPP) || defined(OS_ANDROID)
 
 MX_EXPORT mx_bool_type
 mx_fd_is_valid( int fd )
@@ -378,7 +380,7 @@ mx_get_file_size( char *filename )
 #elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_BSD) \
 	|| defined(OS_CYGWIN) || defined(OS_VMS) || defined(OS_HURD) \
 	|| defined(OS_QNX) || defined(OS_RTEMS) || defined(OS_VXWORKS) \
-	|| defined(OS_DJGPP)
+	|| defined(OS_DJGPP) || defined(OS_ANDROID)
 
 MX_EXPORT int64_t
 mx_get_file_size( char *filename )
@@ -593,7 +595,8 @@ mx_get_disk_space( char *filename,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS)
+#elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
+	|| defined(OS_ANDROID)
 
 #include <sys/statvfs.h>
 
@@ -964,10 +967,10 @@ mxp_parse_lsof_output( FILE *file,
 
 /*=========================================================================*/
 
-#if defined(OS_LINUX) || defined(OS_SOLARIS) || defined(OS_CYGWIN)
+#if defined(OS_LINUX) || defined(OS_SOLARIS) || defined(OS_CYGWIN) \
+	|| defined(OS_ANDROID)
 
-/* On Cygwin, use readlink() on the /proc/NNN/fd/NNN files.
- * On Linux, use readlink() on the /proc/NNN/fd/NNN files.
+/* On Linux, Cygwin, and Android, use readlink() on the /proc/NNN/fd/NNN files.
  * On Solaris, use readlink() on  the /proc/NNN/path/NNN files.
  */
 
@@ -1001,7 +1004,7 @@ mx_get_fd_name( unsigned long process_id, int fd,
 		return NULL;
 	}
 
-#  if defined(OS_LINUX) || defined(OS_CYGWIN)
+#  if defined(OS_LINUX) || defined(OS_CYGWIN) || defined(OS_ANDROID)
 	snprintf( fd_pathname, sizeof(fd_pathname),
 		"/proc/%lu/fd/%d",
 		process_id, fd );
@@ -1794,8 +1797,8 @@ mx_show_fd_names( unsigned long process_id )
 
 /*=========================================================================*/
 
-#if defined(OS_LINUX) \
-	&& ( ( MX_GLIBC_VERSION > 2003006L ) || defined( MX_MUSL_VERSION ) )
+#if defined(OS_ANDROID) || ( defined(OS_LINUX) \
+	&& ( ( MX_GLIBC_VERSION > 2003006L ) || defined( MX_MUSL_VERSION ) ) )
 
 	/*** Use Linux inotify via Glibc > 2.3.6 or musl ***/
 

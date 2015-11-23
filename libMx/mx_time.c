@@ -38,7 +38,7 @@
 /*-------------------------------------------------------------------------*/
 
 #if defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_VMS) \
-	|| defined(OS_RTEMS) || defined(OS_VXWORKS)
+	|| defined(OS_RTEMS) || defined(OS_VXWORKS) || defined(OS_ANDROID)
 
   /* These platforms already provide the thread-safe Posix time functions. */
 
@@ -428,14 +428,15 @@ mx_current_time_string( char *buffer, size_t buffer_length )
 
 /* FIXME: The time() system call does not return a 64-bit time on 32-bit
  *        platforms.  We need to find a way to get the correct 64-bit time
- *        relative to the Posix epoch on such platforms.
+ *        relative to the Posix epoch on such platforms to avoid the
+ *        Y-2038 problem.
  */
 
 #if defined(OS_WIN32) || defined(OS_LINUX) || defined(OS_MACOSX) \
 	|| defined(OS_SOLARIS) || defined(OS_BSD) || defined(OS_CYGWIN) \
 	|| defined(OS_VMS) || defined(OS_UNIXWARE) || defined(OS_DJGPP) \
 	|| defined(OS_QNX) || defined(OS_RTEMS) || defined(OS_VXWORKS) \
-	|| defined(OS_HURD)
+	|| defined(OS_HURD) || defined(OS_ANDROID)
 
 MX_EXPORT uint64_t
 mx_posix_time( void ) {

@@ -279,7 +279,7 @@ mx_heap_check( unsigned long heap_flags )
 #else /* No heap check support. */
 
 MX_EXPORT int
-mx_heap_check( void )
+mx_heap_check( unsigned long heap_flags )
 {
 	return TRUE;
 }

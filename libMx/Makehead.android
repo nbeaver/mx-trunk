@@ -18,12 +18,12 @@
 
 NDK       = $(HOME)/android/android-ndk
 TOOLCHAIN = $(NDK)/toolchains/arm-linux-androideabi-4.9
-SYSROOT   = $(NDK)/platforms/android-19/arch-arm
+SYSROOT   = $(NDK)/platforms/android-21/arch-arm
 
 INCLUDES	= $(MX_INCLUDES)
 
 LIB_DIRS	= -L$(MX_LIB_DIR) $(USER_LIB_DIRS)
-LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
+LIBRARIES	= $(USER_LIBRARIES) -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR)
 #LIBRARIES	= -lpthread -lrt -ldl -lm
@@ -32,22 +32,6 @@ LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
 #
 # Generally, you should not have to modify anything after this point.
 #
-
-#
-# gcc specific flags
-#
-GCCFLAGS = -Wall -Werror \
--Wpointer-arith \
--Wcast-align \
--Wcast-qual \
--Wshadow \
--Winline \
--Wno-format-security
-
-GCCFLAGS_C = \
--Wstrict-prototypes \
--Wmissing-prototypes \
--Wnested-externs
 
 #--------------------------------------------------------------------------
 #
@@ -65,7 +49,7 @@ CXXFLAGS  = -g -fPIC $(GCCFLAGS) $(INCLUDES) -DOS_ANDROID \
 
 LINKFLAGS = $(CFLAGS)
 
-LINKFLAGS += -rdynamic
+LINKFLAGS += -rdynamic -L$(SYSROOT)/usr/lib
 
 HOST_CC = gcc
 
@@ -150,8 +134,10 @@ MX_LIBRARY_DELETE = rm $(MX_LIBRARY_NAME) $(MX_SONAME) libMx.so $(MX_LIBRARY_STA
 
 $(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
 	-$(MX_LIBRARY_DELETE)
-	$(CC) -shared -Wl,-soname,$(MX_SONAME) -o $(MX_LIBRARY_NAME) \
-			$(LIB_DIRS) $(MX_LIB_OBJS) $(LIBRARIES) -lc
+	$(CC) $(LINKFLAGS) -shared -Wl,-soname,$(MX_SONAME) -o $(MX_LIBRARY_NAME) \
+		$(SYSROOT)/usr/lib/crtbegin_so.o \
+		$(SYSROOT)/usr/lib/crtend_so.o \
+		-L$(SYSROOT)/usr/lib $(LIB_DIRS) $(MX_LIB_OBJS) $(LIBRARIES) -lc
 	$(LN_SF) $(MX_LIBRARY_NAME) $(MX_SONAME)
 	$(LN_SF) $(MX_LIBRARY_NAME) libMx.so
 	ar rcs $(MX_LIBRARY_STATIC_NAME) $(MX_LIB_OBJS)

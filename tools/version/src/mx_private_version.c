@@ -251,7 +251,7 @@ mxp_generate_clang_macros( FILE *version_file )
 
 /*-------------------------------------------------------------------------*/
 
-#if defined(OS_RTEMS) || defined(OS_VXWORKS)
+#if defined(OS_RTEMS) || defined(OS_VXWORKS) || defined(OS_ANDROID)
 
       static void
       mxp_generate_glibc_macros( FILE *version_file )

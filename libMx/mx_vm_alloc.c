@@ -401,7 +401,7 @@ mx_vm_show_os_info( FILE *file,
 
 #elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_BSD) \
 	|| defined(OS_SOLARIS) || defined(OS_UNIXWARE) || defined(OS_CYGWIN) \
-	|| defined(OS_VMS) || defined(OS_HURD)
+	|| defined(OS_VMS) || defined(OS_HURD) || defined(OS_ANDROID)
 
 #include <errno.h>
 #include <sys/mman.h>
@@ -535,7 +535,7 @@ mx_vm_set_protection( void *address,
 
 /*----- Platform-specific mx_vm_get_protection() for Posix platforms ------*/
 
-#  if defined(OS_LINUX) || defined(OS_CYGWIN)
+#  if defined(OS_LINUX) || defined(OS_CYGWIN) || defined(OS_ANDROID)
 
 #  include <sys/mman.h>
 

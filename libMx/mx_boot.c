@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2007-2008, 2011 Illinois Institute of Technology
+ * Copyright 2007-2008, 2011, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -295,7 +295,7 @@ mx_get_system_boot_time( struct timespec *system_boot_timespec )
 
 /*---------------------- Linux and Cygwin ----------------------*/
 
-#elif defined(OS_LINUX) || defined(OS_CYGWIN)
+#elif defined(OS_LINUX) || defined(OS_CYGWIN) || defined(OS_ANDROID)
 
 /* The following code has not been tested with Linux 2.2 kernels or before. */
 

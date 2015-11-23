@@ -25,13 +25,14 @@
 
 /*---------------------------------------------------------------------------*/
 
-#if defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_RTEMS)
+#if defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_RTEMS) \
+	|| defined(OS_ANDROID)
 
 #include <stdio.h>
 #include <errno.h>
 #include <sys/ioctl.h>
 
-#if defined(__FreeBSD__) || defined(MX_MUSL_VERSION)
+#if defined(__FreeBSD__) || defined(MX_MUSL_VERSION) || defined(OS_ANDROID)
 #include <termios.h>
 #elif !defined(OS_QNX)
 #include <sys/termios.h>

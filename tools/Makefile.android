@@ -3,32 +3,11 @@
 #
 
 all:   ../libMx/mx_private_version.h mx_config smvspatial.o \
-	strlcpy.o strlcat.o \
-	unix/src/editline/libedit.a
+	strlcpy.o strlcat.o xdr.o xdr_hyper.o
 
 include ../libMx/Makefile.version
 
 include ../libMx/Makehead.android
-
-#------------------------------------------------------------------------
-#
-# Macros for the 'editline' package.
-#
-
-EDITLINE_DEFS = -DANSI_ARROWS -DHAVE_STDLIB -DHAVE_TCGETATTR -DHIDE \
-		-DUSE_DIRENT -DSYS_UNIX
-
-EDITLINE_GCCWARN = -Wall -Wshadow -Wpointer-arith -Wwrite-strings \
-		-Wunused -Wcomment -Wswitch
-
-##EDITLINE_CC = "gcc $(EDITLINE_GCCWARN)"
-
-EDITLINE_CC = "$(CC) $(EDITLINE_GCCWARN)"
-EDITLINE_CFLAGS = "$(EDITLINE_DEFS) -O -g"
-EDITLINE_RANLIB = ranlib
-
-EDITLINE_MAKECMD = \
-  make CC=$(EDITLINE_CC) CFLAGS=$(EDITLINE_CFLAGS) RANLIB=$(EDITLINE_RANLIB)
 
 # Get the Subversion revision number of MX (if available).
 
@@ -48,7 +27,7 @@ mx_private_version: ../libMx/Makefile.version version/src/mx_private_version.c
 	./mx_private_version > ../libMx/mx_private_version.h
 
 mx_config: version/src/mx_config.c ../libMx/mx_private_version.h
-	$(CC) -I../libMx -DOS_ANDROID -DMX_ARCH="\"$(MX_ARCH)\"" \
+	$(HOST_CC) -I../libMx -DOS_ANDROID -DMX_ARCH="\"$(MX_ARCH)\"" \
 		-o mx_config version/src/mx_config.c
 
 smvspatial.o: xgen/smvspatial.c
@@ -63,6 +42,11 @@ strlcat.o: generic/src/strlcat.c
 	$(CC) -c $(OPTIMIZE) -fPIC -I../libMx -DOS_ANDROID -D__MX_LIBRARY__ \
 		generic/src/strlcat.c
 
-unix/src/editline/libedit.a:
-	( cd unix/src/editline ; $(EDITLINE_MAKECMD) )
+xdr.o: xdr/src/xdr.c xdr/src/xdr.h
+	$(CC) -c $(CFLAGS) -I../libMx -DOS_ANDROID -D__MX_LIBRARY__ \
+		xdr/src/xdr.c 
+
+xdr_hyper.o: xdr/src/xdr_hyper.c xdr/src/xdr.h xdr/src/xdr_hyper.h
+	$(CC) -c $(CFLAGS) -I../libMx -DOS_ANDROID -D__MX_LIBRARY__ \
+		xdr/src/xdr_hyper.c 
 

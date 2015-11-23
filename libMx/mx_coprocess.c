@@ -9,7 +9,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004, 2010-2011 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2004, 2010-2011, 2015
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -30,7 +31,7 @@
 
 /*-------------------------------------------------------------------------*/
 
-#if defined(OS_UNIX) || defined(OS_CYGWIN)
+#if defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_ANDROID)
 
 #include <string.h>
 #include <stdlib.h>
