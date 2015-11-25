@@ -1753,7 +1753,14 @@ mx_area_detector_process_function( void *record_ptr,
 
 		case MXLV_AD_SEQUENCE_TYPE:
 		case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
+			break;
+
 		case MXLV_AD_SEQUENCE_PARAMETER_ARRAY:
+			/* Only setting the parameter array should cause
+			 * real activity to happen, since it is supposed
+			 * to be the last one written to.
+			 */
+
 #if PR_AREA_DETECTOR_DEBUG_PROCESS
 			for ( i = 0;
 			    i < ad->sequence_parameters.num_parameters;

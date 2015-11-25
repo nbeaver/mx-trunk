@@ -1743,34 +1743,21 @@ mxd_network_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
-	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY:
 		mx_status = mx_get(
 			&(network_area_detector->num_sequence_parameters_nf),
 			MXFT_LONG, &(ad->sequence_parameters.num_parameters) );
 				
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+		break;
 
+	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY:
 		dimension[0] = MXU_MAX_SEQUENCE_PARAMETERS;
 
 		mx_status = mx_get_array(
 			&(network_area_detector->sequence_parameter_array_nf),
 			MXFT_DOUBLE, 1, dimension,
 			&(ad->sequence_parameters.parameter_array));
-
-#if MXD_NETWORK_AREA_DETECTOR_DEBUG
-		MX_DEBUG(-2,("%s: num parameters = %ld",
-			fname, ad->sequence_parameters.num_parameters));
-		{
-		    long i;
-
-		    for (i = 0; i < ad->sequence_parameters.num_parameters; i++)
-		    {
-		    	MX_DEBUG(-2,("%s:  parameter_array[%ld] = %g",
-			fname, i, ad->sequence_parameters.parameter_array[i]));
-		    }
-		}
-#endif
 		break;
 
 	case MXLV_AD_ROI:
@@ -2043,14 +2030,15 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
-	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY:
 		mx_status = mx_put(
 			&(network_area_detector->num_sequence_parameters_nf),
 			MXFT_LONG, &(ad->sequence_parameters.num_parameters) );
 				
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+		break;
 
+	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY:
 		dimension[0] = ad->sequence_parameters.num_parameters;
 
 		mx_status = mx_put_array(
