@@ -253,8 +253,9 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 		if ( num_bytes_read < MXU_MPX_INITIAL_READ_LENGTH ) {
 		    mx_warning(
 			"%s: Buffer underrun (header), num_bytes_read = %ld, "
-			"expected read length = %d", fname, num_bytes_read,
-					MXU_MPX_INITIAL_READ_LENGTH );
+			"expected read length = %d",
+				fname, (long) num_bytes_read,
+				MXU_MPX_INITIAL_READ_LENGTH );
 		}
 
 		if ( strncmp( header_buffer, "MPX,", 4 ) != 0 ) {
@@ -471,7 +472,7 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 		    mx_warning(
 			"%s: Buffer underrun (body), num_bytes_read = %ld, "
 			"message_body_remaining_length = %ld",
-				fname, num_bytes_read,
+				fname, (long) num_bytes_read,
 				message_body_remaining_length );
 		}
 

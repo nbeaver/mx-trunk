@@ -63,7 +63,6 @@ void *mx_global_debug_pointer[10] = {NULL};
 #  define PR_AREA_DETECTOR_DISPLAY_EXPOSURE_TIMES( ad ) \
 	do { \
 	    double zz_exp_time;						\
-	    mx_status_type zz_mx_status;				\
 									\
 	    (void) mx_image_get_exposure_time(				\
 		(ad)->image_frame, &zz_exp_time );			\
