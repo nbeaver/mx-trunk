@@ -19,7 +19,9 @@
 
 #include "mx_pulse_generator.h"
 
-#define MXF_GITTELSOHN_PULSER_DEBUG	0x1
+#define MXF_GITTELSOHN_PULSER_DEBUG		0x1
+
+#define MXF_GITTELSOHN_PULSER_USE_RUNT_PULSE	0x10
 
 typedef struct {
 	MX_RECORD *record;

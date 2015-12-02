@@ -379,6 +379,7 @@ mxd_gittelsohn_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 	char **argv;
 	double on_ms, off_ms;
 	long saved_parameter_type;
+	unsigned long flags;
 	mx_status_type mx_status;
 
 	mx_status = mxd_gittelsohn_pulser_get_pointers( pulser,
@@ -392,6 +393,8 @@ mxd_gittelsohn_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	flags = gittelsohn_pulser->gittelsohn_pulser_flags;
 
 #if MXD_GITTELSOHN_PULSER_DEBUG
 	MX_DEBUG(-2,
@@ -432,7 +435,11 @@ mxd_gittelsohn_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 			"have at least 4 tokens in it for record '%s'.",
 				response, pulser->record->name );
 		} else {
-			pulser->num_pulses = atol( argv[3] );
+			if ( flags & MXF_GITTELSOHN_PULSER_USE_RUNT_PULSE ) {
+				pulser->num_pulses = atol( argv[3] ) - 1L;
+			} else {
+				pulser->num_pulses = atol( argv[3] );
+			}
 
 			mx_free(argv);
 
@@ -640,7 +647,8 @@ mxd_gittelsohn_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 	MX_GITTELSOHN_PULSER *gittelsohn_pulser = NULL;
 	char command[200];
 	char response[200];
-	long on_ms, off_ms;
+	long on_ms, off_ms, num_pulses;
+	unsigned long flags;
 	mx_status_type mx_status;
 
 	mx_status = mxd_gittelsohn_pulser_get_pointers( pulser,
@@ -648,6 +656,8 @@ mxd_gittelsohn_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	flags = gittelsohn_pulser->gittelsohn_pulser_flags;
 
 #if MXD_GITTELSOHN_PULSER_DEBUG
 	MX_DEBUG(-2,
@@ -660,8 +670,13 @@ mxd_gittelsohn_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 
 	switch( pulser->parameter_type ) {
 	case MXLV_PGN_NUM_PULSES:
-		snprintf( command, sizeof(command),
-			"cycles %ld", pulser->num_pulses );
+		if ( flags & MXF_GITTELSOHN_PULSER_USE_RUNT_PULSE ) {
+			num_pulses = pulser->num_pulses + 1L;
+		} else {
+			num_pulses = pulser->num_pulses;
+		}
+
+		snprintf( command, sizeof(command), "cycles %ld", num_pulses );
 
 		mx_status = mxd_gittelsohn_pulser_command( gittelsohn_pulser,
 					command, response, sizeof(response) );
