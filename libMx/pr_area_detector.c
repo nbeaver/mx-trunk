@@ -947,6 +947,7 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_CORRECTION_MEASUREMENT_TYPE:
 		case MXLV_AD_CORRECTION_SAVE_FORMAT:
 		case MXLV_AD_CORRECTION_SAVE_FORMAT_NAME:
+		case MXLV_AD_DARK_FRAME_EXPOSURE_TIME:
 		case MXLV_AD_DATAFILE_ALLOW_OVERWRITE:
 		case MXLV_AD_DATAFILE_AUTOSELECT_NUMBER:
 		case MXLV_AD_DATAFILE_DIRECTORY:
@@ -967,6 +968,7 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_IMAGE_FORMAT:
 		case MXLV_AD_IMAGE_FORMAT_NAME:
 		case MXLV_AD_IMAGE_FRAME_DATA:
+		case MXLV_AD_IMAGE_FRAME_EXPOSURE_TIME:
 		case MXLV_AD_IMAGE_FRAME_HEADER:
 		case MXLV_AD_IMAGE_FRAME_HEADER_LENGTH:
 		case MXLV_AD_IMAGE_LOG_FILENAME:
@@ -1128,6 +1130,16 @@ mx_area_detector_process_function( void *record_ptr,
 			mx_status = mx_area_detector_get_correction_flags(
 								record, NULL );
 			break;
+		case MXLV_AD_DARK_FRAME_EXPOSURE_TIME:
+			if ( ad->dark_current_frame == NULL ) {
+				ad->dark_frame_exposure_time = 0.0;
+			} else {
+				ad->dark_frame_exposure_time =
+			  MXIF_EXPOSURE_TIME_SEC(ad->dark_current_frame)
+		  + 1.0e-9 * MXIF_EXPOSURE_TIME_NSEC( ad->dark_current_frame );
+
+			}
+			break;
 		case MXLV_AD_DETECTOR_READOUT_TIME:
 			mx_status = mx_area_detector_get_detector_readout_time(
 								record, NULL );
@@ -1189,6 +1201,16 @@ mx_area_detector_process_function( void *record_ptr,
 					"frame of area detector '%s' failed.",
 						record->name );
 				}
+			}
+			break;
+		case MXLV_AD_IMAGE_FRAME_EXPOSURE_TIME:
+			if ( ad->image_frame == NULL ) {
+				ad->image_frame_exposure_time = 0.0;
+			} else {
+				ad->image_frame_exposure_time =
+			  MXIF_EXPOSURE_TIME_SEC(ad->image_frame)
+		  + 1.0e-9 * MXIF_EXPOSURE_TIME_NSEC( ad->image_frame );
+
 			}
 			break;
 		case MXLV_AD_IMAGE_FRAME_HEADER:

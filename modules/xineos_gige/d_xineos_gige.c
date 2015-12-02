@@ -766,6 +766,35 @@ mxd_xineos_gige_readout_frame( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* If we are using the pulse generator, then the video card will be
+	 * in DURATION mode.  In DURATION mode, the image frame returned by
+	 * the video input driver will have a header that states that the
+	 * exposure time is 1 second, since the video input driver does not
+	 * actually know what the exposure time is supposed to be in this
+	 * case.  Therefore, we must manually set the exposure time here
+	 * based on the sequence parameters known only by the area detector
+	 * record.
+	 */
+
+	if ( xineos_gige->use_pulse_generator ) {
+		struct timespec exposure_timespec;
+		double exposure_time;
+
+		mx_status = mx_area_detector_get_exposure_time( ad->record,
+							&exposure_time );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		exposure_timespec =
+		    mx_convert_seconds_to_high_resolution_time( exposure_time );
+
+		MXIF_EXPOSURE_TIME_SEC( ad->image_frame ) =
+						exposure_timespec.tv_sec;
+		MXIF_EXPOSURE_TIME_NSEC( ad->image_frame ) =
+						exposure_timespec.tv_nsec;
+	}
+
 	/* Save a pointer in the image frame structure that has information
 	 * that will be needed if we are going to write a NOIR header.
 	 */

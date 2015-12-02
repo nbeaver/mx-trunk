@@ -525,6 +525,15 @@ typedef struct mx_area_detector_type {
 	long show_image_frame;
 	long show_image_statistics;
 
+	/* The following two values report the exposure time for the
+	 * currently loaded image frame and dark current frame.  These
+	 * are the only two frame types for which the exposure time
+	 * has a useful value.
+	 */
+
+	double image_frame_exposure_time;
+	double dark_frame_exposure_time;
+
 	/* 'area_detector_flags' is used to initialize various features
 	 * of the area detector.
 	 */
@@ -708,6 +717,7 @@ typedef struct mx_area_detector_type {
 	 */
 
 	mx_bool_type image_log_error_seen;
+
 } MX_AREA_DETECTOR;
 
 /* Warning: Do not rely on the following numbers remaining the same
@@ -786,6 +796,8 @@ typedef struct mx_area_detector_type {
 #define MXLV_AD_MARK_FRAME_AS_SAVED		12070
 #define MXLV_AD_SHOW_IMAGE_FRAME		12071
 #define MXLV_AD_SHOW_IMAGE_STATISTICS		12072
+#define MXLV_AD_IMAGE_FRAME_EXPOSURE_TIME	12073
+#define MXLV_AD_DARK_FRAME_EXPOSURE_TIME	12074
 
 #define MXLV_AD_AREA_DETECTOR_FLAGS		12100
 #define MXLV_AD_INITIAL_CORRECTION_FLAGS	12101
@@ -1252,7 +1264,19 @@ typedef struct mx_area_detector_type {
 				MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
 		offsetof( MX_AREA_DETECTOR, show_image_statistics ), \
-	{0}, NULL, 0}
+	{0}, NULL, 0}, \
+  \
+  {MXLV_AD_IMAGE_FRAME_EXPOSURE_TIME, -1, "image_frame_exposure_time", \
+				MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof( MX_AREA_DETECTOR, image_frame_exposure_time ), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {MXLV_AD_DARK_FRAME_EXPOSURE_TIME, -1, "dark_frame_exposure_time", \
+				MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof( MX_AREA_DETECTOR, dark_frame_exposure_time ), \
+	{0}, NULL, MXFF_READ_ONLY }
 
 #define MX_AREA_DETECTOR_CORRECTION_STANDARD_FIELDS \
   {MXLV_AD_AREA_DETECTOR_FLAGS, -1, "area_detector_flags", \
