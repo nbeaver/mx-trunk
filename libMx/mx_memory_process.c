@@ -27,6 +27,7 @@
 #include "mx_osdef.h"
 #include "mx_util.h"
 #include "mx_unistd.h"
+#include "mx_stdint.h"
 #include "mx_memory.h"
 
 MX_EXPORT void
@@ -614,12 +615,21 @@ mxp_get_local_heap_size( HANDLE heap_handle,
 				mx_win32_error_message( heapwalk_error_code,
 				    message_buffer, sizeof(message_buffer) );
 
+#if defined(_WIN64)
+				return mx_error(
+					MXE_OPERATING_SYSTEM_ERROR, fname,
+			      "Error walking the heap for heap handle %I64u.  "
+				"Win32 error code = %ld, error message = '%s'",
+					(uint64_t) heap_handle,
+					heapwalk_error_code, message_buffer );
+#else
 				return mx_error(
 					MXE_OPERATING_SYSTEM_ERROR, fname,
 				"Error walking the heap for heap handle %lu.  "
 				"Win32 error code = %ld, error message = '%s'",
 					(unsigned long) heap_handle,
 					heapwalk_error_code, message_buffer );
+#endif
 			}
 		}
 

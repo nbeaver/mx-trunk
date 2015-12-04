@@ -3684,7 +3684,12 @@ mx_put_field_array( MX_RECORD *server_record,
 	uint32_t *header, *uint32_message;
 	char *message, *ptr, *name_ptr;
 	unsigned long i, j, max_attempts;
-	unsigned long ptr_address, remainder_value, gap_size;
+
+#if defined(_WIN64)
+	uint64_t xdr_ptr_address, xdr_remainder_value, xdr_gap_size;
+#else
+	unsigned long xdr_ptr_address, xdr_remainder_value, xdr_gap_size;
+#endif
 	uint32_t header_length, field_id_length;
 	uint32_t message_length, saved_message_length, max_message_length;
 	uint32_t send_message_type, receive_message_type;
@@ -3922,20 +3927,24 @@ mx_put_field_array( MX_RECORD *server_record,
 		 * with zeros.
 		 */
 
-		ptr_address = (unsigned long) ptr;
+#if defined(_WIN64)
+		xdr_ptr_address = (uint64_t) ptr;
+#else
+		xdr_ptr_address = (unsigned long) ptr;
+#endif
 
-		remainder_value = ptr_address % 4;
+		xdr_remainder_value = xdr_ptr_address % 4;
 
-		if ( remainder_value != 0 ) {
-			gap_size = 4 - remainder_value;
+		if ( xdr_remainder_value != 0 ) {
+			xdr_gap_size = 4 - xdr_remainder_value;
 
-			for ( j = 0; j < gap_size; j++ ) {
+			for ( j = 0; j < xdr_gap_size; j++ ) {
 				ptr[j] = '\0';
 			}
 
-			ptr += gap_size;
+			ptr += xdr_gap_size;
 
-			message_length += gap_size;
+			message_length += xdr_gap_size;
 		}
 
 		/* Now we are ready to do the XDR data conversion. */

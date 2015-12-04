@@ -6,7 +6,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2004, 2006, 2010 Illinois Institute of Technology
+ * Copyright 1999, 2004, 2006, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -181,7 +181,7 @@ main( int argc, char *argv[] )
 			if ( status != 0 ) {
 				sprintf( buffer,
 	"mxgnuplt: Error sending char '%c' to Gnuplot.  status = %ld\n",
-					c, status );
+					c, (long) status );
 				MessageBox( NULL, (LPTSTR) buffer,
 						NULL, MB_OK );
 			}

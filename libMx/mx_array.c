@@ -2267,7 +2267,7 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 	size_t native_array_size, native_subarray_size;
 	size_t xdr_data_size, xdr_array_size, xdr_subarray_size;
 	size_t buffer_left, remainder;
-	unsigned long xdr_buffer_address, address_remainder;
+	uint64_t xdr_buffer_address, address_remainder;
 	long i, n;
 	int xdr_status;
 	u_int num_array_elements;
@@ -2290,9 +2290,12 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 
 	/* Verify that the xdr_buffer pointer is correctly aligned
 	 * on a 4 byte address.
+	 *
+	 * Note: We explicitly cast the void pointer to a 64-bit integer to
+	 * avoid problems on 64-bit Windows which has 32-bit unsigned longs.
 	 */
 
-	xdr_buffer_address = (unsigned long) xdr_buffer;
+	xdr_buffer_address = (uint64_t) xdr_buffer;
 
 	address_remainder = xdr_buffer_address % 4;
 

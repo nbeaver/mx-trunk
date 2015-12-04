@@ -11,7 +11,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2005, 2007-2008, 2010, 2012 Illinois Institute of Technology
+ * Copyright 2004-2005, 2007-2008, 2010, 2012, 2015
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,6 +29,7 @@
 #include "mx_osdef.h"
 #include "mx_util.h"
 #include "mx_unistd.h"
+#include "mx_stdint.h"
 
 #if defined( OS_WIN32 ) && defined( _DEBUG )
 
@@ -215,15 +217,25 @@ mx_heap_check( unsigned long heap_flags )
 
 		if ( validate_status == 0 ) {
 			if ( heap_flags & MXF_HEAP_CHECK_CORRUPTED_VERBOSE ) {
-				mx_warning( "%s: Heap %lu (%#lx) is CORRUPTED.",
+#if defined(_WIN64)
+			    mx_warning( "%s: Heap %lu (%#I64x) is CORRUPTED.",
+					fname, i, (uint64_t) heap_handle );
+#else
+			    mx_warning( "%s: Heap %lu (%#lx) is CORRUPTED.",
 					fname, i, (unsigned long) heap_handle );
+#endif
 			}
 
 			heap_ok = FALSE;
 		} else {
 			if ( heap_flags & MXF_HEAP_CHECK_OK_VERBOSE ) {
-				mx_info( "%s: Heap %lu (%#lx) is OK.",
+#if defined(_WIN64)
+			    mx_info( "%s: Heap %lu (%#I64x) is OK.",
+					fname, i, (uint64_t) heap_handle );
+#else
+			    mx_info( "%s: Heap %lu (%#lx) is OK.",
 					fname, i, (unsigned long) heap_handle );
+#endif
 			}
 		}
 	}

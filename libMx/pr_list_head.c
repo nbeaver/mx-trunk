@@ -199,9 +199,11 @@ mx_list_head_process_function( void *record_ptr,
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"This feature currently does not work." );
 
+#if 0
 			fprintf( stderr,
 				(void *) list_head->vm_region[0],
 				list_head->vm_region[1] );
+#endif
 			break;
 		case MXLV_LHD_BREAKPOINT:
 			if ( list_head->remote_breakpoint_enabled ) {
@@ -842,7 +844,7 @@ mx_list_head_record_show_clbk_id( MX_LIST_HEAD *list_head )
 				fprintf( stderr,
 				    "  Socket handler %p, socket %d\n",
 				socket_handler,
-				socket_handler->synchronous_socket->socket_fd );
+			  (int) socket_handler->synchronous_socket->socket_fd );
 
 				fprintf( stderr,
 				    "    Client '%s', username '%s'\n",

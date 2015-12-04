@@ -476,8 +476,27 @@ mx_thread_create( MX_THREAD **thread,
 	thread_arg_struct->thread_function = thread_function;
 	thread_arg_struct->thread_arguments = thread_arguments;
 
-	/* Create the thread in a suspended state. */
+	/*******************************************
+	 * Create the thread in a suspended state. *
+	 *******************************************/
 
+	/* Note: _beginthreadex() returns a uintptr_t, but the rest of
+	 * Windows expects to use this as a HANDLE.  But on 64-bit Windows,
+	 * these two types are not actually equivalent, but the conversion
+	 * works anyway and we must do it, since programmers are warned
+	 * strongly against calling CreateThread() directly for this.
+	 *
+	 * However, recent versions of Visual C++ have started emitting
+	 * warning 4312 ('type cast': conversion from 'int' to 'HANDLE'
+	 * of greater size).  But we _must_ do this conversion.  Windows
+	 * does not provide a way around it.  So we suppress the warning,
+	 * since MX's policy is to treat all warnings as errors.  Ick.
+	 */
+
+#if (_MSC_VER >= 1900)
+#  pragma warning(push)
+#  pragma warning(disable : 4312)
+#endif
 	thread_private->thread_handle =
 			(HANDLE) _beginthreadex( NULL,
 						0,
@@ -485,6 +504,9 @@ mx_thread_create( MX_THREAD **thread,
 						thread_arg_struct,
 						CREATE_SUSPENDED,
 						&thread_id );
+#if (_MSC_VER >= 1900)
+#  pragma warning(pop)
+#endif
 
 	if ( thread_private->thread_handle == 0 ) {
 		last_error_code = GetLastError();
@@ -960,10 +982,18 @@ mx_show_thread_info( MX_THREAD *thread, char *message )
 	mx_info( "  thread_private pointer     = %p", thread_private );
 	mx_info( "  Win32 thread id            = %08lx",
 				(unsigned long) thread_private->thread_id );
+
+#if defined(_WIN64)
+	mx_info( "  Win32 thread handle        = %016I64x",
+				thread_private->thread_handle );
+	mx_info( "  Win32 stop event handle    = %016I64x",
+				thread_private->stop_event_handle );
+#else
 	mx_info( "  Win32 thread handle        = %08lx",
 				(unsigned long) thread_private->thread_handle );
 	mx_info( "  Win32 stop event handle    = %08lx",
 			(unsigned long) thread_private->stop_event_handle );
+#endif
 
 	return;
 }

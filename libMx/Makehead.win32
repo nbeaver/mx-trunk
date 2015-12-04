@@ -80,10 +80,10 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 #
 
 #MSDEV_ARCH	= x86
-MSDEV_ARCH	= x64
+#MSDEV_ARCH	= x64
 
 #MSDEV_ARCH	= x86_vs2012
-#MSDEV_ARCH	= x64_vs2012
+MSDEV_ARCH	= x64_vs2012
 
 #
 # 4.  You must specify the directory that the libraries for Microsoft
@@ -196,7 +196,7 @@ endif
 
 #PLATFORM_SDK = c:\\progra~1\\micros~2\\windows\\v7.0
 #PLATFORM_SDK = c:\\progra~1\\micros~4\\windows\\v7.0
-PLATFORM_SDK = c:\\progra~1\\mia713~1\\windows\\v7.1
+#PLATFORM_SDK = c:\\progra~1\\mia713~1\\windows\\v7.1
 
 # Visual C++ 2005 Express
 #

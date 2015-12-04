@@ -34,7 +34,9 @@
 #include <sys/wtime.h>	/* Sometimes we get 'struct timespec' from here. */
 #endif
 
-#if defined( OS_WIN32 ) || ( defined( OS_VMS ) && (__VMS_VER < 80000000) )
+#if ( defined( OS_WIN32 ) && (_MSC_VER < 1900) ) \
+	|| ( defined( OS_WIN32 ) && ( !defined(_MSC_VER) ) ) \
+	|| ( defined( OS_VMS ) && (__VMS_VER < 80000000) )
 
 /* However, some operating systems do not define 'struct timespec'.
  * We include a C++ safe declaration below.

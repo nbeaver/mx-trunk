@@ -374,8 +374,13 @@ mx_vm_show_os_info( FILE *file,
 						memory_info.AllocationBase );
 	fprintf( file, "    AllocationProtect = %#lx\n",
 						memory_info.AllocationProtect );
+#if defined(_WIN64)
+	fprintf( file, "    RegionSize =        %I64u\n",
+						memory_info.RegionSize );
+#else
 	fprintf( file, "    RegionSize =        %lu\n",
 						memory_info.RegionSize );
+#endif
 	fprintf( file, "    State =             %#lx\n", memory_info.State );
 	fprintf( file, "    Protect =           %#lx\n", memory_info.Protect );
 	fprintf( file, "    Type =              %#lx\n", memory_info.Type );

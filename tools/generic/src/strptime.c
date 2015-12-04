@@ -99,6 +99,10 @@ __RCSID("$NetBSD: strptime.c,v 1.33 2009/05/24 02:25:43 ginsbach Exp $");
 #     define TIME_MAX	LONG_MAX
 #  endif
 
+#  if defined(_MSC_VER) && (_MSC_VER >= 1900)
+      static char *tzname[2] = { "UTC", "" };
+#  endif
+
 #  if defined(__BORLANDC__)
 #     define TIME_MAX	LONG_MAX
 #     define tzname	_tzname

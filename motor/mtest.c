@@ -72,6 +72,12 @@ motor_test_fn( int argc, char *argv[] )
 			return SUCCESS;
 		} else
 		if ( strcmp( argv[2], "address" ) == 0 ) {
+#if defined(_WIN64)
+			fprintf( output,
+			    "Not yet implemented for 64-bit Windows.\n" );
+
+			return FAILURE;
+#else
 			void *address;
 			size_t region_size_in_bytes;
 
@@ -83,6 +89,7 @@ motor_test_fn( int argc, char *argv[] )
 
 			address = (void *)
 				mx_hex_string_to_unsigned_long( argv[3] );
+
 			region_size_in_bytes
 				= mx_hex_string_to_unsigned_long( argv[4] );
 
@@ -95,6 +102,7 @@ motor_test_fn( int argc, char *argv[] )
 			} else {
 				return FAILURE;
 			}
+#endif
 		} else
 		if ( strcmp( argv[2], "monitor" ) == 0 ) {
 			if ( argc > 3 ) {

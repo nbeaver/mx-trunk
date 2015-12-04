@@ -12,7 +12,7 @@
  *--------------------------------------------------------------------------
  *
  * Copyright 2000-2001, 2003-2004, 2006, 2008-2010, 2015
- *      Illinois Institute of Technology
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -41,7 +41,21 @@
  */
 
 #include <windows.h>
-#include <imagehlp.h>
+
+#if ( _MSC_VER < 1900 )
+#  include <imagehlp.h>
+#else
+   /* Visual Studio 2015 <imagehlp.h> has warnings due to typedefs that do not
+    * actually define a type.  Apparently, Microsoft promises to fix this
+    * (Visual Studio bug 1319997) but has not yet done it.  In the meantime,
+    * we do the following annoying thing.  (2015-12-03 WML)
+    */
+
+#  pragma warning(push)
+#  pragma warning(disable : 4091)
+#  include <imagehlp.h>
+#  pragma warning(pop)
+#endif
 
 #include "mx_stdint.h"
 #include "mx_unistd.h"
@@ -106,7 +120,11 @@ mx_win32_get_logical_address( void *address,
 	IMAGE_DOS_HEADER *dos_header;
 	IMAGE_NT_HEADERS *nt_header;
 	IMAGE_SECTION_HEADER *section_pointer;
+#if defined(_WIN64)
+	uint64_t module_handle, rva, section_start, section_end;
+#else
 	DWORD module_handle, rva, section_start, section_end;
+#endif
 	size_t num_bytes_returned;
 	unsigned int i;
 
@@ -124,7 +142,11 @@ mx_win32_get_logical_address( void *address,
 
 	/* mbi.AllocationBase may be a handle to the module for this address. */
 
+#if defined(_WIN64)
+	module_handle = (uint64_t) mbi.AllocationBase;
+#else
 	module_handle = (DWORD) mbi.AllocationBase;
+#endif
 
 	/* Get the name of the module corresponding to this supposed handle. */
 
@@ -160,7 +182,11 @@ mx_win32_get_logical_address( void *address,
 	 * it a 'relative virtual address'.
 	 */
 
+#if defined(_WIN64)
+	rva = (uint64_t) address - module_handle;
+#else
 	rva = (DWORD) address - module_handle;
+#endif
 
 	/* Loop through the section table, looking for the section that
 	 * contains this address.
@@ -420,7 +446,11 @@ mx_win32_imagehlp_stack_walk( CONTEXT *context )
 		 * relative to the start of the symbol.
 		 */
 
+#if defined(_WIN64)
+		fprintf( stderr, "%016I64X  ", stack_frame.AddrPC.Offset );
+#else
 		fprintf( stderr, "%08X  ", stack_frame.AddrPC.Offset );
+#endif
 
 		sym_displacement = 0;
 
@@ -431,9 +461,15 @@ mx_win32_imagehlp_stack_walk( CONTEXT *context )
 
 		if ( imagehlp_status ) {
 
+#if defined(_WIN64)
+			fprintf( stderr, "%hs+%I64X",
+				imagehlp_symbol_ptr->Name,
+				sym_displacement );
+#else
 			fprintf( stderr, "%hs+%X",
 				imagehlp_symbol_ptr->Name,
 				sym_displacement );
+#endif
 
 			if ( _SymGetLineFromAddr != NULL ) {
 				imagehlp_line64.SizeOfStruct =
