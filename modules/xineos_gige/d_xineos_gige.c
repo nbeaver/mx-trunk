@@ -20,6 +20,8 @@
 
 #define MXD_XINEOS_GIGE_DEBUG_MEASURE_CORRECTION	FALSE
 
+#define MXD_XINEOS_GIGE_DEBUG_IMAGE_CONTENTS		TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -191,8 +193,7 @@ mxd_xineos_gige_open( MX_RECORD *record )
 
 	ad = (MX_AREA_DETECTOR *) record->record_class_struct;
 
-	mx_status = mxd_xineos_gige_get_pointers( ad,
-						&xineos_gige, fname );
+	mx_status = mxd_xineos_gige_get_pointers( ad, &xineos_gige, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -403,8 +404,7 @@ mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 	long vinput_trigger_mode, num_frames;
 	mx_status_type mx_status;
 
-	mx_status = mxd_xineos_gige_get_pointers( ad,
-						&xineos_gige, fname );
+	mx_status = mxd_xineos_gige_get_pointers( ad, &xineos_gige, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -572,8 +572,7 @@ mxd_xineos_gige_trigger( MX_AREA_DETECTOR *ad )
 	unsigned long num_pulses;
 	mx_status_type mx_status;
 
-	mx_status = mxd_xineos_gige_get_pointers( ad,
-						&xineos_gige, fname );
+	mx_status = mxd_xineos_gige_get_pointers( ad, &xineos_gige, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -675,8 +674,7 @@ mxd_xineos_gige_stop( MX_AREA_DETECTOR *ad )
 	MX_XINEOS_GIGE *xineos_gige = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_xineos_gige_get_pointers( ad,
-						&xineos_gige, fname );
+	mx_status = mxd_xineos_gige_get_pointers( ad, &xineos_gige, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -703,8 +701,7 @@ mxd_xineos_gige_get_extended_status( MX_AREA_DETECTOR *ad )
 	unsigned long vinput_status;
 	mx_status_type mx_status;
 
-	mx_status = mxd_xineos_gige_get_pointers( ad,
-						&xineos_gige, fname );
+	mx_status = mxd_xineos_gige_get_pointers( ad, &xineos_gige, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -747,9 +744,9 @@ mxd_xineos_gige_readout_frame( MX_AREA_DETECTOR *ad )
 
 	MX_HRT_START(total_measurement);
 #endif
+	mx_breakpoint();
 
-	mx_status = mxd_xineos_gige_get_pointers( ad,
-						&xineos_gige, fname );
+	mx_status = mxd_xineos_gige_get_pointers( ad, &xineos_gige, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -801,6 +798,24 @@ mxd_xineos_gige_readout_frame( MX_AREA_DETECTOR *ad )
 
 	ad->image_frame->application_ptr = xineos_gige->image_noir_info;
 
+#if MXD_XINEOS_GIGE_DEBUG_IMAGE_CONTENTS
+	{
+		uint16_t *u16_image_data = (uint16_t *) ad->image_frame_data;
+		uint16_t pixel_value;
+		int i;
+
+		fprintf( stderr, "%s: image data (u16) = ", fname );
+
+		for ( i = 0; i < 10; i++ ) {
+			pixel_value = u16_image_data[i];
+
+			fprintf( stderr, "%lu ", (unsigned long) pixel_value );
+		}
+
+		fprintf( stderr, "...\n" );
+	}
+#endif
+
 	return mx_status;
 }
 
@@ -814,8 +829,7 @@ mxd_xineos_gige_correct_frame( MX_AREA_DETECTOR *ad )
 	MX_XINEOS_GIGE *xineos_gige = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_xineos_gige_get_pointers( ad,
-						&xineos_gige, fname );
+	mx_status = mxd_xineos_gige_get_pointers( ad, &xineos_gige, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -841,8 +855,7 @@ mxd_xineos_gige_get_parameter( MX_AREA_DETECTOR *ad )
 	char buffer[100];
 #endif
 
-	mx_status = mxd_xineos_gige_get_pointers( ad,
-						&xineos_gige, fname );
+	mx_status = mxd_xineos_gige_get_pointers( ad, &xineos_gige, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -939,8 +952,7 @@ mxd_xineos_gige_set_parameter( MX_AREA_DETECTOR *ad )
 	static int num_allowed_binsizes = sizeof( allowed_binsize )
 						/ sizeof( allowed_binsize[0] );
 
-	mx_status = mxd_xineos_gige_get_pointers( ad,
-						&xineos_gige, fname );
+	mx_status = mxd_xineos_gige_get_pointers( ad, &xineos_gige, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1045,8 +1057,7 @@ mxd_xineos_gige_measure_correction( MX_AREA_DETECTOR *ad )
 	unsigned long i, ad_status;
 	mx_status_type mx_status;
 
-	mx_status = mxd_xineos_gige_get_pointers( ad,
-						&xineos_gige, fname );
+	mx_status = mxd_xineos_gige_get_pointers( ad, &xineos_gige, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
