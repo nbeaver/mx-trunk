@@ -490,7 +490,7 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 				fprintf( stderr,
 				"MX (socket %d) deleting callback %#lx "
 				"for newly disconnected client.\n",
-				socket_handler->synchronous_socket->socket_fd,
+			    (int) socket_handler->synchronous_socket->socket_fd,
 				(unsigned long) callback_ptr->callback_id );
 			    }
 #endif
@@ -2649,7 +2649,7 @@ mxsrv_send_field_value_to_client(
 #if NETWORK_DEBUG_MESSAGES
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
-						mx_socket->socket_fd );
+				(int) mx_socket->socket_fd );
 
 		mx_network_display_message( network_message, record_field,
 				socket_handler->use_64bit_network_longs );
@@ -2660,17 +2660,17 @@ mxsrv_send_field_value_to_client(
 		mxsrv_print_timestamp();
 
 		if ( message_id_for_client & MX_NETWORK_MESSAGE_IS_CALLBACK ) {
-			fprintf( stderr,
-				"MX (socket %d) VC_CALLBACK('%s.%s') = ",
-				socket_handler->synchronous_socket->socket_fd,
-				record->name,
-				record_field->name );
+		    fprintf( stderr,
+			"MX (socket %d) VC_CALLBACK('%s.%s') = ",
+			(int) socket_handler->synchronous_socket->socket_fd,
+			record->name,
+			record_field->name );
 		} else {
-			fprintf( stderr,
-				"MX (socket %d) GET_ARRAY('%s.%s') = ",
-				socket_handler->synchronous_socket->socket_fd,
-				record->name,
-				record_field->name );
+		    fprintf( stderr,
+			"MX (socket %d) GET_ARRAY('%s.%s') = ",
+			(int) socket_handler->synchronous_socket->socket_fd,
+			record->name,
+			record_field->name );
 		}
 
 		mx_network_buffer_show_value(
@@ -2741,7 +2741,12 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 	char token_buffer[500];
 	void *pointer_to_value;
 	long message_buffer_used, buffer_left;
-	unsigned long i, ptr_address, remainder, gap_size;
+
+#if defined(_WIN64)
+	uint64_t i, xdr_ptr_address, xdr_remainder, xdr_gap_size;
+#else
+	unsigned long i, xdr_ptr_address, xdr_remainder, xdr_gap_size;
+#endif
 	int array_is_dynamically_allocated;
 	mx_status_type ( *token_parser )
 		( void *, char *, MX_RECORD *, MX_RECORD_FIELD *,
@@ -2993,25 +2998,29 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 			 * that _is_ and fill the bytes inbetween with zeros.
 		 	 */
 
-			ptr_address = (unsigned long) value_buffer;
+#if defined(_WIN64)
+			xdr_ptr_address = (uint64_t) value_buffer;
+#else
+			xdr_ptr_address = (unsigned long) value_buffer;
+#endif
 
-			remainder = ptr_address % 4;
+			xdr_remainder = xdr_ptr_address % 4;
 
-			if ( remainder != 0 ) {
-				gap_size = 4 - remainder;
+			if ( xdr_remainder != 0 ) {
+				xdr_gap_size = 4 - xdr_remainder;
 
-				for ( i = 0; i < gap_size; i++ ) {
+				for ( i = 0; i < xdr_gap_size; i++ ) {
 					value_buffer[i] = '\0';
 				}
 
-				value_buffer += gap_size;
+				value_buffer += xdr_gap_size;
 
-				buffer_left -= gap_size;
+				buffer_left -= xdr_gap_size;
 			}
 
 			MX_DEBUG( 2,
 			("%s: ptr_address = %#lx, value_buffer = %p",
-				fname, ptr_address, value_buffer));
+				fname, xdr_ptr_address, value_buffer));
 
 			/* Now we are ready to do the XDR data conversion. */
 
@@ -3139,7 +3148,7 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 #if NETWORK_DEBUG_MESSAGES
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
-						mx_socket->socket_fd );
+				(int) mx_socket->socket_fd );
 
 		mx_network_display_message( network_message, record_field,
 				socket_handler->use_64bit_network_longs );
@@ -3150,7 +3159,7 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 
 		fprintf( stderr,
 			"MX (socket %d) PUT_ARRAY('%s.%s') = ",
-			socket_handler->synchronous_socket->socket_fd,
+			(int) socket_handler->synchronous_socket->socket_fd,
 			record->name,
 			record_field->name );
 
@@ -3350,7 +3359,7 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 #if NETWORK_DEBUG_MESSAGES
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
-				socket_handler->synchronous_socket->socket_fd );
+			(int) socket_handler->synchronous_socket->socket_fd );
 
 		mx_network_display_message( network_message, NULL,
 				socket_handler->use_64bit_network_longs );
@@ -3361,7 +3370,7 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 
 		fprintf( stderr,
 		    "MX (socket %d) GET_NETWORK_HANDLE('%s.%s') = (%lu,%lu)\n",
-			socket_handler->synchronous_socket->socket_fd,
+			(int) socket_handler->synchronous_socket->socket_fd,
 			record->name,
 			record_field->name,
 			record_handle,
@@ -3471,7 +3480,7 @@ mxsrv_handle_get_field_type( MX_RECORD *record_list,
 #if NETWORK_DEBUG_MESSAGES
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
-						mx_socket->socket_fd );
+				(int) mx_socket->socket_fd );
 
 		mx_network_display_message( network_message, NULL,
 				socket_handler->use_64bit_network_longs );
@@ -3483,7 +3492,7 @@ mxsrv_handle_get_field_type( MX_RECORD *record_list,
 		fprintf( stderr,
 			"MX (socket %d) GET_FIELD_TYPE('%s.%s') = "
 			"( 'datatype' = %lu, 'num_dimensions' = %lu )\n",
-			socket_handler->synchronous_socket->socket_fd,
+			(int) socket_handler->synchronous_socket->socket_fd,
 			field->record->name,
 			field->name,
 			field->datatype,
@@ -3680,7 +3689,7 @@ mxsrv_handle_get_attribute( MX_RECORD *record_list,
 #if NETWORK_DEBUG_MESSAGES
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
-				socket_handler->synchronous_socket->socket_fd );
+			(int) socket_handler->synchronous_socket->socket_fd );
 
 		mx_network_display_message( network_message, NULL,
 				socket_handler->use_64bit_network_longs );
@@ -3691,7 +3700,7 @@ mxsrv_handle_get_attribute( MX_RECORD *record_list,
 
 		fprintf( stderr,
 			"MX (socket %d) GET_ATTRIBUTE('%s.%s', %lu) = %g\n",
-			socket_handler->synchronous_socket->socket_fd,
+			(int) socket_handler->synchronous_socket->socket_fd,
 			record->name,
 			record_field->name,
 			(unsigned long) attribute_number,
@@ -3894,7 +3903,7 @@ mxsrv_handle_set_attribute( MX_RECORD *record_list,
 #if NETWORK_DEBUG_MESSAGES
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
-				socket_handler->synchronous_socket->socket_fd );
+			(int) socket_handler->synchronous_socket->socket_fd );
 
 		mx_network_display_message( network_message, NULL,
 				socket_handler->use_64bit_network_longs );
@@ -3905,7 +3914,7 @@ mxsrv_handle_set_attribute( MX_RECORD *record_list,
 
 		fprintf( stderr,
 			"MX (socket %d) SET_ATTRIBUTE('%s.%s', %lu) = %g\n",
-			socket_handler->synchronous_socket->socket_fd,
+			(int) socket_handler->synchronous_socket->socket_fd,
 			record->name,
 			record_field->name,
 			(unsigned long) attribute_number,
@@ -4101,7 +4110,7 @@ mxsrv_handle_set_client_info( MX_RECORD *record_list,
 #if NETWORK_DEBUG_MESSAGES
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
-				socket_handler->synchronous_socket->socket_fd );
+			(int) socket_handler->synchronous_socket->socket_fd );
 
 		mx_network_display_message( network_message, NULL,
 				socket_handler->use_64bit_network_longs );
@@ -4113,7 +4122,7 @@ mxsrv_handle_set_client_info( MX_RECORD *record_list,
 		fprintf( stderr,
 			"MX (socket %d) SET_CLIENT_INFO(user = '%s', "
 				"program = '%s')\n",
-			socket_handler->synchronous_socket->socket_fd,
+			(int) socket_handler->synchronous_socket->socket_fd,
 			socket_handler->username,
 			socket_handler->program_name );
 	}
@@ -4259,7 +4268,7 @@ mxsrv_handle_get_option( MX_RECORD *record_list,
 #if NETWORK_DEBUG_MESSAGES
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
-				socket_handler->synchronous_socket->socket_fd );
+			(int) socket_handler->synchronous_socket->socket_fd );
 
 		mx_network_display_message( network_message, NULL,
 				socket_handler->use_64bit_network_longs );
@@ -4270,7 +4279,7 @@ mxsrv_handle_get_option( MX_RECORD *record_list,
 
 		fprintf( stderr,
 			"MX (socket %d) GET_OPTION( %lu ) = %lu\n",
-			socket_handler->synchronous_socket->socket_fd,
+			(int) socket_handler->synchronous_socket->socket_fd,
 			(unsigned long) option_number,
 			(unsigned long) option_value );
 	}
@@ -4473,7 +4482,7 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 #if NETWORK_DEBUG_MESSAGES
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
-				socket_handler->synchronous_socket->socket_fd );
+			(int) socket_handler->synchronous_socket->socket_fd );
 
 		mx_network_display_message( network_message, NULL,
 				socket_handler->use_64bit_network_longs );
@@ -4484,7 +4493,7 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 
 		fprintf( stderr,
 			"MX (socket %d) SET_OPTION: Set option %lu to %lu\n",
-			socket_handler->synchronous_socket->socket_fd,
+			(int) socket_handler->synchronous_socket->socket_fd,
 			(unsigned long) option_number,
 			(unsigned long) option_value );
 	}
@@ -4772,7 +4781,7 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 #if NETWORK_DEBUG_MESSAGES
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
-				socket_handler->synchronous_socket->socket_fd );
+			(int) socket_handler->synchronous_socket->socket_fd );
 
 		mx_network_display_message( network_message, NULL,
 				socket_handler->use_64bit_network_longs );
@@ -4783,7 +4792,7 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 
 		fprintf( stderr,
 			"MX (socket %d) ADD_CALLBACK('%s.%s') = %#lx\n",
-			socket_handler->synchronous_socket->socket_fd,
+			(int) socket_handler->synchronous_socket->socket_fd,
 			record->name,
 			field->name,
 			(unsigned long) callback_object->callback_id );
@@ -5156,7 +5165,7 @@ mxsrv_handle_delete_callback( MX_RECORD *record,
 #if NETWORK_DEBUG_MESSAGES
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
-				socket_handler->synchronous_socket->socket_fd );
+			(int) socket_handler->synchronous_socket->socket_fd );
 
 		mx_network_display_message( network_message, NULL,
 				socket_handler->use_64bit_network_longs );
@@ -5167,7 +5176,7 @@ mxsrv_handle_delete_callback( MX_RECORD *record,
 
 		fprintf( stderr,
 			"MX (socket %d) DELETE_CALLBACK('%s.%s') = %#lx\n",
-			socket_handler->synchronous_socket->socket_fd,
+			(int) socket_handler->synchronous_socket->socket_fd,
 			record->name,
 			record_field->name,
 			(unsigned long) callback_id );
