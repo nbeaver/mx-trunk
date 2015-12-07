@@ -75,15 +75,48 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 #
 # 3.  Specify the architecture of the computer you are compiling on.  This is
 #     used mostly to find the directories where platform-specific .LIB files
-#     are located.  Unfortunately, Visual Studio 2012 has changed the way
-#     these directories are laid out, so it has its own special case below.
+#     are located.  Visual Studio 2012 and after organize the x86 vs x64
+#     directory layout differently that Visual Studio 2010 and before, so we
+#     must be able to distinguish between the two.
 #
 
 #MSDEV_ARCH	= x86
 #MSDEV_ARCH	= x64
 
 #MSDEV_ARCH	= x86_vs2012
-MSDEV_ARCH	= x64_vs2012
+#MSDEV_ARCH	= x64_vs2012
+
+#----
+
+ifndef MSDEV_ARCH
+
+architecture := $(shell cl 2>&1 | head -1 | awk '{print $$9}')
+rtmversion := $(shell cl 2>&1 | head -1 | awk '{print $$7}' | cut -f1 -d'.')
+
+newlayout := $(shell if [ $(rtmversion) -gt 16 ]; then echo true ; else echo false ; fi)
+
+ifeq ($(architecture),x86)
+ifeq ($(newlayout),true)
+	MSDEV_ARCH = x86_vs2012
+else
+	MSDEV_ARCH = x86
+endif
+else ifeq ($(architecture),x64)
+ifeq ($(newlayout),true)
+	MSDEV_ARCH = x64_vs2012
+else
+	MSDEV_ARCH = x64
+endif
+else
+	MSDEV_ARCH = error
+endif
+
+###$(info $$architecture is [${architecture}])
+###$(info $$rtmversion is [${rtmversion}])
+###$(info $$newlayout is [${newlayout}])
+###$(info $$MSDEV_ARCH is [${MSDEV_ARCH}])
+
+endif
 
 #
 # 4.  You must specify the directory that the libraries for Microsoft
@@ -131,6 +164,8 @@ MSDEV_DIR=$(MX_MSDEV_DIR)
 else
 Error MSDEV_DIR not defined!
 endif
+
+###$(info $$MSDEV_DIR is [${MSDEV_DIR}])
 
 #
 # Visual C++ 2012 Pro (beta)     (_MSC_VER == 1700)
@@ -235,6 +270,8 @@ ifeq ($(MSDEV_ARCH),x64_vs2012)
 	MSDEV_LIB_DIR = $(MSDEV_DIR)\\x64
 endif
 
+###$(info $$MSDEV_LIB_DIR is [${MSDEV_LIB_DIR}])
+
 #--
 
 WIN32_LIBS	= $(MSDEV_LIB_DIR)\\wsock32.lib \
@@ -243,6 +280,8 @@ WIN32_LIBS	= $(MSDEV_LIB_DIR)\\wsock32.lib \
 	$(MSDEV_LIB_DIR)\\user32.lib \
 	$(MSDEV_LIB_DIR)\\gdi32.lib \
 	$(MSDEV_LIB_DIR)\\uuid.lib
+
+###$(info $$WIN32_LIBS is [${WIN32_LIBS}])
 
 #---------------------------------------------------------------------------
 #
