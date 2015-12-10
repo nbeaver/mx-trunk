@@ -421,11 +421,7 @@ mxn_bluice_dcss_server_get_session_id(
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* FIXME: mx_socket_getline() throws away trailing characters
-	 * after the first set of CR-LF terminators seen.  Temporarily
-	 * we deal with this by converting the socket descriptor to
-	 * a FILE pointer.
-	 */
+	/* Convert the socket descriptor to a file pointer. */
 
 	auth_server_fp = fdopen( auth_server_socket->socket_fd, "w+" );
 

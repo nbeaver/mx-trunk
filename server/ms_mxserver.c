@@ -1087,6 +1087,19 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 		"Ran out of memory trying to allocate a client socket." );
 	}
 
+	/* If this is an ASCII client socket, we must set the 'quiet' flag
+	 * for the socket, to prevent the MX server log from filling up
+	 * with MXE_END_OF_DATA messages.
+	 *
+	 * FIXME: Ultimately, we should turn on the receive buffer using
+	 * the MXF_SOCKET_USE_MX_RECEIVE_BUFFER flag.  For now, we leave
+	 * it off to simplify debugging.  (WML 2015-12-10)
+	 */
+
+	if ( socket_type == MXF_SRV_ASCII_SERVER_TYPE ) {
+		client_socket->socket_flags = MXF_SOCKET_QUIET;
+	}
+
 	/* The server socket should be ready for an accept() operation,
 	 * so let's try it.
 	 */
@@ -5313,6 +5326,11 @@ mxsrv_get_unix_domain_socket_credentials( MX_SOCKET_HANDLER *socket_handler )
 
 static char ascii_line_terminators[] = "\r\n";
 
+#define DISCARD_OLD_MESSAGE_STRING \
+	do { \
+		memset( message_ptr, 0, message_buffer->buffer_length ); \
+	} while (0)
+
 mx_status_type
 mxsrv_ascii_client_socket_process_event( MX_RECORD *record_list,
 				MX_SOCKET_HANDLER *socket_handler,
@@ -5327,6 +5345,8 @@ mxsrv_ascii_client_socket_process_event( MX_RECORD *record_list,
 	char *message_ptr = NULL;
 	char *receive_ptr = NULL;
 	size_t num_bytes_already_received, remaining_buffer_length;
+	unsigned long ascii_debug_mask;
+	mx_bool_type ascii_debug;
 	mx_status_type mx_status, mx_status2;
 
 	if ( record_list == (MX_RECORD *) NULL ) {
@@ -5341,8 +5361,10 @@ mxsrv_ascii_client_socket_process_event( MX_RECORD *record_list,
 
 	client_socket = socket_handler->synchronous_socket;
 
+#if 0
 	MX_DEBUG(-2,("%s: event from client socket %d.",
 		fname, (int) client_socket->socket_fd ));
+#endif
 
 	if ( socket_handler_list == (MX_SOCKET_HANDLER_LIST *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -5359,6 +5381,18 @@ mxsrv_ascii_client_socket_process_event( MX_RECORD *record_list,
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_LIST_HEAD pointer for the MX database is NULL." );
 	}
+
+	ascii_debug_mask = MXF_NETDBG_SUMMARY | MXF_NETDBG_VERBOSE;
+
+	if ( ascii_debug_mask & list_head->network_debug_flags ) {
+		ascii_debug = TRUE;
+	} else {
+		ascii_debug = FALSE;
+	}
+
+#if 1
+	ascii_debug = TRUE;
+#endif
 
 	/* We look to see if a complete message has been sent by the client.
 	 * A complete message includes the line terminators at the end.
@@ -5389,8 +5423,10 @@ mxsrv_ascii_client_socket_process_event( MX_RECORD *record_list,
 					remaining_buffer_length,
 					ascii_line_terminators );
 
+#if 0
 	MX_DEBUG(-2,("%s: mx_status.code = %lu, message_ptr = '%s'",
 		fname, mx_status.code, message_ptr));
+#endif
 
 	switch( mx_status.code ) {
 	case MXE_SUCCESS:
@@ -5415,7 +5451,20 @@ mxsrv_ascii_client_socket_process_event( MX_RECORD *record_list,
 		break;
 	}
 
-	MX_DEBUG(-2,("%s: Received command = '%s'", fname, message_ptr ));
+	/**********************************************************
+	 * We have now finished receiving a command string from   *
+	 * the client.                                            *
+	 *                                                        *
+	 * Next, we must parse the command, execute the requested *
+	 * operation and send a result back to the client.        *
+	 **********************************************************/
+
+	if ( ascii_debug ) {
+		MX_DEBUG(-2,("Received '%s' from ASCII socket %d",
+			message_ptr, client_socket->socket_fd));
+	}
+
+	DISCARD_OLD_MESSAGE_STRING;
 
 	return mx_status;
 }

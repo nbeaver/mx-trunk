@@ -3,17 +3,17 @@
 #
 # Purpose: This file is used to customize operating system and installation
 #          dependent features of the MX makefiles.  This version is customized
-#          for Microsoft Win32 (Windows 95/98/Me/NT/2000/XP/7/8).
+#          for Microsoft Win32 (Windows 95/98/Me/NT/2000/XP/7/8/8.1/10).
 #
 # Notes:
 #     This makefile assumes that you are using Gnu Make as well as a /bin/sh
-#     compatible shell such as Gnu Bash.  You will also need a few Unix shell
-#     utilities such as cp, rm, test, and touch.  This is most easily done
-#     with Cygwin, but other packages like Unxutils, Msys, or GnuWin32 may
-#     work.  Bear in mind that GnuWin32 does _not_ come with a /bin/sh
-#     compatible shell, so you must get that from somewhere else if you use
-#     GnuWin32.  The build system for Strawberry Perl might work, but I have
-#     not tried that.
+#     compatible shell such as Gnu Bash.  You will also need some Unix shell
+#     utilities such as awk, cp, cut, echo, head, rm, test, touch, and tr.
+#     This is most easily done with Cygwin, but other packages like Unxutils,
+#     Msys, or GnuWin32 may work.  Bear in mind that GnuWin32 does _not_ come
+#     with a /bin/sh compatible shell, so you must get that from somewhere
+#     else if you use GnuWin32.  The build system for Strawberry Perl might
+#     work, but I have not tried that.
 #
 #     Microsoft's Nmake will _not_ work, so do not waste your time trying to
 #     make it work.
@@ -31,13 +31,6 @@
 #     directories appear first, then the 'link' commands below will find
 #     the Cygwin /usr/bin/link program instead of the Visual C++ link
 #     program and things will break.
-
-#
-# For now the initial definitions of INCLUDES and LIBRARIES should be near
-# the top.  Please do not change the following two lines.
-#
-INCLUDES  = $(MX_INCLUDES)
-LIBRARIES = $(WIN32_LIBS)
 
 #
 # Things you may need to change:
@@ -71,6 +64,19 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 #
 #OPTIMIZE = -O2
 #CFLAGS += $(OPTIMIZE)
+
+#
+#========================================================================
+#
+# Generally, you should not have to modify anything after this point.
+#
+
+#
+# For now the initial definitions of INCLUDES and LIBRARIES should be near
+# the top.  Please do not change the following two lines.
+#
+INCLUDES  = $(MX_INCLUDES)
+LIBRARIES = $(WIN32_LIBS)
 
 #
 # 3.  Specify the architecture of the computer you are compiling on.  This is
@@ -333,8 +339,6 @@ MSMANIFEST_TOOL = `echo "$(MSDEV_DIR)\\bin\\mt" | tr \\\\ / `
 
 #
 #========================================================================
-#
-# Generally, you should not have to modify anything after this point.
 #
 
 # Intel x86 with Microsoft Visual C++ under Win32.

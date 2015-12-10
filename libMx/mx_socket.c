@@ -1926,7 +1926,7 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 	char *start_of_memory_to_zero = NULL;
 	unsigned long bytes_saved, bytes_peeked_from_buffer;
 	unsigned long num_bytes_to_save, num_bytes_to_zero;
-	unsigned long flags;
+	unsigned long flags, quiet;
 	mx_status_type mx_status;
 
 	if ( mx_socket == (MX_SOCKET *) NULL ) {
@@ -1941,6 +1941,11 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 	terminators = (char *) input_terminators;
 
 	flags = mx_socket->socket_flags;
+
+#if 0
+	MX_DEBUG(-2,("%s: socket %d flags = %#lx",
+		fname, mx_socket->socket_fd, flags));
+#endif
 
 	if ( flags & MXF_SOCKET_USE_MX_RECEIVE_BUFFER ) {
 	    circular_buffer = (MX_CIRCULAR_BUFFER *) mx_socket->receive_buffer;
@@ -2005,6 +2010,12 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 			bytes_left, bytes_received_from_socket ));
 #endif
 
+		if ( flags & MXF_SOCKET_QUIET ) {
+		    quiet = MXE_QUIET;
+		} else {
+		    quiet = 0;
+		}
+
 		switch( bytes_received_from_socket ) {
 		case 0:
 		    *write_ptr = '\0';
@@ -2013,12 +2024,8 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 			*num_bytes_received = total_bytes_in_callers_buffer;
 		    }
 
-		    if ( mx_socket->socket_flags & MXF_SOCKET_QUIET ) {
-			error_code = (MXE_NETWORK_CONNECTION_LOST | MXE_QUIET);
-		    } else {
-			error_code = MXE_NETWORK_CONNECTION_LOST;
-		    }
-		    return mx_error( error_code, fname,
+		    return mx_error(
+			    ( MXE_NETWORK_CONNECTION_LOST | quiet ), fname,
 			    "Network connection closed unexpectedly." );
 		    break;
 		case MX_SOCKET_ERROR:
@@ -2031,13 +2038,22 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 		    switch( saved_errno ) {
 			case ECONNRESET:
 			case ECONNABORTED:
-			    return mx_error( MXE_NETWORK_CONNECTION_LOST, fname,
-		"Network connection lost.  Errno = %d, error text = '%s'",
-				saved_errno, mx_socket_strerror(saved_errno));
+			    return mx_error(
+				( MXE_NETWORK_CONNECTION_LOST | quiet ), fname,
+				"Network connection lost for socket %d.",
+					mx_socket->socket_fd );
 
 			    break;
+			case EWOULDBLOCK:
+			    return mx_error(
+				( MXE_END_OF_DATA | quiet ), fname,
+		    "End of data after %ld bytes received for socket %d.",
+				total_bytes_in_callers_buffer,
+				mx_socket->socket_fd );
+			    break;
 			default:
-			    return mx_error( MXE_NETWORK_IO_ERROR, fname,
+			    return mx_error(
+				( MXE_NETWORK_IO_ERROR | quiet ), fname,
 			"Error receiving message body from remote host.  "
 			"Errno = %d, error text = '%s'",
 				saved_errno, mx_socket_strerror(saved_errno));
