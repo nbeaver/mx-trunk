@@ -71,6 +71,13 @@ MX_EVENT_HANDLER mxsrv_event_handler_list[] = {
 	  NULL },
 #endif
 
+	{ MXF_SRV_ASCII_SERVER_TYPE,
+	  "MX server",
+	  &mxsrv_ascii_server_socket_struct,
+	  mxsrv_mx_server_socket_init,
+	  mxsrv_mx_server_socket_process_event,
+	  NULL },
+
 	{ MXF_SRV_MX_CLIENT_TYPE,
 	  "MX client",
 	  NULL,
@@ -78,6 +85,12 @@ MX_EVENT_HANDLER mxsrv_event_handler_list[] = {
 	  mxsrv_mx_client_socket_process_event,
 	  mxsrv_mx_client_socket_proc_queued_event },
 
+	{ MXF_SRV_ASCII_CLIENT_TYPE,
+	  "MX client",
+	  NULL,
+	  mxsrv_mx_client_socket_init,
+	  mxsrv_ascii_client_socket_process_event,
+	  NULL },
 };
 
 int mxsrv_num_event_handlers = sizeof( mxsrv_event_handler_list )
@@ -467,6 +480,7 @@ mxserver_main( int argc, char *argv[] )
 	mx_bool_type enable_callbacks;
 	int i, debug_level, start_debugger, saved_errno;
 	int server_port, default_display_precision, init_hw_flags;
+	int ascii_port, i_mx_client, i_ascii_client;
 	int install_syslog_handler, syslog_number, syslog_options;
 	int display_stack_traceback, redirect_stderr, destination_unbuffered;
 	int bypass_signal_handlers, poll_all;
@@ -534,6 +548,8 @@ mxserver_main( int argc, char *argv[] )
 
 	strlcpy( server_pathname, "", sizeof(server_pathname) );
 
+	ascii_port = -1;
+
 	install_syslog_handler = FALSE;
 
 	syslog_number = -1;
@@ -575,7 +591,7 @@ mxserver_main( int argc, char *argv[] )
         error_flag = FALSE;
 
         while ((c = getopt(argc, argv,
-		"aAab:BcC:d:De:E:f:Jkl:L:m:M:n:p:P:rsStu:v:wxY:Z")) != -1)
+		"aAab:BcC:d:De:E:f:Jkl:L:m:M:n:p:P:rsStT:u:v:wxY:Z")) != -1)
 	{
                 switch (c) {
 		case 'a':
@@ -677,6 +693,9 @@ mxserver_main( int argc, char *argv[] )
 			break;
 		case 't':
 			init_hw_flags |= MXF_INITHW_TRACE_OPENS;
+			break;
+		case 'T':
+			ascii_port = atoi( optarg );
 			break;
 		case 'u':
 #if HAVE_UNIX_DOMAIN_SOCKETS
@@ -786,9 +805,17 @@ mxserver_main( int argc, char *argv[] )
 	mx_info( "***** MX server %s started *****",
 		mx_get_version_full_string() );
 
+	i_mx_client    = -1;
+	i_ascii_client = -1;
+
+	/*----*/
+
 	for ( i = 0; i < mxsrv_num_event_handlers; i++ ) {
 		if ( mxsrv_event_handler_list[i].type
 				== MXF_SRV_MX_CLIENT_TYPE ) {
+
+			i_mx_client = i;
+
 			break;   /* Exit the for() loop. */
 		}
 	}
@@ -801,22 +828,56 @@ mxserver_main( int argc, char *argv[] )
 		exit( MXE_CORRUPT_DATA_STRUCTURE );
 	}
 
+	/*----*/
+
+	for ( i = 0; i < mxsrv_num_event_handlers; i++ ) {
+		if ( mxsrv_event_handler_list[i].type
+				== MXF_SRV_ASCII_CLIENT_TYPE ) {
+
+			i_ascii_client = i;
+
+			break;   /* Exit the for() loop. */
+		}
+	}
+
+	if ( i >= mxsrv_num_event_handlers ) {
+		(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The ASCII client event handler is not found "
+			"in the mxsrv_event_handler_list array." );
+
+		exit( MXE_CORRUPT_DATA_STRUCTURE );
+	}
+
+	/*----*/
+
 	mxsrv_tcp_server_socket_struct.type = MXF_SRV_TCP_SERVER_TYPE;
 
 	mxsrv_tcp_server_socket_struct.client_event_handler
-		= &mxsrv_event_handler_list[i];
+		= &mxsrv_event_handler_list[i_mx_client];
 
 	mxsrv_tcp_server_socket_struct.u.tcp.port = server_port;
+
+	/*----*/
 
 #if HAVE_UNIX_DOMAIN_SOCKETS
 	mxsrv_unix_server_socket_struct.type = MXF_SRV_UNIX_SERVER_TYPE;
 
 	mxsrv_unix_server_socket_struct.client_event_handler
-		= &mxsrv_event_handler_list[i];
+		= &mxsrv_event_handler_list[i_mx_client];
 
 	strlcpy( mxsrv_unix_server_socket_struct.u.unix_domain.pathname,
 			server_pathname, MXU_FILENAME_LENGTH );
 #endif
+	/*----*/
+
+	mxsrv_ascii_server_socket_struct.type = MXF_SRV_ASCII_SERVER_TYPE;
+
+	mxsrv_ascii_server_socket_struct.client_event_handler
+		= &mxsrv_event_handler_list[i_ascii_client];
+
+	mxsrv_ascii_server_socket_struct.u.ascii.port = ascii_port;
+
+	/*----*/
 
 	/* Initialize the list of socket handlers. */
 

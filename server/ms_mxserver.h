@@ -33,6 +33,12 @@ struct mxsrv_unix_server_socket {
 };
 #endif
 
+struct mxsrv_ascii_server_socket {
+	int port;
+};
+
+/*----*/
+
 typedef struct {
 	int type;
 	MX_EVENT_HANDLER *client_event_handler;
@@ -41,6 +47,7 @@ typedef struct {
 #if HAVE_UNIX_DOMAIN_SOCKETS
 		struct mxsrv_unix_server_socket unix_domain;
 #endif
+		struct mxsrv_ascii_server_socket ascii;
 	} u;
 } MXSRV_MX_SERVER_SOCKET;
 
@@ -49,6 +56,8 @@ extern MXSRV_MX_SERVER_SOCKET mxsrv_tcp_server_socket_struct;
 #if HAVE_UNIX_DOMAIN_SOCKETS
 extern MXSRV_MX_SERVER_SOCKET mxsrv_unix_server_socket_struct;
 #endif
+
+extern MXSRV_MX_SERVER_SOCKET mxsrv_ascii_server_socket_struct;
 
 extern void mxsrv_print_timestamp( void );
 
@@ -176,6 +185,12 @@ extern mx_status_type mxsrv_handle_delete_callback(
 			MX_RECORD *record_list,
 			MX_SOCKET_HANDLER *socket_handler,
 			MX_NETWORK_MESSAGE_BUFFER *message_buffer );
+
+extern mx_status_type mxsrv_ascii_client_socket_process_event(
+			MX_RECORD *record_list,
+			MX_SOCKET_HANDLER *socket_handler,
+			MX_SOCKET_HANDLER_LIST *socket_handler_list,
+			MX_EVENT_HANDLER *event_handler );
 
 /*---*/
 

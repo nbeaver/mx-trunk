@@ -93,6 +93,8 @@ MXSRV_MX_SERVER_SOCKET mxsrv_tcp_server_socket_struct;
 MXSRV_MX_SERVER_SOCKET mxsrv_unix_server_socket_struct;
 #endif
 
+MXSRV_MX_SERVER_SOCKET mxsrv_ascii_server_socket_struct;
+
 uint32_t
 mxsrv_get_returning_message_type( uint32_t message_type )
 {
@@ -132,6 +134,8 @@ mxsrv_get_returning_message_type( uint32_t message_type )
 	}
 	return returning_message_type;
 }
+
+/*--------------------------------------------------------------------------*/
 
 mx_status_type
 mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
@@ -730,6 +734,8 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*--------------------------------------------------------------------------*/
+
 mx_status_type
 mxsrv_mx_server_socket_init( MX_RECORD *list_head_record,
 				MX_SOCKET_HANDLER_LIST *socket_handler_list,
@@ -797,7 +803,7 @@ mxsrv_mx_server_socket_init( MX_RECORD *list_head_record,
 
 		if ( port_number > 65535 ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal server port number %d for server event handler '%s'",
+	"Illegal server port number %d for TCP server event handler '%s'",
 				port_number, event_handler->name );
 		}
 
@@ -832,6 +838,32 @@ mxsrv_mx_server_socket_init( MX_RECORD *list_head_record,
 		mx_info( "Unix domain server socket '%s' was opened.",
 				pathname );
 #endif
+	} else if ( socket_type == MXF_SRV_ASCII_SERVER_TYPE ) {
+
+		int port_number;
+
+		port_number = server_socket_struct->u.ascii.port;
+
+		if ( port_number < 0 ) {
+			return mx_error( (MXE_NOT_FOUND | MXE_QUIET), fname,
+		"No ASCII socket number was specified for the server." );
+		}
+
+		if ( port_number > 65535 ) {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+	"Illegal server port number %d for ASCII server event handler '%s'",
+				port_number, event_handler->name );
+		}
+
+		mx_status = mx_tcp_socket_open_as_server(
+						&server_socket, port_number, 0,
+						MX_SOCKET_DEFAULT_BUFFER_SIZE );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_info( "ASCII server socket %d was opened.", port_number );
+
 	} else {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal MX server socket type %d requested.",
@@ -944,6 +976,8 @@ my_inet_ntoa( struct in_addr in )
 
 #endif  /* OS_IRIX */
 
+/*--------------------------------------------------------------------------*/
+
 mx_status_type
 mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 				MX_SOCKET_HANDLER *socket_handler,
@@ -1027,6 +1061,7 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 
 	switch( socket_type ) {
 	case MXF_SRV_TCP_SERVER_TYPE:
+	case MXF_SRV_ASCII_SERVER_TYPE:
 		client_address_ptr = &tcp_client_address;
 		client_address_size = tcp_client_address_size;
 		break;
@@ -1135,6 +1170,7 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 
 	switch( socket_type ) {
 	case MXF_SRV_TCP_SERVER_TYPE:
+	case MXF_SRV_ASCII_SERVER_TYPE:
 
 		/* Did accept() return a valid address? */
 
@@ -1260,6 +1296,8 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*--------------------------------------------------------------------------*/
+
 mx_status_type
 mxsrv_mx_client_socket_init( MX_RECORD *record_list,
 				MX_SOCKET_HANDLER_LIST *socket_handler_list,
@@ -1275,6 +1313,8 @@ mxsrv_mx_client_socket_init( MX_RECORD *record_list,
 #define MXS_START_NOTHING		0
 #define MXS_START_RECORD_FIELD_NAME	1
 #define MXS_START_RECORD_FIELD_HANDLE	2
+
+/*--------------------------------------------------------------------------*/
 
 mx_status_type
 mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
@@ -2047,6 +2087,8 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 	return mx_status;
 }
 
+/*--------------------------------------------------------------------------*/
+
 mx_status_type
 mxsrv_mx_client_socket_proc_queued_event( MX_RECORD *record_list,
 					MX_QUEUED_EVENT *queued_event )
@@ -2169,6 +2211,8 @@ mxsrv_mx_client_socket_proc_queued_event( MX_RECORD *record_list,
 
 	return mx_status;
 }
+
+/*--------------------------------------------------------------------------*/
 
 mx_status_type
 mxsrv_handle_get_array( MX_RECORD *record_list,
@@ -2316,6 +2360,8 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 
 	return mx_status;
 }
+
+/*--------------------------------------------------------------------------*/
 
 mx_status_type
 mxsrv_send_field_value_to_client( 
@@ -2709,6 +2755,8 @@ mxsrv_send_field_value_to_client(
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*--------------------------------------------------------------------------*/
 
 mx_status_type
 mxsrv_handle_put_array( MX_RECORD *record_list,
@@ -3201,6 +3249,8 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*--------------------------------------------------------------------------*/
+
 mx_status_type
 mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 				MX_SOCKET_HANDLER *socket_handler,
@@ -3395,6 +3445,8 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*--------------------------------------------------------------------------*/
+
 mx_status_type
 mxsrv_handle_get_field_type( MX_RECORD *record_list,
 				MX_SOCKET_HANDLER *socket_handler,
@@ -3518,6 +3570,8 @@ mxsrv_handle_get_field_type( MX_RECORD *record_list,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*--------------------------------------------------------------------------*/
 
 mx_status_type
 mxsrv_handle_get_attribute( MX_RECORD *record_list,
@@ -3728,6 +3782,8 @@ mxsrv_handle_get_attribute( MX_RECORD *record_list,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*--------------------------------------------------------------------------*/
 
 mx_status_type
 mxsrv_handle_set_attribute( MX_RECORD *record_list,
@@ -3941,6 +3997,8 @@ mxsrv_handle_set_attribute( MX_RECORD *record_list,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*--------------------------------------------------------------------------*/
+
 mx_status_type
 mxsrv_handle_set_client_info( MX_RECORD *record_list,
 				MX_SOCKET_HANDLER *socket_handler, 
@@ -4147,6 +4205,8 @@ mxsrv_handle_set_client_info( MX_RECORD *record_list,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*--------------------------------------------------------------------------*/
+
 mx_status_type
 mxsrv_handle_get_option( MX_RECORD *record_list,
 			MX_SOCKET_HANDLER *socket_handler,
@@ -4303,6 +4363,8 @@ mxsrv_handle_get_option( MX_RECORD *record_list,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*--------------------------------------------------------------------------*/
 
 mx_status_type
 mxsrv_handle_set_option( MX_RECORD *record_list,
@@ -4518,6 +4580,8 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*--------------------------------------------------------------------------*/
+
 static mx_status_type
 mxsrv_record_field_callback( MX_CALLBACK *callback, void *argument )
 {
@@ -4647,6 +4711,8 @@ mxsrv_record_field_callback( MX_CALLBACK *callback, void *argument )
 
 	return mx_status;
 }
+
+/*--------------------------------------------------------------------------*/
 
 mx_status_type
 mxsrv_handle_add_callback( MX_RECORD *record_list,
@@ -4813,6 +4879,8 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*--------------------------------------------------------------------------*/
 
 mx_status_type
 mxsrv_handle_delete_callback( MX_RECORD *record,
@@ -5198,6 +5266,8 @@ mxsrv_handle_delete_callback( MX_RECORD *record,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*--------------------------------------------------------------------------*/
+
 #if HAVE_UNIX_DOMAIN_SOCKETS
 
 mx_status_type
@@ -5236,3 +5306,119 @@ mxsrv_get_unix_domain_socket_credentials( MX_SOCKET_HANDLER *socket_handler )
 }
 
 #endif
+
+/*--------------------------------------------------------------------------*/
+
+/* For now we use CR-LF line terminators. */
+
+static char ascii_line_terminators[] = "\r\n";
+
+mx_status_type
+mxsrv_ascii_client_socket_process_event( MX_RECORD *record_list,
+				MX_SOCKET_HANDLER *socket_handler,
+				MX_SOCKET_HANDLER_LIST *socket_handler_list,
+				MX_EVENT_HANDLER *event_handler )
+{
+	static const char fname[] = "mxsrv_ascii_client_socket_process_event()";
+
+	MX_SOCKET *client_socket = NULL;
+	MX_LIST_HEAD *list_head = NULL;
+	MX_NETWORK_MESSAGE_BUFFER *message_buffer = NULL;
+	char *message_ptr = NULL;
+	char *receive_ptr = NULL;
+	size_t num_bytes_already_received, remaining_buffer_length;
+	mx_status_type mx_status, mx_status2;
+
+	if ( record_list == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX record list pointer passed was NULL." );
+	}
+
+	if ( socket_handler == (MX_SOCKET_HANDLER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"MX_SOCKET_HANDLER pointer passed was NULL." );
+	}
+
+	client_socket = socket_handler->synchronous_socket;
+
+	MX_DEBUG(-2,("%s: event from client socket %d.",
+		fname, (int) client_socket->socket_fd ));
+
+	if ( socket_handler_list == (MX_SOCKET_HANDLER_LIST *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"MX_SOCKET_HANDLER_LIST pointer passed was NULL." );
+	}
+	if ( event_handler == (MX_EVENT_HANDLER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"MX_EVENT_HANDLER pointer passed was NULL." );
+	}
+
+	list_head = mx_get_record_list_head_struct( record_list );
+
+	if ( list_head == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_LIST_HEAD pointer for the MX database is NULL." );
+	}
+
+	/* We look to see if a complete message has been sent by the client.
+	 * A complete message includes the line terminators at the end.
+	 *
+	 * Note the client may be a user that has used 'telnet' to connect to
+	 * the port, so we _must_ _not_ block waiting for a complete message.
+	 */
+
+	message_buffer = socket_handler->message_buffer;
+
+	message_ptr = message_buffer->u.char_buffer;
+
+	num_bytes_already_received = strlen( message_ptr );
+
+	receive_ptr = message_ptr + num_bytes_already_received;
+
+	remaining_buffer_length =
+		message_buffer->buffer_length - num_bytes_already_received;
+
+	/* If strlen( message_ptr ) is greater than zero, then we have 
+	 * already received a partial message and must try to append
+	 * the rest of the message at the end of the existing partial
+	 * message.
+	 */
+
+	mx_status = mx_socket_getline( client_socket,
+					receive_ptr,
+					remaining_buffer_length,
+					ascii_line_terminators );
+
+	MX_DEBUG(-2,("%s: mx_status.code = %lu, message_ptr = '%s'",
+		fname, mx_status.code, message_ptr));
+
+	switch( mx_status.code ) {
+	case MXE_SUCCESS:
+		/* We have received a complete line from the socket,
+		 * so now we can go on to parsing that line.
+		 */ 
+		break;
+
+	case MXE_NETWORK_CONNECTION_LOST:
+		/* If the client has closed the connection, then remove
+		 * the socket handler from the socket handler list.
+		 */
+
+		mx_status2 = mxsrv_free_client_socket_handler(
+				socket_handler, socket_handler_list );
+
+		return mx_status;
+		break;
+
+	default:
+		return mx_status;
+		break;
+	}
+
+	MX_DEBUG(-2,("%s: Received command = '%s'", fname, message_ptr ));
+
+	return mx_status;
+}
+
+/*--------------------------------------------------------------------------*/
+
