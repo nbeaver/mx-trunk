@@ -5331,6 +5331,9 @@ static char ascii_line_terminators[] = "\r\n";
 		memset( message_ptr, 0, message_buffer->buffer_length ); \
 	} while (0)
 
+#define MXT_ASCII_GET	MX_PROCESS_GET
+#define MXT_ASCII_PUT	MX_PROCESS_PUT
+
 mx_status_type
 mxsrv_ascii_client_socket_process_event( MX_RECORD *record_list,
 				MX_SOCKET_HANDLER *socket_handler,
@@ -5347,6 +5350,10 @@ mxsrv_ascii_client_socket_process_event( MX_RECORD *record_list,
 	size_t num_bytes_already_received, remaining_buffer_length;
 	unsigned long ascii_debug_mask;
 	mx_bool_type ascii_debug;
+	int command_type;
+	char *ptr, *command_name, *record_name, *field_name;
+	MX_RECORD *mx_record = NULL;
+	MX_RECORD_FIELD *mx_field = NULL;
 	mx_status_type mx_status, mx_status2;
 
 	if ( record_list == (MX_RECORD *) NULL ) {
@@ -5464,9 +5471,165 @@ mxsrv_ascii_client_socket_process_event( MX_RECORD *record_list,
 			message_ptr, client_socket->socket_fd));
 	}
 
+	/* Extract the command name from the message buffer. */
+
+	ptr = message_ptr;
+
+	command_name = mx_string_token( &ptr, " " );
+
+	if ( command_name == NULL ) {
+		mx_status = mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
+			"No command was found in the message from socket %d.",
+			client_socket->socket_fd );
+
+		snprintf( message_ptr, message_buffer->buffer_length,
+		"!%s (%ld) %s",
+			mx_status_code_string( mx_status.code ),
+			mx_status.code, mx_status.message );
+
+		mx_status2 = mx_socket_putline( client_socket, message_ptr,
+						ascii_line_terminators );
+
+		DISCARD_OLD_MESSAGE_STRING;
+
+		return mx_status;
+	}
+
+	MX_DEBUG(-2,("%s: command_name = '%s'", fname, command_name));
+
+	/* Identify which command this is. */
+
+	if ( mx_strcasecmp( command_name, "GET" ) == 0 ) {
+		command_type = MXT_ASCII_GET;
+	} else
+	if ( mx_strcasecmp( command_name, "PUT" ) == 0 ) {
+		command_type = MXT_ASCII_PUT;
+	} else {
+		mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		    "Unrecognized command '%s' was received from socket %d.",
+			command_name, client_socket->socket_fd );
+
+		snprintf( message_ptr, message_buffer->buffer_length,
+		"!%s (%ld) %s",
+			mx_status_code_string( mx_status.code ),
+			mx_status.code, mx_status.message );
+
+		mx_status2 = mx_socket_putline( client_socket, message_ptr,
+						ascii_line_terminators );
+
+		DISCARD_OLD_MESSAGE_STRING;
+
+		return mx_status;
+	}
+
+	/* If the next token should be a record field name,
+	 * then parse that name.
+	 */
+
+	switch( command_type ) {
+	case MXT_ASCII_GET:
+	case MXT_ASCII_PUT:
+		record_name = mx_string_token( &ptr, "." );
+
+		if ( record_name == NULL ) {
+			mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The record field name received from socket %d "
+			"did not have a field separator character '.'",
+				client_socket->socket_fd );
+
+			snprintf( message_ptr, message_buffer->buffer_length,
+			"!%s (%ld) %s",
+				mx_status_code_string( mx_status.code ),
+				mx_status.code, mx_status.message );
+
+			mx_status2 = mx_socket_putline( client_socket,
+						message_ptr,
+						ascii_line_terminators );
+
+			DISCARD_OLD_MESSAGE_STRING;
+
+			return mx_status;
+		}
+
+		field_name = mx_string_token( &ptr, " " );
+
+		if ( field_name == NULL ) {
+			mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"A field name was not found for record name '%s' "
+			"received from socket %d.",
+				record_name, client_socket->socket_fd );
+
+			snprintf( message_ptr, message_buffer->buffer_length,
+			"!%s (%ld) %s",
+				mx_status_code_string( mx_status.code ),
+				mx_status.code, mx_status.message );
+
+			mx_status2 = mx_socket_putline( client_socket,
+						message_ptr,
+						ascii_line_terminators );
+
+			DISCARD_OLD_MESSAGE_STRING;
+
+			return mx_status;
+		}
+
+		mx_record = mx_get_record( record_list, record_name );
+
+		if ( mx_record == (MX_RECORD *) NULL ) {
+			mx_status = mx_error( MXE_NOT_FOUND, fname,
+			"A record named '%s' was not found in the MX database "
+			"for socket %d.", record_name,
+				client_socket->socket_fd );
+
+			snprintf( message_ptr, message_buffer->buffer_length,
+			"!%s (%ld) %s",
+				mx_status_code_string( mx_status.code ),
+				mx_status.code, mx_status.message );
+
+			mx_status2 = mx_socket_putline( client_socket,
+						message_ptr,
+						ascii_line_terminators );
+
+			DISCARD_OLD_MESSAGE_STRING;
+
+			return mx_status;
+		}
+
+		mx_field = mx_get_record_field( mx_record, field_name );
+
+		if ( mx_field == (MX_RECORD_FIELD *) NULL ) {
+			mx_status = mx_error( MXE_NOT_FOUND, fname,
+			"A field named '%s' was not found in MX record '%s' "
+			"for socket %d.", field_name, record_name,
+				client_socket->socket_fd );
+
+			snprintf( message_ptr, message_buffer->buffer_length,
+			"!%s (%ld) %s",
+				mx_status_code_string( mx_status.code ),
+				mx_status.code, mx_status.message );
+
+			mx_status2 = mx_socket_putline( client_socket,
+						message_ptr,
+						ascii_line_terminators );
+
+			DISCARD_OLD_MESSAGE_STRING;
+
+			return mx_status;
+		}
+
+		MX_DEBUG(-2,("%s: found record field '%s.%s'",
+			fname, mx_record->name, mx_field->name ));
+
+		break;
+	default:
+		mx_record = NULL;
+		mx_field = NULL;
+		break;
+	}
+
 	DISCARD_OLD_MESSAGE_STRING;
 
-	return mx_status;
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*--------------------------------------------------------------------------*/
