@@ -186,11 +186,34 @@ extern mx_status_type mxsrv_handle_delete_callback(
 			MX_SOCKET_HANDLER *socket_handler,
 			MX_NETWORK_MESSAGE_BUFFER *message_buffer );
 
+/*---*/
+
 extern mx_status_type mxsrv_ascii_client_socket_process_event(
 			MX_RECORD *record_list,
 			MX_SOCKET_HANDLER *socket_handler,
 			MX_SOCKET_HANDLER_LIST *socket_handler_list,
 			MX_EVENT_HANDLER *event_handler );
+
+extern mx_status_type mxsrv_ascii_client_send_error_message(
+			MX_SOCKET_HANDLER *socket_handler,
+			long error_code,
+			const char *location,
+			const char *format, ... ) MX_PRINTFLIKE( 4, 5 );
+
+extern mx_status_type mxsrv_ascii_client_handle_get(
+			MX_RECORD *record_list,
+			MX_SOCKET_HANDLER *socket_handler,
+			mx_bool_type ascii_debug,
+			MX_RECORD *record,
+			MX_RECORD_FIELD *record_field );
+
+extern mx_status_type mxsrv_ascii_client_handle_put(
+			MX_RECORD *record_list,
+			MX_SOCKET_HANDLER *socket_handler,
+			mx_bool_type ascii_debug,
+			MX_RECORD *record,
+			MX_RECORD_FIELD *record_field,
+			char *put_arguments );
 
 /*---*/
 
