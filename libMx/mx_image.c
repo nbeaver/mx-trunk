@@ -2608,6 +2608,100 @@ mx_image_display_ascii( FILE *output,
 
 /*--------------------------------------------------------------------------*/
 
+MX_EXPORT mx_status_type
+mx_image_dump_pixel_range( FILE *output_file,
+			MX_IMAGE_FRAME *frame,
+			unsigned long first_pixel,
+			unsigned long num_pixels )
+{
+	static const char fname[] = "mx_image_dump_pixel_range()";
+
+	long image_format;
+	unsigned long i, last_pixel;
+	uint8_t *u8_array;
+	uint16_t *u16_array;
+	uint32_t *u32_array;
+	float *float_array;
+	double *double_array;
+
+	if ( output_file == (FILE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The FILE pointer passed was NULL." );
+	}
+	if ( frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_IMAGE_FRAME pointer passed was NULL." );
+	}
+	if ( frame->image_data == NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"MX_IMAGE_FRAME %p does not yet contain any image data.",
+			frame );
+	}
+
+	image_format = MXIF_IMAGE_FORMAT(frame);
+
+	last_pixel = first_pixel + num_pixels - 1L;
+
+	fprintf( output_file, "Image frame %p, pixels = " );
+
+	if ( num_pixels == 0 ) {
+		fprintf( output_file, "NONE.  num_pixels is 0.\n" );
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	switch( image_format ) {
+	case MXT_IMAGE_FORMAT_GREY8:
+		u8_array = (uint8_t *) frame->image_data;
+
+		for ( i = first_pixel; i <= last_pixel; i++ ) {
+			fprintf( output_file, "%hu ",
+				(unsigned short) u8_array[i] );
+		}
+		break;
+	case MXT_IMAGE_FORMAT_GREY16:
+		u16_array = (uint16_t *) frame->image_data;
+
+		for ( i = first_pixel; i <= last_pixel; i++ ) {
+			fprintf( output_file, "%hu ",
+				(unsigned short) u16_array[i] );
+		}
+		break;
+	case MXT_IMAGE_FORMAT_GREY32:
+		u32_array = (uint32_t *) frame->image_data;
+
+		for ( i = first_pixel; i <= last_pixel; i++ ) {
+			fprintf( output_file, "%lu ",
+				(unsigned long) u32_array[i] );
+		}
+		break;
+	case MXT_IMAGE_FORMAT_FLOAT:
+		float_array = (float *) frame->image_data;
+
+		for ( i = first_pixel; i <= last_pixel; i++ ) {
+			fprintf( output_file, "%f ", float_array[i] );
+		}
+		break;
+	case MXT_IMAGE_FORMAT_DOUBLE:
+		double_array = (double *) frame->image_data;
+
+		for ( i = first_pixel; i <= last_pixel; i++ ) {
+			fprintf( output_file, "%f ", double_array[i] );
+		}
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Image format %ld is not supported by this function.",
+			image_format );
+		break;
+	}
+
+	fprintf( output_file, "...\n" );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
+
 /* FIXME - Try to implement this in a more extendable fashion.
  *         The existing implementation is excessively hard coded.
  */

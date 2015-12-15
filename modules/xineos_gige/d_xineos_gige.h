@@ -21,7 +21,8 @@
 
 /* Values for the 'xineos_gige_flags' field. */
 
-#define MXF_XINEOS_GIGE_DO_NOT_ROTATE_IMAGE		0x1
+#define MXF_XINEOS_GIGE_DO_NOT_ROTATE_IMAGE			0x1
+#define MXF_XINEOS_GIGE_AUTOMATICALLY_DUMP_PIXEL_VALUES		0x2
 
 /*---*/
 
@@ -43,6 +44,8 @@ typedef struct {
 
 	double minimum_pixel_value;
 	double saturation_pixel_value;
+
+	mx_bool_type dump_pixel_values;
 
 	MX_IMAGE_NOIR_INFO *image_noir_info;
 
@@ -73,7 +76,11 @@ typedef struct {
   {-1, -1, "saturation_pixel_value", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_XINEOS_GIGE, saturation_pixel_value), \
-	{0}, NULL, MXFF_READ_ONLY }
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "dump_pixel_values", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_XINEOS_GIGE, dump_pixel_values), \
+	{0}, NULL, 0 }
 
 MX_API mx_status_type mxd_xineos_gige_initialize_driver(
 							MX_DRIVER *driver );

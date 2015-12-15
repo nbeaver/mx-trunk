@@ -183,7 +183,7 @@ mxd_xineos_gige_open( MX_RECORD *record )
 	MX_XINEOS_GIGE *xineos_gige = NULL;
 	MX_RECORD *video_input_record;
 	long i;
-	unsigned long mask;
+	unsigned long mask, xineos_flags;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -208,6 +208,34 @@ mxd_xineos_gige_open( MX_RECORD *record )
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The video_input_record pointer for detector '%s' is NULL.",
 			record->name );
+	}
+
+	xineos_flags = xineos_gige->xineos_gige_flags;
+
+	/*---*/
+
+	/* Always skip the first FIVE (5!) frames in a correction measurement.
+	 *
+	 * If the Xineos detector has sat idle for a "long" time without
+	 * being read out, ADUs will accumulate in the time prior to the
+	 * start of the correction measurement sequence.  Many types of
+	 * area detectors have this issue and it is normally resolved by
+	 * reading out and discarding a single frame before starting the
+	 * sequence of frames for the correction measurement.  However,
+	 * for the Xineos camera, leftover ADUs can persist for several
+	 * measurements after a long pause.  I have observed cases where
+	 * there were anomalous pixel values read out for the first _three_
+	 * frames acquired after a long period of idleness.  To be
+	 * conservative, I discard the first 5 frames.
+	 * (WML 2015-12-14)
+	 */
+
+	ad->correction_frames_to_skip = 5;
+
+	if ( xineos_flags & MXF_XINEOS_GIGE_AUTOMATICALLY_DUMP_PIXEL_VALUES ) {
+		xineos_gige->dump_pixel_values = TRUE;
+	} else {
+		xineos_gige->dump_pixel_values = FALSE;
 	}
 
 	/*---*/
@@ -744,7 +772,6 @@ mxd_xineos_gige_readout_frame( MX_AREA_DETECTOR *ad )
 
 	MX_HRT_START(total_measurement);
 #endif
-	mx_breakpoint();
 
 	mx_status = mxd_xineos_gige_get_pointers( ad, &xineos_gige, fname );
 
@@ -798,23 +825,10 @@ mxd_xineos_gige_readout_frame( MX_AREA_DETECTOR *ad )
 
 	ad->image_frame->application_ptr = xineos_gige->image_noir_info;
 
-#if MXD_XINEOS_GIGE_DEBUG_IMAGE_CONTENTS
-	{
-		uint16_t *u16_image_data = (uint16_t *) ad->image_frame_data;
-		uint16_t pixel_value;
-		int i;
-
-		fprintf( stderr, "%s: image data (u16) = ", fname );
-
-		for ( i = 0; i < 10; i++ ) {
-			pixel_value = u16_image_data[i];
-
-			fprintf( stderr, "%lu ", (unsigned long) pixel_value );
-		}
-
-		fprintf( stderr, "...\n" );
+	if ( xineos_gige->dump_pixel_values ) {
+		(void ) mx_image_dump_pixel_range( stderr,
+					ad->image_frame, 0, 10 );
 	}
-#endif
 
 	return mx_status;
 }
