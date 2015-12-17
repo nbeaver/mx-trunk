@@ -365,6 +365,7 @@ MX_API mx_status_type mx_image_display_ascii( FILE *output_file,
 
 MX_API mx_status_type mx_image_dump_pixel_range( FILE *output_file,
 					MX_IMAGE_FRAME *frame,
+					const char *label,
 					unsigned long first_pixel,
 					unsigned long num_pixels );
 

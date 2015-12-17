@@ -826,8 +826,13 @@ mxd_xineos_gige_readout_frame( MX_AREA_DETECTOR *ad )
 	ad->image_frame->application_ptr = xineos_gige->image_noir_info;
 
 	if ( xineos_gige->dump_pixel_values ) {
-		(void ) mx_image_dump_pixel_range( stderr,
-					ad->image_frame, 0, 10 );
+		char frame_label[20];
+
+		snprintf( frame_label, sizeof(frame_label),
+			"Image frame %ld", ad->readout_frame );
+
+		(void ) mx_image_dump_pixel_range( stderr, ad->image_frame,
+						frame_label, 0, 10 );
 	}
 
 	return mx_status;

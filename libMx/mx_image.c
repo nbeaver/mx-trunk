@@ -2611,6 +2611,7 @@ mx_image_display_ascii( FILE *output,
 MX_EXPORT mx_status_type
 mx_image_dump_pixel_range( FILE *output_file,
 			MX_IMAGE_FRAME *frame,
+			const char *label,
 			unsigned long first_pixel,
 			unsigned long num_pixels )
 {
@@ -2642,7 +2643,11 @@ mx_image_dump_pixel_range( FILE *output_file,
 
 	last_pixel = first_pixel + num_pixels - 1L;
 
-	fprintf( output_file, "Image frame %p, pixels = ", frame );
+	if ( label == NULL ) {
+		fprintf( output_file, "Image frame %p, pixels = ", frame );
+	} else {
+		fprintf( output_file, "%s, pixels = ", label );
+	}
 
 	if ( num_pixels == 0 ) {
 		fprintf( output_file, "NONE.  num_pixels is 0.\n" );
