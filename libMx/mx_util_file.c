@@ -1123,12 +1123,14 @@ mx_make_directory_hierarchy( char *directory_name )
 		switch( drive_type ) {
 		case DRIVE_UNKNOWN:
 		case DRIVE_NO_ROOT_DIR:
-			mx_free( copy_of_directory_name );
-
-			return mx_error( MXE_NOT_FOUND, fname,
+			mx_status = mx_error( MXE_NOT_FOUND, fname,
 			"Drive '%s' specified in directory name '%s' "
 			"is not a valid drive letter for this computer.",
 				name_to_test, copy_of_directory_name );
+
+			mx_free( copy_of_directory_name );
+
+			return mx_status;
 			break;
 		default:
 			break;
