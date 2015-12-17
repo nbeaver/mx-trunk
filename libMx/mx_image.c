@@ -2642,7 +2642,7 @@ mx_image_dump_pixel_range( FILE *output_file,
 
 	last_pixel = first_pixel + num_pixels - 1L;
 
-	fprintf( output_file, "Image frame %p, pixels = " );
+	fprintf( output_file, "Image frame %p, pixels = ", frame );
 
 	if ( num_pixels == 0 ) {
 		fprintf( output_file, "NONE.  num_pixels is 0.\n" );
