@@ -289,6 +289,9 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 
 	ad->correction_calc_frame = NULL;
 
+	ad->show_image_frame_min = 0;
+	ad->show_image_frame_max = 65535;
+
 	ad->datafile_directory[0] = '\0';
 	ad->datafile_pattern[0] = '\0';
 	ad->datafile_name[0] = '\0';

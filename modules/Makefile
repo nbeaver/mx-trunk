@@ -15,7 +15,7 @@ all: build
 #-------------------------------------------------------------------
 # Multiplatform modules.
 
-MODULES += aviex_pccd		# linux, win32
+#MODULES += aviex_pccd		# linux, win32
 
 #MODULES += avt_pvapi		# linux,
 

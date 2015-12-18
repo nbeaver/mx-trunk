@@ -1876,8 +1876,10 @@ mx_area_detector_process_function( void *record_ptr,
 				"by detector '%s'", ad->show_image_frame,
 					ad->record->name );
 			}
-#if 0
-			mx_image_display_ascii( stderr, frame, 0, 65535 );
+#if 1
+			mx_image_display_ascii( stderr, frame,
+						ad->show_image_frame_min,
+						ad->show_image_frame_max );
 #endif
 			break;
 		case MXLV_AD_SHOW_IMAGE_STATISTICS:

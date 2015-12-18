@@ -522,8 +522,13 @@ typedef struct mx_area_detector_type {
 	 * specified by the value passed to the fields.
 	 */
 
-	long show_image_frame;
 	long show_image_statistics;
+
+	long show_image_frame;
+
+	unsigned long show_image_frame_min;
+	unsigned long show_image_frame_max;
+	
 
 	/* The following two values report the exposure time for the
 	 * currently loaded image frame and dark current frame.  These
@@ -794,8 +799,8 @@ typedef struct mx_area_detector_type {
 #define MXLV_AD_SHUTTER_ENABLE			12068
 #define MXLV_AD_TRANSFER_IMAGE_DURING_SCAN	12069
 #define MXLV_AD_MARK_FRAME_AS_SAVED		12070
-#define MXLV_AD_SHOW_IMAGE_FRAME		12071
-#define MXLV_AD_SHOW_IMAGE_STATISTICS		12072
+#define MXLV_AD_SHOW_IMAGE_STATISTICS		12071
+#define MXLV_AD_SHOW_IMAGE_FRAME		12072
 #define MXLV_AD_IMAGE_FRAME_EXPOSURE_TIME	12073
 #define MXLV_AD_DARK_FRAME_EXPOSURE_TIME	12074
 
@@ -1256,14 +1261,22 @@ typedef struct mx_area_detector_type {
 		offsetof( MX_AREA_DETECTOR, mark_frame_as_saved ), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_AD_SHOW_IMAGE_FRAME, -1, "show_image_frame", MXFT_LONG, NULL, 0, {0}, \
-	MXF_REC_CLASS_STRUCT, offsetof( MX_AREA_DETECTOR, show_image_frame ), \
-	{0}, NULL, 0}, \
-  \
   {MXLV_AD_SHOW_IMAGE_STATISTICS, -1, "show_image_statistics", \
 				MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
 		offsetof( MX_AREA_DETECTOR, show_image_statistics ), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_AD_SHOW_IMAGE_FRAME, -1, "show_image_frame", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof( MX_AREA_DETECTOR, show_image_frame ), \
+	{0}, NULL, 0}, \
+  \
+  {-1, -1, "show_image_frame_min", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, show_image_frame_min),\
+	{0}, NULL, 0}, \
+  \
+  {-1, -1, "show_image_frame_max", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, show_image_frame_max),\
 	{0}, NULL, 0}, \
   \
   {MXLV_AD_IMAGE_FRAME_EXPOSURE_TIME, -1, "image_frame_exposure_time", \

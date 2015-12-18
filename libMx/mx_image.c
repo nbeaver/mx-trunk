@@ -61,6 +61,7 @@
 #include "mx_array.h"
 #include "mx_cfn.h"
 #include "mx_io.h"
+#include "mx_console.h"
 #include "mx_image.h"
 #include "mx_image_noir.h"
 
@@ -2521,10 +2522,21 @@ mx_image_display_ascii( FILE *output,
 
 	double scale, offset;
 	unsigned long pixel_offset;
-	unsigned long i, j, row_framesize, column_framesize;
+	unsigned long i, j, m, n, row_framesize, column_framesize;
 	uint16_t *image_data;
 	unsigned long raw_value, rescaled_value;
 	char c;
+
+	long dimension[2];
+	size_t element_size[2];
+	void *array_pointer;
+	uint16_t **uint16_array;
+	uint16_t uint16_pixel;
+	double sum, raw_region_average;
+
+	unsigned long console_num_rows, console_num_columns;
+	unsigned long console_bin_size, num_console_bin_pixels;
+	mx_status_type mx_status;
 
 	if ( output == (FILE *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -2548,23 +2560,90 @@ mx_image_display_ascii( FILE *output,
 
 	scale = mx_divide_safely( 63.0, (maximum - minimum) );
 
-	offset = - minimum * scale;
+	offset = - scale * (double) minimum;
 
 	row_framesize    = MXIF_ROW_FRAMESIZE( image );
 	column_framesize = MXIF_COLUMN_FRAMESIZE( image );
 
 	image_data = (uint16_t *) image->image_data;
 
-	for ( i = 0; i < 20; i++ ) {
+	for ( i = 0; i < 5; i++ ) {
 		fprintf( output, "%lu ", (unsigned long) image_data[i] );
 	}
 	fprintf( output, "\n" );
 
-	for ( i = 0; i < row_framesize; i++ ) {
-		for ( j = 0; j < column_framesize; j++ ) {
-			pixel_offset = i * row_framesize + j;
+	/* Overlay the 1-dimensional frame buffer with a 2-dimensional array. */
 
-			raw_value = image_data[ pixel_offset ];
+	dimension[0] = column_framesize;
+	dimension[1] = row_framesize;
+
+	element_size[0] = sizeof(uint16_t);
+	element_size[1] = sizeof(uint16_t *);
+
+	mx_status = mx_array_add_overlay( image_data,
+				2, dimension, element_size,
+				&array_pointer );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	uint16_array = array_pointer;
+
+	/* Find out how wide the text screen is so that we can determine
+	 * how big the bins should be.
+	 */
+
+	mx_status = mx_get_console_size( &console_num_rows,
+					&console_num_columns );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		mx_array_free_overlay( array_pointer );
+		return mx_status;
+	}
+
+	if ( console_num_columns <= 1 ) {
+		mx_array_free_overlay( array_pointer );
+
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The width of a console row is reported to be 0 or 1.  "
+		"This function requires a non-zero console row width." );
+	}
+
+	/* Each value displayed on the console will be averaged over
+	 * a square region in the image frame which has a width and
+	 * size of 'console_bin_size'.
+	 */
+
+	console_bin_size = 1 + ( row_framesize / console_num_columns );
+
+	num_console_bin_pixels = console_bin_size * console_bin_size;
+
+	for ( i = 0;
+	    i < (column_framesize - console_bin_size);
+	    i += console_bin_size )
+	{
+		for ( j = 0;
+		    j < (row_framesize - console_bin_size);
+		    j += console_bin_size )
+		{
+			/* Average all of the pixel values in this particular
+			 * square region of the image.
+			 */
+
+			sum = 0.0;
+
+			for ( m = 0; m < console_bin_size; m++ ) {
+				for ( n = 0; n < console_bin_size; n++ ) {
+					uint16_pixel = uint16_array[i+m][j+n];
+
+					sum += uint16_pixel;
+				}
+			}
+
+			raw_region_average = mx_divide_safely( sum,
+						num_console_bin_pixels );
+
+			raw_value = mx_round( raw_region_average );
 
 			/* Check for underflows. */
 
@@ -2602,6 +2681,8 @@ mx_image_display_ascii( FILE *output,
 		}
 		fputc( '\n', output );
 	}
+
+	mx_array_free_overlay( array_pointer );
 
 	return MX_SUCCESSFUL_RESULT;
 }
