@@ -2521,7 +2521,6 @@ mx_image_display_ascii( FILE *output,
 	static const char fname[] = "mx_image_display_ascii()";
 
 	double scale, offset;
-	unsigned long pixel_offset;
 	unsigned long i, j, m, n, row_framesize, column_framesize;
 	uint16_t *image_data;
 	unsigned long raw_value, rescaled_value;

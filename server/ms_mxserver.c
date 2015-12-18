@@ -53,6 +53,7 @@
 #include "mx_inttypes.h"
 #include "mx_driver.h"
 #include "mx_record.h"
+#include "mx_version.h"
 #include "mx_handle.h"
 #include "mx_socket.h"
 #include "mx_net.h"
@@ -5691,7 +5692,9 @@ mxsrv_ascii_client_handle_get( MX_RECORD *mx_record_list,
 				MX_RECORD *mx_record,
 				MX_RECORD_FIELD *mx_field )
 {
+#if 0
 	static const char fname[] = "mxsrv_ascii_client_handle_get()";
+#endif
 
 	MX_SOCKET *client_socket;
 	char field_description[2500];
@@ -5760,7 +5763,9 @@ mxsrv_ascii_client_handle_put( MX_RECORD *mx_record_list,
 				MX_RECORD_FIELD *mx_field,
 				char *put_arguments )
 {
+#if 0
 	static const char fname[] = "mxsrv_ascii_client_handle_put()";
+#endif
 
 	MX_RECORD_FIELD_PARSE_STATUS parse_status;
 	char separators[] = MX_RECORD_FIELD_SEPARATORS;

@@ -1917,7 +1917,6 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 	long bytes_left, bytes_received_from_socket;
 	long total_bytes_in_callers_buffer;
 	long num_bytes_to_send_to_caller;
-	long error_code;
 	int i, saved_errno, num_terminators_seen;
 	char *write_ptr, *scan_ptr, *terminators;
 
