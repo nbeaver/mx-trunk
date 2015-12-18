@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2007, 2009, 2011-2012 Illinois Institute of Technology
+ * Copyright 2006-2007, 2009, 2011-2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -533,9 +533,9 @@ mx_video_input_set_exposure_time( MX_RECORD *record, double exposure_time )
 }
 
 MX_EXPORT mx_status_type
-mx_video_input_set_continuous_mode( MX_RECORD *record, double exposure_time )
+mx_video_input_set_stream_mode( MX_RECORD *record, double exposure_time )
 {
-	static const char fname[] = "mx_video_input_set_continuous_mode()";
+	static const char fname[] = "mx_video_input_set_stream_mode()";
 
 	MX_VIDEO_INPUT *vinput;
 	MX_SEQUENCE_PARAMETERS *sp;
@@ -562,7 +562,7 @@ mx_video_input_set_continuous_mode( MX_RECORD *record, double exposure_time )
 
 	sp = &(vinput->sequence_parameters);
 
-	sp->sequence_type = MXT_SQ_CONTINUOUS;
+	sp->sequence_type = MXT_SQ_STREAM;
 
 	sp->num_parameters = 1;
 

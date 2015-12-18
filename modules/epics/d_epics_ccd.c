@@ -557,7 +557,7 @@ mxd_epics_ccd_get_parameter( MX_AREA_DETECTOR *ad )
 
 		switch ( seq.sequence_type ) {
 		case MXT_SQ_ONE_SHOT:
-		case MXT_SQ_CONTINUOUS:
+		case MXT_SQ_STREAM:
 		case MXT_SQ_MULTIFRAME:
 		case MXT_SQ_STROBE:
 		case MXT_SQ_DURATION:

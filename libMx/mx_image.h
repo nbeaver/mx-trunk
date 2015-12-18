@@ -80,7 +80,7 @@ extern "C" {
 /*---- Sequence type definitions ----*/
 
 #define MXT_SQ_ONE_SHOT				1
-#define MXT_SQ_CONTINUOUS			2
+#define MXT_SQ_STREAM				2
 #define MXT_SQ_MULTIFRAME			3
 /*...*/
 #define MXT_SQ_STROBE				5

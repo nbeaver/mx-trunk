@@ -102,7 +102,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 "\n"
 "  area_detector 'name' get sequence_parameters\n"
 "  area_detector 'name' set one_shot_mode 'exposure time in seconds'\n"
-"  area_detector 'name' set continuous_mode 'exposure time in seconds'\n"
+"  area_detector 'name' set stream_mode 'exposure time in seconds'\n"
 "  area_detector 'name' set multiframe_mode '# frames'\n"
 "                                                'exposure time' 'frame_time'\n"
 "  area_detector 'name' set strobe_mode '# frames' 'exposure time'\n"
@@ -450,7 +450,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 			num_frames = mx_round( sp.parameter_array[0] );
 			break;
 
-		case MXT_SQ_CONTINUOUS:
+		case MXT_SQ_STREAM:
 			ignore_num_frames = TRUE;
 			num_frames = 0;
 			break;
@@ -654,7 +654,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 				n++;
 				num_unread_frames--;
 
-				if ( ( sp.sequence_type != MXT_SQ_CONTINUOUS )
+				if ( ( sp.sequence_type != MXT_SQ_STREAM )
 				  && ( n >= num_frames ) )
 				{
 					break;	/* Exit the for() loop. */
@@ -670,7 +670,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 				fprintf( output, "Reading frame %ld.\n", n );
 
-				if ( sp.sequence_type == MXT_SQ_CONTINUOUS ) {
+				if ( sp.sequence_type == MXT_SQ_STREAM ) {
 					frame_number = 0;
 				} else {
 					frame_number = n;
@@ -703,7 +703,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 				n++;
 				num_unread_frames--;
 
-				if ( ( sp.sequence_type != MXT_SQ_CONTINUOUS )
+				if ( ( sp.sequence_type != MXT_SQ_STREAM )
 				  && ( n >= num_frames ) )
 				{
 					break;	/* Exit the for() loop. */
@@ -1955,7 +1955,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 			"The sequence will take %g seconds.\n",
 				total_sequence_time );
 		} else
-		if ( strncmp("continuous_mode", argv[4], strlen(argv[4])) == 0){
+		if ( strncmp("stream_mode", argv[4], strlen(argv[4])) == 0){
 
 			if ( argc != 6 ) {
 				fprintf( output,
@@ -1966,7 +1966,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 			exposure_time = atof( argv[5] );
 
-			mx_status = mx_area_detector_set_continuous_mode(
+			mx_status = mx_area_detector_set_stream_mode(
 						    ad_record, exposure_time );
 
 			if ( mx_status.code != MXE_SUCCESS )

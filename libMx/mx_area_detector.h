@@ -336,7 +336,7 @@ typedef struct mx_area_detector_type {
 	 */
 
 	double sequence_one_shot[1];
-	double sequence_continuous[1];
+	double sequence_stream[1];
 	double sequence_multiframe[3];
 	double sequence_strobe[2];
 	double sequence_duration[1];
@@ -839,7 +839,7 @@ typedef struct mx_area_detector_type {
 #define MXLV_AD_MOTOR_POSITION			12650
 
 #define MXLV_AD_SEQUENCE_ONE_SHOT		12701
-#define MXLV_AD_SEQUENCE_CONTINUOUS		12702
+#define MXLV_AD_SEQUENCE_STREAM			12702
 #define MXLV_AD_SEQUENCE_MULTIFRAME		12703
 /*...*/
 #define MXLV_AD_SEQUENCE_STROBE			12705
@@ -1476,9 +1476,9 @@ typedef struct mx_area_detector_type {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, sequence_one_shot), \
 	{sizeof(double)}, NULL, 0}, \
   \
-  {MXLV_AD_SEQUENCE_CONTINUOUS, -1, \
-			"sequence_continuous", MXFT_DOUBLE, NULL, 1, {1}, \
-	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, sequence_continuous), \
+  {MXLV_AD_SEQUENCE_STREAM, -1, \
+			"sequence_stream", MXFT_DOUBLE, NULL, 1, {1}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, sequence_stream), \
 	{sizeof(double)}, NULL, 0}, \
   \
   {MXLV_AD_SEQUENCE_MULTIFRAME, -1, \
@@ -1654,7 +1654,7 @@ MX_API mx_status_type mx_area_detector_get_num_exposures( MX_RECORD *ad_record,
 MX_API mx_status_type mx_area_detector_set_one_shot_mode(MX_RECORD *ad_record,
 							double exposure_time );
 
-MX_API mx_status_type mx_area_detector_set_continuous_mode(MX_RECORD *ad_record,
+MX_API mx_status_type mx_area_detector_set_stream_mode(MX_RECORD *ad_record,
 							double exposure_time );
 
 MX_API mx_status_type mx_area_detector_set_multiframe_mode(MX_RECORD *ad_record,

@@ -1712,7 +1712,7 @@ mxd_merlin_medipix_set_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_SEQUENCE_ONE_SHOT:
 		break;
 
-	case MXLV_AD_SEQUENCE_CONTINUOUS:
+	case MXLV_AD_SEQUENCE_STREAM:
 		break;
 
 	case MXLV_AD_SEQUENCE_MULTIFRAME:

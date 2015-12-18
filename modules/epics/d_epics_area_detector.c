@@ -1539,7 +1539,7 @@ mxd_epics_ad_get_parameter( MX_AREA_DETECTOR *ad )
 			sp->num_parameters = 3;
 			break;
 		case 2:			/* Continuous */
-			sp->sequence_type = MXT_SQ_CONTINUOUS;
+			sp->sequence_type = MXT_SQ_STREAM;
 			sp->num_parameters = 1;
 			break;
 		default:
@@ -1576,7 +1576,7 @@ mxd_epics_ad_get_parameter( MX_AREA_DETECTOR *ad )
 			/* Fall through to the next case. */
 
 		case MXT_SQ_ONE_SHOT:
-		case MXT_SQ_CONTINUOUS:
+		case MXT_SQ_STREAM:
 			mx_status = mx_caget( &(epics_ad->acquire_time_rbv_pv),
 					MX_CA_DOUBLE, 1, &acquire_time );
 
@@ -1899,7 +1899,7 @@ mxd_epics_ad_set_parameter( MX_AREA_DETECTOR *ad )
 		case MXT_SQ_ONE_SHOT:
 			image_mode = 0;
 			break;
-		case MXT_SQ_CONTINUOUS:
+		case MXT_SQ_STREAM:
 			image_mode = 2;
 			break;
 		case MXT_SQ_MULTIFRAME:

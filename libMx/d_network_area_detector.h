@@ -78,12 +78,12 @@ typedef struct {
 	MX_NETWORK_FIELD roi_bytes_per_frame_nf;
 	MX_NETWORK_FIELD roi_number_nf;
 	MX_NETWORK_FIELD save_frame_nf;
-	MX_NETWORK_FIELD sequence_continuous_nf;
 	MX_NETWORK_FIELD sequence_duration_nf;
 	MX_NETWORK_FIELD sequence_gated_nf;
 	MX_NETWORK_FIELD sequence_multiframe_nf;
 	MX_NETWORK_FIELD sequence_one_shot_nf;
 	MX_NETWORK_FIELD sequence_start_delay_nf;
+	MX_NETWORK_FIELD sequence_stream_nf;
 	MX_NETWORK_FIELD sequence_strobe_nf;
 	MX_NETWORK_FIELD setup_oscillation_nf;
 	MX_NETWORK_FIELD shutter_enable_nf;

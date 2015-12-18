@@ -294,7 +294,7 @@ mxd_sony_snc_arm( MX_VIDEO_INPUT *vinput )
 #else
 	switch( seq->sequence_type ) {
 	case MXT_SQ_ONE_SHOT:
-	case MXT_SQ_CONTINUOUS:
+	case MXT_SQ_STREAM:
 		sony_snc->seconds_per_frame = seq->parameter_array[0];
 		sony_snc->num_frames_in_sequence = 1;
 		break;
@@ -462,7 +462,7 @@ mxd_sony_snc_get_extended_status( MX_VIDEO_INPUT *vinput )
 			}
 			break;
 
-		case MXT_SQ_CONTINUOUS:
+		case MXT_SQ_STREAM:
 			vinput->status = MXSF_VIN_IS_BUSY;
 			vinput->last_frame_number = 0;
 			vinput->total_num_frames =

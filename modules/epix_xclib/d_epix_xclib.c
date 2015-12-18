@@ -1496,9 +1496,9 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 		break;
 
 
-	case MXT_SQ_CONTINUOUS:
+	case MXT_SQ_STREAM:
 		return mx_error( MXE_UNSUPPORTED, fname,
-			"Continuous sequences cannot be used with external "
+			"Stream sequences cannot be used with external "
 			"triggers for video input '%s'.",
 				vinput->record->name );
 		break;
@@ -1676,7 +1676,7 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 
 	switch( sp->sequence_type ) {
 	case MXT_SQ_ONE_SHOT:
-	case MXT_SQ_CONTINUOUS:
+	case MXT_SQ_STREAM:
 		exposure_time = sp->parameter_array[0];
 		break;
 	case MXT_SQ_MULTIFRAME:
@@ -1750,10 +1750,10 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 				vinput->record->name, error_message );
 		}
 		break;
-	case MXT_SQ_CONTINUOUS:
+	case MXT_SQ_STREAM:
 
 #if MXD_EPIX_XCLIB_DEBUG_TRIGGER
-	MX_DEBUG(-2,("%s: triggering continuous mode for vinput '%s'.",
+	MX_DEBUG(-2,("%s: triggering stream mode for vinput '%s'.",
 		fname, vinput->record->name ));
 #endif
 		epix_status = pxd_goLive( epix_xclib_vinput->unitmap, 1 );
@@ -1769,7 +1769,7 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 				error_message, sizeof(error_message) );
 
 			return mx_error( MXE_DEVICE_IO_ERROR, fname,
-			"The attempt to start continuous single frame "
+			"The attempt to start stream "
 			"acquisition with video input '%s' failed.  %s",
 				vinput->record->name, error_message );
 		}

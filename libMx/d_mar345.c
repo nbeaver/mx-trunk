@@ -940,7 +940,7 @@ mxd_mar345_get_parameter( MX_AREA_DETECTOR *ad )
 			sp->num_parameters = 3;
 			break;
 		case 2:			/* Continuous */
-			sp->sequence_type = MXT_SQ_CONTINUOUS;
+			sp->sequence_type = MXT_SQ_STREAM;
 			sp->num_parameters = 1;
 			break;
 		default:
@@ -955,7 +955,7 @@ mxd_mar345_get_parameter( MX_AREA_DETECTOR *ad )
 		switch( sp->sequence_type ) {
 		case MXT_SQ_MULTIFRAME:
 		case MXT_SQ_ONE_SHOT:
-		case MXT_SQ_CONTINUOUS:
+		case MXT_SQ_STREAM:
 
 #if 0
 			if ( sp->sequence_type == MXT_SQ_MULTIFRAME ) {
@@ -1062,7 +1062,7 @@ mxd_mar345_set_parameter( MX_AREA_DETECTOR *ad )
 		case MXT_SQ_ONE_SHOT:
 			image_mode = 0;
 			break;
-		case MXT_SQ_CONTINUOUS:
+		case MXT_SQ_STREAM:
 			image_mode = 2;
 			break;
 		case MXT_SQ_MULTIFRAME:

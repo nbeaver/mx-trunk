@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2007, 2011-2012 Illinois Institute of Technology
+ * Copyright 2006-2007, 2011-2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -377,7 +377,7 @@ MX_API mx_status_type mx_video_input_set_bits_per_pixel( MX_RECORD *record,
 MX_API mx_status_type mx_video_input_set_exposure_time( MX_RECORD *record,
 							double exposure_time );
 
-MX_API mx_status_type mx_video_input_set_continuous_mode(MX_RECORD *record,
+MX_API mx_status_type mx_video_input_set_stream_mode(MX_RECORD *record,
 							double exposure_time );
 
 MX_API mx_status_type mx_video_input_set_sequence_parameters(

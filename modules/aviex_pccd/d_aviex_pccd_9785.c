@@ -829,7 +829,7 @@ mxd_aviex_pccd_9785_configure_for_sequence( MX_AREA_DETECTOR *ad,
 
 	switch( sp->sequence_type ) {
 	case MXT_SQ_ONE_SHOT:
-	case MXT_SQ_CONTINUOUS:
+	case MXT_SQ_STREAM:
 	case MXT_SQ_MULTIFRAME:
 	case MXT_SQ_STROBE:
 	case MXT_SQ_DURATION:
@@ -889,7 +889,7 @@ mxd_aviex_pccd_9785_configure_for_sequence( MX_AREA_DETECTOR *ad,
 			exposure_time = sp->parameter_array[0];
 			frame_time = exposure_time;
 		} else
-		if ( sp->sequence_type == MXT_SQ_CONTINUOUS ) {
+		if ( sp->sequence_type == MXT_SQ_STREAM ) {
 			num_frames = 1;
 			exposure_time = sp->parameter_array[0];
 			frame_time = exposure_time;
@@ -987,8 +987,8 @@ mxd_aviex_pccd_9785_configure_for_sequence( MX_AREA_DETECTOR *ad,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		if ( sp->sequence_type == MXT_SQ_CONTINUOUS ) {
-			/* For continuous sequences, we want the
+		if ( sp->sequence_type == MXT_SQ_STREAM ) {
+			/* For stream sequences, we want the
 			 * gap time to be one, so that the camera
 			 * will take frames as fast as it can.
 			 */
@@ -1002,9 +1002,7 @@ mxd_aviex_pccd_9785_configure_for_sequence( MX_AREA_DETECTOR *ad,
 				return mx_status;
 		} else
 		if ( num_frames > 1 ) {
-			/* For sequence types other than
-			 * MXT_SQ_CONTINUOUS.
-			 */
+			/* For sequence types other than MXT_SQ_STREAM. */
 
 			gap_time = frame_time - exposure_time
 					- ad->detector_readout_time;

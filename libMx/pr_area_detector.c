@@ -994,7 +994,7 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_SEQUENCE_START_DELAY:
 		case MXLV_AD_SEQUENCE_TYPE:
 		case MXLV_AD_SEQUENCE_ONE_SHOT:
-		case MXLV_AD_SEQUENCE_CONTINUOUS:
+		case MXLV_AD_SEQUENCE_STREAM:
 		case MXLV_AD_SEQUENCE_MULTIFRAME:
 		case MXLV_AD_SEQUENCE_STROBE:
 		case MXLV_AD_SEQUENCE_DURATION:
@@ -1806,9 +1806,9 @@ mx_area_detector_process_function( void *record_ptr,
 						ad->sequence_one_shot[0] );
 			break;
 
-		case MXLV_AD_SEQUENCE_CONTINUOUS:
-			mx_status = mx_area_detector_set_continuous_mode(record,
-						ad->sequence_continuous[0] );
+		case MXLV_AD_SEQUENCE_STREAM:
+			mx_status = mx_area_detector_set_stream_mode(record,
+						ad->sequence_stream[0] );
 			break;
 
 		case MXLV_AD_SEQUENCE_MULTIFRAME:

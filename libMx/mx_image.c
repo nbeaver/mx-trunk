@@ -5808,7 +5808,7 @@ mx_sequence_get_exposure_time( MX_SEQUENCE_PARAMETERS *sp,
 
 	switch( sp->sequence_type ) {
 	case MXT_SQ_ONE_SHOT:
-	case MXT_SQ_CONTINUOUS:
+	case MXT_SQ_STREAM:
 		*exposure_time = sp->parameter_array[0];
 		break;
 	case MXT_SQ_MULTIFRAME:
@@ -5870,7 +5870,7 @@ mx_sequence_get_frame_time( MX_SEQUENCE_PARAMETERS *sp,
 
 	switch( sp->sequence_type ) {
 	case MXT_SQ_ONE_SHOT:
-	case MXT_SQ_CONTINUOUS:
+	case MXT_SQ_STREAM:
 		*frame_time = sp->parameter_array[0];
 		break;
 	case MXT_SQ_MULTIFRAME:
@@ -5946,7 +5946,7 @@ mx_sequence_get_sequence_time( MX_SEQUENCE_PARAMETERS *sp,
 
 	switch( sp->sequence_type ) {
 	case MXT_SQ_ONE_SHOT:
-	case MXT_SQ_CONTINUOUS:
+	case MXT_SQ_STREAM:
 		*sequence_time = sp->parameter_array[0] * num_frames;
 		break;
 	case MXT_SQ_MULTIFRAME:
@@ -6018,7 +6018,7 @@ mx_sequence_get_num_frames( MX_SEQUENCE_PARAMETERS *sp,
 
 	switch( sp->sequence_type ) {
 	case MXT_SQ_ONE_SHOT:
-	case MXT_SQ_CONTINUOUS:
+	case MXT_SQ_STREAM:
 	case MXT_SQ_STREAK_CAMERA:
 	case MXT_SQ_SUBIMAGE:
 		*num_frames = 1;

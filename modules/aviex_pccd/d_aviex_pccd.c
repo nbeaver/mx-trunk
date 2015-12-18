@@ -2500,7 +2500,7 @@ mxd_aviex_pccd_arm( MX_AREA_DETECTOR *ad )
 			return mx_status;
 
 		switch( sp->sequence_type ) {
-		case MXT_SQ_CONTINUOUS:
+		case MXT_SQ_STREAM:
 			circular = TRUE;
 			break;
 		case MXT_SQ_MULTIFRAME:
@@ -2580,7 +2580,7 @@ mxd_aviex_pccd_trigger( MX_AREA_DETECTOR *ad )
 
 	switch( sp->sequence_type ) {
 	case MXT_SQ_ONE_SHOT:
-	case MXT_SQ_CONTINUOUS:
+	case MXT_SQ_STREAM:
 	case MXT_SQ_MULTIFRAME:
 	case MXT_SQ_STROBE:
 	case MXT_SQ_DURATION:
@@ -2619,7 +2619,7 @@ mxd_aviex_pccd_trigger( MX_AREA_DETECTOR *ad )
 			return mx_status;
 
 		switch( sp->sequence_type ) {
-		case MXT_SQ_CONTINUOUS:
+		case MXT_SQ_STREAM:
 			circular = TRUE;
 			break;
 		case MXT_SQ_MULTIFRAME:
@@ -3058,7 +3058,7 @@ mxd_aviex_pccd_readout_frame( MX_AREA_DETECTOR *ad )
 #endif
 
 	/* Compute the frame number modulo the maximum_number of frames.
-	 * The modulo part is for the sake of MXT_SQ_CONTINUOUS sequences
+	 * The modulo part is for the sake of MXT_SQ_STREAM sequences
 	 * and for MXT_SQ_MULTIFRAME sequences with more frames that the
 	 * number of video frame buffers.
 	 */
@@ -4380,8 +4380,8 @@ mxd_aviex_pccd_set_parameter( MX_AREA_DETECTOR *ad )
 			return mx_status;
 
 		switch( sp->sequence_type ) {
-		case MXT_SQ_CONTINUOUS:
-			/* Continuous scans are not limited by the maximum
+		case MXT_SQ_STREAM:
+			/* Stream scans are not limited by the maximum
 			 * number of frames that the video card can handle,
 			 * since they wrap back to the first frame when they
 			 * reach the last frame.
@@ -4458,7 +4458,7 @@ mxd_aviex_pccd_set_parameter( MX_AREA_DETECTOR *ad )
 
 		switch( sp->sequence_type ) {
 		case MXT_SQ_ONE_SHOT:
-		case MXT_SQ_CONTINUOUS:
+		case MXT_SQ_STREAM:
 			mx_status = mx_video_input_set_trigger_mode( 
 						aviex_pccd->video_input_record,
 						MXT_IMAGE_INTERNAL_TRIGGER );

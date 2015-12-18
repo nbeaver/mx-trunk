@@ -570,9 +570,9 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 		"%s.sequence_parameter_array",
 				network_area_detector->remote_record_name );
 
-	mx_network_field_init( &(network_area_detector->sequence_continuous_nf),
+	mx_network_field_init( &(network_area_detector->sequence_stream_nf),
 		network_area_detector->server_record,
-		"%s.sequence_continuous",
+		"%s.sequence_stream",
 				network_area_detector->remote_record_name );
 
 	mx_network_field_init( &(network_area_detector->sequence_duration_nf),
@@ -2055,12 +2055,12 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 			MXFT_DOUBLE, 1, dimension, ad->sequence_one_shot );
 		break;
 
-	case MXLV_AD_SEQUENCE_CONTINUOUS:
+	case MXLV_AD_SEQUENCE_STREAM:
 		dimension[0] = 1;
 
 		mx_status = mx_put_array(
-			&(network_area_detector->sequence_continuous_nf),
-			MXFT_DOUBLE, 1, dimension, ad->sequence_continuous );
+			&(network_area_detector->sequence_stream_nf),
+			MXFT_DOUBLE, 1, dimension, ad->sequence_stream );
 		break;
 
 	case MXLV_AD_SEQUENCE_MULTIFRAME:

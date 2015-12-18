@@ -257,7 +257,7 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->total_sequence_time    = 0.0;
 
 	memset( ad->sequence_one_shot, 0, sizeof(ad->sequence_one_shot) );
-	memset( ad->sequence_continuous, 0, sizeof(ad->sequence_continuous) );
+	memset( ad->sequence_stream, 0, sizeof(ad->sequence_stream) );
 	memset( ad->sequence_multiframe, 0, sizeof(ad->sequence_multiframe) );
 	memset( ad->sequence_strobe, 0, sizeof(ad->sequence_strobe) );
 	memset( ad->sequence_duration, 0, sizeof(ad->sequence_duration) );
@@ -1706,12 +1706,12 @@ mx_area_detector_set_one_shot_mode( MX_RECORD *record, double exposure_time )
 }
 
 MX_EXPORT mx_status_type
-mx_area_detector_set_continuous_mode( MX_RECORD *record, double exposure_time )
+mx_area_detector_set_stream_mode( MX_RECORD *record, double exposure_time )
 {
 	MX_SEQUENCE_PARAMETERS seq_params;
 	mx_status_type mx_status;
 
-	seq_params.sequence_type = MXT_SQ_CONTINUOUS;
+	seq_params.sequence_type = MXT_SQ_STREAM;
 	seq_params.num_parameters = 1;
 	seq_params.parameter_array[0] = exposure_time;
 
@@ -5738,7 +5738,7 @@ mx_area_detector_default_get_parameter_handler( MX_AREA_DETECTOR *ad )
 
 		switch( seq.sequence_type ) {
 		case MXT_SQ_ONE_SHOT:
-		case MXT_SQ_CONTINUOUS:
+		case MXT_SQ_STREAM:
 			exposure_time = seq.parameter_array[0];
 
 			ad->total_acquisition_time = exposure_time;
