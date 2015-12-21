@@ -10,11 +10,24 @@
 #
 
 #
-# You should not have to modify anything other than PROGRAM_FILES_DIR
 #
 
 PROGRAM_FILES_DIR="C:\\Program Files (x86)"
 
+#
+# The following two variables may change when you do updates
+# of Visual Studio 2015.  They are current as of 2015-12-21
+# and include the changes of Update 1.
+#
+
+NETFX_VERSION=4.6.1
+
+export UCRTVersion=10.0.10586.0
+##export UCRTVersion=10.0.10240.0
+
+#
+# You should not have to modify anything beyond this point.
+#
 #----------------------------------------------------------------------
 
 VISUAL_STUDIO_DIR="$PROGRAM_FILES_DIR\\Microsoft Visual Studio 14.0"
@@ -34,27 +47,26 @@ export FrameworkVersion=v4.0.30319
 
        INCLUDE="$VISUAL_STUDIO_DIR\\VC\\INCLUDE"
        INCLUDE="$INCLUDE;$VISUAL_STUDIO_DIR\\VC\\ATLMFC\\INCLUDE"
-       INCLUDE="$INCLUDE;$KIT_DIR\\10\\include\\10.0.10240.0\\ucrt"
-       INCLUDE="$INCLUDE;$KIT_DIR\\NETFXSDK\\4.6.1\\include\\um"
+       INCLUDE="$INCLUDE;$KIT_DIR\\10\\include\\$UCRTVersion\\ucrt"
+       INCLUDE="$INCLUDE;$KIT_DIR\\NETFXSDK\\$NETFX_VERSION\\include\\um"
        INCLUDE="$INCLUDE;$KIT_DIR\\8.1\\include\\\\shared"
        INCLUDE="$INCLUDE;$KIT_DIR\\8.1\\include\\\\um"
 export INCLUDE="$INCLUDE;$KIT_DIR\\8.1\\include\\\\winrt;"
 
        LIB="$VISUAL_STUDIO_DIR\\VC\\LIB\\amd64"
        LIB="$LIB;$VISUAL_STUDIO_DIR\\VC\\ATLMFC\\LIB\\amd64"
-       LIB="$LIB;$KIT_DIR\\10\\lib\\10.0.10240.0\\ucrt\\x64"
-       LIB="$LIB;$KIT_DIR\\NETFXSDK\\4.6.1\\lib\\um\\x64"
+       LIB="$LIB;$KIT_DIR\\10\\lib\\$UCRTVersion\\ucrt\\x64"
+       LIB="$LIB;$KIT_DIR\\NETFXSDK\\$NETFX_VERSION\\lib\\um\\x64"
 export LIB="$LIB;$KIT_DIR\\8.1\\lib\\winv6.3\\um\\x64;"
 
-       LIBPATH="$FrameworkDir\\v4.0.30319"
+       LIBPATH="$FrameworkDir\\$FrameworkVersion"
        LIBPATH="$LIBPATH;$VISUAL_STUDIO_DIR\\VC\\LIB\\amd64"
        LIBPATH="$LIBPATH;$KIT_DIR\\8.1\\References\\CommonConfiguration\\Neutral"
 export LIBPATH="$LIBPATH;\\Microsoft.VCLibs\\14.0\\References\\CommonConfiguration\\neutral;"
 
-export NETFXSDKDir="$KIT_DIR\\NETFXSDK\\4.6.1\\"
+export NETFXSDKDir="$KIT_DIR\\NETFXSDK\\$NETFX_VERSION\\"
 
 export Platform=X64
-export UCRTVersion=10.0.10240.0
 export UniversalCRTSdkDir="$KIT_DIR\\10\\"
 export VCINSTALLDIR="$VISUAL_STUDIO_DIR\\VC\\"
 export VisualStudioVersion=14.0
@@ -64,8 +76,8 @@ export WindowsLibPath="$KIT_DIR\\8.1\\Reference\\CommonConfiguration\\Neutral"
 export WindowsSdkDir="$KIT_DIR\\8.1\\"
 export WindowsSDKLibVersion="winv6.3\\"
 export WindowsSDKVersion="\\"
-export WindowsSDK_ExecutablePath_x64="$SDK_DIR\\bin\\NETFX 4.6.1 Tools\\x64\\"
-export WindowsSDK_ExecutablePath_x86="$SDK_DIR\\bin\\NETFX 4.6.1 Tools\\"
+export WindowsSDK_ExecutablePath_x64="$SDK_DIR\\bin\\NETFX $NETFX_VERSION Tools\\x64\\"
+export WindowsSDK_ExecutablePath_x86="$SDK_DIR\\bin\\NETFX $NETFX_VERSION Tools\\"
 
 #
 # The PATH variable must _not_ have any spaces in it.  This is to make it
@@ -94,7 +106,7 @@ cyg_help_dir=`cygpath -u "$tmp"`
 tmp=`cygpath -d -m "$VISUAL_STUDIO_DIR\\Team Tools\\Performance Tools"`
 cyg_teamtools_dir=`cygpath -u "$tmp"`
 
-tmp=`cygpath -d -m "$SDK_DIR\\bin\\NETFX 4.6.1 Tools"`
+tmp=`cygpath -d -m "$SDK_DIR\\bin\\NETFX $NETFX_VERSION Tools"`
 cyg_netfx_dir=`cygpath -u "$tmp"`
 
 #
