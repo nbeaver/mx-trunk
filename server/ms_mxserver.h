@@ -194,24 +194,11 @@ extern mx_status_type mxsrv_ascii_client_socket_process_event(
 			MX_SOCKET_HANDLER_LIST *socket_handler_list,
 			MX_EVENT_HANDLER *event_handler );
 
-#if defined(__clang__)
-
-/* Skip MX_PRINTFLIKE for Clang here, since Clang does not like it if I
- * use a non-literal like mx_status.message for the format argument.
- */
-
-extern mx_status_type mxsrv_ascii_client_send_error_message(
-			MX_SOCKET_HANDLER *socket_handler,
-			long error_code,
-			const char *location,
-			const char *format, ... );
-#else
 extern mx_status_type mxsrv_ascii_client_send_error_message(
 			MX_SOCKET_HANDLER *socket_handler,
 			long error_code,
 			const char *location,
 			const char *format, ... ) MX_PRINTFLIKE( 4, 5 );
-#endif
 
 extern mx_status_type mxsrv_ascii_client_handle_get(
 			MX_RECORD *record_list,

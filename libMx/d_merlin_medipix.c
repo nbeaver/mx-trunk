@@ -1951,22 +1951,12 @@ mxd_merlin_medipix_command( MX_MERLIN_MEDIPIX *merlin_medipix,
 	case MXE_SUCCESS:
 		break;
 	case MXE_TIMED_OUT:
-
-#if defined(__clang__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#endif
-
 		/* Resend the message with the MXE_QUIET flag turned off. */
 
 		return mx_error( MXE_TIMED_OUT,
 			mx_status.location,
-			mx_status.message );
+			"%s", mx_status.message );
 		break;
-#if defined(__clang__)
-#pragma GCC diagnostic pop
-#endif
-
 	default:
 		return mx_status;
 		break;

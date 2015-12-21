@@ -5376,16 +5376,7 @@ mxsrv_ascii_client_send_error_message( MX_SOCKET_HANDLER *socket_handler,
 	vsnprintf( error_buffer, sizeof(error_buffer), format, args );
 	va_end( args );
 
-#if defined(__clang__)
-#  pragma GCC diagnostic push
-#  pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#endif
-
-	mx_status = mx_error( error_code, location, error_buffer );
-
-#if defined(__clang__)
-#  pragma GCC diagnostic pop
-#endif
+	mx_status = mx_error( error_code, location, "%s", error_buffer );
 
 	if ( socket_handler == (MX_SOCKET_HANDLER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -5722,7 +5713,7 @@ mxsrv_ascii_client_handle_get( MX_RECORD *mx_record_list,
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_status2 = mxsrv_ascii_client_send_error_message(
 				socket_handler, mx_status.code,
-				mx_status.location, mx_status.message );
+				mx_status.location, "%s", mx_status.message );
 
 		return mx_status;
 	}
@@ -5736,7 +5727,7 @@ mxsrv_ascii_client_handle_get( MX_RECORD *mx_record_list,
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_status2 = mxsrv_ascii_client_send_error_message(
 				socket_handler, mx_status.code,
-				mx_status.location, mx_status.message );
+				mx_status.location, "%s", mx_status.message );
 
 		return mx_status;
 	}
@@ -5748,7 +5739,7 @@ mxsrv_ascii_client_handle_get( MX_RECORD *mx_record_list,
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_status2 = mxsrv_ascii_client_send_error_message(
 				socket_handler, mx_status.code,
-				mx_status.location, mx_status.message );
+				mx_status.location, "%s", mx_status.message );
 
 		return mx_status;
 	}
@@ -5799,7 +5790,7 @@ mxsrv_ascii_client_handle_put( MX_RECORD *mx_record_list,
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_status2 = mxsrv_ascii_client_send_error_message(
 				socket_handler, mx_status.code,
-				mx_status.location, mx_status.message );
+				mx_status.location, "%s", mx_status.message );
 
 		return mx_status;
 	}
@@ -5810,7 +5801,7 @@ mxsrv_ascii_client_handle_put( MX_RECORD *mx_record_list,
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_status2 = mxsrv_ascii_client_send_error_message(
 				socket_handler, mx_status.code,
-				mx_status.location, mx_status.message );
+				mx_status.location, "%s", mx_status.message );
 
 		return mx_status;
 	}
@@ -5824,7 +5815,7 @@ mxsrv_ascii_client_handle_put( MX_RECORD *mx_record_list,
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_status2 = mxsrv_ascii_client_send_error_message(
 				socket_handler, mx_status.code,
-				mx_status.location, mx_status.message );
+				mx_status.location, "%s", mx_status.message );
 
 		return mx_status;
 	}

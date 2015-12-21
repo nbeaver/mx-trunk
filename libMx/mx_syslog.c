@@ -11,7 +11,8 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2005-2006, 2014 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2005-2006, 2014-2015
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -70,16 +71,7 @@ static void mx_syslog_handler( int level, char *message )
 	 * it on to syslog().
 	 */
 
-#if ( MX_GNUC_VERSION >= 4006000L ) || defined( MX_CLANG_VERSION )
-#  pragma GCC diagnostic push
-#  pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#endif
-
-	syslog( level, message );
-
-#if ( MX_GNUC_VERSION >= 4006000L ) || defined( MX_CLANG_VERSION )
-#  pragma GCC diagnostic pop
-#endif
+	syslog( level, "%s", message );
 
 	return;
 }
