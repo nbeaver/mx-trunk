@@ -5376,7 +5376,16 @@ mxsrv_ascii_client_send_error_message( MX_SOCKET_HANDLER *socket_handler,
 	vsnprintf( error_buffer, sizeof(error_buffer), format, args );
 	va_end( args );
 
+#if defined(__clang__)
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#endif
+
 	mx_status = mx_error( error_code, location, error_buffer );
+
+#if defined(__clang__)
+#  pragma GCC diagnostic pop
+#endif
 
 	if ( socket_handler == (MX_SOCKET_HANDLER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,

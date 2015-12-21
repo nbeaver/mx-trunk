@@ -248,6 +248,8 @@ main( int argc, char *argv[] )
 		if ( local_field->num_dimensions == 1 ) {
 			array_size_in_bytes = element_size
 						* local_field->dimension[0];
+		} else {
+			array_size_in_bytes = element_size;
 		}
 
 		block_size = 10000;
