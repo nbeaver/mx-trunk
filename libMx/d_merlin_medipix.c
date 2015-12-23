@@ -486,7 +486,7 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 	    mx_status = mx_thread_check_for_stop_request( thread );
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	MXW_NOT_REACHED( return MX_SUCCESSFUL_RESULT );
 }
 
 /*---*/

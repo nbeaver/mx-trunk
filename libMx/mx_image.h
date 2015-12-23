@@ -262,6 +262,12 @@ typedef struct {
 
 /*----*/
 
+typedef mx_status_type (*MX_IMAGE_READ_METHOD)( MX_IMAGE_FRAME **, char * );
+
+typedef mx_status_type (*MX_IMAGE_WRITE_METHOD)( MX_IMAGE_FRAME *, char * );
+
+/*----*/
+
 MX_API mx_status_type mx_image_get_image_format_type_from_name( char *name,
 								long *type );
 

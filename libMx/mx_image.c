@@ -3964,11 +3964,8 @@ mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
 static mx_bool_type mxp_tiff_availability_checked = FALSE;
 static mx_bool_type mxp_tiff_is_available         = FALSE;
 
-static mx_status_type
-(*mxp_image_read_tiff_file)( MX_IMAGE_FRAME **, char * ) = NULL;
-
-static mx_status_type
-(*mxp_image_write_tiff_file)( MX_IMAGE_FRAME *, char * ) = NULL;
+static MX_IMAGE_READ_METHOD mxp_image_read_tiff_file = NULL;
+static MX_IMAGE_WRITE_METHOD mxp_image_write_tiff_file = NULL;
 
 static mx_status_type
 mxp_image_test_for_libtiff( void )
@@ -4022,7 +4019,8 @@ mxp_image_test_for_libtiff( void )
 		"a pointer to the matching MX_DYNAMIC_LIBRARY structure." );
 	}
 
-	mxp_image_read_tiff_file = mx_dynamic_library_get_symbol_pointer(
+	mxp_image_read_tiff_file = (MX_IMAGE_READ_METHOD)
+		mx_dynamic_library_get_symbol_pointer(
 			libtiff_library, "mxext_libtiff_read_tiff_file" );
 
 	if ( mxp_image_read_tiff_file == NULL ) {
@@ -4031,7 +4029,8 @@ mxp_image_test_for_libtiff( void )
 		"called 'mxext_libtiff_read_tiff_file()'." );
 	}
 
-	mxp_image_write_tiff_file = mx_dynamic_library_get_symbol_pointer(
+	mxp_image_write_tiff_file = (MX_IMAGE_WRITE_METHOD)
+		mx_dynamic_library_get_symbol_pointer(
 			libtiff_library, "mxext_libtiff_write_tiff_file" );
 
 	if ( mxp_image_read_tiff_file == NULL ) {

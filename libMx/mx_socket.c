@@ -2106,7 +2106,7 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 		 */
 
 		continue;	/* Back to the top of the while() loop. */
-#endif
+#else
 
 		/* If there are no line terminators, then we send everything
 		 * we received to the caller.
@@ -2139,6 +2139,7 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 		 */
 
 		return MX_SUCCESSFUL_RESULT;
+#endif
 	    }
 
 	    /* If we get here, the requested line terminators are _not_ NULL,

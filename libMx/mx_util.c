@@ -564,7 +564,8 @@ mx_setenv( const char *env_name,
 	return saved_errno;
 }
 
-#elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_ANDROID)
+#elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
+	|| defined(OS_ANDROID)
 
 MX_EXPORT int
 mx_setenv( const char *env_name,
