@@ -1078,6 +1078,33 @@ motor_show_version( void )
 
 /*-------------------------------------------------------------------------*/
 
+#if defined(__SUNPRO_C)
+
+	{
+		int sun_cc_major, sun_cc_minor, sun_cc_update;
+
+		if ( __SUNPRO_C < 0x5100 ) {
+			sun_cc_major = ( __SUNPRO_C / 0x100 );
+
+			sun_cc_minor = ( __SUNPRO_C % 0x100 ) / 0x10;
+
+			sun_cc_update = ( __SUNPRO_C % 0x10 );
+		} else {
+			sun_cc_major = ( __SUNPRO_C / 0x1000 );
+
+			sun_cc_minor = ( __SUNPRO_C % 0x1000 ) / 0x10;
+
+			sun_cc_update = ( __SUNPRO_C % 0x10 );
+		}
+
+		fprintf( output, "Sun CC version: %x.%x.%x\n",
+			sun_cc_major, sun_cc_minor, sun_cc_update );
+	}
+
+#endif  /* __SUNPRO_C */
+
+/*-------------------------------------------------------------------------*/
+
 #if ( defined(__GNUC__) && ( ! defined(__clang__) ) )
 
 #  if !defined(__GNUC_PATCHLEVEL__)
