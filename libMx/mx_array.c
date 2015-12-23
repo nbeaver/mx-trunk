@@ -2267,7 +2267,11 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 	size_t native_array_size, native_subarray_size;
 	size_t xdr_data_size, xdr_array_size, xdr_subarray_size;
 	size_t buffer_left, remainder;
+#if defined(_WIN64)
 	uint64_t xdr_buffer_address, address_remainder;
+#else
+	unsigned long xdr_buffer_address, address_remainder;
+#endif
 	long i, n;
 	int xdr_status;
 	u_int num_array_elements;
@@ -2295,7 +2299,11 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 	 * avoid problems on 64-bit Windows which has 32-bit unsigned longs.
 	 */
 
+#if defined(_WIN64)
 	xdr_buffer_address = (uint64_t) xdr_buffer;
+#else
+	xdr_buffer_address = (unsigned long) xdr_buffer;
+#endif
 
 	address_remainder = xdr_buffer_address % 4;
 
