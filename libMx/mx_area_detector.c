@@ -5063,8 +5063,10 @@ mx_area_detector_default_load_frame( MX_AREA_DETECTOR *ad )
 	MX_IMAGE_FRAME **frame_ptr;
 	unsigned long file_format;
 	long image_format, expected_image_format;
+#if 0
 	double bytes_per_pixel;
 	unsigned long bytes_per_frame;
+#endif
 	mx_status_type mx_status;
 
 #if MX_AREA_DETECTOR_DEBUG
