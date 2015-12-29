@@ -713,14 +713,8 @@ mxd_soft_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 		case MXT_IMAGE_FORMAT_GREY16:
 			if ( maximum_value_parameter < 0 ) {
 				max_value = sqrt( 65535.0 );
-
-				MX_DEBUG(-2,("%s: #1 max_value = %g",
-					fname, max_value));
 			} else {
 				max_value = sqrt( maximum_value_parameter );
-
-				MX_DEBUG(-2,("%s: #2 max_value = %g",
-					fname, max_value));
 			}
 
 			switch( (vinput->total_num_frames) % 4 ) {
