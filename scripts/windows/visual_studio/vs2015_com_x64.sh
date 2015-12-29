@@ -141,3 +141,16 @@ export PATH="$new_path:$old_path"
 
 export MX_MSDEV_DIR=`cygpath -w "$cyg_kit_dir/8.1/Lib/winv6.3/um" | sed 's/\\\\/\\\\\\\\/g'`
 
+#
+# The following provides a way for Windows CMD scripts to find the
+# value of MX_MSDEV_DIR.  The tests for file existence should make
+# sure that mx_msdev_dir.bat is only created one.
+#
+
+if [ -d /cygdrive/c/opt/mx/etc ]; then
+    if [ ! -f /cygdrive/c/opt/mx/etc/mx_msdev_dir.bat ]; then
+        echo "set MX_MSDEV_DIR=$MX_MSDEV_DIR"$'\r' > \
+			/cygdrive/c/opt/mx/etc/mx_msdev_dir.bat
+    fi
+fi
+

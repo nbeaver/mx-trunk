@@ -5061,7 +5061,8 @@ mx_area_detector_default_load_frame( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mx_area_detector_default_load_frame()";
 
 	MX_IMAGE_FRAME **frame_ptr;
-	unsigned long file_format, image_format, expected_image_format;
+	unsigned long file_format;
+	long image_format, expected_image_format;
 	double bytes_per_pixel;
 	unsigned long bytes_per_frame;
 	mx_status_type mx_status;
@@ -5102,6 +5103,13 @@ mx_area_detector_default_load_frame( MX_AREA_DETECTOR *ad )
 		break;
 	}
 
+#if 0
+	/* FIXME: This block of code is currently commented out since the
+	 * call to mx_image_read_file() should do the necessary call to
+	 * mx_image_alloc() for us, which makes the call in this function
+	 * to mx_image_alloc() redundant and possibly trouble causing.
+	 */
+
 	mx_status = mx_image_format_get_bytes_per_pixel( expected_image_format,
 							&bytes_per_pixel );
 
@@ -5127,6 +5135,7 @@ mx_area_detector_default_load_frame( MX_AREA_DETECTOR *ad )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+#endif
 
 	if ( ad->load_frame == MXFT_AD_IMAGE_FRAME ) {
 		file_format = ad->datafile_load_format;
@@ -5144,6 +5153,31 @@ mx_area_detector_default_load_frame( MX_AREA_DETECTOR *ad )
 
 	image_format = MXIF_IMAGE_FORMAT(*frame_ptr);
 
+	if ( expected_image_format <= 0 ) {
+		switch( ad->load_frame ) {
+		case MXFT_AD_IMAGE_FRAME:
+			ad->image_format = image_format;
+			break;
+		case MXFT_AD_MASK_FRAME:
+			ad->mask_image_format = image_format;
+			break;
+		case MXFT_AD_BIAS_FRAME:
+			ad->bias_image_format = image_format;
+			break;
+		case MXFT_AD_DARK_CURRENT_FRAME:
+			ad->dark_current_image_format = image_format;
+			break;
+		case MXFT_AD_FLAT_FIELD_FRAME:
+			ad->flat_field_image_format = image_format;
+			break;
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Unsupported frame type %ld requested for "
+			"area detector '%s'.",
+				ad->load_frame, ad->record->name );
+			break;
+		}
+	} else
 	if ( expected_image_format != image_format ) {
 		char image_format_name[20];
 		char expected_image_format_name[20];

@@ -530,6 +530,7 @@ mxd_soft_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 	MX_IMAGE_FRAME *frame;
 	unsigned long i, j, i_max, j_max;
 	double x_max, y_max, max_value;
+	double maximum_value_parameter;
 	double cx1, cx0, cy1, cy0;
 	double cxr1, cxr0, cyr1, cyr0;
 	double cxg1, cxg0, cyg1, cyg0;
@@ -591,10 +592,20 @@ mxd_soft_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 
 	switch( soft_vinput->image_type ) {
 	case MXT_SOFT_VINPUT_DIAGONAL_GRADIENT:
+		num_items = sscanf( soft_vinput->image_parameters,
+					"%lg", &maximum_value_parameter );
+
+		if ( num_items < 1 ) {
+			maximum_value_parameter = -1;
+		}
 
 		switch( vinput->image_format ) {
 		case MXT_IMAGE_FORMAT_RGB:
-			max_value = sqrt( 255.0 );
+			if ( maximum_value_parameter < 0 ) {
+				max_value = sqrt( 255.0 );
+			} else {
+				max_value = sqrt( maximum_value_parameter );
+			}
 
 			switch( (vinput->total_num_frames) % 4 ) {
 			case 0:
@@ -659,7 +670,11 @@ mxd_soft_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 			break;
 
 		case MXT_IMAGE_FORMAT_GREY8:
-			max_value = sqrt( 255.0 );
+			if ( maximum_value_parameter < 0 ) {
+				max_value = sqrt( 255.0 );
+			} else {
+				max_value = sqrt( maximum_value_parameter );
+			}
 
 			switch( (vinput->total_num_frames) % 4 ) {
 			case 0:
@@ -696,7 +711,17 @@ mxd_soft_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 			break;
 
 		case MXT_IMAGE_FORMAT_GREY16:
-			max_value = sqrt( 65535.0 );
+			if ( maximum_value_parameter < 0 ) {
+				max_value = sqrt( 65535.0 );
+
+				MX_DEBUG(-2,("%s: #1 max_value = %g",
+					fname, max_value));
+			} else {
+				max_value = sqrt( maximum_value_parameter );
+
+				MX_DEBUG(-2,("%s: #2 max_value = %g",
+					fname, max_value));
+			}
 
 			switch( (vinput->total_num_frames) % 4 ) {
 			case 0:
@@ -721,7 +746,12 @@ mxd_soft_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 			}
 
 #if 0
-			if ( vinput->total_num_frames == 0 ) {
+			if ( 1 ) {
+				MX_DEBUG(-2,
+				("%s: vinput->total_num_frames = %ld",
+					fname, vinput->total_num_frames));
+				MX_DEBUG(-2,("%s: maximum_value_parameter = %g",
+					fname, maximum_value_parameter));
 				MX_DEBUG(-2,("%s: j_max = %ld, i_max = %ld",
 					fname, j_max, i_max));
 				MX_DEBUG(-2,("%s: x_max = %g, y_max = %g",

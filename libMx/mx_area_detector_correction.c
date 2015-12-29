@@ -1976,15 +1976,20 @@ mx_area_detector_compute_dark_current_offset( MX_AREA_DETECTOR *ad,
 	static const char fname[] =
 		"mx_area_detector_compute_dark_current_offset()";
 
-	uint8_t  *dark_current_data8  = NULL;
-	uint16_t *dark_current_data16 = NULL;
-	uint32_t *dark_current_data32 = NULL;
-	uint8_t  *bias_data8  = NULL;
-	uint16_t *bias_data16 = NULL;
-	uint32_t *bias_data32 = NULL;
+	uint8_t  *dark_current_data_u8  = NULL;
+	uint16_t *dark_current_data_u16 = NULL;
+	uint32_t *dark_current_data_u32 = NULL;
+	float    *dark_current_data_flt = NULL;
+	double   *dark_current_data_dbl = NULL;
+	uint8_t  *bias_data_u8  = NULL;
+	uint16_t *bias_data_u16 = NULL;
+	uint32_t *bias_data_u32 = NULL;
+	float    *bias_data_flt = NULL;
+	double   *bias_data_dbl = NULL;
 	double raw_dark_current = 0.0;
 	double bias_offset      = 0.0;
-	unsigned long i, num_pixels, image_format;
+	unsigned long i, num_pixels;
+	long dark_current_format, bias_format;
 	double scaled_dark_current, exposure_time_ratio, exposure_time;
 	float *dark_current_offset_array;
 	MX_SEQUENCE_PARAMETERS *sp;
@@ -2018,44 +2023,57 @@ mx_area_detector_compute_dark_current_offset( MX_AREA_DETECTOR *ad,
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	image_format = MXIF_IMAGE_FORMAT(dark_current_frame);
+	dark_current_format = MXIF_IMAGE_FORMAT(dark_current_frame);
 
-	switch( image_format ) {
+	switch( dark_current_format ) {
 	case MXT_IMAGE_FORMAT_GREY8:
-		dark_current_data8 = dark_current_frame->image_data;
+		dark_current_data_u8 = dark_current_frame->image_data;
 		break;
 	case MXT_IMAGE_FORMAT_GREY16:
-		dark_current_data16 = dark_current_frame->image_data;
+		dark_current_data_u16 = dark_current_frame->image_data;
 		break;
 	case MXT_IMAGE_FORMAT_GREY32:
-		dark_current_data32 = dark_current_frame->image_data;
+		dark_current_data_u32 = dark_current_frame->image_data;
+		break;
+	case MXT_IMAGE_FORMAT_FLOAT:
+		dark_current_data_flt = dark_current_frame->image_data;
+		break;
+	case MXT_IMAGE_FORMAT_DOUBLE:
+		dark_current_data_dbl = dark_current_frame->image_data;
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"Dark current correction is not supported for image format %lu "
-		"used by area detector '%s'.", image_format, ad->record->name );
+		"Unsupported dark current image format %lu used by "
+		"area detector '%s'.",
+			dark_current_format, ad->record->name );
 	}
 
-	if ( bias_frame != NULL ) {
-		if ( image_format != MXIF_IMAGE_FORMAT(bias_frame) ) {
-			return mx_error( MXE_TYPE_MISMATCH, fname,
-			"The bias frame image format %lu for area detector '%s'"
-			" does not match the dark current image format %lu.",
-				(unsigned long) MXIF_IMAGE_FORMAT(bias_frame),
-				ad->record->name,
-				image_format );
-		}
+	if ( bias_frame == NULL ) {
+		bias_format = -2;
+	} else {
+		bias_format = MXIF_IMAGE_FORMAT(bias_frame);
 
-		switch( image_format ) {
+		switch( bias_format ) {
 		case MXT_IMAGE_FORMAT_GREY8:
-			bias_data8 = bias_frame->image_data;
+			bias_data_u8 = bias_frame->image_data;
 			break;
 		case MXT_IMAGE_FORMAT_GREY16:
-			bias_data16 = bias_frame->image_data;
+			bias_data_u16 = bias_frame->image_data;
 			break;
 		case MXT_IMAGE_FORMAT_GREY32:
-			bias_data32 = bias_frame->image_data;
+			bias_data_u32 = bias_frame->image_data;
 			break;
+		case MXT_IMAGE_FORMAT_FLOAT:
+			bias_data_flt = bias_frame->image_data;
+			break;
+		case MXT_IMAGE_FORMAT_DOUBLE:
+			bias_data_dbl = bias_frame->image_data;
+			break;
+
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Unsupported bias data format %ld used for "
+			"area detector '%s'.", bias_format, ad->record->name );
 		}
 	}
 
@@ -2107,15 +2125,21 @@ mx_area_detector_compute_dark_current_offset( MX_AREA_DETECTOR *ad,
 
 	for ( i = 0; i < num_pixels; i++ ) {
 
-		switch( image_format ) {
+		switch( dark_current_format ) {
 		case MXT_IMAGE_FORMAT_GREY8:
-			raw_dark_current = dark_current_data8[i];
+			raw_dark_current = dark_current_data_u8[i];
 			break;
 		case MXT_IMAGE_FORMAT_GREY16:
-			raw_dark_current = dark_current_data16[i];
+			raw_dark_current = dark_current_data_u16[i];
 			break;
 		case MXT_IMAGE_FORMAT_GREY32:
-			raw_dark_current = dark_current_data32[i];
+			raw_dark_current = dark_current_data_u32[i];
+			break;
+		case MXT_IMAGE_FORMAT_FLOAT:
+			raw_dark_current = dark_current_data_flt[i];
+			break;
+		case MXT_IMAGE_FORMAT_DOUBLE:
+			raw_dark_current = dark_current_data_dbl[i];
 			break;
 		}
 
@@ -2125,15 +2149,21 @@ mx_area_detector_compute_dark_current_offset( MX_AREA_DETECTOR *ad,
 		if ( bias_frame == NULL ) {
 			bias_offset = 0;
 		} else {
-			switch( image_format ) {
+			switch( bias_format ) {
 			case MXT_IMAGE_FORMAT_GREY8:
-				bias_offset = bias_data8[i];
+				bias_offset = bias_data_u8[i];
 				break;
 			case MXT_IMAGE_FORMAT_GREY16:
-				bias_offset = bias_data16[i];
+				bias_offset = bias_data_u16[i];
 				break;
 			case MXT_IMAGE_FORMAT_GREY32:
-				bias_offset = bias_data32[i];
+				bias_offset = bias_data_u32[i];
+				break;
+			case MXT_IMAGE_FORMAT_FLOAT:
+				bias_offset = bias_data_flt[i];
+				break;
+			case MXT_IMAGE_FORMAT_DOUBLE:
+				bias_offset = bias_data_dbl[i];
 				break;
 			}
 		}

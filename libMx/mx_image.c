@@ -2873,6 +2873,12 @@ mx_image_get_filesize( MX_IMAGE_FRAME *frame,
 
 /*--------------------------------------------------------------------------*/
 
+/* WARNING: The individual datafile type specific functions are expected to
+ * call mx_image_alloc() to set up the dimensions and parameters of the
+ * MX_IMAGE_FRAME header correctly.  At present, mx_image_read_none_file()
+ * is an exception to this rule.
+ */
+
 MX_EXPORT mx_status_type
 mx_image_read_file( MX_IMAGE_FRAME **frame_ptr,
 			unsigned long datafile_type,
