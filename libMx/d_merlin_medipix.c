@@ -404,9 +404,12 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 		    dest_body_ptr += (mx_frame_number * message_body_length);
 		    break;
 		case MXT_MPX_UNKNOWN_MESSAGE:
+		default:
 		    mx_warning( "Unknown message type seen in message "
 				"body '%s' for area detector '%s'.",
 					src_body_ptr, record->name );
+
+		    dest_body_ptr = NULL;
 
 		    parsing_succeeded = FALSE;
 		    break;

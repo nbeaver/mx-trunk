@@ -927,6 +927,10 @@ motor_module_list_traverse_fn( MX_LIST_ENTRY *list_entry,
 	if ( strcmp( module->name, requested_module_name ) != 0 ) {
 		/* We did not find the module we were looking for. */
 
+		if ( module_ptr != NULL ) {
+			*module_ptr = NULL;
+		}
+
 		return MX_SUCCESSFUL_RESULT;
 	}
 
@@ -974,6 +978,10 @@ motor_module_list_traverse_fn( MX_LIST_ENTRY *list_entry,
 		}
 	}
 
+	if ( module_ptr != NULL ) {
+		*module_ptr = module;
+	}
+
 	return mx_error( MXE_EARLY_EXIT | MXE_QUIET, "", " " );
 }
 
@@ -986,7 +994,6 @@ motor_show_modules( char *module_name )
 
 	MX_LIST_HEAD *record_list_head;
 	MX_LIST *module_list;
-	MX_MODULE *module = NULL;
 	void *module_ptr = NULL;
 	mx_status_type mx_status;
 
@@ -1011,6 +1018,8 @@ motor_show_modules( char *module_name )
 					module_name,
 					&module_ptr );
 
+	MXW_UNUSED( mx_status );
+
 	/* If we were just getting a list of all modules by specifying
 	 * a NULL module name, then we are done now.
 	 */
@@ -1021,7 +1030,9 @@ motor_show_modules( char *module_name )
 
 	/* Otherwise, see if the module we asked for was found. */
 
-	module = (MX_MODULE *) module_ptr;
+	if ( module_ptr == NULL ) {
+		fprintf( output, "Module '%s' was not found.\n", module_name );
+	}
 
 	return SUCCESS;
 }

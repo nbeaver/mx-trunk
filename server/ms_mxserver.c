@@ -5397,6 +5397,8 @@ mxsrv_ascii_client_send_error_message( MX_SOCKET_HANDLER *socket_handler,
 	mx_status2 = mx_socket_putline( client_socket, message_ptr,
 						ascii_line_terminators );
 
+	MXW_UNUSED(mx_status2);
+
 	return mx_status;
 }
 
@@ -5518,6 +5520,8 @@ mxsrv_ascii_client_socket_process_event( MX_RECORD *record_list,
 
 		mx_status2 = mxsrv_free_client_socket_handler(
 				socket_handler, socket_handler_list );
+
+		MXW_UNUSED(mx_status2);
 
 		return mx_status;
 		break;
@@ -5715,6 +5719,8 @@ mxsrv_ascii_client_handle_get( MX_RECORD *mx_record_list,
 				socket_handler, mx_status.code,
 				mx_status.location, "%s", mx_status.message );
 
+		MXW_UNUSED(mx_status2);
+
 		return mx_status;
 	}
 
@@ -5729,6 +5735,8 @@ mxsrv_ascii_client_handle_get( MX_RECORD *mx_record_list,
 				socket_handler, mx_status.code,
 				mx_status.location, "%s", mx_status.message );
 
+		MXW_UNUSED(mx_status2);
+
 		return mx_status;
 	}
 
@@ -5740,6 +5748,8 @@ mxsrv_ascii_client_handle_get( MX_RECORD *mx_record_list,
 		mx_status2 = mxsrv_ascii_client_send_error_message(
 				socket_handler, mx_status.code,
 				mx_status.location, "%s", mx_status.message );
+
+		MXW_UNUSED(mx_status2);
 
 		return mx_status;
 	}
@@ -5792,6 +5802,8 @@ mxsrv_ascii_client_handle_put( MX_RECORD *mx_record_list,
 				socket_handler, mx_status.code,
 				mx_status.location, "%s", mx_status.message );
 
+		MXW_UNUSED(mx_status2);
+
 		return mx_status;
 	}
 
@@ -5802,6 +5814,8 @@ mxsrv_ascii_client_handle_put( MX_RECORD *mx_record_list,
 		mx_status2 = mxsrv_ascii_client_send_error_message(
 				socket_handler, mx_status.code,
 				mx_status.location, "%s", mx_status.message );
+
+		MXW_UNUSED(mx_status2);
 
 		return mx_status;
 	}
@@ -5816,6 +5830,8 @@ mxsrv_ascii_client_handle_put( MX_RECORD *mx_record_list,
 		mx_status2 = mxsrv_ascii_client_send_error_message(
 				socket_handler, mx_status.code,
 				mx_status.location, "%s", mx_status.message );
+
+		MXW_UNUSED(mx_status2);
 
 		return mx_status;
 	}
