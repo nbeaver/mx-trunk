@@ -214,23 +214,7 @@ mxd_xineos_gige_open( MX_RECORD *record )
 
 	/*---*/
 
-	/* Always skip the first FIVE (5!) frames in a correction measurement.
-	 *
-	 * If the Xineos detector has sat idle for a "long" time without
-	 * being read out, ADUs will accumulate in the time prior to the
-	 * start of the correction measurement sequence.  Many types of
-	 * area detectors have this issue and it is normally resolved by
-	 * reading out and discarding a single frame before starting the
-	 * sequence of frames for the correction measurement.  However,
-	 * for the Xineos camera, leftover ADUs can persist for several
-	 * measurements after a long pause.  I have observed cases where
-	 * there were anomalous pixel values read out for the first _three_
-	 * frames acquired after a long period of idleness.  To be
-	 * conservative, I discard the first 5 frames.
-	 * (WML 2015-12-14)
-	 */
-
-	ad->correction_frames_to_skip = 5;
+	ad->correction_frames_to_skip = 1;
 
 	if ( xineos_flags & MXF_XINEOS_GIGE_AUTOMATICALLY_DUMP_PIXEL_VALUES ) {
 		xineos_gige->dump_pixel_values = TRUE;
