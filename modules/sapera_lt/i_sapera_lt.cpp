@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2011-2012 Illinois Institute of Technology
+ * Copyright 2011-2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -88,6 +88,8 @@ mxi_sapera_lt_error_callback( SapManCallbackInfo *callback_info )
 	const char *sapera_error_message = callback_info->GetErrorMessage();
 
 	MX_RECORD *mx_record = (MX_RECORD *) callback_info->GetContext();
+
+	MXW_UNUSED(mx_record);
 
 	int module = CORSTATUS_MODULE(sapera_error_value);
 	int level  = CORSTATUS_LEVEL(sapera_error_value);
@@ -187,7 +189,9 @@ mxi_sapera_lt_open( MX_RECORD *record )
 
 	int num_servers = SapManager::GetServerCount();
 
-#if MXI_SAPERA_LT_DEBUG_OPEN
+#if ( MXI_SAPERA_LT_DEBUG_OPEN == FALSE )
+	MXW_UNUSED(num_servers);
+#else
 	MX_DEBUG(-2,("%s: num_servers = %d", fname, num_servers));
 
 	int i;

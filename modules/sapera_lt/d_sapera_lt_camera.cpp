@@ -56,6 +56,7 @@
 #include "mx_stdint.h"
 #include "mx_record.h"
 #include "mx_unistd.h"
+#include "mx_inttypes.h"
 #include "mx_array.h"
 #include "mx_bit.h"
 #include "mx_memory.h"
@@ -157,8 +158,7 @@ mxd_sapera_lt_camera_get_pointers( MX_VIDEO_INPUT *vinput,
 		if ( sapera_lt_record == (MX_RECORD *) NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"The sapera_lt_record pointer for record '%s' "
-			"is NULL.",
-			vinput->record->name, calling_fname );
+			"is NULL.", vinput->record->name );
 		}
 
 		*sapera_lt = (MX_SAPERA_LT *)
@@ -181,8 +181,10 @@ mxd_sapera_lt_camera_get_pointers( MX_VIDEO_INPUT *vinput,
 static void
 mxd_sapera_lt_camera_acquisition_callback( SapXferCallbackInfo *info )
 {
+#if 0
 	static const char fname[] =
 		"mxd_sapera_lt_camera_acquisition_callback()";
+#endif
 
 	MX_RECORD *record;
 	MX_VIDEO_INPUT *vinput;
@@ -473,7 +475,7 @@ mxd_sapera_lt_camera_set_extended_exposure(
 	if ( sapera_status == 0 ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 		"Setting 'ExtendedExposure' to %lu failed for camera '%s'.",
-			extended_exposure_value,
+			(unsigned long) extended_exposure_value,
 			sapera_lt_camera->record->name );
 	}
 
@@ -568,7 +570,7 @@ mxd_sapera_lt_camera_show_features( MX_SAPERA_LT_CAMERA *sapera_lt_camera )
 			sapera_status = acq_device->GetFeatureValue(
 						feature_name, &int64_value );
 
-			fprintf( stderr, "'int64', value = %I64d",
+			fprintf( stderr, "'int64', value = %" PRId64,
 							int64_value );
 			break;
 		case SapFeature::TypeFloat:
@@ -656,8 +658,6 @@ mxd_sapera_lt_camera_show_features( MX_SAPERA_LT_CAMERA *sapera_lt_camera )
 
 			for ( j = 0; j < enum_count; j++ ) {
 				BOOL enum_enabled;
-				int enum_value;
-				char enum_string[80];
 
 				sapera_status =
 				    feature->IsEnumEnabled( j, &enum_enabled );
@@ -774,7 +774,7 @@ mxd_sapera_lt_camera_open( MX_RECORD *record )
 	MX_SAPERA_LT_CAMERA *sapera_lt_camera = NULL;
 	MX_SAPERA_LT *sapera_lt = NULL;
 	BOOL sapera_status;
-	long bytes_per_frame, max_image_frames, max_frames_threshold;
+	long bytes_per_frame;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -1225,7 +1225,6 @@ mxd_sapera_lt_camera_arm( MX_VIDEO_INPUT *vinput )
 
 	MX_SAPERA_LT_CAMERA *sapera_lt_camera = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
-	unsigned long trigger_mask;
 	double exposure_time, frame_time;
 	unsigned long num_frames;
 	SapAcqDevice *acq_device;
@@ -1680,7 +1679,6 @@ mxd_sapera_lt_camera_get_extended_status( MX_VIDEO_INPUT *vinput )
 		"mxd_sapera_lt_camera_get_extended_status()";
 
 	MX_SAPERA_LT_CAMERA *sapera_lt_camera = NULL;
-	unsigned long timeout_ms = 1L;
 	mx_status_type mx_status;
 
 	mx_status = mxd_sapera_lt_camera_get_pointers( vinput,
@@ -1940,7 +1938,7 @@ mxd_sapera_lt_camera_get_parameter( MX_VIDEO_INPUT *vinput )
 
 	MX_SAPERA_LT_CAMERA *sapera_lt_camera = NULL;
 	SapAcqDevice *acq_device;
-	UINT64 pixels_per_line, lines_per_frame, output_format;
+	UINT64 pixels_per_line, lines_per_frame;
 	BOOL sapera_status;
 	mx_status_type mx_status;
 
@@ -2054,11 +2052,7 @@ mxd_sapera_lt_camera_set_parameter( MX_VIDEO_INPUT *vinput )
 			"mxd_sapera_lt_camera_set_parameter()";
 
 	MX_SAPERA_LT_CAMERA *sapera_lt_camera = NULL;
-	unsigned long bytes_per_frame;
 	unsigned long i, absolute_frame_number, num_frame_buffers;
-	mx_bool_type internal_trigger_enabled, external_trigger_enabled;
-	unsigned long trigger_mask;
-	UINT32 external_trigger_setting;
 	mx_status_type mx_status;
 
 	mx_status = mxd_sapera_lt_camera_get_pointers( vinput,
@@ -2091,7 +2085,8 @@ mxd_sapera_lt_camera_set_parameter( MX_VIDEO_INPUT *vinput )
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"The sapera_lt_camera '%s' must have at least "
 			"1 frame buffer, but the driver says it has (%ld).",
-				vinput->record->name );
+				vinput->record->name,
+				sapera_lt_camera->num_frame_buffers );
 		}
 		if ( sapera_lt_camera->frame_buffer_is_unsaved == NULL )
 		{

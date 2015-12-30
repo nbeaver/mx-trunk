@@ -143,8 +143,7 @@ mxd_sapera_lt_frame_grabber_get_pointers( MX_VIDEO_INPUT *vinput,
 		if ( sapera_lt_record == (MX_RECORD *) NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"The sapera_lt_record pointer for record '%s' "
-			"is NULL.",
-			vinput->record->name, calling_fname );
+			"is NULL.", vinput->record->name );
 		}
 
 		*sapera_lt = (MX_SAPERA_LT *)
@@ -167,8 +166,10 @@ mxd_sapera_lt_frame_grabber_get_pointers( MX_VIDEO_INPUT *vinput,
 static void
 mxd_sapera_lt_frame_grabber_acquisition_callback( SapXferCallbackInfo *info )
 {
+#if 0
 	static const char fname[] =
 		"mxd_sapera_lt_frame_grabber_acquisition_callback()";
+#endif
 
 	MX_RECORD *record;
 	MX_VIDEO_INPUT *vinput;
@@ -489,6 +490,10 @@ mxd_sapera_lt_frame_grabber_get_lowlevel_parameter(
 
 /* This version is for writing memory addresses. */
 
+#if 0
+
+/* NOTE: This version of the function is not currently used. */
+
 static mx_status_type
 mxd_sapera_lt_frame_grabber_set_lowlevel_parameter(
 			MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber,
@@ -557,6 +562,8 @@ mxd_sapera_lt_frame_grabber_set_lowlevel_parameter(
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+#endif
 
 /* This version is for writing 32-bit integers. */
 
@@ -631,6 +638,10 @@ mxd_sapera_lt_frame_grabber_set_lowlevel_parameter(
 
 /*--------------------------------------------------------------------------*/
 
+#if 0
+
+/* NOTE: This function is not currently used. */
+
 static mx_status_type
 mxd_sapera_lt_frame_grabber_get_capability(
 			MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber,
@@ -674,6 +685,8 @@ mxd_sapera_lt_frame_grabber_get_capability(
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+#endif
 
 /*--------------------------------------------------------------------------*/
 
@@ -793,7 +806,9 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 		"is outside the allowed range of 0 to %ld for "
 		"Sapera server '%s'.",
 			sapera_lt_frame_grabber->frame_grabber_number,
-			record->name, sapera_lt->server_name );
+			record->name,
+			sapera_lt->num_frame_grabbers - 1,
+			sapera_lt->server_name );
 	}
 
 	if ( sapera_lt_frame_grabber->num_frame_buffers < 1 ) {
@@ -1258,7 +1273,6 @@ mxd_sapera_lt_frame_grabber_arm( MX_VIDEO_INPUT *vinput )
 
 	MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
-	unsigned long trigger_mask;
 	double exposure_time;
 	int num_frames;
 	UINT32 exposure_time_in_microsec;
@@ -1429,7 +1443,6 @@ mxd_sapera_lt_frame_grabber_trigger( MX_VIDEO_INPUT *vinput )
 	static const char fname[] = "mxd_sapera_lt_frame_grabber_trigger()";
 
 	MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber = NULL;
-	BOOL sapera_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_sapera_lt_frame_grabber_get_pointers( vinput,
@@ -1527,7 +1540,6 @@ mxd_sapera_lt_frame_grabber_get_extended_status( MX_VIDEO_INPUT *vinput )
 		"mxd_sapera_lt_frame_grabber_get_extended_status()";
 
 	MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber = NULL;
-	unsigned long timeout_ms = 1L;
 	mx_status_type mx_status;
 
 	mx_status = mxd_sapera_lt_frame_grabber_get_pointers( vinput,
@@ -1907,11 +1919,7 @@ mxd_sapera_lt_frame_grabber_set_parameter( MX_VIDEO_INPUT *vinput )
 			"mxd_sapera_lt_frame_grabber_set_parameter()";
 
 	MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber = NULL;
-	unsigned long bytes_per_frame;
 	unsigned long i, absolute_frame_number, num_frame_buffers;
-	mx_bool_type internal_trigger_enabled, external_trigger_enabled;
-	unsigned long trigger_mask;
-	UINT32 external_trigger_setting;
 	mx_status_type mx_status;
 
 	mx_status = mxd_sapera_lt_frame_grabber_get_pointers( vinput,
@@ -1944,7 +1952,8 @@ mxd_sapera_lt_frame_grabber_set_parameter( MX_VIDEO_INPUT *vinput )
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"The sapera_lt_frame_grabber '%s' must have at least "
 			"1 frame buffer, but the driver says it has (%ld).",
-				vinput->record->name );
+				vinput->record->name,
+				sapera_lt_frame_grabber->num_frame_buffers );
 		}
 		if ( sapera_lt_frame_grabber->frame_buffer_is_unsaved == NULL )
 		{

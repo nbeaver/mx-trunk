@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2007, 2014 Illinois Institute of Technology
+ * Copyright 2006-2007, 2014-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -175,6 +175,15 @@
 #     ifndef __STDC_LIBRARY_SUPPORTED__
 #        define __STDC_LIBRARY_SUPPORTED__
 #     endif
+#  endif
+
+#  if defined(__GLIBC__)
+     /* Versions of Glibc that support ISO C99 state that you must define
+      * the macro __STDC_FORMAT_MACROS in order to enable the macros
+      * PRId64, SCNd64, etc.
+      */
+
+#     define __STDC_FORMAT_MACROS
 #  endif
 
 #  include <inttypes.h>
