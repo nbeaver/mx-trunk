@@ -29,7 +29,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002-2004, 2006-2007, 2009-2012, 2014
+ * Copyright 2002-2004, 2006-2007, 2009-2012, 2014-2015
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -373,6 +373,8 @@ mx_high_resolution_time_init( void )
 	return;
 }
 
+/*--------------------------------------------------------------------------*/
+
 #elif defined(OS_SOLARIS)
 
 #include <sys/time.h>
@@ -418,6 +420,8 @@ mx_high_resolution_time_init( void )
 
 	return;
 }
+
+/*--------------------------------------------------------------------------*/
 
 #elif defined(OS_IRIX)
 
@@ -572,6 +576,8 @@ mx_high_resolution_time_init( void )
 
 	return;
 }
+
+/*--------------------------------------------------------------------------*/
 
 #elif defined(__GNUC__) && ( defined(__i386__) || defined(__x86_64__) )
 
@@ -783,9 +789,11 @@ mx_high_resolution_time( void )
 #error Unrecognized x86 variant for GCC.
 #endif
 
+/*--------------------------------------------------------------------------*/
+
 #if defined(OS_LINUX) || defined(OS_CYGWIN)
 
-/******* GCC on x86 Linux or Cygwin *******/
+/******* GCC on Linux or Cygwin using /proc/cpuinfo *******/
 
 MX_EXPORT void
 mx_high_resolution_time_init( void )
@@ -915,6 +923,8 @@ mx_high_resolution_time_init( void )
 	return;
 }
 
+/*--------------------------------------------------------------------------*/
+
 #elif defined(__FreeBSD__)
 
 #include <errno.h>
@@ -958,6 +968,8 @@ mx_high_resolution_time_init( void )
 	return;
 }
 
+/*--------------------------------------------------------------------------*/
+
 #elif defined(__NetBSD__)
 
 #include <errno.h>
@@ -997,6 +1009,8 @@ mx_high_resolution_time_init( void )
 
 	return;
 }
+
+/*--------------------------------------------------------------------------*/
 
 #elif defined(OS_MACOSX) || defined(__OpenBSD__)
 
@@ -1040,6 +1054,8 @@ mx_high_resolution_time_init( void )
 
 	return;
 }
+
+/*--------------------------------------------------------------------------*/
 
 #else	/* not OS_LINUX */
 

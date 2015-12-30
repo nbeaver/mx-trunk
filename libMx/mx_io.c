@@ -596,7 +596,7 @@ mx_get_disk_space( char *filename,
 }
 
 #elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
-	|| defined(OS_BSD) || defined(OS_ANDROID)
+	|| defined(OS_BSD) || defined(OS_ANDROID) || defined(OS_HURD)
 
 #include <sys/statvfs.h>
 

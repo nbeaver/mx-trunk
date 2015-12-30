@@ -685,6 +685,9 @@ mx_get_os_version_string( char *version_string,
 #if defined(OS_UNIXWARE)
 	snprintf( version_string, max_version_string_length,
 		"%s %s", uname_struct.sysname, uname_struct.version );
+#elif defined(OS_HURD)
+	snprintf( version_string, max_version_string_length,
+		"GNU/Hurd %s", uname_struct.release );
 #else
 	snprintf( version_string, max_version_string_length,
 		"%s %s", uname_struct.sysname, uname_struct.release );
