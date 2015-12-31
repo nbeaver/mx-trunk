@@ -9,7 +9,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2006-2007, 2009, 2013-2014
+ * Copyright 2000-2001, 2003, 2006-2007, 2009, 2013-2015
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -37,8 +37,20 @@
 
 /* On Windows, to have ssize_t we must do the following. */
 
-#  include <BaseTsd.h>
-   typedef SSIZE_T ssize_t;
+#  if ( defined(_MSC_VER) && (_MSC_VER <= 1000) )
+
+     /* Very old versions of Visual C++ for Win32 do not have SSIZE_T, but
+      * they all only run on 32-bit computers, so we define ssize_t here
+      * as a 4-byte signed long integer, since that is the size of a pointer
+      * on 32-bit Windows.
+      */
+     typedef long ssize_t;
+#  else
+     /* For modern versions of Visual C++, we can get SSIZE_T from BaseTsd.h */
+
+#    include <BaseTsd.h>
+     typedef SSIZE_T ssize_t;
+#  endif
 
 #else /* _not_ OS_WIN32 */
 

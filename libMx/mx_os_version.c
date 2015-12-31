@@ -83,11 +83,14 @@ mx_split_version_number_string( char *version_number_string,
 #if defined( OS_WIN32 )
 
 #if ( defined(_MSC_VER) && (_MSC_VER > 1200) )
-# define HAVE_OSVERSIONINFOEX	TRUE
+# define HAVE_RTL_OSVERSIONINFOW	TRUE
+# define HAVE_OSVERSIONINFOEX		TRUE
 #elif ( defined(__BORLANDC__) || defined(__GNUC__) )
-# define HAVE_OSVERSIONINFOEX	TRUE
+# define HAVE_RTL_OSVERSIONINFOW	TRUE
+# define HAVE_OSVERSIONINFOEX		TRUE
 #else
-# define HAVE_OSVERSIONINFOEX	FALSE
+# define HAVE_RTL_OSVERSIONINFOW	FALSE
+# define HAVE_OSVERSIONINFOEX		FALSE
 #endif
 
 #include <windows.h>
@@ -111,9 +114,33 @@ mx_win32_get_osversioninfo( unsigned long *win32_major_version,
 	int use_extended_struct;
 	mx_status_type mx_status;
 
-	/* If this is an NT version of Windows, try RtlGetVersion(). */
+#if HAVE_RTL_OSVERSIONINFOW
 
-	if ( TRUE ) {
+	void *ntdll_ptr;
+	mx_bool_type is_windows_nt;
+
+	/* If this is an NT version of Windows, try RtlGetVersion().
+	 * We detect whether this is NT or not by looking for 'ntdll.dll'.
+	 * On the first try, we avoid calling mx_dynamic_library_open()
+	 * directly, since it will generate an error message if the
+	 * library is found.
+	 *
+	 * FIXME: Create a way of quietly testing for the existence
+	 * of the library without opening the library _twice_.
+	 */
+
+	ntdll_ptr = LoadLibrary( "ntdll.dll" );
+
+	if ( ntdll_ptr == NULL ) {
+		is_windows_nt = FALSE;
+	} else {
+		is_windows_nt = TRUE;
+
+		FreeLibrary( ntdll_ptr );
+	}
+
+	if ( is_windows_nt ) {
+
 		typedef NTSTATUS (*RtlGetVersion_type)( RTL_OSVERSIONINFOW * );
 		RtlGetVersion_type ptr_RtlGetVersion = NULL;
 
@@ -149,6 +176,8 @@ mx_win32_get_osversioninfo( unsigned long *win32_major_version,
 
 		return MX_SUCCESSFUL_RESULT;
 	}
+
+#endif /* HAVE_RTL_OSVERSIONINFOW */
 
 	/* Try using OSVERSIONINFOEX next. */
 

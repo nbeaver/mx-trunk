@@ -14,7 +14,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 1999-2013 Illinois Institute of Technology
+ * Copyright 1999-2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -157,8 +157,9 @@ typedef struct {
 #     undef EWOULDBLOCK
 #  endif
 
-#  define ECONNRESET    WSAECONNRESET
 #  define ECONNABORTED  WSAECONNABORTED
+#  define ECONNREFUSED	WSAECONNREFUSED
+#  define ECONNRESET    WSAECONNRESET
 #  define ENOTCONN      WSAENOTCONN
 #  define EWOULDBLOCK   WSAEWOULDBLOCK
 #endif

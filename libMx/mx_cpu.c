@@ -270,6 +270,18 @@ mx_get_number_of_cpu_cores( unsigned long *num_cores )
 
 #  if defined(_M_IX86)
 
+#    if (_MSC_VER <= 1000)
+
+     /* Visual C++ 4.0 complains about the inline assembler syntax below. */
+
+static DWORD
+mxp_get_current_processor_number( void )
+{
+	return 0;
+}
+
+#    else
+
 static DWORD
 mxp_get_current_processor_number( void )
 {
@@ -278,6 +290,8 @@ mxp_get_current_processor_number( void )
 	_asm {shr ebx, 24}
 	_asm {mov eax, ebx}
 }
+
+#    endif
 
 #  else /* not 32-bit */
 

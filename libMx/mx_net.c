@@ -6267,7 +6267,7 @@ mx_network_send_client_version_time( MX_RECORD *server_record )
 
 	mx_status = mx_network_set_option( server_record,
 			MX_NETWORK_OPTION_CLIENT_VERSION_TIME | MXE_QUIET,
-			client_mx_version_time );
+			(unsigned long) client_mx_version_time );
 
 	/* Do _NOT_ return an error if the MX server sent us
 	 * an MXE_ILLEGAL_ARGUMENT error code.  This just

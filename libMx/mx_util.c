@@ -553,6 +553,10 @@ mx_username( char *buffer, size_t max_buffer_length )
 
 #if defined(OS_WIN32)
 
+#  if ( defined(_MSC_VER) & (_MSC_VER >= 1400) )
+
+   /* Visual Studio 2005 and later have _putenv_s(). */
+
 MX_EXPORT int
 mx_setenv( const char *env_name,
 		const char *env_value )
@@ -561,8 +565,71 @@ mx_setenv( const char *env_name,
 
 	saved_errno = _putenv_s( env_name, env_value );
 
-	return saved_errno;
+	if ( saved_errno == 0 ) {
+		errno = 0;
+		return 0;
+	} else {
+		errno = saved_errno;
+		return (-1);
+	}
 }
+
+#  else
+   /* For other Windows compilers, we are stuck with _putenv(). */
+
+MX_EXPORT int
+mx_setenv( const char *env_name,
+		const char *env_value )
+{
+	/* We must dynamically allocate a buffer that is big enough
+	 * to contain the entire string that we are going to send
+	 * to _putenv(), including the equals sign '=' and the
+	 * trailing null byte.
+	 */
+	size_t buffer_size;
+	char *buffer;
+	int os_status;
+
+	if ( (env_name == NULL) || (env_value == NULL ) ) {
+		errno = EINVAL;
+		return (-1);
+	}
+
+	buffer_size = strlen(env_name) + strlen(env_value) + 2;
+
+	buffer = malloc( buffer_size );
+
+	if ( buffer == NULL ) {
+		errno = ENOMEM;
+		return (-1);
+	}
+
+	snprintf( buffer, buffer_size, "%s=%s", env_name, env_value );
+
+	os_status = _putenv( buffer );
+
+	/* Avoid a memory leak by unconditionally freeing the buffer
+	 * regardless of what may have happened in _putenv().
+	 */
+
+	free( buffer );
+
+	/* Apparently _putenv() does not set errno, so it is hard to
+	 * know what to do if it fails.  For lack of a better idea,
+	 * we set errno to EINVAL, since something about the arguments
+	 * we were sent must be bad.
+	 */
+
+	if ( os_status == 0 ) {
+		errno = 0;
+		return 0;
+	} else {
+		errno = EINVAL;
+		return (-1);
+	}
+}
+
+#  endif
 
 #elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
 	|| defined(OS_BSD) || defined(OS_QNX) || defined(OS_ANDROID) \

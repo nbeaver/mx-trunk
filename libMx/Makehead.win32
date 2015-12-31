@@ -96,8 +96,15 @@ LIBRARIES = $(WIN32_LIBS)
 
 ifndef MSDEV_ARCH
 
-architecture := $(shell cl 2>&1 | head -1 | awk '{print $$9}')
-rtmversion := $(shell cl 2>&1 | head -1 | awk '{print $$7}' | cut -f1 -d'.')
+oldarchitecture := $(shell cl 2>&1 | head -1 | awk '{print $$10}')
+
+ifeq ($(oldarchitecture),80x86)
+  architecture := x86
+  rtmversion := $(shell cl 2>&1 | head -1 | awk '{print $$8}' | cut -f1 -d'.')
+else
+  architecture := $(shell cl 2>&1 | head -1 | awk '{print $$9}')
+  rtmversion := $(shell cl 2>&1 | head -1 | awk '{print $$7}' | cut -f1 -d'.')
+endif
 
 newlayout := $(shell if [ $(rtmversion) -gt 16 ]; then echo true ; else echo false ; fi)
 
@@ -117,6 +124,7 @@ else
 	MSDEV_ARCH = error
 endif
 
+###$(info $$oldarchitecture is [${oldarchitecture}])
 ###$(info $$architecture is [${architecture}])
 ###$(info $$rtmversion is [${rtmversion}])
 ###$(info $$newlayout is [${newlayout}])
@@ -167,8 +175,6 @@ endif
 
 ifdef MX_MSDEV_DIR
 MSDEV_DIR=$(MX_MSDEV_DIR)
-else
-Error MSDEV_DIR not defined!
 endif
 
 ###$(info $$MSDEV_DIR is [${MSDEV_DIR}])
