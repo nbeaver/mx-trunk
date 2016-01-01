@@ -1441,12 +1441,12 @@ mx_get_fd_name( unsigned long process_id, int fd,
 
 #if defined(_UNICODE)
 			mx_status = mx_dynamic_library_get_library_and_symbol(
-					"psapi.dll", "GetMappedFileNameW",
-					NULL, (void **) &ptrGetMappedFileName );
+				"psapi.dll", "GetMappedFileNameW",
+				NULL, (void **) &ptrGetMappedFileName, 0 );
 #else
 			mx_status = mx_dynamic_library_get_library_and_symbol(
-					"psapi.dll", "GetMappedFileNameA",
-					NULL, (void **) &ptrGetMappedFileName );
+				"psapi.dll", "GetMappedFileNameA",
+				NULL, (void **) &ptrGetMappedFileName, 0 );
 #endif
 			if ( mx_status.code != MXE_SUCCESS )
 				return NULL;

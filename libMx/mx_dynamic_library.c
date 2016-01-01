@@ -32,7 +32,7 @@ mx_dynamic_library_get_symbol_pointer( MX_DYNAMIC_LIBRARY *library,
 	mx_status_type mx_status;
 
 	mx_status = mx_dynamic_library_find_symbol( library, symbol_name,
-							&result_ptr, TRUE );
+					&result_ptr, MXF_DYNAMIC_LIBRARY_QUIET);
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		result_ptr = NULL;
@@ -59,12 +59,15 @@ mx_dynamic_library_get_symbol_pointer( MX_DYNAMIC_LIBRARY *library,
 
 MX_EXPORT mx_status_type
 mx_dynamic_library_open( const char *filename,
-			MX_DYNAMIC_LIBRARY **library )
+			MX_DYNAMIC_LIBRARY **library,
+			unsigned long flags )
 {
 	static const char fname[] = "mx_dynamic_library_open()";
 
 	DWORD last_error_code;
 	TCHAR message_buffer[100];
+	long mx_error_code;
+	mx_bool_type quiet;
 
 	if ( library == (MX_DYNAMIC_LIBRARY **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -77,6 +80,12 @@ mx_dynamic_library_open( const char *filename,
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 			"Ran out of memory trying to allocate "
 			"an MX_DYNAMIC_LIBRARY structure." );
+	}
+
+	if ( flags & MXF_DYNAMIC_LIBRARY_QUIET ) {
+		quiet = TRUE;
+	} else {
+		quiet = FALSE;
 	}
 
 	(*library)->filename[0] = '\0';
@@ -96,13 +105,19 @@ mx_dynamic_library_open( const char *filename,
 		mx_win32_error_message( last_error_code,
 			message_buffer, sizeof(message_buffer) );
 
+		mx_error_code = MXE_OPERATING_SYSTEM_ERROR;
+
+		if ( quiet ) {
+			mx_error_code |= MXE_QUIET;
+		}
+
 		if ( filename == (char *) NULL ) {
-			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			return mx_error( mx_error_code, fname,
 				"Unable to open main executable.  "
 				"Win32 error code = %ld, error message = '%s'.",
 				last_error_code, message_buffer );
 		} else {
-			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			return mx_error( mx_error_code, fname,
 				"Unable to open dynamic library '%s'.  "
 				"Win32 error code = %ld, error message = '%s'.",
 				filename, last_error_code, message_buffer );
@@ -177,13 +192,14 @@ MX_EXPORT mx_status_type
 mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
 				const char *symbol_name,
 				void **symbol_pointer,
-				mx_bool_type quiet_flag )
+				unsigned long flags )
 {
 	static const char fname[] = "mx_dynamic_library_find_symbol()";
 
-	long mx_error_code;
 	DWORD last_error_code;
 	TCHAR message_buffer[100];
+	long mx_error_code;
+	mx_bool_type quiet;
 
 	if ( library == (MX_DYNAMIC_LIBRARY *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -204,6 +220,12 @@ mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
 			"passed was NULL." );
 	}
 
+	if ( flags & MXF_DYNAMIC_LIBRARY_QUIET ) {
+		quiet = TRUE;
+	} else {
+		quiet = FALSE;
+	}
+
 	*symbol_pointer = GetProcAddress( library->object, symbol_name );
 
 	if ( (*symbol_pointer) == NULL ) {
@@ -213,11 +235,10 @@ mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
 		mx_win32_error_message( last_error_code,
 			message_buffer, sizeof(message_buffer) );
 
-		if ( quiet_flag ) {
-			mx_error_code =
-				(MXE_OPERATING_SYSTEM_ERROR | MXE_QUIET);
-		} else {
-			mx_error_code = MXE_OPERATING_SYSTEM_ERROR;
+		mx_error_code = MXE_OPERATING_SYSTEM_ERROR;
+
+		if ( quiet ) {
+			mx_error_code |= MXE_QUIET;
 		}
 
 		return mx_error( mx_error_code, fname,
@@ -254,11 +275,14 @@ mx_dynamic_library_get_function_name_from_address( void *address,
 
 MX_EXPORT mx_status_type
 mx_dynamic_library_open( const char *filename,
-			MX_DYNAMIC_LIBRARY **library )
+			MX_DYNAMIC_LIBRARY **library,
+			unsigned long flags )
 {
 	static const char fname[] = "mx_dynamic_library_open()";
 
 	int fd;
+	long mx_error_code;
+	mx_bool_type quiet;
 
 	if ( filename == (char *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -267,6 +291,12 @@ mx_dynamic_library_open( const char *filename,
 	if ( library == (MX_DYNAMIC_LIBRARY **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_DYNAMIC_LIBRARY pointer passed was NULL." );
+	}
+
+	if ( flags & MXF_DYNAMIC_LIBRARY_QUIET ) {
+		quiet = TRUE;
+	} else {
+		quiet = FALSE;
 	}
 
 	fd = open( filename, O_RDONLY, 0 );
@@ -294,7 +324,13 @@ mx_dynamic_library_open( const char *filename,
 		close(fd);
 		mx_free( *library );
 
-		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		mx_error_code = MXE_OPERATING_SYSTEM_ERROR;
+
+		if ( quiet ) {
+			mx_error_code |= MXE_QUIET;
+		}
+
+		return mx_error( mx_error_code, fname,
 			"Unable to open object module '%s'.", filename );
 	}
 
@@ -351,13 +387,14 @@ MX_EXPORT mx_status_type
 mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
 				const char *symbol_name,
 				void **symbol_pointer,
-				mx_bool_type quiet_flag )
+				unsigned long flags )
 {
 	static const char fname[] = "mx_dynamic_library_find_symbol()";
 
 	int os_status;
-	long error_code;
 	char local_symbol_name[MAX_SYS_SYM_LEN+1];
+	long mx_error_code;
+	mx_bool_type quiet;
 
 	if ( library == (MX_DYNAMIC_LIBRARY *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -376,6 +413,12 @@ mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"The object pointer for the MX_DYNAMIC_LIBRARY pointer "
 			"passed was NULL." );
+	}
+
+	if ( flags & MXF_DYNAMIC_LIBRARY_QUIET ) {
+		quiet = TRUE;
+	} else {
+		quiet = FALSE;
 	}
 
 	/* Avoid the warning
@@ -402,13 +445,13 @@ mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
 
 	if ( os_status == ERROR ) {
 
-		if ( quiet_flag ) {
-			error_code = (MXE_OPERATING_SYSTEM_ERROR | MXE_QUIET);
-		} else {
-			error_code = MXE_OPERATING_SYSTEM_ERROR;
+		mx_error_code = MXE_OPERATING_SYSTEM_ERROR;
+
+		if ( quiet ) {
+			mx_error_code |= MXE_QUIET;
 		}
 
-		return mx_error( error_code, fname,
+		return mx_error( mx_error_code, fname,
 			"Unable to find symbol '%s' in dynamic library '%s'.",
 				symbol_name, library->filename );
 	}
@@ -451,9 +494,13 @@ mx_dynamic_library_get_function_name_from_address( void *address,
 
 MX_EXPORT mx_status_type
 mx_dynamic_library_open( const char *filename,
-			MX_DYNAMIC_LIBRARY **library )
+			MX_DYNAMIC_LIBRARY **library,
+			unsigned long flags )
 {
 	static const char fname[] = "mx_dynamic_library_open()";
+
+	long mx_error_code;
+	mx_bool_type quiet;
 
 	if ( library == (MX_DYNAMIC_LIBRARY **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -468,13 +515,25 @@ mx_dynamic_library_open( const char *filename,
 			"an MX_DYNAMIC_LIBRARY structure." );
 	}
 
+	if ( flags & MXF_DYNAMIC_LIBRARY_QUIET ) {
+		quiet = TRUE;
+	} else {
+		quiet = FALSE;
+	}
+
 	(*library)->object = dlopen( filename, RTLD_LAZY );
 
 	if ( (*library)->object == NULL ) {
 
 		mx_free( *library );
 
-		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		mx_error_code = MXE_OPERATING_SYSTEM_ERROR;
+
+		if ( quiet ) {
+			mx_error_code |= MXE_QUIET;
+		}
+
+		return mx_error( mx_error_code, fname,
 			"Unable to open dynamic library '%s'.  "
 			"dlopen() error message = '%s'.", filename, dlerror() );
 	}
@@ -530,11 +589,12 @@ MX_EXPORT mx_status_type
 mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
 				const char *symbol_name,
 				void **symbol_pointer,
-				mx_bool_type quiet_flag )
+				unsigned long flags )
 {
 	static const char fname[] = "mx_dynamic_library_find_symbol()";
 
-	long error_code;
+	long mx_error_code;
+	mx_bool_type quiet;
 
 	if ( library == (MX_DYNAMIC_LIBRARY *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -555,17 +615,23 @@ mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
 			"passed was NULL." );
 	}
 
+	if ( flags & MXF_DYNAMIC_LIBRARY_QUIET ) {
+		quiet = TRUE;
+	} else {
+		quiet = FALSE;
+	}
+
 	*symbol_pointer = dlsym( library->object, symbol_name );
 
 	if ( (*symbol_pointer) == NULL ) {
 
-		if ( quiet_flag ) {
-			error_code = (MXE_OPERATING_SYSTEM_ERROR | MXE_QUIET);
-		} else {
-			error_code = MXE_OPERATING_SYSTEM_ERROR;
+		mx_error_code = MXE_OPERATING_SYSTEM_ERROR;
+
+		if ( quiet ) {
+			mx_error_code |= MXE_QUIET;
 		}
 
-		return mx_error( error_code, fname,
+		return mx_error( mx_error_code, fname,
 			"Unable to find symbol '%s' in dynamic library '%s'.  "
 			"dlsym() error message = '%s'.",
 				symbol_name, library->filename, dlerror() );
@@ -628,7 +694,8 @@ mx_dynamic_library_get_function_name_from_address( void *address,
 
 MX_EXPORT mx_status_type
 mx_dynamic_library_open( const char *filename,
-			MX_DYNAMIC_LIBRARY **library )
+			MX_DYNAMIC_LIBRARY **library,
+			unsigned long flags )
 {
 	static const char fname[] = "mx_dynamic_library_open()";
 
@@ -649,7 +716,7 @@ MX_EXPORT mx_status_type
 mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
 				const char *symbol_name,
 				void **symbol_pointer,
-				mx_bool_type quiet_flag )
+				unsigned long flags )
 {
 	static const char fname[] = "mx_dynamic_library_find_symbol()";
 
@@ -686,20 +753,21 @@ MX_EXPORT mx_status_type
 mx_dynamic_library_get_library_and_symbol( const char *filename,
 					const char *symbol_name,
 					MX_DYNAMIC_LIBRARY **library,
-					void **symbol )
+					void **symbol,
+					unsigned long flags )
 {
 	MX_DYNAMIC_LIBRARY *library_ptr;
 	void *symbol_ptr;
 	mx_status_type mx_status;
 
-	mx_status = mx_dynamic_library_open( filename, &library_ptr );
+	mx_status = mx_dynamic_library_open( filename, &library_ptr, flags );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	mx_status = mx_dynamic_library_find_symbol( library_ptr,
 						symbol_name,
-						&symbol_ptr, 0 );
+						&symbol_ptr, flags );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		(void) mx_dynamic_library_close( library_ptr );

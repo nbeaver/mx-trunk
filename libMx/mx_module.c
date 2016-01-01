@@ -62,7 +62,7 @@ mx_load_module( char *filename, MX_RECORD *record_list, MX_MODULE **module )
 	 * library.
 	 */
 
-	mx_status = mx_dynamic_library_open( filename, &library );
+	mx_status = mx_dynamic_library_open( filename, &library, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -73,7 +73,7 @@ mx_load_module( char *filename, MX_RECORD *record_list, MX_MODULE **module )
 	 */
 
 	mx_status = mx_dynamic_library_find_symbol( library,
-					"__MX_MODULE__", &void_ptr, FALSE );
+					"__MX_MODULE__", &void_ptr, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -214,7 +214,8 @@ mx_load_module( char *filename, MX_RECORD *record_list, MX_MODULE **module )
 		"__MX_MODULE_INIT_%s__", module_ptr->name );
 
 	mx_status = mx_dynamic_library_find_symbol( library,
-			module_init_name, &init_ptr, TRUE );
+			module_init_name, &init_ptr,
+			MXF_DYNAMIC_LIBRARY_QUIET );
 
 	if ( mx_status.code == MXE_SUCCESS ) {
 

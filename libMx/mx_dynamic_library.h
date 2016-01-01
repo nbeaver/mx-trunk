@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 2007, 2009, 2012 Illinois Institute of Technology
+ * Copyright 2007, 2009, 2012, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,13 +26,16 @@
 extern "C" {
 #endif
 
+#define MXF_DYNAMIC_LIBRARY_QUIET	0x1
+
 typedef struct {
 	void *object;
 	char filename[MXU_FILENAME_LENGTH+1];
 } MX_DYNAMIC_LIBRARY;
 
 MX_API mx_status_type mx_dynamic_library_open( const char *filename,
-						MX_DYNAMIC_LIBRARY **library );
+						MX_DYNAMIC_LIBRARY **library,
+						unsigned long flags );
 
 MX_API mx_status_type mx_dynamic_library_close( MX_DYNAMIC_LIBRARY *library );
 
@@ -40,7 +43,7 @@ MX_API mx_status_type mx_dynamic_library_find_symbol(
 						MX_DYNAMIC_LIBRARY *library,
 						const char *symbol_name,
 						void **symbol_pointer,
-						mx_bool_type quiet_flag );
+						unsigned long flags );
 
 MX_API void *mx_dynamic_library_get_symbol_pointer( MX_DYNAMIC_LIBRARY *library,
 						const char *symbol_name );
@@ -54,7 +57,8 @@ MX_API mx_status_type mx_dynamic_library_get_library_and_symbol(
 						const char *filename,
 						const char *symbol_name,
 						MX_DYNAMIC_LIBRARY **library,
-						void **symbol );
+						void **symbol,
+						unsigned long flags );
 
 #ifdef __cplusplus
 }

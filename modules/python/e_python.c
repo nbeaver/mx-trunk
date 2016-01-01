@@ -409,7 +409,7 @@ mxext_python_initialize( MX_EXTENSION *extension )
 	/* If currently there is no default script extension, then set
 	 * 'python' to be the default script extension.
 	 */
-	mx_status = mx_dynamic_library_open( NULL, &main_executable );
+	mx_status = mx_dynamic_library_open( NULL, &main_executable, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

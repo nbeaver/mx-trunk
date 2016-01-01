@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2007-2008, 2010 Illinois Institute of Technology
+ * Copyright 2007-2008, 2010, 2015 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -171,7 +171,7 @@ mxi_camera_link_api_open( MX_RECORD *record )
 
 	mx_status = mx_dynamic_library_open(
 				camera_link_api->library_filename,
-				&(camera_link_api->library) );
+				&(camera_link_api->library), 0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

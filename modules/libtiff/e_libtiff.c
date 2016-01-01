@@ -69,7 +69,7 @@ mxext_libtiff_initialize( MX_EXTENSION *extension )
 	 */
 
 	mx_status = mx_dynamic_library_open( MXP_LIBTIFF_LIBRARY_NAME,
-						&libtiff_library );
+						&libtiff_library, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

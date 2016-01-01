@@ -146,7 +146,7 @@ mx_condition_variable_create( MX_CONDITION_VARIABLE **cv )
 	        } else {
 	            mx_status = mx_dynamic_library_get_library_and_symbol(
 	                "kernel32.dll", "SignalObjectAndWait",
-	                    NULL, (void **) ptr_SignalObjectAndWait );
+	                    NULL, (void **) ptr_SignalObjectAndWait, 0 );
 
 	            if ( mx_status.code != MXE_SUCCESS ) {
 	                mx_win32_signal_object_and_wait_available = FALSE;

@@ -150,7 +150,7 @@ mx_win32_get_osversioninfo( unsigned long *win32_major_version,
 
 		mx_status = mx_dynamic_library_get_library_and_symbol(
 				"ntdll.dll", "RtlGetVersion",
-				NULL, &void_ptr );
+				NULL, &void_ptr, 0 );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
