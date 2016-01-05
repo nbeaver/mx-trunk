@@ -144,11 +144,14 @@ typedef struct {
     * values are the ones you get back from socket functions.
     */
 
-#  ifdef ECONNRESET
-#     undef ECONNRESET
-#  endif
 #  ifdef ECONNABORTED
 #     undef ECONNABORTED
+#  endif
+#  ifdef ECONNREFUSED
+#     undef ECONNREFUSED
+#  endif
+#  ifdef ECONNRESET
+#     undef ECONNRESET
 #  endif
 #  ifdef ENOTCONN
 #     undef ENOTCONN

@@ -116,44 +116,28 @@ mx_win32_get_osversioninfo( unsigned long *win32_major_version,
 
 #if HAVE_RTL_OSVERSIONINFOW
 
-	void *ntdll_ptr;
-	mx_bool_type is_windows_nt;
-
-	/* If this is an NT version of Windows, try RtlGetVersion().
-	 * We detect whether this is NT or not by looking for 'ntdll.dll'.
-	 * On the first try, we avoid calling mx_dynamic_library_open()
-	 * directly, since it will generate an error message if the
-	 * library is found.
-	 *
-	 * FIXME: Create a way of quietly testing for the existence
-	 * of the library without opening the library _twice_.
+	/* On Windows NT and above, the best method is to use the function
+	 * RtlGetVersion().  We test for its presence by trying to get
+	 * a pointer to the function.
 	 */
 
-	ntdll_ptr = LoadLibrary( "ntdll.dll" );
+	{
+	    typedef NTSTATUS (*RtlGetVersion_type)( RTL_OSVERSIONINFOW * );
+	    RtlGetVersion_type ptr_RtlGetVersion = NULL;
 
-	if ( ntdll_ptr == NULL ) {
-		is_windows_nt = FALSE;
-	} else {
-		is_windows_nt = TRUE;
+	    RTL_OSVERSIONINFOW rtl_osvi;
+	    NTSTATUS nt_status;
+	    void *void_ptr, *ntdll_ptr;
+	    MX_DYNAMIC_LIBRARY *ntdll_library;
 
-		FreeLibrary( ntdll_ptr );
-	}
-
-	if ( is_windows_nt ) {
-
-		typedef NTSTATUS (*RtlGetVersion_type)( RTL_OSVERSIONINFOW * );
-		RtlGetVersion_type ptr_RtlGetVersion = NULL;
-
-		RTL_OSVERSIONINFOW rtl_osvi;
-		NTSTATUS nt_status;
-		void *void_ptr;
-
-		mx_status = mx_dynamic_library_get_library_and_symbol(
+	    mx_status = mx_dynamic_library_get_library_and_symbol(
 				"ntdll.dll", "RtlGetVersion",
-				NULL, &void_ptr, 0 );
+				&ntdll_library, &void_ptr,
+				MXF_DYNAMIC_LIBRARY_QUIET );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+	    if ( mx_status.code == MXE_SUCCESS ) {
+
+		/* We have found RtlGetVersion. */
 
 		ptr_RtlGetVersion = void_ptr;
 
@@ -174,7 +158,10 @@ mx_win32_get_osversioninfo( unsigned long *win32_major_version,
 
 		*win32_product_type  = 0;
 
+		(void) mx_dynamic_library_close( ntdll_library );
+
 		return MX_SUCCESSFUL_RESULT;
+	    }
 	}
 
 #endif /* HAVE_RTL_OSVERSIONINFOW */
