@@ -39,11 +39,11 @@ all: build
 
 #MODULES += ni488		# linux,
 
-#MODULES += ni_daqmx		# linux, win32
+MODULES += ni_daqmx		# linux, win32
 
 #MODULES += nuvant_ezstat	# linux, win32
 
-MODULES += python		# (Warning: not yet finished)
+#MODULES += python		# (Warning: not yet finished)
 
 #MODULES += pmc_mcapi		# linux, win32
 
@@ -81,11 +81,11 @@ MODULES += python		# (Warning: not yet finished)
 
 #MODULES += radicon_helios
 
-#MODULES += radicon_taurus
+MODULES += radicon_taurus
 
-#MODULES += rdi_mbc
+MODULES += rdi_mbc
 
-#MODULES += sapera_lt
+MODULES += sapera_lt
 
 #MODULES += u500
 
@@ -100,9 +100,9 @@ MODULES += epics
 
 #MODULES += epics_pmac_biocat
 
-#MODULES += epics_mbc
+MODULES += epics_mbc
 
-#MODULES += epics_pmac_tc
+MODULES += epics_pmac_tc
 
 #-------------------------------------------------------------------
 # Site specific modules.

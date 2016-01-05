@@ -1243,9 +1243,9 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 
 	if ( rt_flags & MXF_RADICON_TAURUS_ZERO_EXPOSURE_MOTOR_AT_ARM ) {
 
-		if ( ad->exposure_motor_record != (MX_RECORD *) NULL ) {
+		if ( ad->oscillation_motor_record != (MX_RECORD *) NULL ) {
 			mx_status = mx_motor_set_position(
-					ad->exposure_motor_record, 0 );
+					ad->oscillation_motor_record, 0 );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -1342,21 +1342,21 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 
 	/* Get the motor start position and motor delta. */
 
-	if ( ad->exposure_motor_record == (MX_RECORD *) NULL ) {
-		mx_warning( "The '%s.exposure_motor_name' field does not "
+	if ( ad->oscillation_motor_record == (MX_RECORD *) NULL ) {
+		mx_warning( "The '%s.oscillation_motor_name' field does not "
 		"have a value.  Using the default start position of "
 		"0.0 degrees.", ad->record->name );
 
 		motor_start_position = 0.0;
 	} else {
-		mx_status = mx_motor_get_position( ad->exposure_motor_record,
+		mx_status = mx_motor_get_position( ad->oscillation_motor_record,
 						&motor_start_position );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	}
 
-	motor_delta = ad->exposure_distance;
+	motor_delta = ad->oscillation_distance;
 
 	/* Precompute the motor positions to be written to the NOIR header. */
 
@@ -2434,7 +2434,7 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 
 	/* If configured, get the motor position from buffer_info_array. */
 
-	if ( ad->exposure_motor_record != (MX_RECORD *) NULL ) {
+	if ( ad->oscillation_motor_record != (MX_RECORD *) NULL ) {
 
 		MX_RADICON_TAURUS_BUFFER_INFO *buffer_info;
 		long absolute_frame_number, temp_frame_number;
@@ -2452,7 +2452,7 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 
 		if ( flags & MXF_RADICON_TAURUS_SET_EXPOSURE_MOTOR_POSITION ) {
 			mx_status = mx_motor_set_position(
-					ad->exposure_motor_record,
+					ad->oscillation_motor_record,
 					ad->motor_position );
 
 			if ( mx_status.code != MXE_SUCCESS )
@@ -2463,12 +2463,12 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 				double actual_position;
 
 				mx_status = mx_motor_get_position(
-						ad->exposure_motor_record,
+						ad->oscillation_motor_record,
 						&actual_position );
 
 				MX_DEBUG(-2,
 				("%s: '%s' req = %f, act = %f", fname,
-					ad->exposure_motor_record->name,
+					ad->oscillation_motor_record->name,
 					ad->motor_position,
 					actual_position ));
 			}
