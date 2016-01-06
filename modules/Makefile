@@ -21,6 +21,8 @@ all: build
 
 #MODULES += avt_vimba		# linux,
 
+MODULES += dalsa_gigev		# linux,
+
 #MODULES += edt			# linux,
 
 #MODULES += epix_xclib		# linux, win32
@@ -85,7 +87,7 @@ all: build
 
 #MODULES += rdi_mbc
 
-MODULES += sapera_lt 
+#MODULES += sapera_lt 
 
 #MODULES += u500
 
