@@ -1,14 +1,14 @@
 /*
- * Name: sapera_lt.c
+ * Name: dalsa_gev.c
  *
- * Purpose: Module wrapper for the vendor-provided Win32 C++ libraries
- *          for DALSA's Sapera LT camera interface.
+ * Purpose: Module wrapper for the vendor-provided DALSA Gev API
+ *          for DALSA GigE-Vision cameras.
  *
  * Author:  William Lavender
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2011-2013 Illinois Institute of Technology
+ * Copyright 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,41 +25,33 @@
 #include "mx_video_input.h"
 #include "mx_digital_input.h"
 #include "mx_digital_output.h"
-#include "i_sapera_lt.h"
-#include "d_sapera_lt_frame_grabber.h"
-#include "d_sapera_lt_camera.h"
+#include "i_dalsa_gev.h"
+#include "d_dalsa_gev_camera.h"
 
-MX_DRIVER sapera_lt_driver_table[] = {
+MX_DRIVER dalsa_gev_driver_table[] = {
 
-{"sapera_lt", -1, MXI_CONTROLLER, MXR_INTERFACE,
-			&mxi_sapera_lt_record_function_list,
+{"dalsa_gev", -1, MXI_CONTROLLER, MXR_INTERFACE,
+			&mxi_dalsa_gev_record_function_list,
 			NULL,
 			NULL,
-			&mxi_sapera_lt_num_record_fields,
-			&mxi_sapera_lt_rfield_def_ptr},
+			&mxi_dalsa_gev_num_record_fields,
+			&mxi_dalsa_gev_rfield_def_ptr},
 
-{"sapera_lt_frame_grabber", -1,	MXC_VIDEO_INPUT, MXR_DEVICE,
-			&mxd_sapera_lt_frame_grabber_record_function_list,
+{"dalsa_gev_camera", -1, MXC_VIDEO_INPUT, MXR_DEVICE,
+			&mxd_dalsa_gev_camera_record_function_list,
 			NULL,
 			NULL,
-			&mxd_sapera_lt_frame_grabber_num_record_fields,
-			&mxd_sapera_lt_frame_grabber_rfield_def_ptr},
-
-{"sapera_lt_camera", -1, MXC_VIDEO_INPUT, MXR_DEVICE,
-			&mxd_sapera_lt_camera_record_function_list,
-			NULL,
-			NULL,
-			&mxd_sapera_lt_camera_num_record_fields,
-			&mxd_sapera_lt_camera_rfield_def_ptr},
+			&mxd_dalsa_gev_camera_num_record_fields,
+			&mxd_dalsa_gev_camera_rfield_def_ptr},
 
 {"", 0, 0, 0, NULL, NULL, NULL, NULL, NULL}
 };
 
 MX_EXPORT
 MX_MODULE __MX_MODULE__ = {
-	"sapera_lt",
+	"dalsa_gev",
 	MX_VERSION,
-	sapera_lt_driver_table,
+	dalsa_gev_driver_table,
 	NULL,
 	NULL
 };

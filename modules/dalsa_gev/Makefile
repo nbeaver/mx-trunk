@@ -3,52 +3,39 @@
 #
 
 ifndef MX_ARCH
-  MX_ARCH = win32
+  MX_ARCH = linux
 endif
 
 ifeq ($(MX_ARCH),linux)
-	SAPERA_LT_INCLUDES  = -I/usr/local/include/Sapera/classes/basic
-	SAPERA_LT_INCLUDES += -I/usr/local/include/Sapera/include
+	DALSA_GEV_INCLUDES += -I/usr/dalsa/GigeV/include
 
-	SAPERA_LT_LIBRARIES = -L/usr/local/lib -lSapera++ -lSaperaLT
+	DALSA_GEV_LIBRARIES = -L/usr/dalsa/GigeV/lib -lGevApi
+	DALSA_GEV_LIBRARIES += -L/usr/local/lib -lCorW32
 endif
 
 ifeq ($(MX_ARCH),win32)
 	#
-	# Note: The directory name SAPERA_LT_DIR must _not_ have any spaces
+	# Note: The directory name DALSA_GEV_DIR must _not_ have any spaces
 	# in it.  This means names like "C:\\Program Files\\Teledyne DALSA"
 	# are not acceptable.
 	#
 
-	SAPERA_LT_DIR = c:\\progra~1\\teledy~1\\Sapera
+	DALSA_GEV_DIR = c:\\progra~1\\teledy~1\\GigeV
 
-	SAPERA_LT_INCLUDES = -I$(SAPERA_LT_DIR)\\Classes\\Basic
-	SAPERA_LT_INCLUDES += -I$(SAPERA_LT_DIR)\\Include
+	DALSA_GEV_INCLUDES += -I$(DALSA_GEV_DIR)\\Include
 
-	#
-	# For Sapera LT 7.2 use this:
-	#
-	##SAPERA_LT_LIBRARIES = $(SAPERA_LT_DIR)\\Lib\\SapClassBasic.lib \
-	##			$(SAPERA_LT_DIR)\\Lib\\corapi.lib
-
-	#
-	# For Sapera LT 8.0 use this.  Select either Win64 or Win32 as needed.
-	#
-	SAPERA_LT_LIBRARIES = $(SAPERA_LT_DIR)\\Lib\\Win64\\SapClassBasic.lib \
-			$(SAPERA_LT_DIR)\\Lib\\Win64\\corapi.lib
+	DALSA_GEV_LIBRARIES = $(DALSA_GEV_DIR)\\Lib\\Win64\\aaaaaa.lib
 endif
 
 #--------------------------------------------------------------------------
 
-all: sapera_lt.mxo
+all: dalsa_gev.mxo
 
 include ../../libMx/Makehead.$(MX_ARCH)
 
-CFLAGS_MODULE = -I../../libMx -D__MX_LIBRARY__ $(SAPERA_LT_INCLUDES)
+CFLAGS_MODULE = -I../../libMx -D__MX_LIBRARY__ $(DALSA_GEV_INCLUDES)
 
-SAPERA_LT_OBJS = sapera_lt.$(OBJ) i_sapera_lt.$(OBJ) \
-			d_sapera_lt_frame_grabber.$(OBJ) \
-			d_sapera_lt_camera.$(OBJ)
+DALSA_GEV_OBJS = dalsa_gev.$(OBJ) i_dalsa_gev.$(OBJ) d_dalsa_gev_camera.$(OBJ)
 
 #--------------------------------------------------------------------------
 
@@ -60,20 +47,19 @@ ifeq ($(MX_ARCH),linux)
 # MX_NO_POISON to relax that restriction.
 #
 # POSIX_HOSTPC must be defined for Linux builds.  If it is not, then the
-# Sapera include files appear to assume that we are compiling on Windows
+# GigeV include files appear to assume that we are compiling on Windows
 # and start decorating everything with __declspec() attributes.  This
 # behavior of the header files does not seem to be documented anywhere.
 #
 
-COMPILE = g++ -c
+COMPILE = gcc -c
 
-CFLAGS = -g -fPIC $(GCCFLAGS) -DOS_LINUX -DDEBUG \
-		-DMX_NO_POISON -DPOSIX_HOSTPC -Wno-cast-qual $(CFLAGS_MODULE)
+CFLAGS = -g -fPIC $(GCCFLAGS) -DOS_LINUX -DDEBUG -DMX_NO_POISON $(CFLAGS_MODULE)
 
-sapera_lt.mxo: $(SAPERA_LT_OBJS)
-	g++ -shared -rdynamic -Wl,-soname,sapera_lt.mxo \
-		-o sapera_lt.mxo $(SAPERA_LT_OBJS) \
-		$(SAPERA_LT_LIBRARIES)
+dalsa_gev.mxo: $(DALSA_GEV_OBJS)
+	gcc -shared -rdynamic -Wl,-soname,dalsa_gev.mxo \
+		-o dalsa_gev.mxo $(DALSA_GEV_OBJS) \
+		$(DALSA_GEV_LIBRARIES)
 
 endif
 
@@ -84,40 +70,36 @@ ifeq ($(MX_ARCH),win32)
 CFLAGS += -EHsc
 CFLAGS += $(CFLAGS_MODULE)
 
-sapera_lt.mxo: $(SAPERA_LT_OBJS)
-	link /dll /debug /nologo /out:sapera_lt.mxo /nodefaultlib:libc \
-		$(SAPERA_LT_OBJS) ..\\..\\libMx\\$(MX_LIBRARY_NAME) \
-		$(SAPERA_LT_LIBRARIES)
+dalsa_gev.mxo: $(DALSA_GEV_OBJS)
+	link /dll /debug /nologo /out:dalsa_gev.mxo /nodefaultlib:libc \
+		$(DALSA_GEV_OBJS) ..\\..\\libMx\\$(MX_LIBRARY_NAME) \
+		$(DALSA_GEV_LIBRARIES)
 
 	# For VC2005 or later, embed the manifest in the module.
 
-	if test -f sapera_lt.mxo.manifest; then \
+	if test -f dalsa_gev.mxo.manifest; then \
 		$(MSMANIFEST_TOOL) -nologo \
-			-outputresource:sapera_lt.mxo\;2 \
-			-manifest sapera_lt.mxo.manifest ; \
-		rm -f sapera_lt.mxo.manifest; \
+			-outputresource:dalsa_gev.mxo\;2 \
+			-manifest dalsa_gev.mxo.manifest ; \
+		rm -f dalsa_gev.mxo.manifest; \
 	fi
 endif
 
 #--------------------------------------------------------------------------
 
-sapera_lt.$(OBJ): sapera_lt.c i_sapera_lt.h d_sapera_lt_frame_grabber.h
-	$(COMPILE) $(CFLAGS) sapera_lt.c
+dalsa_gev.$(OBJ): dalsa_gev.c i_dalsa_gev.h d_dalsa_gev_camera.h
+	$(COMPILE) $(CFLAGS) dalsa_gev.c
 
-i_sapera_lt.$(OBJ): i_sapera_lt.cpp i_sapera_lt.h
-	$(COMPILE) $(CFLAGS) i_sapera_lt.cpp
+i_dalsa_gev.$(OBJ): i_dalsa_gev.c i_dalsa_gev.h
+	$(COMPILE) $(CFLAGS) i_dalsa_gev.c
 
-d_sapera_lt_frame_grabber.$(OBJ): d_sapera_lt_frame_grabber.cpp \
-				d_sapera_lt_frame_grabber.h i_sapera_lt.h
-	$(COMPILE) $(CFLAGS) d_sapera_lt_frame_grabber.cpp
+d_dalsa_gev_camera.$(OBJ): d_dalsa_gev_camera.c \
+				d_dalsa_gev_camera.h i_dalsa_gev.h
+	$(COMPILE) $(CFLAGS) d_dalsa_gev_camera.c
 
-d_sapera_lt_camera.$(OBJ): d_sapera_lt_camera.cpp \
-				d_sapera_lt_camera.h i_sapera_lt.h
-	$(COMPILE) $(CFLAGS) d_sapera_lt_camera.cpp
-
-install: sapera_lt.mxo
+install: dalsa_gev.mxo
 	-mkdir $(MX_INSTALL_DIR)/lib/modules
-	cp sapera_lt.mxo $(MX_INSTALL_DIR)/lib/modules
+	cp dalsa_gev.mxo $(MX_INSTALL_DIR)/lib/modules
 
 
 clean:

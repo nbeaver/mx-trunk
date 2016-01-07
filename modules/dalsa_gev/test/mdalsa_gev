@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../../motor/mxmotor.static -F ./mdalsa_gev.dat -s ./sdalsa_gev.dat
+
