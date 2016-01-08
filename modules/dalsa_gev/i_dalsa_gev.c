@@ -1,7 +1,8 @@
 /*
  * Name:    i_dalsa_gev.c
  *
- * Purpose: MX driver for DALSA's Sapera LT camera interface.
+ * Purpose: MX driver for the DALSA Gev API camera interface for
+ *          DALSA GigE-Vision cameras.
  *
  * Author:  William Lavender
  *
@@ -22,8 +23,6 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
-#include "mx_image.h"
-#include "mx_video_input.h"
 #include "i_dalsa_gev.h"
 
 MX_RECORD_FUNCTION_LIST mxi_dalsa_gev_record_function_list = {
@@ -211,16 +210,17 @@ mxi_dalsa_gev_open( MX_RECORD *record )
 		record->name, dalsa_gev->num_cameras );
 
 	    for ( i = 0; i < dalsa_gev->num_cameras; i++ ) {
-		mx_info( "Camera %ld: IP address %lu, serial '%s'.",
-			i, (unsigned long) dalsa_gev->camera_array[i].ipAddr,
+		unsigned long ipaddr = dalsa_gev->camera_array[i].ipAddr;
+
+		mx_info(
+		    "Camera %ld: IP address %lu.%lu.%lu.%lu, serial '%s'.", i,
+			(ipaddr >> 24) & 0xff,
+			(ipaddr >> 16) & 0xff,
+			(ipaddr >> 8) & 0xff,
+			ipaddr & 0xff,
 			dalsa_gev->camera_array[i].serial );
 	    }
 	}
-
-	/* Verify that this server is really present by using the
-	 * SapManager::GetServerIndex() call.  If the server does not
-	 * exist, then we should get an error.
-	 */
 
 	/* Allocate an array of MX_RECORD pointers to keep copies of the
 	 * camera record pointers in.

@@ -29,6 +29,12 @@ typedef struct {
 	long camera_index;
 	GEV_CAMERA_INFO *camera_object;
 	GEV_CAMERA_HANDLE camera_handle;
+	DALSA_GENICAM_GIGE_REGS camera_registers;
+
+	MX_THREAD *next_image_thread;
+
+	int32_t dalsa_total_num_frames;
+	int32_t dalsa_last_frame_number;
 
 } MX_DALSA_GEV_CAMERA;
 

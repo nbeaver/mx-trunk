@@ -20,6 +20,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
+#include "mx_thread.h"
 #include "mx_module.h"
 #include "mx_image.h"
 #include "mx_video_input.h"

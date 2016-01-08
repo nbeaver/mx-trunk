@@ -15,20 +15,19 @@
  *
  */
 
-#define MXD_DALSA_GEV_CAMERA_DEBUG	FALSE
+#define MXD_DALSA_GEV_CAMERA_DEBUG_OPEN			TRUE
+#define MXD_DALSA_GEV_CAMERA_DEBUG_ARM			TRUE
+#define MXD_DALSA_GEV_CAMERA_DEBUG_STOP			TRUE
+#define MXD_DALSA_GEV_CAMERA_DEBUG_GET_FRAME		TRUE
+#define MXD_DALSA_GEV_CAMERA_DEBUG_MX_PARAMETERS	TRUE
 
 #include <stdio.h>
 
 #include "mx_util.h"
-#include "mx_stdint.h"
 #include "mx_record.h"
-#include "mx_unistd.h"
-#include "mx_inttypes.h"
-#include "mx_array.h"
 #include "mx_bit.h"
-#include "mx_memory.h"
-#include "mx_socket.h"
 #include "mx_process.h"
+#include "mx_thread.h"
 #include "mx_image.h"
 #include "mx_video_input.h"
 #include "i_dalsa_gev.h"
@@ -207,15 +206,9 @@ mxd_dalsa_gev_camera_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_DALSA_GEV_CAMERA_DEBUG
-	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
-#endif
 	mx_status = mx_video_input_finish_record_initialization( record );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -226,7 +219,13 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 	MX_VIDEO_INPUT *vinput;
 	MX_DALSA_GEV_CAMERA *dalsa_gev_camera = NULL;
 	MX_DALSA_GEV *dalsa_gev = NULL;
+
 	GEV_CAMERA_INFO *camera_object, *selected_camera_object;
+	GEV_CAMERA_HANDLE camera_handle;
+	DALSA_GENICAM_GIGE_REGS *regs = NULL;
+
+	UINT32 gev_width, gev_height, gev_x_offset, gev_y_offset, gev_format;
+
 	char *serial_number_string;
 	long i, gev_status;
 	mx_status_type mx_status;
@@ -325,6 +324,162 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 		break;
 	}
 
+#if MXD_DALSA_GEV_CAMERA_DEBUG_OPEN
+	MX_DEBUG(-2,
+	("%s: record '%s', selected camera '%s', camera_handle = %#lx",
+		fname, record->name, selected_camera_object->serial,
+		(unsigned long) dalsa_gev_camera->camera_handle));
+#endif
+
+	camera_handle = dalsa_gev_camera->camera_handle;
+
+	/* Figure out the image format, bytes per pixel, etc. from the
+	 * value set for 'image_format_name' in the MX database file.
+	 */
+
+	mx_status = mx_image_get_image_format_type_from_name(
+				vinput->image_format_name,
+				&(vinput->image_format) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	switch( vinput->image_format ) {
+	case MXT_IMAGE_FORMAT_GREY8:
+		vinput->bytes_per_pixel = 1;
+		vinput->bits_per_pixel  = 8;
+		break;
+	case MXT_IMAGE_FORMAT_GREY16:
+		vinput->bytes_per_pixel = 2;
+		vinput->bits_per_pixel  = 16;
+		break;
+	case MXT_IMAGE_FORMAT_GREY32:
+		vinput->bytes_per_pixel = 4;
+		vinput->bits_per_pixel  = 32;
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Image format %ld is not supported for camera '%s'.",
+			vinput->image_format, record->name );
+		break;
+	}
+
+#if MXD_DALSA_GEV_CAMERA_DEBUG_OPEN
+	MX_DEBUG(-2,("%s: camera '%s' image_format = %ld, "
+	    "bytes_per_pixel = %.2f, bits_per_pixel = %ld", 
+		fname, record->name, vinput->image_format,
+		vinput->bytes_per_pixel, vinput->bits_per_pixel));
+#endif
+
+	/* Read the existing register values for the camera. */
+
+	gev_status = GevGetCameraRegisters( camera_handle,
+				&(dalsa_gev_camera->camera_registers),
+				sizeof(dalsa_gev_camera->camera_registers) );
+
+	switch( gev_status ) {
+	case GEVLIB_OK:
+		break;
+	default:
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"A call to GevGetCameraRegisters() for camera '%s' "
+		"returned an unexpected status code of %ld.",
+			record->name, gev_status );
+		break;
+	}
+
+	regs = &(dalsa_gev_camera->camera_registers);
+
+#if MXD_DALSA_GEV_CAMERA_DEBUG_OPEN
+	/* Display some useful register values. */
+
+	{
+		UINT32 reg_value;
+
+		MX_DEBUG(-2,("%s: Camera '%s' registers:",
+			fname, record->name ));
+
+		GevRegisterReadInt( camera_handle,
+			&((*regs).TriggerMode), 0, &reg_value );
+
+		MX_DEBUG(-2,("%s:   TriggerMode = %lu",
+			fname, (unsigned long) reg_value ));
+
+		GevRegisterReadInt( camera_handle,
+			&((*regs).BinningHorizontal), 0, &reg_value );
+
+		MX_DEBUG(-2,("%s:   BinningHorizontal = %lu",
+			fname, (unsigned long) reg_value ));
+
+		GevRegisterReadInt( camera_handle,
+			&((*regs).BinningVertical), 0, &reg_value );
+
+		MX_DEBUG(-2,("%s:   BinningVertical = %lu",
+			fname, (unsigned long) reg_value ));
+
+		GevRegisterReadInt( camera_handle,
+			&((*regs).OffsetX), 0, &reg_value );
+
+		MX_DEBUG(-2,("%s:   OffsetX = %lu",
+			fname, (unsigned long) reg_value ));
+
+		GevRegisterReadInt( camera_handle,
+			&((*regs).OffsetY), 0, &reg_value );
+
+		MX_DEBUG(-2,("%s:   OffsetY = %lu",
+			fname, (unsigned long) reg_value ));
+
+		GevRegisterReadInt( camera_handle,
+			&((*regs).Width), 0, &reg_value );
+
+		MX_DEBUG(-2,("%s:   Width = %lu",
+			fname, (unsigned long) reg_value ));
+
+		GevRegisterReadInt( camera_handle,
+			&((*regs).Height), 0, &reg_value );
+
+		MX_DEBUG(-2,("%s:   Height = %lu",
+			fname, (unsigned long) reg_value ));
+
+		GevRegisterReadInt( camera_handle,
+			&((*regs).AcquisitionFrameRateRaw), 0, &reg_value );
+
+		MX_DEBUG(-2,("%s:   AcquisitionFrameRateRaw = %lu",
+			fname, (unsigned long) reg_value ));
+
+		GevRegisterReadInt( camera_handle,
+			&((*regs).ExposureTimeMax), 0, &reg_value );
+
+		MX_DEBUG(-2,("%s:   ExposureTimeMax = %lu",
+			fname, (unsigned long) reg_value ));
+
+		GevRegisterReadInt( camera_handle,
+			&((*regs).ExposureTimeRaw), 0, &reg_value );
+
+		MX_DEBUG(-2,("%s:   ExposureTimeRaw = %lu",
+			fname, (unsigned long) reg_value ));
+	}
+#endif
+	gev_status = GevGetImageParameters( camera_handle,
+	  &gev_width, &gev_height, &gev_x_offset, &gev_y_offset, &gev_format );
+
+#if MXD_DALSA_GEV_CAMERA_DEBUG_OPEN
+	MX_DEBUG(-2,("%s: GevGetImageParameters() = %ld", fname, gev_status));
+	MX_DEBUG(-2,("%s:    gev_width = %lu, gev_height = %lu",
+	    fname, (unsigned long) gev_width, (unsigned long) gev_height));
+	MX_DEBUG(-2,("%s:    gev_x_offset = %lu, gev_y_offset = %lu",
+	    fname, (unsigned long) gev_x_offset, (unsigned long) gev_y_offset));
+	MX_DEBUG(-2,("%s:    gev_format = %#lx",
+	    fname, (unsigned long) gev_format));
+#endif
+
+	/* */
+
+	if ( (vinput->framesize[0] < 0) || (vinput->framesize[1]) ) {
+
+		/* We need to read the framesize from the camera. */
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -335,6 +490,7 @@ mxd_dalsa_gev_camera_close( MX_RECORD *record )
 
 	MX_VIDEO_INPUT *vinput = NULL;
 	MX_DALSA_GEV_CAMERA *dalsa_gev_camera = NULL;
+	long gev_status;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -350,9 +506,29 @@ mxd_dalsa_gev_camera_close( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_DALSA_GEV_CAMERA_DEBUG
+#if MXD_DALSA_GEV_CAMERA_DEBUG_OPEN
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
+
+	gev_status = GevCloseCamera( &(dalsa_gev_camera->camera_handle) );
+
+	switch( gev_status ) {
+	case GEVLIB_OK:
+		break;
+	case GEVLIB_ERROR_INVALID_HANDLE:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"GEVLIB_ERROR_INVALID_HANDLE: The camera handle %#lx passed "
+		"for camera '%s' is not valid.",
+			(unsigned long) dalsa_gev_camera->camera_handle,
+			record->name );
+		break;
+	default:
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"A call to GevCloseCamera() for camera record '%s' "
+		"failed with status code %ld.",
+			record->name, gev_status );
+		break;
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -410,7 +586,7 @@ mxd_dalsa_gev_camera_stop( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_DALSA_GEV_CAMERA_DEBUG
+#if MXD_DALSA_GEV_CAMERA_DEBUG_STOP
 	MX_DEBUG(-2,("%s invoked for video input '%s'.",
 		fname, vinput->record->name ));
 #endif
@@ -432,7 +608,7 @@ mxd_dalsa_gev_camera_abort( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_DALSA_GEV_CAMERA_DEBUG
+#if MXD_DALSA_GEV_CAMERA_DEBUG_STOP
 	MX_DEBUG(-2,("%s invoked for video input '%s'.",
 		fname, vinput->record->name ));
 #endif
@@ -514,7 +690,7 @@ mxd_dalsa_gev_camera_get_parameter( MX_VIDEO_INPUT *vinput )
 	switch( vinput->parameter_type ) {
 	case MXLV_VIN_FRAMESIZE:
 
-#if MXD_DALSA_GEV_CAMERA_DEBUG
+#if MXD_DALSA_GEV_CAMERA_DEBUG_MX_PARAMETERS
 		MX_DEBUG(-2,("%s: camera '%s' framesize = (%ld,%ld).",
 			fname, dalsa_gev_camera->record->name,
 			vinput->framesize[0], vinput->framesize[1]));
