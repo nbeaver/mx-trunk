@@ -79,9 +79,12 @@ MX_RECORD_FIELD_DEFAULTS *mxd_dalsa_gev_camera_rfield_def_ptr
 
 /*---*/
 
+#if 0
 static mx_status_type mxd_dalsa_gev_camera_process_function( void *record_ptr,
 							void *record_field_ptr,
 							int operation );
+#endif
+
 static mx_status_type
 mxd_dalsa_gev_camera_get_pointers( MX_VIDEO_INPUT *vinput,
 			MX_DALSA_GEV_CAMERA **dalsa_gev_camera,
@@ -134,6 +137,139 @@ mxd_dalsa_gev_camera_get_pointers( MX_VIDEO_INPUT *vinput,
 				dalsa_gev_record->name );
 		}
 	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
+static mx_status_type
+mxd_dalsa_gev_camera_api_error( short gev_status,
+				const char *location,
+				const char *format, ... )
+{
+	va_list args;
+	char identifier[2500];
+
+	va_start( args, format );
+	vsnprintf( identifier, sizeof(identifier), format, args );
+	va_end( args );
+
+	switch( gev_status ) {
+	case GEVLIB_ERROR_GENERIC:
+		return mx_error( MXE_UNKNOWN_ERROR, location,
+		"GEVLIB_ERROR_GENERIC in '%s'.", identifier );
+		break;
+	case GEVLIB_ERROR_NULL_PTR:
+		return mx_error( MXE_NULL_ARGUMENT, location,
+		"GEVLIB_ERROR_NULL_PTR in '%s'.", identifier );
+		break;
+	case GEVLIB_ERROR_ARG_INVALID:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, location,
+		"GEVLIB_ERROR_ARG_INVALID in '%s'.", identifier );
+		break;
+	case GEVLIB_ERROR_INVALID_HANDLE:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, location,
+		"GEVLIB_ERROR_INVALID_HANDLE in '%s'.", identifier );
+		break;
+	case GEVLIB_ERROR_NOT_SUPPORTED:
+		return mx_error( MXE_UNSUPPORTED, location,
+		"GEVLIB_ERROR_NOT_SUPPORTED in '%s'.", identifier );
+		break;
+	case GEVLIB_ERROR_TIME_OUT:
+		return mx_error( MXE_TIMED_OUT, location,
+		"GEVLIB_ERROR_TIME_OUT in '%s'.", identifier );
+		break;
+	case GEVLIB_ERROR_NOT_IMPLEMENTED:
+		return mx_error( MXE_UNSUPPORTED, location,
+		"GEVLIB_ERROR_NOT_IMPLEMENTED in '%s'.", identifier );
+		break;
+	case GEVLIB_ERROR_NO_CAMERA:
+		return mx_error( MXE_DEVICE_ACTION_FAILED, location,
+		"GEVLIB_ERROR_NO_CAMERA in '%s'.", identifier );
+		break;
+	case GEVLIB_ERROR_INVALID_PIXEL_FORMAT:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, location,
+		"GEVLIB_ERROR_INVALID_PIXEL_FORMAT in '%s'.", identifier );
+		break;
+	case GEVLIB_ERROR_PARAMETER_INVALID:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, location,
+		"GEVLIB_ERROR_PARAMETER_INVALID in '%s'.", identifier );
+		break;
+	case GEVLIB_ERROR_SOFTWARE:
+		return mx_error( MXE_DEVICE_ACTION_FAILED, location,
+		"GEVLIB_ERROR_SOFTWARE in '%s'.", identifier );
+		break;
+	case GEVLIB_ERROR_API_NOT_INITIALIZED:
+		return mx_error( MXE_INITIALIZATION_ERROR, location,
+		"GEVLIB_ERROR_API_NOT_INITIALIZED in '%s'.", identifier );
+		break;
+	case GEVLIB_ERROR_DEVICE_NOT_FOUND:
+		return mx_error( MXE_NOT_FOUND, location,
+		"GEVLIB_ERROR_DEVICE_NOT_FOUND in '%s'.", identifier );
+		break;
+	case GEVLIB_ERROR_ACCESS_DENIED:
+		return mx_error( MXE_UNKNOWN_ERROR, location,
+		"GEVLIB_ERROR_ACCESS_DENIED in '%s'.", identifier );
+		break;
+	default:
+		return mx_error( MXE_UNKNOWN_ERROR, location,
+		"A call to '%s' failed with Gev API error code %hd.",
+			identifier, gev_status );
+		break;
+	}
+}
+
+static mx_status_type
+mxd_dalsa_gev_camera_show_string_register( MX_RECORD *camera_record,
+					GEV_REGISTER *gev_register )
+{
+	static const char fname[] =
+		"mxd_dalsa_gev_camera_show_string_register()";
+
+	MX_VIDEO_INPUT *vinput;
+	MX_DALSA_GEV_CAMERA *dalsa_gev_camera;
+
+	GEV_CAMERA_HANDLE camera_handle;
+
+	char reg_char_value[MAX_GEVSTRING_LENGTH+1];
+	short gev_status;
+	mx_status_type mx_status;
+
+	if ( camera_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+	if ( gev_register == (GEV_REGISTER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The GEV_REGISTER pointer for camera '%s' was NULL.",
+			camera_record->name );
+	}
+
+	vinput = (MX_VIDEO_INPUT *) camera_record->record_class_struct;
+
+	mx_status = mxd_dalsa_gev_camera_get_pointers( vinput,
+					&dalsa_gev_camera, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	camera_handle = dalsa_gev_camera->camera_handle;
+
+	gev_status = GevRegisterRead( camera_handle,
+				gev_register, 0,
+				MAX_GEVSTRING_LENGTH,
+				reg_char_value );
+
+	if( gev_status != GEVLIB_OK ) {
+		return mxd_dalsa_gev_camera_api_error( gev_status, fname,
+			"GevRegisterRead( %s )", gev_register->featureName );
+	}
+
+	mx_info( "Camera '%s': %s = '%s'",
+		camera_record->name,
+		gev_register->featureName,
+		reg_char_value );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -224,10 +360,16 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 	GEV_CAMERA_HANDLE camera_handle;
 	DALSA_GENICAM_GIGE_REGS *regs = NULL;
 
+	UINT32 reg_int_value;
+#if 0
+	char reg_char_value[MAX_GEVSTRING_LENGTH+1];
+#endif
+
 	UINT32 gev_width, gev_height, gev_x_offset, gev_y_offset, gev_format;
 
 	char *serial_number_string;
 	long i, gev_status;
+	unsigned long camera_flags;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -242,6 +384,8 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	camera_flags = dalsa_gev_camera->camera_flags;
 
 #if MXD_DALSA_GEV_CAMERA_DEBUG_OPEN
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
@@ -390,74 +534,84 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 
 	regs = &(dalsa_gev_camera->camera_registers);
 
+	if ( camera_flags & MXF_DALSA_GEV_CAMERA_SHOW_INFO ) {
+		(void) mxd_dalsa_gev_camera_show_string_register(
+				record, &(regs->DeviceVendorName) );
+
+		(void) mxd_dalsa_gev_camera_show_string_register(
+				record, &(regs->DeviceModelName) );
+
+		(void) mxd_dalsa_gev_camera_show_string_register(
+				record, &(regs->DeviceVersion) );
+	} 
+
 #if MXD_DALSA_GEV_CAMERA_DEBUG_OPEN
 	/* Display some useful register values. */
 
 	{
-		UINT32 reg_value;
 
 		MX_DEBUG(-2,("%s: Camera '%s' registers:",
 			fname, record->name ));
 
 		GevRegisterReadInt( camera_handle,
-			&((*regs).TriggerMode), 0, &reg_value );
+			&((*regs).TriggerMode), 0, &reg_int_value );
 
 		MX_DEBUG(-2,("%s:   TriggerMode = %lu",
-			fname, (unsigned long) reg_value ));
+			fname, (unsigned long) reg_int_value ));
 
 		GevRegisterReadInt( camera_handle,
-			&((*regs).BinningHorizontal), 0, &reg_value );
+			&((*regs).BinningHorizontal), 0, &reg_int_value );
 
 		MX_DEBUG(-2,("%s:   BinningHorizontal = %lu",
-			fname, (unsigned long) reg_value ));
+			fname, (unsigned long) reg_int_value ));
 
 		GevRegisterReadInt( camera_handle,
-			&((*regs).BinningVertical), 0, &reg_value );
+			&((*regs).BinningVertical), 0, &reg_int_value );
 
 		MX_DEBUG(-2,("%s:   BinningVertical = %lu",
-			fname, (unsigned long) reg_value ));
+			fname, (unsigned long) reg_int_value ));
 
 		GevRegisterReadInt( camera_handle,
-			&((*regs).OffsetX), 0, &reg_value );
+			&((*regs).OffsetX), 0, &reg_int_value );
 
 		MX_DEBUG(-2,("%s:   OffsetX = %lu",
-			fname, (unsigned long) reg_value ));
+			fname, (unsigned long) reg_int_value ));
 
 		GevRegisterReadInt( camera_handle,
-			&((*regs).OffsetY), 0, &reg_value );
+			&((*regs).OffsetY), 0, &reg_int_value );
 
 		MX_DEBUG(-2,("%s:   OffsetY = %lu",
-			fname, (unsigned long) reg_value ));
+			fname, (unsigned long) reg_int_value ));
 
 		GevRegisterReadInt( camera_handle,
-			&((*regs).Width), 0, &reg_value );
+			&((*regs).Width), 0, &reg_int_value );
 
 		MX_DEBUG(-2,("%s:   Width = %lu",
-			fname, (unsigned long) reg_value ));
+			fname, (unsigned long) reg_int_value ));
 
 		GevRegisterReadInt( camera_handle,
-			&((*regs).Height), 0, &reg_value );
+			&((*regs).Height), 0, &reg_int_value );
 
 		MX_DEBUG(-2,("%s:   Height = %lu",
-			fname, (unsigned long) reg_value ));
+			fname, (unsigned long) reg_int_value ));
 
 		GevRegisterReadInt( camera_handle,
-			&((*regs).AcquisitionFrameRateRaw), 0, &reg_value );
+			&((*regs).AcquisitionFrameRateRaw), 0, &reg_int_value );
 
 		MX_DEBUG(-2,("%s:   AcquisitionFrameRateRaw = %lu",
-			fname, (unsigned long) reg_value ));
+			fname, (unsigned long) reg_int_value ));
 
 		GevRegisterReadInt( camera_handle,
-			&((*regs).ExposureTimeMax), 0, &reg_value );
+			&((*regs).ExposureTimeMax), 0, &reg_int_value );
 
 		MX_DEBUG(-2,("%s:   ExposureTimeMax = %lu",
-			fname, (unsigned long) reg_value ));
+			fname, (unsigned long) reg_int_value ));
 
 		GevRegisterReadInt( camera_handle,
-			&((*regs).ExposureTimeRaw), 0, &reg_value );
+			&((*regs).ExposureTimeRaw), 0, &reg_int_value );
 
 		MX_DEBUG(-2,("%s:   ExposureTimeRaw = %lu",
-			fname, (unsigned long) reg_value ));
+			fname, (unsigned long) reg_int_value ));
 	}
 #endif
 	gev_status = GevGetImageParameters( camera_handle,
@@ -490,7 +644,7 @@ mxd_dalsa_gev_camera_close( MX_RECORD *record )
 
 	MX_VIDEO_INPUT *vinput = NULL;
 	MX_DALSA_GEV_CAMERA *dalsa_gev_camera = NULL;
-	long gev_status;
+	short gev_status;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -525,7 +679,7 @@ mxd_dalsa_gev_camera_close( MX_RECORD *record )
 	default:
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
 		"A call to GevCloseCamera() for camera record '%s' "
-		"failed with status code %ld.",
+		"failed with status code %hd.",
 			record->name, gev_status );
 		break;
 	}
@@ -842,10 +996,12 @@ mxd_dalsa_gev_camera_special_processing_setup( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
+#if 0
 		case MXLV_DALSA_GEV_CAMERA_SHOW_FEATURES:
 			record_field->process_function
 				= mxd_dalsa_gev_camera_process_function;
 			break;
+#endif
 		default:
 			break;
 		}
@@ -853,6 +1009,8 @@ mxd_dalsa_gev_camera_special_processing_setup( MX_RECORD *record )
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+#if 0
 
 static mx_status_type
 mxd_dalsa_gev_camera_process_function( void *record_ptr,
@@ -925,3 +1083,4 @@ mxd_dalsa_gev_camera_process_function( void *record_ptr,
 	return mx_status;
 }
 
+#endif

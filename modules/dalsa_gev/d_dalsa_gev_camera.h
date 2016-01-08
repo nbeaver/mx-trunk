@@ -18,13 +18,15 @@
 #ifndef __D_DALSA_GEV_CAMERA_H__
 #define __D_DALSA_GEV_CAMERA_H__
 
+#define MXF_DALSA_GEV_CAMERA_SHOW_INFO	0x1
+
 typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *dalsa_gev_record;
 	char serial_number[MAX_GEVSTRING_LENGTH+1];
 	long num_frame_buffers;
-	mx_bool_type show_features;
+	unsigned long camera_flags;
 
 	long camera_index;
 	GEV_CAMERA_INFO *camera_object;
@@ -38,25 +40,23 @@ typedef struct {
 
 } MX_DALSA_GEV_CAMERA;
 
-#define MXLV_DALSA_GEV_CAMERA_SHOW_FEATURES	88800
-
 #define MXD_DALSA_GEV_CAMERA_STANDARD_FIELDS \
   {-1, -1, "dalsa_gev_record", MXFT_RECORD, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DALSA_GEV_CAMERA, dalsa_gev_record), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY) }, \
   \
   {-1, -1, "serial_number", MXFT_STRING, NULL, 1, {MAX_GEVSTRING_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DALSA_GEV_CAMERA, serial_number), \
-	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+	{sizeof(char)}, NULL, \
+		(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY) }, \
   \
   {-1, -1, "num_frame_buffers", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DALSA_GEV_CAMERA, num_frame_buffers), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
   \
-  {MXLV_DALSA_GEV_CAMERA_SHOW_FEATURES, -1, "show_features", \
-						MXFT_BOOL, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_DALSA_GEV_CAMERA, show_features), \
-	{0}, NULL, 0}
+  {-1, -1, "camera_flags", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DALSA_GEV_CAMERA, camera_flags), \
+	{0}, NULL, MXFF_IN_DESCRIPTION }
 	
 MX_API mx_status_type mxd_dalsa_gev_camera_create_record_structures(
 							MX_RECORD *record );
