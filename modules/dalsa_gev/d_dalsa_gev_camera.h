@@ -25,6 +25,7 @@ typedef struct {
 
 	MX_RECORD *dalsa_gev_record;
 	char serial_number[MAX_GEVSTRING_LENGTH+1];
+	long user_set_selector;
 	long num_frame_buffers;
 	unsigned long camera_flags;
 
@@ -49,6 +50,10 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DALSA_GEV_CAMERA, serial_number), \
 	{sizeof(char)}, NULL, \
 		(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY) }, \
+  \
+  {-1, -1, "user_set_selector", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DALSA_GEV_CAMERA, user_set_selector), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
   \
   {-1, -1, "num_frame_buffers", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DALSA_GEV_CAMERA, num_frame_buffers), \
@@ -80,6 +85,20 @@ MX_API mx_status_type mxd_dalsa_gev_camera_get_parameter(
 						MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_dalsa_gev_camera_set_parameter(
 						MX_VIDEO_INPUT *vinput );
+
+MX_API mx_status_type mxd_dalsa_gev_camera_register_read(
+						MX_VIDEO_INPUT *vinput,
+						GEV_REGISTER *gev_register,
+						int selector,
+						size_t data_size,
+						void *data_ptr );
+
+MX_API mx_status_type mxd_dalsa_gev_camera_register_write(
+						MX_VIDEO_INPUT *vinput,
+						GEV_REGISTER *gev_register,
+						int selector,
+						size_t data_size,
+						void *data_ptr );
 
 extern MX_RECORD_FUNCTION_LIST mxd_dalsa_gev_camera_record_function_list;
 extern MX_VIDEO_INPUT_FUNCTION_LIST
