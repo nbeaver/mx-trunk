@@ -37,7 +37,7 @@
 
 /* On Windows, to have ssize_t we must do the following. */
 
-#  if ( defined(_MSC_VER) && (_MSC_VER <= 1000) )
+#  if ( defined(_MSC_VER) && (_MSC_VER <= 1100) )
 
      /* Very old versions of Visual C++ for Win32 do not have SSIZE_T, but
       * they all only run on 32-bit computers, so we define ssize_t here

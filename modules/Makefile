@@ -21,7 +21,7 @@ all: build
 
 #MODULES += avt_vimba		# linux,
 
-MODULES += dalsa_gev		# linux,
+#MODULES += dalsa_gev		# linux,
 
 #MODULES += edt			# linux,
 
@@ -45,7 +45,7 @@ MODULES += dalsa_gev		# linux,
 
 #MODULES += nuvant_ezstat	# linux, win32
 
-#MODULES += python		# (Warning: not yet finished)
+MODULES += python		# (Warning: not yet finished)
 
 #MODULES += pmc_mcapi		# linux, win32
 
@@ -91,16 +91,16 @@ MODULES += dalsa_gev		# linux,
 
 #MODULES += u500
 
-MODULES += xineos_gige
+#MODULES += xineos_gige
 
 #-------------------------------------------------------------------
 # EPICS modules.
 
 MODULES += epics
 
-MODULES += epics_aps 
+#MODULES += epics_aps 
 
-MODULES += epics_pmac_biocat
+#MODULES += epics_pmac_biocat
 
 #MODULES += epics_mbc
 

@@ -78,7 +78,7 @@ MX_INSTALL_DIR = /opt/mx
 #MX_INSTALL_DIR = $(HOME)/mxtest
 #MX_INSTALL_DIR = /programs/mx/
 #MX_INSTALL_DIR = c:/users/lavender/mxtest
-#MX_INSTALL_DIR = c:/opt/mx-1.5.9-2015_12_18
+#MX_INSTALL_DIR = c:/opt/mx-1.5.9-2015_12_28
 
 #------------------------------------------------------------------------------
 

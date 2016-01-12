@@ -270,9 +270,9 @@ mx_get_number_of_cpu_cores( unsigned long *num_cores )
 
 #  if defined(_M_IX86)
 
-#    if (_MSC_VER <= 1000)
+#    if (_MSC_VER <= 1100)
 
-     /* Visual C++ 4.0 complains about the inline assembler syntax below. */
+  /* Visual C++ 4.0 and 5.0 complain about the inline assembler syntax below. */
 
 static DWORD
 mxp_get_current_processor_number( void )
