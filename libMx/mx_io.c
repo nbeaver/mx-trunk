@@ -599,6 +599,8 @@ mx_get_disk_space( char *filename,
 	|| defined(OS_BSD) || defined(OS_QNX) || defined(OS_ANDROID) \
 	|| defined(OS_HURD)
 
+/* statvfs() version */
+
 #include <sys/statvfs.h>
 
 MX_EXPORT mx_status_type
@@ -632,6 +634,105 @@ mx_get_disk_space( char *filename,
 	if ( user_free_bytes_in_partition != NULL ) {
 		*user_free_bytes_in_partition = fragment_size
 					* (uint64_t) fs_stats.f_bavail;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#elif 0
+
+/* statfs() version */
+
+#include <sys/vfs.h>
+
+MX_EXPORT mx_status_type
+mx_get_disk_space( char *filename,
+		uint64_t *user_total_bytes_in_partition,
+		uint64_t *user_free_bytes_in_partition )
+{
+	static const char fname[] = "mx_get_disk_space()";
+
+	struct statfs fs_stats;
+	uint64_t block_size;
+	int os_status, saved_errno;
+
+	os_status = statfs( filename, &fs_stats );
+
+	if ( os_status < 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"The call to statfs( '%s', &fs_stats ) returned with "
+		"errno = %d, error message = '%s'.",
+			filename, saved_errno, strerror(saved_errno) );
+	}
+
+	block_size = (uint64_t) fs_stats.f_bsize;
+
+	if ( user_total_bytes_in_partition != NULL ) {
+		*user_total_bytes_in_partition = block_size
+					* (uint64_t) fs_stats.f_blocks;
+	}
+	if ( user_free_bytes_in_partition != NULL ) {
+		*user_free_bytes_in_partition = block_size
+					* (uint64_t) fs_stats.f_bavail;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#elif defined(OS_DJGPP)
+
+/* This version is for DJGPP using DPMI calls directly.  It is designed
+ * for FAT16 partitions, so it only reports sizes up to 2 gigabytes.
+ */
+
+#include <dpmi.h>
+
+MX_EXPORT mx_status_type
+mx_get_disk_space( char *filename,
+		uint64_t *user_total_bytes_in_partition,
+		uint64_t *user_free_bytes_in_partition )
+{
+	static const char fname[] = "mx_get_disk_space()";
+
+	__dpmi_regs regs;
+	uint64_t ax_cx;;
+	char drive_number;
+
+	if ( filename[1] != ':' ) {
+		drive_number = 0;	/* The default drive. */
+	} else {
+		if ( islower( filename[0] ) ) {
+			drive_number = filename[0] - 'a' + 1;
+		} else {
+			drive_number = filename[0] - 'A' + 1;
+		}
+	}
+
+	regs.x.ax = 0x3600;
+	regs.x.dx = drive_number;
+
+	__dpmi_int( 0x21, &regs );	/* call DOS */
+
+	if ( regs.x.ax == 0xffff ) {
+		if ( drive_number == 0 ) {
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"The current default drive is not a valid drive." );
+		} else {
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"The requested drive '%c:' is not a valid drive.",
+				'A' + drive_number - 1 );
+		}
+	}
+
+	ax_cx = (uint64_t) regs.x.ax * (uint64_t) regs.x.cx;
+
+	if ( user_total_bytes_in_partition != NULL ) {
+		*user_total_bytes_in_partition = ax_cx * (uint64_t) regs.x.dx;
+	}
+	if ( user_free_bytes_in_partition != NULL ) {
+		*user_free_bytes_in_partition = ax_cx * (uint64_t) regs.x.bx;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
