@@ -479,8 +479,10 @@ mx_get_disk_space( char *filename,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if 0
 	MX_DEBUG(-2,("%s: filename = '%s', root_name = '%s'",
 		fname, filename, root_name));
+#endif
 
 	/* Check to see if GetDiskFreeSpaceEx() is available.  It _should_ be
 	 * available for Windows NT 4.0 and above, as well as Windows 95 OSR2

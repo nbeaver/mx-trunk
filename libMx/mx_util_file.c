@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2011, 2013-2015 Illinois Institute of Technology
+ * Copyright 1999-2011, 2013-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2279,6 +2279,7 @@ mx_get_filesystem_root_name( char *filename,
 	static mxp_PathBuildRoot_type pPathBuildRoot = NULL;
 
 	HINSTANCE hinst_shlwapi;
+	size_t length;
 	char *source_fs_root_name_ptr, *source_colon_ptr;
 	int drive_number;
 	DWORD last_error_code;
@@ -2425,6 +2426,17 @@ mx_get_filesystem_root_name( char *filename,
 			max_fs_root_name_length );
 
 		mx_free( filename_dup );
+	}
+
+	/* If the filesystem root name does not have a trailing backslash,
+	 * then add one, since some Win32 API functions like GetDiskFreeSpace()
+	 * expect one to be there.
+	 */
+
+	length = strlen( fs_root_name );
+
+	if ( fs_root_name[length-1] != '\\' ) {
+		strlcat( fs_root_name, "\\", max_fs_root_name_length );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
