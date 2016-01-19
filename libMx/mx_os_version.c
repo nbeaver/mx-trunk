@@ -14,6 +14,8 @@
  *
  */
 
+#define MXD_OS_VERSION_DEBUG		FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -327,6 +329,12 @@ mx_get_os_version_string( char *version_string,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXD_OS_VERSION_DEBUG
+	MX_DEBUG(-2,("%s: major = %ld, minor = %ld, platform = %ld, type = %ld",
+		fname, (long) win32_major_version, (long) win32_minor_version,
+		(long) win32_platform_id, (long) win32_product_type));
+#endif
+
 	/* A twisty little maze of passages, all alike. */
 
 	switch( win32_major_version ) {
@@ -390,12 +398,26 @@ mx_get_os_version_string( char *version_string,
 
 #if defined(VER_NT_WORKSTATION)
 		case 0:
-			if ( win32_product_type == VER_NT_WORKSTATION ) {
+			switch( win32_product_type ) {
+			case 0:
+				/* Argh!  I have a copy of Vista Home Basic
+				 * that reports this for the product type.
+				 * No idea why.  Perhaps Vista Home Basic
+				 * is too primitive to be a Workstation?
+				 * (WML 2016-01-19)
+				 */
+
+			case VER_NT_WORKSTATION:
 				strlcpy( version_string, "Windows Vista",
 					max_version_string_length );
-			} else {
+				break;
+
+			case VER_NT_DOMAIN_CONTROLLER:
+			case VER_NT_SERVER:
+			default:
 				strlcpy( version_string, "Windows Server 2008",
 					max_version_string_length );
+				break;
 			}
 			break;
 		case 1:
@@ -462,6 +484,10 @@ mx_get_os_version_string( char *version_string,
 			(unsigned long) win32_minor_version );
 		break;
 	}
+
+#if MXD_OS_VERSION_DEBUG
+	MX_DEBUG(-2,("%s: version_string = '%s'", fname, version_string));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
