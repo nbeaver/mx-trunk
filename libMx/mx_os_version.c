@@ -400,13 +400,6 @@ mx_get_os_version_string( char *version_string,
 		case 0:
 			switch( win32_product_type ) {
 			case 0:
-				/* Argh!  I have a copy of Vista Home Basic
-				 * that reports this for the product type.
-				 * No idea why.  Perhaps Vista Home Basic
-				 * is too primitive to be a Workstation?
-				 * (WML 2016-01-19)
-				 */
-
 			case VER_NT_WORKSTATION:
 				strlcpy( version_string, "Windows Vista",
 					max_version_string_length );
@@ -421,13 +414,20 @@ mx_get_os_version_string( char *version_string,
 			}
 			break;
 		case 1:
-			if ( win32_product_type == VER_NT_WORKSTATION ) {
+			switch( win32_product_type ) {
+			case 0:
+			case VER_NT_WORKSTATION:
 				strlcpy( version_string, "Windows 7",
 					max_version_string_length );
-			} else {
+				break;
+
+			case VER_NT_DOMAIN_CONTROLLER:
+			case VER_NT_SERVER:
+			default:
 				strlcpy( version_string,
 					"Windows Server 2008 R2",
 					max_version_string_length );
+				break;
 			}
 			break;
 		case 2:
