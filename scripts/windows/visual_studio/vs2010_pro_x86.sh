@@ -1,10 +1,10 @@
 #
-# Visual Studio 2010 Professional (64-bit) setup script for Cygwin.
+# Visual Studio 2010 Professional (32-bit) setup script for Cygwin.
 #
 # Insert this into a Cygwin startup like $HOME/.bashrc like this
 #
-#   if [ -f /usr/local/bin/vs2010_pro_x64.sh ]; then
-#      source /usr/local/bin/vs2010_pro_x64.sh
+#   if [ -f /usr/local/bin/vs2010_pro_x86.sh ]; then
+#      source /usr/local/bin/vs2010_pro_x86.sh
 #   fi
 #
 
@@ -12,7 +12,7 @@
 # You should not have to modify anything other than PROGRAM_FILES_DIR
 #
 
-PROGRAM_FILES_DIR="C:\\Program Files (x86)"
+PROGRAM_FILES_DIR="C:\\Program Files"
 
 #----------------------------------------------------------------------
 
@@ -25,10 +25,10 @@ DOTNET_DIR="C:\\Windows\\Microsoft.NET"
 export CommandPromptType=Native
 
 export Framework35Version=v3.5
-export FrameworkDir="$DOTNET_DIR\\Framework64"
-export FrameworkDIR64="$DOTNET_DIR\\Framework64"
+export FrameworkDir="$DOTNET_DIR\\Framework"
+export FrameworkDIR32="$DOTNET_DIR\\Framework"
 export FrameworkVersion=v4.0.30319
-export FrameworkVersion64=v4.0.30319
+export FrameworkVersion32=v4.0.30319
 
 export FSHARPINSTALLDIR="$PROGRAM_FILES_DIR\\Microsoft F#\\v4.0\\"
 
@@ -36,16 +36,15 @@ export FSHARPINSTALLDIR="$PROGRAM_FILES_DIR\\Microsoft F#\\v4.0\\"
        INCLUDE="$INCLUDE;$VISUAL_STUDIO_DIR\\VC\\ATLMFC\\INCLUDE"
 export INCLUDE="$INCLUDE;$SDK_DIR\\include;"
 
-       LIB="$VISUAL_STUDIO_DIR\\VC\\LIB\\amd64"
-       LIB="$LIB;$VISUAL_STUDIO_DIR\\VC\\ATLMFC\\LIB\\amd64"
-export LIB="$LIB;$SDK_DIR\\lib\\x64;"
+       LIB="$VISUAL_STUDIO_DIR\\VC\\LIB"
+       LIB="$LIB;$VISUAL_STUDIO_DIR\\VC\\ATLMFC\\LIB"
+export LIB="$LIB;$SDK_DIR\\lib;"
 
        LIBPATH="$FrameworkDir\\$FrameworkVersion"
        LIBPATH="$LIBPATH;$FrameworkDir\\$Framework35Version"
-       LIBPATH="$LIBPATH;$VISUAL_STUDIO_DIR\\VC\\LIB\\amd64"
-export LIBPATH="$LIBPATH;$VISUAL_STUDIO_DIR\\VC\\ATLMFC\\LIB\\amd64"
+       LIBPATH="$LIBPATH;$VISUAL_STUDIO_DIR\\VC\\LIB"
+export LIBPATH="$LIBPATH;$VISUAL_STUDIO_DIR\\VC\\ATLMFC\\LIB;"
 
-export Platform=X64
 export VCINSTALLDIR="$VISUAL_STUDIO_DIR\\VC\\"
 export VSINSTALLDIR="$VISUAL_STUDIO_DIR\\"
 export WindowsSdkDir="$SDK_DIR\\"
@@ -79,8 +78,8 @@ cyg_help_dir=`cygpath -u "$tmp"`
 
 old_path="$PATH"
 
-new_path="$cyg_visual_studio_dir/VC/BIN/amd64"
-new_path="$new_path:$cyg_sdk_dir/Bin/x64"
+new_path="$cyg_visual_studio_dir/VC/BIN"
+new_path="$new_path:$cyg_sdk_dir/Bin"
 new_path="$new_path:$cyg_fw_dir/$FrameworkVersion"
 new_path="$new_path:$cyg_fw_dir/$Framework35Version"
 new_path="$new_path:$cyg_visual_studio_dir/VC/VCPackages"
