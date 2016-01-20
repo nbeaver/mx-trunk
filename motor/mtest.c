@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2009-2010, 2012-2013, 2015 Illinois Institute of Technology
+ * Copyright 2009-2010, 2012-2013, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -156,7 +156,7 @@ motor_test_fn( int argc, char *argv[] )
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 
-			mx_info( "Disk containing '%s':\n"
+			mx_info("\nDisk containing '%s':\n"
 				"  User total bytes = %" PRIu64 "\n"
 				"  User free bytes  = %" PRIu64 "\n",
 					argv[3],
@@ -181,6 +181,41 @@ motor_test_fn( int argc, char *argv[] )
 			return SUCCESS;
 		}
 #endif
+
+		else
+		if ( strcmp( argv[2], "version" ) == 0 ) {
+			int os_major, os_minor, os_update;
+
+			mx_status = mx_get_os_version( &os_major,
+						&os_minor, &os_update );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+
+			mx_info( "OS: major = %d, minor = %d, update = %d",
+				os_major, os_minor, os_update );
+
+#if defined(OS_WIN32)
+			{
+				unsigned long win32_major, win32_minor;
+				unsigned long win32_platform_id;
+				unsigned char win32_product_type;
+
+				mx_status = mx_win32_get_osversioninfo(
+				    &win32_major, &win32_minor,
+				    &win32_platform_id, &win32_product_type );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return FAILURE;
+
+				mx_info( "Win32: major = %lu, minor = %lu, "
+				"platform_id = %lu, product_type = %#x",
+					win32_major, win32_minor,
+					win32_platform_id, win32_product_type );
+			}
+#endif
+			return SUCCESS;
+		}
 	}
 
 	mx_info( "Nothing happens." );

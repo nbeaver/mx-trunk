@@ -159,9 +159,13 @@ mx_win32_get_osversioninfo( unsigned long *win32_major_version,
 		*win32_platform_id   = rtl_osvi.dwPlatformId;
 
 		*win32_product_type  = 0;
+#if 0
+		/* FIXME: Calling mx_dynamic_library_close() here
+		 * causes a crash (WML, 2016-01-19).
+		 */
 
 		(void) mx_dynamic_library_close( ntdll_library );
-
+#endif
 		return MX_SUCCESSFUL_RESULT;
 	    }
 	}
