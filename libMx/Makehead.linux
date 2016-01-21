@@ -127,8 +127,9 @@ GCCFLAGS = -Wall -Werror \
 -Wcast-align \
 -Wcast-qual \
 -Wshadow \
--Winline \
--Wno-format-security
+-Winline
+
+### -Wno-format-security
 
 GCCFLAGS_C = \
 -Wstrict-prototypes \
