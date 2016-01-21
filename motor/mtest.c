@@ -166,7 +166,7 @@ motor_test_fn( int argc, char *argv[] )
 			return SUCCESS;
 		}
 
-#if defined(OS_WIN32)
+#if ( defined(OS_WIN32) && !defined(__BORLANDC__) )
 		else
 		if ( strcmp( argv[2], "max_fds" ) == 0 ) {
 			if ( argc >= 4 ) {

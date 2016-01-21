@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2000, 2003, 2005-2007, 2012-2015
+ * Copyright 1999-2000, 2003, 2005-2007, 2012-2016
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -33,7 +33,7 @@ extern "C" {
 #    define MX_MAXIMUM_ALIGNMENT	16
 #  endif
 
-#elif defined(_MSC_VER)
+#elif ( defined(_MSC_VER) || defined(__BORLANDC__) )
 #  define MX_MAXIMUM_ALIGNMENT		8
 
 #elif defined(__SUNPRO_C)

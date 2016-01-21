@@ -575,7 +575,11 @@ mx_setenv( const char *env_name,
 }
 
 #  else
-   /* For other Windows compilers, we are stuck with _putenv(). */
+   /* For other Windows compilers, we are stuck with _putenv() or putenv(). */
+
+#if defined(__BORLANDC__)
+#define _putenv(x)  putenv( (x) )
+#endif
 
 MX_EXPORT int
 mx_setenv( const char *env_name,

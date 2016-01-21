@@ -87,9 +87,15 @@ mx_split_version_number_string( char *version_number_string,
 #if ( defined(_MSC_VER) && (_MSC_VER > 1200) )
 # define HAVE_RTL_OSVERSIONINFOW	TRUE
 # define HAVE_OSVERSIONINFOEX		TRUE
-#elif ( defined(__BORLANDC__) || defined(__GNUC__) )
+
+#elif defined(__GNUC__)
 # define HAVE_RTL_OSVERSIONINFOW	TRUE
 # define HAVE_OSVERSIONINFOEX		TRUE
+
+#elif defined(__BORLANDC__)
+# define HAVE_RTL_OSVERSIONINFOW	FALSE
+# define HAVE_OSVERSIONINFOEX		TRUE
+
 #else
 # define HAVE_RTL_OSVERSIONINFOW	FALSE
 # define HAVE_OSVERSIONINFOEX		FALSE

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2013-2015 Illinois Institute of Technology
+ * Copyright 2013-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -271,5 +271,7 @@ main( int argc, char *argv[] )
 	}
 
 	exit(0);
+
+	MXW_NOT_REACHED( return 0 );
 }
 

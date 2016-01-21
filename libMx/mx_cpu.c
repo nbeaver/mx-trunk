@@ -401,7 +401,7 @@ mx_get_current_cpu_number( void )
 }
 
 #elif defined(OS_LINUX) || defined(OS_UNIXWARE) || defined(OS_VXWORKS) \
-	|| defined(OS_ANDROID)
+	|| defined(OS_ANDROID) || defined(__BORLANDC__)
 
 /* Select this case if this particular platform does not implement
  * the concept of a CPU number or does not provide a programmatic

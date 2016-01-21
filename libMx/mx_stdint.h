@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2007, 2009-2010, 2012-2015 Illinois Institute of Technology
+ * Copyright 2006-2007, 2009-2010, 2012-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -59,7 +59,7 @@ typedef uint64_t		uintmax_t;
  * For that reason, we switch to using i64 and ui64 in the following macros.
  */
 
-#  if defined(_MSC_VER)
+#  if ( defined(_MSC_VER) || defined(__BORLANDC__) )
 
 #     if defined(INT64_C)
 #        undef(INT64_C)

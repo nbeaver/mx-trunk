@@ -11,7 +11,7 @@
 
 INCLUDES  = $(MX_INCLUDES)
 
-LIBRARIES = $(WIN32_LIBS)
+LIBRARIES = $(WIN32_LIBS) 
 
 #
 # You may also need to modify some of the following definitions, depending
@@ -26,8 +26,6 @@ LIBRARIES = $(WIN32_LIBS)
 BCC_DIR	= c:/borland/bcc55
 #BCC_DIR = c:/progra~1/borland/cbuilder5
 
-WIN32_LIBS	= import32.lib cw32mti.lib
-
 #
 
 #
@@ -39,6 +37,22 @@ WIN32_LIBS	= import32.lib cw32mti.lib
 # Intel x86 with Borland C++ under Win32.
 #
 
+# Make sure that the Borland command line utilities are in the PATH.
+
+cyg_bcc_bin_dir := $(shell cygpath -u $(BCC_DIR)/bin)
+
+BCC_LIB_DIR := $(shell cygpath -w $(BCC_DIR)/Lib | sed -e 's/\\/\\\\/g')
+
+PATH := $(PATH):$(cyg_bcc_bin_dir)
+
+export PATH
+
+#---------
+
+WIN32_LIBS = import32.lib cw32mti.lib
+
+#---------
+
 .SUFFIXES:
 .SUFFIXES: .c .obj
 
@@ -48,11 +62,8 @@ WIN32_LIBS	= import32.lib cw32mti.lib
 BCCFLAGS = -D_RTLDLL -v -tWM -w -w! \
 	-w-aus -w-ccc -w-csu -w-nak -w-par -w-rch -w-sig -w-use
 
-#CC		= bcc32 -q -I$(BCC_DIR)/include
-#CC		= bcc32 -q
-#CC		= c:/Borland/BCC55/Bin/bcc32 -q
 CC		= $(BCC_DIR)/bin/bcc32 -q
-CFLAGS		= $(BCCFLAGS) $(INCLUDES) \
+CFLAGS		= -I$(BCC_DIR)/include $(BCCFLAGS) $(INCLUDES) \
 			-DOS_WIN32 $(EXTRA_FLAGS) -DDEBUG
 CFLAGS_EPICS	= $(CFLAGS)
 
@@ -97,6 +108,8 @@ SERVER_OBJS       = $(SERVER_SRCS:.c=.$(OBJ))
 AUTOSAVE_OBJS       = $(AUTOSAVE_SRCS:.c=.$(OBJ))
 MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.$(OBJ))
 MXMONITOR_OBJS    = $(MXMONITOR_SRCS:.c=.$(OBJ))
+MXGET_OBJS        = $(MXGET_SRCS:.c=.$(OBJ))
+MXPUT_OBJS        = $(MXPUT_SRCS:.c=.$(OBJ))
 
 #----
 
@@ -133,8 +146,9 @@ MX_LIBRARY_DELETE = $(RM) libMx.*
 
 $(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
 	-$(MX_LIBRARY_DELETE)
-	ilink32 -v -D"" -aa -Tpd -Gn -Gi -s -m \
-		c0d32.obj $(MX_LIB_OBJS), libMx.dll,, $(LIBRARIES)
+	$(BCC_DIR)/bin/ilink32 -v -D"" -aa -Tpd -Gn -Gi -s -m -E99 -w-dup \
+		-L$(BCC_LIB_DIR) $(BCC_LIB_DIR)\\c0d32.obj \
+		$(MX_LIB_OBJS), libMx.dll,, $(WIN32_LIBS)
 
 library_install:
 	-mkdir $(MX_INSTALL_DIR)/bin
@@ -167,8 +181,8 @@ mx_list_head.$(OBJ): Makefile.version mx_list_head.c mx_version.h
 MOTOR_NAME	= mxmotor.exe
 
 $(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
-	$(CC) -v -lv -M -e$(MOTOR_NAME) \
-			$(BCC_DIR)/lib/c0x32.obj *.obj $(EXTRA_OBJS) \
+	$(CC) -v -lv -M -e$(MOTOR_NAME) -L$(BCC_LIB_DIR) \
+			$(BCC_LIB_DIR)\\c0x32.obj *.obj $(EXTRA_OBJS) \
 			$(MX_LIBRARY_PATH) $(WIN32_LIBS)
 
 motor_install:
@@ -180,8 +194,8 @@ motor_install:
 SERVER_NAME	= mxserver.exe
 
 $(SERVER_NAME): $(SERVER_OBJS) $(MX_LIBRARY_PATH)
-	$(CC) -v -lv -M -e$(SERVER_NAME) \
-			$(BCC_DIR)/lib/c0x32.obj *.obj $(EXTRA_OBJS) \
+	$(CC) -v -lv -M -e$(SERVER_NAME) -L$(BCC_LIB_DIR) \
+			$(BCC_LIB_DIR)\\c0x32.obj *.obj $(EXTRA_OBJS) \
 			$(MX_LIBRARY_PATH) $(WIN32_LIBS)
 
 server_install:
@@ -197,8 +211,8 @@ server_install:
 AUTOSAVE_NAME	= mxautosave.exe
 
 $(AUTOSAVE_NAME): $(AUTOSAVE_OBJS) $(MX_LIBRARY_PATH)
-	$(CC) -v -lv -M -e$(AUTOSAVE_NAME) \
-			$(BCC_DIR)/lib/c0x32.obj *.obj \
+	$(CC) -v -lv -M -e$(AUTOSAVE_NAME) -L$(BCC_LIB_DIR) \
+			$(BCC_LIB_DIR)\\c0x32.obj *.obj \
 			$(MX_LIBRARY_PATH) $(WIN32_LIBS)
 
 autosave_install:
@@ -212,18 +226,34 @@ autosave_install:
 MXDRIVERINFO_NAME    = mxdriverinfo.exe
 
 $(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
-	$(CC) -v -lv -M -e$(MXDRIVERINFO_NAME) \
-			$(BCC_DIR)/lib/c0x32.obj *.obj \
+	$(CC) -v -lv -M -e$(MXDRIVERINFO_NAME) -L$(BCC_LIB_DIR) \
+			$(BCC_LIB_DIR)\\c0x32.obj mxdriverinfo.obj \
 			$(MX_LIBRARY_PATH) $(WIN32_LIBS)
 
 MXMONITOR_NAME    = mxmonitor.exe
 
 $(MXMONITOR_NAME): $(MXMONITOR_OBJS) $(MX_LIBRARY_PATH)
-	$(CC) -v -lv -M -e$(MXMONITOR_NAME) \
-			$(BCC_DIR)/lib/c0x32.obj *.obj \
+	$(CC) -v -lv -M -e$(MXMONITOR_NAME) -L$(BCC_LIB_DIR) \
+			$(BCC_LIB_DIR)\\c0x32.obj mxmonitor.obj \
+			$(MX_LIBRARY_PATH) $(WIN32_LIBS)
+
+MXGET_NAME    = mxget.exe
+
+$(MXGET_NAME): $(MXGET_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) -v -lv -M -e$(MXGET_NAME) -L$(BCC_LIB_DIR) \
+			$(BCC_LIB_DIR)\\c0x32.obj mxget.obj \
+			$(MX_LIBRARY_PATH) $(WIN32_LIBS)
+
+MXPUT_NAME    = mxput.exe
+
+$(MXPUT_NAME): $(MXPUT_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) -v -lv -M -e$(MXPUT_NAME) -L$(BCC_LIB_DIR) \
+			$(BCC_LIB_DIR)\\c0x32.obj mxput.obj \
 			$(MX_LIBRARY_PATH) $(WIN32_LIBS)
 
 util_install:
 	cp $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
 	cp $(MXMONITOR_NAME) $(MX_INSTALL_DIR)/bin
+	cp $(MXGET_NAME) $(MX_INSTALL_DIR)/bin
+	cp $(MXPUT_NAME) $(MX_INSTALL_DIR)/bin
 

@@ -464,6 +464,8 @@ mx_get_module( char *module_name, MX_RECORD *record_list, MX_MODULE **module )
 
 		return mx_status;
 	}
+
+	MXW_NOT_REACHED( return MX_SUCCESSFUL_RESULT );
 }
 
 /*-------------------------------------------------------------------------*/
@@ -647,6 +649,8 @@ mx_get_extension( char *extension_name, MX_RECORD *record_list,
 
 		return mx_status;
 	}
+
+	MXW_NOT_REACHED( return MX_SUCCESSFUL_RESULT );
 }
 
 /*-------------------------------------------------------------------------*/
