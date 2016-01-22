@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2011, 2014-2015 Illinois Institute of Technology
+ * Copyright 2011, 2014-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -33,7 +33,7 @@
 #  include <windows.h>
 #endif
 
-void
+static void
 print_usage( void )
 {
 	fprintf( stderr,

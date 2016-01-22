@@ -637,7 +637,7 @@ mx_setenv( const char *env_name,
 
 #elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
 	|| defined(OS_BSD) || defined(OS_QNX) || defined(OS_ANDROID) \
-	|| defined(OS_HURD) || defined(OS_DJGPP)
+	|| defined(OS_CYGWIN) || defined(OS_HURD) || defined(OS_DJGPP)
 
 MX_EXPORT int
 mx_setenv( const char *env_name,
