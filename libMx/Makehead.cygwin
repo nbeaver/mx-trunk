@@ -29,7 +29,7 @@ LIBRARIES	=
 #
 
 #
-# On older versions of Cygwin, we need to add rpclib to the linker
+# For older versions of Cygwin, we need to add rpclib to the linker
 # command line, so we test for the existence of /usr/lib/librpclib.a
 #
 
@@ -37,6 +37,17 @@ HAS_CYGWIN_RPCLIB = $(shell ls -1 /usr/lib/librpclib.a 2>> /dev/null | wc -l )
 
 ifeq ($(HAS_CYGWIN_RPCLIB),1)
 	LIBRARIES += -lrpclib
+endif
+
+#
+# For newer versions of Cygwin, we need to add tirpc to the linker
+# command line, so we test for the existence of /usr/lib/libtirpc.dll.a
+#
+
+HAS_CYGWIN_TIRPC = $(shell ls -1 /usr/lib/libtirpc.dll.a 2>> /dev/null | wc -l )
+
+ifeq ($(HAS_CYGWIN_TIRPC),1)
+	LIBRARIES += -ltirpc
 endif
 
 #
@@ -86,11 +97,7 @@ CC		= gcc
 CFLAGS		= -g -O $(GCCFLAGS) $(INCLUDES) -I/usr/include/tirpc \
 				-DOS_CYGWIN $(EXTRA_FLAGS) -DDEBUG
 
-CFLAGS_EPICS	= $(CFLAGS) -Wno-strict-prototypes
-
 # Special cases for individual files.
-
-CFLAGS_MX_EPICS = $(CFLAGS_EPICS) -Wno-cast-qual
 
 CFLAGS_MX_VERS  = -DOS_CYGWIN -DMX_MAJOR_VERSION=$(MX_MAJOR_VERSION) \
 			-DMX_MINOR_VERSION=$(MX_MINOR_VERSION) \
@@ -119,6 +126,8 @@ SERVER_OBJS       = $(SERVER_SRCS:.c=.$(OBJ))
 AUTOSAVE_OBJS       = $(AUTOSAVE_SRCS:.c=.$(OBJ))
 MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.$(OBJ))
 MXMONITOR_OBJS    = $(MXMONITOR_SRCS:.c=.o)
+MXGET_OBJS        = $(MXGET_SRCS:.c=.o)
+MXPUT_OBJS        = $(MXPUT_SRCS:.c=.o)
 
 #----
 
@@ -267,4 +276,22 @@ util_install:
 	install -m 755 $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
 	install -m 755 $(MXMONITOR_NAME) $(MX_INSTALL_DIR)/bin
 	install -m 755 $(MXSERIAL_NAME) $(MX_INSTALL_DIR)/bin
+	install -m 755 $(MXGET_NAME) $(MX_INSTALL_DIR)/bin
+	install -m 755 $(MXPUT_NAME) $(MX_INSTALL_DIR)/bin
+
+#---
+
+MXGET_NAME       = mxget
+
+$(MXGET_NAME): $(MXGET_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(CFLAGS) -o $(MXGET_NAME) \
+		$(MXGET_OBJS) $(LIB_DIRS) -lMx $(LIBRARIES)
+
+#---
+
+MXPUT_NAME       = mxput
+
+$(MXPUT_NAME): $(MXPUT_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(CFLAGS) -o $(MXPUT_NAME) \
+		$(MXPUT_OBJS) $(LIB_DIRS) -lMx $(LIBRARIES)
 

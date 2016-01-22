@@ -114,7 +114,7 @@ main( int argc, char *argv[] )
 		} else {
 			if ( argv[i][0] == '-' ) {
 				if ( (argv[i][1] == '.')
-				  || isdigit( argv[i][1] ) )
+				  || isdigit( (int) (argv[i][1]) ) )
 				{
 					fixed_argv[i] = strdup( "--" );
 
