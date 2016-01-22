@@ -358,7 +358,7 @@ MSMANIFEST_TOOL = `echo "$(MSDEV_DIR)\\bin\\mt" | tr \\\\ / `
 
 CC		= cl
 CFLAGS		+= -nologo $(INCLUDES) $(RUN_TIME_LIBRARY_FLAGS) \
-			-Zi -WX -DOS_WIN32 $(EXTRA_FLAGS) -DDEBUG
+			-Zi -WX -w14995 -DOS_WIN32 $(EXTRA_FLAGS) -DDEBUG
 # Special cases for individual files.
 
 CFLAGS_MX_VERS  = -DOS_WIN32 -DMX_MAJOR_VERSION=$(MX_MAJOR_VERSION) \

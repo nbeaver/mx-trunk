@@ -18,9 +18,8 @@
  *          include "mx_poison.h" _after_ including the external package
  *          header file.
  *
- * Bugs:    Not all parts of MX make use of this header file yet.  In addition,
- *          the operation of poisoning an identifier is only currently
- *          implemented for GCC.
+ *          Poisoning is implemented for GCC 3.0 and after as well as
+ *          Microsoft Visual C++.
  *
  * Author:  William Lavender
  *
@@ -38,9 +37,25 @@
 
 #ifndef MX_NO_POISON	/* Suppress poisoning if MX_NO_POISON is defined. */
 
-/* Poisoning is available GCC version 3 or later.  However, we do not turn
- * it on for MinGW running on Windows, since MinGW's headers use lots of
- * functions that would otherwise trigger poisoning.
+/*-----------------------------------------------------------------------*/
+
+/* For Microsoft Visual C++, we mark functions we want to poison
+ * as deprecated.  This generates a warning that will abort the
+ * MX compilation process.
+ */
+
+#if defined(OS_WIN32) && defined(_MSC_VER) && (_MSC_VER >= 1300)
+
+#pragma deprecated( gets, sprintf, vsprintf )
+#pragma deprecated( strcpy, strncpy, strcat, strncat, strtok )
+
+#endif
+
+/*-----------------------------------------------------------------------*/
+
+/* Poisoning is available for GCC version 3 or later.  However, we do not
+ * turn it on for MinGW running on Windows, since MinGW's headers use lots
+ * of functions that would otherwise trigger poisoning.
  */
 
 #if (__GNUC__ >= 3) && !defined(OS_WIN32)
