@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006-2009, 2011-2015 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006-2009, 2011-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -310,7 +310,7 @@ mx_list_head_print_clients( MX_LIST_HEAD *list_head )
 			}
 
 			mx_info( "%3d %3d   %s  %-16s %-8s %6ld %-8s", i,
-				socket_handler->synchronous_socket->socket_fd,
+			(int) socket_handler->synchronous_socket->socket_fd,
 				event_handler->name,
 				socket_handler->client_address_string,
 				socket_handler->username,

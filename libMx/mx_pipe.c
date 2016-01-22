@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2007-2008, 2011, 2014-2015 Illinois Institute of Technology
+ * Copyright 2007-2008, 2011, 2014-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -334,7 +334,7 @@ mx_pipe_num_bytes_available( MX_PIPE *mx_pipe,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( num_bytes_available == (size_t) NULL ) {
+	if ( num_bytes_available == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The num_bytes_available_pointer passed was NULL." );
 	}

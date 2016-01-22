@@ -71,6 +71,9 @@
 #    error Unrecognized CPU architecture for MacOS X!
 #  endif
 
+#elif ( defined(__GNUC__) && defined(OS_WIN32) )
+#  define MX_NEED_HRT_FALLBACK		TRUE
+
 #elif ( defined(__GNUC__) && defined(__x86_64__) )
 #  define MX_NEED_HRT_FALLBACK		FALSE
 

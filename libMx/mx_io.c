@@ -31,14 +31,9 @@
 #include "mx_dynamic_library.h"
 #include "mx_io.h"
 
-#if defined(OS_WIN32)
+#if defined(OS_WIN32) && !defined(__GNUC__)
 #  define popen(x,p) _popen(x,p)
 #  define pclose(x)  _pclose(x)
-
-#if 0
-#  include <aclapi.h>
-#endif
-
 #endif
 
 /*-------------------------------------------------------------------------*/
@@ -1190,8 +1185,11 @@ mxp_get_fd_name_gfpn_by_handle( HANDLE fd_handle,
 	DWORD filename_length, last_error_code;
 	TCHAR message_buffer[100];
 	TCHAR tchar_filename_buffer[GFPN_BY_HANDLE_BUFFER_SIZE];
-	int errno_status;
+
+#if defined(_UNICODE)
 	size_t num_converted;
+	int errno_status;
+#endif
 
 	filename_length = ptrGetFinalPathNameByHandle( fd_handle,
 						tchar_filename_buffer,
@@ -1200,10 +1198,10 @@ mxp_get_fd_name_gfpn_by_handle( HANDLE fd_handle,
 
 	if ( filename_length >= GFPN_BY_HANDLE_BUFFER_SIZE ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"The filename corresponding to Win32 handle %#lx "
+		"The filename corresponding to Win32 handle %p "
 		"is longer than the supplied buffer size %ld in TCHARs.  "
 		"Increase GFPN_BY_HANDLE_BUFFER_SIZE to %ld and recompile MX.",
-			fd_handle, GFPN_BY_HANDLE_BUFFER_SIZE,
+			fd_handle, (long) GFPN_BY_HANDLE_BUFFER_SIZE,
 			filename_length );
 	} else
 	if ( filename_length == 0 ) {
@@ -1213,7 +1211,7 @@ mxp_get_fd_name_gfpn_by_handle( HANDLE fd_handle,
 			message_buffer, sizeof(message_buffer) );
 
 		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-		"Unable to get filename information for Win32 handle %#lx.  "
+		"Unable to get filename information for Win32 handle %p.  "
 		"Win32 error code = %ld, error message = '%s'.",
 			fd_handle, last_error_code, message_buffer );
 	}
@@ -1270,13 +1268,19 @@ mxp_get_fd_name_via_mapping( HANDLE fd_handle,
 	TCHAR message_buffer[100];
 
 	DWORD os_status;
-	int errno_status;
 	TCHAR tchar_filename[MXU_FILENAME_LENGTH+1];
 	TCHAR mapping_name[100];
 
+	SECURITY_ATTRIBUTES security_attributes;
+
+#if defined(_UNICODE)
+	int errno_status;
+#endif
+
+#if 0
 	SECURITY_INFORMATION security_information;
 	SECURITY_DESCRIPTOR *security_descriptor;
-	SECURITY_ATTRIBUTES security_attributes;
+#endif
 
 	file_size_high = 0;
 
@@ -1284,7 +1288,7 @@ mxp_get_fd_name_via_mapping( HANDLE fd_handle,
 
 	if ( (file_size_high == 0) && (file_size_low == 0) ) {
 		(void) mx_error( MXE_UNSUPPORTED, fname,
-		"Handle %#lx has file size 0, so we cannot get its name.",
+		"Handle %p has file size 0, so we cannot get its name.",
 			fd_handle );
 
 		*buffer = '\0';
@@ -1358,7 +1362,7 @@ mxp_get_fd_name_via_mapping( HANDLE fd_handle,
 			message_buffer, sizeof(message_buffer) );
 
 		(void) mx_error( MXE_FILE_IO_ERROR, fname,
-		"Cannot create file mapping object for handle %#lx.  "
+		"Cannot create file mapping object for handle %p.  "
 		"Win32 error code = %ld, error message = '%s'.",
 			fd_handle, last_error_code, message_buffer );
 		
@@ -1379,7 +1383,7 @@ mxp_get_fd_name_via_mapping( HANDLE fd_handle,
 		CloseHandle( file_mapping_handle );
 
 		(void) mx_error( MXE_FILE_IO_ERROR, fname,
-		"Cannot map the file corresponding to handle %#lx "
+		"Cannot map the file corresponding to handle %p "
 		"into our address space.  "
 		"Win32 error code = %ld, error message = '%s'.",
 			fd_handle, last_error_code, message_buffer );
@@ -1405,7 +1409,7 @@ mxp_get_fd_name_via_mapping( HANDLE fd_handle,
 
 		(void) mx_error( MXE_FILE_IO_ERROR, fname,
 		"Cannot get the filename for the mapped file "
-		"corresponding to handle %#lx.  "
+		"corresponding to handle %p.  "
 		"Win32 error code = %ld, error message = '%s'.",
 			fd_handle, last_error_code, message_buffer );
 		
@@ -1455,9 +1459,6 @@ mx_get_fd_name( unsigned long process_id, int fd,
 	static char fname[] = "mx_get_fd_name()";
 
 	HANDLE fd_handle;
-	BOOL status;
-	DWORD pipe_flags, last_error_code;
-	TCHAR message_buffer[100];
 	mx_status_type mx_status;
 
 	if ( fd < 0 ) {
@@ -1642,11 +1643,11 @@ mx_win32_show_socket_names( void )
 		if ( mx_status.code == MXE_SUCCESS ) {
 			num_open_sockets++;
 
-			mx_info( "%d - %s", i, buffer );
+			mx_info( "%d - %s", (int) i, buffer );
 		}
 	}
 
-	mx_info( "num_open_sockets = %d", num_open_sockets );
+	mx_info( "num_open_sockets = %d", (int) num_open_sockets );
 
 	return;
 }
@@ -2378,7 +2379,6 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
 	DWORD wait_status, last_error_code;
 	TCHAR message_buffer[100];
 	mx_bool_type file_has_changed;
-	mx_status_type mx_status;
 
 	if ( monitor == (MX_FILE_MONITOR *) NULL ) {
 		(void) mx_error( MXE_NULL_ARGUMENT, fname,
@@ -2455,7 +2455,7 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
 			message_buffer, sizeof(message_buffer) );
 
 		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-		"WaitForSingleObject( %#lx, 0 ) for file '%s' failed.  "
+		"WaitForSingleObject( %p, 0 ) for file '%s' failed.  "
 		"Win32 error code = %ld, error message = '%s'.",
 			win32_monitor->change_handle,
 			monitor->filename,

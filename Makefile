@@ -30,7 +30,7 @@
 #   vxworks       - VxWorks Tornado 2.0 using GCC
 #   win32         - Microsoft Win32 with Visual C++ 4 or above
 #   win32-borland - Microsoft Win32 with Borland C++ Builder 5.5.1
-#   win32-mingw   - Microsoft Win32 with MinGW 4.1.1 and MSYS 1.0.10
+#   win32-mingw   - Microsoft Win32 with MinGW-w64
 #
 #------------------------------------------------------------------------------
 #
@@ -67,7 +67,7 @@
 # mx/module/epics/Makefile.config.
 #
 
-MX_ARCH = win32-borland
+MX_ARCH = win32-mingw
 
 MX_INSTALL_DIR = /opt/mx
 #MX_INSTALL_DIR = c:/opt/mx

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2015 Illinois Institute of Technology
+ * Copyright 1999-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -181,7 +181,7 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 
 	if ( n >= 0 ) {
 		mx_info("Client %ld (socket %d) disconnected.",
-			n, socket_handler->synchronous_socket->socket_fd);
+			n, (int) socket_handler->synchronous_socket->socket_fd);
 	}
 
 	list_head = socket_handler->list_head;
@@ -910,7 +910,7 @@ mxsrv_mx_server_socket_init( MX_RECORD *list_head_record,
 	if ( socket_handler == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 "Ran out of memory trying to allocate MX_SOCKET_HANDLER for socket %d.",
-			server_socket->socket_fd );
+			(int) server_socket->socket_fd );
 	}
 
 	socket_handler_list->array[i] = socket_handler;
@@ -938,6 +938,8 @@ mxsrv_mx_server_socket_init( MX_RECORD *list_head_record,
 	socket_handler->message_buffer = NULL;
 
 	socket_handler_list->num_sockets_in_use++;
+
+	MXW_UNUSED( max_sockets );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1138,7 +1140,7 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 "Attempt to allocate a new socket handler for new client socket %d failed.",
-			client_socket->socket_fd );
+			(int) client_socket->socket_fd );
 	}
 
 	new_socket_handler->list_head = list_head;
@@ -1310,7 +1312,7 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 	/* Announce that a new client has connected. */
 
 	mx_info("Client %d (socket %d) connected from '%s'.",
-		i, client_socket->socket_fd,
+		i, (int) client_socket->socket_fd,
 		new_socket_handler->client_address_string );
 
 	if ( socket_type == MXF_SRV_ASCII_SERVER_TYPE ) {
@@ -2452,7 +2454,7 @@ mxsrv_send_field_value_to_client(
 	mx_socket = socket_handler->synchronous_socket;
 
 	MX_DEBUG( 1,("***** %s invoked for socket %d *****",
-					fname, mx_socket->socket_fd));
+					fname, (int) mx_socket->socket_fd));
 
 	if ( record_field->flags & MXFF_VARARGS ) {
 		array_is_dynamically_allocated = TRUE;
@@ -2866,7 +2868,7 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 	mx_socket = socket_handler->synchronous_socket;
 
 	MX_DEBUG( 1,("***** %s invoked for socket %d *****",
-		fname, mx_socket->socket_fd));
+		fname, (int) mx_socket->socket_fd));
 
 	/* The do...while(0) loop below is just a trick to make it easy
 	 * to jump to the end of this block of code, since we need to send
@@ -3106,9 +3108,15 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 				buffer_left -= xdr_gap_size;
 			}
 
+#if defined(_WIN64)
+			MX_DEBUG( 2,
+			("%s: ptr_address = %#I64x, value_buffer = %p",
+				fname, xdr_ptr_address, value_buffer));
+#else
 			MX_DEBUG( 2,
 			("%s: ptr_address = %#lx, value_buffer = %p",
 				fname, xdr_ptr_address, value_buffer));
+#endif
 
 			/* Now we are ready to do the XDR data conversion. */
 
@@ -4793,7 +4801,7 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 		"The ADD_CALLBACK message of length %lu sent by "
 		"client socket %d is shorter than the required length of %lu.",
 			message_length,
-			socket_handler->synchronous_socket->socket_fd,
+			(int) socket_handler->synchronous_socket->socket_fd,
 			(unsigned long) (3L * sizeof(uint32_t)) );
 	}
 
@@ -5541,7 +5549,7 @@ mxsrv_ascii_client_socket_process_event( MX_RECORD *record_list,
 
 	if ( ascii_debug ) {
 		MX_DEBUG(-2,("Received '%s' from ASCII socket %d",
-			message_ptr, client_socket->socket_fd));
+			message_ptr, (int) client_socket->socket_fd));
 	}
 
 	/* Extract the command name from the message buffer. */
@@ -5756,7 +5764,7 @@ mxsrv_ascii_client_handle_get( MX_RECORD *mx_record_list,
 
 	if ( ascii_debug ) {
 		MX_DEBUG(-2,("Sent '%s' to ASCII socket %d for field '%s.%s'",
-			field_description, client_socket->socket_fd,
+			field_description, (int) client_socket->socket_fd,
 			mx_record->name, mx_field->name ));
 	}
 
@@ -5838,7 +5846,7 @@ mxsrv_ascii_client_handle_put( MX_RECORD *mx_record_list,
 
 	if ( ascii_debug ) {
 		MX_DEBUG(-2,("Sent '%s' to ASCII socket %d for field '%s.%s'",
-			response_buffer, client_socket->socket_fd,
+			response_buffer, (int) client_socket->socket_fd,
 			mx_record->name, mx_field->name ));
 	}
 

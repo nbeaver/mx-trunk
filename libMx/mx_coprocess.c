@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004, 2010-2011, 2015
+ * Copyright 1999-2001, 2003-2004, 2010-2011, 2015-2016
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -1368,7 +1368,7 @@ mx_coprocess_num_bytes_available( MX_COPROCESS *coprocess,
 	TCHAR message_buffer[100];
 	TCHAR peek_buffer[1000];
 
-	if ( num_bytes_available == (size_t) NULL ) {
+	if ( num_bytes_available == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The num_bytes_available_pointer passed was NULL." );
 	}

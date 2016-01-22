@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2008, 2010, 2015 Illinois Institute of Technology
+ * Copyright 2008, 2010, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -174,7 +174,7 @@ mxn_bluice_dhs_monitor_thread( MX_THREAD *thread, void *args )
 #if BLUICE_DHS_DEBUG
 			MX_DEBUG(-2,("%s: DHS '%s' socket %d had an error.",
 				fname, dhs_server_record->name,
-				bluice_server->socket->socket_fd));
+				(int) bluice_server->socket->socket_fd));
 #endif
 			return mx_status;
 		}
@@ -184,7 +184,7 @@ mxn_bluice_dhs_monitor_thread( MX_THREAD *thread, void *args )
 			MX_DEBUG( 2,("%s: No new messages are available from "
 				"DHS server '%s' socket %d.",
 				fname, dhs_server_record->name,
-				bluice_server->socket->socket_fd ));
+				(int) bluice_server->socket->socket_fd ));
 #endif
 
 			mx_msleep(wait_ms);
@@ -198,7 +198,7 @@ mxn_bluice_dhs_monitor_thread( MX_THREAD *thread, void *args )
 		MX_DEBUG(-2,("%s: DHS '%s', socket %d, %ld bytes are "
 		"available -> calling mx_bluice_receive_message().",
 			fname, dhs_server_record->name,
-			bluice_server->socket->socket_fd,
+			(int) bluice_server->socket->socket_fd,
 			num_bytes_available ));
 #endif
 

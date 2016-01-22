@@ -26,7 +26,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2007 Illinois Institute of Technology
+ * Copyright 2006-2007, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -38,9 +38,12 @@
 
 #ifndef MX_NO_POISON	/* Suppress poisoning if MX_NO_POISON is defined. */
 
-/*--- GCC version 3 or later ---*/
+/* Poisoning is available GCC version 3 or later.  However, we do not turn
+ * it on for MinGW running on Windows, since MinGW's headers use lots of
+ * functions that would otherwise trigger poisoning.
+ */
 
-#if (__GNUC__ >= 3)
+#if (__GNUC__ >= 3) && !defined(OS_WIN32)
 
 #ifdef gets
 #  undef gets

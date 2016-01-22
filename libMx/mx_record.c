@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2015 Illinois Institute of Technology
+ * Copyright 1999-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -3138,7 +3138,7 @@ mx_add_parent_dependency(MX_RECORD *current_record,
 		}
 
 		MX_DEBUG( 8,("%s: New size of parent record array = %lu",fname,
-			new_num_parent_array_elements * sizeof(MX_RECORD *)));
+		(long) (new_num_parent_array_elements * sizeof(MX_RECORD *)) ));
 
 		current_record->parent_record_array = parent_record_array;
 	}

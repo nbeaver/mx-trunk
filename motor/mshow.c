@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2007, 2009-2015 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2007, 2009-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -228,7 +228,7 @@ motor_show_fn( int argc, char *argv[] )
 		(void) localtime_r( &time_struct, &current_time );
 
 		strftime( time_buffer, sizeof(time_buffer),
-			"%G %b %d %H:%M:%S\n", &current_time );
+			"%Y %b %d %H:%M:%S\n", &current_time );
 
 		fputs( time_buffer, output );
 		return SUCCESS;

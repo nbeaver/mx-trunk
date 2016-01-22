@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2008, 2015 Illinois Institute of Technology
+ * Copyright 1999-2008, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -567,7 +567,7 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 					"Timed out after waiting %g seconds to "
 					"write to MX network socket %d.",
 						timeout,
-						mx_socket->socket_fd );
+						(int) mx_socket->socket_fd );
 				}
 				break;
 			default:

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2015 Illinois Institute of Technology
+ * Copyright 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -331,7 +331,7 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 			"Message type '%s' is not recognized for "
 			"data socket %d of area detector '%s'.",
 				message_type_string,
-				merlin_medipix->data_socket->socket_fd,
+				(int) merlin_medipix->data_socket->socket_fd,
 				record->name );
 		}
 

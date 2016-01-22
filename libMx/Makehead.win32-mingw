@@ -2,8 +2,13 @@
 # Name:    Makehead.win32-mingw
 #
 # Purpose: This file is used to customize operating system and installation
-#          dependent features of the MX makefiles.  This version is customized
-#          for MinGW under Microsoft Win32.
+#          dependent features of the MX makefiles.
+#
+#          There are many different versions of MinGW and MinGW-w64 available
+#          either standalone or included in some other package.  At present,
+#          we have tested with the Mingw-builds version that is linked to
+#          on the page http://mingw-w64.org/doku.php/download together with
+#          the MSYS-20111123.zip package at the Mingw-builds web site.
 #
 
 INCLUDES	= $(MX_INCLUDES)
@@ -68,6 +73,8 @@ SERVER_OBJS       = $(SERVER_SRCS:.c=.$(OBJ))
 AUTOSAVE_OBJS       = $(AUTOSAVE_SRCS:.c=.$(OBJ))
 MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.$(OBJ))
 MXMONITOR_OBJS    = $(MXMONITOR_SRCS:.c=.$(OBJ))
+MXGET_OBJS        = $(MXGET_SRCS:.c=.$(OBJ))
+MXPUT_OBJS        = $(MXPUT_SRCS:.c=.$(OBJ))
 
 #----
 
@@ -190,6 +197,18 @@ MXMONITOR_NAME    = mxmonitor
 $(MXMONITOR_NAME): $(MXMONITOR_OBJS) $(MX_LIBRARY_PATH)
 	$(CC) $(CFLAGS) -o $(MXMONITOR_NAME) \
 		$(MXMONITOR_OBJS) $(LIB_DIRS) ../libMx/libMx.a $(LIBRARIES)
+
+MXGET_NAME        = mxget
+
+$(MXGET_NAME): $(MXGET_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(CFLAGS) -o $(MXGET_NAME) \
+		$(MXGET_OBJS) $(LIB_DIRS) ../libMx/libMx.a $(LIBRARIES)
+
+MXPUT_NAME        = mxput
+
+$(MXPUT_NAME): $(MXPUT_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(CFLAGS) -o $(MXPUT_NAME) \
+		$(MXPUT_OBJS) $(LIB_DIRS) ../libMx/libMx.a $(LIBRARIES)
 
 util_install:
 	install -m 755 $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin

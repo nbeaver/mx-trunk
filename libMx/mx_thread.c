@@ -7,7 +7,8 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005-2007, 2010-2011, 2013, 2015 Illinois Institute of Technology
+ * Copyright 2005-2007, 2010-2011, 2013, 2015-2016
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -984,14 +985,14 @@ mx_show_thread_info( MX_THREAD *thread, char *message )
 				(unsigned long) thread_private->thread_id );
 
 #if defined(_WIN64)
-	mx_info( "  Win32 thread handle        = %016I64x",
+	mx_info( "  Win32 thread handle        = %16p",
 				thread_private->thread_handle );
-	mx_info( "  Win32 stop event handle    = %016I64x",
+	mx_info( "  Win32 stop event handle    = %16p",
 				thread_private->stop_event_handle );
 #else
-	mx_info( "  Win32 thread handle        = %08lx",
+	mx_info( "  Win32 thread handle        = %8p",
 				(unsigned long) thread_private->thread_handle );
-	mx_info( "  Win32 stop event handle    = %08lx",
+	mx_info( "  Win32 stop event handle    = %8p",
 			(unsigned long) thread_private->stop_event_handle );
 #endif
 

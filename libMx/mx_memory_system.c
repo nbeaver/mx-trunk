@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2007, 2010-2012, 2015 Illinois Institute of Technology
+ * Copyright 2005-2007, 2010-2012, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -184,7 +184,7 @@ mx_get_system_meminfo( MX_SYSTEM_MEMINFO *meminfo )
  * nevertheless seems to do the job.
  */
 
-#if ! defined(ERROR_PRODUCT_VERSION) || defined(__GNUC__)
+#if ! defined(ERROR_PRODUCT_VERSION)
 
 /* MEMORYSTATUSEX is not defined in our copy of the Platform SDK,
  * so we must define it ourself.

@@ -119,7 +119,6 @@ mx_win32_get_osversioninfo( unsigned long *win32_major_version,
 	OSVERSIONINFO osvi;
 #endif
 	BOOL status;
-	int use_extended_struct;
 	mx_status_type mx_status;
 
 #if HAVE_RTL_OSVERSIONINFOW
@@ -135,7 +134,7 @@ mx_win32_get_osversioninfo( unsigned long *win32_major_version,
 
 	    RTL_OSVERSIONINFOW rtl_osvi;
 	    NTSTATUS nt_status;
-	    void *void_ptr, *ntdll_ptr;
+	    void *void_ptr;
 	    MX_DYNAMIC_LIBRARY *ntdll_library;
 
 	    mx_status = mx_dynamic_library_get_library_and_symbol(
@@ -157,7 +156,8 @@ mx_win32_get_osversioninfo( unsigned long *win32_major_version,
 
 		if ( nt_status != 0 ) {
 			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			"RtlGetVersion() returned error code %d", nt_status );
+			"RtlGetVersion() returned error code %d",
+				(int) nt_status );
 		}
 
 		*win32_major_version = rtl_osvi.dwMajorVersion;
@@ -190,10 +190,7 @@ mx_win32_get_osversioninfo( unsigned long *win32_major_version,
 	status = 0;
 #endif
 
-	if ( status != 0 ) {
-		use_extended_struct = TRUE;
-	} else {
-		use_extended_struct = FALSE;
+	if ( status == 0 ) {
 
 		/* Using OSVERSIONINFOEX failed, so try again
 		 * with OSVERSIONINFO.

@@ -2081,6 +2081,12 @@ mx_string_split( char *original_string,
 
 /* For Windows XP and after.  Internally, it depends on RtlGenRandom(). */
 
+/* Somehow MinGW does not find the prototype, so we must put it in ourself. */
+
+#if defined(__GNUC__)
+   _CRTIMP errno_t __cdecl rand_s(unsigned int *randomValue);
+#endif
+
 MX_EXPORT unsigned long
 mx_random( void )
 {

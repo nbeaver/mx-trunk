@@ -13,7 +13,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2008, 2010, 2012, 2015 Illinois Institute of Technology
+ * Copyright 2008, 2010, 2012, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -340,7 +340,7 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 		}
 #if BLUICE_DHS_MANAGER_DEBUG
 		MX_DEBUG(-2,("%s: DHS socket fd = %d",
-				fname, dhs_socket->socket_fd));
+				fname, (int) dhs_socket->socket_fd));
 #endif
 		/* Send an stoc_send_client_type message to the DHS.
 		 *
@@ -369,7 +369,7 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 
 #if BLUICE_DHS_MANAGER_DEBUG
 		MX_DEBUG(-2,("%s: sending '%s' command to DHS socket fd %d",
-			  fname, message, dhs_socket->socket_fd));
+			  fname, message, (int) dhs_socket->socket_fd));
 #endif
 		mx_status = mx_socket_send( dhs_socket, &message,
 					MX_BLUICE_OLD_MESSAGE_LENGTH );
@@ -379,7 +379,7 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 			"The attempt by DHS manager record '%s' "
 			"to send '%s' to DHS socket %d failed.",
 				dhs_manager_record->name,
-				message, dhs_socket->socket_fd );
+				message, (int) dhs_socket->socket_fd );
 
 			/* Go back to the top of the for(;;) loop. */
 
@@ -403,7 +403,7 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 			"Timed out after waiting %g seconds for DHS socket %d "
 			"to respond to an stoc_send_client_type message.",
 				timeout_in_seconds,
-				dhs_socket->socket_fd );
+				(int) dhs_socket->socket_fd );
 
 			mx_socket_close( dhs_socket );
 
@@ -422,7 +422,7 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 
 #if BLUICE_DHS_MANAGER_DEBUG
 		MX_DEBUG(-2,("%s: Reading response header from DHS socket %d",
-				fname, dhs_socket->socket_fd ));
+				fname, (int) dhs_socket->socket_fd ));
 #endif
 		/* How many bytes are there to read? */
 
@@ -440,7 +440,7 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 
 #if BLUICE_DHS_MANAGER_DEBUG
 		MX_DEBUG(-2,("%s: socket %d, num_bytes_available = %ld",
-			fname, dhs_socket->socket_fd, num_bytes_available ));
+		    fname, (int) dhs_socket->socket_fd, num_bytes_available ));
 #endif
 
 		if ( num_bytes_available > (sizeof(message) - 1) ) {
@@ -449,7 +449,7 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 			"from DHS socket %d is greater than the maximum "
 			"length of the message buffer %ld.",
 				num_bytes_available,
-				dhs_socket->socket_fd,
+				(int) dhs_socket->socket_fd,
 				(long) (sizeof(message) - 1) );
 		}
 
@@ -475,7 +475,7 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 
 #if BLUICE_DHS_MANAGER_DEBUG
 		MX_DEBUG(-2,("%s: DHS socket %d, response = '%s'",
-			fname, dhs_socket->socket_fd, message));
+			fname, (int) dhs_socket->socket_fd, message));
 #endif
 		/* Parse the returned string. */
 
@@ -500,7 +500,7 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 		} else {
 			(void) mx_error( MXE_NETWORK_IO_ERROR, fname,
 			"Could not parse DHS socket %d message response = '%s'",
-				dhs_socket->socket_fd, message );
+				(int) dhs_socket->socket_fd, message );
 
 			mx_socket_close( dhs_socket );
 
@@ -524,7 +524,7 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 			"Received unexpected message type '%s' from "
 			"DHS socket %d in response to an "
 			"'stoc_send_client_type' message.",
-				client_type, dhs_socket->socket_fd );
+				client_type, (int) dhs_socket->socket_fd );
 		}
 
 		/* Look for the DHS record that corresponds to
@@ -567,7 +567,7 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 			"DHS name '%s' sent by DHS socket %d does not match "
 			"any of the DHS names managed by DHS manager '%s'.  "
 			"The DHS connection will be closed.",
-				dhs_name, dhs_socket->socket_fd,
+				dhs_name, (int) dhs_socket->socket_fd,
 				dhs_manager_record->name );
 
 			mx_socket_close( dhs_socket );
@@ -584,14 +584,14 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 #if BLUICE_DHS_MANAGER_DEBUG
 		MX_DEBUG(-2,
 		("%s: FIXME: 1 second delay kludge for DHS socket %d",
-			fname, dhs_socket->socket_fd ));
+			fname, (int) dhs_socket->socket_fd ));
 #endif
 
 		mx_msleep(1000);  /* FIXME: This should not be necessary. */
 
 #if BLUICE_DHS_MANAGER_DEBUG
 		MX_DEBUG(-2,("%s: Discarding unread input from DHS socket %d",
-			fname, dhs_socket->socket_fd ));
+			fname, (int) dhs_socket->socket_fd ));
 #endif
 		mx_status = mx_socket_discard_unread_input( dhs_socket );
 
@@ -630,7 +630,7 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 
 #if BLUICE_DHS_MANAGER_DEBUG
 		MX_DEBUG(-2,("%s: DHS socket %d assigned to DHS record '%s'.",
-			fname, dhs_socket->socket_fd, dhs_record->name ));
+			fname, (int) dhs_socket->socket_fd, dhs_record->name ));
 #endif
 		/* The last step is to send a series of stoh_register_...
 		 * commands to the DHS.  This is necessary to prod the
@@ -820,7 +820,7 @@ mxn_bluice_dhs_manager_open( MX_RECORD *record )
 #if BLUICE_DHS_MANAGER_DEBUG
 	MX_DEBUG(-2,("%s: Opened DHS manager port %ld, socket %d",
 		fname, bluice_dhs_manager->port_number,
-		bluice_dhs_manager->socket->socket_fd));
+		(int) bluice_dhs_manager->socket->socket_fd));
 #endif
 
 	/* At this point we need to create a thread that monitors

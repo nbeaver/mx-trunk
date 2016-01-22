@@ -309,6 +309,20 @@ mx_get_current_cpu_number( void )
 	return cpu_number;
 }
 
+#elif ( defined(OS_WIN32) && defined(__GNUC__) )
+
+/* This is for the MinGW family of compilers. */
+
+MX_EXPORT unsigned long
+mx_get_current_cpu_number( void )
+{
+	unsigned long cpu_number;
+
+	cpu_number =  GetCurrentProcessorNumber();
+
+	return cpu_number;
+}
+
 #elif defined(OS_VMS)
 
 /* FIXME: There must be a way to find this out on OpenVMS, but

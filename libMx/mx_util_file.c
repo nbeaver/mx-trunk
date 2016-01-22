@@ -2298,7 +2298,7 @@ mx_get_filesystem_root_name( char *filename,
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The specified length (%ld) of the filesystem root name buffer "
 		"is shorter than the minimum value of 4 for Windows.",
-			max_fs_root_name_length );
+			(long) max_fs_root_name_length );
 	}
 
 	/* Check to see if SHLWAPI.DLL is loaded. */
@@ -2460,9 +2460,7 @@ mx_get_filesystem_type( char *filename,
 	static const char fname[] = "mx_get_filesystem_type()";
 
 	UINT drive_type;
-	DWORD last_error_code;
 	char drive_root_name[ MXU_FILENAME_LENGTH+1 ];
-	char error_message[200];
 	mx_status_type mx_status;
 
 	if ( filename == NULL ) {
@@ -2537,6 +2535,8 @@ mx_get_filesystem_type( char *filename,
 			HANDLE file_handle;
 			DWORD bytes_returned;
 			BOOL ioctl_result;
+			char error_message[200];
+			DWORD last_error_code;
 
 			file_handle = CreateFile( drive_root_name,
 					0,

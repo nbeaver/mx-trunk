@@ -10,7 +10,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2013-2015 Illinois Institute of Technology
+ * Copyright 2013-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -384,6 +384,8 @@ mx_vm_show_os_info( FILE *file,
 	fprintf( file, "    State =             %#lx\n", memory_info.State );
 	fprintf( file, "    Protect =           %#lx\n", memory_info.Protect );
 	fprintf( file, "    Type =              %#lx\n", memory_info.Type );
+
+	MXW_UNUSED( bytes_returned );
 
 	return MX_SUCCESSFUL_RESULT;
 }

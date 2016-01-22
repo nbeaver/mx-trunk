@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2009, 2011, 2013-2015 Illinois Institute of Technology
+ * Copyright 1999-2009, 2011, 2013-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1255,12 +1255,12 @@ mx_get_socket_name_by_fd( MX_SOCKET_FD socket_fd,
 
 		if ( last_error_code == WSAENOTSOCK ) {
 			return mx_error( (MXE_NOT_FOUND | MXE_QUIET), fname,
-			"%d is not a socket fd.", socket_fd );
+			"%d is not a socket fd.", (int) socket_fd );
 		} else {
 			return mx_error( MXE_NETWORK_IO_ERROR, fname,
 			"getsockname() on %d failed.  "
 			"Winsock error code = %d, error message = '%s'.",
-				socket_fd, last_error_code,
+				(int) socket_fd, last_error_code,
 				mx_winsock_strerror( last_error_code ) );
 		}
 	}
@@ -1291,7 +1291,7 @@ mx_get_socket_name_by_fd( MX_SOCKET_FD socket_fd,
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 		"Could not get local socket type for socket %d.  "
 		"Errno = %d, error message = '%s'",
-			socket_fd, saved_errno, strerror(saved_errno) );
+			(int) socket_fd, saved_errno, strerror(saved_errno) );
 	}
 
 	switch( local_socket_type ) {
@@ -1329,8 +1329,8 @@ mx_get_socket_name_by_fd( MX_SOCKET_FD socket_fd,
 			return mx_error( MXE_NETWORK_IO_ERROR, fname,
 			"Could not get address of remote socket peer "
 			"for socket %d.  "
-			"Errno = %d, error message = '%s'",
-				socket_fd, saved_errno, strerror(saved_errno));
+			"Errno = %d, error message = '%s'", (int) socket_fd,
+				saved_errno, strerror(saved_errno));
 			break;
 		}
 	} else {
@@ -1632,7 +1632,7 @@ mx_socket_set_non_blocking_mode( MX_SOCKET *mx_socket,
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 		"Error while trying to set socket %d to non-blocking mode.  "
 		"Errno = %d.  Error string = '%s'.",
-			mx_socket->socket_fd,
+			(int) mx_socket->socket_fd,
 			socket_errno,
 			mx_socket_strerror( socket_errno ) );
 	}
@@ -1984,7 +1984,7 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 			"in the caller's message buffer size (%lu).  "
 			"This should not be able to happen.",
 				bytes_peeked_from_buffer,
-				mx_socket->socket_fd,
+				(int) mx_socket->socket_fd,
 				bytes_left );
 		}
 
@@ -2040,7 +2040,7 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 			    return mx_error(
 				( MXE_NETWORK_CONNECTION_LOST | quiet ), fname,
 				"Network connection lost for socket %d.",
-					mx_socket->socket_fd );
+					(int) mx_socket->socket_fd );
 
 			    break;
 			case EWOULDBLOCK:
@@ -2048,7 +2048,7 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 				( MXE_END_OF_DATA | quiet ), fname,
 		    "End of data after %ld bytes received for socket %d.",
 				total_bytes_in_callers_buffer,
-				mx_socket->socket_fd );
+				(int) mx_socket->socket_fd );
 			    break;
 			default:
 			    return mx_error(
@@ -2246,7 +2246,7 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 					"saved to the circular buffer "
 					"for socket %d.  "
 					"Bytes lost = %ld.",
-					    mx_socket->socket_fd,
+					    (int) mx_socket->socket_fd,
 					    num_bytes_to_save - bytes_saved);
 			    }
 			}
@@ -2462,7 +2462,7 @@ mx_socket_num_input_bytes_available( MX_SOCKET *mx_socket,
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 		"An error occurred while checking socket %d for input.  "
 		"Errno = %d, error_message = '%s'",
-			mx_socket->socket_fd, socket_errno,
+			(int) mx_socket->socket_fd, socket_errno,
 			mx_socket_strerror( socket_errno ) );
 	}
 
@@ -2638,7 +2638,7 @@ mx_socket_discard_unread_input( MX_SOCKET *mx_socket )
 		"the input buffer of socket %d to empty.  "
 		"Perhaps this device continuously generates output?",
 			num_chars, 0.001 * (double) ( max_attempts * wait_ms ),
-			mx_socket->socket_fd );
+			(int) mx_socket->socket_fd );
 	}
 
 	return MX_SUCCESSFUL_RESULT;

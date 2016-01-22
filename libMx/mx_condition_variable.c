@@ -396,6 +396,8 @@ mx_condition_variable_timed_wait( MX_CONDITION_VARIABLE *cv,
 				*win32_mutex_handle_ptr, INFINITE );
 	}
 
+	MXW_UNUSED( os_status );
+
 	/*---*/
 
 	return MX_SUCCESSFUL_RESULT;
@@ -488,6 +490,8 @@ mx_condition_variable_broadcast( MX_CONDITION_VARIABLE *cv )
 
 		os_status = WaitForSingleObject(
 				win32_cv->waiters_done_, INFINITE );
+
+		MXW_UNUSED( os_status );
 
 		// This assignment is okay, even without the
 		// <waiters_count_lock_> held because no other waiter threads

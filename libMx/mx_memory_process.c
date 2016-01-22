@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2007, 2009-2011, 2015 Illinois Institute of Technology
+ * Copyright 2005-2007, 2009-2011, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -778,6 +778,10 @@ mxp_get_total_heap_size( MX_PROCESS_MEMINFO *meminfo )
 
 	total_allocated_bytes = 0;
 
+	local_heap_bytes = 0;
+
+	local_allocated_bytes = 0;
+
 	for ( i = 0; i < number_of_heaps; i++ ) {
 #if 0
 		if ( i == 4 ) {
@@ -892,6 +896,8 @@ mx_get_process_meminfo( unsigned long process_id,
 #if 0
 	mx_display_process_meminfo( meminfo );
 #endif
+
+	MXW_UNUSED( mx_status );
 
 	return MX_SUCCESSFUL_RESULT;
 }

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008-2010, 2013, 2015 Illinois Institute of Technology
+ * Copyright 2008-2010, 2013, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -311,7 +311,7 @@ mxd_marccd_server_socket_open( MX_RECORD *record )
 #if MXD_MARCCD_DEBUG
 	MX_DEBUG(-2,("%s: connected to remote server '%s', port %lu, socket %d",
 		fname, mss->marccd_host, mss->marccd_port,
-		mss->marccd_socket->socket_fd ));
+		(int) mss->marccd_socket->socket_fd ));
 #endif
 
 	/* Get the current framesize. */

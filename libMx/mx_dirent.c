@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2007, 2011-2013 Illinois Institute of Technology
+ * Copyright 2007, 2011-2013, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -328,8 +328,8 @@ readdir( DIR *dir )
 				0, NULL );
 
 			mx_error( MXE_FILE_IO_ERROR, fname,
-			"FindNextFile() failed with error %d: %s",
-				last_error_code, message_buffer );
+			"FindNextFile() failed with error %ld: %s",
+				last_error_code, (char *) message_buffer );
 
 			mx_free( message_buffer );
 

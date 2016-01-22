@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 1999-2015 Illinois Institute of Technology
+ * Copyright 1999-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,12 +34,42 @@
 #include <sys/wtime.h>	/* Sometimes we get 'struct timespec' from here. */
 #endif
 
-#if ( defined( OS_WIN32 ) && (_MSC_VER < 1900) ) \
-	|| ( defined( OS_WIN32 ) && ( !defined(_MSC_VER) ) ) \
-	|| ( defined( OS_VMS ) && (__VMS_VER < 80000000) )
+/*-----*/
 
-/* However, some operating systems do not define 'struct timespec'.
- * We include a C++ safe declaration below.
+/* Some build targets do not define 'struct timespec' in a header file.
+ * We need to check for these special cases.  How annoying.
+ */
+
+#if defined( OS_WIN32 )
+#   if defined( _MSC_VER )
+#      if (_MSC_VER < 1900)
+#         define __MX_NEED_TIMESPEC  1
+#      else
+#         define __MX_NEED_TIMESPEC  0
+#      endif
+#   elif defined( __GNUC__ )
+#      define __MX_NEED_TIMESPEC  0
+#   else
+#      define __MX_NEED_TIMESPEC  1
+#   endif
+
+#elif defined( OS_VMS )
+#   if (__VMS_VER < 80000000)
+#      define __MX_NEED_TIMESPEC  1
+#   else
+#      define __MX_NEED_TIMESPEC  0
+#   endif
+
+#else
+#   define __MX_NEED_TIMESPEC  0
+#endif
+
+/*-----*/
+
+#if __MX_NEED_TIMESPEC
+
+/* If we need to define 'struct timespec' ourselves, then we
+ * include a C++ safe declaration below.
  */
 
 #ifdef __cplusplus
@@ -55,6 +85,12 @@ struct timespec {
 }
 #endif
 
+#endif /* __MX_NEED_TIMESPEC */
+
+/*-----*/
+
+#ifdef __MX_NEED_TIMESPEC
+#   undef __MX_NEED_TIMESPEC
 #endif
 
 /*-----*/
@@ -84,33 +120,39 @@ struct timespec {
  *
  * MX_API and MX_EXPORT are similar but not the same.  MX_API is used only
  * in header files (.h files), while MX_EXPORT is used only in .c files
- * where the body of the function appears.  On Win32, these are identical,
- * but this will not be true, in general, on any other platform.
+ * where the body of the function appears.
  */
 
-#if defined(OS_WIN32) && defined(__GNUC__)
-    /* For MinGW to get a definition of _declspec(). */
-#   include <windef.h>
-#endif
-
 #if defined(OS_WIN32)
-#   ifdef __MX_LIBRARY__
-#	define MX_API		_declspec(dllexport)
-#	define MX_EXPORT	_declspec(dllexport)
+#   if defined(__GNUC__)	/* MinGW */
+#      if defined(__MX_LIBRARY__)
+#         define MX_API		__attribute__ ((dllexport))
+#         define MX_EXPORT	__attribute__ ((dllexport))
+#      else
+#         define MX_API		__attribute__ ((dllimport))
+#         define MX_EXPORT	__ERROR_ONLY_USE_THIS_IN_LIBRARIES__
+#      endif
 #   else
-#	define MX_API		_declspec(dllimport)
-#	define MX_EXPORT	__ERROR_ONLY_USE_THIS_IN_LIBRARIES__
+#      if defined(__MX_LIBRARY__)
+#         define MX_API		_declspec(dllexport)
+#         define MX_EXPORT	_declspec(dllexport)
+#      else
+#         define MX_API		_declspec(dllimport)
+#         define MX_EXPORT	__ERROR_ONLY_USE_THIS_IN_LIBRARIES__
+#      endif
 #   endif
+
 #elif defined(OS_VMS)
-#       define MX_API		extern
-#       define MX_EXPORT
+#      define MX_API		extern
+#      define MX_EXPORT
+
 #else
-#   ifdef __MX_LIBRARY__
-#	define MX_API		extern
-#	define MX_EXPORT
+#   if defined(__MX_LIBRARY__)
+#      define MX_API		extern
+#      define MX_EXPORT
 #   else
-#	define MX_API		extern
-#	define MX_EXPORT	__ERROR_ONLY_USE_THIS_IN_LIBRARIES__
+#      define MX_API		extern
+#      define MX_EXPORT	__ERROR_ONLY_USE_THIS_IN_LIBRARIES__
 #   endif
 #endif
 

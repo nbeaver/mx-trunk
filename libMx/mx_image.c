@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2015 Illinois Institute of Technology
+ * Copyright 2006-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -3799,8 +3799,11 @@ mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
 	unsigned long image_format;
 	int saved_errno, fclose_status;
 	size_t bytes_written;
-	char username_buffer[80];
 	mx_status_type mx_status;
+
+#if !defined(OS_WIN32)
+	char username_buffer[80];
+#endif
 
 #if MX_IMAGE_DEBUG_RAW_TIMING
 	MX_HRT_TIMING total_measurement;
@@ -4809,10 +4812,13 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 	double exposure_time;
 	struct timespec exposure_timespec;
 	char timestamp[80];
-	char username_buffer[80];
 	struct timespec timestamp_timespec;
 	unsigned long bias_offset_milli_adus;
 	mx_status_type mx_status;
+
+#if !defined(OS_WIN32)
+	char username_buffer[80];
+#endif
 
 #if MX_IMAGE_DEBUG_SMV_TIMING
 	MX_HRT_TIMING total_measurement;

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2014 Illinois Institute of Technology
+ * Copyright 2014, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -59,7 +59,7 @@ mxsrv_update_select_fds( MX_SOCKET_HANDLER_LIST *socket_handler_list )
 			if ( current_socket->socket_fd < 0 ) {
 			    MX_DEBUG(0,
 ("main #1: socket_handler_list->array[%d] = %p, current_socket fd = %d",
-	i, socket_handler_list->array[i], current_socket->socket_fd));
+	i, socket_handler_list->array[i], (int) current_socket->socket_fd));
 			}
 
 			FD_SET( current_socket->socket_fd, &select_readfds );
@@ -93,7 +93,6 @@ mxsrv_process_sockets_with_select( MX_RECORD *mx_record_list,
 	static const char fname[] = "mxsrv_process_sockets_with_select()";
 
 	int i, handler_array_size;
-	int saved_errno;
 	int num_fds_to_check, num_fds_with_activity;
 	MX_SOCKET *current_socket;
 	fd_set select_readfds;
@@ -101,6 +100,10 @@ mxsrv_process_sockets_with_select( MX_RECORD *mx_record_list,
 
 	MX_EVENT_HANDLER *event_handler;
 	struct timeval timeout;
+
+#if !defined(OS_WIN32)
+	int saved_errno;
+#endif
 
 	mx_status_type ( *process_event_fn ) ( MX_RECORD *,
 					MX_SOCKET_HANDLER *,
@@ -225,7 +228,7 @@ mxsrv_process_sockets_with_select( MX_RECORD *mx_record_list,
 			if ( current_socket->socket_fd < 0 ) {
 				MX_DEBUG(0,
 ("main #2: socket_handler_list->array[%d] = %p, current_socket fd = %d",
-	i, socket_handler_list->array[i], current_socket->socket_fd));
+	i, socket_handler_list->array[i], (int) current_socket->socket_fd));
 			}
 
 			if ( FD_ISSET(current_socket->socket_fd,
