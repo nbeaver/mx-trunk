@@ -58,11 +58,8 @@ GCCFLAGS = -Wall -Werror \
 CC		= gcc
 CFLAGS		= -g -O -fPIC $(GCCFLAGS) $(INCLUDES) -DOS_QNX \
 				$(EXTRA_FLAGS) -DDEBUG
-CFLAGS_EPICS	= $(CFLAGS) -Wno-strict-prototypes -Wno-shadow
 
 # Special cases for individual files.
-
-CFLAGS_MX_EPICS = $(CFLAGS_EPICS) -Wno-cast-qual
 
 CFLAGS_MX_VERS  = -DOS_QNX -DMX_MAJOR_VERSION=$(MX_MAJOR_VERSION) \
 			-DMX_MINOR_VERSION=$(MX_MINOR_VERSION) \

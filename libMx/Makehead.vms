@@ -34,11 +34,7 @@ CC		= cc
 CFLAGS		= /debug /noopt $(INCLUDES) /define=("OS_VMS","DEBUG") \
   /warnings=(disable=longextern,errors=all)  /error_limit=10 
 
-CFLAGS_EPICS	= $(CFLAGS)
-
 # Special cases for individual files.
-
-CFLAGS_MX_EPICS = $(CFLAGS_EPICS)
 
 CFLAGS_MX_VERS  = /debug /noopt $(INCLUDES) /define=("OS_VMS","DEBUG", \
 	"MX_MAJOR_VERSION=$(MX_MAJOR_VERSION)", \

@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2000-2006, 2008, 2010, 2012, 2014-2015
+ * Copyright 2000-2006, 2008, 2010, 2012, 2014-2016
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -53,7 +53,7 @@ MX_MCS_FUNCTION_LIST mxd_network_mcs_mcs_function_list = {
 	mxd_network_mcs_set_parameter
 };
 
-/* EPICS mcs data structures. */
+/* Network mcs data structures. */
 
 MX_RECORD_FIELD_DEFAULTS mxd_network_mcs_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,

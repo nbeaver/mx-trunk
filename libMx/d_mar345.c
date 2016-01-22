@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010-2011, 2013, 2015 Illinois Institute of Technology
+ * Copyright 2010-2011, 2013, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -946,7 +946,7 @@ mxd_mar345_get_parameter( MX_AREA_DETECTOR *ad )
 		default:
 			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 			"Unrecognized image mode %ld returned for "
-			"EPICS Area Detector '%s'",
+			"MAR 345 Detector '%s'",
 				(long) image_mode, ad->record->name );
 			break;
 		}
@@ -972,7 +972,7 @@ mxd_mar345_get_parameter( MX_AREA_DETECTOR *ad )
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Sequence type %ld is not supported for "
-			"EPICS Area Detector '%s'.",
+			"MAR 345 Detector '%s'",
 				sp->sequence_type, ad->record->name );
 			break;
 		}
@@ -991,7 +991,7 @@ mxd_mar345_get_parameter( MX_AREA_DETECTOR *ad )
 		default:
 			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 			"Unrecognized trigger mode %ld returned for "
-			"EPICS Area Detector '%s'.",
+			"MAR 345 Detector '%s'",
 				(long) trigger_mode, ad->record->name );
 			break;
 		}
@@ -1071,7 +1071,7 @@ mxd_mar345_set_parameter( MX_AREA_DETECTOR *ad )
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Area detector sequence type %ld is not supported for "
-			"EPICS Area Detector '%s'.",
+			"MAR 345 Detector '%s'",
 				sp->sequence_type, ad->record->name );
 			break;
 		}
@@ -1111,7 +1111,7 @@ mxd_mar345_set_parameter( MX_AREA_DETECTOR *ad )
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Unsupported trigger mode %ld requested for "
-			"EPICS Area Detector '%s'.",
+			"MAR 345 Detector '%s'",
 				ad->trigger_mode, ad->record->name );
 		}
 

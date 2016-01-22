@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2006, 2010 Illinois Institute of Technology
+ * Copyright 2002, 2006, 2010, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -50,7 +50,7 @@ MX_TIMER_FUNCTION_LIST mxd_vsc16_timer_timer_function_list = {
 	mxd_vsc16_timer_set_modes_of_associated_counters
 };
 
-/* EPICS timer data structures. */
+/* Joerger VSC-16 timer data structures. */
 
 MX_RECORD_FIELD_DEFAULTS mxd_vsc16_timer_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,

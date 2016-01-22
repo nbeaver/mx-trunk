@@ -12,11 +12,8 @@
 #
 INCLUDES	= $(MX_INCLUDES)
 
-#LIB_DIRS	= -L$(MX_LIB_DIR)
-#LIBRARIES	=
-
-LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS)
-LIBRARIES	= $(EPICS_LIBRARIES) -lm
+LIB_DIRS	= -L$(MX_LIB_DIR)
+LIBRARIES	= -lm
 
 #
 # Motor will be linked with the bundled copy of 'editline' if you use the
@@ -60,18 +57,15 @@ GCCFLAGS = -Wall -Werror \
 CC		= clang
 CFLAGS		= -g -O -fPIC -fno-common $(GCCFLAGS) $(INCLUDES) -DOS_MACOSX \
 				$(EXTRA_FLAGS) -DDEBUG
-CFLAGS_EPICS	= $(CFLAGS) -Wno-strict-prototypes -Wno-shadow
 
 # Special cases for individual files.
-
-CFLAGS_MX_EPICS = $(CFLAGS_EPICS) -Wno-cast-qual -Wno-unused-variable
 
 CFLAGS_MX_VERS  = -DOS_MACOSX -DMX_MAJOR_VERSION=$(MX_MAJOR_VERSION) \
 			-DMX_MINOR_VERSION=$(MX_MINOR_VERSION) \
 			-DMX_UPDATE_VERSION=$(MX_UPDATE_VERSION) \
 			-DMX_REVISION_LABEL="\"$(MX_REVISION_LABEL)\""
 
-CFLAGS_MAKEDEPEND = $(CFLAGS) $(EPICS_INCLUDES) $(READLINE_INCLUDES)
+CFLAGS_MAKEDEPEND = $(CFLAGS) $(READLINE_INCLUDES)
 
 COMPILE		= $(CC) -c
 DEFINE		= -D

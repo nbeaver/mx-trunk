@@ -15,9 +15,6 @@ INCLUDES	= $(MX_INCLUDES)
 LIB_DIRS	= -L$(MX_LIB_DIR)
 LIBRARIES	= -lm -lnsl -ldl -lsocket -lposix4 -lmalloc
 
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS)
-#LIBRARIES	= $(EPICS_LIBRARIES) -lm -lnsl -ldl -lsocket -lposix4 -lmalloc
-
 #
 # Motor will be linked with the bundled copy of 'editline' if you use the
 # following definitions.
@@ -31,21 +28,6 @@ READLINE_LIBRARIES = -ledit
 #
 #READLINE_LIB_DIRS = -L/usr/local/lib
 #READLINE_LIBRARIES = -lreadline -lcurses
-
-#
-# You may also need to modify some of the following definitions, depending
-# on the drivers you plan to use.
-#
-
-#
-# EPICS includes and libraries.
-#
-EPICS_ARCH	= solarisGnu
-EPICS_TOP	= /opt/epics
-EPICS_INCLUDES	= -I$(EPICS_TOP)/base/include \
-			-I$(EPICS_TOP)/base/include/os/solaris
-EPICS_LIB_DIRS	= -L$(EPICS_TOP)/base/lib/$(EPICS_ARCH)
-EPICS_LIBRARIES = -lca -lCom
 
 #
 #========================================================================
@@ -82,18 +64,15 @@ CFLAGS		= -g -fPIC $(GCCFLAGS) $(INCLUDES) -DOS_SOLARIS \
 				-D_POSIX_PER_PROCESS_TIMER_SOURCE \
 				-D_POSIX_THREAD_SEMANTICS \
 				$(EXTRA_FLAGS) -DDEBUG
-CFLAGS_EPICS	= $(CFLAGS) -Wno-strict-prototypes
 
 # Special cases for individual files.
-
-CFLAGS_MX_EPICS = $(CFLAGS_EPICS) -Wno-cast-qual
 
 CFLAGS_MX_VERS  = -DOS_SOLARIS -DMX_MAJOR_VERSION=$(MX_MAJOR_VERSION) \
 			-DMX_MINOR_VERSION=$(MX_MINOR_VERSION) \
 			-DMX_UPDATE_VERSION=$(MX_UPDATE_VERSION) \
 			-DMX_REVISION_LABEL="\"$(MX_REVISION_LABEL)\""
 
-CFLAGS_MAKEDEPEND = $(CFLAGS) $(EPICS_INCLUDES) $(READLINE_INCLUDES)
+CFLAGS_MAKEDEPEND = $(CFLAGS) $(READLINE_INCLUDES)
 
 COMPILE		= $(CC) -c
 DEFINE		= -D

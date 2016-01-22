@@ -95,10 +95,6 @@ LINKFLAGS += -rdynamic
 
 #---
 
-CFLAGS_EPICS = $(CFLAGS)
-
-#---
-
 # Special cases for individual files.
 
 #CFLAGS_MX_CFN   = -DHAVE_LSB
