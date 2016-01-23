@@ -45,7 +45,7 @@ all: build
 
 #MODULES += nuvant_ezstat	# linux, win32
 
-MODULES += python		# (Warning: not yet finished)
+#MODULES += python		# (Warning: not yet finished)
 
 #MODULES += pmc_mcapi		# linux, win32
 

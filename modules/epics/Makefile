@@ -34,7 +34,7 @@ ifeq ($(MX_ARCH),cygwin)
 
 epics.mxo: $(EPICS_OBJS)
 	dllwrap -o epics.mxo \
-		$(EPICS_OBJS) ../../libMx/libMx.so \
+		$(EPICS_OBJS) ../../libMx/libMx.dll.a \
 		$(EPICS_LIB_DIRS) $(EPICS_LIBRARIES)
 endif
 

@@ -31,7 +31,7 @@ ifeq ($(MX_ARCH),cygwin)
 
 epics_aps.mxo: $(EPICS_APS_OBJS)
 	dllwrap -o epics_aps.mxo \
-		$(EPICS_APS_OBJS) ../../libMx/libMx.so ../epics/epics.mxo \
+		$(EPICS_APS_OBJS) ../../libMx/libMx.dll.a ../epics/epics.mxo \
 		$(EPICS_LIB_DIRS) $(EPICS_LIBRARIES)
 endif
 
