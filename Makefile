@@ -2,12 +2,10 @@
 # Change the value of the MX_ARCH variable below to match the platform you
 # are compiling the MX system for.  The available platforms are:
 #
-#   android       - Android Bionic with GCC
 #   bsd           - FreeBSD, NetBSD, or OpenBSD
 #   bsd-clang     - FreeBSD with Clang 3.3 or above
 #   cygwin        - Cygwin 1.5 or 1.7
 #   djgpp         - DOS extender with DJGPP 2.0.3 or above
-#   ecos          - x86 with eCos
 #   hpux          - HP 9000/8xx with HP-UX 11v2
 #   hpux-gcc      - HP 9000/8xx with HP-UX 11v2 using GCC
 #   hurd          - GNU/Hurd
@@ -67,7 +65,7 @@
 # mx/module/epics/Makefile.config.
 #
 
-MX_ARCH = cygwin
+MX_ARCH = linux
 
 MX_INSTALL_DIR = /opt/mx
 #MX_INSTALL_DIR = c:/opt/mx

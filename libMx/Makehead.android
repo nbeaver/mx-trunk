@@ -1,6 +1,8 @@
 #
 # Name:    Makehead.android
 #
+# WARNING: This does not work yet!
+#
 # Purpose: This file is used to customize operating system and installation
 #          dependent features of the MX makefiles.  This version is customized
 #          for Android and its Bionic libc.
