@@ -1116,24 +1116,41 @@ motor_show_version( void )
 
 /*-------------------------------------------------------------------------*/
 
-#if ( defined(__GNUC__) && ( ! defined(__clang__) ) )
-
+#if defined(__GNUC__)
 #  if !defined(__GNUC_PATCHLEVEL__)
 #    define __GNUC_PATCHLEVEL__ 0
 #  endif
+#endif
+
+/*----*/
+
+#if defined(__ICC)
+
+	fprintf( output, "Intel ICC version: %ld.%ld.%ld\n",
+			(MX_ICC_VERSION / 10000L),
+			((MX_ICC_VERSION / 100L) % 100L),
+			(MX_ICC_VERSION % 100L) );
+
+	fprintf( output, "GCC (compat) version: %d.%d.%d\n",
+		__GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__ );
+
+/*----*/
+
+#elif defined(__clang__)
+	fprintf( output, "Clang version: %d.%d.%d\n",
+		__clang_major__, __clang_minor__, __clang_patchlevel__ );
+
+	fprintf( output, "GCC (compat) version: %d.%d.%d\n",
+		__GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__ );
+
+/*----*/
+
+#elif defined(__GNUC__)
+
 	fprintf( output, "GCC version: %d.%d.%d\n",
 		__GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__ );
 
 #endif /* __GNUC__ */
-
-/*-------------------------------------------------------------------------*/
-
-#if defined(__clang__)
-
-	fprintf( output, "Clang version: %d.%d.%d\n",
-		__clang_major__, __clang_minor__, __clang_patchlevel__ );
-
-#endif /* __clang__ */
 
 /*-------------------------------------------------------------------------*/
 

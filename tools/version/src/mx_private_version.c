@@ -10,7 +10,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2008-2009, 2011, 2014-2015 Illinois Institute of Technology
+ * Copyright 2008-2009, 2011, 2014-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -213,7 +213,7 @@ mxp_generate_gnuc_macros( FILE *version_file )
 
 /*---*/
 
-#elif defined(__GNUC__)
+#elif defined(__GNUC__) || defined(__ICC)
 
 #  if !defined(__GNUC_PATCHLEVEL__)
 #    define __GNUC_PATCHLEVEL__  0
@@ -231,6 +231,23 @@ mxp_generate_gnuc_macros( FILE *version_file )
 }
 
 #endif   /* __GNUC__ */
+
+/*-------------------------------------------------------------------------*/
+
+#if defined(__ICC)
+
+/* Intel C++ compiler */
+
+static void
+mxp_generate_icc_macros( FILE *version_file )
+{
+	fprintf( version_file, "#define MX_ICC_VERSION      %luL\n",
+		(__ICC * 100L) + __INTEL_COMPILER_UPDATE );
+
+	fprintf( version_file, "\n" );
+}
+
+#endif  /* __ICC */
 
 /*-------------------------------------------------------------------------*/
 
@@ -662,7 +679,11 @@ mxp_generate_macros( FILE *version_file )
 {
 	/* Detect the compiler. */
 
-#  if defined(__clang__)
+#  if defined(__ICC)
+	mxp_generate_icc_macros( version_file );
+	mxp_generate_gnuc_macros( version_file );
+
+#  elif defined(__clang__)
 	mxp_generate_clang_macros( version_file );
 
 #  elif defined(__GNUC__)

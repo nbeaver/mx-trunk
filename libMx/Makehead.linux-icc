@@ -3,18 +3,18 @@
 #
 # Purpose: This file is used to customize operating system and installation
 #          dependent features of the MX makefiles.  This version is customized
-#          for Linux using Intel C++ 7.1 and 9.0
+#          for Linux using Intel C++ 15.0.3.
 #
 # Normally, the only things that end users may have to modify in this file are
 # the definitions of INCLUDES, LIB_DIRS, and LIBRARIES.
 #
 
+ICCDIR          = /opt/intel
+
 INCLUDES	= $(MX_INCLUDES)
 
-#INCLUDES	= $(MX_INCLUDES) -I/usr/local/include
-
 LIB_DIRS	= -L$(MX_LIB_DIR)
-LIBRARIES	= -lpthread -lrt -lm
+LIBRARIES	= -lpthread -lrt -lm -limf -lsvml -lirng -lintlc
 
 #
 # Motor will be linked with the bundled copy of 'editline' if you use the
@@ -31,23 +31,6 @@ READLINE_LIBRARIES = -ledit
 #READLINE_LIBRARIES = -lreadline -lncurses
 
 #
-# You may also need to modify some of the following definitions, depending
-# on the drivers you plan to use.
-#
-
-#
-I8255_INCLUDES  =
-
-#
-AM9513_INCLUDES =
-
-#
-LINUX_PORTIO_INCLUDES = -I/usr/local/include
-
-#
-LINUX_IOPL_FLAGS =
-
-#
 #========================================================================
 #
 # Generally, you should not have to modify anything after this point.
@@ -56,10 +39,11 @@ LINUX_IOPL_FLAGS =
 #
 # icc specific flags
 #
-ICCFLAGS = -Wall -Werror -wd111,171,193,279,593,810,869,981,1418,1419,1469,1684
+ICCFLAGS = -Wall -Werror -wd111 -wd171 -wd193 -wd279 -wd593 -wd810 -wd869 \
+  -wd981 -wd1418 -wd1419 -wd1469 -wd1684
 
 #
-CC		= icc
+CC		= $(ICCDIR)/bin/icc
 CFLAGS		= -g -O2 -fPIC $(ICCFLAGS) $(INCLUDES) -DOS_LINUX \
 				$(EXTRA_FLAGS) -DDEBUG
 
@@ -72,7 +56,7 @@ CFLAGS_MX_VERS  = -DOS_LINUX -DMX_MAJOR_VERSION=$(MX_MAJOR_VERSION) \
 
 COMPILE		= $(CC) -c
 DEFINE		= -D
-MAKEDEPEND	= icc -MM $(CFLAGS) -I/usr/local/include \
+MAKEDEPEND	= $(ICCDIR)/bin/icc -MM $(CFLAGS) -I/usr/local/include \
 	$(READLINE_INCLUDES) *.c > Makefile.depend
 
 MAKEDEPEND_CLEAN = rm Makefile.depend
@@ -92,6 +76,8 @@ SERVER_OBJS       = $(SERVER_SRCS:.c=.$(OBJ))
 AUTOSAVE_OBJS       = $(AUTOSAVE_SRCS:.c=.$(OBJ))
 MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.$(OBJ))
 MXMONITOR_OBJS    = $(MXMONITOR_SRCS:.c=.$(OBJ))
+MXGET_OBJS        = $(MXGET_SRCS:.c=.$(OBJ))
+MXPUT_OBJS        = $(MXPUT_SRCS:.c=.$(OBJ))
 
 #----
 
@@ -130,8 +116,8 @@ MX_LIBRARY_DELETE = rm $(MX_LIBRARY_NAME) $(MX_SONAME) libMx.so $(MX_LIBRARY_STA
 
 $(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
 	-$(MX_LIBRARY_DELETE)
-	icc -shared -Qoption,ld,-soname,$(MX_SONAME) -o $(MX_LIBRARY_NAME) \
-			$(LIB_DIRS) $(MX_LIB_OBJS) $(LIBRARIES)
+	$(ICCDIR)/bin/icc -shared -Qoption,ld,-soname,$(MX_SONAME) \
+		-o $(MX_LIBRARY_NAME) $(LIB_DIRS) $(MX_LIB_OBJS) $(LIBRARIES)
 	ln -sf $(MX_LIBRARY_NAME) $(MX_SONAME)
 	ln -sf $(MX_LIBRARY_NAME) libMx.so
 	ar rcs $(MX_LIBRARY_STATIC_NAME) $(MX_LIB_OBJS)
@@ -247,4 +233,20 @@ util_install:
 	install -m 755 $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
 	install -m 755 $(MXMONITOR_NAME) $(MX_INSTALL_DIR)/bin
 	install -m 755 $(MXSERIAL_NAME) $(MX_INSTALL_DIR)/bin
+
+#---
+
+MXGET_NAME           = mxget
+
+$(MXGET_NAME): $(MXGET_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(CFLAGS) -o $(MXGET_NAME) \
+		$(MXGET_OBJS) $(LIB_DIRS) -lMx $(LIBRARIES)
+
+#---
+
+MXPUT_NAME           = mxput
+
+$(MXPUT_NAME): $(MXPUT_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(CFLAGS) -o $(MXPUT_NAME) \
+		$(MXPUT_OBJS) $(LIB_DIRS) -lMx $(LIBRARIES)
 
