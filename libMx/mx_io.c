@@ -611,6 +611,11 @@ mx_get_disk_space( char *filename,
 	int os_status, saved_errno;
 	uint64_t fragment_size;
 
+	if ( filename == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The filename pointer passed was NULL." );
+	}
+
 	os_status = statvfs( filename, &fs_stats );
 
 	if ( os_status < 0 ) {
@@ -652,6 +657,11 @@ mx_get_disk_space( char *filename,
 	struct statfs fs_stats;
 	uint64_t block_size;
 	int os_status, saved_errno;
+
+	if ( filename == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The filename pointer passed was NULL." );
+	}
 
 	os_status = statfs( filename, &fs_stats );
 
@@ -697,6 +707,11 @@ mx_get_disk_space( char *filename,
 	uint64_t ax_cx;;
 	char drive_number;
 
+	if ( filename == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The filename pointer passed was NULL." );
+	}
+
 	if ( filename[1] != ':' ) {
 		drive_number = 0;	/* The default drive. */
 	} else {
@@ -730,6 +745,36 @@ mx_get_disk_space( char *filename,
 	}
 	if ( user_free_bytes_in_partition != NULL ) {
 		*user_free_bytes_in_partition = ax_cx * (uint64_t) regs.x.bx;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#elif defined(OS_RTEMS)
+
+/* This is a stub that always reports that 2 gigabytes of disk space is free.
+ *
+ * This stub is only intended for systems that do not provide a way of finding
+ * out how much disk space is free, so do not use it otherwise.
+ */
+
+MX_EXPORT mx_status_type
+mx_get_disk_space( char *filename,
+		uint64_t *user_total_bytes_in_partition,
+		uint64_t *user_free_bytes_in_partition )
+{
+	static const char fname[] = "mx_get_disk_space()";
+
+	if ( filename == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The filename pointer passed was NULL." );
+	}
+
+	if ( user_total_bytes_in_partition != NULL ) {
+		*user_total_bytes_in_partition = 2147483647L;
+	}
+	if ( user_free_bytes_in_partition != NULL ) {
+		*user_free_bytes_in_partition = 2147483647L;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
