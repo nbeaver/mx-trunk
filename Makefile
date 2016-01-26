@@ -65,7 +65,7 @@
 # mx/module/epics/Makefile.config.
 #
 
-MX_ARCH = rtems
+MX_ARCH = vxworks
 
 MX_INSTALL_DIR = /opt/mx
 #MX_INSTALL_DIR = c:/opt/mx

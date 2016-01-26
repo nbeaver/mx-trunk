@@ -551,11 +551,9 @@ mx_username( char *buffer, size_t max_buffer_length )
 
 /*-------------------------------------------------------------------------*/
 
-#if defined(OS_WIN32)
+#if ( defined(OS_WIN32) && defined(_MSC_VER) && (_MSC_VER >= 1400) )
 
-#  if ( defined(_MSC_VER) & (_MSC_VER >= 1400) )
-
-   /* Visual Studio 2005 and later have _putenv_s(). */
+/* Visual Studio 2005 and later have _putenv_s(). */
 
 MX_EXPORT int
 mx_setenv( const char *env_name,
@@ -574,11 +572,12 @@ mx_setenv( const char *env_name,
 	}
 }
 
-#  else
-   /* For other Windows compilers, we are stuck with _putenv() or putenv(). */
+#elif ( defined(OS_WIN32) || defined(OS_VXWORKS) )
 
-#if defined(__BORLANDC__)
-#define _putenv(x)  putenv( (x) )
+/* Some platforms have only putenv(). */
+
+#if ( defined(_MSC_VER) || defined(__MINGW32__) || defined(__MINGW64__) )
+#define putenv(x)  _putenv( (x) )
 #endif
 
 MX_EXPORT int
@@ -587,7 +586,7 @@ mx_setenv( const char *env_name,
 {
 	/* We must dynamically allocate a buffer that is big enough
 	 * to contain the entire string that we are going to send
-	 * to _putenv(), including the equals sign '=' and the
+	 * to putenv(), including the equals sign '=' and the
 	 * trailing null byte.
 	 */
 	size_t buffer_size;
@@ -610,15 +609,15 @@ mx_setenv( const char *env_name,
 
 	snprintf( buffer, buffer_size, "%s=%s", env_name, env_value );
 
-	os_status = _putenv( buffer );
+	os_status = putenv( buffer );
 
 	/* Avoid a memory leak by unconditionally freeing the buffer
-	 * regardless of what may have happened in _putenv().
+	 * regardless of what may have happened in putenv().
 	 */
 
 	free( buffer );
 
-	/* Apparently _putenv() does not set errno, so it is hard to
+	/* Apparently putenv() does not set errno, so it is hard to
 	 * know what to do if it fails.  For lack of a better idea,
 	 * we set errno to EINVAL, since something about the arguments
 	 * we were sent must be bad.
@@ -632,8 +631,6 @@ mx_setenv( const char *env_name,
 		return (-1);
 	}
 }
-
-#  endif
 
 #elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
 	|| defined(OS_BSD) || defined(OS_QNX) || defined(OS_RTEMS) \

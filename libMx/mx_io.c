@@ -641,11 +641,11 @@ mx_get_disk_space( char *filename,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#elif 0
+#elif defined(OS_VXWORKS)
 
 /* statfs() version */
 
-#include <sys/vfs.h>
+#include <sys/stat.h>
 
 MX_EXPORT mx_status_type
 mx_get_disk_space( char *filename,
