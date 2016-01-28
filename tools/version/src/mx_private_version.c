@@ -70,6 +70,10 @@ main( int argc, char **argv )
 	fprintf( stdout, "#define MX_REVISION_LABEL  \"" ## LABEL ## "\"\n" )
 
 	MXP_PRINT_REVISION_LABEL(MX_REVISION_LABEL);
+
+#elif ( defined(OS_VMS) && !defined(__GNUC__) )
+	fprintf( stdout,
+		"#define MX_REVISION_LABEL  none\n" );
 #else
 	fprintf( stdout,
 		"#define MX_REVISION_LABEL  \"" MX_REVISION_LABEL "\"\n" );

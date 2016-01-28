@@ -11,7 +11,7 @@ CFLAGS_MX_VERS = /debug /noopt /include=[-.libMx] \
   /define=("OS_VMS","DEBUG",\
   "MX_MAJOR_VERSION=$(MX_MAJOR_VERSION)", \
   "MX_MINOR_VERSION=$(MX_MINOR_VERSION)", \
-  "MX_UPDATE_VERSION=$(MX_UPDATE_VERSION)") \
+  "MX_UPDATE_VERSION=$(MX_UPDATE_VERSION)", \
   "MX_REVISION_LABEL=$(MX_REVISION_LABEL)") \
   /warnings=(disable=longextern,errors=all)  /error_limit=10
 
