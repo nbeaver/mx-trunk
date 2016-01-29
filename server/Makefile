@@ -85,8 +85,6 @@ include Makefile.depend
 #--------------------------------------------------------------------------
 #
 
-APP_FLAGS=$(DEFINE)__MX_APP__
-
 ms_main.$(OBJ): ms_main.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) ms_main.c
 

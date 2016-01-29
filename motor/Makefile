@@ -101,8 +101,6 @@ include Makefile.depend
 #        each and every filename.
 #
 
-APP_FLAGS=$(DEFINE)__MX_APP__
-
 command.$(OBJ): command.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) command.c
 

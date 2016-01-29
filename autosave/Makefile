@@ -76,8 +76,6 @@ include Makefile.depend
 #--------------------------------------------------------------------------
 #
 
-APP_FLAGS=$(DEFINE)__MX_APP__
-
 ms_autosave.$(OBJ): ms_autosave.c
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) ms_autosave.c
 

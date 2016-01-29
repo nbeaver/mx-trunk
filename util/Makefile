@@ -83,8 +83,6 @@ include Makefile.depend
 #--------------------------------------------------------------------------
 #
 
-APP_FLAGS=$(DEFINE)__MX_APP__
-
 mxdriverinfo.$(OBJ):
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mxdriverinfo.c
 
