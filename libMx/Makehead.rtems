@@ -189,6 +189,16 @@ MAKEDEPEND_CLEAN = rm Makefile.depend
 #
 #---------------------------------------------------
 #
+# Declare bundled programs to be MX "applications".
+# One of the consequences of this is that mx_poison.h
+# is applied to them.
+#
+
+APP_FLAGS=$(DEFINE)__MX_APP__
+
+#
+#---------------------------------------------------
+#
 
 #
 # See libMx/Makehead.irix for why this is here.

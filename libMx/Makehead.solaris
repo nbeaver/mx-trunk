@@ -91,6 +91,16 @@ MAKEDEPEND_CLEAN = rm Makefile.depend
 #
 #---------------------------------------------------
 #
+# Declare bundled programs to be MX "applications".
+# One of the consequences of this is that mx_poison.h
+# is applied to them.
+#
+
+APP_FLAGS=$(DEFINE)__MX_APP__
+
+#
+#---------------------------------------------------
+#
 
 MX_LIB_SRCS = mx_driver.c $(MX_CORE_SRCS) $(MX_DRIVER_SRCS)
 

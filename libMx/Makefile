@@ -224,15 +224,6 @@ INCLUDES = $(LIBMX_INCLUDES)
 #
 #--------------------------------------------------------------------------
 #
-# Declare bundled programs to be MX "applications".  One of the consequences
-# of this is that mx_poison.h is applied to them.
-#
-
-APP_FLAGS=$(DEFINE)__MX_APP__
-
-#
-#--------------------------------------------------------------------------
-#
 # Makefile targets.
 #
 
