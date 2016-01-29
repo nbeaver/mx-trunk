@@ -73,7 +73,7 @@ main( int argc, char **argv )
 
 #elif ( defined(OS_VMS) && !defined(__GNUC__) )
 	fprintf( stdout,
-		"#define MX_REVISION_LABEL  none\n" );
+		"#define MX_REVISION_LABEL  \"none\"\n" );
 #else
 	fprintf( stdout,
 		"#define MX_REVISION_LABEL  \"" MX_REVISION_LABEL "\"\n" );

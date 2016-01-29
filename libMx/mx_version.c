@@ -25,7 +25,7 @@
 #include "mx_time.h"
 #include "mx_version.h"
 
-#define MX_DATE "January 25, 2016"
+#define MX_DATE "January 28, 2016"
 
 #include "mx_private_revision.h"
 
@@ -53,6 +53,18 @@ mx_get_update_version( void )
 	return MX_UPDATE_VERSION;
 }
 
+#if defined(OS_VMS)
+
+MX_EXPORT const char *
+mx_get_revision_label( void )
+{
+	static const char label[] = "none";
+
+	return label;
+}
+
+#else
+
 MX_EXPORT const char *
 mx_get_revision_label( void )
 {
@@ -60,6 +72,8 @@ mx_get_revision_label( void )
 
 	return label;
 }
+
+#endif
 
 MX_EXPORT char *
 mx_get_version_full_string( void )

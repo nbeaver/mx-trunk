@@ -688,6 +688,104 @@ mx_get_disk_space( char *filename,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+#elif defined(OS_VMS)
+
+#include <errno.h>
+#include <ssdef.h>
+#include <starlet.h>
+#include <descrip.h>
+#include <dvidef.h>
+
+typedef struct {
+	uint16_t buffer_length;
+	uint16_t item_code;
+	uint32_t *buffer_address;
+	uint32_t *return_length_address;
+} ILE;
+
+MX_EXPORT mx_status_type
+mx_get_disk_space( char *filename,
+		uint64_t *user_total_bytes_in_partition,
+		uint64_t *user_free_bytes_in_partition )
+{
+	static const char fname[] = "mx_get_disk_space()";
+
+	unsigned int max_blocks, free_blocks, block_size;
+	int vms_status;
+	char *filename_copy = NULL;
+	char *ptr = NULL;
+
+	short io_status_block[4];
+
+	ILE item_list[] =
+	      { {4, DVI$_FREEBLOCKS, &free_blocks, NULL},
+		{4, DVI$_MAXBLOCK, &max_blocks, NULL},
+		{0, 0, NULL, NULL} };
+
+	struct dsc$descriptor device_descriptor;
+
+	if ( filename == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The filename pointer passed was NULL." );
+	}
+
+	device_descriptor.dsc$b_dtype = DSC$K_DTYPE_T;
+	device_descriptor.dsc$b_class = DSC$K_CLASS_S;
+
+	filename_copy = strdup( filename );
+
+	if ( filename_copy == NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to make a copy of the filename '%s'.",
+			filename );
+	}
+
+	ptr = strchr( filename_copy, ':' );
+
+	if ( ptr == NULL ) {
+		/* FIXME: Add a way to get the default disk device. */
+
+		device_descriptor.dsc$a_pointer = "SYS$SYSDEVICE";
+	} else {
+		*ptr = '\0';
+
+		device_descriptor.dsc$a_pointer = filename_copy;
+	}
+
+	device_descriptor.dsc$w_length =
+			strlen( device_descriptor.dsc$a_pointer ) + 1;
+
+	block_size = 512;
+
+	vms_status = sys$getdviw( 0, 0, &device_descriptor, &item_list,
+				&io_status_block, NULL, NULL, 0 );
+
+	if ( vms_status != SS$_NORMAL ) {
+		mx_free( filename_copy );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to get the total and free disk space "
+		"on the drive containing '%s' Failed.  "
+		"VMS error number %d, error message = '%s'",
+			filename, vms_status,
+			strerror( EVMSERR, vms_status ) );
+	}
+
+	if ( user_total_bytes_in_partition != NULL ) {
+		*user_total_bytes_in_partition = block_size
+					* (uint64_t) max_blocks;
+	}
+
+	if ( user_free_bytes_in_partition != NULL ) {
+		*user_free_bytes_in_partition = block_size
+					* (uint64_t) free_blocks;
+	}
+
+	mx_free( filename_copy );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 #elif defined(OS_DJGPP)
 
 /* This version is for DJGPP using DPMI calls directly.  It is designed

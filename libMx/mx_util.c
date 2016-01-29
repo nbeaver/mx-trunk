@@ -634,8 +634,8 @@ mx_setenv( const char *env_name,
 
 #elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
 	|| defined(OS_BSD) || defined(OS_QNX) || defined(OS_RTEMS) \
-	|| defined(OS_ANDROID) || defined(OS_CYGWIN) || defined(OS_HURD) \
-	|| defined(OS_DJGPP)
+	|| defined(OS_ANDROID) || defined(OS_CYGWIN) || defined(OS_VMS) \
+	|| defined(OS_HURD) || defined(OS_DJGPP)
 
 MX_EXPORT int
 mx_setenv( const char *env_name,
@@ -2143,7 +2143,7 @@ mx_get_random_max( void )
 
 #elif defined(OS_LINUX) || defined(OS_SOLARIS) || defined(OS_CYGWIN) \
 	|| defined(OS_QNX) || defined(OS_UNIXWARE) || defined(OS_DJGPP) \
-	|| defined(OS_HURD)
+	|| defined(OS_VMS) || defined(OS_HURD)
 
 MX_EXPORT unsigned long
 mx_random( void )
