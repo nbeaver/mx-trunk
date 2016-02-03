@@ -8,7 +8,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004, 2010, 2015 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003-2004, 2010, 2015-2016
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -173,6 +174,11 @@ mxd_mcs_encoder_finish_record_initialization( MX_RECORD *record )
 	MX_MCS_ENCODER *mcs_encoder;
 	MX_MCS *mcs;
 	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
 
 	mce = (MX_MCE *) record->record_class_struct;
 

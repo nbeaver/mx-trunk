@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004, 2006-2007, 2010, 2013-2015
+ * Copyright 2000-2001, 2003-2004, 2006-2007, 2010, 2013-2016
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -152,6 +152,7 @@ mxd_network_mce_create_record_structures( MX_RECORD *record )
 			= &mxd_network_mce_mce_function_list;
 
 	mce->record = record;
+	network_mce->record = record;
 
 	return MX_SUCCESSFUL_RESULT;
 }

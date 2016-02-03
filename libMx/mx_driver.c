@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2015 Illinois Institute of Technology
+ * Copyright 1999-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -499,6 +499,7 @@
 #include "d_mcs_mce.h"
 #include "d_mcs_time_mce.h"
 
+#include "d_soft_mce.h"
 #include "d_network_mce.h"
 #include "d_pmac_mce.h"
 
@@ -2612,6 +2613,13 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_databox_encoder_rfield_def_ptr},
 
 /*--------*/
+
+{"soft_mce",       MXT_MCE_SOFTWARE,   MXC_MULTICHANNEL_ENCODER, MXR_DEVICE,
+				&mxd_soft_mce_record_function_list,
+				NULL,
+				&mxd_soft_mce_mce_function_list,
+				&mxd_soft_mce_num_record_fields,
+				&mxd_soft_mce_rfield_def_ptr},
 
 {"network_mce",    MXT_MCE_NETWORK,   MXC_MULTICHANNEL_ENCODER, MXR_DEVICE,
 				&mxd_network_mce_record_function_list,

@@ -7,7 +7,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004, 2010, 2015 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003-2004, 2010, 2015-2016
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -19,9 +20,11 @@
 
 #include "mx_mce.h"
 
-/* ===== MCS mce data structure ===== */
+/* ===== network mce data structure ===== */
 
 typedef struct {
+	MX_RECORD *record;
+
 	MX_RECORD *server_record;
 	char remote_record_name[ MXU_RECORD_NAME_LENGTH+1 ];
 

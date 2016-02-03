@@ -146,7 +146,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_smartmotor.c d_smartmotor_aio.c d_smartmotor_dio.c \
 	d_smc24.c d_soft_amplifier.c d_soft_ainput.c d_soft_aoutput.c \
 	d_soft_area_detector.c d_soft_dinput.c d_soft_doutput.c \
-	d_soft_mca.c d_soft_mcs.c d_soft_motor.c d_soft_ptz.c \
+	d_soft_mca.c d_soft_mce.c d_soft_mcs.c d_soft_motor.c d_soft_ptz.c \
 	d_soft_sample_changer.c d_soft_sca.c d_soft_scaler.c d_soft_timer.c \
 	d_soft_vinput.c d_sony_snc.c d_sony_visca_ptz.c \
 	d_spec_motor.c d_spec_scaler.c d_spec_timer.c \
