@@ -17,9 +17,11 @@
  *
  */
 
-#define MXD_SOFT_MCE_DEBUG_MOTOR_ARRAY		TRUE
+#define MXD_SOFT_MCE_DEBUG			TRUE
 
 #define MXD_SOFT_MCE_DEBUG_READ_MEASUREMENT	TRUE
+
+#define MXD_SOFT_MCE_DEBUG_MONITOR_THREAD	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,6 +30,10 @@
 #include "mx_util.h"
 #include "mx_driver.h"
 #include "mx_array.h"
+#include "mx_thread.h"
+#include "mx_mutex.h"
+#include "mx_condition_variable.h"
+#include "mx_atomic.h"
 #include "mx_mce.h"
 #include "mx_motor.h"
 #include "d_soft_mce.h"
@@ -38,7 +44,9 @@ MX_RECORD_FUNCTION_LIST mxd_soft_mce_record_function_list = {
 	mxd_soft_mce_initialize_driver,
 	mxd_soft_mce_create_record_structures,
 	mxd_soft_mce_finish_record_initialization,
-	mxd_soft_mce_delete_record
+	mxd_soft_mce_delete_record,
+	NULL,
+	mxd_soft_mce_open
 };
 
 MX_MCE_FUNCTION_LIST mxd_soft_mce_mce_function_list = {
@@ -46,11 +54,11 @@ MX_MCE_FUNCTION_LIST mxd_soft_mce_mce_function_list = {
 	NULL,
 	mxd_soft_mce_read,
 	mxd_soft_mce_get_current_num_values,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
+	mxd_soft_mce_get_last_measurement_number,
+	mxd_soft_mce_get_status,
+	mxd_soft_mce_start,
+	mxd_soft_mce_stop,
+	mxd_soft_mce_clear,
 	mxd_soft_mce_read_measurement,
 	NULL,
 	NULL,
@@ -125,6 +133,159 @@ mxd_soft_mce_get_pointers( MX_MCE *mce,
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+/*------------------------------------------------------------------*/
+
+static mx_status_type
+mxd_soft_mce_monitor_thread_fn( MX_THREAD *thread, void *record_ptr )
+{
+	static const char fname[] = "mxd_soft_mce_monitor_thread_fn()";
+
+	MX_RECORD *record = NULL;
+	MX_MCE *mce = NULL;
+	MX_SOFT_MCE *soft_mce = NULL;
+	unsigned long mx_status_code;
+	mx_status_type mx_status;
+
+	/* Initialize the variables to be used by this thread. */
+
+	if ( thread == (MX_THREAD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_THREAD pointer passed was NULL." );
+	}
+
+	if ( record_ptr == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	record = (MX_RECORD *) record_ptr;
+
+	mce = (MX_MCE *) record->record_class_struct;
+
+	if ( mce == (MX_MCE *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_MCE pointer for MCE record '%s' is NULL.",
+			record->name );
+	}
+
+	soft_mce = (MX_SOFT_MCE *) record->record_type_struct;
+
+	if ( soft_mce == (MX_SOFT_MCE *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_SOFT_MCE pointer for MCE record '%s' is NULL.",
+			record->name );
+	}
+
+	/* Lock the mutex in preparation for entering the thread's
+	 * event handling loop.
+	 */
+
+	mx_status_code = mx_mutex_lock( soft_mce->monitor_thread_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"the attempt to lock the monitor_thread_mutex for "
+		"soft MCE record '%s' failed.", record->name );
+	}
+
+	/* Now that we have locked the mutex, we can not set the
+	 * monitor status to idle.
+	 */
+
+	mx_atomic_write32( &(soft_mce->monitor_status), MXS_SOFT_MCE_IDLE );
+
+#if MXD_SOFT_MCE_DEBUG_MONITOR_THREAD
+	MX_DEBUG(-2,("%s: MCE '%s' entering event loop.", fname, record->name));
+#endif
+
+	while (TRUE) {
+
+		/* Wait on the condition variable. */
+
+		if ( soft_mce->monitor_status == MXS_SOFT_MCE_IDLE ) {
+			mx_status = mx_condition_variable_wait(
+					soft_mce->monitor_thread_cv,
+					soft_mce->monitor_thread_mutex );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
+#if MXD_SOFT_MCE_DEBUG_MONITOR_THREAD
+		MX_DEBUG(-2,("%s: '%s' command = %ld, status = %ld",
+			fname, record->name,
+			(long) soft_mce->monitor_command,
+			(long) soft_mce->monitor_status));
+#endif
+
+		switch( soft_mce->monitor_command ) {
+		case MXS_SOFT_MCE_START:
+			mx_atomic_write32( &(soft_mce->monitor_status),
+						MXS_SOFT_MCE_ACQUIRING );
+			break;
+		case MXS_SOFT_MCE_STOP:
+			mx_atomic_write32( &(soft_mce->monitor_status),
+						MXS_SOFT_MCE_IDLE );
+			break;
+		case MXS_SOFT_MCE_CLEAR:
+			mx_atomic_write32( &(soft_mce->monitor_status),
+						MXS_SOFT_MCE_IDLE );
+			break;
+		default:
+			(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+				"Unsupported command %ld requested "
+				"for soft MCE '%s' monitor thread.",
+					(long) soft_mce->monitor_command,
+					record->name );
+			break;
+		}
+	}
+}
+
+static mx_status_type
+mxd_soft_mce_send_command_to_monitor_thread( MX_SOFT_MCE *soft_mce,
+					int32_t monitor_command )
+{
+	static const char fname[] =
+		"mxd_soft_mce_send_command_to_monitor_thread()";
+
+	unsigned long mx_status_code;
+	mx_status_type mx_status;
+
+	if ( soft_mce == (MX_SOFT_MCE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SOFT_MCE pointer passed was NULL." );
+	}
+
+	/* Prepare to tell the "monitor" thread to start a command. */
+
+	mx_status_code = mx_mutex_lock( soft_mce->monitor_thread_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"The attempt to lock the monitor thread mutex for "
+		"soft MCE '%s' failed.",
+			soft_mce->record->name );
+	}
+
+	soft_mce->monitor_command = monitor_command;
+
+	mx_status_code = mx_mutex_unlock( soft_mce->monitor_thread_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"The attempt to unlock the monitor thread mutex for "
+		"soft MCE '%s' failed.",
+			soft_mce->record->name );
+	}
+
+	/* Tell the "monitor" thread to start the command. */
+
+	mx_status = mx_condition_variable_signal( soft_mce->monitor_thread_cv );
+
+	return mx_status;
 }
 
 /*------------------------------------------------------------------*/
@@ -252,6 +413,72 @@ mxd_soft_mce_delete_record( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
+mxd_soft_mce_open( MX_RECORD *record )
+{
+	static const char fname[] = "mxd_soft_mce_open()";
+
+	MX_MCE *mce = NULL;
+	MX_SOFT_MCE *soft_mce = NULL;
+	int32_t test_value;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"The MX_RECORD pointer passed was NULL." );
+	}
+
+	mce = (MX_MCE *) record->record_class_struct;
+
+	mx_status = mxd_soft_mce_get_pointers( mce, &soft_mce, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/*-----------------------------------------------------------------*/
+
+	soft_mce->monitor_command = MXS_SOFT_MCE_IDLE;
+	soft_mce->monitor_status  = MXS_SOFT_MCE_NOT_INITIALIZED;
+
+	/* Create some synchronization objects to be used by the
+	 * monitor thread.
+	 */
+
+	mx_status = mx_mutex_create( &(soft_mce->monitor_thread_mutex) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status =
+		mx_condition_variable_create( &(soft_mce->monitor_thread_cv) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Create the monitor thread to handle updates to 'mce->value_array'. */
+
+	mx_status = mx_thread_create( &(soft_mce->monitor_thread),
+					mxd_soft_mce_monitor_thread_fn,
+					record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Wait for the monitor thread to get itself initialized. */
+
+	do {
+		test_value = mx_atomic_read32( &(soft_mce->monitor_status) );
+	} while ( test_value == MXS_SOFT_MCE_NOT_INITIALIZED );
+
+	/*-----------------------------------------------------------------*/
+
+	/* Clear the contents of the MCE. */
+
+	mx_status = mxd_soft_mce_clear( mce );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
 mxd_soft_mce_read( MX_MCE *mce )
 {
 	static const char fname[] = "mxd_soft_mce_read()";
@@ -266,7 +493,9 @@ mxd_soft_mce_read( MX_MCE *mce )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXD_SOFT_MCE_DEBUG
 	MX_DEBUG(-2,("%s invoked for MCE '%s'", fname, mce->record->name));
+#endif
 
 	/* The contents of value_array have already been set by this driver's
 	 * poll callback, so we do not need to do anything further here.
@@ -288,11 +517,134 @@ mxd_soft_mce_get_current_num_values( MX_MCE *mce )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXD_SOFT_MCE_DEBUG
 	MX_DEBUG(-2,("%s invoked for MCE '%s'", fname, mce->record->name));
+#endif
 
 	/* We use the already existing value of mce->current_num_values. */
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_soft_mce_get_last_measurement_number( MX_MCE *mce )
+{
+	static const char fname[] =
+		"mxd_soft_mce_get_last_measurement_number()";
+
+	MX_SOFT_MCE *soft_mce = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mxd_soft_mce_get_pointers( mce, &soft_mce, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_SOFT_MCE_DEBUG
+	MX_DEBUG(-2,("%s invoked for MCE '%s'", fname, mce->record->name));
+#endif
+
+	/* We use the already existing value of mce->current_num_values. */
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_soft_mce_get_status( MX_MCE *mce )
+{
+	static const char fname[] = "mxd_soft_mce_get_status()";
+
+	MX_SOFT_MCE *soft_mce = NULL;
+	int32_t monitor_thread_status;
+	mx_status_type mx_status;
+
+	mx_status = mxd_soft_mce_get_pointers( mce, &soft_mce, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_SOFT_MCE_DEBUG
+	MX_DEBUG(-2,("%s invoked for MCE '%s'", fname, mce->record->name));
+#endif
+
+	monitor_thread_status = mx_atomic_read32( &(soft_mce->monitor_status) );
+
+	if ( monitor_thread_status == MXS_SOFT_MCE_IDLE ) {
+		mce->status = 0;
+	} else {
+		mce->status = 0x1;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_soft_mce_start( MX_MCE *mce )
+{
+	static const char fname[] = "mxd_soft_mce_start()";
+
+	MX_SOFT_MCE *soft_mce = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mxd_soft_mce_get_pointers( mce, &soft_mce, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_SOFT_MCE_DEBUG
+	MX_DEBUG(-2,("%s invoked for MCE '%s'", fname, mce->record->name));
+#endif
+
+	mx_status =  mxd_soft_mce_send_command_to_monitor_thread(
+					soft_mce, MXS_SOFT_MCE_START );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_soft_mce_stop( MX_MCE *mce )
+{
+	static const char fname[] = "mxd_soft_mce_stop()";
+
+	MX_SOFT_MCE *soft_mce = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mxd_soft_mce_get_pointers( mce, &soft_mce, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_SOFT_MCE_DEBUG
+	MX_DEBUG(-2,("%s invoked for MCE '%s'", fname, mce->record->name));
+#endif
+
+	mx_status =  mxd_soft_mce_send_command_to_monitor_thread(
+					soft_mce, MXS_SOFT_MCE_STOP );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_soft_mce_clear( MX_MCE *mce )
+{
+	static const char fname[] = "mxd_soft_mce_clear()";
+
+	MX_SOFT_MCE *soft_mce = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mxd_soft_mce_get_pointers( mce, &soft_mce, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_SOFT_MCE_DEBUG
+	MX_DEBUG(-2,("%s invoked for MCE '%s'", fname, mce->record->name));
+#endif
+
+	mx_status =  mxd_soft_mce_send_command_to_monitor_thread(
+					soft_mce, MXS_SOFT_MCE_CLEAR );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -332,12 +684,17 @@ mxd_soft_mce_get_parameter( MX_MCE *mce )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXD_SOFT_MCE_DEBUG
 	MX_DEBUG(-2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
 		fname, mce->record->name,
 		mx_get_field_label_string( mce->record, mce->parameter_type ),
+#endif
 		mce->parameter_type ));
 
 	switch( mce->parameter_type ) {
+	case MXLV_MCE_MEASUREMENT_WINDOW_OFFSET:
+		mce->measurement_window_offset = 0;
+		break;
 	default:
 		return mx_mce_default_get_parameter_handler( mce );
 		break;
@@ -359,10 +716,12 @@ mxd_soft_mce_set_parameter( MX_MCE *mce )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXD_SOFT_MCE_DEBUG
 	MX_DEBUG(-2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
 		fname, mce->record->name,
 		mx_get_field_label_string( mce->record, mce->parameter_type ),
 		mce->parameter_type ));
+#endif
 
 	switch( mce->parameter_type ) {
 	default:

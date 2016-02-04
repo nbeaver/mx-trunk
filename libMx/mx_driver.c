@@ -26,6 +26,7 @@
 #include "mx_thread.h"
 #include "mx_mutex.h"
 #include "mx_semaphore.h"
+#include "mx_condition_variable.h"
 #include "mx_image.h"
 
 /* -- Include header files that define MX_XXX_FUNCTION_LIST structures. -- */

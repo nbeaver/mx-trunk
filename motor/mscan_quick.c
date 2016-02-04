@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2005-2006, 2009-2011, 2013-2015
+ * Copyright 1999-2003, 2005-2006, 2009-2011, 2013-2016
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -711,7 +711,7 @@ motor_setup_quick_scan_parameters(
 
 			if (first_input_device_record->mx_type != MXT_SCL_MCS){
 				fprintf( output,
-	"The input device '%s' mentioned for this scan is not an MCS scaler.",
+	"The input device '%s' mentioned for this scan is not an MCS scaler.\n",
 					first_input_device_record->name );
 					
 				return FAILURE;

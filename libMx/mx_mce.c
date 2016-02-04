@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005-2006, 2010, 2012, 2015
+ * Copyright 1999-2001, 2003, 2005-2006, 2010, 2012, 2015-2016
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -230,8 +230,10 @@ mx_mce_read( MX_RECORD *mce_record,
 	read_fn = function_list->read;
 
 	if ( read_fn == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"read function ptr for MX_MCE '%s' is NULL.",
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"The required 'read' function has not yet been implemented "
+		"by the '%s' driver for MCE record '%s'.",
+			mx_get_driver_name( mce_record ),
 			mce_record->name );
 	}
 
@@ -267,8 +269,10 @@ mx_mce_get_current_num_values( MX_RECORD *mce_record,
 	get_current_num_values_fn = function_list->get_current_num_values;
 
 	if ( get_current_num_values_fn == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"get_current_num_values function ptr for MX_MCE '%s' is NULL.",
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"The required 'get_current_num_values' function has not yet "
+		"been implemented by the '%s' driver for MCE record '%s'.",
+			mx_get_driver_name( mce_record ),
 			mce_record->name );
 	}
 
@@ -301,8 +305,10 @@ mx_mce_get_last_measurement_number( MX_RECORD *mce_record,
 		function_list->get_last_measurement_number;
 
 	if ( get_last_measurement_number_fn == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	"get_last_measurement_number function ptr for MX_MCE '%s' is NULL.",
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"The required 'get_last_measurement_number' function has not "
+		"yet been implemented by the '%s' driver for MCE record '%s'.",
+			mx_get_driver_name( mce_record ),
 			mce_record->name );
 	}
 

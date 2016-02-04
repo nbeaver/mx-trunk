@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2006-2007, 2010, 2015
+ * Copyright 2000-2001, 2003, 2006-2007, 2010, 2015-2016
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -82,7 +82,7 @@ typedef struct {
 #define MXLV_MCE_WINDOW_IS_AVAILABLE		1013
 #define MXLV_MCE_USE_WINDOW			1014
 #define MXLV_MCE_WINDOW				1015
-#define MXLV_MCE_MEASUREMENT_WINDOW_OFFSET		1016
+#define MXLV_MCE_MEASUREMENT_WINDOW_OFFSET	1016
 
 #define MX_MCE_STANDARD_FIELDS \
   {-1, -1, "encoder_type", MXFT_LONG, NULL, 0, {0}, \

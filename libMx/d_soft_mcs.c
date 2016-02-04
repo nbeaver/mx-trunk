@@ -8,13 +8,15 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2004, 2006, 2008, 2010, 2012
+ * Copyright 2000-2001, 2004, 2006, 2008, 2010, 2012, 2016
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define MXD_SOFT_MCS_DEBUG_START	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,6 +26,7 @@
 #include "mx_util.h"
 #include "mx_driver.h"
 #include "mx_measurement.h"
+#include "mx_mce.h"
 #include "mx_scaler.h"
 #include "d_soft_scaler.h"
 
@@ -228,7 +231,9 @@ mxd_soft_mcs_start( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for MCS '%s'", fname, mcs->record->name));
+#if MXD_SOFT_MCS_DEBUG
+	MX_DEBUG(-2,("%s invoked for MCS '%s'", fname, mcs->record->name));
+#endif
 
 	start_time_in_clock_ticks = mx_current_clock_tick();
 
@@ -242,23 +247,40 @@ mxd_soft_mcs_start( MX_MCS *mcs )
 				start_time_in_clock_ticks,
 				total_counting_time_in_clock_ticks );
 
-	MX_DEBUG( 2,
+#if MXD_SOFT_MCS_DEBUG
+	MX_DEBUG(-2,
 		("%s: measurement_time = %g seconds, num_measurements = %lu",
 		fname, mcs->measurement_time, mcs->current_num_measurements));
 
-	MX_DEBUG( 2,
+	MX_DEBUG(-2,
 	("%s: total counting time = %g seconds, (%lu, %lu) in clock_ticks.",
 		fname, total_counting_time,
 		total_counting_time_in_clock_ticks.high_order,
 		(unsigned long) total_counting_time_in_clock_ticks.low_order));
 
-	MX_DEBUG( 2,("%s: starting time = (%lu,%lu), finish time = (%lu,%lu)",
+	MX_DEBUG(-2,("%s: starting time = (%lu,%lu), finish time = (%lu,%lu)",
 		fname, start_time_in_clock_ticks.high_order,
 		(unsigned long) start_time_in_clock_ticks.low_order,
 		soft_mcs->finish_time_in_clock_ticks.high_order,
 	(unsigned long) soft_mcs->finish_time_in_clock_ticks.low_order));
+#endif
 
 	mx_status = mxd_soft_mcs_fill_data_array( mcs, soft_mcs );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( mcs->external_channel_advance ) {
+
+		/* Use external channel advance. */
+
+		switch( mcs->external_channel_advance_record->mx_class ) {
+		case MXC_MULTICHANNEL_ENCODER:
+			mx_status = mx_mce_start(
+				mcs->external_channel_advance_record );
+			break;
+		}
+	}
 
 	return mx_status;
 }
@@ -276,9 +298,23 @@ mxd_soft_mcs_stop( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for MCS '%s'", fname, mcs->record->name));
+#if MXD_SOFT_MCS_DEBUG
+	MX_DEBUG(-2,("%s invoked for MCS '%s'", fname, mcs->record->name));
+#endif
 
 	soft_mcs->finish_time_in_clock_ticks = mx_current_clock_tick();
+
+	if ( mcs->external_channel_advance ) {
+
+		/* Use external channel advance. */
+
+		switch( mcs->external_channel_advance_record->mx_class ) {
+		case MXC_MULTICHANNEL_ENCODER:
+			mx_status = mx_mce_stop(
+				mcs->external_channel_advance_record );
+			break;
+		}
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -297,11 +333,25 @@ mxd_soft_mcs_clear( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for MCS '%s'", fname, mcs->record->name));
+#if MXD_SOFT_MCS_DEBUG
+	MX_DEBUG(-2,("%s invoked for MCS '%s'", fname, mcs->record->name));
+#endif
 
 	for ( i = 0; i < mcs->maximum_num_scalers; i++ ) {
 		for ( j = 0; j < mcs->maximum_num_measurements; j++ ) {
 			mcs->data_array[i][j] = 0L;
+		}
+	}
+
+	if ( mcs->external_channel_advance ) {
+
+		/* Use external channel advance. */
+
+		switch( mcs->external_channel_advance_record->mx_class ) {
+		case MXC_MULTICHANNEL_ENCODER:
+			mx_status = mx_mce_clear(
+				mcs->external_channel_advance_record );
+			break;
 		}
 	}
 
@@ -316,6 +366,7 @@ mxd_soft_mcs_busy( MX_MCS *mcs )
 	MX_SOFT_MCS *soft_mcs = NULL;
 	MX_CLOCK_TICK current_time_in_clock_ticks;
 	int result;
+	unsigned long mce_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_soft_mcs_get_pointers( mcs, &soft_mcs, fname );
@@ -334,10 +385,38 @@ mxd_soft_mcs_busy( MX_MCS *mcs )
 		mcs->busy = TRUE;
 	}
 
-	MX_DEBUG( 2,("%s: MCS '%s', busy = %d, time = (%lu,%lu)",
+#if MXD_SOFT_MCS_DEBUG
+	MX_DEBUG(-2,("%s: MCS '%s', busy = %d, time = (%lu,%lu)",
 		fname, mcs->record->name, (int) mcs->busy,
 		current_time_in_clock_ticks.high_order,
 		(unsigned long) current_time_in_clock_ticks.low_order ));
+#endif
+
+	if ( mcs->busy == FALSE ) {
+	    if ( mcs->external_channel_advance ) {
+
+		/* Use external channel advance. */
+
+		switch( mcs->external_channel_advance_record->mx_class ) {
+		case MXC_MULTICHANNEL_ENCODER:
+			mx_status = mx_mce_get_status( 
+				mcs->external_channel_advance_record,
+				&mce_status );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( mce_status != 0 ) {
+				mx_status = mx_mce_stop(
+					mcs->external_channel_advance_record );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+			}
+			break;
+		}
+	    }
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -368,8 +447,10 @@ mxd_soft_mcs_read_measurement( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for MCS '%s', measurement_index = %ld",
+#if MXD_SOFT_MCS_DEBUG
+	MX_DEBUG(-2,("%s invoked for MCS '%s', measurement_index = %ld",
 		fname, mcs->record->name, mcs->measurement_index));
+#endif
 
 	for ( i = 0; i < mcs->current_num_scalers; i++ ) {
 		mcs->measurement_data[i]
@@ -395,8 +476,10 @@ mxd_soft_mcs_get_parameter( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for MCS '%s', type = %ld",
+#if MXD_SOFT_MCS_DEBUG
+	MX_DEBUG(-2,("%s invoked for MCS '%s', type = %ld",
 		fname, mcs->record->name, mcs->parameter_type));
+#endif
 
 	if ( mcs->parameter_type == MXLV_MCS_MODE ) {
 
@@ -433,12 +516,16 @@ mxd_soft_mcs_set_parameter( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for MCS '%s', type = %ld",
+#if MXD_SOFT_MCS_DEBUG
+	MX_DEBUG(-2,("%s invoked for MCS '%s', type = %ld",
 		fname, mcs->record->name, mcs->parameter_type));
+#endif
 
 	if ( mcs->parameter_type == MXLV_MCS_MODE ) {
 
-		MX_DEBUG( 2,("%s: MCS mode = %ld", fname, mcs->mode));
+#if MXD_SOFT_MCS_DEBUG
+		MX_DEBUG(-2,("%s: MCS mode = %ld", fname, mcs->mode));
+#endif
 
 		if ( mcs->mode != MXM_PRESET_TIME ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -448,13 +535,17 @@ mxd_soft_mcs_set_parameter( MX_MCS *mcs )
 
 	} else if ( mcs->parameter_type == MXLV_MCS_MEASUREMENT_TIME ) {
 
-		MX_DEBUG( 2,("%s: MCS measurement time = %g",
+#if MXD_SOFT_MCS_DEBUG
+		MX_DEBUG(-2,("%s: MCS measurement time = %g",
 				fname, mcs->measurement_time));
+#endif
 
 	} else if ( mcs->parameter_type == MXLV_MCS_CURRENT_NUM_MEASUREMENTS ){
 
-		MX_DEBUG( 2,("%s: MCS number of measurements = %lu",
+#if MXD_SOFT_MCS_DEBUG
+		MX_DEBUG(-2,("%s: MCS number of measurements = %lu",
 			fname, mcs->current_num_measurements));
+#endif
 
 	} else if ( mcs->parameter_type == MXLV_MCS_EXTERNAL_CHANNEL_ADVANCE ) {
 
@@ -468,7 +559,10 @@ mxd_soft_mcs_set_parameter( MX_MCS *mcs )
 	} else {
 		return mx_mcs_default_set_parameter_handler( mcs );
 	}
-	MX_DEBUG( 2,("%s complete.", fname));
+
+#if MXD_SOFT_MCS_DEBUG
+	MX_DEBUG(-2,("%s complete.", fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
