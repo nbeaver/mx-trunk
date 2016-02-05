@@ -28,10 +28,14 @@ typedef struct {
 
 	int32_t monitor_command;
 	int32_t monitor_status;
+	int32_t monitor_last_measurement_number;
 
 	MX_THREAD *monitor_thread;
 	MX_CONDITION_VARIABLE *monitor_thread_cv;
 	MX_MUTEX *monitor_thread_mutex;
+
+	MX_CLOCK_TICK measurement_interval_ticks;
+	MX_CLOCK_TICK next_measurement_tick;
 } MX_SOFT_MCE;
 
 /* Values for 'monitor_command' and 'monitor_status' */

@@ -546,6 +546,70 @@ mx_mce_connect_mce_to_motor( MX_RECORD *mce_record,
 }
 
 MX_EXPORT mx_status_type
+mx_mce_get_measurement_time( MX_RECORD *mce_record, double *measurement_time )
+{
+	static const char fname[] = "mx_mce_get_measurement_time()";
+
+	MX_MCE *mce;
+	MX_MCE_FUNCTION_LIST *function_list;
+	mx_status_type ( *get_parameter_fn ) ( MX_MCE * );
+	mx_status_type mx_status;
+
+	mx_status = mx_mce_get_pointers( mce_record,
+					&mce, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = function_list->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn = mx_mce_default_get_parameter_handler;
+	}
+
+	mce->parameter_type = MXLV_MCE_MEASUREMENT_TIME;
+
+	mx_status = (*get_parameter_fn)( mce );
+
+	if ( measurement_time != NULL ) {
+		*measurement_time = mce->measurement_time;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_mce_set_measurement_time( MX_RECORD *mce_record, double measurement_time )
+{
+	static const char fname[] = "mx_mce_set_measurement_time()";
+
+	MX_MCE *mce;
+	MX_MCE_FUNCTION_LIST *function_list;
+	mx_status_type ( *set_parameter_fn ) ( MX_MCE * );
+	mx_status_type mx_status;
+
+	mx_status = mx_mce_get_pointers( mce_record,
+					&mce, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	set_parameter_fn = function_list->set_parameter;
+
+	if ( set_parameter_fn == NULL ) {
+		set_parameter_fn = mx_mce_default_set_parameter_handler;
+	}
+
+	mce->parameter_type = MXLV_MCE_MEASUREMENT_TIME;
+
+	mce->measurement_time = measurement_time;
+
+	mx_status = (*set_parameter_fn)( mce );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
 mx_mce_get_window( MX_RECORD *mce_record,
 			double *window,
 			long num_window_parameters )
@@ -826,6 +890,12 @@ mx_mce_default_get_parameter_handler( MX_MCE *mce )
 
 		/* These do not require anything to be done. */
 
+	case MXLV_MCE_MEASUREMENT_TIME:
+		/* MCEs that do not support a settable measurement time
+		 * should report a negative measurement time.
+		 */
+
+		mce->measurement_time = -1.0;
 		break;
 
 	default:
@@ -857,6 +927,15 @@ mx_mce_default_set_parameter_handler( MX_MCE *mce )
 
 		/* These do not require anything to be done. */
 
+		break;
+
+	case MXLV_MCE_MEASUREMENT_TIME:
+		/* MCEs that do not support a settable measurement time
+		 * should ignore the requested measurement time and instead
+		 * set the measurement time to a negative value.
+		 */
+
+		mce->measurement_time = -1.0;
 		break;
 
 	case MXLV_MCE_USE_WINDOW:

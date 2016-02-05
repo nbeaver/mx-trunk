@@ -121,6 +121,14 @@ mxd_soft_mce_get_pointers( MX_MCE *mce,
 				mce->record->name );
 		}
 
+		if ( motor_record->mx_class != MXC_MOTOR ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"'Motor' record '%s' specified for MCE '%s' "
+			"is _NOT_ a motor.",
+				mce->record->name,
+				motor_record->name );
+		}
+
 		*motor = (MX_MOTOR *) motor_record->record_class_struct;
 
 		if ( (*motor) == (MX_MOTOR *) NULL ) {
@@ -145,7 +153,11 @@ mxd_soft_mce_monitor_thread_fn( MX_THREAD *thread, void *record_ptr )
 	MX_RECORD *record = NULL;
 	MX_MCE *mce = NULL;
 	MX_SOFT_MCE *soft_mce = NULL;
+	MX_MOTOR *motor = NULL;
+
+	long i, n;
 	unsigned long mx_status_code;
+	unsigned long monitor_loop_counter;
 	mx_status_type mx_status;
 
 	/* Initialize the variables to be used by this thread. */
@@ -164,19 +176,10 @@ mxd_soft_mce_monitor_thread_fn( MX_THREAD *thread, void *record_ptr )
 
 	mce = (MX_MCE *) record->record_class_struct;
 
-	if ( mce == (MX_MCE *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_MCE pointer for MCE record '%s' is NULL.",
-			record->name );
-	}
+	mx_status = mxd_soft_mce_get_pointers( mce, &soft_mce, &motor, fname );
 
-	soft_mce = (MX_SOFT_MCE *) record->record_type_struct;
-
-	if ( soft_mce == (MX_SOFT_MCE *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_SOFT_MCE pointer for MCE record '%s' is NULL.",
-			record->name );
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Lock the mutex in preparation for entering the thread's
 	 * event handling loop.
@@ -190,17 +193,23 @@ mxd_soft_mce_monitor_thread_fn( MX_THREAD *thread, void *record_ptr )
 		"soft MCE record '%s' failed.", record->name );
 	}
 
-	/* Now that we have locked the mutex, we can not set the
+	/* Now that we have locked the mutex, we can set the
 	 * monitor status to idle.
 	 */
 
 	mx_atomic_write32( &(soft_mce->monitor_status), MXS_SOFT_MCE_IDLE );
 
+	monitor_loop_counter = 0;
+
 #if MXD_SOFT_MCE_DEBUG_MONITOR_THREAD
-	MX_DEBUG(-2,("%s: MCE '%s' entering event loop.", fname, record->name));
+	MX_DEBUG(-2,("%s %p [%lu]: MCE '%s' entering event loop.",
+		fname, mx_get_current_thread_pointer(),
+		monitor_loop_counter, record->name));
 #endif
 
 	while (TRUE) {
+
+		monitor_loop_counter++;
 
 		/* Wait on the condition variable. */
 
@@ -214,14 +223,20 @@ mxd_soft_mce_monitor_thread_fn( MX_THREAD *thread, void *record_ptr )
 		}
 
 #if MXD_SOFT_MCE_DEBUG_MONITOR_THREAD
-		MX_DEBUG(-2,("%s: '%s' command = %ld, status = %ld",
-			fname, record->name,
-			(long) soft_mce->monitor_command,
-			(long) soft_mce->monitor_status));
+		MX_DEBUG(-2,("%s %p [%lu]: '%s' command = %ld",
+			fname, mx_get_current_thread_pointer(),
+			monitor_loop_counter, record->name,
+			(long) soft_mce->monitor_command));
 #endif
 
 		switch( soft_mce->monitor_command ) {
 		case MXS_SOFT_MCE_START:
+			mx_atomic_write32(
+			    &(soft_mce->monitor_last_measurement_number), -1 );
+
+			soft_mce->next_measurement_tick
+				= mx_current_clock_tick();
+
 			mx_atomic_write32( &(soft_mce->monitor_status),
 						MXS_SOFT_MCE_ACQUIRING );
 			break;
@@ -230,6 +245,10 @@ mxd_soft_mce_monitor_thread_fn( MX_THREAD *thread, void *record_ptr )
 						MXS_SOFT_MCE_IDLE );
 			break;
 		case MXS_SOFT_MCE_CLEAR:
+			for ( i = 0; i < mce->maximum_num_values; i++ ) {
+				mce->value_array[i] = 0.0;
+			}
+
 			mx_atomic_write32( &(soft_mce->monitor_status),
 						MXS_SOFT_MCE_IDLE );
 			break;
@@ -241,6 +260,54 @@ mxd_soft_mce_monitor_thread_fn( MX_THREAD *thread, void *record_ptr )
 					record->name );
 			break;
 		}
+
+		switch( soft_mce->monitor_status ) {
+		case MXS_SOFT_MCE_ACQUIRING:
+
+			/* First check to see if we have reached the
+			 * end of the array and stop if we have.
+			 */
+
+			n = mx_atomic_read32(
+				&(soft_mce->monitor_last_measurement_number) );
+
+			if ( (n+1) >= mce->current_num_values ) {
+				mx_atomic_write32( &(soft_mce->monitor_status),
+							MXS_SOFT_MCE_IDLE );
+
+				break;
+			}
+
+			/* If we are not yet at the end of the array,
+			 * increment the array index and write a new
+			 * value there.
+			 */
+
+			i = mx_atomic_increment32(
+				&(soft_mce->monitor_last_measurement_number) );
+
+			/* WARNING:
+			 * We cannot call mx_motor_get_position() here
+			 * because we are not in the main thread.
+			 * Instead, we just read the value most recently
+			 * written to motor->position.  This read is
+			 * _NOT_ guaranteed to be atomic, but probably
+			 * is anyway on x86 and amd64, however probably
+			 * not on arm.  Because of this, the 'soft_mce'
+			 * driver is not really suitable for use in
+			 * _real_ experiments.
+			 */
+
+			mce->value_array[i] = motor->position;
+			break;
+		}
+
+#if MXD_SOFT_MCE_DEBUG_MONITOR_THREAD
+		MX_DEBUG(-2,("%s %p [%lu]: '%s' status = %ld",
+			fname, mx_get_current_thread_pointer(),
+			monitor_loop_counter, record->name,
+			(long) soft_mce->monitor_status));
+#endif
 	}
 }
 
@@ -381,10 +448,7 @@ mxd_soft_mce_finish_record_initialization( MX_RECORD *record )
 
 	mx_status = mx_mce_fixup_motor_record_array_field( mce );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -419,6 +483,7 @@ mxd_soft_mce_open( MX_RECORD *record )
 
 	MX_MCE *mce = NULL;
 	MX_SOFT_MCE *soft_mce = NULL;
+	MX_MOTOR *motor = NULL;
 	int32_t test_value;
 	mx_status_type mx_status;
 
@@ -429,7 +494,7 @@ mxd_soft_mce_open( MX_RECORD *record )
 
 	mce = (MX_MCE *) record->record_class_struct;
 
-	mx_status = mxd_soft_mce_get_pointers( mce, &soft_mce, NULL, fname );
+	mx_status = mxd_soft_mce_get_pointers( mce, &soft_mce, &motor, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -438,6 +503,8 @@ mxd_soft_mce_open( MX_RECORD *record )
 
 	soft_mce->monitor_command = MXS_SOFT_MCE_IDLE;
 	soft_mce->monitor_status  = MXS_SOFT_MCE_NOT_INITIALIZED;
+
+	soft_mce->monitor_last_measurement_number = -1;
 
 	/* Create some synchronization objects to be used by the
 	 * monitor thread.
@@ -474,6 +541,13 @@ mxd_soft_mce_open( MX_RECORD *record )
 	/* Clear the contents of the MCE. */
 
 	mx_status = mxd_soft_mce_clear( mce );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Initialize the measurement time to an illegal value. */
+
+	mx_status = mx_mce_set_measurement_time( record, -1.0 );
 
 	return mx_status;
 }
@@ -692,6 +766,14 @@ mxd_soft_mce_get_parameter( MX_MCE *mce )
 		mce->parameter_type ));
 
 	switch( mce->parameter_type ) {
+	case MXLV_MCE_MEASUREMENT_TIME:
+		/* Just report the value already in the variable.  Including
+		 * this case prevents the default handler from being called,
+		 * since the default handler overwrites the value with -1.
+		 */
+
+		break;
+
 	case MXLV_MCE_MEASUREMENT_WINDOW_OFFSET:
 		mce->measurement_window_offset = 0;
 		break;
@@ -709,6 +791,7 @@ mxd_soft_mce_set_parameter( MX_MCE *mce )
 	static const char fname[] = "mxd_soft_mce_set_parameter()";
 
 	MX_SOFT_MCE *soft_mce;
+	unsigned long mx_status_code;
 	mx_status_type mx_status;
 
 	mx_status = mxd_soft_mce_get_pointers( mce, &soft_mce, NULL, fname );
@@ -724,6 +807,35 @@ mxd_soft_mce_set_parameter( MX_MCE *mce )
 #endif
 
 	switch( mce->parameter_type ) {
+	case MXLV_MCE_MEASUREMENT_TIME:
+		mx_status_code =
+			mx_mutex_lock( soft_mce->monitor_thread_mutex );
+
+		if ( mx_status_code != MXE_SUCCESS ) {
+			return mx_error( mx_status_code, fname,
+			"Attempting to lock the monitor thread mutex for "
+			"soft MCE '%s' failed.", mce->record->name );
+		}
+
+		if ( mce->measurement_time > 0.0 ) {
+			soft_mce->measurement_interval_ticks =
+				mx_convert_seconds_to_clock_ticks(
+					mce->measurement_time );
+		} else {
+			soft_mce->measurement_interval_ticks =
+				mx_convert_seconds_to_clock_ticks( 0.0 );
+		}
+
+		mx_status_code =
+			mx_mutex_unlock( soft_mce->monitor_thread_mutex );
+
+		if ( mx_status_code != MXE_SUCCESS ) {
+			return mx_error( mx_status_code, fname,
+			"Attempting to unlock the monitor thread mutex for "
+			"soft MCE '%s' failed.", mce->record->name );
+		}
+		break;
+
 	default:
 		return mx_mce_default_set_parameter_handler( mce );
 		break;

@@ -16,7 +16,7 @@
  *
  */
 
-#define MXD_SOFT_MCS_DEBUG_START	TRUE
+#define MXD_SOFT_MCS_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,7 +38,10 @@
 MX_RECORD_FUNCTION_LIST mxd_soft_mcs_record_function_list = {
 	mxd_soft_mcs_initialize_driver,
 	mxd_soft_mcs_create_record_structures,
-	mxd_soft_mcs_finish_record_initialization
+	mxd_soft_mcs_finish_record_initialization,
+	NULL,
+	NULL,
+	mxd_soft_mcs_open
 };
 
 MX_MCS_FUNCTION_LIST mxd_soft_mcs_mcs_function_list = {
@@ -180,11 +183,10 @@ mxd_soft_mcs_finish_record_initialization( MX_RECORD *record )
 	static const char fname[] =
 			"mxd_soft_mcs_finish_record_initialization()";
 
-	MX_MCS *mcs;
+	MX_MCS *mcs = NULL;
 	MX_SOFT_MCS *soft_mcs = NULL;
 	MX_RECORD *scaler_record;
 	long i;
-
 	mx_status_type mx_status;
 
 	mx_status = mx_mcs_finish_record_initialization( record );
@@ -194,7 +196,10 @@ mxd_soft_mcs_finish_record_initialization( MX_RECORD *record )
 
 	mcs = (MX_MCS *) record->record_class_struct;
 
-	soft_mcs = (MX_SOFT_MCS *) record->record_type_struct;
+	mx_status = mxd_soft_mcs_get_pointers( mcs, &soft_mcs, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Verify that all the listed scaler records are soft scaler records. */
 
@@ -213,6 +218,36 @@ mxd_soft_mcs_finish_record_initialization( MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+MX_EXPORT mx_status_type
+mxd_soft_mcs_open( MX_RECORD *record )
+{
+#if MXD_SOFT_MCS_DEBUG
+	static const char fname[] = "mxd_soft_mcs_open()";
+#endif
+
+	MX_MCS *mcs = NULL;
+	MX_SOFT_MCS *soft_mcs = NULL;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	mcs = (MX_MCS *) record->record_class_struct;
+
+	mx_status = mxd_soft_mcs_get_pointers( mcs, &soft_mcs, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_SOFT_MCS_DEBUG
+	MX_DEBUG(-2,("%s invoked for MCS '%s'", fname, record->name ));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
@@ -221,6 +256,7 @@ mxd_soft_mcs_start( MX_MCS *mcs )
 	static const char fname[] = "mxd_soft_mcs_start()";
 
 	MX_SOFT_MCS *soft_mcs = NULL;
+	MX_RECORD *eca_record = NULL;
 	MX_CLOCK_TICK start_time_in_clock_ticks;
 	MX_CLOCK_TICK total_counting_time_in_clock_ticks;
 	double total_counting_time;
@@ -270,14 +306,21 @@ mxd_soft_mcs_start( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( mcs->external_channel_advance ) {
+	/* Check for external channel advance actions. */
 
-		/* Use external channel advance. */
+	eca_record = mcs->external_channel_advance_record;
 
-		switch( mcs->external_channel_advance_record->mx_class ) {
+	if ( eca_record != (MX_RECORD *) NULL ) {
+
+		switch( eca_record->mx_class ) {
 		case MXC_MULTICHANNEL_ENCODER:
-			mx_status = mx_mce_start(
-				mcs->external_channel_advance_record );
+			mx_status = mx_mce_set_measurement_time(
+				eca_record, mcs->measurement_time );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			mx_status = mx_mce_start( eca_record );
 			break;
 		}
 	}
@@ -291,6 +334,7 @@ mxd_soft_mcs_stop( MX_MCS *mcs )
 	static const char fname[] = "mxd_soft_mcs_stop()";
 
 	MX_SOFT_MCS *soft_mcs = NULL;
+	MX_RECORD *eca_record = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_soft_mcs_get_pointers( mcs, &soft_mcs, fname );
@@ -304,14 +348,15 @@ mxd_soft_mcs_stop( MX_MCS *mcs )
 
 	soft_mcs->finish_time_in_clock_ticks = mx_current_clock_tick();
 
-	if ( mcs->external_channel_advance ) {
+	/* Check for external channel advance actions. */
 
-		/* Use external channel advance. */
+	eca_record = mcs->external_channel_advance_record;
 
-		switch( mcs->external_channel_advance_record->mx_class ) {
+	if ( eca_record != (MX_RECORD *) NULL ) {
+
+		switch( eca_record->mx_class ) {
 		case MXC_MULTICHANNEL_ENCODER:
-			mx_status = mx_mce_stop(
-				mcs->external_channel_advance_record );
+			mx_status = mx_mce_stop( eca_record );
 			break;
 		}
 	}
@@ -325,6 +370,7 @@ mxd_soft_mcs_clear( MX_MCS *mcs )
 	static const char fname[] = "mxd_soft_mcs_clear()";
 
 	MX_SOFT_MCS *soft_mcs = NULL;
+	MX_RECORD *eca_record = NULL;
 	long i, j;
 	mx_status_type mx_status;
 
@@ -343,14 +389,15 @@ mxd_soft_mcs_clear( MX_MCS *mcs )
 		}
 	}
 
-	if ( mcs->external_channel_advance ) {
+	/* Check for external channel advance actions. */
 
-		/* Use external channel advance. */
+	eca_record = mcs->external_channel_advance_record;
 
-		switch( mcs->external_channel_advance_record->mx_class ) {
+	if ( eca_record != (MX_RECORD *) NULL ) {
+
+		switch( eca_record->mx_class ) {
 		case MXC_MULTICHANNEL_ENCODER:
-			mx_status = mx_mce_clear(
-				mcs->external_channel_advance_record );
+			mx_status = mx_mce_clear( eca_record );
 			break;
 		}
 	}
@@ -364,6 +411,7 @@ mxd_soft_mcs_busy( MX_MCS *mcs )
 	static const char fname[] = "mxd_soft_mcs_busy()";
 
 	MX_SOFT_MCS *soft_mcs = NULL;
+	MX_RECORD *eca_record = NULL;
 	MX_CLOCK_TICK current_time_in_clock_ticks;
 	int result;
 	unsigned long mce_status;
@@ -393,22 +441,24 @@ mxd_soft_mcs_busy( MX_MCS *mcs )
 #endif
 
 	if ( mcs->busy == FALSE ) {
-	    if ( mcs->external_channel_advance ) {
 
-		/* Use external channel advance. */
+	    /* If an MCE is attached for external channel advance
+	     * and the MCS is not busy, then stop the MCE as well.
+	     */
 
-		switch( mcs->external_channel_advance_record->mx_class ) {
+	    eca_record = mcs->external_channel_advance_record;
+
+	    if ( eca_record != (MX_RECORD *) NULL ) {
+
+		switch( eca_record->mx_class ) {
 		case MXC_MULTICHANNEL_ENCODER:
-			mx_status = mx_mce_get_status( 
-				mcs->external_channel_advance_record,
-				&mce_status );
+			mx_status = mx_mce_get_status(eca_record, &mce_status);
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
 			if ( mce_status != 0 ) {
-				mx_status = mx_mce_stop(
-					mcs->external_channel_advance_record );
+				mx_status = mx_mce_stop( eca_record );
 
 				if ( mx_status.code != MXE_SUCCESS )
 					return mx_status;
@@ -481,22 +531,14 @@ mxd_soft_mcs_get_parameter( MX_MCS *mcs )
 		fname, mcs->record->name, mcs->parameter_type));
 #endif
 
-	if ( mcs->parameter_type == MXLV_MCS_MODE ) {
-
-		MX_DEBUG( 2,("%s: MCS mode = %ld", fname, mcs->mode));
-
-	} else if ( mcs->parameter_type == MXLV_MCS_MEASUREMENT_TIME ) {
-
-		MX_DEBUG( 2,("%s: MCS measurement time = %g",
-				fname, mcs->measurement_time));
-
-	} else if ( mcs->parameter_type == MXLV_MCS_CURRENT_NUM_MEASUREMENTS ){
-
-		MX_DEBUG( 2,("%s: MCS number of measurements = %lu",
-			fname, mcs->current_num_measurements));
-
-	} else {
+	switch( mcs->parameter_type ) {
+	case MXLV_MCS_MODE:
+	case MXLV_MCS_MEASUREMENT_TIME:
+	case MXLV_MCS_CURRENT_NUM_MEASUREMENTS:
+		break;
+	default:
 		return mx_mcs_default_get_parameter_handler( mcs );
+		break;
 	}
 	MX_DEBUG( 2,("%s complete.", fname));
 
@@ -521,43 +563,33 @@ mxd_soft_mcs_set_parameter( MX_MCS *mcs )
 		fname, mcs->record->name, mcs->parameter_type));
 #endif
 
-	if ( mcs->parameter_type == MXLV_MCS_MODE ) {
+	switch( mcs->parameter_type ) {
+	case MXLV_MCS_MODE:
 
 #if MXD_SOFT_MCS_DEBUG
 		MX_DEBUG(-2,("%s: MCS mode = %ld", fname, mcs->mode));
 #endif
-
 		if ( mcs->mode != MXM_PRESET_TIME ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal MCS mode %ld selected.  Only preset time mode is "
 		"allowed for a soft MCS.", mcs->mode );
 		}
-
-	} else if ( mcs->parameter_type == MXLV_MCS_MEASUREMENT_TIME ) {
-
+		break;
+	case MXLV_MCS_MEASUREMENT_TIME:
 #if MXD_SOFT_MCS_DEBUG
 		MX_DEBUG(-2,("%s: MCS measurement time = %g",
 				fname, mcs->measurement_time));
 #endif
-
-	} else if ( mcs->parameter_type == MXLV_MCS_CURRENT_NUM_MEASUREMENTS ){
-
+		break;
+	case MXLV_MCS_CURRENT_NUM_MEASUREMENTS:
 #if MXD_SOFT_MCS_DEBUG
 		MX_DEBUG(-2,("%s: MCS number of measurements = %lu",
 			fname, mcs->current_num_measurements));
 #endif
-
-	} else if ( mcs->parameter_type == MXLV_MCS_EXTERNAL_CHANNEL_ADVANCE ) {
-
-		if ( mcs->external_channel_advance != FALSE ) {
-			return mx_error( MXE_UNSUPPORTED, fname,
-		"The driver for soft MCS record '%s' does not support "
-		"external channel advance.  You must use internal channel "
-		"advance.", mcs->record->name );
-		}
-
-	} else {
+		break;
+	default:
 		return mx_mcs_default_set_parameter_handler( mcs );
+		break;
 	}
 
 #if MXD_SOFT_MCS_DEBUG

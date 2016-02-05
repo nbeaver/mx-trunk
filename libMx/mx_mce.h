@@ -46,6 +46,8 @@ typedef struct {
 	mx_bool_type stop;
 	mx_bool_type clear;
 
+	double measurement_time;
+
 	double value;
 	double *value_array;
 
@@ -74,15 +76,16 @@ typedef struct {
 #define MXLV_MCE_STOP				1005
 #define MXLV_MCE_CLEAR				1006
 #define MXLV_MCE_MEASUREMENT_INDEX		1007
-#define MXLV_MCE_VALUE				1008
-#define MXLV_MCE_VALUE_ARRAY			1009
-#define MXLV_MCE_NUM_MOTORS			1010
-#define MXLV_MCE_MOTOR_RECORD_ARRAY		1011
-#define MXLV_MCE_SELECTED_MOTOR_NAME		1012
-#define MXLV_MCE_WINDOW_IS_AVAILABLE		1013
-#define MXLV_MCE_USE_WINDOW			1014
-#define MXLV_MCE_WINDOW				1015
-#define MXLV_MCE_MEASUREMENT_WINDOW_OFFSET	1016
+#define MXLV_MCE_MEASUREMENT_TIME		1008
+#define MXLV_MCE_VALUE				1009
+#define MXLV_MCE_VALUE_ARRAY			1010
+#define MXLV_MCE_NUM_MOTORS			1011
+#define MXLV_MCE_MOTOR_RECORD_ARRAY		1012
+#define MXLV_MCE_SELECTED_MOTOR_NAME		1013
+#define MXLV_MCE_WINDOW_IS_AVAILABLE		1014
+#define MXLV_MCE_USE_WINDOW			1015
+#define MXLV_MCE_WINDOW				1016
+#define MXLV_MCE_MEASUREMENT_WINDOW_OFFSET	1017
 
 #define MX_MCE_STANDARD_FIELDS \
   {-1, -1, "encoder_type", MXFT_LONG, NULL, 0, {0}, \
@@ -130,6 +133,11 @@ typedef struct {
   {MXLV_MCE_MEASUREMENT_INDEX, -1, "measurement_index", \
 				MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCE, measurement_index), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_MCE_MEASUREMENT_TIME, -1, "measurement_time", \
+				MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCE, measurement_time), \
 	{0}, NULL, 0}, \
   \
   {MXLV_MCE_VALUE, -1, "value", MXFT_DOUBLE, NULL, 0, {0}, \
@@ -248,6 +256,12 @@ MX_API mx_status_type mx_mce_start( MX_RECORD *mce_record );
 MX_API mx_status_type mx_mce_stop( MX_RECORD *mce_record );
 
 MX_API mx_status_type mx_mce_clear( MX_RECORD *mce_record );
+
+MX_API mx_status_type mx_mce_get_measurement_time( MX_RECORD *mce_record,
+						double *measurement_time );
+
+MX_API mx_status_type mx_mce_set_measurement_time( MX_RECORD *mce_record,
+						double measurement_time );
 
 MX_API mx_status_type mx_mce_read_measurement( MX_RECORD *mce_record,
 						long measurement_index,
