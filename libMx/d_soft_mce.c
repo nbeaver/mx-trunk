@@ -17,11 +17,13 @@
  *
  */
 
-#define MXD_SOFT_MCE_DEBUG			TRUE
+#define MXD_SOFT_MCE_DEBUG			FALSE
 
-#define MXD_SOFT_MCE_DEBUG_READ_MEASUREMENT	TRUE
+#define MXD_SOFT_MCE_DEBUG_READ_MEASUREMENT	FALSE
 
-#define MXD_SOFT_MCE_DEBUG_MONITOR_THREAD	TRUE
+#define MXD_SOFT_MCE_DEBUG_MONITOR_THREAD	FALSE
+
+#define MXD_SOFT_MCE_DEBUG_INTERVAL_TIMER	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,8 +36,13 @@
 #include "mx_mutex.h"
 #include "mx_condition_variable.h"
 #include "mx_atomic.h"
-#include "mx_mce.h"
+#include "mx_interval_timer.h"
+
 #include "mx_motor.h"
+#include "mx_dead_reckoning.h"
+#include "d_soft_motor.h"
+
+#include "mx_mce.h"
 #include "d_soft_mce.h"
 
 /* Initialize the MCE driver jump table. */
@@ -146,172 +153,6 @@ mxd_soft_mce_get_pointers( MX_MCE *mce,
 /*------------------------------------------------------------------*/
 
 static mx_status_type
-mxd_soft_mce_monitor_thread_fn( MX_THREAD *thread, void *record_ptr )
-{
-	static const char fname[] = "mxd_soft_mce_monitor_thread_fn()";
-
-	MX_RECORD *record = NULL;
-	MX_MCE *mce = NULL;
-	MX_SOFT_MCE *soft_mce = NULL;
-	MX_MOTOR *motor = NULL;
-
-	long i, n;
-	unsigned long mx_status_code;
-	unsigned long monitor_loop_counter;
-	mx_status_type mx_status;
-
-	/* Initialize the variables to be used by this thread. */
-
-	if ( thread == (MX_THREAD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_THREAD pointer passed was NULL." );
-	}
-
-	if ( record_ptr == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_RECORD pointer passed was NULL." );
-	}
-
-	record = (MX_RECORD *) record_ptr;
-
-	mce = (MX_MCE *) record->record_class_struct;
-
-	mx_status = mxd_soft_mce_get_pointers( mce, &soft_mce, &motor, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Lock the mutex in preparation for entering the thread's
-	 * event handling loop.
-	 */
-
-	mx_status_code = mx_mutex_lock( soft_mce->monitor_thread_mutex );
-
-	if ( mx_status_code != MXE_SUCCESS ) {
-		return mx_error( mx_status_code, fname,
-		"the attempt to lock the monitor_thread_mutex for "
-		"soft MCE record '%s' failed.", record->name );
-	}
-
-	/* Now that we have locked the mutex, we can set the
-	 * monitor status to idle.
-	 */
-
-	mx_atomic_write32( &(soft_mce->monitor_status), MXS_SOFT_MCE_IDLE );
-
-	monitor_loop_counter = 0;
-
-#if MXD_SOFT_MCE_DEBUG_MONITOR_THREAD
-	MX_DEBUG(-2,("%s %p [%lu]: MCE '%s' entering event loop.",
-		fname, mx_get_current_thread_pointer(),
-		monitor_loop_counter, record->name));
-#endif
-
-	while (TRUE) {
-
-		monitor_loop_counter++;
-
-		/* Wait on the condition variable. */
-
-		if ( soft_mce->monitor_status == MXS_SOFT_MCE_IDLE ) {
-			mx_status = mx_condition_variable_wait(
-					soft_mce->monitor_thread_cv,
-					soft_mce->monitor_thread_mutex );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-		}
-
-#if MXD_SOFT_MCE_DEBUG_MONITOR_THREAD
-		MX_DEBUG(-2,("%s %p [%lu]: '%s' command = %ld",
-			fname, mx_get_current_thread_pointer(),
-			monitor_loop_counter, record->name,
-			(long) soft_mce->monitor_command));
-#endif
-
-		switch( soft_mce->monitor_command ) {
-		case MXS_SOFT_MCE_START:
-			mx_atomic_write32(
-			    &(soft_mce->monitor_last_measurement_number), -1 );
-
-			soft_mce->next_measurement_tick
-				= mx_current_clock_tick();
-
-			mx_atomic_write32( &(soft_mce->monitor_status),
-						MXS_SOFT_MCE_ACQUIRING );
-			break;
-		case MXS_SOFT_MCE_STOP:
-			mx_atomic_write32( &(soft_mce->monitor_status),
-						MXS_SOFT_MCE_IDLE );
-			break;
-		case MXS_SOFT_MCE_CLEAR:
-			for ( i = 0; i < mce->maximum_num_values; i++ ) {
-				mce->value_array[i] = 0.0;
-			}
-
-			mx_atomic_write32( &(soft_mce->monitor_status),
-						MXS_SOFT_MCE_IDLE );
-			break;
-		default:
-			(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-				"Unsupported command %ld requested "
-				"for soft MCE '%s' monitor thread.",
-					(long) soft_mce->monitor_command,
-					record->name );
-			break;
-		}
-
-		switch( soft_mce->monitor_status ) {
-		case MXS_SOFT_MCE_ACQUIRING:
-
-			/* First check to see if we have reached the
-			 * end of the array and stop if we have.
-			 */
-
-			n = mx_atomic_read32(
-				&(soft_mce->monitor_last_measurement_number) );
-
-			if ( (n+1) >= mce->current_num_values ) {
-				mx_atomic_write32( &(soft_mce->monitor_status),
-							MXS_SOFT_MCE_IDLE );
-
-				break;
-			}
-
-			/* If we are not yet at the end of the array,
-			 * increment the array index and write a new
-			 * value there.
-			 */
-
-			i = mx_atomic_increment32(
-				&(soft_mce->monitor_last_measurement_number) );
-
-			/* WARNING:
-			 * We cannot call mx_motor_get_position() here
-			 * because we are not in the main thread.
-			 * Instead, we just read the value most recently
-			 * written to motor->position.  This read is
-			 * _NOT_ guaranteed to be atomic, but probably
-			 * is anyway on x86 and amd64, however probably
-			 * not on arm.  Because of this, the 'soft_mce'
-			 * driver is not really suitable for use in
-			 * _real_ experiments.
-			 */
-
-			mce->value_array[i] = motor->position;
-			break;
-		}
-
-#if MXD_SOFT_MCE_DEBUG_MONITOR_THREAD
-		MX_DEBUG(-2,("%s %p [%lu]: '%s' status = %ld",
-			fname, mx_get_current_thread_pointer(),
-			monitor_loop_counter, record->name,
-			(long) soft_mce->monitor_status));
-#endif
-	}
-}
-
-static mx_status_type
 mxd_soft_mce_send_command_to_monitor_thread( MX_SOFT_MCE *soft_mce,
 					int32_t monitor_command )
 {
@@ -353,6 +194,274 @@ mxd_soft_mce_send_command_to_monitor_thread( MX_SOFT_MCE *soft_mce,
 	mx_status = mx_condition_variable_signal( soft_mce->monitor_thread_cv );
 
 	return mx_status;
+}
+
+/*------------------------------------------------------------------*/
+
+static void
+mxd_soft_mce_interval_timer_callback( MX_INTERVAL_TIMER *itimer,
+					void *callback_args )
+{
+	static const char fname[] = "mxd_soft_mce_interval_timer_callback()";
+
+	MX_SOFT_MCE *soft_mce;
+	mx_status_type mx_status;
+
+	static unsigned long timer_callback_counter = 0;
+
+	if ( itimer == (MX_INTERVAL_TIMER *) NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_INTERVAL_TIMER pointer passed was NULL." );
+	}
+
+	if ( callback_args == NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"The callback_args pointer passed was NULL." );
+	}
+
+	soft_mce = (MX_SOFT_MCE *) callback_args;
+
+	timer_callback_counter++;
+
+	/* Tell the "monitor" thread to read a motor position. */
+
+#if MXD_SOFT_MCE_DEBUG_INTERVAL_TIMER
+	MX_DEBUG(-2,
+    ("%s Timer %p [%lu]: Signaling the monitor thread to take a measurement.",
+		fname, mx_get_current_thread_pointer(),
+		timer_callback_counter));
+#endif
+
+	mx_status = mxd_soft_mce_send_command_to_monitor_thread( soft_mce,
+						MXS_SOFT_MCE_CMD_READ_MOTOR );
+
+	return;
+}
+
+/*------------------------------------------------------------------*/
+
+static mx_status_type
+mxd_soft_mce_monitor_thread_fn( MX_THREAD *thread, void *record_ptr )
+{
+	static const char fname[] = "mxd_soft_mce_monitor_thread_fn()";
+
+	MX_RECORD *record = NULL;
+	MX_MCE *mce = NULL;
+	MX_SOFT_MCE *soft_mce = NULL;
+	MX_MOTOR *motor = NULL;
+	MX_SOFT_MOTOR *soft_motor = NULL;
+
+	long i, n;
+	unsigned long mx_status_code;
+	unsigned long monitor_loop_counter;
+	mx_status_type mx_status;
+
+	/* Initialize the variables to be used by this thread. */
+
+	if ( thread == (MX_THREAD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_THREAD pointer passed was NULL." );
+	}
+
+	if ( record_ptr == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	record = (MX_RECORD *) record_ptr;
+
+	mce = (MX_MCE *) record->record_class_struct;
+
+	mx_status = mxd_soft_mce_get_pointers( mce, &soft_mce, &motor, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* 'soft_motor' records are a special case, since we have to call
+	 * that driver's dead reckoning function.
+	 */
+
+	if ( motor->record->mx_type != MXT_MTR_SOFTWARE ) {
+		soft_motor = NULL;
+	} else {
+		soft_motor = (MX_SOFT_MOTOR *)
+				motor->record->record_type_struct;
+	}
+
+#if MXD_SOFT_MCE_DEBUG_MONITOR_THREAD
+	MX_DEBUG(-2,("%s: about to create interval timer.", fname));
+#endif
+
+	/* Create the interval timer that will be used to trigger
+	 * measurements of the motor position.  Note that this
+	 * does _not_ start the timer.
+	 */
+
+	mx_status = mx_interval_timer_create( &(soft_mce->measurement_timer),
+					MXIT_PERIODIC_TIMER,
+					mxd_soft_mce_interval_timer_callback,
+					soft_mce );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Lock the mutex in preparation for entering the thread's
+	 * event handling loop.
+	 */
+
+	mx_status_code = mx_mutex_lock( soft_mce->monitor_thread_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"the attempt to lock the monitor_thread_mutex for "
+		"soft MCE record '%s' failed.", record->name );
+	}
+
+	/* Now that we have locked the mutex, we can set the
+	 * monitor status to idle.
+	 */
+
+	mx_atomic_write32( &(soft_mce->monitor_status), MXS_SOFT_MCE_STAT_IDLE);
+
+	monitor_loop_counter = 0;
+
+#if MXD_SOFT_MCE_DEBUG_MONITOR_THREAD
+	MX_DEBUG(-2,("%s %p [%lu]: MCE '%s' entering event loop.",
+		fname, mx_get_current_thread_pointer(),
+		monitor_loop_counter, record->name));
+#endif
+
+	while (TRUE) {
+
+		monitor_loop_counter++;
+
+		/* Wait on the condition variable. */
+
+		while ( soft_mce->monitor_command == MXS_SOFT_MCE_CMD_NONE ) {
+			mx_status = mx_condition_variable_wait(
+					soft_mce->monitor_thread_cv,
+					soft_mce->monitor_thread_mutex );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
+#if MXD_SOFT_MCE_DEBUG_MONITOR_THREAD
+		MX_DEBUG(-2,("%s %p [%lu]: '%s' command = %ld",
+			fname, mx_get_current_thread_pointer(),
+			monitor_loop_counter, record->name,
+			(long) soft_mce->monitor_command));
+#endif
+
+		switch( soft_mce->monitor_command ) {
+		case MXS_SOFT_MCE_CMD_NONE:
+			/* No command was requested, so do not do anything. */
+			break;
+		case MXS_SOFT_MCE_CMD_START:
+			mx_atomic_write32(
+			    &(soft_mce->monitor_last_measurement_number), -1 );
+
+			mx_atomic_write32( &(soft_mce->monitor_status),
+						MXS_SOFT_MCE_STAT_ACQUIRING );
+
+			mx_status = mx_interval_timer_start(
+					soft_mce->measurement_timer,
+					soft_mce->internal_measurement_time );
+			break;
+		case MXS_SOFT_MCE_CMD_STOP:
+			mx_status = mx_interval_timer_stop(
+					soft_mce->measurement_timer, NULL );
+
+			mx_atomic_write32( &(soft_mce->monitor_status),
+						MXS_SOFT_MCE_STAT_IDLE );
+			break;
+		case MXS_SOFT_MCE_CMD_CLEAR:
+			mx_status = mx_interval_timer_stop(
+					soft_mce->measurement_timer, NULL );
+
+			for ( i = 0; i < mce->maximum_num_values; i++ ) {
+				mce->value_array[i] = 0.0;
+			}
+
+			mx_atomic_write32( &(soft_mce->monitor_status),
+						MXS_SOFT_MCE_STAT_IDLE );
+			break;
+		case MXS_SOFT_MCE_CMD_READ_MOTOR:
+			/* First check to see if we have reached the
+			 * end of the array and stop if we have.
+			 */
+
+			n = mx_atomic_read32(
+				&(soft_mce->monitor_last_measurement_number) );
+
+			if ( (n+1) >= mce->current_num_values ) {
+				mx_status = mx_interval_timer_stop(
+					soft_mce->measurement_timer, NULL );
+
+				mx_atomic_write32( &(soft_mce->monitor_status),
+						MXS_SOFT_MCE_STAT_IDLE );
+
+				break;
+			}
+
+			/* If we are not yet at the end of the array,
+			 * increment the array index and write a new
+			 * value there.
+			 */
+
+			i = mx_atomic_increment32(
+				&(soft_mce->monitor_last_measurement_number) );
+
+			/* WARNING:
+			 * We cannot call mx_motor_get_position() here
+			 * because we are not in the main thread.
+			 * Instead, we just read the value most recently
+			 * written to motor->position.  This read is
+			 * _NOT_ guaranteed to be atomic, but probably
+			 * is anyway on x86 and amd64, however probably
+			 * not on arm.  Because of this, the 'soft_mce'
+			 * driver is not really suitable for use in
+			 * _real_ experiments.
+			 */
+
+			if ( soft_motor != NULL ) {
+				/* 'soft_motor' records are a special case,
+				 * since we have to call that driver's
+				 * dead reckoning function.
+				 */
+
+				mx_status = mx_dead_reckoning_predict_motion(
+						&(soft_motor->dead_reckoning),
+						NULL, NULL );
+			}
+
+			mce->value_array[i] = motor->position;
+
+#if MXD_SOFT_MCE_DEBUG_MONITOR_THREAD
+			MX_DEBUG(-2,("%s %p [%lu]: '%s' value_array[%lu] = %f",
+				fname, mx_get_current_thread_pointer(),
+				monitor_loop_counter, record->name,
+				i, mce->value_array[i]));
+#endif
+			break;
+		default:
+			(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+				"Unsupported command %ld requested "
+				"for soft MCE '%s' monitor thread.",
+					(long) soft_mce->monitor_command,
+					record->name );
+			break;
+		}
+
+		soft_mce->monitor_command = MXS_SOFT_MCE_CMD_NONE;
+
+#if MXD_SOFT_MCE_DEBUG_MONITOR_THREAD
+		MX_DEBUG(-2,("%s %p [%lu]: '%s' status = %ld",
+			fname, mx_get_current_thread_pointer(),
+			monitor_loop_counter, record->name,
+			(long) soft_mce->monitor_status));
+#endif
+	}
 }
 
 /*------------------------------------------------------------------*/
@@ -501,8 +610,8 @@ mxd_soft_mce_open( MX_RECORD *record )
 
 	/*-----------------------------------------------------------------*/
 
-	soft_mce->monitor_command = MXS_SOFT_MCE_IDLE;
-	soft_mce->monitor_status  = MXS_SOFT_MCE_NOT_INITIALIZED;
+	soft_mce->monitor_command = MXS_SOFT_MCE_CMD_NONE;
+	soft_mce->monitor_status  = MXS_SOFT_MCE_STAT_NOT_INITIALIZED;
 
 	soft_mce->monitor_last_measurement_number = -1;
 
@@ -534,7 +643,7 @@ mxd_soft_mce_open( MX_RECORD *record )
 
 	do {
 		test_value = mx_atomic_read32( &(soft_mce->monitor_status) );
-	} while ( test_value == MXS_SOFT_MCE_NOT_INITIALIZED );
+	} while ( test_value == MXS_SOFT_MCE_STAT_NOT_INITIALIZED );
 
 	/*-----------------------------------------------------------------*/
 
@@ -643,7 +752,7 @@ mxd_soft_mce_get_status( MX_MCE *mce )
 
 	monitor_thread_status = mx_atomic_read32( &(soft_mce->monitor_status) );
 
-	if ( monitor_thread_status == MXS_SOFT_MCE_IDLE ) {
+	if ( monitor_thread_status == MXS_SOFT_MCE_STAT_IDLE ) {
 		mce->status = 0;
 	} else {
 		mce->status = 0x1;
@@ -669,8 +778,8 @@ mxd_soft_mce_start( MX_MCE *mce )
 	MX_DEBUG(-2,("%s invoked for MCE '%s'", fname, mce->record->name));
 #endif
 
-	mx_status =  mxd_soft_mce_send_command_to_monitor_thread(
-					soft_mce, MXS_SOFT_MCE_START );
+	mx_status = mxd_soft_mce_send_command_to_monitor_thread(
+					soft_mce, MXS_SOFT_MCE_CMD_START );
 
 	return mx_status;
 }
@@ -692,8 +801,8 @@ mxd_soft_mce_stop( MX_MCE *mce )
 	MX_DEBUG(-2,("%s invoked for MCE '%s'", fname, mce->record->name));
 #endif
 
-	mx_status =  mxd_soft_mce_send_command_to_monitor_thread(
-					soft_mce, MXS_SOFT_MCE_STOP );
+	mx_status = mxd_soft_mce_send_command_to_monitor_thread(
+					soft_mce, MXS_SOFT_MCE_CMD_STOP );
 
 	return mx_status;
 }
@@ -715,8 +824,8 @@ mxd_soft_mce_clear( MX_MCE *mce )
 	MX_DEBUG(-2,("%s invoked for MCE '%s'", fname, mce->record->name));
 #endif
 
-	mx_status =  mxd_soft_mce_send_command_to_monitor_thread(
-					soft_mce, MXS_SOFT_MCE_CLEAR );
+	mx_status = mxd_soft_mce_send_command_to_monitor_thread(
+					soft_mce, MXS_SOFT_MCE_CMD_CLEAR );
 
 	return mx_status;
 }
@@ -762,8 +871,8 @@ mxd_soft_mce_get_parameter( MX_MCE *mce )
 	MX_DEBUG(-2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
 		fname, mce->record->name,
 		mx_get_field_label_string( mce->record, mce->parameter_type ),
-#endif
 		mce->parameter_type ));
+#endif
 
 	switch( mce->parameter_type ) {
 	case MXLV_MCE_MEASUREMENT_TIME:
@@ -808,6 +917,12 @@ mxd_soft_mce_set_parameter( MX_MCE *mce )
 
 	switch( mce->parameter_type ) {
 	case MXLV_MCE_MEASUREMENT_TIME:
+		/* We cannot put a mutex lock around writes to the
+		 * mce->measurement_time value.  However, we can create
+		 * a new variable soft_mce->internal_measurement_time
+		 * and wrap a mutex lock around writes to _that_.
+		 */
+
 		mx_status_code =
 			mx_mutex_lock( soft_mce->monitor_thread_mutex );
 
@@ -817,14 +932,7 @@ mxd_soft_mce_set_parameter( MX_MCE *mce )
 			"soft MCE '%s' failed.", mce->record->name );
 		}
 
-		if ( mce->measurement_time > 0.0 ) {
-			soft_mce->measurement_interval_ticks =
-				mx_convert_seconds_to_clock_ticks(
-					mce->measurement_time );
-		} else {
-			soft_mce->measurement_interval_ticks =
-				mx_convert_seconds_to_clock_ticks( 0.0 );
-		}
+		soft_mce->internal_measurement_time = mce->measurement_time;
 
 		mx_status_code =
 			mx_mutex_unlock( soft_mce->monitor_thread_mutex );

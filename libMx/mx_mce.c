@@ -878,10 +878,12 @@ mx_mce_default_get_parameter_handler( MX_MCE *mce )
 {
 	static const char fname[] = "mx_mce_default_get_parameter_handler()";
 
+#if 0
 	MX_DEBUG(-2,("%s invoked for MCE '%s', parameter type '%s' (%ld).",
 		fname, mce->record->name,
 		mx_get_field_label_string( mce->record, mce->parameter_type ),
 		mce->parameter_type ));
+#endif
 
 	switch( mce->parameter_type ) {
 	case MXLV_MCE_USE_WINDOW:
@@ -916,10 +918,12 @@ mx_mce_default_set_parameter_handler( MX_MCE *mce )
 {
 	static const char fname[] = "mx_mce_default_set_parameter_handler()";
 
+#if 0
 	MX_DEBUG(-2,("%s invoked for MCE '%s', parameter type '%s' (%ld).",
 		fname, mce->record->name,
 		mx_get_field_label_string( mce->record, mce->parameter_type ),
 		mce->parameter_type ));
+#endif
 
 	switch( mce->parameter_type ) {
 	case MXLV_MCE_WINDOW:

@@ -34,18 +34,21 @@ typedef struct {
 	MX_CONDITION_VARIABLE *monitor_thread_cv;
 	MX_MUTEX *monitor_thread_mutex;
 
-	MX_CLOCK_TICK measurement_interval_ticks;
-	MX_CLOCK_TICK next_measurement_tick;
+	MX_INTERVAL_TIMER *measurement_timer;
+	double internal_measurement_time;
 } MX_SOFT_MCE;
 
 /* Values for 'monitor_command' and 'monitor_status' */
 
-#define MXS_SOFT_MCE_NOT_INITIALIZED	(-1)
-#define MXS_SOFT_MCE_IDLE		0
-#define MXS_SOFT_MCE_START		1
-#define MXS_SOFT_MCE_STOP		2
-#define MXS_SOFT_MCE_CLEAR		3
-#define MXS_SOFT_MCE_ACQUIRING		4
+#define MXS_SOFT_MCE_CMD_NONE		0
+#define MXS_SOFT_MCE_CMD_START		1
+#define MXS_SOFT_MCE_CMD_STOP		2
+#define MXS_SOFT_MCE_CMD_CLEAR		3
+#define MXS_SOFT_MCE_CMD_READ_MOTOR	4
+
+#define MXS_SOFT_MCE_STAT_NOT_INITIALIZED	(-1)
+#define MXS_SOFT_MCE_STAT_IDLE			0
+#define MXS_SOFT_MCE_STAT_ACQUIRING		1
 
 #define MXD_SOFT_MCE_STANDARD_FIELDS \
   {-1, -1, "motor_record", MXFT_RECORD, NULL, 0, {0}, \

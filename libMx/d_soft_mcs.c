@@ -16,7 +16,7 @@
  *
  */
 
-#define MXD_SOFT_MCS_DEBUG	TRUE
+#define MXD_SOFT_MCS_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -221,9 +221,7 @@ mxd_soft_mcs_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_soft_mcs_open( MX_RECORD *record )
 {
-#if MXD_SOFT_MCS_DEBUG
 	static const char fname[] = "mxd_soft_mcs_open()";
-#endif
 
 	MX_MCS *mcs = NULL;
 	MX_SOFT_MCS *soft_mcs = NULL;
