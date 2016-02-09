@@ -19,6 +19,8 @@
 
 #define MXD_NETWORK_MCE_DEBUG_READ_MEASUREMENT	FALSE
 
+#define MXD_NETWORK_MCE_DEBUG_PARAMETERS	FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -796,10 +798,12 @@ mxd_network_mce_get_parameter( MX_MCE *mce )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXD_NETWORK_MCE_DEBUG_PARAMETERS
 	MX_DEBUG(-2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
 		fname, mce->record->name,
 		mx_get_field_label_string( mce->record, mce->parameter_type ),
 		mce->parameter_type ));
+#endif
 
 	switch( mce->parameter_type ) {
 	case MXLV_MCE_USE_WINDOW:
@@ -850,10 +854,12 @@ mxd_network_mce_set_parameter( MX_MCE *mce )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXD_NETWORK_MCE_DEBUG_PARAMETERS
 	MX_DEBUG(-2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
 		fname, mce->record->name,
 		mx_get_field_label_string( mce->record, mce->parameter_type ),
 		mce->parameter_type ));
+#endif
 
 	switch( mce->parameter_type ) {
 	case MXLV_MCE_USE_WINDOW:
