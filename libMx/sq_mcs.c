@@ -137,6 +137,10 @@ mxs_mcs_quick_scan_free_arrays( MX_SCAN *scan,
 
 		mx_free( mcs_quick_scan->real_motor_record_array );
 		mx_free( mcs_quick_scan->mce_record_array );
+
+		mcs_quick_scan->motor_position_array = NULL;
+		mcs_quick_scan->real_motor_record_array = NULL;
+		mcs_quick_scan->mce_record_array = NULL;
 	}
 
 	if ( scan != (MX_SCAN *) NULL ) {
