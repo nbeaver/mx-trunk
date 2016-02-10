@@ -97,18 +97,46 @@ mxs_mcs_quick_scan_free_arrays( MX_SCAN *scan,
 	 * a NULL pointer to them.
 	 */
 
+	/* WARNING: Some of the array pointers found in MX_MCS_QUICK_SCAN
+	 * are allocated in mxs_mcs_quick_scan_prepare_for_scan_start()
+	 * and should be freed by this function.  The rest of these pointers
+	 * are allocated in mxs_mcs_quick_scan_finish_record_initialization()
+	 * and should _NOT_ be freed here.
+	 * 
+	 * As of 2016-02-09, the array pointers are as follows:
+	 *
+	 * Allocated by mxs_mcs_quick_scan_prepare_for_scan_start()
+	 * and should be freed here:
+	 *
+	 *   mcs_quick_scan->motor_position_array
+	 *   mcs_quick_scan->real_motor_record_array
+	 *   mcs_quick_scan->mce_record_array
+	 *
+	 * Allocated by mxs_mcs_quick_scan_finish_record_initialization()
+	 * and should __NOT__ be freed here:
+	 *
+	 *   mcs_quick_scan->mcs_record_array
+	 *   mcs_quick_scan->real_start_position
+	 *   mcs_quick_scan->real_end_position
+	 *   mcs_quick_scan->backlash_position
+	 *   mcs_quick_scan->use_window
+	 *   mcs_quick_scan->window
+	 *   mcs_quick_scan->mcs_measurement_offset
+	 *
+	 * In earlier versions of the code, if you freed array pointers here
+	 * that should not be freed here, the symptom was that a given instance
+	 * of an MX client program such as mxmotor could only run a given quick
+	 * scan _once_.  To recover, you had to exit the program and reenter it.
+	 *
+	 * This problem was introduced in SVN revision 3138 and fixed in
+	 * SVN revision 3357.  (W. Lavender, 2016-02-09)
+	 */
+
 	if ( mcs_quick_scan != (MX_MCS_QUICK_SCAN *) NULL ) {
 		(void) mx_free_array( mcs_quick_scan->motor_position_array );
 
 		mx_free( mcs_quick_scan->real_motor_record_array );
 		mx_free( mcs_quick_scan->mce_record_array );
-		mx_free( mcs_quick_scan->mcs_record_array );
-		mx_free( mcs_quick_scan->real_start_position );
-		mx_free( mcs_quick_scan->real_end_position );
-		mx_free( mcs_quick_scan->backlash_position );
-		mx_free( mcs_quick_scan->use_window );
-
-		(void) mx_free_array( mcs_quick_scan->window );
 	}
 
 	if ( scan != (MX_SCAN *) NULL ) {
