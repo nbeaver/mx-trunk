@@ -8,7 +8,7 @@
  *
  *-----------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2006-2007, 2010 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006-2007, 2010, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -64,7 +64,7 @@ mxi_8255_get_pointers( MX_RECORD *record,
 				MX_8255 **i8255,
 				const char *calling_fname )
 {
-	const char fname[] = "mxi_8255_get_pointers()";
+	static const char fname[] = "mxi_8255_get_pointers()";
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -93,7 +93,7 @@ mxi_8255_get_pointers( MX_RECORD *record,
 MX_EXPORT mx_status_type
 mxi_8255_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxi_8255_create_record_structures()";
+	static const char fname[] = "mxi_8255_create_record_structures()";
 
 	MX_GENERIC *generic;
 	MX_8255 *i8255;
@@ -138,7 +138,7 @@ mxi_8255_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_8255_open( MX_RECORD *record )
 {
-	const char fname[] = "mxi_8255_open()";
+	static const char fname[] = "mxi_8255_open()";
 
 	MX_8255 *i8255;
 	int i;
@@ -182,7 +182,7 @@ mxi_8255_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_8255_close( MX_RECORD *record )
 {
-	const char fname[] = "mxi_8255_close()";
+	static const char fname[] = "mxi_8255_close()";
 
 	MX_8255 *i8255;
 	mx_status_type mx_status;
@@ -209,7 +209,7 @@ mxi_8255_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_8255_finish_delayed_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxi_8255_finish_delayed_initialization()";
+	static const char fname[] = "mxi_8255_finish_delayed_initialization()";
 
 	MX_8255 *i8255;
 	mx_status_type mx_status;
@@ -238,7 +238,7 @@ mxi_8255_finish_delayed_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_8255_read_port( MX_8255 *i8255, int port_number, uint8_t *value )
 {
-	const char fname[] = "mxi_8255_read_port()";
+	static const char fname[] = "mxi_8255_read_port()";
 
 	unsigned long port_address;
 	int port_to_read;
@@ -302,7 +302,7 @@ mxi_8255_read_port( MX_8255 *i8255, int port_number, uint8_t *value )
 MX_EXPORT mx_status_type
 mxi_8255_write_port( MX_8255 *i8255, int port_number, uint8_t value )
 {
-	const char fname[] = "mxi_8255_write_port()";
+	static const char fname[] = "mxi_8255_write_port()";
 
 	unsigned long port_address;
 	int port_to_write;

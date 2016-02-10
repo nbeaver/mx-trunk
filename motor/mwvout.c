@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008-2009, 2011, 2015 Illinois Institute of Technology
+ * Copyright 2008-2009, 2011, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -737,7 +737,7 @@ motor_wvout_display_plot( MX_RECORD *wvout_record,
 				MX_WAVEFORM_OUTPUT *wvout,
 				unsigned long channel_number )
 {
-	const char fname[] = "motor_wvout_display_plot()";
+	static const char fname[] = "motor_wvout_display_plot()";
 
 	MX_LIST_HEAD *list_head;
 	FILE *plotgnu_pipe;
@@ -843,7 +843,7 @@ motor_wvout_display_plot( MX_RECORD *wvout_record,
 static int
 motor_wvout_display_all( MX_RECORD *wvout_record, MX_WAVEFORM_OUTPUT *wvout )
 {
-	const char fname[] = "motor_wvout_display_all()";
+	static const char fname[] = "motor_wvout_display_all()";
 
 	MX_LIST_HEAD *list_head;
 	FILE *plotgnu_pipe;

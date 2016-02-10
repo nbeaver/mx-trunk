@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2015 Illinois Institute of Technology
+ * Copyright 1999-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -5032,7 +5032,7 @@ MX_EXPORT mx_status_type
 mx_motor_get_real_motor_record( MX_RECORD *pseudomotor_record,
 					MX_RECORD **real_motor_record )
 {
-	const char fname[] = "mx_motor_get_real_motor_record()";
+	static const char fname[] = "mx_motor_get_real_motor_record()";
 
 	MX_MOTOR *pseudomotor;
 	MX_RECORD *next_level_real_motor_record;

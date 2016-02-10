@@ -9,7 +9,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2004-2006, 2010, 2012, 2015 Illinois Institute of Technology
+ * Copyright 2002, 2004-2006, 2010, 2012, 2015-2016
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -85,7 +86,7 @@ mxd_scipe_ain_get_pointers( MX_ANALOG_INPUT *ainput,
 			MX_SCIPE_SERVER **scipe_server,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_scipe_ain_get_pointers()";
+	static const char fname[] = "mxd_scipe_ain_get_pointers()";
 
 	MX_RECORD *scipe_server_record;
 
@@ -155,7 +156,7 @@ mxd_scipe_aout_get_pointers( MX_ANALOG_OUTPUT *aoutput,
 			MX_SCIPE_SERVER **scipe_server,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_scipe_aout_get_pointers()";
+	static const char fname[] = "mxd_scipe_aout_get_pointers()";
 
 	MX_RECORD *scipe_server_record;
 
@@ -225,7 +226,7 @@ mxd_scipe_aout_get_pointers( MX_ANALOG_OUTPUT *aoutput,
 MX_EXPORT mx_status_type
 mxd_scipe_ain_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_scipe_ain_create_record_structures()";
+        static const char fname[] = "mxd_scipe_ain_create_record_structures()";
 
         MX_ANALOG_INPUT *analog_input;
         MX_SCIPE_AINPUT *scipe_ainput;
@@ -266,7 +267,7 @@ mxd_scipe_ain_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_scipe_ain_read( MX_ANALOG_INPUT *ainput )
 {
-	const char fname[] = "mxd_scipe_ain_read()";
+	static const char fname[] = "mxd_scipe_ain_read()";
 
 	MX_SCIPE_AINPUT *scipe_ainput;
 	MX_SCIPE_SERVER *scipe_server;
@@ -324,7 +325,7 @@ mxd_scipe_ain_read( MX_ANALOG_INPUT *ainput )
 MX_EXPORT mx_status_type
 mxd_scipe_aout_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_scipe_aout_create_record_structures()";
+        static const char fname[] = "mxd_scipe_aout_create_record_structures()";
 
         MX_ANALOG_OUTPUT *analog_output;
         MX_SCIPE_AOUTPUT *scipe_aoutput;
@@ -366,7 +367,7 @@ mxd_scipe_aout_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_scipe_aout_read( MX_ANALOG_OUTPUT *aoutput )
 {
-	const char fname[] = "mxd_scipe_aout_read()";
+	static const char fname[] = "mxd_scipe_aout_read()";
 
 	MX_SCIPE_AOUTPUT *scipe_aoutput;
 	MX_SCIPE_SERVER *scipe_server;
@@ -417,7 +418,7 @@ mxd_scipe_aout_read( MX_ANALOG_OUTPUT *aoutput )
 MX_EXPORT mx_status_type
 mxd_scipe_aout_write( MX_ANALOG_OUTPUT *aoutput )
 {
-	const char fname[] = "mxd_scipe_aout_write()";
+	static const char fname[] = "mxd_scipe_aout_write()";
 
 	MX_SCIPE_AOUTPUT *scipe_aoutput;
 	MX_SCIPE_SERVER *scipe_server;

@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2006, 2009-2011, 2013, 2015
+ * Copyright 1999-2001, 2004-2006, 2009-2011, 2013, 2015-2016
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -49,7 +49,8 @@ motor_setup_area_detector_scan_parameters(
 	char *measurement_parameters_string,
 	char *datafile_and_plot_parameters_string )
 {
-	const char fname[] = "motor_setup_area_detector_scan_parameters()";
+	static const char fname[] =
+			"motor_setup_area_detector_scan_parameters()";
 
 	MX_RECORD *record;
 	MX_MOTOR *motor;

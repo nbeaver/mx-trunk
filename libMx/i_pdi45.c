@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2006, 2010-2011, 2015
+ * Copyright 1999, 2001, 2003-2006, 2010-2011, 2015-2016
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -61,7 +61,7 @@ static mx_status_type mxi_pdi45_get_error_code( char *buffer, int *error_code );
 MX_EXPORT mx_status_type
 mxi_pdi45_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxi_pdi45_create_record_structures()";
+	static const char fname[] = "mxi_pdi45_create_record_structures()";
 
 	MX_PDI45 *pdi45;
 
@@ -91,7 +91,7 @@ mxi_pdi45_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_pdi45_open( MX_RECORD *record )
 {
-	const char fname[] = "mxi_pdi45_open()";
+	static const char fname[] = "mxi_pdi45_open()";
 
 	MX_PDI45 *pdi45;
 	MX_RS232 *rs232;
@@ -336,7 +336,7 @@ mxi_pdi45_command( MX_PDI45 *pdi45,
 			char *response,
 			size_t response_length )
 {
-	const char fname[] = "mxi_pdi45_command()";
+	static const char fname[] = "mxi_pdi45_command()";
 
 	char read_buffer[MX_PDI45_COMMAND_LENGTH+1];
 	char write_buffer[MX_PDI45_COMMAND_LENGTH+1];
@@ -501,7 +501,7 @@ mxi_pdi45_checksum( MX_PDI45 *pdi45,
 static mx_status_type
 mxi_pdi45_check_checksum( char *response )
 {
-	const char fname[] = "mxi_pdi45_check_checksum()";
+	static const char fname[] = "mxi_pdi45_check_checksum()";
 
 	int i, num_chars, num_items;
 	int returned_checksum, computed_checksum;
@@ -570,7 +570,7 @@ mxi_pdi45_check_checksum( char *response )
 static mx_status_type
 mxi_pdi45_get_error_code( char *buffer, int *error_code )
 {
-	const char fname[] = "mxi_pdi45_get_error_code()";
+	static const char fname[] = "mxi_pdi45_get_error_code()";
 
 	char error_string[3];
 	int num_items, code;

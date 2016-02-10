@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2012 Illinois Institute of Technology
+ * Copyright 1999-2001, 2012, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,7 +28,7 @@ mx_encoder_get_pointers( MX_RECORD *encoder_record,
 			MX_ENCODER_FUNCTION_LIST **function_list_ptr,
 			const char *calling_fname )
 {
-	const char fname[] = "mx_encoder_get_pointers()";
+	static const char fname[] = "mx_encoder_get_pointers()";
 
 	if ( encoder_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -75,7 +75,7 @@ MX_EXPORT mx_status_type
 mx_encoder_get_overflow_status( MX_RECORD *encoder_record,
 		int *underflow_set, int *overflow_set )
 {
-	const char fname[] = "mx_encoder_get_overflow_status()";
+	static const char fname[] = "mx_encoder_get_overflow_status()";
 
 	MX_ENCODER *encoder;
 	MX_ENCODER_FUNCTION_LIST *function_list;
@@ -107,7 +107,7 @@ mx_encoder_get_overflow_status( MX_RECORD *encoder_record,
 MX_EXPORT mx_status_type
 mx_encoder_reset_overflow_status( MX_RECORD *encoder_record )
 {
-	const char fname[] = "mx_encoder_reset_overflow_status()";
+	static const char fname[] = "mx_encoder_reset_overflow_status()";
 
 	MX_ENCODER *encoder;
 	MX_ENCODER_FUNCTION_LIST *function_list;
@@ -136,7 +136,7 @@ mx_encoder_reset_overflow_status( MX_RECORD *encoder_record )
 MX_EXPORT mx_status_type
 mx_encoder_read( MX_RECORD *encoder_record, long *value )
 {
-	const char fname[] = "mx_encoder_read()";
+	static const char fname[] = "mx_encoder_read()";
 
 	MX_ENCODER *encoder;
 	MX_ENCODER_FUNCTION_LIST *function_list;
@@ -167,7 +167,7 @@ mx_encoder_read( MX_RECORD *encoder_record, long *value )
 MX_EXPORT mx_status_type
 mx_encoder_write( MX_RECORD *encoder_record, long value )
 {
-	const char fname[] = "mx_encoder_write()";
+	static const char fname[] = "mx_encoder_write()";
 
 	MX_ENCODER *encoder;
 	MX_ENCODER_FUNCTION_LIST *function_list;

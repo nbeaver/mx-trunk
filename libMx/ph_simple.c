@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2005-2007 Illinois Institute of Technology
+ * Copyright 2001, 2005-2007, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -39,7 +39,7 @@ mxph_simple_get_pointers( MX_MEASUREMENT_PERMIT *permit_handler,
 			MX_SIMPLE_MEASUREMENT_PERMIT **simple_permit_struct,
 			const char *calling_fname )
 {
-	const char fname[] = "mxph_simple_get_pointers()";
+	static const char fname[] = "mxph_simple_get_pointers()";
 
 	if ( permit_handler == (MX_MEASUREMENT_PERMIT *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -72,7 +72,7 @@ mxph_simple_create_handler( MX_MEASUREMENT_PERMIT **permit_handler,
 				void *permit_driver_ptr, void *scan_ptr,
 				char *description )
 {
-	const char fname[] = "mxph_simple_create_handler()";
+	static const char fname[] = "mxph_simple_create_handler()";
 
 	MX_MEASUREMENT_PERMIT_DRIVER *permit_driver;
 	MX_MEASUREMENT_PERMIT *permit_handler_ptr;
@@ -207,7 +207,7 @@ mxph_simple_create_handler( MX_MEASUREMENT_PERMIT **permit_handler,
 MX_EXPORT mx_status_type
 mxph_simple_destroy_handler( MX_MEASUREMENT_PERMIT *permit_handler )
 {
-	const char fname[] = "mxph_simple_destroy_handler()";
+	static const char fname[] = "mxph_simple_destroy_handler()";
 
 	MX_SIMPLE_MEASUREMENT_PERMIT *simple_permit_struct;
 	mx_status_type mx_status;
@@ -238,7 +238,7 @@ mxph_simple_destroy_handler( MX_MEASUREMENT_PERMIT *permit_handler )
 MX_EXPORT mx_status_type
 mxph_simple_check_for_permission( MX_MEASUREMENT_PERMIT *permit_handler )
 {
-	const char fname[] = "mxph_simple_check_for_permission()";
+	static const char fname[] = "mxph_simple_check_for_permission()";
 
 	MX_SIMPLE_MEASUREMENT_PERMIT *simple_permit_struct;
 	MX_RECORD *permit_record;

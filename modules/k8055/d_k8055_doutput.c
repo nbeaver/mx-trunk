@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013 Illinois Institute of Technology
+ * Copyright 2013, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -88,7 +88,7 @@ mxd_k8055_doutput_get_pointers( MX_DIGITAL_OUTPUT *doutput,
 MX_EXPORT mx_status_type
 mxd_k8055_doutput_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] =
+        static const char fname[] =
 		"mxd_k8055_doutput_create_record_structures()";
 
         MX_DIGITAL_OUTPUT *digital_output;

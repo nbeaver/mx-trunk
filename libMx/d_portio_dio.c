@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2006, 2008, 2010, 2012 Illinois Institute of Technology
+ * Copyright 2002, 2006, 2008, 2010, 2012, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -159,7 +159,7 @@ mxd_portio_dout_get_pointers( MX_DIGITAL_OUTPUT *doutput,
 MX_EXPORT mx_status_type
 mxd_portio_din_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_portio_din_create_record_structures()";
+        static const char fname[] = "mxd_portio_din_create_record_structures()";
 
         MX_DIGITAL_INPUT *digital_input;
         MX_PORTIO_DINPUT *portio_dinput;
@@ -303,7 +303,7 @@ mxd_portio_din_read( MX_DIGITAL_INPUT *dinput )
 MX_EXPORT mx_status_type
 mxd_portio_dout_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_portio_dout_create_record_structures()";
+        static const char fname[] = "mxd_portio_dout_create_record_structures()";
 
         MX_DIGITAL_OUTPUT *digital_output;
         MX_PORTIO_DOUTPUT *portio_doutput;

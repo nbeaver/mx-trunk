@@ -7,7 +7,8 @@
  *
  *-----------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2005-2006, 2009 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2005-2006, 2009, 2016
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -209,7 +210,7 @@ static int
 motor_copy_scan_record( MX_RECORD *old_scan_record,
 			MX_RECORD **new_scan_record, char *new_scan_name )
 {
-	const char fname[] = "motor_copy_scan_record()";
+	static const char fname[] = "motor_copy_scan_record()";
 
 	MX_RECORD *record;
 	static char old_scan_description[MXU_RECORD_DESCRIPTION_LENGTH+1];

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2006, 2010, 2015 Illinois Institute of Technology
+ * Copyright 2004-2006, 2010, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -189,7 +189,7 @@ mxv_spec_get_pointers( MX_VARIABLE *variable,
 			MX_SPEC_SERVER **spec_server,
 			const char *calling_fname )
 {
-	const char fname[] = "mxv_spec_get_pointers()";
+	static const char fname[] = "mxv_spec_get_pointers()";
 
 	MX_RECORD *spec_server_record;
 	MX_SPEC_PROPERTY *spec_property_ptr;
@@ -241,7 +241,7 @@ mxv_spec_get_pointers( MX_VARIABLE *variable,
 MX_EXPORT mx_status_type
 mxv_spec_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxv_spec_create_record_structures()";
+	static const char fname[] = "mxv_spec_create_record_structures()";
 
 	MX_VARIABLE *variable_struct;
 	MX_SPEC_PROPERTY *spec_property;

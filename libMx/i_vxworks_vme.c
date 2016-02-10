@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2003, 2006, 2010 Illinois Institute of Technology
+ * Copyright 2003, 2006, 2010, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -135,7 +135,7 @@ mxi_vxworks_vme_get_pointers( MX_VME *vme,
 			MX_VXWORKS_VME **vxworks_vme,
 			const char calling_fname[] )
 {
-	const char fname[] = "mxi_vxworks_vme_get_pointers()";
+	static const char fname[] = "mxi_vxworks_vme_get_pointers()";
 
 	if ( vme == (MX_VME *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -171,7 +171,8 @@ mxi_vxworks_vme_get_pointers( MX_VME *vme,
 MX_EXPORT mx_status_type
 mxi_vxworks_vme_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxi_vxworks_vme_create_record_structures()";
+	static const char fname[] =
+			"mxi_vxworks_vme_create_record_structures()";
 
 	MX_VME *vme;
 	MX_VXWORKS_VME *vxworks_vme;
@@ -217,7 +218,7 @@ mxi_vxworks_vme_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_vxworks_vme_print_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxi_vxworks_vme_print_structure()";
+	static const char fname[] = "mxi_vxworks_vme_print_structure()";
 
 	MX_VME *vme;
 	MX_VXWORKS_VME *vxworks_vme;
@@ -246,7 +247,7 @@ mxi_vxworks_vme_print_structure( FILE *file, MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_vxworks_vme_open( MX_RECORD *record )
 {
-	const char fname[] = "mxi_vxworks_vme_open()";
+	static const char fname[] = "mxi_vxworks_vme_open()";
 
 	MX_VME *vme;
 	MX_VXWORKS_VME *vxworks_vme;
@@ -270,7 +271,7 @@ mxi_vxworks_vme_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_vxworks_vme_close( MX_RECORD *record )
 {
-	const char fname[] = "mxi_vxworks_vme_close()";
+	static const char fname[] = "mxi_vxworks_vme_close()";
 
 	MX_VME *vme;
 	MX_VXWORKS_VME *vxworks_vme;
@@ -294,7 +295,7 @@ mxi_vxworks_vme_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_vxworks_vme_resynchronize( MX_RECORD *record )
 {
-	const char fname[] = "mxi_vxworks_vme_resynchronize()";
+	static const char fname[] = "mxi_vxworks_vme_resynchronize()";
 
 	MX_VME *vme;
 	MX_VXWORKS_VME *vxworks_vme;
@@ -320,7 +321,7 @@ mxi_vxworks_vme_resynchronize( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_vxworks_vme_input( MX_VME *vme )
 {
-	const char fname[] = "mxi_vxworks_vme_input()";
+	static const char fname[] = "mxi_vxworks_vme_input()";
 
 	MX_VXWORKS_VME *vxworks_vme;
 	int address_space;
@@ -399,7 +400,7 @@ mxi_vxworks_vme_input( MX_VME *vme )
 MX_EXPORT mx_status_type
 mxi_vxworks_vme_output( MX_VME *vme )
 {
-	const char fname[] = "mxi_vxworks_vme_output()";
+	static const char fname[] = "mxi_vxworks_vme_output()";
 
 	MX_VXWORKS_VME *vxworks_vme;
 	int address_space;
@@ -478,7 +479,7 @@ mxi_vxworks_vme_output( MX_VME *vme )
 MX_EXPORT mx_status_type
 mxi_vxworks_vme_multi_input( MX_VME *vme )
 {
-	const char fname[] = "mxi_vxworks_vme_multi_input()";
+	static const char fname[] = "mxi_vxworks_vme_multi_input()";
 
 	MX_VXWORKS_VME *vxworks_vme;
 	STATUS vme_status;
@@ -601,7 +602,7 @@ mxi_vxworks_vme_multi_input( MX_VME *vme )
 MX_EXPORT mx_status_type
 mxi_vxworks_vme_multi_output( MX_VME *vme )
 {
-	const char fname[] = "mxi_vxworks_vme_multi_output()";
+	static const char fname[] = "mxi_vxworks_vme_multi_output()";
 
 	MX_VXWORKS_VME *vxworks_vme;
 	STATUS vme_status;
@@ -724,7 +725,7 @@ mxi_vxworks_vme_multi_output( MX_VME *vme )
 MX_EXPORT mx_status_type
 mxi_vxworks_vme_get_parameter( MX_VME *vme )
 {
-	const char fname[] = "mxi_vxworks_vme_get_parameter()";
+	static const char fname[] = "mxi_vxworks_vme_get_parameter()";
 
 	MX_VXWORKS_VME *vxworks_vme;
 	mx_status_type mx_status;
@@ -765,7 +766,7 @@ mxi_vxworks_vme_get_parameter( MX_VME *vme )
 MX_EXPORT mx_status_type
 mxi_vxworks_vme_set_parameter( MX_VME *vme )
 {
-	const char fname[] = "mxi_vxworks_vme_set_parameter()";
+	static const char fname[] = "mxi_vxworks_vme_set_parameter()";
 
 	MX_VXWORKS_VME *vxworks_vme;
 	mx_status_type mx_status;

@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2005-2006, 2011 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2005-2006, 2011, 2016
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -518,7 +519,7 @@ motor_get_string_from_list( FILE *file, char *prompt,
 		int default_string_number, int *string_length,
 		char *selected_string )
 {
-	const char fname[] = "motor_get_string_from_list()";
+	static const char fname[] = "motor_get_string_from_list()";
 
 	char real_prompt[120];
 	int i, status, length, valid_input, output_buffer_length;

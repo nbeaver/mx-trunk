@@ -11,7 +11,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2005-2006, 2014-2015
+ * Copyright 2000-2001, 2003, 2005-2006, 2014-2016
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -103,7 +103,7 @@ mx_install_syslog_handler( char *ident_string,
 				int log_number,
 				int log_options )
 {
-	const char fname[] = "mx_install_syslog_handler()";
+	static const char fname[] = "mx_install_syslog_handler()";
 
 	int syslog_facility, syslog_options;
 

@@ -8,7 +8,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2006, 2010, 2015 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003-2006, 2010, 2015-2016
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -75,7 +76,7 @@ mxd_databox_mcs_get_pointers( MX_MCS *mcs,
 			MX_DATABOX **databox,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_databox_mcs_get_pointers()";
+	static const char fname[] = "mxd_databox_mcs_get_pointers()";
 
 	MX_RECORD *databox_record;
 
@@ -157,7 +158,8 @@ mxd_databox_mcs_initialize_driver( MX_DRIVER *driver )
 MX_EXPORT mx_status_type
 mxd_databox_mcs_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_databox_mcs_create_record_structures()";
+	static const char fname[] =
+			"mxd_databox_mcs_create_record_structures()";
 
 	MX_MCS *mcs;
 	MX_DATABOX_MCS *databox_mcs;
@@ -193,7 +195,8 @@ mxd_databox_mcs_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_databox_mcs_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxd_databox_mcs_finish_record_initialization()";
+	static const char fname[] =
+			"mxd_databox_mcs_finish_record_initialization()";
 
 	MX_MCS *mcs;
 	MX_DATABOX_MCS *databox_mcs;
@@ -223,7 +226,7 @@ mxd_databox_mcs_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_databox_mcs_start( MX_MCS *mcs )
 {
-	const char fname[] = "mxd_databox_mcs_start()";
+	static const char fname[] = "mxd_databox_mcs_start()";
 
 	MX_DATABOX_MCS *databox_mcs;
 	MX_DATABOX *databox;
@@ -254,7 +257,7 @@ mxd_databox_mcs_start_sequence( MX_RECORD *mcs_record,
 				double destination,
 				int perform_move )
 {
-	const char fname[] = "mxd_databox_mcs_start_sequence()";
+	static const char fname[] = "mxd_databox_mcs_start_sequence()";
 
 	MX_MCS *mcs;
 	MX_DATABOX_MCS *databox_mcs;
@@ -411,7 +414,7 @@ mxd_databox_mcs_start_sequence( MX_RECORD *mcs_record,
 MX_EXPORT mx_status_type
 mxd_databox_mcs_stop( MX_MCS *mcs )
 {
-	const char fname[] = "mxd_databox_mcs_stop()";
+	static const char fname[] = "mxd_databox_mcs_stop()";
 
 	MX_DATABOX_MCS *databox_mcs;
 	MX_DATABOX *databox;
@@ -441,7 +444,7 @@ mxd_databox_mcs_stop( MX_MCS *mcs )
 MX_EXPORT mx_status_type
 mxd_databox_mcs_clear( MX_MCS *mcs )
 {
-	const char fname[] = "mxd_databox_mcs_clear()";
+	static const char fname[] = "mxd_databox_mcs_clear()";
 
 	MX_DATABOX_MCS *databox_mcs;
 	MX_DATABOX *databox;
@@ -482,7 +485,7 @@ mxd_databox_mcs_handle_busy_response( MX_MCS *mcs,
 					MX_DATABOX_MCS *databox_mcs,
 					MX_DATABOX *databox )
 {
-	const char fname[] = "mxd_databox_handle_busy_response()";
+	static const char fname[] = "mxd_databox_handle_busy_response()";
 
 	char response[100];
 	char *ptr;
@@ -663,7 +666,7 @@ mxd_databox_mcs_handle_busy_response( MX_MCS *mcs,
 MX_EXPORT mx_status_type
 mxd_databox_mcs_busy( MX_MCS *mcs )
 {
-	const char fname[] = "mxd_databox_mcs_busy()";
+	static const char fname[] = "mxd_databox_mcs_busy()";
 
 	MX_DATABOX_MCS *databox_mcs;
 	MX_DATABOX *databox;
@@ -828,7 +831,7 @@ mxd_databox_mcs_read_scaler( MX_MCS *mcs )
 MX_EXPORT mx_status_type
 mxd_databox_mcs_read_measurement( MX_MCS *mcs )
 {
-	const char fname[] = "mxd_databox_mcs_read_measurement()";
+	static const char fname[] = "mxd_databox_mcs_read_measurement()";
 
 	return mx_error( MXE_UNSUPPORTED, fname,
 	"This function is not supported for Databox multichannel scalers." );
@@ -847,7 +850,7 @@ mxd_databox_mcs_read_timer( MX_MCS *mcs )
 MX_EXPORT mx_status_type
 mxd_databox_mcs_get_parameter( MX_MCS *mcs )
 {
-	const char fname[] = "mxd_databox_mcs_get_parameter()";
+	static const char fname[] = "mxd_databox_mcs_get_parameter()";
 
 	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 		"This function is not yet implemented." );
@@ -856,7 +859,7 @@ mxd_databox_mcs_get_parameter( MX_MCS *mcs )
 MX_EXPORT mx_status_type
 mxd_databox_mcs_set_parameter( MX_MCS *mcs )
 {
-	const char fname[] = "mxd_databox_mcs_set_parameter()";
+	static const char fname[] = "mxd_databox_mcs_set_parameter()";
 
 	MX_DATABOX_MCS *databox_mcs;
 	MX_DATABOX *databox;

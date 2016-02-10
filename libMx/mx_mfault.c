@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2002, 2005, 2007 Illinois Institute of Technology
+ * Copyright 2001-2002, 2005, 2007, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,7 +34,7 @@ mx_measurement_fault_get_pointers( MX_MEASUREMENT_FAULT *fault_handler,
 			MX_MEASUREMENT_FAULT_FUNCTION_LIST **function_list,
 			const char *calling_fname )
 {
-	const char fname[] = "mx_measurement_fault_get_pointers()";
+	static const char fname[] = "mx_measurement_fault_get_pointers()";
 
 	if ( fault_handler == (MX_MEASUREMENT_FAULT *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -66,7 +66,7 @@ mx_measurement_fault_get_driver_by_name(
 			char *name,
 			MX_MEASUREMENT_FAULT_DRIVER **fault_driver )
 {
-	const char fname[] = "mx_measurement_fault_get_driver_by_name()";
+	static const char fname[] = "mx_measurement_fault_get_driver_by_name()";
 
 
 	char *list_name;
@@ -120,7 +120,7 @@ mx_measurement_fault_create_handler(
 			void *scan,
 			char *handler_description )
 {
-	const char fname[] = "mx_measurement_fault_create_handler()";
+	static const char fname[] = "mx_measurement_fault_create_handler()";
 
 	MX_MEASUREMENT_FAULT_DRIVER *fault_driver;
 	char driver_name[ MXU_MEASUREMENT_FAULT_DRIVER_NAME_LENGTH + 1 ];
@@ -201,7 +201,7 @@ mx_measurement_fault_create_handler(
 MX_EXPORT mx_status_type
 mx_measurement_fault_destroy_handler( MX_MEASUREMENT_FAULT *fault_handler )
 {
-	const char fname[] = "mx_measurement_fault_destroy_handler()";
+	static const char fname[] = "mx_measurement_fault_destroy_handler()";
 
 	MX_MEASUREMENT_FAULT_FUNCTION_LIST *function_list;
 	mx_status_type ( *fptr ) ( MX_MEASUREMENT_FAULT * );
@@ -235,7 +235,7 @@ mx_measurement_fault_check_for_fault(
 			MX_MEASUREMENT_FAULT *fault_handler,
 			int *fault_status )
 {
-	const char fname[] = "mx_measurement_fault_check_for_fault()";
+	static const char fname[] = "mx_measurement_fault_check_for_fault()";
 
 	MX_MEASUREMENT_FAULT_FUNCTION_LIST *function_list;
 	mx_status_type ( *fptr ) ( MX_MEASUREMENT_FAULT * );
@@ -282,7 +282,7 @@ MX_EXPORT mx_status_type
 mx_measurement_fault_reset( MX_MEASUREMENT_FAULT *fault_handler,
 				int reset_flags )
 {
-	const char fname[] = "mx_measurement_fault_reset()";
+	static const char fname[] = "mx_measurement_fault_reset()";
 
 	MX_MEASUREMENT_FAULT_FUNCTION_LIST *function_list;
 	mx_status_type ( *fptr ) ( MX_MEASUREMENT_FAULT * );

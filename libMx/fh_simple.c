@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001-2002, 2005-2007 Illinois Institute of Technology
+ * Copyright 2001-2002, 2005-2007, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -40,7 +40,7 @@ mxfh_simple_get_pointers( MX_MEASUREMENT_FAULT *fault_handler,
 			MX_SIMPLE_MEASUREMENT_FAULT **simple_fault_struct,
 			const char *calling_fname )
 {
-	const char fname[] = "mxfh_simple_get_pointers()";
+	static const char fname[] = "mxfh_simple_get_pointers()";
 
 	if ( fault_handler == (MX_MEASUREMENT_FAULT *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -73,7 +73,7 @@ mxfh_simple_create_handler( MX_MEASUREMENT_FAULT **fault_handler,
 				void *fault_driver_ptr, void *scan_ptr,
 				char *description )
 {
-	const char fname[] = "mxfh_simple_create_handler()";
+	static const char fname[] = "mxfh_simple_create_handler()";
 
 	MX_MEASUREMENT_FAULT_DRIVER *fault_driver;
 	MX_MEASUREMENT_FAULT *fault_handler_ptr;
@@ -262,7 +262,7 @@ mxfh_simple_create_handler( MX_MEASUREMENT_FAULT **fault_handler,
 MX_EXPORT mx_status_type
 mxfh_simple_destroy_handler( MX_MEASUREMENT_FAULT *fault_handler )
 {
-	const char fname[] = "mxfh_simple_destroy_handler()";
+	static const char fname[] = "mxfh_simple_destroy_handler()";
 
 	MX_SIMPLE_MEASUREMENT_FAULT *simple_fault_struct;
 	mx_status_type mx_status;
@@ -293,7 +293,7 @@ mxfh_simple_destroy_handler( MX_MEASUREMENT_FAULT *fault_handler )
 MX_EXPORT mx_status_type
 mxfh_simple_check_for_fault( MX_MEASUREMENT_FAULT *fault_handler )
 {
-	const char fname[] = "mxfh_simple_check_for_fault()";
+	static const char fname[] = "mxfh_simple_check_for_fault()";
 
 	MX_SIMPLE_MEASUREMENT_FAULT *simple_fault_struct;
 	MX_RECORD *fault_record;
@@ -472,7 +472,7 @@ mxfh_simple_check_for_fault( MX_MEASUREMENT_FAULT *fault_handler )
 MX_EXPORT mx_status_type
 mxfh_simple_reset( MX_MEASUREMENT_FAULT *fault_handler )
 {
-	const char fname[] = "mxfh_simple_reset()";
+	static const char fname[] = "mxfh_simple_reset()";
 
 	MX_SIMPLE_MEASUREMENT_FAULT *simple_fault_struct;
 	MX_RECORD *reset_record;

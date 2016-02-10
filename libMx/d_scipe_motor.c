@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2003, 2010, 2012, 2015 Illinois Institute of Technology
+ * Copyright 2000-2003, 2010, 2012, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -83,7 +83,7 @@ mxd_scipe_motor_get_pointers( MX_MOTOR *motor,
 			MX_SCIPE_SERVER **scipe_server,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_scipe_motor_get_pointers()";
+	static const char fname[] = "mxd_scipe_motor_get_pointers()";
 
 	MX_RECORD *scipe_server_record;
 
@@ -144,7 +144,7 @@ mxd_scipe_motor_get_pointers( MX_MOTOR *motor,
 MX_EXPORT mx_status_type
 mxd_scipe_motor_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_scipe_motor_create_record_structures()";
+	static const char fname[] = "mxd_scipe_motor_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_SCIPE_MOTOR *scipe_motor;
@@ -194,7 +194,7 @@ mxd_scipe_motor_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_scipe_motor_print_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_scipe_motor_print_structure()";
+	static const char fname[] = "mxd_scipe_motor_print_structure()";
 
 	MX_MOTOR *motor;
 	MX_SCIPE_MOTOR *scipe_motor;
@@ -261,7 +261,7 @@ mxd_scipe_motor_print_structure( FILE *file, MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_scipe_motor_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_scipe_motor_open()";
+	static const char fname[] = "mxd_scipe_motor_open()";
 
 	MX_MOTOR *motor;
 	MX_SCIPE_MOTOR *scipe_motor;
@@ -317,7 +317,7 @@ mxd_scipe_motor_resynchronize( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_scipe_motor_move_absolute( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_scipe_motor_move_absolute()";
+	static const char fname[] = "mxd_scipe_motor_move_absolute()";
 
 	MX_SCIPE_MOTOR *scipe_motor;
 	MX_SCIPE_SERVER *scipe_server;
@@ -359,7 +359,7 @@ mxd_scipe_motor_move_absolute( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_scipe_motor_get_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_scipe_motor_get_position()";
+	static const char fname[] = "mxd_scipe_motor_get_position()";
 
 	MX_SCIPE_MOTOR *scipe_motor;
 	MX_SCIPE_SERVER *scipe_server;
@@ -413,7 +413,7 @@ mxd_scipe_motor_get_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_scipe_motor_soft_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_scipe_motor_soft_abort()";
+	static const char fname[] = "mxd_scipe_motor_soft_abort()";
 
 	MX_SCIPE_MOTOR *scipe_motor;
 	MX_SCIPE_SERVER *scipe_server;
@@ -446,7 +446,7 @@ mxd_scipe_motor_soft_abort( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_scipe_motor_get_status( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_scipe_motor_get_status()";
+	static const char fname[] = "mxd_scipe_motor_get_status()";
 
 	MX_SCIPE_MOTOR *scipe_motor;
 	MX_SCIPE_SERVER *scipe_server;

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005-2006, 2009, 2015
+ * Copyright 1999-2001, 2003, 2005-2006, 2009, 2015-2016
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -845,7 +845,7 @@ motor_mca_display_plot( MX_RECORD *mca_record, MX_MCA *mca )
 static int
 motor_mca_display_plot( MX_RECORD *mca_record, MX_MCA *mca )
 {
-	const char fname[] = "motor_mca_display_plot()";
+	static const char fname[] = "motor_mca_display_plot()";
 
 	MX_LIST_HEAD *list_head;
 	FILE *plotgnu_pipe;

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -76,7 +76,7 @@ MX_EXPORT mx_status_type
 mxs_2theta_scan_compute_motor_positions( MX_SCAN *scan,
 					MX_LINEAR_SCAN *linear_scan )
 {
-	const char fname[] = "mxs_2theta_scan_compute_motor_positions()";
+	static const char fname[] = "mxs_2theta_scan_compute_motor_positions()";
 
 	double *motor_position;
 

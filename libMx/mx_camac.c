@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2006, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,7 +29,7 @@ mx_camac_get_pointers( MX_RECORD *camac_record,
 			MX_CAMAC_FUNCTION_LIST **function_list_ptr,
 			const char *calling_fname )
 {
-	const char fname[] = "mx_camac_get_pointers()";
+	static const char fname[] = "mx_camac_get_pointers()";
 
         if ( camac_record == (MX_RECORD *) NULL ) {
                 return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -74,7 +74,7 @@ mx_camac_get_pointers( MX_RECORD *camac_record,
 MX_EXPORT mx_status_type
 mx_camac_get_lam_status( MX_RECORD *camac_record, long *lam_n )
 {
-	const char fname[] = "mx_camac_get_lam_status()";
+	static const char fname[] = "mx_camac_get_lam_status()";
 
 	MX_CAMAC *camac;
 	MX_CAMAC_FUNCTION_LIST *fl_ptr;
@@ -102,7 +102,7 @@ mx_camac_get_lam_status( MX_RECORD *camac_record, long *lam_n )
 MX_EXPORT mx_status_type
 mx_camac_controller_command( MX_RECORD *camac_record, long command )
 {
-	const char fname[] = "mx_camac_controller_command()";
+	static const char fname[] = "mx_camac_controller_command()";
 
 	MX_CAMAC *camac;
 	MX_CAMAC_FUNCTION_LIST *fl_ptr;
@@ -136,7 +136,7 @@ mx_camac( MX_RECORD *camac_record,
 	int *Q,
 	int *X )
 {
-	const char fname[] = "mx_camac()";
+	static const char fname[] = "mx_camac()";
 
 	MX_CAMAC *camac;
 	MX_CAMAC_FUNCTION_LIST *fl_ptr;

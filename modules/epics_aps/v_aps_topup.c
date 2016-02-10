@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2005-2006, 2010-2011
+ * Copyright 2000-2001, 2003, 2005-2006, 2010-2011, 2016
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -76,7 +76,7 @@ MX_RECORD_FIELD_DEFAULTS *mxv_aps_topup_time_to_inject_field_def_ptr
 MX_EXPORT mx_status_type
 mxv_aps_topup_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxv_aps_topup_create_record_structures()";
+	static const char fname[] = "mxv_aps_topup_create_record_structures()";
 
 	MX_VARIABLE *variable_struct;
 	MX_APS_TOPUP *aps_topup;
@@ -134,7 +134,7 @@ mxv_aps_topup_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxv_aps_topup_send_variable( MX_VARIABLE *variable )
 {
-	const char fname[] = "mxv_aps_topup_send_variable()";
+	static const char fname[] = "mxv_aps_topup_send_variable()";
 
 	return mx_error( MXE_PERMISSION_DENIED, fname,
 	"The APS top-up status variables are read-only." );

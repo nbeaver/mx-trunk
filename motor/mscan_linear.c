@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2006, 2009, 2013, 2015
+ * Copyright 1999-2001, 2004-2006, 2009, 2013, 2015-2016
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -50,7 +50,8 @@ motor_setup_k_power_law_measurements(
 	long scan_num_measurements )
 {
 #if 0
-	static const char fname[] = "motor_setup_k_power_law_measurements()";
+	static const char fname[] =
+			"motor_setup_k_power_law_measurements()";
 #endif
 
 	char old_timer_name[MXU_RECORD_NAME_LENGTH + 1];
@@ -172,7 +173,7 @@ motor_setup_linear_scan_parameters(
 	char *measurement_parameters_string,
 	char *datafile_and_plot_parameters_string )
 {
-	const char fname[] = "motor_setup_linear_scan_parameters()";
+	static const char fname[] = "motor_setup_linear_scan_parameters()";
 
 	MX_RECORD *record;
 	MX_MOTOR *motor;

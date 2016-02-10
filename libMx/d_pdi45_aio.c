@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2006, 2010, 2012, 2015 Illinois Institute of Technology
+ * Copyright 2003-2006, 2010, 2012, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -84,7 +84,7 @@ mxd_pdi45_ain_get_pointers( MX_ANALOG_INPUT *ainput,
 			MX_PDI45 **pdi45,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_pdi45_ain_get_pointers()";
+	static const char fname[] = "mxd_pdi45_ain_get_pointers()";
 
 	MX_RECORD *pdi45_record;
 
@@ -154,7 +154,7 @@ mxd_pdi45_aout_get_pointers( MX_ANALOG_OUTPUT *aoutput,
 			MX_PDI45 **pdi45,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_pdi45_aout_get_pointers()";
+	static const char fname[] = "mxd_pdi45_aout_get_pointers()";
 
 	MX_RECORD *pdi45_record;
 
@@ -223,7 +223,7 @@ mxd_pdi45_aout_get_pointers( MX_ANALOG_OUTPUT *aoutput,
 MX_EXPORT mx_status_type
 mxd_pdi45_ain_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_pdi45_ain_create_record_structures()";
+        static const char fname[] = "mxd_pdi45_ain_create_record_structures()";
 
         MX_ANALOG_INPUT *analog_input;
         MX_PDI45_AINPUT *pdi45_ainput;
@@ -264,7 +264,7 @@ mxd_pdi45_ain_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_pdi45_ain_read( MX_ANALOG_INPUT *ainput )
 {
-	const char fname[] = "mxd_pdi45_ain_read()";
+	static const char fname[] = "mxd_pdi45_ain_read()";
 
 	MX_PDI45_AINPUT *pdi45_ainput;
 	MX_PDI45 *pdi45;
@@ -314,7 +314,7 @@ mxd_pdi45_ain_read( MX_ANALOG_INPUT *ainput )
 MX_EXPORT mx_status_type
 mxd_pdi45_aout_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_pdi45_aout_create_record_structures()";
+        static const char fname[] = "mxd_pdi45_aout_create_record_structures()";
 
         MX_ANALOG_OUTPUT *analog_output;
         MX_PDI45_AOUTPUT *pdi45_aoutput;
@@ -355,7 +355,7 @@ mxd_pdi45_aout_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_pdi45_aout_read( MX_ANALOG_OUTPUT *aoutput )
 {
-	const char fname[] = "mxd_pdi45_aout_read()";
+	static const char fname[] = "mxd_pdi45_aout_read()";
 
 	MX_PDI45_AOUTPUT *pdi45_aoutput;
 	MX_PDI45 *pdi45;
@@ -398,7 +398,7 @@ mxd_pdi45_aout_read( MX_ANALOG_OUTPUT *aoutput )
 MX_EXPORT mx_status_type
 mxd_pdi45_aout_write( MX_ANALOG_OUTPUT *aoutput )
 {
-	const char fname[] = "mxd_pdi45_aout_write()";
+	static const char fname[] = "mxd_pdi45_aout_write()";
 
 	MX_PDI45_AOUTPUT *pdi45_aoutput;
 	MX_PDI45 *pdi45;

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2003, 2005-2006, 2010, 2015
+ * Copyright 1999, 2001-2003, 2005-2006, 2010, 2015-2016
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -32,7 +32,7 @@
 MX_EXPORT mx_status_type
 mx_log_open( MX_RECORD *record_list )
 {
-	const char fname[] = "mx_log_open()";
+	static const char fname[] = "mx_log_open()";
 
 	MX_LOG *log_handler;
 	MX_LIST_HEAD *list_head;
@@ -162,7 +162,7 @@ mx_log_open( MX_RECORD *record_list )
 MX_EXPORT mx_status_type
 mx_log_close( MX_RECORD *record_list )
 {
-	const char fname[] = "mx_log_close()";
+	static const char fname[] = "mx_log_close()";
 
 	MX_LIST_HEAD *list_head;
 
@@ -191,7 +191,7 @@ mx_log_close( MX_RECORD *record_list )
 MX_EXPORT mx_status_type
 mx_log_message( MX_LOG *log_handler, char *message )
 {
-	const char fname[] = "mx_log_message()";
+	static const char fname[] = "mx_log_message()";
 
 	char buffer[ MXU_USERNAME_LENGTH + 40 ];
 	FILE *file;

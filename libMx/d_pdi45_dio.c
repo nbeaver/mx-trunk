@@ -8,7 +8,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2005-2006, 2010, 2012, 2015 Illinois Institute of Technology
+ * Copyright 2003, 2005-2006, 2010, 2012, 2015-2016
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -81,7 +82,7 @@ mxd_pdi45_din_get_pointers( MX_DIGITAL_INPUT *dinput,
 			MX_PDI45 **pdi45,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_pdi45_din_get_pointers()";
+	static const char fname[] = "mxd_pdi45_din_get_pointers()";
 
 	MX_RECORD *pdi45_record;
 
@@ -151,7 +152,7 @@ mxd_pdi45_dout_get_pointers( MX_DIGITAL_OUTPUT *doutput,
 			MX_PDI45 **pdi45,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_pdi45_dout_get_pointers()";
+	static const char fname[] = "mxd_pdi45_dout_get_pointers()";
 
 	MX_RECORD *pdi45_record;
 
@@ -220,7 +221,7 @@ mxd_pdi45_dout_get_pointers( MX_DIGITAL_OUTPUT *doutput,
 MX_EXPORT mx_status_type
 mxd_pdi45_din_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_pdi45_din_create_record_structures()";
+        static const char fname[] = "mxd_pdi45_din_create_record_structures()";
 
         MX_DIGITAL_INPUT *digital_input;
         MX_PDI45_DINPUT *pdi45_dinput;
@@ -257,7 +258,7 @@ mxd_pdi45_din_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_pdi45_din_read( MX_DIGITAL_INPUT *dinput )
 {
-	const char fname[] = "mxd_pdi45_din_read()";
+	static const char fname[] = "mxd_pdi45_din_read()";
 
 	MX_PDI45_DINPUT *pdi45_dinput;
 	MX_PDI45 *pdi45;
@@ -319,7 +320,7 @@ mxd_pdi45_din_read( MX_DIGITAL_INPUT *dinput )
 MX_EXPORT mx_status_type
 mxd_pdi45_dout_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_pdi45_dout_create_record_structures()";
+        static const char fname[] = "mxd_pdi45_dout_create_record_structures()";
 
         MX_DIGITAL_OUTPUT *digital_output;
         MX_PDI45_DOUTPUT *pdi45_doutput;
@@ -357,7 +358,7 @@ mxd_pdi45_dout_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_pdi45_dout_read( MX_DIGITAL_OUTPUT *doutput )
 {
-	const char fname[] = "mxd_pdi45_dout_read()";
+	static const char fname[] = "mxd_pdi45_dout_read()";
 
 	MX_PDI45_DOUTPUT *pdi45_doutput;
 	MX_PDI45 *pdi45;
@@ -412,7 +413,7 @@ mxd_pdi45_dout_read( MX_DIGITAL_OUTPUT *doutput )
 MX_EXPORT mx_status_type
 mxd_pdi45_dout_write( MX_DIGITAL_OUTPUT *doutput )
 {
-	const char fname[] = "mxd_pdi45_dout_write()";
+	static const char fname[] = "mxd_pdi45_dout_write()";
 
 	MX_PDI45_DOUTPUT *pdi45_doutput;
 	MX_PDI45 *pdi45;

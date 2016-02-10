@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2004 Illinois Institute of Technology
+ * Copyright 2002, 2004, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -53,7 +53,8 @@ MX_RECORD_FIELD_DEFAULTS *mxd_soft_ainput_rfield_def_ptr
 MX_EXPORT mx_status_type
 mxd_soft_ainput_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_soft_ainput_create_record_structures()";
+        static const char fname[] =
+			"mxd_soft_ainput_create_record_structures()";
 
         MX_ANALOG_INPUT *analog_input;
         MX_SOFT_AINPUT *soft_ainput;
@@ -94,7 +95,7 @@ mxd_soft_ainput_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_soft_ainput_read( MX_ANALOG_INPUT *ainput )
 {
-	const char fname[] = "mxd_soft_ainput_read()";
+	static const char fname[] = "mxd_soft_ainput_read()";
 
 	MX_SOFT_AINPUT *soft_ainput;
 	double raw_value;

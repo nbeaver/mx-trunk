@@ -1,14 +1,14 @@
 /*
  * Name:    d_vme_dio.c
  *
- * Purpose: MX input and output drivers to control VME address as if they
+ * Purpose: MX input and output drivers to control VME addresses as if they
  *          were digital input/output registers (which they often are).
  *
  * Author:  William Lavender
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001, 2006, 2008, 2010, 2012 Illinois Institute of Technology
+ * Copyright 2001, 2006, 2008, 2010, 2012, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -155,7 +155,7 @@ mxd_vme_dout_get_pointers( MX_DIGITAL_OUTPUT *doutput,
 MX_EXPORT mx_status_type
 mxd_vme_din_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_vme_din_create_record_structures()";
+        static const char fname[] = "mxd_vme_din_create_record_structures()";
 
         MX_DIGITAL_INPUT *digital_input;
         MX_VME_DINPUT *vme_dinput;

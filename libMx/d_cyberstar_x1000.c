@@ -8,7 +8,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2005-2006, 2008, 2010, 2015 Illinois Institute of Technology
+ * Copyright 2002, 2005-2006, 2008, 2010, 2015-2016
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -742,7 +743,7 @@ static mx_status_type
 mxd_cyberstar_x1000_process_function( void *record_ptr,
 			void *record_field_ptr, int operation )
 {
-	const char fname[] = "mxd_cyberstar_x1000_process_function()";
+	static const char fname[] = "mxd_cyberstar_x1000_process_function()";
 
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;

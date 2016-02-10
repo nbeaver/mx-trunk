@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2006, 2010, 2015 Illinois Institute of Technology
+ * Copyright 2003-2006, 2010, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -93,7 +93,7 @@ mxv_pmac_get_pointers( MX_VARIABLE *variable,
 			MX_PMAC **pmac,
 			const char *calling_fname )
 {
-	const char fname[] = "mxv_pmac_get_pointers()";
+	static const char fname[] = "mxv_pmac_get_pointers()";
 
 	MX_RECORD *pmac_record;
 	MX_PMAC_VARIABLE *pmac_variable_ptr;
@@ -144,7 +144,7 @@ mxv_pmac_get_pointers( MX_VARIABLE *variable,
 MX_EXPORT mx_status_type
 mxv_pmac_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxv_pmac_create_record_structures()";
+	static const char fname[] = "mxv_pmac_create_record_structures()";
 
 	MX_VARIABLE *variable_struct;
 	MX_PMAC_VARIABLE *pmac_variable;
@@ -184,7 +184,7 @@ mxv_pmac_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxv_pmac_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxv_pmac_finish_record_initialization()";
+	static const char fname[] = "mxv_pmac_finish_record_initialization()";
 
 	MX_PMAC_VARIABLE *pmac_variable;
 

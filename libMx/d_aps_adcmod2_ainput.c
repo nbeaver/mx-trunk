@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006, 2015 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -55,7 +55,7 @@ MX_RECORD_FIELD_DEFAULTS *mxd_aps_adcmod2_ainput_rfield_def_ptr
 MX_EXPORT mx_status_type
 mxd_aps_adcmod2_ainput_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] =
+        static const char fname[] =
 			"mxd_aps_adcmod2_ainput_create_record_structures()";
 
         MX_ANALOG_INPUT *analog_input;
@@ -97,7 +97,7 @@ mxd_aps_adcmod2_ainput_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_aps_adcmod2_ainput_read( MX_ANALOG_INPUT *ainput )
 {
-	const char fname[] = "mxd_aps_adcmod2_ainput_read()";
+	static const char fname[] = "mxd_aps_adcmod2_ainput_read()";
 
 	MX_APS_ADCMOD2_AINPUT *aps_adcmod2_ainput;
 	MX_APS_ADCMOD2 *aps_adcmod2;

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2004, 2006-2007, 2011, 2014
+ * Copyright 1999, 2001, 2003-2004, 2006-2007, 2011, 2014, 2016
  *   Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -85,7 +85,8 @@ mxd_network_dinput_get_pointers( MX_DIGITAL_INPUT *dinput,
 MX_EXPORT mx_status_type
 mxd_network_dinput_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_network_dinput_create_record_structures()";
+        static const char fname[] =
+			"mxd_network_dinput_create_record_structures()";
 
         MX_DIGITAL_INPUT *digital_input;
         MX_NETWORK_DINPUT *network_dinput;
@@ -123,7 +124,7 @@ MX_EXPORT mx_status_type
 mxd_network_dinput_finish_record_initialization( MX_RECORD *record )
 {
 	static const char fname[] =
-		"mxd_network_dinput_finish_record_initialization()";
+			"mxd_network_dinput_finish_record_initialization()";
 
 	MX_DIGITAL_INPUT *dinput = NULL;
 	MX_NETWORK_DINPUT *network_dinput = NULL;

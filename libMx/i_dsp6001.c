@@ -14,7 +14,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004, 2006, 2012 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2004, 2006, 2012, 2016
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -80,7 +81,7 @@ pr_camac_crate_select( MX_RECORD *portio_record,
 MX_EXPORT mx_status_type
 mxi_dsp6001_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxi_dsp6001_create_record_structures()";
+	static const char fname[] = "mxi_dsp6001_create_record_structures()";
 
 	MX_CAMAC *crate;
 	MX_DSP6001 *dsp6001;
@@ -117,7 +118,8 @@ mxi_dsp6001_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_dsp6001_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxi_dsp6001_finish_record_initialization()";
+	static const char fname[] =
+			"mxi_dsp6001_finish_record_initialization()";
 
 	MX_CAMAC *crate;
 

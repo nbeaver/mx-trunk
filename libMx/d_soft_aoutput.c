@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2010 Illinois Institute of Technology
+ * Copyright 2002, 2010, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -52,7 +52,8 @@ MX_RECORD_FIELD_DEFAULTS *mxd_soft_aoutput_rfield_def_ptr
 MX_EXPORT mx_status_type
 mxd_soft_aoutput_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_soft_aoutput_create_record_structures()";
+        static const char fname[] =
+			"mxd_soft_aoutput_create_record_structures()";
 
         MX_ANALOG_OUTPUT *analog_output;
         MX_SOFT_AOUTPUT *soft_aoutput;

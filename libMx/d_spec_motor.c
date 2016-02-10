@@ -7,7 +7,8 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2004, 2006, 2010-2011, 2013, 2015 Illinois Institute of Technology
+ * Copyright 2004, 2006, 2010-2011, 2013, 2015-2016
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -127,8 +128,7 @@ mxd_spec_motor_get_pointers( MX_MOTOR *motor,
 MX_EXPORT mx_status_type
 mxd_spec_motor_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[]
-		= "mxd_spec_motor_create_record_structures()";
+	static const char fname[] = "mxd_spec_motor_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_SPEC_MOTOR *spec_motor;
@@ -201,8 +201,7 @@ mxd_spec_motor_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_spec_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 {
-	static const char fname[]
-		= "mxd_spec_motor_print_motor_structure()";
+	static const char fname[] = "mxd_spec_motor_print_motor_structure()";
 
 	MX_MOTOR *motor;
 	MX_SPEC_MOTOR *spec_motor;
@@ -857,7 +856,7 @@ mxd_spec_motor_simultaneous_start( long num_motor_records,
 				double *destination_array,
 				unsigned long flags )
 {
-	const char fname[] = "mxd_spec_motor_simultaneous_start()";
+	static const char fname[] = "mxd_spec_motor_simultaneous_start()";
 
 	MX_RECORD *motor_record, *spec_server_record;
 	MX_MOTOR *motor;

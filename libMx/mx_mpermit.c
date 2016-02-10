@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2002, 2005, 2007 Illinois Institute of Technology
+ * Copyright 2001-2002, 2005, 2007, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,7 +34,7 @@ mx_measurement_permit_get_pointers( MX_MEASUREMENT_PERMIT *permit_handler,
 			MX_MEASUREMENT_PERMIT_FUNCTION_LIST **function_list,
 			const char *calling_fname )
 {
-	const char fname[] = "mx_measurement_permit_get_pointers()";
+	static const char fname[] = "mx_measurement_permit_get_pointers()";
 
 	if ( permit_handler == (MX_MEASUREMENT_PERMIT *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -66,7 +66,8 @@ mx_measurement_permit_get_driver_by_name(
 			char *name,
 			MX_MEASUREMENT_PERMIT_DRIVER **permit_driver )
 {
-	const char fname[] = "mx_measurement_permit_get_driver_by_name()";
+	static const char fname[] =
+			"mx_measurement_permit_get_driver_by_name()";
 
 
 	char *list_name;
@@ -120,7 +121,7 @@ mx_measurement_permit_create_handler(
 			void *scan,
 			char *handler_description )
 {
-	const char fname[] = "mx_measurement_permit_create_handler()";
+	static const char fname[] = "mx_measurement_permit_create_handler()";
 
 	MX_MEASUREMENT_PERMIT_DRIVER *permit_driver;
 	char driver_name[ MXU_MEASUREMENT_PERMIT_DRIVER_NAME_LENGTH + 1 ];
@@ -201,7 +202,7 @@ mx_measurement_permit_create_handler(
 MX_EXPORT mx_status_type
 mx_measurement_permit_destroy_handler( MX_MEASUREMENT_PERMIT *permit_handler )
 {
-	const char fname[] = "mx_measurement_permit_destroy_handler()";
+	static const char fname[] = "mx_measurement_permit_destroy_handler()";
 
 	MX_MEASUREMENT_PERMIT_FUNCTION_LIST *function_list;
 	mx_status_type ( *fptr ) ( MX_MEASUREMENT_PERMIT * );
@@ -235,7 +236,8 @@ mx_measurement_permit_check_for_permission(
 			MX_MEASUREMENT_PERMIT *permit_handler,
 			int *permit_status )
 {
-	const char fname[] = "mx_measurement_permit_check_for_permission()";
+	static const char fname[] =
+			"mx_measurement_permit_check_for_permission()";
 
 	MX_MEASUREMENT_PERMIT_FUNCTION_LIST *function_list;
 	mx_status_type ( *fptr ) ( MX_MEASUREMENT_PERMIT * );
@@ -282,7 +284,8 @@ MX_EXPORT mx_status_type
 mx_measurement_permit_wait_for_permission(
 			MX_MEASUREMENT_PERMIT *permit_handler )
 {
-	const char fname[] = "mx_measurement_permit_wait_for_permission()";
+	static const char fname[] =
+			"mx_measurement_permit_wait_for_permission()";
 
 	MX_MEASUREMENT_PERMIT_FUNCTION_LIST *function_list;
 	int i, user_message_sent;

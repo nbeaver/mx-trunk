@@ -10,7 +10,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2003, 2015 Illinois Institute of Technology
+ * Copyright 2002-2003, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -80,7 +80,7 @@ mxd_adsc_two_theta_get_pointers( MX_MOTOR *motor,
 			MX_RECORD **height_motor_record,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_adsc_two_theta_get_pointers()";
+	static const char fname[] = "mxd_adsc_two_theta_get_pointers()";
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -126,7 +126,8 @@ mxd_adsc_two_theta_get_pointers( MX_MOTOR *motor,
 MX_EXPORT mx_status_type
 mxd_adsc_two_theta_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_adsc_two_theta_create_record_structures()";
+	static const char fname[] =
+			"mxd_adsc_two_theta_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_ADSC_TWO_THETA *adsc_two_theta;
@@ -167,7 +168,7 @@ mxd_adsc_two_theta_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_adsc_two_theta_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] =
+	static const char fname[] =
 		"mxd_adsc_two_theta_finish_record_initialization()";
 
 	MX_MOTOR *motor;
@@ -206,7 +207,8 @@ mxd_adsc_two_theta_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_adsc_two_theta_print_motor_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_adsc_two_theta_print_motor_structure()";
+	static const char fname[] =
+			"mxd_adsc_two_theta_print_motor_structure()";
 
 	MX_MOTOR *motor;
 	MX_RECORD *height_motor_record;
@@ -344,7 +346,7 @@ h_to_theta( double h )
 MX_EXPORT mx_status_type
 mxd_adsc_two_theta_move_absolute( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_adsc_two_theta_move_absolute()";
+	static const char fname[] = "mxd_adsc_two_theta_move_absolute()";
 
 	MX_ADSC_TWO_THETA *adsc_two_theta;
 	MX_RECORD *height_motor_record;
@@ -371,7 +373,7 @@ mxd_adsc_two_theta_move_absolute( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_adsc_two_theta_get_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_adsc_two_theta_get_position()";
+	static const char fname[] = "mxd_adsc_two_theta_get_position()";
 
 	MX_ADSC_TWO_THETA *adsc_two_theta;
 	MX_RECORD *height_motor_record;
@@ -399,7 +401,7 @@ mxd_adsc_two_theta_get_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_adsc_two_theta_set_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_adsc_two_theta_set_position()";
+	static const char fname[] = "mxd_adsc_two_theta_set_position()";
 
 	MX_ADSC_TWO_THETA *adsc_two_theta;
 	MX_RECORD *height_motor_record;
@@ -424,7 +426,7 @@ mxd_adsc_two_theta_set_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_adsc_two_theta_soft_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_adsc_two_theta_soft_abort()";
+	static const char fname[] = "mxd_adsc_two_theta_soft_abort()";
 
 	MX_ADSC_TWO_THETA *adsc_two_theta;
 	MX_RECORD *height_motor_record;
@@ -444,7 +446,7 @@ mxd_adsc_two_theta_soft_abort( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_adsc_two_theta_immediate_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_adsc_two_theta_immediate_abort()";
+	static const char fname[] = "mxd_adsc_two_theta_immediate_abort()";
 
 	MX_ADSC_TWO_THETA *adsc_two_theta;
 	MX_RECORD *height_motor_record;
@@ -464,7 +466,7 @@ mxd_adsc_two_theta_immediate_abort( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_adsc_two_theta_get_status( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_adsc_two_theta_get_status()";
+	static const char fname[] = "mxd_adsc_two_theta_get_status()";
 
 	MX_ADSC_TWO_THETA *adsc_two_theta;
 	MX_RECORD *height_motor_record;

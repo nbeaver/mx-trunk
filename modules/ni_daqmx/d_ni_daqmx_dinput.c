@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2011-2012, 2014 Illinois Institute of Technology
+ * Copyright 2011-2012, 2014, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -115,7 +115,8 @@ mxd_ni_daqmx_dinput_get_pointers( MX_DIGITAL_INPUT *dinput,
 MX_EXPORT mx_status_type
 mxd_ni_daqmx_dinput_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_ni_daqmx_dinput_create_record_structures()";
+        static const char fname[] =
+			"mxd_ni_daqmx_dinput_create_record_structures()";
 
         MX_DIGITAL_INPUT *digital_input;
         MX_NI_DAQMX_DINPUT *ni_daqmx_dinput;
@@ -262,7 +263,7 @@ mxd_ni_daqmx_dinput_read( MX_DIGITAL_INPUT *dinput )
 
 	if ( task == NULL ) {
 		return mx_error( MXE_HARDWARE_CONFIGURATION_ERROR, fname,
-		"Could not find the hardware for National Instruments device '%s'.",
+	    "Could not find the hardware for National Instruments device '%s'.",
 			dinput->record->name );
 	}
 

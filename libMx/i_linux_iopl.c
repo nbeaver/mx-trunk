@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2004, 2006, 2010, 2012 Illinois Institute of Technology
+ * Copyright 2002-2004, 2006, 2010, 2012, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -74,7 +74,7 @@ MX_RECORD_FIELD_DEFAULTS *mxi_linux_iopl_rfield_def_ptr
 MX_EXPORT mx_status_type
 mxi_linux_iopl_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxi_linux_iopl_create_record_structures()";
+	static const char fname[] = "mxi_linux_iopl_create_record_structures()";
 
 	MX_LINUX_IOPL *linux_iopl;
 
@@ -100,7 +100,7 @@ mxi_linux_iopl_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_linux_iopl_open( MX_RECORD *record )
 {
-	const char fname[] = "mxi_linux_iopl_open()";
+	static const char fname[] = "mxi_linux_iopl_open()";
 
 	int status, saved_errno;
 
@@ -136,7 +136,7 @@ mxi_linux_iopl_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_linux_iopl_close( MX_RECORD *record )
 {
-	const char fname[] = "mxi_linux_iopl_close()";
+	static const char fname[] = "mxi_linux_iopl_close()";
 
 	int status, saved_errno;
 
@@ -266,7 +266,7 @@ mxi_linux_iopl_request_region( MX_RECORD *record,
 				unsigned long port_number,
 				unsigned long length )
 {
-	const char fname[] = "mxi_linux_iopl_request_region()";
+	static const char fname[] = "mxi_linux_iopl_request_region()";
 
 	int status, saved_errno;
 
@@ -303,7 +303,7 @@ mxi_linux_iopl_release_region( MX_RECORD *record,
 				unsigned long port_number,
 				unsigned long length )
 {
-	const char fname[] = "mxi_linux_iopl_release_region()";
+	static const char fname[] = "mxi_linux_iopl_release_region()";
 
 	int status, saved_errno;
 

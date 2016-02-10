@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005-2006, 2015 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2005-2006, 2015-2016
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -684,7 +685,7 @@ static int
 motor_mcs_display_plot( MX_RECORD *mcs_record,
 				MX_MCS *mcs, unsigned long scaler_number )
 {
-	const char fname[] = "motor_mcs_display_plot()";
+	static const char fname[] = "motor_mcs_display_plot()";
 
 	MX_LIST_HEAD *list_head;
 	FILE *plotgnu_pipe;
@@ -789,7 +790,7 @@ motor_mcs_display_plot( MX_RECORD *mcs_record,
 static int
 motor_mcs_display_all( MX_RECORD *mcs_record, MX_MCS *mcs )
 {
-	const char fname[] = "motor_mcs_display_all()";
+	static const char fname[] = "motor_mcs_display_all()";
 
 	MX_LIST_HEAD *list_head;
 	FILE *plotgnu_pipe;

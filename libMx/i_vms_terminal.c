@@ -5,7 +5,7 @@
  *
  * Author:  William Lavender
  *
- * Copyright 2003, 2005, 2007, 2010, 2015 Illinois Institute of Technology
+ * Copyright 2003, 2005, 2007, 2010, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -87,7 +87,7 @@ mxi_vms_terminal_get_pointers( MX_RS232 *rs232,
 			MX_VMS_TERMINAL **vms_terminal,
 			const char *calling_fname )
 {
-	const char fname[] = "mxi_vms_terminal_get_pointers()";
+	static const char fname[] = "mxi_vms_terminal_get_pointers()";
 
 	MX_RECORD *vms_terminal_record;
 
@@ -141,7 +141,8 @@ mxi_vms_error_message( int vms_status ) {
 MX_EXPORT mx_status_type
 mxi_vms_terminal_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxi_vms_terminal_create_record_structures()";
+	static const char fname[] =
+			"mxi_vms_terminal_create_record_structures()";
 
 	MX_RS232 *rs232;
 	MX_VMS_TERMINAL *vms_terminal;
@@ -196,7 +197,7 @@ mxi_vms_terminal_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_vms_terminal_open( MX_RECORD *record )
 {
-	const char fname[] = "mxi_vms_terminal_open()";
+	static const char fname[] = "mxi_vms_terminal_open()";
 
 	MX_RS232 *rs232;
 	MX_VMS_TERMINAL *vms_terminal;
@@ -301,7 +302,7 @@ mxi_vms_terminal_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_vms_terminal_close( MX_RECORD *record )
 {
-	const char fname[] = "mxi_vms_terminal_close()";
+	static const char fname[] = "mxi_vms_terminal_close()";
 
 	MX_RS232 *rs232;
 	MX_VMS_TERMINAL *vms_terminal;
@@ -341,7 +342,7 @@ mxi_vms_terminal_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_vms_terminal_getchar( MX_RS232 *rs232, char *c )
 {
-	const char fname[] = "mxi_vms_terminal_getchar()";
+	static const char fname[] = "mxi_vms_terminal_getchar()";
 
 	MX_VMS_TERMINAL *vms_terminal;
 	int vms_status;
@@ -388,7 +389,7 @@ mxi_vms_terminal_getchar( MX_RS232 *rs232, char *c )
 MX_EXPORT mx_status_type
 mxi_vms_terminal_putchar( MX_RS232 *rs232, char c )
 {
-	const char fname[] = "mxi_vms_terminal_putchar()";
+	static const char fname[] = "mxi_vms_terminal_putchar()";
 
 	MX_VMS_TERMINAL *vms_terminal;
 	int input_available, vms_status;
@@ -431,7 +432,7 @@ mxi_vms_terminal_read( MX_RS232 *rs232,
 			size_t max_bytes_to_read,
 			size_t *bytes_read )
 {
-	const char fname[] = "mxi_vms_terminal_read()";
+	static const char fname[] = "mxi_vms_terminal_read()";
 
 	MX_VMS_TERMINAL *vms_terminal;
 	int vms_status;
@@ -468,7 +469,7 @@ mxi_vms_terminal_write( MX_RS232 *rs232,
 			size_t max_bytes_to_write,
 			size_t *bytes_written )
 {
-	const char fname[] = "mxi_vms_terminal_write()";
+	static const char fname[] = "mxi_vms_terminal_write()";
 
 	MX_VMS_TERMINAL *vms_terminal;
 	int vms_status;
@@ -503,7 +504,7 @@ mxi_vms_terminal_getline( MX_RS232 *rs232,
 			size_t max_bytes_to_read,
 			size_t *bytes_read )
 {
-	const char fname[] = "mxi_vms_terminal_getline()";
+	static const char fname[] = "mxi_vms_terminal_getline()";
 
 	MX_VMS_TERMINAL *vms_terminal;
 	int vms_status;
@@ -549,7 +550,7 @@ mxi_vms_terminal_putline( MX_RS232 *rs232,
 			char *buffer,
 			size_t *bytes_written )
 {
-	const char fname[] = "mxi_vms_terminal_putline()";
+	static const char fname[] = "mxi_vms_terminal_putline()";
 
 	MX_VMS_TERMINAL *vms_terminal;
 	int vms_status;
@@ -602,7 +603,8 @@ mxi_vms_terminal_putline( MX_RS232 *rs232,
 MX_EXPORT mx_status_type
 mxi_vms_terminal_num_input_bytes_available( MX_RS232 *rs232 )
 {
-	const char fname[] = "mxi_vms_terminal_num_input_bytes_available()";
+	static const char fname[] =
+			"mxi_vms_terminal_num_input_bytes_available()";
 
 	struct {
 		unsigned short typeahead_count;
@@ -646,7 +648,7 @@ mxi_vms_terminal_num_input_bytes_available( MX_RS232 *rs232 )
 MX_EXPORT mx_status_type
 mxi_vms_terminal_discard_unread_input( MX_RS232 *rs232 )
 {
-	const char fname[] = "mxi_vms_terminal_discard_unread_input()";
+	static const char fname[] = "mxi_vms_terminal_discard_unread_input()";
 
 	MX_VMS_TERMINAL *vms_terminal;
 	mx_status_type mx_status;
@@ -666,7 +668,7 @@ mxi_vms_terminal_discard_unread_input( MX_RS232 *rs232 )
 MX_EXPORT mx_status_type
 mxi_vms_terminal_discard_unwritten_output( MX_RS232 *rs232 )
 {
-	const char fname[] = "mxi_vms_terminal_discard_unwritten_output()";
+	static const char fname[] = "mxi_vms_terminal_discard_unwritten_output()";
 
 	MX_VMS_TERMINAL *vms_terminal;
 	mx_status_type mx_status;

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003, 2005-2007, 2010 Illinois Institute of Technology
+ * Copyright 2003, 2005-2007, 2010, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -76,7 +76,7 @@ mxi_vxworks_rs232_get_pointers( MX_RS232 *rs232,
 			MX_VXWORKS_RS232 **vxworks_rs232,
 			const char *calling_fname )
 {
-	const char fname[] = "mxi_vxworks_rs232_get_pointers()";
+	static const char fname[] = "mxi_vxworks_rs232_get_pointers()";
 
 	MX_RECORD *vxworks_rs232_record;
 
@@ -119,7 +119,7 @@ MX_EXPORT mx_status_type
 mxi_vxworks_rs232_create_record_structures( MX_RECORD *record )
 {
 	static const char fname[] =
-		"mxi_vxworks_rs232_create_record_structures()";
+			"mxi_vxworks_rs232_create_record_structures()";
 
 	MX_RS232 *rs232;
 	MX_VXWORKS_RS232 *vxworks_rs232;
@@ -156,7 +156,7 @@ MX_EXPORT mx_status_type
 mxi_vxworks_rs232_finish_record_initialization( MX_RECORD *record )
 {
 	static const char fname[] =
-		"mxi_vxworks_rs232_finish_record_initialization()";
+			"mxi_vxworks_rs232_finish_record_initialization()";
 
 	MX_VXWORKS_RS232 *vxworks_rs232;
 	mx_status_type mx_status;
@@ -500,7 +500,7 @@ MX_EXPORT mx_status_type
 mxi_vxworks_rs232_num_input_bytes_available( MX_RS232 *rs232 )
 {
 	static const char fname[] =
-		"mxi_vxworks_rs232_num_input_bytes_available()";
+			"mxi_vxworks_rs232_num_input_bytes_available()";
 
 	MX_VXWORKS_RS232 *vxworks_rs232;
 	int fd, status, num_bytes_available, saved_errno;
@@ -583,7 +583,7 @@ MX_EXPORT mx_status_type
 mxi_vxworks_rs232_discard_unwritten_output( MX_RS232 *rs232 )
 {
 	static const char fname[] =
-		"mxi_vxworks_rs232_discard_unwritten_output()";
+			"mxi_vxworks_rs232_discard_unwritten_output()";
 
 	MX_VXWORKS_RS232 *vxworks_rs232;
 	int fd, status, saved_errno;

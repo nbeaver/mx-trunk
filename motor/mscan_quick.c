@@ -102,7 +102,7 @@ motor_setup_quick_scan_parameters(
 	char *measurement_parameters_string,
 	char *datafile_and_plot_parameters_string )
 {
-	const char fname[] = "motor_setup_quick_scan_parameters()";
+	static const char fname[] = "motor_setup_quick_scan_parameters()";
 
 	MX_RECORD *record;
 	MX_MOTOR *motor;

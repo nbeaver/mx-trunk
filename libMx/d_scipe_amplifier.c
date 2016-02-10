@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2006, 2010, 2015 Illinois Institute of Technology
+ * Copyright 2002, 2006, 2010, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -84,7 +84,7 @@ mxd_scipe_amplifier_get_pointers( MX_AMPLIFIER *amplifier,
 			MX_SCIPE_SERVER **scipe_server,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_scipe_amplifier_get_pointers()";
+	static const char fname[] = "mxd_scipe_amplifier_get_pointers()";
 
 	MX_RECORD *scipe_server_record;
 
@@ -1450,7 +1450,8 @@ MX_EXPORT mx_status_type
 mxd_scipe_amplifier_special_processing_setup( MX_RECORD *record )
 {
 #if 0
-	static const char fname[] = "mxd_scipe_amplifier_special_processing_setup()";
+	static const char fname[] =
+			"mxd_scipe_amplifier_special_processing_setup()";
 
 	MX_RECORD_FIELD *record_field;
 	MX_RECORD_FIELD *record_field_array;
@@ -1496,7 +1497,7 @@ static mx_status_type
 mxd_scipe_amplifier_process_function( void *record_ptr,
 			void *record_field_ptr, int operation )
 {
-	const char fname[] = "mxd_scipe_amplifier_process_function()";
+	static const char fname[] = "mxd_scipe_amplifier_process_function()";
 
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;

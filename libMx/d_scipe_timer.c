@@ -5,7 +5,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2002, 2010, 2012, 2015 Illinois Institute of Technology
+ * Copyright 2000-2002, 2010, 2012, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -70,7 +70,7 @@ mxd_scipe_timer_get_pointers( MX_TIMER *timer,
 			MX_SCIPE_SERVER **scipe_server,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_scipe_timer_get_pointers()";
+	static const char fname[] = "mxd_scipe_timer_get_pointers()";
 
 	MX_RECORD *scipe_server_record;
 
@@ -131,7 +131,8 @@ mxd_scipe_timer_get_pointers( MX_TIMER *timer,
 MX_EXPORT mx_status_type
 mxd_scipe_timer_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_scipe_timer_create_record_structures()";
+	static const char fname[] =
+			"mxd_scipe_timer_create_record_structures()";
 
 	MX_TIMER *timer;
 	MX_SCIPE_TIMER *scipe_timer;
@@ -174,7 +175,7 @@ mxd_scipe_timer_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_scipe_timer_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_scipe_timer_open()";
+	static const char fname[] = "mxd_scipe_timer_open()";
 
 	MX_TIMER *timer;
 	MX_SCIPE_TIMER *scipe_timer;
@@ -226,7 +227,7 @@ mxd_scipe_timer_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_scipe_timer_is_busy( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_scipe_timer_is_busy()";
+	static const char fname[] = "mxd_scipe_timer_is_busy()";
 
 	MX_SCIPE_TIMER *scipe_timer;
 	MX_SCIPE_SERVER *scipe_server;
@@ -274,7 +275,7 @@ mxd_scipe_timer_is_busy( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_scipe_timer_start( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_scipe_timer_start()";
+	static const char fname[] = "mxd_scipe_timer_start()";
 
 	MX_SCIPE_TIMER *scipe_timer;
 	MX_SCIPE_SERVER *scipe_server;
@@ -340,7 +341,7 @@ mxd_scipe_timer_start( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_scipe_timer_stop( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_scipe_timer_stop()";
+	static const char fname[] = "mxd_scipe_timer_stop()";
 
 	MX_SCIPE_TIMER *scipe_timer;
 	MX_SCIPE_SERVER *scipe_server;
@@ -382,7 +383,7 @@ mxd_scipe_timer_stop( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_scipe_timer_clear( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_scipe_timer_clear()";
+	static const char fname[] = "mxd_scipe_timer_clear()";
 
 	MX_SCIPE_TIMER *scipe_timer;
 	MX_SCIPE_SERVER *scipe_server;
@@ -422,7 +423,7 @@ mxd_scipe_timer_clear( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_scipe_timer_read( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_scipe_timer_read()";
+	static const char fname[] = "mxd_scipe_timer_read()";
 
 	MX_SCIPE_TIMER *scipe_timer;
 	MX_SCIPE_SERVER *scipe_server;

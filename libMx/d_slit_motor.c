@@ -15,7 +15,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2006 Illinois Institute of Technology
+ * Copyright 1999-2003, 2006, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -552,7 +552,7 @@ mxd_slit_motor_immediate_abort( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_slit_motor_set_parameter( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_slit_motor_set_parameter()";
+	static const char fname[] = "mxd_slit_motor_set_parameter()";
 
 	MX_SLIT_MOTOR *slit_motor;
 	MX_RECORD *negative_motor_record, *positive_motor_record;

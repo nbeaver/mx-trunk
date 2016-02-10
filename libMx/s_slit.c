@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2006, 2015 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -62,7 +62,7 @@ MX_EXPORT mx_status_type
 mxs_slit_scan_create_record_structures( MX_RECORD *record,
 		MX_SCAN *scan, MX_LINEAR_SCAN *linear_scan )
 {
-	const char fname[] = "mxs_slit_scan_create_record_structures()";
+	static const char fname[] = "mxs_slit_scan_create_record_structures()";
 
 	MX_SLIT_SCAN *slit_scan;
 
@@ -94,7 +94,8 @@ mxs_slit_scan_create_record_structures( MX_RECORD *record,
 MX_EXPORT mx_status_type
 mxs_slit_scan_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxs_slit_scan_finish_record_initialization()";
+	static const char fname[] =
+			"mxs_slit_scan_finish_record_initialization()";
 
 	MX_SCAN *scan;
 	MX_LINEAR_SCAN *linear_scan;
@@ -227,7 +228,7 @@ MX_EXPORT mx_status_type
 mxs_slit_scan_compute_motor_positions( MX_SCAN *scan,
 					MX_LINEAR_SCAN *linear_scan )
 {
-	const char fname[] = "mxs_slit_scan_compute_motor_positions()";
+	static const char fname[] = "mxs_slit_scan_compute_motor_positions()";
 
 	double *motor_position;
 	long i;
@@ -267,7 +268,8 @@ mxs_slit_scan_motor_record_array_move_special(
 				MX_MOTOR_MOVE_REPORT_FUNCTION fptr,
 				unsigned long flags )
 {
-	const char fname[] = "mxs_slit_scan_motor_record_array_move_special()";
+	static const char fname[] =
+			"mxs_slit_scan_motor_record_array_move_special()";
 
 	MX_SLIT_SCAN *slit_scan;
 	MX_SLIT_MOTOR *slit_motor;

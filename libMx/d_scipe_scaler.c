@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2002, 2010, 2012, 2015 Illinois Institute of Technology
+ * Copyright 2000-2002, 2010, 2012, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -75,7 +75,7 @@ mxd_scipe_scaler_get_pointers( MX_SCALER *scaler,
 			MX_SCIPE_SERVER **scipe_server,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_scipe_scaler_get_pointers()";
+	static const char fname[] = "mxd_scipe_scaler_get_pointers()";
 
 	MX_RECORD *scipe_server_record;
 
@@ -136,7 +136,8 @@ mxd_scipe_scaler_get_pointers( MX_SCALER *scaler,
 MX_EXPORT mx_status_type
 mxd_scipe_scaler_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_scipe_scaler_create_record_structures()";
+	static const char fname[] =
+			"mxd_scipe_scaler_create_record_structures()";
 
 	MX_SCALER *scaler;
 	MX_SCIPE_SCALER *scipe_scaler;
@@ -173,7 +174,7 @@ mxd_scipe_scaler_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_scipe_scaler_print_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_scipe_scaler_print_structure()";
+	static const char fname[] = "mxd_scipe_scaler_print_structure()";
 
 	MX_SCALER *scaler;
 	MX_SCIPE_SCALER *scipe_scaler;
@@ -226,7 +227,7 @@ mxd_scipe_scaler_print_structure( FILE *file, MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_scipe_scaler_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_scipe_scaler_open()";
+	static const char fname[] = "mxd_scipe_scaler_open()";
 
 	MX_SCALER *scaler;
 	MX_SCIPE_SCALER *scipe_scaler;
@@ -282,7 +283,7 @@ mxd_scipe_scaler_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_scipe_scaler_clear( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_scipe_scaler_clear()";
+	static const char fname[] = "mxd_scipe_scaler_clear()";
 
 	MX_SCIPE_SCALER *scipe_scaler;
 	MX_SCIPE_SERVER *scipe_server;
@@ -322,7 +323,7 @@ mxd_scipe_scaler_clear( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_scipe_scaler_overflow_set( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_scipe_scaler_overflow_set()";
+	static const char fname[] = "mxd_scipe_scaler_overflow_set()";
 
 	return mx_error( MXE_UNSUPPORTED, fname,
 		"SCIPE scalers cannot check for overflow status." );
@@ -331,7 +332,7 @@ mxd_scipe_scaler_overflow_set( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_scipe_scaler_read( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_scipe_scaler_read()";
+	static const char fname[] = "mxd_scipe_scaler_read()";
 
 	MX_SCIPE_SCALER *scipe_scaler;
 	MX_SCIPE_SERVER *scipe_server;
@@ -384,7 +385,7 @@ mxd_scipe_scaler_read( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_scipe_scaler_is_busy( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_scipe_scaler_is_busy()";
+	static const char fname[] = "mxd_scipe_scaler_is_busy()";
 
 	MX_SCIPE_SCALER *scipe_scaler;
 	MX_SCIPE_SERVER *scipe_server;
@@ -433,7 +434,7 @@ mxd_scipe_scaler_is_busy( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_scipe_scaler_start( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_scipe_scaler_start()";
+	static const char fname[] = "mxd_scipe_scaler_start()";
 
 	MX_SCIPE_SCALER *scipe_scaler;
 	MX_SCIPE_SERVER *scipe_server;
@@ -493,7 +494,7 @@ mxd_scipe_scaler_start( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_scipe_scaler_stop( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_scipe_scaler_stop()";
+	static const char fname[] = "mxd_scipe_scaler_stop()";
 
 	MX_SCIPE_SCALER *scipe_scaler;
 	MX_SCIPE_SERVER *scipe_server;

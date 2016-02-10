@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2006 Illinois Institute of Technology
+ * Copyright 2004-2006, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -65,7 +65,7 @@ mxi_spec_command_get_pointers( MX_RS232 *rs232,
 			MX_SPEC_SERVER **spec_server,
 			const char *calling_fname )
 {
-	const char fname[] = "mxi_spec_command_get_pointers()";
+	static const char fname[] = "mxi_spec_command_get_pointers()";
 
 	MX_RECORD *spec_command_record, *spec_server_record;
 	MX_SPEC_COMMAND *spec_command_ptr;
@@ -250,7 +250,7 @@ MX_EXPORT mx_status_type
 mxi_spec_command_num_input_bytes_available( MX_RS232 *rs232 )
 {
 	static const char fname[] =
-		"mxi_spec_command_num_input_bytes_available()";
+			"mxi_spec_command_num_input_bytes_available()";
 
 	MX_SPEC_COMMAND *spec_command;
 	MX_SPEC_SERVER *spec_server;
