@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2012 Illinois Institute of Technology
+ * Copyright 2012, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,7 +21,9 @@
 /*---*/
 
 #define MXT_MONTE_CARLO_MCA_SOURCE_UNIFORM	1
-#define MXT_MONTE_CARLO_MCA_SOURCE_PEAK		2
+#define MXT_MONTE_CARLO_MCA_SOURCE_POLYNOMIAL	2
+#define MXT_MONTE_CARLO_MCA_SOURCE_GAUSSIAN	3
+#define MXT_MONTE_CARLO_MCA_SOURCE_LORENTZIAN	4
 
 /*---*/
 
@@ -31,9 +33,23 @@ typedef struct {
 
 typedef struct {
 	double events_per_second;
-	double peak_mean;
-	double peak_width;
-} MX_MONTE_CARLO_MCA_SOURCE_PEAK;
+	double a0;
+	double a1;
+	double a2;
+	double a3;
+} MX_MONTE_CARLO_MCA_SOURCE_POLYNOMIAL;
+
+typedef struct {
+	double events_per_second;
+	double mean;
+	double standard_deviation;
+} MX_MONTE_CARLO_MCA_SOURCE_GAUSSIAN;
+
+typedef struct {
+	double events_per_second;
+	double mean;
+	double full_width_half_maximum;
+} MX_MONTE_CARLO_MCA_SOURCE_LORENTZIAN;
 
 /*---*/
 
@@ -46,7 +62,9 @@ typedef struct mx_monte_carlo_mca_source_type {
 			struct mx_monte_carlo_mca_source_type *source );
 	union {
 		MX_MONTE_CARLO_MCA_SOURCE_UNIFORM uniform;
-		MX_MONTE_CARLO_MCA_SOURCE_PEAK peak;
+		MX_MONTE_CARLO_MCA_SOURCE_POLYNOMIAL polynomial;
+		MX_MONTE_CARLO_MCA_SOURCE_GAUSSIAN gaussian;
+		MX_MONTE_CARLO_MCA_SOURCE_LORENTZIAN lorentzian;
 	} u;
 } MX_MONTE_CARLO_MCA_SOURCE;
 

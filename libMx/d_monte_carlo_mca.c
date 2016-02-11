@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2012-2015 Illinois Institute of Technology
+ * Copyright 2012-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -214,7 +214,7 @@ mxd_monte_carlo_mca_create_uniform( MX_MCA *mca,
 /*-------------------------------------------------------------------------*/
 
 static mx_status_type
-mxd_monte_carlo_mca_process_peak( MX_MCA *mca,
+mxd_monte_carlo_mca_process_polynomial( MX_MCA *mca,
 			MX_MONTE_CARLO_MCA *monte_carlo_mca,
 			MX_MONTE_CARLO_MCA_SOURCE *monte_carlo_mca_source )
 {
@@ -225,8 +225,8 @@ mxd_monte_carlo_mca_process_peak( MX_MCA *mca,
 	double events_per_call, events_per_call_per_channel;
 	double log_threshold;
 	long floor_log_threshold;
-	double peak_mean, peak_width;
-	double gaussian, exp_argument, exp_coefficient;
+	double a0, a1, a2, a3;
+	double polynomial;
 	double test_value, threshold;
 	double max_random_number;
 
@@ -234,11 +234,16 @@ mxd_monte_carlo_mca_process_peak( MX_MCA *mca,
 
 	private_array = monte_carlo_mca->private_array;
 
-	events_per_second = monte_carlo_mca_source->u.peak.events_per_second;
+	events_per_second =
+		monte_carlo_mca_source->u.polynomial.events_per_second;
 
-	peak_mean = monte_carlo_mca_source->u.peak.peak_mean;
+	a0 = monte_carlo_mca_source->u.polynomial.a0;
 
-	peak_width = monte_carlo_mca_source->u.peak.peak_width;
+	a1 = monte_carlo_mca_source->u.polynomial.a1;
+
+	a2 = monte_carlo_mca_source->u.polynomial.a2;
+
+	a3 = monte_carlo_mca_source->u.polynomial.a3;
 
 	seconds_per_call
 		= 1.0e-6 * (double) monte_carlo_mca->sleep_microseconds;
@@ -248,7 +253,122 @@ mxd_monte_carlo_mca_process_peak( MX_MCA *mca,
 	events_per_call_per_channel =
 		mx_divide_safely( events_per_call, num_channels );
 
-	exp_coefficient = mx_divide_safely(1.0, peak_width * sqrt(2.0 * MX_PI));
+	max_random_number = mx_get_random_max();
+
+	for ( i = 0; i < num_channels; i++ ) {
+
+		polynomial = a0 + ( a1 * i ) + ( a2 * i * i )
+				+ ( a3 * i * i * i );
+
+		threshold = events_per_call_per_channel * polynomial;
+
+		/* If 'threshold' is ever >= 1, then the expression
+		 * below ( test_value <= threshold) will always
+		 * evaluate to true.  To avoid this, we set the
+		 * number of times that we evaluate the test below
+		 * to 'num_tests_per_channel' and then divide the
+		 * value of 'threshold' by the value of
+		 * 'num_tests_per_channel'.
+		 */
+
+		if ( threshold <= 0.2 ) {
+			num_tests_per_channel = 1;
+		} else {
+			log_threshold = log10( threshold );
+
+			floor_log_threshold = mx_round( floor(log_threshold) );
+
+			num_tests_per_channel = mx_round(
+				pow(10.0, 2.0 + floor_log_threshold) );
+
+			threshold /= (double) num_tests_per_channel;
+		}
+
+		for ( j = 0; j < num_tests_per_channel; j++ )  {
+
+			test_value = (double) mx_random() / max_random_number;
+
+			if ( test_value <= threshold ) {
+				private_array[i]++;
+			}
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mxd_monte_carlo_mca_create_polynomial( MX_MCA *mca,
+			MX_MONTE_CARLO_MCA *monte_carlo_mca,
+			MX_MONTE_CARLO_MCA_SOURCE *monte_carlo_mca_source,
+			int argc, char **argv )
+{
+	static const char fname[] = "mxd_monte_carlo_mca_create_polynomial()";
+
+	monte_carlo_mca_source->type = MXT_MONTE_CARLO_MCA_SOURCE_POLYNOMIAL;
+
+	monte_carlo_mca_source->process =
+				mxd_monte_carlo_mca_process_polynomial;
+
+	if ( argc < 4 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Not enough arguments were specified for the 'peak' source "
+		"type specified for MCA '%s'.", mca->record->name );
+	}
+
+	monte_carlo_mca_source->u.polynomial.events_per_second =
+						atof( argv[1] );
+
+	monte_carlo_mca_source->u.polynomial.a0 = atof( argv[2] );
+
+	monte_carlo_mca_source->u.polynomial.a1 = atof( argv[3] );
+
+	monte_carlo_mca_source->u.polynomial.a2 = atof( argv[4] );
+
+	monte_carlo_mca_source->u.polynomial.a3 = atof( argv[5] );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+static mx_status_type
+mxd_monte_carlo_mca_process_gaussian( MX_MCA *mca,
+			MX_MONTE_CARLO_MCA *monte_carlo_mca,
+			MX_MONTE_CARLO_MCA_SOURCE *monte_carlo_mca_source )
+{
+	unsigned long i, j, num_channels, num_tests_per_channel;
+	unsigned long *private_array;
+
+	double events_per_second, seconds_per_call;
+	double events_per_call, events_per_call_per_channel;
+	double log_threshold;
+	long floor_log_threshold;
+	double peak_mean, peak_sigma;
+	double gaussian, exp_argument, exp_coefficient;
+	double test_value, threshold;
+	double max_random_number;
+
+	num_channels = mca->maximum_num_channels;
+
+	private_array = monte_carlo_mca->private_array;
+
+	events_per_second =
+		monte_carlo_mca_source->u.gaussian.events_per_second;
+
+	peak_mean = monte_carlo_mca_source->u.gaussian.mean;
+
+	peak_sigma = monte_carlo_mca_source->u.gaussian.standard_deviation;
+
+	seconds_per_call
+		= 1.0e-6 * (double) monte_carlo_mca->sleep_microseconds;
+
+	events_per_call = events_per_second * seconds_per_call;
+
+	events_per_call_per_channel =
+		mx_divide_safely( events_per_call, num_channels );
+
+	exp_coefficient = mx_divide_safely(1.0, peak_sigma * sqrt(2.0 * MX_PI));
 
 	max_random_number = mx_get_random_max();
 
@@ -256,7 +376,7 @@ mxd_monte_carlo_mca_process_peak( MX_MCA *mca,
 
 		exp_argument = mx_divide_safely(
 				(( i - peak_mean ) * ( i - peak_mean )),
-				    2.0 * peak_width * peak_width );
+				    2.0 * peak_sigma * peak_sigma );
 
 		gaussian = exp_coefficient * exp( - exp_argument );
 
@@ -298,16 +418,16 @@ mxd_monte_carlo_mca_process_peak( MX_MCA *mca,
 }
 
 static mx_status_type
-mxd_monte_carlo_mca_create_peak( MX_MCA *mca,
+mxd_monte_carlo_mca_create_gaussian( MX_MCA *mca,
 			MX_MONTE_CARLO_MCA *monte_carlo_mca,
 			MX_MONTE_CARLO_MCA_SOURCE *monte_carlo_mca_source,
 			int argc, char **argv )
 {
-	static const char fname[] = "mxd_monte_carlo_mca_create_peak()";
+	static const char fname[] = "mxd_monte_carlo_mca_create_gaussian()";
 
-	monte_carlo_mca_source->type = MXT_MONTE_CARLO_MCA_SOURCE_PEAK;
+	monte_carlo_mca_source->type = MXT_MONTE_CARLO_MCA_SOURCE_GAUSSIAN;
 
-	monte_carlo_mca_source->process = mxd_monte_carlo_mca_process_peak;
+	monte_carlo_mca_source->process = mxd_monte_carlo_mca_process_gaussian;
 
 	if ( argc < 4 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -315,11 +435,128 @@ mxd_monte_carlo_mca_create_peak( MX_MCA *mca,
 		"type specified for MCA '%s'.", mca->record->name );
 	}
 
-	monte_carlo_mca_source->u.peak.events_per_second = atof( argv[1] );
+	monte_carlo_mca_source->u.gaussian.events_per_second = atof( argv[1] );
 
-	monte_carlo_mca_source->u.peak.peak_mean = atof( argv[2] );
+	monte_carlo_mca_source->u.gaussian.mean = atof( argv[2] );
 
-	monte_carlo_mca_source->u.peak.peak_width = atof( argv[3] );
+	monte_carlo_mca_source->u.gaussian.standard_deviation = atof( argv[3] );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+static mx_status_type
+mxd_monte_carlo_mca_process_lorentzian( MX_MCA *mca,
+			MX_MONTE_CARLO_MCA *monte_carlo_mca,
+			MX_MONTE_CARLO_MCA_SOURCE *monte_carlo_mca_source )
+{
+	unsigned long i, j, num_channels, num_tests_per_channel;
+	unsigned long *private_array;
+
+	double events_per_second, seconds_per_call;
+	double events_per_call, events_per_call_per_channel;
+	double log_threshold;
+	long floor_log_threshold;
+	double peak_mean, peak_fwhm;
+	double lorentzian, function, coefficient;
+	double test_value, threshold;
+	double max_random_number;
+
+	num_channels = mca->maximum_num_channels;
+
+	private_array = monte_carlo_mca->private_array;
+
+	events_per_second =
+		monte_carlo_mca_source->u.lorentzian.events_per_second;
+
+	peak_mean = monte_carlo_mca_source->u.lorentzian.mean;
+
+	peak_fwhm =
+		monte_carlo_mca_source->u.lorentzian.full_width_half_maximum;
+
+	seconds_per_call
+		= 1.0e-6 * (double) monte_carlo_mca->sleep_microseconds;
+
+	events_per_call = events_per_second * seconds_per_call;
+
+	events_per_call_per_channel =
+		mx_divide_safely( events_per_call, num_channels );
+
+	coefficient = mx_divide_safely( 2.0, MX_PI * peak_fwhm );
+
+	max_random_number = mx_get_random_max();
+
+	for ( i = 0; i < num_channels; i++ ) {
+
+		function = mx_divide_safely( peak_fwhm * peak_fwhm,
+				(4.0 * ( i - peak_mean ) * ( i - peak_mean ))
+					+ ( peak_fwhm * peak_fwhm ) );
+
+		lorentzian = coefficient * function;
+
+		threshold = events_per_call_per_channel * lorentzian;
+
+		/* If 'threshold' is ever >= 1, then the expression
+		 * below ( test_value <= threshold) will always
+		 * evaluate to true.  To avoid this, we set the
+		 * number of times that we evaluate the test below
+		 * to 'num_tests_per_channel' and then divide the
+		 * value of 'threshold' by the value of
+		 * 'num_tests_per_channel'.
+		 */
+
+		if ( threshold <= 0.2 ) {
+			num_tests_per_channel = 1;
+		} else {
+			log_threshold = log10( threshold );
+
+			floor_log_threshold = mx_round( floor(log_threshold) );
+
+			num_tests_per_channel = mx_round(
+				pow(10.0, 2.0 + floor_log_threshold) );
+
+			threshold /= (double) num_tests_per_channel;
+		}
+
+		for ( j = 0; j < num_tests_per_channel; j++ )  {
+
+			test_value = (double) mx_random() / max_random_number;
+
+			if ( test_value <= threshold ) {
+				private_array[i]++;
+			}
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mxd_monte_carlo_mca_create_lorentzian( MX_MCA *mca,
+			MX_MONTE_CARLO_MCA *monte_carlo_mca,
+			MX_MONTE_CARLO_MCA_SOURCE *monte_carlo_mca_source,
+			int argc, char **argv )
+{
+	static const char fname[] = "mxd_monte_carlo_mca_create_lorentzian()";
+
+	monte_carlo_mca_source->type = MXT_MONTE_CARLO_MCA_SOURCE_LORENTZIAN;
+
+	monte_carlo_mca_source->process = mxd_monte_carlo_mca_process_lorentzian;
+
+	if ( argc < 4 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Not enough arguments were specified for the 'peak' source "
+		"type specified for MCA '%s'.", mca->record->name );
+	}
+
+	monte_carlo_mca_source->u.lorentzian.events_per_second =
+						atof( argv[1] );
+
+	monte_carlo_mca_source->u.lorentzian.mean = atof( argv[2] );
+
+	monte_carlo_mca_source->u.lorentzian.full_width_half_maximum =
+								atof( argv[3] );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -722,8 +959,20 @@ mxd_monte_carlo_mca_open( MX_RECORD *record )
 					&(monte_carlo_mca->source_array[i]),
 					argc, argv );
 		} else
-		if ( strcmp( argv[0], "peak" ) == 0 ) {
-			mx_status = mxd_monte_carlo_mca_create_peak(
+		if ( strcmp( argv[0], "polynomial" ) == 0 ) {
+			mx_status = mxd_monte_carlo_mca_create_polynomial(
+					mca, monte_carlo_mca,
+					&(monte_carlo_mca->source_array[i]),
+					argc, argv );
+		} else
+		if ( strcmp( argv[0], "gaussian" ) == 0 ) {
+			mx_status = mxd_monte_carlo_mca_create_gaussian(
+					mca, monte_carlo_mca,
+					&(monte_carlo_mca->source_array[i]),
+					argc, argv );
+		} else
+		if ( strcmp( argv[0], "lorentzian" ) == 0 ) {
+			mx_status = mxd_monte_carlo_mca_create_lorentzian(
 					mca, monte_carlo_mca,
 					&(monte_carlo_mca->source_array[i]),
 					argc, argv );
