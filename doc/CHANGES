@@ -1,742 +1,1115 @@
-Version 1.5.5 (10/06/11):
-	The 'mxupdate' program has been renamed to 'mxautosave'.  The
-	immediate cause for doing this is the fact that Windows 7 seems
-	to insist on popping up a UAC dialog any time that you try to
-	run an EXE file with the string 'update' embedded in its name.
-	Changing the name to 'mxautosave' is probably just as well, since
-	the new name more directly describes what it does, namely, 
-	automatically saving and restoring MX variables.
+Version 2.0.0 (07/13/11):
+        The 'mxupdate' program has been renamed to 'mxautosave'.  The
+        immediate cause for doing this is the fact that Windows 7 seems
+        to insist on popping up a UAC dialog any time that you try to
+        run an EXE file with the string 'update' embedded in its name.
+        Changing the name to 'mxautosave' is probably just as well, since
+        the new name more directly describes what it does, namely, 
+        automatically saving and restoring MX variables.
+
+        Added 'mx_config' utility program.  'mx_config' can be used in
+        MX makefiles to report the compiler version, the runtime library
+        version, the operating system version, etc.
+
+        Current Dynamically Loadable Modules:
+
+            In MX 2.0.0, all drivers that depend on third-party DLLs or
+            shared libraries have been moved to dynamically loaded MX
+            modules, so that the core of MX can be compiled independently
+            of these external libraries.  
+
+            Here is the list of currently working modules for MX 2.0.0.
+
+            aviex_pccd.mxo:
+                Drivers for Aviex (later Dexela) PCCD series area detectors.
+                The drivers for these used to be in libMx.
+
+                pccd_16080 - This is an old detector located at the BioCAT
+                    beamline of the Advanced Photon Source.
+                pccd_170170 - This detector is in use at the SWING beamline
+                    of Synchrotron Soleil.
+                pccd_4824 - This detector is located at ESRF.
+                pccd_9785 - This is the newest and last member of the series
+                    of PCCD detectors.  It is located at the BioCAT beamline
+                    of the Advanced Photon Source.
+
+            driverlinx_portio.mxo:
+                The driver for this used to be in libMx.
+
+                driverlinx_portio - A low level driver for communicating
+                    with x86 architecture I/O ports.  The third party
+                    driver this MX driver depends on does not work on
+                    recent versions of Windows or on 64-bit Windows.
+
+            epics.mxo:
+                Core MX client support for EPICS, as well as MX drivers for
+                most of the EPICS drivers in the SynApps package.  The
+                drivers for these used to be in libMx.
+
+                epics_ainput - MX analog_input driver that reads floating
+                    point values from EPICS PVs with support for dark current
+                    subtraction.
+                epics_aoutput - MX analog_output driver that writes floating
+                    point values to EPICS PVs.
+                epics_area_detector - MX area_detector driver that communicates
+                    with area detectors controlled by the EPICS areaDetector
+                    module.
+                epics_ccd - MX area_detector driver that communicates with
+                    the obsolete ccd EPICS module.
+                epics_dinput - MX digital_input driver that reads integer
+                    values from EPICS PVs.
+                epics_doutput - MX digital_output driver that writes integer
+                    values from EPICS PVs.
+                epics_mca - MX mca driver that communicates with multichannel
+                    analyzers controlled by the EPICS mca module.
+                epics_mcs - MX mcs driver that communicates with multichannel
+                    scalers controlled by the EPICS mca module.
+                epics_motor - MX motor driver that communicates with motors
+                    controlled by the EPICS Motor record.
+                epics_scaler - MX scaler driver that communicates with a
+                    single scaler channel of a device controlled by the
+                    EPICS scaler module.
+                epics_scaler_mce - MX multichannel encoder driver that 
+                    reads out channels from EPICS Scaler channels that were
+                    saved using synchronous groups.
+                epics_scaler_mcs - MX multichannel scaler driver that 
+                    reads out channels from EPICS Scaler channels that were
+                    saved using synchronous groups.
+                epics_timer - MX timer driver that communicates with the
+                    timer channel of a device controlled by the EPICS
+                    scaler module.
+
+                epics_camac - MX CAMAC driver that communicates with a
+                    CAMAC crate controller using the EPICS CAMAC module.
+                epics_gpib, epics_rs232 - MX gpib and rs232 drivers that
+                    communicate with GPIB and RS-232 ports using an old
+                    obsolete EPICS interface for such ports.  They should be
+                    replaced by drivers using Asyn support, but this has
+                    not been done yet.
+                epics_vme - MX VME driver that reads and writes values 
+                    located at VME addresses managed by the EPICS VME module.
+                
+                epics_char, epics_short, epics_long, epics_float, epics_double,
+                epics_string - These are MX variable drivers that read and
+                    write EPICS PVs with matching variable types.
+
+                epics_timeout - Controls the EPICS PV connection timeout
+                    from MX.
+
+            epics_aps.mxo:
+                MX drivers for devices only found at the Advanced Photon
+                Source.
+
+                aps_gap - MX motor driver that controls the undulator gap
+                    for an Advanced Photon Source insertion device.
+                aps_quadem_amplifier - MX amplifier driver for the quadEM
+                    EPICS module.
+
+                aps_id_qscan - An MX quick scan driver that arranges for
+                    an APS insertion device to be scanned in sync with a
+                    beamline monochromator.
+
+                aps_topup_interlock -
+                aps_topup_time - Reports the time until the next Topup
+                    injection.
+
+            epics_mbc.mxo:
+                MX drivers for EPICS PVs specific to the MBC beamline 4.2.2
+                at the Advanced Light Source:
+                mbc_gsc_trigger, mbc_noir, mbc_noir_trigger
+
+            epics_pmac_biocat.mxo:
+                MX drivers for EPICS controlled devices at the BioCAT
+                beamline (18-ID) at the Advanced Photon Source.
+
+                epics_pmac_biocat - A version of the MX motor driver for
+                    PMAC-controlled motor axes at BioCAT.  It has more
+                    features than the older 'epics_pmac_tc' module.
+
+            epics_pmac_tc.mxo:
+                MX drivers for the original EPICS databases for PMAC-
+                controlled motors.
+
+                pmac_tc_motor - An MX motor driver for this module.
+
+            epix_xclib.mxo:
+                MX drivers for 2-dimensional image frame grabbers from
+                EPIX, Inc.
+
+                epix_xclib - MX driver for communicating with the XCLIB
+                    library.
+                epix_rs232 - MX driver for communication with serial devices
+                    controlled by the XCLIB library.
+                epix_camera_link - MX driver for communication with Camera
+                    Link devices controlled by the XCLIB library.
+                epix_xclib_dinput, epix_xclib_doutput - MX digital input
+                    and digital output drivers for digital I/O controlled
+                    by the XCLIB library.
+                epix_xclib_video_input - An MX video_input driver for frame
+                    grabbers controlled by the EPIX XCLIB library.
+
+            esone_camac.mxo:
+                MX module wrapper for communication with a CAMAC crate 
+                controlled via an ESONE-compatible API library.
+
+                esone_camac - MX CAMAC interface driver for the CAMAC
+                    crate controller.
+
+            k8055.mxo:
+                MX module for controlling the USB-controlled Velleman K8055
+                data acquisition device.
+
+                k8055 - MX driver for USB communications to the K8055 device.
+                k8055_ainput, k8055_aoutput, k8055_dinput, k_8055_doutput
+                    - MX analog and digital I/O drivers for the Velleman K8055.
+                k8055_scaler - MX scaler driver for a counter channel of the
+                    Velleman K8055.
+                k8055_timer - MX timer driver for the timer of the Velleman
+                    K8055.
+
+            libusb_01.mxo:
+                MX module for communicating with the deprecated libusb-0.1
+                API.
+
+                libusb_01 - MX USB driver for the libusb-0.1 API.
+
+            linux_portio.mxo:
+                MX module for communicating with x86 I/O ports using the
+                'linux_portio' kernel device driver.
+
+                linux_portio - MX port I/O driver using the 'linux_portio'
+                    kernel device driver.
+
+            newport_xps.mxo:
+                MX module for controlling the Newport XPS-C and XPS-Q series
+                of motor controllers via the vendor-provided C++ code.
+
+                newport_xps - MX interface driver for the controller as
+                    a whole.
+                newport_xps_motor - MX motor driver for a single axis of
+                    the motor controller.
+
+            ni488.mxo:
+                MX module for controlling GPIB interfaces using either the
+                National Instruments IEEE-488 library or the open source
+                Linux-GPIB library.
+
+            ni_daqmx.mxo:
+                MX module for controlling National Instruments DAQmx devices.
+
+                ni_daqmx - MX driver for controlling the DAQmx library.
+                ni_daqmx_ainput, ni_daqmx_aoutput, ni_daqmx_dinput,
+                    ni_daqmx_aoutput - MX analog and digital I/O drivers
+                    for the DAQmx library.
+                ni_daqmx_thermocouple - An MX analog_input driver for
+                    thermocouples read out via DAQmx.
+
+            ni_valuemotion.mxo:
+                MX module for controlling National Instruments ValueMotion
+                motor controllers via the vendor-provided Win32 libraries.
+
+                pcmotion32 - MX interface driver for the controller as
+                    a whole.
+                pcmotion32_motor - MX motor driver for a single axis of
+                    the controller.
+
+            ortec_umcbi.mxo:
+                MX module for EG&G Ortec devices controlled via the
+                Unified MCB Interface for 32 Bits library (A11-B32)
+                under Windows.
+
+                umcbi - MX interface driver for the UMCBI library.
+                trump_mca - MX mca driver for the Ortec Trump MCA.
+
+            pleora_iport.mxo:
+                MX module for the vendor-provide Win32 C++ libraries
+                for the Pleora iPORT camera interface.
+
+                pleora_iport - MX interface driver for the Pleora iPORT.
+                pleora_iport_vinput - MX video input driver for Pleora
+                    iPORT camera interfaces.
+                pleora_iport_dinput, pleora_iport_doutput - MX digital I/O
+                    drivers for the Pleora iPORT.
+
+            pmc_mcapi.mxo:
+                MX module for the Precision MicroControl MCAPI series of
+                motor controllers.
+
+                pmc_mcapi - MX interface driver for communicating with MCAPI.
+                pmc_mcapi_motor - MX motor driver for a single axis controlled
+                    by the MCAPI library.
+                pmc_mcapi_ainput, pmc_mcapi_aoutput, pmc_mcapi_dinput,
+                    pmc_mcapi_doutput - MX analog and digital I/O drivers for
+                    the MCAPI library.
+
+            powerpmac.mxo:
+                MX module for controlling Delta Tau PowerPMAC motor
+                controllers.  Please note that these drivers are designed
+                to be run directly on the controller itself using the 
+                installed version of PowerPC Debian GNU/Linux and the
+                installed GCC compiler.
+
+                powerpmac - MX interface driver for communicating with the
+                    PowerPMAC controller.
+                powerpmac_motor - MX motor driver for a single motor axis.
+                powerpmac_ainput, powerpmac_aoutput, powerpmac_dinput,
+                    powerpmac_doutput - MX analog and digital I/O drivers
+                    for the PowerPMAC.
+                powerpmac_long, powerpmac_ulong, powerpmac_double - MX
+                    variable drivers for the matching internal variables of
+                    the PowerPMAC
+
+            python.mxo:
+                MX module for calling MP-based Python scripts from a C/C++
+                based user program.  Typically this is used by 'mxmotor'.
+
+                python - An MX extension (not a driver) that controls 
+                    communication with Python 2.x.
+
+                Warning: Creating and modifying MX scans is not yet fully
+                supported by this extension module.
+
+            radicon_helios.mxo:
+                MX module for the Radicon Helios 25x20 and 10x10 CMOS
+                area detectors.  These were test devices for RDI that
+                were never made into a product.
+
+                radicon_helios - MX area_detector driver for the detector.
+                radicon_helios_trigger - An MX pulse_generator driver for
+                    the detector.
+
+            radicon_taurus.mxo:
+                MX module for the Radicon Taurus-based CMOS_8M series of
+                area detectors from Research Detectors Inc.  Currently in
+                use at the ALS 4.2.2 MBC crystallography beamline.
+
+                radicon_taurus - MX area detector driver for the detector.
+                radicon_taurus_rs232 - MX interface driver for communicating
+                    the detector FPGA via an ASCII protocol.
+
+            rdi_mbc.mxo:
+                MX module for custom additions to the ALS 4.2.2 detector
+                interface for compatibility with that beamline's existing
+                control software.
+
+                rdi_mbc_string, rdi_mbc_filename, rdi_mbc_datafile_prefix,
+                rdi_mbc_pathname_builder, rdi_mbc_log, rdi_mbc_save_frame
+
+            sapera_lt.mxo:
+                MX module for Teledyne DALSA's Sapera LT interface library
+                for controlling DALSA cameras and frame grabbers.  Please
+                note that DALSA cameras and frame grabbers have similar,
+                but not identical, APIs, so it is necessary to have two
+                separate video input drivers for them. 
+
+                sapera_lt - MX interface driver for communicating with the
+                    Sapera LT libraries.
+                sapera_lt_frame_grabber - MX video_input driver for DALSA
+                    frame grabbers.
+                sapera_lt_camera - MX video_input driver for DALSA cameras.
+
+            sis3100.mxo:
+                MX module for controlling VME crates via the Struck 1100/3100
+                set of VME controller cards.
+
+                sis3100 - MX VME driver for the Struck interface.
+
+            site_biocat_toast.mxo:
+                Site-specific drivers for a Parker Compumotor controller 
+                used at the BioCAT (18-ID) beamline of the Advanced Photon
+                Source.
+
+                biocat_6k_toast - This MX operation driver uses an X-Y
+                    translation stage to "toast" samples in front of an
+                    X-ray beam.
+                biocat_6k_joystick - This MX special variable driver 
+                    allows the joystick input of the X-Y translation
+                    stage to be controlled from an MX-based GUI.
+
+            u500.mxo:
+                MX module for the vendor-provided Win32 libraries for the
+                Aerotech Unidex 500 motor controller.
+
+                u500 - MX interface driver for the controller as a whole.
+                u500_rs232 - MX rs232 driver for sending command strings
+                    to the driver.
+                u500_motor - MX motor driver for a single axis.
+                u500_status - MX digital_input driver for reading status
+                    values from the controller.
+                u500_variable - MX variable driver for U500 V variables.
+
+            v4l2_input.mxo:
+                MX module for the Linux-only Video4Linux version 2 video
+                capture API.
+
+                v4l2_input - MX video_input driver for the Video4Linux 2
+                    API.
+
+            vxi_memacc.mxo:
+                MX module for the NI-VISA VXI/VME controller via the
+                MEMACC resource.
+
+                vxi_memacc - MX VME driver for the MEMACC resource.
+
+            xia_handel.mxo:
+                MX module for multichannel analyzers made by XIA that
+                are controlled via the Handel library.
+
+                handel - MX interface driver for the Handel API.
+                handel_mca - MX mca driver for a single MCA in a multi-MCA
+                    module.
+                handel_sum - MX driver that computes weighted sums of XIA
+                    Handel values.
+                handel_timer - MX timer driver to control the timing of
+                    Handel controlled MCAs.
+        
+            xineos_gige.mxo:
+                MX module for the DALSA Xineos GigE series of detectors.
+
+                xineos_gige - MX area detector driver for this detector.
+
+        Unfinished modules:
+
+            There are several modules that were written, but never fully
+            tested for various different reasons.  These modules have been
+            kept in the source code tree, but need more work to be usable
+            by end users:  avt_pvapi, avt_vimba, bnc725, edt, fastcam_pcclib,
+                labjack_ux, libtiff, nuvant_ezware2
+
+        Modules deleted:
+
+            dalsa_gev, nuvant_ezstat
 
 Version 1.5.4 (05/10/11):
 
-	Although the development leading up to this release called itself
-	MX 1.5.3, the stable release will be called MX 1.5.4.  The new
-	policy is that development releases will always end in odd numbers
-	while stable releases will end in even numbers.  This will make it
-	easier to distinguish stable releases from development versions
-	in the future.
-
-	Dynamically Loadable Module support:
+        Although the development leading up to this release called itself
+        MX 1.5.3, the stable release will be called MX 1.5.4.  The new
+        policy is that development releases will always end in odd numbers
+        while stable releases will end in even numbers.  This will make it
+        easier to distinguish stable releases from development versions
+        in the future.
+
+        Dynamically Loadable Module support:
 
-	    MX now has support for dynamically loading extension modules
-	    at runtime.  For MX 1.5.4, these modules can only contain sets
-	    of device drivers, but in future releases it will be possible
-	    to dynamically load extensions containing software packages
-	    that are not drivers, such as Python interpreters, specialized
-	    numerical processing packages, and so forth.  Modules are loaded
-	    using the new mx_load_module() function.
+            MX now has support for dynamically loading extension modules
+            at runtime.  For MX 1.5.4, these modules can only contain sets
+            of device drivers, but in future releases it will be possible
+            to dynamically load extensions containing software packages
+            that are not drivers, such as Python interpreters, specialized
+            numerical processing packages, and so forth.  Modules are loaded
+            using the new mx_load_module() function.
 
-	    The ultimate plan is to move all optionally compiled drivers
-	    that are currently selected using the libMx/mxconfig.h file
-	    into the new dynamically loaded modules and do away with the
-	    mxconfig.h file.
-
-	    MX 1.5.4 comes with four modules.  Two of these are currently
-	    being used in the testing of new area detectors, while the
-	    other two are at earlier stages of development.
-
-	    Area detector-related modules:
-
-		pleora_iport - This Windows C++ module contains a series of
-		    drivers for the Pleora iPORT family of streaming video
-		    capture devices.  The available drivers include:
-
-		    pleora_iport - Interface driver for communicating with
-			the iPORT software libraries.
-
-		    pleora_iport_vinput  - MX video input driver for capturing
-			frames from an iPORT IP engine.
-
-		    pleora_iport_dinput  - MX digital input driver for reading
-			the A0 through A3 inputs of an iPORT PLC.
+            The ultimate plan is to move all optionally compiled drivers
+            that are currently selected using the libMx/mxconfig.h file
+            into the new dynamically loaded modules and do away with the
+            mxconfig.h file.
+
+            MX 1.5.4 comes with four modules.  Two of these are currently
+            being used in the testing of new area detectors, while the
+            other two are at earlier stages of development.
+
+            Area detector-related modules:
+
+                pleora_iport - This Windows C++ module contains a series of
+                    drivers for the Pleora iPORT family of streaming video
+                    capture devices.  The available drivers include:
+
+                    pleora_iport - Interface driver for communicating with
+                        the iPORT software libraries.
+
+                    pleora_iport_vinput  - MX video input driver for capturing
+                        frames from an iPORT IP engine.
+
+                    pleora_iport_dinput  - MX digital input driver for reading
+                        the A0 through A3 inputs of an iPORT PLC.
 
-		    pleora_iport_doutput - MX digital output driver for
-			writing to the Q outputs of an iPORT PLC.
+                    pleora_iport_doutput - MX digital output driver for
+                        writing to the Q outputs of an iPORT PLC.
 
-		radicon_helios - This Windows C++ module contains drivers
-		    for controlling the Helios series of Rad-icon X-ray
-		    detectors which make use of the Pleora iPORT.  The
-		    available drivers include:
+                radicon_helios - This Windows C++ module contains drivers
+                    for controlling the Helios series of Rad-icon X-ray
+                    detectors which make use of the Pleora iPORT.  The
+                    available drivers include:
 
-		    radicon_helios - MX area detector driver for a Helios
-			detector.  This detector is either triggered by an
-			external trigger or by the 'radicon_helios_trigger'
-			driver described below.
+                    radicon_helios - MX area detector driver for a Helios
+                        detector.  This detector is either triggered by an
+                        external trigger or by the 'radicon_helios_trigger'
+                        driver described below.
 
-		    radicon_helios_trigger - This makes use of parts of
-			the Pleora iPORT PLC that are not used by the
-			'radicon_helios' to implement a self-contained
-			triggering system for the 'radicon_helios' so 
-			that it can work without external triggering.
+                    radicon_helios_trigger - This makes use of parts of
+                        the Pleora iPORT PLC that are not used by the
+                        'radicon_helios' to implement a self-contained
+                        triggering system for the 'radicon_helios' so 
+                        that it can work without external triggering.
 
-	    Work in progress modules:
+            Work in progress modules:
 
-		daqmx_base - This C-based module provides interfaces to the
-		    National Instruments DAQmx Base data acquisition libraries.
-		    On Linux, the analog output and digital I/O drivers work
-		    with a USB-6009 module, but the analog input driver does
-		    not seem to detect supplied input voltages (for an unknown
-		    reason).  On Windows, the analog input driver sometimes
-		    can cause the MX server to hang.
+                daqmx_base - This C-based module provides interfaces to the
+                    National Instruments DAQmx Base data acquisition libraries.
+                    On Linux, the analog output and digital I/O drivers work
+                    with a USB-6009 module, but the analog input driver does
+                    not seem to detect supplied input voltages (for an unknown
+                    reason).  On Windows, the analog input driver sometimes
+                    can cause the MX server to hang.
 
-		    Work on the 'daqmx_base' module was put on hold for now,
-		    since it was holding up the release of MX 1.5.4.  It will
-		    be completed at a later date.
+                    Work on the 'daqmx_base' module was put on hold for now,
+                    since it was holding up the release of MX 1.5.4.  It will
+                    be completed at a later date.
 
-		    Unfortunately, National Instruments only supports DAQmx
-		    Base on Linux for OpenSuse and Red Hat Enterprise Linux.
-		    I have not yet been able to get installation to work on
-		    Debian-based distributions.  In addition, due to the way
-		    that National Instruments has implemented DAQmx Base, it
-		    is necessary on Linux to prefix the command that starts
-		    your MX server with this
+                    Unfortunately, National Instruments only supports DAQmx
+                    Base on Linux for OpenSuse and Red Hat Enterprise Linux.
+                    I have not yet been able to get installation to work on
+                    Debian-based distributions.  In addition, due to the way
+                    that National Instruments has implemented DAQmx Base, it
+                    is necessary on Linux to prefix the command that starts
+                    your MX server with this
 
-			LD_PRELOAD=/usr/local/lib/libnidaqmxbase.so
+                        LD_PRELOAD=/usr/local/lib/libnidaqmxbase.so
 
-		    Otherwise, the DAQmx Base library does not work correctly.
-		    In addition, startup and shutdown of the 'daqmx_base'
-		    drivers is _very_ slow, since National Instruments's
-		    DAQmx Base is actually firing up a copy of the LabVIEW
-		    runtime in the background.
+                    Otherwise, the DAQmx Base library does not work correctly.
+                    In addition, startup and shutdown of the 'daqmx_base'
+                    drivers is _very_ slow, since National Instruments's
+                    DAQmx Base is actually firing up a copy of the LabVIEW
+                    runtime in the background.
 
-		    Nevertheless, the available drivers and their status are:
+                    Nevertheless, the available drivers and their status are:
 
-		    daqmx_base - Interface driver for communicating with the
-			DAQmx Base libraries. (works)
+                    daqmx_base - Interface driver for communicating with the
+                        DAQmx Base libraries. (works)
 
-		    daqmx_base_ainput  - Analog input driver, which does not
-			work on the USB-6009 as mentioned above.
+                    daqmx_base_ainput  - Analog input driver, which does not
+                        work on the USB-6009 as mentioned above.
 
-		    daqmx_base_aoutput - Analog output driver. (works)
+                    daqmx_base_aoutput - Analog output driver. (works)
 
-		    daqmx_base_dinput  - Digital input driver. (works)
+                    daqmx_base_dinput  - Digital input driver. (works)
 
-		    daqmx_base_doutput - Digital output driver. (works)
+                    daqmx_base_doutput - Digital output driver. (works)
 
-		    daqmx_base_thermocouple - Analog input driver for use
-			with thermocouples.  Not tested, since the USB-6009
-			does not support thermocouple inputs.
+                    daqmx_base_thermocouple - Analog input driver for use
+                        with thermocouples.  Not tested, since the USB-6009
+                        does not support thermocouple inputs.
 
-		bnc725_lib - Windows C++ module for the BNC725 digital delay
-		    generator from Berkeley Nucleonics Corporation.  This is
-		    intended to provide MX pulse generator drivers as well
-		    as other drivers.  However, the work has not yet
-		    progressed far enough for this module to be useful.
+                bnc725_lib - Windows C++ module for the BNC725 digital delay
+                    generator from Berkeley Nucleonics Corporation.  This is
+                    intended to provide MX pulse generator drivers as well
+                    as other drivers.  However, the work has not yet
+                    progressed far enough for this module to be useful.
 
-	New Device Driver Support:
+        New Device Driver Support:
 
-	    digital_output_pulser - This is a driver that uses an MX digital
-		output as a "pulse generator" using operating system timers
-		to control the timing of the pulses.  You should only use
-		this driver in cases where the precise timing of the pulses
-		is not important.
+            digital_output_pulser - This is a driver that uses an MX digital
+                output as a "pulse generator" using operating system timers
+                to control the timing of the pulses.  You should only use
+                this driver in cases where the precise timing of the pulses
+                is not important.
 
-	    energy_mcs_qscan - This is an MX quick scan driver that is 
-		optimized for use with MX energy pseudomotors.  Restricting
-		this driver to only work with energy pseudomotors allows
-		this scan to run faster than the 'mcs_qscan' driver.
+            energy_mcs_qscan - This is an MX quick scan driver that is 
+                optimized for use with MX energy pseudomotors.  Restricting
+                this driver to only work with energy pseudomotors allows
+                this scan to run faster than the 'mcs_qscan' driver.
 
-	    epics_area_detector - This is an MX area detector driver for
-		communicating with the IOC-based EPICS Area Detector record.
+            epics_area_detector - This is an MX area detector driver for
+                communicating with the IOC-based EPICS Area Detector record.
 
-	    file_dinput - This driver uses values read from a file to
-		simulate a digital input.
+            file_dinput - This driver uses values read from a file to
+                simulate a digital input.
 
-	    keyboard_dinput - This driver uses keypresses on a keyboard
-		to simulate a digital input.
+            keyboard_dinput - This driver uses keypresses on a keyboard
+                to simulate a digital input.
 
-	    I404 - Drivers for the Pyramid Technical Consultants I404
-		digital electrometer.  The individual drivers are:
+            I404 - Drivers for the Pyramid Technical Consultants I404
+                digital electrometer.  The individual drivers are:
 
-		    i404      - Controller driver.
+                    i404      - Controller driver.
 
-		    i404_amp  - Amplifier driver to control gain, offset, etc.
+                    i404_amp  - Amplifier driver to control gain, offset, etc.
 
-		    i404_mcai - Multichannel analog input driver.  This driver
-			reads the values from all 4 channels of the I404 as
-			a single operation.
+                    i404_mcai - Multichannel analog input driver.  This driver
+                        reads the values from all 4 channels of the I404 as
+                        a single operation.
 
-	    limited_move - This is an MX pseudomotor driver that limits
-		the magnitude of relative moves.
+            limited_move - This is an MX pseudomotor driver that limits
+                the magnitude of relative moves.
 
-	    Linkam T9x - Drivers for the Linkam T92, T93, T94, and T95 series
-		of temperature controllers.  The individual drivers are:
+            Linkam T9x - Drivers for the Linkam T92, T93, T94, and T95 series
+                of temperature controllers.  The individual drivers are:
 
-		    linkam_t9x       - Controller driver.
+                    linkam_t9x       - Controller driver.
 
-		    linkam_t9x_motor - This is a motor driver for controlling
-			the motion control part of the T9x controllers.
+                    linkam_t9x_motor - This is a motor driver for controlling
+                        the motion control part of the T9x controllers.
 
-		    linkam_t9x_pump  - Analog output driver for controlling
-			the pump speed.
+                    linkam_t9x_pump  - Analog output driver for controlling
+                        the pump speed.
 
-		    linkam_t9x_temp  - This is a motor driver for controlling
-			the temperature setpoint.
+                    linkam_t9x_temp  - This is a motor driver for controlling
+                        the temperature setpoint.
 
-	    Molecular Biology Consortium (Beamline 4.2.2 at the ALS) -
-		This is a series of drivers written to control beamline
-		specific components of the ALS 4.2.2 beamline.  The
-		individual drivers are:
+            Molecular Biology Consortium (Beamline 4.2.2 at the ALS) -
+                This is a series of drivers written to control beamline
+                specific components of the ALS 4.2.2 beamline.  The
+                individual drivers are:
 
-		    mbc_noir         - MX area detector driver for controlling
-			the MBC NOIR 1 detector.
+                    mbc_noir         - MX area detector driver for controlling
+                        the MBC NOIR 1 detector.
 
-		    mbc_noir_trigger - Pulse generator driver that controls
-			the beamline trigger signal through the MBC:NOIR:
-			EPICS PVs.
+                    mbc_noir_trigger - Pulse generator driver that controls
+                        the beamline trigger signal through the MBC:NOIR:
+                        EPICS PVs.
 
-		    mbc_gsc_trigger  - Pulse generator driver that controls
-			the beamline trigger signal directly through the
-			MBC:gsc: EPICS PVs of the MBC GonioSync Controller.
+                    mbc_gsc_trigger  - Pulse generator driver that controls
+                        the beamline trigger signal directly through the
+                        MBC:gsc: EPICS PVs of the MBC GonioSync Controller.
 
-	    network_mcai - MX multichannel analog input driver for an MCAI
-		controlled by a remote MX server.
+            network_mcai - MX multichannel analog input driver for an MCAI
+                controlled by a remote MX server.
 
-	    Power PMAC - This is a set of drivers for controlling the new
-		Delta Tau Power PMAC series of motion controllers.  The
-		Power PMAC controller, as delivered, is based on a
-		PowerPC-based Linux computer running the Debian Lenny (5.0)
-		distribution with Xenomai patches.
+            Power PMAC - This is a set of drivers for controlling the new
+                Delta Tau Power PMAC series of motion controllers.  The
+                Power PMAC controller, as delivered, is based on a
+                PowerPC-based Linux computer running the Debian Lenny (5.0)
+                distribution with Xenomai patches.
 
-		The installed copy of Lenny comes complete with GCC, Make,
-		and other development tools.  This makes it straightforward
-		to build the MX server to run directly on the Power PMAC
-		controller itself, linking to the vendor-provided motion
-		control libraries.
+                The installed copy of Lenny comes complete with GCC, Make,
+                and other development tools.  This makes it straightforward
+                to build the MX server to run directly on the Power PMAC
+                controller itself, linking to the vendor-provided motion
+                control libraries.
 
-		The individual drivers are:
+                The individual drivers are:
 
-		    powerpmac       - Controller driver.
+                    powerpmac       - Controller driver.
 
-	    	    powerpmac_motor - Motor driver for controlling an
-			individual Power PMAC motor.
+                        powerpmac_motor - Motor driver for controlling an
+                        individual Power PMAC motor.
 
-		    powerpmac_ainput, powerpmac_aoutput,
-		    powerpmac_dinput, powerpmac_doutput - Drivers for
-			controlling Power PMAC variables as if they were
-			analog or digital I/O devices (which in some cases,
-			they are).
+                    powerpmac_ainput, powerpmac_aoutput,
+                    powerpmac_dinput, powerpmac_doutput - Drivers for
+                        controlling Power PMAC variables as if they were
+                        analog or digital I/O devices (which in some cases,
+                        they are).
 
-		    powerpmac_long, powerpmac_ulong, powerpmac_double -
-			MX variable drivers for directly reading and writing
-			Power PMAC internal variables.
+                    powerpmac_long, powerpmac_ulong, powerpmac_double -
+                        MX variable drivers for directly reading and writing
+                        Power PMAC internal variables.
 
-	    SIM900 - A set of drivers for controlling modules installed in
-		a Stanford Research Systems SIM900 mainframe.  The currently
-		available drivers are:
+            SIM900 - A set of drivers for controlling modules installed in
+                a Stanford Research Systems SIM900 mainframe.  The currently
+                available drivers are:
 
-		    sim900      - Mainframe controller driver.
+                    sim900      - Mainframe controller driver.
 
-		    sim900_port - MX RS-232 driver for communicating with
-				individual modules in the SIM900 mainframe.
+                    sim900_port - MX RS-232 driver for communicating with
+                                individual modules in the SIM900 mainframe.
 
-		    sim960 - MX motor driver for the SIM960 Analog PID
-				controller.
+                    sim960 - MX motor driver for the SIM960 Analog PID
+                                controller.
 
-		    sim980 - MX analog input driver for the SIM980 summing
-				amplifier.
+                    sim980 - MX analog input driver for the SIM980 summing
+                                amplifier.
 
-		    sim983 - MX amplifier driver for the SIM983 scaling
-				amplifier.
+                    sim983 - MX amplifier driver for the SIM983 scaling
+                                amplifier.
 
-	    telnet - This is an RS-232 driver for communicating with
-		Telnet-based terminal servers.  The primary difference
-		between the 'tcp232' driver and the 'telnet' driver is
-		that the 'telnet' driver knows how to handle Telnet
-		option negotiation.
+            telnet - This is an RS-232 driver for communicating with
+                Telnet-based terminal servers.  The primary difference
+                between the 'tcp232' driver and the 'telnet' driver is
+                that the 'telnet' driver knows how to handle Telnet
+                option negotiation.
 
-	MX now supports the 'win32' build target on Windows 7.  Note that
-	Windows Vista is _not_ supported, since I do not have access to
-	a Vista machine, but it will probably work anyway.
+        MX now supports the 'win32' build target on Windows 7.  Note that
+        Windows Vista is _not_ supported, since I do not have access to
+        a Vista machine, but it will probably work anyway.
 
-	MX can now be built for the 'win32' build target using the Microsoft
-	Visual C++ 2010 Express compiler or using the Windows 7 SDK compilers.
-	Visual C++ 2010 Express does not include a compiler capable of 
-	creating 64-bit binaries, so you must use the Windows 7 SDK for that
-	or else use the full version of Visual Studio 2010.  Please note that
-	you use the 'win32' build target in the MX makefiles even if you are
-	building a 64-bit version of the code, since the Windows API is
-	actually essentially the same on 64-bit systems.
+        MX can now be built for the 'win32' build target using the Microsoft
+        Visual C++ 2010 Express compiler or using the Windows 7 SDK compilers.
+        Visual C++ 2010 Express does not include a compiler capable of 
+        creating 64-bit binaries, so you must use the Windows 7 SDK for that
+        or else use the full version of Visual Studio 2010.  Please note that
+        you use the 'win32' build target in the MX makefiles even if you are
+        building a 64-bit version of the code, since the Windows API is
+        actually essentially the same on 64-bit systems.
 
-	MX support for EPICS on Windows 7 has been tested using EPICS 3.14.12.
+        MX support for EPICS on Windows 7 has been tested using EPICS 3.14.12.
 
-	On Linux platforms, 'make install' now copies scripts/mxsetup.sh
-	to /opt/mx/bin.  This is to make the example startup script easier
-	to find by new users.
+        On Linux platforms, 'make install' now copies scripts/mxsetup.sh
+        to /opt/mx/bin.  This is to make the example startup script easier
+        to find by new users.
 
-	Added new mx_rs232_get_configuration(), mx_rs232_set_configuration(),
-	and mx_rs232_send_break() functions for MX RS-232 drivers.  The
-	get and set configuration functions affect the speed, word size,
-	parity, stop bits, flow control, read terminators, and write
-	terminators for the port.  At present, these features are supported
-	by the 'network_rs232', 'tty', and 'win32_com' drivers.
+        Added new mx_rs232_get_configuration(), mx_rs232_set_configuration(),
+        and mx_rs232_send_break() functions for MX RS-232 drivers.  The
+        get and set configuration functions affect the speed, word size,
+        parity, stop bits, flow control, read terminators, and write
+        terminators for the port.  At present, these features are supported
+        by the 'network_rs232', 'tty', and 'win32_com' drivers.
 
-	Changed the area detector code to use the term 'duration' mode 
-	rather than 'bulb' mode for exposures whose length depends on the
+        Changed the area detector code to use the term 'duration' mode 
+        rather than 'bulb' mode for exposures whose length depends on the
         duration of an external trigger signal.  Although 'bulb' mode is
-	the term used in digital photography and by the PVCAM library,
-	I found that I was always having to explain what I meant by the
-	term.  Hopefully, 'duration' mode will be a more obvious description
-	of what the area detector mode is doing.
+        the term used in digital photography and by the PVCAM library,
+        I found that I was always having to explain what I meant by the
+        term.  Hopefully, 'duration' mode will be a more obvious description
+        of what the area detector mode is doing.
 
-	Added 'exposure_mode' infrastructure to area detector support do
-	distinguish (when necessary) between the following exposure types:
-	still, dark, and expose(oscillation).  This is currently only 
-	being used by MBC detectors.
+        Added 'exposure_mode' infrastructure to area detector support do
+        distinguish (when necessary) between the following exposure types:
+        still, dark, and expose(oscillation).  This is currently only 
+        being used by MBC detectors.
 
-	Added the MXF_AD_SAVE_CORRECTION_FRAME_AFTER_ACQUISITION flag (0x8000)
-	to the 'area_detector_flags' field of area detectors.  If this flag
-	is set, mx_area_detector_default_datafile_management_handler() will
-	automatically save a copy of any newly acquired correction images
-	to disk.  The frames are saved as part of the normal numbering
-	sequence for saved images.  This feature is intended primarily 
-	for debugging the acquisition of correction frames.
+        Added the MXF_AD_SAVE_CORRECTION_FRAME_AFTER_ACQUISITION flag (0x8000)
+        to the 'area_detector_flags' field of area detectors.  If this flag
+        is set, mx_area_detector_default_datafile_management_handler() will
+        automatically save a copy of any newly acquired correction images
+        to disk.  The frames are saved as part of the normal numbering
+        sequence for saved images.  This feature is intended primarily 
+        for debugging the acquisition of correction frames.
 
-	The 'pccd_16080' driver for the Aviex PCCD-16080 detector at BioCAT
-	now can use binning of up to 128 in the horizontal direction and up
-	to 8 in the vertical direction.
+        The 'pccd_16080' driver for the Aviex PCCD-16080 detector at BioCAT
+        now can use binning of up to 128 in the horizontal direction and up
+        to 8 in the vertical direction.
 
-	The 'pccd_16080' driver now supports strobe mode sequences, where
-	the acquisition of each frame is started by an external trigger.
+        The 'pccd_16080' driver now supports strobe mode sequences, where
+        the acquisition of each frame is started by an external trigger.
 
-	Updated the 'epics_mca' driver so that it can automatically compensate
-	for whether or not the version of dxp support is dxp3-0 or newer.
+        Updated the 'epics_mca' driver so that it can automatically compensate
+        for whether or not the version of dxp support is dxp3-0 or newer.
 
-	Added the MXF_EPICS_MCA_WAIT_ON_START bit (0x8) to 'epics_mca_flags'
-	to wait for a notification that the EPICS MCA record has started
-	counting.  This used to be the default behavior, but now is not
-	in order to speed up scanning.
+        Added the MXF_EPICS_MCA_WAIT_ON_START bit (0x8) to 'epics_mca_flags'
+        to wait for a notification that the EPICS MCA record has started
+        counting.  This used to be the default behavior, but now is not
+        in order to speed up scanning.
 
-	The 'motor' program can now directly create and run area detector
-	scans of type 'wedge_scan'.  The 'wedge_scan' driver is designed
-	to emulate the behavior of Blu-Ice when acquiring CCD data.  The
-	underlying scanning code has existed for several years, but this
-	now provides a user interface for the feature.
+        The 'motor' program can now directly create and run area detector
+        scans of type 'wedge_scan'.  The 'wedge_scan' driver is designed
+        to emulate the behavior of Blu-Ice when acquiring CCD data.  The
+        underlying scanning code has existed for several years, but this
+        now provides a user interface for the feature.
 
-	The 'pmac_mce' driver can now directly modify the slaving of the
-	slave motor axis without needing to run a PLC program.  If you
-	specify a negative number for the 'plc_program_number' parameter,
-	the driver uses the absolute value of that as the slave motor
-	axis number.
+        The 'pmac_mce' driver can now directly modify the slaving of the
+        slave motor axis without needing to run a PLC program.  If you
+        specify a negative number for the 'plc_program_number' parameter,
+        the driver uses the absolute value of that as the slave motor
+        axis number.
 
-	EPICS support in libMx/Makehead.linux now contains examples of how
-	ot configure the makefile to use the NSLS-II EPICS Debian packages
-	at http://epics.nsls2.bnl.gov/debian/ instead of the IIT EPICS 
-	Debian packages at http://debian-xray.iit.edu/.  The behavior of
-	EPICS is essentially identical, regardless of which set of EPICS
-	Debian packages you use.
+        EPICS support in libMx/Makehead.linux now contains examples of how
+        ot configure the makefile to use the NSLS-II EPICS Debian packages
+        at http://epics.nsls2.bnl.gov/debian/ instead of the IIT EPICS 
+        Debian packages at http://debian-xray.iit.edu/.  The behavior of
+        EPICS is essentially identical, regardless of which set of EPICS
+        Debian packages you use.
 
-	Tested linux-ppc EPICS support using a Power PMAC system as the
-	development platform.
+        Tested linux-ppc EPICS support using a Power PMAC system as the
+        development platform.
 
-	Minor 'win32' makefile changes for compatibility with very recent
-	versions of Gnu make from Cygwin.
+        Minor 'win32' makefile changes for compatibility with very recent
+        versions of Gnu make from Cygwin.
 
-	Minor 'solaris' makefile changes for compatibility with the
-	SunStudio 12.1 development system.
+        Minor 'solaris' makefile changes for compatibility with the
+        SunStudio 12.1 development system.
 
-	Minor change to the 'linux_parport' series of drivers so that by
-	default they do _not_ shift the bits read from the parallel port
-	status ports.  This provides better compatibility with the pinout
-	descriptions on the Internet for PC-style parallel ports.
+        Minor change to the 'linux_parport' series of drivers so that by
+        default they do _not_ shift the bits read from the parallel port
+        status ports.  This provides better compatibility with the pinout
+        descriptions on the Internet for PC-style parallel ports.
 
-	'linux_parport_flags' in the 'linux_parport' driver now has
-	two new flag bits:
+        'linux_parport_flags' in the 'linux_parport' driver now has
+        two new flag bits:
 
-	    MXF_LINUX_PARPORT_PERIPHERAL_DRIVES_DATA_LINES (0x2) tells
-		Linux to not have the parallel port itself drive the
-		data lins.
-	    MXF_LINUX_PARPORT_STATUS_PORT_SHIFT_BITS_DOWN (0x4) shifts
-		the status bits down by 3 bits to recover the old
-		behavior before this release, as described in the 
-		previous paragraph.
+            MXF_LINUX_PARPORT_PERIPHERAL_DRIVES_DATA_LINES (0x2) tells
+                Linux to not have the parallel port itself drive the
+                data lins.
+            MXF_LINUX_PARPORT_STATUS_PORT_SHIFT_BITS_DOWN (0x4) shifts
+                the status bits down by 3 bits to recover the old
+                behavior before this release, as described in the 
+                previous paragraph.
 
-	Changes have been made to the interactions between the motor
-	'position', 'status', and 'extended_status' to more reliably
-	send value changed updates when necessary.
+        Changes have been made to the interactions between the motor
+        'position', 'status', and 'extended_status' to more reliably
+        send value changed updates when necessary.
 
-	Changes have been made to the interactions between the area
-	detector 'last_frame_number', 'total_num_frames', 'status', and
-	'extended_status' to more reliably send value changed updates
-	when necessary.
+        Changes have been made to the interactions between the area
+        detector 'last_frame_number', 'total_num_frames', 'status', and
+        'extended_status' to more reliably send value changed updates
+        when necessary.
 
-	Modified the order in which SMV headers are written to disk files
-	for better compatibility with Fit2d.
+        Modified the order in which SMV headers are written to disk files
+        for better compatibility with Fit2d.
 
-	Added new motor fields:
+        Added new motor fields:
 
-	    'busy_start_interval_enabled'   MXFT_BOOL
-	    'busy_start_interval'           MXFT_DOUBLE (in seconds)
-	    'last_start_time'               MXFT_DOUBLE (in seconds)
+            'busy_start_interval_enabled'   MXFT_BOOL
+            'busy_start_interval'           MXFT_DOUBLE (in seconds)
+            'last_start_time'               MXFT_DOUBLE (in seconds)
 
-	If 'busy_start_interval_enabled' is set to a non-zero value,
-	then just after a move is commanded, motor drivers will 
-	unconditionally report the motor as moving for a period equal
-	to 'busy_start_interval', regardless of what the motor controller
-	itself says.  This is to work around motor controllers that have
-	the misfeature of reporting that the motor is not moving for
-	a short time after a motor move is commanded.  At present,
-	the 'pmac_motor' and 'powerpmac_motor' drivers set the busy
-	start interval to 0.01 seconds.
+        If 'busy_start_interval_enabled' is set to a non-zero value,
+        then just after a move is commanded, motor drivers will 
+        unconditionally report the motor as moving for a period equal
+        to 'busy_start_interval', regardless of what the motor controller
+        itself says.  This is to work around motor controllers that have
+        the misfeature of reporting that the motor is not moving for
+        a short time after a motor move is commanded.  At present,
+        the 'pmac_motor' and 'powerpmac_motor' drivers set the busy
+        start interval to 0.01 seconds.
 
-	The 'pmac' driver now supports 5 different port connection types:
+        The 'pmac' driver now supports 5 different port connection types:
 
-	    rs232     - Connect using an MX RS-232 port.
+            rs232     - Connect using an MX RS-232 port.
 
-	    tcp       - Connect using the PMAC Ethernet Protocol described
-	                in the manual for the Delta Tau Accessory 54E UMAC
-	                module for Ethernet/USB communication.
+            tcp       - Connect using the PMAC Ethernet Protocol described
+                        in the manual for the Delta Tau Accessory 54E UMAC
+                        module for Ethernet/USB communication.
 
-	    gpascii   - Telnet to a Power PMAC, login, and then run the
-	                vendor-provided 'gpascii' program.
+            gpascii   - Telnet to a Power PMAC, login, and then run the
+                        vendor-provided 'gpascii' program.
 
-	    gplib     - When running on a Power PMAC CPU, use the vendor
-		        -provided gplib library.
+            gplib     - When running on a Power PMAC CPU, use the vendor
+                        -provided gplib library.
 
-	    epics_ect - Connect using the StrCmd and StrRsp PVs of an
-	                Argonne ECT-style EPICS database for VME-based
-	                PMAC controllers.  Not recommended.
+            epics_ect - Connect using the StrCmd and StrRsp PVs of an
+                        Argonne ECT-style EPICS database for VME-based
+                        PMAC controllers.  Not recommended.
 
-	For Power PMAC controllers, you are better off using the
-	'powerpmac' series of MX drivers instead.
+        For Power PMAC controllers, you are better off using the
+        'powerpmac' series of MX drivers instead.
 
-	Added Linux support for the 'pmc_mcapi' series of drivers used by
-	Precision MicroControl motor controllers that use the MCAPI library.
+        Added Linux support for the 'pmc_mcapi' series of drivers used by
+        Precision MicroControl motor controllers that use the MCAPI library.
 
-	Added better XMAP support for the XIA Handel drivers.
+        Added better XMAP support for the XIA Handel drivers.
 
-	Added the new MXF_ISOBUS_RESYNCHRONIZE_DURING_OPEN (0x4) flag
-	to the 'isobus' driver.
+        Added the new MXF_ISOBUS_RESYNCHRONIZE_DURING_OPEN (0x4) flag
+        to the 'isobus' driver.
 
-	High resolution timers should now work correctly on x86_64-based
-	Linux platforms.
+        High resolution timers should now work correctly on x86_64-based
+        Linux platforms.
 
-	Added support for briefer and more understandable network debugging
-	messages for MX clients.  For the 'motor' program, this can be
-	accessed by adding the '-a' command line argument when you start it.
+        Added support for briefer and more understandable network debugging
+        messages for MX clients.  For the 'motor' program, this can be
+        accessed by adding the '-a' command line argument when you start it.
 
-	The interface class 'generic' has been renamed to 'controller'
-	to more accurately reflect its purpose.  For the forseeable
-	future, the old name of 'generic' will still work.
+        The interface class 'generic' has been renamed to 'controller'
+        to more accurately reflect its purpose.  For the forseeable
+        future, the old name of 'generic' will still work.
 
 Version 1.5.2 (03/30/10):
-	New Device Driver:
+        New Device Driver:
 
-	    u500_variable - This driver provides a way to read and
-		write U500 V-variables.
+            u500_variable - This driver provides a way to read and
+                write U500 V-variables.
 
-	The 'u500_rs232' driver has now been successfully tested for
-	writing command strings to the U500 controller.  It appears
-	that reading strings sent by running U500 programs may well not
-	be possible.
+        The 'u500_rs232' driver has now been successfully tested for
+        writing command strings to the U500 controller.  It appears
+        that reading strings sent by running U500 programs may well not
+        be possible.
 
-	The 'iseries' interface driver can now communicate correctly
-	with i-Series controllers in Point-to-point mode rather than
-	just those in Multipoint mode.
+        The 'iseries' interface driver can now communicate correctly
+        with i-Series controllers in Point-to-point mode rather than
+        just those in Multipoint mode.
 
-	Added support for the Mpatrol and Dmalloc memory debugging 
-	packages.
+        Added support for the Mpatrol and Dmalloc memory debugging 
+        packages.
 
-	Found and fixed a variety of memory leaks.
+        Found and fixed a variety of memory leaks.
 
-	The set_mode functions of the 'epics_scaler' and 'epics_timer'
-	drivers now turn off Joerger autocount, since autocount can
-	delay the start and end of MX scans by several seconds.
+        The set_mode functions of the 'epics_scaler' and 'epics_timer'
+        drivers now turn off Joerger autocount, since autocount can
+        delay the start and end of MX scans by several seconds.
 
-	Added PowerPMAC 'gpascii' support to the 'pmac' driver.  Bear
-	in mind that this code has not yet been tested with a real
-	PowerPMAC.
+        Added PowerPMAC 'gpascii' support to the 'pmac' driver.  Bear
+        in mind that this code has not yet been tested with a real
+        PowerPMAC.
 
-	Added a new 'set plot end' command for 'motor', which tells MX
-	to only display the plot at the end of a scan.  For XAFS scans,
-	the effect is to only update the plot at the end of each scan
-	region.
+        Added a new 'set plot end' command for 'motor', which tells MX
+        to only display the plot at the end of a scan.  For XAFS scans,
+        the effect is to only update the plot at the end of each scan
+        region.
 
-	Modified scan plotting support to use the new mx_coprocess_open()
-	and mx_coprocess_close() functions rather than popen() and pclose().
-	The coprocess functions provide a way of reliably being able to
-	kill all of the processes spawned by the call to mx_coprocess_open()
-	which is not possible with popen().   The coprocess support has
-	been tested on both Unix and Windows platforms.
+        Modified scan plotting support to use the new mx_coprocess_open()
+        and mx_coprocess_close() functions rather than popen() and pclose().
+        The coprocess functions provide a way of reliably being able to
+        kill all of the processes spawned by the call to mx_coprocess_open()
+        which is not possible with popen().   The coprocess support has
+        been tested on both Unix and Windows platforms.
 
-	MX area detectors can now be used as scan input devices.  For
-	step scans, an image will be stored for each step in the scan.
+        MX area detectors can now be used as scan input devices.  For
+        step scans, an image will be stored for each step in the scan.
 
-	MX area detectors now support deferring the adding of a bias
-	offset until after the flood field correction.  This was done
-	to improve the linearity of the dark current and flood field
-	corrections.  For this case, the correction calculations are
-	done in double precision floating point so that temporary
-	intermediate results can be negative before the values are
-	converted to 16-bit unsigned integers at the end.
+        MX area detectors now support deferring the adding of a bias
+        offset until after the flood field correction.  This was done
+        to improve the linearity of the dark current and flood field
+        corrections.  For this case, the correction calculations are
+        done in double precision floating point so that temporary
+        intermediate results can be negative before the values are
+        converted to 16-bit unsigned integers at the end.
 
-	Added new area detector fields:
-	    bias_corr_after_flood
+        Added new area detector fields:
+            bias_corr_after_flood
 
-	    datafile_allow_overwrite - If set, this flag allows the
-		area detector software to overwrite existing data
-		files.  If the flag is not set, an error will be 
-		returned instead.
+            datafile_allow_overwrite - If set, this flag allows the
+                area detector software to overwrite existing data
+                files.  If the flag is not set, an error will be 
+                returned instead.
 
-	    datafile_autoselect_number
+            datafile_autoselect_number
 
-	Dark and flood images are no longer saved as part of the normal
-	area detector datafile numbering sequence.
+        Dark and flood images are no longer saved as part of the normal
+        area detector datafile numbering sequence.
 
-	When using SMV format, the area detector bias offset is now
-	written to the ZEROOFFSET field in the SMV header.
+        When using SMV format, the area detector bias offset is now
+        written to the ZEROOFFSET field in the SMV header.
 
-	MCS quick scan backlash is now only performed if the following
-	value
+        MCS quick scan backlash is now only performed if the following
+        value
 
-	   fabs( quick_scan_backlash_correction / quick_scan_motor_scale )
+           fabs( quick_scan_backlash_correction / quick_scan_motor_scale )
 
-	is greater than 1.0e-6.  Otherwise, the quick scan backlash step
-	is skipped, which can shorten the setup time for a quick scan
-	by 3 seconds or more.
+        is greater than 1.0e-6.  Otherwise, the quick scan backlash step
+        is skipped, which can shorten the setup time for a quick scan
+        by 3 seconds or more.
 
-	Added a new 0x8 'epics_mcs_flags' bit (ignore clears) to the
-	'epics_mcs' record.  If this flag is set, then any commands
-	to clear the MCS will be ignored.  Instead the MCS will be
-	cleared before the start of the next measurement.
+        Added a new 0x8 'epics_mcs_flags' bit (ignore clears) to the
+        'epics_mcs' record.  If this flag is set, then any commands
+        to clear the MCS will be ignored.  Instead the MCS will be
+        cleared before the start of the next measurement.
 
-	Added a just-in-time debugging option (-J) for 'motor' and
-	'mxserver' which invokes a debugger just after a crash.
+        Added a just-in-time debugging option (-J) for 'motor' and
+        'mxserver' which invokes a debugger just after a crash.
 
-	Added -m option to 'mxserver'.  This tells the MX server to
-	periodically display a brief description of its resource usage
-	at a time interval in seconds specified by the argument to the
-	-m option.
+        Added -m option to 'mxserver'.  This tells the MX server to
+        periodically display a brief description of its resource usage
+        at a time interval in seconds specified by the argument to the
+        -m option.
 
-	Added thread-safe versions of Posix time functions such as
-	localtime_r() for non-Posix build targets.
+        Added thread-safe versions of Posix time functions such as
+        localtime_r() for non-Posix build targets.
 
-	Added EPICS support for the 'cygwin' build target.
+        Added EPICS support for the 'cygwin' build target.
 
-	Support has been dropped for building MX support for EPICS 3.13.
-	Please use EPICS 3.14 or above.
+        Support has been dropped for building MX support for EPICS 3.13.
+        Please use EPICS 3.14 or above.
 
-	Added MXF_SPAWN_NO_PRELOAD flag for mx_spawn() to keep
-	spawned debuggers from being affected by things like 
-	LD_PRELOAD=/usr/lib/libefence.so.  In addition, the unused
-	suspend code for mx_spawn() has been deleted.
+        Added MXF_SPAWN_NO_PRELOAD flag for mx_spawn() to keep
+        spawned debuggers from being affected by things like 
+        LD_PRELOAD=/usr/lib/libefence.so.  In addition, the unused
+        suspend code for mx_spawn() has been deleted.
 
-	Fixed an ancient bug in 'motor' where script files were not being
-	closed after the script was executed.  The symptom was that after
-	approximately 1020 scripts had been run, attempts to run new
-	scripts would abort with a 'Too many open files' error.
+        Fixed an ancient bug in 'motor' where script files were not being
+        closed after the script was executed.  The symptom was that after
+        approximately 1020 scripts had been run, attempts to run new
+        scripts would abort with a 'Too many open files' error.
 
-	Fixed bugs in the handling of MXFT_RECORD, MXFT_RECORDTYPE, and
-	MXFT_INTERFACE fields by mx_copy_array_to_buffer().
+        Fixed bugs in the handling of MXFT_RECORD, MXFT_RECORDTYPE, and
+        MXFT_INTERFACE fields by mx_copy_array_to_buffer().
 
-	Fixed the handling of multidimensional string arrays in network
-	RAW mode.
+        Fixed the handling of multidimensional string arrays in network
+        RAW mode.
 
-	Moved some file descriptor handling functions to mx_io.c.
+        Moved some file descriptor handling functions to mx_io.c.
 
-	Changed a number of long and unsigned long variables to int32_t
-	and uint32_t for 64-bit compatibility with data structures that
-	must be 32-bit.
+        Changed a number of long and unsigned long variables to int32_t
+        and uint32_t for 64-bit compatibility with data structures that
+        must be 32-bit.
 
 Version 1.5.1 (10/29/09):
-	MX now supports Windows 7 and Visual Studio 2008.
-	
-	New Device Drivers:
+        MX now supports Windows 7 and Visual Studio 2008.
+        
+        New Device Drivers:
 
-	    handel, handel_network, handel_mca, handel_input, handel_sum,
-	    and handel_timer:
-	        New preliminary MCA drivers for the DXP-XMAP from Xray
-		Instrumentation Associates that exclusively use Handel
-		-specific APIs.  The previous generation of 'xia_...'
-		drivers still used Xerxes style parameter names, even
-		when making calls to Handel.  Although the drivers seem
-		to work (except for handel_timer), they have not been
-		used for real experiments yet.
+            handel, handel_network, handel_mca, handel_input, handel_sum,
+            and handel_timer:
+                New preliminary MCA drivers for the DXP-XMAP from Xray
+                Instrumentation Associates that exclusively use Handel
+                -specific APIs.  The previous generation of 'xia_...'
+                drivers still used Xerxes style parameter names, even
+                when making calls to Handel.  Although the drivers seem
+                to work (except for handel_timer), they have not been
+                used for real experiments yet.
 
-	    prologix - This new GPIB driver has been tested with Prologix
-	        GPIB-USB controller from www.prologix.biz.  The driver
-		should work with the GPIB-ETHERNET controller as well
-		but this has not been tested.
+            prologix - This new GPIB driver has been tested with Prologix
+                GPIB-USB controller from www.prologix.biz.  The driver
+                should work with the GPIB-ETHERNET controller as well
+                but this has not been tested.
 
-	    spellman_df3, spellman_df3_ain, spellman_df3_aout,
-	    spellman_df3_din, spellman_df3_dout:
-	        A group of drivers for the Spellman DF3/FF3 series of
-		high voltage power supplies for X-ray generators.
+            spellman_df3, spellman_df3_ain, spellman_df3_aout,
+            spellman_df3_din, spellman_df3_dout:
+                A group of drivers for the Spellman DF3/FF3 series of
+                high voltage power supplies for X-ray generators.
 
-	    systron_donner_m107 - Driver for the Systron-Donner M107
-	        DC voltage source.
+            systron_donner_m107 - Driver for the Systron-Donner M107
+                DC voltage source.
 
-	    epics_ccd - MX area detector driver for the EPICS CCD record.
-	    
-	    mca_weighted_sum - This is an analog input driver that
-	        reports weighted sums of MCA regions of interest.
+            epics_ccd - MX area detector driver for the EPICS CCD record.
+            
+            mca_weighted_sum - This is an analog input driver that
+                reports weighted sums of MCA regions of interest.
 
-	    function_generator_scaler - MX scaler driver for a software
-	        emulated scaler that acts like a function generator.
+            function_generator_scaler - MX scaler driver for a software
+                emulated scaler that acts like a function generator.
 
-	Updates to the 'ilm' and 'cryojet' drivers from Henry Bellamy
-	of CAMD at Louisiana State University.
+        Updates to the 'ilm' and 'cryojet' drivers from Henry Bellamy
+        of CAMD at Louisiana State University.
 
-	The 'marccd_shutter' record can now talk to a 'marccd_server_socket'
-	record.
+        The 'marccd_shutter' record can now talk to a 'marccd_server_socket'
+        record.
 
-	The MX 'epics_mca' driver now supports the DXP-XMAP based
-	Vortex detectors available in the Advanced Photon Source
-	detector pool.
+        The MX 'epics_mca' driver now supports the DXP-XMAP based
+        Vortex detectors available in the Advanced Photon Source
+        detector pool.
 
-	MX scans now put all of the MCA output spectra for the scan
-	into a subdirectory which has a name derived from the scan
-	output file name.
+        MX scans now put all of the MCA output spectra for the scan
+        into a subdirectory which has a name derived from the scan
+        output file name.
 
-	If a scan uses 'SFF' format headers, then any MCA files written
-	by that scan also have 'SFF' headers.  Similarly, 'XAFS' headers
-	are added to MCA files written by scans using 'XAFS' format
-	headers.
+        If a scan uses 'SFF' format headers, then any MCA files written
+        by that scan also have 'SFF' headers.  Similarly, 'XAFS' headers
+        are added to MCA files written by scans using 'XAFS' format
+        headers.
 
-	Added support for a multichannel scaler (MCS) 'clear_deadband'.
-	If an MCS clear is commanded and the time since the last clear 
-	is less than the clear deadband _and_ no new start has been
-	commanded, then the clear is skipped.  This was done for
-	performance reasons.
+        Added support for a multichannel scaler (MCS) 'clear_deadband'.
+        If an MCS clear is commanded and the time since the last clear 
+        is less than the clear deadband _and_ no new start has been
+        commanded, then the clear is skipped.  This was done for
+        performance reasons.
 
-	When running a 'motor' script, 'motor' now first looks for the
-	script name with the string '.mtr' appended.  If not found,
-	it then looks again for the script _without_ the string '.mtr'
-	appended.  In addition, 'motor' now supports a new environment
-	variable MX_MOTOR_PATH.  If MX_MOTOR_PATH is defined, 'motor'
-	now searches this path to look up motor scripts specified for
-	the '@' command.
+        When running a 'motor' script, 'motor' now first looks for the
+        script name with the string '.mtr' appended.  If not found,
+        it then looks again for the script _without_ the string '.mtr'
+        appended.  In addition, 'motor' now supports a new environment
+        variable MX_MOTOR_PATH.  If MX_MOTOR_PATH is defined, 'motor'
+        now searches this path to look up motor scripts specified for
+        the '@' command.
 
-	The 'setup scan' command in 'motor' has been changed so that
-	aborting a new scan setup preserves any existing scan with
-	the same name.
+        The 'setup scan' command in 'motor' has been changed so that
+        aborting a new scan setup preserves any existing scan with
+        the same name.
 
-	Brought up to date the text for the top level 'help' command
-	of the 'motor' program.
+        Brought up to date the text for the top level 'help' command
+        of the 'motor' program.
 
-	In 'motor', a command like 'help set', 'help ad', etc.  now
-	redirects the individual help messages for each of the commands.
+        In 'motor', a command like 'help set', 'help ad', etc.  now
+        redirects the individual help messages for each of the commands.
 
-	'setup scan' and 'modify scan' in 'motor' now inform the user
-	during the scan setup if they have selected an input device name
-	that does not exist, rather than waiting until the scan is
-	executed.
+        'setup scan' and 'modify scan' in 'motor' now inform the user
+        during the scan setup if they have selected an input device name
+        that does not exist, rather than waiting until the scan is
+        executed.
 
-	The 'mca rawread' and 'mca rawcount' commands in 'motor' now
-	allow you to abort the display of output by typing 'q'.
+        The 'mca rawread' and 'mca rawcount' commands in 'motor' now
+        allow you to abort the display of output by typing 'q'.
 
-	Added a 'show scas' command to 'motor' and rearranged the precedence
-	so that a 'show sca' command now returns a list of scans.
+        Added a 'show scas' command to 'motor' and rearranged the precedence
+        so that a 'show sca' command now returns a list of scans.
 
-	Added a 'rename scan' command to 'motor'.
+        Added a 'rename scan' command to 'motor'.
 
-	The 'ls330_motor' driver for Lakeshore 330 temperature controllers
-	now handles soft aborts by directly sending a raw LS300 command
-	instead of using mx_motor_move_absolute().  The previous procedure
-	of using mx_motor_move_absolute() could mistakenly 'abort' the
-	abort if the current temperature was outside the soft limits of
-	the motor record.
+        The 'ls330_motor' driver for Lakeshore 330 temperature controllers
+        now handles soft aborts by directly sending a raw LS300 command
+        instead of using mx_motor_move_absolute().  The previous procedure
+        of using mx_motor_move_absolute() could mistakenly 'abort' the
+        abort if the current temperature was outside the soft limits of
+        the motor record.
 
-	Modified 'motor' so that amplifier gains that are >= 10000 are
-	shown in exponential notation.
+        Modified 'motor' so that amplifier gains that are >= 10000 are
+        shown in exponential notation.
 
-	Improved the behavior of pause/retry logic in MX scans.
+        Improved the behavior of pause/retry logic in MX scans.
 
-	Input scans now work correctly if 'scan_early_move' is set.
+        Input scans now work correctly if 'scan_early_move' is set.
 
-	The 'vcc_monitor' program for monitoring changes to MX network
-	fields now supports some interactive commands:
-	    a - Add new callback
-	    d - Delete existing callback
-	    l - List existing callbacks
-	    q - Quit
+        The 'vcc_monitor' program for monitoring changes to MX network
+        fields now supports some interactive commands:
+            a - Add new callback
+            d - Delete existing callback
+            l - List existing callbacks
+            q - Quit
 
-	Added a new MX_NETWORK_OPTION_WORDSIZE option to allow MX network
-	clients to find out the wordsize of the server.  If the wordsize
-	of the client and the server are different, it is necessary for
-	them to communicate using XDR format even if the data formats
-	are the same.
+        Added a new MX_NETWORK_OPTION_WORDSIZE option to allow MX network
+        clients to find out the wordsize of the server.  If the wordsize
+        of the client and the server are different, it is necessary for
+        them to communicate using XDR format even if the data formats
+        are the same.
 
-	Added a new mx_breakpoint() function.  If a debugger is not
-	currently running, then this will start the debugger.  If a 
-	debugger _is_ running, then this will generate a breakpoint trap
-	back into the debugger.  Not currently implemented for all
-	platforms.
+        Added a new mx_breakpoint() function.  If a debugger is not
+        currently running, then this will start the debugger.  If a 
+        debugger _is_ running, then this will generate a breakpoint trap
+        back into the debugger.  Not currently implemented for all
+        platforms.
 
-	Added a new mx_analog_input_clear() function.  This is intended
-	for use with analog input devices that can latch a value.
+        Added a new mx_analog_input_clear() function.  This is intended
+        for use with analog input devices that can latch a value.
 
-	Added new 'mxserver' debugging infrastructure:
-	    Implemented mxserver "enable remote breakpoint" option '-r'.
+        Added new 'mxserver' debugging infrastructure:
+            Implemented mxserver "enable remote breakpoint" option '-r'.
 
-	    Added a new 'mx_database.breakpoint' network field.  This is
-	    only active if remote breakpoints have been enabled by the
-	    '-r' option listed above.
+            Added a new 'mx_database.breakpoint' network field.  This is
+            only active if remote breakpoints have been enabled by the
+            '-r' option listed above.
 
-	    Added a new 'mx_database.debugger_started' network field.
-	    Writing 0 to this resets the internal mx_debugger_started flag,
-	    so that calling mx_breakpoint() again will spawn a new debugger
-	    session.
+            Added a new 'mx_database.debugger_started' network field.
+            Writing 0 to this resets the internal mx_debugger_started flag,
+            so that calling mx_breakpoint() again will spawn a new debugger
+            session.
 
-	EPICS changes:
-	    MX code that communicates with EPICS has been changed to be
-	    64-bit safe by using 'int32_t' for all MX_CA_LONG variables.
+        EPICS changes:
+            MX code that communicates with EPICS has been changed to be
+            64-bit safe by using 'int32_t' for all MX_CA_LONG variables.
 
-	    Replaced mx_epics_poll_for_events() with mx_epics_pend_event().
+            Replaced mx_epics_poll_for_events() with mx_epics_pend_event().
 
-	    Added new mx_epics_pend_io() function.
+            Added new mx_epics_pend_io() function.
 
-	    Added new wait_for_connection parameter to mx_epics_pv_connect().
+            Added new wait_for_connection parameter to mx_epics_pv_connect().
 
-	    Replaced the existing mx_epics_get_num_elements() function with
-	    mx_epics_pv_get_element_count().
+            Replaced the existing mx_epics_get_num_elements() function with
+            mx_epics_pv_get_element_count().
 
-	    Added mx_epics_pv_get_field_type() and mx_epics_get_element_size().
+            Added mx_epics_pv_get_field_type() and mx_epics_get_element_size().
 
-	    Replaced the old EPICS_IS_VERSION_... macros with a new
-	    MX_EPICS_VERSION macro to be used in conditional compilation
-	    macros for dealing with multiple versions of EPICS Base.
+            Replaced the old EPICS_IS_VERSION_... macros with a new
+            MX_EPICS_VERSION macro to be used in conditional compilation
+            macros for dealing with multiple versions of EPICS Base.
 
-	Area detector changes:
-	    Lots of internal changes for the Aviex PCCD-16080 driver.
+        Area detector changes:
+            Lots of internal changes for the Aviex PCCD-16080 driver.
 
-	    Added a new 'use_dezinger' record field to provide a way of
-	    remotely turning on or off correction image dezingering.
+            Added a new 'use_dezinger' record field to provide a way of
+            remotely turning on or off correction image dezingering.
 
-	    MX area detector drivers can now select at run time whether or
-	    not they implement dark current and flood field correction
-	    measurements using a multiframe sequence or a series of one-shot
-	    measurements.  Currently, the Aviex PCCD-170170 and PCCD-4824
-	    detector default to using multiframe sequences, while all others
-	    (including the PCCD-16080) default to using a series of one-shot
-	    measurements.
+            MX area detector drivers can now select at run time whether or
+            not they implement dark current and flood field correction
+            measurements using a multiframe sequence or a series of one-shot
+            measurements.  Currently, the Aviex PCCD-170170 and PCCD-4824
+            detector default to using multiframe sequences, while all others
+            (including the PCCD-16080) default to using a series of one-shot
+            measurements.
 
-	The 'pmac_motor' driver now sets the direction of home searches
-	using the Ixx23 variable.
+        The 'pmac_motor' driver now sets the direction of home searches
+        using the Ixx23 variable.
 
-	The Mclennan 'pm304' driver no longer looks at the state of the
-	'Not error' bit returned for the 'os' command.
+        The Mclennan 'pm304' driver no longer looks at the state of the
+        'Not error' bit returned for the 'os' command.
 
-	Updated the U500 drivers to send aborts followed by a fault
-	acknowledge when starting up.  The U500 motor driver now reports
-	the motor as busy for up to 0.5 seconds after a move, even if the
-	U500 hardware says that it is not busy.  This is done because the
-	U500 hardware may report the motor as in position for a short time
-	after a move is commanded.
+        Updated the U500 drivers to send aborts followed by a fault
+        acknowledge when starting up.  The U500 motor driver now reports
+        the motor as busy for up to 0.5 seconds after a move, even if the
+        U500 hardware says that it is not busy.  This is done because the
+        U500 hardware may report the motor as in position for a short time
+        after a move is commanded.
 
-	For the 'mca_value' driver, the existing 'corrected_roi_integral'
-	and 'corrected_soft_roi_integral' MX fields have been renamed
-	to 'live_time_corrected_roi_integral' and 
-	'live_time_corrected_soft_roi_integral'.  The original names
-	also exist as aliases.  Also added the new 
-	'rate_corrected_roi_integral' and 'rate_corrected_soft_roi_integral'
-	fields.
+        For the 'mca_value' driver, the existing 'corrected_roi_integral'
+        and 'corrected_soft_roi_integral' MX fields have been renamed
+        to 'live_time_corrected_roi_integral' and 
+        'live_time_corrected_soft_roi_integral'.  The original names
+        also exist as aliases.  Also added the new 
+        'rate_corrected_roi_integral' and 'rate_corrected_soft_roi_integral'
+        fields.
 
-	Added new mx_get_console_size() function that is intended to
-	be used to match the number of lines displayed in paged text
-	output to the actual size of the text console.
+        Added new mx_get_console_size() function that is intended to
+        be used to match the number of lines displayed in paged text
+        output to the actual size of the text console.
 
-	Added 'mxupdate' support for MXFT_HEX fields.
+        Added 'mxupdate' support for MXFT_HEX fields.
 
 Version 1.5.0 (11/15/08):
 
