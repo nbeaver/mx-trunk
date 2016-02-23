@@ -1,4 +1,10 @@
-Version 2.0.0 (07/13/11):
+Version 2.0.0 (08/02/12):
+        Added new build targets: hurd
+
+        Added new sequence types:
+            gated - In a gated sequence, the area detector takes images as
+                long as an external gate signal is active.
+
         The 'mxupdate' program has been renamed to 'mxautosave'.  The
         immediate cause for doing this is the fact that Windows 7 seems
         to insist on popping up a UAC dialog any time that you try to
@@ -7,9 +13,41 @@ Version 2.0.0 (07/13/11):
         the new name more directly describes what it does, namely, 
         automatically saving and restoring MX variables.
 
+        Added new 'mxmonitor' program.  It will display value change updates
+        in your terminal window for MX record fields whose name are specified
+        on the 'mxmonitor' command line.
+
         Added 'mx_config' utility program.  'mx_config' can be used in
         MX makefiles to report the compiler version, the runtime library
         version, the operating system version, etc.
+
+        Added cross-platform support for "file monitors".  These allow MX
+        to know when files have been changed.
+
+        Changed the length of record names and field names to 40.
+        Including the '.' between the two, this allows for 81 character
+        record field names.
+
+        Area Detector-Related Changes:
+            A low resolution ASCII image display can now be written to
+            the output log of 'mxserver' by writing a command like this:
+
+                mxput cmos.show_image_display 4
+
+            The number for the example above means this:
+
+                0 - Display the current image frame buffer for the detector.
+                1 - Display the mask frame buffer.
+                2 - Display the bias frame buffer.
+                4 - Display the dark current frame buffer.
+                8 - Display the flat field frame buffer.
+
+        Added new database file directives for MX database files.
+
+            !break - causes mx_breakpoint() to be invoked at the point where
+                the '!break' statement is encountered in reading a database.
+            !return - causes MX to stop reading the current database at the
+                point where the '!return' statement is encountered.
 
         Current Dynamically Loadable Modules:
 
@@ -379,6 +417,14 @@ Version 2.0.0 (07/13/11):
         Modules deleted:
 
             dalsa_gev, nuvant_ezstat
+
+        Drivers Added to MX Core (libMx):
+
+            monte_carlo_mca - An MX driver that calculates a simulated MCA
+                spectrum.  The details of the peak sizes and widths are
+                specified in the MX database entry for this record.  At
+                present, "gaussian" and "lorentzian" peaks are supported,
+                as well as "polynomial" and "uniform" backgrounds.
 
 Version 1.5.4 (05/10/11):
 
