@@ -1,9 +1,38 @@
-Version 2.0.0 (08/02/12):
-        Added new build targets: hurd
+Version 2.0.0 (02/10/16):
+        Added new build targets: bsd-clang, linux-clang, macosx-clang, hurd
+            The -clang targets provide support for compiling MX using the
+            LLVM Clang compiler.
 
-        Added new sequence types:
-            gated - In a gated sequence, the area detector takes images as
-                long as an external gate signal is active.
+        On Windows, MX is normally compiled from Cygwin or Msys shell sessions
+        even if the compiler is Visual C++.  The source code directory
+        mx/scripts/windows/visual_studio now contains some example scripts
+        that automatically figure out all of the environment variable
+        definitions needed for Cygwin to be able to compile using Visual C++
+        from a Cygwin command line.  All you need to do is to copy the
+        script that matches your compiler to some place like /usr/local/bin,
+        arrange for your Cygwin Bash startup scripts to automatically source
+        that script, and then modify the definition of PROGRAM_FILES_DIR or
+        MSDEV_DIR at the top of the script to match the location that
+        Visual Studio has been installed to on your system.  At present,
+        example scripts are available for Visual Studio 2010, 2012, 2013,
+        and 2015, as well as Visual C++ 4.0, 5.0, and 6.0.
+
+        If you are using the Visual Studio Cygwin scripts just mentioned above,
+        the Windows makefile mx/libMx/Makehead.win32 now supports
+        autoconfiguration of the variables used to build MX with Visual C++
+        on Windows.  Under normal circumstances, it should not be necessary
+        to modify mx/libMx/Makehead.win32 at all.  Similar autoconfiguration
+        changes have been made to other MX makefiles.  Most of the time, you
+        should not need to change anything other than the variables MX_ARCH
+        and MX_INSTALL_DIR in the top level MX Makefile.
+
+        'mxserver' now has support for an ASCII command interface in addition
+        to the regular binary command interface.  This was done for third-party
+        beamline control programs that prefer to use an ASCII interface.  At
+        present, the commands 'GET record.field' and 'PUT record.file value'
+        are implemented.  If you have a choice, use the binary command
+        interface since it is much, much faster than the ASCII interface and
+        has many more features.
 
         The 'mxupdate' program has been renamed to 'mxautosave'.  The
         immediate cause for doing this is the fact that Windows 7 seems
@@ -22,13 +51,25 @@ Version 2.0.0 (08/02/12):
         version, the operating system version, etc.
 
         Added cross-platform support for "file monitors".  These allow MX
-        to know when files have been changed.
+        to be informed when monitored files have been changed.
 
         Changed the length of record names and field names to 40.
         Including the '.' between the two, this allows for 81 character
         record field names.
 
+        Added new sequence types:
+            gated - In a gated sequence, an area detector or video input
+                takes images as long as an external gate signal is active.
+
         Area Detector-Related Changes:
+            'Flood field' has been renamed to 'flat field' in both 
+            messages and function names for greater compatibility with
+            standard terminology in the imaging business.
+
+            Renamed area detector oscillation functions and variables to
+            'oscillation' rather than the older, misleading name of
+            'exposure'.
+
             A low resolution ASCII image display can now be written to
             the output log of 'mxserver' by writing a command like this:
 
@@ -42,12 +83,174 @@ Version 2.0.0 (08/02/12):
                 4 - Display the dark current frame buffer.
                 8 - Display the flat field frame buffer.
 
-        Added new database file directives for MX database files.
+            The command
 
-            !break - causes mx_breakpoint() to be invoked at the point where
-                the '!break' statement is encountered in reading a database.
-            !return - causes MX to stop reading the current database at the
-                point where the '!return' statement is encountered.
+                mxput cmos.show_image_statistics 4
+
+            can similarly be used to display statistics about the image 
+            in the matching MX frame buffer.
+
+        MX database changes:
+            New fields for the 'mx_database' record.
+                mx_database.cflags - Displays the value that the CFLAGS
+                    macro had at the time MX was compiled.
+
+                mx_database.crash - Writing to this field immediately 
+                    crashes the MX server for testing the handling of such
+                    crashes.  Only available if remote breakpoint (-r)
+                    support is enabled for the running MX server.
+
+                mx_database.numbered_breakpoint_status and
+                    mx_database.breakpoint_number - Adds support for
+                    "numbered" breakpoints in MX that can be individually
+                    turned on or off.
+
+                mx_database.posix_time - Reports the current time for the
+                    MX server using the Posix epoch.
+
+            Added new database file directives for MX database files.
+                !break - causes mx_breakpoint() to be invoked at the point
+                    where the '!break' statement is encountered in reading
+                    a database file.
+                !return - causes MX to stop reading the current database file
+                    at the point where the '!return' statement is encountered.
+
+        New Driver Superclasses:
+            operation - This driver superclass provides a way of managing
+                long-running operations that are managed via an MX record.
+                Drivers are expected to supply 'start', 'stop', and
+                'get status' functionality, but the actions performed by
+                "operations" are not otherwise constrained.
+
+                Available class:
+                    operation_class - Includes the 'network_operation',
+                        'toast', 'rdi_mbc_log' (rdi_mbc.mxo), and
+                        'biocat_6k_toast' (site_biocat_toast.mxo).
+
+            special - This driver superclass provides a place to store driver
+                classes that do not really fit anywhere else.
+
+                Available classes:
+                    program - For managing external processes that are
+                        typically used by "mxserver".
+
+                        Available driver: 'external_command'.
+
+                    mod - For MX drivers that override the behavior of
+                        other MX drivers.  Typically this is done by
+                        replacing some of the method functions in the
+                        original driver.
+
+                        At present, the only existing driver is the
+                        'rdi_xineos_gige' driver from the RDI-proprietary
+                        rdi_xineos_gige.mxo module.
+
+        New Variable Classes:
+            field - A driver class that contains drivers for reading and
+                writing record fields as MX variable records.
+
+            special_variable - A driver class for variable drivers that
+                do not fit anywhere else.
+
+                Available drivers are 'rdi_mbc_string' (rdi_mbc.mxo),
+                'rdi_mbc_filename' (rdi_mbc.mxo), 'rdi_mbc_datafile_prefix'
+                (rdi_mbc.mxo), 'rdi_mbc_pathname_builder' (rdi_mbc.mxo),
+                'rdi_mbc_save_frame' (rdi_mbc.mxo), and 'biocat_6k_joystick'
+                (site_biocat_toast.mxo).
+
+        New Driver Types Added to MX Core (libMx):
+            ainput_as_dinput - Uses an analog input as a digital input with
+                selectable values for low, high, and threshold voltages for
+                compatibility with 5V, 3.3V, 1.8v, and other voltage-based
+                digital logic.
+
+            aoutput_as_doutput - Uses an analog output to generate a digital
+                output with selectable values for low, high, and threshold
+                voltages.
+
+            coordinated_angle - This driver coordinates the moves of several
+                motors to maintain them all at the same relative angle.
+                Used at BioCAT to move several motors when mirror angles
+                are changed.
+
+            digital_fanin - Reads values from other MX record fields and
+                performs a logical operation on the values read (and, or, xor).
+
+            digital_fanout - Forwards the value written to this record to
+                several other MX record fields.
+
+            external_command - Runs an external command using mx_spawn()
+                and waits for the command to finish.  These commands are
+                intended to be run during MX database startup and can be
+                run either at finish_record_initialization() time or at
+                open() time.
+
+            field_string, field_char, field_uchar, field_short, field_ushort,
+              field_bool, field_long, field_ulong, field_hex, field_int64,
+              field_uint64, field_float, field_double, field_record -
+                These drivers provide a way of reading and writing arbitrary
+                MX record fields as if they were MX variables.
+
+            gittelsohn_pulser - MX pulse generator driver for Mark Gittelsohn's
+                Arduino-based pulse generator used by RDI area detectors.
+
+            indirect_string - This variable driver can read values from 
+                several other MX record fields and then construct a string
+                value from them based on a C-style format string specified
+                in the MX database.
+
+            merlin_medipix - MX area detector driver for the Merlin Medipix
+                series of detector from Quantum Detectors.
+
+            monte_carlo_mca - An MX driver that calculates a simulated MCA
+                spectrum.  The details of the peak sizes and widths are
+                specified in the MX database entry for this record.  At
+                present, "gaussian" and "lorentzian" peaks are supported,
+                as well as "polynomial" and "uniform" backgrounds.
+
+            network_operation - MX operation driver for operations controlled
+                by a remote MX server.
+
+            network_wvin - MX waveform input driver for waveform input devices
+                controlled by a remote MX server.
+
+            pilatus - MX area detector driver for Dectris Pilatus area 
+                detectors.  Not all functionality of the Pilatus is supported
+                yet, but single frame capture works.
+
+            relay_as_doutput - MX digital output driver that treats an MX relay
+                as a digital output.
+
+            soft_mce - Implements software-emulated MX multichannel encoders
+                that periodically read motor positions from other records.
+                For most records, the value read is the value that is currently
+                found in motor->position.  However, for 'soft_motor' records,
+                the motor position is computed using the function
+                mx_dead_reckoning_predict_motion().  This driver is only
+                suitable for software testing and should not be used for
+                real experiments.
+
+            synaccess_netbooter, synaccess_netbooter_ainput,
+              synaccess_netbooter_relay - The Synaccess netBooter is a remotely
+                controllable power strip to provide remote users the ability
+                to remotely power cycle a device.  For some versions of the
+                netBooter, it is also possible to measure the current draw
+                of the device and the ambient temperature of the netBooter.
+
+            toast - MX operation driver that oscillates a motor back and forth
+                until stopped.  For some kinds of experiments, this can be
+                thought of as "toasting" the sample in the X-ray beam.
+
+            xafs_k_power_law_scan - Implements XAFS wavenumber scans for which
+                the counting time follows a power law.  This is an alternative
+                to multiregion XAFS scans.
+
+        Renamed Drivers:
+            Note that in each case a backward compatibility alias is
+            available for the old name.
+
+            databox_mce - New name for 'databox_encoder'.
+            mcs_mce - New name for 'mcs_encoder'.
 
         Current Dynamically Loadable Modules:
 
@@ -415,16 +618,10 @@ Version 2.0.0 (08/02/12):
                 labjack_ux, libtiff, nuvant_ezware2
 
         Modules deleted:
-
             dalsa_gev, nuvant_ezstat
 
-        Drivers Added to MX Core (libMx):
-
-            monte_carlo_mca - An MX driver that calculates a simulated MCA
-                spectrum.  The details of the peak sizes and widths are
-                specified in the MX database entry for this record.  At
-                present, "gaussian" and "lorentzian" peaks are supported,
-                as well as "polynomial" and "uniform" backgrounds.
+        Drivers deleted:
+            brandeis_biocat
 
 Version 1.5.4 (05/10/11):
 
