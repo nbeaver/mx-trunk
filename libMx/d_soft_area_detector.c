@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2015 Illinois Institute of Technology
+ * Copyright 2006-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -259,6 +259,13 @@ mxd_soft_area_detector_open( MX_RECORD *record )
 							&(ad->bytes_per_frame));
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Initialize the dark current and flat field image formats to have
+	 * the same format as the main image.
+	 */
+
+	ad->dark_current_image_format = ad->image_format;
+	ad->flat_field_image_format   = ad->image_format;
 
 	/* Set the video input's initial trigger mode (internal/external/etc) */
 
