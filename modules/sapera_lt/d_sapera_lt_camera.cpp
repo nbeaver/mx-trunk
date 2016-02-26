@@ -1575,6 +1575,12 @@ mxd_sapera_lt_camera_stop( MX_VIDEO_INPUT *vinput )
 	case MXT_SQ_DURATION:
 		exposure_time = 1;
 		break;
+	case 0:
+		/* If no sequence has been initialized, then
+		 * pretend the exposure time was 1 second.
+		 */
+		exposure_time = 1;
+		break;
 	default:
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 		"Sequence type %ld has not yet been implemented for '%s'.",
