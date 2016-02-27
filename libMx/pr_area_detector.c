@@ -962,6 +962,7 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_DISK_SPACE:
 		case MXLV_AD_EXPOSURE_TIME:
 		case MXLV_AD_EXTENDED_STATUS:
+		case MXLV_AD_FILENAME_LOG:
 		case MXLV_AD_FRAME_FILENAME:
 		case MXLV_AD_FRAMESIZE:
 		case MXLV_AD_GET_ROI_FRAME:
@@ -1096,6 +1097,7 @@ mx_area_detector_process_function( void *record_ptr,
 		case MXLV_AD_DATAFILE_SAVE_FORMAT:
 		case MXLV_AD_DATAFILE_SAVE_FORMAT_NAME:
 		case MXLV_AD_DISK_SPACE:
+		case MXLV_AD_FILENAME_LOG:
 		case MXLV_AD_FRAME_FILENAME:
 		case MXLV_AD_NUM_CORRECTION_MEASUREMENTS:
 			ad->parameter_type = record_field->label_value;
@@ -1440,6 +1442,15 @@ mx_area_detector_process_function( void *record_ptr,
 			{
 				mx_status =
 			    mx_area_detector_initialize_datafile_number(record);
+			}
+			break;
+		case MXLV_AD_FILENAME_LOG:
+			if ( ad->filename_log[0] == '\0' ) {
+				mx_status =
+				    mx_area_detector_close_filename_log( ad );
+			} else {
+				mx_status =
+				    mx_area_detector_open_filename_log( ad );
 			}
 			break;
 		case MXLV_AD_OSCILLATION_MOTOR_NAME:

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2015 Illinois Institute of Technology
+ * Copyright 2006-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -64,6 +64,7 @@
 #include "mx_motor.h"
 #include "mx_digital_output.h"
 #include "mx_relay.h"
+#include "mx_rs232.h"
 #include "mx_image.h"
 #include "mx_area_detector.h"
 
@@ -334,6 +335,9 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 
 	ad->image_log_file = NULL;
 	ad->image_log_filename[0] = '\0';
+
+	ad->filename_log_record = NULL;
+	ad->filename_log[0] = '\0';
 
 	/*-------*/
 
@@ -2964,6 +2968,122 @@ mx_area_detector_image_log_show_error( MX_AREA_DETECTOR *ad,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*---*/
+
+MX_EXPORT mx_status_type
+mx_area_detector_open_filename_log( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mx_area_detector_open_filename_log()";
+
+	mx_status_type mx_status;
+
+	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_AREA_DETECTOR pointer passed was NULL." );
+	}
+
+	/* If the log was already open, begin by closing it. */
+
+	if ( ad->filename_log_record != (MX_RECORD *) NULL ) {
+		mx_status = mx_area_detector_close_filename_log( ad );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	/* Look for the requested filename log record. */
+
+	ad->filename_log_record = mx_get_record( ad->record, ad->filename_log );
+
+	if ( ad->filename_log_record == (MX_RECORD *) NULL ) {
+		mx_status = mx_error( MXE_NOT_FOUND, fname,
+		"The requested filename log record '%s' was not found "
+		"in the MX database.", ad->filename_log );
+
+		ad->filename_log[0] = '\0';
+
+		return mx_status;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_close_filename_log( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mx_area_detector_close_filename_log()";
+
+	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_AREA_DETECTOR pointer passed was NULL." );
+	}
+
+	ad->filename_log_record = NULL;
+
+	ad->filename_log[0] = '\0';
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_write_to_filename_log( MX_AREA_DETECTOR *ad,
+					char *filename_log_message )
+{
+	static const char fname[] = "mx_area_detector_write_to_filename_log()";
+
+	MX_RECORD *log_record;
+	mx_bool_type logging_allowed;
+	mx_status_type mx_status;
+
+	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_AREA_DETECTOR pointer passed was NULL." );
+	}
+
+	log_record = ad->filename_log_record;
+
+	if ( log_record == (MX_RECORD *) NULL ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	logging_allowed = TRUE;
+
+	mx_status = MX_SUCCESSFUL_RESULT;
+
+	switch( log_record->mx_superclass ) {
+	case MXR_INTERFACE:
+		switch( log_record->mx_class ) {
+		case MXI_RS232:
+			mx_status = mx_rs232_putline( log_record,
+							filename_log_message,
+							NULL, 0 );
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+				logging_allowed = FALSE;
+			}
+			break;
+		default:
+			logging_allowed = FALSE;
+			break;
+		}
+		break;
+	default:
+		logging_allowed = FALSE;
+		break;
+	}
+
+	if ( logging_allowed == FALSE ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"The filename log record '%s' that you used for detector '%s' "
+		"is not supported for area detector filename logging.",
+			log_record->name, ad->record->name );
+	}
+
+	return mx_status;
+}
+
+/*---*/
 
 MX_EXPORT mx_status_type
 mx_area_detector_setup_oscillation( MX_RECORD *ad_record,
@@ -5666,6 +5786,7 @@ mx_area_detector_default_get_parameter_handler( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_DATAFILE_NUMBER:
 	case MXLV_AD_DATAFILE_PATTERN:
 	case MXLV_AD_EXPOSURE_MODE:
+	case MXLV_AD_FILENAME_LOG:
 	case MXLV_AD_FRAMESIZE:
 	case MXLV_AD_FRAME_FILENAME:
 	case MXLV_AD_IMAGE_FORMAT:
@@ -7375,6 +7496,23 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 		MX_HRT_START( status_measurement );
 #endif
 
+#if 0
+		MX_DEBUG(-2,("%s: mx_image_write_file() mx_status.code = %lu",
+			fname, mx_status.code));
+		MX_DEBUG(-2,("%s: ad->filename_log_record = %p",
+			fname, ad->filename_log_record));
+#endif
+
+		if ( ( mx_status.code == MXE_SUCCESS )
+		  && ( ad->filename_log_record != (MX_RECORD *) NULL ) )
+		{
+			/* If we are logging individual filenames,
+			 * then do that now.
+			 */
+
+			(void) mx_area_detector_write_to_filename_log( ad,
+								filename );
+		} else
 		if ( mx_status.code != MXE_SUCCESS ) {
 
 			mx_area_detector_image_log_show_error( ad, mx_status );

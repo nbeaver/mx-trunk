@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2015 Illinois Institute of Technology
+ * Copyright 2006-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -723,6 +723,20 @@ typedef struct mx_area_detector_type {
 
 	mx_bool_type image_log_error_seen;
 
+	/* An alternate logging method writes the names of image files
+	 * as they are written to another record.  This generates a much
+	 * larger volume of log messages, so it is not practical for
+	 * area detectors that generates lots of image files quickly.
+	 *
+	 * Note: It is possible for this log method to run simultaneously
+	 * with the image_log method described prior to this method.
+	 * However, using both of them is inefficient, so you probably
+	 * do not want to do this.
+	 */
+
+	MX_RECORD *filename_log_record;
+	char filename_log[MXU_RECORD_NAME_LENGTH+1];
+
 } MX_AREA_DETECTOR;
 
 /* Warning: Do not rely on the following numbers remaining the same
@@ -852,6 +866,7 @@ typedef struct mx_area_detector_type {
 #define MXLV_AD_SEQUENCE_GATED			12707
 
 #define MXLV_AD_IMAGE_LOG_FILENAME		12800
+#define MXLV_AD_FILENAME_LOG			12801
 
 #define MX_AREA_DETECTOR_STANDARD_FIELDS \
   {MXLV_AD_MAXIMUM_FRAMESIZE, -1, "maximum_framesize", \
@@ -1517,6 +1532,11 @@ typedef struct mx_area_detector_type {
   {MXLV_AD_IMAGE_LOG_FILENAME, -1, "image_log_filename", \
 			MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, image_log_filename), \
+	{sizeof(char)}, NULL, 0}, \
+  \
+  {MXLV_AD_FILENAME_LOG, -1, "filename_log", \
+			MXFT_STRING, NULL, 1, {MXU_RECORD_NAME_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, filename_log), \
 	{sizeof(char)}, NULL, 0}
 
 typedef struct {
@@ -2058,6 +2078,16 @@ MX_API mx_status_type mx_area_detector_compute_flat_field_scale(
 MX_API mx_status_type mx_area_detector_check_for_low_memory(
 					MX_AREA_DETECTOR *ad,
 					mx_bool_type *memory_is_low );
+
+/*---*/
+
+MX_API mx_status_type mx_area_detector_open_filename_log(MX_AREA_DETECTOR *ad);
+
+MX_API mx_status_type mx_area_detector_close_filename_log(MX_AREA_DETECTOR *ad);
+
+MX_API mx_status_type mx_area_detector_write_to_filename_log(
+					MX_AREA_DETECTOR *ad,
+					char *filename_log_message );
 
 /*---*/
 

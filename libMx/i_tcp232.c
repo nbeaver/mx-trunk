@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2007, 2010, 2013, 2015 Illinois Institute of Technology
+ * Copyright 1999-2007, 2010, 2013, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -338,6 +338,41 @@ mxi_tcp232_resynchronize( MX_RECORD *record )
 	return mx_status;
 }
 
+/*----*/
+
+static mx_status_type
+mxi_tcp232_open_socket_if_necessary( MX_RS232 *rs232, MX_TCP232 *tcp232 )
+{
+	mx_bool_type open_socket;
+	unsigned long flags;
+	mx_status_type mx_status;
+
+	flags = tcp232->tcp232_flags;
+
+	open_socket = FALSE;
+
+	if ( flags & MXF_TCP232_OPEN_DURING_TRANSACTION ) {
+		open_socket = TRUE;
+	} else
+	if ( flags & MXF_TCP232_AUTOMATIC_REOPEN ) {
+		if ( mx_socket_is_open( tcp232->socket ) == FALSE ) {
+			open_socket = TRUE;
+		}
+	}
+
+	MX_DEBUG(-2,("open_socket = %d", (int) open_socket));
+
+	if ( open_socket ) {
+		mx_status = mxi_tcp232_open_socket( rs232, tcp232 );
+	} else {
+		mx_status = MX_SUCCESSFUL_RESULT;
+	}
+
+	return mx_status;
+}
+
+/*----*/
+
 MX_EXPORT mx_status_type
 mxi_tcp232_getchar( MX_RS232 *rs232, char *c )
 {
@@ -350,6 +385,7 @@ mxi_tcp232_getchar( MX_RS232 *rs232, char *c )
 	int num_chars, select_status;
 	char c_temp;
 	unsigned char c_mask;
+	mx_status_type mx_status;
 
 #if HAVE_FD_SET
 	fd_set read_mask;
@@ -363,10 +399,10 @@ mxi_tcp232_getchar( MX_RS232 *rs232, char *c )
 
 	tcp232 = (MX_TCP232*) (rs232->record->record_type_struct);
 
-	if ( mx_socket_is_open( tcp232->socket ) == FALSE ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"TCP232 socket '%s' is not open.", rs232->record->name);
-	}
+	mx_status = mxi_tcp232_open_socket_if_necessary( rs232, tcp232 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Check to see if any characters are available. */
 
@@ -465,7 +501,6 @@ mxi_tcp232_putchar( MX_RS232 *rs232, char c )
 	static const char fname[] = "mxi_tcp232_putchar()";
 
 	MX_TCP232 *tcp232;
-	unsigned long flags;
 	mx_status_type mx_status;
 
 #if MXI_TCP232_DEBUG
@@ -474,16 +509,12 @@ mxi_tcp232_putchar( MX_RS232 *rs232, char c )
 
 	tcp232 = (MX_TCP232*) rs232->record->record_type_struct;
 
-	flags = tcp232->tcp232_flags;
-
 	/* If needed, open the connection to the remote host. */
 
-	if ( flags & MXF_TCP232_OPEN_DURING_TRANSACTION ) {
-		mx_status = mxi_tcp232_open_socket( rs232, tcp232 );
+	mx_status = mxi_tcp232_open_socket_if_necessary( rs232, tcp232 );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Send the character. */
 
@@ -530,21 +561,16 @@ mxi_tcp232_write( MX_RS232 *rs232,
 			size_t *bytes_written )
 {
 	MX_TCP232 *tcp232;
-	unsigned long flags;
 	mx_status_type mx_status;
 
 	tcp232 = (MX_TCP232*) rs232->record->record_type_struct;
 
-	flags = tcp232->tcp232_flags;
-
 	/* If needed, open the connection to the remote host. */
 
-	if ( flags & MXF_TCP232_OPEN_DURING_TRANSACTION ) {
-		mx_status = mxi_tcp232_open_socket( rs232, tcp232 );
+	mx_status = mxi_tcp232_open_socket_if_necessary( rs232, tcp232 );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Send the data. */
 
@@ -598,7 +624,6 @@ mxi_tcp232_putline( MX_RS232 *rs232,
 #endif
 
 	MX_TCP232 *tcp232;
-	unsigned long flags;
 	mx_status_type mx_status;
 
 #if MXI_TCP232_DEBUG
@@ -607,16 +632,12 @@ mxi_tcp232_putline( MX_RS232 *rs232,
 
 	tcp232 = (MX_TCP232*) rs232->record->record_type_struct;
 
-	flags = tcp232->tcp232_flags;
-
 	/* If needed, open the connection to the remote host. */
 
-	if ( flags & MXF_TCP232_OPEN_DURING_TRANSACTION ) {
-		mx_status = mxi_tcp232_open_socket( rs232, tcp232 );
+	mx_status = mxi_tcp232_open_socket_if_necessary( rs232, tcp232 );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 #if MXI_TCP232_DEBUG
 	MX_DEBUG(-2,("%s: transmitting the buffer '%s'.", fname, buffer));
@@ -652,10 +673,10 @@ mxi_tcp232_num_input_bytes_available( MX_RS232 *rs232 )
 			rs232->record->name);
 	}
 
-	if ( mx_socket_is_open( tcp232->socket ) == FALSE ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"TCP232 socket '%s' is not open.", rs232->record->name);
-	}
+	mx_status = mxi_tcp232_open_socket_if_necessary( rs232, tcp232 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	mx_status = mx_socket_num_input_bytes_available( tcp232->socket,
 						&num_socket_bytes_available );
@@ -684,10 +705,10 @@ mxi_tcp232_discard_unread_input( MX_RS232 *rs232 )
 			rs232->record->name);
 	}
 
-	if ( mx_socket_is_open( tcp232->socket ) == FALSE ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"TCP232 socket '%s' is not open.", rs232->record->name);
-	}
+	mx_status = mxi_tcp232_open_socket_if_necessary( rs232, tcp232 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	mx_status = mx_socket_discard_unread_input( tcp232->socket );
 
