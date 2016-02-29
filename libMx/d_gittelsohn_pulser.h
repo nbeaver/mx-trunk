@@ -28,6 +28,8 @@ typedef struct {
 
 	MX_RECORD *rs232_record;
 	unsigned long gittelsohn_pulser_flags;
+
+	double firmware_version;
 } MX_GITTELSOHN_PULSER;
 
 /* Define all of the interface functions. */
@@ -58,7 +60,11 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_gittelsohn_pulser_rfield_def_ptr;
   {-1, -1, "gittelsohn_pulser_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_GITTELSOHN_PULSER, gittelsohn_pulser_flags), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) } , \
+  \
+  {-1, -1, "firmware_version", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_GITTELSOHN_PULSER, firmware_version), \
+	{0}, NULL, (MXFF_READ_ONLY) }
 
 #endif /* __D_GITTELSOHN_PULSER_H__ */
 

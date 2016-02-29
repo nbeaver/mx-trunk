@@ -8,14 +8,16 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2015 Illinois Institute of Technology
+ * Copyright 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXD_GITTELSOHN_PULSER_DEBUG	FALSE
+#define MXD_GITTELSOHN_PULSER_DEBUG		FALSE
+
+#define MXD_GITTELSOHN_PULSER_DEBUG_CONF	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -212,6 +214,7 @@ mxd_gittelsohn_pulser_open( MX_RECORD *record )
 	MX_PULSE_GENERATOR *pulser;
 	MX_GITTELSOHN_PULSER *gittelsohn_pulser = NULL;
 	char response[255];
+	int num_items;
 	unsigned long debug_flag, flags;
 	mx_status_type mx_status;
 
@@ -274,9 +277,50 @@ mxd_gittelsohn_pulser_open( MX_RECORD *record )
 
 	mx_msleep(1000);
 
+	/* The first response line should say 'command : conf'. */
+
 	mx_status = mx_rs232_getline( gittelsohn_pulser->rs232_record,
 				response, sizeof(response),
 				NULL, debug_flag );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_GITTELSOHN_PULSER_DEBUG_CONF
+	MX_DEBUG(-2,("%s: pulser '%s', response line #1 = '%s'",
+		fname,  record->name, response));
+#endif
+
+	if ( strcmp( response, "command : conf" ) != 0 ) {
+		return mx_error( MXE_PROTOCOL_ERROR, fname,
+		"The first line of response to a 'conf' command sent to "
+		"Arduino pulser '%s' was not 'command : conf'.  "
+		"Instead, it was '%s'.", record->name, response );
+	}
+
+	/* The second response line should contain the firmware version.*/
+
+	mx_status = mx_rs232_getline( gittelsohn_pulser->rs232_record,
+				response, sizeof(response),
+				NULL, debug_flag );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_GITTELSOHN_PULSER_DEBUG_CONF
+	MX_DEBUG(-2,("%s: pulser '%s', response line #2 = '%s'",
+		fname,  record->name, response));
+#endif
+
+	num_items = sscanf( response, "{ app : rd%lg",
+				&(gittelsohn_pulser->firmware_version) );
+
+	if ( num_items != 1 ) {
+		return mx_error( MXE_PROTOCOL_ERROR, fname,
+		"The second line of response to a 'conf' command sent to "
+		"Arduino pulser '%s' did not begin with '{ app : rd'.  "
+		"Instead, it was '%s'.", record->name, response );
+	}
 
 	return mx_status;
 }
