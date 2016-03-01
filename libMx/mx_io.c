@@ -443,6 +443,54 @@ mx_get_file_offset( FILE *mx_file )
 	return offset;
 }
 
+MX_EXPORT int64_t
+mx_set_file_offset( FILE *mx_file, int64_t offset, int origin )
+{
+	if ( mx_file == NULL ) {
+		errno = EINVAL;
+
+		return (-1);
+	}
+
+	offset = _fseeki64( mx_file, offset, origin );
+
+	return offset;
+}
+
+#elif ( (_FILE_OFFSET_BITS == 64) \
+	|| (_POSIX_C_SOURCE >= 200112L) \
+	|| (_XOPEN_SOURCE >= 600) )
+
+MX_EXPORT int64_t
+mx_get_file_offset( FILE *mx_file )
+{
+	int64_t offset;
+
+	if ( mx_file == NULL ) {
+		errno = EINVAL;
+
+		return (-1);
+	}
+
+	offset = ftello( mx_file );
+
+	return offset;
+}
+
+MX_EXPORT int64_t
+mx_set_file_offset( FILE *mx_file, int64_t offset, int origin )
+{
+	if ( mx_file == NULL ) {
+		errno = EINVAL;
+
+		return (-1);
+	}
+
+	offset = fseeko( mx_file, offset, origin );
+
+	return offset;
+}
+
 #elif defined(OS_WIN32)
 
 MX_EXPORT int64_t
@@ -460,32 +508,6 @@ mx_get_file_offset( FILE *mx_file )
 
 	return offset;
 }
-
-#else
-
-#error mx_get_file_offset() has not yet been implemented for this platform.
-
-#endif
-
-/*=========================================================================*/
-
-#if defined(OS_WIN32) && (_MSC_VER >= 1400)
-
-MX_EXPORT int64_t
-mx_set_file_offset( FILE *mx_file, int64_t offset, int origin )
-{
-	if ( mx_file == NULL ) {
-		errno = EINVAL;
-
-		return (-1);
-	}
-
-	offset = _fseeki64( mx_file, offset, origin );
-
-	return offset;
-}
-
-#elif defined(OS_WIN32)
 
 MX_EXPORT int64_t
 mx_set_file_offset( FILE *mx_file, int64_t offset, int origin )
@@ -505,7 +527,7 @@ mx_set_file_offset( FILE *mx_file, int64_t offset, int origin )
 
 #else
 
-#error mx_set_file_offset() has not yet been implemented for this platform.
+#error mx_get_file_offset() and mx_set_file_offset() have not yet been implemented for this platform.
 
 #endif
 
