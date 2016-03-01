@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <errno.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -148,6 +149,9 @@ mxi_file_rs232_create_record_structures( MX_RECORD *record )
 	rs232->record = record;
 	file_rs232->record = record;
 
+	file_rs232->input_file = NULL;
+	file_rs232->output_file = NULL;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -194,6 +198,7 @@ mxi_file_rs232_open( MX_RECORD *record )
 
 	MX_RS232 *rs232;
 	MX_FILE_RS232 *file_rs232;
+	int saved_errno;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -215,6 +220,44 @@ mxi_file_rs232_open( MX_RECORD *record )
 		file_rs232->input_filename,
 		file_rs232->output_filename));
 #endif
+	/* If requested, open the input file for binary read. */
+
+	if ( strlen( file_rs232->input_filename ) > 0 ) {
+		file_rs232->input_file =
+			fopen( file_rs232->input_filename, "rb" );
+
+		if ( file_rs232->input_file == NULL ) {
+			saved_errno = errno;
+
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"The attempt by record '%s' to open input file '%s' "
+			"failed.  Errno = %d, error message = '%s'",
+				record->name, file_rs232->input_filename,
+				saved_errno, strerror( saved_errno ) );
+		}
+	}
+
+	/* If requested, open the output file for binary append.
+	 * Append is used to ensure that the existing contents of
+	 * the file are not overwritten.
+	 */
+
+	if ( strlen( file_rs232->output_filename ) > 0 ) {
+		file_rs232->output_file =
+			fopen( file_rs232->output_filename, "ab" );
+
+		if ( file_rs232->output_file == NULL ) {
+			saved_errno = errno;
+
+			(void) fclose( file_rs232->input_file );
+
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"The attempt by record '%s' to open output file '%s' "
+			"failed.  Errno = %d, error message = '%s'",
+				record->name, file_rs232->output_filename,
+				saved_errno, strerror( saved_errno ) );
+		}
+	}
 
 	/* Set the standard RS-232 configuration commands. */
 
@@ -243,6 +286,14 @@ mxi_file_rs232_close( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	if ( file_rs232->input_file != NULL ) {
+		(void) fclose( file_rs232->input_file );
+	}
+
+	if ( file_rs232->output_file != NULL ) {
+		(void) fclose( file_rs232->output_file );
+	}
 
 	return mx_status;
 }
