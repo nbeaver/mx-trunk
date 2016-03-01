@@ -523,7 +523,7 @@ mxi_file_rs232_putline( MX_RS232 *rs232,
 	static const char fname[] = "mxi_file_rs232_putline()";
 
 	MX_FILE_RS232 *file_rs232;
-	size_t bytes_to_write, initial_length, escaped_length;
+	size_t bytes_to_write;
 	mx_status_type mx_status;
 
 	mx_status = mxi_file_rs232_get_pointers( rs232, &file_rs232, fname );
