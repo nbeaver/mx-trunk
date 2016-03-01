@@ -425,6 +425,92 @@ mx_get_file_size( char *filename )
 
 /*=========================================================================*/
 
+#if defined(OS_WIN32) && (_MSC_VER >= 1400)
+
+MX_EXPORT int64_t
+mx_get_file_offset( FILE *mx_file )
+{
+	int64_t offset;
+
+	if ( mx_file == NULL ) {
+		errno = EINVAL;
+
+		return (-1);
+	}
+
+	offset = _ftelli64( mx_file );
+
+	return offset;
+}
+
+#elif defined(OS_WIN32)
+
+MX_EXPORT int64_t
+mx_get_file_offset( FILE *mx_file )
+{
+	int64_t offset;
+
+	if ( mx_file == NULL ) {
+		errno = EINVAL;
+
+		return (-1);
+	}
+
+	offset = ftell( mx_file );
+
+	return offset;
+}
+
+#else
+
+#error mx_get_file_offset() has not yet been implemented for this platform.
+
+#endif
+
+/*=========================================================================*/
+
+#if defined(OS_WIN32) && (_MSC_VER >= 1400)
+
+MX_EXPORT int64_t
+mx_set_file_offset( FILE *mx_file, int64_t offset, int origin )
+{
+	if ( mx_file == NULL ) {
+		errno = EINVAL;
+
+		return (-1);
+	}
+
+	offset = _fseeki64( mx_file, offset, origin );
+
+	return offset;
+}
+
+#elif defined(OS_WIN32)
+
+MX_EXPORT int64_t
+mx_set_file_offset( FILE *mx_file, int64_t offset, int origin )
+{
+	int64_t offset;
+
+	if ( mx_file == NULL ) {
+		errno = EINVAL;
+
+		return (-1);
+	}
+
+	offset = fseek( mx_file, offset, origin );
+
+	return offset;
+}
+
+#else
+
+#error mx_set_file_offset() has not yet been implemented for this platform.
+
+#endif
+
+/*=========================================================================*/
+
 /*
  * mx_get_disk_space() only reports on disk space available to 
  * the calling user.  If user quotas are in effect, these values

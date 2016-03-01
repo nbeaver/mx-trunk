@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2010, 2012-2013, 2015 Illinois Institute of Technology
+ * Copyright 2010, 2012-2013, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -43,6 +43,12 @@ MX_API mx_bool_type mx_fd_is_valid( int fd );
 /*----*/
 
 MX_API int64_t mx_get_file_size( char *filename );
+
+MX_API int64_t mx_get_file_offset( FILE *mx_file );
+
+MX_API int64_t mx_set_file_offset( FILE *mx_file,
+				int64_t file_offset,
+				int origin );
 
 /*----*/
 
