@@ -18,7 +18,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2015 Illinois Institute of Technology
+ * Copyright 1999-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -183,6 +183,7 @@ extern "C" {
 #define MXI_232_CAMERA_LINK		112
 #define MXI_232_TELNET			113
 #define MXI_232_SIM900_PORT		114
+#define MXI_232_FILE			115
 
 #define MXI_232_SPEC_COMMAND		150
 

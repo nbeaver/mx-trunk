@@ -121,6 +121,7 @@
 #include "i_camera_link_rs232.h"
 #include "i_spec_command.h"
 #include "i_sim900_port.h"
+#include "i_file_rs232.h"
 
 #if HAVE_TCPIP
 #include "i_tcp232.h"
@@ -677,6 +678,13 @@ MX_DRIVER mx_type_table[] = {
 				&mxi_sim900_port_rs232_function_list,
 				&mxi_sim900_port_num_record_fields,
 				&mxi_sim900_port_rfield_def_ptr},
+
+{"file_rs232",    MXI_232_FILE,          MXI_RS232,      MXR_INTERFACE,
+				&mxi_file_rs232_record_function_list,
+				NULL,
+				&mxi_file_rs232_rs232_function_list,
+				&mxi_file_rs232_num_record_fields,
+				&mxi_file_rs232_rfield_def_ptr},
 
 {"network_gpib",   MXI_GPIB_NETWORK, MXI_GPIB,         MXR_INTERFACE,
 				&mxi_network_gpib_record_function_list,
