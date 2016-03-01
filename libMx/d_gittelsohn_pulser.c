@@ -322,6 +322,18 @@ mxd_gittelsohn_pulser_open( MX_RECORD *record )
 		"Instead, it was '%s'.", record->name, response );
 	}
 
+	/* If the version of the Arduino code is 2.6 or later, then
+	 * unconditionally turn off the runt pulse feature.  For these
+	 * newer versions, the Arduino itself generates an internal
+	 * runt pulse without being told to do so by 'mxserver', so
+	 * we no longer need to add 1 to the number of pulses.
+	 */
+
+	if ( gittelsohn_pulser->firmware_version >= 2.6 ) {
+		gittelsohn_pulser->gittelsohn_pulser_flags
+			&= ( ~ MXF_GITTELSOHN_PULSER_USE_RUNT_PULSE );
+	}
+
 	return mx_status;
 }
 
