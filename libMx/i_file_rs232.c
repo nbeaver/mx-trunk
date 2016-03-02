@@ -26,6 +26,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
+#include "mx_io.h"
 #include "mx_rs232.h"
 #include "i_file_rs232.h"
 
@@ -348,6 +349,8 @@ mxi_file_rs232_getchar( MX_RS232 *rs232, char *c )
 			"An error occurred while trying to read from "
 			"file '%s' for record '%s'.  "
 			"Errno = %d, error message = '%s'.",
+				file_rs232->input_filename,
+				rs232->record->name,
 				saved_errno, strerror( saved_errno ) );
 		} else {
 			return mx_error( MXE_UNKNOWN_ERROR, fname,
@@ -401,6 +404,8 @@ mxi_file_rs232_putchar( MX_RS232 *rs232, char c )
 			"An error occurred while trying to write to "
 			"file '%s' for record '%s'.  "
 			"Errno = %d, error message = '%s'.",
+				file_rs232->input_filename,
+				rs232->record->name,
 				saved_errno, strerror( saved_errno ) );
 		} else {
 			return mx_error( MXE_UNKNOWN_ERROR, fname,
