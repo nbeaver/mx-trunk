@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2011-2012, 2015 Illinois Institute of Technology
+ * Copyright 2011-2012, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -173,6 +173,9 @@ mxi_sapera_lt_open( MX_RECORD *record )
 	static const char fname[] = "mxi_sapera_lt_open()";
 
 	MX_SAPERA_LT *sapera_lt;
+	SapManVersionInfo version_info;
+	SapManVersionInfo::LicenseType license_type;
+	BOOL sapera_status;
 	mx_status_type mx_status;
 
 	mx_status = mxi_sapera_lt_get_pointers( record, &sapera_lt, fname );
@@ -182,7 +185,89 @@ mxi_sapera_lt_open( MX_RECORD *record )
 
 #if MXI_SAPERA_LT_DEBUG_OPEN
 	MX_DEBUG(-2,("%s invoked for '%s'.", fname, record->name));
+	MX_DEBUG(-2,("%s: max_devices = %ld", fname, sapera_lt->max_devices));
+	MX_DEBUG(-2,("%s: server_name = '%s", fname, sapera_lt->server_name));
+	MX_DEBUG(-2,("%s: sapera_flags = %#lx",fname, sapera_lt->sapera_flags));
+	MX_DEBUG(-2,("%s: eval_advance_warning_days = %ld",
+		fname, sapera_lt->eval_advance_warning_days));
 #endif
+	/* What version of Sapera LT are we using? */
+
+	sapera_status = SapManager::GetVersionInfo( &version_info );
+
+	if ( sapera_status != TRUE ) {
+		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+		"The attempt to get the version of Sapera LT "
+		"for record '%s' failed.", record->name );
+	}
+
+	sapera_lt->version_major = version_info.GetMajor();
+	sapera_lt->version_minor = version_info.GetMinor();
+	sapera_lt->version_revision = version_info.GetRevision();
+	sapera_lt->version_build = version_info.GetBuild();
+
+	snprintf( sapera_lt->version_string, sizeof(sapera_lt->version_string),
+		"%lu.%lu.%lu.%lu",
+		sapera_lt->version_major,
+		sapera_lt->version_minor,
+		sapera_lt->version_revision,
+		sapera_lt->version_build );
+
+	license_type = version_info.GetLicenseType();
+
+	if ( license_type == SapManVersionInfo::Runtime ) {
+		sapera_lt->license_type = MXT_SAPERA_LT_LICENSE_RUNTIME;
+	} else
+	if ( license_type == SapManVersionInfo::Evaluation ) {
+		sapera_lt->license_type = MXT_SAPERA_LT_LICENSE_EVALUATION;
+	} else
+	if ( license_type == SapManVersionInfo::FullSDK ) {
+		sapera_lt->license_type = MXT_SAPERA_LT_LICENSE_FULL_SDK;
+	} else {
+		mx_warning( "The license type for Sapera LT used by "
+			"record '%s' was not recognized.  "
+			"We will ignore the license type.",
+				record->name );
+
+		sapera_lt->license_type = -1;
+	}
+
+	if ( sapera_lt->sapera_flags & MXF_SAPERA_LT_SHOW_VERSION ) {
+		mx_info( "Using Sapera LT %s", sapera_lt->version_string );
+	}
+	if ( sapera_lt->sapera_flags & MXF_SAPERA_LT_SHOW_LICENSE ) {
+		switch( sapera_lt->license_type ) {
+		case MXT_SAPERA_LT_LICENSE_RUNTIME:
+			mx_info( "Sapera LT license = 'Runtime'" );
+			break;
+		case MXT_SAPERA_LT_LICENSE_EVALUATION:
+			mx_info( "Sapera LT license = 'Evaluation'" );
+			break;
+		case MXT_SAPERA_LT_LICENSE_FULL_SDK:
+			mx_info( "Sapera LT license = 'Full SDK'" );
+			break;
+		default:
+			mx_info( "Sapera LT license = 'Unknown'" );
+			break;
+		}
+
+		if ( sapera_lt->eval_days_remaining == 1 ) {
+			mx_info( "Sapera LT license expires in %ld day.",
+					sapera_lt->eval_days_remaining );
+		} else {
+			mx_info( "Sapera LT license expires in %ld days.",
+					sapera_lt->eval_days_remaining );
+		}
+	}
+
+	if ( sapera_lt->license_type == MXT_SAPERA_LT_LICENSE_EVALUATION ) {
+	    if ( sapera_lt->eval_advance_warning_days >= 0 ) {
+		if ( sapera_lt->eval_days_remaining
+			<= sapera_lt->eval_advance_warning_days ) {
+		}
+	    }
+	}
+
 	/* How many servers are available?  This number will always be
 	 * at least 1, since this counts the System server.
 	 */
