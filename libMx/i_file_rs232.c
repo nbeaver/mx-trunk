@@ -14,9 +14,9 @@
  *
  */
 
-#define MXI_FILE_RS232_DEBUG		TRUE
+#define MXI_FILE_RS232_DEBUG		FALSE
 
-#define MXI_FILE_RS232_DEBUG_GETCHAR	TRUE
+#define MXI_FILE_RS232_DEBUG_GETCHAR	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -44,16 +44,20 @@ MX_RS232_FUNCTION_LIST mxi_file_rs232_rs232_function_list = {
 	mxi_file_rs232_putchar,
 	mxi_file_rs232_read,
 	mxi_file_rs232_write,
-	mxi_file_rs232_getline,
-	mxi_file_rs232_putline,
+	NULL,
+	NULL,
 	mxi_file_rs232_num_input_bytes_available,
 	mxi_file_rs232_discard_unread_input,
 	NULL,
 	NULL,
 	NULL,
-	mxi_file_rs232_get_configuration,
-	mxi_file_rs232_set_configuration,
-	mxi_file_rs232_send_break
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	mxi_file_rs232_flush
 };
 
 MX_RECORD_FIELD_DEFAULTS mxi_file_rs232_record_field_defaults[] = {
@@ -259,11 +263,7 @@ mxi_file_rs232_open( MX_RECORD *record )
 		}
 	}
 
-	/* Set the standard RS-232 configuration commands. */
-
-	mx_status = mxi_file_rs232_set_configuration( rs232 );
-
-	return mx_status;
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -304,6 +304,7 @@ mxi_file_rs232_getchar( MX_RS232 *rs232, char *c )
 	static const char fname[] = "mxi_file_rs232_getchar()";
 
 	MX_FILE_RS232 *file_rs232;
+	int fgetc_value, saved_errno;
 	mx_status_type mx_status;
 
 #if MXI_FILE_RS232_DEBUG
@@ -320,6 +321,46 @@ mxi_file_rs232_getchar( MX_RS232 *rs232, char *c )
 		"The character pointer passed was NULL." );
 	}
 
+	if ( file_rs232->input_file == NULL ) {
+		/* If the file is not open, we treat it as if it were
+		 * an open file that did not have any new bytes available.
+		 */
+
+		return mx_error( (MXE_NOT_READY | MXE_QUIET), fname,
+		"Input file '%s' is not open for record '%s'.",
+			file_rs232->input_filename, rs232->record->name );
+	}
+
+	fgetc_value = fgetc( file_rs232->input_file );
+
+	if ( fgetc_value == EOF ) {
+		if ( feof( file_rs232->input_file ) ) {
+			return mx_error( (MXE_NOT_READY | MXE_QUIET), fname,
+			"Failed to read a character from file '%s' "
+			"for record '%s'.",
+				file_rs232->input_filename,
+				rs232->record->name );
+		} else
+		if ( ferror( file_rs232->input_file ) ) {
+			saved_errno = errno;
+
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"An error occurred while trying to read from "
+			"file '%s' for record '%s'.  "
+			"Errno = %d, error message = '%s'.",
+				saved_errno, strerror( saved_errno ) );
+		} else {
+			return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"fgetc() reported an error for input file '%s' "
+			"used by record '%s', but feof() and ferror() "
+			"both reported no error.",
+				file_rs232->input_filename,
+				rs232->record->name );
+		}
+	}
+
+	*c = (char) fgetc_value;
+
 	return mx_status;
 }
 
@@ -329,6 +370,7 @@ mxi_file_rs232_putchar( MX_RS232 *rs232, char c )
 	static const char fname[] = "mxi_file_rs232_putchar()";
 
 	MX_FILE_RS232 *file_rs232;
+	int fputc_value, saved_errno;
 	mx_status_type mx_status;
 
 #if MXI_FILE_RS232_DEBUG
@@ -339,6 +381,36 @@ mxi_file_rs232_putchar( MX_RS232 *rs232, char c )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	if ( file_rs232->output_file == NULL ) {
+		/* If the file is not open, we treat it as if it were
+		 * a file like /dev/null, where bytes disappear without
+		 * a trace and just return without doing anything.
+		 */
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	fputc_value = fputc( c, file_rs232->output_file );
+
+	if ( fputc_value == EOF ) {
+		if ( ferror( file_rs232->input_file ) ) {
+			saved_errno = errno;
+
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"An error occurred while trying to write to "
+			"file '%s' for record '%s'.  "
+			"Errno = %d, error message = '%s'.",
+				saved_errno, strerror( saved_errno ) );
+		} else {
+			return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"fputc() reported an error for output file '%s' "
+			"used by record '%s', but feof() and ferror() "
+			"both reported no error.",
+				file_rs232->input_filename,
+				rs232->record->name );
+		}
+	}
 
 	return mx_status;
 }
@@ -352,6 +424,7 @@ mxi_file_rs232_read( MX_RS232 *rs232,
 	static const char fname[] = "mxi_file_rs232_read()";
 
 	MX_FILE_RS232 *file_rs232;
+	size_t actual_bytes_read;
 	mx_status_type mx_status;
 
 	mx_status = mxi_file_rs232_get_pointers( rs232, &file_rs232, fname );
@@ -359,8 +432,12 @@ mxi_file_rs232_read( MX_RS232 *rs232,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	actual_bytes_read = fread( buffer,
+				1, max_bytes_to_read,
+				file_rs232->input_file );
+
 	if ( bytes_read != (size_t *) NULL ) {
-		*bytes_read = max_bytes_to_read;
+		*bytes_read = actual_bytes_read;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -375,166 +452,20 @@ mxi_file_rs232_write( MX_RS232 *rs232,
 	static const char fname[] = "mxi_file_rs232_write()";
 
 	MX_FILE_RS232 *file_rs232;
+	size_t actual_bytes_written;
 	mx_status_type mx_status;
 
 	mx_status = mxi_file_rs232_get_pointers( rs232, &file_rs232, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	actual_bytes_written = fwrite( buffer,
+				1, max_bytes_to_write,
+				file_rs232->output_file );
 
 	if ( bytes_written != NULL ) {
-		*bytes_written = max_bytes_to_write;
-	}
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxi_file_rs232_getline( MX_RS232 *rs232,
-			char *buffer,
-			size_t max_bytes_to_read,
-			size_t *bytes_read )
-{
-	static const char fname[] = "mxi_file_rs232_getline()";
-
-	MX_FILE_RS232 *file_rs232;
-	char *buffer_ptr, *terminators_ptr;
-	size_t bytes_left_in_buffer, bytes_read_so_far, bytes_read_by_this_call;
-	mx_bool_type do_timeout;
-	int tick_comparison;
-	MX_CLOCK_TICK timeout_clock_ticks, current_tick, finish_tick;
-	long mx_error_code;
-	mx_status_type mx_status;
-
-	mx_status = mxi_file_rs232_get_pointers( rs232, &file_rs232, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	if ( rs232->timeout < 0.0 ) {
-		do_timeout = FALSE;
-	} else {
-		do_timeout = TRUE;
-
-		timeout_clock_ticks =
-		    mx_convert_seconds_to_clock_ticks( rs232->timeout );
-
-		current_tick = mx_current_clock_tick();
-
-		finish_tick = mx_add_clock_ticks( current_tick,
-						timeout_clock_ticks );
-	}
-
-	buffer_ptr = buffer;
-	bytes_left_in_buffer = max_bytes_to_read;
-	bytes_read_so_far = 0;
-
-	bytes_read_by_this_call = 0;
-
-	while (1) {
-		if ( do_timeout ) {
-			current_tick = mx_current_clock_tick();
-
-			tick_comparison = mx_compare_clock_ticks(
-					current_tick, finish_tick );
-
-			if ( tick_comparison > 0 ) {
-				if ( rs232->rs232_flags &
-				    MXF_232_SUPPRESS_TIMEOUT_ERROR_MESSAGES )
-				{
-					mx_error_code =
-						(MXE_TIMED_OUT | MXE_QUIET);
-				} else {
-					mx_error_code = MXE_TIMED_OUT;
-				}
-
-				return mx_error( mx_error_code, fname,
-				    "Read from RS-232 port '%s' timed out "
-				    "after %g seconds.",
-					rs232->record->name, rs232->timeout );
-			}
-		}
-
-		mx_status = mxi_file_rs232_read( rs232,
-						buffer_ptr,
-						bytes_left_in_buffer,
-						&bytes_read_by_this_call );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		bytes_read_so_far += bytes_read_by_this_call;
-
-		/* See if the read terminators are found in the data
-		 * returned by GETN.
-		 *
-		 * 2012-06-12 (WML):
-		 *   It is possible for line terminators to be split
-		 *   between two packets returned by getn(), so we
-		 *   must not assume that all of the line terminators
-		 *   are found in the same packet.  The safest way to
-		 *   deal with this is to start scanning for line
-		 *   terminators at the start of the buffer every
-		 *   time, instead of starting at buffer_ptr.
-		 */
-
-		terminators_ptr = mx_rs232_find_terminators( buffer,
-					max_bytes_to_read,
-					rs232->num_read_terminator_chars,
-					rs232->read_terminator_array );
-
-		if ( terminators_ptr != NULL ) {
-			*terminators_ptr = '\0';
-
-			if ( bytes_read != NULL ) {
-				*bytes_read = bytes_read_so_far
-					- rs232->num_read_terminator_chars;
-			}
-
-#if MXI_FILE_RS232_DEBUG
-			MX_DEBUG(-2,("%s: received '%s' from '%s'.",
-				fname, buffer, rs232->record->name));
-#endif
-			return MX_SUCCESSFUL_RESULT;
-		}
-
-		if ( bytes_read_by_this_call >= bytes_left_in_buffer ) {
-			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-			"The total response beginning with '%s' from '%s'"
-			"would exceed the specified buffer size of %lu.",
-				buffer, rs232->record->name,
-				(unsigned long) max_bytes_to_read );
-		}
-
-		buffer_ptr += bytes_read_by_this_call;
-		bytes_left_in_buffer -= bytes_read_by_this_call;
-
-		mx_msleep(1);
-	}
-
-	MXW_NOT_REACHED( return MX_SUCCESSFUL_RESULT );
-}
-
-MX_EXPORT mx_status_type
-mxi_file_rs232_putline( MX_RS232 *rs232,
-			char *buffer,
-			size_t *bytes_written )
-{
-	static const char fname[] = "mxi_file_rs232_putline()";
-
-	MX_FILE_RS232 *file_rs232;
-	size_t bytes_to_write;
-	mx_status_type mx_status;
-
-	mx_status = mxi_file_rs232_get_pointers( rs232, &file_rs232, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	bytes_to_write = strlen( buffer ) + 1;
-
-	if ( bytes_written != NULL ) {
-		*bytes_written = bytes_to_write;
+		*bytes_written = actual_bytes_written;
 	}
 
 	return mx_status;
@@ -547,6 +478,8 @@ mxi_file_rs232_num_input_bytes_available( MX_RS232 *rs232 )
 			"mxi_file_rs232_num_input_bytes_available()";
 
 	MX_FILE_RS232 *file_rs232;
+	int64_t file_size, file_offset, num_bytes_available;
+	int saved_errno;
 	mx_status_type mx_status;
 
 	mx_status = mxi_file_rs232_get_pointers( rs232, &file_rs232, fname );
@@ -554,7 +487,37 @@ mxi_file_rs232_num_input_bytes_available( MX_RS232 *rs232 )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	rs232->num_input_bytes_available = 0;
+	if ( file_rs232->input_file == NULL ) {
+		return mx_error( MXE_NOT_AVAILABLE, fname,
+		"File '%s' for record '%s' is not open, so we cannot "
+		"find the number of input bytes available for it.",
+			file_rs232->input_filename,
+			rs232->record->name );
+	}
+
+	file_size = mx_get_file_size( file_rs232->input_filename );
+
+	if ( file_size < 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"Unable to get the file size of '%s' for record '%s'.  "
+		"Errno = %d, error message = '%s'",
+			file_rs232->input_filename,
+			rs232->record->name,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	file_offset = mx_get_file_offset( file_rs232->input_file );
+
+	num_bytes_available = file_size - file_offset;
+
+	if ( num_bytes_available > ULONG_MAX ) {
+		rs232->num_input_bytes_available = ULONG_MAX;
+	} else {
+		rs232->num_input_bytes_available =
+			(unsigned long) num_bytes_available;
+	}
 
 #if MXI_FILE_RS232_DEBUG
 	MX_DEBUG(-2,("%s: num_input_bytes_available = %ld",
@@ -567,60 +530,32 @@ mxi_file_rs232_num_input_bytes_available( MX_RS232 *rs232 )
 MX_EXPORT mx_status_type
 mxi_file_rs232_discard_unread_input( MX_RS232 *rs232 )
 {
-	char buffer[2500];
-	long total_bytes_to_read, bytes_to_read;
-	size_t bytes_read;
+	static const char fname[] = "mxi_file_rs232_discard_unread_input()";
+
+	MX_FILE_RS232 *file_rs232;
 	mx_status_type mx_status;
 
-	mx_status = mxi_file_rs232_num_input_bytes_available( rs232 );
+	mx_status = mxi_file_rs232_get_pointers( rs232, &file_rs232, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	total_bytes_to_read = rs232->num_input_bytes_available;
-
-	while ( total_bytes_to_read > 0 ) {
-		if ( total_bytes_to_read >= sizeof(buffer) ) {
-			bytes_to_read = sizeof(buffer);
-		} else {
-			bytes_to_read = total_bytes_to_read;
-		}
-
-		mx_status = mxi_file_rs232_read( rs232, buffer,
-						bytes_to_read,
-						&bytes_read );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		total_bytes_to_read -= bytes_read;
+	if ( file_rs232->input_file == NULL ) {
+		return MX_SUCCESSFUL_RESULT;
 	}
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_file_rs232_get_configuration( MX_RS232 *rs232 )
-{
-	static const char fname[] = "mxi_file_rs232_get_configuration()";
-
-	MX_FILE_RS232 *file_rs232;
-	mx_status_type mx_status;
-
-	mx_status = mxi_file_rs232_get_pointers( rs232, &file_rs232, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	(void) mx_set_file_offset( file_rs232->input_file, 0, SEEK_END );
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
-mxi_file_rs232_set_configuration( MX_RS232 *rs232 )
+mxi_file_rs232_flush( MX_RS232 *rs232 )
 {
-	static const char fname[] = "mxi_file_rs232_set_configuration()";
+	static const char fname[] = "mxi_file_rs232_flush()";
 
 	MX_FILE_RS232 *file_rs232;
+	int fflush_status, saved_errno;
 	mx_status_type mx_status;
 
 	mx_status = mxi_file_rs232_get_pointers( rs232, &file_rs232, fname );
@@ -628,25 +563,22 @@ mxi_file_rs232_set_configuration( MX_RS232 *rs232 )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	return mx_status;
-}
+	if ( file_rs232->output_file == NULL ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
 
-MX_EXPORT mx_status_type
-mxi_file_rs232_send_break( MX_RS232 *rs232 )
-{
-	static const char fname[] = "mxi_file_rs232_set_configuration()";
+	fflush_status = fflush( file_rs232->output_file );
 
-	MX_FILE_RS232 *file_rs232;
-	mx_status_type mx_status;
+	if ( fflush_status != 0 ) {
+		saved_errno = errno;
 
-	mx_status = mxi_file_rs232_get_pointers( rs232, &file_rs232, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Wait a while for the break to complete. */
-
-	mx_msleep(200);
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"An error occurred while writing to output file '%s' "
+		"for record '%s'.  Errno = %d, error message = '%s'.",
+			file_rs232->output_filename,
+			rs232->record->name,
+			saved_errno, strerror(saved_errno) );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }

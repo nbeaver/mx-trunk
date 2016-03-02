@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2008, 2010-2012, 2014 Illinois Institute of Technology
+ * Copyright 1999-2008, 2010-2012, 2014, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -92,6 +92,10 @@ extern "C" {
 #define MXF_232_UNBUFFERED_IO			0x1
 #define MXF_232_DO_NOT_CHANGE_PORT_SETTINGS	0x2
 #define MXF_232_ALWAYS_IGNORE_NULLS		0x4
+
+#define MXF_232_FLUSH_AFTER_PUTCHAR		0x100
+#define MXF_232_FLUSH_AFTER_WRITE		0x200
+#define MXF_232_FLUSH_AFTER_PUTLINE		0x400
 
 #define MXF_232_SUPPRESS_TIMEOUT_ERROR_MESSAGES	0x1000
 #define MXF_232_POSIX_VMIN_FIX			0x2000
@@ -328,6 +332,7 @@ typedef struct {
 					double wait_timeout_in_seconds );
 	mx_status_type ( *get_echo ) ( MX_RS232 *rs232 );
 	mx_status_type ( *set_echo ) ( MX_RS232 *rs232 );
+	mx_status_type ( *flush ) ( MX_RS232 *rs232 );
 } MX_RS232_FUNCTION_LIST;
 
 /* ============== Internal driver function prototypes. ============== */
@@ -478,6 +483,8 @@ MX_API mx_status_type mx_rs232_get_echo( MX_RECORD *rs232_record,
 
 MX_API mx_status_type mx_rs232_set_echo( MX_RECORD *rs232_record,
 					mx_bool_type echo_state );
+
+MX_API mx_status_type mx_rs232_flush( MX_RECORD *rs232_record );
 
 MX_API mx_status_type mx_rs232_send_file( MX_RECORD *rs232_record,
 					char *filename,

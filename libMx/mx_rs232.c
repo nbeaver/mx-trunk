@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2007, 2010-2012, 2014-2015 Illinois Institute of Technology
+ * Copyright 1999-2007, 2010-2012, 2014-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -795,6 +795,9 @@ mx_rs232_getchar( MX_RECORD *record,
 
 	mx_status = (*fptr)( rs232, c );
 
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	return mx_status;
 }
 
@@ -829,6 +832,15 @@ mx_rs232_putchar( MX_RECORD *record,
 	/* Invoke the function. */
 
 	mx_status = (*fptr)( rs232, c );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* If requested, flush already written data to the destination. */
+
+	if ( rs232->rs232_flags & MXF_232_FLUSH_AFTER_PUTCHAR ) {
+		mx_status = mx_rs232_flush( record );
+	}
 
 	return mx_status;
 }
@@ -1042,6 +1054,15 @@ mx_rs232_write( MX_RECORD *record,
 
 	if ( bytes_written != NULL ) {
 		*bytes_written = bytes_written_by_driver;
+	}
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* If requested, flush already written data to the destination. */
+
+	if ( rs232->rs232_flags & MXF_232_FLUSH_AFTER_WRITE ) {
+		mx_status = mx_rs232_flush( record );
 	}
 
 	return mx_status;
@@ -1274,7 +1295,21 @@ mx_rs232_putline( MX_RECORD *record,
 						MXF_232_HIDE_FROM_DEBUG );
 	}
 
-	return mx_status;;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* If requested, flush already written data to the destination. */
+
+#if 0
+	MX_DEBUG(-2,("%s: '%s' rs232->rs232_flags = %#lx",
+		fname, rs232->record->name, rs232->rs232_flags));
+#endif
+
+	if ( rs232->rs232_flags & MXF_232_FLUSH_AFTER_PUTLINE ) {
+		mx_status = mx_rs232_flush( record );
+	}
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -1940,6 +1975,38 @@ mx_rs232_set_echo( MX_RECORD *record,
 	} else {
 		rs232->echo = echo_state;
 
+		mx_status = (*fptr)( rs232 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_rs232_flush( MX_RECORD *record )
+{
+	static const char fname[] = "mx_rs232_flush()";
+
+	MX_RS232 *rs232;
+	MX_RS232_FUNCTION_LIST *flist;
+	mx_status_type ( *fptr )( MX_RS232 * );
+	mx_status_type mx_status;
+
+	mx_status = mx_rs232_get_pointers( record, &rs232, &flist, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	fptr = flist->flush;
+
+	if ( fptr == NULL ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Flushing bytes to the destination is not supported "
+		"by the '%s' driver for RS-232 device '%s'.",
+			mx_get_driver_name( record ), record->name );
+	} else {
 		mx_status = (*fptr)( rs232 );
 
 		if ( mx_status.code != MXE_SUCCESS )

@@ -2992,6 +2992,12 @@ mx_area_detector_open_filename_log( MX_AREA_DETECTOR *ad )
 			return mx_status;
 	}
 
+	/* See if we are attempting to discontinue logging. */
+
+	if ( ad->filename_log[0] == '\0' ) {
+		ad->filename_log_record = NULL;
+	}
+
 	/* Look for the requested filename log record. */
 
 	ad->filename_log_record = mx_get_record( ad->record, ad->filename_log );

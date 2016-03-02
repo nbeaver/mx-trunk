@@ -49,19 +49,10 @@ MX_API mx_status_type mxi_file_rs232_write( MX_RS232 *rs232,
 					char *buffer,
 					size_t max_bytes_to_write,
 					size_t *bytes_written );
-MX_API mx_status_type mxi_file_rs232_getline( MX_RS232 *rs232,
-					char *buffer,
-					size_t max_bytes_to_read,
-					size_t *bytes_read );
-MX_API mx_status_type mxi_file_rs232_putline( MX_RS232 *rs232,
-					char *buffer,
-					size_t *bytes_written );
 MX_API mx_status_type mxi_file_rs232_num_input_bytes_available(
 							MX_RS232 *rs232 );
 MX_API mx_status_type mxi_file_rs232_discard_unread_input( MX_RS232 *rs232 );
-MX_API mx_status_type mxi_file_rs232_get_configuration( MX_RS232 *rs232 );
-MX_API mx_status_type mxi_file_rs232_set_configuration( MX_RS232 *rs232 );
-MX_API mx_status_type mxi_file_rs232_send_break( MX_RS232 *rs232 );
+MX_API mx_status_type mxi_file_rs232_flush( MX_RS232 *rs232 );
 
 extern MX_RECORD_FUNCTION_LIST mxi_file_rs232_record_function_list;
 extern MX_RS232_FUNCTION_LIST mxi_file_rs232_rs232_function_list;
