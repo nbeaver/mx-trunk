@@ -25,12 +25,12 @@
 #include "mx_time.h"
 #include "mx_version.h"
 
-#define MX_DATE "March 2, 2016"
+#define MX_DATE "March 3, 2016"
 
 #include "mx_private_revision.h"
 
-#if !defined(MX_REVISION)
-#  define MX_REVISION ""
+#if !defined(MX_REVISION_STRING)
+#  define MX_REVISION_STRING ""
 #endif
 
 static char buffer[60];
@@ -52,28 +52,6 @@ mx_get_update_version( void )
 {
 	return MX_UPDATE_VERSION;
 }
-
-#if defined(OS_VMS)
-
-MX_EXPORT const char *
-mx_get_revision_label( void )
-{
-	static const char label[] = "none";
-
-	return label;
-}
-
-#else
-
-MX_EXPORT const char *
-mx_get_revision_label( void )
-{
-	static const char label[] = MX_REVISION_LABEL;
-
-	return label;
-}
-
-#endif
 
 MX_EXPORT char *
 mx_get_version_full_string( void )
@@ -140,11 +118,47 @@ mx_get_version_date_time( void )
 	return result;
 }
 
-MX_EXPORT char *
-mx_get_revision( void )
+MX_EXPORT int
+mx_get_revision_number( void )
 {
-	static char revision[] = MX_REVISION;
+	int num_items, revision_number;
+
+	num_items = sscanf( MX_REVISION_STRING, "%*s %d", &revision_number );
+
+	if ( num_items == 0 ) {
+		revision_number = -1;
+	}
+
+	return revision_number;
+}
+
+MX_EXPORT char *
+mx_get_revision_string( void )
+{
+	static char revision[] = MX_REVISION_STRING;
 
 	return revision;
 }
+
+#if defined(OS_VMS)
+
+MX_EXPORT const char *
+mx_get_branch_label( void )
+{
+	static const char label[] = "none";
+
+	return label;
+}
+
+#else
+
+MX_EXPORT const char *
+mx_get_branch_label( void )
+{
+	static const char label[] = MX_BRANCH_LABEL;
+
+	return label;
+}
+
+#endif
 

@@ -66,17 +66,17 @@ main( int argc, char **argv )
 	fprintf( stdout, "\n" );
 
 #if defined(_MSC_VER)
-#  define MXP_PRINT_REVISION_LABEL(LABEL) \
-	fprintf( stdout, "#define MX_REVISION_LABEL  \"" ## LABEL ## "\"\n" )
+#  define MXP_PRINT_BRANCH_LABEL(LABEL) \
+	fprintf( stdout, "#define MX_BRANCH_LABEL  \"" ## LABEL ## "\"\n" )
 
-	MXP_PRINT_REVISION_LABEL(MX_REVISION_LABEL);
+	MXP_PRINT_BRANCH_LABEL(MX_BRANCH_LABEL);
 
 #elif ( defined(OS_VMS) && !defined(__GNUC__) )
 	fprintf( stdout,
-		"#define MX_REVISION_LABEL  \"none\"\n" );
+		"#define MX_BRANCH_LABEL  \"none\"\n" );
 #else
 	fprintf( stdout,
-		"#define MX_REVISION_LABEL  \"" MX_REVISION_LABEL "\"\n" );
+		"#define MX_BRANCH_LABEL  \"" MX_BRANCH_LABEL "\"\n" );
 #endif
 
 

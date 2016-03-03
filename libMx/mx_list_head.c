@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004, 2006-2015 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2004, 2006-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -207,15 +207,22 @@ mxr_create_list_head( MX_RECORD *record )
 			MX_TOSTRING(MX_CFLAGS), cflags_length );
 	}
 
-	/* Initialize 'revision' from mx_get_revision(). */
+	/* Initialize various version strings. */
 
-	strlcpy( list_head_struct->mx_revision,
-		mx_get_revision(),
+	strlcpy( list_head_struct->mx_revision_string,
+		mx_get_revision_string(),
 		MXU_REVISION_NAME_LENGTH );
 
-	strlcpy( list_head_struct->mx_revision_label,
-		mx_get_revision_label(),
+	strlcpy( list_head_struct->mx_branch_label,
+		mx_get_branch_label(),
 		MXU_REVISION_NAME_LENGTH );
+
+	list_head_struct->mx_revision_number = mx_get_revision_number();
+
+	snprintf( list_head_struct->mx_version_string,
+		MXU_REVISION_NAME_LENGTH, "%d.%d.%d.%ld",
+		MX_MAJOR_VERSION, MX_MINOR_VERSION, MX_UPDATE_VERSION,
+		list_head_struct->mx_revision_number );
 
 	/* Since the list head record itself is a record, we initialize
 	 * the number of records to 1 rather than 0.

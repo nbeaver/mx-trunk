@@ -1052,12 +1052,12 @@ motor_show_version( void )
 
 	list_head = mx_get_record_list_head_struct( motor_record_list );
 
-	revision_string = mx_get_revision();
+	revision_string = mx_get_revision_string();
 
 	if ( strlen( revision_string ) > 0 ) {
 		fprintf( output, "MX version: %s  [ Revision: %s  (%s) ]\n",
 			mx_get_version_full_string(), revision_string,
-			mx_get_revision_label() );
+			mx_get_branch_label() );
 	} else {
 		fprintf( output, "MX version: %s\n",
 			mx_get_version_full_string() );

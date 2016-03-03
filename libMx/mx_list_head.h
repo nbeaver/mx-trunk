@@ -9,7 +9,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004, 2006-2010, 2012-2015
+ * Copyright 2000-2001, 2003-2004, 2006-2010, 2012-2016
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -47,8 +47,10 @@ extern "C" {
 #define MXLV_LHD_CFLAGS				1019
 #define MXLV_LHD_VM_REGION			1020
 #define MXLV_LHD_POSIX_TIME			1021
-#define MXLV_LHD_REVISION			1022
-#define MXLV_LHD_REVISION_LABEL			1023
+#define MXLV_LHD_REVISION_NUMBER		1022
+#define MXLV_LHD_REVISION_STRING		1023
+#define MXLV_LHD_BRANCH_LABEL			1024
+#define MXLV_LHD_VERSION_STRING			1025
 
 #define MXR_LIST_HEAD_STANDARD_FIELDS \
   {-1, -1, "list_is_active", MXFT_BOOL, NULL, 0, {0}, \
@@ -174,14 +176,24 @@ extern "C" {
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, posix_time), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
-  {MXLV_LHD_REVISION, -1, "mx_revision", \
+  {MXLV_LHD_REVISION_NUMBER, -1, "mx_revision_number", \
+					MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, mx_revision_number),\
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {MXLV_LHD_REVISION_STRING, -1, "mx_revision_string", \
 		MXFT_STRING, NULL, 1, {MXU_REVISION_NAME_LENGTH}, \
-	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, mx_revision), \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, mx_revision_string), \
 	{sizeof(char)}, NULL, MXFF_READ_ONLY}, \
   \
-  {MXLV_LHD_REVISION_LABEL, -1, "mx_revision_label", \
+  {MXLV_LHD_BRANCH_LABEL, -1, "mx_branch_label", \
 		MXFT_STRING, NULL, 1, {MXU_REVISION_NAME_LENGTH}, \
-	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, mx_revision_label), \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, mx_branch_label), \
+	{sizeof(char)}, NULL, MXFF_READ_ONLY}, \
+  \
+  {MXLV_LHD_VERSION_STRING, -1, "mx_version_string", \
+		MXFT_STRING, NULL, 1, {MXU_REVISION_NAME_LENGTH}, \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, mx_version_string), \
 	{sizeof(char)}, NULL, MXFF_READ_ONLY}
 
 MX_API_PRIVATE mx_status_type mxr_create_list_head( MX_RECORD *record );

@@ -50,8 +50,8 @@ print_usage( void )
 	"  mx_install_dir\n"
 	"  mx_major\n"
 	"  mx_minor\n"
-	"  mx_revision_label\n"
 	"  mx_update\n"
+	"  mx_branch_label\n"
 	"  mx_version\n"
 	"  os_version\n"
 	"  python\n"
@@ -90,8 +90,8 @@ main( int argc, char **argv )
 		printf( "%d\n", MX_UPDATE_VERSION );
 		exit(0);
 	}
-	if ( strcmp( argv[1], "mx_revision_label" ) == 0 ) {
-		printf( "%s\n", MX_REVISION_LABEL );
+	if ( strcmp( argv[1], "mx_branch_label" ) == 0 ) {
+		printf( "%s\n", MX_BRANCH_LABEL );
 		exit(0);
 	}
 	if ( strcmp( argv[1], "wordsize" ) == 0 ) {
