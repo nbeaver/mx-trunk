@@ -1254,21 +1254,19 @@ mx_read_database_private( MX_RECORD *record_list_head,
 
 	mx_status = (*mxp_readline)( db_source, buffer, sizeof(buffer) );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
 	switch( mx_status.code ) {
 	case MXE_SUCCESS:
 		break;
 
 	case MXE_END_OF_DATA:
 		if ( db_source->is_array ) {
-			mx_info( "WARNING: The database array is empty." );
+			mx_warning( "The database array is empty." );
 		} else {
-			mx_info( "WARNING: Save file '%s' is empty.",
+			mx_warning( "MX database file '%s' is empty.",
 						db_source->filename );
 		}
-		return MX_SUCCESSFUL_RESULT;
+		return mx_status;
+		break;
 	default:
 		return mx_status;
 	}

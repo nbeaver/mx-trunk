@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2015 Illinois Institute of Technology
+ * Copyright 1999-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1078,7 +1078,7 @@ mxserver_main( int argc, char *argv[] )
 	 * to the record list.
 	 */
 
-	mx_info("Loading database file '%s'.", mx_database_filename);
+	mx_info("Loading MX database file '%s'.", mx_database_filename);
 
 	mx_status = mx_read_database_file( mx_record_list,
 					mx_database_filename, 0 );
