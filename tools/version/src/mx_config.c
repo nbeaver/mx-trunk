@@ -214,7 +214,7 @@ main( int argc, char **argv )
 		 * Python is installed and what version it is.
 		 */
 
-		win32_status = RegOpenKeyEx( HKEY_CURRENT_USER,
+		win32_status = RegOpenKeyEx( HKEY_LOCAL_MACHINE,
 					TEXT("Software\\Python\\PythonCore"),
 					0, KEY_QUERY_VALUE, &python_core_hkey );
 
@@ -245,7 +245,7 @@ main( int argc, char **argv )
 		buffer_size = sizeof(python_version_keyname);
 
 		win32_status = RegEnumKeyEx( python_core_hkey, 0,
-					(LPSTR) python_version_keyname,
+					(LPTSTR) python_version_keyname,
 					&buffer_size, NULL, NULL, NULL, NULL );
 
 		fprintf( stderr, "RegEnumKeyEx() status = %ld\n",
