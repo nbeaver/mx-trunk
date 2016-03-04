@@ -425,6 +425,8 @@ mx_get_file_size( char *filename )
 
 /*=========================================================================*/
 
+/* Windows with Visual C++ 2005 or newer. */
+
 #if defined(OS_WIN32) && (_MSC_VER >= 1400)
 
 MX_EXPORT int64_t
@@ -456,6 +458,8 @@ mx_set_file_offset( FILE *mx_file, int64_t offset, int origin )
 
 	return offset;
 }
+
+/* Recent versions of Linux/MacOS X/Posix operating systems. */
 
 #elif ( (_FILE_OFFSET_BITS == 64) \
 	|| (_POSIX_C_SOURCE >= 200112L) \
@@ -491,7 +495,11 @@ mx_set_file_offset( FILE *mx_file, int64_t offset, int origin )
 	return offset;
 }
 
-#elif defined(OS_WIN32)
+/* All other operating system versions use generic fseek() and ftell()
+ * calls that only report 32-bit offsets.
+ */
+
+#else
 
 MX_EXPORT int64_t
 mx_get_file_offset( FILE *mx_file )
@@ -512,8 +520,6 @@ mx_get_file_offset( FILE *mx_file )
 MX_EXPORT int64_t
 mx_set_file_offset( FILE *mx_file, int64_t offset, int origin )
 {
-	int64_t offset;
-
 	if ( mx_file == NULL ) {
 		errno = EINVAL;
 
@@ -524,10 +530,6 @@ mx_set_file_offset( FILE *mx_file, int64_t offset, int origin )
 
 	return offset;
 }
-
-#else
-
-#error mx_get_file_offset() and mx_set_file_offset() have not yet been implemented for this platform.
 
 #endif
 
