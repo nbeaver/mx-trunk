@@ -200,13 +200,44 @@ main( int argc, char **argv )
 #if defined(OS_WIN32)
 	if ( strcmp( argv[1], "python" ) == 0 ) {
 
-		HKEY python_core_hkey;
+		HKEY python_core_hkey, python_item_hkey;
 		TCHAR python_version_keyname[80];
-		char install_dir_keyname[200];
-		char install_dir_pathname[MXU_FILENAME_LENGTH+80];
-		DWORD buffer_size;
-		DWORD dwType = REG_SZ;
-		long win32_status;
+		char python_item_keyname[200];
+		char python_item_keydata[2000];
+		DWORD buffer_size, keydata_size, dwType;
+		long i, length, win32_status;
+		int is_versions_command, items;
+		unsigned long python_major, python_minor;
+		char libname[40];
+
+		if ( argc < 3 ) {
+			fprintf( stderr,
+			"ERR -\n"
+			"Usage:  mx_config python [option] [version_number]\n"
+			"\n"
+			"    Where option may be\n"
+			"        include\n"
+			"        install_path\n"
+			"        library\n"
+			"        python_path\n"
+			"        versions\n"
+			"\n"
+			);
+			exit(1);
+		}
+
+		if ( strcmp( argv[2], "versions" ) == 0 ) {
+			is_versions_command = TRUE;
+		} else {
+			is_versions_command = FALSE;
+
+			if ( argc < 4 ) {
+				fprintf( stderr,
+			 "ERR - '%s %s %s' needs a version number argument.\n",
+					argv[0], argv[1], argv[2] );
+				exit(1);
+			}
+		}
 
 		/*--------------------------------------------------------*/
 
@@ -216,88 +247,158 @@ main( int argc, char **argv )
 
 		win32_status = RegOpenKeyEx( HKEY_LOCAL_MACHINE,
 					TEXT("Software\\Python\\PythonCore"),
-					0, KEY_QUERY_VALUE, &python_core_hkey );
-
-		fprintf( stderr, "RegOpenKeyEx() status = %ld\n",
-				win32_status );
+					0, KEY_READ, &python_core_hkey );
 
 		if ( win32_status != ERROR_SUCCESS ) {
 			fprintf( stderr,
-			"RegOpenKeyEx() failed with status %ld\n",
+			"ERR - RegOpenKeyEx() failed with status %ld\n",
 				win32_status );
 			exit(1);
 		}
 
 		/*-----*/
 
-		/* Use RegQueryInfoKey().  See "Enumerating Registry Subkeys"
-		 * example in MSDN.
-		 */
+		/* Enumerate and display the subkeys of PythonCore. */
 
-		/*-----*/
+		for ( i = 0; ; i++ ) {
 
-		/* Now get the first subkey of PythonCore, which should
-		 * be the name of the Python version.  We _assume_ that 
-		 * there is only one subkey.  If there are more than one,
-		 * we pay attention to only the first one.
-		 */
+			buffer_size = sizeof(python_version_keyname);
 
-		buffer_size = sizeof(python_version_keyname);
-
-		win32_status = RegEnumKeyEx( python_core_hkey, 0,
+			win32_status = RegEnumKeyEx( python_core_hkey, i,
 					(LPTSTR) python_version_keyname,
 					&buffer_size, NULL, NULL, NULL, NULL );
 
-		fprintf( stderr, "RegEnumKeyEx() status = %ld\n",
-				win32_status );
+			if ( win32_status == ERROR_NO_MORE_ITEMS ) {
+				if ( is_versions_command == FALSE ) {
+				    fprintf( stderr,
+					"ERR - Version '%s' not found\n",
+						argv[3] );
+				} else {
+				    if ( i > 0 ) {
+					fprintf( stderr, "\n" );
+					exit(0);
+				    } else {
+					fprintf( stderr,
+						"ERR - Python not found\n" );
+				    }
+				}
+				exit(1);
+			}
 
-		if ( win32_status != ERROR_SUCCESS ) {
-			fprintf( stderr,
-			"RegEnumKeyEx() failed with status %ld\n",
-				win32_status );
-			exit(1);
+			if ( win32_status != ERROR_SUCCESS ) {
+				fprintf( stderr,
+				"ERR - RegEnumKeyEx() failed with status %ld\n",
+					win32_status );
+				exit(1);
+			}
+
+			if ( is_versions_command ) {
+				if ( i == 0 ) {
+					fprintf( stderr, "%s",
+						python_version_keyname );
+				} else {
+					fprintf( stderr, " %s",
+						python_version_keyname );
+				}
+			} else {
+				if ( strcmp( argv[3], python_version_keyname )
+				    == 0 )
+				{
+					break;
+				}
+			}
 		}
-
-		fprintf( stderr, "python_version_keyname = '%s'\n",
-			python_version_keyname );
 
 		/*-----*/
 
-		buffer_size = sizeof(python_version_keyname);
+		_snprintf( python_item_keyname, sizeof(python_item_keyname),
+			"Software\\Python\\PythonCore\\%s\\",
+				python_version_keyname );
 
-		win32_status = RegQueryValueEx( python_core_hkey,
-					TEXT(""),
-					NULL, &dwType,
-					(LPBYTE) python_version_keyname,
-					&buffer_size );
+		length = sizeof( python_item_keyname )
+			- strlen( python_item_keyname ) - 1;
 
-		fprintf( stderr, "RegQueryValueEx() status = %ld\n",
-				win32_status );
+		if ( strcmp( argv[2], "install_path" ) == 0 ) {
+			strncat( python_item_keyname, "InstallPath", length );
+		} else
+		if ( strcmp( argv[2], "include" ) == 0 ) {
+			strncat( python_item_keyname, "InstallPath", length );
+		} else
+		if ( strcmp( argv[2], "library" ) == 0 ) {
+			strncat( python_item_keyname, "InstallPath", length );
+		} else
+		if ( strcmp( argv[2], "modules" ) == 0 ) {
+			strncat( python_item_keyname, "Modules", length );
+		} else
+		if ( strcmp( argv[2], "python_path" ) == 0 ) {
+			strncat( python_item_keyname, "PythonPath", length );
+		} else {
+			fprintf( stderr, "ERR - command '%s' not recognized\n",
+				argv[2] );
+			exit(1);
+		}
+
+		/*-----*/
+
+		buffer_size = sizeof(python_item_keyname);
+
+		win32_status = RegOpenKeyEx( HKEY_LOCAL_MACHINE,
+					python_item_keyname,
+					0, KEY_READ, &python_item_hkey );
 
 		if ( win32_status != ERROR_SUCCESS ) {
 			fprintf( stderr,
-			"RegQueryValueEx() failed with status %ld\n",
+			"ERR - RegOpenKeyEx() failed with status %ld\n",
 				win32_status );
 			exit(1);
 		}
 
-		fprintf( stderr, "python_version_keyname = '%s'\n",
-				python_version_keyname );
+		/*-----*/
 
-		if ( argc < 3 ) {
+		dwType = REG_SZ;
+
+		keydata_size = sizeof(python_item_keydata);
+
+		win32_status = RegQueryValueEx( python_item_hkey,
+					TEXT(""),
+					NULL, &dwType,
+					(LPBYTE) python_item_keydata,
+					&keydata_size );
+
+		if ( win32_status != ERROR_SUCCESS ) {
 			fprintf( stderr,
-			"\n"
-			"Usage:  mx_config python [option]\n"
-			"\n"
-			"    Where option may be\n"
-			"        includes\n"
-			"        installed\n"
-			"        install_dir\n"
-			"        library\n"
-			"\n"
-			);
+			"ERR - RegQueryValueEx() failed with status %ld\n",
+				win32_status );
 			exit(1);
 		}
+
+		length = sizeof( python_item_keydata )
+			- strlen( python_item_keydata ) - 1;
+
+		if ( strcmp( argv[2], "include" ) == 0 ) {
+			strncat( python_item_keydata, "include", length );
+		} else
+		if ( strcmp( argv[2], "library" ) == 0 ) {
+			items = sscanf( python_version_keyname, "%lu.%lu",
+					&python_major, &python_minor );
+
+			if ( items != 2 ) {
+				fprintf( stderr,
+				"ERR - Unparseable version keyname '%s'\n",
+					python_version_keyname );
+				exit(1);
+			}
+
+			_snprintf( libname, sizeof(libname),
+				"Lib\\python%lu%lu.lib",
+				python_major, python_minor );
+
+			strncat( python_item_keydata, libname, length );
+		}
+
+		fprintf( stderr, "%s\n", python_item_keydata );
+
+		exit(0);
 	}
 #endif
 
