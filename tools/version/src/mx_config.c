@@ -390,7 +390,7 @@ main( int argc, char **argv )
 			}
 
 			_snprintf( libname, sizeof(libname),
-				"Lib\\python%lu%lu.lib",
+				"libs\\python%lu%lu.lib",
 				python_major, python_minor );
 
 			strncat( python_item_keydata, libname, length );
