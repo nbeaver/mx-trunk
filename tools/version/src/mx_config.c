@@ -213,7 +213,7 @@ main( int argc, char **argv )
 		char libname[40];
 
 		if ( argc < 3 ) {
-			fprintf( stderr,
+			fprintf( stdout,
 			"ERR -\n"
 			"Usage:  mx_config python [option] [version_number]\n"
 			"\n"
@@ -234,7 +234,7 @@ main( int argc, char **argv )
 			is_versions_command = FALSE;
 
 			if ( argc < 4 ) {
-				fprintf( stderr,
+				fprintf( stdout,
 			 "ERR - '%s %s %s' needs a version number argument.\n",
 					argv[0], argv[1], argv[2] );
 				exit(1);
@@ -252,7 +252,7 @@ main( int argc, char **argv )
 					0, KEY_READ, &python_core_hkey );
 
 		if ( win32_status != ERROR_SUCCESS ) {
-			fprintf( stderr,
+			fprintf( stdout,
 			"ERR - RegOpenKeyEx() failed with status %ld\n",
 				win32_status );
 			exit(1);
@@ -272,15 +272,15 @@ main( int argc, char **argv )
 
 			if ( win32_status == ERROR_NO_MORE_ITEMS ) {
 				if ( is_versions_command == FALSE ) {
-				    fprintf( stderr,
+				    fprintf( stdout,
 					"ERR - Version '%s' not found\n",
 						argv[3] );
 				} else {
 				    if ( i > 0 ) {
-					fprintf( stderr, "\n" );
+					fprintf( stdout, "\n" );
 					exit(0);
 				    } else {
-					fprintf( stderr,
+					fprintf( stdout,
 						"ERR - Python not found\n" );
 				    }
 				}
@@ -288,7 +288,7 @@ main( int argc, char **argv )
 			}
 
 			if ( win32_status != ERROR_SUCCESS ) {
-				fprintf( stderr,
+				fprintf( stdout,
 				"ERR - RegEnumKeyEx() failed with status %ld\n",
 					win32_status );
 				exit(1);
@@ -296,10 +296,10 @@ main( int argc, char **argv )
 
 			if ( is_versions_command ) {
 				if ( i == 0 ) {
-					fprintf( stderr, "%s",
+					fprintf( stdout, "%s",
 						python_version_keyname );
 				} else {
-					fprintf( stderr, " %s",
+					fprintf( stdout, " %s",
 						python_version_keyname );
 				}
 			} else {
@@ -335,7 +335,7 @@ main( int argc, char **argv )
 		if ( strcmp( argv[2], "python_path" ) == 0 ) {
 			strncat( python_item_keyname, "PythonPath", length );
 		} else {
-			fprintf( stderr, "ERR - command '%s' not recognized\n",
+			fprintf( stdout, "ERR - command '%s' not recognized\n",
 				argv[2] );
 			exit(1);
 		}
@@ -349,7 +349,7 @@ main( int argc, char **argv )
 					0, KEY_READ, &python_item_hkey );
 
 		if ( win32_status != ERROR_SUCCESS ) {
-			fprintf( stderr,
+			fprintf( stdout,
 			"ERR - RegOpenKeyEx() failed with status %ld\n",
 				win32_status );
 			exit(1);
@@ -368,7 +368,7 @@ main( int argc, char **argv )
 					&keydata_size );
 
 		if ( win32_status != ERROR_SUCCESS ) {
-			fprintf( stderr,
+			fprintf( stdout,
 			"ERR - RegQueryValueEx() failed with status %ld\n",
 				win32_status );
 			exit(1);
@@ -385,7 +385,7 @@ main( int argc, char **argv )
 					&python_major, &python_minor );
 
 			if ( items != 2 ) {
-				fprintf( stderr,
+				fprintf( stdout,
 				"ERR - Unparseable version keyname '%s'\n",
 					python_version_keyname );
 				exit(1);
@@ -418,7 +418,7 @@ main( int argc, char **argv )
 		}
 #endif
 
-		fprintf( stderr, "%s\n", python_item_doublequotes );
+		fprintf( stdout, "%s\n", python_item_doublequotes );
 
 		exit(0);
 	}
