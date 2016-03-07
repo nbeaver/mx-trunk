@@ -204,8 +204,10 @@ main( int argc, char **argv )
 		TCHAR python_version_keyname[80];
 		char python_item_keyname[200];
 		char python_item_keydata[2000];
+		char python_item_doublequotes[2000];
+		char original_char;
 		DWORD buffer_size, keydata_size, dwType;
-		long i, length, win32_status;
+		long i, j, length, win32_status;
 		int is_versions_command, items;
 		unsigned long python_major, python_minor;
 		char libname[40];
@@ -396,7 +398,27 @@ main( int argc, char **argv )
 			strncat( python_item_keydata, libname, length );
 		}
 
-		fprintf( stderr, "%s\n", python_item_keydata );
+#if 1
+		for ( i = 0, j = 0;
+			i < sizeof(python_item_keydata),
+			j < sizeof(python_item_doublequotes);
+			i++, j++ )
+		{
+			original_char = python_item_keydata[i];
+
+			python_item_doublequotes[j] = original_char;
+
+			if ( original_char == '\\' ) {
+				j++;
+				python_item_doublequotes[j] = original_char;
+			}
+
+			if ( original_char == '\0' )
+				break;
+		}
+#endif
+
+		fprintf( stderr, "%s\n", python_item_doublequotes );
 
 		exit(0);
 	}
