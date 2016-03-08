@@ -1,5 +1,5 @@
 /*
- * Name:    mx-config.c
+ * Name:    mx_config.c
  *
  * Purpose: This program can be used to get information about the
  *          installed version of MX.
@@ -36,7 +36,7 @@
 static void
 print_usage( void )
 {
-	fprintf( stderr,
+	fprintf( stdout,
 	"Usage: mx_config [option]\n"
 	"\n"
 	"  The available options (including all build targets) are:\n"
@@ -61,6 +61,48 @@ print_usage( void )
 
 	return;
 }
+
+#if defined(OS_WIN32)
+
+static void
+mxp_insert_double_backslashes( char *dest_buffer,
+			size_t dest_buffer_length,
+			char *src_buffer,
+			size_t src_buffer_length )
+{
+	size_t i, j;
+	char original_char;
+
+	for ( i = 0, j = 0;
+		i < src_buffer_length, j < dest_buffer_length;
+		i++, j++ )
+	{
+		original_char = src_buffer[i];
+
+		if ( original_char == '/' ) {
+			original_char = '\\';
+		}
+
+		dest_buffer[j] = original_char;
+
+		if ( original_char == '\\' ) {
+			j++;
+
+			if ( j >= dest_buffer_length ) {
+				dest_buffer[j-1] = '\0';
+				return;
+			}
+
+			dest_buffer[j] = original_char;
+		}
+
+		if ( original_char == '\0' ) {
+			return;
+		}
+	}
+}
+
+#endif
 
 int
 main( int argc, char **argv )
@@ -163,8 +205,8 @@ main( int argc, char **argv )
 			if ( status < 0 ) {
 				saved_errno = errno;
 
-				fprintf( stderr,
-		"Error: uname() failed with errno = %d, error message = '%s'\n",
+				fprintf( stdout,
+		"ERR - uname() failed with errno = %d, error message = '%s'\n",
 					saved_errno, strerror( saved_errno ) );
 				exit(1);
 			}
@@ -190,7 +232,7 @@ main( int argc, char **argv )
 			exit(0);
 		}
 #else
-		fprintf( stderr, "Error: Unsupported operating system.\n" );
+		fprintf( stdout, "ERR - Unsupported operating system.\n" );
 #endif
 		exit(0);
 	}
@@ -204,10 +246,10 @@ main( int argc, char **argv )
 		TCHAR python_version_keyname[80];
 		char python_item_keyname[200];
 		char python_item_keydata[2000];
-		char python_item_doublequotes[2000];
-		char original_char;
+		char python_item_double_backslash[2000];
+		char mxdir[2000];
 		DWORD buffer_size, keydata_size, dwType;
-		long i, j, length, win32_status;
+		long i, length, win32_status;
 		int is_versions_command, items;
 		unsigned long python_major, python_minor;
 		char libname[40];
@@ -218,6 +260,7 @@ main( int argc, char **argv )
 			"Usage:  mx_config python [option] [version_number]\n"
 			"\n"
 			"    Where option may be\n"
+			"        batch\n"
 			"        include\n"
 			"        install_path\n"
 			"        library\n"
@@ -320,6 +363,9 @@ main( int argc, char **argv )
 		length = sizeof( python_item_keyname )
 			- strlen( python_item_keyname ) - 1;
 
+		if ( strcmp( argv[2], "batch" ) == 0 ) {
+			strncat( python_item_keyname, "InstallPath", length );
+		} else
 		if ( strcmp( argv[2], "install_path" ) == 0 ) {
 			strncat( python_item_keyname, "InstallPath", length );
 		} else
@@ -398,27 +444,30 @@ main( int argc, char **argv )
 			strncat( python_item_keydata, libname, length );
 		}
 
-#if 1
-		for ( i = 0, j = 0;
-			i < sizeof(python_item_keydata),
-			j < sizeof(python_item_doublequotes);
-			i++, j++ )
-		{
-			original_char = python_item_keydata[i];
+		mxp_insert_double_backslashes( python_item_double_backslash,
+					sizeof(python_item_double_backslash),
+					python_item_keydata,
+					sizeof(python_item_keydata) );
 
-			python_item_doublequotes[j] = original_char;
+		if ( strcmp( argv[2], "batch" ) == 0 ) {
+			if ( argc >= 5 ) {
+				mxp_insert_double_backslashes( mxdir,
+							sizeof(mxdir),
+							argv[4],
+							strlen(argv[4]) - 1 );
 
-			if ( original_char == '\\' ) {
-				j++;
-				python_item_doublequotes[j] = original_char;
+				fprintf( stdout,
+					"@set path=%s\\\\bin;%s;%%path%%\n",
+					mxdir, python_item_double_backslash );
+			} else {
+				fprintf( stdout, "@set path=%s;%%path%%\n",
+					python_item_double_backslash );
 			}
+		} else {
+			/* include, library, install_path */
 
-			if ( original_char == '\0' )
-				break;
+			fprintf( stdout, "%s\n", python_item_double_backslash );
 		}
-#endif
-
-		fprintf( stdout, "%s\n", python_item_doublequotes );
 
 		exit(0);
 	}
@@ -426,7 +475,7 @@ main( int argc, char **argv )
 
 /*------------------------------------------------------------------------*/
 
-	fprintf( stderr, "Error: Unsupported option '%s'.\n\n", argv[1] );
+	fprintf( stdout, "ERR -: Unsupported option '%s'.\n\n", argv[1] );
 
 	print_usage();
 

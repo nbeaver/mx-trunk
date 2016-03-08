@@ -62,16 +62,6 @@ mx_config.exe: version/src/mx_config.c
 	link /nologo /debugtype:cv /out:mx_config.exe \
 			mx_config.obj $(WIN32_LIBS)
 
-#	cl -nologo $(RUN_TIME_LIBRARY_FLAGS) \
-#		-DOS_WIN32 -I../libMx \
-#		-WX -Z7 version/src/mx_config.c
-
-#	cl -nologo -c $(RUN_TIME_LIBRARY_FLAGS) \
-#		-DOS_WIN32 -I../libMx \
-#		-WX -Z7 version/src/mx_config.c -Fomx_config.obj
-#	link /nologo /debugtype:cv /out:mx_config.exe mx_config.obj
-
-
 mxgnuplt.obj: win32/src/mxgnuplt.c
 	cl -nologo -c $(RUN_TIME_LIBRARY_FLAGS) \
 		-WX -Z7 win32/src/mxgnuplt.c -Fmxgnuplt.obj
