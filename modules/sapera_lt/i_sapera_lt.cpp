@@ -242,6 +242,16 @@ mxi_sapera_lt_open( MX_RECORD *record )
 			break;
 		case MXT_SAPERA_LT_LICENSE_EVALUATION:
 			mx_info( "Sapera LT license = 'Evaluation'" );
+
+			if ( sapera_lt->eval_days_remaining == 1 ) {
+				mx_info(
+				"Sapera LT license expires in %ld day.",
+					sapera_lt->eval_days_remaining );
+			} else {
+				mx_info(
+				"Sapera LT license expires in %ld days.",
+					sapera_lt->eval_days_remaining );
+			}
 			break;
 		case MXT_SAPERA_LT_LICENSE_FULL_SDK:
 			mx_info( "Sapera LT license = 'Full SDK'" );
@@ -249,14 +259,6 @@ mxi_sapera_lt_open( MX_RECORD *record )
 		default:
 			mx_info( "Sapera LT license = 'Unknown'" );
 			break;
-		}
-
-		if ( sapera_lt->eval_days_remaining == 1 ) {
-			mx_info( "Sapera LT license expires in %ld day.",
-					sapera_lt->eval_days_remaining );
-		} else {
-			mx_info( "Sapera LT license expires in %ld days.",
-					sapera_lt->eval_days_remaining );
 		}
 	}
 
