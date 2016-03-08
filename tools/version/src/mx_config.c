@@ -450,6 +450,10 @@ main( int argc, char **argv )
 					sizeof(python_item_keydata) );
 
 		if ( strcmp( argv[2], "batch" ) == 0 ) {
+
+			fprintf( stdout,
+"@rem This batch file makes MX use Win32 Python rather than Cygwin Python.\n" );
+
 			if ( argc >= 5 ) {
 				mxp_insert_double_backslashes( mxdir,
 							sizeof(mxdir),
