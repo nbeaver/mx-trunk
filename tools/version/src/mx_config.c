@@ -36,7 +36,7 @@
 static void
 print_usage( void )
 {
-	fprintf( stdout,
+	printf(
 	"Usage: mx_config [option]\n"
 	"\n"
 	"  The available options (including all build targets) are:\n"
@@ -205,7 +205,7 @@ main( int argc, char **argv )
 			if ( status < 0 ) {
 				saved_errno = errno;
 
-				fprintf( stdout,
+				printf( 
 		"ERR - uname() failed with errno = %d, error message = '%s'\n",
 					saved_errno, strerror( saved_errno ) );
 				exit(1);
@@ -232,7 +232,7 @@ main( int argc, char **argv )
 			exit(0);
 		}
 #else
-		fprintf( stdout, "ERR - Unsupported operating system.\n" );
+		printf( "ERR - Unsupported operating system.\n" );
 #endif
 		exit(0);
 	}
@@ -242,6 +242,7 @@ main( int argc, char **argv )
 #if defined(OS_WIN32)
 	if ( strcmp( argv[1], "python" ) == 0 ) {
 
+		HKEY hive_key;
 		HKEY python_core_hkey, python_item_hkey;
 		TCHAR python_version_keyname[80];
 		char python_item_keyname[200];
@@ -255,7 +256,7 @@ main( int argc, char **argv )
 		char libname[40];
 
 		if ( argc < 3 ) {
-			fprintf( stdout,
+			printf( 
 			"ERR -\n"
 			"Usage:  mx_config python [option] [version_number]\n"
 			"\n"
@@ -277,7 +278,7 @@ main( int argc, char **argv )
 			is_versions_command = FALSE;
 
 			if ( argc < 4 ) {
-				fprintf( stdout,
+				printf( 
 			 "ERR - '%s %s %s' needs a version number argument.\n",
 					argv[0], argv[1], argv[2] );
 				exit(1);
@@ -290,13 +291,36 @@ main( int argc, char **argv )
 		 * Python is installed and what version it is.
 		 */
 
-		win32_status = RegOpenKeyEx( HKEY_LOCAL_MACHINE,
+		hive_key = HKEY_LOCAL_MACHINE;
+
+		win32_status = RegOpenKeyEx( hive_key,
 					TEXT("Software\\Python\\PythonCore"),
 					0, KEY_READ, &python_core_hkey );
 
+		if ( win32_status == ERROR_FILE_NOT_FOUND ) {
+			/* We did not find it in the HKEY_LOCAL_MACHINE hive,
+			 * so let's look for it in HKEY_CURRENT_USER instead.
+			 */
+
+			hive_key = HKEY_CURRENT_USER;
+
+			win32_status = RegOpenKeyEx( hive_key,
+					TEXT("Software\\Python\\PythonCore"),
+					0, KEY_READ, &python_core_hkey );
+
+			if ( win32_status == ERROR_FILE_NOT_FOUND ) {
+				printf( "ERR - "
+				"Python does not appear to be installed "
+				"on this computer.  The registry key "
+				"'Software\\Python\\PythonCore' does not "
+				"appear in either the HKEY_LOCAL_MACHINE "
+				"or the HKEY_CURRENT_USER registry hives.  "
+				"Giving up..." );
+			}
+		}
+
 		if ( win32_status != ERROR_SUCCESS ) {
-			fprintf( stdout,
-			"ERR - RegOpenKeyEx() failed with status %ld\n",
+			printf( "ERR - RegOpenKeyEx() failed with status %ld\n",
 				win32_status );
 			exit(1);
 		}
@@ -315,23 +339,21 @@ main( int argc, char **argv )
 
 			if ( win32_status == ERROR_NO_MORE_ITEMS ) {
 				if ( is_versions_command == FALSE ) {
-				    fprintf( stdout,
-					"ERR - Version '%s' not found\n",
+				    printf( "ERR - Version '%s' not found\n",
 						argv[3] );
 				} else {
 				    if ( i > 0 ) {
-					fprintf( stdout, "\n" );
+					printf( "\n" );
 					exit(0);
 				    } else {
-					fprintf( stdout,
-						"ERR - Python not found\n" );
+					printf( "ERR - Python not found\n" );
 				    }
 				}
 				exit(1);
 			}
 
 			if ( win32_status != ERROR_SUCCESS ) {
-				fprintf( stdout,
+				printf( 
 				"ERR - RegEnumKeyEx() failed with status %ld\n",
 					win32_status );
 				exit(1);
@@ -339,11 +361,9 @@ main( int argc, char **argv )
 
 			if ( is_versions_command ) {
 				if ( i == 0 ) {
-					fprintf( stdout, "%s",
-						python_version_keyname );
+					printf( "%s", python_version_keyname );
 				} else {
-					fprintf( stdout, " %s",
-						python_version_keyname );
+					printf( " %s", python_version_keyname );
 				}
 			} else {
 				if ( strcmp( argv[3], python_version_keyname )
@@ -381,7 +401,7 @@ main( int argc, char **argv )
 		if ( strcmp( argv[2], "python_path" ) == 0 ) {
 			strncat( python_item_keyname, "PythonPath", length );
 		} else {
-			fprintf( stdout, "ERR - command '%s' not recognized\n",
+			printf( "ERR - command '%s' not recognized\n",
 				argv[2] );
 			exit(1);
 		}
@@ -390,12 +410,12 @@ main( int argc, char **argv )
 
 		buffer_size = sizeof(python_item_keyname);
 
-		win32_status = RegOpenKeyEx( HKEY_LOCAL_MACHINE,
+		win32_status = RegOpenKeyEx( hive_key,
 					python_item_keyname,
 					0, KEY_READ, &python_item_hkey );
 
 		if ( win32_status != ERROR_SUCCESS ) {
-			fprintf( stdout,
+			printf(
 			"ERR - RegOpenKeyEx() failed with status %ld\n",
 				win32_status );
 			exit(1);
@@ -414,7 +434,7 @@ main( int argc, char **argv )
 					&keydata_size );
 
 		if ( win32_status != ERROR_SUCCESS ) {
-			fprintf( stdout,
+			printf(
 			"ERR - RegQueryValueEx() failed with status %ld\n",
 				win32_status );
 			exit(1);
@@ -422,6 +442,17 @@ main( int argc, char **argv )
 
 		length = sizeof( python_item_keydata )
 			- strlen( python_item_keydata ) - 1;
+
+		if ( python_item_keydata[length-1] != '\\' ) {
+			/* If the key data does not end in a backslash,
+			 * then add a backslash ourselves.
+			 */
+
+			strncat( python_item_keydata, "\\", length );
+
+			length = sizeof( python_item_keydata )
+				- strlen( python_item_keydata ) - 1;
+		}
 
 		if ( strcmp( argv[2], "include" ) == 0 ) {
 			strncat( python_item_keydata, "include", length );
@@ -431,7 +462,7 @@ main( int argc, char **argv )
 					&python_major, &python_minor );
 
 			if ( items != 2 ) {
-				fprintf( stdout,
+				printf( 
 				"ERR - Unparseable version keyname '%s'\n",
 					python_version_keyname );
 				exit(1);
@@ -451,7 +482,7 @@ main( int argc, char **argv )
 
 		if ( strcmp( argv[2], "batch" ) == 0 ) {
 
-			fprintf( stdout,
+			printf(
 "@rem This batch file makes MX use Win32 Python rather than Cygwin Python.\n" );
 
 			if ( argc >= 5 ) {
@@ -460,17 +491,16 @@ main( int argc, char **argv )
 							argv[4],
 							strlen(argv[4]) - 1 );
 
-				fprintf( stdout,
-					"@set path=%s\\\\bin;%s;%%path%%\n",
+				printf( "@set path=%s\\\\bin;%s;%%path%%\n",
 					mxdir, python_item_double_backslash );
 			} else {
-				fprintf( stdout, "@set path=%s;%%path%%\n",
+				printf( "@set path=%s;%%path%%\n",
 					python_item_double_backslash );
 			}
 		} else {
 			/* include, library, install_path */
 
-			fprintf( stdout, "%s\n", python_item_double_backslash );
+			printf( "%s\n", python_item_double_backslash );
 		}
 
 		exit(0);
@@ -479,7 +509,7 @@ main( int argc, char **argv )
 
 /*------------------------------------------------------------------------*/
 
-	fprintf( stdout, "ERR -: Unsupported option '%s'.\n\n", argv[1] );
+	printf( "ERR -: Unsupported option '%s'.\n\n", argv[1] );
 
 	print_usage();
 
