@@ -87,11 +87,11 @@ all: build
 
 #MODULES += rdi_mbc
 
-MODULES += sapera_lt 
+#MODULES += sapera_lt 
 
 #MODULES += u500
 
-MODULES += xineos_gige
+#MODULES += xineos_gige
 
 #-------------------------------------------------------------------
 # EPICS modules.
