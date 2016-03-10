@@ -24,7 +24,7 @@ if [ -f mx_config_py.bat ]; then
 	rm mx_config_py.bat
 fi
 
-VERSIONS=`./mx_config.exe python versions`
+VERSIONS=`./mx_config.exe python versions 2> /dev/null`
 
 EXIT_CODE=$?
 

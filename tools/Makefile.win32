@@ -79,5 +79,5 @@ mxgnuplt.exe: mxgnuplt.obj
 	fi
 
 mx_clean:
-	-rm *.obj *.exe *.manifest mx_revision.txt
+	-rm *.obj *.exe *.manifest mx_revision.txt mx_config_py.bat
 
