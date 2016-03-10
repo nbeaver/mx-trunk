@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013-2015 Illinois Institute of Technology
+ * Copyright 2013-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1364,7 +1364,7 @@ mxd_sapera_lt_camera_arm( MX_VIDEO_INPUT *vinput )
 		}
 
 		/* If we are to be externally triggered, then we start
-		 * the Grab() now and then let the external trigger 
+		 * the Snap() now and then let the external trigger 
 		 * start the acquisition.
 		 */
 
@@ -1376,7 +1376,7 @@ mxd_sapera_lt_camera_arm( MX_VIDEO_INPUT *vinput )
 
 		if ( sapera_status == FALSE ) {
 			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-			"The attempt to call Grab() for camera '%s' failed.",
+			"The attempt to call Snap() for camera '%s' failed.",
 			vinput->record->name );
 		}
 	} else
