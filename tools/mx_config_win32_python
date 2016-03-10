@@ -1,0 +1,63 @@
+#! /bin/sh
+#
+# Name:    mx_config_win32_python
+#
+# Purpose: This script is used by the 'mx/tools/Makefile.win32' makefile
+#          to construct a Windows batch file fragment that can be used
+#          by the build scripts for other MX-related packages that use
+#          the Python programming language.
+#
+# Warning: This script _must_ be run from the same directory that contains
+#          the 'mx_config.exe' binary.
+#
+# Author:  William Lavender
+#
+#----------------------------------------------------------------------------
+#
+# Copyright 2016 Illinois Institute of Technology
+#
+# See the file "LICENSE" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+
+if [ -f mx_config_py.bat ]; then
+	rm mx_config_py.bat
+fi
+
+VERSIONS=`./mx_config.exe python versions`
+
+EXIT_CODE=$?
+
+#
+# If 'mx_config' returned an exit code of 2, then Python is not installed
+# on this computer in a place that I can find using the Windows Registry.
+#
+# If so, then return an exit code of 0, so that the MX 'win32' makefiles
+# can continue building MX in the absence of Python.
+#
+
+if [ ${EXIT_CODE} -eq 2 ]; then
+	exit 0
+fi
+
+#
+# If 'mx_config' returned some other non-zero error code, then return
+# an error back to our caller, so that the build of MX will stop here.
+#
+
+if [ ${EXIT_CODE} -ne 0 ]; then
+	exit 0
+fi
+
+#
+# We _assume_ that the first Python version listed in the VERSIONS variable
+# is the one that we want.  So we extract the first version number found
+# in the VERSIONS string variable.
+#
+
+FIRST_VERSION=`echo ${VERSIONS} | tr -d \\\\r | cut -f1`
+
+./mx_config.exe python batch ${FIRST_VERSION} > mx_config_py.bat
+
+exit 0
+

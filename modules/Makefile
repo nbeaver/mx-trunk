@@ -96,7 +96,7 @@ MODULES += xineos_gige
 #-------------------------------------------------------------------
 # EPICS modules.
 
-#MODULES += epics
+MODULES += epics
 
 #MODULES += epics_aps 
 

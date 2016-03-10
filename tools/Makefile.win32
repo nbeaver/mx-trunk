@@ -61,9 +61,7 @@ mx_config.exe: version/src/mx_config.c
 		-I../libMx -WX -Z7 version/src/mx_config.c
 	link /nologo /debugtype:cv /out:mx_config.exe \
 			mx_config.obj $(WIN32_LIBS)
-	-./mx_config.exe python versions | tr -d \\r | cut -f1 > mx_config.pyver
-	-./mx_config.exe python batch `cmd /C type mx_config.pyver` > mx_config_py.bat
-	-rm mx_config.pyver
+	./mx_config_win32_python
 
 mxgnuplt.obj: win32/src/mxgnuplt.c
 	cl -nologo -c $(RUN_TIME_LIBRARY_FLAGS) \
@@ -81,5 +79,5 @@ mxgnuplt.exe: mxgnuplt.obj
 	fi
 
 mx_clean:
-	-rm *.obj *.exe *.manifest mx_config* mx_revision.txt
+	-rm *.obj *.exe *.manifest mx_revision.txt
 

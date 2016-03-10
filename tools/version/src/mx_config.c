@@ -309,13 +309,24 @@ main( int argc, char **argv )
 					0, KEY_READ, &python_core_hkey );
 
 			if ( win32_status == ERROR_FILE_NOT_FOUND ) {
-				printf( "ERR - "
+
+				/* The MX makefile for the tools directory
+				 * assumes that an exit code of 2 means
+				 * 'Python not found'.  So make sure that
+				 * this code path always returns an exit
+				 * code of 2.  Also make sure that none
+				 * of the other branches of the 'python'
+				 * code tree do _not_ an exit code of 2.
+				 * Also make sure that the error message
+				 * below is written to stderr rather than
+				 * stdout, so that it can be separately
+				 * discarded.
+				 */
+
+				fprintf( stderr, "ERR - "
 				"Python does not appear to be installed "
-				"on this computer.  The registry key "
-				"'Software\\Python\\PythonCore' does not "
-				"appear in either the HKEY_LOCAL_MACHINE "
-				"or the HKEY_CURRENT_USER registry hives.  "
-				"Giving up..." );
+				"on this computer.\n" );
+				exit(2);
 			}
 		}
 
