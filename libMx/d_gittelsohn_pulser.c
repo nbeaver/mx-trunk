@@ -334,6 +334,40 @@ mxd_gittelsohn_pulser_open( MX_RECORD *record )
 			&= ( ~ MXF_GITTELSOHN_PULSER_USE_RUNT_PULSE );
 	}
 
+	/* Unconditionally stop the pulse generator. */
+
+	mx_status = mx_pulse_generator_stop( record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Initialize the pulse generator settings to known values. */
+
+	mx_status = mx_pulse_generator_set_mode( record, MXF_PGN_SQUARE_WAVE );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_pulse_generator_set_pulse_period( record, 1 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_pulse_generator_set_pulse_width( record, 1 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_pulse_generator_set_num_pulses( record, 1 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_pulse_generator_set_pulse_delay( record, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	return mx_status;
 }
 
@@ -365,6 +399,9 @@ mxd_gittelsohn_pulser_start( MX_PULSE_GENERATOR *pulser )
 	static const char fname[] = "mxd_gittelsohn_pulser_start()";
 
 	MX_GITTELSOHN_PULSER *gittelsohn_pulser = NULL;
+	long on_ms, off_ms;
+	char command[200];
+	char response[200];
 	mx_status_type mx_status;
 
 	mx_status = mxd_gittelsohn_pulser_get_pointers( pulser,
@@ -372,6 +409,56 @@ mxd_gittelsohn_pulser_start( MX_PULSE_GENERATOR *pulser )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Configure the pulse width and period before sending
+	 * the start command.
+	 */
+
+#if MXD_GITTELSOHN_PULSER_DEBUG
+	MX_DEBUG(-2,("%s: '%s' pulser->pulse_width = %g",
+		fname, pulser->record->name, pulser->pulse_width ));
+
+	MX_DEBUG(-2,("%s: '%s' pulser->pulse_period = %g",
+		fname, pulser->record->name, pulser->pulse_period ));
+#endif
+
+	/*----------------------------------------------------------------*/
+
+	/* Unconditionally set 'on_ms' and 'off_ms' in terms of
+	 * the values of 'pulse_width' and 'pulse_period' at the
+	 * time of this call.
+	 */
+
+	on_ms = mx_round( 1000.0 * pulser->pulse_width );
+
+	off_ms = mx_round( 1000.0 *
+			( pulser->pulse_period - pulser->pulse_width ) );
+
+	if ( off_ms < 0 ) {
+		pulser->pulse_period = pulser->pulse_width;
+
+		off_ms = 0;
+	}
+
+	snprintf( command, sizeof(command), "onms %ld", on_ms );
+
+	mx_status = mxd_gittelsohn_pulser_command( gittelsohn_pulser,
+					command, response, sizeof(response) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	snprintf( command, sizeof(command), "offms %ld", off_ms );
+
+	mx_status = mxd_gittelsohn_pulser_command( gittelsohn_pulser,
+					command, response, sizeof(response) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/*----------------------------------------------------------------*/
+
+	/* Now start the pulse generator. */
 
 #if MXD_GITTELSOHN_PULSER_DEBUG
 	MX_DEBUG(-2,("%s: Pulse generator '%s' starting, "
@@ -499,47 +586,20 @@ mxd_gittelsohn_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 
 			mx_free(argv);
 
+#if MXD_GITTELSOHN_PULSER_DEBUG
+			MX_DEBUG(-2,("%s: '%s' pulser->num_pulses = %ld",
+				fname, pulser->record->name,
+				pulser->num_pulses));
+#endif
 			return MX_SUCCESSFUL_RESULT;
 		}
 		break;
 
 	case MXLV_PGN_PULSE_WIDTH:
-		mx_status = mxd_gittelsohn_pulser_command( gittelsohn_pulser,
-					"onms", response, sizeof(response) );
+	case MXLV_PGN_PULSE_PERIOD:
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+		/* Just return the most recently set values. */
 
-		fn_status = mx_string_split( response, " ", &argc, &argv );
-
-		if ( fn_status < 0 ) {
-			saved_errno = errno;
-
-			return mx_error( MXE_FUNCTION_FAILED, fname,
-			"The attempt to split the response '%s' "
-			"to command '%s' for record '%s' "
-			"using mx_string_split() failed with an errno value "
-			"of %d.  Error message = '%s'",
-				response, "onms", pulser->record->name,
-				saved_errno, strerror(saved_errno) );
-		}
-
-		if ( argc < 4 ) {
-			mx_free(argv);
-
-			return mx_error( MXE_DEVICE_IO_ERROR, fname,
-			"The response '%s' to the 'onms' command did not "
-			"have at least 4 tokens in it for record '%s'.",
-				response, pulser->record->name );
-		} else {
-			on_ms = atof( argv[3] );
-
-			mx_free(argv);
-
-			pulser->pulse_width = 0.001 * on_ms;
-
-			return MX_SUCCESSFUL_RESULT;
-		}
 		break;
 
 	case MXLV_PGN_PULSE_DELAY:
@@ -554,63 +614,6 @@ mxd_gittelsohn_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 		/* The Gittelsohn Arduino pulser only does square waves. */
 
 		pulser->mode = MXF_PGN_SQUARE_WAVE;
-		break;
-
-	case MXLV_PGN_PULSE_PERIOD:
-		/*--- First, get the on time by getting the pulse width. ---*/
-
-		saved_parameter_type = pulser->parameter_type;
-
-		pulser->parameter_type = MXLV_PGN_PULSE_WIDTH;
-
-		mx_status = pulser_flist->get_parameter( pulser );
-
-		pulser->parameter_type = saved_parameter_type;
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		/*--- Next, get the off time. ---*/
-
-		mx_status = mxd_gittelsohn_pulser_command( gittelsohn_pulser,
-					"offms", response, sizeof(response) );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		fn_status = mx_string_split( response, " ", &argc, &argv );
-
-		if ( fn_status < 0 ) {
-			saved_errno = errno;
-
-			return mx_error( MXE_FUNCTION_FAILED, fname,
-			"The attempt to split the response '%s' "
-			"to command '%s' for record '%s' "
-			"using mx_string_split() failed with an errno value "
-			"of %d.  Error message = '%s'",
-				response, "offms", pulser->record->name,
-				saved_errno, strerror(saved_errno) );
-		}
-
-		if ( argc < 4 ) {
-			mx_free(argv);
-
-			return mx_error( MXE_DEVICE_IO_ERROR, fname,
-			"The response '%s' to the 'offms' command did not "
-			"have at least 4 tokens in it for record '%s'.",
-				response, pulser->record->name );
-		} else {
-			off_ms = atof( argv[3] );
-
-			mx_free(argv);
-
-			/* The pulse period is the sum of 'on_ms' and 'off_ms'
-			 * expressed in seconds.
-			 */
-
-			pulser->pulse_period = pulser->pulse_width
-						+ 0.001 * off_ms;
-		}
 		break;
 
 	case MXLV_PGN_LAST_PULSE_NUMBER:
@@ -677,6 +680,11 @@ mxd_gittelsohn_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 
 			mx_free(argv);
 
+#if MXD_GITTELSOHN_PULSER_DEBUG
+			MX_DEBUG(-2,("%s: '%s' pulser->last_pulse_number = %ld",
+				fname, pulser->record->name,
+				pulser->last_pulse_number ));
+#endif
 			return MX_SUCCESSFUL_RESULT;
 		}
 		break;
@@ -726,6 +734,13 @@ mxd_gittelsohn_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 
 	switch( pulser->parameter_type ) {
 	case MXLV_PGN_NUM_PULSES:
+
+#if MXD_GITTELSOHN_PULSER_DEBUG
+			MX_DEBUG(-2,("%s: '%s' pulser->num_pulses = %ld",
+				fname, pulser->record->name,
+				pulser->num_pulses));
+#endif
+
 		if ( flags & MXF_GITTELSOHN_PULSER_USE_RUNT_PULSE ) {
 			num_pulses = pulser->num_pulses + 1L;
 		} else {
@@ -740,34 +755,19 @@ mxd_gittelsohn_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 
 	case MXLV_PGN_PULSE_WIDTH:
 	case MXLV_PGN_PULSE_PERIOD:
-		/* Unconditionally set 'on_ms' and 'off_ms' in terms of
-		 * the values of 'pulse_width' and 'pulse_period' at the
-		 * time of this call.
+
+#if MXD_GITTELSOHN_PULSER_DEBUG
+		MX_DEBUG(-2,("%s: '%s' pulser->pulse_width = %g",
+			fname, pulser->record->name, pulser->pulse_width ));
+
+		MX_DEBUG(-2,("%s: '%s' pulser->pulse_period = %g",
+			fname, pulser->record->name, pulser->pulse_period ));
+#endif
+
+		/* Just save the most recently requested values for use
+		 * by the 'start' command.
 		 */
 
-		on_ms = mx_round( 1000.0 * pulser->pulse_width );
-
-		off_ms = mx_round( 1000.0 *
-			( pulser->pulse_period - pulser->pulse_width ) );
-
-		if ( off_ms < 0 ) {
-			pulser->pulse_period = pulser->pulse_width;
-
-			off_ms = 0;
-		}
-
-		snprintf( command, sizeof(command), "onms %ld", on_ms );
-
-		mx_status = mxd_gittelsohn_pulser_command( gittelsohn_pulser,
-					command, response, sizeof(response) );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		snprintf( command, sizeof(command), "offms %ld", off_ms );
-
-		mx_status = mxd_gittelsohn_pulser_command( gittelsohn_pulser,
-					command, response, sizeof(response) );
 		break;
 
 	case MXLV_PGN_PULSE_DELAY:

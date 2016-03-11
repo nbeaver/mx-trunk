@@ -1,4 +1,4 @@
-Version 2.0.0 (02/10/16):
+Version 2.0.0 (03/10/16):
         Added new build targets: bsd-clang, linux-clang, macosx-clang, hurd
             The -clang targets provide support for compiling MX using the
             LLVM Clang compiler.
