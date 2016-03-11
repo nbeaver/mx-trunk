@@ -123,10 +123,10 @@ mx_get_revision_number( void )
 {
 	int num_items, revision_number;
 
-	num_items = sscanf( MX_REVISION_STRING, "%*s %d", &revision_number );
+	num_items = sscanf( MX_REVISION_STRING, "SVN %d", &revision_number );
 
 	if ( num_items == 0 ) {
-		revision_number = -1;
+		revision_number = 0;
 	}
 
 	return revision_number;
