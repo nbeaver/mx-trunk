@@ -3,14 +3,20 @@
 # Get the Subversion revision number of MX (if available).
 #
 
-_mx_subversion_revision := $(shell svnversion .. 2>/dev/null)
+# We strip out any embedded spaces to make the ifeq test below easier.
+
+_mx_subversion_revision := $(shell svnversion .. 2>/dev/null | tr -d ' ')
 
 # Create a label for the current version.
 
 ifndef _mx_subversion_revision
-_mx_subversion_label := unknown
+  _mx_subversion_label := unknown
 else
-_mx_subversion_label := SVN $(_mx_subversion_revision)
+  ifeq ($(_mx_subversion_revision),Unversioneddirectory)
+    _mx_subversion_label := none
+  else
+    _mx_subversion_label := SVN $(_mx_subversion_revision)
+  endif
 endif
 
 # Read in the label for the old version.
