@@ -520,8 +520,6 @@ mxd_gittelsohn_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 	char response[200];
 	int argc, fn_status, saved_errno;
 	char **argv;
-	double on_ms, off_ms;
-	long saved_parameter_type;
 	unsigned long flags;
 	mx_status_type mx_status;
 
@@ -711,7 +709,7 @@ mxd_gittelsohn_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 	MX_GITTELSOHN_PULSER *gittelsohn_pulser = NULL;
 	char command[200];
 	char response[200];
-	long on_ms, off_ms, num_pulses;
+	long num_pulses;
 	unsigned long flags;
 	mx_status_type mx_status;
 

@@ -50,6 +50,12 @@ Version 2.0.0 (03/10/16):
         MX makefiles to report the compiler version, the runtime library
         version, the operating system version, etc.
 
+        The 'mx_config python' option allows makefiles for Mp-based Python
+        scripts find Windows Python in the Registry and make sure that the
+        Win32 version of Python is invoked when building .pyc files, rather
+        than the Cygwin version.  This makes it possible to build Win32
+        Python .pyc files from a Cygwin bash shell.
+
         Added cross-platform support for "file monitors".  These allow MX
         to be informed when monitored files have been changed.
 
