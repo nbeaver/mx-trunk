@@ -11,6 +11,26 @@ include ../libMx/Makehead.win32
 
 include Include.subversion
 
+# Verify that Visual C++ is in the path
+
+check_for_vc := $(shell cl 2>&1 | grep Microsoft)
+
+###$(info $$check_for_vc is [${check_for_vc}])
+
+ifeq ($(check_for_vc),)
+$(info The Visual C++ command line compiler 'cl' was not found in the PATH variable.)
+$(info The MX 'win32' build target uses the command line compiler directly, so we)
+$(info cannot build MX until this is fixed.  If you look in the MX source code)
+$(info directory mx/scripts/windows/visual_studio, you will find some example scripts)
+$(info for several Visual C++ versions that can be sourced in your $$HOME/.bashrc)
+$(info startup script.  If you do that, then all of the necessary command line)
+$(info utilities will be put in your PATH and all of the other necessary Visual C++)
+$(info environment variables will be created.)
+$(error Aborting 'make' due to missing 'cl')
+endif
+
+# Now build the object files.
+
 mx_private_version.exe: ../libMx/Makefile.version \
 				version/src/mx_private_version.c
 	cl -nologo -c $(CFLAGS_MX_VERS) version/src/mx_private_version.c
