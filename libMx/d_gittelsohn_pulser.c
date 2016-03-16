@@ -520,6 +520,8 @@ mxd_gittelsohn_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 	char response[200];
 	int argc, fn_status, saved_errno;
 	char **argv;
+	double on_ms, off_ms;
+	long saved_parameter_type;
 	unsigned long flags;
 	mx_status_type mx_status;
 
@@ -594,10 +596,99 @@ mxd_gittelsohn_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 		break;
 
 	case MXLV_PGN_PULSE_WIDTH:
+		mx_status = mxd_gittelsohn_pulser_command( gittelsohn_pulser,
+					"onms", response, sizeof(response) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		fn_status = mx_string_split( response, " ", &argc, &argv );
+
+		if ( fn_status < 0 ) {
+			saved_errno = errno;
+
+			return mx_error( MXE_FUNCTION_FAILED, fname,
+			"The attempt to split the response '%s' "
+			"to command '%s' for record '%s' "
+			"using mx_string_split() failed with an errno value "
+			"of %d.  Error message = '%s'",
+				response, "onms", pulser->record->name,
+				saved_errno, strerror(saved_errno) );
+		}
+
+		if ( argc < 4 ) {
+			mx_free(argv);
+
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"The response '%s' to the 'onms' command did not "
+			"have at least 4 tokens in it for record '%s'.",
+				response, pulser->record->name );
+		} else {
+			on_ms = atof( argv[3] );
+
+			mx_free(argv);
+
+			pulser->pulse_width = 0.001 * on_ms;
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+		break;
+
 	case MXLV_PGN_PULSE_PERIOD:
+		/*--- First, get the on time by getting the pulse width. ---*/
 
-		/* Just return the most recently set values. */
+		saved_parameter_type = pulser->parameter_type;
 
+		pulser->parameter_type = MXLV_PGN_PULSE_WIDTH;
+
+		mx_status = pulser_flist->get_parameter( pulser );
+
+		pulser->parameter_type = saved_parameter_type;
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/*--- Next, get the off time. ---*/
+
+		mx_status = mxd_gittelsohn_pulser_command( gittelsohn_pulser,
+					"offms", response, sizeof(response) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		fn_status = mx_string_split( response, " ", &argc, &argv );
+
+		if ( fn_status < 0 ) {
+			saved_errno = errno;
+
+			return mx_error( MXE_FUNCTION_FAILED, fname,
+			"The attempt to split the response '%s' "
+			"to command '%s' for record '%s' "
+			"using mx_string_split() failed with an errno value "
+			"of %d.  Error message = '%s'",
+				response, "offms", pulser->record->name,
+				saved_errno, strerror(saved_errno) );
+		}
+
+		if ( argc < 4 ) {
+			mx_free(argv);
+
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"The response '%s' to the 'offms' command did not "
+			"have at least 4 tokens in it for record '%s'.",
+				response, pulser->record->name );
+		} else {
+			off_ms = atof( argv[3] );
+
+			mx_free(argv);
+
+			/* The pulse period is the sum of 'on_ms' and 'off_ms'
+			 * expressed in seconds.
+			 */
+
+			pulser->pulse_period = pulser->pulse_width
+						+ 0.001 * off_ms;
+		}
 		break;
 
 	case MXLV_PGN_PULSE_DELAY:

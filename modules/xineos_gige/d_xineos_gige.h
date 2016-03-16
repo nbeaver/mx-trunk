@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013-2015 Illinois Institute of Technology
+ * Copyright 2013-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,7 +26,7 @@
 
 /*---*/
 
-#define MXT_XINEOS_GIGE_MIN_INTERFRAME_GAP		0.060	/* in sec */
+#define MXT_XINEOS_GIGE_MIN_INTERFRAME_GAP		0.005	/* in sec */
 
 /* Values for the 'detector_model' field. */
 
