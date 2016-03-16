@@ -115,6 +115,7 @@ distclean: clean
 	-$(RM) strtok_r.cpp
 	-$(RM) strtok_r.h
 	-$(RM) *.orig
+	-$(RM) vendor_downloads
 
 else
 
@@ -129,6 +130,7 @@ depend:
 #--------------------------------------------------------------------------
 
 vendor_downloads: Socket.h XPS_C8_drivers.h XPS_C8_errors.h XPS_C8_drivers.cpp
+	echo "Vendor downloads complete." > vendor_downloads
 
 strtok_r_downloads: strtok_r.h strtok_r.cpp
 
