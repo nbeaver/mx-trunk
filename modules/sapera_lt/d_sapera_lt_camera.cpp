@@ -890,9 +890,6 @@ mxd_sapera_lt_camera_open( MX_RECORD *record )
 	 * SapLocation object created just above.
 	 */
 
-#if ( MXD_SAPERA_LT_CAMERA_SHOW_FEATURES == FALSE )
-	sapera_lt_camera->feature = NULL;
-#else
 	sapera_lt_camera->feature = new SapFeature( location );
 
 	sapera_status = sapera_lt_camera->feature->Create();
@@ -903,7 +900,6 @@ mxd_sapera_lt_camera_open( MX_RECORD *record )
 		"for camera '%s'.",
 			record->name );
 	}
-#endif
 
 	/* -------- */
 
@@ -1347,6 +1343,8 @@ mxd_sapera_lt_camera_arm( MX_VIDEO_INPUT *vinput )
 		/* According to Teledyne Dalsa, external triggering requires
 		 * you to use Grab() instead of Snap().
 		 * 
+		 * But we are using Snap() below? (WML 2016-03-16)
+		 * 
 		 * FIXME: However, the camera may grab more frames than we
 		 * want, so we will have to check for this possiblity in
 		 * the code that handles autosaving of files.
@@ -1384,19 +1382,7 @@ mxd_sapera_lt_camera_arm( MX_VIDEO_INPUT *vinput )
 
 		switch( sp->sequence_type ) {
 		case MXT_SQ_ONE_SHOT:
-#if 0
-			sapera_status = acq_device->SetFeatureValue(
-					"SynchronizationMode",
-					"Snapshot" );
-
-			if ( sapera_status == FALSE ) {
-				return mx_error(MXE_DEVICE_ACTION_FAILED, fname,
-				"The attempt to set the 'SynchronizationMode' "
-				"to 'Snapshot' for camera '%s' failed.",
-				vinput->record->name );
-			}
-			break;
-#endif
+		case MXT_SQ_STREAM:
 		case MXT_SQ_MULTIFRAME:
 
 			/* Multiframe sequence */
@@ -1476,6 +1462,7 @@ mxd_sapera_lt_camera_trigger( MX_VIDEO_INPUT *vinput )
 
 	switch( sp->sequence_type ) {
 	case MXT_SQ_ONE_SHOT:
+	case MXT_SQ_STREAM:
 		num_frames = 1;
 		exposure_time = sp->parameter_array[0];
 		break;
@@ -2314,6 +2301,7 @@ mxd_sapera_lt_camera_process_function( void *record_ptr,
 		"Unknown operation code = %d for record '%s'.",
 			operation, record->name );
 	}
+
 
 	return mx_status;
 }
