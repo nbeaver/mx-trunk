@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013 Illinois Institute of Technology
+ * Copyright 2013, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -18,6 +18,9 @@
 #define __D_SAPERA_LT_CAMERA_H__
 
 #ifdef __cplusplus
+
+#define MXU_SAPERA_LT_CAMERA_FEATURE_NAME_LENGTH	80
+#define MXU_SAPERA_LT_CAMERA_FEATURE_VALUE_LENGTH	200
 
 typedef struct {
 	MX_RECORD *record;
@@ -50,11 +53,16 @@ typedef struct {
 	double gain;
 	double temperature;
 
+	char feature_name[MXU_SAPERA_LT_CAMERA_FEATURE_NAME_LENGTH+1];
+	char feature_value[MXU_SAPERA_LT_CAMERA_FEATURE_VALUE_LENGTH+1];
+
 } MX_SAPERA_LT_CAMERA;
 
 #define MXLV_SAPERA_LT_CAMERA_SHOW_FEATURES	88800
 #define MXLV_SAPERA_LT_CAMERA_GAIN		88801
 #define MXLV_SAPERA_LT_CAMERA_TEMPERATURE	88802
+#define MXLV_SAPERA_LT_CAMERA_FEATURE_NAME	88803
+#define MXLV_SAPERA_LT_CAMERA_FEATURE_VALUE	88804
 
 #define MXD_SAPERA_LT_CAMERA_STANDARD_FIELDS \
   {-1, -1, "sapera_lt_record", MXFT_RECORD, NULL, 0, {0}, \
@@ -90,7 +98,17 @@ typedef struct {
   {MXLV_SAPERA_LT_CAMERA_TEMPERATURE, -1, "temperature", \
 						MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SAPERA_LT_CAMERA, temperature), \
-	{0}, NULL, 0}
+	{0}, NULL, 0}, \
+  \
+  {MXLV_SAPERA_LT_CAMERA_FEATURE_NAME, -1, "feature_name", MXFT_STRING, \
+		NULL, 1, {MXU_SAPERA_LT_CAMERA_FEATURE_NAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SAPERA_LT_CAMERA, feature_name), \
+	{sizeof(char)}, NULL, 0}, \
+  \
+  {MXLV_SAPERA_LT_CAMERA_FEATURE_VALUE, -1, "feature_value", MXFT_STRING, \
+		NULL, 1, {MXU_SAPERA_LT_CAMERA_FEATURE_VALUE_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SAPERA_LT_CAMERA, feature_value), \
+	{sizeof(char)}, NULL, 0}
 	
 
 #endif /* __cplusplus */

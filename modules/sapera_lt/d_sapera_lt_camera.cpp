@@ -496,13 +496,152 @@ mxd_sapera_lt_camera_set_extended_exposure(
 /*---*/
 
 static mx_status_type
-mxd_sapera_lt_camera_show_features( MX_SAPERA_LT_CAMERA *sapera_lt_camera )
+mxd_sapera_lt_camera_get_feature_value( MX_SAPERA_LT_CAMERA *sapera_lt_camera,
+					const char *feature_name,
+					char *value_buffer,
+					size_t value_buffer_length )
 {
-	static const char fname[] = "mxd_sapera_lt_camera_show_features()";
+	static const char fname[] = "mxd_sapera_lt_camera_get_feature_value()";
 
-	MX_RECORD *record;
 	SapAcqDevice *acq_device;
 	SapFeature *feature;
+	SapFeature::Type feature_type;
+	SapFeature::AccessMode access_mode;
+
+	INT32 int32_value;
+	INT64 int64_value;
+	float float_value;
+	double double_value;
+	BOOL bool_value;
+	int enum_value;
+	char enum_string[250];
+	char string_value[520];
+	int exponent;
+	char si_units[33];
+
+	BOOL sapera_status;
+
+	if ( sapera_lt_camera == (MX_SAPERA_LT_CAMERA *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SAPERA_LT_CAMERA pointer passed was NULL." );
+	}
+	if ( feature_name == (const char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The feature_name pointer passed was NULL." );
+	}
+	if ( value_buffer == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The value_buffer pointer passed was NULL." );
+	}
+	if ( value_buffer_length <= 0 ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"There is no space available in the returned value buffer "
+		"for Sapera LT feature '%s'.", feature_name );
+	}
+
+	acq_device = sapera_lt_camera->acq_device;
+
+	feature = sapera_lt_camera->feature;
+
+	sapera_status = acq_device->GetFeatureInfo( feature_name, feature );
+
+	if ( sapera_status == 0 ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"A call to GetFeatureInfo( '%s', ... ) for camera '%s' failed.",
+			feature_name, sapera_lt_camera->record->name );
+	}
+
+	sapera_status = feature->GetType( &feature_type );
+
+	if ( sapera_status == 0 ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"A call to GetType( '%s', ... ) for camera '%s' failed.",
+			feature_name, sapera_lt_camera->record->name );
+	}
+
+	switch( feature_type ) {
+	case SapFeature::TypeUndefined:
+		strlcpy( value_buffer, "<undefined>", value_buffer_length );
+		break;
+	case SapFeature::TypeInt32:
+		sapera_status = acq_device->GetFeatureValue( feature_name,
+								&int32_value );
+
+		snprintf( value_buffer, value_buffer_length,
+			"%" PRId32, int32_value );
+		break;
+	case SapFeature::TypeInt64:
+		sapera_status = acq_device->GetFeatureValue( feature_name,
+								&int64_value );
+
+		snprintf( value_buffer, value_buffer_length,
+			"%" PRId64, int64_value );
+		break;
+	case SapFeature::TypeFloat:
+		sapera_status = acq_device->GetFeatureValue( feature_name,
+								&float_value );
+
+		snprintf( value_buffer, value_buffer_length,
+			"%f", float_value );
+		break;
+	case SapFeature::TypeDouble:
+		sapera_status = acq_device->GetFeatureValue( feature_name,
+								&double_value );
+
+		snprintf( value_buffer, value_buffer_length,
+			"%f", double_value );
+		break;
+	case SapFeature::TypeBool:
+		sapera_status = acq_device->GetFeatureValue( feature_name,
+								&bool_value );
+
+		snprintf( value_buffer, value_buffer_length,
+			"%d", (int) bool_value );
+		break;
+	case SapFeature::TypeEnum:
+		sapera_status = acq_device->GetFeatureValue( feature_name,
+								&enum_value );
+
+		sapera_status = feature->GetEnumStringFromValue(
+				enum_value, value_buffer, value_buffer_length );
+		break;
+	case SapFeature::TypeString:
+		sapera_status = acq_device->GetFeatureValue( feature_name,
+							value_buffer,
+							value_buffer_length );
+		break;
+	case SapFeature::TypeBuffer:
+		strlcpy( value_buffer, "<buffer>", value_buffer_length );
+		break;
+	case SapFeature::TypeLut:
+		strlcpy( value_buffer, "<lut>", value_buffer_length );
+		break;
+	case SapFeature::TypeArray:
+		strlcpy( value_buffer, "<array>", value_buffer_length );
+		break;
+	default:
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"Unrecognized feature type %ld for feature '%s' of record '%s'",
+			feature_type, feature_name,
+			sapera_lt_camera->record->name );
+		break;
+	}
+
+	if ( sapera_status == 0 ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+	    "A call to GetFeatureValue( '%s', ... ) for camera '%s' failed.",
+			feature_name, sapera_lt_camera->record->name );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
+static mx_status_type
+mxd_sapera_lt_camera_show_feature( SapAcqDevice *acq_device,
+					SapFeature *feature, int i )
+{
 	SapFeature::Type feature_type;
 	SapFeature::AccessMode access_mode;
 	char feature_name[65];
@@ -519,7 +658,162 @@ mxd_sapera_lt_camera_show_features( MX_SAPERA_LT_CAMERA *sapera_lt_camera )
 	char   si_units[33];
 
 	BOOL sapera_status;
+
+	sapera_status = acq_device->GetFeatureInfo( i, feature );
+
+	sapera_status = feature->GetName( feature_name, sizeof(feature_name) );
+
+	fprintf( stderr, "  Feature %d, name = '%s', ", i, feature_name );
+
+	sapera_status = feature->GetAccessMode( &access_mode );
+
+	if ( access_mode == SapFeature::AccessWO ) {
+		fprintf( stderr, "WRITE_ONLY\n" );
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	fprintf( stderr, "  type = " );
+
+	sapera_status = feature->GetType( &feature_type );
+
+	switch( feature_type ) {
+	case SapFeature::TypeUndefined:
+		fprintf( stderr, "'undefined'" );
+		break;
+
+	case SapFeature::TypeInt32:
+		sapera_status = acq_device->GetFeatureValue(
+						feature_name, &int32_value );
+
+		fprintf( stderr, "'int32', value = %d", (int) int32_value );
+		break;
+	case SapFeature::TypeInt64:
+		sapera_status = acq_device->GetFeatureValue(
+						feature_name, &int64_value );
+
+		fprintf( stderr, "'int64', value = %" PRId64, int64_value );
+		break;
+	case SapFeature::TypeFloat:
+		sapera_status = acq_device->GetFeatureValue(
+						feature_name, &float_value );
+
+		fprintf( stderr, "'float', value = %f", float_value );
+		break;
+	case SapFeature::TypeDouble:
+		sapera_status = acq_device->GetFeatureValue(
+						feature_name, &double_value );
+
+		fprintf( stderr, "'double', value = %f", double_value);
+		break;
+	case SapFeature::TypeBool:
+		sapera_status = acq_device->GetFeatureValue(
+						feature_name, &bool_value );
+
+		fprintf( stderr, "'bool', value = %d", (int) bool_value );
+		break;
+	case SapFeature::TypeEnum:
+		sapera_status = acq_device->GetFeatureValue(
+						feature_name, &enum_value );
+
+		sapera_status = feature->GetEnumStringFromValue(
+						enum_value, enum_string,
+						sizeof(enum_string) );
+
+		fprintf( stderr, "'enum', value = (%d) '%s'",
+					enum_value, enum_string );
+		break;
+	case SapFeature::TypeString:
+		sapera_status = acq_device->GetFeatureValue(
+						feature_name,
+						string_value,
+						sizeof(string_value) );
+
+		fprintf( stderr, "'string', value = '%s'", string_value );
+		break;
+	case SapFeature::TypeBuffer:
+		fprintf( stderr, "'buffer'" );
+		break;
+
+	case SapFeature::TypeLut:
+		fprintf( stderr, "'lut'" );
+		break;
+
+	case SapFeature::TypeArray:
+		fprintf( stderr, "'array'" );
+		break;
+
+	default:
+		fprintf( stderr, "'unrecognized feature type %d'",
+						feature_type );
+		break;
+	}
+
+	sapera_status = feature->GetSiToNativeExp10( &exponent );
+
+	if ( exponent != 0 ) {
+		fprintf( stderr, " * 10e%d", -exponent );
+	}
+
+	sapera_status = feature->GetSiUnit( si_units, sizeof(si_units) );
+
+	if ( strlen( si_units ) > 0 ) {
+		fprintf( stderr, " '%s'", si_units );
+	}
+
+	fprintf( stderr, "\n" );
+
+	/* If this feature is an Enum, then display the allowed
+	 * values of the Enum.
+	 */
+
+	if( feature_type == SapFeature::TypeEnum ) {
+		int j, enum_count;
+
+		sapera_status = feature->GetEnumCount( &enum_count );
+
+		fprintf( stderr, "    %d enum values = ", enum_count );
+
+		for ( j = 0; j < enum_count; j++ ) {
+			BOOL enum_enabled;
+
+			sapera_status =
+				    feature->IsEnumEnabled( j, &enum_enabled );
+
+			sapera_status =
+				    feature->GetEnumValue( j, &enum_value );
+
+			sapera_status =
+				    feature->GetEnumString( j, enum_string,
+							sizeof(enum_string) );
+
+			if ( j > 0 ) {
+				fprintf( stderr, ", " );
+			}
+			fprintf( stderr, "%s (%d)", enum_string, enum_value );
+
+			if ( enum_enabled == FALSE ) {
+				fprintf( stderr, " (DISABLED)" );
+			}
+		}
+		fprintf( stderr, "\n" );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
+static mx_status_type
+mxd_sapera_lt_camera_show_features( MX_SAPERA_LT_CAMERA *sapera_lt_camera )
+{
+	static const char fname[] = "mxd_sapera_lt_camera_show_features()";
+
+	MX_RECORD *record;
+	SapAcqDevice *acq_device;
+	SapFeature *feature;
+	BOOL sapera_status;
 	int i, feature_count;
+	mx_status_type mx_status;
 
 	record = sapera_lt_camera->record;
 
@@ -534,153 +828,11 @@ mxd_sapera_lt_camera_show_features( MX_SAPERA_LT_CAMERA *sapera_lt_camera )
 	feature = sapera_lt_camera->feature;
 
 	for ( i = 0; i < feature_count; i++ ) {
+		mx_status = mxd_sapera_lt_camera_show_feature( acq_device,
+								feature, i );
 
-		sapera_status = acq_device->GetFeatureInfo( i, feature );
-
-		sapera_status = feature->GetName( feature_name,
-						sizeof(feature_name) );
-
-		fprintf( stderr, "  Feature %d, name = '%s', ",
-						i, feature_name );
-
-		sapera_status = feature->GetAccessMode( &access_mode );
-
-		if ( access_mode == SapFeature::AccessWO ) {
-			fprintf( stderr, "WRITE_ONLY\n" );
-			continue;	/* Back to the top of the for() loop. */
-		}
-
-		fprintf( stderr, "  type = " );
-
-		sapera_status = feature->GetType( &feature_type );
-
-		switch( feature_type ) {
-		case SapFeature::TypeUndefined:
-			fprintf( stderr, "'undefined'" );
-			break;
-
-		case SapFeature::TypeInt32:
-			sapera_status = acq_device->GetFeatureValue(
-						feature_name, &int32_value );
-
-			fprintf( stderr, "'int32', value = %d",
-							(int) int32_value );
-			break;
-		case SapFeature::TypeInt64:
-			sapera_status = acq_device->GetFeatureValue(
-						feature_name, &int64_value );
-
-			fprintf( stderr, "'int64', value = %" PRId64,
-							int64_value );
-			break;
-		case SapFeature::TypeFloat:
-			sapera_status = acq_device->GetFeatureValue(
-						feature_name, &float_value );
-
-			fprintf( stderr, "'float', value = %f", float_value );
-			break;
-		case SapFeature::TypeDouble:
-			sapera_status = acq_device->GetFeatureValue(
-						feature_name, &double_value );
-
-			fprintf( stderr, "'double', value = %f", double_value);
-			break;
-		case SapFeature::TypeBool:
-			sapera_status = acq_device->GetFeatureValue(
-						feature_name, &bool_value );
-
-			fprintf( stderr, "'bool', value = %d",
-							(int) bool_value );
-			break;
-		case SapFeature::TypeEnum:
-			sapera_status = acq_device->GetFeatureValue(
-						feature_name, &enum_value );
-
-			sapera_status = feature->GetEnumStringFromValue(
-						enum_value, enum_string,
-						sizeof(enum_string) );
-
-			fprintf( stderr, "'enum', value = (%d) '%s'",
-					enum_value, enum_string );
-			break;
-		case SapFeature::TypeString:
-			sapera_status = acq_device->GetFeatureValue(
-						feature_name,
-						string_value,
-						sizeof(string_value) );
-
-			fprintf( stderr, "'string', value = '%s'",
-							string_value );
-			break;
-		case SapFeature::TypeBuffer:
-			fprintf( stderr, "'buffer'" );
-			break;
-
-		case SapFeature::TypeLut:
-			fprintf( stderr, "'lut'" );
-			break;
-
-		case SapFeature::TypeArray:
-			fprintf( stderr, "'array'" );
-			break;
-
-		default:
-			fprintf( stderr, "'unrecognized feature type %d'",
-						feature_type );
-			break;
-		}
-
-		sapera_status = feature->GetSiToNativeExp10( &exponent );
-
-		if ( exponent != 0 ) {
-			fprintf( stderr, " * 10e%d", -exponent );
-		}
-
-		sapera_status = feature->GetSiUnit( si_units,
-						sizeof(si_units) );
-
-		if ( strlen( si_units ) > 0 ) {
-			fprintf( stderr, " '%s'", si_units );
-		}
-
-		fprintf( stderr, "\n" );
-
-		/* If this feature is an Enum, then display the allowed
-		 * values of the Enum.
-		 */
-
-		if( feature_type == SapFeature::TypeEnum ) {
-			int j, enum_count;
-
-			sapera_status = feature->GetEnumCount( &enum_count );
-
-			fprintf( stderr, "    %d enum values = ", enum_count );
-
-			for ( j = 0; j < enum_count; j++ ) {
-				BOOL enum_enabled;
-
-				sapera_status =
-				    feature->IsEnumEnabled( j, &enum_enabled );
-
-				sapera_status =
-				    feature->GetEnumValue( j, &enum_value );
-
-				sapera_status =
-				    feature->GetEnumString( j, enum_string,
-							sizeof(enum_string) );
-
-				if ( j > 0 ) {
-					fprintf( stderr, ", " );
-				}
-				fprintf( stderr, "%s (%d)",
-					enum_string, enum_value );
-
-				if ( enum_enabled == FALSE ) {
-					fprintf( stderr, " (DISABLED)" );
-				}
-			}
-			fprintf( stderr, "\n" );
-		}
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -2161,6 +2313,8 @@ mxd_sapera_lt_camera_special_processing_setup( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
+		case MXLV_SAPERA_LT_CAMERA_FEATURE_NAME:
+		case MXLV_SAPERA_LT_CAMERA_FEATURE_VALUE:
 		case MXLV_SAPERA_LT_CAMERA_GAIN:
 		case MXLV_SAPERA_LT_CAMERA_SHOW_FEATURES:
 		case MXLV_SAPERA_LT_CAMERA_TEMPERATURE:
@@ -2267,6 +2421,13 @@ mxd_sapera_lt_camera_process_function( void *record_ptr,
 				"Celsius of camera '%s' failed.",
 					vinput->record->name );
 			}
+		case MXLV_SAPERA_LT_CAMERA_FEATURE_VALUE:
+			mx_status = mxd_sapera_lt_camera_get_feature_value(
+					sapera_lt_camera,
+					sapera_lt_camera->feature_name,
+					sapera_lt_camera->feature_value,
+				    sizeof(sapera_lt_camera->feature_value));
+			break;
 		default:
 			break;
 		}
