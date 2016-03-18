@@ -26,7 +26,7 @@
 
 /*---*/
 
-#define MXT_XINEOS_GIGE_MIN_INTERFRAME_GAP		0.005	/* in sec */
+#define MXT_XINEOS_GIGE_MIN_INTERFRAME_GAP		0.055	/* in sec */
 
 /* Values for the 'detector_model' field. */
 
@@ -39,7 +39,8 @@ typedef struct {
 
 	MX_RECORD *pulse_generator_record;
 
-	mx_bool_type use_pulse_generator;
+	mx_bool_type pulse_generator_is_available;
+	mx_bool_type start_with_pulse_generator;
 	double pulse_generator_time_threshold;
 
 	double minimum_pixel_value;
@@ -67,6 +68,21 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_XINEOS_GIGE, pulse_generator_name), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "pulse_generator_is_available", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_XINEOS_GIGE, pulse_generator_is_available), \
+	{0}, NULL, 0 }, \
+  \
+  {-1, -1, "start_with_pulse_generator", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_XINEOS_GIGE, start_with_pulse_generator), \
+	{0}, NULL, 0 }, \
+  \
+  {-1, -1, "pulse_generator_time_threshold", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_XINEOS_GIGE, pulse_generator_time_threshold), \
+	{0}, NULL, 0 }, \
   \
   {-1, -1, "minimum_pixel_value", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \

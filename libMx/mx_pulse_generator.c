@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2006, 2015 Illinois Institute of Technology
+ * Copyright 2002, 2006, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -227,6 +227,45 @@ mx_pulse_generator_stop( MX_RECORD *pulse_generator_record )
 	mx_status = (*stop_fn)( pulse_generator );
 
 	pulse_generator->stop = 0;
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_pulse_generator_setup( MX_RECORD *pulse_generator_record,
+			long mode,
+			double pulse_period,
+			double pulse_width,
+			unsigned long num_pulses,
+			double pulse_delay )
+{
+	mx_status_type mx_status;
+
+	mx_status = mx_pulse_generator_set_mode( pulse_generator_record, mode );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_pulse_generator_set_pulse_period( pulse_generator_record,
+								pulse_period );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_pulse_generator_set_pulse_width( pulse_generator_record,
+								pulse_width );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_pulse_generator_set_num_pulses( pulse_generator_record,
+								num_pulses );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_pulse_generator_set_pulse_delay( pulse_generator_record,
+								num_pulses );
 
 	return mx_status;
 }

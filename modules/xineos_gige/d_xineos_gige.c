@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013-2015 Illinois Institute of Technology
+ * Copyright 2013-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -15,6 +15,8 @@
  */
 
 #define MXD_XINEOS_GIGE_DEBUG				FALSE
+
+#define MXD_XINEOS_GIGE_DEBUG_ARM			TRUE
 
 #define MXD_XINEOS_GIGE_DEBUG_READOUT_TIMING		FALSE
 
@@ -337,7 +339,11 @@ mxd_xineos_gige_open( MX_RECORD *record )
 		}
 	}
 
-	xineos_gige->use_pulse_generator = FALSE;
+	if ( xineos_gige->pulse_generator_record == NULL ) {
+		xineos_gige->pulse_generator_is_available = FALSE;
+	} else {
+		xineos_gige->pulse_generator_is_available = TRUE;
+	}
 
 	/* Internally triggered one shot and multiframe sequences will
 	 * use the pulse generator for exposures greater than or equal
@@ -421,7 +427,7 @@ mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_XINEOS_GIGE_DEBUG
+#if MXD_XINEOS_GIGE_DEBUG_ARM
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
@@ -482,11 +488,9 @@ mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 	 * use a pulse generator?
 	 */
 
-	xineos_gige->use_pulse_generator = FALSE;
-
-#if MXD_XINEOS_GIGE_DEBUG
-	MX_DEBUG(-2,("%s: pulse_generator_record = %p",
-		fname, xineos_gige->pulse_generator_record));
+#if MXD_XINEOS_GIGE_DEBUG_ARM
+	MX_DEBUG(-2,("%s: pulse_generator_is_available = %d",
+		fname, (int) xineos_gige->pulse_generator_is_available));
 	MX_DEBUG(-2,("%s: ad->trigger_mode = %#lx",
 		fname, ad->trigger_mode));
 	MX_DEBUG(-2,
@@ -494,13 +498,45 @@ mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 		fname, exposure_time,
 		xineos_gige->pulse_generator_time_threshold));
 #endif
+	xineos_gige->start_with_pulse_generator = FALSE;
 
-	if ( ( xineos_gige->pulse_generator_record != NULL )
-	  && ( ad->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER )
-	  && ( exposure_time >=
-		xineos_gige->pulse_generator_time_threshold ) )
-	{
-		xineos_gige->use_pulse_generator = TRUE;
+	if ( xineos_gige->pulse_generator_is_available ) {
+	    if ( ad->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
+
+		switch( sp->sequence_type ) {
+		case MXT_SQ_ONE_SHOT:
+		case MXT_SQ_MULTIFRAME:
+		    break;
+		default:
+		    return mx_error( MXE_NOT_VALID_FOR_CURRENT_STATE, fname,
+			"Internally triggered sequences can only be used "
+			"for one-shot and multiframe sequences for "
+			"area detector '%s'.  However, you have requested "
+			"a sequence type of %ld.",
+				ad->record->name, sp->sequence_type );
+		    break;
+		}
+
+		if ( exposure_time >=
+				xineos_gige->pulse_generator_time_threshold )
+		{
+		    xineos_gige->start_with_pulse_generator = TRUE;
+		} else {
+		    xineos_gige->start_with_pulse_generator = FALSE;
+		}
+	    } else
+	    if ( ad->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
+		xineos_gige->start_with_pulse_generator = FALSE;
+	    } else {
+		return mx_error( MXE_NOT_VALID_FOR_CURRENT_STATE, fname,
+		"Neither internal or external trigger are turned on "
+		"for area detector '%s'.  trigger_mode = %#lx",
+			ad->record->name, ad->trigger_mode );
+	    }
+	} else {
+	    /* A pulse generator is not available. */
+
+	    xineos_gige->start_with_pulse_generator = FALSE;
 	}
 
 	/* If we are using a pulse generator to generate "internal" triggers,
@@ -509,20 +545,28 @@ mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 	 * through to the video card.
 	 */
 
-	if ( xineos_gige->use_pulse_generator ) {
+	if ( xineos_gige->start_with_pulse_generator ) {
 		vinput_trigger_mode = MXT_IMAGE_EXTERNAL_TRIGGER;
 	} else {
 		vinput_trigger_mode = ad->trigger_mode;
 	}
 
-#if MXD_XINEOS_GIGE_DEBUG
-	MX_DEBUG(-2,("%s: use_pulse_generator = %d, vinput_trigger_mode = %d",
-		fname, xineos_gige->use_pulse_generator,
+#if MXD_XINEOS_GIGE_DEBUG_ARM
+	MX_DEBUG(-2,
+	("%s: start_with_pulse_generator = %d, vinput_trigger_mode = %d",
+		fname, xineos_gige->start_with_pulse_generator,
 		vinput_trigger_mode));
 #endif
 
 	mx_status = mx_video_input_set_trigger_mode( video_input_record,
 							vinput_trigger_mode );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Get the number of frames from the area detector sequence. */
+
+	mx_status = mx_sequence_get_num_frames( sp, &num_frames );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -533,15 +577,9 @@ mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 	 * the video card to expect a DURATION mode sequence.
 	 */
 
-	if ( xineos_gige->use_pulse_generator ) {
-		/* Get the number of frames from the area detector sequence. */
+	if ( xineos_gige->start_with_pulse_generator ) {
 
-		mx_status = mx_sequence_get_num_frames( sp, &num_frames );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		/* Now set the video input sequence. */
+		/* Set the video input sequence to Duration mode. */
 
 		vinput_sp.sequence_type = MXT_SQ_DURATION;
 		vinput_sp.num_parameters = 1;
@@ -550,13 +588,69 @@ mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 		mx_status = mx_video_input_set_sequence_parameters(
 				video_input_record, &vinput_sp );
 	} else {
-		/* Otherwise, if we are _not_ using the pulse generator, then
-		 * just make the video input sequence a copy of the area
-		 * detector's sequence.
+		/* If we are not starting the sequence with the pulse
+		 * generator, but we _are_ using an external trigger
+		 * and the pulse generator is available, then we have
+		 * to program the pulse generator, but we do _NOT_
+		 * start it, since the sequence will be started by an
+		 * external trigger sent to the _pulser_.
 		 */
 
-		mx_status = mx_video_input_set_sequence_parameters(
-			video_input_record, &(ad->sequence_parameters) );
+		if ( ( ad->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER )
+		  && ( xineos_gige->pulse_generator_is_available ) )
+		{
+			double pulse_period, pulse_width;
+			unsigned long num_pulses;
+
+			switch( sp->sequence_type ) {
+			case MXT_SQ_ONE_SHOT:
+				pulse_width = sp->parameter_array[0];
+				pulse_period = 1.001 * pulse_width;
+				num_pulses = 1;
+				break;
+			case MXT_SQ_MULTIFRAME:
+				pulse_width = sp->parameter_array[1];
+				pulse_period = sp->parameter_array[2];
+				num_pulses = sp->parameter_array[0];
+				break;
+			default:
+				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+				"Only one-shot and multiframe sequences can "
+				"be used with external triggering for "
+				"area detector '%s'.",
+					ad->record->name );
+				break;
+			}
+
+			mx_status = mx_pulse_generator_setup(
+					xineos_gige->pulse_generator_record,
+					MXF_PGN_PULSE,
+					pulse_period,
+					pulse_width,
+					num_pulses,
+					0.0 );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			/* Set the video input sequence to Duration mode. */
+
+			vinput_sp.sequence_type = MXT_SQ_DURATION;
+			vinput_sp.num_parameters = 1;
+			vinput_sp.parameter_array[0] = num_frames;
+
+			mx_status = mx_video_input_set_sequence_parameters(
+				video_input_record, &vinput_sp );
+		} else {
+
+			/* Otherwise, make the video input sequence
+			 * a copy of the area detector's sequence.
+			 */
+
+			mx_status = mx_video_input_set_sequence_parameters(
+					video_input_record,
+					&(ad->sequence_parameters) );
+		}
 	}
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -564,7 +658,7 @@ mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 
 	/* Tell the video capture card to get ready for frames. */
 
-#if MXD_XINEOS_GIGE_DEBUG
+#if MXD_XINEOS_GIGE_DEBUG_ARM
 	MX_DEBUG(-2,("%s: sequence type = %ld", fname, sp->sequence_type));
 #endif
 
@@ -602,7 +696,7 @@ mxd_xineos_gige_trigger( MX_AREA_DETECTOR *ad )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	if ( xineos_gige->use_pulse_generator == FALSE ) {
+	if ( xineos_gige->start_with_pulse_generator == FALSE ) {
 		/* If we are not using a pulse generator, then we just
 		 * pass the request on to the video card.
 		 */
@@ -642,30 +736,9 @@ mxd_xineos_gige_trigger( MX_AREA_DETECTOR *ad )
 
 	/* Configure the pulse generator for this sequence. */
 
-	mx_status = mx_pulse_generator_set_mode(
-				xineos_gige->pulse_generator_record,
-				MXF_PGN_PULSE );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_pulse_generator_set_pulse_period(
-				xineos_gige->pulse_generator_record,
-				pulse_period );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_pulse_generator_set_pulse_width(
-				xineos_gige->pulse_generator_record,
-				pulse_width );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_pulse_generator_set_num_pulses(
-				xineos_gige->pulse_generator_record,
-				num_pulses );
+	mx_status = mx_pulse_generator_setup(
+			xineos_gige->pulse_generator_record, MXF_PGN_PULSE,
+			pulse_period, pulse_width, num_pulses, 0.0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -774,17 +847,17 @@ mxd_xineos_gige_readout_frame( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* If we are using the pulse generator, then the video card will be
-	 * in DURATION mode.  In DURATION mode, the image frame returned by
-	 * the video input driver will have a header that states that the
-	 * exposure time is 1 second, since the video input driver does not
-	 * actually know what the exposure time is supposed to be in this
-	 * case.  Therefore, we must manually set the exposure time here
-	 * based on the sequence parameters known only by the area detector
-	 * record.
+	/* If the sequence was started using the pulse generator, then the
+	 * video card will be in DURATION mode.  In DURATION mode, the image
+	 * frame returned by the video input driver will have a header that
+	 * states that the exposure time is 1 second, since the video input
+	 * driver does not actually know what the exposure time is supposed
+	 * to be in this case.  Therefore, we must manually set the exposure
+	 * time here based on the sequence parameters known only by the area
+	 * detector record.
 	 */
 
-	if ( xineos_gige->use_pulse_generator ) {
+	if ( xineos_gige->start_with_pulse_generator ) {
 		struct timespec exposure_timespec;
 		double exposure_time;
 
@@ -903,14 +976,15 @@ mxd_xineos_gige_get_parameter( MX_AREA_DETECTOR *ad )
 
 	case MXLV_AD_TRIGGER_MODE:
 
-		/* If the detector is using the pulse generator, then the
-		 * video card is guaranteed to be in DURATION mode, regardless
-		 * of what mode the area detector thinks it is in.  Thus,
-		 * we only ask the video card for its sequence mode if we
-		 * are _not_ using the pulse generator.
+		/* If the detector is started using the pulse generator, then
+		 * the video card is guaranteed to be in DURATION mode,
+		 * regardless of what mode the area detector thinks it is in.
+		 * Thus, we only ask the video card for its sequence mode if
+		 * we are _not_ starting the sequence using the pulse
+		 * generator.
 		 */
 
-		if ( xineos_gige->use_pulse_generator == FALSE ) {
+		if ( xineos_gige->start_with_pulse_generator == FALSE ) {
 			mx_status = mx_video_input_get_trigger_mode(
 				video_input_record, &(ad->trigger_mode) );
 		}

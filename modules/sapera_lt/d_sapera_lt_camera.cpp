@@ -1458,6 +1458,7 @@ mxd_sapera_lt_camera_arm( MX_VIDEO_INPUT *vinput )
 
 	switch( sp->sequence_type ) {
 	case MXT_SQ_ONE_SHOT:
+	case MXT_SQ_STREAM:
 		num_frames = 1;
 		exposure_time = sp->parameter_array[0];
 		break;
@@ -1552,8 +1553,8 @@ mxd_sapera_lt_camera_arm( MX_VIDEO_INPUT *vinput )
 			break;
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
-			"Only 'one shot and multiframe' mode scans can be "
-			"run with an internal trigger for camera '%s'.",
+			"Only 'one shot', 'stream', and multiframe' mode scans "
+			"can be run with an internal trigger for camera '%s'.",
 				vinput->record->name );
 			break;
 		}

@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2002, 2005-2007, 2015 Illinois Institute of Technology
+ * Copyright 2002, 2005-2007, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -127,6 +127,13 @@ MX_API mx_status_type mx_pulse_generator_is_busy( MX_RECORD *record,
 MX_API mx_status_type mx_pulse_generator_start( MX_RECORD *record );
 
 MX_API mx_status_type mx_pulse_generator_stop( MX_RECORD *record );
+
+MX_API mx_status_type mx_pulse_generator_setup( MX_RECORD *record,
+						long mode,
+						double pulse_period,
+						double pulse_width,
+						unsigned long num_pulses,
+						double pulse_delay );
 
 MX_API mx_status_type mx_pulse_generator_get_mode( MX_RECORD *record,
 							long *mode );
