@@ -41,6 +41,7 @@ typedef struct {
 
 	mx_bool_type pulse_generator_is_available;
 	mx_bool_type start_with_pulse_generator;
+	mx_bool_type using_external_video_duration_mode;
 	double pulse_generator_time_threshold;
 
 	double minimum_pixel_value;
@@ -77,6 +78,11 @@ typedef struct {
   {-1, -1, "start_with_pulse_generator", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_XINEOS_GIGE, start_with_pulse_generator), \
+	{0}, NULL, 0 }, \
+  \
+  {-1, -1, "using_external_video_duration_mode", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_XINEOS_GIGE, using_external_video_duration_mode), \
 	{0}, NULL, 0 }, \
   \
   {-1, -1, "pulse_generator_time_threshold", MXFT_DOUBLE, NULL, 0, {0}, \

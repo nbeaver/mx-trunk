@@ -355,6 +355,12 @@ mxd_xineos_gige_open( MX_RECORD *record )
 
 	xineos_gige->pulse_generator_time_threshold = 0.0;
 
+	/*---*/
+
+	xineos_gige->pulse_generator_is_available = FALSE;
+	xineos_gige->start_with_pulse_generator = FALSE;
+	xineos_gige->using_external_video_duration_mode = FALSE;
+
 	/* The detector will default to internal triggering. */
 
 	mx_status = mx_area_detector_set_trigger_mode( record,
@@ -577,7 +583,11 @@ mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 	 * the video card to expect a DURATION mode sequence.
 	 */
 
+	xineos_gige->using_external_video_duration_mode = FALSE;
+
 	if ( xineos_gige->start_with_pulse_generator ) {
+
+		xineos_gige->using_external_video_duration_mode = TRUE;
 
 		/* Set the video input sequence to Duration mode. */
 
@@ -632,6 +642,8 @@ mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
+
+			xineos_gige->using_external_video_duration_mode = TRUE;
 
 			/* Set the video input sequence to Duration mode. */
 
@@ -857,7 +869,7 @@ mxd_xineos_gige_readout_frame( MX_AREA_DETECTOR *ad )
 	 * detector record.
 	 */
 
-	if ( xineos_gige->start_with_pulse_generator ) {
+	if ( xineos_gige->using_external_video_duration_mode ) {
 		struct timespec exposure_timespec;
 		double exposure_time;
 
