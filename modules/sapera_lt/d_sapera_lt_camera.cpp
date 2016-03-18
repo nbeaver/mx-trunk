@@ -669,6 +669,7 @@ mxd_sapera_lt_camera_show_feature( SapAcqDevice *acq_device,
 
 	if ( access_mode == SapFeature::AccessWO ) {
 		fprintf( stderr, "WRITE_ONLY\n" );
+
 		return MX_SUCCESSFUL_RESULT;
 	}
 
@@ -771,7 +772,7 @@ mxd_sapera_lt_camera_show_feature( SapAcqDevice *acq_device,
 
 		sapera_status = feature->GetEnumCount( &enum_count );
 
-		fprintf( stderr, "    %d enum values = ", enum_count );
+		fprintf( stderr, "    -> %d enum values = ", enum_count );
 
 		for ( j = 0; j < enum_count; j++ ) {
 			BOOL enum_enabled;

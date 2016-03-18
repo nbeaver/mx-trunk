@@ -354,6 +354,8 @@ mxd_xineos_gige_open( MX_RECORD *record )
 	 */
 
 	xineos_gige->pulse_generator_time_threshold = 0.0;
+	xineos_gige->minimum_interframe_gap =
+				MXT_XINEOS_GIGE_MINIMUM_INTERFRAME_GAP;
 
 	/*---*/
 
@@ -1029,7 +1031,8 @@ mxd_xineos_gige_set_parameter( MX_AREA_DETECTOR *ad )
 	MX_RECORD *video_input_record;
 	MX_SEQUENCE_PARAMETERS *ad_seq = NULL;
 	double *param_array = NULL;
-	double frame_gap;
+	double exposure_time, frame_time, gap_time, gap_deficit;
+	unsigned long keep_exposure_time_fixed;
 	mx_status_type mx_status;
 
 #if MXD_XINEOS_GIGE_DEBUG
@@ -1082,18 +1085,31 @@ mxd_xineos_gige_set_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_SEQUENCE_TYPE:
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
 	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY: 
-		/* First make sure that the gap time between frames is
-		 * at least 56 milliseconds.
-		 */
+
+		keep_exposure_time_fixed = ( xineos_gige->xineos_gige_flags
+				& MXF_XINEOS_GIGE_KEEP_EXPOSURE_TIME_FIXED );
 
 		switch( ad_seq->sequence_type ) {
 		case MXT_SQ_MULTIFRAME:
-			frame_gap = param_array[2] - param_array[1];
+			exposure_time = param_array[1];
+			frame_time    = param_array[2];
 
-			if ( frame_gap < MXT_XINEOS_GIGE_MIN_INTERFRAME_GAP ) {
-				param_array[2] +=
-			    (MXT_XINEOS_GIGE_MIN_INTERFRAME_GAP - frame_gap);
+			gap_time = frame_time - exposure_time;
+
+			gap_deficit =
+				xineos_gige->minimum_interframe_gap - gap_time;
+
+			if ( gap_deficit > 0.0 ) {
+
+				if ( keep_exposure_time_fixed ) {
+					frame_time += gap_deficit;
+				} else {
+					exposure_time -= gap_deficit;
+				}
 			}
+
+			param_array[1] = exposure_time;
+			param_array[2] = frame_time;
 			break;
 		default:
 			break;
