@@ -359,7 +359,6 @@ mxd_xineos_gige_open( MX_RECORD *record )
 
 	/*---*/
 
-	xineos_gige->pulse_generator_is_available = FALSE;
 	xineos_gige->start_with_pulse_generator = FALSE;
 	xineos_gige->using_external_video_duration_mode = FALSE;
 
