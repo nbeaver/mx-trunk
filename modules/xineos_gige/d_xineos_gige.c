@@ -354,8 +354,7 @@ mxd_xineos_gige_open( MX_RECORD *record )
 	 */
 
 	xineos_gige->pulse_generator_time_threshold = 0.0;
-	xineos_gige->minimum_interframe_gap =
-				MXT_XINEOS_GIGE_MINIMUM_INTERFRAME_GAP;
+	xineos_gige->minimum_frame_time = MXT_XINEOS_GIGE_MINIMUM_FRAME_TIME;
 
 	/*---*/
 
@@ -426,6 +425,7 @@ mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 	MX_SEQUENCE_PARAMETERS *sp = NULL;
 	MX_SEQUENCE_PARAMETERS vinput_sp;
 	double exposure_time;
+	double video_pulse_width, video_pulse_period;
 	long vinput_trigger_mode, num_frames;
 	mx_status_type mx_status;
 
@@ -491,8 +491,8 @@ mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Is this an internally triggered sequence that needs to
-	 * use a pulse generator?
+	/* Is this an internally triggered sequence that needs to use a
+	 * pulse generator to send triggers to the video input device?
 	 */
 
 #if MXD_XINEOS_GIGE_DEBUG_ARM
@@ -590,7 +590,9 @@ mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 
 		xineos_gige->using_external_video_duration_mode = TRUE;
 
-		/* Set the video input sequence to Duration mode. */
+		/* Set the video input sequence to Duration mode, so that
+		 * the video input will be triggered by the pulse generator.
+		 */
 
 		vinput_sp.sequence_type = MXT_SQ_DURATION;
 		vinput_sp.num_parameters = 1;
@@ -610,19 +612,24 @@ mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 		if ( ( ad->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER )
 		  && ( xineos_gige->pulse_generator_is_available ) )
 		{
-			double pulse_period, pulse_width;
+			/* For this detector, there is no gap time, so we
+			 * force the pulse period to be the same as the
+			 * pulse width.
+			 */
+
+			double pulse_width;
 			unsigned long num_pulses;
 
 			switch( sp->sequence_type ) {
 			case MXT_SQ_ONE_SHOT:
 				pulse_width = sp->parameter_array[0];
-				pulse_period = 1.001 * pulse_width;
 				num_pulses = 1;
 				break;
 			case MXT_SQ_MULTIFRAME:
 				pulse_width = sp->parameter_array[1];
-				pulse_period = sp->parameter_array[2];
 				num_pulses = sp->parameter_array[0];
+
+				sp->parameter_array[2] = pulse_width;
 				break;
 			default:
 				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -633,11 +640,27 @@ mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 				break;
 			}
 
+			if ( pulse_width < xineos_gige->minimum_frame_time )
+			{
+				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+				"An exposure time of %f seconds was requested "
+				"for area detector '%s', but the minimum "
+				"exposure time for this detector "
+				"is %f seconds.",
+					pulse_width, ad->record->name,
+					xineos_gige->minimum_frame_time );
+			}
+
+			video_pulse_width = MXT_XINEOS_GIGE_TRIGGER_WIDTH;
+
+			video_pulse_period =
+				pulse_width - MXT_XINEOS_GIGE_TRIGGER_WIDTH;
+
 			mx_status = mx_pulse_generator_setup(
 					xineos_gige->pulse_generator_record,
 					MXF_PGN_PULSE,
-					pulse_period,
-					pulse_width,
+					video_pulse_period,
+					video_pulse_width,
 					num_pulses,
 					0.0 );
 
@@ -646,7 +669,10 @@ mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 
 			xineos_gige->using_external_video_duration_mode = TRUE;
 
-			/* Set the video input sequence to Duration mode. */
+			/* Set the video input sequence to Duration mode,
+			 * so that the video input will be triggered by
+			 * the pulse generator.
+			 */
 
 			vinput_sp.sequence_type = MXT_SQ_DURATION;
 			vinput_sp.num_parameters = 1;
@@ -687,7 +713,8 @@ mxd_xineos_gige_trigger( MX_AREA_DETECTOR *ad )
 
 	MX_XINEOS_GIGE *xineos_gige = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
-	double pulse_period, pulse_width;
+	double pulse_width;
+	double video_pulse_period, video_pulse_width;
 	unsigned long num_pulses;
 	mx_status_type mx_status;
 
@@ -721,7 +748,9 @@ mxd_xineos_gige_trigger( MX_AREA_DETECTOR *ad )
 	}
 
 	/* If we are using the pulse generator, then we need to calculate
-	 * the pulse width, pulse period, and number of pulses.
+	 * the pulse width and the number of pulses.  For this detector,
+	 * there is no gap time, so we force the pulse period to be the
+	 * same as the pulse width.
 	 */
 
 	sp = &(ad->sequence_parameters);
@@ -729,14 +758,14 @@ mxd_xineos_gige_trigger( MX_AREA_DETECTOR *ad )
 	switch( sp->sequence_type ) {
 	case MXT_SQ_ONE_SHOT:
 		pulse_width = sp->parameter_array[0];
-		pulse_period = 1.001 * pulse_width;
 		num_pulses = 1;
 		break;
 
 	case MXT_SQ_MULTIFRAME:
 		pulse_width = sp->parameter_array[1];
-		pulse_period = sp->parameter_array[2];
 		num_pulses = sp->parameter_array[0];
+
+		sp->parameter_array[2] = pulse_width;
 		break;
 
 	default:
@@ -747,11 +776,29 @@ mxd_xineos_gige_trigger( MX_AREA_DETECTOR *ad )
 		break;
 	}
 
+	if ( pulse_width < xineos_gige->minimum_frame_time )
+	{
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"An exposure time of %f seconds was requested for "
+		"area detector '%s', but the minimum exposure time "
+		"for this detector is %f seconds.",
+			pulse_width, ad->record->name,
+			xineos_gige->minimum_frame_time );
+	}
+
+	video_pulse_width = MXT_XINEOS_GIGE_TRIGGER_WIDTH;
+
+	video_pulse_period =
+		pulse_width = MXT_XINEOS_GIGE_TRIGGER_WIDTH;
+
 	/* Configure the pulse generator for this sequence. */
 
 	mx_status = mx_pulse_generator_setup(
-			xineos_gige->pulse_generator_record, MXF_PGN_PULSE,
-			pulse_period, pulse_width, num_pulses, 0.0 );
+			xineos_gige->pulse_generator_record,
+			MXF_PGN_PULSE,
+			video_pulse_period,
+			video_pulse_width,
+			num_pulses, 0.0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -781,8 +828,7 @@ mxd_xineos_gige_stop( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
-	mx_status = mx_video_input_stop(
-				xineos_gige->video_input_record );
+	mx_status = mx_video_input_stop( xineos_gige->video_input_record );
 
 	return mx_status;
 }
@@ -1030,8 +1076,6 @@ mxd_xineos_gige_set_parameter( MX_AREA_DETECTOR *ad )
 	MX_RECORD *video_input_record;
 	MX_SEQUENCE_PARAMETERS *ad_seq = NULL;
 	double *param_array = NULL;
-	double exposure_time, frame_time, gap_time, gap_deficit;
-	unsigned long keep_exposure_time_fixed;
 	mx_status_type mx_status;
 
 #if MXD_XINEOS_GIGE_DEBUG
@@ -1085,30 +1129,13 @@ mxd_xineos_gige_set_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
 	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY: 
 
-		keep_exposure_time_fixed = ( xineos_gige->xineos_gige_flags
-				& MXF_XINEOS_GIGE_KEEP_EXPOSURE_TIME_FIXED );
-
 		switch( ad_seq->sequence_type ) {
 		case MXT_SQ_MULTIFRAME:
-			exposure_time = param_array[1];
-			frame_time    = param_array[2];
+			/* This detector does not have a gap time, so we force
+			 * the frame time to be the same as the exposure time.
+			 */
 
-			gap_time = frame_time - exposure_time;
-
-			gap_deficit =
-				xineos_gige->minimum_interframe_gap - gap_time;
-
-			if ( gap_deficit > 0.0 ) {
-
-				if ( keep_exposure_time_fixed ) {
-					frame_time += gap_deficit;
-				} else {
-					exposure_time -= gap_deficit;
-				}
-			}
-
-			param_array[1] = exposure_time;
-			param_array[2] = frame_time;
+			param_array[2] = param_array[1];
 			break;
 		default:
 			break;

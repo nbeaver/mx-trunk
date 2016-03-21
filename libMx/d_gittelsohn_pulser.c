@@ -165,6 +165,89 @@ mxd_gittelsohn_pulser_command( MX_GITTELSOHN_PULSER *gittelsohn_pulser,
 	return mx_status;
 }
 
+static mx_status_type
+mxd_gittelsohn_pulser_set_arduino_parameters( MX_PULSE_GENERATOR *pulser,
+				MX_GITTELSOHN_PULSER *gittelsohn_pulser )
+{
+	static const char fname[] =
+		"mxd_gittelsohn_pulser_set_arduino_parameters()";
+
+	char command[200];
+	char response[200];
+	long on_ms, off_ms;
+	long num_pulses;
+	unsigned long flags;
+	mx_status_type mx_status;
+
+	MX_DEBUG(-2,("%s: MARKER #1", fname));
+
+	/*----------------------------------------------------------------*/
+
+	/* The Gittelsohn Arduino pulser only does square waves. */
+
+	pulser->mode = MXF_PGN_SQUARE_WAVE;
+
+	/* The Gittelsohn Arduino pulser does not implement a pulse delay. */
+
+	pulser->pulse_delay = 0;
+
+	/*----------------------------------------------------------------*/
+
+	flags = gittelsohn_pulser->gittelsohn_pulser_flags;
+
+	/* Set the number of pulses. */
+
+	if ( flags & MXF_GITTELSOHN_PULSER_USE_RUNT_PULSE ) {
+		num_pulses = pulser->num_pulses + 1L;
+	} else {
+		num_pulses = pulser->num_pulses;
+	}
+
+	snprintf( command, sizeof(command), "cycles %ld", num_pulses );
+
+	mx_status = mxd_gittelsohn_pulser_command( gittelsohn_pulser,
+					command, response, sizeof(response) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/*----------------------------------------------------------------*/
+
+	/* Unconditionally set 'on_ms' and 'off_ms' in terms of
+	 * the values of 'pulse_width' and 'pulse_period' at the
+	 * time of this call.
+	 */
+
+	on_ms = mx_round( 1000.0 * pulser->pulse_width );
+
+	off_ms = mx_round( 1000.0 *
+			( pulser->pulse_period - pulser->pulse_width ) );
+
+	if ( off_ms < 0 ) {
+		pulser->pulse_period = pulser->pulse_width;
+
+		off_ms = 0;
+	}
+
+	snprintf( command, sizeof(command), "onms %ld", on_ms );
+
+	mx_status = mxd_gittelsohn_pulser_command( gittelsohn_pulser,
+					command, response, sizeof(response) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	snprintf( command, sizeof(command), "offms %ld", off_ms );
+
+	mx_status = mxd_gittelsohn_pulser_command( gittelsohn_pulser,
+					command, response, sizeof(response) );
+
+	MX_DEBUG(-2,("%s: MARKER #2", fname));
+
+	return mx_status;
+}
+				
+
 /*=======================================================================*/
 
 MX_EXPORT mx_status_type
@@ -343,30 +426,8 @@ mxd_gittelsohn_pulser_open( MX_RECORD *record )
 
 	/* Initialize the pulse generator settings to known values. */
 
-	mx_status = mx_pulse_generator_set_mode( record, MXF_PGN_SQUARE_WAVE );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_pulse_generator_set_pulse_period( record, 1 );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_pulse_generator_set_pulse_width( record, 1 );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_pulse_generator_set_num_pulses( record, 1 );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_pulse_generator_set_pulse_delay( record, 0 );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	mx_status = mxd_gittelsohn_pulser_set_arduino_parameters( pulser,
+							gittelsohn_pulser );
 
 	return mx_status;
 }
@@ -399,7 +460,6 @@ mxd_gittelsohn_pulser_start( MX_PULSE_GENERATOR *pulser )
 	static const char fname[] = "mxd_gittelsohn_pulser_start()";
 
 	MX_GITTELSOHN_PULSER *gittelsohn_pulser = NULL;
-	long on_ms, off_ms;
 	char command[200];
 	char response[200];
 	mx_status_type mx_status;
@@ -414,49 +474,11 @@ mxd_gittelsohn_pulser_start( MX_PULSE_GENERATOR *pulser )
 	 * the start command.
 	 */
 
-#if MXD_GITTELSOHN_PULSER_DEBUG
-	MX_DEBUG(-2,("%s: '%s' pulser->pulse_width = %g",
-		fname, pulser->record->name, pulser->pulse_width ));
-
-	MX_DEBUG(-2,("%s: '%s' pulser->pulse_period = %g",
-		fname, pulser->record->name, pulser->pulse_period ));
-#endif
-
-	/*----------------------------------------------------------------*/
-
-	/* Unconditionally set 'on_ms' and 'off_ms' in terms of
-	 * the values of 'pulse_width' and 'pulse_period' at the
-	 * time of this call.
-	 */
-
-	on_ms = mx_round( 1000.0 * pulser->pulse_width );
-
-	off_ms = mx_round( 1000.0 *
-			( pulser->pulse_period - pulser->pulse_width ) );
-
-	if ( off_ms < 0 ) {
-		pulser->pulse_period = pulser->pulse_width;
-
-		off_ms = 0;
-	}
-
-	snprintf( command, sizeof(command), "onms %ld", on_ms );
-
-	mx_status = mxd_gittelsohn_pulser_command( gittelsohn_pulser,
-					command, response, sizeof(response) );
+	mx_status = mxd_gittelsohn_pulser_set_arduino_parameters( pulser,
+							gittelsohn_pulser );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	snprintf( command, sizeof(command), "offms %ld", off_ms );
-
-	mx_status = mxd_gittelsohn_pulser_command( gittelsohn_pulser,
-					command, response, sizeof(response) );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/*----------------------------------------------------------------*/
 
 	/* Now start the pulse generator. */
 
@@ -798,10 +820,6 @@ mxd_gittelsohn_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 	static const char fname[] = "mxd_gittelsohn_pulser_set_parameter()";
 
 	MX_GITTELSOHN_PULSER *gittelsohn_pulser = NULL;
-	char command[200];
-	char response[200];
-	long num_pulses;
-	unsigned long flags;
 	mx_status_type mx_status;
 
 	mx_status = mxd_gittelsohn_pulser_get_pointers( pulser,
@@ -809,8 +827,6 @@ mxd_gittelsohn_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	flags = gittelsohn_pulser->gittelsohn_pulser_flags;
 
 #if MXD_GITTELSOHN_PULSER_DEBUG
 	MX_DEBUG(-2,
@@ -830,16 +846,6 @@ mxd_gittelsohn_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 				pulser->num_pulses));
 #endif
 
-		if ( flags & MXF_GITTELSOHN_PULSER_USE_RUNT_PULSE ) {
-			num_pulses = pulser->num_pulses + 1L;
-		} else {
-			num_pulses = pulser->num_pulses;
-		}
-
-		snprintf( command, sizeof(command), "cycles %ld", num_pulses );
-
-		mx_status = mxd_gittelsohn_pulser_command( gittelsohn_pulser,
-					command, response, sizeof(response) );
 		break;
 
 	case MXLV_PGN_PULSE_WIDTH:
@@ -860,17 +866,9 @@ mxd_gittelsohn_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 		break;
 
 	case MXLV_PGN_PULSE_DELAY:
-		/* The Gittelsohn Arduino pulser does not implement
-		 * a pulse delay.
-		 */
-
-		pulser->pulse_delay = 0;
 		break;
 
 	case MXLV_PGN_MODE:
-		/* The Gittelsohn Arduino pulser only does square waves. */
-
-		pulser->mode = MXF_PGN_SQUARE_WAVE;
 		break;
 
 	default:

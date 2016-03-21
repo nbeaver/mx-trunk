@@ -23,11 +23,12 @@
 
 #define MXF_XINEOS_GIGE_DO_NOT_ROTATE_IMAGE			0x1
 #define MXF_XINEOS_GIGE_AUTOMATICALLY_DUMP_PIXEL_VALUES		0x2
-#define MXF_XINEOS_GIGE_KEEP_EXPOSURE_TIME_FIXED		0x4
 
 /*---*/
 
-#define MXT_XINEOS_GIGE_MINIMUM_INTERFRAME_GAP		0.055	/* in sec */
+#define MXT_XINEOS_GIGE_TRIGGER_WIDTH			0.002
+
+#define MXT_XINEOS_GIGE_MINIMUM_FRAME_TIME		0.055	/* in sec */
 
 /* Values for the 'detector_model' field. */
 
@@ -44,7 +45,7 @@ typedef struct {
 	mx_bool_type start_with_pulse_generator;
 	mx_bool_type using_external_video_duration_mode;
 	double pulse_generator_time_threshold;
-	double minimum_interframe_gap;
+	double minimum_frame_time;
 
 	double minimum_pixel_value;
 	double saturation_pixel_value;
@@ -92,8 +93,8 @@ typedef struct {
 		offsetof(MX_XINEOS_GIGE, pulse_generator_time_threshold), \
 	{0}, NULL, 0 }, \
   \
-  {-1, -1, "minimum_interframe_gap", MXFT_DOUBLE, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_XINEOS_GIGE, minimum_interframe_gap), \
+  {-1, -1, "minimum_frame_time", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_XINEOS_GIGE, minimum_frame_time), \
 	{0}, NULL, 0 }, \
   \
   {-1, -1, "minimum_pixel_value", MXFT_DOUBLE, NULL, 0, {0}, \
