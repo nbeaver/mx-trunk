@@ -789,7 +789,7 @@ mxd_xineos_gige_trigger( MX_AREA_DETECTOR *ad )
 	video_pulse_width = MXT_XINEOS_GIGE_TRIGGER_WIDTH;
 
 	video_pulse_period =
-		pulse_width = MXT_XINEOS_GIGE_TRIGGER_WIDTH;
+		pulse_width - MXT_XINEOS_GIGE_TRIGGER_WIDTH;
 
 	/* Configure the pulse generator for this sequence. */
 
@@ -1171,6 +1171,8 @@ mxd_xineos_gige_set_parameter( MX_AREA_DETECTOR *ad )
 }
 
 /*--------------------------------------------------------------------------*/
+
+/* NOTE: This function is not called when running in a server. */
 
 MX_EXPORT mx_status_type
 mxd_xineos_gige_measure_correction( MX_AREA_DETECTOR *ad )
