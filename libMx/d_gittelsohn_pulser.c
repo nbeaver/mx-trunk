@@ -460,8 +460,6 @@ mxd_gittelsohn_pulser_start( MX_PULSE_GENERATOR *pulser )
 	static const char fname[] = "mxd_gittelsohn_pulser_start()";
 
 	MX_GITTELSOHN_PULSER *gittelsohn_pulser = NULL;
-	char command[200];
-	char response[200];
 	mx_status_type mx_status;
 
 	mx_status = mxd_gittelsohn_pulser_get_pointers( pulser,
