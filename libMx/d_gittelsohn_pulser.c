@@ -184,8 +184,6 @@ mxd_gittelsohn_pulser_set_arduino_parameters( MX_PULSE_GENERATOR *pulser,
 	unsigned long flags;
 	mx_status_type mx_status;
 
-	MX_DEBUG(-2,("%s: BEGIN", fname));
-
 	/*----------------------------------------------------------------*/
 
 	/* The Gittelsohn Arduino pulser only does square waves. */
@@ -246,8 +244,6 @@ mxd_gittelsohn_pulser_set_arduino_parameters( MX_PULSE_GENERATOR *pulser,
 
 	mx_status = mxd_gittelsohn_pulser_command( gittelsohn_pulser,
 					command, response, sizeof(response) );
-
-	MX_DEBUG(-2,("%s: END", fname));
 
 	return mx_status;
 }
