@@ -69,7 +69,7 @@ extern "C" {
 #define MXF_AD_CORRECTION_FRAME_GEOM_CORR_LAST	   		0x2
 #define MXF_AD_CORRECTION_FRAME_NO_GEOM_CORR	   		0x4
 #define MXF_AD_DEZINGER_CORRECTION_FRAME           		0x8
-#define MXF_AD_BIAS_CORR_AFTER_FLAT_FIELD		   		0x10
+#define MXF_AD_BIAS_CORR_AFTER_FLAT_FIELD		   	0x10
 
   /* If MXF_AD_SAVE_FRAME_AFTER_ACQUISITION is set and we are running in an
    * MX server, then the area detector datafile management routines will

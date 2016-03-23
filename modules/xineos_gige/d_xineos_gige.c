@@ -578,6 +578,18 @@ mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if 1
+	/*********************************************************************
+	 * FIXME!!! - We are adding one extra frame at the start that we     *
+	 * want to acquire and throw away.  However, we do not yet implement *
+	 * automatic throwing away of the bad frame at the start, so we have *
+	 * to depend on the users doing that manually for now.  However, we  *
+	 * should really FIX this by automatically discarding the bad frame. *
+	 *********************************************************************/
+
+	num_frames = num_frames + 1;
+#endif
+
 	/* If we are using a pulse generator to generate "internal" triggers,
 	 * then the video card's exposure time will be set by the width of
 	 * the pulse generator's pulses.  That means that we need to force
