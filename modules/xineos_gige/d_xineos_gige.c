@@ -578,7 +578,7 @@ mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if 1
+#if 0
 	/*********************************************************************
 	 * FIXME!!! - We are adding one extra frame at the start that we     *
 	 * want to acquire and throw away.  However, we do not yet implement *
