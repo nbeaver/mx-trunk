@@ -653,8 +653,7 @@ mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 
 			video_pulse_width = MXT_XINEOS_GIGE_TRIGGER_WIDTH;
 
-			video_pulse_period =
-				pulse_width - MXT_XINEOS_GIGE_TRIGGER_WIDTH;
+			video_pulse_period = pulse_width;
 
 			mx_status = mx_pulse_generator_setup(
 					xineos_gige->pulse_generator_record,
