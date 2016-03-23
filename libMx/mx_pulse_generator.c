@@ -233,41 +233,88 @@ mx_pulse_generator_stop( MX_RECORD *pulse_generator_record )
 
 MX_EXPORT mx_status_type
 mx_pulse_generator_setup( MX_RECORD *pulse_generator_record,
-			long mode,
 			double pulse_period,
 			double pulse_width,
 			unsigned long num_pulses,
-			double pulse_delay )
+			double pulse_delay,
+			long mode )
 {
+	static const char fname[] = "mx_pulse_generator_setup()";
+
+	MX_PULSE_GENERATOR *pulse_generator;
+	MX_PULSE_GENERATOR_FUNCTION_LIST *function_list;
+	mx_status_type ( *setup_fn ) ( MX_PULSE_GENERATOR * );
 	mx_status_type mx_status;
 
-	mx_status = mx_pulse_generator_set_mode( pulse_generator_record, mode );
+	mx_status = mx_pulse_generator_get_pointers( pulse_generator_record,
+				&pulse_generator, &function_list, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_pulse_generator_set_pulse_period( pulse_generator_record,
-								pulse_period );
+	setup_fn = function_list->setup;
 
-	if ( mx_status.code != MXE_SUCCESS )
+	if ( setup_fn != NULL ) {
+
+		/* If a 'setup' method exists, use that. */
+
+		pulse_generator->setup[0] = pulse_period;
+		pulse_generator->setup[1] = pulse_width;
+		pulse_generator->setup[2] = num_pulses;
+		pulse_generator->setup[3] = pulse_delay;
+		pulse_generator->setup[4] = mode;
+
+		mx_status = (*setup_fn)( pulse_generator );
+
 		return mx_status;
+	}
 
-	mx_status = mx_pulse_generator_set_pulse_width( pulse_generator_record,
-								pulse_width );
+	/* If a 'setup' method does _not_ exist, then set the individual
+	 * values directly.  If a value passed to this function is less
+	 * than zero, then skip setting that value.
+	 */
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( pulse_period >= 0.0 ) {
+		mx_status = mx_pulse_generator_set_pulse_period(
+				pulse_generator_record, pulse_period );
 
-	mx_status = mx_pulse_generator_set_num_pulses( pulse_generator_record,
-								num_pulses );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( pulse_width >= 0.0 ) {
+		mx_status = mx_pulse_generator_set_pulse_width(
+				pulse_generator_record, pulse_width );
 
-	mx_status = mx_pulse_generator_set_pulse_delay( pulse_generator_record,
-								num_pulses );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
-	return mx_status;
+	if ( num_pulses >= 0 ) {
+		mx_status = mx_pulse_generator_set_num_pulses(
+				pulse_generator_record, num_pulses );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	if ( pulse_delay >= 0.0 ) {
+		mx_status = mx_pulse_generator_set_pulse_delay(
+				pulse_generator_record, pulse_delay );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	if ( mode >= 0 ) {
+		mx_status = mx_pulse_generator_set_mode(
+				pulse_generator_record, mode );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2004-2005, 2015 Illinois Institute of Technology
+ * Copyright 2002, 2004-2005, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,6 +28,7 @@ typedef struct {
 	MX_NETWORK_FIELD pulse_delay_nf;
 	MX_NETWORK_FIELD pulse_period_nf;
 	MX_NETWORK_FIELD pulse_width_nf;
+	MX_NETWORK_FIELD setup_nf;
 	MX_NETWORK_FIELD start_nf;
 	MX_NETWORK_FIELD stop_nf;
 } MX_NETWORK_PULSER;
@@ -46,8 +47,7 @@ MX_API mx_status_type mxd_network_pulser_create_record_structures(
 					MX_RECORD *record );
 MX_API mx_status_type mxd_network_pulser_finish_record_initialization(
 					MX_RECORD *record );
-MX_API mx_status_type mxd_network_pulser_print_structure( FILE *output,
-							MX_RECORD *record );
+MX_API mx_status_type mxd_network_pulser_open( MX_RECORD *record );
 
 MX_API mx_status_type mxd_network_pulser_busy(
 					MX_PULSE_GENERATOR *pulse_generator );
@@ -58,6 +58,8 @@ MX_API mx_status_type mxd_network_pulser_stop(
 MX_API mx_status_type mxd_network_pulser_get_parameter(
 					MX_PULSE_GENERATOR *pulse_generator );
 MX_API mx_status_type mxd_network_pulser_set_parameter(
+					MX_PULSE_GENERATOR *pulse_generator );
+MX_API mx_status_type mxd_network_pulser_setup(
 					MX_PULSE_GENERATOR *pulse_generator );
 
 extern MX_RECORD_FUNCTION_LIST mxd_network_pulser_record_function_list;

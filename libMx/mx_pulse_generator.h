@@ -25,6 +25,8 @@
 extern "C" {
 #endif
 
+#define MXU_PGN_NUM_SETUP_PARAMETERS	5
+
 /* Values for the mode field. */
 
 #define MXF_PGN_PULSE		1
@@ -44,11 +46,12 @@ typedef struct {
 	double pulse_period;
 	double pulse_width;
 	unsigned long num_pulses;
-
 	double pulse_delay;
+	long mode;
+
+	double setup[MXU_PGN_NUM_SETUP_PARAMETERS];
 
 	long parameter_type;
-	long mode;
 
 	mx_bool_type busy;
 	mx_bool_type start;
@@ -62,10 +65,11 @@ typedef struct {
 #define MXLV_PGN_NUM_PULSES		16003
 #define MXLV_PGN_PULSE_DELAY		16004
 #define MXLV_PGN_MODE			16005
-#define MXLV_PGN_BUSY			16006
-#define MXLV_PGN_START			16007
-#define MXLV_PGN_STOP			16008
-#define MXLV_PGN_LAST_PULSE_NUMBER	16009
+#define MXLV_PGN_SETUP			16006
+#define MXLV_PGN_BUSY			16007
+#define MXLV_PGN_START			16008
+#define MXLV_PGN_STOP			16009
+#define MXLV_PGN_LAST_PULSE_NUMBER	16010
 
 #define MX_PULSE_GENERATOR_STANDARD_FIELDS \
   {MXLV_PGN_PULSE_PERIOD, -1, "pulse_period", MXFT_DOUBLE, NULL, 0, {0}, \
@@ -87,6 +91,11 @@ typedef struct {
   {MXLV_PGN_MODE, -1, "mode", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_PULSE_GENERATOR, mode), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+  \
+  {MXLV_PGN_SETUP, -1, "setup", MXFT_DOUBLE, \
+				NULL, 1, {MXU_PGN_NUM_SETUP_PARAMETERS}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_PULSE_GENERATOR, setup), \
+	{0}, NULL, 0 }, \
   \
   {MXLV_PGN_BUSY, -1, "busy", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_PULSE_GENERATOR, busy), \
@@ -111,6 +120,7 @@ typedef struct {
 	mx_status_type ( *stop ) ( MX_PULSE_GENERATOR *pulse_generator );
 	mx_status_type ( *get_parameter ) (MX_PULSE_GENERATOR *pulse_generator);
 	mx_status_type ( *set_parameter ) (MX_PULSE_GENERATOR *pulse_generator);
+	mx_status_type ( *setup ) (MX_PULSE_GENERATOR *pulse_generator);
 } MX_PULSE_GENERATOR_FUNCTION_LIST;
 
 MX_API_PRIVATE mx_status_type mx_pulse_generator_get_pointers(
@@ -129,11 +139,11 @@ MX_API mx_status_type mx_pulse_generator_start( MX_RECORD *record );
 MX_API mx_status_type mx_pulse_generator_stop( MX_RECORD *record );
 
 MX_API mx_status_type mx_pulse_generator_setup( MX_RECORD *record,
-						long mode,
 						double pulse_period,
 						double pulse_width,
 						unsigned long num_pulses,
-						double pulse_delay );
+						double pulse_delay,
+						long mode );
 
 MX_API mx_status_type mx_pulse_generator_get_mode( MX_RECORD *record,
 							long *mode );

@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2002, 2004, 2006, 2012, 2015 Illinois Institute of Technology
+ * Copyright 2002, 2004, 2006, 2012, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -50,6 +50,7 @@ mx_setup_pulser_process_functions( MX_RECORD *record )
 		case MXLV_PGN_PULSE_DELAY:
 		case MXLV_PGN_PULSE_PERIOD:
 		case MXLV_PGN_PULSE_WIDTH:
+		case MXLV_PGN_SETUP:
 		case MXLV_PGN_START:
 		case MXLV_PGN_STOP:
 			record_field->process_function
@@ -71,42 +72,86 @@ mx_pulser_process_function( void *record_ptr,
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;
 	MX_PULSE_GENERATOR *pulse_generator;
-	mx_status_type status;
+	double double_value;
+	long long_value;
+	unsigned long ulong_value;
+	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
 	pulse_generator = (MX_PULSE_GENERATOR *) (record->record_class_struct);
 
-	status = MX_SUCCESSFUL_RESULT;
+	mx_status = MX_SUCCESSFUL_RESULT;
 
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
 		case MXLV_PGN_PULSE_PERIOD:
-			status = mx_pulse_generator_get_pulse_period(
+			mx_status = mx_pulse_generator_get_pulse_period(
 								record, NULL );
 			break;
 		case MXLV_PGN_PULSE_WIDTH:
-			status = mx_pulse_generator_get_pulse_width(
+			mx_status = mx_pulse_generator_get_pulse_width(
 								record, NULL );
 			break;
 		case MXLV_PGN_NUM_PULSES:
-			status = mx_pulse_generator_get_num_pulses(
+			mx_status = mx_pulse_generator_get_num_pulses(
 								record, NULL );
 			break;
 		case MXLV_PGN_PULSE_DELAY:
-			status = mx_pulse_generator_get_pulse_delay(
+			mx_status = mx_pulse_generator_get_pulse_delay(
 								record, NULL );
 			break;
 		case MXLV_PGN_LAST_PULSE_NUMBER:
-			status = mx_pulse_generator_get_last_pulse_number(
+			mx_status = mx_pulse_generator_get_last_pulse_number(
 								record, NULL );
 			break;
 		case MXLV_PGN_MODE:
-			status = mx_pulse_generator_get_mode( record, NULL );
+			mx_status = mx_pulse_generator_get_mode( record, NULL );
+			break;
+		case MXLV_PGN_SETUP:
+			mx_status = mx_pulse_generator_get_pulse_period( record,
+								&double_value );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			pulse_generator->setup[0] = double_value;
+
+			mx_status = mx_pulse_generator_get_pulse_width( record,
+								&double_value );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			pulse_generator->setup[1] = double_value;
+
+			mx_status = mx_pulse_generator_get_num_pulses( record,
+								&ulong_value );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			pulse_generator->setup[2] = ulong_value;
+
+			mx_status = mx_pulse_generator_get_pulse_delay( record,
+								&double_value );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			pulse_generator->setup[3] = double_value;
+
+			mx_status = mx_pulse_generator_get_mode( record,
+								&long_value );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			pulse_generator->setup[4] = long_value;
 			break;
 		case MXLV_PGN_BUSY:
-			status = mx_pulse_generator_is_busy( record, NULL );
+			mx_status = mx_pulse_generator_is_busy( record, NULL );
 			break;
 		default:
 			MX_DEBUG( 1,(
@@ -118,30 +163,38 @@ mx_pulser_process_function( void *record_ptr,
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
 		case MXLV_PGN_PULSE_PERIOD:
-			status = mx_pulse_generator_set_pulse_period( record,
+			mx_status = mx_pulse_generator_set_pulse_period( record,
 						pulse_generator->pulse_period );
 			break;
 		case MXLV_PGN_PULSE_WIDTH:
-			status = mx_pulse_generator_set_pulse_width( record,
+			mx_status = mx_pulse_generator_set_pulse_width( record,
 						pulse_generator->pulse_width );
 			break;
 		case MXLV_PGN_NUM_PULSES:
-			status = mx_pulse_generator_set_num_pulses( record,
+			mx_status = mx_pulse_generator_set_num_pulses( record,
 						pulse_generator->num_pulses );
 			break;
 		case MXLV_PGN_PULSE_DELAY:
-			status = mx_pulse_generator_set_pulse_delay( record,
+			mx_status = mx_pulse_generator_set_pulse_delay( record,
 						pulse_generator->pulse_delay );
 			break;
 		case MXLV_PGN_MODE:
-			status = mx_pulse_generator_set_mode( record,
+			mx_status = mx_pulse_generator_set_mode( record,
 						pulse_generator->mode );
 			break;
+		case MXLV_PGN_SETUP:
+			mx_status = mx_pulse_generator_setup( record,
+					pulse_generator->setup[0],
+					pulse_generator->setup[1],
+					mx_round( pulse_generator->setup[2] ),
+					pulse_generator->setup[3],
+					mx_round( pulse_generator->setup[4] ) );
+			break;
 		case MXLV_PGN_START:
-			status = mx_pulse_generator_start( record );
+			mx_status = mx_pulse_generator_start( record );
 			break;
 		case MXLV_PGN_STOP:
-			status = mx_pulse_generator_stop( record );
+			mx_status = mx_pulse_generator_stop( record );
 			break;
 		default:
 			MX_DEBUG( 1,(
@@ -155,6 +208,6 @@ mx_pulser_process_function( void *record_ptr,
 			"Unknown operation code = %d", operation );
 	}
 
-	return status;
+	return mx_status;
 }
 

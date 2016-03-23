@@ -45,6 +45,7 @@ MX_API mx_status_type mxd_gittelsohn_pulser_get_parameter(
 					MX_PULSE_GENERATOR *pulser );
 MX_API mx_status_type mxd_gittelsohn_pulser_set_parameter(
 					MX_PULSE_GENERATOR *pulser );
+MX_API mx_status_type mxd_gittelsohn_pulser_setup( MX_PULSE_GENERATOR *pulser );
 
 extern MX_RECORD_FUNCTION_LIST mxd_gittelsohn_pulser_record_function_list;
 extern MX_PULSE_GENERATOR_FUNCTION_LIST mxd_gittelsohn_pulser_pulser_function_list;

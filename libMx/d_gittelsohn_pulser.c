@@ -19,6 +19,10 @@
 
 #define MXD_GITTELSOHN_PULSER_DEBUG_CONF	FALSE
 
+#define MXD_GITTELSOHN_PULSER_DEBUG_RUNNING	TRUE
+
+#define MXD_GITTELSOHN_PULSER_DEBUG_SETUP	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -46,7 +50,8 @@ MX_PULSE_GENERATOR_FUNCTION_LIST mxd_gittelsohn_pulser_pulser_function_list = {
 	mxd_gittelsohn_pulser_start,
 	mxd_gittelsohn_pulser_stop,
 	mxd_gittelsohn_pulser_get_parameter,
-	mxd_gittelsohn_pulser_set_parameter
+	mxd_gittelsohn_pulser_set_parameter,
+	mxd_gittelsohn_pulser_setup
 };
 
 /* MX digital output pulser data structures. */
@@ -179,7 +184,7 @@ mxd_gittelsohn_pulser_set_arduino_parameters( MX_PULSE_GENERATOR *pulser,
 	unsigned long flags;
 	mx_status_type mx_status;
 
-	MX_DEBUG(-2,("%s: MARKER #1", fname));
+	MX_DEBUG(-2,("%s: BEGIN", fname));
 
 	/*----------------------------------------------------------------*/
 
@@ -242,7 +247,7 @@ mxd_gittelsohn_pulser_set_arduino_parameters( MX_PULSE_GENERATOR *pulser,
 	mx_status = mxd_gittelsohn_pulser_command( gittelsohn_pulser,
 					command, response, sizeof(response) );
 
-	MX_DEBUG(-2,("%s: MARKER #2", fname));
+	MX_DEBUG(-2,("%s: END", fname));
 
 	return mx_status;
 }
@@ -446,7 +451,7 @@ mxd_gittelsohn_pulser_is_busy( MX_PULSE_GENERATOR *pulser )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_GITTELSOHN_PULSER_DEBUG
+#if MXD_GITTELSOHN_PULSER_DEBUG_RUNNING
 	MX_DEBUG(-2,("%s: pulser '%s', busy = %d",
 		fname, pulser->record->name, (int) pulser->busy));
 #endif
@@ -468,19 +473,9 @@ mxd_gittelsohn_pulser_start( MX_PULSE_GENERATOR *pulser )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Configure the pulse width and period before sending
-	 * the start command.
-	 */
+	/* Start the pulse generator. */
 
-	mx_status = mxd_gittelsohn_pulser_set_arduino_parameters( pulser,
-							gittelsohn_pulser );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Now start the pulse generator. */
-
-#if MXD_GITTELSOHN_PULSER_DEBUG
+#if MXD_GITTELSOHN_PULSER_DEBUG_RUNNING
 	MX_DEBUG(-2,("%s: Pulse generator '%s' starting, "
 		"pulse_width = %f, pulse_period = %f, num_pulses = %ld",
 			fname, pulser->record->name,
@@ -515,7 +510,7 @@ mxd_gittelsohn_pulser_stop( MX_PULSE_GENERATOR *pulser )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_GITTELSOHN_PULSER_DEBUG
+#if MXD_GITTELSOHN_PULSER_DEBUG_RUNNING
 	MX_DEBUG(-2,("%s: Stopping pulse generator '%s'.",
 		fname, pulser->record->name ));
 #endif
@@ -879,6 +874,43 @@ mxd_gittelsohn_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 #if MXD_GITTELSOHN_PULSER_DEBUG
 	MX_DEBUG(-2,("%s complete.", fname));
 #endif
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_gittelsohn_pulser_setup( MX_PULSE_GENERATOR *pulser )
+{
+	static const char fname[] = "mxd_gittelsohn_pulser_setup()";
+
+	MX_GITTELSOHN_PULSER *gittelsohn_pulser = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mxd_gittelsohn_pulser_get_pointers( pulser,
+						&gittelsohn_pulser, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	pulser->pulse_period = pulser->setup[0];
+	pulser->pulse_width = pulser->setup[1];
+	pulser->num_pulses = mx_round( pulser->setup[2] );
+	pulser->pulse_delay = pulser->setup[3];
+	pulser->mode = mx_round( pulser->setup[4] );
+
+#if MXD_GITTELSOHN_PULSER_DEBUG_SETUP
+	MX_DEBUG(-2,("%s: pulser '%s', period = %f, width = %f, "
+		"num_pulses = %lu, delay = %f, mode = %ld",
+		fname, pulser->record->name,
+		pulser->pulse_period,
+		pulser->pulse_width,
+		pulser->num_pulses,
+		pulser->pulse_delay,
+		pulser->mode ));
+#endif
+
+	mx_status = mxd_gittelsohn_pulser_set_arduino_parameters( pulser,
+							gittelsohn_pulser );
 
 	return mx_status;
 }

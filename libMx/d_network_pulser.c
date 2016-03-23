@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002-2007, 2014-2015 Illinois Institute of Technology
+ * Copyright 2002-2007, 2014-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -31,9 +31,8 @@ MX_RECORD_FUNCTION_LIST mxd_network_pulser_record_function_list = {
 	mxd_network_pulser_create_record_structures,
 	mxd_network_pulser_finish_record_initialization,
 	NULL,
-#if 0
-	mxd_network_pulser_print_structure
-#endif
+	NULL,
+	mxd_network_pulser_open
 };
 
 MX_PULSE_GENERATOR_FUNCTION_LIST
@@ -42,7 +41,8 @@ MX_PULSE_GENERATOR_FUNCTION_LIST
 	mxd_network_pulser_start,
 	mxd_network_pulser_stop,
 	mxd_network_pulser_get_parameter,
-	mxd_network_pulser_set_parameter
+	mxd_network_pulser_set_parameter,
+	mxd_network_pulser_setup
 };
 
 MX_RECORD_FIELD_DEFAULTS mxd_network_pulser_record_field_defaults[] = {
@@ -190,6 +190,10 @@ mxd_network_pulser_finish_record_initialization( MX_RECORD *record )
 		network_pulser->server_record,
 		"%s.pulse_width", network_pulser->remote_record_name );
 
+	mx_network_field_init( &(network_pulser->setup_nf),
+		network_pulser->server_record,
+		"%s.setup", network_pulser->remote_record_name );
+
 	mx_network_field_init( &(network_pulser->start_nf),
 		network_pulser->server_record,
 		"%s.start", network_pulser->remote_record_name );
@@ -202,16 +206,14 @@ mxd_network_pulser_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_network_pulser_print_structure( FILE *file, MX_RECORD *record )
+mxd_network_pulser_open( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_network_pulser_print_structure()";
+	static const char fname[] = "mxd_network_pulser_open()";
 
 	MX_PULSE_GENERATOR *pulse_generator;
 	MX_NETWORK_PULSER *network_pulser;
-	double pulse_period, pulse_width, pulse_delay;
-	unsigned long num_pulses;
-	long pulse_mode;
-	mx_bool_type busy;
+	MX_NETWORK_SERVER *network_server;
+	MX_PULSE_GENERATOR_FUNCTION_LIST *pg_flist;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -227,52 +229,51 @@ mxd_network_pulser_print_structure( FILE *file, MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	fprintf(file, "PULSE GENERATOR parameters for record '%s':\n",
-				record->name );
-	fprintf(file, "  Pulse generator type = network_pulser\n\n" );
-	fprintf(file, "  name                 = %s\n", record->name );
+	if ( network_pulser->server_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The server_record pointer for network pulser '%s' is NULL.",
+			record->name );
+	}
 
-	mx_status = mx_pulse_generator_get_pulse_period(record, &pulse_period);
+	network_server = (MX_NETWORK_SERVER *)
+			network_pulser->server_record->record_class_struct;
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( network_server == (MX_NETWORK_SERVER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_NETWORK_SERVER pointer for server '%s' "
+		"used by network pulser '%s' is NULL.",
+			network_pulser->server_record->name,
+			record->name );
+	}
 
-	fprintf(file, "  pulse_period         = %g sec\n", pulse_period );
+	/* The network pulse generator 'setup' field did not exist
+	 * until MX 2.0.1.  If the remote MX server is running an
+	 * older version of MX, then prevent this client from trying
+	 * to use the 'setup' field by overwriting the 'setup' method
+	 * pointer in the MX_PULSE_GENERATOR_FUNCTION_LIST table.
+	 */
 
-	mx_status = mx_pulse_generator_get_pulse_width( record, &pulse_width );
+	MX_DEBUG(-2,("%s: '%s' server version is %lu",
+		fname, record->name, network_server->remote_mx_version ));
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( network_server->remote_mx_version < 2000001L ) {
+		MX_DEBUG(-2,
+		("%s: '%s' setup method disabled due to old MX server.",
+			fname, record->name ));
 
-	fprintf(file, "  pulse_width          = %g sec\n", pulse_width );
+		pg_flist = (MX_PULSE_GENERATOR_FUNCTION_LIST *)
+				record->class_specific_function_list;
 
-	mx_status = mx_pulse_generator_get_num_pulses( record, &num_pulses);
+		if ( pg_flist == (MX_PULSE_GENERATOR_FUNCTION_LIST *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_PULSE_GENERATOR_FUNCTION_LIST pointer for "
+			"network pulser '%s' is NULL.", record->name );
+		}
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		/* Disable the setup method. */
 
-	fprintf(file, "  num_pulses           = %lu\n", num_pulses );
-
-	mx_status = mx_pulse_generator_get_pulse_delay( record, &pulse_delay );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	fprintf(file, "  pulse_delay          = %g sec\n", pulse_delay );
-
-	mx_status = mx_pulse_generator_get_mode( record, &pulse_mode );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	fprintf(file, "  mode                 = %ld\n", pulse_mode );
-
-	mx_status = mx_pulse_generator_is_busy( record, &busy);
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	fprintf(file, "  busy                 = %d\n", (int) busy );
+		pg_flist->setup = NULL;
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -478,5 +479,33 @@ mxd_network_pulser_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 	MX_DEBUG( 2,("%s complete.", fname));
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_network_pulser_setup( MX_PULSE_GENERATOR *pulse_generator )
+{
+	static const char fname[] = "mxd_network_pulser_setup()";
+
+	MX_NETWORK_PULSER *network_pulser;
+	long dimension[1];
+	mx_status_type mx_status;
+
+	network_pulser = NULL;
+
+	mx_status = mxd_network_pulser_get_pointers( pulse_generator,
+						&network_pulser, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s invoked for record '%s'.",
+			fname, pulse_generator->record->name));
+
+	dimension[0] = MXU_PGN_NUM_SETUP_PARAMETERS;
+
+	mx_status = mx_put_array( &(network_pulser->setup_nf),
+			MXFT_DOUBLE, 1, dimension, pulse_generator->setup );
+
+	return mx_status;
 }
 
