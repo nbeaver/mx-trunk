@@ -174,8 +174,10 @@ static mx_status_type
 mxd_gittelsohn_pulser_set_arduino_parameters( MX_PULSE_GENERATOR *pulser,
 				MX_GITTELSOHN_PULSER *gittelsohn_pulser )
 {
+#if 0
 	static const char fname[] =
 		"mxd_gittelsohn_pulser_set_arduino_parameters()";
+#endif
 
 	char command[200];
 	char response[200];
