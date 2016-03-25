@@ -65,9 +65,9 @@
 # mx/module/epics/Makefile.config.
 #
 
-MX_ARCH = linux
+MX_ARCH = win32
 
-MX_INSTALL_DIR = /opt/mx
+#MX_INSTALL_DIR = /opt/mx
 #MX_INSTALL_DIR = c:/opt/mx
 #MX_INSTALL_DIR = /mnt/mx
 #MX_INSTALL_DIR = /mnt/sdcard/opt/mx
@@ -76,7 +76,7 @@ MX_INSTALL_DIR = /opt/mx
 #MX_INSTALL_DIR = $(HOME)/mxtest
 #MX_INSTALL_DIR = /programs/mx/
 #MX_INSTALL_DIR = c:/users/lavender/mxtest
-#MX_INSTALL_DIR = c:/opt/mx-2.0.1-2016_03_23
+MX_INSTALL_DIR = c:/opt/mx-2.0.1-2016_03_21
 
 #------------------------------------------------------------------------------
 
