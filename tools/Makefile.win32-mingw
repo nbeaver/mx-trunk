@@ -1,5 +1,6 @@
 
-all: ../libMx/mx_private_version.h xdr.o xdr_hyper.o getopt.o \
+all: ../libMx/mx_private_version.h mx_config \
+	xdr.o xdr_hyper.o getopt.o \
 	strlcpy.o strlcat.o strptime.o mxgnuplt.exe
 
 include ../libMx/Makefile.version
@@ -13,6 +14,10 @@ mx_private_version: ../libMx/Makefile.version \
 
 ../libMx/mx_private_version.h: mx_private_version
 	./mx_private_version > ../libMx/mx_private_version.h
+
+mx_config: version/src/mx_config.c ../libMx/mx_private_version.h
+	$(CC) -I../libMx -DOS_WIN32 -DMX_ARCH="\"$(MX_ARCH)\"" \
+		-o mx_config version/src/mx_config.c
 
 xdr.o: xdr/src/xdr.c xdr/src/xdr.h
 	gcc -c $(RUN_TIME_LIBRARY_FLAGS) \

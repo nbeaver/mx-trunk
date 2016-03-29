@@ -48,7 +48,11 @@
 #         define __MX_NEED_TIMESPEC  0
 #      endif
 #   elif defined( __GNUC__ )
-#      define __MX_NEED_TIMESPEC  0
+#      if defined(_TIMESPEC_DEFINED)
+#         define __MX_NEED_TIMESPEC  0
+#      else
+#         define __MX_NEED_TIMESPEC  1
+#      endif
 #   else
 #      define __MX_NEED_TIMESPEC  1
 #   endif
