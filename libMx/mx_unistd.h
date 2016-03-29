@@ -48,8 +48,11 @@
 #  else
      /* For modern versions of Visual C++, we can get SSIZE_T from BaseTsd.h */
 
-#    include <BaseTsd.h>
-     typedef SSIZE_T ssize_t;
+#    if ( !defined(__GNUC__) )
+#      include <BaseTsd.h>
+       typedef SSIZE_T ssize_t;
+#    endif
+
 #  endif
 
 #else /* _not_ OS_WIN32 */
