@@ -1650,15 +1650,24 @@ mxd_sapera_lt_camera_trigger( MX_VIDEO_INPUT *vinput )
 #endif
 		/* Tell the camera to start sending image frames. */
 
-		sapera_status = sapera_lt_camera->transfer->Snap( num_frames );
+		if ( sp->sequence_type == MXT_SQ_STREAM ) {
+		    sapera_status = sapera_lt_camera->transfer->Grab();
 
-		if ( sapera_status == FALSE ) {
+		    if ( sapera_status == FALSE ) {
+			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+			"The attempt to call Grab() for camera '%s' failed.",
+				vinput->record->name );
+		    }
+		} else {
+		    sapera_status =
+				sapera_lt_camera->transfer->Snap( num_frames );
+
+		    if ( sapera_status == FALSE ) {
 			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 			"The attempt to call Snap() for camera '%s' failed.",
-			vinput->record->name );
+				vinput->record->name );
+		    }
 		}
-
-
 	} else {
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Trigger mode %ld is not supported for camera '%s'.",

@@ -16,13 +16,17 @@
 
 #define MXD_XINEOS_GIGE_DEBUG				FALSE
 
+#define MXD_XINEOS_GIGE_DEBUG_OPEN			FALSE
+
+#define MXD_XINEOS_GIGE_DEBUG_RESYNCHRONIZE		TRUE
+
 #define MXD_XINEOS_GIGE_DEBUG_ARM			TRUE
 
 #define MXD_XINEOS_GIGE_DEBUG_READOUT_TIMING		FALSE
 
 #define MXD_XINEOS_GIGE_DEBUG_MEASURE_CORRECTION	FALSE
 
-#define MXD_XINEOS_GIGE_DEBUG_IMAGE_CONTENTS		TRUE
+#define MXD_XINEOS_GIGE_DEBUG_FRAME_SKIPPING		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -52,7 +56,10 @@ MX_RECORD_FUNCTION_LIST mxd_xineos_gige_record_function_list = {
 	mx_area_detector_finish_record_initialization,
 	NULL,
 	NULL,
-	mxd_xineos_gige_open
+	mxd_xineos_gige_open,
+	NULL,
+	NULL,
+	mxd_xineos_gige_resynchronize
 };
 
 MX_AREA_DETECTOR_FUNCTION_LIST mxd_xineos_gige_ad_function_list = {
@@ -200,7 +207,7 @@ mxd_xineos_gige_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_XINEOS_GIGE_DEBUG
+#if MXD_XINEOS_GIGE_DEBUG_OPEN
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
 
@@ -216,7 +223,8 @@ mxd_xineos_gige_open( MX_RECORD *record )
 
 	/*---*/
 
-	ad->correction_frames_to_skip = 1;
+	ad->correction_frames_to_skip = 0;
+	xineos_gige->num_frames_to_skip = 2;
 
 	if ( xineos_flags & MXF_XINEOS_GIGE_AUTOMATICALLY_DUMP_PIXEL_VALUES ) {
 		xineos_gige->dump_pixel_values = TRUE;
@@ -406,8 +414,88 @@ mxd_xineos_gige_open( MX_RECORD *record )
 			return mx_status;
 	}
 
-#if MXD_XINEOS_GIGE_DEBUG
+#if MXD_XINEOS_GIGE_DEBUG_OPEN
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*----*/
+
+MX_EXPORT mx_status_type
+mxd_xineos_gige_resynchronize( MX_RECORD *record )
+{
+	static const char fname[] = "mxd_xineos_gige_resynchronize()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_XINEOS_GIGE *xineos_gige;
+	MX_RECORD *video_input_record;
+	MX_SEQUENCE_PARAMETERS vinput_sp;
+	mx_status_type mx_status;
+
+	/* Whether or not resynchronize is successful depends on the
+	 * nature of the video capture card's failure.  Some kinds
+	 * of failures require restarting the MX server or rebooting
+	 * the host computer, which is not something that resynchronize
+	 * can handle.
+	 */
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	ad = (MX_AREA_DETECTOR *) record->record_class_struct;
+
+	mx_status = mxd_xineos_gige_get_pointers( ad, &xineos_gige, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_XINEOS_GIGE_DEBUG_RESYNCHRONIZE
+	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
+#endif
+
+	/* In some situations, setting the video input card to streaming mode
+	 * with internal triggering for a while and then stopping it can put
+	 * the video card back into a mode such that we can control it.
+	 */
+
+	ad->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
+
+	video_input_record = xineos_gige->video_input_record;
+
+	mx_status = mx_video_input_set_trigger_mode( video_input_record,
+						MXT_IMAGE_INTERNAL_TRIGGER );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	vinput_sp.sequence_type = MXT_SQ_STREAM;
+	vinput_sp.num_parameters = 1;
+	vinput_sp.parameter_array[0] = 0.1;	/* exposure time in seconds */
+
+	mx_status = mx_video_input_set_sequence_parameters(
+					video_input_record, &vinput_sp );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_video_input_start( video_input_record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_msleep(2000);
+
+	mx_status = mx_video_input_stop( video_input_record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_XINEOS_GIGE_DEBUG_RESYNCHRONIZE
+	MX_DEBUG(-2,("%s complete for record '%s'", fname, record->name));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
@@ -427,6 +515,7 @@ mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 	double exposure_time;
 	double video_pulse_width, video_pulse_period;
 	long vinput_trigger_mode, num_frames;
+	long video_sequence_type, ad_sequence_type;
 	mx_status_type mx_status;
 
 	mx_status = mxd_xineos_gige_get_pointers( ad, &xineos_gige, fname );
@@ -482,11 +571,19 @@ mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 			return mx_status;
 	}
 
-	/* Get the exposure time, since we will need it in a moment. */
+	/* Get the exposure time and number of frames, since they are
+	 * all we need from the area detector's sequence parameters
+	 * in order to construct the video input card's MX sequence.
+	 */
 
 	sp = &(ad->sequence_parameters);
 
 	mx_status = mx_sequence_get_exposure_time( sp, 0, &exposure_time );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_sequence_get_num_frames( sp, &num_frames );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -500,6 +597,8 @@ mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 		fname, (int) xineos_gige->pulse_generator_is_available));
 	MX_DEBUG(-2,("%s: ad->trigger_mode = %#lx",
 		fname, ad->trigger_mode));
+	MX_DEBUG(-2,("%s: sp->sequence_type = %ld",
+		fname, sp->sequence_type));
 	MX_DEBUG(-2,
 	("%s: exposure_time = %f, pulse_generator_time_threshold = %f",
 		fname, exposure_time,
@@ -509,7 +608,6 @@ mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 
 	if ( xineos_gige->pulse_generator_is_available ) {
 	    if ( ad->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
-
 		switch( sp->sequence_type ) {
 		case MXT_SQ_ONE_SHOT:
 		case MXT_SQ_MULTIFRAME:
@@ -571,29 +669,11 @@ mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Get the number of frames from the area detector sequence. */
-
-	mx_status = mx_sequence_get_num_frames( sp, &num_frames );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if 0
-	/*********************************************************************
-	 * FIXME!!! - We are adding one extra frame at the start that we     *
-	 * want to acquire and throw away.  However, we do not yet implement *
-	 * automatic throwing away of the bad frame at the start, so we have *
-	 * to depend on the users doing that manually for now.  However, we  *
-	 * should really FIX this by automatically discarding the bad frame. *
-	 *********************************************************************/
-
-	num_frames = num_frames + 1;
-#endif
-
 	/* If we are using a pulse generator to generate "internal" triggers,
 	 * then the video card's exposure time will be set by the width of
-	 * the pulse generator's pulses.  That means that we need to force
-	 * the video card to expect a DURATION mode sequence.
+	 * the pulse generator's pulses or the time between corresponding
+	 * edges of the trigger pulse.  That means that we need to force the
+	 * video card to expect a DURATION mode sequence.
 	 */
 
 	xineos_gige->using_external_video_duration_mode = FALSE;
@@ -606,12 +686,7 @@ mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 		 * the video input will be triggered by the pulse generator.
 		 */
 
-		vinput_sp.sequence_type = MXT_SQ_DURATION;
-		vinput_sp.num_parameters = 1;
-		vinput_sp.parameter_array[0] = num_frames;
-
-		mx_status = mx_video_input_set_sequence_parameters(
-				video_input_record, &vinput_sp );
+		video_sequence_type = MXT_SQ_DURATION;
 	} else {
 		/* If we are not starting the sequence with the pulse
 		 * generator, but we _are_ using an external trigger
@@ -685,23 +760,74 @@ mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 			 * the pulse generator.
 			 */
 
-			vinput_sp.sequence_type = MXT_SQ_DURATION;
-			vinput_sp.num_parameters = 1;
-			vinput_sp.parameter_array[0] = num_frames;
-
-			mx_status = mx_video_input_set_sequence_parameters(
-				video_input_record, &vinput_sp );
+			video_sequence_type = MXT_SQ_DURATION;
 		} else {
 
 			/* Otherwise, make the video input sequence
 			 * a copy of the area detector's sequence.
 			 */
 
-			mx_status = mx_video_input_set_sequence_parameters(
-					video_input_record,
-					&(ad->sequence_parameters) );
+			ad_sequence_type = 
+				ad->sequence_parameters.sequence_type;
+
+			if ( ad_sequence_type == MXT_SQ_ONE_SHOT ) {
+				video_sequence_type = MXT_SQ_MULTIFRAME;
+				num_frames = 1;
+			} else {
+				video_sequence_type = ad_sequence_type;
+			}
 		}
 	}
+
+	/* Configure the sequence parameters for the video input record. */
+
+	memset( &vinput_sp, 0, sizeof(vinput_sp) );
+
+	vinput_sp.sequence_type = video_sequence_type;
+
+	switch( video_sequence_type ) {
+	case MXT_SQ_STREAM:
+		vinput_sp.num_parameters = 1;
+		vinput_sp.parameter_array[0] = exposure_time;
+		break;
+	case MXT_SQ_MULTIFRAME:
+		vinput_sp.num_parameters = 3;
+		vinput_sp.parameter_array[0] =
+			num_frames + xineos_gige->num_frames_to_skip;
+
+		vinput_sp.parameter_array[1] = exposure_time;
+		vinput_sp.parameter_array[2] = exposure_time;
+		break;
+	case MXT_SQ_DURATION:
+		vinput_sp.num_parameters = 1;
+		vinput_sp.parameter_array[0] =
+			num_frames + xineos_gige->num_frames_to_skip;
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Video sequence type %lu is not supported for "
+		"video input '%s' when used by area detector '%s'.",
+			video_sequence_type,
+			video_input_record->name,
+			ad->record->name );
+		break;
+	}
+
+#if MXD_XINEOS_GIGE_DEBUG_FRAME_SKIPPING
+	MX_DEBUG(-2,("%s: vinput_sp.sequence_type = %ld",
+				fname, vinput_sp.sequence_type));
+	MX_DEBUG(-2,("%s: vinput_sp.num_parameters = %ld",
+				fname, vinput_sp.num_parameters));
+	MX_DEBUG(-2,("%s: vinput_sp.parameter_array[0] = %f",
+				fname, vinput_sp.parameter_array[0]));
+	MX_DEBUG(-2,("%s: vinput_sp.parameter_array[1] = %f",
+				fname, vinput_sp.parameter_array[1]));
+	MX_DEBUG(-2,("%s: vinput_sp.parameter_array[2] = %f",
+				fname, vinput_sp.parameter_array[2]));
+#endif
+
+	mx_status = mx_video_input_set_sequence_parameters(
+					video_input_record, &vinput_sp );
 
 	if ( mx_status.code != MXE_SUCCESS )
  		return mx_status;
@@ -787,6 +913,8 @@ mxd_xineos_gige_trigger( MX_AREA_DETECTOR *ad )
 		break;
 	}
 
+	num_pulses = num_pulses + xineos_gige->num_frames_to_skip;
+
 	MX_DEBUG(-2,("%s: pulse_width = %f, num_pulses = %lu",
 		fname, pulse_width, num_pulses));
 
@@ -858,10 +986,21 @@ mxd_xineos_gige_get_extended_status( MX_AREA_DETECTOR *ad )
 	unsigned long vinput_status;
 	mx_status_type mx_status;
 
+#if MXD_XINEOS_GIGE_DEBUG_FRAME_SKIPPING
+	static long counter = 0L;
+#endif
+
 	mx_status = mxd_xineos_gige_get_pointers( ad, &xineos_gige, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if 0
+	if ( ad->correction_frames_to_skip != 0 ) {
+		MX_DEBUG(-2,("%s: ad->correction_frames_to_skip = %ld",
+			fname, ad->correction_frames_to_skip));
+	}
+#endif
 
 	mx_status = mx_video_input_get_extended_status(
 				xineos_gige->video_input_record,
@@ -872,7 +1011,26 @@ mxd_xineos_gige_get_extended_status( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	ad->last_frame_number = vinput_last_frame_number;
+	if ( vinput_last_frame_number  <  xineos_gige->num_frames_to_skip ) {
+		ad->last_frame_number = -1L;
+	} else {
+		ad->last_frame_number = vinput_last_frame_number
+					- xineos_gige->num_frames_to_skip;
+	}
+
+#if MXD_XINEOS_GIGE_DEBUG_FRAME_SKIPPING
+	counter++;
+
+	if ( (counter % 20) == 0 ) {
+	    MX_DEBUG(-2,("extended status: num_frames_to_skip = %ld, "
+		"vinput_last_frame_number = %ld, "
+		"ad->last_frame_number = %ld",
+			xineos_gige->num_frames_to_skip,
+			vinput_last_frame_number,
+			ad->last_frame_number ));
+	}
+#endif
+
 	ad->total_num_frames = vinput_total_num_frames;
 
 	ad->status = 0;
@@ -891,6 +1049,7 @@ mxd_xineos_gige_readout_frame( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_xineos_gige_readout_frame()";
 
 	MX_XINEOS_GIGE *xineos_gige = NULL;
+	long video_frame_number;
 	mx_status_type mx_status;
 
 #if MXD_XINEOS_GIGE_DEBUG_READOUT_TIMING
@@ -911,10 +1070,21 @@ mxd_xineos_gige_readout_frame( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+	if ( ad->readout_frame < 0L ) {
+		video_frame_number = -1L;
+	} else {
+		video_frame_number = ad->readout_frame
+					+ xineos_gige->num_frames_to_skip;
+	}
+
+#if MXD_XINEOS_GIGE_DEBUG_FRAME_SKIPPING
+	MX_DEBUG(-2,("%s: ad->readout_frame = %ld, video_frame_number = %ld",
+		fname, ad->readout_frame, video_frame_number));
+#endif
 
 	mx_status = mx_video_input_get_frame(
 		xineos_gige->video_input_record,
-		ad->readout_frame, &(ad->image_frame) );
+		video_frame_number, &(ad->image_frame) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1134,31 +1304,16 @@ mxd_xineos_gige_set_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_TRIGGER_MODE:
-		mx_status = mx_video_input_set_trigger_mode(
-				video_input_record, ad->trigger_mode );
-		break;
-
 	case MXLV_AD_SEQUENCE_TYPE:
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
 	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY: 
 
-		switch( ad_seq->sequence_type ) {
-		case MXT_SQ_MULTIFRAME:
-			/* This detector does not have a gap time, so we force
-			 * the frame time to be the same as the exposure time.
-			 */
-
-			param_array[2] = param_array[1];
-			break;
-		default:
-			break;
-		}
-
-		/* Now we send the command to the video capture card. */
-
-		mx_status = mx_video_input_set_sequence_parameters(
-					video_input_record,
-					&(ad->sequence_parameters) );
+		/* Setting the trigger mode and sending sequence parameters
+		 * to the video capture card is a job better done by the
+		 * mxd_xineos_gige_arm() methods, since it has access to
+		 * information that is known only at the time that we do
+		 * the arm().  Thus, we defer this job to the arm() method.
+		 */
 		break; 
 
 	case MXLV_AD_MARK_FRAME_AS_SAVED:
