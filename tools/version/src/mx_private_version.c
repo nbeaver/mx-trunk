@@ -65,22 +65,12 @@ main( int argc, char **argv )
 
 	fprintf( stdout, "\n" );
 
-#if defined(_MSC_VER)
-#  define MXP_PRINT_BRANCH_LABEL(LABEL) \
-	fprintf( stdout, "#define MX_BRANCH_LABEL  \"" ## LABEL ## "\"\n" )
+	fprintf( stdout, "#define MX_BRANCH_LABEL " );
+	fputc( '"', stdout );
+	fprintf( stdout, MX_BRANCH_LABEL );
+	fputc( '"', stdout );
 
-	MXP_PRINT_BRANCH_LABEL(MX_BRANCH_LABEL);
-
-#elif ( defined(OS_VMS) && !defined(__GNUC__) )
-	fprintf( stdout,
-		"#define MX_BRANCH_LABEL  \"none\"\n" );
-#else
-	fprintf( stdout,
-		"#define MX_BRANCH_LABEL  \"" MX_BRANCH_LABEL "\"\n" );
-#endif
-
-
-	fprintf( stdout, "\n" );
+	fprintf( stdout, "\n\n" );
 
 	mxp_generate_macros( stdout );
 
@@ -417,7 +407,7 @@ mxp_generate_macros( FILE *version_file )
 	win32_minor_version = osvi.dwMinorVersion;
 	win32_platform_id = osvi.dwPlatformId;
 
-#if HAVE_OSVERSIONEX
+#if HAVE_OSVERSIONINFOEX
 	if ( use_extended_struct ) {
 		win32_product_type = osvi.wProductType;
 	} else {
