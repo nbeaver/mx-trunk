@@ -183,7 +183,6 @@ mxd_gittelsohn_pulser_set_arduino_parameters( MX_PULSE_GENERATOR *pulser,
 	char response[200];
 	long on_ms, off_ms;
 	long num_pulses;
-	unsigned long flags;
 	mx_status_type mx_status;
 
 	/*----------------------------------------------------------------*/
@@ -198,15 +197,9 @@ mxd_gittelsohn_pulser_set_arduino_parameters( MX_PULSE_GENERATOR *pulser,
 
 	/*----------------------------------------------------------------*/
 
-	flags = gittelsohn_pulser->gittelsohn_pulser_flags;
-
 	/* Set the number of pulses. */
 
-	if ( flags & MXF_GITTELSOHN_PULSER_USE_RUNT_PULSE ) {
-		num_pulses = pulser->num_pulses + 1L;
-	} else {
-		num_pulses = pulser->num_pulses;
-	}
+	num_pulses = pulser->num_pulses - gittelsohn_pulser->num_frames_to_skip;
 
 	snprintf( command, sizeof(command), "cycles %ld", num_pulses );
 
@@ -408,16 +401,16 @@ mxd_gittelsohn_pulser_open( MX_RECORD *record )
 		"Instead, it was '%s'.", record->name, response );
 	}
 
-	/* If the version of the Arduino code is 2.6 or later, then
-	 * unconditionally turn off the runt pulse feature.  For these
-	 * newer versions, the Arduino itself generates an internal
-	 * runt pulse without being told to do so by 'mxserver', so
-	 * we no longer need to add 1 to the number of pulses.
+	/* If the version of the Arduino code is 2.7 or later, then
+	 * the pulse generator internally generates one extra pulse
+	 * at the start to handle discarding the junk stored counts
+	 * readout by the first frame.
 	 */
 
-	if ( gittelsohn_pulser->firmware_version >= 2.6 ) {
-		gittelsohn_pulser->gittelsohn_pulser_flags
-			&= ( ~ MXF_GITTELSOHN_PULSER_USE_RUNT_PULSE );
+	if ( gittelsohn_pulser->firmware_version >= 2.7 ) {
+		gittelsohn_pulser->num_frames_to_skip = 1;
+	} else {
+		gittelsohn_pulser->num_frames_to_skip = 0;
 	}
 
 	/* Unconditionally stop the pulse generator. */
@@ -591,11 +584,8 @@ mxd_gittelsohn_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 			"have at least 4 tokens in it for record '%s'.",
 				response, pulser->record->name );
 		} else {
-			if ( flags & MXF_GITTELSOHN_PULSER_USE_RUNT_PULSE ) {
-				pulser->num_pulses = atol( argv[3] ) - 1L;
-			} else {
-				pulser->num_pulses = atol( argv[3] );
-			}
+			pulser->num_pulses = atol( argv[3] )
+				+ gittelsohn_pulser->num_frames_to_skip;
 
 			mx_free(argv);
 

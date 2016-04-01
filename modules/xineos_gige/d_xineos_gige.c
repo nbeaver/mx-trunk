@@ -223,8 +223,13 @@ mxd_xineos_gige_open( MX_RECORD *record )
 
 	/*---*/
 
+	/* ad->correction_frames_to_skip should normally be set to 0, since
+	 * for this detector xineos_gige->num_frames_to_skip handles the job
+	 * for both normal and correction frame sequences.
+	 */
+
 	ad->correction_frames_to_skip = 0;
-	xineos_gige->num_frames_to_skip = 2;
+	xineos_gige->num_frames_to_skip = 1;
 
 	if ( xineos_flags & MXF_XINEOS_GIGE_AUTOMATICALLY_DUMP_PIXEL_VALUES ) {
 		xineos_gige->dump_pixel_values = TRUE;
@@ -341,8 +346,7 @@ mxd_xineos_gige_open( MX_RECORD *record )
 				    xineos_gige->pulse_generator_name,
 				    record->name );
 				
-				xineos_gige->pulse_generator_record
-							= NULL;
+				xineos_gige->pulse_generator_record = NULL;
 			}
 		}
 	}
@@ -357,8 +361,8 @@ mxd_xineos_gige_open( MX_RECORD *record )
 	 * use the pulse generator for exposures greater than or equal
 	 * to this time if a pulse generator is present.
 	 *
-	 * Note: Currently supported versions of this use pulse generators
-	 * for everything.
+	 * Note: Currently supported versions of this driver use pulse
+	 * generators for everything.
 	 */
 
 	xineos_gige->pulse_generator_time_threshold = 0.0;
@@ -726,6 +730,9 @@ mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 					ad->record->name );
 				break;
 			}
+
+			num_pulses = num_pulses
+					+ xineos_gige->num_frames_to_skip;
 
 			if ( pulse_width < xineos_gige->minimum_frame_time )
 			{
