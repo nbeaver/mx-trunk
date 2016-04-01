@@ -548,32 +548,6 @@ mxp_generate_macros( FILE *version_file )
 
 	fprintf( version_file, "\n" );
 
-#if HAVE_OSVERSIONINFOEX
-	/* Look for additional version information. */
-
-	if ( use_extended_struct ) {
-		char *ptr;
-		size_t length;
-
-		/* Get a pointer to the service pack information. */
-
-		ptr = osvi.szCSDVersion;
-
-#if 1
-		fprintf( stderr, "\nptr = '%s'\n", ptr );
-#endif
-		/* See if anything else follows the service pack information. */
-
-		length = strlen(ptr);
-
-		ptr = ptr + length + 1;
-
-		if ( *ptr != '\0' ) {
-			fprintf( stderr, "\nptr 2 = '%s'\n", ptr );
-		}
-	}
-#endif
-
 	return;
 }
 
