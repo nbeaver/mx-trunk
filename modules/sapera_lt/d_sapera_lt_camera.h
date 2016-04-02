@@ -30,7 +30,8 @@ typedef struct {
 	char config_filename[MXU_FILENAME_LENGTH+1];
 	long num_frame_buffers;
 
-	unsigned long total_num_frames_at_start;
+	unsigned long user_total_num_frames_at_start;
+	unsigned long raw_total_num_frames_at_start;
 	unsigned long num_frames_left_to_acquire;
 
 	SapAcqDevice       *acq_device;

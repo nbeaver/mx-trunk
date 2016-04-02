@@ -16,7 +16,7 @@
 
 #define MXD_XINEOS_GIGE_DEBUG				FALSE
 
-#define MXD_XINEOS_GIGE_DEBUG_OPEN			FALSE
+#define MXD_XINEOS_GIGE_DEBUG_OPEN			TRUE
 
 #define MXD_XINEOS_GIGE_DEBUG_RESYNCHRONIZE		TRUE
 
@@ -188,11 +188,14 @@ mxd_xineos_gige_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_xineos_gige_open()";
 
-	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR *ad = NULL;
 	MX_XINEOS_GIGE *xineos_gige = NULL;
-	MX_RECORD *video_input_record;
+	MX_RECORD *video_input_record = NULL;
+	MX_RECORD_FIELD *num_frames_to_skip_field = NULL;
 	long i;
 	unsigned long mask, xineos_flags;
+	long *num_frames_to_skip_ptr;
+	long num_frames_to_skip;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -416,6 +419,35 @@ mxd_xineos_gige_open( MX_RECORD *record )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	}
+
+	/* Configure the video input driver to set the value of the
+	 * 'num_frames_to_skip' field to the number of junk frames
+	 * to be discarded at the start of a sequence.
+	 */
+
+	mx_status = mx_find_record_field( video_input_record,
+					"num_frames_to_skip",
+					&num_frames_to_skip_field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	num_frames_to_skip_ptr = (long *)
+		mx_get_field_value_pointer( num_frames_to_skip_field );
+
+#if MXD_XINEOS_GIGE_DEBUG_OPEN
+	MX_DEBUG(-2,("%s: num_frames_to_skip_ptr = %p",
+		fname, num_frames_to_skip_ptr));
+#endif
+
+	num_frames_to_skip = 1;
+
+	*num_frames_to_skip_ptr = num_frames_to_skip;
+
+#if MXD_XINEOS_GIGE_DEBUG_OPEN
+	MX_DEBUG(-2,("%s: *num_frames_to_skip_ptr = %ld",
+		fname, *num_frames_to_skip_ptr));
+#endif
 
 #if MXD_XINEOS_GIGE_DEBUG_OPEN
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));

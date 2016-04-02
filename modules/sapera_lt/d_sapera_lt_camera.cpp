@@ -192,9 +192,18 @@ mxd_sapera_lt_camera_acquisition_callback( SapXferCallbackInfo *info )
 	MX_VIDEO_INPUT *vinput;
 	MX_SAPERA_LT_CAMERA *sapera_lt_camera;
 	long i;
+	long raw_frame_buffer_number;
 	mx_bool_type old_frame_buffer_was_unsaved;
 	mx_bool_type skip_frame;
 	struct timespec frame_time, time_offset;
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG_ACQUISITION_CALLBACK
+	MX_DEBUG(-2,
+	  ("***************************************************************"));
+	MX_DEBUG(-2,("***** %s invoked *****", fname ));
+	MX_DEBUG(-2,
+	  ("***************************************************************"));
+#endif
 
 	sapera_lt_camera =
 		(MX_SAPERA_LT_CAMERA *) info->GetContext();
@@ -211,18 +220,28 @@ mxd_sapera_lt_camera_acquisition_callback( SapXferCallbackInfo *info )
 			sapera_lt_camera->boot_time,
 			time_offset );
 
-	/* Figure out what Sapera thinks the frame number is in the
-	 * currently running sequence.
-	 */
+	/* Update the raw last frame number for this sequence. */
 
-	sapera_lt_camera->raw_last_frame_number =
-			(long) info->GetEventCount() - 1L;
+	sapera_lt_camera->raw_last_frame_number++;
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG_ACQUISITION_CALLBACK
+	MX_DEBUG(-2,("%s: sapera_lt_camera->raw_last_frame_number = %ld",
+		fname, sapera_lt_camera->raw_last_frame_number));
+	MX_DEBUG(-2,("%s: sapera_lt_camera->num_frames_to_skip = %ld",
+		fname, sapera_lt_camera->num_frames_to_skip));
+#endif
 
 	/*----*/
 
 	if ( sapera_lt_camera->raw_last_frame_number
-		< sapera_lt_camera->num_frames_to_skip )
+	    < sapera_lt_camera->num_frames_to_skip )
 	{
+		skip_frame = TRUE;
+	} else {
+		skip_frame = FALSE;
+	}
+
+	if ( skip_frame ) {
 
 		/* If we are still in the frames that are supposed to
 		 * be skipped, then set 'last_frame_number' to indicate
@@ -232,8 +251,22 @@ mxd_sapera_lt_camera_acquisition_callback( SapXferCallbackInfo *info )
 		vinput->last_frame_number = -1L;
 
 		old_frame_buffer_was_unsaved = FALSE;
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG_ACQUISITION_CALLBACK
+		MX_DEBUG(-2,("%s: skipping raw last frame.", fname));
+#endif
+
+		sapera_lt_camera->raw_total_num_frames++;
+
+		/* If we are skipping this frame, then we are done now. */
+
+		return;
 	} else {
 		/* This is a frame that we want to save. */
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG_ACQUISITION_CALLBACK
+		MX_DEBUG(-2,("%s: saving raw last frame.", fname));
+#endif
 
 		vinput->last_frame_number =
 			sapera_lt_camera->raw_last_frame_number
@@ -241,15 +274,28 @@ mxd_sapera_lt_camera_acquisition_callback( SapXferCallbackInfo *info )
 
 		vinput->total_num_frames++;
 
-		/* Save the mapping from user frame number
-		 * to raw frame number.
+		/* Save the mapping from user frame number to raw frame number.
+		 *
+		 * Note that the value of raw_total_num_frames has _not_ _yet_
+		 * been incremented by this callback, which is why the
+		 * following statement does not have " - 1L" at the end.
 		 */
 
-		i = vinput->total_num_frames
+		raw_frame_buffer_number =
+			sapera_lt_camera->raw_total_num_frames;
+
+		/*---*/
+
+		i = ( vinput->total_num_frames - 1L )
 			% sapera_lt_camera->num_frame_buffers;
 
 		sapera_lt_camera->raw_frame_number_array[i]
-			= sapera_lt_camera->raw_total_num_frames;
+					= raw_frame_buffer_number;
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG_ACQUISITION_CALLBACK
+		MX_DEBUG(-2,("%s: raw_frame_number_array[%ld] = %ld",
+			fname, i, sapera_lt_camera->raw_frame_number_array[i]));
+#endif
 
 		sapera_lt_camera->frame_time[i] = frame_time;
 
@@ -267,11 +313,9 @@ mxd_sapera_lt_camera_acquisition_callback( SapXferCallbackInfo *info )
 		if ( sapera_lt_camera->num_frames_left_to_acquire > 0 ) {
 			sapera_lt_camera->num_frames_left_to_acquire--;
 		}
+
+		sapera_lt_camera->raw_total_num_frames++;
 	}
-
-	/*----*/
-
-	sapera_lt_camera->raw_total_num_frames++;
 
 	/*----*/
 
@@ -358,8 +402,11 @@ mxd_sapera_lt_camera_setup_frame_counters( MX_VIDEO_INPUT *vinput,
 
 	/* Setup the Sapera frame counters. */
 
-	sapera_lt_camera->total_num_frames_at_start
+	sapera_lt_camera->user_total_num_frames_at_start
 					= vinput->total_num_frames;
+
+	sapera_lt_camera->raw_total_num_frames_at_start
+				= sapera_lt_camera->raw_total_num_frames;
 
 	mx_status = mx_sequence_get_num_frames( &(vinput->sequence_parameters),
 						&num_frames_in_sequence );
@@ -1280,6 +1327,13 @@ mxd_sapera_lt_camera_open( MX_RECORD *record )
 			record->name );
 	}
 
+	/* If an area detector driver wants us to skip frames, then it
+	 * must set our 'num_frames_to_skip' variable to a non-zero
+	 * value in the area detector's open() routine.
+	 */
+
+	sapera_lt_camera->num_frames_to_skip = 0;
+
 	/*---*/
 
 	sapera_lt_camera->old_total_num_frames = -1;
@@ -1370,7 +1424,7 @@ mxd_sapera_lt_camera_open( MX_RECORD *record )
 		fname, vinput->bytes_per_frame));
 #endif
 
-	sapera_lt_camera->total_num_frames_at_start
+	sapera_lt_camera->user_total_num_frames_at_start
 					= vinput->total_num_frames;
 
 	sapera_lt_camera->num_frames_left_to_acquire = 0;
@@ -1419,7 +1473,7 @@ mxd_sapera_lt_camera_arm( MX_VIDEO_INPUT *vinput )
 	MX_SAPERA_LT_CAMERA *sapera_lt_camera = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
 	double exposure_time, frame_time;
-	unsigned long num_frames;
+	unsigned long num_frames, raw_num_frames;
 	SapAcqDevice *acq_device;
 	BOOL sapera_status, is_grabbing;
 	mx_status_type mx_status;
@@ -1456,6 +1510,10 @@ mxd_sapera_lt_camera_arm( MX_VIDEO_INPUT *vinput )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	}
+
+	/* Initialize the raw_last_frame_number counter to "no frames" (-1) */
+
+	sapera_lt_camera->raw_last_frame_number = -1L;
 
 	/* Clear the buffer overrun flag. */
 
@@ -1538,15 +1596,7 @@ mxd_sapera_lt_camera_arm( MX_VIDEO_INPUT *vinput )
 				vinput->record->name );
 		}
 
-		/* According to Teledyne Dalsa, external triggering requires
-		 * you to use Grab() instead of Snap().
-		 * 
-		 * But we are using Snap() below? (WML 2016-03-16)
-		 * 
-		 * FIXME: However, the camera may grab more frames than we
-		 * want, so we will have to check for this possiblity in
-		 * the code that handles autosaving of files.
-		 */
+		/* Configure the DALSA camera to be externally triggered. */
 
 		sapera_status = acq_device->SetFeatureValue(
 					"SynchronizationMode",
@@ -1564,12 +1614,15 @@ mxd_sapera_lt_camera_arm( MX_VIDEO_INPUT *vinput )
 		 * start the acquisition.
 		 */
 
-#if 0
-		sapera_status = sapera_lt_camera->transfer->Grab();
-#else
-		sapera_status = sapera_lt_camera->transfer->Snap(
-			num_frames + sapera_lt_camera->num_frames_to_skip );
+		raw_num_frames = num_frames
+				+ sapera_lt_camera->num_frames_to_skip;
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG_ARM
+		MX_DEBUG(-2,("%s: Snap( %lu )", fname, raw_num_frames));
 #endif
+
+		sapera_status = sapera_lt_camera->transfer->Snap(
+						raw_num_frames );
 
 		if ( sapera_status == FALSE ) {
 			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
@@ -1905,8 +1958,10 @@ mxd_sapera_lt_camera_get_extended_status( MX_VIDEO_INPUT *vinput )
 	}
 #endif
 
-	vinput->last_frame_number = vinput->total_num_frames
-		- sapera_lt_camera->total_num_frames_at_start - 1;
+	/* Computing 'last_frame_number' and 'total_num_frames'
+	 * for the MX_VIDEO_INPUT record is handled in the
+	 * mxd_sapera_lt_camera_acquisition_callback() function.
+	 */
 
 	if ( vinput->status & MXSF_VIN_IS_BUSY ) {
 		vinput->busy = TRUE;
@@ -1980,7 +2035,7 @@ mxd_sapera_lt_camera_get_frame( MX_VIDEO_INPUT *vinput )
 
 	MX_SAPERA_LT_CAMERA *sapera_lt_camera = NULL;
 	MX_IMAGE_FRAME *frame;
-	unsigned long absolute_frame_number;
+	unsigned long user_absolute_frame_number;
 	unsigned long raw_absolute_frame_number;
 	unsigned long raw_modulo_frame_number;
 	int buffer_resource_index;
@@ -2023,16 +2078,23 @@ mxd_sapera_lt_camera_get_frame( MX_VIDEO_INPUT *vinput )
 
 	mx_data_address = vinput->frame->image_data;
 
-	/* Get the SapBuffer's address for the buffer data. */
-
-	absolute_frame_number =
-		sapera_lt_camera->total_num_frames_at_start
-			+ vinput->frame_number;
+	/* Start figuring out which Sapera buffer resource index to use. */
 
 	/* Get the raw Sapera frame number from the user frame number. */
 
+	user_absolute_frame_number =
+		sapera_lt_camera->user_total_num_frames_at_start
+			+ vinput->frame_number;
+
 	raw_absolute_frame_number =
-	    sapera_lt_camera->raw_frame_number_array[ absolute_frame_number ];
+    sapera_lt_camera->raw_frame_number_array[ user_absolute_frame_number ];
+
+	if ( raw_absolute_frame_number < 0 ) {
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"An image frame has not yet been acquired for "
+		"user absolute frame number %ld of video input '%s'.",
+			user_absolute_frame_number, vinput->record->name );
+	}
 
 	/* The SapBuffer appears to behave as a ring buffer (no surprise),
 	 * so the offset we pass to GetAddress must be the absolute frame
@@ -2045,12 +2107,16 @@ mxd_sapera_lt_camera_get_frame( MX_VIDEO_INPUT *vinput )
 	buffer_resource_index = (int) raw_modulo_frame_number;
 
 #if MXD_SAPERA_LT_CAMERA_DEBUG_GET_FRAME
-	MX_DEBUG(-2,("%s: total_num_frames_at_start = %lu, frame_number = %ld",
-		fname, sapera_lt_camera->total_num_frames_at_start,
-		vinput->frame_number));
+	MX_DEBUG(-2,("%s: user_total_num_frames_at_start = %lu, "
+		"raw_total_num_frames_at_start = %lu", fname,
+			sapera_lt_camera->user_total_num_frames_at_start,
+			sapera_lt_camera->raw_total_num_frames_at_start));
 
-	MX_DEBUG(-2,("%s: absolute_frame_number = %lu",
-		fname, absolute_frame_number));
+	MX_DEBUG(-2,("%s: vinput->frame_number = %ld",
+		fname, vinput->frame_number));
+
+	MX_DEBUG(-2,("%s: user_absolute_frame_number = %lu",
+		fname, user_absolute_frame_number));
 
 	MX_DEBUG(-2,("%s: raw_absolute_frame_number = %lu",
 		fname, raw_absolute_frame_number));
