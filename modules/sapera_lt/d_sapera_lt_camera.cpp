@@ -38,6 +38,8 @@
 
 #define MXD_SAPERA_LT_CAMERA_DEBUG_NUM_FRAMES_LEFT_TO_ACQUIRE	TRUE
 
+#define MXD_SAPERA_LT_CAMERA_DEBUG_ACQUISITION_CALLBACK		TRUE
+
 #define MXD_SAPERA_LT_CAMERA_DEBUG_MX_PARAMETERS		FALSE
 
 #define MXD_SAPERA_LT_CAMERA_SHOW_FRAME_COUNTER			TRUE
@@ -274,49 +276,8 @@ mxd_sapera_lt_camera_acquisition_callback( SapXferCallbackInfo *info )
 	/*----*/
 
 #if MXD_SAPERA_LT_CAMERA_SHOW_FRAME_COUNTER
-	{
-		/* Display the fact that a frame has been captured. */
-
-		uint32_t divisor, remainder, result;
-		char ascii_digit;
-		mx_bool_type suppress_output;
-
-		/* We do not necessarily know what context this callback
-		 * is invoked from, so we use write() which is invokable
-		 * from pretty much anywhere.
-		 */
-
-		write( 2, "CAPTURE: Total num frames = ", 28 );
-
-		remainder = vinput->total_num_frames;
-
-		divisor = 1000000000L;
-
-		suppress_output = TRUE;
-
-		while( divisor > 0 ) {
-
-			result = remainder / divisor;
-
-			if ( suppress_output ) {
-				if ( result != 0 ) {
-					suppress_output = FALSE;
-				}
-			}
-
-			if ( suppress_output == FALSE ) {
-				ascii_digit = '0' + result;
-
-				write( 2, &ascii_digit, 1 );
-			}
-
-			remainder = remainder % divisor;
-
-			divisor /= 10L;
-		}
-
-		write( 2, "\n", 1 );
-	}
+	fprintf( stderr, "CAPTURE: Total num frames = %lu\n",
+		(unsigned long) vinput->total_num_frames );
 #endif /* MXD_SAPERA_LT_CAMERA_SHOW_FRAME_COUNTER */
 
 #if MXD_SAPERA_LT_CAMERA_DEBUG_ACQUISITION_CALLBACK
@@ -334,6 +295,12 @@ mxd_sapera_lt_camera_acquisition_callback( SapXferCallbackInfo *info )
 	MX_DEBUG(-2,("%s: num_frames_left_to_acquire = %lu",
 		fname, sapera_lt_camera->num_frames_left_to_acquire));
 
+	MX_DEBUG(-2,("%s: old_frame_buffer_was_unsaved = %d, "
+		"frame_buffer_is_unsaved[%ld] = %d",
+		fname, old_frame_buffer_was_unsaved,
+		i, sapera_lt_camera->frame_buffer_is_unsaved[i]));
+
+		
 #endif /* MXD_SAPERA_LT_CAMERA_DEBUG_ACQUISITION_CALLBACK */
 
 	/* Did we have a buffer overrun? */
