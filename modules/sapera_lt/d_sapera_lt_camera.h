@@ -49,6 +49,14 @@ typedef struct {
 
 	mx_bool_type buffer_overrun_occurred;
 
+	long num_frames_to_skip;
+
+	long frame_number;
+
+	long raw_last_frame_number;
+	unsigned long raw_total_num_frames;
+	long *raw_frame_number_array;
+
 	mx_bool_type show_features;
 	double gain;
 	double temperature;
@@ -84,6 +92,10 @@ typedef struct {
   {-1, -1, "buffer_overrun_occurred", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_SAPERA_LT_CAMERA, buffer_overrun_occurred), \
+	{0}, NULL, 0}, \
+  \
+  {-1, -1, "num_frames_to_skip", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SAPERA_LT_CAMERA, num_frames_to_skip),\
 	{0}, NULL, 0}, \
   \
   {MXLV_SAPERA_LT_CAMERA_SHOW_FEATURES, -1, "show_features", \
