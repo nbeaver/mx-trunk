@@ -16,29 +16,31 @@
 
 #define MXD_SAPERA_LT_CAMERA_DEBUG				FALSE
 
-#define MXD_SAPERA_LT_CAMERA_DEBUG_OPEN				TRUE
+#define MXD_SAPERA_LT_CAMERA_DEBUG_OPEN				FALSE
 
 #define MXD_SAPERA_LT_CAMERA_DEBUG_FRAME_BUFFER_ALLOCATION	FALSE
 
-#define MXD_SAPERA_LT_CAMERA_DEBUG_EXTENDED_EXPOSURE		TRUE
+#define MXD_SAPERA_LT_CAMERA_DEBUG_EXTENDED_EXPOSURE		FALSE
 
 #define MXD_SAPERA_LT_CAMERA_SHOW_FEATURES			FALSE
 
-#define MXD_SAPERA_LT_CAMERA_DEBUG_ARM				TRUE
+#define MXD_SAPERA_LT_CAMERA_DEBUG_ARM				FALSE
 
-#define MXD_SAPERA_LT_CAMERA_DEBUG_TRIGGER			TRUE
+#define MXD_SAPERA_LT_CAMERA_DEBUG_TRIGGER			FALSE
 
-#define MXD_SAPERA_LT_CAMERA_DEBUG_GET_FRAME			TRUE
+#define MXD_SAPERA_LT_CAMERA_DEBUG_GET_FRAME			FALSE
+
+#define MXD_SAPERA_LT_CAMERA_DEBUG_GET_FRAME_LOOKUP		TRUE
 
 #define MXD_SAPERA_LT_CAMERA_DEBUG_EXTENDED_STATUS		FALSE
 
 #define MXD_SAPERA_LT_CAMERA_DEBUG_EXTENDED_STATUS_WHEN_BUSY	FALSE
 
-#define MXD_SAPERA_LT_CAMERA_DEBUG_EXTENDED_STATUS_WHEN_CHANGED	TRUE
+#define MXD_SAPERA_LT_CAMERA_DEBUG_EXTENDED_STATUS_WHEN_CHANGED	FALSE
 
-#define MXD_SAPERA_LT_CAMERA_DEBUG_NUM_FRAMES_LEFT_TO_ACQUIRE	TRUE
+#define MXD_SAPERA_LT_CAMERA_DEBUG_NUM_FRAMES_LEFT_TO_ACQUIRE	FALSE
 
-#define MXD_SAPERA_LT_CAMERA_DEBUG_ACQUISITION_CALLBACK		TRUE
+#define MXD_SAPERA_LT_CAMERA_DEBUG_ACQUISITION_CALLBACK		FALSE
 
 #define MXD_SAPERA_LT_CAMERA_DEBUG_MX_PARAMETERS		FALSE
 
@@ -2036,6 +2038,7 @@ mxd_sapera_lt_camera_get_frame( MX_VIDEO_INPUT *vinput )
 	MX_SAPERA_LT_CAMERA *sapera_lt_camera = NULL;
 	MX_IMAGE_FRAME *frame;
 	unsigned long user_absolute_frame_number;
+	unsigned long user_modulo_frame_number;
 	unsigned long raw_absolute_frame_number;
 	unsigned long raw_modulo_frame_number;
 	int buffer_resource_index;
@@ -2086,8 +2089,11 @@ mxd_sapera_lt_camera_get_frame( MX_VIDEO_INPUT *vinput )
 		sapera_lt_camera->user_total_num_frames_at_start
 			+ vinput->frame_number;
 
+	user_modulo_frame_number =
+	    user_absolute_frame_number % (sapera_lt_camera->num_frame_buffers);
+
 	raw_absolute_frame_number =
-    sapera_lt_camera->raw_frame_number_array[ user_absolute_frame_number ];
+    sapera_lt_camera->raw_frame_number_array[ user_modulo_frame_number ];
 
 	if ( raw_absolute_frame_number < 0 ) {
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
@@ -2118,14 +2124,20 @@ mxd_sapera_lt_camera_get_frame( MX_VIDEO_INPUT *vinput )
 	MX_DEBUG(-2,("%s: user_absolute_frame_number = %lu",
 		fname, user_absolute_frame_number));
 
+	MX_DEBUG(-2,("%s: user_modulo_frame_number = %lu",
+		fname, user_modulo_frame_number));
+
 	MX_DEBUG(-2,("%s: raw_absolute_frame_number = %lu",
 		fname, raw_absolute_frame_number));
 
 	MX_DEBUG(-2,("%s: buffer_resource_index = %d",
 		fname, buffer_resource_index));
+#endif
 
-	MX_DEBUG(-2,("%s: image_length = %ld",
-		fname, vinput->frame->image_length));
+#if MXD_SAPERA_LT_CAMERA_DEBUG_GET_FRAME_LOOKUP
+	MX_DEBUG(-2,("%s: raw_frame_array[ %lu ] => %lu", fname,
+	    user_modulo_frame_number,
+    sapera_lt_camera->raw_frame_number_array[user_modulo_frame_number]));
 #endif
 	/* Get the address. */
 

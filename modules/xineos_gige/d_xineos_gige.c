@@ -16,17 +16,15 @@
 
 #define MXD_XINEOS_GIGE_DEBUG				FALSE
 
-#define MXD_XINEOS_GIGE_DEBUG_OPEN			TRUE
+#define MXD_XINEOS_GIGE_DEBUG_OPEN			FALSE
 
 #define MXD_XINEOS_GIGE_DEBUG_RESYNCHRONIZE		TRUE
 
-#define MXD_XINEOS_GIGE_DEBUG_ARM			TRUE
+#define MXD_XINEOS_GIGE_DEBUG_ARM			FALSE
 
 #define MXD_XINEOS_GIGE_DEBUG_READOUT_TIMING		FALSE
 
 #define MXD_XINEOS_GIGE_DEBUG_MEASURE_CORRECTION	FALSE
-
-#define MXD_XINEOS_GIGE_DEBUG_FRAME_SKIPPING		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -1000,10 +998,6 @@ mxd_xineos_gige_get_extended_status( MX_AREA_DETECTOR *ad )
 	MX_XINEOS_GIGE *xineos_gige = NULL;
 	unsigned long vinput_status;
 	mx_status_type mx_status;
-
-#if MXD_XINEOS_GIGE_DEBUG_FRAME_SKIPPING
-	static long counter = 0L;
-#endif
 
 	mx_status = mxd_xineos_gige_get_pointers( ad, &xineos_gige, fname );
 
