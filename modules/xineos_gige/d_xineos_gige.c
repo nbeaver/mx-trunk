@@ -26,7 +26,7 @@
 
 #define MXD_XINEOS_GIGE_DEBUG_MEASURE_CORRECTION	FALSE
 
-#define MXD_XINEOS_GIGE_DEBUG_FRAME_SKIPPING		FALSE
+#define MXD_XINEOS_GIGE_DEBUG_FRAME_SKIPPING		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -236,6 +236,10 @@ mxd_xineos_gige_open( MX_RECORD *record )
 	} else {
 		xineos_gige->dump_pixel_values = FALSE;
 	}
+
+	/*---*/
+
+	xineos_gige->debug_frame_skipping = FALSE;
 
 	/*---*/
 
@@ -821,16 +825,18 @@ mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 	}
 
 #if MXD_XINEOS_GIGE_DEBUG_FRAME_SKIPPING
-	MX_DEBUG(-2,("%s: vinput_sp.sequence_type = %ld",
+	if ( xineos_gige->debug_frame_skipping ) {
+		MX_DEBUG(-2,("%s: vinput_sp.sequence_type = %ld",
 				fname, vinput_sp.sequence_type));
-	MX_DEBUG(-2,("%s: vinput_sp.num_parameters = %ld",
+		MX_DEBUG(-2,("%s: vinput_sp.num_parameters = %ld",
 				fname, vinput_sp.num_parameters));
-	MX_DEBUG(-2,("%s: vinput_sp.parameter_array[0] = %f",
+		MX_DEBUG(-2,("%s: vinput_sp.parameter_array[0] = %f",
 				fname, vinput_sp.parameter_array[0]));
-	MX_DEBUG(-2,("%s: vinput_sp.parameter_array[1] = %f",
+		MX_DEBUG(-2,("%s: vinput_sp.parameter_array[1] = %f",
 				fname, vinput_sp.parameter_array[1]));
-	MX_DEBUG(-2,("%s: vinput_sp.parameter_array[2] = %f",
+		MX_DEBUG(-2,("%s: vinput_sp.parameter_array[2] = %f",
 				fname, vinput_sp.parameter_array[2]));
+	}
 #endif
 
 	mx_status = mx_video_input_set_sequence_parameters(
@@ -1028,13 +1034,15 @@ mxd_xineos_gige_get_extended_status( MX_AREA_DETECTOR *ad )
 #if MXD_XINEOS_GIGE_DEBUG_FRAME_SKIPPING
 	counter++;
 
-	if ( (counter % 20) == 0 ) {
-	    MX_DEBUG(-2,("extended status: num_frames_to_skip = %ld, "
-		"vinput_last_frame_number = %ld, "
-		"ad->last_frame_number = %ld",
+	if ( xineos_gige->debug_frame_skipping ) {
+	    if ( (counter % 20) == 0 ) {
+		MX_DEBUG(-2,("extended status: num_frames_to_skip = %ld, "
+		    "vinput_last_frame_number = %ld, "
+		    "ad->last_frame_number = %ld",
 			xineos_gige->num_frames_to_skip,
 			vinput_last_frame_number,
 			ad->last_frame_number ));
+	    }
 	}
 #endif
 
@@ -1088,6 +1096,8 @@ mxd_xineos_gige_readout_frame( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s: ad->readout_frame = %ld, video_frame_number = %ld",
 		fname, ad->readout_frame, video_frame_number));
 #endif
+
+	mx_stack_traceback();
 
 	mx_status = mx_video_input_get_frame(
 		xineos_gige->video_input_record,
