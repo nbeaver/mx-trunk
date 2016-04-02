@@ -52,9 +52,6 @@ typedef struct {
 
 	mx_bool_type dump_pixel_values;
 
-	long num_frames_to_skip;
-	mx_bool_type debug_frame_skipping;
-
 	MX_IMAGE_NOIR_INFO *image_noir_info;
 
 } MX_XINEOS_GIGE;
@@ -112,14 +109,6 @@ typedef struct {
   \
   {-1, -1, "dump_pixel_values", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_XINEOS_GIGE, dump_pixel_values), \
-	{0}, NULL, 0 }, \
-  \
-  {-1, -1, "num_frames_to_skip", MXFT_LONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_XINEOS_GIGE, num_frames_to_skip), \
-	{0}, NULL, 0 }, \
-  \
-  {-1, -1, "debug_frame_skipping", MXFT_BOOL, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_XINEOS_GIGE, debug_frame_skipping), \
 	{0}, NULL, 0 }
 
 MX_API mx_status_type mxd_xineos_gige_initialize_driver( MX_DRIVER *driver );

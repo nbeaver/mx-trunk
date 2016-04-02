@@ -28,7 +28,6 @@ typedef struct {
 	unsigned long gittelsohn_pulser_flags;
 
 	double firmware_version;
-	long num_frames_to_skip;
 } MX_GITTELSOHN_PULSER;
 
 /* Define all of the interface functions. */
@@ -64,12 +63,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_gittelsohn_pulser_rfield_def_ptr;
   \
   {-1, -1, "firmware_version", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_GITTELSOHN_PULSER, firmware_version), \
-	{0}, NULL, (MXFF_READ_ONLY) }, \
-  \
-  {-1, -1, "num_frames_to_skip", MXFT_LONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, \
-			offsetof(MX_GITTELSOHN_PULSER, num_frames_to_skip), \
-	{0}, NULL, 0 }
+	{0}, NULL, (MXFF_READ_ONLY) }
 
 #endif /* __D_GITTELSOHN_PULSER_H__ */
 

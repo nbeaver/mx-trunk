@@ -199,7 +199,17 @@ mxd_gittelsohn_pulser_set_arduino_parameters( MX_PULSE_GENERATOR *pulser,
 
 	/* Set the number of pulses. */
 
-	num_pulses = pulser->num_pulses - gittelsohn_pulser->num_frames_to_skip;
+	/* If the version of the Arduino code is 2.6 or before, then
+	 * we must tell the Arduino to send one extra pulse, since
+	 * older versions of the firmware do not send an extra pulse
+	 * to clear out accumulated counts from the RDI area detector.
+	 */
+
+	if ( gittelsohn_pulser->firmware_version <= 2.6 ) {
+		num_pulses = pulser->num_pulses + 1;
+	} else {
+		num_pulses = pulser->num_pulses;
+	}
 
 	snprintf( command, sizeof(command), "cycles %ld", num_pulses );
 
@@ -401,18 +411,6 @@ mxd_gittelsohn_pulser_open( MX_RECORD *record )
 		"Instead, it was '%s'.", record->name, response );
 	}
 
-	/* If the version of the Arduino code is 2.7 or later, then
-	 * the pulse generator internally generates one extra pulse
-	 * at the start to handle discarding the junk stored counts
-	 * readout by the first frame.
-	 */
-
-	if ( gittelsohn_pulser->firmware_version >= 2.7 ) {
-		gittelsohn_pulser->num_frames_to_skip = 1;
-	} else {
-		gittelsohn_pulser->num_frames_to_skip = 0;
-	}
-
 	/* Unconditionally stop the pulse generator. */
 
 	mx_status = mx_pulse_generator_stop( record );
@@ -584,8 +582,11 @@ mxd_gittelsohn_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 			"have at least 4 tokens in it for record '%s'.",
 				response, pulser->record->name );
 		} else {
-			pulser->num_pulses = atol( argv[3] )
-				+ gittelsohn_pulser->num_frames_to_skip;
+			pulser->num_pulses = atol( argv[3] );
+
+			if ( gittelsohn_pulser->firmware_version <= 2.6 ) {
+				pulser->num_pulses--;
+			}
 
 			mx_free(argv);
 

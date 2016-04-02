@@ -224,22 +224,17 @@ mxd_xineos_gige_open( MX_RECORD *record )
 	/*---*/
 
 	/* ad->correction_frames_to_skip should normally be set to 0, since
-	 * for this detector xineos_gige->num_frames_to_skip handles the job
-	 * for both normal and correction frame sequences.
+	 * the 'sapera_lt_camera' video input driver used by this area
+	 * detector takes care of skipping frames itself.
 	 */
 
 	ad->correction_frames_to_skip = 0;
-	xineos_gige->num_frames_to_skip = 1;
 
 	if ( xineos_flags & MXF_XINEOS_GIGE_AUTOMATICALLY_DUMP_PIXEL_VALUES ) {
 		xineos_gige->dump_pixel_values = TRUE;
 	} else {
 		xineos_gige->dump_pixel_values = FALSE;
 	}
-
-	/*---*/
-
-	xineos_gige->debug_frame_skipping = FALSE;
 
 	/*---*/
 
@@ -735,9 +730,6 @@ mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 				break;
 			}
 
-			num_pulses = num_pulses
-					+ xineos_gige->num_frames_to_skip;
-
 			if ( pulse_width < xineos_gige->minimum_frame_time )
 			{
 				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
@@ -803,16 +795,13 @@ mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 		break;
 	case MXT_SQ_MULTIFRAME:
 		vinput_sp.num_parameters = 3;
-		vinput_sp.parameter_array[0] =
-			num_frames + xineos_gige->num_frames_to_skip;
-
+		vinput_sp.parameter_array[0] = num_frames;
 		vinput_sp.parameter_array[1] = exposure_time;
 		vinput_sp.parameter_array[2] = exposure_time;
 		break;
 	case MXT_SQ_DURATION:
 		vinput_sp.num_parameters = 1;
-		vinput_sp.parameter_array[0] =
-			num_frames + xineos_gige->num_frames_to_skip;
+		vinput_sp.parameter_array[0] = num_frames;
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -823,21 +812,6 @@ mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 			ad->record->name );
 		break;
 	}
-
-#if MXD_XINEOS_GIGE_DEBUG_FRAME_SKIPPING
-	if ( xineos_gige->debug_frame_skipping ) {
-		MX_DEBUG(-2,("%s: vinput_sp.sequence_type = %ld",
-				fname, vinput_sp.sequence_type));
-		MX_DEBUG(-2,("%s: vinput_sp.num_parameters = %ld",
-				fname, vinput_sp.num_parameters));
-		MX_DEBUG(-2,("%s: vinput_sp.parameter_array[0] = %f",
-				fname, vinput_sp.parameter_array[0]));
-		MX_DEBUG(-2,("%s: vinput_sp.parameter_array[1] = %f",
-				fname, vinput_sp.parameter_array[1]));
-		MX_DEBUG(-2,("%s: vinput_sp.parameter_array[2] = %f",
-				fname, vinput_sp.parameter_array[2]));
-	}
-#endif
 
 	mx_status = mx_video_input_set_sequence_parameters(
 					video_input_record, &vinput_sp );
@@ -926,8 +900,6 @@ mxd_xineos_gige_trigger( MX_AREA_DETECTOR *ad )
 		break;
 	}
 
-	num_pulses = num_pulses + xineos_gige->num_frames_to_skip;
-
 	MX_DEBUG(-2,("%s: pulse_width = %f, num_pulses = %lu",
 		fname, pulse_width, num_pulses));
 
@@ -994,8 +966,6 @@ mxd_xineos_gige_get_extended_status( MX_AREA_DETECTOR *ad )
 			"mxd_xineos_gige_get_extended_status()";
 
 	MX_XINEOS_GIGE *xineos_gige = NULL;
-	long vinput_last_frame_number;
-	long vinput_total_num_frames;
 	unsigned long vinput_status;
 	mx_status_type mx_status;
 
@@ -1017,36 +987,12 @@ mxd_xineos_gige_get_extended_status( MX_AREA_DETECTOR *ad )
 
 	mx_status = mx_video_input_get_extended_status(
 				xineos_gige->video_input_record,
-				&vinput_last_frame_number,
-				&vinput_total_num_frames,
+				&(ad->last_frame_number),
+				&(ad->total_num_frames),
 				&vinput_status );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	if ( vinput_last_frame_number  <  xineos_gige->num_frames_to_skip ) {
-		ad->last_frame_number = -1L;
-	} else {
-		ad->last_frame_number = vinput_last_frame_number
-					- xineos_gige->num_frames_to_skip;
-	}
-
-#if MXD_XINEOS_GIGE_DEBUG_FRAME_SKIPPING
-	counter++;
-
-	if ( xineos_gige->debug_frame_skipping ) {
-	    if ( (counter % 20) == 0 ) {
-		MX_DEBUG(-2,("extended status: num_frames_to_skip = %ld, "
-		    "vinput_last_frame_number = %ld, "
-		    "ad->last_frame_number = %ld",
-			xineos_gige->num_frames_to_skip,
-			vinput_last_frame_number,
-			ad->last_frame_number ));
-	    }
-	}
-#endif
-
-	ad->total_num_frames = vinput_total_num_frames;
 
 	ad->status = 0;
 
@@ -1064,7 +1010,6 @@ mxd_xineos_gige_readout_frame( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_xineos_gige_readout_frame()";
 
 	MX_XINEOS_GIGE *xineos_gige = NULL;
-	long video_frame_number;
 	mx_status_type mx_status;
 
 #if MXD_XINEOS_GIGE_DEBUG_READOUT_TIMING
@@ -1085,23 +1030,10 @@ mxd_xineos_gige_readout_frame( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
-	if ( ad->readout_frame < 0L ) {
-		video_frame_number = -1L;
-	} else {
-		video_frame_number = ad->readout_frame
-					+ xineos_gige->num_frames_to_skip;
-	}
-
-#if MXD_XINEOS_GIGE_DEBUG_FRAME_SKIPPING
-	MX_DEBUG(-2,("%s: ad->readout_frame = %ld, video_frame_number = %ld",
-		fname, ad->readout_frame, video_frame_number));
-#endif
-
-	mx_stack_traceback();
 
 	mx_status = mx_video_input_get_frame(
 		xineos_gige->video_input_record,
-		video_frame_number, &(ad->image_frame) );
+		ad->frame_number, &(ad->image_frame) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
