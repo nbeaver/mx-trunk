@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2003-2008, 2010-2012, 2014-2015 Illinois Institute of Technology
+ * Copyright 2003-2008, 2010-2012, 2014-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -270,6 +270,7 @@ mxn_unix_server_open( MX_RECORD *record )
 		network_server->connection_status &= (~MXCS_CONNECTION_LOST);
 		break;
 
+	case MXE_NETWORK_CONNECTION_REFUSED:
 	case MXE_NETWORK_IO_ERROR:
 		unix_server->socket = NULL;
 		network_server->connection_status &= (~MXCS_CONNECTED);
@@ -285,6 +286,7 @@ mxn_unix_server_open( MX_RECORD *record )
 "or is not working correctly.  "
 "You can try to fix this by restarting the MX server.",
 			unix_server->pathname );
+		break;
 
 	default:
 		unix_server->socket = NULL;

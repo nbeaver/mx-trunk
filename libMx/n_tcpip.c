@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2008, 2010-2012, 2014-2015 Illinois Institute of Technology
+ * Copyright 1999-2008, 2010-2012, 2014-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -269,6 +269,7 @@ mxn_tcpip_server_open( MX_RECORD *record )
 		network_server->connection_status &= (~MXCS_CONNECTION_LOST);
 		break;
 
+	case MXE_NETWORK_CONNECTION_REFUSED:
 	case MXE_NETWORK_IO_ERROR:
 		tcpip_server->socket = NULL;
 		network_server->connection_status &= (~MXCS_CONNECTED);
@@ -284,6 +285,7 @@ mxn_tcpip_server_open( MX_RECORD *record )
 "or is not working correctly.  "
 "You can try to fix this by restarting the MX server.",
 			tcpip_server->port, tcpip_server->hostname );
+		break;
 
 	default:
 		tcpip_server->socket = NULL;
