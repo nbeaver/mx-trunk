@@ -10,7 +10,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010-2011, 2015 Illinois Institute of Technology
+ * Copyright 2010-2011, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -68,7 +68,11 @@ MX_RS232_FUNCTION_LIST mxi_telnet_rs232_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	mxi_telnet_send_break
+	mxi_telnet_send_break,
+	mxi_telnet_wait_for_input_available,
+	NULL,
+	NULL,
+	mxi_telnet_flush
 };
 
 MX_RECORD_FIELD_DEFAULTS mxi_telnet_record_field_defaults[] = {
@@ -984,6 +988,43 @@ mxi_telnet_send_break( MX_RS232 *rs232 )
 	mx_status = mx_socket_send( telnet->socket, break_command, 2 );
 
 	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxi_telnet_wait_for_input_available( MX_RS232 *rs232,
+				double wait_time_in_seconds )
+{
+	static const char fname[] = "mxi_telnet_wait_for_input_available()";
+
+	MX_TELNET *telnet;
+	mx_status_type mx_status;
+
+	if ( rs232 == (MX_RS232 *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RS232 pointer passed was NULL." );
+	}
+
+	telnet = (MX_TELNET *) rs232->record->record_type_struct;
+
+	if ( telnet->socket == (MX_SOCKET *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_SOCKET pointer for RS-232 record '%s' is NULL.",
+			rs232->record->name );
+	}
+
+	mx_status = mx_socket_wait_for_event( telnet->socket,
+						wait_time_in_seconds );
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxi_telnet_flush( MX_RS232 *rs232 )
+{
+	/* There is no general way to flush bytes to the socket destination,
+	 * so we just return a success status without actually doing anything.
+	 */
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 #endif /* HAVE_TCPIP */

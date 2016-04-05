@@ -50,6 +50,9 @@ MX_API mx_status_type mxi_tcp232_putline( MX_RS232 *rs232,
 MX_API mx_status_type mxi_tcp232_num_input_bytes_available( MX_RS232 *rs232 );
 MX_API mx_status_type mxi_tcp232_discard_unread_input( MX_RS232 *rs232 );
 MX_API mx_status_type mxi_tcp232_discard_unwritten_output( MX_RS232 *rs232 );
+MX_API mx_status_type mxi_tcp232_wait_for_input_available( MX_RS232 *rs232,
+						double wait_timeout_in_seconds);
+MX_API mx_status_type mxi_tcp232_flush( MX_RS232 *rs232 );
 
 /* Values for the 'tcp232_flags' field. */
 

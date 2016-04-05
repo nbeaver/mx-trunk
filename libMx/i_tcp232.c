@@ -63,7 +63,16 @@ MX_RS232_FUNCTION_LIST mxi_tcp232_rs232_function_list = {
 	mxi_tcp232_putline,
 	mxi_tcp232_num_input_bytes_available,
 	mxi_tcp232_discard_unread_input,
-	mxi_tcp232_discard_unwritten_output
+	mxi_tcp232_discard_unwritten_output,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	mxi_tcp232_wait_for_input_available,
+	NULL,
+	NULL,
+	mxi_tcp232_flush
 };
 
 MX_RECORD_FIELD_DEFAULTS mxi_tcp232_record_field_defaults[] = {
@@ -725,6 +734,44 @@ mxi_tcp232_discard_unwritten_output( MX_RS232 *rs232 )
 	return mx_error( (MXE_UNSUPPORTED | MXE_QUIET), fname,
 		"This function is not supported for a TCP232 device." );
 }
+
+MX_EXPORT mx_status_type
+mxi_tcp232_wait_for_input_available( MX_RS232 *rs232,
+				double wait_time_in_seconds )
+{
+	static const char fname[] = "mxi_tcp232_wait_for_input_available()";
+
+	MX_TCP232 *tcp232;
+	mx_status_type mx_status;
+
+	if ( rs232 == (MX_RS232 *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RS232 pointer passed was NULL." );
+	}
+
+	tcp232 = (MX_TCP232 *) rs232->record->record_type_struct;
+
+	if ( tcp232->socket == (MX_SOCKET *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_SOCKET pointer for RS-232 record '%s' is NULL.",
+			rs232->record->name );
+	}
+
+	mx_status = mx_socket_wait_for_event( tcp232->socket,
+						wait_time_in_seconds );
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxi_tcp232_flush( MX_RS232 *rs232 )
+{
+	/* There is no general way to flush bytes to the socket destination,
+	 * so we just return a success status without actually doing anything.
+	 */
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 
 #endif /* HAVE_TCPIP */
 
