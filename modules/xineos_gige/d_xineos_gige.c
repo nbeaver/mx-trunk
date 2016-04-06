@@ -611,6 +611,7 @@ mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 	    if ( ad->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
 		switch( sp->sequence_type ) {
 		case MXT_SQ_ONE_SHOT:
+		case MXT_SQ_STREAM:
 		case MXT_SQ_MULTIFRAME:
 		    break;
 		default:
@@ -623,6 +624,9 @@ mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 		    break;
 		}
 
+		if ( sp->sequence_type == MXT_SQ_STREAM ) {
+		    xineos_gige->start_with_pulse_generator = FALSE;
+		} else
 		if ( exposure_time >=
 				xineos_gige->pulse_generator_time_threshold )
 		{
