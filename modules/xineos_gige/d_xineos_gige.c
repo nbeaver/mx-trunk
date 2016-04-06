@@ -487,25 +487,8 @@ mxd_xineos_gige_resynchronize( MX_RECORD *record )
 #if MXD_XINEOS_GIGE_DEBUG_RESYNCHRONIZE
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
-	/* Tell the area detector to stop nicely. */
 
-	mx_status = mx_area_detector_stop( record );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Just in case telling the area detector to stop nicely does not work,
-	 * then we send a more forceful abort command.  If the area detector
-	 * has already stopped, then sending it an unnecessary abort should
-	 * be OK.
-	 */
-
-	mx_status = mx_area_detector_abort( record );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Tell the video input card to resynchronize itself. */
+	/* Tell the video input card to go resynchronize itself. */
 
 	mx_status = mx_resynchronize_record( xineos_gige->video_input_record );
 

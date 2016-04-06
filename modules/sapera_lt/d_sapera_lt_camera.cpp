@@ -1494,40 +1494,10 @@ mxd_sapera_lt_camera_resynchronize( MX_RECORD *record )
 #if MXD_SAPERA_LT_CAMERA_DEBUG_RESYNCHRONIZE
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
-	/* First, tell the camera to stop nicely. */
-
-	MX_DEBUG(-2,("%s: Before stop()", fname));
-
-	mx_status = mx_video_input_stop( record );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	MX_DEBUG(-2,("%s: After stop()", fname));
-
-	/* Just in case telling the camera to stop nicely does not work,
-	 * then we send a more forceful abort command.  If the camera
-	 * has already stopped, then sending it an unnecessary abort
-	 * should be OK.
-	 */
-
-	mx_msleep(2000);
-
-	MX_DEBUG(-2,("%s: Before abort()", fname));
-
-	mx_status = mx_video_input_abort( record );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
 	/* In some situations, setting the video input card to streaming mode
 	 * with internal triggering for a while and then stopping it can put
 	 * the video card back into a mode such that we can control it.
 	 */
-
-	MX_DEBUG(-2,("%s: After abort()", fname));
-
-	mx_msleep(2000);
 
 	mx_status = mx_video_input_set_trigger_mode( record,
 						MXT_IMAGE_INTERNAL_TRIGGER );
@@ -1544,25 +1514,15 @@ mxd_sapera_lt_camera_resynchronize( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s: Before start()", fname));
-
 	mx_status = mx_video_input_start( record );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s: After start()", fname));
-
-	mx_msleep(2000);
-
-	MX_DEBUG(-2,("%s: Before stop() #2", fname));
-
 	mx_status = mx_video_input_stop( record );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	MX_DEBUG(-2,("%s: After stop() #2", fname));
 
 #if MXD_SAPERA_LT_CAMERA_DEBUG_RESYNCHRONIZE
 	MX_DEBUG(-2,("%s complete for record '%s'", fname, record->name));
