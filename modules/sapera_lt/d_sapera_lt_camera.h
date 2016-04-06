@@ -136,6 +136,7 @@ MX_API mx_status_type mxd_sapera_lt_camera_finish_record_initialization(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_sapera_lt_camera_open( MX_RECORD *record );
 MX_API mx_status_type mxd_sapera_lt_camera_close( MX_RECORD *record );
+MX_API mx_status_type mxd_sapera_lt_camera_resynchronize( MX_RECORD *record );
 MX_API mx_status_type mxd_sapera_lt_camera_special_processing_setup(
 							MX_RECORD *record );
 

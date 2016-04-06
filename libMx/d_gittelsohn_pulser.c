@@ -303,7 +303,7 @@ mxd_gittelsohn_pulser_open( MX_RECORD *record )
 	MX_PULSE_GENERATOR *pulser;
 	MX_GITTELSOHN_PULSER *gittelsohn_pulser = NULL;
 	char response[255];
-	int num_items;
+	int num_items, i, max_attempts;
 	unsigned long debug_flag, flags;
 	mx_status_type mx_status;
 
@@ -351,40 +351,89 @@ mxd_gittelsohn_pulser_open( MX_RECORD *record )
 		debug_flag = 0;
 	}
 
-	/* Print out the Gittelsohn pulser configuration. */
+	/* Attempt to synchronize communication with the Arduino controller. */
 
-	mx_status = mx_rs232_putline( gittelsohn_pulser->rs232_record,
-				"conf", NULL, debug_flag );
+	max_attempts = 5;
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	for ( i = 0; i < max_attempts; i++ ) {
 
-	/* The first time we send a command to the Arduino, we must put in
-	 * a 1 second delay before trying to read the response.  Otherwise,
-	 * we time out.  Subsequent commands do not seem to have this problem.
-	 */
+		if ( i > 0 ) {
+			mx_warning( "Pulser '%s': retry %d", record->name, i );
+		}
 
-	mx_msleep(1000);
+		/* Print out the Gittelsohn pulser configuration. */
 
-	/* The first response line should say 'command : conf'. */
+		mx_status = mx_rs232_putline( gittelsohn_pulser->rs232_record,
+						"conf", NULL, debug_flag );
 
-	mx_status = mx_rs232_getline( gittelsohn_pulser->rs232_record,
-				response, sizeof(response),
-				NULL, debug_flag );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		/* The first time we send a command to the Arduino, we must
+		 * put in a 1 second delay before trying to read the response.
+		 * Otherwise, we time out.  Subsequent commands do not seem
+		 * to have this problem.
+		 */
+
+		mx_msleep(1000);
+
+		/* The first response line should say 'command : conf'. */
+
+		mx_status = mx_rs232_getline( gittelsohn_pulser->rs232_record,
+						response, sizeof(response),
+						NULL, debug_flag );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 #if MXD_GITTELSOHN_PULSER_DEBUG_CONF
-	MX_DEBUG(-2,("%s: pulser '%s', response line #1 = '%s'",
-		fname,  record->name, response));
+		MX_DEBUG(-2,("%s: pulser '%s', response line #1 = '%s'",
+			fname,  record->name, response));
 #endif
 
-	if ( strcmp( response, "command : conf" ) != 0 ) {
-		return mx_error( MXE_PROTOCOL_ERROR, fname,
-		"The first line of response to a 'conf' command sent to "
-		"Arduino pulser '%s' was not 'command : conf'.  "
-		"Instead, it was '%s'.", record->name, response );
+		if ( strcmp( response, "command : conf" ) == 0 ) {
+			/* We have found the response line that we
+			 * expect to see, so break out of the loop.
+			 */
+
+			break;
+		}
+
+		/* Tell the user that the initial connection to the
+		 * Arduino appears to have failed somehow.
+		 */
+
+		mx_warning( "Pulser '%s': "
+			"The first line of response to a 'conf' command sent "
+			"to Arduino pulser '%s' was not 'command : conf'.  "
+			"Instead, it was '%s'.", record->name, response );
+
+		/* If we have reached the maximum number of attempts,
+		 * then return an error to the user.
+		 */
+
+		if ( i >= (max_attempts - 1) ) {
+			return mx_error( MXE_PROTOCOL_ERROR, fname,
+			"Unable to successfully communicate with "
+			"Arduino pulser '%s' after %d attempts.",
+				record->name, max_attempts );
+		}
+
+		/* Attempt to retry the connection. */
+
+		mx_status = mx_rs232_discard_unwritten_output(
+				gittelsohn_pulser->rs232_record, debug_flag );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_rs232_discard_unread_input(
+				gittelsohn_pulser->rs232_record, debug_flag );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Go back to the top of the loop to try again. */
 	}
 
 	/* The second response line should contain the firmware version.*/

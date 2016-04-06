@@ -18,6 +18,8 @@
 
 #define MXD_SAPERA_LT_CAMERA_DEBUG_OPEN				FALSE
 
+#define MXD_SAPERA_LT_CAMERA_DEBUG_RESYNCHRONIZE		TRUE
+
 #define MXD_SAPERA_LT_CAMERA_DEBUG_FRAME_BUFFER_ALLOCATION	FALSE
 
 #define MXD_SAPERA_LT_CAMERA_DEBUG_EXTENDED_EXPOSURE		FALSE
@@ -30,7 +32,7 @@
 
 #define MXD_SAPERA_LT_CAMERA_DEBUG_GET_FRAME			FALSE
 
-#define MXD_SAPERA_LT_CAMERA_DEBUG_GET_FRAME_LOOKUP		TRUE
+#define MXD_SAPERA_LT_CAMERA_DEBUG_GET_FRAME_LOOKUP		FALSE
 
 #define MXD_SAPERA_LT_CAMERA_DEBUG_EXTENDED_STATUS		FALSE
 
@@ -82,7 +84,7 @@ MX_RECORD_FUNCTION_LIST mxd_sapera_lt_camera_record_function_list = {
 	mxd_sapera_lt_camera_open,
 	mxd_sapera_lt_camera_close,
 	NULL,
-	NULL,
+	mxd_sapera_lt_camera_resynchronize,
 	mxd_sapera_lt_camera_special_processing_setup
 };
 
@@ -1467,6 +1469,110 @@ mxd_sapera_lt_camera_close( MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*----*/
+
+MX_EXPORT mx_status_type
+mxd_sapera_lt_camera_resynchronize( MX_RECORD *record )
+{
+	static const char fname[] = "mxd_sapera_lt_camera_resynchronize()";
+
+	MX_SEQUENCE_PARAMETERS vinput_sp;
+	mx_status_type mx_status;
+
+	/* Whether or not resynchronize is successful depends on the
+	 * nature of the video capture card's failure.  Some kinds
+	 * of failures require restarting the MX server or rebooting
+	 * the host computer, which is not something that resynchronize
+	 * can handle.
+	 */
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG_RESYNCHRONIZE
+	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
+#endif
+	/* First, tell the camera to stop nicely. */
+
+	MX_DEBUG(-2,("%s: Before stop()", fname));
+
+	mx_status = mx_video_input_stop( record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s: After stop()", fname));
+
+	/* Just in case telling the camera to stop nicely does not work,
+	 * then we send a more forceful abort command.  If the camera
+	 * has already stopped, then sending it an unnecessary abort
+	 * should be OK.
+	 */
+
+	mx_msleep(2000);
+
+	MX_DEBUG(-2,("%s: Before abort()", fname));
+
+	mx_status = mx_video_input_abort( record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* In some situations, setting the video input card to streaming mode
+	 * with internal triggering for a while and then stopping it can put
+	 * the video card back into a mode such that we can control it.
+	 */
+
+	MX_DEBUG(-2,("%s: After abort()", fname));
+
+	mx_msleep(2000);
+
+	mx_status = mx_video_input_set_trigger_mode( record,
+						MXT_IMAGE_INTERNAL_TRIGGER );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	vinput_sp.sequence_type = MXT_SQ_STREAM;
+	vinput_sp.num_parameters = 1;
+	vinput_sp.parameter_array[0] = 0.1;	/* exposure time in seconds */
+
+	mx_status = mx_video_input_set_sequence_parameters(record, &vinput_sp);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s: Before start()", fname));
+
+	mx_status = mx_video_input_start( record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s: After start()", fname));
+
+	mx_msleep(2000);
+
+	MX_DEBUG(-2,("%s: Before stop() #2", fname));
+
+	mx_status = mx_video_input_stop( record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s: After stop() #2", fname));
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG_RESYNCHRONIZE
+	MX_DEBUG(-2,("%s complete for record '%s'", fname, record->name));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*----*/
+
 MX_EXPORT mx_status_type
 mxd_sapera_lt_camera_arm( MX_VIDEO_INPUT *vinput )
 {
@@ -1817,6 +1923,7 @@ mxd_sapera_lt_camera_stop( MX_VIDEO_INPUT *vinput )
 
 	switch( sp->sequence_type ) {
 	case MXT_SQ_ONE_SHOT:
+	case MXT_SQ_STREAM:
 		exposure_time = sp->parameter_array[0];
 		break;
 	case MXT_SQ_MULTIFRAME:
@@ -2190,6 +2297,7 @@ mxd_sapera_lt_camera_get_frame( MX_VIDEO_INPUT *vinput )
 
 	switch( sp->sequence_type ) {
 	case MXT_SQ_ONE_SHOT:
+	case MXT_SQ_STREAM:
 		exposure_time = sp->parameter_array[0];
 		break;
 	case MXT_SQ_MULTIFRAME:

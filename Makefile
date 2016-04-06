@@ -76,7 +76,7 @@ MX_ARCH = win32
 #MX_INSTALL_DIR = $(HOME)/mxtest
 #MX_INSTALL_DIR = /programs/mx/
 #MX_INSTALL_DIR = c:/users/lavender/mxtest
-MX_INSTALL_DIR = c:/opt/mx-2.0.1-2016_04_04
+MX_INSTALL_DIR = c:/opt/mx-2.0.1-2016_04_01
 
 #------------------------------------------------------------------------------
 

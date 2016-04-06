@@ -463,8 +463,6 @@ mxd_xineos_gige_resynchronize( MX_RECORD *record )
 
 	MX_AREA_DETECTOR *ad;
 	MX_XINEOS_GIGE *xineos_gige;
-	MX_RECORD *video_input_record;
-	MX_SEQUENCE_PARAMETERS vinput_sp;
 	mx_status_type mx_status;
 
 	/* Whether or not resynchronize is successful depends on the
@@ -489,40 +487,27 @@ mxd_xineos_gige_resynchronize( MX_RECORD *record )
 #if MXD_XINEOS_GIGE_DEBUG_RESYNCHRONIZE
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
+	/* Tell the area detector to stop nicely. */
 
-	/* In some situations, setting the video input card to streaming mode
-	 * with internal triggering for a while and then stopping it can put
-	 * the video card back into a mode such that we can control it.
+	mx_status = mx_area_detector_stop( record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Just in case telling the area detector to stop nicely does not work,
+	 * then we send a more forceful abort command.  If the area detector
+	 * has already stopped, then sending it an unnecessary abort should
+	 * be OK.
 	 */
 
-	ad->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
-
-	video_input_record = xineos_gige->video_input_record;
-
-	mx_status = mx_video_input_set_trigger_mode( video_input_record,
-						MXT_IMAGE_INTERNAL_TRIGGER );
+	mx_status = mx_area_detector_abort( record );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	vinput_sp.sequence_type = MXT_SQ_STREAM;
-	vinput_sp.num_parameters = 1;
-	vinput_sp.parameter_array[0] = 0.1;	/* exposure time in seconds */
+	/* Tell the video input card to resynchronize itself. */
 
-	mx_status = mx_video_input_set_sequence_parameters(
-					video_input_record, &vinput_sp );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_video_input_start( video_input_record );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_msleep(2000);
-
-	mx_status = mx_video_input_stop( video_input_record );
+	mx_status = mx_resynchronize_record( xineos_gige->video_input_record );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
