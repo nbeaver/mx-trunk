@@ -67,6 +67,7 @@
 #include "mx_bit.h"
 #include "mx_memory.h"
 #include "mx_socket.h"
+#include "mx_net_interface.h"
 #include "mx_process.h"
 #include "mx_image.h"
 #include "mx_video_input.h"
@@ -917,8 +918,12 @@ mxd_sapera_lt_camera_configure_network_connection( MX_VIDEO_INPUT *vinput,
 	static const char fname[] =
 		"mxd_sapera_lt_camera_configure_network_connection()";
 
-	INT64 ipv4_address, ipv4_subnet_mask;
+	INT64 ipv4_address, ipv4_subnet_mask, sapera_packet_size;
 	BOOL sapera_status;
+	MX_NETWORK_INTERFACE *ni;
+	struct sockaddr_in sa_address_in;
+	struct sockaddr_in sa_subnet_mask_in;
+	mx_status_type mx_status;
 
 	sapera_status = sapera_lt_camera->acq_device->GetFeatureValue(
 						"GevCurrentIPAddress",
@@ -931,11 +936,6 @@ mxd_sapera_lt_camera_configure_network_connection( MX_VIDEO_INPUT *vinput,
 	}
 
 #if 1
-	MX_DEBUG(-2,("configure network: camera '%s' IP address = %lu (%#lx)",
-			vinput->record->name,
-			(unsigned long) ipv4_address,
-			(unsigned long) ipv4_address ));
-
 	int ip1, ip2, ip3, ip4;
 
 	ip1 = (int) ( ( ipv4_address >> 24L ) & 0xff );
@@ -943,8 +943,9 @@ mxd_sapera_lt_camera_configure_network_connection( MX_VIDEO_INPUT *vinput,
 	ip3 = (int) ( ( ipv4_address >> 8L ) & 0xff );
 	ip4 = (int) ( ipv4_address & 0xff );
 
-	MX_DEBUG(-2,("configure network: camera '%s' IP address = '%d.%d.%d.%d",
-		vinput->record->name, ip1, ip2, ip3, ip4));
+	MX_DEBUG(-2,
+	("configure network: camera '%s' IP address = '%d.%d.%d.%d (%#lx)",
+		vinput->record->name, ip1, ip2, ip3, ip4, ipv4_address ));
 #endif
 
 	sapera_status = sapera_lt_camera->acq_device->GetFeatureValue(
@@ -958,11 +959,6 @@ mxd_sapera_lt_camera_configure_network_connection( MX_VIDEO_INPUT *vinput,
 	}
 
 #if 1
-	MX_DEBUG(-2,("configure network: camera '%s' subnet mask = %lu (%#lx)",
-			vinput->record->name,
-			(unsigned long) ipv4_subnet_mask,
-			(unsigned long) ipv4_subnet_mask ));
-
 	int sm1, sm2, sm3, sm4;
 
 	sm1 = (int) ( ( ipv4_subnet_mask >> 24L ) & 0xff );
@@ -971,9 +967,97 @@ mxd_sapera_lt_camera_configure_network_connection( MX_VIDEO_INPUT *vinput,
 	sm4 = (int) ( ipv4_subnet_mask & 0xff );
 
 	MX_DEBUG(-2,
-	("configure network: camera '%s' subnet mask = '%d.%d.%d.%d",
-		vinput->record->name, sm1, sm2, sm3, sm4));
+	("configure network: camera '%s' subnet mask = '%d.%d.%d.%d (%#lx)",
+		vinput->record->name, sm1, sm2, sm3, sm4, ipv4_subnet_mask ));
 #endif
+	/* Get the packet size that the detector will use to transmit data. */
+
+	sapera_status = sapera_lt_camera->acq_device->GetFeatureValue(
+						"SapPacketSize",
+						&(sapera_packet_size) );
+
+	if ( sapera_status == 0 ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"The attempt to get the packet size that detector '%s' will "
+		"use to transmit pixels to the control computer failed.",
+			vinput->record->name );
+	}
+
+#if 1
+	MX_DEBUG(-2,("configure network: Sapera Packet Size = %lu",
+				(unsigned long) sapera_packet_size ));
+#endif
+
+	/* Get an MX_NETWORK_INTERFACE structure that describes the
+	 * address listed above.  The DALSA GigE Vision cameras
+	 * currently all use IPV4.
+	 */
+
+	memset( &sa_address_in, 0, sizeof(sa_address_in) );
+
+	sa_address_in.sin_family = AF_INET;
+	sa_address_in.sin_port = 0;
+	sa_address_in.sin_addr.s_addr = (uint32_t) ipv4_address;
+
+	memset( &sa_subnet_mask_in, 0, sizeof(sa_subnet_mask_in) );
+
+	sa_subnet_mask_in.sin_family = AF_INET;
+	sa_subnet_mask_in.sin_port = 0;
+	sa_subnet_mask_in.sin_addr.s_addr = (uint32_t) ipv4_subnet_mask;
+
+	mx_status = mx_network_get_interface( &ni,
+					(struct sockaddr *) &sa_address_in,
+					(struct sockaddr *) &sa_subnet_mask_in);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if 1
+	ip1 = (int) ( ( ni->ipv4_address >> 24L ) & 0xff );
+	ip2 = (int) ( ( ni->ipv4_address >> 16L ) & 0xff );
+	ip3 = (int) ( ( ni->ipv4_address >> 8L ) & 0xff );
+	ip4 = (int) ( ni->ipv4_address & 0xff );
+
+	MX_DEBUG(-2,
+	("configure network: host NIC ip address = '%d.%d.%d.%d (%#lx)",
+		ip1, ip2, ip3, ip4, ni->ipv4_address));
+	MX_DEBUG(-2,("configure network: name = '%s', raw name = '%s'",
+		ni->name, ni->raw_name, ni->mtu));
+	MX_DEBUG(-2,("configure network: Host MTU = %lu", ni->mtu));
+#endif
+
+	/******************************************************************
+	 * WARNING: If the MTU (Maximum Transmission Unit) for packets    *
+	 * received by the detector computer is _smaller_ than the packet *
+	 * size the camera will use to transmit data to the detector      *
+	 * computer, then hilarity ensues.                                *
+	 *                                                                *
+	 * If this happens, then we must strongly warn the end user that  *
+	 * this configuration will almost _certainly_ not work and must   *
+	 * be fixed.                                                      *
+	 ******************************************************************/
+
+	if ( sapera_packet_size > ni->mtu ) {
+		mx_warning("\a\a\a\a\a\a\a\a\a\a\a\a\a\a\a\a");
+		mx_warning("\a\a\a\a\a\a\a\a\a\a\a\a\a\a\a\a");
+		mx_warning(
+	"The DALSA camera is currently configured to send data to the detector "
+	"using %lu byte packets.  However, the detector control computer "
+	"network interface '%s' is configured so that it cannot receive "
+	"packets that are "
+	"larger than %lu bytes.  This kind of configuration WILL NOT WORK!  "
+	"You must open the Windows Device Manager program (typically from "
+	"the system control panel, open the entry corresponding to the "
+	"'%s' network interface and change the maximum packet size to a value "
+	"that is %lu bytes or more.  Often, this is called enabling "
+	"'Jumbo Frames' or 'Jumbo Packets'.  This is a fatal configuration "
+	"error, so we are aborting the startup of the MX server now.",
+			sapera_packet_size,
+			ni->name, ni->mtu,
+			ni->name, sapera_packet_size );
+
+		exit(1);	/* And I really mean it too! */
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
