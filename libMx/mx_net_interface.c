@@ -261,12 +261,13 @@ mx_network_get_interface( MX_NETWORK_INTERFACE **ni,
 	}
 }
 
-#elif defined( OS_CYGWIN )
+#elif defined( OS_LINUX ) || defined( OS_CYGWIN )
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <errno.h>
+#include <net/if.h>
 #include <ifaddrs.h>
 
 #include "mx_util.h"
