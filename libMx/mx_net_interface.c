@@ -45,6 +45,20 @@ mx_network_get_interface( MX_NETWORK_INTERFACE **ni,
 	mx_bool_type address_found;
 	mx_status_type mx_status;
 
+	typedef ULONG (*GetAdaptersAddresses_type)( ULONG, ULONG, VOID *,
+					IP_ADAPTER_ADDRESSES *, ULONG * );
+
+	static GetAdaptersAddresses_type
+		ptr_GetAdaptersAddresses = NULL;
+
+	IP_ADAPTER_ADDRESSES *addresses = NULL;
+	IP_ADAPTER_ADDRESSES *current_address = NULL;
+	IP_ADAPTER_UNICAST_ADDRESS *unicast_address = NULL;
+	SOCKET_ADDRESS *socket_address = NULL;
+	struct sockaddr *sockaddr = NULL;
+	struct sockaddr_in *sockaddr_in = NULL;
+	unsigned long native_item_address = 0;
+
 	if ( ni == (MX_NETWORK_INTERFACE **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_NETWORK_INTERFACE pointer passed was NULL." );
@@ -82,12 +96,6 @@ mx_network_get_interface( MX_NETWORK_INTERFACE **ni,
 	 * GetAdapterAddresses() function.
 	 */
 
-	typedef ULONG (*GetAdaptersAddresses_type)( ULONG, ULONG, VOID *,
-					IP_ADAPTER_ADDRESSES *, ULONG * );
-
-	static GetAdaptersAddresses_type
-		ptr_GetAdaptersAddresses = NULL;
-
 	mx_status = mx_dynamic_library_get_library_and_symbol(
 				"iphlpapi.dll", "GetAdaptersAddresses", NULL,
 				(void **) &ptr_GetAdaptersAddresses, 0 );
@@ -98,14 +106,6 @@ mx_network_get_interface( MX_NETWORK_INTERFACE **ni,
 	/* Walk through the IP_ADAPTER_ADDRESSES structures
 	 * for this computer.
 	 */
-
-	IP_ADAPTER_ADDRESSES *addresses = NULL;
-	IP_ADAPTER_ADDRESSES *current_address = NULL;
-	IP_ADAPTER_UNICAST_ADDRESS *unicast_address = NULL;
-	SOCKET_ADDRESS *socket_address = NULL;
-	struct sockaddr *sockaddr = NULL;
-	struct sockaddr_in *sockaddr_in = NULL;
-	unsigned long native_item_address = 0;
 
 	output_buffer_length = 15000;
 
