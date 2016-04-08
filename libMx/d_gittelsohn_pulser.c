@@ -358,7 +358,9 @@ mxd_gittelsohn_pulser_open( MX_RECORD *record )
 	for ( i = 0; i < max_attempts; i++ ) {
 
 		if ( i > 0 ) {
-			mx_warning( "Pulser '%s': retry %d", record->name, i );
+			mx_warning(
+			"Initial connection to pulser '%s' failed: retry %d",
+				record->name, i );
 		}
 
 		/* Print out the Gittelsohn pulser configuration. */

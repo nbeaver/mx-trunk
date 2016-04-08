@@ -19,8 +19,12 @@
 
 #ifdef __cplusplus
 
-#define MXU_SAPERA_LT_CAMERA_FEATURE_NAME_LENGTH	80
-#define MXU_SAPERA_LT_CAMERA_FEATURE_VALUE_LENGTH	200
+#define MXU_SAPERA_LT_CAMERA_FEATURE_NAME_LENGTH		80
+#define MXU_SAPERA_LT_CAMERA_FEATURE_VALUE_LENGTH		200
+
+/* 'sapera_lt_camera_flags' bitflag macros */
+
+#define MXF_SAPERA_LT_CAMERA_CONFIGURE_NETWORK_CONNECTION	0x1
 
 typedef struct {
 	MX_RECORD *record;
@@ -29,6 +33,7 @@ typedef struct {
 	long camera_number;
 	char config_filename[MXU_FILENAME_LENGTH+1];
 	long num_frame_buffers;
+	unsigned long sapera_lt_camera_flags;
 
 	unsigned long user_total_num_frames_at_start;
 	unsigned long raw_total_num_frames_at_start;
@@ -65,6 +70,9 @@ typedef struct {
 	char feature_name[MXU_SAPERA_LT_CAMERA_FEATURE_NAME_LENGTH+1];
 	char feature_value[MXU_SAPERA_LT_CAMERA_FEATURE_VALUE_LENGTH+1];
 
+	unsigned long ipv4_address;
+	unsigned long ipv4_subnet_mask;
+
 } MX_SAPERA_LT_CAMERA;
 
 #define MXLV_SAPERA_LT_CAMERA_SHOW_FEATURES	88800
@@ -90,6 +98,11 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SAPERA_LT_CAMERA, num_frame_buffers), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
+  {-1, -1, "sapera_lt_camera_flags", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_SAPERA_LT_CAMERA, sapera_lt_camera_flags), \
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
   {-1, -1, "buffer_overrun_occurred", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_SAPERA_LT_CAMERA, buffer_overrun_occurred), \
@@ -111,7 +124,7 @@ typedef struct {
   {MXLV_SAPERA_LT_CAMERA_TEMPERATURE, -1, "temperature", \
 						MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SAPERA_LT_CAMERA, temperature), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_READ_ONLY }, \
   \
   {MXLV_SAPERA_LT_CAMERA_FEATURE_NAME, -1, "feature_name", MXFT_STRING, \
 		NULL, 1, {MXU_SAPERA_LT_CAMERA_FEATURE_NAME_LENGTH}, \
@@ -121,7 +134,15 @@ typedef struct {
   {MXLV_SAPERA_LT_CAMERA_FEATURE_VALUE, -1, "feature_value", MXFT_STRING, \
 		NULL, 1, {MXU_SAPERA_LT_CAMERA_FEATURE_VALUE_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SAPERA_LT_CAMERA, feature_value), \
-	{sizeof(char)}, NULL, 0}
+	{sizeof(char)}, NULL, 0}, \
+  \
+  {-1, -1, "ipv4_address", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SAPERA_LT_CAMERA, ipv4_address), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "ipv4_subnet_mask", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SAPERA_LT_CAMERA, ipv4_subnet_mask), \
+	{0}, NULL, MXFF_READ_ONLY }
 	
 
 #endif /* __cplusplus */

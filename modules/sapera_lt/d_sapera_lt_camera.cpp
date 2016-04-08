@@ -908,6 +908,76 @@ mxd_sapera_lt_camera_show_features( MX_SAPERA_LT_CAMERA *sapera_lt_camera )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*---*/
+
+static mx_status_type
+mxd_sapera_lt_camera_configure_network_connection( MX_VIDEO_INPUT *vinput,
+					MX_SAPERA_LT_CAMERA *sapera_lt_camera )
+{
+	static const char fname[] =
+		"mxd_sapera_lt_camera_configure_network_connection()";
+
+	INT64 ipv4_address, ipv4_subnet_mask;
+	BOOL sapera_status;
+
+	sapera_status = sapera_lt_camera->acq_device->GetFeatureValue(
+						"GevCurrentIPAddress",
+						&(ipv4_address) );
+
+	if ( sapera_status == 0 ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"The attempt to get the current IP address for "
+		"detector camera '%s' failed.", vinput->record->name );
+	}
+
+#if 1
+	MX_DEBUG(-2,("configure network: camera '%s' IP address = %lu (%#lx)",
+			vinput->record->name,
+			(unsigned long) ipv4_address,
+			(unsigned long) ipv4_address ));
+
+	int ip1, ip2, ip3, ip4;
+
+	ip1 = (int) ( ( ipv4_address >> 24L ) & 0xff );
+	ip2 = (int) ( ( ipv4_address >> 16L ) & 0xff );
+	ip3 = (int) ( ( ipv4_address >> 8L ) & 0xff );
+	ip4 = (int) ( ipv4_address & 0xff );
+
+	MX_DEBUG(-2,("configure network: camera '%s' IP address = '%d.%d.%d.%d",
+		vinput->record->name, ip1, ip2, ip3, ip4));
+#endif
+
+	sapera_status = sapera_lt_camera->acq_device->GetFeatureValue(
+						"GevCurrentSubnetMask",
+						&(ipv4_subnet_mask) );
+
+	if ( sapera_status == 0 ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"The attempt to get the current IP subnet mask for "
+		"detector camera '%s' failed.", vinput->record->name );
+	}
+
+#if 1
+	MX_DEBUG(-2,("configure network: camera '%s' subnet mask = %lu (%#lx)",
+			vinput->record->name,
+			(unsigned long) ipv4_subnet_mask,
+			(unsigned long) ipv4_subnet_mask ));
+
+	int sm1, sm2, sm3, sm4;
+
+	sm1 = (int) ( ( ipv4_subnet_mask >> 24L ) & 0xff );
+	sm2 = (int) ( ( ipv4_subnet_mask >> 16L ) & 0xff );
+	sm3 = (int) ( ( ipv4_subnet_mask >> 8L ) & 0xff );
+	sm4 = (int) ( ipv4_subnet_mask & 0xff );
+
+	MX_DEBUG(-2,
+	("configure network: camera '%s' subnet mask = '%d.%d.%d.%d",
+		vinput->record->name, sm1, sm2, sm3, sm4));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
@@ -997,7 +1067,7 @@ mxd_sapera_lt_camera_open( MX_RECORD *record )
 	MX_SAPERA_LT *sapera_lt = NULL;
 	BOOL sapera_status;
 	long bytes_per_frame;
-	unsigned long i;
+	unsigned long i, flags;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -1186,6 +1256,27 @@ mxd_sapera_lt_camera_open( MX_RECORD *record )
 
 	vinput->num_capture_buffers =
 		sapera_lt_camera->num_frame_buffers;
+
+	/*---------------------------------------------------------------*/
+
+	/* If requested, configure the network configuration for the
+	 * Ethernet link to the camera to match what the GigE Vision
+	 * camera needs.  The important feature here that we need
+	 * to examine is whether the maximum packet size for the
+	 * network link is big enough to handle the packets generated
+	 * by the camera.  This is most easily done before creating
+	 * the transfer object
+	 */
+
+	flags = sapera_lt_camera->sapera_lt_camera_flags;
+
+	if ( flags & MXF_SAPERA_LT_CAMERA_CONFIGURE_NETWORK_CONNECTION ) {
+		mx_status = mxd_sapera_lt_camera_configure_network_connection(
+						vinput, sapera_lt_camera );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
 	/*---------------------------------------------------------------*/
 
@@ -1432,6 +1523,7 @@ mxd_sapera_lt_camera_open( MX_RECORD *record )
 					= vinput->total_num_frames;
 
 	sapera_lt_camera->num_frames_left_to_acquire = 0;
+
 
 #if MXD_SAPERA_LT_CAMERA_DEBUG_OPEN
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
