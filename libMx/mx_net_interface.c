@@ -16,14 +16,15 @@
 
 #define MXD_NETWORK_GET_INTERFACE_DEBUG		FALSE
 
+#if defined( OS_WIN32 )
+
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "mx_util.h"
 #include "mx_stdint.h"
 #include "mx_dynamic_library.h"
 #include "mx_net_interface.h"
-
-#if defined( OS_WIN32 )
 
 #include <winsock2.h>
 #include <iphlpapi.h>
@@ -258,6 +259,154 @@ mx_network_get_interface( MX_NETWORK_INTERFACE **ni,
 		"No network interface was found for IP %#lx.",
 			ipv4_address );
 	}
+}
+
+#elif defined( OS_CYGWIN )
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <errno.h>
+#include <ifaddrs.h>
+
+#include "mx_util.h"
+#include "mx_socket.h"
+#include "mx_net_interface.h"
+
+/* FIXME: This function currently supports only IPV4 addresses. */
+
+MX_EXPORT mx_status_type
+mx_network_get_interface( MX_NETWORK_INTERFACE **ni,
+			struct sockaddr *ip_address_struct,
+			struct sockaddr *subnet_mask_struct )
+{
+	static const char fname[] = "mx_network_get_interface()";
+
+	MX_NETWORK_INTERFACE *ni_ptr = NULL;
+	struct ifaddrs *if_list = NULL;
+	struct ifaddrs *if_current = NULL;
+	unsigned long ipv4_address, ipv4_subnet_mask;
+	unsigned long host_ip_address;
+	int os_status, saved_errno;
+	struct sockaddr *sockaddr_struct = NULL;
+	struct sockaddr_in *sockaddr_in_struct = NULL;
+	struct ifreq ifreq_struct;
+	mx_bool_type address_found;
+
+	if ( ni == (MX_NETWORK_INTERFACE **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_NETWORK_INTERFACE pointer passed was NULL." );
+	}
+	if ( ip_address_struct == (struct sockaddr *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The ip_address_struct pointer passed was NULL." );
+	}
+	if ( subnet_mask_struct == (struct sockaddr *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The subnet_mask_struct pointer passed was NULL." );
+	}
+
+	if ( ip_address_struct->sa_family != AF_INET ) {
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"The ip_address_struct argument passed was not for IPV4." );
+	}
+	if ( subnet_mask_struct->sa_family != AF_INET ) {
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"The subnet_mask_struct argument passed was not for IPV4." );
+	}
+
+	ipv4_address =
+		((struct sockaddr_in *) ip_address_struct)->sin_addr.s_addr;
+
+	ipv4_subnet_mask =
+		((struct sockaddr_in *) subnet_mask_struct)->sin_addr.s_addr;
+
+#if MXD_NETWORK_GET_INTERFACE_DEBUG
+	MX_DEBUG(-2,("%s: ipv4_address = %#lx", fname, ipv4_address));
+	MX_DEBUG(-2,("%s: ipv4_subnet_mask = %#lx", fname, ipv4_subnet_mask));
+#endif
+
+	os_status = getifaddrs( &if_list );
+
+	if ( os_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"A call to getifaddrs() failed with errno = %d.  "
+		"error message = '%s'",
+			saved_errno, strerror(saved_errno) );
+	}
+
+	address_found = FALSE;
+
+	if_current = if_list;
+
+	while ( if_current != NULL ) {
+		MX_DEBUG(-2,("%s: interface name = '%s'",
+			fname, if_current->ifa_name));
+
+		sockaddr_struct = if_current->ifa_addr;
+
+		if ( sockaddr_struct->sa_family == AF_INET ) {
+			sockaddr_in_struct = ( struct sockaddr_in *)
+						sockaddr_struct;
+
+			host_ip_address =
+				sockaddr_in_struct->sin_addr.s_addr;
+
+			MX_DEBUG(-2,("%s: host_ip_address = %#lx",
+				fname, host_ip_address));
+
+			if ( ( host_ip_address & ipv4_subnet_mask )
+			  == ( ipv4_address & ipv4_subnet_mask ) )
+			{
+				address_found = TRUE;
+
+#if MXD_NETWORK_GET_INTERFACE_DEBUG
+				MX_DEBUG(-2,("%s: address_found = %d",
+				    fname, address_found));
+#endif
+
+				ni_ptr = (MX_NETWORK_INTERFACE *)
+				    malloc( sizeof(MX_NETWORK_INTERFACE) );
+
+				if ( ni_ptr == (MX_NETWORK_INTERFACE *) NULL ) {
+				    return mx_error( MXE_OUT_OF_MEMORY, fname,
+				    "Ran out of memory trying to allocate an "
+				    "MX_NETWORK_INTERFACE structure." );
+				}
+
+				memset(&ifreq_struct, 0, sizeof(ifreq_struct));
+
+				strlcpy( ifreq_struct.ifr_name,
+					if_current->ifa_name,
+					sizeof( ifreq_struct.ifr_name ) );
+
+				/* FIXME: need a file descriptor for
+				 * the ioctl() call.
+				 */
+
+				os_status = ioctl(0, SIOCGIFMTU, &ifreq_struct);
+
+				strlcpy( ni_ptr->name,
+					if_current->ifa_name,
+					sizeof( ni_ptr->name ) );
+
+				ni_ptr->ipv4_address = host_ip_address;
+				ni_ptr->ipv4_subnet_mask = ipv4_subnet_mask;
+				ni_ptr->mtu = ifreq_struct.ifr_mtu;
+				ni_ptr->net_private = NULL;
+			}
+		}
+
+		if ( address_found ) {
+			break;
+		}
+
+		if_current = if_current->ifa_next;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 #else

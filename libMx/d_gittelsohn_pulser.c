@@ -408,7 +408,8 @@ mxd_gittelsohn_pulser_open( MX_RECORD *record )
 		mx_warning( "Pulser '%s': "
 			"The first line of response to a 'conf' command sent "
 			"to Arduino pulser '%s' was not 'command : conf'.  "
-			"Instead, it was '%s'.", record->name, response );
+			"Instead, it was '%s'.",
+				record->name, record->name, response );
 
 		/* If we have reached the maximum number of attempts,
 		 * then return an error to the user.
