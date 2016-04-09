@@ -168,6 +168,7 @@ motor_test_fn( int argc, char *argv[] )
 		} else
 		if ( strcmp( argv[2], "remote_host" ) == 0 ) {
 			MX_NETWORK_INTERFACE *ni;
+			int ip1, ip2, ip3, ip4;
 
 			if ( argc < 4 ) {
 				fprintf( output,
@@ -181,6 +182,18 @@ motor_test_fn( int argc, char *argv[] )
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
+
+			ip1 = ( ni->ipv4_address ) & 0xff;
+			ip2 = ( ( ni->ipv4_address ) >> 8 ) & 0xff;
+			ip3 = ( ( ni->ipv4_address ) >> 16 ) & 0xff;
+			ip4 = ( ( ni->ipv4_address ) >> 24 ) & 0xff;
+
+			fprintf( output,
+			"Computer '%s' uses network interface "
+			"'%s' (%d.%d.%d.%d), MTU = %lu\n",
+			    argv[3], ni->name, ip1, ip2, ip3, ip4, ni->mtu );
+
+			return SUCCESS;
 		}
 
 #if ( defined(OS_WIN32) && !defined(__BORLANDC__) )

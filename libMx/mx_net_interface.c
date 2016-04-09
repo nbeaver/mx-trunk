@@ -213,6 +213,14 @@ mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 		current_address->FriendlyName,
 		current_address->Description));
 #endif
+	    /* If this adapter is not up, then skip over it. */
+
+	    if ( current_address->OperStatus != IfOperStatusUp ) {
+		current_address = current_address->Next;
+		continue;
+	    }
+
+	    /* Otherwise, continue looking at this adapter. */
 
 	    unicast_address = current_address->FirstUnicastAddress;
 
@@ -257,8 +265,6 @@ mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 			    if ( ( local_address & ipv4_subnet_mask )
 				== ( ipv4_address & ipv4_subnet_mask ) )
 			    {
-				mx_breakpoint();
-
 				address_found = TRUE;
 			    } else {
 				address_found = FALSE;
