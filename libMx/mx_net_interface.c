@@ -14,9 +14,7 @@
  *
  */
 
-#define MXD_NETWORK_GET_INTERFACE_DEBUG		FALSE
-
-#if defined( OS_WIN32 )
+#define MXD_NETWORK_GET_INTERFACE_DEBUG		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,17 +24,81 @@
 #include "mx_dynamic_library.h"
 #include "mx_net_interface.h"
 
+#if !defined( OS_WIN32 )
+#include "mx_socket.h"
+#endif
+
+/*---*/
+
+#if defined( OS_WIN32 )
+
 #include <winsock2.h>
 #include <iphlpapi.h>
+
+/* FIXME: winsock2.h must be included before mx_socket.h.  Figure out why. */
+
+#include "mx_socket.h"
+
+/*----*/
+
+/* FIXME: The web page
+ *   http://stackoverflow.com/questions/24702408/get-subnet-mask-from-getadapteraddresses
+ *   appears to have useful information for what to do prior to Vista.
+ */
+
+static uint32_t
+mxp_network_get_ipv4_subnet_mask_from_unicast_address(
+				IP_ADAPTER_UNICAST_ADDRESS *unicast_address )
+{
+#if 0
+	static const char fname[] =
+		"mxp_network_get_ipv4_subnet_mask_from_unicast_address()";
+#endif
+
+	int i, subnet_mask_length;
+	uint32_t ipv4_subnet_mask;
+
+	/* FIXME: OnLinkPrefixLength only exists for Vista and later. */
+
+	subnet_mask_length = unicast_address->OnLinkPrefixLength;
+
+#if 0
+	MX_DEBUG(-2,("%s: subnet_mask_length = %d", fname, subnet_mask_length));
+#endif
+
+	ipv4_subnet_mask = 0;
+
+	for ( i = 0; i < subnet_mask_length; i++ ) {
+
+		ipv4_subnet_mask <<= 1;
+
+		ipv4_subnet_mask |= 1;
+	}
+
+	ipv4_subnet_mask <<= ( 32 - subnet_mask_length );
+
+	/* Convert the subnet mask to network byte order. */
+
+	ipv4_subnet_mask = htonl( ipv4_subnet_mask );
+
+#if 0
+	MX_DEBUG(-2,("%s: ipv4_subnet_mask = %#lx",
+		fname, (unsigned long) ipv4_subnet_mask));
+#endif
+
+	return ipv4_subnet_mask;
+}
+
+/*----*/
 
 /* FIXME: This function currently supports only IPV4 addresses. */
 
 MX_EXPORT mx_status_type
-mx_network_get_interface( MX_NETWORK_INTERFACE **ni,
-			struct sockaddr *ip_address_struct,
-			struct sockaddr *subnet_mask_struct )
+mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
+				struct sockaddr *ip_address_struct )
 {
-	static const char fname[] = "mx_network_get_interface()";
+	static const char fname[] =
+		"mx_network_get_interface_from_host_address()";
 
 	ULONG output_buffer_length = 0;
 	DWORD os_status;
@@ -58,7 +120,7 @@ mx_network_get_interface( MX_NETWORK_INTERFACE **ni,
 	SOCKET_ADDRESS *socket_address = NULL;
 	struct sockaddr *sockaddr = NULL;
 	struct sockaddr_in *sockaddr_in = NULL;
-	unsigned long native_item_address = 0;
+	unsigned long local_address = 0;
 
 	if ( ni == (MX_NETWORK_INTERFACE **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -68,29 +130,16 @@ mx_network_get_interface( MX_NETWORK_INTERFACE **ni,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The ip_address_struct pointer passed was NULL." );
 	}
-	if ( subnet_mask_struct == (struct sockaddr *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The subnet_mask_struct pointer passed was NULL." );
-	}
-
 	if ( ip_address_struct->sa_family != AF_INET ) {
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 		"The ip_address_struct argument passed was not for IPV4." );
-	}
-	if ( subnet_mask_struct->sa_family != AF_INET ) {
-		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"The subnet_mask_struct argument passed was not for IPV4." );
 	}
 
 	ipv4_address =
 		((struct sockaddr_in *) ip_address_struct)->sin_addr.s_addr;
 
-	ipv4_subnet_mask =
-		((struct sockaddr_in *) subnet_mask_struct)->sin_addr.s_addr;
-
 #if MXD_NETWORK_GET_INTERFACE_DEBUG
 	MX_DEBUG(-2,("%s: ipv4_address = %#lx", fname, ipv4_address));
-	MX_DEBUG(-2,("%s: ipv4_subnet_mask = %#lx", fname, ipv4_subnet_mask));
 #endif
 
 	/* Try to load 'iphlpapi.dll' and get a pointer to the
@@ -104,9 +153,7 @@ mx_network_get_interface( MX_NETWORK_INTERFACE **ni,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Walk through the IP_ADAPTER_ADDRESSES structures
-	 * for this computer.
-	 */
+	/* Get the list of IP_ADAPTER_ADDRESSES structures for this computer. */
 
 	output_buffer_length = 15000;
 
@@ -158,6 +205,7 @@ mx_network_get_interface( MX_NETWORK_INTERFACE **ni,
 	while ( current_address != NULL ) {
 
 #if MXD_NETWORK_GET_INTERFACE_DEBUG
+	    MX_DEBUG(-2,("*************************************************"));
 	    MX_DEBUG(-2,
 	    ("%s: adapter name = '%s', friendly name = '%wS', "
 	    "description = '%wS'",
@@ -171,6 +219,10 @@ mx_network_get_interface( MX_NETWORK_INTERFACE **ni,
 	    while ( unicast_address != NULL ) {
 		socket_address = &(unicast_address->Address);
 
+		ipv4_subnet_mask =
+			mxp_network_get_ipv4_subnet_mask_from_unicast_address(
+				unicast_address );
+
 		if ( socket_address != NULL ) {
 		    sockaddr = socket_address->lpSockaddr;
 
@@ -183,12 +235,18 @@ mx_network_get_interface( MX_NETWORK_INTERFACE **ni,
 			     * the endianness.
 			     */
 
-			    native_item_address =
-				ntohl( sockaddr_in->sin_addr.s_addr );
+			    local_address = sockaddr_in->sin_addr.s_addr;
 
 #if MXD_NETWORK_GET_INTERFACE_DEBUG
-			    MX_DEBUG(-2,("%s: IP address = %lu (%#lx)", fname,
-				native_item_address, native_item_address));
+			    MX_DEBUG(-2,
+				("%s: local address = %lu (%#lx)", fname,
+				local_address, local_address));
+			    MX_DEBUG(-2,
+				("%s: remote address = %lu (%#lx)", fname,
+				ipv4_address, ipv4_address));
+			    MX_DEBUG(-2,
+				("%s: subnet mask = %lu (%#lx)", fname,
+				ipv4_subnet_mask, ipv4_subnet_mask));
 #endif
 
 			    /* Check to see if this address is in the same
@@ -196,10 +254,17 @@ mx_network_get_interface( MX_NETWORK_INTERFACE **ni,
 			     * the arguments to this function.
 			     */
 
-			    if ( ( native_item_address & ipv4_subnet_mask )
+			    if ( ( local_address & ipv4_subnet_mask )
 				== ( ipv4_address & ipv4_subnet_mask ) )
 			    {
+				mx_breakpoint();
+
 				address_found = TRUE;
+			    } else {
+				address_found = FALSE;
+			    }
+
+			    if ( address_found ) {
 
 #if MXD_NETWORK_GET_INTERFACE_DEBUG
 				MX_DEBUG(-2,("%s: address_found = %d",
@@ -227,7 +292,7 @@ mx_network_get_interface( MX_NETWORK_INTERFACE **ni,
 					sizeof(ni_ptr->raw_name) );
 #endif
 
-				ni_ptr->ipv4_address = native_item_address;
+				ni_ptr->ipv4_address = local_address;
 				ni_ptr->ipv4_subnet_mask = ipv4_subnet_mask;
 				ni_ptr->mtu = current_address->Mtu;
 				ni_ptr->net_private = NULL;
@@ -270,18 +335,15 @@ mx_network_get_interface( MX_NETWORK_INTERFACE **ni,
 #include <net/if.h>
 #include <ifaddrs.h>
 
-#include "mx_util.h"
-#include "mx_socket.h"
-#include "mx_net_interface.h"
-
 /* FIXME: This function currently supports only IPV4 addresses. */
 
 MX_EXPORT mx_status_type
-mx_network_get_interface( MX_NETWORK_INTERFACE **ni,
+mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 			struct sockaddr *ip_address_struct,
 			struct sockaddr *subnet_mask_struct )
 {
-	static const char fname[] = "mx_network_get_interface()";
+	static const char fname[] =
+		"mx_network_get_interface_from_host_address()";
 
 	MX_NETWORK_INTERFACE *ni_ptr = NULL;
 	struct ifaddrs *if_list = NULL;
@@ -413,4 +475,44 @@ mx_network_get_interface( MX_NETWORK_INTERFACE **ni,
 #else
 #error MX network interface functions have not yet been defined for this target.
 #endif
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_network_get_interface_from_hostname( MX_NETWORK_INTERFACE **ni,
+						char *hostname )
+{
+	static const char fname[] = "mx_network_get_interface_from_hostname()";
+
+	unsigned long inet_address;
+	struct sockaddr_in sockaddr_in;
+	mx_status_type mx_status;
+
+	if ( ni == (MX_NETWORK_INTERFACE **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_NETWORK_INTERFACE pointer passed was NULL." );
+	}
+	if ( hostname == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The hostname pointer passed was NULL." );
+	}
+
+	mx_status = mx_socket_get_inet_address( hostname, &inet_address );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	memset( &sockaddr_in, 0, sizeof(sockaddr_in) );
+
+	/* FIXME: The following is IPV4 specific. */
+
+	sockaddr_in.sin_family = AF_INET;
+	sockaddr_in.sin_port = 0;
+	sockaddr_in.sin_addr.s_addr = inet_address;
+
+	mx_status = mx_network_get_interface_from_host_address( ni,
+					(struct sockaddr *) &sockaddr_in );
+
+	return mx_status;
+}
 

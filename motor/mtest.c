@@ -168,29 +168,16 @@ motor_test_fn( int argc, char *argv[] )
 		} else
 		if ( strcmp( argv[2], "remote_host" ) == 0 ) {
 			MX_NETWORK_INTERFACE *ni;
-			unsigned long inet_address, subnet_mask;
-			int split_argc;
-			char **split_argv;
 
-			if ( argc < 5 ) {
+			if ( argc < 4 ) {
 				fprintf( output,
-			"Usage: test remote_host 'ip_address' 'subnet_mask'\n");
+				"Usage: test remote_host 'ip_address'\n");
+
 				return FAILURE;
 			}
 
-			mx_status = mx_socket_get_inet_address( argv[3],
-							&inet_address );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return FAILURE;
-
-			mx_string_split( argv[4], ".",
-					&split_argc, &split_argv );
-
-			subnet_mask = 0;
-
-			mx_status = mx_network_get_interface( &ni,
-							NULL, NULL );
+			mx_status = mx_network_get_interface_from_hostname(
+								&ni, argv[3] );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;

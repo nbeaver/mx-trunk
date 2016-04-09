@@ -34,10 +34,13 @@ typedef struct {
 	void *net_private;
 } MX_NETWORK_INTERFACE;
 
-MX_API mx_status_type mx_network_get_interface( MX_NETWORK_INTERFACE **ni,
-						struct sockaddr *ip_address,
-						struct sockaddr *subnet_mask );
-						
+MX_API mx_status_type mx_network_get_interface_from_host_address(
+						MX_NETWORK_INTERFACE **ni,
+						struct sockaddr *ip_address );
+
+MX_API mx_status_type mx_network_get_interface_from_hostname(
+						MX_NETWORK_INTERFACE **ni,
+						char *hostname );
 
 #ifdef __cplusplus
 }

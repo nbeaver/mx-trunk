@@ -918,11 +918,10 @@ mxd_sapera_lt_camera_configure_network_connection( MX_VIDEO_INPUT *vinput,
 	static const char fname[] =
 		"mxd_sapera_lt_camera_configure_network_connection()";
 
-	INT64 ipv4_address, ipv4_subnet_mask, sapera_packet_size;
+	INT64 ipv4_address, sapera_packet_size;
 	BOOL sapera_status;
 	MX_NETWORK_INTERFACE *ni;
 	struct sockaddr_in sa_address_in;
-	struct sockaddr_in sa_subnet_mask_in;
 	mx_status_type mx_status;
 
 	sapera_status = sapera_lt_camera->acq_device->GetFeatureValue(
@@ -948,28 +947,6 @@ mxd_sapera_lt_camera_configure_network_connection( MX_VIDEO_INPUT *vinput,
 		vinput->record->name, ip1, ip2, ip3, ip4, ipv4_address ));
 #endif
 
-	sapera_status = sapera_lt_camera->acq_device->GetFeatureValue(
-						"GevCurrentSubnetMask",
-						&(ipv4_subnet_mask) );
-
-	if ( sapera_status == 0 ) {
-		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-		"The attempt to get the current IP subnet mask for "
-		"detector camera '%s' failed.", vinput->record->name );
-	}
-
-#if 1
-	int sm1, sm2, sm3, sm4;
-
-	sm1 = (int) ( ( ipv4_subnet_mask >> 24L ) & 0xff );
-	sm2 = (int) ( ( ipv4_subnet_mask >> 16L ) & 0xff );
-	sm3 = (int) ( ( ipv4_subnet_mask >> 8L ) & 0xff );
-	sm4 = (int) ( ipv4_subnet_mask & 0xff );
-
-	MX_DEBUG(-2,
-	("configure network: camera '%s' subnet mask = '%d.%d.%d.%d (%#lx)",
-		vinput->record->name, sm1, sm2, sm3, sm4, ipv4_subnet_mask ));
-#endif
 	/* Get the packet size that the detector will use to transmit data. */
 
 	sapera_status = sapera_lt_camera->acq_device->GetFeatureValue(
@@ -999,15 +976,8 @@ mxd_sapera_lt_camera_configure_network_connection( MX_VIDEO_INPUT *vinput,
 	sa_address_in.sin_port = 0;
 	sa_address_in.sin_addr.s_addr = (uint32_t) ipv4_address;
 
-	memset( &sa_subnet_mask_in, 0, sizeof(sa_subnet_mask_in) );
-
-	sa_subnet_mask_in.sin_family = AF_INET;
-	sa_subnet_mask_in.sin_port = 0;
-	sa_subnet_mask_in.sin_addr.s_addr = (uint32_t) ipv4_subnet_mask;
-
-	mx_status = mx_network_get_interface( &ni,
-					(struct sockaddr *) &sa_address_in,
-					(struct sockaddr *) &sa_subnet_mask_in);
+	mx_status = mx_network_get_interface_from_host_address( &ni,
+					(struct sockaddr *) &sa_address_in );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
