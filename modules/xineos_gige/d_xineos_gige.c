@@ -1168,7 +1168,7 @@ mxd_xineos_gige_get_parameter( MX_AREA_DETECTOR *ad )
 		/* If the detector is started using the pulse generator, then
 		 * the video card is guaranteed to be in DURATION mode,
 		 * regardless of what mode the area detector thinks it is in.
-		 * Thus, we only ask the video card for its sequence mode if
+		 * Thus, we only ask the video card for its trigger mode if
 		 * we are _not_ starting the sequence using the pulse
 		 * generator.
 		 */
@@ -1251,15 +1251,30 @@ mxd_xineos_gige_set_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_TRIGGER_MODE:
+
+		/* If the detector is started using the pulse generator, then
+		 * the video card is guaranteed to be in DURATION mode,
+		 * regardless of what mode the area detector thinks it is in.
+		 * Thus, we only attempt to set the video card's trigger mode
+		 * if we are _not_ starting the sequence using the pulse
+		 * generator.
+		 */
+
+		if ( xineos_gige->start_with_pulse_generator == FALSE ) {
+			mx_status = mx_video_input_set_trigger_mode(
+				video_input_record, ad->trigger_mode );
+		}
+		break;
+
 	case MXLV_AD_SEQUENCE_TYPE:
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
 	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY: 
 
-		/* Setting the trigger mode and sending sequence parameters
-		 * to the video capture card is a job better done by the
-		 * mxd_xineos_gige_arm() methods, since it has access to
-		 * information that is known only at the time that we do
-		 * the arm().  Thus, we defer this job to the arm() method.
+		/* Sending sequence parameters to the video capture card
+ 		 * is a job better done by the mxd_xineos_gige_arm() methods,
+ 		 * since it has access to information that is known only at
+ 		 * the time that we do the arm().  Thus, we defer this job
+ 		 * to the arm() method.
 		 */
 		break; 
 
@@ -1287,7 +1302,7 @@ mxd_xineos_gige_set_parameter( MX_AREA_DETECTOR *ad )
 
 /*--------------------------------------------------------------------------*/
 
-/* NOTE: This function is not called when running in a server. */
+/* NOTE: This function is not called when running in an MX server. */
 
 MX_EXPORT mx_status_type
 mxd_xineos_gige_measure_correction( MX_AREA_DETECTOR *ad )
