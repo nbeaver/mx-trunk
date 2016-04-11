@@ -46,6 +46,8 @@
 
 #define MXD_SAPERA_LT_CAMERA_DEBUG_MX_PARAMETERS		FALSE
 
+#define MXD_SAPERA_LT_CAMERA_DEBUG_CONFIGURE_NETWORK		TRUE
+
 #define MXD_SAPERA_LT_CAMERA_SHOW_FRAME_COUNTER			TRUE
 
 #define MXD_SAPERA_LT_CAMERA_BYPASS_BUFFER_OVERRUN_TEST		TRUE
@@ -934,13 +936,17 @@ mxd_sapera_lt_camera_configure_network_connection( MX_VIDEO_INPUT *vinput,
 		"detector camera '%s' failed.", vinput->record->name );
 	}
 
-#if 1
+	/* Convert the address to network byte order. */
+
+	ipv4_address = htonl(ipv4_address);
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG_CONFIGURE_NETWORK
 	int ip1, ip2, ip3, ip4;
 
-	ip1 = (int) ( ( ipv4_address >> 24L ) & 0xff );
-	ip2 = (int) ( ( ipv4_address >> 16L ) & 0xff );
-	ip3 = (int) ( ( ipv4_address >> 8L ) & 0xff );
-	ip4 = (int) ( ipv4_address & 0xff );
+	ip1 = (int) ( ipv4_address & 0xff );
+	ip2 = (int) ( ( ipv4_address >> 8L ) & 0xff );
+	ip3 = (int) ( ( ipv4_address >> 16L ) & 0xff );
+	ip4 = (int) ( ( ipv4_address >> 24L ) & 0xff );
 
 	MX_DEBUG(-2,
 	("configure network: camera '%s' IP address = '%d.%d.%d.%d (%#lx)",
@@ -960,7 +966,7 @@ mxd_sapera_lt_camera_configure_network_connection( MX_VIDEO_INPUT *vinput,
 			vinput->record->name );
 	}
 
-#if 1
+#if MXD_SAPERA_LT_CAMERA_DEBUG_CONFIGURE_NETWORK
 	MX_DEBUG(-2,("configure network: Sapera Packet Size = %lu",
 				(unsigned long) sapera_packet_size ));
 #endif
@@ -974,7 +980,7 @@ mxd_sapera_lt_camera_configure_network_connection( MX_VIDEO_INPUT *vinput,
 
 	sa_address_in.sin_family = AF_INET;
 	sa_address_in.sin_port = 0;
-	sa_address_in.sin_addr.s_addr = (uint32_t) ipv4_address;
+	sa_address_in.sin_addr.s_addr = ipv4_address;
 
 	mx_status = mx_network_get_interface_from_host_address( &ni,
 					(struct sockaddr *) &sa_address_in );
@@ -982,11 +988,13 @@ mxd_sapera_lt_camera_configure_network_connection( MX_VIDEO_INPUT *vinput,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if 1
-	ip1 = (int) ( ( ni->ipv4_address >> 24L ) & 0xff );
-	ip2 = (int) ( ( ni->ipv4_address >> 16L ) & 0xff );
-	ip3 = (int) ( ( ni->ipv4_address >> 8L ) & 0xff );
-	ip4 = (int) ( ni->ipv4_address & 0xff );
+#if MXD_SAPERA_LT_CAMERA_DEBUG_CONFIGURE_NETWORK
+	/* The IP address in the 'ni' structure is in network byte order. */
+
+	ip1 = (int) ( ni->ipv4_address & 0xff );
+	ip2 = (int) ( ( ni->ipv4_address >> 8L ) & 0xff );
+	ip3 = (int) ( ( ni->ipv4_address >> 16L ) & 0xff );
+	ip4 = (int) ( ( ni->ipv4_address >> 24L ) & 0xff );
 
 	MX_DEBUG(-2,
 	("configure network: host NIC ip address = '%d.%d.%d.%d (%#lx)",
@@ -1008,25 +1016,26 @@ mxd_sapera_lt_camera_configure_network_connection( MX_VIDEO_INPUT *vinput,
 	 ******************************************************************/
 
 	if ( sapera_packet_size > ni->mtu ) {
-		mx_warning("\a\a\a\a\a\a\a\a\a\a\a\a\a\a\a\a");
-		mx_warning("\a\a\a\a\a\a\a\a\a\a\a\a\a\a\a\a");
-		mx_warning(
-	"The DALSA camera is currently configured to send data to the detector "
-	"using %lu byte packets.  However, the detector control computer "
-	"network interface '%s' is configured so that it cannot receive "
-	"packets that are "
-	"larger than %lu bytes.  This kind of configuration WILL NOT WORK!  "
-	"You must open the Windows Device Manager program (typically from "
-	"the system control panel, open the entry corresponding to the "
-	"'%s' network interface and change the maximum packet size to a value "
-	"that is %lu bytes or more.  Often, this is called enabling "
-	"'Jumbo Frames' or 'Jumbo Packets'.  This is a fatal configuration "
-	"error, so we are aborting the startup of the MX server now.",
-			sapera_packet_size,
-			ni->name, ni->mtu,
-			ni->name, sapera_packet_size );
-
-		exit(1);	/* And I really mean it too! */
+		fprintf( stderr,
+"WARNING:\n"
+"The DALSA camera is currently configured to send data to the detector\n"
+"using %lu byte packets.  However, the detector control computer network\n"
+"interface '%s' is configured so that it cannot receive\n"
+"packets that are larger than %lu bytes.  This kind of configuration\n"
+"WILL NOT WORK!\n"
+"\n"
+"If you attempt to use the detector in this configuration anyway, the\n"
+"detector electronics controller will spontaneously reboot itself quite\n"
+"frequently, making it difficult to complete even one imaging sequence.\n"
+"\n"
+"To fix this, you must open the Windows Device Manager program (typically\n"
+"from the 'System' control panel, open the entry corresponding to the \n"
+"'%s' network interface and change the maximum packet size\n"
+"to a value that is %lu bytes or more.  Often, this is called enabling\n"
+"'Jumbo Frames' or 'Jumbo Packets'.\n\n",
+			(unsigned long) sapera_packet_size,
+			ni->name, ni->mtu, ni->name,
+			(unsigned long) sapera_packet_size );
 	}
 
 	return MX_SUCCESSFUL_RESULT;

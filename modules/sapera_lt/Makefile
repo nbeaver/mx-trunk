@@ -87,7 +87,7 @@ CFLAGS += $(CFLAGS_MODULE)
 sapera_lt.mxo: $(SAPERA_LT_OBJS)
 	link /dll /debug /nologo /out:sapera_lt.mxo /nodefaultlib:libc \
 		$(SAPERA_LT_OBJS) ..\\..\\libMx\\$(MX_LIBRARY_NAME) \
-		$(SAPERA_LT_LIBRARIES)
+		$(SAPERA_LT_LIBRARIES) $(WIN32_LIBS)
 
 	# For VC2005 or later, embed the manifest in the module.
 

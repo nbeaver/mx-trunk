@@ -14,7 +14,11 @@
  *
  */
 
-#define MXD_NETWORK_GET_INTERFACE_DEBUG		TRUE
+#define MXD_NETWORK_GET_INTERFACE_DEBUG		FALSE
+
+#if defined( OS_WIN32 )
+#include <winsock2.h>
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,22 +26,14 @@
 #include "mx_util.h"
 #include "mx_stdint.h"
 #include "mx_dynamic_library.h"
-#include "mx_net_interface.h"
-
-#if !defined( OS_WIN32 )
 #include "mx_socket.h"
-#endif
+#include "mx_net_interface.h"
 
 /*---*/
 
 #if defined( OS_WIN32 )
 
-#include <winsock2.h>
 #include <iphlpapi.h>
-
-/* FIXME: winsock2.h must be included before mx_socket.h.  Figure out why. */
-
-#include "mx_socket.h"
 
 /*----*/
 
