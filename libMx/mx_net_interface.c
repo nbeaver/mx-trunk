@@ -322,7 +322,7 @@ mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 	} else {
 		*ni = NULL;
 
-		return mx_error( MXE_NOT_FOUND, fname,
+		return mx_error( (MXE_NOT_FOUND | MXE_QUIET), fname,
 		"No network interface was found for IP %#lx.",
 			ipv4_address );
 	}
@@ -341,8 +341,7 @@ mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 
 MX_EXPORT mx_status_type
 mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
-			struct sockaddr *ip_address_struct,
-			struct sockaddr *subnet_mask_struct )
+					struct sockaddr *ip_address_struct )
 {
 	static const char fname[] =
 		"mx_network_get_interface_from_host_address()";
@@ -350,12 +349,14 @@ mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 	MX_NETWORK_INTERFACE *ni_ptr = NULL;
 	struct ifaddrs *if_list = NULL;
 	struct ifaddrs *if_current = NULL;
-	unsigned long ipv4_address, ipv4_subnet_mask;
+	unsigned long ipv4_address, ipv4_subnet_mask;;
 	unsigned long host_ip_address;
 	int os_status, saved_errno;
 	struct sockaddr *sockaddr_struct = NULL;
-	struct sockaddr_in *sockaddr_in_struct = NULL;
+	struct sockaddr_in *address_struct = NULL;
+	struct sockaddr_in *netmask_struct = NULL;
 	struct ifreq ifreq_struct;
+	int test_socket;
 	mx_bool_type address_found;
 
 	if ( ni == (MX_NETWORK_INTERFACE **) NULL ) {
@@ -366,30 +367,31 @@ mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The ip_address_struct pointer passed was NULL." );
 	}
-	if ( subnet_mask_struct == (struct sockaddr *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The subnet_mask_struct pointer passed was NULL." );
-	}
 
 	if ( ip_address_struct->sa_family != AF_INET ) {
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 		"The ip_address_struct argument passed was not for IPV4." );
 	}
-	if ( subnet_mask_struct->sa_family != AF_INET ) {
-		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"The subnet_mask_struct argument passed was not for IPV4." );
-	}
 
 	ipv4_address =
 		((struct sockaddr_in *) ip_address_struct)->sin_addr.s_addr;
 
-	ipv4_subnet_mask =
-		((struct sockaddr_in *) subnet_mask_struct)->sin_addr.s_addr;
-
 #if MXD_NETWORK_GET_INTERFACE_DEBUG
 	MX_DEBUG(-2,("%s: ipv4_address = %#lx", fname, ipv4_address));
-	MX_DEBUG(-2,("%s: ipv4_subnet_mask = %#lx", fname, ipv4_subnet_mask));
 #endif
+	/* Open a socket that can be used with the SIOCGIFMTU ioctl().
+	 * The socket just needs to exist.  It does not actually have
+	 * to be connected to anything.
+	 */
+
+	test_socket = socket( PF_INET, SOCK_DGRAM, 0 );
+
+	if ( test_socket < 0 ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"The attempt to create a socket for SIOCGIFMTU failed." );
+	}
+
+	/* Get a list of the network interfaces on this computer. */
 
 	os_status = getifaddrs( &if_list );
 
@@ -407,20 +409,28 @@ mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 	if_current = if_list;
 
 	while ( if_current != NULL ) {
+
+#if MXD_NETWORK_GET_INTERFACE_DEBUG
 		MX_DEBUG(-2,("%s: interface name = '%s'",
 			fname, if_current->ifa_name));
+#endif
 
 		sockaddr_struct = if_current->ifa_addr;
 
 		if ( sockaddr_struct->sa_family == AF_INET ) {
-			sockaddr_in_struct = ( struct sockaddr_in *)
-						sockaddr_struct;
+			address_struct = ( struct sockaddr_in *)sockaddr_struct;
 
-			host_ip_address =
-				sockaddr_in_struct->sin_addr.s_addr;
+			host_ip_address = address_struct->sin_addr.s_addr;
 
+#if MXD_NETWORK_GET_INTERFACE_DEBUG
 			MX_DEBUG(-2,("%s: host_ip_address = %#lx",
 				fname, host_ip_address));
+#endif
+
+			netmask_struct = ( struct sockaddr_in *)
+						if_current->ifa_netmask;
+
+			ipv4_subnet_mask = netmask_struct->sin_addr.s_addr;
 
 			if ( ( host_ip_address & ipv4_subnet_mask )
 			  == ( ipv4_address & ipv4_subnet_mask ) )
@@ -447,11 +457,31 @@ mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 					if_current->ifa_name,
 					sizeof( ifreq_struct.ifr_name ) );
 
-				/* FIXME: need a file descriptor for
-				 * the ioctl() call.
-				 */
+#if MXD_NETWORK_GET_INTERFACE_DEBUG
+				MX_DEBUG(-2,
+				("%s: #1 if_current->ifa_name = '%s'",
+				    fname, if_current->ifa_name));
+				MX_DEBUG(-2,
+				("%s: #1 ifreq_struct.ifr_name = '%s'",
+				    fname, ifreq_struct.ifr_name));
+#endif
 
-				os_status = ioctl(0, SIOCGIFMTU, &ifreq_struct);
+				/* Get the MTU using the test socket. */
+
+				os_status = ioctl(test_socket,
+						SIOCGIFMTU, &ifreq_struct);
+
+#if MXD_NETWORK_GET_INTERFACE_DEBUG
+				MX_DEBUG(-2,
+				("%s: #2 if_current->ifa_name = '%s'",
+				    fname, if_current->ifa_name));
+				MX_DEBUG(-2,
+				("%s: #2 ifreq_struct.ifr_name = '%s'",
+				    fname, ifreq_struct.ifr_name));
+				MX_DEBUG(-2,
+				("%s: ifreq_struct.ifr_mtu = %d",
+				    fname, ifreq_struct.ifr_mtu));
+#endif
 
 				strlcpy( ni_ptr->name,
 					if_current->ifa_name,
@@ -471,7 +501,17 @@ mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 		if_current = if_current->ifa_next;
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	if ( address_found ) {
+		*ni = ni_ptr;
+
+		return MX_SUCCESSFUL_RESULT;
+	} else {
+		*ni = NULL;
+
+		return mx_error( (MXE_NOT_FOUND | MXE_QUIET), fname,
+		"No network interface was found for IP %#lx.",
+			ipv4_address );
+	}
 }
 
 #else
@@ -488,6 +528,7 @@ mx_network_get_interface_from_hostname( MX_NETWORK_INTERFACE **ni,
 
 	unsigned long inet_address;
 	struct sockaddr_in sockaddr_in;
+	unsigned long mx_status_code;
 	mx_status_type mx_status;
 
 	if ( ni == (MX_NETWORK_INTERFACE **) NULL ) {
@@ -514,6 +555,22 @@ mx_network_get_interface_from_hostname( MX_NETWORK_INTERFACE **ni,
 
 	mx_status = mx_network_get_interface_from_host_address( ni,
 					(struct sockaddr *) &sockaddr_in );
+
+	mx_status_code = mx_status.code & (~MXE_QUIET);
+
+	switch( mx_status_code ) {
+	case MXE_SUCCESS:
+		return MX_SUCCESSFUL_RESULT;
+		break;
+	case MXE_NOT_FOUND:
+		return mx_error( MXE_NOT_FOUND, fname,
+		"No network interface was found for hostname '%s'.",
+			hostname );
+		break;
+	default:
+		return mx_status;
+		break;
+	}
 
 	return mx_status;
 }
