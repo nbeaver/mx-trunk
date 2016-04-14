@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004-2006, 2010-2011, 2015
+ * Copyright 1999, 2001-2002, 2004-2006, 2010-2011, 2015-2016
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -26,6 +26,7 @@
 #include "mx_digital_output.h"
 #include "mx_motor.h"
 #include "mx_scaler.h"
+#include "mx_timer.h"
 #include "d_soft_scaler.h"
 
 /* Initialize the scaler driver jump table. */
@@ -361,10 +362,12 @@ static mx_status_type
 mxd_soft_scaler_compute_intensity_modifier( MX_RECORD *modifier_record,
 						double *modifier_value )
 {
-	static const char fname[] = "mxd_soft_scaler_compute_intensity_modifier()";
+	static const char fname[] =
+		"mxd_soft_scaler_compute_intensity_modifier()";
 
 	unsigned long dout_value;
 	double gain, filter_attenuation, single_thickness_attenuation;
+	double last_measurement_time;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked for modifier '%s'",
@@ -418,10 +421,19 @@ mxd_soft_scaler_compute_intensity_modifier( MX_RECORD *modifier_record,
 				dout_value >>= 1;
 			}
 			break;
+		case MXC_TIMER:
+			mx_status = mx_timer_get_last_measurement_time(
+							modifier_record,
+							&last_measurement_time);
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			*modifier_value = last_measurement_time;
 		}
 	}
 
-	MX_DEBUG( 2,("%s: name = '%s', modifier_value = %g",
+	MX_DEBUG(-2,("%s: name = '%s', modifier_value = %g",
 		fname, modifier_record->name, *modifier_value));
 
 	return MX_SUCCESSFUL_RESULT;
