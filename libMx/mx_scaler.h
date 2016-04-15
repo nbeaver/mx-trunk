@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2006-2008 Illinois Institute of Technology
+ * Copyright 1999-2002, 2006-2008, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,6 +29,8 @@ extern "C" {
 
 #define MXF_SCL_SUBTRACT_DARK_CURRENT		0x1
 #define MXF_SCL_SERVER_SUBTRACTS_DARK_CURRENT	0x2
+
+#define MXF_SCL_DO_NOT_NORMALIZE		0x1000
 
 typedef struct {
 	MX_RECORD *record; /* Pointer to the MX_RECORD structure that points

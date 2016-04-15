@@ -11,7 +11,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2009-2010, 2015 Illinois Institute of Technology
+ * Copyright 1999-2006, 2009-2010, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -942,17 +942,26 @@ mxdf_xafs_add_measurement_to_datafile( MX_DATAFILE *datafile )
 			/* Scaler readings are proportional to the
 			 * integration time, so we must normalize
 			 * them to counts per second.
+			 *
+			 * The MXF_SCL_DO_NOT_NORMALIZE flag bit
+			 * provides an escape hatch if we really
+			 * do not want the normalization here.
 			 */
 			scaler = (MX_SCALER *)
 					input_device->record_class_struct;
 
-			scaler_counts_per_second = mx_divide_safely(
-					(double) scaler->value,
-					measurement_time );
+			if ( scaler->scaler_flags & MXF_SCL_DO_NOT_NORMALIZE ) {
+				status = fprintf( output_file, " %ld",
+							scaler->value );
+			} else {
+				scaler_counts_per_second = mx_divide_safely(
+						(double) scaler->value,
+						measurement_time );
 
-			status = fprintf(output_file, " %.*g",
+				status = fprintf(output_file, " %.*g",
 						scan->record->precision,
 						scaler_counts_per_second);
+			}
 			break;
 
 		case MXC_ANALOG_INPUT:
