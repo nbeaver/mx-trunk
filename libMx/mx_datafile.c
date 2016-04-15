@@ -7,7 +7,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2005, 2008, 2015 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2005, 2008, 2015-2016
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -855,6 +856,8 @@ mx_datafile_parse_options( MX_DATAFILE *datafile )
 					length ) == 0 )
 		{
 			datafile->normalize_data = TRUE;
+		} else if ( strncmp( command_name, "raw_data", length ) == 0 ) {
+			datafile->normalize_data = FALSE;
 		} else if ( strncmp( command_name, "xafs", length ) == 0 ) {
 
 			/* 'xafs' is a special option that turns on

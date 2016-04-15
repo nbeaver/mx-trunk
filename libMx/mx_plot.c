@@ -793,6 +793,8 @@ mx_plot_parse_options( MX_PLOT *plot )
 					length ) == 0 )
 		{
 			plot->normalize_data = TRUE;
+		} else if ( strncmp( command_name, "raw_data", length ) == 0 ) {
+			plot->normalize_data = FALSE;
 		} else if ( strncmp( command_name, "xafs", length ) == 0 ) {
 
 			/* 'xafs' is a special option that turns on
