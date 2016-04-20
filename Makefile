@@ -2,6 +2,7 @@
 # Change the value of the MX_ARCH variable below to match the platform you
 # are compiling the MX system for.  The available platforms are:
 #
+#   android       - Android 5.1 Bionic with Termux gcc
 #   bsd           - FreeBSD, NetBSD, or OpenBSD
 #   bsd-clang     - FreeBSD with Clang 3.3 or above
 #   cygwin        - Cygwin 1.5 or 1.7

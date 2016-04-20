@@ -124,8 +124,8 @@ MX_LIB_OBJS += ../tools/xdr.o ../tools/xdr_hyper.o
 #---------------------------------------------------
 #
 
-LN_SF		= $(PWD)/../scripts/ln_sf
-##LN_SF		= ln -sf
+##LN_SF		= $(PWD)/../scripts/ln_sf
+LN_SF		= ln -sf
 
 MAKE		= make
 MKDIR		= mkdir
@@ -146,10 +146,7 @@ MX_INCLUDES	= -I$(MX_INC_DIR)
 
 MX_SONAME	= libMx.so.$(MX_MAJOR_VERSION)
 
-#MX_LIBRARY_NAME = $(MX_SONAME).$(MX_MINOR_VERSION).$(MX_UPDATE_VERSION)
-#
-
-MX_LIBRARY_NAME = libMx.a
+MX_LIBRARY_NAME = $(MX_SONAME).$(MX_MINOR_VERSION).$(MX_UPDATE_VERSION)
 
 MX_LIBRARY_STATIC_NAME = libMx.a
 
@@ -157,18 +154,12 @@ MX_LIBRARY_PATH = $(MX_LIB_DIR)/$(MX_LIBRARY_NAME)
 
 MX_LIBRARY_DELETE = rm $(MX_LIBRARY_NAME) $(MX_SONAME) libMx.so $(MX_LIBRARY_STATIC_NAME)
 
-#$(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
-#	-$(MX_LIBRARY_DELETE)
-#	$(CC) $(LINKFLAGS) -shared -Wl,-soname,$(MX_SONAME) -o $(MX_LIBRARY_NAME) \
-#		$(SYSROOT)/usr/lib/crtbegin_so.o \
-#		$(SYSROOT)/usr/lib/crtend_so.o \
-#		-L$(SYSROOT)/usr/lib $(LIB_DIRS) $(MX_LIB_OBJS) $(LIBRARIES) -lc
-#	$(LN_SF) $(MX_LIBRARY_NAME) $(MX_SONAME)
-#	$(LN_SF) $(MX_LIBRARY_NAME) libMx.so
-#	ar rcs $(MX_LIBRARY_STATIC_NAME) $(MX_LIB_OBJS)
-#	ranlib $(MX_LIBRARY_STATIC_NAME)
-
 $(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
+	-$(MX_LIBRARY_DELETE)
+	$(CC) -shared -Wl,-soname,$(MX_SONAME) -o $(MX_LIBRARY_NAME) \
+			$(LIB_DIRS) $(MX_LIB_OBJS) $(LIBRARIES) -lc
+	$(LN_SF) $(MX_LIBRARY_NAME) $(MX_SONAME)
+	$(LN_SF) $(MX_LIBRARY_NAME) libMx.so
 	ar rcs $(MX_LIBRARY_STATIC_NAME) $(MX_LIB_OBJS)
 	ranlib $(MX_LIBRARY_STATIC_NAME)
 

@@ -1039,6 +1039,10 @@ motor_show_modules( char *module_name )
 
 /*=========================================================================*/
 
+#if defined(OS_ANDROID)
+#  include <android/api-level.h>
+#endif
+
 void
 motor_show_version( void )
 {
@@ -1113,6 +1117,15 @@ motor_show_version( void )
 	}
 
 #endif  /* __SUNPRO_C */
+
+/*-------------------------------------------------------------------------*/
+
+#if defined(OS_ANDROID)
+
+	fprintf( output, "Android API version: %d\n", __ANDROID_API__ );
+	fflush( output );
+
+#endif /* OS_ANDROID */
 
 /*-------------------------------------------------------------------------*/
 
