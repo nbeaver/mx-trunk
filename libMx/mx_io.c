@@ -160,9 +160,13 @@ mx_get_max_file_descriptors( void )
 	int result;
 
 #if defined( OS_UNIX ) || defined( OS_CYGWIN ) || defined( OS_DJGPP ) \
-	|| defined( OS_VMS ) || defined( OS_ANDROID )
+	|| defined( OS_VMS )
 
 	result = getdtablesize();
+
+#elif defined( OS_ANDROID )
+
+	result = sysconf(_SC_OPEN_MAX);
 
 #elif defined( OS_WIN32 )
 

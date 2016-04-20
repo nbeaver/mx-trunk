@@ -1307,7 +1307,7 @@ static int mx_use_posix_named_semaphores   = FALSE;
 
 /*======================= System V Semaphores ======================*/
 
-#if !defined(OS_ECOS)
+#if ( !defined(OS_ANDROID) && !defined(OS_ECOS) )
 
 #if defined(OS_HPUX) && defined(__ia64) && defined(__GNUC__)
    typedef int32_t cid_t;

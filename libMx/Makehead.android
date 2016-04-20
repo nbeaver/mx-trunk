@@ -35,13 +35,31 @@ LIBRARIES	= $(USER_LIBRARIES) -ldl -lm
 # Generally, you should not have to modify anything after this point.
 #
 
+#
+# gcc specific flags
+#
+GCCFLAGS = -Wall -Werror \
+-Wpointer-arith \
+-Wcast-qual \
+-Wshadow \
+-Winline
+
+###-Wcast-align
+
+GCCFLAGS_C = \
+-Wstrict-prototypes \
+-Wmissing-prototypes \
+-Wnested-externs
+
 #--------------------------------------------------------------------------
 #
 # 
 #
 
-CC      = $(TOOLCHAIN)/prebuilt/linux-x86_64/bin/arm-linux-androideabi-gcc \
-    -I$(SYSROOT)/usr/include/
+CC      = gcc
+
+#CC      = $(TOOLCHAIN)/prebuilt/linux-x86_64/bin/arm-linux-androideabi-gcc \
+#    -I$(SYSROOT)/usr/include/
 
 CFLAGS  += -g -fPIC $(GCCFLAGS) $(GCCFLAGS_C) $(INCLUDES) -DOS_ANDROID \
 				$(EXTRA_FLAGS) -DDEBUG $(USER_CFLAGS)

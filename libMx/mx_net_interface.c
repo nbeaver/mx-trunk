@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_NETWORK_GET_INTERFACE_DEBUG		FALSE
+#define MXD_NETWORK_GET_INTERFACE_DEBUG		TRUE
 
 #if defined( OS_WIN32 )
 #include <winsock2.h>
@@ -349,7 +349,7 @@ mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 	MX_NETWORK_INTERFACE *ni_ptr = NULL;
 	struct ifaddrs *if_list = NULL;
 	struct ifaddrs *if_current = NULL;
-	unsigned long ipv4_address, ipv4_subnet_mask;;
+	unsigned long ipv4_address, ipv4_subnet_mask;
 	unsigned long host_ip_address;
 	int os_status, saved_errno;
 	struct sockaddr *sockaddr_struct = NULL;
@@ -512,6 +512,186 @@ mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 		"No network interface was found for IP %#lx.",
 			ipv4_address );
 	}
+}
+
+#elif defined( OS_ANDROID )
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <net/if.h>
+
+/* FIXME: This function currently supports only IPV4 addresses. */
+
+MX_EXPORT mx_status_type
+mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
+					struct sockaddr *ip_address_struct )
+{
+	static const char fname[] =
+		"mx_network_get_interface_from_host_address()";
+
+	MX_NETWORK_INTERFACE *ni_ptr = NULL;
+	struct ifconf if_conf;
+	unsigned long ipv4_address, ipv4_subnet_mask;
+	unsigned long host_ip_address;
+	int os_status, saved_errno;
+	struct sockaddr *sockaddr_struct = NULL;
+	struct sockaddr_in *address_struct = NULL;
+	struct ifreq *if_req_data = NULL;
+	struct ifreq *if_req_item = NULL;
+	int test_socket;
+	int i, num_interfaces;
+	mx_bool_type address_found;
+
+	if ( ni == (MX_NETWORK_INTERFACE **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_NETWORK_INTERFACE pointer passed was NULL." );
+	}
+	if ( ip_address_struct == (struct sockaddr *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The ip_address_struct pointer passed was NULL." );
+	}
+
+	if ( ip_address_struct->sa_family != AF_INET ) {
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"The ip_address_struct argument passed was not for IPV4." );
+	}
+
+	ipv4_address =
+		((struct sockaddr_in *) ip_address_struct)->sin_addr.s_addr;
+
+#if MXD_NETWORK_GET_INTERFACE_DEBUG
+	MX_DEBUG(-2,("%s: ipv4_address = %#lx", fname, ipv4_address));
+#endif
+	/* Open a socket that can be used with the SIOCGIFCONF ioctl().
+	 * The socket just needs to exist.  It does not actually have
+	 * to be connected to anything.
+	 */
+
+	test_socket = socket( PF_INET, SOCK_DGRAM, 0 );
+
+	if ( test_socket < 0 ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"The attempt to create a socket for SIOCGIFMTU failed." );
+	}
+
+	/* We want to get a list of interfaces using SIOCGIFCONF.
+	 * However, we first need to find out how much memory to
+	 * allocate for that list.  SIOCGIFCONF can be used to 
+	 * find that out too.
+	 */
+
+	memset( &if_conf, 0, sizeof(if_conf) );
+
+	if_conf.ifc_ifcu.ifcu_req = NULL;
+	if_conf.ifc_len = 0;
+
+	os_status = ioctl( test_socket, SIOCGIFCONF, &if_conf );
+
+	if ( os_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"An attempt to find out how many network interfaces there are "
+		"for this computer using ioctl( ..., SIOCGIFCONF, ... ) "
+		"failed with errno = %d.  error message = '%s'",
+			saved_errno, strerror(saved_errno) );
+	}
+
+	/* Allocate enough memory for the list of interfaces. */
+
+	if_req_data = malloc( if_conf.ifc_len );
+
+	if ( if_req_data == NULL ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %d byte "
+		"array of 'struct ifreq' data.", if_conf.ifc_len );
+	}
+
+	if_conf.ifc_ifcu.ifcu_req = if_req_data;
+
+	/* Now we are ready to get the list using SIOCGIFCONF. */
+
+	os_status = ioctl( test_socket, SIOCGIFCONF, &if_conf );
+
+	if ( os_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"An attempt to get a list of network interfaces "
+		"for this computer using ioctl( ..., SIOCGIFCONF, ... ) "
+		"failed with errno = %d.  error message = '%s'",
+			saved_errno, strerror(saved_errno) );
+	}
+
+	num_interfaces = if_conf.ifc_len / sizeof(struct ifreq);
+
+#if MXD_NETWORK_GET_INTERFACE_DEBUG
+	MX_DEBUG(-2,("%s: This computer has %d network interfaces.",
+		fname, num_interfaces));
+#endif
+	address_found = FALSE;
+
+	for ( i = 0; i < num_interfaces; i++ ) {
+		if_req_item = &if_req_data[i];
+
+#if MXD_NETWORK_GET_INTERFACE_DEBUG
+		MX_DEBUG(-2,("%s: interface '%s'",
+			fname, if_req_item->ifr_ifrn.ifrn_name));
+#endif
+
+		sockaddr_struct = &(if_req_item->ifr_addr);
+
+		if ( sockaddr_struct->sa_family == AF_INET ) {
+			address_struct = (struct sockaddr_in *) sockaddr_struct;
+
+			host_ip_address = address_struct->sin_addr.s_addr;
+
+#if MXD_NETWORK_GET_INTERFACE_DEBUG
+			MX_DEBUG(-2,("%s: host_ip_address = %#lx",
+				fname, host_ip_address));
+#endif
+			/* FIXME: The following statement is bogus. */
+
+			ipv4_subnet_mask = 0xff;
+
+			if ( ( host_ip_address & ipv4_subnet_mask )
+			  == ( ipv4_address & ipv4_subnet_mask ) )
+			{
+				address_found = TRUE;
+
+#if MXD_NETWORK_GET_INTERFACE_DEBUG
+				MX_DEBUG(-2,("%s: address_found = %d",
+					fname, address_found));
+#endif
+				ni_ptr = (MX_NETWORK_INTERFACE *)
+				    malloc( sizeof(MX_NETWORK_INTERFACE) );
+
+				if ( ni_ptr == (MX_NETWORK_INTERFACE *) NULL ) {
+				    return mx_error( MXE_OUT_OF_MEMORY, fname,
+				    "Ran out of memory trying to allocate an "
+				    "MX_NETWORK_INTERFACE structure." );
+				}
+
+				strlcpy( ni_ptr->name,
+					if_req_item->ifr_ifrn.ifrn_name,
+					sizeof( ni_ptr->name ) );
+
+				ni_ptr->ipv4_address = host_ip_address;
+				ni_ptr->ipv4_subnet_mask = ipv4_subnet_mask;
+				ni_ptr->mtu = 0;
+				ni_ptr->net_private = NULL;
+			}
+		}
+
+		if ( address_found ) {
+			break;
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 #else
