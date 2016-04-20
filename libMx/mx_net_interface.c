@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_NETWORK_GET_INTERFACE_DEBUG		TRUE
+#define MXD_NETWORK_GET_INTERFACE_DEBUG		FALSE
 
 #if defined( OS_WIN32 )
 #include <winsock2.h>
@@ -653,9 +653,11 @@ mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 			MX_DEBUG(-2,("%s: host_ip_address = %#lx",
 				fname, host_ip_address));
 #endif
-			/* FIXME: The following statement is bogus. */
+			/* FIXME: The following statement is bogus.
+			 * It means a netmask of 255.255.255.0
+			 */
 
-			ipv4_subnet_mask = 0xff;
+			ipv4_subnet_mask = 0xffffff;
 
 			if ( ( host_ip_address & ipv4_subnet_mask )
 			  == ( ipv4_address & ipv4_subnet_mask ) )
@@ -691,7 +693,17 @@ mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 		}
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	if ( address_found ) {
+		*ni = ni_ptr;
+
+		return MX_SUCCESSFUL_RESULT;
+	} else {
+		*ni = NULL;
+
+		return mx_error( (MXE_NOT_FOUND | MXE_QUIET), fname,
+		"No network interface was found for IP %#lx.",
+			ipv4_address );
+	}
 }
 
 #else
