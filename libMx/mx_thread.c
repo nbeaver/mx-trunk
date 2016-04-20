@@ -1230,6 +1230,10 @@ mx_tls_set_value( MX_THREAD_LOCAL_STORAGE *key, void *value )
 
 /*---*/
 
+#if defined(OS_ANDROID)
+#  include "mx_atomic.h"
+#endif
+
 /* FIXME: On VAX VMS, we get a mysterious error about redefinition of
  *        'struct timespec' apparently involving <decc_rtldef/timers.h>
  *        The following kludge works around that.
@@ -1246,6 +1250,10 @@ mx_tls_set_value( MX_THREAD_LOCAL_STORAGE *key, void *value )
 typedef struct {
 	pthread_t thread_id;
 	int kill_requested;
+
+#if defined(OS_ANDROID)
+	int32_t cancel_requested;
+#endif
 } MX_POSIX_THREAD_PRIVATE;
 
 typedef struct {
@@ -1469,6 +1477,10 @@ mx_thread_initialize( void )
 	thread_private->thread_id = pthread_self();
 
 	thread_private->kill_requested = FALSE;
+
+#if defined(OS_ANDROID)
+	mx_atomic_write32( &(thread_private->cancel_requested), FALSE );
+#endif
 
 	/* Record the fact that the initialization has been completed.
 	 * Only one thread will be running at the time that the flag
@@ -1709,7 +1721,94 @@ mx_thread_exit( MX_THREAD *thread,
 	(void) pthread_exit( (void *) thread_exit_status );	/* ICK! */
 }
 
-/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+/*=========================================================================*/
+
+#if defined(OS_ANDROID)
+
+/* FIXME: The Android Bionic library does not implement pthread_cancel(),
+ * so for Android we currently implement something ugly using an atomic
+ * variable and hope for the best.
+ */
+
+MX_EXPORT mx_status_type
+mx_thread_kill( MX_THREAD *thread )
+{
+	static const char fname[] = "mx_thread_kill()";
+
+	MX_POSIX_THREAD_PRIVATE *thread_private = NULL;
+	mx_status_type mx_status;
+
+#if MX_THREAD_DEBUG
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
+
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	thread_private->kill_requested = TRUE;
+
+	mx_atomic_write32( &(thread_private->cancel_requested), TRUE );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+ 
+MX_EXPORT mx_status_type
+mx_thread_stop( MX_THREAD *thread )
+{
+	static const char fname[] = "mx_thread_stop()";
+
+	MX_POSIX_THREAD_PRIVATE *thread_private = NULL;
+	mx_status_type mx_status;
+
+#if MX_THREAD_DEBUG
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
+
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_atomic_write32( &(thread_private->cancel_requested), TRUE );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+ 
+MX_EXPORT mx_status_type
+mx_thread_check_for_stop_request( MX_THREAD *thread )
+{
+	static const char fname[] = "mx_thread_check_for_stop_request()";
+
+	MX_POSIX_THREAD_PRIVATE *thread_private = NULL;
+	int32_t cancel_requested;
+	mx_status_type mx_status;
+
+#if MX_THREAD_DEBUG
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
+
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	cancel_requested =
+		mx_atomic_read32( &(thread_private->cancel_requested) );
+
+	if ( cancel_requested ) {
+		mx_thread_exit( thread, 0 );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*=========================================================================*/
+
+#else /* Not OS_ANDROID */
+
+/* Everywhere else we can use pthread_cancel(). */
 
 MX_EXPORT mx_status_type
 mx_thread_kill( MX_THREAD *thread )
@@ -1751,8 +1850,6 @@ mx_thread_kill( MX_THREAD *thread )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
-
 MX_EXPORT mx_status_type
 mx_thread_stop( MX_THREAD *thread )
 {
@@ -1791,8 +1888,6 @@ mx_thread_stop( MX_THREAD *thread )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
-
 MX_EXPORT mx_status_type
 mx_thread_check_for_stop_request( MX_THREAD *thread )
 {
@@ -1807,7 +1902,9 @@ mx_thread_check_for_stop_request( MX_THREAD *thread )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+#endif /* Not OS_ANDROID */
+
+/*=========================================================================*/
 
 MX_EXPORT mx_status_type
 mx_thread_set_stop_request_handler( MX_THREAD *thread,

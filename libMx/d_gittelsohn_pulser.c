@@ -595,6 +595,8 @@ mxd_gittelsohn_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 
 	flags = gittelsohn_pulser->gittelsohn_pulser_flags;
 
+	MXW_UNUSED( flags );
+
 #if MXD_GITTELSOHN_PULSER_DEBUG
 	MX_DEBUG(-2,
 	("%s invoked for PULSE_GENERATOR '%s', parameter type '%s' (%ld)",

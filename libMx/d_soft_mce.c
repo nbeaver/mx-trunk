@@ -205,7 +205,6 @@ mxd_soft_mce_interval_timer_callback( MX_INTERVAL_TIMER *itimer,
 	static const char fname[] = "mxd_soft_mce_interval_timer_callback()";
 
 	MX_SOFT_MCE *soft_mce;
-	mx_status_type mx_status;
 
 	static unsigned long timer_callback_counter = 0;
 
@@ -232,7 +231,7 @@ mxd_soft_mce_interval_timer_callback( MX_INTERVAL_TIMER *itimer,
 		timer_callback_counter));
 #endif
 
-	mx_status = mxd_soft_mce_send_command_to_monitor_thread( soft_mce,
+	(void) mxd_soft_mce_send_command_to_monitor_thread( soft_mce,
 						MXS_SOFT_MCE_CMD_READ_MOTOR );
 
 	return;
