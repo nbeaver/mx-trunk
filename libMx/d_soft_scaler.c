@@ -433,7 +433,7 @@ mxd_soft_scaler_compute_intensity_modifier( MX_RECORD *modifier_record,
 		}
 	}
 
-	MX_DEBUG(-2,("%s: name = '%s', modifier_value = %g",
+	MX_DEBUG( 2,("%s: name = '%s', modifier_value = %g",
 		fname, modifier_record->name, *modifier_value));
 
 	return MX_SUCCESSFUL_RESULT;
