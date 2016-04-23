@@ -37,6 +37,7 @@ print_usage( void )
 "   -a   Enable network debugging.\n"
 "   -D   Start the source code debugger.\n"
 "   -v   Verbose output (show the field name)\n"
+"\n"
 	);
 }
 

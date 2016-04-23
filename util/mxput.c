@@ -37,6 +37,7 @@ print_usage( void )
 "   -a   Enable network debugging.\n"
 "   -D   Start the source code debugger.\n"
 "   -e   Enable escape sequences.\n"
+"\n"
 	);
 }
 

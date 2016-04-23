@@ -921,6 +921,7 @@ mxd_sapera_lt_camera_configure_network_connection( MX_VIDEO_INPUT *vinput,
 		"mxd_sapera_lt_camera_configure_network_connection()";
 
 	INT64 ipv4_address, sapera_packet_size;
+	long necessary_packet_size;
 	BOOL sapera_status;
 	MX_NETWORK_INTERFACE *ni;
 	struct sockaddr_in sa_address_in;
@@ -952,6 +953,7 @@ mxd_sapera_lt_camera_configure_network_connection( MX_VIDEO_INPUT *vinput,
 	("configure network: camera '%s' IP address = '%d.%d.%d.%d (%#lx)",
 		vinput->record->name, ip1, ip2, ip3, ip4, ipv4_address ));
 #endif
+	/*------------------------------------------------------------------*/
 
 	/* Get the packet size that the detector will use to transmit data. */
 
@@ -967,9 +969,21 @@ mxd_sapera_lt_camera_configure_network_connection( MX_VIDEO_INPUT *vinput,
 	}
 
 #if MXD_SAPERA_LT_CAMERA_DEBUG_CONFIGURE_NETWORK
-	MX_DEBUG(-2,("configure network: Sapera Packet Size = %lu",
-				(unsigned long) sapera_packet_size ));
+	MX_DEBUG(-2,("configure network: Sapera Packet Size = %ld",
+			(long) sapera_packet_size ));
 #endif
+
+	necessary_packet_size = 9000;
+
+	if ( sapera_packet_size < necessary_packet_size ) {
+		mx_warning( "The Sapera packet size parameter 'SapPacketSize' "
+		"for camera '%s' is %ld which is too small for correct "
+		"operation of the detector.  This parameter should be %ld.  "
+		"The value can be changed using the Sapera CamExpert program.",
+			vinput->record->name,
+			(long) sapera_packet_size,
+			necessary_packet_size );
+	}
 
 	/* Get an MX_NETWORK_INTERFACE structure that describes the
 	 * address listed above.  The DALSA GigE Vision cameras
