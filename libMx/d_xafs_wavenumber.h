@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2007, 2013 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2007, 2013, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,7 +20,7 @@
 
 #include "mx_motor.h"
 
-#define MX_HBAR_SQUARED_OVER_2M_ELECTRON   3.8095 /* in eV/(angstroms**2) */
+#define MX_HBAR_SQUARED_OVER_2M_ELECTRON   3.8095 /* in eV-(angstroms**2) */
 
 /* ===== MX XAFS electron wavenumber motor data structures ===== */
 
