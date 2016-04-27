@@ -36,7 +36,7 @@ typedef struct {
 
 MX_API mx_status_type mx_network_get_interface_from_host_address(
 						MX_NETWORK_INTERFACE **ni,
-						struct sockaddr *ip_address );
+						struct sockaddr *host_address );
 
 MX_API mx_status_type mx_network_get_interface_from_hostname(
 						MX_NETWORK_INTERFACE **ni,

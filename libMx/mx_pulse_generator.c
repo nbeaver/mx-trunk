@@ -290,13 +290,11 @@ mx_pulse_generator_setup( MX_RECORD *pulse_generator_record,
 			return mx_status;
 	}
 
-	if ( num_pulses >= 0 ) {
-		mx_status = mx_pulse_generator_set_num_pulses(
+	mx_status = mx_pulse_generator_set_num_pulses(
 				pulse_generator_record, num_pulses );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( pulse_delay >= 0.0 ) {
 		mx_status = mx_pulse_generator_set_pulse_delay(
