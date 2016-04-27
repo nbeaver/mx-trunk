@@ -341,7 +341,7 @@ mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 
 MX_EXPORT mx_status_type
 mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
-					struct sockaddr *ip_address_struct )
+					struct sockaddr *host_address_struct )
 {
 	static const char fname[] =
 		"mx_network_get_interface_from_host_address()";
@@ -363,18 +363,18 @@ mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_NETWORK_INTERFACE pointer passed was NULL." );
 	}
-	if ( ip_address_struct == (struct sockaddr *) NULL ) {
+	if ( host_address_struct == (struct sockaddr *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The ip_address_struct pointer passed was NULL." );
+		"The host_address_struct pointer passed was NULL." );
 	}
 
-	if ( ip_address_struct->sa_family != AF_INET ) {
+	if ( host_address_struct->sa_family != AF_INET ) {
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"The ip_address_struct argument passed was not for IPV4." );
+		"The host_address_struct argument passed was not for IPV4." );
 	}
 
 	ipv4_address =
-		((struct sockaddr_in *) ip_address_struct)->sin_addr.s_addr;
+		((struct sockaddr_in *) host_address_struct)->sin_addr.s_addr;
 
 #if MXD_NETWORK_GET_INTERFACE_DEBUG
 	MX_DEBUG(-2,("%s: ipv4_address = %#lx", fname, ipv4_address));
