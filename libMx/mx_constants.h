@@ -23,19 +23,31 @@
 
 #define MX_RADIANS_PER_DEGREE	0.01745329251994330
 
-/*
- * HC is derived from fundamental constants as stated at the NIST web site
- * on November 29, 2002:
- *
- *     http://physics.nist.gov/cuu/Constants/index.html
- *
+/*----------------------------------------------------------------------------*/
+
+/* Physical constants frequently used in MX. */
+
+#define MX_HC                            12398.4197   /* in eV-Angstroms */
+
+#define MX_HBAR_SQUARED_OVER_2M_ELECTRON  3.8099821   /* in eV-(Angstroms**2) */
+
+/* The above values were computed using the following values from the NIST
+ * Standard Reference Database 121 as of May 3, 2016.  These values were
+ * acquired using the web interface at http://physics.nist.gov/cuu/Constants/.
+ * 
+ *   c             = 299 792 458                   meters/second
+ *   electron mass = 9.109 383 56(11) * 10^(-31)   kilograms
+ *   electron volt = 1.602 176 6208(98) * 10^(-19) Joules
+ *   h             = 6.626 070 040(81) * 10^(-34)  Joule-seconds
+ *   hbar          = 1.054 571 800(13) * 10^(-34)  Joule-seconds
  */
 
-#define MX_HC      			12398.4186    /* in eV-angstroms */
-
-/* Used to compute XAFS electron wavenumbers from X-ray energy. */
-
-#define MX_HBAR_SQUARED_OVER_2M_ELECTRON   3.8095     /* in eV-(angstroms**2) */
+/*----------------------------------------------------------------------------*/
+#if 0
+/* Old values of the constants used before May 3, 2016. */
+#define MX_HC                            12398.4186
+#define MX_HBAR_SQUARED_OVER_2M_ELECTRON   3.8095
+#endif
 
 #endif /* __MX_CONSTANTS_H__ */
 
