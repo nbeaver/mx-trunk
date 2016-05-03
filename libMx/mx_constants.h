@@ -31,7 +31,11 @@
  *
  */
 
-#define MX_HC      		12398.4186	/* in eV-angstroms */
+#define MX_HC      			12398.4186    /* in eV-angstroms */
+
+/* Used to compute XAFS electron wavenumbers from X-ray energy. */
+
+#define MX_HBAR_SQUARED_OVER_2M_ELECTRON   3.8095     /* in eV-(angstroms**2) */
 
 #endif /* __MX_CONSTANTS_H__ */
 

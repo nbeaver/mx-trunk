@@ -16,7 +16,8 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2006-2007, 2013 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2006-2007, 2013, 2016
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,6 +29,7 @@
 #include <string.h>
 #include <math.h>
 
+#include "mx_constants.h"
 #include "mx_util.h"
 #include "mx_driver.h"
 #include "mx_array.h"

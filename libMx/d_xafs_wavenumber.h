@@ -20,8 +20,6 @@
 
 #include "mx_motor.h"
 
-#define MX_HBAR_SQUARED_OVER_2M_ELECTRON   3.8095 /* in eV-(angstroms**2) */
-
 /* ===== MX XAFS electron wavenumber motor data structures ===== */
 
 typedef struct {

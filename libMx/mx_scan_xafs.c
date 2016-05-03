@@ -7,7 +7,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2006, 2010, 2015 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2006, 2010, 2015-2016
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,6 +22,7 @@
 #include <string.h>
 #include <math.h>
 
+#include "mx_constants.h"
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_hrt_debug.h"
@@ -28,7 +30,6 @@
 #include "mx_driver.h"
 #include "mx_scan.h"
 #include "mx_scan_xafs.h"
-#include "d_xafs_wavenumber.h"
 
 MX_RECORD_FUNCTION_LIST mxs_xafs_scan_record_function_list = {
 	mxs_xafs_scan_initialize_driver,
