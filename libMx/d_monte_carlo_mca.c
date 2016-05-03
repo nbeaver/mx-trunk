@@ -28,6 +28,7 @@
 #include <string.h>
 #include <errno.h>
 #include <math.h>
+#include <limits.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -1309,13 +1310,13 @@ mxd_monte_carlo_mca_get_parameter( MX_MCA *mca )
 			channel_value = mca->channel_array[j];
 
 			/* If adding the value in the current channel
-			 * would result in the integral exceeding MX_ULONG_MAX,
-			 * assign MX_ULONG_MAX to the integral and break out
+			 * would result in the integral exceeding ULONG_MAX,
+			 * assign ULONG_MAX to the integral and break out
 			 * of the loop.
 			 */
 
-			if ( integral > ( MX_ULONG_MAX - channel_value ) ) {
-				integral = MX_ULONG_MAX;
+			if ( integral > ( ULONG_MAX - channel_value ) ) {
+				integral = ULONG_MAX;
 				break;
 			}
 

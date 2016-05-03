@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004-2007, 2010, 2012, 2015
+ * Copyright 1999-2002, 2004-2007, 2010, 2012, 2015-2016
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -20,7 +20,6 @@
 #include <stdio.h>
 #include <limits.h>
 
-#include "mx_constants.h"
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
@@ -2571,13 +2570,13 @@ mx_mca_default_get_parameter_handler( MX_MCA *mca )
 			channel_value = mca->channel_array[j];
 
 			/* If adding the value in the current channel
-			 * would result in the integral exceeding MX_ULONG_MAX,
-			 * assign MX_ULONG_MAX to the integral and break out
+			 * would result in the integral exceeding ULONG_MAX,
+			 * assign ULONG_MAX to the integral and break out
 			 * of the loop.
 			 */
 
-			if ( integral > ( MX_ULONG_MAX - channel_value ) ) {
-				integral = MX_ULONG_MAX;
+			if ( integral > ( ULONG_MAX - channel_value ) ) {
+				integral = ULONG_MAX;
 				break;
 			}
 
@@ -2615,13 +2614,13 @@ mx_mca_default_get_parameter_handler( MX_MCA *mca )
 			channel_value = mca->channel_array[j];
 
 			/* If adding the value in the current channel
-			 * would result in the integral exceeding MX_ULONG_MAX,
-			 * assign MX_ULONG_MAX to the integral and break out
+			 * would result in the integral exceeding ULONG_MAX,
+			 * assign ULONG_MAX to the integral and break out
 			 * of the loop.
 			 */
 
-			if ( integral > ( MX_ULONG_MAX - channel_value ) ) {
-				integral = MX_ULONG_MAX;
+			if ( integral > ( ULONG_MAX - channel_value ) ) {
+				integral = ULONG_MAX;
 				break;
 			}
 

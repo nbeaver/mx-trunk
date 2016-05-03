@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2006, 2008-2012, 2015 Illinois Institute of Technology
+ * Copyright 2001-2006, 2008-2012, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -32,7 +32,6 @@
 #include <limits.h>
 #include <float.h>
 
-#include "mx_constants.h"
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
@@ -975,7 +974,7 @@ mxd_handel_mca_open( MX_RECORD *record )
 
 	/* Initialize the saved preset values to illegal values. */
 
-	handel_mca->old_preset_type = (unsigned long) MX_ULONG_MAX;
+	handel_mca->old_preset_type = (unsigned long) ULONG_MAX;
 	handel_mca->old_preset_time = DBL_MAX;
 
 #if MXD_HANDEL_MCA_DEBUG
@@ -3185,7 +3184,7 @@ mxd_handel_mca_get_adc_trace_array( MX_MCA *mca )
 		total_delay = 1.0e-9 * handel_mca->adc_trace_step_size
 				* (double) handel_mca->adc_trace_length;
 
-		ulong_max = (double) MX_ULONG_MAX;
+		ulong_max = (double) ULONG_MAX;
 
 		MX_DEBUG(-2,("%s: total_delay = %g seconds, ulong_max = %g",
 			fname, total_delay, ulong_max));

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004-2007, 2009, 2012, 2014-2015
+ * Copyright 1999-2002, 2004-2007, 2009, 2012, 2014-2016
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -18,7 +18,6 @@
 #include <stdio.h>
 #include <limits.h>
 
-#include "mx_constants.h"
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
@@ -390,7 +389,7 @@ mx_acquire_data( MX_MEASUREMENT *measurement )
 
 	/* Wait for the settling time. */
 
-	if ( scan->settling_time >= (0.001 * (double) MX_ULONG_MAX) ) {
+	if ( scan->settling_time >= (0.001 * (double) ULONG_MAX) ) {
 
 		seconds = mx_round( scan->settling_time );
 

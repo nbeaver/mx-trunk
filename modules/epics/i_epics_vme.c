@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001-2006, 2008-2011, 2014-2015 Illinois Institute of Technology
+ * Copyright 2001-2006, 2008-2011, 2014-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,7 +21,6 @@
 #include <stdlib.h>
 #include <limits.h>
 
-#include "mx_constants.h"
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
@@ -784,11 +783,11 @@ mxi_epics_vme_open( MX_RECORD *record )
 
 	/* Set the stored old values to values that are probably illegal. */
 
-	epics_vme->old_address = MX_ULONG_MAX;
-	epics_vme->old_address_mode = MX_ULONG_MAX;
-	epics_vme->old_data_size = MX_ULONG_MAX;
-	epics_vme->old_num_values = MX_ULONG_MAX;
-	epics_vme->old_address_increment = MX_ULONG_MAX;
+	epics_vme->old_address = ULONG_MAX;
+	epics_vme->old_address_mode = ULONG_MAX;
+	epics_vme->old_data_size = ULONG_MAX;
+	epics_vme->old_num_values = ULONG_MAX;
+	epics_vme->old_address_increment = ULONG_MAX;
 
 	/* Find out the maximum number of values that can be transferred
 	 * in one request.

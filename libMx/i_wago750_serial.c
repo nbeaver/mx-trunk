@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003-2008, 2011 Illinois Institute of Technology
+ * Copyright 2003-2008, 2011, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,7 +24,6 @@
 #include <stdlib.h>
 #include <limits.h>
 
-#include "mx_constants.h"
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
@@ -477,7 +476,7 @@ mxi_wago750_serial_open( MX_RECORD *record )
 
 	wait_ms = 100;	/* 100 milliseconds per retry */
 
-	max_attempts = MX_ULONG_MAX;
+	max_attempts = ULONG_MAX;
 
 	if ( rs232->timeout >= 0.0 ) {
 		real_max_attempts = mx_divide_safely( rs232->timeout,

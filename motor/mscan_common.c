@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2007, 2009, 2011, 2013-2015 Illinois Institute of Technology
+ * Copyright 1999-2007, 2009, 2011, 2013-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,7 +21,6 @@
 
 #include "motor.h"
 #include "mdialog.h"
-#include "mx_constants.h"
 #include "mx_array.h"
 #include "mx_scan_linear.h"
 #include "mx_measurement.h"
@@ -865,7 +864,7 @@ motor_setup_preset_count_measurement(
 		status = motor_get_long( output,
 			"Enter preset count for scaler -> ",
 			TRUE, default_long,
-			&scaler_preset_count, 0, MX_LONG_MAX );
+			&scaler_preset_count, 0, LONG_MAX );
 
 		if ( status != SUCCESS )
 			return status;

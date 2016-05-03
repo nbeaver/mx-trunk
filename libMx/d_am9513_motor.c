@@ -21,7 +21,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2006, 2010, 2012-2013 Illinois Institute of Technology
+ * Copyright 1999, 2001-2006, 2010, 2012-2013, 2016
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -35,7 +36,6 @@
 #include <math.h>
 #include <limits.h>
 
-#include "mx_constants.h"
 #include "mx_util.h"
 #include "mx_stdint.h"
 #include "mx_driver.h"
@@ -436,7 +436,7 @@ mxd_am9513_motor_open( MX_RECORD *record )
 	MX_DEBUG( 2,("%s: external_clock_ticks_per_step = %g",
 				fname, external_clock_ticks_per_step));
 
-	ulong_max_double = (double) MX_ULONG_MAX;
+	ulong_max_double = (double) ULONG_MAX;
 
 	if ( external_clock_ticks_per_step > ulong_max_double ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,

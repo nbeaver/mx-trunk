@@ -13,7 +13,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004-2006, 2010, 2012
+ * Copyright 1999, 2001-2002, 2004-2006, 2010, 2012, 2016
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -27,7 +27,6 @@
 #include <math.h>
 #include <limits.h>
 
-#include "mx_constants.h"
 #include "mx_util.h"
 #include "mx_stdint.h"
 #include "mx_driver.h"
@@ -466,7 +465,7 @@ mxd_am9513_timer_start( MX_TIMER *timer )
 	MX_DEBUG( 2,("%s: seconds = %g, clock_ticks_double = %g",
 		fname, seconds, clock_ticks_double));
 
-	ulong_max_double = (double) MX_ULONG_MAX;
+	ulong_max_double = (double) ULONG_MAX;
 
 	if ( clock_ticks_double > ulong_max_double ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,

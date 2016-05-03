@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 2005, 2007, 2010 Illinois Institute of Technology
+ * Copyright 2005, 2007, 2010, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -19,7 +19,7 @@
 #ifndef __MX_MEMORY_H__
 #define __MX_MEMORY_H__
 
-#include "mx_constants.h"
+#include <limits.h>
 
 /* Make the header file C++ safe. */
 
@@ -27,7 +27,7 @@
 extern "C" {
 #endif
 
-#define MXF_PROCESS_ID_SELF	MX_ULONG_MAX
+#define MXF_PROCESS_ID_SELF	ULONG_MAX
 
 typedef unsigned long mx_memsize_type;
 

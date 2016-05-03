@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2009, 2011, 2015 Illinois Institute of Technology
+ * Copyright 1999-2006, 2009, 2011, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -48,7 +48,6 @@
 #define USE_POSIX_CLOCKS
 #endif
 
-#include "mx_constants.h"
 #include "mx_util.h"
 #include "mx_unistd.h"
 #include "mx_clock.h"
@@ -324,7 +323,7 @@ mx_initialize_clock_ticks( void )
 	mx_most_recent_clock_tick_value.high_order = 0L;
 	mx_most_recent_clock_tick_value.low_order  = mx_current_cpu_tick();
 
-	mx_clock_tick_divisor = 1.0 + (double) MX_ULONG_MAX;
+	mx_clock_tick_divisor = 1.0 + (double) ULONG_MAX;
 }
 
 /* mx_current_clock_tick() must be invoked from time to time in order to
@@ -477,7 +476,7 @@ mx_add_clock_ticks( MX_CLOCK_TICK clock_tick_1, MX_CLOCK_TICK clock_tick_2 )
 
 	/* Check for carry. */
 
-	if ( L2 > MX_ULONG_MAX - L1 )
+	if ( L2 > ULONG_MAX - L1 )
 		result.high_order ++;
 
 #if MX_CLOCK_DEBUG

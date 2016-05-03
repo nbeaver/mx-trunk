@@ -21,7 +21,6 @@
 #include <stdarg.h>
 #include <limits.h>
 
-#include "mx_constants.h"
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_scan.h"
@@ -498,7 +497,7 @@ mx_update_datafile_name( MX_DATAFILE *datafile )
 
 	for ( i = 0; i < (int) number_length; i++ ) {
 
-		if ( MX_ULONG_MAX / divisor < 10U ) {
+		if ( ULONG_MAX / divisor < 10U ) {
 			return mx_error( MXE_FUNCTION_FAILED, fname,
 "There are too many digits (%d) in the number string '%s' in filename '%s'.  "
 "Reduce it to %d digits or less.",
@@ -641,7 +640,7 @@ mx_construct_datafile_version_number( long test_version_number,
 
 	for ( i = 0; i < (int) version_number_length; i++ ) {
 
-		if ( MX_ULONG_MAX / divisor < 10U ) {
+		if ( ULONG_MAX / divisor < 10U ) {
 			(void) mx_error( MXE_FUNCTION_FAILED, fname,
 "There are too many digits (%ld) in the file version number %ld.  "
 "Reduce it to %d digits or less.",
