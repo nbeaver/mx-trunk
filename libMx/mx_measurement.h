@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2006-2007, 2015 Illinois Institute of Technology
+ * Copyright 1999-2002, 2006-2007, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -105,6 +105,9 @@ MX_API mx_status_type mx_get_measurement_time( MX_MEASUREMENT *measurement,
 
 MX_API mx_status_type mx_get_measurement_counts( MX_MEASUREMENT *measurement,
 						long *measurement_counts );
+
+MX_API mx_status_type mx_get_last_measurement_time( MX_MEASUREMENT *measurement,
+						double *last_measurement_time );
 
 /* One global variable. */
 

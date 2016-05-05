@@ -28,6 +28,7 @@
 #include "mx_motor.h"
 #include "mx_relay.h"
 #include "mx_scaler.h"
+#include "mx_pulse_generator.h"
 #include "mx_amplifier.h"
 #include "mx_relay.h"
 #include "mx_mca.h"
@@ -598,8 +599,6 @@ mx_get_measurement_time( MX_MEASUREMENT *measurement,
 	MX_MEASUREMENT_PRESET_PULSE_PERIOD *preset_pulse_period_struct;
 	MX_MEASUREMENT_K_POWER_LAW *k_power_law_struct;
 
-	MX_DEBUG( 2,("%s invoked.",fname));
-
 	if ( measurement == (MX_MEASUREMENT *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_MEASUREMENT pointer passed is NULL." );
@@ -652,8 +651,6 @@ mx_get_measurement_counts( MX_MEASUREMENT *measurement,
 	
 	MX_MEASUREMENT_PRESET_COUNT *preset_count_struct;
 
-	MX_DEBUG(-2,("%s invoked.",fname));
-
 	if ( measurement == (MX_MEASUREMENT *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_MEASUREMENT pointer passed is NULL." );
@@ -683,5 +680,90 @@ mx_get_measurement_counts( MX_MEASUREMENT *measurement,
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_get_last_measurement_time( MX_MEASUREMENT *measurement,
+			double *last_measurement_time )
+{
+	static const char fname[] = "mx_get_measurement_time()";
+	
+	MX_MEASUREMENT_PRESET_TIME *preset_time_struct;
+	MX_MEASUREMENT_PRESET_PULSE_PERIOD *preset_pulse_period_struct;
+	MX_MEASUREMENT_K_POWER_LAW *k_power_law_struct;
+	MX_MEASUREMENT_PRESET_COUNT *preset_count_struct;
+	MX_SCAN *scan;
+	mx_status_type mx_status;
+
+	if ( measurement == (MX_MEASUREMENT *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"MX_MEASUREMENT pointer passed is NULL." );
+	}
+	if ( last_measurement_time == (double *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"last_measurement_time pointer passed is NULL." );
+	}
+	if ( measurement->measurement_type_struct == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The measurement_type_struct pointer for the "
+			"MX_MEASUREMENT structure passed is NULL." );
+	}
+
+	scan = measurement->scan;
+
+	switch( measurement->type ) {
+	case MXM_PRESET_TIME:
+		preset_time_struct = (MX_MEASUREMENT_PRESET_TIME *)
+					measurement->measurement_type_struct;
+
+		mx_status = mx_timer_get_last_measurement_time(
+					preset_time_struct->timer_record,
+					last_measurement_time );
+		break;
+	case MXM_PRESET_PULSE_PERIOD:
+		preset_pulse_period_struct = 
+			(MX_MEASUREMENT_PRESET_PULSE_PERIOD *)
+			measurement->measurement_type_struct;
+
+		mx_status = mx_pulse_generator_get_pulse_period(
+			preset_pulse_period_struct->pulse_generator_record,
+			last_measurement_time );
+		break;
+	case MXM_K_POWER_LAW:
+		k_power_law_struct = (MX_MEASUREMENT_K_POWER_LAW *)
+					measurement->measurement_type_struct;
+
+		mx_status = mx_timer_get_last_measurement_time(
+					k_power_law_struct->timer_record,
+					last_measurement_time );
+		break;
+
+	case MXM_PRESET_COUNT:
+		preset_count_struct = (MX_MEASUREMENT_PRESET_COUNT *)
+					measurement->measurement_type_struct;
+
+		if ( scan == (MX_SCAN *) NULL ) {
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Returning the last measurement time for scaler '%s' "
+			"is not supported.",
+				preset_count_struct->scaler_record->name );
+		} else {
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Returning the last measurement time for scaler '%s' "
+			"used by scan '%s' is not supported.",
+				preset_count_struct->scaler_record->name,
+				scan->record->name );
+		}
+
+		break;
+
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Illegal measurement type %ld requested for scan '%s'.",
+			measurement->type, scan->record->name );
+		break;
+	}
+
+	return mx_status;
 }
 
