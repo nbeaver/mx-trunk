@@ -272,8 +272,8 @@ mxdf_xafs_write_header( MX_DATAFILE *datafile,
 			datafile->filename );
 	}
 
-	mx_status = mx_get_measurement_time( &(scan->measurement),
-						&measurement_time );
+	mx_status = mx_get_last_measurement_time( &(scan->measurement),
+							&measurement_time );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -879,8 +879,8 @@ mxdf_xafs_add_measurement_to_datafile( MX_DATAFILE *datafile )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_get_measurement_time( &(scan->measurement),
-						&measurement_time );
+	mx_status = mx_get_last_measurement_time( &(scan->measurement),
+							&measurement_time );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1056,8 +1056,8 @@ mxdf_xafs_add_array_to_datafile( MX_DATAFILE *datafile,
 			datafile->filename );
 	}
 
-	mx_status = mx_get_measurement_time( &(scan->measurement),
-						&measurement_time );
+	mx_status = mx_get_last_measurement_time( &(scan->measurement),
+							&measurement_time );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

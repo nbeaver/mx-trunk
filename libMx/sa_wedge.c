@@ -5,7 +5,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008-2009, 2011, 2015 Illinois Institute of Technology
+ * Copyright 2008-2009, 2011, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -453,8 +453,8 @@ mxp_wedge_scan_take_frame( MX_SCAN *scan,
 
 	delta = ad_scan->step_size[0];
 
-	mx_status = mx_get_measurement_time( &(scan->measurement),
-						&oscillation_time );
+	mx_status = mx_get_last_measurement_time( &(scan->measurement),
+							&oscillation_time );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

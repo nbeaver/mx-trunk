@@ -7,7 +7,8 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2006, 2009, 2010, 2015 Illinois Institute of Technology
+ * Copyright 1999, 2001-2006, 2009, 2010, 2015-2016
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -259,8 +260,8 @@ mxp_gnuxafs_add_measurement_to_plot_buffer( MX_PLOT *plot )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_get_measurement_time( &(scan->measurement),
-						&measurement_time );
+	mx_status = mx_get_last_measurement_time( &(scan->measurement),
+							&measurement_time );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -405,8 +406,8 @@ mxp_gnuxafs_add_array_to_plot_buffer( MX_PLOT *plot,
 			plot );
 	}
 
-	mx_status = mx_get_measurement_time( &(scan->measurement),
-						&measurement_time );
+	mx_status = mx_get_last_measurement_time( &(scan->measurement),
+							&measurement_time );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
