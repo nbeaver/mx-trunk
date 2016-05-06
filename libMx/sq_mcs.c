@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2008, 2010-2015 Illinois Institute of Technology
+ * Copyright 1999-2006, 2008, 2010-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -3675,6 +3675,20 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 		}
 	}
 
+	/* Reset any faults that may have occurred. */
+
+	mx_status = mx_scan_reset_all_faults( scan );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Wait for permission to start the scan. */
+
+	mx_status = mx_scan_wait_for_all_permits( scan );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 #if DEBUG_TIMING
 	MX_HRT_START( timing_measurement );
 #endif
@@ -3905,10 +3919,19 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 					&old_measurement_number );
 
 			if ( mx_status.code != MXE_SUCCESS ) {
-				mx_free( data_values );
-				mx_free( motor_datafile_positions );
-				mx_free( motor_plot_positions );
-				return mx_status;
+				if ( scan->num_measurement_fault_handlers > 0 )
+				{
+					return mx_error( MXE_TRY_AGAIN, fname,
+					"An error occurred while running "
+					"this quick scan.  We will retry "
+					"the scan after saving the data "
+					"from it." );
+				} else {
+					mx_free( data_values );
+					mx_free( motor_datafile_positions );
+					mx_free( motor_plot_positions );
+					return mx_status;
+				}
 			}
 		}
 
@@ -3920,10 +3943,18 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 		}
 
 		if ( mx_status.code != MXE_SUCCESS ) {
-			mx_free( data_values );
-			mx_free( motor_datafile_positions );
-			mx_free( motor_plot_positions );
-			return mx_status;
+			if ( scan->num_measurement_fault_handlers > 0 ) {
+				return mx_error( MXE_TRY_AGAIN, fname,
+					"An error occurred while running "
+					"this quick scan.  We will retry "
+					"the scan after saving the data "
+					"from it." );
+			} else {
+				mx_free( data_values );
+				mx_free( motor_datafile_positions );
+				mx_free( motor_plot_positions );
+				return mx_status;
+			}
 		}
 
 		mx_msleep(100);

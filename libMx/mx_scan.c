@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2012, 2014-2015 Illinois Institute of Technology
+ * Copyright 1999-2012, 2014-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -665,9 +665,16 @@ mx_perform_scan( MX_RECORD *scan_record )
 		return mx_status;
 	}
 
+	/* Warning: Do not use a 'continue' statement in the following
+	 * scan loop, since the loop variable 'i' is never incremented
+	 * until we reach the end of the loop body.  The reason for this
+	 * is that we do not increment 'i' if execute_scan_body_fn()
+	 * returns an MXE_TRY_AGAIN status.
+	 */
+
 	/*** Loop through the iterations of the scan. ***/
 
-	for ( i = 0; i < scan->num_scans; i++ ) {
+	for ( i = 0; i < scan->num_scans; ) {
 
 #if DEBUG_PERFORM_SCAN_TIMING
 		MX_HRT_START( timing_measurement );
@@ -806,6 +813,19 @@ mx_perform_scan( MX_RECORD *scan_record )
 		case MXE_INTERRUPTED:
 			mx_info( "Scan '%s' aborted.", scan_record->name );
 			break;
+		case MXE_TRY_AGAIN:
+			if ( scan->num_scans <= 1 ) {
+				mx_warning( "Scan '%s' ended with a fault "
+				"and will be restarted after the data from "
+				"the faulted scan is saved.",
+					scan->record->name );
+			} else {
+				mx_warning( "Scan %ld of %ld ended with "
+				"a fault and will be restarted after the "
+				"data from the faulted scan is saved.",
+					i+1, scan->num_scans );
+			}
+			break;
 		default:
 			mx_info( "Scan '%s' terminated with error code %ld.",
 				scan_record->name,
@@ -855,7 +875,15 @@ mx_perform_scan( MX_RECORD *scan_record )
 		MX_HRT_RESULTS( timing_measurement,
 			fname, "restored motor speeds" );
 #endif
+		/* If execute_scan_body_fn() returned an MXE_TRY_AGAIN code,
+		 * then we want to rerun this scan using the same index number
+		 * 'i' as the scan we just ran.  Thus, we only increment the
+		 * value of 'i' if the returned status was _not_ MXE_TRY_AGAIN.
+		 */
 
+		if ( scan->execute_scan_body_status.code != MXE_TRY_AGAIN ) {
+			i++;
+		}
 	}
 
 	/* Deconfigure the measurement type. */
