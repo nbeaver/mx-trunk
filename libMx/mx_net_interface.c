@@ -328,7 +328,9 @@ mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 	}
 }
 
-#elif defined( OS_LINUX ) || defined( OS_CYGWIN )
+#elif ( defined( OS_LINUX ) && ( MX_GLIBC_VERSION >= 2003000L ) ) \
+	|| ( defined( OS_LINUX ) && defined( MX_MUSL_VERSION ) ) \
+	|| defined( OS_CYGWIN )
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -514,7 +516,9 @@ mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 	}
 }
 
-#elif defined( OS_MACOSX ) || defined( OS_ANDROID )
+#elif defined( OS_MACOSX ) || defined( OS_LINUX ) || defined( OS_ANDROID )
+
+/* Note: This is a fallback for Linux if using Glibc versions before 2.3. */
 
 #include <stdio.h>
 #include <stdlib.h>

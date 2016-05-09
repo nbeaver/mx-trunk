@@ -21,7 +21,7 @@ all: build
 
 #MODULES += avt_vimba		# linux,
 
-#MODULES += dalsa_gev		# linux,
+MODULES += dalsa_gev		# linux,
 
 #MODULES += edt			# linux,
 
