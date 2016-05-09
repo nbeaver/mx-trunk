@@ -21,7 +21,7 @@ all: build
 
 #MODULES += avt_vimba		# linux,
 
-MODULES += dalsa_gev		# linux,
+#MODULES += dalsa_gev		# linux,
 
 #MODULES += edt			# linux,
 
@@ -87,7 +87,7 @@ MODULES += dalsa_gev		# linux,
 
 #MODULES += rdi_mbc
 
-#MODULES += sapera_lt 
+MODULES += sapera_lt 
 
 #MODULES += u500
 
@@ -96,7 +96,7 @@ MODULES += xineos_gige
 #-------------------------------------------------------------------
 # EPICS modules.
 
-MODULES += epics
+#MODULES += epics
 
 #MODULES += epics_aps 
 

@@ -921,7 +921,6 @@ mxd_sapera_lt_camera_configure_network_connection( MX_VIDEO_INPUT *vinput,
 		"mxd_sapera_lt_camera_configure_network_connection()";
 
 	INT64 ipv4_address, sapera_packet_size;
-	long necessary_packet_size;
 	BOOL sapera_status;
 	MX_NETWORK_INTERFACE *ni;
 	struct sockaddr_in sa_address_in;
@@ -973,18 +972,6 @@ mxd_sapera_lt_camera_configure_network_connection( MX_VIDEO_INPUT *vinput,
 			(long) sapera_packet_size ));
 #endif
 
-	necessary_packet_size = 9000;
-
-	if ( sapera_packet_size < necessary_packet_size ) {
-		mx_warning( "The Sapera packet size parameter 'SapPacketSize' "
-		"for camera '%s' is %ld which is too small for correct "
-		"operation of the detector.  This parameter should be %ld.  "
-		"The value can be changed using the Sapera CamExpert program.",
-			vinput->record->name,
-			(long) sapera_packet_size,
-			necessary_packet_size );
-	}
-
 	/* Get an MX_NETWORK_INTERFACE structure that describes the
 	 * address listed above.  The DALSA GigE Vision cameras
 	 * currently all use IPV4.
@@ -1031,22 +1018,21 @@ mxd_sapera_lt_camera_configure_network_connection( MX_VIDEO_INPUT *vinput,
 
 	if ( sapera_packet_size > ni->mtu ) {
 		fprintf( stderr,
-"WARNING:\n"
-"The DALSA camera is currently configured to send data to the detector\n"
-"using %lu byte packets.  However, the detector control computer network\n"
-"interface '%s' is configured so that it cannot receive\n"
-"packets that are larger than %lu bytes.  This kind of configuration\n"
-"WILL NOT WORK!\n"
+"\nWARNING:\n"
+"The DALSA camera is currently configured to send data to the detector using\n"
+"%lu byte packets.  However, the detector control computer network interface\n"
+"'%s' is configured so that it cannot receive packets that are larger\n"
+"than %lu bytes.  This kind of configuration WILL NOT WORK!\n"
 "\n"
-"If you attempt to use the detector in this configuration anyway, the\n"
-"detector electronics controller will spontaneously reboot itself quite\n"
-"frequently, making it difficult to complete even one imaging sequence.\n"
+"If you attempt to use the detector in this configuration anyway, the detector\n"
+"electronics controller will spontaneously reboot itself quite frequently,\n"
+"making it difficult to complete even one imaging sequence.\n"
 "\n"
 "To fix this, you must open the Windows Device Manager program (typically\n"
 "from the 'System' control panel, open the entry corresponding to the \n"
-"'%s' network interface and change the maximum packet size\n"
-"to a value that is %lu bytes or more.  Often, this is called enabling\n"
-"'Jumbo Frames' or 'Jumbo Packets'.\n\n",
+"'%s' network interface and change the maximum packet size to a value\n"
+"that is %lu bytes or more.  Often, this is called enabling 'Jumbo Frames'\n"
+"or 'Jumbo Packets'.\n\n",
 			(unsigned long) sapera_packet_size,
 			ni->name, ni->mtu, ni->name,
 			(unsigned long) sapera_packet_size );
