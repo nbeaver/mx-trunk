@@ -5,6 +5,10 @@
 #          dependent features of the MX makefiles.  This version is customized
 #          for Android and its Bionic libc.
 #
+# WARNING: At present, this makefile only supports building on the
+#          Android device itself using gcc from the Termux app.
+#          Android Studio support will come later.
+#
 # Normally, the only things that end users may have to modify in this file are
 # the definitions of INCLUDES, LIB_DIRS, and LIBRARIES.
 #

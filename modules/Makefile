@@ -91,7 +91,7 @@ MODULES += dalsa_gev		# linux,
 
 #MODULES += u500
 
-#MODULES += xineos_gige
+MODULES += xineos_gige
 
 #-------------------------------------------------------------------
 # EPICS modules.
