@@ -516,7 +516,8 @@ mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 	}
 }
 
-#elif defined( OS_MACOSX ) || defined( OS_LINUX ) || defined( OS_ANDROID )
+#elif defined( OS_MACOSX ) || defined( OS_LINUX ) || defined( OS_ANDROID ) \
+	|| defined( OS_VXWORKS )
 
 /* Note: This is a fallback for Linux if using Glibc versions before 2.3. */
 
@@ -594,7 +595,11 @@ mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 	if_conf.ifc_ifcu.ifcu_req = NULL;
 	if_conf.ifc_len = 0;
 
+#if defined(OS_VXWORKS)
+	os_status = ioctl( test_socket, SIOCGIFCONF, (int) &if_conf );
+#else
 	os_status = ioctl( test_socket, SIOCGIFCONF, &if_conf );
+#endif
 
 	if ( os_status != 0 ) {
 		saved_errno = errno;
@@ -622,7 +627,11 @@ mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 
 	/* Now we are ready to get the list using SIOCGIFCONF. */
 
+#if defined(OS_VXWORKS)
+	os_status = ioctl( test_socket, SIOCGIFCONF, (int) &if_conf );
+#else
 	os_status = ioctl( test_socket, SIOCGIFCONF, &if_conf );
+#endif
 
 	if ( os_status != 0 ) {
 		saved_errno = errno;
