@@ -2962,7 +2962,7 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
 /*-------------------------------------------------------------------------*/
 
 #elif ( defined(OS_SOLARIS) \
-        && (MX_SOLARIS_VERSION >= 5010000L) \
+        && (MX_SOLARIS_VERSION >= 5011000L) \
         && (!defined(__GNUC__)) )
 
 /*

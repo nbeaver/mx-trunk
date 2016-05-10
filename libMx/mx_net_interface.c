@@ -330,6 +330,7 @@ mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 
 #elif ( defined( OS_LINUX ) && ( MX_GLIBC_VERSION >= 2003000L ) ) \
 	|| ( defined( OS_LINUX ) && defined( MX_MUSL_VERSION ) ) \
+	|| ( defined( OS_SOLARIS ) && ( MX_SOLARIS_VERSION >= 5011000L ) ) \
 	|| defined( OS_BSD ) || defined( OS_CYGWIN ) || defined( OS_RTEMS )
 
 #include <stdio.h>
@@ -517,14 +518,21 @@ mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 }
 
 #elif defined( OS_MACOSX ) || defined( OS_LINUX ) || defined( OS_ANDROID ) \
-	|| defined( OS_VXWORKS )
+	|| defined( OS_SOLARIS ) || defined( OS_VXWORKS )
 
-/* Note: This is a fallback for Linux if using Glibc versions before 2.3. */
+/* Note: This is a fallback for Linux if using Glibc versions before 2.3
+ *       or Solaris before Solaris 11.
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <net/if.h>
+
+#if defined(OS_SOLARIS)
+#include <unistd.h>
+#include <sys/sockio.h>
+#endif
 
 /* FIXME: This function currently supports only IPV4 addresses. */
 
@@ -790,6 +798,6 @@ mx_network_get_interface_from_hostname( MX_NETWORK_INTERFACE **ni,
 		break;
 	}
 
-	return mx_status;
+	MXW_NOT_REACHED( return mx_status );
 }
 
