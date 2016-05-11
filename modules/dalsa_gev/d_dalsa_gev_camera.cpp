@@ -331,6 +331,10 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 		"The MX_RECORD pointer passed was NULL." );
 	}
 
+#if MXD_DALSA_GEV_CAMERA_DEBUG_OPEN
+	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
+#endif
+
 	vinput = (MX_VIDEO_INPUT *) record->record_class_struct;
 
 	mx_status = mxd_dalsa_gev_camera_get_pointers( vinput,
@@ -340,10 +344,6 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 		return mx_status;
 
 	camera_flags = dalsa_gev_camera->camera_flags;
-
-#if MXD_DALSA_GEV_CAMERA_DEBUG_OPEN
-	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
-#endif
 
 	/* Walk through the list of GEV_CAMERA_INFO objects to find the
 	 * camera that has the specified serial number.
@@ -484,6 +484,8 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 	case GEVLIB_OK:
 		break;
 	default:
+		mx_free( xml_data );
+
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
 		"Transferring the XML configuration data for camera '%s' "
 		"failed with status code %ld.",
@@ -500,9 +502,53 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 
 	xml_data[ actual_data_bytes ] = 0;
 
-	/* Create a GenICam string out of the XML data. */
+	/* Manually instantiate a GenICam feature node map for the camera. */
 
-	GenICam::gcstring genicam_string( xml_data );
+	GenApi::CNodeMapRef feature_node_map;
+
+#if MXD_DALSA_GEV_CAMERA_DEBUG_OPEN
+	MX_DEBUG(-2,("%s: feature_node_map = %p", fname, &feature_node_map));
+#endif
+	mx_breakpoint();
+
+	/* Load the XML data into the feature node map. */
+
+	MX_DEBUG(-2,("%s: MARKER 0", fname));
+
+	if ( is_compressed ) {
+		MX_DEBUG(-2,("%s: MARKER 1.1", fname));
+
+		feature_node_map._LoadXMLFromZIPData( (void *) xml_data,
+							actual_data_bytes );
+	} else {
+		MX_DEBUG(-2,("%s: MARKER 1.2", fname));
+
+		GenICam::gcstring xml_string( xml_data );
+
+		feature_node_map._LoadXMLFromString( xml_string );
+	}
+
+	MX_DEBUG(-2,("%s: MARKER 2", fname));
+
+	/* Connect the camera to the feature node map. */
+
+	gev_status = GevConnectFeatures( camera_handle,
+					(void *) &feature_node_map );
+
+	MX_DEBUG(-2,("%s: MARKER 3", fname));
+
+	switch( gev_status ) {
+	case GEVLIB_OK:
+		break;
+	default:
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"Connecting camera '%s' to the feature map with "
+		"GevConnectFeatures() failed with status code %ld.",
+			record->name, gev_status );
+		break;
+	}
+
+	/*---------------------------------------------------------------*/
 
 	return MX_SUCCESSFUL_RESULT;
 }
