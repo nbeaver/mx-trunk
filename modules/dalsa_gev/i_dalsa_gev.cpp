@@ -1,5 +1,5 @@
 /*
- * Name:    i_dalsa_gev.c
+ * Name:    i_dalsa_gev.cpp
  *
  * Purpose: MX driver for the DALSA Gev API camera interface for
  *          DALSA GigE-Vision cameras.
@@ -171,8 +171,8 @@ mxi_dalsa_gev_open( MX_RECORD *record )
 	 * for each camera.
 	 */
 
-	dalsa_gev->camera_array = calloc( dalsa_gev->num_cameras,
-					sizeof(GEV_CAMERA_INFO) );
+	dalsa_gev->camera_array = (GEV_CAMERA_INFO *)
+		calloc( dalsa_gev->num_cameras, sizeof(GEV_CAMERA_INFO) );
 
 	if ( dalsa_gev->camera_array == (GEV_CAMERA_INFO *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,

@@ -18,7 +18,7 @@
 #ifndef __I_DALSA_GEV_H__
 #define __I_DALSA_GEV_H__
 
-/* Vendor include file. */
+/* Vendor include file */
 
 #include "gevapi.h"
 

@@ -1,31 +1,12 @@
 #
-# This modules is only for the 'win32' and 'linux' platforms.
+# This module is only for the 'linux' platform.
 #
 
-ifndef MX_ARCH
-  MX_ARCH = linux
-endif
+DALSA_GEV_INCLUDES += -I/usr/dalsa/GigeV/include
+DALSA_GEV_INCLUDES += -I/opt/genicam_v3_0/library/CPP/include
 
-ifeq ($(MX_ARCH),linux)
-	DALSA_GEV_INCLUDES += -I/usr/dalsa/GigeV/include
-
-	DALSA_GEV_LIBRARIES = -L/usr/dalsa/GigeV/lib -lGevApi
-	DALSA_GEV_LIBRARIES += -L/usr/local/lib -lCorW32
-endif
-
-ifeq ($(MX_ARCH),win32)
-	#
-	# Note: The directory name DALSA_GEV_DIR must _not_ have any spaces
-	# in it.  This means names like "C:\\Program Files\\Teledyne DALSA"
-	# are not acceptable.
-	#
-
-	DALSA_GEV_DIR = c:\\progra~1\\teledy~1\\GigeV
-
-	DALSA_GEV_INCLUDES += -I$(DALSA_GEV_DIR)\\Include
-
-	DALSA_GEV_LIBRARIES = $(DALSA_GEV_DIR)\\Lib\\Win64\\aaaaaa.lib
-endif
+DALSA_GEV_LIBRARIES = -L/usr/dalsa/GigeV/lib -lGevApi
+DALSA_GEV_LIBRARIES += -L/usr/local/lib -lCorW32
 
 #--------------------------------------------------------------------------
 
@@ -39,63 +20,46 @@ DALSA_GEV_OBJS = dalsa_gev.$(OBJ) i_dalsa_gev.$(OBJ) d_dalsa_gev_camera.$(OBJ)
 
 #--------------------------------------------------------------------------
 
-ifeq ($(MX_ARCH),linux)
-
 #
 # The vendor include files make a lot of use of functions that are forbidden
 # in the core of MX like sprintf(), strcpy(), and so forth.  We must define
 # MX_NO_POISON to relax that restriction.
 #
-# POSIX_HOSTPC must be defined for Linux builds.  If it is not, then the
-# GigeV include files appear to assume that we are compiling on Windows
-# and start decorating everything with __declspec() attributes.  This
-# behavior of the header files does not seem to be documented anywhere.
-#
 
-COMPILE = gcc -c
+GCC = gcc
+GPP = g++
 
 CFLAGS = -g -fPIC $(GCCFLAGS) -DOS_LINUX -DDEBUG -DMX_NO_POISON $(CFLAGS_MODULE)
+
+#
+# DALSA redefineds a bunch of macros like INT8_MAX, etc., so we define the
+# following include file directory as 'system' to suppress the warnings.
+#
+
+CFLAGS += -isystem /usr/dalsa/GigeV/include
+
+# Suppress GCC complaints about Visual Studio-specific pragmas.
+
+CFLAGS += -Wno-unknown-pragmas
+
+#--------------------------------------------------------------------------
 
 dalsa_gev.mxo: $(DALSA_GEV_OBJS)
 	gcc -shared -rdynamic -Wl,-soname,dalsa_gev.mxo \
 		-o dalsa_gev.mxo $(DALSA_GEV_OBJS) \
 		$(DALSA_GEV_LIBRARIES)
 
-endif
-
-#--------------------------------------------------------------------------
-
-ifeq ($(MX_ARCH),win32)
-
-CFLAGS += -EHsc
-CFLAGS += $(CFLAGS_MODULE)
-
-dalsa_gev.mxo: $(DALSA_GEV_OBJS)
-	link /dll /debug /nologo /out:dalsa_gev.mxo /nodefaultlib:libc \
-		$(DALSA_GEV_OBJS) ..\\..\\libMx\\$(MX_LIBRARY_NAME) \
-		$(DALSA_GEV_LIBRARIES)
-
-	# For VC2005 or later, embed the manifest in the module.
-
-	if test -f dalsa_gev.mxo.manifest; then \
-		$(MSMANIFEST_TOOL) -nologo \
-			-outputresource:dalsa_gev.mxo\;2 \
-			-manifest dalsa_gev.mxo.manifest ; \
-		rm -f dalsa_gev.mxo.manifest; \
-	fi
-endif
-
 #--------------------------------------------------------------------------
 
 dalsa_gev.$(OBJ): dalsa_gev.c i_dalsa_gev.h d_dalsa_gev_camera.h
-	$(COMPILE) $(CFLAGS) dalsa_gev.c
+	$(GCC) -c $(CFLAGS) dalsa_gev.c
 
-i_dalsa_gev.$(OBJ): i_dalsa_gev.c i_dalsa_gev.h
-	$(COMPILE) $(CFLAGS) i_dalsa_gev.c
+i_dalsa_gev.$(OBJ): i_dalsa_gev.cpp i_dalsa_gev.h
+	$(GPP) -c $(CFLAGS) i_dalsa_gev.cpp
 
-d_dalsa_gev_camera.$(OBJ): d_dalsa_gev_camera.c \
+d_dalsa_gev_camera.$(OBJ): d_dalsa_gev_camera.cpp \
 				d_dalsa_gev_camera.h i_dalsa_gev.h
-	$(COMPILE) $(CFLAGS) d_dalsa_gev_camera.c
+	$(GPP) -c $(CFLAGS) d_dalsa_gev_camera.cpp
 
 install: dalsa_gev.mxo
 	-mkdir $(MX_INSTALL_DIR)/lib/modules

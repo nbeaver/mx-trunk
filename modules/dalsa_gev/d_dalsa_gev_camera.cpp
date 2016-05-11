@@ -1,5 +1,5 @@
 /*
- * Name:    d_dalsa_gev_camera.c
+ * Name:    d_dalsa_gev_camera.cpp
  *
  * Purpose: MX video input driver for a DALSA GigE-Vision camera
  *          controlled via the Gev API.
@@ -34,6 +34,11 @@
 #include "mx_video_input.h"
 #include "i_dalsa_gev.h"
 #include "d_dalsa_gev_camera.h"
+
+/* Vendor include files */
+
+#include "cordef.h"
+#include "GenApi/GenApi.h"
 
 /*---*/
 
@@ -314,6 +319,8 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 	GEV_CAMERA_INFO *camera_object, *selected_camera_object;
 	GEV_CAMERA_HANDLE camera_handle;
 
+	char *xml_data;
+	int xml_data_bytes, actual_data_bytes, is_compressed;
 	char *serial_number_string;
 	long i, gev_status;
 	unsigned long camera_flags;
@@ -367,6 +374,8 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 			serial_number_string,
 			record->name );
 	}
+
+	/*---------------------------------------------------------------*/
 
 	gev_status = GevOpenCamera( selected_camera_object,
 					GevExclusiveMode,
@@ -424,44 +433,76 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 
 	camera_handle = dalsa_gev_camera->camera_handle;
 
-	/* Find the name of the XML file to be used for this camera.
-	 * If this file has never been downloaded before, then this
-	 * may trigger a download from the Internet (?)
+	/*---------------------------------------------------------------*/
+
+	/* Prepare to receive the XML data for this camera by finding out
+	 * how many bytes there are in the XML data.
 	 */
 
-	gev_status = Gev_RetrieveXMLFile( camera_handle,
-					dalsa_gev_camera->xml_filename,
-					sizeof(dalsa_gev_camera->xml_filename),
-					FALSE );
+	gev_status = Gev_RetrieveXMLData( camera_handle, 0, NULL,
+					&xml_data_bytes, &is_compressed );
 
 	switch( gev_status ) {
 	case GEVLIB_OK:
 		break;
 	default:
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
-		"A call to Gev_RetrieveXMLFile() for camera '%s' "
-		"returned an unexpected status code of %ld.",
+		"Finding out how many bytes are in the XML data for the "
+		"camera associated with record '%s' failed "
+		"with status code %ld.",
 			record->name, gev_status );
 		break;
 	}
 
-	MX_DEBUG(-2,("%s: xml_filename = '%s'",
-		fname, dalsa_gev_camera->xml_filename));
+	/* Round up the xml_data_bytes to the next multiple of 4. */
 
-	gev_status = GevInitGenICamXMLFeatures_FromFile(
-				camera_handle,
-				dalsa_gev_camera->xml_filename );
+	xml_data_bytes = ( xml_data_bytes + 3 ) & (~3);
+
+#if MXD_DALSA_GEV_CAMERA_DEBUG_OPEN
+	MX_DEBUG(-2,("%s: xml_data_bytes = %d", fname, xml_data_bytes ));
+#endif
+
+	/* Allocate an array to hold the XML data in. */
+
+	xml_data = (char *) malloc( xml_data_bytes + 1 );
+
+	if ( xml_data == (char *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %d byte array "
+		"to hold the XML configuration data from camera '%s'.",
+			xml_data_bytes + 1, record->name );
+	}
+
+	/* Transfer the XML data from the camera. */
+
+	gev_status = Gev_RetrieveXMLData( camera_handle,
+					xml_data_bytes, xml_data,
+					&actual_data_bytes,
+					&is_compressed );
 
 	switch( gev_status ) {
 	case GEVLIB_OK:
 		break;
 	default:
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
-		"A call to GevInitGenICamXMLFeatures_FromFile() for "
-		"camera '%s' returned an unexpected status code of %ld.",
+		"Transferring the XML configuration data for camera '%s' "
+		"failed with status code %ld.",
 			record->name, gev_status );
 		break;
 	}
+
+#if MXD_DALSA_GEV_CAMERA_DEBUG_OPEN
+	MX_DEBUG(-2,("%s: actual_data_bytes = %d, is_compressed = %d",
+		fname, actual_data_bytes, is_compressed ));
+#endif
+
+	/* Make sure the XML data is null terminated. */
+
+	xml_data[ actual_data_bytes ] = 0;
+
+	/* Create a GenICam string out of the XML data. */
+
+	GenICam::gcstring genicam_string( xml_data );
 
 	return MX_SUCCESSFUL_RESULT;
 }
