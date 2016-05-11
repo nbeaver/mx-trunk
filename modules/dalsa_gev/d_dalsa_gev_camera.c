@@ -145,6 +145,7 @@ mxd_dalsa_gev_camera_get_pointers( MX_VIDEO_INPUT *vinput,
 
 /*---*/
 
+#if 0
 static mx_status_type
 mxd_dalsa_gev_camera_api_error( short gev_status,
 				const char *location,
@@ -225,76 +226,6 @@ mxd_dalsa_gev_camera_api_error( short gev_status,
 			identifier, gev_status );
 		break;
 	}
-}
-
-static mx_status_type
-mxd_dalsa_gev_camera_show_string_register( MX_VIDEO_INPUT *vinput,
-					GEV_REGISTER *gev_register )
-{
-	char reg_char_value[MAX_GEVSTRING_LENGTH+1];
-	mx_status_type mx_status;
-
-	mx_status = mxd_dalsa_gev_camera_register_read( vinput,
-							gev_register, 0,
-							MAX_GEVSTRING_LENGTH,
-							reg_char_value );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_info( "Camera '%s': %s = '%s'",
-		vinput->record->name,
-		gev_register->featureName,
-		reg_char_value );
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-static mx_status_type
-mxd_dalsa_gev_camera_show_int_register( MX_VIDEO_INPUT *vinput,
-					GEV_REGISTER *gev_register )
-{
-	UINT32 reg_int_value;
-	mx_status_type mx_status;
-
-	mx_status = mxd_dalsa_gev_camera_register_read( vinput,
-							gev_register, 0,
-							100 * sizeof(UINT32),
-							&reg_int_value );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_info( "Camera '%s': %s = %lu",
-		vinput->record->name,
-		gev_register->featureName,
-		(unsigned long) reg_int_value );
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-#if 0
-static mx_status_type
-mxd_dalsa_gev_camera_show_float_register( MX_VIDEO_INPUT *vinput,
-					GEV_REGISTER *gev_register )
-{
-	float reg_float_value;
-	mx_status_type mx_status;
-
-	mx_status = mxd_dalsa_gev_camera_register_read( vinput,
-							gev_register, 0,
-							sizeof(float),
-							&reg_float_value );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_info( "Camera '%s': %s = %f",
-		vinput->record->name,
-		gev_register->featureName,
-		reg_float_value );
-
-	return MX_SUCCESSFUL_RESULT;
 }
 #endif
 
@@ -382,9 +313,6 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 
 	GEV_CAMERA_INFO *camera_object, *selected_camera_object;
 	GEV_CAMERA_HANDLE camera_handle;
-	DALSA_GENICAM_GIGE_REGS *regs = NULL;
-
-	UINT32 gev_width, gev_height, gev_x_offset, gev_y_offset, gev_format;
 
 	char *serial_number_string;
 	long i, gev_status;
@@ -496,159 +424,43 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 
 	camera_handle = dalsa_gev_camera->camera_handle;
 
-	/* Figure out the image format, bytes per pixel, etc. from the
-	 * value set for 'image_format_name' in the MX database file.
+	/* Find the name of the XML file to be used for this camera.
+	 * If this file has never been downloaded before, then this
+	 * may trigger a download from the Internet (?)
 	 */
 
-	mx_status = mx_image_get_image_format_type_from_name(
-				vinput->image_format_name,
-				&(vinput->image_format) );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	switch( vinput->image_format ) {
-	case MXT_IMAGE_FORMAT_GREY8:
-		vinput->bytes_per_pixel = 1;
-		vinput->bits_per_pixel  = 8;
-		break;
-	case MXT_IMAGE_FORMAT_GREY16:
-		vinput->bytes_per_pixel = 2;
-		vinput->bits_per_pixel  = 16;
-		break;
-	case MXT_IMAGE_FORMAT_GREY32:
-		vinput->bytes_per_pixel = 4;
-		vinput->bits_per_pixel  = 32;
-		break;
-	default:
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"Image format %ld is not supported for camera '%s'.",
-			vinput->image_format, record->name );
-		break;
-	}
-
-#if MXD_DALSA_GEV_CAMERA_DEBUG_OPEN
-	MX_DEBUG(-2,("%s: camera '%s' image_format = %ld, "
-	    "bytes_per_pixel = %.2f, bits_per_pixel = %ld", 
-		fname, record->name, vinput->image_format,
-		vinput->bytes_per_pixel, vinput->bits_per_pixel));
-#endif
-
-	/* Read the existing register values for the camera. */
-
-	gev_status = GevGetCameraRegisters( camera_handle,
-				&(dalsa_gev_camera->camera_registers),
-				sizeof(dalsa_gev_camera->camera_registers) );
+	gev_status = Gev_RetrieveXMLFile( camera_handle,
+					dalsa_gev_camera->xml_filename,
+					sizeof(dalsa_gev_camera->xml_filename),
+					FALSE );
 
 	switch( gev_status ) {
 	case GEVLIB_OK:
 		break;
 	default:
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
-		"A call to GevGetCameraRegisters() for camera '%s' "
+		"A call to Gev_RetrieveXMLFile() for camera '%s' "
 		"returned an unexpected status code of %ld.",
 			record->name, gev_status );
 		break;
 	}
 
-	regs = &(dalsa_gev_camera->camera_registers);
+	MX_DEBUG(-2,("%s: xml_filename = '%s'",
+		fname, dalsa_gev_camera->xml_filename));
 
-	if ( camera_flags & MXF_DALSA_GEV_CAMERA_SHOW_INFO ) {
-		(void) mxd_dalsa_gev_camera_show_string_register(
-				vinput, &(regs->DeviceVendorName) );
+	gev_status = GevInitGenICamXMLFeatures_FromFile(
+				camera_handle,
+				dalsa_gev_camera->xml_filename );
 
-		(void) mxd_dalsa_gev_camera_show_string_register(
-				vinput, &(regs->DeviceModelName) );
-
-		(void) mxd_dalsa_gev_camera_show_string_register(
-				vinput, &(regs->DeviceVersion) );
-	} 
-
-#if 0
-	UINT32 uint32_value;
-
-	/* Set the images offsets to 0, since we are not using ROIs. */
-
-	uint32_value = 0;
-
-	mx_status = mxd_dalsa_gev_camera_register_write(
-				vinput, &(regs->OffsetX), 0,
-				sizeof(UINT32), &uint32_value );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	uint32_value = 0;
-
-	mx_status = mxd_dalsa_gev_camera_register_write(
-				vinput, &(regs->OffsetY), 0,
-				sizeof(UINT32), &uint32_value );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Set the image dimensions. */
-
-	uint32_value = vinput->framesize[0];
-
-	mx_status = mxd_dalsa_gev_camera_register_write(
-				vinput, &(regs->Width), 0,
-				sizeof(UINT32), &uint32_value );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	uint32_value = vinput->framesize[1];
-
-	mx_status = mxd_dalsa_gev_camera_register_write(
-				vinput, &(regs->Height), 0,
-				sizeof(UINT32), &uint32_value );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-#endif
-
-	gev_status = GevSetImageParameters( camera_handle,
-				vinput->framesize[0], 0,
-				vinput->framesize[1], 0,
-				fmtMono14 );
-
-	MX_DEBUG(-2,("GevSetImageParameters() = %d", (int) gev_status));
-
-#if MXD_DALSA_GEV_CAMERA_DEBUG_OPEN
-	/* Display some useful register values. */
-
-	{
-
-		MX_DEBUG(-2,("%s: Camera '%s' registers:",
-			fname, record->name ));
-
-		(void) mxd_dalsa_gev_camera_show_int_register(
-				vinput, &(regs->Width) );
-
-		(void) mxd_dalsa_gev_camera_show_int_register(
-				vinput, &(regs->Height) );
-
-	}
-#endif
-	gev_status = GevGetImageParameters( camera_handle,
-	  &gev_width, &gev_height, &gev_x_offset, &gev_y_offset, &gev_format );
-
-#if MXD_DALSA_GEV_CAMERA_DEBUG_OPEN
-	MX_DEBUG(-2,("%s: GevGetImageParameters() = %ld", fname, gev_status));
-	MX_DEBUG(-2,("%s:    gev_width = %lu, gev_height = %lu",
-	    fname, (unsigned long) gev_width, (unsigned long) gev_height));
-	MX_DEBUG(-2,("%s:    gev_x_offset = %lu, gev_y_offset = %lu",
-	    fname, (unsigned long) gev_x_offset, (unsigned long) gev_y_offset));
-	MX_DEBUG(-2,("%s:    gev_format = %#lx",
-	    fname, (unsigned long) gev_format));
-#endif
-
-	/* */
-
-	if ( (vinput->framesize[0] < 0) || (vinput->framesize[1]) ) {
-
-		/* We need to read the framesize from the camera. */
+	switch( gev_status ) {
+	case GEVLIB_OK:
+		break;
+	default:
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"A call to GevInitGenICamXMLFeatures_FromFile() for "
+		"camera '%s' returned an unexpected status code of %ld.",
+			record->name, gev_status );
+		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -995,108 +807,6 @@ mxd_dalsa_gev_camera_set_parameter( MX_VIDEO_INPUT *vinput )
 	}
 
 	return MX_SUCCESSFUL_RESULT;
-}
-
-/*---------------------------------------------------------------------------*/
-
-MX_EXPORT mx_status_type
-mxd_dalsa_gev_camera_register_read( MX_VIDEO_INPUT *vinput,
-					GEV_REGISTER *gev_register,
-					int selector,
-					size_t data_size,
-					void *data_ptr )
-{
-	static const char fname[] = "mxd_dalsa_gev_camera_register_read()";
-
-	MX_DALSA_GEV_CAMERA *dalsa_gev_camera = NULL;
-	short gev_status;
-	mx_status_type mx_status;
-
-	if ( vinput == (MX_VIDEO_INPUT *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_VIDEO_INPUT pointer passed was NULL." );
-	}
-	if ( gev_register == (GEV_REGISTER *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The GEV_REGISTER pointer passed was NULL." );
-	}
-
-	mx_status = mxd_dalsa_gev_camera_get_pointers( vinput,
-					&dalsa_gev_camera, NULL, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MXD_DALSA_GEV_CAMERA_DEBUG_REGISTER_READ
-	MX_DEBUG(-2,("%s: GevRegisterRead( '%s', '%s' )",
-		fname, vinput->record->name, gev_register->featureName ));
-#endif
-
-	gev_status = GevRegisterRead( dalsa_gev_camera->camera_handle,
-					gev_register, selector,
-					data_size, data_ptr );
-
-	if ( gev_status == GEVLIB_OK ) {
-		mx_status = MX_SUCCESSFUL_RESULT;
-	} else {
-		mx_status = mxd_dalsa_gev_camera_api_error( gev_status, fname,
-			"GevRegisterRead( '%s', '%s' )",
-			vinput->record->name,
-			gev_register->featureName );
-	}
-
-	return mx_status;
-}
-
-/*---------------------------------------------------------------------------*/
-
-MX_EXPORT mx_status_type
-mxd_dalsa_gev_camera_register_write( MX_VIDEO_INPUT *vinput,
-					GEV_REGISTER *gev_register,
-					int selector,
-					size_t data_size,
-					void *data_ptr )
-{
-	static const char fname[] = "mxd_dalsa_gev_camera_register_write()";
-
-	MX_DALSA_GEV_CAMERA *dalsa_gev_camera = NULL;
-	short gev_status;
-	mx_status_type mx_status;
-
-	if ( vinput == (MX_VIDEO_INPUT *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_VIDEO_INPUT pointer passed was NULL." );
-	}
-	if ( gev_register == (GEV_REGISTER *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The GEV_REGISTER pointer passed was NULL." );
-	}
-
-	mx_status = mxd_dalsa_gev_camera_get_pointers( vinput,
-					&dalsa_gev_camera, NULL, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MXD_DALSA_GEV_CAMERA_DEBUG_REGISTER_WRITE
-	MX_DEBUG(-2,("%s: GevRegisterwrite( '%s', '%s' )",
-		fname, vinput->record->name, gev_register->featureName ));
-#endif
-
-	gev_status = GevRegisterWrite( dalsa_gev_camera->camera_handle,
-					gev_register, selector,
-					data_size, data_ptr );
-
-	if ( gev_status == GEVLIB_OK ) {
-		mx_status = MX_SUCCESSFUL_RESULT;
-	} else {
-		mx_status = mxd_dalsa_gev_camera_api_error( gev_status, fname,
-			"GevRegisterWrite( '%s', '%s' )",
-			vinput->record->name,
-			gev_register->featureName );
-	}
-
-	return mx_status;
 }
 
 /*---------------------------------------------------------------------------*/
