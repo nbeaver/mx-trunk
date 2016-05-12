@@ -323,7 +323,6 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 	int xml_data_bytes, actual_data_bytes, is_compressed;
 	char *serial_number_string;
 	long i, gev_status;
-	unsigned long camera_flags;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -342,8 +341,6 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	camera_flags = dalsa_gev_camera->camera_flags;
 
 	/* Walk through the list of GEV_CAMERA_INFO objects to find the
 	 * camera that has the specified serial number.
