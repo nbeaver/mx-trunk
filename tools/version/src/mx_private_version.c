@@ -67,7 +67,13 @@ main( int argc, char **argv )
 
 	fprintf( stdout, "#define MX_BRANCH_LABEL " );
 	fputc( '"', stdout );
+
+#if defined(OS_VMS)
+	fprintf( stdout, "unknown" );
+#else
 	fprintf( stdout, MX_BRANCH_LABEL );
+#endif
+
 	fputc( '"', stdout );
 
 	fprintf( stdout, "\n\n" );

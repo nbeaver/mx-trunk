@@ -23,6 +23,10 @@
 extern "C" {
 #endif
 
+#if defined(OS_VMS)
+#include "mx_namefix.h"
+#endif
+
 #define MXU_NETWORK_INTERFACE_NAME_LENGTH	80
 
 typedef struct {

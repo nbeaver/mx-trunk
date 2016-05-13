@@ -74,6 +74,13 @@
  * mx_waveform_output_get_trigger_mode().
  */
 
+#define mx_network_get_interface_from_host_address \
+					mx_network_get_interface_fha
+
+/* mx_network_get_interface_from_host_address() collides with
+ * mx_network_get_interface_from_hostname().
+ */
+
 #define mx_waveform_output_get_trigger_repeat     mx_wvo_get_trigger_repeat
 
 /* mx_waveform_output_set_trigger_repeat() collides with

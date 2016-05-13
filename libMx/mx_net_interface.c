@@ -518,7 +518,7 @@ mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 }
 
 #elif defined( OS_MACOSX ) || defined( OS_LINUX ) || defined( OS_ANDROID ) \
-	|| defined( OS_SOLARIS ) || defined( OS_VXWORKS )
+	|| defined( OS_SOLARIS ) || defined( OS_VXWORKS ) || defined( OS_VMS )
 
 /* Note: This is a fallback for Linux if using Glibc versions before 2.3
  *       or Solaris before Solaris 11.
