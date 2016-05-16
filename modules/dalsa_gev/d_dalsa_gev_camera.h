@@ -18,7 +18,8 @@
 #ifndef __D_DALSA_GEV_CAMERA_H__
 #define __D_DALSA_GEV_CAMERA_H__
 
-#define MXF_DALSA_GEV_CAMERA_SHOW_INFO	0x1
+#define MXF_DALSA_GEV_CAMERA_SHOW_INFO		0x1
+#define MXF_DALSA_GEV_CAMERA_WRITE_XML_FILE	0x2
 
 typedef struct {
 	MX_RECORD *record;
@@ -33,6 +34,7 @@ typedef struct {
 	long camera_index;
 	GEV_CAMERA_INFO *camera_object;
 	GEV_CAMERA_HANDLE camera_handle;
+	void *feature_node_map;		/* Actually GenApi::CNodeMapRef* */
 
 	MX_THREAD *next_image_thread;
 
@@ -65,7 +67,7 @@ typedef struct {
   \
   {-1, -1, "xml_filename", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DALSA_GEV_CAMERA, xml_filename), \
-	{sizeof(char)}, NULL, 0 }
+	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION }
 	
 MX_API mx_status_type mxd_dalsa_gev_camera_create_record_structures(
 							MX_RECORD *record );

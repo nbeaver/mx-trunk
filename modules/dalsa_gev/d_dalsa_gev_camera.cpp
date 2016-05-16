@@ -319,10 +319,13 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 	GEV_CAMERA_INFO *camera_object, *selected_camera_object;
 	GEV_CAMERA_HANDLE camera_handle;
 
-	char *xml_data;
-	int xml_data_bytes, actual_data_bytes, is_compressed;
+	BOOL read_xml_file  = FALSE;
+	BOOL write_xml_file = FALSE;
+
+	unsigned long flags;
 	char *serial_number_string;
-	long i, gev_status;
+	long i;
+	short gev_status;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -407,16 +410,18 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 			dalsa_gev_camera->serial_number,
 			record->name );
 		break;
+#if 0
 	case GEV_STATUS_ACCESS_DENIED:
 		return mx_error( MXE_PERMISSION_DENIED, fname,
 		"GEV_STATUS_ACCESS_DENIED: For some reason we were "
 		"not permitted access to the Gev API for camera record '%s'.",
 			record->name );
 		break;
+#endif
 	default:
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
 		"A call to GevOpenCamera() for camera record '%s' "
-		"failed with status code %ld.",
+		"failed with status code %hd.",
 			record->name, gev_status );
 		break;
 	}
@@ -432,118 +437,75 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 
 	/*---------------------------------------------------------------*/
 
-	/* Prepare to receive the XML data for this camera by finding out
-	 * how many bytes there are in the XML data.
-	 */
+	flags = dalsa_gev_camera->camera_flags;
 
-	gev_status = Gev_RetrieveXMLData( camera_handle, 0, NULL,
-					&xml_data_bytes, &is_compressed );
-
-	switch( gev_status ) {
-	case GEVLIB_OK:
-		break;
-	default:
-		return mx_error( MXE_UNKNOWN_ERROR, fname,
-		"Finding out how many bytes are in the XML data for the "
-		"camera associated with record '%s' failed "
-		"with status code %ld.",
-			record->name, gev_status );
-		break;
-	}
-
-	/* Round up the xml_data_bytes to the next multiple of 4. */
-
-	xml_data_bytes = ( xml_data_bytes + 3 ) & (~3);
-
-#if MXD_DALSA_GEV_CAMERA_DEBUG_OPEN
-	MX_DEBUG(-2,("%s: xml_data_bytes = %d", fname, xml_data_bytes ));
-#endif
-
-	/* Allocate an array to hold the XML data in. */
-
-	xml_data = (char *) malloc( xml_data_bytes + 1 );
-
-	if ( xml_data == (char *) NULL ) {
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Ran out of memory trying to allocate a %d byte array "
-		"to hold the XML configuration data from camera '%s'.",
-			xml_data_bytes + 1, record->name );
-	}
-
-	/* Transfer the XML data from the camera. */
-
-	gev_status = Gev_RetrieveXMLData( camera_handle,
-					xml_data_bytes, xml_data,
-					&actual_data_bytes,
-					&is_compressed );
-
-	switch( gev_status ) {
-	case GEVLIB_OK:
-		break;
-	default:
-		mx_free( xml_data );
-
-		return mx_error( MXE_UNKNOWN_ERROR, fname,
-		"Transferring the XML configuration data for camera '%s' "
-		"failed with status code %ld.",
-			record->name, gev_status );
-		break;
-	}
-
-#if MXD_DALSA_GEV_CAMERA_DEBUG_OPEN
-	MX_DEBUG(-2,("%s: actual_data_bytes = %d, is_compressed = %d",
-		fname, actual_data_bytes, is_compressed ));
-#endif
-
-	/* Make sure the XML data is null terminated. */
-
-	xml_data[ actual_data_bytes ] = 0;
-
-	/* Manually instantiate a GenICam feature node map for the camera. */
-
-	GenApi::CNodeMapRef feature_node_map;
-
-#if MXD_DALSA_GEV_CAMERA_DEBUG_OPEN
-	MX_DEBUG(-2,("%s: feature_node_map = %p", fname, &feature_node_map));
-#endif
-	mx_breakpoint();
-
-	/* Load the XML data into the feature node map. */
-
-	MX_DEBUG(-2,("%s: MARKER 0", fname));
-
-	if ( is_compressed ) {
-		MX_DEBUG(-2,("%s: MARKER 1.1", fname));
-
-		feature_node_map._LoadXMLFromZIPData( (void *) xml_data,
-							actual_data_bytes );
+	if ( flags & MXF_DALSA_GEV_CAMERA_WRITE_XML_FILE ) {
+		write_xml_file = TRUE;
 	} else {
-		MX_DEBUG(-2,("%s: MARKER 1.2", fname));
-
-		GenICam::gcstring xml_string( xml_data );
-
-		feature_node_map._LoadXMLFromString( xml_string );
+		write_xml_file = FALSE;
 	}
 
-	MX_DEBUG(-2,("%s: MARKER 2", fname));
+	if ( strlen( dalsa_gev_camera->xml_filename ) == 0 ) {
+		read_xml_file  = FALSE;
+	} else {
+		read_xml_file  = TRUE;
+	}
 
-	/* Connect the camera to the feature node map. */
+#if MXD_DALSA_GEV_CAMERA_DEBUG_OPEN
+	MX_DEBUG(-2,("%s: read_xml_file = %d, write_xml_file = %d",
+		fname, (int) read_xml_file, (int) write_xml_file ));
+#endif
 
-	gev_status = GevConnectFeatures( camera_handle,
-					(void *) &feature_node_map );
+	/*---------------------------------------------------------------*/
 
-	MX_DEBUG(-2,("%s: MARKER 3", fname));
+	/* Read in the XML data that describes the behavior of the camera. */
+
+	if ( read_xml_file ) {
+
+#if MXD_DALSA_GEV_CAMERA_DEBUG_OPEN
+		MX_DEBUG(-2,("%s: reading features from file '%s'.",
+			fname, dalsa_gev_camera->xml_filename ));
+#endif
+
+		gev_status = GevInitGenICamXMLFeatures_FromFile(
+					camera_handle,
+					dalsa_gev_camera->xml_filename );
+	} else {
+
+#if MXD_DALSA_GEV_CAMERA_DEBUG_OPEN
+		MX_DEBUG(-2,("%s: reading features from camera.", fname));
+#endif
+
+		gev_status = GevInitGenICamXMLFeatures( camera_handle, TRUE );
+	}
 
 	switch( gev_status ) {
 	case GEVLIB_OK:
 		break;
+	case GEVLIB_ERROR_GENERIC:
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"GEVLIB_ERROR_GENERIC - Attempting to read in the XML "
+		"features for camera '%s' failed.  gev_status = %hd",
+			record->name, gev_status );
+		break;
 	default:
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
-		"Connecting camera '%s' to the feature map with "
-		"GevConnectFeatures() failed with status code %ld.",
+		"The attempt to read in the XML features "
+		"for camera '%s' failed.  gev_status = %hd",
 			record->name, gev_status );
 		break;
 	}
+
+	/* Read in the feature node map. */
+
+	GenApi::CNodeMapRef *feature_node_map = 
+    static_cast<GenApi::CNodeMapRef*>( GevGetFeatureNodeMap( camera_handle ) );
+
+	dalsa_gev_camera->feature_node_map = feature_node_map;
+
+	/* FIXME: And then access the features via
+	 *        "feature_node_map->GetNode(...)"
+	 */
 
 	/*---------------------------------------------------------------*/
 
