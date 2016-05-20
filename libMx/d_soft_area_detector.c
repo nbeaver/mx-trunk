@@ -260,12 +260,14 @@ mxd_soft_area_detector_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Initialize the dark current and flat field image formats to have
-	 * the same format as the main image.
+	/* Dark current and flat field images need to be expressed as
+	 * floating point values to get the best possible resolution.
+	 * Therefore, we initialize the dark current and flat field
+	 * image formats to be 32-bit floats.
 	 */
 
-	ad->dark_current_image_format = ad->image_format;
-	ad->flat_field_image_format   = ad->image_format;
+	ad->dark_current_image_format = MXT_IMAGE_FORMAT_FLOAT;
+	ad->flat_field_image_format   = MXT_IMAGE_FORMAT_FLOAT;
 
 	/* Set the video input's initial trigger mode (internal/external/etc) */
 
