@@ -485,7 +485,7 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 	case GEVLIB_ERROR_GENERIC:
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
 		"GEVLIB_ERROR_GENERIC - Attempting to read in the XML "
-		"features for camera '%s' failed.  gev_status = %hd",
+		"data for camera '%s' failed.  gev_status = %hd",
 			record->name, gev_status );
 		break;
 	default:
