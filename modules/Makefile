@@ -21,8 +21,6 @@ all: build
 
 #MODULES += avt_vimba		# linux,
 
-MODULES += dalsa_gev		# linux,
-
 #MODULES += edt			# linux,
 
 #MODULES += epix_xclib		# linux, win32
@@ -55,8 +53,12 @@ MODULES += dalsa_gev		# linux,
 
 #MODULES += xia_handel		# linux, win32
 
+MODULES += xineos_gige		# linux, win32
+
 #-------------------------------------------------------------------
 # Linux-only modules.
+
+#MODULES += dalsa_gev
 
 #MODULES += linux_portio
 
@@ -87,16 +89,14 @@ MODULES += dalsa_gev		# linux,
 
 #MODULES += rdi_mbc
 
-#MODULES += sapera_lt 
+MODULES += sapera_lt 
 
 #MODULES += u500
-
-#MODULES += xineos_gige
 
 #-------------------------------------------------------------------
 # EPICS modules.
 
-MODULES += epics
+#MODULES += epics
 
 #MODULES += epics_aps 
 
