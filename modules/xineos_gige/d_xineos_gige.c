@@ -1234,6 +1234,8 @@ mxd_xineos_gige_set_parameter( MX_AREA_DETECTOR *ad )
 
 	param_array = ad_seq->parameter_array;
 
+	MXW_UNUSED(param_array);
+
 	video_input_record = xineos_gige->video_input_record;
 
 	switch( ad->parameter_type ) {
