@@ -1354,6 +1354,13 @@ mx_read_database_private( MX_RECORD *record_list_head,
 
 			mx_breakpoint();
 
+		} else if ( strncmp( buffer, "!error", 6 ) == 0 ) {
+
+			(void) mx_error(MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
+			"'%s' -- Exiting...", buffer );
+
+			exit(1);
+
 		} else if ( buffer[0] == '!' ) {
 			mx_warning( "Ignoring unrecognized directive: '%s'",
 				buffer );
