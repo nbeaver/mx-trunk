@@ -86,11 +86,9 @@ MX_RECORD_FIELD_DEFAULTS *mxd_dalsa_gev_camera_rfield_def_ptr
 
 /*---*/
 
-#if 0
 static mx_status_type mxd_dalsa_gev_camera_process_function( void *record_ptr,
 							void *record_field_ptr,
 							int operation );
-#endif
 
 static mx_status_type
 mxd_dalsa_gev_camera_get_pointers( MX_VIDEO_INPUT *vinput,
@@ -234,6 +232,416 @@ mxd_dalsa_gev_camera_api_error( short gev_status,
 }
 #endif
 
+/*---*/
+
+#if 0
+
+static mx_status_type
+mxd_dalsa_gev_camera_get_feature_value( MX_DALSA_GEV_CAMERA *dalsa_gev_camera,
+					const char *feature_name,
+					char *value_buffer,
+					size_t value_buffer_length )
+{
+	static const char fname[] = "mxd_dalsa_gev_camera_get_feature_value()";
+
+	SapAcqDevice *acq_device;
+	SapFeature *feature;
+	SapFeature::Type feature_type;
+	SapFeature::AccessMode access_mode;
+
+	INT32 int32_value;
+	INT64 int64_value;
+	float float_value;
+	double double_value;
+	BOOL bool_value;
+	int enum_value;
+	char enum_string[250];
+	char string_value[520];
+	int exponent;
+	char si_units[33];
+
+	BOOL sapera_status;
+
+	if ( dalsa_gev_camera == (MX_DALSA_GEV_CAMERA *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_DALSA_GEV_CAMERA pointer passed was NULL." );
+	}
+	if ( feature_name == (const char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The feature_name pointer passed was NULL." );
+	}
+	if ( value_buffer == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The value_buffer pointer passed was NULL." );
+	}
+	if ( value_buffer_length <= 0 ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"There is no space available in the returned value buffer "
+		"for Sapera LT feature '%s'.", feature_name );
+	}
+
+	acq_device = dalsa_gev_camera->acq_device;
+
+	feature = dalsa_gev_camera->feature;
+
+	sapera_status = acq_device->GetFeatureInfo( feature_name, feature );
+
+	if ( sapera_status == 0 ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"A call to GetFeatureInfo( '%s', ... ) for camera '%s' failed.",
+			feature_name, dalsa_gev_camera->record->name );
+	}
+
+	sapera_status = feature->GetType( &feature_type );
+
+	if ( sapera_status == 0 ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"A call to GetType( '%s', ... ) for camera '%s' failed.",
+			feature_name, dalsa_gev_camera->record->name );
+	}
+
+	switch( feature_type ) {
+	case SapFeature::TypeUndefined:
+		strlcpy( value_buffer, "<undefined>", value_buffer_length );
+		break;
+	case SapFeature::TypeInt32:
+		sapera_status = acq_device->GetFeatureValue( feature_name,
+								&int32_value );
+
+		snprintf( value_buffer, value_buffer_length,
+			"%" PRId32, int32_value );
+		break;
+	case SapFeature::TypeInt64:
+		sapera_status = acq_device->GetFeatureValue( feature_name,
+								&int64_value );
+
+		snprintf( value_buffer, value_buffer_length,
+			"%" PRId64, int64_value );
+		break;
+	case SapFeature::TypeFloat:
+		sapera_status = acq_device->GetFeatureValue( feature_name,
+								&float_value );
+
+		snprintf( value_buffer, value_buffer_length,
+			"%f", float_value );
+		break;
+	case SapFeature::TypeDouble:
+		sapera_status = acq_device->GetFeatureValue( feature_name,
+								&double_value );
+
+		snprintf( value_buffer, value_buffer_length,
+			"%f", double_value );
+		break;
+	case SapFeature::TypeBool:
+		sapera_status = acq_device->GetFeatureValue( feature_name,
+								&bool_value );
+
+		snprintf( value_buffer, value_buffer_length,
+			"%d", (int) bool_value );
+		break;
+	case SapFeature::TypeEnum:
+		sapera_status = acq_device->GetFeatureValue( feature_name,
+								&enum_value );
+
+		sapera_status = feature->GetEnumStringFromValue(
+				enum_value, value_buffer, value_buffer_length );
+		break;
+	case SapFeature::TypeString:
+		sapera_status = acq_device->GetFeatureValue( feature_name,
+							value_buffer,
+							value_buffer_length );
+		break;
+	case SapFeature::TypeBuffer:
+		strlcpy( value_buffer, "<buffer>", value_buffer_length );
+		break;
+	case SapFeature::TypeLut:
+		strlcpy( value_buffer, "<lut>", value_buffer_length );
+		break;
+	case SapFeature::TypeArray:
+		strlcpy( value_buffer, "<array>", value_buffer_length );
+		break;
+	default:
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"Unrecognized feature type %ld for feature '%s' of record '%s'",
+			feature_type, feature_name,
+			dalsa_gev_camera->record->name );
+		break;
+	}
+
+	if ( sapera_status == 0 ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+	    "A call to GetFeatureValue( '%s', ... ) for camera '%s' failed.",
+			feature_name, dalsa_gev_camera->record->name );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
+static mx_status_type
+mxd_dalsa_gev_camera_show_feature( SapAcqDevice *acq_device,
+					SapFeature *feature, int i )
+{
+	SapFeature::Type feature_type;
+	SapFeature::AccessMode access_mode;
+	char feature_name[65];
+
+	INT32  int32_value;
+	INT64  int64_value;
+	float  float_value;
+	double double_value;
+	BOOL   bool_value;
+	int    enum_value;
+	char   enum_string[520];
+	char   string_value[520];
+	int    exponent;
+	char   si_units[33];
+
+	BOOL sapera_status;
+
+	sapera_status = acq_device->GetFeatureInfo( i, feature );
+
+	sapera_status = feature->GetName( feature_name, sizeof(feature_name) );
+
+	fprintf( stderr, "  Feature %d, name = '%s', ", i, feature_name );
+
+	sapera_status = feature->GetAccessMode( &access_mode );
+
+	if ( access_mode == SapFeature::AccessWO ) {
+		fprintf( stderr, "WRITE_ONLY\n" );
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	fprintf( stderr, "  type = " );
+
+	sapera_status = feature->GetType( &feature_type );
+
+	switch( feature_type ) {
+	case SapFeature::TypeUndefined:
+		fprintf( stderr, "'undefined'" );
+		break;
+
+	case SapFeature::TypeInt32:
+		sapera_status = acq_device->GetFeatureValue(
+						feature_name, &int32_value );
+
+		fprintf( stderr, "'int32', value = %d", (int) int32_value );
+		break;
+	case SapFeature::TypeInt64:
+		sapera_status = acq_device->GetFeatureValue(
+						feature_name, &int64_value );
+
+		fprintf( stderr, "'int64', value = %" PRId64, int64_value );
+		break;
+	case SapFeature::TypeFloat:
+		sapera_status = acq_device->GetFeatureValue(
+						feature_name, &float_value );
+
+		fprintf( stderr, "'float', value = %f", float_value );
+		break;
+	case SapFeature::TypeDouble:
+		sapera_status = acq_device->GetFeatureValue(
+						feature_name, &double_value );
+
+		fprintf( stderr, "'double', value = %f", double_value);
+		break;
+	case SapFeature::TypeBool:
+		sapera_status = acq_device->GetFeatureValue(
+						feature_name, &bool_value );
+
+		fprintf( stderr, "'bool', value = %d", (int) bool_value );
+		break;
+	case SapFeature::TypeEnum:
+		sapera_status = acq_device->GetFeatureValue(
+						feature_name, &enum_value );
+
+		sapera_status = feature->GetEnumStringFromValue(
+						enum_value, enum_string,
+						sizeof(enum_string) );
+
+		fprintf( stderr, "'enum', value = (%d) '%s'",
+					enum_value, enum_string );
+		break;
+	case SapFeature::TypeString:
+		sapera_status = acq_device->GetFeatureValue(
+						feature_name,
+						string_value,
+						sizeof(string_value) );
+
+		fprintf( stderr, "'string', value = '%s'", string_value );
+		break;
+	case SapFeature::TypeBuffer:
+		fprintf( stderr, "'buffer'" );
+		break;
+
+	case SapFeature::TypeLut:
+		fprintf( stderr, "'lut'" );
+		break;
+
+	case SapFeature::TypeArray:
+		fprintf( stderr, "'array'" );
+		break;
+
+	default:
+		fprintf( stderr, "'unrecognized feature type %d'",
+						feature_type );
+		break;
+	}
+
+	sapera_status = feature->GetSiToNativeExp10( &exponent );
+
+	if ( exponent != 0 ) {
+		fprintf( stderr, " * 10e%d", -exponent );
+	}
+
+	sapera_status = feature->GetSiUnit( si_units, sizeof(si_units) );
+
+	if ( strlen( si_units ) > 0 ) {
+		fprintf( stderr, " '%s'", si_units );
+	}
+
+	fprintf( stderr, "\n" );
+
+	/* If this feature is an Enum, then display the allowed
+	 * values of the Enum.
+	 */
+
+	if( feature_type == SapFeature::TypeEnum ) {
+		int j, enum_count;
+
+		sapera_status = feature->GetEnumCount( &enum_count );
+
+		fprintf( stderr, "    %d enum values = ", enum_count );
+
+		for ( j = 0; j < enum_count; j++ ) {
+			BOOL enum_enabled;
+
+			sapera_status =
+				    feature->IsEnumEnabled( j, &enum_enabled );
+
+			sapera_status =
+				    feature->GetEnumValue( j, &enum_value );
+
+			sapera_status =
+				    feature->GetEnumString( j, enum_string,
+							sizeof(enum_string) );
+
+			if ( j > 0 ) {
+				fprintf( stderr, ", " );
+			}
+			fprintf( stderr, "%s (%d)", enum_string, enum_value );
+
+			if ( enum_enabled == FALSE ) {
+				fprintf( stderr, " (DISABLED)" );
+			}
+		}
+		fprintf( stderr, "\n" );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#endif
+
+/*---*/
+
+static const char *type_names[] = {
+	"Value", "Base", "Integer", "Boolean", "Command", "Float", "String",
+	"Register", "Category", "Enumeration", "EnumEntry", "Port"
+};
+
+static int num_type_names = 
+		sizeof( type_names ) / sizeof(type_names[0]);
+
+static void
+dump_feature_hierarchy( const GenApi::CNodePtr &feature_ptr, int indent )
+{
+	int i = 0;
+
+	for ( i = 0; i < indent; i++ ) {
+		fprintf( stderr, "\t" );
+	}
+
+	GenApi::CCategoryPtr category_ptr( feature_ptr );
+
+	if ( category_ptr.IsValid() ) {
+		const char *category_name = static_cast<const char *>
+					( feature_ptr->GetName() );
+
+		fprintf( stderr, "Category: %s\n", category_name );
+
+		GenApi::FeatureList_t features;
+		category_ptr->GetFeatures( features );
+
+		for( GenApi::FeatureList_t::iterator
+				it_feature = features.begin() ;
+		    it_feature != features.end();
+		    it_feature++ )
+		{
+			dump_feature_hierarchy( (*it_feature), indent + 2 );
+		}
+	} else {
+		const char *feature_name = static_cast<const char *>
+			( feature_ptr->GetName() );
+
+		/* Get the type of the feature as a number. */
+
+		int index = static_cast<int>
+			( feature_ptr->GetPrincipalInterfaceType() );
+
+		if ( ( index >= 0 ) && ( index < num_type_names ) )
+		{
+			fprintf( stderr, "%s: %s\n",
+				feature_name, type_names[index] );
+		} else {
+			fprintf( stderr, "%s: Unknown\n", feature_name );
+		}
+	}
+}
+
+/*---*/
+
+static mx_status_type
+mxd_dalsa_gev_camera_show_features( MX_DALSA_GEV_CAMERA *dalsa_gev_camera )
+{
+	static const char fname[] = "mxd_dalsa_gev_camera_show_features()";
+
+	MX_RECORD *record;
+#if 0
+	mx_status_type mx_status;
+#endif
+
+	if ( dalsa_gev_camera == (MX_DALSA_GEV_CAMERA *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_DALSA_GEV_CAMERA pointer passed was NULL." );
+	}
+
+	record = dalsa_gev_camera->record;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RECORD pointer for MX_DALSA_GEV_CAMERA = %p is NULL.",
+			dalsa_gev_camera );
+	}
+
+	fprintf( stderr, "%s invoked for camera '%s'.\n", fname, record->name );
+
+	/* Get the "Root" node for this camera. */
+
+	GenApi::CNodeMapRef *feature_node_map =
+static_cast<GenApi::CNodeMapRef*>( GevGetFeatureNodeMap(
+					dalsa_gev_camera->camera_handle ) );
+
+	GenApi::CNodePtr root_ptr = feature_node_map->_GetNode("Root");
+
+	dump_feature_hierarchy( root_ptr, 1 );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
 /*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
@@ -317,7 +725,6 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 	MX_DALSA_GEV *dalsa_gev = NULL;
 
 	GEV_CAMERA_INFO *camera_object, *selected_camera_object;
-	GEV_CAMERA_HANDLE camera_handle;
 
 	BOOL read_xml_file  = FALSE;
 	BOOL write_xml_file = FALSE;
@@ -433,11 +840,9 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 		(unsigned long) dalsa_gev_camera->camera_handle));
 #endif
 
-	camera_handle = dalsa_gev_camera->camera_handle;
-
 	/*---------------------------------------------------------------*/
 
-	flags = dalsa_gev_camera->camera_flags;
+	flags = dalsa_gev_camera->dalsa_gev_camera_flags;
 
 	if ( flags & MXF_DALSA_GEV_CAMERA_WRITE_XML_FILE ) {
 		write_xml_file = TRUE;
@@ -468,15 +873,19 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 #endif
 
 		gev_status = GevInitGenICamXMLFeatures_FromFile(
-					camera_handle,
+					dalsa_gev_camera->camera_handle,
 					dalsa_gev_camera->xml_filename );
+
+		{ MX_DEBUG(-2,("%s: EARLY_EXIT.",fname)); exit(1); }
+
 	} else {
 
 #if MXD_DALSA_GEV_CAMERA_DEBUG_OPEN
 		MX_DEBUG(-2,("%s: reading features from camera.", fname));
 #endif
 
-		gev_status = GevInitGenICamXMLFeatures( camera_handle, TRUE );
+		gev_status = GevInitGenICamXMLFeatures(
+					dalsa_gev_camera->camera_handle, TRUE );
 	}
 
 	switch( gev_status ) {
@@ -486,6 +895,14 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
 		"GEVLIB_ERROR_GENERIC - Attempting to read in the XML "
 		"data for camera '%s' failed.  gev_status = %hd",
+			record->name, gev_status );
+		break;
+	case GEVLIB_ERROR_INVALID_HANDLE:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"GEVLIB_ERROR_INVALID_HANDLE - An invalid handle %#lx was "
+		"specified when attempting to read in the XML data for "
+		"camera '%s'.  gev_status = %hd",
+			(unsigned long) dalsa_gev_camera->camera_handle,
 			record->name, gev_status );
 		break;
 	default:
@@ -498,10 +915,11 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 
 	/* Read in the feature node map. */
 
+#if 0
 	GenApi::CNodeMapRef *feature_node_map = 
-    static_cast<GenApi::CNodeMapRef*>( GevGetFeatureNodeMap( camera_handle ) );
-
-	dalsa_gev_camera->feature_node_map = feature_node_map;
+    static_cast<GenApi::CNodeMapRef*>( GevGetFeatureNodeMap(
+					dalsa_gev_camera->camera_handle ) );
+#endif
 
 	/* FIXME: And then access the features via
 	 *        "feature_node_map->GetNode(...)"
@@ -871,12 +1289,14 @@ mxd_dalsa_gev_camera_special_processing_setup( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
-#if 0
+		case MXLV_DALSA_GEV_CAMERA_FEATURE_NAME:
+		case MXLV_DALSA_GEV_CAMERA_FEATURE_VALUE:
+		case MXLV_DALSA_GEV_CAMERA_GAIN:
 		case MXLV_DALSA_GEV_CAMERA_SHOW_FEATURES:
+		case MXLV_DALSA_GEV_CAMERA_TEMPERATURE:
 			record_field->process_function
 				= mxd_dalsa_gev_camera_process_function;
 			break;
-#endif
 		default:
 			break;
 		}
@@ -884,8 +1304,6 @@ mxd_dalsa_gev_camera_special_processing_setup( MX_RECORD *record )
 
 	return MX_SUCCESSFUL_RESULT;
 }
-
-#if 0
 
 static mx_status_type
 mxd_dalsa_gev_camera_process_function( void *record_ptr,
@@ -943,6 +1361,9 @@ mxd_dalsa_gev_camera_process_function( void *record_ptr,
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
 		case MXLV_DALSA_GEV_CAMERA_SHOW_FEATURES:
+			mx_status =
+			 mxd_dalsa_gev_camera_show_features( dalsa_gev_camera );
+
 			break;
 		default:
 			break;
@@ -958,4 +1379,3 @@ mxd_dalsa_gev_camera_process_function( void *record_ptr,
 	return mx_status;
 }
 
-#endif

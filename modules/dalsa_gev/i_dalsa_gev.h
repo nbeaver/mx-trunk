@@ -58,6 +58,11 @@ MX_API mx_status_type mxi_dalsa_gev_finish_record_initialization(
 MX_API mx_status_type mxi_dalsa_gev_open( MX_RECORD *record );
 MX_API mx_status_type mxi_dalsa_gev_close( MX_RECORD *record );
 
+MX_API mx_status_type mxi_dalsa_gev_error_message( long gev_status,
+					unsigned long *mx_status_code,
+					char *error_message,
+					size_t max_error_message_length );
+
 extern MX_RECORD_FUNCTION_LIST mxi_dalsa_gev_record_function_list;
 
 extern long mxi_dalsa_gev_num_record_fields;

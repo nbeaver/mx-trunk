@@ -265,3 +265,14 @@ mxi_dalsa_gev_close( MX_RECORD *record )
 }
 
 /*------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxi_dalsa_gev_error_message( long gev_status,
+			unsigned long *mx_status_code,
+			char *error_message,
+			size_t max_error_message_length )
+{
+	/* FIXME: Fill this in. */
+
+	return MX_SUCCESSFUL_RESULT;
+}
