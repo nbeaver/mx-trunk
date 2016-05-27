@@ -710,6 +710,13 @@ mx_wait_for_debugger( void )
 "  3.  Type 'set loop=0' in the mx_wait_for_debugger() stack frame\n"
 "      to break out of the loop.\n"
 "  4.  You may now run any debugger commands you want.\n", pid );
+
+	fprintf( stderr,
+"\n"
+"For GDB, make sure that you have made debugging symbols available to the\n"
+"debugger for dynamically loaded libraries or modules such as .mxo files\n"
+"using the GDB command 'set solib-search-path'.  You can verify that the\n"
+"library or module has been found using the GDB 'sharedlibrary' command.\n\n" );
 		
 #if defined(OS_SOLARIS) || defined(OS_HPUX) || defined(OS_IRIX)
 	fprintf( stderr,

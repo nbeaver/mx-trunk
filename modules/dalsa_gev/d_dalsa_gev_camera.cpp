@@ -542,8 +542,6 @@ mxd_dalsa_gev_camera_show_feature( SapAcqDevice *acq_device,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#endif
-
 /*---*/
 
 static const char *type_names[] = {
@@ -639,6 +637,8 @@ static_cast<GenApi::CNodeMapRef*>( GevGetFeatureNodeMap(
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+#endif
 
 /*---*/
 
@@ -863,6 +863,8 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 
 	/*---------------------------------------------------------------*/
 
+	/* mx_breakpoint(); */
+
 	/* Read in the XML data that describes the behavior of the camera. */
 
 	if ( read_xml_file ) {
@@ -875,9 +877,6 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 		gev_status = GevInitGenICamXMLFeatures_FromFile(
 					dalsa_gev_camera->camera_handle,
 					dalsa_gev_camera->xml_filename );
-
-		{ MX_DEBUG(-2,("%s: EARLY_EXIT.",fname)); exit(1); }
-
 	} else {
 
 #if MXD_DALSA_GEV_CAMERA_DEBUG_OPEN
@@ -915,10 +914,12 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 
 	/* Read in the feature node map. */
 
-#if 0
+#if 1
 	GenApi::CNodeMapRef *feature_node_map = 
     static_cast<GenApi::CNodeMapRef*>( GevGetFeatureNodeMap(
 					dalsa_gev_camera->camera_handle ) );
+
+	MXW_UNUSED( feature_node_map );
 #endif
 
 	/* FIXME: And then access the features via
@@ -1361,9 +1362,10 @@ mxd_dalsa_gev_camera_process_function( void *record_ptr,
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
 		case MXLV_DALSA_GEV_CAMERA_SHOW_FEATURES:
+#if 0
 			mx_status =
 			 mxd_dalsa_gev_camera_show_features( dalsa_gev_camera );
-
+#endif
 			break;
 		default:
 			break;
