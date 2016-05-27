@@ -23,6 +23,9 @@
 #define MXD_DALSA_GEV_CAMERA_DEBUG_REGISTER_READ	FALSE
 #define MXD_DALSA_GEV_CAMERA_DEBUG_REGISTER_WRITE	TRUE
 
+#define MXD_DALSA_GEV_CAMERA_ENABLE_GET_FEATURE_NODE_MAP_IN_OPEN	TRUE
+#define MXD_DALSA_GEV_CAMERA_ENABLE_DUMP_FEATURE_HIERARCHY		TRUE
+
 #include <stdio.h>
 
 #include "mx_util.h"
@@ -542,8 +545,13 @@ mxd_dalsa_gev_camera_show_feature( SapAcqDevice *acq_device,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+#endif
+
 /*---*/
 
+#if MXD_DALSA_GEV_CAMERA_ENABLE_DUMP_FEATURE_HIERARCHY
+
+#if 0
 static const char *type_names[] = {
 	"Value", "Base", "Integer", "Boolean", "Command", "Float", "String",
 	"Register", "Category", "Enumeration", "EnumEntry", "Port"
@@ -551,17 +559,23 @@ static const char *type_names[] = {
 
 static int num_type_names = 
 		sizeof( type_names ) / sizeof(type_names[0]);
+#endif
 
 static void
 dump_feature_hierarchy( const GenApi::CNodePtr &feature_ptr, int indent )
 {
+	MX_DEBUG(-2,("dump_feature_hierarchy() invoked: indent = %d", indent));
+
 	int i = 0;
 
 	for ( i = 0; i < indent; i++ ) {
 		fprintf( stderr, "\t" );
 	}
 
+	MX_DEBUG(-2,("MARKER 1"));
+
 	GenApi::CCategoryPtr category_ptr( feature_ptr );
+#if 0
 
 	if ( category_ptr.IsValid() ) {
 		const char *category_name = static_cast<const char *>
@@ -596,7 +610,12 @@ dump_feature_hierarchy( const GenApi::CNodePtr &feature_ptr, int indent )
 			fprintf( stderr, "%s: Unknown\n", feature_name );
 		}
 	}
+#endif
+
+	MX_DEBUG(-2,("dump_feature_hierarchy() complete: indent = %d", indent));
 }
+
+#endif /* MXD_DALSA_GEV_CAMERA_ENABLE_DUMP_FEATURE_HIERARCHY */
 
 /*---*/
 
@@ -623,7 +642,7 @@ mxd_dalsa_gev_camera_show_features( MX_DALSA_GEV_CAMERA *dalsa_gev_camera )
 			dalsa_gev_camera );
 	}
 
-	fprintf( stderr, "%s invoked for camera '%s'.\n", fname, record->name );
+	MX_DEBUG(-2,("%s invoked for camera '%s'.", fname, record->name ));
 
 	/* Get the "Root" node for this camera. */
 
@@ -633,12 +652,14 @@ static_cast<GenApi::CNodeMapRef*>( GevGetFeatureNodeMap(
 
 	GenApi::CNodePtr root_ptr = feature_node_map->_GetNode("Root");
 
+#if MXD_DALSA_GEV_CAMERA_ENABLE_DUMP_FEATURE_HIERARCHY
 	dump_feature_hierarchy( root_ptr, 1 );
+#endif /* MXD_DALSA_GEV_CAMERA_ENABLE_DUMP_FEATURE_HIERARCHY */
+
+	MX_DEBUG(-2,("%s complete.", fname));
 
 	return MX_SUCCESSFUL_RESULT;
 }
-
-#endif
 
 /*---*/
 
@@ -863,9 +884,9 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 
 	/*---------------------------------------------------------------*/
 
-	/* mx_breakpoint(); */
-
 	/* Read in the XML data that describes the behavior of the camera. */
+
+	mx_breakpoint();
 
 	if ( read_xml_file ) {
 
@@ -914,17 +935,14 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 
 	/* Read in the feature node map. */
 
-#if 1
+#if MXD_DALSA_GEV_CAMERA_ENABLE_GET_FEATURE_NODE_MAP_IN_OPEN
+
 	GenApi::CNodeMapRef *feature_node_map = 
     static_cast<GenApi::CNodeMapRef*>( GevGetFeatureNodeMap(
 					dalsa_gev_camera->camera_handle ) );
 
 	MXW_UNUSED( feature_node_map );
-#endif
-
-	/* FIXME: And then access the features via
-	 *        "feature_node_map->GetNode(...)"
-	 */
+#endif /* MXD_DALSA_GEV_CAMERA_ENABLE_GET_FEATURE_NODE_MAP_IN_OPEN */
 
 	/*---------------------------------------------------------------*/
 
@@ -1362,10 +1380,9 @@ mxd_dalsa_gev_camera_process_function( void *record_ptr,
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
 		case MXLV_DALSA_GEV_CAMERA_SHOW_FEATURES:
-#if 0
 			mx_status =
 			 mxd_dalsa_gev_camera_show_features( dalsa_gev_camera );
-#endif
+
 			break;
 		default:
 			break;
