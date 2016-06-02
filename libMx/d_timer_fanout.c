@@ -23,7 +23,8 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2000-2002, 2004, 2006, 2008, 2010 Illinois Institute of Technology
+ * Copyright 2000-2002, 2004, 2006, 2008, 2010, 2013
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -481,7 +482,7 @@ mxd_timer_fanout_get_last_measurement_time( MX_TIMER *timer )
 	static const char fname[] =
 			"mxd_timer_fanout_get_last_measurement_time()";
 
-#if 1
+#if 0
 	return mx_error( MXE_UNSUPPORTED, fname,
 	"Do not attempt to get the last measurement time from "
 	"timer fanout record '%s' .  There is no way to guarantee "
