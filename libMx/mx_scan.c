@@ -3277,8 +3277,6 @@ mx_scan_default_get_parameter_handler( MX_SCAN *scan )
 {
 	static const char fname[] = "mx_scan_default_get_parameter_handler()";
 
-	mx_status_type mx_status;
-
 	switch( scan->parameter_type ) {
 	case MXLV_SCN_ESTIMATED_SCAN_DURATION:
 		scan->estimated_scan_duration = -1.0;
@@ -3294,7 +3292,7 @@ mx_scan_default_get_parameter_handler( MX_SCAN *scan )
 		break;
 	}
 
-	return mx_status;
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /* --------------- */

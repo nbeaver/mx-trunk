@@ -35,21 +35,193 @@
 
 #include <iphlpapi.h>
 
-/*----*/
+/*======================= Windows XP or before =======================*/
 
-/* FIXME: The web page
- *   http://stackoverflow.com/questions/24702408/get-subnet-mask-from-getadapteraddresses
- *   appears to have useful information for what to do prior to Vista.
- */
+/*---- Use GetIpAddrTable() which is IPV4 only ----*/
+
+static mx_status_type
+mx_network_giat_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
+				struct sockaddr *ip_address_struct )
+{
+	static const char fname[] =
+		"mx_network_giat_get_interface_from_host_address()";
+
+	MX_NETWORK_INTERFACE *ni_ptr;
+	uint32_t ipv4_address, mib_ipv4_address, mib_ipv4_subnet_mask;
+	MIB_IPADDRTABLE *addresses = NULL;
+	MIB_IPADDRROW *address_entry_table = NULL;
+	MIB_IPADDRROW *address_entry = NULL;
+	long n, num_addresses;
+	ULONG address_table_size;
+	DWORD os_status;
+	int i, max_attempts;
+	mx_bool_type address_found;
+	mx_status_type mx_status;
+
+	typedef ULONG (*GetIpAddrTable_type)(MIB_IPADDRTABLE *, ULONG *, BOOL);
+
+	static GetIpAddrTable_type
+		ptr_GetIpAddrTable = NULL;
+
+	if ( ni == (MX_NETWORK_INTERFACE **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_NETWORK_INTERFACE pointer passed was NULL." );
+	}
+	if ( ip_address_struct == (struct sockaddr *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The ip_address_struct pointer passed was NULL." );
+	}
+	if ( ip_address_struct->sa_family != AF_INET ) {
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"The ip_address_struct argument passed was not for IPV4." );
+	}
+
+	/*----*/
+
+	ipv4_address =
+		((struct sockaddr_in *) ip_address_struct)->sin_addr.s_addr;
+
+#if MXD_NETWORK_GET_INTERFACE_DEBUG
+	MX_DEBUG(-2,("%s: ipv4_address = %#lx", fname, ipv4_address));
+#endif
+
+	/* Try to load 'iphlpapi.dll' and get a pointer to the
+	 * GetIpAddrTable() function.
+	 */
+
+	mx_status = mx_dynamic_library_get_library_and_symbol(
+				"iphlpapi.dll", "GetIpAddrTable", NULL,
+				(void **) &ptr_GetIpAddrTable, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Get the MIB_IPADDRTABLE structure for this computer. */
+
+	address_table_size = 15000;
+
+	max_attempts = 3;
+
+	for ( i = 0; i < max_attempts; i++ ) {
+		addresses = (MIB_IPADDRTABLE *)
+				malloc( address_table_size );
+
+		if ( addresses == (MIB_IPADDRTABLE *) NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate a %lu byte "
+			"MIB_IPADDRTABLE structure.",
+				address_table_size );
+		}
+
+		os_status = (*ptr_GetIpAddrTable)( addresses,
+						&address_table_size,
+						FALSE );
+
+		if ( os_status == ERROR_INSUFFICIENT_BUFFER ) {
+			/* Throw away the buffer that we allocated above,
+			 * since we have been told that the buffer needs
+			 * to be longer.
+			 */
+
+			mx_free( addresses );
+			addresses = NULL;
+		} else {
+			/* Exit the loop early. */
+
+			break;
+		}
+	}
+
+	if ( os_status != NO_ERROR ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"An attempt to get a list of network adapters failed "
+		"with error code = %d.", (int) os_status );
+	}
+
+	num_addresses = addresses->dwNumEntries;
+
+#if MXD_NETWORK_GET_INTERFACE_DEBUG
+	MX_DEBUG(-2,("%s: num_addresses = %ld", fname, num_addresses ));
+#endif
+
+	if ( num_addresses <= 0 ) {
+		return mx_error( MXE_NOT_AVAILABLE, fname,
+	    "No network adapters are available.  This should never happen.");
+	}
+
+	address_entry_table = addresses->table;
+
+	address_found = FALSE;
+
+	for ( n = 0; n < num_addresses; n++ ) {
+		address_entry = &address_entry_table[n];
+
+		mib_ipv4_address = (uint32_t) address_entry->dwAddr;
+		mib_ipv4_subnet_mask = (uint32_t) address_entry->dwMask;
+
+#if MXD_NETWORK_GET_INTERFACE_DEBUG
+		MX_DEBUG(-2,
+		("%s: mib_ipv4_address = %#lx, mib_ipv4_subnet_mask = %#lx",
+			fname, mib_ipv4_address, mib_ipv4_subnet_mask ));
+#endif
+
+		if ( (ipv4_address & mib_ipv4_subnet_mask)
+		  == (mib_ipv4_address & mib_ipv4_subnet_mask) )
+		{
+			address_found = TRUE;
+			break;
+		}
+	}
+
+	if ( address_found == FALSE ) {
+		*ni = NULL;
+
+		return mx_error( (MXE_NOT_FOUND | MXE_QUIET), fname,
+		"No network interface was found for IP %#lx.",
+			ipv4_address );
+	}
+
+#if MXD_NETWORK_GET_INTERFACE_DEBUG
+	MX_DEBUG(-2,("%s: address_found = %d", fname, address_found));
+#endif
+
+	ni_ptr = (MX_NETWORK_INTERFACE *)
+		    malloc( sizeof(MX_NETWORK_INTERFACE) );
+
+	if ( ni_ptr == (MX_NETWORK_INTERFACE *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate an "
+			"MX_NETWORK_INTERFACE structure." );
+	}
+
+	strlcpy( ni_ptr->name, "", sizeof(ni_ptr->name) );
+	strlcpy( ni_ptr->raw_name, "", sizeof(ni_ptr->name) );
+
+	ni_ptr->ipv4_address = mib_ipv4_address;
+	ni_ptr->ipv4_subnet_mask = mib_ipv4_subnet_mask;
+	ni_ptr->mtu = 0;
+	ni_ptr->net_private = NULL;
+
+	*ni = ni_ptr;
+
+	/* FIXME: For some reason, we crash with a NULL pointer exception
+	 * here unless we put _two_ return statements here.  No idea why.
+	 */
+
+	return MX_SUCCESSFUL_RESULT;
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*======================= Windows Vista or later =======================*/
+
+/*---- Use GetAdaptersAddresses() ----*/
 
 static uint32_t
 mxp_network_get_ipv4_subnet_mask_from_unicast_address(
 				IP_ADAPTER_UNICAST_ADDRESS *unicast_address )
 {
-#if 0
 	static const char fname[] =
 		"mxp_network_get_ipv4_subnet_mask_from_unicast_address()";
-#endif
 
 	int i, subnet_mask_length;
 	uint32_t ipv4_subnet_mask;
@@ -89,12 +261,12 @@ mxp_network_get_ipv4_subnet_mask_from_unicast_address(
 
 /* FIXME: This function currently supports only IPV4 addresses. */
 
-MX_EXPORT mx_status_type
-mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
+static mx_status_type
+mx_network_gaa_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 				struct sockaddr *ip_address_struct )
 {
 	static const char fname[] =
-		"mx_network_get_interface_from_host_address()";
+		"mx_network_gaa_get_interface_from_host_address()";
 
 	ULONG output_buffer_length = 0;
 	DWORD os_status;
@@ -130,6 +302,8 @@ mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 		"The ip_address_struct argument passed was not for IPV4." );
 	}
+
+	/*----*/
 
 	ipv4_address =
 		((struct sockaddr_in *) ip_address_struct)->sin_addr.s_addr;
@@ -224,7 +398,7 @@ mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 		socket_address = &(unicast_address->Address);
 
 		ipv4_subnet_mask =
-			mxp_network_get_ipv4_subnet_mask_from_unicast_address(
+		    mxp_network_get_ipv4_subnet_mask_from_unicast_address(
 				unicast_address );
 
 		if ( socket_address != NULL ) {
@@ -327,6 +501,44 @@ mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 			ipv4_address );
 	}
 }
+
+/*--------*/
+
+/* We have to do different things depending on which version of Windows
+ * that we are running on.
+ */
+
+MX_EXPORT mx_status_type
+mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
+				struct sockaddr *ip_address_struct )
+{
+	static const char fname[] =
+		"mx_network_get_interface_from_host_address()";
+
+	int os_major, os_minor, os_update;
+	mx_status_type mx_status;
+
+	mx_status = mx_get_os_version( &os_major, &os_minor, &os_update );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( os_major >= 6 ) {
+		/* Windows Vista or later uses GetAdaptersAddresses(). */
+
+		mx_status = mx_network_gaa_get_interface_from_host_address(
+					ni, ip_address_struct );
+	} else {
+		/* Older versions use GetIpAddrTable(). */
+
+		mx_status = mx_network_giat_get_interface_from_host_address(
+					ni, ip_address_struct );
+	}
+
+	return mx_status;
+}
+
+/*-------------------------------------------------------------------------*/
 
 #elif ( defined( OS_LINUX ) && ( MX_GLIBC_VERSION >= 2003000L ) ) \
 	|| ( defined( OS_LINUX ) && defined( MX_MUSL_VERSION ) ) \
