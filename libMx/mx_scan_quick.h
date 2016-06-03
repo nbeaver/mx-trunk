@@ -7,7 +7,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2006-2007, 2010, 2015 Illinois Institute of Technology
+ * Copyright 1999-2001, 2006-2007, 2010, 2015-2016
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -35,7 +36,7 @@ typedef struct {
 	mx_bool_type use_synchronous_motion_mode;
 	mx_bool_type *saved_synchronous_motion_mode;
 
-	double estimated_scan_duration;		/* in seconds */
+	double estimated_quick_scan_duration;		/* in seconds */
 } MX_QUICK_SCAN;
 
 MX_API_PRIVATE mx_status_type mx_quick_scan_initialize_driver(
@@ -91,8 +92,9 @@ MX_API_PRIVATE double mx_quick_scan_get_measurement_time(
 		offsetof(MX_QUICK_SCAN, saved_synchronous_motion_mode),\
 	{sizeof(int)}, NULL, MXFF_VARARGS}, \
   \
-  {-1, -1,  "estimated_scan_duration", MXFT_DOUBLE, NULL, 0, {0}, \
-	MXF_REC_CLASS_STRUCT, offsetof(MX_QUICK_SCAN, estimated_scan_duration),\
+  {-1, -1,  "estimated_quick_scan_duration", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_QUICK_SCAN, estimated_quick_scan_duration),\
 	{0}, NULL, MXFF_READ_ONLY }
 
 #ifdef __cplusplus

@@ -770,7 +770,7 @@ mxs_mcs_quick_scan_compute_scan_parameters(
 		mcs_quick_scan->postmove_measurement_time = 0.0;
 		mcs_quick_scan->acceleration_time = 0.0;
 		mcs_quick_scan->deceleration_time = 0.0;
-		quick_scan->estimated_scan_duration = 0.0;
+		quick_scan->estimated_quick_scan_duration = 0.0;
 
 	} else {
 		/* The premove and postmove measurement times are time
@@ -786,7 +786,7 @@ mxs_mcs_quick_scan_compute_scan_parameters(
 		mcs_quick_scan->postmove_measurement_time
 				= mcs_quick_scan->premove_measurement_time;
 
-		quick_scan->estimated_scan_duration
+		quick_scan->estimated_quick_scan_duration
 			= 2.0 * mcs_quick_scan->premove_measurement_time;
 
 		/* Add in the acceleration and deceleration intervals. */
@@ -794,13 +794,13 @@ mxs_mcs_quick_scan_compute_scan_parameters(
 		mcs_quick_scan->acceleration_time = longest_acceleration_time;
 		mcs_quick_scan->deceleration_time = longest_acceleration_time;
 
-		quick_scan->estimated_scan_duration
+		quick_scan->estimated_quick_scan_duration
 				+= (2.0 * longest_acceleration_time);
 	}
 
 	/* Add the time for the body of the scan. */
 
-	quick_scan->estimated_scan_duration
+	quick_scan->estimated_quick_scan_duration
 				+= mcs_quick_scan->scan_body_time;
 
 	MX_DEBUG( 2,("%s: mcs_quick_scan->premove_measurement_time = %g",
@@ -818,8 +818,8 @@ mxs_mcs_quick_scan_compute_scan_parameters(
 	MX_DEBUG( 2,("%s: mcs_quick_scan->postmove_measurement_time = %g",
 		fname, mcs_quick_scan->postmove_measurement_time));
 
-	MX_DEBUG( 2,("%s: quick_scan->estimated_scan_duration = %g",
-		fname, quick_scan->estimated_scan_duration));
+	MX_DEBUG( 2,("%s: quick_scan->estimated_quick_scan_duration = %g",
+		fname, quick_scan->estimated_quick_scan_duration));
 
 	MX_DEBUG( 2,("%s: quick_scan->requested_num_measurements = %ld",
 		fname, quick_scan->requested_num_measurements));
@@ -849,8 +849,8 @@ mxs_mcs_quick_scan_compute_scan_parameters(
 	 */
 
 	raw_actual_measurements = 1.0 + mx_divide_safely(
-					quick_scan->estimated_scan_duration,
-					measurement_time_per_point );
+				quick_scan->estimated_quick_scan_duration,
+				measurement_time_per_point );
 
 	actual_num_measurements = mx_round( raw_actual_measurements );
 
@@ -3175,8 +3175,8 @@ mxs_mcs_quick_scan_display_scan_parameters( MX_SCAN *scan,
 		fname, quick_scan->requested_num_measurements,
 		quick_scan->actual_num_measurements));
 
-	MX_DEBUG(-2,("%s: estimated_scan_duration = %g",
-		fname, quick_scan->estimated_scan_duration));
+	MX_DEBUG(-2,("%s: estimated_quick_scan_duration = %g",
+		fname, quick_scan->estimated_quick_scan_duration));
 
 	MX_DEBUG(-2,("%s: old_motor_speed = %g",
 		fname, quick_scan->old_motor_speed[0]));

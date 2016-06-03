@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2010, 2013 Illinois Institute of Technology
+ * Copyright 1999-2010, 2013, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -82,6 +82,8 @@ typedef struct {
 	unsigned long scan_flags;
 	double settling_time;
 	mx_status_type execute_scan_body_status;
+
+	double estimated_scan_duration;		/* in seconds */
 
 	long num_missing_records;
 	MX_RECORD **missing_record_array;
@@ -269,6 +271,10 @@ MX_API mx_status_type mx_scan_get_early_move_flag( MX_SCAN *scan,
   \
   {-1, -1, "settling_time", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_SCAN, settling_time), \
+	{0}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
+  {-1, -1, "estimated_scan_duration", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_SCAN, estimated_scan_duration), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
   {-1, -1, "measurement_type", MXFT_STRING, NULL, \
