@@ -83,6 +83,8 @@ typedef struct {
 	double settling_time;
 	mx_status_type execute_scan_body_status;
 
+	long parameter_type;
+
 	double estimated_scan_duration;		/* in seconds */
 
 	long num_missing_records;
@@ -118,6 +120,8 @@ typedef struct {
 	mx_status_type ( *execute_scan_body ) ( MX_SCAN *scan );
 	mx_status_type ( *cleanup_after_scan_end ) ( MX_SCAN *scan );
 	mx_status_type ( *acquire_data ) ( MX_MEASUREMENT *measurement );
+	mx_status_type ( *get_parameter ) ( MX_SCAN *scan );
+	mx_status_type ( *set_parameter ) ( MX_SCAN *scan );
 } MX_SCAN_FUNCTION_LIST;
 
 MX_API_PRIVATE mx_status_type mx_scan_finish_record_initialization(
@@ -229,6 +233,16 @@ MX_API mx_status_type mx_scan_handle_alternate_x_motors( MX_SCAN *scan );
 MX_API mx_status_type mx_scan_get_early_move_flag( MX_SCAN *scan,
 						mx_bool_type *early_move_flag );
 
+MX_API mx_status_type mx_scan_default_get_parameter_handler( MX_SCAN *scan );
+
+MX_API mx_status_type mx_scan_default_set_parameter_handler( MX_SCAN *scan );
+
+MX_API mx_status_type mx_scan_get_estimated_scan_duration(
+					MX_RECORD *scan_record,
+					double *estimated_scan_duration );
+
+#define MXLV_SCN_ESTIMATED_SCAN_DURATION	9900
+
 #define MX_SCAN_STANDARD_FIELDS  \
   {-1, -1, "num_scans", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_SCAN, num_scans), \
@@ -273,9 +287,10 @@ MX_API mx_status_type mx_scan_get_early_move_flag( MX_SCAN *scan,
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_SCAN, settling_time), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "estimated_scan_duration", MXFT_DOUBLE, NULL, 0, {0}, \
+  {MXLV_SCN_ESTIMATED_SCAN_DURATION, -1, \
+			"estimated_scan_duration", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_SCAN, estimated_scan_duration), \
-	{0}, NULL, MXFF_IN_DESCRIPTION}, \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {-1, -1, "measurement_type", MXFT_STRING, NULL, \
 				1, {MXU_MEASUREMENT_TYPE_NAME_LENGTH},\

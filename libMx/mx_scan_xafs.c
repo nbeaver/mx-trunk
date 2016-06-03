@@ -368,6 +368,21 @@ mxs_xafs_scan_print_scan_structure( FILE *file, MX_RECORD *record )
 		start = xafs_scan->region_boundary[j+1];
 	}
 
+#if 1
+	{
+		double estimated_scan_duration;
+
+		mx_status = mx_scan_get_estimated_scan_duration( record,
+						&estimated_scan_duration );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		fprintf( file, "\n  Estimated scan duration = %f seconds\n",
+						estimated_scan_duration );
+	}
+#endif
+
 	fprintf( file, "\n" );
 
 	return MX_SUCCESSFUL_RESULT;

@@ -616,6 +616,22 @@ mx_perform_scan( MX_RECORD *scan_record )
 
 	MX_HRT_START( timing_measurement );
 #endif
+	/*** Show the estimated scan duration ***/
+
+#if 1
+	{
+		double estimated_scan_duration;
+
+		mx_status = mx_scan_get_estimated_scan_duration( scan->record,
+						&estimated_scan_duration );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_info( "Estimated scan duration = %f",
+				estimated_scan_duration );
+	}
+#endif
 
 	/*** If this is a quick scan, save the motor speeds ***/
 
@@ -3253,4 +3269,109 @@ mx_scan_get_early_move_flag( MX_SCAN *scan, mx_bool_type *early_move_flag )
 
 	return mx_status;
 }
+
+/* --------------- */
+
+MX_EXPORT mx_status_type
+mx_scan_default_get_parameter_handler( MX_SCAN *scan )
+{
+	static const char fname[] = "mx_scan_default_get_parameter_handler()";
+
+	mx_status_type mx_status;
+
+	switch( scan->parameter_type ) {
+	case MXLV_SCN_ESTIMATED_SCAN_DURATION:
+		scan->estimated_scan_duration = -1.0;
+		break;
+
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+"Parameter type '%s' (%ld) is not supported by the MX driver for scan '%s'.",
+			mx_get_field_label_string( scan->record,
+						scan->parameter_type ),
+			scan->parameter_type,
+			scan->record->name );
+		break;
+	}
+
+	return mx_status;
+}
+
+/* --------------- */
+
+MX_EXPORT mx_status_type
+mx_scan_default_set_parameter_handler( MX_SCAN *scan )
+{
+	static const char fname[] = "mx_scan_default_set_parameter_handler()";
+
+	switch( scan->parameter_type ) {
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+"Parameter type '%s' (%ld) is not supported by the MX driver for scan '%s'.",
+			mx_get_field_label_string( scan->record,
+						scan->parameter_type ),
+			scan->parameter_type,
+			scan->record->name );
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/* --------------- */
+
+MX_EXPORT mx_status_type
+mx_scan_get_estimated_scan_duration( MX_RECORD *scan_record,
+					double *estimated_scan_duration )
+{
+	static const char fname[] = "mx_scan_get_estimated_scan_duration()";
+
+	MX_SCAN *scan;
+	MX_SCAN_FUNCTION_LIST *flist_ptr;
+	mx_status_type ( *fptr )( MX_SCAN * );
+	mx_status_type mx_status;
+
+	if ( scan_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	scan = ( MX_SCAN * ) scan_record->record_superclass_struct;
+
+	if ( scan == (MX_SCAN *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_SCAN pointer for scan record '%s' is NULL.",
+			scan_record->name );
+	}
+
+	flist_ptr = (MX_SCAN_FUNCTION_LIST *)
+			scan_record->superclass_specific_function_list;
+
+	if ( flist_ptr == (MX_SCAN_FUNCTION_LIST *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	    "The MX_SCAN_FUNCTION_LIST pointer for scan record '%s' is NULL.",
+			scan_record->name );
+	}
+
+	fptr = flist_ptr->get_parameter;
+
+	if ( fptr == NULL ) {
+		fptr = mx_scan_default_get_parameter_handler;
+	}
+
+	scan->parameter_type = MXLV_SCN_ESTIMATED_SCAN_DURATION;
+
+	mx_status = ( *fptr )( scan );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( estimated_scan_duration != (double *) NULL ) {
+		*estimated_scan_duration = scan->estimated_scan_duration;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/* --------------- */
 

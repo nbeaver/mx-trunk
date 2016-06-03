@@ -7,7 +7,8 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2010, 2013, 2015 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2010, 2013, 2015-2016
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -41,7 +42,9 @@ MX_RECORD_FUNCTION_LIST mxs_linear_scan_record_function_list = {
 MX_SCAN_FUNCTION_LIST mxs_linear_scan_scan_function_list = {
 	mxs_linear_scan_prepare_for_scan_start,
 	mxs_linear_scan_execute_scan_body,
-	mxs_linear_scan_cleanup_after_scan_end
+	mxs_linear_scan_cleanup_after_scan_end,
+	NULL,
+	mxs_linear_scan_get_parameter
 };
 
 /*-----------------------------------------------------------------------*/
@@ -518,6 +521,21 @@ mxs_linear_scan_print_scan_structure( FILE *file, MX_RECORD *record )
 			}
 		}
 	}
+#if 1
+	{
+		double estimated_scan_duration;
+
+		mx_status = mx_scan_get_estimated_scan_duration( record,
+						&estimated_scan_duration );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		fprintf( file, "\n  Estimated scan duration = %f seconds\n",
+						estimated_scan_duration );
+	}
+#endif
+
 	fprintf( file, "\n" );
 
 	return MX_SUCCESSFUL_RESULT;
@@ -665,6 +683,110 @@ MX_EXPORT mx_status_type
 mxs_linear_scan_cleanup_after_scan_end( MX_SCAN *scan )
 {
 	return mx_standard_cleanup_after_scan_end( scan );
+}
+
+MX_EXPORT mx_status_type
+mxs_linear_scan_get_parameter( MX_SCAN *scan )
+{
+	static const char fname[] = "mxs_linear_scan_get_parameter()";
+
+	MX_LINEAR_SCAN *linear_scan;
+	long i, num_variables, num_measurements;
+	double measurement_time, lowest_step_size, lowest_motor_speed;
+	MX_RECORD *lowest_motor_record;
+	mx_status_type mx_status;
+
+	if ( scan == (MX_SCAN *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SCAN pointer passed was NULL." );
+	}
+
+	linear_scan = (MX_LINEAR_SCAN *)(scan->record->record_class_struct);
+
+	if ( linear_scan == (MX_LINEAR_SCAN *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"MX_LINEAR_SCAN pointer for scan record '%s' is NULL.",
+			scan->record->name );
+	}
+
+	switch( scan->parameter_type ) {
+	case MXLV_SCN_ESTIMATED_SCAN_DURATION:
+		scan->estimated_scan_duration = 0.0;
+
+		num_variables = scan->num_independent_variables;
+
+		/* Compute the total number of measurements in the scan. */
+
+		num_measurements = 1;
+
+		for ( i = 0; i < num_variables; i++ ) {
+			num_measurements *= (linear_scan->num_measurements[i]);
+		}
+
+		/* Add in the total measurement time. */
+
+		measurement_time = mx_scan_get_measurement_time( scan );
+
+		scan->estimated_scan_duration
+			+= (measurement_time * num_measurements);
+
+		/* Begin to compute an approximate total motor move time. */
+
+		switch( scan->record->mx_type ) {
+		case MXS_LIN_INPUT:
+			/* Input scans do not have motor moves. */
+
+			return MX_SUCCESSFUL_RESULT;
+			break;
+
+		case MXS_LIN_MOTOR:
+		case MXS_LIN_SLIT:
+		case MXS_LIN_PSEUDOMOTOR:
+			lowest_step_size =
+				(linear_scan->step_size[ num_variables - 1]);
+			lowest_motor_record =
+				(scan->motor_record_array[ num_variables - 1]);
+			break;
+		case MXS_LIN_2THETA:
+			lowest_step_size = (linear_scan->step_size[0]);
+			lowest_motor_record = (scan->motor_record_array[0]);
+			break;
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+		    "Unsupported scan type %ld requested for scan record '%s'.",
+				scan->record->mx_type, scan->record->name );
+			break;
+		}
+
+#if 0
+		MX_DEBUG(-2,("%s: num_variables = %ld",
+				fname, num_variables));
+		MX_DEBUG(-2,("%s: lowest_step_size = %g",
+				fname, lowest_step_size));
+		MX_DEBUG(-2,("%s: lowest motor record = '%s'",
+				fname, lowest_motor_record->name));
+#endif
+		/* Get the motor speed. */
+
+		mx_status = mx_motor_get_speed( lowest_motor_record,
+						&lowest_motor_speed );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		scan->estimated_scan_duration +=
+		    ( num_measurements - 1 ) *
+		    mx_divide_safely( lowest_step_size, lowest_motor_speed );
+
+		/* For now we ignore acceleration/deceleration time/distance. */
+
+		break;
+	default:
+		return mx_scan_default_get_parameter_handler( scan );
+		break;
+	}
+	
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MXS_STATIC mx_status_type

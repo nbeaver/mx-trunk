@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2006, 2010-2011, 2015
+ * Copyright 1999-2001, 2004-2006, 2010-2011, 2015-2016
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -110,17 +110,17 @@ mx_quick_scan_print_scan_structure( FILE *file, MX_RECORD *record )
 	long i, j;
 	double scan_distance, step_size;
 	const char *motor_units;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record != NULL ) {
 		fprintf( file, "SCAN parameters for quick scan '%s':\n",
 					record->name );
 	}
 
-	status = mx_scan_print_scan_structure( file, record );
+	mx_status = mx_scan_print_scan_structure( file, record );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	scan = (MX_SCAN *) record->record_superclass_struct;
 
@@ -165,6 +165,21 @@ mx_quick_scan_print_scan_structure( FILE *file, MX_RECORD *record )
 			j++;
 		}
 	}
+#if 1
+	{
+		double estimated_scan_duration;
+
+		mx_status = mx_scan_get_estimated_scan_duration( record,
+						&estimated_scan_duration );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		fprintf( file, "\n  Estimated scan duration = %f seconds\n",
+						estimated_scan_duration );
+	}
+#endif
+
 	fprintf( file, "\n" );
 
 	return MX_SUCCESSFUL_RESULT;
