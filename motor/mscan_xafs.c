@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2006, 2009, 2015 Illinois Institute of Technology
+ * Copyright 1999-2001, 2006, 2009, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -348,13 +348,17 @@ motor_setup_xafs_scan_parameters(
 		default_long = old_xafs_scan->num_k_regions;
 	}
 
-	status = motor_get_long( output,
-		"Enter number of k regions -> ",
-		TRUE, default_long,
-		&num_k_regions, 0, 1000000 );
+	if ( scan_type == MXS_XAF_K_POWER_LAW ) {
+		num_k_regions = 1;
+	} else {
+		status = motor_get_long( output,
+			"Enter number of k regions -> ",
+			TRUE, default_long,
+			&num_k_regions, 0, 1000000 );
 
-	if ( status != SUCCESS ) {
-		return status;
+		if ( status != SUCCESS ) {
+			return status;
+		}
 	}
 
 	num_regions = num_energy_regions + num_k_regions;
