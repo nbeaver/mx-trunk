@@ -62,7 +62,9 @@ MX_RECORD_FUNCTION_LIST mxs_mcs_quick_scan_record_function_list = {
 MX_SCAN_FUNCTION_LIST mxs_mcs_quick_scan_scan_function_list = {
 	mxs_mcs_quick_scan_prepare_for_scan_start,
 	mxs_mcs_quick_scan_execute_scan_body,
-	mxs_mcs_quick_scan_cleanup_after_scan_end
+	mxs_mcs_quick_scan_cleanup_after_scan_end,
+	NULL,
+	mxs_mcs_quick_scan_get_parameter
 };
 
 MX_RECORD_FIELD_DEFAULTS mxs_mcs_quick_scan_defaults[] = {
@@ -4514,5 +4516,35 @@ mxs_mcs_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 	}
 
 	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxs_mcs_quick_scan_get_parameter( MX_SCAN *scan )
+{
+	static const char fname[] = "mxs_mcs_quick_scan_get_parameter()";
+
+	MX_QUICK_SCAN *quick_scan = NULL;
+	MX_MCS_QUICK_SCAN *mcs_quick_scan = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mxs_mcs_quick_scan_get_pointers( scan,
+			&quick_scan, &mcs_quick_scan, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	switch( scan->parameter_type ) {
+	case MXLV_SCN_ESTIMATED_SCAN_DURATION:
+		scan->estimated_scan_duration =
+			quick_scan->requested_num_measurements
+				* mx_scan_get_measurement_time( scan );
+		break;
+
+	default:
+		return mx_scan_default_get_parameter_handler( scan );
+		break;
+	}
+	
+	return MX_SUCCESSFUL_RESULT;
 }
 

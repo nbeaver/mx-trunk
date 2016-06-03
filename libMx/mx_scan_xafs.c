@@ -42,7 +42,9 @@ MX_RECORD_FUNCTION_LIST mxs_xafs_scan_record_function_list = {
 MX_SCAN_FUNCTION_LIST mxs_xafs_scan_scan_function_list = {
 	mxs_xafs_scan_prepare_for_scan_start,
 	mxs_xafs_scan_execute_scan_body,
-	mxs_xafs_scan_cleanup_after_scan_end
+	mxs_xafs_scan_cleanup_after_scan_end,
+	NULL,
+	mxs_xafs_scan_get_parameter
 };
 
 MX_EXPORT mx_status_type
@@ -690,5 +692,137 @@ MX_EXPORT mx_status_type
 mxs_xafs_scan_cleanup_after_scan_end( MX_SCAN *scan )
 {
 	return mx_standard_cleanup_after_scan_end( scan );
+}
+
+MX_EXPORT mx_status_type
+mxs_xafs_scan_get_parameter( MX_SCAN *scan )
+{
+	static const char fname[] = "mxs_xafs_scan_get_parameter()";
+
+	MX_XAFS_SCAN *xafs_scan = NULL;
+	double region_width, region_step_size, region_measurement_time;
+	double raw_num_intervals;
+	double k, k_start, base_time, counting_time;
+	double k_power_law_exponent;
+	long i, j, n, num_steps;
+	int num_items;
+
+	if ( scan == (MX_SCAN *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"MX_SCAN pointer passed was NULL." );
+	}
+
+	xafs_scan = (MX_XAFS_SCAN *)(scan->record->record_class_struct);
+
+	if ( xafs_scan == (MX_XAFS_SCAN *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"MX_XAFS_SCAN pointer for scan record '%s' is NULL.",
+			scan->record->name );
+	}
+
+	switch( scan->parameter_type ) {
+	case MXLV_SCN_ESTIMATED_SCAN_DURATION:
+		scan->estimated_scan_duration = 0;
+
+		/* Walk through the energy scan regions first. */
+
+		for ( i = 0; i < xafs_scan->num_energy_regions; i++ ) {
+			region_width = xafs_scan->region_boundary[i+1]
+					- xafs_scan->region_boundary[i];
+
+			region_step_size = xafs_scan->region_step_size[i];
+
+			region_measurement_time =
+				xafs_scan->region_measurement_time[i];
+
+			raw_num_intervals = mx_divide_safely( region_width,
+							region_step_size );
+
+			num_steps = 1 + mx_round( raw_num_intervals );
+
+			scan->estimated_scan_duration +=
+				num_steps * region_measurement_time;
+		}
+
+		if ( scan->record->mx_type == MXS_XAF_K_POWER_LAW ) {
+
+			j = xafs_scan->num_energy_regions;
+
+			region_width = xafs_scan->region_boundary[j+1]
+					- xafs_scan->region_boundary[j];
+
+			region_step_size = xafs_scan->region_step_size[j];
+
+			region_measurement_time =
+					xafs_scan->region_measurement_time[j];
+
+			raw_num_intervals = mx_divide_safely( region_width,
+							region_step_size );
+
+			num_steps = 1 + mx_round( raw_num_intervals );
+
+			/*---*/
+
+			base_time = xafs_scan->region_measurement_time[0];
+
+			k_start = xafs_scan->region_boundary[j];
+
+			/*---*/
+
+			num_items = sscanf( scan->measurement_arguments,
+					"%lg", &k_power_law_exponent );
+
+			if ( num_items != 1 ) {
+			    return mx_error( MXE_UNPARSEABLE_STRING, fname,
+			    "The timer name cannot be found in the "
+			    "measurement arguments field '%s' for scan '%s'.",
+				scan->measurement_arguments,
+				scan->record->name );
+			}
+
+			/*---*/
+
+			k = k_start;
+
+			for ( n = 0; n < num_steps; n++ ) {
+				counting_time = base_time *
+					pow( k/k_start, k_power_law_exponent );
+
+				scan->estimated_scan_duration += counting_time;
+
+				k += region_step_size;
+			}
+
+		} else {
+			for ( i = 0; i < xafs_scan->num_k_regions; i++ ) {
+				j = i + xafs_scan->num_energy_regions;
+
+				region_width = xafs_scan->region_boundary[j+1]
+					- xafs_scan->region_boundary[j];
+
+				region_step_size =
+					xafs_scan->region_step_size[j];
+
+				region_measurement_time =
+					xafs_scan->region_measurement_time[j];
+
+				raw_num_intervals = mx_divide_safely(
+							region_width,
+							region_step_size );
+
+				num_steps = 1 + mx_round( raw_num_intervals );
+
+				scan->estimated_scan_duration +=
+					num_steps * region_measurement_time;
+			}
+		}
+		break;
+
+	default:
+		return mx_scan_default_get_parameter_handler( scan );
+		break;
+	}
+	
+	return MX_SUCCESSFUL_RESULT;
 }
 
