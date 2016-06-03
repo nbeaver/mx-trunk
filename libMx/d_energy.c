@@ -8,7 +8,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2007, 2010, 2013 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2007, 2010, 2013, 2016
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -623,6 +624,8 @@ mxd_energy_motor_get_parameter( MX_MOTOR *motor )
 	MX_ENERGY_MOTOR *energy_motor;
 	MX_RECORD *dependent_motor_record;
 	double theta, energy, acceleration_time;
+	double d_spacing, theta_in_radians;
+	double theta_speed, theta_speed_in_radians_per_second;
 	double theta_start, theta_end;
 	double real_theta_start, real_theta_end;
 	double energy_start, energy_end;
@@ -638,7 +641,6 @@ mxd_energy_motor_get_parameter( MX_MOTOR *motor )
 		return mx_status;
 
 	switch( motor->parameter_type ) {
-	case MXLV_MTR_SPEED:
 	case MXLV_MTR_BASE_SPEED:
 	case MXLV_MTR_MAXIMUM_SPEED:
 	case MXLV_MTR_ACCELERATION_TYPE:
@@ -650,6 +652,36 @@ mxd_energy_motor_get_parameter( MX_MOTOR *motor )
 			mx_get_field_label_string( motor->record,
 						motor->parameter_type ),
 			motor->parameter_type );
+
+	case MXLV_MTR_SPEED:
+		mx_status = mx_motor_get_position(
+				dependent_motor_record, &theta );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		theta_in_radians = theta * energy_motor->angle_scale;
+
+		mx_status = mxd_energy_motor_get_d_spacing( motor,
+						energy_motor, &d_spacing );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_motor_get_speed(
+				dependent_motor_record, &theta_speed );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		theta_speed_in_radians_per_second =
+			theta_speed * energy_motor->angle_scale;
+
+		motor->raw_speed =
+			mx_divide_safely( MX_HC * cos(theta_in_radians),
+			2.0 * d_spacing * pow( sin(theta_in_radians), 2.0 ) )
+			* theta_speed_in_radians_per_second;
+		break;
 
 	case MXLV_MTR_ACCELERATION_TIME:
 		mx_status = mx_motor_get_acceleration_time(

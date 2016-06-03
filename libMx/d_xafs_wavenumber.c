@@ -56,7 +56,9 @@ MX_MOTOR_FUNCTION_LIST mxd_xafswn_motor_motor_function_list = {
 	mxd_xafswn_motor_immediate_abort,
 	mxd_xafswn_motor_positive_limit_hit,
 	mxd_xafswn_motor_negative_limit_hit,
-	mxd_xafswn_motor_raw_home_command
+	mxd_xafswn_motor_raw_home_command,
+	NULL,
+	mxd_xafswn_motor_get_parameter
 };
 
 /* XAFS electron wavenumber motor data structures. */
@@ -608,6 +610,74 @@ mxd_xafswn_motor_raw_home_command( MX_MOTOR *motor )
 
 	mx_status = mx_motor_raw_home_command( energy_motor_record,
 							direction );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_xafswn_motor_get_parameter( MX_MOTOR *motor )
+{
+	static const char fname[] = "mxd_xafswn_motor_get_parameter()";
+
+	MX_XAFS_WAVENUMBER_MOTOR *xafs_wavenumber_motor;
+	MX_RECORD *energy_motor_record;
+	double energy, edge_energy, energy_speed;
+	double denominator;
+	mx_status_type mx_status;
+
+	if ( motor == (MX_MOTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"MX_MOTOR pointer passed NULL.");
+	}
+
+	xafs_wavenumber_motor = (MX_XAFS_WAVENUMBER_MOTOR *)
+					motor->record->record_type_struct;
+
+	if ( xafs_wavenumber_motor == (MX_XAFS_WAVENUMBER_MOTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"MX_XAFS_WAVENUMBER_MOTOR pointer for record '%s' is NULL.",
+			motor->record->name );
+	}
+
+	energy_motor_record = xafs_wavenumber_motor->energy_motor_record;
+
+	if ( energy_motor_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"Energy motor record pointer for record '%s' is NULL.",
+			motor->record->name );
+	}
+
+	switch( motor->parameter_type ) {
+	case MXLV_MTR_SPEED:
+		mx_status = mx_motor_get_position( energy_motor_record,
+							&energy );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_motor_get_speed( energy_motor_record,
+							&energy_speed );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mxd_xafswn_motor_get_edge_energy(
+				xafs_wavenumber_motor, &edge_energy );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		denominator = 2.0 * sqrt( MX_HBAR_SQUARED_OVER_2M_ELECTRON
+					* fabs( energy - edge_energy ) );
+
+		motor->raw_speed = mx_divide_safely( energy_speed,
+							denominator );
+		break;
+
+	default:
+		mx_status = mx_motor_default_get_parameter_handler( motor );
+		break;
+	}
 
 	return mx_status;
 }

@@ -47,6 +47,7 @@ MX_API mx_status_type mxd_xafswn_motor_immediate_abort( MX_MOTOR *motor );
 MX_API mx_status_type mxd_xafswn_motor_positive_limit_hit( MX_MOTOR *motor );
 MX_API mx_status_type mxd_xafswn_motor_negative_limit_hit( MX_MOTOR *motor );
 MX_API mx_status_type mxd_xafswn_motor_raw_home_command( MX_MOTOR *motor );
+MX_API mx_status_type mxd_xafswn_motor_get_parameter( MX_MOTOR *motor );
 
 MX_API mx_status_type mxd_xafswn_motor_get_edge_energy(
 			MX_XAFS_WAVENUMBER_MOTOR *motor, double *edge_energy );
