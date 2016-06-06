@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004-2006, 2010, 2015
+ * Copyright 1999, 2001-2002, 2004-2006, 2010, 2015-2016
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -32,6 +32,7 @@ motor_scan_fn( int argc, char *argv[] )
 	MX_SCAN *scan;
 	char old_filename[ MXU_FILENAME_LENGTH + 1 ];
 	char buffer[ MXU_FILENAME_LENGTH + 12 ];
+	double estimated_scan_duration;
 	int status;
 	mx_status_type mx_status;
 
@@ -111,6 +112,17 @@ motor_scan_fn( int argc, char *argv[] )
 	/* Save a copy of the current datafile name. */
 
 	strlcpy( old_filename, scan->datafile.filename, MXU_FILENAME_LENGTH );
+
+	/* Show the estimated scan duration */
+
+	mx_status = mx_scan_get_estimated_scan_duration( record,
+						&estimated_scan_duration );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return FAILURE;
+
+	fprintf( output, "Estimated scan duration = %f seconds.\n\n",
+					estimated_scan_duration );
 
 	/* Invoke the scan function. */
 

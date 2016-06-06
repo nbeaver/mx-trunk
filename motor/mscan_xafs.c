@@ -110,7 +110,7 @@ motor_setup_xafs_scan_parameters(
 		fprintf(output,
 			"Select XAFS scan type:\n"
 			"    1.  Standard XAFS scan.\n"
-			"    2,  XAFS scan with K power law regions\n"
+			"    2.  XAFS scan with K power law regions\n"
 			"\n");
 
 		status = motor_get_long( output, "--> ", TRUE, 1,

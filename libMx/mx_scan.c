@@ -616,22 +616,6 @@ mx_perform_scan( MX_RECORD *scan_record )
 
 	MX_HRT_START( timing_measurement );
 #endif
-	/*** Show the estimated scan duration ***/
-
-#if 1
-	{
-		double estimated_scan_duration;
-
-		mx_status = mx_scan_get_estimated_scan_duration( scan->record,
-						&estimated_scan_duration );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		mx_info( "Estimated scan duration = %f",
-				estimated_scan_duration );
-	}
-#endif
 
 	/*** If this is a quick scan, save the motor speeds ***/
 

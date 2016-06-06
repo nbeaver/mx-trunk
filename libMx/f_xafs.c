@@ -198,6 +198,7 @@ mxdf_xafs_write_header( MX_DATAFILE *datafile,
 	MX_LINEAR_SCAN *linear_scan;
 	MX_XAFS_SCAN *xafs_scan;
 	MX_QUICK_SCAN *quick_scan;
+	MX_MEASUREMENT *measurement;
 	MX_RECORD **input_device_array;
 	MX_RECORD *input_device_record;
 	FILE *output_file;
@@ -505,9 +506,23 @@ mxdf_xafs_write_header( MX_DATAFILE *datafile,
 		break;
 	}
 
+	/*=== K power law exponent (or not) ===*/
+
+	if ( scan->record->mx_type == MXS_XAF_K_POWER_LAW ) {
+		fprintf( output_file, "K power law= " );
+
+		measurement = &(scan->measurement);
+
+		fprintf( output_file, measurement->measurement_arguments );
+		fprintf( output_file, "\n" );
+	} else {
+		fprintf( output_file, "\n" );
+	}
+	CHECK_FPRINTF_STATUS;
+
 	/*=== Scaler offsets ===*/
 
-	status = fprintf( output_file, "\n\nOffsets= " );
+	status = fprintf( output_file, "\nOffsets= " );
 	CHECK_FPRINTF_STATUS;
 
 	for ( i = 0; i < num_input_devices; i++ ) {
