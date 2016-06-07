@@ -3403,10 +3403,10 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 							raw_acceleration ) );
 
 			    motor->estimated_move_durations[i] = 2.0 * t_mid;
-
-			    motor->total_estimated_move_duration
-				+= motor->estimated_move_durations[i];
 			}
+
+			motor->total_estimated_move_duration
+				+= motor->estimated_move_durations[i];
 		}
 
 		motor->must_recalculate_estimated_move_duration = FALSE;

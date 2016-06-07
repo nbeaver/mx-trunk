@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2009-2011, 2013-2015 Illinois Institute of Technology
+ * Copyright 1999-2006, 2009-2011, 2013-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1315,6 +1315,11 @@ mxd_network_motor_get_parameter( MX_MOTOR *motor )
 		}
 		break;
 
+	case MXLV_MTR_ESTIMATED_MOVE_DURATIONS:
+	case MXLV_MTR_TOTAL_ESTIMATED_MOVE_DURATION:
+		mx_status = mx_motor_default_get_parameter_handler( motor );
+		break;
+
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type %ld is not supported by this driver.",
@@ -1491,6 +1496,10 @@ mxd_network_motor_set_parameter( MX_MOTOR *motor )
 
 		mx_status = mx_put_array( &(network_motor->window_nf),
 			MXFT_DOUBLE, 1, dimension_array, motor->window );
+		break;
+
+	case MXLV_MTR_NUM_ESTIMATED_MOVE_POSITIONS:
+		mx_status = mx_motor_default_set_parameter_handler( motor );
 		break;
 
 	default:
