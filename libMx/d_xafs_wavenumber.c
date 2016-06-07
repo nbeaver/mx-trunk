@@ -24,7 +24,7 @@
  *
  */
 
-#define MXD_XAFS_WAVENUMBER_DEBUG_ESTIMATES	TRUE
+#define MXD_XAFS_WAVENUMBER_DEBUG_ESTIMATES	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

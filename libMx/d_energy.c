@@ -16,7 +16,7 @@
  *
  */
 
-#define MXD_ENERGY_DEBUG_ESTIMATES	TRUE
+#define MXD_ENERGY_DEBUG_ESTIMATES	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

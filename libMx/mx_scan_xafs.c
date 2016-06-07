@@ -15,7 +15,9 @@
  *
  */
 
-#define DEBUG_TIMING	FALSE
+#define DEBUG_TIMING		FALSE
+
+#define DEBUG_ESTIMATED_TIMES	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -700,12 +702,19 @@ mxs_xafs_scan_get_parameter( MX_SCAN *scan )
 	static const char fname[] = "mxs_xafs_scan_get_parameter()";
 
 	MX_XAFS_SCAN *xafs_scan = NULL;
-	double region_width, region_step_size, region_measurement_time;
+	MX_RECORD *e_minus_e0_record = NULL;
+	MX_RECORD *k_record = NULL;
+	double *motor_positions = NULL;
+	double region_start, region_width, region_step_size;
+	double region_measurement_time, region_measurement_duration;
+	double total_measurement_duration;
+	double region_move_duration, total_move_duration;
 	double raw_num_intervals;
 	double k, k_start, base_time, counting_time;
 	double k_power_law_exponent;
 	long i, j, n, num_steps;
 	int num_items;
+	mx_status_type mx_status;
 
 	if ( scan == (MX_SCAN *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -722,11 +731,29 @@ mxs_xafs_scan_get_parameter( MX_SCAN *scan )
 
 	switch( scan->parameter_type ) {
 	case MXLV_SCN_ESTIMATED_SCAN_DURATION:
-		scan->estimated_scan_duration = 0;
 
-		/* Walk through the energy scan regions first. */
+		e_minus_e0_record = mx_get_record( scan->record, "e_minus_e0" );
+
+		if ( e_minus_e0_record == (MX_RECORD *) NULL ) {
+			return mx_error( MXE_NOT_FOUND, fname,
+			"Motor record 'e_minus_e0' was not found." );
+		}
+
+		k_record = mx_get_record( scan->record, "k" );
+
+		if ( k_record == (MX_RECORD *) NULL ) {
+			return mx_error( MXE_NOT_FOUND, fname,
+			"Motor record 'k' was not found." );
+		}
+
+		total_measurement_duration = 0.0;
+		total_move_duration = 0.0;
 
 		for ( i = 0; i < xafs_scan->num_energy_regions; i++ ) {
+			/* Calculate the region measurement duration. */
+
+			region_start = xafs_scan->region_boundary[i];
+
 			region_width = xafs_scan->region_boundary[i+1]
 					- xafs_scan->region_boundary[i];
 
@@ -740,11 +767,62 @@ mxs_xafs_scan_get_parameter( MX_SCAN *scan )
 
 			num_steps = 1 + mx_round( raw_num_intervals );
 
-			scan->estimated_scan_duration +=
+			region_measurement_duration =
 				num_steps * region_measurement_time;
+
+			total_measurement_duration +=
+				region_measurement_duration;
+#if DEBUG_ESTIMATED_TIMES
+			MX_DEBUG(-2,
+			("%s: energy region[%ld] measurement duration = %f",
+				fname, i, region_measurement_duration));
+#endif
+			/* Calculate the region move duration. */
+
+			motor_positions = (double *)
+				calloc( num_steps, sizeof(double) );
+
+			if ( motor_positions == (double *) NULL ) {
+				return mx_error( MXE_OUT_OF_MEMORY, fname,
+				"Ran out of memory trying to allocate a "
+				"%ld element array of energy region "
+				"motor positions for scan '%s'.",
+					num_steps, scan->record->name );
+			}
+
+			for ( n = 0; n < num_steps; n++ ) {
+				motor_positions[i] = region_start
+					+ n * region_step_size;
+			}
+
+			mx_status = mx_motor_set_estimated_move_positions(
+						e_minus_e0_record,
+						num_steps,
+						motor_positions );
+
+			mx_free( motor_positions );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			mx_status = mx_motor_get_total_estimated_move_duration(
+						e_minus_e0_record,
+						&region_move_duration );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+#if DEBUG_ESTIMATED_TIMES
+			MX_DEBUG(-2,
+			("%s: energy region[%ld] move duration = %f",
+				fname, i, region_move_duration));
+#endif
+			total_move_duration += region_move_duration;
 		}
 
 		if ( scan->record->mx_type == MXS_XAF_K_POWER_LAW ) {
+
+			region_measurement_duration = 0.0;
 
 			j = xafs_scan->num_energy_regions;
 
@@ -788,14 +866,67 @@ mxs_xafs_scan_get_parameter( MX_SCAN *scan )
 				counting_time = base_time *
 					pow( k/k_start, k_power_law_exponent );
 
-				scan->estimated_scan_duration += counting_time;
+				region_measurement_duration += counting_time;
 
 				k += region_step_size;
 			}
 
+			total_measurement_duration
+				+= region_measurement_duration;
+
+#if DEBUG_ESTIMATED_TIMES
+			MX_DEBUG(-2,
+			("%s: K power law region measurement duration = %f",
+				fname, region_measurement_duration));
+#endif
+			/* Calculate the region move duration. */
+
+			motor_positions = (double *)
+					calloc( num_steps, sizeof(double) );
+
+			if ( motor_positions == (double *) NULL ) {
+				return mx_error( MXE_OUT_OF_MEMORY,
+				fname, "Ran out of memory trying to "
+				"allocate a %ld element array of "
+				"K region motor positions "
+				"for scan '%s'.",
+					num_steps, scan->record->name );
+			}
+
+			for ( n = 0; n < num_steps; n++ ) {
+				motor_positions[i] = region_start
+					+ n * region_step_size;
+			}
+
+			mx_status = mx_motor_set_estimated_move_positions(
+					k_record, num_steps, motor_positions );
+
+			mx_free( motor_positions );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			mx_status = mx_motor_get_total_estimated_move_duration(
+					k_record, &region_move_duration );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+#if DEBUG_ESTIMATED_TIMES
+			MX_DEBUG(-2,
+			("%s: K power law region move duration = %f",
+				fname, region_move_duration));
+#endif
+			total_move_duration += region_move_duration;
+
 		} else {
 			for ( i = 0; i < xafs_scan->num_k_regions; i++ ) {
+
+				/* Calculate the region measurement duration. */
+
 				j = i + xafs_scan->num_energy_regions;
+
+				region_start = xafs_scan->region_boundary[j];
 
 				region_width = xafs_scan->region_boundary[j+1]
 					- xafs_scan->region_boundary[j];
@@ -812,10 +943,77 @@ mxs_xafs_scan_get_parameter( MX_SCAN *scan )
 
 				num_steps = 1 + mx_round( raw_num_intervals );
 
-				scan->estimated_scan_duration +=
+				region_measurement_duration =
 					num_steps * region_measurement_time;
+#if DEBUG_ESTIMATED_TIMES
+				MX_DEBUG(-2,
+				("%s: K region[%ld] measurement duration = %f",
+					fname, i, region_measurement_duration));
+#endif
+				total_measurement_duration
+					+= region_measurement_duration;
+
+				/* Calculate the region move duration. */
+
+				motor_positions = (double *)
+					calloc( num_steps, sizeof(double) );
+
+				if ( motor_positions == (double *) NULL ) {
+					return mx_error( MXE_OUT_OF_MEMORY,
+					fname, "Ran out of memory trying to "
+					"allocate a %ld element array of "
+					"K region motor positions "
+					"for scan '%s'.",
+						num_steps, scan->record->name );
+				}
+
+				for ( n = 0; n < num_steps; n++ ) {
+					motor_positions[i] = region_start
+						+ n * region_step_size;
+				}
+
+				mx_status =
+				    mx_motor_set_estimated_move_positions(
+						k_record,
+						num_steps,
+						motor_positions );
+
+				mx_free( motor_positions );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+
+				mx_status =
+				    mx_motor_get_total_estimated_move_duration(
+						k_record,
+						&region_move_duration );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+
+#if DEBUG_ESTIMATED_TIMES
+				MX_DEBUG(-2,
+				("%s: K region[%ld] move duration = %f",
+				fname, i, region_move_duration));
+#endif
+				total_move_duration += region_move_duration;
 			}
 		}
+
+#if DEBUG_ESTIMATED_TIMES
+		MX_DEBUG(-2,("%s: total_measurement_duration = %f",
+			fname, total_measurement_duration));
+		MX_DEBUG(-2,("%s: total_move_duration = %f",
+			fname, total_move_duration));
+#endif
+
+		scan->estimated_scan_duration =
+			total_measurement_duration + total_move_duration;
+
+#if DEBUG_ESTIMATED_TIMES
+		MX_DEBUG(-2,("%s: estimated_scan_duration = %f",
+			fname, scan->estimated_scan_duration));
+#endif
 		break;
 
 	default:

@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_DELTA_MOTOR_DEBUG_ESTIMATES		TRUE
+#define MXD_DELTA_MOTOR_DEBUG_ESTIMATES		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

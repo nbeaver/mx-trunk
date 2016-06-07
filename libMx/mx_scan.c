@@ -3326,6 +3326,16 @@ mx_scan_get_estimated_scan_duration( MX_RECORD *scan_record,
 			scan_record->name );
 	}
 
+#if 1
+	scan->estimated_scan_duration = 0.0;
+
+	if ( estimated_scan_duration != (double *) NULL ) {
+		*estimated_scan_duration = scan->estimated_scan_duration;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+#endif
+
 	flist_ptr = (MX_SCAN_FUNCTION_LIST *)
 			scan_record->superclass_specific_function_list;
 
