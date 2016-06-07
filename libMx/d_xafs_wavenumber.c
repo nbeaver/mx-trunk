@@ -24,6 +24,8 @@
  *
  */
 
+#define MXD_XAFS_WAVENUMBER_DEBUG_ESTIMATES	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -58,7 +60,8 @@ MX_MOTOR_FUNCTION_LIST mxd_xafswn_motor_motor_function_list = {
 	mxd_xafswn_motor_negative_limit_hit,
 	mxd_xafswn_motor_raw_home_command,
 	NULL,
-	mxd_xafswn_motor_get_parameter
+	mxd_xafswn_motor_get_parameter,
+	mxd_xafswn_motor_set_parameter
 };
 
 /* XAFS electron wavenumber motor data structures. */
@@ -674,12 +677,112 @@ mxd_xafswn_motor_get_parameter( MX_MOTOR *motor )
 							denominator );
 		break;
 
+	case MXLV_MTR_ESTIMATED_MOVE_DURATIONS:
+		mx_status = mx_motor_get_estimated_move_durations(
+					energy_motor_record,
+					motor->num_estimated_move_positions,
+					motor->estimated_move_durations );
+		break;
+
+	case MXLV_MTR_TOTAL_ESTIMATED_MOVE_DURATION:
+		mx_status = mx_motor_get_total_estimated_move_duration(
+				energy_motor_record,
+				&(motor->total_estimated_move_duration) );
+		break;
+
 	default:
 		mx_status = mx_motor_default_get_parameter_handler( motor );
 		break;
 	}
 
 	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_xafswn_motor_set_parameter( MX_MOTOR *motor )
+{
+	static const char fname[] = "mxd_xafswn_motor_set_parameter()";
+
+	MX_XAFS_WAVENUMBER_MOTOR *xafs_wavenumber_motor;
+	MX_RECORD *energy_motor_record;
+	double *energy_positions;
+	double edge_energy, xafs_wavenumber;
+	long i;
+	mx_status_type mx_status;
+
+	if ( motor == (MX_MOTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"MX_MOTOR pointer passed NULL.");
+	}
+
+	xafs_wavenumber_motor = (MX_XAFS_WAVENUMBER_MOTOR *)
+					motor->record->record_type_struct;
+
+	if ( xafs_wavenumber_motor == (MX_XAFS_WAVENUMBER_MOTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"MX_XAFS_WAVENUMBER_MOTOR pointer for record '%s' is NULL.",
+			motor->record->name );
+	}
+
+	energy_motor_record = xafs_wavenumber_motor->energy_motor_record;
+
+	if ( energy_motor_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"Energy motor record pointer for record '%s' is NULL.",
+			motor->record->name );
+	}
+
+	switch( motor->parameter_type ) {
+	case MXLV_MTR_ESTIMATED_MOVE_POSITIONS:
+
+		energy_positions = (double *)
+		  calloc( motor->num_estimated_move_positions, sizeof(double) );
+
+		if ( energy_positions == (double *) NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate a %ld element "
+			"array of energy positions for motor '%s'.",
+				motor->num_estimated_move_positions,
+				motor->record->name );
+		}
+
+		mx_status = mxd_xafswn_motor_get_edge_energy(
+					xafs_wavenumber_motor, &edge_energy );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			mx_free( energy_positions );
+			return mx_status;
+		}
+
+		for ( i = 0; i < motor->num_estimated_move_positions; i++ ) {
+
+			xafs_wavenumber = motor->estimated_move_positions[i];
+
+			energy_positions[i] = edge_energy +
+				MX_HBAR_SQUARED_OVER_2M_ELECTRON *
+				xafs_wavenumber * xafs_wavenumber;
+				
+#if MXD_XAFS_WAVENUMBER_DEBUG_ESTIMATES
+			MX_DEBUG(-2,("%s: k[%ld] = %f, energy[%ld] = %f",
+				fname, i, xafs_wavenumber,
+				i, energy_positions[i]));
+#endif
+		}
+
+		mx_status = mx_motor_set_estimated_move_positions(
+					energy_motor_record,
+					motor->num_estimated_move_positions,
+					energy_positions );
+
+		mx_free( energy_positions );
+		break;
+
+	default:
+		return mx_motor_default_set_parameter_handler( motor );
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*************************************************************************/

@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2007, 2009-2010, 2012-2014 Illinois Institute of Technology
+ * Copyright 1999-2007, 2009-2010, 2012-2014, 2016
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -94,6 +95,8 @@ motor_init( char *motor_savefile_name,
 	} else {
 		motor_autosave_on = FALSE;
 	}
+
+	motor_estimate_on = TRUE;
 
 	/* Initialize MX device drivers. */
 

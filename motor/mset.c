@@ -1026,6 +1026,20 @@ motor_set_fn( int argc, char *argv[] )
 			mx_multi_set_debug_flags( motor_record_list, 0 );
 		}
 
+	/* SET ESTIMATE function. */
+
+	} else if ( strncmp( argv[2], "estimate", length2 ) == 0 ) {
+
+		if ( strcmp( argv[3], "on" ) == 0 ) {
+			motor_estimate_on = TRUE;
+		} else
+		if ( strcmp( argv[3], "off" ) == 0 ) {
+			motor_estimate_on = FALSE;
+		} else {
+			fprintf( output, "Usage: ' set estimate on|off'\n" );
+			return FAILURE;
+		}
+
 	} else {
 		fprintf(output,"%s: Unrecognized option '%s'\n\n",
 							cname, argv[2]);

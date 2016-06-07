@@ -125,6 +125,7 @@ int motor_install_signal_handlers;
 int motor_header_prompt_on;
 int motor_overwrite_on;
 int motor_autosave_on;
+int motor_estimate_on;
 int motor_bypass_limit_switch;
 int motor_parameter_warning_flag;
 

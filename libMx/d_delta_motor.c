@@ -7,12 +7,14 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2007, 2013 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2007, 2013, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define MXD_DELTA_MOTOR_DEBUG_ESTIMATES		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -596,6 +598,20 @@ mxd_delta_motor_get_parameter( MX_MOTOR *motor )
 			motor->compute_real_position[0] + fixed_position_value;
 
 		break;
+
+	case MXLV_MTR_ESTIMATED_MOVE_DURATIONS:
+		mx_status = mx_motor_get_estimated_move_durations(
+				moving_motor_record,
+				motor->num_estimated_move_positions,
+				motor->estimated_move_durations );
+		break;
+
+	case MXLV_MTR_TOTAL_ESTIMATED_MOVE_DURATION:
+		mx_status = mx_motor_get_total_estimated_move_duration(
+				moving_motor_record,
+				&(motor->total_estimated_move_duration) );
+		break;
+
 	default:
 		mx_status = mx_motor_default_get_parameter_handler( motor );
 		break;
@@ -613,6 +629,8 @@ mxd_delta_motor_set_parameter( MX_MOTOR *motor )
 	MX_RECORD *moving_motor_record;
 	double fixed_position_value, time_for_move;
 	double real_position1, real_position2;
+	double *moving_positions;
+	long i;
 	mx_status_type mx_status;
 
 	delta_motor = NULL;
@@ -653,6 +671,46 @@ mxd_delta_motor_set_parameter( MX_MOTOR *motor )
 	case MXLV_MTR_RESTORE_SPEED:
 		mx_status = mx_motor_restore_speed( moving_motor_record );
 		break;
+	case MXLV_MTR_ESTIMATED_MOVE_POSITIONS:
+		moving_positions = (double *)
+		  calloc( motor->num_estimated_move_positions, sizeof(double) );
+
+		if ( moving_positions == (double *) NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate a %ld element "
+			"array of positions for motor '%s'.",
+				motor->num_estimated_move_positions,
+				motor->record->name );
+		}
+
+		mx_status = mxd_delta_motor_get_fixed_position_value(
+				delta_motor, &fixed_position_value );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			mx_free( moving_positions );
+			return mx_status;
+		}
+
+		for ( i = 0; i < motor->num_estimated_move_positions; i++ ) {
+			moving_positions[i] =
+				motor->estimated_move_positions[i]
+				+ fixed_position_value;
+
+#if MXD_DELTA_MOTOR_DEBUG_ESTIMATES
+			MX_DEBUG(-2,("%s: delta[%ld] = %f, moving[%ld] = %f",
+				fname, i, motor->estimated_move_positions[i],
+				i, moving_positions[i]));
+#endif
+		}
+
+		mx_status = mx_motor_set_estimated_move_positions(
+					moving_motor_record,
+					motor->num_estimated_move_positions,
+					moving_positions );
+
+		mx_free( moving_positions );
+		break;
+
 	default:
 		mx_status = mx_motor_default_set_parameter_handler( motor );
 		break;

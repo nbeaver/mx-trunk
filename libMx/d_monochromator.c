@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2008-2011, 2015 Illinois Institute of Technology
+ * Copyright 1999-2006, 2008-2011, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1479,6 +1479,19 @@ mxd_monochromator_get_parameter( MX_MOTOR *motor )
 					MXU_MTR_NUM_WINDOW_PARAMETERS );
 		break;
 
+	case MXLV_MTR_ESTIMATED_MOVE_DURATIONS:
+		mx_status = mx_motor_get_estimated_move_durations(
+				motor->real_motor_record,
+				motor->num_estimated_move_positions,
+				motor->estimated_move_durations );
+		break;
+
+	case MXLV_MTR_TOTAL_ESTIMATED_MOVE_DURATION:
+		mx_status = mx_motor_get_total_estimated_move_duration(
+				motor->real_motor_record,
+				&(motor->total_estimated_move_duration) );
+		break;
+
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 			"Parameter type '%s' (%ld) is not supported by the "
@@ -1611,6 +1624,13 @@ mxd_monochromator_set_parameter( MX_MOTOR *motor )
 					motor->real_motor_record,
 					motor->window,
 					MXU_MTR_NUM_WINDOW_PARAMETERS );
+		break;
+
+	case MXLV_MTR_ESTIMATED_MOVE_POSITIONS:
+		mx_status = mx_motor_set_estimated_move_positions(
+					motor->real_motor_record,
+					motor->num_estimated_move_positions,
+					motor->estimated_move_positions );
 		break;
 
 	default:

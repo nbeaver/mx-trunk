@@ -113,16 +113,18 @@ motor_scan_fn( int argc, char *argv[] )
 
 	strlcpy( old_filename, scan->datafile.filename, MXU_FILENAME_LENGTH );
 
-	/* Show the estimated scan duration */
+	if ( motor_estimate_on ) {
+		/* Show the estimated scan duration */
 
-	mx_status = mx_scan_get_estimated_scan_duration( record,
+		mx_status = mx_scan_get_estimated_scan_duration( record,
 						&estimated_scan_duration );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return FAILURE;
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
 
-	fprintf( output, "Estimated scan duration = %f seconds.\n\n",
-					estimated_scan_duration );
+		fprintf( output, "Estimated scan duration = %f seconds.\n\n",
+						estimated_scan_duration );
+	}
 
 	/* Invoke the scan function. */
 

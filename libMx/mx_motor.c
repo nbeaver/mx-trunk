@@ -3820,6 +3820,19 @@ mx_motor_default_set_parameter_handler( MX_MOTOR *motor )
 #endif
 		break;
 
+	/*-------------------*/
+
+	case MXLV_MTR_ESTIMATED_MOVE_POSITIONS:
+
+		motor->must_recalculate_estimated_move_duration = TRUE;
+
+#if MX_MOTOR_DEBUG_ESTIMATED_MOVE_DURATION
+		MX_DEBUG(-2,
+		("%s: must_recalculate_estimated_move_duration = %d",
+		fname, (int) motor->must_recalculate_estimated_move_duration));
+#endif
+		break;
+
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 "Parameter type '%s' (%ld) is not supported by the MX driver for motor '%s'.",
@@ -5870,6 +5883,144 @@ mx_motor_set_use_window( MX_RECORD *motor_record,
 	mx_status = ( *set_parameter) ( motor );
 
 	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_motor_set_estimated_move_positions( MX_RECORD *motor_record,
+					long num_positions,
+					double *position_array )
+{
+	static const char fname[] = "mx_motor_set_estimated_move_positions()";
+
+	MX_MOTOR *motor;
+	MX_MOTOR_FUNCTION_LIST *function_list;
+	long i;
+	mx_status_type ( *set_parameter ) ( MX_MOTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_motor_get_pointers( motor_record, &motor,
+					&function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	motor->parameter_type = MXLV_MTR_NUM_ESTIMATED_MOVE_POSITIONS;
+
+	motor->num_estimated_move_positions = num_positions;
+
+	set_parameter = function_list->set_parameter;
+
+	if ( set_parameter == NULL ) {
+		set_parameter = mx_motor_default_set_parameter_handler;
+	}
+
+	mx_status = (*set_parameter) ( motor );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( motor->estimated_move_positions == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"Writing to the 'num_estimated_move_positions' field "
+		"did _NOT_ create the motor->estimated_move_positions "
+		"array for motor '%s'.", motor_record->name );
+	}
+
+	for ( i = 0; i < num_positions; i++ ) {
+
+		motor->estimated_move_positions[i] =
+		    mx_divide_safely( position_array[i] - motor->offset,
+						motor->scale );
+	}
+
+	motor->parameter_type = MXLV_MTR_ESTIMATED_MOVE_POSITIONS;
+
+	mx_status = (*set_parameter) ( motor );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_motor_get_estimated_move_durations( MX_RECORD *motor_record,
+					long num_positions,
+					double *duration_array )
+{
+	static const char fname[] = "mx_motor_get_estimated_move_durations()";
+
+	MX_MOTOR *motor;
+	MX_MOTOR_FUNCTION_LIST *function_list;
+	mx_status_type ( *get_parameter ) ( MX_MOTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_motor_get_pointers( motor_record, &motor,
+					&function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( num_positions > motor->num_estimated_move_positions ) {
+		num_positions = motor->num_estimated_move_positions;
+	}
+
+	motor->parameter_type = MXLV_MTR_ESTIMATED_MOVE_DURATIONS;
+
+	get_parameter = function_list->get_parameter;
+
+	if ( get_parameter == NULL ) {
+		get_parameter = mx_motor_default_get_parameter_handler;
+	}
+
+	mx_status = (*get_parameter) ( motor );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( duration_array != (double *) NULL ) {
+		memcpy( duration_array,
+			motor->estimated_move_durations,
+			num_positions * sizeof(double) );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_motor_get_total_estimated_move_duration( MX_RECORD *motor_record,
+					double *total_estimated_duration )
+{
+	static const char fname[] =
+		"mx_motor_get_total_estimated_move_duration()";
+
+	MX_MOTOR *motor;
+	MX_MOTOR_FUNCTION_LIST *function_list;
+	mx_status_type ( *get_parameter ) ( MX_MOTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_motor_get_pointers( motor_record, &motor,
+					&function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	motor->parameter_type = MXLV_MTR_TOTAL_ESTIMATED_MOVE_DURATION;
+
+	get_parameter = function_list->get_parameter;
+
+	if ( get_parameter == NULL ) {
+		get_parameter = mx_motor_default_get_parameter_handler;
+	}
+
+	mx_status = (*get_parameter) ( motor );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( total_estimated_duration != (double *) NULL ) {
+		*total_estimated_duration =
+			motor->total_estimated_move_duration;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /* === Move by steps functions. (MXC_MTR_STEPPER) === */

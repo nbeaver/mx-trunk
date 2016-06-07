@@ -514,6 +514,13 @@ motor_show_fn( int argc, char *argv[] )
 		}
 		return SUCCESS;
 
+	} else if ( strncmp( "estimate", argv[2], length ) == 0 ) {
+		if ( motor_estimate_on ) {
+		    fprintf( output, "   scan duration estimates are on.\n");
+		} else {
+		    fprintf( output, "   scan duration estimates are off.\n");
+		}
+
 	} else {
 		fprintf(output,"show: Unrecognized option '%s'\n\n", argv[2]);
 		return FAILURE;

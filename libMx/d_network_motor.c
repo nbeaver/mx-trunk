@@ -1499,6 +1499,7 @@ mxd_network_motor_set_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_NUM_ESTIMATED_MOVE_POSITIONS:
+	case MXLV_MTR_ESTIMATED_MOVE_POSITIONS:
 		mx_status = mx_motor_default_set_parameter_handler( motor );
 		break;
 

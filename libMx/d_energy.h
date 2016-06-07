@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2013 Illinois Institute of Technology
+ * Copyright 1999-2004, 2013, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -32,6 +32,8 @@
  */
 
 typedef struct {
+	MX_RECORD *record;
+
 	MX_RECORD *dependent_motor_record;
 	MX_RECORD *d_spacing_record;
 	double angle_scale;

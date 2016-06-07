@@ -19,6 +19,8 @@
 
 #define DEBUG_TIMING		FALSE
 
+#define DEBUG_SCAN_DURATION	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -692,8 +694,11 @@ mxs_linear_scan_get_parameter( MX_SCAN *scan )
 
 	MX_LINEAR_SCAN *linear_scan;
 	long i, num_variables, num_measurements;
-	double measurement_time, lowest_step_size, lowest_motor_speed;
+	double measurement_time, lowest_start_position, lowest_step_size;
+	double total_estimated_motor_duration;
+	long lowest_num_measurements;
 	MX_RECORD *lowest_motor_record;
+	double *lowest_motor_positions;
 	mx_status_type mx_status;
 
 	if ( scan == (MX_SCAN *) NULL ) {
@@ -730,7 +735,12 @@ mxs_linear_scan_get_parameter( MX_SCAN *scan )
 		scan->estimated_scan_duration
 			+= (measurement_time * num_measurements);
 
-		/* Begin to compute an approximate total motor move time. */
+#if DEBUG_SCAN_DURATION
+		MX_DEBUG(-2,("%s: total measurement time = %f",
+			fname, scan->estimated_scan_duration));
+#endif
+
+		/* Get an estimate of the total motor move time. */
 
 		switch( scan->record->mx_type ) {
 		case MXS_LIN_INPUT:
@@ -742,14 +752,21 @@ mxs_linear_scan_get_parameter( MX_SCAN *scan )
 		case MXS_LIN_MOTOR:
 		case MXS_LIN_SLIT:
 		case MXS_LIN_PSEUDOMOTOR:
-			lowest_step_size =
-				(linear_scan->step_size[ num_variables - 1]);
 			lowest_motor_record =
-				(scan->motor_record_array[ num_variables - 1]);
+				scan->motor_record_array[num_variables - 1];
+			lowest_start_position =
+				linear_scan->start_position[num_variables - 1];
+			lowest_step_size =
+				linear_scan->step_size[num_variables - 1];
+			lowest_num_measurements =
+			    linear_scan->num_measurements[num_variables - 1];
 			break;
 		case MXS_LIN_2THETA:
-			lowest_step_size = (linear_scan->step_size[0]);
-			lowest_motor_record = (scan->motor_record_array[0]);
+			lowest_motor_record = scan->motor_record_array[0];
+			lowest_start_position = linear_scan->start_position[0];
+			lowest_step_size = linear_scan->step_size[0];
+			lowest_num_measurements =
+					linear_scan->num_measurements[0];
 			break;
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
@@ -758,28 +775,67 @@ mxs_linear_scan_get_parameter( MX_SCAN *scan )
 			break;
 		}
 
-#if 0
+#if DEBUG_SCAN_DURATION
 		MX_DEBUG(-2,("%s: num_variables = %ld",
 				fname, num_variables));
+		MX_DEBUG(-2,("%s: lowest_start_position - %g",
+				fname, lowest_start_position));
 		MX_DEBUG(-2,("%s: lowest_step_size = %g",
 				fname, lowest_step_size));
 		MX_DEBUG(-2,("%s: lowest motor record = '%s'",
 				fname, lowest_motor_record->name));
+		MX_DEBUG(-2,("%s: lowest_num_measurements = %ld",
+				fname, lowest_num_measurements));
 #endif
-		/* Get the motor speed. */
 
-		mx_status = mx_motor_get_speed( lowest_motor_record,
-						&lowest_motor_speed );
+		lowest_motor_positions = (double *)
+			calloc( lowest_num_measurements, sizeof(double) );
+
+		if ( lowest_motor_positions == (double *) NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate a %ld element "
+			"array of doubles to compute the estimated move time "
+			"for a sequence of moves by motor '%s'.",
+				lowest_num_measurements,
+				lowest_motor_record->name );
+		}
+
+		for ( i = 0; i < lowest_num_measurements; i++ ) {
+			lowest_motor_positions[i] = lowest_start_position
+				+ i * lowest_step_size;
+		}
+
+		mx_status = mx_motor_set_estimated_move_positions(
+						lowest_motor_record,
+						lowest_num_measurements,
+						lowest_motor_positions );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			mx_free( lowest_motor_positions );
+			return mx_status;
+		}
+
+		mx_status = mx_motor_get_total_estimated_move_duration(
+					lowest_motor_record,
+					&total_estimated_motor_duration );
+
+		mx_free( lowest_motor_positions );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+#if DEBUG_SCAN_DURATION
+		MX_DEBUG(-2,("%s: total_estimated_motor_duration = %f",
+			fname, total_estimated_motor_duration));
+#endif
 
-		scan->estimated_scan_duration +=
-		    ( num_measurements - 1 ) *
-		    mx_divide_safely( lowest_step_size, lowest_motor_speed );
+		/* Add in the total motor move time. */
 
-		/* For now we ignore acceleration/deceleration time/distance. */
+		scan->estimated_scan_duration += total_estimated_motor_duration;
 
+#if DEBUG_SCAN_DURATION
+		MX_DEBUG(-2,("%s: estimated_scan_duration = %f",
+			fname, scan->estimated_scan_duration));
+#endif
 		break;
 	default:
 		return mx_scan_default_get_parameter_handler( scan );

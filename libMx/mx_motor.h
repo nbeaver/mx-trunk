@@ -433,8 +433,9 @@ typedef struct {
 #define MXLV_MTR_USE_WINDOW				1051
 #define MXLV_MTR_WINDOW					1052
 #define MXLV_MTR_NUM_ESTIMATED_MOVE_POSITIONS		1053
-#define MXLV_MTR_ESTIMATED_MOVE_DURATIONS		1054
-#define MXLV_MTR_TOTAL_ESTIMATED_MOVE_DURATION		1055
+#define MXLV_MTR_ESTIMATED_MOVE_POSITIONS		1054
+#define MXLV_MTR_ESTIMATED_MOVE_DURATIONS		1055
+#define MXLV_MTR_TOTAL_ESTIMATED_MOVE_DURATION		1056
 
 #define MXLV_MTR_VALUE_CHANGE_THRESHOLD			3001
 
@@ -860,8 +861,8 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, num_estimated_move_positions),\
 	{0}, NULL, 0}, \
   \
-  {-1, -1, "estimated_move_positions", MXFT_DOUBLE, \
-						NULL, 1, {MXU_VARARGS_LENGTH}, \
+  {MXLV_MTR_ESTIMATED_MOVE_POSITIONS, -1, "estimated_move_positions", \
+				MXFT_DOUBLE, NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, estimated_move_positions), \
 	{sizeof(double)}, NULL, MXFF_VARARGS}, \
   \
@@ -1251,6 +1252,20 @@ MX_API mx_status_type mx_motor_get_use_window( MX_RECORD *motor_record,
 
 MX_API mx_status_type mx_motor_set_use_window( MX_RECORD *motor_record,
 						mx_bool_type use_window );
+
+MX_API mx_status_type mx_motor_set_estimated_move_positions(
+						MX_RECORD *motor_record,
+						long num_positions,
+						double *position_array );
+
+MX_API mx_status_type mx_motor_get_estimated_move_durations(
+						MX_RECORD *motor_record,
+						long num_positions,
+						double *duration_array );
+
+MX_API mx_status_type mx_motor_get_total_estimated_move_duration(
+					MX_RECORD *motor_record,
+					double *total_estimated_duration );
 
 /* === Move by steps functions. (MXC_MTR_STEPPER) === */
 

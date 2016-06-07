@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------
  *
- * Copyright 1999-2011, 2014-2015 Illinois Institute of Technology
+ * Copyright 1999-2011, 2014-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -285,6 +285,7 @@ extern int motor_install_signal_handlers;
 extern int motor_header_prompt_on;
 extern int motor_overwrite_on;
 extern int motor_autosave_on;
+extern int motor_estimate_on;
 extern int motor_bypass_limit_switch;
 extern int motor_parameter_warning_flag;
 

@@ -16,6 +16,8 @@
  *
  */
 
+#define MXD_ENERGY_DEBUG_ESTIMATES	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -156,6 +158,7 @@ mxd_energy_motor_create_record_structures( MX_RECORD *record )
 				= &mxd_energy_motor_motor_function_list;
 
 	motor->record = record;
+	energy_motor->record = record;
 
 	/* An X-ray energy motor is treated as an analog motor. */
 
@@ -759,6 +762,19 @@ mxd_energy_motor_get_parameter( MX_MOTOR *motor )
 
 		break;
 
+	case MXLV_MTR_ESTIMATED_MOVE_DURATIONS:
+		mx_status = mx_motor_get_estimated_move_durations(
+				dependent_motor_record,
+				motor->num_estimated_move_positions,
+				motor->estimated_move_durations );
+		break;
+
+	case MXLV_MTR_TOTAL_ESTIMATED_MOVE_DURATION:
+		mx_status = mx_motor_get_total_estimated_move_duration(
+				dependent_motor_record,
+				&(motor->total_estimated_move_duration) );
+		break;
+
 	default:
 		mx_status = mx_motor_default_get_parameter_handler( motor );
 		break;
@@ -775,6 +791,8 @@ mxd_energy_motor_set_parameter( MX_MOTOR *motor )
 	MX_ENERGY_MOTOR *energy_motor;
 	MX_RECORD *dependent_motor_record;
 	double real_position1, real_position2, time_for_move;
+	double *theta_positions;
+	long i;
 	mx_status_type mx_status;
 
 	mx_status = mxd_energy_motor_get_pointers( motor, &energy_motor,
@@ -826,6 +844,48 @@ mxd_energy_motor_set_parameter( MX_MOTOR *motor )
 
 	case MXLV_MTR_RESTORE_SPEED:
 		mx_status = mx_motor_restore_speed( dependent_motor_record );
+		break;
+
+	case MXLV_MTR_ESTIMATED_MOVE_POSITIONS:
+		theta_positions = (double *)
+		  calloc( motor->num_estimated_move_positions, sizeof(double) );
+
+		if ( theta_positions == (double *) NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate a %ld element "
+			"array of theta positions for motor '%s'.",
+				motor->num_estimated_move_positions,
+				motor->record->name );
+		}
+
+#if MXD_ENERGY_DEBUG_ESTIMATES
+		MX_DEBUG(-2,("%s: num_estimated_move_positions = %ld",
+			fname, motor->num_estimated_move_positions));
+#endif
+		for ( i = 0; i < motor->num_estimated_move_positions; i++ ) {
+			mx_status = mxd_energy_motor_convert_energy_to_theta(
+					motor, energy_motor, "convert to",
+					motor->estimated_move_positions[i],
+					&(theta_positions[i]) );
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+				mx_free( theta_positions );
+				return mx_status;
+			}
+
+#if MXD_ENERGY_DEBUG_ESTIMATES
+			MX_DEBUG(-2,("%s: energy[%ld] = %f, theta[%ld] = %f",
+				fname, i, motor->estimated_move_positions[i],
+				i, theta_positions[i]));
+#endif
+		}
+
+		mx_status = mx_motor_set_estimated_move_positions(
+					dependent_motor_record,
+					motor->num_estimated_move_positions,
+					theta_positions );
+
+		mx_free( theta_positions );
 		break;
 
 	default:
