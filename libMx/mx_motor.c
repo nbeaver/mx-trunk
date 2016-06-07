@@ -26,6 +26,8 @@
 
 #define MX_MOTOR_DEBUG_HOME_SEARCH			FALSE
 
+#define MX_MOTOR_DEBUG_ESTIMATED_MOVE_DURATION		FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -55,10 +57,12 @@ mx_motor_finish_record_initialization( MX_RECORD *motor_record )
 	static const char fname[] = "mx_motor_finish_record_initialization()";
 
 	MX_MOTOR *motor;
-	MX_MOTOR_FUNCTION_LIST *flist;
-	MX_RECORD_FIELD *extended_status_field;
-	MX_RECORD_FIELD *position_field;
-	MX_RECORD_FIELD *status_field;
+	MX_MOTOR_FUNCTION_LIST *flist = NULL;
+	MX_RECORD_FIELD *extended_status_field = NULL;
+	MX_RECORD_FIELD *position_field = NULL;
+	MX_RECORD_FIELD *status_field = NULL;
+	MX_RECORD_FIELD *estimated_move_positions_field = NULL;
+	MX_RECORD_FIELD *estimated_move_durations_field = NULL;
 	mx_status_type mx_status;
 
 	if ( motor_record == (MX_RECORD *) NULL ) {
@@ -211,6 +215,36 @@ mx_motor_finish_record_initialization( MX_RECORD *motor_record )
 		return mx_status;
 
 	motor->status_field_number = status_field->field_number;
+
+	/* Initialize the estimated_move fields. */
+
+	motor->estimated_move_array_size = 0;
+	motor->num_estimated_move_positions = 0;
+	motor->estimated_move_positions = NULL;
+	motor->estimated_move_durations = NULL;
+	motor->total_estimated_move_duration = -1.0;
+
+	motor->must_recalculate_estimated_move_duration = FALSE;
+
+	mx_status = mx_find_record_field( motor_record,
+					"estimated_move_positions",
+					&estimated_move_positions_field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	estimated_move_positions_field->dimension[0] = 0;
+	estimated_move_positions_field->data_element_size[0] = sizeof(double);
+
+	mx_status = mx_find_record_field( motor_record,
+					"estimated_move_durations",
+					&estimated_move_durations_field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	estimated_move_durations_field->dimension[0] = 0;
+	estimated_move_durations_field->data_element_size[0] = sizeof(double);
 
 	/*---*/
 
@@ -3028,6 +3062,10 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 	double raw_acceleration, raw_acceleration_distance, acceleration_time;
 	double raw_start_position, raw_end_position;
 	double real_raw_start_position, real_raw_end_position;
+	double acceleration_time_x2, raw_acceleration_distance_x2;
+	double raw_move_distance, raw_distance_at_full_speed;
+	double x_mid, t_mid;
+	long i;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked for motor '%s', parameter type '%s' (%ld).",
@@ -3272,7 +3310,112 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 
 		motor->raw_compute_extended_scan_range[3]
 						= real_raw_end_position;
+		break;
 
+	case MXLV_MTR_ESTIMATED_MOVE_DURATIONS:
+	case MXLV_MTR_TOTAL_ESTIMATED_MOVE_DURATION:
+
+#if MX_MOTOR_DEBUG_ESTIMATED_MOVE_DURATION
+		MX_DEBUG(-2,
+		("%s: must_recalculate_estimated_move_duration = %d",
+		fname, (int) motor->must_recalculate_estimated_move_duration));
+#endif
+
+		if ( motor->must_recalculate_estimated_move_duration == FALSE )
+		{
+			return MX_SUCCESSFUL_RESULT;
+		}
+
+		mx_status = mx_motor_get_speed( motor->record, &raw_speed );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_motor_get_acceleration_time( motor->record,
+							&acceleration_time );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_motor_get_acceleration_distance( motor->record,
+						&raw_acceleration_distance );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		acceleration_time_x2 = 2.0 * acceleration_time;
+		raw_acceleration_distance_x2 = 2.0 * raw_acceleration_distance;
+
+		/* estimated_move_durations[0] is set to zero on the principle
+		 * that it takes 0 time to get to the starting position.
+		 */
+
+#if MX_MOTOR_DEBUG_ESTIMATED_MOVE_DURATION
+		MX_DEBUG(-2,("%s: motor->estimated_move_positions = %p",
+			fname, motor->estimated_move_positions));
+		MX_DEBUG(-2,("%s: motor->estimated_move_durations = %p",
+			fname, motor->estimated_move_durations));
+
+		MX_DEBUG(-2,("%s: motor->estimated_move_positions[0] = %f",
+			fname, motor->estimated_move_positions[0]));
+		MX_DEBUG(-2,("%s: motor->estimated_move_durations[0] = %f",
+			fname, motor->estimated_move_durations[0]));
+#endif
+
+		motor->estimated_move_durations[0] = 0.0;
+
+		motor->total_estimated_move_duration = 0.0;
+
+		/* We skip i = 0, since we set the duration value for [0]
+		 * just above.
+		 */
+
+		for ( i = 1; i < motor->num_estimated_move_positions; i++ ) {
+			raw_move_distance = fabs(
+				motor->estimated_move_positions[i]
+				- motor->estimated_move_positions[i-1] );
+
+			raw_distance_at_full_speed = raw_move_distance
+						- raw_acceleration_distance_x2;
+
+			if ( raw_distance_at_full_speed >= 0.0 ) {
+			    motor->estimated_move_durations[i] =
+				mx_divide_safely( raw_distance_at_full_speed,
+							raw_speed )
+				+ acceleration_time_x2;
+			} else {
+			    /* If we get here, the motor does not get all
+			     * the way to full speed before we have to start 
+			     * decelerating.
+			     *
+			     * NOTE: This logic assumes a trapezoidal
+			     * velocity profile.  The _mid suffix refers
+			     * to the position, velocity, and time at the
+			     * midpoint of the move.
+			     */
+
+			    raw_acceleration =
+				mx_divide_safely(raw_speed, acceleration_time);
+
+			    x_mid = 0.5 * raw_move_distance;
+
+			    t_mid = sqrt( mx_divide_safely( 2.0 * x_mid,
+							raw_acceleration ) );
+
+			    motor->estimated_move_durations[i] = 2.0 * t_mid;
+
+			    motor->total_estimated_move_duration
+				+= motor->estimated_move_durations[i];
+			}
+		}
+
+		motor->must_recalculate_estimated_move_duration = FALSE;
+
+#if MX_MOTOR_DEBUG_ESTIMATED_MOVE_DURATION
+		MX_DEBUG(-2,
+		("%s: must_recalculate_estimated_move_duration = %d",
+		fname, (int) motor->must_recalculate_estimated_move_duration));
+#endif
 		break;
 
 	default:
@@ -3292,11 +3435,14 @@ mx_motor_default_set_parameter_handler( MX_MOTOR *motor )
 {
 	static const char fname[] = "mx_motor_default_set_parameter_handler()";
 
+	MX_RECORD_FIELD *estimated_move_positions_field = NULL;
+	MX_RECORD_FIELD *estimated_move_durations_field = NULL;
 	double start_position, end_position;
 	double time_for_move, requested_raw_speed;
 	double raw_speed, raw_base_speed, raw_acceleration;
 	double old_saved_speed, current_speed;
-	mx_status_type status;
+	long max_num_estimated_move_positions;
+	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked for motor '%s', parameter type '%s' (%ld).",
 		fname, motor->record->name,
@@ -3369,11 +3515,11 @@ mx_motor_default_set_parameter_handler( MX_MOTOR *motor )
 		 * and acceleration parameters.
 		 */
 
-		status =
+		mx_status =
 		    mx_motor_update_speed_and_acceleration_parameters( motor );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		/* We assume the acceleration rate is constant.
 		 *
@@ -3410,7 +3556,7 @@ mx_motor_default_set_parameter_handler( MX_MOTOR *motor )
 						motor->acceleration_type );
 		}
 
-		status = mx_motor_set_raw_acceleration_parameters(
+		mx_status = mx_motor_set_raw_acceleration_parameters(
 						motor->record, NULL );
 		break;
 
@@ -3490,18 +3636,19 @@ mx_motor_default_set_parameter_handler( MX_MOTOR *motor )
 		MX_DEBUG( 2,("%s: time_for_move = %g, requested_raw_speed = %g",
 			fname, time_for_move, requested_raw_speed));
 
-		status = mx_motor_set_raw_speed( motor->record,
+		mx_status = mx_motor_set_raw_speed( motor->record,
 						requested_raw_speed );
 
-		return status;
+		return mx_status;
+		break;
 
 	case MXLV_MTR_SAVE_SPEED:
 		/* Read the motor speed to make sure its value is current. */
 
-		status = mx_motor_get_speed( motor->record, NULL );
+		mx_status = mx_motor_get_speed( motor->record, NULL );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		motor->raw_saved_speed = motor->raw_speed;
 
@@ -3516,20 +3663,20 @@ mx_motor_default_set_parameter_handler( MX_MOTOR *motor )
 
 		old_saved_speed = motor->raw_saved_speed * fabs(motor->scale);
 
-		status = mx_motor_set_raw_speed( motor->record,
+		mx_status = mx_motor_set_raw_speed( motor->record,
 						motor->raw_saved_speed );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		/* Read the current speed to see if the
 		 * speed restoration succeeded.
 		 */
 
-		status = mx_motor_get_speed( motor->record, NULL );
+		mx_status = mx_motor_get_speed( motor->record, NULL );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		current_speed = motor->raw_speed * fabs(motor->scale);
 
@@ -3553,6 +3700,125 @@ mx_motor_default_set_parameter_handler( MX_MOTOR *motor )
 			    motor->record->name, current_speed, motor->units );
 		}
 		return MX_SUCCESSFUL_RESULT;
+		break;
+
+	case MXLV_MTR_NUM_ESTIMATED_MOVE_POSITIONS:
+		max_num_estimated_move_positions = 1000000L;
+
+		if ( motor->num_estimated_move_positions >
+				max_num_estimated_move_positions )
+		{
+			mx_status = mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+				"The requested number of estimated "
+				"move positions (%ld) for motor '%s' is "
+				"greater than the maximum allowed value "
+				"of %ld.",
+					motor->num_estimated_move_positions,
+					motor->record->name,
+					max_num_estimated_move_positions );
+
+			motor->num_estimated_move_positions
+					= motor->estimated_move_array_size;
+
+			return mx_status;
+		}
+
+		if ( motor->num_estimated_move_positions >
+				motor->estimated_move_array_size )
+		{
+			/* If needed, create new estimated move arrays
+			 * big enough to handle the number of estimated
+			 * move steps.  It is not necessary to copy the
+			 * contents of the old arrays, since they are
+			 * invalid once we send a new value for the
+			 * field 'num_estimated_move_positions'.
+			 */
+
+			double *new_positions;
+			double *new_durations;
+
+			new_positions = (double *)
+				    calloc( motor->num_estimated_move_positions,
+						sizeof(double) );
+
+			if ( new_positions == NULL ) {
+				return mx_error( MXE_OUT_OF_MEMORY, fname,
+					"Ran out of memory trying to "
+					"allocate a new_positions array for "
+					"estimated move calculations for "
+					"motor '%s'.", motor->record->name );
+			}
+
+			new_durations = (double *)
+				    calloc( motor->num_estimated_move_positions,
+						sizeof(double) );
+
+			if ( new_durations == NULL ) {
+				mx_free( new_positions );
+
+				return mx_error( MXE_OUT_OF_MEMORY, fname,
+					"Ran out of memory trying to "
+					"allocate a new_durations array for "
+					"estimated move calculations for "
+					"motor '%s'.", motor->record->name );
+			}
+
+			mx_free( motor->estimated_move_positions );
+			mx_free( motor->estimated_move_durations );
+
+			motor->estimated_move_positions = new_positions;
+			motor->estimated_move_durations = new_durations;
+
+#if MX_MOTOR_DEBUG_ESTIMATED_MOVE_DURATION
+			MX_DEBUG(-2,("%s: motor->estimated_move_positions = %p",
+				fname, motor->estimated_move_positions));
+			MX_DEBUG(-2,("%s: motor->estimated_move_durations = %p",
+				fname, motor->estimated_move_durations));
+
+			MX_DEBUG(-2,
+			("%s: motor->estimated_move_positions[0] = %f",
+				fname, motor->estimated_move_positions[0]));
+			MX_DEBUG(-2,
+			("%s: motor->estimated_move_durations[0] = %f",
+				fname, motor->estimated_move_durations[0]));
+#endif
+
+			motor->estimated_move_array_size =
+					motor->num_estimated_move_positions;
+
+			/* Fixup the record field data structures so that 
+			 * they know the new sizes of the fields.
+			 */
+
+			mx_status = mx_find_record_field( motor->record,
+					"estimated_move_positions",
+					&estimated_move_positions_field );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			estimated_move_positions_field->dimension[0]
+				= motor->num_estimated_move_positions;
+
+			mx_status = mx_find_record_field( motor->record,
+					"estimated_move_durations",
+					&estimated_move_durations_field );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			estimated_move_durations_field->dimension[0]
+				= motor->num_estimated_move_positions;
+		}
+
+		motor->must_recalculate_estimated_move_duration = TRUE;
+
+#if MX_MOTOR_DEBUG_ESTIMATED_MOVE_DURATION
+		MX_DEBUG(-2,
+		("%s: must_recalculate_estimated_move_duration = %d",
+		fname, (int) motor->must_recalculate_estimated_move_duration));
+#endif
+		break;
 
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2008, 2010, 2013-5 Illinois Institute of Technology
+ * Copyright 1999-2008, 2010, 2013-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -341,6 +341,29 @@ typedef struct {
 
 	double window[ MXU_MTR_NUM_WINDOW_PARAMETERS ];
 
+	/* The following fields are typically used to estimate the total
+	 * time involved for a motor to make a series of moves.  The 
+	 * estimated_move_positions and estimated_move_durations array
+	 * fields are initialized to zero length in the startup function
+	 * mx_motor_finish_record_initialization() so that these fields
+	 * only use up memory if needed.
+	 *
+	 * estimated_move_array_size is the current size of the allocated
+	 * array in units of sizeof(double).  num_estimated_move_positions
+	 * is the array size that the user currently wants to use.  If
+	 * num_estimated_move_positions > estimated_move_array_size, then
+	 * the two arrays are increased in size to fit.
+	 */
+
+	long estimated_move_array_size;
+
+	long num_estimated_move_positions;
+	double *estimated_move_positions;
+	double *estimated_move_durations;
+	double total_estimated_move_duration;
+
+	mx_bool_type must_recalculate_estimated_move_duration;
+
 	/*----*/
 
 	mx_bool_type axis_enable;
@@ -354,6 +377,7 @@ typedef struct {
 	double acceleration_feedforward_gain;
 	double integral_limit;
 	double extra_gain;
+
 } MX_MOTOR;
 
 #define MXLV_MTR_BUSY					1001
@@ -408,6 +432,9 @@ typedef struct {
 #define MXLV_MTR_WINDOW_IS_AVAILABLE			1050
 #define MXLV_MTR_USE_WINDOW				1051
 #define MXLV_MTR_WINDOW					1052
+#define MXLV_MTR_NUM_ESTIMATED_MOVE_POSITIONS		1053
+#define MXLV_MTR_ESTIMATED_MOVE_DURATIONS		1054
+#define MXLV_MTR_TOTAL_ESTIMATED_MOVE_DURATION		1055
 
 #define MXLV_MTR_VALUE_CHANGE_THRESHOLD			3001
 
@@ -823,6 +850,31 @@ typedef struct {
 			NULL, 1, {MXU_MTR_NUM_WINDOW_PARAMETERS}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, window), \
 	{0}, NULL, 0}, \
+  \
+  {-1, -1, "estimated_move_array_size", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, estimated_move_array_size), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {MXLV_MTR_NUM_ESTIMATED_MOVE_POSITIONS, -1, "num_estimated_move_positions", \
+						MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, num_estimated_move_positions),\
+	{0}, NULL, 0}, \
+  \
+  {-1, -1, "estimated_move_positions", MXFT_DOUBLE, \
+						NULL, 1, {MXU_VARARGS_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, estimated_move_positions), \
+	{sizeof(double)}, NULL, MXFF_VARARGS}, \
+  \
+  {MXLV_MTR_ESTIMATED_MOVE_DURATIONS, -1, "estimated_move_durations", \
+				MXFT_DOUBLE, NULL, 1, {MXU_VARARGS_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, estimated_move_durations), \
+	{sizeof(double)}, NULL, (MXFF_READ_ONLY | MXFF_VARARGS)}, \
+  \
+  {MXLV_MTR_TOTAL_ESTIMATED_MOVE_DURATION, -1, "total_estimated_move_duration",\
+					MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+			offsetof(MX_MOTOR, total_estimated_move_duration), \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   \
   \

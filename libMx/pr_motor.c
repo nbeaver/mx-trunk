@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2007, 2010, 2012-2015
+ * Copyright 1999-2004, 2006-2007, 2010, 2012-2016
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -429,6 +429,7 @@ mx_setup_motor_process_functions( MX_RECORD *record )
 		case MXLV_MTR_CONSTANT_VELOCITY_MOVE:
 		case MXLV_MTR_DERIVATIVE_GAIN:
 		case MXLV_MTR_DESTINATION:
+		case MXLV_MTR_ESTIMATED_MOVE_DURATIONS:
 		case MXLV_MTR_EXTRA_GAIN:
 		case MXLV_MTR_FAULT_RESET:
 		case MXLV_MTR_GET_EXTENDED_STATUS:
@@ -441,6 +442,7 @@ mx_setup_motor_process_functions( MX_RECORD *record )
 		case MXLV_MTR_LIMIT_SWITCH_AS_HOME_SWITCH:
 		case MXLV_MTR_MAXIMUM_SPEED:
 		case MXLV_MTR_NEGATIVE_LIMIT_HIT:
+		case MXLV_MTR_NUM_ESTIMATED_MOVE_POSITIONS:
 		case MXLV_MTR_POSITION:
 		case MXLV_MTR_POSITIVE_LIMIT_HIT:
 		case MXLV_MTR_PROPORTIONAL_GAIN:
@@ -455,6 +457,7 @@ mx_setup_motor_process_functions( MX_RECORD *record )
 		case MXLV_MTR_SPEED:
 		case MXLV_MTR_SPEED_CHOICE_PARAMETERS:
 		case MXLV_MTR_SYNCHRONOUS_MOTION_MODE:
+		case MXLV_MTR_TOTAL_ESTIMATED_MOVE_DURATION:
 		case MXLV_MTR_TRIGGER_MODE:
 		case MXLV_MTR_TRIGGER_MOVE:
 		case MXLV_MTR_TRIGGERED_MOVE_DESTINATION:
@@ -681,6 +684,11 @@ mx_motor_process_function( void *record_ptr,
 			break;
 		case MXLV_MTR_USE_WINDOW:
 			mx_status = mx_motor_get_use_window( record, NULL );
+			break;
+		case MXLV_MTR_ESTIMATED_MOVE_DURATIONS:
+		case MXLV_MTR_TOTAL_ESTIMATED_MOVE_DURATION:
+			mx_status = mx_motor_get_parameter( record,
+						record_field->label_value );
 			break;
 		default:
 			MX_DEBUG( 1,(
@@ -911,6 +919,10 @@ mx_motor_process_function( void *record_ptr,
 		case MXLV_MTR_USE_WINDOW:
 			mx_status = mx_motor_set_use_window( record,
 							motor->use_window );
+			break;
+		case MXLV_MTR_NUM_ESTIMATED_MOVE_POSITIONS:
+			mx_status = mx_motor_set_parameter( record,
+						record_field->label_value );
 			break;
 		default:
 			MX_DEBUG( 1,(
