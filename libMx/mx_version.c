@@ -17,15 +17,11 @@
 #include <stdio.h>
 #include <string.h>
 
-#if defined(__GNUC__)
-#  define __USE_XOPEN		/* For strptime() */
-#endif
-
 #include "mx_util.h"
 #include "mx_time.h"
 #include "mx_version.h"
 
-#define MX_DATE "June 7, 2016"
+#define MX_DATE "June 8, 2016"
 
 #include "mx_private_revision.h"
 

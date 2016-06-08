@@ -826,6 +826,8 @@ mxs_xafs_scan_get_parameter( MX_SCAN *scan )
 
 			j = xafs_scan->num_energy_regions;
 
+			region_start = xafs_scan->region_boundary[j];
+
 			region_width = xafs_scan->region_boundary[j+1]
 					- xafs_scan->region_boundary[j];
 

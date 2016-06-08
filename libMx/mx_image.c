@@ -45,11 +45,8 @@
 #  include <windows.h>
 #endif
 
-#if defined(__GNUC__)
-#  define __USE_XOPEN		/* For strptime() */
-#endif
-
 #include "mx_util.h"
+#include "mx_time.h"
 #include "mx_record.h"
 #include "mx_module.h"
 #include "mx_dynamic_library.h"
