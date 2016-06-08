@@ -17,6 +17,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#if defined(__GNUC__)
+#  define __USE_XOPEN		/* For strptime() */
+#endif
+
 #include "mx_util.h"
 #include "mx_time.h"
 #include "mx_version.h"
