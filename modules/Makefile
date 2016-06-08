@@ -35,7 +35,7 @@ all: build
 
 #MODULES += libusb-0.1		# linux,
 
-MODULES += newport_xps		# linux,
+#MODULES += newport_xps		# linux,
 
 #MODULES += ni488		# linux,
 
@@ -53,7 +53,7 @@ MODULES += newport_xps		# linux,
 
 #MODULES += xia_handel		# linux, win32
 
-#MODULES += xineos_gige		# linux, win32
+MODULES += xineos_gige		# linux, win32
 
 #-------------------------------------------------------------------
 # Linux-only modules.
