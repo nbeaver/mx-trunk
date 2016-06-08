@@ -886,7 +886,7 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 
 	/* Read in the XML data that describes the behavior of the camera. */
 
-	mx_breakpoint();
+	/* mx_breakpoint(); */
 
 	if ( read_xml_file ) {
 
