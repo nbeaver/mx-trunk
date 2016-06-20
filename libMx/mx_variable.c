@@ -308,6 +308,13 @@ mx_get_1d_array_by_name( MX_RECORD *record_list,
 			fname, record_name, num_dimensions );
 	}
 
+	if ( dimension_array[0] < 1 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"1-dimensional array '%s' has an illegal length of %ld, "
+		"which is less than the minimum value of 1.",
+			record->name, dimension_array[0] );
+	}
+
 	if ( num_elements != NULL ) {
 		*num_elements = dimension_array[0];
 	}
@@ -354,6 +361,13 @@ mx_get_1d_array( MX_RECORD *record,
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 "%s only supports 1-dimensional arrays.  '%s.value' has %ld dimensions.",
 			fname, record->name, num_dimensions );
+	}
+
+	if ( dimension_array[0] < 1 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"1-dimensional array '%s' has an illegal length of %ld, "
+		"which is less than the minimum value of 1.",
+			record->name, dimension_array[0] );
 	}
 
 	if ( num_elements != NULL ) {
@@ -404,6 +418,13 @@ mx_set_1d_array( MX_RECORD *record,
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 "%s only supports 1-dimensional arrays.  '%s.value' has %ld dimensions.",
 			fname, record->name, num_dimensions );
+	}
+
+	if ( dimension_array[0] < 1 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"1-dimensional array '%s' has an illegal length of %ld, "
+		"which is less than the minimum value of 1.",
+			record->name, dimension_array[0] );
 	}
 
 	if ( num_elements > dimension_array[0] ) {
