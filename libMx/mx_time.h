@@ -9,7 +9,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2010-2012, 2015 Illinois Institute of Technology
+ * Copyright 2010-2012, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,9 +21,7 @@
 
 #include <time.h>
 
-#if defined(OS_HURD)
-  /* FIXME: Prototyping this here should not be necessary. */
-
+#if defined(OS_CYGWIN) || defined(OS_HURD)
   MX_API char *strptime( const char *, const char *, struct tm * );
 #endif
 
