@@ -20,8 +20,9 @@ MX_CORE_SRCS = mx_amplifier.c mx_analog_input.c mx_analog_output.c \
 	mx_bluice.c mx_boot.c mx_callback.c mx_camac.c mx_camera_link.c \
 	mx_cfn.c mx_circular_buffer.c mx_clock.c mx_condition_variable.c \
 	mx_console.c mx_coprocess.c mx_cpu.c mx_cpu_arch.c \
-	mx_dead_reckoning.c mx_debug.c mx_debugger.c \
-	mx_datafile.c mx_digital_input.c mx_digital_output.c mx_dirent.c \
+	mx_datafile.c mx_dead_reckoning.c mx_debug.c mx_debugger.c \
+	mx_dictionary.c \
+	mx_digital_input.c mx_digital_output.c mx_dirent.c \
 	mx_driver_tables.c mx_dynamic_library.c \
 	mx_encoder.c mx_error.c mx_export.c \
 	mx_field.c mx_fvarargs.c \
@@ -189,7 +190,8 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	o_network.c o_toast.c \
 	v_bluice_command.c v_bluice_master.c \
 	v_bluice_operation.c v_bluice_self_operation.c v_bluice_string.c \
-	v_indirect_string.c v_mathop.c v_pmac.c v_position_select.c v_spec.c
+	v_indirect_string.c v_mathop.c v_pmac.c v_position_select.c v_spec.c \
+	h_file.c 
 
 MX_LIB_SRCS = mx_driver.c $(MX_CORE_SRCS) $(MX_DRIVER_SRCS)
 
