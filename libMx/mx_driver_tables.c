@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2008-2010, 2012-2015 Illinois Institute of Technology
+ * Copyright 1999-2006, 2008-2010, 2012-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -36,6 +36,7 @@ static MX_DRIVER mx_superclass_table[] = {
 {"variable",         0, 0, MXR_VARIABLE,      NULL, NULL, NULL, NULL, NULL},
 {"server",           0, 0, MXR_SERVER,        NULL, NULL, NULL, NULL, NULL},
 {"operation",        0, 0, MXR_OPERATION,     NULL, NULL, NULL, NULL, NULL},
+{"dictionary",       0, 0, MXR_DICTIONARY,    NULL, NULL, NULL, NULL, NULL},
 {"special",          0, 0, MXR_SPECIAL,       NULL, NULL, NULL, NULL, NULL},
 
 {"", 0, 0, 0, NULL, NULL, NULL, NULL, NULL}
@@ -184,6 +185,11 @@ static MX_DRIVER mx_class_table[] = {
   /* ================== Operation classes ================== */
 
 {"operation_class", 0, MXO_OPERATION, MXR_OPERATION,
+				NULL, NULL, NULL, NULL, NULL},
+
+  /* ================== Dictionary classes ================== */
+
+{"dictionary_class", 0, MXH_DICTIONARY, MXR_DICTIONARY,
 				NULL, NULL, NULL, NULL, NULL},
 
   /* ================== Special classes ================== */
