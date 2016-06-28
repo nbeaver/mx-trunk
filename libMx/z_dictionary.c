@@ -14,6 +14,8 @@
  *
  */
 
+#define MXZ_DICTIONARY_DEBUG		FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -32,7 +34,8 @@ MX_RECORD_FUNCTION_LIST mxz_dictionary_record_function_list = {
 };
 
 MX_RECORD_FIELD_DEFAULTS mxz_dictionary_field_defaults[] = {
-	MX_RECORD_STANDARD_FIELDS
+	MX_RECORD_STANDARD_FIELDS,
+	MXZ_DICTIONARY_STANDARD_FIELDS
 };
 
 long mxz_dictionary_num_record_fields
@@ -60,6 +63,7 @@ mxz_dictionary_create_record_structures( MX_RECORD *record )
 	}
 
 	dictionary_record->record = record;
+	dictionary_record->dictionary = NULL;
 
 	record->record_superclass_struct = NULL;
 	record->record_class_struct = NULL;
@@ -76,7 +80,11 @@ mxz_dictionary_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxz_dictionary_open()";
 
-	MX_DICTIONARY *dictionary = NULL;
+	MX_DICTIONARY_RECORD *dictionary_record = NULL;
+	char *arguments_copy = NULL;
+	char *colon_ptr = NULL;
+	char *dictionary_type_name = NULL;
+	char *dictionary_type_arguments = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -84,8 +92,63 @@ mxz_dictionary_open( MX_RECORD *record )
 		"The MX_RECORD pointer passed was NULL." );
 	}
 
-	dictionary = (MX_DICTIONARY *) record->record_superclass_struct;
+	dictionary_record = (MX_DICTIONARY_RECORD *) record->record_type_struct;
 
-	return MX_SUCCESSFUL_RESULT;
+	if ( dictionary_record == (MX_DICTIONARY_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_DIRECTORY_RECORD pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	mx_status = mx_dictionary_create( &(dictionary_record->dictionary),
+								record->name );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	arguments_copy = strdup( dictionary_record->arguments );
+
+	if ( arguments_copy == NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to copy the arguments for "
+		"dictionary record '%s'.", record->name );
+	}
+
+	dictionary_type_name = arguments_copy;
+
+	/* Search for the first colon ':' character which separates
+	 * the description of the dictionary type from the arguments
+	 * used by the dictionary type.
+	 */
+
+	colon_ptr = strchr( arguments_copy, ':' );
+
+	if ( colon_ptr == NULL ) {
+		dictionary_type_arguments = NULL;
+	} else {
+		dictionary_type_arguments = colon_ptr + 1;
+		*colon_ptr = '\0';
+	}
+
+#if MXZ_DICTIONARY_DEBUG
+	MX_DEBUG(-2,("%s: dictionary_type_name = '%s'",
+		fname, dictionary_type_name));
+	MX_DEBUG(-2,("%s: dictionary_type_arguments = '%s'",
+		fname, dictionary_type_arguments));
+#endif
+
+	if ( strcmp( dictionary_type_name, "file" ) == 0 ) {
+		mx_status = mx_dictionary_read_file(
+				dictionary_record->dictionary,
+				dictionary_type_arguments );
+	} else {
+		mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Unrecognized dictionary type '%s' requested.",
+			dictionary_type_name );
+	}
+
+	mx_free( arguments_copy );
+
+	return mx_status;
 }
 

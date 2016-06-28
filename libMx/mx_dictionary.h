@@ -46,13 +46,19 @@ typedef struct {
 	char name[MXU_DICTIONARY_NAME_LENGTH+1];
 
 	long num_keys;
-	char *key_array[MXU_DICTIONARY_KEY_LENGTH+1];
+	char **key_array;
 	void **value_array;
 
 	void *application_ptr;
 } MX_DICTIONARY;
 
 /*---*/
+
+MX_API mx_status_type mx_dictionary_create( MX_DICTIONARY **new_dictionary,
+						const char *dictionary_name );
+
+MX_API mx_status_type mx_dictionary_read_file( MX_DICTIONARY *dictionary,
+					const char *dictionary_filename );
 
 #ifdef __cplusplus
 }

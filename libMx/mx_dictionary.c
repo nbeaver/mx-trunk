@@ -30,9 +30,56 @@
  *
  */
 
+#define MX_DICTIONARY_DEBUG	TRUE
+
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_dictionary.h"
+
+MX_EXPORT mx_status_type
+mx_dictionary_create( MX_DICTIONARY **new_dictionary,
+			const char *dictionary_name )
+{
+	static const char fname[] = "mx_dictionary_create()";
+
+	if ( new_dictionary == (MX_DICTIONARY **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_DICTIONARY pointer passed was NULL." );
+	}
+
+	*new_dictionary = (MX_DICTIONARY *) malloc( sizeof(MX_DICTIONARY) );
+
+	if ( *new_dictionary == (MX_DICTIONARY *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"The attempt to create a new MX_DICTIONARY structure failed." );
+	}
+
+	strlcpy( (*new_dictionary)->name,
+		dictionary_name,
+		sizeof( (*new_dictionary)->name ) );
+
+	(*new_dictionary)->num_keys = 0;
+	(*new_dictionary)->key_array = NULL;
+	(*new_dictionary)->value_array = NULL;
+
+	(*new_dictionary)->application_ptr = NULL;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_dictionary_read_file( MX_DICTIONARY *dictionary,
+			const char *dictionary_filename )
+{
+#if MX_DICTIONARY_DEBUG
+	static const char fname[] = "mx_dictionary_read_file()";
+
+	MX_DEBUG(-2,("%s: dictionary_filename = '%s'",
+		fname, dictionary_filename));
+#endif
+	return MX_SUCCESSFUL_RESULT;
+}
 
