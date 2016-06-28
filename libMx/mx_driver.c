@@ -547,8 +547,7 @@
 #include "o_network.h"
 #include "o_toast.h"
 
-#include "h_file.h"
-
+#include "z_dictionary.h"
 #include "z_external_command.h"
 
   /********************** Record Types **********************/
@@ -4052,16 +4051,15 @@ MX_DRIVER mx_type_table[] = {
 				&mxo_toast_num_record_fields,
 				&mxo_toast_rfield_def_ptr },
 
-  /* =================== Dictionary driver types ================== */
-
-{"file_dictionary", MXH_FILE, MXH_DICTIONARY, MXR_DICTIONARY,
-				&mxh_file_record_function_list,
-				&mxh_file_dictionary_function_list,
-				NULL,
-				&mxh_file_initial_num_record_fields,
-				&mxh_file_initial_rfield_def_ptr },
-
   /* =================== Special driver types ================== */
+
+{"dictionary", MXZ_DICT_DICTIONARY, MXZ_DICTIONARY, MXR_SPECIAL,
+				&mxz_dictionary_record_function_list,
+				NULL,
+				NULL,
+				&mxz_dictionary_num_record_fields,
+				&mxz_dictionary_rfield_def_ptr },
+
 
 {"external_command", MXZ_PRG_EXTERNAL_COMMAND, MXZ_PROGRAM, MXR_SPECIAL,
 				&mxz_external_command_record_function_list,

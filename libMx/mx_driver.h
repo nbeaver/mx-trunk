@@ -67,7 +67,7 @@ extern "C" {
 #define MXR_VARIABLE			5
 #define MXR_SERVER			6
 #define MXR_OPERATION			7
-#define MXR_DICTIONARY			8
+
 #define MXR_SPECIAL			9
 
 #define MXR_PLACEHOLDER			32768
@@ -156,14 +156,10 @@ extern "C" {
 
 #define MXO_OPERATION			501
 
-/* --- Dictionary classes --- */
-
-#define MXH_DICTIONARY			801
-
 /* --- Special classes --- */
 
 #define MXZ_PROGRAM			901
-#define MXZ_MOD				902
+#define MXZ_DICTIONARY			902
 
 /*============================= Types =============================*/
 
@@ -878,13 +874,10 @@ extern "C" {
 #define MXO_NETWORK			700001
 #define MXO_TOAST			700002
 
-/* --- Dictionary types --- */
-
-#define MXH_FILE			800001
-
 /* --- Special types --- */
 
 #define MXZ_PRG_EXTERNAL_COMMAND	900001
+#define MXZ_DICT_DICTIONARY		900002
 
 #ifdef __cplusplus
 }

@@ -36,7 +36,6 @@ static MX_DRIVER mx_superclass_table[] = {
 {"variable",         0, 0, MXR_VARIABLE,      NULL, NULL, NULL, NULL, NULL},
 {"server",           0, 0, MXR_SERVER,        NULL, NULL, NULL, NULL, NULL},
 {"operation",        0, 0, MXR_OPERATION,     NULL, NULL, NULL, NULL, NULL},
-{"dictionary",       0, 0, MXR_DICTIONARY,    NULL, NULL, NULL, NULL, NULL},
 {"special",          0, 0, MXR_SPECIAL,       NULL, NULL, NULL, NULL, NULL},
 
 {"", 0, 0, 0, NULL, NULL, NULL, NULL, NULL}
@@ -187,16 +186,11 @@ static MX_DRIVER mx_class_table[] = {
 {"operation_class", 0, MXO_OPERATION, MXR_OPERATION,
 				NULL, NULL, NULL, NULL, NULL},
 
-  /* ================== Dictionary classes ================== */
-
-{"dictionary_class", 0, MXH_DICTIONARY, MXR_DICTIONARY,
-				NULL, NULL, NULL, NULL, NULL},
-
   /* ================== Special classes ================== */
 
 {"program",        0, MXZ_PROGRAM, MXR_SPECIAL,
 				NULL, NULL, NULL, NULL, NULL},
-{"mod",            0, MXZ_MOD, MXR_SPECIAL,
+{"dict",           0, MXZ_DICTIONARY, MXR_SPECIAL,
 				NULL, NULL, NULL, NULL, NULL},
 
 {"", 0, 0, 0, NULL, NULL, NULL, NULL, NULL}
