@@ -794,6 +794,10 @@ MX_API_PRIVATE mx_status_type  mx_find_record_field_defaults_index(
 		const char *name_of_field_to_find,
 		long *index_of_field_that_was_found );
 
+MX_API long mx_get_datatype_from_datatype_name( const char *datatype_name );
+
+MX_API const char *mx_get_datatype_name_from_datatype( long datatype );
+
 MX_API mx_status_type mx_get_field_by_label_value( MX_RECORD *record,
 						long label_value,
 						MX_RECORD_FIELD **field );

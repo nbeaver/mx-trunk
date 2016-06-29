@@ -116,7 +116,13 @@ mx_dictionary_read_file( MX_DICTIONARY *dictionary,
 	FILE *file;
 	char cfn_filename[MXU_FILENAME_LENGTH+1];
 	char buffer[1000];
+	char *buffer_copy = NULL;
 	char *ptr = NULL;
+	char *string_ptr = NULL;
+	char *key_ptr = NULL;
+	char *datatype_ptr = NULL;
+	char *dimension_ptr = NULL;
+	char *value_ptr = NULL;
 	size_t new_num_lines_in_file;
 	long num_keys_in_use;
 	mx_status_type mx_status;
@@ -198,6 +204,13 @@ mx_dictionary_read_file( MX_DICTIONARY *dictionary,
 	}
 
 	while (1) {
+
+		/*----------------------------------------------------------*/
+
+		/* Read in a key-value definition from the file. */
+
+		memset( buffer, 0, sizeof(buffer) );
+
 		ptr = mx_fgets( buffer, sizeof(buffer), file );
 
 		if ( ptr == NULL ) {
@@ -221,6 +234,116 @@ mx_dictionary_read_file( MX_DICTIONARY *dictionary,
 #if MX_DICTIONARY_DEBUG
 		MX_DEBUG(-2,("%s: buffer = '%s'", fname, buffer));
 #endif
+		buffer_copy = strdup( buffer );
+
+		if ( buffer_copy == NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to make a duplicate of "
+			"the buffer '%s'.", buffer );
+		}
+
+#if MX_DICTIONARY_DEBUG
+		MX_DEBUG(-2,("%s: buffer_copy = '%s'", fname, buffer_copy));
+#endif
+		/*----------------------------------------------------------*/
+
+		string_ptr = buffer_copy;
+
+#if MX_DICTIONARY_DEBUG
+		MX_DEBUG(-2,("%s: #1 string_ptr = '%s'", fname, string_ptr));
+#endif
+
+		/* The 'key' name should be the first thing in the buffer. */
+
+		key_ptr = mx_string_token( &string_ptr, ":" );
+
+		if ( key_ptr == NULL ) {
+			mx_status = mx_error( MXE_UNPARSEABLE_STRING, fname,
+			"Could not find a key name in buffer '%s'.", buffer );
+
+			mx_free(buffer_copy);
+			return mx_status;
+		}
+
+#if MX_DICTIONARY_DEBUG
+		MX_DEBUG(-2,("%s: key_ptr = '%s'", fname, key_ptr));
+#endif
+
+		if ( string_ptr == NULL ) {
+			mx_status = mx_error( MXE_UNPARSEABLE_STRING, fname,
+			"Key name '%s' in buffer '%s' is not followed "
+			"by a datatype name.", key_ptr, buffer );
+
+			mx_free(buffer_copy);
+			return mx_status;
+		}
+
+#if MX_DICTIONARY_DEBUG
+		MX_DEBUG(-2,("%s: #2 string_ptr = '%s'", fname, string_ptr));
+#endif
+		/* The next field is the datatype, like 'float' or 'string'. */
+
+		datatype_ptr = mx_string_token( &string_ptr, ":" );
+
+		if ( datatype_ptr == NULL ) {
+			mx_status = mx_error( MXE_UNPARSEABLE_STRING, fname,
+		    "Could not find a datatype name in buffer '%s'.", buffer );
+
+			mx_free(buffer_copy);
+			return mx_status;
+		}
+
+#if MX_DICTIONARY_DEBUG
+		MX_DEBUG(-2,("%s: datatype_ptr = '%s'", fname, datatype_ptr));
+#endif
+
+		if ( string_ptr == NULL ) {
+			mx_status = mx_error( MXE_UNPARSEABLE_STRING, fname,
+			"Datatype name '%s' in buffer '%s' is not followed "
+			"by a dimension description.", datatype_ptr, buffer );
+
+			mx_free(buffer_copy);
+			return mx_status;
+		}
+
+#if MX_DICTIONARY_DEBUG
+		MX_DEBUG(-2,("%s: #3 string_ptr = '%s'", fname, string_ptr));
+#endif
+		/* The next field contains the dimensionality of the field
+		 * that we are creating.
+		 */
+
+		dimension_ptr = mx_string_token( &string_ptr, ":" );
+
+		if ( dimension_ptr == NULL ) {
+			mx_status = mx_error( MXE_UNPARSEABLE_STRING, fname,
+		    "Could not find a dimension name in buffer '%s'.", buffer );
+
+			mx_free(buffer_copy);
+			return mx_status;
+		}
+
+#if MX_DICTIONARY_DEBUG
+		MX_DEBUG(-2,("%s: dimension_ptr = '%s'", fname, dimension_ptr));
+#endif
+
+#if MX_DICTIONARY_DEBUG
+		MX_DEBUG(-2,("%s: #4 string_ptr = '%s'", fname, string_ptr));
+#endif
+		/* The last field is the value field, which may not be
+		 * present at all (i.e. set to NULL).  If it is not
+		 * present, the value is set some datatype-dependent
+		 * version of 0.
+		 */
+
+		value_ptr = string_ptr;
+
+#if MX_DICTIONARY_DEBUG
+		MX_DEBUG(-2,("%s: value_ptr = '%s'", fname, value_ptr));
+#endif
+		/*----------------------------------------------------------*/
+
+		mx_free(buffer_copy);
 	}
 
 	return MX_SUCCESSFUL_RESULT;

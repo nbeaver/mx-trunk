@@ -10,7 +10,7 @@
  *
  *-----------------------------------------------------------------------
  *
- * Copyright 1999-2015 Illinois Institute of Technology
+ * Copyright 1999-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -48,6 +48,79 @@ typedef struct {
 	long type_code;
 	const char type_text[30];
 } MX_FIELD_TYPE_NAME;
+
+/*=====================================================================*/
+
+MX_EXPORT long
+mx_get_datatype_from_datatype_name( const char *datatype_name )
+{
+	static const char fname[] = "mx_get_datatype_from_datatype_name()";
+
+	if ( datatype_name == NULL ) {
+		mx_error( MXE_NULL_ARGUMENT, fname,
+		"The datatype_name pointer passed was NULL." );
+
+		return (-1L);
+	}
+
+	if ( mx_strcasecmp( datatype_name, "string" ) == 0 ) {
+		return MXFT_STRING;
+	}
+	if ( mx_strcasecmp( datatype_name, "char" ) == 0 ) {
+		return MXFT_CHAR;
+	}
+	if ( mx_strcasecmp( datatype_name, "uchar" ) == 0 ) {
+		return MXFT_UCHAR;
+	}
+	if ( mx_strcasecmp( datatype_name, "short" ) == 0 ) {
+		return MXFT_SHORT;
+	}
+	if ( mx_strcasecmp( datatype_name, "ushort" ) == 0 ) {
+		return MXFT_USHORT;
+	}
+	if ( mx_strcasecmp( datatype_name, "bool" ) == 0 ) {
+		return MXFT_BOOL;
+	}
+	if ( mx_strcasecmp( datatype_name, "long" ) == 0 ) {
+		return MXFT_LONG;
+	}
+	if ( mx_strcasecmp( datatype_name, "ulong" ) == 0 ) {
+		return MXFT_ULONG;
+	}
+	if ( mx_strcasecmp( datatype_name, "float" ) == 0 ) {
+		return MXFT_FLOAT;
+	}
+	if ( mx_strcasecmp( datatype_name, "double" ) == 0 ) {
+		return MXFT_DOUBLE;
+	}
+	if ( mx_strcasecmp( datatype_name, "hex" ) == 0 ) {
+		return MXFT_HEX;
+	}
+	if ( mx_strcasecmp( datatype_name, "int64" ) == 0 ) {
+		return MXFT_INT64;
+	}
+	if ( mx_strcasecmp( datatype_name, "uint64" ) == 0 ) {
+		return MXFT_UINT64;
+	}
+	if ( mx_strcasecmp( datatype_name, "record" ) == 0 ) {
+		return MXFT_RECORD;
+	}
+	if ( mx_strcasecmp( datatype_name, "recordtype" ) == 0 ) {
+		return MXFT_RECORDTYPE;
+	}
+	if ( mx_strcasecmp( datatype_name, "interface" ) == 0 ) {
+		return MXFT_INTERFACE;
+	}
+	if ( mx_strcasecmp( datatype_name, "record_field" ) == 0 ) {
+		return MXFT_RECORD_FIELD;
+	}
+
+	mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+	"Datatype name '%s' does not correspond to a valid MX datatype.",
+		datatype_name );
+
+	return (-1L);
+}
 
 /*=====================================================================*/
 

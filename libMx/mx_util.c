@@ -1974,9 +1974,16 @@ mx_string_token( char **string_ptr, const char *delim )
 
 				ptr++;
 
-				/* Note that if (*ptr) == '\0', then strchr() 
-				 * will return NULL.
-				 */
+				if ( (*ptr) == '\0' ) {
+					/* This case will be invoked if the
+					 * length of the string after the
+					 * delimiter is 0.
+					 */
+
+					*string_ptr = NULL;
+
+					return start_ptr;
+				}
 
 				strchr_ptr = strchr( delim, *ptr );
 			}
