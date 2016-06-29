@@ -1,4 +1,4 @@
-dictionary1     special dict dictionary "" "" "file:dictionary.dat"
+dictionary1     special dict dictionary "" "" "file:./dictionary.dat"
 #
 beamline_name   variable inline string "" "" 1  20 "APS Sector 17-ID"
 ring_energy     variable inline double "" "" 1  1  7

@@ -45,7 +45,8 @@ extern "C" {
 typedef struct {
 	char name[MXU_DICTIONARY_NAME_LENGTH+1];
 
-	long num_keys;
+	long num_allocated_keys;
+
 	char **key_array;
 	void **value_array;
 
@@ -56,6 +57,10 @@ typedef struct {
 
 MX_API mx_status_type mx_dictionary_create( MX_DICTIONARY **new_dictionary,
 						const char *dictionary_name );
+
+MX_API mx_status_type mx_dictionary_get_num_keys_in_use(
+					MX_DICTIONARY *dictionary,
+					long *num_keys_in_use );
 
 MX_API mx_status_type mx_dictionary_read_file( MX_DICTIONARY *dictionary,
 					const char *dictionary_filename );
