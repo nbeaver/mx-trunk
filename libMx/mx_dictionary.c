@@ -135,6 +135,9 @@ mx_dictionary_read_file( MX_DICTIONARY *dictionary,
 	size_t new_key_sizeof[2];
 	char **new_key_array;
 	void **new_value_array;
+	long n, value_num_dimensions;
+	long *value_dimension_array;
+	size_t *value_sizeof_array;
 	mx_status_type mx_status;
 
 	if ( dictionary == (MX_DICTIONARY *) NULL ) {
@@ -420,8 +423,68 @@ mx_dictionary_read_file( MX_DICTIONARY *dictionary,
 				buffer, saved_errno, strerror(saved_errno) );
 		}
 
+		value_num_dimensions = dimension_argc;
+
+		value_dimension_array = (long *)
+				malloc( value_num_dimensions * sizeof(long) );
+
+		if ( value_dimension_array == (long *) NULL ) {
+			mx_free(dimension_argv);
+			mx_free(buffer_copy);
+
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate a %ld element "
+			"dimension array for the value array in the "
+			"dictionary file line '%s'.",
+				value_num_dimensions, buffer );
+		}
+
+		for ( n = 0; n < value_num_dimensions; n++ ) {
+
+#if MX_DICTIONARY_DEBUG
+			MX_DEBUG(-2,("%s: dimension_argv[%ld] = '%s'",
+				fname, n, dimension_argv[n] ));
+#endif
+			value_dimension_array[n] = atol( dimension_argv[n] );
+		}
+
+		mx_status = mx_get_datatype_sizeof_array( new_datatype,
+							&value_sizeof_array );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			mx_free(value_dimension_array);
+			mx_free(dimension_argv);
+			mx_free(buffer_copy);
+			return mx_status;
+		}
+
+		/* Allocate memory for the value array. */
+
+		new_value_array[i] = mx_allocate_array( value_num_dimensions,
+							value_dimension_array,
+							value_sizeof_array );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			mx_free(value_dimension_array);
+			mx_free(dimension_argv);
+			mx_free(buffer_copy);
+			return mx_status;
+		}
+
 		/*----------------------------------------------------------*/
 
+		/* If value_ptr is not NULL, then we must transform the
+		 * ASCII text description of the array contents into
+		 * new_value_array[i];
+		 */
+
+		if ( value_ptr != NULL ) {
+		}
+
+		/*----------------------------------------------------------*/
+
+		mx_free(value_dimension_array);
+		mx_free(dimension_argv);
 		mx_free(buffer_copy);
 	}
 
