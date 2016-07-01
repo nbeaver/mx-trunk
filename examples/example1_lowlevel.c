@@ -10,7 +10,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2005-2006, 2008, 2011 Illinois Institute of Technology
+ * Copyright 2005-2006, 2008, 2011, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -57,12 +57,8 @@ main( int argc, char *argv[] )
 	 * 1.  Use the mx_setup_database() call.  This requires you
 	 *     to have an MX database file available.
 	 *
-	 * 2.  Use the mx_connect_to_mx_server() call defined in the
-	 *     accompanying file mx_server_connect.c which does _not_
-	 *     require a database file.  It was extracted from the
-	 *     'mxautosave' program.  This function should probably be
-	 *     added to libMx and I guess I will do so in the next
-	 *     release.
+	 * 2.  Use the mx_connect_to_mx_server() call and specify
+	 *     the hostname and port number of the server directly.
 	 */
 
 #if 0
@@ -89,7 +85,7 @@ main( int argc, char *argv[] )
 	server_record = NULL;
 
 	mx_status = mx_connect_to_mx_server( &server_record,
-					SERVER_NAME, SERVER_PORT, 0x20000000 );
+				SERVER_NAME, SERVER_PORT, 0.1, 0x20000000 );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		fprintf( stderr, "Cannot connect to the MX server.\n" );
