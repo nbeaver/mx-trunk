@@ -2063,6 +2063,8 @@ mx_string_split( char *original_string,
 				 */
 
 				free( *argv );
+				*argv = NULL;
+
 				errno = ENOMEM;
 				return -1;
 			}
