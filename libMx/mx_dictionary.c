@@ -34,6 +34,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -124,6 +125,10 @@ mx_dictionary_read_file( MX_DICTIONARY *dictionary,
 	char *datatype_ptr = NULL;
 	char *dimension_ptr = NULL;
 	char *value_ptr = NULL;
+	int saved_errno, split_status;
+	int dimension_argc;
+	char **dimension_argv;
+	long new_datatype;
 	size_t new_num_lines_in_file;
 	long i, num_keys_in_use, new_num_keys;
 	long new_key_dimension[2];
@@ -386,6 +391,34 @@ mx_dictionary_read_file( MX_DICTIONARY *dictionary,
 		/* Put the new key name into the dictionary. */
 
 		strlcpy( new_key_array[i], key_ptr, MXU_DICTIONARY_KEY_LENGTH );
+
+		/* Get the MX datatype of this key. */
+
+		new_datatype =
+			mx_get_datatype_from_datatype_name( datatype_ptr );
+
+		if ( new_datatype < 0 ) {
+			mx_free(buffer_copy);
+
+			return mx_error( MXE_UNPARSEABLE_STRING, fname,
+			"Key '%s' specified by line '%s' has an "
+			"illegal datatype.", key_ptr, buffer );
+		}
+
+		/* Figure out the dimensionality of this new key. */
+
+		split_status = mx_string_split( dimension_ptr, " ",
+					&dimension_argc, &dimension_argv );
+
+		if ( split_status < 0 ) {
+			saved_errno = errno;
+			mx_free(buffer_copy);
+
+			return mx_error( MXE_FUNCTION_FAILED, fname,
+			"The attempt to split the dimension string in "
+			"'%s' failed.  errno = %d, error message = '%s'.",
+				buffer, saved_errno, strerror(saved_errno) );
+		}
 
 		/*----------------------------------------------------------*/
 

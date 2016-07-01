@@ -2014,6 +2014,7 @@ mx_string_split( char *original_string,
 {
 	unsigned long block_size, num_blocks, array_size;
 	char *string_ptr, *token_ptr;
+	void *temp_ptr;
 
 	if ( (original_string == NULL)
 	  || (delim == NULL)
@@ -2053,13 +2054,20 @@ mx_string_split( char *original_string,
 			num_blocks++;
 			array_size = num_blocks * block_size;
 
-			*argv = realloc( *argv,
+			temp_ptr = realloc( *argv,
 				(array_size + 1) * sizeof(char**) );
 
-			if ( *argv == NULL ) {
+			if ( temp_ptr == NULL ) {
+				/* realloc() failed, so we must free()
+				 * the previous value of *argv.
+				 */
+
+				free( *argv );
 				errno = ENOMEM;
 				return -1;
 			}
+
+			*argv = temp_ptr;
 
 			errno = 0;
 		}
