@@ -1,5 +1,5 @@
 foobie:float:1 1:4.5
-barf:double:1 1:
 bletch:long:1 2:2 13
+barf:double:1 1:
 ack:string:1 40:This is a test string.
-pfft:char:1 35:Another test.
+pfft:char:1 55:This is a test char array.

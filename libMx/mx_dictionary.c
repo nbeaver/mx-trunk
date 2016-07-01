@@ -38,6 +38,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_cfn.h"
+#include "mx_array.h"
 #include "mx_dictionary.h"
 
 /*--------------------------------------------------------------------------*/
@@ -124,7 +125,11 @@ mx_dictionary_read_file( MX_DICTIONARY *dictionary,
 	char *dimension_ptr = NULL;
 	char *value_ptr = NULL;
 	size_t new_num_lines_in_file;
-	long num_keys_in_use;
+	long i, num_keys_in_use, new_num_keys;
+	long new_key_dimension[2];
+	size_t new_key_sizeof[2];
+	char **new_key_array;
+	void **new_value_array;
 	mx_status_type mx_status;
 
 	if ( dictionary == (MX_DICTIONARY *) NULL ) {
@@ -135,6 +140,11 @@ mx_dictionary_read_file( MX_DICTIONARY *dictionary,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The dictionary_filename pointer passed was NULL." );
 	}
+
+	/* FIXME: Some, but not all, of the work has been done to make
+	 * it possible to load a new dictionary file into a dictionary
+	 * that already has been created.  But this is not yet complete.
+	 */
 
 #if MX_DICTIONARY_DEBUG
 	MX_DEBUG(-2,("%s: dictionary_filename = '%s'",
@@ -193,6 +203,32 @@ mx_dictionary_read_file( MX_DICTIONARY *dictionary,
 #if MX_DICTIONARY_DEBUG
 	MX_DEBUG(-2,("%s: num_keys_in_use = %ld", fname, num_keys_in_use));
 #endif
+	/* Allocate memory for the new key and value arrays. */
+
+	new_num_keys = num_keys_in_use + new_num_lines_in_file;
+
+	new_key_dimension[0] = new_num_keys;
+	new_key_dimension[1] = MXU_DICTIONARY_KEY_LENGTH+1;
+
+	new_key_sizeof[0] = sizeof(char);
+	new_key_sizeof[1] = sizeof(char *);
+
+	new_key_array = mx_allocate_array( 2, new_key_dimension,
+						new_key_sizeof );
+
+	if ( new_key_array == NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %ld element array "
+		"of dictionary keys.", new_num_keys );
+	}
+
+	new_value_array = calloc( new_num_keys, sizeof(void *) );
+
+	if ( new_value_array == NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %ld element array "
+		"of value pointers.", new_num_keys );
+	}
 
 	/* Now try to open the file and read in the dictionary definitions. */
 
@@ -203,7 +239,11 @@ mx_dictionary_read_file( MX_DICTIONARY *dictionary,
 		"Unable to open the file '%s'.", dictionary_filename );
 	}
 
-	while (1) {
+	/* We do not directly increment i in the for() loop before, since
+	 * we may want to skip over comment lines, etc.
+	 */
+
+	for ( i = 0; i < new_num_keys;  ) {
 
 		/*----------------------------------------------------------*/
 
@@ -341,6 +381,12 @@ mx_dictionary_read_file( MX_DICTIONARY *dictionary,
 #if MX_DICTIONARY_DEBUG
 		MX_DEBUG(-2,("%s: value_ptr = '%s'", fname, value_ptr));
 #endif
+		/*----------------------------------------------------------*/
+
+		/* Put the new key name into the dictionary. */
+
+		strlcpy( new_key_array[i], key_ptr, MXU_DICTIONARY_KEY_LENGTH );
+
 		/*----------------------------------------------------------*/
 
 		mx_free(buffer_copy);
