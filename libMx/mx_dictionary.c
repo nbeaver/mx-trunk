@@ -488,6 +488,22 @@ mx_dictionary_read_file( MX_DICTIONARY *dictionary,
 		mx_free(buffer_copy);
 	}
 
+	/* If we get here, we discard the old key and value arrays and
+	 * replace them with new key and value arrays.
+	 */
+
+	/* FIXME: Not doing this yet. */
+
+	/* Install the key and value arrays we just created into
+	 * the dictionary data structure.
+	 */
+
+	dictionary->num_allocated_keys = new_num_keys;
+	dictionary->key_array = new_key_array;
+	dictionary->value_array = new_value_array;
+
+	/* We are done now, so return. */
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
