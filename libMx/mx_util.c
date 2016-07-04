@@ -1766,8 +1766,10 @@ mx_fgets( char *buffer, int buffer_size, FILE *stream )
 		if ( ptr[ length - 1 ] == '\n' ) {
 			ptr[ length - 1 ] = '\0';
 
-			if ( ptr[ length - 2 ] == '\r' ) {
-				ptr[ length - 2 ] = '\0';
+			if ( length > 1 ) {
+				if ( ptr[ length - 2 ] == '\r' ) {
+					ptr[ length - 2 ] = '\0';
+				}
 			}
 		}
 	}
