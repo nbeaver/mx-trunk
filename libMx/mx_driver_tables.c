@@ -188,8 +188,8 @@ static MX_DRIVER mx_class_table[] = {
 
   /* ================== Special classes ================== */
 
-{"program",        0, MXZ_PROGRAM, MXR_SPECIAL,
-				NULL, NULL, NULL, NULL, NULL},
+{"program",        0, MXZ_PROGRAM, MXR_SPECIAL, NULL, NULL, NULL, NULL, NULL},
+{"mod",            0, MXZ_MOD, MXR_SPECIAL, NULL, NULL, NULL, NULL, NULL},
 {"dict",           0, MXZ_DICTIONARY, MXR_SPECIAL,
 				NULL, NULL, NULL, NULL, NULL},
 
