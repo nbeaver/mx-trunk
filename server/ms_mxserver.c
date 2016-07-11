@@ -2548,7 +2548,7 @@ mxsrv_send_field_value_to_client(
 
 		case MX_NETWORK_DATAFMT_RAW:
 
-			mx_status = mx_copy_array_to_buffer(
+			mx_status = mx_copy_array_to_network_buffer(
 					pointer_to_value,
 					array_is_dynamically_allocated,
 					record_field->datatype,
@@ -3065,7 +3065,7 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 			break;
 
 		case MX_NETWORK_DATAFMT_RAW:
-			mx_status = mx_copy_buffer_to_array(
+			mx_status = mx_copy_network_buffer_to_array(
 					value_buffer,
 					buffer_left,
 					pointer_to_value,

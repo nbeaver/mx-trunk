@@ -29,6 +29,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_osdef.h"
+#include "mx_unistd.h"
 #include "mx_stdint.h"
 #include "mx_inttypes.h"
 #include "mx_socket.h"
@@ -1205,6 +1206,52 @@ mx_show_array_info( void *array_pointer )
 	return;
 }
 
+#define MXF_CHECK_MX_ARRAY_MEMORY_IS_VALID	TRUE
+
+MX_EXPORT mx_bool_type
+mx_array_is_mx_style_array( void *array_pointer )
+{
+#if MXF_CHECK_MX_ARRAY_MEMORY_IS_VALID
+	mx_bool_type pointer_is_valid;
+#endif
+	MX_ARRAY_HEADER_WORD_TYPE *header;
+	MX_ARRAY_HEADER_WORD_TYPE *header_magic_ptr;
+
+	if ( array_pointer == NULL ) {
+		return FALSE;
+	}
+
+#if MXF_CHECK_MX_ARRAY_MEMORY_IS_VALID
+	/* Check the body of the array first. */
+
+	pointer_is_valid = mx_pointer_is_valid( array_pointer,
+						sizeof(char), R_OK );
+
+	if ( pointer_is_valid == FALSE ) {
+		return FALSE;
+	}
+#endif
+
+	header = (MX_ARRAY_HEADER_WORD_TYPE *) array_pointer;
+
+#if MXF_CHECK_MX_ARRAY_MEMORY_IS_VALID
+	header_magic_ptr = ( header - sizeof(MX_ARRAY_HEADER_WORD_TYPE) );
+
+	pointer_is_valid = mx_pointer_is_valid( header_magic_ptr,
+						sizeof(char), R_OK );
+
+	if ( pointer_is_valid == FALSE ) {
+		return FALSE;
+	}
+#endif
+
+	if ( header[MX_ARRAY_OFFSET_MAGIC] != MX_ARRAY_HEADER_MAGIC ) {
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
 /*===========================================================================*/
 
 #if defined(OS_VMS) && defined(__VAX)
@@ -1442,7 +1489,7 @@ mx_get_network_bytes_from_native_bytes( long mx_datatype,
 /*--------*/
 
 MX_EXPORT mx_status_type
-mx_copy_array_to_buffer( void *array_pointer,
+mx_copy_array_to_network_buffer( void *array_pointer,
 		mx_bool_type array_is_dynamically_allocated,
 		long mx_datatype, long num_dimensions,
 		long *dimension_array, size_t *data_element_size_array,
@@ -1450,7 +1497,7 @@ mx_copy_array_to_buffer( void *array_pointer,
 		size_t *num_network_bytes_copied,
 		mx_bool_type use_64bit_network_longs )
 {
-	static const char fname[] = "mx_copy_array_to_buffer()";
+	static const char fname[] = "mx_copy_array_to_network_buffer()";
 
 	MX_RECORD *mx_record;
 	MX_DRIVER *mx_driver;
@@ -1866,7 +1913,8 @@ mx_copy_array_to_buffer( void *array_pointer,
 
 		buffer_left = destination_buffer_length - n * subarray_size;
 
-		mx_status = mx_copy_array_to_buffer( array_row_pointer,
+		mx_status = mx_copy_array_to_network_buffer(
+				array_row_pointer,
 				array_is_dynamically_allocated,
 				mx_datatype, num_dimensions - 1,
 				&dimension_array[1], data_element_size_array,
@@ -1885,7 +1933,8 @@ mx_copy_array_to_buffer( void *array_pointer,
 }
 
 MX_EXPORT mx_status_type
-mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
+mx_copy_network_buffer_to_array( void *source_buffer,
+		size_t source_buffer_length,
 		void *array_pointer,
 		mx_bool_type array_is_dynamically_allocated,
 		long mx_datatype, long num_dimensions,
@@ -1893,7 +1942,7 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 		size_t *num_native_bytes_copied,
 		mx_bool_type use_64bit_network_longs )
 {
-	static const char fname[] = "mx_copy_buffer_to_array()";
+	static const char fname[] = "mx_copy_network_buffer_to_array()";
 
 	char *array_row_pointer, *source_pointer;
 	size_t network_bytes_to_copy, native_bytes_to_copy;
@@ -2176,7 +2225,7 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 
 		buffer_left = source_buffer_length - n * subarray_size;
 
-		mx_status = mx_copy_buffer_to_array(
+		mx_status = mx_copy_network_buffer_to_array(
 				source_pointer, buffer_left,
 				array_row_pointer,
 				array_is_dynamically_allocated,
@@ -2195,6 +2244,8 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*--------------------------------------------------------------------------*/
 
 MX_EXPORT size_t
 mx_xdr_get_scalar_element_size( long mx_datatype ) {
@@ -3871,4 +3922,140 @@ mx_array_debug_overlay( MX_IMAGE_FRAME *frame )
 }
 
 #endif /* MX_ARRAY_DEBUG_OVERLAY */
+
+/*--------------------------------------------------------------------------*/
+
+/* NOTE: Since we can get the 'data element size' array for this array from
+ *       the array header, we do not need the MX datatype in order to figure
+ *       out how big the array is.  However, we _do_ need to know the MX
+ *       datatype of the array in order to convert individual array elements
+ *       between binary values and ASCII strings using snprintf(), etc.
+ *
+ *       This means that the following functions will not work correctly on
+ *       an MX array unless the elements of that array are of a standard
+ *       MX datatype with its own MXFT_ macro.
+ */
+
+MX_EXPORT
+mx_status_type mx_copy_mx_array_to_ascii_buffer(
+					long mx_datatype,
+					void *array_pointer,
+					char *destination_ascii_buffer,
+					size_t destination_ascii_buffer_length,
+					size_t *num_values_copied )
+{
+	static const char fname[] = "mx_copy_mx_array_to_ascii_buffer()";
+
+	mx_bool_type is_mx_style_array;
+	MX_ARRAY_HEADER_WORD_TYPE *header;
+	char *vector;
+	char *value_ptr;
+	char *destination_ptr;
+	long i, n, num_dimensions, num_array_values, array_element_size;
+	mx_status_type (*token_constructor)( void *, char *, size_t,
+					MX_RECORD *, MX_RECORD_FIELD * );
+	mx_status_type mx_status;
+
+	if ( array_pointer == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The array_pointer passed was NULL." );
+	}
+	if ( destination_ascii_buffer == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The destination_ascii_buffer pointer passed was NULL." );
+	}
+	switch( mx_datatype ) {
+	case MXFT_STRING:
+	case MXFT_CHAR:
+	case MXFT_UCHAR:
+	case MXFT_SHORT:
+	case MXFT_USHORT:
+	case MXFT_BOOL:
+	case MXFT_LONG:
+	case MXFT_ULONG:
+	case MXFT_INT64:
+	case MXFT_UINT64:
+	case MXFT_FLOAT:
+	case MXFT_DOUBLE:
+	case MXFT_HEX:
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"MX datatype %ld is not supported by this function.",
+			mx_datatype );
+		break;
+	}
+
+	is_mx_style_array = mx_array_is_mx_style_array( array_pointer );
+
+	if ( is_mx_style_array == FALSE ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"array pointer %p does not point to an MX-style array "
+		"allocated by mx_allocate_array() or mx_array_add_overlay().",
+			array_pointer );
+	}
+
+	header = (MX_ARRAY_HEADER_WORD_TYPE *) array_pointer;
+
+	num_dimensions = header[MX_ARRAY_OFFSET_NUM_DIMENSIONS];
+
+	/* Compute the number of values in the array and
+	 * the size of a single array element in bytes.
+	 */
+
+	num_array_values = 1;
+
+	header += MX_ARRAY_OFFSET_DIMENSION_ARRAY;
+
+	for ( i = 0; i < num_dimensions; i++ ) {
+		num_array_values *= ( (unsigned long) *header );
+		header--;
+	}
+
+	array_element_size = (unsigned long) *header;
+
+	MX_DEBUG(-2,("%s: num_array_values = %ld, array_element_size = %ld",
+		fname, num_array_values, array_element_size ));
+
+	/* Get a token constructor function that can be used to format the
+	 * string representation of a single value in the binary MX array.
+	 */
+
+	mx_status = mx_get_token_constructor( mx_datatype, &token_constructor );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Get a pointer to the bottom level vector that contains the
+	 * actual data values.
+	 */
+
+	vector = mx_array_get_vector( array_pointer );
+
+	if ( vector == NULL ) {
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"mx_array_get_vector() returned a NULL pointer for array %p",
+			array_pointer );
+	}
+
+	/* Now walk through the data values in the MX array to convert them
+	 * into ASCII strings.
+	 */
+
+	value_ptr = (char *) vector;
+
+	destination_ptr = destination_ascii_buffer;
+
+	for ( n = 0; n < num_array_values; n++ ) {
+		mx_status = (*token_constructor)( value_ptr,
+						destination_ptr,
+						array_element_size,
+						NULL, NULL );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
 

@@ -64,6 +64,11 @@ extern "C" {
 #define MX_ARRAY_OFFSET_NUM_DIMENSIONS	(-3)
 #define MX_ARRAY_OFFSET_DIMENSION_ARRAY	(-4)
 
+/* The data element size array does not appear at a fixed offset in the header.
+ * It is beyond the (varying size) dimension array, so its offset depends on
+ * the number of dimensions in the array.
+ */
+
 /*---------------------------------------------------------------------------*/
 
 MX_API void *mx_read_void_pointer_from_memory_location(
@@ -138,9 +143,11 @@ MX_API void *mx_reallocate_array( void *array_pointer,
 
 MX_API void mx_show_array_info( void *array_pointer );
 
+MX_API mx_bool_type mx_array_is_mx_style_array( void *array_pointer );
+
 /*---*/
 
-MX_API mx_status_type mx_copy_array_to_buffer( void *array_pointer,
+MX_API mx_status_type mx_copy_array_to_network_buffer( void *array_pointer,
 		mx_bool_type array_is_dynamically_allocated,
 		long mx_datatype, long num_dimensions,
 		long *dimension_array, size_t *data_element_size_array,
@@ -148,7 +155,7 @@ MX_API mx_status_type mx_copy_array_to_buffer( void *array_pointer,
 		size_t *num_network_bytes_copied,
 		mx_bool_type use_64bit_network_longs );
 
-MX_API mx_status_type mx_copy_buffer_to_array(
+MX_API mx_status_type mx_copy_network_buffer_to_array(
 		void *source_buffer, size_t source_buffer_length,
 		void *array_pointer,
 		mx_bool_type array_is_dynamically_allocated,
@@ -156,6 +163,8 @@ MX_API mx_status_type mx_copy_buffer_to_array(
 		long *dimension_array, size_t *data_element_size_array,
 		size_t *num_native_bytes_copied,
 		mx_bool_type use_64bit_network_longs );
+
+/*---*/
 
 #define MX_XDR_ENCODE	0
 #define MX_XDR_DECODE	1
@@ -170,6 +179,8 @@ MX_API mx_status_type mx_xdr_data_transfer( int direction,
 		void *destination_buffer, size_t destination_buffer_length,
 		size_t *num_bytes_copied );
 
+/*---*/
+
 MX_API mx_status_type mx_convert_and_copy_array(
 		void *source_array_pointer,
 		long source_datatype,
@@ -181,6 +192,22 @@ MX_API mx_status_type mx_convert_and_copy_array(
 		long destination_num_dimensions,
 		long *destination_dimension_array,
 		size_t *destination_data_element_size_array );
+
+/*---*/
+
+MX_API mx_status_type mx_copy_mx_array_to_ascii_buffer(
+		long mx_datatype,
+		void *array_pointer,
+		char *destination_ascii_buffer,
+		size_t destination_ascii_buffer_length,
+		size_t *num_values_copied );
+
+MX_API mx_status_type mx_copy_ascii_buffer_to_mx_array(
+		char *source_ascii_buffer,
+		size_t source_ascii_buffer_length,
+		long mx_datatype,
+		void *array_pointer,
+		size_t *num_values_copied );
 
 #ifdef __cplusplus
 }

@@ -3559,7 +3559,8 @@ mx_get_field_array( MX_RECORD *server_record,
 		break;
 
 	case MX_NETWORK_DATAFMT_RAW:
-		mx_status = mx_copy_buffer_to_array( message, message_length,
+		mx_status = mx_copy_network_buffer_to_array(
+				message, message_length,
 				value_ptr, array_is_dynamically_allocated,
 				datatype, num_dimensions,
 				dimension_array, data_element_size_array,
@@ -3890,7 +3891,7 @@ mx_put_field_array( MX_RECORD *server_record,
 		break;
 
 	    case MX_NETWORK_DATAFMT_RAW:
-		mx_status = mx_copy_array_to_buffer( value_ptr,
+		mx_status = mx_copy_array_to_network_buffer( value_ptr,
 				array_is_dynamically_allocated,
 				datatype, num_dimensions,
 				dimension_array, data_element_size_array,
@@ -6855,7 +6856,7 @@ mx_network_copy_message_to_field( MX_RECORD *source_server_record,
 		break;
 
 	case MX_NETWORK_DATAFMT_RAW:
-		mx_status = mx_copy_buffer_to_array(
+		mx_status = mx_copy_network_buffer_to_array(
 				char_message,
 				message_length,
 				value_ptr,
