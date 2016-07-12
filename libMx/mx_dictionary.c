@@ -479,6 +479,14 @@ mx_dictionary_read_file( MX_DICTIONARY *dictionary,
 		 */
 
 		if ( value_ptr != NULL ) {
+			mx_status = mx_copy_ascii_buffer_to_mx_array(
+						value_ptr,
+						new_datatype,
+						new_value_array[i],
+						NULL );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 		}
 
 		/*----------------------------------------------------------*/
