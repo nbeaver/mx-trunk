@@ -4054,6 +4054,141 @@ mx_status_type mx_copy_mx_array_to_ascii_buffer(
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+		value_ptr += array_element_size;
+
+		destination_ptr = destination_ascii_buffer
+				+ strlen( destination_ascii_buffer );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT
+mx_status_type mx_copy_ascii_buffer_to_mx_array(
+					char *source_ascii_buffer,
+					size_t source_ascii_buffer_length,
+					long mx_datatype,
+					void *array_pointer,
+					size_t *num_values_copied )
+{
+	static const char fname[] = "mx_copy_ascii_buffer_to_mx_array()";
+
+	mx_bool_type is_mx_style_array;
+	MX_ARRAY_HEADER_WORD_TYPE *header;
+	char *vector;
+	char *value_ptr;
+	char *source_ptr;
+	long i, n, num_dimensions, num_array_values, array_element_size;
+	MX_RECORD_FIELD_PARSE_STATUS parse_status;
+	static char separators[] = MX_RECORD_FIELD_SEPARATORS;
+	mx_status_type (*token_parser)( void *, char *,
+					MX_RECORD *, MX_RECORD_FIELD *,
+					MX_RECORD_FIELD_PARSE_STATUS * );
+	mx_status_type mx_status;
+
+	if ( source_ascii_buffer == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The source_ascii_buffer pointer passed was NULL." );
+	}
+	if ( array_pointer == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The array_pointer passed was NULL." );
+	}
+	switch( mx_datatype ) {
+	case MXFT_STRING:
+	case MXFT_CHAR:
+	case MXFT_UCHAR:
+	case MXFT_SHORT:
+	case MXFT_USHORT:
+	case MXFT_BOOL:
+	case MXFT_LONG:
+	case MXFT_ULONG:
+	case MXFT_INT64:
+	case MXFT_UINT64:
+	case MXFT_FLOAT:
+	case MXFT_DOUBLE:
+	case MXFT_HEX:
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"MX datatype %ld is not supported by this function.",
+			mx_datatype );
+		break;
+	}
+
+	is_mx_style_array = mx_array_is_mx_style_array( array_pointer );
+
+	if ( is_mx_style_array == FALSE ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"array pointer %p does not point to an MX-style array "
+		"allocated by mx_allocate_array() or mx_array_add_overlay().",
+			array_pointer );
+	}
+
+	header = (MX_ARRAY_HEADER_WORD_TYPE *) array_pointer;
+
+	num_dimensions = header[MX_ARRAY_OFFSET_NUM_DIMENSIONS];
+
+	/* Compute the number of values in the array and
+	 * the size of a single array element in bytes.
+	 */
+
+	num_array_values = 1;
+
+	header += MX_ARRAY_OFFSET_DIMENSION_ARRAY;
+
+	for ( i = 0; i < num_dimensions; i++ ) {
+		num_array_values *= ( (unsigned long) *header );
+		header--;
+	}
+
+	array_element_size = (unsigned long) *header;
+
+	MX_DEBUG(-2,("%s: num_array_values = %ld, array_element_size = %ld",
+		fname, num_array_values, array_element_size ));
+
+	/* Get a token parser function that can be used to parse the string
+	 * representation of a single value to put in the binary MX array.
+	 */
+
+	mx_status = mx_get_token_parser( mx_datatype, &token_parser );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Get a pointer to the bottom level vector that will contain the
+	 * actual data values.
+	 */
+
+	vector = mx_array_get_vector( array_pointer );
+
+	if ( vector == NULL ) {
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"mx_array_get_vector() returned a NULL pointer for array %p",
+			array_pointer );
+	}
+
+	/* Now walk through the strings in the ASCII buffer to convert them
+	 * to binary data values in the MX array.
+	 */
+
+	value_ptr = (char *) vector;
+
+	source_ptr = source_ascii_buffer;
+
+	mx_initialize_parse_status( &parse_status, source_ptr, separators );
+
+	for ( n = 0; n < num_array_values; n++ ) {
+		mx_status = (*token_parser)( value_ptr, source_ptr,
+						NULL, NULL, &parse_status );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		value_ptr += array_element_size;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
