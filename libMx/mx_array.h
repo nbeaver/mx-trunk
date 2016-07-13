@@ -204,6 +204,7 @@ MX_API mx_status_type mx_copy_mx_array_to_ascii_buffer(
 
 MX_API mx_status_type mx_copy_ascii_buffer_to_mx_array(
 		char *source_ascii_buffer,
+		long maximum_string_token_length,
 		long mx_datatype,
 		void *array_pointer,
 		size_t *num_values_copied );

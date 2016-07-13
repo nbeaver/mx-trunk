@@ -40,7 +40,7 @@ extern "C" {
 #endif
 
 #define MXU_DICTIONARY_NAME_LENGTH	40
-#define MXU_DICTIONARY_KEY_LENGTH	40
+#define MXU_DICTIONARY_KEY_LENGTH	200
 
 typedef struct {
 	char name[MXU_DICTIONARY_NAME_LENGTH+1];
@@ -61,6 +61,9 @@ MX_API mx_status_type mx_dictionary_create( MX_DICTIONARY **new_dictionary,
 MX_API mx_status_type mx_dictionary_get_num_keys_in_use(
 					MX_DICTIONARY *dictionary,
 					long *num_keys_in_use );
+
+MX_API mx_status_type mx_dictionary_show_dictionary(
+					MX_DICTIONARY *dictionary );
 
 MX_API mx_status_type mx_dictionary_read_file( MX_DICTIONARY *dictionary,
 					const char *dictionary_filename );

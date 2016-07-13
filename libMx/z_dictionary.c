@@ -21,6 +21,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_process.h"
 #include "mx_dictionary.h"
 #include "z_dictionary.h"
 
@@ -30,7 +31,11 @@ MX_RECORD_FUNCTION_LIST mxz_dictionary_record_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	mxz_dictionary_open
+	mxz_dictionary_open,
+	NULL,
+	NULL,
+	NULL,
+	mxz_dictionary_special_processing_setup
 };
 
 MX_RECORD_FIELD_DEFAULTS mxz_dictionary_field_defaults[] = {
@@ -44,6 +49,12 @@ long mxz_dictionary_num_record_fields
 
 MX_RECORD_FIELD_DEFAULTS *mxz_dictionary_rfield_def_ptr =
 		&mxz_dictionary_field_defaults[0];
+
+/*----*/
+
+static mx_status_type mxz_dictionary_process_function( void *record_ptr,
+							void *record_field_ptr,
+							int operation );
 
 /*------------------------------------------------------------------------*/
 
@@ -150,5 +161,83 @@ mxz_dictionary_open( MX_RECORD *record )
 	mx_free( arguments_copy );
 
 	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxz_dictionary_special_processing_setup( MX_RECORD *record )
+{
+	MX_RECORD_FIELD *record_field;
+	MX_RECORD_FIELD *record_field_array;
+	long i;
+
+	record_field_array = record->record_field_array;
+
+	for ( i = 0; i < record->num_record_fields; i++ ) {
+
+		record_field = &record_field_array[i];
+
+		switch( record_field->label_value ) {
+		case MXLV_DICTIONARY_SHOW_DICTIONARY:
+			record_field->process_function
+					= mxz_dictionary_process_function;
+			break;
+		default:
+			break;
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*------------------------------------------------------------------------*/
+
+static mx_status_type
+mxz_dictionary_process_function( void *record_ptr,
+			void *record_field_ptr, int operation )
+{
+	static const char fname[] = "mxz_dictionary_process_function()";
+
+	MX_RECORD *record;
+	MX_RECORD_FIELD *record_field;
+	MX_DICTIONARY_RECORD *dictionary_record;
+	MX_DICTIONARY *dictionary;
+	mx_status_type mx_status;
+
+	record = (MX_RECORD *) record_ptr;
+	record_field = (MX_RECORD_FIELD *) record_field_ptr;
+	dictionary_record = (MX_DICTIONARY_RECORD *) record->record_type_struct;
+	dictionary = dictionary_record->dictionary;
+
+	mx_status = MX_SUCCESSFUL_RESULT;
+
+	switch( operation ) {
+	case MX_PROCESS_GET:
+		switch( record_field->label_value ) {
+		default:
+			MX_DEBUG( 1,(
+			    "%S: *** Unknown MX_PROCESS_GET label value = %ld",
+				fname, record_field->label_value));
+			break;
+		}
+		break;
+	case MX_PROCESS_PUT:
+		switch( record_field->label_value ) {
+		case MXLV_DICTIONARY_SHOW_DICTIONARY:
+			mx_status = mx_dictionary_show_dictionary( dictionary );
+			break;
+		default:
+			MX_DEBUG( 1,(
+			    "%S: *** Unknown MX_PROCESS_PUT label value = %ld",
+				fname, record_field->label_value));
+			break;
+		}
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Unknown operation code = %d", operation );
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 

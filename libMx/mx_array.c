@@ -22,6 +22,8 @@
 
 #define MX_ARRAY_DEBUG_64BIT_COPY	FALSE
 
+#define MX_ARRAY_DEBUG_ASCII_BUFFER	FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -4014,8 +4016,10 @@ mx_status_type mx_copy_mx_array_to_ascii_buffer(
 
 	array_element_size = (unsigned long) *header;
 
+#if MX_ARRAY_DEBUG_ASCII_BUFFER
 	MX_DEBUG(-2,("%s: num_array_values = %ld, array_element_size = %ld",
 		fname, num_array_values, array_element_size ));
+#endif
 
 	/* Get a token constructor function that can be used to format the
 	 * string representation of a single value in the binary MX array.
@@ -4069,6 +4073,7 @@ mx_status_type mx_copy_mx_array_to_ascii_buffer(
 MX_EXPORT
 mx_status_type mx_copy_ascii_buffer_to_mx_array(
 					char *source_ascii_buffer,
+					long maximum_string_token_length,
 					long mx_datatype,
 					void *array_pointer,
 					size_t *num_values_copied )
@@ -4146,8 +4151,10 @@ mx_status_type mx_copy_ascii_buffer_to_mx_array(
 
 	array_element_size = (unsigned long) *header;
 
+#if MX_ARRAY_DEBUG_ASCII_BUFFER
 	MX_DEBUG(-2,("%s: num_array_values = %ld, array_element_size = %ld",
 		fname, num_array_values, array_element_size ));
+#endif
 
 	/* Get a token parser function that can be used to parse the string
 	 * representation of a single value to put in the binary MX array.
@@ -4179,6 +4186,8 @@ mx_status_type mx_copy_ascii_buffer_to_mx_array(
 	source_ptr = source_ascii_buffer;
 
 	mx_initialize_parse_status( &parse_status, source_ptr, separators );
+
+	parse_status.max_string_token_length = maximum_string_token_length;
 
 	for ( n = 0; n < num_array_values; n++ ) {
 		mx_status = (*token_parser)( value_ptr, source_ptr,

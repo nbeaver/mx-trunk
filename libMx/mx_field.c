@@ -969,14 +969,20 @@ mx_parse_string_field( void *dataptr, char *token,
 
 		if ( record == (MX_RECORD *) NULL ) {
 			mx_warning(
-			"String token '%s' was too long.  "
+			"String token '%s' was longer than "
+			"the maximum of %ld bytes.  "
 			"The string was truncated to '%s'.",
-				token, (char *) dataptr );
+				token,
+				parse_status->max_string_token_length,
+				(char *) dataptr );
 		} else {
 			mx_warning(
-			"String token '%s' for record '%s' was too long.  "
+			"String token '%s' for record '%s' was longer than "
+			"the maximum of %ld bytes.  "
 			"The string was truncated to '%s'.",
-				token, record->name, (char *) dataptr );
+				token, record->name,
+				parse_status->max_string_token_length,
+				(char *) dataptr );
 		}
 	}
 	return MX_SUCCESSFUL_RESULT;

@@ -30,7 +30,9 @@
  *
  */
 
-#define MX_DICTIONARY_DEBUG	TRUE
+#define MX_DICTIONARY_DEBUG			FALSE
+
+#define MX_DICTIONARY_DEBUG_VALUE_ARRAY		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -110,6 +112,60 @@ mx_dictionary_get_num_keys_in_use( MX_DICTIONARY *dictionary,
 /*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
+mx_dictionary_show_dictionary( MX_DICTIONARY *dictionary )
+{
+	static const char fname[] = "mx_dictionary_show_dictionary()";
+
+	long i, num_allocated_keys;
+	char **key_array;
+	void **value_array;
+	MX_ARRAY_HEADER_WORD_TYPE *header;
+
+	if ( dictionary == (MX_DICTIONARY *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The dictionary pointer passed was NULL." );
+	}
+
+	num_allocated_keys = dictionary->num_allocated_keys;
+
+	mx_info( "Dictionary: '%s', num_allocated_keys = %ld",
+		dictionary->name, num_allocated_keys );
+
+	key_array = dictionary->key_array;
+
+	if ( key_array == (char **) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The key_array pointer for dictionary '%s' is NULL.",
+			dictionary->name );
+	}
+
+	value_array = dictionary->value_array;
+
+	if ( value_array == (void **) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The value_array pointer for dictionary '%s' is NULL.",
+			dictionary->name );
+	}
+
+	for ( i = 0; i < num_allocated_keys; i++ ) {
+		if ( value_array[i] == NULL ) {
+			mx_info( "key[%ld] = '%s', value = NULL",
+				i, key_array[i] );
+		} else {
+			header = (MX_ARRAY_HEADER_WORD_TYPE *) value_array[i];
+
+			mx_info( "key[%ld] = '%s', num_dimensions = %lu",
+			    i, key_array[i],
+		    (unsigned long) header[MX_ARRAY_OFFSET_NUM_DIMENSIONS] );
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
 mx_dictionary_read_file( MX_DICTIONARY *dictionary,
 			const char *dictionary_filename )
 {
@@ -138,7 +194,12 @@ mx_dictionary_read_file( MX_DICTIONARY *dictionary,
 	long n, value_num_dimensions;
 	long *value_dimension_array;
 	size_t *value_sizeof_array;
+	uint32_t first_uint32;
 	mx_status_type mx_status;
+
+#if MX_DICTIONARY_DEBUG
+	MX_DEBUG(-2,("%s invoked", fname));
+#endif
 
 	if ( dictionary == (MX_DICTIONARY *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -238,6 +299,14 @@ mx_dictionary_read_file( MX_DICTIONARY *dictionary,
 		"of value pointers.", new_num_keys );
 	}
 
+#if MX_DICTIONARY_DEBUG
+	MX_DEBUG(-2,("%s: new_key_array = %p", fname, new_key_array));
+#endif
+
+#if MX_DICTIONARY_DEBUG_VALUE_ARRAY
+	MX_DEBUG(-2,("%s: new_value_array = %p", fname, new_value_array));
+#endif
+
 	/* Now try to open the file and read in the dictionary definitions. */
 
 	file = fopen( cfn_filename, "r" );
@@ -253,6 +322,9 @@ mx_dictionary_read_file( MX_DICTIONARY *dictionary,
 
 	for ( i = 0; i < new_num_keys;  ) {
 
+#if MX_DICTIONARY_DEBUG
+		MX_DEBUG(-2,("%s: i = %ld", fname, i));
+#endif
 		/*----------------------------------------------------------*/
 
 		/* Read in a key-value definition from the file. */
@@ -471,6 +543,13 @@ mx_dictionary_read_file( MX_DICTIONARY *dictionary,
 			return mx_status;
 		}
 
+		first_uint32 = ((uint32_t *) new_value_array[i])[0];
+
+#if MX_DICTIONARY_DEBUG_VALUE_ARRAY
+		MX_DEBUG(-2,("%s: new_value_array[%ld] = %p",
+			fname, i, new_value_array[i]));
+		MX_DEBUG(-2,("%s: #1 first_uint32 = %#x", fname, first_uint32));
+#endif
 		/*----------------------------------------------------------*/
 
 		/* If value_ptr is not NULL, then we must transform the
@@ -478,9 +557,12 @@ mx_dictionary_read_file( MX_DICTIONARY *dictionary,
 		 * new_value_array[i];
 		 */
 
-		if ( value_ptr != NULL ) {
+		if ( value_ptr == NULL ) {
+			((char *) new_value_array[i])[0] = '\0';
+		} else {
 			mx_status = mx_copy_ascii_buffer_to_mx_array(
 						value_ptr,
+						MXU_DICTIONARY_KEY_LENGTH,
 						new_datatype,
 						new_value_array[i],
 						NULL );
@@ -489,11 +571,26 @@ mx_dictionary_read_file( MX_DICTIONARY *dictionary,
 				return mx_status;
 		}
 
+#if MX_DICTIONARY_DEBUG_VALUE_ARRAY
+		MX_DEBUG(-2,("%s: &((uint32_t *) new_value_array[%lu])[0] = %p",
+			fname, i, &((uint32_t *) new_value_array[i])[0]));
+#endif
+
+		first_uint32 = ((uint32_t *) new_value_array[i])[0];
+
+#if MX_DICTIONARY_DEBUG_VALUE_ARRAY
+		MX_DEBUG(-2,("%s: #2 first_uint32 = %#lx",
+			fname, (unsigned long) first_uint32));
+#endif
 		/*----------------------------------------------------------*/
 
 		mx_free(value_dimension_array);
 		mx_free(dimension_argv);
 		mx_free(buffer_copy);
+
+		/* Increment the value array counter to get the next line. */
+
+		i++;
 	}
 
 	/* If we get here, we discard the old key and value arrays and
@@ -505,6 +602,10 @@ mx_dictionary_read_file( MX_DICTIONARY *dictionary,
 	/* Install the key and value arrays we just created into
 	 * the dictionary data structure.
 	 */
+
+#if MX_DICTIONARY_DEBUG
+	MX_DEBUG(-2,("%s: DONE: Saving new dictionary contents.",fname));
+#endif
 
 	dictionary->num_allocated_keys = new_num_keys;
 	dictionary->key_array = new_key_array;

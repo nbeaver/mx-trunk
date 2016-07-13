@@ -24,16 +24,27 @@ typedef struct {
 
 	MX_DICTIONARY *dictionary;
 	char arguments[MXU_DICTIONARY_ARGUMENTS_LENGTH+1];
+
+	mx_bool_type show_dictionary;
 } MX_DICTIONARY_RECORD;
+
+#define MXLV_DICTIONARY_SHOW_DICTIONARY		777001
 
 #define MXZ_DICTIONARY_STANDARD_FIELDS \
   {-1, -1, "arguments", MXFT_STRING, NULL, 1,{MXU_DICTIONARY_ARGUMENTS_LENGTH},\
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DICTIONARY_RECORD, arguments), \
-	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+  \
+  {MXLV_DICTIONARY_SHOW_DICTIONARY, -1, "show_dictionary", \
+					MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DICTIONARY_RECORD, show_dictionary), \
+	{sizeof(char)}, NULL, 0 }
 
 MX_API_PRIVATE mx_status_type mxz_dictionary_create_record_structures(
 						MX_RECORD *record );
 MX_API_PRIVATE mx_status_type mxz_dictionary_open( MX_RECORD *record );
+MX_API_PRIVATE mx_status_type mxz_dictionary_special_processing_setup(
+						MX_RECORD *record );
 
 extern MX_RECORD_FUNCTION_LIST mxz_dictionary_record_function_list;
 
