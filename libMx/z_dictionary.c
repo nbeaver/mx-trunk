@@ -215,7 +215,7 @@ mxz_dictionary_process_function( void *record_ptr,
 		switch( record_field->label_value ) {
 		default:
 			MX_DEBUG( 1,(
-			    "%S: *** Unknown MX_PROCESS_GET label value = %ld",
+			    "%s: *** Unknown MX_PROCESS_GET label value = %ld",
 				fname, record_field->label_value));
 			break;
 		}
@@ -227,7 +227,7 @@ mxz_dictionary_process_function( void *record_ptr,
 			break;
 		default:
 			MX_DEBUG( 1,(
-			    "%S: *** Unknown MX_PROCESS_PUT label value = %ld",
+			    "%s: *** Unknown MX_PROCESS_PUT label value = %ld",
 				fname, record_field->label_value));
 			break;
 		}
