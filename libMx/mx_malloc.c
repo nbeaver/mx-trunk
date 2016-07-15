@@ -113,6 +113,10 @@ mx_win32_calloc( size_t num_items, size_t item_size )
 	LPVOID block_ptr;
 	size_t num_bytes;
 
+#if MX_DEBUG_HEAP
+	int heap_status;
+#endif
+
 	if ( process_heap == NULL ) {
 		process_heap = GetProcessHeap();
 
@@ -120,6 +124,15 @@ mx_win32_calloc( size_t num_items, size_t item_size )
 			return mxp_win32_process_heap_error();
 		}
 	}
+
+#if MX_DEBUG_HEAP
+	heap_status = mx_heap_check( MXF_HEAP_CHECK_CORRUPTED_ALL );
+
+	if ( heap_status == FALSE ) {
+		mx_warning( "calloc(): Heap corrupted before allocation." );
+		mx_stack_traceback();
+	}
+#endif
 
 	num_bytes = num_items * item_size;
 
@@ -133,6 +146,15 @@ mx_win32_calloc( size_t num_items, size_t item_size )
 	mx_stack_traceback();
 #endif
 
+#if MX_DEBUG_HEAP
+	heap_status = mx_heap_check( MXF_HEAP_CHECK_CORRUPTED_ALL );
+
+	if ( heap_status == FALSE ) {
+		mx_warning( "calloc(): Heap corrupted after allocation." );
+		mx_stack_traceback();
+	}
+#endif
+
 	return block_ptr;
 }
 
@@ -141,7 +163,11 @@ mx_win32_free( void *block_ptr )
 {
 	static const char fname[] = "mx_win32_free()";
 
-	BOOL status;
+	BOOL os_status;
+
+#if MX_DEBUG_HEAP
+	int heap_status;
+#endif
 
 	if ( process_heap == NULL ) {
 		process_heap = GetProcessHeap();
@@ -153,17 +179,22 @@ mx_win32_free( void *block_ptr )
 	}
 
 #if MX_DEBUG_HEAP
-	mx_heap_check( MXF_HEAP_CHECK_CORRUPTED_ALL );
+	heap_status = mx_heap_check( MXF_HEAP_CHECK_CORRUPTED_ALL );
+
+	if ( heap_status == FALSE ) {
+		mx_warning( "free(): Heap corrupted before free." );
+		mx_stack_traceback();
+	}
 #endif
 
-	status = HeapFree( process_heap, 0, block_ptr );
+	os_status = HeapFree( process_heap, 0, block_ptr );
 
 #if MX_DEBUG_LOG
 	MX_DEBUG(-2,("HeapFree( %p, 0, %p ) = %d",
 		process_heap, block_ptr, status));
 #endif
 
-	if ( status == 0 ) {
+	if ( os_status == 0 ) {
 		DWORD last_error_code;
 		TCHAR message_buffer[100];
 
@@ -182,6 +213,15 @@ mx_win32_free( void *block_ptr )
 			block_ptr, last_error_code, message_buffer );
 	}
 
+#if MX_DEBUG_HEAP
+	heap_status = mx_heap_check( MXF_HEAP_CHECK_CORRUPTED_ALL );
+
+	if ( heap_status == FALSE ) {
+		mx_warning( "free(): Heap corrupted after free." );
+		mx_stack_traceback();
+	}
+#endif
+
 #if MX_DEBUG_SHOW_CALLER
 	mx_stack_traceback();
 #endif
@@ -199,6 +239,10 @@ mx_win32_malloc( size_t num_bytes )
 {
 	LPVOID block_ptr;
 
+#if MX_DEBUG_HEAP
+	int heap_status;
+#endif
+
 	if ( process_heap == NULL ) {
 		process_heap = GetProcessHeap();
 
@@ -206,6 +250,15 @@ mx_win32_malloc( size_t num_bytes )
 			return mxp_win32_process_heap_error();
 		}
 	}
+
+#if MX_DEBUG_HEAP
+	heap_status = mx_heap_check( MXF_HEAP_CHECK_CORRUPTED_ALL );
+
+	if ( heap_status == FALSE ) {
+		mx_warning( "malloc(): Heap corrupted before allocation." );
+		mx_stack_traceback();
+	}
+#endif
 
 	block_ptr = HeapAlloc( process_heap, 0, num_bytes );
 
@@ -217,6 +270,15 @@ mx_win32_malloc( size_t num_bytes )
 	mx_stack_traceback();
 #endif
 
+#if MX_DEBUG_HEAP
+	heap_status = mx_heap_check( MXF_HEAP_CHECK_CORRUPTED_ALL );
+
+	if ( heap_status == FALSE ) {
+		mx_warning( "malloc(): Heap corrupted after allocation." );
+		mx_stack_traceback();
+	}
+#endif
+
 	return block_ptr;
 }
 
@@ -225,6 +287,10 @@ mx_win32_realloc( void *old_block_ptr, size_t new_num_bytes )
 {
 	LPVOID new_block_ptr;
 
+#if MX_DEBUG_HEAP
+	int heap_status;
+#endif
+
 	if ( process_heap == NULL ) {
 		process_heap = GetProcessHeap();
 
@@ -232,6 +298,15 @@ mx_win32_realloc( void *old_block_ptr, size_t new_num_bytes )
 			return mxp_win32_process_heap_error();
 		}
 	}
+
+#if MX_DEBUG_HEAP
+	heap_status = mx_heap_check( MXF_HEAP_CHECK_CORRUPTED_ALL );
+
+	if ( heap_status == FALSE ) {
+		mx_warning( "realloc(): Heap corrupted before reallocation." );
+		mx_stack_traceback();
+	}
+#endif
 
 	new_block_ptr = HeapReAlloc( process_heap, 0,
 					old_block_ptr, new_num_bytes );
@@ -243,6 +318,15 @@ mx_win32_realloc( void *old_block_ptr, size_t new_num_bytes )
 #endif
 #if MX_DEBUG_SHOW_CALLER
 	mx_stack_traceback();
+#endif
+
+#if MX_DEBUG_HEAP
+	heap_status = mx_heap_check( MXF_HEAP_CHECK_CORRUPTED_ALL );
+
+	if ( heap_status == FALSE ) {
+		mx_warning( "realloc(): Heap corrupted after reallocation." );
+		mx_stack_traceback();
+	}
 #endif
 
 	return new_block_ptr;

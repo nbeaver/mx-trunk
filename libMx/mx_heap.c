@@ -146,12 +146,54 @@ mx_heap_check( unsigned long heap_flags )
 {
 	static const char fname[] = "mx_heap_check()";
 
-	DWORD number_of_heaps, new_number_of_heaps;
-	HANDLE *heap_handle_array;
+	DWORD number_of_heaps;
 	HANDLE heap_handle;
 	BOOL validate_status;
-	unsigned long i, heap_handle_attempts;
 	int heap_ok;
+	unsigned long i;
+
+#if 1
+	/* This implementation tries to avoid calling any heap allocation
+	 * functions.  This means that we cannot call sprintf() and friends
+	 * in the error messages we generate.
+	 */
+
+	HANDLE heap_handle_array[100];
+	DWORD maximum_number_of_heaps;
+
+	static const char getprocessheaps_error[] =
+		"ERROR: A call to GetProcessHeaps() failed.\n";
+
+	static const char toomanyheaps_error[] = 
+		"ERROR: Too many heaps reported by GetProcessHeaps().  "
+		"Increase the size of heap_handle_array and recompile MX "
+		"to fix this.\n";
+
+	maximum_number_of_heaps = sizeof( heap_handle_array )
+					/ sizeof( heap_handle_array[0] );
+
+	number_of_heaps = GetProcessHeaps( maximum_number_of_heaps,
+						heap_handle_array );
+
+	if ( number_of_heaps == 0 ) {
+		write(2, getprocessheaps_error, sizeof(getprocessheaps_error));
+	}
+
+	if ( number_of_heaps > maximum_number_of_heaps ) {
+		write(2, toomanyheaps_error, sizeof(toomanyheaps_error));
+		return FALSE;
+	}
+#else
+	/* ICK!  A function for checking the integrity of the heap should not
+	 * be using the heap itself to allocate a heap_handle_array!  Storing
+	 * the heap handles in a fixed size array is the lesser of two evils
+	 * in this case.
+	 */
+
+	HANDLE *heap_handle_array;
+
+	DWORD new_number_of_heaps;
+	unsigned long heap_handle_attempts;
 
 	heap_handle_attempts = 100;
 
@@ -206,6 +248,7 @@ mx_heap_check( unsigned long heap_flags )
 
 		return FALSE;
 	}
+#endif
 
 	heap_ok = TRUE;
 
