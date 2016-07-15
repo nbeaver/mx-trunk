@@ -1303,7 +1303,8 @@ mxd_merlin_medipix_readout_frame( MX_AREA_DETECTOR *ad )
 				ad->byte_order,
 				ad->bytes_per_pixel,
 				ad->header_length,
-				ad->bytes_per_frame );
+				ad->bytes_per_frame,
+				ad->dictionary );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1353,6 +1354,7 @@ mxd_merlin_medipix_readout_frame( MX_AREA_DETECTOR *ad )
 
 		mx_status = mx_array_add_overlay(
 				(void *) ad->image_frame->image_data,
+				MXFT_USHORT,
 				2, ad->framesize, element_size,
 				&void_array_ptr );
 
@@ -1363,6 +1365,7 @@ mxd_merlin_medipix_readout_frame( MX_AREA_DETECTOR *ad )
 
 		mx_status = mx_array_add_overlay(
 				(void *) image_binary_ptr,
+				MXFT_USHORT,
 				2, ad->framesize, element_size,
 				&void_array_ptr );
 

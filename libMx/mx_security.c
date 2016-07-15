@@ -7,7 +7,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2006, 2009, 2011-2012 Illinois Institute of Technology
+ * Copyright 1999, 2001-2006, 2009, 2011-2012, 2016
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -143,8 +144,9 @@ mx_setup_connection_acl( MX_RECORD *record_list,
 	data_element_size_array[0] = sizeof(char);
 	data_element_size_array[1] = sizeof(char *);
 
-	connection_acl->address_string_array = (char **) mx_allocate_array( 2,
-				dimension_array, data_element_size_array );
+	connection_acl->address_string_array = (char **)
+		mx_allocate_array( MXFT_STRING,
+			2, dimension_array, data_element_size_array );
 
 	if ( connection_acl->address_string_array == NULL ) {
 		fclose(connection_acl_file);

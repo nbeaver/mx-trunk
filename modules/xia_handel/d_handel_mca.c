@@ -3471,7 +3471,7 @@ mxd_handel_mca_show_parameters( MX_MCA *mca )
 	size_array[1] = sizeof(char *);
 
 	string_array = (char **)
-		mx_allocate_array( 2, dimension_array, size_array );
+	    mx_allocate_array( MXFT_STRING, 2, dimension_array, size_array );
 
 	if ( string_array == (char **) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,

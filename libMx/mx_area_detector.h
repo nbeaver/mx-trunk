@@ -737,6 +737,14 @@ typedef struct mx_area_detector_type {
 	MX_RECORD *filename_log_record;
 	char filename_log[MXU_RECORD_NAME_LENGTH+1];
 
+	/* An MX dictionary is used to store information that might need
+	 * to go into an image header, depending on the image file format.
+	 */
+
+	MX_RECORD *dictionary_record;
+	char dictionary_record_name[MXU_FILENAME_LENGTH+1];
+	MX_DICTIONARY *dictionary;
+
 } MX_AREA_DETECTOR;
 
 /* Warning: Do not rely on the following numbers remaining the same
@@ -867,6 +875,7 @@ typedef struct mx_area_detector_type {
 
 #define MXLV_AD_IMAGE_LOG_FILENAME		12800
 #define MXLV_AD_FILENAME_LOG			12801
+#define MXLV_AD_DICTIONARY_RECORD_NAME		12802
 
 #define MX_AREA_DETECTOR_STANDARD_FIELDS \
   {MXLV_AD_MAXIMUM_FRAMESIZE, -1, "maximum_framesize", \
@@ -1537,7 +1546,13 @@ typedef struct mx_area_detector_type {
   {MXLV_AD_FILENAME_LOG, -1, "filename_log", \
 			MXFT_STRING, NULL, 1, {MXU_RECORD_NAME_LENGTH}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, filename_log), \
-	{sizeof(char)}, NULL, 0}
+	{sizeof(char)}, NULL, 0}, \
+  \
+  {MXLV_AD_DICTIONARY_RECORD_NAME, -1, "dictionary_record_name", \
+			MXFT_STRING, NULL, 1, {MXU_RECORD_NAME_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, \
+			offsetof(MX_AREA_DETECTOR, dictionary_record_name), \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_READ_ONLY) }
 
 typedef struct {
         mx_status_type ( *arm ) ( MX_AREA_DETECTOR *ad );

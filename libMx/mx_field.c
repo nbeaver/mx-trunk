@@ -2375,6 +2375,7 @@ mx_parse_record_fields( MX_RECORD *record,
 					array_ptr = NULL;
 				} else {
 					array_ptr = mx_allocate_array(
+						field_type,
 						record_field->num_dimensions,
 						record_field->dimension,
 					    record_field->data_element_size );

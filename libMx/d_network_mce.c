@@ -570,7 +570,7 @@ mxd_network_mce_get_motor_record_array( MX_MCE *mce )
 	size_array[1] = sizeof(char *);
 
 	motor_name_array = (char **)
-			mx_allocate_array( 2, dimension_array, size_array );
+	    mx_allocate_array( MXFT_STRING, 2, dimension_array, size_array );
 
 	if ( motor_name_array == NULL ) {
 		mx_free( mce->motor_record_array );

@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2005-2006, 2008, 2010, 2013 Illinois Institute of Technology
+ * Copyright 2005-2006, 2008, 2010, 2013, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -364,8 +364,8 @@ mx_create_network_field( MX_NETWORK_FIELD **nf,
 	if ( num_dimensions == 0 ) {
 		*value_ptr = malloc( sizeof_array[0] );
 	} else {
-		*value_ptr = mx_allocate_array( num_dimensions,
-					dimension_array, sizeof_array );
+		*value_ptr = mx_allocate_array( datatype,
+				num_dimensions, dimension_array, sizeof_array );
 	}
 
 	if ( *value_ptr == NULL ) {

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2015 Illinois Institute of Technology
+ * Copyright 2006-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -6202,7 +6202,8 @@ mx_area_detector_classic_frame_correction( MX_RECORD *record,
 					MXIF_BYTE_ORDER(image_frame),
 					corr_bytes_per_pixel,
 					MXIF_HEADER_BYTES(image_frame),
-					corr_image_length );
+					corr_image_length,
+					ad->dictionary );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

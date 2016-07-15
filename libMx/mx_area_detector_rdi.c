@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2013-2015 Illinois Institute of Technology
+ * Copyright 2013-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -209,7 +209,8 @@ mx_rdi_correct_frame( MX_AREA_DETECTOR *ad,
 					MXIF_BYTE_ORDER(image_frame),
 					corr_bytes_per_pixel,
 					MXIF_HEADER_BYTES(image_frame),
-					corr_image_length );
+					corr_image_length,
+					ad->dictionary );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

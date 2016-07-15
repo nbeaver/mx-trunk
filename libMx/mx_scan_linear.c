@@ -296,7 +296,8 @@ mxs_linear_scan_finish_record_initialization( MX_RECORD *record )
 		element_size[1] = sizeof(double *);
 
 		scan->datafile.x_position_array = (double **)
-			mx_allocate_array( 2, dimension, element_size );
+			mx_allocate_array( MXFT_DOUBLE,
+				2, dimension, element_size );
 
 		if ( scan->datafile.x_position_array == (double **) NULL ) {
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -314,7 +315,8 @@ mxs_linear_scan_finish_record_initialization( MX_RECORD *record )
 		element_size[1] = sizeof(double *);
 
 		scan->plot.x_position_array = (double **)
-			mx_allocate_array( 2, dimension, element_size );
+			mx_allocate_array( MXFT_DOUBLE,
+				2, dimension, element_size );
 
 		if ( scan->plot.x_position_array == (double **) NULL ) {
 			return mx_error( MXE_OUT_OF_MEMORY, fname,

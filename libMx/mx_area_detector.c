@@ -339,6 +339,9 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->filename_log_record = NULL;
 	ad->filename_log[0] = '\0';
 
+	ad->dictionary_record = NULL;
+	ad->dictionary = NULL;
+
 	/*-------*/
 
 	mx_status = mx_find_record_field( record, "extended_status",
@@ -3605,7 +3608,8 @@ mx_area_detector_setup_frame( MX_RECORD *record,
 					ad->byte_order,
 					ad->bytes_per_pixel,
 					ad->header_length,
-					ad->bytes_per_frame );
+					ad->bytes_per_frame,
+					ad->dictionary );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -3672,7 +3676,8 @@ mx_area_detector_setup_correction_frame( MX_RECORD *record,
 					ad->byte_order,
 					bytes_per_pixel,
 					ad->header_length,
-					bytes_per_frame );
+					bytes_per_frame,
+					ad->dictionary );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -4863,7 +4868,7 @@ mx_area_detector_get_roi_frame( MX_RECORD *record,
 				image_format,
 				byte_order,
 				bytes_per_pixel,
-				0, 0 );
+				0, 0, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -4948,6 +4953,7 @@ mx_area_detector_get_roi_frame( MX_RECORD *record,
 
 			mx_status = mx_array_add_overlay(
 						image_frame->image_data,
+						MXFT_USHORT,
 						2, dimension, element_size,
 						&array_ptr );
 
@@ -4968,6 +4974,7 @@ mx_area_detector_get_roi_frame( MX_RECORD *record,
 
 			mx_status = mx_array_add_overlay(
 						(*roi_frame)->image_data,
+						MXFT_USHORT,
 						2, dimension, element_size,
 						&array_ptr );
 
@@ -6208,7 +6215,8 @@ mx_area_detector_copy_and_convert_frame( MX_IMAGE_FRAME **dest_frame_ptr,
 					MXIF_BYTE_ORDER( src_frame ),
 					bytes_per_pixel,
 					MXIF_HEADER_BYTES( src_frame ),
-					dest_image_size_in_bytes );
+					dest_image_size_in_bytes,
+					src_frame->dictionary );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

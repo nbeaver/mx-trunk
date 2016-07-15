@@ -789,8 +789,8 @@ mxi_handel_open( MX_RECORD *record )
 	size_array[0] = sizeof(MX_RECORD *);
 	size_array[1] = sizeof(MX_RECORD **);
 
-	handel->module_array = mx_allocate_array( 2,
-				dimension_array, size_array );
+	handel->module_array = mx_allocate_array( MXFT_RECORD,
+				2, dimension_array, size_array );
 
 	if ( handel->module_array == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,

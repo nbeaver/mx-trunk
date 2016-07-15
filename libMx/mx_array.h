@@ -61,8 +61,9 @@ extern "C" {
 
 #define MX_ARRAY_OFFSET_MAGIC		(-1)
 #define MX_ARRAY_OFFSET_HEADER_LENGTH	(-2)
-#define MX_ARRAY_OFFSET_NUM_DIMENSIONS	(-3)
-#define MX_ARRAY_OFFSET_DIMENSION_ARRAY	(-4)
+#define MX_ARRAY_OFFSET_MX_DATATYPE	(-3)
+#define MX_ARRAY_OFFSET_NUM_DIMENSIONS	(-4)
+#define MX_ARRAY_OFFSET_DIMENSION_ARRAY	(-5)
 
 /* The data element size array does not appear at a fixed offset in the header.
  * It is beyond the (varying size) dimension array, so its offset depends on
@@ -91,12 +92,14 @@ MX_API size_t mx_get_scalar_element_size( long mx_datatype,
 
 MX_API mx_status_type mx_compute_array_header_length(
 				unsigned long *array_header_length_in_bytes,
+				long mx_datatype,
 				long num_dimensions,
 				long *dimension_array,
 				size_t *data_element_size_array );
 
 MX_API mx_status_type mx_setup_array_header( void *array_pointer,
 					unsigned long array_header_length,
+					long mx_datatype,
 					long num_dimensions,
 					long *dimension_array,
 					size_t *data_element_size_array );
@@ -104,6 +107,7 @@ MX_API mx_status_type mx_setup_array_header( void *array_pointer,
 /*---*/
 
 MX_API mx_status_type mx_array_add_overlay( void *vector_pointer,
+					long mx_datatype,
 					long num_dimensions,
 					long *dimension_array,
 					size_t *data_element_size_array,
@@ -127,17 +131,18 @@ MX_API void *mx_array_get_vector( void *array_pointer );
 
 /*---*/
 
-MX_API void *mx_allocate_array( long num_dimensions,
-					long *dimension_array,
-					size_t *data_element_size_array );
+MX_API void *mx_allocate_array( long mx_datatype,
+				long num_dimensions,
+				long *dimension_array,
+				size_t *data_element_size_array );
 
 MX_API mx_status_type mx_free_array( void *array_pointer );
 
 /*---*/
 
 MX_API void *mx_reallocate_array( void *array_pointer,
-					long num_dimensions,
-					long *dimension_array );
+				long num_dimensions,
+				long *dimension_array );
 
 /*---*/
 

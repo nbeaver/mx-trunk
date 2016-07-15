@@ -461,6 +461,7 @@ motor_setup_linear_scan_parameters(
 		motor_name_dimension_array[1] = MXU_RECORD_NAME_LENGTH + 1;
 
 		motor_name_array = (char **) mx_allocate_array(
+			MXFT_STRING,
 			2, motor_name_dimension_array,
 			name_element_size_array );
 

@@ -225,6 +225,7 @@ mx_get_scalar_element_size( long mx_datatype,
 
 MX_EXPORT mx_status_type
 mx_compute_array_header_length( unsigned long *array_header_length_in_bytes,
+				long mx_datatype,
 				long num_dimensions,
 				long *dimension_array,
 				size_t *data_element_size_array )
@@ -247,12 +248,12 @@ mx_compute_array_header_length( unsigned long *array_header_length_in_bytes,
 	}
 
 	/* The raw array header length contains space for the
-	 * magic, header length, and num_dimensions fields,
-	 * as well as space for both the dimension_array
+	 * magic, header length, MX datatype, and num_dimensions
+	 * fields, as well as space for both the dimension_array
 	 * and the data_element_size_array.
 	 */
 
-	raw_array_header_length_in_words = 3 + 2 * num_dimensions;
+	raw_array_header_length_in_words = 4 + 2 * num_dimensions;
 
 	raw_array_header_length_in_bytes =
 		raw_array_header_length_in_words * MX_ARRAY_HEADER_WORD_SIZE;
@@ -284,6 +285,7 @@ mx_compute_array_header_length( unsigned long *array_header_length_in_bytes,
 MX_EXPORT mx_status_type
 mx_setup_array_header( void *array_pointer,
 			unsigned long array_header_length_in_bytes,
+			long mx_datatype,
 			long num_dimensions,
 			long *dimension_array,
 			size_t *data_element_size_array )
@@ -317,6 +319,7 @@ mx_setup_array_header( void *array_pointer,
 	header[ MX_ARRAY_OFFSET_MAGIC ] = MX_ARRAY_HEADER_MAGIC;
 	header[ MX_ARRAY_OFFSET_HEADER_LENGTH ] =
 		array_header_length_in_bytes / MX_ARRAY_HEADER_WORD_SIZE;
+	header[ MX_ARRAY_OFFSET_MX_DATATYPE ] = mx_datatype;
 	header[ MX_ARRAY_OFFSET_NUM_DIMENSIONS ] = num_dimensions;
 
 	header_ptr = header + MX_ARRAY_OFFSET_DIMENSION_ARRAY;
@@ -345,6 +348,7 @@ mx_setup_array_header( void *array_pointer,
 
 static mx_status_type
 mxp_create_top_level_row( void **top_level_row,
+			long mx_datatype,
 			long num_dimensions,
 			long *dimension_array,
 			size_t *element_size_array )
@@ -377,6 +381,7 @@ mxp_create_top_level_row( void **top_level_row,
 
 	mx_status = mx_compute_array_header_length(
 						&array_header_length_in_bytes,
+						mx_datatype,
 						num_dimensions,
 						dimension_array,
 						element_size_array );
@@ -409,6 +414,7 @@ mxp_create_top_level_row( void **top_level_row,
 					+ array_header_length_in_bytes );
 
 	mx_status = mx_setup_array_header( *top_level_row,
+					mx_datatype,
 					array_header_length_in_bytes,
 					num_dimensions,
 					dimension_array,
@@ -425,6 +431,7 @@ mxp_create_top_level_row( void **top_level_row,
 
 MX_EXPORT mx_status_type
 mx_array_add_overlay( void *vector_pointer,
+			long mx_datatype,
 			long num_dimensions,
 			long *dimension_array,
 			size_t *element_size_array,
@@ -517,6 +524,7 @@ mx_array_add_overlay( void *vector_pointer,
 		} else {
 			mx_status = mxp_create_top_level_row(
 				&(array_of_level_pointers[dim-1]),
+				mx_datatype,
 				num_dimensions,
 				dimension_array,
 				element_size_array );
@@ -837,7 +845,8 @@ mx_array_get_vector( void *array_pointer )
 /*---------------------------------------------------------------------------*/
 
 MX_EXPORT void *
-mx_allocate_array( long num_dimensions,
+mx_allocate_array( long mx_datatype,
+		long num_dimensions,
 		long *dimension_array,
 		size_t *data_element_size_array )
 {
@@ -901,6 +910,7 @@ mx_allocate_array( long num_dimensions,
 		 */
 
 		mx_status = mxp_create_top_level_row( &vector,
+						mx_datatype,
 						num_dimensions,
 						dimension_array,
 						data_element_size_array );
@@ -924,6 +934,7 @@ mx_allocate_array( long num_dimensions,
 	/* Multidimensional arrays use mx_array_add_overlay(). */
 
 	mx_status = mx_array_add_overlay( vector,
+					mx_datatype,
 					num_dimensions,
 					dimension_array,
 					data_element_size_array,
@@ -1032,6 +1043,7 @@ mx_reallocate_array( void *array_pointer,
 
 	void *new_array_pointer;
 	MX_ARRAY_HEADER_WORD_TYPE *header;
+	long mx_datatype;
 	unsigned long header_magic, header_length, computed_header_length;
 	long i, j, num_dimensions;
 	long *old_dimension_array;
@@ -1064,6 +1076,8 @@ mx_reallocate_array( void *array_pointer,
 	}
 
 	header_length = header[MX_ARRAY_OFFSET_HEADER_LENGTH];
+
+	mx_datatype = header[MX_ARRAY_OFFSET_MX_DATATYPE];
 
 	num_dimensions = header[MX_ARRAY_OFFSET_NUM_DIMENSIONS];
 
@@ -1128,7 +1142,8 @@ mx_reallocate_array( void *array_pointer,
 		old_element_size_array[i] = header[ -j ];
 	}
 
-	new_array_pointer = mx_allocate_array( new_num_dimensions,
+	new_array_pointer = mx_allocate_array( mx_datatype,
+						new_num_dimensions,
 						new_dimension_array,
 						old_element_size_array );
 

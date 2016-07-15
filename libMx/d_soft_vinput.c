@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2010, 2012, 2015 Illinois Institute of Technology
+ * Copyright 2006-2010, 2012, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -856,6 +856,7 @@ mxd_soft_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 			element_size[1] = sizeof(uint16_t *);
 
 			mx_status = mx_array_add_overlay( frame->image_data,
+						MXFT_USHORT,
 						2, vinput->framesize,
 						element_size,
 						&array_ptr );

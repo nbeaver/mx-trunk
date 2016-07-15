@@ -307,7 +307,7 @@ motor_prompt_for_input_devices(
 		input_name_dimension_array[0] = scan_num_input_devices;
 		input_name_dimension_array[1] = MXU_RECORD_NAME_LENGTH + 1;
 
-		input_name_array = (char **) mx_allocate_array(
+		input_name_array = (char **) mx_allocate_array( MXFT_STRING,
 		    2, input_name_dimension_array, name_element_size_array );
 
 		if ( input_name_array == (char **) NULL ) {

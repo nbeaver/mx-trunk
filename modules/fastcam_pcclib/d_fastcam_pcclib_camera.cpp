@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2012 Illinois Institute of Technology
+ * Copyright 2012, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -455,7 +455,7 @@ mxd_fastcam_pcclib_camera_arm( MX_VIDEO_INPUT *vinput )
 					vinput->byte_order,
 					vinput->bytes_per_pixel,
 					MXT_IMAGE_HEADER_LENGTH_IN_BYTES,
-					vinput->bytes_per_frame );
+					vinput->bytes_per_frame, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

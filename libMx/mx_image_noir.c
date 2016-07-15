@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2012-2013, 2015 Illinois Institute of Technology
+ * Copyright 2012-2013, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -366,7 +366,7 @@ mx_image_noir_setup( MX_RECORD *mx_imaging_device_record,
 	alias_dimension_array[1] = max_aliases;
 	alias_dimension_array[2] = max_string_length + 1;
 
-	alias_array = mx_allocate_array( 3,
+	alias_array = mx_allocate_array( MXFT_STRING, 3,
 				alias_dimension_array, char_sizeof );
 
 	if ( alias_array == NULL ) {

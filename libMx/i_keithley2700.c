@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2006, 2008, 2010, 2015 Illinois Institute of Technology
+ * Copyright 2004-2006, 2008, 2010, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -377,7 +377,7 @@ mxi_keithley2700_open( MX_RECORD *record )
 	size_array[1] = sizeof(long *);
 
 	keithley2700->channel_type = (long **)
-			mx_allocate_array( 2, dimension_array, size_array );
+		mx_allocate_array( MXFT_LONG, 2, dimension_array, size_array );
 
 	if ( keithley2700->channel_type == (long **) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,

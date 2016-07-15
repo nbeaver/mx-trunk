@@ -194,8 +194,6 @@ mx_create_record( void )
 		new_record->num_record_fields = 0;
 		new_record->record_field_array = NULL;
 		new_record->allocated_by = NULL;
-		new_record->num_groups = 0;
-		new_record->group_array = NULL;
 		new_record->num_parent_records = 0;
 		new_record->parent_record_array = NULL;
 		new_record->num_child_records = 0;
@@ -425,7 +423,6 @@ mx_delete_placeholders( MX_RECORD *record, MX_LIST_HEAD *list_head )
 		{
 			switch( record_field->label_value ) {
 			case MXLV_REC_ALLOCATED_BY:
-			case MXLV_REC_GROUP_ARRAY:
 			case MXLV_REC_PARENT_RECORD_ARRAY:
 			case MXLV_REC_CHILD_RECORD_ARRAY:
 				/* Skip over several fields. */
@@ -1491,7 +1488,6 @@ mx_finish_record_initialization( MX_RECORD *record )
 
 			switch( field->label_value ) {
 			case MXLV_REC_ALLOCATED_BY:
-			case MXLV_REC_GROUP_ARRAY:
 			case MXLV_REC_PARENT_RECORD_ARRAY:
 			case MXLV_REC_CHILD_RECORD_ARRAY:
 				/* Skip over several fields. */

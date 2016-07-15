@@ -862,7 +862,8 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 					ad->byte_order,
 					ad->bytes_per_pixel,
 					ad->header_length,
-					ad->bytes_per_frame );
+					ad->bytes_per_frame,
+					ad->dictionary );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -882,7 +883,8 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 					ad->byte_order,
 					ad->bytes_per_pixel,
 					ad->header_length,
-					ad->bytes_per_frame );
+					ad->bytes_per_frame,
+					ad->dictionary );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -908,6 +910,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 
 	mx_status = mx_array_add_overlay(
 			radicon_taurus->video_frame->image_data,
+			MXFT_USHORT,
 			2, array_dimensions, uint16_sizeof_array,
 			&void_array_ptr );
 
@@ -924,6 +927,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 
 	mx_status = mx_array_add_overlay(
 			ad->image_frame->image_data,
+			MXFT_USHORT,
 			2, array_dimensions, uint16_sizeof_array,
 			&void_array_ptr );
 

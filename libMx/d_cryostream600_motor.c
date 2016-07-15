@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2003, 2005-2006, 2008, 2010, 2013, 2015
+ * Copyright 2002-2003, 2005-2006, 2008, 2010, 2013, 2015-2016
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -177,7 +177,7 @@ mxd_cryostream600_motor_create_record_structures( MX_RECORD *record )
 	dimension_size[1] = sizeof(char *);
 
 	cryostream600_motor->response_token_array = (char **)
-		mx_allocate_array( 2, dimension, dimension_size );
+		mx_allocate_array( MXFT_STRING, 2, dimension, dimension_size );
 
 	if ( cryostream600_motor->response_token_array == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,

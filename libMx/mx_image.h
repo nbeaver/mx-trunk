@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2015 Illinois Institute of Technology
+ * Copyright 2006-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,6 +24,7 @@
 extern "C" {
 #endif
 
+#include "mx_dictionary.h"
 #include "mx_hrt.h"
 
 /*---- Image format definitions ----*/
@@ -184,6 +185,8 @@ typedef struct {
 	size_t image_length;
 	void *image_data;
 
+	MX_DICTIONARY *dictionary;
+
 	void *application_ptr;
 
 } MX_IMAGE_FRAME;
@@ -292,6 +295,10 @@ MX_API mx_status_type mx_image_get_image_format_name_from_type( long type,
 								char *name,
 							size_t max_name_length);
 
+MX_API long mx_image_get_mx_datatype_from_image_format( long image_format );
+
+MX_API long mx_image_get_image_format_from_mx_datatype( long mx_datatype );
+
 /*----*/
 
 MX_API mx_status_type mx_image_alloc( MX_IMAGE_FRAME **frame,
@@ -301,7 +308,8 @@ MX_API mx_status_type mx_image_alloc( MX_IMAGE_FRAME **frame,
 					long byte_order,
 					double bytes_per_pixel,
 					size_t header_length,
-					size_t image_length );
+					size_t image_length,
+					MX_DICTIONARY *dictionary );
 
 MX_API void mx_image_free( MX_IMAGE_FRAME *frame );
 

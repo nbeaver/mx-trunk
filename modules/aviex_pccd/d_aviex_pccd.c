@@ -13,7 +13,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2013, 2015 Illinois Institute of Technology
+ * Copyright 2006-2013, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -873,7 +873,8 @@ mxd_aviex_pccd_descramble_image( MX_AREA_DETECTOR *ad,
 				(long) MXIF_BYTE_ORDER(image_frame),
 				MXIF_BYTES_PER_PIXEL(image_frame),
 				image_frame->header_length,
-				image_frame->image_length );
+				image_frame->image_length,
+				ad->dictionary );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -2172,7 +2173,8 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 					ad->byte_order,
 					ad->bytes_per_pixel,
 					ad->header_length,
-					ad->bytes_per_frame );
+					ad->bytes_per_frame,
+					ad->dictionary );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -3254,7 +3256,8 @@ mxd_aviex_pccd_readout_frame( MX_AREA_DETECTOR *ad )
 				(long) MXIF_BYTE_ORDER(aviex_pccd->raw_frame),
 				MXIF_BYTES_PER_PIXEL(aviex_pccd->raw_frame),
 				aviex_pccd->raw_frame->header_length,
-				aviex_pccd->raw_frame->image_length );
+				aviex_pccd->raw_frame->image_length,
+				ad->dictionary );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

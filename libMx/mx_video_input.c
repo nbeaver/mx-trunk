@@ -1591,7 +1591,7 @@ mx_video_input_get_frame( MX_RECORD *record,
 				vinput->byte_order,
 				vinput->bytes_per_pixel,
 				MXT_IMAGE_HEADER_LENGTH_IN_BYTES,
-				vinput->bytes_per_frame );
+				vinput->bytes_per_frame, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

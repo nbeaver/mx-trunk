@@ -183,8 +183,6 @@ typedef struct mx_record_type {
 	MX_RECORD_FIELD       *record_field_array;
 
 	struct mx_record_type *allocated_by;
-	long                  num_groups;
-	struct mx_record_type **group_array;
 	long                  num_parent_records;
 	struct mx_record_type **parent_record_array;
 	long                  num_child_records;
@@ -244,10 +242,9 @@ typedef struct {
 #define MXLV_REC_PRECISION		101
 #define MXLV_REC_RESYNCHRONIZE		102
 #define MXLV_REC_ALLOCATED_BY		103
-#define MXLV_REC_GROUP_ARRAY		104
-#define MXLV_REC_PARENT_RECORD_ARRAY	105
-#define MXLV_REC_CHILD_RECORD_ARRAY	106
-#define MXLV_REC_NETWORK_TYPE_NAME	107
+#define MXLV_REC_PARENT_RECORD_ARRAY	104
+#define MXLV_REC_CHILD_RECORD_ARRAY	105
+#define MXLV_REC_NETWORK_TYPE_NAME	106
 
 #define MX_RECORD_STANDARD_FIELDS  \
   {-1, -1, "name", MXFT_STRING, NULL, 1, {MXU_RECORD_NAME_LENGTH}, \
@@ -301,16 +298,6 @@ typedef struct {
   {MXLV_REC_ALLOCATED_BY, -1, "allocated_by", MXFT_RECORD, NULL, 0, {0}, \
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, allocated_by), \
 	{0}, NULL, (MXFF_READ_ONLY | MXFF_NO_NEXT_EVENT_TIME_UPDATE) }, \
-  \
-  {-1, -1, "num_groups", MXFT_LONG, NULL, 0, {0}, \
-	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, num_groups),\
-	{0}, NULL, (MXFF_READ_ONLY | MXFF_NO_NEXT_EVENT_TIME_UPDATE) }, \
-  \
-  {MXLV_REC_GROUP_ARRAY, -1, "group_array", MXFT_RECORD, \
-	NULL, 1, {MXU_VARARGS_LENGTH},\
-	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, group_array), \
-	{sizeof(MX_RECORD *)}, NULL, \
-	    (MXFF_VARARGS | MXFF_READ_ONLY | MXFF_NO_NEXT_EVENT_TIME_UPDATE)}, \
   \
   {-1, -1, "num_parent_records", MXFT_LONG, NULL, 0, {0},\
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, num_parent_records),\
@@ -876,13 +863,6 @@ MX_API_PRIVATE mx_status_type  mx_traverse_field_array(
 					long *array_indices,
 					void *array_ptr,
 					long dimension_level );
-
-/* --- */
-
-MX_API mx_status_type  mx_add_record_to_group( MX_RECORD *group,
-						MX_RECORD *current_record );
-MX_API mx_status_type  mx_delete_record_from_group( MX_RECORD *group,
-						MX_RECORD *current_record );
 
 /* --- */
 

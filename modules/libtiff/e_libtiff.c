@@ -135,7 +135,8 @@ mxext_libtiff_read_tiff_file( MX_IMAGE_FRAME **image_frame,
 				image_format,
 				mx_native_byteorder(),
 				bytes_per_pixel, 0,
-				scanline_size * image_length );
+				scanline_size * image_length,
+				NULL );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		_TIFFfree( buffer );

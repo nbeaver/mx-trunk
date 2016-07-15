@@ -282,8 +282,9 @@ mx_dictionary_read_file( MX_DICTIONARY *dictionary,
 	new_key_sizeof[0] = sizeof(char);
 	new_key_sizeof[1] = sizeof(char *);
 
-	new_key_array = mx_allocate_array( 2, new_key_dimension,
-						new_key_sizeof );
+	new_key_array = mx_allocate_array( MXFT_STRING,
+					2, new_key_dimension,
+					new_key_sizeof );
 
 	if ( new_key_array == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -532,7 +533,8 @@ mx_dictionary_read_file( MX_DICTIONARY *dictionary,
 
 		/* Allocate memory for the value array. */
 
-		new_value_array[i] = mx_allocate_array( value_num_dimensions,
+		new_value_array[i] = mx_allocate_array( new_datatype,
+							value_num_dimensions,
 							value_dimension_array,
 							value_sizeof_array );
 

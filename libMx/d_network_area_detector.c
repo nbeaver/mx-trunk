@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2011, 2013-2015 Illinois Institute of Technology
+ * Copyright 2006-2011, 2013-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1313,7 +1313,8 @@ mxd_network_area_detector_transfer_frame( MX_AREA_DETECTOR *ad )
 					ad->byte_order,
 					ad->bytes_per_pixel,
 					ad->header_length,
-					ad->bytes_per_frame );
+					ad->bytes_per_frame,
+					ad->dictionary );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

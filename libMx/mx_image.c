@@ -432,6 +432,82 @@ mx_image_get_file_format_name_from_type( long type,
 	"File format type %ld is not currently supported by MX.", type );
 }
 
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT long
+mx_get_mx_datatype_from_image_format( long image_format )
+{
+	long mx_datatype;
+
+	switch( image_format ) {
+	case MXT_IMAGE_FORMAT_GREY8:
+		mx_datatype = MXFT_UCHAR;
+		break;
+	case MXT_IMAGE_FORMAT_GREY16:
+		mx_datatype = MXFT_USHORT;
+		break;
+	case MXT_IMAGE_FORMAT_GREY32:
+		mx_datatype = MXFT_ULONG;
+		break;
+	case MXT_IMAGE_FORMAT_FLOAT:
+		mx_datatype = MXFT_FLOAT;
+		break;
+	case MXT_IMAGE_FORMAT_DOUBLE:
+		mx_datatype = MXFT_DOUBLE;
+		break;
+	case MXT_IMAGE_FORMAT_RGB:
+	case MXT_IMAGE_FORMAT_JPEG:
+	case MXT_IMAGE_FORMAT_RGB565:
+	case MXT_IMAGE_FORMAT_YUYV:
+	case MXT_IMAGE_FORMAT_INT32:
+		mx_datatype = 0;
+		break;
+	default:
+		mx_datatype = -1;
+		break;
+	}
+
+	return mx_datatype;
+}
+
+MX_EXPORT long
+mx_get_image_format_from_mx_datatype( long mx_datatype )
+{
+	long image_format;
+
+	switch( mx_datatype ) {
+	case MXFT_CHAR:
+	case MXFT_UCHAR:
+		image_format = MXT_IMAGE_FORMAT_GREY8;
+		break;
+	case MXFT_SHORT:
+	case MXFT_USHORT:
+		image_format = MXT_IMAGE_FORMAT_GREY16;
+		break;
+	case MXFT_LONG:
+	case MXFT_ULONG:
+	case MXFT_HEX:
+		image_format = MXT_IMAGE_FORMAT_GREY32;
+		break;
+	case MXFT_BOOL:
+	case MXFT_INT64:
+	case MXFT_UINT64:
+	case MXFT_RECORD:
+	case MXFT_RECORDTYPE:
+	case MXFT_INTERFACE:
+	case MXFT_RECORD_FIELD:
+		image_format = 0;
+		break;
+	default:
+		image_format = -1;
+		break;
+	}
+
+	return image_format;
+}
+
+/*--------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mx_image_format_get_bytes_per_pixel( long image_format,
 				double *bytes_per_pixel )
@@ -494,7 +570,8 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 			long byte_order,
 			double bytes_per_pixel,
 			size_t header_length,
-			size_t image_length )
+			size_t image_length,
+			MX_DICTIONARY *dictionary )
 {
 	static const char fname[] = "mx_image_alloc()";
 
@@ -1737,7 +1814,8 @@ mx_image_copy_frame( MX_IMAGE_FRAME *old_frame,
 				(long) MXIF_BYTE_ORDER(old_frame),
 				MXIF_BYTES_PER_PIXEL(old_frame),
 				old_frame->header_length,
-				old_frame->image_length );
+				old_frame->image_length,
+				old_frame->dictionary );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1839,6 +1917,7 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 	unsigned long orow_start, orow_end, ocol_start, ocol_end;
 	uint16_t opixel_u16;
 	mx_bool_type shrink_width, shrink_height;
+	long original_image_format, original_mx_datatype;
 	mx_status_type mx_status, mx_status2;
 
 	width_shrink_factor = 0;
@@ -1967,7 +2046,8 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 				(long) MXIF_BYTE_ORDER(original_frame),
 				bytes_per_pixel,
 				original_frame->header_length,
-				rebinned_size );
+				rebinned_size,
+				original_frame->dictionary );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -2010,6 +2090,34 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 	memset( (*rebinned_frame)->image_data, 0,
 			(*rebinned_frame)->allocated_image_length );
 
+	/* Get the new MX datatype from the original image format. */
+
+	original_image_format = MXIF_IMAGE_FORMAT(original_frame);
+
+	switch( original_image_format ) {
+	case MXT_IMAGE_FORMAT_GREY8:
+		original_mx_datatype = MXFT_UCHAR;
+		break;
+	case MXT_IMAGE_FORMAT_GREY16:
+		original_mx_datatype = MXFT_USHORT;
+		break;
+	case MXT_IMAGE_FORMAT_GREY32:
+		original_mx_datatype = MXFT_ULONG;
+		break;
+	case MXT_IMAGE_FORMAT_FLOAT:
+		original_mx_datatype = MXFT_FLOAT;
+		break;
+	case MXT_IMAGE_FORMAT_DOUBLE:
+		original_mx_datatype = MXFT_DOUBLE;
+		break;
+	default:
+		/* We do not attempt to guess an MX datatype for other
+		 * image formats like RGB, YUYV, etc.
+		 */
+		original_mx_datatype = 0;
+		break;
+	}
+
 	/* Construct 2-dimensional arrays on top of the 1-dimensional
 	 * image frame buffers to make the math simpler.
 	 */
@@ -2023,15 +2131,17 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 	rebinned_dimensions[0] = (long) rebinned_height;
 	rebinned_dimensions[1] = (long) rebinned_width;
 
-	mx_status = mx_array_add_overlay( original_frame->image_data, 2,
-					original_dimensions, element_size,
+	mx_status = mx_array_add_overlay( original_frame->image_data,
+					original_mx_datatype,
+					2, original_dimensions, element_size,
 					&original_array );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_array_add_overlay( (*rebinned_frame)->image_data, 2,
-					rebinned_dimensions, element_size,
+	mx_status = mx_array_add_overlay( (*rebinned_frame)->image_data,
+					original_mx_datatype,
+					2, rebinned_dimensions, element_size,
 					&rebinned_array );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -2580,6 +2690,7 @@ mx_image_display_ascii( FILE *output,
 	element_size[1] = sizeof(uint16_t *);
 
 	mx_status = mx_array_add_overlay( image_data,
+				MXFT_USHORT,
 				2, dimension, element_size,
 				&array_pointer );
 
@@ -3346,7 +3457,8 @@ mx_image_read_pnm_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 					MX_DATAFMT_BIG_ENDIAN,
 					(double) bytes_per_pixel,
 					0,
-					bytes_per_frame );
+					bytes_per_frame,
+					NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -3742,7 +3854,8 @@ mx_image_read_raw_file( MX_IMAGE_FRAME **frame,
 					datafile_byteorder,
 					(double) bytes_per_pixel,
 					0,
-					bytes_per_frame );
+					bytes_per_frame,
+					NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -4654,7 +4767,8 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 					datafile_byteorder,
 					(double) bytes_per_pixel,
 					0,
-					bytes_per_frame );
+					bytes_per_frame,
+					NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -5431,7 +5545,8 @@ mx_image_read_marccd_file( MX_IMAGE_FRAME **frame, char *marccd_filename )
 				MX_DATAFMT_LITTLE_ENDIAN,
 				2,
 				MXT_IMAGE_HEADER_LENGTH_IN_BYTES,
-				image_size_in_bytes );
+				image_size_in_bytes,
+				NULL );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		fclose( marccd_file );
@@ -5792,7 +5907,8 @@ mx_image_read_edf_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 					datafile_byteorder,
 					(double) bytes_per_pixel,
 					0,
-					bytes_per_frame );
+					bytes_per_frame,
+					NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

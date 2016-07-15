@@ -395,7 +395,8 @@ mxs_mcs_quick_scan_finish_record_initialization( MX_RECORD *record )
 		element_size[1] = sizeof(double *);
 
 		mcs_quick_scan->window = (double **)
-			mx_allocate_array( 2, dimension, element_size );
+			mx_allocate_array( MXFT_DOUBLE,
+				2, dimension, element_size );
 
 		if ( mcs_quick_scan->window == (double **) NULL ) {
 			mx_free( mcs_quick_scan->real_start_position );
@@ -2846,7 +2847,7 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	element_size[1] = sizeof(double *);
 
 	mcs_quick_scan->motor_position_array =
-		mx_allocate_array( 2, dimension, element_size );
+		mx_allocate_array( MXFT_DOUBLE, 2, dimension, element_size );
 
 	if ( mcs_quick_scan->motor_position_array == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -2873,7 +2874,8 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 		element_size[1] = sizeof(double *);
 
 		scan->datafile.x_position_array = (double **)
-			mx_allocate_array( 2, dimension, element_size );
+			mx_allocate_array( MXFT_DOUBLE,
+				2, dimension, element_size );
 
 		if ( scan->datafile.x_position_array == (double **) NULL ) {
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -2899,7 +2901,8 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 		element_size[1] = sizeof(double *);
 
 		scan->plot.x_position_array = (double **)
-			mx_allocate_array( 2, dimension, element_size );
+			mx_allocate_array( MXFT_DOUBLE,
+				2, dimension, element_size );
 
 		if ( scan->plot.x_position_array == (double **) NULL ) {
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
