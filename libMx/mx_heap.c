@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2005, 2007-2008, 2010, 2012, 2015
+ * Copyright 2004-2005, 2007-2008, 2010, 2012, 2015-2016
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -147,19 +147,19 @@ mx_heap_check( unsigned long heap_flags )
 	static const char fname[] = "mx_heap_check()";
 
 	DWORD number_of_heaps;
+	DWORD maximum_number_of_heaps;
+	HANDLE heap_handle_array[100];
 	HANDLE heap_handle;
 	BOOL validate_status;
 	int heap_ok;
 	unsigned long i;
 
-#if 1
-	/* This implementation tries to avoid calling any heap allocation
-	 * functions.  This means that we cannot call sprintf() and friends
-	 * in the error messages we generate.
+	/* This implementation does not call GetProcessHeaps() in a loop
+	 * to resize heap_handle_array to the right size, since this will
+	 * result in an infinite loop if mx_heap_check() is called from
+	 * within any of the mx_win32_... allocation functions.  So we
+	 * use a fixed array instead which is probably large enough.
 	 */
-
-	HANDLE heap_handle_array[100];
-	DWORD maximum_number_of_heaps;
 
 	static const char getprocessheaps_error[] =
 		"ERROR: A call to GetProcessHeaps() failed.\n";
@@ -183,72 +183,6 @@ mx_heap_check( unsigned long heap_flags )
 		write(2, toomanyheaps_error, sizeof(toomanyheaps_error));
 		return FALSE;
 	}
-#else
-	/* ICK!  A function for checking the integrity of the heap should not
-	 * be using the heap itself to allocate a heap_handle_array!  Storing
-	 * the heap handles in a fixed size array is the lesser of two evils
-	 * in this case.
-	 */
-
-	HANDLE *heap_handle_array;
-
-	DWORD new_number_of_heaps;
-	unsigned long heap_handle_attempts;
-
-	heap_handle_attempts = 100;
-
-	number_of_heaps = 0;
-	heap_handle_array = NULL;
-
-	for ( i = 0; i < heap_handle_attempts; i++ ) {
-		new_number_of_heaps = GetProcessHeaps( number_of_heaps,
-						heap_handle_array );
-
-		if ( new_number_of_heaps <= number_of_heaps ) {
-			number_of_heaps = new_number_of_heaps;
-
-			break;		/* Exit the for() loop. */
-		}
-
-		if ( heap_handle_array == NULL ) {
-			if ( new_number_of_heaps <= 0 ) {
-				continue;	/* Loop again */
-			}
-
-			heap_handle_array = (HANDLE *) malloc(
-				new_number_of_heaps * sizeof(HANDLE));
-		} else {
-			if ( new_number_of_heaps <= 0 ) {
-				mx_free( heap_handle_array );
-
-				continue;	/* Loop again */
-			}
-
-			heap_handle_array = (HANDLE *) realloc(
-				heap_handle_array,
-				new_number_of_heaps * sizeof(HANDLE));
-		}
-
-		if ( heap_handle_array == NULL ) {
-			(void) mx_error( MXE_OUT_OF_MEMORY, fname,
-			"Ran out of memory trying to allocate an "
-			"array of %lu heap handles.",
-				new_number_of_heaps );
-
-			return FALSE;
-		}
-
-		number_of_heaps = new_number_of_heaps;
-	}
-
-	if ( i >= heap_handle_attempts ) {
-		(void) mx_error( MXE_UNKNOWN_ERROR, fname,
-		"Unable to get a complete array of process heap "
-		"handles after %lu attempts.", heap_handle_attempts );
-
-		return FALSE;
-	}
-#endif
 
 	heap_ok = TRUE;
 
