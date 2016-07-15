@@ -435,7 +435,7 @@ mx_image_get_file_format_name_from_type( long type,
 /*--------------------------------------------------------------------------*/
 
 MX_EXPORT long
-mx_get_mx_datatype_from_image_format( long image_format )
+mx_image_get_mx_datatype_from_image_format( long image_format )
 {
 	long mx_datatype;
 
@@ -471,7 +471,7 @@ mx_get_mx_datatype_from_image_format( long image_format )
 }
 
 MX_EXPORT long
-mx_get_image_format_from_mx_datatype( long mx_datatype )
+mx_image_get_image_format_from_mx_datatype( long mx_datatype )
 {
 	long image_format;
 
