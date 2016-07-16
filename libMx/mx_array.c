@@ -641,25 +641,36 @@ mx_array_free_overlay( void *array_pointer )
 	MX_ARRAY_HEADER_WORD_TYPE *header, *raw_array_pointer;
 	long num_header_words, num_dimensions;
 	long dim;
+	uint32_t header_magic;
 
 	if ( array_pointer == (void *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The array_pointer argument passed was NULL." );
 	}
 
-	/* See if the top level array pointer has an array header.
-	 *
-	 * This is a potentially hazardous operation that may result in
-	 * a segmentation fault if it does _not_ have an array header.
-	 */
+	/* Verify that this is an MX array overlay. */
 
 	header = (MX_ARRAY_HEADER_WORD_TYPE *) array_pointer;
 
-	/* First look for the header magic number. */
+	header_magic = header[MX_ARRAY_OFFSET_MAGIC];
 
-	if ( header[MX_ARRAY_OFFSET_MAGIC] != MX_ARRAY_HEADER_MAGIC ) {
+	switch( header_magic ) {
+	case MX_ARRAY_HEADER_MAGIC:
+		/* Yes, this is an MX array overlay. */
+		break;
+	case MX_ARRAY_HEADER_BAD_MAGIC:
+		mx_error( MXE_NOT_AVAILABLE, fname,
+		"MX array overlay %p has already been freed.  "
+		"This is a fatal error, so we are intentionally crashing now.",
+			array_pointer );
+
+		mx_sleep(2);
+
+		raise( SIGSEGV );
+		break;
+	default:
 		mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"The array_pointer %p is not an array that was created "
+		"The array_pointer %p is not an array overlay that was created "
 		"using mx_array_add_offset().  "
 		"This is a fatal error, so we are intentionally crashing now.",
 			array_pointer );
@@ -667,6 +678,7 @@ mx_array_free_overlay( void *array_pointer )
 		mx_sleep(2);
 
 		raise( SIGSEGV );
+		break;
 	}
 
 	/* Get the number of 32-bit words in the header and the number
@@ -683,6 +695,11 @@ mx_array_free_overlay( void *array_pointer )
 			array_pointer, num_dimensions );
 	}
 
+	/* Invalidate the array header, so that we can tell it was freed. */
+
+	header[MX_ARRAY_OFFSET_MAGIC] = MX_ARRAY_HEADER_BAD_MAGIC;
+	header[MX_ARRAY_OFFSET_HEADER_LENGTH] = 0;
+
 	/* The top level array of pointers must be handled specially,
 	 * since the array_pointer passed to us does _not_ point to
 	 * the start of the array that was initially allocated using
@@ -690,7 +707,8 @@ mx_array_free_overlay( void *array_pointer )
 	 * beginning of the header.
 	 */
 
-	raw_array_pointer = ((MX_ARRAY_HEADER_WORD_TYPE *) array_pointer) - num_header_words;
+	raw_array_pointer = ((MX_ARRAY_HEADER_WORD_TYPE *) array_pointer)
+							- num_header_words;
 
 	if ( num_dimensions == 2 ) {
 		mx_free( raw_array_pointer );
@@ -956,6 +974,7 @@ mx_free_array( void *array_pointer )
 	MX_ARRAY_HEADER_WORD_TYPE *header, *raw_vector;
 	size_t num_dimensions;
 	long num_header_words;
+	uint32_t header_magic;
 	void *vector;
 	mx_status_type mx_status;
 
@@ -965,13 +984,27 @@ mx_free_array( void *array_pointer )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	/* If this array was created by mx_allocate_array() or friends,
-	 * we can get the number of dimensions from the array header.
-	 */
+	/* Verify that this is an MX array. */
 
 	header = (MX_ARRAY_HEADER_WORD_TYPE *) array_pointer;
 
-	if ( header[MX_ARRAY_OFFSET_MAGIC] != MX_ARRAY_HEADER_MAGIC ) {
+	header_magic = header[MX_ARRAY_OFFSET_MAGIC];
+
+	switch( header_magic ) {
+	case MX_ARRAY_HEADER_MAGIC:
+		/* Yes, this is an MX array. */
+		break;
+	case MX_ARRAY_HEADER_BAD_MAGIC:
+		mx_error( MXE_NOT_AVAILABLE, fname,
+		"MX array %p has already been freed.  "
+		"This is a fatal error, so we are intentionally crashing now.",
+			array_pointer );
+
+		mx_sleep(2);
+
+		raise( SIGSEGV );
+		break;
+	default:
 		mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"The array_pointer %p is not an array that was created "
 		"using mx_array_add_offset().  "
@@ -981,7 +1014,10 @@ mx_free_array( void *array_pointer )
 		mx_sleep(2);
 
 		raise( SIGSEGV );
+		break;
 	}
+
+	/* We get the number of dimensions from the array header. */
 
 	num_dimensions = header[MX_ARRAY_OFFSET_NUM_DIMENSIONS];
 
@@ -1003,13 +1039,20 @@ mx_free_array( void *array_pointer )
 		return mx_status;
 	}
 
-	/* For 1-dimensional arrays, we need to find the start of the
-	 * array header.
-	 */
+	/*--- We handle 1-dimensional arrays directly ---*/
+
+	/* Find the start of the array header. */
 
 	num_header_words = header[MX_ARRAY_OFFSET_HEADER_LENGTH];
 
 	raw_vector = ((MX_ARRAY_HEADER_WORD_TYPE *) vector) - num_header_words;
+
+	/* Invalidate the array header, so that we can tell it was freed. */
+
+	header[MX_ARRAY_OFFSET_MAGIC] = MX_ARRAY_HEADER_BAD_MAGIC;
+	header[MX_ARRAY_OFFSET_HEADER_LENGTH] = 0;
+
+	/* Now free the the array. */
 
 	mx_free( raw_vector );
 
@@ -1177,7 +1220,7 @@ MX_EXPORT void
 mx_show_array_info( void *array_pointer )
 {
 	MX_ARRAY_HEADER_WORD_TYPE *header;
-	unsigned long header_magic, num_header_words;
+	unsigned long header_magic, num_header_words, mx_datatype;
 	unsigned long i, num_dimensions;
 
 	mx_info( "MX array info for %p:", array_pointer );
@@ -1191,17 +1234,31 @@ mx_show_array_info( void *array_pointer )
 
 	header_magic = header[MX_ARRAY_OFFSET_MAGIC];
 
-	if ( header_magic != MX_ARRAY_HEADER_MAGIC ) {
+	switch( header_magic ) {
+	case MX_ARRAY_HEADER_MAGIC:
+		break;
+	case MX_ARRAY_HEADER_BAD_MAGIC:
+		mx_info("Header magic for this array is %#lx, which indicates "
+			"that this MX array has already been freed.",
+				header_magic );
+		return;
+		break;
+	default:
 		mx_info("Header magic for this array is %#lx, which is not "
 			"the correct magic number for an MX array.",
 				header_magic );
-
 		return;
+		break;
 	}
 
 	num_header_words = header[MX_ARRAY_OFFSET_HEADER_LENGTH];
 
 	mx_info("  Num header words = %lu", num_header_words);
+
+	mx_datatype = header[MX_ARRAY_OFFSET_MX_DATATYPE];
+
+	mx_info("  MX datatype = '%s'",
+		mx_get_datatype_name_from_datatype( mx_datatype ) );
 
 	num_dimensions = header[MX_ARRAY_OFFSET_NUM_DIMENSIONS];
 

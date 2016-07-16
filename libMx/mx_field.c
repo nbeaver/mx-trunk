@@ -124,6 +124,77 @@ mx_get_datatype_from_datatype_name( const char *datatype_name )
 
 /*=====================================================================*/
 
+MX_EXPORT const char *
+mx_get_datatype_name_from_datatype( long datatype )
+{
+	static char datatype_name[80];
+
+	switch( datatype ) {
+	case 0:
+		strlcpy( datatype_name, "none", sizeof(datatype_name) );
+		break;
+	case MXFT_STRING:
+		strlcpy( datatype_name, "string", sizeof(datatype_name) );
+		break;
+	case MXFT_CHAR:
+		strlcpy( datatype_name, "char", sizeof(datatype_name) );
+		break;
+	case MXFT_UCHAR:
+		strlcpy( datatype_name, "uchar", sizeof(datatype_name) );
+		break;
+	case MXFT_SHORT:
+		strlcpy( datatype_name, "short", sizeof(datatype_name) );
+		break;
+	case MXFT_USHORT:
+		strlcpy( datatype_name, "ushort", sizeof(datatype_name) );
+		break;
+	case MXFT_BOOL:
+		strlcpy( datatype_name, "bool", sizeof(datatype_name) );
+		break;
+	case MXFT_LONG:
+		strlcpy( datatype_name, "long", sizeof(datatype_name) );
+		break;
+	case MXFT_ULONG:
+		strlcpy( datatype_name, "ulong", sizeof(datatype_name) );
+		break;
+	case MXFT_FLOAT:
+		strlcpy( datatype_name, "float", sizeof(datatype_name) );
+		break;
+	case MXFT_DOUBLE:
+		strlcpy( datatype_name, "double", sizeof(datatype_name) );
+		break;
+	case MXFT_HEX:
+		strlcpy( datatype_name, "hex", sizeof(datatype_name) );
+		break;
+	case MXFT_INT64:
+		strlcpy( datatype_name, "int64", sizeof(datatype_name) );
+		break;
+	case MXFT_UINT64:
+		strlcpy( datatype_name, "uint64", sizeof(datatype_name) );
+		break;
+	case MXFT_RECORD:
+		strlcpy( datatype_name, "record", sizeof(datatype_name) );
+		break;
+	case MXFT_RECORDTYPE:
+		strlcpy( datatype_name, "recordtype", sizeof(datatype_name) );
+		break;
+	case MXFT_INTERFACE:
+		strlcpy( datatype_name, "interface", sizeof(datatype_name) );
+		break;
+	case MXFT_RECORD_FIELD:
+		strlcpy( datatype_name, "record_field", sizeof(datatype_name) );
+		break;
+	default:
+		snprintf( datatype_name, sizeof(datatype_name),
+			"unknown (%ld)", datatype );
+		break;
+	}
+
+	return (const char *) datatype_name;
+}
+
+/*=====================================================================*/
+
 MX_EXPORT mx_status_type
 mx_get_field_by_label_value( MX_RECORD *record,
 				long label_value,

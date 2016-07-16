@@ -59,6 +59,8 @@ extern "C" {
 
 #define MX_ARRAY_HEADER_MAGIC		0xd6d8ebed
 
+#define MX_ARRAY_HEADER_BAD_MAGIC	0xdeadbeef
+
 #define MX_ARRAY_OFFSET_MAGIC		(-1)
 #define MX_ARRAY_OFFSET_HEADER_LENGTH	(-2)
 #define MX_ARRAY_OFFSET_MX_DATATYPE	(-3)
