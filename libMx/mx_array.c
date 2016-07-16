@@ -1234,6 +1234,8 @@ mx_show_array_info( void *array_pointer )
 
 	header_magic = header[MX_ARRAY_OFFSET_MAGIC];
 
+	mx_info("  Header magic = %#lx", header_magic);
+
 	switch( header_magic ) {
 	case MX_ARRAY_HEADER_MAGIC:
 		break;
