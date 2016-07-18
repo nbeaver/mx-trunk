@@ -30,6 +30,14 @@ LIBTIFF_INCLUDES =
 
 LIBTIFF_LIBRARY = -ltiff
 
+#----
+
+else ifeq ($(MX_ARCH),linux-clang)
+
+LIBTIFF_INCLUDES = 
+
+LIBTIFF_LIBRARY = -ltiff
+
 else
 
 error not tested yet.
@@ -70,6 +78,17 @@ ifeq ($(MX_ARCH),linux)
 
 libtiff.mxo: $(LIBTIFF_OBJS)
 	$(CC) -shared -rdynamic -Wl,-soname,libtiff.mxo \
+		-o libtiff.mxo $(LIBTIFF_OBJS) \
+		../../libMx/libMx.so $(LIBTIFF_LIBRARY)
+
+endif
+
+#--------------------------------------------------------------------------
+
+ifeq ($(MX_ARCH),linux-clang)
+
+libtiff.mxo: $(LIBTIFF_OBJS)
+	$(CC) $(SANITIZE) -shared -rdynamic -Wl,-soname,libtiff.mxo \
 		-o libtiff.mxo $(LIBTIFF_OBJS) \
 		../../libMx/libMx.so $(LIBTIFF_LIBRARY)
 

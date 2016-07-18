@@ -39,10 +39,11 @@ endif
 
 # Linux
 
-ifeq ($(MX_ARCH),linux)
+ifeq ($(use_linux),TRUE)
 
 epics_aps.mxo: $(EPICS_APS_OBJS)
-	gcc -shared -rdynamic -Wl,-soname,epics_aps.mxo -o epics_aps.mxo \
+	$(CC) $(SANITIZE) -shared -rdynamic -Wl,-soname,epics_aps.mxo \
+		-o epics_aps.mxo \
 		$(EPICS_APS_OBJS) -L../../libMx -lMx ../epics/epics.mxo \
 		$(EPICS_LIB_DIRS) $(EPICS_LIBRARIES)
 endif

@@ -41,6 +41,12 @@ ifeq ($(MX_ARCH),linux)
 		-o xineos_gige.mxo $(XINEOS_GIGE_OBJS)
 endif
 
+ifeq ($(MX_ARCH),linux-clang)
+    xineos_gige.mxo: $(XINEOS_GIGE_OBJS)
+	$(CC) $(SANITIZE) -shared -rdynamic -Wl,-soname,xineos_gige.mxo \
+		-o xineos_gige.mxo $(XINEOS_GIGE_OBJS)
+endif
+
 xineos_gige.$(OBJ): xineos_gige.c d_xineos_gige.h
 	$(COMPILE) $(CFLAGS) xineos_gige.c
 

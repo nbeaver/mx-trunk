@@ -52,6 +52,18 @@ endif
 
 #--------------------------------------------------------------------------
 
+# Linux (with Clang)
+
+ifeq ($(MX_ARCH),linux-clang)
+
+epics.mxo: $(EPICS_OBJS)
+	clang $(SANITIZE) -shared -rdynamic -Wl,-soname,epics.mxo -o epics.mxo \
+		$(EPICS_OBJS) ../../libMx/libMx.so \
+		$(EPICS_LIB_DIRS) $(EPICS_LIBRARIES)
+endif
+
+#--------------------------------------------------------------------------
+
 # MacOS X
 
 ifeq ($(MX_ARCH),macosx)

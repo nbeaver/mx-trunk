@@ -904,7 +904,7 @@ mxd_epics_mca_read( MX_MCA *mca )
 	} else
 	if ( use_malloc == TRUE ) {
 		int32_t *int32_channel_array;
-		unsigned long i;
+		long i;
 
 		int32_channel_array = malloc( num_channels * sizeof(int32_t) );
 
@@ -932,7 +932,7 @@ mxd_epics_mca_read( MX_MCA *mca )
 		/* 64-bit longs without using malloc(). */
 
 		int32_t *int32_channel_array;
-		unsigned long i;
+		long i;
 
 		mx_status = mx_caget( &(epics_mca->val_pv),
 			MX_CA_LONG, (int) num_channels, mca->channel_array );

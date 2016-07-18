@@ -1,7 +1,7 @@
 /*
  * Name:    mx_array.h
  *
- * Purpose: Header for MX array handling functions.
+ * Purpose: Header for MX array handling functions and address alignment macros.
  *
  * Author:  William Lavender
  *
@@ -50,6 +50,24 @@ extern "C" {
 
 #else
 #  error This platform does not yet implement the MX_MAXIMUM_ALIGNMENT macro.
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+/* MX_ALIGNED() can be used to define variables or function return values.
+ * You cannot directly use it for function arguments.  Instead, you must
+ * use a typedef that defines a new datatype that includes the alignment
+ * and then specify the typedeffed type in the function argument signature.
+ */
+
+#if defined(__GNUC__)
+#  define MX_ALIGNED(x,a)	( (x) __attribute__((__aligned__(a))) )
+
+#elif defined(_MSC_VER)
+#  define MX_ALIGNED(x,a)	( __declspec(align(a)) (x) )
+
+#else
+#  error This platform does not yet implement the MX_ALIGNED macro.
 #endif
 
 /*---------------------------------------------------------------------------*/
