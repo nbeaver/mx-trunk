@@ -16,8 +16,8 @@
 
 # Turn on Address Sanitizer
 #
-SANITIZE = -fsanitize=address -fno-omit-frame-pointer
-CFLAGS += $(SANITIZE)
+#SANITIZE = -fsanitize=address -fno-omit-frame-pointer
+#CFLAGS += $(SANITIZE)
 
 INCLUDES	= $(MX_INCLUDES)
 
