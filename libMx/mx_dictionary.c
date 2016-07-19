@@ -116,7 +116,8 @@ mx_dictionary_show_dictionary( MX_DICTIONARY *dictionary )
 {
 	static const char fname[] = "mx_dictionary_show_dictionary()";
 
-	long i, num_allocated_keys;
+	long i, j, num_allocated_keys;
+	long mx_datatype, num_dimensions, array_index;
 	char **key_array;
 	void **value_array;
 	MX_ARRAY_HEADER_WORD_TYPE *header;
@@ -128,7 +129,7 @@ mx_dictionary_show_dictionary( MX_DICTIONARY *dictionary )
 
 	num_allocated_keys = dictionary->num_allocated_keys;
 
-	mx_info( "Dictionary: '%s', num_allocated_keys = %ld",
+	fprintf( stderr, "Dictionary: '%s', num_allocated_keys = %ld\n",
 		dictionary->name, num_allocated_keys );
 
 	key_array = dictionary->key_array;
@@ -149,14 +150,35 @@ mx_dictionary_show_dictionary( MX_DICTIONARY *dictionary )
 
 	for ( i = 0; i < num_allocated_keys; i++ ) {
 		if ( value_array[i] == NULL ) {
-			mx_info( "key[%ld] = '%s', value = NULL",
+			fprintf( stderr, "key[%ld] = '%s', value = NULL\n",
 				i, key_array[i] );
 		} else {
 			header = (MX_ARRAY_HEADER_WORD_TYPE *) value_array[i];
 
-			mx_info( "key[%ld] = '%s', num_dimensions = %lu",
+			mx_datatype = header[MX_ARRAY_OFFSET_MX_DATATYPE];
+			num_dimensions = header[MX_ARRAY_OFFSET_NUM_DIMENSIONS];
+
+			fprintf( stderr,
+	    "key[%ld] = '%s', mx_datatype = '%s' (%ld), num_dimensions = %ld",
 			    i, key_array[i],
-		    (unsigned long) header[MX_ARRAY_OFFSET_NUM_DIMENSIONS] );
+			    mx_get_datatype_name_from_datatype( mx_datatype ),
+		    	    mx_datatype,
+			    num_dimensions );
+
+			if ( num_dimensions > 0 ) {
+			    array_index = MX_ARRAY_OFFSET_NUM_DIMENSIONS - 1;
+
+			    fprintf( stderr, ", array = (%ld",
+				header[array_index] );
+
+			    for ( j = 1; j < num_dimensions; j++ ) {
+				array_index--;
+
+				fprintf( stderr, ",%ld", header[array_index] );
+			    }
+			    fprintf( stderr, ")" );
+			}
+			fprintf( stderr, "\n" );
 		}
 	}
 
