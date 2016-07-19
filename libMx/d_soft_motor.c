@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2004, 2006-2007, 2009, 2011, 2013, 2015
+ * Copyright 1999, 2001-2004, 2006-2007, 2009, 2011, 2013, 2015-2016
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -131,14 +131,14 @@ mxd_soft_motor_create_record_structures( MX_RECORD *record )
 
 	/* Allocate memory for the necessary structures. */
 
-	motor = (MX_MOTOR *) malloc( sizeof(MX_MOTOR) );
+	motor = (MX_MOTOR *) calloc( 1, sizeof(MX_MOTOR) );
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Can't allocate memory for MX_MOTOR structure." );
 	}
 
-	soft_motor = (MX_SOFT_MOTOR *) malloc( sizeof(MX_SOFT_MOTOR) );
+	soft_motor = (MX_SOFT_MOTOR *) calloc( 1, sizeof(MX_SOFT_MOTOR) );
 
 	if ( soft_motor == (MX_SOFT_MOTOR *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,

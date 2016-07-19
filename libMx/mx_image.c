@@ -4236,6 +4236,8 @@ mxp_image_parse_smv_date( char *buffer, struct timespec *timestamp )
 		"The struct timespec pointer passed was NULL." );
 	}
 
+	memset( &tm, 0, sizeof(tm) );
+
 	/* Skip over the variable name, if present. */
 
 	ptr = strchr( buffer, '=' );

@@ -414,8 +414,8 @@ mxp_create_top_level_row( void **top_level_row,
 					+ array_header_length_in_bytes );
 
 	mx_status = mx_setup_array_header( *top_level_row,
-					mx_datatype,
 					array_header_length_in_bytes,
+					mx_datatype,
 					num_dimensions,
 					dimension_array,
 					element_size_array );

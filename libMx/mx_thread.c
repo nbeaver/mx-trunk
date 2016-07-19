@@ -1264,6 +1264,8 @@ typedef struct {
 
 static pthread_key_t mx_current_thread_key;
 
+static MX_THREAD *mxp_main_thread = NULL;
+
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 
 static mx_status_type
@@ -1489,6 +1491,10 @@ mx_thread_initialize( void )
 	 */
 
 	mx_threads_are_initialized = TRUE;
+
+	/* Save a pointer to the main thread as well. */
+
+	mxp_main_thread = thread;
 
 	/* Save a thread-specific pointer to the MX_THREAD structure that
 	 * can be returned by mx_get_current_thread().

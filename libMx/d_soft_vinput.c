@@ -114,7 +114,7 @@ mxd_soft_vinput_create_record_structures( MX_RECORD *record )
 	MX_VIDEO_INPUT *vinput;
 	MX_SOFT_VINPUT *soft_vinput = NULL;
 
-	vinput = (MX_VIDEO_INPUT *) malloc( sizeof(MX_VIDEO_INPUT) );
+	vinput = (MX_VIDEO_INPUT *) calloc( 1, sizeof(MX_VIDEO_INPUT) );
 
 	if ( vinput == (MX_VIDEO_INPUT *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -122,7 +122,7 @@ mxd_soft_vinput_create_record_structures( MX_RECORD *record )
 	}
 
 	soft_vinput = (MX_SOFT_VINPUT *)
-				malloc( sizeof(MX_SOFT_VINPUT) );
+				calloc( 1, sizeof(MX_SOFT_VINPUT) );
 
 	if ( soft_vinput == (MX_SOFT_VINPUT *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,

@@ -6753,6 +6753,8 @@ mx_area_detector_initialize_datafile_number( MX_RECORD *record )
 			} else {
 				saved_errno = errno;
 
+				closedir( dir );
+
 				return mx_error( MXE_FILE_IO_ERROR, fname,
 				"An error occurred while examining the "
 				"files in the datafile directory '%s' for "
@@ -6768,6 +6770,8 @@ mx_area_detector_initialize_datafile_number( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: ad->datafile_number = %lu",
 		fname, ad->datafile_number));
 #endif
+
+	closedir( dir );
 
 	return MX_SUCCESSFUL_RESULT;
 }
