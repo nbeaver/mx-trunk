@@ -169,12 +169,13 @@ mx_dictionary_show_dictionary( MX_DICTIONARY *dictionary )
 			    array_index = MX_ARRAY_OFFSET_NUM_DIMENSIONS - 1;
 
 			    fprintf( stderr, ", array = (%ld",
-				header[array_index] );
+				(long) header[array_index] );
 
 			    for ( j = 1; j < num_dimensions; j++ ) {
 				array_index--;
 
-				fprintf( stderr, ",%ld", header[array_index] );
+				fprintf( stderr, ",%ld",
+					(long) header[array_index] );
 			    }
 			    fprintf( stderr, ")" );
 			}
