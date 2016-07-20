@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2009-2011, 2013, 2015 Illinois Institute of Technology
+ * Copyright 2009-2011, 2013, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -757,7 +757,7 @@ mxd_mlfsom_readout_frame( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s: Reading SMV file '%s'.", fname, smv_filename));
 #endif
 
-	mx_status = mx_image_read_file( &(ad->image_frame),
+	mx_status = mx_image_read_file( &(ad->image_frame), NULL,
 					ad->datafile_load_format,
 					smv_filename );
 

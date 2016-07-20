@@ -2992,6 +2992,7 @@ mx_image_get_filesize( MX_IMAGE_FRAME *frame,
 
 MX_EXPORT mx_status_type
 mx_image_read_file( MX_IMAGE_FRAME **frame_ptr,
+			MX_DICTIONARY *dictionary,
 			unsigned long datafile_type,
 			char *datafile_name )
 {
@@ -3017,6 +3018,7 @@ mx_image_read_file( MX_IMAGE_FRAME **frame_ptr,
 		break;
 	case MXT_IMAGE_FILE_TIFF:
 		mx_status = mx_image_read_tiff_file( frame_ptr,
+						dictionary,
 						datafile_name );
 		break;
 	case MXT_IMAGE_FILE_SMV:
@@ -3044,6 +3046,7 @@ mx_image_read_file( MX_IMAGE_FRAME **frame_ptr,
 
 MX_EXPORT mx_status_type
 mx_image_write_file( MX_IMAGE_FRAME *frame,
+			MX_DICTIONARY *dictionary,
 			unsigned long datafile_type,
 			char *datafile_name )
 {
@@ -3090,7 +3093,9 @@ mx_image_write_file( MX_IMAGE_FRAME *frame,
 						datafile_name );
 		break;
 	case MXT_IMAGE_FILE_TIFF:
-		mx_status = mx_image_write_tiff_file( frame, datafile_name );
+		mx_status = mx_image_write_tiff_file( frame,
+							dictionary,
+							datafile_name );
 		break;
 	case MXT_IMAGE_FILE_SMV:
 	case MXT_IMAGE_FILE_NOIR:
@@ -4169,7 +4174,9 @@ mxp_image_test_for_libtiff( void )
 /*----*/
 
 MX_EXPORT mx_status_type
-mx_image_read_tiff_file( MX_IMAGE_FRAME **frame, char *datafile_name )
+mx_image_read_tiff_file( MX_IMAGE_FRAME **frame,
+			MX_DICTIONARY *dictionary,
+			char *datafile_name )
 {
 	static const char fname[] = "mx_image_read_tiff_file()";
 
@@ -4189,7 +4196,9 @@ mx_image_read_tiff_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 }
 
 MX_EXPORT mx_status_type
-mx_image_write_tiff_file( MX_IMAGE_FRAME *frame, char *datafile_name )
+mx_image_write_tiff_file( MX_IMAGE_FRAME *frame,
+			MX_DICTIONARY *dictionary,
+			char *datafile_name )
 {
 	static const char fname[] = "mx_image_write_tiff_file()";
 

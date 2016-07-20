@@ -448,7 +448,7 @@ mx_area_detector_default_save_averaged_correction_frame( MX_AREA_DETECTOR *ad )
 			frame_type_string, ad->record->name );
 	}
 
-	mx_status = mx_image_write_file( averaged_frame,
+	mx_status = mx_image_write_file( averaged_frame, NULL,
 					averaged_frame_image_format,
 					averaged_frame_filename );
 

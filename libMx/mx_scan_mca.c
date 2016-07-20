@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2009, 2011, 2013, 2015 Illinois Institute of Technology
+ * Copyright 1999-2009, 2011, 2013, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -494,7 +494,7 @@ mx_scan_save_area_detector_image( MX_SCAN *scan,
 
 	/* Write the image to a file. */
 
-	mx_status = mx_image_write_file( ad->image_frame,
+	mx_status = mx_image_write_file( ad->image_frame, NULL,
 					ad->datafile_save_format,
 					image_pathname );
 

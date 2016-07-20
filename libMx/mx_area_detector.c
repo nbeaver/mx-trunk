@@ -5238,48 +5238,14 @@ mx_area_detector_default_load_frame( MX_AREA_DETECTOR *ad )
 		break;
 	}
 
-#if 0
-	/* FIXME: This block of code is currently commented out since the
-	 * call to mx_image_read_file() should do the necessary call to
-	 * mx_image_alloc() for us, which makes the call in this function
-	 * to mx_image_alloc() redundant and possibly trouble causing.
-	 */
-
-	mx_status = mx_image_format_get_bytes_per_pixel( expected_image_format,
-							&bytes_per_pixel );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	bytes_per_frame =
-	    mx_round( bytes_per_pixel * ad->framesize[0] * ad->framesize[1] );
-
-#if MX_AREA_DETECTOR_DEBUG_MX_IMAGE_ALLOC
-	MX_DEBUG(-2,("%s: Invoking mx_image_alloc() for frame_ptr = %p",
-		fname, frame_ptr));
-#endif
-
-	mx_status = mx_image_alloc( frame_ptr,
-					ad->framesize[0],
-					ad->framesize[1],
-					expected_image_format,
-					ad->byte_order,
-					bytes_per_pixel,
-					ad->header_length,
-					bytes_per_frame );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-#endif
-
 	if ( ad->load_frame == MXFT_AD_IMAGE_FRAME ) {
 		file_format = ad->datafile_load_format;
 	} else {
 		file_format = ad->correction_load_format;
 	}
 
-	mx_status = mx_image_read_file( frame_ptr, file_format,
-						ad->frame_filename );
+	mx_status = mx_image_read_file( frame_ptr, ad->dictionary,
+					file_format, ad->frame_filename );
 	
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -5425,8 +5391,8 @@ mx_area_detector_default_save_frame( MX_AREA_DETECTOR *ad )
 		file_format = ad->correction_save_format;
 	}
 
-	mx_status = mx_image_write_file( frame, file_format,
-					ad->frame_filename );
+	mx_status = mx_image_write_file( frame, ad->dictionary,
+					file_format, ad->frame_filename );
 	
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -7505,7 +7471,7 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 #endif
 		/* Write out the image file. */
 
-		mx_status = mx_image_write_file( ad->image_frame,
+		mx_status = mx_image_write_file( ad->image_frame, NULL,
 						ad->datafile_save_format,
 						filename );
 

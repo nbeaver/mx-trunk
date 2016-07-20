@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2008, 2011, 2015 Illinois Institute of Technology
+ * Copyright 2006-2008, 2011, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -144,7 +144,7 @@ motor_vinput_fn( int argc, char *argv[] )
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
 
-		mx_status = mx_image_write_file( frame,
+		mx_status = mx_image_write_file( frame, NULL,
 					datafile_type, filename );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -187,6 +187,7 @@ motor_vinput_fn( int argc, char *argv[] )
 		if ( strncmp( "frame", argv[4], strlen(argv[4]) ) == 0 ) {
 
 			mx_status = mx_image_read_file( &(vinput->frame),
+							NULL,
 							datafile_type,
 							filename );
 		} else {

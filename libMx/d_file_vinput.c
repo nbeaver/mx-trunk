@@ -846,7 +846,7 @@ mxd_file_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 		fname, i, datafile_name));
 #endif
 
-	mx_status = mx_image_read_file( &(vinput->frame),
+	mx_status = mx_image_read_file( &(vinput->frame), NULL,
 					file_vinput->file_format,
 					datafile_name );
 

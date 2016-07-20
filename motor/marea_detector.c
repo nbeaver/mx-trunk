@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2009, 2011-2013, 2015 Illinois Institute of Technology
+ * Copyright 2006-2009, 2011-2013, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,6 +24,7 @@
 #include "motor.h"
 #include "mx_key.h"
 #include "mx_hrt.h"
+#include "mx_dictionary.h"
 #include "mx_image.h"
 #include "mx_area_detector.h"
 
@@ -369,7 +370,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 		MX_HRT_START( measurement4 );
 #endif
 		mx_status = mx_image_write_file( ad->image_frame,
-						datafile_type, filename );
+						NULL, datafile_type, filename );
 #if MAREA_DETECTOR_DEBUG_TIMING
 		MX_HRT_END( measurement4 );
 #endif
@@ -691,7 +692,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 					frame_filename );
 
 				mx_status = mx_image_write_file(ad->image_frame,
-						datafile_type, frame_filename );
+					NULL, datafile_type, frame_filename );
 
 				if ( mx_status.code != MXE_SUCCESS )
 					return FAILURE;
@@ -921,7 +922,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 			}
 
 			mx_status = mx_image_write_file( ad->image_frame,
-						datafile_type, filename );
+						NULL, datafile_type, filename );
 		} else
 		if ( strncmp( "roiframe", argv[4], strlen(argv[4]) ) == 0 ) {
 
@@ -934,7 +935,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 			}
 
 			mx_status = mx_image_write_file( roi_frame,
-						datafile_type, filename );
+						NULL, datafile_type, filename );
 		} else {
 			fprintf( output,
 			"%s: Illegal 'write' argument '%s'\n",

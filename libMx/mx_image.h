@@ -392,10 +392,12 @@ MX_API mx_status_type mx_image_get_filesize( MX_IMAGE_FRAME *frame,
 /*----*/
 
 MX_API mx_status_type mx_image_read_file( MX_IMAGE_FRAME **frame,
+					MX_DICTIONARY *dictionary,
 					unsigned long datafile_type,
 					char *datafile_name );
 
 MX_API mx_status_type mx_image_write_file( MX_IMAGE_FRAME *frame,
+					MX_DICTIONARY *dictionary,
 					unsigned long datafile_type,
 					char *datafile_name );
 
@@ -428,9 +430,11 @@ MX_API mx_status_type mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
 /*----*/
 
 MX_API mx_status_type mx_image_read_tiff_file( MX_IMAGE_FRAME **frame,
+						MX_DICTIONARY *dictionary,
 						char *datafile_name );
 
 MX_API mx_status_type mx_image_write_tiff_file( MX_IMAGE_FRAME *frame,
+						MX_DICTIONARY *dictionary,
 						char *datafile_name );
 
 /*----*/
