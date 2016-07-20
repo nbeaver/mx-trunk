@@ -570,6 +570,8 @@ mx_dictionary_read_file( MX_DICTIONARY *dictionary,
 
 		first_uint32 = ((uint32_t *) new_value_array[i])[0];
 
+		MXW_UNUSED(first_uint32);
+
 #if MX_DICTIONARY_DEBUG_VALUE_ARRAY
 		MX_DEBUG(-2,("%s: new_value_array[%ld] = %p",
 			fname, i, new_value_array[i]));

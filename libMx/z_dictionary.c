@@ -238,6 +238,6 @@ mxz_dictionary_process_function( void *record_ptr,
 		break;
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
