@@ -16,11 +16,11 @@ ifeq ($(MX_ARCH),win32)
 
 # Not tested on Win32 yet.
 
-LIBTIFF_DIR = ?
+LIBTIFF_DIR = c:\\opt\\tiff-4.0.6
 
-LIBTIFF_INCLUDES = -I$(LIBTIFF_DIR)\\include
+LIBTIFF_INCLUDES = -I$(LIBTIFF_DIR)\\libtiff
 
-LIBTIFF_LIBRARY = $(LIBTIFF_DIR)\\libs\\libtiff5.lib
+LIBTIFF_LIBRARY = $(LIBTIFF_DIR)\\libtiff\\libtiff.lib
 
 #----
 
