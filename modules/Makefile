@@ -31,7 +31,7 @@ all: build
 
 #MODULES += labjack_ux		# linux,
 
-MODULES += libtiff		# linux, win32
+#MODULES += libtiff		# linux, win32
 
 #MODULES += libusb-0.1		# linux,
 
@@ -53,7 +53,7 @@ MODULES += libtiff		# linux, win32
 
 #MODULES += xia_handel		# linux, win32
 
-MODULES += xineos_gige		# linux, win32
+#MODULES += xineos_gige		# linux, win32
 
 #-------------------------------------------------------------------
 # Linux-only modules.
@@ -89,16 +89,16 @@ MODULES += xineos_gige		# linux, win32
 
 #MODULES += rdi_mbc
 
-MODULES += sapera_lt 
+#MODULES += sapera_lt 
 
 #MODULES += u500
 
 #-------------------------------------------------------------------
 # EPICS modules.
 
-#MODULES += epics
+MODULES += epics
 
-#MODULES += epics_aps 
+MODULES += epics_aps 
 
 #MODULES += epics_pmac_biocat
 

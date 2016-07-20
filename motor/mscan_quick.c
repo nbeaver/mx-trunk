@@ -223,6 +223,7 @@ motor_setup_quick_scan_parameters(
 		    }
 		} else {
 			selection = 1;
+			status = SUCCESS;
 		}
 
 		if ( status == FAILURE ) {
