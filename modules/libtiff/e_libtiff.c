@@ -107,6 +107,8 @@ mxext_libtiff_read_tiff_file( MX_IMAGE_FRAME **image_frame,
 
 	MX_DEBUG(-2,("%s invoked.", fname));
 
+	mx_breakpoint();
+
 	tif = TIFFOpen( datafile_name, "r" );
 
 	if ( tif == (TIFF *) NULL ) {
@@ -172,6 +174,8 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 	static const char fname[] = "mxext_libtiff_write_tiff_file()";
 
 	MX_DEBUG(-2,("%s invoked.", fname));
+
+	mx_breakpoint();
 
 	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 	"Not yet implemented." );

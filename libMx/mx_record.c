@@ -770,10 +770,27 @@ mx_delete_record_class( MX_RECORD *record_list, long record_class )
 
 /* ========= */
 
+/* The following pointer can be used by code that needs to find the
+ * running MX database, but do not have a pointer to anything that
+ * contains a pointer to the database.
+ */
+
+static MX_RECORD *__mxp_mx_database = NULL;
+
 MX_EXPORT MX_RECORD *
-mx_initialize_record_list( void )
+mx_get_database( void )
 {
-	static const char fname[] = "mx_initialize_record_list()";
+	return __mxp_mx_database;
+}
+
+/* Create a new MX database.  In general, there should not be more than
+ * one database running in a process, but we do not currently enforce that.
+ */
+
+MX_EXPORT MX_RECORD *
+mx_initialize_database( void )
+{
+	static const char fname[] = "mx_initialize_database()";
 
 	MX_RECORD *record_list_head;
 	mx_status_type mx_status;
@@ -803,6 +820,12 @@ mx_initialize_record_list( void )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return NULL;
+
+	/* Save a copy of the list head record pointer for programs
+	 * that need to be able to find the database.
+	 */
+
+	__mxp_mx_database = record_list_head;
 
 	MX_DEBUG( 2,("%s complete.", fname));
 
@@ -955,9 +978,9 @@ mx_setup_database_private( MX_RECORD **record_list, MXP_DB_SOURCE *db_source )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Create a new record list. */
+	/* Create a new MX database. */
 
-	*record_list = mx_initialize_record_list();
+	*record_list = mx_initialize_database();
 
 	if ( *record_list == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -1006,9 +1029,9 @@ mx_create_empty_database( MX_RECORD **record_list )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Create a new record list. */
+	/* Create a new MX database. */
 
-	*record_list = mx_initialize_record_list();
+	*record_list = mx_initialize_database();
 
 	if ( *record_list == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,

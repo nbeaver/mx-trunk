@@ -931,7 +931,7 @@ mxserver_main( int argc, char *argv[] )
 
 	/* Initialize the MX database. */
 
-	mx_record_list = mx_initialize_record_list();
+	mx_record_list = mx_initialize_database();
 
 	if ( mx_record_list == (MX_RECORD *) NULL ) {
 		(void) mx_error( MXE_FUNCTION_FAILED, fname,

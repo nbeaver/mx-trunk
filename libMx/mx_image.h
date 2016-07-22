@@ -265,9 +265,10 @@ typedef struct {
 
 /*----*/
 
-typedef mx_status_type (*MX_IMAGE_READ_METHOD)( MX_IMAGE_FRAME **, char * );
-
-typedef mx_status_type (*MX_IMAGE_WRITE_METHOD)( MX_IMAGE_FRAME *, char * );
+typedef struct {
+	mx_status_type ( *read ) ( MX_IMAGE_FRAME **frame, char *filename );
+	mx_status_type ( *write ) ( MX_IMAGE_FRAME *frame, char *filename );
+} MX_IMAGE_FUNCTION_LIST;
 
 /*----*/
 

@@ -65,9 +65,9 @@ mx_connect_to_mx_server( MX_RECORD **server_record,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		/* Set up a record list to put this server record in. */
+		/* Set up an MX database to put this server record in. */
 
-		record_list = mx_initialize_record_list();
+		record_list = mx_initialize_database();
 
 		if ( record_list == NULL ) {
 			return mx_error( MXE_FUNCTION_FAILED, fname,

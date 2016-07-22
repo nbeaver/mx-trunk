@@ -66,7 +66,7 @@
 # mx/module/epics/Makefile.config.
 #
 
-MX_ARCH = android
+MX_ARCH = win32
 
 #MX_INSTALL_DIR = /opt/mx
 #MX_INSTALL_DIR = c:/opt/mx
@@ -74,10 +74,10 @@ MX_ARCH = android
 #MX_INSTALL_DIR = /mnt/sdcard/opt/mx
 #MX_INSTALL_DIR = $(HOME)/local/mx
 #MX_INSTALL_DIR = $(HOME)/lavender/opt/mx
-MX_INSTALL_DIR = $(HOME)/mxtest
+#MX_INSTALL_DIR = $(HOME)/mxtest
 #MX_INSTALL_DIR = /programs/mx/
 #MX_INSTALL_DIR = c:/users/lavender/mxtest
-#MX_INSTALL_DIR = c:/opt/mx-2.0.3-2016_07_14
+MX_INSTALL_DIR = c:/opt/mx-2.0.3-2016_07_14
 
 #------------------------------------------------------------------------------
 

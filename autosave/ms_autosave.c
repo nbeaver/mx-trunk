@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2007, 2009-2012, 2014-2015 Illinois Institute of Technology
+ * Copyright 1999-2007, 2009-2012, 2014-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -671,9 +671,9 @@ msauto_create_empty_mx_database( MX_RECORD **record_list,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Set up the record list. */
+	/* Create a new MX database. */
 
-	*record_list = mx_initialize_record_list();
+	*record_list = mx_initialize_database();
 
 	if ( (*record_list) == NULL ) {
 		return mx_error( MXE_FUNCTION_FAILED, fname,

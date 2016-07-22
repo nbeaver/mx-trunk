@@ -541,7 +541,9 @@ MX_API mx_status_type  mx_delete_record_list( MX_RECORD *record_list );
 MX_API mx_status_type  mx_delete_record_class(
 				MX_RECORD *record_list, long record_classes );
 
-MX_API MX_RECORD      *mx_initialize_record_list( void );
+MX_API MX_RECORD      *mx_get_database( void );
+
+MX_API MX_RECORD      *mx_initialize_database( void );
 
 MX_API mx_status_type  mx_initialize_drivers( void );
 

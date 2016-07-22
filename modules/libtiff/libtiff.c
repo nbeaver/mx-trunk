@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2015 Illinois Institute of Technology
+ * Copyright 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,6 +28,14 @@ MX_EXTENSION mxext_libtiff_extension_table[] = {
 { "libtiff", &mxext_libtiff_extension_function_list },
 
 {"", 0}
+};
+
+/*----*/
+
+MX_EXPORT
+MX_IMAGE_FUNCTION_LIST mxext_libtiff_image_function_list = {
+	mxext_libtiff_read_tiff_file,
+	mxext_libtiff_write_tiff_file
 };
 
 /*----*/

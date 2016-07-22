@@ -106,7 +106,7 @@ main( int argc, char *argv[] )
 		mx_breakpoint();
 	}
 
-	/* If we create an MX record list right now, then we can turn on
+	/* If we create an MX database right now, then we can turn on
 	 * network debugging right away.  The alternative would be to allow
 	 * mx_connect_to_mx_server() to automatically create an MX database
 	 * for us, but that would cause us to miss the first few network
@@ -118,7 +118,7 @@ main( int argc, char *argv[] )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status.code;
 
-	mx_record_list = mx_initialize_record_list();
+	mx_record_list = mx_initialize_database();
 
 	if ( mx_record_list == NULL ) {
 		mx_status = mx_error( MXE_FUNCTION_FAILED, "mxget",

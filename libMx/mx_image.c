@@ -355,6 +355,7 @@ static MX_IMAGE_FORMAT_ENTRY mxp_file_format_table[] =
 	{"NONE",   MXT_IMAGE_FILE_NONE},
 
 	{"PNM",    MXT_IMAGE_FILE_PNM},
+	{"TIFF",   MXT_IMAGE_FILE_TIFF},
 
 	{"SMV",    MXT_IMAGE_FILE_SMV},
 	{"MARCCD", MXT_IMAGE_FILE_MARCCD},
@@ -4091,14 +4092,14 @@ mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
 static mx_bool_type mxp_tiff_availability_checked = FALSE;
 static mx_bool_type mxp_tiff_is_available         = FALSE;
 
-static MX_IMAGE_READ_METHOD mxp_image_read_tiff_file = NULL;
-static MX_IMAGE_WRITE_METHOD mxp_image_write_tiff_file = NULL;
+static MX_IMAGE_FUNCTION_LIST *mxp_libtiff_image_function_list = NULL;
 
 static mx_status_type
 mxp_image_test_for_libtiff( void )
 {
 	static const char fname[] = "mxp_image_test_for_libtiff()";
 
+	void *mx_database_ptr = NULL;
 	MX_RECORD *mx_database_record = NULL;
 	MX_MODULE *libtiff_module = NULL;
 	MX_DYNAMIC_LIBRARY *libtiff_library = NULL;
@@ -4106,26 +4107,16 @@ mxp_image_test_for_libtiff( void )
 
 	mxp_tiff_availability_checked = TRUE;
 
-	/* FIXME!!!!!: We need the MX_RECORD pointer for the MX database
-	 * list head, but there is no good way to get it.  Here are a
-	 * couple of bad ways.  Note that if we call the function
-	 * mx_dynamic_library_get_symbol_pointer() with a NULL first
-	 * argument, then we are _really_ asking it to look for the
-	 * pointer in the main executable.  But different executables
-	 * use different names for it, so we must try a couple of
-	 * different names (arg!).
-	 */
+	/* We need the running MX database pointer to find a module. */
 
-	mx_database_record = mx_dynamic_library_get_symbol_pointer( NULL,
-							"mx_record_list" );
+	mx_database_record = mx_get_database();
 
-	if ( mx_database_record == NULL ) {
-		mx_database_record = mx_dynamic_library_get_symbol_pointer(
-						NULL, "motor_record_list" );
-	}
-	if ( mx_database_record == NULL ) {
-		return mx_error( MXE_NOT_FOUND, fname,
-		"Could not find the MX record list pointer." );
+	if ( mx_database_record == (MX_RECORD *) NULL ) {
+		(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"We could not get a pointer to the running MX database.  "
+		"This should _never_ happen, so we are aborting now." );
+
+		mx_force_core_dump();
 	}
 
 	/* Search for the libtiff module. */
@@ -4146,24 +4137,14 @@ mxp_image_test_for_libtiff( void )
 		"a pointer to the matching MX_DYNAMIC_LIBRARY structure." );
 	}
 
-	mxp_image_read_tiff_file = (MX_IMAGE_READ_METHOD)
-		mx_dynamic_library_get_symbol_pointer(
-			libtiff_library, "mxext_libtiff_read_tiff_file" );
+	mxp_libtiff_image_function_list = (MX_IMAGE_FUNCTION_LIST *)
+		mx_dynamic_library_get_symbol_pointer( libtiff_library,
+		"mxext_libtiff_image_function_list" );
 
-	if ( mxp_image_read_tiff_file == NULL ) {
+	if ( mxp_libtiff_image_function_list == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The 'libtiff' module does not seem to have a function "
-		"called 'mxext_libtiff_read_tiff_file()'." );
-	}
-
-	mxp_image_write_tiff_file = (MX_IMAGE_WRITE_METHOD)
-		mx_dynamic_library_get_symbol_pointer(
-			libtiff_library, "mxext_libtiff_write_tiff_file" );
-
-	if ( mxp_image_read_tiff_file == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The 'libtiff' module does not seem to have a function "
-		"called 'mxext_libtiff_write_tiff_file()'." );
+		"The 'libtiff' module does not have an MX_IMAGE_FUNCTION_LIST "
+		"structure called 'mxext_libtiff_image_function_list'." );
 	}
 
 	mxp_tiff_is_available = TRUE;
@@ -4190,7 +4171,8 @@ mx_image_read_tiff_file( MX_IMAGE_FRAME **frame,
 		"The 'libtiff' module has not been loaded." );
 	}
 
-	mx_status = (*mxp_image_read_tiff_file)( frame, datafile_name );
+	mx_status = ( mxp_libtiff_image_function_list->read ) ( frame,
+							datafile_name );
 
 	return mx_status;
 }
@@ -4212,7 +4194,8 @@ mx_image_write_tiff_file( MX_IMAGE_FRAME *frame,
 		"The 'libtiff' module has not been loaded." );
 	}
 
-	mx_status = (*mxp_image_write_tiff_file)( frame, datafile_name );
+	mx_status = ( mxp_libtiff_image_function_list->write ) ( frame,
+							datafile_name );
 
 	return mx_status;
 }

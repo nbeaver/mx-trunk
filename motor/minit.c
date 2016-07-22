@@ -109,9 +109,9 @@ motor_init( char *motor_savefile_name,
 		exit(1);
 	}
 
-	/* Initialize records. */
+	/* Create a new MX database. */
 
-	motor_record_list = mx_initialize_record_list();
+	motor_record_list = mx_initialize_database();
 
 	if ( motor_record_list == (MX_RECORD *) NULL ) {
 		fprintf( output,
