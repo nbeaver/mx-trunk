@@ -4099,7 +4099,6 @@ mxp_image_test_for_libtiff( void )
 {
 	static const char fname[] = "mxp_image_test_for_libtiff()";
 
-	void *mx_database_ptr = NULL;
 	MX_RECORD *mx_database_record = NULL;
 	MX_MODULE *libtiff_module = NULL;
 	MX_DYNAMIC_LIBRARY *libtiff_library = NULL;

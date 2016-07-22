@@ -54,7 +54,11 @@ mxext_libtiff_error_handler( const char *module, const char *fmt, ... )
 	vsnprintf( buffer, sizeof(buffer), fmt, va_alist );
 	va_end( va_alist );
 
-	fprintf( stderr, "%s: %s\n", module, buffer );
+	if ( module != NULL ) {
+		fprintf( stderr, "%s: %s\n", module, buffer );
+	} else {
+		fprintf( stderr, "%s\n", buffer );
+	}
 }
 
 /*------*/
@@ -100,9 +104,9 @@ mxext_libtiff_initialize( MX_EXTENSION *extension )
 
 	/* Setup error and warning handlers */
 
-	TIFFSetErrorHandler( mxext_libtiff_error_handler );
+	TIFFSetErrorHandler( (TIFFErrorHandler) mxext_libtiff_error_handler );
 
-	TIFFSetWarningHandler( mxext_libtiff_error_handler );
+	TIFFSetWarningHandler( (TIFFErrorHandler) mxext_libtiff_error_handler );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -204,7 +208,7 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 
 	tiff = TIFFOpen( datafile_name, "w" );
 
-	MX_DEBUG(-2,("%s: tiff = %p", fname));
+	MX_DEBUG(-2,("%s: tiff = %p", fname, tiff));
 
 	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 	"Not yet implemented." );

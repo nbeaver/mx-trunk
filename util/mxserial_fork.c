@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2006, 2012, 2014-2015 Illinois Institute of Technology
+ * Copyright 2002-2006, 2012, 2014-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -390,7 +390,7 @@ mxser_connect_to_mx_server( MX_RECORD **record_list,
 
 	/* Set up a record list to put this server record in. */
 
-	*record_list = mx_initialize_record_list();
+	*record_list = mx_initialize_database();
 
 	if ( *record_list == NULL ) {
 		return mx_error( MXE_FUNCTION_FAILED, fname,
