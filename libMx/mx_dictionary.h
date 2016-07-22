@@ -50,13 +50,16 @@ typedef struct {
 	char **key_array;
 	void **value_array;
 
+	MX_RECORD *record;
+
 	void *application_ptr;
 } MX_DICTIONARY;
 
 /*---*/
 
 MX_API mx_status_type mx_dictionary_create( MX_DICTIONARY **new_dictionary,
-						const char *dictionary_name );
+						const char *dictionary_name,
+						MX_RECORD *record );
 
 MX_API mx_status_type mx_dictionary_get_num_keys_in_use(
 					MX_DICTIONARY *dictionary,

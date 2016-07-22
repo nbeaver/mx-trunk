@@ -186,6 +186,7 @@ typedef struct {
 	void *image_data;
 
 	MX_DICTIONARY *dictionary;
+	MX_RECORD *record;
 
 	void *application_ptr;
 
@@ -310,7 +311,8 @@ MX_API mx_status_type mx_image_alloc( MX_IMAGE_FRAME **frame,
 					double bytes_per_pixel,
 					size_t header_length,
 					size_t image_length,
-					MX_DICTIONARY *dictionary );
+					MX_DICTIONARY *dictionary,
+					MX_RECORD *record );
 
 MX_API void mx_image_free( MX_IMAGE_FRAME *frame );
 

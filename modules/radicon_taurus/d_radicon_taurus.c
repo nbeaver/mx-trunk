@@ -863,7 +863,8 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 					ad->bytes_per_pixel,
 					ad->header_length,
 					ad->bytes_per_frame,
-					ad->dictionary );
+					ad->dictionary,
+					ad->record );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -884,7 +885,8 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 					ad->bytes_per_pixel,
 					ad->header_length,
 					ad->bytes_per_frame,
-					ad->dictionary );
+					ad->dictionary,
+					ad->record );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -892,6 +894,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	/* Initialize the image frame with an empty image. */
 
 	mx_status = mx_image_read_file( &(ad->image_frame),
+					NULL,
 					MXT_IMAGE_FILE_NONE,
 					NULL );
 
@@ -2031,6 +2034,7 @@ mxp_radicon_taurus_save_raw_image( MX_AREA_DETECTOR *ad,
 	/* Now write the raw file (with a header!). */
 		
 	mx_status = mx_image_write_file( ad->image_frame,
+					ad->dictionary,
 					ad->datafile_save_format,
 					raw_image_pathname );
 

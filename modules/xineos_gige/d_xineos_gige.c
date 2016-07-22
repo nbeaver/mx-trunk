@@ -1036,6 +1036,11 @@ mxd_xineos_gige_readout_frame( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Add the area detector dictionary and record pointers to the frame.*/
+
+	ad->image_frame->dictionary = ad->dictionary;
+	ad->image_frame->record = ad->record;
+
 	/* If the sequence was started using the pulse generator, then the
 	 * video card will be in DURATION mode.  In DURATION mode, the image
 	 * frame returned by the video input driver will have a header that

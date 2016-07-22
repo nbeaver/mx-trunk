@@ -210,7 +210,8 @@ mx_rdi_correct_frame( MX_AREA_DETECTOR *ad,
 					corr_bytes_per_pixel,
 					MXIF_HEADER_BYTES(image_frame),
 					corr_image_length,
-					ad->dictionary );
+					ad->dictionary,
+					ad->record );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

@@ -1314,7 +1314,8 @@ mxd_network_area_detector_transfer_frame( MX_AREA_DETECTOR *ad )
 					ad->bytes_per_pixel,
 					ad->header_length,
 					ad->bytes_per_frame,
-					ad->dictionary );
+					ad->dictionary,
+					ad->record );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

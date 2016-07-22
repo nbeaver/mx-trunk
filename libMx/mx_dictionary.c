@@ -48,7 +48,8 @@
 
 MX_EXPORT mx_status_type
 mx_dictionary_create( MX_DICTIONARY **new_dictionary,
-			const char *dictionary_name )
+			const char *dictionary_name,
+			MX_RECORD *record )
 {
 	static const char fname[] = "mx_dictionary_create()";
 
@@ -72,6 +73,7 @@ mx_dictionary_create( MX_DICTIONARY **new_dictionary,
 	(*new_dictionary)->key_array = NULL;
 	(*new_dictionary)->value_array = NULL;
 
+	(*new_dictionary)->record = record;
 	(*new_dictionary)->application_ptr = NULL;
 
 	return MX_SUCCESSFUL_RESULT;

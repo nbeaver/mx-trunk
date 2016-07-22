@@ -112,7 +112,7 @@ mxz_dictionary_open( MX_RECORD *record )
 	}
 
 	mx_status = mx_dictionary_create( &(dictionary_record->dictionary),
-								record->name );
+						record->name, record );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

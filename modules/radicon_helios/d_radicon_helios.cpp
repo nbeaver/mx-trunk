@@ -1284,7 +1284,8 @@ mxd_radicon_helios_open( MX_RECORD *record )
 					ad->bytes_per_pixel,
 					ad->header_length,
 					ad->bytes_per_frame,
-					ad->dictionary );
+					ad->dictionary,
+					ad->record );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -2541,7 +2542,9 @@ mxd_radicon_helios_correct_frame( MX_AREA_DETECTOR *ad )
 					MXIF_BYTE_ORDER(image_frame),
 					corr_bytes_per_pixel,
 					MXIF_HEADER_BYTES(image_frame),
-					corr_image_length );
+					corr_image_length,
+					ad->directory,
+					ad->record );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

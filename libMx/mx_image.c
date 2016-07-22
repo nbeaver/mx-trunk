@@ -572,7 +572,8 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 			double bytes_per_pixel,
 			size_t header_length,
 			size_t image_length,
-			MX_DICTIONARY *dictionary )
+			MX_DICTIONARY *dictionary,
+			MX_RECORD *record )
 {
 	static const char fname[] = "mx_image_alloc()";
 
@@ -853,6 +854,11 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 		fname, (long) (*frame)->image_length,
 		(long) (*frame)->allocated_image_length));
 #endif
+	/* Save pointers to dictionary and record structures. */
+
+	(*frame)->dictionary = dictionary;
+	(*frame)->record = record;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -1816,7 +1822,8 @@ mx_image_copy_frame( MX_IMAGE_FRAME *old_frame,
 				MXIF_BYTES_PER_PIXEL(old_frame),
 				old_frame->header_length,
 				old_frame->image_length,
-				old_frame->dictionary );
+				old_frame->dictionary,
+				old_frame->record );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -2048,7 +2055,8 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 				bytes_per_pixel,
 				original_frame->header_length,
 				rebinned_size,
-				original_frame->dictionary );
+				original_frame->dictionary,
+				original_frame->record );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -3464,7 +3472,7 @@ mx_image_read_pnm_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 					(double) bytes_per_pixel,
 					0,
 					bytes_per_frame,
-					NULL );
+					NULL, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -3861,7 +3869,7 @@ mx_image_read_raw_file( MX_IMAGE_FRAME **frame,
 					(double) bytes_per_pixel,
 					0,
 					bytes_per_frame,
-					NULL );
+					NULL, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -4761,7 +4769,7 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 					(double) bytes_per_pixel,
 					0,
 					bytes_per_frame,
-					NULL );
+					NULL, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -5539,7 +5547,7 @@ mx_image_read_marccd_file( MX_IMAGE_FRAME **frame, char *marccd_filename )
 				2,
 				MXT_IMAGE_HEADER_LENGTH_IN_BYTES,
 				image_size_in_bytes,
-				NULL );
+				NULL, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		fclose( marccd_file );
@@ -5901,7 +5909,7 @@ mx_image_read_edf_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 					(double) bytes_per_pixel,
 					0,
 					bytes_per_frame,
-					NULL );
+					NULL, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

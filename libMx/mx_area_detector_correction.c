@@ -6203,7 +6203,8 @@ mx_area_detector_classic_frame_correction( MX_RECORD *record,
 					corr_bytes_per_pixel,
 					MXIF_HEADER_BYTES(image_frame),
 					corr_image_length,
-					ad->dictionary );
+					ad->dictionary,
+					ad->record );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

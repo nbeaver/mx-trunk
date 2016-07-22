@@ -874,7 +874,8 @@ mxd_aviex_pccd_descramble_image( MX_AREA_DETECTOR *ad,
 				MXIF_BYTES_PER_PIXEL(image_frame),
 				image_frame->header_length,
 				image_frame->image_length,
-				ad->dictionary );
+				ad->dictionary,
+				ad->record );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -2174,7 +2175,8 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 					ad->bytes_per_pixel,
 					ad->header_length,
 					ad->bytes_per_frame,
-					ad->dictionary );
+					ad->dictionary,
+					ad->record );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -3160,6 +3162,11 @@ mxd_aviex_pccd_readout_frame( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Add the area detector dictionary and record pointers to the frame. */
+
+	aviex_pccd->raw_frame->dictionary = ad->dictionary;
+	aviex_pccd->raw_frame->record = ad->record;
+
 	/* Set the binsize in the header. */
 
 	MXIF_ROW_BINSIZE(aviex_pccd->raw_frame)    = ad->binsize[0];
@@ -3257,7 +3264,8 @@ mxd_aviex_pccd_readout_frame( MX_AREA_DETECTOR *ad )
 				MXIF_BYTES_PER_PIXEL(aviex_pccd->raw_frame),
 				aviex_pccd->raw_frame->header_length,
 				aviex_pccd->raw_frame->image_length,
-				ad->dictionary );
+				ad->dictionary,
+				ad->record );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
