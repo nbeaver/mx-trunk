@@ -20,7 +20,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 
+/* Include file from libtiff. */
 #include "tiffio.h"
 
 #include "mx_util.h"
@@ -39,6 +41,21 @@ MX_EXTENSION_FUNCTION_LIST mxext_libtiff_extension_function_list = {
 #else
 #  define MXP_LIBTIFF_LIBRARY_NAME	"libtiff.so"
 #endif
+
+/*------*/
+
+static void
+mxext_libtiff_error_handler( const char *module, const char *fmt, ... )
+{
+	va_list va_alist;
+	char buffer[2500];
+
+	va_start( va_alist, fmt );
+	vsnprintf( buffer, sizeof(buffer), fmt, va_alist );
+	va_end( va_alist );
+
+	fprintf( stderr, "%s: %s\n", module, buffer );
+}
 
 /*------*/
 
@@ -80,6 +97,12 @@ mxext_libtiff_initialize( MX_EXTENSION *extension )
 #endif
 
 	libtiff_ext->libtiff_library = libtiff_library;
+
+	/* Setup error and warning handlers */
+
+	TIFFSetErrorHandler( mxext_libtiff_error_handler );
+
+	TIFFSetWarningHandler( mxext_libtiff_error_handler );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -173,9 +196,15 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 {
 	static const char fname[] = "mxext_libtiff_write_tiff_file()";
 
-	MX_DEBUG(-2,("%s invoked.", fname));
+	TIFF *tiff = NULL;
 
-	mx_breakpoint();
+	MX_DEBUG(-2,("%s invoked for datafile '%s'.", fname, datafile_name));
+
+	/* mx_breakpoint(); */
+
+	tiff = TIFFOpen( datafile_name, "w" );
+
+	MX_DEBUG(-2,("%s: tiff = %p", fname));
 
 	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 	"Not yet implemented." );
