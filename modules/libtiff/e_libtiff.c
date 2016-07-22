@@ -205,7 +205,6 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 	long scanline_size_in_bytes;
 	int tiff_status;
 	char *scanline_buffer = NULL;
-	char *scanline_ptr = NULL;
 	char *image_data_ptr = NULL;
 
 	if ( frame == (MX_IMAGE_FRAME *) NULL ) {
@@ -264,6 +263,8 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 		if ( tiff_status <= 0 ) {
 			break;
 		}
+
+		image_data_ptr += scanline_size_in_bytes;
 	}
 
 	/* We are done, so close down everything. */
