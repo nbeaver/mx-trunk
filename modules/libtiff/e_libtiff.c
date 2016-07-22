@@ -201,6 +201,26 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 	static const char fname[] = "mxext_libtiff_write_tiff_file()";
 
 	TIFF *tiff = NULL;
+	long row, row_width, column_height;
+	long scanline_size_in_bytes;
+	int tiff_status;
+	char *scanline_buffer = NULL;
+	char *scanline_ptr = NULL;
+	char *image_data_ptr = NULL;
+
+	if ( frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_IMAGE_FRAME pointer passed was NULL." );
+	}
+	if ( datafile_name == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The datafile_name pointer passed was NULL." );
+	}
+	if ( frame->image_data == NULL ) {
+		return mx_error( MXE_NOT_READY, fname,
+		"MX_IMAGE_FRAME %p for datafile '%s' does not yet have "
+		"any image data.", frame, datafile_name );
+	}
 
 	MX_DEBUG(-2,("%s invoked for datafile '%s'.", fname, datafile_name));
 
@@ -210,8 +230,51 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 
 	MX_DEBUG(-2,("%s: tiff = %p", fname, tiff));
 
-	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-	"Not yet implemented." );
+	/* Set up a small header. */
+
+	row_width = MXIF_ROW_FRAMESIZE(frame);
+	column_height = MXIF_COLUMN_FRAMESIZE(frame);
+
+	TIFFSetField( tiff, TIFFTAG_IMAGEWIDTH, row_width );
+	TIFFSetField( tiff, TIFFTAG_IMAGELENGTH, column_height );
+	TIFFSetField( tiff, TIFFTAG_SAMPLESPERPIXEL, 1 );
+	TIFFSetField( tiff, TIFFTAG_BITSPERSAMPLE, 16 );
+	TIFFSetField( tiff, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT );
+	TIFFSetField( tiff, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG );
+	TIFFSetField( tiff, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISBLACK );
+
+	/* Write image data to the file. */
+
+	scanline_size_in_bytes = TIFFScanlineSize( tiff );
+
+	MX_DEBUG(-2,("%s: scanline_size_in_bytes = %ld",
+		fname, scanline_size_in_bytes));
+
+	scanline_buffer = _TIFFmalloc( scanline_size_in_bytes );
+
+	image_data_ptr = frame->image_data;
+
+	for ( row = 0; row < column_height; row++ ) {
+		memcpy( scanline_buffer,
+			image_data_ptr,
+			scanline_size_in_bytes );
+
+		tiff_status = TIFFWriteScanline(tiff, scanline_buffer, row, 0);
+
+		if ( tiff_status <= 0 ) {
+			break;
+		}
+	}
+
+	/* We are done, so close down everything. */
+
+	TIFFClose( tiff );
+
+	if ( scanline_buffer != NULL ) {
+		_TIFFfree( scanline_buffer );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*------*/
