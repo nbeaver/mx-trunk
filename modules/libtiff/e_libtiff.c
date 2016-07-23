@@ -28,6 +28,8 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_bit.h"
+#include "mx_version.h"
+#include "mx_time.h"
 #include "mx_module.h"
 #include "mx_image.h"
 #include "e_libtiff.h"
@@ -201,11 +203,21 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 	static const char fname[] = "mxext_libtiff_write_tiff_file()";
 
 	TIFF *tiff = NULL;
-	long row, row_width, column_height;
+	long row, row_width, column_height, bits_per_pixel;
 	long scanline_size_in_bytes;
 	int tiff_status;
 	char *scanline_buffer = NULL;
 	char *image_data_ptr = NULL;
+
+	char mx_version_string[80];
+
+	char timestamp[25];
+	time_t time_in_seconds;
+	struct tm tm_struct;
+
+	double exposure_seconds;
+
+	uint64_t exif_dir_offset;
 
 	if ( frame == (MX_IMAGE_FRAME *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -229,20 +241,119 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 
 	MX_DEBUG(-2,("%s: tiff = %p", fname, tiff));
 
-	/* Set up a small header. */
+	/* Copy everything from the MX header into the TIFF header. */
 
 	row_width = MXIF_ROW_FRAMESIZE(frame);
+
+	if (! TIFFSetField( tiff, TIFFTAG_IMAGEWIDTH, row_width ) ) {
+		TIFFClose( tiff );
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"Cannot set ImageWidth TIFF tag." );
+	}
+
 	column_height = MXIF_COLUMN_FRAMESIZE(frame);
 
-	TIFFSetField( tiff, TIFFTAG_IMAGEWIDTH, row_width );
-	TIFFSetField( tiff, TIFFTAG_IMAGELENGTH, column_height );
-	TIFFSetField( tiff, TIFFTAG_SAMPLESPERPIXEL, 1 );
-	TIFFSetField( tiff, TIFFTAG_BITSPERSAMPLE, 16 );
-	TIFFSetField( tiff, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT );
-	TIFFSetField( tiff, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG );
-	TIFFSetField( tiff, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISBLACK );
+	if (! TIFFSetField( tiff, TIFFTAG_IMAGELENGTH, column_height ) ) {
+		TIFFClose( tiff );
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"Cannot set ImageLength TIFF tag." );
+	}
 
-	/* Write image data to the file. */
+	/* Currently we do not support multicomponent images like RGB. */
+
+	if (! TIFFSetField( tiff, TIFFTAG_SAMPLESPERPIXEL, 1 ) ) {
+		TIFFClose( tiff );
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"Cannot set SamplesPerPixel TIFF tag." );
+	}
+
+	/* Save the pixel bit size.  The real dynamic range is often
+	 * smaller than this.
+	 */
+
+	bits_per_pixel = MXIF_BITS_PER_PIXEL(frame);
+
+	if (! TIFFSetField( tiff, TIFFTAG_BITSPERSAMPLE, 16 ) ) {
+		TIFFClose( tiff );
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"Cannot set SamplesPerPixel TIFF tag." );
+	}
+
+	/* Construct a TIFF-compatible version of the MX timestamp.
+	 * Unfortunately, the TIFF tag does not support fractions of a
+	 * second, and there is no room in the tag for more characters.
+	 */
+
+	time_in_seconds = MXIF_TIMESTAMP_SEC(frame);
+
+	MX_DEBUG(-2,("%s: time_in_seconds = %lu", fname, time_in_seconds));
+
+	(void) localtime_r( &time_in_seconds, &tm_struct );
+
+	strftime( timestamp, sizeof(timestamp),
+		"%Y:%m:%d %H:%M:%S", &tm_struct );
+
+	MX_DEBUG(-2,("%s: timestamp = '%s'", fname, timestamp));
+
+	if (! TIFFSetField( tiff, TIFFTAG_DATETIME, timestamp ) ) {
+		TIFFClose( tiff );
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"Cannot set DateTime TIFF tag." );
+	}
+
+	/* The following values are always the same for MX. */
+
+	if (! TIFFSetField( tiff, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT ) ) {
+		TIFFClose( tiff );
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"Cannot set Orientation TIFF tag." );
+	}
+
+	if (! TIFFSetField( tiff, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG ) ){
+		TIFFClose( tiff );
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"Cannot set PlanarConfiguration TIFF tag." );
+	}
+
+	if (! TIFFSetField( tiff, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISBLACK ))
+	{
+		TIFFClose( tiff );
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"Cannot set PhotometricInterpretation TIFF tag." );
+	}
+
+	/* MX software version. */
+
+	snprintf( mx_version_string, sizeof(mx_version_string),
+		"MX %d.%d.%d (%s) (%s)",
+		mx_get_major_version(),
+		mx_get_minor_version(),
+		mx_get_update_version(),
+		mx_get_version_date_string(),
+		mx_get_revision_string() );
+
+
+	if (! TIFFSetField( tiff, TIFFTAG_SOFTWARE, mx_version_string ) ) {
+		TIFFClose( tiff );
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"Cannot set Software TIFF tag." );
+	}
+
+	/* Missing MX fields: binsize, bias offset. */
+
+	/* NOW: Software */
+
+	/* FIXME: Things we might want to add later.
+ 	 *
+ 	 * Baseline:
+ 	 *   Artist, HostComputer, ResolutionUnit, XResolution, YResolution
+ 	 *
+ 	 * Extension:
+ 	 *   ImageID, PageName, PageNumber, SMaxSampleValue, SMinSampleValue,
+ 	 *   XPosition, YPosition
+ 	 */
+
+	/* Write the image data to the file. */
 
 	scanline_size_in_bytes = TIFFScanlineSize( tiff );
 
@@ -265,6 +376,75 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 		}
 
 		image_data_ptr += scanline_size_in_bytes;
+	}
+
+	/* Unfortunately, the only place we have to put the exposure time
+	 * information is into a separate EXIF directory, so we must do
+	 * that now.
+	 */
+
+	/* Close the first IFD. */
+
+	if (! TIFFWriteDirectory( tiff ) ) {
+		TIFFClose( tiff );
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"TIFFWriteDirectory() failed for the first IFD." );
+	}
+
+	/* Create a new EXIF directory. */
+
+	tiff_status = TIFFCreateEXIFDirectory( tiff );
+
+	if ( tiff_status != 0 ) {
+		TIFFClose( tiff );
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"TIFFCreateEXIFDirectory() failed for the first IFD." );
+	}
+
+	/* Save the exposure time.
+	 *
+	 * The EXIF TIFF tag for ExposureTime is of type RATIONAL.  This is
+	 * the ratio of two 32-bit integers.  For now we set the denominator
+	 * to 1000 so that the numerator is the exposure time in milliseconds.
+	 */
+
+	MX_DEBUG(-2,("%s: MXIF_EXPOSURE_TIME_SEC() = %lu",
+		fname, MXIF_EXPOSURE_TIME_SEC(frame) ));
+	MX_DEBUG(-2,("%s: MXIF_EXPOSURE_TIME_NSEC() = %lu",
+		fname, MXIF_EXPOSURE_TIME_NSEC(frame) ));
+
+	exposure_seconds = MXIF_EXPOSURE_TIME_SEC(frame)
+			+ 1.0e-9 * MXIF_EXPOSURE_TIME_NSEC(frame);
+
+	MX_DEBUG(-2,("%s: exposure_seconds = %f", fname, exposure_seconds));
+
+	if (! TIFFSetField( tiff, EXIFTAG_EXPOSURETIME, exposure_seconds ) ) {
+		TIFFClose( tiff );
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"Cannot set ... EXIF TIFF tag." );
+	}
+
+	/* Close the custom EXIF directory. */
+
+	if (! TIFFWriteCustomDirectory( tiff, &exif_dir_offset ) ) {
+		TIFFClose( tiff );
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"TIFFWriteCustomDirectory() failed for the EXIF IFD." );
+	}
+
+	/* Go back to the first directory and add the EXIF IFD pointer. */
+
+	if (! TIFFSetDirectory( tiff, 0 ) ) {
+		TIFFClose( tiff );
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"The attempt to use TIFFSetDirectory() to go back to the "
+		"first IFD failed." );
+	}
+
+	if (! TIFFSetField( tiff, TIFFTAG_EXIFIFD, exif_dir_offset ) ) {
+		TIFFClose( tiff );
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"The attempt to save the EXIF IFD offset failed." );
 	}
 
 	/* We are done, so close down everything. */
