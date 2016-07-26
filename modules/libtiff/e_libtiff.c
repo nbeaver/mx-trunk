@@ -125,26 +125,34 @@ mxext_libtiff_read_tiff_file( MX_IMAGE_FRAME **image_frame,
 {
 	static const char fname[] = "mxext_libtiff_read_tiff_file()";
 
-	TIFF *tif = NULL;
-	uint32 image_length;
-	tsize_t scanline_size; 
-	tdata_t buffer;
-	uint32 row;
-	uint32 col;
-	uint16_t *uint16_buffer;
+	TIFF *tiff = NULL;
+	uint16_t row_width, column_height, samples_per_pixel;
+	uint16_t bits_per_sample;
+	tsize_t scanline_size_in_bytes; 
+	tdata_t scanline_buffer;
+	unsigned long row;
+	int tiff_status;
 
-	uint16_t *uint16_image_array;
+	char *ptr;
+	struct tm tm_struct;
+	char tiff_datetime_buffer[25];
+	time_t time_in_seconds;
+
+	uint32_t exif_offset;
+	double exposure_time;
+	uint32_t exposure_seconds, exposure_nanoseconds;
+
+	uint16_t *image_data_ptr;
 	long image_format;
 	double bytes_per_pixel;
+	size_t image_size_in_bytes;
 	mx_status_type mx_status;
 
 	MX_DEBUG(-2,("%s invoked.", fname));
 
-	mx_breakpoint();
+	tiff = TIFFOpen( datafile_name, "r" );
 
-	tif = TIFFOpen( datafile_name, "r" );
-
-	if ( tif == (TIFF *) NULL ) {
+	if ( tiff == (TIFF *) NULL ) {
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 		"The attempt to read TIFF file '%s' failed.",
 			datafile_name );
@@ -152,48 +160,150 @@ mxext_libtiff_read_tiff_file( MX_IMAGE_FRAME **image_frame,
 
 	/* Figure out how big the TIFF file is. */
 
-	TIFFGetField( tif, TIFFTAG_IMAGELENGTH, &image_length );
+	if (! TIFFGetField( tiff, TIFFTAG_IMAGEWIDTH, &row_width ) ) {
+		TIFFClose( tiff );
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"Cannot read the ImageLength TIFF tag." );
+	}
 
-	scanline_size = TIFFScanlineSize( tif );
-	buffer = _TIFFmalloc( scanline_size );
+	if (! TIFFGetField( tiff, TIFFTAG_IMAGELENGTH, &column_height ) ) {
+		TIFFClose( tiff );
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"Cannot read the ImageLength TIFF tag." );
+	}
 
-	uint16_buffer = buffer;
+	if (! TIFFGetField( tiff, TIFFTAG_SAMPLESPERPIXEL,
+			&samples_per_pixel ) )
+	{
+		TIFFClose( tiff );
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"Cannot read the ImageLength TIFF tag." );
+	}
+
+	if ( samples_per_pixel != 1 ) {
+		TIFFClose( tiff );
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"TIFF image '%s' is a multicomponent image with %lu "
+		"samples per pixel.  Currently MX only supports reading "
+		"TIFF files with one sample per pixel.",
+			datafile_name, samples_per_pixel );
+	}
+
+	if (! TIFFGetField( tiff, TIFFTAG_BITSPERSAMPLE, &bits_per_sample ) ) {
+		TIFFClose( tiff );
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"Cannot read the BitsPerSample TIFF tag." );
+	}
+
+	if ( bits_per_sample != 16 ) {
+		TIFFClose( tiff );
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"TIFF image '%s' has %lu bits per sample.  However, MX "
+		"currently only supports reading images with 16 bits "
+		"per sample.", datafile_name, (unsigned long) bits_per_sample );
+	}
+
+	/* Read and parse the timestamp in the TIFF image. */
+
+	if (! TIFFGetField( tiff, TIFFTAG_DATETIME, tiff_datetime_buffer ) ) {
+		TIFFClose( tiff );
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"Cannot read the DateTime TIFF tag." );
+	}
+
+	ptr = strptime( tiff_datetime_buffer, "%Y:%m:%d %H:%M:%S", &tm_struct );
+
+	if ( ptr == NULL ) {
+		TIFFClose( tiff );
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"TIFF image '%s' does not have a DateTime timestamp.",
+			datafile_name );
+	}
+
+	time_in_seconds = mktime( &tm_struct );
+
+	/*----*/
+
+	scanline_size_in_bytes = TIFFScanlineSize( tiff );
+	scanline_buffer = _TIFFmalloc( scanline_size_in_bytes );
 
 	/* Create an MX_IMAGE_FRAME structure to copy the TIFF into. */
 
 	image_format = MXT_IMAGE_FORMAT_GREY16;
 	bytes_per_pixel = 2.0;
+	image_size_in_bytes = 2 * row_width * column_height;
 
 	mx_status = mx_image_alloc( image_frame,
-				scanline_size,
-				image_length,
+				row_width,
+				column_height,
 				image_format,
 				mx_native_byteorder(),
-				bytes_per_pixel, 0,
-				scanline_size * image_length,
+				bytes_per_pixel,
+				MXT_IMAGE_HEADER_LENGTH_IN_BYTES,
+				image_size_in_bytes,
 				NULL, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
-		_TIFFfree( buffer );
-		TIFFClose( tif );
+		_TIFFfree( scanline_buffer );
+		TIFFClose( tiff );
 		return mx_status;
 	}
 
-	uint16_image_array = (*image_frame)->image_data;
+	image_data_ptr = (*image_frame)->image_data;
 
 	/* Now copy the contents to the MX_IMAGE_FRAME structure. */
 
-	for ( row = 0; row < image_length; row++ ) {
-		TIFFReadScanline( tif, buffer, row, 0 );
+	for ( row = 0; row < column_height; row++ ) {
+		tiff_status = TIFFReadScanline( tiff, scanline_buffer, row, 0 );
 
-		for ( col = 0; col < scanline_size; col++ ) {
-			uint16_image_array[ (row * scanline_size) + col ]
-				= uint16_buffer[ col ];
+		if ( tiff_status <= 0 ) {
+			break;
 		}
+
+		memcpy( image_data_ptr,
+			scanline_buffer,
+			scanline_size_in_bytes );
+
+		image_data_ptr += scanline_size_in_bytes;
 	}
 
-	_TIFFfree( buffer );
-	TIFFClose( tif );
+	_TIFFfree( scanline_buffer );
+
+	MXIF_TIMESTAMP_SEC( (*image_frame) ) = time_in_seconds;
+	MXIF_TIMESTAMP_NSEC( (*image_frame) ) = 0;
+
+	/* If present, the exposure time is found in the EXIF directory. */
+
+	if (! TIFFGetField( tiff, TIFFTAG_EXIFIFD, &exif_offset ) ) {
+		TIFFClose( tiff );
+		MXIF_EXPOSURE_TIME_SEC( (*image_frame) ) = 1;
+		MXIF_EXPOSURE_TIME_NSEC( (*image_frame) ) = 0;
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	if (! TIFFReadEXIFDirectory( tiff, exif_offset ) ) {
+		TIFFClose( tiff );
+		return mx_error( MXE_NOT_FOUND, fname,
+		"TIFF image file '%s' is supposed to have an EXIF IFD "
+		"at offset %lu, but no EXIF IFD was found there.",
+			datafile_name, (unsigned long) exif_offset );
+	}
+
+	if (! TIFFGetField( tiff, EXIFTAG_EXPOSURETIME, &exposure_time ) ) {
+		TIFFClose( tiff );
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"Cannot read the ExposureTime EXIF TIFF tag." );
+	}
+
+	exposure_seconds = (unsigned long) exposure_time;
+
+	exposure_nanoseconds =
+		mx_round( 1.0e9 * ( exposure_time - exposure_seconds ) );
+
+	MXIF_EXPOSURE_TIME_SEC( (*image_frame) ) = exposure_seconds;
+	MXIF_EXPOSURE_TIME_NSEC( (*image_frame) ) = exposure_nanoseconds;
+
+	TIFFClose( tiff );
 
 	return MX_SUCCESSFUL_RESULT;
 }
