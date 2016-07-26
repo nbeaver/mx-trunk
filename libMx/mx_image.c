@@ -17,6 +17,8 @@
 
 #define MX_IMAGE_DEBUG			FALSE
 
+#define MX_IMAGE_DEBUG_CHARACTERISTICS	TRUE
+
 #define MX_IMAGE_DEBUG_REBIN		FALSE
 
 #define MX_IMAGE_DEBUG_REBIN_DETAILS	FALSE
@@ -4193,6 +4195,30 @@ mx_image_write_tiff_file( MX_IMAGE_FRAME *frame,
 
 	mx_status_type mx_status;
 
+#if MX_IMAGE_DEBUG_CHARACTERISTICS
+	MX_DEBUG(-2,("%s invoked for datafile '%s'.",
+		fname, datafile_name ));
+
+	MX_DEBUG(-2,("%s: width = %ld, height = %ld", fname, 
+		(long) MXIF_ROW_FRAMESIZE(frame),
+		(long) MXIF_COLUMN_FRAMESIZE(frame) ));
+
+	MX_DEBUG(-2,("%s: image_format = %ld, byte_order = %ld", fname,
+		(long) MXIF_IMAGE_FORMAT(frame),
+		(long) MXIF_BYTE_ORDER(frame)));
+
+	MX_DEBUG(-2,("%s: image_length = %lu, image_data = %p",
+		fname, (unsigned long) frame->image_length, frame->image_data));
+
+	MX_DEBUG(-2,("%s: exposure_time = (%lu,%lu)", fname,
+		(unsigned long) MXIF_EXPOSURE_TIME_SEC(frame),
+		(unsigned long) MXIF_EXPOSURE_TIME_NSEC(frame) ));
+
+	MX_DEBUG(-2,("%s: timestamp = (%lu,%lu)", fname,
+		(unsigned long) MXIF_TIMESTAMP_SEC(frame),
+		(unsigned long) MXIF_TIMESTAMP_NSEC(frame) ));
+#endif
+
 	if ( mxp_tiff_availability_checked == FALSE ) {
 		(void) mxp_image_test_for_libtiff();
 	}
@@ -4959,7 +4985,7 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 
 	image_format = MXIF_IMAGE_FORMAT(frame);
 
-#if MX_IMAGE_DEBUG
+#if MX_IMAGE_DEBUG_CHARACTERISTICS
 	MX_DEBUG(-2,("%s invoked for datafile '%s'.",
 		fname, datafile_name ));
 
@@ -4973,6 +4999,14 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 
 	MX_DEBUG(-2,("%s: image_length = %lu, image_data = %p",
 		fname, (unsigned long) frame->image_length, frame->image_data));
+
+	MX_DEBUG(-2,("%s: exposure_time = (%lu,%lu)", fname,
+		(unsigned long) MXIF_EXPOSURE_TIME_SEC(frame),
+		(unsigned long) MXIF_EXPOSURE_TIME_NSEC(frame) ));
+
+	MX_DEBUG(-2,("%s: timestamp = (%lu,%lu)", fname,
+		(unsigned long) MXIF_TIMESTAMP_SEC(frame),
+		(unsigned long) MXIF_TIMESTAMP_NSEC(frame) ));
 #endif
 
 	byteorder = mx_native_byteorder();

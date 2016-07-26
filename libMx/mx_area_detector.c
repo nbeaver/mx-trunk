@@ -3871,6 +3871,16 @@ mx_area_detector_readout_frame( MX_RECORD *record, long frame_number )
 			return mx_status;
 	}
 
+#if 1
+	if ( ad->image_frame == NULL ) {
+		MX_DEBUG(-2,("%s: no frame found.", fname));
+	} else {
+		MX_DEBUG(-2,("%s: frame timestamp = (%lu,%lu)", fname,
+			MXIF_TIMESTAMP_SEC( ad->image_frame ),
+			MXIF_TIMESTAMP_NSEC( ad->image_frame ) ));
+	}
+#endif
+
 	return mx_status;
 }
 
