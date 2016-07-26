@@ -18,6 +18,10 @@
 
 #define LIBTIFF_MODULE_DEBUG_FINALIZE	TRUE
 
+#define LIBTIFF_MODULE_DEBUG_READ	TRUE
+
+#define LIBTIFF_MODULE_DEBUG_WRITE	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -233,13 +237,11 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 		"any image data.", frame, datafile_name );
 	}
 
+#if LIBTIFF_MODULE_DEBUG_WRITE
 	MX_DEBUG(-2,("%s invoked for datafile '%s'.", fname, datafile_name));
-
-	/* mx_breakpoint(); */
+#endif
 
 	tiff = TIFFOpen( datafile_name, "w" );
-
-	MX_DEBUG(-2,("%s: tiff = %p", fname, tiff));
 
 	/* Copy everything from the MX header into the TIFF header. */
 
@@ -286,14 +288,21 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 
 	time_in_seconds = MXIF_TIMESTAMP_SEC(frame);
 
+#if LIBTIFF_MODULE_DEBUG_WRITE
+	MX_DEBUG(-2,("%s: frame timestamp = (%lu,%lu)", fname,
+		MXIF_TIMESTAMP_SEC(frame), MXIF_TIMESTAMP_NSEC(frame) ));
+
 	MX_DEBUG(-2,("%s: time_in_seconds = %lu", fname, time_in_seconds));
+#endif
 
 	(void) localtime_r( &time_in_seconds, &tm_struct );
 
 	strftime( timestamp, sizeof(timestamp),
 		"%Y:%m:%d %H:%M:%S", &tm_struct );
 
+#if LIBTIFF_MODULE_DEBUG_WRITE
 	MX_DEBUG(-2,("%s: timestamp = '%s'", fname, timestamp));
+#endif
 
 	if (! TIFFSetField( tiff, TIFFTAG_DATETIME, timestamp ) ) {
 		TIFFClose( tiff );
@@ -341,8 +350,6 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 
 	/* Missing MX fields: binsize, bias offset. */
 
-	/* NOW: Software */
-
 	/* FIXME: Things we might want to add later.
  	 *
  	 * Baseline:
@@ -356,9 +363,6 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 	/* Write the image data to the file. */
 
 	scanline_size_in_bytes = TIFFScanlineSize( tiff );
-
-	MX_DEBUG(-2,("%s: scanline_size_in_bytes = %ld",
-		fname, scanline_size_in_bytes));
 
 	scanline_buffer = _TIFFmalloc( scanline_size_in_bytes );
 
@@ -401,27 +405,26 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 		"TIFFCreateEXIFDirectory() failed for the first IFD." );
 	}
 
-	/* Save the exposure time.
-	 *
-	 * The EXIF TIFF tag for ExposureTime is of type RATIONAL.  This is
-	 * the ratio of two 32-bit integers.  For now we set the denominator
-	 * to 1000 so that the numerator is the exposure time in milliseconds.
-	 */
+	/* Save the exposure time. */
 
+#if 0
 	MX_DEBUG(-2,("%s: MXIF_EXPOSURE_TIME_SEC() = %lu",
 		fname, MXIF_EXPOSURE_TIME_SEC(frame) ));
 	MX_DEBUG(-2,("%s: MXIF_EXPOSURE_TIME_NSEC() = %lu",
 		fname, MXIF_EXPOSURE_TIME_NSEC(frame) ));
+#endif
 
 	exposure_seconds = MXIF_EXPOSURE_TIME_SEC(frame)
 			+ 1.0e-9 * MXIF_EXPOSURE_TIME_NSEC(frame);
 
+#if LIBTIFF_MODULE_DEBUG_WRITE
 	MX_DEBUG(-2,("%s: exposure_seconds = %f", fname, exposure_seconds));
+#endif
 
 	if (! TIFFSetField( tiff, EXIFTAG_EXPOSURETIME, exposure_seconds ) ) {
 		TIFFClose( tiff );
 		return mx_error( MXE_FUNCTION_FAILED, fname,
-		"Cannot set ... EXIF TIFF tag." );
+		"Cannot set EXIFTAG_EXPOSURETIME tag." );
 	}
 
 	/* Close the custom EXIF directory. */

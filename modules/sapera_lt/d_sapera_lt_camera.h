@@ -47,7 +47,7 @@ typedef struct {
 
 	struct timespec boot_time;
 
-	struct timespec *frame_time;
+	struct timespec *frame_timespec;
 	mx_bool_type    *frame_buffer_is_unsaved;
 
 	long old_total_num_frames;

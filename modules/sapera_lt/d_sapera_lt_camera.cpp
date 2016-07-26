@@ -202,7 +202,7 @@ mxd_sapera_lt_camera_acquisition_callback( SapXferCallbackInfo *info )
 	long raw_frame_buffer_number;
 	mx_bool_type old_frame_buffer_was_unsaved;
 	mx_bool_type skip_frame;
-	struct timespec frame_time, time_offset;
+	struct timespec frame_timespec, time_offset;
 
 #if MXD_SAPERA_LT_CAMERA_DEBUG_ACQUISITION_CALLBACK
 	MX_DEBUG(-2,
@@ -223,9 +223,18 @@ mxd_sapera_lt_camera_acquisition_callback( SapXferCallbackInfo *info )
 
 	time_offset = mx_high_resolution_time();
 
-	frame_time = mx_add_high_resolution_times(
-			sapera_lt_camera->boot_time,
-			time_offset );
+	frame_timespec = mx_add_high_resolution_times(
+				sapera_lt_camera->boot_time,
+				time_offset );
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG_ACQUISITION_CALLBACK
+	MX_DEBUG(-2,("%s: boot_time = (%lu,%lu), time_offset = (%lu,%lu)",
+		fname, sapera_lt_camera->boot_time.tv_sec,
+		sapera_lt_camera->boot_time.tv_nsec,
+		time_offset.tv_sec, time_offset.tv_nsec ));
+	MX_DEBUG(-2,("%s: frame_timespec = (%lu,%lu)",
+		fname, frame_timespec.tv_sec, frame_timespec.tv_nsec));
+#endif
 
 	/* Update the raw last frame number for this sequence. */
 
@@ -304,7 +313,15 @@ mxd_sapera_lt_camera_acquisition_callback( SapXferCallbackInfo *info )
 			fname, i, sapera_lt_camera->raw_frame_number_array[i]));
 #endif
 
-		sapera_lt_camera->frame_time[i] = frame_time;
+		sapera_lt_camera->frame_timespec[i] = frame_timespec;
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG_ACQUISITION_CALLBACK
+		MX_DEBUG(-2,
+		("%s: sapera_lt_camera->frame_timespec[%lu] = (%lu,%lu)",
+			fname, i,
+			sapera_lt_camera->frame_timespec[i].tv_sec,
+			sapera_lt_camera->frame_timespec[i].tv_nsec));
+#endif
 
 		/* Remember whether or not the frame buffer that was just 
 		 * overwritten had unsaved data in it.
@@ -1389,11 +1406,11 @@ mxd_sapera_lt_camera_open( MX_RECORD *record )
 	 * wall clock time when each frame was acquired.
 	 */
 
-	sapera_lt_camera->frame_time = (struct timespec *)
+	sapera_lt_camera->frame_timespec = (struct timespec *)
 		calloc( sapera_lt_camera->num_frame_buffers,
 			sizeof(struct timespec) );
 
-	if ( sapera_lt_camera->frame_time == (struct timespec *) NULL ) {
+	if ( sapera_lt_camera->frame_timespec == (struct timespec *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to allocate a %ld element "
 		"frame time array for area detector '%s'.",
@@ -2395,10 +2412,15 @@ mxd_sapera_lt_camera_get_frame( MX_VIDEO_INPUT *vinput )
 	/* Update the acquisition time in the image header. */
 
 	acquisition_time =
-		sapera_lt_camera->frame_time[ buffer_resource_index ];
+		sapera_lt_camera->frame_timespec[ user_modulo_frame_number ];
 
 #if MXD_SAPERA_LT_CAMERA_DEBUG_GET_FRAME
-	MX_DEBUG(-4,("%s: acquisition_time = (%lu,%lu)", fname,
+	MX_DEBUG(-2,("%s: sapera_lt_camera->frame_timespec[%lu] = (%lu,%lu)",
+	  fname, user_modulo_frame_number,
+	  sapera_lt_camera->frame_timespec[user_modulo_frame_number].tv_sec,
+	  sapera_lt_camera->frame_timespec[user_modulo_frame_number].tv_nsec ));
+
+	MX_DEBUG(-2,("%s: acquisition_time = (%lu,%lu)", fname,
 		acquisition_time.tv_sec, acquisition_time.tv_nsec));
 #endif
 	MXIF_TIMESTAMP_SEC( vinput->frame )  = acquisition_time.tv_sec;

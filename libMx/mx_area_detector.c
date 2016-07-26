@@ -3871,7 +3871,7 @@ mx_area_detector_readout_frame( MX_RECORD *record, long frame_number )
 			return mx_status;
 	}
 
-#if 1
+#if 0
 	if ( ad->image_frame == NULL ) {
 		MX_DEBUG(-2,("%s: no frame found.", fname));
 	} else {
