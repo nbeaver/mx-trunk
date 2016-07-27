@@ -38,6 +38,12 @@
 #include "mx_image.h"
 #include "e_libtiff.h"
 
+/* FIXME: The following definition of strptime() should not be necessary. */
+
+#if defined(OS_LINUX)
+extern char *strptime( const char *, const char *, struct tm * );
+#endif
+
 MX_EXTENSION_FUNCTION_LIST mxext_libtiff_extension_function_list = {
 	mxext_libtiff_initialize,
 };
@@ -186,7 +192,8 @@ mxext_libtiff_read_tiff_file( MX_IMAGE_FRAME **image_frame,
 		"TIFF image '%s' is a multicomponent image with %lu "
 		"samples per pixel.  Currently MX only supports reading "
 		"TIFF files with one sample per pixel.",
-			datafile_name, samples_per_pixel );
+			datafile_name,
+			(unsigned long) samples_per_pixel );
 	}
 
 	if (! TIFFGetField( tiff, TIFFTAG_BITSPERSAMPLE, &bits_per_sample ) ) {
@@ -385,6 +392,8 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 
 	bits_per_pixel = MXIF_BITS_PER_PIXEL(frame);
 
+	MXW_UNUSED( bits_per_pixel );
+
 	if (! TIFFSetField( tiff, TIFFTAG_BITSPERSAMPLE, 16 ) ) {
 		TIFFClose( tiff );
 		return mx_error( MXE_FUNCTION_FAILED, fname,
@@ -400,7 +409,8 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 
 #if LIBTIFF_MODULE_DEBUG_WRITE
 	MX_DEBUG(-2,("%s: frame timestamp = (%lu,%lu)", fname,
-		MXIF_TIMESTAMP_SEC(frame), MXIF_TIMESTAMP_NSEC(frame) ));
+		(unsigned long) MXIF_TIMESTAMP_SEC(frame),
+		(unsigned long) MXIF_TIMESTAMP_NSEC(frame) ));
 
 	MX_DEBUG(-2,("%s: time_in_seconds = %lu", fname, time_in_seconds));
 #endif
