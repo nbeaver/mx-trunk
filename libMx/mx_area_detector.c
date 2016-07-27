@@ -241,6 +241,10 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->transfer_destination_frame_ptr = NULL;
 	ad->dezinger_threshold = DBL_MAX;
 
+	ad->resolution[0] = 0.0;
+	ad->resolution[1] = 0.0;
+	ad->resolution_units[0] = '\0';
+
 	ad->frame_filename[0] = '\0';
 
 	ad->mask_frame = NULL;

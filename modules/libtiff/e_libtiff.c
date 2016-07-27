@@ -31,11 +31,16 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_driver.h"
 #include "mx_bit.h"
 #include "mx_version.h"
 #include "mx_time.h"
+#include "mx_socket.h"
+#include "mx_variable.h"
 #include "mx_module.h"
 #include "mx_image.h"
+#include "mx_area_detector.h"
+#include "mx_video_input.h"
 #include "e_libtiff.h"
 
 /* FIXME: The following definition of strptime() should not be necessary. */
@@ -53,6 +58,11 @@ MX_EXTENSION_FUNCTION_LIST mxext_libtiff_extension_function_list = {
 #else
 #  define MXP_LIBTIFF_LIBRARY_NAME	"libtiff.so"
 #endif
+
+/*------*/
+
+static char mx_tiff_site_name[256] = { '\0' };
+static char mx_tiff_hostname[MXU_HOSTNAME_LENGTH+1] = { '\0' };
 
 /*------*/
 
@@ -336,9 +346,16 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 	time_t time_in_seconds;
 	struct tm tm_struct;
 
+	long sample_format;
+
 	double exposure_seconds;
 
 	uint64_t exif_dir_offset;
+
+	MX_AREA_DETECTOR *ad = NULL;
+	MX_VIDEO_INPUT *vinput = NULL;
+
+	mx_status_type mx_status;
 
 	if ( frame == (MX_IMAGE_FRAME *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -357,6 +374,27 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 #if LIBTIFF_MODULE_DEBUG_WRITE
 	MX_DEBUG(-2,("%s invoked for datafile '%s'.", fname, datafile_name));
 #endif
+	/* See if there is an MX_RECORD pointer in this MX_IMAGE_FRAME. */
+
+	if ( frame->record != (MX_RECORD *) NULL ) {
+		switch( frame->record->mx_class ) {
+		case MXC_AREA_DETECTOR:
+			ad = (MX_AREA_DETECTOR *)
+					frame->record->record_class_struct;
+			break;
+		case MXC_VIDEO_INPUT:
+			vinput = (MX_VIDEO_INPUT *)
+					frame->record->record_class_struct;
+			break;
+		default:
+			/* If this is not an area detector or video input
+			 * record, then do nothing.
+			 */
+			break;
+		}
+	}
+
+	/* Open the TIFF image for writing. */
 
 	tiff = TIFFOpen( datafile_name, "w" );
 
@@ -451,6 +489,16 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 		"Cannot set PhotometricInterpretation TIFF tag." );
 	}
 
+	/* Make the entire image be a single TIFF strip by setting the
+	 * rows per strip to the total number of rows in the image.
+	 */
+
+	if (! TIFFSetField( tiff, TIFFTAG_ROWSPERSTRIP, column_height )) {
+		TIFFClose( tiff );
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"Cannot set PhotometricInterpretation TIFF tag." );
+	}
+
 	/* MX software version. */
 
 	snprintf( mx_version_string, sizeof(mx_version_string),
@@ -468,12 +516,141 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 		"Cannot set Software TIFF tag." );
 	}
 
+	/* If present, store the pixel resolution and pixel resolution units. */
+
+	if ( ad != NULL ) {
+#if 1
+	    if (1)
+#else
+	    if ( ( mx_difference( ad->resolution[0], 0.0 ) >= 1.0e-10 )
+	      || ( mx_difference( ad->resolution[1], 0.0 ) >= 1.0e-10 ) )
+#endif
+	    {
+
+		if (! TIFFSetField( tiff, TIFFTAG_XRESOLUTION,
+				ad->resolution[0] ) )
+		{
+			return mx_error( MXE_FUNCTION_FAILED, fname,
+			"Cannot set XResolution TIFF tag." );
+		}
+
+		if (! TIFFSetField( tiff, TIFFTAG_YRESOLUTION,
+				ad->resolution[1] ) )
+		{
+			return mx_error( MXE_FUNCTION_FAILED, fname,
+			"Cannot set YResolution TIFF tag." );
+		}
+
+		/* ResolutionUnit is specified as 'centimeters' (3). */
+
+		if (! TIFFSetField( tiff, TIFFTAG_RESOLUTIONUNIT, 3 ) ) {
+			return mx_error( MXE_FUNCTION_FAILED, fname,
+			"Cannot set ResolutionUnit TIFF tag." );
+		}
+	    }
+
+	    switch( ad->image_format ) {
+	    case MXT_IMAGE_FORMAT_GREY8:
+	    case MXT_IMAGE_FORMAT_GREY16:
+	    case MXT_IMAGE_FORMAT_GREY32:
+		sample_format = SAMPLEFORMAT_UINT;
+		break;
+	    case MXT_IMAGE_FORMAT_INT32:
+		sample_format = SAMPLEFORMAT_INT;
+		break;
+	    case MXT_IMAGE_FORMAT_FLOAT:
+	    case MXT_IMAGE_FORMAT_DOUBLE:
+		sample_format = SAMPLEFORMAT_IEEEFP;
+		break;
+	    default:
+		sample_format = SAMPLEFORMAT_VOID;
+		break;
+	    }
+
+	    if (! TIFFSetField( tiff, TIFFTAG_SAMPLEFORMAT, sample_format ) ) {
+		TIFFClose( tiff );
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"Cannot set SampleFormat TIFF tag." );
+	    }
+	}
+
+	/* Save a copy of the name of this computer. */
+
+	if ( mx_tiff_hostname[0] == '\0' ) {
+	    mx_gethostname( mx_tiff_hostname, sizeof(mx_tiff_hostname) );
+	}
+
+	if ( mx_tiff_hostname[0] != '\0' ) {
+	    if (! TIFFSetField( tiff, TIFFTAG_HOSTCOMPUTER, mx_tiff_hostname ) )
+	    {
+		TIFFClose( tiff );
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"Cannot set HostComputer TIFF tag." );
+	    }
+	}
+
+	/* If present, specify the MX site name. */
+
+	if ( frame->record != (MX_RECORD *) NULL ) {
+	    MX_RECORD *site_name_record;
+	    const char *driver_name;
+
+	    site_name_record = mx_get_record( frame->record, "mx_site" );
+
+	    if ( site_name_record == (MX_RECORD *) NULL ) {
+		/* 'beamline_name' is an obsolete name that is
+		 * still used occasionally at APS.
+		 */
+
+		site_name_record =
+			mx_get_record( frame->record, "beamline_name");
+	    }
+
+	    if ( ( site_name_record != (MX_RECORD *) NULL )
+	      && ( site_name_record->mx_superclass == MXR_VARIABLE ) )
+	    {
+		if ( mx_tiff_site_name[0] == '\0' ) {
+		    mx_status = mx_get_string_variable( site_name_record,
+						mx_tiff_site_name,
+						sizeof(mx_tiff_site_name) );
+		}
+
+		if ( mx_tiff_site_name[0] != '\0' ) {
+
+		    if (! TIFFSetField( tiff, TIFFTAG_ARTIST,
+						mx_tiff_site_name ) )
+		    {
+			TIFFClose( tiff );
+			return mx_error( MXE_FUNCTION_FAILED, fname,
+			"Cannot set Artist TIFF tag." );
+		    }
+		}
+	    }
+
+	    /* Specify the MX driver name in the Model field. */
+
+	    driver_name = mx_get_driver_name( frame->record );
+
+	    if ( driver_name != NULL ) {
+		char model_name[MXU_DRIVER_NAME_LENGTH+1];
+
+		snprintf( model_name, sizeof(model_name),
+			"MX '%s' driver.", driver_name );
+
+		if (! TIFFSetField( tiff, TIFFTAG_MODEL, model_name ) ) {
+		    TIFFClose( tiff );
+		    return mx_error( MXE_FUNCTION_FAILED, fname,
+		    "Cannot set Model TIFF tag." );
+		}
+	    }
+	}
+
 	/* Missing MX fields: binsize, bias offset. */
 
 	/* FIXME: Things we might want to add later.
  	 *
  	 * Baseline:
- 	 *   Artist, HostComputer, ResolutionUnit, XResolution, YResolution
+ 	 *   HostComputer
  	 *
  	 * Extension:
  	 *   ImageID, PageName, PageNumber, SMaxSampleValue, SMinSampleValue,
