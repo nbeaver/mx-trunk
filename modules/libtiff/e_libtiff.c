@@ -394,6 +394,8 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 		}
 	}
 
+	MXW_UNUSED( vinput );
+
 	/* Open the TIFF image for writing. */
 
 	tiff = TIFFOpen( datafile_name, "w" );
@@ -613,6 +615,8 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 		    mx_status = mx_get_string_variable( site_name_record,
 						mx_tiff_site_name,
 						sizeof(mx_tiff_site_name) );
+
+		    MXW_UNUSED( mx_status );
 		}
 
 		if ( mx_tiff_site_name[0] != '\0' ) {
