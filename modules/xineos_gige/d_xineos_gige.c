@@ -902,8 +902,10 @@ mxd_xineos_gige_trigger( MX_AREA_DETECTOR *ad )
 		break;
 	}
 
+#if MXD_XINEOS_GIGE_DEBUG
 	MX_DEBUG(-2,("%s: pulse_width = %f, num_pulses = %lu",
 		fname, pulse_width, num_pulses));
+#endif
 
 	if ( pulse_width < xineos_gige->minimum_frame_time )
 	{

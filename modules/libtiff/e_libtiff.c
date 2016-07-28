@@ -29,6 +29,16 @@
 /* Include file from libtiff. */
 #include "tiffio.h"
 
+/* Note (TIFFLIB_VERSION == 20120615) corresponds to LibTIFF 4.0.2, which was
+ * the first version to support TIFFCreateEXIFDirectory().
+ */
+
+#if (defined(TIFF_VERSION_BIG) && (TIFFLIB_VERSION >= 20120615))
+#  define MX_USE_EXIF_TIFF_TAGS		TRUE
+#else
+#  define MX_USE_EXIF_TIFF_TAGS		FALSE
+#endif
+
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
@@ -61,7 +71,7 @@ MX_EXTENSION_FUNCTION_LIST mxext_libtiff_extension_function_list = {
 
 /*------*/
 
-static char mx_tiff_site_name[256] = { '\0' };
+static char mx_tiff_site_description[256] = { '\0' };
 static char mx_tiff_hostname[MXU_HOSTNAME_LENGTH+1] = { '\0' };
 
 /*------*/
@@ -350,10 +360,16 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 
 	double exposure_seconds;
 
+	char image_description[500];
+	char temp_buffer[80];
+
 	uint64_t exif_dir_offset;
 
 	MX_AREA_DETECTOR *ad = NULL;
 	MX_VIDEO_INPUT *vinput = NULL;
+
+	MX_SEQUENCE_PARAMETERS seq;
+	long i;
 
 	mx_status_type mx_status;
 
@@ -393,8 +409,6 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 			break;
 		}
 	}
-
-	MXW_UNUSED( vinput );
 
 	/* Open the TIFF image for writing. */
 
@@ -576,53 +590,30 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 	    }
 	}
 
-	/* Save a copy of the name of this computer. */
-
-	if ( mx_tiff_hostname[0] == '\0' ) {
-	    mx_gethostname( mx_tiff_hostname, sizeof(mx_tiff_hostname) );
-	}
-
-	if ( mx_tiff_hostname[0] != '\0' ) {
-	    if (! TIFFSetField( tiff, TIFFTAG_HOSTCOMPUTER, mx_tiff_hostname ) )
-	    {
-		TIFFClose( tiff );
-		return mx_error( MXE_FUNCTION_FAILED, fname,
-		"Cannot set HostComputer TIFF tag." );
-	    }
-	}
-
 	/* If present, specify the MX site name. */
 
 	if ( frame->record != (MX_RECORD *) NULL ) {
-	    MX_RECORD *site_name_record;
+	    MX_RECORD *site_description_record;
 	    const char *driver_name;
 
-	    site_name_record = mx_get_record( frame->record, "mx_site" );
+	    site_description_record = mx_get_record( frame->record,
+						"mx_site_description" );
 
-	    if ( site_name_record == (MX_RECORD *) NULL ) {
-		/* 'beamline_name' is an obsolete name that is
-		 * still used occasionally at APS.
-		 */
-
-		site_name_record =
-			mx_get_record( frame->record, "beamline_name");
-	    }
-
-	    if ( ( site_name_record != (MX_RECORD *) NULL )
-	      && ( site_name_record->mx_superclass == MXR_VARIABLE ) )
+	    if ( ( site_description_record != (MX_RECORD *) NULL )
+	      && ( site_description_record->mx_superclass == MXR_VARIABLE ) )
 	    {
-		if ( mx_tiff_site_name[0] == '\0' ) {
-		    mx_status = mx_get_string_variable( site_name_record,
-						mx_tiff_site_name,
-						sizeof(mx_tiff_site_name) );
+		if ( mx_tiff_site_description[0] == '\0' ) {
+		    mx_status = mx_get_string_variable( site_description_record,
+					mx_tiff_site_description,
+					sizeof(mx_tiff_site_description) );
 
 		    MXW_UNUSED( mx_status );
 		}
 
-		if ( mx_tiff_site_name[0] != '\0' ) {
+		if ( mx_tiff_site_description[0] != '\0' ) {
 
 		    if (! TIFFSetField( tiff, TIFFTAG_ARTIST,
-						mx_tiff_site_name ) )
+						mx_tiff_site_description ) )
 		    {
 			TIFFClose( tiff );
 			return mx_error( MXE_FUNCTION_FAILED, fname,
@@ -649,6 +640,185 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 	    }
 	}
 
+	/* Get the exposure time from the image frame header. */
+
+#if 0
+	MX_DEBUG(-2,("%s: MXIF_EXPOSURE_TIME_SEC() = %lu",
+		fname, MXIF_EXPOSURE_TIME_SEC(frame) ));
+	MX_DEBUG(-2,("%s: MXIF_EXPOSURE_TIME_NSEC() = %lu",
+		fname, MXIF_EXPOSURE_TIME_NSEC(frame) ));
+#endif
+
+	exposure_seconds = MXIF_EXPOSURE_TIME_SEC(frame)
+			+ 1.0e-9 * MXIF_EXPOSURE_TIME_NSEC(frame);
+
+#if LIBTIFF_MODULE_DEBUG_WRITE
+	MX_DEBUG(-2,("%s: exposure_seconds = %f", fname, exposure_seconds));
+#endif
+
+	/* Tradition appears to be to put some information that does not
+	 * fit well into any of the existing tags into the string tag called
+	 * ImageDescription.  That way, TIFF readers that do not understand
+	 * the EXIF IFD can still find this information.
+	 */
+
+	snprintf( temp_buffer, sizeof(temp_buffer),
+		"# Exposure_time %f seconds\n", exposure_seconds );
+
+	strlcpy( image_description,
+		temp_buffer,
+		sizeof(image_description) );
+
+	/* Describe the currently installed sequence in the image header. */
+
+	if ( ad != (MX_AREA_DETECTOR *) NULL ) {
+		mx_status = mx_area_detector_get_sequence_parameters(
+				frame->record, &seq );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		switch( seq.sequence_type ) {
+		case MXT_SQ_ONE_SHOT:
+			strlcat( image_description,
+				"# Sequence: one_shot ",
+				sizeof(image_description) );
+			break;
+		case MXT_SQ_STREAM:
+			strlcat( image_description,
+				"# Sequence: stream ",
+				sizeof(image_description) );
+			break;
+		case MXT_SQ_MULTIFRAME:
+			strlcat( image_description,
+				"# Sequence: multiframe ",
+				sizeof(image_description) );
+			break;
+		case MXT_SQ_STROBE:
+			strlcat( image_description,
+				"# Sequence: strobe ",
+				sizeof(image_description) );
+			break;
+		case MXT_SQ_DURATION:
+			strlcat( image_description,
+				"# Sequence: duration ",
+				sizeof(image_description) );
+			break;
+		case MXT_SQ_GATED:
+			strlcat( image_description,
+				"# Sequence: gated ",
+				sizeof(image_description) );
+			break;
+		case MXT_SQ_GEOMETRICAL:
+			strlcat( image_description,
+				"# Sequence: geometrical ",
+				sizeof(image_description) );
+			break;
+		case MXT_SQ_STREAK_CAMERA:
+			strlcat( image_description,
+				"# Sequence: streak_camera ",
+				sizeof(image_description) );
+			break;
+		case MXT_SQ_SUBIMAGE:
+			strlcat( image_description,
+				"# Sequence: subimage ",
+				sizeof(image_description) );
+			break;
+		default:
+			snprintf( temp_buffer, sizeof(temp_buffer),
+				"# Sequence: unknown(%ld) ",
+				seq.sequence_type );
+			strlcat( image_description,
+				temp_buffer, sizeof(image_description) );
+			break;
+		}
+
+		snprintf( temp_buffer, sizeof(temp_buffer),
+			"%f", seq.parameter_array[0] );
+		strlcat( image_description,
+			temp_buffer, sizeof(image_description) );
+
+		for ( i = 1; i < seq.num_parameters; i++ ) {
+			snprintf( temp_buffer, sizeof(temp_buffer),
+				",%f", seq.parameter_array[i] );
+			strlcat( image_description,
+				temp_buffer, sizeof(image_description) );
+		}
+		strlcat( image_description, "\n", sizeof(image_description) );
+
+		/*------------------*/
+
+		snprintf( temp_buffer, sizeof(temp_buffer),
+			"# trigger_mode = %#lx\n",
+			ad->trigger_mode );
+
+		strlcat( image_description, temp_buffer,
+				sizeof(image_description) );
+
+		snprintf( temp_buffer, sizeof(temp_buffer),
+			"# correction_flags = %#lx\n",
+			ad->correction_flags );
+
+		strlcat( image_description, temp_buffer,
+				sizeof(image_description) );
+	}
+
+	/*----------------------------------------------------------------*/
+
+	if (! TIFFSetField( tiff, TIFFTAG_IMAGEDESCRIPTION, image_description) )
+	{
+		TIFFClose( tiff );
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"Cannot set ImageDescription TIFF tag." );
+	}
+
+	if ( ad != (MX_AREA_DETECTOR *) NULL ) {
+		snprintf( temp_buffer, sizeof(temp_buffer), "%s/%s",
+			ad->datafile_directory, ad->datafile_name );
+
+#if 0
+		if (! TIFFSetField( tiff, TIFFTAG_OPIIMAGEID, temp_buffer ) )
+		{
+			TIFFClose( tiff );
+			return mx_error( MXE_FUNCTION_FAILED, fname,
+			"Cannot set ImageID TIFF tag." );
+		}
+#endif
+
+		/*---*/
+
+		snprintf( temp_buffer, sizeof(temp_buffer), "%s/%s",
+			ad->datafile_directory, ad->datafile_pattern );
+
+		if (! TIFFSetField( tiff, TIFFTAG_DOCUMENTNAME, temp_buffer ) )
+		{
+			TIFFClose( tiff );
+			return mx_error( MXE_FUNCTION_FAILED, fname,
+			"Cannot set DocumentName TIFF tag." );
+		}
+
+		/*---*/
+
+		snprintf( temp_buffer, sizeof(temp_buffer),
+			"%ld", ad->datafile_number );
+
+		if (! TIFFSetField( tiff, TIFFTAG_PAGENAME, temp_buffer ) ) {
+			TIFFClose( tiff );
+			return mx_error( MXE_FUNCTION_FAILED, fname,
+			"Cannot set PageName TIFF tag." );
+		}
+
+		/*---*/
+
+		if (! TIFFSetField( tiff, TIFFTAG_PAGENUMBER,
+				ad->datafile_last_frame_number ) )
+		{
+			TIFFClose( tiff );
+			return mx_error( MXE_FUNCTION_FAILED, fname,
+			"Cannot set PageNumber TIFF tag." );
+		}
+	}
+
 	/* Missing MX fields: binsize, bias offset. */
 
 	/* FIXME: Things we might want to add later.
@@ -657,9 +827,13 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
  	 *   HostComputer
  	 *
  	 * Extension:
- 	 *   ImageID, PageName, PageNumber, SMaxSampleValue, SMinSampleValue,
- 	 *   XPosition, YPosition
+ 	 *   SMaxSampleValue, SMinSampleValue, XPosition, YPosition
+ 	 *
+ 	 * EXIF:
+ 	 *   SubjectDistance
  	 */
+
+/*----------------------- Write out the image data -------------------------*/
 
 	/* Write the image data to the file. */
 
@@ -667,7 +841,7 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 
 	scanline_buffer = _TIFFmalloc( scanline_size_in_bytes );
 
-	image_data_ptr = frame->image_data;
+image_data_ptr = frame->image_data;
 
 	for ( row = 0; row < column_height; row++ ) {
 		memcpy( scanline_buffer,
@@ -682,6 +856,11 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 
 		image_data_ptr += scanline_size_in_bytes;
 	}
+
+/*------------------------------ TIFF EXIF Support -------------------------*/
+#if MX_USE_EXIF_TIFF_TAGS
+
+	/* Only LibTIFF 4.0 and above explicitly support EXIF TIFF tags. */
 
 	/* Unfortunately, the only place we have to put the exposure time
 	 * information is into a separate EXIF directory, so we must do
@@ -706,26 +885,23 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 		"TIFFCreateEXIFDirectory() failed for the first IFD." );
 	}
 
-	/* Save the exposure time. */
-
-#if 0
-	MX_DEBUG(-2,("%s: MXIF_EXPOSURE_TIME_SEC() = %lu",
-		fname, MXIF_EXPOSURE_TIME_SEC(frame) ));
-	MX_DEBUG(-2,("%s: MXIF_EXPOSURE_TIME_NSEC() = %lu",
-		fname, MXIF_EXPOSURE_TIME_NSEC(frame) ));
-#endif
-
-	exposure_seconds = MXIF_EXPOSURE_TIME_SEC(frame)
-			+ 1.0e-9 * MXIF_EXPOSURE_TIME_NSEC(frame);
-
-#if LIBTIFF_MODULE_DEBUG_WRITE
-	MX_DEBUG(-2,("%s: exposure_seconds = %f", fname, exposure_seconds));
-#endif
+	/* Save the exposure time to an EXIF tag designed for it. */
 
 	if (! TIFFSetField( tiff, EXIFTAG_EXPOSURETIME, exposure_seconds ) ) {
 		TIFFClose( tiff );
 		return mx_error( MXE_FUNCTION_FAILED, fname,
 		"Cannot set EXIFTAG_EXPOSURETIME tag." );
+	}
+
+	/* Save the fractional seconds part of the image timestamp. */
+
+	snprintf( temp_buffer, sizeof(temp_buffer), "%f",
+		1.0e-9 * MXIF_TIMESTAMP_NSEC( frame ) );
+
+	if (! TIFFSetField( tiff, EXIFTAG_SUBSECTIME, temp_buffer ) ) {
+		TIFFClose( tiff );
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"Cannot set EXIFTAG_SUBSECTIME tag." );
 	}
 
 	/* Close the custom EXIF directory. */
@@ -750,6 +926,9 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 		return mx_error( MXE_FUNCTION_FAILED, fname,
 		"The attempt to save the EXIF IFD offset failed." );
 	}
+
+#endif /* MX_USE_EXIF_TIFF_TAGS */
+/*-------------------------- End of TIFF EXIF Support -----------------------*/
 
 	/* We are done, so close down everything. */
 
