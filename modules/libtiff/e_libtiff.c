@@ -71,8 +71,9 @@ MX_EXTENSION_FUNCTION_LIST mxext_libtiff_extension_function_list = {
 
 /*------*/
 
-static char mx_tiff_site_description[256] = { '\0' };
-static char mx_tiff_hostname[MXU_HOSTNAME_LENGTH+1] = { '\0' };
+static char mxp_tiff_site_description[256] = { '\0' };
+
+static char mxp_tiff_hostcomputer[(2*MXU_HOSTNAME_LENGTH)+1] = { '\0' };
 
 /*------*/
 
@@ -640,18 +641,18 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 	    if ( ( site_description_record != (MX_RECORD *) NULL )
 	      && ( site_description_record->mx_superclass == MXR_VARIABLE ) )
 	    {
-		if ( mx_tiff_site_description[0] == '\0' ) {
+		if ( mxp_tiff_site_description[0] == '\0' ) {
 		    mx_status = mx_get_string_variable( site_description_record,
-					mx_tiff_site_description,
-					sizeof(mx_tiff_site_description) );
+					mxp_tiff_site_description,
+					sizeof(mxp_tiff_site_description) );
 
 		    MXW_UNUSED( mx_status );
 		}
 
-		if ( mx_tiff_site_description[0] != '\0' ) {
+		if ( mxp_tiff_site_description[0] != '\0' ) {
 
 		    if (! TIFFSetField( tiff, TIFFTAG_ARTIST,
-						mx_tiff_site_description ) )
+						mxp_tiff_site_description ) )
 		    {
 			TIFFClose( tiff );
 			return mx_error( MXE_FUNCTION_FAILED, fname,
@@ -859,12 +860,60 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 		}
 	}
 
+	/* Write out the hostname and operating system that created
+	 * this file.
+	 */
+
+	if ( mxp_tiff_hostcomputer[0] == '\0' ) {
+		char host_temp_buffer[MXU_HOSTNAME_LENGTH+1];
+		struct hostent *host_entry;
+		char *dns_name;
+		char os_temp_buffer[100];
+
+		/* First, get the hostname of the computer. */
+
+		mx_status = mx_gethostname( host_temp_buffer,
+					sizeof(host_temp_buffer) );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			TIFFClose( tiff );
+			return mx_status;
+		}
+
+		/* Attempt to use the hostname that we just got to
+		 * get the DNS domain name using gethostbyname().
+		 */
+
+		host_entry = gethostbyname( host_temp_buffer );
+
+		if ( host_entry == NULL ) {
+			dns_name = host_temp_buffer;
+		} else {
+			dns_name = host_entry->h_name;
+		}
+
+		mx_status = mx_get_os_version_string( os_temp_buffer,
+						sizeof(os_temp_buffer) );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			TIFFClose( tiff );
+			return mx_status;
+		}
+
+		snprintf( mxp_tiff_hostcomputer, sizeof(mxp_tiff_hostcomputer),
+			"(%s) %s", host_temp_buffer, os_temp_buffer );
+	}
+
+	if (! TIFFSetField(tiff, TIFFTAG_HOSTCOMPUTER, mxp_tiff_hostcomputer) )
+	{
+			TIFFClose( tiff );
+			return mx_error( MXE_FUNCTION_FAILED, fname,
+			"Cannot set HostComputer TIFF tag." );
+	}
+
 	/* Missing MX fields: binsize, bias offset. */
 
 	/* FIXME: Things we might want to add later.
- 	 *
- 	 * Baseline:
- 	 *   HostComputer
  	 *
  	 * Extension:
  	 *   SMaxSampleValue, SMinSampleValue, XPosition, YPosition

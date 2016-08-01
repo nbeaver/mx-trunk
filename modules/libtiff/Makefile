@@ -61,7 +61,7 @@ ifeq ($(MX_ARCH),win32)
 libtiff.mxo: $(LIBTIFF_OBJS)
 	link /dll /debug /nologo /out:libtiff.mxo /nodefaultlib:libc \
 		$(LIBTIFF_OBJS) $(LIBTIFF_LIBRARY) \
-		..\\..\\libMx\\$(MX_LIBRARY_NAME)
+		..\\..\\libMx\\$(MX_LIBRARY_NAME) $(WIN32_LIBS)
 
 	# For VC2005 or later, embed the manifest in the module.
 
