@@ -43,7 +43,7 @@ MX_IMAGE_FUNCTION_LIST mxext_libtiff_image_function_list = {
 static mx_bool_type
 libtiff_driver_init( MX_MODULE *module )
 {
-#if 1
+#if 0
 	static const char fname[] = "libtiff_driver_init()";
 
 	MX_DEBUG(-2,("%s invoked for module '%s'", fname, module->name));

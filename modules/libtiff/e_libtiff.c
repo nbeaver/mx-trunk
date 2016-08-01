@@ -14,13 +14,13 @@
  *
  */
 
-#define LIBTIFF_MODULE_DEBUG_INITIALIZE	TRUE
+#define LIBTIFF_MODULE_DEBUG_INITIALIZE	FALSE
 
-#define LIBTIFF_MODULE_DEBUG_FINALIZE	TRUE
+#define LIBTIFF_MODULE_DEBUG_FINALIZE	FALSE
 
-#define LIBTIFF_MODULE_DEBUG_READ	TRUE
+#define LIBTIFF_MODULE_DEBUG_READ	FALSE
 
-#define LIBTIFF_MODULE_DEBUG_WRITE	TRUE
+#define LIBTIFF_MODULE_DEBUG_WRITE	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -86,11 +86,11 @@ mxext_libtiff_error_handler( const char *module, const char *fmt, ... )
 	vsnprintf( buffer, sizeof(buffer), fmt, va_alist );
 	va_end( va_alist );
 
-	if ( module != NULL ) {
-		fprintf( stderr, "%s: %s\n", module, buffer );
-	} else {
-		fprintf( stderr, "%s\n", buffer );
-	}
+	MX_DEBUG(-2,
+		("mxext_libtiff_error_handler(): module = '%s', fmt = '%s'",
+		module, fmt ));
+
+	fprintf( stderr, "%s\n", buffer );
 }
 
 /*------*/
@@ -189,7 +189,7 @@ mxext_libtiff_read_tiff_file( MX_IMAGE_FRAME **image_frame,
 	if (! TIFFGetField( tiff, TIFFTAG_IMAGEWIDTH, &row_width ) ) {
 		TIFFClose( tiff );
 		return mx_error( MXE_FUNCTION_FAILED, fname,
-		"Cannot read the ImageLength TIFF tag." );
+		"Cannot read the ImageWidth TIFF tag." );
 	}
 
 	if (! TIFFGetField( tiff, TIFFTAG_IMAGELENGTH, &column_height ) ) {
@@ -203,7 +203,7 @@ mxext_libtiff_read_tiff_file( MX_IMAGE_FRAME **image_frame,
 	{
 		TIFFClose( tiff );
 		return mx_error( MXE_FUNCTION_FAILED, fname,
-		"Cannot read the ImageLength TIFF tag." );
+		"Cannot read the SamplesPerPixel TIFF tag." );
 	}
 
 	if ( samples_per_pixel != 1 ) {
@@ -346,7 +346,10 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 	TIFF *tiff = NULL;
 	long row, row_width, column_height, bits_per_pixel;
 	long scanline_size_in_bytes;
+	long bytes_per_image;
+	double bytes_per_pixel;
 	int tiff_status;
+
 	char *scanline_buffer = NULL;
 	char *image_data_ptr = NULL;
 
@@ -369,7 +372,7 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 	MX_VIDEO_INPUT *vinput = NULL;
 
 	MX_SEQUENCE_PARAMETERS seq;
-	long i;
+	long i, num_frames_in_sequence;
 
 	mx_status_type mx_status;
 
@@ -451,7 +454,17 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 	if (! TIFFSetField( tiff, TIFFTAG_BITSPERSAMPLE, 16 ) ) {
 		TIFFClose( tiff );
 		return mx_error( MXE_FUNCTION_FAILED, fname,
-		"Cannot set SamplesPerPixel TIFF tag." );
+		"Cannot set BitsPerSample TIFF tag." );
+	}
+
+	/* MX does not compress TIFF images created by it, so we set
+	 * the Compression field to No compression (1).
+	 */
+
+	if (! TIFFSetField( tiff, TIFFTAG_COMPRESSION, 1 ) ) {
+		TIFFClose( tiff );
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"Cannot set Compression TIFF tag." );
 	}
 
 	/* Construct a TIFF-compatible version of the MX timestamp.
@@ -512,8 +525,33 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 	if (! TIFFSetField( tiff, TIFFTAG_ROWSPERSTRIP, column_height )) {
 		TIFFClose( tiff );
 		return mx_error( MXE_FUNCTION_FAILED, fname,
-		"Cannot set PhotometricInterpretation TIFF tag." );
+		"Cannot set RowsPerStrip TIFF tag." );
 	}
+
+	/* Specify the byte offset of the image data relative to the start
+	 * of the TIFF file.  Currently, the offset is 4096 bytes.  Note that
+	 * we only use 1 strip in MX.
+	 */
+
+#if 0
+	if (! TIFFSetField( tiff, TIFFTAG_STRIPOFFSETS, 4096 ) ) {
+		TIFFClose( tiff );
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"Cannot set StripOffsets TIFF tag." );
+	}
+
+	/* Specify the number of bytes in the image. */
+
+	bytes_per_pixel = MXIF_BYTES_PER_PIXEL(frame);
+
+	bytes_per_image = mx_round(bytes_per_pixel * row_width * column_height);
+
+	if (! TIFFSetField( tiff, TIFFTAG_STRIPBYTECOUNTS, bytes_per_image ) ) {
+		TIFFClose( tiff );
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"Cannot set StripByteCounts TIFF tag." );
+	}
+#endif
 
 	/* MX software version. */
 
@@ -740,11 +778,36 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 
 		for ( i = 1; i < seq.num_parameters; i++ ) {
 			snprintf( temp_buffer, sizeof(temp_buffer),
-				",%f", seq.parameter_array[i] );
+				", %f", seq.parameter_array[i] );
 			strlcat( image_description,
 				temp_buffer, sizeof(image_description) );
 		}
 		strlcat( image_description, "\n", sizeof(image_description) );
+
+		/*------------------*/
+
+		mx_status = mx_sequence_get_num_frames( &seq,
+						&num_frames_in_sequence );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			TIFFClose( tiff );
+			return mx_error( MXE_FUNCTION_FAILED, fname,
+			"Could not get the number of frames in this sequence.");
+		}
+
+		snprintf( temp_buffer, sizeof(temp_buffer),
+			"# Frame_number = %ld\n",
+			ad->datafile_last_frame_number - 1 );
+
+		strlcat( image_description, temp_buffer,
+				sizeof(image_description) );
+
+		snprintf( temp_buffer, sizeof(temp_buffer),
+			"# Num_frames_in_sequence = %ld\n",
+			num_frames_in_sequence );
+
+		strlcat( image_description, temp_buffer,
+				sizeof(image_description) );
 
 		/*------------------*/
 
@@ -774,20 +837,6 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 
 	if ( ad != (MX_AREA_DETECTOR *) NULL ) {
 		snprintf( temp_buffer, sizeof(temp_buffer), "%s/%s",
-			ad->datafile_directory, ad->datafile_name );
-
-#if 0
-		if (! TIFFSetField( tiff, TIFFTAG_OPIIMAGEID, temp_buffer ) )
-		{
-			TIFFClose( tiff );
-			return mx_error( MXE_FUNCTION_FAILED, fname,
-			"Cannot set ImageID TIFF tag." );
-		}
-#endif
-
-		/*---*/
-
-		snprintf( temp_buffer, sizeof(temp_buffer), "%s/%s",
 			ad->datafile_directory, ad->datafile_pattern );
 
 		if (! TIFFSetField( tiff, TIFFTAG_DOCUMENTNAME, temp_buffer ) )
@@ -799,23 +848,14 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 
 		/*---*/
 
-		snprintf( temp_buffer, sizeof(temp_buffer),
-			"%ld", ad->datafile_number );
+		snprintf( temp_buffer, sizeof(temp_buffer), "%s/%s",
+			ad->datafile_directory, ad->datafile_name );
 
-		if (! TIFFSetField( tiff, TIFFTAG_PAGENAME, temp_buffer ) ) {
-			TIFFClose( tiff );
-			return mx_error( MXE_FUNCTION_FAILED, fname,
-			"Cannot set PageName TIFF tag." );
-		}
-
-		/*---*/
-
-		if (! TIFFSetField( tiff, TIFFTAG_PAGENUMBER,
-				ad->datafile_last_frame_number ) )
+		if (! TIFFSetField( tiff, TIFFTAG_PAGENAME, temp_buffer ) )
 		{
 			TIFFClose( tiff );
 			return mx_error( MXE_FUNCTION_FAILED, fname,
-			"Cannot set PageNumber TIFF tag." );
+			"Cannot set PageName TIFF tag." );
 		}
 	}
 
@@ -833,15 +873,21 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
  	 *   SubjectDistance
  	 */
 
-/*----------------------- Write out the image data -------------------------*/
+/*--------------------------- Write the image data -------------------------*/
 
-	/* Write the image data to the file. */
+	/* Write the image data to the file.
+	 *
+	 * Note: The image data must be written to the file before
+	 * the EXIF directory has been created.  If you put the 
+	 * image data write after the EXIF operations, then libtiff
+	 * will refuse to write out the image data.
+	 */
 
 	scanline_size_in_bytes = TIFFScanlineSize( tiff );
 
 	scanline_buffer = _TIFFmalloc( scanline_size_in_bytes );
 
-image_data_ptr = frame->image_data;
+	image_data_ptr = frame->image_data;
 
 	for ( row = 0; row < column_height; row++ ) {
 		memcpy( scanline_buffer,
