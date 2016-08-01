@@ -347,8 +347,10 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 	TIFF *tiff = NULL;
 	long row, row_width, column_height, bits_per_pixel;
 	long scanline_size_in_bytes;
+#if 0
 	long bytes_per_image;
 	double bytes_per_pixel;
+#endif
 	int tiff_status;
 
 	char *scanline_buffer = NULL;
@@ -413,6 +415,8 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 			break;
 		}
 	}
+
+	MXW_UNUSED( vinput );
 
 	/* Open the TIFF image for writing. */
 
@@ -901,7 +905,7 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 		}
 
 		snprintf( mxp_tiff_hostcomputer, sizeof(mxp_tiff_hostcomputer),
-			"(%s) %s", host_temp_buffer, os_temp_buffer );
+			"(%s) %s", dns_name, os_temp_buffer );
 	}
 
 	if (! TIFFSetField(tiff, TIFFTAG_HOSTCOMPUTER, mxp_tiff_hostcomputer) )
