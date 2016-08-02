@@ -1,7 +1,7 @@
 .\" Process this man page with 
 .\" groff -man -Tascii mxdriverinfo.1
 .\"
-.TH MXDRIVERINFO 1 "July 2005" MX "MX User Manuals"
+.TH MXDRIVERINFO 1 "August 2016" MX "MX User Manuals"
 .SH NAME
 mxdriverinfo \- MX database format display program
 .SH SYNOPSIS
@@ -41,6 +41,10 @@ The first column is the superclass name.  The second column is
 the class name.  And the third column is the driver type name.
 .IP -v
 Display the version of MX in use.
+.IP "-m module_name"
+Load the MX module named 'module_name'
+.IP -M
+Load all MX modules in the default module directory
 .IP -d
 Turns on internal debugging.
 .SH EXAMPLE
