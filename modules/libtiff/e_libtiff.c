@@ -369,7 +369,9 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 	char image_description[500];
 	char temp_buffer[80];
 
+#if MX_USE_EXIF_TIFF_TAGS
 	uint64_t exif_dir_offset;
+#endif
 
 	MX_AREA_DETECTOR *ad = NULL;
 	MX_VIDEO_INPUT *vinput = NULL;

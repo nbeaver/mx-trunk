@@ -24,7 +24,8 @@
 
 /* Flag bits for the 'dalsa_gev_flags' field. */
 
-#define MXF_DALSA_GEV_SHOW_CAMERA_LIST	0x1
+#define MXF_DALSA_GEV_SHOW_CAMERA_LIST		0x1
+#define MXF_DALSA_GEV_SHOW_CONFIG_OPTIONS	0x2
 
 /*----*/
 

@@ -202,6 +202,41 @@ mxi_dalsa_gev_open( MX_RECORD *record )
 		dalsa_gev->num_cameras = num_cameras_found;
 	}
 
+	/* If requested, show information about the Gev library. */
+
+	if ( dalsa_gev->dalsa_gev_flags & MXF_DALSA_GEV_SHOW_CONFIG_OPTIONS ) {
+		GEVLIB_CONFIG_OPTIONS config_options;
+
+		gev_status = GevGetLibraryConfigOptions( &config_options );
+
+		switch( gev_status ) {
+		case GEVLIB_OK:
+			break;
+		default:
+			return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"GevGetLibraryConfigOptions() returned %ld "
+			"for record '%s'.",
+				gev_status, record->name );
+			break;
+		}
+
+		mx_info( "GevGetLibraryConfigOptions():" );
+		mx_info( "  version = %lu", (long) config_options.version );
+		mx_info( "  logLevel = %lu", (long) config_options.logLevel );
+		mx_info( "  numRetries = %lu",
+				(long) config_options.numRetries );
+		mx_info( "  command_timeout_ms = %lu",
+				(long) config_options.command_timeout_ms );
+		mx_info( "  discovery_timeout_ms = %lu",
+				(long) config_options.discovery_timeout_ms );
+		mx_info( "  enumeration_port = %lu",
+				(long) config_options.enumeration_port );
+		mx_info( "  gvcp_port_range_start = %lu",
+				(long) config_options.gvcp_port_range_start );
+		mx_info( "  gvcp_port_range_end = %lu",
+				(long) config_options.gvcp_port_range_end );
+	}
+
 	/* If requested, show all the cameras that were found. */
 
 	if ( dalsa_gev->dalsa_gev_flags & MXF_DALSA_GEV_SHOW_CAMERA_LIST ) {
