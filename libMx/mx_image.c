@@ -362,7 +362,8 @@ static MX_IMAGE_FORMAT_ENTRY mxp_file_format_table[] =
 	{"SMV",    MXT_IMAGE_FILE_SMV},
 	{"MARCCD", MXT_IMAGE_FILE_MARCCD},
 	{"EDF",    MXT_IMAGE_FILE_EDF},
-	{"NOIR",   MXT_IMAGE_FILE_NOIR}
+	{"NOIR",   MXT_IMAGE_FILE_NOIR},
+	{"CBF",    MXT_IMAGE_FILE_CBF}
 };
 
 static size_t mxp_file_format_table_length
@@ -3045,6 +3046,11 @@ mx_image_read_file( MX_IMAGE_FRAME **frame_ptr,
 	case MXT_IMAGE_FILE_EDF:
 		mx_status = mx_image_read_edf_file( frame_ptr, datafile_name );
 		break;
+	case MXT_IMAGE_FILE_CBF:
+		mx_status = mx_image_read_cbf_file( frame_ptr,
+						dictionary,
+						datafile_name );
+		break;
 	default:
 		mx_stack_traceback();
 		mx_status = mx_error( MXE_UNSUPPORTED, fname,
@@ -3105,8 +3111,8 @@ mx_image_write_file( MX_IMAGE_FRAME *frame,
 		break;
 	case MXT_IMAGE_FILE_TIFF:
 		mx_status = mx_image_write_tiff_file( frame,
-							dictionary,
-							datafile_name );
+						dictionary,
+						datafile_name );
 		break;
 	case MXT_IMAGE_FILE_SMV:
 	case MXT_IMAGE_FILE_NOIR:
@@ -3118,6 +3124,11 @@ mx_image_write_file( MX_IMAGE_FRAME *frame,
 		mx_status = mx_error( MXE_UNSUPPORTED, fname,
 			"Writing EDF format image files for datafile '%s' "
 			"is not currently supported.", datafile_name );
+		break;
+	case MXT_IMAGE_FILE_CBF:
+		mx_status = mx_image_write_cbf_file( frame,
+						dictionary,
+						datafile_name );
 		break;
 	default:
 		mx_status = mx_error( MXE_UNSUPPORTED, fname,
@@ -6025,6 +6036,142 @@ mx_image_read_edf_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 	/* We are done, so return. */
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+/*----*/
+
+static mx_bool_type mxp_cbf_availability_checked = FALSE;
+static mx_bool_type mxp_cbf_is_available         = FALSE;
+
+static MX_IMAGE_FUNCTION_LIST *mxp_cbflib_image_function_list = NULL;
+
+static mx_status_type
+mxp_image_test_for_cbflib( void )
+{
+	static const char fname[] = "mxp_image_test_for_cbflib()";
+
+	MX_RECORD *mx_database_record = NULL;
+	MX_MODULE *cbflib_module = NULL;
+	MX_DYNAMIC_LIBRARY *cbflib_library = NULL;
+	mx_status_type mx_status;
+
+	mxp_cbf_availability_checked = TRUE;
+
+	/* We need the running MX database pointer to find a module. */
+
+	mx_database_record = mx_get_database();
+
+	if ( mx_database_record == (MX_RECORD *) NULL ) {
+		(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"We could not get a pointer to the running MX database.  "
+		"This should _never_ happen, so we are aborting now." );
+
+		mx_force_core_dump();
+	}
+
+	/* Search for the cbflib module. */
+
+	mx_status = mx_get_module( "cbflib",
+				mx_database_record, &cbflib_module );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Get the cbflib library pointer. */
+
+	cbflib_library = cbflib_module->library;
+
+	if ( cbflib_library == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The 'cbflib' module was loaded, but it did not initialize "
+		"a pointer to the matching MX_DYNAMIC_LIBRARY structure." );
+	}
+
+	mxp_cbflib_image_function_list = (MX_IMAGE_FUNCTION_LIST *)
+		mx_dynamic_library_get_symbol_pointer( cbflib_library,
+		"mxext_cbflib_image_function_list" );
+
+	if ( mxp_cbflib_image_function_list == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The 'cbflib' module does not have an MX_IMAGE_FUNCTION_LIST "
+		"structure called 'mxext_cbflib_image_function_list'." );
+	}
+
+	mxp_cbf_is_available = TRUE;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*----*/
+
+MX_EXPORT mx_status_type
+mx_image_read_cbf_file( MX_IMAGE_FRAME **frame,
+			MX_DICTIONARY *dictionary,
+			char *datafile_name )
+{
+	static const char fname[] = "mx_image_read_cbf_file()";
+
+	mx_status_type mx_status;
+
+	if ( mxp_cbf_availability_checked == FALSE ) {
+		(void) mxp_image_test_for_cbflib();
+	}
+	if ( mxp_cbf_is_available == FALSE ) {
+		return mx_error( MXE_NOT_AVAILABLE, fname,
+		"The 'cbflib' module has not been loaded." );
+	}
+
+	mx_status = ( mxp_cbflib_image_function_list->read ) ( frame,
+							datafile_name );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_image_write_cbf_file( MX_IMAGE_FRAME *frame,
+			MX_DICTIONARY *dictionary,
+			char *datafile_name )
+{
+	static const char fname[] = "mx_image_write_cbf_file()";
+
+	mx_status_type mx_status;
+
+#if MX_IMAGE_DEBUG_CHARACTERISTICS
+	MX_DEBUG(-2,("%s invoked for datafile '%s'.",
+		fname, datafile_name ));
+
+	MX_DEBUG(-2,("%s: width = %ld, height = %ld", fname, 
+		(long) MXIF_ROW_FRAMESIZE(frame),
+		(long) MXIF_COLUMN_FRAMESIZE(frame) ));
+
+	MX_DEBUG(-2,("%s: image_format = %ld, byte_order = %ld", fname,
+		(long) MXIF_IMAGE_FORMAT(frame),
+		(long) MXIF_BYTE_ORDER(frame)));
+
+	MX_DEBUG(-2,("%s: image_length = %lu, image_data = %p",
+		fname, (unsigned long) frame->image_length, frame->image_data));
+
+	MX_DEBUG(-2,("%s: exposure_time = (%lu,%lu)", fname,
+		(unsigned long) MXIF_EXPOSURE_TIME_SEC(frame),
+		(unsigned long) MXIF_EXPOSURE_TIME_NSEC(frame) ));
+
+	MX_DEBUG(-2,("%s: timestamp = (%lu,%lu)", fname,
+		(unsigned long) MXIF_TIMESTAMP_SEC(frame),
+		(unsigned long) MXIF_TIMESTAMP_NSEC(frame) ));
+#endif
+
+	if ( mxp_cbf_availability_checked == FALSE ) {
+		(void) mxp_image_test_for_cbflib();
+	}
+	if ( mxp_cbf_is_available == FALSE ) {
+		return mx_error( MXE_NOT_AVAILABLE, fname,
+		"The 'cbflib' module has not been loaded." );
+	}
+
+	mx_status = ( mxp_cbflib_image_function_list->write ) ( frame,
+							datafile_name );
+
+	return mx_status;
 }
 
 /*--------------------------------------------------------------------------*/

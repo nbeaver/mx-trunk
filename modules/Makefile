@@ -21,6 +21,8 @@ all: build
 
 #MODULES += avt_vimba		# linux,
 
+#MODULES += cbflib		# linux,
+
 #MODULES += edt			# linux,
 
 #MODULES += epix_xclib		# linux, win32
@@ -58,7 +60,7 @@ MODULES += xineos_gige		# linux, win32
 #-------------------------------------------------------------------
 # Linux-only modules.
 
-MODULES += dalsa_gev
+#MODULES += dalsa_gev
 
 #MODULES += linux_portio
 

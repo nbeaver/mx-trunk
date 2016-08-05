@@ -75,6 +75,7 @@ extern "C" {
 #define MXT_IMAGE_FILE_MARCCD			102
 #define MXT_IMAGE_FILE_EDF			103
 #define MXT_IMAGE_FILE_NOIR			104
+#define MXT_IMAGE_FILE_CBF			105
 
 #define MXU_IMAGE_SMV_MAX_HEADER_LENGTH		5120
 
@@ -458,6 +459,16 @@ MX_API mx_status_type mx_image_read_marccd_file( MX_IMAGE_FRAME **frame,
 /*----*/
 
 MX_API mx_status_type mx_image_read_edf_file( MX_IMAGE_FRAME **frame,
+						char *datafile_name );
+
+/*----*/
+
+MX_API mx_status_type mx_image_read_cbf_file( MX_IMAGE_FRAME **frame,
+						MX_DICTIONARY *dictionary,
+						char *datafile_name );
+
+MX_API mx_status_type mx_image_write_cbf_file( MX_IMAGE_FRAME *frame,
+						MX_DICTIONARY *dictionary,
 						char *datafile_name );
 
 /*----*/
