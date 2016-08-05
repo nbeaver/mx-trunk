@@ -60,7 +60,7 @@ MODULES += xineos_gige		# linux, win32
 #-------------------------------------------------------------------
 # Linux-only modules.
 
-#MODULES += dalsa_gev
+MODULES += dalsa_gev
 
 #MODULES += linux_portio
 
@@ -98,9 +98,9 @@ MODULES += xineos_gige		# linux, win32
 #-------------------------------------------------------------------
 # EPICS modules.
 
-MODULES += epics
+#MODULES += epics
 
-MODULES += epics_aps 
+#MODULES += epics_aps 
 
 #MODULES += epics_pmac_biocat
 

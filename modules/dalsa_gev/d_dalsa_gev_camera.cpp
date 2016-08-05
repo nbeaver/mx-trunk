@@ -886,8 +886,6 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 
 	/* Read in the XML data that describes the behavior of the camera. */
 
-	/* mx_breakpoint(); */
-
 	if ( read_xml_file ) {
 
 #if MXD_DALSA_GEV_CAMERA_DEBUG_OPEN
@@ -905,7 +903,8 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 #endif
 
 		gev_status = GevInitGenICamXMLFeatures(
-					dalsa_gev_camera->camera_handle, TRUE );
+					dalsa_gev_camera->camera_handle,
+					write_xml_file );
 	}
 
 	switch( gev_status ) {

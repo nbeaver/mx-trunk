@@ -27,8 +27,8 @@ extern "C" {
 
 /* 'dalsa_gev_camera_flags' bitflag macros */
 
-#define MXF_DALSA_GEV_CAMERA_WRITE_XML_FILE	0x1
-#define MXF_DALSA_GEV_CAMERA_SHOW_INFO		0x2
+#define MXF_DALSA_GEV_CAMERA_WRITE_XML_FILE		0x1
+#define MXF_DALSA_GEV_CAMERA_SHOW_INFO			0x2
 
 typedef struct {
 	MX_RECORD *record;
