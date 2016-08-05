@@ -14,9 +14,9 @@
  *
  */
 
-#define MX_ARRAY_DEBUG_ALLOCATE		FALSE
+#define MX_ARRAY_DEBUG_ALLOCATE		TRUE
 
-#define MX_ARRAY_DEBUG_OVERLAY		FALSE
+#define MX_ARRAY_DEBUG_OVERLAY		TRUE
 
 #define MX_ARRAY_DEBUG_64BIT		FALSE
 
@@ -360,6 +360,10 @@ mxp_create_top_level_row( void **top_level_row,
 	char *raw_top_level_row_ptr;
 	mx_status_type mx_status;
 
+#if MX_ARRAY_DEBUG_ALLOCATE
+	MX_DEBUG(-2,("%s invoked.",fname));
+#endif
+
 	if ( top_level_row == (void **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The top_level_row pointer passed is NULL." );
@@ -420,6 +424,10 @@ mxp_create_top_level_row( void **top_level_row,
 					dimension_array,
 					element_size_array );
 
+#if MX_ARRAY_DEBUG_ALLOCATE
+	MX_DEBUG(-2,("%s complete.",fname));
+#endif
+
 	return mx_status;
 }
 
@@ -448,6 +456,10 @@ mx_array_add_overlay( void *vector_pointer,
 	unsigned long upper_step_size, lower_step_size;
 	char *upper_pointer, *lower_pointer;
 	mx_status_type mx_status;
+
+#if MX_ARRAY_DEBUG_ALLOCATE
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	if ( vector_pointer == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -625,7 +637,15 @@ mx_array_add_overlay( void *vector_pointer,
 
 	*array_pointer = array_of_level_pointers[num_dimensions - 1];
 
+#if 0
+	/* FIXME: Why was I freeing this? */
+
 	free( array_of_level_pointers );
+#endif
+
+#if MX_ARRAY_DEBUG_ALLOCATE
+	MX_DEBUG(-2,("%s complete.", fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -874,6 +894,10 @@ mx_allocate_array( long mx_datatype,
 	unsigned long dim, num_elements, vector_size;
 	mx_status_type mx_status;
 
+#if MX_ARRAY_DEBUG_ALLOCATE
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
+
 	if ( dimension_array == (long *) NULL ) {
 		mx_error( MXE_NULL_ARGUMENT, fname,
 		"The dimension_array pointer passed was NULL." );
@@ -960,6 +984,15 @@ mx_allocate_array( long mx_datatype,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return NULL;
+
+#if MX_ARRAY_DEBUG_ALLOCATE
+	/* Is the array we just allocated a valid MX array? */
+
+	MX_DEBUG(-2,("%s: Is array %p a valid MX array? %d",
+		fname, array, (int) mx_array_is_mx_style_array( array ) ));
+
+	MX_DEBUG(-2,("%s complete.", fname));
+#endif
 
 	return array;
 }
@@ -3954,6 +3987,7 @@ mx_array_debug_overlay( MX_IMAGE_FRAME *frame )
 	element_size_array[1] = sizeof(uint16_t *);
 
 	mx_status = mx_array_add_overlay( frame->image_data,
+					MXFT_USHORT,
 					2, dimension_array,
 					element_size_array,
 					(void **) &array_pointer );
@@ -4144,13 +4178,12 @@ mx_status_type mx_copy_mx_array_to_ascii_buffer(
 
 /*--------------------------------------------------------------------------*/
 
-MX_EXPORT
-mx_status_type mx_copy_ascii_buffer_to_mx_array(
-					char *source_ascii_buffer,
-					long maximum_string_token_length,
-					long mx_datatype,
-					void *array_pointer,
-					size_t *num_values_copied )
+MX_EXPORT mx_status_type
+mx_copy_ascii_buffer_to_mx_array( char *source_ascii_buffer,
+				long maximum_string_token_length,
+				long mx_datatype,
+				void *array_pointer,
+				size_t *num_values_copied )
 {
 	static const char fname[] = "mx_copy_ascii_buffer_to_mx_array()";
 

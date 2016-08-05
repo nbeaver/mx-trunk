@@ -30,9 +30,9 @@
  *
  */
 
-#define MX_DICTIONARY_DEBUG			FALSE
+#define MX_DICTIONARY_DEBUG			TRUE
 
-#define MX_DICTIONARY_DEBUG_VALUE_ARRAY		FALSE
+#define MX_DICTIONARY_DEBUG_VALUE_ARRAY		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -577,6 +577,12 @@ mx_dictionary_read_file( MX_DICTIONARY *dictionary,
 #if MX_DICTIONARY_DEBUG_VALUE_ARRAY
 		MX_DEBUG(-2,("%s: new_value_array[%ld] = %p",
 			fname, i, new_value_array[i]));
+
+		MX_DEBUG(-2,("%s: Is new_value_array[%ld] valid? %d",
+			fname, i,
+			(int) mx_array_is_mx_style_array(
+				new_value_array[i]) ));
+
 		MX_DEBUG(-2,("%s: #1 first_uint32 = %#x", fname, first_uint32));
 #endif
 		/*----------------------------------------------------------*/
