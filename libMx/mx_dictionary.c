@@ -277,7 +277,7 @@ mx_dictionary_read_file( MX_DICTIONARY *dictionary,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_error( mx_status.code, mx_status.location,
-				mx_status.message );
+				"%s", mx_status.message );
 
 #if MX_DICTIONARY_DEBUG
 	MX_DEBUG(-2,("%s: new_num_lines_in_file = %ld",

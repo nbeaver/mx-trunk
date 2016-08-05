@@ -513,8 +513,8 @@ mxdf_xafs_write_header( MX_DATAFILE *datafile,
 
 		measurement = &(scan->measurement);
 
-		fprintf( output_file, measurement->measurement_arguments );
-		fprintf( output_file, "\n" );
+		fprintf( output_file, "%s\n",
+			measurement->measurement_arguments );
 	} else {
 		fprintf( output_file, "\n" );
 	}
