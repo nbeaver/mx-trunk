@@ -812,7 +812,9 @@ mx_vm_show_os_info( FILE *file,
 
 /*-------------------------------------------------------------------------*/
 
-#  elif defined(OS_MACOSX)
+#  elif ( 0 && defined(OS_MACOSX) )
+
+/* FIXME - The use of mach_vm_region() is disabled for now. */
 
 #include <mach/mach.h>
 
@@ -823,6 +825,14 @@ mx_vm_show_os_info( FILE *file,
 #  define vm_address_t	mach_vm_address_t
 #  define vm_size_t	mach_vm_size_t
 #endif
+
+/*----------*/
+
+#if 0
+
+/* WARNING: This implementation expects 'address' to be at the start
+ * of a memory region, which is not always the case.
+ */
 
 MX_EXPORT mx_status_type
 mx_vm_get_protection( void *address,
@@ -937,6 +947,118 @@ mx_vm_get_protection( void *address,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*----------*/
+
+#else
+
+/* NOTE: This version does _NOT_ depend on the address being at the start of
+ * a memory regions.
+ */
+
+MX_EXPORT mx_status_type
+mx_vm_get_protection( void *address,
+		size_t address_range_in_bytes,
+		mx_bool_type *valid_address_range,
+		unsigned long *protection_flags )
+{
+	static const char fname[] = "mx_vm_get_protection()";
+
+	task_t task;
+	vm_address_t region_address;
+	vm_size_t region_size;
+	struct vm_region_basic_info region_info;
+	mach_msg_type_number_t region_info_count;
+	mach_port_t object_name;
+	kern_return_t kreturn;
+
+#if 0
+	mx_bool_type valid = FALSE;
+	unsigned long protection_flags_value = 0;
+#endif
+
+#if MX_VM_ALLOC_DEBUG
+	MX_DEBUG(-2,("%s: address = %p", fname, address));
+#endif
+
+	kreturn = task_for_pid( current_task(), mx_process_id(), &task );
+
+	if ( kreturn != KERN_SUCCESS ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"A call to task_for_pid() failed.  kreturn = %ld",
+			(long) kreturn );
+	}
+
+	/* Start at the beginning of memory when looking for VM regions. */
+
+	/* FIXME - FIXME - FIXME!
+	 * Starting at a region address of 0 does not work!  You just
+	 * get KERN_INVALID_ARGUMENT back.
+	 */
+
+	region_address = 0;
+	region_size = 0;
+
+	/* Look for VM regions. */
+
+	while( TRUE ) {
+		region_info_count = VM_REGION_BASIC_INFO_COUNT;
+
+		kreturn = vm_region( task,
+			&region_address,
+			&region_size,
+			VM_REGION_BASIC_INFO,
+			(vm_region_info_t) &region_info,
+			&region_info_count,
+			&object_name );
+
+		switch( kreturn ) {
+		default:
+			/* We got something other than KERN_SUCCESS
+			 * or KERN_INVALID_ADDRESS.  This should not
+			 * happen, so we return an error.
+			 */
+
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+				"vm_region() return status was %ld",
+				(long) kreturn );
+			break;
+		case KERN_INVALID_ADDRESS:
+			/* If we get here, then we have run out of valid
+			 * memory regions without finding the address
+			 * that we wanted.
+			 */
+
+			if ( valid_address_range != NULL ) {
+				*valid_address_range = FALSE;
+			}
+			if ( protection_flags != NULL ) {
+				*protection_flags = 0;
+			}
+			return MX_SUCCESSFUL_RESULT;
+			break;
+		case KERN_INVALID_ARGUMENT:
+			return mx_error( MXE_UNKNOWN_ERROR, fname,
+				"Received KERN_INVALID_ARGUMENT for "
+				"region_address = %#llx, range = %#llx",
+					region_address, region_size );
+			break;
+		case KERN_SUCCESS:
+			/* We have found the next memory region. */
+			mx_info( "  address = %#llx, size = %#llx",
+				region_address, region_size );
+
+			region_address += region_size;
+			break;
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#endif
+
+/*----------*/
+
 MX_EXPORT mx_status_type
 mx_vm_show_os_info( FILE *file,
 		void *address,
@@ -950,7 +1072,8 @@ mx_vm_show_os_info( FILE *file,
 
 /*-------------------------------------------------------------------------*/
 
-#  elif defined(OS_BSD) || defined(OS_SOLARIS) || defined(OS_UNIXWARE)
+#  elif defined(OS_BSD) || defined(OS_SOLARIS) || defined(OS_UNIXWARE) \
+	|| defined(OS_MACOSX)
 
 /* On some BSD based operating systems, mincore() can be used to determine
  * whether or not an address range is valid, since mincore() will return
