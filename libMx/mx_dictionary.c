@@ -30,9 +30,9 @@
  *
  */
 
-#define MX_DICTIONARY_DEBUG			TRUE
+#define MX_DICTIONARY_DEBUG			FALSE
 
-#define MX_DICTIONARY_DEBUG_VALUE_ARRAY		TRUE
+#define MX_DICTIONARY_DEBUG_VALUE_ARRAY		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

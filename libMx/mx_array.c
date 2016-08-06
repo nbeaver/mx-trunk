@@ -14,9 +14,11 @@
  *
  */
 
-#define MX_ARRAY_DEBUG_ALLOCATE		TRUE
+#define MX_ARRAY_DEBUG_ALLOCATE		FALSE
 
-#define MX_ARRAY_DEBUG_OVERLAY		TRUE
+#define MX_ARRAY_DEBUG_OVERLAY		FALSE
+
+#define MX_ARRAY_DEBUG_TOP_LEVEL_ROW	TRUE
 
 #define MX_ARRAY_DEBUG_64BIT		FALSE
 
@@ -360,7 +362,7 @@ mxp_create_top_level_row( void **top_level_row,
 	char *raw_top_level_row_ptr;
 	mx_status_type mx_status;
 
-#if MX_ARRAY_DEBUG_ALLOCATE
+#if MX_ARRAY_DEBUG_TOP_LEVEL_ROW
 	MX_DEBUG(-2,("%s invoked.",fname));
 #endif
 
@@ -424,7 +426,12 @@ mxp_create_top_level_row( void **top_level_row,
 					dimension_array,
 					element_size_array );
 
-#if MX_ARRAY_DEBUG_ALLOCATE
+#if MX_ARRAY_DEBUG_TOP_LEVEL_ROW
+	mx_show_array_info( *top_level_row );
+
+	MX_DEBUG(-2,("%s: Is array %p valid? %d", fname, *top_level_row,
+		mx_array_is_mx_style_array( *top_level_row ) ));
+
 	MX_DEBUG(-2,("%s complete.",fname));
 #endif
 
