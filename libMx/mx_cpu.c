@@ -23,7 +23,7 @@
 #include <windows.h>
 #endif
 
-#if defined(OS_MACOSX) || defined(OS_BSD)
+#if defined(OS_MACOSX) || defined(OS_BSD) || defined(OS_MINIX)
 #include <sys/types.h>
 #include <sys/sysctl.h>
 #endif
@@ -134,7 +134,7 @@ mx_get_number_of_cpu_cores( unsigned long *num_cores )
 
 /*---------------------------- MacOS X, BSD ------------------------*/
 
-#elif defined(OS_MACOSX) || defined(OS_BSD)
+#elif defined(OS_MACOSX) || defined(OS_BSD) || defined(OS_MINIX)
 
 MX_EXPORT mx_status_type
 mx_get_number_of_cpu_cores( unsigned long *num_cores )
@@ -152,7 +152,7 @@ mx_get_number_of_cpu_cores( unsigned long *num_cores )
 
 	mib[0] = CTL_HW;
 
-#if defined(__NetBSD__)
+#if defined(__NetBSD__) || defined(OS_MINIX)
 	mib[1] = HW_NCPUONLINE;
 #elif defined(__OpenBSD__)
 	mib[1] = HW_NCPU;
@@ -1170,7 +1170,7 @@ mx_set_process_affinity_mask( unsigned long process_id,
 	|| defined(OS_RTEMS) || defined(OS_VXWORKS) || defined(OS_BSD) \
 	|| defined(OS_HPUX) || defined(OS_TRU64) || defined(OS_DJGPP) \
 	|| defined(OS_WIN32) || defined(OS_UNIXWARE) || defined(OS_HURD) \
-	|| defined(OS_ANDROID)
+	|| defined(OS_ANDROID) || defined(OS_MINIX)
 
 /* FIXME for OS_MACOSX:
  *        If you have the CHUD package installed on MacOS X, CHUD apparently

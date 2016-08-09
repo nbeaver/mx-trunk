@@ -61,7 +61,8 @@
 
 #   define MX_CMDLINE_PROCESSOR  MX_CMDLINE_FGETS
 
-#elif defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_DJGPP)
+#elif defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_DJGPP) \
+	|| defined(OS_MINIX)
 
 #   define MX_CMDLINE_PROCESSOR  MX_CMDLINE_READLINE
 

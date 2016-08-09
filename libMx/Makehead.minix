@@ -1,0 +1,257 @@
+#
+# Name:    Makehead.minix
+#
+# Purpose: This file is used to customize operating system and installation
+#          dependent features of the MX makefiles.  This version is customized
+#          for using the Clang compiler on Minix.
+#
+# Normally, the only things that end users may have to modify in this file are
+# the definitions of INCLUDES, LIB_DIRS, and LIBRARIES.
+#
+
+INCLUDES	= $(MX_INCLUDES)
+
+LIBRARIES	= -pthread -lpthread -lm
+
+LIB_DIRS	= -L../libMx -L/usr/pkg/lib
+
+#
+# Motor will be linked with the bundled copy of 'editline' if you use the
+# following definitions.
+#
+
+READLINE_LIB_DIRS =
+READLINE_LIBRARIES = ../tools/unix/src/editline/libedit.a
+
+#READLINE_LIB_DIRS = -L../tools/unix/src/editline
+#READLINE_LIBRARIES = -ledit
+
+#
+# If you prefer to link motor to GNU Readline instead, uncomment the
+# following definitions.
+#
+#READLINE_LIB_DIRS = -L/usr/local/lib
+#READLINE_LIBRARIES = -lreadline -lcurses
+
+#
+#========================================================================
+#
+# Generally, you should not have to modify anything after this point.
+#
+
+#
+# gcc specific flags (used by Clang)
+#
+GCCFLAGS = -Wall -Werror \
+-Wpointer-arith \
+-Wcast-align \
+-Wcast-qual \
+-Wmissing-prototypes \
+-Wnested-externs \
+-Winline
+
+#
+# Intel x86 with GCC under Minix 3.3.0
+#
+CC		= clang
+CFLAGS		= -g -O -fPIC $(GCCFLAGS) \
+				-I/usr/pkg/include \
+				$(INCLUDES) -DOS_MINIX \
+				$(EXTRA_FLAGS) -DDEBUG
+
+LINKFLAGS	= -O -fPIC $(GCCFLAGS) \
+				-I/usr/pkg/include \
+				$(INCLUDES) -DOS_MINIX \
+				$(EXTRA_FLAGS) -DDEBUG
+
+# Special cases for individual files.
+
+CFLAGS_MX_VERS  = -DOS_MINIX -DMX_MAJOR_VERSION=$(MX_MAJOR_VERSION) \
+			-DMX_MINOR_VERSION=$(MX_MINOR_VERSION) \
+			-DMX_UPDATE_VERSION=$(MX_UPDATE_VERSION) \
+			-DMX_BRANCH_LABEL="\"$(MX_BRANCH_LABEL)\""
+
+CFLAGS_MAKEDEPEND = $(CFLAGS) $(READLINE_INCLUDES)
+
+COMPILE		= $(CC) -c
+DEFINE		= -D
+MAKEDEPEND	= $(CC) -MM $(CFLAGS_MAKEDEPEND) *.c > Makefile.depend
+
+MAKEDEPEND_CLEAN = rm Makefile.depend
+
+#
+#---------------------------------------------------
+#
+# Declare bundled programs to be MX "applications".
+# One of the consequences of this is that mx_poison.h
+# is applied to them.
+#
+
+APP_FLAGS=$(DEFINE)__MX_APP__
+
+#
+#---------------------------------------------------
+#
+
+MX_LIB_SRCS = mx_driver.c $(MX_CORE_SRCS) $(MX_DRIVER_SRCS)
+
+#
+# See libMx/Makehead.irix for why this is here.
+#
+MX_LIB_OBJS       = $(MX_LIB_SRCS:.c=.o)
+MOTOR_OBJS        = $(MOTOR_SRCS:.c=.o)
+SERVER_OBJS       = $(SERVER_SRCS:.c=.o)
+AUTOSAVE_OBJS       = $(AUTOSAVE_SRCS:.c=.o)
+MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.o)
+MXMONITOR_OBJS    = $(MXMONITOR_SRCS:.c=.o)
+
+MX_LIB_OBJS += ../tools/xdr.o
+MX_LIB_OBJS += ../tools/xdr_hyper.o
+
+#
+#---------------------------------------------------
+#
+
+RM		= rm -f
+MAKE		= make
+TOUCH		= touch -a
+
+OBJ		= o
+
+EXEOUT		= -o
+DOTEXE		=
+
+#
+#---------------------------------------------------
+#
+MX_LIB_DIR	= ../libMx
+MX_INC_DIR	= $(MX_LIB_DIR)
+MX_INCLUDES	= -I$(MX_INC_DIR)
+
+MX_LIBRARY_PATH	= $(MX_LIB_DIR)/$(MX_LIBRARY_NAME)
+
+MX_LIBRARY_NAME	= libMx.so.$(MX_MAJOR_VERSION)
+
+MX_LIBRARY_STATIC_NAME = libMx.a
+
+MX_LIBRARY_DELETE = rm $(MX_LIBRARY_NAME) libMx.so $(MX_LIBRARY_STATIC_NAME)
+
+$(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
+	-$(MX_LIBRARY_DELETE)
+	clang -shared -o $(MX_LIBRARY_NAME) \
+			$(LIB_DIRS) $(MX_LIB_OBJS) $(LIBRARIES)
+	ln -s $(MX_LIBRARY_NAME) libMx.so
+	ar rc $(MX_LIBRARY_STATIC_NAME) $(MX_LIB_OBJS)
+	ranlib $(MX_LIBRARY_STATIC_NAME)
+
+mx_library_install:
+	-mkdir $(MX_INSTALL_DIR)/bin
+	-mkdir $(MX_INSTALL_DIR)/etc
+	-mkdir $(MX_INSTALL_DIR)/etc/startup
+	-mkdir $(MX_INSTALL_DIR)/include
+	-mkdir $(MX_INSTALL_DIR)/lib
+	-mkdir $(MX_INSTALL_DIR)/log
+	-mkdir $(MX_INSTALL_DIR)/run
+	-mkdir $(MX_INSTALL_DIR)/sbin
+	-mkdir $(MX_INSTALL_DIR)/state
+	/usr/bin/install -c -m 644 mx*.h $(MX_INSTALL_DIR)/include 
+	/usr/bin/install -c -m 644 $(MX_LIBRARY_NAME) $(MX_INSTALL_DIR)/lib 
+	ln -s $(MX_LIBRARY_NAME) $(MX_INSTALL_DIR)/lib/libMx.so
+	/usr/bin/install -c -m 644 $(MX_LIBRARY_STATIC_NAME) $(MX_INSTALL_DIR)/lib 
+	touch $(MX_INSTALL_DIR)/etc/mxmotor.dat
+	touch $(MX_INSTALL_DIR)/etc/mxscan.dat
+	/usr/bin/install -c -m 755 ../plotgnu/plotgnu.pl $(MX_INSTALL_DIR)/bin 
+	/usr/bin/install -c -m 755 ../plotgnu/showdata $(MX_INSTALL_DIR)/bin 
+	/usr/bin/install -c -m 755 ../plotgnu/showplot $(MX_INSTALL_DIR)/bin 
+	/usr/bin/install -c -m 755 ../plotgnu/plot2ps $(MX_INSTALL_DIR)/bin 
+	/usr/bin/install -c -m 755 ../scripts/mxsetup.sh $(MX_INSTALL_DIR)/bin 
+	/usr/bin/install -c -m 755 ../tools/mx_config $(MX_INSTALL_DIR)/bin
+
+mx_list_head.$(OBJ): Makefile.version mx_list_head.c mx_version.h
+	$(COMPILE) $(CFLAGS) -DMX_CFLAGS="${CFLAGS}" mx_list_head.c
+
+#
+#---------------------------------------------------
+#
+
+MOTOR_NAME	= mxmotor
+MOTOR_NAME2	= mxmotor.static
+
+$(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(LINKFLAGS) -o $(MOTOR_NAME) $(MOTOR_OBJS) \
+			$(LIB_DIRS) $(READLINE_LIB_DIRS) \
+			-lMx $(LIBRARIES) $(READLINE_LIBRARIES)
+	$(CC) $(LINKFLAGS) -o $(MOTOR_NAME2) $(MOTOR_OBJS) \
+			$(LIB_DIRS) $(READLINE_LIB_DIRS) \
+			../libMx/$(MX_LIBRARY_STATIC_NAME) \
+			$(LIBRARIES) $(READLINE_LIBRARIES)
+
+motor_install:
+	/usr/bin/install -c -m 755 $(MOTOR_NAME) $(MX_INSTALL_DIR)/bin 
+	/usr/bin/install -c -m 755 $(MOTOR_NAME2) $(MX_INSTALL_DIR)/bin 
+
+#
+#---------------------------------------------------
+#
+SERVER_NAME	= mxserver
+
+$(SERVER_NAME): $(SERVER_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(LINKFLAGS) -o $(SERVER_NAME) $(SERVER_OBJS) \
+			$(LIB_DIRS) -lMx $(LIBRARIES)
+
+server_install:
+	/usr/bin/install -c -m 755 $(SERVER_NAME) $(MX_INSTALL_DIR)/sbin 
+	/usr/bin/install -c -m 755 ../scripts/startmxserver $(MX_INSTALL_DIR)/sbin 
+	/usr/bin/install -c -m 755 ../scripts/mx $(MX_INSTALL_DIR)/sbin 
+	touch $(MX_INSTALL_DIR)/etc/mxserver.dat
+	touch $(MX_INSTALL_DIR)/etc/mxserver.acl
+
+#
+#---------------------------------------------------
+#
+AUTOSAVE_NAME	= mxautosave
+
+$(AUTOSAVE_NAME): $(AUTOSAVE_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(LINKFLAGS) -o $(AUTOSAVE_NAME) $(AUTOSAVE_OBJS) \
+			$(LIB_DIRS) -lMx $(LIBRARIES)
+
+autosave_install:
+	/usr/bin/install -c -m 755 $(AUTOSAVE_NAME) $(MX_INSTALL_DIR)/sbin 
+	/usr/bin/install -c -m 755 ../scripts/startmxautosave $(MX_INSTALL_DIR)/sbin 
+	/usr/bin/install -c -m 755 ../scripts/mxsave $(MX_INSTALL_DIR)/bin 
+	/usr/bin/install -c -m 755 ../scripts/mxrestore $(MX_INSTALL_DIR)/bin 
+	touch $(MX_INSTALL_DIR)/etc/mxautosave.dat
+
+#
+#---------------------------------------------------
+#
+MXDRIVERINFO_NAME    = mxdriverinfo
+
+$(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(LINKFLAGS) -o $(MXDRIVERINFO_NAME) \
+		$(MXDRIVERINFO_OBJS) $(LIB_DIRS) -lMx $(LIBRARIES)
+
+#---
+
+MXMONITOR_NAME       = mxmonitor
+
+$(MXMONITOR_NAME): $(MXMONITOR_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(LINKFLAGS) -o $(MXMONITOR_NAME) \
+		$(MXMONITOR_OBJS) $(LIB_DIRS) -lMx $(LIBRARIES)
+
+#---
+
+MXSERIAL_NAME        = mxserial
+
+$(MXSERIAL_NAME): mxserial.o $(MX_LIBRARY_PATH)
+	$(CC) $(LINKFLAGS) -o $(MXSERIAL_NAME) mxserial.o \
+				$(LIB_DIRS) -lMx $(LIBRARIES)
+
+mxserial.o: mxserial_fork.c
+	$(CC) $(LINKFLAGS) -D__MX_APP__ -c mxserial_fork.c -o mxserial.o
+
+util_install:
+	/usr/bin/install -c -m 755 $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
+	/usr/bin/install -c -m 755 $(MXMONITOR_NAME) $(MX_INSTALL_DIR)/bin
+	/usr/bin/install -c -m 755 $(MXSERIAL_NAME) $(MX_INSTALL_DIR)/bin
+

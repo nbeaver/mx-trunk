@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005-2006, 2011, 2015
+ * Copyright 1999-2001, 2003, 2005-2006, 2011, 2015-2016
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -587,7 +587,7 @@ mx_key_getline( char *buffer, size_t max_buffer_length )
 /************************** Unix **************************/
 
 #elif defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_RTEMS) \
-	|| defined(OS_ECOS) || defined(OS_ANDROID)
+	|| defined(OS_ECOS) || defined(OS_ANDROID) || defined(OS_MINIX)
 
 /* Do we use new-style (termios) or old-style (termio) terminal controls? */
 

@@ -1613,13 +1613,13 @@ mx_get_process_meminfo( unsigned long process_id,
 
 #elif defined( OS_BSD ) || defined( OS_HPUX ) || defined( OS_QNX ) \
 	|| defined( OS_TRU64 ) || defined( OS_CYGWIN ) || defined( OS_DJGPP ) \
-	|| defined( OS_UNIXWARE ) || defined( OS_HURD )
+	|| defined( OS_UNIXWARE ) || defined( OS_HURD ) || defined( OS_MINIX )
 
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/resource.h>
 
-#if ! defined( OS_BSD )
+#if (!defined( OS_BSD ))
 #include <malloc.h>
 #endif
 
@@ -1665,7 +1665,7 @@ mx_get_process_meminfo( unsigned long process_id,
 	meminfo->total_bytes =
 		((unsigned long) rusage_struct.ru_maxrss) * 1024L;
 
-#if ! defined( OS_BSD ) && ! defined( OS_DJGPP )
+#if !defined( OS_BSD ) && !defined( OS_DJGPP ) && !defined( OS_MINIX )
 	{
 		/* Get heap statistics from mallinfo() */
 

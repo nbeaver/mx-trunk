@@ -213,7 +213,8 @@ mx_socket_wait_for_event( MX_SOCKET *mx_socket, double timeout_in_seconds )
 
 #if defined( OS_UNIX ) || defined( OS_WIN32 ) || defined( OS_CYGWIN ) \
 	|| defined( OS_RTEMS ) || defined( OS_VXWORKS ) \
-	|| defined( OS_VMS ) || defined( OS_DJGPP ) || defined( OS_ANDROID )
+	|| defined( OS_VMS ) || defined( OS_DJGPP ) || defined( OS_ANDROID ) \
+	|| defined( OS_MINIX )
 
 MX_EXPORT mx_status_type
 mx_gethostname( char *name, size_t maximum_length )

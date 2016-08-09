@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2006, 2009-2012, 2015 Illinois Institute of Technology
+ * Copyright 2006, 2009-2012, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -163,7 +163,8 @@ mx_get_cpu_architecture( char *architecture_type,
 /****************************************************************************/
 
 #elif defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_DJGPP) \
-	|| defined(OS_ECOS) || defined(OS_RTEMS) || defined(OS_ANDROID)
+	|| defined(OS_ECOS) || defined(OS_RTEMS) || defined(OS_ANDROID) \
+	|| defined(OS_MINIX)
 
 #include <sys/utsname.h>
 

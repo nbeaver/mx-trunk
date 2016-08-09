@@ -24,7 +24,7 @@
 #include "xdr_hyper.h"
 
 #if defined(OS_WIN32) || defined(OS_ANDROID) || defined(OS_DJGPP) \
-	|| defined(OS_ECOS)
+	|| defined(OS_ECOS) || defined(OS_MINIX)
 #  define XDR_GETLONG( xdrs, long_ptr )    mx_xdr_long( xdrs, long_ptr )
 #  define XDR_PUTLONG( xdrs, long_ptr )    mx_xdr_long( xdrs, long_ptr )
 #endif  /* OS_WIN32 */

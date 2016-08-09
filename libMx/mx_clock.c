@@ -99,7 +99,7 @@ mx_current_cpu_tick( void )
     || defined(OS_HPUX) || defined(OS_DJGPP) || defined(OS_MACOSX) \
     || defined(OS_BSD) || defined(OS_CYGWIN) || defined(OS_QNX) \
     || defined(OS_TRU64) || defined(OS_VMS) || defined(OS_UNIXWARE) \
-    || defined(OS_HURD)
+    || defined(OS_HURD) || defined(OS_MINIX)
 
 	struct tms buf;
 
@@ -240,7 +240,8 @@ mx_clock_ticks_per_second( void )
 #if defined(OS_LINUX) || defined(OS_SOLARIS) || defined(OS_IRIX) \
     || defined(OS_HPUX) || defined(OS_VMS) || defined(OS_MACOSX) \
     || defined(OS_BSD) || defined(OS_CYGWIN) || defined(OS_QNX) \
-    || defined(OS_TRU64) || defined(OS_UNIXWARE) || defined(OS_HURD)
+    || defined(OS_TRU64) || defined(OS_UNIXWARE) || defined(OS_HURD) \
+    || defined(OS_MINIX)
 
 #  if defined(_SC_CLK_TCK)
 	clock_ticks_per_second = (double) sysconf(_SC_CLK_TCK);

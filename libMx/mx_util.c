@@ -36,7 +36,8 @@
 #include <direct.h>
 #endif
 
-#if defined( OS_UNIX ) || defined( OS_CYGWIN ) || defined( OS_ANDROID )
+#if defined( OS_UNIX ) || defined( OS_CYGWIN ) || defined( OS_ANDROID ) \
+	|| defined( OS_MINIX )
 #include <sys/time.h>
 #include <pwd.h>
 #endif
@@ -441,7 +442,7 @@ mx_username( char *buffer, size_t max_buffer_length )
 
 #elif defined( OS_IRIX ) || defined( OS_SUNOS4 ) || defined( OS_SOLARIS ) \
    || defined( OS_MACOSX ) || defined( OS_BSD ) || defined( OS_QNX ) \
-   || defined( OS_HPUX ) || defined( OS_UNIXWARE )
+   || defined( OS_HPUX ) || defined( OS_UNIXWARE ) || defined( OS_MINIX )
 	{
 		/* This method is not reentrant. */
 
@@ -635,7 +636,7 @@ mx_setenv( const char *env_name,
 #elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
 	|| defined(OS_BSD) || defined(OS_QNX) || defined(OS_RTEMS) \
 	|| defined(OS_ANDROID) || defined(OS_CYGWIN) || defined(OS_VMS) \
-	|| defined(OS_HURD) || defined(OS_DJGPP)
+	|| defined(OS_HURD) || defined(OS_DJGPP) || defined(OS_MINIX)
 
 MX_EXPORT int
 mx_setenv( const char *env_name,
@@ -2138,7 +2139,8 @@ mx_get_random_max( void )
 
 /*--------*/
 
-#elif defined(OS_MACOSX) || defined(OS_BSD) || defined(OS_ANDROID)
+#elif defined(OS_MACOSX) || defined(OS_BSD) || defined(OS_ANDROID) \
+	|| defined(OS_MINIX)
 
 MX_EXPORT unsigned long
 mx_random( void )

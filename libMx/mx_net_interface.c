@@ -965,6 +965,19 @@ mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 	}
 }
 
+#elif defined( OS_MINIX )
+
+MX_EXPORT mx_status_type
+mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
+					struct sockaddr *host_address_struct )
+{
+	static const char fname[] =
+		"mx_network_get_interface_from_host_address()";
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Not yet implemented for this platform." );
+}
+
 #else
 #error MX network interface functions have not yet been defined for this target.
 #endif

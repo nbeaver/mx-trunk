@@ -1264,7 +1264,7 @@ mx_semaphore_get_value( MX_SEMAPHORE *semaphore,
 /*********************** Unix and Posix systems **********************/
 
 #elif defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_ECOS) \
-	|| defined(OS_ANDROID)
+	|| defined(OS_ANDROID) || defined(OS_MINIX)
 
 /* NOTE:  On some platforms, such as Linux and MacOS X, it is necessary
  * to include support for both System V and Posix semaphores.  The reason
@@ -2255,8 +2255,8 @@ mx_sysv_semaphore_get_value( MX_SEMAPHORE *semaphore,
 
 /*======================= Posix Pthreads ======================*/
 
-#if ( defined(_POSIX_SEMAPHORES) && (! defined(OS_MACOSX)) ) \
-	|| defined(OS_IRIX) 
+#if ( defined(_POSIX_SEMAPHORES) && (! defined(OS_MACOSX)) \
+	&& (! defined(OS_MINIX)) ) || defined(OS_IRIX) 
 
 #include <fcntl.h>
 #include <semaphore.h>

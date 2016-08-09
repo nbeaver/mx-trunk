@@ -645,7 +645,7 @@ mx_get_system_meminfo( MX_SYSTEM_MEMINFO *meminfo )
 
 #elif defined( OS_RTEMS ) || defined( OS_VXWORKS ) || defined( OS_BSD ) \
 	|| defined( OS_HPUX ) || defined( OS_TRU64 ) || defined( OS_DJGPP ) \
-	|| defined( OS_ECOS ) || defined( OS_UNIXWARE )
+	|| defined( OS_ECOS ) || defined( OS_UNIXWARE ) || defined( OS_MINIX )
 
 MX_EXPORT mx_status_type
 mx_get_system_meminfo( MX_SYSTEM_MEMINFO *meminfo )

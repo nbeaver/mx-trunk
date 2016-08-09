@@ -9,7 +9,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2010, 2015 Illinois Institute of Technology
+ * Copyright 2010, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -38,7 +38,8 @@
 /*-------------------------------------------------------------------------*/
 
 #if defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_VMS) \
-	|| defined(OS_RTEMS) || defined(OS_VXWORKS) || defined(OS_ANDROID)
+	|| defined(OS_RTEMS) || defined(OS_VXWORKS) || defined(OS_ANDROID) \
+	|| defined(OS_MINIX)
 
   /* These platforms already provide the thread-safe Posix time functions. */
 
@@ -436,7 +437,7 @@ mx_current_time_string( char *buffer, size_t buffer_length )
 	|| defined(OS_SOLARIS) || defined(OS_BSD) || defined(OS_CYGWIN) \
 	|| defined(OS_VMS) || defined(OS_UNIXWARE) || defined(OS_DJGPP) \
 	|| defined(OS_QNX) || defined(OS_RTEMS) || defined(OS_VXWORKS) \
-	|| defined(OS_HURD) || defined(OS_ANDROID)
+	|| defined(OS_HURD) || defined(OS_ANDROID) || defined(OS_MINIX)
 
 MX_EXPORT uint64_t
 mx_posix_time( void ) {

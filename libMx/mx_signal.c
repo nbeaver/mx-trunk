@@ -14,7 +14,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005-2006, 2008-2009, 2011, 2015 Illinois Institute of Technology
+ * Copyright 2005-2006, 2008-2009, 2011, 2015-2016
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -481,7 +482,7 @@ mx_signal_free( int signal_number )
 
 #elif defined( OS_MACOSX ) || defined( OS_BSD ) || defined( OS_VXWORKS ) \
 	|| defined( OS_DJGPP ) || defined( OS_UNIXWARE ) || defined(OS_HURD) \
-	|| defined( OS_ANDROID )
+	|| defined( OS_ANDROID ) || defined( OS_MINIX )
 
 /* For this platform, the only signal available is SIGALRM and we can use
  * sigaction() to see if SIGALRM is already in use.

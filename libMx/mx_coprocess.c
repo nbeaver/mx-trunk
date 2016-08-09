@@ -31,7 +31,8 @@
 
 /*-------------------------------------------------------------------------*/
 
-#if defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_ANDROID)
+#if defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_ANDROID) \
+	|| defined(OS_MINIX)
 
 #include <string.h>
 #include <stdlib.h>

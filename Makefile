@@ -17,6 +17,7 @@
 #   linux-clang   - Linux 3.12 or above using Clang
 #   macosx        - x86/powerpc with MacOS X using GCC
 #   macosx-clang  - x86 with MacOS X using Clang
+#   minix         - Minix 3.3.0 using Clang
 #   qnx           - x86 with QNX Neutrino
 #   rtems         - x86/m68k/powerpc with RTEMS
 #   solaris       - sparc/x86 with Solaris 8 or above

@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2006, 2009-2010, 2013-2015 Illinois Institute of Technology
+ * Copyright 2006, 2009-2010, 2013-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,7 +25,8 @@
 #include "mx_stdint.h"
 #include "mx_unistd.h"
 
-#if defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_ANDROID)
+#if defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_ANDROID) \
+	|| defined(OS_MINIX)
 
 #include <stdlib.h>
 #include <signal.h>
@@ -391,7 +392,8 @@ mx_spawn( char *command_line,
 
 /*=========================================================================*/
 
-#if defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_ANDROID)
+#if defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_ANDROID) \
+	|| defined(OS_MINIX)
 
 MX_EXPORT int
 mx_process_id_exists( unsigned long process_id )
@@ -521,7 +523,8 @@ mx_process_id_exists( unsigned long process_id )
 
 /*=========================================================================*/
 
-#if defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_ANDROID)
+#if defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_ANDROID) \
+	|| defined(OS_MINIX)
 
 MX_EXPORT mx_status_type
 mx_kill_process_id( unsigned long process_id )
@@ -688,7 +691,8 @@ mx_process_id( void )
 
 /*=========================================================================*/
 
-#if defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_ANDROID)
+#if defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_ANDROID) \
+	|| defined(OS_MINIX)
 
 MX_EXPORT mx_status_type
 mx_wait_for_process_id( unsigned long process_id,

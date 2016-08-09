@@ -1441,7 +1441,7 @@ mx_make_directory_hierarchy( char *directory_name )
 
 /*=========================================================================*/
 
-#if defined(OS_UNIX) || defined(OS_WIN32)
+#if defined(OS_UNIX) || defined(OS_WIN32) || defined(OS_MINIX)
 
 MX_EXPORT int
 mx_command_found( char *command_name )
@@ -2201,7 +2201,7 @@ mx_canonicalize_filename( char *original_filename,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#elif defined(OS_UNIX) || defined(OS_CYGWIN)
+#elif defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_MINIX)
 
 MX_EXPORT mx_status_type
 mx_canonicalize_filename( char *original_filename,
@@ -2633,7 +2633,7 @@ mx_get_filesystem_type( char *filename,
 	|| defined(OS_CYGWIN) || defined(OS_BSD) || defined(OS_UNIXWARE) \
 	|| defined(OS_QNX) || defined(OS_RTEMS) || defined(OS_VXWORKS) \
 	|| defined(OS_HURD) || defined(OS_VMS) || defined(OS_DJGPP) \
-	|| defined(OS_ANDROID)
+	|| defined(OS_ANDROID) || defined(OS_MINIX)
 
 /* FIXME: On Linux, at least, it should be possible to do something
  * with statfs().  On MacOS X, statfs() does not appear to return the

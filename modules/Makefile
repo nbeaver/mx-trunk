@@ -60,7 +60,7 @@ MODULES += xineos_gige		# linux, win32
 #-------------------------------------------------------------------
 # Linux-only modules.
 
-MODULES += dalsa_gev
+#MODULES += dalsa_gev
 
 #MODULES += linux_portio
 

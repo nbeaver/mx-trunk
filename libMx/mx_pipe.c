@@ -497,7 +497,7 @@ mx_pipe_set_blocking_mode( MX_PIPE *mx_pipe,
 /************************ Unix ***********************/
 
 #elif defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_VMS) \
-	|| defined(OS_DJGPP) || defined(OS_ANDROID)
+	|| defined(OS_DJGPP) || defined(OS_ANDROID) || defined(OS_MINIX)
 
 #include <limits.h>
 #include <fcntl.h>

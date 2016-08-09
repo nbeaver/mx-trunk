@@ -1656,7 +1656,7 @@ mx_vm_show_os_info( FILE *file,
  */
 
 #elif defined(OS_DJGPP) || defined(OS_VXWORKS) || defined(OS_QNX) \
-	|| defined(OS_RTEMS)
+	|| defined(OS_RTEMS) || defined(OS_MINIX)
 
 #  define MX_VM_ALLOC_USES_MALLOC
 #  define MX_VM_ALLOC_USES_FREE

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2007-2008, 2011, 2015 Illinois Institute of Technology
+ * Copyright 2007-2008, 2011, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -380,7 +380,7 @@ mx_get_system_boot_time( struct timespec *system_boot_timespec )
 
 /*---------------------- MacOS X and BSD ----------------------*/
 
-#elif defined(OS_MACOSX) || defined(OS_BSD)
+#elif defined(OS_MACOSX) || defined(OS_BSD) || defined(OS_MINIX)
 
 #include <sys/sysctl.h>
 
