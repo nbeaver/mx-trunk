@@ -23,7 +23,7 @@
 #include <windows.h>
 #endif
 
-#if defined(OS_MACOSX) || defined(OS_BSD) || defined(OS_MINIX)
+#if defined(OS_MACOSX) || defined(OS_BSD)
 #include <sys/types.h>
 #include <sys/sysctl.h>
 #endif
@@ -134,7 +134,7 @@ mx_get_number_of_cpu_cores( unsigned long *num_cores )
 
 /*---------------------------- MacOS X, BSD ------------------------*/
 
-#elif defined(OS_MACOSX) || defined(OS_BSD) || defined(OS_MINIX)
+#elif defined(OS_MACOSX) || defined(OS_BSD)
 
 MX_EXPORT mx_status_type
 mx_get_number_of_cpu_cores( unsigned long *num_cores )
@@ -152,7 +152,7 @@ mx_get_number_of_cpu_cores( unsigned long *num_cores )
 
 	mib[0] = CTL_HW;
 
-#if defined(__NetBSD__) || defined(OS_MINIX)
+#if defined(__NetBSD__)
 	mib[1] = HW_NCPUONLINE;
 #elif defined(__OpenBSD__)
 	mib[1] = HW_NCPU;
@@ -171,7 +171,7 @@ mx_get_number_of_cpu_cores( unsigned long *num_cores )
 
 		if ( saved_errno != ENOENT ) {
 			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			"An attempt to read the value of HW_AVAILCPU failed.  "
+			"An attempt to get the number of CPU cores failed.  "
 			"Errno = %d, error message = '%s'",
 				saved_errno, strerror(saved_errno) );
 		} else {
@@ -243,7 +243,8 @@ mx_get_number_of_cpu_cores( unsigned long *num_cores )
 
 /*---------------------- Platforms only using one core ------------------*/
 
-#elif defined(OS_HURD) || defined(OS_DJGPP) || defined(OS_VXWORKS)
+#elif defined(OS_HURD) || defined(OS_DJGPP) || defined(OS_VXWORKS) \
+	|| defined(OS_MINIX)
 
 MX_EXPORT mx_status_type
 mx_get_number_of_cpu_cores( unsigned long *num_cores )

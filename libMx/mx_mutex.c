@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005-2007, 2015 Illinois Institute of Technology
+ * Copyright 2005-2007, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -797,7 +797,7 @@ mx_mutex_create( MX_MUTEX **mutex )
 				status, strerror( status ) );
 	}
 	
-#if defined( OS_ECOS )
+#if defined( OS_ECOS ) || defined( OS_MINIX )
 	/* FIXME: Need to include our own implementation of recursive
 	 * mutexes for platforms that do not support them.
 	 */

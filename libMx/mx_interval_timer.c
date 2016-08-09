@@ -92,6 +92,9 @@
 #  elif defined(OS_HURD)
 #     define HAVE_POSIX_TIMERS	FALSE
 
+#  elif defined(OS_MINIX)
+#     define HAVE_POSIX_TIMERS	FALSE
+
 #  elif ( _POSIX_TIMERS < 0 )
 #     define HAVE_POSIX_TIMERS	FALSE
 #  else
@@ -3348,7 +3351,7 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 /************************ BSD style setitimer() timers ***********************/
 
 #elif ( defined( OS_UNIX ) && ( HAVE_POSIX_TIMERS == FALSE ) ) \
-	|| defined( OS_DJGPP )
+	|| defined( OS_DJGPP ) || defined( OS_MINIX )
 
 /* WARNING: BSD setitimer() timers should only be used as a last resort,
  *          since they have some significant limitations in their
