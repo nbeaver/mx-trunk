@@ -1,4 +1,5 @@
-!load ../dalsa_gev.mxo
+#!load ../dalsa_gev.mxo
+!load dalsa_gev.mxo
 dalsa interface controller dalsa_gev "" "" 0 0x3
 #
 # ALS 12.2.2 detector = 1935
