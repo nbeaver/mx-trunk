@@ -5,6 +5,6 @@ dalsa interface controller dalsa_gev "" "" 0 0x3
 # ALS 12.2.2 detector = 1935
 # ALS 12.3.1 detector = 1856
 #
-###cam1  device video_input dalsa_gev_camera "" "" 1032 1548 GREY16 -1 dalsa "1856" 0 100 0x2 "/opt/mx/etc/cmos/fpd_hs_updated.xml"
+cam1  device video_input dalsa_gev_camera "" "" 1032 1548 GREY16 -1 dalsa "1856" 0 100 0x2 /opt/mxsrc/mx/modules/dalsa_gev/test/fpd_hs.xml
 #
-cam1  device video_input dalsa_gev_camera "" "" 1032 1548 GREY16 -1 dalsa "1856" 0 100 0x2 ""
+###cam1  device video_input dalsa_gev_camera "" "" 1032 1548 GREY16 -1 dalsa "1856" 0 100 0x2 ""
