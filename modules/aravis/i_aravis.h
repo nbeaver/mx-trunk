@@ -24,41 +24,37 @@
 /* Flag bits for the 'aravis_flags' field. */
 
 #define MXF_ARAVIS_SHOW_CAMERA_LIST		0x1
-#define MXF_ARAVIS_SHOW_CONFIG_OPTIONS	0x2
 
 /*----*/
+
+#define MXU_ARAVIS_DEVICE_ID_LENGTH		80
 
 typedef struct {
 	MX_RECORD *record;
 
-	long num_cameras;
+	unsigned long aravis_flags;
+
+	unsigned long num_devices;
 	MX_RECORD **device_record_array;
 
-	unsigned long aravis_flags;
 } MX_ARAVIS;
 
 #define MXI_ARAVIS_STANDARD_FIELDS \
-  {-1, -1, "num_cameras", MXFT_LONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_ARAVIS, num_cameras), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_READ_ONLY) }, \
-  \
   {-1, -1, "aravis_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_ARAVIS, aravis_flags), \
-	{0}, NULL, MXFF_IN_DESCRIPTION }
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {-1, -1, "num_devices", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_ARAVIS, num_devices), \
+	{0}, NULL, MXFF_READ_ONLY }
 
 /* The following data structures must be exported as C symbols. */
 
-MX_API mx_status_type mxi_aravis_create_record_structures(
-							MX_RECORD *record );
+MX_API mx_status_type mxi_aravis_create_record_structures( MX_RECORD *record );
 MX_API mx_status_type mxi_aravis_finish_record_initialization(
 							MX_RECORD *record );
 MX_API mx_status_type mxi_aravis_open( MX_RECORD *record );
 MX_API mx_status_type mxi_aravis_close( MX_RECORD *record );
-
-MX_API mx_status_type mxi_aravis_error_message( long gev_status,
-					unsigned long *mx_status_code,
-					char *error_message,
-					size_t max_error_message_length );
 
 extern MX_RECORD_FUNCTION_LIST mxi_aravis_record_function_list;
 

@@ -14,8 +14,6 @@
  *
  */
 
-#define MXI_ARAVIS_DEBUG	FALSE
-
 #define MXI_ARAVIS_DEBUG_OPEN	TRUE
 
 #include <stdio.h>
@@ -131,6 +129,8 @@ mxi_aravis_open( MX_RECORD *record )
 	static const char fname[] = "mxi_aravis_open()";
 
 	MX_ARAVIS *aravis;
+	long i;
+	unsigned long flags;
 	mx_status_type mx_status;
 
 	mx_status = mxi_aravis_get_pointers( record, &aravis, fname );
@@ -141,6 +141,25 @@ mxi_aravis_open( MX_RECORD *record )
 #if MXI_ARAVIS_DEBUG_OPEN
 	MX_DEBUG(-2,("%s invoked for '%s'.", fname, record->name));
 #endif
+	flags = aravis->aravis_flags;
+
+	/* Initialize Glib here.  Not needed for recent versions of Glib. */
+
+	g_type_init();
+
+	/* How many devices can Aravis see? */
+
+	arv_update_device_list();
+
+	aravis->num_devices = arv_get_n_devices();
+
+	if ( flags & MXF_ARAVIS_SHOW_CAMERA_LIST ) {
+		mx_info( "Found %lu Aravis devices.", aravis->num_devices );
+
+		for ( i = 0; i < aravis->num_devices; i++ ) {
+			mx_info( "  Device '%s'", arv_get_device_id(i) );
+		}
+	}
 
 #if MXI_ARAVIS_DEBUG_OPEN
 	MX_DEBUG(-2,("%s complete for '%s'.", fname, record->name));
@@ -170,14 +189,3 @@ mxi_aravis_close( MX_RECORD *record )
 }
 
 /*------------------------------------------------------------------------*/
-
-MX_EXPORT mx_status_type
-mxi_aravis_error_message( long gev_status,
-			unsigned long *mx_status_code,
-			char *error_message,
-			size_t max_error_message_length )
-{
-	/* FIXME: Fill this in. */
-
-	return MX_SUCCESSFUL_RESULT;
-}

@@ -14,7 +14,8 @@
  *
  */
 
-#define MXD_ARAVIS_CAMERA_DEBUG			TRUE
+#define MXD_ARAVIS_CAMERA_DEBUG_OPEN	TRUE
+#define MXD_ARAVIS_CAMERA_DEBUG_CLOSE	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -177,6 +178,7 @@ mxd_aravis_camera_create_record_structures( MX_RECORD *record )
 
 	vinput->record = record;
 	aravis_camera->record = record;
+	aravis_camera->arv_camera = NULL;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -218,6 +220,7 @@ mxd_aravis_camera_open( MX_RECORD *record )
 	MX_VIDEO_INPUT *vinput;
 	MX_ARAVIS_CAMERA *aravis_camera = NULL;
 	MX_ARAVIS *aravis = NULL;
+	ArvPixelFormat arv_pixel_format;
 
 	mx_status_type mx_status;
 
@@ -225,10 +228,6 @@ mxd_aravis_camera_open( MX_RECORD *record )
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_RECORD pointer passed was NULL." );
 	}
-
-#if MXD_ARAVIS_CAMERA_DEBUG_OPEN
-	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
-#endif
 
 	vinput = (MX_VIDEO_INPUT *) record->record_class_struct;
 
@@ -238,7 +237,40 @@ mxd_aravis_camera_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/*---------------------------------------------------------------*/
+	aravis_camera->arv_camera = arv_camera_new( aravis_camera->device_id );
+
+	if ( aravis_camera->arv_camera == NULL ) {
+		return mx_error( MXE_NOT_FOUND, fname,
+		"Aravis camera '%s' was not found.",
+			aravis_camera->device_id );
+	}
+
+#if MXD_ARAVIS_CAMERA_DEBUG_OPEN
+	MX_DEBUG(-2,("%s: Record '%s': Aravis camera '%s' found.",
+		fname, record->name, aravis_camera->device_id ));
+	MX_DEBUG(-2,("%s:  vendor = '%s', model = '%s'", fname, 
+		arv_camera_get_vendor_name( aravis_camera->arv_camera ),
+		arv_camera_get_model_name( aravis_camera->arv_camera ) ));
+#endif
+
+#if MXD_ARAVIS_CAMERA_DEBUG_OPEN
+	MX_DEBUG(-2,("%s: setting camera size to (%lu,%lu)",
+		fname, vinput->framesize[0], vinput->framesize[1]));
+#endif
+
+	mx_status = mx_video_input_set_framesize( record,
+				vinput->framesize[0], vinput->framesize[1] );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	arv_pixel_format =
+		arv_camera_get_pixel_format( aravis_camera->arv_camera );
+
+#if MXD_ARAVIS_CAMERA_DEBUG_OPEN
+	MX_DEBUG(-2,("%s: pixel_format = %#lx",
+		fname, (unsigned long) arv_pixel_format));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -265,7 +297,7 @@ mxd_aravis_camera_close( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_ARAVIS_CAMERA_DEBUG_OPEN
+#if MXD_ARAVIS_CAMERA_DEBUG_CLOSE
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
 
@@ -507,6 +539,8 @@ mxd_aravis_camera_set_parameter( MX_VIDEO_INPUT *vinput )
 	static const char fname[] = "mxd_aravis_camera_set_parameter()";
 
 	MX_ARAVIS_CAMERA *aravis_camera = NULL;
+	gint region_x_offset, region_y_offset;
+	gint region_width, region_height;
 	mx_status_type mx_status;
 
 	mx_status = mxd_aravis_camera_get_pointers( vinput,
@@ -528,6 +562,32 @@ mxd_aravis_camera_set_parameter( MX_VIDEO_INPUT *vinput )
 		break;
 
 	case MXLV_VIN_FRAMESIZE:
+		/* Set the new framesize. */
+
+		arv_camera_set_region( aravis_camera->arv_camera, 0, 0,
+				vinput->framesize[0], vinput->framesize[1] );
+
+		/* Verify that the camera is using the new framesize. */
+
+		arv_camera_get_region( aravis_camera->arv_camera,
+				&region_x_offset, &region_y_offset,
+				&region_width, &region_height );
+
+		if ( (region_x_offset != 0) || (region_y_offset != 0)
+		  || (region_width != vinput->framesize[0])
+		  || (region_height != vinput->framesize[1]) )
+		{
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"The requested region parameters (0,0,%lu,%lu) "
+			"for video input '%s' did not successfully apply.  "
+			"Instead we have (%lu,%lu,%lu,%lu).",
+			    vinput->framesize[0], vinput->framesize[1],
+			    vinput->record->name,
+			    (unsigned long) region_x_offset,
+			    (unsigned long) region_y_offset,
+			    (unsigned long) region_width,
+			    (unsigned long) region_height );
+		}
 		break;
 
 	case MXLV_VIN_FORMAT:

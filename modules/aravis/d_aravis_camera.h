@@ -23,20 +23,25 @@ extern "C" {
 
 /* 'aravis_camera_flags' bitflag macros */
 
-#define MXF_ARAVIS_CAMERA_WRITE_XML_FILE		0x1
-#define MXF_ARAVIS_CAMERA_SHOW_INFO			0x2
+#define MXF_ARAVIS_CAMERA_SHOW_INFO			0x1
 
 typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *aravis_record;
+	char device_id[MXU_ARAVIS_DEVICE_ID_LENGTH+1];
 
+	ArvCamera *arv_camera;
 } MX_ARAVIS_CAMERA;
 
 #define MXD_ARAVIS_CAMERA_STANDARD_FIELDS \
   {-1, -1, "aravis_record", MXFT_RECORD, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_ARAVIS_CAMERA, aravis_record), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY) }
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY) }, \
+  \
+  {-1, -1, "device_id", MXFT_STRING, NULL, 1, {MXU_ARAVIS_DEVICE_ID_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_ARAVIS_CAMERA, device_id), \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_READ_ONLY) }
 	
 MX_API mx_status_type mxd_aravis_camera_create_record_structures(
 							MX_RECORD *record );
