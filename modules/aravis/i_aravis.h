@@ -28,6 +28,7 @@
 /*----*/
 
 #define MXU_ARAVIS_DEVICE_ID_LENGTH		80
+#define MXU_ARAVIS_NAME_LENGTH			80
 
 typedef struct {
 	MX_RECORD *record;

@@ -14,8 +14,9 @@
  *
  */
 
-#define MXD_ARAVIS_CAMERA_DEBUG_OPEN	TRUE
-#define MXD_ARAVIS_CAMERA_DEBUG_CLOSE	TRUE
+#define MXD_ARAVIS_CAMERA_DEBUG_OPEN		TRUE
+#define MXD_ARAVIS_CAMERA_DEBUG_CLOSE		TRUE
+#define MXD_ARAVIS_CAMERA_DEBUG_MX_PARAMETERS	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -140,7 +141,7 @@ mxd_aravis_camera_get_pointers( MX_VIDEO_INPUT *vinput,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*---*/
+/*--------------------------------------------------------------------------*/
 
 /*--------------------------------------------------------------------------*/
 
@@ -220,7 +221,11 @@ mxd_aravis_camera_open( MX_RECORD *record )
 	MX_VIDEO_INPUT *vinput;
 	MX_ARAVIS_CAMERA *aravis_camera = NULL;
 	MX_ARAVIS *aravis = NULL;
-	ArvPixelFormat arv_pixel_format;
+	gint sensor_width, sensor_height;
+	gint height_min, height_max, width_min, width_max;
+	gint region_x_offset, region_y_offset, region_width, region_height;
+	long i;
+	ArvBuffer *arv_buffer = NULL;
 
 	mx_status_type mx_status;
 
@@ -248,10 +253,92 @@ mxd_aravis_camera_open( MX_RECORD *record )
 #if MXD_ARAVIS_CAMERA_DEBUG_OPEN
 	MX_DEBUG(-2,("%s: Record '%s': Aravis camera '%s' found.",
 		fname, record->name, aravis_camera->device_id ));
-	MX_DEBUG(-2,("%s:  vendor = '%s', model = '%s'", fname, 
-		arv_camera_get_vendor_name( aravis_camera->arv_camera ),
-		arv_camera_get_model_name( aravis_camera->arv_camera ) ));
 #endif
+
+	/* Figure out what kind of camera this is. */
+
+	strlcpy( aravis_camera->vendor_name,
+		arv_camera_get_vendor_name( aravis_camera->arv_camera ),
+		sizeof( aravis_camera->vendor_name ) );
+
+	strlcpy( aravis_camera->model_name,
+		arv_camera_get_model_name( aravis_camera->arv_camera ),
+		sizeof( aravis_camera->model_name ) );
+
+#if MXD_ARAVIS_CAMERA_DEBUG_OPEN
+	MX_DEBUG(-2,("%s:  vendor = '%s', model = '%s'", fname, 
+		aravis_camera->vendor_name, aravis_camera->model_name ));
+#endif
+
+#if 1
+	/* It does not always work, but ask for the sensor size anyway.*/
+
+	arv_camera_get_sensor_size( aravis_camera->arv_camera,
+					&sensor_width, &sensor_height );
+
+	MX_DEBUG(-2,("%s:  sensor size = (%lu,%lu)", fname,
+		(unsigned long) sensor_width, (unsigned long) sensor_height ));
+#endif
+
+	/* Figure out the maximum framesize that Aravis claims the
+	 * camera can do.
+	 */
+
+	arv_camera_get_width_bounds( aravis_camera->arv_camera,
+					&width_min, &width_max );
+
+	arv_camera_get_height_bounds( aravis_camera->arv_camera,
+					&height_min, &height_max );
+
+	/* If requested, try to ask the camera for the current framesize. */
+
+	if ( (vinput->framesize[0] < 0) || (vinput->framesize[1] < 0) ) {
+		arv_camera_get_region( aravis_camera->arv_camera,
+					&region_x_offset, &region_y_offset,
+					&region_width, &region_height );
+
+#if MXD_ARAVIS_CAMERA_DEBUG_OPEN
+		MX_DEBUG(-2,
+		("%s: initial region: X offset = %ld, Y offset = %ld, "
+			"width = %ld, height = %ld", fname,
+			(long) region_x_offset, (long) region_y_offset,
+			(long) region_width, (long) region_height));
+#endif
+
+		if ( (region_x_offset != 0) || (region_y_offset != 0) ) {
+			return mx_error( MXE_HARDWARE_CONFIGURATION_ERROR,fname,
+			"Aravis camera '%s' is configured with non-zero "
+			"X and Y offsets (%ld,%ld) which is incompatible "
+			"with MX.  You will need to explicitly set the "
+			"framesize in the MX configuration file.",
+				record->name,
+				(long) region_x_offset,
+				(long) region_y_offset );
+		}
+
+		if ( (region_width <= 0) || (region_height <= 0) ) {
+			return mx_error( MXE_HARDWARE_CONFIGURATION_ERROR,fname,
+			"For Aravis camera '%s', one or both of the reported "
+			"framesize values (%ld,%ld) is less than "
+			"or equal to 0.  You will need to explicitly set the "
+			"framesize in the MX configuration file",
+				record->name,
+				(long) region_width, (long) region_height );
+		}
+
+		if ((region_width > width_max) || (region_height > height_max))
+		{
+			return mx_error( MXE_HARDWARE_CONFIGURATION_ERROR,fname,
+			"For Aravis camera '%s', one or both of the reported "
+			"framesize values (%ld,%ld) is outside the allowed "
+			"range of values (%ld,%ld) reported by the camera.  "
+			"You will need to explicitly set the framesize in "
+			"the MX configuration file.",
+				record->name,
+				(long) region_width, (long) region_height,
+				(long) width_max, (long) height_max );
+		}
+	}
 
 #if MXD_ARAVIS_CAMERA_DEBUG_OPEN
 	MX_DEBUG(-2,("%s: setting camera size to (%lu,%lu)",
@@ -264,15 +351,48 @@ mxd_aravis_camera_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	arv_pixel_format =
-		arv_camera_get_pixel_format( aravis_camera->arv_camera );
+	/* Initialize the MX image format, bits per pixel, bytes per pixel,
+	 * bytes per frame, etc. by asking for the bytes per frame.
+	 */
+
+	mx_status = mx_video_input_get_bytes_per_frame( vinput->record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Create the stream that will be used to readout the image frames. */
+
+	aravis_camera->arv_stream = arv_camera_create_stream(
+					aravis_camera->arv_camera, NULL, NULL );
+
+	if ( aravis_camera->arv_stream == NULL ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"We were not able to create a video stream for "
+		"Aravis camera '%s'.", record->name );
+	}
+
+	/* Reserve the requested number of frame buffers. */
+
+	for ( i = 0; i < aravis_camera->num_frame_buffers; i++ ) {
+		arv_buffer = arv_buffer_new( vinput->bytes_per_frame, NULL );
+
+		if ( arv_buffer == NULL ) {
+			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+			"The attempt to create stream buffer %ld "
+			"for Aravis camera '%s' failed.  "
+			"Requested buffer size was %ld.",
+				i, record->name, vinput->bytes_per_frame );
+		}
+
+		arv_stream_push_buffer( aravis_camera->arv_stream, arv_buffer );
+	}
 
 #if MXD_ARAVIS_CAMERA_DEBUG_OPEN
-	MX_DEBUG(-2,("%s: pixel_format = %#lx",
-		fname, (unsigned long) arv_pixel_format));
+	MX_DEBUG(-2,("%s: %ld buffers allocated.",
+		fname, aravis_camera->num_frame_buffers ));
 #endif
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -443,6 +563,9 @@ mxd_aravis_camera_get_parameter( MX_VIDEO_INPUT *vinput )
 			"mxd_aravis_camera_get_parameter()";
 
 	MX_ARAVIS_CAMERA *aravis_camera = NULL;
+	ArvPixelFormat arv_pixel_format;
+	gint region_x_offset, region_y_offset, region_width, region_height;
+	guint payload_size;
 	mx_status_type mx_status;
 
 	mx_status = mxd_aravis_camera_get_pointers( vinput,
@@ -461,6 +584,13 @@ mxd_aravis_camera_get_parameter( MX_VIDEO_INPUT *vinput )
 	switch( vinput->parameter_type ) {
 	case MXLV_VIN_FRAMESIZE:
 
+		arv_camera_get_region( aravis_camera->arv_camera,
+				&region_x_offset, &region_y_offset,
+				&region_width, &region_height );
+
+		vinput->framesize[0] = region_width;
+		vinput->framesize[1] = region_height;
+
 #if MXD_ARAVIS_CAMERA_DEBUG_MX_PARAMETERS
 		MX_DEBUG(-2,("%s: camera '%s' framesize = (%ld,%ld).",
 			fname, aravis_camera->record->name,
@@ -469,15 +599,50 @@ mxd_aravis_camera_get_parameter( MX_VIDEO_INPUT *vinput )
 
 		break;
 
-	case MXLV_VIN_FORMAT:
-	case MXLV_VIN_FORMAT_NAME:
-		/* FIXME: The 'PixelFormat' enum may have the value we want,
-		 *        but for now, we hard code the response.
+	case MXLV_VIN_BYTES_PER_FRAME:
+		/* I want to compare the image size that is reported to me
+		 * by Aravis so that I can compare it to my own calculation.
 		 */
 
-		vinput->image_format = MXT_IMAGE_FORMAT_GREY16;
-		vinput->bytes_per_pixel = 2;
-		vinput->bits_per_pixel = 16;
+		payload_size =
+			arv_camera_get_payload( aravis_camera->arv_camera );
+
+		/* Fall through to the next case. */
+
+	case MXLV_VIN_FORMAT:
+	case MXLV_VIN_FORMAT_NAME:
+	case MXLV_VIN_BYTES_PER_PIXEL:
+	case MXLV_VIN_BITS_PER_PIXEL:
+		arv_pixel_format = arv_camera_get_pixel_format(
+					aravis_camera->arv_camera );
+
+		switch( arv_pixel_format ) {
+		case ARV_PIXEL_FORMAT_MONO_8:
+			vinput->image_format = MXT_IMAGE_FORMAT_GREY8;
+			vinput->bytes_per_pixel = 1;
+			vinput->bits_per_pixel = 8;
+			break;
+		case ARV_PIXEL_FORMAT_MONO_10:
+		case ARV_PIXEL_FORMAT_MONO_12:
+		case ARV_PIXEL_FORMAT_MONO_14:
+		case ARV_PIXEL_FORMAT_MONO_16:
+			vinput->image_format = MXT_IMAGE_FORMAT_GREY16;
+			vinput->bytes_per_pixel = 2;
+			vinput->bits_per_pixel = 16;
+			break;
+		default:
+			/* FIXME: At present, I am only supporting greyscale
+			 * images.  Color will have to wait until some other
+			 * time.
+			 */
+
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Aravis image format %#lx for camera '%s' "
+			"is not currently supported by MX.",
+				(unsigned long) arv_pixel_format,
+				vinput->record->name );
+			break;
+		}
 
 		mx_status = mx_image_get_image_format_name_from_type(
 				vinput->image_format, vinput->image_format_name,
@@ -486,7 +651,32 @@ mxd_aravis_camera_get_parameter( MX_VIDEO_INPUT *vinput )
 #if MXD_ARAVIS_CAMERA_DEBUG_MX_PARAMETERS
 		MX_DEBUG(-2,("%s: video format = %ld, format name = '%s'",
 		    fname, vinput->image_format, vinput->image_format_name));
+		MX_DEBUG(-2,("%s: bytes_per_pixel = %f, bits_per_pixel = %ld",
+		    fname, vinput->bytes_per_pixel, vinput->bits_per_pixel));
 #endif
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		vinput->bytes_per_frame = mx_round( vinput->bytes_per_pixel
+			* vinput->framesize[0] * vinput->framesize[1] );
+
+#if MXD_ARAVIS_CAMERA_DEBUG_MX_PARAMETERS
+		MX_DEBUG(-2,("%s: bytes_per_frame = %ld",
+		    fname, vinput->bytes_per_frame));
+#endif
+		if ( vinput->parameter_type == MXLV_VIN_BYTES_PER_FRAME ) {
+			if ( payload_size != vinput->bytes_per_frame ) {
+				return mx_error( MXE_CONFIGURATION_CONFLICT,
+				fname, "MX calculates that the image size for "
+				"Aravis camera '%s' should be %ld.  However, "
+				"Aravis says that it should be %ld.  "
+				"Something is wrong here.",
+					vinput->record->name,
+					vinput->bytes_per_frame,
+					(long) payload_size );
+			}
+		}
 		break;
 
 	case MXLV_VIN_BYTE_ORDER:
@@ -497,16 +687,6 @@ mxd_aravis_camera_get_parameter( MX_VIDEO_INPUT *vinput )
 		/* For this, we just return the values set by an earlier
 		 * ..._set_parameter() call.
 		 */
-		break;
-
-	case MXLV_VIN_BYTES_PER_FRAME:
-	case MXLV_VIN_BYTES_PER_PIXEL:
-	case MXLV_VIN_BITS_PER_PIXEL:
-		vinput->bytes_per_pixel = 2;
-		vinput->bits_per_pixel = 16;
-
-		vinput->bytes_per_frame = mx_round( vinput->bytes_per_pixel
-			* vinput->framesize[0] * vinput->framesize[1] );
 		break;
 
 	case MXLV_VIN_BUSY:

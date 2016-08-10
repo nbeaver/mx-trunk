@@ -143,9 +143,12 @@ mxi_aravis_open( MX_RECORD *record )
 #endif
 	flags = aravis->aravis_flags;
 
-#if 0
-	/* Initialize Glib here.  Not needed for recent versions of Glib. */
+	/* Glib 2.42.1 is known to deprecate g_type_init(), while
+	 * Glib 2.24.2 is known to require g_type_init().  Do not yet
+	 * know which version of Glib started deprecating g_type_init().
+	 */
 
+#if ( GLIB_CHECK_VERSION(2,42,0) == FALSE )
 	g_type_init();
 #endif
 

@@ -30,8 +30,13 @@ typedef struct {
 
 	MX_RECORD *aravis_record;
 	char device_id[MXU_ARAVIS_DEVICE_ID_LENGTH+1];
+	long num_frame_buffers;
+
+	char vendor_name[MXU_ARAVIS_NAME_LENGTH+1];
+	char model_name[MXU_ARAVIS_NAME_LENGTH+1];
 
 	ArvCamera *arv_camera;
+	ArvStream *arv_stream;
 } MX_ARAVIS_CAMERA;
 
 #define MXD_ARAVIS_CAMERA_STANDARD_FIELDS \
@@ -41,7 +46,19 @@ typedef struct {
   \
   {-1, -1, "device_id", MXFT_STRING, NULL, 1, {MXU_ARAVIS_DEVICE_ID_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_ARAVIS_CAMERA, device_id), \
-	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_READ_ONLY) }
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_READ_ONLY) }, \
+  \
+  {-1, -1, "num_frame_buffers", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_ARAVIS_CAMERA, num_frame_buffers), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_READ_ONLY) }, \
+  \
+  {-1, -1, "vendor_name", MXFT_STRING, NULL, 1, {MXU_ARAVIS_DEVICE_ID_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_ARAVIS_CAMERA, vendor_name), \
+	{sizeof(char)}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "model_name", MXFT_STRING, NULL, 1, {MXU_ARAVIS_DEVICE_ID_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_ARAVIS_CAMERA, model_name), \
+	{sizeof(char)}, NULL, MXFF_READ_ONLY }
 	
 MX_API mx_status_type mxd_aravis_camera_create_record_structures(
 							MX_RECORD *record );
