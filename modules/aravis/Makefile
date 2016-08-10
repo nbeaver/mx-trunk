@@ -2,11 +2,10 @@
 # This module is only for the 'linux' platform.
 #
 
-ARAVIS_INCLUDES = -I/usr/include/aravis-0.2
-ARAVIS_INCLUDES += -I/usr/include/glib-2.0
-ARAVIS_INCLUDES += -I/usr/lib/glib-2.0/include
+ARAVIS_VERSION = aravis-0.2
 
-ARAVIS_LIBRARIES = -laravis-0.2
+ARAVIS_INCLUDES  := $(shell pkg-config --cflags ${ARAVIS_VERSION})
+ARAVIS_LIBRARIES := $(shell pkg-config --libs ${ARAVIS_VERSION})
 
 #--------------------------------------------------------------------------
 

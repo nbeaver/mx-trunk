@@ -143,9 +143,11 @@ mxi_aravis_open( MX_RECORD *record )
 #endif
 	flags = aravis->aravis_flags;
 
+#if 0
 	/* Initialize Glib here.  Not needed for recent versions of Glib. */
 
 	g_type_init();
+#endif
 
 	/* How many devices can Aravis see? */
 
