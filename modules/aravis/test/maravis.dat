@@ -2,3 +2,5 @@
 aravis interface controller aravis "" "" 0x1
 #
 cam1  device video_input aravis_camera "" "" 1032 1548 GREY16 -1 aravis "Teledyne Rad-icon-1856" 50
+#
+ad device area_detector soft_area_detector "" "" 0 0x0 0x0 "" "" "" "" "" cam1 0x1

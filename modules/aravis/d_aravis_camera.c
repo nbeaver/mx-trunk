@@ -143,6 +143,42 @@ mxd_aravis_camera_get_pointers( MX_VIDEO_INPUT *vinput,
 
 /*--------------------------------------------------------------------------*/
 
+static void
+mxd_aravis_camera_new_buffer_cb( ArvStream *stream, void *data )
+{
+	static const char fname[] = "mxd_aravis_camera_new_buffer_cb()";
+
+	MX_ARAVIS_CAMERA *aravis_camera = (MX_ARAVIS_CAMERA *) data;
+	ArvBuffer *buffer = NULL;
+
+	MX_DEBUG(-2,("%s invoked.", fname));
+
+	buffer = arv_stream_try_pop_buffer( aravis_camera->arv_stream );
+
+	if ( buffer != NULL ) {
+	    if ( arv_buffer_get_status(buffer) == ARV_BUFFER_STATUS_SUCCESS ) {
+		mx_info( "CAPTURE: buffer %ld", vinput->total_num_frames );
+
+		vinput->total_num_frames++;
+	    }
+	    arv_stream_push_buffer( aravis_camera->arv_stream, buffer );
+	}
+}
+
+static gboolean
+mxd_aravis_camera_periodic_task_cb( void *data )
+{
+	mx_info( "PERIODIC TASK invoked!" );
+
+	return TRUE;
+}
+
+static void
+mxd_aravis_camera_control_lost_cb( ArvGvDevice *gv_device )
+{
+	mx_info( "CONTROL LOST!" );
+}
+
 /*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
@@ -180,6 +216,9 @@ mxd_aravis_camera_create_record_structures( MX_RECORD *record )
 	vinput->record = record;
 	aravis_camera->record = record;
 	aravis_camera->arv_camera = NULL;
+	aravis_camera->arv_stream = NULL;
+	aravis_camera->main_loop = NULL;
+	aravis_camera->acquisition_in_progress = FALSE;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -226,6 +265,7 @@ mxd_aravis_camera_open( MX_RECORD *record )
 	gint region_x_offset, region_y_offset, region_width, region_height;
 	long i;
 	ArvBuffer *arv_buffer = NULL;
+	ArvDevice *arv_device = NULL;
 
 	mx_status_type mx_status;
 
@@ -340,6 +380,23 @@ mxd_aravis_camera_open( MX_RECORD *record )
 		}
 	}
 
+	/* If one or both of the reported sensor sizes was 0, then we
+	 * set the corresponding vinput->maximum_framesize value to
+	 * the matching value from vinput->framesize.
+	 */
+
+	if ( sensor_width == 0 ) {
+		vinput->maximum_framesize[0] = vinput->framesize[0];
+	} else {
+		vinput->maximum_framesize[0] = sensor_width;
+	}
+
+	if ( sensor_height == 0 ) {
+		vinput->maximum_framesize[1] = vinput->framesize[1];
+	} else {
+		vinput->maximum_framesize[1] = sensor_height;
+	}
+
 #if MXD_ARAVIS_CAMERA_DEBUG_OPEN
 	MX_DEBUG(-2,("%s: setting camera size to (%lu,%lu)",
 		fname, vinput->framesize[0], vinput->framesize[1]));
@@ -373,6 +430,16 @@ mxd_aravis_camera_open( MX_RECORD *record )
 
 	/* Reserve the requested number of frame buffers. */
 
+	aravis_camera->frame_buffer_array = (ArvBuffer **)
+		calloc( aravis_camera->num_frame_buffers, sizeof(ArvBuffer *) );
+
+	if ( aravis_camera->frame_buffer_array == NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %ld element "
+		"array of ArvBuffer objects for video input '%s'.",
+			aravis_camera->num_frame_buffers, record->name );
+	}
+
 	for ( i = 0; i < aravis_camera->num_frame_buffers; i++ ) {
 		arv_buffer = arv_buffer_new( vinput->bytes_per_frame, NULL );
 
@@ -384,13 +451,70 @@ mxd_aravis_camera_open( MX_RECORD *record )
 				i, record->name, vinput->bytes_per_frame );
 		}
 
+		aravis_camera->frame_buffer_array[i] = arv_buffer;
+
 		arv_stream_push_buffer( aravis_camera->arv_stream, arv_buffer );
 	}
 
 #if MXD_ARAVIS_CAMERA_DEBUG_OPEN
-	MX_DEBUG(-2,("%s: %ld buffers allocated.",
-		fname, aravis_camera->num_frame_buffers ));
+	MX_DEBUG(-2,("%s: %ld buffers allocated for Aravis stream %p.",
+		fname, aravis_camera->num_frame_buffers,
+		aravis_camera->arv_stream ));
 #endif
+	/* Setup the new-buffer signal. */
+
+	g_signal_connect( aravis_camera->arv_stream, "new-buffer",
+			G_CALLBACK( mxd_aravis_camera_new_buffer_cb ),
+			aravis_camera );
+
+	/* Setup the control-lost signal. */
+
+	arv_device = arv_camera_get_device( aravis_camera->arv_camera );
+
+	g_signal_connect( arv_device, "control-lost",
+			G_CALLBACK( mxd_aravis_camera_control_lost_cb ),
+			aravis_camera );
+
+	/* Set up a periodic task callback. */
+
+	g_timeout_add_seconds( 0.1,
+			mxd_aravis_camera_periodic_task_cb,
+			aravis_camera );
+
+	/* Create and save a GMainLoop object that will be used to handle
+	 * callbacks for this camera.
+	 */
+
+	aravis_camera->main_loop = g_main_loop_new( NULL, FALSE );
+
+	/* FIXME: For now we assume that Aravis cameras are the clock master. */
+
+	vinput->master_clock = MXF_VIN_MASTER_CAMERA;
+
+	mx_status = mx_video_input_set_trigger_mode( record,
+						MXT_IMAGE_INTERNAL_TRIGGER );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Initialize a bunch of MX driver parameters. */
+
+	vinput->parameter_type = -1;
+	vinput->frame_number   = -100;
+	vinput->get_frame      = -100;
+	vinput->frame          = NULL;
+	vinput->frame_buffer   = NULL;
+	vinput->byte_order     = (long) mx_native_byteorder();
+
+	/* FIXME: The driver does not do anything to handle rollover of
+	 * the frame number.
+	 */
+
+	vinput->maximum_frame_number = ULONG_MAX;
+
+	vinput->last_frame_number = -1;
+	vinput->total_num_frames = 0;
+	vinput->status = 0x0;
 
 	return mx_status;
 }
@@ -420,6 +544,13 @@ mxd_aravis_camera_close( MX_RECORD *record )
 #if MXD_ARAVIS_CAMERA_DEBUG_CLOSE
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
+	g_main_loop_unref( aravis_camera->main_loop );
+
+	arv_camera_stop_acquisition( aravis_camera->arv_camera );
+
+	g_object_unref( aravis_camera->arv_stream );
+
+	g_object_unref( aravis_camera->arv_camera );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -430,6 +561,10 @@ mxd_aravis_camera_arm( MX_VIDEO_INPUT *vinput )
 	static const char fname[] = "mxd_aravis_camera_arm()";
 
 	MX_ARAVIS_CAMERA *aravis_camera = NULL;
+	MX_SEQUENCE_PARAMETERS *sp = NULL;
+	double exposure_time, frame_time, frame_rate;
+	unsigned long num_frames;
+	ArvAcquisitionMode acquisition_mode;
 	mx_status_type mx_status;
 
 	mx_status = mxd_aravis_camera_get_pointers( vinput,
@@ -442,6 +577,88 @@ mxd_aravis_camera_arm( MX_VIDEO_INPUT *vinput )
 	MX_DEBUG(-2,("%s invoked for video input '%s'",
 		fname, vinput->record->name ));
 #endif
+
+	/* Just in case a stream is already running, then we stop it. */
+
+	arv_camera_stop_acquisition( aravis_camera->arv_camera );
+
+	vinput->last_frame_number = -1;
+
+	aravis_camera->total_num_frames_at_start = vinput->total_num_frames;
+
+	/* Make sure that the MX input frame buffer is setup correctly. */
+
+	mx_status = mx_image_alloc( &(vinput->frame),
+					vinput->framesize[0],
+					vinput->framesize[1],
+					vinput->image_format,
+					vinput->byte_order,
+					vinput->bytes_per_pixel,
+					MXT_IMAGE_HEADER_LENGTH_IN_BYTES,
+					vinput->bytes_per_frame,
+					NULL, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Figure out the number of frames and the exposure time
+	 * for the upcoming imaging sequence.  We also figure out
+	 * the Aravis acquisition mode.
+	 */
+
+	sp = &(vinput->sequence_parameters);
+
+	switch( sp->sequence_type ) {
+	case MXT_SQ_ONE_SHOT:
+		num_frames = 1;
+		exposure_time = sp->parameter_array[0];
+		frame_time = exposure_time;
+		acquisition_mode = ARV_ACQUISITION_MODE_SINGLE_FRAME;
+		break;
+	case MXT_SQ_STREAM:
+		num_frames = 1;
+		exposure_time = sp->parameter_array[0];
+		frame_time = exposure_time;
+		acquisition_mode = ARV_ACQUISITION_MODE_CONTINUOUS;
+		break;
+	case MXT_SQ_MULTIFRAME:
+		num_frames = sp->parameter_array[0];
+		exposure_time = sp->parameter_array[1];
+		frame_time = sp->parameter_array[2];
+		acquisition_mode = ARV_ACQUISITION_MODE_CONTINUOUS;
+		break;
+	case MXT_SQ_DURATION:
+		num_frames = sp->parameter_array[0];
+		exposure_time = 1;
+		frame_time = exposure_time;
+		acquisition_mode = ARV_ACQUISITION_MODE_CONTINUOUS;
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Sequence type %ld is not supported for video input '%s'.",
+			sp->sequence_type, vinput->record->name );
+	}
+
+	arv_camera_set_acquisition_mode( aravis_camera->arv_camera,
+						acquisition_mode );
+
+	frame_rate = mx_divide_safely( 1.0, frame_time );
+
+	arv_camera_set_frame_rate( aravis_camera->arv_camera, frame_rate );
+
+	arv_camera_set_exposure_time( aravis_camera->arv_camera,
+					1.0e6 * exposure_time );
+
+	/* Prepare the camera triggering mode. */
+
+	if ( vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
+		aravis_camera->acquisition_in_progress = TRUE;
+		arv_camera_set_trigger( aravis_camera->arv_camera, "Line 1" );
+	} else
+	if ( vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
+		aravis_camera->acquisition_in_progress = FALSE;
+		arv_camera_set_trigger( aravis_camera->arv_camera, "Software" );
+	}
 
 	return mx_status;
 }
@@ -459,6 +676,13 @@ mxd_aravis_camera_trigger( MX_VIDEO_INPUT *vinput )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* If we are in internal trigger mode, then send a software trigger. */
+
+	if ( vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
+		aravis_camera->acquisition_in_progress = TRUE;
+		arv_camera_software_trigger( aravis_camera->arv_camera );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -481,6 +705,9 @@ mxd_aravis_camera_stop( MX_VIDEO_INPUT *vinput )
 	MX_DEBUG(-2,("%s invoked for video input '%s'.",
 		fname, vinput->record->name ));
 #endif
+	aravis_camera->acquisition_in_progress = FALSE;
+
+	arv_camera_stop_acquisition( aravis_camera->arv_camera );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -503,6 +730,13 @@ mxd_aravis_camera_abort( MX_VIDEO_INPUT *vinput )
 	MX_DEBUG(-2,("%s invoked for video input '%s'.",
 		fname, vinput->record->name ));
 #endif
+	aravis_camera->acquisition_in_progress = FALSE;
+
+#if 0
+	arv_camera_abort_acquisition( aravis_camera->arv_camera );
+#else
+	arv_camera_stop_acquisition( aravis_camera->arv_camera );
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -522,11 +756,11 @@ mxd_aravis_camera_get_extended_status( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	vinput->status = 0;
-
-	if ( vinput->status & MXSF_VIN_IS_BUSY ) {
+	if ( aravis_camera->acquisition_in_progress ) {
+		vinput->status = MXSF_VIN_IS_BUSY;
 		vinput->busy = TRUE;
 	} else {
+		vinput->status = 0;
 		vinput->busy = FALSE;
 	}
 

@@ -96,6 +96,8 @@ mx_video_input_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	vinput->maximum_framesize[0] = -1;
+	vinput->maximum_framesize[0] = -1;
 	vinput->asynchronous_capture = -1;
 	vinput->maximum_frame_number = 0;
 	vinput->last_frame_number = -1;
@@ -230,6 +232,7 @@ mx_video_input_set_framesize( MX_RECORD *record,
 
 	MX_VIDEO_INPUT *vinput;
 	MX_VIDEO_INPUT_FUNCTION_LIST *flist;
+	mx_bool_type would_exceed_limit;
 	mx_status_type ( *set_parameter_fn ) ( MX_VIDEO_INPUT * );
 	mx_status_type mx_status;
 
@@ -237,6 +240,32 @@ mx_video_input_set_framesize( MX_RECORD *record,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* NOTE: If maximum_framesize has a negative value, then our
+	 * convention is that we just the value of maximum_framesize.
+	 */
+
+	would_exceed_limit = FALSE;
+
+	if ( vinput->maximum_framesize[0] >= 0 ) {
+		if ( x_framesize > vinput->maximum_framesize[0] ) {
+			would_exceed_limit = TRUE;
+		}
+	} else
+	if ( vinput->maximum_framesize[1] >= 0 ) {
+		if ( y_framesize > vinput->maximum_framesize[1] ) {
+			would_exceed_limit = TRUE;
+		}
+	}
+
+	if ( would_exceed_limit ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The requested dimensions (%ld,%ld) for video input '%s' "
+		"are outside the allowed range of (%ld,%ld).",
+			x_framesize, y_framesize, record->name,
+			vinput->maximum_framesize[0],
+			vinput->maximum_framesize[1] );
+	}
 
 	set_parameter_fn = flist->set_parameter;
 
@@ -1668,8 +1697,9 @@ mx_video_input_default_get_parameter_handler( MX_VIDEO_INPUT *vinput )
 		"mx_video_input_default_get_parameter_handler()";
 
 	switch( vinput->parameter_type ) {
-	case MXLV_VIN_BITS_PER_PIXEL:
 	case MXLV_VIN_FRAMESIZE:
+	case MXLV_VIN_MAXIMUM_FRAMESIZE:
+	case MXLV_VIN_BITS_PER_PIXEL:
 	case MXLV_VIN_FORMAT:
 	case MXLV_VIN_BYTE_ORDER:
 	case MXLV_VIN_PIXEL_CLOCK_FREQUENCY:
@@ -1698,6 +1728,7 @@ mx_video_input_default_get_parameter_handler( MX_VIDEO_INPUT *vinput )
 						vinput->parameter_type ),
 			vinput->parameter_type,
 			vinput->record->name );
+		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1711,6 +1742,7 @@ mx_video_input_default_set_parameter_handler( MX_VIDEO_INPUT *vinput )
 
 	switch( vinput->parameter_type ) {
 	case MXLV_VIN_FRAMESIZE:
+	case MXLV_VIN_MAXIMUM_FRAMESIZE:
 	case MXLV_VIN_FORMAT:
 	case MXLV_VIN_BYTE_ORDER:
 	case MXLV_VIN_PIXEL_CLOCK_FREQUENCY:

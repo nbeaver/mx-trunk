@@ -14,7 +14,7 @@ all: aravis.mxo
 include ../../libMx/Makehead.$(MX_ARCH)
 
 CFLAGS_MODULE = -I../../libMx -D__MX_LIBRARY__ $(ARAVIS_INCLUDES) \
-	-Wno-cast-qual
+	-DARAVIS_VERSION=${ARAVIS_VERSION} -Wno-cast-qual
 
 ARAVIS_OBJS = aravis.$(OBJ) i_aravis.$(OBJ) d_aravis_camera.$(OBJ)
 

@@ -31,12 +31,17 @@ typedef struct {
 	MX_RECORD *aravis_record;
 	char device_id[MXU_ARAVIS_DEVICE_ID_LENGTH+1];
 	long num_frame_buffers;
+	ArvBuffer **frame_buffer_array;
 
 	char vendor_name[MXU_ARAVIS_NAME_LENGTH+1];
 	char model_name[MXU_ARAVIS_NAME_LENGTH+1];
 
 	ArvCamera *arv_camera;
 	ArvStream *arv_stream;
+	GMainLoop *main_loop;
+
+	mx_bool_type acquisition_in_progress;
+	unsigned long total_num_frames_at_start;
 } MX_ARAVIS_CAMERA;
 
 #define MXD_ARAVIS_CAMERA_STANDARD_FIELDS \
