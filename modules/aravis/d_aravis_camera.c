@@ -148,15 +148,26 @@ mxd_aravis_camera_new_buffer_cb( ArvStream *stream, void *data )
 {
 	static const char fname[] = "mxd_aravis_camera_new_buffer_cb()";
 
+	MX_VIDEO_INPUT *vinput = NULL;
 	MX_ARAVIS_CAMERA *aravis_camera = (MX_ARAVIS_CAMERA *) data;
 	ArvBuffer *buffer = NULL;
 
 	MX_DEBUG(-2,("%s invoked.", fname));
 
+	vinput = aravis_camera->record->record_class_struct;
+
+#if 0
 	buffer = arv_stream_try_pop_buffer( aravis_camera->arv_stream );
+#else
+	buffer = arv_stream_pop_buffer( aravis_camera->arv_stream );
+#endif
 
 	if ( buffer != NULL ) {
+#if 0
 	    if ( arv_buffer_get_status(buffer) == ARV_BUFFER_STATUS_SUCCESS ) {
+#else
+	    if ( TRUE ) {
+#endif
 		mx_info( "CAPTURE: buffer %ld", vinput->total_num_frames );
 
 		vinput->total_num_frames++;
