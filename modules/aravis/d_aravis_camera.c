@@ -650,6 +650,8 @@ mxd_aravis_camera_arm( MX_VIDEO_INPUT *vinput )
 			sp->sequence_type, vinput->record->name );
 	}
 
+	MXW_UNUSED( num_frames );
+
 	arv_camera_set_acquisition_mode( aravis_camera->arv_camera,
 						acquisition_mode );
 
