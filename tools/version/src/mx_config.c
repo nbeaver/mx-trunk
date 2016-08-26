@@ -112,10 +112,17 @@ main( int argc, char **argv )
 		exit(1);
 	}
 
+#if ( defined(OS_WIN32) && defined(__GNUC__) )
+	if ( strcmp( argv[1], "mx_arch" ) == 0 ) {
+		printf( "%s\n", "win32-mingw" );
+		exit(0);
+	}
+#else
 	if ( strcmp( argv[1], "mx_arch" ) == 0 ) {
 		printf( "%s\n", MX_ARCH );
 		exit(0);
 	}
+#endif
 	if ( strcmp( argv[1], "mx_version" ) == 0 ) {
 		printf( "%ld\n", MX_VERSION );
 		exit(0);

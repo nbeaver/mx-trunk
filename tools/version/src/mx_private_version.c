@@ -70,6 +70,8 @@ main( int argc, char **argv )
 
 #if defined(OS_VMS)
 	fprintf( stdout, "unknown" );
+#elif ( defined(OS_WIN32) && defined(__GNUC__) )
+	fprintf( stdout, "unknown" );
 #else
 	fprintf( stdout, MX_BRANCH_LABEL );
 #endif
@@ -80,6 +82,7 @@ main( int argc, char **argv )
 
 	mxp_generate_macros( stdout );
 
+	fprintf( stdout, "\n" );
 	fprintf( stdout, "#endif /* __MX_PRIVATE_VERSION_H__ */\n");
 	fprintf( stdout, "\n" );
 
@@ -364,6 +367,9 @@ mxp_generate_macros( FILE *version_file )
 	unsigned long win32_platform_id;
 	unsigned char win32_product_type;
 
+	TCHAR windows_directory_name[MAX_PATH+1];
+	UINT os_status;
+
 #if HAVE_OSVERSIONINFOEX
 	OSVERSIONINFOEX osvi;
 #else
@@ -553,6 +559,15 @@ mxp_generate_macros( FILE *version_file )
 	}
 
 	fprintf( version_file, "\n" );
+
+	os_status = GetWindowsDirectory( windows_directory_name, MAX_PATH );
+
+	if ( os_status != 0 ) {
+		if ( strcmp( windows_directory_name, "C:\\ReactOS" ) == 0 ) {
+			fprintf( version_file,
+				"#define MX_IS_REACTOS    1\n\n");
+		}
+	}
 
 	return;
 }
