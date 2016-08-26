@@ -1593,7 +1593,7 @@ mxp_get_fd_name_via_mapping( HANDLE fd_handle,
 		"Local\\mx_handle_%#lx", fd_handle );
 #else
 	snprintf( mapping_name, sizeof(mapping_name),
-		"Local\\mx_handle_%#lx", fd_handle );
+		"Local\\mx_handle_%#lx", (unsigned long) fd_handle );
 #endif
 
 	file_mapping_handle = CreateFileMapping( fd_handle,

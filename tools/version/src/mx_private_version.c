@@ -506,7 +506,7 @@ mxp_generate_macros( FILE *version_file )
 			fprintf( version_file,
 					"#define MX_WINVER        0x0502\n" );
 			fprintf( version_file,
-					"#define MX_WIN32_WINNT   0x05022n" );
+					"#define MX_WIN32_WINNT   0x0502\n" );
 			break;
 		default:
 			fprintf( version_file,
@@ -559,6 +559,10 @@ mxp_generate_macros( FILE *version_file )
 	}
 
 	fprintf( version_file, "\n" );
+
+#if !defined(_WIN32_WINNT)
+	fprintf( version_file, "#define _WIN32_WINNT    MX_WIN32_WINNT\n" );
+#endif
 
 	os_status = GetWindowsDirectory( windows_directory_name, MAX_PATH );
 
