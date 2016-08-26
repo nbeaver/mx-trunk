@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2002, 2006, 2012 Illinois Institute of Technology
+ * Copyright 2000-2002, 2006, 2012, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -18,7 +18,7 @@
 #ifndef __I_VME58_H__
 #define __I_VME58_H__
 
-#define MXI_VME58_COMMAND_DELAY		TRUE
+#define MXI_VME58_COMMAND_DELAY		FALSE
 
 #include "mx_record.h"
 

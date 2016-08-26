@@ -2095,14 +2095,14 @@ mx_string_split( char *original_string,
 
 /*------------------------------------------------------------------------*/
 
-#if ( defined(OS_WIN32) && (MX_WINVER >= 0x0501) )
+#if ( defined(OS_WIN32) && (MX_WINVER >= 0x0501) && (!defined(MX_IS_REACTOS)) )
 
 /* For Windows XP and after.  Internally, it depends on RtlGenRandom(). */
 
 /* Somehow MinGW does not find the prototype, so we must put it in ourself. */
 
 #if defined(__GNUC__)
-   _CRTIMP errno_t __cdecl rand_s(unsigned int *randomValue);
+   _CRTIMP int __cdecl rand_s(unsigned int *randomValue);
 #endif
 
 MX_EXPORT unsigned long
@@ -2111,7 +2111,7 @@ mx_random( void )
 	static const char fname[] = "mx_random()";
 
 	unsigned int random_value;
-	errno_t result;
+	int result;
 
 	result = rand_s( &random_value );
 

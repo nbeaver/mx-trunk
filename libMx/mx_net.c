@@ -6499,6 +6499,42 @@ mx_parse_network_field_id( char *network_field_id,
 
 /* ====================================================================== */
 
+#if ( defined(MX_IS_REACTOS) && (!defined(__clang__)) )
+
+/* FIXME: For some reason TDM-GCC 4.9.2 (32-bit) segmentation faults when
+ * it tries to compile a call to mx_add_clock_ticks() in the following
+ * function, but works fine if you inline a copy of the function body.
+ */
+
+static inline MX_CLOCK_TICK
+mxp_add_clock_ticks( MX_CLOCK_TICK clock_tick_1, MX_CLOCK_TICK clock_tick_2 )
+{
+	MX_CLOCK_TICK result;
+	unsigned long H1, H2;
+	unsigned long L1, L2;
+
+	H1 = clock_tick_1.high_order;
+	L1 = clock_tick_1.low_order;
+
+	H2 = clock_tick_2.high_order;
+	L2 = clock_tick_2.low_order;
+
+	result.low_order  = L1 + L2;
+
+	result.high_order = H1 + H2;
+
+	/* Check for carry. */
+
+	if ( L2 > ULONG_MAX - L1 )
+		result.high_order ++;
+
+	return result;
+}
+
+#endif
+
+/* ====================================================================== */
+
 MX_EXPORT mx_status_type
 mx_get_mx_server_record( MX_RECORD *record_list,
 			char *server_name,
@@ -6704,7 +6740,11 @@ mx_get_mx_server_record( MX_RECORD *record_list,
 
 		current_tick = mx_current_clock_tick();
 
+#if ( defined(MX_IS_REACTOS) && (!defined(__clang__)) )
+		finish_tick = mxp_add_clock_ticks(current_tick, timeout_ticks);
+#else
 		finish_tick = mx_add_clock_ticks( current_tick, timeout_ticks );
+#endif
 	}
 
 	sleep_ms = 1000;

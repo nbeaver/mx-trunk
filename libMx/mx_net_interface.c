@@ -178,7 +178,7 @@ mx_network_giat_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 
 		return mx_error( (MXE_NOT_FOUND | MXE_QUIET), fname,
 		"No network interface was found for IP %#lx.",
-			ipv4_address );
+			(unsigned long) ipv4_address );
 	}
 
 #if MXD_NETWORK_GET_INTERFACE_DEBUG
@@ -211,6 +211,8 @@ mx_network_giat_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 	return MX_SUCCESSFUL_RESULT;
 	return MX_SUCCESSFUL_RESULT;
 }
+
+#if ( MX_WINVER >= 0x0600 )
 
 /*======================= Windows Vista or later =======================*/
 
@@ -502,6 +504,8 @@ mx_network_gaa_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 	}
 }
 
+#endif /* ( MX_WINVER >= 0x0600 ) */
+
 /*--------*/
 
 /* We have to do different things depending on which version of Windows
@@ -512,9 +516,6 @@ MX_EXPORT mx_status_type
 mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 				struct sockaddr *ip_address_struct )
 {
-	static const char fname[] =
-		"mx_network_get_interface_from_host_address()";
-
 	int os_major, os_minor, os_update;
 	mx_status_type mx_status;
 
@@ -523,7 +524,9 @@ mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if ( MX_WINVER >= 0x0600 )
 	if ( os_major >= 6 ) {
+
 		/* Windows Vista or later uses GetAdaptersAddresses(). */
 
 		mx_status = mx_network_gaa_get_interface_from_host_address(
@@ -534,6 +537,10 @@ mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 		mx_status = mx_network_giat_get_interface_from_host_address(
 					ni, ip_address_struct );
 	}
+#else
+	mx_status = mx_network_giat_get_interface_from_host_address(
+					ni, ip_address_struct );
+#endif
 
 	return mx_status;
 }

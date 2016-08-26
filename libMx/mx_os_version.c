@@ -84,7 +84,11 @@ mx_split_version_number_string( char *version_number_string,
 
 #if defined( OS_WIN32 )
 
-#if ( defined(_MSC_VER) && (_MSC_VER > 1200) )
+#if defined(MX_IS_REACTOS)
+# define HAVE_RTL_OSVERSIONINFOW	FALSE
+# define HAVE_OSVERSIONINFOEX		TRUE
+
+#elif ( defined(_MSC_VER) && (_MSC_VER > 1200) )
 # define HAVE_RTL_OSVERSIONINFOW	TRUE
 # define HAVE_OSVERSIONINFOEX		TRUE
 
@@ -119,9 +123,9 @@ mx_win32_get_osversioninfo( unsigned long *win32_major_version,
 	OSVERSIONINFO osvi;
 #endif
 	BOOL status;
-	mx_status_type mx_status;
 
 #if HAVE_RTL_OSVERSIONINFOW
+	mx_status_type mx_status;
 
 	/* On Windows NT and above, the best method is to use the function
 	 * RtlGetVersion().  We test for its presence by trying to get
@@ -479,7 +483,7 @@ mx_get_os_version_string( char *version_string,
 			break;
 		default:
 			snprintf( version_string, max_version_string_length,
-				"Windows 10.%d", win32_minor_version );
+				"Windows 10.%d", (int) win32_minor_version );
 			break;
 		}
 		break;

@@ -990,9 +990,9 @@ mx_show_thread_info( MX_THREAD *thread, char *message )
 	mx_info( "  Win32 stop event handle    = %16p",
 				thread_private->stop_event_handle );
 #else
-	mx_info( "  Win32 thread handle        = %8p",
+	mx_info( "  Win32 thread handle        = %8lx",
 				(unsigned long) thread_private->thread_handle );
-	mx_info( "  Win32 stop event handle    = %8p",
+	mx_info( "  Win32 stop event handle    = %8lx",
 			(unsigned long) thread_private->stop_event_handle );
 #endif
 

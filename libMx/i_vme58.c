@@ -9,7 +9,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2003, 2006-2007, 2010, 2012 Illinois Institute of Technology
+ * Copyright 2000-2003, 2006-2007, 2010, 2012, 2016
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -137,17 +138,13 @@ MX_EXPORT mx_status_type
 mxi_vme58_finish_record_initialization( MX_RECORD *record )
 {
 	MX_VME58 *vme58;
-	double delay_seconds;
 	int i;
 
+#if MXI_VME58_COMMAND_DELAY
+	double delay_seconds;
+#endif
+
 	vme58 = (MX_VME58 *) record->record_type_struct;
-
-	/* Set the server minimum delay time between commands. */
-
-	delay_seconds = 0.0001;
-
-	vme58->event_interval
-		= mx_convert_seconds_to_clock_ticks( delay_seconds );
 
 	/* Initialize the motor array. */
 
@@ -156,6 +153,13 @@ mxi_vme58_finish_record_initialization( MX_RECORD *record )
 	}
 
 #if MXI_VME58_COMMAND_DELAY
+	/* Set the server minimum delay time between commands. */
+
+	delay_seconds = 0.0001;
+
+	vme58->event_interval
+		= mx_convert_seconds_to_clock_ticks( delay_seconds );
+
 	vme58->next_command_must_be_after_this_tick = mx_current_clock_tick();
 #endif
 
