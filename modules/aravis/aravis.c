@@ -21,6 +21,7 @@
 #include "mx_driver.h"
 #include "mx_thread.h"
 #include "mx_module.h"
+#include "mx_callback.h"
 #include "mx_image.h"
 #include "mx_video_input.h"
 #include "mx_digital_input.h"

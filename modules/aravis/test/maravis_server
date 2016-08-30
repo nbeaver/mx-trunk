@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../../server/mxserver -p 9827 -f maravis_server.dat -C maravis_server.acl -S $*
+

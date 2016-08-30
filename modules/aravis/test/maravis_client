@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../../motor/mxmotor.static -F ./maravis_client.dat -s ./saravis_client.dat $*
+

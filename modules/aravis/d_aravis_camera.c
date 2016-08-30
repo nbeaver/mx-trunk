@@ -16,6 +16,8 @@
 
 #define MXD_ARAVIS_CAMERA_DEBUG_OPEN		TRUE
 #define MXD_ARAVIS_CAMERA_DEBUG_CLOSE		TRUE
+#define MXD_ARAVIS_CAMERA_DEBUG_ARM		TRUE
+#define MXD_ARAVIS_CAMERA_DEBUG_TRIGGER		TRUE
 #define MXD_ARAVIS_CAMERA_DEBUG_MX_PARAMETERS	TRUE
 
 #include <stdio.h>
@@ -26,6 +28,7 @@
 #include "mx_bit.h"
 #include "mx_process.h"
 #include "mx_thread.h"
+#include "mx_callback.h"
 #include "mx_image.h"
 #include "mx_video_input.h"
 #include "i_aravis.h"
@@ -126,8 +129,7 @@ mxd_aravis_camera_get_pointers( MX_VIDEO_INPUT *vinput,
 			"is NULL.", vinput->record->name );
 		}
 
-		*aravis = (MX_ARAVIS *)
-					aravis_record->record_type_struct;
+		*aravis = (MX_ARAVIS *) aravis_record->record_type_struct;
 
 		if ( *aravis == (MX_ARAVIS *) NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -192,6 +194,85 @@ mxd_aravis_camera_control_lost_cb( ArvGvDevice *gv_device )
 
 /*--------------------------------------------------------------------------*/
 
+static mx_status_type
+mxd_aravis_camera_mx_callback( MX_CALLBACK_MESSAGE *message )
+{
+	static const char fname[] = "mxd_aravis_camera_mx_callback()";
+
+	MX_ARAVIS_CAMERA *aravis_camera = NULL;
+	mx_status_type mx_status;
+	gboolean iteration_status;
+
+	if ( message == (MX_CALLBACK_MESSAGE *) NULL ) {
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"This callback was invoked with a NULL callback message!" );
+	}
+
+#if 0
+	MX_DEBUG(-2,("%s: callback_message = %p, callback_type = %lu",
+		fname, message, message->callback_type));
+#endif
+
+	aravis_camera = (MX_ARAVIS_CAMERA *) message->u.function.callback_args;
+
+	if ( aravis_camera == (MX_ARAVIS_CAMERA *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_ARAVIS_CAMERA pointer for callback message %p is NULL.",
+			message );
+	}
+
+	/* Restart the virtual timer to arrange for the next callback. */
+
+	mx_status = mx_virtual_timer_start(
+			message->u.function.oneshot_timer,
+			message->u.function.callback_interval );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	iteration_status = g_main_context_iteration( NULL, FALSE );
+
+#if 0
+	MX_DEBUG(-2,("%s: iteration_status = %d",
+		fname, (int) iteration_status));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
+
+static mx_status_type
+mxd_aravis_camera_mx_callback_destructor( MX_CALLBACK_MESSAGE *message )
+{
+	static const char fname[] =
+		"mxd_aravis_camera_mx_callback_destructor()";
+
+	MX_ARAVIS_CAMERA *aravis_camera = NULL;
+
+	if ( message == (MX_CALLBACK_MESSAGE *) NULL ) {
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"This callback was invoked with a NULL callback message!" );
+	}
+
+#if 1
+	MX_DEBUG(-2,("%s: callback_message = %p, callback_type = %lu",
+		fname, message, message->callback_type));
+#endif
+
+	aravis_camera = (MX_ARAVIS_CAMERA *) message->u.function.callback_args;
+
+	if ( aravis_camera == (MX_ARAVIS_CAMERA *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_ARAVIS_CAMERA pointer for callback message %p is NULL.",
+			message );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mxd_aravis_camera_create_record_structures( MX_RECORD *record )
 {
@@ -230,6 +311,8 @@ mxd_aravis_camera_create_record_structures( MX_RECORD *record )
 	aravis_camera->arv_stream = NULL;
 	aravis_camera->main_loop = NULL;
 	aravis_camera->acquisition_in_progress = FALSE;
+
+	aravis_camera->callback_message = NULL;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -292,6 +375,8 @@ mxd_aravis_camera_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/*---------*/
 
 	aravis_camera->arv_camera = arv_camera_new( aravis_camera->device_id );
 
@@ -527,6 +612,20 @@ mxd_aravis_camera_open( MX_RECORD *record )
 	vinput->total_num_frames = 0;
 	vinput->status = 0x0;
 
+	/* Setup an MX callback to handle Glib main loop callbacks.  Since
+	 * MX servers already have their own main loop found at the end of
+	 * the MX server's main() function, we do not use g_main_loop_run()
+	 * itself.  Instead, we arrange to periodically invoke the function
+	 * g_main_context_iteration(), which runs a single iteration for
+	 * the given main loop.
+	 */
+
+	mx_status = mx_function_add_callback( record->list_head,
+				mxd_aravis_camera_mx_callback,
+				mxd_aravis_camera_mx_callback_destructor,
+				aravis_camera, 1.0,
+				&(aravis_camera->callback_message) );
+
 	return mx_status;
 }
 
@@ -666,11 +765,22 @@ mxd_aravis_camera_arm( MX_VIDEO_INPUT *vinput )
 
 	if ( vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
 		aravis_camera->acquisition_in_progress = TRUE;
+
 		arv_camera_set_trigger( aravis_camera->arv_camera, "Line 1" );
+
+		/* Starting acquisition here will cause the camera to
+		 * acquire a frame the next time a trigger appears on
+		 * 'Line 1'.
+		 */
+
+		arv_camera_start_acquisition( aravis_camera->arv_camera );
 	} else
 	if ( vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
 		aravis_camera->acquisition_in_progress = FALSE;
+
 		arv_camera_set_trigger( aravis_camera->arv_camera, "Software" );
+
+		/* For internal triggers, we do not start acquisition here. */
 	}
 
 	return mx_status;
@@ -690,11 +800,21 @@ mxd_aravis_camera_trigger( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXD_ARAVIS_CAMERA_DEBUG_TRIGGER
+	MX_DEBUG(-2,("%s invoked for video input '%s'",
+		fname, vinput->record->name ));
+#endif
+
 	/* If we are in internal trigger mode, then send a software trigger. */
 
 	if ( vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
 		aravis_camera->acquisition_in_progress = TRUE;
+
 		arv_camera_software_trigger( aravis_camera->arv_camera );
+
+		/* Start the acquisition NOW (hopefully). */
+
+		arv_camera_start_acquisition( aravis_camera->arv_camera );
 	}
 
 	return MX_SUCCESSFUL_RESULT;

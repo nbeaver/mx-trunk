@@ -40,6 +40,8 @@ typedef struct {
 	ArvStream *arv_stream;
 	GMainLoop *main_loop;
 
+	MX_CALLBACK_MESSAGE *callback_message;
+
 	mx_bool_type acquisition_in_progress;
 	unsigned long total_num_frames_at_start;
 } MX_ARAVIS_CAMERA;
