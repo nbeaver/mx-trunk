@@ -235,6 +235,8 @@ mxd_aravis_camera_mx_callback( MX_CALLBACK_MESSAGE *message )
 #if 0
 	MX_DEBUG(-2,("%s: iteration_status = %d",
 		fname, (int) iteration_status));
+#else
+	MXW_UNUSED(iteration_status);
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
