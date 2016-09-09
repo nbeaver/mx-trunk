@@ -194,7 +194,7 @@ main( int argc, char **argv )
 #if defined(MX_CYGWIN_VERSION)
 		printf( "%ld\n", MX_CYGWIN_VERSION );
 #elif defined(MX_DARWIN_VERSION)
-		printf( "%d\n", MX_DARWIN_VERSION );
+		printf( "%ld\n", MX_DARWIN_VERSION );
 #elif defined(MX_RTEMS_VERSION)
 		printf( "%d\n", MX_RTEMS_VERSION );
 #elif defined(MX_SOLARIS_VERSION)
