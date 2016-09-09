@@ -51,6 +51,7 @@ extern "C" {
 #define MXU_UNITS_NAME_LENGTH			16
 
 #define MXU_NETWORK_TYPE_NAME_LENGTH		40
+#define MXU_SCRIPT_TYPE_NAME_LENGTH		40
 
 #define MXU_FIELD_MAX_DIMENSIONS		8
 #define MXU_RECORD_DESCRIPTION_LENGTH		2500
@@ -190,6 +191,10 @@ typedef struct mx_record_type {
 
 	char network_type_name[MXU_NETWORK_TYPE_NAME_LENGTH+1];
 
+	unsigned long script_type;
+	char script_type_name[MXU_SCRIPT_TYPE_NAME_LENGTH+1];
+	void *script_object;
+
 	MX_EVENT_TIME_MANAGER *event_time_manager;
 	void *event_queue;		/* Ptr to MXSRV_QUEUED_EVENT */
 
@@ -200,6 +205,13 @@ typedef struct {
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;
 } MX_RECORD_FIELD_HANDLER;
+
+/* The current list of script types. */
+
+#define MXSO_NONE		0
+#define MXSO_PYTHON		1
+
+#define MXSO_OTHER		0x80000000
 
 /* The following is the current list of record field types. */
 
@@ -322,6 +334,15 @@ typedef struct {
   {MXLV_REC_NETWORK_TYPE_NAME, -1, "network_type_name", MXFT_STRING, \
 		NULL, 1, {MXU_NETWORK_TYPE_NAME_LENGTH}, \
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, network_type_name), \
+	{sizeof(char)}, NULL, MXFF_READ_ONLY}, \
+  \
+  {-1, -1, "script_type", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, script_type), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {-1, -1, "script_type_name", MXFT_STRING, \
+		NULL, 1, {MXU_SCRIPT_TYPE_NAME_LENGTH}, \
+	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, script_type_name), \
 	{sizeof(char)}, NULL, MXFF_READ_ONLY}
 
 /* Definition of bits in the 'record_flags' field of the record. */

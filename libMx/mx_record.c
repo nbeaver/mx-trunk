@@ -206,6 +206,12 @@ mx_create_record( void )
 		new_record->previous_record = NULL;
 		new_record->next_record = NULL;
 		new_record->list_head = NULL;
+
+		new_record->network_type_name[0] = '\0';
+
+		new_record->script_type = MXSO_NONE;
+		new_record->script_type_name[0] = '\0';
+		new_record->script_object = NULL;
 	}
 	return new_record;
 }
