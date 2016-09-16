@@ -67,18 +67,28 @@
 # mx/module/epics/Makefile.config.
 #
 
-MX_ARCH = macosx-clang
+#
+# If MX_ARCH and/or MX_INSTALL_DIR are defined in your shell's environment
+# variables, then they will automatically take precedence over the 
+# definitions below.
+#
 
-#MX_INSTALL_DIR = /opt/mx
+ifndef MX_ARCH
+MX_ARCH = linux
+endif
+
+ifndef MX_INSTALL_DIR
+MX_INSTALL_DIR = /opt/mx
 #MX_INSTALL_DIR = c:/opt/mx
 #MX_INSTALL_DIR = /mnt/mx
 #MX_INSTALL_DIR = /mnt/sdcard/opt/mx
 #MX_INSTALL_DIR = $(HOME)/local/mx
 #MX_INSTALL_DIR = $(HOME)/lavender/opt/mx
-MX_INSTALL_DIR = $(HOME)/mxtest
+#MX_INSTALL_DIR = $(HOME)/mxtest
 #MX_INSTALL_DIR = /programs/mx/
 #MX_INSTALL_DIR = c:/users/lavender/mxtest
-#MX_INSTALL_DIR = c:/opt/mx-2.0.3-2016_07_14
+#MX_INSTALL_DIR = c:/opt/mx-2.1.1-2016_09_15
+endif
 
 #------------------------------------------------------------------------------
 
