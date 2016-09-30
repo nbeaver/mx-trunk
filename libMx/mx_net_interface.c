@@ -748,7 +748,8 @@ mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 }
 
 #elif defined( OS_MACOSX ) || defined( OS_LINUX ) || defined( OS_ANDROID ) \
-	|| defined( OS_SOLARIS ) || defined( OS_VXWORKS ) || defined( OS_VMS )
+	|| defined( OS_SOLARIS ) || defined( OS_VXWORKS ) || defined( OS_VMS ) \
+	|| defined( OS_DJGPP )
 
 /*---- Use SIOCGIFCONF and SIOCGIFMTU ----*/
 
