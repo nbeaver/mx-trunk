@@ -228,16 +228,6 @@ mx_breakpoint( void )
 	DebugBreak();
 }
 
-#elif defined(OS_DJGPP)
-
-MX_EXPORT void
-mx_breakpoint( void )
-{
-	mx_debugger_started = TRUE;
-
-	__asm__("int3");
-}
-
 #elif ( defined(__GNUC__) \
 	&& (defined(__i386__) || defined(__x86_64__)) \
 	&& (!defined(OS_SOLARIS)) )
