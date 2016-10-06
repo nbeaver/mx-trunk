@@ -357,7 +357,7 @@ mx_delete_record( MX_RECORD *record )
 
 	if ( record->application_destructor != NULL ) {
 		mx_status = (*(record->application_destructor))
-				( record->application_destructor_args ) ;
+			( record, record->application_destructor_args ) ;
 
 		/* A failure of the application destructor should not be
 		 * allowed to stop the deletion of the record.
@@ -3766,8 +3766,8 @@ mx_set_field_application_ptr( MX_RECORD_FIELD *record_field,
 
 MX_EXPORT mx_status_type
 mx_get_record_application_destructor( MX_RECORD *record,
-			mx_status_type (**application_destructor)(void *),
-			void **destructor_args )
+		mx_status_type (**application_destructor)(MX_RECORD *, void *),
+		void **destructor_args )
 {
 	static const char fname[] = "mx_get_record_application_destructor()";
 
@@ -3788,8 +3788,8 @@ mx_get_record_application_destructor( MX_RECORD *record,
 
 MX_EXPORT mx_status_type
 mx_set_record_application_destructor( MX_RECORD *record,
-			mx_status_type (*application_destructor)(void *),
-			void *destructor_args )
+		mx_status_type (*application_destructor)(MX_RECORD *, void *),
+		void *destructor_args )
 {
 	static const char fname[] = "mx_set_record_application_destructor()";
 

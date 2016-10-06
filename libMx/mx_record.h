@@ -200,7 +200,8 @@ typedef struct mx_record_type {
 
 	void *application_ptr;
 
-	mx_status_type (*application_destructor)( void * );
+	mx_status_type (*application_destructor)( struct mx_record_type *,
+							void * );
 	void *application_destructor_args;
 } MX_RECORD;
 
@@ -932,14 +933,14 @@ MX_API mx_status_type  mx_set_field_application_ptr(
 						void *application_ptr );
 
 MX_API mx_status_type  mx_get_record_application_destructor(
-			MX_RECORD *record,
-			mx_status_type (**application_destructor)(void *),
-			void **destructor_args );
+		MX_RECORD *record,
+		mx_status_type (**application_destructor)(MX_RECORD *, void *),
+		void **destructor_args );
 
 MX_API mx_status_type  mx_set_record_application_destructor(
-			MX_RECORD *record,
-			mx_status_type (*application_destructor)(void *),
-			void *destructor_args );
+		MX_RECORD *record,
+		mx_status_type (*application_destructor)(MX_RECORD *, void *),
+		void *destructor_args );
 
 /* --- */
 
