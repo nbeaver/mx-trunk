@@ -202,6 +202,8 @@ mx_create_record( void )
 		new_record->event_time_manager = NULL;
 		new_record->event_queue = NULL;
 		new_record->application_ptr = NULL;
+		new_record->application_destructor = NULL;
+		new_record->application_destructor_args = NULL;
 
 		new_record->previous_record = NULL;
 		new_record->next_record = NULL;
@@ -345,6 +347,21 @@ mx_delete_record( MX_RECORD *record )
 
 		MX_DEBUG( 8,("%s: deleted record '%s', num_records = %lu",
 			fname, record->name, list_head_struct->num_records));
+	}
+
+	/* If an application has installed an 'application destructor',
+	 * then we call that now, before calling the driver's own
+	 * 'delete_record' call, since the application destructor may
+	 * need resources that 'delete_record' will destroy.
+	 */
+
+	if ( record->application_destructor != NULL ) {
+		mx_status = (*(record->application_destructor))
+				( record->application_destructor_args ) ;
+
+		/* A failure of the application destructor should not be
+		 * allowed to stop the deletion of the record.
+		 */
 	}
 
 	/* Find the type specific 'delete record' function to delete the
@@ -3743,6 +3760,48 @@ mx_set_field_application_ptr( MX_RECORD_FIELD *record_field,
 	}
 
 	record_field->application_ptr = application_ptr;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_get_record_application_destructor( MX_RECORD *record,
+			mx_status_type (**application_destructor)(void *),
+			void **destructor_args )
+{
+	static const char fname[] = "mx_get_record_application_destructor()";
+
+	if ( (application_destructor == NULL)
+	  || (destructor_args == NULL) )
+	{
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"Either the application_destructor pointer or the "
+		"destructor_args pointer is NULL for record '%s'.",
+			record->name );
+	}
+
+	*application_destructor = record->application_destructor;
+	*destructor_args = record->application_destructor_args;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_set_record_application_destructor( MX_RECORD *record,
+			mx_status_type (*application_destructor)(void *),
+			void *destructor_args )
+{
+	static const char fname[] = "mx_set_record_application_destructor()";
+
+	if ( record->application_destructor != NULL ) {
+		return mx_error( MXE_PERMISSION_DENIED, fname,
+	    "The application destructor for record '%s' is already in use.  "
+		"It currently points to %p", record->name,
+			record->application_destructor );
+	}
+
+	record->application_destructor = application_destructor;
+	record->application_destructor_args = destructor_args;
 
 	return MX_SUCCESSFUL_RESULT;
 }

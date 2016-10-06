@@ -199,6 +199,9 @@ typedef struct mx_record_type {
 	void *event_queue;		/* Ptr to MXSRV_QUEUED_EVENT */
 
 	void *application_ptr;
+
+	mx_status_type (*application_destructor)( void * );
+	void *application_destructor_args;
 } MX_RECORD;
 
 typedef struct {
@@ -927,6 +930,16 @@ MX_API mx_status_type  mx_set_record_application_ptr( MX_RECORD *record,
 MX_API mx_status_type  mx_set_field_application_ptr(
 						MX_RECORD_FIELD *record_field,
 						void *application_ptr );
+
+MX_API mx_status_type  mx_get_record_application_destructor(
+			MX_RECORD *record,
+			mx_status_type (**application_destructor)(void *),
+			void **destructor_args );
+
+MX_API mx_status_type  mx_set_record_application_destructor(
+			MX_RECORD *record,
+			mx_status_type (*application_destructor)(void *),
+			void *destructor_args );
 
 /* --- */
 
