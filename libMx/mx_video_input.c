@@ -97,7 +97,7 @@ mx_video_input_finish_record_initialization( MX_RECORD *record )
 		return mx_status;
 
 	vinput->maximum_framesize[0] = -1;
-	vinput->maximum_framesize[0] = -1;
+	vinput->maximum_framesize[1] = -1;
 	vinput->asynchronous_capture = -1;
 	vinput->maximum_frame_number = 0;
 	vinput->last_frame_number = -1;
@@ -242,7 +242,7 @@ mx_video_input_set_framesize( MX_RECORD *record,
 		return mx_status;
 
 	/* NOTE: If maximum_framesize has a negative value, then our
-	 * convention is that we just the value of maximum_framesize.
+	 * convention is that we ignore the value of maximum_framesize.
 	 */
 
 	would_exceed_limit = FALSE;
