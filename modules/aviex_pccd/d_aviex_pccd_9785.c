@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2009, 2011-2013, 2015 Illinois Institute of Technology
+ * Copyright 2006-2009, 2011-2013, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -305,6 +305,11 @@ mxd_aviex_pccd_9785_initialize_detector( MX_RECORD *record,
 
 	control_register_value
 		&= (~MXF_AVIEX_PCCD_9785_DETECTOR_READOUT_MASK);
+
+	/* Make sure CCD power is on. */
+
+	control_register_value
+		&= (~MXF_AVIEX_PCCD_9785_CCD_POWER_OFF);
 
 #if 0   /* Not used with the PCCD-9785 */
 
