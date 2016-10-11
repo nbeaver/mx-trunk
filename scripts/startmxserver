@@ -7,7 +7,17 @@ if [ x$MXPORT = x ]; then
 	MXPORT=9727
 fi
 
-MXSERVER=${MXDIR}/sbin/mxserver
+#
+# If we need to customize the environment of the MX server before
+# we start it, then we need to provide an mxserver.custom script
+# to do the customizations.
+#
+
+MXSERVER_CUSTOM_FILE=${MXDIR}/etc/mxserver.custom
+
+if [ -f ${MXSERVER_CUSTOM_FILE} ]; then
+	. ${MXSERVER_CUSTOM_FILE}
+fi
 
 if [ x$LD_LIBRARY_PATH = x ]; then
 	LD_LIBRARY_PATH=${MXDIR}/lib
@@ -28,6 +38,8 @@ else
 fi
 
 export MXDIR LD_LIBRARY_PATH DYLD_LIBRARY_PATH SHLIB_PATH
+
+MXSERVER=${MXDIR}/sbin/mxserver
 
 if [ -x $MXSERVER ]; then
 	cd ${MXDIR}/run

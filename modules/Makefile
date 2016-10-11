@@ -33,7 +33,7 @@ MODULES += epix_xclib		# linux, win32
 
 #MODULES += labjack_ux		# linux,
 
-#MODULES += libtiff		# linux, win32
+MODULES += libtiff		# linux, win32
 
 #MODULES += libusb-0.1		# linux,
 
@@ -100,7 +100,7 @@ MODULES += epix_xclib		# linux, win32
 #-------------------------------------------------------------------
 # EPICS modules.
 
-#MODULES += epics
+MODULES += epics
 
 #MODULES += epics_aps 
 

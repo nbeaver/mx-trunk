@@ -65,7 +65,7 @@ fi
 
 #---
 
-MXSERVER_PRELOAD_FILE=${MXDIR}/etc/mxserver.pre
+MXSERVER_PRELOAD_FILE=${MXDIR}/etc/mxserver.preload
 
 if [ -f ${MXSERVER_PRELOAD_FILE} ]; then
 	MXSERVER_PRELOAD=`cat ${MXSERVER_PRELOAD_FILE}`

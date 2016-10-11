@@ -2,11 +2,11 @@
 # Supported values of MX_ARCH:   linux
 #
 
-ifndef ($(MX_ARCH))
+ifndef MX_ARCH
 MX_ARCH = linux
 endif
 
-ifndef ($(MX_INSTALL_DIR))
+ifndef MX_INSTALL_DIR
 MX_INSTALL_DIR = /opt/mx
 endif
 
@@ -17,9 +17,7 @@ ifeq ($(MX_ARCH),win32)
 # Not tested on Win32 yet.
 
 LIBTIFF_DIR = c:\\opt\\tiff-4.0.6
-
 LIBTIFF_INCLUDES = -I$(LIBTIFF_DIR)\\libtiff
-
 LIBTIFF_LIBRARY = $(LIBTIFF_DIR)\\libtiff\\libtiff.lib
 
 #----
@@ -27,7 +25,6 @@ LIBTIFF_LIBRARY = $(LIBTIFF_DIR)\\libtiff\\libtiff.lib
 else ifeq ($(MX_ARCH),linux)
 
 LIBTIFF_INCLUDES = 
-
 LIBTIFF_LIBRARY = -ltiff
 
 #----
@@ -35,7 +32,6 @@ LIBTIFF_LIBRARY = -ltiff
 else ifeq ($(MX_ARCH),linux-clang)
 
 LIBTIFF_INCLUDES = 
-
 LIBTIFF_LIBRARY = -ltiff
 
 else
