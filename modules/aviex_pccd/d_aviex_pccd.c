@@ -2255,6 +2255,15 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Make sure that the saved value of mx_automatic_offset_flags
+	 * is initialized early, so that there is no window of opportunity
+	 * for losing it if mxd_aviex_pccd_cleanup_after_correction() is
+	 * called unexpectedly early.
+	 */
+
+	aviex_pccd->saved_mx_automatic_offset_flags
+		= aviex_pccd->mx_automatic_offset_flags;
+
 #if MXD_AVIEX_PCCD_DEBUG
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
 #endif

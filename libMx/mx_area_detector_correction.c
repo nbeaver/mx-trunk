@@ -1054,9 +1054,15 @@ mx_area_detector_cleanup_after_correction( MX_AREA_DETECTOR *ad,
 	if ( ad != NULL ) {
 		corr = ad->correction_measurement;
 	} else {
+#if 0
 		(void) mx_error( MXE_NULL_ARGUMENT, fname,
 		"Both the MX_AREA_DETECTOR_CORRECTION_MEASUREMENT and "
 		"the MX_AREA_DETECTOR pointers are NULL!" );
+#endif
+		/* If we get here, it may just mean that this is the second
+		 * time that we have been called to clean up after a
+		 * correction, which should not be treated as an error.
+		 */
 
 		return;
 	}
@@ -1125,6 +1131,13 @@ mx_area_detector_cleanup_after_correction( MX_AREA_DETECTOR *ad,
 	} else {
 		ad->correction_measurement = NULL;
 	}
+
+	/* Reduce the chance of dangling pointers by zeroing out the
+	 * contents of the MX_AREA_DETECTOR_CORRECTION_MEASUREMENT
+	 * structure that we are about to free.
+	 */
+
+	memset( corr, 0, sizeof(MX_AREA_DETECTOR_CORRECTION_MEASUREMENT) );
 
 #if MX_AREA_DETECTOR_DEBUG_MEMORY_CORRUPTION
 	MX_DEBUG(-2,("%s: FREE-ing corr = %p", fname, corr));
@@ -1249,6 +1262,8 @@ mx_area_detector_prepare_for_correction( MX_AREA_DETECTOR *ad,
 						&(ad->image_frame) );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
+		*corr_ptr = NULL;	/* Eliminate dangling pointer. */
+
 		mx_area_detector_cleanup_after_correction( NULL, corr );
 		return mx_status;
 	}
@@ -1314,6 +1329,8 @@ mx_area_detector_prepare_for_correction( MX_AREA_DETECTOR *ad,
 	}
 
 	if ( mx_status.code != MXE_SUCCESS ) {
+		*corr_ptr = NULL;	/* Eliminate dangling pointer. */
+
 		mx_area_detector_cleanup_after_correction( NULL, corr );
 		return mx_status;
 	}
@@ -1324,12 +1341,17 @@ mx_area_detector_prepare_for_correction( MX_AREA_DETECTOR *ad,
 	if ( ad->dezinger_correction_frame ) {
 
 		if ( corr->num_exposures < 2 ) {
+			*corr_ptr = NULL;    /* Eliminate dangling pointer. */
+
 			mx_area_detector_cleanup_after_correction( NULL, corr );
 
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Area detector '%s' cannot perform dezingering "
 			"of correction frames if only 1 measurement "
-			"is to be performed.", ad->record->name );
+			"is to be performed.  If you want to create a "
+			"dark current frame using only 1 measurement, "
+			"then you should turn dezingering off.",
+				ad->record->name );
 		}
 
 		corr->dezinger_frame_array =
@@ -1337,6 +1359,8 @@ mx_area_detector_prepare_for_correction( MX_AREA_DETECTOR *ad,
 
 		if ( corr->dezinger_frame_array == (MX_IMAGE_FRAME **) NULL )
 		{
+			*corr_ptr = NULL;    /* Eliminate dangling pointer. */
+
 			mx_area_detector_cleanup_after_correction( NULL, corr );
 
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -1356,6 +1380,8 @@ mx_area_detector_prepare_for_correction( MX_AREA_DETECTOR *ad,
 			calloc( pixels_per_frame, sizeof(double) );
 
 		if ( corr->sum_array == (double *) NULL ) {
+			*corr_ptr = NULL;    /* Eliminate dangling pointer. */
+
 			mx_area_detector_cleanup_after_correction( NULL, corr );
 
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
