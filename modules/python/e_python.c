@@ -134,6 +134,13 @@ mxext_python_create_record_list_object(
 		"Could not create an instance of the Mp.RecordList class." );
 	}
 
+	/* FIXME: We have found in the Mp module that it is necessary to
+	 * increment the reference count here to avoid a segmentation fault.
+	 * So we must do that here too.
+	 */
+
+	Py_INCREF( *record_list_class_instance );
+
 #if PYTHON_MODULE_DEBUG_CAPSULE
 	MX_DEBUG(-2,("%s complete.", fname));
 #endif
