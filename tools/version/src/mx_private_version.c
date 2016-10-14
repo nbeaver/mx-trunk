@@ -817,6 +817,10 @@ mxp_generate_macros( FILE *version_file )
 
 #elif defined(__GNUC__)
 
+#if defined(OS_VXWORKS)
+#include "version_temp.h"
+#endif
+
 static void
 mxp_generate_macros( FILE *version_file )
 {
@@ -831,6 +835,13 @@ mxp_generate_macros( FILE *version_file )
 		__RTEMS_MAJOR__ * 1000000L
 		+ __RTEMS_MINOR__ * 1000L
 		+ __RTEMS_REVISION__ );
+#endif
+
+#if defined(OS_VXWORKS)
+	fprintf( version_file, "#define MX_VXWORKS_VERSION   %luL\n",
+		_WRS_VXWORKS_MAJOR * 1000000L
+		+ _WRS_VXWORKS_MINOR * 1000L
+		+ _WRS_VXWORKS_MAINT );
 #endif
 
 	return;

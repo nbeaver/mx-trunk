@@ -2,35 +2,33 @@
 # tools/Makefile.vxworks
 #
 
-all: ../libMx/mx_private_version.h getopt.o strlcpy.o strlcat.o strptime.o
+all: ../libMx/mx_private_version.h strlcpy.o strlcat.o strptime.o
 
 include ../libMx/Makefile.version
 
 include ../libMx/Makehead.vxworks
 
-XCC = $(CC) -fno-builtin -nostdinc -DCPU=$(WIND_CPU) -I$(WIND_BASE)/target/h
-
 mx_private_version: ../libMx/Makefile.version version/src/mx_private_version.c
-	$(XCC) -v > version_temp.txt 2>&1
-	( unset GCC_EXEC_PREFIX ; $(HOST_CC) $(CFLAGS_MX_VERS) \
-		-o mx_private_version version/src/mx_private_version.c )
+	grep "^#define _WRS_VXWORKS" $(WIND_BASE)/vxworks-$(VW_VERSION)/target/h/version.h > version_temp.h
+	$(CC) -v > version_temp.txt 2>&1
+	$(HOST_CC) $(CFLAGS_MX_VERS) -I. \
+		-o mx_private_version version/src/mx_private_version.c
 
 ../libMx/mx_private_version.h: mx_private_version
 	./mx_private_version > ../libMx/mx_private_version.h
 
-getopt.o:
-	$(XCC) -c -I../libMx -DOS_VXWORKS -D__MX_LIBRARY__ generic/src/getopt.c
-
 strlcpy.o: generic/src/strlcpy.c
-	$(XCC) -c -I../libMx -DOS_VXWORKS -D__MX_LIBRARY__ generic/src/strlcpy.c
+	$(COMPILE) -I../libMx -DOS_VXWORKS -D__MX_LIBRARY__ \
+		generic/src/strlcpy.c
 
 strlcat.o: generic/src/strlcat.c
-	$(XCC) -c -I../libMx -DOS_VXWORKS -D__MX_LIBRARY__ generic/src/strlcat.c
+	$(COMPILE) -I../libMx -DOS_VXWORKS -D__MX_LIBRARY__ \
+		generic/src/strlcat.c
 
 strptime.o: generic/src/strptime.c
-	$(XCC) -c -I../libMx -DOS_VXWORKS -D__MX_LIBRARY__ \
+	$(COMPILE) -I../libMx -DOS_VXWORKS -D__MX_LIBRARY__ \
 		generic/src/strptime.c
 
 mx_clean:
-	-rm *.o mx_private_version version_temp.txt
+	-rm *.o mx_private_version version_temp.h version_temp.txt
 

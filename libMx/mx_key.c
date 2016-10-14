@@ -856,6 +856,20 @@ mx_kbhit( void )
 	return 0;
 }
 
+static int echo_off = FALSE;
+
+MX_EXPORT void
+mx_key_echo_off( void )
+{
+	echo_off = TRUE;
+}
+
+MX_EXPORT void
+mx_key_echo_on( void )
+{
+	echo_off = FALSE;
+}
+
 MX_EXPORT void
 mx_key_getline( char *buffer, size_t max_buffer_length )
 {

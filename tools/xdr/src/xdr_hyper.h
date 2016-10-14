@@ -44,7 +44,7 @@
    typedef uint64_t		u_quad_t;
 
 #elif defined(OS_CYGWIN) || defined(OS_QNX) || defined(OS_RTEMS) \
-	|| defined(OS_VXWORKS) || defined(OS_UNIXWARE)
+	|| defined(OS_UNIXWARE)
 
    typedef long long		quad_t;
    typedef unsigned long long	u_quad_t;

@@ -44,9 +44,8 @@
 
 #elif defined(OS_LINUX) || defined(OS_SOLARIS) || defined(OS_IRIX) \
 	|| defined(OS_HPUX) || defined(OS_BSD) || defined(OS_QNX) \
-	|| defined(OS_TRU64) || defined(OS_RTEMS) || defined(OS_VXWORKS) \
-	|| defined(OS_ECOS) || defined(OS_HURD) || defined(OS_ANDROID) \
-	|| defined(OS_MINIX)
+	|| defined(OS_TRU64) || defined(OS_RTEMS) || defined(OS_ECOS) \
+	|| defined(OS_HURD) || defined(OS_ANDROID) || defined(OS_MINIX)
 
 #  define MX_SLEEP_TYPE        USE_NANOSLEEP_MX_SLEEP
 
@@ -54,7 +53,7 @@
 
 #  define MX_SLEEP_TYPE        USE_USLEEP_MX_SLEEP
 
-#elif defined(OS_SUNOS4) || defined(OS_UNIXWARE)
+#elif defined(OS_SUNOS4) || defined(OS_UNIXWARE) || defined(OS_VXWORKS)
 
 #     define MX_SLEEP_TYPE     USE_SELECT_MX_SLEEP
 #else

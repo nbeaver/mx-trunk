@@ -1358,7 +1358,7 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 
 /*************************** POSIX realtime timers **************************/
 
-#elif HAVE_POSIX_TIMERS || defined(OS_IRIX) || defined(OS_VXWORKS)
+#elif HAVE_POSIX_TIMERS || defined(OS_IRIX)
 
 #include <time.h>
 #include <signal.h>
@@ -1374,8 +1374,7 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
  * to the total number of realtime signals for the process.
  */
 
-#if defined(OS_SOLARIS) || defined(OS_IRIX) || defined(OS_TRU64) \
-	|| defined(OS_VXWORKS)
+#if defined(OS_SOLARIS) || defined(OS_IRIX) || defined(OS_TRU64)
 
 #   define MX_SIGEV_TYPE	SIGEV_SIGNAL
 #else
@@ -1528,11 +1527,7 @@ mx_interval_timer_destroy_event_handler( MX_INTERVAL_TIMER *itimer,
 
 #elif ( MX_SIGEV_TYPE == SIGEV_SIGNAL )
 
-#if defined(OS_VXWORKS)
-#  define MX_POSIX_SIGNAL_BLOCKING_SUPPORTED	FALSE
-#else
-#  define MX_POSIX_SIGNAL_BLOCKING_SUPPORTED	TRUE
-#endif
+#define MX_POSIX_SIGNAL_BLOCKING_SUPPORTED	TRUE
 
 #include "mx_signal.h"
 
@@ -3347,6 +3342,392 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/************************ VxWorks "watchdog" timers ***********************/
+
+#elif defined( OS_VXWORKS )
+
+#include "wdLib.h"
+#include "eventLib.h"
+
+typedef struct {
+	WDOG_ID watchdog_id;
+	UINT32 event_id;
+	MX_THREAD *thread;
+	int vxworks_task_id;
+	mx_bool_type busy;
+} MX_VXWORKS_WATCHDOG_PRIVATE;
+
+/*---*/
+
+static mx_status_type
+mx_interval_timer_get_pointers( MX_INTERVAL_TIMER *itimer,
+			MX_VXWORKS_WATCHDOG_PRIVATE **itimer_private,
+			const char *calling_fname )
+{
+	static const char fname[] = "mx_interval_timer_get_pointers()";
+
+	if ( itimer == (MX_INTERVAL_TIMER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_INTERVAL_TIMER pointer passed by '%s' is NULL.",
+			calling_fname );
+	}
+
+	if ( itimer_private == (MX_VXWORKS_WATCHDOG_PRIVATE **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_KQUEUE_IITIMER_PRIVATE pointer passed by '%s' is NULL.",
+			calling_fname );
+	}
+
+	*itimer_private = (MX_VXWORKS_WATCHDOG_PRIVATE *) itimer->private_ptr;
+
+	if ( (*itimer_private) == (MX_VXWORKS_WATCHDOG_PRIVATE *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_VXWORKS_WATCHDOG_PRIVATE pointer for itimer %p is NULL.",
+			itimer );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
+static mx_status_type
+mx_interval_timer_thread( MX_THREAD *thread, void *args )
+{
+	static const char fname[] = "mx_interval_timer_thread()";
+
+	MX_INTERVAL_TIMER *itimer;
+	MX_VXWORKS_WATCHDOG_PRIVATE *vxworks_wd_private;
+	STATUS vx_status;
+	mx_status_type mx_status;
+
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s invoked for thread %p, args %p.",
+		fname, thread, args));
+#endif
+
+	itimer = (MX_INTERVAL_TIMER *) args;
+
+	mx_status = mx_interval_timer_get_pointers( itimer,
+					&vxworks_wd_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Loop forever. */
+
+	for (;;) {
+		/* Wait forever for an event. */
+
+		vx_status = eventReceive( vxworks_wd_private->event_id,
+				(EVENTS_WAIT_ANY | EVENTS_KEEP_UNWANTED),
+				WAIT_FOREVER, NULL );
+
+#if MX_INTERVAL_TIMER_DEBUG
+		MX_DEBUG(-2,("%s: eventReceive() returned.  status = %d",
+			fname, (int) vx_status));
+#endif
+
+		if ( vx_status != OK ) {
+			vxworks_wd_private->busy = FALSE;
+
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Error %d occurred while waiting for an event "
+			"for interval timer %p",
+				(int) vx_status, itimer );
+		} else {
+			/* Invoke the callback function. */
+
+			if ( itimer->callback_function != NULL ) {
+				itimer->callback_function( itimer,
+						itimer->callback_args );
+			}
+		}
+
+		/* If this was a one-shot timer, mark the timer as not busy. */
+
+		if ( itimer->timer_type == MXIT_ONE_SHOT_TIMER ) {
+			vxworks_wd_private->busy = FALSE;
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
+/* A gratuitous function prototype. */
+
+static FUNCPTR mxp_interval_timer_callback( int parameter );
+
+/*---*/
+
+static FUNCPTR
+mxp_interval_timer_callback( int parameter )
+{
+	MX_VXWORKS_WATCHDOG_PRIVATE *vxworks_wd_private;
+	STATUS vx_status;
+
+	fprintf(stderr, "BOOYAH!\n");
+
+	/* FIXME: Every time you cast an integer back to a pointer,
+	 * God kills a kitten.  Also, it probably does not work on
+	 * 64-bit Windows, due to the Windows LLP64 memory model.
+	 *
+	 * "... but this isn't Windows.  Don't care!!!"
+	 */
+
+	vxworks_wd_private = (MX_VXWORKS_WATCHDOG_PRIVATE *) parameter;
+
+	/* We are in Interrupt context, so we must get out of here
+	 * as soon as possible.
+	 */
+
+	vx_status = eventSend( vxworks_wd_private->vxworks_task_id,
+				vxworks_wd_private->event_id );
+
+	/* I'm not sure what I am supposed to return here. */
+
+	return NULL;
+}
+
+/*---*/
+
+MX_EXPORT mx_status_type
+mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
+				int timer_type,
+				MX_INTERVAL_TIMER_CALLBACK *callback_function,
+				void *callback_args )
+{
+	static const char fname[] = "mx_interval_timer_create()";
+
+	MX_VXWORKS_WATCHDOG_PRIVATE *vxworks_wd_private;
+	mx_status_type mx_status;
+
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s invoked for BSD kqueue timers.", fname));
+	MX_DEBUG(-2,("%s: timer_type = %d", fname, timer_type));
+	MX_DEBUG(-2,("%s: callback_function = %p", fname, callback_function));
+	MX_DEBUG(-2,("%s: callback_args = %p", fname, callback_args));
+#endif
+
+	if ( itimer == (MX_INTERVAL_TIMER **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_INTERVAL_TIMER pointer passed was NULL." );
+	}
+
+	switch( timer_type ) {
+	case MXIT_ONE_SHOT_TIMER:
+	case MXIT_PERIODIC_TIMER:
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Interval timer type %d is unsupported.", timer_type );
+		break;
+	}
+
+	*itimer = (MX_INTERVAL_TIMER *) malloc( sizeof(MX_INTERVAL_TIMER) );
+
+	if ( (*itimer) == (MX_INTERVAL_TIMER *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+	"Unable to allocate memory for an MX_INTERVAL_TIMER structure.");
+	}
+
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: *itimer = %p", fname, *itimer));
+#endif
+
+	vxworks_wd_private = (MX_VXWORKS_WATCHDOG_PRIVATE *)
+				malloc( sizeof(MX_VXWORKS_WATCHDOG_PRIVATE) );
+
+	if ( vxworks_wd_private == (MX_VXWORKS_WATCHDOG_PRIVATE *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+	"Unable to allocate memory for a MX_VXWORKS_WATCHDOG_PRIVATE structure." );
+	}
+
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: vxworks_wd_private = %p",
+			fname, vxworks_wd_private));
+#endif
+
+	(*itimer)->timer_type = timer_type;
+	(*itimer)->timer_period = -1.0;
+	(*itimer)->num_overruns = 0;
+	(*itimer)->callback_function = callback_function;
+	(*itimer)->callback_args = callback_args;
+	(*itimer)->private_ptr = vxworks_wd_private;
+
+	/* Create the kqueue specific data structures. */
+
+	vxworks_wd_private->watchdog_id = wdCreate();
+
+	if ( vxworks_wd_private->watchdog_id == NULL ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"An attempt to create a VxWorks watchdog structure failed "
+		"for interval timer %p since we ran out of memory.",
+			itimer );
+	}
+
+	/* Create a thread to handle timer callbacks. */
+
+	mx_status = mx_thread_create( &(vxworks_wd_private->thread),
+					mx_interval_timer_thread,
+					*itimer );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_interval_timer_destroy( MX_INTERVAL_TIMER *itimer )
+{
+	static const char fname[] = "mx_interval_timer_destroy()";
+
+	MX_VXWORKS_WATCHDOG_PRIVATE *vxworks_wd_private;
+	double seconds_left;
+	STATUS vx_status;
+	mx_status_type mx_status;
+
+	mx_status = mx_interval_timer_get_pointers( itimer,
+					&vxworks_wd_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_interval_timer_stop( itimer, &seconds_left );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	vxworks_wd_private->busy = FALSE;
+
+	vx_status = wdDelete( vxworks_wd_private->watchdog_id );
+
+	if ( vx_status != OK ) {
+		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to deallocate watchdog timer %d failed.",
+			(int) vxworks_wd_private->watchdog_id );
+	}
+
+	mx_free( vxworks_wd_private );
+
+	mx_free( itimer );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_interval_timer_is_busy( MX_INTERVAL_TIMER *itimer, mx_bool_type *busy )
+{
+	static const char fname[] = "mx_interval_timer_is_busy()";
+
+	MX_VXWORKS_WATCHDOG_PRIVATE *vxworks_wd_private;
+	mx_status_type mx_status;
+
+	mx_status = mx_interval_timer_get_pointers( itimer,
+					&vxworks_wd_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( busy != (mx_bool_type *) NULL ) {
+		*busy = vxworks_wd_private->busy;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
+			double timer_period_in_seconds )
+{
+	static const char fname[] = "mx_interval_timer_start()";
+
+	MX_VXWORKS_WATCHDOG_PRIVATE *vxworks_wd_private;
+	int delay_count_in_ticks;
+	STATUS vx_status;
+	mx_status_type mx_status;
+
+	mx_status = mx_interval_timer_get_pointers( itimer,
+					&vxworks_wd_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	itimer->timer_period = timer_period_in_seconds;
+
+	/* Start the watchdog timer. */
+
+	delay_count_in_ticks = 1000;
+
+	/* FIXME!!!!!!!
+	 * Casting a pointer to an int is a planetary extinction event.
+	 */
+
+	vx_status = wdStart( vxworks_wd_private->watchdog_id,
+				delay_count_in_ticks,
+				(FUNCPTR) mxp_interval_timer_callback,
+				(int) vxworks_wd_private );
+
+	if ( vx_status != OK ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to start interval timer %p failed.",
+			itimer );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_interval_timer_stop( MX_INTERVAL_TIMER *itimer, double *seconds_left )
+{
+	static const char fname[] = "mx_interval_timer_stop()";
+
+	MX_VXWORKS_WATCHDOG_PRIVATE *vxworks_wd_private;
+	STATUS vx_status;
+	mx_status_type mx_status;
+
+	mx_status = mx_interval_timer_get_pointers( itimer,
+					&vxworks_wd_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Stop the timer. */
+
+	vx_status = wdCancel( vxworks_wd_private->watchdog_id );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
+			double *seconds_till_expiration )
+{
+	static const char fname[] = "mx_interval_timer_read()";
+
+	MX_VXWORKS_WATCHDOG_PRIVATE *vxworks_wd_private;
+	mx_status_type mx_status;
+
+	mx_status = mx_interval_timer_get_pointers( itimer,
+					&vxworks_wd_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( seconds_till_expiration != (double *) NULL ) {
+		*seconds_till_expiration = 0.0;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
 
 /************************ BSD style setitimer() timers ***********************/
 

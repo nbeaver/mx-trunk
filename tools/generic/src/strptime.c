@@ -532,7 +532,10 @@ literal:
 			continue;
 
 		case 'Z':
+
+#if !defined(OS_VXWORKS)
 			tzset();
+#endif
 			if (strncmp((const char *)bp, gmt, 3) == 0) {
 				tm->tm_isdst = 0;
 #ifdef TM_GMTOFF

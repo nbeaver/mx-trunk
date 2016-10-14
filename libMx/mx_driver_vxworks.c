@@ -55,27 +55,18 @@
 #include "i_vxworks_rs232.h"
 #include "i_vxworks_vme.h"
 
-#include "i_pdi40.h"
-#include "i_pdi45.h"
 #include "i_vme58.h"
 #include "i_vsc16.h"
-#include "i_iseries.h"
 
 #include "d_soft_ainput.h"
 #include "d_soft_aoutput.h"
 #include "d_soft_dinput.h"
 #include "d_soft_doutput.h"
 
-#include "d_pdi45_aio.h"
-#include "d_pdi45_dio.h"
-#include "d_iseries_aio.h"
-#include "d_iseries_dio.h"
 #include "d_bit.h"
 #include "d_vme_dio.h"
 
 #include "d_soft_motor.h"
-#include "d_pdi40.h"
-#include "d_stp100.h"
 #include "d_vme58.h"
 
 #include "d_elapsed_time.h"
@@ -83,8 +74,6 @@
 #include "d_soft_scaler.h"
 #include "d_vsc16_scaler.h"
 #include "d_vsc16_timer.h"
-#include "d_pdi45_scaler.h"
-#include "d_pdi45_timer.h"
 #include "d_soft_timer.h"
 #include "d_interval_timer.h"
 
@@ -92,8 +81,6 @@
 
 #include "d_generic_relay.h"
 #include "d_blind_relay.h"
-
-#include "d_pdi45_pulser.h"
 
 #include "v_mathop.h"
 
@@ -119,20 +106,6 @@ MX_DRIVER mx_type_list[] = {
 				&mxi_vxworks_rs232_rfield_def_ptr},
 #endif /* OS_VXWORKS */
 
-{"pdi40",          MXI_CTRL_PDI40,      MXI_CONTROLLER,       MXR_INTERFACE,
-				&mxi_pdi40_record_function_list,
-				NULL,
-				&mxi_pdi40_generic_function_list,
-				&mxi_pdi40_num_record_fields,
-				&mxi_pdi40_rfield_def_ptr},
-
-{"pdi45",          MXI_CTRL_PDI45,      MXI_CONTROLLER,       MXR_INTERFACE,
-				&mxi_pdi45_record_function_list,
-				NULL,
-				NULL,
-				&mxi_pdi45_num_record_fields,
-				&mxi_pdi45_rfield_def_ptr},
-
 {"vme58",           MXI_CTRL_VME58,        MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_vme58_record_function_list,
 				NULL,
@@ -146,13 +119,6 @@ MX_DRIVER mx_type_list[] = {
 				NULL,
 				&mxi_vsc16_num_record_fields,
 				&mxi_vsc16_rfield_def_ptr},
-
-{"iseries",  MXI_CTRL_ISERIES,  MXI_CONTROLLER,       MXR_INTERFACE,
-				&mxi_iseries_record_function_list,
-				NULL,
-				NULL,
-				&mxi_iseries_num_record_fields,
-				&mxi_iseries_rfield_def_ptr},
 
 #if defined(OS_VXWORKS)
 {"vxworks_vme",    MXI_VME_VXWORKS,    MXI_VME,        MXR_INTERFACE,
@@ -178,34 +144,6 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_soft_aoutput_analog_output_function_list,
 				&mxd_soft_aoutput_num_record_fields,
 				&mxd_soft_aoutput_rfield_def_ptr},
-
-{"pdi45_ainput",   MXT_AIN_PDI45,     MXC_ANALOG_INPUT,   MXR_DEVICE,
-				&mxd_pdi45_ain_record_function_list,
-				NULL,
-				&mxd_pdi45_ain_analog_input_function_list,
-				&mxd_pdi45_ain_num_record_fields,
-				&mxd_pdi45_ain_rfield_def_ptr},
-
-{"pdi45_aoutput",  MXT_AOU_PDI45,     MXC_ANALOG_OUTPUT,  MXR_DEVICE,
-				&mxd_pdi45_aout_record_function_list,
-				NULL,
-				&mxd_pdi45_aout_analog_output_function_list,
-				&mxd_pdi45_aout_num_record_fields,
-				&mxd_pdi45_aout_rfield_def_ptr},
-
-{"iseries_ainput", MXT_AIN_ISERIES, MXC_ANALOG_INPUT,   MXR_DEVICE,
-				&mxd_iseries_ain_record_function_list,
-				NULL,
-				&mxd_iseries_ain_analog_input_function_list,
-				&mxd_iseries_ain_num_record_fields,
-				&mxd_iseries_ain_rfield_def_ptr},
-
-{"iseries_aoutput", MXT_AOU_ISERIES, MXC_ANALOG_OUTPUT,  MXR_DEVICE,
-				&mxd_iseries_aout_record_function_list,
-				NULL,
-				&mxd_iseries_aout_analog_output_function_list,
-				&mxd_iseries_aout_num_record_fields,
-				&mxd_iseries_aout_rfield_def_ptr},
 
 {"soft_dinput",    MXT_DIN_SOFTWARE,   MXC_DIGITAL_INPUT,  MXR_DEVICE,
 				&mxd_soft_dinput_record_function_list,
@@ -249,53 +187,12 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_vme_dout_num_record_fields,
 				&mxd_vme_dout_rfield_def_ptr},
 
-{"pdi45_dinput",   MXT_DIN_PDI45,     MXC_DIGITAL_INPUT,  MXR_DEVICE,
-				&mxd_pdi45_din_record_function_list,
-				NULL,
-				&mxd_pdi45_din_digital_input_function_list,
-				&mxd_pdi45_din_num_record_fields,
-				&mxd_pdi45_din_rfield_def_ptr},
-
-{"pdi45_doutput",  MXT_DOU_PDI45,     MXC_DIGITAL_OUTPUT, MXR_DEVICE,
-				&mxd_pdi45_dout_record_function_list,
-				NULL,
-				&mxd_pdi45_dout_digital_output_function_list,
-				&mxd_pdi45_dout_num_record_fields,
-				&mxd_pdi45_dout_rfield_def_ptr},
-
-{"iseries_dinput", MXT_DIN_ISERIES, MXC_DIGITAL_INPUT,  MXR_DEVICE,
-				&mxd_iseries_din_record_function_list,
-				NULL,
-				&mxd_iseries_din_digital_input_function_list,
-				&mxd_iseries_din_num_record_fields,
-				&mxd_iseries_din_rfield_def_ptr},
-
-{"iseries_doutput", MXT_DOU_ISERIES, MXC_DIGITAL_OUTPUT, MXR_DEVICE,
-				&mxd_iseries_dout_record_function_list,
-				NULL,
-				&mxd_iseries_dout_digital_output_function_list,
-				&mxd_iseries_dout_num_record_fields,
-				&mxd_iseries_dout_rfield_def_ptr},
-
 {"soft_motor",     MXT_MTR_SOFTWARE,  MXC_MOTOR,          MXR_DEVICE,
 				&mxd_soft_motor_record_function_list,
 				NULL,
 				&mxd_soft_motor_motor_function_list,
 				&mxd_soft_motor_num_record_fields,
 				&mxd_soft_motor_rfield_def_ptr},
-{"pdi40_motor",    MXT_MTR_PDI40,     MXC_MOTOR,          MXR_DEVICE,
-				&mxd_pdi40motor_record_function_list,
-				NULL,
-				&mxd_pdi40motor_motor_function_list,
-				&mxd_pdi40motor_num_record_fields,
-				&mxd_pdi40motor_rfield_def_ptr},
-
-{"stp100_motor",   MXT_MTR_STP100,    MXC_MOTOR,          MXR_DEVICE,
-				&mxd_stp100_motor_record_function_list,
-				NULL,
-				&mxd_stp100_motor_motor_function_list,
-				&mxd_stp100_motor_num_record_fields,
-				&mxd_stp100_motor_rfield_def_ptr},
 
 {"vme58_motor",    MXT_MTR_VME58,     MXC_MOTOR,          MXR_DEVICE,
 				&mxd_vme58_record_function_list,
@@ -332,20 +229,6 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_vsc16_timer_num_record_fields,
 				&mxd_vsc16_timer_rfield_def_ptr},
 
-{"pdi45_scaler",   MXT_SCL_PDI45,    MXC_SCALER,         MXR_DEVICE,
-				&mxd_pdi45_scaler_record_function_list,
-				NULL,
-				&mxd_pdi45_scaler_scaler_function_list,
-				&mxd_pdi45_scaler_num_record_fields,
-				&mxd_pdi45_scaler_rfield_def_ptr},
-
-{"pdi45_timer",    MXT_TIM_PDI45,    MXC_TIMER,          MXR_DEVICE,
-				&mxd_pdi45_timer_record_function_list,
-				NULL,
-				&mxd_pdi45_timer_timer_function_list,
-				&mxd_pdi45_timer_num_record_fields,
-				&mxd_pdi45_timer_rfield_def_ptr},
-
 {"soft_timer",     MXT_TIM_SOFTWARE,  MXC_TIMER,          MXR_DEVICE,
 				&mxd_soft_timer_record_function_list,
 				NULL,
@@ -380,13 +263,6 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_blind_relay_relay_function_list,
 				&mxd_blind_relay_num_record_fields,
 				&mxd_blind_relay_rfield_def_ptr},
-
-{"pdi45_pulser",   MXT_PGN_PDI45,     MXC_PULSE_GENERATOR, MXR_DEVICE,
-				&mxd_pdi45_pulser_record_function_list,
-				NULL,
-				&mxd_pdi45_pulser_pulse_generator_function_list,
-				&mxd_pdi45_pulser_num_record_fields,
-				&mxd_pdi45_pulser_rfield_def_ptr},
 
   /* =================== Variable types ================== */
 

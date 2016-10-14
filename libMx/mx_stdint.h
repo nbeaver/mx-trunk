@@ -79,15 +79,11 @@ typedef uint64_t		uintmax_t;
 #  include <types/vxTypes.h>
 
 #  if ( MX_WORDSIZE == 64 )
-typedef long			int64_t;
-typedef unsigned long		uint64_t;
-#  define INT64_C(c)		c ## L
-#  define UINT64_C(c)		c ## UL
+#     define INT64_C(c)		c ## L
+#     define UINT64_C(c)	c ## UL
 #  else
-typedef long long		int64_t;
-typedef unsigned long long	uint64_t;
-#  define INT64_C(c)		c ## LL
-#  define UINT64_C(c)		c ## ULL
+#     define INT64_C(c)		c ## LL
+#     define UINT64_C(c)	c ## ULL
 #  endif
 
 typedef int64_t			intmax_t;

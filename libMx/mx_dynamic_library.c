@@ -439,9 +439,33 @@ mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
 
 	/* Look up the symbol name. */
 
+#if ( MX_VXWORKS_VERSION < 6009000L )  /* Before VxWorks 6.9 */
+
 	os_status = symFindByName( sysSymTbl,
 				local_symbol_name,
 				(char **) symbol_pointer, 0 );
+
+#else  /* VxWorks 6.9 and after */
+	{
+		SYMBOL_DESC symbol_descriptor;
+		void *symbol_address;
+
+		memset( &symbol_descriptor, 0, sizeof(SYMBOL_DESC) );
+
+		symbol_descriptor.mask = SYM_FIND_BY_NAME;
+		symbol_descriptor.name = local_symbol_name;
+
+		os_status = symFind( sysSymTbl, &symbol_descriptor );
+
+		if ( os_status != ERROR ) {
+			symbol_address = symbol_descriptor.value;
+
+			if ( symbol_pointer != NULL ) {
+				*symbol_pointer = symbol_address;
+			}
+		}
+	}
+#endif
 
 	if ( os_status == ERROR ) {
 

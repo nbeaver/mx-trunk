@@ -139,8 +139,7 @@
 #if defined(OS_CYGWIN)
 #  include <getopt.h>
 #else
-#  if defined(OS_WIN32) || defined(OS_SUNOS4) || defined(OS_VXWORKS) \
-	|| defined(OS_ECOS)
+#  if defined(OS_WIN32) || defined(OS_ECOS)
 
       /* Make the definition of getopt() C++ safe. */
 

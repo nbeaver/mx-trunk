@@ -11,7 +11,7 @@
 # WIND_HOST_TYPE - This is Wind River's name for the development host platform,
 #                  which should be a subdirectory of the $(WIND_BASE)/host
 #                  directory.
-# WIND_ARCH      - This is the suffix appended to the development system
+# VW_ARCH      - This is the suffix appended to the development system
 #                  command names as specified in Table 8-3: "Suffixes for
 #                  Cross-Development Tools" in the xxx manual.
 #                  This port of MX has been tested for the '68k' and 'ppc'
@@ -25,18 +25,43 @@
 #
 #WIND_BASE	= /export/home/tornado/tornado2
 #WIND_HOST_TYPE	= sun4-solaris2
-#WIND_ARCH	= 68k
+#VW_ARCH	= 68k
 #WIND_CPU	= MC68040
 #INSTALL	= /usr/ucb/install
 
 #
 # Host: Linux, Target: MVME162
 #
-WIND_BASE	= /opt/vxworks/tornado202
-WIND_HOST_TYPE	= x86-linux
-WIND_ARCH	= 68k
-WIND_CPU	= MC68040
-INSTALL		= /usr/bin/install
+#WIND_BASE	= /opt/vxworks/tornado202
+#WIND_HOST_TYPE	= x86-linux
+#VW_ARCH	= 68k
+#WIND_CPU	= MC68040
+#INSTALL	= /usr/bin/install
+
+export WIND_BASE = /APSshare/vw/vxWorks-$(VW_VERSION)
+
+VW_VERSION = 6.9.4
+VW_GCC_VERSION = 4.3.3
+
+VW_TARGET_ARCH = ppc
+VW_TARGET_ARCH_LONG = powerpc
+
+VW_HOST_BIN = \
+	$(WIND_BASE)/gnu/$(VW_GCC_VERSION)-vxworks-$(VW_VERSION)/x86-linux2/bin
+
+VW_TARGET_INCLUDES = \
+	-I$(WIND_BASE)/vxworks-$(VW_VERSION)/target/h \
+	-I$(WIND_BASE)/vxworks-$(VW_VERSION)/target/h/wrn/coreip
+
+VW_TARGET_GCC_INCLUDES = \
+	-I$(WIND_BASE)/gnu/$(VW_GCC_VERSION)-vxworks-$(VW_VERSION)/lib/gcc/$(VW_TARGET_ARCH_LONG)-wrs-vxworks/$(VW_GCC_VERSION)/include
+
+VW_TARGET_LIB_DIRS = \
+	-L$(WIND_BASE)/vxworks-$(VW_VERSION)/target/lib/$(VW_TARGET_ARCH)/PPC32/sfcommon
+
+VW_TARGET_LIBRARIES = 
+
+INSTALL = /usr/bin/install
 
 #
 # Normally, the only other things that end users may have to modify in this
@@ -56,42 +81,18 @@ LIBRARIES	=
 # Note that you must also edit libMx/mx_driver_vxworks.c to match.
 #
 
-MX_DRIVER_VXWORKS_SRCS = i_vxworks_rs232.c i_vxworks_vme.c \
-	i_pdi40.c i_pdi45.c i_vme58.c i_vsc16.c i_iseries.c \
+MX_DRIVER_VXWORKS_SRCS = i_vxworks_rs232.c i_vxworks_vme.c i_vme58.c i_vsc16.c \
 	d_soft_ainput.c d_soft_aoutput.c d_soft_dinput.c d_soft_doutput.c \
-	d_pdi45_aio.c d_pdi45_dio.c d_iseries_aio.c d_iseries_dio.c \
-	d_bit.c d_vme_dio.c \
-	d_soft_motor.c d_pdi40.c d_stp100.c d_vme58.c d_elapsed_time.c \
-	d_soft_scaler.c d_vsc16_scaler.c d_vsc16_timer.c \
-	d_pdi45_scaler.c d_pdi45_timer.c d_soft_timer.c d_interval_timer.c \
-	d_soft_amplifier.c d_generic_relay.c d_blind_relay.c \
-	d_pdi45_pulser.c v_mathop.c
-
-#
-# Motor will be linked with the bundled copy of 'editline' if you use the
-# following definitions.
-#
-
-#READLINE_LIB_DIRS =
-#READLINE_LIBRARIES = ../tools/unix/src/editline/libedit.a
-
-#READLINE_LIB_DIRS = -L../tools/unix/src/editline
-#READLINE_LIBRARIES = -ledit
-
-#
-# If you prefer to link motor to GNU Readline instead, uncomment the
-# following definitions.
-#
-#READLINE_LIB_DIRS = -L/usr/local/lib
-#READLINE_LIBRARIES = -lreadline -lcurses
+	d_bit.c d_vme_dio.c d_soft_motor.c d_vme58.c d_elapsed_time.c \
+	d_soft_scaler.c d_vsc16_scaler.c d_vsc16_timer.c d_soft_timer.c \
+	d_interval_timer.c d_soft_amplifier.c d_generic_relay.c \
+	d_blind_relay.c v_mathop.c
 
 #
 #========================================================================
 #
 # Generally, you should not have to modify anything after this point.
 #
-
-export GCC_EXEC_PREFIX = $(WIND_BASE)/host/$(WIND_HOST_TYPE)/lib/gcc-lib/
 
 #
 # gcc specific flags
@@ -105,19 +106,20 @@ GCCFLAGS = -Wall -Werror \
 -Winline
 
 #
-# VxWorks with GCC version 2.72.2.
+# VxWorks with GCC
 #
-CC		= $(WIND_BASE)/host/$(WIND_HOST_TYPE)/bin/cc$(WIND_ARCH)
 
-LD		= $(WIND_BASE)/host/$(WIND_HOST_TYPE)/bin/ld$(WIND_ARCH)
+CC		= $(VW_HOST_BIN)/cc$(VW_TARGET_ARCH)
 
-TARGET_CPP	= $(WIND_BASE)/host/$(WIND_HOST_TYPE)/bin/cpp$(WIND_ARCH)
+LD		= $(VW_HOST_BIN)/ld$(VW_TARGET_ARCH)
 
 HOST_CC		= cc
 
-CFLAGS		= -g $(GCCFLAGS) $(INCLUDES) -fno-builtin -nostdinc \
-				-DOS_VXWORKS -DCPU=$(WIND_CPU) \
-				-I$(WIND_BASE)/target/h $(EXTRA_FLAGS) -DDEBUG
+CFLAGS		= -g $(GCCFLAGS) $(INCLUDES) -DOS_VXWORKS \
+				-fno-builtin -nostdinc \
+				$(VW_TARGET_INCLUDES) \
+				$(VW_TARGET_GCC_INCLUDES) \
+				$(EXTRA_FLAGS) -DDEBUG
 
 # Special cases for individual files.
 
@@ -128,7 +130,7 @@ CFLAGS_MX_VERS  = -DOS_VXWORKS -DMX_MAJOR_VERSION=$(MX_MAJOR_VERSION) \
 
 CFLAGS_MAKEDEPEND = $(CFLAGS) $(READLINE_INCLUDES)
 
-COMPILE		= $(CC) -c
+COMPILE		= $(CC) $(CFLAGS) -c
 DEFINE		= -D
 MAKEDEPEND	= $(CC) -MM $(CFLAGS_MAKEDEPEND) *.c > Makefile.depend
 
@@ -158,12 +160,12 @@ MOTOR_OBJS        = $(MOTOR_SRCS:.c=.o)
 SERVER_OBJS       = $(SERVER_SRCS:.c=.o)
 AUTOSAVE_OBJS       = $(AUTOSAVE_SRCS:.c=.o)
 MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.o)
-MXMONITOR_OBJS    = $(MXMONITOR_SRCS:.c=.o)
+
 
 #----
 
 MX_LIB_OBJS += ../tools/strlcpy.o ../tools/strlcat.o
-MX_LIB_OBJS += ../tools/strptime.o
+MX_LIB_OBJS += ../tools/strptime.o ../tools/xdr_hyper.o
 
 #
 #---------------------------------------------------
@@ -196,7 +198,8 @@ MX_LIBRARY_DELETE = rm $(MX_LIBRARY_NAME)
 $(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
 	-$(MX_LIBRARY_DELETE)
 	$(LD) -o $(MX_LIBRARY_NAME) \
-			-r $(LIB_DIRS) $(MX_LIB_OBJS) $(LIBRARIES)
+			-r $(LIB_DIRS) $(MX_LIB_OBJS) $(LIBRARIES) \
+			$(VW_TARGET_LIB_DIRS) $(VW_TARGET_LIBRARIES)
 
 library_install:
 	-mkdir $(MX_INSTALL_DIR)/bin
@@ -269,5 +272,4 @@ $(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
 
 util_install:
 	$(INSTALL) -c -m 755 $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
-	$(INSTALL) -c -m 755 $(MXMONITOR_NAME) $(MX_INSTALL_DIR)/bin
 

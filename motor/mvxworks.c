@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2005-2006, 2013 Illinois Institute of Technology
+ * Copyright 2003, 2005-2006, 2013, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -40,6 +40,9 @@ void mxmotor_shell( char *device_database_file,
 	char argv4[MAX_ARGV_LENGTH+1] = "mxscan.dat";
 	char argv5[MAX_ARGV_LENGTH+1] = "-N";
 
+	fprintf( stderr, "mxmotor_shell( '%s', '%s' ) starting...\n",
+		device_database_file, scan_database_file );
+
 	argc = NUM_ARGUMENTS;
 
 	argv = (char **)
@@ -66,6 +69,9 @@ void mxmotor_shell( char *device_database_file,
 	if ( strlen( scan_database_file ) > 0 ) {
 		strlcpy( argv[4], scan_database_file, MAX_ARGV_LENGTH );
 	}
+
+	fprintf( stderr, "Calling motor_main( %d, %s, %s, %s, %s, %s, %s )\n",
+		argc, argv[0], argv[1], argv[2], argv[3], argv[4], argv[5] );
 
 	motor_main( argc, argv );
 
