@@ -7,12 +7,14 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2015 Illinois Institute of Technology
+ * Copyright 1999-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define MXMOTOR_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -142,7 +144,7 @@ timestamp_output( char *string )
 
 	mx_timestamp( timestamp_buffer, sizeof(timestamp_buffer) );
 
-#if defined(OS_WIN32)
+#if ( defined(OS_WIN32) || defined(OS_VXWORKS) )
 	fprintf( stdout, "%s: %s\n", timestamp_buffer, string );
 	fflush( stdout );
 #else
@@ -157,7 +159,7 @@ timestamp_warning_output( char *string )
 
 	mx_timestamp( timestamp_buffer, sizeof(timestamp_buffer) );
 
-#if defined(OS_WIN32)
+#if ( defined(OS_WIN32) || defined(OS_VXWORKS) )
 	fprintf( stdout, "%s: Warning: %s\n", timestamp_buffer, string );
 	fflush( stdout );
 #else
@@ -218,7 +220,6 @@ motor_main( int argc, char *argv[] )
 #if HAVE_GETOPT
 	int c, error_flag;
 #endif
-
 	/* Initialize the MX runtime environment. */
 
 	mx_status = mx_initialize_runtime();
@@ -446,7 +447,7 @@ motor_main( int argc, char *argv[] )
 	}
 
 	input = stdin;
-#if defined(OS_WIN32)
+#if ( defined(OS_WIN32) || defined(OS_VXWORKS) )
 	output = stderr;
 #else
 	output = stdout;
@@ -508,10 +509,10 @@ motor_main( int argc, char *argv[] )
 	}
 #endif
 
-#if 0
-	fprintf( output, "motor savefile = '%s'\n", motor_savefile );
-	fprintf( output, "scan savefile  = '%s'\n", scan_savefile );
-	fprintf( output, "global motorrc = '%s'\n", global_motorrc );
+#if MXMOTOR_DEBUG
+	fprintf( stderr, "motor savefile = '%s'\n", motor_savefile );
+	fprintf( stderr, "scan savefile  = '%s'\n", scan_savefile );
+	fprintf( stderr, "global motorrc = '%s'\n", global_motorrc );
 #endif
 
 	/* Initialize variables from the save files. */

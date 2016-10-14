@@ -19,16 +19,23 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <taskLib.h>
+
 #include "motor.h"
 
 #define NUM_ARGUMENTS	6
 #define MAX_ARGV_LENGTH	80
 
-extern void mxmotor_shell( char *device_database_file,
+extern void mxmotor( char *device_database_file, char *scan_database_file );
+
+extern void mxmotor_shell_task( char *device_database_file,
 			char *scan_database_file );
 
-void mxmotor_shell( char *device_database_file,
-		char *scan_database_file )
+/* mxmotor_shell_task() runs with the VX_FP_TASK option, which allows
+ * the use of floating-point numbers.
+ */
+
+void mxmotor_shell_task( char *device_database_file, char *scan_database_file )
 {
 	int argc;
 	char **argv;
@@ -40,7 +47,7 @@ void mxmotor_shell( char *device_database_file,
 	char argv4[MAX_ARGV_LENGTH+1] = "mxscan.dat";
 	char argv5[MAX_ARGV_LENGTH+1] = "-N";
 
-	fprintf( stderr, "mxmotor_shell( '%s', '%s' ) starting...\n",
+	fprintf( stderr, "Starting mxmotor_shell_task( \"%s\", \"%s\" ) ...\n",
 		device_database_file, scan_database_file );
 
 	argc = NUM_ARGUMENTS;
@@ -70,12 +77,35 @@ void mxmotor_shell( char *device_database_file,
 		strlcpy( argv[4], scan_database_file, MAX_ARGV_LENGTH );
 	}
 
-	fprintf( stderr, "Calling motor_main( %d, %s, %s, %s, %s, %s, %s )\n",
-		argc, argv[0], argv[1], argv[2], argv[3], argv[4], argv[5] );
-
 	motor_main( argc, argv );
 
-	fprintf( stderr, "motor_shell() is exiting...\n" );
+	fprintf( stderr, "motor_shell_task() is exiting...\n" );
+}
+
+/* mxmotor() is the command executed at the VxWorks shell prompt.  Its job
+ * is to start mxmotor_shell_task() with the VX_FP_TASK option set.
+ */
+
+void mxmotor( char *device_database_file, char *scan_database_file )
+{
+	int task_id, priority, stack_size;
+
+	priority = 0;
+	stack_size = 20000;
+
+	task_id = taskSpawn( NULL,
+				priority,
+				VX_FP_TASK,
+				stack_size,
+				(FUNCPTR) mxmotor_shell_task,
+				(int) device_database_file,
+				(int) scan_database_file,
+				0, 0, 0, 0, 0, 0, 0, 0 );
+
+	fprintf( stderr, "mxmotor_shell_task() started.  task_id = %#lx\n",
+		(unsigned long) task_id );
+
+	return;
 }
 
 #endif /* OS_VXWORKS */
