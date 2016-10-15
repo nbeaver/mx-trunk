@@ -14,7 +14,7 @@
  *
  */
 
-#define MS_MAIN_DEBUG_SIGNALS		FALSE
+#define MS_MXSERVER_DEBUG	TRUE
 
 #include <stdio.h>
 #include <string.h>
@@ -508,6 +508,10 @@ mxserver_main( int argc, char *argv[] )
 	int c, error_flag;
 #endif
 
+#if MS_MXSERVER_DEBUG
+	fprintf( stderr, "MX server main() invoked.\n" );
+#endif
+
 	/* Initialize the parts of the MX runtime environment that do not
 	 * depend on the presence of an MX database.
 	 */
@@ -536,6 +540,13 @@ mxserver_main( int argc, char *argv[] )
 	enable_callbacks = FALSE;
 #else
 	enable_callbacks = TRUE;
+#endif
+
+#if MS_MXSERVER_DEBUG
+	fprintf( stderr, "MX database file = '%s'\n", mx_database_filename );
+	fprintf( stderr, "MX database ACL = '%s'\n",
+					mx_connection_acl_filename );
+	fflush( stderr );
 #endif
 
 	debug_level = 0;

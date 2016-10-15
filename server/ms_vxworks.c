@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2005 Illinois Institute of Technology
+ * Copyright 2003, 2005, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -18,6 +18,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
+#include <taskLib.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -32,7 +34,11 @@ extern void mxserver( int port_number,
 		char *device_database_file,
 		char *access_control_list_file );
 
-void mxserver( int port_number,
+extern void mxserver_task( int port_number,
+		char *device_database_file,
+		char *access_control_list_file );
+
+void mxserver_task( int port_number,
 		char *device_database_file,
 		char *access_control_list_file )
 {
@@ -82,6 +88,35 @@ void mxserver( int port_number,
 	mxserver_main( argc, argv );
 
 	fprintf( stderr, "mxserver task is exiting...\n" );
+}
+
+/* mxserver() is the command executed at the VxWorks shell prompt.  Its job
+ * is to start mxserver_task() with the VX_FP_TASK option set.
+ */
+
+void mxserver( int port_number,
+		char *device_database_file,
+		char *access_control_list_file )
+{
+	int task_id, priority, stack_size;
+
+	priority = 0;
+	stack_size = 20000;
+
+	task_id = taskSpawn( NULL,
+				priority,
+				VX_FP_TASK,
+				stack_size,
+				(FUNCPTR) mxserver_task,
+				port_number,
+				(int) device_database_file,
+				(int) access_control_list_file,
+                                0, 0, 0, 0, 0, 0, 0 );
+
+	fprintf( stderr, "mxserver_task() started.  task_id = %#lx\n",
+		(unsigned long) task_id );
+
+	return;
 }
 
 #endif /* OS_VXWORKS */

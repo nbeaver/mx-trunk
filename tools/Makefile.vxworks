@@ -2,7 +2,8 @@
 # tools/Makefile.vxworks
 #
 
-all: ../libMx/mx_private_version.h strlcpy.o strlcat.o strptime.o
+all: ../libMx/mx_private_version.h strlcpy.o strlcat.o strptime.o \
+		xdr_hyper.o
 
 include ../libMx/Makefile.version
 
@@ -28,6 +29,10 @@ strlcat.o: generic/src/strlcat.c
 strptime.o: generic/src/strptime.c
 	$(COMPILE) -I../libMx -DOS_VXWORKS -D__MX_LIBRARY__ \
 		generic/src/strptime.c
+
+xdr_hyper.o: xdr/src/xdr_hyper.c xdr/src/xdr.h xdr/src/xdr_hyper.h
+	$(COMPILE) -I../libMx -DOS_VXWORKS -D__MX_LIBRARY__ \
+		xdr/src/xdr_hyper.c
 
 mx_clean:
 	-rm *.o mx_private_version version_temp.h version_temp.txt
