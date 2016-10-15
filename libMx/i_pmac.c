@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2004, 2006, 2009-2010, 2012, 2014
+ * Copyright 1999, 2001-2004, 2006, 2009-2010, 2012, 2014, 2016
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -1013,7 +1013,7 @@ mxi_pmac_getchar( MX_PMAC *pmac, char *c )
 		mx_status = mx_socket_receive( pmac->pmac_socket,
 						c, sizeof(char),
 						&num_bytes_received,
-						NULL, 0 );
+						NULL, 0, 0 );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1504,7 +1504,7 @@ mxi_pmac_tcp_flush( MX_PMAC *pmac,
 
 	mx_status = mx_socket_receive( pmac->pmac_socket,
 				&ack_byte, sizeof(ack_byte),
-				NULL, NULL, 0 );
+				NULL, NULL, 0, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1577,7 +1577,7 @@ mxi_pmac_tcp_command( MX_PMAC *pmac,
 
 		mx_status = mx_socket_receive( pmac->pmac_socket,
 					&ack_byte, sizeof(ack_byte),
-					NULL, NULL, 0 );
+					NULL, NULL, 0, 0 );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1682,7 +1682,8 @@ mxi_pmac_tcp_receive_response( MX_SOCKET *mx_socket,
 
 	mx_status = mx_socket_receive( mx_socket,
 					response, response_buffer_length,
-					&local_num_bytes_received, "\r\006", 2);
+					&local_num_bytes_received,
+					"\r\006", 2, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

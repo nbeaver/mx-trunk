@@ -458,7 +458,7 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 		mx_status = mx_socket_receive( dhs_socket,
 						message,
 						num_bytes_available,
-						NULL, NULL, 0 );
+						NULL, NULL, 0, 0 );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 

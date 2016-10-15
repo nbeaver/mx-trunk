@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2014-2015 Illinois Institute of Technology
+ * Copyright 2014-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -229,7 +229,7 @@ SendAndReceive( int SocketID,
 						receive_buffer,
 						sizeof(receive_buffer),
 						&num_bytes_received,
-						NULL, 0 );
+						NULL, 0, 0 );
 
 		switch( mx_status.code ) {
 		case MXE_SUCCESS:

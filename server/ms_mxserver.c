@@ -5344,7 +5344,7 @@ mxsrv_get_unix_domain_socket_credentials( MX_SOCKET_HANDLER *socket_handler )
 
 	mx_status = mx_socket_receive( socket_handler->synchronous_socket,
 					&null_byte, 1,
-					NULL, NULL, 0 );
+					NULL, NULL, 0, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

@@ -238,7 +238,8 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 		mx_status = mx_socket_receive( merlin_medipix->data_socket,
 					header_buffer,
 					MXU_MPX_INITIAL_READ_LENGTH,
-					&num_bytes_read, NULL, 0 );
+					&num_bytes_read, NULL, 0,
+					MXF_SOCKET_RECEIVE_WAIT );
 
 		if ( mx_status.code != MXE_SUCCESS )
 		    return mx_status;
@@ -465,7 +466,8 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 		mx_status = mx_socket_receive( merlin_medipix->data_socket,
 					dest_body_remaining_ptr,
 					message_body_remaining_length,
-					&num_bytes_read, NULL, 0 );
+					&num_bytes_read, NULL, 0,
+					MXF_SOCKET_RECEIVE_WAIT );
 
 		if ( mx_status.code != MXE_SUCCESS )
 		    return mx_status;
@@ -1979,7 +1981,7 @@ mxd_merlin_medipix_command( MX_MERLIN_MEDIPIX *merlin_medipix,
 	mx_status = mx_socket_receive( merlin_medipix->command_socket,
 			response_buffer,
 			MXU_MPX_HEADER_LENGTH + MXU_MPX_SEPARATOR_LENGTH,
-			NULL, NULL, 0 );
+			NULL, NULL, 0, MXF_SOCKET_RECEIVE_WAIT );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -2012,7 +2014,8 @@ mxd_merlin_medipix_command( MX_MERLIN_MEDIPIX *merlin_medipix,
 	 */
 
 	mx_status = mx_socket_receive( merlin_medipix->command_socket,
-			body_ptr, message_body_length, NULL, NULL, 0 );
+			body_ptr, message_body_length,
+			NULL, NULL, 0, MXF_SOCKET_RECEIVE_WAIT );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

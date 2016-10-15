@@ -1110,7 +1110,7 @@ mxd_marccd_server_socket_command( MX_MARCCD_SERVER_SOCKET *mss,
 		mx_status = mx_socket_receive( mss->marccd_socket,
 					response, response_buffer_length, NULL,
 					response_terminators,
-					sizeof(response_terminators) - 1 );
+					sizeof(response_terminators) - 1, 0 );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

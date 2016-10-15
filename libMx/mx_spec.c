@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004-2006, 2015 Illinois Institute of Technology
+ * Copyright 2004-2006, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -187,7 +187,7 @@ mx_spec_receive_message( MX_RECORD *spec_server_record,
 	mx_status = mx_socket_receive( spec_server_socket,
 					&message_header,
 					expected_message_header_size,
-					NULL, NULL, 0 );
+					NULL, NULL, 0, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -247,7 +247,7 @@ mx_spec_receive_message( MX_RECORD *spec_server_record,
 		mx_status = mx_socket_receive( spec_server_socket,
 						data_pointer,
 						message_header.len,
-						NULL, NULL, 0 );
+						NULL, NULL, 0, 0 );
 	}
 
 #if SPEC_DEBUG_MESSAGE

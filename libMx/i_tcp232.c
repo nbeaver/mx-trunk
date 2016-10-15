@@ -554,7 +554,7 @@ mxi_tcp232_read( MX_RS232 *rs232,
 
 	mx_status = mx_socket_receive( tcp232->socket,
 					buffer, max_bytes_to_read,
-					NULL, NULL, 0 );
+					NULL, NULL, 0, 0 );
 
 	if ( bytes_read != NULL ) {
 		*bytes_read = max_bytes_to_read;

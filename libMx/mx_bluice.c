@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2008, 2010-2013, 2015 Illinois Institute of Technology
+ * Copyright 2005-2008, 2010-2013, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -286,7 +286,7 @@ mx_bluice_receive_message( MX_RECORD *bluice_server_record,
 	mx_status = mx_socket_receive( bluice_server_socket,
 					message_header,
 					MX_BLUICE_MSGHDR_LENGTH,
-					NULL, NULL, 0 );
+					NULL, NULL, 0, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -346,7 +346,7 @@ mx_bluice_receive_message( MX_RECORD *bluice_server_record,
 					data_pointer,
 					total_data_length,
 					&actual_bytes_received,
-					NULL, 0 );
+					NULL, 0, 0 );
 
 #if BLUICE_DEBUG_MESSAGE
 	MX_DEBUG(-3,("%s: received '%s' from server '%s'.",

@@ -55,7 +55,7 @@ MODULES += python		# (Warning: not yet finished)
 
 #MODULES += xia_handel		# linux, win32
 
-MODULES += xineos_gige		# linux, win32
+#MODULES += xineos_gige		# linux, win32
 
 #-------------------------------------------------------------------
 # Linux-only modules.

@@ -229,6 +229,12 @@ typedef struct {
 #define MXF_SOCKCHK_ZERO	0
 #define MXF_SOCKCHK_NULL	1
 
+/* ***** Flag values for mx_socket_receive(). ***** */
+
+/* Wait until caller's buffer is full. */
+
+#define MXF_SOCKET_RECEIVE_WAIT		0x1
+
 /* ***** General function definitions ***** */
 
 MX_API mx_status_type mx_socket_initialize( void );
@@ -298,7 +304,8 @@ MX_API mx_status_type mx_socket_receive( MX_SOCKET *mx_socket,
 				size_t message_length_in_bytes,
 				size_t *num_bytes_received,
 				void *input_terminators,
-				size_t input_terminators_length_in_bytes );
+				size_t input_terminators_length_in_bytes,
+				unsigned long receive_flags );
 
 MX_API mx_status_type mx_socket_putline( MX_SOCKET *mx_socket,
 					char *buffer,

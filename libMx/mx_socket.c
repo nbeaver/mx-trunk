@@ -1911,7 +1911,8 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 		size_t callers_buffer_length_in_bytes,
 		size_t *num_bytes_received,
 		void *input_terminators,
-		size_t input_terminators_length_in_bytes )
+		size_t input_terminators_length_in_bytes,
+		unsigned long receive_flags )
 {
 	static const char fname[] = "mx_socket_receive()";
 
@@ -1926,7 +1927,7 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 	char *start_of_memory_to_zero = NULL;
 	unsigned long bytes_saved, bytes_peeked_from_buffer;
 	unsigned long num_bytes_to_save, num_bytes_to_zero;
-	unsigned long flags, quiet;
+	unsigned long socket_flags, quiet;
 	mx_status_type mx_status;
 
 	if ( mx_socket == (MX_SOCKET *) NULL ) {
@@ -1940,14 +1941,14 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 
 	terminators = (char *) input_terminators;
 
-	flags = mx_socket->socket_flags;
+	socket_flags = mx_socket->socket_flags;
 
 #if 0
 	MX_DEBUG(-2,("%s: socket %d flags = %#lx",
 		fname, mx_socket->socket_fd, flags));
 #endif
 
-	if ( flags & MXF_SOCKET_USE_MX_RECEIVE_BUFFER ) {
+	if ( socket_flags & MXF_SOCKET_USE_MX_RECEIVE_BUFFER ) {
 	    circular_buffer = (MX_CIRCULAR_BUFFER *) mx_socket->receive_buffer;
 
 	    if ( circular_buffer == (MX_CIRCULAR_BUFFER *) NULL ) {
@@ -1970,7 +1971,7 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 	     * from previous recv() calls.
 	     */
 
-	    if ( flags & MXF_SOCKET_USE_MX_RECEIVE_BUFFER ) {
+	    if ( socket_flags & MXF_SOCKET_USE_MX_RECEIVE_BUFFER ) {
 		mx_status = mx_circular_buffer_peek( circular_buffer,
 						write_ptr, bytes_left,
 						&bytes_peeked_from_buffer );
@@ -2010,7 +2011,7 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 			bytes_left, bytes_received_from_socket ));
 #endif
 
-		if ( flags & MXF_SOCKET_QUIET ) {
+		if ( socket_flags & MXF_SOCKET_QUIET ) {
 		    quiet = MXE_QUIET;
 		} else {
 		    quiet = 0;
@@ -2099,21 +2100,19 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 	    if ( ( input_terminators == NULL )
 	      || ( input_terminators_length_in_bytes == 0 ) )
 	    {
-#if 1
-		/* We should not return here.  Instead, we should continue
-		 * back to the top of the loop, since if line terminators
-		 * were specified, we would not return in this way.
-		 * (WML) 2015-10-22
+		/* If we were requested to wait until the caller's buffer is
+		 * full, then we should go back to the top of the loop here.
 		 */
 
-		continue;	/* Back to the top of the while() loop. */
-#else
+		if ( receive_flags & MXF_SOCKET_RECEIVE_WAIT ) {
+			continue;    /* Back to the top of the while() loop. */
+		}
 
 		/* If there are no line terminators, then we send everything
 		 * we received to the caller.
 		 */
 
-		if ( flags & MXF_SOCKET_USE_MX_RECEIVE_BUFFER ) {
+		if ( socket_flags & MXF_SOCKET_USE_MX_RECEIVE_BUFFER ) {
 
 		    /* First, tell the circular buffer to treat the bytes
 		     * we peeked as having been read.
@@ -2140,7 +2139,6 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 		 */
 
 		return MX_SUCCESSFUL_RESULT;
-#endif
 	    }
 
 	    /* If we get here, the requested line terminators are _not_ NULL,
@@ -2177,7 +2175,7 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 		     *      bytes_received_from_socket
 		     */
 
-		    if ( flags & MXF_SOCKET_USE_MX_RECEIVE_BUFFER ) {
+		    if ( socket_flags & MXF_SOCKET_USE_MX_RECEIVE_BUFFER ) {
 			if (num_bytes_to_send_to_caller
 					<= bytes_peeked_from_buffer)
 			{
@@ -2309,7 +2307,7 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 	    }
 	}
 
-	if ( flags & MXF_SOCKET_USE_MX_RECEIVE_BUFFER ) {
+	if ( socket_flags & MXF_SOCKET_USE_MX_RECEIVE_BUFFER ) {
 
 	    /* We filled the caller's buffer without finding any line
 	     * terminators, so just return what we received.  Make sure
@@ -2378,7 +2376,7 @@ mx_socket_getline( MX_SOCKET *mx_socket, char *buffer, size_t buffer_length,
 					buffer, buffer_length,
 					&num_bytes_received,
 					line_terminators,
-					line_terminator_length );
+					line_terminator_length, 0 );
 
 	return mx_status;
 }
@@ -2581,7 +2579,7 @@ mx_socket_discard_unread_input( MX_SOCKET *mx_socket )
 			mx_status = mx_socket_receive( mx_socket,
 					discard_buffer,
 					MXU_SOCKET_DISCARD_BUFFER_LENGTH,
-					NULL, NULL, 0 );
+					NULL, NULL, 0, 0 );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -2599,7 +2597,7 @@ mx_socket_discard_unread_input( MX_SOCKET *mx_socket )
 			mx_status = mx_socket_receive( mx_socket,
 					discard_buffer,
 					remainder,
-					NULL, NULL, 0 );
+					NULL, NULL, 0, 0 );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;

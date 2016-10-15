@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006, 2008, 2010 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006, 2008, 2010, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -371,7 +371,7 @@ mxi_modbus_tcp_receive_response( MX_MODBUS *modbus )
 	mx_status = mx_socket_receive( modbus_tcp->socket,
 					modbus_tcp->receive_header,
 					MXU_MODBUS_TCP_HEADER_LENGTH,
-					NULL, NULL, 0 );
+					NULL, NULL, 0, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -455,7 +455,7 @@ mxi_modbus_tcp_receive_response( MX_MODBUS *modbus )
 	mx_status = mx_socket_receive( modbus_tcp->socket,
 					modbus->response_pointer,
 					length,
-					NULL, NULL, 0 );
+					NULL, NULL, 0, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
