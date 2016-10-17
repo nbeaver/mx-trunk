@@ -70,7 +70,7 @@
  *
  */
 
-#define MX_INTERVAL_TIMER_DEBUG		TRUE
+#define MX_INTERVAL_TIMER_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -2211,7 +2211,7 @@ mx_interval_timer_get_pointers( MX_INTERVAL_TIMER *itimer,
 
 	if ( itimer_private == (MX_KQUEUE_ITIMER_PRIVATE **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_KQUEUE_IITIMER_PRIVATE pointer passed by '%s' is NULL.",
+		"The MX_KQUEUE_ITIMER_PRIVATE pointer passed by '%s' is NULL.",
 			calling_fname );
 	}
 
@@ -2621,7 +2621,7 @@ mx_interval_timer_get_pointers( MX_INTERVAL_TIMER *itimer,
 
 	if ( itimer_private == (MX_MACH_ITIMER_PRIVATE **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_MACH_IITIMER_PRIVATE pointer passed by '%s' is NULL.",
+		"The MX_MACH_ITIMER_PRIVATE pointer passed by '%s' is NULL.",
 			calling_fname );
 	}
 
@@ -3356,8 +3356,9 @@ typedef struct {
 	UINT32 event_id;
 	MX_INTERVAL_TIMER *itimer;
 	MX_THREAD *thread;
-	int vxworks_task_id;
+	int callback_task_id;
 	mx_bool_type busy;
+	unsigned long event_counter;
 } MX_VXWORKS_WATCHDOG_PRIVATE;
 
 /*---*/
@@ -3381,7 +3382,7 @@ mx_interval_timer_get_pointers( MX_INTERVAL_TIMER *itimer,
 
 	if ( itimer_private == (MX_VXWORKS_WATCHDOG_PRIVATE **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_KQUEUE_IITIMER_PRIVATE pointer passed by '%s' is NULL.",
+	    "The MX_VXWORKS_WATCHDOG_PRIVATE pointer passed by '%s' is NULL.",
 			calling_fname );
 	}
 
@@ -3405,6 +3406,8 @@ mx_interval_timer_thread( MX_THREAD *thread, void *args )
 
 	MX_INTERVAL_TIMER *itimer;
 	MX_VXWORKS_WATCHDOG_PRIVATE *vxworks_wd_private;
+	int task_id_self;
+	UINT32 receive_event_mask, events_received;
 	STATUS vx_status;
 	mx_status_type mx_status;
 
@@ -3421,18 +3424,38 @@ mx_interval_timer_thread( MX_THREAD *thread, void *args )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	task_id_self = taskIdSelf();
+
+	if ( task_id_self == ERROR ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+	    "The current task id %#x is the value of ERROR.", task_id_self );
+	}
+
+	vxworks_wd_private->callback_task_id = taskIdSelf();
+
+	receive_event_mask = vxworks_wd_private->event_id;
+
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: event_id = %#x, receive_event_mask = %#x",
+		fname, vxworks_wd_private->event_id, receive_event_mask));
+#endif
+
 	/* Loop forever. */
 
 	for (;;) {
+		events_received = 0;
+
 		/* Wait forever for an event. */
 
-		vx_status = eventReceive( vxworks_wd_private->event_id,
-				(EVENTS_WAIT_ANY | EVENTS_KEEP_UNWANTED),
-				WAIT_FOREVER, NULL );
+		vx_status = eventReceive( receive_event_mask,
+				EVENTS_WAIT_ANY, WAIT_FOREVER,
+				&events_received );
 
 #if MX_INTERVAL_TIMER_DEBUG
-		MX_DEBUG(-2,("%s: eventReceive() returned.  status = %d",
-			fname, (int) vx_status));
+		MX_DEBUG(-2,("%s: eventReceive() returned, "
+			"vx_status = %d, events_received = %lx",
+			fname, (int) vx_status,
+			(unsigned long) events_received));
 #endif
 
 		if ( vx_status != OK ) {
@@ -3443,7 +3466,7 @@ mx_interval_timer_thread( MX_THREAD *thread, void *args )
 			"for interval timer %p",
 				(int) vx_status, itimer );
 		} else {
-			/* Invoke the callback function. */
+			/* Invoke the MX interval timer's callback function. */
 
 			if ( itimer->callback_function != NULL ) {
 				itimer->callback_function( itimer,
@@ -3451,13 +3474,43 @@ mx_interval_timer_thread( MX_THREAD *thread, void *args )
 			}
 		}
 
-		/* If this was a one-shot timer, mark the timer as not busy. */
+#if 0 && MX_INTERVAL_TIMER_DEBUG
+		MX_DEBUG(-2,("%s: MX callback function has returned.", fname));
+#endif
 
 		if ( itimer->timer_type == MXIT_ONE_SHOT_TIMER ) {
-			vxworks_wd_private->busy = FALSE;
+			/* For a one-shot timer, mark the timer as not busy. */
 
-			return MX_SUCCESSFUL_RESULT;
+			vxworks_wd_private->busy = FALSE;
+		} else
+		if ( itimer->timer_type == MXIT_PERIODIC_TIMER ) {
+
+			vxworks_wd_private->busy = TRUE;
+
+			/* Reschedule the timer to run again. */
+
+			vx_status = wdStart( vxworks_wd_private->watchdog_id,
+					sysClkRateGet() * itimer->timer_period,
+					(FUNCPTR) mxp_interval_timer_callback,
+					(int) vxworks_wd_private );
+
+			if ( vx_status != OK ) {
+				vxworks_wd_private->busy = FALSE;
+
+				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+				"Error %d occurred while calling wdStart() "
+				"for interval timer %p",
+					(int) vx_status, itimer );
+			}
+		} else {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Unknown interval timer type %d requested for "
+			"interval timer %p.", itimer->timer_type, itimer );
 		}
+
+#if 0 && MX_INTERVAL_TIMER_DEBUG
+		MX_DEBUG(-2,("%s: Periodic callback rescheduled.", fname));
+#endif
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -3465,56 +3518,33 @@ mx_interval_timer_thread( MX_THREAD *thread, void *args )
 
 /*---*/
 
-static FUNCPTR
-mxp_interval_timer_callback( int parameter )
+static FUNCPTR mxp_interval_timer_callback( int parameter )
 {
-#if MX_INTERVAL_TIMER_DEBUG
-	static const char fname[] = "mxp_interval_timer_callback()";
-#endif
-
 	MX_VXWORKS_WATCHDOG_PRIVATE *vxworks_wd_private;
-	MX_INTERVAL_TIMER *itimer;
+	int callback_task_id;
 	STATUS vx_status;
 
-#if MX_INTERVAL_TIMER_DEBUG
-	MX_DEBUG(-2,("%s invoked, parameter = %d", fname, parameter ));
-#endif
-
 	/* FIXME: Every time you cast an integer back to a pointer,
-	 * God kills a kitten.  Also, it probably does not work on
-	 * 64-bit Windows, due to the Windows LLP64 memory model.
-	 *
-	 * "... but this isn't Windows.  Don't care!!!"
+	 * the universe kills a kitten.
 	 */
 
 	vxworks_wd_private = (MX_VXWORKS_WATCHDOG_PRIVATE *) parameter;
 
-	itimer = vxworks_wd_private->itimer;
+	callback_task_id = vxworks_wd_private->callback_task_id;
 
-	/* We are in Interrupt context, so we must get out of here
-	 * as soon as possible.
+	if ( callback_task_id == ERROR ) {
+		return NULL;
+	}
+
+	/* We are in Interrupt context, so we must get out of
+	 * here as soon as possible.  Thus, we send a message
+	 * to mx_interval_timer_thread() to tell it to do the
+	 * real work.
 	 */
 
-	vx_status = eventSend( vxworks_wd_private->vxworks_task_id,
-				vxworks_wd_private->event_id );
+	vx_status = eventSend( callback_task_id, vxworks_wd_private->event_id );
 
-	/* If we are a periodic timer, then reschedule ourself. */
-
-#if 0
-	if ( itimer->timer_type == MXIT_PERIODIC_TIMER ) {
-
-		vx_status = wdStart( vxworks_wd_private->watchdog_id,
-				sysClkRateGet() * itimer->timer_period,
-				(FUNCPTR) mxp_interval_timer_callback,
-				parameter );
-	}
-#endif
-
-#if MX_INTERVAL_TIMER_DEBUG
-	MX_DEBUG(-2,("%s complete.", fname));
-#endif
-
-	/* I'm not sure what I am supposed to return here. */
+	/* FIXME: I'm not sure what I am supposed to return here. */
 
 	return NULL;
 }
@@ -3596,6 +3626,20 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 			itimer );
 	}
 
+	/* FIXME: In principle, the event id should be unique, but I do not
+	 * currently know of a way to make that happen.
+	 */
+
+	vxworks_wd_private->event_id = (UINT32) 0x8000;
+
+	/* Initialize the rest of this stuff. */
+
+	vxworks_wd_private->itimer = *itimer;
+	vxworks_wd_private->thread = NULL;
+	vxworks_wd_private->callback_task_id = ERROR;
+	vxworks_wd_private->busy = FALSE;
+	vxworks_wd_private->event_counter = 0;
+
 	/* Create a thread to handle timer callbacks. */
 
 	mx_status = mx_thread_create( &(vxworks_wd_private->thread),
@@ -3628,12 +3672,17 @@ mx_interval_timer_destroy( MX_INTERVAL_TIMER *itimer )
 	MX_DEBUG(-2,("%s invoked.", fname));
 #endif
 
+	vxworks_wd_private->busy = FALSE;
+
 	mx_status = mx_interval_timer_stop( itimer, &seconds_left );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	vxworks_wd_private->busy = FALSE;
+	mx_status = mx_thread_stop( vxworks_wd_private->thread );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	vx_status = wdDelete( vxworks_wd_private->watchdog_id );
 
@@ -3718,8 +3767,7 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 
 	if ( vx_status != OK ) {
 		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-		"The attempt to start interval timer %p failed.",
-			itimer );
+		"The attempt to start interval timer %p failed.", itimer );
 	}
 
 #if MX_INTERVAL_TIMER_DEBUG

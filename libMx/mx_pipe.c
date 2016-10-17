@@ -946,6 +946,7 @@ mx_pipe_set_blocking_mode( MX_PIPE *mx_pipe,
 #elif defined(OS_VXWORKS)
 
 #include <msgQLib.h>
+#include <smObjLib.h>
 
 /* FIXME: The rest of MX expects that pipes are stream oriented devices.
  *        However, for VxWorks, both pipes and message queues are message
@@ -1024,8 +1025,9 @@ mx_pipe_open( MX_PIPE **mx_pipe )
 
 	vxworks_pipe->blocking_mode = TRUE;
 
-	/* Create the message queue with 1-byte messages and a maximum
-	 * size of 512 messages.  The queue returns messages in FIFO order.
+	/* Create the message queue with messages length of 1 bytes
+	 * and a maximum size of 512 messages.  The queue returns messages
+	 * in FIFO order.
 	 */
 
 	vxworks_pipe->message_queue_id = msgQCreate( 512, 1, MSG_Q_FIFO );
@@ -1089,7 +1091,7 @@ mx_pipe_read( MX_PIPE *mx_pipe,
 	static const char fname[] = "mx_pipe_read()";
 
 	MX_VXWORKS_PIPE *vxworks_pipe;
-	STATUS os_status;
+	int returned_value;
 	int i, timeout;
 	mx_status_type mx_status;
 
@@ -1110,13 +1112,14 @@ mx_pipe_read( MX_PIPE *mx_pipe,
 	}
 
 	for ( i = 0; i < max_bytes_to_read; i++ ) {
-		os_status = msgQReceive( vxworks_pipe->message_queue_id,
+		returned_value = msgQReceive( vxworks_pipe->message_queue_id,
 						&buffer[i], 1, timeout );
 
-		if ( os_status != OK ) {
+		if ( returned_value == ERROR ) {
 			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 			"An error occurred while reading from MX pipe %p.  "
-			"VxWorks error code = %d", mx_pipe, (int) os_status );
+			"VxWorks error code = %d",
+				mx_pipe, errno );
 		}
 	}
 

@@ -15,7 +15,7 @@
  *
  */
 
-#define PR_MOTOR_DEBUG		TRUE
+#define PR_MOTOR_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

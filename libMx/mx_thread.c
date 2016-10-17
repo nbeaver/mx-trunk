@@ -15,7 +15,7 @@
  *
  */
 
-#define MX_THREAD_DEBUG		TRUE
+#define MX_THREAD_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -2330,7 +2330,7 @@ typedef struct {
 	void *thread_arguments;
 } MX_VXWORKS_THREAD_ARGUMENTS_PRIVATE;
 
-static int mx_current_task_variable = 0;
+int mx_task_specific_thread_address = 0;
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 
@@ -2446,7 +2446,7 @@ mx_thread_initialize( void )
 	static const char fname[] = "mx_thread_initialize()";
 
 	MX_THREAD *thread;
-	int status, current_task_id;
+	int vx_status;
 	mx_status_type mx_status;
 
 #if MX_THREAD_DEBUG
@@ -2454,26 +2454,12 @@ mx_thread_initialize( void )
 #endif
 	/* Initialize the task variables facility. */
 
-	status = taskVarInit();
+	vx_status = taskVarInit();
 
-	if ( status != OK ) {
+	if ( vx_status != OK ) {
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
 		"For some reason, the task switch/delete hooks could not "
-		"be installed for task ID %d.", taskIdSelf() );
-	}
-
-	/* Create a VxWorks task variable that we will use to store a
-	 * pointer to the current thread for each thread.
-	 */
-
-	current_task_id = taskIdSelf();
-
-	status = taskVarAdd( current_task_id, &mx_current_task_variable );
-
-	if ( status != OK ) {
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Ran out of memory trying to create the initial task variable "
-		"for task ID %d.", taskIdSelf() );
+		"be installed for task ID %#x.", taskIdSelf() );
 	}
 
 	/* Create and populate an MX_THREAD data structure for the
@@ -2545,6 +2531,8 @@ mx_thread_build_data_structures( MX_THREAD **thread )
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 	"Unable to allocate memory for a MX_VXWORKS_THREAD_PRIVATE structure.");
 	}
+
+	thread_private->task_id = 0;
 	
 	(*thread)->thread_private = thread_private;
 	(*thread)->stop_request_handler = NULL;
@@ -3018,7 +3006,9 @@ mx_thread_save_thread_pointer( MX_THREAD *thread )
 {
 	static const char fname[] = "mx_thread_save_thread_pointer()";
 
-	int status, thread_int;
+	MX_VXWORKS_THREAD_PRIVATE *thread_private;
+	int self_task_id;
+	int vx_status, thread_address;
 	mx_status_type mx_status;
 
 	if ( mx_threads_are_initialized == FALSE ) {
@@ -3028,21 +3018,44 @@ mx_thread_save_thread_pointer( MX_THREAD *thread )
 			return mx_status;
 	}
 
-	/* Save a thread-specific pointer to the MX_THREAD structure using
-	 * the VxWorks task variable created in mx_thread_initialize().
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Save a thread-specific pointer to the MX_THREAD structure in
+	 * the task-specific mx_current_task_variable.
 	 */
 
-	/* FIXME: Casting a pointer to an integer can't be good. */
+	self_task_id = taskIdSelf();
 
-	thread_int = (int) thread;	
+	/* First, add a task-specific copy of 'mx_task_specific_thread_address'
+	 * to this task.
+	 */
 
-	status = taskVarSet( taskIdSelf(),
-			&mx_current_task_variable, thread_int );
+	vx_status = taskVarAdd( self_task_id,
+			&mx_task_specific_thread_address );
 
-	if ( status != OK ) {
+	if ( vx_status != OK ) {
 		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-		"An attempt to save the MX_THREAD pointer failed." );
+		"Unable to attach the task variable 'mx_current_task_variable' "
+		"to task %d for thread %p.",
+			self_task_id, thread );
 	}
+
+	/* FIXME: Requiring user code to convert pointers into integers
+	 * and then back to pointers is a pervasive vice of VxWorks.
+	 */
+
+	thread_address = (int) thread;
+
+	/* Then, put the thread pointer into the task-specific version of
+	 * 'mx_task_specific_thread_address'.
+	 */
+
+	vx_status = taskVarSet( self_task_id,
+				&mx_task_specific_thread_address,
+				thread_address );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -3054,6 +3067,7 @@ mx_get_current_thread( MX_THREAD **thread )
 {
 	static const char fname[] = "mx_get_current_thread()";
 
+	int self_task_id;
 	int task_variable_value;
 	mx_status_type mx_status;
 
@@ -3069,17 +3083,27 @@ mx_get_current_thread( MX_THREAD **thread )
 		"The MX_THREAD pointer passed was NULL." );
 	}
 
-	task_variable_value = taskVarGet( taskIdSelf(),
-					&mx_current_task_variable );
+	self_task_id = taskIdSelf();
+
+	task_variable_value = taskVarGet( self_task_id,
+					&mx_task_specific_thread_address );
 
 	if ( task_variable_value == ERROR ) {
 		return mx_error( MXE_FUNCTION_FAILED, fname,
 		"Unable to get a pointer to the current MX_THREAD structure.");
 	}
 
-	/* FIXME: Casting an integer to a pointer is a bad thing. */
+	/* FIXME: Casting an integer to a pointer is a bad thing,
+	 * but VxWorks _requires_ it.  Ick.
+	 */
 
 	*thread = (MX_THREAD *) task_variable_value;
+
+	if ( (*thread) == (MX_THREAD *) ERROR ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to get the MX_THREAD pointer for "
+		"task %d failed.", self_task_id );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -3127,7 +3151,7 @@ mx_thread_id_string( char *buffer, size_t buffer_length )
 	/* FIXME: Casting an integer to a pointer is a bad thing. */
 
 	thread = (MX_THREAD *) taskVarGet( taskIdSelf(),
-					&mx_current_task_variable );
+					&mx_task_specific_thread_address );
 
 	snprintf( buffer, buffer_length, "(MX thread = %p, task ID = %#x) ",
 		thread, taskIdSelf() );

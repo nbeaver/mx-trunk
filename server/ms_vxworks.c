@@ -33,7 +33,8 @@
 
 extern void mxserver( int port_number,
 		char *device_database_file,
-		char *access_control_list_file );
+		char *access_control_list_file,
+		int detach );
 
 extern void mxserver_task( int port_number,
 		char *device_database_file,
@@ -114,14 +115,21 @@ void mxserver_task( int port_number,
 
 void mxserver( int port_number,
 		char *device_database_file,
-		char *access_control_list_file )
+		char *access_control_list_file,
+		int detach )
 {
 	int task_id, priority, stack_size;
 
-	priority = 0;
-	stack_size = 65536;
+	if ( detach == 0 ) {
+		mxserver_task( port_number,
+			device_database_file,
+			access_control_list_file );
+	} else {
 
-	task_id = taskSpawn( "mxserver_task",
+		priority = 0;
+		stack_size = 65536;
+
+		task_id = taskSpawn( "mxserver_task",
 				priority,
 				VX_FP_TASK,
 				stack_size,
@@ -131,10 +139,9 @@ void mxserver( int port_number,
 				(int) access_control_list_file,
                                 0, 0, 0, 0, 0, 0, 0 );
 
-#if 1
-	fprintf( stderr, "mxserver_task() started.  task_id = %#lx\n",
-		(unsigned long) task_id );
-#endif
+		fprintf( stderr, "mxserver_task() started.  task_id = %#lx\n",
+			(unsigned long) task_id );
+	}
 
 	return;
 }
