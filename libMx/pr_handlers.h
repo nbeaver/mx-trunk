@@ -256,6 +256,13 @@ extern mx_status_type mx_video_input_process_function(
 
 /*---*/
 
+extern mx_status_type mx_setup_vme_process_functions( MX_RECORD *record_list );
+
+extern mx_status_type mx_vme_process_function(
+			void *record, void *record_field, int operation );
+
+/*---*/
+
 extern mx_status_type mx_setup_waveform_input_process_functions(
 					MX_RECORD *record_list );
 

@@ -52,6 +52,8 @@ extern "C" {
 #define MXF_VME_IGNORE_BUS_ERRORS	0x1
 #define MXF_VME_SINGLE_STEP		0x2
 
+#define MXF_VME_NO_REMOTE_ACCESS	0x80000000
+
 typedef struct {
 	MX_RECORD *record;
 
@@ -71,11 +73,51 @@ typedef struct {
 	unsigned long vme_flags;
 } MX_VME;
 
-#define MXLV_VME_READ_ADDRESS_INCREMENT		1001
-#define MXLV_VME_WRITE_ADDRESS_INCREMENT	1002
-#define MXLV_VME_FLAGS				1003
+#define MXLV_VME_CRATE				1001
+#define MXLV_VME_ADDRESS			1002
+#define MXLV_VME_ADDRESS_MODE			1003
+#define MXLV_VME_DATA_SIZE			1004
+#define MXLV_VME_NUM_VALUES			1005
+#define MXLV_VME_READ_ADDRESS_INCREMENT		1006
+#define MXLV_VME_WRITE_ADDRESS_INCREMENT	1007
+#define MXLV_VME_DATA				1008
+#define MXLV_VME_FLAGS				1009
 
 #define MX_VME_STANDARD_FIELDS \
+  {MXLV_VME_CRATE, -1, "crate", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_VME, crate), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_VME_ADDRESS, -1, "address", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_VME, address), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_VME_ADDRESS_MODE, -1, "address_mode", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_VME, address_mode), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_VME_DATA_SIZE, -1, "data_size", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_VME, data_size), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_VME_NUM_VALUES, -1, "num_values", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_VME, num_values), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_VME_READ_ADDRESS_INCREMENT, -1, "read_address_increment", \
+					MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_VME, read_address_increment), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_VME_WRITE_ADDRESS_INCREMENT, -1, "write_address_increment", \
+					MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_VME, write_address_increment), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_VME_DATA, -1, "data", MXFT_HEX, NULL, 1, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_VME, data_pointer), \
+	{0}, NULL, 0}, \
+  \
   {MXLV_VME_FLAGS, -1, "vme_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_VME, vme_flags), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}

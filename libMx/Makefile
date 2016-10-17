@@ -58,7 +58,7 @@ MX_CORE_SRCS = mx_amplifier.c mx_analog_input.c mx_analog_output.c \
 	pr_list_head.c pr_mca.c pr_mcai.c pr_mce.c pr_mcs.c \
 	pr_motor.c pr_operation.c pr_ptz.c pr_pulser.c pr_record.c \
 	pr_relay.c pr_rs232.c pr_sample_changer.c pr_sca.c pr_scaler.c \
-	pr_timer.c pr_variable.c pr_video_input.c \
+	pr_timer.c pr_variable.c pr_video_input.c pr_vme.c \
 	pr_waveform_input.c pr_waveform_output.c \
 	fh_autoscale.c fh_simple.c \
 	f_child.c f_custom.c f_none.c f_sff.c f_text.c f_xafs.c \

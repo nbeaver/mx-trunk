@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2008, 2011-2015 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004-2008, 2011-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -74,6 +74,7 @@ static MX_PROCESS_FUNCTION_SETUP mx_process_function_setup_array[] = {
 { MXR_DEVICE, MXC_WAVEFORM_OUTPUT, mx_setup_waveform_output_process_functions },
 { MXR_INTERFACE, MXI_RS232, mx_setup_rs232_process_functions },
 { MXR_INTERFACE, MXI_GPIB, mx_setup_gpib_process_functions },
+{ MXR_INTERFACE, MXI_VME, mx_setup_vme_process_functions },
 { MXR_VARIABLE, MXC_ANY, mx_setup_variable_process_functions },
 { MXR_LIST_HEAD, MXC_ANY, mx_setup_list_head_process_functions },
 { MXR_SCAN, MXC_ANY, NULL },
