@@ -14,7 +14,7 @@
  *
  */
 
-#define MS_MXSERVER_DEBUG	TRUE
+#define MS_MXSERVER_DEBUG	FALSE
 
 #include <stdio.h>
 #include <string.h>
@@ -1039,8 +1039,9 @@ mxserver_main( int argc, char *argv[] )
 	if ( mx_status.code != MXE_SUCCESS )
 		exit( mx_status.code );
 
-	mx_info("Server '%s' (%s), process id %lu",
-	    list_head_struct->hostname, os_version_string, mx_process_id() );
+	mx_info("Server '%s' (%s), process id %ld",
+	    list_head_struct->hostname, os_version_string,
+		(long) mx_process_id() );
 
 #if 0
 	MX_DEBUG(-2,("%s: MX_WORDSIZE = %d, MX_PROGRAM_MODEL = %#x",

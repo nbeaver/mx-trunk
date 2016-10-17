@@ -680,7 +680,7 @@ mx_process_id( void )
 #if defined(OS_WIN32)
 	process_id = (unsigned long) GetCurrentProcessId();
 
-#elif defined(OS_VXWORKS)
+#elif 0 && defined(OS_VXWORKS)
 	process_id = 0;
 #else
 	process_id = (unsigned long) getpid();

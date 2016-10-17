@@ -665,8 +665,7 @@ mx_get_os_version_string( char *version_string,
 		"The version_string pointer passed was NULL." );
 	}
 
-	snprintf( version_string, max_version_string_length,
-		"VxWorks %s", VXWORKS_VERSION );
+	strlcpy( version_string, VXWORKS_VERSION, max_version_string_length );
 
 	return MX_SUCCESSFUL_RESULT;
 }

@@ -103,7 +103,8 @@ GCCFLAGS = -Wall -Werror \
 -Wcast-qual \
 -Wmissing-prototypes \
 -Wnested-externs \
--Winline
+-Winline \
+-msoft-float
 
 #
 # VxWorks with GCC

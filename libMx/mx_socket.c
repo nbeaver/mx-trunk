@@ -1140,6 +1140,10 @@ mx_socket_close( MX_SOCKET *mx_socket )
 	case EINVAL:
 	case ECONNRESET:
 
+#if defined(ESHUTDOWN)
+	case ESHUTDOWN:
+#endif
+
 		/* Nothing to do. */
 
 		break;
@@ -1443,7 +1447,8 @@ mx_socket_ioctl( MX_SOCKET *mx_socket,
 #endif
 
 #if defined(OS_WIN32) \
-	|| ( defined(OS_VMS) && (__VMS_VER < 80200000) )
+	|| ( defined(OS_VMS) && (__VMS_VER < 80200000) ) \
+	|| defined(OS_VXWORKS) 
 
 /* Win32 does not support F_GETFL for fcntl(), so we manually save a flag
  * in mx_socket_set_non_blocking_mode() that we report back here.
@@ -1451,20 +1456,20 @@ mx_socket_ioctl( MX_SOCKET *mx_socket,
 
 MX_EXPORT mx_status_type
 mx_socket_get_non_blocking_mode( MX_SOCKET *mx_socket,
-				mx_bool_type *non_blocking_flag )
+				mx_bool_type *non_blocking_mode )
 {
-	static const char fname[] = "mx_socket_get_non_blocking_flag()";
+	static const char fname[] = "mx_socket_get_non_blocking_mode()";
 
 	if ( mx_socket == (MX_SOCKET *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_SOCKET pointer passed was NULL." );
 	}
-	if ( non_blocking_flag == NULL ) {
+	if ( non_blocking_mode == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The non_blocking_flag pointer passed was NULL." );
+		"The non_blocking_mode pointer passed was NULL." );
 	}
 
-	*non_blocking_flag = mx_socket->is_non_blocking;
+	*non_blocking_mode = mx_socket->is_non_blocking;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1473,9 +1478,9 @@ mx_socket_get_non_blocking_mode( MX_SOCKET *mx_socket,
 
 MX_EXPORT mx_status_type
 mx_socket_get_non_blocking_mode( MX_SOCKET *mx_socket,
-				mx_bool_type *non_blocking_flag )
+				mx_bool_type *non_blocking_mode )
 {
-	static const char fname[] = "mx_socket_get_non_blocking_flag()";
+	static const char fname[] = "mx_socket_get_non_blocking_mode()";
 
 	int status, fd_flags, saved_errno;
 
@@ -1483,23 +1488,14 @@ mx_socket_get_non_blocking_mode( MX_SOCKET *mx_socket,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_SOCKET pointer passed was NULL." );
 	}
-	if ( non_blocking_flag == NULL ) {
+	if ( non_blocking_mode == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The non_blocking_flag pointer passed was NULL." );
+		"The non_blocking_mode pointer passed was NULL." );
 	}
 
-#if defined(OS_VXWORKS)
-	status = ioctl( mx_socket->socket_fd, FIOGETFL, (int) &fd_flags );
-
-	MX_DEBUG(-10,
-	("%s: FIXME! Verify that the fd_flags (%#x) returned by VxWorks "
-	"actually contains the non-blocking socket info that we need!",
-		fname, fd_flags ));
-#else
 	fd_flags = fcntl( mx_socket->socket_fd, F_GETFL, 0 );
 
 	status = fd_flags;
-#endif
 
 	if ( status == (-1) ) {
 		saved_errno = errno;
@@ -1516,12 +1512,7 @@ mx_socket_get_non_blocking_mode( MX_SOCKET *mx_socket,
 		mx_socket->is_non_blocking = FALSE;
 	}
 
-#if defined(OS_VXWORKS)
-	MX_DEBUG(-10,("%s: mx_socket->is_non_blocking = %d",
-		fname, (int) mx_socket->is_non_blocking));
-#endif
-
-	*non_blocking_flag = mx_socket->is_non_blocking;
+	*non_blocking_mode = mx_socket->is_non_blocking;
 
 	return MX_SUCCESSFUL_RESULT;
 }

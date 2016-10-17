@@ -20,6 +20,7 @@
 #include <stdlib.h>
 
 #include <taskLib.h>
+#include <ioLib.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -44,6 +45,23 @@ void mxserver_task( int port_number,
 {
 	int argc;
 	char **argv;
+	int vfd_stdin, vfd_stdout, vfd_stderr;
+
+	/* You cannot count on stdin, stdout, and stderr automatically
+	 * being available for a task created by taskSpawn(), so we have
+	 * to manually set them up.
+	 */
+
+	vfd_stderr = open("/vio/0",2,0);
+	ioGlobalStdSet(2,vfd_stderr);
+
+	vfd_stdout = open("/vio/0",2,0);
+	ioGlobalStdSet(1,vfd_stdout);
+
+	vfd_stdin = open("/vio/0",2,0);
+	ioGlobalStdSet(0,vfd_stdin);
+
+	/* Set up argc and argv for mxserver_main(). */
 
 	char argv0[MAX_ARGV_LENGTH+1] = "mxserver";
 	char argv1[MAX_ARGV_LENGTH+1] = "-p";
@@ -87,7 +105,7 @@ void mxserver_task( int port_number,
 
 	mxserver_main( argc, argv );
 
-	fprintf( stderr, "mxserver task is exiting...\n" );
+	fprintf( stderr, "mxserver_task is exiting...\n" );
 }
 
 /* mxserver() is the command executed at the VxWorks shell prompt.  Its job
@@ -101,9 +119,9 @@ void mxserver( int port_number,
 	int task_id, priority, stack_size;
 
 	priority = 0;
-	stack_size = 20000;
+	stack_size = 65536;
 
-	task_id = taskSpawn( NULL,
+	task_id = taskSpawn( "mxserver_task",
 				priority,
 				VX_FP_TASK,
 				stack_size,
@@ -113,8 +131,10 @@ void mxserver( int port_number,
 				(int) access_control_list_file,
                                 0, 0, 0, 0, 0, 0, 0 );
 
+#if 1
 	fprintf( stderr, "mxserver_task() started.  task_id = %#lx\n",
 		(unsigned long) task_id );
+#endif
 
 	return;
 }

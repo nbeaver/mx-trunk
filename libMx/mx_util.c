@@ -338,6 +338,10 @@ mx_strncasecmp( const char *s1, const char *s2, size_t n )
 
 /*-------------------------------------------------------------------------*/
 
+#if defined(OS_VXWORKS)
+#  include <remLib.h>
+#endif
+
 MX_EXPORT char *
 mx_username( char *buffer, size_t max_buffer_length )
 {
@@ -530,13 +534,18 @@ mx_username( char *buffer, size_t max_buffer_length )
 		}
 	}
 
+#elif defined( OS_VXWORKS )
+
+	/* FIXME: remCurIdGet() does not have a way of specifying
+	 * how long the username buffer should be.  So how long
+	 * _should_ it be???
+	 */
+
+	remCurIdGet( ptr, NULL );
+
 #elif defined( OS_RTEMS )
 
 	strlcpy( ptr, "rtems", max_buffer_length );
-
-#elif defined( OS_VXWORKS )
-
-	strlcpy( ptr, "vxworks", max_buffer_length );
 
 #elif defined( OS_ECOS )
 
