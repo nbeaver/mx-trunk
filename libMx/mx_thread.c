@@ -15,7 +15,7 @@
  *
  */
 
-#define MX_THREAD_DEBUG		FALSE
+#define MX_THREAD_DEBUG		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -2379,6 +2379,10 @@ mx_thread_start_function( int arg1, int arg2, int arg3, int arg4, int arg5,
 	void *thread_arguments;
 	mx_status_type mx_status;
 
+#if MX_THREAD_DEBUG
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
+
 	if ( arg1 == 0 ) {
 		return FALSE;
 	}
@@ -2418,6 +2422,11 @@ mx_thread_start_function( int arg1, int arg2, int arg3, int arg4, int arg5,
 
 	mx_status = (thread_function)( thread, thread_arguments );
 
+#if MX_THREAD_DEBUG
+	MX_DEBUG(-2,("%s: MX thread %p returned status code %ld.",
+		fname, thread, mx_status.code));
+#endif
+
 	/* End the thread when the MX thread function terminates. */
 
 	thread->thread_exit_status = mx_status.code;
@@ -2443,6 +2452,15 @@ mx_thread_initialize( void )
 #if MX_THREAD_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
 #endif
+	/* Initialize the task variables facility. */
+
+	status = taskVarInit();
+
+	if ( status != OK ) {
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"For some reason, the task switch/delete hooks could not "
+		"be installed for task ID %d.", taskIdSelf() );
+	}
 
 	/* Create a VxWorks task variable that we will use to store a
 	 * pointer to the current thread for each thread.
@@ -2486,6 +2504,9 @@ mx_thread_initialize( void )
 
 	mx_status = mx_thread_save_thread_pointer( thread );
 
+#if MX_THREAD_DEBUG
+	MX_DEBUG(-2,("%s complete.", fname));
+#endif
 	return mx_status;
 }
 
@@ -2672,6 +2693,10 @@ mx_thread_create( MX_THREAD **thread,
 			break;
 		}
 	}
+
+#if MX_THREAD_DEBUG
+	MX_DEBUG(-2,("%s complete.", fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
