@@ -116,7 +116,7 @@ typedef struct {
   \
   {MXLV_VME_DATA, -1, "data", MXFT_HEX, NULL, 1, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_VME, data_pointer), \
-	{0}, NULL, 0}, \
+	{8}, NULL, 0}, \
   \
   {MXLV_VME_FLAGS, -1, "vme_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_VME, vme_flags), \
