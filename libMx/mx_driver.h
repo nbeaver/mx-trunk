@@ -652,7 +652,7 @@ extern "C" {
 
 #define MXT_MCS_DATABOX			130003
 #define MXT_MCS_SIS3801			130004
-
+#define MXT_MCS_SIS3820			130005
 #define MXT_MCS_SCALER_FUNCTION		130006
 
 /* --- Table types --- */

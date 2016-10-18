@@ -415,6 +415,7 @@
 #include "d_monte_carlo_mca.h"
 
 #include "d_sis3801.h"
+#include "d_sis3820.h"
 
 #include "d_mca_channel.h"
 #include "d_mca_roi_integral.h"
@@ -2986,6 +2987,13 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_sis3801_mcs_function_list,
 				&mxd_sis3801_num_record_fields,
 				&mxd_sis3801_rfield_def_ptr},
+
+{"sis3820",        MXT_MCS_SIS3820,   MXC_MULTICHANNEL_SCALER, MXR_DEVICE,
+				&mxd_sis3820_record_function_list,
+				NULL,
+				&mxd_sis3820_mcs_function_list,
+				&mxd_sis3820_num_record_fields,
+				&mxd_sis3820_rfield_def_ptr},
 
 {"network_relay",  MXT_RLY_NETWORK,   MXC_RELAY,          MXR_DEVICE,
 				&mxd_network_relay_record_function_list,

@@ -144,7 +144,8 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_scipe_scaler.c d_scipe_timer.c d_sd_m107.c d_segmented_move.c \
 	d_sercat_als_robot.c \
 	d_si9650_motor.c d_si9650_status.c d_sim960.c d_sim980.c d_sim983.c \
-	d_sis3801.c d_sis3801_pulser.c d_sis3807.c d_slit_motor.c \
+	d_sis3801.c d_sis3801_pulser.c d_sis3807.c d_sis3820.c \
+	d_slit_motor.c \
 	d_smartmotor.c d_smartmotor_aio.c d_smartmotor_dio.c \
 	d_smc24.c d_soft_amplifier.c d_soft_ainput.c d_soft_aoutput.c \
 	d_soft_area_detector.c d_soft_dinput.c d_soft_doutput.c \
