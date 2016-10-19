@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2012 Illinois Institute of Technology
+ * Copyright 1999-2006, 2012, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -38,6 +38,7 @@
 #include "mx_timer.h"
 #include "mx_relay.h"
 #include "mx_pulse_generator.h"
+#include "mx_mcs.h"
 
 #include "mx_variable.h"
 #include "mx_vinline.h"
@@ -81,6 +82,10 @@
 
 #include "d_generic_relay.h"
 #include "d_blind_relay.h"
+
+#include "d_sis3801.h"
+#include "d_sis3820.h"
+#include "d_mcs_timer.h"
 
 #include "v_mathop.h"
 
@@ -263,6 +268,27 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_blind_relay_relay_function_list,
 				&mxd_blind_relay_num_record_fields,
 				&mxd_blind_relay_rfield_def_ptr},
+
+{"sis3801",        MXT_MCS_SIS3801,   MXC_MULTICHANNEL_SCALER, MXR_DEVICE,
+				&mxd_sis3801_record_function_list,
+				NULL,
+				&mxd_sis3801_mcs_function_list,
+				&mxd_sis3801_num_record_fields,
+				&mxd_sis3801_rfield_def_ptr},
+
+{"sis3820",        MXT_MCS_SIS3820,   MXC_MULTICHANNEL_SCALER, MXR_DEVICE,
+				&mxd_sis3820_record_function_list,
+				NULL,
+				&mxd_sis3820_mcs_function_list,
+				&mxd_sis3820_num_record_fields,
+				&mxd_sis3820_rfield_def_ptr},
+
+{"mcs_timer",      MXT_TIM_MCS,       MXC_TIMER,          MXR_DEVICE,
+				&mxd_mcs_timer_record_function_list,
+				NULL,
+				&mxd_mcs_timer_timer_function_list,
+				&mxd_mcs_timer_num_record_fields,
+				&mxd_mcs_timer_rfield_def_ptr},
 
   /* =================== Variable types ================== */
 

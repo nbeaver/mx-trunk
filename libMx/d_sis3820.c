@@ -7,14 +7,14 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2001-2006, 2008, 2010 Illinois Institute of Technology
+ * Copyright 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXD_SIS3820_DEBUG		FALSE
+#define MXD_SIS3820_DEBUG		TRUE
 
 #define MXD_SIS3820_DEBUG_TIMING	FALSE
 
@@ -194,9 +194,9 @@ mxd_sis3820_open( MX_RECORD *record )
 
 	MX_MCS *mcs;
 	MX_SIS3820 *sis3820 = NULL;
-#if 0
-	uint32_t module_id_register, control_register, status_register;
-#endif
+	uint32_t module_id_register = 0;
+	uint32_t acq_op_mode = 0;
+	mx_bool_type use_reference_pulser = FALSE;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -229,140 +229,81 @@ mxd_sis3820_open( MX_RECORD *record )
 			fname, sis3820->address_mode));
 #endif
 
-#if 0 /* old 3801 code */
-
 	/* Reset the SIS3820. */
 
 	mx_status = mx_vme_out32( sis3820->vme_record,
 				sis3820->crate_number,
 				sis3820->address_mode,
-				sis3820->base_address + MX_SIS3820_RESET_REG,
+			sis3820->base_address + MX_SIS3820_KEY_RESET_REG,
 				1 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	/* Get the FIFO size. */
-
-	mx_status = mx_vme_in32( sis3820->vme_record,
-				sis3820->crate_number,
-				sis3820->address_mode,
-				sis3820->base_address + MX_SIS3820_STATUS_REG,
-				&status_register );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	switch( status_register ) {
-	case 0x300:
-#if MXD_SIS3820_DEBUG
-		MX_DEBUG(-2,("%s: 64K FIFO installed.", fname));
-#endif
-		sis3820->fifo_size_in_kwords = 64;
-		break;
-
-	case 0x100:
-#if MXD_SIS3820_DEBUG
-		MX_DEBUG(-2,("%s: 256K FIFO installed.", fname));
-#endif
-		sis3820->fifo_size_in_kwords = 256;
-		break;
-	default:
-		mx_warning( "Power up status register value %#lx is not "
-		"either 0x300 (for 64K FIFO) or 0x100 (for 256K FIFO).",
-			(unsigned long) status_register );
-
-		sis3820->fifo_size_in_kwords = -1;
-		break;
-	}
 
 	/* Read the module identification register. */
 
 	mx_status = mx_vme_in32( sis3820->vme_record,
 				sis3820->crate_number,
 				sis3820->address_mode,
-		sis3820->base_address + MX_SIS3820_MODULE_ID_IRQ_CONTROL_REG,
+				sis3820->base_address + MX_SIS3820_MODID_REG,
 				&module_id_register );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	sis3820->module_id = ( module_id_register >> 16 ) & 0xffff;
-	sis3820->firmware_version = ( module_id_register >> 12 ) & 0xf;
+	sis3820->firmware_version = module_id_register & 0xffff;
 
 #if MXD_SIS3820_DEBUG
-	MX_DEBUG(-2,("%s: module id = %#lx, firmware version = %lu",
+	MX_DEBUG(-2,("%s: module id = %#lx, firmware version = %#lx",
 		fname, sis3820->module_id, sis3820->firmware_version));
 #endif
 
-	/* Compute the maximum allowed prescale factor for this module. */
-
-	/* Other firmware versions may well support 28-bit prescale factors,
-	 * but Struck does not give us a way to directly test for their
-	 * presence.  All one can do is guess based on the firmware version
-	 * number.  If you find that you have a version of the firmware that
-	 * supports 28-bit ( or larger? ) prescale factors, then add it as
-	 * a case in the switch() statement below.
-	 */
-
-	switch( sis3820->firmware_version ) {
-	case 0x9:
-	case 0xA:
-		sis3820->maximum_prescale_factor = 268435456;   /* 2^28 */
-		break;
-	default:
-		sis3820->maximum_prescale_factor = 16777216;	/* 2^24 */
-		break;
-	}
+	/* Setup default acquisition mode for MCS operation. */
 
 	if ( sis3820->sis3820_flags & MXF_SIS3820_USE_REFERENCE_PULSER ) {
+		use_reference_pulser = TRUE;
+	} else {
+		use_reference_pulser = FALSE;
+	}
 
-		/* Enable reference pulses. */
+	/* FIFO mode, MCS mode, Input mode 1, LNE as enable. */
+
+	acq_op_mode  = MXF_SIS3820_FIFO_MODE;                    /* FIFO mode */
+	acq_op_mode |= MXF_SIS3820_OP_MODE_MULTI_CHANNEL_SCALER;  /* MCS mode */
+	acq_op_mode |= MXF_SIS3820_CONTROL_INPUT_MODE1;       /* Input mode 1 */
+	acq_op_mode |= MXF_SIS3820_ARM_ENABLE_CONTROL_SIGNAL; /* LNE enable   */
+
+	/* Set LNE source as either internal 10 MHz or front panel control. */
+
+	if ( use_reference_pulser ) {
+		acq_op_mode |= MXF_SIS3820_LNE_SOURCE_INTERNAL_10MHZ;
+	} else {
+		acq_op_mode |= MXF_SIS3820_LNE_SOURCE_CONTROL_SIGNAL;
+	}
+
+	mx_status = mx_vme_out32( sis3820->vme_record,
+				sis3820->crate_number,
+				sis3820->address_mode,
+			sis3820->base_address + MX_SIS3820_OPERATION_MODE_REG,
+				acq_op_mode );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Enable the reference pulses if necessary. */
+
+	if ( use_reference_pulser ) {
 
 		mx_status = mx_vme_out32( sis3820->vme_record,
 					sis3820->crate_number,
 					sis3820->address_mode,
-	sis3820->base_address + MX_SIS3820_ENABLE_REFERENCE_PULSE_CHANNEL_1,
-					1 );
+			sis3820->base_address + MX_SIS3820_CONTROL_STATUS_REG,
+					MXF_SIS3820_CTRL_REFERENCE_CH1_ENABLE );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	}
-
-	/* Set the control input mode. */
-
-	control_register =
-		(uint32_t) ( ( sis3820->control_input_mode & 0x3 ) << 2 );
-
-	mx_status = mx_vme_out32( sis3820->vme_record,
-				sis3820->crate_number,
-				sis3820->address_mode,
-				sis3820->base_address + MX_SIS3820_CONTROL_REG,
-				control_register );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Enable counting. */
-
-	mx_status = mx_vme_out32( sis3820->vme_record,
-				sis3820->crate_number,
-				sis3820->address_mode,
-				sis3820->base_address + MX_SIS3820_CONTROL_REG,
-			MXF_SIS3820_CLEAR_SOFTWARE_DISABLE_COUNTING_BIT );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Set the measurement finish time to the current time. */
-
-	sis3820->finish_time = mx_current_clock_tick();
-
-	mcs->measurement_time = 0.0;
-
-	/* We assume there are no counts remaining to be read in the FIFO. */
-
-	sis3820->counts_available_in_fifo = FALSE;
 
 	/* Turn on the user LED to show that we are initialized. */
 
@@ -373,13 +314,11 @@ mxd_sis3820_open( MX_RECORD *record )
 	mx_status = mx_vme_out32( sis3820->vme_record,
 				sis3820->crate_number,
 				sis3820->address_mode,
-				sis3820->base_address + MX_SIS3820_CONTROL_REG,
-				0x1 );
+			sis3820->base_address + MX_SIS3820_CONTROL_STATUS_REG,
+				MXF_SIS3820_CTRL_USER_LED_ON );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-#endif /* old 3801 code */
 
 #if MXD_SIS3820_DEBUG
 	MX_DEBUG(-2,("%s complete.", fname));
@@ -415,13 +354,11 @@ mxd_sis3820_close( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: Turning off user LED.", fname));
 #endif
 
-#if 0
 	mx_status = mx_vme_out32( sis3820->vme_record,
 				sis3820->crate_number,
 				sis3820->address_mode,
-				sis3820->base_address + MX_SIS3820_CONTROL_REG,
-				0x100 );
-#endif
+			sis3820->base_address + MX_SIS3820_CONTROL_STATUS_REG,
+				MXF_SIS3820_CTRL_USER_LED_OFF );
 
 	return mx_status;
 }
@@ -434,13 +371,6 @@ mxd_sis3820_start( MX_MCS *mcs )
 	static const char fname[] = "mxd_sis3820_start()";
 
 	MX_SIS3820 *sis3820 = NULL;
-#if 0
-	MX_CLOCK_TICK start_time, finish_time, measurement_ticks;
-	double total_measurement_time, maximum_measurement_time;
-	double pulse_period, clock_frequency;
-	uint32_t prescale_factor, control_register;
-	mx_bool_type busy;
-#endif
 	mx_status_type mx_status;
 
 	mx_status = mxd_sis3820_get_pointers( mcs, &sis3820, fname );
@@ -466,254 +396,22 @@ mxd_sis3820_start( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if 0 /* old 3801 code */
+	/* Configure the MCS for this sequence. */
 
-	/* If external channel advance is disabled, enable the internal
-	 * 10 MHz clock so that it can do the channel advance.
-	 */
+	/* FIXME: Fill this in here. */
 
-	if ( mcs->external_channel_advance_record == NULL ) {
-		mcs->external_channel_advance = 0;
-	}
+	/* FIXME: Enable the background processing callback. */
 
-	control_register = 0;
-
-	if ( mcs->external_channel_advance ) {
-		control_register |= MXF_SIS3820_DISABLE_10MHZ_TO_LNE_PRESCALER;
-		control_register |= MXF_SIS3820_ENABLE_EXTERNAL_NEXT;
-	} else {
-		control_register |= MXF_SIS3820_ENABLE_10MHZ_TO_LNE_PRESCALER;
-		control_register |= MXF_SIS3820_DISABLE_EXTERNAL_NEXT;
-	}
+	/* Arm the MCS. */
 
 	mx_status = mx_vme_out32( sis3820->vme_record,
 				sis3820->crate_number,
 				sis3820->address_mode,
-				sis3820->base_address + MX_SIS3820_CONTROL_REG,
-				control_register );
+		sis3820->base_address + MX_SIS3820_KEY_OPERATION_ARM_REG,
+				0x1 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	/* Set the prescale factor. */
-
-	if ( mcs->external_channel_advance ) {
-
-		/* Use external channel advance. */
-
-		switch( mcs->external_channel_advance_record->mx_class ) {
-		case MXC_PULSE_GENERATOR:
-			mx_status = mx_pulse_generator_get_pulse_period(
-					mcs->external_channel_advance_record,
-					&pulse_period );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			if ( pulse_period < 0.0 ) {
-				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"Cannot start MCS '%s' since its external pulse generator '%s' "
-	"is currently configured for a negative pulse period.",
-				mcs->record->name,
-				mcs->external_channel_advance_record->name );
-			}
-
-			if ( pulse_period < 1.0e-30 ) {
-				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"Cannot start MCS '%s' since its external pulse generator '%s' "
-	"is currently configured for an essentially zero pulse period.",
-				mcs->record->name,
-				mcs->external_channel_advance_record->name );
-			}
-
-			clock_frequency = mx_divide_safely( 1.0, pulse_period );
-
-			prescale_factor = (uint32_t)
-			    mx_round( clock_frequency * mcs->measurement_time );
-#if MXD_SIS3820_DEBUG
-			MX_DEBUG(-2,
-  ("%s: Using pulse generator, pulse_period = %g, clock = %g, prescale = %lu",
-   				fname, pulse_period, clock_frequency,
-				prescale_factor));
-#endif
-
-			if ( prescale_factor >=
-					sis3820->maximum_prescale_factor )
-			{
-			    maximum_measurement_time = mx_divide_safely(
-				(double) sis3820->maximum_prescale_factor,
-					clock_frequency );
-
-			    return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"The requested measurement time of %g seconds for MCS '%s' "
-		"is larger than the maximum allowed measurement time "
-		"per point of %g seconds.",
-				mcs->measurement_time,
-				sis3820->record->name, 
-				maximum_measurement_time );
-			}
-
-			/* Is the pulse generator running? */
-
-			mx_status = mx_pulse_generator_is_busy( 
-					mcs->external_channel_advance_record,
-					&busy );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			if ( busy == FALSE ) {
-				/* If not, then start the pulse generator. */
-
-				mx_status = mx_pulse_generator_start(
-					mcs->external_channel_advance_record );
-
-				if ( mx_status.code != MXE_SUCCESS )
-					return mx_status;
-			}
-			break;
-		default:
-			prescale_factor = (uint32_t) mcs->external_prescale;
-			break;
-		}
-
-#if MXD_SIS3820_DEBUG
-		MX_DEBUG(-2,
-		("%s: Using external channel advance, prescale_factor = %lu",
-		 	fname, prescale_factor));
-#endif
-
-		if ( prescale_factor >= sis3820->maximum_prescale_factor ) {
-			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"The external prescale factor %ld for MCS '%s' is too large.  "
-		"The largest allowed external prescale factor is %lu.",
-			(long) prescale_factor, sis3820->record->name,
-			sis3820->maximum_prescale_factor );
-		}
-	} else {
-		/* Use internal clock. */
-
-		prescale_factor = (uint32_t)
-				mx_round( MX_SIS3820_10MHZ_INTERNAL_CLOCK
-					* mcs->measurement_time );
-
-#if MXD_SIS3820_DEBUG
-		MX_DEBUG(-2,("%s: Using internal clock", fname));
-#endif
-
-		if ( prescale_factor >= sis3820->maximum_prescale_factor ) {
-
-			maximum_measurement_time = mx_divide_safely(
-				(double) sis3820->maximum_prescale_factor,
-				MX_SIS3820_10MHZ_INTERNAL_CLOCK );
-
-			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"The requested measurement time of %g seconds for MCS '%s' "
-		"is larger than the maximum allowed measurement time "
-		"per point of %g seconds.",
-				mcs->measurement_time,
-				sis3820->record->name, 
-				maximum_measurement_time );
-		}
-	}
-
-	prescale_factor -= 1;
-
-#if MXD_SIS3820_DEBUG
-	MX_DEBUG(-2,("%s: prescale_factor = %lu", fname, prescale_factor));
-#endif
-
-	mx_status = mx_vme_out32( sis3820->vme_record,
-				sis3820->crate_number,
-				sis3820->address_mode,
-			sis3820->base_address + MX_SIS3820_PRESCALE_FACTOR_REG,
-				prescale_factor );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Enable the next clock logic. */
-
-	mx_status = mx_vme_out32( sis3820->vme_record,
-				sis3820->crate_number,
-				sis3820->address_mode,
-		sis3820->base_address + MX_SIS3820_ENABLE_NEXT_CLOCK_LOGIC,
-				1 );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if 1
-	/* The SIS3820 treats a prescale factor of 0 as if it were the same
-	 * as a prescale factor of 0xffffffff.  Thus, the prescale register
-	 * will count down for a very long time.  However, if all we want
-	 * to do is cause the 3820 to do a channel advance on each incoming
-	 * pulse, then we can get the same effect by merely disabling the
-	 * LNE prescaler.
-	 */
-
-	if ( prescale_factor == 0 ) {
-		control_register = MXF_SIS3820_DISABLE_LNE_PRESCALER;
-	} else {
-		control_register = MXF_SIS3820_ENABLE_LNE_PRESCALER;
-	}
-#else
-	control_register = MXF_SIS3820_ENABLE_LNE_PRESCALER;
-#endif
-
-	/* Enable the LNE prescaler.
-	 *
-	 * This will start the measurement if we are using the SIS3820's own
-	 * internal clock.  Otherwise, it makes the SIS3820 ready to start
-	 * counting when the first external next clock comes in.
-	 */
-
-	mx_status = mx_vme_out32( sis3820->vme_record,
-				sis3820->crate_number,
-				sis3820->address_mode,
-				sis3820->base_address + MX_SIS3820_CONTROL_REG,
-				control_register );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	sis3820->counts_available_in_fifo = TRUE;
-
-	/* Record the time when the measurement should be finished. */
-
-	total_measurement_time = mcs->measurement_time
-				* (double) mcs->current_num_measurements;
-
-	/* Give a little extra delay time to try to avoid reading out the
-	 * FIFO before all the measurements have been taken.
-	 */
-
-	total_measurement_time += 0.02;		/* Delay time in seconds */
-
-	measurement_ticks
-		= mx_convert_seconds_to_clock_ticks( total_measurement_time );
-
-	start_time = mx_current_clock_tick();
-
-	finish_time = mx_add_clock_ticks( start_time, measurement_ticks );
-
-#if MXD_SIS3820_DEBUG
-	MX_DEBUG(-2,("%s: measurement_time = %g, measurement_ticks = (%lu,%lu)",
-		fname, total_measurement_time, measurement_ticks.high_order,
-			(unsigned long) measurement_ticks.low_order ));
-
-	MX_DEBUG(-2,("%s: start_time = (%lu,%lu), finish_time = (%lu,%lu)",
-		fname, start_time.high_order,
-		(unsigned long) start_time.low_order,
-		finish_time.high_order,
-		(unsigned long) finish_time.low_order));
-#endif
-
-	sis3820->finish_time = finish_time;
-
-	MXD_SIS3820_SHOW_STATUS;
-
-#endif /* old 3801 code */
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -735,8 +433,6 @@ mxd_sis3820_stop( MX_MCS *mcs )
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, mcs->record->name));
 #endif
 
-	sis3820->finish_time = mx_current_clock_tick();
-
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -757,9 +453,15 @@ mxd_sis3820_clear( MX_MCS *mcs )
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, mcs->record->name));
 #endif
 
-	/*FIXME: Place VME code here. */
+	mx_status = mx_vme_out32( sis3820->vme_record,
+				sis3820->crate_number,
+				sis3820->address_mode,
+		sis3820->base_address + MX_SIS3820_KEY_COUNTER_CLEAR_REG,
+				0x1 );
 
-	return MX_SUCCESSFUL_RESULT;
+	/* FIXME: Perhaps we should also memset() the MX_MCS data structure. */
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -864,7 +566,7 @@ mxd_sis3820_get_parameter( MX_MCS *mcs )
 		return mx_status;
 
 #if MXD_SIS3820_DEBUG
-	MX_DEBUG(-2,("%s invoked for MCS '%s', parameter type '%s' (%d)",
+	MX_DEBUG(-2,("%s invoked for MCS '%s', parameter type '%s' (%ld)",
 		fname, mcs->record->name,
 		mx_get_field_label_string( mcs->record, mcs->parameter_type ),
 		mcs->parameter_type));
@@ -903,7 +605,7 @@ mxd_sis3820_set_parameter( MX_MCS *mcs )
 		return mx_status;
 
 #if MXD_SIS3820_DEBUG
-	MX_DEBUG(-2,("%s invoked for MCS '%s', parameter type '%s' (%d)",
+	MX_DEBUG(-2,("%s invoked for MCS '%s', parameter type '%s' (%ld)",
 		fname, mcs->record->name,
 		mx_get_field_label_string( mcs->record, mcs->parameter_type ),
 		mcs->parameter_type));

@@ -383,18 +383,17 @@ mxi_vxworks_vme_input( MX_VME *vme )
 	if ( vme_status == OK ) {
 		return MX_SUCCESSFUL_RESULT;
 	} else {
-		mx_status = mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		if ( vme->vme_flags & MXF_VME_IGNORE_BUS_ERRORS ) {
+			return MX_SUCCESSFUL_RESULT;
+		}
+
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 			"Bus error or misaligned data when "
 			"reading from VME interface '%s', crate %lu, "
 			"A%lu, D%lu, address %#lx, VME status = %#x",
 				vme->record->name, vme->crate,
 				vme->address_mode, vme->data_size,
 				vme->address, vme_status );
-
-		if ( vme->vme_flags & MXF_VME_IGNORE_BUS_ERRORS ) {
-			return MX_SUCCESSFUL_RESULT;
-		}
-		return mx_status;
 	}
 }
 
@@ -463,18 +462,17 @@ mxi_vxworks_vme_output( MX_VME *vme )
 	if ( vme_status == OK ) {
 		return MX_SUCCESSFUL_RESULT;
 	} else {
-		mx_status = mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		if ( vme->vme_flags & MXF_VME_IGNORE_BUS_ERRORS ) {
+			return MX_SUCCESSFUL_RESULT;
+		}
+
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 			"Bus error or misaligned data when "
 			"writing to VME interface '%s', crate %lu, "
 			"A%lu, D%lu, address %#lx, VME status = %#x",
 				vme->record->name, vme->crate,
 				vme->address_mode, vme->data_size,
 				vme->address, vme_status );
-
-		if ( vme->vme_flags & MXF_VME_IGNORE_BUS_ERRORS ) {
-			return MX_SUCCESSFUL_RESULT;
-		}
-		return mx_status;
 	}
 }
 
@@ -587,17 +585,16 @@ mxi_vxworks_vme_multi_input( MX_VME *vme )
 			return MX_SUCCESSFUL_RESULT;
 		}
 	} else {
-		mx_status = mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		if ( vme->vme_flags & MXF_VME_IGNORE_BUS_ERRORS ) {
+			return MX_SUCCESSFUL_RESULT;
+		}
+
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 			"Error reading from VME interface '%s', crate %lu, "
 			"A%lu, D%lu, address %#lx, VME status = %#x",
 				vme->record->name, vme->crate,
 				vme->address_mode, vme->data_size,
 				vme->address, vme_status );
-
-		if ( vme->vme_flags & MXF_VME_IGNORE_BUS_ERRORS ) {
-			return MX_SUCCESSFUL_RESULT;
-		}
-		return mx_status;
 	}
 }
 
@@ -710,17 +707,16 @@ mxi_vxworks_vme_multi_output( MX_VME *vme )
 			return MX_SUCCESSFUL_RESULT;
 		}
 	} else {
-		mx_status = mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		if ( vme->vme_flags & MXF_VME_IGNORE_BUS_ERRORS ) {
+			return MX_SUCCESSFUL_RESULT;
+		}
+
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 			"Error writing to VME interface '%s', crate %lu, "
 			"A%lu, D%lu, address %#lx, VME status = %#x",
 				vme->record->name, vme->crate,
 				vme->address_mode, vme->data_size,
 				vme->address, vme_status );
-
-		if ( vme->vme_flags & MXF_VME_IGNORE_BUS_ERRORS ) {
-			return MX_SUCCESSFUL_RESULT;
-		}
-		return mx_status;
 	}
 }
 
