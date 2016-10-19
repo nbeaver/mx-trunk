@@ -23,6 +23,7 @@
 
 #include "mx_driver.h"
 #include "mx_interval_timer.h"
+#include "mx_callback.h"
 
 /* -- Include header files that define MX_XXX_FUNCTION_LIST structures. -- */
 

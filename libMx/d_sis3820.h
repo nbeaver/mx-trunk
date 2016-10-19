@@ -215,7 +215,8 @@ typedef struct {
 	long fifo_size_in_kwords;		/* A word is 16 bits long */
 	mx_bool_type counts_available_in_fifo;
 
-	MX_CLOCK_TICK finish_time;
+	mx_bool_type use_callback;
+	MX_CALLBACK_MESSAGE *callback_message;
 } MX_SIS3820;
 
 #define MXD_SIS3820_STANDARD_FIELDS \
