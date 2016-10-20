@@ -210,14 +210,16 @@ typedef struct {
 	unsigned long module_id;
 	unsigned long firmware_version;
 
+	unsigned long disabled_interrupts;
+
 	unsigned long maximum_prescale_factor;
 
 	long fifo_size_in_kwords;		/* A word is 16 bits long */
 	mx_bool_type counts_available_in_fifo;
 
-	unsigned long disabled_interrupts;
-
 	mx_bool_type new_start;
+
+	uint32_t *measurement_buffer;
 
 	mx_bool_type use_callback;
 	MX_CALLBACK_MESSAGE *callback_message;

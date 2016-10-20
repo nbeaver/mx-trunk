@@ -150,7 +150,11 @@ mxd_sis3820_fifo_callback_function( MX_CALLBACK_MESSAGE *callback_message )
 
 	uint32_t interrupt_status = 0;
 	uint32_t acquisition_count = 0;
+	uint32_t fifo_wordcount = 0;
 	long num_new_measurements = 0;
+	long i_fifo, i_scaler, i_measurement = 0;
+	long **dest_array = NULL;
+	uint32_t *src_array = NULL;
 
 	mx_bool_type lne_clock_shadow      = FALSE;
 	mx_bool_type fifo_threshold        = FALSE;
@@ -237,16 +241,27 @@ mxd_sis3820_fifo_callback_function( MX_CALLBACK_MESSAGE *callback_message )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	mx_status = mx_vme_in32( sis3820->vme_record,
+				sis3820->crate_number,
+				sis3820->address_mode,
+		sis3820->base_address + MX_SIS3820_FIFO_WORDCOUNTER_REG,
+				&fifo_wordcount );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	num_new_measurements = acquisition_count - mcs->measurement_number - 1;
 
 #if MXD_SIS3820_DEBUG_FIFO
 	MX_DEBUG(-2,
 	("FIFO: measurement_number = %ld, acquisition_count = %lu, "
-	"num_new_measurements = %ld",
+	"num_new_measurements = %ld, fifo_wordcount = %lu",
 		mcs->measurement_number,
 		(unsigned long) acquisition_count,
-		num_new_measurements ));
+		num_new_measurements,
+		(unsigned long) fifo_wordcount));
 #endif
+
 	/* Should we consider the MCS to be 'busy'.  We mark it as busy
 	 * immediately after a start, no matter what 'acquisition_completed'
 	 * value that we found.
@@ -270,11 +285,57 @@ mxd_sis3820_fifo_callback_function( MX_CALLBACK_MESSAGE *callback_message )
 	MX_DEBUG(-2,("FIFO: mcs->busy = %d", (int) mcs->busy));
 #endif
 
-	/* Readout all new measurements from the MCS. */
-
 #if MXD_SIS3820_DEBUG_FIFO
-	MX_DEBUG(-2,("FIFO: FIXME, MCS readout goes here."));
+	MX_DEBUG(-2,("FIFO: MCS readout."));
 #endif
+	/* Readout all new measurements from the MCS.
+	 *
+	 * The data are read out one measurement at a time.
+	 */
+
+	dest_array = mcs->data_array;
+	src_array = sis3820->measurement_buffer;
+
+	for ( i_fifo = 0; i_fifo < num_new_measurements; i_fifo++ ) {
+
+		mx_status = mx_vme_multi_out32(
+				sis3820->vme_record,
+				sis3820->crate_number,
+				sis3820->address_mode,
+				1,
+			sis3820->base_address + MX_SIS3820_SDRAM_BASE_REG,
+				mcs->maximum_num_scalers,
+				src_array );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		i_measurement = i_fifo + mcs->measurement_number + 1;
+
+		for ( i_scaler = 0;
+			i_scaler < mcs->maximum_num_scalers;
+			i_scaler++ )
+		{
+			dest_array[i_scaler][i_measurement]
+					= src_array[i_scaler];
+		}
+#if MXD_SIS3820_DEBUG_FIFO
+		MX_DEBUG(-2,
+	("FIFO: ((%ld)) data = %ld, %ld, %ld, %ld, %ld, %ld, %ld, %ld, ...",
+			i_measurement,
+			dest_array[0][i_measurement],
+			dest_array[1][i_measurement],
+			dest_array[2][i_measurement],
+			dest_array[3][i_measurement],
+			dest_array[4][i_measurement],
+			dest_array[5][i_measurement],
+			dest_array[6][i_measurement],
+			dest_array[7][i_measurement] ));
+#endif
+	}
+
+	/* Update the measurement counter */
+
 	mcs->measurement_number = acquisition_count - 1;
 
 	/* If we are still busy, start the virtual timer to arrange for
@@ -410,6 +471,20 @@ mxd_sis3820_open( MX_RECORD *record )
 	mcs->readout_preference = MXF_MCS_PREFER_READ_MEASUREMENT;
 
 	sis3820->new_start = FALSE;
+
+	/* Allocate a buffer for measurements that are being read
+	 * out of the FIFO.
+	 */
+
+	sis3820->measurement_buffer = (uint32_t *)
+			malloc( mcs->maximum_num_scalers * sizeof(uint32_t) );
+
+	if ( sis3820->measurement_buffer == (uint32_t *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %lu element array "
+		"for the single measurement buffer of MCS '%s'.",
+			mcs->maximum_num_scalers, record->name );
+	}
 
 	/* Parse the address mode string. */
 
