@@ -298,12 +298,12 @@ mxd_sis3820_fifo_callback_function( MX_CALLBACK_MESSAGE *callback_message )
 
 	for ( i_fifo = 0; i_fifo < num_new_measurements; i_fifo++ ) {
 
-		mx_status = mx_vme_multi_out32(
+		mx_status = mx_vme_multi_in32(
 				sis3820->vme_record,
 				sis3820->crate_number,
 				sis3820->address_mode,
-				1,
-			sis3820->base_address + MX_SIS3820_SDRAM_BASE_REG,
+				sizeof( uint32_t ),
+			sis3820->base_address + MX_SIS3820_FIFO_BASE_REG,
 				mcs->maximum_num_scalers,
 				src_array );
 
@@ -320,9 +320,12 @@ mxd_sis3820_fifo_callback_function( MX_CALLBACK_MESSAGE *callback_message )
 					= src_array[i_scaler];
 		}
 #if MXD_SIS3820_DEBUG_FIFO
-		MX_DEBUG(-2,
-	("FIFO: ((%ld)) data = %ld, %ld, %ld, %ld, %ld, %ld, %ld, %ld, ...",
-			i_measurement,
+		MX_DEBUG(-2,("FIFO: ((%ld)) data = "
+			"%ld, %ld, %ld, %ld, %ld, %ld, %ld, %ld, "
+			"%ld, %ld, %ld, %ld, %ld, %ld, %ld, %ld, "
+			"%ld, %ld, %ld, %ld, %ld, %ld, %ld, %ld, "
+			"%ld, %ld, %ld, %ld, %ld, %ld, %ld, %ld",
+				i_measurement,
 			dest_array[0][i_measurement],
 			dest_array[1][i_measurement],
 			dest_array[2][i_measurement],
@@ -330,7 +333,31 @@ mxd_sis3820_fifo_callback_function( MX_CALLBACK_MESSAGE *callback_message )
 			dest_array[4][i_measurement],
 			dest_array[5][i_measurement],
 			dest_array[6][i_measurement],
-			dest_array[7][i_measurement] ));
+			dest_array[7][i_measurement],
+			dest_array[8][i_measurement],
+			dest_array[9][i_measurement],
+			dest_array[10][i_measurement],
+			dest_array[11][i_measurement],
+			dest_array[12][i_measurement],
+			dest_array[13][i_measurement],
+			dest_array[14][i_measurement],
+			dest_array[15][i_measurement],
+			dest_array[16][i_measurement],
+			dest_array[17][i_measurement],
+			dest_array[18][i_measurement],
+			dest_array[19][i_measurement],
+			dest_array[20][i_measurement],
+			dest_array[21][i_measurement],
+			dest_array[22][i_measurement],
+			dest_array[23][i_measurement],
+			dest_array[24][i_measurement],
+			dest_array[25][i_measurement],
+			dest_array[26][i_measurement],
+			dest_array[27][i_measurement],
+			dest_array[28][i_measurement],
+			dest_array[29][i_measurement],
+			dest_array[30][i_measurement],
+			dest_array[31][i_measurement] ));
 #endif
 	}
 
@@ -787,7 +814,7 @@ mxd_sis3820_start( MX_MCS *mcs )
 	} else {
 		/* Internal channel advance mode. */
 
-		acq_op_mode  = MXF_SIS3820_SDRAM_MODE;
+		acq_op_mode  = MXF_SIS3820_FIFO_MODE;
 		acq_op_mode |= MXF_SIS3820_OP_MODE_MULTI_CHANNEL_SCALER;
 		acq_op_mode |= MXF_SIS3820_CONTROL_INPUT_MODE0;
 		acq_op_mode |= MXF_SIS3820_ARM_ENABLE_CONTROL_SIGNAL;
