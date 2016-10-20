@@ -218,6 +218,7 @@ typedef struct {
 	mx_bool_type counts_available_in_fifo;
 
 	mx_bool_type new_start;
+	mx_bool_type fifo_stop;
 
 	uint32_t *measurement_buffer;
 

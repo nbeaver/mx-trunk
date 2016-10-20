@@ -272,6 +272,11 @@ mxd_sis3820_fifo_callback_function( MX_CALLBACK_MESSAGE *callback_message )
 
 		mcs->busy = TRUE;
 	} else
+	if ( sis3820->fifo_stop ) {
+		sis3820->fifo_stop = FALSE;
+
+		mcs->busy = FALSE;
+	} else
 	if ( acquisition_count > (mcs->measurement_number + 1) ) {
 		mcs->busy = TRUE;
 	} else 
@@ -532,6 +537,7 @@ mxd_sis3820_open( MX_RECORD *record )
 #endif
 
 	mcs->busy = FALSE;
+	sis3820->fifo_stop = FALSE;
 
 	/* Reset the SIS3820. */
 
@@ -899,6 +905,7 @@ mxd_sis3820_start( MX_MCS *mcs )
 	mcs->busy = TRUE;
 
 	sis3820->new_start = TRUE;
+	sis3820->fifo_stop = FALSE;
 
 	/* Start the FIFO callback timer. */
 
@@ -935,6 +942,8 @@ mxd_sis3820_stop( MX_MCS *mcs )
 	MX_DEBUG(-2,("%s: Calling KEY_OPERATION_DISABLE", fname));
 #endif
 	mcs->busy = FALSE;
+
+	sis3820->fifo_stop = TRUE;
 
 	mx_status = mx_vme_out32( sis3820->vme_record,
 			sis3820->crate_number,

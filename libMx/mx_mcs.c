@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2006, 2009-2010, 2012, 2014-2015
+ * Copyright 2000-2006, 2009-2010, 2012, 2014-2016
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -386,7 +386,12 @@ mx_mcs_stop( MX_RECORD *mcs_record )
 
 	mx_status = (*stop_fn)( mcs );
 
-	return mx_status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mcs->stop = 0;
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -476,6 +481,9 @@ mx_mcs_clear( MX_RECORD *mcs_record )
 #endif
 		}
 	}
+
+	mcs->clear = 0;
+
 	return MX_SUCCESSFUL_RESULT;
 #endif
 }
