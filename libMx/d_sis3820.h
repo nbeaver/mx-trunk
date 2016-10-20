@@ -215,6 +215,10 @@ typedef struct {
 	long fifo_size_in_kwords;		/* A word is 16 bits long */
 	mx_bool_type counts_available_in_fifo;
 
+	unsigned long disabled_interrupts;
+
+	mx_bool_type new_start;
+
 	mx_bool_type use_callback;
 	MX_CALLBACK_MESSAGE *callback_message;
 } MX_SIS3820;
@@ -277,9 +281,6 @@ MX_API mx_status_type mxd_sis3820_start( MX_MCS *mcs );
 MX_API mx_status_type mxd_sis3820_stop( MX_MCS *mcs );
 MX_API mx_status_type mxd_sis3820_clear( MX_MCS *mcs );
 MX_API mx_status_type mxd_sis3820_busy( MX_MCS *mcs );
-MX_API mx_status_type mxd_sis3820_read_all( MX_MCS *mcs );
-MX_API mx_status_type mxd_sis3820_read_scaler( MX_MCS *mcs );
-MX_API mx_status_type mxd_sis3820_read_measurement( MX_MCS *mcs );
 MX_API mx_status_type mxd_sis3820_get_parameter( MX_MCS *mcs );
 MX_API mx_status_type mxd_sis3820_set_parameter( MX_MCS *mcs );
 

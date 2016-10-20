@@ -16,9 +16,13 @@
 
 #define MXD_SIS3820_DEBUG		TRUE
 
+#define MXD_SIS3820_DEBUG_FIFO		TRUE
+
 #define MXD_SIS3820_DEBUG_OPEN		TRUE
 
 #define MXD_SIS3820_DEBUG_START		TRUE
+
+#define MXD_SIS3820_DEBUG_STOP		TRUE
 
 #define MXD_SIS3820_DEBUG_TIMING	FALSE
 
@@ -58,9 +62,9 @@ MX_MCS_FUNCTION_LIST mxd_sis3820_mcs_function_list = {
 	mxd_sis3820_stop,
 	mxd_sis3820_clear,
 	mxd_sis3820_busy,
-	mxd_sis3820_read_all,
-	mxd_sis3820_read_scaler,
-	mxd_sis3820_read_measurement,
+	NULL,
+	NULL,
+	NULL,
 	NULL,
 	NULL,
 	mxd_sis3820_get_parameter,
@@ -140,18 +144,159 @@ mxd_sis3820_fifo_callback_function( MX_CALLBACK_MESSAGE *callback_message )
 {
 	static const char fname[] = "mxd_sis3820_fifo_callback_function()";
 
+	MX_RECORD *record = NULL;
+	MX_MCS *mcs = NULL;
+	MX_SIS3820 *sis3820 = NULL;
+
+	uint32_t interrupt_status = 0;
+	uint32_t acquisition_count = 0;
+	long num_new_measurements = 0;
+
+	mx_bool_type lne_clock_shadow      = FALSE;
+	mx_bool_type fifo_threshold        = FALSE;
+	mx_bool_type acquisition_completed = FALSE;
+	mx_bool_type overflow              = FALSE;
+	mx_bool_type fifo_almost_full      = FALSE;
+
 	mx_status_type mx_status;
 
-	MX_DEBUG(-2,("%s invoked.", fname));
+#if MXD_SIS3820_DEBUG_FIFO
+	MX_DEBUG(-2,("***** %s invoked *****", fname));
+#endif
 
-	/* Restart the virtual timer to arrange for the next callback. */
+	sis3820 = (MX_SIS3820 *) callback_message->u.function.callback_args;
 
-	mx_status = mx_virtual_timer_start(
-			callback_message->u.function.oneshot_timer,
-			callback_message->u.function.callback_interval );
+	if ( sis3820 == (MX_SIS3820 *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_SIS3820 callback args pointer was NULL." );
+	}
+
+	record = sis3820->record;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RECORD pointer for MX_SIS3820 structure %p is NULL.",
+			sis3820 );
+	}
+
+	mcs = (MX_MCS *) record->record_class_struct;
+
+	if ( mcs == (MX_MCS *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_MCS pointer for record '%s' is NULL.", record->name );
+	}
+
+	/* Get some MCS status information from the Interrupt Status Register.*/
+
+	mx_status = mx_vme_in32( sis3820->vme_record,
+				sis3820->crate_number,
+				sis3820->address_mode,
+			sis3820->base_address + MX_SIS3820_IRQ_CONTROL_REG,
+				&interrupt_status );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	if ( interrupt_status & 0x10000 ) {
+		lne_clock_shadow = TRUE;
+	}
+	if ( interrupt_status & 0x20000 ) {
+		fifo_threshold = TRUE;
+	}
+	if ( interrupt_status & 0x40000 ) {
+		acquisition_completed = TRUE;
+	}
+	if ( interrupt_status & 0x80000 ) {
+		overflow = TRUE;
+	}
+	if ( interrupt_status & 0x100000 ) {
+		fifo_almost_full = TRUE;
+	}
+
+#if MXD_SIS3820_DEBUG_FIFO
+	MX_DEBUG(-2,("FIFO: interrupt_status = %#lx",
+		(unsigned long) interrupt_status ));
+	MX_DEBUG(-2,("FIFO: lne_clock_shadow = %d, fifo_threshold = %d",
+		(int) lne_clock_shadow, (int) fifo_threshold ));
+	MX_DEBUG(-2,("FIFO: acquisition_completed = %d, overflow = %d",
+		(int) acquisition_completed, (int) overflow ));
+	MX_DEBUG(-2,("FIFO: fifo_almost_full = %d",
+		(int) fifo_almost_full ));
+#endif
+
+	/* Find out how many acquisitions have occurred since the last
+	 * time we checked.
+	 */
+
+	mx_status = mx_vme_in32( sis3820->vme_record,
+				sis3820->crate_number,
+				sis3820->address_mode,
+		sis3820->base_address + MX_SIS3820_ACQUISITION_COUNT_REG,
+				&acquisition_count );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	num_new_measurements = acquisition_count - mcs->measurement_number - 1;
+
+#if MXD_SIS3820_DEBUG_FIFO
+	MX_DEBUG(-2,
+	("FIFO: measurement_number = %ld, acquisition_count = %lu, "
+	"num_new_measurements = %ld",
+		mcs->measurement_number,
+		(unsigned long) acquisition_count,
+		num_new_measurements ));
+#endif
+	/* Should we consider the MCS to be 'busy'.  We mark it as busy
+	 * immediately after a start, no matter what 'acquisition_completed'
+	 * value that we found.
+	 */
+
+	if ( sis3820->new_start ) {
+		sis3820->new_start = FALSE;
+
+		mcs->busy = TRUE;
+	} else
+	if ( acquisition_count > (mcs->measurement_number + 1) ) {
+		mcs->busy = TRUE;
+	} else 
+	if ( acquisition_completed ) {
+		mcs->busy = FALSE;
+	} else {
+		mcs->busy = TRUE;
+	}
+
+#if MXD_SIS3820_DEBUG_FIFO
+	MX_DEBUG(-2,("FIFO: mcs->busy = %d", (int) mcs->busy));
+#endif
+
+	/* Readout all new measurements from the MCS. */
+
+#if MXD_SIS3820_DEBUG_FIFO
+	MX_DEBUG(-2,("FIFO: FIXME, MCS readout goes here."));
+#endif
+	mcs->measurement_number = acquisition_count - 1;
+
+	/* If we are still busy, start the virtual timer to arrange for
+	 * the next callback.
+	 */
+
+	if ( mcs->busy ) {
+
+#if MXD_SIS3820_DEBUG_FIFO
+		MX_DEBUG(-2,("FIFO: restarting FIFO timer."));
+#endif
+		mx_status = mx_virtual_timer_start(
+			callback_message->u.function.oneshot_timer,
+			callback_message->u.function.callback_interval );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+#if MXD_SIS3820_DEBUG_FIFO
+	MX_DEBUG(-2,("***** %s complete *****", fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -225,6 +370,7 @@ mxd_sis3820_open( MX_RECORD *record )
 	MX_LIST_HEAD *list_head = NULL;
 	MX_VIRTUAL_TIMER *oneshot_timer = NULL;
 	uint32_t module_id_register = 0;
+	uint32_t interrupt_disable_mask = 0;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -261,6 +407,10 @@ mxd_sis3820_open( MX_RECORD *record )
 		sis3820->use_callback = TRUE;
 	}
 
+	mcs->readout_preference = MXF_MCS_PREFER_READ_MEASUREMENT;
+
+	sis3820->new_start = FALSE;
+
 	/* Parse the address mode string. */
 
 #if MXD_SIS3820_DEBUG_OPEN
@@ -278,6 +428,8 @@ mxd_sis3820_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: sis3820->address_mode = %lu",
 			fname, sis3820->address_mode));
 #endif
+
+	mcs->busy = FALSE;
 
 	/* Reset the SIS3820. */
 
@@ -316,6 +468,23 @@ mxd_sis3820_open( MX_RECORD *record )
 	} else {
 		mcs->external_channel_advance = TRUE;
 	}
+
+	/* Disable interrupts 0 to 4, since we want to read the status
+	 * conditions from the Interrupt Control/Status register instead.
+	 */
+
+	sis3820->disabled_interrupts = 0x1F;
+
+	interrupt_disable_mask = (sis3820->disabled_interrupts) << 8;
+
+	mx_status = mx_vme_out32( sis3820->vme_record,
+				sis3820->crate_number,
+				sis3820->address_mode,
+			sis3820->base_address + MX_SIS3820_IRQ_CONTROL_REG,
+				interrupt_disable_mask );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/*-----------------------------------------------------------------*/
 
@@ -589,19 +758,51 @@ mxd_sis3820_start( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* FIXME: Enable the background processing callback. */
+	/* Prepare the MCS for counting. */
 
-	/* Arm the MCS. */
+	if ( mcs->external_channel_advance ) {
+
+		/* For external channel advance, we arm the MCS. */
 
 #if MXD_SIS3820_DEBUG_START
-	MX_DEBUG(-2,("%s: Calling KEY_OPERATION_ARM", fname));
+		MX_DEBUG(-2,("%s: Calling KEY_OPERATION_ARM", fname));
 #endif
 
-	mx_status = mx_vme_out32( sis3820->vme_record,
+		mx_status = mx_vme_out32( sis3820->vme_record,
 				sis3820->crate_number,
 				sis3820->address_mode,
 		sis3820->base_address + MX_SIS3820_KEY_OPERATION_ARM_REG,
 				0x1 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	} else {
+		/* If using the internal 10 MHz pulser, we enable the MCS. */
+
+#if MXD_SIS3820_DEBUG_START
+		MX_DEBUG(-2,("%s: Calling KEY_OPERATION_ENABLE", fname));
+#endif
+
+		mx_status = mx_vme_out32( sis3820->vme_record,
+				sis3820->crate_number,
+				sis3820->address_mode,
+		sis3820->base_address + MX_SIS3820_KEY_OPERATION_ENABLE_REG,
+				0x1 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	mcs->measurement_number = -1;
+	mcs->busy = TRUE;
+
+	sis3820->new_start = TRUE;
+
+	/* Start the FIFO callback timer. */
+
+	mx_status = mx_virtual_timer_start(
+		sis3820->callback_message->u.function.oneshot_timer,
+		sis3820->callback_message->u.function.callback_interval );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -622,9 +823,37 @@ mxd_sis3820_stop( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_SIS3820_DEBUG
+#if MXD_SIS3820_DEBUG_STOP
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, mcs->record->name));
 #endif
+
+	/* Disable counting. */
+	
+#if MXD_SIS3820_DEBUG_STOP
+	MX_DEBUG(-2,("%s: Calling KEY_OPERATION_DISABLE", fname));
+#endif
+	mcs->busy = FALSE;
+
+	mx_status = mx_vme_out32( sis3820->vme_record,
+			sis3820->crate_number,
+			sis3820->address_mode,
+		sis3820->base_address + MX_SIS3820_KEY_OPERATION_DISABLE_REG,
+			0x1 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Stop the FIFO callback timer. */
+
+#if MXD_SIS3820_DEBUG_STOP
+	MX_DEBUG(-2,("%s: Stopping the FIFO callback", fname));
+#endif
+
+	mx_status = mx_virtual_timer_stop(
+		sis3820->callback_message->u.function.oneshot_timer, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -635,6 +864,11 @@ mxd_sis3820_clear( MX_MCS *mcs )
 	static const char fname[] = "mxd_sis3820_clear()";
 
 	MX_SIS3820 *sis3820 = NULL;
+	long **data_array = NULL;
+	long i, j;
+	uint32_t interrupt_disable_mask = 0;
+	uint32_t status_flags_to_clear = 0;
+	uint32_t mask = 0;
 	mx_status_type mx_status;
 
 	mx_status = mxd_sis3820_get_pointers( mcs, &sis3820, fname );
@@ -645,6 +879,21 @@ mxd_sis3820_clear( MX_MCS *mcs )
 #if MXD_SIS3820_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, mcs->record->name));
 #endif
+	mcs->busy = FALSE;
+
+	/* Clear the local data array. */
+
+	data_array = mcs->data_array;
+
+	if ( data_array != NULL ) {
+		for ( i = 0; i < mcs->maximum_num_scalers; i++ ) {
+			for ( j = 0; j < mcs->maximum_num_measurements; j++ ) {
+				data_array[i][j] = 0;
+			}
+		}
+	}
+
+	/* Clear the FIFO. */
 
 	mx_status = mx_vme_out32( sis3820->vme_record,
 				sis3820->crate_number,
@@ -652,7 +901,25 @@ mxd_sis3820_clear( MX_MCS *mcs )
 		sis3820->base_address + MX_SIS3820_KEY_COUNTER_CLEAR_REG,
 				0x1 );
 
-	/* FIXME: Perhaps we should also memset() the MX_MCS data structure. */
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Clear latched IRQ status flags. */
+
+	interrupt_disable_mask = (sis3820->disabled_interrupts) << 8;
+
+	status_flags_to_clear = (sis3820->disabled_interrupts) << 16;
+
+	mask = ( interrupt_disable_mask | status_flags_to_clear );
+
+	MX_DEBUG(-2,("%s: clearing and disabling IRQ sources, mask = %#lx",
+		fname, (unsigned long) mask ));
+
+	mx_status = mx_vme_out32( sis3820->vme_record,
+				sis3820->crate_number,
+				sis3820->address_mode,
+		sis3820->base_address + MX_SIS3820_IRQ_CONTROL_REG,
+				mask );
 
 	return mx_status;
 }
@@ -674,73 +941,9 @@ mxd_sis3820_busy( MX_MCS *mcs )
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, mcs->record->name));
 #endif
 
-	/*FIXME: Place VME code here. */
+	/* The FIFO callback saves this information. */
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_sis3820_read_all( MX_MCS *mcs )
-{
-	static const char fname[] = "mxd_sis3820_read_all()";
-
-	MX_SIS3820 *sis3820 = NULL;
-	mx_status_type mx_status;
-
-	mx_status = mxd_sis3820_get_pointers( mcs, &sis3820, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MXD_SIS3820_DEBUG
-	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, mcs->record->name));
-#endif
-
-	/*FIXME: Place VME code here. */
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_sis3820_read_scaler( MX_MCS *mcs )
-{
-	static const char fname[] = "mxd_sis3820_read_scaler()";
-
-	MX_SIS3820 *sis3820 = NULL;
-	mx_status_type mx_status;
-
-	mx_status = mxd_sis3820_get_pointers( mcs, &sis3820, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MXD_SIS3820_DEBUG
-	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, mcs->record->name));
-#endif
-
-	/*FIXME: Place VME code here. */
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxd_sis3820_read_measurement( MX_MCS *mcs )
-{
-	static const char fname[] = "mxd_sis3820_read_measurement()";
-
-	MX_SIS3820 *sis3820 = NULL;
-	mx_status_type mx_status;
-
-	mx_status = mxd_sis3820_get_pointers( mcs, &sis3820, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MXD_SIS3820_DEBUG
-	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, mcs->record->name));
-#endif
-
-	/*FIXME: Place VME code here. */
+	/* Read from interrupt control/status register (0xC). */
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -770,6 +973,7 @@ mxd_sis3820_get_parameter( MX_MCS *mcs )
 	case MXLV_MCS_MEASUREMENT_TIME:
 	case MXLV_MCS_CURRENT_NUM_MEASUREMENTS:
 	case MXLV_MCS_DARK_CURRENT:
+	case MXLV_MCS_MEASUREMENT_NUMBER:
 		/* Just return the values in the local data structure. */
 
 		break;
