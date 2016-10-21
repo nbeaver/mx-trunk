@@ -64,7 +64,7 @@ MX_MCS_FUNCTION_LIST mxd_sis3820_mcs_function_list = {
 	mxd_sis3820_busy,
 	NULL,
 	NULL,
-	NULL,
+	mxd_sis3820_read_measurement,
 	NULL,
 	NULL,
 	mxd_sis3820_get_parameter,
@@ -1223,6 +1223,43 @@ mxd_sis3820_busy( MX_MCS *mcs )
 #endif
 
 	/* The FIFO callback saves this information. */
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_sis3820_read_measurement( MX_MCS *mcs )
+{
+	static const char fname[] = "mxd_sis3820_read_measurement()";
+
+	MX_SIS3820 *sis3820 = NULL;
+	unsigned long i, j_measurement;
+	mx_status_type mx_status;
+
+	mx_status = mxd_sis3820_get_pointers( mcs, &sis3820, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_SIS3820_DEBUG
+	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, mcs->record->name));
+#endif
+
+	/* Note: The only reason this function exists is so that it can
+	 * compute the measurement index modulo the total number of
+	 * measurements.  In principle, this allows more measurements
+	 * to be acquired than will fit in the computer's memory.
+	 *
+	 * Otherwise, this routine is just like the default one in mx_mcs.c
+	 */
+
+	j_measurement =
+		(mcs->measurement_index) % (mcs->maximum_num_measurements);
+
+	for ( i = 0; i < mcs->current_num_scalers; i++ ) {
+		mcs->measurement_data[i] =
+			(mcs->data_array)[i][j_measurement];
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }

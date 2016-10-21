@@ -289,6 +289,7 @@ MX_API mx_status_type mxd_sis3820_start( MX_MCS *mcs );
 MX_API mx_status_type mxd_sis3820_stop( MX_MCS *mcs );
 MX_API mx_status_type mxd_sis3820_clear( MX_MCS *mcs );
 MX_API mx_status_type mxd_sis3820_busy( MX_MCS *mcs );
+MX_API mx_status_type mxd_sis3820_read_measurement( MX_MCS *mcs );
 MX_API mx_status_type mxd_sis3820_get_parameter( MX_MCS *mcs );
 MX_API mx_status_type mxd_sis3820_set_parameter( MX_MCS *mcs );
 
