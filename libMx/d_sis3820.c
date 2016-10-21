@@ -16,7 +16,7 @@
 
 #define MXD_SIS3820_DEBUG		TRUE
 
-#define MXD_SIS3820_DEBUG_FIFO		TRUE
+#define MXD_SIS3820_DEBUG_FIFO		FALSE
 
 #define MXD_SIS3820_DEBUG_OPEN		TRUE
 
@@ -252,6 +252,8 @@ mxd_sis3820_fifo_callback_function( MX_CALLBACK_MESSAGE *callback_message )
 
 	num_new_measurements = acquisition_count - mcs->measurement_number - 1;
 
+	sis3820->unread_measurements_in_fifo = num_new_measurements;
+
 #if MXD_SIS3820_DEBUG_FIFO
 	MX_DEBUG(-2,
 	("FIFO: measurement_number = %ld, acquisition_count = %lu, "
@@ -472,8 +474,10 @@ mxd_sis3820_open( MX_RECORD *record )
 	MX_SIS3820 *sis3820 = NULL;
 	MX_LIST_HEAD *list_head = NULL;
 	MX_VIRTUAL_TIMER *oneshot_timer = NULL;
-	uint32_t module_id_register = 0;
-	uint32_t interrupt_disable_mask = 0;
+	uint32_t module_id_register;
+	uint32_t interrupt_disable_mask;
+	uint32_t sdram_page_register;
+	uint32_t memory_size_bit;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -577,6 +581,40 @@ mxd_sis3820_open( MX_RECORD *record )
 #if MXD_SIS3820_DEBUG_OPEN
 	MX_DEBUG(-2,("%s: module id = %#lx, firmware version = %#lx",
 		fname, sis3820->module_id, sis3820->firmware_version));
+#endif
+	/* How big is the FIFO (in megabytes)? */
+
+	mx_status = mx_vme_in32( sis3820->vme_record,
+				sis3820->crate_number,
+				sis3820->address_mode,
+			sis3820->base_address + MX_SIS3820_SDRAM_PAGE_REG,
+				&sdram_page_register );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	memory_size_bit = ( sdram_page_register >> 8 ) & 0x1;
+
+#if MXD_SIS3820_DEBUG_OPEN
+	MX_DEBUG(-2,("%s: sdram_page_register =  %#lx, memory_size_bit = %#lx",
+		fname, (unsigned long) sdram_page_register,
+		(unsigned long) memory_size_bit ));
+#endif
+
+	if ( memory_size_bit == 0 ) {
+		sis3820->fifo_size = 64;	/* in megabytes */
+	} else {
+		sis3820->fifo_size = 512;
+	}
+
+	sis3820->fifo_size_in_measurements = mx_round( mx_divide_safely(
+			1048576 * sis3820->fifo_size,
+		sizeof(uint32_t) * mcs->maximum_num_scalers ) );
+		
+#if MXD_SIS3820_DEBUG_OPEN
+	MX_DEBUG(-2,
+	("%s: fifo_size = %lu megabytes, fifo_size_in_measurements = %lu",
+		fname, sis3820->fifo_size, sis3820->fifo_size_in_measurements));
 #endif
 
 	/* Setup default acquisition mode for MCS operation. */

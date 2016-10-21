@@ -213,8 +213,9 @@ typedef struct {
 
 	unsigned long disabled_interrupts;
 
-	long fifo_size_in_kwords;		/* A word is 16 bits long */
-	mx_bool_type counts_available_in_fifo;
+	unsigned long fifo_size;			/* in megabytes */
+	unsigned long fifo_size_in_measurements;
+	long unread_measurements_in_fifo;
 
 	mx_bool_type new_start;
 	mx_bool_type fifo_stop;
@@ -263,12 +264,17 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3820, firmware_version), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
-  {-1, -1, "fifo_size_in_kwords", MXFT_LONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3820, fifo_size_in_kwords), \
+  {-1, -1, "fifo_size", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3820, fifo_size), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
-  {-1, -1, "counts_available_in_fifo", MXFT_BOOL, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3820, counts_available_in_fifo), \
+  {-1, -1, "fifo_size_in_measurements", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3820, fifo_size_in_measurements), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "unread_measurements_in_fifo", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_SIS3820, unread_measurements_in_fifo), \
 	{0}, NULL, MXFF_READ_ONLY }
 
 MX_API mx_status_type mxd_sis3820_initialize_driver( MX_DRIVER *driver );
