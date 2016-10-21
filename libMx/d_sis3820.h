@@ -206,13 +206,12 @@ typedef struct {
 
 	unsigned long sis3820_flags;
 	unsigned long control_input_mode;
+	unsigned long control_output_mode;
 
 	unsigned long module_id;
 	unsigned long firmware_version;
 
 	unsigned long disabled_interrupts;
-
-	unsigned long maximum_prescale_factor;
 
 	long fifo_size_in_kwords;		/* A word is 16 bits long */
 	mx_bool_type counts_available_in_fifo;
@@ -252,16 +251,16 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3820, control_input_mode), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
+  {-1, -1, "control_output_mode", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3820, control_output_mode), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
   {-1, -1, "module_id", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3820, module_id), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
   {-1, -1, "firmware_version", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3820, firmware_version), \
-	{0}, NULL, MXFF_READ_ONLY }, \
-  \
-  {-1, -1, "maximum_prescale_factor", MXFT_ULONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3820, maximum_prescale_factor), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
   {-1, -1, "fifo_size_in_kwords", MXFT_LONG, NULL, 0, {0}, \

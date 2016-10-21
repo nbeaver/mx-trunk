@@ -68,6 +68,8 @@
 #include "d_bit.h"
 #include "d_vme_dio.h"
 
+#include "d_doutput_pulser.h"
+
 #include "d_soft_motor.h"
 #include "d_vme58.h"
 
@@ -164,6 +166,14 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_soft_doutput_digital_output_function_list,
 				&mxd_soft_doutput_num_record_fields,
 				&mxd_soft_doutput_rfield_def_ptr},
+
+{"digital_output_pulser", MXT_PGN_DIGITAL_OUTPUT,
+					MXC_PULSE_GENERATOR, MXR_DEVICE,
+				&mxd_doutput_pulser_record_function_list,
+				NULL,
+				&mxd_doutput_pulser_pulser_function_list,
+				&mxd_doutput_pulser_num_record_fields,
+				&mxd_doutput_pulser_rfield_def_ptr},
 
 {"bit_in",         MXT_DIN_BIT,       MXC_DIGITAL_INPUT,  MXR_DEVICE,
 				&mxd_bit_in_record_function_list,

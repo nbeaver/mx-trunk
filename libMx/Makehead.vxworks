@@ -85,6 +85,7 @@ MX_DRIVER_VXWORKS_SRCS = i_vxworks_rs232.c i_vxworks_vme.c d_vme_dio.c \
 	d_soft_ainput.c d_soft_aoutput.c d_soft_dinput.c d_soft_doutput.c \
 	d_soft_amplifier.c d_soft_mca.c d_soft_mcs.c \
 	d_soft_motor.c d_soft_scaler.c d_soft_timer.c \
+	d_doutput_pulser.c \
 	d_bit.c d_blind_relay.c d_elapsed_time.c d_generic_relay.c \
 	d_interval_timer.c d_mcs_timer.c v_mathop.c \
 	i_vme58.c d_vme58.c \

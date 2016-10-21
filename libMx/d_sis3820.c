@@ -295,7 +295,8 @@ mxd_sis3820_fifo_callback_function( MX_CALLBACK_MESSAGE *callback_message )
 #endif
 	/* Readout all new measurements from the MCS.
 	 *
-	 * The data are read out one measurement at a time.
+	 * FIXME: The data are read out one measurement at a time, which
+	 *        is very slow.
 	 */
 
 	dest_array = mcs->data_array;
@@ -316,6 +317,15 @@ mxd_sis3820_fifo_callback_function( MX_CALLBACK_MESSAGE *callback_message )
 			return mx_status;
 
 		i_measurement = i_fifo + mcs->measurement_number + 1;
+
+		/* Take the modulo of the measurement number so that it
+		 * wraps back to the beginning of each scaler's measurement
+		 * buffer when mcs->maximum_num_measurements is exceeded.
+		 */
+
+		i_measurement = i_measurement % (mcs->maximum_num_measurements);
+
+		/* Loop over the scalers. */
 
 		for ( i_scaler = 0;
 			i_scaler < mcs->maximum_num_scalers;
@@ -723,9 +733,16 @@ mxd_sis3820_start( MX_MCS *mcs )
 	static const char fname[] = "mxd_sis3820_start()";
 
 	MX_SIS3820 *sis3820 = NULL;
-	uint32_t reference_pulser = 0;
-	uint32_t acq_op_mode = 0;
-	uint32_t lne_prescale_factor = 0;
+	uint32_t reference_pulser;
+	uint32_t acq_op_mode;
+	uint32_t lne_prescale_factor;
+	double pulse_period;
+	double clock_frequency;
+	double maximum_measurement_time;
+	double maximum_possible_prescale_factor;
+	double desired_lne_prescale_factor;
+	mx_bool_type pulse_generator_busy = FALSE;
+	unsigned long ctl_input_mode, ctl_output_mode;
 	mx_status_type mx_status;
 
 	mx_status = mxd_sis3820_get_pointers( mcs, &sis3820, fname );
@@ -775,11 +792,116 @@ mxd_sis3820_start( MX_MCS *mcs )
 	 * advance signal, then we currently ignore the LNE prescaler factor.
 	 */
 
-	if ( mcs->external_channel_advance ) {
-		lne_prescale_factor = 0;
-	} else {
+	if ( mcs->external_channel_advance == FALSE ) {
+		/* Use the internal 10 MHz pulse generator. */
+
 		lne_prescale_factor =
 	    mx_round( MX_SIS3820_10MHZ_INTERNAL_CLOCK * mcs->measurement_time );
+
+	} else {
+		/* Use the external channel advance. */
+
+		if ( mcs->external_channel_advance_record == NULL ) {
+
+			return mx_error(MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
+			"External channel advance has been requested for "
+			"MCS '%s', but no external source of channel "
+			"advance pulses has been set up.", mcs->record->name );
+		}
+
+		switch( mcs->external_channel_advance_record->mx_class ) {
+		case MXC_PULSE_GENERATOR:
+			mx_status = mx_pulse_generator_get_pulse_period(
+					mcs->external_channel_advance_record,
+					&pulse_period );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( pulse_period < 0.0 ) {
+				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+	"Cannot start MCS '%s' since its external pulse generator '%s' "
+	"is currently configured for a negative pulse period.",
+				mcs->record->name,
+				mcs->external_channel_advance_record->name );
+			}
+
+			if ( pulse_period < 1.0e-30 ) {
+				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+	"Cannot start MCS '%s' since its external pulse generator '%s' "
+	"is currently configured for an essentially zero pulse period.",
+				mcs->record->name,
+				mcs->external_channel_advance_record->name );
+			}
+
+			clock_frequency = mx_divide_safely( 1.0, pulse_period );
+
+			lne_prescale_factor = (uint32_t)
+			    mx_round( clock_frequency * mcs->measurement_time );
+
+			desired_lne_prescale_factor =
+				clock_frequency * mcs->measurement_time;
+
+			/* The maximum possible LNE prescale factor is
+			 * (2^32 - 1).  If the user requests a larger
+			 * prescale factor, then tell the user that
+			 * this will not work.
+			 */
+
+			maximum_possible_prescale_factor = 4294967295.0;
+
+			if ( desired_lne_prescale_factor >=
+					maximum_possible_prescale_factor )
+			{
+			    maximum_measurement_time = mx_divide_safely(
+				maximum_possible_prescale_factor,
+					clock_frequency );
+
+			    return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The requested measurement time of %g seconds for MCS '%s' "
+		"is larger than the maximum allowed measurement time "
+		"per point of %g seconds.",
+				mcs->measurement_time,
+				sis3820->record->name, 
+				maximum_measurement_time );
+			}
+
+#if MXD_SIS3820_DEBUG_START
+			MX_DEBUG(-2,("%s: Using pulse generator, "
+			"pulse_period = %g, clock = %g, prescale = %lu",
+   				fname, pulse_period, clock_frequency,
+				(unsigned long) lne_prescale_factor));
+#endif
+
+			/* Is the pulse generator running? */
+
+			mx_status = mx_pulse_generator_is_busy( 
+					mcs->external_channel_advance_record,
+					&pulse_generator_busy );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( pulse_generator_busy == FALSE ) {
+				/* If not, then start the pulse generator. */
+
+				mx_status = mx_pulse_generator_start(
+					mcs->external_channel_advance_record );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+			}
+			break;
+		default:
+			lne_prescale_factor = (uint32_t) mcs->external_prescale;
+			break;
+		}
+
+#if MXD_SIS3820_DEBUG_START
+		MX_DEBUG(-2,
+	    ("%s: Using external channel advance, lne_prescale_factor = %lu",
+		 	fname, (unsigned long) lne_prescale_factor));
+#endif
 	}
 
 #if MXD_SIS3820_DEBUG_START
@@ -802,32 +924,42 @@ mxd_sis3820_start( MX_MCS *mcs )
 	MX_DEBUG(-2,("%s: mcs->external_channel_advance = %d",
 		fname, (int) mcs->external_channel_advance));
 #endif
+	ctl_input_mode  = sis3820->control_input_mode;
+	ctl_output_mode = sis3820->control_output_mode;
+
+	acq_op_mode  = MXF_SIS3820_FIFO_MODE;
+	acq_op_mode |= MXF_SIS3820_OP_MODE_MULTI_CHANNEL_SCALER;
+	acq_op_mode |= MXF_SIS3820_ARM_ENABLE_CONTROL_SIGNAL;
+
+	if ( ctl_output_mode < 4 ) {
+		acq_op_mode |= ( ctl_output_mode << 20 );
+	}
 
 	if ( mcs->external_channel_advance ) {
 
-		/* External channel advance mode. */
-
-		/* FIFO mode, MCS mode, Input mode 1, LNE as enable. */
-
-		acq_op_mode  = MXF_SIS3820_FIFO_MODE;
-		acq_op_mode |= MXF_SIS3820_OP_MODE_MULTI_CHANNEL_SCALER;
-		acq_op_mode |= MXF_SIS3820_CONTROL_INPUT_MODE1;
-		acq_op_mode |= MXF_SIS3820_ARM_ENABLE_CONTROL_SIGNAL;
-
-		/* Use front panel control. */
+		/* External channel advance mode (front panel control) */
 
 		acq_op_mode |= MXF_SIS3820_LNE_SOURCE_CONTROL_SIGNAL;
+
+		if ( ctl_input_mode < 8 ) {
+			acq_op_mode |= ( ctl_input_mode << 16 );
+		} else {
+			/* Mode 1 is the default control input mode. */
+
+			acq_op_mode |= MXF_SIS3820_CONTROL_INPUT_MODE1;
+		}
 	} else {
-		/* Internal channel advance mode. */
-
-		acq_op_mode  = MXF_SIS3820_FIFO_MODE;
-		acq_op_mode |= MXF_SIS3820_OP_MODE_MULTI_CHANNEL_SCALER;
-		acq_op_mode |= MXF_SIS3820_CONTROL_INPUT_MODE0;
-		acq_op_mode |= MXF_SIS3820_ARM_ENABLE_CONTROL_SIGNAL;
-
 		/* Use internal pulse generator at 10 MHz. */
 
 		acq_op_mode |= MXF_SIS3820_LNE_SOURCE_INTERNAL_10MHZ;
+
+		if ( ctl_input_mode < 8 ) {
+			acq_op_mode |= ( ctl_input_mode << 16 );
+		} else {
+			/* Mode 0 is the default control input mode. */
+
+			acq_op_mode |= MXF_SIS3820_CONTROL_INPUT_MODE0;
+		}
 	}
 
 #if MXD_SIS3820_DEBUG_START
@@ -1048,13 +1180,11 @@ mxd_sis3820_busy( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_SIS3820_DEBUG
+#if 0 && MXD_SIS3820_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, mcs->record->name));
 #endif
 
 	/* The FIFO callback saves this information. */
-
-	/* Read from interrupt control/status register (0xC). */
 
 	return MX_SUCCESSFUL_RESULT;
 }
