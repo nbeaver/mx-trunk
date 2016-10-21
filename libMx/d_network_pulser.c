@@ -14,6 +14,8 @@
  *
  */
 
+#define MXD_NETWORK_PULSER_DEBUG	FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <float.h>
@@ -253,13 +255,18 @@ mxd_network_pulser_open( MX_RECORD *record )
 	 * pointer in the MX_PULSE_GENERATOR_FUNCTION_LIST table.
 	 */
 
+#if MXD_NETWORK_PULSER_DEBUG
 	MX_DEBUG(-2,("%s: '%s' server version is %lu",
 		fname, record->name, network_server->remote_mx_version ));
+#endif
 
 	if ( network_server->remote_mx_version < 2000001L ) {
+
+#if MXD_NETWORK_PULSER_DEBUG
 		MX_DEBUG(-2,
 		("%s: '%s' setup method disabled due to old MX server.",
 			fname, record->name ));
+#endif
 
 		pg_flist = (MX_PULSE_GENERATOR_FUNCTION_LIST *)
 				record->class_specific_function_list;
@@ -297,8 +304,10 @@ mxd_network_pulser_busy( MX_PULSE_GENERATOR *pulse_generator )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for record '%s'.",
+#if MXD_NETWORK_PULSER_DEBUG
+	MX_DEBUG(-2,("%s invoked for record '%s'.",
 			fname, pulse_generator->record->name));
+#endif
 
 	mx_status = mx_get( &(network_pulser->busy_nf), MXFT_BOOL, &busy );
 
@@ -324,8 +333,10 @@ mxd_network_pulser_start( MX_PULSE_GENERATOR *pulse_generator )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for record '%s'.",
+#if MXD_NETWORK_PULSER_DEBUG
+	MX_DEBUG(-2,("%s invoked for record '%s'.",
 			fname, pulse_generator->record->name));
+#endif
 
 	start = TRUE;
 
@@ -351,8 +362,10 @@ mxd_network_pulser_stop( MX_PULSE_GENERATOR *pulse_generator )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for record '%s'.",
+#if MXD_NETWORK_PULSER_DEBUG
+	MX_DEBUG(-2,("%s invoked for record '%s'.",
 			fname, pulse_generator->record->name));
+#endif
 
 	stop = TRUE;
 
@@ -377,12 +390,14 @@ mxd_network_pulser_get_parameter( MX_PULSE_GENERATOR *pulse_generator )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXD_NETWORK_PULSER_DEBUG
 	MX_DEBUG( 2,
 	("%s invoked for PULSE_GENERATOR '%s', parameter type '%s' (%ld)",
 		fname, pulse_generator->record->name,
 		mx_get_field_label_string( pulse_generator->record,
 					pulse_generator->parameter_type ),
 		pulse_generator->parameter_type));
+#endif
 
 	switch( pulse_generator->parameter_type ) {
 	case MXLV_PGN_NUM_PULSES:
@@ -418,7 +433,10 @@ mxd_network_pulser_get_parameter( MX_PULSE_GENERATOR *pulse_generator )
 		return mx_pulse_generator_default_get_parameter_handler(
 							pulse_generator );
 	}
-	MX_DEBUG( 2,("%s complete.", fname));
+
+#if MXD_NETWORK_PULSER_DEBUG
+	MX_DEBUG(-2,("%s complete.", fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -439,12 +457,14 @@ mxd_network_pulser_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,
+#if MXD_NETWORK_PULSER_DEBUG
+	MX_DEBUG(-2,
 	("%s invoked for PULSE_GENERATOR '%s', parameter type '%s' (%ld)",
 		fname, pulse_generator->record->name,
 		mx_get_field_label_string( pulse_generator->record,
 					pulse_generator->parameter_type ),
 		pulse_generator->parameter_type));
+#endif
 
 	switch( pulse_generator->parameter_type ) {
 	case MXLV_PGN_NUM_PULSES:
@@ -476,7 +496,10 @@ mxd_network_pulser_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 		return mx_pulse_generator_default_set_parameter_handler(
 							pulse_generator );
 	}
+
+#if MXD_NETWORK_PULSER_DEBUG
 	MX_DEBUG( 2,("%s complete.", fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -498,8 +521,10 @@ mxd_network_pulser_setup( MX_PULSE_GENERATOR *pulse_generator )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXD_NETWORK_PULSER_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'.",
 			fname, pulse_generator->record->name));
+#endif
 
 	dimension[0] = MXU_PGN_NUM_SETUP_PARAMETERS;
 
