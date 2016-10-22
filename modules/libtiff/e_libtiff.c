@@ -39,6 +39,10 @@
 #  define MX_USE_EXIF_TIFF_TAGS		FALSE
 #endif
 
+#if ( !defined(TIFF_VERSION_BIG) )
+#error MX only supports LibTIFF 4.0 and above.
+#endif
+
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
