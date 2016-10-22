@@ -844,6 +844,86 @@ mx_key_getline( char *buffer, size_t max_buffer_length )
 
 #elif defined(OS_VXWORKS)
 
+#include <ioLib.h>
+
+MX_EXPORT int
+mx_getch( void )
+{
+	int options, c;
+
+	options = ioctl( 0, FIOGETOPTIONS, 0 );
+
+	ioctl( 0, FIOSETOPTIONS, OPT_TERMINAL & (~OPT_LINE) & (~OPT_ECHO) );
+
+	c = getchar();
+
+	ioctl( 0, FIOSETOPTIONS, options );
+
+	return c;
+}
+
+MX_EXPORT int
+mx_kbhit( void )
+{
+	int os_status, num_chars_available;
+
+	os_status = ioctl( 0, FIONREAD, (int) &num_chars_available );
+
+	if ( num_chars_available > 0 ) {
+		return TRUE;
+	} else {
+		return FALSE;
+	}
+}
+
+static int echo_off = FALSE;
+
+MX_EXPORT void
+mx_key_echo_off( void )
+{
+	echo_off = TRUE;
+}
+
+MX_EXPORT void
+mx_key_echo_on( void )
+{
+	echo_off = FALSE;
+}
+
+MX_EXPORT void
+mx_key_getline( char *buffer, size_t max_buffer_length )
+{
+	int i;
+
+	if ( ( buffer == NULL ) || ( max_buffer_length ==  0 ) ) {
+		return;
+	}
+
+	memset( buffer, 0, max_buffer_length );
+
+	for ( i = 0; i < max_buffer_length; i++ ) {
+		while ( mx_kbhit() == FALSE ) {
+			mx_msleep(100);
+		}
+		buffer[i] = mx_getch();
+
+		if ( buffer[i] == '\n' ) {
+			return;
+		} else
+		if ( buffer[i] == '\0' ) {
+			return;
+		}
+	}
+
+	return;
+}
+
+/*************************************************************************/
+
+/* If the system does not support a keyboard, we stub the functions out. */
+
+#elif 0
+
 MX_EXPORT int
 mx_getch( void )
 {
@@ -879,6 +959,8 @@ mx_key_getline( char *buffer, size_t max_buffer_length )
 
 	return;
 }
+
+/*************************************************************************/
 
 #else
 

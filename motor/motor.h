@@ -56,10 +56,16 @@
 
 #define MX_CMDLINE_FGETS	1
 #define MX_CMDLINE_READLINE	2
+#define MX_CMDLINE_KEY		3
+#define MX_CMDLINE_VMS		4
 
-#if defined(OS_RTEMS) || defined(OS_VXWORKS)
+#if defined(OS_RTEMS)
 
 #   define MX_CMDLINE_PROCESSOR  MX_CMDLINE_FGETS
+
+#elif defined(OS_VXWORKS)
+
+#   define MX_CMDLINE_PROCESSOR  MX_CMDLINE_KEY
 
 #elif defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_DJGPP) \
 	|| defined(OS_MINIX)

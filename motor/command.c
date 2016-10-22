@@ -427,6 +427,30 @@ cmd_read_next_command_line( char *prompt )
 	return ptr;
 }
 
+#elif ( MX_CMDLINE_PROCESSOR == MX_CMDLINE_KEY )
+
+#include "mx_key.h"
+
+char *
+cmd_read_next_command_line( char *prompt )
+{
+	static char buffer[250];
+
+	fprintf( output, prompt );
+	fflush( output );
+
+	while(TRUE) {
+		if ( mx_kbhit() ) {
+			break;
+		}
+		mx_msleep(100);
+	}
+
+	mx_key_getline( buffer, sizeof(buffer) );
+
+	return buffer;
+}
+
 #elif ( MX_CMDLINE_PROCESSOR == MX_CMDLINE_VMS )
 
 #if 1	/* smg$read_composed_line */
