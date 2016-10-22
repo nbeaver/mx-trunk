@@ -1,6 +1,5 @@
 debug variable field field_bool "" "" pilatus.pilatus_debug_flag 0x2 1 1 1
-tcp232_size variable field field_long "" "" camserver.receive_buffer_size 0x2 1 1 1000
+##tcp232_size variable field field_long "" "" camserver.receive_buffer_size 0x2 1 1 1000
 #
-#
-camserver interface rs232 tcp232 "" "" 115200 8 N 1 N 0x18 0x00 10 0x0 pilatus 41234 0x0
-pilatus device area_detector pilatus "" "" 0 0x0 0x0 "" "" "" "" camserver
+camserver interface rs232 telnet "" "" 115200 8 N 1 N 0x18 0x0d0a 10 0x0 pilatus100 41234 0x0
+pilatus device area_detector pilatus "" "" 0 0x0 0x0 "" "" "" "" "" camserver

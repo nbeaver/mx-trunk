@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2015 Illinois Institute of Technology
+ * Copyright 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,10 +20,16 @@
 #define MXU_PILATUS_TVX_VERSION_LENGTH	80
 #define MXU_PILATUS_CAMERA_NAME_LENGTH	80
 
+/* Values for the 'pilatus_flags' field. */
+
+#define MXF_PILATUS_DEBUG_SERIAL			0x1
+#define MXF_PILATUS_LOAD_FRAME_AFTER_ACQUISITION	0x2
+
 typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *rs232_record;
+	unsigned long pilatus_flags;
 
 	mx_bool_type pilatus_debug_flag;
 
@@ -39,6 +45,10 @@ typedef struct {
   {-1, -1, "rs232_record", MXFT_RECORD, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, rs232_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+  \
+  {-1, -1, "pilatus_flags", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, pilatus_flags), \
+	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
   {-1, -1, "pilatus_debug_flag", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, pilatus_debug_flag), \

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2015 Illinois Institute of Technology
+ * Copyright 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -712,6 +712,8 @@ mxd_pilatus_transfer_frame( MX_AREA_DETECTOR *ad )
 			"mxd_pilatus_transfer_frame()";
 
 	MX_PILATUS *pilatus = NULL;
+	char image_filename[MXU_FILENAME_LENGTH+1];
+	unsigned long flags;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pilatus_get_pointers( ad, &pilatus, fname );
@@ -723,6 +725,30 @@ mxd_pilatus_transfer_frame( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s', transfer_frame = %ld.",
 		fname, ad->record->name, ad->transfer_frame ));
 #endif
+
+	flags = pilatus->pilatus_flags;
+
+	if ( flags & MXF_PILATUS_LOAD_FRAME_AFTER_ACQUISITION ) {
+		/* If this flag is set, then we load the most recently
+		 * acquired frame from the image file that was saved
+		 * by camserver.
+		 */
+
+		snprintf( image_filename, sizeof(image_filename),
+		"%s/%s", ad->datafile_directory, ad->datafile_name );
+
+#if MXD_PILATUS_DEBUG
+		MX_DEBUG(-2,("%s: Loading Pilatus image '%s'.\n",
+			fname, image_filename ));
+#endif
+		/* For now, we assume that the image file is in TIFF format. */
+
+		mx_status = mx_image_read_tiff_file( &(ad->image_frame),
+							NULL, image_filename );
+
+		if (mx_status.code != MXE_SUCCESS)
+			return mx_status;
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -799,8 +825,16 @@ mxd_pilatus_get_parameter( MX_AREA_DETECTOR *ad )
 		return mx_status;
 
 #if MXD_PILATUS_DEBUG
-	MX_DEBUG(-2,("%s: record '%s', parameter type %ld",
-		fname, ad->record->name, ad->parameter_type));
+	{
+		char name_buffer[MXU_FIELD_NAME_LENGTH+1];
+
+		MX_DEBUG(-2,("%s: record '%s', parameter '%s' (%ld)",
+			fname, ad->record->name,
+			mx_get_parameter_name_from_type(
+				ad->record, ad->parameter_type,
+				name_buffer, sizeof(name_buffer)),
+			ad->parameter_type));
+	}
 #endif
 
 	switch( ad->parameter_type ) {
@@ -970,8 +1004,16 @@ mxd_pilatus_set_parameter( MX_AREA_DETECTOR *ad )
 		return mx_status;
 
 #if MXD_PILATUS_DEBUG
-	MX_DEBUG(-2,("%s: record '%s', parameter type %ld",
-		fname, ad->record->name, ad->parameter_type));
+	{
+		char name_buffer[MXU_FIELD_NAME_LENGTH+1];
+
+		MX_DEBUG(-2,("%s: record '%s', parameter '%s' (%ld)",
+			fname, ad->record->name,
+			mx_get_parameter_name_from_type(
+				ad->record, ad->parameter_type,
+				name_buffer, sizeof(name_buffer)),
+			ad->parameter_type));
+	}
 #endif
 
 	switch( ad->parameter_type ) {
