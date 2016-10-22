@@ -24,8 +24,11 @@ LIBTIFF_LIBRARY = $(LIBTIFF_DIR)\\libtiff\\libtiff.lib
 
 else ifeq ($(MX_ARCH),linux)
 
-LIBTIFF_INCLUDES = 
-LIBTIFF_LIBRARY = -ltiff
+#LIBTIFF_INCLUDES = 
+#LIBTIFF_LIBRARY = -ltiff
+
+LIBTIFF_INCLUDES = -I/home/det/local/include
+LIBTIFF_LIBRARY = -L/home/det/local/lib -ltiff
 
 #----
 
