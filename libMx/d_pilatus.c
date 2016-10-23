@@ -689,6 +689,7 @@ mxd_pilatus_abort( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_pilatus_abort()";
 
 	MX_PILATUS *pilatus = NULL;
+	char response[80];
 	mx_status_type mx_status;
 
 	mx_status = mxd_pilatus_get_pointers( ad, &pilatus, fname );
@@ -703,7 +704,8 @@ mxd_pilatus_abort( MX_AREA_DETECTOR *ad )
 
 	pilatus->exposure_in_progress = FALSE;
 
-	mx_status = mxd_pilatus_command( pilatus, "K", NULL, 0, NULL );
+	mx_status = mxd_pilatus_command( pilatus, "K",
+					response, sizeof(response), NULL );
 
 	return mx_status;
 }
@@ -1440,6 +1442,8 @@ mxd_pilatus_trigger_oscillation( MX_AREA_DETECTOR *ad )
 
 /*==========================================================================*/
 
+#define BAD_WOLF	TRUE
+
 MX_EXPORT mx_status_type
 mxd_pilatus_command( MX_PILATUS *pilatus,
 			char *command,
@@ -1485,8 +1489,62 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 		fname, command, pilatus->record->name ));
 	}
 
+#if BAD_WOLF
+	{
+		/* For some reason, the version of the Pilatus camserver
+		 * that we have sometimes appends garbage to the end of
+		 * commands that I send to it.  camserver acts as if it
+		 * is reading the commands I send to it into a buffer
+		 * that it is not zeroing out every time.
+		 *
+		 * To work around that, I copy the command string into a
+		 * larger buffer and fill the rest of that buffer with
+		 * space characters ' ' in the hope that any leftover
+		 * characters in camserver will be overwritten.
+		 */
+
+		size_t initial_command_length;
+		char *temp_command_buffer;
+		size_t temp_command_buffer_length;
+		char *spaces_ptr;
+		size_t spaces_length;
+
+		initial_command_length = strlen( command );
+
+		temp_command_buffer_length = initial_command_length + 100;
+
+		temp_command_buffer = malloc( temp_command_buffer_length );
+
+		if ( temp_command_buffer == NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"The attempt to allocate a %lu byte temporary "
+			"command buffer for detector '%s' to work around "
+			"a 'camserver' bug failed.",
+				temp_command_buffer_length,
+				pilatus->record->name );
+		}
+
+		strlcpy( temp_command_buffer,
+			command, temp_command_buffer_length );
+
+		spaces_ptr = temp_command_buffer + initial_command_length;
+
+		spaces_length = temp_command_buffer_length
+					- initial_command_length - 1;
+
+		memset( spaces_ptr, ' ', spaces_length );
+
+		spaces_ptr[spaces_length - 1] = '\0';
+
+		mx_status = mx_rs232_putline( pilatus->rs232_record,
+					temp_command_buffer, NULL, 0 );
+
+		mx_free( temp_command_buffer );
+	}
+#else
 	mx_status = mx_rs232_putline( pilatus->rs232_record,
 					command, NULL, 0 );
+#endif
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1619,7 +1677,6 @@ mxd_pilatus_special_processing_setup( MX_RECORD *record )
 		switch( record_field->label_value ) {
 		case MXLV_PILATUS_COMMAND:
 		case MXLV_PILATUS_RESPONSE:
-		case MXLV_PILATUS_COMMAND_WITH_RESPONSE:
 		case MXLV_PILATUS_SET_ENERGY:
 		case MXLV_PILATUS_SET_THRESHOLD:
 		case MXLV_PILATUS_TH:
@@ -1663,7 +1720,6 @@ mxd_pilatus_process_function( void *record_ptr,
 		switch( record_field->label_value ) {
 		case MXLV_PILATUS_COMMAND:
 		case MXLV_PILATUS_RESPONSE:
-		case MXLV_PILATUS_COMMAND_WITH_RESPONSE:
 		case MXLV_PILATUS_SET_ENERGY:
 		case MXLV_PILATUS_SET_THRESHOLD:
 			/* We just return whatever was most recently
@@ -1701,11 +1757,6 @@ mxd_pilatus_process_function( void *record_ptr,
 		switch( record_field->label_value ) {
 		case MXLV_PILATUS_COMMAND:
 			mx_status = mxd_pilatus_command( pilatus,
-							pilatus->command,
-							NULL, 0, NULL );
-			break;
-		case MXLV_PILATUS_COMMAND_WITH_RESPONSE:
-			mx_status = mxd_pilatus_command( pilatus,
 						pilatus->command,
 						pilatus->response,
 						MXU_PILATUS_COMMAND_LENGTH,
@@ -1716,14 +1767,16 @@ mxd_pilatus_process_function( void *record_ptr,
 			"SetEnergy %f", pilatus->set_energy );
 
 			mx_status = mxd_pilatus_command( pilatus, command,
-							NULL, 0, NULL );
+						response, sizeof(response),
+						NULL );
 			break;
 		case MXLV_PILATUS_SET_THRESHOLD:
 			snprintf( command, sizeof(command),
 			"SetThreshold %s", pilatus->set_threshold );
 
 			mx_status = mxd_pilatus_command( pilatus, command,
-							NULL, 0, NULL );
+						response, sizeof(response),
+						NULL );
 			break;
 		default:
 			MX_DEBUG( 1,(
