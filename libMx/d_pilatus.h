@@ -43,6 +43,10 @@ typedef struct {
 	double set_energy;
 	char set_threshold[MXU_PILATUS_THRESHOLD_STRING_LENGTH+1];
 
+	/* For reading temperature and humidity sensors. */
+	double th[2];
+	unsigned long th_channel;
+
 	mx_bool_type pilatus_debug_flag;
 
 	char tvx_version[MXU_PILATUS_TVX_VERSION_LENGTH+1];
@@ -57,6 +61,7 @@ typedef struct {
 #define MXLV_PILATUS_COMMAND_WITH_RESPONSE	87803
 #define MXLV_PILATUS_SET_ENERGY			87804
 #define MXLV_PILATUS_SET_THRESHOLD		87805
+#define MXLV_PILATUS_TH				87806
 
 
 #define MXD_PILATUS_STANDARD_FIELDS \
@@ -107,6 +112,14 @@ typedef struct {
 		MXFT_STRING, NULL, 1, {MXU_PILATUS_THRESHOLD_STRING_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, set_threshold), \
 	{sizeof(char)}, NULL, 0}, \
+  \
+  {MXLV_PILATUS_TH, -1, "th", MXFT_DOUBLE, NULL, 1, {2}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, th), \
+	{sizeof(double)}, NULL, 0}, \
+  \
+  {-1, -1, "th_channel", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, th_channel), \
+	{0}, NULL, 0}, \
   \
   {-1, -1, "pilatus_debug_flag", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, pilatus_debug_flag), \

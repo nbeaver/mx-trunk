@@ -25,6 +25,7 @@
 #include "mx_rs232.h"
 #include "mx_hrt.h"
 #include "mx_process.h"
+#include "mx_inttypes.h"
 #include "mx_image.h"
 #include "mx_area_detector.h"
 #include "d_pilatus.h"
@@ -983,6 +984,8 @@ mxd_pilatus_get_parameter( MX_AREA_DETECTOR *ad )
 	MX_PILATUS *pilatus = NULL;
 	char response[MXU_FILENAME_LENGTH + 80];
 	unsigned long pilatus_return_code;
+	unsigned long disk_blocks_available;
+	int num_items;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pilatus_get_pointers( ad, &pilatus, fname );
@@ -1087,6 +1090,29 @@ mxd_pilatus_get_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_SHUTTER_ENABLE:
+		break;
+
+	case MXLV_AD_DISK_SPACE:
+		mx_status = mxd_pilatus_command( pilatus, "Df",
+					response, sizeof(response),
+					&pilatus_return_code,
+					pilatus->pilatus_debug_flag );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		num_items = sscanf( response,
+			"%lu", &disk_blocks_available );
+
+		if ( num_items != 1 ) {
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"Did not see the number of disk blocks available in "
+			"the response '%s' to command 'Df' for detector '%s'.",
+				response, ad->record->name );
+		}
+
+		ad->disk_space[0] = 0.0;
+		ad->disk_space[1] = 1024L * (uint64_t ) disk_blocks_available;
 		break;
 
 	case MXLV_AD_CORRECTION_LOAD_FORMAT:
@@ -1590,8 +1616,11 @@ mxd_pilatus_special_processing_setup( MX_RECORD *record )
 
 		switch( record_field->label_value ) {
 		case MXLV_PILATUS_COMMAND:
+		case MXLV_PILATUS_RESPONSE:
+		case MXLV_PILATUS_COMMAND_WITH_RESPONSE:
 		case MXLV_PILATUS_SET_ENERGY:
 		case MXLV_PILATUS_SET_THRESHOLD:
+		case MXLV_PILATUS_TH:
 			record_field->process_function
 					= mxd_pilatus_process_function;
 			break;
@@ -1616,6 +1645,9 @@ mxd_pilatus_process_function( void *record_ptr,
 	MX_RECORD_FIELD *record_field;
 	MX_PILATUS *pilatus;
 	char command[MXU_PILATUS_COMMAND_LENGTH+1];
+	char response[MXU_PILATUS_COMMAND_LENGTH+1];
+	int argc;
+	char **argv;
 	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
@@ -1635,6 +1667,26 @@ mxd_pilatus_process_function( void *record_ptr,
 			/* We just return whatever was most recently
 			 * written to these fields.
 			 */
+			break;
+		case MXLV_PILATUS_TH:
+			snprintf( command, sizeof(command),
+				"THread %lu", pilatus->th_channel );
+
+			mx_status = mxd_pilatus_command( pilatus,
+							command,
+							response,
+							sizeof(response),
+							NULL, 1 );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			mx_string_split( response, " ", &argc, &argv );
+
+			pilatus->th[0] = atof( argv[4] );
+			pilatus->th[1] = atof( argv[8] );
+
+			mx_free( argv );
 			break;
 		default:
 			MX_DEBUG( 1,(
