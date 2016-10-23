@@ -17,8 +17,10 @@
 #ifndef __D_PILATUS_H__
 #define __D_PILATUS_H__
 
-#define MXU_PILATUS_TVX_VERSION_LENGTH	80
-#define MXU_PILATUS_CAMERA_NAME_LENGTH	80
+#define MXU_PILATUS_THRESHOLD_STRING_LENGTH	80
+#define MXU_PILATUS_COMMAND_LENGTH		80
+#define MXU_PILATUS_TVX_VERSION_LENGTH		80
+#define MXU_PILATUS_CAMERA_NAME_LENGTH		80
 
 /* Values for the 'pilatus_flags' field. */
 
@@ -31,6 +33,16 @@ typedef struct {
 	MX_RECORD *rs232_record;
 	unsigned long pilatus_flags;
 
+	double delay_time;
+	double exposure_period;
+	double gap_time;
+	unsigned long exposures_per_frame;
+
+	char command[MXU_PILATUS_COMMAND_LENGTH+1];
+	char response[MXU_PILATUS_COMMAND_LENGTH+1];
+	double set_energy;
+	char set_threshold[MXU_PILATUS_THRESHOLD_STRING_LENGTH+1];
+
 	mx_bool_type pilatus_debug_flag;
 
 	char tvx_version[MXU_PILATUS_TVX_VERSION_LENGTH+1];
@@ -39,6 +51,12 @@ typedef struct {
 
 	mx_bool_type exposure_in_progress;
 } MX_PILATUS;
+
+#define MXLV_PILATUS_COMMAND			87801
+#define MXLV_PILATUS_RESPONSE			87802
+#define MXLV_PILATUS_COMMAND_WITH_RESPONSE	87803
+#define MXLV_PILATUS_SET_ENERGY			87804
+#define MXLV_PILATUS_SET_THRESHOLD		87805
 
 
 #define MXD_PILATUS_STANDARD_FIELDS \
@@ -49,6 +67,46 @@ typedef struct {
   {-1, -1, "pilatus_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, pilatus_flags), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
+  {-1, -1, "delay_time", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, delay_time), \
+	{0}, NULL, 0}, \
+  \
+  {-1, -1, "exposure_period", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, exposure_period), \
+	{0}, NULL, 0}, \
+  \
+  {-1, -1, "gap_time", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, gap_time), \
+	{0}, NULL, 0}, \
+  \
+  {-1, -1, "exposures_per_frame", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, exposures_per_frame), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_PILATUS_COMMAND, -1, "command", \
+		MXFT_STRING, NULL, 1, {MXU_PILATUS_COMMAND_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, command), \
+	{sizeof(char)}, NULL, 0}, \
+  \
+  {MXLV_PILATUS_RESPONSE, -1, "response", \
+		MXFT_STRING, NULL, 1, {MXU_PILATUS_COMMAND_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, response), \
+	{sizeof(char)}, NULL, 0}, \
+  \
+  {MXLV_PILATUS_COMMAND_WITH_RESPONSE, -1, "command_with_response", \
+		MXFT_STRING, NULL, 1, {MXU_PILATUS_COMMAND_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, command), \
+	{sizeof(char)}, NULL, 0}, \
+  \
+  {MXLV_PILATUS_SET_ENERGY, -1, "set_energy", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, set_energy), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_PILATUS_SET_THRESHOLD, -1, "set_threshold", \
+		MXFT_STRING, NULL, 1, {MXU_PILATUS_THRESHOLD_STRING_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, set_threshold), \
+	{sizeof(char)}, NULL, 0}, \
   \
   {-1, -1, "pilatus_debug_flag", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, pilatus_debug_flag), \
@@ -71,6 +129,7 @@ typedef struct {
 MX_API mx_status_type mxd_pilatus_initialize_driver( MX_DRIVER *driver );
 MX_API mx_status_type mxd_pilatus_create_record_structures( MX_RECORD *record );
 MX_API mx_status_type mxd_pilatus_open( MX_RECORD *record );
+MX_API mx_status_type mxd_pilatus_special_processing_setup( MX_RECORD *record );
 
 MX_API mx_status_type mxd_pilatus_arm( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_pilatus_trigger( MX_AREA_DETECTOR *ad );

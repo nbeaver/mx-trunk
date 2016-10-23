@@ -24,6 +24,7 @@
 #include "mx_driver.h"
 #include "mx_rs232.h"
 #include "mx_hrt.h"
+#include "mx_process.h"
 #include "mx_image.h"
 #include "mx_area_detector.h"
 #include "d_pilatus.h"
@@ -37,6 +38,10 @@ MX_RECORD_FUNCTION_LIST mxd_pilatus_record_function_list = {
 	NULL,
 	NULL,
 	mxd_pilatus_open,
+	NULL,
+	NULL,
+	NULL,
+	mxd_pilatus_special_processing_setup,
 };
 
 MX_AREA_DETECTOR_FUNCTION_LIST
@@ -79,6 +84,10 @@ long mxd_pilatus_num_record_fields
 MX_RECORD_FIELD_DEFAULTS *mxd_pilatus_rfield_def_ptr
 			= &mxd_pilatus_rf_defaults[0];
 
+static mx_status_type mxd_pilatus_process_function( void *record_ptr,
+						void *record_field_ptr,
+						int operation );
+
 /*---*/
 
 static mx_status_type
@@ -99,8 +108,7 @@ mxd_pilatus_get_pointers( MX_AREA_DETECTOR *ad,
 			calling_fname );
 	}
 
-	*pilatus = (MX_PILATUS *)
-				ad->record->record_type_struct;
+	*pilatus = (MX_PILATUS *) ad->record->record_type_struct;
 
 	if ( *pilatus == (MX_PILATUS *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -337,13 +345,13 @@ mxd_pilatus_open( MX_RECORD *record )
 	ad->total_num_frames = 0;
 	ad->status = 0;
 
-	ad->bytes_per_pixel = 2;
-	ad->bits_per_pixel = 16;
+	ad->bytes_per_pixel = 4;
+	ad->bits_per_pixel = 32;
 
 	ad->bytes_per_frame =
 	  mx_round( ad->bytes_per_pixel * ad->framesize[0] * ad->framesize[1] );
 
-	ad->image_format = MXT_IMAGE_FORMAT_GREY16;
+	ad->image_format = MXT_IMAGE_FORMAT_GREY32;
 
 	mx_status = mx_image_get_image_format_name_from_type(
 						ad->image_format,
@@ -353,7 +361,21 @@ mxd_pilatus_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Configure automatic saving or readout of image frames. */
+	/* Initialize some Pilatus specific sequence parameters.
+	 *
+	 * These can be overridden at startup time with 'mxautosave'.
+	 */
+
+	pilatus->delay_time = 0.0;
+	pilatus->exposure_period = 0.0;
+	pilatus->gap_time = 0.0;
+	pilatus->exposures_per_frame = 1;
+
+	/* Configure automatic saving or readout of image frames.
+	 *
+	 * Note: The Pilatus system automatically saves files on its own, so
+	 * there should generally not be a reason for MX to do that too.
+	 */
 
 	mask = MXF_AD_SAVE_FRAME_AFTER_ACQUISITION
 		| MXF_AD_READOUT_FRAME_AFTER_ACQUISITION;
@@ -380,7 +402,8 @@ mxd_pilatus_arm( MX_AREA_DETECTOR *ad )
 
 	MX_PILATUS *pilatus = NULL;
 	MX_SEQUENCE_PARAMETERS *sp = NULL;
-	double exposure_time;
+	unsigned long num_frames;
+	double exposure_time, exposure_period, delay_time;
 	char command[80];
 	char response[80];
 	mx_status_type mx_status;
@@ -399,11 +422,42 @@ mxd_pilatus_arm( MX_AREA_DETECTOR *ad )
 
 	sp = &(ad->sequence_parameters);
 
+	if ( ad->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
+		switch( sp->sequence_type ) {
+		case MXT_SQ_ONE_SHOT:
+		case MXT_SQ_MULTIFRAME:
+			break;
+		default:
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Only 'one shot' and 'multiframe' sequences are "
+			"supported for detector '%s' in internal trigger mode.",
+				ad->record->name );
+			break;
+		}
+	}
+
 	/* Set the exposure sequence parameters. */
 
 	switch( sp->sequence_type ) {
 	case MXT_SQ_ONE_SHOT:
+		num_frames = 1;
 		exposure_time = sp->parameter_array[0];
+		exposure_period = -1.0;
+		break;
+	case MXT_SQ_MULTIFRAME:
+		num_frames = mx_round( sp->parameter_array[0] );
+		exposure_time = sp->parameter_array[1];
+		exposure_period = sp->parameter_array[2];
+		break;
+	case MXT_SQ_STROBE:
+		num_frames = mx_round( sp->parameter_array[0] );
+		exposure_time = sp->parameter_array[1];
+		exposure_period = -1.0;
+		break;
+	case MXT_SQ_DURATION:
+		num_frames = mx_round( sp->parameter_array[0] );
+		exposure_time = 1.0;		/* Not used. */
+		exposure_period = -1.0;
 		break;
 	default:
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
@@ -411,6 +465,15 @@ mxd_pilatus_arm( MX_AREA_DETECTOR *ad )
 		"are not yet implemented.", ad->record->name );
 		break;
 	}
+
+	snprintf( command, sizeof(command), "NImages %lu", num_frames );
+
+	mx_status = mxd_pilatus_command( pilatus, command,
+				response, sizeof(response),
+				NULL, pilatus->pilatus_debug_flag );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	snprintf( command, sizeof(command), "ExpTime %f", exposure_time );
 
@@ -420,6 +483,65 @@ mxd_pilatus_arm( MX_AREA_DETECTOR *ad )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Compute the exposure period if not explicitly set above. */
+
+	if ( exposure_period < 0.0 ) {
+		if ( pilatus->exposure_period > 0.0 ) {
+			exposure_period = pilatus->exposure_period;
+		} else
+		if ( pilatus->gap_time > 0.0 ) {
+			exposure_period = exposure_time + pilatus->gap_time;
+		} else {
+			exposure_period = exposure_time + 0.0025;
+		}
+	}
+
+	/* Set the exposure period. */
+
+	snprintf( command, sizeof(command), "ExpPeriod %f", exposure_period );
+
+	mx_status = mxd_pilatus_command( pilatus, command,
+				response, sizeof(response),
+				NULL, pilatus->pilatus_debug_flag );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Compute and set the exposure delay. */
+
+	if ( pilatus->delay_time > 0.0 ) {
+		if ( pilatus->delay_time > exposure_period ) {
+			delay_time = exposure_period;
+		} else {
+			delay_time = pilatus->delay_time;
+		}
+	} else {
+		delay_time = 0.0;
+	}
+
+	snprintf( command, sizeof(command), "Delay %f", delay_time );
+
+	mx_status = mxd_pilatus_command( pilatus, command,
+				response, sizeof(response),
+				NULL, pilatus->pilatus_debug_flag );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Set the number of exposures per frame. */
+
+	snprintf( command, sizeof(command),
+		"NExpFrame %lu", pilatus->exposures_per_frame );
+
+	mx_status = mxd_pilatus_command( pilatus, command,
+				response, sizeof(response),
+				NULL, pilatus->pilatus_debug_flag );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/*---------------------------------------------------------------*/
 
 	/* Enable the shutter. */
 
@@ -448,6 +570,39 @@ mxd_pilatus_arm( MX_AREA_DETECTOR *ad )
 
 	/*---*/
 
+	/* If we are not in external trigger mode, then we are done here. */
+
+	if ( ( ad->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) == 0 ) {
+		pilatus->exposure_in_progress = FALSE;
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* If we get here, we are in external trigger mode, so we must
+	 * tell the Pilatus to be ready for the trigger signal.
+	 */
+
+	switch( sp->sequence_type ) {
+	case MXT_SQ_ONE_SHOT:
+	case MXT_SQ_MULTIFRAME:
+		snprintf( command, sizeof(command),
+			"ExtTrigger %s", ad->datafile_name );
+		break;
+	case MXT_SQ_STROBE:
+		snprintf( command, sizeof(command),
+			"ExtMTrigger %s", ad->datafile_name );
+		break;
+	case MXT_SQ_DURATION:
+		snprintf( command, sizeof(command),
+			"ExtEnable %s", ad->datafile_name );
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Unsupported sequence type requested for detector '%s'.",
+			ad->record->name );
+		break;
+	}
+
 	pilatus->exposure_in_progress = TRUE;
 
 	return MX_SUCCESSFUL_RESULT;
@@ -474,6 +629,12 @@ mxd_pilatus_trigger( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
+	/* If we are not in internal trigger mode, we do nothing here. */
+
+	if ( ( ad->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) == 0 ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
 	/* Check to see if we currently have a valid datafile name. */
 
 	if ( strlen( ad->datafile_name ) == 0 ) {
@@ -490,7 +651,12 @@ mxd_pilatus_trigger( MX_AREA_DETECTOR *ad )
 				response, sizeof(response),
 				NULL, pilatus->pilatus_debug_flag );
 
-	return mx_status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	pilatus->exposure_in_progress = TRUE;
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -1406,3 +1572,119 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*==========================================================================*/
+
+MX_EXPORT mx_status_type
+mxd_pilatus_special_processing_setup( MX_RECORD *record )
+{
+	MX_RECORD_FIELD *record_field;
+	MX_RECORD_FIELD *record_field_array;
+	long i;
+
+	record_field_array = record->record_field_array;
+
+	for ( i = 0; i < record->num_record_fields; i++ ) {
+
+		record_field = &record_field_array[i];
+
+		switch( record_field->label_value ) {
+		case MXLV_PILATUS_COMMAND:
+		case MXLV_PILATUS_SET_ENERGY:
+		case MXLV_PILATUS_SET_THRESHOLD:
+			record_field->process_function
+					= mxd_pilatus_process_function;
+			break;
+		default:
+			break;
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*==========================================================================*/
+
+static mx_status_type
+mxd_pilatus_process_function( void *record_ptr,
+			void *record_field_ptr,
+			int operation )
+{
+	static const char fname[] = "mxd_pilatus_process_function()";
+
+	MX_RECORD *record;
+	MX_RECORD_FIELD *record_field;
+	MX_PILATUS *pilatus;
+	char command[MXU_PILATUS_COMMAND_LENGTH+1];
+	mx_status_type mx_status;
+
+	record = (MX_RECORD *) record_ptr;
+	record_field = (MX_RECORD_FIELD *) record_field_ptr;
+	pilatus = (MX_PILATUS *) record->record_type_struct;
+
+	mx_status = MX_SUCCESSFUL_RESULT;
+
+	switch( operation ) {
+	case MX_PROCESS_GET:
+		switch( record_field->label_value ) {
+		case MXLV_PILATUS_COMMAND:
+		case MXLV_PILATUS_RESPONSE:
+		case MXLV_PILATUS_COMMAND_WITH_RESPONSE:
+		case MXLV_PILATUS_SET_ENERGY:
+		case MXLV_PILATUS_SET_THRESHOLD:
+			/* We just return whatever was most recently
+			 * written to these fields.
+			 */
+			break;
+		default:
+			MX_DEBUG( 1,(
+			    "%s: *** Unknown MX_PROCESS_GET label value = %ld",
+				fname, record_field->label_value));
+			break;
+		}
+		break;
+	case MX_PROCESS_PUT:
+		switch( record_field->label_value ) {
+		case MXLV_PILATUS_COMMAND:
+			mx_status = mxd_pilatus_command( pilatus,
+							pilatus->command,
+							NULL, 0, NULL, 0 );
+			break;
+		case MXLV_PILATUS_COMMAND_WITH_RESPONSE:
+			mx_status = mxd_pilatus_command( pilatus,
+						pilatus->command,
+						pilatus->response,
+						MXU_PILATUS_COMMAND_LENGTH,
+						NULL, 0 );
+			break;
+		case MXLV_PILATUS_SET_ENERGY:
+			snprintf( command, sizeof(command),
+			"SetEnergy %f", pilatus->set_energy );
+
+			mx_status = mxd_pilatus_command( pilatus, command,
+							NULL, 0, NULL, 0 );
+			break;
+		case MXLV_PILATUS_SET_THRESHOLD:
+			snprintf( command, sizeof(command),
+			"SetThreshold %s", pilatus->set_threshold );
+
+			mx_status = mxd_pilatus_command( pilatus, command,
+							NULL, 0, NULL, 0 );
+			break;
+		default:
+			MX_DEBUG( 1,(
+			    "%s: *** Unknown MX_PROCESS_GET label value = %ld",
+				fname, record_field->label_value));
+			break;
+		}
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Unknown operation code = %d for record '%s'.",
+			operation, record->name );
+		break;
+	}
+
+	return mx_status;
+}
+
