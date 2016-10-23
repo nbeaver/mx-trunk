@@ -170,7 +170,6 @@ mxd_pilatus_create_record_structures( MX_RECORD *record )
 	ad->trigger_mode = 0;
 	ad->initial_correction_flags = 0;
 
-	pilatus->pilatus_debug_flag = FALSE;
 	pilatus->exposure_in_progress = FALSE;
 
 	return MX_SUCCESSFUL_RESULT;
@@ -190,6 +189,7 @@ mxd_pilatus_open( MX_RECORD *record )
 	char *buffer_ptr, *line_ptr;
 	int num_items;
 	unsigned long mask;
+	mx_bool_type debug_serial;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -206,19 +206,24 @@ mxd_pilatus_open( MX_RECORD *record )
 
 #if MXD_PILATUS_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
+
+	pilatus->pilatus_flags |= MXF_PILATUS_DEBUG_SERIAL;
+
+	debug_serial = TRUE;
+#else
+	debug_serial = FALSE;
 #endif
 
 	(void) mx_rs232_discard_unwritten_output( pilatus->rs232_record,
-						pilatus->pilatus_debug_flag );
+							debug_serial );
 
 	(void) mx_rs232_discard_unread_input( pilatus->rs232_record,
-						pilatus->pilatus_debug_flag );
+							debug_serial );
 
 	/* Get the version of the TVX software. */
 
 	mx_status = mxd_pilatus_command( pilatus, "Version",
-				response, sizeof(response),
-				NULL, pilatus->pilatus_debug_flag );
+				response, sizeof(response), NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -244,8 +249,7 @@ mxd_pilatus_open( MX_RECORD *record )
 	/* Send a CamSetup command and parse the responses back from it. */
 
 	mx_status = mxd_pilatus_command( pilatus, "CamSetup",
-				response, sizeof(response),
-				NULL, pilatus->pilatus_debug_flag );
+				response, sizeof(response), NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -282,8 +286,7 @@ mxd_pilatus_open( MX_RECORD *record )
 	/* Send a Telemetry command and look for the image dimensions in it. */
 
 	mx_status = mxd_pilatus_command( pilatus, "Telemetry",
-				response, sizeof(response),
-				NULL, pilatus->pilatus_debug_flag );
+				response, sizeof(response), NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -470,8 +473,7 @@ mxd_pilatus_arm( MX_AREA_DETECTOR *ad )
 	snprintf( command, sizeof(command), "NImages %lu", num_frames );
 
 	mx_status = mxd_pilatus_command( pilatus, command,
-				response, sizeof(response),
-				NULL, pilatus->pilatus_debug_flag );
+				response, sizeof(response), NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -479,8 +481,7 @@ mxd_pilatus_arm( MX_AREA_DETECTOR *ad )
 	snprintf( command, sizeof(command), "ExpTime %f", exposure_time );
 
 	mx_status = mxd_pilatus_command( pilatus, command,
-				response, sizeof(response),
-				NULL, pilatus->pilatus_debug_flag );
+				response, sizeof(response), NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -503,8 +504,7 @@ mxd_pilatus_arm( MX_AREA_DETECTOR *ad )
 	snprintf( command, sizeof(command), "ExpPeriod %f", exposure_period );
 
 	mx_status = mxd_pilatus_command( pilatus, command,
-				response, sizeof(response),
-				NULL, pilatus->pilatus_debug_flag );
+				response, sizeof(response), NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -524,8 +524,7 @@ mxd_pilatus_arm( MX_AREA_DETECTOR *ad )
 	snprintf( command, sizeof(command), "Delay %f", delay_time );
 
 	mx_status = mxd_pilatus_command( pilatus, command,
-				response, sizeof(response),
-				NULL, pilatus->pilatus_debug_flag );
+				response, sizeof(response), NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -536,8 +535,7 @@ mxd_pilatus_arm( MX_AREA_DETECTOR *ad )
 		"NExpFrame %lu", pilatus->exposures_per_frame );
 
 	mx_status = mxd_pilatus_command( pilatus, command,
-				response, sizeof(response),
-				NULL, pilatus->pilatus_debug_flag );
+				response, sizeof(response), NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -547,8 +545,7 @@ mxd_pilatus_arm( MX_AREA_DETECTOR *ad )
 	/* Enable the shutter. */
 
 	mx_status = mxd_pilatus_command( pilatus, "ShutterEnable 1",
-				response, sizeof(response),
-				NULL, pilatus->pilatus_debug_flag );
+				response, sizeof(response), NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -649,8 +646,7 @@ mxd_pilatus_trigger( MX_AREA_DETECTOR *ad )
 	snprintf( command, sizeof(command), "Exposure %s", ad->datafile_name );
 
 	mx_status = mxd_pilatus_command( pilatus, command,
-				response, sizeof(response),
-				NULL, pilatus->pilatus_debug_flag );
+				response, sizeof(response), NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -682,8 +678,7 @@ mxd_pilatus_stop( MX_AREA_DETECTOR *ad )
 	pilatus->exposure_in_progress = FALSE;
 
 	mx_status = mxd_pilatus_command( pilatus, "Stop",
-				response, sizeof(response),
-				NULL, pilatus->pilatus_debug_flag );
+				response, sizeof(response), NULL );
 
 	return mx_status;
 }
@@ -694,7 +689,6 @@ mxd_pilatus_abort( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_pilatus_abort()";
 
 	MX_PILATUS *pilatus = NULL;
-	char response[80];
 	mx_status_type mx_status;
 
 	mx_status = mxd_pilatus_get_pointers( ad, &pilatus, fname );
@@ -709,9 +703,7 @@ mxd_pilatus_abort( MX_AREA_DETECTOR *ad )
 
 	pilatus->exposure_in_progress = FALSE;
 
-	mx_status = mxd_pilatus_command( pilatus, "K",
-				response, sizeof(response),
-				NULL, pilatus->pilatus_debug_flag );
+	mx_status = mxd_pilatus_command( pilatus, "K", NULL, 0, NULL );
 
 	return mx_status;
 }
@@ -788,8 +780,7 @@ mxd_pilatus_get_status( MX_AREA_DETECTOR *ad )
 
 #if 0
 	mx_status = mxd_pilatus_command( pilatus, "Status",
-				response, sizeof(response),
-				NULL, pilatus->pilatus_debug_flag );
+				response, sizeof(response), NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -801,9 +792,17 @@ mxd_pilatus_get_status( MX_AREA_DETECTOR *ad )
 		return mx_status;
 
 	if ( num_input_bytes_available > 0 ) {
+		mx_bool_type debug_flag;
+
+		if ( pilatus->pilatus_flags & MXF_PILATUS_DEBUG_SERIAL ) {
+			debug_flag = TRUE;
+		} else {
+			debug_flag = FALSE;
+		}
+
 		mx_status = mx_rs232_getline( pilatus->rs232_record,
 					response, sizeof(response),
-					NULL, pilatus->pilatus_debug_flag );
+					NULL, debug_flag );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1095,8 +1094,7 @@ mxd_pilatus_get_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_DISK_SPACE:
 		mx_status = mxd_pilatus_command( pilatus, "Df",
 					response, sizeof(response),
-					&pilatus_return_code,
-					pilatus->pilatus_debug_flag );
+					&pilatus_return_code );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1140,8 +1138,7 @@ mxd_pilatus_get_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_DATAFILE_DIRECTORY:
 		mx_status = mxd_pilatus_command( pilatus, "ImgPath",
 					response, sizeof(response),
-					&pilatus_return_code,
-					pilatus->pilatus_debug_flag );
+					&pilatus_return_code );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1308,8 +1305,7 @@ mxd_pilatus_set_parameter( MX_AREA_DETECTOR *ad )
 			"ImgPath %s", ad->datafile_directory );
 
 		mx_status = mxd_pilatus_command( pilatus, command,
-					response, sizeof(response),
-					NULL, pilatus->pilatus_debug_flag );
+					response, sizeof(response), NULL );
 		break;
 
 	case MXLV_AD_DATAFILE_NAME:
@@ -1449,8 +1445,7 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 			char *command,
 			char *response,
 			size_t response_buffer_length,
-			unsigned long *pilatus_return_code,
-			unsigned long debug_flag )
+			unsigned long *pilatus_return_code )
 {
 	static const char fname[] = "mxd_pilatus_command()";
 
@@ -1459,6 +1454,7 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 	char *ptr, *return_code_arg, *error_status_arg;
 	size_t length, bytes_to_move;
 	unsigned long return_code;
+	mx_bool_type debug_flag;
 	mx_status_type mx_status;
 
 	if ( pilatus == (MX_PILATUS *) NULL ) {
@@ -1475,6 +1471,12 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 	}
 
 	ad = pilatus->record->record_class_struct;
+
+	if ( (pilatus->pilatus_flags) & MXF_PILATUS_DEBUG_SERIAL ) {
+		debug_flag = TRUE;
+	} else {
+		debug_flag = FALSE;
+	}
 
 	/* First send the command. */
 
@@ -1676,7 +1678,7 @@ mxd_pilatus_process_function( void *record_ptr,
 							command,
 							response,
 							sizeof(response),
-							NULL, 1 );
+							NULL );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -1700,28 +1702,28 @@ mxd_pilatus_process_function( void *record_ptr,
 		case MXLV_PILATUS_COMMAND:
 			mx_status = mxd_pilatus_command( pilatus,
 							pilatus->command,
-							NULL, 0, NULL, 0 );
+							NULL, 0, NULL );
 			break;
 		case MXLV_PILATUS_COMMAND_WITH_RESPONSE:
 			mx_status = mxd_pilatus_command( pilatus,
 						pilatus->command,
 						pilatus->response,
 						MXU_PILATUS_COMMAND_LENGTH,
-						NULL, 0 );
+						NULL );
 			break;
 		case MXLV_PILATUS_SET_ENERGY:
 			snprintf( command, sizeof(command),
 			"SetEnergy %f", pilatus->set_energy );
 
 			mx_status = mxd_pilatus_command( pilatus, command,
-							NULL, 0, NULL, 0 );
+							NULL, 0, NULL );
 			break;
 		case MXLV_PILATUS_SET_THRESHOLD:
 			snprintf( command, sizeof(command),
 			"SetThreshold %s", pilatus->set_threshold );
 
 			mx_status = mxd_pilatus_command( pilatus, command,
-							NULL, 0, NULL, 0 );
+							NULL, 0, NULL );
 			break;
 		default:
 			MX_DEBUG( 1,(

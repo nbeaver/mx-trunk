@@ -47,8 +47,6 @@ typedef struct {
 	double th[2];
 	unsigned long th_channel;
 
-	mx_bool_type pilatus_debug_flag;
-
 	char tvx_version[MXU_PILATUS_TVX_VERSION_LENGTH+1];
 	char camera_name[MXU_PILATUS_CAMERA_NAME_LENGTH+1];
 	unsigned long camserver_pid;
@@ -121,10 +119,6 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, th_channel), \
 	{0}, NULL, 0}, \
   \
-  {-1, -1, "pilatus_debug_flag", MXFT_BOOL, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, pilatus_debug_flag), \
-	{0}, NULL, 0}, \
-  \
   {-1, -1, "tvx_version", MXFT_STRING, NULL, \
 			1, {MXU_PILATUS_TVX_VERSION_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, tvx_version), \
@@ -174,8 +168,7 @@ MX_API mx_status_type mxd_pilatus_command( MX_PILATUS *pilatus,
 					char *command,
 					char *response,
 					size_t response_buffer_length,
-					unsigned long *pilatus_return_code,
-					unsigned long debug_flag );
+					unsigned long *pilatus_return_code );
 
 #endif /* __D_PILATUS_H__ */
 
