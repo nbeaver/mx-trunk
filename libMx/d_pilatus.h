@@ -32,6 +32,7 @@ typedef struct {
 
 	MX_RECORD *rs232_record;
 	unsigned long pilatus_flags;
+	unsigned long acknowledgement_interval;
 
 	double delay_time;
 	double exposure_period;
@@ -52,6 +53,8 @@ typedef struct {
 	unsigned long camserver_pid;
 
 	mx_bool_type exposure_in_progress;
+	unsigned long old_total_num_frames;
+	unsigned long old_datafile_number;
 } MX_PILATUS;
 
 #define MXLV_PILATUS_COMMAND			87801
@@ -68,6 +71,10 @@ typedef struct {
   \
   {-1, -1, "pilatus_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, pilatus_flags), \
+	{0}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
+  {-1, -1, "acknowledgement_interval", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, acknowledgement_interval), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
   {-1, -1, "delay_time", MXFT_DOUBLE, NULL, 0, {0}, \
@@ -136,9 +143,7 @@ MX_API mx_status_type mxd_pilatus_arm( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_pilatus_trigger( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_pilatus_stop( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_pilatus_abort( MX_AREA_DETECTOR *ad );
-MX_API mx_status_type mxd_pilatus_get_last_frame_number( MX_AREA_DETECTOR *ad );
-MX_API mx_status_type mxd_pilatus_get_total_num_frames( MX_AREA_DETECTOR *ad );
-MX_API mx_status_type mxd_pilatus_get_status( MX_AREA_DETECTOR *ad );
+MX_API mx_status_type mxd_pilatus_get_extended_status( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_pilatus_readout_frame( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_pilatus_correct_frame( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_pilatus_transfer_frame( MX_AREA_DETECTOR *ad );

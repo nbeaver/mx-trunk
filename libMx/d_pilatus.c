@@ -14,7 +14,9 @@
  *
  */
 
-#define MXD_PILATUS_DEBUG		TRUE
+#define MXD_PILATUS_DEBUG			TRUE
+
+#define MXD_PILATUS_DEBUG_EXTENDED_STATUS	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -52,10 +54,10 @@ mxd_pilatus_ad_function_list = {
 	NULL,
 	mxd_pilatus_stop,
 	mxd_pilatus_abort,
-	mxd_pilatus_get_last_frame_number,
-	mxd_pilatus_get_total_num_frames,
-	mxd_pilatus_get_status,
 	NULL,
+	NULL,
+	NULL,
+	mxd_pilatus_get_extended_status,
 	mxd_pilatus_readout_frame,
 	mxd_pilatus_correct_frame,
 	mxd_pilatus_transfer_frame,
@@ -183,6 +185,7 @@ mxd_pilatus_open( MX_RECORD *record )
 	MX_AREA_DETECTOR *ad = NULL;
 	MX_PILATUS *pilatus = NULL;
 	MX_RECORD_FIELD *framesize_field = NULL;
+	char command[100];
 	char response[500];
 	char *ptr;
 	size_t i, length;
@@ -375,6 +378,23 @@ mxd_pilatus_open( MX_RECORD *record )
 	pilatus->gap_time = 0.0;
 	pilatus->exposures_per_frame = 1;
 
+	/* If the 'acknowledgement_interval' field is set to a non-zero value,
+	 * then we use the 'SetAckInt' command to tell 'camserver' to send us
+	 * an acknowledgement every n-th frame.  If the field is 0, then we
+	 * send no command at all.
+	 */
+
+	if ( pilatus->acknowledgement_interval > 0 ) {
+		snprintf( command, sizeof(command),
+		"SetAckInt %lu", pilatus->acknowledgement_interval );
+
+		mx_status = mxd_pilatus_command( pilatus, command,
+					response, sizeof(response), NULL );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
 	/* Configure automatic saving or readout of image frames.
 	 *
 	 * Note: The Pilatus system automatically saves files on its own, so
@@ -566,7 +586,12 @@ mxd_pilatus_arm( MX_AREA_DETECTOR *ad )
 		"field '%s.datafile_name'.", ad->record->name );
 	}
 
-	/*---*/
+	/* Save the starting value of 'total_num_frames' so that it can be
+	 * used later by the extended_status() method.
+	 */
+
+	pilatus->old_total_num_frames = ad->total_num_frames;
+	pilatus->old_datafile_number = ad->datafile_number;
 
 	/* If we are not in external trigger mode, then we are done here. */
 
@@ -600,6 +625,12 @@ mxd_pilatus_arm( MX_AREA_DETECTOR *ad )
 			ad->record->name );
 		break;
 	}
+
+	mx_status = mxd_pilatus_command( pilatus, command,
+				response, sizeof(response), NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	pilatus->exposure_in_progress = TRUE;
 
@@ -711,59 +742,9 @@ mxd_pilatus_abort( MX_AREA_DETECTOR *ad )
 }
 
 MX_EXPORT mx_status_type
-mxd_pilatus_get_last_frame_number( MX_AREA_DETECTOR *ad )
+mxd_pilatus_get_extended_status( MX_AREA_DETECTOR *ad )
 {
-	static const char fname[] =
-		"mxd_pilatus_get_last_frame_number()";
-
-	MX_PILATUS *pilatus = NULL;
-	mx_status_type mx_status;
-
-	mx_status = mxd_pilatus_get_pointers( ad, &pilatus, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MXD_PILATUS_DEBUG
-	MX_DEBUG(-2,("%s: area detector '%s', last_frame_number = %ld",
-		fname, ad->record->name, ad->last_frame_number ));
-#endif
-
-	if ( pilatus->exposure_in_progress ) {
-		ad->last_frame_number = -1;
-	} else {
-		ad->last_frame_number = 0;
-	}
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxd_pilatus_get_total_num_frames( MX_AREA_DETECTOR *ad )
-{
-	static const char fname[] =
-		"mxd_pilatus_get_total_num_frames()";
-
-	MX_PILATUS *pilatus = NULL;
-	mx_status_type mx_status;
-
-	mx_status = mxd_pilatus_get_pointers( ad, &pilatus, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MXD_PILATUS_DEBUG
-	MX_DEBUG(-2,("%s: area detector '%s', total_num_frames = %ld",
-		fname, ad->record->name, ad->total_num_frames ));
-#endif
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxd_pilatus_get_status( MX_AREA_DETECTOR *ad )
-{
-	static const char fname[] = "mxd_pilatus_get_status()";
+	static const char fname[] = "mxd_pilatus_get_extended_status()";
 
 	MX_PILATUS *pilatus = NULL;
 	char response[80];
@@ -780,13 +761,6 @@ mxd_pilatus_get_status( MX_AREA_DETECTOR *ad )
 		fname, ad->record->name ));
 #endif
 
-#if 0
-	mx_status = mxd_pilatus_command( pilatus, "Status",
-				response, sizeof(response), NULL );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-#else
 	mx_status = mx_rs232_num_input_bytes_available( pilatus->rs232_record,
 						&num_input_bytes_available );
 
@@ -809,14 +783,127 @@ mxd_pilatus_get_status( MX_AREA_DETECTOR *ad )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
+#if 0
 		if ( strncmp( response, "7 OK", 4 ) == 0 ) {
 			if ( pilatus->exposure_in_progress ) {
 				pilatus->exposure_in_progress = FALSE;
 				ad->total_num_frames++;
 			}
 		}
-	}
+#else
+		/* We have to go to extreme lengths to get the information
+		 * that we want from the acknowledgements.
+		 */
+
+		MX_DEBUG(-2,("%s: response = '%s'", fname, response));
+
+		if ( strncmp( response, "15 OK", 5 ) == 0 ) {
+			int num_items;
+			unsigned long new_last_frame_number;
+
+			num_items = sscanf( response,
+					"15 OK img %lu",
+					&new_last_frame_number );
+
+			if ( num_items != 1 ) {
+				MX_DEBUG(-2,
+				("%s: Unexpected status 15 seen: '%s'",
+					fname, response ));
+			} else {
+				ad->last_frame_number = new_last_frame_number;
+				ad->total_num_frames =
+					pilatus->old_total_num_frames
+						+ new_last_frame_number + 1;
+			}
+		} else
+		if ( strncmp( response, "7 OK", 4 ) == 0 ) {
+			size_t prefix_length;
+			char *pattern_offset;
+
+			prefix_length = strlen( ad->datafile_directory );
+
+			/* See if we need to add a path separator that is not
+			 * already at the end of the datafile_directory string.
+			 */
+
+			if ( (ad->datafile_directory)[prefix_length-1] != '/') {
+				prefix_length++;
+			}
+
+			pattern_offset = strchr( ad->datafile_pattern, '#' );
+
+			if ( pattern_offset == NULL ) {
+				/* If there isn't a '#' pattern character in
+				 * the 'datafile_pattern' field, then only
+				 * one frame could have been taken.
+				 */
+
+				ad->last_frame_number = 0;
+				ad->total_num_frames =
+					pilatus->old_total_num_frames + 1;
+			} else {
+				size_t pattern_prefix_length;
+				char *file_number_ptr;
+				long file_number;
+				long num_frames_in_sequence;
+
+				pattern_prefix_length = pattern_offset
+						- ad->datafile_pattern;
+
+				prefix_length += pattern_prefix_length;
+
+				/* We need to add 5 more bytes for the 
+				 * '7 OK ' part of the response string.
+				 */
+
+				prefix_length += 5;
+
+				MX_DEBUG(-2,("%s: prefix_length = %lu",
+					fname, prefix_length));
+
+				/* If we add the prefix length to the
+				 * address of the response buffer, we
+				 * should get a pointer that points to
+				 * the part of the newly saved filename
+				 * that contains the number.
+				 */
+
+				file_number_ptr = response + prefix_length;
+
+				MX_DEBUG(-2,("%s: file_number_ptr = '%s'",
+					fname, file_number_ptr ));
+
+				file_number = atol( file_number_ptr );
+
+				MX_DEBUG(-2,("%s: file_number = %ld",
+					fname, file_number));
+				MX_DEBUG(-2,("%s: old_datafile_number = %lu",
+					fname, pilatus->old_datafile_number));
+
+				num_frames_in_sequence =
+			    file_number - pilatus->old_datafile_number + 1;
+
+				MX_DEBUG(-2,("%s: num_frames_in_sequence = %ld",
+					fname, num_frames_in_sequence));
+
+				ad->datafile_number = file_number;
+
+				ad->total_num_frames =
+					pilatus->old_total_num_frames
+						+ num_frames_in_sequence;
+
+				ad->last_frame_number =
+					num_frames_in_sequence - 1;
+
+				pilatus->exposure_in_progress = FALSE;
+			}
+		} else {
+			MX_DEBUG(-2,
+			("%s: Unexpected response '%s' seen for detector '%s'",
+				fname, response, ad->record->name ));
+		}
 #endif
+	}
 
 	ad->status = 0;
 
