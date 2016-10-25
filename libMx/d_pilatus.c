@@ -14,9 +14,13 @@
  *
  */
 
-#define MXD_PILATUS_DEBUG			TRUE
+#define MXD_PILATUS_DEBUG				TRUE
 
-#define MXD_PILATUS_DEBUG_EXTENDED_STATUS	TRUE
+#define MXD_PILATUS_DEBUG_EXTENDED_STATUS		FALSE
+
+#define MXD_PILATUS_DEBUG_EXTENDED_STATUS_CHANGE	TRUE
+
+#define MXD_PILATUS_DEBUG_PARAMETERS			FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -748,7 +752,7 @@ mxd_pilatus_get_extended_status( MX_AREA_DETECTOR *ad )
 
 	MX_PILATUS *pilatus = NULL;
 	char response[80];
-	unsigned long num_input_bytes_available;
+	unsigned long num_input_bytes_available, old_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pilatus_get_pointers( ad, &pilatus, fname );
@@ -756,8 +760,8 @@ mxd_pilatus_get_extended_status( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_PILATUS_DEBUG
-	MX_DEBUG( 2,("%s invoked for area detector '%s'.",
+#if MXD_PILATUS_DEBUG_EXTENDED_STATUS
+	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
 
@@ -783,19 +787,13 @@ mxd_pilatus_get_extended_status( MX_AREA_DETECTOR *ad )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-#if 0
-		if ( strncmp( response, "7 OK", 4 ) == 0 ) {
-			if ( pilatus->exposure_in_progress ) {
-				pilatus->exposure_in_progress = FALSE;
-				ad->total_num_frames++;
-			}
-		}
-#else
-		/* We have to go to extreme lengths to get the information
+		/* We have to go to extreme lengths to extract the information
 		 * that we want from the acknowledgements.
 		 */
 
+#if MXD_PILATUS_DEBUG_EXTENDED_STATUS
 		MX_DEBUG(-2,("%s: response = '%s'", fname, response));
+#endif
 
 		if ( strncmp( response, "15 OK", 5 ) == 0 ) {
 			int num_items;
@@ -806,15 +804,18 @@ mxd_pilatus_get_extended_status( MX_AREA_DETECTOR *ad )
 					&new_last_frame_number );
 
 			if ( num_items != 1 ) {
-				MX_DEBUG(-2,
-				("%s: Unexpected status 15 seen: '%s'",
-					fname, response ));
+				mx_warning(
+				"%s: Unexpected status 15 seen: '%s'",
+					fname, response );
 			} else {
 				ad->last_frame_number = new_last_frame_number;
 				ad->total_num_frames =
 					pilatus->old_total_num_frames
 						+ new_last_frame_number + 1;
 			}
+		} else
+		if ( strncmp( response, "7 ERR", 5 ) == 0 ) {
+			pilatus->exposure_in_progress = FALSE;
 		} else
 		if ( strncmp( response, "7 OK", 4 ) == 0 ) {
 			size_t prefix_length;
@@ -835,7 +836,7 @@ mxd_pilatus_get_extended_status( MX_AREA_DETECTOR *ad )
 			if ( pattern_offset == NULL ) {
 				/* If there isn't a '#' pattern character in
 				 * the 'datafile_pattern' field, then only
-				 * one frame could have been taken.
+				 * the last frame acquired will be there.
 				 */
 
 				ad->last_frame_number = 0;
@@ -858,8 +859,10 @@ mxd_pilatus_get_extended_status( MX_AREA_DETECTOR *ad )
 
 				prefix_length += 5;
 
+#if MXD_PILATUS_DEBUG_EXTENDED_STATUS
 				MX_DEBUG(-2,("%s: prefix_length = %lu",
 					fname, prefix_length));
+#endif
 
 				/* If we add the prefix length to the
 				 * address of the response buffer, we
@@ -870,21 +873,27 @@ mxd_pilatus_get_extended_status( MX_AREA_DETECTOR *ad )
 
 				file_number_ptr = response + prefix_length;
 
+#if MXD_PILATUS_DEBUG_EXTENDED_STATUS
 				MX_DEBUG(-2,("%s: file_number_ptr = '%s'",
 					fname, file_number_ptr ));
+#endif
 
 				file_number = atol( file_number_ptr );
 
+#if MXD_PILATUS_DEBUG_EXTENDED_STATUS
 				MX_DEBUG(-2,("%s: file_number = %ld",
 					fname, file_number));
 				MX_DEBUG(-2,("%s: old_datafile_number = %lu",
 					fname, pilatus->old_datafile_number));
+#endif
 
 				num_frames_in_sequence =
 			    file_number - pilatus->old_datafile_number + 1;
 
+#if MXD_PILATUS_DEBUG_EXTENDED_STATUS
 				MX_DEBUG(-2,("%s: num_frames_in_sequence = %ld",
 					fname, num_frames_in_sequence));
+#endif
 
 				ad->datafile_number = file_number;
 
@@ -898,12 +907,15 @@ mxd_pilatus_get_extended_status( MX_AREA_DETECTOR *ad )
 				pilatus->exposure_in_progress = FALSE;
 			}
 		} else {
-			MX_DEBUG(-2,
-			("%s: Unexpected response '%s' seen for detector '%s'",
-				fname, response, ad->record->name ));
+			mx_warning(
+			"%s: Unexpected response '%s' seen for detector '%s'",
+				fname, response, ad->record->name );
 		}
-#endif
 	}
+
+	old_status = ad->status;
+
+	MXW_UNUSED(old_status);
 
 	ad->status = 0;
 
@@ -911,8 +923,13 @@ mxd_pilatus_get_extended_status( MX_AREA_DETECTOR *ad )
 		ad->status |= MXSF_AD_ACQUISITION_IN_PROGRESS;
 	}
 
-#if MXD_PILATUS_DEBUG
+#if MXD_PILATUS_DEBUG_EXTENDED_STATUS
 	MX_DEBUG(-2,("%s: ad->status = %#lx", fname, ad->status));
+#elif MXD_PILATUS_DEBUG_EXTENDED_STATUS_CHANGE
+	if ( old_status != ad->status ) {
+		MX_DEBUG(-2,("****** %s: ad->status = %#lx ******",
+			fname, ad->status));
+	}
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1081,7 +1098,7 @@ mxd_pilatus_get_parameter( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_PILATUS_DEBUG
+#if MXD_PILATUS_DEBUG_PARAMETERS
 	{
 		char name_buffer[MXU_FIELD_NAME_LENGTH+1];
 
@@ -1112,7 +1129,7 @@ mxd_pilatus_get_parameter( MX_AREA_DETECTOR *ad )
 
 	case MXLV_AD_IMAGE_FORMAT:
 	case MXLV_AD_IMAGE_FORMAT_NAME:
-#if MXD_PILATUS_DEBUG
+#if MXD_PILATUS_DEBUG_PARAMETERS
 		MX_DEBUG(-2,("%s: image format = %ld, format name = '%s'",
 		    fname, ad->image_format, ad->image_format_name));
 #endif
@@ -1150,12 +1167,9 @@ mxd_pilatus_get_parameter( MX_AREA_DETECTOR *ad )
 
 	case MXLV_AD_SEQUENCE_TYPE:
 
-#if MXD_PILATUS_DEBUG
+#if MXD_PILATUS_DEBUG_PARAMETERS
 		MX_DEBUG(-2,("%s: GET sequence_type = %ld",
 			fname, ad->sequence_parameters.sequence_type));
-#endif
-
-#if MXD_PILATUS_DEBUG
 		MX_DEBUG(-2,("%s: sequence type = %ld",
 			fname, ad->sequence_parameters.sequence_type));
 #endif
@@ -1281,7 +1295,7 @@ mxd_pilatus_set_parameter( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_PILATUS_DEBUG
+#if MXD_PILATUS_DEBUG_PARAMETERS
 	{
 		char name_buffer[MXU_FIELD_NAME_LENGTH+1];
 
