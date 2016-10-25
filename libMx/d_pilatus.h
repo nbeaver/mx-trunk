@@ -33,6 +33,7 @@ typedef struct {
 	MX_RECORD *rs232_record;
 	unsigned long pilatus_flags;
 	unsigned long acknowledgement_interval;
+	char local_datafile_directory[MXU_FILENAME_LENGTH+1];
 
 	double delay_time;
 	double exposure_period;
@@ -76,6 +77,11 @@ typedef struct {
   {-1, -1, "acknowledgement_interval", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, acknowledgement_interval), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
+  {-1, -1, "local_datafile_directory", \
+			MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, local_datafile_directory), \
+	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}, \
   \
   {-1, -1, "delay_time", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, delay_time), \

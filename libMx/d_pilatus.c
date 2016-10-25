@@ -991,7 +991,9 @@ mxd_pilatus_transfer_frame( MX_AREA_DETECTOR *ad )
 			"mxd_pilatus_transfer_frame()";
 
 	MX_PILATUS *pilatus = NULL;
-	char image_filename[MXU_FILENAME_LENGTH+1];
+	char remote_image_filename[MXU_FILENAME_LENGTH+1];
+	char local_image_filename[MXU_FILENAME_LENGTH+1];
+	char *filename_ptr = NULL;
 	unsigned long flags;
 	mx_status_type mx_status;
 
@@ -1000,7 +1002,7 @@ mxd_pilatus_transfer_frame( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_PILATUS_DEBUG
+#if MXD_PILATUS_DEBUG_TRANSFER
 	MX_DEBUG(-2,("%s invoked for area detector '%s', transfer_frame = %ld.",
 		fname, ad->record->name, ad->transfer_frame ));
 #endif
@@ -1015,17 +1017,45 @@ mxd_pilatus_transfer_frame( MX_AREA_DETECTOR *ad )
 		 * by camserver.
 		 */
 
-		snprintf( image_filename, sizeof(image_filename),
-		"%s/%s", ad->datafile_directory, ad->datafile_name );
+		snprintf( remote_image_filename,
+			sizeof(remote_image_filename),
+			"%s/%s",
+			ad->datafile_directory,
+			ad->datafile_name );
 
-#if MXD_PILATUS_DEBUG
+#if MXD_PILATUS_DEBUG_TRANSFER
 		MX_DEBUG(-2,("%s: Loading Pilatus image '%s'.\n",
-			fname, image_filename ));
+			fname, remote_image_filename ));
 #endif
+		/* If the MX process is not running on the same computer
+		 * as the Pilatus 'camserver' program, then we must convert
+		 * from the remote Pilatus filename to a local filename.
+		 */
+
+		if ( strlen( pilatus->local_datafile_directory ) == 0 ) {
+			filename_ptr = remote_image_filename;
+		} else {
+			mx_status = mx_change_filename_prefix(
+					remote_image_filename,
+					ad->datafile_directory,
+					pilatus->local_datafile_directory,
+					local_image_filename,
+					sizeof(local_image_filename) );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			filename_ptr = local_image_filename;
+		}
+		
+#if MXD_PILATUS_DEBUG_TRANSFER
+		MX_DEBUG(-2,("%s: local filename = '%s'", fname, filename_ptr));
+#endif
+
 		/* For now, we assume that the image file is in TIFF format. */
 
 		mx_status = mx_image_read_tiff_file( &(ad->image_frame),
-							NULL, image_filename );
+						NULL, filename_ptr );
 
 		if (mx_status.code != MXE_SUCCESS)
 			return mx_status;

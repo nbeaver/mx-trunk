@@ -157,7 +157,8 @@ mxext_libtiff_read_tiff_file( MX_IMAGE_FRAME **image_frame,
 	static const char fname[] = "mxext_libtiff_read_tiff_file()";
 
 	TIFF *tiff = NULL;
-	uint16_t row_width, column_height, samples_per_pixel;
+	uint32_t row_width, column_height;
+	uint16_t samples_per_pixel;
 	uint16_t bits_per_sample;
 	tsize_t scanline_size_in_bytes; 
 	tdata_t scanline_buffer;
@@ -206,9 +207,11 @@ mxext_libtiff_read_tiff_file( MX_IMAGE_FRAME **image_frame,
 	if (! TIFFGetField( tiff, TIFFTAG_SAMPLESPERPIXEL,
 			&samples_per_pixel ) )
 	{
-		TIFFClose( tiff );
-		return mx_error( MXE_FUNCTION_FAILED, fname,
-		"Cannot read the SamplesPerPixel TIFF tag." );
+		/* If the image does not have a Samples/Pixel header value
+		 * such as a Pilatus image, we assume that it is 1.
+		 */
+
+		samples_per_pixel = 1;
 	}
 
 	if ( samples_per_pixel != 1 ) {
@@ -227,17 +230,22 @@ mxext_libtiff_read_tiff_file( MX_IMAGE_FRAME **image_frame,
 		"Cannot read the BitsPerSample TIFF tag." );
 	}
 
-	if ( bits_per_sample != 16 ) {
+	switch( bits_per_sample ) {
+	case 16:
+	case 32:	/* We have 16-bit and 32-bit image support here.*/
+		break;
+	default:
 		TIFFClose( tiff );
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"TIFF image '%s' has %lu bits per sample.  However, MX "
-		"currently only supports reading images with 16 bits "
+		"currently only supports reading images with 16 or 32 bits "
 		"per sample.", datafile_name, (unsigned long) bits_per_sample );
+		break;
 	}
 
 	/* Read and parse the timestamp in the TIFF image. */
 
-	if (! TIFFGetField( tiff, TIFFTAG_DATETIME, tiff_datetime_buffer ) ) {
+	if (! TIFFGetField( tiff, TIFFTAG_DATETIME, &tiff_datetime_buffer ) ) {
 		TIFFClose( tiff );
 		return mx_error( MXE_FUNCTION_FAILED, fname,
 		"Cannot read the DateTime TIFF tag." );
@@ -246,13 +254,14 @@ mxext_libtiff_read_tiff_file( MX_IMAGE_FRAME **image_frame,
 	ptr = strptime( tiff_datetime_buffer, "%Y:%m:%d %H:%M:%S", &tm_struct );
 
 	if ( ptr == NULL ) {
-		TIFFClose( tiff );
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"TIFF image '%s' does not have a DateTime timestamp.",
-			datafile_name );
-	}
+		/* If strptime() cannot parse the time returned by LibTIFF,
+		 * then just set the time to the current time.
+		 */
 
-	time_in_seconds = mktime( &tm_struct );
+		time_in_seconds = time(NULL);
+	} else {
+		time_in_seconds = mktime( &tm_struct );
+	}
 
 	/*----*/
 
@@ -261,9 +270,24 @@ mxext_libtiff_read_tiff_file( MX_IMAGE_FRAME **image_frame,
 
 	/* Create an MX_IMAGE_FRAME structure to copy the TIFF into. */
 
-	image_format = MXT_IMAGE_FORMAT_GREY16;
-	bytes_per_pixel = 2.0;
-	image_size_in_bytes = 2 * row_width * column_height;
+	switch( bits_per_sample ) {
+	case 16:
+		image_format = MXT_IMAGE_FORMAT_GREY16;
+		bytes_per_pixel = 2.0;
+		image_size_in_bytes = 2 * row_width * column_height;
+		break;
+	case 32:
+		image_format = MXT_IMAGE_FORMAT_GREY32;
+		bytes_per_pixel = 4.0;
+		image_size_in_bytes = 4 * row_width * column_height;
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Only 16-bits per sample and 32-bits per sample are "
+		"supported by MX.  But this was tested for earlier in "
+		"this function, so how did you get here?" );
+		break;
+	}
 
 	mx_status = mx_image_alloc( image_frame,
 				row_width,
