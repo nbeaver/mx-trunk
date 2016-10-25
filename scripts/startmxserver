@@ -19,6 +19,16 @@ if [ -f ${MXSERVER_CUSTOM_FILE} ]; then
 	. ${MXSERVER_CUSTOM_FILE}
 fi
 
+MXSERVER_PRELOAD_FILE=${MXDIR}/etc/mxserver.preload
+
+if [ -f ${MXSERVER_PRELOAD_FILE} ]; then
+	MXSERVER_PRELOAD="env `${MXSERVER_PRELOAD_FILE}`"
+else
+	MXSERVER_PRELOAD=""
+fi
+
+echo "MXSERVER_PRELOAD = $MXSERVER_PRELOAD"
+
 if [ x$LD_LIBRARY_PATH = x ]; then
 	LD_LIBRARY_PATH=${MXDIR}/lib
 else
@@ -41,12 +51,13 @@ export MXDIR LD_LIBRARY_PATH DYLD_LIBRARY_PATH SHLIB_PATH
 
 MXSERVER=${MXDIR}/sbin/mxserver
 
-if [ -x $MXSERVER ]; then
+if [ -x ${MXSERVER} ]; then
 	cd ${MXDIR}/run
 
 	echo $$ > ${MXDIR}/run/mxserver.pid
 
-	exec $MXSERVER -p $MXPORT -f ${MXDIR}/etc/mxserver.dat \
+	exec ${MXSERVER_PRELOAD} ${MXSERVER} -p ${MXPORT} \
+		-f ${MXDIR}/etc/mxserver.dat \
 		-C ${MXDIR}/etc/mxserver.acl $* 
 fi
 

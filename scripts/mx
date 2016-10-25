@@ -65,14 +65,6 @@ fi
 
 #---
 
-MXSERVER_PRELOAD_FILE=${MXDIR}/etc/mxserver.preload
-
-if [ -f ${MXSERVER_PRELOAD_FILE} ]; then
-	MXSERVER_PRELOAD=`cat ${MXSERVER_PRELOAD_FILE}`
-fi
-
-#---
-
 MXSERVER_OPTIONS_FILE=${MXDIR}/etc/mxserver.opt
 
 if [ -f ${MXSERVER_OPTIONS_FILE} ]; then

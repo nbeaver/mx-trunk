@@ -16,6 +16,8 @@
 
 #define MXD_PILATUS_DEBUG				TRUE
 
+#define MXD_PILATUS_DEBUG_SERIAL			TRUE
+
 #define MXD_PILATUS_DEBUG_EXTENDED_STATUS		FALSE
 
 #define MXD_PILATUS_DEBUG_EXTENDED_STATUS_CHANGE	TRUE
@@ -213,10 +215,15 @@ mxd_pilatus_open( MX_RECORD *record )
 
 #if MXD_PILATUS_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
+#endif
 
+#if MXD_PILATUS_DEBUG_SERIAL
 	pilatus->pilatus_flags |= MXF_PILATUS_DEBUG_SERIAL;
 
 	debug_serial = TRUE;
+
+	MX_DEBUG(-2,("%s: Forcing on serial debugging for detector '%s'.",
+				fname, record->name ));
 #else
 	debug_serial = FALSE;
 #endif
@@ -997,6 +1004,8 @@ mxd_pilatus_transfer_frame( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s', transfer_frame = %ld.",
 		fname, ad->record->name, ad->transfer_frame ));
 #endif
+
+	mx_breakpoint();
 
 	flags = pilatus->pilatus_flags;
 
