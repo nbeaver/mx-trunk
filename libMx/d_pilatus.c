@@ -369,7 +369,9 @@ mxd_pilatus_open( MX_RECORD *record )
 	ad->bytes_per_frame =
 	  mx_round( ad->bytes_per_pixel * ad->framesize[0] * ad->framesize[1] );
 
-	ad->image_format = MXT_IMAGE_FORMAT_GREY32;
+	ad->image_format = MXT_IMAGE_FORMAT_INT32;
+
+	ad->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
 
 	mx_status = mx_image_get_image_format_name_from_type(
 						ad->image_format,

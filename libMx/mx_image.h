@@ -37,9 +37,10 @@ extern "C" {
 
 #define MXT_IMAGE_FORMAT_GREY8			1
 #define MXT_IMAGE_FORMAT_GREY16			2
-#define MXT_IMAGE_FORMAT_GREY32			3
+#define MXT_IMAGE_FORMAT_GREY32			3	/* unsigned 32-bit */
 #define MXT_IMAGE_FORMAT_FLOAT			4
 #define MXT_IMAGE_FORMAT_DOUBLE			5
+#define MXT_IMAGE_FORMAT_INT32			6	/* signed 32-bit */
 
 #define MXT_IMAGE_FORMAT_RGB			10
 #define MXT_IMAGE_FORMAT_JPEG			11
@@ -49,12 +50,11 @@ extern "C" {
 
     /* The following are for internal MX calculations. */
 
-#define MXT_IMAGE_FORMAT_INT32			10001	/* signed integer */
 
 /*---- Datafile format definitions ----*/
 
-/* The first five datafile format numbers must match
- * the first five image format numbers.
+/* The first six datafile format numbers must match
+ * the first six image format numbers.
  */
 
 #define MXT_IMAGE_FILE_RAW_GREY8		1
@@ -62,6 +62,7 @@ extern "C" {
 #define MXT_IMAGE_FILE_RAW_GREY32		3
 #define MXT_IMAGE_FILE_RAW_FLOAT		4
 #define MXT_IMAGE_FILE_RAW_DOUBLE		5
+#define MXT_IMAGE_FILE_RAW_INT32		6
 
 #define MXT_IMAGE_FILE_PNM			10
 #define MXT_IMAGE_FILE_JPEG			11
