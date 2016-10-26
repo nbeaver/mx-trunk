@@ -277,7 +277,7 @@ mxext_libtiff_read_tiff_file( MX_IMAGE_FRAME **image_frame,
 		image_size_in_bytes = 2 * row_width * column_height;
 		break;
 	case 32:
-		image_format = MXT_IMAGE_FORMAT_GREY32;
+		image_format = MXT_IMAGE_FORMAT_INT32;
 		bytes_per_pixel = 4.0;
 		image_size_in_bytes = 4 * row_width * column_height;
 		break;

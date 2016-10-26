@@ -31,8 +31,8 @@ extern "C" {
 
 #define MXT_IMAGE_FORMAT_DEFAULT		(-1)
 
-/* The first five image format numbers must match
- * the first five datafile format numbers.
+/* The first six image format numbers must match
+ * the first six datafile format numbers.
  */
 
 #define MXT_IMAGE_FORMAT_GREY8			1

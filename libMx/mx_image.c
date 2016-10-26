@@ -263,6 +263,8 @@ static MX_IMAGE_FORMAT_ENTRY mxp_image_format_table[] =
 	{"GRAY16",  MXT_IMAGE_FORMAT_GREY16},
 	{"GRAY32",  MXT_IMAGE_FORMAT_GREY32},
 
+	{"INT32",   MXT_IMAGE_FORMAT_INT32},
+
 	{"FLOAT",   MXT_IMAGE_FORMAT_FLOAT},
 	{"DOUBLE",  MXT_IMAGE_FORMAT_DOUBLE},
 
@@ -271,7 +273,6 @@ static MX_IMAGE_FORMAT_ENTRY mxp_image_format_table[] =
 	{"RGB565",  MXT_IMAGE_FORMAT_RGB565},
 	{"YUYV",    MXT_IMAGE_FORMAT_YUYV},
 
-	{"INT32",   MXT_IMAGE_FORMAT_INT32},
 };
 
 static size_t mxp_image_format_table_length

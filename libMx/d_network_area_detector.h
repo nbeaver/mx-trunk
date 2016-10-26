@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2011, 2013, 2015 Illinois Institute of Technology
+ * Copyright 2006-2011, 2013, 2015-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -17,11 +17,17 @@
 #ifndef __D_NETWORK_AREA_DETECTOR_H__
 #define __D_NETWORK_AREA_DETECTOR_H__
 
+/* Flag bits for 'network_area_detector_flags' */
+
+#define MXF_NETWORK_AREA_DETECTOR_READ_IMAGE_LOCALLY	0x1
+
 typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *server_record;
-	char remote_record_name[ MXU_RECORD_NAME_LENGTH+1 ];
+	char remote_record_name[MXU_RECORD_NAME_LENGTH+1];
+	unsigned long network_area_detector_flags;
+	char local_datafile_directory[MXU_FILENAME_LENGTH+1];
 
 	MX_NETWORK_FIELD abort_nf;
 	MX_NETWORK_FIELD arm_nf;
@@ -120,7 +126,18 @@ typedef struct {
 					NULL, 1, {MXU_RECORD_NAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_NETWORK_AREA_DETECTOR, remote_record_name), \
-	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+  \
+  {-1, -1, "network_area_detector_flags", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+	    offsetof(MX_NETWORK_AREA_DETECTOR, network_area_detector_flags), \
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {-1, -1, "local_datafile_directory", MXFT_STRING, \
+					NULL, 1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_NETWORK_AREA_DETECTOR, local_datafile_directory), \
+	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION }
 
 MX_API mx_status_type mxd_network_area_detector_initialize_driver(
 							MX_DRIVER *driver );

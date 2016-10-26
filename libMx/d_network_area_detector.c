@@ -1167,25 +1167,142 @@ mxd_network_area_detector_correct_frame( MX_AREA_DETECTOR *ad )
 	return mx_status;
 }
 
-MX_EXPORT mx_status_type
-mxd_network_area_detector_transfer_frame( MX_AREA_DETECTOR *ad )
+/*-------------------------------------------------------------------------*/
+
+static mx_status_type
+mxp_network_ad_transfer_from_local_file( MX_AREA_DETECTOR *ad,
+					MX_NETWORK_AREA_DETECTOR *network_ad )
+{
+	static const char fname[] = "mxp_network_ad_transfer_from_local_file()";
+
+	MX_IMAGE_FRAME *destination_frame;
+	long dimension[1];
+	char server_datafile_save_format_name[MXU_IMAGE_FORMAT_NAME_LENGTH+1];
+	long server_datafile_save_format;
+	char remote_image_filename[MXU_FILENAME_LENGTH+1];
+	char local_image_filename[MXU_FILENAME_LENGTH+1];
+	char *filename_ptr;
+	mx_status_type mx_status;
+
+#if 1
+	MX_DEBUG(-2,("%s invoked for area detector '%s', transfer_frame = %ld.",
+		fname, ad->record->name, ad->transfer_frame ));
+#endif
+
+	destination_frame = *(ad->transfer_destination_frame_ptr);
+
+	if ( destination_frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The destination frame pointer for detector '%s' is NULL.",
+			ad->record->name );
+	}
+
+	/* Ask the server what file format it is currently using to save
+	 * images to disk.  If the MX server is acting as a front end to
+	 * third party software, then it should have the name of the type
+	 * of file format that the third party software is using.
+	 */
+
+	dimension[0] = MXU_IMAGE_FORMAT_NAME_LENGTH;
+
+	mx_status = mx_get_array( &(network_ad->datafile_save_format_name_nf),
+				MXFT_STRING, 1, dimension,
+				server_datafile_save_format_name );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s: server_datafile_save_format_name = '%s'",
+		fname, server_datafile_save_format_name));
+
+	mx_status = mx_image_get_file_format_type_from_name(
+				server_datafile_save_format_name,
+				&server_datafile_save_format );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/*---*/
+
+	mx_breakpoint();
+
+	/*---*/
+
+	/* Update the datafile directory and filename from the server. */
+
+	dimension[0] = MXU_FILENAME_LENGTH;
+
+	mx_status = mx_get_array( &(network_ad->datafile_directory_nf),
+				MXFT_STRING, 1, dimension,
+				&(ad->datafile_directory) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s: remote datafile_directory = '%s'",
+		fname, ad->datafile_directory));
+
+	dimension[0] = MXU_FILENAME_LENGTH;
+
+	mx_status = mx_get_array( &(network_ad->datafile_name_nf),
+				MXFT_STRING, 1, dimension,
+				&(ad->datafile_name) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s: remote datafile_name = '%s'",
+		fname, ad->datafile_name));
+
+	/*---*/
+
+	snprintf( remote_image_filename, sizeof(remote_image_filename),
+		"%s/%s", ad->datafile_directory, ad->datafile_name );
+
+	if ( strlen( network_ad->local_datafile_directory ) == 0 ) {
+		filename_ptr = remote_image_filename;
+	} else {
+		mx_status = mx_change_filename_prefix(
+				remote_image_filename,
+				ad->datafile_directory,
+				network_ad->local_datafile_directory,
+				local_image_filename,
+				sizeof(local_image_filename) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		filename_ptr = local_image_filename;
+	}
+
+	/*---*/
+
+	mx_status = mx_image_read_file( &destination_frame, NULL,
+					server_datafile_save_format,
+					filename_ptr );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s: '%s' file '%s' successfully read.",
+		fname, server_datafile_save_format_name, filename_ptr ));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+static mx_status_type
+mxp_network_ad_transfer_from_remote_server( MX_AREA_DETECTOR *ad,
+					MX_NETWORK_AREA_DETECTOR *network_ad )
 {
 	static const char fname[] =
-			"mxd_network_area_detector_transfer_frame()";
+		"mxp_network_ad_transfer_from_remote_server()";
 
-	MX_NETWORK_AREA_DETECTOR *network_area_detector = NULL;
 	MX_IMAGE_FRAME *destination_frame;
 	unsigned long local_frame_header_length, remote_frame_header_length;
 	long dimension[1];
 	mx_status_type mx_status;
-
-	network_area_detector = NULL;
-
-	mx_status = mxd_network_area_detector_get_pointers( ad,
-						&network_area_detector, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
 
 #if MXD_NETWORK_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s', transfer_frame = %ld.",
@@ -1193,9 +1310,15 @@ mxd_network_area_detector_transfer_frame( MX_AREA_DETECTOR *ad )
 #endif
 	destination_frame = *(ad->transfer_destination_frame_ptr);
 
+	if ( destination_frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The destination frame pointer for detector '%s' is NULL.",
+			ad->record->name );
+	}
+
 	/* Tell the server to copy the frame to the image frame buffer. */
 
-	mx_status = mx_put( &(network_area_detector->transfer_frame_nf),
+	mx_status = mx_put( &(network_ad->transfer_frame_nf),
 				MXFT_LONG, &(ad->transfer_frame) );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -1207,9 +1330,8 @@ mxd_network_area_detector_transfer_frame( MX_AREA_DETECTOR *ad )
 
 	/* First, we must get the length of the header. */
 
-	mx_status = mx_get(
-		&(network_area_detector->image_frame_header_length_nf),
-		MXFT_ULONG, &remote_frame_header_length );
+	mx_status = mx_get( &(network_ad->image_frame_header_length_nf),
+			MXFT_ULONG, &remote_frame_header_length );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1264,9 +1386,9 @@ mxd_network_area_detector_transfer_frame( MX_AREA_DETECTOR *ad )
 
 	dimension[0] = (long) remote_frame_header_length;
 
-	mx_status = mx_get_array(
-		&(network_area_detector->image_frame_header_nf),
-		MXFT_CHAR, 1, dimension, destination_frame->header_data );
+	mx_status = mx_get_array( &(network_ad->image_frame_header_nf),
+			MXFT_CHAR, 1, dimension,
+			destination_frame->header_data );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1344,9 +1466,9 @@ mxd_network_area_detector_transfer_frame( MX_AREA_DETECTOR *ad )
 
 	dimension[0] = (long) destination_frame->image_length;
 
-	mx_status = mx_get_array(
-			&(network_area_detector->image_frame_data_nf),
-			MXFT_CHAR, 1, dimension, destination_frame->image_data);
+	mx_status = mx_get_array( &(network_ad->image_frame_data_nf),
+				MXFT_CHAR, 1, dimension,
+				destination_frame->image_data);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1374,6 +1496,39 @@ mxd_network_area_detector_transfer_frame( MX_AREA_DETECTOR *ad )
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxd_network_area_detector_transfer_frame( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] =
+			"mxd_network_area_detector_transfer_frame()";
+
+	MX_NETWORK_AREA_DETECTOR *network_ad = NULL;
+	unsigned long flags;
+	mx_status_type mx_status;
+
+	mx_status = mxd_network_area_detector_get_pointers( ad,
+						&network_ad, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	flags = network_ad->network_area_detector_flags;
+
+	if ( flags & MXF_NETWORK_AREA_DETECTOR_READ_IMAGE_LOCALLY ) {
+		mx_status = 
+		    mxp_network_ad_transfer_from_local_file( ad, network_ad );
+	} else {
+		mx_status =
+		    mxp_network_ad_transfer_from_remote_server( ad, network_ad);
+	}
+
+	return mx_status;
+}
+
+/*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mxd_network_area_detector_load_frame( MX_AREA_DETECTOR *ad )
