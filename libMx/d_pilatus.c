@@ -1009,8 +1009,6 @@ mxd_pilatus_transfer_frame( MX_AREA_DETECTOR *ad )
 		fname, ad->record->name, ad->transfer_frame ));
 #endif
 
-	mx_breakpoint();
-
 	flags = pilatus->pilatus_flags;
 
 	if ( flags & MXF_PILATUS_LOAD_FRAME_AFTER_ACQUISITION ) {
