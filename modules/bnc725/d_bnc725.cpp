@@ -69,7 +69,7 @@ mxd_bnc725_get_pointers( MX_PULSE_GENERATOR *pulse_generator,
 {
 	static const char fname[] = "mxd_bnc725_get_pointers()";
 
-	MX_RECORD *bnc725_channel_record, *bnc725_lib_record;
+	MX_RECORD *bnc725_channel_record, *bnc725_record;
 	MX_BNC725_CHANNEL *local_bnc725_channel;
 
 	if ( pulse_generator == (MX_PULSE_GENERATOR *) NULL ) {
@@ -90,11 +90,11 @@ mxd_bnc725_get_pointers( MX_PULSE_GENERATOR *pulse_generator,
 				bnc725_channel_record->record_type_struct;
 
 	if ( bnc725_channel != (MX_BNC725_CHANNEL **) NULL ) {
-		*bnc725_channel = local_bnc725_lib_channel;
+		*bnc725_channel = local_bnc725_channel;
 	}
 
 	if ( bnc725 != (MX_BNC725 **) NULL ) {
-		bnc725_record = local_bnc725_lib_channel->bnc725_lib_record;
+		bnc725_record = local_bnc725_channel->bnc725_record;
 
 		if ( bnc725_record == (MX_RECORD *) NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -181,7 +181,7 @@ mxd_bnc725_open( MX_RECORD *record )
 	pulse_generator = (MX_PULSE_GENERATOR *) record->record_class_struct;
 
 	mx_status = mxd_bnc725_get_pointers( pulse_generator,
-				&bnc725_channel, &bnc725_lib, fname );
+				&bnc725_channel, &bnc725, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -214,7 +214,7 @@ mxd_bnc725_open( MX_RECORD *record )
 	/* Setup the vendor channel structure. */
 
 	bnc725_channel->channel =
-	    bnc725->port->GetChannel( bnc725_lib_channel->channel_name );
+	    bnc725->port->GetChannel( bnc725_channel->channel_name );
 
 	if ( bnc725_channel->channel == NULL ) {
 		return mx_error( MXE_FUNCTION_FAILED, fname,
@@ -247,7 +247,7 @@ mxd_bnc725_busy( MX_PULSE_GENERATOR *pulse_generator )
 	mx_status_type mx_status;
 
 	mx_status = mxd_bnc725_get_pointers( pulse_generator,
-				&bnc725_channel, &bnc725_lib, fname );
+				&bnc725_channel, &bnc725, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -266,7 +266,7 @@ mxd_bnc725_start( MX_PULSE_GENERATOR *pulse_generator )
 	mx_status_type mx_status;
 
 	mx_status = mxd_bnc725_get_pointers( pulse_generator,
-				&bnc725_channel, &bnc725_lib, fname );
+				&bnc725_channel, &bnc725, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -375,7 +375,7 @@ mxd_bnc725_stop( MX_PULSE_GENERATOR *pulse_generator )
 	mx_status_type mx_status;
 
 	mx_status = mxd_bnc725_get_pointers( pulse_generator,
-				&bnc725_channel, &bnc725_lib, fname );
+				&bnc725_channel, &bnc725, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -428,7 +428,7 @@ mxd_bnc725_get_parameter( MX_PULSE_GENERATOR *pulse_generator )
 	mx_status_type mx_status;
 
 	mx_status = mxd_bnc725_get_pointers( pulse_generator,
-				&bnc725_channel, &bnc725_lib, fname );
+				&bnc725_channel, &bnc725, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -473,7 +473,7 @@ mxd_bnc725_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 	mx_status_type mx_status;
 
 	mx_status = mxd_bnc725_get_pointers( pulse_generator,
-				&bnc725_channel, &bnc725_lib, fname );
+				&bnc725_channel, &bnc725, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

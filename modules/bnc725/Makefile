@@ -34,7 +34,15 @@ i_bnc725.$(OBJ): i_bnc725.cpp i_bnc725.h
 d_bnc725.$(OBJ): d_bnc725.cpp d_bnc725.h i_bnc725.h
 	$(COMPILE) $(CFLAGS) d_bnc725.cpp
 
+install: bnc725.mxo
+	-mkdir $(MX_INSTALL_DIR)/lib/modules
+	cp bnc725.mxo $(MX_INSTALL_DIR)/lib/modules
 
 clean:
 	-$(RM) *.mxo *.obj *.exp *.ilk *.lib *.pdb *.manifest
+
+distclean: clean
+
+depend:
+
 

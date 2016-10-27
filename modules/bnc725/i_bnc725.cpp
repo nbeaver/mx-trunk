@@ -73,7 +73,7 @@ mxi_bnc725_get_pointers( MX_RECORD *record,
 	}
 
 	if ( bnc725 != (MX_BNC725 **) NULL ) {
-		*bnc725 = bnc725_lib_ptr;
+		*bnc725 = bnc725_ptr;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -91,7 +91,7 @@ mxi_bnc725_create_record_structures( MX_RECORD *record )
 
 	/* Allocate memory for the necessary structures. */
 
-	bnc725 = (MX_BNC725 *) malloc( sizeof(MX_BNC725_LIB) );
+	bnc725 = (MX_BNC725 *) malloc( sizeof(MX_BNC725) );
 
 	if ( bnc725 == (MX_BNC725 *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -130,7 +130,7 @@ mxi_bnc725_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name));
 #endif
 
-	mx_status = mxi_bnc725_get_pointers( record, &bnc725_lib, fname );
+	mx_status = mxi_bnc725_get_pointers( record, &bnc725, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -235,7 +235,7 @@ mxi_bnc725_close( MX_RECORD *record )
 	int bnc_status;
 	mx_status_type mx_status;
 
-	mx_status = mxi_bnc725_get_pointers( record, &bnc725_lib, fname );
+	mx_status = mxi_bnc725_get_pointers( record, &bnc725, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
