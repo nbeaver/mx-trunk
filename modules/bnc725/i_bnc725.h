@@ -1,5 +1,5 @@
 /*
- * Name:    i_bnc725_lib.h
+ * Name:    i_bnc725.h
  *
  * Purpose: MX driver header for the vendor-provided Win32 C++ library
  *          for the BNC725 digital delay generator.
@@ -8,15 +8,15 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010-2011 Illinois Institute of Technology
+ * Copyright 2010-2011, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#ifndef __I_BNC725_LIB_H__
-#define __I_BNC725_LIB_H__
+#ifndef __I_BNC725_H__
+#define __I_BNC725_H__
 
 #ifdef __cplusplus
 
@@ -39,15 +39,15 @@ typedef struct {
 
 	CLC880 *port;
 
-} MX_BNC725_LIB;
+} MX_BNC725;
 
-#define MXI_BNC725_LIB_STANDARD_FIELDS \
+#define MXI_BNC725_STANDARD_FIELDS \
   {-1, -1, "port_name", MXFT_STRING, NULL, 1, {MXU_BNC725_PORT_NAME_LENGTH}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_BNC725_LIB, port_name), \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_BNC725, port_name), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {-1, -1, "port_speed", MXFT_ULONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_BNC725_LIB, port_speed), \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_BNC725, port_speed), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
 #endif  /* __cplusplus */
@@ -58,19 +58,19 @@ typedef struct {
 extern "C" {
 #endif
 
-MX_API mx_status_type mxi_bnc725_lib_create_record_structures(
+MX_API mx_status_type mxi_bnc725_create_record_structures(
 							MX_RECORD *record );
-MX_API mx_status_type mxi_bnc725_lib_open( MX_RECORD *record );
-MX_API mx_status_type mxi_bnc725_lib_close( MX_RECORD *record );
+MX_API mx_status_type mxi_bnc725_open( MX_RECORD *record );
+MX_API mx_status_type mxi_bnc725_close( MX_RECORD *record );
 
-extern MX_RECORD_FUNCTION_LIST mxi_bnc725_lib_record_function_list;
+extern MX_RECORD_FUNCTION_LIST mxi_bnc725_record_function_list;
 
-extern long mxi_bnc725_lib_num_record_fields;
-extern MX_RECORD_FIELD_DEFAULTS *mxi_bnc725_lib_rfield_def_ptr;
+extern long mxi_bnc725_num_record_fields;
+extern MX_RECORD_FIELD_DEFAULTS *mxi_bnc725_rfield_def_ptr;
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __I_BNC725_LIB_H__ */
+#endif /* __I_BNC725_H__ */
 

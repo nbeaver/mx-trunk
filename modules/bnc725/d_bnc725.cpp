@@ -1,5 +1,5 @@
 /*
- * Name:    d_bnc725_lib.c
+ * Name:    d_bnc725.c
  *
  * Purpose: MX pulse generator driver for a single output channel of
  *          the vendor-provided Win32 C++ library for the BNC725 
@@ -9,14 +9,14 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2010-2011 Illinois Institute of Technology
+ * Copyright 2010-2011, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXD_BNC725_LIB_DEBUG	FALSE
+#define MXD_BNC725_DEBUG	FALSE
 
 #include <stdio.h>
 #include <ctype.h>
@@ -26,51 +26,51 @@
 #include "mx_record.h"
 #include "mx_pulse_generator.h"
 
-#include "i_bnc725_lib.h"
-#include "d_bnc725_lib.h"
+#include "i_bnc725.h"
+#include "d_bnc725.h"
 
-MX_RECORD_FUNCTION_LIST mxd_bnc725_lib_record_function_list = {
+MX_RECORD_FUNCTION_LIST mxd_bnc725_record_function_list = {
 	NULL,
-	mxd_bnc725_lib_create_record_structures,
+	mxd_bnc725_create_record_structures,
 	NULL,
 	NULL,
 	NULL,
-	mxd_bnc725_lib_open
+	mxd_bnc725_open
 };
 
-MX_PULSE_GENERATOR_FUNCTION_LIST mxd_bnc725_lib_pulse_generator_function_list = {
-	mxd_bnc725_lib_busy,
-	mxd_bnc725_lib_start,
-	mxd_bnc725_lib_stop,
-	mxd_bnc725_lib_get_parameter,
-	mxd_bnc725_lib_set_parameter
+MX_PULSE_GENERATOR_FUNCTION_LIST mxd_bnc725_pulse_generator_function_list = {
+	mxd_bnc725_busy,
+	mxd_bnc725_start,
+	mxd_bnc725_stop,
+	mxd_bnc725_get_parameter,
+	mxd_bnc725_set_parameter
 };
 
-MX_RECORD_FIELD_DEFAULTS mxd_bnc725_lib_record_field_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxd_bnc725_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_PULSE_GENERATOR_STANDARD_FIELDS,
-	MXD_BNC725_LIB_STANDARD_FIELDS
+	MXD_BNC725_STANDARD_FIELDS
 };
 
-long mxd_bnc725_lib_num_record_fields
-		= sizeof( mxd_bnc725_lib_record_field_defaults )
-			/ sizeof( mxd_bnc725_lib_record_field_defaults[0] );
+long mxd_bnc725_num_record_fields
+		= sizeof( mxd_bnc725_record_field_defaults )
+			/ sizeof( mxd_bnc725_record_field_defaults[0] );
 
-MX_RECORD_FIELD_DEFAULTS *mxd_bnc725_lib_rfield_def_ptr
-			= &mxd_bnc725_lib_record_field_defaults[0];
+MX_RECORD_FIELD_DEFAULTS *mxd_bnc725_rfield_def_ptr
+			= &mxd_bnc725_record_field_defaults[0];
 
 /* --- */
 
 static mx_status_type
-mxd_bnc725_lib_get_pointers( MX_PULSE_GENERATOR *pulse_generator,
-			MX_BNC725_LIB_CHANNEL **bnc725_lib_channel,
-			MX_BNC725_LIB **bnc725_lib,
+mxd_bnc725_get_pointers( MX_PULSE_GENERATOR *pulse_generator,
+			MX_BNC725_CHANNEL **bnc725_channel,
+			MX_BNC725 **bnc725,
 			const char *calling_fname )
 {
-	static const char fname[] = "mxd_bnc725_lib_get_pointers()";
+	static const char fname[] = "mxd_bnc725_get_pointers()";
 
-	MX_RECORD *bnc725_lib_channel_record, *bnc725_lib_record;
-	MX_BNC725_LIB_CHANNEL *local_bnc725_lib_channel;
+	MX_RECORD *bnc725_channel_record, *bnc725_lib_record;
+	MX_BNC725_CHANNEL *local_bnc725_channel;
 
 	if ( pulse_generator == (MX_PULSE_GENERATOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -78,43 +78,43 @@ mxd_bnc725_lib_get_pointers( MX_PULSE_GENERATOR *pulse_generator,
 			calling_fname );
 	}
 
-	bnc725_lib_channel_record = pulse_generator->record;
+	bnc725_channel_record = pulse_generator->record;
 
-	if ( bnc725_lib_channel_record == (MX_RECORD *) NULL ) {
+	if ( bnc725_channel_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_RECORD pointer for the MX_PULSE_GENERATOR pointer "
 		"passed by '%s' is NULL.", calling_fname );
 	}
 
-	local_bnc725_lib_channel = (MX_BNC725_LIB_CHANNEL *)
-				bnc725_lib_channel_record->record_type_struct;
+	local_bnc725_channel = (MX_BNC725_CHANNEL *)
+				bnc725_channel_record->record_type_struct;
 
-	if ( bnc725_lib_channel != (MX_BNC725_LIB_CHANNEL **) NULL ) {
-		*bnc725_lib_channel = local_bnc725_lib_channel;
+	if ( bnc725_channel != (MX_BNC725_CHANNEL **) NULL ) {
+		*bnc725_channel = local_bnc725_lib_channel;
 	}
 
-	if ( bnc725_lib != (MX_BNC725_LIB **) NULL ) {
-		bnc725_lib_record = local_bnc725_lib_channel->bnc725_lib_record;
+	if ( bnc725 != (MX_BNC725 **) NULL ) {
+		bnc725_record = local_bnc725_lib_channel->bnc725_lib_record;
 
-		if ( bnc725_lib_record == (MX_RECORD *) NULL ) {
+		if ( bnc725_record == (MX_RECORD *) NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"The bnc725_lib_record pointer for "
-			"'bnc725_lib_channel' record '%s' "
+			"The bnc725_record pointer for "
+			"'bnc725_channel' record '%s' "
 			"passed by '%s' is NULL.",
-				bnc725_lib_channel_record->name,
+				bnc725_channel_record->name,
 				calling_fname );
 		}
 
-		*bnc725_lib = (MX_BNC725_LIB *)
-				bnc725_lib_record->record_type_struct;
+		*bnc725 = (MX_BNC725 *)
+				bnc725_record->record_type_struct;
 
-		if ( *bnc725_lib == (MX_BNC725_LIB *) NULL ) {
+		if ( *bnc725 == (MX_BNC725 *) NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"The MX_BNC725_LIB pointer for bnc725_lib record '%s' "
-			"used by 'bnc725_lib_channel' record '%s' "
+			"The MX_BNC725 pointer for bnc725 record '%s' "
+			"used by 'bnc725_channel' record '%s' "
 			"passed by '%s' is NULL.",
-				bnc725_lib_record->name,
-				bnc725_lib_channel_record->name,
+				bnc725_record->name,
+				bnc725_channel_record->name,
 				calling_fname );
 		}
 	}
@@ -125,12 +125,12 @@ mxd_bnc725_lib_get_pointers( MX_PULSE_GENERATOR *pulse_generator,
 /* ====== */
 
 MX_EXPORT mx_status_type
-mxd_bnc725_lib_create_record_structures( MX_RECORD *record )
+mxd_bnc725_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_bnc725_lib_create_record_structures()";
+	static const char fname[] = "mxd_bnc725_create_record_structures()";
 
 	MX_PULSE_GENERATOR *pulse_generator;
-	MX_BNC725_LIB_CHANNEL *bnc725_lib_channel = NULL;
+	MX_BNC725_CHANNEL *bnc725_channel = NULL;
 
 	pulse_generator = (MX_PULSE_GENERATOR *)
 				malloc( sizeof(MX_PULSE_GENERATOR) );
@@ -141,35 +141,35 @@ mxd_bnc725_lib_create_record_structures( MX_RECORD *record )
 		"for record '%s'.", record->name );
 	}
 
-	bnc725_lib_channel = (MX_BNC725_LIB_CHANNEL *)
-				malloc( sizeof(MX_BNC725_LIB_CHANNEL) );
+	bnc725_channel = (MX_BNC725_CHANNEL *)
+				malloc( sizeof(MX_BNC725_CHANNEL) );
 
-	if ( bnc725_lib_channel == (MX_BNC725_LIB_CHANNEL *) NULL ) {
+	if ( bnc725_channel == (MX_BNC725_CHANNEL *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Cannott allocate memory for a MX_BNC725_LIB_CHANNEL structure"
+		"Cannott allocate memory for a MX_BNC725_CHANNEL structure"
 		"for record '%s'.", record->name );
 	}
 
 	record->record_class_struct = pulse_generator;
-	record->record_type_struct = bnc725_lib_channel;
+	record->record_type_struct = bnc725_channel;
 
 	record->class_specific_function_list =
-				&mxd_bnc725_lib_pulse_generator_function_list;
+				&mxd_bnc725_pulse_generator_function_list;
 
 	pulse_generator->record = record;
-	bnc725_lib_channel->record = record;
+	bnc725_channel->record = record;
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
-mxd_bnc725_lib_open( MX_RECORD *record )
+mxd_bnc725_open( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_bnc725_lib_open()";
+	static const char fname[] = "mxd_bnc725_open()";
 
 	MX_PULSE_GENERATOR *pulse_generator;
-	MX_BNC725_LIB_CHANNEL *bnc725_lib_channel = NULL;
-	MX_BNC725_LIB *bnc725_lib = NULL;
+	MX_BNC725_CHANNEL *bnc725_channel = NULL;
+	MX_BNC725 *bnc725 = NULL;
 	int c;
 	mx_status_type mx_status;
 
@@ -180,47 +180,47 @@ mxd_bnc725_lib_open( MX_RECORD *record )
 
 	pulse_generator = (MX_PULSE_GENERATOR *) record->record_class_struct;
 
-	mx_status = mxd_bnc725_lib_get_pointers( pulse_generator,
-				&bnc725_lib_channel, &bnc725_lib, fname );
+	mx_status = mxd_bnc725_get_pointers( pulse_generator,
+				&bnc725_channel, &bnc725_lib, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_BNC725_LIB_DEBUG
+#if MXD_BNC725_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name));
 #endif
 
 	/* Force the channel name to be upper case. */
 
-	c = bnc725_lib_channel->channel_name;
+	c = bnc725_channel->channel_name;
 
 	if ( islower(c) ) {
-		bnc725_lib_channel->channel_name = (char) toupper(c);
+		bnc725_channel->channel_name = (char) toupper(c);
 	}
 
 	/* Are we configured for a legal channel name? */
 
-	if ( ( bnc725_lib_channel->channel_name < 'A' )
-	  || ( bnc725_lib_channel->channel_name > 'H' ) )
+	if ( ( bnc725_channel->channel_name < 'A' )
+	  || ( bnc725_channel->channel_name > 'H' ) )
 	{
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"Channel name '%c' for 'bnc725_lib_channel' '%s' is illegal.  "
-	"The allowed range of channel names for 'bnc725_lib' record '%s' "
+	"Channel name '%c' for 'bnc725_channel' '%s' is illegal.  "
+	"The allowed range of channel names for 'bnc725' record '%s' "
 	"is from 'A' to 'H'.",
-			bnc725_lib_channel->channel_name, record->name,
-			bnc725_lib->record->name );
+			bnc725_channel->channel_name, record->name,
+			bnc725->record->name );
 	}
 
 	/* Setup the vendor channel structure. */
 
-	bnc725_lib_channel->channel =
-	    bnc725_lib->port->GetChannel( bnc725_lib_channel->channel_name );
+	bnc725_channel->channel =
+	    bnc725->port->GetChannel( bnc725_lib_channel->channel_name );
 
-	if ( bnc725_lib_channel->channel == NULL ) {
+	if ( bnc725_channel->channel == NULL ) {
 		return mx_error( MXE_FUNCTION_FAILED, fname,
 		"The attempt to get the CChannel object for channel '%c' "
 		"of BNC725 channel '%s' failed.",
-			bnc725_lib_channel->channel_name,
+			bnc725_channel->channel_name,
 			record->name );
 	}
 
@@ -238,16 +238,16 @@ mxd_bnc725_lib_open( MX_RECORD *record )
 /*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mxd_bnc725_lib_busy( MX_PULSE_GENERATOR *pulse_generator )
+mxd_bnc725_busy( MX_PULSE_GENERATOR *pulse_generator )
 {
-	static const char fname[] = "mxd_bnc725_lib_busy()";
+	static const char fname[] = "mxd_bnc725_busy()";
 
-	MX_BNC725_LIB_CHANNEL *bnc725_lib_channel = NULL;
-	MX_BNC725_LIB *bnc725_lib = NULL;
+	MX_BNC725_CHANNEL *bnc725_channel = NULL;
+	MX_BNC725 *bnc725 = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_bnc725_lib_get_pointers( pulse_generator,
-				&bnc725_lib_channel, &bnc725_lib, fname );
+	mx_status = mxd_bnc725_get_pointers( pulse_generator,
+				&bnc725_channel, &bnc725_lib, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -256,17 +256,17 @@ mxd_bnc725_lib_busy( MX_PULSE_GENERATOR *pulse_generator )
 }
 
 MX_EXPORT mx_status_type
-mxd_bnc725_lib_start( MX_PULSE_GENERATOR *pulse_generator )
+mxd_bnc725_start( MX_PULSE_GENERATOR *pulse_generator )
 {
-	static const char fname[] = "mxd_bnc725_lib_start()";
+	static const char fname[] = "mxd_bnc725_start()";
 
-	MX_BNC725_LIB_CHANNEL *bnc725_lib_channel = NULL;
-	MX_BNC725_LIB *bnc725_lib = NULL;
+	MX_BNC725_CHANNEL *bnc725_channel = NULL;
+	MX_BNC725 *bnc725 = NULL;
 	int bnc_status;
 	mx_status_type mx_status;
 
-	mx_status = mxd_bnc725_lib_get_pointers( pulse_generator,
-				&bnc725_lib_channel, &bnc725_lib, fname );
+	mx_status = mxd_bnc725_get_pointers( pulse_generator,
+				&bnc725_channel, &bnc725_lib, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -285,7 +285,7 @@ mxd_bnc725_lib_start( MX_PULSE_GENERATOR *pulse_generator )
 					1000.0 * pulse_generator->pulse_width;
 
 		CTimingMode *old_mode =
-			bnc725_lib_channel->channel->SetTimingMode( dd );
+			bnc725_channel->channel->SetTimingMode( dd );
 
 		if ( old_mode != NULL ) {
 			delete old_mode;
@@ -326,7 +326,7 @@ mxd_bnc725_lib_start( MX_PULSE_GENERATOR *pulse_generator )
 		clock->m_ClockProp.m_dLowDur  = low_duration;
 
 		CTimingMode *old_mode =
-			bnc725_lib_channel->channel->SetTimingMode( clock );
+			bnc725_channel->channel->SetTimingMode( clock );
 
 		if ( old_mode != NULL ) {
 			delete old_mode;
@@ -341,7 +341,7 @@ mxd_bnc725_lib_start( MX_PULSE_GENERATOR *pulse_generator )
 			pulse_generator->record->name );
 	}
 
-	bnc_status = bnc725_lib_channel->channel->CheckParameters();
+	bnc_status = bnc725_channel->channel->CheckParameters();
 
 	if ( bnc_status == 0 ) {
 		return mx_error(MXE_WOULD_EXCEED_LIMIT, fname,
@@ -352,7 +352,7 @@ mxd_bnc725_lib_start( MX_PULSE_GENERATOR *pulse_generator )
 
 	/* Send the new settings to the BNC725. */
 
-	bnc_status = bnc725_lib_channel->channel->CmdSetTimingMode();
+	bnc_status = bnc725_channel->channel->CmdSetTimingMode();
 
 	if ( bnc_status == 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -365,17 +365,17 @@ mxd_bnc725_lib_start( MX_PULSE_GENERATOR *pulse_generator )
 }
 
 MX_EXPORT mx_status_type
-mxd_bnc725_lib_stop( MX_PULSE_GENERATOR *pulse_generator )
+mxd_bnc725_stop( MX_PULSE_GENERATOR *pulse_generator )
 {
-	static const char fname[] = "mxd_bnc725_lib_stop()";
+	static const char fname[] = "mxd_bnc725_stop()";
 
-	MX_BNC725_LIB_CHANNEL *bnc725_lib_channel = NULL;
-	MX_BNC725_LIB *bnc725_lib = NULL;
+	MX_BNC725_CHANNEL *bnc725_channel = NULL;
+	MX_BNC725 *bnc725 = NULL;
 	int bnc_status;
 	mx_status_type mx_status;
 
-	mx_status = mxd_bnc725_lib_get_pointers( pulse_generator,
-				&bnc725_lib_channel, &bnc725_lib, fname );
+	mx_status = mxd_bnc725_get_pointers( pulse_generator,
+				&bnc725_channel, &bnc725_lib, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -389,13 +389,13 @@ mxd_bnc725_lib_stop( MX_PULSE_GENERATOR *pulse_generator )
 	fixed->m_FixedProp.m_bHigh = 0;
 
 	CTimingMode *old_mode =
-		bnc725_lib_channel->channel->SetTimingMode( fixed );
+		bnc725_channel->channel->SetTimingMode( fixed );
 
 	if ( old_mode != NULL ) {
 		delete old_mode;
 	}
 
-	bnc_status = bnc725_lib_channel->channel->CheckParameters();
+	bnc_status = bnc725_channel->channel->CheckParameters();
 
 	if ( bnc_status == 0 ) {
 		return mx_error(MXE_WOULD_EXCEED_LIMIT, fname,
@@ -406,7 +406,7 @@ mxd_bnc725_lib_stop( MX_PULSE_GENERATOR *pulse_generator )
 
 	/* Send the new settings to the BNC725. */
 
-	bnc_status = bnc725_lib_channel->channel->CmdSetTimingMode();
+	bnc_status = bnc725_channel->channel->CmdSetTimingMode();
 
 	if ( bnc_status == 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -419,21 +419,21 @@ mxd_bnc725_lib_stop( MX_PULSE_GENERATOR *pulse_generator )
 }
 
 MX_EXPORT mx_status_type
-mxd_bnc725_lib_get_parameter( MX_PULSE_GENERATOR *pulse_generator )
+mxd_bnc725_get_parameter( MX_PULSE_GENERATOR *pulse_generator )
 {
-	static const char fname[] = "mxd_bnc725_lib_get_parameter()";
+	static const char fname[] = "mxd_bnc725_get_parameter()";
 
-	MX_BNC725_LIB_CHANNEL *bnc725_lib_channel = NULL;
-	MX_BNC725_LIB *bnc725_lib = NULL;
+	MX_BNC725_CHANNEL *bnc725_channel = NULL;
+	MX_BNC725 *bnc725 = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_bnc725_lib_get_pointers( pulse_generator,
-				&bnc725_lib_channel, &bnc725_lib, fname );
+	mx_status = mxd_bnc725_get_pointers( pulse_generator,
+				&bnc725_channel, &bnc725_lib, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_BNC725_LIB_DEBUG
+#if MXD_BNC725_DEBUG
 	MX_DEBUG(-2,
 	("%s invoked for PULSE_GENERATOR '%s', parameter type '%s' (%d)",
 		fname, pulse_generator->record->name,
@@ -456,7 +456,7 @@ mxd_bnc725_lib_get_parameter( MX_PULSE_GENERATOR *pulse_generator )
 							pulse_generator );
 	}
 
-#if MXD_BNC725_LIB_DEBUG
+#if MXD_BNC725_DEBUG
 	MX_DEBUG(-2,("%s complete.", fname));
 #endif
 
@@ -464,21 +464,21 @@ mxd_bnc725_lib_get_parameter( MX_PULSE_GENERATOR *pulse_generator )
 }
 
 MX_EXPORT mx_status_type
-mxd_bnc725_lib_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
+mxd_bnc725_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 {
-	static const char fname[] = "mxd_bnc725_lib_set_parameter()";
+	static const char fname[] = "mxd_bnc725_set_parameter()";
 
-	MX_BNC725_LIB_CHANNEL *bnc725_lib_channel = NULL;
-	MX_BNC725_LIB *bnc725_lib = NULL;
+	MX_BNC725_CHANNEL *bnc725_channel = NULL;
+	MX_BNC725 *bnc725 = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_bnc725_lib_get_pointers( pulse_generator,
-				&bnc725_lib_channel, &bnc725_lib, fname );
+	mx_status = mxd_bnc725_get_pointers( pulse_generator,
+				&bnc725_channel, &bnc725_lib, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_BNC725_LIB_DEBUG
+#if MXD_BNC725_DEBUG
 	MX_DEBUG(-2,
 	("%s invoked for PULSE_GENERATOR '%s', parameter type '%s' (%d)",
 		fname, pulse_generator->record->name,
@@ -521,7 +521,7 @@ mxd_bnc725_lib_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 							pulse_generator );
 	}
 
-#if MXD_BNC725_LIB_DEBUG
+#if MXD_BNC725_DEBUG
 	MX_DEBUG(-2,("%s complete.", fname));
 #endif
 

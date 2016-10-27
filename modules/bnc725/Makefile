@@ -1,38 +1,38 @@
 
 MX_ARCH = win32
 
-BNC_DIR = c:\\docume~1\\lavender\\bnc
+BNC_DIR = c:\\opt\\bnc
 
-all: bnc725_lib.mxo
+all: bnc725.mxo
 
 include ../../libMx/Makehead.$(MX_ARCH)
 
 CFLAGS += -I../../libMx -D__MX_LIBRARY__
 CFLAGS += -I$(BNC_DIR)
 
-BNC725_LIB_OBJS = bnc725_lib.$(OBJ) i_bnc725_lib.$(OBJ) d_bnc725_lib.$(OBJ)
+BNC725_OBJS = bnc725.$(OBJ) i_bnc725.$(OBJ) d_bnc725.$(OBJ)
 
-bnc725_lib.mxo: $(BNC725_LIB_OBJS)
-	link /dll /debug /nologo /out:bnc725_lib.mxo /nodefaultlib:libc \
-		$(BNC725_LIB_OBJS) ..\\..\\libMx\\$(MX_LIBRARY_NAME) \
+bnc725.mxo: $(BNC725_OBJS)
+	link /dll /debug /nologo /out:bnc725.mxo /nodefaultlib:libc \
+		$(BNC725_OBJS) ..\\..\\libMx\\$(MX_LIBRARY_NAME) \
 		$(BNC_DIR)\\BNC725.lib
 
 	# For VC2005 or later, embed the manifest in the module.
 
-	if test -f bnc725_lib.mxo.manifest; then \
-		$(MSMANIFEST_TOOL) -nologo -outputresource:bnc725_lib.mxo\;2 \
-			-manifest bnc725_lib.mxo.manifest ; \
-		rm -f bnc725_lib.mxo.manifest; \
+	if test -f bnc725.mxo.manifest; then \
+		$(MSMANIFEST_TOOL) -nologo -outputresource:bnc725.mxo\;2 \
+			-manifest bnc725.mxo.manifest ; \
+		rm -f bnc725.mxo.manifest; \
 	fi
 
-bnc725_lib.$(OBJ): bnc725_lib.c i_bnc725_lib.h d_bnc725_lib.h
-	$(COMPILE) $(CFLAGS) bnc725_lib.c
+bnc725.$(OBJ): bnc725.c i_bnc725.h d_bnc725.h
+	$(COMPILE) $(CFLAGS) bnc725.c
 
-i_bnc725_lib.$(OBJ): i_bnc725_lib.cpp i_bnc725_lib.h
-	$(COMPILE) $(CFLAGS) i_bnc725_lib.cpp
+i_bnc725.$(OBJ): i_bnc725.cpp i_bnc725.h
+	$(COMPILE) $(CFLAGS) i_bnc725.cpp
 
-d_bnc725_lib.$(OBJ): d_bnc725_lib.cpp d_bnc725_lib.h i_bnc725_lib.h
-	$(COMPILE) $(CFLAGS) d_bnc725_lib.cpp
+d_bnc725.$(OBJ): d_bnc725.cpp d_bnc725.h i_bnc725.h
+	$(COMPILE) $(CFLAGS) d_bnc725.cpp
 
 
 clean:
