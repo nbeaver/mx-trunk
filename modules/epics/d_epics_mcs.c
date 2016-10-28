@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2008-2011, 2014-2015 Illinois Institute of Technology
+ * Copyright 1999-2006, 2008-2011, 2014-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -601,6 +601,7 @@ mxd_epics_mcs_read_scaler( MX_MCS *mcs )
 	MX_EPICS_MCS *epics_mcs = NULL;
 	unsigned long num_measurements_from_epics;
 	int32_t read_cmd;
+	long i;
 	long *destination_ptr;
 	int32_t *data_ptr, *source_ptr;
 	size_t num_bytes_to_copy;
@@ -668,8 +669,6 @@ mxd_epics_mcs_read_scaler( MX_MCS *mcs )
 
 #if 0
 	{
-		long i;
-
 		for ( i = 0; i < num_measurements_from_epics; i++ ) {
 			fprintf(stderr,"%ld ", data_ptr[i]);
 		}
@@ -691,10 +690,16 @@ mxd_epics_mcs_read_scaler( MX_MCS *mcs )
 
 		destination_ptr = mcs->data_array[ mcs->scaler_index ];
 
-		num_bytes_to_copy
-			= mcs->current_num_measurements * sizeof(long);
+		if ( long_is_32bits ) {
+			num_bytes_to_copy
+				= mcs->current_num_measurements * sizeof(long);
 
-		memcpy( destination_ptr, source_ptr, num_bytes_to_copy );
+			memcpy( destination_ptr, source_ptr, num_bytes_to_copy);
+		} else {
+			for ( i = 0; i < num_measurements_from_epics; i++ ) {
+				destination_ptr[i] = source_ptr[i];
+			}
+		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;

@@ -32,10 +32,6 @@
 
 #define MX_EPICS_DEBUG_TIMEOUT_SETUP		FALSE
 
-/* MX_EPICS_EXPORT_KLUDGE should be left on. */
-
-#define MX_EPICS_EXPORT_KLUDGE			TRUE
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -369,9 +365,90 @@ mx_epics_show_caget_value( MX_EPICS_PV *pv,
 				calling_fname, pv->pvname,
 				(char *) data_buffer));
 		} else {
+#if 0
 			MX_DEBUG(-2,
 			("%s: multielement array read from '%s'.",
 				calling_fname, pv->pvname));
+#else
+			unsigned long i, num_to_show;
+			unsigned long max_to_show = 10;
+			char *byte_array = NULL;
+			short *short_array = NULL;
+			int32_t *int32_array = NULL;
+			float *float_array = NULL;
+			double *double_array = NULL;
+
+			if ( num_elements > max_to_show ) {
+				num_to_show = max_to_show;
+			} else {
+				num_to_show = num_elements;
+			}
+
+			fprintf( stderr, "%s: '%s' array read = ",
+				calling_fname, pv->pvname );
+
+			switch( epics_type ) {
+			case MX_CA_CHAR:
+				byte_array = (char *) data_buffer;
+
+				fprintf( stderr, "%d", byte_array[0] );
+
+				for ( i = 1; i < num_to_show; i++ ) {
+				    fprintf( stderr, ", %d", byte_array[i] );
+				}
+				break;
+			case MX_CA_SHORT:
+			case MX_CA_ENUM:
+				short_array = (short *) data_buffer;
+
+				fprintf( stderr, "%hd", short_array[0] );
+
+				for ( i = 1; i < num_to_show; i++ ) {
+				    fprintf( stderr, ", %hd", short_array[i] );
+				}
+				break;
+			case MX_CA_LONG:
+				int32_array = (int32_t *) data_buffer;
+
+				fprintf( stderr, "%ld",
+						(long) int32_array[0] );
+
+				for ( i = 1; i < num_to_show; i++ ) {
+				    fprintf( stderr, ", %ld",
+						(long) int32_array[i] );
+				}
+				break;
+			case MX_CA_FLOAT:
+				float_array = (float *) data_buffer;
+
+				fprintf( stderr, "%g", float_array[0] );
+
+				for ( i = 1; i < num_to_show; i++ ) {
+				    fprintf( stderr, ", %g", float_array[i] );
+				}
+				break;
+			case MX_CA_DOUBLE:
+				double_array = (double *) data_buffer;
+
+				fprintf( stderr, "%g", double_array[0] );
+
+				for ( i = 1; i < num_to_show; i++ ) {
+				    fprintf( stderr, ", %g", double_array[i] );
+				}
+				break;
+			default:
+				fprintf( stderr,
+				"has unsupported epics_type %ld",
+					epics_type );
+				break;
+			}
+
+			if ( num_elements > num_to_show ) {
+				fprintf( stderr, ", ...\n" );
+			} else {
+				fprintf( stderr, "\n" );
+			}
+#endif
 		}
 	} else {
 		char byte_value;
