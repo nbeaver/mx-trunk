@@ -27,8 +27,6 @@ else
 	MXSERVER_PRELOAD=""
 fi
 
-echo "MXSERVER_PRELOAD = $MXSERVER_PRELOAD"
-
 if [ x$LD_LIBRARY_PATH = x ]; then
 	LD_LIBRARY_PATH=${MXDIR}/lib
 else
