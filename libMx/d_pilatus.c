@@ -1660,7 +1660,7 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 			"The attempt to allocate a %lu byte temporary "
 			"command buffer for detector '%s' to work around "
 			"a 'camserver' bug failed.",
-				temp_command_buffer_length,
+				(unsigned long) temp_command_buffer_length,
 				pilatus->record->name );
 		}
 
