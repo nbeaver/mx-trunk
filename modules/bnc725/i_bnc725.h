@@ -28,6 +28,10 @@
 #include "Clock.h"
 #include "Null.h"
 
+/* Flag bits for the 'status' variable. */
+
+#define MXF_BNC725_ENABLED		0x1
+
 /*----*/
 
 #define MXU_BNC725_NUM_CHANNELS		8
@@ -49,6 +53,7 @@ typedef struct {
 	unsigned long status;
 
 	CLC880 *port;
+	mx_bool_type enabled;
 
 	MX_RECORD *channel_record_array[MXU_BNC725_NUM_CHANNELS];
 } MX_BNC725;

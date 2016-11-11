@@ -37,7 +37,10 @@ MX_RECORD_FUNCTION_LIST mxi_bnc725_record_function_list = {
 	NULL,
 	NULL,
 	mxi_bnc725_open,
-	mxi_bnc725_close
+	mxi_bnc725_close,
+	NULL,
+	NULL,
+	mxi_bnc725_special_processing_setup
 };
 
 MX_RECORD_FIELD_DEFAULTS mxi_bnc725_record_field_defaults[] = {
@@ -123,6 +126,8 @@ mxi_bnc725_create_record_structures( MX_RECORD *record )
 		"Ran out of memory trying to create a CLC880 port object." );
 	}
 
+	bnc725->enabled = FALSE;
+
 	memset( bnc725->channel_record_array, 0,
 		MXU_BNC725_NUM_CHANNELS * sizeof(MX_RECORD *) );
 
@@ -135,7 +140,7 @@ mxi_bnc725_open( MX_RECORD *record )
 	static const char fname[] = "mxi_bnc725_open()";
 
 	MX_BNC725 *bnc725;
-	int i, c, num_items, com_number, com_speed, status;
+	int i, c, num_items, com_number, com_speed, bnc_status;
 	mx_status_type mx_status;
 
 #if MXI_BNC725_DEBUG
@@ -210,24 +215,24 @@ mxi_bnc725_open( MX_RECORD *record )
 
 	/* Open a connection to the BNC 725 controller. */
 
-	status = bnc725->port->InitConnection( com_number, com_speed );
+	bnc_status = bnc725->port->InitConnection( com_number, com_speed );
 
-	if ( status != 0 ) {
+	if ( bnc_status != 0 ) {
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
 		"The attempt to open a connection on '%s' "
 		"to BNC725 '%s' failed.  status = %d",
 			bnc725->port_name,
-			record->name, status );
+			record->name, bnc_status );
 	}
 
 	/* Program all settings to defaults. */
 
-	status = bnc725->port->CmdUpdateAll();
+	bnc_status = bnc725->port->CmdUpdateAll();
 
-	if ( status == 0 ) {
+	if ( bnc_status == 0 ) {
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
 		"The attempt to program all settings of BNC725 '%s' failed.  "
-		"status = %d", record->name, status );
+		"status = %d", record->name, bnc_status );
 	}
 
 #if MXI_BNC725_DEBUG
@@ -266,11 +271,19 @@ mxi_bnc725_close( MX_RECORD *record )
 /*------*/
 
 MX_EXPORT mx_status_type
-mxip_bnc725_special_processing_setup( MX_RECORD *record )
+mxi_bnc725_special_processing_setup( MX_RECORD *record )
 {
+#if MXI_BNC725_DEBUG
+	static const char fname[] = "mxi_bnc725_special_processing_setup()";
+#endif
+
 	MX_RECORD_FIELD *record_field;
 	MX_RECORD_FIELD *record_field_array;
 	long i;
+
+#if MXI_BNC725_DEBUG
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	record_field_array = record->record_field_array;
 
@@ -303,6 +316,10 @@ mxip_bnc725_process_function( void *record_ptr,
 	MX_RECORD_FIELD *record_field;
 	MX_BNC725 *bnc725;
 	mx_status_type mx_status;
+
+#if MXI_BNC725_DEBUG
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	record = (MX_RECORD *) record_ptr;
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
@@ -352,11 +369,19 @@ mxip_bnc725_process_function( void *record_ptr,
 MX_EXPORT mx_status_type
 mxi_bnc725_start( MX_BNC725 *bnc725 )
 {
+#if MXI_BNC725_DEBUG
+	static const char fname[] = "mxi_bnc725_start()";
+#endif
+
 	MX_RECORD *channel_record = NULL;
 	MX_PULSE_GENERATOR *pulser = NULL;
 	MX_BNC725_CHANNEL *bnc725_channel = NULL;
 	unsigned long i;
 	mx_status_type mx_status;
+
+#if MXI_BNC725_DEBUG
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	for ( i = 0; i < MXU_BNC725_NUM_CHANNELS; i++ ) {
 		channel_record = bnc725->channel_record_array[i];
@@ -383,12 +408,45 @@ mxi_bnc725_start( MX_BNC725 *bnc725 )
 MX_EXPORT mx_status_type
 mxi_bnc725_stop( MX_BNC725 *bnc725 )
 {
+	static const char fname[] = "mxi_bnc725_stop()";
+
+	int bnc_status;
+
+#if MXI_BNC725_DEBUG
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
+
+	bnc_status = bnc725->port->CmdDisableOutputs();
+
+	if ( bnc_status != 0 ) {
+		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+		"The attempt to stop the pulsers for BNC725 '%s' failed.  "
+		"status = %d",
+			bnc725->record->name, bnc_status );
+	}
+
+	bnc725->enabled = FALSE;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
 mxi_bnc725_get_status( MX_BNC725 *bnc725 )
 {
+#if MXI_BNC725_DEBUG
+	static const char fname[] = "mxi_bnc725_get_status()";
+
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
+
+	/* FIXME: Surely we can do better than this? */
+
+	if ( bnc725->enabled ) {
+		bnc725->status = MXF_BNC725_ENABLED;
+	} else {
+		bnc725->status = 0;
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -397,7 +455,85 @@ mxip_bnc725_start_logic( MX_BNC725 *bnc725 )
 {
 	static const char fname[] = "mxip_bnc725_start_logic()";
 
+	int bnc_status;
+
+#if MXI_BNC725_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
+
+	/* Setting the global logic for the controller as a whole. */
+
+	bnc_status = bnc725->port->SetGlobalLogic( bnc725->global_logic );
+
+	if ( bnc_status != 0 ) {
+		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+		"The attempt to set the global logic to '%s' for "
+		"BNC725 '%s' failed.  status = %d",
+			bnc725->global_logic,
+			bnc725->record->name, bnc_status );
+	}
+
+	/* Disable the inputs and outputs. */
+
+	bnc_status = bnc725->port->CmdDisableOutputs();
+
+	if ( bnc_status != 0 ) {
+		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+		"The attempt to disable the inputs and outputs for "
+		"BNC725 '%s' failed.  status = %d",
+			bnc725->global_logic,
+			bnc725->record->name, bnc_status );
+	}
+
+	/* Send the new logic to the BNC725. */
+
+	bnc_status = bnc725->port->CmdTransferAllLogic();
+
+	if ( bnc_status != 0 ) {
+		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+		"The attempt to send the new logic to "
+		"BNC725 '%s' failed.  status = %d",
+			bnc725->global_logic,
+			bnc725->record->name, bnc_status );
+	}
+
+	/* Setting the timing modes. */
+
+	bnc_status = bnc725->port->CmdSetAllTimingModes();
+
+	if ( bnc_status != 0 ) {
+		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+		"The attempt to set the timing modes for "
+		"BNC725 '%s' failed.  status = %d",
+			bnc725->global_logic,
+			bnc725->record->name, bnc_status );
+	}
+
+	/* Setup the logic programming. */
+
+	bnc_status = bnc725->port->CmdImplementLogic();
+
+	if ( bnc_status != 0 ) {
+		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+		"The attempt to implement the logic for "
+		"BNC725 '%s' failed.  status = %d",
+			bnc725->global_logic,
+			bnc725->record->name, bnc_status );
+	}
+
+	/* Enable inputs and outputs. */
+
+	bnc_status = bnc725->port->CmdEnableOutputs();
+
+	if ( bnc_status != 0 ) {
+		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+		"The attempt to enable the inputs and outputs for "
+		"BNC725 '%s' failed.  status = %d",
+			bnc725->global_logic,
+			bnc725->record->name, bnc_status );
+	}
+
+	bnc725->enabled = TRUE;
 
 	return MX_SUCCESSFUL_RESULT;
 }

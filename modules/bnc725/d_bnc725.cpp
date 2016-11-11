@@ -307,9 +307,37 @@ mxd_bnc725_start( MX_PULSE_GENERATOR *pulse_generator )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxip_bnc725_start_logic( bnc725 );
+	/* Check to see if the BNC725 is already enabled and running. */
 
-	return mx_status;
+	mx_status = mxi_bnc725_get_status( bnc725 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( bnc725->status & MXF_BNC725_ENABLED ) {
+
+		/* If the BNC725 is already running, then send the
+		 * new settings to the BNC725.
+		 */
+
+		bnc_status = bnc725_channel->channel->CmdSetTimingMode();
+
+		if ( bnc_status == 0 ) {
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"The attempt to set new timing settings for "
+			"BNC725 channel '%s' failed.",
+				pulse_generator->record->name );
+		}
+	} else {
+		/* Otherwise, we must start the BNC725. */
+
+		mx_status = mxip_bnc725_start_logic( bnc725 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -402,17 +430,6 @@ mxdp_bnc725_setup_channel( MX_PULSE_GENERATOR *pulse_generator,
 			pulse_generator->record->name );
 	}
 
-	/* Send the new settings to the BNC725. */
-
-	bnc_status = bnc725_channel->channel->CmdSetTimingMode();
-
-	if ( bnc_status == 0 ) {
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"The attempt to set new delay and duration settings for "
-		"BNC725 channel '%s' failed.",
-			pulse_generator->record->name );
-	}
-
 	return mx_status;
 }
 
@@ -440,6 +457,8 @@ mxd_bnc725_stop( MX_PULSE_GENERATOR *pulse_generator )
 
 	fixed->m_FixedProp.m_bHigh = 0;
 
+	/* Send the new settings to the BNC725. */
+
 	CTimingMode *old_mode =
 		bnc725_channel->channel->SetTimingMode( fixed );
 
@@ -447,23 +466,14 @@ mxd_bnc725_stop( MX_PULSE_GENERATOR *pulse_generator )
 		delete old_mode;
 	}
 
+	/* Verify the parameters. */
+
 	bnc_status = bnc725_channel->channel->CheckParameters();
 
 	if ( bnc_status == 0 ) {
 		return mx_error(MXE_WOULD_EXCEED_LIMIT, fname,
 		"The requested delay and/or duration times for "
 		"BNC725 channel '%s' are invalid.",
-			pulse_generator->record->name );
-	}
-
-	/* Send the new settings to the BNC725. */
-
-	bnc_status = bnc725_channel->channel->CmdSetTimingMode();
-
-	if ( bnc_status == 0 ) {
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"The attempt to set new delay and duration settings for "
-		"BNC725 channel '%s' failed.",
 			pulse_generator->record->name );
 	}
 
