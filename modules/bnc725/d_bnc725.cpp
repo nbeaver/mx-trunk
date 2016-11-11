@@ -16,7 +16,7 @@
  *
  */
 
-#define MXD_BNC725_DEBUG	FALSE
+#define MXD_BNC725_DEBUG	TRUE
 
 #include <stdio.h>
 #include <ctype.h>
@@ -170,7 +170,7 @@ mxd_bnc725_open( MX_RECORD *record )
 	MX_PULSE_GENERATOR *pulse_generator;
 	MX_BNC725_CHANNEL *bnc725_channel = NULL;
 	MX_BNC725 *bnc725 = NULL;
-	int c;
+	int c, channel_index;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -211,6 +211,35 @@ mxd_bnc725_open( MX_RECORD *record )
 			bnc725->record->name );
 	}
 
+	/* Note: For the sake of the remote possibility that we are using
+	 * some character set that is not compatible with ASCII, we do the
+	 * following rather than "index = channel_name - 'A'".
+	 */
+
+	switch( bnc725_channel->channel_name ) {
+	case 'A': channel_index = 0; break;
+	case 'B': channel_index = 1; break;
+	case 'C': channel_index = 2; break;
+	case 'D': channel_index = 3; break;
+	case 'E': channel_index = 4; break;
+	case 'F': channel_index = 5; break;
+	case 'G': channel_index = 6; break;
+	case 'H': channel_index = 7; break;
+	default:
+		/* It should never be possible to get here, since we
+		 * already tested for this a few lines above.
+		 */
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"In case of Bad Wolf, press here." );
+		break;
+	}
+
+	/* Give the controller record a way of finding this channel record. */
+
+	bnc725->channel_record_array[ channel_index ] = record;
+
+	/*-----------------------------------------------------------------*/
+
 	/* Setup the vendor channel structure. */
 
 	bnc725_channel->channel =
@@ -231,6 +260,7 @@ mxd_bnc725_open( MX_RECORD *record )
 	pulse_generator->num_pulses = 0;
 	pulse_generator->pulse_delay = 0.0;
 	pulse_generator->mode = 0;
+	pulse_generator->busy = FALSE;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -271,6 +301,29 @@ mxd_bnc725_start( MX_PULSE_GENERATOR *pulse_generator )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	mx_status = mxdp_bnc725_setup_channel( pulse_generator,
+					bnc725_channel, bnc725 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxip_bnc725_start_logic( bnc725 );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxdp_bnc725_setup_channel( MX_PULSE_GENERATOR *pulse_generator,
+				MX_BNC725_CHANNEL *bnc725_channel,
+				MX_BNC725 *bnc725 )
+{
+	static const char fname[] = "mxdp_bnc725_setup_channel()";
+
+	int bnc_status;
+	mx_status_type mx_status;
+
+	mx_status = MX_SUCCESSFUL_RESULT;
+
 	pulse_generator->busy = TRUE;
 
 	if ( pulse_generator->num_pulses == 1 ) {
@@ -279,10 +332,9 @@ mxd_bnc725_start( MX_PULSE_GENERATOR *pulse_generator )
 
 		CDelayDurate *dd = new CDelayDurate();
 
-		dd->m_DlyProp.m_dDelay = 1000.0 * pulse_generator->pulse_delay;
+		dd->m_DlyProp.m_dDelay = pulse_generator->pulse_delay;
 
-		dd->m_DlyProp.m_dDuration =
-					1000.0 * pulse_generator->pulse_width;
+		dd->m_DlyProp.m_dDuration = pulse_generator->pulse_width;
 
 		CTimingMode *old_mode =
 			bnc725_channel->channel->SetTimingMode( dd );

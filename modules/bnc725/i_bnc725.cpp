@@ -25,7 +25,10 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_process.h"
+#include "mx_pulse_generator.h"
 #include "i_bnc725.h"
+#include "d_bnc725.h"
 
 MX_RECORD_FUNCTION_LIST mxi_bnc725_record_function_list = {
 	NULL,
@@ -81,6 +84,12 @@ mxi_bnc725_get_pointers( MX_RECORD *record,
 
 /*------*/
 
+static mx_status_type mxip_bnc725_process_function( void *record_ptr,
+						void *record_field_ptr,
+						int operation );
+
+/*------*/
+
 MX_EXPORT mx_status_type
 mxi_bnc725_create_record_structures( MX_RECORD *record )
 {
@@ -113,6 +122,9 @@ mxi_bnc725_create_record_structures( MX_RECORD *record )
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to create a CLC880 port object." );
 	}
+
+	memset( bnc725->channel_record_array, 0,
+		MXU_BNC725_NUM_CHANNELS * sizeof(MX_RECORD *) );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -247,6 +259,145 @@ mxi_bnc725_close( MX_RECORD *record )
 		"The attempt to close the connection to BNC725 '%s' failed.  "
 		"BNC status = %d",  record->name, bnc_status );
 	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*------*/
+
+MX_EXPORT mx_status_type
+mxip_bnc725_special_processing_setup( MX_RECORD *record )
+{
+	MX_RECORD_FIELD *record_field;
+	MX_RECORD_FIELD *record_field_array;
+	long i;
+
+	record_field_array = record->record_field_array;
+
+	for ( i = 0; i < record->num_record_fields; i++ ) {
+
+		record_field = &record_field_array[i];
+
+		switch( record_field->label_value ) {
+		case MXLV_BNC725_START:
+			record_field->process_function
+					= mxip_bnc725_process_function;
+			break;
+		default:
+			break;
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*------------------------------------------------------------------------*/
+
+static mx_status_type
+mxip_bnc725_process_function( void *record_ptr,
+			void *record_field_ptr, int operation )
+{
+	static const char fname[] = "mxip_bnc725_process_function()";
+
+	MX_RECORD *record;
+	MX_RECORD_FIELD *record_field;
+	MX_BNC725 *bnc725;
+	mx_status_type mx_status;
+
+	record = (MX_RECORD *) record_ptr;
+	record_field = (MX_RECORD_FIELD *) record_field_ptr;
+	bnc725 = (MX_BNC725 *) record->record_type_struct;
+
+	mx_status = MX_SUCCESSFUL_RESULT;
+
+	switch( operation ) {
+	case MX_PROCESS_GET:
+		switch( record_field->label_value ) {
+		default:
+			MX_DEBUG( 1,(
+			    "%s: *** Unknown MX_PROCESS_GET label value = %ld",
+				fname, record_field->label_value));
+			break;
+		}
+		break;
+	case MX_PROCESS_PUT:
+		switch( record_field->label_value ) {
+		case MXLV_BNC725_START:
+			mx_status = mxi_bnc725_start( bnc725 );
+			break;
+		case MXLV_BNC725_STOP:
+			mx_status = mxi_bnc725_stop( bnc725 );
+			break;
+		case MXLV_BNC725_STATUS:
+			mx_status = mxi_bnc725_get_status( bnc725 );
+			break;
+		default:
+			MX_DEBUG( 1,(
+			    "%s: *** Unknown MX_PROCESS_PUT label value = %ld",
+				fname, record_field->label_value));
+			break;
+		}
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Unknown operation code = %d", operation );
+		break;
+	}
+
+	return mx_status;
+}
+
+/*------*/
+
+MX_EXPORT mx_status_type
+mxi_bnc725_start( MX_BNC725 *bnc725 )
+{
+	MX_RECORD *channel_record = NULL;
+	MX_PULSE_GENERATOR *pulser = NULL;
+	MX_BNC725_CHANNEL *bnc725_channel = NULL;
+	unsigned long i;
+	mx_status_type mx_status;
+
+	for ( i = 0; i < MXU_BNC725_NUM_CHANNELS; i++ ) {
+		channel_record = bnc725->channel_record_array[i];
+
+		if ( channel_record != (MX_RECORD *) NULL ) {
+			pulser = (MX_PULSE_GENERATOR *)
+				channel_record->record_class_struct;
+			bnc725_channel = (MX_BNC725_CHANNEL *)
+				channel_record->record_type_struct;
+
+			mx_status = mxdp_bnc725_setup_channel( pulser,
+						bnc725_channel, bnc725 );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+	}
+
+	mx_status = mxip_bnc725_start_logic( bnc725 );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxi_bnc725_stop( MX_BNC725 *bnc725 )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxi_bnc725_get_status( MX_BNC725 *bnc725 )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxip_bnc725_start_logic( MX_BNC725 *bnc725 )
+{
+	static const char fname[] = "mxip_bnc725_start_logic()";
+
+	MX_DEBUG(-2,("%s invoked.", fname));
 
 	return MX_SUCCESSFUL_RESULT;
 }
