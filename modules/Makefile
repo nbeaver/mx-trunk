@@ -55,14 +55,14 @@ all: build
 
 #MODULES += xia_handel		# linux, win32
 
-#MODULES += xineos_gige		# linux, win32
+MODULES += xineos_gige		# linux, win32
 
 #-------------------------------------------------------------------
 # Linux-only modules.
 
-#MODULES += aravis
+MODULES += aravis
 
-#MODULES += dalsa_gev
+MODULES += dalsa_gev
 
 #MODULES += linux_portio
 
@@ -73,7 +73,7 @@ all: build
 #-------------------------------------------------------------------
 # Win32-only modules.
 
-MODULES += bnc725
+#MODULES += bnc725
 
 #MODULES += driverlinx_portio
 
@@ -100,11 +100,11 @@ MODULES += bnc725
 #-------------------------------------------------------------------
 # EPICS modules.
 
-#MODULES += epics
+MODULES += epics
 
-#MODULES += epics_aps 
+MODULES += epics_aps 
 
-#MODULES += epics_pmac_biocat
+MODULES += epics_pmac_biocat
 
 #MODULES += epics_mbc
 

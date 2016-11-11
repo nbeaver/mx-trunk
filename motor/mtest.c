@@ -22,6 +22,7 @@
 #include "mx_io.h"
 #include "mx_vm_alloc.h"
 #include "mx_net_interface.h"
+#include "mx_callback.h"
 
 int
 motor_test_fn( int argc, char *argv[] )
@@ -245,6 +246,33 @@ motor_test_fn( int argc, char *argv[] )
 			}
 #endif
 			return SUCCESS;
+		}
+
+		else
+		if ( strcmp( argv[2], "process" ) == 0 ) {
+			MX_LIST_HEAD *list_head = NULL;
+
+			mx_info( "Manually processing callbacks." );
+
+			list_head = mx_get_record_list_head_struct(
+						motor_record_list );
+
+			if ( list_head == (MX_LIST_HEAD *) NULL ) {
+				fprintf( output, "motor_record_list does not "
+				"have an MX_LIST_HEAD pointer!!!  "
+				"This should never happen!!!\n" );
+
+				abort();
+			}
+
+			mx_status = mx_process_callbacks( motor_record_list,
+					list_head->callback_pipe );
+
+			if ( mx_status.code == MXE_SUCCESS ) {
+				return SUCCESS;
+			} else {
+				return FAILURE;
+			}
 		}
 	}
 
