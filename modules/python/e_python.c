@@ -658,7 +658,8 @@ mxext_python_call( MX_EXTENSION *extension,
 	 * passed to the main() function as its second argument.
 	 */
 
-	strlcpy( main_command, "main( mx_database, ["
+	strlcpy( main_command, "try:\n"
+				"  main( mx_database, ["
 				, sizeof(main_command) );
 
 	if ( argc > 1 ) {
@@ -675,7 +676,9 @@ mxext_python_call( MX_EXTENSION *extension,
 		strlcat( main_command, temp_buffer, sizeof(main_command) );
 	}
 
-	strlcat( main_command, " ] )", sizeof(main_command) );
+	strlcat( main_command, " ] )\n"
+				"except:\n"
+				"  pass\n", sizeof(main_command) );
 
 #if PYTHON_MODULE_DEBUG_CALL
 	MX_DEBUG(-2,("%s: main_command = '%s'", fname, main_command));
@@ -685,30 +688,6 @@ mxext_python_call( MX_EXTENSION *extension,
 			Py_single_input, py_ext->py_dict, py_ext->py_dict );
 
 	if ( result == NULL ) {
-#if 1
-		PyErr_Print();
-#else
-		PyObject *py_exception;
-		PyObject *py_traceback;
-		PyObject *py_str;
-		char *py_string;
-
-		py_exception = PyErr_Occurred();
-
-		py_traceback = PyObject_GetAttrString( py_exception,
-							"traceback" );
-
-		py_str = PyObject_Str( py_traceback );
-
-		py_string = PyString_AsString( py_str );
-
-		MX_DEBUG(-2,("%s: traceback = '%s'", fname, py_string));
-
-#if 0
-		Py_DECREF(py_traceback);
-#endif
-#endif
-
 		return mx_error( MXE_FUNCTION_FAILED, fname,
 		"The main() function from the script '%s' failed.",
 			(char *) argv[0] );
