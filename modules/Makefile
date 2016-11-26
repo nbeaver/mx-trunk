@@ -15,7 +15,7 @@ all: build
 #-------------------------------------------------------------------
 # Multiplatform modules.
 
-#MODULES += aviex_pccd		# linux, win32
+MODULES += aviex_pccd		# linux, win32
 
 #MODULES += avt_pvapi		# linux,
 
@@ -25,7 +25,7 @@ all: build
 
 #MODULES += edt			# linux,
 
-#MODULES += epix_xclib		# linux, win32
+MODULES += epix_xclib		# linux, win32
 
 #MODULES += esone_camac		# linux, win32
 
@@ -55,14 +55,14 @@ MODULES += python		# (Warning: not yet finished)
 
 #MODULES += xia_handel		# linux, win32
 
-MODULES += xineos_gige		# linux, win32
+#MODULES += xineos_gige		# linux, win32
 
 #-------------------------------------------------------------------
 # Linux-only modules.
 
-MODULES += aravis
+#MODULES += aravis
 
-MODULES += dalsa_gev
+#MODULES += dalsa_gev
 
 #MODULES += linux_portio
 

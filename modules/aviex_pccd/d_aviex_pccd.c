@@ -1403,7 +1403,7 @@ mxp_aviex_pccd_monitor_callback_function(MX_CALLBACK_MESSAGE *callback_message)
 	aviex_pccd    = monitor->aviex_pccd;
 
 	/* Call get_extended_status to make sure that the detector
-	 * status is update.  For example, this will make sure that
+	 * status is updated.  For example, this will make sure that
 	 * sequences are terminated in a timely fashion.
 	 */
 
@@ -2960,6 +2960,39 @@ mxd_aviex_pccd_get_extended_status( MX_AREA_DETECTOR *ad )
 
 	if ( aviex_pccd->buffer_overrun ) {
 		ad->status |= MXSF_AD_BUFFER_OVERRUN;
+	}
+
+	if ( ( aviex_pccd->aviex_pccd_type == MXT_AD_PCCD_9785 )
+	  && ( ad->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER )
+	  && ( aviex_pccd->sequence_in_progress ) )
+	{
+		/* If the PCCD-9785 is in external trigger mode, then it
+		 * does not automatically figure out that the requested
+		 * number of frames have been taken.  Instead, it keeps on
+		 * taking frames until you stop it.  So we must check for
+		 * this condition and then stop it manually.
+		 */
+
+		long expected_num_frames;
+
+		mx_status = mx_sequence_get_num_frames(
+					&(ad->sequence_parameters),
+					&expected_num_frames );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( (last_frame_number + 1) >= expected_num_frames ) {
+#if 1
+			MX_DEBUG(-2,("%s: manually stopping.", fname));
+#endif
+			mx_status = mxd_aviex_pccd_stop( ad );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			aviex_pccd->sequence_in_progress = FALSE;
+		}
 	}
 
 	if ( aviex_pccd->sequence_in_progress ) {
