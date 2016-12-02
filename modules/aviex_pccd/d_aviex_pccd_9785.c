@@ -18,6 +18,7 @@
 #define MXD_AVIEX_PCCD_9785_DEBUG			FALSE
 #define MXD_AVIEX_PCCD_9785_DEBUG_DESCRAMBLING_TIMES	FALSE
 #define MXD_AVIEX_PCCD_9785_DEBUG_SEQUENCE_TIMES	FALSE
+#define MXD_AVIEX_PCCD_9785_DEBUG_SET_TRIGGER_MODE	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -524,6 +525,9 @@ mxd_aviex_pccd_9785_set_trigger_mode( MX_AVIEX_PCCD *aviex_pccd,
 				mx_bool_type external_trigger,
 				mx_bool_type edge_trigger )
 {
+#if MXD_AVIEX_PCCD_9785_DEBUG_SET_TRIGGER_MODE
+	static const char fname[] = "mxd_aviex_pccd_9785_set_trigger_mode()";
+#endif
 	unsigned long control_register_value;
 	mx_status_type mx_status;
 
@@ -534,13 +538,35 @@ mxd_aviex_pccd_9785_set_trigger_mode( MX_AVIEX_PCCD *aviex_pccd,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( external_trigger ) {
-		control_register_value
-			|= MXF_AVIEX_PCCD_9785_EXTERNAL_TRIGGER;
-	} else {
+#if MXD_AVIEX_PCCD_9785_DEBUG_SET_TRIGGER_MODE
+	MX_DEBUG(-2,("%s: external_trigger = %d, edge_trigger = %d",
+		fname, (int) external_trigger, (int) edge_trigger));
+	MX_DEBUG(-2,("%s: OLD control register value is %#lx",
+		fname, control_register_value));
+#endif
+
+	if ( external_trigger == FALSE ) {
 		control_register_value
 			&= (~MXF_AVIEX_PCCD_9785_EXTERNAL_TRIGGER);
+		control_register_value
+			&= (~MXF_AVIEX_PCCD_9785_EXTERNAL_DURATION_TRIGGER);
+	} else {
+		control_register_value
+			|= MXF_AVIEX_PCCD_9785_EXTERNAL_TRIGGER;
+
+		if ( edge_trigger ) {
+		    control_register_value
+			&= (~MXF_AVIEX_PCCD_9785_EXTERNAL_DURATION_TRIGGER);
+		} else {
+		    control_register_value
+			|= MXF_AVIEX_PCCD_9785_EXTERNAL_DURATION_TRIGGER;
+	    }
 	}
+
+#if MXD_AVIEX_PCCD_9785_DEBUG_SET_TRIGGER_MODE
+	MX_DEBUG(-2,("%s: NEW control register value is %#lx",
+		fname, control_register_value));
+#endif
 
 	mx_status = mxd_aviex_pccd_write_register( aviex_pccd,
 					MXLV_AVIEX_PCCD_9785_DH_CONTROL,
@@ -825,12 +851,16 @@ mxd_aviex_pccd_9785_configure_for_sequence( MX_AREA_DETECTOR *ad,
 
 	new_control_register_value = old_control_register_value;
 
+#if 0
+	/* WML - This is better done in the _arm() function. */
+
 	/* Mask off the duration bit, since it is only used
 	 * by MXT_SQ_DURATION sequences.
 	 */
 
 	new_control_register_value
 		&= (~MXF_AVIEX_PCCD_9785_EXTERNAL_DURATION_TRIGGER);
+#endif
 
 	switch( sp->sequence_type ) {
 	case MXT_SQ_ONE_SHOT:
@@ -839,12 +869,16 @@ mxd_aviex_pccd_9785_configure_for_sequence( MX_AREA_DETECTOR *ad,
 	case MXT_SQ_STROBE:
 	case MXT_SQ_DURATION:
 
+#if 0
+		/* WML - This is better done in the _arm() function. */
+
 		/* If this is duration mode, turn on the duration bit. */
 
 		if ( sp->sequence_type == MXT_SQ_DURATION ) {
 			new_control_register_value
 		    |= MXF_AVIEX_PCCD_9785_EXTERNAL_DURATION_TRIGGER;
 		}
+#endif
 
 		/* Get the detector readout time. */
 
