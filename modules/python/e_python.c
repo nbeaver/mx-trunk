@@ -619,8 +619,10 @@ mxext_python_call( MX_EXTENSION *extension,
 	char del_command[80];
 #endif
 	char execfile_command[MXU_FILENAME_LENGTH+20];
+#if 0
 	char temp_buffer[500];
 	char main_command[1000];
+#endif
 	char full_filename[MXU_FILENAME_LENGTH+1];
 	unsigned long script_flags;
 	int match_found;
@@ -630,7 +632,12 @@ mxext_python_call( MX_EXTENSION *extension,
 
 	MX_PYTHON_EXTENSION_PRIVATE *py_ext = NULL;
 	PyObject *result = NULL;
-	PyObject *main_object = NULL;
+	PyObject *main_function = NULL;
+
+	PyObject *main_tuple = NULL;
+	PyObject *argv_tuple = NULL;
+	PyObject *argv_item = NULL;
+	PyObject *main_result = NULL;
 
 	mx_status_type mx_status;
 
@@ -734,6 +741,8 @@ mxext_python_call( MX_EXTENSION *extension,
 	result = PyRun_String( execfile_command,
 			Py_single_input, py_ext->py_dict, py_ext->py_dict );
 
+	MX_DEBUG(-2,("%s: after execfile()", fname));
+
 	if ( result == NULL ) {
 		PyErr_Print();
 
@@ -749,9 +758,9 @@ mxext_python_call( MX_EXTENSION *extension,
 
 	/* Did the script create a main() function? */
 
-	main_object = PyDict_GetItemString( py_ext->py_dict, "main" );
+	main_function = PyDict_GetItemString( py_ext->py_dict, "main" );
 
-	if ( main_object == NULL ) {
+	if ( main_function == NULL ) {
 		/* No it did not, so return. */
 
 #if PYTHON_MODULE_DEBUG_CALL
@@ -763,7 +772,7 @@ mxext_python_call( MX_EXTENSION *extension,
 
 	/* Is the main object a function? */
 
-	if ( PyFunction_Check(main_object) == FALSE ) {
+	if ( PyFunction_Check(main_function) == FALSE ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	    "The script '%s' contains a 'main' object which is not a function.",
 			script_filename );
@@ -771,54 +780,94 @@ mxext_python_call( MX_EXTENSION *extension,
 
 	/*---------------------------------------------------------------*/
 
-	/* Construct a string representation of a Python command that
-	 * invokes the script's 'main()' function with the MX database
-	 * object as the first argument.  The contents of the 'argv'
-	 * array is represented as a Python list of strings that is
-	 * passed to the main() function as its second argument.
+	/* Create a tuple to contain the argv tuple for the main()
+	 * function call.
 	 */
 
-	strlcpy( main_command, "main( mx_database, [" , sizeof(main_command) );
+	argv_tuple = PyTuple_New( argc - 1 );
 
-	if ( argc > 1 ) {
-		snprintf( temp_buffer, sizeof(temp_buffer),
-			" \"%s\"", (char *) argv[1] );
+	if ( argv_tuple == NULL ) {
+		MX_DEBUG(-2,
+		("%s: PyTuple_New() for argv_tuple failed.", fname));
 
-		strlcat( main_command, temp_buffer, sizeof(main_command) );
+		PyErr_Print();
+
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"Creating argv_tuple failed." );
 	}
 
-	for ( i = 2; i < argc; i++ ) {
-		snprintf( temp_buffer, sizeof(temp_buffer),
-			", \"%s\"", (char *) argv[i] );
+	/* Fill the tuple with strings from the argv array. */
 
-		strlcat( main_command, temp_buffer, sizeof(main_command) );
+	for ( i = 1; i < argc; i++ ) {
+		MX_DEBUG(-2,
+		("%s: tuple[%d] = '%s'", fname, i-1, (char *)argv[i]));
+
+		argv_item = PyString_FromString( argv[i] );
+
+		if ( argv_item == NULL ) {
+			MX_DEBUG(-2,
+			("%s: PyString_FromString[ ... %d ... } failed.",
+				fname, i ));
+
+			return mx_error( MXE_UNKNOWN_ERROR,
+				fname, "PyString_FromString() failed." );
+		}
+
+		PyTuple_SET_ITEM( argv_tuple, i - 1, argv_item );
 	}
 
-	strlcat( main_command, " ] )\n", sizeof(main_command) );
+	fprintf( stderr, "argv_tuple = " );
+	PyObject_Str( argv_tuple );
+	fprintf( stderr, "\n" );
 
-#if PYTHON_MODULE_DEBUG_CALL
-	MX_DEBUG(-2,("%s: main_command = '%s'", fname, main_command));
-#endif
-	mx_breakpoint();
+	/* Create the top level tuple for the call to main. */
 
-	result = PyRun_String( main_command,
-			Py_single_input, py_ext->py_dict, py_ext->py_dict );
+	main_tuple = PyTuple_New( 2 );
 
-	if ( result == NULL ) {
-		PyObject *exception_type = NULL;
+	if ( main_tuple == NULL ) {
+		MX_DEBUG(-2,
+		("%s: PyTuple_New() for main_tuple failed.", fname));
 
-		mx_info( "Running main caused an exception." );
+		PyErr_Print();
 
-		exception_type = PyErr_Occurred();
-
-		mxext_python_show_exception_type( exception_type );
-
-		return mx_error( MXE_FUNCTION_FAILED, fname,
-		"The main() function from the script '%s' failed.",
-			(char *) argv[0] );
-	} else {
-		Py_DECREF( result );
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"Creating main_tuple failed." );
 	}
+
+	Py_INCREF( main_function );
+	Py_INCREF( py_ext->py_record_list );
+
+	PyTuple_SET_ITEM( main_tuple, 0, py_ext->py_record_list );
+	PyTuple_SET_ITEM( main_tuple, 1, argv_tuple );
+
+	/* Now call the function. */
+
+	main_result = PyObject_CallObject( main_function, main_tuple );
+
+	if ( main_result == NULL ) {
+		/* An error occurred, so tell the world about it. */
+
+		MX_DEBUG(-2,("%s: The call to main() failed.", fname));
+
+		PyErr_Print();
+
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"The call to main() failed." );
+	}
+
+	/* Get rid of the members of argv_tuple. */
+
+	for ( i = 1; i < argc; i++ ) {
+		argv_item = PyTuple_GET_ITEM( argv_tuple, i - 1 );
+
+		Py_DECREF(argv_item);
+	}
+
+	/* */
+
+	Py_DECREF( argv_tuple );
+	Py_DECREF( main_tuple );
+	Py_DECREF( main_function );
 
 	return MX_SUCCESSFUL_RESULT;
 }
