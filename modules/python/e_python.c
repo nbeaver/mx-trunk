@@ -62,6 +62,114 @@ mxext_python_find_record_list_object(
 
 /*------*/
 
+extern void
+mxext_python_show_exception_type( PyObject *exception_type );
+
+void
+mxext_python_show_exception_type( PyObject *exception_type )
+{
+	static const char fname[] = "mxext_python_show_exception_type()";
+
+	MX_DEBUG(-2,("%s: exception_type = %p", fname, exception_type));
+
+	if ( exception_type == PyExc_BaseException ) {
+		MX_DEBUG(-2,("%s: PyExc_BaseException", fname));
+	} else
+	if ( exception_type == PyExc_Exception ) {
+		MX_DEBUG(-2,("%s: PyExc_Exception", fname));
+	} else
+	if ( exception_type == PyExc_StandardError ) {
+		MX_DEBUG(-2,("%s: PyExc_StandardError", fname));
+	} else
+	if ( exception_type == PyExc_ArithmeticError ) {
+		MX_DEBUG(-2,("%s: PyExc_ArithmeticError", fname));
+	} else
+	if ( exception_type == PyExc_LookupError ) {
+		MX_DEBUG(-2,("%s: PyExc_LookupError", fname));
+	} else
+	if ( exception_type == PyExc_AssertionError ) {
+		MX_DEBUG(-2,("%s: PyExc_AssertionError", fname));
+	} else
+	if ( exception_type == PyExc_AttributeError ) {
+		MX_DEBUG(-2,("%s: PyExc_AttributeError", fname));
+	} else
+	if ( exception_type == PyExc_EOFError ) {
+		MX_DEBUG(-2,("%s: PyExc_EOFError", fname));
+	} else
+	if ( exception_type == PyExc_EnvironmentError ) {
+		MX_DEBUG(-2,("%s: PyExc_EnvironmentError", fname));
+	} else
+	if ( exception_type == PyExc_FloatingPointError ) {
+		MX_DEBUG(-2,("%s: PyExc_FloatingPointError", fname));
+	} else
+	if ( exception_type == PyExc_IOError ) {
+		MX_DEBUG(-2,("%s: PyExc_IOError", fname));
+	} else
+	if ( exception_type == PyExc_ImportError ) {
+		MX_DEBUG(-2,("%s: PyExc_ImportError", fname));
+	} else
+	if ( exception_type == PyExc_IndexError ) {
+		MX_DEBUG(-2,("%s: PyExc_IndexError", fname));
+	} else
+	if ( exception_type == PyExc_KeyError ) {
+		MX_DEBUG(-2,("%s: PyExc_KeyError", fname));
+	} else
+	if ( exception_type == PyExc_KeyboardInterrupt ) {
+		MX_DEBUG(-2,("%s: PyExc_KeyboardInterrupt", fname));
+	} else
+	if ( exception_type == PyExc_MemoryError ) {
+		MX_DEBUG(-2,("%s: PyExc_MemoryError", fname));
+	} else
+	if ( exception_type == PyExc_NameError ) {
+		MX_DEBUG(-2,("%s: PyExc_NameError", fname));
+	} else
+	if ( exception_type == PyExc_NotImplementedError ) {
+		MX_DEBUG(-2,("%s: PyExc_NotImplementedError", fname));
+	} else
+	if ( exception_type == PyExc_OSError ) {
+		MX_DEBUG(-2,("%s: PyExc_OSError", fname));
+	} else
+	if ( exception_type == PyExc_OverflowError ) {
+		MX_DEBUG(-2,("%s: PyExc_OverflowError", fname));
+	} else
+	if ( exception_type == PyExc_ReferenceError ) {
+		MX_DEBUG(-2,("%s: PyExc_ReferenceError", fname));
+	} else
+	if ( exception_type == PyExc_RuntimeError ) {
+		MX_DEBUG(-2,("%s: PyExc_RuntimeError", fname));
+	} else
+	if ( exception_type == PyExc_SyntaxError ) {
+		MX_DEBUG(-2,("%s: PyExc_SyntaxError", fname));
+	} else
+	if ( exception_type == PyExc_SystemError ) {
+		MX_DEBUG(-2,("%s: PyExc_SystemError", fname));
+	} else
+	if ( exception_type == PyExc_SystemExit ) {
+		MX_DEBUG(-2,("%s: PyExc_SystemExit", fname));
+	} else
+	if ( exception_type == PyExc_TypeError ) {
+		MX_DEBUG(-2,("%s: PyExc_TypeError", fname));
+	} else
+	if ( exception_type == PyExc_ValueError ) {
+		MX_DEBUG(-2,("%s: PyExc_ValueError", fname));
+	} else
+
+#if defined(OS_WIN32)
+	if ( exception_type == PyExc_WindowsError ) {
+		MX_DEBUG(-2,("%s: PyExc_WindowsError", fname));
+	} else
+#endif
+
+	if ( exception_type == PyExc_ZeroDivisionError ) {
+		MX_DEBUG(-2,("%s: PyExc_ZeroDivisionError", fname));
+	} else {
+		MX_DEBUG(-2,("%s: unrecognized error = %p",
+			fname, exception_type));
+	}
+}
+
+/*------*/
+
 static mx_status_type
 mxext_python_create_record_list_object(
 				MX_PYTHON_EXTENSION_PRIVATE *py_ext,
@@ -413,9 +521,6 @@ mxext_python_initialize( MX_EXTENSION *extension )
 
 	MX_DEBUG(-2,("%s: MARKER 6", fname));
 
-	/* If currently there is no default script extension, then set
-	 * 'python' to be the default script extension.
-	 */
 	mx_status = mx_dynamic_library_open( NULL, &main_executable, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -510,13 +615,18 @@ mxext_python_call( MX_EXTENSION *extension,
 	MX_RECORD *mx_database = NULL;
 	int i;
 	char *script_filename = NULL;
+#if 0
 	char del_command[80];
+#endif
 	char execfile_command[MXU_FILENAME_LENGTH+20];
 	char temp_buffer[500];
 	char main_command[1000];
 	char full_filename[MXU_FILENAME_LENGTH+1];
 	unsigned long script_flags;
 	int match_found;
+#if 0
+	int python_status;
+#endif
 
 	MX_PYTHON_EXTENSION_PRIVATE *py_ext = NULL;
 	PyObject *result = NULL;
@@ -556,6 +666,7 @@ mxext_python_call( MX_EXTENSION *extension,
 	}
 #endif
 
+#if 0
 	/* Get rid of any preexisting main() function, since
 	 * the script we are invoking may provide one.
 	 */
@@ -575,7 +686,10 @@ mxext_python_call( MX_EXTENSION *extension,
 
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
 		"Running the script '%s' failed.", (char *) argv[0] );
+	} else {
+		Py_DECREF( result );
 	}
+#endif
 
 	/*---------------------------------------------------------------*/
 
@@ -625,6 +739,8 @@ mxext_python_call( MX_EXTENSION *extension,
 
 		return mx_error( MXE_FUNCTION_FAILED, fname,
 		"Running the script '%s' failed.", script_filename );
+	} else {
+		Py_DECREF( result );
 	}
 
 	full_filename[0] = '\0';
@@ -638,6 +754,10 @@ mxext_python_call( MX_EXTENSION *extension,
 	if ( main_object == NULL ) {
 		/* No it did not, so return. */
 
+#if PYTHON_MODULE_DEBUG_CALL
+		MX_DEBUG(-2,
+		("%s: No main() function found.  Returning.", fname));
+#endif
 		return MX_SUCCESSFUL_RESULT;
 	}
 
@@ -658,9 +778,7 @@ mxext_python_call( MX_EXTENSION *extension,
 	 * passed to the main() function as its second argument.
 	 */
 
-	strlcpy( main_command, "try:\n"
-				"  main( mx_database, ["
-				, sizeof(main_command) );
+	strlcpy( main_command, "main( mx_database, [" , sizeof(main_command) );
 
 	if ( argc > 1 ) {
 		snprintf( temp_buffer, sizeof(temp_buffer),
@@ -676,21 +794,30 @@ mxext_python_call( MX_EXTENSION *extension,
 		strlcat( main_command, temp_buffer, sizeof(main_command) );
 	}
 
-	strlcat( main_command, " ] )\n"
-				"except:\n"
-				"  pass\n", sizeof(main_command) );
+	strlcat( main_command, " ] )\n", sizeof(main_command) );
 
 #if PYTHON_MODULE_DEBUG_CALL
 	MX_DEBUG(-2,("%s: main_command = '%s'", fname, main_command));
 #endif
+	mx_breakpoint();
 
 	result = PyRun_String( main_command,
 			Py_single_input, py_ext->py_dict, py_ext->py_dict );
 
 	if ( result == NULL ) {
+		PyObject *exception_type = NULL;
+
+		mx_info( "Running main caused an exception." );
+
+		exception_type = PyErr_Occurred();
+
+		mxext_python_show_exception_type( exception_type );
+
 		return mx_error( MXE_FUNCTION_FAILED, fname,
 		"The main() function from the script '%s' failed.",
 			(char *) argv[0] );
+	} else {
+		Py_DECREF( result );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
