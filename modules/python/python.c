@@ -11,7 +11,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2014-2015 Illinois Institute of Technology
+ * Copyright 2014-2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -38,7 +38,7 @@ MX_EXTENSION mxext_python_extension_table[] = {
 static mx_bool_type
 python_driver_init( MX_MODULE *module )
 {
-#if 0
+#if 1
 	static const char fname[] = "python_driver_init()";
 
 	MX_DEBUG(-2,("%s invoked for module '%s'", fname, module->name));

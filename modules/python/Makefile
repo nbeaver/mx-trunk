@@ -14,13 +14,18 @@ endif
 
 ifeq ($(MX_ARCH),win32)
 
-PYTHON_DIR = c:/python27
+pyversion := $(shell ../../tools/mx_config python versions | cut -f1)
+pyinstall := $(shell ../../tools/mx_config python install_path ${pyversion})
+pyinclude := $(shell ../../tools/mx_config python include ${pyversion})
+pylibrary := $(shell ../../tools/mx_config python library ${pyversion})
 
-PYTHON_DIR = c:\\python27
+#$(info $$pyversion is [${pyversion}])
+#$(info $$pyinstall is [${pyinstall}])
+#$(info $$pyinclude is [${pyinclude}])
+#$(info $$pylibrary is [${pylibrary}])
 
-PYTHON_INCLUDES = $(PYTHON_DIR)\\include
-
-PYTHON_LIBRARY = $(PYTHON_DIR)\\libs\\python27.lib
+PYTHON_INCLUDES := ${pyinclude}
+PYTHON_LIBRARY  := ${pylibrary}
 
 CFLAGS += -DHAVE_SNPRINTF
 

@@ -297,6 +297,8 @@ mx_load_module( char *filename, MX_RECORD *record_list, MX_MODULE **module )
 
 			extension->record_list = record_list;
 
+			extension->module = module_ptr;
+
 			flist = extension->extension_function_list;
 
 			if ( flist != (MX_EXTENSION_FUNCTION_LIST *) NULL ) {

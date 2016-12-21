@@ -26,6 +26,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_unistd.h"
 #include "mx_module.h"
 #include "e_python.h"
 
@@ -34,6 +35,49 @@ MX_EXTENSION_FUNCTION_LIST mxext_python_extension_function_list = {
 	mxext_python_finalize,
 	mxext_python_call
 };
+
+/*------*/
+
+static mx_status_type
+mxext_python_print_debug( PyObject *object,
+			const char *calling_fname,
+			int flags )
+{
+	static const char fname[] = "mxext_python_print_debug()";
+
+	PyObject *object_description = NULL;
+	char *object_string = NULL;
+
+	if ( object == (PyObject *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, calling_fname,
+		"%s was called with object == NULL", fname );
+	}
+
+	if ( flags & Py_PRINT_RAW ) {
+		object_description = PyObject_Str( object );
+	} else {
+		object_description = PyObject_Repr( object );
+	}
+
+	if ( object_description == (PyObject *) NULL ) {
+		return mx_error( MXE_FUNCTION_FAILED, calling_fname,
+	    "%s:The attempt to get a description of Python object %p failed.",
+			fname, object );
+	}
+
+	object_string = PyString_AsString( object_description );
+
+	if ( object_string == (char *) NULL ) {
+		return mx_error( MXE_FUNCTION_FAILED, calling_fname,
+		"%s: The attempt to convert the description %p "
+		"of Python object %p failed.",
+			fname, object_description, object_string );
+	}
+
+	MX_DEBUG(-2,("%s", object_string));
+
+	return MX_SUCCESSFUL_RESULT;
+}
 
 /*------*/
 
@@ -50,7 +94,7 @@ mxext_python_find_record_list_object(
 #endif
 
 	fprintf( stderr, "The py_ext->py_main object is " );
-	PyObject_Print( py_ext->py_main, stderr, 0 );
+	mxext_python_print_debug( py_ext->py_main, fname, 0 );
 	fprintf( stderr, "\n" );
 
 #if PYTHON_MODULE_DEBUG_CAPSULE
@@ -206,7 +250,7 @@ mxext_python_create_record_list_object(
 #if PYTHON_MODULE_DEBUG_CAPSULE
 	fprintf( stderr, "The class object is " );
 
-	PyObject_Print( record_list_class_object, stderr, 0 );
+	mxext_python_print_debug( record_list_class_object, fname, 0 );
 
 	fprintf( stderr, "\n" );
 #endif
@@ -305,7 +349,7 @@ mxext_python_initialize( MX_EXTENSION *extension )
 	}
 
 	py_ext = (MX_PYTHON_EXTENSION_PRIVATE *)
-			malloc( sizeof(MX_PYTHON_EXTENSION_PRIVATE) );
+			calloc( 1, sizeof(MX_PYTHON_EXTENSION_PRIVATE) );
 
 	if ( py_ext == (MX_PYTHON_EXTENSION_PRIVATE *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -439,7 +483,7 @@ mxext_python_initialize( MX_EXTENSION *extension )
 #if PYTHON_MODULE_DEBUG_CAPSULE
 	fprintf( stderr, "mx_database_capsule = " );
 
-	PyObject_Print( mx_database_capsule, stderr, 0 );
+	mxext_python_print_debug( mx_database_capsule, fname, 0 );
 
 	fprintf( stderr, "\n" );
 #endif
@@ -453,6 +497,9 @@ mxext_python_initialize( MX_EXTENSION *extension )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	MX_DEBUG(-2,("%s: existing record_class_instance = %p",
+		fname, record_list_class_instance));
 
 	/* If necessary, create a new MX database instance. */
 
@@ -474,7 +521,7 @@ mxext_python_initialize( MX_EXTENSION *extension )
 #if PYTHON_MODULE_DEBUG_CAPSULE
 	fprintf( stderr, "The instance object is " );
 
-	PyObject_Print( py_ext->py_record_list, stderr, 0 );
+	mxext_python_print_debug( py_ext->py_record_list, fname, 0 );
 
 	fprintf( stderr, "\n" );
 #endif
@@ -673,31 +720,6 @@ mxext_python_call( MX_EXTENSION *extension,
 	}
 #endif
 
-#if 0
-	/* Get rid of any preexisting main() function, since
-	 * the script we are invoking may provide one.
-	 */
-
-	strlcpy( del_command,
-			"try:\n"
-			"  del main\n"
-			"except:\n"
-			"  pass\n",
-		sizeof(del_command) );
-
-	result = PyRun_String( del_command,
-			Py_single_input, py_ext->py_dict, py_ext->py_dict );
-
-	if ( result == NULL ) {
-		PyErr_Print();
-
-		return mx_error( MXE_UNKNOWN_ERROR, fname,
-		"Running the script '%s' failed.", (char *) argv[0] );
-	} else {
-		Py_DECREF( result );
-	}
-#endif
-
 	/*---------------------------------------------------------------*/
 
 	/* The first argument in argv should be the name of the external
@@ -817,11 +839,11 @@ mxext_python_call( MX_EXTENSION *extension,
 	}
 
 	fprintf( stderr, "argv_tuple = " );
-	PyObject_Str( argv_tuple );
+	mxext_python_print_debug( argv_tuple, fname, Py_PRINT_RAW );
 	fprintf( stderr, "\n" );
 
-	/* Create the top level tuple for the call to main. */
 
+	/* Create the top level tuple for the call to main. */
 	main_tuple = PyTuple_New( 2 );
 
 	if ( main_tuple == NULL ) {
