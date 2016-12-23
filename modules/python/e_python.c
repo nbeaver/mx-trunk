@@ -317,9 +317,7 @@ mxext_python_initialize( MX_EXTENSION *extension )
 
 	MX_RECORD *mx_database = NULL;
 	MX_LIST_HEAD *list_head = NULL;
-	MX_DYNAMIC_LIBRARY *main_executable = NULL;
 	MX_EXTENSION *default_extension = NULL;
-	void *motor_record_list_ptr = NULL;
 	mx_status_type mx_status;
 
 	MX_PYTHON_EXTENSION_PRIVATE *py_ext = NULL;
@@ -543,8 +541,6 @@ mxext_python_initialize( MX_EXTENSION *extension )
 
 	/*----------------------------------------------------------------*/
 
-	MX_DEBUG(-2,("%s: MARKER 5", fname));
-
 	/* If currently there is no default script extension, then set
 	 * 'python' to be the default script extension.
 	 */
@@ -555,39 +551,36 @@ mxext_python_initialize( MX_EXTENSION *extension )
 		mx_set_default_script_extension( extension );
 	}
 
+#if PYTHON_MODULE_DEBUG_INITIALIZE
+	default_extension = mx_get_default_script_extension();
+
+	MX_DEBUG(-2,("%s: default script extension = '%s'",
+		fname, default_extension->name ));
+#endif
+
 	/*----------------------------------------------------------------*/
 
 	/* Are we running in the context of the 'mxmotor' process?
 	 *
-	 * We find out by searching for the 'motor_record_list' pointer
-	 * in the executable that contains main().  We can get an
-	 * MX_DYNAMIC_LIBRARY handle that refers to the main() executable
-	 * by passing NULL as the filename in a call to the function
-	 * mx_dynamic_library_open().
+	 * 'mxmotor' saves its name in 'list_head->program_name',
+	 * so we look there.
 	 */
 
-	MX_DEBUG(-2,("%s: MARKER 6", fname));
+#if PYTHON_MODULE_DEBUG_INITIALIZE
+	MX_DEBUG(-2,("%s: Existing list_head->program_name = '%s'",
+		fname, list_head->program_name));
+#endif
 
-	mx_status = mx_dynamic_library_open( NULL, &main_executable, 0 );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	MX_DEBUG(-2,("%s: MARKER 7", fname));
-
-	motor_record_list_ptr =
-		mx_dynamic_library_get_symbol_pointer( main_executable,
-							"motor_record_list" );
-
-	MX_DEBUG(-2,("%s: motor_record_list_ptr = %p",
-		fname, motor_record_list_ptr));
-
-	if ( motor_record_list_ptr == NULL ) {
+	if ( strcmp( list_head->program_name, "mxmotor" ) != 0 ) {
 
 		/* We are _not_ running in the 'mxmotor' process,
 		 * so we are done now.
 		 */
 
+#if PYTHON_MODULE_DEBUG_INITIALIZE
+		MX_DEBUG(-2,
+		("%s: This process is NOT 'mxmotor'.  Returning now.", fname ));
+#endif
 		return MX_SUCCESSFUL_RESULT;
 	}
 
@@ -596,7 +589,11 @@ mxext_python_initialize( MX_EXTENSION *extension )
 	 * In that case, try to load the 'MpMtr' module.
 	 */
 
-#if 0
+#if PYTHON_MODULE_DEBUG_INITIALIZE
+	MX_DEBUG(-2,("%s: Attempting to import MpMtr.", fname));
+#endif
+
+#if 1
 	result = PyRun_String( "import MpMtr",
 			Py_single_input, py_ext->py_dict, py_ext->py_dict );
 
@@ -605,6 +602,10 @@ mxext_python_initialize( MX_EXTENSION *extension )
 
 		mx_warning( "Could not load the 'MpMtr' Python module "
 			"for mxmotor.  We will continue without it." );
+	} else {
+#if PYTHON_MODULE_DEBUG_INITIALIZE
+		MX_DEBUG(-2,("%s: MpMtr imported.", fname));
+#endif
 	}
 #endif
 
