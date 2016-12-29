@@ -27,7 +27,7 @@
 #  if defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__)
 #     if (__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ >= 101200)
 #        define MX_MACOSX_HAVE_STDATOMIC
-#     elif (__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ >= 10400)
+#     elif (__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ >= 1040)
 #        define MX_MACOSX_HAVE_OSATOMIC
 #     else
 #        error Peculiar version of MacOS X 10.3 or before used.
