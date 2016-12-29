@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2009, 2011-2012, 2014 Illinois Institute of Technology
+ * Copyright 2009, 2011-2012, 2014, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,11 +24,21 @@
 /*---*/
 
 #if defined(OS_MACOSX)
-#  include <AvailabilityMacros.h>
+#  if defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__)
+#     if (__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ >= 101200)
+#        define MX_MACOSX_HAVE_STDATOMIC
+#     elif (__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ >= 10400)
+#        define MX_MACOSX_HAVE_OSATOMIC
+#     else
+#        error Peculiar version of MacOS X 10.3 or before used.
+#     endif
+#  else
+#     include <AvailabilityMacros.h>
 
-#  if defined(MAC_OS_X_VERSION_10_4) && \
+#     if defined(MAC_OS_X_VERSION_10_4) && \
 		(MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_4)
-#     define MX_HAVE_OSATOMIC
+#        define MX_MACOSX_HAVE_OSATOMIC
+#     endif
 #  endif
 #endif
 
@@ -205,7 +215,74 @@ mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
 
 /*------------------------------------------------------------------------*/
 
-#elif defined(OS_MACOSX) && defined(MX_HAVE_OSATOMIC)
+#elif defined(OS_MACOSX) 
+
+/*-----*/
+
+#  if defined(MX_MACOSX_HAVE_STDATOMIC)
+
+/* For MacOS x 10.12 and above (or macOS if you insist). */
+
+#define MXP_NEED_GENERIC_WRITE32	TRUE
+
+static MX_MUTEX *mxp_atomic_write32_mutex = NULL;
+
+#include <stdatomic.h>
+#include <libkern/OSAtomic.h>
+
+MX_EXPORT void
+mx_atomic_initialize( void )
+{
+	(void) mx_mutex_create( &mxp_atomic_write32_mutex );
+}
+
+/*---*/
+
+MX_EXPORT int32_t
+mx_atomic_add32( int32_t *value_ptr, int32_t increment )
+{
+	int32_t old_value, new_value;
+
+	old_value = atomic_fetch_add((_Atomic int32_t*) value_ptr, increment );
+
+	new_value = old_value + increment;
+
+	return new_value;
+}
+
+MX_EXPORT int32_t
+mx_atomic_decrement32( int32_t *value_ptr )
+{
+	int32_t old_value, new_value;
+
+	old_value = atomic_fetch_sub((_Atomic int32_t*) value_ptr, 1 );
+
+	new_value = old_value - 1;
+
+	return new_value;
+}
+
+MX_EXPORT int32_t
+mx_atomic_increment32( int32_t *value_ptr )
+{
+	int32_t old_value, new_value;
+
+	old_value = atomic_fetch_add((_Atomic int32_t*) value_ptr, 1 );
+
+	new_value = old_value + 1;
+
+	return new_value;
+}
+
+MX_EXPORT int32_t
+mx_atomic_read32( int32_t *value_ptr )
+{
+	return atomic_fetch_add( (_Atomic int32_t*) value_ptr, 0 );
+}
+
+/*-----*/
+
+#  elif defined(MX_MACOSX_HAVE_OSATOMIC)
 
 /* For MacOS X 10.4 and above. */
 
@@ -246,6 +323,10 @@ mx_atomic_read32( int32_t *value_ptr )
 {
 	return OSAtomicAdd32Barrier( 0, value_ptr );
 }
+
+#  endif
+
+/*-----*/
 
 /*------------------------------------------------------------------------*/
 

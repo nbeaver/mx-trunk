@@ -298,6 +298,8 @@ mxd_mar345_putline( MX_MAR345 *mar345,
 	int file_status, saved_errno;
 	mx_status_type mx_status;
 
+	mx_status = MX_SUCCESSFUL_RESULT;
+
 	if ( mar345 == (MX_MAR345 *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_MAR345 pointer passed was NULL." );
