@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005-2007, 2010-2011, 2013, 2015-2016
+ * Copyright 2005-2007, 2010-2011, 2013, 2015-2017
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -84,10 +84,10 @@ mx_thread_get_pointers( MX_THREAD *thread,
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 
-static HANDLE
-mx_get_current_thread_handle( void )
+MX_EXPORT void *
+mx_win32_get_current_thread_handle( void )
 {
-	static const char fname[] = "mx_get_current_thread_handle()";
+	static const char fname[] = "mx_win32_get_current_thread_handle()";
 
 	HANDLE process_pseudo_handle;
 	HANDLE thread_pseudo_handle, thread_real_handle;
@@ -148,7 +148,7 @@ mx_win32_thread_get_handle_and_id( MX_THREAD *thread )
 
 	thread_private->thread_id = GetCurrentThreadId();
 
-	thread_private->thread_handle = mx_get_current_thread_handle();
+	thread_private->thread_handle = mx_win32_get_current_thread_handle();
 
 	if ( thread_private->thread_handle == NULL ) {
 		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,

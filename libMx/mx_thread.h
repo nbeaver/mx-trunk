@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005, 2007 Illinois Institute of Technology
+ * Copyright 2005, 2007, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -104,6 +104,14 @@ MX_API mx_status_type mx_tls_set_value( MX_THREAD_LOCAL_STORAGE *key,
 /*---*/
 
 #if defined(OS_WIN32)
+
+/* Note: mx_win32_get_current_thread_handle() returns a void pointer
+ *       instead of a HANDLE so that Win32 versions of MX can include
+ *       "mx_thread.h" without being required to include <windows.h>.
+ */
+
+MX_API void *mx_win32_get_current_thread_handle( void );
+
 MX_API mx_status_type mx_win32_thread_get_handle_and_id( MX_THREAD *thread );
 #endif
 

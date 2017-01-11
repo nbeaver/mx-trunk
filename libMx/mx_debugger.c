@@ -829,9 +829,90 @@ mx_get_numbered_breakpoint( unsigned long breakpoint_number )
 
 #if defined(OS_WIN32)
 
+/*---*/
+
 static mx_status_type
-mxp_win32_watchpoint_spectator( MX_THREAD *thread, void *args )
+mxp_win32_set_watchpoint_spectator( MX_THREAD *thread, void *args )
 {
+	static const char fname[] = "mxp_win32_set_watchpoint_spectator()";
+
+	MX_WATCHPOINT *watchpoint = NULL;
+	HANDLE parent_thread_handle;
+	CONTEXT parent_context;
+	long last_error_code;
+	TCHAR error_message[100];
+	BOOL os_status;
+	DWORD64 dr7_bits;
+	int debug_reg_index;
+	size_t value_length;
+	void * value_pointer;
+
+	watchpoint = (MX_WATCHPOINT *) args;
+
+	parent_thread_handle = watchpoint->watchpoint_private;
+
+	value_length = 
+		mx_get_scalar_element_size( watchpoint->value_datatype, FALSE );
+
+	/* We are only interested in the debug registers. */
+
+	parent_context.ContextFlags = CONTEXT_DEBUG_REGISTERS;
+
+	os_status = GetThreadContext( parent_thread_handle, &parent_context );
+
+	if ( os_status == 0 ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+					error_message,
+					sizeof(error_message) );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to call GetThreadContext() for parent "
+		"thread handle %p failed.  "
+		"Win32 error code = %ld, error message = '%s'.",
+			parent_thread_handle,
+			last_error_code,
+			error_message );
+	}
+
+	for ( debug_reg_index = 0; debug_reg_index < 4; debug_reg_index++ ) {
+
+		/* We only can use local breakpoints, since global breakpoints
+		 * are global to the _entire_ _computer_ and not just the
+		 * entire process.  However, we must test for both local and
+		 * global breakpoints just in case Windows itself is using
+		 * them.
+		 */
+
+		dr7_bits = 0x3 >> ( debug_reg_index * 2 );
+
+		if ( ( parent_context.Dr7 & dr7_bits ) == 0 ) {
+
+			/* This debug_reg_index is available. */
+			break;
+		}
+	}
+
+	if ( debug_reg_index >= 4 ) {
+		return mx_error( MXE_NOT_AVAILABLE, fname,
+		"Cannot set watchpoint %p since all hardware watchpoints "
+		"are already in use.", watchpoint );
+	}
+
+	/* select the address to watch. */
+
+	value_pointer = watchpoint->value_pointer;
+
+	switch( debug_reg_index ) {
+	case 0: parent_context.Dr0 = (DWORD) value_pointer; break;
+	case 1: parent_context.Dr1 = (DWORD) value_pointer; break;
+	case 2: parent_context.Dr2 = (DWORD) value_pointer; break;
+	case 3: parent_context.Dr3 = (DWORD) value_pointer; break;
+	}
+
+	/* FIXME: Not yet complete. */
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -848,8 +929,8 @@ mx_set_watchpoint( MX_WATCHPOINT *watchpoint,
 	static const char fname[] = "mx_set_watchpoint()";
 
 	MX_THREAD *spectator_thread = NULL;
-	size_t value_length;
-	mx_status_type mx_status;
+	double timeout_seconds;
+	mx_status_type mx_status; 
 
 	if ( watchpoint == (MX_WATCHPOINT *) NULL ) {
 		return FALSE;
@@ -859,15 +940,16 @@ mx_set_watchpoint( MX_WATCHPOINT *watchpoint,
 	}
 
 	watchpoint->value_pointer = value_pointer;
-
-	value_length = mx_get_scalar_element_size( value_datatype );
-
 	watchpoint->value_datatype = value_datatype;
 	watchpoint->flags = flags;
 	watchpoint->callback_function = callback_function;
 	watchpoint->callback_arguments = callback_arguments;
 
-	watchpoint->watchpoint_private = NULL;
+	watchpoint->watchpoint_private = mx_win32_get_current_thread_handle();
+
+	if ( watchpoint->watchpoint_private == NULL ) {
+		return FALSE;
+	}
 
 	/* SetThreadContext() only works correctly if the thread it
 	 * is applied to is suspended at the time.  In order to obey
@@ -878,11 +960,19 @@ mx_set_watchpoint( MX_WATCHPOINT *watchpoint,
 	 */
 
 	mx_status = mx_thread_create( &spectator_thread,
-					mxp_win32_watchpoint_spectator,
+					mxp_win32_set_watchpoint_spectator,
 					watchpoint );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return FALSE;
+
+	timeout_seconds = 30.0;
+
+	mx_status = mx_thread_wait( spectator_thread, NULL, timeout_seconds );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		return FALSE;
+	}
 
 	return TRUE;
 }
