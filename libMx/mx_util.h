@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 1999-2016 Illinois Institute of Technology
+ * Copyright 1999-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -506,6 +506,39 @@ MX_API void mx_set_numbered_breakpoint( unsigned long breakpoint_number,
 					int breakpoint_enable );
 
 MX_API int mx_get_numbered_breakpoint( unsigned long breakpoint_number );
+
+/* Watchpoints (also known as data breakpoints) are used to interrupt the
+ * flow of execution when a user specified range of addresses is either
+ * read/written/executed depending on the access flags supplied when 
+ * the watchpoint is initially set.
+ */
+
+typedef struct mx_watchpoint_type{
+	void *value_pointer;
+	long value_datatype;
+	unsigned long flags;
+	void *callback_function;
+	void *callback_arguments;
+
+	void *watchpoint_private;
+
+	/* The following is a place to store the old value found at
+	 * the watchpoint.  This assumes that the value to be stored
+	 * is not longer than 8 bytes (64 bits).  The truth of this
+	 * assumption is tested by a preprocessor define in the
+	 * file mx_debugger.c.
+	 */
+	unsigned char old_value[8];
+} MX_WATCHPOINT;
+
+MX_API int mx_set_watchpoint( MX_WATCHPOINT *watchpoint,
+			void *value_pointer,
+			long value_datatype,
+			unsigned long flags,
+			void *callback_function( MX_WATCHPOINT *, void * ),
+			void *callback_arguments );
+
+MX_API int mx_clear_watchpoint( MX_WATCHPOINT *watchpoint );
 
 /*
  * mx_set_debugger_started_flag() provides a way to directly set the internal

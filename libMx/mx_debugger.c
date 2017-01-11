@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2015 Illinois Institute of Technology
+ * Copyright 1999-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -31,6 +31,7 @@
 #include "mx_util.h"
 #include "mx_unistd.h"
 #include "mx_stdint.h"
+#include "mx_thread.h"
 
 #if ( defined(OS_WIN32) && (_WIN32_WINNT >= 0x0400) ) || defined(OS_MACOSX)
 #  define USE_MX_DEBUGGER_IS_PRESENT	TRUE
@@ -813,6 +814,107 @@ mx_get_numbered_breakpoint( unsigned long breakpoint_number )
 
 	return result;
 }
+
+/*-------------------------------------------------------------------------*/
+
+/* Verify that the largest watchpoint value is 64 bits or less.  In doing this,
+ * we _assume_ that 'double' values are 64 bits (i.e. IEEE floating point).
+ *
+ * Regrettably, ANSI C does not let you use sizeof() in a preprocessor macro.
+ */
+
+#if ( UINTMAX_MAX > 0xFFFFFFFFFFFFFFFF )
+#  error The maximum integer size is greater than 64 bits.  This will require enlarging the old_value field of MX_WATCHPOINT in libMx/mx_util.h
+#endif
+
+#if defined(OS_WIN32)
+
+static mx_status_type
+mxp_win32_watchpoint_spectator( MX_THREAD *thread, void *args )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
+MX_EXPORT int
+mx_set_watchpoint( MX_WATCHPOINT *watchpoint,
+		void *value_pointer,
+		long value_datatype,
+		unsigned long flags,
+		void *callback_function( MX_WATCHPOINT *, void * ),
+		void *callback_arguments )
+{
+	static const char fname[] = "mx_set_watchpoint()";
+
+	MX_THREAD *spectator_thread = NULL;
+	size_t value_length;
+	mx_status_type mx_status;
+
+	if ( watchpoint == (MX_WATCHPOINT *) NULL ) {
+		return FALSE;
+	}
+	if ( value_pointer == NULL ) {
+		return FALSE;
+	}
+
+	watchpoint->value_pointer = value_pointer;
+
+	value_length = mx_get_scalar_element_size( value_datatype );
+
+	watchpoint->value_datatype = value_datatype;
+	watchpoint->flags = flags;
+	watchpoint->callback_function = callback_function;
+	watchpoint->callback_arguments = callback_arguments;
+
+	watchpoint->watchpoint_private = NULL;
+
+	/* SetThreadContext() only works correctly if the thread it
+	 * is applied to is suspended at the time.  In order to obey
+	 * this restriction, we create a 'spectator thread' which will
+	 * suspend the thread that mx_set_watchpoint() is running in
+	 * and then resume that thread after its Win32 CONTEXT
+	 * structure has been updated.
+	 */
+
+	mx_status = mx_thread_create( &spectator_thread,
+					mxp_win32_watchpoint_spectator,
+					watchpoint );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return FALSE;
+
+	return TRUE;
+}
+
+#elif defined(OS_LINUX)
+
+/* FIXME: Implement real watchpoints for Linux at least. */
+
+MX_EXPORT int
+mx_set_watchpoint( MX_WATCHPOINT *watchpoint,
+		void *value_pointer,
+		long value_datatype,
+		unsigned long flags,
+		void *callback_function( MX_WATCHPOINT *, void * ),
+		void *callback_arguments )
+{
+	static const char fname[] = "mx_set_watchpoint()";
+
+	mx_error( MXE_UNSUPPORTED, fname,
+		"Watchpoints are not supported for this build target." );
+
+	return FALSE;
+}
+
+MX_EXPORT int
+mx_clear_watchpoint( MX_WATCHPOINT *watchpoint ) {
+	return TRUE;
+}
+
+#else
+#error watchpoints not defined for this build target.
+#endif
 
 /*-------------------------------------------------------------------------*/
 
