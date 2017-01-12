@@ -90,6 +90,7 @@ mxi_wti_nps_open( MX_RECORD *record )
 	char response[80];
 	unsigned long num_input_bytes_available;
 	int num_items;
+	double timeout;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -127,13 +128,16 @@ mxi_wti_nps_open( MX_RECORD *record )
 			record->name );
 	}
 
+	timeout = 5.0;
+
 	/* At this point, the WTI NPS controller may have put up a 
 	 * password prompt or it may not have.  We must check to see.
 	 */
 
-	mx_status = mx_rs232_getline( rs232_record,
+	mx_status = mx_rs232_getline_with_timeout( rs232_record,
 				response, sizeof(response),
-				NULL, MXI_WTI_NPS_DEBUG	);
+				NULL, MXI_WTI_NPS_DEBUG,
+				timeout );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -153,9 +157,10 @@ mxi_wti_nps_open( MX_RECORD *record )
 
 		/* Read in the next line from the controller. */
 
-		mx_status = mx_rs232_getline( rs232_record,
+		mx_status = mx_rs232_getline_with_timeout( rs232_record,
 					response, sizeof(response),
-					NULL, MXI_WTI_NPS_DEBUG	);
+					NULL, MXI_WTI_NPS_DEBUG,
+					timeout );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

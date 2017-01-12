@@ -32,7 +32,8 @@ mx_rs232_unbuffered_getline( MX_RS232 *rs232,
 			char *buffer,
 			size_t max_bytes_to_read,
 			size_t *bytes_read,
-			unsigned long local_transfer_flags )
+			unsigned long local_transfer_flags,
+			double timeout_in_seconds )
 {
 	static const char fname[] = "mx_rs232_unbuffered_getline()";
 
@@ -47,15 +48,22 @@ mx_rs232_unbuffered_getline( MX_RS232 *rs232,
 	unsigned long num_bytes_available;
 	mx_status_type mx_status;
 
-	/* Otherwise, handle input a character at a time. */
+	/* Are we doing a timeout? */
 
+	if ( timeout_in_seconds >= 0.0 ) {
+		do_timeout = TRUE;
+	} else
 	if ( rs232->timeout < 0.0 ) {
 		do_timeout = FALSE;
 	} else {
 		do_timeout = TRUE;
 
+		timeout_in_seconds = rs232->timeout;
+	}
+	
+	if ( do_timeout ) {
 		timeout_clock_ticks =
-		    mx_convert_seconds_to_clock_ticks( rs232->timeout );
+		    mx_convert_seconds_to_clock_ticks( timeout_in_seconds );
 
 		current_tick = mx_current_clock_tick();
 
@@ -1194,7 +1202,8 @@ mx_rs232_getline( MX_RECORD *record,
 						buffer,
 						max_bytes_to_read,
 						bytes_read,
-						MXF_232_HIDE_FROM_DEBUG );
+						MXF_232_HIDE_FROM_DEBUG,
+						-1.0 );
 	}
 
 	if ( mx_rs232_show_debugging( rs232, transfer_flags ) ) {
@@ -1308,6 +1317,31 @@ mx_rs232_putline( MX_RECORD *record,
 	if ( rs232->rs232_flags & MXF_232_FLUSH_AFTER_PUTLINE ) {
 		mx_status = mx_rs232_flush( record );
 	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_rs232_getline_with_timeout( MX_RECORD *record,
+		char *buffer,
+		size_t max_bytes_to_read,
+		size_t *bytes_read,
+		unsigned long transfer_flags,
+		double timeout_in_seconds )
+{
+	static const char fname[] = "mx_rs232_getline_with_timeout()";
+
+	MX_RS232 *rs232 = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mx_rs232_get_pointers( record, &rs232, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_rs232_unbuffered_getline( rs232,
+				buffer, max_bytes_to_read, bytes_read,
+				transfer_flags, timeout_in_seconds );
 
 	return mx_status;
 }

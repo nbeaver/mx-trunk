@@ -197,6 +197,7 @@ mxd_wti_nps_relay_relay_command( MX_RELAY *relay )
 
 	MX_WTI_NPS_RELAY *wti_nps_relay = NULL;
 	MX_WTI_NPS *wti_nps = NULL;
+	MX_RECORD *rs232_record = NULL;
 	char command[80];
 	mx_status_type mx_status;
 
@@ -207,6 +208,8 @@ mxd_wti_nps_relay_relay_command( MX_RELAY *relay )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	rs232_record = wti_nps->rs232_record;
+
 	if ( relay->relay_command == MXF_OPEN_RELAY ) {
 		snprintf( command, sizeof(command),
 			"/OFF %lu,Y", wti_nps_relay->plug_number );
@@ -215,11 +218,17 @@ mxd_wti_nps_relay_relay_command( MX_RELAY *relay )
 			"/ON %lu,Y", wti_nps_relay->plug_number );
 	}
 
-	mx_status = mx_rs232_putline( wti_nps->rs232_record,
-				command, NULL, MXD_WTI_NPS_RELAY_DEBUG );
+	mx_status = mx_rs232_putline( rs232_record, command,
+					NULL, MXD_WTI_NPS_RELAY_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Wait until the command completes. */
+
+	mx_status = mx_rs232_discard_until_string( rs232_record, "NPS>",
+					TRUE, MXD_WTI_NPS_RELAY_DEBUG, 5.0 );
+						
 
 	return mx_status;
 }
@@ -272,18 +281,20 @@ mxd_wti_nps_relay_get_relay_status( MX_RELAY *relay )
 
 	/* Discard the rest of the header line. */
 
-	mx_status = mx_rs232_getline( rs232_record,
+	mx_status = mx_rs232_getline_with_timeout( rs232_record,
 					response, sizeof(response),
-					NULL, MXD_WTI_NPS_RELAY_DEBUG );
+					NULL, MXD_WTI_NPS_RELAY_DEBUG,
+					timeout );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/* The next line is just a line of dashes '-', so discard that. */
 
-	mx_status = mx_rs232_getline( rs232_record,
+	mx_status = mx_rs232_getline_with_timeout( rs232_record,
 					response, sizeof(response),
-					NULL, MXD_WTI_NPS_RELAY_DEBUG );
+					NULL, MXD_WTI_NPS_RELAY_DEBUG,
+					timeout );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -300,9 +311,10 @@ mxd_wti_nps_relay_get_relay_status( MX_RELAY *relay )
 	 */
 
 	while (TRUE) {
-		mx_status = mx_rs232_getline( rs232_record,
+		mx_status = mx_rs232_getline_with_timeout( rs232_record,
 					response, sizeof(response),
-					NULL, MXD_WTI_NPS_RELAY_DEBUG );
+					NULL, MXD_WTI_NPS_RELAY_DEBUG,
+					timeout );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

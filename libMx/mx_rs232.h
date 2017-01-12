@@ -343,7 +343,8 @@ MX_API_PRIVATE mx_status_type mx_rs232_unbuffered_getline(
 					char *buffer,
 					size_t max_bytes_to_read,
 					size_t *bytes_read,
-					unsigned long local_transfer_flags );
+					unsigned long local_transfer_flags,
+					double timeout_in_seconds );
 
 MX_API_PRIVATE mx_status_type mx_rs232_unbuffered_putline(
 					MX_RS232 *rs232,
@@ -419,6 +420,13 @@ MX_API mx_status_type mx_rs232_putline( MX_RECORD *rs232_record,
 					size_t *bytes_written,
 					unsigned long transfer_flags );
 
+MX_API mx_status_type mx_rs232_getline_with_timeout( MX_RECORD *rs232_record,
+					char *buffer, 
+					size_t max_bytes_to_read,
+					size_t *bytes_read,
+					unsigned long transfer_flags,
+					double timeout_in_seconds );
+
 MX_API mx_status_type mx_rs232_num_input_bytes_available(
 					MX_RECORD *rs232_record,
 				    unsigned long *num_input_bytes_available );
@@ -440,7 +448,7 @@ MX_API mx_status_type mx_rs232_discard_until_string( MX_RECORD *rs232_record,
 					char *string_to_look_for,
 					mx_bool_type discard_read_terminators,
 					unsigned long transfer_flags,
-					double timeout );
+					double timeout_in_seconds );
 
 MX_API mx_status_type mx_rs232_get_signal_state( MX_RECORD *rs232_record,
 					unsigned long *signal_state );
