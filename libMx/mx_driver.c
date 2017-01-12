@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2016 Illinois Institute of Technology
+ * Copyright 1999-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -369,6 +369,7 @@
 #include "d_mardtb_shutter.h"
 #include "d_bluice_shutter.h"
 #include "d_synaccess_netbooter_relay.h"
+#include "d_wti_nps_relay.h"
 
 #include "d_soft_amplifier.h"
 #include "d_net_amplifier.h"
@@ -433,6 +434,7 @@
 #include "d_i404_mcai.h"
 
 #include "i_synaccess_netbooter.h"
+#include "i_wti_nps.h"
 
 #include "d_network_pulser.h"
 #include "d_sis3807.h"
@@ -1071,6 +1073,13 @@ MX_DRIVER mx_type_table[] = {
 				NULL,
 				&mxi_synaccess_netbooter_num_record_fields,
 				&mxi_synaccess_netbooter_rfield_def_ptr},
+
+{"wti_nps",       MXI_CTRL_WTI_NPS, MXI_CONTROLLER, MXR_INTERFACE,
+				&mxi_wti_nps_record_function_list,
+				NULL,
+				NULL,
+				&mxi_wti_nps_num_record_fields,
+				&mxi_wti_nps_rfield_def_ptr},
 
 #if ( defined(OS_LINUX) && (MX_GLIBC_VERSION >= 2002000L) )
 
@@ -3071,6 +3080,13 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_sa_netbooter_relay_relay_function_list,
 				&mxd_sa_netbooter_relay_num_record_fields,
 				&mxd_sa_netbooter_relay_rfield_def_ptr},
+
+{"wti_nps_relay",      MXT_RLY_WTI_NPS, MXC_RELAY, MXR_DEVICE,
+				&mxd_wti_nps_relay_record_function_list,
+				NULL,
+				&mxd_wti_nps_relay_relay_function_list,
+				&mxd_wti_nps_relay_num_record_fields,
+				&mxd_wti_nps_relay_rfield_def_ptr},
 
 {"adc_table",      MXT_TAB_ADC,       MXC_TABLE,          MXR_DEVICE,
 				&mxd_adc_table_record_function_list,

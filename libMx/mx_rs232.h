@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2008, 2010-2012, 2014, 2016 Illinois Institute of Technology
+ * Copyright 1999-2008, 2010-2012, 2014, 2016-2017
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -434,6 +435,12 @@ MX_API mx_status_type mx_rs232_discard_unread_input(
 MX_API mx_status_type mx_rs232_discard_unwritten_output(
 					MX_RECORD *rs232_record,
 					unsigned long transfer_flags );
+
+MX_API mx_status_type mx_rs232_discard_until_string( MX_RECORD *rs232_record,
+					char *string_to_look_for,
+					mx_bool_type discard_read_terminators,
+					unsigned long transfer_flags,
+					double timeout );
 
 MX_API mx_status_type mx_rs232_get_signal_state( MX_RECORD *rs232_record,
 					unsigned long *signal_state );

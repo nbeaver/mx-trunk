@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2007, 2010-2012, 2014-2016 Illinois Institute of Technology
+ * Copyright 1999-2007, 2010-2012, 2014-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1466,6 +1466,85 @@ mx_rs232_discard_unwritten_output( MX_RECORD *record,
 	}
 
 	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_rs232_discard_until_string( MX_RECORD *record,
+				char *string_to_look_for,
+				mx_bool_type discard_read_terminators,
+				unsigned long transfer_flags,
+				double timeout )
+{
+	static const char fname[] = "mx_rs232_discard_until_string()";
+
+	MX_RS232 *rs232 = NULL;
+	size_t i, string_length;
+	char c;
+	mx_status_type mx_status;
+
+	mx_status = mx_rs232_get_pointers( record, &rs232, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* If string_to_look_for is NULL, then we immediately return,
+	 * since there is no string to look for.
+	 */
+
+	if ( string_to_look_for == NULL ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	string_length = strlen( string_to_look_for );
+
+	i = 0;
+
+	while( TRUE ) {
+		if ( i >= string_length ) {
+			/* We have seen the complete string_to_look_for. */
+			break;
+		}
+
+		mx_status = mx_rs232_getchar_with_timeout( record,
+						&c, transfer_flags, timeout );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( c == string_to_look_for[i] ) {
+			i++;
+		} else {
+			i = 0;
+		}
+	}
+
+	/* If discard_read_terminators is set, then string_to_look_for
+	 * is expected to be followed by RS232 read terminators, which
+	 * are to be discarded as well.
+	 */
+
+	if ( discard_read_terminators ) {
+		for ( i = 0; i < rs232->num_read_terminator_chars; i++ ) {
+
+			mx_status = mx_rs232_getchar_with_timeout( record,
+						&c, transfer_flags, timeout );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( c != rs232->read_terminator_array[i] ) {
+				return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+				"The string to look for '%s' was not "
+				"followed by the expected read terminators "
+				"for RS232 interface '%s'.  Instead, we saw "
+				"the character '%c' (%#x).",
+					string_to_look_for,
+					record->name, c, c );
+			}
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type

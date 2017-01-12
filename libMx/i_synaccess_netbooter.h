@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013 Illinois Institute of Technology
+ * Copyright 2013, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -43,7 +43,7 @@ typedef struct {
   \
   {-1, -1, "password", MXFT_STRING, NULL, \
 			1, {MXI_SYNACCESS_NETBOOTER_PASSWORD_LENGTH}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_SYNACCESS_NETBOOTER, username), \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SYNACCESS_NETBOOTER, password), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_NO_ACCESS) }
 
 MX_API mx_status_type mxi_synaccess_netbooter_create_record_structures(

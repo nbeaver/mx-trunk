@@ -18,7 +18,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2016 Illinois Institute of Technology
+ * Copyright 1999-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -260,6 +260,7 @@ extern "C" {
 #define MXI_CTRL_I404			462
 #define MXI_CTRL_SYNACCESS_NETBOOTER	463
 #define MXI_CTRL_NEWPORT_XPS		464
+#define MXI_CTRL_WTI_NPS		465
 
 #define MXI_PIO_PORTIO			600
 #define MXI_PIO_DOS			601
@@ -627,6 +628,7 @@ extern "C" {
 #define MXT_RLY_BLUICE_DCSS_SHUTTER	100009
 #define MXT_RLY_BLUICE_DHS_SHUTTER	100010
 #define MXT_RLY_SYNACCESS_NETBOOTER	100011
+#define MXT_RLY_WTI_NPS			100012
 
 /* --- Multichannel analyzer types --- */
 

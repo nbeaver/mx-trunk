@@ -161,7 +161,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_trans_motor.c d_udt_tramp.c d_uglide.c \
 	d_vme58.c d_vme_dio.c d_vp9000.c d_vsc16_scaler.c d_vsc16_timer.c \
 	d_wago750_modbus_aout.c d_wago750_modbus_dout.c \
-	d_wavelength.c d_wavenumber.c d_xafs_wavenumber.c \
+	d_wavelength.c d_wavenumber.c d_wti_nps_relay.c d_xafs_wavenumber.c \
 	i_6821.c i_8255.c i_am9513.c i_aps_adcmod2.c \
 	i_bkprecision_912x.c i_camera_link_api.c i_camera_link_rs232.c \
 	i_cm17a.c i_compumotor.c i_cxtilt02.c i_d8.c i_databox.c \
@@ -185,7 +185,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	i_tcp232.c i_telnet.c i_tpg262.c i_tty.c i_uglide.c \
 	i_vme58.c i_vms_terminal.c i_vp9000.c i_vsc16.c \
 	i_vxworks_rs232.c i_vxworks_vme.c \
-	i_wago750_serial.c i_win32_com.c \
+	i_wago750_serial.c i_win32_com.c i_wti_nps.c \
 	n_bluice_dcss.c n_bluice_dhs.c n_bluice_dhs_manager.c \
 	n_spec.c n_tcpip.c n_unix.c \
 	o_network.c o_toast.c \
