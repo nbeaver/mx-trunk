@@ -15,9 +15,7 @@
  *
  */
 
-#define MXI_WTI_NPS_DEBUG		FALSE
-
-#define MXI_WTI_NPS_DEBUG_RAW	FALSE
+#define MXI_WTI_NPS_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -87,7 +85,11 @@ mxi_wti_nps_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_wti_nps_open()";
 
-	MX_WTI_NPS *wti_nps;
+	MX_WTI_NPS *wti_nps = NULL;
+	MX_RECORD *rs232_record = NULL;
+	char response[80];
+	unsigned long num_input_bytes_available;
+	int num_items;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -103,14 +105,92 @@ mxi_wti_nps_open( MX_RECORD *record )
 			record->name);
 	}
 
-	/* Throw away any unread characters. */
+	rs232_record = wti_nps->rs232_record;
 
-	mx_status = mx_rs232_discard_unread_input( wti_nps->rs232_record,
-						MXI_WTI_NPS_DEBUG );
+	/* If it is working, the WTI NPS controller should send us 
+	 * some text when we connected.  Did it?
+	 */
+
+	mx_msleep(100);
+
+	mx_status = mx_rs232_num_input_bytes_available( rs232_record,
+						&num_input_bytes_available );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	return mx_status;
+	if ( num_input_bytes_available == 0 ) {
+		return mx_error( MXE_NOT_FOUND, fname,
+		"During the initial attempt to connect to WTI NPS "
+		"controller '%s', we did not see any characters sent by it.  "
+		"Are you sure the controller itself is turned on?",
+			record->name );
+	}
+
+	/* At this point, the WTI NPS controller may have put up a 
+	 * password prompt or it may not have.  We must check to see.
+	 */
+
+	mx_status = mx_rs232_getline( rs232_record,
+				response, sizeof(response),
+				NULL, MXI_WTI_NPS_DEBUG	);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( strncmp( response, "Password", 8 ) == 0 ) {
+
+		/* It appears that the controller has sent us a password
+		 * prompt, so we should reply with the password.
+		 */
+
+		mx_status = mx_rs232_putline( rs232_record,
+					wti_nps->password,
+					NULL, MXI_WTI_NPS_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Read in the next line from the controller. */
+
+		mx_status = mx_rs232_getline( rs232_record,
+					response, sizeof(response),
+					NULL, MXI_WTI_NPS_DEBUG	);
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	/* The line currently in the response buffer, should contain the
+	 * version number of the WTI NPS controller.  Try to parse that.
+	 */
+
+	num_items = sscanf( response, "Network Power Switch v%lf",
+				&(wti_nps->version_number) );
+
+	if ( num_items != 1 ) {
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"We did not find the WTI NPS version number "
+		"in the response '%s' received from controller '%s'.  "
+		"Either a password failed or this is not a "
+		"Western Telematic Inc. Network Power Switch.",
+			response, record->name );
+	}
+
+	/* If we get here, then the controller should have sent us an
+	 * initial help screen.  Discard the help screen.
+	 */
+
+	mx_status = mx_rs232_discard_until_string( rs232_record, "NPS>",
+					TRUE, MXI_WTI_NPS_DEBUG, 5.0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* If we get here, then we have successfully started communicating
+	 * with the power switch.  Celebrate good times, come on!
+	 */
+
+	return MX_SUCCESSFUL_RESULT;
 }
 

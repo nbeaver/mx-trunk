@@ -26,6 +26,7 @@ typedef struct {
 
 	MX_RECORD *rs232_record;
 	char password[ MXI_WTI_NPS_PASSWORD_LENGTH ];
+	double version_number;
 } MX_WTI_NPS;
 
 #define MXI_WTI_NPS_STANDARD_FIELDS \
@@ -36,7 +37,11 @@ typedef struct {
   {-1, -1, "password", MXFT_STRING, NULL, \
 			1, {MXI_WTI_NPS_PASSWORD_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_WTI_NPS, password), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_NO_ACCESS) }
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_NO_ACCESS) }, \
+  \
+  {-1, -1, "version_number", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_WTI_NPS, version_number), \
+	{0}, NULL, MXFF_READ_ONLY }
 
 MX_API mx_status_type mxi_wti_nps_create_record_structures( MX_RECORD *record );
 
