@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2008-2010, 2012-2016 Illinois Institute of Technology
+ * Copyright 1999-2006, 2008-2010, 2012-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -638,10 +638,11 @@ mxp_initialize_driver_entry( MX_DRIVER *driver )
 
 	if ( driver->mx_type >= MX_DYNAMIC_DRIVER_BASE ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Static MX driver number %ld is in the dynamic driver number "
+		"Static MX driver number %ld for driver '%s' "
+		"is in the dynamic driver number "
 		"range of %ld and above.  Statically allocated MX driver "
 		"numbers must be a unique value in the range from 0 to %ld.",
-			driver->mx_type,
+			driver->mx_type, driver->name,
 			MX_DYNAMIC_DRIVER_BASE,
 			MX_DYNAMIC_DRIVER_BASE - 1L );
 	}
