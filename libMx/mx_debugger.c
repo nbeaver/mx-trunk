@@ -1184,7 +1184,7 @@ mx_set_watchpoint( MX_WATCHPOINT *watchpoint,
 	return TRUE;
 }
 
-#elif ( defined(OS_LINUX) || defined(OS_MACOSX) )
+#elif ( defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_ANDROID) )
 
 /* FIXME: Implement real watchpoints for Linux at least. */
 
