@@ -1,5 +1,5 @@
 /*
- * Name:    mx_signal.h
+ * Name:    mx_signal_alloc.h
  *
  * Purpose: Header file for managing the use of signals.
  *
@@ -7,15 +7,15 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005, 2007 Illinois Institute of Technology
+ * Copyright 2005, 2007, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#ifndef __MX_SIGNAL_H__
-#define __MX_SIGNAL_H__
+#ifndef __MX_SIGNAL_ALLOC_H__
+#define __MX_SIGNAL_ALLOC_H__
 
 /* Make the header file C++ safe. */
 
@@ -38,5 +38,5 @@ MX_API mx_status_type mx_signal_free( int signal_number );
 }
 #endif
 
-#endif /* __MX_SIGNAL_H__ */
+#endif /* __MX_SIGNAL_ALLOC_H__ */
 

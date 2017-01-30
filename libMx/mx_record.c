@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2016 Illinois Institute of Technology
+ * Copyright 1999-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -33,7 +33,6 @@
 #include "mx_ascii.h"
 #include "mx_array.h"
 #include "mx_handle.h"
-#include "mx_signal.h"
 #include "mx_list_head.h"
 #include "mx_net.h"
 #include "mx_process.h"

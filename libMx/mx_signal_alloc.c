@@ -1,5 +1,5 @@
 /*
- * Name:    mx_signal.c
+ * Name:    mx_signal_alloc.c
  *
  * Purpose: Functions for managing the use of signals.
  *
@@ -14,7 +14,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005-2006, 2008-2009, 2011, 2015-2016
+ * Copyright 2005-2006, 2008-2009, 2011, 2015-2017
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -39,7 +39,7 @@
 #include "mx_unistd.h"
 #include "mx_mutex.h"
 #include "mx_thread.h"
-#include "mx_signal.h"
+#include "mx_signal_alloc.h"
 
 #define MX_SIGNAL_MUTEX_UNLOCK \
 		do {							\

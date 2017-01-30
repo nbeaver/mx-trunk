@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2007, 2009-2010, 2012-2014, 2016
+ * Copyright 1999-2007, 2009-2010, 2012-2014, 2016-2017
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -21,7 +21,6 @@
 
 #include "motor.h"
 #include "mx_log.h"
-#include "mx_signal.h"
 #include "mx_multi.h"
 
 int

@@ -33,11 +33,11 @@ all: build
 
 #MODULES += labjack_ux		# linux,
 
-MODULES += libtiff		# linux, win32
+#MODULES += libtiff		# linux, win32
 
 #MODULES += libusb-0.1		# linux,
 
-#MODULES += newport_xps		# linux,
+MODULES += newport_xps		# linux,
 
 #MODULES += ni488		# linux,
 
@@ -45,7 +45,7 @@ MODULES += libtiff		# linux, win32
 
 #MODULES += nuvant_ezstat	# linux, win32
 
-MODULES += python		# (Warning: not yet finished)
+#MODULES += python		# (Warning: not yet finished)
 
 #MODULES += pmc_mcapi		# linux, win32
 
@@ -55,7 +55,7 @@ MODULES += python		# (Warning: not yet finished)
 
 #MODULES += xia_handel		# linux, win32
 
-MODULES += xineos_gige		# linux, win32
+#MODULES += xineos_gige		# linux, win32
 
 #-------------------------------------------------------------------
 # Linux-only modules.

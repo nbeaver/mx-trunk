@@ -63,7 +63,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 2004-2007, 2010-2014 Illinois Institute of Technology
+ * Copyright 2004-2007, 2010-2014, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1529,7 +1529,7 @@ mx_interval_timer_destroy_event_handler( MX_INTERVAL_TIMER *itimer,
 
 #define MX_POSIX_SIGNAL_BLOCKING_SUPPORTED	TRUE
 
-#include "mx_signal.h"
+#include "mx_signal_alloc.h"
 
 /*---*/
 

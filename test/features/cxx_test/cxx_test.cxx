@@ -83,7 +83,7 @@
 #include "mx_scan_xafs.h"
 #include "mx_select.h"
 #include "mx_semaphore.h"
-#include "mx_signal.h"
+#include "mx_signal_alloc.h"
 #include "mx_socket.h"
 #include "mx_spec.h"
 #include "mx_syslog.h"
