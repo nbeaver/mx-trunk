@@ -144,9 +144,10 @@ mxsrv_sigterm_handler( int signal_number, siginfo_t *siginfo, void *ignored )
 	if ( siginfo == NULL ) {
 	    mx_info( "Received a request to shutdown via a SIGTERM signal." );
 	} else {
+	    long process_id = siginfo->si_pid;
+
 	    mx_info( "Received a request from process ID %ld "
-		"to shutdown via a SIGTERM signal.",
-		(long) siginfo->si_pid );
+		"to shutdown via a SIGTERM signal.", process_id );
 	}
 
 	exit(0);
@@ -167,9 +168,10 @@ mxsrv_sigint_termination_handler( int signal_number,
 	if ( siginfo == NULL ) {
 	    mx_info( "Received a request to shutdown via a SIGINT signal." );
 	} else {
+	    long process_id = siginfo->si_pid;
+
 	    mx_info( "Received a request from process ID %ld "
-		"to shutdown via a SIGINT signal.",
-		(long) siginfo->si_pid );
+		"to shutdown via a SIGINT signal.", process_id );
 	}
 
 	exit(0);
