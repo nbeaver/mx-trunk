@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2006, 2012, 2014-2016 Illinois Institute of Technology
+ * Copyright 2002-2006, 2012, 2014-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,9 +23,10 @@
 #include <signal.h>
 #include <sys/types.h>
 
-#include "mx_unistd.h"
 #include "mx_osdef.h"
 #include "mx_util.h"
+#include "mx_unistd.h"
+#include "mx_signal.h"
 #include "mx_record.h"
 #include "mx_multi.h"
 #include "mx_net.h"
@@ -83,25 +84,7 @@ mxser_termination_handler( int signal_number )
 static void
 mxser_install_signal_and_exit_handlers( void )
 {
-#ifdef SIGILL
-	signal( SIGILL, mx_standard_signal_error_handler );
-#endif
-#ifdef SIGTRAP
-	signal( SIGTRAP, mx_standard_signal_error_handler );
-#endif
-#ifdef SIGIOT
-	signal( SIGIOT, mx_standard_signal_error_handler );
-#endif
-#ifdef SIGBUS
-	signal( SIGBUS, mx_standard_signal_error_handler );
-#endif
-#ifdef SIGFPE
-	signal( SIGFPE, mx_standard_signal_error_handler );
-#endif
-#ifdef SIGSEGV
-	signal( SIGSEGV, mx_standard_signal_error_handler );
-#endif
-
+	mx_setup_standard_signal_error_handlers();
 
 #ifdef SIGINT
 	signal( SIGINT, mxser_termination_handler );

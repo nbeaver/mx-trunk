@@ -20,12 +20,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <signal.h>
 #include <errno.h>
 #include <math.h>
 
 #include "mx_util.h"
 #include "mx_unistd.h"
+#include "mx_signal.h"
 #include "mx_inttypes.h"
 #include "mx_record.h"
 #include "mx_variable.h"

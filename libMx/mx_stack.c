@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004, 2006, 2008-2010, 2015
+ * Copyright 2000-2001, 2003-2004, 2006, 2008-2010, 2015, 2017
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -803,7 +803,7 @@ mx_stack_traceback( void )
 
 #elif defined( OS_DJGPP )
 
-#include <signal.h>
+#include "mx_signal.h"
 
 MX_EXPORT void
 mx_stack_traceback( void )

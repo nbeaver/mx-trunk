@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2006, 2009-2010, 2013-2016 Illinois Institute of Technology
+ * Copyright 2006, 2009-2010, 2013-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -18,20 +18,18 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #include "mx_osdef.h"
 
 #include "mx_util.h"
 #include "mx_stdint.h"
 #include "mx_unistd.h"
+#include "mx_signal.h"
 
 #if defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_ANDROID) \
 	|| defined(OS_MINIX)
 
-#include <stdlib.h>
-#include <signal.h>
-#include <unistd.h>
-#include <errno.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
@@ -332,7 +330,6 @@ mx_spawn( char *command_line,
 
 #elif defined(OS_VMS)
 
-#include <errno.h>
 #include <ssdef.h>
 #include <descrip.h>
 #include <starlet.h>

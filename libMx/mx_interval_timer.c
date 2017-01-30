@@ -79,6 +79,7 @@
 #include "mx_osdef.h"
 #include "mx_util.h"
 #include "mx_unistd.h"
+#include "mx_signal.h"
 #include "mx_stdint.h"
 #include "mx_mutex.h"
 #include "mx_thread.h"
@@ -1361,7 +1362,6 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 #elif HAVE_POSIX_TIMERS || defined(OS_IRIX)
 
 #include <time.h>
-#include <signal.h>
 #include <errno.h>
 
 #if defined(OS_BSD)
@@ -3856,7 +3856,6 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
  *          particular platform, you should use that other method instead.
  */
 
-#include <signal.h>
 #include <errno.h>
 #include <sys/time.h>
 

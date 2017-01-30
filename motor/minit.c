@@ -17,7 +17,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <signal.h>
 
 #include "motor.h"
 #include "mx_log.h"
@@ -51,24 +50,7 @@ motor_init( char *motor_savefile_name,
 		 * the debugger.
 		 */
 
-#ifdef SIGILL
-		signal( SIGILL, mx_standard_signal_error_handler );
-#endif
-#ifdef SIGTRAP
-		signal( SIGTRAP, mx_standard_signal_error_handler );
-#endif
-#ifdef SIGIOT
-		signal( SIGIOT, mx_standard_signal_error_handler );
-#endif
-#ifdef SIGBUS
-		signal( SIGBUS, mx_standard_signal_error_handler );
-#endif
-#ifdef SIGFPE
-		signal( SIGFPE, mx_standard_signal_error_handler );
-#endif
-#ifdef SIGSEGV
-		signal( SIGSEGV, mx_standard_signal_error_handler );
-#endif
+		mx_setup_standard_signal_error_handlers();
 
 #endif /* ! defined( OS_WIN32 ) */
 

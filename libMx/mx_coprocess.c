@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004, 2010-2011, 2015-2016
+ * Copyright 1999-2001, 2003-2004, 2010-2011, 2015-2017
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -40,7 +40,8 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <signal.h>
+
+#include "mx_signal.h"
 
 MX_EXPORT mx_status_type
 mx_coprocess_open( MX_COPROCESS **coprocess,

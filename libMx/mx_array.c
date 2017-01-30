@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2016 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,12 +28,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <signal.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_osdef.h"
 #include "mx_unistd.h"
+#include "mx_signal.h"
 #include "mx_stdint.h"
 #include "mx_inttypes.h"
 #include "mx_socket.h"

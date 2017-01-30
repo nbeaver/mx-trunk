@@ -22,7 +22,6 @@
 #include <time.h>
 #include <float.h>
 #include <math.h>
-#include <signal.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/types.h>
@@ -46,6 +45,7 @@
 #include "mx_time.h"
 #include "mx_hrt.h"
 #include "mx_unistd.h"
+#include "mx_signal.h"
 #include "mx_record.h"
 #include "mx_signal_alloc.h"
 #include "mx_atomic.h"

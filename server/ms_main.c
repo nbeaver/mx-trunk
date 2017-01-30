@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2016 Illinois Institute of Technology
+ * Copyright 1999-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -19,7 +19,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <signal.h>
 #include <errno.h>
 #include <limits.h>
 #include <sys/types.h>
@@ -28,6 +27,7 @@
 #include "mx_util.h"
 #include "mx_time.h"
 #include "mx_unistd.h"
+#include "mx_signal.h"
 #include "mx_version.h"
 #include "mx_stdint.h"
 #include "mx_record.h"
@@ -131,15 +131,23 @@ mxsrv_exit_handler( void )
 static int
 mxsrv_user_interrupt_function( void )
 {
-	/* The MX server never has direct user interrupts. */
+	/* The MX server ignores any attempt to send it direct
+	 * user interrupts.
+	 */
 
 	return MXF_USER_INT_NONE;
 }
 
 static void
-mxsrv_sigterm_handler( int signal_number )
+mxsrv_sigterm_handler( int signal_number, siginfo_t *siginfo, void *ignored )
 {
-	mx_info( "Received a request to shutdown via a SIGTERM signal." );
+	if ( siginfo == NULL ) {
+	    mx_info( "Received a request to shutdown via a SIGTERM signal." );
+	} else {
+	    mx_info( "Received a request from process ID %ld "
+		"to shutdown via a SIGTERM signal.",
+		(long) siginfo->si_pid );
+	}
 
 	exit(0);
 }
@@ -153,9 +161,16 @@ mxsrv_sigint_traceback_handler( int signal_number )
 }
 
 static void
-mxsrv_sigint_termination_handler( int signal_number )
+mxsrv_sigint_termination_handler( int signal_number,
+				siginfo_t *siginfo, void * ignored )
 {
-	mx_info( "Received a request to shutdown via a SIGINT signal." );
+	if ( siginfo == NULL ) {
+	    mx_info( "Received a request to shutdown via a SIGINT signal." );
+	} else {
+	    mx_info( "Received a request from process ID %ld "
+		"to shutdown via a SIGINT signal.",
+		(long) siginfo->si_pid );
+	}
 
 	exit(0);
 }
@@ -163,34 +178,25 @@ mxsrv_sigint_termination_handler( int signal_number )
 static void
 mxsrv_install_signal_and_exit_handlers( int sigint_displays_traceback )
 {
+	struct sigaction sa;
+
 	atexit( mxsrv_exit_handler );
 
-	signal( SIGTERM, mxsrv_sigterm_handler );
+	memset( &sa, 0, sizeof(sa) );
+
+	sa.sa_flags = SA_SIGINFO;
+	sa.sa_sigaction = mxsrv_sigterm_handler;
+
+	sigaction( SIGTERM, &sa, NULL );
 
 	if ( sigint_displays_traceback ) {
 		signal( SIGINT, mxsrv_sigint_traceback_handler );
 	} else {
-		signal( SIGINT, mxsrv_sigint_termination_handler );
+		sa.sa_sigaction = mxsrv_sigint_termination_handler;
+		sigaction( SIGINT, &sa, NULL );
 	}
 
-#ifdef SIGILL
-	signal( SIGILL, mx_standard_signal_error_handler );
-#endif
-#ifdef SIGTRAP
-	signal( SIGTRAP, mx_standard_signal_error_handler );
-#endif
-#ifdef SIGIOT
-	signal( SIGIOT, mx_standard_signal_error_handler );
-#endif
-#ifdef SIGBUS
-	signal( SIGBUS, mx_standard_signal_error_handler );
-#endif
-#ifdef SIGFPE
-	signal( SIGFPE, mx_standard_signal_error_handler );
-#endif
-#ifdef SIGSEGV
-	signal( SIGSEGV, mx_standard_signal_error_handler );
-#endif
+	mx_setup_standard_signal_error_handlers();
 
 	return;
 }

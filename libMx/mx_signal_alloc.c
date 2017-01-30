@@ -31,12 +31,12 @@
 #include <pthread.h>
 #endif
 
-#include <signal.h>
 #include <errno.h>
 
 #include "mx_osdef.h"
 #include "mx_util.h"
 #include "mx_unistd.h"
+#include "mx_signal.h"
 #include "mx_mutex.h"
 #include "mx_thread.h"
 #include "mx_signal_alloc.h"

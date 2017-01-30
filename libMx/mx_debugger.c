@@ -20,7 +20,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <signal.h>
 
 #include "mx_osdef.h"
 
@@ -30,6 +29,7 @@
 
 #include "mx_util.h"
 #include "mx_unistd.h"
+#include "mx_signal.h"
 #include "mx_stdint.h"
 #include "mx_thread.h"
 
@@ -41,129 +41,16 @@
 
 /*-------------------------------------------------------------------------*/
 
-static mx_bool_type mx_just_in_time_debugging_enabled = FALSE;
+static mx_bool_type mxp_just_in_time_debugging_enabled = FALSE;
 
 static char mx_debugger_command[MXU_FILENAME_LENGTH+1] = "";
 
 /*-------------------------------------------------------------------------*/
 
-MX_EXPORT void
-mx_standard_signal_error_handler( int signal_number )
+MX_EXPORT int
+mx_just_in_time_debugging_is_enabled( void )
 {
-	static char signal_name[80];
-	static char directory_name[ MXU_FILENAME_LENGTH + 1 ];
-	static int recursion = 0;
-
-	(void) mx_get_current_directory_name( directory_name,
-					      MXU_FILENAME_LENGTH );
-
-	if ( recursion ) {
-		mx_warning( "We seem to be crashing inside the signal handler, "
-				"so it is best to give up now.  Exiting...");
-
-#if defined(OS_VXWORKS)
-		exit(1);
-#else
-		_exit(1);
-#endif
-	}
-
-	recursion++;
-
-	switch ( signal_number ) {
-#ifdef SIGILL
-	case SIGILL:
-		strlcpy( signal_name, "SIGILL (illegal instruction)",
-		  sizeof(signal_name) );
-		break;
-#endif
-#ifdef SIGTRAP
-	case SIGTRAP:
-		strlcpy( signal_name, "SIGTRAP",
-		  sizeof(signal_name) );
-		break;
-#endif
-#ifdef SIGIOT
-	case SIGIOT:
-		strlcpy( signal_name, "SIGIOT (I/O trap)",
-		  sizeof(signal_name) );
-		break;
-#endif
-#ifdef SIGBUS
-	case SIGBUS:
-		strlcpy( signal_name, "SIGBUS (bus error)",
-		  sizeof(signal_name) );
-		break;
-#endif
-#ifdef SIGFPE
-	case SIGFPE:
-		strlcpy( signal_name, "SIGFPE (floating point exception)",
-		  sizeof(signal_name) );
-		break;
-#endif
-#ifdef SIGSEGV
-	case SIGSEGV:
-		strlcpy( signal_name, "SIGSEGV (segmentation violation)",
-		  sizeof(signal_name) );
-		break;
-#endif
-	default:
-		snprintf( signal_name, sizeof(signal_name),
-				"%d", signal_number );
-		break;
-	}
-
-	mx_info( "CRASH: This program has died due to signal %s.\n",
-			signal_name );
-
-	mx_info( "Process id = %lu", mx_process_id() );
-
-	/* Print out the stack traceback. */
-
-	mx_stack_traceback();
-
-	if ( mx_just_in_time_debugging_enabled ) {
-		mx_start_debugger(NULL);
-	} else {
-		/* Try to force a core dump. */
-
-		mx_info("Attempting to force a core dump in '%s'.",
-				directory_name );
-
-		mx_force_core_dump();
-	}
-}
-
-/*-------------------------------------------------------------------------*/
-
-MX_EXPORT void
-mx_force_core_dump( void )
-{
-#if defined( SIGABRT )
-	signal( SIGABRT, SIG_DFL );
-
-	raise(SIGABRT);
-
-#elif defined( SIGABORT )
-	signal( SIGABORT, SIG_DFL );
-
-	raise(SIGABORT);
-
-#elif defined( SIGQUIT )
-	signal( SIGQUIT, SIG_DFL );
-
-	raise(SIGQUIT);
-
-#else
-	abort();
-#endif
-
-	mx_info("The attempt to force a core dump did not work!!!.");
-
-	mx_info(
-	"This should not be able to happen, so we are exiting instead...");
-
-	exit(1);
+	return mxp_just_in_time_debugging_enabled;
 }
 
 /*-------------------------------------------------------------------------*/
@@ -276,13 +163,13 @@ mx_breakpoint( void )
 MX_EXPORT void
 mx_prepare_for_debugging( char *command, int just_in_time_debugging )
 {
-	mx_just_in_time_debugging_enabled = FALSE;
+	mxp_just_in_time_debugging_enabled = FALSE;
 	mx_debugger_command[0] = '\0';
 
 	if ( just_in_time_debugging ) {
-		mx_just_in_time_debugging_enabled = TRUE;
+		mxp_just_in_time_debugging_enabled = TRUE;
 	} else {
-		mx_just_in_time_debugging_enabled = FALSE;
+		mxp_just_in_time_debugging_enabled = FALSE;
 	}
 	return;
 }
@@ -323,9 +210,9 @@ mx_prepare_for_debugging( char *command, int just_in_time_debugging )
 #endif
 
 	if ( just_in_time_debugging ) {
-		mx_just_in_time_debugging_enabled = TRUE;
+		mxp_just_in_time_debugging_enabled = TRUE;
 	} else {
-		mx_just_in_time_debugging_enabled = FALSE;
+		mxp_just_in_time_debugging_enabled = FALSE;
 	}
 
 	mx_debugger_started = TRUE;
@@ -472,7 +359,7 @@ mx_start_debugger( char *command )
 #endif
 
 		mx_prepare_for_debugging( command,
-			mx_just_in_time_debugging_enabled );
+			mxp_just_in_time_debugging_enabled );
 	}
 #if DEBUG_DEBUGGER
 	else {
@@ -551,7 +438,7 @@ MX_EXPORT void
 mx_prepare_for_debugging( char *command, int just_in_time_debugging )
 {
 	mx_debugger_command[0] = '\0';
-	mx_just_in_time_debugging_enabled = FALSE;
+	mxp_just_in_time_debugging_enabled = FALSE;
 
 	fprintf(stderr, "\n"
 "Warning: Starting a debugger is not currently supported on this platform.\n"

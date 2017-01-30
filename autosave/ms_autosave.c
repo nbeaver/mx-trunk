@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2007, 2009-2012, 2014-2016 Illinois Institute of Technology
+ * Copyright 1999-2007, 2009-2012, 2014-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -27,6 +27,7 @@
 #include "mx_util.h"
 #include "mx_time.h"
 #include "mx_unistd.h"
+#include "mx_signal.h"
 #include "mx_version.h"
 #include "mx_driver.h"
 #include "mx_key.h"
@@ -65,24 +66,8 @@ msauto_install_signal_and_exit_handlers( void )
 
 	signal( SIGTERM, msauto_sigterm_handler );
 
-#ifdef SIGILL
-	signal( SIGILL, mx_standard_signal_error_handler );
-#endif
-#ifdef SIGTRAP
-	signal( SIGTRAP, mx_standard_signal_error_handler );
-#endif
-#ifdef SIGIOT
-	signal( SIGIOT, mx_standard_signal_error_handler );
-#endif
-#ifdef SIGBUS
-	signal( SIGBUS, mx_standard_signal_error_handler );
-#endif
-#ifdef SIGFPE
-	signal( SIGFPE, mx_standard_signal_error_handler );
-#endif
-#ifdef SIGSEGV
-	signal( SIGSEGV, mx_standard_signal_error_handler );
-#endif
+	mx_setup_standard_signal_error_handlers();
+
 	return;
 }
 

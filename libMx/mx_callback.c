@@ -57,9 +57,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <signal.h>
 
 #include "mx_util.h"
+#include "mx_signal.h"
 #include "mx_record.h"
 #include "mx_hrt.h"
 #include "mx_interval_timer.h"

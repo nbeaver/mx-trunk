@@ -381,12 +381,6 @@ MX_API void mx_sleep( unsigned long seconds );
 MX_API void mx_msleep( unsigned long milliseconds );
 MX_API void mx_usleep( unsigned long microseconds );
 
-/* mx_standard_signal_error_handler() is used by several MX programs to provide
- * a standard response to a program crash.
- */
-
-MX_API void mx_standard_signal_error_handler( int signal_number );
-
 /*--- Stack debugging tools ---*/
 
 /* mx_stack_traceback() does its best to provide a traceback of the
@@ -473,6 +467,8 @@ MX_API void mx_force_core_dump( void );
 
 MX_API void mx_prepare_for_debugging( char *command,
 				int just_in_time_debugging );
+
+MX_API int mx_just_in_time_debugging_is_enabled( void );
 
 MX_API void mx_start_debugger( char *command );
 
