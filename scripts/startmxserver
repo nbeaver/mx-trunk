@@ -45,6 +45,23 @@ else
 	SHLIB_PATH="${MXDIR}/lib:${SHLIB_PATH}"
 fi
 
+#----
+
+IS_TERMINAL=""
+SESSION=""
+
+OS=`uname -s`
+
+if [ $OS = "Linux" ]; then
+	SESSION="setsid"
+
+	if [ -t 1 ]; then
+		IS_TERMINAL="true"
+	fi
+fi
+
+#----
+
 export MXDIR LD_LIBRARY_PATH DYLD_LIBRARY_PATH SHLIB_PATH
 
 MXSERVER=${MXDIR}/sbin/mxserver
@@ -52,10 +69,17 @@ MXSERVER=${MXDIR}/sbin/mxserver
 if [ -x ${MXSERVER} ]; then
 	cd ${MXDIR}/run
 
-	echo $$ > ${MXDIR}/run/mxserver.pid
 
-	exec ${MXSERVER_PRELOAD} ${MXSERVER} -p ${MXPORT} \
-		-f ${MXDIR}/etc/mxserver.dat \
-		-C ${MXDIR}/etc/mxserver.acl $* 
+	if [ ${IS_TERMINAL} ]; then
+		exec ${MXSERVER_PRELOAD} ${MXSERVER} -p ${MXPORT} \
+			-f ${MXDIR}/etc/mxserver.dat \
+			-C ${MXDIR}/etc/mxserver.acl \
+			-O ${MXDIR}/run/mxserver.pid $* 
+	else
+		${SESSION} ${MXSERVER_PRELOAD} ${MXSERVER} -p ${MXPORT} \
+			-f ${MXDIR}/etc/mxserver.dat \
+			-C ${MXDIR}/etc/mxserver.acl \
+			-O ${MXDIR}/run/mxserver.pid $* 
+	fi
 fi
 

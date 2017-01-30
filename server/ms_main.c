@@ -610,7 +610,7 @@ mxserver_main( int argc, char *argv[] )
         error_flag = FALSE;
 
         while ((c = getopt(argc, argv,
-		"aAab:BcC:d:De:E:f:Jkl:L:m:M:n:p:P:rsStT:u:v:wxY:Z")) != -1)
+		"aAab:BcC:d:De:E:f:Jkl:L:m:M:n:O:p:P:rsStT:u:v:wxY:Z")) != -1)
 	{
                 switch (c) {
 		case 'a':
@@ -694,6 +694,18 @@ mxserver_main( int argc, char *argv[] )
 			break;
 		case 'n':
 			delay_microseconds = atoi( optarg);
+			break;
+		case 'O':
+			{
+				FILE *pid_file = fopen( optarg, "w" );
+
+				if ( pid_file != NULL ) {
+					fprintf( pid_file, "%lu\n",
+						mx_process_id() );
+
+					fclose( pid_file );
+				}
+			}
 			break;
                 case 'p':
                         server_port = atoi( optarg );
