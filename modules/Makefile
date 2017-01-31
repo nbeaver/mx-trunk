@@ -60,7 +60,7 @@ MODULES += libtiff		# linux, win32
 #-------------------------------------------------------------------
 # Linux-only modules.
 
-MODULES += aravis
+#MODULES += aravis
 
 #MODULES += dalsa_gev
 

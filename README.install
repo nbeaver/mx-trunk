@@ -4,14 +4,14 @@ Steps for building MX:
 1.  Change the value of the MX_ARCH variable below to match the platform you
     are compiling the MX system for.  The best tested platforms are:
 
-      bsd         - FreeBSD, NetBSD, OpenBSD, or PC-BSD
-      cygwin      - Cygwin 1.5.x or 1.7.x
-      irix        - SGI Irix 6.3 or above
-      linux       - Linux 2.2 or above
-      macosx      - MacOS X
-      solaris     - Solaris 2.5 or above
-      solaris-gcc - Solaris 2.6 or above using GCC
-      win32       - Microsoft Win32 with Visual C++ 4 or above
+      bsd          - FreeBSD, NetBSD, OpenBSD, or PC-BSD
+      cygwin       - Cygwin 1.5.x or 1.7.x
+      linux        - Linux 2.2 or above
+      macosx       - MacOS X          (using GCC)
+      macosx-clang - MacOS X or macOS (using Clang)
+      solaris      - Solaris 2.5 or above
+      solaris-gcc  - Solaris 2.6 or above (using GCC)
+      win32        - Microsoft Win32 (using Visual C++ 4 or above)
 
     There are other build targets available in the top level Makefile 
     beyond the ones listed above.
@@ -71,8 +71,12 @@ Steps for building MX:
     Handel drivers, then you configure them in the file
     mx/modules/xia_handel/Makefile.
 
-    One special case is the core EPICS driver module which is configured
-    in mx/modules/epics/Makefile.config.
+    One special case is the core EPICS driver module (epics.mxo) which is
+    configured in mx/modules/epics/Makefile.config.
+
+    Another special case is the Python extension module (python.mxo) which
+    can only be built _after_ the Mp Python package has been built and
+    installed.
 
     If you will be building modules, then use the commands
 
@@ -107,6 +111,11 @@ Steps for building MX:
     should be necessary is to create the appropriate links in the /etc/rc?.d
     directories.  On other Unix systems, you can use the script as a guide
     to what to do.
+
+    If you are setting up an MX server on an LSB (Linux Standard Base) system,
+    then you need to symlink $(MX_INSTALL_DIR)/sbin/mx to /etc/init.d/mx
+    and then run the command "update-rc.d mx defaults" to get the correct
+    startup script links working.
 
     If you are setting up an MX server on a Win32 system, then you can use
     the file "$(MX_INSTALL_DIR)/sbin/mx.bat" as a guide for what needs to be
