@@ -5,7 +5,21 @@
 # This version of the script runs as root, but starts up mxserver and
 # mxautosave under a non-root user account which is 'mx' by default.
 #
-# The following is for the use of the Red Hat Linux chkconfig command:
+#-------------------------------------------------------------------------
+# The following makes the script LSB (Linux Standard Base) compatible.
+#
+### BEGIN INIT INFO
+# Provides:          mxdaq
+# Required-Start:    $all
+# Required-Stop:     
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Start mxserver and mxautosave at boot time.
+# Description:       Enables the MX data acquisition system servers.
+### END INIT INFO
+#
+#-------------------------------------------------------------------------
+# The following is for the use of the old Red Hat Linux chkconfig command:
 #
 # chkconfig: 2345 99 01
 # description: Server control script for the MX data acquisition \
@@ -162,6 +176,15 @@ case $1 in
 	echo "Waiting 2 seconds for the servers to shut down."
 	sleep 2
 	$0 start
+	;;
+    'force-reload' )
+	$0 stop
+	echo "Waiting 2 seconds for the servers to shut down."
+	sleep 2
+	$0 start
+	;;
+    'status' )
+	echo "Status not implemented."
 	;;
     *)
 	echo "Usage: ${MXDIR}/sbin/mx {start|stop|restart}"
