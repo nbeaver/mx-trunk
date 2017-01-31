@@ -4,8 +4,6 @@ if [ x$MXDIR = x ]; then
 	MXDIR=/opt/mx
 fi
 
-#echo "MARKER C = `date`" >> ${MXDIR}/log/mxautosave.log
-
 MXAUTOSAVE=${MXDIR}/sbin/mxautosave
 
 if [ x$LD_LIBRARY_PATH = x ]; then
@@ -45,12 +43,6 @@ else
 fi
 
 #----
-
-#echo "OS = $OS" >> ${MXDIR}/log/mxautosave.log
-#echo "IS_TERMINAL = $IS_TERMINAL" >> ${MXDIR}/log/mxautosave.log
-#echo "SESSION = $SESSION" >> ${MXDIR}/log/mxautosave.log
-
-#echo "MARKER D = `date`" >> ${MXDIR}/log/mxautosave.log
 
 #
 # If mxautosave.dat exists and has a non-zero size, then we start mxautosave.

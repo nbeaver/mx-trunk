@@ -7,8 +7,6 @@ if [ x$MXPORT = x ]; then
 	MXPORT=9727
 fi
 
-#echo "MARKER 3 = `date`" >> ${MXDIR}/log/mxserver.log
-
 #
 # If we need to customize the environment of the MX server before
 # we start it, then we need to provide an mxserver.custom script
@@ -65,29 +63,19 @@ fi
 
 #----
 
-#echo "OS = $OS" >> ${MXDIR}/log/mxserver.log
-#echo "IS_TERMINAL = $IS_TERMINAL" >> ${MXDIR}/log/mxserver.log
-#echo "SESSION = $SESSION" >> ${MXDIR}/log/mxserver.log
-
 export MXDIR LD_LIBRARY_PATH DYLD_LIBRARY_PATH SHLIB_PATH
 
 MXSERVER=${MXDIR}/sbin/mxserver
-
-#echo "MARKER 4 = `date`" >> ${MXDIR}/log/mxserver.log
 
 if [ -x ${MXSERVER} ]; then
 	cd ${MXDIR}/run
 
 	if [ x${IS_TERMINAL} = x"true" ]; then
-		#echo "MARKER exec = `date`" >> ${MXDIR}/log/mxserver.log
-
 		exec ${MXSERVER_PRELOAD} ${MXSERVER} -p ${MXPORT} \
 			-f ${MXDIR}/etc/mxserver.dat \
 			-C ${MXDIR}/etc/mxserver.acl \
 			-O ${MXDIR}/run/mxserver.pid $* 
 	else
-		#echo "MARKER session = `date`" >> ${MXDIR}/log/mxserver.log
-
 		( ${SESSION} ${MXSERVER_PRELOAD} ${MXSERVER} -p ${MXPORT} \
 			-f ${MXDIR}/etc/mxserver.dat \
 			-C ${MXDIR}/etc/mxserver.acl \

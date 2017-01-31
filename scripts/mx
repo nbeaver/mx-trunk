@@ -123,25 +123,17 @@ case $1 in
 		. $MX_LOCAL_CONFIG
 	fi
 
-	#echo "MARKER 1 = `date`" >> ${MXLOG}/mxserver.log
-
 	if [ -x $START_MXSERVER ]; then
 
 		if [ $SCRIPTUSER = "root" ]; then
 			$COMMAND_PREFIX "touch ${MXLOG}/mxserver.log"
 
-			#echo "MARKER 2a = `date`" >> ${MXLOG}/mxserver.log
-
 			$COMMAND_PREFIX "$START_MXSERVER_CMD"
 		else
 			touch ${MXLOG}/mxserver.log
 
-			#echo "MARKER 2b = `date`" >> ${MXLOG}/mxserver.log
-
 			$START_MXSERVER_CMD
 		fi
-
-		#echo "MARKER A = `date`" >> ${MXLOG}/mxautosave.log
 
 		if [ -x $START_MXAUTOSAVE ]; then
 			if [ $SCRIPTUSER = "root" ]; then
