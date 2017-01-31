@@ -33,7 +33,7 @@ all: build
 
 #MODULES += labjack_ux		# linux,
 
-#MODULES += libtiff		# linux, win32
+MODULES += libtiff		# linux, win32
 
 #MODULES += libusb-0.1		# linux,
 
@@ -60,7 +60,7 @@ all: build
 #-------------------------------------------------------------------
 # Linux-only modules.
 
-#MODULES += aravis
+MODULES += aravis
 
 #MODULES += dalsa_gev
 
@@ -116,7 +116,7 @@ MODULES += epics_pmac_biocat
 #   BioCAT (APS-18ID) 6K "toast" controller.
 #
 
-MODULES += site_biocat_toast
+#MODULES += site_biocat_toast
 
 #---
 

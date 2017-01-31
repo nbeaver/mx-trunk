@@ -10,7 +10,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2012, 2014-2015 Illinois Institute of Technology
+ * Copyright 2012, 2014-2015, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -304,7 +304,7 @@ mxi_epics_camac( MX_CAMAC *camac, long slot, long subaddress,
 	mx_status = mx_caput( &(epics_camac->tmod_pv),
 				1, MX_CA_LONG, &tmod_value );
 
-	if ( mx_status.code != MXE_SUCCESS );
+	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/* Select the Branch. */
@@ -400,7 +400,7 @@ mxi_epics_camac( MX_CAMAC *camac, long slot, long subaddress,
 		/* Get the X-response for the preceding command. */
 
 		mx_status = mx_caget( &(epics_camac->x_pv),
-				1, MX_CA_LONG, &q_response );
+				1, MX_CA_LONG, &x_response );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
