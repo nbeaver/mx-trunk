@@ -4,6 +4,8 @@ if [ x$MXDIR = x ]; then
 	MXDIR=/opt/mx
 fi
 
+#echo "MARKER C = `date`" >> ${MXDIR}/log/mxautosave.log
+
 MXAUTOSAVE=${MXDIR}/sbin/mxautosave
 
 if [ x$LD_LIBRARY_PATH = x ]; then
@@ -26,6 +28,30 @@ fi
 
 export MXDIR LD_LIBRARY_PATH DYLD_LIBRARY_PATH SHLIB_PATH
 
+#----
+
+OS=`uname -s`
+
+if [ $OS = "Linux" ]; then
+	SESSION="setsid"
+else
+	SESSION="nohup"
+fi
+
+if [ x$1 != x ]; then
+	IS_TERMINAL="true"
+else
+	IS_TERMINAL=""
+fi
+
+#----
+
+#echo "OS = $OS" >> ${MXDIR}/log/mxautosave.log
+#echo "IS_TERMINAL = $IS_TERMINAL" >> ${MXDIR}/log/mxautosave.log
+#echo "SESSION = $SESSION" >> ${MXDIR}/log/mxautosave.log
+
+#echo "MARKER D = `date`" >> ${MXDIR}/log/mxautosave.log
+
 #
 # If mxautosave.dat exists and has a non-zero size, then we start mxautosave.
 #
@@ -35,10 +61,26 @@ if [ -s ${MXDIR}/etc/mxautosave.dat ]; then
 	if [ -x $MXAUTOSAVE ]; then
 		cd ${MXDIR}/run
 
-		echo $$ > ${MXDIR}/run/mxautosave.pid
+		if [ x${IS_TERMINAL} = x"true" ]; then
+			#echo "AUTO exec = `date`" \
+			#	>> ${MXDIR}/log/mxautosave.log
 
-		exec $MXAUTOSAVE $* ${MXDIR}/etc/mxautosave.dat \
-			${MXDIR}/state/mxsave.1 ${MXDIR}/state/mxsave.2
+			exec $MXAUTOSAVE $* \
+				-O ${MXDIR}/run/mxautosave.pid \
+				${MXDIR}/etc/mxautosave.dat \
+				${MXDIR}/state/mxsave.1 \
+				${MXDIR}/state/mxsave.2
+		else
+			#echo "AUTO session = `date`" \
+			#	>> ${MXDIR}/log/mxautosave.log
+
+			( ${SESSION} $MXAUTOSAVE $* \
+				-O ${MXDIR}/run/mxautosave.pid \
+				${MXDIR}/etc/mxautosave.dat \
+				${MXDIR}/state/mxsave.1 \
+				${MXDIR}/state/mxsave.2 \
+			    < /dev/null >> ${MXDIR}/log/mxautosave.log 2>&1 & )
+		fi
 	fi
 else
 	#
@@ -47,8 +89,8 @@ else
 
 	DATE=`date +'%b %d %H:%M:%S'`
 
-	echo \
-"${DATE} *** mxautosave was not started, since ${MXDIR}/etc/mxautosave.dat is empty or does not exist. ***"
+	#echo \
+#"${DATE} *** mxautosave was not started, since ${MXDIR}/etc/mxautosave.dat is empty or does not exist. ***" >> ${MXDIR}/log/mxautosave.log
 
 	#
 	# Make sure that mxautosave.pid does not exist.

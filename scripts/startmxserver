@@ -7,6 +7,8 @@ if [ x$MXPORT = x ]; then
 	MXPORT=9727
 fi
 
+#echo "MARKER 3 = `date`" >> ${MXDIR}/log/mxserver.log
+
 #
 # If we need to customize the environment of the MX server before
 # we start it, then we need to provide an mxserver.custom script
@@ -47,39 +49,50 @@ fi
 
 #----
 
-IS_TERMINAL=""
-SESSION=""
-
 OS=`uname -s`
 
 if [ $OS = "Linux" ]; then
 	SESSION="setsid"
+else
+	SESSION="nohup"
+fi
 
-	if [ -t 1 ]; then
-		IS_TERMINAL="true"
-	fi
+if [ x$1 != x ]; then
+	IS_TERMINAL="true"
+else
+	IS_TERMINAL=""
 fi
 
 #----
+
+#echo "OS = $OS" >> ${MXDIR}/log/mxserver.log
+#echo "IS_TERMINAL = $IS_TERMINAL" >> ${MXDIR}/log/mxserver.log
+#echo "SESSION = $SESSION" >> ${MXDIR}/log/mxserver.log
 
 export MXDIR LD_LIBRARY_PATH DYLD_LIBRARY_PATH SHLIB_PATH
 
 MXSERVER=${MXDIR}/sbin/mxserver
 
+#echo "MARKER 4 = `date`" >> ${MXDIR}/log/mxserver.log
+
 if [ -x ${MXSERVER} ]; then
 	cd ${MXDIR}/run
 
+	if [ x${IS_TERMINAL} = x"true" ]; then
+		#echo "MARKER exec = `date`" >> ${MXDIR}/log/mxserver.log
 
-	if [ ${IS_TERMINAL} ]; then
 		exec ${MXSERVER_PRELOAD} ${MXSERVER} -p ${MXPORT} \
 			-f ${MXDIR}/etc/mxserver.dat \
 			-C ${MXDIR}/etc/mxserver.acl \
 			-O ${MXDIR}/run/mxserver.pid $* 
 	else
-		${SESSION} ${MXSERVER_PRELOAD} ${MXSERVER} -p ${MXPORT} \
+		#echo "MARKER session = `date`" >> ${MXDIR}/log/mxserver.log
+
+		( ${SESSION} ${MXSERVER_PRELOAD} ${MXSERVER} -p ${MXPORT} \
 			-f ${MXDIR}/etc/mxserver.dat \
 			-C ${MXDIR}/etc/mxserver.acl \
-			-O ${MXDIR}/run/mxserver.pid $* 
+			-O ${MXDIR}/run/mxserver.pid $* \
+			< /dev/null >> ${MXDIR}/log/mxserver.log 2>&1 & )
 	fi
 fi
 

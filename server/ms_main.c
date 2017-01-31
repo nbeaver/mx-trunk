@@ -154,16 +154,22 @@ mxsrv_sigterm_handler( int signal_number, siginfo_t *siginfo, void *ignored )
 }
 
 static void
-mxsrv_sigint_traceback_handler( int signal_number )
+mxsrv_sigint_traceback_handler( int signal_number,
+				siginfo_t *siginfo, void *ignored )
 {
+	struct sigaction sa;
+
 	mx_stack_traceback();
 
-	signal( SIGINT, mxsrv_sigint_traceback_handler );
+	sa.sa_flags = SA_SIGINFO;
+	sa.sa_sigaction = mxsrv_sigint_traceback_handler;
+
+	sigaction( signal_number, &sa, NULL );
 }
 
 static void
 mxsrv_sigint_termination_handler( int signal_number,
-				siginfo_t *siginfo, void * ignored )
+				siginfo_t *siginfo, void *ignored )
 {
 	if ( siginfo == NULL ) {
 	    mx_info( "Received a request to shutdown via a SIGINT signal." );
@@ -192,11 +198,12 @@ mxsrv_install_signal_and_exit_handlers( int sigint_displays_traceback )
 	sigaction( SIGTERM, &sa, NULL );
 
 	if ( sigint_displays_traceback ) {
-		signal( SIGINT, mxsrv_sigint_traceback_handler );
+		sa.sa_sigaction = mxsrv_sigint_traceback_handler;
 	} else {
 		sa.sa_sigaction = mxsrv_sigint_termination_handler;
-		sigaction( SIGINT, &sa, NULL );
 	}
+
+	sigaction( SIGINT, &sa, NULL );
 
 	mx_setup_standard_signal_error_handlers();
 

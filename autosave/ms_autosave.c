@@ -52,9 +52,18 @@ msauto_exit_handler( void )
 }
 
 static void
-msauto_sigterm_handler( int signal_number )
+msauto_sigterm_handler( int signal_number,
+			siginfo_t *siginfo, void *ignored )
 {
-	mx_info( "Received a request to shutdown via a SIGTERM signal." );
+
+	if ( siginfo == NULL ) {
+	    mx_info( "Received a request to shutdown via a SIGTERM signal." );
+	} else {
+	    long process_id = siginfo->si_pid;
+ 
+	    mx_info( "Received a request from process ID %ld "
+		"to shutdown via a SIGTERM signal.", process_id );
+	}
 
 	exit(0);
 }
@@ -62,9 +71,16 @@ msauto_sigterm_handler( int signal_number )
 static void
 msauto_install_signal_and_exit_handlers( void )
 {
+	struct sigaction sa;
+
 	atexit( msauto_exit_handler );
 
-	signal( SIGTERM, msauto_sigterm_handler );
+	memset( &sa, 0, sizeof(sa) );
+
+	sa.sa_flags = SA_SIGINFO;
+	sa.sa_sigaction = msauto_sigterm_handler;
+
+	sigaction( SIGTERM, &sa, NULL );
 
 	mx_setup_standard_signal_error_handlers();
 
@@ -235,7 +251,7 @@ main( int argc, char *argv[] )
 
 	error_flag = FALSE;
 
-	while ((c = getopt(argc, argv, "aAd:DJl:L:P:RrsT:u:wWxY")) != -1 ) {
+	while ((c = getopt(argc, argv, "aAd:DJl:L:O:P:RrsT:u:wWxY")) != -1 ) {
 		switch(c) {
 		case 'a':
 			network_debug_flags |= MXF_NETDBG_SUMMARY;
@@ -263,6 +279,18 @@ main( int argc, char *argv[] )
 			syslog_options = MXF_SYSLOG_USE_STDERR;
 
 			syslog_number = atoi( optarg );
+			break;
+		case 'O':
+			{
+				FILE *pid_file = fopen( optarg, "w" );
+
+				if ( pid_file != NULL ) {
+					fprintf( pid_file, "%lu\n",
+						mx_process_id() );
+
+					fclose( pid_file );
+				}
+			}
 			break;
 		case 'P':
 			default_display_precision = atoi( optarg );
