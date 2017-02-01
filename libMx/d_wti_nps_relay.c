@@ -218,6 +218,10 @@ mxd_wti_nps_relay_relay_command( MX_RELAY *relay )
 			"/ON %lu,Y", wti_nps_relay->plug_number );
 	}
 
+#if MXD_WTI_NPS_RELAY_DEBUG
+	MX_DEBUG(-2,("%s: command = '%s'", fname, command));
+#endif
+
 	mx_status = mx_rs232_putline( rs232_record, command,
 					NULL, MXD_WTI_NPS_RELAY_DEBUG );
 
@@ -226,8 +230,8 @@ mxd_wti_nps_relay_relay_command( MX_RELAY *relay )
 
 	/* Wait until the command completes. */
 
-	mx_status = mx_rs232_discard_until_string( rs232_record, "NPS>",
-					TRUE, MXD_WTI_NPS_RELAY_DEBUG, 5.0 );
+	mx_status = mx_rs232_discard_until_string( rs232_record, "NPS> ",
+					FALSE, MXD_WTI_NPS_RELAY_DEBUG, 5.0 );
 						
 
 	return mx_status;
@@ -272,7 +276,8 @@ mxd_wti_nps_relay_get_relay_status( MX_RELAY *relay )
 
 	timeout = 5.0;
 
-	mx_status = mx_rs232_discard_until_string( rs232_record, "Plug", TRUE,
+	mx_status = mx_rs232_discard_until_string( rs232_record,
+						"Plug", FALSE,
 						MXD_WTI_NPS_RELAY_DEBUG,
 						timeout );
 
@@ -306,6 +311,15 @@ mxd_wti_nps_relay_get_relay_status( MX_RELAY *relay )
 			response, relay->record->name );
 	}
 
+	snprintf( plug_status_format, sizeof(plug_status_format),
+		"%%*s %%*s %%*s %%*s %%%lds",
+		(unsigned long) (sizeof(plug_status) - 1) );
+
+#if MXD_WTI_NPS_RELAY_DEBUG
+	MX_DEBUG(-2,("%s: plug_status_format = '%s'",
+			fname, plug_status_format));
+#endif
+
 	/* Read lines until we either find the plug number we are looking for
 	 * or until we see another line of dashes.
 	 */
@@ -319,11 +333,17 @@ mxd_wti_nps_relay_get_relay_status( MX_RELAY *relay )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
+#if MXD_WTI_NPS_RELAY_DEBUG
+		MX_DEBUG(-2,("%s: plug line = '%s'", fname, response));
+#endif
+
 		if ( response[0] == '-' ) {
-			/* Unfortunately, we got to the line of dashes. */
+			/* Unfortunately, we got to
+			 * the trailingline of dashes.
+			 */
 
 			mx_status = mx_rs232_discard_until_string(
-						rs232_record, "NPS>", TRUE,
+						rs232_record, "NPS>", FALSE,
 						MXD_WTI_NPS_RELAY_DEBUG,
 						timeout );
 
@@ -354,16 +374,6 @@ mxd_wti_nps_relay_get_relay_status( MX_RELAY *relay )
 			 * The fifth string on this line should be the
 			 * status of the plug.
 			 */
-
-			snprintf( plug_status_format,
-				sizeof(plug_status_format),
-				"%%*s %%*s %%*s %%*s %%%lds",
-				(unsigned long) (sizeof(plug_status) - 1) );
-
-#if 1
-			MX_DEBUG(-2,("%s: plug_status_format = '%s'",
-				fname, plug_status_format));
-#endif
 
 			num_items = sscanf( response,
 					plug_status_format, plug_status );
@@ -398,7 +408,7 @@ mxd_wti_nps_relay_get_relay_status( MX_RELAY *relay )
 			 */
 
 			mx_status = mx_rs232_discard_until_string(
-						rs232_record, "NPS>", TRUE,
+						rs232_record, "NPS> ", FALSE,
 						MXD_WTI_NPS_RELAY_DEBUG,
 						timeout );
 

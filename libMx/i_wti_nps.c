@@ -15,7 +15,7 @@
  *
  */
 
-#define MXI_WTI_NPS_DEBUG	TRUE
+#define MXI_WTI_NPS_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -88,8 +88,7 @@ mxi_wti_nps_open( MX_RECORD *record )
 	MX_WTI_NPS *wti_nps = NULL;
 	MX_RECORD *rs232_record = NULL;
 	char response[80];
-	unsigned long num_input_bytes_available;
-	int num_items;
+	int num_items, i, max_attempts;
 	double timeout;
 	mx_status_type mx_status;
 
@@ -109,18 +108,37 @@ mxi_wti_nps_open( MX_RECORD *record )
 	rs232_record = wti_nps->rs232_record;
 
 	/* If it is working, the WTI NPS controller should send us 
-	 * some text when we connected.  Did it?
+	 * some blank lines when we connected.  Did it?
 	 */
 
-	mx_msleep(100);
+	timeout = 5.0;
 
-	mx_status = mx_rs232_num_input_bytes_available( rs232_record,
-						&num_input_bytes_available );
+	max_attempts = 10;
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	for ( i = 0; i < max_attempts; i++ ) {
 
-	if ( num_input_bytes_available == 0 ) {
+#if MXI_WTI_NPS_DEBUG
+		MX_DEBUG(-2,("%s: Attempt %d", fname, i));
+#endif
+
+		mx_status = mx_rs232_getline_with_timeout( rs232_record,
+					response, sizeof(response),
+					NULL, MXI_WTI_NPS_DEBUG,
+					timeout );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* If we got a non-empty line from the controller, then
+		 * break out of this loop.
+		 */
+
+		if ( strlen(response) > 0 ) {
+			break;
+		}
+	}
+
+	if ( i >= max_attempts ) {
 		return mx_error( MXE_NOT_FOUND, fname,
 		"During the initial attempt to connect to WTI NPS "
 		"controller '%s', we did not see any characters sent by it.  "
@@ -128,19 +146,13 @@ mxi_wti_nps_open( MX_RECORD *record )
 			record->name );
 	}
 
-	timeout = 5.0;
+#if MXI_WTI_NPS_DEBUG
+	MX_DEBUG(-2,("%s: Look for password prompt = '%s'", fname, response));
+#endif
 
 	/* At this point, the WTI NPS controller may have put up a 
 	 * password prompt or it may not have.  We must check to see.
 	 */
-
-	mx_status = mx_rs232_getline_with_timeout( rs232_record,
-				response, sizeof(response),
-				NULL, MXI_WTI_NPS_DEBUG,
-				timeout );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
 
 	if ( strncmp( response, "Password", 8 ) == 0 ) {
 
@@ -166,6 +178,10 @@ mxi_wti_nps_open( MX_RECORD *record )
 			return mx_status;
 	}
 
+#if MXI_WTI_NPS_DEBUG
+	MX_DEBUG(-2,("%s: Version number line = '%s'", fname, response));
+#endif
+
 	/* The line currently in the response buffer, should contain the
 	 * version number of the WTI NPS controller.  Try to parse that.
 	 */
@@ -186,8 +202,8 @@ mxi_wti_nps_open( MX_RECORD *record )
 	 * initial help screen.  Discard the help screen.
 	 */
 
-	mx_status = mx_rs232_discard_until_string( rs232_record, "NPS>",
-					TRUE, MXI_WTI_NPS_DEBUG, 5.0 );
+	mx_status = mx_rs232_discard_until_string( rs232_record, "NPS> ",
+					FALSE, MXI_WTI_NPS_DEBUG, 2.0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
