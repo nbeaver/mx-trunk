@@ -353,7 +353,7 @@ mx_rs232_show_debugging( MX_RS232 *rs232,
 	if ( transfer_flags & MXF_232_DEBUG ) {
 		return TRUE;
 	} else
-	if ( rs232->rs232_flags & MXF_232_DEBUG_SERIAL_VERBOSE ) {
+	if ( rs232->rs232_flags & MXF_232_DEBUG_SERIAL_HEX ) {
 		return TRUE;
 	} else
 	if ( rs232->rs232_flags & MXF_232_DEBUG_SERIAL ) {
@@ -430,7 +430,7 @@ mx_rs232_set_serial_debug( MX_RECORD *rs232_record,
 
 	debug_flags <<= 24;
 
-	mask = MXF_232_DEBUG_SERIAL | MXF_232_DEBUG_SERIAL_VERBOSE;
+	mask = MXF_232_DEBUG_SERIAL | MXF_232_DEBUG_SERIAL_HEX;
 
 	rs232->rs232_flags &= (~mask);
 
@@ -1159,6 +1159,7 @@ mx_rs232_getline( MX_RECORD *record,
 	MX_RS232 *rs232;
 	MX_RS232_FUNCTION_LIST *fl_ptr;
 	mx_status_type (*fptr)( MX_RS232 *, char *, size_t, size_t * );
+	unsigned long local_bytes_read;
 	mx_bool_type buffered_io;
 	mx_status_type mx_status;
 
@@ -1166,6 +1167,8 @@ mx_rs232_getline( MX_RECORD *record,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	rs232->rs232_flags = rs232->rs232_flags;
 
 	if ( rs232->rs232_flags & MXF_232_UNBUFFERED_IO ) {
 		buffered_io = FALSE;
@@ -1192,7 +1195,9 @@ mx_rs232_getline( MX_RECORD *record,
 		/* If so, invoke it. */
 
 		mx_status =
-			(*fptr)(rs232, buffer, max_bytes_to_read, bytes_read);
+			(*fptr)( rs232, buffer,
+				max_bytes_to_read,
+				&local_bytes_read );
 
 	} else {
 		/* Otherwise, handle input a character at a time. */
@@ -1201,14 +1206,41 @@ mx_rs232_getline( MX_RECORD *record,
 						rs232,
 						buffer,
 						max_bytes_to_read,
-						bytes_read,
+						&local_bytes_read,
 						MXF_232_HIDE_FROM_DEBUG,
 						-1.0 );
 	}
 
 	if ( mx_rs232_show_debugging( rs232, transfer_flags ) ) {
+	    if ( rs232->rs232_flags & MXF_232_DEBUG_SERIAL_HEX ) {
+		unsigned long i;
+
+		if ( rs232->rs232_flags & MXF_232_DEBUG_SERIAL ) {
+		    fprintf( stderr, "%s: received '%s' ", fname, buffer );
+		}
+
+		if ( 0 == (int) buffer[0] ) {
+		    fprintf( stderr, "0x0 " );
+		} else {
+		    fprintf( stderr, "%#x ", (int) buffer[0] );
+		}
+
+		for ( i = 1; i < 10; i++ ) {
+		    if ( buffer[i] == '\0' ) {
+			break;
+		    }
+		    fprintf( stderr, "%#x ", (int) buffer[i] );
+		}
+
+		fprintf( stderr, "from '%s'\n", record->name );
+	    } else {
 		MX_DEBUG(-2,("%s: received '%s' from '%s'",
 				fname, buffer, record->name));
+	    }
+	}
+
+	if ( bytes_read != NULL ) {
+		*bytes_read = local_bytes_read;
 	}
 
 	return mx_status;

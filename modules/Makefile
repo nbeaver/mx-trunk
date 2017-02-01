@@ -37,7 +37,7 @@ MODULES += libtiff		# linux, win32
 
 #MODULES += libusb-0.1		# linux,
 
-#MODULES += newport_xps		# linux,
+MODULES += newport_xps		# linux,
 
 #MODULES += ni488		# linux,
 

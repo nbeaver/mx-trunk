@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../motor/mxmotor.static -F ./mwti_nps.dat -s ./swti_nps.dat $*
+

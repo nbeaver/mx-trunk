@@ -193,7 +193,7 @@ mxi_wti_nps_open( MX_RECORD *record )
 		return mx_status;
 
 	/* If we get here, then we have successfully started communicating
-	 * with the power switch.  Celebrate good times, come on!
+	 * with the power switch.
 	 */
 
 	return MX_SUCCESSFUL_RESULT;

@@ -10,7 +10,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010-2011, 2015-2016 Illinois Institute of Technology
+ * Copyright 2010-2011, 2015-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -759,6 +759,38 @@ mxi_telnet_write( MX_RS232 *rs232,
 /* mxi_telnet_getline() does not exist, since we have to examine the raw
  * byte stream in mxi_telnet_getchar() for Telnet commands.
  */
+
+MX_EXPORT mx_status_type
+mxi_telnet_getline( MX_RS232 *rs232,
+			char *buffer,
+			size_t max_bytes_to_read,
+			size_t *bytes_read )
+{
+	static const char fname[] = "mxi_telnet_putline()";
+
+	MX_TELNET *telnet = NULL;
+	size_t i, num_terminators;
+	char c, *terminators;
+	mx_status_type mx_status;
+
+	mx_status = mxi_telnet_get_pointers( rs232, &telnet, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	num_terminators = rs232->num_read_terminator_chars;
+	
+	terminators = rs232->read_terminator_array;
+
+	for ( i = 0; i < max_bytes_to_read; i++ ) {
+		mx_status = mxi_telnet_getchar( rs232, &c );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
 
 MX_EXPORT mx_status_type
 mxi_telnet_putline( MX_RS232 *rs232,

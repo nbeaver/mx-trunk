@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010, 2016 Illinois Institute of Technology
+ * Copyright 2010, 2016-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -73,6 +73,10 @@ MX_API mx_status_type mxi_telnet_putchar( MX_RS232 *rs232, char c );
 MX_API mx_status_type mxi_telnet_write( MX_RS232 *rs232,
 					char *buffer,
 					size_t max_bytes_to_write,
+					size_t *bytes_written );
+MX_API mx_status_type mxi_telnet_getline( MX_RS232 *rs232,
+					char *buffer,
+					size_t max_bytes_to_read,
 					size_t *bytes_written );
 MX_API mx_status_type mxi_telnet_putline( MX_RS232 *rs232,
 					char *buffer,
