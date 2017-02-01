@@ -17,9 +17,11 @@
  *
  */
 
-#define MXI_TELNET_DEBUG	FALSE
+#define MXI_TELNET_DEBUG		FALSE
 
-#define MXI_TELNET_DEBUG_TIMING	FALSE
+#define MXI_TELNET_DEBUG_GETLINE	FALSE
+
+#define MXI_TELNET_DEBUG_TIMING		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -59,7 +61,7 @@ MX_RS232_FUNCTION_LIST mxi_telnet_rs232_function_list = {
 	mxi_telnet_putchar,
 	NULL,
 	mxi_telnet_write,
-	NULL,
+	mxi_telnet_getline,
 	mxi_telnet_putline,
 	mxi_telnet_num_input_bytes_available,
 	mxi_telnet_discard_unread_input,
@@ -766,11 +768,12 @@ mxi_telnet_getline( MX_RS232 *rs232,
 			size_t max_bytes_to_read,
 			size_t *bytes_read )
 {
-	static const char fname[] = "mxi_telnet_putline()";
+	static const char fname[] = "mxi_telnet_getline()";
 
 	MX_TELNET *telnet = NULL;
-	size_t i, num_terminators;
 	char c, *terminators;
+	long i, terminators_length, num_terminators_seen;
+	mx_bool_type ignore_nulls;
 	mx_status_type mx_status;
 
 	mx_status = mxi_telnet_get_pointers( rs232, &telnet, fname );
@@ -778,7 +781,15 @@ mxi_telnet_getline( MX_RS232 *rs232,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_terminators = rs232->num_read_terminator_chars;
+	if ( rs232->rs232_flags & MXF_232_ALWAYS_IGNORE_NULLS ) {
+		ignore_nulls = TRUE;
+	} else {
+		ignore_nulls = FALSE;
+	}
+
+	num_terminators_seen = 0;
+
+	terminators_length = rs232->num_read_terminator_chars;
 	
 	terminators = rs232->read_terminator_array;
 
@@ -787,7 +798,48 @@ mxi_telnet_getline( MX_RS232 *rs232,
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+		/* Check to see if this is a null character to be discarded. */
+
+		if ( ignore_nulls ) {
+			if ( c == '\0' ) {
+				/* Skip the null and go back for another char.*/
+
+				i--;
+				continue;
+			}
+		}
+
+		if ( c == terminators[num_terminators_seen] ) {
+			num_terminators_seen++;
+		} else {
+			num_terminators_seen = 0;
+		}
+
+		if ( num_terminators_seen >= terminators_length ) {
+			/* Make sure the buffer is null terminated. */
+
+			buffer[i] = '\0';
+
+			/* Break out of the for() loop, since we have seen
+			 * the end of the terminator sequence.
+			 */
+
+			break;
+		} else
+		if ( num_terminators_seen > 0 ) {
+			/* Throw away this character and go back for another. */
+
+			i--;
+			continue;
+		} else {
+			buffer[i] = c;
+		}
 	}
+
+#if MXI_TELNET_DEBUG_GETLINE
+	MX_DEBUG(-2,("%s: buffer = '%s'", fname, buffer));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }

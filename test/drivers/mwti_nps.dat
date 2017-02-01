@@ -1,2 +1,2 @@
-wti_rs232 interface rs232 tcp232 "" "" 9600 8 N 1 N 0x0d0a 0x0d0a 1 0x3000004 164.54.204.75 23 0x0
+wti_rs232 interface rs232 telnet "" "" 9600 8 N 1 N 0x0d0a 0x0d0a 1 0x4 164.54.204.75 23 0x0
 #wti       interface controller wti_nps "" ""

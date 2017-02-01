@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2003, 2005-2008, 2011, 2013-2015
+ * Copyright 2001, 2003, 2005-2008, 2011, 2013-2015, 2017
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -83,17 +83,17 @@ motor_rs232_readline( MX_RECORD *record )
 		transfer_flags |= MXF_232_IGNORE_NULLS;
 	}
 
-#if 1
 	memset( receive_buffer, 0, sizeof(receive_buffer) );
-#else
-	if ( rs232->num_read_terminator_chars == 0 ) {
-		memset( receive_buffer, 0, sizeof(receive_buffer) );
-	}
-#endif
 
+#if 1
+	mx_status = mx_rs232_getline( record,
+				receive_buffer, sizeof(receive_buffer),
+				NULL, transfer_flags );
+#else
 	mx_status = mx_rs232_getline( record,
 				receive_buffer, num_input_bytes_available,
 				NULL, transfer_flags );
+#endif
 
 	switch( mx_status.code ) {
 	case MXE_SUCCESS:

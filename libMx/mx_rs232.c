@@ -1213,7 +1213,9 @@ mx_rs232_getline( MX_RECORD *record,
 
 	if ( mx_rs232_show_debugging( rs232, transfer_flags ) ) {
 	    if ( rs232->rs232_flags & MXF_232_DEBUG_SERIAL_HEX ) {
-		unsigned long i;
+		unsigned long i, max_values_to_show;
+
+		max_values_to_show = 10;
 
 		if ( rs232->rs232_flags & MXF_232_DEBUG_SERIAL ) {
 		    fprintf( stderr, "%s: received '%s' ", fname, buffer );
@@ -1225,11 +1227,15 @@ mx_rs232_getline( MX_RECORD *record,
 		    fprintf( stderr, "%#x ", (int) buffer[0] );
 		}
 
-		for ( i = 1; i < 10; i++ ) {
+		for ( i = 1; i < max_values_to_show; i++ ) {
 		    if ( buffer[i] == '\0' ) {
 			break;
 		    }
 		    fprintf( stderr, "%#x ", (int) buffer[i] );
+		}
+
+		if ( i >= max_values_to_show ) {
+		    fprintf( stderr, "... " );
 		}
 
 		fprintf( stderr, "from '%s'\n", record->name );
