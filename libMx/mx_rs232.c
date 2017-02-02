@@ -1159,7 +1159,7 @@ mx_rs232_getline( MX_RECORD *record,
 	MX_RS232 *rs232;
 	MX_RS232_FUNCTION_LIST *fl_ptr;
 	mx_status_type (*fptr)( MX_RS232 *, char *, size_t, size_t * );
-	unsigned long local_bytes_read;
+	size_t local_bytes_read;
 	mx_bool_type buffered_io;
 	mx_status_type mx_status;
 
