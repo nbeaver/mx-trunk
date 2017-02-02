@@ -55,12 +55,6 @@ else
 	SESSION="nohup"
 fi
 
-if [ x$1 != x ]; then
-	IS_TERMINAL="true"
-else
-	IS_TERMINAL=""
-fi
-
 #----
 
 export MXDIR LD_LIBRARY_PATH DYLD_LIBRARY_PATH SHLIB_PATH
@@ -70,7 +64,7 @@ MXSERVER=${MXDIR}/sbin/mxserver
 if [ -x ${MXSERVER} ]; then
 	cd ${MXDIR}/run
 
-	if [ x${IS_TERMINAL} = x"true" ]; then
+	if [ x${MX_NO_DETACH} != x ]; then
 		exec ${MXSERVER_PRELOAD} ${MXSERVER} -p ${MXPORT} \
 			-f ${MXDIR}/etc/mxserver.dat \
 			-C ${MXDIR}/etc/mxserver.acl \

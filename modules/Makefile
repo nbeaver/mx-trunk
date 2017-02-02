@@ -15,7 +15,7 @@ all: build
 #-------------------------------------------------------------------
 # Multiplatform modules.
 
-#MODULES += aviex_pccd		# linux, win32
+MODULES += aviex_pccd		# linux, win32
 
 #MODULES += avt_pvapi		# linux,
 
@@ -25,7 +25,7 @@ all: build
 
 #MODULES += edt			# linux,
 
-#MODULES += epix_xclib		# linux, win32
+MODULES += epix_xclib		# linux, win32
 
 #MODULES += esone_camac		# linux, win32
 
@@ -37,7 +37,7 @@ MODULES += libtiff		# linux, win32
 
 #MODULES += libusb-0.1		# linux,
 
-MODULES += newport_xps		# linux,
+#MODULES += newport_xps		# linux,
 
 #MODULES += ni488		# linux,
 

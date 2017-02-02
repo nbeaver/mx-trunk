@@ -36,12 +36,6 @@ else
 	SESSION="nohup"
 fi
 
-if [ x$1 != x ]; then
-	IS_TERMINAL="true"
-else
-	IS_TERMINAL=""
-fi
-
 #----
 
 #
@@ -53,19 +47,13 @@ if [ -s ${MXDIR}/etc/mxautosave.dat ]; then
 	if [ -x $MXAUTOSAVE ]; then
 		cd ${MXDIR}/run
 
-		if [ x${IS_TERMINAL} = x"true" ]; then
-			#echo "AUTO exec = `date`" \
-			#	>> ${MXDIR}/log/mxautosave.log
-
+		if [ x${MX_NO_DETACH} != x ]; then
 			exec $MXAUTOSAVE $* \
 				-O ${MXDIR}/run/mxautosave.pid \
 				${MXDIR}/etc/mxautosave.dat \
 				${MXDIR}/state/mxsave.1 \
 				${MXDIR}/state/mxsave.2
 		else
-			#echo "AUTO session = `date`" \
-			#	>> ${MXDIR}/log/mxautosave.log
-
 			( ${SESSION} $MXAUTOSAVE $* \
 				-O ${MXDIR}/run/mxautosave.pid \
 				${MXDIR}/etc/mxautosave.dat \
