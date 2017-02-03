@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2008, 2011, 2015 Illinois Institute of Technology
+ * Copyright 2006-2008, 2011, 2015, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -258,7 +258,7 @@ mxd_aviex_pccd_9785_offsets_writable( MX_AREA_DETECTOR *,
   {MXLV_AVIEX_PCCD_9785_DH_CONTROL, \
 		-1, "dh_control", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_AVIEX_PCCD, u.dh_9785.control), \
-	{0}, NULL, MXFF_READ_ONLY}, \
+	{0}, NULL, 0}, \
   \
   {MXLV_AVIEX_PCCD_9785_DH_PHYSICAL_LINES_IN_QUADRANT, \
 		-1, "dh_physical_lines_in_quadrant", MXFT_ULONG, NULL, 0, {0},\
