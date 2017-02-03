@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -32,7 +32,7 @@ typedef struct {
 	MX_NETWORK_FIELD mount_sample_nf;
 	MX_NETWORK_FIELD requested_sample_holder_nf;
 	MX_NETWORK_FIELD requested_sample_id_nf;
-	MX_NETWORK_FIELD reset_nf;
+	MX_NETWORK_FIELD reset_changer_nf;
 	MX_NETWORK_FIELD select_sample_holder_nf;
 	MX_NETWORK_FIELD shutdown_nf;
 	MX_NETWORK_FIELD soft_abort_nf;
@@ -80,7 +80,7 @@ MX_API mx_status_type mxd_net_sample_changer_immediate_abort(
 						MX_SAMPLE_CHANGER *changer );
 MX_API mx_status_type mxd_net_sample_changer_idle(
 						MX_SAMPLE_CHANGER *changer );
-MX_API mx_status_type mxd_net_sample_changer_reset(
+MX_API mx_status_type mxd_net_sample_changer_reset_changer(
 						MX_SAMPLE_CHANGER *changer );
 MX_API mx_status_type mxd_net_sample_changer_get_status(
 						MX_SAMPLE_CHANGER *changer );

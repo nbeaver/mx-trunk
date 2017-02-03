@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -50,7 +50,7 @@ MX_API mx_status_type mxd_soft_sample_changer_immediate_abort(
 						MX_SAMPLE_CHANGER *changer );
 MX_API mx_status_type mxd_soft_sample_changer_idle(
 						MX_SAMPLE_CHANGER *changer );
-MX_API mx_status_type mxd_soft_sample_changer_reset(
+MX_API mx_status_type mxd_soft_sample_changer_reset_changer(
 						MX_SAMPLE_CHANGER *changer );
 MX_API mx_status_type mxd_soft_sample_changer_get_status(
 						MX_SAMPLE_CHANGER *changer );

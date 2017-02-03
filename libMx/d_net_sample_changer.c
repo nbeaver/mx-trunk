@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004-2007, 2014-2015 Illinois Institute of Technology
+ * Copyright 2004-2007, 2014-2015, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -45,7 +45,7 @@ MX_SAMPLE_CHANGER_FUNCTION_LIST mxd_net_sample_changer_sample_changer_function_l
 	mxd_net_sample_changer_soft_abort,
 	mxd_net_sample_changer_immediate_abort,
 	mxd_net_sample_changer_idle,
-	mxd_net_sample_changer_reset,
+	mxd_net_sample_changer_reset_changer,
 	mxd_net_sample_changer_get_status,
 	mx_sample_changer_default_get_parameter_handler,
 	mxd_net_sample_changer_set_parameter
@@ -197,9 +197,9 @@ mxd_net_sample_changer_finish_record_initialization( MX_RECORD *record )
 		net_sample_changer->server_record,
 	"%s.requested_sample_id", net_sample_changer->remote_record_name );
 
-	mx_network_field_init( &(net_sample_changer->reset_nf),
+	mx_network_field_init( &(net_sample_changer->reset_changer_nf),
 		net_sample_changer->server_record,
-		"%s.reset", net_sample_changer->remote_record_name );
+		"%s.reset_changer", net_sample_changer->remote_record_name );
 
 	mx_network_field_init( &(net_sample_changer->select_sample_holder_nf),
 		net_sample_changer->server_record,
@@ -608,12 +608,12 @@ mxd_net_sample_changer_idle( MX_SAMPLE_CHANGER *changer )
 }
 
 MX_EXPORT mx_status_type
-mxd_net_sample_changer_reset( MX_SAMPLE_CHANGER *changer )
+mxd_net_sample_changer_reset_changer( MX_SAMPLE_CHANGER *changer )
 {
-	static const char fname[] = "mxd_net_sample_changer_reset()";
+	static const char fname[] = "mxd_net_sample_changer_reset_changer()";
 
 	MX_NET_SAMPLE_CHANGER *net_sample_changer;
-	mx_bool_type reset;
+	mx_bool_type reset_changer;
 	mx_status_type mx_status;
 
 	net_sample_changer = NULL;
@@ -627,10 +627,10 @@ mxd_net_sample_changer_reset( MX_SAMPLE_CHANGER *changer )
 	MX_DEBUG(-2,("%s invoked for record '%s'.",
 			fname, changer->record->name));
 
-	reset = TRUE;
+	reset_changer = TRUE;
 
-	mx_status = mx_put( &(net_sample_changer->reset_nf),
-				MXFT_BOOL, &(reset) );
+	mx_status = mx_put( &(net_sample_changer->reset_changer_nf),
+				MXFT_BOOL, &(reset_changer) );
 
 	MX_DEBUG(-2,("%s complete.", fname));
 

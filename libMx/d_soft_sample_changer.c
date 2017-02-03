@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004, 2006 Illinois Institute of Technology
+ * Copyright 2004, 2006, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -45,7 +45,7 @@ MX_SAMPLE_CHANGER_FUNCTION_LIST
 	mxd_soft_sample_changer_soft_abort,
 	mxd_soft_sample_changer_immediate_abort,
 	mxd_soft_sample_changer_idle,
-	mxd_soft_sample_changer_reset,
+	mxd_soft_sample_changer_reset_changer,
 	mxd_soft_sample_changer_get_status,
 	mx_sample_changer_default_get_parameter_handler,
 	mxd_soft_sample_changer_set_parameter
@@ -356,9 +356,9 @@ mxd_soft_sample_changer_idle( MX_SAMPLE_CHANGER *changer )
 }
 
 MX_EXPORT mx_status_type
-mxd_soft_sample_changer_reset( MX_SAMPLE_CHANGER *changer )
+mxd_soft_sample_changer_reset_changer( MX_SAMPLE_CHANGER *changer )
 {
-	static const char fname[] = "mxd_soft_sample_changer_reset()";
+	static const char fname[] = "mxd_soft_sample_changer_reset_changer()";
 
 	MX_SOFT_SAMPLE_CHANGER *soft_sample_changer;
 	mx_status_type mx_status;
