@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2010, 2012-2016 Illinois Institute of Technology
+ * Copyright 1999-2010, 2012-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -300,6 +300,10 @@ typedef struct {
 	{0}, NULL, MXFF_NO_NEXT_EVENT_TIME_UPDATE }, \
   \
   {MXLV_REC_RESYNCHRONIZE, -1, "resynchronize", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, resynchronize), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_REC_RESYNCHRONIZE, -1, "reset", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, resynchronize), \
 	{0}, NULL, 0}, \
   \
@@ -672,6 +676,10 @@ MX_API mx_status_type  mx_close_hardware( MX_RECORD *record );
 MX_API mx_status_type  mx_finish_delayed_initialization( MX_RECORD *record );
 
 MX_API mx_status_type  mx_resynchronize_record( MX_RECORD *record );
+
+/* 'reset' is just a new alias for 'resynchronize'. */
+
+MX_API mx_status_type  mx_reset_record( MX_RECORD *record );
 
 MX_API mx_status_type  mx_update_record_values( MX_RECORD *record );
 
