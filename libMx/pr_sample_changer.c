@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004, 2006, 2012 Illinois Institute of Technology
+ * Copyright 2004, 2006, 2012, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,7 +28,8 @@
 mx_status_type
 mx_setup_sample_changer_process_functions( MX_RECORD *record )
 {
-	static const char fname[] = "mx_setup_sample_changer_process_functions()";
+	static const char fname[] =
+			"mx_setup_sample_changer_process_functions()";
 
 	MX_RECORD_FIELD *record_field;
 	MX_RECORD_FIELD *record_field_array;
@@ -57,7 +58,7 @@ mx_setup_sample_changer_process_functions( MX_RECORD *record )
 		case MXLV_CHG_SOFT_ABORT:
 		case MXLV_CHG_IMMEDIATE_ABORT:
 		case MXLV_CHG_IDLE:
-		case MXLV_CHG_RESET:
+		case MXLV_CHG_RESET_SAMPLE_CHANGER:
 		case MXLV_CHG_COOLDOWN:
 		case MXLV_CHG_DEICE:
 			record_field->process_function
@@ -142,8 +143,9 @@ mx_sample_changer_process_function( void *record_ptr,
 		case MXLV_CHG_IDLE:
 			mx_status = mx_sample_changer_idle( record );
 			break;
-		case MXLV_CHG_RESET:
-			mx_status = mx_sample_changer_reset( record );
+		case MXLV_CHG_RESET_SAMPLE_CHANGER:
+			mx_status =
+			    mx_sample_changer_reset_sample_changer( record );
 			break;
 		case MXLV_CHG_COOLDOWN:
 			mx_status = mx_sample_changer_cooldown( record );

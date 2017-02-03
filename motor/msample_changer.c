@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -329,14 +329,15 @@ motor_sample_changer_fn( int argc, char *argv[] )
 			return FAILURE;
 
 	} else
-	if ( strncmp( "reset", argv[3], strlen(argv[3]) ) == 0 ) {
+	if ( strncmp( "reset_sample_changer", argv[3], strlen(argv[3]) ) == 0 ){
 
 		if ( argc != 4 ) {
 			fprintf( output, "%s\n", usage );
 			return FAILURE;
 		}
 
-		mx_status = mx_sample_changer_reset( changer_record );
+		mx_status = mx_sample_changer_reset_sample_changer(
+							changer_record );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;

@@ -1,5 +1,7 @@
 #! /bin/sh
 
+set -x
+
 if [ x$MXDIR = x ]; then
 	MXDIR=/opt/mx
 fi
