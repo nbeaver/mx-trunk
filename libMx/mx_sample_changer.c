@@ -520,9 +520,9 @@ mx_sample_changer_idle( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mx_sample_changer_reset_sample_changer( MX_RECORD *record )
+mx_sample_changer_reset_changer( MX_RECORD *record )
 {
-	static const char fname[] = "mx_sample_changer_reset_sample_changer()";
+	static const char fname[] = "mx_sample_changer_reset_changer()";
 
 	MX_SAMPLE_CHANGER *changer;
 	MX_SAMPLE_CHANGER_FUNCTION_LIST *function_list;
@@ -535,7 +535,7 @@ mx_sample_changer_reset_sample_changer( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	reset_fn = function_list->reset_sample_changer;
+	reset_fn = function_list->reset_changer;
 
 	if ( reset_fn == NULL ) {
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,

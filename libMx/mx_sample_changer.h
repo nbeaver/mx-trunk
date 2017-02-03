@@ -83,7 +83,7 @@ typedef struct {
 	mx_bool_type soft_abort;
 	mx_bool_type immediate_abort;
 	mx_bool_type idle;
-	mx_bool_type reset_sample_changer;
+	mx_bool_type reset_changer;
 
 	mx_bool_type cooldown;
 	mx_bool_type deice;
@@ -104,7 +104,7 @@ typedef struct {
 #define MXLV_CHG_SOFT_ABORT			18012
 #define MXLV_CHG_IMMEDIATE_ABORT		18013
 #define MXLV_CHG_IDLE				18014
-#define MXLV_CHG_RESET_SAMPLE_CHANGER		18015
+#define MXLV_CHG_RESET_CHANGER		18015
 #define MXLV_CHG_COOLDOWN			18016
 #define MXLV_CHG_DEICE				18017
 
@@ -192,10 +192,9 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_SAMPLE_CHANGER, idle), \
 	{0}, NULL, 0 }, \
   \
-  {MXLV_CHG_RESET_SAMPLE_CHANGER, \
-		-1, "reset_sample_changer", MXFT_BOOL, NULL, 0, {0}, \
+  {MXLV_CHG_RESET_CHANGER, -1, "reset_changer", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
-		offsetof(MX_SAMPLE_CHANGER, reset_sample_changer), \
+		offsetof(MX_SAMPLE_CHANGER, reset_changer), \
 	{0}, NULL, 0 }, \
   \
   {MXLV_CHG_COOLDOWN, -1, "cooldown", MXFT_BOOL, NULL, 0, {0}, \
@@ -218,7 +217,7 @@ typedef struct {
 	mx_status_type ( *soft_abort ) ( MX_SAMPLE_CHANGER *changer );
 	mx_status_type ( *immediate_abort ) ( MX_SAMPLE_CHANGER *changer );
 	mx_status_type ( *idle ) ( MX_SAMPLE_CHANGER *changer );
-	mx_status_type ( *reset_sample_changer ) ( MX_SAMPLE_CHANGER *changer );
+	mx_status_type ( *reset_changer ) ( MX_SAMPLE_CHANGER *changer );
 	mx_status_type ( *get_status ) ( MX_SAMPLE_CHANGER *changer );
 	mx_status_type ( *get_parameter) ( MX_SAMPLE_CHANGER *changer );
 	mx_status_type ( *set_parameter) ( MX_SAMPLE_CHANGER *changer );
@@ -266,8 +265,7 @@ MX_API mx_status_type mx_sample_changer_immediate_abort( MX_RECORD *record );
 
 MX_API mx_status_type mx_sample_changer_idle( MX_RECORD *record );
 
-MX_API mx_status_type mx_sample_changer_reset_sample_changer(
-						MX_RECORD *record );
+MX_API mx_status_type mx_sample_changer_reset_changer( MX_RECORD *record );
 
 MX_API mx_status_type mx_sample_changer_get_status( MX_RECORD *record,
 						unsigned long *status );

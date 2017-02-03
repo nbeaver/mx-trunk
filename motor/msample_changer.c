@@ -336,8 +336,7 @@ motor_sample_changer_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 
-		mx_status = mx_sample_changer_reset_sample_changer(
-							changer_record );
+		mx_status = mx_sample_changer_reset_changer( changer_record );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
