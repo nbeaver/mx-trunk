@@ -15,10 +15,9 @@
  *
  */
 
-#define DEBUG_DEBUGGER			FALSE
-
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <errno.h>
 
 #include "mx_osdef.h"
@@ -32,6 +31,118 @@
 #include "mx_signal.h"
 #include "mx_stdint.h"
 #include "mx_thread.h"
+
+/*-------------------------------------------------------------------------*/
+
+/* The following implements a minimal sigaction() by just redirecting
+ * everything to signal().
+ */
+
+#if 1
+
+#define MXP_NUM_SIGNALS		25
+
+typedef void (*mxp_signal_handler_type)(int);
+
+typedef void (*mxp_signal_action_type)(int, siginfo_t *, void *);
+
+#if 0
+static mxp_signal_handler_type
+mxp_defaults_array[MXP_NUM_SIGNALS] = {NULL};
+#endif
+
+static mxp_signal_action_type
+mxp_action_array[MXP_NUM_SIGNALS] = {NULL};
+
+static void
+mxp_signal_to_sigaction_shim( int signum )
+{
+	mxp_signal_action_type act = NULL;
+	siginfo_t si;
+
+	if ( ( signum < 0 ) || ( signum >= MXP_NUM_SIGNALS) ) {
+		return;
+	}
+
+	if ( mxp_action_array[signum] == NULL ) {
+		return;
+	}
+
+	act = mxp_action_array[signum];
+
+	memset( &si, 0, sizeof(si) );
+
+	/* This implementation does not really know much about why
+	 * it was called.
+	 */
+
+	si.si_signo = signum;
+
+	act( signum, &si, NULL );
+
+	return;
+}
+
+MX_EXPORT int
+sigaction( int signum,
+	const struct sigaction *sa,
+	struct sigaction *old_sa )
+{
+	mxp_signal_handler_type handler_fn = NULL;
+	mxp_signal_action_type sigaction_fn = NULL;
+
+	mxp_signal_handler_type old_handler_fn = NULL;
+	mxp_signal_action_type old_sigaction_fn = NULL;
+
+	if ( (signum < 0) || (signum >= MXP_NUM_SIGNALS) ) {
+	}
+
+	if ( sa != (const struct sigaction *) NULL ) {
+
+		if ( sa->sa_flags & SA_SIGINFO ) {
+			sigaction_fn = sa->sa_sigaction;
+
+			old_sigaction_fn = mxp_action_array[signum];
+
+			old_handler_fn = signal( signum,
+					mxp_signal_to_sigaction_shim );
+
+			if ( old_handler_fn == SIG_ERR ) {
+				return (-1);
+			}
+
+			mxp_action_array[signum] = sigaction_fn;
+		} else {
+			handler_fn = sa->sa_handler;
+
+			old_handler_fn = signal( signum, handler_fn );
+
+			if ( old_handler_fn == SIG_ERR ) {
+				return (-1);
+			}
+
+			if ( old_sa != (struct sigaction *) NULL ) {
+				memset( old_sa, 0, sizeof(struct sigaction) );
+
+				old_sa->sa_handler = old_handler_fn;
+			}
+
+			return 0;
+		}
+	}
+
+	/* Returning the previous signal handler is not implemented
+	 * if we did not just install a new handler.
+	 */
+
+	if ( old_sa != (struct sigaction *) NULL ) {
+		return (-1);
+	}
+
+	return 0;
+}
+
+#endif
 
 /*-------------------------------------------------------------------------*/
 
