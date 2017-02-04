@@ -22,7 +22,9 @@
  *
  */
 
-#define MX_SIGNAL_DEBUG		FALSE
+#define MX_SIGNAL_DEBUG			FALSE
+
+#define MX_SIGNAL_DEBUG_AVAILABILITY	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -193,8 +195,6 @@ mx_signal_initialize( void )
 				continue;  /* Go to the top of the for() loop.*/
 			}
 
-			MX_DEBUG(-2,("%s: MARKER 2", fname));
-
 			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 			"Unable to get the signal handling status for "
 			"signal %d (case 2).  "
@@ -243,7 +243,20 @@ mx_signal_initialize( void )
 		if ( status != 0 ) {
 			saved_errno = errno;
 
-			MX_DEBUG(-2,("%s: MARKER 3", fname));
+			switch( saved_errno ) {
+			case 0:
+				/* Mark this signal number as in use and
+				 * go on to the next one.
+				 */
+
+				mx_signal_array[i-1] = TRUE;
+
+#if MX_SIGNAL_DEBUG
+				MX_DEBUG(-2,("%s: Signal %d is already in use.",
+					fname, i));
+#endif
+				continue;  /* Go to the top of the for() loop.*/
+			}
 
 			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 			"Unable to get the signal handling status for realtime "
@@ -338,6 +351,13 @@ mx_signal_initialize( void )
 				status, strerror(status) );
 		}
 	}
+
+#if MX_SIGNAL_DEBUG_AVAILABILITY
+	for ( i = 1; i <= mx_num_signals; i++ ) {
+		MX_DEBUG(-2,("%s: mx_signal_array[%d] = %d", fname, 
+			i, mx_signal_array[i-1] ));
+	}
+#endif
 
 	/* Create the mutex that is used to manage access to mx_signal_array. */
 
