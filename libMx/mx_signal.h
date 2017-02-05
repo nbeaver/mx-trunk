@@ -78,9 +78,7 @@ MX_API int sigaction( int signum,
 
 /*--------*/
 
-MX_API void mx_standard_signal_error_handler( int signal_number,
-						siginfo_t *siginfo,
-						void *ucontext );
+MX_API void mx_standard_signal_error_handler( int signal_number );
 
 MX_API void mx_setup_standard_signal_error_handlers( void );
 

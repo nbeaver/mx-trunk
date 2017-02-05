@@ -7,7 +7,7 @@
  *
  * WARNING: These functions are advisory only in nature.  In general, they
  *          have no mechanism for preventing a thread that does not use these
- *          functions from manipulating a signal.
+ *          functions from manipulating a signal, so they are not foolproof.
  *
  * Note:    At present, the primary use of these functions is to allocate
  *          signals to use as the signal generated when a Posix timer expires.
@@ -74,7 +74,7 @@
 
 #if HAVE_POSIX_REALTIME_SIGNALS || defined( OS_CYGWIN )
 
-#define MX_NUM_SIGNALS	SIGRTMAX
+#define MX_MAX_SIGNALS	SIGRTMAX
 
 static int *mx_signal_array = NULL;
 static int mx_num_signals;
@@ -90,16 +90,16 @@ mx_signal_dummy_handler( int signal_number,
 }
 
 MX_EXPORT mx_status_type
-mx_signal_initialize( void )
+mx_signal_alloc_initialize( void )
 {
-	static const char fname[] = "mx_signal_initialize()";
+	static const char fname[] = "mx_signal_alloc_initialize()";
 
 	int i, status, saved_errno;
 	struct sigaction sa, old_sa;
 	sigset_t set;
 	mx_status_type mx_status;
 
-	mx_num_signals = MX_NUM_SIGNALS;
+	mx_num_signals = MX_MAX_SIGNALS;
 
 #if MX_SIGNAL_DEBUG
 	MX_DEBUG(-2,("%s: mx_num_signals = %d", fname, mx_num_signals));
@@ -115,113 +115,11 @@ mx_signal_initialize( void )
 			mx_num_signals );
 	}
 
-	/* See if any of the non-realtime signals are already in use. */
-
-	for ( i = 1; i < SIGRTMIN; i++ ) {
-		/* See if the signal is already in use. */
-
-		status = sigaction( i, NULL, &old_sa );
-
-		if ( status != 0 ) {
-			saved_errno = errno;
-
-			switch( saved_errno ) {
-			case EINVAL:
-			case ENOSYS:
-			case ENOENT:
-			case 0:
-				/* There may be gaps in the supported
-				 * signal numbers, so mark this signal
-				 * number as in use and continue on to
-				 * the next signal.
-				 */
-
-				mx_signal_array[i-1] = TRUE;
-
-#if MX_SIGNAL_DEBUG
-				MX_DEBUG(-2,("%s: Signal %d is invalid.",
-					fname, i));
-#endif
-				continue;  /* Go to the top of the for() loop.*/
-			}
-
-			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			"Unable to get the signal handling status for "
-			"signal %d (case 1).  "
-			"Errno = %d, error message = '%s'.",
-				i, saved_errno, strerror(saved_errno) );
-		}
-
-		if ( old_sa.sa_handler != SIG_DFL ) {
-			/* This signal is not using the default handler,
-			 * so we assume that it is already being used by 
-			 * something else.
-			 */
-
-			mx_signal_array[i-1] = TRUE;
-
-#if MX_SIGNAL_DEBUG
-			MX_DEBUG(-2,("%s: Signal %d is already in use.",
-				fname, i));
-#endif
-		}
-	}
-
-	/* Just in case there are signal numbers higher than SIGRTMAX. */
-
-	for ( i = SIGRTMAX+1; i <= mx_num_signals; i++ ) {
-		/* See if the signal is already in use. */
-
-		status = sigaction( i, NULL, &old_sa );
-
-		if ( status != 0 ) {
-			saved_errno = errno;
-
-			switch( saved_errno ) {
-			case EINVAL:
-			case ENOSYS:
-				/* There may be gaps in the supported
-				 * signal numbers, so mark this signal
-				 * number as in use and continue on to
-				 * the next signal.
-				 */
-
-				mx_signal_array[i-1] = TRUE;
-
-#if MX_SIGNAL_DEBUG
-				MX_DEBUG(-2,("%s: Signal %d is invalid.",
-					fname, i));
-#endif
-				continue;  /* Go to the top of the for() loop.*/
-			}
-
-			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			"Unable to get the signal handling status for "
-			"signal %d (case 2).  "
-			"Errno = %d, error message = '%s'.",
-				i, saved_errno, strerror(saved_errno) );
-		}
-
-		if ( old_sa.sa_handler != SIG_DFL ) {
-			/* This signal is not using the default handler,
-			 * so we assume that it is already being used by 
-			 * something else.
-			 */
-
-			mx_signal_array[i-1] = TRUE;
-
-#if MX_SIGNAL_DEBUG
-			MX_DEBUG(-2,("%s: Signal %d is already in use.",
-				fname, i));
-#endif
-		}
-	}
-
 	/* Install dummy signal handlers for the realtime signals and mask
-	 * off delivery of the signals.  Usenet posts by David Butenhof say
-	 * that the signal handlers need to be here for sigwait(),
+	 * off delivery of those signals.  Usenet posts by David Butenhof
+	 * say that the signal handlers need to be here for sigwait(),
 	 * sigwaitinfo(), and sigtimedwait() to work correctly on all
-	 * platforms.
+	 * platforms.  Non-realtime signals are left alone.
 	 */
 
 	status = sigemptyset( &set );
@@ -235,8 +133,10 @@ mx_signal_initialize( void )
 				saved_errno, strerror(saved_errno) );
 	}
 
-	for ( i = SIGRTMIN; i <= SIGRTMAX; i++ ) {
+	for ( i = 1; i <= mx_num_signals; i++ ) {
 		/* See if the signal is already in use. */
+
+		memset( &old_sa, 0, sizeof(old_sa) );
 
 		status = sigaction( i, NULL, &old_sa );
 
@@ -244,25 +144,53 @@ mx_signal_initialize( void )
 			saved_errno = errno;
 
 			switch( saved_errno ) {
-			case 0:
-				/* Mark this signal number as in use and
-				 * go on to the next one.
+			case EINVAL:
+			case ENOSYS:
+			case ENOENT:
+				/* There may be gaps in the supported
+				 * signal numbers, so mark this signal
+				 * number as in use and continue on to
+				 * the next signal.
 				 */
 
 				mx_signal_array[i-1] = TRUE;
+				continue;
 
-#if MX_SIGNAL_DEBUG
-				MX_DEBUG(-2,("%s: Signal %d is already in use.",
-					fname, i));
-#endif
-				continue;  /* Go to the top of the for() loop.*/
+			case 0:
+				/* FIXME: W. Lavender (2017-02-04)
+				 *
+				 * It is not clear what it means if calling
+				 * sigaction() returns an error, but errno
+				 * is zero.  My impression is that this
+				 * means that the signal is not in use,
+				 * but this is only my own guesstimate.
+				 * 
+				 * An argument in favor of this is that on
+				 * Linux with NPTL pthreads, the first two
+				 * realtime signals indicate that those
+				 * already have a handler, but for the rest
+				 * of the realtime signals, sigaction()
+				 * returns -1 with errno == 0.  The NPTL
+				 * implementation of pthreads is documented
+				 * to use the first two real-time signals
+				 * for its own purposes, which is compatible
+				 * with this guesstimate.
+				 */
+
+				mx_signal_array[i-1] = FALSE;
+				continue;
+
+			default:
+				return mx_error(
+				MXE_OPERATING_SYSTEM_ERROR, fname,
+				"An attempt to get the signal handling status "
+				"for Posix signal %d returned "
+				"with status = %d.  "
+				"Errno = %d, error message = '%s'.",
+					i, status, saved_errno,
+					strerror(saved_errno) );
+				break;
 			}
-
-			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			"Unable to get the signal handling status for realtime "
-			"signal %d (case 3).  "
-			"Errno = %d, error message = '%s'.",
-				i, saved_errno, strerror(saved_errno) );
 		}
 
 		if ( old_sa.sa_handler != SIG_DFL ) {
@@ -273,14 +201,20 @@ mx_signal_initialize( void )
 
 			mx_signal_array[i-1] = TRUE;
 
-#if MX_SIGNAL_DEBUG
-			MX_DEBUG(-2,
-			("%s: Realtime signal %d is already in use.",
-				fname, i));
-#endif
-
 			continue;    /* Go back to the top of the for() loop. */
 		}
+
+		/* If this is not a realtime signal, then we are done with
+		 * it and should proceed on to the next signal.
+		 */
+
+		if ( (i < SIGRTMIN) || (i > SIGRTMAX) ) {
+			continue;
+		}
+
+		/* If we get here, then this is a realtime signal that we
+		 * have to install the dummy signal handler for.
+		 */
 
 #if MX_SIGNAL_DEBUG
 		MX_DEBUG(-2,
@@ -367,7 +301,7 @@ mx_signal_initialize( void )
 }
 
 MX_EXPORT int
-mx_signals_are_initialized( void )
+mx_signal_alloc_is_initialized( void )
 {
 	if ( mx_signal_mutex != NULL ) {
 		return TRUE;
@@ -386,8 +320,8 @@ mx_signal_allocate( int requested_signal_number,
 	long status;
 	mx_status_type mx_status;
 
-	if ( mx_signals_are_initialized() == FALSE ) {
-		mx_status = mx_signal_initialize();
+	if ( mx_signal_alloc_is_initialized() == FALSE ) {
+		mx_status = mx_signal_alloc_initialize();
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -400,21 +334,8 @@ mx_signal_allocate( int requested_signal_number,
 			"Unable to lock mx_signal_mutex." );
 	}
 
-	if ( requested_signal_number != MXF_ANY_REALTIME_SIGNAL ) {
+	if ( requested_signal_number == MXF_ANY_REALTIME_SIGNAL ) {
 
-		i = requested_signal_number - 1;
-
-		if ( mx_signal_array[i] != FALSE ) {
-			MX_SIGNAL_MUTEX_UNLOCK;
-			return mx_error( MXE_NOT_AVAILABLE, fname,
-				"Signal %d is already in use.",
-				requested_signal_number );
-		}
-
-		if ( allocated_signal_number != NULL ) {
-			*allocated_signal_number = requested_signal_number;
-		}
-	} else {
 		/* Search for an available realtime signal. */
 
 		for ( i = (SIGRTMIN - 1); i < SIGRTMAX; i++ ) {
@@ -431,6 +352,34 @@ mx_signal_allocate( int requested_signal_number,
 
 		if ( allocated_signal_number != NULL ) {
 			*allocated_signal_number = i + 1;
+		}
+	} else
+	if ( (requested_signal_number < 1)
+	  || (requested_signal_number > MX_MAX_SIGNALS ) )
+	{
+		/* An illegal signal number has been requested,
+		 * so tell the caller that.
+		 */
+
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The requested signal number %d is outside the allowed "
+		"range from 1 to %d.",
+			requested_signal_number,
+			MX_MAX_SIGNALS );
+	} else {
+		/* We want a specific signal number. */
+
+		i = requested_signal_number - 1;
+
+		if ( mx_signal_array[i] != FALSE ) {
+			MX_SIGNAL_MUTEX_UNLOCK;
+			return mx_error( MXE_NOT_AVAILABLE, fname,
+				"Signal %d is already in use.",
+				requested_signal_number );
+		}
+
+		if ( allocated_signal_number != NULL ) {
+			*allocated_signal_number = requested_signal_number;
 		}
 	}
 
@@ -454,7 +403,7 @@ mx_signal_free( int signal_number )
 	int i, was_in_use;
 	long status;
 
-	if ( mx_signals_are_initialized() == FALSE ) {
+	if ( mx_signal_alloc_is_initialized() == FALSE ) {
 		return mx_error( MXE_INITIALIZATION_ERROR, fname,
 		"Attempted to free signal %d when signals had not yet "
 		"been initialized.", signal_number );
@@ -466,7 +415,7 @@ mx_signal_free( int signal_number )
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The requested signal number %d is outside "
 		"the allowed range of %d to %d.", signal_number,
-						1, (int) MX_NUM_SIGNALS );
+						1, (int) MX_MAX_SIGNALS );
 	}
 
 	status = mx_mutex_lock( mx_signal_mutex );
@@ -498,6 +447,45 @@ mx_signal_free( int signal_number )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+MX_EXPORT int
+mx_maximum_signal_number( void )
+{
+	return MX_MAX_SIGNALS;
+}
+
+MX_EXPORT mx_status_type
+mx_get_signal_allocation( int max_signals,
+			int *users_mx_signal_array )
+{
+	static const char fname[] = "mx_get_signal_allocation()";
+
+	int i, signals_to_copy;
+
+	if ( mx_signal_array == (int *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The mx_signal_array pointer passed was NULL." );
+	}
+	if ( max_signals < 1 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The value passed for max_signals (%d) is outside the "
+		"allowed range from 1 to %d.", max_signals, MX_MAX_SIGNALS );
+	}
+
+	memset( users_mx_signal_array, 0, max_signals * sizeof(int) );
+
+	if ( max_signals > MX_MAX_SIGNALS ) {
+		signals_to_copy = MX_MAX_SIGNALS;
+	} else {
+		signals_to_copy = max_signals;
+	}
+
+	for ( i = 0; i < max_signals; i++ ) {
+		users_mx_signal_array[i] = mx_signal_array[i];
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /*--------------------------------------------------------------------------*/
 
 #elif defined( OS_MACOSX ) || defined( OS_BSD ) || defined( OS_VXWORKS ) \
@@ -513,7 +501,7 @@ static MX_MUTEX *mx_signal_mutex = NULL;
 static int mx_sigalrm_in_use = FALSE;
 
 MX_EXPORT mx_status_type
-mx_signal_initialize( void )
+mx_signal_alloc_initialize( void )
 {
 	mx_status_type mx_status;
 
@@ -525,7 +513,7 @@ mx_signal_initialize( void )
 }
 
 MX_EXPORT int
-mx_signals_are_initialized( void )
+mx_signal_alloc_is_initialized( void )
 {
 	if ( mx_signal_mutex != NULL ) {
 		return TRUE;
@@ -545,7 +533,7 @@ mx_signal_allocate( int requested_signal_number,
 	long mutex_status;
 	mx_status_type mx_status;
 
-	if ( mx_signals_are_initialized() == FALSE ) {
+	if ( mx_signal_alloc_is_initialized() == FALSE ) {
 		mx_status = mx_signal_initialize();
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -619,7 +607,7 @@ mx_signal_free( int signal_number )
 
 	long status;
 
-	if ( mx_signals_are_initialized() == FALSE ) {
+	if ( mx_signal_alloc_is_initialized() == FALSE ) {
 		return mx_error( MXE_INITIALIZATION_ERROR, fname,
 		"Attempted to free signal %d when signals had not yet "
 		"been initialized.", signal_number );
@@ -650,6 +638,41 @@ mx_signal_free( int signal_number )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+MX_EXPORT int
+mx_maximum_signal_number( void )
+{
+	return SIGALRM;
+}
+
+MX_EXPORT mx_status_type
+mx_get_signal_allocation( int max_signals,
+			int *users_mx_signal_array )
+{
+	static const char fname[] = "mx_get_signal_allocation()";
+
+	int i, signals_to_copy;
+
+	if ( mx_signal_array == (int *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The mx_signal_array pointer passed was NULL." );
+	}
+	if ( max_signals < 1 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The value passed for max_signals (%d) is outside the "
+		"allowed range from 1 to %d.", max_signals, MX_MAX_SIGNALS );
+	}
+
+	for ( i = 0; i < max_signals; i++ ) {
+		if ( i == (SIGALRM-1) ) {
+			users_mx_signal_array[i] = mx_sigalrm_in_use;
+		} else {
+			users_mx_signal_array[i] = FALSE;
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /*--------------------------------------------------------------------------*/
 
 #elif defined( OS_WIN32 ) || defined( OS_VMS )
@@ -659,13 +682,13 @@ mx_signal_free( int signal_number )
  */
 
 MX_EXPORT mx_status_type
-mx_signal_initialize( void )
+mx_signal_alloc_initialize( void )
 {
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT int
-mx_signals_are_initialized( void )
+mx_signal_alloc_is_initialized( void )
 {
 	return TRUE;
 }
@@ -687,6 +710,37 @@ mx_signal_free( int signal_number )
 
 	return mx_error( MXE_UNSUPPORTED, fname,
 	"Signal allocation is not supported on this platform" );
+}
+
+MX_EXPORT int
+mx_maximum_signal_number( void )
+{
+	return 0;
+}
+
+MX_EXPORT mx_status_type
+mx_get_signal_allocation( int max_signals,
+			int *users_mx_signal_array )
+{
+	static const char fname[] = "mx_get_signal_allocation()";
+
+	if ( mx_signal_array == (int *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The mx_signal_array pointer passed was NULL." );
+	}
+	if ( max_signals < 1 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The value passed for max_signals (%d) is outside the "
+		"allowed range from 1 to %d.", max_signals, MX_MAX_SIGNALS );
+	}
+
+	/* Claim that all of the signals are in use. */
+
+	for ( i = 0; i < max_signals; i++ ) {
+		users_mx_signal_array[i] = TRUE;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*--------------------------------------------------------------------------*/

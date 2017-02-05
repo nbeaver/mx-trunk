@@ -34,11 +34,11 @@
 
 /*-------------------------------------------------------------------------*/
 
+#if defined(OS_WIN32)
+
 /* The following implements a minimal sigaction() by just redirecting
  * everything to signal().
  */
-
-#if 1
 
 #define MXP_NUM_SIGNALS		25
 
@@ -136,6 +136,7 @@ sigaction( int signum,
 	 */
 
 	if ( old_sa != (struct sigaction *) NULL ) {
+		errno = EINVAL;
 		return (-1);
 	}
 
@@ -147,9 +148,7 @@ sigaction( int signum,
 /*-------------------------------------------------------------------------*/
 
 MX_EXPORT void
-mx_standard_signal_error_handler( int signal_number,
-				siginfo_t *siginfo,
-				void *ucontext )
+mx_standard_signal_error_handler( int signal_number )
 {
 	static char signal_name[80];
 	static char directory_name[ MXU_FILENAME_LENGTH + 1 ];
@@ -240,30 +239,23 @@ mx_standard_signal_error_handler( int signal_number,
 MX_EXPORT void
 mx_setup_standard_signal_error_handlers( void )
 {
-	struct sigaction sa;
-
-	memset( &sa, 0, sizeof(sa) );
-
-	sa.sa_flags = SA_SIGINFO;
-	sa.sa_sigaction = mx_standard_signal_error_handler;
-
 #ifdef SIGILL
-	sigaction( SIGILL, &sa, NULL );
+	signal( SIGILL, mx_standard_signal_error_handler );
 #endif
 #ifdef SIGTRAP
-	sigaction( SIGTRAP, &sa, NULL );
+	signal( SIGTRAP, mx_standard_signal_error_handler );
 #endif
 #ifdef SIGIOT
-	sigaction( SIGIOT, &sa, NULL );
+	signal( SIGIOT, mx_standard_signal_error_handler );
 #endif
 #ifdef SIGBUS
-	sigaction( SIGBUS, &sa, NULL );
+	signal( SIGBUS, mx_standard_signal_error_handler );
 #endif
 #ifdef SIGFPE
-	sigaction( SIGFPE, &sa, NULL );
+	signal( SIGFPE, mx_standard_signal_error_handler );
 #endif
 #ifdef SIGSEGV
-	sigaction( SIGSEGV, &sa, NULL );
+	signal( SIGSEGV, mx_standard_signal_error_handler );
 #endif
 	return;
 }

@@ -23,6 +23,7 @@
 #include "mx_vm_alloc.h"
 #include "mx_net_interface.h"
 #include "mx_callback.h"
+#include "mx_signal_alloc.h"
 
 int
 motor_test_fn( int argc, char *argv[] )
@@ -273,6 +274,49 @@ motor_test_fn( int argc, char *argv[] )
 			} else {
 				return FAILURE;
 			}
+		}
+
+		else
+		if ( strcmp( argv[2], "signals" ) == 0 ) {
+			int i, num_signals;
+			int *signal_array;
+
+			num_signals = mx_maximum_signal_number();
+
+			if ( num_signals < 1 ) {
+				fprintf( output, "No signals are available.\n");
+				return FAILURE;
+			}
+
+			signal_array = calloc( num_signals, sizeof(int) );
+
+			if ( signal_array == NULL ) {
+				fprintf( output,
+			"Allocating a %d element signal status array failed.\n",
+					num_signals );
+				return FAILURE;
+			}
+
+			mx_status = mx_get_signal_allocation( num_signals,
+								signal_array );
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+				mx_free(signal_array);
+				return FAILURE;
+			}
+
+			for ( i = 0; i < num_signals; i++ ) {
+				if ( signal_array[i] ) {
+					fprintf( output,
+					"Signal %d = TRUE\n", i+1 );
+				} else {
+					fprintf( output,
+					"Signal %d = FALSE\n", i+1 );
+				}
+			}
+
+			mx_free(signal_array);
+			return SUCCESS;
 		}
 	}
 

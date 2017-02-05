@@ -25,14 +25,21 @@ extern "C" {
 
 #define MXF_ANY_REALTIME_SIGNAL		(-1)
 
-MX_API mx_status_type mx_signal_initialize( void );
+MX_API mx_status_type mx_signal_alloc_initialize( void );
 
-MX_API int mx_signals_are_initialized( void );
+MX_API int mx_signal_alloc_is_initialized( void );
 
 MX_API mx_status_type mx_signal_allocate( int requested_signal_number,
 					int *allocated_signal_number );
 
 MX_API mx_status_type mx_signal_free( int signal_number );
+
+/*---*/
+
+MX_API int mx_maximum_signal_number( void );
+
+MX_API mx_status_type mx_get_signal_allocation( int max_signals,
+						int *mx_signal_array );
 
 #ifdef __cplusplus
 }

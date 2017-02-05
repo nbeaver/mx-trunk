@@ -196,7 +196,7 @@ mx_initialize_runtime( void )
 	/* Initialize MX realtime signal management. */
 
 #if defined( _POSIX_REALTIME_SIGNALS )
-	mx_status = mx_signal_initialize();
+	mx_status = mx_signal_alloc_initialize();
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
