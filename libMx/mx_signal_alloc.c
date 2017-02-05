@@ -534,7 +534,7 @@ mx_signal_allocate( int requested_signal_number,
 	mx_status_type mx_status;
 
 	if ( mx_signal_alloc_is_initialized() == FALSE ) {
-		mx_status = mx_signal_initialize();
+		mx_status = mx_signal_alloc_initialize();
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -650,16 +650,16 @@ mx_get_signal_allocation( int max_signals,
 {
 	static const char fname[] = "mx_get_signal_allocation()";
 
-	int i, signals_to_copy;
+	int i;
 
-	if ( mx_signal_array == (int *) NULL ) {
+	if ( users_mx_signal_array == (int *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The mx_signal_array pointer passed was NULL." );
+		"The users_mx_signal_array pointer passed was NULL." );
 	}
 	if ( max_signals < 1 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"The value passed for max_signals (%d) is outside the "
-		"allowed range from 1 to %d.", max_signals, MX_MAX_SIGNALS );
+		"allowed range from 1 to %d.", max_signals, SIGALRM );
 	}
 
 	for ( i = 0; i < max_signals; i++ ) {
