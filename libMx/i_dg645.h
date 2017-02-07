@@ -1,0 +1,108 @@
+/*
+ * Name:    i_dg645.h
+ *
+ * Purpose: Header file for Stanford Research Systems DG645 Digital
+ *          Delay Generators.
+ *
+ * Author:  William Lavender
+ *
+ *--------------------------------------------------------------------------
+ *
+ * Copyright 2017 Illinois Institute of Technology
+ *
+ * See the file "LICENSE" for information on usage and redistribution
+ * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+ *
+ */
+
+#ifndef __I_DG645_H__
+#define __I_DG645_H__
+
+/* Values for the 'dg645_flags' field. */
+
+#define MXF_DG645_DEBUG		0x1
+
+#define MXU_DG645_STRING_LENGTH		20
+
+typedef struct {
+	MX_RECORD *record;
+
+	MX_INTERFACE dg645_interface;
+	unsigned long dg645_flags;
+	long instrument_settings;
+	unsigned long serial_number;
+	unsigned long firmware_version;
+
+	mx_bool_type save_settings;
+	mx_bool_type recall_settings;
+
+	double trigger_level;
+	double trigger_rate;
+	unsigned long trigger_source;
+} MX_DG645;
+
+
+#define MXLV_DG645_SAVE_SETTINGS		83001
+#define MXLV_DG645_RECALL_SETTINGS		83002
+#define MXLV_DG645_TRIGGER_LEVEL		83003
+#define MXLV_DG645_TRIGGER_RATE			83004
+#define MXLV_DG645_TRIGGER_SOURCE		83005
+
+#define MXI_DG645_STANDARD_FIELDS \
+  {-1, -1, "dg645_interface", MXFT_INTERFACE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, dg645_interface), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "dg645_flags", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, dg645_flags), \
+	{0}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
+  {-1, -1, "instrument_settings", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, instrument_settings), \
+	{0}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
+  {-1, -1, "serial_number", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, serial_number), \
+	{0}, NULL, 0}, \
+  \
+  {-1, -1, "firmware_version", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, firmware_version), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_DG645_SAVE_SETTINGS, -1, "save_settings", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, save_settings), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_DG645_RECALL_SETTINGS, -1, "recall_settings", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, recall_settings), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_DG645_TRIGGER_LEVEL, -1, "trigger_level", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, trigger_level), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_DG645_TRIGGER_RATE, -1, "trigger_rate", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, trigger_rate), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_DG645_TRIGGER_SOURCE, -1, "trigger_source", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, trigger_source), \
+	{0}, NULL, 0}
+
+MX_API mx_status_type mxi_dg645_create_record_structures( MX_RECORD *record );
+MX_API mx_status_type mxi_dg645_open( MX_RECORD *record );
+MX_API mx_status_type mxi_dg645_special_processing_setup( MX_RECORD *record );
+
+MX_API mx_status_type mxi_dg645_command( MX_DG645 *dg645,
+					char *command,
+					char *response,
+					size_t max_response_length,
+					unsigned long dg645_flags );
+
+extern MX_RECORD_FUNCTION_LIST mxi_dg645_record_function_list;
+
+extern long mxi_dg645_num_record_fields;
+extern MX_RECORD_FIELD_DEFAULTS *mxi_dg645_rfield_def_ptr;
+
+#endif /* __I_DG645_H__ */
+

@@ -194,6 +194,7 @@
 #include "i_ilm.h"
 #include "i_linkam_t9x.h"
 #include "i_sim900.h"
+#include "i_dg645.h"
 
 #include "d_ks3512.h"
 #include "d_ks3112.h"
@@ -442,6 +443,7 @@
 #include "d_pdi45_pulser.h"
 #include "d_doutput_pulser.h"
 #include "d_gittelsohn_pulser.h"
+#include "d_dg645_pulser.h"
 
 #include "d_soft_sca.h"
 #include "d_network_sca.h"
@@ -1080,6 +1082,13 @@ MX_DRIVER mx_type_table[] = {
 				NULL,
 				&mxi_wti_nps_num_record_fields,
 				&mxi_wti_nps_rfield_def_ptr},
+
+{"dg645",         MXI_CTRL_DG645,        MXI_CONTROLLER,    MXR_INTERFACE,
+				&mxi_dg645_record_function_list,
+				NULL,
+				NULL,
+				&mxi_dg645_num_record_fields,
+				&mxi_dg645_rfield_def_ptr},
 
 #if ( defined(OS_LINUX) && (MX_GLIBC_VERSION >= 2002000L) )
 
@@ -3165,6 +3174,13 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_gittelsohn_pulser_pulser_function_list,
 				&mxd_gittelsohn_pulser_num_record_fields,
 				&mxd_gittelsohn_pulser_rfield_def_ptr},
+
+{"dg645_pulser",      MXT_PGN_DG645, MXC_PULSE_GENERATOR, MXR_DEVICE,
+				&mxd_dg645_pulser_record_function_list,
+				NULL,
+				&mxd_dg645_pulser_pulser_function_list,
+				&mxd_dg645_pulser_num_record_fields,
+				&mxd_dg645_pulser_rfield_def_ptr},
 
 {"soft_sca",       MXT_SCA_SOFTWARE,  MXC_SINGLE_CHANNEL_ANALYZER, MXR_DEVICE,
 				&mxd_soft_sca_record_function_list,

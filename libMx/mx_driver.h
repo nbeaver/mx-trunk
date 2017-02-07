@@ -261,6 +261,7 @@ extern "C" {
 #define MXI_CTRL_SYNACCESS_NETBOOTER	463
 #define MXI_CTRL_NEWPORT_XPS		464
 #define MXI_CTRL_WTI_NPS		465
+#define MXI_CTRL_DG645			466
 
 #define MXI_PIO_PORTIO			600
 #define MXI_PIO_DOS			601
@@ -678,6 +679,7 @@ extern "C" {
 
 #define MXT_PGN_DIGITAL_OUTPUT		160008
 #define MXT_PGN_GITTELSOHN		160009
+#define MXT_PGN_DG645			160010
 
 /* --- Single channel analyzer types --- */
 

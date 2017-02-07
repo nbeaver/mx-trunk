@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2007, 2010, 2013, 2015-2016 Illinois Institute of Technology
+ * Copyright 1999-2007, 2010, 2013, 2015-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -369,7 +369,9 @@ mxi_tcp232_open_socket_if_necessary( MX_RS232 *rs232, MX_TCP232 *tcp232 )
 		}
 	}
 
+#if MXI_TCP232_DEBUG
 	MX_DEBUG(-2,("open_socket = %d", (int) open_socket));
+#endif
 
 	if ( open_socket ) {
 		mx_status = mxi_tcp232_open_socket( rs232, tcp232 );
