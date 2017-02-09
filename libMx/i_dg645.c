@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -180,6 +181,13 @@ mxi_dg645_open( MX_RECORD *record )
 			return mx_status;
 	}
 
+#if 0
+	/* Set the voltages of the 5 outputs T0, AB, CD, EF, and GH. */
+
+	mx_status = mx_process_record_field_by_name( record, "output_voltage",
+							MX_PROCESS_PUT, NULL );
+#endif
+
 	return mx_status;
 }
 
@@ -197,6 +205,7 @@ mxi_dg645_special_processing_setup( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
+		case MXLV_DG645_OUTPUT_VOLTAGE:
 		case MXLV_DG645_RECALL_SETTINGS:
 		case MXLV_DG645_SAVE_SETTINGS:
 		case MXLV_DG645_TRIGGER_LEVEL:
@@ -449,7 +458,8 @@ mxi_dg645_process_function( void *record_ptr,
 	MX_DG645 *dg645;
 	char command[80];
 	char response[80];
-	int num_items;
+	int i, num_items, polarity;
+	double voltage;
 	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
@@ -529,6 +539,46 @@ mxi_dg645_process_function( void *record_ptr,
 		break;
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
+		case MXLV_DG645_OUTPUT_VOLTAGE:
+			for ( i = 0; i < MXU_DG645_NUM_OUTPUTS; i++ ) {
+				voltage = dg645->output_voltage[i];
+
+				/* Skip a voltage that is out of range. */
+
+				if ( (voltage < -5.0) && (voltage > 5.0) ) {
+					continue;
+				}
+
+				/* The polarity and the magnitude must be
+				 * handled separately.
+				 */
+
+				if ( voltage < 0.0 ) {
+					polarity = 0;
+				} else {
+					polarity = 1;
+				}
+
+				snprintf( command, sizeof(command),
+					"LPOL %d,%d", i, polarity );
+
+				mx_status = mxi_dg645_command( dg645, command,
+						NULL, 0, MXI_DG645_DEBUG );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+
+				snprintf( command, sizeof(command),
+					"LAMP %d,%g", i, fabs(voltage) );
+
+				mx_status = mxi_dg645_command( dg645, command,
+						NULL, 0, MXI_DG645_DEBUG );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+			}
+			break;
+
 		case MXLV_DG645_RECALL_SETTINGS:
 			if ( dg645->recall_settings == 0 ) {
 				return mx_status;

@@ -24,7 +24,11 @@
 
 #define MXF_DG645_DEBUG		0x80000000
 
+/*---*/
+
 #define MXU_DG645_STRING_LENGTH		20
+
+#define MXU_DG645_NUM_OUTPUTS		5
 
 /* FIXME: The trigger settings in mx_image.h should be moved into a
  * different header so that we don't end up defining them again here.
@@ -40,6 +44,8 @@ typedef struct {
 	MX_INTERFACE dg645_interface;
 	unsigned long dg645_flags;
 	long instrument_settings;
+	double output_voltage[MXU_DG645_NUM_OUTPUTS];
+
 	unsigned long serial_number;
 	unsigned long firmware_version;
 
@@ -56,6 +62,7 @@ typedef struct {
 } MX_DG645;
 
 
+#define MXLV_DG645_OUTPUT_VOLTAGE		83000
 #define MXLV_DG645_SAVE_SETTINGS		83001
 #define MXLV_DG645_RECALL_SETTINGS		83002
 #define MXLV_DG645_TRIGGER_LEVEL		83003
@@ -74,6 +81,11 @@ typedef struct {
   {-1, -1, "instrument_settings", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, instrument_settings), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
+  {MXLV_DG645_OUTPUT_VOLTAGE, -1, "output_voltage", \
+		MXFT_DOUBLE, NULL, 1, {MXU_DG645_NUM_OUTPUTS}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, output_voltage), \
+	{sizeof(double)}, NULL, MXFF_IN_DESCRIPTION}, \
   \
   {-1, -1, "serial_number", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, serial_number), \

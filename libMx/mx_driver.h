@@ -680,6 +680,7 @@ extern "C" {
 #define MXT_PGN_DIGITAL_OUTPUT		160008
 #define MXT_PGN_GITTELSOHN		160009
 #define MXT_PGN_DG645			160010
+#define MXT_PGN_DG645_BURST		160011
 
 /* --- Single channel analyzer types --- */
 

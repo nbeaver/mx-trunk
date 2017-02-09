@@ -90,7 +90,8 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_cyberstar_x1000.c d_cyberstar_x1000_aout.c d_cxtilt02.c \
 	d_d8.c d_dac_motor.c d_databox_mce.c d_databox_mcs.c d_databox_motor.c \
 	d_databox_scaler.c d_databox_timer.c \
-	d_delta_motor.c d_dg645_pulser.c d_digital_fanin.c d_digital_fanout.c \
+	d_delta_motor.c d_dg645_burst_pulser.c d_dg645_pulser.c \
+	d_digital_fanin.c d_digital_fanout.c \
 	d_disabled_motor.c d_doutput_pulser.c d_e500.c \
 	d_e662.c d_elapsed_time.c d_energy.c \
 	d_fg_scaler.c d_file_dinput.c d_file_vinput.c \
