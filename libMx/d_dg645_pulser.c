@@ -561,7 +561,7 @@ mxd_dg645_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 		/* Now set the new trigger source. */
 
 		snprintf( command, sizeof(command),
-			"TRSC %d", new_trigger_source );
+			"TSRC %d", new_trigger_source );
 
 		mx_status = mxi_dg645_command( dg645, command,
 					NULL, 0, MXD_DG645_PULSER_DEBUG );
