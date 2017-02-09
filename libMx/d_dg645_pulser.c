@@ -15,10 +15,11 @@
  *
  */
 
-#define MXD_DG645_PULSER_DEBUG	TRUE
+#define MXD_DG645_PULSER_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -170,6 +171,9 @@ mxd_dg645_pulser_open( MX_RECORD *record )
 	MX_PULSE_GENERATOR *pulser;
 	MX_DG645_PULSER *dg645_pulser = NULL;
 	MX_DG645 *dg645 = NULL;
+	size_t i, length;
+	char c;
+	char *output_name;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -185,41 +189,53 @@ mxd_dg645_pulser_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Read the pulser parameters for this channel. */
+	output_name = dg645_pulser->output_name;
 
-	pulser->parameter_type = MXLV_PGN_PULSE_PERIOD;
+	length = strlen( output_name );
 
-	mx_status = mxd_dg645_pulser_get_parameter( pulser );
+	if ( length != 2 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Invalid output name '%s'.  "
+		"Output names for '%s' should be 2 characters long.",
+			output_name, record->name );
+	}
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	/* Force the output_name field to upper case. */
 
-	pulser->parameter_type = MXLV_PGN_PULSE_WIDTH;
+	for ( i = 0; i < length; i++ ) {
+		c = output_name[i];
 
-	mx_status = mxd_dg645_pulser_get_parameter( pulser );
+		if ( islower(c) ) {
+			output_name[i] = toupper(c);
+		}
+	}
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	/* Figure out the output number for this channel as used by
+	 * delay and output commands.
+	 */
 
-	pulser->parameter_type = MXLV_PGN_NUM_PULSES;
+	if ( strcmp( "T0", output_name ) == 0 ) {
+		dg645_pulser->output_number = 0;
+	} else
+	if ( strcmp( "AB", output_name ) == 0 ) {
+		dg645_pulser->output_number = 1;
+	} else
+	if ( strcmp( "CD", output_name ) == 0 ) {
+		dg645_pulser->output_number = 2;
+	} else
+	if ( strcmp( "EF", output_name ) == 0 ) {
+		dg645_pulser->output_number = 3;
+	} else
+	if ( strcmp( "GH", output_name ) == 0 ) {
+		dg645_pulser->output_number = 4;
+	} else {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Illegal output name '%s' requested for pulser '%s'.  "
+		"The allowed names are 'T0', 'AB', 'CD', 'EF', and 'GH'.",
+			output_name, record->name );
+	}
 
-	mx_status = mxd_dg645_pulser_get_parameter( pulser );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	pulser->parameter_type = MXLV_PGN_PULSE_DELAY;
-
-	mx_status = mxd_dg645_pulser_get_parameter( pulser );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	pulser->parameter_type = MXLV_PGN_MODE;
-
-	mx_status = mxd_dg645_pulser_get_parameter( pulser );
-
-	return mx_status;
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -337,6 +353,12 @@ mxd_dg645_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 
 	MX_DG645_PULSER *dg645_pulser = NULL;
 	MX_DG645 *dg645 = NULL;
+	unsigned long dg645_flags, pulser_flags;
+	unsigned long starting_channel, ending_channel;
+	unsigned long t0_channel;
+	char response[80];
+	int num_items;
+	double trigger_rate;
 	mx_status_type mx_status;
 
 	mx_status = mxd_dg645_pulser_get_pointers( pulser,
@@ -344,6 +366,9 @@ mxd_dg645_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	dg645_flags = dg645->dg645_flags;
+	pulser_flags = dg645_pulser->dg645_pulser_flags;
 
 #if MXD_DG645_PULSER_DEBUG
 	MX_DEBUG(-2,
@@ -356,13 +381,42 @@ mxd_dg645_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 
 	switch( pulser->parameter_type ) {
 	case MXLV_PGN_NUM_PULSES:
+		mx_status = mx_process_record_field_by_name( dg645->record,
+							"trigger_source",
+							MX_PROCESS_GET, NULL );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( dg645->single_shot ) {
+			pulser->num_pulses = 1;
+		} else {
+			pulser->num_pulses = 0;
+		}
 		break;
 
 	case MXLV_PGN_PULSE_WIDTH:
+		starting_channel = 2 * dg645_pulser->output_number;
+
+		ending_channel = starting_channel + 1;
+
+		mx_status = mxi_dg645_compute_delay_between_channels( dg645,
+						ending_channel,
+						starting_channel,
+						&(pulser->pulse_width),
+						NULL, NULL );
 		break;
 
 	case MXLV_PGN_PULSE_DELAY:
-		pulser->pulse_delay = 0;
+		starting_channel = 2 * dg645_pulser->output_number;
+
+		t0_channel = 0;
+
+		mx_status = mxi_dg645_compute_delay_between_channels( dg645,
+						starting_channel,
+						t0_channel,
+						&(pulser->pulse_delay),
+						NULL, NULL );
 		break;
 
 	case MXLV_PGN_MODE:
@@ -370,6 +424,20 @@ mxd_dg645_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 		break;
 
 	case MXLV_PGN_PULSE_PERIOD:
+		mx_status = mxi_dg645_command( dg645, "TRAT?",
+						response, sizeof(response),
+						MXD_DG645_PULSER_DEBUG );
+
+		num_items = sscanf( response, "%lg", &trigger_rate );
+
+		if ( num_items != 1 ) {
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"Did not see the trigger rate in the response '%s' "
+			"to command 'TRAT?' for DG645 controller '%s'.",
+				response, dg645->record->name );
+		}
+
+		pulser->pulse_period = mx_divide_safely( 1.0, trigger_rate );
 		break;
 
 	default:
@@ -381,7 +449,7 @@ mxd_dg645_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 	MX_DEBUG(-2,("%s complete.", fname));
 #endif
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -391,6 +459,15 @@ mxd_dg645_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 
 	MX_DG645_PULSER *dg645_pulser = NULL;
 	MX_DG645 *dg645 = NULL;
+	char command[80];
+	int new_trigger_source;
+	unsigned long t0_channel;
+	unsigned long starting_channel, ending_channel;
+	unsigned long adjacent_channel;
+	double adjacent_delay, new_adjacent_delay;
+	double existing_delay, delay_difference;
+	double existing_width;
+	double trigger_rate;
 	mx_status_type mx_status;
 
 	mx_status = mxd_dg645_pulser_get_pointers( pulser,
@@ -410,13 +487,158 @@ mxd_dg645_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 
 	switch( pulser->parameter_type ) {
 	case MXLV_PGN_NUM_PULSES:
+		/* First, get the existing trigger source, so that we
+		 * can modify it to match what we want here.
+		 */
+
+		mx_status = mx_process_record_field_by_name( dg645->record,
+							"trigger_source",
+							MX_PROCESS_GET, NULL );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Now construct the new trigger source value. */
+
+		switch( dg645->trigger_type ) {
+		case MXF_DG645_INTERNAL_TRIGGER:
+			if ( pulser->num_pulses == 1 ) {
+				/* Single shot */
+				new_trigger_source = 5;
+			} else {
+				/* Internal */
+				new_trigger_source = 1;
+				pulser->num_pulses = 0;
+			}
+			break;
+		case MXF_DG645_EXTERNAL_TRIGGER:
+			if ( pulser->num_pulses == 1 ) {
+				if ( dg645->trigger_direction < 0 ) {
+					/* Single shot ext falling edges */
+					new_trigger_source = 4;
+					dg645->trigger_direction = -1;
+				} else {
+					/* Single shot ext rising edges */
+					new_trigger_source = 3;
+					dg645->trigger_direction = 1;
+				}
+			} else {
+				if ( dg645->trigger_direction < 0 ) {
+					/* External falling edges */
+					new_trigger_source = 2;
+					dg645->trigger_direction = -1;
+				} else {
+					/* External rising edges */
+					new_trigger_source = 1;
+					dg645->trigger_direction = 1;
+				}
+				pulser->num_pulses = 0;
+			}
+			break;
+		case MXF_DG645_LINE_TRIGGER:
+			/* For 'line trigger', the number of pulses is always
+			 * infinite, so we can't change anything and should
+			 * not send a command to the DG645.
+			 */
+
+			pulser->num_pulses = 0;
+			dg645->trigger_direction = 0;
+			dg645->single_shot = FALSE;
+
+			return MX_SUCCESSFUL_RESULT;
+			break;
+		default:
+			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+			"DG645 controller '%s' used by pulser '%s' is somehow "
+			"configured for an illegal trigger type %lu.  "
+			"This should never happen.",
+				dg645->record->name,
+				pulser->record->name,
+				dg645->trigger_type );
+			break;
+		}
+
+		/* Now set the new trigger source. */
+
+		snprintf( command, sizeof(command),
+			"TRSC %d", new_trigger_source );
+
+		mx_status = mxi_dg645_command( dg645, command,
+					NULL, 0, MXD_DG645_PULSER_DEBUG );
 		break;
 
 	case MXLV_PGN_PULSE_WIDTH:
+		starting_channel = 2 * dg645_pulser->output_number;
+
+		ending_channel = starting_channel + 1;
+
+		/* We first need to figure out what the preexisting
+		 * width is as well as the channel our offset is
+		 * relative to.
+		 */
+
+		mx_status = mxi_dg645_compute_delay_between_channels( dg645,
+						ending_channel,
+						starting_channel,
+						&existing_width,
+						&adjacent_channel,
+						&adjacent_delay );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Reprogram the delay to the adjacent channel so that
+		 * we get the overall width that we want.
+		 */
+
+		delay_difference = pulser->pulse_width - existing_width;
+
+		new_adjacent_delay = adjacent_delay + delay_difference;
+
+		snprintf( command, sizeof(command),
+			"DLAY %lu,%lu,%g",
+			ending_channel, adjacent_channel,
+			new_adjacent_delay );
+
+		mx_status = mxi_dg645_command( dg645, command,
+					NULL, 0, MXD_DG645_PULSER_DEBUG );
 		break;
 
 	case MXLV_PGN_PULSE_DELAY:
-		pulser->pulse_delay = 0;
+		starting_channel = 2 * dg645_pulser->output_number;
+
+		t0_channel = 0;
+
+		/* We first need to figure out what the preexisting 
+		 * delay is as well as the channel our offset is
+		 * relative to.
+		 */
+
+		mx_status = mxi_dg645_compute_delay_between_channels( dg645,
+						starting_channel,
+						t0_channel,
+						&existing_delay,
+						&adjacent_channel,
+						&adjacent_delay );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Reprogram the delay to the adjacent channel so that
+		 * we get the overall delay that we want.
+		 */
+
+		delay_difference = pulser->pulse_delay - existing_delay;
+
+		new_adjacent_delay = adjacent_delay + delay_difference;
+
+		snprintf( command, sizeof(command),
+			"DLAY %lu,%lu,%g",
+			starting_channel, adjacent_channel,
+			new_adjacent_delay );
+
+		mx_status = mxi_dg645_command( dg645, command,
+					NULL, 0, MXD_DG645_PULSER_DEBUG );
 		break;
 
 	case MXLV_PGN_MODE:
@@ -424,6 +646,12 @@ mxd_dg645_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 		break;
 
 	case MXLV_PGN_PULSE_PERIOD:
+		trigger_rate = mx_divide_safely( 1.0, pulser->pulse_period );
+
+		snprintf( command, sizeof(command), "TRAT %g", trigger_rate );
+
+		mx_status = mxi_dg645_command( dg645, command,
+					NULL, 0, MXD_DG645_PULSER_DEBUG );
 		break;
 
 	default:

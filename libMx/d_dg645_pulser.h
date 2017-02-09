@@ -20,14 +20,16 @@
 
 #include "mx_pulse_generator.h"
 
-#define MXU_DG645_PULSER_CONNECTOR_LENGTH	40
+#define MXU_DG645_PULSER_OUTPUT_NAME_LENGTH	40
 
 typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *dg645_record;
-	char channel_name[MXU_DG645_PULSER_CONNECTOR_LENGTH+1];
+	char output_name[MXU_DG645_PULSER_OUTPUT_NAME_LENGTH+1];
 	unsigned long dg645_pulser_flags;
+
+	unsigned long output_number;
 
 } MX_DG645_PULSER;
 
@@ -56,10 +58,11 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_dg645_pulser_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645_PULSER, dg645_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "channel_name", \
-		MXFT_STRING, NULL, 1, {MXU_DG645_PULSER_CONNECTOR_LENGTH}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645_PULSER, channel_name), \
-	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+  {-1, -1, "output_name", \
+		MXFT_STRING, NULL, 1, {MXU_DG645_PULSER_OUTPUT_NAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645_PULSER, output_name), \
+	{sizeof(char)}, NULL, \
+		(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY) }, \
   \
   {-1, -1, "dg645_pulser_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645_PULSER, dg645_pulser_flags), \

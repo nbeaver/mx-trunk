@@ -1,3 +1,6 @@
 dg645_rs232 interface rs232 tcp232 "" "" 9600 8 N 1 N 0x0d0a 0x0a 1 0x0 164.54.204.68 5025 0x0
-dg645       interface controller dg645 "" "" dg645_rs232 0x1 -1
+dg645       interface controller dg645 "" "" dg645_rs232 0x80000000 -1
 ab          device pulse_generator dg645_pulser "" "" 0 0 0 0 0 0 dg645 ab 0x0
+cd          device pulse_generator dg645_pulser "" "" 0 0 0 0 0 0 dg645 cd 0x0
+ef          device pulse_generator dg645_pulser "" "" 0 0 0 0 0 0 dg645 ef 0x0
+gh          device pulse_generator dg645_pulser "" "" 0 0 0 0 0 0 dg645 gh 0x0

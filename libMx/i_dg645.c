@@ -60,6 +60,8 @@ static mx_status_type mxi_dg645_process_function( void *record_ptr,
 						void *record_field_ptr,
 						int operation );
 
+static mx_status_type mxi_dg645_interpret_trigger_source( MX_DG645 *dg645 );
+
 /*---*/
 
 MX_EXPORT mx_status_type
@@ -98,7 +100,9 @@ mxi_dg645_open( MX_RECORD *record )
 	static const char fname[] = "mxi_dg645_open()";
 
 	MX_DG645 *dg645 = NULL;
+	unsigned long flags;
 	MX_RECORD_FIELD *rs_field = NULL;
+	char command[80];
 	char response[80];
 	unsigned long major, minor, update;
 	int num_items;
@@ -119,6 +123,8 @@ mxi_dg645_open( MX_RECORD *record )
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"MX_DG645 pointer for record '%s' is NULL.", record->name);
 	}
+
+	flags = dg645->dg645_flags;
 
 	/* Verify that this is an SRS DG645 controller. */
 
@@ -156,6 +162,22 @@ mxi_dg645_open( MX_RECORD *record )
 		
 		mx_status = mxi_dg645_process_function( record, rs_field,
 							MX_PROCESS_PUT );
+	}
+
+	/* If requested, turn burst mode on.  Otherwise, turn it off. */
+
+	if ( dg645->instrument_settings < 0 ) {
+		if ( flags & MXF_DG645_BURST_MODE ) {
+			strlcpy( command, "BURM 1", sizeof(command) );
+		} else {
+			strlcpy( command, "BURM 0", sizeof(command) );
+		}
+
+		mx_status = mxi_dg645_command( dg645, command,
+						NULL, 0, MXI_DG645_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	return mx_status;
@@ -337,6 +359,83 @@ mxi_dg645_command( MX_DG645 *dg645,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*---*/
+
+MX_EXPORT mx_status_type
+mxi_dg645_compute_delay_between_channels( MX_DG645 *dg645,
+				unsigned long original_channel,
+				unsigned long requested_channel,
+				double *requested_delay,
+				unsigned long *adjacent_channel,
+				double *adjacent_delay )
+{
+	static const char fname[] =
+		"mxi_dg645_compute_delay_between_channels()";
+
+	unsigned long current_channel, next_channel;
+	double channel_delay;
+	int i, max_steps, num_items;
+	char command[80];
+	char response[80];
+	mx_status_type mx_status;
+
+	/* We must loop through the various reported delays until we get
+	 * to the requested channel.
+	 */
+
+	max_steps = 20;
+	*requested_delay = 0.0;
+
+	current_channel = original_channel;
+
+	for ( i = 0; i < max_steps; i++ ) {
+		snprintf( command, sizeof(command),
+			"DLAY?%lu", current_channel );
+
+		mx_status = mxi_dg645_command( dg645, command,
+					response, sizeof(response),
+					MXI_DG645_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		num_items = sscanf( response, "%lu,%lg",
+					&next_channel, &channel_delay );
+
+		if ( num_items != 2 ) {
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"Did not find the expected channel delay information "
+			"in the response '%s' to command '%s' sent to "
+			"DG645 controller '%s'.",
+				response, command, dg645->record->name );
+		}
+
+		*requested_delay += channel_delay;
+
+		if ( adjacent_channel != NULL ) {
+			*adjacent_channel = next_channel;
+			*adjacent_delay = channel_delay;
+		}
+
+		if ( next_channel == requested_channel ) {
+			/* We have reached the requested channel,
+			 * so we are done.
+			 */
+			break;
+		}
+	}
+
+	if ( i >= max_steps ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"Somehow DG645 controller '%s' seems to have an infinite loop "
+		"in its delay settings.  We did not reach the time for "
+		"requestd channel %lu even after %d steps.",
+			dg645->record->name, requested_channel, i );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /*==================================================================*/
 
 static mx_status_type
@@ -418,6 +517,8 @@ mxi_dg645_process_function( void *record_ptr,
 				"DG645 controller '%s'.",
 					response, record->name );
 			}
+
+			mx_status = mxi_dg645_interpret_trigger_source( dg645 );
 			break;
 		default:
 			MX_DEBUG( 1,(
@@ -507,6 +608,11 @@ mxi_dg645_process_function( void *record_ptr,
 			mx_status = mxi_dg645_command( dg645, command,
 							NULL, 0,
 							MXI_DG645_DEBUG );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			mx_status = mxi_dg645_interpret_trigger_source( dg645 );
 			break;
 		default:
 			MX_DEBUG( 1,(
@@ -522,4 +628,58 @@ mxi_dg645_process_function( void *record_ptr,
 
 	return mx_status;
 }
+
+static mx_status_type
+mxi_dg645_interpret_trigger_source( MX_DG645 *dg645 )
+{
+	static const char fname[] = "mxi_dg645_interpret_trigger_source()";
+
+	switch( dg645->trigger_source ) {
+	case 0:
+		dg645->trigger_type = MXF_DG645_INTERNAL_TRIGGER;
+		dg645->trigger_direction = 0;
+		dg645->single_shot = FALSE;
+		break;
+	case 1:
+		dg645->trigger_type = MXF_DG645_EXTERNAL_TRIGGER;
+		dg645->trigger_direction = 1;
+		dg645->single_shot = FALSE;
+		break;
+	case 2:
+		dg645->trigger_type = MXF_DG645_EXTERNAL_TRIGGER;
+		dg645->trigger_direction = -1;
+		dg645->single_shot = FALSE;
+		break;
+	case 3:
+		dg645->trigger_type = MXF_DG645_EXTERNAL_TRIGGER;
+		dg645->trigger_direction = 1;
+		dg645->single_shot = TRUE;
+		break;
+	case 4:
+		dg645->trigger_type = MXF_DG645_EXTERNAL_TRIGGER;
+		dg645->trigger_direction = -1;
+		dg645->single_shot = TRUE;
+		break;
+	case 5:
+		dg645->trigger_type = MXF_DG645_INTERNAL_TRIGGER;
+		dg645->trigger_direction = 0;
+		dg645->single_shot = TRUE;
+		break;
+	case 6:
+		dg645->trigger_type = MXF_DG645_LINE_TRIGGER;
+		dg645->trigger_direction = 0;
+		dg645->single_shot = FALSE;
+		break;
+	default:
+		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+		"The trigger source for DG645 controller '%s' has "
+		"an illegal value of %lu.  The allowed values are "
+		"from 0 to 6.",
+			dg645->record->name,
+			dg645->trigger_source );
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+};
 
