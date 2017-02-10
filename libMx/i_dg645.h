@@ -85,7 +85,7 @@ typedef struct {
   {MXLV_DG645_OUTPUT_VOLTAGE, -1, "output_voltage", \
 		MXFT_DOUBLE, NULL, 1, {MXU_DG645_NUM_OUTPUTS}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, output_voltage), \
-	{sizeof(double)}, NULL, MXFF_IN_DESCRIPTION}, \
+	{sizeof(double)}, NULL, 0}, \
   \
   {-1, -1, "serial_number", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, serial_number), \

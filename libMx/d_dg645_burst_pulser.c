@@ -256,11 +256,16 @@ mxd_dg645_burst_pulser_is_busy( MX_PULSE_GENERATOR *pulser )
 		return mx_status;
 
 	/* FIXME: As far as I can tell, the DG645 is always busy unless
-	 * it is in a single shot mode and the single shot has already
-	 * happened.  I am not yet sure how you detect that.
+	 * it is in a single shot mode.  It is not obvious how you detect
+	 * when a single shot trigger sequence is currently generating
+	 * pulses.
 	 */
 
-	pulser->busy = TRUE;
+	if ( dg645->single_shot ) {
+		pulser = FALSE;
+	} else {
+		pulser->busy = TRUE;
+	}
 
 #if MXD_DG645_BURST_PULSER_DEBUG
 	MX_DEBUG(-2,("%s: pulser '%s', busy = %d",
