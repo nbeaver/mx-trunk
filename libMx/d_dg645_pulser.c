@@ -358,7 +358,6 @@ mxd_dg645_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 
 	MX_DG645_PULSER *dg645_pulser = NULL;
 	MX_DG645 *dg645 = NULL;
-	unsigned long dg645_flags, pulser_flags;
 	unsigned long starting_channel, ending_channel;
 	unsigned long t0_channel;
 	char response[80];
@@ -371,9 +370,6 @@ mxd_dg645_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	dg645_flags = dg645->dg645_flags;
-	pulser_flags = dg645_pulser->dg645_pulser_flags;
 
 #if MXD_DG645_PULSER_DEBUG
 	MX_DEBUG(-2,
