@@ -681,9 +681,17 @@ mx_get_signal_allocation( int max_signals,
  * to allocate signals fail.
  */
 
+#define MX_MAX_SIGNALS 0
+
+static int mx_signal_array[1];
+static int mx_num_signals;
+
 MX_EXPORT mx_status_type
 mx_signal_alloc_initialize( void )
 {
+	mx_signal_array[0] = FALSE;
+	mx_num_signals = 0;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -723,6 +731,8 @@ mx_get_signal_allocation( int max_signals,
 			int *users_mx_signal_array )
 {
 	static const char fname[] = "mx_get_signal_allocation()";
+
+	int i;
 
 	if ( mx_signal_array == (int *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
