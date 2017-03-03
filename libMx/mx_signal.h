@@ -34,7 +34,7 @@ extern "C" {
 
 #if defined(OS_WIN32)
 
-typedef unsigned long pid_t;
+typedef int pid_t;
 typedef unsigned int uid_t;
 typedef unsigned long sigset_t;
 
