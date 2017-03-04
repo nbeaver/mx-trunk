@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2016 Illinois Institute of Technology
+ * Copyright 1999-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -755,6 +755,7 @@ mxsrv_mx_server_socket_init( MX_RECORD *list_head_record,
 	MX_SOCKET *server_socket;
 	MX_LIST_HEAD *list_head;
 	int i, socket_type, max_sockets, handler_array_size;
+	char server_string[MXU_ADDRESS_STRING_LENGTH + 1];
 	mx_status_type mx_status;
 
 	MX_DEBUG( 1,("%s invoked.", fname));
@@ -821,6 +822,9 @@ mxsrv_mx_server_socket_init( MX_RECORD *list_head_record,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
+		snprintf( server_string, sizeof(server_string),
+				"TCP (%d)", port_number );
+
 		mx_info( "TCP server socket %d was opened.", port_number );
 
 #if HAVE_UNIX_DOMAIN_SOCKETS
@@ -841,6 +845,9 @@ mxsrv_mx_server_socket_init( MX_RECORD *list_head_record,
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+		snprintf( server_string, sizeof(server_string),
+				"UNIX (%s)", pathname );
 
 		mx_info( "Unix domain server socket '%s' was opened.",
 				pathname );
@@ -868,6 +875,9 @@ mxsrv_mx_server_socket_init( MX_RECORD *list_head_record,
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+		snprintf( server_string, sizeof(server_string),
+				"ASCII (%d)", port_number );
 
 		mx_info( "ASCII server socket %d was opened.", port_number );
 
@@ -926,6 +936,9 @@ mxsrv_mx_server_socket_init( MX_RECORD *list_head_record,
 
 	strlcpy( socket_handler->program_name, "mxserver",
 			sizeof(socket_handler->program_name) );
+
+	strlcpy( socket_handler->client_address_string, server_string,
+		sizeof( socket_handler->client_address_string ) );
 
 	mx_username( socket_handler->username, MXU_USERNAME_LENGTH );
 
