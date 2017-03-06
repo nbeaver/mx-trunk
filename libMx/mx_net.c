@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2016 Illinois Institute of Technology
+ * Copyright 1999-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -6313,6 +6313,7 @@ mx_parse_network_field_id( char *network_field_id,
 	char *at_sign_ptr, *colon_ptr, *period_ptr;
 	size_t server_name_length, server_arguments_length;
 	size_t record_name_length, field_name_length;
+	char empty_field_name[1] = "";
 
 	if ( (network_field_id == NULL) || (server_name == NULL)
 	  || (server_arguments == NULL) || (record_name == NULL)
@@ -6346,13 +6347,10 @@ mx_parse_network_field_id( char *network_field_id,
 	period_ptr = strrchr( network_field_id, '.' );
 
 	if ( period_ptr == NULL ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"The period '.' character that is supposed to separate "
-		"the field name from the record name was not found in the "
-		"line containing '%s'.", network_field_id );
+		field_name_ptr = empty_field_name;
+	} else {
+		field_name_ptr = period_ptr + 1;
 	}
-
-	field_name_ptr = period_ptr + 1;
 
 	field_name_length = strlen( field_name_ptr ) + 1;
 
