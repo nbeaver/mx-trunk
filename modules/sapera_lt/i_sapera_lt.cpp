@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2011-2012, 2015-2016 Illinois Institute of Technology
+ * Copyright 2011-2012, 2015-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -276,26 +276,25 @@ mxi_sapera_lt_open( MX_RECORD *record )
 
 	int num_servers = SapManager::GetServerCount();
 
-#if ( MXI_SAPERA_LT_DEBUG_OPEN == FALSE )
-	MXW_UNUSED(num_servers);
-#else
-	MX_DEBUG(-2,("%s: num_servers = %d", fname, num_servers));
+	if ( sapera_lt->sapera_flags & MXF_SAPERA_LT_SHOW_AVAILABLE_SERVERS ) {
+		int i;
+		BOOL result;
+		char server_name[80];
 
-	int i;
-	BOOL result;
-	char server_name[80];
+		MX_DEBUG(-2,("%s: num_servers = %d", fname, num_servers));
 
-	for ( i = 0; i < num_servers; i++ ) {
-		result = SapManager::GetServerName( i, server_name );
+		for ( i = 0; i < num_servers; i++ ) {
+			result = SapManager::GetServerName( i, server_name );
 
-		if ( result == FALSE ) {
-			MX_DEBUG(-2,("%s: server %d = Error", fname, i));
-		} else {
-			MX_DEBUG(-2,("%s: server %d = '%s'",
+			if ( result == FALSE ) {
+				MX_DEBUG(-2,("%s: server %d = Error",
+					fname, i));
+			} else {
+				MX_DEBUG(-2,("%s: server %d = '%s'",
 					fname, i, server_name));
+			}
 		}
 	}
-#endif
 
 	/* Verify that this server is really present by using the
 	 * SapManager::GetServerIndex() call.  If the server does not

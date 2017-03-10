@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2011, 2016 Illinois Institute of Technology
+ * Copyright 2011, 2016-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -31,6 +31,7 @@
 
 #define MXF_SAPERA_LT_SHOW_VERSION		0x1
 #define MXF_SAPERA_LT_SHOW_LICENSE		0x2
+#define MXF_SAPERA_LT_SHOW_AVAILABLE_SERVERS	0x4
 
 /* Values for the 'license_type' field. */
 

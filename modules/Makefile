@@ -55,7 +55,7 @@ all: build
 
 #MODULES += xia_handel		# linux, win32
 
-#MODULES += xineos_gige		# linux, win32
+MODULES += xineos_gige		# linux, win32
 
 #-------------------------------------------------------------------
 # Linux-only modules.
@@ -89,9 +89,9 @@ all: build
 
 #MODULES += radicon_helios
 
-MODULES += radicon_taurus
+#MODULES += radicon_taurus
 
-MODULES += rdi_mbc
+#MODULES += rdi_mbc
 
 MODULES += sapera_lt 
 
