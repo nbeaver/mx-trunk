@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013-2016 Illinois Institute of Technology
+ * Copyright 2013-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -941,6 +941,7 @@ mxd_sapera_lt_camera_configure_network_connection( MX_VIDEO_INPUT *vinput,
 	BOOL sapera_status;
 	MX_NETWORK_INTERFACE *ni;
 	struct sockaddr_in sa_address_in;
+	unsigned long flags;
 	mx_status_type mx_status;
 
 	sapera_status = sapera_lt_camera->acq_device->GetFeatureValue(
@@ -1033,8 +1034,11 @@ mxd_sapera_lt_camera_configure_network_connection( MX_VIDEO_INPUT *vinput,
 	 * be fixed.                                                      *
 	 ******************************************************************/
 
-	if ( sapera_packet_size > ni->mtu ) {
-		fprintf( stderr,
+	flags = sapera_lt_camera->sapera_lt_camera_flags;
+
+	if ( flags & MXF_SAPERA_LT_CAMERA_CHECK_PACKET_SIZES ) {
+		if ( sapera_packet_size > ni->mtu ) {
+			fprintf( stderr,
 "\nWARNING:\n"
 "The DALSA camera is currently configured to send data to the detector using\n"
 "%lu byte packets.  However, the detector control computer network interface\n"
@@ -1053,6 +1057,7 @@ mxd_sapera_lt_camera_configure_network_connection( MX_VIDEO_INPUT *vinput,
 			(unsigned long) sapera_packet_size,
 			ni->name, ni->mtu, ni->name,
 			(unsigned long) sapera_packet_size );
+		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;

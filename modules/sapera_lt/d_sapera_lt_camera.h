@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013, 2016 Illinois Institute of Technology
+ * Copyright 2013, 2016-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,6 +25,7 @@
 /* 'sapera_lt_camera_flags' bitflag macros */
 
 #define MXF_SAPERA_LT_CAMERA_CONFIGURE_NETWORK_CONNECTION	0x1
+#define MXF_SAPERA_LT_CAMERA_CHECK_PACKET_SIZES			0x2
 
 typedef struct {
 	MX_RECORD *record;
