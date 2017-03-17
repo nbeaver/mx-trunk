@@ -9,7 +9,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2011-2013 Illinois Institute of Technology
+ * Copyright 2011-2013, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -657,7 +657,6 @@ mxd_doutput_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 		break;
 
 	case MXLV_PGN_PULSE_DELAY:
-		pulser->pulse_delay = 0;
 		break;
 
 	case MXLV_PGN_MODE:
@@ -710,7 +709,6 @@ mxd_doutput_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 		break;
 
 	case MXLV_PGN_PULSE_DELAY:
-		pulser->pulse_delay = 0;
 		break;
 
 	case MXLV_PGN_MODE:

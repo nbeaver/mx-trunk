@@ -33,7 +33,7 @@ all: build
 
 #MODULES += labjack_ux		# linux,
 
-#MODULES += libtiff		# linux, win32
+MODULES += libtiff		# linux, win32
 
 #MODULES += libusb-0.1		# linux,
 
@@ -45,7 +45,7 @@ all: build
 
 #MODULES += nuvant_ezstat	# linux, win32
 
-#MODULES += python		# (Warning: not yet finished)
+MODULES += python		# (Warning: not yet finished)
 
 #MODULES += pmc_mcapi		# linux, win32
 
@@ -60,9 +60,9 @@ MODULES += xineos_gige		# linux, win32
 #-------------------------------------------------------------------
 # Linux-only modules.
 
-#MODULES += aravis
+MODULES += aravis
 
-#MODULES += dalsa_gev
+MODULES += dalsa_gev
 
 #MODULES += linux_portio
 
@@ -93,18 +93,18 @@ MODULES += xineos_gige		# linux, win32
 
 #MODULES += rdi_mbc
 
-MODULES += sapera_lt 
+#MODULES += sapera_lt 
 
 #MODULES += u500
 
 #-------------------------------------------------------------------
 # EPICS modules.
 
-#MODULES += epics
+MODULES += epics
 
-#MODULES += epics_aps 
+MODULES += epics_aps 
 
-#MODULES += epics_pmac_biocat
+MODULES += epics_pmac_biocat
 
 #MODULES += epics_mbc
 
