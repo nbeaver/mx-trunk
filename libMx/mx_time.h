@@ -9,7 +9,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2010-2012, 2015-2016 Illinois Institute of Technology
+ * Copyright 2010-2012, 2015-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -56,6 +56,8 @@ MX_API char *mx_os_time_string( struct timespec os_time,
 				char *buffer, size_t buffer_length );
 
 MX_API char *mx_ctime_string( void );
+
+MX_API char *mx_ctime_tz_string( char *buffer, size_t buffer_length );
 
 MX_API char *mx_current_time_string( char *buffer, size_t buffer_length );
 

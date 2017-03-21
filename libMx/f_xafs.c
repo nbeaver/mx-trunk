@@ -11,7 +11,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2009-2010, 2015-2016 Illinois Institute of Technology
+ * Copyright 1999-2006, 2009-2010, 2015-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -232,6 +232,8 @@ mxdf_xafs_write_header( MX_DATAFILE *datafile,
 	long num_keithleys, *keithley_gain_array;
 	void *pointer_to_value;
 
+	char tz_timestamp[80];
+
 	MX_DEBUG( 2,("%s invoked.", fname));
 
 	if ( datafile == (MX_DATAFILE *) NULL ) {
@@ -295,7 +297,8 @@ mxdf_xafs_write_header( MX_DATAFILE *datafile,
 			"\"%s\" created at %s on %s\n",
 				datafile->filename,
 				beamline_name,
-				mx_ctime_string() );
+				mx_ctime_tz_string(tz_timestamp,
+						sizeof(tz_timestamp)) );
 	CHECK_FPRINTF_STATUS;
 	
 	mx_status = mx_get_double_variable_by_name( scan->record->list_head,

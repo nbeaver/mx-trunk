@@ -9,7 +9,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2010, 2015-2016 Illinois Institute of Technology
+ * Copyright 2010, 2015-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -398,6 +398,26 @@ mx_ctime_string( void )
 	ptr[length - 1] = '\0';
 
 	return ptr;
+}
+
+MX_EXPORT char *
+mx_ctime_tz_string( char *buffer, size_t buffer_length )
+{
+	/* This format generates a string that looks like the string
+	 * generated with ctime(), but with timezone information as well.
+	 */
+	static const char format[] = "%c %Z";
+
+	time_t now;
+	struct tm *tm_struct;
+
+	now = time( NULL );
+
+	tm_struct = localtime( &now );
+
+	strftime( buffer, buffer_length, format, tm_struct );
+
+	return buffer;
 }
 
 MX_EXPORT char *
