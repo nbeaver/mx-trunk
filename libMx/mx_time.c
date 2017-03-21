@@ -409,13 +409,15 @@ mx_ctime_tz_string( char *buffer, size_t buffer_length )
 	static const char format[] = "%c %Z";
 
 	time_t now;
-	struct tm *tm_struct;
+	struct tm tm_struct;
+
+	memset( &tm_struct, 0, sizeof(tm_struct) );
 
 	now = time( NULL );
 
-	tm_struct = localtime( &now );
+	localtime_r( &now, &tm_struct );
 
-	strftime( buffer, buffer_length, format, tm_struct );
+	strftime( buffer, buffer_length, format, &tm_struct );
 
 	return buffer;
 }

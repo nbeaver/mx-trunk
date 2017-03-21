@@ -12,7 +12,7 @@ mlin12         device motor compumotor_lin "" "" -425 0 -2000000 2000000 0 -1 -1
 mlin12a        device motor compumotor_lin "" "" -425 0 -2000000 2000000 0 -1 -1 1 0 um  0 2  m1 m2  0.5 -0.5  0 0  0.5 0.5
 mlin123        device motor compumotor_lin "" "" -283.33333 0 -2000000 2000000 0 -1 -1 1 0 um 0x1 3  m1 m2 m3  0.33333333 0.33333333 0.33333333  0 0 0  0.33333333 0.33333333 0.33333333
 mlin56         device motor compumotor_lin "" "" 0 0 -2000000 2000000 0 -1 -1 1 0 um  0 2  m5 m6  1 -1  0 0  0.5 0.5
-beamline_name  variable inline string "" "" 1  20 "APS Sector 17-ID"
+beamline_name  variable inline string "" "" 1  20 "APS Sector 10-ID"
 ring_energy    variable inline double "" "" 1  1  7
 edge_energy    variable inline double "" "" 1  1  8980
 d_spacing      variable inline double "" "" 1  1  3.13555
