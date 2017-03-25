@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2011-2013, 2015-2016 Illinois Institute of Technology
+ * Copyright 2011-2013, 2015-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -922,16 +922,19 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 			fname, max_image_frames, max_frames_threshold));
 #endif
 
-#if 0	/* FIXME - The memory usage test does not work correctly. */
-
-	if ( sapera_lt_frame_grabber->max_frames > max_frames_threshold ) {
-		(void) mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"The maximum number of frames (%ld) requested for "
-		"frame grabber '%s' is larger than the maximum number of "
-		"frames (%ld) that can fit in the available computer memory.",
-			sapera_lt_frame_grabber->max_frames,
-			record->name,
+#if 1
+	if (sapera_lt_frame_grabber->num_frame_buffers > max_frames_threshold)
+	{
+		mx_warning( "The number of frame buffers (%ld) requested for "
+		"Sapera LT frame grabber '%s' exceeds the maximum number of "
+		"frames (%ld) that will fit into available memory.  "
+		"The number of frame buffers will be reduced to %ld.",
+			sapera_lt_frame_grabber->num_frame_buffers,
+			record->name, max_frames_threshold,
 			max_frames_threshold );
+
+		sapera_lt_frame_grabber->num_frame_buffers
+			= max_frames_threshold;
 	}
 #endif
 
