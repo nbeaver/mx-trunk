@@ -23,8 +23,8 @@
 #     invoking one of the batch files that come with Visual C++ like
 #     vcvars32.bat, vcvarsx86_amd64.bat, and so forth.  For my own work,
 #     I typically translate the Windows batch files into Cygwin Bash script
-#     fragments, but that takes a bit of work, and many people will not
-#     want to do that.
+#     fragments to be loaded by the Cygwin .bashrc.  You can find examples of
+#     scripts that I use in the directory mx/scripts/windows/visual_studio.
 # 
 #     If you are using Cygwin, the Visual C++ directories _MUST_ appear in
 #     the PATH before any of the Cygwin directories.  If the Cygwin
