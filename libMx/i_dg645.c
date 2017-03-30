@@ -234,7 +234,7 @@ mxi_dg645_command( MX_DG645 *dg645,
 	static const char fname[] = "mxi_dg645_command()";
 
 	MX_RECORD *interface_record;
-	long gpib_address;
+	long gpib_address = -1;
 	mx_bool_type debug;
 
 	char lerr_response[40];
