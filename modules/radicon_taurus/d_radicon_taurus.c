@@ -552,6 +552,14 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 				MXU_RADICON_TAURUS_SERIAL_NUMBER_LENGTH );
 		} else
 		if ( strncmp(response, "Detector FW Build Version", 25) == 0 ) {
+			char *period_ptr = NULL;
+
+			period_ptr = strchr( string_value_ptr, '.' );
+
+			if ( period_ptr != NULL ) {
+				*period_ptr = '\0';
+			}
+
 			radicon_taurus->firmware_version =
 				mx_string_to_unsigned_long( string_value_ptr );
 		} else
@@ -590,11 +598,19 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	 * the sro, si1, and si2 settings?
 	 */
 
+	if ( radicon_taurus->firmware_version >= 140 ) {
+		radicon_taurus->have_get_commands = FALSE;
+	} else
 	if ( radicon_taurus->firmware_version >= 105 ) {
 		radicon_taurus->have_get_commands = TRUE;
 	} else {
 		radicon_taurus->have_get_commands = FALSE;
 	}
+
+#if 1
+	MX_DEBUG(-2,("%s: radicon_taurus->have_get_commands = %d",
+		fname, (int) radicon_taurus->have_get_commands));
+#endif
 
 	/* Set the detector gain to 1. */
 

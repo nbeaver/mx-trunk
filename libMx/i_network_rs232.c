@@ -10,7 +10,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2001-2006, 2008, 2010, 2012, 2014-2015
+ * Copyright 2001-2006, 2008, 2010, 2012, 2014-2015, 2017
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -211,6 +211,14 @@ mxi_network_rs232_finish_record_initialization( MX_RECORD *record )
 	record->record_flags |= ( ~MXF_REC_OPEN );
 
 	/* Initialize the network record field structures. */
+
+	mx_network_field_init( &(network_rs232->bytes_read_nf),
+		network_rs232->server_record,
+		"%s.bytes_read", network_rs232->remote_record_name );
+
+	mx_network_field_init( &(network_rs232->bytes_written_nf),
+		network_rs232->server_record,
+		"%s.bytes_written", network_rs232->remote_record_name );
 
 	mx_network_field_init( &(network_rs232->discard_unread_input_nf),
 		network_rs232->server_record,

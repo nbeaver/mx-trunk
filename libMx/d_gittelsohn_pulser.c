@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2015-2016 Illinois Institute of Technology
+ * Copyright 2015-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -19,7 +19,7 @@
 
 #define MXD_GITTELSOHN_PULSER_DEBUG_CONF	FALSE
 
-#define MXD_GITTELSOHN_PULSER_DEBUG_RUNNING	FALSE
+#define MXD_GITTELSOHN_PULSER_DEBUG_RUNNING	TRUE
 
 #define MXD_GITTELSOHN_PULSER_DEBUG_SETUP	FALSE
 
@@ -506,6 +506,8 @@ mxd_gittelsohn_pulser_start( MX_PULSE_GENERATOR *pulser )
 	static const char fname[] = "mxd_gittelsohn_pulser_start()";
 
 	MX_GITTELSOHN_PULSER *gittelsohn_pulser = NULL;
+	long on_milliseconds, off_milliseconds;
+	char command[80];
 	mx_status_type mx_status;
 
 	mx_status = mxd_gittelsohn_pulser_get_pointers( pulser,
@@ -513,8 +515,6 @@ mxd_gittelsohn_pulser_start( MX_PULSE_GENERATOR *pulser )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	/* Start the pulse generator. */
 
 #if MXD_GITTELSOHN_PULSER_DEBUG_RUNNING
 	MX_DEBUG(-2,("%s: Pulse generator '%s' starting, "
@@ -524,6 +524,61 @@ mxd_gittelsohn_pulser_start( MX_PULSE_GENERATOR *pulser )
 			pulser->pulse_period,
 			pulser->num_pulses));
 #endif
+	if ( pulser->pulse_width < 0.0 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Pulser '%s' is configured for a negative pulse width %g.",
+			pulser->record->name, pulser->pulse_width );
+	}
+	if ( pulser->pulse_period < 0.0 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Pulser '%s' is configured for a negative pulse period %g.",
+			pulser->record->name, pulser->pulse_period );
+	}
+
+	if ( pulser->pulse_period < pulser->pulse_width ) {
+		mx_warning( "The pulse period %g for pulser '%s' is less than "
+			"the pulse width %g.  The pulse period will be "
+			"increased to match the pulse width.",
+				pulser->pulse_period,
+				pulser->record->name,
+				pulser->pulse_width );
+
+		pulser->pulse_period = pulser->pulse_width;
+	}
+
+	/* Configure the pulse generator parameters */
+
+	on_milliseconds = mx_round( 1000.0 * pulser->pulse_width );
+
+	off_milliseconds =
+	    mx_round( 1000.0 * (pulser->pulse_period - pulser->pulse_width) );
+
+	snprintf( command, sizeof(command), "onms %ld", on_milliseconds );
+
+	mx_status = mxd_gittelsohn_pulser_command( gittelsohn_pulser,
+							command, NULL, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	snprintf( command, sizeof(command), "offms %ld", off_milliseconds );
+
+	mx_status = mxd_gittelsohn_pulser_command( gittelsohn_pulser,
+							command, NULL, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	snprintf( command, sizeof(command), "cycles %lu", pulser->num_pulses );
+
+	mx_status = mxd_gittelsohn_pulser_command( gittelsohn_pulser,
+							command, NULL, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Start the pulse generator. */
+
 	mx_status = mxd_gittelsohn_pulser_command( gittelsohn_pulser,
 							"start", NULL, 0 );
 
