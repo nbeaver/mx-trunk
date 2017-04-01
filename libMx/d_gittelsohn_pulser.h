@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2015-2016 Illinois Institute of Technology
+ * Copyright 2015-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -19,7 +19,7 @@
 
 #include "mx_pulse_generator.h"
 
-#define MXF_GITTELSOHN_PULSER_DEBUG		0x1
+#define MXF_GITTELSOHN_PULSER_DEBUG			0x1
 
 typedef struct {
 	MX_RECORD *record;

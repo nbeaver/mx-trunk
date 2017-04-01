@@ -823,7 +823,7 @@ mxsrv_mx_server_socket_init( MX_RECORD *list_head_record,
 			return mx_status;
 
 		snprintf( server_string, sizeof(server_string),
-				" TCP (%d)", port_number );
+				"TCP (%d)", port_number );
 
 		mx_info( "TCP server socket %d was opened.", port_number );
 
@@ -847,7 +847,7 @@ mxsrv_mx_server_socket_init( MX_RECORD *list_head_record,
 			return mx_status;
 
 		snprintf( server_string, sizeof(server_string),
-				" UNIX (%s)", pathname );
+				"UNIX (%s)", pathname );
 
 		mx_info( "Unix domain server socket '%s' was opened.",
 				pathname );
@@ -877,7 +877,7 @@ mxsrv_mx_server_socket_init( MX_RECORD *list_head_record,
 			return mx_status;
 
 		snprintf( server_string, sizeof(server_string),
-				" ASCII (%d)", port_number );
+				"ASCII (%d)", port_number );
 
 		mx_info( "ASCII server socket %d was opened.", port_number );
 

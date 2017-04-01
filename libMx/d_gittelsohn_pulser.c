@@ -19,7 +19,7 @@
 
 #define MXD_GITTELSOHN_PULSER_DEBUG_CONF	FALSE
 
-#define MXD_GITTELSOHN_PULSER_DEBUG_RUNNING	TRUE
+#define MXD_GITTELSOHN_PULSER_DEBUG_RUNNING	FALSE
 
 #define MXD_GITTELSOHN_PULSER_DEBUG_SETUP	FALSE
 
@@ -119,7 +119,7 @@ mxd_gittelsohn_pulser_command( MX_GITTELSOHN_PULSER *gittelsohn_pulser,
 
 	MX_RECORD *rs232_record;
 	unsigned long debug_flag, flags;
-	char command_echo_buffer[200];
+	char discard_buffer[200];
 	mx_status_type mx_status;
 
 	if ( gittelsohn_pulser == (MX_GITTELSOHN_PULSER *) NULL ) {
@@ -154,7 +154,7 @@ mxd_gittelsohn_pulser_command( MX_GITTELSOHN_PULSER *gittelsohn_pulser,
 	 */
 
 	mx_status = mx_rs232_getline( rs232_record,
-			command_echo_buffer, sizeof(command_echo_buffer),
+			discard_buffer, sizeof(discard_buffer),
 			NULL, debug_flag );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -165,6 +165,13 @@ mxd_gittelsohn_pulser_command( MX_GITTELSOHN_PULSER *gittelsohn_pulser,
 	if ( response != NULL ) {
 		mx_status = mx_rs232_getline( rs232_record,
 			response, max_response_size, NULL, debug_flag );
+	} else {
+		/* If there are additional bytes available that we did not
+		 * expect, then discard them.
+		 */
+
+		mx_status = mx_rs232_discard_unread_input( rs232_record,
+							debug_flag );
 	}
 
 	return mx_status;
