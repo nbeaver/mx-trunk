@@ -37,7 +37,7 @@ LIBTIFF_LIBRARY = -ltiff
 
 #----
 
-else ifeq($(MX_ARCH),cygwin)
+else ifeq ($(MX_ARCH),cygwin)
 
 LIBTIFF_INCLUDES = 
 LIBTIFF_LIBRARY = -ltiff
