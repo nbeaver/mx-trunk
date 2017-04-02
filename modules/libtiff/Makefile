@@ -1,5 +1,5 @@
 #
-# Supported values of MX_ARCH:   linux
+# Supported values of MX_ARCH:   linux, win32
 #
 
 ifndef MX_ARCH
@@ -14,8 +14,6 @@ endif
 
 ifeq ($(MX_ARCH),win32)
 
-# Not tested on Win32 yet.
-
 LIBTIFF_DIR = c:\\opt\\tiff-4.0.6
 LIBTIFF_INCLUDES = -I$(LIBTIFF_DIR)\\libtiff
 LIBTIFF_LIBRARY = $(LIBTIFF_DIR)\\libtiff\\libtiff.lib
@@ -24,15 +22,22 @@ LIBTIFF_LIBRARY = $(LIBTIFF_DIR)\\libtiff\\libtiff.lib
 
 else ifeq ($(MX_ARCH),linux)
 
-#LIBTIFF_INCLUDES = 
-#LIBTIFF_LIBRARY = -ltiff
+LIBTIFF_INCLUDES = 
+LIBTIFF_LIBRARY = -ltiff
 
-LIBTIFF_INCLUDES = -I/home/det/local/include
-LIBTIFF_LIBRARY = -L/home/det/local/lib -ltiff
+#LIBTIFF_INCLUDES = -I/home/det/local/include
+#LIBTIFF_LIBRARY = -L/home/det/local/lib -ltiff
 
 #----
 
 else ifeq ($(MX_ARCH),linux-clang)
+
+LIBTIFF_INCLUDES = 
+LIBTIFF_LIBRARY = -ltiff
+
+#----
+
+else ifeq($(MX_ARCH),cygwin)
 
 LIBTIFF_INCLUDES = 
 LIBTIFF_LIBRARY = -ltiff
@@ -90,6 +95,16 @@ libtiff.mxo: $(LIBTIFF_OBJS)
 	$(CC) $(SANITIZE) -shared -rdynamic -Wl,-soname,libtiff.mxo \
 		-o libtiff.mxo $(LIBTIFF_OBJS) \
 		../../libMx/libMx.so $(LIBTIFF_LIBRARY)
+
+endif
+
+#--------------------------------------------------------------------------
+
+ifeq ($(MX_ARCH),cygwin)
+
+libtiff.mxo: $(LIBTIFF_OBJS)
+	dllwrap -o libtiff.mxo \
+		$(LIBTIFF_OBJS) ../../libMx/libMx.dll.a $(LIBTIFF_LIBRARY)
 
 endif
 

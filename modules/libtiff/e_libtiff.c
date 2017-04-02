@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2015-2016 Illinois Institute of Technology
+ * Copyright 2015-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -901,7 +901,7 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 	if ( mxp_tiff_hostcomputer[0] == '\0' ) {
 		char host_temp_buffer[MXU_HOSTNAME_LENGTH+1];
 		struct hostent *host_entry;
-		char *dns_name;
+		const char *dns_name;
 		char os_temp_buffer[100];
 
 		/* First, get the hostname of the computer. */
