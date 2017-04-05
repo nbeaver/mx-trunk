@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2012-2013 Illinois Institute of Technology
+ * Copyright 2012-2013, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -72,6 +72,8 @@ typedef struct {
 	double minimum_pixel_value;
 	double saturation_pixel_value;
 
+	double minimum_strobe_time;
+
 	unsigned long sro;
 	uint64_t si1;
 	uint64_t si2;
@@ -81,14 +83,10 @@ typedef struct {
 	uint64_t saved_si1_register;
 	uint64_t saved_si2_register;
 
-	double si1_si2_ratio;
-
 	MX_IMAGE_FRAME *video_frame;
 
 	uint16_t **video_array_overlay;
 	uint16_t **ad_array_overlay;
-
-	mx_bool_type use_different_si2_value;
 
 	mx_bool_type bypass_arm;
 	mx_bool_type use_video_frames;
@@ -102,6 +100,9 @@ typedef struct {
 
 	MX_CLOCK_TICK serial_delay_ticks;
 	MX_CLOCK_TICK next_serial_command_tick;
+
+	MX_CLOCK_TICK next_get_extended_status_tick;
+	double next_get_extended_status_delay;
 
 	char raw_file_directory[MXU_FILENAME_LENGTH+1];
 	char raw_file_name[MXU_FILENAME_LENGTH+1];
@@ -190,6 +191,10 @@ typedef struct {
 			offsetof(MX_RADICON_TAURUS, saturation_pixel_value), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
+  {-1, -1, "minimum_strobe_time", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, minimum_strobe_time), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
   {MXLV_RADICON_TAURUS_SRO, -1, "sro", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, sro ), \
 	{0}, NULL, 0 }, \
@@ -205,15 +210,6 @@ typedef struct {
   {MXLV_RADICON_TAURUS_SI, -1, "si", MXFT_UINT64, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, si ), \
 	{0}, NULL, 0 }, \
-  \
-  {-1, -1, "si1_si2_ratio", MXFT_DOUBLE, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, si1_si2_ratio), \
-	{0}, NULL, MXFF_READ_ONLY }, \
-  \
-  {-1, -1, "use_different_si2_value", MXFT_BOOL, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, \
-		offsetof(MX_RADICON_TAURUS, use_different_si2_value), \
-	{0}, NULL, MXFF_READ_ONLY }, \
   \
   {-1, -1, "bypass_arm", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, bypass_arm), \
@@ -242,6 +238,11 @@ typedef struct {
   {-1, -1, "rotation_angle", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, rotation_angle), \
 	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "next_get_extended_status_delay", MXFT_DOUBLE, NULL, 0, {0}, \
+        MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_RADICON_TAURUS, next_get_extended_status_delay), \
+	{0}, NULL, 0 }, \
   \
   {-1, -1, "raw_file_directory", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, raw_file_directory), \

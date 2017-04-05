@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2012-2016 Illinois Institute of Technology
+ * Copyright 2012-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -265,6 +265,8 @@ mxd_radicon_taurus_create_record_structures( MX_RECORD *record )
 	radicon_taurus->saved_si1_register = (uint64_t) 0;
 	radicon_taurus->saved_si2_register = (uint64_t) 0;
 
+	radicon_taurus->next_get_extended_status_delay = 1.0;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -314,6 +316,17 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	 */
 
 	ad->correction_frames_to_skip = 1;
+
+	/* The minimum exposure time for this detector is 4 exposure ticks. */
+
+	radicon_taurus->minimum_exposure_ticks = 4;
+
+	/* Sometimes there must be a delay between a trigger call and the
+	 * first call to get_extended_status.  This variable stores the
+	 * next clock tick when we can ask for the extended status.
+	 */
+
+	radicon_taurus->next_get_extended_status_tick = mx_current_clock_tick();
 
 	/* If a pulse generator record name has been specified in the 
 	 * record description, then try to get a pointer to that record.
@@ -746,10 +759,6 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 		* radicon_taurus->linetime / radicon_taurus->clock_frequency;
 
 	/*---*/
-
-	radicon_taurus->si1_si2_ratio = 0.1;
-
-	radicon_taurus->use_different_si2_value = FALSE;
 
 	/* If possible, fetch the current settings from the real registers. */
 
@@ -1215,7 +1224,6 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 	uint64_t si1_register, si2_register;
 	char command[80];
 	mx_bool_type set_exposure_times;
-	mx_bool_type use_different_si2_value;
 	unsigned long old_sro_mode, new_sro_mode;
 	unsigned long ad_flags;
 	unsigned long rt_flags;
@@ -1460,44 +1468,29 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 
 		set_exposure_times = FALSE;
 
-		use_different_si2_value =
-			radicon_taurus->use_different_si2_value;
-
 		switch( sp->sequence_type ) {
 		case MXT_SQ_ONE_SHOT:
 			set_exposure_times = TRUE;
-			use_different_si2_value = FALSE;
 
 			new_sro_mode = 3;
 			break;
 		case MXT_SQ_MULTIFRAME:
 			set_exposure_times = TRUE;
-			use_different_si2_value = FALSE;
 
 			new_sro_mode = 4;
 			break;
 		case MXT_SQ_STROBE:
 			set_exposure_times = TRUE;
 
-			if ( use_different_si2_value ) {
-				new_sro_mode = 0;
-			} else {
-				new_sro_mode = 1;
-			}
+			new_sro_mode = 1;
 			break;
 		case MXT_SQ_DURATION:
 			set_exposure_times = FALSE;
-			use_different_si2_value = FALSE;
 
 			new_sro_mode = 2;
 			break;
 		case MXT_SQ_GATED:
 			set_exposure_times = TRUE;
-
-			/* Note: This mode does not change the value of
-			 * the use_different_si2_value flag, since both
-			 * possible values are valid.
-			 */
 
 			new_sro_mode = 0;
 			break;
@@ -1544,17 +1537,6 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 
 		/* If we get here, we have to set up the exposure times. */
 
-		/* If use_different_si2_value is FALSE, then we compute
-		 * a single raw exposure time as a 64-bit integer which
-		 * is stored below in the variable long_exposure_time_as_uint64.
-		 *
-		 * If use_different_si2_value is TRUE, then we compute
-		 * both a long exposure time and a short exposure time
-		 * using a settable ratio of the two.  Then, we assign
-		 * the short exposure time to si1 and the long exposure
-		 * time to si2.
-		 */
-
 		long_exposure_time_as_double = 
 			(exposure_time - radicon_taurus->readout_time)
 				 * radicon_taurus->clock_frequency;
@@ -1566,17 +1548,20 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 				radicon_taurus->minimum_exposure_ticks;
 		}
 
+		/* Round to the nearest 64 bit integer. */
+
 		long_exposure_time_as_uint64 =
 			(int64_t) ( 0.5 + long_exposure_time_as_double );
 
-		if ( use_different_si2_value ) {
-			short_exposure_time_as_double =
-				radicon_taurus->si1_si2_ratio
-					* long_exposure_time_as_double;
+		if ( sp->sequence_type == MXT_SQ_STROBE ) {
+			/* Set the duration of the first pulse to the
+			 * smallest allowed value of 4.  In this case,
+			 * the first pulse is used to clear out counts
+			 * that accumulated while the detector was not
+			 * being used.
+			 */
 
-			si1_register =
-				(uint64_t)(short_exposure_time_as_double + 0.5);
-
+			si1_register = (uint64_t ) 4;
 			si2_register = long_exposure_time_as_uint64;
 		} else {
 			si1_register = long_exposure_time_as_uint64;
@@ -1662,6 +1647,10 @@ mxd_radicon_taurus_trigger( MX_AREA_DETECTOR *ad )
 	double exposure_time;
 	double pulse_period, pulse_width;
 	unsigned long num_pulses;
+	MX_CLOCK_TICK delay_ticks;
+	uint64_t si1, si2;
+	double si1_exposure_time, si2_exposure_time;
+	double reset_time, readout_time;
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_taurus_get_pointers( ad,
@@ -1675,14 +1664,21 @@ mxd_radicon_taurus_trigger( MX_AREA_DETECTOR *ad )
 		fname, ad->record->name ));
 #endif
 
-	/* FIXME: The following sleep exists to insert a delay time
+	/* FIXME: The following delay exists to insert a delay time
 	 * between the trigger call and the first get extended status.
+	 * The delay is applied during the next get extended status call.
 	 *
 	 * There should not be a need for such a delay, but it does
 	 * need to be there for some reason, at least on the new detector.
 	 */
 
-	mx_msleep(1000);
+	delay_ticks = mx_convert_seconds_to_clock_ticks(
+			radicon_taurus->next_get_extended_status_delay );
+
+	radicon_taurus->next_get_extended_status_tick = mx_add_clock_ticks(
+			delay_ticks, mx_current_clock_tick() );
+
+	/*----------------------------------------------------------------*/
 
 	if ( ( ad->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) == 0 ) {
 
@@ -1692,6 +1688,8 @@ mxd_radicon_taurus_trigger( MX_AREA_DETECTOR *ad )
 
 		return MX_SUCCESSFUL_RESULT;
 	}
+
+	/*----------------------------------------------------------------*/
 
 	/* We need to have a pulse generator to perform internal triggering. */
 
@@ -1719,8 +1717,8 @@ mxd_radicon_taurus_trigger( MX_AREA_DETECTOR *ad )
 	case MXT_SQ_ONE_SHOT:
 		/* sro 3 - single pulse */
 
-		pulse_width = 1.05 * exposure_time;
-		pulse_period = 1.1 * pulse_width;
+		pulse_width = exposure_time;
+		pulse_period = pulse_width + 0.01;
 		num_pulses = 1;
 		break;
 
@@ -1734,9 +1732,60 @@ mxd_radicon_taurus_trigger( MX_AREA_DETECTOR *ad )
 	case MXT_SQ_STROBE:
 		/* sro 1 - double pulses */
 
-		pulse_width = 0.1;
-		pulse_period = 1.1 * pulse_width;
+		/* The Taurus manual states that the minimum width of
+		 * a Sync (trigger) pulse is 1 millisecond.  We set
+		 * it to 2 milliseconds to give us a margin for error.
+		 */
+
+		pulse_width = 0.002;
+
+		/* The pulse period needs to be at least greater than or
+		 * equal to the exposure times of both the short frame
+		 * and the long frame as well as the reset time plus
+		 * two separate readout times.  This is to avoid sending
+		 * a new Sync pulse before the response to the previous
+		 * Sync pulse is over.
+		 */
+
+		mx_status = mxd_radicon_taurus_get_si1( ad, &si1, TRUE );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mxd_radicon_taurus_get_si2( ad, &si2, TRUE );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/*---*/
+
+		reset_time = 0.0;
+#if 1
+		readout_time = radicon_taurus->readout_time;
+#else
+		readout_time = 0.0;
+#endif
+
+		si1_exposure_time = mx_divide_safely( si1,
+					radicon_taurus->clock_frequency );
+
+		si2_exposure_time = mx_divide_safely( si2,
+					radicon_taurus->clock_frequency );
+
+		/*---*/
+
+		pulse_period = reset_time + si1_exposure_time + readout_time
+				+ si2_exposure_time + readout_time + 0.001;
+
 		num_pulses = sp->parameter_array[0] / 2L;
+
+#if 1
+		MX_DEBUG(-2,("%s: reset_time = %f, readout_time = %f, "
+			"s1 time = %f, s2 time = %f, pulse_period = %f",
+			fname, reset_time, readout_time,
+			si1_exposure_time, si2_exposure_time,
+			pulse_period ));
+#endif
 		break;
 
 	case MXT_SQ_DURATION:
