@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2007, 2009, 2011-2012, 2015-2016
+ * Copyright 2006-2007, 2009, 2011-2012, 2015-2017
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -1563,6 +1563,65 @@ mx_video_input_get_num_capture_buffers( MX_RECORD *record,
 	}
 
 	return mx_status;
+}
+
+/*-----------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_video_input_register_capture_callback( MX_RECORD *record,
+			mx_status_type capture_callback_function(void *), 
+			void *capture_callback_argument )
+{
+	static const char fname[] = "mx_video_input_register_capture_callback";
+
+	MX_VIDEO_INPUT *vinput;
+	mx_status_type mx_status;
+
+	mx_status = mx_video_input_get_pointers(record, &vinput, NULL, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( vinput->supports_capture_callbacks == FALSE ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"The '%s' driver for video input '%s' does not "
+		"support MX video capture callbacks.",
+			mx_get_driver_name( record ),
+			record->name );
+	}
+
+	vinput->capture_callback_function = capture_callback_function;
+
+	vinput->capture_callback_argument = capture_callback_argument;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-----------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_video_input_unregister_capture_callback( MX_RECORD *record )
+{
+	static const char fname[] =
+		"mx_video_input_unregister_capture_callback";
+
+	MX_VIDEO_INPUT *vinput;
+	mx_status_type mx_status;
+
+	mx_status = mx_video_input_get_pointers(record, &vinput, NULL, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( vinput->supports_capture_callbacks == FALSE ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"The '%s' driver for video input '%s' does not "
+		"support MX video capture callbacks.",
+			mx_get_driver_name( record ),
+			record->name );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*-----------------------------------------------------------------------*/

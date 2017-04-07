@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2007, 2011-2012, 2015-2016 Illinois Institute of Technology
+ * Copyright 2006-2007, 2011-2012, 2015-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -128,6 +128,26 @@ typedef struct {
 	 */
 
 	unsigned long num_capture_buffers;
+
+	/* If frame capture in the video driver needs to trigger processing
+	 * in a higher level of the code (like an area detector driver),
+	 * then provide a callback function and argument that can be used
+	 * to call the higher level processing function.
+	 */
+
+	void *capture_callback_function;
+
+	/* capture_callback_argument is the one and only argument for the
+	 * capture_callback_function().
+	 */
+
+	void *capture_callback_argument;
+
+	/* This is a way of indicating whether or not the given 
+	 * video input driver supports camera_callbacks.
+	 */
+
+	mx_bool_type supports_capture_callbacks;
 
 } MX_VIDEO_INPUT;
 
@@ -476,6 +496,16 @@ MX_API mx_status_type mx_video_input_check_for_buffer_overrun(
 MX_API mx_status_type mx_video_input_get_num_capture_buffers(
 					MX_RECORD *record,
 					unsigned long *num_capture_buffers );
+
+/*---*/
+
+MX_API mx_status_type mx_video_input_register_capture_callback(
+				MX_RECORD *record,
+				mx_status_type capture_callback(void *),
+				void *capture_argument );
+
+MX_API mx_status_type mx_video_input_unregister_capture_callback(
+						MX_RECORD *record );
 
 /*---*/
 

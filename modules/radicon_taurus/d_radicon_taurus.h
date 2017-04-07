@@ -100,6 +100,12 @@ typedef struct {
 
 	long total_num_frames_at_start;
 
+	long video_total_num_frames_at_start;
+
+	long video_last_frame_number;
+	unsigned long video_total_num_frames;
+	long *video_frame_number_array;
+
 	MX_CLOCK_TICK serial_delay_ticks;
 	MX_CLOCK_TICK next_serial_command_tick;
 
