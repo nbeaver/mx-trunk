@@ -261,9 +261,9 @@ mxd_radicon_taurus_create_record_structures( MX_RECORD *record )
 
 	radicon_taurus->image_noir_info = NULL;
 
-	radicon_taurus->saved_sro_register = (unsigned long) (-1);
-	radicon_taurus->saved_si1_register = (uint64_t) 0;
-	radicon_taurus->saved_si2_register = (uint64_t) 0;
+	radicon_taurus->shadow_sro_register = (unsigned long) (-1);
+	radicon_taurus->shadow_si1_register = (uint64_t) 0;
+	radicon_taurus->shadow_si2_register = (uint64_t) 0;
 
 	radicon_taurus->next_get_extended_status_delay = 1.0;
 
@@ -1747,12 +1747,12 @@ mxd_radicon_taurus_trigger( MX_AREA_DETECTOR *ad )
 		 * Sync pulse is over.
 		 */
 
-		mx_status = mxd_radicon_taurus_get_si1( ad, &si1, TRUE );
+		mx_status = mxd_radicon_taurus_get_si1( ad, &si1, FALSE );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		mx_status = mxd_radicon_taurus_get_si2( ad, &si2, TRUE );
+		mx_status = mxd_radicon_taurus_get_si2( ad, &si2, FALSE );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -2785,7 +2785,7 @@ mxd_radicon_taurus_set_parameter( MX_AREA_DETECTOR *ad )
 	
 			/* Tell the camera head to switch readout modes. */
 	
-			if ( sro_mode != radicon_taurus->saved_sro_register ) {
+			if ( sro_mode != radicon_taurus->shadow_sro_register ) {
 				if ( ad->binsize[0] == 1 ) {
 					strlcpy( command, "SVM 1",
 							sizeof(command) );
@@ -3012,7 +3012,7 @@ mxd_radicon_taurus_get_sro( MX_AREA_DETECTOR *ad,
 		if ( flags & MXF_RADICON_TAURUS_USE_SHADOW_REGISTERS ) {
 
 			if ( sro != (unsigned long *) NULL ) {
-				*sro = radicon_taurus->saved_sro_register;
+				*sro = radicon_taurus->shadow_sro_register;
 			}
 
 			return MX_SUCCESSFUL_RESULT;
@@ -3024,10 +3024,10 @@ mxd_radicon_taurus_get_sro( MX_AREA_DETECTOR *ad,
 		/* If this is an old detector that does not support
 		 * the 'getsro' command, then all we can do is to
 		 * return the value currently in the variable
-		 * radicon_taurus->saved_sro_register.
+		 * radicon_taurus->shadow_sro_register.
 		 */
 
-		*sro = radicon_taurus->saved_sro_register;
+		*sro = radicon_taurus->shadow_sro_register;
 
 		return MX_SUCCESSFUL_RESULT;
 	}
@@ -3053,16 +3053,16 @@ mxd_radicon_taurus_get_sro( MX_AREA_DETECTOR *ad,
 	response_ptr++;		/* Skip over the '='. */
 	response_ptr++;		/* Skip over a trailing blank. */
 
-	radicon_taurus->saved_sro_register =
+	radicon_taurus->shadow_sro_register =
 		mx_string_to_unsigned_long( response_ptr );
 
 	if ( sro != (unsigned long *) NULL ) {
-		*sro = radicon_taurus->saved_sro_register;
+		*sro = radicon_taurus->shadow_sro_register;
 	}
 
 #if MXD_RADICON_TAURUS_DEBUG_RS232_SRO_SI_SUMMARY
 	MX_DEBUG(-2,("%s: SRO value read = %lu",
-		fname, radicon_taurus->saved_sro_register));
+		fname, radicon_taurus->shadow_sro_register));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
@@ -3103,7 +3103,7 @@ mxd_radicon_taurus_set_sro( MX_AREA_DETECTOR *ad,
 
 		if ( flags & MXF_RADICON_TAURUS_USE_SHADOW_REGISTERS ) {
 
-			if (new_sro_mode == radicon_taurus->saved_sro_register)
+			if (new_sro_mode == radicon_taurus->shadow_sro_register)
 			{
 
 #if MXD_RADICON_TAURUS_DEBUG_RS232_SRO_SI_SUMMARY
@@ -3120,7 +3120,7 @@ mxd_radicon_taurus_set_sro( MX_AREA_DETECTOR *ad,
 	 */
 
 	if ( new_sro_mode > 4 ) {
-		radicon_taurus->saved_sro_register = 4;
+		radicon_taurus->shadow_sro_register = 4;
 
 		/* Attempt to restore the existing hardware value of SRO. */
 
@@ -3156,7 +3156,7 @@ mxd_radicon_taurus_set_sro( MX_AREA_DETECTOR *ad,
 			 * the SRO command worked, so we just return.
 			 */
 
-			radicon_taurus->saved_sro_register = new_sro_mode;
+			radicon_taurus->shadow_sro_register = new_sro_mode;
 
 			return MX_SUCCESSFUL_RESULT;
 		}
@@ -3175,7 +3175,7 @@ mxd_radicon_taurus_set_sro( MX_AREA_DETECTOR *ad,
 			 * can now return.
 			 */
 
-			radicon_taurus->saved_sro_register = new_sro_mode;
+			radicon_taurus->shadow_sro_register = new_sro_mode;
 
 			return MX_SUCCESSFUL_RESULT;
 		}
@@ -3210,6 +3210,7 @@ mxd_radicon_taurus_get_si_register( MX_AREA_DETECTOR *ad,
 	unsigned long high_order, middle_order, low_order, temp_value;
 	int i;
 	unsigned long flags;
+	mx_bool_type use_shadow_values;
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_taurus_get_pointers( ad,
@@ -3230,20 +3231,32 @@ mxd_radicon_taurus_get_si_register( MX_AREA_DETECTOR *ad,
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
-
 	flags = radicon_taurus->radicon_taurus_flags;
 
-	if ( force_read == FALSE ) {
+	use_shadow_values = FALSE;
 
-	    if ( flags & MXF_RADICON_TAURUS_USE_SHADOW_REGISTERS ) {
+	if ( force_read == FALSE ) {
+		use_shadow_values = TRUE;
+	} else
+	if ( radicon_taurus->have_get_commands == FALSE ) {
+		use_shadow_values = TRUE;
+	} else
+	if ( flags & MXF_RADICON_TAURUS_USE_SHADOW_REGISTERS ) {
+		use_shadow_values = TRUE;
+	}
+
+	if ( use_shadow_values ) {
+		/* if it is not possible to read the si value from the
+		 * hardware register, then send back the shadow value.
+		 */
 
 		if ( si_value_ptr != (uint64_t *) NULL ) {
 		    switch( si_type ) {
 		    case MXLV_RADICON_TAURUS_SI1:
-			*si_value_ptr = radicon_taurus->saved_si1_register;
+			*si_value_ptr = radicon_taurus->shadow_si1_register;
 			break;
 		    case MXLV_RADICON_TAURUS_SI2:
-			*si_value_ptr = radicon_taurus->saved_si2_register;
+			*si_value_ptr = radicon_taurus->shadow_si2_register;
 			break;
 		    default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -3251,19 +3264,6 @@ mxd_radicon_taurus_get_si_register( MX_AREA_DETECTOR *ad,
 			break;
 		    }
 		}
-
-		return MX_SUCCESSFUL_RESULT;
-	    }
-	}
-
-	if ( radicon_taurus->have_get_commands == FALSE ) {
-
-		/* If this is an old detector that does not support
-		 * the 'getsi' commands, then all we can do is to
-		 * return the value currently in the variable
-		 * radicon_taurus->si1_register or
-		 * radicon_taurus->si2_register.
-		 */
 
 		return MX_SUCCESSFUL_RESULT;
 	}
@@ -3334,10 +3334,10 @@ mxd_radicon_taurus_get_si_register( MX_AREA_DETECTOR *ad,
 
 	switch( si_type ) {
 	case MXLV_RADICON_TAURUS_SI1:
-		radicon_taurus->saved_si1_register = new_si_value;
+		radicon_taurus->shadow_si1_register = new_si_value;
 		break;
 	case MXLV_RADICON_TAURUS_SI2:
-		radicon_taurus->saved_si2_register = new_si_value;
+		radicon_taurus->shadow_si2_register = new_si_value;
 		break;
 	}
 
@@ -3385,6 +3385,11 @@ mxd_radicon_taurus_set_si_register( MX_AREA_DETECTOR *ad,
 		fname, (int)(si_type - MXLV_RADICON_TAURUS_SRO), new_si_value));
 #endif
 
+	/* If we are using shadow register, check to see if new_si_value is
+	 * different from the existing value of the shadow si register.  If
+	 * it is the same, then just return.
+	 */
+
 	flags = radicon_taurus->radicon_taurus_flags;
 
 	if ( force_write == FALSE ) {
@@ -3392,11 +3397,11 @@ mxd_radicon_taurus_set_si_register( MX_AREA_DETECTOR *ad,
 			switch( si_type ) {
 			case MXLV_RADICON_TAURUS_SI1:
 				old_si_value =
-					radicon_taurus->saved_si1_register;
+					radicon_taurus->shadow_si1_register;
 				break;
 			case MXLV_RADICON_TAURUS_SI2:
 				old_si_value =
-					radicon_taurus->saved_si2_register;
+					radicon_taurus->shadow_si2_register;
 				break;
 			}
 
@@ -3440,6 +3445,17 @@ mxd_radicon_taurus_set_si_register( MX_AREA_DETECTOR *ad,
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+		/* Save the new si value to the corresponding shadow register.*/
+
+		switch( si_type ) {
+		case MXLV_RADICON_TAURUS_SI1:
+			radicon_taurus->shadow_si1_register = new_si_value;
+			break;
+		case MXLV_RADICON_TAURUS_SI2:
+			radicon_taurus->shadow_si2_register = new_si_value;
+			break;
+		}
 
 		if ( radicon_taurus->have_get_commands == FALSE ) {
 			/* If this is an old detector that does not support
@@ -3683,6 +3699,7 @@ mxd_radicon_taurus_command( MX_RADICON_TAURUS *radicon_taurus, char *command,
 	size_t num_to_discard;
 	MX_CLOCK_TICK current_tick;
 	int comparison;
+	unsigned long radicon_taurus_flags;
 	mx_status_type mx_status;
 
 #if 0
@@ -3701,6 +3718,12 @@ mxd_radicon_taurus_command( MX_RADICON_TAURUS *radicon_taurus, char *command,
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The serial_port_record pointer for record '%s' is NULL.",
 			radicon_taurus->record->name );
+	}
+
+	radicon_taurus_flags = radicon_taurus->radicon_taurus_flags;
+
+	if ( radicon_taurus_flags & MXF_RADICON_TAURUS_SERIAL_DEBUG ) {
+		debug_flag = TRUE;
 	}
 
 	/* Are we sending a command? */

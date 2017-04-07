@@ -27,6 +27,8 @@
 #define MXF_RADICON_TAURUS_ZERO_EXPOSURE_MOTOR_AT_ARM	0x8
 #define MXF_RADICON_TAURUS_USE_SHADOW_REGISTERS		0x10
 
+#define MXF_RADICON_TAURUS_SERIAL_DEBUG			0x80000000
+
 /* Values for the 'detector_model' field. */
 
 #define MXT_RADICON_TAURUS	1
@@ -79,9 +81,9 @@ typedef struct {
 	uint64_t si2;
 	uint64_t si;
 
-	unsigned long saved_sro_register;
-	uint64_t saved_si1_register;
-	uint64_t saved_si2_register;
+	unsigned long shadow_sro_register;
+	uint64_t shadow_si1_register;
+	uint64_t shadow_si2_register;
 
 	MX_IMAGE_FRAME *video_frame;
 
