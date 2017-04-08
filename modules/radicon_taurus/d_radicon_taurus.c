@@ -259,6 +259,8 @@ mxd_radicon_taurus_video_capture_callback( void *capture_arguments )
 	    	fname, vinput->total_num_frames,
 		frame_grabber->total_num_frames_at_start,
 		frame_grabber->num_frames_left_to_acquire));
+	MX_DEBUG(-2,("%s: si1 = %" PRIu64 ", si2 = %" PRIu64,
+		fname, radicon_taurus->si1, radicon_taurus->si2));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1326,7 +1328,6 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 	unsigned long raw_exposure_time_32;
 	uint64_t long_exposure_time_as_uint64;
 	double long_exposure_time_as_double;
-	double short_exposure_time_as_double;
 	uint64_t si1_register, si2_register;
 	char command[80];
 	mx_bool_type set_exposure_times;
