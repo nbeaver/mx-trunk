@@ -47,7 +47,7 @@ radicon_taurus.$(OBJ): radicon_taurus.c d_radicon_taurus.h \
 
 d_radicon_taurus.$(OBJ): d_radicon_taurus.c d_radicon_taurus.h \
 		../../libMx/mx_area_detector_rdi.h
-	$(COMPILE) $(CFLAGS) d_radicon_taurus.c
+	$(COMPILE) $(CFLAGS) -I../sapera_lt d_radicon_taurus.c
 
 i_radicon_taurus_rs232.$(OBJ): i_radicon_taurus_rs232.c i_radicon_taurus_rs232.h
 	$(COMPILE) $(CFLAGS) i_radicon_taurus_rs232.c

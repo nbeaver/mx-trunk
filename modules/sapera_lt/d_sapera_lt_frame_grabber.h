@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2011-2012 Illinois Institute of Technology
+ * Copyright 2011-2012, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -18,6 +18,8 @@
 #define __D_SAPERA_LT_FRAME_GRABBER_H__
 
 #ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct {
 	MX_RECORD *record;
@@ -30,10 +32,6 @@ typedef struct {
 	unsigned long total_num_frames_at_start;
 	unsigned long num_frames_left_to_acquire;
 
-	SapAcquisition *acquisition;
-	SapBuffer      *buffer;
-	SapAcqToBuf    *transfer;
-
 	struct timespec boot_time;
 
 	struct timespec *frame_time;
@@ -41,8 +39,19 @@ typedef struct {
 
 	mx_bool_type buffer_overrun_occurred;
 
+#ifdef __cplusplus
+
+	SapAcquisition *acquisition;
+	SapBuffer      *buffer;
+	SapAcqToBuf    *transfer;
+
+#endif /* __cplusplus */
+
 } MX_SAPERA_LT_FRAME_GRABBER;
 
+#ifdef __cplusplus
+}
+#endif
 
 #define MXD_SAPERA_LT_FRAME_GRABBER_STANDARD_FIELDS \
   {-1, -1, "sapera_lt_record", MXFT_RECORD, NULL, 0, {0}, \
@@ -70,9 +79,6 @@ typedef struct {
 		offsetof(MX_SAPERA_LT_FRAME_GRABBER, buffer_overrun_occurred), \
 	{0}, NULL, 0}
 	
-
-#endif /* __cplusplus */
-
 #ifdef __cplusplus
 extern "C" {
 #endif

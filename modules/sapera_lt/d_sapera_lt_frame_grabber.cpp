@@ -177,6 +177,7 @@ mxd_sapera_lt_frame_grabber_acquisition_callback( SapXferCallbackInfo *info )
 	long i;
 	mx_bool_type old_frame_buffer_was_unsaved;
 	struct timespec frame_time, time_offset;
+	MX_VIDEO_INPUT_CAPTURE_CALLBACK capture_callback_fn;
 
 	sapera_lt_frame_grabber =
 		(MX_SAPERA_LT_FRAME_GRABBER *) info->GetContext();
@@ -268,6 +269,15 @@ mxd_sapera_lt_frame_grabber_acquisition_callback( SapXferCallbackInfo *info )
 		sapera_lt_frame_grabber->num_frames_left_to_acquire ));
 
 #endif /* MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_NUM_FRAMES_LEFT_TO_ACQUIRE */
+
+	/* If configured, call the area detector callback. */
+
+	if ( vinput->capture_callback_function != NULL ) {
+		capture_callback_fn =
+	    (MX_VIDEO_INPUT_CAPTURE_CALLBACK) vinput->capture_callback_function;
+
+		(void) capture_callback_fn( vinput->capture_callback_argument );
+	}
 
 	/* Did we have a buffer overrun? */
 
@@ -761,6 +771,8 @@ mxd_sapera_lt_frame_grabber_finish_record_initialization( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	vinput->supports_capture_callbacks = TRUE;
 
 	return MX_SUCCESSFUL_RESULT;
 }

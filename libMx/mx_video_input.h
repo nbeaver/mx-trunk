@@ -23,6 +23,8 @@
 extern "C" {
 #endif
 
+typedef mx_status_type (*MX_VIDEO_INPUT_CAPTURE_CALLBACK) (void *);
+
 #define MXU_VIN_EXTENDED_STATUS_STRING_LENGTH	40
 
 /* Status bit definitions for the 'status' field. */
@@ -499,13 +501,24 @@ MX_API mx_status_type mx_video_input_get_num_capture_buffers(
 
 /*---*/
 
+#if 0
 MX_API mx_status_type mx_video_input_register_capture_callback(
 				MX_RECORD *record,
 				mx_status_type capture_callback(void *),
 				void *capture_argument );
+#else
+MX_API mx_status_type mx_video_input_register_capture_callback(
+			MX_RECORD *record,
+			MX_VIDEO_INPUT_CAPTURE_CALLBACK capture_callback,
+			void *capture_argument );
+#endif
 
 MX_API mx_status_type mx_video_input_unregister_capture_callback(
 						MX_RECORD *record );
+
+MX_API mx_status_type mx_video_input_supports_capture_callbacks(
+				MX_RECORD *record,
+				mx_bool_type *supports_capture_callback );
 
 /*---*/
 

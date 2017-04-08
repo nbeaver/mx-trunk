@@ -106,6 +106,9 @@ mx_video_input_finish_record_initialization( MX_RECORD *record )
 	vinput->extended_status[0] = '\0';
 	vinput->check_for_buffer_overrun = FALSE;
 	vinput->num_capture_buffers = 1;
+	vinput->capture_callback_function = NULL;
+	vinput->capture_callback_argument = NULL;
+	vinput->supports_capture_callbacks = FALSE;
 
 	vinput->frame = NULL;
 	vinput->frame_buffer = NULL;
@@ -1569,12 +1572,12 @@ mx_video_input_get_num_capture_buffers( MX_RECORD *record,
 
 MX_EXPORT mx_status_type
 mx_video_input_register_capture_callback( MX_RECORD *record,
-			mx_status_type capture_callback_function(void *), 
-			void *capture_callback_argument )
+		MX_VIDEO_INPUT_CAPTURE_CALLBACK capture_callback_function,
+		void *capture_callback_argument )
 {
 	static const char fname[] = "mx_video_input_register_capture_callback";
 
-	MX_VIDEO_INPUT *vinput;
+	MX_VIDEO_INPUT *vinput = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mx_video_input_get_pointers(record, &vinput, NULL, fname);
@@ -1605,7 +1608,7 @@ mx_video_input_unregister_capture_callback( MX_RECORD *record )
 	static const char fname[] =
 		"mx_video_input_unregister_capture_callback";
 
-	MX_VIDEO_INPUT *vinput;
+	MX_VIDEO_INPUT *vinput = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mx_video_input_get_pointers(record, &vinput, NULL, fname);
@@ -1620,6 +1623,33 @@ mx_video_input_unregister_capture_callback( MX_RECORD *record )
 			mx_get_driver_name( record ),
 			record->name );
 	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-----------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_video_input_supports_capture_callbacks( MX_RECORD *record,
+				mx_bool_type *supports_capture_callbacks )
+{
+	static const char fname[] =
+		"mx_video_input_supports_capture_callbacks()";
+
+	MX_VIDEO_INPUT *vinput = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mx_video_input_get_pointers(record, &vinput, NULL, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( supports_capture_callbacks == (mx_bool_type *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The supports_capture_callbacks argument passed was NULL." );
+	}
+
+	*supports_capture_callbacks = vinput->supports_capture_callbacks;
 
 	return MX_SUCCESSFUL_RESULT;
 }

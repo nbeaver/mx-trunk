@@ -57,6 +57,7 @@
 #include "mx_rs232.h"
 #include "mx_pulse_generator.h"
 #include "mx_video_input.h"
+#include "d_sapera_lt_frame_grabber.h"
 #include "mx_area_detector.h"
 #include "mx_area_detector_rdi.h"
 #include "d_radicon_taurus.h"
@@ -212,6 +213,58 @@ mxd_radicon_taurus_setup_noir_info( MX_AREA_DETECTOR *ad,
 
 /*---*/
 
+typedef struct {
+	MX_AREA_DETECTOR *area_detector;
+	MX_RADICON_TAURUS *radicon_taurus;
+	MX_VIDEO_INPUT *video_input;
+	MX_SAPERA_LT_FRAME_GRABBER *frame_grabber;
+} MX_RADICON_TAURUS_VIDEO_CAPTURE_CALLBACK_ARGUMENTS;
+
+static MX_RADICON_TAURUS_VIDEO_CAPTURE_CALLBACK_ARGUMENTS *
+mxd_radicon_taurus_video_capture_arguments = NULL;
+
+/*---*/
+
+static mx_status_type
+mxd_radicon_taurus_video_capture_callback( void *capture_arguments )
+{
+	static const char fname[] =
+		"mxd_radicon_taurus_video_capture_callback()";
+
+	MX_AREA_DETECTOR *ad = NULL;
+	MX_RADICON_TAURUS *radicon_taurus = NULL;
+	MX_VIDEO_INPUT *vinput = NULL;
+	MX_SAPERA_LT_FRAME_GRABBER *frame_grabber = NULL;
+
+	MX_RADICON_TAURUS_VIDEO_CAPTURE_CALLBACK_ARGUMENTS *args = NULL;
+
+	if ( capture_arguments == NULL ) {
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"The capture callback argument passed was NULL" );
+	}
+
+	args = (MX_RADICON_TAURUS_VIDEO_CAPTURE_CALLBACK_ARGUMENTS *)
+			capture_arguments;
+
+	ad = args->area_detector;
+	radicon_taurus = args->radicon_taurus;
+	vinput = args->video_input;
+	frame_grabber = args->frame_grabber;
+
+	MX_DEBUG(-2,("%s invoked for area detector '%s', video input '%s'.",
+		fname, ad->record->name, vinput->record->name));
+
+	MX_DEBUG(-2,("%s: total_num_frames = %lu, total_num_frames_at_start "
+	    "= %lu, num_frames_left_to_acquire = %lu",
+	    	fname, vinput->total_num_frames,
+		frame_grabber->total_num_frames_at_start,
+		frame_grabber->num_frames_left_to_acquire));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
 MX_EXPORT mx_status_type
 mxd_radicon_taurus_initialize_driver( MX_DRIVER *driver )
 {
@@ -290,6 +343,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	char *string_value_ptr;
 	void *void_array_ptr;
 	mx_bool_type response_seen;
+	mx_bool_type supports_capture_callbacks;
 	mx_status_type mx_status;
 
 	size_t uint16_sizeof_array[2] = {sizeof(uint16_t), sizeof(uint16_t *)};
@@ -408,9 +462,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: radicon_taurus->poll_pulser_status = %d",
 		fname, (int) radicon_taurus->poll_pulser_status ));
 
-	/* Verify that the video input and serial port records
-	 * have been found.
-	 */
+	/* Verify that the video input record has been found. */
 
 	video_input_record = radicon_taurus->video_input_record;
 
@@ -419,6 +471,60 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 		"The video_input_record pointer for detector '%s' is NULL.",
 			record->name );
 	}
+
+	/* Does the video input driver support area detector
+	 * capture callbacks?
+	 */
+
+	mx_status = mx_video_input_supports_capture_callbacks(
+					video_input_record,
+					&supports_capture_callbacks );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( supports_capture_callbacks == FALSE ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"The MX driver '%s' for video input '%s' does not support "
+		"area detector video capture callbacks.",
+			mx_get_driver_name( video_input_record ),
+			video_input_record->name );
+	}
+
+	/* If so, then create a capture callbacks argument to pass
+	 * data structure pointers to the callback.
+	 */
+
+	mxd_radicon_taurus_video_capture_arguments =
+		(MX_RADICON_TAURUS_VIDEO_CAPTURE_CALLBACK_ARGUMENTS *)
+	calloc( 1, sizeof(MX_RADICON_TAURUS_VIDEO_CAPTURE_CALLBACK_ARGUMENTS));
+
+	if ( mxd_radicon_taurus_video_capture_arguments == NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory when trying to allocate an "
+		"MX_RADICON_TAURUS_VIDEO_CAPTURE_CALLBACK_ARGUMENTS "
+		"for area detector '%s'.", record->name );
+	}
+
+	mxd_radicon_taurus_video_capture_arguments->area_detector = ad;
+	mxd_radicon_taurus_video_capture_arguments->radicon_taurus =
+							radicon_taurus;
+	mxd_radicon_taurus_video_capture_arguments->video_input =
+		(MX_VIDEO_INPUT *) video_input_record->record_class_struct;
+	mxd_radicon_taurus_video_capture_arguments->frame_grabber =
+	  (MX_SAPERA_LT_FRAME_GRABBER *) video_input_record->record_type_struct;
+
+	/* After that install the radicon_taurus capture callback. */
+
+	mx_status = mx_video_input_register_capture_callback(
+			video_input_record,
+			mxd_radicon_taurus_video_capture_callback,
+			mxd_radicon_taurus_video_capture_arguments );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Verify that the serial port record has been found. */
 
 	serial_port_record = radicon_taurus->serial_port_record;
 
