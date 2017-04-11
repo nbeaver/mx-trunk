@@ -217,7 +217,7 @@ typedef struct {
 	MX_AREA_DETECTOR *area_detector;
 	MX_RADICON_TAURUS *radicon_taurus;
 	MX_VIDEO_INPUT *video_input;
-	MX_SAPERA_LT_FRAME_GRABBER *frame_grabber;
+	MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber;
 } MX_RADICON_TAURUS_VIDEO_CAPTURE_CALLBACK_ARGUMENTS;
 
 static MX_RADICON_TAURUS_VIDEO_CAPTURE_CALLBACK_ARGUMENTS *
@@ -234,7 +234,7 @@ mxd_radicon_taurus_video_capture_callback( void *capture_arguments )
 	MX_AREA_DETECTOR *ad = NULL;
 	MX_RADICON_TAURUS *radicon_taurus = NULL;
 	MX_VIDEO_INPUT *vinput = NULL;
-	MX_SAPERA_LT_FRAME_GRABBER *frame_grabber = NULL;
+	MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber = NULL;
 
 	MX_RADICON_TAURUS_VIDEO_CAPTURE_CALLBACK_ARGUMENTS *args = NULL;
 
@@ -249,7 +249,7 @@ mxd_radicon_taurus_video_capture_callback( void *capture_arguments )
 	ad = args->area_detector;
 	radicon_taurus = args->radicon_taurus;
 	vinput = args->video_input;
-	frame_grabber = args->frame_grabber;
+	sapera_lt_frame_grabber = args->sapera_lt_frame_grabber;
 
 	MX_DEBUG(-2,("%s invoked for area detector '%s', video input '%s'.",
 		fname, ad->record->name, vinput->record->name));
@@ -257,8 +257,8 @@ mxd_radicon_taurus_video_capture_callback( void *capture_arguments )
 	MX_DEBUG(-2,("%s: total_num_frames = %lu, total_num_frames_at_start "
 	    "= %lu, num_frames_left_to_acquire = %lu",
 	    	fname, vinput->total_num_frames,
-		frame_grabber->total_num_frames_at_start,
-		frame_grabber->num_frames_left_to_acquire));
+		sapera_lt_frame_grabber->total_num_frames_at_start,
+		sapera_lt_frame_grabber->num_frames_left_to_acquire));
 	MX_DEBUG(-2,("%s: si1 = %" PRIu64 ", si2 = %" PRIu64,
 		fname, radicon_taurus->si1, radicon_taurus->si2));
 
@@ -366,12 +366,71 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 #if MXD_RADICON_TAURUS_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
+	/* Verify that the video input record has been found. */
+
+	video_input_record = radicon_taurus->video_input_record;
+
+	if ( video_input_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The video_input_record pointer for detector '%s' is NULL.",
+			record->name );
+	}
+
+	/* Allocate a lookup array to translate from area detector frame
+	 * numbers to video input frame numbers.  The two are different
+	 * since gated sequences skip the first frame and strobe sequences
+	 * skip every other frame.
+	 */
+
+	radicon_taurus->video_frame_number_lookup_array = (unsigned long *)
+		calloc( radicon_taurus->num_capture_buffers,
+				sizeof(unsigned long) );
+
+	if ( radicon_taurus->video_frame_number_lookup_array
+		== (unsigned long *) NULL )
+	{
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %lu element array of "
+		"unsigned longs for the video_frame_number_lookup_array "
+		"for area detector '%s'.",
+		    radicon_taurus->num_capture_buffers, ad->record->name );
+	}
+
+	/* Initialize the video frame number variables. */
+
+	mx_status = mx_video_input_stop( video_input_record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_video_input_get_total_num_frames( video_input_record,
+				&(radicon_taurus->video_total_num_frames) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	radicon_taurus->video_total_num_frames_at_start
+		= radicon_taurus->video_total_num_frames;
+
+	mx_status = mx_video_input_get_last_frame_number( video_input_record,
+				&(radicon_taurus->video_last_frame_number) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+	 
 	/* Always skip the first frame in a correction measurement, since
 	 * it will contain ADUs that accumulated in the time prior to
 	 * the start of the correction measurement sequence.
 	 */
-
+#if 0
 	ad->correction_frames_to_skip = 1;
+#else
+	/* In the current version of the code, video_frame_number_lookup_array
+	 * takes care of this issue.
+	 */
+
+	ad->correction_frames_to_skip = 0;
+#endif
 
 	/* The minimum exposure time for this detector is 4 exposure ticks. */
 
@@ -464,16 +523,6 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: radicon_taurus->poll_pulser_status = %d",
 		fname, (int) radicon_taurus->poll_pulser_status ));
 
-	/* Verify that the video input record has been found. */
-
-	video_input_record = radicon_taurus->video_input_record;
-
-	if ( video_input_record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The video_input_record pointer for detector '%s' is NULL.",
-			record->name );
-	}
-
 	/* Does the video input driver support area detector
 	 * capture callbacks?
 	 */
@@ -513,7 +562,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 							radicon_taurus;
 	mxd_radicon_taurus_video_capture_arguments->video_input =
 		(MX_VIDEO_INPUT *) video_input_record->record_class_struct;
-	mxd_radicon_taurus_video_capture_arguments->frame_grabber =
+	mxd_radicon_taurus_video_capture_arguments->sapera_lt_frame_grabber =
 	  (MX_SAPERA_LT_FRAME_GRABBER *) video_input_record->record_type_struct;
 
 	/* After that install the radicon_taurus capture callback. */
@@ -1293,14 +1342,10 @@ mxd_radicon_taurus_generate_throwaway_frame( MX_AREA_DETECTOR *ad,
 	/* We cannot call mx_area_detector_abort() here, since doing that
 	 * will cause all of the MX_AREA_DETECTOR_CORRECTION_MEASUREMENT
 	 * related data structures to be thrown away.  Instead, we call
-	 * the low level driver call directly.
+	 * the low level driver function directly.
 	 */
 
-#if 0
-	mx_status = mx_area_detector_stop( ad->record );
-#else
 	mx_status = mxd_radicon_taurus_abort( ad );
-#endif
 
 	return mx_status;
 }
@@ -1317,12 +1362,12 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 	MX_SEQUENCE_PARAMETERS *sp;
 	MX_RADICON_TAURUS_BUFFER_INFO *buffer_info = NULL;
 	MX_RADICON_TAURUS_BUFFER_INFO *info_start_ptr = NULL;
-	long total_num_frames_at_start, total_num_frames_at_end;
-	long absolute_frame_number_at_start, absolute_frame_number_at_end;
-	long num_frames_in_sequence, num_frames_to_zero;
-	long num_frames_at_start, num_frames_at_end;
+	long ad_total_num_frames_at_start, ad_total_num_frames_at_end;
+	long ad_absolute_frame_number_at_start, ad_absolute_frame_number_at_end;
+	long ad_num_frames_in_sequence, ad_num_frames_to_zero;
+	long ad_num_frames_at_start, ad_num_frames_at_end;
 	long num_capture_buffers;
-	long i, absolute_frame_number;
+	long i, ad_absolute_frame_number;
 	double motor_position, motor_start_position, motor_delta;
 	double exposure_time;
 	unsigned long raw_exposure_time_32;
@@ -1364,14 +1409,15 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 
 	if ( sp->sequence_type == MXT_SQ_ONE_SHOT ) {
 		long num_strobe_frames;
+		double strobe_exposure_time;
 
-		exposure_time = sp->parameter_array[0];
+		strobe_exposure_time = sp->parameter_array[0];
 		num_strobe_frames = 1;
 
 		sp->sequence_type = MXT_SQ_STROBE;
 		sp->num_parameters = 2;
 		sp->parameter_array[0] = num_strobe_frames;
-		sp->parameter_array[1] = exposure_time;
+		sp->parameter_array[1] = strobe_exposure_time;
 
 		mx_status = mx_video_input_set_sequence_parameters(
 						video_input_record,
@@ -1415,36 +1461,33 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 		}
 	}
 
+	ad->last_frame_number = -1;
+
 	/* Save a copy of the current value of 'total_num_frames' so
 	 * that we can compute absolute frame numbers in the circular
 	 * capture buffer array.
 	 */
 
-	mx_status = mx_area_detector_get_total_num_frames( ad->record,
-						&total_num_frames_at_start );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	radicon_taurus->total_num_frames_at_start = total_num_frames_at_start;
-
-#if 0
-	MX_DEBUG(-2,("%s: total_num_frames_at_start = %ld",
-		fname, radicon_taurus->total_num_frames_at_start));
+	ad_total_num_frames_at_start =
+		radicon_taurus->total_num_frames_at_start;
+#if 1
+	MX_DEBUG(-2,("%s: ad_total_num_frames_at_start = %ld",
+		fname, ad_total_num_frames_at_start));
 #endif
 
 	/* Zero out the part of the Taurus buffer_info_array
 	 * that will be used by the sequence that is starting.
 	 */
 
-	mx_status = mx_sequence_get_num_frames( sp, &num_frames_in_sequence );
+	mx_status = mx_sequence_get_num_frames( sp,
+				&ad_num_frames_in_sequence );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	num_capture_buffers = radicon_taurus->num_capture_buffers;
 
-	if ( num_frames_in_sequence >= num_capture_buffers ) {
+	if ( ad_num_frames_in_sequence >= num_capture_buffers ) {
 
 		memset( radicon_taurus->buffer_info_array, 0,
 			num_capture_buffers
@@ -1457,46 +1500,51 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 		 * that will actually be used in the current sequence.
 		 */
 
-		absolute_frame_number_at_start =
-			total_num_frames_at_start % num_capture_buffers;
+		/* NOTE: Don't forget that the following frame numbers
+		 * are "area detector" frame numbers, NOT "video input"
+		 * frame numbers.
+		 */
 
-		total_num_frames_at_end = total_num_frames_at_start
-					+ num_frames_in_sequence;
+		ad_absolute_frame_number_at_start =
+			ad_total_num_frames_at_start % num_capture_buffers;
 
-		absolute_frame_number_at_end =
-			total_num_frames_at_end % num_capture_buffers;
+		ad_total_num_frames_at_end = ad_total_num_frames_at_start
+					+ ad_num_frames_in_sequence;
+
+		ad_absolute_frame_number_at_end =
+			ad_total_num_frames_at_end % num_capture_buffers;
 
 		info_start_ptr = radicon_taurus->buffer_info_array
-					+ absolute_frame_number_at_start;
+					+ ad_absolute_frame_number_at_start;
 
-		if ( absolute_frame_number_at_end
-			  >= absolute_frame_number_at_start )
+		if ( ad_absolute_frame_number_at_end
+			  >= ad_absolute_frame_number_at_start )
 		{
-			num_frames_to_zero = absolute_frame_number_at_end
-					- absolute_frame_number_at_start;
+			ad_num_frames_to_zero = ad_absolute_frame_number_at_end
+					- ad_absolute_frame_number_at_start;
 
-			memset( info_start_ptr, 0, num_frames_to_zero
+			memset( info_start_ptr, 0, ad_num_frames_to_zero
 				  * sizeof(MX_RADICON_TAURUS_BUFFER_INFO) );
 		} else {
 			/* The first buffer_info_array elements to zero
 			 * appear at the end of the array.
 			 */
 
-			num_frames_at_end = num_capture_buffers
-					- absolute_frame_number_at_start;
+			ad_num_frames_at_end = num_capture_buffers
+					- ad_absolute_frame_number_at_start;
 
-			memset( info_start_ptr, 0, num_frames_at_end
+			memset( info_start_ptr, 0, ad_num_frames_at_end
 			  	* sizeof(MX_RADICON_TAURUS_BUFFER_INFO) );
 
 			/* The rest of the array elements are at the
 			 * beginning of the buffer_info_array.
 			 */
 
-			num_frames_at_start = num_frames_in_sequence
-						- num_frames_at_end;
+			ad_num_frames_at_start = ad_num_frames_in_sequence
+						- ad_num_frames_at_end;
 
 			memset( radicon_taurus->buffer_info_array, 0,
-				num_frames_at_start
+				ad_num_frames_at_start
 			  	* sizeof(MX_RADICON_TAURUS_BUFFER_INFO) );
 		}
 	}
@@ -1521,14 +1569,14 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 
 	/* Precompute the motor positions to be written to the NOIR header. */
 
-	for ( i = 0; i < num_frames_in_sequence; i++ ) {
+	for ( i = 0; i < ad_num_frames_in_sequence; i++ ) {
 		motor_position = motor_start_position + i * motor_delta;
 
-		absolute_frame_number = ( total_num_frames_at_start + i )
+		ad_absolute_frame_number = ( ad_total_num_frames_at_start + i )
 						% ( num_capture_buffers );
 
 		buffer_info =
-		  &(radicon_taurus->buffer_info_array[ absolute_frame_number ]);
+	    &(radicon_taurus->buffer_info_array[ ad_absolute_frame_number ]);
 
 		buffer_info->motor_position = motor_position;
 
@@ -1572,9 +1620,9 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 		return mx_status;
 	}
 
-	/*--- Otherwise, we continue on to reprogram the detector head. ---*/
+	/*--- Otherwise, we continue on to reprogram the detector FPGA. ---*/
 
-	/* Set the exposure time for this sequence. */
+	/* Send the exposure time for this sequence to the FPGA. */
 
 	mx_status = mx_sequence_get_exposure_time( sp, 0, &exposure_time );
 
@@ -1889,12 +1937,14 @@ mxd_radicon_taurus_trigger( MX_AREA_DETECTOR *ad )
 
 		/*---*/
 
-		reset_time = 0.0;
-#if 1
 		readout_time = radicon_taurus->readout_time;
-#else
-		readout_time = 0.0;
-#endif
+
+		/* The reset operation uses the same functionality
+		 * in the FPGA as the readout, which means that
+		 * they take the same amount of time.
+		 */
+
+		reset_time = readout_time;
 
 		si1_exposure_time = mx_divide_safely( si1,
 					radicon_taurus->clock_frequency );
@@ -1907,7 +1957,7 @@ mxd_radicon_taurus_trigger( MX_AREA_DETECTOR *ad )
 		pulse_period = reset_time + si1_exposure_time + readout_time
 				+ si2_exposure_time + readout_time + 0.001;
 
-		num_pulses = sp->parameter_array[0] / 2L;
+		num_pulses = sp->parameter_array[0];
 
 #if 1
 		MX_DEBUG(-2,("%s: reset_time = %f, readout_time = %f, "

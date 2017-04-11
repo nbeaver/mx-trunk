@@ -1024,7 +1024,7 @@ mx_video_input_get_last_frame_number( MX_RECORD *record,
 
 MX_EXPORT mx_status_type
 mx_video_input_get_total_num_frames( MX_RECORD *record,
-			long *total_num_frames )
+			unsigned long *total_num_frames )
 {
 	static const char fname[] = "mx_video_input_get_total_num_frames()";
 

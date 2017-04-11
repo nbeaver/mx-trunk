@@ -444,7 +444,7 @@ MX_API mx_status_type mx_video_input_get_last_frame_number( MX_RECORD *record,
 						long *last_frame_number );
 
 MX_API mx_status_type mx_video_input_get_total_num_frames( MX_RECORD *record,
-						long *total_num_frames );
+					unsigned long *total_num_frames );
 
 MX_API mx_status_type mx_video_input_get_status( MX_RECORD *,
 						unsigned long *status_flags );
