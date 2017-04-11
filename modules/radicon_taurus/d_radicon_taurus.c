@@ -238,6 +238,10 @@ mxd_radicon_taurus_video_capture_callback( void *capture_arguments )
 
 	MX_RADICON_TAURUS_VIDEO_CAPTURE_CALLBACK_ARGUMENTS *args = NULL;
 
+	long v_last_frame_number;
+	unsigned long ia, iv;
+	MX_SEQUENCE_PARAMETERS *sp = NULL;
+
 	if ( capture_arguments == NULL ) {
 		return mx_error( MXE_FUNCTION_FAILED, fname,
 		"The capture callback argument passed was NULL" );
@@ -254,13 +258,72 @@ mxd_radicon_taurus_video_capture_callback( void *capture_arguments )
 	MX_DEBUG(-2,("%s invoked for area detector '%s', video input '%s'.",
 		fname, ad->record->name, vinput->record->name));
 
-	MX_DEBUG(-2,("%s: total_num_frames = %lu, total_num_frames_at_start "
-	    "= %lu, num_frames_left_to_acquire = %lu",
+	MX_DEBUG(-2,("%s: FG total_num_frames = %lu, "
+	    "FG total_num_frames_at_start = %lu, "
+	    "FG num_frames_left_to_acquire = %lu",
 	    	fname, vinput->total_num_frames,
 		sapera_lt_frame_grabber->total_num_frames_at_start,
 		sapera_lt_frame_grabber->num_frames_left_to_acquire));
-	MX_DEBUG(-2,("%s: si1 = %" PRIu64 ", si2 = %" PRIu64,
-		fname, radicon_taurus->si1, radicon_taurus->si2));
+
+	v_last_frame_number = vinput->last_frame_number;
+
+	if ( v_last_frame_number < 0 ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"This callback was invoked even though the Sapera LT driver "
+		"says that no frames have been acquired for this sequence "
+		"for area detector '%s'.", ad->record->name );
+	}
+
+	/* Compute indices for the frame number lookup arrays. */
+
+	ia = ad->total_num_frames;
+
+	/* By the time we get called, the Sapera LT callback will already
+	 * have incremented the total_num_frames variable for the video
+	 * input record.  Thus, we must subtract 1 from it in the following
+	 * calculation.
+	 */
+
+	iv = vinput->total_num_frames - 1;
+
+	MX_DEBUG(-2,("%s: ia = %lu, iv = %lu, v_last_frame_number = %ld",
+		fname, ia, iv, v_last_frame_number));
+
+	/* What we do here depends on which kind of sequence this is. */
+
+	sp = &(ad->sequence_parameters);
+
+	switch( sp->sequence_type ) {
+	case MXT_SQ_STROBE:
+		if ( (v_last_frame_number % 2) == 0 ) {
+			/* We ignore even numbered frames in a strobe 
+			 * sequence, since they are used as cleanup frames.
+			 */
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+		break;
+	case MXT_SQ_GATED:
+		if ( v_last_frame_number <= 0 ) {
+			/* We ignore the first frame in a gated sequence,
+			 * since it is used as a cleanup frame.
+			 */
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+		break;
+	default:
+		break;
+	}
+
+	radicon_taurus->video_frame_number_lookup_array[ia] = iv;
+
+	(ad->last_frame_number)++;
+	(ad->total_num_frames)++;
+
+	MX_DEBUG(-2,
+	("%s: ad->last_frame_number = %ld, ad->total_num_frames = %lu",
+		fname, ad->last_frame_number, ad->total_num_frames));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -333,6 +396,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	MX_AREA_DETECTOR *ad;
 	MX_RADICON_TAURUS *radicon_taurus = NULL;
 	MX_RECORD *video_input_record, *serial_port_record;
+	MX_RECORD_FIELD *lookup_array_field = NULL;
 	long vinput_framesize[2];
 	long video_framesize[2];
 	long array_dimensions[2];
@@ -395,6 +459,17 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 		"for area detector '%s'.",
 		    radicon_taurus->num_capture_buffers, ad->record->name );
 	}
+
+	/* Initialize the field length of 'video_frame_number_lookup_array'. */
+
+	mx_status = mx_find_record_field( record,
+			"video_frame_number_lookup_array",
+			&lookup_array_field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	lookup_array_field->dimension[0] = radicon_taurus->num_capture_buffers;
 
 	/* Initialize the video frame number variables. */
 
@@ -1407,6 +1482,7 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 
 	sp = &(ad->sequence_parameters);
 
+#if 0
 	if ( sp->sequence_type == MXT_SQ_ONE_SHOT ) {
 		long num_strobe_frames;
 		double strobe_exposure_time;
@@ -1426,6 +1502,7 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	}
+#endif
 
 	/* First see if we need to turn on buffer overrun checking.  We
 	 * only do this if this is a server that is automatically saving
@@ -2083,8 +2160,6 @@ mxd_radicon_taurus_get_extended_status( MX_AREA_DETECTOR *ad )
 			"mxd_radicon_taurus_get_extended_status()";
 
 	MX_RADICON_TAURUS *radicon_taurus = NULL;
-	long vinput_last_frame_number;
-	long vinput_total_num_frames;
 	unsigned long vinput_status;
 	mx_status_type mx_status;
 
@@ -2094,17 +2169,17 @@ mxd_radicon_taurus_get_extended_status( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_video_input_get_extended_status(
+	/* NOTE: mxd_radicon_taurus_video_capture_callback() will make sure
+	 * that ad->last_frame_number and ad->total_num_frames are up to date.
+	 * All we need to do here is to set the value of ad->status.
+	 */
+
+	mx_status = mx_video_input_get_status(
 				radicon_taurus->video_input_record,
-				&vinput_last_frame_number,
-				&vinput_total_num_frames,
 				&vinput_status );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	ad->last_frame_number = vinput_last_frame_number;
-	ad->total_num_frames = vinput_total_num_frames;
 
 	ad->status = 0;
 

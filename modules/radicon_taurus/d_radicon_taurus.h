@@ -246,6 +246,12 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, rotation_angle), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
+  {-1, -1, "video_frame_number_lookup_array", \
+	  	MXFT_ULONG, NULL, 1, {MXU_VARARGS_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_RADICON_TAURUS, video_frame_number_lookup_array), \
+	{sizeof(unsigned long)}, NULL, (MXFF_READ_ONLY | MXFF_VARARGS) }, \
+  \
   {-1, -1, "next_get_extended_status_delay", MXFT_DOUBLE, NULL, 0, {0}, \
         MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_RADICON_TAURUS, next_get_extended_status_delay), \
