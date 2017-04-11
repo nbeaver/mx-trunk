@@ -1356,6 +1356,31 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 			ad->record->name );
 	}
 
+	/* If the user has requested one-shot mode, rewrite this as a
+	 * 1 frame strobe sequence.
+	 */
+
+	sp = &(ad->sequence_parameters);
+
+	if ( sp->sequence_type == MXT_SQ_ONE_SHOT ) {
+		long num_strobe_frames;
+
+		exposure_time = sp->parameter_array[0];
+		num_strobe_frames = 1;
+
+		sp->sequence_type = MXT_SQ_STROBE;
+		sp->num_parameters = 2;
+		sp->parameter_array[0] = num_strobe_frames;
+		sp->parameter_array[1] = exposure_time;
+
+		mx_status = mx_video_input_set_sequence_parameters(
+						video_input_record,
+						&(ad->sequence_parameters) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
 	/* First see if we need to turn on buffer overrun checking.  We
 	 * only do this if this is a server that is automatically saving
 	 * files to disk, since otherwise it is impossible to guarantee
@@ -1411,8 +1436,6 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 	/* Zero out the part of the Taurus buffer_info_array
 	 * that will be used by the sequence that is starting.
 	 */
-
-	sp = &(ad->sequence_parameters);
 
 	mx_status = mx_sequence_get_num_frames( sp, &num_frames_in_sequence );
 
