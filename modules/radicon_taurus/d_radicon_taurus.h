@@ -119,6 +119,8 @@ typedef struct {
 
 	MX_IMAGE_NOIR_INFO *image_noir_info;
 
+	double temperature;
+
 	char static_header[MXU_RADICON_TAURUS_STATIC_HEADER_TEXT_LENGTH+1];
 
 } MX_RADICON_TAURUS;
@@ -127,6 +129,8 @@ typedef struct {
 #define MXLV_RADICON_TAURUS_SI1			80001
 #define MXLV_RADICON_TAURUS_SI2			80002
 #define MXLV_RADICON_TAURUS_SI			80003
+
+#define MXLV_RADICON_TAURUS_TEMPERATURE		80050
 
 #define MXLV_RADICON_TAURUS_STATIC_HEADER	80100
 
@@ -250,7 +254,7 @@ typedef struct {
 	  	MXFT_ULONG, NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_RADICON_TAURUS, video_frame_number_lookup_array), \
-	{sizeof(unsigned long)}, NULL, (MXFF_READ_ONLY | MXFF_VARARGS) }, \
+	{sizeof(unsigned long)}, NULL, (MXFF_READ_ONLY|MXFF_VARARGS) }, \
   \
   {-1, -1, "next_get_extended_status_delay", MXFT_DOUBLE, NULL, 0, {0}, \
         MXF_REC_TYPE_STRUCT, \
@@ -264,6 +268,11 @@ typedef struct {
   {-1, -1, "raw_file_name", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, raw_file_name), \
 	{sizeof(char)}, NULL, MXFF_READ_ONLY}, \
+  \
+  {MXLV_RADICON_TAURUS_TEMPERATURE, -1, "temperature", \
+	  				MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, temperature), \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_RADICON_TAURUS_STATIC_HEADER, -1, "static_header", MXFT_STRING, NULL, \
 			1, {MXU_RADICON_TAURUS_STATIC_HEADER_TEXT_LENGTH}, \
@@ -326,6 +335,9 @@ MX_API mx_status_type mxd_radicon_taurus_get_si( MX_AREA_DETECTOR *ad,
 MX_API mx_status_type mxd_radicon_taurus_set_si( MX_AREA_DETECTOR *ad,
 						uint64_t si,
 						mx_bool_type force_write );
+
+MX_API mx_status_type mxd_radicon_taurus_get_temperature( MX_AREA_DETECTOR *ad,
+						double *temperature );
 
 extern MX_RECORD_FUNCTION_LIST mxd_radicon_taurus_record_function_list;
 extern MX_AREA_DETECTOR_FUNCTION_LIST mxd_radicon_taurus_ad_function_list;

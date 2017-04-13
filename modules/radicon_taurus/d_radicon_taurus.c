@@ -1234,6 +1234,16 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 			return mx_status;
 	}
 
+#if 1
+	{
+		MX_DEBUG(-2,("%s: lookup_array_field = %p",
+					fname, lookup_array_field));
+
+		MX_DEBUG(-2,("%s: lookup_array_field->flags = %#lx",
+					fname, lookup_array_field->flags));
+	}
+#endif
+
 #if MXD_RADICON_TAURUS_DEBUG
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
 #endif
@@ -1322,6 +1332,7 @@ mxd_radicon_taurus_special_processing_setup( MX_RECORD *record )
 		case MXLV_RADICON_TAURUS_SI1:
 		case MXLV_RADICON_TAURUS_SI2:
 		case MXLV_RADICON_TAURUS_SRO:
+		case MXLV_RADICON_TAURUS_TEMPERATURE:
 		case MXLV_RADICON_TAURUS_STATIC_HEADER:
 			record_field->process_function
 					= mxd_radicon_taurus_process_function;
@@ -3816,6 +3827,51 @@ mxd_radicon_taurus_set_si2( MX_AREA_DETECTOR *ad,
 
 /*--------------------------------------------------------------------------*/
 
+MX_EXPORT mx_status_type
+mxd_radicon_taurus_get_temperature( MX_AREA_DETECTOR *ad,
+				double *detector_temperature )
+{
+	static const char fname[] = "mxd_radicon_taurus_get_temperature()";
+
+	MX_RADICON_TAURUS *radicon_taurus = NULL;
+	char response[100];
+	int num_items;
+	double temperature;
+	mx_status_type mx_status;
+
+	mx_status = mxd_radicon_taurus_get_pointers( ad,
+						&radicon_taurus, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxd_radicon_taurus_command( radicon_taurus, "vt",
+					response, sizeof(response),
+					MXD_RADICON_TAURUS_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	num_items = sscanf( response, "%lg", &temperature );
+
+	if ( num_items != 1 ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"No detector temperature was seen in the response '%s' to "
+		"the 'vt' command for detector '%s'.",
+			response, ad->record->name );
+	}
+
+	radicon_taurus->temperature = temperature;
+
+	if ( detector_temperature != (double *) NULL ) {
+		*detector_temperature = temperature;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
+
 static mx_status_type
 mxd_radicon_taurus_process_function( void *record_ptr,
 				void *record_field_ptr,
@@ -3851,6 +3907,10 @@ mxd_radicon_taurus_process_function( void *record_ptr,
 		case MXLV_RADICON_TAURUS_SI2:
 			mx_status = mxd_radicon_taurus_get_si2( ad,
 						&(radicon_taurus->si2), FALSE );
+			break;
+		case MXLV_RADICON_TAURUS_TEMPERATURE:
+			mx_status = 
+				mxd_radicon_taurus_get_temperature( ad, NULL );
 			break;
 		case MXLV_RADICON_TAURUS_STATIC_HEADER:
 
