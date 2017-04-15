@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2010-2016 Illinois Institute of Technology
+ * Copyright 2010-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1593,7 +1593,7 @@ mxp_get_fd_name_via_mapping( HANDLE fd_handle,
 		"Local\\mx_handle_%#lx", fd_handle );
 #else
 	snprintf( mapping_name, sizeof(mapping_name),
-		"Local\\mx_handle_%#lx", (unsigned long) fd_handle );
+		"Local\\mx_handle_%p", fd_handle );
 #endif
 
 	file_mapping_handle = CreateFileMapping( fd_handle,
