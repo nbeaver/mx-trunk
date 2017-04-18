@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2015-2016 Illinois Institute of Technology
+ * Copyright 2015-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1255,22 +1255,6 @@ mxd_pilatus_get_parameter( MX_AREA_DETECTOR *ad )
 		ad->disk_space[1] = 1024L * (uint64_t ) disk_blocks_available;
 		break;
 
-	case MXLV_AD_CORRECTION_LOAD_FORMAT:
-	case MXLV_AD_CORRECTION_LOAD_FORMAT_NAME:
-		break;
-
-	case MXLV_AD_CORRECTION_SAVE_FORMAT:
-	case MXLV_AD_CORRECTION_SAVE_FORMAT_NAME:
-		break;
-
-	case MXLV_AD_DATAFILE_LOAD_FORMAT:
-	case MXLV_AD_DATAFILE_LOAD_FORMAT_NAME:
-		break;
-
-	case MXLV_AD_DATAFILE_SAVE_FORMAT:
-	case MXLV_AD_DATAFILE_SAVE_FORMAT_NAME:
-		break;
-
 	case MXLV_AD_DATAFILE_ALLOW_OVERWRITE:
 		break;
 
@@ -1410,30 +1394,6 @@ mxd_pilatus_set_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_SHUTTER_ENABLE:
-		break;
-
-	case MXLV_AD_CORRECTION_LOAD_FORMAT:
-		break;
-
-	case MXLV_AD_CORRECTION_LOAD_FORMAT_NAME:
-		break;
-
-	case MXLV_AD_CORRECTION_SAVE_FORMAT:
-		break;
-
-	case MXLV_AD_CORRECTION_SAVE_FORMAT_NAME:
-		break;
-
-	case MXLV_AD_DATAFILE_LOAD_FORMAT:
-		break;
-
-	case MXLV_AD_DATAFILE_LOAD_FORMAT_NAME:
-		break;
-
-	case MXLV_AD_DATAFILE_SAVE_FORMAT:
-		break;
-
-	case MXLV_AD_DATAFILE_SAVE_FORMAT_NAME:
 		break;
 
 	case MXLV_AD_DATAFILE_ALLOW_OVERWRITE:
