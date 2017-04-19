@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2014-2015 Illinois Institute of Technology
+ * Copyright 2014-2015, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -234,7 +234,6 @@ mxi_newport_xps_open( MX_RECORD *record )
 	static const char fname[] = "mxi_newport_xps_open()";
 
 	MX_NEWPORT_XPS *newport_xps = NULL;
-	int xps_status;
 
 #if MXI_NEWPORT_XPS_DEBUG
 	int controller_status_code;
@@ -281,22 +280,6 @@ mxi_newport_xps_open( MX_RECORD *record )
 			record->name );
 	} else {
 		newport_xps->connected_to_controller = TRUE;
-	}
-
-#if 0
-	/* Login to the Newport XPS controller. */
-
-	xps_status = Login( newport_xps->socket_id,
-				newport_xps->username,
-				newport_xps->password );
-#else
-	xps_status = 0;
-#endif
-
-	if ( xps_status != SUCCESS ) {
-		return mxi_newport_xps_error( newport_xps->socket_id,
-						"Login()",
-						xps_status );
 	}
 
 #if MXI_NEWPORT_XPS_DEBUG
@@ -433,8 +416,9 @@ mxi_newport_xps_process_function( void *record_ptr,
 
 			if ( xps_status != SUCCESS ) {
 				return mxi_newport_xps_error(
-					newport_xps->socket_id,
 					"ControllerStatusGet()",
+					newport_xps->record->name,
+					newport_xps->socket_id,
 					xps_status );
 			}
 
@@ -447,8 +431,9 @@ mxi_newport_xps_process_function( void *record_ptr,
 
 			if ( xps_status != SUCCESS ) {
 				return mxi_newport_xps_error(
-					newport_xps->socket_id,
 					"ControllerStatusGet()",
+					newport_xps->record->name,
+					newport_xps->socket_id,
 					xps_status );
 			}
 
@@ -461,8 +446,9 @@ mxi_newport_xps_process_function( void *record_ptr,
 
 			if ( xps_status != SUCCESS ) {
 				return mxi_newport_xps_error(
-					newport_xps->socket_id,
 					"ControllerStatusStringGet()",
+					newport_xps->record->name,
+					newport_xps->socket_id,
 					xps_status );
 			}
 			break;
@@ -472,8 +458,9 @@ mxi_newport_xps_process_function( void *record_ptr,
 
 			if ( xps_status != SUCCESS ) {
 				return mxi_newport_xps_error(
-					newport_xps->socket_id,
 					"ElapsedTimeGet()",
+					newport_xps->record->name,
+					newport_xps->socket_id,
 					xps_status );
 			}
 			break;
@@ -484,8 +471,9 @@ mxi_newport_xps_process_function( void *record_ptr,
 
 			if ( xps_status != SUCCESS ) {
 				return mxi_newport_xps_error(
-					newport_xps->socket_id,
 					"FirmwareVersionGet()",
+					newport_xps->record->name,
+					newport_xps->socket_id,
 					xps_status );
 			}
 			break;
@@ -496,8 +484,9 @@ mxi_newport_xps_process_function( void *record_ptr,
 
 			if ( xps_status != SUCCESS ) {
 				return mxi_newport_xps_error(
-					newport_xps->socket_id,
 					"HardwareDateAndTimeGet()",
+					newport_xps->record->name,
+					newport_xps->socket_id,
 					xps_status );
 			}
 			break;
@@ -533,8 +522,9 @@ mxi_newport_xps_process_function( void *record_ptr,
 /*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mxi_newport_xps_error( int socket_id,
-			char *api_name,
+mxi_newport_xps_error( char *api_name,
+			char *error_location,
+			int socket_id,
 			int error_code )
 {
 	static const char fname[] = "mxi_newport_xps_error()";
@@ -558,11 +548,10 @@ mxi_newport_xps_error( int socket_id,
 	}
 
 	mx_status = mx_error( MXE_DEVICE_ACTION_FAILED, api_name,
-			"The XPS function call for socket ID %d "
-			"failed.  XPS error code = %d, error message = '%s'",
-				socket_id,
-				error_code,
-				error_message );
+			"Function '%s' failed for '%s' (socket ID %d).  "
+			"XPS error code = %d, error message = '%s'",
+			api_name, error_location, socket_id,
+			error_code, error_message );
 
 	return mx_status;
 }

@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2014-2015 Illinois Institute of Technology
+ * Copyright 2014-2015, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -200,8 +200,9 @@ mxd_newport_xps_home_or_set_position( MX_MOTOR *motor,
 			motor->latched_status |= MXSF_MTR_ERROR;
 
 			return mxi_newport_xps_error(
-				newport_xps_motor->move_thread_socket_id,
 				"GroupKill()",
+				newport_xps_motor->record->name,
+				newport_xps_motor->move_thread_socket_id,
 				xps_status );
 		}
 
@@ -211,8 +212,9 @@ mxd_newport_xps_home_or_set_position( MX_MOTOR *motor,
 
 		if ( xps_status != SUCCESS ) {
 			return mxi_newport_xps_error(
-				newport_xps_motor->move_thread_socket_id,
 				"GroupInitialize()",
+				newport_xps_motor->record->name,
+				newport_xps_motor->move_thread_socket_id,
 				xps_status );
 		}
 
@@ -253,8 +255,9 @@ mxd_newport_xps_home_or_set_position( MX_MOTOR *motor,
 							= FALSE;
 
 				return mxi_newport_xps_error(
-				    newport_xps_motor->move_thread_socket_id,
 					"GroupHomeSearch()",
+					newport_xps_motor->record->name,
+				    newport_xps_motor->move_thread_socket_id,
 					xps_status );
 			}
 			break;
@@ -273,8 +276,9 @@ mxd_newport_xps_home_or_set_position( MX_MOTOR *motor,
 
 			if ( xps_status != SUCCESS ) {
 				return mxi_newport_xps_error(
-				    newport_xps_motor->move_thread_socket_id,
 					"GroupReferencingStart()",
+					newport_xps_motor->record->name,
+				    newport_xps_motor->move_thread_socket_id,
 					xps_status );
 			}
 
@@ -290,8 +294,9 @@ mxd_newport_xps_home_or_set_position( MX_MOTOR *motor,
 
 			if ( xps_status != SUCCESS ) {
 				return mxi_newport_xps_error(
-				    newport_xps_motor->move_thread_socket_id,
 					"GroupReferencingActionExecute()",
+					newport_xps_motor->record->name,
+				    newport_xps_motor->move_thread_socket_id,
 					xps_status );
 			}
 
@@ -301,8 +306,9 @@ mxd_newport_xps_home_or_set_position( MX_MOTOR *motor,
 
 			if ( xps_status != SUCCESS ) {
 				return mxi_newport_xps_error(
-				    newport_xps_motor->move_thread_socket_id,
 					"GroupReferencingStop()",
+					newport_xps_motor->record->name,
+				    newport_xps_motor->move_thread_socket_id,
 					xps_status );
 			}
 			break;
@@ -321,8 +327,9 @@ mxd_newport_xps_home_or_set_position( MX_MOTOR *motor,
 
 		if ( xps_status != SUCCESS ) {
 			return mxi_newport_xps_error(
-				newport_xps_motor->move_thread_socket_id,
 				"GroupStatusGet() after Homing or Referencing",
+				newport_xps_motor->record->name,
+				newport_xps_motor->move_thread_socket_id,
 				xps_status );
 		}
 
@@ -417,8 +424,9 @@ mxd_newport_xps_home_or_set_position( MX_MOTOR *motor,
 
 		    if ( xps_status != SUCCESS ) {
 			return mxi_newport_xps_error(
-				newport_xps_motor->move_thread_socket_id,
 				"GroupReferencingStop()",
+				newport_xps_motor->record->name,
+				newport_xps_motor->move_thread_socket_id,
 				xps_status );
 		    }
 #if MXD_NEWPORT_XPS_MOTOR_DEBUG_MOTOR_GROUPS
@@ -454,8 +462,9 @@ mxd_newport_xps_home_or_set_position( MX_MOTOR *motor,
 
 		if ( xps_status != SUCCESS ) {
 			return mxi_newport_xps_error(
-				newport_xps_motor->move_thread_socket_id,
 				"GroupKill()",
+				newport_xps_motor->record->name,
+				newport_xps_motor->move_thread_socket_id,
 				xps_status );
 		}
 
@@ -465,8 +474,9 @@ mxd_newport_xps_home_or_set_position( MX_MOTOR *motor,
 
 		if ( xps_status != SUCCESS ) {
 			return mxi_newport_xps_error(
-				newport_xps_motor->move_thread_socket_id,
 				"GroupInitialize()",
+				newport_xps_motor->record->name,
+				newport_xps_motor->move_thread_socket_id,
 				xps_status );
 		}
 
@@ -490,8 +500,9 @@ mxd_newport_xps_home_or_set_position( MX_MOTOR *motor,
 
 		if ( xps_status != SUCCESS ) {
 			return mxi_newport_xps_error(
-				newport_xps_motor->move_thread_socket_id,
 				"GroupReferencingStart()",
+				newport_xps_motor->record->name,
+				newport_xps_motor->move_thread_socket_id,
 				xps_status );
 		}
 
@@ -515,8 +526,9 @@ mxd_newport_xps_home_or_set_position( MX_MOTOR *motor,
 
 		    if ( xps_status != SUCCESS ) {
 			return mxi_newport_xps_error(
-				newport_xps_motor->move_thread_socket_id,
 				"GroupReferencingStop()",
+				newport_xps_motor->record->name,
+				newport_xps_motor->move_thread_socket_id,
 				xps_status );
 		    }
 		}
@@ -536,8 +548,9 @@ mxd_newport_xps_home_or_set_position( MX_MOTOR *motor,
 
 		if ( xps_status != SUCCESS ) {
 			return mxi_newport_xps_error(
-				newport_xps_motor->move_thread_socket_id,
 				"GroupReferencingStop()",
+				newport_xps_motor->record->name,
+				newport_xps_motor->move_thread_socket_id,
 				xps_status );
 		}
 
@@ -638,8 +651,9 @@ mxd_newport_xps_move_thread( MX_THREAD *thread, void *thread_argument )
 				break;
 			default:
 				(void) mxi_newport_xps_error(
-				newport_xps_motor->move_thread_socket_id,
 					"GroupMoveAbsolute()",
+					newport_xps_motor->record->name,
+				newport_xps_motor->move_thread_socket_id,
 					xps_status );
 			}
 			break;
@@ -787,8 +801,9 @@ mxd_newport_xps_motor_pco_set_config_value( MX_MOTOR *motor,
 		mx_free( argv ); mx_free( config_value_copy );
 
 		return mxi_newport_xps_error(
-			newport_xps->socket_id,
 			"PositionerPositionCompareDisable()",
+			newport_xps_motor->record->name,
+			newport_xps->socket_id,
 			xps_status );
 
 		motor->window_is_available = FALSE;
@@ -836,8 +851,10 @@ mxd_newport_xps_motor_pco_set_config_value( MX_MOTOR *motor,
 		if ( xps_status != SUCCESS ) {
 			mx_free( argv ); mx_free( config_value_copy );
 
-			return mxi_newport_xps_error( newport_xps->socket_id,
+			return mxi_newport_xps_error(
 				"PositionerPositionCompareSet()",
+				newport_xps_motor->record->name,
+				newport_xps->socket_id,
 				xps_status );
 		}
 
@@ -848,8 +865,10 @@ mxd_newport_xps_motor_pco_set_config_value( MX_MOTOR *motor,
 		if ( xps_status != SUCCESS ) {
 			mx_free( argv ); mx_free( config_value_copy );
 
-			return mxi_newport_xps_error( newport_xps->socket_id,
+			return mxi_newport_xps_error(
 				"PositionerPositionCompareEnable()",
+				newport_xps_motor->record->name,
+				newport_xps->socket_id,
 				xps_status );
 		}
 	} else
@@ -880,8 +899,10 @@ mxd_newport_xps_motor_pco_set_config_value( MX_MOTOR *motor,
 		if ( xps_status != SUCCESS ) {
 			mx_free( argv ); mx_free( config_value_copy );
 
-			return mxi_newport_xps_error( newport_xps->socket_id,
+			return mxi_newport_xps_error(
 				"PositionerTimeFlasherSet()",
+				newport_xps_motor->record->name,
+				newport_xps->socket_id,
 				xps_status );
 		}
 
@@ -892,8 +913,10 @@ mxd_newport_xps_motor_pco_set_config_value( MX_MOTOR *motor,
 		if ( xps_status != SUCCESS ) {
 			mx_free( argv ); mx_free( config_value_copy );
 
-			return mxi_newport_xps_error( newport_xps->socket_id,
+			return mxi_newport_xps_error(
 				"PositionerTimeFlasherEnable()",
+				newport_xps_motor->record->name,
+				newport_xps->socket_id,
 				xps_status );
 		}
 	} else
@@ -912,8 +935,9 @@ mxd_newport_xps_motor_pco_set_config_value( MX_MOTOR *motor,
 			mx_free( argv ); mx_free( config_value_copy );
 
 			return mxi_newport_xps_error(
-				newport_xps->socket_id,
 				"PositionerPositionCompareAquadBAlwaysEnable()",
+				newport_xps_motor->record->name,
+				newport_xps->socket_id,
 				xps_status );
 		}
 	} else
@@ -949,8 +973,9 @@ mxd_newport_xps_motor_pco_set_config_value( MX_MOTOR *motor,
 			mx_free( argv ); mx_free( config_value_copy );
 
 			return mxi_newport_xps_error(
-				newport_xps->socket_id,
 				"PositionerPositionCompareAquadBWindowedSet()",
+				newport_xps_motor->record->name,
+				newport_xps->socket_id,
 				xps_status );
 		}
 
@@ -964,8 +989,9 @@ mxd_newport_xps_motor_pco_set_config_value( MX_MOTOR *motor,
 			mx_free( argv ); mx_free( config_value_copy );
 
 			return mxi_newport_xps_error(
-				newport_xps->socket_id,
 				"PositionerPositionCompareEnable()",
+				newport_xps_motor->record->name,
+				newport_xps->socket_id,
 				xps_status );
 		}
 
@@ -1248,8 +1274,9 @@ mxd_newport_xps_open( MX_RECORD *record )
 
 	if ( xps_status != SUCCESS ) {
 		return mxi_newport_xps_error(
-				newport_xps_motor->move_thread_socket_id,
 				"Login() (for move thread)",
+				newport_xps_motor->record->name,
+				newport_xps_motor->move_thread_socket_id,
 				xps_status );
 	}
 
@@ -1327,8 +1354,9 @@ mxd_newport_xps_resynchronize( MX_RECORD *record )
 
 	if ( xps_status != SUCCESS ) {
 		return mxi_newport_xps_error(
-			newport_xps_motor->move_thread_socket_id,
 				"GroupInitialize()",
+				newport_xps_motor->record->name,
+				newport_xps_motor->move_thread_socket_id,
 				xps_status );
 	}
 
@@ -1407,8 +1435,9 @@ mxd_newport_xps_process_function( void *record_ptr,
 
 			if ( xps_status != SUCCESS ) {
 				return mxi_newport_xps_error(
-					newport_xps->socket_id,
 					"PositionerDriverStatusGet()",
+					newport_xps_motor->record->name,
+					newport_xps->socket_id,
 					xps_status );
 			}
 
@@ -1421,8 +1450,9 @@ mxd_newport_xps_process_function( void *record_ptr,
 
 			if ( xps_status != SUCCESS ) {
 				return mxi_newport_xps_error(
-					newport_xps->socket_id,
 					"GroupStatusGet()",
+					newport_xps_motor->record->name,
+					newport_xps->socket_id,
 					xps_status );
 			}
 
@@ -1435,8 +1465,9 @@ mxd_newport_xps_process_function( void *record_ptr,
 
 			if ( xps_status != SUCCESS ) {
 				return mxi_newport_xps_error(
-					newport_xps->socket_id,
 					"GroupStatusGet()",
+					newport_xps_motor->record->name,
+					newport_xps->socket_id,
 					xps_status );
 			}
 
@@ -1449,8 +1480,9 @@ mxd_newport_xps_process_function( void *record_ptr,
 
 			if ( xps_status != SUCCESS ) {
 				return mxi_newport_xps_error(
-					newport_xps->socket_id,
 					"GroupStatusStringGet()",
+					newport_xps_motor->record->name,
+					newport_xps->socket_id,
 					xps_status );
 			}
 			break;
@@ -1462,8 +1494,9 @@ mxd_newport_xps_process_function( void *record_ptr,
 
 			if ( xps_status != SUCCESS ) {
 				return mxi_newport_xps_error(
-					newport_xps->socket_id,
 					"PositionerHardwareStatusGet()",
+					newport_xps_motor->record->name,
+					newport_xps->socket_id,
 					xps_status );
 			}
 
@@ -1479,8 +1512,9 @@ mxd_newport_xps_process_function( void *record_ptr,
 
 			if ( xps_status != SUCCESS ) {
 				return mxi_newport_xps_error(
-					newport_xps->socket_id,
 					"PositionerErrorRead()",
+					newport_xps_motor->record->name,
+					newport_xps->socket_id,
 					xps_status );
 			}
 
@@ -1505,8 +1539,9 @@ mxd_newport_xps_process_function( void *record_ptr,
 
 			if ( xps_status != SUCCESS ) {
 				return mxi_newport_xps_error(
-					newport_xps->socket_id,
 					"PositionerErrorRead()",
+					newport_xps_motor->record->name,
+					newport_xps->socket_id,
 					xps_status );
 			}
 
@@ -1594,8 +1629,9 @@ mxd_newport_xps_get_position( MX_MOTOR *motor )
 					1, &raw_encoder_position );
 
 	if ( xps_status != SUCCESS ) {
-		return mxi_newport_xps_error( newport_xps->socket_id,
-						"GroupPositionCurrentGet()",
+		return mxi_newport_xps_error( "GroupPositionCurrentGet()",
+						newport_xps_motor->record->name,
+						newport_xps->socket_id,
 						xps_status );
 	}
 
@@ -1685,8 +1721,9 @@ mxd_newport_xps_soft_abort( MX_MOTOR *motor )
 	case ERR_NOT_ALLOWED_ACTION:   /* Abort while not moving. */
 		break;
 	default:
-		return mxi_newport_xps_error( newport_xps->socket_id,
-						"GroupMoveAbort()",
+		return mxi_newport_xps_error( "GroupMoveAbort()",
+						newport_xps_motor->record->name,
+						newport_xps->socket_id,
 						xps_status );
 		break;
 	}
@@ -1716,8 +1753,9 @@ mxd_newport_xps_immediate_abort( MX_MOTOR *motor )
 				newport_xps_motor->group_name );
 
 	if ( xps_status != SUCCESS ) {
-		return mxi_newport_xps_error( newport_xps->socket_id,
-						"GroupKill()",
+		return mxi_newport_xps_error( "GroupKill()",
+						newport_xps_motor->record->name,
+						newport_xps->socket_id,
 						xps_status );
 	}
 
@@ -1792,8 +1830,10 @@ mxd_newport_xps_get_parameter( MX_MOTOR *motor )
 				&(motor->raw_acceleration_parameters[2]) );
 
 		if ( xps_status != SUCCESS ) {
-			return mxi_newport_xps_error( newport_xps->socket_id,
+			return mxi_newport_xps_error(
 					"PositionerSGammaParametersGet()",
+					newport_xps_motor->record->name,
+					newport_xps->socket_id,
 					xps_status );
 		}
 		break;
@@ -1847,8 +1887,10 @@ mxd_newport_xps_set_parameter( MX_MOTOR *motor )
 					motor->raw_acceleration_parameters[2] );
 
 		if ( xps_status != SUCCESS ) {
-			return mxi_newport_xps_error( newport_xps->socket_id,
+			return mxi_newport_xps_error(
 					"PositionerSGammaParametersSet()",
+					newport_xps_motor->record->name,
+					newport_xps->socket_id,
 					xps_status );
 		}
 		break;
@@ -1860,8 +1902,9 @@ mxd_newport_xps_set_parameter( MX_MOTOR *motor )
 
 			if ( xps_status != SUCCESS ) {
 				return mxi_newport_xps_error(
-					newport_xps->socket_id,
 					"GroupMotionEnable()",
+					newport_xps_motor->record->name,
+					newport_xps->socket_id,
 					xps_status );
 			}
 		} else {
@@ -1870,8 +1913,9 @@ mxd_newport_xps_set_parameter( MX_MOTOR *motor )
 
 			if ( xps_status != SUCCESS ) {
 				return mxi_newport_xps_error(
-					newport_xps->socket_id,
 					"GroupMotionDisable()",
+					newport_xps_motor->record->name,
+					newport_xps->socket_id,
 					xps_status );
 			}
 		}
@@ -1931,8 +1975,9 @@ mxd_newport_xps_get_status( MX_MOTOR *motor )
 					&int_value );
 
 	if ( xps_status != SUCCESS ) {
-		return mxi_newport_xps_error( newport_xps->socket_id,
-						"PositionerErrorRead()",
+		return mxi_newport_xps_error( "PositionerErrorRead()",
+						newport_xps_motor->record->name,
+						newport_xps->socket_id,
 						xps_status );
 	}
 
@@ -1945,8 +1990,9 @@ mxd_newport_xps_get_status( MX_MOTOR *motor )
 					&int_value );
 
 	if ( xps_status != SUCCESS ) {
-		return mxi_newport_xps_error( newport_xps->socket_id,
-						"PositionerHardwareStatusGet()",
+		return mxi_newport_xps_error( "PositionerHardwareStatusGet()",
+						newport_xps_motor->record->name,
+						newport_xps->socket_id,
 						xps_status );
 	}
 
@@ -1994,8 +2040,9 @@ mxd_newport_xps_get_status( MX_MOTOR *motor )
 					&int_value );
 
 	if ( xps_status != SUCCESS ) {
-		return mxi_newport_xps_error( newport_xps->socket_id,
-						"PositionerDriverStatusGet()",
+		return mxi_newport_xps_error( "PositionerDriverStatusGet()",
+						newport_xps_motor->record->name,
+						newport_xps->socket_id,
 						xps_status );
 	}
 
@@ -2008,8 +2055,9 @@ mxd_newport_xps_get_status( MX_MOTOR *motor )
 					&int_value );
 
 	if ( xps_status != SUCCESS ) {
-		return mxi_newport_xps_error( newport_xps->socket_id,
-						"GroupStatusGet()",
+		return mxi_newport_xps_error( "GroupStatusGet()",
+						newport_xps_motor->record->name,
+						newport_xps->socket_id,
 						xps_status );
 	}
 
