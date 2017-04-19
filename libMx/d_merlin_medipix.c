@@ -15,7 +15,7 @@
  *
  */
 
-#define MXD_MERLIN_MEDIPIX_DEBUG		TRUE
+#define MXD_MERLIN_MEDIPIX_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -1329,12 +1329,25 @@ mxd_merlin_medipix_readout_frame( MX_AREA_DETECTOR *ad )
 
 	image_binary_ptr = image_data_ptr + offset_to_data;
 
-	if ( (merlin_flags & MXF_MERLIN_INVERT_IMAGE) == FALSE ) {
+#if 1
+	if (1) {
+		unsigned long i, num_words;
+		uint16_t *uint16_array;
 
 		memcpy( ad->image_frame->image_data,
 			image_binary_ptr,
 			ad->bytes_per_frame );
-	} else {
+
+		uint16_array = (uint16_t *) ad->image_frame->image_data;
+
+		num_words = (ad->bytes_per_frame) / 2L;
+
+		for ( i = 0; i < num_words; i++ ) {
+			uint16_array[i] = mx_16bit_byteswap( uint16_array[i] );
+		}
+	}
+#else
+	if (1) {
 		/* Merlin Medipix detectors store the image upside down
 		 * compared to the way MX detectors store it.  That is
 		 * because they regard the point (0,0) as being in the
@@ -1354,6 +1367,8 @@ mxd_merlin_medipix_readout_frame( MX_AREA_DETECTOR *ad )
 
 		element_size[0] = sizeof(uint16_t);
 		element_size[1] = sizeof(uint16_t *);
+
+		MX_DEBUG(-2,("%s: bytes_per_row = %lu", fname, bytes_per_row));
 
 		mx_status = mx_array_add_overlay(
 				(void *) ad->image_frame->image_data,
@@ -1385,12 +1400,50 @@ mxd_merlin_medipix_readout_frame( MX_AREA_DETECTOR *ad )
 			memcpy( mx_array[mx_row],
 				merlin_array[merlin_row],
 				bytes_per_row );
+
+#if 0
+			/* The data returned by the Merlin Medipix is 
+			 * documented to be in bigendian order, so we
+			 * must byteswap it.
+			 */
+			{
+				long mx_col, num_cols;
+				uint16_t *mx_row_array;
+
+				num_cols = ad->framesize[0];
+
+				mx_row_array = mx_array[mx_row];
+
+				for ( mx_col = 0; mx_col < num_cols; mx_col++ ){
+					if ( ((mx_row % 500) == 0)
+					  || ((mx_col % 500) == 0) )
+					{
+						MX_DEBUG(-2,
+					("%s: (before) mx_array[%lu,%lu] = %lu",
+						 fname, mx_row, mx_col,
+						 mx_row_array[mx_col]));
+					}
+
+					mx_row_array[mx_col] =
+				    mx_16bit_byteswap( mx_row_array[mx_col] );
+
+					if ( ((mx_row % 500) == 0)
+					  || ((mx_col % 500) == 0) )
+					{
+						MX_DEBUG(-2,
+					("%s: (after) mx_array[%lu,%lu] = %lu",
+						 fname, mx_row, mx_col,
+						 mx_row_array[mx_col]));
+					}
+				}
+			}
+#endif
 		}
 
 		mx_array_free_overlay( merlin_array );
 		mx_array_free_overlay( mx_array );
 	}
-
+#endif
 	return mx_status;
 }
 
