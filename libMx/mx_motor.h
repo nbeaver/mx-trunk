@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2008, 2010, 2013-2016 Illinois Institute of Technology
+ * Copyright 1999-2008, 2010, 2013-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -89,6 +89,8 @@ extern "C" {
 #define MXSF_MTR_COMMUNICATION_ERROR		0x2000
 #define MXSF_MTR_CONFIGURATION_ERROR		0x4000
 #define MXSF_MTR_AT_HOME_SWITCH			0x8000
+#define MXSF_MTR_DEVICE_ACTION_FAILED		0x10000
+#define MXSF_MTR_NOT_READY			0x20000
 
 #define MXSF_MTR_ERROR				0x80000000
 
@@ -98,7 +100,9 @@ extern "C" {
   | MXSF_MTR_FOLLOWING_ERROR | MXSF_MTR_DRIVE_FAULT \
   | MXSF_MTR_AXIS_DISABLED | MXSF_MTR_OPEN_LOOP | MXSF_MTR_CONTROLLER_DISABLED \
   | MXSF_MTR_SOFT_POSITIVE_LIMIT_HIT | MXSF_MTR_SOFT_NEGATIVE_LIMIT_HIT \
-  | MXSF_MTR_SOFTWARE_ERROR | MXSF_MTR_ERROR )
+  | MXSF_MTR_SOFTWARE_ERROR | MXSF_MTR_HARDWARE_ERROR \
+  | MXSF_MTR_COMMUNICATION_ERROR | MXSF_MTR_CONFIGURATION_ERROR \
+  | MXSF_MTR_DEVICE_ACTION_FAILED | MXSF_MTR_ERROR )
 
 /* Values for the 'home_search_type' field. */
 
@@ -720,6 +724,10 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, immediate_abort), \
 	{0}, NULL, 0}, \
   \
+  {MXLV_MTR_IMMEDIATE_ABORT, -1, "abort", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, immediate_abort), \
+	{0}, NULL, 0}, \
+  \
   {MXLV_MTR_NEGATIVE_LIMIT_HIT, -1, "negative_limit_hit", MXFT_BOOL, \
 	NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, negative_limit_hit), \
@@ -976,6 +984,10 @@ MX_API mx_status_type mx_motor_is_busy( MX_RECORD *motor_record,
 MX_API mx_status_type mx_motor_soft_abort( MX_RECORD *motor_record );
 
 MX_API mx_status_type mx_motor_immediate_abort( MX_RECORD *motor_record );
+
+MX_API mx_status_type mx_motor_stop( MX_RECORD *motor_record );
+
+MX_API mx_status_type mx_motor_abort( MX_RECORD *motor_record );
 
 /* === Move by engineering units functions. === */
 

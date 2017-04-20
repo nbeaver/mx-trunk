@@ -197,7 +197,7 @@ mxd_newport_xps_home_or_set_position( MX_MOTOR *motor,
 				newport_xps_motor->group_name );
 
 		if ( xps_status != SUCCESS ) {
-			motor->latched_status |= MXSF_MTR_ERROR;
+			motor->latched_status |= MXSF_MTR_DEVICE_ACTION_FAILED;
 
 			return mxi_newport_xps_error(
 				"GroupKill()",
@@ -211,6 +211,8 @@ mxd_newport_xps_home_or_set_position( MX_MOTOR *motor,
 				newport_xps_motor->group_name );
 
 		if ( xps_status != SUCCESS ) {
+			motor->latched_status |= MXSF_MTR_DEVICE_ACTION_FAILED;
+
 			return mxi_newport_xps_error(
 				"GroupInitialize()",
 				newport_xps_motor->record->name,
@@ -251,6 +253,9 @@ mxd_newport_xps_home_or_set_position( MX_MOTOR *motor,
 				motor->record->name, xps_status));
 
 			if ( xps_status != SUCCESS ) {
+				motor->latched_status
+					|= MXSF_MTR_DEVICE_ACTION_FAILED;
+
 				newport_xps_motor->home_search_succeeded
 							= FALSE;
 
@@ -275,6 +280,9 @@ mxd_newport_xps_home_or_set_position( MX_MOTOR *motor,
 				newport_xps_motor->group_name );
 
 			if ( xps_status != SUCCESS ) {
+				motor->latched_status
+					|= MXSF_MTR_DEVICE_ACTION_FAILED;
+
 				return mxi_newport_xps_error(
 					"GroupReferencingStart()",
 					newport_xps_motor->record->name,
@@ -293,6 +301,9 @@ mxd_newport_xps_home_or_set_position( MX_MOTOR *motor,
 				motor->raw_set_position.analog );
 
 			if ( xps_status != SUCCESS ) {
+				motor->latched_status
+					|= MXSF_MTR_DEVICE_ACTION_FAILED;
+
 				return mxi_newport_xps_error(
 					"GroupReferencingActionExecute()",
 					newport_xps_motor->record->name,
@@ -305,6 +316,9 @@ mxd_newport_xps_home_or_set_position( MX_MOTOR *motor,
 				newport_xps_motor->group_name );
 
 			if ( xps_status != SUCCESS ) {
+				motor->latched_status
+					|= MXSF_MTR_DEVICE_ACTION_FAILED;
+
 				return mxi_newport_xps_error(
 					"GroupReferencingStop()",
 					newport_xps_motor->record->name,
@@ -326,6 +340,8 @@ mxd_newport_xps_home_or_set_position( MX_MOTOR *motor,
 				&group_status );
 
 		if ( xps_status != SUCCESS ) {
+			motor->latched_status |= MXSF_MTR_DEVICE_ACTION_FAILED;
+
 			return mxi_newport_xps_error(
 				"GroupStatusGet() after Homing or Referencing",
 				newport_xps_motor->record->name,
@@ -423,6 +439,8 @@ mxd_newport_xps_home_or_set_position( MX_MOTOR *motor,
 			&(newport_xps_motor->old_motor_positions_in_group[i]) );
 
 		    if ( xps_status != SUCCESS ) {
+			motor->latched_status |= MXSF_MTR_DEVICE_ACTION_FAILED;
+
 			return mxi_newport_xps_error(
 				"GroupReferencingStop()",
 				newport_xps_motor->record->name,
@@ -461,6 +479,8 @@ mxd_newport_xps_home_or_set_position( MX_MOTOR *motor,
 				newport_xps_motor->group_name );
 
 		if ( xps_status != SUCCESS ) {
+			motor->latched_status |= MXSF_MTR_DEVICE_ACTION_FAILED;
+
 			return mxi_newport_xps_error(
 				"GroupKill()",
 				newport_xps_motor->record->name,
@@ -473,6 +493,8 @@ mxd_newport_xps_home_or_set_position( MX_MOTOR *motor,
 				newport_xps_motor->group_name );
 
 		if ( xps_status != SUCCESS ) {
+			motor->latched_status |= MXSF_MTR_DEVICE_ACTION_FAILED;
+
 			return mxi_newport_xps_error(
 				"GroupInitialize()",
 				newport_xps_motor->record->name,
@@ -499,6 +521,8 @@ mxd_newport_xps_home_or_set_position( MX_MOTOR *motor,
 				newport_xps_motor->group_name );
 
 		if ( xps_status != SUCCESS ) {
+			motor->latched_status |= MXSF_MTR_DEVICE_ACTION_FAILED;
+
 			return mxi_newport_xps_error(
 				"GroupReferencingStart()",
 				newport_xps_motor->record->name,
@@ -525,6 +549,8 @@ mxd_newport_xps_home_or_set_position( MX_MOTOR *motor,
 			newport_xps_motor->old_motor_positions_in_group[i] );
 
 		    if ( xps_status != SUCCESS ) {
+			motor->latched_status |= MXSF_MTR_DEVICE_ACTION_FAILED;
+
 			return mxi_newport_xps_error(
 				"GroupReferencingStop()",
 				newport_xps_motor->record->name,
@@ -547,6 +573,8 @@ mxd_newport_xps_home_or_set_position( MX_MOTOR *motor,
 				newport_xps_motor->group_name );
 
 		if ( xps_status != SUCCESS ) {
+			motor->latched_status |= MXSF_MTR_DEVICE_ACTION_FAILED;
+
 			return mxi_newport_xps_error(
 				"GroupReferencingStop()",
 				newport_xps_motor->record->name,
@@ -579,6 +607,7 @@ mxd_newport_xps_move_thread( MX_THREAD *thread, void *thread_argument )
 	MX_NEWPORT_XPS_MOTOR *newport_xps_motor = NULL;
 	MX_MOTOR *motor = NULL;
 	MX_NEWPORT_XPS *newport_xps = NULL;
+	double starting_position, destination;
 	int xps_status;
 	unsigned long mx_status_code;
 	mx_status_type mx_status;
@@ -638,6 +667,28 @@ mxd_newport_xps_move_thread( MX_THREAD *thread, void *thread_argument )
 #endif
 		switch( newport_xps_motor->command_type ) {
 		case MXT_NEWPORT_XPS_GROUP_MOVE_ABSOLUTE:
+			/* Get the current position of the motor, just in
+			 * case we get ERR_PARAMETER_OUT_OF_RANGE.  If that
+			 * happens, then that will let us figure out which
+			 * controller limit we were trying to exceed.
+			 */
+
+			mx_status = mxd_newport_xps_get_position( motor );
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+				motor->latched_status
+					|= MXSF_MTR_DEVICE_ACTION_FAILED;
+
+				/* If we cannot get the motor's current
+				 * position, then we will not attempt
+				 * to make the move.
+				 */
+				break;
+			}
+
+			starting_position = motor->position;
+
+			destination = newport_xps_motor->command_destination;
 
 			xps_status = GroupMoveAbsolute(
 				newport_xps_motor->move_thread_socket_id,
@@ -650,11 +701,51 @@ mxd_newport_xps_move_thread( MX_THREAD *thread, void *thread_argument )
 			case ERR_GROUP_ABORT_MOTION:   /* Move was aborted. */
 				break;
 			default:
+				switch( xps_status ) {
+				case ERR_PARAMETER_OUT_OF_RANGE:
+					if ( destination >= starting_position ){
+						motor->latched_status
+					    |= MXSF_MTR_SOFT_POSITIVE_LIMIT_HIT;
+					} else {
+						motor->latched_status
+					    |= MXSF_MTR_SOFT_NEGATIVE_LIMIT_HIT;
+					}
+					break;
+				case ERR_FOLLOWING_ERROR:
+					motor->latched_status
+						|= MXSF_MTR_FOLLOWING_ERROR;
+					break;
+				case ERR_EMERGENCY_SIGNAL:
+				case ERR_FATAL_INIT:
+				case ERR_IN_INITIALIZATION:
+				case ERR_GROUP_MOTION_DONE_TIMEOUT:
+					motor->latched_status
+					    |= MXSF_MTR_DEVICE_ACTION_FAILED;
+					break;
+				case ERR_NOT_ALLOWED_ACTION:
+					motor->latched_status
+							|= MXSF_MTR_NOT_READY;
+					break;
+				case ERR_GROUP_NAME:
+				case ERR_POSITIONER_NAME:
+					motor->latched_status
+					    |= MXSF_MTR_CONFIGURATION_ERROR;
+					break;
+				case ERR_WRONG_FORMAT:
+				case ERR_WRONG_OBJECT_TYPE:
+				case ERR_WRONG_PARAMETERS_NUMBER:
+				default:
+					motor->latched_status |= MXSF_MTR_ERROR;
+					break;
+				}
+
 				(void) mxi_newport_xps_error(
 					"GroupMoveAbsolute()",
 					newport_xps_motor->record->name,
 				newport_xps_motor->move_thread_socket_id,
 					xps_status );
+
+				break;
 			}
 			break;
 

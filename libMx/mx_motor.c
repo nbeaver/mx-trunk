@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2016 Illinois Institute of Technology
+ * Copyright 1999-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -401,6 +401,32 @@ mx_motor_is_busy( MX_RECORD *motor_record, mx_bool_type *busy )
 
 	return status;
 }
+
+/* 'mx_motor_stop' and 'mx_motor_abort' are friendlier names for
+ * 'mx_motor_soft_abort' and 'mx_motor_immediate_abort'.
+ */
+
+MX_EXPORT mx_status_type
+mx_motor_stop( MX_RECORD *motor_record )
+{
+	mx_status_type mx_status;
+
+	mx_status = mx_motor_soft_abort( motor_record );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_motor_abort( MX_RECORD *motor_record )
+{
+	mx_status_type mx_status;
+
+	mx_status = mx_motor_immediate_abort( motor_record );
+
+	return mx_status;
+}
+
+/*------------------------------------*/
 
 MX_EXPORT mx_status_type
 mx_motor_soft_abort( MX_RECORD *motor_record )
