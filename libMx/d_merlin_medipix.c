@@ -1218,6 +1218,16 @@ mxd_merlin_medipix_readout_frame( MX_AREA_DETECTOR *ad )
 
 	mx_string_split( copy_of_beginning_of_image_data, ",", &argc, &argv );
 
+	if ( argc < 11 ) {
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"The '%s' record apparently received a frame from the "
+		"Merlin detector, but there does not appear to be an image "
+		"header in the image data received from the detector.  "
+		"image_data = '%s'",
+			ad->record->name,
+			copy_of_beginning_of_image_data );
+	}
+
 	/* MX starts frame numbers at 0 rather than 1. */
 
 	mx_frame_number = atol( argv[1] ) - 1;
