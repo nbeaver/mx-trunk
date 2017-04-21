@@ -3494,7 +3494,7 @@ mx_get_field_array( MX_RECORD *server_record,
 						nf_label, sizeof(nf_label) );
 
 		fprintf( stderr, "MX GET_ARRAY('%s') <%#lx> = ",
-				nf_label, message_id );
+				nf_label, server->last_rpc_message_id );
 
 		mx_network_buffer_show_value( message, server->data_format,
 					datatype, receive_message_type,
