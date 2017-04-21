@@ -17,6 +17,8 @@
 
 #define MXD_MERLIN_MEDIPIX_DEBUG		FALSE
 
+#define MXD_MERLIN_MEDIPIX_DEBUG_MONITOR_THREAD	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -132,8 +134,7 @@ mxd_merlin_medipix_get_pointers( MX_AREA_DETECTOR *ad,
 			calling_fname );
 	}
 
-	*merlin_medipix = (MX_MERLIN_MEDIPIX *)
-				ad->record->record_type_struct;
+	*merlin_medipix = (MX_MERLIN_MEDIPIX *) ad->record->record_type_struct;
 
 	if ( *merlin_medipix == (MX_MERLIN_MEDIPIX *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -183,7 +184,7 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 
 	record = (MX_RECORD *) args;
 
-#if MXD_MERLIN_MEDIPIX_DEBUG
+#if MXD_MERLIN_MEDIPIX_DEBUG_MONITOR_THREAD
 	MX_DEBUG(-2,("%s invoked for record '%s'.",
 		fname, record->name));
 #endif
@@ -220,7 +221,7 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 
 	    if ( num_bytes_available != old_num_bytes_available ) {
 
-#if MXD_MERLIN_MEDIPIX_DEBUG
+#if MXD_MERLIN_MEDIPIX_DEBUG_MONITOR_THREAD
 		MX_DEBUG(-2,("%s: '%s' num_bytes_available = %ld",
 			fname, record->name, num_bytes_available));
 #endif
@@ -248,7 +249,9 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 
 		header_buffer[MXU_MPX_INITIAL_READ_LENGTH] = '\0';
 
+#if MXD_MERLIN_MEDIPIX_DEBUG_MONITOR_THREAD
 		MX_DEBUG(-2,("%s: header_buffer = '%s'", fname, header_buffer));
+#endif
 
 		if ( num_bytes_read < MXU_MPX_INITIAL_READ_LENGTH ) {
 		    mx_warning(
@@ -291,8 +294,10 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 
 		/* Prepare to read in the rest of the message body. */
 
+#if MXD_MERLIN_MEDIPIX_DEBUG_MONITOR_THREAD
 		MX_DEBUG(-2,("%s: message '%s', %lu bytes",
 			fname, message_type_string, message_body_length ));
+#endif
 
 		if ( strcmp( message_type_string, "HDR" ) == 0 ) {
 		    message_type = MXT_MPX_ACQUISITION_MESSAGE;
@@ -374,7 +379,9 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 
 		src_body_ptr = header_buffer + MXU_MPX_MESSAGE_BODY_OFFSET;
 
-		MX_DEBUG(-2,("%s: src_body_ptr = %p", fname, src_body_ptr));
+#if MXD_MERLIN_MEDIPIX_DEBUG_MONITOR_THREAD
+		MX_DEBUG(-2,("%s: src_body_ptr = '%s'", fname, src_body_ptr));
+#endif
 
 		parsing_succeeded = TRUE;
 
@@ -401,7 +408,24 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 
 		    mx_frame_number = merlin_frame_number - 1L;
 
+#if MXD_MERLIN_MEDIPIX_DEBUG_MONITOR_THREAD
+		    MX_DEBUG(-2,("%s: mx_frame_number = %lu",
+			fname, merlin_frame_number ));
+
+		    MX_DEBUG(-2,("%s: dest_body_ptr = %p (before).",
+			fname, dest_body_ptr ));
+
+		    MX_DEBUG(-2,("%s: message_body_length = %lu",
+			fname, message_body_length));
+#endif
+
 		    dest_body_ptr += (mx_frame_number * message_body_length);
+
+#if MXD_MERLIN_MEDIPIX_DEBUG_MONITOR_THREAD
+		    MX_DEBUG(-2,("%s: dest_body_ptr = %p (after).",
+			fname, dest_body_ptr ));
+#endif
+
 		    break;
 		case MXT_MPX_UNKNOWN_MESSAGE:
 		default:
@@ -434,6 +458,10 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 		strlcpy( dest_body_ptr, src_body_ptr, message_body_length );
 
 		/* Update the length of the MX_RECORD_FIELD array. */
+
+#if MXD_MERLIN_MEDIPIX_DEBUG_MONITOR_THREAD
+		MX_DEBUG(-2,("%s: dest_body_ptr = '%s'", fname, dest_body_ptr));
+#endif
 
 		if ( old_data_length != new_data_length ) {
 		    switch( message_type ) {
@@ -479,6 +507,11 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 				fname, (long) num_bytes_read,
 				message_body_remaining_length );
 		}
+
+#if MXD_MERLIN_MEDIPIX_DEBUG_MONITOR_THREAD
+	    MX_DEBUG(-2,("%s: finished processing frame %lu",
+		fname, mx_frame_number));
+#endif
 
 		/* End of 'if ( num_bytes_available > 0 )'. */
 	    }
@@ -586,6 +619,8 @@ mxd_merlin_medipix_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	merlin_medipix->old_detector_status = (unsigned long)(-1L);
+
 	/* Set the resolution (55 um per pixel) . */
 
 	ad->resolution[0] = 0.055;
@@ -660,7 +695,7 @@ mxd_merlin_medipix_open( MX_RECORD *record )
 
 	mx_status = mxd_merlin_medipix_command( merlin_medipix,
 					"GET,SOFTWAREVERSION",
-					response, sizeof(response) );
+					response, sizeof(response), FALSE );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -684,13 +719,15 @@ mxd_merlin_medipix_open( MX_RECORD *record )
 	/* 12-bit counting with both counters */
 
 	mx_status = mxd_merlin_medipix_command( merlin_medipix,
-					"SET,COUNTERDEPTH,12", NULL, 0 );
+					"SET,COUNTERDEPTH,12",
+					NULL, 0, FALSE );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	mx_status = mxd_merlin_medipix_command( merlin_medipix,
-					"SET,ENABLECOUNTER1,0", NULL, 0 );
+					"SET,ENABLECOUNTER1,0",
+					NULL, 0, FALSE );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -698,7 +735,8 @@ mxd_merlin_medipix_open( MX_RECORD *record )
 	/* Turn off continuous acquisition. */
 
 	mx_status = mxd_merlin_medipix_command( merlin_medipix,
-					"SET,CONTINUOUSRW,0", NULL, 0 );
+					"SET,CONTINUOUSRW,0",
+					NULL, 0, FALSE );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -706,7 +744,8 @@ mxd_merlin_medipix_open( MX_RECORD *record )
 	/* Turn off colour mode. */
 
 	mx_status = mxd_merlin_medipix_command( merlin_medipix,
-					"SET,COLOURMODE,0", NULL, 0 );
+					"SET,COLOURMODE,0",
+					NULL, 0, FALSE );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -714,7 +753,8 @@ mxd_merlin_medipix_open( MX_RECORD *record )
 	/* Turn off charge summing. */
 
 	mx_status = mxd_merlin_medipix_command( merlin_medipix,
-					"SET,CHARGESUMMING,0", NULL, 0 );
+					"SET,CHARGESUMMING,0",
+					NULL, 0, FALSE );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -722,7 +762,8 @@ mxd_merlin_medipix_open( MX_RECORD *record )
 	/* Num frames per trigger. */
 
 	mx_status = mxd_merlin_medipix_command( merlin_medipix,
-					"SET,NUMFRAMESPERTRIGGER,1", NULL, 0 );
+					"SET,NUMFRAMESPERTRIGGER,1",
+					NULL, 0, FALSE );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -730,7 +771,7 @@ mxd_merlin_medipix_open( MX_RECORD *record )
 	/* Select high gain. */
 
 	mx_status = mxd_merlin_medipix_command( merlin_medipix,
-						"SET,GAIN,2", NULL, 0 );
+						"SET,GAIN,2", NULL, 0, FALSE );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -762,7 +803,7 @@ mxd_merlin_medipix_open( MX_RECORD *record )
 
 	mx_status = mxd_merlin_medipix_command( merlin_medipix,
 						"SET,TriggerOutTTL,7",
-						NULL, 0 );
+						NULL, 0, FALSE );
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
@@ -858,20 +899,20 @@ mxd_merlin_medipix_arm( MX_AREA_DETECTOR *ad )
 	switch( ad->trigger_mode ) {
 	case MXT_IMAGE_INTERNAL_TRIGGER:
 		mx_status = mxd_merlin_medipix_command( merlin_medipix,
-					"SET,TRIGGERSTART,0", NULL, 0 );
+					"SET,TRIGGERSTART,0", NULL, 0, FALSE );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
 		mx_status = mxd_merlin_medipix_command( merlin_medipix,
-					"SET,TRIGGERSTOP,0", NULL, 0 );
+					"SET,TRIGGERSTOP,0", NULL, 0, FALSE );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 		break;
 	case MXT_IMAGE_EXTERNAL_TRIGGER:
 		mx_status = mxd_merlin_medipix_command( merlin_medipix,
-					"SET,TRIGGERSTART,1", NULL, 0 );
+					"SET,TRIGGERSTART,1", NULL, 0, FALSE );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -880,13 +921,15 @@ mxd_merlin_medipix_arm( MX_AREA_DETECTOR *ad )
 
 			/* Stop the frame when the trigger goes away. */
 
-			mx_status = mxd_merlin_medipix_command(
-				merlin_medipix, "SET,TRIGGERSTOP,2", NULL, 0 );
+			mx_status = mxd_merlin_medipix_command( merlin_medipix,
+							"SET,TRIGGERSTOP,2",
+							NULL, 0, FALSE );
 		} else {
 			/* Stop the frame when the exposure time expires. */
 
 			mx_status = mxd_merlin_medipix_command(
-				merlin_medipix, "SET,TRIGGERSTOP,0", NULL, 0 );
+				merlin_medipix, "SET,TRIGGERSTOP,0",
+						NULL, 0, FALSE );
 		}
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -905,7 +948,7 @@ mxd_merlin_medipix_arm( MX_AREA_DETECTOR *ad )
 		"SET,NUMFRAMESTOACQUIRE,%lu", num_frames );
 
 	mx_status = mxd_merlin_medipix_command( merlin_medipix,
-						command, NULL, 0 );
+						command, NULL, 0, FALSE );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -918,7 +961,7 @@ mxd_merlin_medipix_arm( MX_AREA_DETECTOR *ad )
 			mx_round( 1000.0 * exposure_time ) );
 
 		mx_status = mxd_merlin_medipix_command( merlin_medipix,
-							command, NULL, 0 );
+						command, NULL, 0, FALSE );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -927,7 +970,7 @@ mxd_merlin_medipix_arm( MX_AREA_DETECTOR *ad )
 			mx_round( 1000.0 * frame_time ) );
 
 		mx_status = mxd_merlin_medipix_command( merlin_medipix,
-						command, NULL, 0 );
+						command, NULL, 0, FALSE );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -939,12 +982,13 @@ mxd_merlin_medipix_arm( MX_AREA_DETECTOR *ad )
 				"SET,NUMFRAMESPERTRIGGER,%lu", num_frames );
 
 			mx_status = mxd_merlin_medipix_command(
-					merlin_medipix, command, NULL, 0 );
+					merlin_medipix, command,
+					NULL, 0, FALSE );
 		} else {
 			mx_status = mxd_merlin_medipix_command(
 					merlin_medipix,
 					"SET,NUMFRAMESPERTRIGGER,1",
-					NULL, 0 );
+					NULL, 0, FALSE );
 		}
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -964,7 +1008,7 @@ mxd_merlin_medipix_arm( MX_AREA_DETECTOR *ad )
 						debounce_milliseconds );
 
 		mx_status = mxd_merlin_medipix_command( merlin_medipix,
-							command, NULL, 0 );
+						command, NULL, 0, FALSE );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -973,13 +1017,14 @@ mxd_merlin_medipix_arm( MX_AREA_DETECTOR *ad )
 			debounce_milliseconds + 100L );
 
 		mx_status = mxd_merlin_medipix_command( merlin_medipix,
-						command, NULL, 0 );
+						command, NULL, 0, FALSE );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
 		mx_status = mxd_merlin_medipix_command( merlin_medipix,
-					"SET,NUMFRAMESPERTRIGGER,1", NULL, 0 );
+					"SET,NUMFRAMESPERTRIGGER,1",
+					NULL, 0, FALSE );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -999,7 +1044,7 @@ mxd_merlin_medipix_arm( MX_AREA_DETECTOR *ad )
 
 	if ( ad->trigger_mode == MXT_IMAGE_EXTERNAL_TRIGGER ) {
 		mx_status = mxd_merlin_medipix_command( merlin_medipix,
-					"CMD,STARTACQUISITION", NULL, 0 );
+					"CMD,STARTACQUISITION", NULL, 0, FALSE);
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1035,7 +1080,7 @@ mxd_merlin_medipix_trigger( MX_AREA_DETECTOR *ad )
 
 	if ( ad->trigger_mode == MXT_IMAGE_INTERNAL_TRIGGER ) {
 		mx_status = mxd_merlin_medipix_command( merlin_medipix,
-					"CMD,STARTACQUISITION", NULL, 0 );
+					"CMD,STARTACQUISITION", NULL, 0, FALSE);
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1064,7 +1109,7 @@ mxd_merlin_medipix_stop( MX_AREA_DETECTOR *ad )
 #endif
 
 	mx_status = mxd_merlin_medipix_command( merlin_medipix,
-					"CMD,STOPACQUISITION", NULL, 0 );
+					"CMD,STOPACQUISITION", NULL, 0, FALSE );
 
 	return mx_status;
 }
@@ -1107,7 +1152,7 @@ mxd_merlin_medipix_get_extended_status( MX_AREA_DETECTOR *ad )
 
 	mx_status = mxd_merlin_medipix_command( merlin_medipix,
 					"GET,DETECTORSTATUS",
-					response, sizeof(response) );
+					response, sizeof(response), TRUE );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1121,6 +1166,15 @@ mxd_merlin_medipix_get_extended_status( MX_AREA_DETECTOR *ad )
 		"to a 'GET,DETECTORSTATUS' command sent to detector '%s'.",
 			response, ad->record->name );
 	}
+
+#if MXD_MERLIN_MEDIPIX_DEBUG
+	if ( detector_status != (merlin_medipix->old_detector_status) ) {
+		MX_DEBUG(-2,("%s: detector_status changed from %lu to %lu",
+			fname, merlin_medipix->old_detector_status,
+			detector_status));
+	}
+#endif
+	merlin_medipix->old_detector_status = detector_status;
 
 	/* Sometimes this detector returns undocumented status codes 3 and 4.
 	 * I think that 4 has something to do with external triggering.
@@ -1911,7 +1965,9 @@ MX_EXPORT mx_status_type
 mxd_merlin_medipix_command( MX_MERLIN_MEDIPIX *merlin_medipix,
 			char *command,
 			char *response,
-			size_t response_buffer_length )
+			size_t response_buffer_length,
+			mx_bool_type suppress_output )
+
 {
 	static const char fname[] = "mxd_merlin_medipix_command()";
 
@@ -1936,6 +1992,9 @@ mxd_merlin_medipix_command( MX_MERLIN_MEDIPIX *merlin_medipix,
 		"The command pointer passed was NULL." );
 	}
 
+	if ( suppress_output ) {
+		debug_flag = FALSE;
+	} else
 	if ( merlin_medipix->merlin_flags & MXF_MERLIN_DEBUG_COMMAND_PORT ) {
 		debug_flag = TRUE;
 	} else {

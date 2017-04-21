@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2015 Illinois Institute of Technology
+ * Copyright 2015, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -52,6 +52,8 @@ typedef struct {
 	unsigned long merlin_image_frame_length;
 
 	double external_trigger_debounce_time;		/* in seconds */
+
+	long old_detector_status;
 
 	/* The following values are managed via MX atomic ops. */
 
@@ -145,10 +147,13 @@ extern MX_AREA_DETECTOR_FUNCTION_LIST mxd_merlin_medipix_ad_function_list;
 extern long mxd_merlin_medipix_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_merlin_medipix_rfield_def_ptr;
 
+/* Flag values for mxd_merlin_medipix_command(). */
+
 MX_API mx_status_type mxd_merlin_medipix_command( MX_MERLIN_MEDIPIX *pilatus,
 					char *command,
 					char *response,
-					size_t response_buffer_length );
+					size_t response_buffer_length,
+					mx_bool_type suppress_output );
 
 #endif /* __D_MERLIN_MEDIPIX_H__ */
 
