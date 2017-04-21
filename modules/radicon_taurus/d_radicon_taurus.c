@@ -430,6 +430,13 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 #if MXD_RADICON_TAURUS_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
+	/* Record the pixel pitch (100.1 um per pixel). */
+
+	ad->resolution[0] = 0.1001;
+	ad->resolution[1] = 0.1001;
+
+	strlcpy( ad->resolution_units, "mm", sizeof(ad->resolution_units) );
+
 	/* Verify that the video input record has been found. */
 
 	video_input_record = radicon_taurus->video_input_record;

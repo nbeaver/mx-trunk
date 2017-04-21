@@ -586,6 +586,13 @@ mxd_merlin_medipix_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Set the resolution (55 um per pixel) . */
+
+	ad->resolution[0] = 0.055;
+	ad->resolution[1] = 0.055;
+
+	strlcpy( ad->resolution_units, "mm", sizeof(ad->resolution_units) );
+
 	/* Set some starting guesses at the area detector parameters. */
 
 	ad->maximum_frame_number = 0;
