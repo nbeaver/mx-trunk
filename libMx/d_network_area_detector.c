@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2011, 2013-2016 Illinois Institute of Technology
+ * Copyright 2006-2011, 2013-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -449,6 +449,15 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 		network_area_detector->server_record,
 		"%s.readout_frame", network_area_detector->remote_record_name );
 
+	mx_network_field_init( &(network_area_detector->resolution_nf),
+		network_area_detector->server_record,
+		"%s.resolution", network_area_detector->remote_record_name );
+
+	mx_network_field_init( &(network_area_detector->resolution_units_nf),
+		network_area_detector->server_record,
+		"%s.resolution_units",
+			network_area_detector->remote_record_name );
+
 	mx_network_field_init( &(network_area_detector->resynchronize_nf),
 		network_area_detector->server_record,
 		"%s.resynchronize", network_area_detector->remote_record_name );
@@ -634,6 +643,26 @@ mxd_network_area_detector_open( MX_RECORD *record )
 	/* FIXME: We need to get the header length from the server. */
 
 	ad->header_length = 0;
+
+	/* Get the pixel pitch (resolution) from the server. */
+
+	dimension[0] = 2;
+
+	mx_status = mx_get_array(&(network_area_detector->resolution_nf),
+				MXFT_DOUBLE, 1, dimension,
+				ad->resolution );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	dimension[0] = MXU_AD_RESOLUTION_UNITS_NAME_LENGTH;
+
+	mx_status = mx_get_array(&(network_area_detector->resolution_units_nf),
+				MXFT_STRING, 1, dimension,
+				ad->resolution_units );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Get the maximum framesize from the server. */
 

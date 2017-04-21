@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2011, 2013, 2015-2016 Illinois Institute of Technology
+ * Copyright 2006-2011, 2013, 2015-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -68,8 +68,6 @@ typedef struct {
 	MX_NETWORK_FIELD image_frame_header_length_nf;
 	MX_NETWORK_FIELD last_frame_number_nf;
 	MX_NETWORK_FIELD load_frame_nf;
-	MX_NETWORK_FIELD register_name_nf;
-	MX_NETWORK_FIELD register_value_nf;
 	MX_NETWORK_FIELD maximum_frame_number_nf;
 	MX_NETWORK_FIELD maximum_framesize_nf;
 	MX_NETWORK_FIELD maximum_num_rois_nf;
@@ -78,6 +76,10 @@ typedef struct {
 	MX_NETWORK_FIELD oscillation_motor_name_nf;
 	MX_NETWORK_FIELD oscillation_trigger_name_nf;
 	MX_NETWORK_FIELD readout_frame_nf;
+	MX_NETWORK_FIELD register_name_nf;
+	MX_NETWORK_FIELD register_value_nf;
+	MX_NETWORK_FIELD resolution_nf;
+	MX_NETWORK_FIELD resolution_units_nf;
 	MX_NETWORK_FIELD resynchronize_nf;
 	MX_NETWORK_FIELD roi_nf;
 	MX_NETWORK_FIELD roi_array_nf;
