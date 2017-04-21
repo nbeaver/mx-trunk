@@ -811,7 +811,7 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 					nf_label, sizeof(nf_label) );
 
 				fprintf( stderr,
-				"MX CALLBACK %#lx from '%s', value = ",
+				"MX CALLBACK <%#lx> from '%s', value = ",
 					(unsigned long) received_message_id,
 					nf_label );
 
@@ -3493,7 +3493,8 @@ mx_get_field_array( MX_RECORD *server_record,
 						remote_record_field_name, NULL,
 						nf_label, sizeof(nf_label) );
 
-		fprintf( stderr, "MX GET_ARRAY('%s') = ", nf_label );
+		fprintf( stderr, "MX GET_ARRAY('%s') <%#lx> = ",
+				nf_label, message_id );
 
 		mx_network_buffer_show_value( message, server->data_format,
 					datatype, receive_message_type,

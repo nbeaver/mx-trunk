@@ -33,11 +33,11 @@ all: build
 
 #MODULES += labjack_ux		# linux,
 
-#MODULES += libtiff		# linux, win32
+MODULES += libtiff		# linux, win32
 
 #MODULES += libusb-0.1		# linux,
 
-MODULES += newport_xps		# linux,
+#MODULES += newport_xps		# linux,
 
 #MODULES += ni488		# linux,
 
@@ -100,11 +100,11 @@ MODULES += newport_xps		# linux,
 #-------------------------------------------------------------------
 # EPICS modules.
 
-MODULES += epics
+#MODULES += epics
 
-MODULES += epics_aps 
+#MODULES += epics_aps 
 
-MODULES += epics_pmac_biocat
+#MODULES += epics_pmac_biocat
 
 #MODULES += epics_mbc
 

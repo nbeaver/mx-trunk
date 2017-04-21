@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2000, 2003-2015 Illinois Institute of Technology
+ * Copyright 1999-2000, 2003-2015, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -207,6 +207,7 @@ typedef struct {
 
 #define MXF_NETWORK_SERVER_USE_64BIT_LONGS	0x10000
 
+#define MXF_NETWORK_SERVER_DEBUG_MESSAGE_IDS	0x8000000
 #define MXF_NETWORK_SERVER_QUIET_RECONNECTION	0x10000000
 #define MXF_NETWORK_SERVER_BLOCKING_IO		0x20000000
 #define MXF_NETWORK_SERVER_DEBUG_SUMMARY	0x40000000

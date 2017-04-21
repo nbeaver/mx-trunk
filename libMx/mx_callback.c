@@ -810,7 +810,7 @@ mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,
 		mx_network_get_nf_label( server_record, nf->nfname,
 					nf_label, sizeof(nf_label) );
 
-		fprintf( stderr, "MX ADD_CALLBACK('%s') = %#lx\n",
+		fprintf( stderr, "MX ADD_CALLBACK('%s') = <%#lx>\n",
 				nf_label, callback_id );
 	}
 
@@ -933,7 +933,7 @@ mx_remote_field_delete_callback( MX_CALLBACK *callback )
 		mx_network_get_nf_label( nf->server_record, nf->nfname,
 					nf_label, sizeof(nf_label) );
 
-		fprintf( stderr, "MX DELETE_CALLBACK('%s', %#lx)\n",
+		fprintf( stderr, "MX DELETE_CALLBACK('%s', <%#lx>)\n",
 			nf_label, (unsigned long) callback->callback_id );
 	}
 
