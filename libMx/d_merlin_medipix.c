@@ -532,8 +532,6 @@ static mx_status_type
 mxd_merlin_medipix_clean_up_buffers( MX_AREA_DETECTOR *ad,
 					MX_MERLIN_MEDIPIX *merlin_medipix )
 {
-	static const char fname[] = "mxd_merlin_medipix_clean_up_buffers()";
-
 	mx_status_type mx_status;
 
 #if MXD_MERLIN_MEDIPIX_DEBUG
