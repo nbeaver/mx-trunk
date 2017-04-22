@@ -528,6 +528,55 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 
 /*---*/
 
+static mx_status_type
+mxd_merlin_medipix_clean_up_buffers( MX_AREA_DETECTOR *ad,
+					MX_MERLIN_MEDIPIX *merlin_medipix )
+{
+	static const char fname[] = "mxd_merlin_medipix_clean_up_buffers()";
+
+	mx_status_type mx_status;
+
+#if MXD_MERLIN_MEDIPIX_DEBUG
+	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+		fname, ad->record->name ));
+#endif
+
+	/********************************************************************
+	 * If we are stopped or aborted, then there may well be unread data *
+	 * in both the command socket and the data socket, so we must throw *
+	 * away all of that.  Otherwise, we may end up out of sync with the *
+	 * Merlin detector's control system.                                *
+	 ********************************************************************/
+
+	/* Clean out 'image_data_array' */
+
+	if ( merlin_medipix->image_data_array != NULL ) {
+		memset( merlin_medipix->image_data_array,
+			0, merlin_medipix->image_data_array_length );
+
+		merlin_medipix->image_data_array_length = 0;
+	}
+
+	/* Wait a second for data in transit to arrive. */
+
+	mx_msleep(1000);
+
+	/* Now discard all of the unread data. */
+
+	mx_status =
+	    mx_socket_discard_unread_input( merlin_medipix->command_socket );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status =
+	    mx_socket_discard_unread_input( merlin_medipix->data_socket );
+
+	return mx_status;
+}
+
+/*---*/
+
 MX_EXPORT mx_status_type
 mxd_merlin_medipix_initialize_driver( MX_DRIVER *driver )
 {
@@ -1112,27 +1161,9 @@ mxd_merlin_medipix_stop( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/********************************************************************
-	 * If we are stopped or aborted, then there may well be unread data *
-	 * in both the command socket and the data socket, so we must throw *
-	 * away all of that.  Otherwise, we may end up out of sync with the *
-	 * Merlin detector's control system.                                *
-	 ********************************************************************/
+	/* Attempt to throw away unwanted data. */
 
-	/* Start out by waiting a second for data in transit to arrive. */
-
-	mx_msleep(1000);
-
-	/* Now discard all of the unread data. */
-
-	mx_status =
-	    mx_socket_discard_unread_input( merlin_medipix->command_socket );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status =
-	    mx_socket_discard_unread_input( merlin_medipix->data_socket );
+	mx_status = mxd_merlin_medipix_clean_up_buffers( ad, merlin_medipix );
 
 	return mx_status;
 }
@@ -1260,7 +1291,7 @@ mxd_merlin_medipix_readout_frame( MX_AREA_DETECTOR *ad )
 	unsigned long merlin_flags;
 	int argc;
 	char **argv;
-	mx_status_type mx_status;
+	mx_status_type mx_status, mx_status_alt;
 
 	mx_status = mxd_merlin_medipix_get_pointers( ad,
 						&merlin_medipix, fname );
@@ -1272,6 +1303,11 @@ mxd_merlin_medipix_readout_frame( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s', frame %ld.",
 		fname, ad->record->name, ad->readout_frame ));
 #endif
+	if ( merlin_medipix->image_data_array_length == 0 ) {
+		/* No frame data is available. */
+
+		return MX_SUCCESSFUL_RESULT;
+	}
 
 	image_data_array = merlin_medipix->image_data_array;
 
@@ -1296,13 +1332,16 @@ mxd_merlin_medipix_readout_frame( MX_AREA_DETECTOR *ad )
 	mx_string_split( copy_of_beginning_of_image_data, ",", &argc, &argv );
 
 	if ( argc < 11 ) {
-		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		mx_status = mx_error( MXE_UNPARSEABLE_STRING, fname,
 		"The '%s' record apparently received a frame from the "
 		"Merlin detector, but there does not appear to be an image "
-		"header in the image data received from the detector.  "
-		"image_data = '%s'",
-			ad->record->name,
-			copy_of_beginning_of_image_data );
+		"header in the image data received from the detector.",
+			ad->record->name );
+
+		mx_status_alt = mxd_merlin_medipix_clean_up_buffers( ad,
+							merlin_medipix );
+
+		return mx_status;
 	}
 
 	/* MX starts frame numbers at 0 rather than 1. */
