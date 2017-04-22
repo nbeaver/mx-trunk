@@ -549,9 +549,9 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 
 
 	snprintf( full_timestamp, sizeof(full_timestamp),
-			"# Timestamp: %s.%09 %s\n",
+			"# Timestamp: %s.%09lu %s\n",
 			full_leading_timestamp,
-			MXIF_TIMESTAMP_NSEC(frame),
+			(unsigned long) MXIF_TIMESTAMP_NSEC(frame),
 			full_trailing_timestamp );
 
 	/* The following values are always the same for MX. */
