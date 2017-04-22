@@ -548,7 +548,8 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 		"%Z (%z)", &tm_struct );
 
 
-	snprintf( full_timestamp, sizeof(full_timestamp), "%s.%09 %s",
+	snprintf( full_timestamp, sizeof(full_timestamp),
+			"# Timestamp: %s.%09 %s\n",
 			full_leading_timestamp,
 			MXIF_TIMESTAMP_NSEC(frame),
 			full_trailing_timestamp );
@@ -849,10 +850,7 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 
 		/*------------------*/
 
-		snprintf( temp_buffer, sizeof(temp_buffer),
-			"# Timestamp: %s", full_timestamp );
-
-		strlcat( image_description, temp_buffer,
+		strlcat( image_description, full_timestamp,
 				sizeof(image_description) );
 
 		/*------------------*/
