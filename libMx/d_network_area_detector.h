@@ -79,7 +79,6 @@ typedef struct {
 	MX_NETWORK_FIELD register_name_nf;
 	MX_NETWORK_FIELD register_value_nf;
 	MX_NETWORK_FIELD resolution_nf;
-	MX_NETWORK_FIELD resolution_units_nf;
 	MX_NETWORK_FIELD resynchronize_nf;
 	MX_NETWORK_FIELD roi_nf;
 	MX_NETWORK_FIELD roi_array_nf;

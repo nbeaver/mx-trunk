@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2016 Illinois Institute of Technology
+ * Copyright 2006-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -31,7 +31,7 @@ extern "C" {
 
 #define MXU_AD_DATAFILE_FORMAT_NAME_LENGTH	20
 
-#define MXU_AD_RESOLUTION_UNITS_NAME_LENGTH	40
+#define foo	40
 
 /* The datafile pattern char and the datafile pattern string
  * should be identical.
@@ -258,8 +258,7 @@ typedef struct mx_area_detector_type {
 	long bytes_per_frame;
 	double bytes_per_pixel;
 	long bits_per_pixel;
-	double resolution[2];
-	char resolution_units[MXU_AD_RESOLUTION_UNITS_NAME_LENGTH+1];
+	double resolution[2];	/* in millimeters per pixel */
 
 	long mask_image_format;
 	long bias_image_format;
@@ -933,11 +932,6 @@ typedef struct mx_area_detector_type {
   {MXLV_AD_RESOLUTION, -1, "resolution", MXFT_DOUBLE, NULL, 1, {2}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, resolution), \
 	{sizeof(double)}, NULL, MXFF_READ_ONLY}, \
-  \
-  {MXLV_AD_RESOLUTION_UNITS, -1, "resolution_units", \
-		MXFT_STRING, NULL, 1, {MXU_AD_RESOLUTION_UNITS_NAME_LENGTH}, \
-	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, resolution_units), \
-	{sizeof(char)}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_AD_ARM, -1, "arm", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, arm), \

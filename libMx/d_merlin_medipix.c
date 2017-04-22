@@ -621,12 +621,10 @@ mxd_merlin_medipix_open( MX_RECORD *record )
 
 	merlin_medipix->old_detector_status = (unsigned long)(-1L);
 
-	/* Set the resolution (55 um per pixel) . */
+	/* Set the resolution in mm/pixel (There are 55 um per pixel) . */
 
 	ad->resolution[0] = 0.055;
 	ad->resolution[1] = 0.055;
-
-	strlcpy( ad->resolution_units, "mm", sizeof(ad->resolution_units) );
 
 	/* Set some starting guesses at the area detector parameters. */
 
@@ -1110,6 +1108,31 @@ mxd_merlin_medipix_stop( MX_AREA_DETECTOR *ad )
 
 	mx_status = mxd_merlin_medipix_command( merlin_medipix,
 					"CMD,STOPACQUISITION", NULL, 0, FALSE );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/********************************************************************
+	 * If we are stopped or aborted, then there may well be unread data *
+	 * in both the command socket and the data socket, so we must throw *
+	 * away all of that.  Otherwise, we may end up out of sync with the *
+	 * Merlin detector's control system.                                *
+	 ********************************************************************/
+
+	/* Start out by waiting a second for data in transit to arrive. */
+
+	mx_msleep(1000);
+
+	/* Now discard all of the unread data. */
+
+	mx_status =
+	    mx_socket_discard_unread_input( merlin_medipix->command_socket );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status =
+	    mx_socket_discard_unread_input( merlin_medipix->data_socket );
 
 	return mx_status;
 }

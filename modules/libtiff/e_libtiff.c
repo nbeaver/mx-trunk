@@ -379,6 +379,8 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 	long bytes_per_image;
 	double bytes_per_pixel;
 #endif
+	double horz_pixels_per_cm, vert_pixels_per_cm;
+
 	int tiff_status;
 
 	char *scanline_buffer = NULL;
@@ -386,7 +388,10 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 
 	char mx_version_string[80];
 
-	char timestamp[25];
+	char tiff_timestamp[25];
+	char full_timestamp[80];
+	char full_leading_timestamp[80];
+	char full_trailing_timestamp[80];
 	time_t time_in_seconds;
 	struct tm tm_struct;
 
@@ -519,18 +524,34 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 
 	(void) localtime_r( &time_in_seconds, &tm_struct );
 
-	strftime( timestamp, sizeof(timestamp),
+	strftime( tiff_timestamp, sizeof(tiff_timestamp),
 		"%Y:%m:%d %H:%M:%S", &tm_struct );
 
 #if LIBTIFF_MODULE_DEBUG_WRITE
 	MX_DEBUG(-2,("%s: timestamp = '%s'", fname, timestamp));
 #endif
 
-	if (! TIFFSetField( tiff, TIFFTAG_DATETIME, timestamp ) ) {
+	if (! TIFFSetField( tiff, TIFFTAG_DATETIME, tiff_timestamp ) ) {
 		TIFFClose( tiff );
 		return mx_error( MXE_FUNCTION_FAILED, fname,
 		"Cannot set DateTime TIFF tag." );
 	}
+
+	/* Construct a full timestamp to be written into the ImageDescription
+	 * field of the TIFF header later on in this function.
+	 */
+
+	strftime( full_leading_timestamp, sizeof(full_leading_timestamp),
+		"%Y-%m-%d %H:%M:%S.%%s", &tm_struct );
+
+	strftime( full_trailing_timestamp, sizeof(full_trailing_timestamp),
+		"%Z (%z)", &tm_struct );
+
+
+	snprintf( full_timestamp, sizeof(full_timestamp), "%s.%09 %s",
+			full_leading_timestamp,
+			MXIF_TIMESTAMP_NSEC(frame),
+			full_trailing_timestamp );
 
 	/* The following values are always the same for MX. */
 
@@ -569,6 +590,8 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 	 */
 
 #if 0
+	/* FIXME: The following does not work for some reason. */
+
 	if (! TIFFSetField( tiff, TIFFTAG_STRIPOFFSETS, 4096 ) ) {
 		TIFFClose( tiff );
 		return mx_error( MXE_FUNCTION_FAILED, fname,
@@ -615,16 +638,21 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 	      || ( mx_difference( ad->resolution[1], 0.0 ) >= 1.0e-10 ) )
 #endif
 	    {
+		/* Convert from MX mm/pixel to TIFF pixels/cm. */
+
+		horz_pixels_per_cm = mx_divide_safely(10.0, ad->resolution[0]);
+
+		vert_pixels_per_cm = mx_divide_safely(10.0, ad->resolution[1]);
 
 		if (! TIFFSetField( tiff, TIFFTAG_XRESOLUTION,
-				ad->resolution[0] ) )
+				horz_pixels_per_cm ) )
 		{
 			return mx_error( MXE_FUNCTION_FAILED, fname,
 			"Cannot set XResolution TIFF tag." );
 		}
 
 		if (! TIFFSetField( tiff, TIFFTAG_YRESOLUTION,
-				ad->resolution[1] ) )
+				vert_pixels_per_cm ) )
 		{
 			return mx_error( MXE_FUNCTION_FAILED, fname,
 			"Cannot set YResolution TIFF tag." );
@@ -736,7 +764,7 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 	 */
 
 	snprintf( temp_buffer, sizeof(temp_buffer),
-		"# Exposure_time %f seconds\n", exposure_seconds );
+		"# Exposure_time: %f seconds\n", exposure_seconds );
 
 	strlcpy( image_description,
 		temp_buffer,
@@ -821,6 +849,14 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 
 		/*------------------*/
 
+		snprintf( temp_buffer, sizeof(temp_buffer),
+			"# Timestamp: %s", full_timestamp );
+
+		strlcat( image_description, temp_buffer,
+				sizeof(image_description) );
+
+		/*------------------*/
+
 		mx_status = mx_sequence_get_num_frames( &seq,
 						&num_frames_in_sequence );
 
@@ -831,14 +867,14 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 		}
 
 		snprintf( temp_buffer, sizeof(temp_buffer),
-			"# Frame_number = %ld\n",
+			"# Frame_number: %ld\n",
 			ad->datafile_last_frame_number - 1 );
 
 		strlcat( image_description, temp_buffer,
 				sizeof(image_description) );
 
 		snprintf( temp_buffer, sizeof(temp_buffer),
-			"# Num_frames_in_sequence = %ld\n",
+			"# Num_frames_in_sequence: %ld\n",
 			num_frames_in_sequence );
 
 		strlcat( image_description, temp_buffer,
@@ -847,14 +883,14 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 		/*------------------*/
 
 		snprintf( temp_buffer, sizeof(temp_buffer),
-			"# trigger_mode = %#lx\n",
+			"# trigger_mode: %#lx\n",
 			ad->trigger_mode );
 
 		strlcat( image_description, temp_buffer,
 				sizeof(image_description) );
 
 		snprintf( temp_buffer, sizeof(temp_buffer),
-			"# correction_flags = %#lx\n",
+			"# correction_flags: %#lx\n",
 			ad->correction_flags );
 
 		strlcat( image_description, temp_buffer,

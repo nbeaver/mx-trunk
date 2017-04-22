@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2016 Illinois Institute of Technology
+ * Copyright 2006-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -243,7 +243,6 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 
 	ad->resolution[0] = 0.0;
 	ad->resolution[1] = 0.0;
-	ad->resolution_units[0] = '\0';
 
 	ad->frame_filename[0] = '\0';
 
