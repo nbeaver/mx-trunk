@@ -391,7 +391,6 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 	char tiff_timestamp[25];
 	char full_timestamp[80];
 	char full_leading_timestamp[80];
-	char full_trailing_timestamp[80];
 	time_t time_in_seconds;
 	struct tm tm_struct;
 
@@ -544,15 +543,10 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 	strftime( full_leading_timestamp, sizeof(full_leading_timestamp),
 		"%Y-%m-%d %H:%M:%S", &tm_struct );
 
-	strftime( full_trailing_timestamp, sizeof(full_trailing_timestamp),
-		"%Z (%z)", &tm_struct );
-
-
 	snprintf( full_timestamp, sizeof(full_timestamp),
-			"# Timestamp: %s.%09lu %s\n",
+			"# Timestamp: %s.%09lu\n",
 			full_leading_timestamp,
-			(unsigned long) MXIF_TIMESTAMP_NSEC(frame),
-			full_trailing_timestamp );
+			(unsigned long) MXIF_TIMESTAMP_NSEC(frame) );
 
 	/* The following values are always the same for MX. */
 
