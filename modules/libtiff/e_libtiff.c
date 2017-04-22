@@ -542,7 +542,7 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 	 */
 
 	strftime( full_leading_timestamp, sizeof(full_leading_timestamp),
-		"%Y-%m-%d %H:%M:%S.%%s", &tm_struct );
+		"%Y-%m-%d %H:%M:%S", &tm_struct );
 
 	strftime( full_trailing_timestamp, sizeof(full_trailing_timestamp),
 		"%Z (%z)", &tm_struct );
