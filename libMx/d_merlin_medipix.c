@@ -146,6 +146,111 @@ mxd_merlin_medipix_get_pointers( MX_AREA_DETECTOR *ad,
 
 /*---*/
 
+/* mxd_merlin_medipix_raw_wait_for_message_header() keeps reading from the
+ * socket until it finds a Merlin Medipix header.
+ *
+ * FIXME: This implementation uses single character I/O, which is probably
+ *        _very_ inefficient.  It is done this way to meet a deadline for
+ *        testing on an X-ray beamline.  This code should be replaced.
+ */
+
+static mx_status_type
+mxd_merlin_medipix_raw_wait_for_message_header( MX_SOCKET *mx_socket,
+					unsigned long *message_body_length )
+{
+	static const char fname[] =
+		"mxd_merlin_medipix_raw_wait_for_message_header()";
+
+	static char mpx_label[] = "MPX,";
+
+	unsigned long mpx_label_length;
+	unsigned long num_matching_chars;
+	size_t num_bytes_received;
+	int num_items;
+	char c;
+	char ascii_message_body_length[12];
+	mx_status_type mx_status;
+
+	if ( mx_socket == (MX_SOCKET *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SOCKET pointer passed was NULL." );
+	}
+	if ( message_body_length == (unsigned long *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The message_body_length pointer passed was NULL." );
+	}
+
+	mpx_label_length = strlen( mpx_label );
+
+	num_matching_chars = 0;
+
+	while (TRUE) {
+		/* Try to read a character. */
+
+		mx_status = mx_socket_receive( mx_socket,
+					&c, 1, NULL, NULL, 0, 0 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( c == mpx_label[ num_matching_chars ] ) {
+			num_matching_chars++;
+		} else {
+			num_matching_chars = 0;
+		}
+
+		if ( num_matching_chars >= mpx_label_length ) {
+			/* We have found all of the characters in
+			 * 'mpx_label', so we break out of the loop
+			 * to read in the length of the rest of the
+			 * message.
+			 */
+
+			break;
+		}
+
+		mx_usleep(1);
+	}
+
+	/* The ASCII header length field is 10 bytes long and is followed
+	 * by a comma ',' character.  We read in the next 11 bytes and
+	 * extract the message body length from that.
+	 */
+
+	mx_status = mx_socket_receive( mx_socket,
+				ascii_message_body_length,
+				sizeof(ascii_message_body_length) - 1,
+		  		&num_bytes_received, NULL, 0, 0 );
+			  		
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( num_bytes_received != (sizeof(ascii_message_body_length) - 1) ) {
+		return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
+		"The ascii_message_body_length read in for socket %d is "
+		"shorter (%lu) than the expected length of %lu.",
+			mx_socket->socket_fd,
+			&num_bytes_received,
+			sizeof(ascii_message_body_length) - 1 );
+	}
+
+	num_items = sscanf( ascii_message_body_length,
+			"%lu,", message_body_length );
+
+	if ( num_items != 1 ) {
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"The string '%s' read from socket %lu, does not appear "
+		"to contain a message body length.",
+			ascii_message_body_length, mx_socket->socket_fd );
+	}
+
+	/* We have found the message body length, so return now. */
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
 /* Only the thread running mxd_merlin_medipix_monitor_thread_fn() is
  * allowed to read from the Merlin data port.
  */
@@ -208,16 +313,18 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 
 	old_num_bytes_available = -1L;
 
-	while (1) {
+	while (TRUE) {
 
-	    /* Check for new data from the Merlin detector. */
+	    /* Wait for an acquisition header */
 
-	    mx_status = mx_socket_num_input_bytes_available(
-					merlin_medipix->data_socket,
-					&num_bytes_available );
+	    mx_status = mxd_merlin_medipix_raw_wait_for_message_header(
+			    			merlin_medipix->data_socket,
+						&message_body_length );
 
 	    if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		    return mx_status;
+
+	    /* Read in the body of the message. */
 
 	    if ( num_bytes_available != old_num_bytes_available ) {
 
