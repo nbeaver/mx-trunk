@@ -223,8 +223,8 @@ mxd_merlin_medipix_raw_wait_for_message_header( MX_SOCKET *mx_socket,
 		"The ascii_message_body_length read in for socket %d is "
 		"shorter (%lu) than the expected length of %lu.",
 			mx_socket->socket_fd,
-			&num_bytes_received,
-			sizeof(ascii_message_body_length) - 1 );
+			(unsigned long) num_bytes_received,
+			(unsigned long) sizeof(ascii_message_body_length) - 1 );
 	}
 
 	num_items = sscanf( ascii_message_body_length,
@@ -232,7 +232,7 @@ mxd_merlin_medipix_raw_wait_for_message_header( MX_SOCKET *mx_socket,
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_UNPARSEABLE_STRING, fname,
-		"The string '%s' read from socket %lu, does not appear "
+		"The string '%s' read from socket %d, does not appear "
 		"to contain a message body length.",
 			ascii_message_body_length, mx_socket->socket_fd );
 	}
@@ -257,18 +257,13 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 	MX_AREA_DETECTOR *ad;
 	MX_MERLIN_MEDIPIX *merlin_medipix;
 	long merlin_frame_number, mx_frame_number;
-	long num_bytes_available, old_num_bytes_available;
+	long old_num_bytes_available;
 	unsigned long sleep_us;
 	unsigned long message_body_length;
-	unsigned long new_data_length;
 	char *dest_buffer_ptr;
 	int num_items, message_type;
 	size_t num_bytes_read;
 	char initial_read_buffer[ MXU_MPX_INITIAL_READ_LENGTH + 1 ];
-	char **data_ptr = NULL;
-	unsigned long *data_length_ptr = NULL;
-	unsigned long old_data_length;
-	MX_RECORD_FIELD *data_field = NULL;
 	mx_status_type mx_status;
 
 	if ( args == NULL ) {
