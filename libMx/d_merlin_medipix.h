@@ -43,9 +43,6 @@ typedef struct {
 
 	MX_THREAD *monitor_thread;
 
-	unsigned long temp_buffer_length;
-	char *temp_buffer;
-
 	unsigned long acquisition_header_length;
 	char *acquisition_header;
 

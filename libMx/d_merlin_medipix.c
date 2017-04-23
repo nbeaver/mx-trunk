@@ -41,22 +41,15 @@
 
 /*---*/
 
-/* The following defines are used for specifying how much of the
+/* The following define is used to specifying how much of the
  * beginning of an MPX message to read while figuring out
+ * the message type and things like the frame number that
+ * are used in the copying of data.
  */
 
 #define MXU_MPX_HEADER_LENGTH		14
 #define MXU_MPX_SEPARATOR_LENGTH	1
-#define MXU_MPX_INITIAL_BODY_LENGTH	20
-
-#define MXU_MPX_INITIAL_READ_LENGTH \
-	( MXU_MPX_HEADER_LENGTH + MXU_MPX_SEPARATOR_LENGTH \
-	+ MXU_MPX_INITIAL_BODY_LENGTH )
-
-#define MXU_MPX_MESSAGE_BODY_OFFSET \
-	( MXU_MPX_HEADER_LENGTH + MXU_MPX_SEPARATOR_LENGTH )
-
-#define MXU_MPX_MESSAGE_TYPE_LENGTH	3
+#define MXU_MPX_INITIAL_READ_LENGTH	12
 
 /*---*/
 
@@ -264,18 +257,14 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 	MX_AREA_DETECTOR *ad;
 	MX_MERLIN_MEDIPIX *merlin_medipix;
 	long merlin_frame_number, mx_frame_number;
-	mx_bool_type parsing_succeeded;
 	long num_bytes_available, old_num_bytes_available;
 	unsigned long sleep_us;
 	unsigned long message_body_length;
-	unsigned long message_body_remaining_length;
 	unsigned long new_data_length;
-	char *src_body_ptr, *dest_body_ptr;
-	char *dest_body_remaining_ptr;
+	char *dest_buffer_ptr;
 	int num_items, message_type;
 	size_t num_bytes_read;
-	char header_buffer[ MXU_MPX_INITIAL_READ_LENGTH + 1 ];
-	char message_type_string[ MXU_MPX_MESSAGE_TYPE_LENGTH + 1 ];
+	char initial_read_buffer[ MXU_MPX_INITIAL_READ_LENGTH + 1 ];
 	char **data_ptr = NULL;
 	unsigned long *data_length_ptr = NULL;
 	unsigned long old_data_length;
@@ -324,306 +313,81 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 	    if ( mx_status.code != MXE_SUCCESS )
 		    return mx_status;
 
-	    /* Read in the body of the message. */
+	    /* Read in the beginning of the message in order to figure
+	     * out what kind of message this is and then copy the
+	     * data to whereever it has to go.
+	     */
 
-	    if ( num_bytes_available != old_num_bytes_available ) {
-
-#if MXD_MERLIN_MEDIPIX_DEBUG_MONITOR_THREAD
-		MX_DEBUG(-2,("%s: '%s' num_bytes_available = %ld",
-			fname, record->name, num_bytes_available));
-#endif
-		old_num_bytes_available = num_bytes_available;
-	    }
-
-	    if ( num_bytes_available > 0 ) {
-		/* Try to read the start of a Merlin message from the
-		 * data socket.  We include the beginning of the
-		 * message body in what we read.
-		 */
-
-		memset( header_buffer, 0, sizeof(header_buffer) );
-
-		mx_status = mx_socket_receive( merlin_medipix->data_socket,
-					header_buffer,
+	    mx_status = mx_socket_receive( merlin_medipix->data_socket,
+			    		initial_read_buffer,
 					MXU_MPX_INITIAL_READ_LENGTH,
 					&num_bytes_read, NULL, 0,
 					MXF_SOCKET_RECEIVE_WAIT );
 
-		if ( mx_status.code != MXE_SUCCESS )
+	    if ( mx_status.code != MXE_SUCCESS )
 		    return mx_status;
 
-		/* Make sure that header_buffer is null terminated. */
+	    /* Make sure the initial read buffer is null terminated. */
 
-		header_buffer[MXU_MPX_INITIAL_READ_LENGTH] = '\0';
+	    initial_read_buffer[MXU_MPX_INITIAL_READ_LENGTH] = '\0';
 
-#if MXD_MERLIN_MEDIPIX_DEBUG_MONITOR_THREAD
-		MX_DEBUG(-2,("%s: header_buffer = '%s'", fname, header_buffer));
-#endif
+	    /*-----------------------------------------------------------*/
 
-		if ( num_bytes_read < MXU_MPX_INITIAL_READ_LENGTH ) {
-		    mx_warning(
-			"%s: Buffer underrun (header), num_bytes_read = %ld, "
-			"expected read length = %d",
-				fname, (long) num_bytes_read,
-				MXU_MPX_INITIAL_READ_LENGTH );
-		}
+	    if ( strncmp( initial_read_buffer, "HDR,", 4 ) == 0 ){
 
-		if ( strncmp( header_buffer, "MPX,", 4 ) != 0 ) {
-		    return mx_error( MXE_PROTOCOL_ERROR, fname,
-			"We are out of sync with the data buffer "
-			"stream from area detector '%s'.", record->name );
-		}
+		    dest_buffer_ptr = merlin_medipix->acquisition_header;
 
-		/* How many bytes are in the remainder of the message.*/
+	    } else
+	    if ( strncmp( initial_read_buffer, "MQ1,", 4 ) == 0 ) {
 
-		num_items = sscanf( header_buffer, "MPX,%lu,%3s",
-						&message_body_length,
-						message_type_string );
-
-		if ( num_items != 2 ) {
-		    return mx_error( MXE_PROTOCOL_ERROR, fname,
-			"Did not find the number of bytes and the "
-			"message type in the body of the message "
-			"from detector '%s' "
-			"that starts with this '%s'.",
-				record->name, header_buffer );
-		}
-
-		/* The message_body_length value reported in the header
-		 * provided by the Merlin Medipix includes a comma ','
-		 * character that appears just before the message type
-		 * string, such as 'HDR' or 'MQ1'.  We do not want to
-		 * copy that comma to the destination, so we leave it
-		 * out of the message_body_length value.
-		 */
-
-		message_body_length--;
-
-		/* Prepare to read in the rest of the message body. */
-
-#if MXD_MERLIN_MEDIPIX_DEBUG_MONITOR_THREAD
-		MX_DEBUG(-2,("%s: message '%s', %lu bytes",
-			fname, message_type_string, message_body_length ));
-#endif
-
-		if ( strcmp( message_type_string, "HDR" ) == 0 ) {
-		    message_type = MXT_MPX_ACQUISITION_MESSAGE;
-
-		    data_ptr = &(merlin_medipix->acquisition_header);
-		    data_length_ptr =
-				  &(merlin_medipix->acquisition_header_length);
-
-		    new_data_length = message_body_length;
-		} else
-		if ( strcmp( message_type_string, "MQ1" ) == 0 ) {
-		    message_type = MXT_MPX_IMAGE_MESSAGE;
-
-		    data_ptr = &(merlin_medipix->image_data_array),
-		    data_length_ptr =
-				&(merlin_medipix->image_data_array_length);
-
-		    merlin_medipix->merlin_image_frame_length
-				= message_body_length;
-
-		    new_data_length = message_body_length
-				* merlin_medipix->maximum_num_images;
-
-		    /* Update the frame counter. */
-
-		    mx_atomic_increment32( &(merlin_medipix->total_num_frames));
-
-#if 1
-		    MX_DEBUG(-2,("CAPTURE: Total num frames = %lu",
-		    (unsigned long) merlin_medipix->total_num_frames));
-#endif
-		} else {
-		    message_type = MXT_MPX_UNKNOWN_MESSAGE;
-
-		    return mx_error( MXE_PROTOCOL_ERROR, fname,
-			"Message type '%s' is not recognized for "
-			"data socket %d of area detector '%s'.",
-				message_type_string,
-				(int) merlin_medipix->data_socket->socket_fd,
-				record->name );
-		}
-
-		/* See if we need to change the memory allocation
-		 * for the destination.
-		 */
-
-		old_data_length = *data_length_ptr;
-
-		if ( *data_ptr == NULL ) {
-		    *data_length_ptr = new_data_length;
-
-		    *data_ptr = malloc( new_data_length );
-		} else
-		if ( *data_length_ptr == 0 ) {
-		    mx_free( *data_ptr );
-
-		    *data_ptr = malloc( new_data_length );
-
-		    *data_length_ptr = new_data_length;
-		} else
-		if ( *data_length_ptr < new_data_length ) {
-		    *data_ptr = realloc( *data_ptr, new_data_length );
-
-		    *data_length_ptr = new_data_length;
-		} else {
-		    /* The buffer is already the right size
-		     * so we do not need to realloc it.
+		    /* We need to find out what frame number this is
+		     * in order to compute the address the frame must
+		     * be copied to.
 		     */
-		}
 
-		if ( *data_ptr == NULL ) {
-		    return mx_error( MXE_OUT_OF_MEMORY, fname,
-			"The attempt to allocate a %lu byte data "
-			"buffer for detector '%s' failed.",
-				new_data_length, record->name );
-		}
-
-		/* Compute the addresses needed for message body copying. */
-
-		src_body_ptr = header_buffer + MXU_MPX_MESSAGE_BODY_OFFSET;
-
-#if MXD_MERLIN_MEDIPIX_DEBUG_MONITOR_THREAD
-		MX_DEBUG(-2,("%s: src_body_ptr = '%s'", fname, src_body_ptr));
-#endif
-
-		parsing_succeeded = TRUE;
-
-		switch( message_type ) {
-		case MXT_MPX_ACQUISITION_MESSAGE:
-		    dest_body_ptr = *data_ptr;
-		    break;
-		case MXT_MPX_IMAGE_MESSAGE:
-		    dest_body_ptr = *data_ptr;
-
-		    /* We need to find out which frame number this is. */
-
-		    num_items = sscanf( src_body_ptr, "MQ1,%lu",
-							&merlin_frame_number );
+		    num_items = sscanf( initial_read_buffer, "MQ1,%lu",
+				    			&merlin_frame_number );
 
 		    if ( num_items != 1 ) {
-			mx_warning( "Did not find the Merlin frame number in "
-				"the Merlin message body '%s' for "
+			return mx_error( MXE_UNPARSEABLE_STRING, fname,
+				"Did not find the Merlin frame number in "
+				"the Merlin message body '%s...' for "
 				"area detector '%s'.",
-					src_body_ptr, record->name );
-
-			parsing_succeeded = FALSE;
+					initial_read_buffer,
+					record->name );
 		    }
 
 		    mx_frame_number = merlin_frame_number - 1L;
 
-#if MXD_MERLIN_MEDIPIX_DEBUG_MONITOR_THREAD
-		    MX_DEBUG(-2,("%s: mx_frame_number = %lu",
-			fname, merlin_frame_number ));
+		    dest_buffer_ptr = merlin_medipix->image_data_array
+				    + (mx_frame_number * message_body_length);
+	    } else {
+		    message_type = MXT_MPX_UNKNOWN_MESSAGE;
 
-		    MX_DEBUG(-2,("%s: dest_body_ptr = %p (before).",
-			fname, dest_body_ptr ));
-
-		    MX_DEBUG(-2,("%s: message_body_length = %lu",
-			fname, message_body_length));
-#endif
-
-		    dest_body_ptr += (mx_frame_number * message_body_length);
-
-#if MXD_MERLIN_MEDIPIX_DEBUG_MONITOR_THREAD
-		    MX_DEBUG(-2,("%s: dest_body_ptr = %p (after).",
-			fname, dest_body_ptr ));
-#endif
-
-		    break;
-		case MXT_MPX_UNKNOWN_MESSAGE:
-		default:
-		    mx_warning( "Unknown message type seen in message "
-				"body '%s' for area detector '%s'.",
-					src_body_ptr, record->name );
-
-		    dest_body_ptr = NULL;
-
-		    parsing_succeeded = FALSE;
-		    break;
-		}
-			
-		if ( parsing_succeeded == FALSE ) {
-		    MX_DEBUG(-2,
-			("%s: FIXME - discard the rest of the message here "
-			"so that we can resync.", fname));
-
-		    continue;
-		}
-
-		/* Zero out the destination array. */
-
-		memset( dest_body_ptr, 0, message_body_length );
-
-		/* Copy the initial part of the message to the 
-		 * destination buffer.
-		 */
-
-		strlcpy( dest_body_ptr, src_body_ptr, message_body_length );
-
-		/* Update the length of the MX_RECORD_FIELD array. */
-
-#if MXD_MERLIN_MEDIPIX_DEBUG_MONITOR_THREAD
-		MX_DEBUG(-2,("%s: dest_body_ptr = '%s'", fname, dest_body_ptr));
-#endif
-
-		if ( old_data_length != new_data_length ) {
-		    switch( message_type ) {
-		    case MXT_MPX_ACQUISITION_MESSAGE:
-			mx_status = mx_find_record_field(
-				record, "acquisition_header", &data_field );
-			break;
-		    case MXT_MPX_IMAGE_MESSAGE:
-			mx_status = mx_find_record_field(
-				record, "image_data_array", &data_field );
-			break;
-		    }
-
-		    data_field->dimension[0] = new_data_length;
-		}
-
-		/* Read the body of the message into the
-		 * data buffer.  The offset of 3 causes the
-		 * rest of the buffer to appear after the
-		 * message type that we have already copied
-		 * over.
-		 */
-
-		dest_body_remaining_ptr =
-			dest_body_ptr + MXU_MPX_INITIAL_BODY_LENGTH;
-
-		message_body_remaining_length =
-			message_body_length - MXU_MPX_INITIAL_BODY_LENGTH;
-
-		mx_status = mx_socket_receive( merlin_medipix->data_socket,
-					dest_body_remaining_ptr,
-					message_body_remaining_length,
-					&num_bytes_read, NULL, 0,
-					MXF_SOCKET_RECEIVE_WAIT );
-
-		if ( mx_status.code != MXE_SUCCESS )
-		    return mx_status;
-
-		if ( num_bytes_read < message_body_remaining_length ) {
-		    mx_warning(
-			"%s: Buffer underrun (body), num_bytes_read = %ld, "
-			"message_body_remaining_length = %ld",
-				fname, (long) num_bytes_read,
-				message_body_remaining_length );
-		}
-
-#if MXD_MERLIN_MEDIPIX_DEBUG_MONITOR_THREAD
-	    MX_DEBUG(-2,("%s: finished processing frame %lu",
-		fname, mx_frame_number));
-#endif
-
-		/* End of 'if ( num_bytes_available > 0 )'. */
+		    return mx_error( MXE_PROTOCOL_ERROR, fname,
+		    "Message type in '%s' is not recognized for "
+		    "data socket %d of area detector '%s'.",
+		    	initial_read_buffer,
+			(int) merlin_medipix->data_socket->socket_fd,
+			record->name );
 	    }
 
-	    /*---*/
+	    /* copy the bytes that we have already read to the destination. */
+
+	    memcpy( dest_buffer_ptr, initial_read_buffer,
+			    MXU_MPX_INITIAL_READ_LENGTH );
+
+	    /* Now copy in the rest of the message from the socket. */
+
+	    dest_buffer_ptr += MXU_MPX_INITIAL_READ_LENGTH;
+
+	    message_body_length -= MXU_MPX_INITIAL_READ_LENGTH;
+
+	    mx_status = mx_socket_receive( merlin_medipix->data_socket,
+			    		dest_buffer_ptr,
+					message_body_length,
+					&num_bytes_read, NULL, 0,
+					MXF_SOCKET_RECEIVE_WAIT );
 
 	    mx_usleep( sleep_us );
 
