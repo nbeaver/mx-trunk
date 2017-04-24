@@ -18,6 +18,8 @@
 #ifndef __D_MERLIN_MEDIPIX_H__
 #define __D_MERLIN_MEDIPIX_H__
 
+#define MXU_MPX_SENSOR_LAYOUT_LENGTH	20
+
 /* Bit flags for the 'merlin_flags' field. */
 
 #define MXF_MERLIN_DEBUG_COMMAND_PORT	0x1
@@ -46,10 +48,17 @@ typedef struct {
 	unsigned long acquisition_header_length;
 	char *acquisition_header;
 
+	unsigned long image_message_length;
 	unsigned long image_data_array_length;
 	char *image_data_array;
 
-	unsigned long merlin_image_frame_length;
+	unsigned long image_data_offset;
+	unsigned long number_of_chips;
+	char sensor_layout[ MXU_MPX_SENSOR_LAYOUT_LENGTH+1 ];
+	unsigned long chip_select;
+	unsigned long counter;
+	unsigned long color_mode;
+	unsigned long gain_mode;
 
 	double external_trigger_debounce_time;		/* in seconds */
 
@@ -102,6 +111,11 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MERLIN_MEDIPIX, acquisition_header), \
 	{sizeof(char)}, NULL, (MXFF_READ_ONLY | MXFF_VARARGS) }, \
   \
+  {-1, -1, "image_message_length", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_MERLIN_MEDIPIX, image_message_length), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
   {-1, -1, "image_data_array_length", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 			offsetof(MX_MERLIN_MEDIPIX, image_data_array_length), \
@@ -111,9 +125,33 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MERLIN_MEDIPIX, image_data_array), \
 	{sizeof(char)}, NULL, (MXFF_READ_ONLY | MXFF_VARARGS) }, \
   \
-  {-1, -1, "merlin_image_frame_length", MXFT_ULONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, \
-		offsetof(MX_MERLIN_MEDIPIX, merlin_image_frame_length), \
+  {-1, -1, "image_data_offset", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_MERLIN_MEDIPIX, image_data_offset), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "number_of_chips", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_MERLIN_MEDIPIX, number_of_chips), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "sensor_layout", MXFT_STRING, \
+	  			NULL, 1, {MXU_MPX_SENSOR_LAYOUT_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_MERLIN_MEDIPIX, sensor_layout), \
+	{sizeof(char)}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "chip_select", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_MERLIN_MEDIPIX, chip_select), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "counter", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_MERLIN_MEDIPIX, counter), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "color_mode", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_MERLIN_MEDIPIX, color_mode), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "gain_mode", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_MERLIN_MEDIPIX, gain_mode), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
   {-1, -1, "external_trigger_debounce_time", MXFT_DOUBLE, NULL, 0, {0}, \

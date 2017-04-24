@@ -31,8 +31,6 @@ extern "C" {
 
 #define MXU_AD_DATAFILE_FORMAT_NAME_LENGTH	20
 
-#define foo	40
-
 /* The datafile pattern char and the datafile pattern string
  * should be identical.
  */
