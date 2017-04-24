@@ -279,7 +279,8 @@ mxd_merlin_medipix_setup_data_socket( MX_AREA_DETECTOR *ad,
 	}
 	if ( merlin_medipix == (MX_MERLIN_MEDIPIX *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_MERLIN_MEDIPIX pointer passed was NULL." );
+	    "The MX_MERLIN_MEDIPIX pointer passed for detector '%s' is NULL.",
+			ad->record->name );
 	}
 
 	data_socket = merlin_medipix->data_socket;
@@ -287,7 +288,8 @@ mxd_merlin_medipix_setup_data_socket( MX_AREA_DETECTOR *ad,
 	if ( data_socket == (MX_SOCKET *) NULL ) {
 		return mx_error( MXE_INITIALIZATION_ERROR, fname,
 		"Somehow the Merlin data socket has not yet been initialized "
-		"for detector '%s'.  This should not be able to happen!" );
+		"for detector '%s'.  This should not be able to happen!",
+			ad->record->name );
 	}
 
 	/* Configure the detector for 1 frame with internal triggering
@@ -497,7 +499,7 @@ mxd_merlin_medipix_setup_data_socket( MX_AREA_DETECTOR *ad,
 		return mx_status;
 
 	snprintf( mq1_header_format, sizeof(mq1_header_format),
-	"MQ1,%%*,%%lu,%%lu,%%ld,%%ld,U%%ld,%%%s,%%lu,%%*,%%*,%%lu,%%lu,%%lu,",
+	"MQ1,%%*,%%lu,%%lu,%%ld,%%ld,U%%ld,%%%d,%%lu,%%*,%%*,%%lu,%%lu,%%lu,",
 		MXU_MPX_SENSOR_LAYOUT_LENGTH );
 
 	num_items = sscanf( initial_image_header_bytes,
@@ -1396,7 +1398,7 @@ mxd_merlin_medipix_readout_frame( MX_AREA_DETECTOR *ad )
 	unsigned long merlin_flags;
 	int argc;
 	char **argv;
-	mx_status_type mx_status, mx_status_alt;
+	mx_status_type mx_status;
 
 	mx_status = mxd_merlin_medipix_get_pointers( ad,
 						&merlin_medipix, fname );
