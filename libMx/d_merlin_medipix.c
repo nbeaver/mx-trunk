@@ -949,7 +949,7 @@ mxd_merlin_medipix_open( MX_RECORD *record )
 		"The Merlin Medipix detector '%s' is currently configured "
 		"for %lu bits per pixel images.  At this time, the "
 		"'merlin_medipix' driver only supports 16-bit images.",
-			ad->bits_per_pixel, ad->record->name );
+			ad->record->name, ad->bits_per_pixel );
 	}
 
 	/* Get the software version of the Merlin controller. */
@@ -1522,7 +1522,7 @@ mxd_merlin_medipix_readout_frame( MX_AREA_DETECTOR *ad )
 	char *image_message_array;
 	char *ptr, *image_binary_ptr, *image_message_ptr;
 	char copy_of_beginning_of_message[200];
-	long mx_frame_number, offset_to_data, image_width, image_height;
+	long mx_frame_number;
 	unsigned long bits_per_pixel, buffer_mx_frame_number;
 	double exposure_time;
 	char *timestamp_string = NULL;
@@ -1572,7 +1572,7 @@ mxd_merlin_medipix_readout_frame( MX_AREA_DETECTOR *ad )
 		fname, merlin_medipix->image_message_array));
 	MX_DEBUG(-2,("%s: merlin_medipix->image_message_length = %lu",
 		fname, merlin_medipix->image_message_length));
-	MX_DEBUG(-2,("%s: mx_frame_number, image_message_ptr = %p",
+	MX_DEBUG(-2,("%s: mx_frame_number = %lu, image_message_ptr = %p",
 		fname, mx_frame_number, image_message_ptr));
 #endif
 	/* Make a copy of the beginning of the message so that we can run
