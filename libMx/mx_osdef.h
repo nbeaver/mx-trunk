@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2005-2008, 2011 Illinois Institute of Technology
+ * Copyright 1999-2003, 2005-2008, 2011, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -75,7 +75,8 @@
 
 /* Do we have a version of FIONREAD that supports sockets? */
 
-#if defined( OS_LINUX ) || defined( OS_MACOSX ) || defined( OS_SOLARIS )
+#if defined( OS_LINUX ) || defined( OS_MACOSX ) || defined( OS_SOLARIS ) \
+	|| defined( OS_WIN32 )
 #  define HAVE_FIONREAD_FOR_SOCKETS	1
 #else
 #  define HAVE_FIONREAD_FOR_SOCKETS	0

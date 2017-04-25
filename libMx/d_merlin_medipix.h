@@ -25,7 +25,7 @@
 #define MXF_MERLIN_DEBUG_COMMAND_PORT	0x1
 #define MXF_MERLIN_DEBUG_DATA_PORT	0x2
 
-#define MXF_MERLIN_INVERT_IMAGE		0x1000
+#define MXF_MERLIN_CONFIGURE_DETECTOR	0x10
 
 typedef struct {
 	MX_RECORD *record;
@@ -37,6 +37,11 @@ typedef struct {
 	unsigned long maximum_num_images;
 
 	double command_socket_timeout;			/* in seconds */
+
+	unsigned long gain;
+	unsigned long threshold0;
+	unsigned long threshold1;
+	unsigned long high_voltage;
 
 	unsigned long merlin_software_version;
 
@@ -95,6 +100,22 @@ typedef struct {
   {-1, -1, "command_socket_timeout", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_MERLIN_MEDIPIX, command_socket_timeout), \
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {-1, -1, "gain", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_MERLIN_MEDIPIX, gain), \
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {-1, -1, "threshold0", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_MERLIN_MEDIPIX, threshold0), \
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {-1, -1, "threshold1", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_MERLIN_MEDIPIX, threshold1), \
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {-1, -1, "high_voltage", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_MERLIN_MEDIPIX, high_voltage), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }, \
   \
   {-1, -1, "merlin_software_version", MXFT_ULONG, NULL, 0, {0}, \

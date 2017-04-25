@@ -15,9 +15,11 @@
  *
  */
 
-#define MXD_MERLIN_MEDIPIX_DEBUG		FALSE
+#define MXD_MERLIN_MEDIPIX_DEBUG			FALSE
 
-#define MXD_MERLIN_MEDIPIX_DEBUG_MONITOR_THREAD	TRUE
+#define MXD_MERLIN_MEDIPIX_DEBUG_MONITOR_THREAD		TRUE
+
+#define MXD_MERLIN_MEDIPIX_DEBUG_WAIT_FOR_MESSAGES	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -160,7 +162,7 @@ mxd_merlin_medipix_raw_wait_for_message_header( MX_SOCKET *data_socket,
 	unsigned long mpx_label_length;
 	unsigned long num_matching_chars;
 	size_t num_bytes_received;
-	int num_items;
+	int i, num_items;
 	char c;
 	char ascii_message_body_length[12];
 	mx_status_type mx_status;
@@ -174,11 +176,15 @@ mxd_merlin_medipix_raw_wait_for_message_header( MX_SOCKET *data_socket,
 		"The message_body_length pointer passed was NULL." );
 	}
 
+#if MXD_MERLIN_MEDIPIX_DEBUG_WAIT_FOR_MESSAGES
+	MX_DEBUG(-2,("%s: WAIT started.", fname));
+#endif
+
 	mpx_label_length = strlen( mpx_label );
 
 	num_matching_chars = 0;
 
-	while (TRUE) {
+	for ( i = 0; ; i++ ) {
 		/* Try to read a character. */
 
 		mx_status = mx_socket_receive( data_socket,
@@ -205,6 +211,10 @@ mxd_merlin_medipix_raw_wait_for_message_header( MX_SOCKET *data_socket,
 
 		mx_usleep(1);
 	}
+
+#if MXD_MERLIN_MEDIPIX_DEBUG_WAIT_FOR_MESSAGES
+	MX_DEBUG(-2,("%s: WAIT finished.", fname));
+#endif
 
 	/* The ASCII header length field is 10 bytes long and is followed
 	 * by a comma ',' character.  We read in the next 11 bytes and
@@ -238,6 +248,11 @@ mxd_merlin_medipix_raw_wait_for_message_header( MX_SOCKET *data_socket,
 			ascii_message_body_length, data_socket->socket_fd );
 	}
 
+#if MXD_MERLIN_MEDIPIX_DEBUG_WAIT_FOR_MESSAGES
+	MX_DEBUG(-2,("%s: WAIT message body length = %lu",
+			fname, *message_body_length ));
+#endif
+
 	/* We have found the message body length, so return now. */
 
 	return MX_SUCCESSFUL_RESULT;
@@ -259,7 +274,8 @@ mxd_merlin_medipix_setup_data_socket( MX_AREA_DETECTOR *ad,
 	char mq1_header_format[200];
 	unsigned long acquisition_message_body_length;
 	unsigned long image_message_body_length;
-	int num_items;
+	int num_items, argc;
+	char **argv;
 	size_t num_bytes_received;
 	mx_status_type mx_status;
 
@@ -306,7 +322,7 @@ mxd_merlin_medipix_setup_data_socket( MX_AREA_DETECTOR *ad,
 		return mx_status;
 
 	mx_status = mxd_merlin_medipix_command( merlin_medipix,
-					"SET,TRIGGERSTART,0", NULL, 0, FALSE );
+					"SET,TRIGGERSTOP,0", NULL, 0, FALSE );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -498,31 +514,42 @@ mxd_merlin_medipix_setup_data_socket( MX_AREA_DETECTOR *ad,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	snprintf( mq1_header_format, sizeof(mq1_header_format),
-	"MQ1,%%*,%%lu,%%lu,%%ld,%%ld,U%%ld,%%%d,%%lu,%%*,%%*,%%lu,%%lu,%%lu,",
-		MXU_MPX_SENSOR_LAYOUT_LENGTH );
+	mx_string_split( initial_image_header_bytes, ",", &argc, &argv );
 
-	num_items = sscanf( initial_image_header_bytes,
-			mq1_header_format,
-			&(merlin_medipix->image_data_offset),
-			&(merlin_medipix->number_of_chips),
-			&(ad->framesize[0]),
-			&(ad->framesize[1]),
-			&(ad->bits_per_pixel),
-			merlin_medipix->sensor_layout,
-			&(merlin_medipix->chip_select),
-			&(merlin_medipix->counter),
-			&(merlin_medipix->color_mode),
-			&(merlin_medipix->gain_mode) );
+#if 0
+	{
+		int i;
 
-	if ( num_items != 10 ) {
-		return mx_error( MXE_UNPARSEABLE_STRING, fname,
-		"Did not find a Merlin detector image frame header in the "
-		"data at the beginning of an MQ1 message for detector '%s'.  "
-		"Instead, we saw this '%s'.",
-			ad->record->name,
-			initial_image_header_bytes );
+		for ( i = 0; i < argc; i++ ) {
+			MX_DEBUG(-2,("%s: argv[%d] = '%s'", fname, i, argv[i]));
+		}
 	}
+#endif
+
+	merlin_medipix->image_data_offset = strtoul( argv[1], NULL, 10 );
+
+	merlin_medipix->number_of_chips = strtoul( argv[2], NULL, 10 );
+
+	ad->framesize[0] = strtol( argv[3], NULL, 10 );
+
+	ad->framesize[1] = strtol( argv[4], NULL, 10 );
+
+	ad->bits_per_pixel = strtoul( argv[5]+1, NULL, 10 );
+
+	strlcpy( merlin_medipix->sensor_layout, argv[6],
+			sizeof(merlin_medipix->sensor_layout) );
+
+	merlin_medipix->chip_select = mx_hex_string_to_unsigned_long( argv[7] );
+
+	merlin_medipix->counter = strtoul( argv[10], NULL, 10 );
+
+	merlin_medipix->color_mode = strtoul( argv[11], NULL, 10 );
+
+	merlin_medipix->gain_mode = strtoul( argv[12], NULL, 10 );
+
+	/* argv uses malloc-ed memory, so it must be freed. */
+
+	mx_free( argv );
 
 	/* We do not need any more of this image frame, so we discard it. */
 
@@ -554,6 +581,7 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 	int num_items, message_type;
 	size_t num_bytes_read;
 	char initial_read_buffer[ MXU_MPX_INITIAL_READ_LENGTH + 1 ];
+	mx_bool_type new_image_received;
 	mx_status_type mx_status;
 
 	if ( args == NULL ) {
@@ -618,12 +646,16 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 
 	    /*-----------------------------------------------------------*/
 
+	    new_image_received = FALSE;
+
 	    if ( strncmp( initial_read_buffer, "HDR,", 4 ) == 0 ){
 
 		    dest_buffer_ptr = merlin_medipix->acquisition_header;
 
 	    } else
 	    if ( strncmp( initial_read_buffer, "MQ1,", 4 ) == 0 ) {
+
+		    new_image_received = TRUE;
 
 		    /* We need to find out what frame number this is
 		     * in order to compute the address the frame must
@@ -673,6 +705,15 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 					message_body_length,
 					&num_bytes_read, NULL, 0,
 					MXF_SOCKET_RECEIVE_WAIT );
+
+	    /* Update the frame counter. */
+
+	    mx_atomic_increment32( &(merlin_medipix->total_num_frames) );
+
+#if 1
+	    MX_DEBUG(-2,("CAPTURE: Total num frames = %lu",
+	    (unsigned long) merlin_medipix->total_num_frames));
+#endif
 
 	    mx_usleep( sleep_us );
 
@@ -843,6 +884,14 @@ mxd_merlin_medipix_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* NOTE: The Merlin seems to need a bit of a delay after we connect
+	 * to its data socket.  If we try configuring the socket buffers
+	 * too quickly after connecting to the data port, then sometimes
+	 * the detector will not send frames to us.
+	 */
+
+	mx_msleep(1000);
+
 	/* We need to create buffers for receiving messages on the data socket
 	 * from the Merlin detector, so lets create them.
 	 */
@@ -929,14 +978,6 @@ mxd_merlin_medipix_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Select high gain. */
-
-	mx_status = mxd_merlin_medipix_command( merlin_medipix,
-						"SET,GAIN,2", NULL, 0, FALSE );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
 	/* Configure automatic saving or readout of image frames. */
 
 	mask = MXF_AD_SAVE_FRAME_AFTER_ACQUISITION
@@ -967,6 +1008,48 @@ mxd_merlin_medipix_open( MX_RECORD *record )
 						NULL, 0, FALSE );
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Optional configuration steps. */
+
+	if ( merlin_medipix->merlin_flags & MXF_MERLIN_CONFIGURE_DETECTOR ) {
+		char command[40];
+
+		snprintf( command, sizeof(command),
+			"SET,GAIN,%lu", merlin_medipix->gain );
+
+		mx_status = mxd_merlin_medipix_command( merlin_medipix,
+						command, NULL, 0, FALSE );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		snprintf( command, sizeof(command),
+			"SET,THRESHOLD0,%lu", merlin_medipix->threshold0 );
+
+		mx_status = mxd_merlin_medipix_command( merlin_medipix,
+						command, NULL, 0, FALSE );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		snprintf( command, sizeof(command),
+			"SET,THRESHOLD1,%lu", merlin_medipix->threshold1 );
+
+		mx_status = mxd_merlin_medipix_command( merlin_medipix,
+						command, NULL, 0, FALSE );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		snprintf( command, sizeof(command),
+			"SET,HVBIAS,%lu", merlin_medipix->high_voltage );
+
+		mx_status = mxd_merlin_medipix_command( merlin_medipix,
+						command, NULL, 0, FALSE );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
 	/* Initialize the frame counters. */
 
