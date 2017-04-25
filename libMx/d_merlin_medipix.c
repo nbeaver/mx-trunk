@@ -21,6 +21,8 @@
 
 #define MXD_MERLIN_MEDIPIX_DEBUG_WAIT_FOR_MESSAGES	TRUE
 
+#define MXD_MERLIN_MEDIPIX_DEBUG_FRAME_ADDRESSES	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -267,7 +269,7 @@ mxd_merlin_medipix_setup_data_socket( MX_AREA_DETECTOR *ad,
 	static const char fname[] = "mxd_merlin_medipix_setup_data_socket()";
 
 	MX_RECORD_FIELD *acquisition_header_field = NULL;
-	MX_RECORD_FIELD *image_data_array_field = NULL;
+	MX_RECORD_FIELD *image_message_array_field = NULL;
 	MX_SOCKET *data_socket = NULL;
 	char message_type_string[MXU_MPX_MESSAGE_TYPE_STRING_LENGTH+1];
 	char initial_image_header_bytes[200];
@@ -469,11 +471,11 @@ mxd_merlin_medipix_setup_data_socket( MX_AREA_DETECTOR *ad,
 	 * specified by the MX configuration file.
 	 */
 
-	merlin_medipix->image_data_array =
+	merlin_medipix->image_message_array =
 		calloc( merlin_medipix->maximum_num_images,
 			image_message_body_length );
 
-	if ( merlin_medipix->image_data_array == (char *) NULL ) {
+	if ( merlin_medipix->image_message_array == (char *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to allocate a %lu element array "
 	       	"of %lu byte image messages for Merlin detector '%s'.",
@@ -482,23 +484,34 @@ mxd_merlin_medipix_setup_data_socket( MX_AREA_DETECTOR *ad,
 			ad->record->name );
 	}
 
-	merlin_medipix->image_data_array_length =
+	merlin_medipix->image_message_array_length =
 		merlin_medipix->maximum_num_images
 		* image_message_body_length;
 
-	/* Configure the 'image_data_array' MX record field to have the
+	/* Configure the 'image_message_array' MX record field to have the
 	 * correct length.
 	 */
 
 	mx_status = mx_find_record_field( ad->record,
-					"image_data_array",
-					&image_data_array_field );
+					"image_message_array",
+					&image_message_array_field );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	image_data_array_field->dimension[0]
-			= merlin_medipix->image_data_array_length;
+	image_message_array_field->dimension[0]
+			= merlin_medipix->image_message_array_length;
+
+#if MXD_MERLIN_MEDIPIX_DEBUG_FRAME_ADDRESSES
+	MX_DEBUG(-2,
+	    ("%s: maximum_num_images = %lu, image_message_length = %lu",
+	    fname, merlin_medipix->maximum_num_images,
+	    merlin_medipix->image_message_length));
+	MX_DEBUG(-2,("%s: merlin_medipix->image_message_array_length = %lu",
+	    fname, merlin_medipix->image_message_array_length));
+	MX_DEBUG(-2,("%s: merlin_medipix->image_message_array = %p",
+	    fname, merlin_medipix->image_message_array));
+#endif
 
 	/* The MQ1 header also contains much more information about the
 	 * configuration of the detector.  So let's read in more of the
@@ -535,6 +548,27 @@ mxd_merlin_medipix_setup_data_socket( MX_AREA_DETECTOR *ad,
 
 	ad->bits_per_pixel = strtoul( argv[5]+1, NULL, 10 );
 
+	switch( ad->bits_per_pixel ) {
+	case  8:
+		ad->bytes_per_pixel = 1;
+		break;
+	case 16:
+		ad->bytes_per_pixel = 2;
+		break;
+	case 32:
+		ad->bytes_per_pixel = 4;
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Unsupported number of bits per pixel (%lu) requested for "
+		"area detector '%s'.  Only 8, 16, or 32 bits per pixel "
+		"are supported.", ad->bits_per_pixel, ad->record->name );
+		break;
+	}
+
+	ad->bytes_per_frame = mx_round( ad->bytes_per_pixel
+				* ad->framesize[0] * ad->framesize[1] );
+
 	strlcpy( merlin_medipix->sensor_layout, argv[6],
 			sizeof(merlin_medipix->sensor_layout) );
 
@@ -564,6 +598,11 @@ mxd_merlin_medipix_setup_data_socket( MX_AREA_DETECTOR *ad,
  * by mxd_merlin_medipix_setup_data_socket().
  */
 
+#define MXM_MPX_UNKNOWN_MESSAGE		(-1)
+#define MXM_MPX_NOT_YET_READ		0
+#define MXM_MPX_HEADER_MESSAGE		1
+#define MXM_MPX_IMAGE_MESSAGE		2
+
 static mx_status_type
 mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 {
@@ -580,7 +619,6 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 	int num_items, message_type;
 	size_t num_bytes_read;
 	char initial_read_buffer[ MXU_MPX_INITIAL_READ_LENGTH + 1 ];
-	mx_bool_type new_image_received;
 	mx_status_type mx_status;
 
 	if ( args == NULL ) {
@@ -645,16 +683,15 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 
 	    /*-----------------------------------------------------------*/
 
-	    new_image_received = FALSE;
+	    message_type = MXM_MPX_NOT_YET_READ;
 
 	    if ( strncmp( initial_read_buffer, "HDR,", 4 ) == 0 ){
 
 		    dest_buffer_ptr = merlin_medipix->acquisition_header;
 
+		    message_type = MXM_MPX_HEADER_MESSAGE;
 	    } else
 	    if ( strncmp( initial_read_buffer, "MQ1,", 4 ) == 0 ) {
-
-		    new_image_received = TRUE;
 
 		    /* We need to find out what frame number this is
 		     * in order to compute the address the frame must
@@ -675,10 +712,12 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 
 		    mx_frame_number = merlin_frame_number - 1L;
 
-		    dest_buffer_ptr = merlin_medipix->image_data_array
+		    dest_buffer_ptr = merlin_medipix->image_message_array
 				    + (mx_frame_number * message_body_length);
+
+		    message_type = MXM_MPX_IMAGE_MESSAGE;
 	    } else {
-		    message_type = MXT_MPX_UNKNOWN_MESSAGE;
+		    message_type = MXM_MPX_UNKNOWN_MESSAGE;
 
 		    return mx_error( MXE_PROTOCOL_ERROR, fname,
 		    "Message type in '%s' is not recognized for "
@@ -776,8 +815,8 @@ mxd_merlin_medipix_create_record_structures( MX_RECORD *record )
 	merlin_medipix->acquisition_header_length = 0;
 	merlin_medipix->acquisition_header = NULL;
 
-	merlin_medipix->image_data_array_length = 0;
-	merlin_medipix->image_data_array = NULL;
+	merlin_medipix->image_message_array_length = 0;
+	merlin_medipix->image_message_array = NULL;
 
 	merlin_medipix->external_trigger_debounce_time = 0.01;  /* in seconds */
 
@@ -899,6 +938,19 @@ mxd_merlin_medipix_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Set up internal parameters of the 'merlin_medipix' driver. */
+
+	ad->maximum_framesize[0] = ad->framesize[0];
+	ad->maximum_framesize[1] = ad->framesize[1];
+
+	if ( ad->bits_per_pixel != 16 ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"The Merlin Medipix detector '%s' is currently configured "
+		"for %lu bits per pixel images.  At this time, the "
+		"'merlin_medipix' driver only supports 16-bit images.",
+			ad->bits_per_pixel, ad->record->name );
+	}
 
 	/* Get the software version of the Merlin controller. */
 
@@ -1467,11 +1519,13 @@ mxd_merlin_medipix_readout_frame( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_merlin_medipix_readout_frame()"; 
 	MX_MERLIN_MEDIPIX *merlin_medipix = NULL;
-	char *image_data_array;
-	char copy_of_beginning_of_image_data[200];
-	char *ptr, *image_binary_ptr, *image_data_ptr;
+	char *image_message_array;
+	char *ptr, *image_binary_ptr, *image_message_ptr;
+	char copy_of_beginning_of_message[200];
 	long mx_frame_number, offset_to_data, image_width, image_height;
+	unsigned long bits_per_pixel, buffer_mx_frame_number;
 	double exposure_time;
+	char *timestamp_string = NULL;
 	struct timespec exposure_timespec;
 	struct timespec timestamp;
 	struct tm tm;
@@ -1492,33 +1546,49 @@ mxd_merlin_medipix_readout_frame( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s', frame %ld.",
 		fname, ad->record->name, ad->readout_frame ));
 #endif
-	if ( merlin_medipix->image_data_array_length == 0 ) {
-		/* No frame data is available. */
-
-		return MX_SUCCESSFUL_RESULT;
-	}
-
-	image_data_array = merlin_medipix->image_data_array;
-
-	if ( image_data_array == (char *) NULL ) {
-		return mx_error( MXE_NOT_READY, fname,
-		"Area detector '%s' has not yet taken a frame.",
+	if ( merlin_medipix->image_message_array_length == 0 ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"Somehow the image message array length has not "
+		"been correctly set up for area detector '%s'.",
 			ad->record->name );
 	}
 
+	image_message_array = merlin_medipix->image_message_array;
+
+	if ( image_message_array == (char *) NULL ) {
+	}
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"Somehow the image message array has not "
+		"been correctly set up for area detector '%s'.",
+			ad->record->name );
+
 	mx_frame_number = ad->readout_frame;
 
-	image_data_ptr = image_data_array +
+	image_message_ptr = image_message_array +
 		(mx_frame_number * merlin_medipix->image_message_length);
 
-	strlcpy( copy_of_beginning_of_image_data, image_data_ptr,
-		sizeof(copy_of_beginning_of_image_data) );
+#if MXD_MERLIN_MEDIPIX_DEBUG_FRAME_ADDRESSES
+	MX_DEBUG(-2,("%s: merlin_medipix->image_message_array = %p",
+		fname, merlin_medipix->image_message_array));
+	MX_DEBUG(-2,("%s: merlin_medipix->image_message_length = %lu",
+		fname, merlin_medipix->image_message_length));
+	MX_DEBUG(-2,("%s: mx_frame_number, image_message_ptr = %p",
+		fname, mx_frame_number, image_message_ptr));
+#endif
+	/* Make a copy of the beginning of the message so that we can run
+	 * mx_string_split() on it.  Bear in mind that mx_string_split()
+	 * modifies the string passed to it, so we want to work off of
+	 * a copy of the data rather than the original data.
+	 */
+
+	memcpy( copy_of_beginning_of_message, image_message_ptr,
+		sizeof(copy_of_beginning_of_message) );
 
 	/* Parse some information we need from the beginning of the
 	 * Merlin image frame.
 	 */
 
-	mx_string_split( copy_of_beginning_of_image_data, ",", &argc, &argv );
+	mx_string_split( copy_of_beginning_of_message, ",", &argc, &argv );
 
 	if ( argc < 11 ) {
 		mx_status = mx_error( MXE_UNPARSEABLE_STRING, fname,
@@ -1532,56 +1602,47 @@ mxd_merlin_medipix_readout_frame( MX_AREA_DETECTOR *ad )
 
 	/* MX starts frame numbers at 0 rather than 1. */
 
-	mx_frame_number = atol( argv[1] ) - 1;
-	offset_to_data  = atol( argv[2] );
-	image_width     = atol( argv[4] );
-	image_height    = atol( argv[5] );
-	exposure_time   = atof( argv[10] );
+	buffer_mx_frame_number = atol( argv[1] ) - 1;
 
-	MX_DEBUG(-2,("%s: mx_frame_number = %ld, offset_to_data = %ld",
-		fname, mx_frame_number, offset_to_data));
-	MX_DEBUG(-2,("%s: image_width = %ld, image_height = %ld",
-		fname, image_width, image_height));
-	MX_DEBUG(-2,("%s: image_format_string = '%s'", fname, argv[6]));
-	MX_DEBUG(-2,("%s: time_string = '%s'", fname, argv[9]));
-	MX_DEBUG(-2,("%s: exposure_time = %g", fname, exposure_time));
-
-	ad->maximum_framesize[0] = image_width;
-	ad->maximum_framesize[1] = image_height;
-
-	ad->framesize[0] = ad->maximum_framesize[0];
-	ad->framesize[1] = ad->maximum_framesize[1];
-
-	if ( strcmp( argv[6], "U8" ) == 0 ) {
-		ad->image_format = MXT_IMAGE_FORMAT_GREY8;
-		ad->bytes_per_pixel = 1;
-		ad->bits_per_pixel = 8;
-	} else
-	if ( strcmp( argv[6], "U16" ) == 0 ) {
-		ad->image_format = MXT_IMAGE_FORMAT_GREY16;
-		ad->bytes_per_pixel = 2;
-		ad->bits_per_pixel = 16;
-	} else
-	if ( strcmp( argv[6], "U32" ) == 0 ) {
-		ad->image_format = MXT_IMAGE_FORMAT_GREY32;
-		ad->bytes_per_pixel = 4;
-		ad->bits_per_pixel = 32;
-	} else {
-		mx_free( argv );
-		return mx_error( MXE_UNSUPPORTED, fname,
-	    "Unsupported image format '%s' reported for area detector '%s'.",
-			argv[6], ad->record->name );
+	if ( buffer_mx_frame_number != mx_frame_number ) {
+		mx_warning( "The MX frame number %lu computed from the "
+		"image message array does not match the MX frame number %lu "
+		"requested for area detector '%s'.",
+			buffer_mx_frame_number, mx_frame_number,
+			ad->record->name );
 	}
+
+	bits_per_pixel = atof( argv[6]+1 );
+
+	if ( bits_per_pixel != ad->bits_per_pixel ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The number of bits per pixel %lu for frame %lu of "
+		"area detector '%s' does not match the bits per pixel %lu "
+		"found when this MX server started.  Changing the data "
+		"format of the detector image while the MX server is "
+		"running is _not_ supported.  You must shutdown the MX "
+		"server, change the data format in the Merlin "
+		"vendor-provided GUI and then start the MX server again.",
+			bits_per_pixel, mx_frame_number,
+			ad->record->name, ad->bits_per_pixel );
+	}
+
+	timestamp_string = argv[9];
+
+	exposure_time = atof( argv[10] );
+
+	MX_DEBUG(-2,("%s: timestamp_string = '%s'", fname, timestamp_string));
+	MX_DEBUG(-2,("%s: exposure_time = %g", fname, exposure_time));
 
 	/* Construct the timestamp for the image. */
 
-	ptr = strptime( argv[9], "%Y-%m-%d %H:%M:%S", &tm );
+	ptr = strptime( timestamp_string, "%Y-%m-%d %H:%M:%S", &tm );
 
 	if ( ptr == NULL ) {
 		mx_free( argv );
 		return mx_error( MXE_PROTOCOL_ERROR, fname,
 		"Cannot parse time string '%s' for area detector '%s'.",
-			argv[9], ad->record->name );
+			timestamp_string, ad->record->name );
 	}
 
 	timestamp.tv_sec = mktime( &tm );
@@ -1646,16 +1707,21 @@ mxd_merlin_medipix_readout_frame( MX_AREA_DETECTOR *ad )
 	 * Merlin Medipix's data structure to MX's data structure.
 	 */
 
-	image_binary_ptr = image_data_ptr + offset_to_data;
+	image_binary_ptr = image_message_ptr
+				+ merlin_medipix->image_data_offset;
+
+	memcpy( ad->image_frame->image_data,
+			image_binary_ptr,
+			ad->bytes_per_frame );
 
 #if 1
+	/* FIXME: Is this really the most efficient way of doing
+	 *        the byteswapping?
+	 */
+
 	if (1) {
 		unsigned long i, num_words;
 		uint16_t *uint16_array;
-
-		memcpy( ad->image_frame->image_data,
-			image_binary_ptr,
-			ad->bytes_per_frame );
 
 		uint16_array = (uint16_t *) ad->image_frame->image_data;
 
@@ -1665,104 +1731,8 @@ mxd_merlin_medipix_readout_frame( MX_AREA_DETECTOR *ad )
 			uint16_array[i] = mx_16bit_byteswap( uint16_array[i] );
 		}
 	}
-#else
-	if (1) {
-		/* Merlin Medipix detectors store the image upside down
-		 * compared to the way MX detectors store it.  That is
-		 * because they regard the point (0,0) as being in the
-		 * lower left rather than the upper left.  Thus, we have
-		 * to vertically invert the image data as we copy it to
-		 * the MX array.
-		 */
-
-		uint16_t **mx_array;
-		uint16_t **merlin_array;
-		void *void_array_ptr;
-		size_t element_size[2];
-		long mx_row, merlin_row;
-		long bytes_per_row, num_rows;
-
-		bytes_per_row = ad->framesize[0] * sizeof(uint16_t);
-
-		element_size[0] = sizeof(uint16_t);
-		element_size[1] = sizeof(uint16_t *);
-
-		MX_DEBUG(-2,("%s: bytes_per_row = %lu", fname, bytes_per_row));
-
-		mx_status = mx_array_add_overlay(
-				(void *) ad->image_frame->image_data,
-				MXFT_USHORT,
-				2, ad->framesize, element_size,
-				&void_array_ptr );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		mx_array = (uint16_t **) void_array_ptr;
-
-		mx_status = mx_array_add_overlay(
-				(void *) image_binary_ptr,
-				MXFT_USHORT,
-				2, ad->framesize, element_size,
-				&void_array_ptr );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		merlin_array = (uint16_t **) void_array_ptr;
-
-		num_rows = ad->framesize[1];
-
-		for ( mx_row = 0; mx_row < num_rows; mx_row++ ) {
-			merlin_row = num_rows - mx_row - 1;
-
-			memcpy( mx_array[mx_row],
-				merlin_array[merlin_row],
-				bytes_per_row );
-
-#if 0
-			/* The data returned by the Merlin Medipix is 
-			 * documented to be in bigendian order, so we
-			 * must byteswap it.
-			 */
-			{
-				long mx_col, num_cols;
-				uint16_t *mx_row_array;
-
-				num_cols = ad->framesize[0];
-
-				mx_row_array = mx_array[mx_row];
-
-				for ( mx_col = 0; mx_col < num_cols; mx_col++ ){
-					if ( ((mx_row % 500) == 0)
-					  || ((mx_col % 500) == 0) )
-					{
-						MX_DEBUG(-2,
-					("%s: (before) mx_array[%lu,%lu] = %lu",
-						 fname, mx_row, mx_col,
-						 mx_row_array[mx_col]));
-					}
-
-					mx_row_array[mx_col] =
-				    mx_16bit_byteswap( mx_row_array[mx_col] );
-
-					if ( ((mx_row % 500) == 0)
-					  || ((mx_col % 500) == 0) )
-					{
-						MX_DEBUG(-2,
-					("%s: (after) mx_array[%lu,%lu] = %lu",
-						 fname, mx_row, mx_col,
-						 mx_row_array[mx_col]));
-					}
-				}
-			}
 #endif
-		}
 
-		mx_array_free_overlay( merlin_array );
-		mx_array_free_overlay( mx_array );
-	}
-#endif
 	return mx_status;
 }
 

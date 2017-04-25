@@ -54,8 +54,8 @@ typedef struct {
 	char *acquisition_header;
 
 	unsigned long image_message_length;
-	unsigned long image_data_array_length;
-	char *image_data_array;
+	unsigned long image_message_array_length;
+	char *image_message_array;
 
 	unsigned long image_data_offset;
 	unsigned long number_of_chips;
@@ -137,13 +137,13 @@ typedef struct {
 		offsetof(MX_MERLIN_MEDIPIX, image_message_length), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
-  {-1, -1, "image_data_array_length", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "image_message_array_length", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
-			offsetof(MX_MERLIN_MEDIPIX, image_data_array_length), \
+		offsetof(MX_MERLIN_MEDIPIX, image_message_array_length), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
-  {-1, -1, "image_data_array", MXFT_STRING, NULL, 1, {MXU_VARARGS_LENGTH}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_MERLIN_MEDIPIX, image_data_array), \
+  {-1, -1, "image_message_array", MXFT_STRING, NULL, 1, {MXU_VARARGS_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_MERLIN_MEDIPIX, image_message_array), \
 	{sizeof(char)}, NULL, (MXFF_READ_ONLY | MXFF_VARARGS) }, \
   \
   {-1, -1, "image_data_offset", MXFT_ULONG, NULL, 0, {0}, \
