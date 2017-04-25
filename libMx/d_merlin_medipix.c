@@ -250,6 +250,14 @@ mxd_merlin_medipix_raw_wait_for_message_header( MX_SOCKET *data_socket,
 			ascii_message_body_length, data_socket->socket_fd );
 	}
 
+	/* The length returned by the Merlin server apparently includes the
+	 * comma ',' character at the end of the length.  We are skipping
+	 * over that comma, so we need to reduce the reported message body
+	 * length by 1.
+	 */
+
+	*message_body_length = *message_body_length - 1;
+
 #if MXD_MERLIN_MEDIPIX_DEBUG_WAIT_FOR_MESSAGES
 	MX_DEBUG(-2,("%s: WAIT message body length = %lu",
 			fname, *message_body_length ));
@@ -614,8 +622,8 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 	long merlin_frame_number, mx_frame_number;
 	long old_num_bytes_available;
 	unsigned long sleep_us;
-	unsigned long message_body_length;
-	char *dest_buffer_ptr;
+	unsigned long message_body_length, bytes_left;
+	char *dest_message_ptr, *remaining_dest_ptr;
 	int num_items, message_type;
 	size_t num_bytes_read;
 	char initial_read_buffer[ MXU_MPX_INITIAL_READ_LENGTH + 1 ];
@@ -654,7 +662,7 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 
 	while (TRUE) {
 
-	    /* Wait for an acquisition header */
+	    /* Wait for a Merlin message. */
 
 	    mx_status = mxd_merlin_medipix_raw_wait_for_message_header(
 			    			merlin_medipix->data_socket,
@@ -663,9 +671,9 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 	    if ( mx_status.code != MXE_SUCCESS )
 		    return mx_status;
 
-	    /* Read in the beginning of the message in order to figure
-	     * out what kind of message this is and then copy the
-	     * data to whereever it has to go.
+	    /* Read in the rest of this message so that we can figure out
+	     * what kind of message this is and then copy the data to
+	     * whereever it has to go.
 	     */
 
 	    mx_status = mx_socket_receive( merlin_medipix->data_socket,
@@ -687,7 +695,7 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 
 	    if ( strncmp( initial_read_buffer, "HDR,", 4 ) == 0 ){
 
-		    dest_buffer_ptr = merlin_medipix->acquisition_header;
+		    dest_message_ptr = merlin_medipix->acquisition_header;
 
 		    message_type = MXM_MPX_HEADER_MESSAGE;
 	    } else
@@ -712,7 +720,7 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 
 		    mx_frame_number = merlin_frame_number - 1L;
 
-		    dest_buffer_ptr = merlin_medipix->image_message_array
+		    dest_message_ptr = merlin_medipix->image_message_array
 				    + (mx_frame_number * message_body_length);
 
 		    message_type = MXM_MPX_IMAGE_MESSAGE;
@@ -729,29 +737,50 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 
 	    /* copy the bytes that we have already read to the destination. */
 
-	    memcpy( dest_buffer_ptr, initial_read_buffer,
+	    memcpy( dest_message_ptr, initial_read_buffer,
 			    MXU_MPX_INITIAL_READ_LENGTH );
 
 	    /* Now copy in the rest of the message from the socket. */
 
-	    dest_buffer_ptr += MXU_MPX_INITIAL_READ_LENGTH;
+	    remaining_dest_ptr
+		    = dest_message_ptr + MXU_MPX_INITIAL_READ_LENGTH;
 
-	    message_body_length -= MXU_MPX_INITIAL_READ_LENGTH;
+	    bytes_left = message_body_length - MXU_MPX_INITIAL_READ_LENGTH;
 
 	    mx_status = mx_socket_receive( merlin_medipix->data_socket,
-			    		dest_buffer_ptr,
-					message_body_length,
+			    		remaining_dest_ptr,
+					bytes_left,
 					&num_bytes_read, NULL, 0,
 					MXF_SOCKET_RECEIVE_WAIT );
 
-	    /* Update the frame counter. */
+#if 1
+	    switch( message_type ) {
+	    case MXM_MPX_HEADER_MESSAGE:
+		MX_DEBUG(-2,("%s: HDR pointer = %p",
+			fname, dest_message_ptr));
+#if 0
+		MX_DEBUG(-2,("%s: HDR message = '%s'",
+			fname, merlin_medipix->acquisition_header));
+#endif
+		break;
+	    case MXM_MPX_IMAGE_MESSAGE:
+	    	MX_DEBUG(-2,(
+		"%s: MQ1: mx_frame_number = %lu, dest_message_ptr = %p",
+			fname, mx_frame_number, dest_message_ptr));
+		break;
+	    }
+#endif
 
-	    mx_atomic_increment32( &(merlin_medipix->total_num_frames) );
+	    /* If this is an image message, then update the frame counter. */
+
+	    if ( message_type == MXM_MPX_IMAGE_MESSAGE ) {
+		    mx_atomic_increment32(&(merlin_medipix->total_num_frames));
 
 #if 1
-	    MX_DEBUG(-2,("CAPTURE: Total num frames = %lu",
-	    (unsigned long) merlin_medipix->total_num_frames));
+		    MX_DEBUG(-2,("CAPTURE: Total num frames = %lu",
+		    (unsigned long) merlin_medipix->total_num_frames));
 #endif
+	    }
 
 	    mx_usleep( sleep_us );
 
@@ -1555,12 +1584,15 @@ mxd_merlin_medipix_readout_frame( MX_AREA_DETECTOR *ad )
 
 	image_message_array = merlin_medipix->image_message_array;
 
+	MX_DEBUG(-2,("%s: merlin_medipix->image_message_array = %p",
+		fname, merlin_medipix->image_message_array));
+
 	if ( image_message_array == (char *) NULL ) {
-	}
 		return mx_error( MXE_INITIALIZATION_ERROR, fname,
-		"Somehow the image message array has not "
-		"been correctly set up for area detector '%s'.",
+		"The merlin_medipix->image_message_array pointer "
+		"for detector '%s' is NULL.  This should not happen.",
 			ad->record->name );
+	}
 
 	mx_frame_number = ad->readout_frame;
 
