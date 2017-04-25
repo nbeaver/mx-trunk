@@ -271,10 +271,9 @@ mxd_merlin_medipix_setup_data_socket( MX_AREA_DETECTOR *ad,
 	MX_SOCKET *data_socket = NULL;
 	char message_type_string[MXU_MPX_MESSAGE_TYPE_STRING_LENGTH+1];
 	char initial_image_header_bytes[200];
-	char mq1_header_format[200];
 	unsigned long acquisition_message_body_length;
 	unsigned long image_message_body_length;
-	int num_items, argc;
+	int argc;
 	char **argv;
 	size_t num_bytes_received;
 	mx_status_type mx_status;
