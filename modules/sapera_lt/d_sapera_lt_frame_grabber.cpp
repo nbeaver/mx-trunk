@@ -210,7 +210,11 @@ mxd_sapera_lt_frame_grabber_acquisition_callback( SapXferCallbackInfo *info )
 
 	if ( sapera_lt_frame_grabber->num_frames_left_to_acquire > 0 ) {
 		sapera_lt_frame_grabber->num_frames_left_to_acquire--;
+
 		vinput->total_num_frames++;
+
+		vinput->last_frame_number = vinput->total_num_frames
+		    - sapera_lt_frame_grabber->total_num_frames_at_start - 1;
 	}
 
 	sapera_lt_frame_grabber->frame_buffer_is_unsaved[i] = TRUE;
