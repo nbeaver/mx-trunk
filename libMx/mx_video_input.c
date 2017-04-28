@@ -838,7 +838,7 @@ mx_video_input_stop( MX_RECORD *record )
 
 	MX_VIDEO_INPUT *vinput;
 	MX_VIDEO_INPUT_FUNCTION_LIST *flist;
-	mx_status_type ( *stop_fn ) ( MX_VIDEO_INPUT * );
+	mx_status_type ( *fptr ) ( MX_VIDEO_INPUT * );
 	mx_status_type mx_status;
 
 	mx_status = mx_video_input_get_pointers(record, &vinput, &flist, fname);
@@ -846,10 +846,17 @@ mx_video_input_stop( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	stop_fn = flist->stop;
+	if ( flist->stop != NULL ) {
+		fptr = flist->stop;
+	} else
+	if ( flist->abort != NULL ) {
+		fptr = flist->abort;
+	} else {
+		fptr = NULL;
+	}
 
-	if ( stop_fn != NULL ) {
-		mx_status = (*stop_fn)( vinput );
+	if ( fptr != NULL ) {
+		mx_status = (*fptr)( vinput );
 	}
 
 	vinput->asynchronous_capture = -1;
@@ -864,7 +871,7 @@ mx_video_input_abort( MX_RECORD *record )
 
 	MX_VIDEO_INPUT *vinput;
 	MX_VIDEO_INPUT_FUNCTION_LIST *flist;
-	mx_status_type ( *abort_fn ) ( MX_VIDEO_INPUT * );
+	mx_status_type ( *fptr ) ( MX_VIDEO_INPUT * );
 	mx_status_type mx_status;
 
 	mx_status = mx_video_input_get_pointers(record, &vinput, &flist, fname);
@@ -872,10 +879,17 @@ mx_video_input_abort( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	abort_fn = flist->abort;
+	if ( flist->abort != NULL ) {
+		fptr = flist->abort;
+	} else
+	if ( flist->stop != NULL ) {
+		fptr = flist->stop;
+	} else {
+		fptr = NULL;
+	}
 
-	if ( abort_fn != NULL ) {
-		mx_status = (*abort_fn)( vinput );
+	if ( fptr != NULL ) {
+		mx_status = (*fptr)( vinput );
 	}
 
 	vinput->asynchronous_capture = -1;

@@ -445,37 +445,6 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 			record->name );
 	}
 
-	/* Allocate a lookup array to translate from area detector frame
-	 * numbers to video input frame numbers.  The two are different
-	 * since gated sequences skip the first frame and strobe sequences
-	 * skip every other frame.
-	 */
-
-	radicon_taurus->video_frame_number_lookup_array = (unsigned long *)
-		calloc( radicon_taurus->num_capture_buffers,
-				sizeof(unsigned long) );
-
-	if ( radicon_taurus->video_frame_number_lookup_array
-		== (unsigned long *) NULL )
-	{
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Ran out of memory trying to allocate a %lu element array of "
-		"unsigned longs for the video_frame_number_lookup_array "
-		"for area detector '%s'.",
-		    radicon_taurus->num_capture_buffers, ad->record->name );
-	}
-
-	/* Initialize the field length of 'video_frame_number_lookup_array'. */
-
-	mx_status = mx_find_record_field( record,
-			"video_frame_number_lookup_array",
-			&lookup_array_field );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	lookup_array_field->dimension[0] = radicon_taurus->num_capture_buffers;
-
 	/* Initialize the video frame number variables. */
 
 	mx_status = mx_video_input_stop( video_input_record );
@@ -1089,6 +1058,41 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 		fname, video_input_record->name,
 		radicon_taurus->num_capture_buffers));
 #endif
+
+	/* Allocate a lookup array to translate from area detector frame
+	 * numbers to video input frame numbers.  The two are different
+	 * since gated sequences skip the first frame and strobe sequences
+	 * skip every other frame.
+	 */
+
+	radicon_taurus->video_frame_number_lookup_array = (unsigned long *)
+		calloc( radicon_taurus->num_capture_buffers,
+				sizeof(unsigned long) );
+
+	if ( radicon_taurus->video_frame_number_lookup_array
+		== (unsigned long *) NULL )
+	{
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %lu element array of "
+		"unsigned longs for the video_frame_number_lookup_array "
+		"for area detector '%s'.",
+		    radicon_taurus->num_capture_buffers, ad->record->name );
+	}
+
+	/* Initialize the field length of 'video_frame_number_lookup_array'. */
+
+	mx_status = mx_find_record_field( record,
+			"video_frame_number_lookup_array",
+			&lookup_array_field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	lookup_array_field->dimension[0] = radicon_taurus->num_capture_buffers;
+
+	/* Setup the buffer info array which contains extra information
+	 * about each acquired buffer.
+	 */
 
 	radicon_taurus->buffer_info_array = (MX_RADICON_TAURUS_BUFFER_INFO *)
 		calloc( radicon_taurus->num_capture_buffers,

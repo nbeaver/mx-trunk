@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2005, 2007-2008, 2010, 2012, 2015-2016
+ * Copyright 2004-2005, 2007-2008, 2010, 2012, 2015-2017
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -31,28 +31,7 @@
 #include "mx_unistd.h"
 #include "mx_stdint.h"
 
-#if defined( OS_WIN32 ) && defined( _DEBUG )
-
-/* Theoretically, one could use IsBadReadPtr() for non-debug builds.
- * However, MSDN and mailing list messages on the net say that
- * dereferencing invalid pointers can sometimes cause automatic
- * stack expansion to fail, so we should not use IsBadReadPtr().
- *
- * In addition, MSDN says that the use of HeapValidate() can degrade
- * performance, so we do not use it with non-debug builds.
- */
-
-MX_EXPORT int
-mx_heap_pointer_is_valid( void *pointer )
-{
-	if ( pointer == NULL ) {
-		return FALSE;
-	} else {
-		return HeapValidate( GetProcessHeap(), 0, pointer );
-	}
-}
-
-#elif defined(DMALLOC)
+#if defined(DMALLOC)
 
 /* This uses the dmalloc malloc() debugger from http://dmalloc.com/  */
 
@@ -85,6 +64,27 @@ mx_heap_pointer_is_valid( void *pointer )
 		return TRUE;
 	} else {
 		return FALSE;
+	}
+}
+
+#elif defined( OS_WIN32 )
+
+/* Theoretically, one could use IsBadReadPtr() for checking pointers.
+ * However, MSDN and mailing list messages on the net say that
+ * dereferencing invalid pointers can sometimes cause automatic
+ * stack expansion to fail, so we should not use IsBadReadPtr().
+ *
+ * MSDN says that the use of HeapValidate() can degrade performance,
+ * so we should not use this routinely.
+ */
+
+MX_EXPORT int
+mx_heap_pointer_is_valid( void *pointer )
+{
+	if ( pointer == NULL ) {
+		return FALSE;
+	} else {
+		return HeapValidate( GetProcessHeap(), 0, pointer );
 	}
 }
 
