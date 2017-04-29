@@ -265,6 +265,21 @@ mxd_radicon_taurus_video_capture_callback( void *capture_arguments )
 		sapera_lt_frame_grabber->total_num_frames_at_start,
 		sapera_lt_frame_grabber->num_frames_left_to_acquire));
 
+#if 1
+	{
+		int i;
+
+		i = vinput->total_num_frames;
+
+		radicon_taurus->video_frame_number_lookup_array[i] = i;
+
+		(ad->last_frame_number)++;
+		(ad->total_num_frames)++;
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+#endif
+
 	v_last_frame_number = vinput->last_frame_number;
 
 	if ( v_last_frame_number < 0 ) {
@@ -284,7 +299,11 @@ mxd_radicon_taurus_video_capture_callback( void *capture_arguments )
 	 * calculation.
 	 */
 
+#if 0
 	iv = vinput->total_num_frames - 1;
+#else
+	iv = vinput->total_num_frames;
+#endif
 
 	MX_DEBUG(-2,("%s: ia = %lu, iv = %lu, v_last_frame_number = %ld",
 		fname, ia, iv, v_last_frame_number));
@@ -1749,10 +1768,15 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 
 			new_sro_mode = 3;
 			break;
+		case MXT_SQ_STREAM:
+			set_exposure_times = FALSE;
+
+			new_sro_mode = 4;
+			break;
 		case MXT_SQ_MULTIFRAME:
 			set_exposure_times = TRUE;
 
-			new_sro_mode = 4;
+			new_sro_mode = 2;
 			break;
 		case MXT_SQ_STROBE:
 			set_exposure_times = TRUE;
@@ -1905,6 +1929,25 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* FIXME: The following delay exists to insert a delay time
+	 * between the arm call and the first get extended status.
+	 * The delay is applied during the next get extended status call.
+	 *
+	 * We do this only for external triggers here, since the trigger
+	 * call will do this for us with internal triggers.
+	 *
+	 * There should not be a need for such a delay, but it does
+	 * need to be there for some reason, at least on the new detector.
+	 */
+
+	if ( ad->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
+		double delay_time_in_seconds
+			= radicon_taurus->next_get_extended_status_delay;
+
+		radicon_taurus->next_get_extended_status_tick =
+			mx_relative_clock_tick( delay_time_in_seconds );
+	}
+
 	/* Tell the video capture card to get ready for frames. */
 
 	mx_status = mx_video_input_arm( video_input_record );
@@ -1922,7 +1965,10 @@ mxd_radicon_taurus_trigger( MX_AREA_DETECTOR *ad )
 	double exposure_time;
 	double pulse_period, pulse_width;
 	unsigned long num_pulses;
+#if 0
 	MX_CLOCK_TICK delay_ticks;
+#endif
+	double delay_time_in_seconds;
 	uint64_t si1, si2;
 	double si1_exposure_time, si2_exposure_time;
 	double reset_time, readout_time;
@@ -1947,11 +1993,10 @@ mxd_radicon_taurus_trigger( MX_AREA_DETECTOR *ad )
 	 * need to be there for some reason, at least on the new detector.
 	 */
 
-	delay_ticks = mx_convert_seconds_to_clock_ticks(
-			radicon_taurus->next_get_extended_status_delay );
+	delay_time_in_seconds = radicon_taurus->next_get_extended_status_delay;
 
-	radicon_taurus->next_get_extended_status_tick = mx_add_clock_ticks(
-			delay_ticks, mx_current_clock_tick() );
+	radicon_taurus->next_get_extended_status_tick =
+		mx_relative_clock_tick( delay_time_in_seconds );
 
 	/*----------------------------------------------------------------*/
 
@@ -1993,15 +2038,21 @@ mxd_radicon_taurus_trigger( MX_AREA_DETECTOR *ad )
 		/* sro 3 - single pulse */
 
 		pulse_width = exposure_time;
-		pulse_period = pulse_width + 0.01;
+		pulse_period = pulse_width + 0.120;
 		num_pulses = 1;
 		break;
 
-	case MXT_SQ_MULTIFRAME:
-		/* sro 4 - this is a free run mode */
+	case MXT_SQ_STREAM:
+		/* sro 4 - freerunning. */
 
-		pulse_width = pulse_period = 0.0;
-		num_pulses = 0;
+		break;
+
+	case MXT_SQ_MULTIFRAME:
+		/* sro 2 - multiple pulses */
+
+		pulse_width = sp->parameter_array[1];
+		pulse_period = sp->parameter_array[2];
+		num_pulses = sp->parameter_array[0];
 		break;
 
 	case MXT_SQ_STROBE:
@@ -2188,6 +2239,10 @@ mxd_radicon_taurus_get_extended_status( MX_AREA_DETECTOR *ad )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Wait until we are allowed to perform this measurement. */
+
+	mx_wait_until_clock_tick(radicon_taurus->next_get_extended_status_tick);
 
 	/* NOTE: mxd_radicon_taurus_video_capture_callback() will make sure
 	 * that ad->last_frame_number and ad->total_num_frames are up to date.

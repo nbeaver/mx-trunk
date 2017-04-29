@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2009, 2011, 2015-2016 Illinois Institute of Technology
+ * Copyright 1999-2006, 2009, 2011, 2015-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -402,6 +402,43 @@ mx_current_clock_tick( void )
 		current_clock_tick.high_order, current_clock_tick.low_order));
 #endif
 	return current_clock_tick;
+}
+
+MX_EXPORT MX_CLOCK_TICK
+mx_relative_clock_tick( double relative_time_in_seconds )
+{
+	MX_CLOCK_TICK abs_relative_time_in_ticks;
+	MX_CLOCK_TICK result;
+
+	abs_relative_time_in_ticks = mx_convert_seconds_to_clock_ticks(
+					fabs(relative_time_in_seconds) );
+
+	if ( relative_time_in_seconds >= 0.0 ) {
+		result = mx_add_clock_ticks( mx_current_clock_tick(),
+					abs_relative_time_in_ticks );
+	} else {
+		result = mx_subtract_clock_ticks( mx_current_clock_tick(),
+					abs_relative_time_in_ticks );
+	}
+
+	return result;
+}
+
+MX_EXPORT void
+mx_wait_until_clock_tick( MX_CLOCK_TICK final_tick )
+{
+	MX_CLOCK_TICK current_tick;
+	int comparison;
+
+	while (TRUE) {
+		current_tick = mx_current_clock_tick();
+
+		comparison = mx_compare_clock_ticks( current_tick, final_tick );
+
+		if ( comparison >= 0 ) {
+			return;
+		}
+	}
 }
 
 MX_EXPORT MX_CLOCK_TICK
