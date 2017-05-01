@@ -39,7 +39,7 @@ MX_API MX_CLOCK_TICK mx_current_clock_tick( void );
 
 MX_API MX_CLOCK_TICK mx_relative_clock_tick( double relative_time_in_seconds );
 
-MX_API void mx_wait_for_clock_tick( MX_CLOCK_TICK final_tick );
+MX_API void mx_wait_until_clock_tick( MX_CLOCK_TICK final_tick );
 
 MX_API MX_CLOCK_TICK mx_convert_seconds_to_clock_ticks( double seconds );
 
