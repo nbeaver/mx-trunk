@@ -1421,6 +1421,18 @@ mxd_radicon_taurus_generate_throwaway_frame( MX_AREA_DETECTOR *ad,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	mx_status = mx_pulse_generator_set_num_pulses(
+					radicon_taurus->pulser_record, 1 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_pulse_generator_set_pulse_delay(
+					radicon_taurus->pulser_record, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/* Send the pulse. */
 
 	mx_status = mx_pulse_generator_start( radicon_taurus->pulser_record );

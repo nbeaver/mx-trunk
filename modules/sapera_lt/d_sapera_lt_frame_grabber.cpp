@@ -54,6 +54,7 @@
 #include "mx_array.h"
 #include "mx_bit.h"
 #include "mx_memory.h"
+#include "mx_process.h"
 #include "mx_image.h"
 #include "mx_video_input.h"
 #include "i_sapera_lt.h"
@@ -68,7 +69,10 @@ MX_RECORD_FUNCTION_LIST mxd_sapera_lt_frame_grabber_record_function_list = {
 	NULL,
 	NULL,
 	mxd_sapera_lt_frame_grabber_open,
-	mxd_sapera_lt_frame_grabber_close
+	mxd_sapera_lt_frame_grabber_close,
+	NULL,
+	NULL,
+	mxd_sapera_lt_frame_grabber_special_processing_setup
 };
 
 MX_VIDEO_INPUT_FUNCTION_LIST
@@ -2049,4 +2053,87 @@ mxd_sapera_lt_frame_grabber_set_parameter( MX_VIDEO_INPUT *vinput )
 }
 
 /*---------------------------------------------------------------------------*/
+
+static mx_status_type
+mxd_sapera_lt_frame_grabber_process_function( void *record_ptr,
+			void *record_field_ptr,
+			int operation )
+{
+	static const char fname[] = "mxd_sapera_lt_frame_grabber_process_function()";
+
+	MX_RECORD *record;
+	MX_RECORD_FIELD *record_field;
+	MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber;
+	mx_status_type mx_status;
+
+	record = (MX_RECORD *) record_ptr;
+	record_field = (MX_RECORD_FIELD *) record_field_ptr;
+	sapera_lt_frame_grabber = (MX_SAPERA_LT_FRAME_GRABBER *)
+					record->record_type_struct;
+
+	mx_status = MX_SUCCESSFUL_RESULT;
+
+	switch( operation ) {
+	case MX_PROCESS_GET:
+		switch( record_field->label_value ) {
+		case MXLV_SAPERA_LT_FRAME_GRABBER_SIGNAL_STATUS:
+			mx_status =
+			    mxd_sapera_lt_frame_grabber_get_lowlevel_parameter(
+				sapera_lt_frame_grabber, -1,
+				CORACQ_PRM_SIGNAL_STATUS,
+				&(sapera_lt_frame_grabber->signal_status) );
+			break;
+		default:
+			MX_DEBUG( 1,(
+			    "%s: *** Unknown MX_PROCESS_GET label value = %ld",
+				fname, record_field->label_value));
+			break;
+		}
+		break;
+	case MX_PROCESS_PUT:
+		switch( record_field->label_value ) {
+		default:
+			MX_DEBUG( 1,(
+			    "%s: *** Unknown MX_PROCESS_GET label value = %ld",
+				fname, record_field->label_value));
+			break;
+		}
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Unknown operation code = %d for record '%s'.",
+			operation, record->name );
+		break;
+	}
+
+	return mx_status;
+}
+
+/*---------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxd_sapera_lt_frame_grabber_special_processing_setup( MX_RECORD *record )
+{
+	MX_RECORD_FIELD *record_field;
+	MX_RECORD_FIELD *record_field_array;
+	long i;
+
+	record_field_array = record->record_field_array;
+
+	for ( i = 0; i < record->num_record_fields; i++ ) {
+
+		record_field = &record_field_array[i];
+
+		switch( record_field->label_value ) {
+		case MXLV_SAPERA_LT_FRAME_GRABBER_SIGNAL_STATUS:
+			record_field->process_function
+				= mxd_sapera_lt_frame_grabber_process_function;
+			break;
+		default:
+			break;
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
 

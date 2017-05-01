@@ -39,6 +39,8 @@ typedef struct {
 
 	mx_bool_type buffer_overrun_occurred;
 
+	unsigned long signal_status;
+
 #ifdef __cplusplus
 
 	SapAcquisition *acquisition;
@@ -52,6 +54,8 @@ typedef struct {
 #ifdef __cplusplus
 }
 #endif
+
+#define MXLV_SAPERA_LT_FRAME_GRABBER_SIGNAL_STATUS	56701
 
 #define MXD_SAPERA_LT_FRAME_GRABBER_STANDARD_FIELDS \
   {-1, -1, "sapera_lt_record", MXFT_RECORD, NULL, 0, {0}, \
@@ -77,7 +81,13 @@ typedef struct {
   {-1, -1, "buffer_overrun_occurred", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_SAPERA_LT_FRAME_GRABBER, buffer_overrun_occurred), \
-	{0}, NULL, 0}
+	{0}, NULL, 0}, \
+  \
+  {MXLV_SAPERA_LT_FRAME_GRABBER_SIGNAL_STATUS, -1, "signal_status", \
+		  				MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_SAPERA_LT_FRAME_GRABBER, signal_status), \
+	{0}, NULL, MXFF_READ_ONLY}
 	
 #ifdef __cplusplus
 extern "C" {
@@ -89,6 +99,8 @@ MX_API mx_status_type mxd_sapera_lt_frame_grabber_finish_record_initialization(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_sapera_lt_frame_grabber_open( MX_RECORD *record );
 MX_API mx_status_type mxd_sapera_lt_frame_grabber_close( MX_RECORD *record );
+MX_API mx_status_type mxd_sapera_lt_frame_grabber_special_processing_setup(
+							MX_RECORD *record );
 
 MX_API mx_status_type mxd_sapera_lt_frame_grabber_arm( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_sapera_lt_frame_grabber_trigger(
