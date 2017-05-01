@@ -811,7 +811,7 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 					nf_label, sizeof(nf_label) );
 
 				fprintf( stderr,
-				"MX CALLBACK <%#lx> from '%s', value = ",
+				"MX CALLBACK [%#lx] from '%s', value = ",
 					(unsigned long) received_message_id,
 					nf_label );
 
@@ -3493,7 +3493,7 @@ mx_get_field_array( MX_RECORD *server_record,
 						remote_record_field_name, NULL,
 						nf_label, sizeof(nf_label) );
 
-		fprintf( stderr, "MX GET_ARRAY('%s') <%#lx> = ",
+		fprintf( stderr, "MX GET_ARRAY('%s') [%#lx] = ",
 				nf_label, server->last_rpc_message_id );
 
 		mx_network_buffer_show_value( message, server->data_format,
@@ -4054,7 +4054,8 @@ mx_put_field_array( MX_RECORD *server_record,
 						remote_record_field_name, NULL,
 						nf_label, sizeof(nf_label) );
 
-		fprintf( stderr, "MX PUT_ARRAY('%s', ", nf_label );
+		fprintf( stderr, "MX PUT_ARRAY('%s') [%#lx] = ",
+				nf_label, server->last_rpc_message_id );
 
 		handle_length = 2 * sizeof(uint32_t);
 
@@ -4385,8 +4386,10 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 		mx_network_get_nf_label( nf->server_record, nf->nfname,
 				nf_label, sizeof(nf_label) );
 
-		fprintf( stderr, "MX GET_NETWORK_HANDLE('%s') = (%lu,%lu)\n",
-			nf_label, nf->record_handle, nf->field_handle );
+		fprintf( stderr,
+		"MX GET_NETWORK_HANDLE('%s') [%#lx] = (%lu,%lu)\n",
+			nf_label, server->last_rpc_message_id,
+			nf->record_handle, nf->field_handle );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -4592,8 +4595,10 @@ mx_get_field_type( MX_RECORD *server_record,
 				nf_label, sizeof(nf_label) );
 
 		fprintf( stderr,
-	"MX GET_FIELD_TYPE('%s') = ( 'datatype' = %ld, 'num_dimensions' = %ld",
-			nf_label, *datatype, *num_dimensions );
+		"MX GET_FIELD_TYPE('%s') [%#lx] "
+		"= ( 'datatype' = %ld, 'num_dimensions' = %ld",
+			nf_label, server->last_rpc_message_id,
+			*datatype, *num_dimensions );
 
 		if ( *num_dimensions > 0 ) {
 			fprintf( stderr, ", 'dimension' = <%ld",
@@ -4728,8 +4733,9 @@ mx_set_client_info( MX_RECORD *server_record,
 					nf_label, sizeof(nf_label) );
 
 		fprintf( stderr,
-		"MX SET_CLIENT_INFO('%s', user = '%s', program = '%s')\n",
-			nf_label, local_username, local_program_name );
+	    "MX SET_CLIENT_INFO('%s', user = '%s', program = '%s') [%#lx]\n",
+			nf_label, local_username, local_program_name,
+			server->last_rpc_message_id );
 	}
 
 	/* If the network connection is not currently up for some reason,
@@ -5061,8 +5067,10 @@ mx_network_get_option( MX_RECORD *server_record,
 		mx_network_get_nf_label( server_record, NULL,
 					nf_label, sizeof(nf_label) );
 
-		fprintf( stderr, "MX GET_OPTION('%s', %lu ) = %lu\n",
-			nf_label, option_number, *option_value );
+		fprintf( stderr, "MX GET_OPTION('%s', %lu ) [%#lx] = %lu\n",
+			nf_label, option_number,
+			server->last_rpc_message_id,
+			*option_value );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -5129,8 +5137,10 @@ mx_network_set_option( MX_RECORD *server_record,
 		mx_network_get_nf_label( server_record, NULL,
 					nf_label, sizeof(nf_label) );
 
-		fprintf( stderr, "MX SET_OPTION('%s') Set option %lu to %lu\n",
-			nf_label, option_number, option_value );
+		fprintf( stderr, "MX SET_OPTION('%s') [%#lx] "
+				"Set option %lu to %lu\n",
+			nf_label, server->last_rpc_message_id,
+			option_number, option_value );
 	}
 
 	/************ Send the 'set option' message. *************/
@@ -5492,8 +5502,10 @@ mx_network_field_get_attribute( MX_NETWORK_FIELD *nf,
 		mx_network_get_nf_label( nf->server_record, nf->nfname,
 					nf_label, sizeof(nf_label) );
 
-		fprintf( stderr, "MX GET_ATTRIBUTE('%s', %lu ) = %g\n",
-			nf_label, attribute_number, *attribute_value );
+		fprintf( stderr, "MX GET_ATTRIBUTE('%s', %lu ) [%#lx] = %g\n",
+			nf_label, attribute_number,
+			server->last_rpc_message_id,
+			*attribute_value );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -5575,8 +5587,9 @@ mx_network_field_set_attribute( MX_NETWORK_FIELD *nf,
 		mx_network_get_nf_label( nf->server_record, nf->nfname,
 					nf_label, sizeof(nf_label) );
 
-		fprintf( stderr, "MX SET_ATTRIBUTE('%s', %lu, %g )\n",
-			nf_label, attribute_number, attribute_value );
+		fprintf( stderr, "MX SET_ATTRIBUTE('%s', %lu, %g ) [%#lx]\n",
+			nf_label, attribute_number, attribute_value,
+			server->last_rpc_message_id );
 	}
 
 	/************ Send the 'set attribute' message. *************/
