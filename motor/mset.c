@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2006-2007, 2009-2010, 2013, 2015
+ * Copyright 1999-2003, 2006-2007, 2009-2010, 2013, 2015, 2017
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -1021,7 +1021,8 @@ motor_set_fn( int argc, char *argv[] )
 
 		if ( do_netdebug ) {
 			mx_multi_set_debug_flags( motor_record_list,
-					MXF_NETWORK_SERVER_DEBUG_SUMMARY );
+				(  MXF_NETWORK_SERVER_DEBUG_SUMMARY \
+				 | MXF_NETWORK_SERVER_DEBUG_MESSAGE_IDS) );
 		} else {
 			mx_multi_set_debug_flags( motor_record_list, 0 );
 		}

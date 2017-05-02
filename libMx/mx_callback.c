@@ -578,6 +578,7 @@ mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,
 	char *char_message;
 	unsigned long header_length, message_length, message_type, status_code;
 	unsigned long data_type, message_id, callback_id;
+	unsigned long network_debug_flags;
 	char nf_label[80];
 	mx_bool_type connected;
 	mx_status_type mx_status;
@@ -805,10 +806,16 @@ mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,
 		nf->record_handle, nf->field_handle,
 		callback_id ));
 #endif
+	network_debug_flags = list_head->network_debug_flags;
 
-	if ( list_head->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+	if ( network_debug_flags & MXF_NETDBG_SUMMARY ) {
 		mx_network_get_nf_label( server_record, nf->nfname,
 					nf_label, sizeof(nf_label) );
+
+		if ( network_debug_flags & MXF_NETDBG_MSG_IDS ) {
+			fprintf( stderr, "[%#lx] ",
+					server->last_rpc_message_id );
+		}
 
 		fprintf( stderr, "MX ADD_CALLBACK('%s') = [%#lx]\n",
 				nf_label, callback_id );
@@ -879,6 +886,7 @@ mx_remote_field_delete_callback( MX_CALLBACK *callback )
 	uint32_t *header, *uint32_message;
 	char *char_message;
 	unsigned long header_length, message_length, message_type, status_code;
+	unsigned long network_debug_flags;
 	mx_status_type mx_status;
 
 	if ( callback == (MX_CALLBACK *) NULL ) {
@@ -929,10 +937,16 @@ mx_remote_field_delete_callback( MX_CALLBACK *callback )
 		));
 	}
 
-	if ( list_head->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+	network_debug_flags = list_head->network_debug_flags;
+
+	if ( network_debug_flags & MXF_NETDBG_SUMMARY ) {
 		mx_network_get_nf_label( nf->server_record, nf->nfname,
 					nf_label, sizeof(nf_label) );
 
+		if ( network_debug_flags & MXF_NETDBG_MSG_IDS ) {
+			fprintf( stderr, "[%#lx] ",
+					server->last_rpc_message_id );
+		}
 		fprintf( stderr, "MX DELETE_CALLBACK('%s', [%#lx])\n",
 			nf_label, (unsigned long) callback->callback_id );
 	}

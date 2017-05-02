@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2003-2008, 2010-2012, 2014-2016 Illinois Institute of Technology
+ * Copyright 2003-2008, 2010-2012, 2014-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -221,7 +221,10 @@ mxn_unix_server_open( MX_RECORD *record )
 	if ( list_head->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 	    network_server->server_flags |= MXF_NETWORK_SERVER_DEBUG_VERBOSE;
 	}
-
+	if ( list_head->network_debug_flags & MXF_NETDBG_MSG_IDS ) {
+	    network_server->server_flags
+		    		|= MXF_NETWORK_SERVER_DEBUG_MESSAGE_IDS;
+	}
 
 	flags = network_server->server_flags;
 

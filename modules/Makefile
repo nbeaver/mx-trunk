@@ -45,7 +45,7 @@ MODULES += libtiff		# cygwin, linux, win32
 
 #MODULES += nuvant_ezstat	# linux, win32
 
-#MODULES += python		# (Warning: not yet finished)
+MODULES += python		# (Warning: not yet finished)
 
 #MODULES += pmc_mcapi		# linux, win32
 
@@ -55,12 +55,12 @@ MODULES += libtiff		# cygwin, linux, win32
 
 #MODULES += xia_handel		# linux, win32
 
-#MODULES += xineos_gige		# linux, win32
+MODULES += xineos_gige		# linux, win32
 
 #-------------------------------------------------------------------
 # Linux-only modules.
 
-#MODULES += aravis
+MODULES += aravis
 
 #MODULES += dalsa_gev
 

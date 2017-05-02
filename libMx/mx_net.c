@@ -551,6 +551,7 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 	int comparison;
 	uint32_t *header;
 	uint32_t received_message_id, difference;
+	unsigned long network_debug_flags;
 	mx_status_type mx_status;
 
 	if ( server_record == (MX_RECORD *) NULL ) {
@@ -786,10 +787,12 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 
 			MXW_UNUSED( callback_found );
 
+			network_debug_flags =
+				record_list_head->network_debug_flags;
+
+			MXW_UNUSED( network_debug_flags );
 #if NETWORK_DEBUG
-			if ( record_list_head->network_debug_flags
-				& MXF_NETDBG_SUMMARY )
-			{
+			if ( network_debug_flags & MXF_NETDBG_SUMMARY ) {
 				MX_NETWORK_FIELD *nf;
 				unsigned long data_type, message_type;
 				unsigned long header_length, message_length;
@@ -809,6 +812,11 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 				mx_network_get_nf_label(
 					server_record, nf->nfname,
 					nf_label, sizeof(nf_label) );
+
+				if ( network_debug_flags & MXF_NETDBG_MSG_IDS ){
+					fprintf( stderr, "[%#lx] ",
+						server->last_rpc_message_id );
+				}
 
 				fprintf( stderr,
 				"MX CALLBACK [%#lx] from '%s', value = ",
@@ -3224,6 +3232,7 @@ mx_get_field_array( MX_RECORD *server_record,
 	uint32_t header_length, message_length;
 	uint32_t send_message_type, receive_message_type;
 	uint32_t status_code;
+	unsigned long network_debug_flags;
 	mx_status_type mx_status;
 	char token_buffer[500];
 
@@ -3488,13 +3497,19 @@ mx_get_field_array( MX_RECORD *server_record,
 				message );
 	}
 
+	network_debug_flags = list_head->network_debug_flags;
+
 	if ( list_head->network_debug_flags & MXF_NETDBG_SUMMARY ) {
 		mx_network_get_remote_field_label( NULL, server_record,
 						remote_record_field_name, NULL,
 						nf_label, sizeof(nf_label) );
 
-		fprintf( stderr, "MX GET_ARRAY('%s') [%#lx] = ",
-				nf_label, server->last_rpc_message_id );
+		if ( network_debug_flags & MXF_NETDBG_MSG_IDS ) {
+			fprintf( stderr, "[%#lx] ",
+					server->last_rpc_message_id );
+		}
+
+		fprintf( stderr, "MX GET_ARRAY('%s') = ", nf_label );
 
 		mx_network_buffer_show_value( message, server->data_format,
 					datatype, receive_message_type,
@@ -3686,6 +3701,7 @@ mx_put_field_array( MX_RECORD *server_record,
 	uint32_t *header, *uint32_message;
 	char *message, *ptr, *name_ptr;
 	unsigned long i, j, max_attempts;
+	unsigned long network_debug_flags;
 
 #if defined(_WIN64)
 	uint64_t xdr_ptr_address, xdr_remainder_value, xdr_gap_size;
@@ -4047,15 +4063,21 @@ mx_put_field_array( MX_RECORD *server_record,
 
 	MX_DEBUG( 2,("%s: message = '%s'", fname, message));
 
-	if ( list_head->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+	network_debug_flags = list_head->network_debug_flags;
+
+	if ( network_debug_flags & MXF_NETDBG_SUMMARY ) {
 		unsigned long handle_length;
 
 		mx_network_get_remote_field_label( NULL, server_record,
 						remote_record_field_name, NULL,
 						nf_label, sizeof(nf_label) );
 
-		fprintf( stderr, "MX PUT_ARRAY('%s') [%#lx] = ",
-				nf_label, server->last_rpc_message_id );
+		if ( network_debug_flags & MXF_NETDBG_MSG_IDS ) {
+			fprintf( stderr, "[%#lx] ",
+					server->last_rpc_message_id );
+		}
+
+		fprintf( stderr, "MX PUT_ARRAY('%s') = ", nf_label );
 
 		handle_length = 2 * sizeof(uint32_t);
 
@@ -4194,6 +4216,7 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 	uint32_t header_length, message_length;
 	uint32_t message_type, status_code;
 	uint32_t header_length_in_32bit_words;
+	unsigned long network_debug_flags;
 	mx_status_type mx_status;
 
 #if NETWORK_DEBUG_TIMING
@@ -4381,15 +4404,21 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 		nf->record_handle, nf->field_handle ));
 #endif
 
-	if ( list_head->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+	network_debug_flags = list_head->network_debug_flags;
+
+	if ( network_debug_flags & MXF_NETDBG_SUMMARY ) {
 
 		mx_network_get_nf_label( nf->server_record, nf->nfname,
 				nf_label, sizeof(nf_label) );
 
+		if ( network_debug_flags & MXF_NETDBG_MSG_IDS ) {
+			fprintf( stderr, "[%#lx] ",
+					server->last_rpc_message_id );
+		}
+
 		fprintf( stderr,
-		"MX GET_NETWORK_HANDLE('%s') [%#lx] = (%lu,%lu)\n",
-			nf_label, server->last_rpc_message_id,
-			nf->record_handle, nf->field_handle );
+		"MX GET_NETWORK_HANDLE('%s') = (%lu,%lu)\n",
+			nf_label, nf->record_handle, nf->field_handle );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -4418,6 +4447,7 @@ mx_get_field_type( MX_RECORD *server_record,
 	uint32_t message_type, status_code;
 	uint32_t i, expected_message_length;
 	uint32_t header_length_in_32bit_words;
+	unsigned long network_debug_flags;
 	mx_status_type mx_status;
 
 #if NETWORK_DEBUG_TIMING
@@ -4589,16 +4619,22 @@ mx_get_field_type( MX_RECORD *server_record,
 			mx_ntohl( (unsigned long) message_uint32_array[i+2] );
 	}
 
-	if ( list_head->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+	network_debug_flags = list_head->network_debug_flags;
+
+	if ( network_debug_flags & MXF_NETDBG_SUMMARY ) {
 		mx_network_get_nf_label( server_record,
 				remote_record_field_name,
 				nf_label, sizeof(nf_label) );
 
+		if ( network_debug_flags & MXF_NETDBG_MSG_IDS ) {
+			fprintf( stderr, "[%#lx] ",
+					server->last_rpc_message_id );
+		}
+
 		fprintf( stderr,
-		"MX GET_FIELD_TYPE('%s') [%#lx] "
+		"MX GET_FIELD_TYPE('%s') "
 		"= ( 'datatype' = %ld, 'num_dimensions' = %ld",
-			nf_label, server->last_rpc_message_id,
-			*datatype, *num_dimensions );
+			nf_label, *datatype, *num_dimensions );
 
 		if ( *num_dimensions > 0 ) {
 			fprintf( stderr, ", 'dimension' = <%ld",
@@ -4644,6 +4680,7 @@ mx_set_client_info( MX_RECORD *server_record,
 	mx_bool_type connection_is_up;
 	long i, string_length;
 	char *local_username, *local_program_name;
+	unsigned long network_debug_flags;
 	mx_status_type mx_status;
 
 #if NETWORK_DEBUG_TIMING
@@ -4726,16 +4763,22 @@ mx_set_client_info( MX_RECORD *server_record,
 			local_program_name));
 	}
 
-	if ( list_head->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+	network_debug_flags = list_head->network_debug_flags;
+
+	if ( network_debug_flags & MXF_NETDBG_SUMMARY ) {
 		char nf_label[ NF_LABEL_LENGTH ];
 
 		mx_network_get_nf_label( server_record, NULL,
 					nf_label, sizeof(nf_label) );
 
+		if ( network_debug_flags & MXF_NETDBG_MSG_IDS ) {
+			fprintf( stderr, "[%#lx] ",
+					server->last_rpc_message_id );
+		}
+
 		fprintf( stderr,
-	    "MX SET_CLIENT_INFO('%s', user = '%s', program = '%s') [%#lx]\n",
-			nf_label, local_username, local_program_name,
-			server->last_rpc_message_id );
+	    "MX SET_CLIENT_INFO('%s', user = '%s', program = '%s')\n",
+			nf_label, local_username, local_program_name );
 	}
 
 	/* If the network connection is not currently up for some reason,
@@ -4890,6 +4933,7 @@ mx_network_get_option( MX_RECORD *server_record,
 	uint32_t header_length, message_length, message_type;
 	long status_code;
 	uint32_t header_length_in_32bit_words;
+	unsigned long network_debug_flags;
 	mx_bool_type quiet;
 	mx_status_type mx_status;
 
@@ -5061,16 +5105,21 @@ mx_network_get_option( MX_RECORD *server_record,
 	MX_DEBUG( 2,("%s invoked, *option_value = '%#lx'",
 			fname, *option_value));
 
-	if ( list_head->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+	network_debug_flags = list_head->network_debug_flags;
+
+	if ( network_debug_flags & MXF_NETDBG_SUMMARY ) {
 		char nf_label[ NF_LABEL_LENGTH ];
 
 		mx_network_get_nf_label( server_record, NULL,
 					nf_label, sizeof(nf_label) );
 
-		fprintf( stderr, "MX GET_OPTION('%s', %lu ) [%#lx] = %lu\n",
-			nf_label, option_number,
-			server->last_rpc_message_id,
-			*option_value );
+		if ( network_debug_flags & MXF_NETDBG_MSG_IDS ) {
+			fprintf( stderr, "[%#lx] ",
+					server->last_rpc_message_id );
+		}
+
+		fprintf( stderr, "MX GET_OPTION('%s', %lu ) = %lu\n",
+			nf_label, option_number, *option_value );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -5092,6 +5141,7 @@ mx_network_set_option( MX_RECORD *server_record,
 	char *buffer, *message;
 	uint32_t header_length, message_length, message_type;
 	long status_code;
+	unsigned long network_debug_flags;
 	mx_bool_type quiet;
 	mx_status_type mx_status;
 
@@ -5131,16 +5181,21 @@ mx_network_set_option( MX_RECORD *server_record,
 			option_number, server_record->name ));
 	}
 
+	network_debug_flags = list_head->network_debug_flags;
+
 	if ( list_head->network_debug_flags & MXF_NETDBG_SUMMARY ) {
 		char nf_label[ NF_LABEL_LENGTH ];
 
 		mx_network_get_nf_label( server_record, NULL,
 					nf_label, sizeof(nf_label) );
 
-		fprintf( stderr, "MX SET_OPTION('%s') [%#lx] "
-				"Set option %lu to %lu\n",
-			nf_label, server->last_rpc_message_id,
-			option_number, option_value );
+		if ( network_debug_flags & MXF_NETDBG_MSG_IDS ) {
+			fprintf( stderr, "[%#lx] ",
+					server->last_rpc_message_id );
+		}
+
+		fprintf( stderr, "MX SET_OPTION('%s') Set option %lu to %lu\n",
+			nf_label, option_number, option_value );
 	}
 
 	/************ Send the 'set option' message. *************/
@@ -5288,6 +5343,7 @@ mx_network_field_get_attribute( MX_NETWORK_FIELD *nf,
 	long status_code;
 	XDR xdrs;
 	int xdr_status;
+	unsigned long network_debug_flags;
 	mx_bool_type connected;
 	mx_status_type mx_status;
 
@@ -5498,14 +5554,19 @@ mx_network_field_get_attribute( MX_NETWORK_FIELD *nf,
 	MX_DEBUG( 2,("%s invoked, *attribute_value = '%g'",
 			fname, *attribute_value));
 
-	if ( list_head->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+	network_debug_flags = list_head->network_debug_flags;
+
+	if ( network_debug_flags & MXF_NETDBG_SUMMARY ) {
 		mx_network_get_nf_label( nf->server_record, nf->nfname,
 					nf_label, sizeof(nf_label) );
 
-		fprintf( stderr, "MX GET_ATTRIBUTE('%s', %lu ) [%#lx] = %g\n",
-			nf_label, attribute_number,
-			server->last_rpc_message_id,
-			*attribute_value );
+		if ( network_debug_flags & MXF_NETDBG_MSG_IDS ) {
+			fprintf( stderr, "[%#lx] ",
+					server->last_rpc_message_id );
+		}
+
+		fprintf( stderr, "MX GET_ATTRIBUTE('%s', %lu ) = %g\n",
+			nf_label, attribute_number, *attribute_value );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -5537,6 +5598,7 @@ mx_network_field_set_attribute( MX_NETWORK_FIELD *nf,
 	XDR xdrs;
 	int xdr_status;
 	uint32_t *uint32_value_ptr;
+	unsigned long network_debug_flags;
 	mx_bool_type connected;
 	mx_status_type mx_status;
 
@@ -5583,13 +5645,19 @@ mx_network_field_set_attribute( MX_NETWORK_FIELD *nf,
 			));
 	}
 
-	if ( list_head->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+	network_debug_flags = list_head->network_debug_flags;
+
+	if ( network_debug_flags & MXF_NETDBG_SUMMARY ) {
 		mx_network_get_nf_label( nf->server_record, nf->nfname,
 					nf_label, sizeof(nf_label) );
 
-		fprintf( stderr, "MX SET_ATTRIBUTE('%s', %lu, %g ) [%#lx]\n",
-			nf_label, attribute_number, attribute_value,
-			server->last_rpc_message_id );
+		if ( network_debug_flags & MXF_NETDBG_MSG_IDS ) {
+			fprintf( stderr, "[%#lx] ",
+					server->last_rpc_message_id );
+		}
+
+		fprintf( stderr, "MX SET_ATTRIBUTE('%s', %lu, %g )\n",
+			nf_label, attribute_number, attribute_value );
 	}
 
 	/************ Send the 'set attribute' message. *************/

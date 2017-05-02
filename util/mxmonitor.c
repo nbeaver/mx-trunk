@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2007-2014 Illinois Institute of Technology
+ * Copyright 2007-2014, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -610,14 +610,14 @@ main( int argc, char *argv[] )
 	interactive = TRUE;
 	show_timestamp = FALSE;
 
-	while ( (c = getopt(argc, argv, "aAb:BDitx")) != -1 )
-	{
+	while ( (c = getopt(argc, argv, "aA:b:BDitx")) != -1 ) {
 		switch (c) {
 		case 'a':
-			network_debug_flags = MXF_NETWORK_SERVER_DEBUG_SUMMARY;
+			network_debug_flags |= MXF_NETDBG_SUMMARY;
 			break;
 		case 'A':
-			network_debug_flags = MXF_NETWORK_SERVER_DEBUG_VERBOSE;
+			network_debug_flags =
+				mx_hex_string_to_unsigned_long( optarg );
 			break;
 
 			/* Note: client_callback_num_beeps is a global variable

@@ -929,7 +929,7 @@ mxsrv_mx_server_socket_init( MX_RECORD *list_head_record,
 	socket_handler->list_head = list_head;
 	socket_handler->handler_array_index = i;
 	socket_handler->event_handler = event_handler;
-	socket_handler->network_debug_flags = FALSE;
+	socket_handler->network_debug_flags = 0;
 
 	strlcpy( socket_handler->client_address_string, "",
 			sizeof(socket_handler->client_address_string ) );
@@ -2760,6 +2760,12 @@ mxsrv_send_field_value_to_client(
 
 		mxsrv_print_timestamp();
 
+		if ( socket_handler->network_debug_flags & MXF_NETDBG_MSG_IDS )
+		{
+			fprintf( stderr, "[%#lx] ",
+					socket_handler->last_rpc_message_id );
+		}
+
 		if ( message_id_for_client & MX_NETWORK_MESSAGE_IS_CALLBACK ) {
 		    fprintf( stderr,
 			"MX (socket %d) VC_CALLBACK('%s.%s') = ",
@@ -3266,6 +3272,12 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_SUMMARY ) {
 		mxsrv_print_timestamp();
 
+		if ( socket_handler->network_debug_flags & MXF_NETDBG_MSG_IDS )
+		{
+			fprintf( stderr, "[%#lx] ",
+					socket_handler->last_rpc_message_id );
+		}
+
 		fprintf( stderr,
 			"MX (socket %d) PUT_ARRAY('%s.%s') = ",
 			(int) socket_handler->synchronous_socket->socket_fd,
@@ -3479,6 +3491,12 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_SUMMARY ) {
 		mxsrv_print_timestamp();
 
+		if ( socket_handler->network_debug_flags & MXF_NETDBG_MSG_IDS )
+		{
+			fprintf( stderr, "[%#lx] ",
+					socket_handler->last_rpc_message_id );
+		}
+
 		fprintf( stderr,
 		    "MX (socket %d) GET_NETWORK_HANDLE('%s.%s') = (%lu,%lu)\n",
 			(int) socket_handler->synchronous_socket->socket_fd,
@@ -3601,6 +3619,12 @@ mxsrv_handle_get_field_type( MX_RECORD *record_list,
 
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_SUMMARY ) {
 		mxsrv_print_timestamp();
+
+		if ( socket_handler->network_debug_flags & MXF_NETDBG_MSG_IDS )
+		{
+			fprintf( stderr, "[%#lx] ",
+					socket_handler->last_rpc_message_id );
+		}
 
 		fprintf( stderr,
 			"MX (socket %d) GET_FIELD_TYPE('%s.%s') = "
@@ -3812,6 +3836,12 @@ mxsrv_handle_get_attribute( MX_RECORD *record_list,
 
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_SUMMARY ) {
 		mxsrv_print_timestamp();
+
+		if ( socket_handler->network_debug_flags & MXF_NETDBG_MSG_IDS )
+		{
+			fprintf( stderr, "[%#lx] ",
+					socket_handler->last_rpc_message_id );
+		}
 
 		fprintf( stderr,
 			"MX (socket %d) GET_ATTRIBUTE('%s.%s', %lu) = %g\n",
@@ -4029,6 +4059,12 @@ mxsrv_handle_set_attribute( MX_RECORD *record_list,
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_SUMMARY ) {
 		mxsrv_print_timestamp();
 
+		if ( socket_handler->network_debug_flags & MXF_NETDBG_MSG_IDS )
+		{
+			fprintf( stderr, "[%#lx] ",
+					socket_handler->last_rpc_message_id );
+		}
+
 		fprintf( stderr,
 			"MX (socket %d) SET_ATTRIBUTE('%s.%s', %lu) = %g\n",
 			(int) socket_handler->synchronous_socket->socket_fd,
@@ -4238,6 +4274,12 @@ mxsrv_handle_set_client_info( MX_RECORD *record_list,
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_SUMMARY ) {
 		mxsrv_print_timestamp();
 
+		if ( socket_handler->network_debug_flags & MXF_NETDBG_MSG_IDS )
+		{
+			fprintf( stderr, "[%#lx] ",
+					socket_handler->last_rpc_message_id );
+		}
+
 		fprintf( stderr,
 			"MX (socket %d) SET_CLIENT_INFO(user = '%s', "
 				"program = '%s')\n",
@@ -4397,6 +4439,12 @@ mxsrv_handle_get_option( MX_RECORD *record_list,
 
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_SUMMARY ) {
 		mxsrv_print_timestamp();
+
+		if ( socket_handler->network_debug_flags & MXF_NETDBG_MSG_IDS )
+		{
+			fprintf( stderr, "[%#lx] ",
+					socket_handler->last_rpc_message_id );
+		}
 
 		fprintf( stderr,
 			"MX (socket %d) GET_OPTION( %lu ) = %lu\n",
@@ -4613,6 +4661,12 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_SUMMARY ) {
 		mxsrv_print_timestamp();
+
+		if ( socket_handler->network_debug_flags & MXF_NETDBG_MSG_IDS )
+		{
+			fprintf( stderr, "[%#lx] ",
+					socket_handler->last_rpc_message_id );
+		}
 
 		fprintf( stderr,
 			"MX (socket %d) SET_OPTION: Set option %lu to %lu\n",
@@ -4916,6 +4970,12 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_SUMMARY ) {
 		mxsrv_print_timestamp();
+
+		if ( socket_handler->network_debug_flags & MXF_NETDBG_MSG_IDS )
+		{
+			fprintf( stderr, "[%#lx] ",
+					socket_handler->last_rpc_message_id );
+		}
 
 		fprintf( stderr,
 			"MX (socket %d) ADD_CALLBACK('%s.%s') = %#lx\n",
@@ -5302,6 +5362,12 @@ mxsrv_handle_delete_callback( MX_RECORD *record,
 
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_SUMMARY ) {
 		mxsrv_print_timestamp();
+
+		if ( socket_handler->network_debug_flags & MXF_NETDBG_MSG_IDS )
+		{
+			fprintf( stderr, "[%#lx] ",
+					socket_handler->last_rpc_message_id );
+		}
 
 		fprintf( stderr,
 			"MX (socket %d) DELETE_CALLBACK('%s.%s') = %#lx\n",

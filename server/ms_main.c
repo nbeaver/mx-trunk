@@ -617,14 +617,15 @@ mxserver_main( int argc, char *argv[] )
         error_flag = FALSE;
 
         while ((c = getopt(argc, argv,
-		"aAab:BcC:d:De:E:f:Jkl:L:m:M:n:O:p:P:rsStT:u:v:wxY:Z")) != -1)
+		"aA:b:BcC:d:De:E:f:Jkl:L:m:M:n:O:p:P:rsStT:u:v:wxY:Z")) != -1)
 	{
                 switch (c) {
 		case 'a':
 			network_debug_flags |= MXF_NETDBG_SUMMARY;
 			break;
 		case 'A':
-			network_debug_flags |= MXF_NETDBG_VERBOSE;
+			network_debug_flags =
+				mx_hex_string_to_unsigned_long( optarg );
 			break;
 		case 'b':
 			if ( strcmp( optarg, "raw" ) == 0 ) {

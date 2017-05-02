@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2016 Illinois Institute of Technology
+ * Copyright 1999-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -286,14 +286,15 @@ motor_main( int argc, char *argv[] )
 	error_flag = FALSE;
 
 	while (
-	  (c = getopt(argc,argv,"aAd:DF:f:Hg:iJNnP:p:S:s:tT:uVwWY:xz")) != -1)
+	  (c = getopt(argc,argv,"aA:d:DF:f:Hg:iJNnP:p:S:s:tT:uVwWY:xz")) != -1)
 	{
 		switch (c) {
 		case 'a':
 			network_debug_flags |= MXF_NETDBG_SUMMARY;
 			break;
 		case 'A':
-			network_debug_flags |= MXF_NETDBG_VERBOSE;
+			network_debug_flags =
+				mx_hex_string_to_unsigned_long( optarg );
 			break;
 		case 'd':
 			debug_level = atoi( optarg );
