@@ -1825,8 +1825,8 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 		 * generate a throwaway frame that we can then discard.
 		 */
 
-#if 1
-		if ( ad->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
+		if ( rt_flags & MXF_RADICON_TAURUS_GENERATE_THROWAWAY_FRAME ) {
+		    if ( ad->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
 			if ( new_sro_mode != old_sro_mode ) {
 				mx_status =
 			    mxd_radicon_taurus_generate_throwaway_frame(
@@ -1835,8 +1835,8 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 				if ( mx_status.code != MXE_SUCCESS )
 					return mx_status;
 			}
+		    }
 		}
-#endif
 
 		/* Do we need to set the exposure times?  If not, then
 		 * we can skip the rest of this case.
