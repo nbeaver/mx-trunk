@@ -313,6 +313,7 @@ mxd_radicon_taurus_video_capture_callback( void *capture_arguments )
 	sp = &(ad->sequence_parameters);
 
 	switch( sp->sequence_type ) {
+#if 0
 	case MXT_SQ_STROBE:
 		if ( (v_last_frame_number % 2) == 0 ) {
 			/* We ignore even numbered frames in a strobe 
@@ -331,6 +332,7 @@ mxd_radicon_taurus_video_capture_callback( void *capture_arguments )
 			return MX_SUCCESSFUL_RESULT;
 		}
 		break;
+#endif
 	default:
 		break;
 	}
@@ -1788,7 +1790,7 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 		case MXT_SQ_MULTIFRAME:
 			set_exposure_times = TRUE;
 
-			new_sro_mode = 2;
+			new_sro_mode = 3;
 			break;
 		case MXT_SQ_STROBE:
 			set_exposure_times = TRUE;
@@ -1859,24 +1861,35 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 				radicon_taurus->minimum_exposure_ticks;
 		}
 
+		MX_DEBUG(-2,("%s: long_exposure_time_as_double = %f",
+			fname, long_exposure_time_as_double));
+
 		/* Round to the nearest 64 bit integer. */
 
 		long_exposure_time_as_uint64 =
 			(int64_t) ( 0.5 + long_exposure_time_as_double );
 
-		if ( sp->sequence_type == MXT_SQ_STROBE ) {
-			/* Set the duration of the first pulse to the
+		switch( sp->sequence_type ) {
+		case MXT_SQ_ONE_SHOT:
+		case MXT_SQ_MULTIFRAME:
+		case MXT_SQ_STROBE:
+		case MXT_SQ_DURATION:
+			/* Set the duration of the second pulse to the
 			 * smallest allowed value of 4.  In this case,
-			 * the first pulse is used to clear out counts
-			 * that accumulated while the detector was not
-			 * being used.
+			 * the detector sends the first pulse as fast
+			 * as it can, while the second pulse is too
+			 * short in time for the frame grabber to treat
+			 * it as a valid frame.
 			 */
 
-			si1_register = (uint64_t ) 4;
-			si2_register = long_exposure_time_as_uint64;
-		} else {
+			si1_register = long_exposure_time_as_uint64;
+			si2_register = (uint64_t ) 4;
+			break;
+		case MXT_SQ_GATED:
+		default:
 			si1_register = long_exposure_time_as_uint64;
 			si2_register = long_exposure_time_as_uint64;
+			break;
 		}
 
 		/* Set the value of the si1 register. */
@@ -2055,12 +2068,13 @@ mxd_radicon_taurus_trigger( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXT_SQ_STREAM:
+		num_pulses = 0;
 		/* sro 4 - freerunning. */
 
 		break;
 
 	case MXT_SQ_MULTIFRAME:
-		/* sro 2 - multiple pulses */
+		/* sro 3 - multiple pulses */
 
 		pulse_width = sp->parameter_array[1];
 		pulse_period = sp->parameter_array[2];
@@ -2075,7 +2089,7 @@ mxd_radicon_taurus_trigger( MX_AREA_DETECTOR *ad )
 		 * it to 2 milliseconds to give us a margin for error.
 		 */
 
-		pulse_width = 0.002;
+		pulse_width = 0.005;
 
 		/* The pulse period needs to be at least greater than or
 		 * equal to the exposure times of both the short frame

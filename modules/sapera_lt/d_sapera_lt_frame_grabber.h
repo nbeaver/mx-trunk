@@ -21,6 +21,10 @@
 extern "C" {
 #endif
 
+/* Values for the 'sapera_frame_grabber_flags' field. */
+
+#define MXF_SAPERA_FRAME_GRABBER_DEBUG_SNAP	0x1
+
 typedef struct {
 	MX_RECORD *record;
 
@@ -28,6 +32,7 @@ typedef struct {
 	long frame_grabber_number;
 	char config_filename[MXU_FILENAME_LENGTH+1];
 	long num_frame_buffers;
+	unsigned long sapera_frame_grabber_flags;
 
 	unsigned long total_num_frames_at_start;
 	unsigned long num_frames_left_to_acquire;
@@ -77,6 +82,11 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_SAPERA_LT_FRAME_GRABBER, num_frame_buffers), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "sapera_frame_grabber_flags", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+  	    offsetof(MX_SAPERA_LT_FRAME_GRABBER, sapera_frame_grabber_flags), \
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
   \
   {-1, -1, "buffer_overrun_occurred", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \

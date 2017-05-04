@@ -1298,6 +1298,7 @@ mxd_sapera_lt_frame_grabber_arm( MX_VIDEO_INPUT *vinput )
 	MX_SEQUENCE_PARAMETERS *sp;
 	double exposure_time;
 	int num_frames;
+	unsigned long fg_flags;
 	UINT32 exposure_time_in_microsec;
 	BOOL sapera_status;
 	mx_status_type mx_status;
@@ -1443,7 +1444,14 @@ mxd_sapera_lt_frame_grabber_arm( MX_VIDEO_INPUT *vinput )
 
 	/*--------*/
 
+	fg_flags = sapera_lt_frame_grabber->sapera_frame_grabber_flags;
+
 	/* Tell the frame grabber to wait for incoming image frames. */
+
+	if ( fg_flags & MXF_SAPERA_FRAME_GRABBER_DEBUG_SNAP ) {
+		MX_DEBUG(-2,("%s: Snap(%lu) invoked for frame grabber '%s'.",
+			fname, num_frames, vinput->record->name ));
+	}
 
 	sapera_status = sapera_lt_frame_grabber->transfer->Snap( num_frames );
 
