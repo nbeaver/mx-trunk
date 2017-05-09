@@ -620,7 +620,6 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 	MX_AREA_DETECTOR *ad;
 	MX_MERLIN_MEDIPIX *merlin_medipix;
 	long merlin_frame_number, mx_frame_number;
-	long old_num_bytes_available;
 	unsigned long sleep_us;
 	unsigned long message_body_length, bytes_left;
 	char *dest_message_ptr, *remaining_dest_ptr;
@@ -657,8 +656,6 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 	}
 
 	sleep_us = 1000;		/* in microseconds */
-
-	old_num_bytes_available = -1L;
 
 	while (TRUE) {
 
@@ -1560,7 +1557,6 @@ mxd_merlin_medipix_readout_frame( MX_AREA_DETECTOR *ad )
 	struct tm tm;
 	int num_items;
 	unsigned long microseconds;
-	unsigned long merlin_flags;
 	int argc;
 	char **argv;
 	mx_status_type mx_status;
@@ -1732,8 +1728,6 @@ mxd_merlin_medipix_readout_frame( MX_AREA_DETECTOR *ad )
 
 	MXIF_TIMESTAMP_SEC( ad->image_frame )  = timestamp.tv_sec;
 	MXIF_TIMESTAMP_NSEC( ad->image_frame ) = timestamp.tv_nsec;
-
-	merlin_flags = merlin_medipix->merlin_flags;
 
 	/* Finally, we finish by copying the image data from the
 	 * Merlin Medipix's data structure to MX's data structure.
