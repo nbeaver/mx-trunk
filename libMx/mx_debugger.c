@@ -432,6 +432,152 @@ mx_start_debugger( char *command )
 	return;
 }
 
+#elif defined(OS_CYGWIN)
+
+static mx_bool_type mxp_cygwin_has_console = FALSE;
+
+MX_EXPORT void
+mx_prepare_for_debugging( char *command, int just_in_time_debugging )
+{
+#if 1
+	static const char fname[] = "mx_prepare_for_debugging()";
+#endif
+
+	char buffer[200];
+	char *ptr = NULL;
+	FILE *query_session = NULL;
+
+	/* If this Cygwin process is running on the Windows console,
+	 * then we can use 'mintty' or 'rxvt' to host the 'gdb'
+	 * debugger in another window.  Otherwise, we will have to
+	 * wait for the user to attach from another session.
+	 *
+	 * We use the Windows 'query session' command to find out
+	 * whether we are on the console or not.  Our session will
+	 * have a '>' character as the first byte in the output of
+	 * the 'query.exe' command if that line corresponds to our
+	 * session.
+	 */
+
+	mx_debugger_command[0] = '\0';
+
+	query_session = popen( "query session", "r" );
+
+	if ( query_session == (FILE *) NULL ) {
+		/* We could not find the 'query.exe' program, so we
+		 * default to assuming that we are not on the console.
+		 */
+
+		return;
+	}
+
+	while (TRUE) {
+		ptr = mx_fgets( buffer, sizeof(buffer), query_session );
+
+		if ( ptr == (char *) NULL ) {
+			break;
+		}
+
+		/* Is this our session? */
+
+		if ( buffer[0] == '>' ) {
+			/* This line corresponds to our session. */
+
+			ptr = buffer + 1;
+
+			if ( strncmp( ptr, "console", 7 ) == 0 ) {
+				/* Kanpai!  We are running on the console! */
+
+				mxp_cygwin_has_console = TRUE;
+			}
+
+			/* Only one line in the output of 'query.exe'
+			 * corresponds to our session, so we do not
+			 * need to read any more of the output from
+			 * the 'query.exe' command.
+			 */
+
+			break;
+		}
+	}
+
+	(void) fclose( query_session );
+
+#if 0
+	MX_DEBUG(-2,("%s: mxp_cygwin_has_console = %d",
+		fname, (int) mxp_cygwin_has_console ));
+#endif
+
+	if ( mxp_cygwin_has_console == FALSE ) {
+		mx_debugger_command[0] = '\0';
+
+	} else {
+		/* Now we figure out which command to use to start
+		 * the debugger.
+		 */
+
+		if ( command != (char *) NULL ) {
+			strlcpy( mx_debugger_command,
+				command, sizeof(mx_debugger_command) );
+		} else
+		if ( mx_command_found( "gdb" ) == FALSE ) {
+			/* If we get here, we have a console but we do not
+			 * have a copy of 'gdb' to start.
+			 */
+
+#if 1
+			MX_DEBUG(-2,("%s: 'gdb' not found.", fname));
+#endif
+
+			mxp_cygwin_has_console = FALSE;
+			return;
+		} else
+		if ( mx_command_found( "mintty" ) ) {
+			snprintf( mx_debugger_command,
+				sizeof(mx_debugger_command),
+				"mintty -e gdb -tui -p %lu",
+				mx_process_id() );
+		} else
+		if ( mx_command_found( "rxvt" ) ) {
+			snprintf( mx_debugger_command,
+				sizeof(mx_debugger_command),
+				"rxvt -e gdb -tui -p %lu",
+				mx_process_id() );
+		} else {
+			MX_DEBUG(-2,
+			("%s: Neither 'mintty' nor 'rxvt' were found, "
+			 "so we cannot start 'gdb' in another window.", fname));
+		}
+
+#if 0
+		MX_DEBUG(-2,("%s: mx_debugger_command = '%s'",
+				fname, mx_debugger_command));
+#endif
+	}
+
+	return;
+}
+
+MX_EXPORT void
+mx_start_debugger( char *command )
+{
+	unsigned long spawn_flags;
+	mx_status_type mx_status;
+
+	if ( mxp_cygwin_has_console == FALSE ) {
+		mx_wait_for_debugger();
+		return;
+	}
+
+	spawn_flags = 0;
+
+	mx_status = mx_spawn( mx_debugger_command, spawn_flags, NULL );
+
+	mx_wait_for_debugger();
+
+	return;
+}
+
 #else
 
 MX_EXPORT void

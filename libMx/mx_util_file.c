@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2011, 2013-2016 Illinois Institute of Technology
+ * Copyright 1999-2011, 2013-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1441,7 +1441,8 @@ mx_make_directory_hierarchy( char *directory_name )
 
 /*=========================================================================*/
 
-#if defined(OS_UNIX) || defined(OS_WIN32) || defined(OS_MINIX)
+#if defined(OS_UNIX) || defined(OS_WIN32) || defined(OS_CYGWIN) \
+	|| defined(OS_MINIX)
 
 MX_EXPORT int
 mx_command_found( char *command_name )
