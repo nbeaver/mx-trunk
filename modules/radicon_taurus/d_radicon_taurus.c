@@ -429,6 +429,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	char response[100];
 	char *string_value_ptr;
 	void *void_array_ptr;
+	size_t length, initial_match_length;
 	mx_bool_type response_seen;
 	mx_bool_type supports_capture_callbacks;
 	mx_status_type mx_status;
@@ -727,8 +728,6 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 			break;		/* Exit the while() loop. */
 		}
 
-		response_seen = TRUE;
-
 		mx_status = mx_rs232_getline(radicon_taurus->serial_port_record,
 					response, sizeof(response), NULL,
 					MXD_RADICON_TAURUS_DEBUG_RS232 );
@@ -739,10 +738,33 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 		/* Discard any leading LF character. */
 
 		if ( response[0] == MX_LF ) {
-			size_t length = strlen( response );
+			length = strlen( response );
 
 			memmove( response, response + 1, length );
 		}
+
+		/* Does the response line have anything in it other
+		 * than whitespace?
+		 */
+
+		length = strlen( response );
+
+		initial_match_length = strspn( response, " \t\r\n" );
+
+		MX_DEBUG(-2,("%s: length = %lu, initial_match_length = %lu",
+			fname, length, initial_match_length));
+
+		if ( initial_match_length >= length ) {
+			return mx_error( MXE_HARDWARE_CONFIGURATION_ERROR,fname,
+			"The response by area detector '%s' to a 'gcp' "
+			"command contained only whitespace characters.  "
+			"Perhaps the two Camera Link cables are swapped?",
+				record->name );
+		}
+
+		/*---*/
+
+		response_seen = TRUE;
 
 		string_value_ptr = strchr( response, ':' );
 
