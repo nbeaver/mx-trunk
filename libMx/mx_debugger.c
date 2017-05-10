@@ -751,6 +751,13 @@ mx_wait_for_debugger( void )
 "debugger for dynamically loaded libraries or modules such as .mxo files\n"
 "using the GDB command 'set solib-search-path'.  You can verify that the\n"
 "library or module has been found using the GDB 'sharedlibrary' command.\n\n" );
+
+#if defined(OS_CYGWIN)
+	fprintf( stderr,
+"If you are using Cygwin Gdb, make sure that you move to the first thread\n"
+"using the command 'thread 1', since that is the thread that contains the\n"
+"loop in mx_wait_for_debugger().\n\n" );
+#endif
 		
 #if defined(OS_SOLARIS) || defined(OS_HPUX) || defined(OS_IRIX)
 	fprintf( stderr,
