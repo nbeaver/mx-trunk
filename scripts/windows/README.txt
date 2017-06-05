@@ -1,6 +1,6 @@
-This directory contains some sample Windows batch files for starting
-MX programs on a Windows system.  These files are just examples and
-should be customized for your environment.  By default, these are 
+The ./bat_files subdirectory contains some sample Windows batch files for
+starting MX programs on a Windows system.  These files are just examples
+and should be customized for your environment.  By default, these are 
 intended to be installed in the c:\opt\mx directory, with subdirectories
 named c:\opt\mx\bin, c:\opt\mx\etc, c:\opt\mx\run, and c:\opt\mx\sbin.
 
