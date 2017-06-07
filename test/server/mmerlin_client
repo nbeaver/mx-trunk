@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../motor/mxmotor.static -F ./mmerlin_client.dat -s ./smerlin_client.dat $*
+

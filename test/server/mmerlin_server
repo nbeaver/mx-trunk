@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../server/mxserver -p 9727 -f mmerlin_server.dat -C mmerlin_server.acl $*
+
