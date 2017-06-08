@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2009, 2011-2013, 2015-2016 Illinois Institute of Technology
+ * Copyright 2006-2009, 2011-2013, 2015-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -217,7 +217,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 	} else
 	if ( strncmp( "snap", argv[3], strlen(argv[3]) ) == 0 ) {
 
-		if ( argc < 6 ) {
+		if ( argc < 5 ) {
 			fprintf( output,
 			"%s: not enough arguments to 'snap' command\n",
 				cname );
@@ -228,6 +228,9 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 		exposure_time = atof( argv[4] );
 
+		if ( argc < 6 ) {
+			datafile_type = MXT_IMAGE_FILE_NONE;
+		} else
 		if ( strcmp( argv[5], "pnm" ) == 0 ) {
 			datafile_type = MXT_IMAGE_FILE_PNM;
 		} else
@@ -256,17 +259,19 @@ motor_area_detector_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 
-		if ( ( argc < 7 ) && ( datafile_type != MXT_IMAGE_FILE_NONE ) )
-		{
+		if ( datafile_type == MXT_IMAGE_FILE_NONE ) {
+			filename = NULL;
+		} else
+		if ( argc < 7 ) {
 			fprintf( output,
 			"%s: not enough arguments to 'snap' command\n",
 				cname );
 
 			fprintf( output, "%s\n", usage );
 			return FAILURE;
+		} else {
+			filename = argv[6];
 		}
-
-		filename = argv[6];
 
 		mx_status = mx_area_detector_set_one_shot_mode( ad_record,
 								exposure_time );
@@ -392,7 +397,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 	} else
 	if ( strncmp( "sequence", argv[3], strlen(argv[3]) ) == 0 ) {
 
-		if ( argc < 5 ) {
+		if ( argc < 4 ) {
 			fprintf( output,
 			"%s: not enough arguments to 'sequence' command\n",
 				cname );
@@ -401,6 +406,9 @@ motor_area_detector_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 
+		if ( argc < 5 ) {
+			datafile_type = MXT_IMAGE_FILE_NONE;
+		} else
 		if ( strcmp( argv[4], "pnm" ) == 0 ) {
 			datafile_type = MXT_IMAGE_FILE_PNM;
 			strlcpy( filename_ext, "pnm", sizeof(filename_ext) );

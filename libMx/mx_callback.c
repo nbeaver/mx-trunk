@@ -26,7 +26,9 @@
 
 #define MX_CALLBACK_DEBUG_PROCESS_CALLBACKS_TIMING	FALSE
 
-#define MX_CALLBACK_DEBUG_VALUE_CHANGED_POLL		FALSE
+#define MX_CALLBACK_DEBUG_REQUEST_VALUE_CHANGED_POLL	FALSE
+
+#define MX_CALLBACK_DEBUG_POLL_CALLBACK_HANDLER		FALSE
 
 /* Note: If you protect the VM version of the handle table here, then
  *       you must also set NETWORK_PROTECT_VM_HANDLE_TABLE in the 
@@ -245,7 +247,7 @@ mx_request_value_changed_poll( MX_VIRTUAL_TIMER *callback_timer,
 	MX_LIST_HEAD *list_head;
 	MX_PIPE *mx_pipe;
 
-#if MX_CALLBACK_DEBUG_VALUE_CHANGED_POLL
+#if MX_CALLBACK_DEBUG_REQUEST_VALUE_CHANGED_POLL
 	MX_CLOCK_TICK current_clock_tick;
 
 	current_clock_tick = mx_current_clock_tick();
@@ -270,7 +272,7 @@ mx_request_value_changed_poll( MX_VIRTUAL_TIMER *callback_timer,
 	mx_pipe = list_head->callback_pipe;
 
 	if ( mx_pipe == NULL ) {
-#if MX_CALLBACK_DEBUG_VALUE_CHANGED_POLL
+#if MX_CALLBACK_DEBUG_REQUEST_VALUE_CHANGED_POLL
 		MX_DEBUG(-2,
 		("%s: callback_pipe == NULL.  Returning...", fname));
 #endif
@@ -2439,7 +2441,7 @@ mx_poll_callback_handler( MX_CALLBACK_MESSAGE *callback_message )
 	long interval;
 	mx_status_type mx_status;
 
-#if MX_CALLBACK_DEBUG
+#if MX_CALLBACK_DEBUG_POLL_CALLBACK_HANDLER
 	MX_DEBUG(-2,("%s invoked for callback message %p.",
 		fname, callback_message));
 #endif
@@ -2505,7 +2507,7 @@ mx_poll_callback_handler( MX_CALLBACK_MESSAGE *callback_message )
 
 	list_head->num_poll_callbacks++;
 
-#if MX_CALLBACK_DEBUG
+#if 0
 	MX_DEBUG(-2,("%s: list_head->num_poll_callbacks = %lu",
 		fname, list_head->num_poll_callbacks));
 #endif
@@ -2525,7 +2527,7 @@ mx_poll_callback_handler( MX_CALLBACK_MESSAGE *callback_message )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MX_CALLBACK_DEBUG
+#if 0
 	MX_DEBUG(-2,("%s: virtual timer %p restarted.",
 		fname, list_head->callback_timer));
 #endif
@@ -2610,6 +2612,7 @@ mx_poll_callback_handler( MX_CALLBACK_MESSAGE *callback_message )
 				fname, callback));
 #endif
 	    }
+
 #if 0
 	    MX_DEBUG(-2,("%s: callback->callback_function = %p",
 			fname, callback->callback_function));
@@ -2693,7 +2696,7 @@ mx_poll_callback_handler( MX_CALLBACK_MESSAGE *callback_message )
 
 			record = record_field->record;
 
-#if MX_CALLBACK_DEBUG
+#if 0
 			MX_DEBUG(-2,("%s: Processing '%s.%s'",
 			fname, record->name, record_field->name));
 #endif
@@ -2715,6 +2718,12 @@ mx_poll_callback_handler( MX_CALLBACK_MESSAGE *callback_message )
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
+#if 0
+			MX_DEBUG(-2,
+			("%s: '%s.%s' send_value_changed_callback = %d",
+				fname, record->name, record_field->name,
+				send_value_changed_callback));
+#endif
 
 			if ( send_value_changed_callback ) {
 

@@ -23,6 +23,8 @@
 
 #define MXD_MERLIN_MEDIPIX_DEBUG_FRAME_ADDRESSES	TRUE
 
+#define MXD_MERLIN_MEDIPIX_DEBUG_DETECTOR_STATUS	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -69,7 +71,7 @@
 MX_RECORD_FUNCTION_LIST mxd_merlin_medipix_record_function_list = {
 	mxd_merlin_medipix_initialize_driver,
 	mxd_merlin_medipix_create_record_structures,
-	NULL,
+	mx_area_detector_finish_record_initialization,
 	NULL,
 	NULL,
 	mxd_merlin_medipix_open,
@@ -789,6 +791,51 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 
 /*---*/
 
+/* Since the Merlin frame numbers are stored in variables that are not
+ * part of the standard MX_AREA_DETECTOR structure, we cannot use the
+ * standard mx_area_detector_vctest_extended_status() function by itself.
+ * Instead, we need this shim that explicitly calls the get_extended_status()
+ * function to generate the MX_AREA_DETECTOR status values from the
+ * Merlin-specific variables managed by the monitor thread.
+ */
+
+static mx_status_type
+mxd_merlin_medipix_vctest_extended_status( MX_RECORD_FIELD *record_field,
+					int direction,
+					mx_bool_type *value_changed_ptr )
+{
+	static const char fname[] =
+		"mxd_merlin_medipix_vctest_extended_status()";
+
+	MX_RECORD *record = NULL;
+	MX_AREA_DETECTOR *ad = NULL;
+	mx_status_type mx_status;
+
+	record = record_field->record;
+	ad = record->record_class_struct;
+
+	MX_DEBUG(-2,("%s invoked for field '%s.%s",
+		fname, record->name, record_field->name));
+
+	/* Directly invoked the get_extended_status() function to update
+	 * the values in the MX_AREA_DETECTOR structure.
+	 */
+
+	mx_status = mxd_merlin_medipix_get_extended_status( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Now call the standard extended status test function. */
+
+	mx_status = mx_area_detector_vctest_extended_status( record_field,
+					direction, value_changed_ptr );
+
+	return mx_status;
+}
+
+/*---*/
+
 MX_EXPORT mx_status_type
 mxd_merlin_medipix_initialize_driver( MX_DRIVER *driver )
 {
@@ -856,6 +903,7 @@ mxd_merlin_medipix_open( MX_RECORD *record )
 
 	MX_AREA_DETECTOR *ad = NULL;
 	MX_MERLIN_MEDIPIX *merlin_medipix = NULL;
+	MX_RECORD_FIELD *field = NULL;
 	unsigned long mask;
 	char response[100];
 	int num_items;
@@ -879,6 +927,35 @@ mxd_merlin_medipix_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Replace the normal mx_area_detector_vctest_extended_status()
+	 * function with our custom front end for the various status fields.
+	 */
+
+	field =
+	    &(record->record_field_array[ ad->total_num_frames_field_number ]);
+
+	field->value_changed_test_function =
+		mxd_merlin_medipix_vctest_extended_status;
+
+	field =
+	    &(record->record_field_array[ ad->last_frame_number_field_number ]);
+
+	field->value_changed_test_function =
+		mxd_merlin_medipix_vctest_extended_status;
+
+	field = &(record->record_field_array[ ad->status_field_number ]);
+
+	field->value_changed_test_function =
+		mxd_merlin_medipix_vctest_extended_status;
+
+	field =
+	    &(record->record_field_array[ ad->extended_status_field_number ]);
+
+	field->value_changed_test_function =
+		mxd_merlin_medipix_vctest_extended_status;
+
+	/*---*/
 
 	merlin_medipix->old_detector_status = (unsigned long)(-1L);
 
@@ -1488,13 +1565,15 @@ mxd_merlin_medipix_get_extended_status( MX_AREA_DETECTOR *ad )
 			response, ad->record->name );
 	}
 
-#if MXD_MERLIN_MEDIPIX_DEBUG
 	if ( detector_status != (merlin_medipix->old_detector_status) ) {
+
+#if MXD_MERLIN_MEDIPIX_DEBUG_DETECTOR_STATUS
 		MX_DEBUG(-2,("%s: detector_status changed from %lu to %lu",
 			fname, merlin_medipix->old_detector_status,
 			detector_status));
-	}
 #endif
+	}
+
 	merlin_medipix->old_detector_status = detector_status;
 
 	/* Sometimes this detector returns undocumented status codes 3 and 4.
