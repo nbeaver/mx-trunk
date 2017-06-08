@@ -35,7 +35,7 @@
 
 #define NETWORK_DEBUG_HEADER_LENGTH	FALSE
 
-#define NETWORK_DEBUG_CALLBACKS		TRUE
+#define NETWORK_DEBUG_CALLBACKS		FALSE
 
 #define NETWORK_PROTECT_VM_HANDLE_TABLE	FALSE
 
@@ -4720,9 +4720,6 @@ mxsrv_record_field_callback( MX_CALLBACK *callback, void *argument )
 	MX_DEBUG(-2,("%s (%p): callback = %p, id = %#lx, argument = %p",
 		fname, mxsrv_record_field_callback,
 		callback, (unsigned long) callback->callback_id, argument));
-#endif
-#if 1
-	mx_stack_traceback();
 #endif
 
 	callback_socket_handler_list = (MX_LIST *) argument;

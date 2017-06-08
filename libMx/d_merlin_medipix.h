@@ -67,7 +67,12 @@ typedef struct {
 
 	double external_trigger_debounce_time;		/* in seconds */
 
+	mx_bool_type detector_just_started;
+
 	long old_detector_status;
+
+	int32_t old_total_num_frames_at_start;
+	int32_t old_total_num_frames;
 
 	/* The following values are managed via MX atomic ops. */
 

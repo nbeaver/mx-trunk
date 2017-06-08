@@ -809,16 +809,62 @@ mxd_merlin_medipix_vctest_extended_status( MX_RECORD_FIELD *record_field,
 
 	MX_RECORD *record = NULL;
 	MX_AREA_DETECTOR *ad = NULL;
+	MX_MERLIN_MEDIPIX *merlin_medipix = NULL;
+	int32_t new_total_num_frames_at_start;
+	int32_t new_total_num_frames;
+	mx_bool_type need_update;
 	mx_status_type mx_status;
 
 	record = record_field->record;
 	ad = record->record_class_struct;
+	merlin_medipix = record->record_type_struct;
 
-	MX_DEBUG(-2,("%s invoked for field '%s.%s",
-		fname, record->name, record_field->name));
+	need_update = FALSE;
 
-	/* Directly invoked the get_extended_status() function to update
-	 * the values in the MX_AREA_DETECTOR structure.
+	/* mxd_merlin_medipix_get_extended_status() is an expensive
+	 * function, so we only want to invoke it when absolutely
+	 * necessary.
+	 */
+
+	new_total_num_frames_at_start =
+	    mx_atomic_read32( &(merlin_medipix->total_num_frames_at_start) );
+
+	new_total_num_frames =
+	    mx_atomic_read32( &(merlin_medipix->total_num_frames) );
+
+	if ( merlin_medipix->detector_just_started ) {
+		need_update = TRUE;
+
+		merlin_medipix->detector_just_started = FALSE;
+	} else
+	if ( new_total_num_frames_at_start
+	     != merlin_medipix->old_total_num_frames_at_start )
+	{
+		need_update = TRUE;
+	} else
+	if ( new_total_num_frames != merlin_medipix->old_total_num_frames )
+	{
+		need_update = TRUE;
+	}
+
+	merlin_medipix->old_total_num_frames_at_start
+		= new_total_num_frames_at_start;
+
+	merlin_medipix->old_total_num_frames = new_total_num_frames;
+
+	if ( need_update ) {
+		MX_DEBUG(-2,("%s: '%s.%s', need_update = %d",
+		  fname, record->name, record_field->name, (int) need_update));
+	}
+
+	/* If an update is not needed, then return without doing any more. */
+
+	if ( need_update == FALSE ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* If needed, directly invoked the get_extended_status() function
+	 * to update the values in the MX_AREA_DETECTOR structure.
 	 */
 
 	mx_status = mxd_merlin_medipix_get_extended_status( ad );
@@ -927,6 +973,12 @@ mxd_merlin_medipix_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	merlin_medipix->old_total_num_frames_at_start = (int32_t) (-1L);
+
+	merlin_medipix->old_total_num_frames = (int32_t) (-1L);
+
+	merlin_medipix->detector_just_started = TRUE;
 
 	/* Replace the normal mx_area_detector_vctest_extended_status()
 	 * function with our custom front end for the various status fields.
@@ -1252,6 +1304,8 @@ mxd_merlin_medipix_arm( MX_AREA_DETECTOR *ad )
 		fname, ad->record->name ));
 #endif
 
+	merlin_medipix->detector_just_started = TRUE;
+
 	sp = &(ad->sequence_parameters);
 
 	/* Set the exposure sequence parameters. */
@@ -1471,6 +1525,8 @@ mxd_merlin_medipix_trigger( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
+
+	merlin_medipix->detector_just_started = TRUE;
 
 	/* If we are configured for internal triggering, tell the
 	 * acquisition sequence to start.
