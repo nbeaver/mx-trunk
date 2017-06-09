@@ -34,7 +34,7 @@ typedef struct {
 	unsigned long command_port;
 	unsigned long data_port;
 	unsigned long merlin_flags;
-	unsigned long maximum_num_images;
+	unsigned long num_image_buffers;
 
 	double command_socket_timeout;			/* in seconds */
 
@@ -98,8 +98,8 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MERLIN_MEDIPIX, merlin_flags), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }, \
   \
-  {-1, -1, "maximum_num_images", MXFT_ULONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_MERLIN_MEDIPIX, maximum_num_images), \
+  {-1, -1, "num_image_buffers", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_MERLIN_MEDIPIX, num_image_buffers), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }, \
   \
   {-1, -1, "command_socket_timeout", MXFT_DOUBLE, NULL, 0, {0}, \

@@ -482,20 +482,20 @@ mxd_merlin_medipix_setup_data_socket( MX_AREA_DETECTOR *ad,
 	 */
 
 	merlin_medipix->image_message_array =
-		calloc( merlin_medipix->maximum_num_images,
+		calloc( merlin_medipix->num_image_buffers,
 			image_message_body_length );
 
 	if ( merlin_medipix->image_message_array == (char *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to allocate a %lu element array "
 	       	"of %lu byte image messages for Merlin detector '%s'.",
-			merlin_medipix->maximum_num_images,
+			merlin_medipix->num_image_buffers,
 			image_message_body_length,
 			ad->record->name );
 	}
 
 	merlin_medipix->image_message_array_length =
-		merlin_medipix->maximum_num_images
+		merlin_medipix->num_image_buffers
 		* image_message_body_length;
 
 	/* Configure the 'image_message_array' MX record field to have the
@@ -514,8 +514,8 @@ mxd_merlin_medipix_setup_data_socket( MX_AREA_DETECTOR *ad,
 
 #if MXD_MERLIN_MEDIPIX_DEBUG_FRAME_ADDRESSES
 	MX_DEBUG(-2,
-	    ("%s: maximum_num_images = %lu, image_message_length = %lu",
-	    fname, merlin_medipix->maximum_num_images,
+	    ("%s: num_image_buffers = %lu, image_message_length = %lu",
+	    fname, merlin_medipix->num_image_buffers,
 	    merlin_medipix->image_message_length));
 	MX_DEBUG(-2,("%s: merlin_medipix->image_message_array_length = %lu",
 	    fname, merlin_medipix->image_message_array_length));
@@ -621,7 +621,9 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 	MX_RECORD *record;
 	MX_AREA_DETECTOR *ad;
 	MX_MERLIN_MEDIPIX *merlin_medipix;
-	long merlin_frame_number, mx_frame_number;
+	long merlin_frame_number, mx_sequence_frame_number;
+	long total_num_frames_at_start;
+	long absolute_frame_number, modulo_frame_number;
 	unsigned long sleep_us;
 	unsigned long message_body_length, bytes_left;
 	char *dest_message_ptr, *remaining_dest_ptr;
@@ -717,10 +719,30 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 					record->name );
 		    }
 
-		    mx_frame_number = merlin_frame_number - 1L;
+		    mx_sequence_frame_number = merlin_frame_number - 1L;
+
+		    total_num_frames_at_start = mx_atomic_read32(
+			&(merlin_medipix->total_num_frames_at_start) );
+
+		    absolute_frame_number = total_num_frames_at_start
+			    + mx_sequence_frame_number;
+
+		    modulo_frame_number = absolute_frame_number
+			    % (merlin_medipix->num_image_buffers);
+
+#if 1
+		    MX_DEBUG(-2,("%s: total_num_frames_at_start = %ld, "
+			"mx_sequence_frame_number = %ld, "
+			"absolute_frame_number = %ld, "
+			"modulo_frame_number = %ld",
+			fname, mx_sequence_frame_number,
+			total_num_frames_at_start,
+			absolute_frame_number,
+			modulo_frame_number ));
+#endif
 
 		    dest_message_ptr = merlin_medipix->image_message_array
-				    + (mx_frame_number * message_body_length);
+			    + (modulo_frame_number * message_body_length);
 
 		    message_type = MXM_MPX_IMAGE_MESSAGE;
 	    } else {
@@ -764,8 +786,8 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 		break;
 	    case MXM_MPX_IMAGE_MESSAGE:
 	    	MX_DEBUG(-2,(
-		"%s: MQ1: mx_frame_number = %lu, dest_message_ptr = %p",
-			fname, mx_frame_number, dest_message_ptr));
+	"%s: MQ1: mx_sequence_frame_number = %lu, dest_message_ptr = %p",
+			fname, mx_sequence_frame_number, dest_message_ptr));
 		break;
 	    }
 #endif
