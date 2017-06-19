@@ -1,6 +1,6 @@
 @echo off
 
-set MX_VERSION=mx-2.1.1-2017_04_14
+set MX_VERSION=mx-2.1.1-2017-06-05
 
 set MX_PYTHON_VERSION=27
 
