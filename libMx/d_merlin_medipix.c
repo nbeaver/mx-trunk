@@ -621,7 +621,7 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 	MX_RECORD *record;
 	MX_AREA_DETECTOR *ad;
 	MX_MERLIN_MEDIPIX *merlin_medipix;
-	long merlin_frame_number, mx_sequence_frame_number;
+	long mx_sequence_frame_number;
 	long total_num_frames_at_start;
 	long absolute_frame_number, modulo_frame_number;
 	unsigned long sleep_us;
@@ -708,7 +708,7 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 		     */
 
 		    num_items = sscanf( initial_read_buffer, "MQ1,%lu",
-				    			&merlin_frame_number );
+			    			&absolute_frame_number );
 
 		    if ( num_items != 1 ) {
 			return mx_error( MXE_UNPARSEABLE_STRING, fname,
@@ -719,16 +719,14 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 					record->name );
 		    }
 
-		    mx_sequence_frame_number = merlin_frame_number - 1L;
-
 		    total_num_frames_at_start = mx_atomic_read32(
 			&(merlin_medipix->total_num_frames_at_start) );
 
-		    absolute_frame_number = total_num_frames_at_start
-			    + mx_sequence_frame_number;
-
 		    modulo_frame_number = absolute_frame_number
 			    % (merlin_medipix->num_image_buffers);
+
+		    mx_sequence_frame_number = absolute_frame_number
+					    	- total_num_frames_at_start;
 
 #if 1
 		    MX_DEBUG(-2,("%s: total_num_frames_at_start = %ld, "
@@ -900,6 +898,46 @@ mxd_merlin_medipix_vctest_extended_status( MX_RECORD_FIELD *record_field,
 					direction, value_changed_ptr );
 
 	return mx_status;
+}
+
+/*---*/
+
+static mx_status_type
+mxd_merlin_medipix_status_callback_fn( MX_CALLBACK_MESSAGE *message )
+{
+	static const char fname[] = "mxd_merlin_medipix_status_callback_fn()";
+
+	MX_RECORD *record = NULL;
+
+	if ( message == (MX_CALLBACK_MESSAGE *) NULL ) {
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"This callback was invoked with a NULL callback message!" );
+	}
+
+#if 1
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
+
+	if ( message->callback_type != MXCBT_FUNCTION ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Callback message %p sent to this callback function is not "
+		"of type MXCBT_FUNCTION.  Instead, it is of type %lu",
+			message, message->callback_type );
+	}
+
+	record = (MX_RECORD *) message->u.function.callback_args;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RECORD pointer for callback message %p is NULL.",
+			message );
+	}
+
+	/*** FIXME: Finish writing this callback.  Use mxo_toast_callback()
+	 * as an example.
+	 */
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*---*/
@@ -1289,6 +1327,21 @@ mxd_merlin_medipix_open( MX_RECORD *record )
 	mx_status = mx_thread_create( &(merlin_medipix->monitor_thread),
 					mxd_merlin_medipix_monitor_thread_fn,
 					record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* We cannot find out when the value changes for the 'status' field
+	 * by looking at data received via the data port since we must send
+	 * an explicit 
+	 */
+
+	merlin_medipix->status_callback_message = NULL;
+
+	mx_status = mx_function_add_callback( record,
+				mxd_merlin_medipix_status_callback_fn,
+				NULL, record, 0.1,
+				&(merlin_medipix->status_callback_message) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

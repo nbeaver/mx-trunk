@@ -67,6 +67,8 @@ typedef struct {
 
 	double external_trigger_debounce_time;		/* in seconds */
 
+	MX_CALLBACK_MESSAGE *status_callback_message;
+
 	mx_bool_type detector_just_started;
 
 	long old_detector_status;
@@ -75,6 +77,13 @@ typedef struct {
 	int32_t old_total_num_frames;
 
 	/* The following values are managed via MX atomic ops. */
+
+	/* total_num_frames_at_start is only written to by the
+	 * mxd_merlin_medipix_arm() function.
+	 *
+	 * total_num_frames is only written to by the 
+	 * mxd_merlin_medipix_monitor_thread() function.
+	 */
 
 	int32_t total_num_frames_at_start;
 	int32_t total_num_frames;
