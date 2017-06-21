@@ -908,15 +908,16 @@ mxd_merlin_medipix_status_callback_fn( MX_CALLBACK_MESSAGE *message )
 	static const char fname[] = "mxd_merlin_medipix_status_callback_fn()";
 
 	MX_RECORD *record = NULL;
+	MX_AREA_DETECTOR *ad = NULL;
+	MX_MERLIN_MEDIPIX *merlin_medipix = NULL;
+	MX_RECORD_FIELD *status_field = NULL;
+	mx_bool_type value_changed;
+	mx_status_type mx_status;
 
 	if ( message == (MX_CALLBACK_MESSAGE *) NULL ) {
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
 		"This callback was invoked with a NULL callback message!" );
 	}
-
-#if 1
-	MX_DEBUG(-2,("%s invoked.", fname));
-#endif
 
 	if ( message->callback_type != MXCBT_FUNCTION ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -933,11 +934,60 @@ mxd_merlin_medipix_status_callback_fn( MX_CALLBACK_MESSAGE *message )
 			message );
 	}
 
-	/*** FIXME: Finish writing this callback.  Use mxo_toast_callback()
-	 * as an example.
-	 */
+#if 1
+	MX_DEBUG(-2,("%s invoked for Merlin detector '%s'.",
+		fname, record->name));
+#endif
 
-	return MX_SUCCESSFUL_RESULT;
+	ad = (MX_AREA_DETECTOR *) record->record_class_struct;
+
+	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	    "The MX_AREA_DETECTOR pointer for Merlin detector '%s' is NULL.",
+	    		record->name );
+	}
+
+	merlin_medipix = (MX_MERLIN_MEDIPIX *) record->record_type_struct;
+
+	if ( merlin_medipix == (MX_MERLIN_MEDIPIX *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	    "The MX_MERLIN_MEDIPIX pointer for Merlin detector '%s' is NULL.",
+	    		record->name );
+	}
+
+	if ( record->record_field_array == (MX_RECORD_FIELD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	    "The record_field_array pointer for Merlin detector '%s' is NULL.",
+	    		record->name );
+	}
+
+	status_field = &(record->record_field_array[ ad->status_field_number ]);
+
+	/* Restart the virtual timer to arrange for the next callback. */
+
+	mx_status = mx_virtual_timer_start(
+			message->u.function.oneshot_timer,
+			message->u.function.callback_interval );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Update the area detector status. */
+
+	mx_status = mxd_merlin_medipix_get_extended_status( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* See if any value changed callbacks need to be sent. */
+
+	value_changed = FALSE;
+
+	mx_status = mxd_merlin_medipix_vctest_extended_status( status_field,
+							MX_PROCESS_GET,
+							&value_changed );
+
+	return mx_status;
 }
 
 /*---*/
