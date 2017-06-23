@@ -68,6 +68,7 @@ typedef struct {
 	double external_trigger_debounce_time;		/* in seconds */
 
 	MX_CALLBACK_MESSAGE *status_callback_message;
+	double status_callback_interval;		/* in seconds */
 
 	mx_bool_type detector_just_started;
 
@@ -89,6 +90,7 @@ typedef struct {
 	int32_t total_num_frames;
 } MX_MERLIN_MEDIPIX;
 
+#define MXLV_MERLIN_MEDIPIX_STATUS_CALLBACK_INTERVAL	932001
 
 #define MXD_MERLIN_MEDIPIX_STANDARD_FIELDS \
   {-1, -1, "hostname", MXFT_STRING, NULL, 1, {MXU_HOSTNAME_LENGTH}, \
@@ -192,11 +194,19 @@ typedef struct {
   {-1, -1, "external_trigger_debounce_time", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_MERLIN_MEDIPIX, external_trigger_debounce_time), \
+	{0}, NULL, 0 }, \
+  \
+  {MXLV_MERLIN_MEDIPIX_STATUS_CALLBACK_INTERVAL, \
+		-1, "status_callback_interval", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_MERLIN_MEDIPIX, status_callback_interval), \
 	{0}, NULL, 0 }
 
 MX_API mx_status_type mxd_merlin_medipix_initialize_driver( MX_DRIVER *driver );
 MX_API mx_status_type mxd_merlin_medipix_create_record_structures( MX_RECORD *record );
 MX_API mx_status_type mxd_merlin_medipix_open( MX_RECORD *record );
+MX_API mx_status_type mxd_merlin_medipix_special_processing_setup(
+						MX_RECORD *record );
 
 MX_API mx_status_type mxd_merlin_medipix_arm( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_merlin_medipix_trigger( MX_AREA_DETECTOR *ad );

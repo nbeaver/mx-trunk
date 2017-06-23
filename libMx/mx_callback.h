@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2007-2009 Illinois Institute of Technology
+ * Copyright 2007-2009, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -168,6 +168,10 @@ MX_API mx_status_type mx_function_add_callback( MX_RECORD *record_list,
 					MX_CALLBACK_MESSAGE **callback_message);
 
 MX_API mx_status_type mx_function_delete_callback( MX_CALLBACK_MESSAGE *cbm );
+
+MX_API mx_status_type mx_function_change_callback_interval(
+					MX_CALLBACK_MESSAGE *cbm,
+					double new_callback_interval );
 
 MX_API mx_status_type mx_invoke_callback( MX_CALLBACK *cb,
 					unsigned long callback_type,

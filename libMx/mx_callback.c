@@ -2093,6 +2093,45 @@ mx_function_delete_callback( MX_CALLBACK_MESSAGE *callback_message )
 /*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
+mx_function_change_callback_interval( MX_CALLBACK_MESSAGE *callback_message,
+					double new_callback_interval )
+{
+	static const char fname[] = "mx_function_change_callback_interval()";
+
+	MX_VIRTUAL_TIMER *oneshot_timer;
+	mx_status_type mx_status;
+
+#if 1
+	MX_DEBUG(-2,
+	("%s invoked for callback message %p, new_callback_interval = %g",
+		fname, callback_message, new_callback_interval));
+#endif
+
+	if ( callback_message == (MX_CALLBACK_MESSAGE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_CALLBACK_MESSAGE pointer passed was NULL." );
+	}
+
+	mx_status = MX_SUCCESSFUL_RESULT;
+
+	callback_message->u.function.callback_interval = new_callback_interval;
+
+	oneshot_timer = callback_message->u.function.oneshot_timer;
+
+	mx_status = mx_virtual_timer_stop( oneshot_timer, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_virtual_timer_start( oneshot_timer,
+					new_callback_interval );
+
+	return mx_status;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
 mx_invoke_callback( MX_CALLBACK *callback,
 		unsigned long callback_type,
 		mx_bool_type get_new_value )

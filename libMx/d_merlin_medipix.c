@@ -75,6 +75,10 @@ MX_RECORD_FUNCTION_LIST mxd_merlin_medipix_record_function_list = {
 	NULL,
 	NULL,
 	mxd_merlin_medipix_open,
+	NULL,
+	NULL,
+	NULL,
+	mxd_merlin_medipix_special_processing_setup,
 };
 
 MX_AREA_DETECTOR_FUNCTION_LIST
@@ -113,6 +117,10 @@ long mxd_merlin_medipix_num_record_fields
 
 MX_RECORD_FIELD_DEFAULTS *mxd_merlin_medipix_rfield_def_ptr
 			= &mxd_merlin_medipix_rf_defaults[0];
+
+static mx_status_type mxd_merlin_medipix_process_function( void *record_ptr,
+							void *record_field_ptr,
+							int operation );
 
 /*---*/
 
@@ -1383,14 +1391,18 @@ mxd_merlin_medipix_open( MX_RECORD *record )
 
 	/* We cannot find out when the value changes for the 'status' field
 	 * by looking at data received via the data port since we must send
-	 * an explicit 
+	 * an explicit command to find out.  'status_callback_interval' sets
+	 * the time between commands to the detector.
 	 */
+
+	merlin_medipix->status_callback_interval = 1.0;		/* in seconds */
 
 	merlin_medipix->status_callback_message = NULL;
 
 	mx_status = mx_function_add_callback( record,
 				mxd_merlin_medipix_status_callback_fn,
-				NULL, record, 0.1,
+				NULL, record,
+				merlin_medipix->status_callback_interval,
 				&(merlin_medipix->status_callback_message) );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -2706,3 +2718,86 @@ mxd_merlin_medipix_command( MX_MERLIN_MEDIPIX *merlin_medipix,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*==========================================================================*/
+
+MX_EXPORT mx_status_type
+mxd_merlin_medipix_special_processing_setup( MX_RECORD *record )
+{
+	MX_RECORD_FIELD *record_field = NULL;
+	MX_RECORD_FIELD *record_field_array = NULL;
+	long i;
+
+	record_field_array = record->record_field_array;
+
+	for ( i = 0; i < record->num_record_fields; i++ ) {
+
+		record_field = &record_field_array[i];
+
+		switch( record_field->label_value ) {
+		case MXLV_MERLIN_MEDIPIX_STATUS_CALLBACK_INTERVAL:
+			record_field->process_function
+					= mxd_merlin_medipix_process_function;
+			break;
+		default:
+			break;
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*==========================================================================*/
+
+static mx_status_type
+mxd_merlin_medipix_process_function( void *record_ptr,
+				void *record_field_ptr,
+				int operation )
+{
+	static const char fname[] = "mxd_merlin_medipix_process_function()";
+
+	MX_RECORD *record = NULL;
+	MX_RECORD_FIELD *record_field = NULL;
+	MX_MERLIN_MEDIPIX *merlin_medipix = NULL;
+	mx_status_type mx_status;
+
+	record = (MX_RECORD *) record_ptr;
+	record_field = (MX_RECORD_FIELD *) record_field_ptr;
+	merlin_medipix = (MX_MERLIN_MEDIPIX *) record->record_type_struct;
+
+	mx_status = MX_SUCCESSFUL_RESULT;
+
+	switch( operation ) {
+	case MX_PROCESS_GET:
+		switch( record_field->label_value ) {
+		default:
+			MX_DEBUG( 1,(
+			    "%s: *** unknown MX_PROCESS_GET label value = %ld",
+				fname, record_field->label_value));
+			break;
+		}
+		break;
+	case MX_PROCESS_PUT:
+		switch( record_field->label_value ) {
+		case MXLV_MERLIN_MEDIPIX_STATUS_CALLBACK_INTERVAL:
+			mx_status = mx_function_change_callback_interval(
+				merlin_medipix->status_callback_message,
+				merlin_medipix->status_callback_interval );
+			break;
+		default:
+			MX_DEBUG( 1,(
+			    "%s: *** unknown MX_PROCESS_PUT label value = %ld",
+				fname, record_field->label_value));
+			break;
+		}
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Unknown operation code = %d for record '%s'.",
+			operation, record->name );
+		break;
+	}
+
+	return mx_status;
+}
+
