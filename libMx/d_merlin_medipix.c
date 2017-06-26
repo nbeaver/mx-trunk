@@ -832,27 +832,25 @@ mxd_merlin_medipix_vctest_extended_status( MX_RECORD_FIELD *record_field,
 					int direction,
 					mx_bool_type *value_changed_ptr )
 {
+#if 0
 	static const char fname[] =
 		"mxd_merlin_medipix_vctest_extended_status()";
+#endif
 
 	MX_RECORD *record = NULL;
+	MX_RECORD_FIELD *local_field = NULL;
 	MX_AREA_DETECTOR *ad = NULL;
 	MX_MERLIN_MEDIPIX *merlin_medipix = NULL;
+	long i;
 	int32_t new_total_num_frames_at_start;
 	int32_t new_total_num_frames;
-	mx_bool_type need_update;
+	mx_bool_type value_changed;
+	mx_bool_type need_extended_status_update;
 	mx_status_type mx_status;
 
 	record = record_field->record;
 	ad = record->record_class_struct;
 	merlin_medipix = record->record_type_struct;
-
-	need_update = FALSE;
-
-	/* mxd_merlin_medipix_get_extended_status() is an expensive
-	 * function, so we only want to invoke it when absolutely
-	 * necessary.
-	 */
 
 	new_total_num_frames_at_start =
 	    mx_atomic_read32( &(merlin_medipix->total_num_frames_at_start) );
@@ -860,39 +858,15 @@ mxd_merlin_medipix_vctest_extended_status( MX_RECORD_FIELD *record_field,
 	new_total_num_frames =
 	    mx_atomic_read32( &(merlin_medipix->total_num_frames) );
 
-	if ( merlin_medipix->detector_just_started ) {
-		need_update = TRUE;
-
-		merlin_medipix->detector_just_started = FALSE;
-	} else
-	if ( new_total_num_frames_at_start
-	     != merlin_medipix->old_total_num_frames_at_start )
-	{
-		need_update = TRUE;
-	} else
-	if ( new_total_num_frames != merlin_medipix->old_total_num_frames )
-	{
-		need_update = TRUE;
-	}
+	/*---*/
 
 	merlin_medipix->old_total_num_frames_at_start
 		= new_total_num_frames_at_start;
 
 	merlin_medipix->old_total_num_frames = new_total_num_frames;
 
-	if ( need_update ) {
-		MX_DEBUG(-2,("%s: '%s.%s', need_update = %d",
-		  fname, record->name, record_field->name, (int) need_update));
-	}
-
-	/* If an update is not needed, then return without doing any more. */
-
-	if ( need_update == FALSE ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-
-	/* If needed, directly invoked the get_extended_status() function
-	 * to update the values in the MX_AREA_DETECTOR structure.
+	/* Directly invoked the get_extended_status() function to update
+	 * the values in the MX_AREA_DETECTOR structure.
 	 */
 
 	mx_status = mxd_merlin_medipix_get_extended_status( ad );
@@ -900,10 +874,48 @@ mxd_merlin_medipix_vctest_extended_status( MX_RECORD_FIELD *record_field,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Now call the standard extended status test function. */
+	/* Loop through the Merlin 'total_num_frames'(0),
+	 * 'last_frame_number'(1), and 'status'(2) MX fields
+	 * for values that have changed.
+	 */
 
-	mx_status = mx_area_detector_vctest_extended_status( record_field,
-					direction, value_changed_ptr );
+	need_extended_status_update = FALSE;
+
+	for ( i = 0; i < 3; i++ ) {
+		local_field = merlin_medipix->vctest_field_array[i];
+
+		mx_status = mx_default_test_for_value_changed(
+				local_field, MX_PROCESS_GET, &value_changed );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( value_changed ) {
+			need_extended_status_update = TRUE;
+
+			if ( local_field->callback_list != NULL ) {
+
+				mx_status = mx_local_field_invoke_callback_list(
+					local_field, MXCBT_VALUE_CHANGED );
+			}
+		}
+	}
+
+	/* Update 'extended_status'(3) field if any of fields 0 to 2 
+	 * have changed.
+	 */
+
+	if ( need_extended_status_update ) {
+		mx_area_detector_update_extended_status_string( ad );
+
+		local_field = merlin_medipix->vctest_field_array[3];
+
+		if ( local_field->callback_list != NULL ) {
+
+			mx_status = mx_local_field_invoke_callback_list(
+					local_field, MXCBT_VALUE_CHANGED );
+		}
+	}
 
 	return mx_status;
 }
@@ -942,7 +954,7 @@ mxd_merlin_medipix_status_callback_fn( MX_CALLBACK_MESSAGE *message )
 			message );
 	}
 
-#if 1
+#if 0
 	MX_DEBUG(-2,("%s invoked for Merlin detector '%s'.",
 		fname, record->name));
 #endif
@@ -1108,22 +1120,30 @@ mxd_merlin_medipix_open( MX_RECORD *record )
 	field->value_changed_test_function =
 		mxd_merlin_medipix_vctest_extended_status;
 
+	merlin_medipix->vctest_field_array[0] = field;
+
 	field =
 	    &(record->record_field_array[ ad->last_frame_number_field_number ]);
 
 	field->value_changed_test_function =
 		mxd_merlin_medipix_vctest_extended_status;
 
+	merlin_medipix->vctest_field_array[1] = field;
+
 	field = &(record->record_field_array[ ad->status_field_number ]);
 
 	field->value_changed_test_function =
 		mxd_merlin_medipix_vctest_extended_status;
+
+	merlin_medipix->vctest_field_array[2] = field;
 
 	field =
 	    &(record->record_field_array[ ad->extended_status_field_number ]);
 
 	field->value_changed_test_function =
 		mxd_merlin_medipix_vctest_extended_status;
+
+	merlin_medipix->vctest_field_array[3] = field;
 
 	/*---*/
 
@@ -1395,7 +1415,7 @@ mxd_merlin_medipix_open( MX_RECORD *record )
 	 * the time between commands to the detector.
 	 */
 
-	merlin_medipix->status_callback_interval = 1.0;		/* in seconds */
+	merlin_medipix->status_callback_interval = 0.2;		/* in seconds */
 
 	merlin_medipix->status_callback_message = NULL;
 

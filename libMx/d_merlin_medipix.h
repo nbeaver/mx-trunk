@@ -77,6 +77,8 @@ typedef struct {
 	int32_t old_total_num_frames_at_start;
 	int32_t old_total_num_frames;
 
+	MX_RECORD_FIELD *vctest_field_array[4];
+
 	/* The following values are managed via MX atomic ops. */
 
 	/* total_num_frames_at_start is only written to by the
