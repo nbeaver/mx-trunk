@@ -1415,7 +1415,7 @@ mxd_merlin_medipix_open( MX_RECORD *record )
 	 * the time between commands to the detector.
 	 */
 
-	merlin_medipix->status_callback_interval = 0.2;		/* in seconds */
+	merlin_medipix->status_callback_interval = 1.0;		/* in seconds */
 
 	merlin_medipix->status_callback_message = NULL;
 
