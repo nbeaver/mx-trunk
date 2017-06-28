@@ -18,7 +18,7 @@
 
 #define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN				FALSE
 
-#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_FRAME_BUFFER_ALLOCATION	FALSE
+#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_FRAME_BUFFER_ALLOCATION	TRUE
 
 #define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_ARM				FALSE
 
@@ -942,7 +942,7 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 			fname, max_image_frames, max_frames_threshold));
 #endif
 
-#if 1
+#if 0
 	if (sapera_lt_frame_grabber->num_frame_buffers > max_frames_threshold)
 	{
 		mx_warning( "The number of frame buffers (%ld) requested for "
