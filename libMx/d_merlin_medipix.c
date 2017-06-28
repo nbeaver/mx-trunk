@@ -1734,7 +1734,9 @@ mxd_merlin_medipix_get_extended_status( MX_AREA_DETECTOR *ad )
 	char response[80];
 	int num_items;
 	long detector_status;
+#if 0
 	long num_data_bytes_available;
+#endif
 	long total_num_frames_at_start;
 	mx_status_type mx_status;
 
@@ -1811,6 +1813,11 @@ mxd_merlin_medipix_get_extended_status( MX_AREA_DETECTOR *ad )
 		break;
 	}
 
+#if 0
+	/* NO: Only the data socket thread can do anything with
+	 * the data socket!
+	 */
+
 	/* Check for any new data from the data_socket. */
 
 	mx_status = mx_socket_num_input_bytes_available(
@@ -1827,6 +1834,7 @@ mxd_merlin_medipix_get_extended_status( MX_AREA_DETECTOR *ad )
 #if MXD_MERLIN_MEDIPIX_DEBUG
 	MX_DEBUG(-2,("%s: ad->status = %#lx, num_data_bytes_available = %lu",
 		fname, ad->status, num_data_bytes_available));
+#endif
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
