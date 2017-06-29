@@ -16,6 +16,8 @@
 
 #define MX_CALLBACK_DEBUG				FALSE
 
+#define MX_CALLBACK_DEBUG_ADD_DELETE			FALSE
+
 #define MX_CALLBACK_DEBUG_PROCESS			FALSE
 
 #define MX_CALLBACK_FIXUP_CORRUPTED_POLL_MESSAGE	FALSE
@@ -590,8 +592,7 @@ mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,
 		"The MX_NETWORK_FIELD pointer passed was NULL." );
 	}
 
-#if MX_CALLBACK_DEBUG
-	MX_DEBUG(-2,("%s invoked.", fname));
+#if MX_CALLBACK_DEBUG_ADD_DELETE
 	MX_DEBUG(-2,("%s: server = '%s', nfname = '%s', handle = (%ld,%ld)",
 		fname, nf->server_record->name, nf->nfname,
 		nf->record_handle, nf->field_handle ));
@@ -918,6 +919,12 @@ mx_remote_field_delete_callback( MX_CALLBACK *callback )
 		"The server_record pointer for network field '%s' is NULL.",
 			nf->nfname );
 	}
+
+#if MX_CALLBACK_DEBUG_ADD_DELETE
+	MX_DEBUG(-2,("%s: server = '%s', nfname = '%s', handle = (%ld,%ld)",
+		fname, server_record->name, nf->nfname,
+		nf->record_handle, nf->field_handle));
+#endif
 
 	server = server_record->record_class_struct;
 
@@ -1462,7 +1469,7 @@ mx_local_field_add_new_callback( MX_RECORD_FIELD *record_field,
 		"supported for such record fields." );
 	}
 
-#if MX_CALLBACK_DEBUG
+#if MX_CALLBACK_DEBUG_ADD_DELETE
 	MX_DEBUG(-2,("%s invoked for record '%s', field '%s'.",
 		fname, record->name, record_field->name ));
 #endif
@@ -1628,6 +1635,10 @@ mx_local_field_add_new_callback( MX_RECORD_FIELD *record_field,
 #endif
 
 	/* If requested, return the new callback object to the caller. */
+
+#if MX_CALLBACK_DEBUG_ADD_DELETE
+	MX_DEBUG(-2,("%s: callback_object = %p", fname, callback_object));
+#endif
 
 	if ( callback_object != (MX_CALLBACK **) NULL ) {
 		*callback_object = callback_ptr;
@@ -1934,6 +1945,12 @@ mx_function_add_callback( MX_RECORD *record_list,
 		"The callback function pointer passed was NULL." );
 	}
 
+#if MX_CALLBACK_DEBUG_ADD_DELETE
+	MX_DEBUG(-2,
+  ("%s: callback_function = %p, callback_argument = %p, callback_interval = %f",
+	    fname, callback_function, callback_argument, callback_interval));
+#endif
+
 #if MX_CALLBACK_DEBUG_CALLBACK_POINTERS
 	{
 		int is_valid;
@@ -2040,6 +2057,10 @@ mx_function_add_callback( MX_RECORD *record_list,
 
 	/* If requested, return the new callback message to the caller. */
 
+#if MX_CALLBACK_DEBUG_ADD_DELETE
+	MX_DEBUG(-2,("%s: callback_message = %p", fname, callback_message));
+#endif
+
 	if ( callback_message != (MX_CALLBACK_MESSAGE **) NULL ) {
 		*callback_message = callback_message_ptr;
 	}
@@ -2058,7 +2079,7 @@ mx_function_delete_callback( MX_CALLBACK_MESSAGE *callback_message )
 	mx_status_type (*callback_destructor)(MX_CALLBACK_MESSAGE *);
 	mx_status_type mx_status;
 
-#if 0
+#if MX_CALLBACK_DEBUG_ADD_DELETE
 	MX_DEBUG(-2,("%s invoked for callback message %p",
 		fname, callback_message));
 #endif
@@ -2140,7 +2161,7 @@ mx_invoke_callback( MX_CALLBACK *callback,
 	void *argument;
 	mx_status_type mx_status;
 
-#if MX_CALLBACK_DEBUG
+#if MX_CALLBACK_DEBUG_INVOKE_CALLBACK
 	static const char fname[] = "mx_invoke_callback()";
 
 	MX_DEBUG(-2,("%s invoked for callback %p, ID = %#lx, "
