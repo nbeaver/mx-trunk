@@ -41,7 +41,7 @@ MODULES += libtiff		# cygwin, linux, win32
 
 #MODULES += ni488		# linux,
 
-MODULES += ni_daqmx		# linux, win32
+#MODULES += ni_daqmx		# linux, win32
 
 #MODULES += nuvant_ezstat	# linux, win32
 
@@ -62,7 +62,7 @@ MODULES += ni_daqmx		# linux, win32
 
 #MODULES += aravis
 
-#MODULES += dalsa_gev
+MODULES += dalsa_gev
 
 #MODULES += linux_portio
 
@@ -89,11 +89,11 @@ MODULES += ni_daqmx		# linux, win32
 
 #MODULES += radicon_helios
 
-MODULES += radicon_taurus
+#MODULES += radicon_taurus
 
 #MODULES += rdi_mbc
 
-MODULES += sapera_lt 
+#MODULES += sapera_lt 
 
 #MODULES += u500
 

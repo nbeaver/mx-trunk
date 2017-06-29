@@ -5,8 +5,7 @@
 DALSA_GEV_INCLUDES += -I/usr/dalsa/GigeV/include
 DALSA_GEV_INCLUDES += -I/opt/genicam_v3_0/library/CPP/include
 
-DALSA_GEV_LIBRARIES = -L/usr/dalsa/GigeV/lib -lGevApi
-DALSA_GEV_LIBRARIES += -L/usr/local/lib -lCorW32
+DALSA_GEV_LIBRARIES = -L/usr/dalsa/GigeV/lib -lGevApi -lCorW32
 
 #--------------------------------------------------------------------------
 
