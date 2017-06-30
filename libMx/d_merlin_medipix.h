@@ -213,8 +213,9 @@ MX_API mx_status_type mxd_merlin_medipix_special_processing_setup(
 MX_API mx_status_type mxd_merlin_medipix_arm( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_merlin_medipix_trigger( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_merlin_medipix_stop( MX_AREA_DETECTOR *ad );
-MX_API mx_status_type mxd_merlin_medipix_get_extended_status(
+MX_API mx_status_type mxd_merlin_medipix_get_last_and_total_frame_numbers(
 							MX_AREA_DETECTOR *ad );
+MX_API mx_status_type mxd_merlin_medipix_get_status( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_merlin_medipix_readout_frame( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_merlin_medipix_correct_frame( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_merlin_medipix_transfer_frame( MX_AREA_DETECTOR *ad );

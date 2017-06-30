@@ -88,10 +88,10 @@ mxd_merlin_medipix_ad_function_list = {
 	NULL,
 	mxd_merlin_medipix_stop,
 	NULL,
+	mxd_merlin_medipix_get_last_and_total_frame_numbers,
+	mxd_merlin_medipix_get_last_and_total_frame_numbers,
+	mxd_merlin_medipix_get_status,
 	NULL,
-	NULL,
-	NULL,
-	mxd_merlin_medipix_get_extended_status,
 	mxd_merlin_medipix_readout_frame,
 	mxd_merlin_medipix_correct_frame,
 	mxd_merlin_medipix_transfer_frame,
@@ -865,24 +865,28 @@ mxd_merlin_medipix_vctest_extended_status( MX_RECORD_FIELD *record_field,
 
 	merlin_medipix->old_total_num_frames = new_total_num_frames;
 
-	/* Directly invoked the get_extended_status() function to update
-	 * the values in the MX_AREA_DETECTOR structure.
-	 */
-
-	mx_status = mxd_merlin_medipix_get_extended_status( ad );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
 	/* Loop through the Merlin 'total_num_frames'(0),
 	 * 'last_frame_number'(1), and 'status'(2) MX fields
-	 * for values that have changed.
+	 * and process each field in turn to update the values
+	 * of the fields.
 	 */
 
 	need_extended_status_update = FALSE;
 
 	for ( i = 0; i < 3; i++ ) {
 		local_field = merlin_medipix->vctest_field_array[i];
+
+		/* WARNING: You cannot invoke mx_process_record_field() here,
+		 * since mxd_merlin_medipix_vctest_extended_status() itself may
+		 * be called by mx_process_record_field().  If that happened,
+		 * an infinite regression of calls to mx_process_record_field()
+		 * would result, which would kill the MX process due to stack
+		 * overflow.
+		 * 
+		 * Thus, instead we call directly the default test for value
+		 * changed function as well as directly invoking the callback
+		 * list in order to avoid infinite regression.
+		 */
 
 		mx_status = mx_default_test_for_value_changed(
 				local_field, MX_PROCESS_GET, &value_changed );
@@ -894,7 +898,6 @@ mxd_merlin_medipix_vctest_extended_status( MX_RECORD_FIELD *record_field,
 			need_extended_status_update = TRUE;
 
 			if ( local_field->callback_list != NULL ) {
-
 				mx_status = mx_local_field_invoke_callback_list(
 					local_field, MXCBT_VALUE_CHANGED );
 			}
@@ -994,7 +997,7 @@ mxd_merlin_medipix_status_callback_fn( MX_CALLBACK_MESSAGE *message )
 
 	/* Update the area detector status. */
 
-	mx_status = mxd_merlin_medipix_get_extended_status( ad );
+	mx_status = mxd_merlin_medipix_get_status( ad );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1726,17 +1729,12 @@ mxd_merlin_medipix_stop( MX_AREA_DETECTOR *ad )
 }
 
 MX_EXPORT mx_status_type
-mxd_merlin_medipix_get_extended_status( MX_AREA_DETECTOR *ad )
+mxd_merlin_medipix_get_last_and_total_frame_numbers( MX_AREA_DETECTOR *ad )
 {
-	static const char fname[] = "mxd_merlin_medipix_get_extended_status()";
+	static const char fname[] =
+		"mxd_merlin_medipix_get_last_and_total_frame_numbers()";
 
 	MX_MERLIN_MEDIPIX *merlin_medipix = NULL;
-	char response[80];
-	int num_items;
-	long detector_status;
-#if 0
-	long num_data_bytes_available;
-#endif
 	long total_num_frames_at_start;
 	mx_status_type mx_status;
 
@@ -1761,6 +1759,30 @@ mxd_merlin_medipix_get_extended_status( MX_AREA_DETECTOR *ad )
 	ad->last_frame_number =
 		ad->total_num_frames - total_num_frames_at_start - 1L;
 
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_merlin_medipix_get_status( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mxd_merlin_medipix_get_status()";
+
+	MX_MERLIN_MEDIPIX *merlin_medipix = NULL;
+	char response[80];
+	int num_items;
+	long detector_status;
+	mx_status_type mx_status;
+
+	mx_status = mxd_merlin_medipix_get_pointers( ad,
+						&merlin_medipix, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_MERLIN_MEDIPIX_DEBUG
+	MX_DEBUG( 2,("%s invoked for area detector '%s'.",
+		fname, ad->record->name ));
+#endif
 	/* Update the detector status. */
 
 	mx_status = mxd_merlin_medipix_command( merlin_medipix,
@@ -1812,30 +1834,6 @@ mxd_merlin_medipix_get_extended_status( MX_AREA_DETECTOR *ad )
 		ad->status = MXSF_AD_ERROR;
 		break;
 	}
-
-#if 0
-	/* NO: Only the data socket thread can do anything with
-	 * the data socket!
-	 */
-
-	/* Check for any new data from the data_socket. */
-
-	mx_status = mx_socket_num_input_bytes_available(
-					merlin_medipix->data_socket,
-					&num_data_bytes_available );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	if ( num_data_bytes_available > 0 ) {
-		ad->status |= MXSF_AD_UNSAVED_IMAGE_FRAMES;
-	}
-
-#if MXD_MERLIN_MEDIPIX_DEBUG
-	MX_DEBUG(-2,("%s: ad->status = %#lx, num_data_bytes_available = %lu",
-		fname, ad->status, num_data_bytes_available));
-#endif
-#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
