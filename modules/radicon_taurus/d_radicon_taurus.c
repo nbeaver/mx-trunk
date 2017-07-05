@@ -591,8 +591,10 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 		}
 	}
 
+#if 0
 	MX_DEBUG(-2,("%s: radicon_taurus->poll_pulser_status = %d",
 		fname, (int) radicon_taurus->poll_pulser_status ));
+#endif
 
 	/* Does the video input driver support area detector
 	 * capture callbacks?
@@ -751,8 +753,10 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 
 		initial_match_length = strspn( response, " \t\r\n" );
 
+#if 0
 		MX_DEBUG(-2,("%s: length = %lu, initial_match_length = %lu",
 			fname, length, initial_match_length));
+#endif
 
 		if ( initial_match_length >= length ) {
 			return mx_error( MXE_HARDWARE_CONFIGURATION_ERROR,fname,
@@ -869,7 +873,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 		radicon_taurus->have_get_commands = FALSE;
 	}
 
-#if 1
+#if 0
 	MX_DEBUG(-2,("%s: radicon_taurus->have_get_commands = %d",
 		fname, (int) radicon_taurus->have_get_commands));
 #endif
@@ -1214,8 +1218,10 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	 * and the area detector frame.
 	 */
 
+#if 0
 	MX_DEBUG(-2,("%s: vinput_framesize = (%ld,%ld)",
 		fname, vinput_framesize[0], vinput_framesize[1]));
+#endif
 
 	array_dimensions[0] = vinput_framesize[1];
 	array_dimensions[1] = vinput_framesize[0];
@@ -1231,8 +1237,10 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 
 	radicon_taurus->video_array_overlay = void_array_ptr;
 
+#if 0
 	MX_DEBUG(-2,("%s: ad->framesize = (%ld,%ld)",
 		fname, ad->framesize[0], ad->framesize[1]));
+#endif
 
 	array_dimensions[0] = ad->framesize[1];
 	array_dimensions[1] = ad->framesize[0];
@@ -1286,7 +1294,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 			return mx_status;
 	}
 
-#if 1
+#if 0
 	{
 		MX_DEBUG(-2,("%s: lookup_array_field = %p",
 					fname, lookup_array_field));
