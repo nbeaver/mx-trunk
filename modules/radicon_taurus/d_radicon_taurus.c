@@ -2108,7 +2108,7 @@ mxd_radicon_taurus_trigger( MX_AREA_DETECTOR *ad )
 
 		/* The Taurus manual states that the minimum width of
 		 * a Sync (trigger) pulse is 1 millisecond.  We set
-		 * it to 2 milliseconds to give us a margin for error.
+		 * it to 5 milliseconds to give us a margin for error.
 		 */
 
 		pulse_width = 0.005;
@@ -2184,9 +2184,13 @@ mxd_radicon_taurus_trigger( MX_AREA_DETECTOR *ad )
 	case MXT_SQ_GATED:
 		/* sro 0 - one long gate pulse for all of the frames */
 
+		/* Note that this code ignores the user-specified
+		 * exposure time.
+		 */
+
 		pulse_width = sp->parameter_array[2];
-		pulse_period = 1.001 * pulse_width;
-		num_pulses = 1;
+		pulse_period = pulse_width + 0.01;
+		num_pulses = sp->parameter_array[0];
 		break;
 	}
 
