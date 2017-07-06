@@ -27,10 +27,10 @@ extern MX_EXTENSION_FUNCTION_LIST mxext_cbflib_extension_function_list;
 
 MX_API mx_status_type mxext_cbflib_initialize( MX_EXTENSION *extension );
 
-MX_API mx_status_type mxext_cbflib_read_tiff_file( MX_IMAGE_FRAME **frame,
+MX_API mx_status_type mxext_cbflib_read_cbf_file( MX_IMAGE_FRAME **frame,
 							char *datafile_name );
 
-MX_API mx_status_type mxext_cbflib_write_tiff_file( MX_IMAGE_FRAME *frame,
+MX_API mx_status_type mxext_cbflib_write_cbf_file( MX_IMAGE_FRAME *frame,
 							char *datafile_name );
 
 #endif /* __E_CBFLIB_H__ */

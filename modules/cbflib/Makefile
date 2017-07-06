@@ -26,7 +26,7 @@ CBFLIB_LIBRARY = $(CBFLIB_DIR)\\lib
 
 else ifeq ($(MX_ARCH),linux)
 
-CBFLIB_INCLUDES = -I/usr/include/cbf
+CBFLIB_INCLUDES = -isystem /usr/include/cbf
 
 CBFLIB_LIBRARY = -lcbf
 
@@ -34,7 +34,7 @@ CBFLIB_LIBRARY = -lcbf
 
 else ifeq ($(MX_ARCH),linux-clang)
 
-CBFLIB_INCLUDES = -I/usr/include/cbf
+CBFLIB_INCLUDES = -isystem /usr/include/cbf
 
 CBFLIB_LIBRARY = -lcbf
 

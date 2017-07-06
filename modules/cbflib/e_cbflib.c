@@ -40,8 +40,10 @@
 #include "mx_time.h"
 #include "mx_socket.h"
 #include "mx_variable.h"
+#endif
 #include "mx_module.h"
 #include "mx_image.h"
+#if 0
 #include "mx_area_detector.h"
 #include "mx_video_input.h"
 #endif
@@ -104,10 +106,10 @@ mxext_cbflib_initialize( MX_EXTENSION *extension )
 /*------*/
 
 MX_EXPORT mx_status_type
-mxext_cbflib_read_tiff_file( MX_IMAGE_FRAME **image_frame,
+mxext_cbflib_read_cbf_file( MX_IMAGE_FRAME **image_frame,
 				char *datafile_name )
 {
-	static const char fname[] = "mxext_cbflib_read_tiff_file()";
+	static const char fname[] = "mxext_cbflib_read_cbf_file()";
 
 	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 	"Not yet implemented." );
@@ -116,10 +118,10 @@ mxext_cbflib_read_tiff_file( MX_IMAGE_FRAME **image_frame,
 /*------*/
 
 MX_EXPORT mx_status_type
-mxext_cbflib_write_tiff_file( MX_IMAGE_FRAME *frame,
+mxext_cbflib_write_cbf_file( MX_IMAGE_FRAME *frame,
 				char *datafile_name )
 {
-	static const char fname[] = "mxext_cbflib_write_tiff_file()";
+	static const char fname[] = "mxext_cbflib_write_cbf_file()";
 
 	MX_DEBUG(-2,("%s invoked for datafile '%s'.", fname, datafile_name));
 
