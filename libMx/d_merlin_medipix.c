@@ -698,6 +698,11 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 
 	    initial_read_buffer[MXU_MPX_INITIAL_READ_LENGTH] = '\0';
 
+#if MXD_MERLIN_MEDIPIX_DEBUG_MONITOR_THREAD
+	    MX_DEBUG(-2,("%s: initial_read_buffer = '%s'",
+		fname, initial_read_buffer));
+#endif
+
 	    /*-----------------------------------------------------------*/
 
 	    message_type = MXM_MPX_NOT_YET_READ;
@@ -736,7 +741,7 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 		    mx_sequence_frame_number = absolute_frame_number
 					    	- total_num_frames_at_start;
 
-#if 1
+#if MXD_MERLIN_MEDIPIX_DEBUG_MONITOR_THREAD
 		    MX_DEBUG(-2,("%s: total_num_frames_at_start = %ld, "
 			"mx_sequence_frame_number = %ld, "
 			"absolute_frame_number = %ld, "
@@ -785,15 +790,13 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 	    case MXM_MPX_HEADER_MESSAGE:
 		MX_DEBUG(-2,("%s: HDR pointer = %p",
 			fname, dest_message_ptr));
-#if 0
-		MX_DEBUG(-2,("%s: HDR message = '%s'",
-			fname, merlin_medipix->acquisition_header));
-#endif
 		break;
 	    case MXM_MPX_IMAGE_MESSAGE:
 	    	MX_DEBUG(-2,(
 	"%s: MQ1: mx_sequence_frame_number = %lu, dest_message_ptr = %p",
 			fname, mx_sequence_frame_number, dest_message_ptr));
+	    	MX_DEBUG(-2,( "%s: MQ1: remaining_dest_ptr = '%.20s...'",
+			fname, remaining_dest_ptr));
 		break;
 	    }
 #endif
@@ -1878,9 +1881,6 @@ mxd_merlin_medipix_readout_frame( MX_AREA_DETECTOR *ad )
 
 	image_message_array = merlin_medipix->image_message_array;
 
-	MX_DEBUG(-2,("%s: merlin_medipix->image_message_array = %p",
-		fname, merlin_medipix->image_message_array));
-
 	if ( image_message_array == (char *) NULL ) {
 		return mx_error( MXE_INITIALIZATION_ERROR, fname,
 		"The merlin_medipix->image_message_array pointer "
@@ -1900,6 +1900,8 @@ mxd_merlin_medipix_readout_frame( MX_AREA_DETECTOR *ad )
 		fname, merlin_medipix->image_message_length));
 	MX_DEBUG(-2,("%s: mx_frame_number = %lu, image_message_ptr = %p",
 		fname, mx_frame_number, image_message_ptr));
+	MX_DEBUG(-2,("%s: image_message_ptr = '%.20s...'",
+		fname, image_message_ptr));
 #endif
 	/* Make a copy of the beginning of the message so that we can run
 	 * mx_string_split() on it.  Bear in mind that mx_string_split()

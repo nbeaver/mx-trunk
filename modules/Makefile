@@ -21,7 +21,7 @@ all: build
 
 #MODULES += avt_vimba		# linux,
 
-MODULES += cbflib		# linux, (not yet finished)
+#MODULES += cbflib		# linux, (not yet finished)
 
 #MODULES += edt			# linux,
 
