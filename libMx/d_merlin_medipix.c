@@ -630,8 +630,9 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 	MX_AREA_DETECTOR *ad;
 	MX_MERLIN_MEDIPIX *merlin_medipix;
 	long mx_sequence_frame_number;
-	long total_num_frames_at_start;
-	long absolute_frame_number, modulo_frame_number;
+	long mx_total_num_frames_at_start, mx_total_num_frames;
+	long merlin_sequence_frame_number;
+	long mx_absolute_frame_number, mx_modulo_frame_number;
 	unsigned long sleep_us;
 	unsigned long message_body_length, bytes_left;
 	char *dest_message_ptr, *remaining_dest_ptr;
@@ -715,13 +716,16 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 	    } else
 	    if ( strncmp( initial_read_buffer, "MQ1,", 4 ) == 0 ) {
 
+		    mx_total_num_frames_at_start = mx_atomic_read32(
+			&(merlin_medipix->total_num_frames_at_start) );
+
 		    /* We need to find out what frame number this is
 		     * in order to compute the address the frame must
 		     * be copied to.
 		     */
 
 		    num_items = sscanf( initial_read_buffer, "MQ1,%lu",
-			    			&absolute_frame_number );
+		    			&merlin_sequence_frame_number );
 
 		    if ( num_items != 1 ) {
 			return mx_error( MXE_UNPARSEABLE_STRING, fname,
@@ -732,28 +736,50 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 					record->name );
 		    }
 
-		    total_num_frames_at_start = mx_atomic_read32(
-			&(merlin_medipix->total_num_frames_at_start) );
+		    /* The following two ways of setting the new value of
+		     * 'total_num_frames' should be equivalent.  Not sure
+		     * which one is better.
+		     */
+#if 1
+		    mx_total_num_frames =
+		mx_atomic_increment32( &(merlin_medipix->total_num_frames) );
+#else
+		    mx_total_num_frames = mx_total_num_frames_at_start
+		    		+ merlin_sequence_frame_number;
 
-		    modulo_frame_number = absolute_frame_number
+		    mx_atomic_write32( &(merlin_medipix->total_num_frames),
+					    	mx_total_num_frames );
+#endif
+
+#if 1
+		    MX_DEBUG(-2,("CAPTURE: Total num frames = %lu",
+		    (unsigned long) mx_total_num_frames));
+#endif
+		    mx_absolute_frame_number = mx_total_num_frames - 1L;
+
+		    /*---*/
+
+		    mx_modulo_frame_number = mx_absolute_frame_number
 			    % (merlin_medipix->num_image_buffers);
 
-		    mx_sequence_frame_number = absolute_frame_number
-					    	- total_num_frames_at_start;
+		    mx_sequence_frame_number =
+			    merlin_sequence_frame_number - 1L;
 
 #if MXD_MERLIN_MEDIPIX_DEBUG_MONITOR_THREAD
-		    MX_DEBUG(-2,("%s: total_num_frames_at_start = %ld, "
-			"mx_sequence_frame_number = %ld, "
-			"absolute_frame_number = %ld, "
-			"modulo_frame_number = %ld",
-			fname, mx_sequence_frame_number,
-			total_num_frames_at_start,
-			absolute_frame_number,
-			modulo_frame_number ));
+		    MX_DEBUG(-2,("%s: mx_total_num_frames_at_start = %ld, "
+			"merlin_sequence_frame_number = %ld, "
+			"mx_absolute_frame_number = %ld, "
+			"mx_modulo_frame_number = %ld, "
+			"mx_sequence_frame_number = %ld",
+			fname, mx_total_num_frames_at_start,
+			merlin_sequence_frame_number,
+			mx_absolute_frame_number,
+			mx_modulo_frame_number,
+			mx_sequence_frame_number));
 #endif
 
 		    dest_message_ptr = merlin_medipix->image_message_array
-			    + (modulo_frame_number * message_body_length);
+			    + (mx_modulo_frame_number * message_body_length);
 
 		    message_type = MXM_MPX_IMAGE_MESSAGE;
 	    } else {
@@ -761,7 +787,7 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 
 		    return mx_error( MXE_PROTOCOL_ERROR, fname,
 		    "Message type in '%s' is not recognized for "
-		    "data socket %d of area detector '%s'.",
+		    "data socket %d of area detector '%s'.  Aborting...",
 		    	initial_read_buffer,
 			(int) merlin_medipix->data_socket->socket_fd,
 			record->name );
@@ -800,17 +826,6 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 		break;
 	    }
 #endif
-
-	    /* If this is an image message, then update the frame counter. */
-
-	    if ( message_type == MXM_MPX_IMAGE_MESSAGE ) {
-		    mx_atomic_increment32(&(merlin_medipix->total_num_frames));
-
-#if 1
-		    MX_DEBUG(-2,("CAPTURE: Total num frames = %lu",
-		    (unsigned long) merlin_medipix->total_num_frames));
-#endif
-	    }
 
 	    mx_usleep( sleep_us );
 
