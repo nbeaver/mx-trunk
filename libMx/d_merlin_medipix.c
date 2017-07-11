@@ -1850,6 +1850,8 @@ mxd_merlin_medipix_readout_frame( MX_AREA_DETECTOR *ad )
 	char *ptr, *image_binary_ptr, *image_message_ptr;
 	char copy_of_beginning_of_message[200];
 	long mx_frame_number;
+	long total_num_frames_at_start;
+	long absolute_frame_number, modulo_frame_number;
 	unsigned long bits_per_pixel, buffer_mx_frame_number;
 	double exposure_time;
 	char *timestamp_string = NULL;
@@ -1890,8 +1892,16 @@ mxd_merlin_medipix_readout_frame( MX_AREA_DETECTOR *ad )
 
 	mx_frame_number = ad->readout_frame;
 
+	total_num_frames_at_start = mx_atomic_read32(
+	    &(merlin_medipix->total_num_frames_at_start) );
+
+	absolute_frame_number = total_num_frames_at_start + mx_frame_number;
+
+	modulo_frame_number = absolute_frame_number
+		% (merlin_medipix->num_image_buffers);
+
 	image_message_ptr = image_message_array +
-		(mx_frame_number * merlin_medipix->image_message_length);
+		(modulo_frame_number * merlin_medipix->image_message_length);
 
 #if MXD_MERLIN_MEDIPIX_DEBUG_FRAME_ADDRESSES
 	MX_DEBUG(-2,("%s: merlin_medipix->image_message_array = %p",
