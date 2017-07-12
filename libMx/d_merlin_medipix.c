@@ -736,20 +736,8 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 					record->name );
 		    }
 
-		    /* The following two ways of setting the new value of
-		     * 'total_num_frames' should be equivalent.  Not sure
-		     * which one is better.
-		     */
-#if 1
 		    mx_total_num_frames =
 		mx_atomic_increment32( &(merlin_medipix->total_num_frames) );
-#else
-		    mx_total_num_frames = mx_total_num_frames_at_start
-		    		+ merlin_sequence_frame_number;
-
-		    mx_atomic_write32( &(merlin_medipix->total_num_frames),
-					    	mx_total_num_frames );
-#endif
 
 #if 1
 		    MX_DEBUG(-2,("CAPTURE: Total num frames = %lu",
@@ -1339,6 +1327,22 @@ mxd_merlin_medipix_open( MX_RECORD *record )
 	mx_status = mxd_merlin_medipix_command( merlin_medipix,
 					"SET,NUMFRAMESPERTRIGGER,1",
 					NULL, 0, FALSE );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Load the image correction files. */
+
+	ad->mask_image_format = MXT_IMAGE_FORMAT_GREY16;
+	ad->bias_image_format = MXT_IMAGE_FORMAT_GREY16;
+	ad->dark_current_image_format = MXT_IMAGE_FORMAT_FLOAT;
+	ad->flat_field_image_format = MXT_IMAGE_FORMAT_FLOAT;
+
+	ad->measure_dark_current_correction_flags = MXFT_AD_MASK_FRAME;
+	ad->measure_flat_field_correction_flags =
+			MXFT_AD_MASK_FRAME | MXFT_AD_DARK_CURRENT_FRAME;
+
+	mx_status = mx_area_detector_load_correction_files( record );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
