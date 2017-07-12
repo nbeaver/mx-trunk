@@ -69,7 +69,7 @@
 #   define MX_CMDLINE_PROCESSOR  MX_CMDLINE_KEY
 
 #elif defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_DJGPP) \
-	|| defined(OS_MINIX)
+	|| defined(OS_MINIX) || defined(OS_ANDROID)
 
 #   define MX_CMDLINE_PROCESSOR  MX_CMDLINE_READLINE
 

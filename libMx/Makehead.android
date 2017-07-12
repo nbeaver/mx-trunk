@@ -32,6 +32,14 @@ LIBRARIES	= $(USER_LIBRARIES) -ldl -lm
 #LIB_DIRS	= -L$(MX_LIB_DIR)
 #LIBRARIES	= -lpthread -lrt -ldl -lm
 
+#--------------------------------------------------------------------------
+#
+# Use the bundled copy of 'readline' for 'mxmotor'.
+#
+
+READLINE_LIB_DIRS = -L../tools/unix/src/editline
+READLINE_LIBRARIES = -ledit
+
 #========================================================================
 #
 # Generally, you should not have to modify anything after this point.

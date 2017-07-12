@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2007, 2009-2011, 2015
+ * Copyright 1999-2001, 2003-2007, 2009-2011, 2015, 2017
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -413,7 +413,7 @@ cmd_read_next_command_line( char *prompt )
 
 	static char buffer[250];
 
-	fprintf( output, prompt );
+	fputs( prompt, output );
 	fflush( output );
 
 	mx_fgets( buffer, sizeof buffer, input );

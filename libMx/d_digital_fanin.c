@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2015 Illinois Institute of Technology
+ * Copyright 2015, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -353,7 +353,7 @@ mxd_digital_fanin_read( MX_DIGITAL_INPUT *dinput )
 			field_value = mx_string_to_unsigned_long( value_ptr );
 			break;
 		case MXFT_CHAR:
-			field_value = labs( *((char *) value_ptr) );
+			field_value = labs( *((signed char *) value_ptr) );
 			break;
 		case MXFT_UCHAR:
 			field_value = *((unsigned char *) value_ptr);

@@ -1918,13 +1918,13 @@ mx_rs232_set_configuration( MX_RECORD *record, long speed,
 	if ( word_size != MXF_232_DONT_CARE ) {
 		rs232->word_size = word_size;
 	}
-	if ( parity != MXF_232_DONT_CARE ) {
+	if ( parity != (char) MXF_232_DONT_CARE ) {
 		rs232->parity = parity;
 	}
 	if ( stop_bits != MXF_232_DONT_CARE ) {
 		rs232->stop_bits = stop_bits;
 	}
-	if ( flow_control != MXF_232_DONT_CARE ) {
+	if ( flow_control != (char) MXF_232_DONT_CARE ) {
 		rs232->flow_control = flow_control;
 	}
 	if ( read_terminators != MXF_232_DONT_CARE ) {
