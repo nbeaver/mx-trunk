@@ -16,11 +16,9 @@
 
 #define MXD_RADICON_TAURUS_DEBUG				FALSE
 
-#define MXD_RADICON_TAURUS_DEBUG_RS232				TRUE
+#define MXD_RADICON_TAURUS_DEBUG_RS232				FALSE
 
 #define MXD_RADICON_TAURUS_DEBUG_RS232_SRO_SI			FALSE
-
-#define MXD_RADICON_TAURUS_DEBUG_RS232_SRO_SI_SUMMARY		TRUE
 
 #define MXD_RADICON_TAURUS_DEBUG_RS232_DELAY			FALSE
 
@@ -37,6 +35,12 @@
 #define MXD_RADICON_TAURUS_DEBUG_SAVING_RAW_FILES		FALSE
 
 #define MXD_RADICON_TAURUS_DEBUG_MEASURE_CORRECTION		FALSE
+
+#define MXD_RADICON_TAURUS_DEBUG_VIDEO_CAPTURE_CALLBACK		FALSE
+
+#define MXD_RADICON_TAURUS_DEBUG_ARM				FALSE
+
+#define MXD_RADICON_TAURUS_DEBUG_ARM_TIMING			TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -255,6 +259,7 @@ mxd_radicon_taurus_video_capture_callback( void *capture_arguments )
 	vinput = args->video_input;
 	sapera_lt_frame_grabber = args->sapera_lt_frame_grabber;
 
+#if MXD_RADICON_TAURUS_DEBUG_VIDEO_CAPTURE_CALLBACK
 	MX_DEBUG(-2,("%s invoked for area detector '%s', video input '%s'.",
 		fname, ad->record->name, vinput->record->name));
 
@@ -264,8 +269,16 @@ mxd_radicon_taurus_video_capture_callback( void *capture_arguments )
 	    	fname, vinput->total_num_frames,
 		sapera_lt_frame_grabber->total_num_frames_at_start,
 		sapera_lt_frame_grabber->num_frames_left_to_acquire));
+#endif
 
 #if 1
+	/* Warning: The following code effectively bypasses the operation
+	 * of the video_frame_number_lookup_array data structure.  I am told
+	 * by Al Thompson that frame number lookup is not necessary for this
+	 * detector, but I keep the code logic for that below this block just
+	 * in case we need it after all.
+	 */
+
 	{
 		int i;
 
@@ -1546,7 +1559,7 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_RADICON_TAURUS_DEBUG
+#if MXD_RADICON_TAURUS_DEBUG_ARM_TIMING
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
@@ -1630,7 +1643,8 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 
 	ad_total_num_frames_at_start =
 		radicon_taurus->total_num_frames_at_start;
-#if 1
+
+#if MXD_RADICON_TAURUS_DEBUG_ARM
 	MX_DEBUG(-2,("%s: ad_total_num_frames_at_start = %ld",
 		fname, ad_total_num_frames_at_start));
 #endif
@@ -1712,10 +1726,11 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 	/* Get the motor start position and motor delta. */
 
 	if ( ad->oscillation_motor_record == (MX_RECORD *) NULL ) {
+#if 0
 		mx_warning( "The '%s.oscillation_motor_name' field does not "
 		"have a value.  Using the default start position of "
 		"0.0 degrees.", ad->record->name );
-
+#endif
 		motor_start_position = 0.0;
 	} else {
 		mx_status = mx_motor_get_position( ad->oscillation_motor_record,
@@ -1891,8 +1906,10 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 				radicon_taurus->minimum_exposure_ticks;
 		}
 
+#if MXD_RADICON_TAURUS_DEBUG_ARM
 		MX_DEBUG(-2,("%s: long_exposure_time_as_double = %f",
 			fname, long_exposure_time_as_double));
+#endif
 
 		/* Round to the nearest 64 bit integer. */
 
@@ -2002,6 +2019,11 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 		radicon_taurus->next_get_extended_status_tick =
 			mx_relative_clock_tick( delay_time_in_seconds );
 	}
+
+#if MXD_RADICON_TAURUS_DEBUG_ARM_TIMING
+	MX_DEBUG(-2,("%s: About to arm the video card for '%s'.",
+		fname, ad->record->name));
+#endif
 
 	/* Tell the video capture card to get ready for frames. */
 
@@ -3450,10 +3472,10 @@ mxd_radicon_taurus_get_sro( MX_AREA_DETECTOR *ad,
 		*sro = radicon_taurus->shadow_sro_register;
 	}
 
-#if MXD_RADICON_TAURUS_DEBUG_RS232_SRO_SI_SUMMARY
-	MX_DEBUG(-2,("%s: SRO value read = %lu",
-		fname, radicon_taurus->shadow_sro_register));
-#endif
+	if ( flags & MXF_RADICON_TAURUS_SHOW_SRO_SI_SUMMARY ) {
+		MX_DEBUG(-2,("%s: SRO value read = %lu",
+			fname, radicon_taurus->shadow_sro_register));
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -3483,11 +3505,11 @@ mxd_radicon_taurus_set_sro( MX_AREA_DETECTOR *ad,
 		fname, ad->record->name ));
 #endif
 
-#if MXD_RADICON_TAURUS_DEBUG_RS232_SRO_SI_SUMMARY
-	MX_DEBUG(-2,("%s: New SRO value = %lu", fname, new_sro_mode));
-#endif
-
 	flags = radicon_taurus->radicon_taurus_flags;
+
+	if ( flags & MXF_RADICON_TAURUS_SHOW_SRO_SI_SUMMARY ) {
+		MX_DEBUG(-2,("%s: New SRO = %lu", fname, new_sro_mode));
+	}
 
 	if ( force_write == FALSE ) {
 
@@ -3496,10 +3518,11 @@ mxd_radicon_taurus_set_sro( MX_AREA_DETECTOR *ad,
 			if (new_sro_mode == radicon_taurus->shadow_sro_register)
 			{
 
-#if MXD_RADICON_TAURUS_DEBUG_RS232_SRO_SI_SUMMARY
+			    if (flags & MXF_RADICON_TAURUS_SHOW_SRO_SI_SUMMARY)
+			    {
 				MX_DEBUG(-2,
-				("%s: skipping SRO command.", fname));
-#endif
+				("%s: Skipping SRO command.", fname));
+			    }
 				return MX_SUCCESSFUL_RESULT;
 			}
 		}
@@ -3524,6 +3547,10 @@ mxd_radicon_taurus_set_sro( MX_AREA_DETECTOR *ad,
 		"Attempted to set detector SRO mode to %lu for detector '%s'.  "
 		"The allowed range of values is from 0 to 4.",
 			new_sro_mode, ad->record->name );
+	}
+
+	if ( flags & MXF_RADICON_TAURUS_SHOW_SRO_SI_SUMMARY ) {
+		MX_DEBUG(-2,("%s: Writing SRO = %lu", fname, new_sro_mode));
 	}
 
 	/*---*/
@@ -3731,10 +3758,10 @@ mxd_radicon_taurus_get_si_register( MX_AREA_DETECTOR *ad,
 		break;
 	}
 
-#if MXD_RADICON_TAURUS_DEBUG_RS232_SRO_SI_SUMMARY
-	MX_DEBUG(-2,("%s: SI%d value read = %" PRIu64,
-		fname, (int)(si_type - MXLV_RADICON_TAURUS_SRO), new_si_value));
-#endif
+	if ( flags & MXF_RADICON_TAURUS_SHOW_SRO_SI_SUMMARY ) {
+		MX_DEBUG(-2,("%s: SI%d value read = %" PRIu64, fname,
+		(int)(si_type - MXLV_RADICON_TAURUS_SRO), new_si_value));
+	}
 
 	if ( si_value_ptr != (uint64_t *) NULL ) {
 		*si_value_ptr = new_si_value;
@@ -3757,6 +3784,7 @@ mxd_radicon_taurus_set_si_register( MX_AREA_DETECTOR *ad,
 	unsigned long high_order, middle_order, low_order;
 	unsigned long flags;
 	uint64_t old_si_value, hardware_si_value;
+	int si_register_number;
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_taurus_get_pointers( ad,
@@ -3770,17 +3798,19 @@ mxd_radicon_taurus_set_si_register( MX_AREA_DETECTOR *ad,
 		fname, ad->record->name ));
 #endif
 
-#if MXD_RADICON_TAURUS_DEBUG_RS232_SRO_SI_SUMMARY
-	MX_DEBUG(-2,("%s: Writing SI%d = %" PRIu64,
-		fname, (int)(si_type - MXLV_RADICON_TAURUS_SRO), new_si_value));
-#endif
+	flags = radicon_taurus->radicon_taurus_flags;
+
+	si_register_number = (int)(si_type - MXLV_RADICON_TAURUS_SRO);
+
+	if ( flags & MXF_RADICON_TAURUS_SHOW_SRO_SI_SUMMARY ) {
+		MX_DEBUG(-2,("%s: New SI%d = %" PRIu64, fname,
+		si_register_number, new_si_value));
+	}
 
 	/* If we are using shadow register, check to see if new_si_value is
 	 * different from the existing value of the shadow si register.  If
 	 * it is the same, then just return.
 	 */
-
-	flags = radicon_taurus->radicon_taurus_flags;
 
 	if ( force_write == FALSE ) {
 		if ( flags & MXF_RADICON_TAURUS_USE_SHADOW_REGISTERS ) {
@@ -3797,12 +3827,19 @@ mxd_radicon_taurus_set_si_register( MX_AREA_DETECTOR *ad,
 
 			if ( new_si_value == old_si_value ) {
 
-#if MXD_RADICON_TAURUS_DEBUG_RS232_SRO_SI_SUMMARY
-				MX_DEBUG(-2,("%s: skipping SI command.",fname));
-#endif
-				return MX_SUCCESSFUL_RESULT;
+			    if (flags & MXF_RADICON_TAURUS_SHOW_SRO_SI_SUMMARY)
+			    {
+				MX_DEBUG(-2,("%s: Skipping SI%d command.",
+					fname, si_register_number));
+			    }
+			    return MX_SUCCESSFUL_RESULT;
 			}
 		}
+	}
+
+	if ( flags & MXF_RADICON_TAURUS_SHOW_SRO_SI_SUMMARY ) {
+		MX_DEBUG(-2,("%s: Writing SI%d = %" PRIu64, fname,
+		si_register_number, new_si_value));
 	}
 
 	/*---*/
@@ -3866,10 +3903,10 @@ mxd_radicon_taurus_set_si_register( MX_AREA_DETECTOR *ad,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-#if 1
-		MX_DEBUG(-2,("%s: hardware_si_value = %" PRIu64,
-			fname, hardware_si_value));
-#endif
+		if ( flags & MXF_RADICON_TAURUS_SHOW_SRO_SI_SUMMARY ) {
+		MX_DEBUG(-2,("%s: SI%d value read = %" PRIu64,
+			fname, si_register_number, hardware_si_value));
+		}
 
 		/* If one of the following tests succeeds, then we have
 		 * successfully changed the SI register to the new requested
