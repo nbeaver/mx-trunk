@@ -40,7 +40,7 @@
 
 #define MXD_RADICON_TAURUS_DEBUG_ARM				FALSE
 
-#define MXD_RADICON_TAURUS_DEBUG_ARM_TIMING			TRUE
+#define MXD_RADICON_TAURUS_DEBUG_ARM_TIMING			FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

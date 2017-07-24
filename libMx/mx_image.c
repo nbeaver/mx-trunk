@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2016 Illinois Institute of Technology
+ * Copyright 2006-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -3182,7 +3182,9 @@ mx_image_read_none_file( MX_IMAGE_FRAME **frame, char *fake_datafile_name )
 
 	bytes_per_frame = mx_round( pixels_per_frame * bytes_per_pixel );
 
+#if 0
 	MX_DEBUG(-2,("%s: bytes_per_frame = %lu", fname, bytes_per_frame));
+#endif
 
 	/* Create or resize the data array. */
 

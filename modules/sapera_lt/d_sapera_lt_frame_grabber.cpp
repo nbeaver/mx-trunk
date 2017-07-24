@@ -20,7 +20,9 @@
 
 #define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_FRAME_BUFFER_ALLOCATION	TRUE
 
-#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_ARM				FALSE
+#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_ARM				TRUE
+
+#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_ARM_TIMING			TRUE
 
 #define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_TRIGGER			FALSE
 
@@ -31,6 +33,11 @@
 #define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_EXTENDED_STATUS_WHEN_BUSY	FALSE
 
 #define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_NUM_FRAMES_LEFT_TO_ACQUIRE	FALSE
+
+/* Note: MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_CALLBACK is what turns on
+ * the 'CAPTURE: Total num frames' message, so most users will probably
+ * want this.
+ */
 
 #define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_CALLBACK			TRUE
 
@@ -59,6 +66,11 @@
 #include "mx_video_input.h"
 #include "i_sapera_lt.h"
 #include "d_sapera_lt_frame_grabber.h"
+
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_ARM_TIMING
+#include "mx_hrt.h"
+#include "mx_hrt_debug.h"
+#endif
 
 /*---*/
 
@@ -1303,6 +1315,14 @@ mxd_sapera_lt_frame_grabber_arm( MX_VIDEO_INPUT *vinput )
 	BOOL sapera_status;
 	mx_status_type mx_status;
 
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_ARM_TIMING
+	MX_HRT_TIMING before_clear_measurement;
+	MX_HRT_TIMING clear_measurement;
+	MX_HRT_TIMING between_clear_and_snap_measurement;
+	MX_HRT_TIMING snap_measurement;
+	MX_HRT_TIMING total_arm_measurement;
+#endif
+
 	mx_status = mxd_sapera_lt_frame_grabber_get_pointers( vinput,
 					&sapera_lt_frame_grabber, NULL, fname );
 
@@ -1312,6 +1332,12 @@ mxd_sapera_lt_frame_grabber_arm( MX_VIDEO_INPUT *vinput )
 #if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_ARM
 	MX_DEBUG(-2,("%s invoked for video input '%s'",
 		fname, vinput->record->name ));
+#endif
+
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_ARM_TIMING
+	MX_HRT_START( total_arm_measurement );
+
+	MX_HRT_START( before_clear_measurement );
 #endif
 
 	mx_status = mxd_sapera_lt_frame_grabber_setup_frame_counters(
@@ -1334,6 +1360,12 @@ mxd_sapera_lt_frame_grabber_arm( MX_VIDEO_INPUT *vinput )
 	memset( sapera_lt_frame_grabber->frame_buffer_is_unsaved, 0,
 	    sapera_lt_frame_grabber->num_frame_buffers * sizeof(mx_bool_type) );
 
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_ARM_TIMING
+	MX_HRT_END( before_clear_measurement );
+
+	MX_HRT_START( clear_measurement );
+#endif
+
 	/* Clear any existing frame data in the SapBuffer object. */
 
 	sapera_status = sapera_lt_frame_grabber->buffer->Clear();
@@ -1344,6 +1376,12 @@ mxd_sapera_lt_frame_grabber_arm( MX_VIDEO_INPUT *vinput )
 		"frame grabber '%s' failed.",
 			vinput->record->name );
 	}
+
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_ARM_TIMING
+	MX_HRT_END( clear_measurement );
+
+	MX_HRT_START( between_clear_and_snap_measurement );
+#endif
 
 	/* For this video input, the input frame buffer must be set up
 	 * before we can execute the Snap() method.  For that reason,
@@ -1402,18 +1440,6 @@ mxd_sapera_lt_frame_grabber_arm( MX_VIDEO_INPUT *vinput )
 		break;
 	}
 	
-#if 0
-	if ( num_frames > sapera_lt_frame_grabber->max_frames ) {
-		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"The number of frames requested (%d) for this sequence "
-		"exceeds the maximum number of frames (%ld) allocated "
-		"for detector '%s'.",
-			num_frames,
-			sapera_lt_frame_grabber->max_frames,
-			vinput->record->name );
-	}
-#endif
-	
 	/* If the video board is in charge of timing, then we must set
 	 * the exposure time.
 	 */
@@ -1442,6 +1468,12 @@ mxd_sapera_lt_frame_grabber_arm( MX_VIDEO_INPUT *vinput )
 			return mx_status;
 	}
 
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_ARM_TIMING
+	MX_HRT_END( between_clear_and_snap_measurement );
+
+	MX_HRT_START( snap_measurement );
+#endif
+
 	/*--------*/
 
 	fg_flags = sapera_lt_frame_grabber->sapera_frame_grabber_flags;
@@ -1460,6 +1492,20 @@ mxd_sapera_lt_frame_grabber_arm( MX_VIDEO_INPUT *vinput )
 		"The attempt to call Snap() for frame grabber '%s' failed.",
 			vinput->record->name );
 	}
+
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_ARM_TIMING
+	MX_HRT_END( snap_measurement );
+	MX_HRT_END( total_arm_measurement );
+
+	MX_HRT_RESULTS( before_clear_measurement,
+		fname, "for everything before Clear()." );
+	MX_HRT_RESULTS( clear_measurement, fname, "for Clear()." );
+	MX_HRT_RESULTS( between_clear_and_snap_measurement,
+		fname, "for between Clear() and Snap()." );
+	MX_HRT_RESULTS( snap_measurement, fname, "for Snap()." );
+
+	MX_HRT_RESULTS( total_arm_measurement, fname, "Total for arm()." );
+#endif
 
 #if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_ARM
 	MX_DEBUG(-2,("%s complete for video input '%s'.",
