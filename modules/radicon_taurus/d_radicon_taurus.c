@@ -259,6 +259,8 @@ mxd_radicon_taurus_video_capture_callback( void *capture_arguments )
 	vinput = args->video_input;
 	sapera_lt_frame_grabber = args->sapera_lt_frame_grabber;
 
+	MXW_UNUSED( sapera_lt_frame_grabber );
+
 #if MXD_RADICON_TAURUS_DEBUG_VIDEO_CAPTURE_CALLBACK
 	MX_DEBUG(-2,("%s invoked for area detector '%s', video input '%s'.",
 		fname, ad->record->name, vinput->record->name));
