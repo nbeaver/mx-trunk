@@ -2056,7 +2056,7 @@ mx_rs232_verify_configuration( MX_RECORD *record, long speed,
 			return mx_error(
 				MXE_HARDWARE_CONFIGURATION_ERROR, fname,
 "The timeout for RS-232 port '%s' is currently %f, but should be %f.",
-				rs232->timeout, timeout_in_seconds );
+			    record->name, rs232->timeout, timeout_in_seconds );
 		}
 	}
 
