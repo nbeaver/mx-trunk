@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2007, 2010 Illinois Institute of Technology
+ * Copyright 2004-2007, 2010, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -145,7 +145,8 @@ mxi_picomotor_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_picomotor_open()";
 
-	MX_PICOMOTOR_CONTROLLER *picomotor_controller;
+	MX_PICOMOTOR_CONTROLLER *picomotor_controller = NULL;
+	MX_RS232 *rs232 = NULL;
 	mx_status_type mx_status;
 
 	picomotor_controller = NULL;
@@ -155,6 +156,21 @@ mxi_picomotor_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	if ( picomotor_controller->rs232_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RECORD pointer for the RS-232 record "
+		"used by Picomotor controller '%s' is NULL.", record->name );
+	}
+
+	rs232 = (MX_RS232 *)
+		picomotor_controller->rs232_record->record_class_struct;
+
+	if ( rs232 == (MX_RS232 *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RS232 pointer for the RS-232 record "
+		"used by Picomotor controller '%s' is NULL.", record->name );
+	}
 
 #if 0
 	{
@@ -183,7 +199,8 @@ mxi_picomotor_open( MX_RECORD *record )
 	mx_status = mx_rs232_verify_configuration(
 			picomotor_controller->rs232_record,
 			19200, 8, MXF_232_NO_PARITY, 1,
-			MXF_232_NO_FLOW_CONTROL, 0x0d0a, 0x0d0a );
+			MXF_232_NO_FLOW_CONTROL, 0x0d0a, 0x0d0a,
+			rs232->timeout );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

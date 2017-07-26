@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2008, 2010 Illinois Institute of Technology
+ * Copyright 2008, 2010, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -177,9 +177,9 @@ mxd_src_mono_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_src_mono_open()";
 
-	MX_MOTOR *motor;
+	MX_MOTOR *motor = NULL;
 	MX_SRC_MONO *src_mono = NULL;
-	MX_RS232 *rs232;
+	MX_RS232 *rs232 = NULL;
 	mx_status_type mx_status;
 
 	motor = (MX_MOTOR *) record->record_class_struct;
@@ -194,7 +194,8 @@ mxd_src_mono_open( MX_RECORD *record )
 #if 0
 	mx_status = mx_rs232_verify_configuration( src_mono->rs232_record,
 						9600, 8, 'N', 1, 'N',
-						0x0d0a, 0x0d );
+						0x0d0a, 0x0d,
+						rs232->timeout );
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 #endif

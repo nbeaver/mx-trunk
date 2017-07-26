@@ -471,7 +471,8 @@ MX_API mx_status_type mx_rs232_get_configuration( MX_RECORD *rs232_record,
 					long *stop_bits,
 					char *flow_control,
 					unsigned long *read_terminators,
-					unsigned long *write_terminators );
+					unsigned long *write_terminators,
+					double *timeout_in_seconds );
 
 MX_API mx_status_type mx_rs232_set_configuration( MX_RECORD *rs232_record,
 					long speed,
@@ -480,7 +481,8 @@ MX_API mx_status_type mx_rs232_set_configuration( MX_RECORD *rs232_record,
 					long stop_bits,
 					char flow_control,
 					unsigned long read_terminators,
-					unsigned long write_terminators );
+					unsigned long write_terminators,
+					double timeout_in_seconds );
 
 MX_API mx_status_type mx_rs232_verify_configuration( MX_RECORD *rs232_record,
 					long speed,
@@ -489,7 +491,8 @@ MX_API mx_status_type mx_rs232_verify_configuration( MX_RECORD *rs232_record,
 					long stop_bits,
 					char flow_control,
 					unsigned long read_terminators,
-					unsigned long write_terminators );
+					unsigned long write_terminators,
+					double timeout );
 
 MX_API mx_status_type mx_rs232_send_break( MX_RECORD *rs232_record );
 

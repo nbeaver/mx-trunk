@@ -429,10 +429,11 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_radicon_taurus_open()";
 
-	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR *ad = NULL;
 	MX_RADICON_TAURUS *radicon_taurus = NULL;
 	MX_RECORD *video_input_record, *serial_port_record;
 	MX_RECORD_FIELD *lookup_array_field = NULL;
+	MX_RS232 *rs232 = NULL;
 	long vinput_framesize[2];
 	long video_framesize[2];
 	long array_dimensions[2];
@@ -673,11 +674,20 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 			record->name );
 	}
 
+	rs232 = (MX_RS232 *) serial_port_record ->record_class_struct;
+
+	if ( rs232 == (MX_RS232 *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RS232 pointer for detector '%s' is NULL.",
+			record->name );
+	}
+
 	/* Configure the serial port as needed by the Taurus driver. */
 
 	mx_status = mx_rs232_set_configuration( serial_port_record,
 						115200, 8, 'N', 1, 'S',
-						0x0d0a, 0x0d );
+						0x0d0a, 0x0d,
+						rs232->timeout );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

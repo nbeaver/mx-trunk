@@ -34,15 +34,15 @@
 
 /*---*/
 
-#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_TIMING	FALSE
+#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_TIMING	TRUE
 
-#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE	FALSE
+#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE	TRUE
 
-#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_SETUP	FALSE
+#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_SETUP	TRUE
 
-#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_TIMESTAMP  FALSE
+#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_TIMESTAMP  TRUE
 
-#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_FILE	FALSE
+#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_FILE	TRUE
 
 #define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_FAILURE  TRUE
 
@@ -7288,8 +7288,6 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 		fname, (int) ad->correction_measurement_in_progress));
 	MX_DEBUG(-2,("%s: save_frame_after_acquisition = %d",
 		fname, (int) save_frame_after_acquisition));
-	MX_DEBUG(-2,("%s: load_frame_after_acquisition = %d",
-		fname, (int) load_frame_after_acquisition));
 	MX_DEBUG(-2,("%s: readout_frame_after_acquisition = %d",
 		fname, (int) readout_frame_after_acquisition));
 #endif

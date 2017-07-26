@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008, 2010, 2015 Illinois Institute of Technology
+ * Copyright 2008, 2010, 2015, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -83,8 +83,9 @@ mxi_isobus_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_isobus_open()";
 
-	MX_ISOBUS *isobus;
-	MX_RECORD *interface_record;
+	MX_ISOBUS *isobus = NULL;
+	MX_RECORD *interface_record = NULL;
+	MX_RS232 *rs232 = NULL;
 	unsigned long isobus_flags, read_terminator;
 	mx_status_type mx_status;
 
@@ -119,8 +120,17 @@ mxi_isobus_open( MX_RECORD *record )
 			read_terminator = MX_CR;
 		}
 
+		rs232 = (MX_RS232 *) interface_record->record_class_struct;
+
+		if ( rs232 == (MX_RS232 *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_RS232 pointer for the RS-232 record "
+			"used by Isobus '%s' is NULL.", record->name );
+		}
+
 		mx_status = mx_rs232_verify_configuration( interface_record,
-				9600, 8, 'N', 1, 'N', read_terminator, 0x0d );
+				9600, 8, 'N', 1, 'N', read_terminator, 0x0d,
+				rs232->timeout );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

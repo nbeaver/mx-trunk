@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2005, 2010, 2015 Illinois Institute of Technology
+ * Copyright 2004-2005, 2010, 2015, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -88,8 +88,8 @@ mxi_pfcu_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_pfcu_open()";
 
-	MX_PFCU *pfcu;
-	MX_RS232 *rs232;
+	MX_PFCU *pfcu = NULL;
+	MX_RS232 *rs232 = NULL;
 	unsigned long i, max_attempts;
 	int timed_out;
 	mx_status_type mx_status;
@@ -122,7 +122,7 @@ mxi_pfcu_open( MX_RECORD *record )
 	/* Check for a valid RS-232 configuration. */
 
 	mx_status = mx_rs232_verify_configuration( pfcu->rs232_record,
-			9600, 8, 'N', 1, 'N', 0x0d, 0x0d );
+			9600, 8, 'N', 1, 'N', 0x0d, 0x0d, rs232->timeout );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

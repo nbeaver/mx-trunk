@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <limits.h>
+#include <math.h>
 
 #include "mx_util.h"
 #include "mx_rs232.h"
@@ -1843,7 +1844,8 @@ mx_rs232_get_configuration( MX_RECORD *record, long *speed,
 				long *word_size, char *parity,
 				long *stop_bits, char *flow_control,
 				unsigned long *read_terminators,
-				unsigned long *write_terminators )
+				unsigned long *write_terminators,
+				double *timeout_in_seconds )
 {
 	static const char fname[] = "mx_rs232_get_configuration()";
 
@@ -1889,6 +1891,9 @@ mx_rs232_get_configuration( MX_RECORD *record, long *speed,
 	if ( write_terminators != (unsigned long *) NULL ) {
 		*write_terminators = rs232->write_terminators;
 	}
+	if ( timeout_in_seconds != (double *) NULL ) {
+		*timeout_in_seconds = rs232->timeout;
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1898,13 +1903,15 @@ mx_rs232_set_configuration( MX_RECORD *record, long speed,
 				long word_size, char parity,
 				long stop_bits, char flow_control,
 				unsigned long read_terminators,
-				unsigned long write_terminators )
+				unsigned long write_terminators,
+				double timeout_in_seconds )
 {
 	static const char fname[] = "mx_rs232_set_configuration()";
 
 	MX_RS232 *rs232;
 	MX_RS232_FUNCTION_LIST *flist;
 	mx_status_type ( *fptr )( MX_RS232 * );
+	double dont_care_difference;
 	mx_status_type mx_status;
 
 	mx_status = mx_rs232_get_pointers( record, &rs232, &flist, fname );
@@ -1934,6 +1941,13 @@ mx_rs232_set_configuration( MX_RECORD *record, long speed,
 		rs232->write_terminators = write_terminators;
 	}
 
+	dont_care_difference = mx_difference( timeout_in_seconds,
+				(double) MXF_232_DONT_CARE );
+
+	if ( fabs(dont_care_difference) > 1.0e-6 ) {
+		rs232->timeout = timeout_in_seconds;
+	}
+
 	/* Optionally call the driver specific 'set configuration' function. */
 
 	fptr = flist->set_configuration;
@@ -1957,11 +1971,13 @@ mx_rs232_verify_configuration( MX_RECORD *record, long speed,
 				long word_size, char parity,
 				long stop_bits, char flow_control,
 				unsigned long read_terminators,
-				unsigned long write_terminators )
+				unsigned long write_terminators,
+				double timeout_in_seconds )
 {
 	static const char fname[] = "mx_rs232_verify_configuration()";
 
 	MX_RS232 *rs232;
+	double dont_care_difference, timeout_difference;
 	mx_status_type mx_status;
 
 	mx_status = mx_rs232_get_pointers( record, &rs232, NULL, fname );
@@ -2028,6 +2044,22 @@ mx_rs232_verify_configuration( MX_RECORD *record, long speed,
 				rs232->write_terminators, write_terminators );
 		}
 	}
+
+	dont_care_difference = mx_difference( timeout_in_seconds,
+				(double) MXF_232_DONT_CARE );
+
+	if ( fabs(dont_care_difference) > 1.0e-6 ) {
+
+		timeout_difference = mx_difference( timeout_in_seconds,
+							rs232->timeout );
+		if ( fabs(timeout_difference) > 1.0e-6 ) {
+			return mx_error(
+				MXE_HARDWARE_CONFIGURATION_ERROR, fname,
+"The timeout for RS-232 port '%s' is currently %f, but should be %f.",
+				rs232->timeout, timeout_in_seconds );
+		}
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2005, 2010, 2012, 2014 Illinois Institute of Technology
+ * Copyright 2001-2005, 2010, 2012, 2014, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -117,7 +117,7 @@ mx_rs232_process_function( void *record_ptr,
 		case MXLV_232_GET_CONFIGURATION:
 			mx_status = mx_rs232_get_configuration( record,
 						NULL, NULL, NULL, NULL,
-						NULL, NULL, NULL );
+						NULL, NULL, NULL, NULL );
 			break;
 		case MXLV_232_NUM_INPUT_BYTES_AVAILABLE:
 			mx_status = mx_rs232_num_input_bytes_available( record,
@@ -178,7 +178,8 @@ mx_rs232_process_function( void *record_ptr,
 					rs232->parity, rs232->stop_bits,
 					rs232->flow_control,
 					rs232->read_terminators,
-					rs232->write_terminators );
+					rs232->write_terminators,
+					rs232->timeout );
 			break;
 		case MXLV_232_SIGNAL_STATE:
 			mx_status = mx_rs232_set_signal_state( record,

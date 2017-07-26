@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002-2007, 2010 Illinois Institute of Technology
+ * Copyright 2002-2007, 2010, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -194,10 +194,12 @@ mxd_icplus_open( MX_RECORD *record )
 
 	if( record->mx_type == MXT_AMP_ICPLUS ) {
 		mx_status = mx_rs232_verify_configuration( icplus->rs232_record,
-					9600, 8, 'N', 1, 'N', 0x0a, 0x0a );
+					9600, 8, 'N', 1, 'N', 0x0a, 0x0a,
+					rs232->timeout );
 	} else {
 		mx_status = mx_rs232_verify_configuration( icplus->rs232_record,
-					19200, 8, 'N', 1, 'N', 0x0a, 0x0a );
+					19200, 8, 'N', 1, 'N', 0x0a, 0x0a,
+					rs232->timeout );
 	}
 
 	if ( mx_status.code != MXE_SUCCESS )

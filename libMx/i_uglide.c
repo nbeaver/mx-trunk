@@ -10,7 +10,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002, 2005-2008, 2010, 2012, 2015 Illinois Institute of Technology
+ * Copyright 2002, 2005-2008, 2010, 2012, 2015, 2017
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -131,12 +132,19 @@ mxi_uglide_finish_record_initialization( MX_RECORD *record )
 	static const char fname[] = "mxi_uglide_finish_record_initialization()";
 
 	MX_UGLIDE *uglide = NULL;
+	MX_RS232 *rs232 = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_uglide_get_pointers( record, &uglide, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	if ( uglide->rs232_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RECORD pointer for the RS-232 record "
+		"used by u-GLIDE controller '%s' is NULL.", record->name );
+	}
 
 	if ( mx_verify_driver_type( uglide->rs232_record,
 			MXR_INTERFACE, MXI_RS232, MXT_ANY ) == FALSE )
@@ -147,13 +155,21 @@ mxi_uglide_finish_record_initialization( MX_RECORD *record )
 			uglide->rs232_record->name, record->name );
 	}
 
+	rs232 = (MX_RS232 *) uglide->rs232_record->record_class_struct;
+
+	if ( rs232 == (MX_RS232 *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RS232 pointer for the RS-232 record "
+		"used by u-GLIDE controller '%s' is NULL.", record->name );
+	}
+
 	/* Please note that an addendum to the u-GLIDE manual found on
 	 * the included floppy disk says that one must use <CR> as the
 	 * line terminator rather than <CR>, <LF> as the manual says.
 	 */
 
 	mx_status = mx_rs232_verify_configuration( uglide->rs232_record,
-			9600, 8, 'N', 1, 'N', 0x0d0a, 0x0d );
+			9600, 8, 'N', 1, 'N', 0x0d0a, 0x0d, rs232->timeout );
 
 	return mx_status;
 }

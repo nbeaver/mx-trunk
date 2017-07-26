@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2007 Illinois Institute of Technology
+ * Copyright 2004-2007, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -194,8 +194,9 @@ mxd_tracker_ain_finish_record_initialization( MX_RECORD *record )
 	static const char fname[] =
 			"mxd_tracker_ain_finish_record_initialization()";
 
-	MX_ANALOG_INPUT *ainput;
-	MX_TRACKER_AINPUT *tracker_ainput;
+	MX_ANALOG_INPUT *ainput = NULL;
+	MX_TRACKER_AINPUT *tracker_ainput = NULL;
+	MX_RS232 *rs232 = NULL;
 	mx_status_type mx_status;
 
 	tracker_ainput = NULL;
@@ -213,10 +214,25 @@ mxd_tracker_ain_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( tracker_ainput->rs232_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RECORD pointer for the RS-232 record "
+		"used by analog input '%s' is NULL.", record->name );
+	}
+
+	rs232 = (MX_RS232 *) tracker_ainput->rs232_record->record_class_struct;
+
+	if ( rs232 == (MX_RS232 *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RS232 pointer for the RS-232 record "
+		"used by analog input '%s' is NULL.", record->name );
+	}
+
 	mx_status = mx_rs232_verify_configuration(tracker_ainput->rs232_record,
 				MXF_232_DONT_CARE, MXF_232_DONT_CARE,
 				(char) MXF_232_DONT_CARE, MXF_232_DONT_CARE,
-				(char) MXF_232_DONT_CARE, 0x0d0a, 0x0d0a );
+				(char) MXF_232_DONT_CARE, 0x0d0a, 0x0d0a,
+				rs232->timeout );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -320,8 +336,9 @@ mxd_tracker_aout_finish_record_initialization( MX_RECORD *record )
 	static const char fname[] =
 			"mxd_tracker_aout_finish_record_initialization()";
 
-	MX_ANALOG_OUTPUT *aoutput;
-	MX_TRACKER_AOUTPUT *tracker_aoutput;
+	MX_ANALOG_OUTPUT *aoutput = NULL;
+	MX_TRACKER_AOUTPUT *tracker_aoutput = NULL;
+	MX_RS232 *rs232 = NULL;
 	mx_status_type mx_status;
 
 	tracker_aoutput = NULL;
@@ -339,10 +356,25 @@ mxd_tracker_aout_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( tracker_aoutput->rs232_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RECORD pointer for the RS-232 record "
+		"used by analog output '%s' is NULL.", record->name );
+	}
+
+	rs232 = (MX_RS232 *) tracker_aoutput->rs232_record->record_class_struct;
+
+	if ( rs232 == (MX_RS232 *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RS232 pointer for the RS-232 record "
+		"used by analog output '%s' is NULL.", record->name );
+	}
+
 	mx_status = mx_rs232_verify_configuration(tracker_aoutput->rs232_record,
 				MXF_232_DONT_CARE, MXF_232_DONT_CARE,
 				(char) MXF_232_DONT_CARE, MXF_232_DONT_CARE,
-				(char) MXF_232_DONT_CARE, 0x0d0a, 0x0d0a );
+				(char) MXF_232_DONT_CARE, 0x0d0a, 0x0d0a,
+				rs232->timeout );
         return mx_status;
 }
 

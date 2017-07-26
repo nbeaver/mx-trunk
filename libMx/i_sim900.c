@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010-2012, 2015 Illinois Institute of Technology
+ * Copyright 2010-2012, 2015, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -83,8 +83,9 @@ mxi_sim900_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_sim900_open()";
 
-	MX_SIM900 *sim900;
-	MX_RECORD *interface_record;
+	MX_SIM900 *sim900 = NULL;
+	MX_RECORD *interface_record = NULL;
+	MX_RS232 *rs232 = NULL;
 
 	long speed;
 	char flow_control;
@@ -122,6 +123,14 @@ mxi_sim900_open( MX_RECORD *record )
 
 	interface_record = sim900->sim900_interface.record;
 
+	rs232 = (MX_RS232 *) interface_record->record_class_struct;
+
+	if ( rs232 == (MX_RS232 *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RS232 pointer for the RS-232 record "
+		"used by SIM900 interface '%s' is NULL.", record->name );
+	}
+
 	switch( interface_record->mx_class ) {
 	case MXI_RS232:
 		/* Make sure that the RS-232 port from the computer to
@@ -133,7 +142,7 @@ mxi_sim900_open( MX_RECORD *record )
 						&speed, NULL, NULL, NULL,
 						&flow_control,
 						&read_terminators,
-						&write_terminators );
+						&write_terminators, NULL );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -158,7 +167,8 @@ mxi_sim900_open( MX_RECORD *record )
 						speed, 8, 'N', 1,
 						flow_control,
 						read_terminators,
-						write_terminators );
+						write_terminators,
+						rs232->timeout );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

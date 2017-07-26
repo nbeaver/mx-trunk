@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006-2007, 2010, 2013, 2015
+ * Copyright 2003-2004, 2006-2007, 2010, 2013, 2015, 2017
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -183,8 +183,9 @@ mxd_smartmotor_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_smartmotor_open()";
 
-	MX_MOTOR *motor;
-	MX_SMARTMOTOR *smartmotor;
+	MX_MOTOR *motor = NULL;
+	MX_SMARTMOTOR *smartmotor = NULL;
+	MX_RS232 *rs232 = NULL;
 	mx_status_type mx_status;
 
 	smartmotor = NULL;
@@ -210,11 +211,27 @@ mxd_smartmotor_open( MX_RECORD *record )
 
 	smartmotor->acceleration_scale_factor = 7.9166433 / 2000.0;
 
+	/*---*/
+
+	if ( smartmotor->rs232_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RECORD pointer for the RS-232 record "
+		"used by Smartmotor '%s' is NULL.", record->name );
+	}
+
+	rs232 = (MX_RS232 *) smartmotor->rs232_record->record_class_struct;
+
+	if ( rs232 == (MX_RS232 *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RS232 pointer for the RS-232 record "
+		"used by Smartmotor '%s' is NULL.", record->name );
+	}
+
 	/* Verify the line terminators. */
 
 	mx_status = mx_rs232_verify_configuration( smartmotor->rs232_record,
 			(long) MXF_232_DONT_CARE, 8, 'N', 1, 'N',
-			0x0d, 0x0d );
+			0x0d, 0x0d, rs232->timeout );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

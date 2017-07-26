@@ -153,9 +153,10 @@ mxd_gittelsohn_pulser_command( MX_GITTELSOHN_PULSER *gittelsohn_pulser,
 	 * this line away.
 	 */
 
-	mx_status = mx_rs232_getline( rs232_record,
+	mx_status = mx_rs232_getline_with_timeout( rs232_record,
 			discard_buffer, sizeof(discard_buffer),
-			NULL, debug_flag );
+			NULL, debug_flag,
+			gittelsohn_pulser->timeout );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -163,8 +164,9 @@ mxd_gittelsohn_pulser_command( MX_GITTELSOHN_PULSER *gittelsohn_pulser,
 	/* If requested, read back the _real_ data from the Arduino. */
 
 	if ( response != NULL ) {
-		mx_status = mx_rs232_getline( rs232_record,
-			response, max_response_size, NULL, debug_flag );
+		mx_status = mx_rs232_getline_with_timeout( rs232_record,
+			response, max_response_size, NULL, debug_flag,
+			gittelsohn_pulser->timeout );
 	} else {
 		/* If there are additional bytes available that we did not
 		 * expect, then discard them.
@@ -327,12 +329,14 @@ mxd_gittelsohn_pulser_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Check to see if the RS232 port is configured correctly.
-	 * If an error occurs, we currently keep going anyway.
-	 */
+	/* Make sure that the RS232 port is configured correctly. */
 
-	(void) mx_rs232_verify_configuration( gittelsohn_pulser->rs232_record,
-					57600, 8, 'N', 1, 'N', 0x0d0a, 0x0a );
+	mx_status = mx_rs232_set_configuration( gittelsohn_pulser->rs232_record,
+				57600, 8, 'N', 1, 'N', 0x0d0a, 0x0a,
+				gittelsohn_pulser->timeout );
+
+	if (mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/*---*/
 
@@ -386,14 +390,20 @@ mxd_gittelsohn_pulser_open( MX_RECORD *record )
 
 		mx_msleep(1000);
 
+		MX_DEBUG(-2,("%s: before reading 'conf' response.", fname));
+
 		/* The first response line should say 'command : conf'. */
 
-		mx_status = mx_rs232_getline( gittelsohn_pulser->rs232_record,
+		mx_status = mx_rs232_getline_with_timeout(
+						gittelsohn_pulser->rs232_record,
 						response, sizeof(response),
-						NULL, debug_flag );
+						NULL, debug_flag,
+						gittelsohn_pulser->timeout );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+		MX_DEBUG(-2,("%s: after reading 'conf' response.", fname));
 
 #if MXD_GITTELSOHN_PULSER_DEBUG_CONF
 		MX_DEBUG(-2,("%s: pulser '%s', response line #1 = '%s'",
@@ -448,9 +458,11 @@ mxd_gittelsohn_pulser_open( MX_RECORD *record )
 
 	/* The second response line should contain the firmware version.*/
 
-	mx_status = mx_rs232_getline( gittelsohn_pulser->rs232_record,
+	mx_status = mx_rs232_getline_with_timeout(
+				gittelsohn_pulser->rs232_record,
 				response, sizeof(response),
-				NULL, debug_flag );
+				NULL, debug_flag,
+				gittelsohn_pulser->timeout );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

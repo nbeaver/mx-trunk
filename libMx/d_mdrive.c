@@ -11,7 +11,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2006-2007, 2010, 2013, 2015 Illinois Institute of Technology
+ * Copyright 2003, 2006-2007, 2010, 2013, 2015, 2017
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -349,18 +350,18 @@ mxd_mdrive_open( MX_RECORD *record )
 	mdrive->last_move_was_home_search = FALSE;
 	mdrive->last_home_search_failed = FALSE;
 
+	rs232 = (MX_RS232 *) mdrive->rs232_record->record_class_struct;
+
 	/* Verify the line terminators. */
 
 	mx_status = mx_rs232_verify_configuration( mdrive->rs232_record,
 			(long) MXF_232_DONT_CARE, (int) MXF_232_DONT_CARE,
 			(char) MXF_232_DONT_CARE, (int) MXF_232_DONT_CARE,
 			(char) MXF_232_DONT_CARE,
-			0x0d0a, 0x0a );
+			0x0d0a, 0x0a, rs232->timeout );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	rs232 = (MX_RS232 *) mdrive->rs232_record->record_class_struct;
 
 	mdrive->num_write_terminator_chars = rs232->num_write_terminator_chars;
 

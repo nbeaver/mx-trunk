@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2007 Illinois Institute of Technology
+ * Copyright 2004-2007, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -191,8 +191,9 @@ mxd_tracker_din_finish_record_initialization( MX_RECORD *record )
 	static const char fname[] =
 			"mxd_tracker_din_finish_record_initialization()";
 
-	MX_DIGITAL_INPUT *dinput;
-	MX_TRACKER_DINPUT *tracker_dinput;
+	MX_DIGITAL_INPUT *dinput = NULL;
+	MX_TRACKER_DINPUT *tracker_dinput = NULL;
+	MX_RS232 *rs232 = NULL;
 	mx_status_type mx_status;
 
 	tracker_dinput = NULL;
@@ -210,10 +211,25 @@ mxd_tracker_din_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( tracker_dinput->rs232_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RECORD pointer for the RS-232 record "
+		"used by digital input '%s' is NULL.", record->name );
+	}
+
+	rs232 = (MX_RS232 *) tracker_dinput->rs232_record->record_class_struct;
+
+	if ( rs232 == (MX_RS232 *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RS232 pointer for the RS-232 record "
+		"used by digital input '%s' is NULL.", record->name );
+	}
+
 	mx_status = mx_rs232_verify_configuration(tracker_dinput->rs232_record,
 				MXF_232_DONT_CARE, MXF_232_DONT_CARE,
 				(char) MXF_232_DONT_CARE, MXF_232_DONT_CARE,
-				(char) MXF_232_DONT_CARE, 0x0d0a, 0x0d0a );
+				(char) MXF_232_DONT_CARE, 0x0d0a, 0x0d0a,
+				rs232->timeout );
         return mx_status;
 }
 
@@ -307,8 +323,9 @@ mxd_tracker_dout_finish_record_initialization( MX_RECORD *record )
 	static const char fname[] =
 			"mxd_tracker_dout_finish_record_initialization()";
 
-	MX_DIGITAL_OUTPUT *doutput;
-	MX_TRACKER_DOUTPUT *tracker_doutput;
+	MX_DIGITAL_OUTPUT *doutput = NULL;
+	MX_TRACKER_DOUTPUT *tracker_doutput = NULL;
+	MX_RS232 *rs232 = NULL;
 	mx_status_type mx_status;
 
 	tracker_doutput = NULL;
@@ -326,10 +343,25 @@ mxd_tracker_dout_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( tracker_doutput->rs232_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RECORD pointer for the RS-232 record "
+		"used by digital output '%s' is NULL.", record->name );
+	}
+
+	rs232 = (MX_RS232 *) tracker_doutput->rs232_record->record_class_struct;
+
+	if ( rs232 == (MX_RS232 *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RS232 pointer for the RS-232 record "
+		"used by digital output '%s' is NULL.", record->name );
+	}
+
 	mx_status = mx_rs232_verify_configuration(tracker_doutput->rs232_record,
 				MXF_232_DONT_CARE, MXF_232_DONT_CARE,
 				(char) MXF_232_DONT_CARE, MXF_232_DONT_CARE,
-				(char) MXF_232_DONT_CARE, 0x0d0a, 0x0d0a );
+				(char) MXF_232_DONT_CARE, 0x0d0a, 0x0d0a,
+				rs232->timeout );
         return mx_status;
 }
 

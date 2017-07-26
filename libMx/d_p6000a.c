@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005, 2008, 2010 Illinois Institute of Technology
+ * Copyright 2005, 2008, 2010, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -148,8 +148,9 @@ mxd_p6000a_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_p6000a_open()";
 
-	MX_ANALOG_INPUT *ainput;
+	MX_ANALOG_INPUT *ainput = NULL;
 	MX_P6000A *p6000a = NULL;
+	MX_RS232 *rs232 = NULL;
 	mx_status_type mx_status;
 
 	ainput = (MX_ANALOG_INPUT *) (record->record_class_struct);
@@ -165,9 +166,23 @@ mxd_p6000a_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( p6000a->rs232_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RECORD pointer for the RS-232 record "
+		"used by P6000A record '%s' is NULL.", record->name );
+	}
+
+	rs232 = (MX_RS232 *) p6000a->rs232_record->record_class_struct;
+
+	if ( rs232 == (MX_RS232 *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RS232 pointer for the RS-232 record "
+		"used by P6000A record '%s' is NULL.", record->name );
+	}
+
 	mx_status = mx_rs232_verify_configuration( p6000a->rs232_record,
 					MXF_232_DONT_CARE, 7, 'E', 1, 'N',
-					0x0d, 0x0d );
+					0x0d, 0x0d, rs232->timeout );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_warning(
