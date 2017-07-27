@@ -158,8 +158,20 @@ mxd_gittelsohn_pulser_command( MX_GITTELSOHN_PULSER *gittelsohn_pulser,
 			NULL, debug_flag,
 			gittelsohn_pulser->timeout );
 
-	if ( mx_status.code != MXE_SUCCESS )
+	switch( mx_status.code ) {
+	case MXE_SUCCESS:
+		break;
+	case MXE_TIMED_OUT:
+		mx_stack_traceback();
+		return mx_error( MXE_TIMED_OUT, fname,
+		"Gittelsohn pulser '%s' timed out while waiting for the "
+		"echoing of the command '%s'.",
+			gittelsohn_pulser->record->name, command );
+		break;
+	default:
 		return mx_status;
+		break;
+	}
 
 	/* If requested, read back the _real_ data from the Arduino. */
 
@@ -167,6 +179,21 @@ mxd_gittelsohn_pulser_command( MX_GITTELSOHN_PULSER *gittelsohn_pulser,
 		mx_status = mx_rs232_getline_with_timeout( rs232_record,
 			response, max_response_size, NULL, debug_flag,
 			gittelsohn_pulser->timeout );
+
+		switch( mx_status.code ) {
+		case MXE_SUCCESS:
+			break;
+		case MXE_TIMED_OUT:
+			mx_stack_traceback();
+			return mx_error( MXE_TIMED_OUT, fname,
+			"Gittelsohn pulser '%s' timed out while waiting for "
+			"the response to the command '%s'.",
+				gittelsohn_pulser->record->name, command );
+			break;
+		default:
+			return mx_status;
+			break;
+		}
 	} else {
 		/* If there are additional bytes available that we did not
 		 * expect, then discard them.
@@ -390,8 +417,6 @@ mxd_gittelsohn_pulser_open( MX_RECORD *record )
 
 		mx_msleep(1000);
 
-		MX_DEBUG(-2,("%s: before reading 'conf' response.", fname));
-
 		/* The first response line should say 'command : conf'. */
 
 		mx_status = mx_rs232_getline_with_timeout(
@@ -400,10 +425,20 @@ mxd_gittelsohn_pulser_open( MX_RECORD *record )
 						NULL, debug_flag,
 						gittelsohn_pulser->timeout );
 
-		if ( mx_status.code != MXE_SUCCESS )
+		switch( mx_status.code ) {
+		case MXE_SUCCESS:
+			break;
+		case MXE_TIMED_OUT:
+			mx_stack_traceback();
+			return mx_error( MXE_TIMED_OUT, fname,
+			"Gittelsohn pulser '%s' timed out while waiting for "
+			"the first line of the response to the command 'conf'.",
+				gittelsohn_pulser->record->name );
+			break;
+		default:
 			return mx_status;
-
-		MX_DEBUG(-2,("%s: after reading 'conf' response.", fname));
+			break;
+		}
 
 #if MXD_GITTELSOHN_PULSER_DEBUG_CONF
 		MX_DEBUG(-2,("%s: pulser '%s', response line #1 = '%s'",
@@ -466,6 +501,21 @@ mxd_gittelsohn_pulser_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	switch( mx_status.code ) {
+	case MXE_SUCCESS:
+		break;
+	case MXE_TIMED_OUT:
+		mx_stack_traceback();
+		return mx_error( MXE_TIMED_OUT, fname,
+		"Gittelsohn pulser '%s' timed out while waiting for the "
+		"second line of the response to the command 'conf'.",
+			gittelsohn_pulser->record->name );
+		break;
+	default:
+		return mx_status;
+		break;
+	}
 
 #if MXD_GITTELSOHN_PULSER_DEBUG_CONF
 	MX_DEBUG(-2,("%s: pulser '%s', response line #2 = '%s'",
@@ -867,9 +917,15 @@ mxd_gittelsohn_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 
 		switch( mx_status.code ) {
 		case MXE_SUCCESS:
-		case MXE_TIMED_OUT:
 			break;
+		case MXE_TIMED_OUT:
+			mx_stack_traceback();
+			return mx_error( MXE_TIMED_OUT, fname,
+			"Gittelsohn pulser '%s' timed out while waiting for "
+			"the response to the command 'count'.",
+				gittelsohn_pulser->record->name );
 
+			break;
 		default:
 			return mx_status;
 		}
