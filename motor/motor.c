@@ -411,6 +411,8 @@ motor_main( int argc, char *argv[] )
 	} else
 	if ( just_in_time_debugging ) {
 		mx_prepare_for_debugging( NULL, just_in_time_debugging );
+	} else {
+		mx_prepare_for_debugging( NULL, FALSE );
 	}
 
 	if ( wait_for_debugger ) {

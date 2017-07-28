@@ -108,7 +108,6 @@ mx_get_debugger_started_flag( void )
 
 #if defined(OS_WIN32)
 
-#if 0
 MX_EXPORT void
 mx_breakpoint( void )
 {
@@ -116,76 +115,6 @@ mx_breakpoint( void )
 
 	DebugBreak();
 }
-#else
-
-/* The following was inspired by the following CodeProject article:
- *
- * https://www.codeproject.com/Articles/10022/DebugBreak-and-ASSERTs-that-work-always-anywhere
- *
- * The idea is to make DebugBreak() work even if pre-existing code is capturing
- * the exceptions that DebugBreak() would ordinarily use.
- */
-
-MX_EXPORT void
-mx_breakpoint( void )
-{
-	mx_debugger_started = TRUE;
-
-	/* If we are already running under a debugger, then we do not need
-	 * to do anything special here.
-	 */
-
-	MX_DEBUG(-2,("MARKER 1"));
-
-	if ( mx_debugger_is_present() ) {
-		MX_DEBUG(-2,("MARKER 1.1"));
-		DebugBreak();
-		return;
-	}
-
-	/* Setup two nested exception blocks.  The inner one handles the
-	 * case where the user asks to terminate the program.  The outer
-	 * one handles the case where the user asks to debug the program.
-	 */
-
-	MX_DEBUG(-2,("MARKER 2"));
-
-	__try
-	{
-		__try
-		{
-			MX_DEBUG(-2,("MARKER 3"));
-
-			DebugBreak();
-		}
-		__except ( UnhandledExceptionFilter(GetExceptionInformation()) )
-		{
-			/* The user must have told us to exit the application,
-			 * so we do so.
-			 */
-
-			MX_DEBUG(-2,("MARKER 3.1"));
-
-			ExitProcess( 0 );
-		}
-	}
-	__except ( EXCEPTION_EXECUTE_HANDLER )
-	{
-		/* If we get here, the user has told us to debug the program,
-		 * so we do nothing and wait for DebugBreak() to be called
-		 * further down.
-		 */
-
-		MX_DEBUG(-2,("MARKER 4"));
-	}
-	MX_DEBUG(-2,("MARKER 5"));
-
-	DebugBreak();
-
-	MX_DEBUG(-2,("MARKER 6"));
-}
-
-#endif
 
 /*----------------*/
 
@@ -238,6 +167,8 @@ mx_breakpoint( void )
 MX_EXPORT void
 mx_prepare_for_debugging( char *command, int just_in_time_debugging )
 {
+	UINT error_mode;
+
 	mxp_just_in_time_debugging_enabled = FALSE;
 	mx_debugger_command[0] = '\0';
 
@@ -246,6 +177,31 @@ mx_prepare_for_debugging( char *command, int just_in_time_debugging )
 	} else {
 		mxp_just_in_time_debugging_enabled = FALSE;
 	}
+
+	/* Cygwin suppresses crash messages if we are running a Win32
+	 * version of MX from a Cygwin process such as mintty.  We do
+	 * not want that, so we must explicitly enable crash messages
+	 * here.  We do not need to test for Cygwin explicitly, since
+	 * we always want these crash messages regardless of how we
+	 * are run.
+	 */
+
+	/* FIXME: If MX ever runs in a situation without a console, such
+	 * as in a Win32 service, then we will need to revisit this
+	 * choice.
+	 */
+
+	error_mode = SetErrorMode( 0 );
+
+	/* For reference, Cygwin sets the error mode to 0x3, which sets
+	 * the SEM_FAILCRITICALERRORS(0x1) and SEM_NOGPFAULTERRORBOX(0x2)
+	 * error bits.  That is enough to suppress the message box.
+	 */
+
+#if 1
+	MX_DEBUG(-2,
+		("mx_prepare_for_debugging(): error_mode = %#lx", error_mode));
+#endif
 	return;
 }
 
@@ -256,7 +212,9 @@ mx_start_debugger( char *command )
 	    "\nWarning: The Visual C++ debugger is being started.\n\n");
 	fflush(stderr);
 
-	mx_breakpoint();
+	mx_debugger_started = TRUE;
+
+	DebugBreak();
 
 	return;
 }
