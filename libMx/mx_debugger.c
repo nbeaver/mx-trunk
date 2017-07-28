@@ -104,10 +104,11 @@ mx_get_debugger_started_flag( void )
 	return mx_debugger_started;
 }
 
-/*----------------*/
+/*-------------------------------------------------------------------------*/
 
 #if defined(OS_WIN32)
 
+#if 0
 MX_EXPORT void
 mx_breakpoint( void )
 {
@@ -115,6 +116,78 @@ mx_breakpoint( void )
 
 	DebugBreak();
 }
+#else
+
+/* The following was inspired by the following CodeProject article:
+ *
+ * https://www.codeproject.com/Articles/10022/DebugBreak-and-ASSERTs-that-work-always-anywhere
+ *
+ * The idea is to make DebugBreak() work even if pre-existing code is capturing
+ * the exceptions that DebugBreak() would ordinarily use.
+ */
+
+MX_EXPORT void
+mx_breakpoint( void )
+{
+	mx_debugger_started = TRUE;
+
+	/* If we are already running under a debugger, then we do not need
+	 * to do anything special here.
+	 */
+
+	MX_DEBUG(-2,("MARKER 1"));
+
+	if ( mx_debugger_is_present() ) {
+		MX_DEBUG(-2,("MARKER 1.1"));
+		DebugBreak();
+		return;
+	}
+
+	/* Setup two nested exception blocks.  The inner one handles the
+	 * case where the user asks to terminate the program.  The outer
+	 * one handles the case where the user asks to debug the program.
+	 */
+
+	MX_DEBUG(-2,("MARKER 2"));
+
+	__try
+	{
+		__try
+		{
+			MX_DEBUG(-2,("MARKER 3"));
+
+			DebugBreak();
+		}
+		__except ( UnhandledExceptionFilter(GetExceptionInformation()) )
+		{
+			/* The user must have told us to exit the application,
+			 * so we do so.
+			 */
+
+			MX_DEBUG(-2,("MARKER 3.1"));
+
+			ExitProcess( 0 );
+		}
+	}
+	__except ( EXCEPTION_EXECUTE_HANDLER )
+	{
+		/* If we get here, the user has told us to debug the program,
+		 * so we do nothing and wait for DebugBreak() to be called
+		 * further down.
+		 */
+
+		MX_DEBUG(-2,("MARKER 4"));
+	}
+	MX_DEBUG(-2,("MARKER 5"));
+
+	DebugBreak();
+
+	MX_DEBUG(-2,("MARKER 6"));
+}
+
+#endif
+
+/*----------------*/
 
 #elif ( defined(__GNUC__) \
 	&& (defined(__i386__) || defined(__x86_64__)) \
@@ -129,6 +202,8 @@ mx_breakpoint( void )
 		mx_start_debugger(NULL);
 	}
 }
+
+/*----------------*/
 
 #else
 
@@ -181,9 +256,7 @@ mx_start_debugger( char *command )
 	    "\nWarning: The Visual C++ debugger is being started.\n\n");
 	fflush(stderr);
 
-	mx_debugger_started = TRUE;
-
-	DebugBreak();
+	mx_breakpoint();
 
 	return;
 }
