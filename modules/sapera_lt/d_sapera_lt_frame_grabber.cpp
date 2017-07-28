@@ -807,6 +807,7 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 	MX_SAPERA_LT *sapera_lt = NULL;
 	MX_SYSTEM_MEMINFO system_meminfo;
 	BOOL sapera_status;
+	const char *sapera_status_text = NULL;
 	long bytes_per_frame, max_image_frames, max_frames_threshold;
 	mx_status_type mx_status;
 
@@ -1041,12 +1042,15 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 #endif
 
 	if ( sapera_status == FALSE ) {
+		sapera_status_text = SapManager::GetLastStatus();
+
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 		"Unable to create the low-level resources used by the "
 		"SapBuffer object of frame grabber '%s'.  If this happens "
 		"more than twice in a row, you should try rebooting the "
-		"computer to free up resources (probably memory).",
-			record->name );
+		"computer to free up resources (probably memory).  "
+		"Sapera error text = '%s'.",
+			record->name, sapera_status_text );
 	}
 
 #if ( 1 && MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN )
@@ -1154,12 +1158,15 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 #endif
 
 	if ( sapera_status == FALSE ) {
+		sapera_status_text = SapManager::GetLastStatus();
+
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 		"Unable to create the low-level resources used by the "
 		"SapAcqToBuf object of frame grabber '%s'.  If this happens "
 		"more than twice in a row, you should try rebooting the "
-		"computer to free up resources (probably memory).",
-			record->name );
+		"computer to free up resources (probably memory).  "
+		"Sapera error text = '%s'.",
+			record->name, sapera_status_text );
 	}
 
 	/*---------------------------------------------------------------*/
