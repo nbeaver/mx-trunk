@@ -198,7 +198,7 @@ mx_prepare_for_debugging( char *command, int just_in_time_debugging )
 	 * error bits.  That is enough to suppress the message box.
 	 */
 
-#if 1
+#if 0
 	MX_DEBUG(-2,
 		("mx_prepare_for_debugging(): error_mode = %#lx", error_mode));
 #endif

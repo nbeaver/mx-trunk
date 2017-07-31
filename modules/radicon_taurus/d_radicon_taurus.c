@@ -2232,7 +2232,7 @@ mxd_radicon_taurus_trigger( MX_AREA_DETECTOR *ad )
 
 		pulse_width = sp->parameter_array[2];
 		pulse_period = pulse_width + 0.01;
-		num_pulses = sp->parameter_array[0];
+		num_pulses = 1;
 		break;
 	}
 

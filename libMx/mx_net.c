@@ -697,6 +697,16 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 		received_message_id = 
 			mx_ntohl( header[ MX_NETWORK_MESSAGE_ID ] );
 
+#if 1
+		MX_DEBUG(-2,
+		("%s: MARKER 1: received_message_id = %#lx, message_id = %#lx",
+		 fname, received_message_id, message_id));
+
+		if ( message_id == 0 ) {
+			mx_stack_traceback();
+		}
+#endif
+
 		if ( received_message_id == 0 ) {
 			return mx_error( MXE_NETWORK_IO_ERROR, fname,
 			"Received a message ID of 0 from server '%s'.  "
@@ -815,12 +825,11 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 
 				if ( network_debug_flags & MXF_NETDBG_MSG_IDS ){
 					fprintf( stderr, "[%#lx] ",
-						server->last_rpc_message_id );
+					(unsigned long) received_message_id );
 				}
 
 				fprintf( stderr,
-				"MX CALLBACK [%#lx] from '%s', value = ",
-					(unsigned long) received_message_id,
+				"MX CALLBACK from '%s', value = ",
 					nf_label );
 
 				mx_network_buffer_show_value(

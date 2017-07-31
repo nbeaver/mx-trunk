@@ -2444,16 +2444,7 @@ mxsrv_send_field_value_to_client(
 		(void *, char *, size_t, MX_RECORD *, MX_RECORD_FIELD *);
 	mx_status_type mx_status;
 
-#if 0
-	if ( record_field->datatype == MXFT_RECORD ) {
-		mx_breakpoint();
-	}
-#endif
-
 	mx_status = MX_SUCCESSFUL_RESULT;
-
-	MX_DEBUG( 2,("%s: socket_handler = %p, network_message = %p",
-			fname, socket_handler, network_message ));
 
 	if ( socket_handler == (MX_SOCKET_HANDLER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -2466,8 +2457,12 @@ mxsrv_send_field_value_to_client(
 
 	mx_socket = socket_handler->synchronous_socket;
 
-	MX_DEBUG( 1,("***** %s invoked for socket %d *****",
-					fname, (int) mx_socket->socket_fd));
+#if 1
+	MX_DEBUG(-2,("%s: [%#lx] sending '%s.%s' to socket %d",
+		fname, message_id_for_client,
+		record->name, record_field->name,
+		(int) mx_socket->socket_fd ));
+#endif
 
 	if ( record_field->flags & MXFF_VARARGS ) {
 		array_is_dynamically_allocated = TRUE;
@@ -2758,29 +2753,33 @@ mxsrv_send_field_value_to_client(
 
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_SUMMARY ) {
 
-		mxsrv_print_timestamp();
+	    mxsrv_print_timestamp();
 
-		if ( socket_handler->network_debug_flags & MXF_NETDBG_MSG_IDS )
-		{
-			fprintf( stderr, "[%#lx] ",
-					socket_handler->last_rpc_message_id );
-		}
-
+	    if ( socket_handler->network_debug_flags & MXF_NETDBG_MSG_IDS )
+	    {
 		if ( message_id_for_client & MX_NETWORK_MESSAGE_IS_CALLBACK ) {
-		    fprintf( stderr,
+		    fprintf( stderr, "[%#lx] ", message_id_for_client );
+		} else {
+		    fprintf( stderr, "[%#lx] ",
+				socket_handler->last_rpc_message_id );
+		}
+	    }
+
+	    if ( message_id_for_client & MX_NETWORK_MESSAGE_IS_CALLBACK ) {
+		fprintf( stderr,
 			"MX (socket %d) VC_CALLBACK('%s.%s') = ",
 			(int) socket_handler->synchronous_socket->socket_fd,
 			record->name,
 			record_field->name );
-		} else {
-		    fprintf( stderr,
+	    } else {
+		fprintf( stderr,
 			"MX (socket %d) GET_ARRAY('%s.%s') = ",
 			(int) socket_handler->synchronous_socket->socket_fd,
 			record->name,
 			record_field->name );
-		}
+	    }
 
-		mx_network_buffer_show_value(
+	    mx_network_buffer_show_value(
 				send_buffer_message,
 				socket_handler->data_format,
 				record_field->datatype,
@@ -2788,7 +2787,7 @@ mxsrv_send_field_value_to_client(
 				send_buffer_message_actual_length,
 				socket_handler->use_64bit_network_longs );
 
-		fprintf( stderr, "\n" );
+	    fprintf( stderr, "\n" );
 	}
 #endif
 
@@ -2812,7 +2811,9 @@ mxsrv_send_field_value_to_client(
 					"%s", mx_status.message );
 	}
 
+#if 0
 	MX_DEBUG( 1,("***** %s successful *****", fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
