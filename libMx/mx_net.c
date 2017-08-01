@@ -524,7 +524,7 @@ mx_network_update_message_id( unsigned long *message_id )
 				"Timed out after waiting %g seconds for "     \
 				"message ID %#lx from MX server '%s'.",       \
 					timeout_in_seconds,                   \
-					(unsigned long) message_id,           \
+					(unsigned long) expected_message_id,  \
 					server_record->name );                \
 		}                                                             \
 	} while (0)
@@ -536,7 +536,7 @@ mx_network_update_message_id( unsigned long *message_id )
 MX_EXPORT mx_status_type
 mx_network_wait_for_message_id( MX_RECORD *server_record,
 			MX_NETWORK_MESSAGE_BUFFER *buffer,
-			uint32_t message_id,
+			uint32_t expected_message_id,
 			double timeout_in_seconds )
 {
 	static const char fname[] = "mx_network_wait_for_message_id()";
@@ -681,6 +681,14 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 			return MX_SUCCESSFUL_RESULT;
 		}
 
+#if 1
+		MX_DEBUG(-2,
+		("%s: MARKER 0: expected_message_id = %#lx, received message",
+		 fname, expected_message_id));
+
+		mx_network_display_message_binary( buffer );
+#endif
+
 		/* If the message ID, matches the number that we are
 		 * looking for, then we can return to our caller now.
 		 */
@@ -699,13 +707,9 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 
 #if 1
 		MX_DEBUG(-2,
-		("%s: MARKER 1: received_message_id = %#lx, message_id = %#lx",
+	("%s: MARKER 1: received_message_id = %#lx, expected_message_id = %#lx",
 		 fname, (unsigned long) received_message_id,
-		 (unsigned long) message_id));
-
-		if ( message_id == 0 ) {
-			mx_stack_traceback();
-		}
+		 (unsigned long) expected_message_id));
 #endif
 
 		if ( received_message_id == 0 ) {
@@ -715,7 +719,7 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 				server_record->name );
 		}
 
-		if ( received_message_id == message_id ) {
+		if ( received_message_id == expected_message_id ) {
 #if NETWORK_DEBUG_MESSAGE_IDS
 			if ( debug_enabled ) {
 				fprintf( stderr,
@@ -940,9 +944,9 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 			< MX_NETWORK_MAX_ID_MISMATCH )
 		{
 			difference = MX_NETWORK_MESSAGE_IS_CALLBACK
-					+ message_id - received_message_id;
+				+ expected_message_id - received_message_id;
 		} else {
-			difference = message_id - received_message_id;
+			difference = expected_message_id - received_message_id;
 		}
 
 		if ( difference <= MX_NETWORK_MAX_ID_MISMATCH ) {
@@ -956,7 +960,7 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 			"Perhaps a previous transaction with the server "
 			"timed out?  RPC message %#lx will be discarded.",
 				(unsigned long) received_message_id,
-				(unsigned long) message_id,
+				(unsigned long) expected_message_id,
 				server_record->name,
 				(unsigned long) received_message_id );
 		} else {
@@ -968,7 +972,7 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 			"Received unexpected RPC message ID %#lx when we "
 			"were waiting for message ID %#lx from server '%s'.", 
 				(unsigned long) received_message_id,
-				(unsigned long) message_id,
+				(unsigned long) expected_message_id,
 				server_record->name );
 		}
 
@@ -2624,6 +2628,78 @@ mx_network_display_summary( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 
 /* ====================================================================== */
 
+MX_EXPORT void
+mx_network_display_message_binary( MX_NETWORK_MESSAGE_BUFFER *message_buffer )
+{
+	static const char fname[] = "mx_network_display_message_binary()";
+
+	uint32_t *header;
+	char *message_body, *char_buffer;
+	uint32_t magic_number, header_length, message_length;
+	uint32_t message_type, status_code, data_type, message_id;
+	unsigned long i;
+
+	if ( message_buffer == (MX_NETWORK_MESSAGE_BUFFER *) NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_NETWORK_MESSAGE_BUFFER pointer passed was NULL." );
+		return;
+	}
+
+	header = message_buffer->u.uint32_buffer;
+	char_buffer = message_buffer->u.char_buffer;
+
+	magic_number   = mx_ntohl( header[ MX_NETWORK_MAGIC ] );
+	header_length  = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
+	message_length = mx_ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
+	message_type   = mx_ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
+	status_code    = mx_ntohl( header[ MX_NETWORK_STATUS_CODE ] );
+
+	if ( header_length < 28 ) {
+		/* Handle servers and clients from MX 1.4 and before. */
+
+		data_type = 0;
+		message_id = 0;
+	} else {
+		data_type  = (long) mx_ntohl( header[ MX_NETWORK_DATA_TYPE ] );
+		message_id = mx_ntohl( header[ MX_NETWORK_MESSAGE_ID ] );
+	}
+
+	fprintf( stderr, "buffer object = %p\n", message_buffer );
+
+	fprintf( stderr, "magic number   = %#lx\n",
+			(unsigned long) magic_number);
+	fprintf( stderr, "header length  = %lu\n",
+			(unsigned long) header_length);
+	fprintf( stderr, "message length = %lu\n",
+			(unsigned long) message_length);
+	fprintf( stderr, "message type   = %#lx\n",
+			(unsigned long) message_type);
+	fprintf( stderr, "status code    = %lu\n",
+			(unsigned long) status_code);
+	fprintf( stderr, "data type      = %lu\n",
+			(unsigned long) data_type);
+	fprintf( stderr, "message id     = %#lx\n",
+			(unsigned long) message_id);
+
+	/* Only display up to 100 bytes of the message body. */
+
+	if ( message_length > 100 ) {
+		message_length = 100;
+	}
+
+	message_body = char_buffer + header_length;
+
+	for ( i = 0; i < message_length; i++ ) {
+		fprintf( stderr, "%#x ", ((int) message_body[i]) & 0xff );
+	}
+
+	fprintf( stderr, "\n" );
+
+	return;
+}
+
+/* ====================================================================== */
+
 static mx_status_type
 mx_network_field_get_parameters( MX_RECORD *server_record,
 			MX_RECORD_FIELD *local_field,
@@ -4105,6 +4181,9 @@ mx_put_field_array( MX_RECORD *server_record,
 	MX_HRT_START( measurement );
 #endif
 
+	MX_DEBUG(-2,("%s: Before send message, last_rpc_message_id = %#lx",
+		fname, (unsigned long) server->last_rpc_message_id));
+
 	/*************** Send the message. **************/
 
 	mx_status = mx_network_send_message( server_record, aligned_buffer );
@@ -4112,12 +4191,19 @@ mx_put_field_array( MX_RECORD *server_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	MX_DEBUG(-2,("%s: Between send and wait, last_rpc_message_id = %#lx",
+		fname, (unsigned long) server->last_rpc_message_id));
+
 	/************** Wait for the response. ************/
 
 	mx_status = mx_network_wait_for_message_id( server_record,
 						aligned_buffer,
 						server->last_rpc_message_id,
 						server->timeout );
+
+	MX_DEBUG(-2,("%s: After wait for message, last_rpc_message_id = %#lx",
+		fname, (unsigned long) server->last_rpc_message_id));
+
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_END( measurement );
 

@@ -2888,9 +2888,6 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 
 	mx_socket = socket_handler->synchronous_socket;
 
-	MX_DEBUG( 1,("***** %s invoked for socket %d *****",
-		fname, (int) mx_socket->socket_fd));
-
 	/* The do...while(0) loop below is just a trick to make it easy
 	 * to jump to the end of this block of code, since we need to send
 	 * a message to the client even if an error occurred.
@@ -3296,6 +3293,18 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 
 		fprintf( stderr, "\n" );
 	}
+#endif
+
+#if 1
+		MX_DEBUG(-2,
+		("%s: Before send: receive_buffer_message_id = %#lx",
+			fname, receive_buffer_message_id));
+		MX_DEBUG(-2,
+		("%s: Before send: last_rpc_message_id = %#lx",
+			fname, socket_handler->last_rpc_message_id));
+		MX_DEBUG(-2,
+		("%s: Before send: send buffer message id = %#lx", fname,
+		mx_ntohl( send_buffer_header[ MX_NETWORK_MESSAGE_ID ] ) ));
 #endif
 
 	mx_status = mx_network_socket_send_message( mx_socket,

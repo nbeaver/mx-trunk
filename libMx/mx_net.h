@@ -420,6 +420,14 @@ MX_API void mx_network_buffer_show_value( void *value_buffer,
 					uint32_t message_length,
 					mx_bool_type use_64bit_network_longs );
 
+/* mx_network_display_message_binary() is a function that understands the
+ * structure of MX network headers, but otherwise displays the contents of
+ * the message as binary bytes in hexadecimal.
+ */
+
+MX_API void mx_network_display_message_binary(
+		MX_NETWORK_MESSAGE_BUFFER *buffer );
+
 /*---*/
 
 #define mx_make_network_handle_invalid( nf ) \
