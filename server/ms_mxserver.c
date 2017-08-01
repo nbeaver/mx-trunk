@@ -2459,7 +2459,7 @@ mxsrv_send_field_value_to_client(
 
 #if 1
 	MX_DEBUG(-2,("%s: [%#lx] sending '%s.%s' to socket %d",
-		fname, message_id_for_client,
+		fname, (unsigned long) message_id_for_client,
 		record->name, record_field->name,
 		(int) mx_socket->socket_fd ));
 #endif
@@ -2758,7 +2758,8 @@ mxsrv_send_field_value_to_client(
 	    if ( socket_handler->network_debug_flags & MXF_NETDBG_MSG_IDS )
 	    {
 		if ( message_id_for_client & MX_NETWORK_MESSAGE_IS_CALLBACK ) {
-		    fprintf( stderr, "[%#lx] ", message_id_for_client );
+		    fprintf( stderr, "[%#lx] ",
+				(unsigned long) message_id_for_client );
 		} else {
 		    fprintf( stderr, "[%#lx] ",
 				socket_handler->last_rpc_message_id );
