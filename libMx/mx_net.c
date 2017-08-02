@@ -22,7 +22,7 @@
 
 #define NETWORK_DEBUG_BUFFER_ALLOCATION		FALSE
 
-#define NETWORK_DEBUG_MESSAGE_IDS		FALSE
+#define NETWORK_DEBUG_MESSAGE_IDS		TRUE
 
 #include <stdio.h>
 #include <string.h>
@@ -617,7 +617,7 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 	if ( debug_enabled ) {
 		fprintf( stderr,
 		"\nMX NET: Waiting for message ID %#lx, timeout = %g sec\n",
-	    			(unsigned long) message_id,
+	    			(unsigned long) expected_message_id,
 				timeout_in_seconds );
 	}
 #endif
@@ -724,7 +724,7 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 			if ( debug_enabled ) {
 				fprintf( stderr,
 	"\nMX NET: Message ID %#lx has finally arrived from server '%s'.\n",
-		    			(unsigned long) message_id,
+		    			(unsigned long) expected_message_id,
 					server_record->name );
 			}
 #endif
@@ -879,7 +879,7 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 		MX_DEBUG(-2,
 		("%s: Received %#lx when expecting %#lx from '%s'.",
 			fname, (unsigned long) received_message_id,
-			(unsigned long) message_id,
+			(unsigned long) expected_message_id,
 			server_record->name ));
 #endif
 
@@ -4181,8 +4181,10 @@ mx_put_field_array( MX_RECORD *server_record,
 	MX_HRT_START( measurement );
 #endif
 
+#if 1
 	MX_DEBUG(-2,("%s: Before send message, last_rpc_message_id = %#lx",
 		fname, (unsigned long) server->last_rpc_message_id));
+#endif
 
 	/*************** Send the message. **************/
 
@@ -4191,8 +4193,10 @@ mx_put_field_array( MX_RECORD *server_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if 1
 	MX_DEBUG(-2,("%s: Between send and wait, last_rpc_message_id = %#lx",
 		fname, (unsigned long) server->last_rpc_message_id));
+#endif
 
 	/************** Wait for the response. ************/
 
@@ -4201,8 +4205,10 @@ mx_put_field_array( MX_RECORD *server_record,
 						server->last_rpc_message_id,
 						server->timeout );
 
+#if 1
 	MX_DEBUG(-2,("%s: After wait for message, last_rpc_message_id = %#lx",
 		fname, (unsigned long) server->last_rpc_message_id));
+#endif
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_END( measurement );

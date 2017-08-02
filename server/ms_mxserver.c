@@ -15,14 +15,6 @@
  *
  */
 
-/* Normally, you should leave NETWORK_DEBUG_MESSAGES turned on. */
-
-#define NETWORK_DEBUG_MESSAGES		TRUE
-
-/* NETWORK_DEBUG displays the messages transmitted to and from the server
- * while NETWORK_DEBUG_VERBOSE shows much more information.
- */
-
 #define NETWORK_DEBUG			FALSE
 
 #define NETWORK_DEBUG_VERBOSE		FALSE
@@ -38,6 +30,8 @@
 #define NETWORK_DEBUG_CALLBACKS		FALSE
 
 #define NETWORK_PROTECT_VM_HANDLE_TABLE	FALSE
+
+#define NETWORK_DEBUG_MESSAGE_IDS	TRUE
 
 #include <stdio.h>
 #include <string.h>
@@ -492,7 +486,6 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 			    callback_socket_handler_list, callback_ptr));
 #endif
 
-#if NETWORK_DEBUG_MESSAGES
 			    if ( socket_handler->network_debug_flags
 					& MXF_NETDBG_VERBOSE)
 			    {
@@ -504,7 +497,7 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 			    (int) socket_handler->synchronous_socket->socket_fd,
 				(unsigned long) callback_ptr->callback_id );
 			    }
-#endif
+
 			    /* If we get here, then the socket handler _IS_
 			     * on this callback's socket handler list.
 			     */
@@ -1646,7 +1639,6 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 
 	socket_handler->last_rpc_message_id = message_id;
 
-#if NETWORK_DEBUG_MESSAGES
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE) {
 		fprintf( stderr, "\nMX NET: CLIENT (socket %d) -> SERVER\n",
 				(int) client_socket->socket_fd );
@@ -1654,7 +1646,6 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 		mx_network_display_message( received_message, NULL,
 				socket_handler->use_64bit_network_longs );
 	}
-#endif
 
 #if NETWORK_DEBUG
 	{
@@ -2457,7 +2448,7 @@ mxsrv_send_field_value_to_client(
 
 	mx_socket = socket_handler->synchronous_socket;
 
-#if 1
+#if NETWORK_DEBUG_MESSAGE_IDS
 	MX_DEBUG(-2,("%s: [%#lx] sending '%s.%s' to socket %d",
 		fname, (unsigned long) message_id_for_client,
 		record->name, record_field->name,
@@ -2742,7 +2733,6 @@ mxsrv_send_field_value_to_client(
 	}
 #endif
 
-#if NETWORK_DEBUG_MESSAGES
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 				(int) mx_socket->socket_fd );
@@ -2790,7 +2780,6 @@ mxsrv_send_field_value_to_client(
 
 	    fprintf( stderr, "\n" );
 	}
-#endif
 
 	mx_status = mx_network_socket_send_message( mx_socket,
 						-1.0, network_message );
@@ -3259,7 +3248,6 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 	}
 #endif
 
-#if NETWORK_DEBUG_MESSAGES
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 				(int) mx_socket->socket_fd );
@@ -3293,9 +3281,8 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 
 		fprintf( stderr, "\n" );
 	}
-#endif
 
-#if 1
+#if 0
 		MX_DEBUG(-2,
 		("%s: Before send: receive_buffer_message_id = %#lx",
 			fname, receive_buffer_message_id));
@@ -3490,7 +3477,6 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 	send_buffer_message[0] = mx_htonl( record_handle );
 	send_buffer_message[1] = mx_htonl( field_handle );
 
-#if NETWORK_DEBUG_MESSAGES
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 			(int) socket_handler->synchronous_socket->socket_fd );
@@ -3516,7 +3502,6 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 			record_handle,
 			field_handle );
 	}
-#endif
 
 	/* Send the record field handle back to the client. */
 
@@ -3619,7 +3604,6 @@ mxsrv_handle_get_field_type( MX_RECORD *record_list,
 		}
 	}
 
-#if NETWORK_DEBUG_MESSAGES
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 				(int) mx_socket->socket_fd );
@@ -3646,7 +3630,6 @@ mxsrv_handle_get_field_type( MX_RECORD *record_list,
 			field->datatype,
 			field->num_dimensions );
 	}
-#endif
 
 	/* Send the field type information back to the client. */
 
@@ -3836,7 +3819,6 @@ mxsrv_handle_get_attribute( MX_RECORD *record_list,
 			= mx_htonl( socket_handler->last_rpc_message_id );
 	}
 
-#if NETWORK_DEBUG_MESSAGES
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 			(int) socket_handler->synchronous_socket->socket_fd );
@@ -3862,7 +3844,6 @@ mxsrv_handle_get_attribute( MX_RECORD *record_list,
 			(unsigned long) attribute_number,
 			attribute_value );
 	}
-#endif
 
 	/* Send the attribute information back to the client. */
 
@@ -4058,7 +4039,6 @@ mxsrv_handle_set_attribute( MX_RECORD *record_list,
 			= mx_htonl( socket_handler->last_rpc_message_id );
 	}
 
-#if NETWORK_DEBUG_MESSAGES
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 			(int) socket_handler->synchronous_socket->socket_fd );
@@ -4084,7 +4064,6 @@ mxsrv_handle_set_attribute( MX_RECORD *record_list,
 			(unsigned long) attribute_number,
 			attribute_value );
 	}
-#endif
 
 	/* Send the attribute information back to the client. */
 
@@ -4273,7 +4252,6 @@ mxsrv_handle_set_client_info( MX_RECORD *record_list,
 
 	send_buffer_message[0] = '\0';
 
-#if NETWORK_DEBUG_MESSAGES
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 			(int) socket_handler->synchronous_socket->socket_fd );
@@ -4298,7 +4276,6 @@ mxsrv_handle_set_client_info( MX_RECORD *record_list,
 			socket_handler->username,
 			socket_handler->program_name );
 	}
-#endif
 
 	/* Send the success message back to the client. */
 
@@ -4439,7 +4416,6 @@ mxsrv_handle_get_option( MX_RECORD *record_list,
 			= mx_htonl( socket_handler->last_rpc_message_id );
 	}
 
-#if NETWORK_DEBUG_MESSAGES
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 			(int) socket_handler->synchronous_socket->socket_fd );
@@ -4463,7 +4439,6 @@ mxsrv_handle_get_option( MX_RECORD *record_list,
 			(unsigned long) option_number,
 			(unsigned long) option_value );
 	}
-#endif
 
 	/* Send the option information back to the client. */
 
@@ -4661,7 +4636,6 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 			= mx_htonl( socket_handler->last_rpc_message_id );
 	}
 
-#if NETWORK_DEBUG_MESSAGES
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 			(int) socket_handler->synchronous_socket->socket_fd );
@@ -4685,7 +4659,6 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 			(unsigned long) option_number,
 			(unsigned long) option_value );
 	}
-#endif
 
 	/* Send the option information back to the client. */
 
@@ -4970,7 +4943,6 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 
 	uint32_message[0] = mx_htonl( callback_object->callback_id );
 
-#if NETWORK_DEBUG_MESSAGES
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 			(int) socket_handler->synchronous_socket->socket_fd );
@@ -4995,7 +4967,6 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 			field->name,
 			(unsigned long) callback_object->callback_id );
 	}
-#endif
 
 	/* Send the message to the client. */
 
@@ -5362,7 +5333,6 @@ mxsrv_handle_delete_callback( MX_RECORD *record,
 
 	char_message[0] = '\0';
 
-#if NETWORK_DEBUG_MESSAGES
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 			(int) socket_handler->synchronous_socket->socket_fd );
@@ -5387,7 +5357,6 @@ mxsrv_handle_delete_callback( MX_RECORD *record,
 			record_field->name,
 			(unsigned long) callback_id );
 	}
-#endif
 
 	/* Send the message to the client. */
 
