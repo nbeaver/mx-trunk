@@ -790,7 +790,7 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 #if 1
 		MX_DEBUG(-2,
 		("%s: MX NET: expected_message_id = %#lx, received message",
-		 fname, expected_message_id));
+		 fname, (unsigned long) expected_message_id));
 
 		mx_network_display_message_binary( buffer );
 #endif
@@ -986,7 +986,8 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 			fprintf( stderr,
 			"MX NET: 'continue' invoked after handling "
 			"callback '%#lx to look for message [%#lx] again.\n",
-				received_message_id, expected_message_id );
+				(unsigned long) received_message_id,
+				(unsigned long) expected_message_id );
 #endif
 			continue;
 		}
