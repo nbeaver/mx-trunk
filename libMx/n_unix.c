@@ -126,6 +126,7 @@ mxn_unix_server_create_record_structures( MX_RECORD *record )
 	network_server->connection_status = 0;
 
 	network_server->callback_in_progress = FALSE;
+	network_server->currently_running_callback = NULL;
 
 	network_server->last_rpc_message_id = 0;
 

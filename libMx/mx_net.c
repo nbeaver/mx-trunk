@@ -299,6 +299,22 @@ mx_network_receive_message( MX_RECORD *server_record,
 			server_record->name );
 	}
 
+	if ( server->callback_in_progress ) {
+	    MX_CALLBACK *callback = server->currently_running_callback;
+
+	    if ( callback == (MX_CALLBACK *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"MX network server '%s' says that a network callback is in "
+		"progress, but the pointer to that callback is NULL.",
+			server_record->name );
+	    }
+
+	    return mx_error( MXE_CALLBACK_IN_PROGRESS, fname,
+	    "Cannot receive a new network message from MX server '%s', "
+	    "since MX callback %#lx for that server is currently running.",
+	    	server_record->name, (unsigned long) callback->callback_id );
+	}
+
 	function_list = (MX_NETWORK_SERVER_FUNCTION_LIST *)
 			(server_record->class_specific_function_list);
 
@@ -367,6 +383,22 @@ mx_network_send_message( MX_RECORD *server_record,
 		return mx_error( MXE_RECORD_DISABLED_BY_USER, fname,
 		"Connections to MX server '%s' are disabled.",
 			server_record->name );
+	}
+
+	if ( server->callback_in_progress ) {
+	    MX_CALLBACK *callback = server->currently_running_callback;
+
+	    if ( callback == (MX_CALLBACK *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"MX network server '%s' says that a network callback is in "
+		"progress, but the pointer to that callback is NULL.",
+			server_record->name );
+	    }
+
+	    return mx_error( MXE_CALLBACK_IN_PROGRESS, fname,
+	    "Cannot send a new network message to MX server '%s', "
+	    "since MX callback %#lx for that server is currently running.",
+	    	server_record->name, (unsigned long) callback->callback_id );
 	}
 
 	function_list = (MX_NETWORK_SERVER_FUNCTION_LIST *)
@@ -930,10 +962,12 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 			 */
 
 			server->callback_in_progress = TRUE;
+			server->currently_running_callback = callback;
 
 			mx_status = mx_invoke_callback( callback,
 						MXCBT_VALUE_CHANGED, FALSE ); 
 
+			server->currently_running_callback = NULL;
 			server->callback_in_progress = FALSE;
 
 			/* If the timeout time has arrived, then return
@@ -2552,19 +2586,6 @@ mx_network_display_summary( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 	uint32_t record_handle, field_handle;
 	long data_type;
 	char nf_label[ NF_LABEL_LENGTH ];
-
-#if 0
-	union {
-		double double_value;
-		uint32_t uint32_value[2];
-	} u;
-
-	long i, data_type, field_type, num_dimensions, dimension_size;
-	unsigned long option_number, option_value;
-	unsigned long attribute_number;
-	double attribute_value;
-	unsigned long callback_type, callback_id;
-#endif
 
 	if ( message_buffer == NULL ) {
 		(void) mx_error( MXE_NULL_ARGUMENT, fname,

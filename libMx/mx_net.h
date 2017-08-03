@@ -113,7 +113,15 @@ typedef struct {
 
 	unsigned long connection_status;
 
+	/* Note that currently_running_callback is actually a pointer to
+	 * an MX_CALLBACK structure.  But we do not prototype it as such
+	 * here to prevent MX clients from having to include "mx_callback.h"
+	 * if they would otherwise not have to do this.
+	 */
+
 	mx_bool_type callback_in_progress;
+	void *currently_running_callback;
+
 	unsigned long last_rpc_message_id;
 
 	unsigned long remote_header_length;
