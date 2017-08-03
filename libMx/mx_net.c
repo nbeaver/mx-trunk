@@ -24,6 +24,8 @@
 
 #define NETWORK_DEBUG_MESSAGE_IDS		TRUE
 
+#define NETWORK_DEBUG_CALLBACKS			TRUE
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -513,7 +515,25 @@ mx_network_update_message_id( unsigned long *message_id )
 
 /* ====================================================================== */
 
-#define RETURN_IF_TIMED_OUT \
+#define RETURN_IF_TIMED_OUT_VERBOSE \
+	do {                                                                  \
+		current_tick = mx_current_clock_tick();                       \
+                                                                              \
+		comparison = mx_compare_clock_ticks( current_tick, end_tick );\
+                                                                              \
+		if ( comparison >= 0 ) {                                      \
+			return mx_error( MXE_TIMED_OUT, fname,  \
+				"Timed out after waiting %g seconds for "     \
+				"message ID %#lx from MX server '%s'.",       \
+					timeout_in_seconds,                   \
+					(unsigned long) expected_message_id,  \
+					server_record->name );                \
+		}                                                             \
+	} while (0)
+
+/* ----- */
+
+#define RETURN_IF_TIMED_OUT_QUIET \
 	do {                                                                  \
 		current_tick = mx_current_clock_tick();                       \
                                                                               \
@@ -528,6 +548,18 @@ mx_network_update_message_id( unsigned long *message_id )
 					server_record->name );                \
 		}                                                             \
 	} while (0)
+
+/* ----- */
+
+/* If NETWORK_DEBUG_MESSAGE_IDS is defined, then we must not hide
+ * the timeouts.
+ */
+
+#if NETWORK_DEBUG_MESSAGE_IDS
+#   define RETURN_IF_TIMED_OUT	RETURN_IF_TIMED_OUT_VERBOSE
+#else
+#   define RETURN_IF_TIMED_OUT	RETURN_IF_TIMED_OUT_QUIET
+#endif
 
 /* ----- */
 
@@ -615,10 +647,16 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 
 #if NETWORK_DEBUG_MESSAGE_IDS
 	if ( debug_enabled ) {
+	    if ( expected_message_id == 0 ) {
 		fprintf( stderr,
-		"\nMX NET: Waiting for message ID %#lx, timeout = %g sec\n",
+		"\nMX NET: MARKER 0, Polling for messages, timeout = %g sec",
+				timeout_in_seconds );
+	    } else {
+		fprintf( stderr,
+	"\nMX NET: MARKER 0, Waiting for message ID %#lx, timeout = %g sec\n",
 	    			(unsigned long) expected_message_id,
 				timeout_in_seconds );
+	    }
 	}
 #endif
 	/* Wait for messages.  We always go through the loop at least once. */
@@ -644,11 +682,25 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 			 * close the network connection.
 			 */
 
+#if NETWORK_DEBUG_MESSAGE_IDS
+			fprintf( stderr,
+			"MX NET: MX server '%s' has unexpectedly closed its "
+			"connection to us.\n", server_record->name );
+#endif
 			(void) mx_close_hardware( server_record );
 
 			return mx_status;
 			break;
+
 		default:
+#if NETWORK_DEBUG_MESSAGE_IDS
+			fprintf( stderr,
+			"MX NET: mx_network_message_is_available() has "
+			"aborted with status code %lu in '%s' with "
+			"error message '%s'.\n",
+				mx_status.code, mx_status.location,
+				mx_status.message );
+#endif
 			return mx_status;
 		}
 
@@ -656,11 +708,17 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 
 		if ( message_is_available == FALSE ) {
 			if ( timeout_enabled ) {
-				RETURN_IF_TIMED_OUT;
+				RETURN_IF_TIMED_OUT_QUIET;
 			}
 
 			/* Go back to the top of the loop and try again. */
 
+#if NETWORK_DEBUG_MESSAGE_IDS
+			fprintf( stderr,
+			"MX NET: No messages available from "
+			"server '%s'.  'continue' invoked to try again.\n", 
+			server_record->name );
+#endif
 			continue;
 		}
 
@@ -670,20 +728,36 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 
 		mx_status = mx_network_receive_message( server_record, buffer );
 
-		if ( mx_status.code != MXE_SUCCESS )
+		if ( mx_status.code != MXE_SUCCESS ) {
+#if 1
+			fprintf( stderr,
+			"MX NET: mx_network_receive_message() has "
+			"aborted with status code %lu in '%s' with "
+			"error message '%s'.\n",
+				mx_status.code, mx_status.location,
+				mx_status.message );
+#endif
 			return mx_status;
+		}
 
 		/* If we already know that the server does not support 
 		 * message IDs, then return here.
 		 */
 
 		if ( mx_server_supports_message_ids(server) == FALSE ) {
+
+#if NETWORK_DEBUG_MESSAGE_IDS
+			fprintf( stderr,
+			"MX NET: Server '%s' is too old to support message "
+			"IDs, so we return without waiting for a response "
+			"from the server.\n", server_record->name );
+#endif
 			return MX_SUCCESSFUL_RESULT;
 		}
 
 #if 1
 		MX_DEBUG(-2,
-		("%s: MARKER 0: expected_message_id = %#lx, received message",
+		("%s: MX NET: expected_message_id = %#lx, received message",
 		 fname, expected_message_id));
 
 		mx_network_display_message_binary( buffer );
@@ -720,10 +794,11 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 		}
 
 		if ( received_message_id == expected_message_id ) {
+
 #if NETWORK_DEBUG_MESSAGE_IDS
 			if ( debug_enabled ) {
 				fprintf( stderr,
-	"\nMX NET: Message ID %#lx has finally arrived from server '%s'.\n",
+		"\nMX NET: Message ID %#lx has arrived from server '%s'.\n",
 		    			(unsigned long) expected_message_id,
 					server_record->name );
 			}
@@ -806,7 +881,8 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 				record_list_head->network_debug_flags;
 
 			MXW_UNUSED( network_debug_flags );
-#if NETWORK_DEBUG
+
+#if NETWORK_DEBUG_CALLBACKS
 			if ( network_debug_flags & MXF_NETDBG_SUMMARY ) {
 				MX_NETWORK_FIELD *nf;
 				unsigned long data_type, message_type;
@@ -847,7 +923,7 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 
 				fprintf( stderr, "\n" );
 			}
-#endif /* NETWORK_DEBUG */
+#endif /* NETWORK_DEBUG_CALLBACKS */
 
 			/* If we have found the correct callback, then
 			 * invoke the callback.
@@ -868,6 +944,12 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 			 * for the message ID that we are waiting for.
 			 */
 
+#if NETWORK_DEBUG_MESSAGE_IDS
+			fprintf( stderr,
+			"MX NET: 'continue' invoked after handling "
+			"callback '%#lx to look for message [%#lx] again.\n",
+				received_message_id, expected_message_id );
+#endif
 			continue;
 		}
 
@@ -4173,6 +4255,10 @@ mx_put_field_array( MX_RECORD *server_record,
 					message_length - handle_length,
 					server->use_64bit_network_longs );
 		fprintf( stderr, ")\n" );
+
+#if 1
+		mx_stack_traceback();
+#endif
 	}
 
 	message_length += header_length;
@@ -4181,7 +4267,7 @@ mx_put_field_array( MX_RECORD *server_record,
 	MX_HRT_START( measurement );
 #endif
 
-#if 1
+#if 0
 	MX_DEBUG(-2,("%s: Before send message, last_rpc_message_id = %#lx",
 		fname, (unsigned long) server->last_rpc_message_id));
 #endif
@@ -4193,7 +4279,7 @@ mx_put_field_array( MX_RECORD *server_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if 1
+#if 0
 	MX_DEBUG(-2,("%s: Between send and wait, last_rpc_message_id = %#lx",
 		fname, (unsigned long) server->last_rpc_message_id));
 #endif
@@ -4205,7 +4291,7 @@ mx_put_field_array( MX_RECORD *server_record,
 						server->last_rpc_message_id,
 						server->timeout );
 
-#if 1
+#if 0
 	MX_DEBUG(-2,("%s: After wait for message, last_rpc_message_id = %#lx",
 		fname, (unsigned long) server->last_rpc_message_id));
 #endif

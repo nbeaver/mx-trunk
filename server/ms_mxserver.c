@@ -31,7 +31,7 @@
 
 #define NETWORK_PROTECT_VM_HANDLE_TABLE	FALSE
 
-#define NETWORK_DEBUG_MESSAGE_IDS	TRUE
+#define NETWORK_DEBUG_MESSAGE_IDS	FALSE
 
 #include <stdio.h>
 #include <string.h>
