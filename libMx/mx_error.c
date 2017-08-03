@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 1999-2010, 2012, 2014-2015 Illinois Institute of Technology
+ * Copyright 1999-2010, 2012, 2014-2015, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -84,6 +84,7 @@ static MX_ERROR_MESSAGE error_message_list[] = {
 { MXE_DISK_FULL,			"MXE_DISK_FULL" },
 { MXE_DATA_WAS_LOST,			"MXE_DATA_WAS_LOST" },
 { MXE_NETWORK_CONNECTION_REFUSED,	"MXE_NETWORK_CONNECTION_REFUSED" },
+{ MXE_CALLBACK_IN_PROGRESS,		"MXE_CALLBACK_IN_PROGRESS" },
 { 0, "" } };
 
 static long num_error_messages = sizeof(error_message_list)

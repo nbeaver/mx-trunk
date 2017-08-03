@@ -113,6 +113,7 @@ typedef struct {
 
 	unsigned long connection_status;
 
+	mx_bool_type callback_in_progress;
 	unsigned long last_rpc_message_id;
 
 	unsigned long remote_header_length;
@@ -179,6 +180,11 @@ typedef struct {
   {-1, -1, "use_64bit_network_longs", MXFT_BOOL, NULL, 0, {0}, \
         MXF_REC_CLASS_STRUCT, \
 		offsetof(MX_NETWORK_SERVER, use_64bit_network_longs), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "callback_in_progress", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_NETWORK_SERVER, callback_in_progress),\
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
   {-1, -1, "last_rpc_message_id", MXFT_HEX, NULL, 0, {0}, \

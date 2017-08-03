@@ -929,8 +929,12 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 			 * invoke the callback.
 			 */
 
+			server->callback_in_progress = TRUE;
+
 			mx_status = mx_invoke_callback( callback,
 						MXCBT_VALUE_CHANGED, FALSE ); 
+
+			server->callback_in_progress = FALSE;
 
 			/* If the timeout time has arrived, then return
 			 * to our caller.

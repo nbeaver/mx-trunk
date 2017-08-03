@@ -1201,6 +1201,7 @@ MX_API unsigned long mx_get_random_max( void );
 #define MXE_DISK_FULL				1053
 #define MXE_DATA_WAS_LOST			1054
 #define MXE_NETWORK_CONNECTION_REFUSED		1055
+#define MXE_CALLBACK_IN_PROGRESS		1056
 
 /* If the error message code is OR-ed with MXE_QUIET, then
  * the error message is not displayed to the user.
