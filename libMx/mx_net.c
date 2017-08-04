@@ -22,9 +22,9 @@
 
 #define NETWORK_DEBUG_BUFFER_ALLOCATION		FALSE
 
-#define NETWORK_DEBUG_MESSAGE_IDS		TRUE
+#define NETWORK_DEBUG_MESSAGE_IDS		FALSE
 
-#define NETWORK_DEBUG_CALLBACKS			TRUE
+#define NETWORK_DEBUG_CALLBACKS			FALSE
 
 #include <stdio.h>
 #include <string.h>
@@ -310,8 +310,8 @@ mx_network_receive_message( MX_RECORD *server_record,
 	    }
 
 	    return mx_error( MXE_CALLBACK_IN_PROGRESS, fname,
-	    "Cannot receive a new network message from MX server '%s', "
-	    "since MX callback %#lx for that server is currently running.",
+	    "Cannot receive a new network message from MX server '%s' "
+	    "while MX callback %#lx for that server is running.",
 	    	server_record->name, (unsigned long) callback->callback_id );
 	}
 
@@ -396,8 +396,8 @@ mx_network_send_message( MX_RECORD *server_record,
 	    }
 
 	    return mx_error( MXE_CALLBACK_IN_PROGRESS, fname,
-	    "Cannot send a new network message to MX server '%s', "
-	    "since MX callback %#lx for that server is currently running.",
+	    "Cannot send a new network message to MX server '%s' "
+	    "while MX callback %#lx for that server is running.",
 	    	server_record->name, (unsigned long) callback->callback_id );
 	}
 
@@ -787,7 +787,7 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 			return MX_SUCCESSFUL_RESULT;
 		}
 
-#if 1
+#if 0
 		MX_DEBUG(-2,
 		("%s: MX NET: expected_message_id = %#lx, received message",
 		 fname, (unsigned long) expected_message_id));
@@ -811,7 +811,7 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 		received_message_id = 
 			mx_ntohl( header[ MX_NETWORK_MESSAGE_ID ] );
 
-#if 1
+#if 0
 		MX_DEBUG(-2,
 	("%s: MARKER 1: received_message_id = %#lx, expected_message_id = %#lx",
 		 fname, (unsigned long) received_message_id,
@@ -4281,10 +4281,6 @@ mx_put_field_array( MX_RECORD *server_record,
 					message_length - handle_length,
 					server->use_64bit_network_longs );
 		fprintf( stderr, ")\n" );
-
-#if 1
-		mx_stack_traceback();
-#endif
 	}
 
 	message_length += header_length;
