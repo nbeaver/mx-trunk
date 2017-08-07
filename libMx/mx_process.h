@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2008, 2010-2012, 2014-2015
+ * Copyright 1999-2001, 2003-2008, 2010-2012, 2014-2015, 2017
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -155,6 +155,11 @@ MX_API mx_status_type mx_initialize_database_processing(
 						MX_RECORD *record_list );
 
 MX_API mx_status_type mx_initialize_record_processing( MX_RECORD *record );
+
+MX_API mx_status_type mx_process_record_field_without_callback(
+				MX_RECORD *record,
+				MX_RECORD_FIELD *record_field,
+				int direction );
 
 MX_API mx_status_type mx_process_record_field(
 				MX_RECORD *record,

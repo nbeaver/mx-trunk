@@ -214,16 +214,14 @@ mx_initialize_record_processing( MX_RECORD *record )
 /*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mx_process_record_field( MX_RECORD *record,
+mx_process_record_field_without_callback( MX_RECORD *record,
 			MX_RECORD_FIELD *record_field,
-			int direction,
-			mx_bool_type *value_changed_ptr )
+			int direction )
 {
 	static const char fname[] = "mx_process_record_field()";
 
 	mx_status_type (*process_fn) ( void *, void *, int );
 	unsigned long rp_flags;
-	mx_bool_type value_changed;
 	mx_status_type mx_status;
 
 #if PROCESS_DEBUG_TIMING
@@ -253,12 +251,6 @@ mx_process_record_field( MX_RECORD *record,
 	}
 
 	/*---*/
-
-	value_changed = FALSE;
-
-	if ( value_changed_ptr != NULL ) {
-		*value_changed_ptr = value_changed;
-	}
 
 	/* If there is one, call the process function to read data
 	 * from the hardware or server or whatever.
@@ -347,6 +339,62 @@ mx_process_record_field( MX_RECORD *record,
 "#2 after record processing for '%s.%s'", record->name, record_field->name );
 #endif
 	}
+
+#if PROCESS_DEBUG
+	MX_DEBUG(-2,("%s: mx_status.code = %ld", fname, mx_status.code ));
+#endif
+
+#if PROCESS_DEBUG_TIMING
+	MX_HRT_END( measurement );
+
+	MX_HRT_RESULTS( measurement, fname,
+"- end of processing for '%s.%s'", record->name, record_field->name );
+#endif
+
+	return mx_status;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_process_record_field( MX_RECORD *record,
+			MX_RECORD_FIELD *record_field,
+			int direction,
+			mx_bool_type *value_changed_ptr )
+{
+	static const char fname[] = "mx_process_record_field()";
+
+	mx_status_type (*process_fn) ( void *, void *, int );
+	unsigned long rp_flags;
+	mx_bool_type value_changed;
+	mx_status_type mx_status;
+
+#if PROCESS_DEBUG_TIMING
+	MX_HRT_TIMING measurement;
+
+	MX_HRT_START( measurement );
+#endif
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"The MX_RECORD pointer passed was NULL." );
+	}
+	if ( record_field == (MX_RECORD_FIELD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"The MX_RECORD_FIELD pointer passed was NULL." );
+	}
+
+	/*---*/
+
+	value_changed = FALSE;
+
+	if ( value_changed_ptr != NULL ) {
+		*value_changed_ptr = value_changed;
+	}
+
+	mx_status = mx_process_record_field_without_callback( record,
+							record_field,
+							direction );
 
 #if PROCESS_DEBUG
 	MX_DEBUG(-2,("%s: mx_status.code = %ld", fname, mx_status.code ));
