@@ -2277,6 +2277,8 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 	long receive_datatype;
 	mx_status_type mx_status;
 
+	mx_bool_type check_for_callbacks;
+
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_TIMING measurement;
 
@@ -2373,9 +2375,12 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 		mx_numbered_breakpoint( 0 );
 #endif
 
-		mx_status = mx_process_record_field( record, record_field,
-							MX_PROCESS_GET, NULL );
+		mx_status = mx_process_record_field_without_callbacks(
+					record, record_field, MX_PROCESS_GET );
 
+		if ( mx_status.code == MXE_SUCCESS ) {
+			check_for_callbacks = TRUE;
+		}
 	} while (0);
 
 	if ( mx_status.code != MXE_SUCCESS ) {
@@ -2393,6 +2398,25 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 					network_message,
 					send_buffer_message_type,
 					receive_buffer_message_id );
+	}
+
+	/* If necessary, we now check to see if any callbacks need to be
+	 * invoked as a consequence of the record field processing above.
+	 */
+
+	if ( check_for_callbacks ) {
+		mx_bool_type value_changed;
+
+		mx_status = mx_test_for_value_changed( record_field,
+							MX_PROCESS_GET,
+							&value_changed );
+
+		if ( value_changed
+		  && (record_field->callback_list != NULL) )
+		{
+			mx_status = mx_local_field_invoke_callback_list(
+					record_field, MXCBT_VALUE_CHANGED );
+		}
 	}
 
 #if NETWORK_DEBUG_TIMING
@@ -2842,6 +2866,8 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 	void *pointer_to_value;
 	long message_buffer_used, buffer_left;
 
+	mx_bool_type check_for_callbacks;
+
 #if defined(_WIN64)
 	uint64_t i, xdr_ptr_address, xdr_remainder, xdr_gap_size;
 #else
@@ -2872,6 +2898,8 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 
 	receive_buffer_message_type = 0;
 	receive_buffer_message_id = 0;
+
+	check_for_callbacks = FALSE;
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 
@@ -3157,8 +3185,12 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 
 		/* Send the client request just received to the hardware. */
 
-		mx_status = mx_process_record_field( record, record_field,
-							MX_PROCESS_PUT, NULL );
+		mx_status = mx_process_record_field_without_callbacks(
+					record, record_field, MX_PROCESS_PUT );
+
+		if ( mx_status.code == MXE_SUCCESS ) {
+			check_for_callbacks = TRUE;
+		}
 	} while (0);
 
 	/* Bug compatibility for old MX clients. */
@@ -3307,6 +3339,25 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 	}
 
 	MX_DEBUG( 1,("***** %s successful *****", fname));
+
+	/* If necessary, we now check to see if any callbacks need to be
+	 * invoked as a consequence of the record field processing above.
+	 */
+
+	if ( check_for_callbacks ) {
+		mx_bool_type value_changed;
+
+		mx_status = mx_test_for_value_changed( record_field,
+							MX_PROCESS_PUT,
+							&value_changed );
+
+		if ( value_changed
+		  && (record_field->callback_list != NULL) )
+		{
+			mx_status = mx_local_field_invoke_callback_list(
+					record_field, MXCBT_VALUE_CHANGED );
+		}
+	}
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_END( measurement );

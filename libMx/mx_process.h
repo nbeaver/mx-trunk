@@ -156,7 +156,7 @@ MX_API mx_status_type mx_initialize_database_processing(
 
 MX_API mx_status_type mx_initialize_record_processing( MX_RECORD *record );
 
-MX_API mx_status_type mx_process_record_field_without_callback(
+MX_API mx_status_type mx_process_record_field_without_callbacks(
 				MX_RECORD *record,
 				MX_RECORD_FIELD *record_field,
 				int direction );

@@ -214,11 +214,12 @@ mx_initialize_record_processing( MX_RECORD *record )
 /*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mx_process_record_field_without_callback( MX_RECORD *record,
+mx_process_record_field_without_callbacks( MX_RECORD *record,
 			MX_RECORD_FIELD *record_field,
 			int direction )
 {
-	static const char fname[] = "mx_process_record_field()";
+	static const char fname[] =
+		"mx_process_record_field_without_callbacks()";
 
 	mx_status_type (*process_fn) ( void *, void *, int );
 	unsigned long rp_flags;
@@ -392,7 +393,7 @@ mx_process_record_field( MX_RECORD *record,
 		*value_changed_ptr = value_changed;
 	}
 
-	mx_status = mx_process_record_field_without_callback( record,
+	mx_status = mx_process_record_field_without_callbacks( record,
 							record_field,
 							direction );
 
