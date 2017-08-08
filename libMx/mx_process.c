@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2008, 2011-2016 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004-2008, 2011-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -365,8 +365,6 @@ mx_process_record_field( MX_RECORD *record,
 {
 	static const char fname[] = "mx_process_record_field()";
 
-	mx_status_type (*process_fn) ( void *, void *, int );
-	unsigned long rp_flags;
 	mx_bool_type value_changed;
 	mx_status_type mx_status;
 

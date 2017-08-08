@@ -63,7 +63,7 @@ main( int argc, char *argv[] )
 	unsigned char character, next_character;
 
 	int c;
-	mx_bool_type network_debugging, start_debugger, use_escape_sequences;
+	mx_bool_type start_debugger, use_escape_sequences;
 	unsigned long network_debug_flags;
 	mx_status_type mx_status;
 
