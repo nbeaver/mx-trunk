@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2013-2016 Illinois Institute of Technology
+ * Copyright 2013-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -65,11 +65,12 @@ main( int argc, char *argv[] )
 	char *field_array;
 	size_t element_size, array_size_in_bytes;
 	size_t i, bytes_left, block_size;
-	mx_bool_type network_debugging, start_debugger, verbose;
+	mx_bool_type start_debugger, verbose;
 	mx_bool_type write_binary_to_stdout, longs_are_64bits;
+	unsigned long network_debug_flags;
 	mx_status_type mx_status;
 
-	network_debugging = FALSE;
+	network_debug_flags = 0;
 	start_debugger = FALSE;
 	verbose = FALSE;
 	write_binary_to_stdout = FALSE;
@@ -81,11 +82,15 @@ main( int argc, char *argv[] )
 
 	/* See if any command line arguments were specified. */
 
-	while ( (c = getopt(argc, argv, "abDv")) != -1 )
+	while ( (c = getopt(argc, argv, "aA:bDv")) != -1 )
 	{
 		switch(c) {
 		case 'a':
-			network_debugging = TRUE;
+			network_debug_flags = MXF_NETDBG_SUMMARY;
+			break;
+		case 'A':
+			network_debug_flags =
+				mx_hex_string_to_unsigned_long( optarg );
 			break;
 		case 'b':
 			write_binary_to_stdout = TRUE;
@@ -127,8 +132,8 @@ main( int argc, char *argv[] )
 		return mx_status.code;
 	}
 
-	if ( network_debugging ) {
-		mx_multi_set_debug_flags( mx_record_list, MXF_NETDBG_SUMMARY );
+	if ( network_debug_flags ) {
+		mx_multi_set_debug_flags( mx_record_list, network_debug_flags );
 	}
 
 	/* Parse argv[optind] to get the network field arguments. */

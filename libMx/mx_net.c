@@ -912,9 +912,6 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 			network_debug_flags =
 				record_list_head->network_debug_flags;
 
-			MXW_UNUSED( network_debug_flags );
-
-#if NETWORK_DEBUG_CALLBACKS
 			if ( network_debug_flags & MXF_NETDBG_SUMMARY ) {
 				MX_NETWORK_FIELD *nf;
 				unsigned long data_type, message_type;
@@ -955,7 +952,6 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 
 				fprintf( stderr, "\n" );
 			}
-#endif /* NETWORK_DEBUG_CALLBACKS */
 
 			/* If we have found the correct callback, then
 			 * invoke the callback.

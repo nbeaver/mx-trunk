@@ -114,6 +114,7 @@ add_network_field( MX_RECORD **server_record,
 	char field_name[ MXU_FIELD_NAME_LENGTH+1 ];
 	MX_CALLBACK *callback;
 	MX_RECORD *record_list;
+	MX_LIST_HEAD *list_head_struct;
 	MX_NETWORK_FIELD *nf;
 	int num_items, server_port;
 	unsigned long server_flags;
@@ -147,7 +148,15 @@ add_network_field( MX_RECORD **server_record,
 	server_flags = MXF_NETWORK_SERVER_BLOCKING_IO
 			| MXF_NETWORK_SERVER_QUIET_RECONNECTION;
 
-	server_flags |= network_debug_flags;
+	if ( network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		server_flags |= MXF_NETWORK_SERVER_DEBUG_SUMMARY;
+	}
+	if ( network_debug_flags & MXF_NETDBG_MSG_IDS ) {
+		server_flags |= MXF_NETWORK_SERVER_DEBUG_MESSAGE_IDS;
+	}
+	if ( network_debug_flags & MXF_NETDBG_VERBOSE ) {
+		server_flags |= MXF_NETWORK_SERVER_DEBUG_VERBOSE;
+	}
 
 	/* Connect to the MX server. */
 
@@ -158,6 +167,10 @@ add_network_field( MX_RECORD **server_record,
 		return mx_status;
 
 	record_list = (*server_record)->list_head;
+
+	list_head_struct = mx_get_record_list_head_struct( record_list );
+
+	list_head_struct->network_debug_flags = network_debug_flags;
 
 	mx_status = mx_set_program_name( record_list, "mxmonitor" );
 
