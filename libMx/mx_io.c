@@ -531,7 +531,7 @@ mx_set_file_offset( FILE *mx_file, int64_t offset, int origin )
 		return (-1);
 	}
 
-	offset = fseek( mx_file, offset, origin );
+	offset = fseek( mx_file, (long) offset, origin );
 
 	return offset;
 }

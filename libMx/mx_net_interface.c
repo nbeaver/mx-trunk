@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2016 Illinois Institute of Technology
+ * Copyright 2016-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -32,6 +32,23 @@
 /*---*/
 
 #if defined( OS_WIN32 )
+
+#  if !defined( _MSC_VER ) || ( _MSC_VER < 1300 )
+
+   /* Visual C++ 6 and before do not support this. */
+
+MX_EXPORT mx_status_type
+mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
+					struct sockaddr *host_address_struct )
+{
+	static const char fname[] =
+		"mx_network_get_interface_from_host_address()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+  "Not available for non-Visual C++ compilers or for Visual C++ 6 or before." );
+}
+
+#  else  /* Visual Studio 2002 or later. */
 
 #include <iphlpapi.h>
 
@@ -544,6 +561,8 @@ mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 
 	return mx_status;
 }
+
+#  endif  /* Visual Studio 2002 or later. */
 
 /*-------------------------------------------------------------------------*/
 

@@ -894,8 +894,15 @@ mx_get_numbered_breakpoint( unsigned long breakpoint_number )
  * Regrettably, ANSI C does not let you use sizeof() in a preprocessor macro.
  */
 
-#if ( UINTMAX_MAX > 0xFFFFFFFFFFFFFFFF )
-#  error The maximum integer size is greater than 64 bits.  This will require enlarging the old_value field of MX_WATCHPOINT in libMx/mx_util.h
+#if ( defined(OS_WIN32) && defined(_MSC_VER) && (_MSC_VER < 1400) )
+    /* Versions of Visual Studio prior to Visual Studio 2005 do not support
+     * 64 bit programs and will choke on the UINTMAX_MAX comparison below,
+     * so we do not attempt to make that test.
+     */
+#else
+#   if ( UINTMAX_MAX > 0xFFFFFFFFFFFFFFFF )
+#     error The maximum integer size is greater than 64 bits.  This will require enlarging the old_value field of MX_WATCHPOINT in libMx/mx_util.h
+#   endif
 #endif
 
 #if defined(OS_WIN32)
