@@ -2269,15 +2269,15 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 {
 	static const char fname[] = "mxsrv_handle_get_array()";
 
-	uint32_t *receive_buffer_header;
-	uint32_t receive_buffer_header_length;
+	uint32_t *receive_buffer_header = NULL;
+	uint32_t receive_buffer_header_length = 0;
 	uint32_t receive_buffer_message_type = 0;
 	uint32_t receive_buffer_message_id = 0;
 	uint32_t send_buffer_message_type = 0;
 	long receive_datatype;
 	mx_status_type mx_status;
 
-	mx_bool_type check_for_callbacks;
+	mx_bool_type check_for_callbacks = FALSE;
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_TIMING measurement;
