@@ -42,6 +42,10 @@
 
 #define MXD_RADICON_TAURUS_DEBUG_ARM_TIMING			FALSE
 
+#define MXD_RADICON_TAURUS_DEBUG_ROWFIX_TIMING			TRUE
+
+#define MXD_RADICON_TAURUS_ENABLE_ROWFIX			TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -449,6 +453,11 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	mx_bool_type response_seen;
 	mx_bool_type supports_capture_callbacks;
 	mx_status_type mx_status;
+
+	char *serial_number_string_copy;
+	unsigned long serial_number_long;
+	int argc;
+	char **argv;
 
 	size_t uint16_sizeof_array[2] = {sizeof(uint16_t), sizeof(uint16_t *)};
 
@@ -872,18 +881,36 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 		}
 	}
 
-#if 0
-	/* If present, delete the camera's ">" prompt for the next command. */
+	/* Convert the version number string into an unsigned long
+	 * version number.
+	 */
 
-	if ( num_bytes_available == 1 ) {
-		mx_status = mx_rs232_getchar(
-				radicon_taurus->serial_port_record,
-				&c, MXD_RADICON_TAURUS_DEBUG_RS232 );
+	serial_number_string_copy = strdup( radicon_taurus->serial_number );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+	mx_string_split( serial_number_string_copy, " ", &argc, &argv );
+
+	switch( argc ) {
+	case 0:
+		serial_number_long = 0;
+		break;
+	case 1:
+		serial_number_long = 10000 * atol(argv[0]);
+		break;
+	case 2:
+		serial_number_long = 10000 * atol(argv[0])
+					+ 100 * atol(argv[1]);
+		break;
+	default:
+		serial_number_long = 10000 * atol(argv[0])
+					+ 100 * atol(argv[1])
+					+ atol(argv[2]);
+		break;
 	}
-#endif
+
+	mx_free( argv );
+	mx_free( serial_number_string_copy );
+
+	radicon_taurus->serial_number_long = serial_number_long;
 
 	/* Do this firmware have the getxxx commands for reading back
 	 * the sro, si1, and si2 settings?
@@ -1319,13 +1346,21 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 			return mx_status;
 	}
 
-#if 0
-	{
-		MX_DEBUG(-2,("%s: lookup_array_field = %p",
-					fname, lookup_array_field));
+#if 1
+	/* KLUDGE: Hard code the line to fix in the source code.
+	 * This should be moved to mxserver.dat, but there is no
+	 * time for that today.
+	 */
 
-		MX_DEBUG(-2,("%s: lookup_array_field->flags = %#lx",
-					fname, lookup_array_field->flags));
+	if ( serial_number_long != 20120629 ) {
+		radicon_taurus->fix_row = -1;
+		radicon_taurus->fix_start_column = -1;
+		radicon_taurus->fix_end_column = -1;
+		radicon_taurus->fix_subarray = NULL;
+	} else {
+		radicon_taurus->fix_row = 900;
+		radicon_taurus->fix_start_column = 1476;
+		radicon_taurus->fix_end_column = ad->framesize[1] - 1;
 	}
 #endif
 
@@ -2547,6 +2582,10 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 	unsigned long flags;
 	mx_status_type mx_status;
 
+#if MXD_RADICON_TAURUS_DEBUG_ROWFIX_TIMING
+	MX_HRT_TIMING rowfix_measurement;
+#endif
+
 #if MXD_RADICON_TAURUS_DEBUG_READOUT_TIMING
 	MX_HRT_TIMING readout_measurement;
 	MX_HRT_TIMING trim_measurement;
@@ -2667,7 +2706,8 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 		/*----*/
 
 		video_array = radicon_taurus->video_array_overlay;
-		ad_array    = radicon_taurus->ad_array_overlay;
+
+		ad_array = radicon_taurus->ad_array_overlay;
 
 		/* Note: In the following section, we have several slightly
 		 * different versions of the code inside the for() loops,
@@ -2919,6 +2959,35 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 #if MXD_RADICON_TAURUS_DEBUG_READOUT_TIMING
 		MX_HRT_END(trim_measurement);
 #endif
+
+#if MXD_RADICON_TAURUS_ENABLE_ROWFIX
+
+#if MXD_RADICON_TAURUS_DEBUG_ROWFIX_TIMING
+		MX_HRT_START(rowfix_measurement);
+#endif
+		if ( radicon_taurus->serial_number_long == 20120629 ) {
+			double average_value;
+			long column;
+			long row = 900;
+			long start_column = 1476;
+			long end_column = ad->framesize[1] - 1;
+
+			for ( column = start_column;
+				column <= end_column;
+				column++ )
+			{
+			    average_value = 0.5 *
+			  ( ad_array[row-1][column] + ad_array[row+1][column] );
+
+			    ad_array[row][column] = mx_round( average_value );
+			}
+		}
+#if MXD_RADICON_TAURUS_DEBUG_ROWFIX_TIMING
+		MX_HRT_END(rowfix_measurement);
+#endif
+
+#endif /* MXD_RADICON_TAURUS_ENABLE_ROWFIX */
+
 	}
 
 #if MXD_RADICON_TAURUS_DEBUG_READOUT_TIMING
@@ -3003,6 +3072,10 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 
 	MX_HRT_RESULTS( save_raw_measurement, fname, "for save raw frames." );
 	MX_HRT_RESULTS( total_measurement, fname, "for total readout." );
+#endif
+
+#if MXD_RADICON_TAURUS_DEBUG_ROWFIX_TIMING && MXD_RADICON_TAURUS_ENABLE_ROWFIX
+		MX_HRT_RESULTS(rowfix_measurement, fname, "for rowfix." );
 #endif
 
 	return mx_status;

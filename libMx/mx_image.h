@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2016 Illinois Institute of Technology
+ * Copyright 2006-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -174,6 +174,14 @@ extern "C" {
 
 #define MXIF_BIAS_OFFSET_MILLI_ADUS(i) \
 		((i)->header_data[MXT_IMAGE_HEADER_BIAS_OFFSET_MILLI_ADUS])
+
+/*----*/
+
+/* Flag values used by mx_image_fix_region() */
+
+#define MXF_IMAGE_FIX_HORIZONTAL	1
+#define MXF_IMAGE_FIX_VERTICAL		2
+#define MXF_IMAGE_FIX_AREA		3
 
 /*----*/
 
@@ -374,6 +382,15 @@ MX_API mx_status_type mx_image_dezinger( MX_IMAGE_FRAME **dezingered_frame,
 					unsigned long num_original_frames,
 					MX_IMAGE_FRAME **original_frame_array,
 					double threshold );
+
+/*----*/
+
+MX_API mx_status_type mx_image_fix_region( MX_IMAGE_FRAME *frame,
+					unsigned long type_of_fix,
+					long start_row,
+					long end_row,
+					long start_column,
+					long end_column );
 
 /*----*/
 

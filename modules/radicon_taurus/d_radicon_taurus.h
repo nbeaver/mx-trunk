@@ -66,6 +66,7 @@ typedef struct {
 
 	unsigned long detector_model;
 	char serial_number[MXU_RADICON_TAURUS_SERIAL_NUMBER_LENGTH+1];
+	unsigned long serial_number_long;
 	unsigned long firmware_version;
 
 	double clock_frequency;			/* in Hz */
@@ -125,6 +126,12 @@ typedef struct {
 
 	char static_header[MXU_RADICON_TAURUS_STATIC_HEADER_TEXT_LENGTH+1];
 
+	long fix_row;
+	long fix_start_column;
+	long fix_end_column;
+
+	uint16_t **fix_subarray;
+
 } MX_RADICON_TAURUS;
 
 #define MXLV_RADICON_TAURUS_SRO			80000
@@ -173,6 +180,10 @@ typedef struct {
 			NULL, 1, {MXU_RADICON_TAURUS_SERIAL_NUMBER_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, serial_number), \
 	{sizeof(char)}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "serial_number_long", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, serial_number_long), \
+	{0}, NULL, MXFF_READ_ONLY }, \
   \
   {-1, -1, "firmware_version", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, firmware_version), \

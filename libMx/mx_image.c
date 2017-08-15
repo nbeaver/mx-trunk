@@ -2621,9 +2621,185 @@ mx_image_dezinger( MX_IMAGE_FRAME **dezingered_frame,
 
 /*--------------------------------------------------------------------------*/
 
+/* WARNING: mx_image_fix_region() and friends are not yet finished.
+ *
+ * It is arguable that this functionality should go into mx_array.h
+ * rather than mx_image.h
+ */
+
+static mx_status_type
+mxp_image_fix_u16_horizontal( MX_IMAGE_FRAME *frame,
+				long start_row,
+				long end_row,
+				long start_column,
+				long end_column,
+				mx_bool_type touches_upper_edge,
+				mx_bool_type touches_lower_edge )
+{
+	static const char fname[] = "mxp_image_fix_u16_horizontal()";
+
+	long num_rows, row, column;
+
+	if ( touches_upper_edge ) {
+		if ( touches_lower_edge ) {
+			/* If we get here, then there are no valid pixels
+			 * either above or below this region.  The only
+			 * thing we can do is to set the pixels in this
+			 * region to 0.
+			 */
+
+			for ( row = start_row; row <= end_row; row++ ) {
+				for ( column = start_column;
+					column <= end_column;
+					column++ )
+				{
+				}
+			}
+		}
+	}
+
+	num_rows = end_row - start_row + 1;
+
+	switch( num_rows ) {
+	default:
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Image region fixes for %ld rows has not yet been implemented.",
+			num_rows );
+		break;
+	case 1:
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*----*/
+
+MX_EXPORT mx_status_type
+mx_image_fix_region( MX_IMAGE_FRAME *frame,
+			unsigned long type_of_fix,
+			long start_row,
+			long end_row,
+			long start_column,
+			long end_column )
+{
+	static const char fname[] = "mx_image_fix_region()";
+
+	char image_format_name[20];
+	long row_framesize, column_framesize, image_format;
+	mx_bool_type touches_upper_edge, touches_lower_edge;
+	mx_bool_type touches_left_edge, touches_right_edge;
+	mx_status_type mx_status;
+
+	if ( frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_IMAGE_FRAME pointer passed was NULL." );
+	}
+
+	switch( type_of_fix ) {
+	case MXF_IMAGE_FIX_HORIZONTAL:
+	case MXF_IMAGE_FIX_VERTICAL:
+	case MXF_IMAGE_FIX_AREA:
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Fix type %lu is not a valid image region fix type.  "
+		"The allowed fix types are 1 (horizontal), "
+		"2 (vertical), and 3 (area).", type_of_fix );
+		break;
+	}
+
+	row_framesize    = MXIF_ROW_FRAMESIZE(frame);
+	column_framesize = MXIF_COLUMN_FRAMESIZE(frame);
+	image_format     = MXIF_IMAGE_FORMAT(frame);
+
+	mx_status = mx_image_get_image_format_name_from_type(
+						image_format,
+						image_format_name,
+						sizeof(image_format_name) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	touches_upper_edge = FALSE;
+	touches_lower_edge = FALSE;
+	touches_left_edge  = FALSE;
+	touches_right_edge = FALSE;
+
+	if ( start_row <= 0 ) {
+		start_row = 0;
+		touches_upper_edge = TRUE;
+	}
+	if ( end_row >= row_framesize ) {
+		end_row = row_framesize - 1;
+		touches_lower_edge = TRUE;
+	}
+	if ( start_column <= 0 ) {
+		start_column = 0;
+		touches_left_edge = TRUE;
+	}
+	if ( end_column >= column_framesize ) {
+		end_column = column_framesize - 1;
+		touches_right_edge = TRUE;
+	}
+
+	if ( end_row < start_row ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"For image %p, the end_row (%ld) of the fix region appears "
+		"before the start row (%ld).",
+			frame, end_row, start_row );
+	}
+	if ( end_column < start_column ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"For image %p, the end_column (%ld) of the fix region appears "
+		"before the start column (%ld).",
+			frame, end_column, start_column );
+	}
+
+	switch( type_of_fix ) {
+	case MXF_IMAGE_FIX_HORIZONTAL:
+		switch( image_format ) {
+		case MXT_IMAGE_FORMAT_GREY8:
+		case MXT_IMAGE_FORMAT_GREY32:
+		case MXT_IMAGE_FORMAT_FLOAT:
+		case MXT_IMAGE_FORMAT_DOUBLE:
+			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Support for image format type '%s' is not yet implemented.",
+				image_format_name );
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Image format '%s' is not supported.",
+			image_format_name );
+			break;
+
+		case MXT_IMAGE_FORMAT_GREY16:
+			mx_status = mxp_image_fix_u16_horizontal( frame,
+						start_row, end_row,
+						start_column, end_column,
+						touches_upper_edge,
+						touches_lower_edge );
+
+			break;
+		}
+		break;
+	case MXF_IMAGE_FIX_VERTICAL:
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Fixing vertical lines is not yet implemented." );
+		break;
+	case MXF_IMAGE_FIX_AREA:
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Fixing areas is not yet implemented." );
+		break;
+	}
+
+	return mx_status;
+}
+
+/*--------------------------------------------------------------------------*/
+
 /* mx_image_display_ascii() displays the image on the 'output' FILE pointer
- * using a 6-bit ASCII representation and rescales the image pixels to fit
- * into the range from 'minimu' to 'maximum'..  The values used are as follows:
+ * using a 6-bit ASCII representation and rescales the image pixels to fit into
+ * the range from 'minimum' to 'maximum'..  The values used are as follows:
  *
  *  ' ' = 0
  *  '.' = 1
