@@ -863,6 +863,8 @@ extern "C" {
 #define MXV_FIELD_UINT64		508015
 #define MXV_FIELD_RECORD		508031
 
+#define MXV_SPECIAL_FIX_REGIONS		590001
+
 /* --- Server types --- */
 
 #define MXN_NET_TCPIP			600001

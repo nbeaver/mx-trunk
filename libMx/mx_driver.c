@@ -535,6 +535,8 @@
 #include "v_bluice_operation.h"
 #include "v_bluice_self_operation.h"
 
+#include "v_fix_regions.h"
+
 #if HAVE_TCPIP
 #include "n_tcpip.h"
 #endif
@@ -4030,6 +4032,14 @@ MX_DRIVER mx_type_table[] = {
 				NULL, NULL,
 				&mxv_field_record_variable_num_record_fields,
 				&mxv_field_record_variable_dptr},
+
+
+{"fix_regions", MXV_SPECIAL_FIX_REGIONS,  MXV_SPECIAL,       MXR_VARIABLE,
+				&mxv_fix_regions_record_function_list,
+				&mxv_fix_regions_variable_function_list,
+				NULL,
+				&mxv_fix_regions_num_record_fields,
+				&mxv_fix_regions_rfield_def_ptr},
 
   /* =================== Server types ================== */
 
