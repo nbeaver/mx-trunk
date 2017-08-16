@@ -43,8 +43,7 @@ MX_API_PRIVATE mx_status_type mxv_fix_regions_initialize_driver(
 							MX_DRIVER *driver );
 MX_API_PRIVATE mx_status_type mxv_fix_regions_create_record_structures(
 							MX_RECORD *record );
-MX_API_PRIVATE mx_status_type mxv_fix_regions_finish_record_initialization(
-							MX_RECORD *record );
+MX_API_PRIVATE mx_status_type mxv_fix_regions_open( MX_RECORD *record );
 
 MX_API_PRIVATE mx_status_type mxv_fix_regions_send_variable(
 						MX_VARIABLE *variable );
