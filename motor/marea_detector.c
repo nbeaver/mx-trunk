@@ -2364,8 +2364,6 @@ motor_area_detector_fn( int argc, char *argv[] )
 		}
 
 		if ( strncmp( "frame", argv[4], strlen(argv[4]) ) == 0 ) {
-			long frame_number;
-
 			if ( argc == 5 ) {
 				frame_number = -1;
 			} else {
