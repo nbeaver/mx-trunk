@@ -385,7 +385,7 @@ MX_API mx_status_type mx_image_dezinger( MX_IMAGE_FRAME **dezingered_frame,
 
 /*----*/
 
-MX_API mx_status_type mx_image_fix_region( MX_IMAGE_FRAME *frame,
+MX_API mx_status_type mx_image_array_fix_region( void *image_array,
 					unsigned long type_of_fix,
 					long start_row,
 					long end_row,

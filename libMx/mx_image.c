@@ -2621,14 +2621,10 @@ mx_image_dezinger( MX_IMAGE_FRAME **dezingered_frame,
 
 /*--------------------------------------------------------------------------*/
 
-/* WARNING: mx_image_fix_region() and friends are not yet finished.
- *
- * It is arguable that this functionality should go into mx_array.h
- * rather than mx_image.h
- */
+/* WARNING: mx_image_fix_region() and friends are not yet finished. */
 
 static mx_status_type
-mxp_image_fix_u16_horizontal( MX_IMAGE_FRAME *frame,
+mxp_image_fix_u16_horizontal( uint16_t **uint16_array,
 				long start_row,
 				long end_row,
 				long start_column,
@@ -2638,36 +2634,106 @@ mxp_image_fix_u16_horizontal( MX_IMAGE_FRAME *frame,
 {
 	static const char fname[] = "mxp_image_fix_u16_horizontal()";
 
-	long num_rows, row, column;
-
-	if ( touches_upper_edge ) {
-		if ( touches_lower_edge ) {
-			/* If we get here, then there are no valid pixels
-			 * either above or below this region.  The only
-			 * thing we can do is to set the pixels in this
-			 * region to 0.
-			 */
-
-			for ( row = start_row; row <= end_row; row++ ) {
-				for ( column = start_column;
-					column <= end_column;
-					column++ )
-				{
-				}
-			}
-		}
-	}
+	long i, num_rows, row, column, row_to_copy_from;
+	long row_before, row_after;
+	double value_before, value_after;
+	double average;
+	double slope, intercept;
 
 	num_rows = end_row - start_row + 1;
 
-	switch( num_rows ) {
-	default:
-		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"Image region fixes for %ld rows has not yet been implemented.",
-			num_rows );
-		break;
-	case 1:
-		break;
+	if ( num_rows < 1 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The requested end row (%ld) is before the requested "
+		"start row (%ld) for image array %p.  This results in "
+		"a number of rows that is either 0 or negative, which "
+		"does not work.", end_row, start_row, uint16_array );
+	}
+
+	if ( touches_upper_edge && touches_lower_edge ) {
+		/* If we get here, then there are no valid pixels either
+		 * above or below this region.  The only thing we can do
+		 * is to set the pixels in this region to 0.
+		 */
+
+		for ( row = start_row; row <= end_row; row++ ) {
+			for ( column = start_column;
+				column <= end_column;
+				column++ )
+			{
+				uint16_array[row][column] = 0;
+			}
+		}
+	} else
+	if ( touches_upper_edge || touches_lower_edge ) {
+
+		/* If it touches one edge but not the other, then we just
+		 * copy the pixel values from the side of the region 
+		 * furthest from the edge into this region.
+		 */
+
+		if ( touches_upper_edge ) {
+			row_to_copy_from = end_row + 1;
+		} else {
+			row_to_copy_from = start_row - 1;
+		}
+
+		for ( row = start_row; row <= end_row; row++ ) {
+			for ( column = start_column;
+				column <= end_column;
+				column++ )
+			{
+				uint16_array[row][column] =
+				uint16_array[row_to_copy_from][column];
+			}
+		}
+	} else {
+		if ( num_rows == 1 ) {
+			/* For this case, we just average the pixel values
+			 * on either side of this row.
+			 */
+
+			row = start_row;
+
+			for ( column = start_column;
+				column <= end_column;
+				column++ ) 
+			{
+				average = 0.5 * ( uint16_array[row-1][column]
+						+ uint16_array[row+1][column]);
+
+				uint16_array[row][column] = mx_round(average);
+			}
+		} else {
+			/* For this case, we linearly interpolate between
+			 * the values above and below this region.
+			 */
+
+			row = start_row;
+
+			row_before = row - 1;
+			row_after = row + num_rows;
+
+			for ( column = start_column;
+				column <= end_column;
+				column++ ) 
+			{
+				value_before = uint16_array[row_before][column];
+				value_after  = uint16_array[row_after][column];
+
+				slope =
+			    mx_divide_safely( value_after - value_before,
+						    num_rows + 1 );
+
+				intercept =
+				    value_after - slope * ( row + num_rows );
+
+				for ( i = 0; i < num_rows; i++ ) {
+					uint16_array[row+i][column] =
+						slope * (row+i) + intercept;
+				}
+			}
+		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -2675,26 +2741,31 @@ mxp_image_fix_u16_horizontal( MX_IMAGE_FRAME *frame,
 
 /*----*/
 
+/* WARNING: The image_array pointer must point to a 2-dimensional MX-style
+ * array allocated with an MX function like mx_allocate_array(), or
+ * mx_array_add_overlay(), and so forth.  Directly passing an array that
+ * you have allocated yourself with malloc() will _not_ work!
+ */
+
 MX_EXPORT mx_status_type
-mx_image_fix_region( MX_IMAGE_FRAME *frame,
+mx_image_array_fix_region( void *image_array,
 			unsigned long type_of_fix,
 			long start_row,
 			long end_row,
 			long start_column,
 			long end_column )
 {
-	static const char fname[] = "mx_image_fix_region()";
+	static const char fname[] = "mx_image_array_fix_region()";
 
+	uint32_t *image_array_header = NULL;
+	uint32_t header_magic, header_length, mx_datatype, num_dimensions;
+	uint32_t row_framesize, column_framesize;
 	char image_format_name[20];
-	long row_framesize, column_framesize, image_format;
 	mx_bool_type touches_upper_edge, touches_lower_edge;
 	mx_bool_type touches_left_edge, touches_right_edge;
 	mx_status_type mx_status;
 
-	if ( frame == (MX_IMAGE_FRAME *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_IMAGE_FRAME pointer passed was NULL." );
-	}
+	mx_breakpoint();
 
 	switch( type_of_fix ) {
 	case MXF_IMAGE_FIX_HORIZONTAL:
@@ -2709,17 +2780,70 @@ mx_image_fix_region( MX_IMAGE_FRAME *frame,
 		break;
 	}
 
-	row_framesize    = MXIF_ROW_FRAMESIZE(frame);
-	column_framesize = MXIF_COLUMN_FRAMESIZE(frame);
-	image_format     = MXIF_IMAGE_FORMAT(frame);
+	if ( image_array == (void *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The image_array pointer passed was NULL." );
+	}
+
+	/* Check to see if this is a valid MX-style array by looking
+	 * for the header 'magic' value in the supposed array header
+	 * at an offset of -1 (MX_ARRAY_HEADER_MAGIC).
+	 *
+	 * WARNING: If this is _not_ really an MX-style array, then
+	 * attempting to access the [-1] element of the array may
+	 * cause a segmentation fault, a stack fault, a heap fault,
+	 * the end of the universe, or many other bad things.
+	 *
+	 * If MX has crashed with a stack traceback that pointed you here,
+	 * then the image_array pointer probably does not point at an
+	 * MX-style array that was allocated with mx_allocate_array()
+	 * or mx_array_add_overlay() or some such.
+	 *
+	 * Theoretically, this potential crash could be avoided using
+	 * something like mx_pointer_is_valid() which calls the function
+	 * mx_vm_get_protection().  However, for most MX build targets,
+	 * the mx_vm_get_protection() function can be a _very_ expensive
+	 * call since it invokes things like VirtualQuery().  Typically,
+	 * mx_image_array_fix_region() will be invoked from within 
+	 * image processing code that has to run really fast, which
+	 * rules out the use of slow functions.
+	 */
+
+	image_array_header = (uint32_t *) image_array;
+
+	header_magic = image_array_header[ MX_ARRAY_OFFSET_MAGIC ];
+
+	if ( header_magic != MX_ARRAY_HEADER_MAGIC ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The image_array pointer %p points to memory that was _not_ "
+		"allocated using MX array functions like mx_allocate_array(), "
+		"mx_array_add_overlay(), and so forth.  This is _not_ "
+		"supported.", image_array );
+
+	}
+
+	header_length  = image_array_header[ MX_ARRAY_OFFSET_HEADER_LENGTH ];
+	mx_datatype    = image_array_header[ MX_ARRAY_OFFSET_MX_DATATYPE ];
+	num_dimensions = image_array_header[ MX_ARRAY_OFFSET_NUM_DIMENSIONS ];
 
 	mx_status = mx_image_get_image_format_name_from_type(
-						image_format,
+						mx_datatype,
 						image_format_name,
 						sizeof(image_format_name) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	if ( num_dimensions != 2 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"A %lu-dimensional array was passed to this function, "
+		"but only 2-dimensional array are supported here.",
+			(unsigned long) num_dimensions );
+	}
+
+	row_framesize = image_array_header[ MX_ARRAY_OFFSET_DIMENSION_ARRAY ];
+	column_framesize =
+		image_array_header[ MX_ARRAY_OFFSET_DIMENSION_ARRAY - 1 ];
 
 	touches_upper_edge = FALSE;
 	touches_lower_edge = FALSE;
@@ -2745,20 +2869,20 @@ mx_image_fix_region( MX_IMAGE_FRAME *frame,
 
 	if ( end_row < start_row ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"For image %p, the end_row (%ld) of the fix region appears "
-		"before the start row (%ld).",
-			frame, end_row, start_row );
+		"For image array %p, the end_row (%ld) of the fix region "
+		"appears before the start row (%ld).",
+			image_array, end_row, start_row );
 	}
 	if ( end_column < start_column ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"For image %p, the end_column (%ld) of the fix region appears "
-		"before the start column (%ld).",
-			frame, end_column, start_column );
+		"For image array %p, the end_column (%ld) of the fix region "
+		"appears before the start column (%ld).",
+			image_array, end_column, start_column );
 	}
 
 	switch( type_of_fix ) {
 	case MXF_IMAGE_FIX_HORIZONTAL:
-		switch( image_format ) {
+		switch( mx_datatype ) {
 		case MXT_IMAGE_FORMAT_GREY8:
 		case MXT_IMAGE_FORMAT_GREY32:
 		case MXT_IMAGE_FORMAT_FLOAT:
@@ -2773,7 +2897,8 @@ mx_image_fix_region( MX_IMAGE_FRAME *frame,
 			break;
 
 		case MXT_IMAGE_FORMAT_GREY16:
-			mx_status = mxp_image_fix_u16_horizontal( frame,
+			mx_status = mxp_image_fix_u16_horizontal(
+						image_array,
 						start_row, end_row,
 						start_column, end_column,
 						touches_upper_edge,
@@ -2868,7 +2993,7 @@ mx_image_display_ascii( FILE *output,
 	for ( i = 0; i < 5; i++ ) {
 		fprintf( output, "%lu ", (unsigned long) image_data[i] );
 	}
-	fprintf( output, "\n" );
+	fprintf( output, "...\n" );
 
 	/* Overlay the 1-dimensional frame buffer with a 2-dimensional array. */
 

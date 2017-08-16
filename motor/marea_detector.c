@@ -2351,6 +2351,44 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 			return FAILURE;
 		}
+	} else
+	if ( strncmp( "show", argv[3], strlen(argv[3]) ) == 0 ) {
+
+		if ( argc <= 4 ) {
+			fprintf( output,
+			"%s: wrong number of arguments to 'show' command\n",
+				cname );
+
+			fprintf( output, "%s\n", usage );
+			return FAILURE;
+		}
+
+		if ( strncmp( "frame", argv[4], strlen(argv[4]) ) == 0 ) {
+			long frame_number;
+
+			if ( argc == 5 ) {
+				frame_number = -1;
+			} else {
+				frame_number = atol( argv[5] );
+			}
+
+			mx_status = mx_area_detector_get_frame( ad_record,
+						-1, &(ad->image_frame) );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+
+			mx_status = mx_image_display_ascii( output,
+							ad->image_frame,
+							0, 65535 );
+		} else {
+			fprintf( output,
+				"%s: unknown show command argument '%s'\n",
+				cname, argv[4] );
+
+			return FAILURE;
+		}
+
 	} else {
 		/* Unrecognized command. */
 
