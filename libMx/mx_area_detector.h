@@ -65,11 +65,28 @@ extern "C" {
 
 /* Bit definitions for the 'area_detector_flags' variable. */
 
+  /* Note: 0x1, 0x2, 0x4, and 0x10 are 'legacy' flag bits that are not
+   * for use in new drivers.
+   */
+
 #define MXF_AD_GEOM_CORR_AFTER_FLAT_FIELD	   		0x1
 #define MXF_AD_CORRECTION_FRAME_GEOM_CORR_LAST	   		0x2
 #define MXF_AD_CORRECTION_FRAME_NO_GEOM_CORR	   		0x4
-#define MXF_AD_DEZINGER_CORRECTION_FRAME           		0x8
 #define MXF_AD_BIAS_CORR_AFTER_FLAT_FIELD		   	0x10
+
+/*----*/
+
+  /* If MXF_AD_DEZINGER_CORRECTION_FRAME is set, then the raw frames used
+   * to calculate the new correction frame will be examined for evidence
+   * of one-time events due to things like cosmic rays, radioactivity, etc.
+   * that are called "zingers".  When new correction pixel values are 
+   * being computed, a mean and standard deviation are computed for each
+   * pixel.  For that pixel, if one or more of the pixel values from the
+   * raw frames are "too far" from the mean, then those pixel values
+   * will be discarded when computing the mean.
+   */
+
+#define MXF_AD_DEZINGER_CORRECTION_FRAME           		0x8
 
   /* If MXF_AD_SAVE_FRAME_AFTER_ACQUISITION is set and we are running in an
    * MX server, then the area detector datafile management routines will
@@ -153,6 +170,15 @@ extern "C" {
    */
 
 #define MXF_AD_DO_NOT_SAVE_FRAME_IN_SINGLE_PROCESS_MODE		0x10000000
+
+  /* If the MXF_AD_FIX_REGIONS flag is set, then the readout_frame
+   * processing will modify values in the regions specified by a
+   * record using the MX 'fix_regions' driver.  Values in those
+   * regions will be replaced by values computed from the pixels
+   * surrounding the edge of each region.
+   */
+
+#define MXF_AD_FIX_REGIONS					0x20000000
 
   /* The following flag requests that a 6-bit ASCII debugging image
    * be written to the log at the end of each call to the function
@@ -402,6 +428,13 @@ typedef struct mx_area_detector_type {
 	unsigned long correction_flags;
 
 	mx_bool_type correction_frames_are_unbinned;
+
+	/* The following values are used by the optional MXF_AD_FIX_REGIONS
+	 * processing during mx_area_detector_readout_frame().
+	 */
+
+	long num_fix_regions;
+	long **fix_region_array;
 
 	/* 'all_mask_pixels_are_set' and 'all_bias_pixels_are_equal'
 	 * are used by some detector drivers to optimize the correction
@@ -796,38 +829,40 @@ typedef struct mx_area_detector_type {
 #define MXLV_AD_IMAGE_FRAME_DATA		12042
 #define MXLV_AD_CORRECT_FRAME			12043
 #define MXLV_AD_CORRECTION_FLAGS		12044
-#define MXLV_AD_CONSTANT_BIAS_PIXEL_OFFSET	12045
-#define MXLV_AD_TRANSFER_FRAME			12046
-#define MXLV_AD_LOAD_FRAME			12047
-#define MXLV_AD_SAVE_FRAME			12048
-#define MXLV_AD_RAW_LOAD_FRAME			12049
-#define MXLV_AD_RAW_SAVE_FRAME			12050
-#define MXLV_AD_FRAME_FILENAME			12051
-#define MXLV_AD_COPY_FRAME			12052
-#define MXLV_AD_SEQUENCE_START_DELAY		12053
-#define MXLV_AD_TOTAL_ACQUISITION_TIME		12054
-#define MXLV_AD_DETECTOR_READOUT_TIME		12055
-#define MXLV_AD_TOTAL_SEQUENCE_TIME		12056
-#define MXLV_AD_GEOM_CORR_AFTER_FLAT_FIELD	12057
-#define MXLV_AD_BIAS_CORR_AFTER_FLAT_FIELD	12058
-#define MXLV_AD_CORRECTION_FRAME_GEOM_CORR_LAST	12059
-#define MXLV_AD_CORRECTION_FRAME_NO_GEOM_CORR	12060
-#define MXLV_AD_CORRECTION_MEASUREMENT_TYPE	12061
-#define MXLV_AD_CORRECTION_MEASUREMENT_TIME	12062
-#define MXLV_AD_NUM_CORRECTION_MEASUREMENTS	12063
-#define MXLV_AD_CORRECTION_FRAMES_TO_SKIP	12064
-#define MXLV_AD_DEZINGER_CORRECTION_FRAME	12065
-#define MXLV_AD_DEZINGER_THRESHOLD		12066
-#define MXLV_AD_USE_SCALED_DARK_CURRENT		12067
-#define MXLV_AD_REGISTER_NAME			12068
-#define MXLV_AD_REGISTER_VALUE			12069
-#define MXLV_AD_SHUTTER_ENABLE			12070
-#define MXLV_AD_TRANSFER_IMAGE_DURING_SCAN	12071
-#define MXLV_AD_MARK_FRAME_AS_SAVED		12072
-#define MXLV_AD_SHOW_IMAGE_STATISTICS		12073
-#define MXLV_AD_SHOW_IMAGE_FRAME		12074
-#define MXLV_AD_IMAGE_FRAME_EXPOSURE_TIME	12075
-#define MXLV_AD_DARK_FRAME_EXPOSURE_TIME	12076
+#define MXLV_AD_NUM_FIX_REGIONS			12045
+#define MXLV_AD_FIX_REGION_ARRAY		10246
+#define MXLV_AD_CONSTANT_BIAS_PIXEL_OFFSET	12047
+#define MXLV_AD_TRANSFER_FRAME			12048
+#define MXLV_AD_LOAD_FRAME			12049
+#define MXLV_AD_SAVE_FRAME			12050
+#define MXLV_AD_RAW_LOAD_FRAME			12051
+#define MXLV_AD_RAW_SAVE_FRAME			12052
+#define MXLV_AD_FRAME_FILENAME			12053
+#define MXLV_AD_COPY_FRAME			12054
+#define MXLV_AD_SEQUENCE_START_DELAY		12055
+#define MXLV_AD_TOTAL_ACQUISITION_TIME		12056
+#define MXLV_AD_DETECTOR_READOUT_TIME		12057
+#define MXLV_AD_TOTAL_SEQUENCE_TIME		12058
+#define MXLV_AD_GEOM_CORR_AFTER_FLAT_FIELD	12059
+#define MXLV_AD_BIAS_CORR_AFTER_FLAT_FIELD	12060
+#define MXLV_AD_CORRECTION_FRAME_GEOM_CORR_LAST	12061
+#define MXLV_AD_CORRECTION_FRAME_NO_GEOM_CORR	12062
+#define MXLV_AD_CORRECTION_MEASUREMENT_TYPE	12063
+#define MXLV_AD_CORRECTION_MEASUREMENT_TIME	12064
+#define MXLV_AD_NUM_CORRECTION_MEASUREMENTS	12065
+#define MXLV_AD_CORRECTION_FRAMES_TO_SKIP	12066
+#define MXLV_AD_DEZINGER_CORRECTION_FRAME	12067
+#define MXLV_AD_DEZINGER_THRESHOLD		12068
+#define MXLV_AD_USE_SCALED_DARK_CURRENT		12069
+#define MXLV_AD_REGISTER_NAME			12070
+#define MXLV_AD_REGISTER_VALUE			12071
+#define MXLV_AD_SHUTTER_ENABLE			12072
+#define MXLV_AD_TRANSFER_IMAGE_DURING_SCAN	12073
+#define MXLV_AD_MARK_FRAME_AS_SAVED		12074
+#define MXLV_AD_SHOW_IMAGE_STATISTICS		12075
+#define MXLV_AD_SHOW_IMAGE_FRAME		12076
+#define MXLV_AD_IMAGE_FRAME_EXPOSURE_TIME	12077
+#define MXLV_AD_DARK_FRAME_EXPOSURE_TIME	12078
 
 #define MXLV_AD_AREA_DETECTOR_FLAGS		12100
 #define MXLV_AD_INITIAL_CORRECTION_FLAGS	12101
@@ -1080,6 +1115,15 @@ typedef struct mx_area_detector_type {
   	MXF_REC_CLASS_STRUCT, \
 		offsetof(MX_AREA_DETECTOR, correction_frames_are_unbinned), \
 	{0}, NULL, 0}, \
+  \
+  {MXLV_AD_NUM_FIX_REGIONS, -1, "num_fix_regions", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, num_fix_regions), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {MXLV_AD_FIX_REGION_ARRAY, -1, \
+		"fix_region_array", MXFT_LONG, NULL, 2, {MXU_VARARGS_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, fix_region_array), \
+	{sizeof(long), sizeof(long *)}, NULL, 0}, \
   \
   {MXLV_AD_CONSTANT_BIAS_PIXEL_OFFSET, -1, "constant_bias_pixel_offset", \
 		MXFT_DOUBLE, NULL, 0, {0}, \

@@ -20,6 +20,8 @@
 
 #define MX_AREA_DETECTOR_DEBUG_FRAME_TIMING		FALSE
 
+#define MX_AREA_DETECTOR_DEBUG_FIX_REGION_TIMING	TRUE
+
 #define MX_AREA_DETECTOR_DEBUG_LOAD_SAVE_FRAMES		FALSE
 
 #define MX_AREA_DETECTOR_DEBUG_FRAME_PARAMETERS		FALSE
@@ -237,6 +239,9 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->image_frame_header_length = 0;
 	ad->image_frame_header = NULL;
 	ad->image_frame_data = NULL;
+
+	ad->num_fix_regions = 0;
+	ad->fix_region_array = NULL;
 
 	ad->transfer_destination_frame_ptr = NULL;
 	ad->dezinger_threshold = DBL_MAX;
@@ -3812,6 +3817,10 @@ mx_area_detector_readout_frame( MX_RECORD *record, long frame_number )
 	MX_HRT_TIMING readout_frame_timing;
 #endif
 
+#if MX_AREA_DETECTOR_DEBUG_FIX_REGION_TIMING
+	MX_HRT_TIMING fix_region_timing;
+#endif
+
 	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -3865,6 +3874,40 @@ mx_area_detector_readout_frame( MX_RECORD *record, long frame_number )
 	MX_HRT_END(readout_frame_timing);
 	MX_HRT_RESULTS(readout_frame_timing, fname, "for frame readout");
 #endif
+
+	/* Optionally replace bad pixel data using 'fix regions'.
+	 * The data in each 'fix region' is replaced by data that
+	 * is interpolated from the pixels around the edge of
+	 * that region.
+	 */
+
+	if ( ad->area_detector_flags & MXF_AD_FIX_REGIONS ) {
+	    if ( ad->num_fix_regions > 0 ) {
+		if ( ad->fix_region_array != (long **) NULL ) {
+
+#if MX_AREA_DETECTOR_DEBUG_FIX_REGION_TIMING
+			MX_HRT_START(fix_region_timing);
+#endif
+			mx_status = mx_image_array_fix_multiple_regions(
+					ad->image_frame->image_data,
+					ad->num_fix_regions,
+					ad->fix_region_array );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+#if MX_AREA_DETECTOR_DEBUG_FIX_REGION_TIMING
+			MX_HRT_END(fix_region_timing);
+			MX_HRT_RESULTS(fix_region_timing,
+				fname, "for fix region" );
+#endif
+		}
+	    }
+	}
+
+	/* For debugging purposes, an ASCII version of the image can be
+	 * displayed after readout in the output of the process.
+	 */
 
 	if ( ad->area_detector_flags & MXF_AD_DISPLAY_ASCII_DEBUGGING_IMAGE ) {
 		mx_status =

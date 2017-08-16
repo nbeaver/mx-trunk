@@ -2621,7 +2621,7 @@ mx_image_dezinger( MX_IMAGE_FRAME **dezingered_frame,
 
 /*--------------------------------------------------------------------------*/
 
-/* WARNING: mx_image_fix_region() and friends are not yet finished. */
+/* WARNING: Not all data types and directions are handled yet. */
 
 static mx_status_type
 mxp_image_fix_u16_horizontal( uint16_t **uint16_array,
@@ -2749,7 +2749,7 @@ mxp_image_fix_u16_horizontal( uint16_t **uint16_array,
 
 MX_EXPORT mx_status_type
 mx_image_array_fix_region( void *image_array,
-			unsigned long type_of_fix,
+			long type_of_fix,
 			long start_row,
 			long end_row,
 			long start_column,
@@ -2918,6 +2918,46 @@ mx_image_array_fix_region( void *image_array,
 	}
 
 	return mx_status;
+}
+
+/*----*/
+
+MX_EXPORT mx_status_type
+mx_image_array_fix_multiple_regions( void *image_array,
+				long num_regions,
+				long **region_array )
+{
+	static const char fname[] = "mx_image_array_fix_multiple_regions()";
+
+	long *region;
+	long i;
+	mx_status_type mx_status;
+
+	if ( image_array == (void *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The image_array pointer passed was NULL." );
+	}
+	if ( region_array == (long **) region_array ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The region_array pointer passed was NULL." );
+	}
+
+	for ( i = 0; i < num_regions; i++ ) {
+		region = region_array[i];
+
+		if ( region == (long *) NULL ) {
+			return mx_error( MXE_NULL_ARGUMENT, fname,
+			"Region %ld for image_array is NULL.", i );
+		}
+
+		mx_status = mx_image_array_fix_region( image_array,
+			region[0], region[1], region[2], region[3], region[4] );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*--------------------------------------------------------------------------*/

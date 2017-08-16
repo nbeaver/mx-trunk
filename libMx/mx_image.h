@@ -177,7 +177,7 @@ extern "C" {
 
 /*----*/
 
-/* Flag values used by mx_image_fix_region() */
+/* Flag values used by mx_image_array_fix_region() */
 
 #define MXF_IMAGE_FIX_HORIZONTAL	1
 #define MXF_IMAGE_FIX_VERTICAL		2
@@ -386,11 +386,15 @@ MX_API mx_status_type mx_image_dezinger( MX_IMAGE_FRAME **dezingered_frame,
 /*----*/
 
 MX_API mx_status_type mx_image_array_fix_region( void *image_array,
-					unsigned long type_of_fix,
+					long type_of_fix,
 					long start_row,
 					long end_row,
 					long start_column,
 					long end_column );
+
+MX_API mx_status_type mx_image_array_fix_multiple_regions( void *image_array,
+							long num_regions,
+							long **region_array );
 
 /*----*/
 
