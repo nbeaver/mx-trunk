@@ -21,26 +21,16 @@
 typedef struct {
 	MX_RECORD *record;
 
-	MX_RECORD *image_record;
-	long num_fix_regions;
-	long **fix_region_array;
+	MX_RECORD *imaging_record;
+	long *num_fix_regions_ptr;
+	long ***fix_region_array_ptr;
 } MX_FIX_REGIONS;
 
 #define MX_FIX_REGIONS_STANDARD_FIELDS \
-  {-1, -1, "image_record", MXFT_RECORD, NULL, 0, {0},\
-	MXF_REC_TYPE_STRUCT, offsetof(MX_FIX_REGIONS, image_record), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
-  \
-  {-1, -1, "num_fix_regions", MXFT_LONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_FIX_REGIONS, num_fix_regions), \
-	{0}, NULL, MXFF_READ_ONLY }, \
-  \
-  {-1, -1, "fix_region_array", MXFT_LONG, NULL, 2, {MXU_VARARGS_LENGTH, 5}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_FIX_REGIONS, fix_region_array), \
-	{sizeof(long **)}, NULL, MXFF_VARARGS }
+  {-1, -1, "imaging_record", MXFT_RECORD, NULL, 0, {0},\
+	MXF_REC_TYPE_STRUCT, offsetof(MX_FIX_REGIONS, imaging_record), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
 
-MX_API_PRIVATE mx_status_type mxv_fix_regions_initialize_driver(
-							MX_DRIVER *driver );
 MX_API_PRIVATE mx_status_type mxv_fix_regions_create_record_structures(
 							MX_RECORD *record );
 MX_API_PRIVATE mx_status_type mxv_fix_regions_open( MX_RECORD *record );

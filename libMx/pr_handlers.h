@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004-2008, 2011, 2013-2014 Illinois Institute of Technology
+ * Copyright 2004-2008, 2011, 2013-2014, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -109,6 +109,8 @@ extern mx_status_type mx_list_head_record_show_record_list(
 						MX_LIST_HEAD *list_head );
 
 extern mx_status_type mx_list_head_record_fielddef( MX_LIST_HEAD *list_head );
+
+extern mx_status_type mx_list_head_record_show_field(MX_LIST_HEAD *list_head);
 
 extern mx_status_type mx_list_head_record_show_handle(MX_LIST_HEAD *list_head);
 

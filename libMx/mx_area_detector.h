@@ -435,6 +435,7 @@ typedef struct mx_area_detector_type {
 
 	long num_fix_regions;
 	long **fix_region_array;
+	MX_RECORD *fix_region_record;
 
 	/* 'all_mask_pixels_are_set' and 'all_bias_pixels_are_equal'
 	 * are used by some detector drivers to optimize the correction
@@ -1121,9 +1122,9 @@ typedef struct mx_area_detector_type {
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_AD_FIX_REGION_ARRAY, -1, \
-		"fix_region_array", MXFT_LONG, NULL, 2, {MXU_VARARGS_LENGTH}, \
+	    "fix_region_array", MXFT_LONG, NULL, 2, {MXU_VARARGS_LENGTH, 5}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, fix_region_array), \
-	{sizeof(long), sizeof(long *)}, NULL, 0}, \
+	{sizeof(long), sizeof(long *)}, NULL, MXFF_VARARGS}, \
   \
   {MXLV_AD_CONSTANT_BIAS_PIXEL_OFFSET, -1, "constant_bias_pixel_offset", \
 		MXFT_DOUBLE, NULL, 0, {0}, \

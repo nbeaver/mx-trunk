@@ -60,6 +60,7 @@ mx_setup_list_head_process_functions( MX_RECORD *record )
 		case MXLV_LHD_REPORT_ALL:
 		case MXLV_LHD_SHOW_CALLBACKS:
 		case MXLV_LHD_SHOW_CALLBACK_ID:
+		case MXLV_LHD_SHOW_FIELD:
 		case MXLV_LHD_SHOW_HANDLE:
 		case MXLV_LHD_SHOW_OPEN_FDS:
 		case MXLV_LHD_SHOW_RECORD_LIST:
@@ -183,6 +184,9 @@ mx_list_head_process_function( void *record_ptr,
 			break;
 		case MXLV_LHD_FIELDDEF:
 			mx_status = mx_list_head_record_fielddef( list_head );
+			break;
+		case MXLV_LHD_SHOW_FIELD:
+			mx_status = mx_list_head_record_show_field( list_head );
 			break;
 		case MXLV_LHD_SHOW_HANDLE:
 			mx_status = mx_list_head_record_show_handle(list_head);
@@ -590,6 +594,116 @@ mx_list_head_record_fielddef( MX_LIST_HEAD *list_head )
 	mx_status = mx_print_all_field_definitions( stderr, record );
 
 	return mx_status;
+}
+
+mx_status_type
+mx_list_head_record_show_field( MX_LIST_HEAD *list_head )
+{
+	static const char fname[] = "mx_list_head_record_show_field()";
+
+	MX_RECORD *mx_record = NULL;
+	MX_RECORD_FIELD *mx_field = NULL;
+	char *name_copy = NULL;
+	char *record_name = NULL;
+	char *field_name = NULL;
+	char *ptr = NULL;
+	void *value_pointer = NULL;
+	long i;
+	mx_status_type mx_status;
+
+	name_copy = strdup( list_head->show_field );
+
+	if ( name_copy == (char *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to copy the string '%s'.",
+			list_head->show_field );
+	}
+
+	record_name = name_copy;
+
+	ptr = strchr( name_copy, '.' );
+
+	if ( ptr == NULL ) {
+		field_name = "";
+	} else {
+		*ptr = '\0';
+		field_name = ++ptr;
+	}
+
+	fprintf( stderr, "Record field '%s.%s'\n\n", record_name, field_name );
+
+	mx_record = mx_get_record( list_head->record, record_name );
+
+	if ( mx_record == (MX_RECORD *) NULL ) {
+		mx_status = mx_error( MXE_NOT_FOUND, fname,
+			"The record '%s' was not found in the MX database.",
+			record_name );
+
+		mx_free( name_copy );
+		return mx_status;
+	}
+
+	mx_status = mx_find_record_field( mx_record, field_name, &mx_field );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		mx_free( name_copy );
+		return mx_status;
+	}
+
+	mx_free( name_copy );
+
+	value_pointer = mx_get_field_value_pointer( mx_field );
+
+	fprintf( stderr, "  record pointer = %p\n\n", mx_record );
+
+	fprintf( stderr, "  field pointer = %p\n", mx_field );
+	fprintf( stderr, "  label_value = %ld\n", mx_field->label_value );
+	fprintf( stderr, "  field_number = %ld\n", mx_field->field_number );
+	fprintf( stderr, "  datatype = %ld\n", mx_field->datatype );
+	fprintf( stderr, "  num_dimensions = %ld\n", mx_field->num_dimensions );
+	fprintf( stderr, "  dimension = [" );
+	for ( i = 0; i < mx_field->num_dimensions; i++ ) {
+		fprintf( stderr, " %ld", mx_field->dimension[i] );
+	}
+	fprintf( stderr, " ]\n" );
+	fprintf( stderr, "  data_element_size = [" );
+	for ( i = 0; i < mx_field->num_dimensions; i++ ) {
+		fprintf( stderr, " %ld", mx_field->data_element_size[i] );
+	}
+	fprintf( stderr, " ]\n" );
+	fprintf( stderr, "  data_pointer = %p\n", mx_field->data_pointer );
+	fprintf( stderr, "  value pointer = %p\n", value_pointer );
+	fprintf( stderr, "  process_function = %p\n",
+					mx_field->process_function );
+	fprintf( stderr, "  flags = %#lx\n", mx_field->flags );
+	fprintf( stderr, "  timer_interval = %ld\n", mx_field->timer_interval );
+	fprintf( stderr, "  value_change_threshold = %g\n",
+					mx_field->value_change_threshold );
+	fprintf( stderr, "  last_value = %g\n", mx_field->last_value );
+	fprintf( stderr, "  value_has_changed_manual_override = %d\n",
+			(int) mx_field->value_has_changed_manual_override );
+	fprintf( stderr, "  value_changed_test_function = %p\n",
+					mx_field->value_changed_test_function );
+	fprintf( stderr, "  callback_list = %p\n", mx_field->callback_list );
+	fprintf( stderr, "  application_ptr = %p\n", mx_field->application_ptr);
+	fprintf( stderr, "  record = %p\n", mx_field->record );
+	fprintf( stderr, "  active = %d\n", (int) mx_field->active );
+	fprintf( stderr, "\n  value = " );
+
+	if ( (mx_field->num_dimensions > 1)
+	  || ((mx_field->datatype != MXFT_STRING)
+		  && (mx_field->num_dimensions > 0)) )
+	{
+		mx_status = mx_print_field_array( stderr,
+				mx_record, mx_field, TRUE );
+	} else {
+		mx_status = mx_print_field_value( stderr,
+				mx_record, mx_field, value_pointer, TRUE );
+	}
+
+	fprintf( stderr, "\n" );
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 mx_status_type

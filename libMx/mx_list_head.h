@@ -9,7 +9,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004, 2006-2010, 2012-2016
+ * Copyright 2000-2001, 2003-2004, 2006-2010, 2012-2017
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -51,6 +51,7 @@ extern "C" {
 #define MXLV_LHD_REVISION_STRING		1023
 #define MXLV_LHD_BRANCH_LABEL			1024
 #define MXLV_LHD_VERSION_STRING			1025
+#define MXLV_LHD_SHOW_FIELD			1026
 
 #define MXR_LIST_HEAD_STANDARD_FIELDS \
   {-1, -1, "list_is_active", MXFT_BOOL, NULL, 0, {0}, \
@@ -194,7 +195,12 @@ extern "C" {
   {MXLV_LHD_VERSION_STRING, -1, "mx_version_string", \
 		MXFT_STRING, NULL, 1, {MXU_REVISION_NAME_LENGTH}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, mx_version_string), \
-	{sizeof(char)}, NULL, MXFF_READ_ONLY}
+	{sizeof(char)}, NULL, MXFF_READ_ONLY}, \
+  \
+  {MXLV_LHD_SHOW_FIELD, -1, "show_field", \
+		MXFT_STRING, NULL, 1, {MXU_RECORD_FIELD_NAME_LENGTH}, \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, show_field), \
+	{sizeof(char)}, NULL, 0}
 
 MX_API_PRIVATE mx_status_type mxr_create_list_head( MX_RECORD *record );
 

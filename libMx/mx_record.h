@@ -471,6 +471,7 @@ typedef struct {
 	mx_bool_type callbacks_enabled;
 	char *cflags;
 	unsigned long vm_region[2];
+	char show_field[ MXU_RECORD_FIELD_NAME_LENGTH + 1 ];
 
 	mx_bool_type is_server;
 	void *connection_acl;

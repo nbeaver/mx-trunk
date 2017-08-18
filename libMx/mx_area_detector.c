@@ -242,6 +242,7 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 
 	ad->num_fix_regions = 0;
 	ad->fix_region_array = NULL;
+	ad->fix_region_record = NULL;
 
 	ad->transfer_destination_frame_ptr = NULL;
 	ad->dezinger_threshold = DBL_MAX;

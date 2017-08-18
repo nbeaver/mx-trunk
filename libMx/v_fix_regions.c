@@ -24,13 +24,16 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_driver.h"
 #include "mx_array.h"
 #include "mx_image.h"
+#include "mx_area_detector.h"
+#include "mx_video_input.h"
 #include "mx_variable.h"
 #include "v_fix_regions.h"
 
 MX_RECORD_FUNCTION_LIST mxv_fix_regions_record_function_list = {
-	mxv_fix_regions_initialize_driver,
+	mx_variable_initialize_driver,
 	mxv_fix_regions_create_record_structures,
 	NULL,
 	NULL,
@@ -59,50 +62,6 @@ MX_RECORD_FIELD_DEFAULTS *mxv_fix_regions_rfield_def_ptr
 		= &mxv_fix_regions_record_field_defaults[0];
 
 /********************************************************************/
-
-MX_EXPORT mx_status_type
-mxv_fix_regions_initialize_driver( MX_DRIVER *driver )
-{
-	static const char fname[] = "mxv_fix_regions_initialize_driver()";
-
-        MX_RECORD_FIELD_DEFAULTS *field;
-	long referenced_field_index;
-        long num_fix_regions_varargs_cookie;
-        mx_status_type mx_status;
-
-	mx_status = mx_variable_initialize_driver( driver );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-        mx_status = mx_find_record_field_defaults_index( driver,
-                        			"num_fix_regions",
-						&referenced_field_index );
-
-        if ( mx_status.code != MXE_SUCCESS )
-                return mx_status;
-
-        mx_status = mx_construct_varargs_cookie( referenced_field_index, 0,
-				&num_fix_regions_varargs_cookie);
-
-        if ( mx_status.code != MXE_SUCCESS )
-                return mx_status;
-
-	mx_status = mx_find_record_field_defaults( driver,
-						"fix_region_array", &field );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	field->dimension[0] = num_fix_regions_varargs_cookie;
-	field->dimension[1] = 5;
-
-	MX_DEBUG(-2,
-	("%s: field->dimension[0] = %#lx, field->dimension[1] = %#lx",
-		fname, field->dimension[0], field->dimension[1]));
-
-	return MX_SUCCESSFUL_RESULT;
-}
 
 MX_EXPORT mx_status_type
 mxv_fix_regions_create_record_structures( MX_RECORD *record )
@@ -152,7 +111,11 @@ mxv_fix_regions_open( MX_RECORD *record )
 
 	MX_VARIABLE *variable_struct = NULL;
 	MX_FIX_REGIONS *fix_regions_struct = NULL;
+	MX_RECORD *imaging_record = NULL;
 	MX_RECORD_FIELD *string_value_field = NULL;
+	MX_RECORD_FIELD *fix_region_array_field = NULL;
+	MX_AREA_DETECTOR *ad = NULL;
+	long num_fix_regions;
 	long dimension[2];
 	size_t element_size[2];
 	mx_status_type mx_status;
@@ -164,7 +127,79 @@ mxv_fix_regions_open( MX_RECORD *record )
 
 	variable_struct = (MX_VARIABLE *) record->record_superclass_struct;
 
+	if ( variable_struct == (MX_VARIABLE *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_VARIABLE pointer for variable record '%s' is NULL.",
+			record->name );
+	}
+
 	fix_regions_struct = (MX_FIX_REGIONS *) record->record_type_struct;
+
+	if ( fix_regions_struct == (MX_FIX_REGIONS *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_FIX_REGIONS pointer for variable record '%s' is NULL.",
+			record->name );
+	}
+
+	/* Find the pointers to the fix regions data structure contained
+	 * in the MX_AREA_DETECTOR or MX_VIDEO_INPUT record.
+	 */
+
+	imaging_record = fix_regions_struct->imaging_record;
+
+	if ( imaging_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+	    "No imaging device has been specified for fix_regions record '%s'.",
+			record->name );
+	}
+
+	switch( imaging_record->mx_class ) {
+	case MXC_AREA_DETECTOR:
+		ad = (MX_AREA_DETECTOR *) imaging_record->record_class_struct;
+
+		if ( ad == (MX_AREA_DETECTOR *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_AREA_DETECTOR pointer for imaging device '%s' "
+			"used by fix_regions record '%s' is NULL.",
+				imaging_record->name, record->name );
+		}
+
+		if ( ad->fix_region_record != (MX_RECORD *) NULL ) {
+			return mx_error( MXE_NOT_AVAILABLE, fname,
+			"MX area detector '%s' cannot be "
+			"claimed by fix regions variable '%s', since it has "
+			"already been claimed by fix regions variable '%s'.",
+				imaging_record->name,
+				record->name,
+				ad->fix_region_record->name );
+		}
+
+		ad->fix_region_record = record;
+
+		fix_regions_struct->num_fix_regions_ptr
+			= &(ad->num_fix_regions);
+
+		fix_regions_struct->fix_region_array_ptr
+			= &(ad->fix_region_array);
+
+		mx_status = mx_find_record_field( imaging_record,
+					"fix_region_array",
+					&fix_region_array_field );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+		break;
+	case MXC_VIDEO_INPUT:
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Fix region support has not yet been implemented for "
+		"video input device '%s'.", imaging_record->name );
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Fix regions are not supported for device '%s'.",
+			imaging_record->name );
+		break;
+	}
 
 	/* Setup fix region data structures. */
 
@@ -174,24 +209,48 @@ mxv_fix_regions_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	fix_regions_struct->num_fix_regions = string_value_field->dimension[0];
+	num_fix_regions = string_value_field->dimension[0];
 
-	dimension[0] = fix_regions_struct->num_fix_regions;
+	*(fix_regions_struct->num_fix_regions_ptr) = num_fix_regions;
+
+	dimension[0] = num_fix_regions;
 	dimension[1] = 5;
 
 	element_size[0] = sizeof(long);
 	element_size[1] = sizeof(long *);
 
-	fix_regions_struct->fix_region_array =
+	*(fix_regions_struct->fix_region_array_ptr) =
 			mx_allocate_array( MXFT_LONG, 2,
 					dimension, element_size );
 
-	if ( fix_regions_struct->fix_region_array == NULL ) {
+	if ( *(fix_regions_struct->fix_region_array_ptr) == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to allocate a (%ld x %ld) array "
 		"of fix region parameters for record '%s'.",
 			dimension[0], dimension[1], record->name );
 	}
+
+	/* Configure the dimension attribute of the 'fix_region_array' field
+	 * to match the number of fix regions seen above.
+	 */
+
+	if ( fix_region_array_field == (MX_RECORD_FIELD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The fix_region_array field for imaging device '%s' "
+		"used by fix_regions record '%s' is a NULL pointer.  "
+		"This should not be able to happen.",
+			imaging_record->name, record->name );
+	}
+
+	fix_region_array_field->dimension[0] = dimension[0];
+	fix_region_array_field->dimension[1] = dimension[1];
+
+	MX_DEBUG(-2,("%s: fix_region_array_field->num_dimensions = %ld",
+		fname, fix_region_array_field->num_dimensions));
+	MX_DEBUG(-2,("%s: fix_region_array_field->dimension[0] = %ld",
+		fname, fix_region_array_field->dimension[0]));
+	MX_DEBUG(-2,("%s: fix_region_array_field->dimension[1] = %ld",
+		fname, fix_region_array_field->dimension[1]));
 
 	/* Copy the starting configuration of the fix regions from
 	 * the 'value' field to 'fix_region_array'.
@@ -216,6 +275,9 @@ mxv_fix_regions_send_variable( MX_VARIABLE *variable )
 	char **argv = NULL;
 	size_t argv0_length;
 	long fix_type;
+	long num_fix_regions;
+	long **fix_region_array;
+	long *fix_region;
 	mx_status_type mx_status;
 
 	if ( variable == (MX_VARIABLE *) NULL ) {
@@ -232,6 +294,10 @@ mxv_fix_regions_send_variable( MX_VARIABLE *variable )
 			variable->record->name );
 	}
 
+	num_fix_regions = *(fix_regions_struct->num_fix_regions_ptr);
+
+	fix_region_array = *(fix_regions_struct->fix_region_array_ptr);
+
 	/* Get a pointer to the string field value. */
 
 	mx_status = mx_find_record_field( variable->record, "value",
@@ -242,7 +308,9 @@ mxv_fix_regions_send_variable( MX_VARIABLE *variable )
 
 	string_value_pointer = mx_get_field_value_pointer( string_value_field );
 
-	for ( i = 0; i < fix_regions_struct->num_fix_regions; i++ ) {
+	for ( i = 0; i < num_fix_regions; i++ ) {
+		fix_region = fix_region_array[i];
+
 		MX_DEBUG(-2,("%s: region [%ld] = '%s'",
 		fname, i, string_value_pointer[i] ));
 
@@ -266,6 +334,11 @@ mxv_fix_regions_send_variable( MX_VARIABLE *variable )
 				i, variable->record->name );
 		}
 
+		for ( j = 0; j < argc; j++ ) {
+			MX_DEBUG(-2,("%s: argv[%d] = '%s'",
+				fname, j, argv[j]));
+		}
+
 		argv0_length = strlen( argv[0] );
 
 		if ( mx_strncasecmp(argv[0], "horizontal", argv0_length) == 0 ){
@@ -285,10 +358,11 @@ mxv_fix_regions_send_variable( MX_VARIABLE *variable )
 			mx_free(string_copy);
 		}
 
-		for ( j = 0; j < argc; j++ ) {
-			MX_DEBUG(-2,("%s: argv[%d] = '%s'",
-				fname, j, argv[j]));
-		}
+		fix_region[0] = fix_type;
+		fix_region[1] = atol( argv[1] );
+		fix_region[2] = atol( argv[2] );
+		fix_region[3] = atol( argv[3] );
+		fix_region[4] = atol( argv[4] );
 
 		mx_free(argv);
 		mx_free(string_copy);
