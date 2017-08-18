@@ -335,11 +335,13 @@ mxv_fix_regions_send_variable( MX_VARIABLE *variable )
 		}
 
 		for ( j = 0; j < argc; j++ ) {
-			MX_DEBUG(-2,("%s: argv[%d] = '%s'",
+			MX_DEBUG(-2,("%s: argv[%ld] = '%s'",
 				fname, j, argv[j]));
 		}
 
 		argv0_length = strlen( argv[0] );
+
+		fix_type = -1;
 
 		if ( mx_strncasecmp(argv[0], "horizontal", argv0_length) == 0 ){
 			fix_type = MXF_IMAGE_FIX_HORIZONTAL;
