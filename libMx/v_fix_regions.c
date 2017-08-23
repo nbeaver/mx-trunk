@@ -153,6 +153,8 @@ mxv_fix_regions_open( MX_RECORD *record )
 			record->name );
 	}
 
+	fix_region_array_field = NULL;
+
 	switch( imaging_record->mx_class ) {
 	case MXC_AREA_DETECTOR:
 		ad = (MX_AREA_DETECTOR *) imaging_record->record_class_struct;
@@ -242,6 +244,8 @@ mxv_fix_regions_open( MX_RECORD *record )
 			imaging_record->name, record->name );
 	}
 
+	fix_regions_struct->fix_region_array_field = fix_region_array_field;
+
 	fix_region_array_field->dimension[0] = dimension[0];
 	fix_region_array_field->dimension[1] = dimension[1];
 
@@ -257,6 +261,30 @@ mxv_fix_regions_open( MX_RECORD *record )
 	 */
 
 	mx_status = mxv_fix_regions_send_variable( variable_struct );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if 1
+	{
+		long **fix_region_array;
+		long i, j;
+		       
+		fix_region_array = *(fix_regions_struct->fix_region_array_ptr);
+
+		/* Print out the current contents of fix_region_array. */
+
+		for ( i = 0; i < num_fix_regions; i++ ) {
+			fprintf( stderr, "%s: fix_region (%ld) =", fname, i );
+
+			for ( j = 0; j < 5; j++ ) {
+				fprintf( stderr, " %ld",
+					fix_region_array[i][j] );
+			}
+			fprintf( stderr, "\n" );
+		}
+	}
+#endif
 
 	return mx_status;
 }
@@ -369,8 +397,6 @@ mxv_fix_regions_send_variable( MX_VARIABLE *variable )
 		mx_free(argv);
 		mx_free(string_copy);
 	}
-
-	/* FIXME: Fill in the rest of this driver method. */
 
 	return MX_SUCCESSFUL_RESULT;
 }

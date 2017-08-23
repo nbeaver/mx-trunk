@@ -806,9 +806,11 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 	MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber = NULL;
 	MX_SAPERA_LT *sapera_lt = NULL;
 	MX_SYSTEM_MEMINFO system_meminfo;
+	unsigned long fg_flags;
 	BOOL sapera_status;
 	const char *sapera_status_text = NULL;
 	long bytes_per_frame, max_image_frames, max_frames_threshold;
+	long i, max_attempts;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -823,6 +825,8 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	fg_flags = sapera_lt_frame_grabber->sapera_frame_grabber_flags;
 
 #if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
@@ -1034,7 +1038,33 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 
 	/* -------- */
 
-	sapera_status = sapera_lt_frame_grabber->buffer->Create();
+	if ( fg_flags & MXF_SAPERA_FRAME_GRABBER_RETRY_CREATE ) {
+		max_attempts = 3;
+	} else {
+		max_attempts = 1;
+	}
+
+	sapera_status = FALSE;
+
+	for ( i = 0; i < max_attempts; i++ ) {
+		sapera_status = sapera_lt_frame_grabber->buffer->Create();
+
+		MX_DEBUG(-2,("%s: SapBuffer attempt %ld, sapera_status = %d",
+			fname, i+1, (int) sapera_status));
+
+		if ( sapera_status != FALSE )
+			break;
+
+		if ( i < (max_attempts - 1) ) {
+			sapera_status_text = SapManager::GetLastStatus();
+
+			MX_DEBUG(-2,("%s: Attempt %ld to create the low-level "
+			"resources used by the SapBuffer object of "
+			"frame grabber '%s'.  Sapera error text = '%s'.",
+				fname, i+1, record->name, sapera_status_text ));
+			MX_DEBUG(-2,("%s: Retrying...", fname));
+		}
+	}
 
 #if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN
 	MX_DEBUG(-2,("%s: sapera_lt_frame_grabber->buffer->Create() = %d",
@@ -1053,7 +1083,7 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 			record->name, sapera_status_text );
 	}
 
-#if ( 1 && MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN )
+#if ( MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN )
 	{
 		SapBuffer *buffer;
 		int pixel_depth, num_buffers, width, height;
@@ -1150,7 +1180,38 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 
 	/* -------- */
 
-	sapera_status = sapera_lt_frame_grabber->transfer->Create();
+	sapera_status = FALSE;
+
+	MX_DEBUG(-2,("%s: MARKER 0",fname));
+
+	for ( i = 0; i < max_attempts; i++ ) {
+
+		MX_DEBUG(-2,("%s: MARKER 1",fname));
+
+		sapera_status = sapera_lt_frame_grabber->transfer->Create();
+
+		MX_DEBUG(-2,("%s: SapAcqToBuf attempt %ld, sapera_status = %d",
+			fname, i+1, (int) sapera_status));
+
+		if ( sapera_status != FALSE ) {
+			MX_DEBUG(-2,("%s: MARKER 2 (exit)",fname));
+			break;
+		}
+
+		MX_DEBUG(-2,("%s: MARKER 2",fname));
+
+		if ( i < (max_attempts - 1) ) {
+			MX_DEBUG(-2,("%s: MARKER 3",fname));
+
+			sapera_status_text = SapManager::GetLastStatus();
+
+			MX_DEBUG(-2,("%s: Attempt %ld to create the low-level "
+			"resources used by the SapAcqToBuf object of "
+			"frame grabber '%s'.  Sapera error text = '%s'.",
+				fname, i+1, record->name, sapera_status_text ));
+			MX_DEBUG(-2,("%s: Retrying...", fname));
+		}
+	}
 
 #if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN
 	MX_DEBUG(-2,("%s: sapera_lt_frame_grabber->transfer->Create() = %d",

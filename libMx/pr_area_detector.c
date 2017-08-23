@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2006-2009, 2011-2015 Illinois Institute of Technology
+ * Copyright 2006-2009, 2011-2015, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -963,6 +963,7 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_EXPOSURE_TIME:
 		case MXLV_AD_EXTENDED_STATUS:
 		case MXLV_AD_FILENAME_LOG:
+		case MXLV_AD_FIX_REGION_ARRAY:
 		case MXLV_AD_FRAME_FILENAME:
 		case MXLV_AD_FRAMESIZE:
 		case MXLV_AD_GET_ROI_FRAME:
@@ -980,6 +981,7 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_MOTOR_POSITION:
 		case MXLV_AD_NUM_CORRECTION_MEASUREMENTS:
 		case MXLV_AD_NUM_EXPOSURES:
+		case MXLV_AD_NUM_FIX_REGIONS:
 		case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
 		case MXLV_AD_OSCILLATION_MOTOR_NAME:
 		case MXLV_AD_OSCILLATION_TRIGGER_NAME:
@@ -1076,6 +1078,14 @@ mx_area_detector_process_function( void *record_ptr,
 		fname, record->name, record_field->name, operation));
 #endif
 
+#if 0
+	if ( (record_field->label_value == MXLV_AD_NUM_FIX_REGIONS)
+	  || (record_field->label_value == MXLV_AD_FIX_REGION_ARRAY) )
+	{
+		mx_breakpoint();
+	}
+#endif
+
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
@@ -1111,6 +1121,15 @@ mx_area_detector_process_function( void *record_ptr,
 		case MXLV_AD_MOTOR_POSITION:
 			/* Just report the value already in the variable. */
 
+			break;
+
+		case MXLV_AD_FIX_REGION_ARRAY:
+		case MXLV_AD_NUM_FIX_REGIONS:
+			fprintf( stderr, "GET: field '%s.%s'\n  ",
+				record->name, record_field->name );
+
+			mx_print_field( stderr, record, record_field, TRUE );
+			fprintf( stderr, "\n" );
 			break;
 		case MXLV_AD_BINSIZE:
 			mx_status = mx_area_detector_get_binsize( record,
@@ -1380,6 +1399,14 @@ mx_area_detector_process_function( void *record_ptr,
 			/* Just save the value. */
 
 			break;
+		case MXLV_AD_FIX_REGION_ARRAY:
+			fprintf( stderr, "PUT: field '%s.%s'\n  ",
+				record->name, record_field->name );
+
+			mx_print_field( stderr, record, record_field, TRUE );
+			fprintf( stderr, "\n" );
+			break;
+
 		case MXLV_AD_ABORT:
 			(void) mxp_area_detector_stop_correction_callback(
 								record, ad );

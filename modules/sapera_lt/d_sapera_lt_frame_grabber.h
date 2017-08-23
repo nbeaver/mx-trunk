@@ -23,7 +23,8 @@ extern "C" {
 
 /* Values for the 'sapera_frame_grabber_flags' field. */
 
-#define MXF_SAPERA_FRAME_GRABBER_DEBUG_SNAP	0x1
+#define MXF_SAPERA_FRAME_GRABBER_RETRY_CREATE	0x1
+#define MXF_SAPERA_FRAME_GRABBER_DEBUG_SNAP	0x2
 
 typedef struct {
 	MX_RECORD *record;

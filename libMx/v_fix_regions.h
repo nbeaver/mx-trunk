@@ -24,6 +24,8 @@ typedef struct {
 	MX_RECORD *imaging_record;
 	long *num_fix_regions_ptr;
 	long ***fix_region_array_ptr;
+
+	MX_RECORD_FIELD *fix_region_array_field;
 } MX_FIX_REGIONS;
 
 #define MX_FIX_REGIONS_STANDARD_FIELDS \

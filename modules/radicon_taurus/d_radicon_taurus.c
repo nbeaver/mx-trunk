@@ -44,8 +44,6 @@
 
 #define MXD_RADICON_TAURUS_DEBUG_ROWFIX_TIMING			TRUE
 
-#define MXD_RADICON_TAURUS_ENABLE_ROWFIX			TRUE
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -2579,7 +2577,7 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_radicon_taurus_readout_frame()";
 
 	MX_RADICON_TAURUS *radicon_taurus = NULL;
-	unsigned long flags;
+	unsigned long rt_flags;
 	mx_status_type mx_status;
 
 #if MXD_RADICON_TAURUS_DEBUG_ROWFIX_TIMING
@@ -2605,6 +2603,8 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+
+	rt_flags = radicon_taurus->radicon_taurus_flags;
 
 	if ( radicon_taurus->use_video_frames ) {
 
@@ -2960,12 +2960,11 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 		MX_HRT_END(trim_measurement);
 #endif
 
-#if MXD_RADICON_TAURUS_ENABLE_ROWFIX
-
 #if MXD_RADICON_TAURUS_DEBUG_ROWFIX_TIMING
 		MX_HRT_START(rowfix_measurement);
 #endif
-		if ( radicon_taurus->serial_number_long == 20120629 ) {
+		if ( rt_flags & MXF_RADICON_TAURUS_ENABLE_SPECIAL_ROWFIX ) {
+		    if ( radicon_taurus->serial_number_long == 20120629 ) {
 			double average_value;
 			long column;
 			long row = 900;
@@ -2981,13 +2980,12 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 
 			    ad_array[row][column] = mx_round( average_value );
 			}
+		    }
 		}
+
 #if MXD_RADICON_TAURUS_DEBUG_ROWFIX_TIMING
 		MX_HRT_END(rowfix_measurement);
 #endif
-
-#endif /* MXD_RADICON_TAURUS_ENABLE_ROWFIX */
-
 	}
 
 #if MXD_RADICON_TAURUS_DEBUG_READOUT_TIMING
@@ -2995,8 +2993,6 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 #endif
 
 	ad->image_frame->application_ptr = radicon_taurus->image_noir_info;
-
-	flags = radicon_taurus->radicon_taurus_flags;
 
 	/* If configured, get the motor position from buffer_info_array. */
 
@@ -3016,7 +3012,7 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 
 		ad->motor_position = buffer_info->motor_position;
 
-		if ( flags & MXF_RADICON_TAURUS_SET_EXPOSURE_MOTOR_POSITION ) {
+		if (rt_flags & MXF_RADICON_TAURUS_SET_EXPOSURE_MOTOR_POSITION) {
 			mx_status = mx_motor_set_position(
 					ad->oscillation_motor_record,
 					ad->motor_position );
@@ -3044,7 +3040,7 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 
 	/*---*/
 
-	if ( flags & MXF_RADICON_TAURUS_SAVE_RAW_IMAGES ) {
+	if ( rt_flags & MXF_RADICON_TAURUS_SAVE_RAW_IMAGES ) {
 
 		mx_status = mxp_radicon_taurus_save_raw_image( ad,
 							radicon_taurus );
