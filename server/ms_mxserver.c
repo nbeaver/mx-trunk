@@ -3585,6 +3585,7 @@ mxsrv_handle_get_field_type( MX_RECORD *record_list,
 	char location[ sizeof(fname) + 40 ];
 	uint32_t *send_buffer_header, *send_buffer_message;
 	uint32_t i, send_buffer_header_length, send_buffer_message_length;
+	long dimension_size;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 1,("%s for %p, message_length = %lu",
@@ -3674,12 +3675,27 @@ mxsrv_handle_get_field_type( MX_RECORD *record_list,
 
 		fprintf( stderr,
 			"MX (socket %d) GET_FIELD_TYPE('%s.%s') = "
-			"( 'datatype' = %lu, 'num_dimensions' = %lu )\n",
+			"( 'datatype' = %lu, 'num_dimensions' = %lu,"
+			" dimension = <",
 			(int) socket_handler->synchronous_socket->socket_fd,
 			field->record->name,
 			field->name,
 			field->datatype,
 			field->num_dimensions );
+
+
+		for ( i = 0; i < field->num_dimensions; i++ ) {
+			dimension_size = (long)
+				mx_ntohl( send_buffer_message[i+2] );
+
+			if ( i == 0 ) {
+				fprintf( stderr, "%ld", dimension_size );
+			} else {
+				fprintf( stderr, ", %ld", dimension_size );
+			}
+		}
+
+		fprintf( stderr, ">\n" );
 	}
 
 	/* Send the field type information back to the client. */
