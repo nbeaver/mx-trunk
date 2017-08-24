@@ -8,7 +8,8 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2005-2006, 2008, 2010, 2013, 2016 Illinois Institute of Technology
+ * Copyright 2005-2006, 2008, 2010, 2013, 2016-2017
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,6 +27,13 @@
 #include "mx_array.h"
 #include "mx_net.h"
 #include "n_tcpip.h"
+
+/* NOTE: Among other things, the following value of MXU_SC_MAX_DIMENSIONS
+ * will limit the maximum number of dimensions that can be used by the
+ * command line programs 'mxget' and 'mxput'.
+ */
+
+#define MXU_SC_MAX_DIMENSIONS		64
 
 MX_EXPORT mx_status_type
 mx_connect_to_mx_server( MX_RECORD **server_record,
@@ -306,12 +314,12 @@ mx_create_network_field( MX_NETWORK_FIELD **nf,
 	 * returning from mx_create_network_field().
 	 */
 
-	dimension_array = malloc( MXU_FIELD_MAX_DIMENSIONS * sizeof(long) );
+	dimension_array = malloc( MXU_SC_MAX_DIMENSIONS * sizeof(long) );
 
 	if ( dimension_array == (long *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 			"Unable to allocate memory for an %d element "
-			"dimension array.", MXU_FIELD_MAX_DIMENSIONS );
+			"dimension array.", MXU_SC_MAX_DIMENSIONS );
 	}
 
 	/* Find out the dimensions of the remote network field. */
@@ -319,8 +327,10 @@ mx_create_network_field( MX_NETWORK_FIELD **nf,
 	/* FIXME! - This should be done using a network field handle. */
 
 	mx_status = mx_get_field_type( server_record, record_field_name,
-					1L, &datatype, &num_dimensions,
-					dimension_array );
+					MXU_SC_MAX_DIMENSIONS,
+					&datatype, &num_dimensions,
+					dimension_array,
+					MXF_GFT_SHOW_STACK_TRACEBACK );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

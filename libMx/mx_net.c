@@ -471,7 +471,7 @@ mx_network_server_discover_header_length( MX_RECORD *server_record )
 
 	mx_status = mx_get_field_type( server_record,
 				"mx_database.list_is_active", 0, &datatype,
-				&num_dimensions, dimension_array );
+				&num_dimensions, dimension_array, 0x0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -4638,7 +4638,8 @@ mx_get_field_type( MX_RECORD *server_record,
 			long max_dimensions,
 			long *datatype,
 			long *num_dimensions,
-			long *dimension_array )
+			long *dimension_array,
+			unsigned long debug_flags )
 {
 	static const char fname[] = "mx_get_field_type()";
 
@@ -4812,6 +4813,29 @@ mx_get_field_type( MX_RECORD *server_record,
 "Incomplete dimension array received.  %ld dimension values were received, "
 "but %ld dimension values were expected.",
 			(long) (message_length - 2), *num_dimensions );
+	}
+	if ( *num_dimensions > max_dimensions ) {
+		unsigned long mx_status_code;
+
+		if ( debug_flags & MXF_GFT_OVERDIM_QUIET ) {
+			mx_status_code = MXE_LIMIT_WAS_EXCEEDED | MXE_QUIET;
+		} else {
+			mx_status_code = MXE_LIMIT_WAS_EXCEEDED;
+		}
+
+		mx_status = mx_error( mx_status_code, fname,
+		"The calling function for network field '%s' requested a "
+		"maximum number of dimensions (%ld) which is smaller than "
+		"the actual number of dimensions (%ld) returned "
+		"by MX server '%s'.", remote_record_field_name,
+				max_dimensions, *num_dimensions,
+				server_record->name );
+
+		if ( debug_flags & MXF_GFT_SHOW_STACK_TRACEBACK ) {
+			mx_stack_traceback();
+		}
+
+		return mx_status;
 	}
 	if ( *num_dimensions < max_dimensions ) {
 		max_dimensions = *num_dimensions;

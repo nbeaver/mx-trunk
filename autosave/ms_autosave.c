@@ -807,7 +807,7 @@ msauto_add_mx_variable_to_database( MX_RECORD *record_list,
 			MXU_FIELD_MAX_DIMENSIONS,
 			&datatype,
 			&num_dimensions,
-			dimension_array );
+			dimension_array, 0x0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

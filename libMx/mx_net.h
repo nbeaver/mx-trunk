@@ -523,12 +523,28 @@ MX_API mx_status_type mx_put_field_array( MX_RECORD *server_record,
 			MX_RECORD_FIELD *local_field,
 			void *value_ptr );
 
+/* Flag bits for mx_get_field_type(). 
+ *
+ * MXF_GFT_OVERDIM_QUIET means suppress the display of the error message
+ *                       that would otherwise occur if max_dimensions
+ *                       turned out to be smaller than the actual dimensions
+ *                       so that the caller can transparently dynamically
+ *                       resize the array 'dimension_array'.
+ *
+ * MXFT_GFT_SHOW_STACK_TRACEBACK displays the stack traceback if the above
+ *                       error occurs.
+ */
+
+#define MXF_GFT_OVERDIM_QUIET		0x1
+#define MXF_GFT_SHOW_STACK_TRACEBACK	0x2
+
 MX_API mx_status_type mx_get_field_type( MX_RECORD *server_record,
 			char *remote_record_field_name,
 			long max_dimensions,
 			long *datatype,
 			long *num_dimensions,
-			long *dimension_array );
+			long *dimension_array,
+	       		unsigned long debug_flags );
 
 MX_API mx_status_type mx_set_client_info( MX_RECORD *server_record,
 			const char *username,
