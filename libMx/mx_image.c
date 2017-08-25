@@ -582,7 +582,6 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 	static const char fname[] = "mx_image_alloc()";
 
 	char *ptr = NULL;
-	void *image_frame_2d_array = NULL;
 	mx_bool_type replace_2d_array = FALSE;
 	unsigned long bytes_per_frame, additional_length;
 	double bytes_per_frame_as_double;
