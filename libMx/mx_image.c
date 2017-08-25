@@ -581,10 +581,16 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 {
 	static const char fname[] = "mx_image_alloc()";
 
-	char *ptr;
+	char *ptr = NULL;
+	void *image_frame_2d_array = NULL;
+	mx_bool_type replace_2d_array = FALSE;
 	unsigned long bytes_per_frame, additional_length;
 	double bytes_per_frame_as_double;
 	time_t timestamp;
+	long dimension_array[2];
+	size_t *sizeof_array = NULL;
+	long mx_datatype;
+	mx_status_type mx_status;
 
 	if ( frame == (MX_IMAGE_FRAME **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -624,6 +630,8 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 		}
 
 		memset( *frame, 0, sizeof(MX_IMAGE_FRAME) );
+
+		replace_2d_array = TRUE;
 	}
 
 	/* Make sure the requested header length is long enough to hold
@@ -775,6 +783,8 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 
 		(*frame)->image_length = bytes_per_frame;
 		(*frame)->allocated_image_length = bytes_per_frame;
+
+		replace_2d_array = TRUE;
 	} else
 	if ( (*frame)->allocated_image_length >= bytes_per_frame ) {
 
@@ -784,6 +794,23 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 #endif
 		(*frame)->image_length = bytes_per_frame;
 	} else {
+
+		/* If present, delete an existing image_frame_2d_array. */
+
+		if ( (*frame)->image_frame_2d_array != NULL ) {
+			mx_status = mx_array_free_overlay(
+					(*frame)->image_frame_2d_array );
+
+			/* If something went wrong in mx_array_free_overlay(),
+			 * then the following line may result in a memory leak.
+			 * However, it is more important to make sure that
+			 * this version of image_frame_2d_array will never
+			 * be used again, since it will be invalid for
+			 * multiple_reasons.
+			 */
+
+			(*frame)->image_frame_2d_array = NULL;
+		}
 
 #if MX_IMAGE_DEBUG
 		MX_DEBUG(-2,("%s: Resizing the image buffer %p to %lu bytes.",
@@ -808,6 +835,8 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 
 		(*frame)->image_length = bytes_per_frame;
 		(*frame)->allocated_image_length = bytes_per_frame;
+
+		replace_2d_array = TRUE;
 	}
 
 	/* Fill in some parameters. */
@@ -858,6 +887,31 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 		fname, (long) (*frame)->image_length,
 		(long) (*frame)->allocated_image_length));
 #endif
+
+#if 0
+	replace_2d_array = FALSE;
+#endif
+
+	/* If needed, create a new 2-d overlay array for this image frame. */
+
+	if ( replace_2d_array ) {
+		mx_datatype = 
+		    mx_image_get_mx_datatype_from_image_format( image_format );
+
+		dimension_array[0] = column_framesize;
+		dimension_array[1] = row_framesize;
+
+		mx_status = mx_get_datatype_sizeof_array( mx_datatype,
+							&sizeof_array );
+
+		mx_status = mx_array_add_overlay( (*frame)->image_data,
+				mx_datatype, 2, dimension_array, sizeof_array,
+				&( (*frame)->image_frame_2d_array ) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
 	/* Save pointers to dictionary and record structures. */
 
 	(*frame)->dictionary = dictionary;
@@ -2626,8 +2680,8 @@ mx_image_dezinger( MX_IMAGE_FRAME **dezingered_frame,
 static mx_status_type
 mxp_image_fix_u16_horizontal( uint16_t **uint16_array,
 				long start_row,
-				long end_row,
 				long start_column,
+				long end_row,
 				long end_column,
 				mx_bool_type touches_upper_edge,
 				mx_bool_type touches_lower_edge )
@@ -2748,24 +2802,20 @@ mxp_image_fix_u16_horizontal( uint16_t **uint16_array,
  */
 
 MX_EXPORT mx_status_type
-mx_image_array_fix_region( void *image_array,
+mx_image_fix_region( MX_IMAGE_FRAME *image_frame,
 			long type_of_fix,
 			long start_row,
-			long end_row,
 			long start_column,
+			long end_row,
 			long end_column )
 {
-	static const char fname[] = "mx_image_array_fix_region()";
+	static const char fname[] = "mx_image_fix_region()";
 
-	uint32_t *image_array_header = NULL;
-	uint32_t header_magic, header_length, mx_datatype, num_dimensions;
+	uint32_t mx_image_format;
 	uint32_t row_framesize, column_framesize;
-	char image_format_name[20];
 	mx_bool_type touches_upper_edge, touches_lower_edge;
 	mx_bool_type touches_left_edge, touches_right_edge;
 	mx_status_type mx_status;
-
-	mx_breakpoint();
 
 	switch( type_of_fix ) {
 	case MXF_IMAGE_FIX_HORIZONTAL:
@@ -2780,70 +2830,21 @@ mx_image_array_fix_region( void *image_array,
 		break;
 	}
 
-	if ( image_array == (void *) NULL ) {
+	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The image_array pointer passed was NULL." );
+		"The image_frame pointer passed was NULL." );
 	}
 
-	/* Check to see if this is a valid MX-style array by looking
-	 * for the header 'magic' value in the supposed array header
-	 * at an offset of -1 (MX_ARRAY_HEADER_MAGIC).
-	 *
-	 * WARNING: If this is _not_ really an MX-style array, then
-	 * attempting to access the [-1] element of the array may
-	 * cause a segmentation fault, a stack fault, a heap fault,
-	 * the end of the universe, or many other bad things.
-	 *
-	 * If MX has crashed with a stack traceback that pointed you here,
-	 * then the image_array pointer probably does not point at an
-	 * MX-style array that was allocated with mx_allocate_array()
-	 * or mx_array_add_overlay() or some such.
-	 *
-	 * Theoretically, this potential crash could be avoided using
-	 * something like mx_pointer_is_valid() which calls the function
-	 * mx_vm_get_protection().  However, for most MX build targets,
-	 * the mx_vm_get_protection() function can be a _very_ expensive
-	 * call since it invokes things like VirtualQuery().  Typically,
-	 * mx_image_array_fix_region() will be invoked from within 
-	 * image processing code that has to run really fast, which
-	 * rules out the use of slow functions.
-	 */
-
-	image_array_header = (uint32_t *) image_array;
-
-	header_magic = image_array_header[ MX_ARRAY_OFFSET_MAGIC ];
-
-	if ( header_magic != MX_ARRAY_HEADER_MAGIC ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"The image_array pointer %p points to memory that was _not_ "
-		"allocated using MX array functions like mx_allocate_array(), "
-		"mx_array_add_overlay(), and so forth.  This is _not_ "
-		"supported.", image_array );
-
+	if ( image_frame->image_frame_2d_array == (void *) NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The image_frame_2d_array pointer is NULL for "
+		"image_frame %p.  Normally this pointer would be "
+		"initialized by mx_image_alloc().", image_frame );
 	}
 
-	header_length  = image_array_header[ MX_ARRAY_OFFSET_HEADER_LENGTH ];
-	mx_datatype    = image_array_header[ MX_ARRAY_OFFSET_MX_DATATYPE ];
-	num_dimensions = image_array_header[ MX_ARRAY_OFFSET_NUM_DIMENSIONS ];
-
-	mx_status = mx_image_get_image_format_name_from_type(
-						mx_datatype,
-						image_format_name,
-						sizeof(image_format_name) );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	if ( num_dimensions != 2 ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"A %lu-dimensional array was passed to this function, "
-		"but only 2-dimensional array are supported here.",
-			(unsigned long) num_dimensions );
-	}
-
-	row_framesize = image_array_header[ MX_ARRAY_OFFSET_DIMENSION_ARRAY ];
-	column_framesize =
-		image_array_header[ MX_ARRAY_OFFSET_DIMENSION_ARRAY - 1 ];
+	mx_image_format  = MXIF_IMAGE_FORMAT( image_frame );
+	row_framesize    = MXIF_ROW_FRAMESIZE( image_frame );
+	column_framesize = MXIF_COLUMN_FRAMESIZE( image_frame );
 
 	touches_upper_edge = FALSE;
 	touches_lower_edge = FALSE;
@@ -2854,55 +2855,55 @@ mx_image_array_fix_region( void *image_array,
 		start_row = 0;
 		touches_upper_edge = TRUE;
 	}
-	if ( end_row >= row_framesize ) {
-		end_row = row_framesize - 1;
+	if ( end_row >= column_framesize ) {
+		end_row = column_framesize - 1;
 		touches_lower_edge = TRUE;
 	}
 	if ( start_column <= 0 ) {
 		start_column = 0;
 		touches_left_edge = TRUE;
 	}
-	if ( end_column >= column_framesize ) {
-		end_column = column_framesize - 1;
+	if ( end_column >= row_framesize ) {
+		end_column = row_framesize - 1;
 		touches_right_edge = TRUE;
 	}
 
 	if ( end_row < start_row ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"For image array %p, the end_row (%ld) of the fix region "
+		"For MX_IMAGE_FRAME %p, the end_row (%ld) of the fix region "
 		"appears before the start row (%ld).",
-			image_array, end_row, start_row );
+			image_frame, end_row, start_row );
 	}
 	if ( end_column < start_column ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"For image array %p, the end_column (%ld) of the fix region "
+		"For MX_IMAGE_FRAME %p, the end_column (%ld) of the fix region "
 		"appears before the start column (%ld).",
-			image_array, end_column, start_column );
+			image_frame, end_column, start_column );
 	}
 
 	switch( type_of_fix ) {
 	case MXF_IMAGE_FIX_HORIZONTAL:
-		switch( mx_datatype ) {
+		switch( mx_image_format ) {
 		case MXT_IMAGE_FORMAT_GREY8:
 		case MXT_IMAGE_FORMAT_GREY32:
 		case MXT_IMAGE_FORMAT_FLOAT:
 		case MXT_IMAGE_FORMAT_DOUBLE:
 			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"Support for image format type '%s' is not yet implemented.",
-				image_format_name );
+		"Support for image format type (%lu) is not yet implemented.",
+				(unsigned long) mx_image_format );
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
-			"Image format '%s' is not supported.",
-			image_format_name );
+			"Image format (%lu) is not supported.",
+			(unsigned long) mx_image_format );
 			break;
 
 		case MXT_IMAGE_FORMAT_GREY16:
 			mx_status = mxp_image_fix_u16_horizontal(
-						image_array,
-						start_row, end_row,
-						start_column, end_column,
-						touches_upper_edge,
-						touches_lower_edge );
+					image_frame->image_frame_2d_array,
+					start_row, start_column,
+					end_row, end_column,
+					touches_upper_edge,
+					touches_lower_edge );
 
 			break;
 		}
@@ -2923,21 +2924,21 @@ mx_image_array_fix_region( void *image_array,
 /*----*/
 
 MX_EXPORT mx_status_type
-mx_image_array_fix_multiple_regions( void *image_array,
+mx_image_fix_multiple_regions( MX_IMAGE_FRAME *image_frame,
 				long num_regions,
 				long **region_array )
 {
-	static const char fname[] = "mx_image_array_fix_multiple_regions()";
+	static const char fname[] = "mx_image_fix_multiple_regions()";
 
 	long *region;
 	long i;
 	mx_status_type mx_status;
 
-	if ( image_array == (void *) NULL ) {
+	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The image_array pointer passed was NULL." );
+		"The MX_IMAGE_FRAME pointer passed was NULL." );
 	}
-	if ( region_array == (long **) region_array ) {
+	if ( region_array == (long **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The region_array pointer passed was NULL." );
 	}
@@ -2950,7 +2951,7 @@ mx_image_array_fix_multiple_regions( void *image_array,
 			"Region %ld for image_array is NULL.", i );
 		}
 
-		mx_status = mx_image_array_fix_region( image_array,
+		mx_status = mx_image_fix_region( image_frame,
 			region[0], region[1], region[2], region[3], region[4] );
 
 		if ( mx_status.code != MXE_SUCCESS )

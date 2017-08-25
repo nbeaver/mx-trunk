@@ -3889,8 +3889,8 @@ mx_area_detector_readout_frame( MX_RECORD *record, long frame_number )
 #if MX_AREA_DETECTOR_DEBUG_FIX_REGION_TIMING
 			MX_HRT_START(fix_region_timing);
 #endif
-			mx_status = mx_image_array_fix_multiple_regions(
-					ad->image_frame->image_data,
+			mx_status = mx_image_fix_multiple_regions(
+					ad->image_frame,
 					ad->num_fix_regions,
 					ad->fix_region_array );
 
@@ -4044,18 +4044,6 @@ mx_area_detector_transfer_frame( MX_RECORD *record,
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
 	mx_status_type ( *transfer_frame_fn ) ( MX_AREA_DETECTOR * );
 	mx_status_type mx_status;
-
-#if 0
-	MX_LIST_HEAD *list_head;
-
-	/* If we are running in an MX server, then trigger a breakpoint here. */
-
-	list_head = mx_get_record_list_head_struct( record );
-
-	if ( list_head->is_server ) {
-		mx_breakpoint();
-	}
-#endif
 
 	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
 

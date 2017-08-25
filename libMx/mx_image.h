@@ -185,6 +185,14 @@ extern "C" {
 
 /*----*/
 
+/* image_frame_2d_array below is a 2-dimensional overlay onto the
+ * 1-dimensional image_data array.  This is to make it easier for code
+ * that wants to use 2-dimensional [x,y] coordinates rather than the
+ * raw 1-dimensional image buffer.  It is expected that the array
+ * image_frame_2d_array is an overlay array created by the function
+ * mx_array_add_overlay() within the mx_image_alloc() function.
+ */
+
 typedef struct {
 	size_t allocated_header_length;
 	size_t allocated_image_length;
@@ -194,6 +202,8 @@ typedef struct {
 
 	size_t image_length;
 	void *image_data;
+
+	void *image_frame_2d_array;
 
 	MX_DICTIONARY *dictionary;
 	MX_RECORD *record;
@@ -385,16 +395,16 @@ MX_API mx_status_type mx_image_dezinger( MX_IMAGE_FRAME **dezingered_frame,
 
 /*----*/
 
-MX_API mx_status_type mx_image_array_fix_region( void *image_array,
-					long type_of_fix,
-					long start_row,
-					long end_row,
-					long start_column,
-					long end_column );
+MX_API mx_status_type mx_image_fix_region( MX_IMAGE_FRAME *frame,
+						long type_of_fix,
+						long start_row,
+						long start_column,
+						long end_row,
+						long end_column );
 
-MX_API mx_status_type mx_image_array_fix_multiple_regions( void *image_array,
-							long num_regions,
-							long **region_array );
+MX_API mx_status_type mx_image_fix_multiple_regions( MX_IMAGE_FRAME *frame,
+						long num_regions,
+						long **region_array );
 
 /*----*/
 
