@@ -262,6 +262,7 @@ extern "C" {
 #define MXI_CTRL_NEWPORT_XPS		464
 #define MXI_CTRL_WTI_NPS		465
 #define MXI_CTRL_DG645			466
+#define MXI_CTRL_AMPTEK_DP5		467
 
 #define MXI_PIO_PORTIO			600
 #define MXI_PIO_DOS			601
@@ -638,6 +639,7 @@ extern "C" {
 
 #define MXT_MCA_ROENTEC_RCL		110005
 #define MXT_MCA_MONTE_CARLO		110006
+#define MXT_MCA_AMPTEK_DP5		110007
 
 /* --- Multichannel encoder types --- */
 
