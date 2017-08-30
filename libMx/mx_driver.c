@@ -195,6 +195,7 @@
 #include "i_linkam_t9x.h"
 #include "i_sim900.h"
 #include "i_dg645.h"
+#include "i_amptek_dp5.h"
 
 #include "d_ks3512.h"
 #include "d_ks3112.h"
@@ -415,6 +416,7 @@
 #include "d_network_mca.h"
 #include "d_roentec_rcl_mca.h"
 #include "d_monte_carlo_mca.h"
+#include "d_amptek_dp5_mca.h"
 
 #include "d_sis3801.h"
 #include "d_sis3820.h"
@@ -1092,6 +1094,13 @@ MX_DRIVER mx_type_table[] = {
 				NULL,
 				&mxi_dg645_num_record_fields,
 				&mxi_dg645_rfield_def_ptr},
+
+{"amptek_dp5",    MXI_CTRL_AMPTEK_DP5,   MXI_CONTROLLER,    MXR_INTERFACE,
+				&mxi_amptek_dp5_record_function_list,
+				NULL,
+				NULL,
+				&mxi_amptek_dp5_num_record_fields,
+				&mxi_amptek_dp5_rfield_def_ptr},
 
 #if ( defined(OS_LINUX) && (MX_GLIBC_VERSION >= 2002000L) )
 
@@ -2971,6 +2980,13 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_roentec_rcl_mca_function_list,
 				&mxd_roentec_rcl_num_record_fields,
 				&mxd_roentec_rcl_rfield_def_ptr},
+
+{"amptek_dp5_mca", MXT_MCA_AMPTEK_DP5,   MXC_MULTICHANNEL_ANALYZER, MXR_DEVICE,
+				&mxd_amptek_dp5_mca_record_function_list,
+				NULL,
+				&mxd_amptek_dp5_mca_mca_function_list,
+				&mxd_amptek_dp5_mca_num_record_fields,
+				&mxd_amptek_dp5_mca_rfield_def_ptr},
 
 
 {"soft_mcs",       MXT_MCS_SOFTWARE,  MXC_MULTICHANNEL_SCALER, MXR_DEVICE,

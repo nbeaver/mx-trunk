@@ -38,54 +38,54 @@
 
 /* Initialize the MCA driver jump table. */
 
-MX_RECORD_FUNCTION_LIST mxd_amptek_dp5_record_function_list = {
-	mxd_amptek_dp5_initialize_driver,
-	mxd_amptek_dp5_create_record_structures,
+MX_RECORD_FUNCTION_LIST mxd_amptek_dp5_mca_record_function_list = {
+	mxd_amptek_dp5_mca_initialize_driver,
+	mxd_amptek_dp5_mca_create_record_structures,
 	mx_mca_finish_record_initialization,
 	NULL,
 	NULL,
-	mxd_amptek_dp5_open,
+	mxd_amptek_dp5_mca_open,
 	NULL,
 	NULL,
 	NULL,
-	mxd_amptek_dp5_special_processing_setup
+	mxd_amptek_dp5_mca_special_processing_setup
 };
 
-MX_MCA_FUNCTION_LIST mxd_amptek_dp5_mca_function_list = {
-	mxd_amptek_dp5_start,
-	mxd_amptek_dp5_stop,
-	mxd_amptek_dp5_read,
-	mxd_amptek_dp5_clear,
-	mxd_amptek_dp5_busy,
-	mxd_amptek_dp5_get_parameter,
-	mxd_amptek_dp5_set_parameter,
+MX_MCA_FUNCTION_LIST mxd_amptek_dp5_mca_mca_function_list = {
+	mxd_amptek_dp5_mca_start,
+	mxd_amptek_dp5_mca_stop,
+	mxd_amptek_dp5_mca_read,
+	mxd_amptek_dp5_mca_clear,
+	mxd_amptek_dp5_mca_busy,
+	mxd_amptek_dp5_mca_get_parameter,
+	mxd_amptek_dp5_mca_set_parameter,
 };
 
-MX_RECORD_FIELD_DEFAULTS mxd_amptek_dp5_record_field_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxd_amptek_dp5_mca_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_MCA_STANDARD_FIELDS,
 	MXD_AMPTEK_DP5_STANDARD_FIELDS,
 };
 
-long mxd_amptek_dp5_num_record_fields
-		= sizeof( mxd_amptek_dp5_record_field_defaults )
-		  / sizeof( mxd_amptek_dp5_record_field_defaults[0] );
+long mxd_amptek_dp5_mca_num_record_fields
+		= sizeof( mxd_amptek_dp5_mca_record_field_defaults )
+		  / sizeof( mxd_amptek_dp5_mca_record_field_defaults[0] );
 
-MX_RECORD_FIELD_DEFAULTS *mxd_amptek_dp5_rfield_def_ptr
-			= &mxd_amptek_dp5_record_field_defaults[0];
+MX_RECORD_FIELD_DEFAULTS *mxd_amptek_dp5_mca_rfield_def_ptr
+			= &mxd_amptek_dp5_mca_record_field_defaults[0];
 
-static mx_status_type mxd_amptek_dp5_process_function( void *record_ptr,
+static mx_status_type mxd_amptek_dp5_mca_process_function( void *record_ptr,
 						void *record_field_ptr,
 						int operation );
 
 /* Private functions for the use of the driver. */
 
 static mx_status_type
-mxd_amptek_dp5_get_pointers( MX_MCA *mca,
+mxd_amptek_dp5_mca_get_pointers( MX_MCA *mca,
 			MX_AMPTEK_DP5_MCA **amptek_dp5_mca,
 			const char *calling_fname )
 {
-	static const char fname[] = "mxd_amptek_dp5_get_pointers()";
+	static const char fname[] = "mxd_amptek_dp5_mca_get_pointers()";
 
 	if ( mca == (MX_MCA *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -112,7 +112,7 @@ mxd_amptek_dp5_get_pointers( MX_MCA *mca,
 /* === */
 
 MX_EXPORT mx_status_type
-mxd_amptek_dp5_initialize_driver( MX_DRIVER *driver )
+mxd_amptek_dp5_mca_initialize_driver( MX_DRIVER *driver )
 {
 	long maximum_num_channels_varargs_cookie;
 	long maximum_num_rois_varargs_cookie;
@@ -129,10 +129,10 @@ mxd_amptek_dp5_initialize_driver( MX_DRIVER *driver )
 
 
 MX_EXPORT mx_status_type
-mxd_amptek_dp5_create_record_structures( MX_RECORD *record )
+mxd_amptek_dp5_mca_create_record_structures( MX_RECORD *record )
 {
 	static const char fname[] =
-			"mxd_amptek_dp5_create_record_structures()";
+			"mxd_amptek_dp5_mca_create_record_structures()";
 
 	MX_MCA *mca;
 	MX_AMPTEK_DP5_MCA *amptek_dp5_mca;
@@ -159,7 +159,7 @@ mxd_amptek_dp5_create_record_structures( MX_RECORD *record )
 	record->record_class_struct = mca;
 	record->record_type_struct = amptek_dp5_mca;
 	record->class_specific_function_list =
-				&mxd_amptek_dp5_mca_function_list;
+				&mxd_amptek_dp5_mca_mca_function_list;
 
 	mca->record = record;
 	amptek_dp5_mca->record = record;
@@ -168,9 +168,9 @@ mxd_amptek_dp5_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_amptek_dp5_open( MX_RECORD *record )
+mxd_amptek_dp5_mca_open( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_amptek_dp5_open()";
+	static const char fname[] = "mxd_amptek_dp5_mca_open()";
 
 	MX_MCA *mca = NULL;
 	MX_AMPTEK_DP5_MCA *amptek_dp5_mca = NULL;
@@ -183,7 +183,7 @@ mxd_amptek_dp5_open( MX_RECORD *record )
 
 	mca = (MX_MCA *) record->record_class_struct;
 
-	mx_status = mxd_amptek_dp5_get_pointers( mca, &amptek_dp5_mca, fname );
+	mx_status = mxd_amptek_dp5_mca_get_pointers( mca, &amptek_dp5_mca, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -192,7 +192,7 @@ mxd_amptek_dp5_open( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_amptek_dp5_special_processing_setup( MX_RECORD *record )
+mxd_amptek_dp5_mca_special_processing_setup( MX_RECORD *record )
 {
 	MX_RECORD_FIELD *record_field;
 	MX_RECORD_FIELD *record_field_array;
@@ -207,7 +207,7 @@ mxd_amptek_dp5_special_processing_setup( MX_RECORD *record )
 		switch( record_field->label_value ) {
 		case 0:
 			record_field->process_function
-					    = mxd_amptek_dp5_process_function;
+					    = mxd_amptek_dp5_mca_process_function;
 			break;
 		default:
 			break;
@@ -217,14 +217,14 @@ mxd_amptek_dp5_special_processing_setup( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_amptek_dp5_start( MX_MCA *mca )
+mxd_amptek_dp5_mca_start( MX_MCA *mca )
 {
-	static const char fname[] = "mxd_amptek_dp5_start()";
+	static const char fname[] = "mxd_amptek_dp5_mca_start()";
 
 	MX_AMPTEK_DP5_MCA *amptek_dp5_mca = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_amptek_dp5_get_pointers( mca, &amptek_dp5_mca, fname );
+	mx_status = mxd_amptek_dp5_mca_get_pointers( mca, &amptek_dp5_mca, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -233,14 +233,14 @@ mxd_amptek_dp5_start( MX_MCA *mca )
 }
 
 MX_EXPORT mx_status_type
-mxd_amptek_dp5_stop( MX_MCA *mca )
+mxd_amptek_dp5_mca_stop( MX_MCA *mca )
 {
-	static const char fname[] = "mxd_amptek_dp5_stop()";
+	static const char fname[] = "mxd_amptek_dp5_mca_stop()";
 
 	MX_AMPTEK_DP5_MCA *amptek_dp5_mca = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_amptek_dp5_get_pointers( mca, &amptek_dp5_mca, fname );
+	mx_status = mxd_amptek_dp5_mca_get_pointers( mca, &amptek_dp5_mca, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -249,14 +249,14 @@ mxd_amptek_dp5_stop( MX_MCA *mca )
 }
 
 MX_EXPORT mx_status_type
-mxd_amptek_dp5_read( MX_MCA *mca )
+mxd_amptek_dp5_mca_read( MX_MCA *mca )
 {
-	static const char fname[] = "mxd_amptek_dp5_read()";
+	static const char fname[] = "mxd_amptek_dp5_mca_read()";
 
 	MX_AMPTEK_DP5_MCA *amptek_dp5_mca = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_amptek_dp5_get_pointers( mca, &amptek_dp5_mca, fname );
+	mx_status = mxd_amptek_dp5_mca_get_pointers( mca, &amptek_dp5_mca, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -265,14 +265,14 @@ mxd_amptek_dp5_read( MX_MCA *mca )
 }
 
 MX_EXPORT mx_status_type
-mxd_amptek_dp5_clear( MX_MCA *mca )
+mxd_amptek_dp5_mca_clear( MX_MCA *mca )
 {
-	static const char fname[] = "mxd_amptek_dp5_clear()";
+	static const char fname[] = "mxd_amptek_dp5_mca_clear()";
 
 	MX_AMPTEK_DP5_MCA *amptek_dp5_mca = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_amptek_dp5_get_pointers( mca, &amptek_dp5_mca, fname );
+	mx_status = mxd_amptek_dp5_mca_get_pointers( mca, &amptek_dp5_mca, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -281,14 +281,14 @@ mxd_amptek_dp5_clear( MX_MCA *mca )
 }
 
 MX_EXPORT mx_status_type
-mxd_amptek_dp5_busy( MX_MCA *mca )
+mxd_amptek_dp5_mca_busy( MX_MCA *mca )
 {
-	static const char fname[] = "mxd_amptek_dp5_busy()";
+	static const char fname[] = "mxd_amptek_dp5_mca_busy()";
 
 	MX_AMPTEK_DP5_MCA *amptek_dp5_mca = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_amptek_dp5_get_pointers( mca, &amptek_dp5_mca, fname );
+	mx_status = mxd_amptek_dp5_mca_get_pointers( mca, &amptek_dp5_mca, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -297,14 +297,14 @@ mxd_amptek_dp5_busy( MX_MCA *mca )
 }
 
 MX_EXPORT mx_status_type
-mxd_amptek_dp5_get_parameter( MX_MCA *mca )
+mxd_amptek_dp5_mca_get_parameter( MX_MCA *mca )
 {
-	static const char fname[] = "mxd_amptek_dp5_get_parameter()";
+	static const char fname[] = "mxd_amptek_dp5_mca_get_parameter()";
 
 	MX_AMPTEK_DP5_MCA *amptek_dp5_mca = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_amptek_dp5_get_pointers(mca, &amptek_dp5_mca, fname);
+	mx_status = mxd_amptek_dp5_mca_get_pointers(mca, &amptek_dp5_mca, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -338,14 +338,14 @@ mxd_amptek_dp5_get_parameter( MX_MCA *mca )
 }
 
 MX_EXPORT mx_status_type
-mxd_amptek_dp5_set_parameter( MX_MCA *mca )
+mxd_amptek_dp5_mca_set_parameter( MX_MCA *mca )
 {
-	static const char fname[] = "mxd_amptek_dp5_set_parameter()";
+	static const char fname[] = "mxd_amptek_dp5_mca_set_parameter()";
 
 	MX_AMPTEK_DP5_MCA *amptek_dp5_mca = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_amptek_dp5_get_pointers( mca, &amptek_dp5_mca, fname );
+	mx_status = mxd_amptek_dp5_mca_get_pointers( mca, &amptek_dp5_mca, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -369,10 +369,10 @@ mxd_amptek_dp5_set_parameter( MX_MCA *mca )
 /*-------------------------------------------------------------------------*/
 
 static mx_status_type
-mxd_amptek_dp5_process_function( void *record_ptr,
+mxd_amptek_dp5_mca_process_function( void *record_ptr,
 			void *record_field_ptr, int operation )
 {
-	static const char fname[] = "mxd_amptek_dp5_process_function()";
+	static const char fname[] = "mxd_amptek_dp5_mca_process_function()";
 
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;

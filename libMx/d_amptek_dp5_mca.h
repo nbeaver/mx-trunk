@@ -32,25 +32,25 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof( MX_AMPTEK_DP5_MCA, amptek_dp5_record ), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
-MX_API mx_status_type mxd_amptek_dp5_initialize_driver( MX_DRIVER *driver );
-MX_API mx_status_type mxd_amptek_dp5_create_record_structures(
+MX_API mx_status_type mxd_amptek_dp5_mca_initialize_driver( MX_DRIVER *driver );
+MX_API mx_status_type mxd_amptek_dp5_mca_create_record_structures(
 							MX_RECORD *record );
-MX_API mx_status_type mxd_amptek_dp5_open( MX_RECORD *record );
-MX_API mx_status_type mxd_amptek_dp5_special_processing_setup(
+MX_API mx_status_type mxd_amptek_dp5_mca_open( MX_RECORD *record );
+MX_API mx_status_type mxd_amptek_dp5_mca_special_processing_setup(
 							MX_RECORD *record );
 
-MX_API mx_status_type mxd_amptek_dp5_start( MX_MCA *mca );
-MX_API mx_status_type mxd_amptek_dp5_stop( MX_MCA *mca );
-MX_API mx_status_type mxd_amptek_dp5_read( MX_MCA *mca );
-MX_API mx_status_type mxd_amptek_dp5_clear( MX_MCA *mca );
-MX_API mx_status_type mxd_amptek_dp5_busy( MX_MCA *mca );
-MX_API mx_status_type mxd_amptek_dp5_get_parameter( MX_MCA *mca );
-MX_API mx_status_type mxd_amptek_dp5_set_parameter( MX_MCA *mca );
+MX_API mx_status_type mxd_amptek_dp5_mca_start( MX_MCA *mca );
+MX_API mx_status_type mxd_amptek_dp5_mca_stop( MX_MCA *mca );
+MX_API mx_status_type mxd_amptek_dp5_mca_read( MX_MCA *mca );
+MX_API mx_status_type mxd_amptek_dp5_mca_clear( MX_MCA *mca );
+MX_API mx_status_type mxd_amptek_dp5_mca_busy( MX_MCA *mca );
+MX_API mx_status_type mxd_amptek_dp5_mca_get_parameter( MX_MCA *mca );
+MX_API mx_status_type mxd_amptek_dp5_mca_set_parameter( MX_MCA *mca );
 
-extern MX_RECORD_FUNCTION_LIST mxd_amptek_dp5_record_function_list;
-extern MX_MCA_FUNCTION_LIST mxd_amptek_dp5_mca_function_list;
+extern MX_RECORD_FUNCTION_LIST mxd_amptek_dp5_mca_record_function_list;
+extern MX_MCA_FUNCTION_LIST mxd_amptek_dp5_mca_mca_function_list;
 
-extern long mxd_amptek_dp5_num_record_fields;
-extern MX_RECORD_FIELD_DEFAULTS *mxd_amptek_dp5_rfield_def_ptr;
+extern long mxd_amptek_dp5_mca_num_record_fields;
+extern MX_RECORD_FIELD_DEFAULTS *mxd_amptek_dp5_mca_rfield_def_ptr;
 
 #endif /* __D_AMPTEK_DP5_MCA_H__ */
