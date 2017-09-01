@@ -642,7 +642,92 @@ mxi_amptek_dp5_raw_command( MX_AMPTEK_DP5 *amptek_dp5,
 				long *actual_raw_response_length,
 				unsigned long amptek_dp5_flags )
 {
-	/*---*/
+	static const char fname[] = "mxi_amptek_dp5_raw_command()";
+
+	char local_raw_response[530];
+	char *raw_response_ptr = NULL;
+	long raw_command_length;
+	mx_status_type mx_status;
+
+	if ( amptek_dp5 == (MX_AMPTEK_DP5 *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_AMPTEK_DP5 pointer passed was NULL." );
+	}
+
+	if ( raw_command == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The raw_command pointer for Amptek DP5 '%s' is NULL.",
+			amptek_dp5->record->name );
+	}
+
+	if ( raw_response == (char *) NULL ) {
+		raw_response_ptr = local_raw_response;
+		max_raw_response_length = sizeof(local_raw_response);
+	} else {
+		raw_response_ptr = raw_response;
+	}
+
+	/* Send the raw command. */
+
+	raw_command_length = ( raw_command[4] << 8 ) + raw_command[5];
+
+	switch( amptek_dp5->interface_type ) {
+	case MXI_ETHERNET:
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Ethernet-based communicationis not yet implemented "
+			"for record '%s'.", amptek_dp5->record->name );
+		break;
+	case MXI_RS232:
+		mx_status = mx_rs232_write( amptek_dp5->interface_record,
+						raw_command,
+						raw_command_length,
+						NULL, 0 );
+		break;
+	case MXI_USB:
+		mx_status = mx_usb_bulk_write( amptek_dp5->u.usb.usb_device,
+						MXT_AMPTEK_DP5_WRITE_ENDPOINT,
+						raw_command,
+						raw_command_length,
+						NULL, -1 );
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Unsupported interface type (%ld) requested for "
+		"Amptek DP5 interface '%s'.",
+			amptek_dp5->interface_type,
+			amptek_dp5->record->name );
+		break;
+	}
+
+	/* Read back the raw response. */
+
+	switch( amptek_dp5->interface_type ) {
+	case MXI_ETHERNET:
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Ethernet-based communicationis not yet implemented "
+			"for record '%s'.", amptek_dp5->record->name );
+		break;
+	case MXI_RS232:
+		mx_status = mx_rs232_read( amptek_dp5->interface_record,
+						raw_response_ptr,
+						max_raw_response_length,
+						NULL, 0 );
+		break;
+	case MXI_USB:
+		mx_status = mx_usb_bulk_read( amptek_dp5->u.usb.usb_device,
+						MXT_AMPTEK_DP5_READ_ENDPOINT,
+						raw_response_ptr,
+						max_raw_response_length,
+						NULL, -1 );
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Unsupported interface type (%ld) requested for "
+		"Amptek DP5 interface '%s'.",
+			amptek_dp5->interface_type,
+			amptek_dp5->record->name );
+		break;
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
