@@ -19,7 +19,8 @@
 
 /* Values for the 'amptek_dp5_flags' field. */
 
-#define MXF_AMPTEK_DP5_DEBUG	0x1
+#define MXF_AMPTEK_DP5_DEBUG		0x1
+#define MXF_AMPTEK_DP5_FIND_BY_ORDER	0x2
 
 /*---*/
 
@@ -37,8 +38,11 @@
 
 /*---*/
 
-#define MXF_AMPTEK_DP5_SETUP_GUID "{6A4E9A2D-9368-4f01-8E60-B3F9CDBAB5E8}"
-#define MXF_AMPTEK_DP5_INTERFACE_GUID "{5A8ED6A1-7FC3-4b6a-A536-95DF35D03448}"
+#define MXT_AMPTEK_DP5_VENDOR_ID	0x10C4
+#define MXT_AMPTEK_DP5_PRODUCT_ID	0x842A
+
+#define MXT_AMPTEK_DP5_SETUP_GUID "{6A4E9A2D-9368-4f01-8E60-B3F9CDBAB5E8}"
+#define MXT_AMPTEK_DP5_INTERFACE_GUID "{5A8ED6A1-7FC3-4b6a-A536-95DF35D03448}"
 
 /*---*/
 
@@ -54,7 +58,8 @@ typedef struct {
 } MX_AMPTEK_DP5_RS232;
 
 typedef struct {
-	int dummy;
+	MX_USB_DEVICE *usb_device;
+	char serial_number[20];
 } MX_AMPTEK_DP5_USB;
 
 typedef struct {

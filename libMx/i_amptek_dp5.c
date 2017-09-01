@@ -26,6 +26,7 @@
 #include "mx_process.h"
 #include "mx_rs232.h"
 #include "mx_gpib.h"
+#include "mx_usb.h"
 #include "i_amptek_dp5.h"
 
 MX_RECORD_FUNCTION_LIST mxi_amptek_dp5_record_function_list = {
@@ -99,6 +100,11 @@ mxi_amptek_dp5_open( MX_RECORD *record )
 	MX_AMPTEK_DP5 *amptek_dp5 = NULL;
 	char *int_name = NULL;
 	MX_RECORD *interface_record = NULL;
+	char *intargs_copy = NULL;
+	int intargs_argc;
+	char **intargs_argv = NULL;
+	MX_USB_DEVICE *usb_device = NULL;
+	unsigned long order_number;
 	unsigned long flags;
 	mx_status_type mx_status;
 
@@ -164,10 +170,97 @@ mxi_amptek_dp5_open( MX_RECORD *record )
 			return mx_status;
 		break;
 	case MXI_USB:
+		intargs_copy = strdup( amptek_dp5->interface_arguments );
+
+		if ( intargs_copy == NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying make a copy of the "
+			"USB interface arguments for record '%s'.",
+				record->name );
+		}
+
+		mx_string_split( intargs_copy, ",",
+			       	&intargs_argc, &intargs_argv );
+
+		if ( intargs_argc < 2 ) {
+			mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The interface_arguments field '%s' for "
+			"Amptek DP5 interface '%s' did not contain two "
+			"comma separated values where the first was the "
+			"name of the USB record and the second was the "
+			"serial number or order number of the device.",
+				amptek_dp5->interface_arguments,
+				record->name );
+
+			mx_free( intargs_argv );
+			mx_free( intargs_copy );
+			return mx_status;
+		}
+
+		interface_record = mx_get_record( record, intargs_argv[0] );
+
+		if ( interface_record == (MX_RECORD *) NULL ) {
+			mx_status =  mx_error( MXE_NOT_FOUND, fname,
+				"The requested USB record '%s' was not found "
+				"in the MX database for record '%s'.",
+					intargs_argv[0], record->name );
+			mx_free( intargs_argv );
+			mx_free( intargs_copy );
+			return mx_status;
+		}
+
+		strlcpy( amptek_dp5->u.usb.serial_number, intargs_argv[1],
+				sizeof( amptek_dp5->u.usb.serial_number ) );
+
+		mx_free( intargs_argv );
+		mx_free( intargs_copy );
+
+		flags = amptek_dp5->amptek_dp5_flags;
+
+		if ( flags & MXF_AMPTEK_DP5_FIND_BY_ORDER ) {
+
+			/* If we have been requested to find the Amptek DP5
+			 * using the order in which it is found in the
+			 * enumerated devices, then we do that.
+			 *
+			 * WARNING: The order number can change depending
+			 * on which USB port you plugged it into, the order
+			 * in which you plugged usb devices in, and other
+			 * fun things like the phase of the moon.  You are
+			 * much better off using the serial number.
+			 */
+
+			order_number = atol( amptek_dp5->u.usb.serial_number );
+
+			mx_status = mx_usb_find_device_by_order(
+						interface_record, &usb_device,
+						MXT_AMPTEK_DP5_VENDOR_ID,
+						MXT_AMPTEK_DP5_PRODUCT_ID,
+						order_number,
+						1, 0, 0, TRUE );
+		} else {
+			/* Otherwise, we look for the device using its
+			 * serial number.  (Strongly preferred !)
+			 */
+
+			mx_status = mx_usb_find_device_by_serial_number(
+						interface_record, &usb_device,
+						MXT_AMPTEK_DP5_VENDOR_ID,
+						MXT_AMPTEK_DP5_PRODUCT_ID,
+					amptek_dp5->u.usb.serial_number,
+						1, 0, 0, TRUE );
+		}
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		amptek_dp5->u.usb.usb_device = usb_device;
 		break;
 	default:
 		break;
 	}
+
+	amptek_dp5->interface_record = interface_record;
 
 	return mx_status;
 }
