@@ -290,8 +290,57 @@ mxi_amptek_dp5_special_processing_setup( MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*==================================================================*/
 
-/*---*/
+static mx_status_type
+mxi_amptek_dp5_process_function( void *record_ptr,
+			void *record_field_ptr, int operation )
+{
+	static const char fname[] = "mxi_amptek_dp5_process_function()";
+
+	MX_RECORD *record;
+	MX_RECORD_FIELD *record_field;
+	MX_AMPTEK_DP5 *amptek_dp5;
+	mx_status_type mx_status;
+
+	record = (MX_RECORD *) record_ptr;
+	record_field = (MX_RECORD_FIELD *) record_field_ptr;
+	amptek_dp5 = (MX_AMPTEK_DP5 *) record->record_type_struct;
+
+	mx_status = MX_SUCCESSFUL_RESULT;
+
+	switch( operation ) {
+	case MX_PROCESS_GET:
+		switch( record_field->label_value ) {
+		case MXLV_AMPTEK_DP5_FOO:
+			break;
+		default:
+			MX_DEBUG( 1,(
+			    "%s: *** Unknown MX_PROCESS_GET label value = %ld",
+				fname, record_field->label_value));
+			break;
+		}
+		break;
+	case MX_PROCESS_PUT:
+		switch( record_field->label_value ) {
+		case MXLV_AMPTEK_DP5_FOO:
+			break;
+		default:
+			MX_DEBUG( 1,(
+			    "%s: *** Unknown MX_PROCESS_PUT label value = %ld",
+				fname, record_field->label_value));
+			break;
+		}
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Unknown operation code = %d", operation );
+	}
+
+	return mx_status;
+}
+
+/*==================================================================*/
 
 static long
 mxi_amptek_dp5_checksum( char *buffer_ptr, long num_bytes_to_checksum )
@@ -734,51 +783,39 @@ mxi_amptek_dp5_raw_command( MX_AMPTEK_DP5 *amptek_dp5,
 
 /*==================================================================*/
 
-static mx_status_type
-mxi_amptek_dp5_process_function( void *record_ptr,
-			void *record_field_ptr, int operation )
+MX_EXPORT mx_status_type
+mxi_amptek_dp5_get_status( MX_AMPTEK_DP5 *amptek_dp5 )
 {
-	static const char fname[] = "mxi_amptek_dp5_process_function()";
+	static const char fname[] ="mxi_amptek_dp5_get_status()";
 
-	MX_RECORD *record;
-	MX_RECORD_FIELD *record_field;
-	MX_AMPTEK_DP5 *amptek_dp5;
+	char status_packet[100];
 	mx_status_type mx_status;
 
-	record = (MX_RECORD *) record_ptr;
-	record_field = (MX_RECORD_FIELD *) record_field_ptr;
-	amptek_dp5 = (MX_AMPTEK_DP5 *) record->record_type_struct;
-
-	mx_status = MX_SUCCESSFUL_RESULT;
-
-	switch( operation ) {
-	case MX_PROCESS_GET:
-		switch( record_field->label_value ) {
-		case MXLV_AMPTEK_DP5_FOO:
-			break;
-		default:
-			MX_DEBUG( 1,(
-			    "%s: *** Unknown MX_PROCESS_GET label value = %ld",
-				fname, record_field->label_value));
-			break;
-		}
-		break;
-	case MX_PROCESS_PUT:
-		switch( record_field->label_value ) {
-		case MXLV_AMPTEK_DP5_FOO:
-			break;
-		default:
-			MX_DEBUG( 1,(
-			    "%s: *** Unknown MX_PROCESS_PUT label value = %ld",
-				fname, record_field->label_value));
-			break;
-		}
-		break;
-	default:
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Unknown operation code = %d", operation );
+	if ( amptek_dp5 == (MX_AMPTEK_DP5 *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_AMPTEK_DP5 pointer passed was NULL." );
 	}
 
-	return mx_status;
-}
+	/* Send a 'request status packet' message, which should return
+	 * the actual status data into the array 'status_packet'.
+	 */
 
+	mx_status = mxi_amptek_dp5_binary_command( amptek_dp5, 1, 1,
+							NULL, 0,
+							status_packet,
+							sizeof(status_packet),
+							NULL, TRUE );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	amptek_dp5->firmware_version = status_packet[24];
+
+	amptek_dp5->fpga_version = status_packet[25];
+
+	amptek_dp5->serial_number = (status_packet[29] << 24 )
+				+ (status_packet[28] << 16 )
+				+ (status_packet[27] << 8 )
+				+ status_packet[26];
+
+	return MX_SUCCESSFUL_RESULT;
+}

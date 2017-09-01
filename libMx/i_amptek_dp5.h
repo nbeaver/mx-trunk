@@ -74,6 +74,10 @@ typedef struct {
 	char interface_arguments[MXU_AMPTEK_DP5_ARGUMENTS_LENGTH+1];
 	unsigned long amptek_dp5_flags;
 
+	unsigned long firmware_version;
+	unsigned long fpga_version;
+	unsigned long serial_number;
+
 	MX_RECORD *interface_record;
 
 	union {
@@ -100,7 +104,19 @@ typedef struct {
   \
   {-1, -1, "amptek_dp5_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_AMPTEK_DP5, amptek_dp5_flags), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "firmware_version", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_AMPTEK_DP5, firmware_version), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {-1, -1, "fpga_version", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_AMPTEK_DP5, fpga_version), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {-1, -1, "serial_number", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_AMPTEK_DP5, serial_number), \
+	{0}, NULL, MXFF_READ_ONLY}, \
 
 MX_API mx_status_type mxi_amptek_dp5_create_record_structures(
 						MX_RECORD *record );
@@ -129,6 +145,8 @@ MX_API mx_status_type mxi_amptek_dp5_raw_command( MX_AMPTEK_DP5 *amptek_dp5,
 					long max_raw_response_length,
 					long *actual_raw_response_length,
 					unsigned long amptek_dp5_flags );
+
+MX_API mx_status_type mxi_amptek_dp5_get_status( MX_AMPTEK_DP5 *amptek_dp5 );
 
 extern MX_RECORD_FUNCTION_LIST mxi_amptek_dp5_record_function_list;
 extern MX_RECORD_FUNCTION_LIST mxi_amptek_dp5_record_function_list;
