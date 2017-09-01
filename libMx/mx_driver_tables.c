@@ -72,6 +72,8 @@ static MX_DRIVER mx_class_table[] = {
 				NULL, NULL, NULL, NULL, NULL},
 {"camera_link",    0, MXI_CAMERA_LINK,    MXR_INTERFACE,
 				NULL, NULL, NULL, NULL, NULL},
+{"ethernet",       0, MXI_ETHERNET,       MXR_INTERFACE,
+				NULL, NULL, NULL, NULL, NULL},
 
   /* =================== Device classes =================== */
 

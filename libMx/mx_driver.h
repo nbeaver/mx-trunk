@@ -90,6 +90,7 @@ extern "C" {
 #define MXI_MODBUS			9
 #define MXI_USB				10
 #define MXI_CAMERA_LINK			11
+#define MXI_ETHERNET			12
 
 /* --- Device classes --- */
 
