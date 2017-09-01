@@ -812,9 +812,9 @@ mxi_amptek_dp5_get_status( MX_AMPTEK_DP5 *amptek_dp5 )
 
 	amptek_dp5->fpga_version = status_packet[25];
 
-	amptek_dp5->serial_number = (status_packet[29] << 24 )
-				+ (status_packet[28] << 16 )
-				+ (status_packet[27] << 8 )
+	amptek_dp5->serial_number = ( status_packet[29] << 24 )
+				+ ( status_packet[28] << 16 )
+				+ ( status_packet[27] << 8 )
 				+ status_packet[26];
 
 	return MX_SUCCESSFUL_RESULT;
