@@ -23,6 +23,20 @@
 
 /*---*/
 
+#define MXU_AMPTEK_DP5_HEADER_LENGTH	6
+
+#define MXU_AMPTEK_DP5_CHECKSUM_LENGTH	2
+
+#define MXU_AMPTEK_DP5_HEADER_AND_CHECKSUM_LENGTH \
+	( MXU_AMPTEK_DP5_HEADER_LENGTH + MXU_AMPTEK_DP5_CHECKSUM_LENGTH )
+
+#define MXU_AMPTEK_DP5_MAX_DATA_LENGTH	512
+
+#define MXU_AMPTEK_DP5_MAX_PACKET_LENGTH \
+  ( MXU_AMPTEK_DP5_HEADER_AND_CHECKSUM_LENGTH + MXU_AMPTEK_DP5_MAX_DATA_LENGTH )
+
+/*---*/
+
 #define MXF_AMPTEK_DP5_SETUP_GUID "{6A4E9A2D-9368-4f01-8E60-B3F9CDBAB5E8}"
 #define MXF_AMPTEK_DP5_INTERFACE_GUID "{5A8ED6A1-7FC3-4b6a-A536-95DF35D03448}"
 
@@ -85,17 +99,26 @@ MX_API mx_status_type mxi_amptek_dp5_open( MX_RECORD *record );
 MX_API mx_status_type mxi_amptek_dp5_special_processing_setup(
 						MX_RECORD *record );
 
-MX_API mx_status_type mxi_amptek_dp5_binary_command( MX_AMPTEK_DP5 *amptek_dp5,
-					char *command,
-					size_t command_length,
-					char *response,
-					size_t max_response_length,
+MX_API mx_status_type mxi_amptek_dp5_ascii_command( MX_AMPTEK_DP5 *amptek_dp5,
+					char *ascii_command,
+					char *ascii_response,
+					long max_ascii_response_length,
 					unsigned long amptek_dp5_flags );
 
-MX_API mx_status_type mxi_amptek_dp5_ascii_command( MX_AMPTEK_DP5 *amptek_dp5,
-					char *command,
-					char *response,
-					size_t max_response_length,
+MX_API mx_status_type mxi_amptek_dp5_binary_command( MX_AMPTEK_DP5 *amptek_dp5,
+					long pid1, long pid2,
+					char *binary_command,
+					long binary_command_length,
+					char *binary_response,
+					long max_binary_response_length,
+					long *actual_binary_response_length,
+	       				unsigned long amptek_dp5_flags );
+
+MX_API mx_status_type mxi_amptek_dp5_raw_command( MX_AMPTEK_DP5 *amptek_dp5,
+					char *raw_command,
+					char *raw_response,
+					long max_raw_response_length,
+					long *actual_raw_response_length,
 					unsigned long amptek_dp5_flags );
 
 extern MX_RECORD_FUNCTION_LIST mxi_amptek_dp5_record_function_list;
