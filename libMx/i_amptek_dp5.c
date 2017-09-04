@@ -106,6 +106,7 @@ mxi_amptek_dp5_open( MX_RECORD *record )
 	MX_USB_DEVICE *usb_device = NULL;
 	unsigned long order_number;
 	unsigned long flags;
+	char status_packet[100];
 	mx_status_type mx_status;
 
 #if MXI_AMPTEK_DP5_DEBUG
@@ -261,6 +262,29 @@ mxi_amptek_dp5_open( MX_RECORD *record )
 	}
 
 	amptek_dp5->interface_record = interface_record;
+
+	/* Verify that the Amptek DP5 is working by sending it a
+	 * 'request status packet' message, which should return the
+	 * actual status data into the array 'status_packet'.
+	 */
+
+	mx_status = mxi_amptek_dp5_binary_command( amptek_dp5, 1, 1,
+							NULL, 0,
+							status_packet,
+							sizeof(status_packet),
+							NULL, TRUE );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	amptek_dp5->firmware_version = status_packet[24];
+
+	amptek_dp5->fpga_version = status_packet[25];
+
+	amptek_dp5->serial_number = ( status_packet[29] << 24 )
+				+ ( status_packet[28] << 16 )
+				+ ( status_packet[27] << 8 )
+				+ status_packet[26];
 
 	return mx_status;
 }
@@ -781,41 +805,3 @@ mxi_amptek_dp5_raw_command( MX_AMPTEK_DP5 *amptek_dp5,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*==================================================================*/
-
-MX_EXPORT mx_status_type
-mxi_amptek_dp5_get_status( MX_AMPTEK_DP5 *amptek_dp5 )
-{
-	static const char fname[] ="mxi_amptek_dp5_get_status()";
-
-	char status_packet[100];
-	mx_status_type mx_status;
-
-	if ( amptek_dp5 == (MX_AMPTEK_DP5 *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_AMPTEK_DP5 pointer passed was NULL." );
-	}
-
-	/* Send a 'request status packet' message, which should return
-	 * the actual status data into the array 'status_packet'.
-	 */
-
-	mx_status = mxi_amptek_dp5_binary_command( amptek_dp5, 1, 1,
-							NULL, 0,
-							status_packet,
-							sizeof(status_packet),
-							NULL, TRUE );
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	amptek_dp5->firmware_version = status_packet[24];
-
-	amptek_dp5->fpga_version = status_packet[25];
-
-	amptek_dp5->serial_number = ( status_packet[29] << 24 )
-				+ ( status_packet[28] << 16 )
-				+ ( status_packet[27] << 8 )
-				+ status_packet[26];
-
-	return MX_SUCCESSFUL_RESULT;
-}

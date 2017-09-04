@@ -146,8 +146,6 @@ MX_API mx_status_type mxi_amptek_dp5_raw_command( MX_AMPTEK_DP5 *amptek_dp5,
 					long *actual_raw_response_length,
 					unsigned long amptek_dp5_flags );
 
-MX_API mx_status_type mxi_amptek_dp5_get_status( MX_AMPTEK_DP5 *amptek_dp5 );
-
 extern MX_RECORD_FUNCTION_LIST mxi_amptek_dp5_record_function_list;
 extern MX_RECORD_FUNCTION_LIST mxi_amptek_dp5_record_function_list;
 
