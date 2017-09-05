@@ -31,10 +31,16 @@
 #define MXU_AMPTEK_DP5_HEADER_AND_CHECKSUM_LENGTH \
 	( MXU_AMPTEK_DP5_HEADER_LENGTH + MXU_AMPTEK_DP5_CHECKSUM_LENGTH )
 
-#define MXU_AMPTEK_DP5_MAX_DATA_LENGTH	512
+#define MXU_AMPTEK_DP5_MAX_READ_DATA_LENGTH	32767
+#define MXU_AMPTEK_DP5_MAX_WRITE_DATA_LENGTH	512
 
-#define MXU_AMPTEK_DP5_MAX_PACKET_LENGTH \
-  ( MXU_AMPTEK_DP5_HEADER_AND_CHECKSUM_LENGTH + MXU_AMPTEK_DP5_MAX_DATA_LENGTH )
+#define MXU_AMPTEK_DP5_MAX_READ_PACKET_LENGTH \
+  ( MXU_AMPTEK_DP5_HEADER_AND_CHECKSUM_LENGTH \
+    + MXU_AMPTEK_DP5_MAX_READ_DATA_LENGTH )
+
+#define MXU_AMPTEK_DP5_MAX_WRITE_PACKET_LENGTH \
+  ( MXU_AMPTEK_DP5_HEADER_AND_CHECKSUM_LENGTH \
+    + MXU_AMPTEK_DP5_MAX_WRITE_DATA_LENGTH )
 
 /*---*/
 
@@ -73,6 +79,7 @@ typedef struct {
 	long interface_type;
 	char interface_arguments[MXU_AMPTEK_DP5_ARGUMENTS_LENGTH+1];
 	unsigned long amptek_dp5_flags;
+	double timeout;
 
 	unsigned long firmware_version;
 	unsigned long fpga_version;
@@ -105,6 +112,10 @@ typedef struct {
   {-1, -1, "amptek_dp5_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_AMPTEK_DP5, amptek_dp5_flags), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "timeout", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_AMPTEK_DP5,timeout), \
+	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
   {-1, -1, "firmware_version", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_AMPTEK_DP5, firmware_version), \

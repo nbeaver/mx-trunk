@@ -106,7 +106,7 @@ mxi_amptek_dp5_open( MX_RECORD *record )
 	MX_USB_DEVICE *usb_device = NULL;
 	unsigned long order_number;
 	unsigned long flags;
-	char status_packet[100];
+	char status_packet[64];
 	mx_status_type mx_status;
 
 #if MXI_AMPTEK_DP5_DEBUG
@@ -369,12 +369,18 @@ mxi_amptek_dp5_process_function( void *record_ptr,
 static long
 mxi_amptek_dp5_checksum( char *buffer_ptr, long num_bytes_to_checksum )
 {
-	long i, checksum;
+	unsigned long i, checksum;
+	uint8_t buffer_byte;
 
 	checksum = 0;
 
 	for ( i = 0; i < num_bytes_to_checksum; i++ ) {
-		checksum += buffer_ptr[i];
+		buffer_byte = (uint8_t) (buffer_ptr[i]);
+		checksum += buffer_byte;
+#if 1
+		MX_DEBUG(-2,("cksum: buffer_byte(%lu) = %lu, checksum = %lu",
+			i, (unsigned long) buffer_byte, checksum));
+#endif
 	}
 
 	return checksum;
@@ -389,8 +395,8 @@ mxi_amptek_dp5_ascii_command( MX_AMPTEK_DP5 *amptek_dp5,
 {
 	static const char fname[] = "mxi_amptek_dp5_ascii_command()";
 
-	char raw_command[530];
-	char raw_response[530];
+	char raw_command[MXU_AMPTEK_DP5_MAX_WRITE_PACKET_LENGTH+1];
+	char raw_response[MXU_AMPTEK_DP5_MAX_READ_PACKET_LENGTH+1];
 	long ascii_command_length, ascii_response_length;
 	long command_checksum, response_checksum;
 	long command_checksum_offset, response_checksum_offset;
@@ -436,13 +442,14 @@ mxi_amptek_dp5_ascii_command( MX_AMPTEK_DP5 *amptek_dp5,
 	 * that is too long.
 	 */
 
-	if ( ascii_command_length > MXU_AMPTEK_DP5_MAX_DATA_LENGTH ) {
+	if ( ascii_command_length > MXU_AMPTEK_DP5_MAX_WRITE_DATA_LENGTH ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"ASCII command '%s' for Amptek DP5 interface '%s' "
 		"is longer (%ld) than the maximum allowed length (%d) for "
 		"an Amptek DP5 interface.",
 			ascii_command, amptek_dp5->record->name,
-			ascii_command_length, MXU_AMPTEK_DP5_MAX_DATA_LENGTH );
+			ascii_command_length,
+			MXU_AMPTEK_DP5_MAX_WRITE_DATA_LENGTH );
 	}
 
 	/* Copy in the ASCII data. */
@@ -466,7 +473,7 @@ mxi_amptek_dp5_ascii_command( MX_AMPTEK_DP5 *amptek_dp5,
 	mx_status = mxi_amptek_dp5_raw_command( amptek_dp5,
 						raw_command,
 						raw_response,
-						sizeof(raw_response),
+					MXU_AMPTEK_DP5_MAX_READ_PACKET_LENGTH,
 						&actual_raw_response_length,
 						amptek_dp5_flags );
 
@@ -558,9 +565,10 @@ mxi_amptek_dp5_binary_command( MX_AMPTEK_DP5 *amptek_dp5,
 {
 	static const char fname[] = "mxi_amptek_dp5_binary_command()";
 
-	char raw_command[530];
-	char raw_response[530];
+	char raw_command[MXU_AMPTEK_DP5_MAX_WRITE_PACKET_LENGTH+1];
+	char raw_response[MXU_AMPTEK_DP5_MAX_READ_PACKET_LENGTH+1];
 	long binary_response_length;
+	long max_raw_response_length;
 	long command_checksum, response_checksum;
 	long command_checksum_offset, response_checksum_offset;
 	long computed_raw_response_length, actual_raw_response_length;
@@ -603,14 +611,14 @@ mxi_amptek_dp5_binary_command( MX_AMPTEK_DP5 *amptek_dp5,
 	 * that is too long.
 	 */
 
-	if ( binary_command_length > MXU_AMPTEK_DP5_MAX_DATA_LENGTH ) {
+	if ( binary_command_length > MXU_AMPTEK_DP5_MAX_WRITE_DATA_LENGTH ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The binary command for Amptek DP5 interface '%s' "
 		"is longer (%ld) than the maximum allowed length (%d) for "
 		"an Amptek DP5 interface.",
 			amptek_dp5->record->name,
 			binary_command_length,
-			MXU_AMPTEK_DP5_MAX_DATA_LENGTH );
+			MXU_AMPTEK_DP5_MAX_WRITE_DATA_LENGTH );
 	}
 
 	/* Copy in the binary data. */
@@ -631,10 +639,13 @@ mxi_amptek_dp5_binary_command( MX_AMPTEK_DP5 *amptek_dp5,
 
 	/* Send the command and get the response (if any). */
 
+	max_raw_response_length = max_binary_response_length
+		+ MXU_AMPTEK_DP5_HEADER_AND_CHECKSUM_LENGTH;
+
 	mx_status = mxi_amptek_dp5_raw_command( amptek_dp5,
 						raw_command,
 						raw_response,
-						sizeof(raw_response),
+						max_raw_response_length,
 						&actual_raw_response_length,
 						amptek_dp5_flags );
 
@@ -717,7 +728,7 @@ mxi_amptek_dp5_raw_command( MX_AMPTEK_DP5 *amptek_dp5,
 {
 	static const char fname[] = "mxi_amptek_dp5_raw_command()";
 
-	char local_raw_response[530];
+	char local_raw_response[MXU_AMPTEK_DP5_MAX_READ_PACKET_LENGTH+1];
 	char *raw_response_ptr = NULL;
 	long raw_command_length;
 	mx_status_type mx_status;
@@ -735,7 +746,7 @@ mxi_amptek_dp5_raw_command( MX_AMPTEK_DP5 *amptek_dp5,
 
 	if ( raw_response == (char *) NULL ) {
 		raw_response_ptr = local_raw_response;
-		max_raw_response_length = sizeof(local_raw_response);
+		max_raw_response_length = MXU_AMPTEK_DP5_MAX_READ_PACKET_LENGTH;
 	} else {
 		raw_response_ptr = raw_response;
 	}
@@ -761,7 +772,7 @@ mxi_amptek_dp5_raw_command( MX_AMPTEK_DP5 *amptek_dp5,
 						MXT_AMPTEK_DP5_WRITE_ENDPOINT,
 						raw_command,
 						raw_command_length,
-						NULL, -1 );
+						NULL, amptek_dp5->timeout );
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -781,17 +792,18 @@ mxi_amptek_dp5_raw_command( MX_AMPTEK_DP5 *amptek_dp5,
 			"for record '%s'.", amptek_dp5->record->name );
 		break;
 	case MXI_RS232:
-		mx_status = mx_rs232_read( amptek_dp5->interface_record,
+		mx_status = mx_rs232_read_with_timeout(
+						amptek_dp5->interface_record,
 						raw_response_ptr,
 						max_raw_response_length,
-						NULL, 0 );
+						NULL, 0, amptek_dp5->timeout );
 		break;
 	case MXI_USB:
 		mx_status = mx_usb_bulk_read( amptek_dp5->u.usb.usb_device,
 						MXT_AMPTEK_DP5_READ_ENDPOINT,
 						raw_response_ptr,
 						max_raw_response_length,
-						NULL, -1 );
+						NULL, amptek_dp5->timeout);
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,

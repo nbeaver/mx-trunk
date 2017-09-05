@@ -1,3 +1,3 @@
 !load ../../modules/libusb-0.1/libusb-0.1.mxo
 usb interface usb libusb_01 "" "" 0x0
-amptek interface controller amptek_dp5 "" "" usb usb,0 0x2
+amptek interface controller amptek_dp5 "" "" usb usb,0 0x2 1.0
