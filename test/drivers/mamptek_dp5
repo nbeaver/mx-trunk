@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../motor/mxmotor.static -F ./mamptek_dp5.dat -s ./samptek_dp5.dat $*
+
