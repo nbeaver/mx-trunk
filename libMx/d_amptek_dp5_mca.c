@@ -29,7 +29,10 @@
 #include "mx_hrt.h"
 #include "mx_hrt_debug.h"
 #include "mx_process.h"
+#include "mx_rs232.h"
+#include "mx_usb.h"
 #include "mx_mca.h"
+#include "i_amptek_dp5.h"
 #include "d_amptek_dp5_mca.h"
 
 #if MXD_AMPTEK_DP5_DEBUG_TIMING
@@ -183,7 +186,8 @@ mxd_amptek_dp5_mca_open( MX_RECORD *record )
 
 	mca = (MX_MCA *) record->record_class_struct;
 
-	mx_status = mxd_amptek_dp5_mca_get_pointers( mca, &amptek_dp5_mca, fname );
+	mx_status = mxd_amptek_dp5_mca_get_pointers( mca,
+						&amptek_dp5_mca, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

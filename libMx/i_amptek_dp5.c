@@ -219,8 +219,6 @@ mxi_amptek_dp5_open( MX_RECORD *record )
 		mx_free( intargs_argv );
 		mx_free( intargs_copy );
 
-		flags = amptek_dp5->amptek_dp5_flags;
-
 		if ( flags & MXF_AMPTEK_DP5_FIND_BY_ORDER ) {
 
 			/* If we have been requested to find the Amptek DP5
@@ -288,6 +286,14 @@ mxi_amptek_dp5_open( MX_RECORD *record )
 				+ ( status_packet[28] << 16 )
 				+ ( status_packet[27] << 8 )
 				+ status_packet[26];
+
+	/* If requested, reset Amptek DP5 parameters to their defaults. */
+
+	if ( flags & MXF_AMPTEK_DP5_RESET_TO_DEFAULTS ) {
+		mx_status = mxi_amptek_dp5_ascii_command( amptek_dp5,
+						"RESC=Y", NULL, 0,
+						amptek_dp5->amptek_dp5_flags );
+	}
 
 	return mx_status;
 }

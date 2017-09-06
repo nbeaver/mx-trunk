@@ -19,8 +19,9 @@
 
 /* Values for the 'amptek_dp5_flags' field. */
 
-#define MXF_AMPTEK_DP5_DEBUG		0x1
-#define MXF_AMPTEK_DP5_FIND_BY_ORDER	0x2
+#define MXF_AMPTEK_DP5_DEBUG			0x1
+#define MXF_AMPTEK_DP5_FIND_BY_ORDER		0x2
+#define MXF_AMPTEK_DP5_RESET_TO_DEFAULTS	0x4
 
 /*---*/
 
