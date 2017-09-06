@@ -16,6 +16,9 @@
 
 #define MXI_AMPTEK_DP5_DEBUG		FALSE
 
+#define MXU_AMPTEK_DP5_MAX_SHOW_READ_BYTES	150
+#define MXU_AMPTEK_DP5_MAX_SHOW_WRITE_BYTES	70
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -369,19 +372,29 @@ mxi_amptek_dp5_process_function( void *record_ptr,
 static long
 mxi_amptek_dp5_checksum( char *buffer_ptr, long num_bytes_to_checksum )
 {
-	unsigned long i, checksum;
+	unsigned long i, checksum, sum;
 	uint8_t buffer_byte;
 
-	checksum = 0;
+	sum = 0;
 
 	for ( i = 0; i < num_bytes_to_checksum; i++ ) {
 		buffer_byte = (uint8_t) (buffer_ptr[i]);
-		checksum += buffer_byte;
-#if 1
-		MX_DEBUG(-2,("cksum: buffer_byte(%lu) = %lu, checksum = %lu",
-			i, (unsigned long) buffer_byte, checksum));
+		sum += buffer_byte;
+#if 0
+		MX_DEBUG(-2,("cksum: buffer_byte(%lu) = %#lx, sum = %#lx",
+			i, (unsigned long) buffer_byte, sum));
 #endif
 	}
+
+	/* Now compute the 16-bit two's complement of the sum. */
+
+	checksum = 0x10000 - sum;
+
+	checksum &= 0xffff;
+
+#if 0
+	MX_DEBUG(-2,("cksum: checksum = %#lx", checksum));
+#endif
 
 	return checksum;
 }
@@ -390,18 +403,18 @@ MX_EXPORT mx_status_type
 mxi_amptek_dp5_ascii_command( MX_AMPTEK_DP5 *amptek_dp5,
 				char *ascii_command,
 				char *ascii_response,
-				long max_ascii_response_length,
+				unsigned long max_ascii_response_length,
 				unsigned long amptek_dp5_flags )
 {
 	static const char fname[] = "mxi_amptek_dp5_ascii_command()";
 
 	char raw_command[MXU_AMPTEK_DP5_MAX_WRITE_PACKET_LENGTH+1];
 	char raw_response[MXU_AMPTEK_DP5_MAX_READ_PACKET_LENGTH+1];
-	long ascii_command_length, ascii_response_length;
-	long command_checksum, response_checksum;
-	long command_checksum_offset, response_checksum_offset;
-	long computed_raw_response_length, actual_raw_response_length;
-	long computed_response_checksum;
+	unsigned long ascii_command_length, ascii_response_length;
+	unsigned long command_checksum, response_checksum;
+	unsigned long command_checksum_offset, response_checksum_offset;
+	unsigned long computed_raw_response_length, actual_raw_response_length;
+	unsigned long computed_response_checksum;
 	mx_bool_type debug;
 	mx_status_type mx_status;
 
@@ -557,22 +570,23 @@ MX_EXPORT mx_status_type
 mxi_amptek_dp5_binary_command( MX_AMPTEK_DP5 *amptek_dp5,
 				long pid1, long pid2,
 				char *binary_command,
-				long binary_command_length,
+				unsigned long binary_command_length,
 				char *binary_response,
-				long max_binary_response_length,
-				long *actual_binary_response_length,
+				unsigned long max_binary_response_length,
+				unsigned long *actual_binary_response_length,
 				unsigned long amptek_dp5_flags )
 {
 	static const char fname[] = "mxi_amptek_dp5_binary_command()";
 
 	char raw_command[MXU_AMPTEK_DP5_MAX_WRITE_PACKET_LENGTH+1];
 	char raw_response[MXU_AMPTEK_DP5_MAX_READ_PACKET_LENGTH+1];
-	long binary_response_length;
-	long max_raw_response_length;
-	long command_checksum, response_checksum;
-	long command_checksum_offset, response_checksum_offset;
-	long computed_raw_response_length, actual_raw_response_length;
-	long computed_response_checksum;
+	unsigned long binary_response_data_length;
+	unsigned long command_checksum, response_checksum;
+	unsigned long command_checksum_offset, response_checksum_offset;
+	unsigned long max_raw_response_packet_length;
+	unsigned long computed_raw_response_packet_length;
+	unsigned long actual_raw_response_packet_length;
+	unsigned long computed_response_checksum;
 	mx_bool_type debug;
 	mx_status_type mx_status;
 
@@ -639,15 +653,15 @@ mxi_amptek_dp5_binary_command( MX_AMPTEK_DP5 *amptek_dp5,
 
 	/* Send the command and get the response (if any). */
 
-	max_raw_response_length = max_binary_response_length
+	max_raw_response_packet_length = max_binary_response_length
 		+ MXU_AMPTEK_DP5_HEADER_AND_CHECKSUM_LENGTH;
 
 	mx_status = mxi_amptek_dp5_raw_command( amptek_dp5,
-						raw_command,
-						raw_response,
-						max_raw_response_length,
-						&actual_raw_response_length,
-						amptek_dp5_flags );
+					raw_command,
+					raw_response,
+					max_raw_response_packet_length,
+					&actual_raw_response_packet_length,
+					amptek_dp5_flags );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -662,29 +676,31 @@ mxi_amptek_dp5_binary_command( MX_AMPTEK_DP5 *amptek_dp5,
 
 	/* How long is the binary response? */
 
-	binary_response_length = ( (raw_response[4] & 0xff) << 8 )
+	binary_response_data_length = ( (raw_response[4] & 0xff) << 8 )
 					+ ( raw_response[5] & 0xff );
 
-	/* Is the binary response length consistent with the raw length? */
+	/* Is the binary response data length consistent with the raw length? */
 
-	computed_raw_response_length = binary_response_length
+	computed_raw_response_packet_length = binary_response_data_length
 				+ MXU_AMPTEK_DP5_HEADER_AND_CHECKSUM_LENGTH;
 
-	if ( computed_raw_response_length != actual_raw_response_length ) {
+	if ( computed_raw_response_packet_length
+			!= actual_raw_response_packet_length )
+	{
 		return mx_error( MXE_PROTOCOL_ERROR, fname,
-		"The computed raw response length (%ld) does not match the "
-		"raw response length (%ld) returned by "
+		"The computed raw response packet length (%ld) does not "
+		"match the raw response packet length (%ld) returned by "
 		"mxi_amptek_dp5_raw_command() for the binary command used by "
 		"Amptek DP5 interface '%s'.",
-			computed_raw_response_length,
-			actual_raw_response_length,
+			computed_raw_response_packet_length,
+			actual_raw_response_packet_length,
 			amptek_dp5->record->name );
 	}
 
 	/* Is the returned checksum correct? */
 
 	response_checksum_offset = MXU_AMPTEK_DP5_HEADER_LENGTH
-						+ binary_response_length;
+						+ binary_response_data_length;
 
 	computed_response_checksum =
 	    mxi_amptek_dp5_checksum( raw_response, response_checksum_offset );
@@ -705,13 +721,13 @@ mxi_amptek_dp5_binary_command( MX_AMPTEK_DP5 *amptek_dp5,
 
 	/* Copy back the binary response. */
 
-	if ( binary_response_length > max_binary_response_length ) {
-		binary_response_length = max_binary_response_length;
+	if ( binary_response_data_length > max_binary_response_length ) {
+		binary_response_data_length = max_binary_response_length;
 	}
 
 	memcpy( binary_response,
 		raw_response + MXU_AMPTEK_DP5_HEADER_LENGTH,
-		binary_response_length );
+		binary_response_data_length );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -722,15 +738,18 @@ MX_EXPORT mx_status_type
 mxi_amptek_dp5_raw_command( MX_AMPTEK_DP5 *amptek_dp5,
 				char *raw_command,
 				char *raw_response,
-				long max_raw_response_length,
-				long *actual_raw_response_length,
+				unsigned long max_raw_response_length,
+				unsigned long *actual_raw_response_length,
 				unsigned long amptek_dp5_flags )
 {
 	static const char fname[] = "mxi_amptek_dp5_raw_command()";
 
 	char local_raw_response[MXU_AMPTEK_DP5_MAX_READ_PACKET_LENGTH+1];
 	char *raw_response_ptr = NULL;
-	long raw_command_length;
+	unsigned long i;
+	unsigned long raw_read_data_length, raw_write_data_length;
+	unsigned long raw_read_packet_length, raw_write_packet_length;
+	mx_bool_type debug;
 	mx_status_type mx_status;
 
 	if ( amptek_dp5 == (MX_AMPTEK_DP5 *) NULL ) {
@@ -751,9 +770,51 @@ mxi_amptek_dp5_raw_command( MX_AMPTEK_DP5 *amptek_dp5,
 		raw_response_ptr = raw_response;
 	}
 
-	/* Send the raw command. */
+	if ( amptek_dp5_flags & MXF_AMPTEK_DP5_DEBUG ) {
+		debug = TRUE;
+	} else
+	if ( amptek_dp5->amptek_dp5_flags & MXF_AMPTEK_DP5_DEBUG ) {
+		debug = TRUE;
+	} else {
+		debug = FALSE;
+	}
 
-	raw_command_length = ( raw_command[4] << 8 ) + raw_command[5];
+	raw_write_data_length = ( raw_command[4] << 8 ) + raw_command[5];
+
+	raw_write_packet_length = raw_write_data_length
+				+ MXU_AMPTEK_DP5_HEADER_AND_CHECKSUM_LENGTH;
+
+	if ( debug ) {
+		unsigned long max_show_write_bytes;
+		uint8_t byte_to_write;
+
+		if ( raw_write_packet_length >
+				MXU_AMPTEK_DP5_MAX_SHOW_WRITE_BYTES)
+		{
+			max_show_write_bytes =
+				MXU_AMPTEK_DP5_MAX_SHOW_WRITE_BYTES;
+		} else {
+			max_show_write_bytes = raw_write_packet_length;
+		}
+
+		fprintf(stderr, "Sending to '%s': ", amptek_dp5->record->name);
+
+		if ( max_show_write_bytes > 0 ) {
+			byte_to_write = raw_command[0];
+
+			fprintf(stderr, "%#hx", byte_to_write );
+		}
+		for ( i = 1; i < max_show_write_bytes; i++ ) {
+			byte_to_write = raw_command[i];
+
+			fprintf(stderr, ", %#hx", byte_to_write );
+		}
+
+		fprintf( stderr, "\n" );
+
+	}
+
+	/* Send the raw command. */
 
 	switch( amptek_dp5->interface_type ) {
 	case MXI_ETHERNET:
@@ -764,14 +825,14 @@ mxi_amptek_dp5_raw_command( MX_AMPTEK_DP5 *amptek_dp5,
 	case MXI_RS232:
 		mx_status = mx_rs232_write( amptek_dp5->interface_record,
 						raw_command,
-						raw_command_length,
+						raw_write_packet_length,
 						NULL, 0 );
 		break;
 	case MXI_USB:
 		mx_status = mx_usb_bulk_write( amptek_dp5->u.usb.usb_device,
 						MXT_AMPTEK_DP5_WRITE_ENDPOINT,
 						raw_command,
-						raw_command_length,
+						raw_write_packet_length,
 						NULL, amptek_dp5->timeout );
 		break;
 	default:
@@ -812,6 +873,47 @@ mxi_amptek_dp5_raw_command( MX_AMPTEK_DP5 *amptek_dp5,
 			amptek_dp5->interface_type,
 			amptek_dp5->record->name );
 		break;
+	}
+
+	raw_read_data_length =
+		( raw_response_ptr[4] << 8 ) + raw_response_ptr[5];
+
+	raw_read_packet_length = raw_read_data_length
+				+ MXU_AMPTEK_DP5_HEADER_AND_CHECKSUM_LENGTH;
+
+	if ( debug ) {
+		unsigned long max_show_read_bytes;
+		uint8_t byte_read;
+
+		if ( raw_read_packet_length >
+				MXU_AMPTEK_DP5_MAX_SHOW_READ_BYTES)
+		{
+			max_show_read_bytes =
+				MXU_AMPTEK_DP5_MAX_SHOW_READ_BYTES;
+		} else {
+			max_show_read_bytes = raw_read_packet_length;
+		}
+
+		fprintf( stderr,
+			"Received from '%s': ",
+			amptek_dp5->record->name );
+
+		if ( max_show_read_bytes > 0 ) {
+			byte_read = raw_response_ptr[0];
+
+			fprintf(stderr, "%#hx", byte_read );
+		}
+		for ( i = 1; i < max_show_read_bytes; i++ ) {
+			byte_read = raw_response_ptr[i];
+
+			fprintf(stderr, ", %#hx", byte_read );
+		}
+
+		fprintf( stderr, "\n" );
+	}
+
+	if ( actual_raw_response_length != NULL ) {
+		*actual_raw_response_length = raw_read_packet_length;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

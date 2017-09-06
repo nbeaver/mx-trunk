@@ -66,7 +66,7 @@ mx_just_in_time_debugging_is_enabled( void )
 MX_EXPORT int
 mx_breakpoint_helper( void )
 {
-	/* Make it harder for the optimizer to optimize us away. */
+	/* Make it a bit harder for the optimizer to optimize us away. */
 
 	volatile int i;
 
