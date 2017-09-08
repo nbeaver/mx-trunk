@@ -7,7 +7,8 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2000-2004, 2006, 2010, 2012, 2015 Illinois Institute of Technology
+ * Copyright 2000-2004, 2006, 2010, 2012, 2015, 2017
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -197,6 +198,10 @@ mx_mca_process_function( void *record_ptr,
 		case MXLV_MCA_PRESET_TYPE:
 			status = mx_mca_set_preset_type( record,
 							mca->preset_type );
+			break;
+		case MXLV_MCA_CURRENT_NUM_CHANNELS:
+			status = mx_mca_set_num_channels( record,
+						mca->current_num_channels );
 			break;
 		case MXLV_MCA_START:
 			status = mx_mca_start( record );

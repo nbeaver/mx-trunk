@@ -239,7 +239,7 @@ mxi_amptek_dp5_open( MX_RECORD *record )
 						MXT_AMPTEK_DP5_VENDOR_ID,
 						MXT_AMPTEK_DP5_PRODUCT_ID,
 						order_number,
-						1, 0, 0, TRUE );
+						1, 0, 0, FALSE );
 		} else {
 			/* Otherwise, we look for the device using its
 			 * serial number.  (Strongly preferred !)
@@ -250,7 +250,7 @@ mxi_amptek_dp5_open( MX_RECORD *record )
 						MXT_AMPTEK_DP5_VENDOR_ID,
 						MXT_AMPTEK_DP5_PRODUCT_ID,
 					amptek_dp5->u.usb.serial_number,
-						1, 0, 0, TRUE );
+						1, 0, 0, FALSE );
 		}
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -291,7 +291,7 @@ mxi_amptek_dp5_open( MX_RECORD *record )
 
 	if ( flags & MXF_AMPTEK_DP5_RESET_TO_DEFAULTS ) {
 		mx_status = mxi_amptek_dp5_ascii_command( amptek_dp5,
-						"RESC=Y", NULL, 0,
+						"RESC=Y;", NULL, 0,
 						amptek_dp5->amptek_dp5_flags );
 	}
 
@@ -421,7 +421,8 @@ mxi_amptek_dp5_ascii_command( MX_AMPTEK_DP5 *amptek_dp5,
 	unsigned long command_checksum_offset, response_checksum_offset;
 	unsigned long computed_raw_response_length, actual_raw_response_length;
 	unsigned long computed_response_checksum;
-	mx_bool_type debug;
+	mx_bool_type debug, write_to_nonvolatile_memory;
+	mx_bool_type ascii_readback_expected;
 	mx_status_type mx_status;
 
 	if ( amptek_dp5 == (MX_AMPTEK_DP5 *) NULL ) {
@@ -429,13 +430,32 @@ mxi_amptek_dp5_ascii_command( MX_AMPTEK_DP5 *amptek_dp5,
 		"The MX_AMPTEK_DP5 pointer passed was NULL." );
 	}
 
-	if ( amptek_dp5_flags & MXF_AMPTEK_DP5_DEBUG ) {
+	if ( amptek_dp5_flags & MXF_AMPTEK_DP5_DEBUG_ASCII ) {
 		debug = TRUE;
 	} else
-	if ( amptek_dp5->amptek_dp5_flags & MXF_AMPTEK_DP5_DEBUG ) {
+	if ( amptek_dp5->amptek_dp5_flags & MXF_AMPTEK_DP5_DEBUG_ASCII ) {
 		debug = TRUE;
 	} else {
 		debug = FALSE;
+	}
+
+	if ( amptek_dp5_flags & MXF_AMPTEK_DP5_WRITE_TO_NONVOLATILE_MEMORY ) {
+		write_to_nonvolatile_memory = TRUE;
+	} else
+	if ( amptek_dp5->amptek_dp5_flags &
+			MXF_AMPTEK_DP5_WRITE_TO_NONVOLATILE_MEMORY )
+	{
+		write_to_nonvolatile_memory = TRUE;
+	} else {
+		write_to_nonvolatile_memory = FALSE;
+	}
+
+	/* Infer whether or not an ASCII readback is expected. */
+
+	if ( ( ascii_response == NULL) || ( max_ascii_response_length == 0 ) ) {
+		ascii_readback_expected = FALSE;
+	} else {
+		ascii_readback_expected = TRUE;
 	}
 
 	ascii_command_length = strlen( ascii_command );
@@ -447,10 +467,18 @@ mxi_amptek_dp5_ascii_command( MX_AMPTEK_DP5 *amptek_dp5,
 	raw_command[0] = 0xf5;
 	raw_command[1] = 0xfa;
 
-	/* Declare this to be a 'Text configuration' command. */
+	/* Declare this to be some form of a 'Text configuration' command. */
 
 	raw_command[2] = 0x20;
-	raw_command[3] = 2;
+
+	if ( ascii_readback_expected ) {
+		raw_command[3] = 3;
+	} else
+	if ( write_to_nonvolatile_memory ) {
+		raw_command[3] = 2;
+	} else {
+		raw_command[3] = 4;
+	}
 
 	/* Specify the ASCII command length. */
 
@@ -487,6 +515,11 @@ mxi_amptek_dp5_ascii_command( MX_AMPTEK_DP5 *amptek_dp5,
 	raw_command[ command_checksum_offset ] = (command_checksum >> 8) & 0xff;
 	raw_command[ command_checksum_offset + 1 ] = command_checksum & 0xff;
 
+	if ( debug ) {
+		fprintf( stderr, "Sending '%s' to '%s'.\n",
+			ascii_command, amptek_dp5->record->name );
+	}
+
 	/* Send the command and get the response (if any). */
 
 	mx_status = mxi_amptek_dp5_raw_command( amptek_dp5,
@@ -503,7 +536,7 @@ mxi_amptek_dp5_ascii_command( MX_AMPTEK_DP5 *amptek_dp5,
 	 * then we are done and can return now.
 	 */
 
-	if ( ( ascii_response == NULL) || ( max_ascii_response_length == 0 ) ) {
+	if ( ascii_readback_expected == FALSE ) {
 		return MX_SUCCESSFUL_RESULT;
 	}
 
@@ -567,6 +600,11 @@ mxi_amptek_dp5_ascii_command( MX_AMPTEK_DP5 *amptek_dp5,
 
 	ascii_response[ascii_response_length] = '\0';
 
+	if ( debug ) {
+		fprintf( stderr, "Received '%s' from '%s'.\n",
+			ascii_response, amptek_dp5->record->name );
+	}
+
 	return mx_status;
 }
 
@@ -593,21 +631,11 @@ mxi_amptek_dp5_binary_command( MX_AMPTEK_DP5 *amptek_dp5,
 	unsigned long computed_raw_response_packet_length;
 	unsigned long actual_raw_response_packet_length;
 	unsigned long computed_response_checksum;
-	mx_bool_type debug;
 	mx_status_type mx_status;
 
 	if ( amptek_dp5 == (MX_AMPTEK_DP5 *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_AMPTEK_DP5 pointer passed was NULL." );
-	}
-
-	if ( amptek_dp5_flags & MXF_AMPTEK_DP5_DEBUG ) {
-		debug = TRUE;
-	} else
-	if ( amptek_dp5->amptek_dp5_flags & MXF_AMPTEK_DP5_DEBUG ) {
-		debug = TRUE;
-	} else {
-		debug = FALSE;
 	}
 
 	memset( raw_command, 0, sizeof(raw_command) );
@@ -755,6 +783,7 @@ mxi_amptek_dp5_raw_command( MX_AMPTEK_DP5 *amptek_dp5,
 	unsigned long i;
 	unsigned long raw_read_data_length, raw_write_data_length;
 	unsigned long raw_read_packet_length, raw_write_packet_length;
+	unsigned long response_pid_1, response_pid_2;
 	mx_bool_type debug;
 	mx_status_type mx_status;
 
@@ -776,10 +805,10 @@ mxi_amptek_dp5_raw_command( MX_AMPTEK_DP5 *amptek_dp5,
 		raw_response_ptr = raw_response;
 	}
 
-	if ( amptek_dp5_flags & MXF_AMPTEK_DP5_DEBUG ) {
+	if ( amptek_dp5_flags & MXF_AMPTEK_DP5_DEBUG_RAW ) {
 		debug = TRUE;
 	} else
-	if ( amptek_dp5->amptek_dp5_flags & MXF_AMPTEK_DP5_DEBUG ) {
+	if ( amptek_dp5->amptek_dp5_flags & MXF_AMPTEK_DP5_DEBUG_RAW ) {
 		debug = TRUE;
 	} else {
 		debug = FALSE;
@@ -881,6 +910,8 @@ mxi_amptek_dp5_raw_command( MX_AMPTEK_DP5 *amptek_dp5,
 		break;
 	}
 
+	/*---*/
+
 	raw_read_data_length =
 		( raw_response_ptr[4] << 8 ) + raw_response_ptr[5];
 
@@ -916,6 +947,88 @@ mxi_amptek_dp5_raw_command( MX_AMPTEK_DP5 *amptek_dp5,
 		}
 
 		fprintf( stderr, "\n" );
+	}
+
+	/* Check to see if there was an error. */
+
+	response_pid_1 = ( (unsigned long) raw_response_ptr[2] ) & 0xff;
+	response_pid_2 = ( (unsigned long) raw_response_ptr[3] ) & 0xff;
+
+	if ( response_pid_1 == 0xff ) {
+		char errname[80];
+
+		switch( response_pid_2 ) {
+		case 0x0:	/* OK */
+		case 0x0C:	/* OK, with Interface Sharing Request. */
+		    break;
+		default:
+		    /* Yes, we _are_ nesting switches that use the same switch
+		     * control variable 'response_pid_2'.  It makes it
+		     * easier to handle the case of more than 1 'OK' response.
+		     *
+		     */
+		    switch( response_pid_2 ) {
+		    case 0x1:
+			strlcpy( errname, "Sync Error", sizeof(errname) );
+			break;
+		    case 0x2:
+			strlcpy( errname, "PID Error", sizeof(errname) );
+			break;
+		    case 0x3:
+			strlcpy( errname, "LEN Error", sizeof(errname) );
+			break;
+		    case 0x4:
+			strlcpy( errname, "Checksum Error", sizeof(errname) );
+			break;
+		    case 0x5:
+			strlcpy( errname, "Bad Parameter", sizeof(errname) );
+			break;
+		    case 0x6:
+			strlcpy( errname, "Bad Hex Record", sizeof(errname) );
+			break;
+		    case 0x7:
+			strlcpy( errname, "Unrecognized command",
+						sizeof(errname) );
+			break;
+		    case 0x8:
+			strlcpy( errname, "FPGA Error", sizeof(errname) );
+			break;
+		    case 0x9:
+			strlcpy( errname, "CP2201 Not Found (No Ethernet)",
+						sizeof(errname) );
+			break;
+		    case 0x0A:
+			strlcpy( errname, "Scope Data Not Available",
+						sizeof(errname) );
+			break;
+		    case 0x0B:
+			strlcpy( errname, "PC5 Not Present", sizeof(errname) );
+			break;
+		    case 0x0E:
+			strlcpy( errname, "I2C Error", sizeof(errname) );
+			break;
+		    case 0x10:
+			strlcpy( errname,
+				"Feature not supported by this FPGA version",
+				sizeof(errname) );
+			break;
+		    case 0x11:
+			strlcpy( errname, "Calibration data not present",
+						sizeof(errname) );
+			break;
+		    default:
+			snprintf( errname, sizeof(errname),
+				"Unrecognized error (%#lx)",
+				(unsigned long) response_pid_2 );
+			break;
+		    }
+
+		    return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		    "A command sent to Amptek DP5 '%s' resulted in "
+		    "error code (%#lx) '%s'.",
+		    	amptek_dp5->record->name,
+			response_pid_2, errname );
+		}
 	}
 
 	if ( actual_raw_response_length != NULL ) {

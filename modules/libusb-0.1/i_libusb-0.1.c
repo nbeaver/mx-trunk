@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004, 2007-2008, 2010, 2012-2013 Illinois Institute of Technology
+ * Copyright 2004, 2007-2008, 2010, 2012-2013, 2017
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -633,7 +634,7 @@ mxi_libusb_01_find_device( MX_USB *usb, MX_USB_DEVICE **usb_device )
 
 			return mx_error( mx_error_code, fname,
 			"The requested device (vendor %#lx, product %#lx) "
-			"number %d for USB record '%s' was not found.",
+			"order number %d for USB record '%s' was not found.",
 				vendor_id, product_id, order_number,
 				usb->record->name);
 		} else {

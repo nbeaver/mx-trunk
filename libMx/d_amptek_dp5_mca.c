@@ -86,18 +86,17 @@ static mx_status_type mxd_amptek_dp5_mca_process_function( void *record_ptr,
 static mx_status_type
 mxd_amptek_dp5_mca_get_pointers( MX_MCA *mca,
 			MX_AMPTEK_DP5_MCA **amptek_dp5_mca,
+			MX_AMPTEK_DP5 **amptek_dp5,
 			const char *calling_fname )
 {
 	static const char fname[] = "mxd_amptek_dp5_mca_get_pointers()";
 
+	MX_AMPTEK_DP5_MCA *amptek_dp5_mca_ptr = NULL;
+	MX_RECORD *amptek_dp5_record = NULL;
+
 	if ( mca == (MX_MCA *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"The MX_MCA pointer passed by '%s' was NULL.",
-			calling_fname );
-	}
-	if ( amptek_dp5_mca == (MX_AMPTEK_DP5_MCA **) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_AMPTEK_DP5_MCA pointer passed by '%s' was NULL.",
 			calling_fname );
 	}
 	if ( mca->record == (MX_RECORD *) NULL ) {
@@ -106,8 +105,39 @@ mxd_amptek_dp5_mca_get_pointers( MX_MCA *mca,
 			calling_fname );
 	}
 
-	*amptek_dp5_mca = (MX_AMPTEK_DP5_MCA *)
+	amptek_dp5_mca_ptr = (MX_AMPTEK_DP5_MCA *)
 				mca->record->record_type_struct;
+
+	if ( amptek_dp5_mca_ptr == (MX_AMPTEK_DP5_MCA *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_AMPTEK_DP5_MCA pointer for MCA '%s' is NULL.",
+			mca->record->name );
+	}
+
+	if ( amptek_dp5_mca != (MX_AMPTEK_DP5_MCA **) NULL ) {
+		*amptek_dp5_mca = amptek_dp5_mca_ptr;
+	}
+
+	if ( amptek_dp5 != (MX_AMPTEK_DP5 **) NULL ) {
+		amptek_dp5_record = amptek_dp5_mca_ptr->amptek_dp5_record;
+
+		if ( amptek_dp5_record == (MX_RECORD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The amptek_dp5_record pointer for Amptek DP5 "
+			"MCA '%s' is NULL.", mca->record->name );
+		}
+
+		*amptek_dp5 = (MX_AMPTEK_DP5 *)
+				amptek_dp5_record->record_type_struct;
+
+		if ( (*amptek_dp5) == (MX_AMPTEK_DP5 *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_AMPTEK_DP5 pointer for Amptek DP5 '%s' "
+			"used by MCA record '%s' is NULL.",
+				amptek_dp5_record->name,
+				mca->record->name );
+		}
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -177,6 +207,7 @@ mxd_amptek_dp5_mca_open( MX_RECORD *record )
 
 	MX_MCA *mca = NULL;
 	MX_AMPTEK_DP5_MCA *amptek_dp5_mca = NULL;
+	MX_AMPTEK_DP5 *amptek_dp5 = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -187,7 +218,7 @@ mxd_amptek_dp5_mca_open( MX_RECORD *record )
 	mca = (MX_MCA *) record->record_class_struct;
 
 	mx_status = mxd_amptek_dp5_mca_get_pointers( mca,
-						&amptek_dp5_mca, fname );
+					&amptek_dp5_mca, &amptek_dp5, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -211,7 +242,7 @@ mxd_amptek_dp5_mca_special_processing_setup( MX_RECORD *record )
 		switch( record_field->label_value ) {
 		case 0:
 			record_field->process_function
-					    = mxd_amptek_dp5_mca_process_function;
+				    = mxd_amptek_dp5_mca_process_function;
 			break;
 		default:
 			break;
@@ -226,9 +257,11 @@ mxd_amptek_dp5_mca_start( MX_MCA *mca )
 	static const char fname[] = "mxd_amptek_dp5_mca_start()";
 
 	MX_AMPTEK_DP5_MCA *amptek_dp5_mca = NULL;
+	MX_AMPTEK_DP5 *amptek_dp5 = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_amptek_dp5_mca_get_pointers( mca, &amptek_dp5_mca, fname );
+	mx_status = mxd_amptek_dp5_mca_get_pointers( mca,
+					&amptek_dp5_mca, &amptek_dp5, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -242,9 +275,11 @@ mxd_amptek_dp5_mca_stop( MX_MCA *mca )
 	static const char fname[] = "mxd_amptek_dp5_mca_stop()";
 
 	MX_AMPTEK_DP5_MCA *amptek_dp5_mca = NULL;
+	MX_AMPTEK_DP5 *amptek_dp5 = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_amptek_dp5_mca_get_pointers( mca, &amptek_dp5_mca, fname );
+	mx_status = mxd_amptek_dp5_mca_get_pointers( mca,
+					&amptek_dp5_mca, &amptek_dp5, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -258,9 +293,11 @@ mxd_amptek_dp5_mca_read( MX_MCA *mca )
 	static const char fname[] = "mxd_amptek_dp5_mca_read()";
 
 	MX_AMPTEK_DP5_MCA *amptek_dp5_mca = NULL;
+	MX_AMPTEK_DP5 *amptek_dp5 = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_amptek_dp5_mca_get_pointers( mca, &amptek_dp5_mca, fname );
+	mx_status = mxd_amptek_dp5_mca_get_pointers( mca,
+					&amptek_dp5_mca, &amptek_dp5, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -274,9 +311,11 @@ mxd_amptek_dp5_mca_clear( MX_MCA *mca )
 	static const char fname[] = "mxd_amptek_dp5_mca_clear()";
 
 	MX_AMPTEK_DP5_MCA *amptek_dp5_mca = NULL;
+	MX_AMPTEK_DP5 *amptek_dp5 = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_amptek_dp5_mca_get_pointers( mca, &amptek_dp5_mca, fname );
+	mx_status = mxd_amptek_dp5_mca_get_pointers( mca,
+					&amptek_dp5_mca, &amptek_dp5, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -290,9 +329,11 @@ mxd_amptek_dp5_mca_busy( MX_MCA *mca )
 	static const char fname[] = "mxd_amptek_dp5_mca_busy()";
 
 	MX_AMPTEK_DP5_MCA *amptek_dp5_mca = NULL;
+	MX_AMPTEK_DP5 *amptek_dp5 = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_amptek_dp5_mca_get_pointers( mca, &amptek_dp5_mca, fname );
+	mx_status = mxd_amptek_dp5_mca_get_pointers( mca,
+					&amptek_dp5_mca, &amptek_dp5, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -306,9 +347,13 @@ mxd_amptek_dp5_mca_get_parameter( MX_MCA *mca )
 	static const char fname[] = "mxd_amptek_dp5_mca_get_parameter()";
 
 	MX_AMPTEK_DP5_MCA *amptek_dp5_mca = NULL;
+	MX_AMPTEK_DP5 *amptek_dp5 = NULL;
+	char ascii_response[80];
+	int num_items;
 	mx_status_type mx_status;
 
-	mx_status = mxd_amptek_dp5_mca_get_pointers(mca, &amptek_dp5_mca, fname);
+	mx_status = mxd_amptek_dp5_mca_get_pointers( mca,
+					&amptek_dp5_mca, &amptek_dp5, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -319,6 +364,30 @@ mxd_amptek_dp5_mca_get_parameter( MX_MCA *mca )
 		mca->parameter_type));
 
 	switch( mca->parameter_type ) {
+	case MXLV_MCA_MAXIMUM_NUM_CHANNELS:
+		mca->maximum_num_channels = 8192;
+		break;
+	case MXLV_MCA_CURRENT_NUM_CHANNELS:
+		mx_status = mxi_amptek_dp5_ascii_command( amptek_dp5,
+						"MCAC;",
+						ascii_response,
+						sizeof(ascii_response),
+						amptek_dp5->amptek_dp5_flags );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		num_items = sscanf( ascii_response,
+					"MCAC=%lu;",
+					&(mca->current_num_channels) );
+
+		if ( num_items != 1 ) {
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"Did not see the current number of MCA channels "
+			"in the response '%s' to command 'MCAC;' for "
+			"MCA '%s'.", ascii_response, mca->record->name );
+		}
+		break;
 	case MXLV_MCA_REAL_TIME:
 		break;
 	case MXLV_MCA_LIVE_TIME:
@@ -347,9 +416,12 @@ mxd_amptek_dp5_mca_set_parameter( MX_MCA *mca )
 	static const char fname[] = "mxd_amptek_dp5_mca_set_parameter()";
 
 	MX_AMPTEK_DP5_MCA *amptek_dp5_mca = NULL;
-	mx_status_type mx_status;
+	MX_AMPTEK_DP5 *amptek_dp5 = NULL;
+	char ascii_command[80];
+	mx_status_type mx_status, mx_status_2;
 
-	mx_status = mxd_amptek_dp5_mca_get_pointers( mca, &amptek_dp5_mca, fname );
+	mx_status = mxd_amptek_dp5_mca_get_pointers( mca,
+					&amptek_dp5_mca, &amptek_dp5, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -360,6 +432,39 @@ mxd_amptek_dp5_mca_set_parameter( MX_MCA *mca )
 		mca->parameter_type));
 
 	switch( mca->parameter_type ) {
+	case MXLV_MCA_MAXIMUM_NUM_CHANNELS:
+		mca->maximum_num_channels = 8192;
+		break;
+	case MXLV_MCA_CURRENT_NUM_CHANNELS:
+		/* Check for valid values for the current number of channels. */
+		switch( mca->current_num_channels ) {
+		case 256:
+		case 512:
+		case 1024:
+		case 2048:
+		case 4096:
+		case 8192:
+			break;
+		default:
+			mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"An illegal number of channels (%lu) was requested "
+			"for MCA '%s'.  The allowed values are 256, 512, 1024, "
+			"2048, 4096, and 8192.",
+				mca->current_num_channels,
+				mca->record->name );
+
+			mx_status_2 = mxd_amptek_dp5_mca_get_parameter( mca );
+			break;
+		}
+
+		/* Now send the command. */
+		snprintf( ascii_command, sizeof(ascii_command),
+			"MCAC=%lu;", mca->current_num_channels );
+
+		mx_status = mxi_amptek_dp5_ascii_command( amptek_dp5,
+						ascii_command, NULL, 0,
+						amptek_dp5->amptek_dp5_flags );
+		break;
 	case MXLV_MCA_ROI:
 		break;
 	default:
