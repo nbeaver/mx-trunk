@@ -372,6 +372,7 @@ mxd_amptek_dp5_mca_get_parameter( MX_MCA *mca )
 						"MCAC;",
 						ascii_response,
 						sizeof(ascii_response),
+						FALSE,
 						amptek_dp5->amptek_dp5_flags );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -391,6 +392,49 @@ mxd_amptek_dp5_mca_get_parameter( MX_MCA *mca )
 	case MXLV_MCA_REAL_TIME:
 		break;
 	case MXLV_MCA_LIVE_TIME:
+		break;
+	case MXLV_MCA_PRESET_REAL_TIME:
+		mx_status = mxi_amptek_dp5_ascii_command( amptek_dp5,
+						"PRET;",
+						ascii_response,
+						sizeof(ascii_response),
+						FALSE,
+						amptek_dp5->amptek_dp5_flags );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		num_items = sscanf( ascii_response,
+					"PRET=%lg;",
+					&(mca->preset_real_time) );
+
+		if ( num_items != 1 ) {
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"Did not see the preset real time in the response '%s' "
+			"to command 'PRET;' for MCA '%s'.",
+				ascii_response, mca->record->name );
+		}
+	case MXLV_MCA_PRESET_COUNT:
+		mx_status = mxi_amptek_dp5_ascii_command( amptek_dp5,
+						"PREC;",
+						ascii_response,
+						sizeof(ascii_response),
+						FALSE,
+						amptek_dp5->amptek_dp5_flags );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		num_items = sscanf( ascii_response,
+					"PREC=%lu;",
+					&(mca->preset_count) );
+
+		if ( num_items != 1 ) {
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"Did not see the preset real time in the response '%s' "
+			"to command 'PRET;' for MCA '%s'.",
+				ascii_response, mca->record->name );
+		}
 		break;
 	case MXLV_MCA_CHANNEL_VALUE:
 		break;
@@ -462,10 +506,26 @@ mxd_amptek_dp5_mca_set_parameter( MX_MCA *mca )
 			"MCAC=%lu;", mca->current_num_channels );
 
 		mx_status = mxi_amptek_dp5_ascii_command( amptek_dp5,
-						ascii_command, NULL, 0,
+						ascii_command, NULL, 0, TRUE,
 						amptek_dp5->amptek_dp5_flags );
 		break;
 	case MXLV_MCA_ROI:
+		break;
+	case MXLV_MCA_PRESET_REAL_TIME:
+		snprintf( ascii_command, sizeof(ascii_command),
+			"PREC=OFF;PRER=OFF;PRET=%f;", mca->preset_real_time );
+
+		mx_status = mxi_amptek_dp5_ascii_command( amptek_dp5,
+						ascii_command, NULL, 0, TRUE,
+						amptek_dp5->amptek_dp5_flags );
+		break;
+	case MXLV_MCA_PRESET_COUNT:
+		snprintf( ascii_command, sizeof(ascii_command),
+			"PRER=OFF;PRET=OFF;PREC=%lu;", mca->preset_count );
+
+		mx_status = mxi_amptek_dp5_ascii_command( amptek_dp5,
+						ascii_command, NULL, 0, TRUE,
+						amptek_dp5->amptek_dp5_flags );
 		break;
 	default:
 		mx_status = mx_mca_default_set_parameter_handler( mca );

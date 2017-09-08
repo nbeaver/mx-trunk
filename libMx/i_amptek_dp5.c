@@ -291,7 +291,7 @@ mxi_amptek_dp5_open( MX_RECORD *record )
 
 	if ( flags & MXF_AMPTEK_DP5_RESET_TO_DEFAULTS ) {
 		mx_status = mxi_amptek_dp5_ascii_command( amptek_dp5,
-						"RESC=Y;", NULL, 0,
+						"RESC=Y;", NULL, 0, TRUE,
 						amptek_dp5->amptek_dp5_flags );
 	}
 
@@ -312,7 +312,9 @@ mxi_amptek_dp5_special_processing_setup( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
-		case MXLV_AMPTEK_DP5_FOO:
+		case MXLV_AMPTEK_DP5_GET_CONFIGURATION:
+		case MXLV_AMPTEK_DP5_SET_CONFIGURATION:
+		case MXLV_AMPTEK_DP5_SAVE_CONFIGURATION:
 			record_field->process_function
 					= mxi_amptek_dp5_process_function;
 			break;
@@ -345,7 +347,12 @@ mxi_amptek_dp5_process_function( void *record_ptr,
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
-		case MXLV_AMPTEK_DP5_FOO:
+		case MXLV_AMPTEK_DP5_GET_CONFIGURATION:
+		case MXLV_AMPTEK_DP5_SET_CONFIGURATION:
+		case MXLV_AMPTEK_DP5_SAVE_CONFIGURATION:
+			/* Just return the string most recently written
+			 * by the process function.
+			 */
 			break;
 		default:
 			MX_DEBUG( 1,(
@@ -356,7 +363,24 @@ mxi_amptek_dp5_process_function( void *record_ptr,
 		break;
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
-		case MXLV_AMPTEK_DP5_FOO:
+		case MXLV_AMPTEK_DP5_GET_CONFIGURATION:
+			mx_status = mxi_amptek_dp5_ascii_command( amptek_dp5,
+					amptek_dp5->get_configuration,
+					amptek_dp5->get_configuration,
+					MXU_AMPTEK_DP5_MAX_READ_PACKET_LENGTH,
+					FALSE, amptek_dp5->amptek_dp5_flags );
+			break;
+		case MXLV_AMPTEK_DP5_SET_CONFIGURATION:
+			mx_status = mxi_amptek_dp5_ascii_command( amptek_dp5,
+					amptek_dp5->set_configuration,
+					NULL, 0,
+					FALSE, amptek_dp5->amptek_dp5_flags );
+			break;
+		case MXLV_AMPTEK_DP5_SAVE_CONFIGURATION:
+			mx_status = mxi_amptek_dp5_ascii_command( amptek_dp5,
+					amptek_dp5->set_configuration,
+					NULL, 0,
+					TRUE, amptek_dp5->amptek_dp5_flags );
 			break;
 		default:
 			MX_DEBUG( 1,(
@@ -410,6 +434,7 @@ mxi_amptek_dp5_ascii_command( MX_AMPTEK_DP5 *amptek_dp5,
 				char *ascii_command,
 				char *ascii_response,
 				unsigned long max_ascii_response_length,
+				mx_bool_type change_default,
 				unsigned long amptek_dp5_flags )
 {
 	static const char fname[] = "mxi_amptek_dp5_ascii_command()";
@@ -421,8 +446,7 @@ mxi_amptek_dp5_ascii_command( MX_AMPTEK_DP5 *amptek_dp5,
 	unsigned long command_checksum_offset, response_checksum_offset;
 	unsigned long computed_raw_response_length, actual_raw_response_length;
 	unsigned long computed_response_checksum;
-	mx_bool_type debug, write_to_nonvolatile_memory;
-	mx_bool_type ascii_readback_expected;
+	mx_bool_type debug, ascii_readback_expected;
 	mx_status_type mx_status;
 
 	if ( amptek_dp5 == (MX_AMPTEK_DP5 *) NULL ) {
@@ -437,17 +461,6 @@ mxi_amptek_dp5_ascii_command( MX_AMPTEK_DP5 *amptek_dp5,
 		debug = TRUE;
 	} else {
 		debug = FALSE;
-	}
-
-	if ( amptek_dp5_flags & MXF_AMPTEK_DP5_WRITE_TO_NONVOLATILE_MEMORY ) {
-		write_to_nonvolatile_memory = TRUE;
-	} else
-	if ( amptek_dp5->amptek_dp5_flags &
-			MXF_AMPTEK_DP5_WRITE_TO_NONVOLATILE_MEMORY )
-	{
-		write_to_nonvolatile_memory = TRUE;
-	} else {
-		write_to_nonvolatile_memory = FALSE;
 	}
 
 	/* Infer whether or not an ASCII readback is expected. */
@@ -474,7 +487,7 @@ mxi_amptek_dp5_ascii_command( MX_AMPTEK_DP5 *amptek_dp5,
 	if ( ascii_readback_expected ) {
 		raw_command[3] = 3;
 	} else
-	if ( write_to_nonvolatile_memory ) {
+	if ( change_default ) {
 		raw_command[3] = 2;
 	} else {
 		raw_command[3] = 4;

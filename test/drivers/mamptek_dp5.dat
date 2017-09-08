@@ -1,4 +1,4 @@
 !load ../../modules/libusb-0.1/libusb-0.1.mxo
 usb interface usb libusb_01 "" "" 0x0
-amptek interface controller amptek_dp5 "" "" usb usb,0 0x23 1.0
+amptek interface controller amptek_dp5 "" "" usb usb,0 0x80000023 1.0
 mca device mca amptek_dp5_mca "" "" 8192 8 0 amptek

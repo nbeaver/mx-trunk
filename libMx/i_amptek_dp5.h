@@ -25,8 +25,6 @@
 #define MXF_AMPTEK_DP5_RESET_TO_DEFAULTS		0x10
 #define MXF_AMPTEK_DP5_FIND_BY_ORDER			0x20
 
-#define MXF_AMPTEK_DP5_WRITE_TO_NONVOLATILE_MEMORY	0x80000000
-
 /*---*/
 
 #define MXU_AMPTEK_DP5_HEADER_LENGTH	6
@@ -97,9 +95,15 @@ typedef struct {
 		MX_AMPTEK_DP5_RS232 rs232;
 		MX_AMPTEK_DP5_USB usb;
 	} u;
+
+	char get_configuration[MXU_AMPTEK_DP5_MAX_READ_PACKET_LENGTH+1];
+	char set_configuration[MXU_AMPTEK_DP5_MAX_WRITE_PACKET_LENGTH+1];
+	char save_configuration[MXU_AMPTEK_DP5_MAX_WRITE_PACKET_LENGTH+1];
 } MX_AMPTEK_DP5;
 
-#define MXLV_AMPTEK_DP5_FOO		86000
+#define MXLV_AMPTEK_DP5_GET_CONFIGURATION		86000
+#define MXLV_AMPTEK_DP5_SET_CONFIGURATION		86001
+#define MXLV_AMPTEK_DP5_SAVE_CONFIGURATION		86002
 
 #define MXI_AMPTEK_DP5_STANDARD_FIELDS \
   {-1, -1, "interface_type_name", MXFT_STRING, NULL, \
@@ -133,6 +137,21 @@ typedef struct {
   {-1, -1, "serial_number", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_AMPTEK_DP5, serial_number), \
 	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {MXLV_AMPTEK_DP5_GET_CONFIGURATION, -1, "get_configuration", MXFT_STRING, \
+	  		NULL, 1, {MXU_AMPTEK_DP5_MAX_READ_PACKET_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_AMPTEK_DP5, get_configuration), \
+	{sizeof(char)}, NULL, 0}, \
+  \
+  {MXLV_AMPTEK_DP5_SET_CONFIGURATION, -1, "set_configuration", MXFT_STRING, \
+	  		NULL, 1, {MXU_AMPTEK_DP5_MAX_READ_PACKET_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_AMPTEK_DP5, set_configuration), \
+	{sizeof(char)}, NULL, 0}, \
+  \
+  {MXLV_AMPTEK_DP5_SAVE_CONFIGURATION, -1, "save_configuration", MXFT_STRING, \
+	  		NULL, 1, {MXU_AMPTEK_DP5_MAX_READ_PACKET_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_AMPTEK_DP5, save_configuration), \
+	{sizeof(char)}, NULL, 0}, \
 
 MX_API mx_status_type mxi_amptek_dp5_create_record_structures(
 						MX_RECORD *record );
@@ -145,6 +164,7 @@ MX_API mx_status_type mxi_amptek_dp5_ascii_command(
 				char *ascii_command,
 				char *ascii_response,
 				unsigned long max_ascii_response_length,
+				mx_bool_type change_default,
 				unsigned long amptek_dp5_flags );
 
 MX_API mx_status_type mxi_amptek_dp5_binary_command(
