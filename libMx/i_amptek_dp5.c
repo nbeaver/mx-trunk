@@ -270,6 +270,7 @@ mxi_amptek_dp5_open( MX_RECORD *record )
 	 */
 
 	mx_status = mxi_amptek_dp5_binary_command( amptek_dp5, 1, 1,
+							NULL, NULL,
 							NULL, 0,
 							status_packet,
 							sizeof(status_packet),
@@ -626,6 +627,8 @@ mxi_amptek_dp5_ascii_command( MX_AMPTEK_DP5 *amptek_dp5,
 MX_EXPORT mx_status_type
 mxi_amptek_dp5_binary_command( MX_AMPTEK_DP5 *amptek_dp5,
 				long pid1, long pid2,
+				long *response_pid1,
+				long *response_pid2,
 				char *binary_command,
 				unsigned long binary_command_length,
 				char *binary_response,
@@ -712,6 +715,13 @@ mxi_amptek_dp5_binary_command( MX_AMPTEK_DP5 *amptek_dp5,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	if ( response_pid1 != (long *) NULL ) {
+		*response_pid1 = raw_response[2] & 0xff;
+	}
+	if ( response_pid2 != (long *) NULL ) {
+		*response_pid2 = raw_response[3] & 0xff;
+	}
 
 	/* If the caller has not requested a binary response string,
 	 * then we are done and can return now.

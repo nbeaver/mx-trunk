@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005-2006, 2009, 2015-2016
+ * Copyright 1999-2001, 2003, 2005-2006, 2009, 2015-2017
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -78,6 +78,7 @@ motor_mca_fn( int argc, char *argv[] )
 	  "        mca 'mca_name' get soft_integral 'soft_roi_number'\n"
 	  "        mca 'mca_name' get icr\n"
 	  "        mca 'mca_name' get ocr\n"
+	  "        mca 'mca_name' get busy\n"
 	;
 
 	if ( argc < 4 ) {
@@ -560,6 +561,23 @@ motor_mca_fn( int argc, char *argv[] )
 			fprintf( output,
 				"MCA '%s' live time = %f seconds\n",
 				mca_record->name, live_time );
+		} else
+		if ( strncmp( "busy", argv[4], strlen(argv[4]) ) == 0 ) {
+
+			mx_status = mx_mca_is_busy( mca_record, &busy );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+
+			if ( busy ) {
+				fprintf( output,
+					"MCA '%s' is busy.\n",
+					mca_record->name );
+			} else {
+				fprintf( output,
+					"MCA '%s' is idle.\n",
+					mca_record->name );
+			}
 		} else
 		if ( strncmp( "channel", argv[4], strlen(argv[4]) ) == 0 ) {
 

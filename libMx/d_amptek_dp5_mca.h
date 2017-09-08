@@ -17,14 +17,15 @@
 #ifndef __D_AMPTEK_DP5_MCA_H__
 #define __D_AMPTEK_DP5_MCA_H__
 
-#define MX_AMPTEK_DP5_MAX_SCAS	8
-#define MX_AMPTEK_DP5_MAX_BINS	8192
+#define MXU_AMPTEK_DP5_MAX_SCAS	8
+#define MXU_AMPTEK_DP5_MAX_BINS	8192
 
 typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *amptek_dp5_record;
 
+	char raw_mca_spectrum[ 3 * MXU_AMPTEK_DP5_MAX_BINS ];
 } MX_AMPTEK_DP5_MCA;
 
 #define MXD_AMPTEK_DP5_STANDARD_FIELDS \

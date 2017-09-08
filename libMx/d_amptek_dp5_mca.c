@@ -266,6 +266,10 @@ mxd_amptek_dp5_mca_start( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	mx_status = mxi_amptek_dp5_binary_command( amptek_dp5, 0xF0, 2,
+						NULL, NULL, NULL, 0,
+						NULL, 0, NULL, TRUE );
+
 	return mx_status;
 }
 
@@ -284,6 +288,10 @@ mxd_amptek_dp5_mca_stop( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	mx_status = mxi_amptek_dp5_binary_command( amptek_dp5, 0xF0, 3,
+						NULL, NULL, NULL, 0,
+						NULL, 0, NULL, TRUE );
+
 	return mx_status;
 }
 
@@ -294,6 +302,10 @@ mxd_amptek_dp5_mca_read( MX_MCA *mca )
 
 	MX_AMPTEK_DP5_MCA *amptek_dp5_mca = NULL;
 	MX_AMPTEK_DP5 *amptek_dp5 = NULL;
+	char *raw_mca_spectrum = NULL;
+	unsigned long *channel_array = NULL;
+	unsigned long i, j;
+	long response_pid1, response_pid2;
 	mx_status_type mx_status;
 
 	mx_status = mxd_amptek_dp5_mca_get_pointers( mca,
@@ -301,6 +313,41 @@ mxd_amptek_dp5_mca_read( MX_MCA *mca )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Read out the spectrum into the 24-bit array called
+	 * 'amptek_dp5_mca->raw_mca_spectrum' and then copy that
+	 * to the 32-bit (or 64-bit) 'mca->channel_array' structure.
+	 */
+
+	mx_status = mxi_amptek_dp5_binary_command( amptek_dp5,
+						2, 1,
+						&response_pid1,
+						&response_pid2,
+						NULL, 0,
+					amptek_dp5_mca->raw_mca_spectrum,
+						3 * MXU_AMPTEK_DP5_MAX_BINS,
+						NULL,
+						amptek_dp5->amptek_dp5_flags );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Copy the 24-bit data from amptek_dp5_mca->raw_mca_spectrum to
+	 * the unsigned long mca->channel_array structure.
+	 */
+
+	raw_mca_spectrum = amptek_dp5_mca->raw_mca_spectrum;
+
+	channel_array = mca->channel_array;
+
+	for ( i = 0; i < mca->current_num_channels; i++ ) {
+		j = 3 * i;
+
+		channel_array[i] =
+			((unsigned long) raw_mca_spectrum[j])
+			+ ( ((unsigned long) raw_mca_spectrum[j+1]) << 8 )
+			+ ( ((unsigned long) raw_mca_spectrum[j+2]) << 16 );
+	}
 
 	return mx_status;
 }
@@ -320,6 +367,14 @@ mxd_amptek_dp5_mca_clear( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	mx_status = mxi_amptek_dp5_binary_command( amptek_dp5,
+						0xF0, 1,
+						NULL, NULL,
+						NULL, 0,
+						NULL, 0,
+						NULL,
+						amptek_dp5->amptek_dp5_flags );
+
 	return mx_status;
 }
 
@@ -330,6 +385,8 @@ mxd_amptek_dp5_mca_busy( MX_MCA *mca )
 
 	MX_AMPTEK_DP5_MCA *amptek_dp5_mca = NULL;
 	MX_AMPTEK_DP5 *amptek_dp5 = NULL;
+	char status_packet[64];
+	unsigned char byte_35;
 	mx_status_type mx_status;
 
 	mx_status = mxd_amptek_dp5_mca_get_pointers( mca,
@@ -337,6 +394,27 @@ mxd_amptek_dp5_mca_busy( MX_MCA *mca )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Send a 'Request Status Packet'. */
+
+	mx_status = mxi_amptek_dp5_binary_command( amptek_dp5, 1, 1,
+						NULL, NULL, NULL, 0,
+						status_packet,
+						sizeof(status_packet),
+						NULL, TRUE );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	byte_35 = status_packet[35];
+
+	/* We check the 35th byte for the 'MCA enabled' bit 0x2. */
+
+	if ( (byte_35 & 0x2) != 0 ) {
+		mca->busy = FALSE;
+	} else {
+		mca->busy = TRUE;
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -395,7 +473,7 @@ mxd_amptek_dp5_mca_get_parameter( MX_MCA *mca )
 		break;
 	case MXLV_MCA_PRESET_REAL_TIME:
 		mx_status = mxi_amptek_dp5_ascii_command( amptek_dp5,
-						"PRET;",
+						"PRER;",
 						ascii_response,
 						sizeof(ascii_response),
 						FALSE,
@@ -405,13 +483,13 @@ mxd_amptek_dp5_mca_get_parameter( MX_MCA *mca )
 			return mx_status;
 
 		num_items = sscanf( ascii_response,
-					"PRET=%lg;",
+					"PRER=%lg;",
 					&(mca->preset_real_time) );
 
 		if ( num_items != 1 ) {
 			return mx_error( MXE_DEVICE_IO_ERROR, fname,
 			"Did not see the preset real time in the response '%s' "
-			"to command 'PRET;' for MCA '%s'.",
+			"to command 'PRER;' for MCA '%s'.",
 				ascii_response, mca->record->name );
 		}
 	case MXLV_MCA_PRESET_COUNT:
@@ -431,8 +509,8 @@ mxd_amptek_dp5_mca_get_parameter( MX_MCA *mca )
 
 		if ( num_items != 1 ) {
 			return mx_error( MXE_DEVICE_IO_ERROR, fname,
-			"Did not see the preset real time in the response '%s' "
-			"to command 'PRET;' for MCA '%s'.",
+			"Did not see the preset count in the response '%s' "
+			"to command 'PREC;' for MCA '%s'.",
 				ascii_response, mca->record->name );
 		}
 		break;
@@ -513,7 +591,7 @@ mxd_amptek_dp5_mca_set_parameter( MX_MCA *mca )
 		break;
 	case MXLV_MCA_PRESET_REAL_TIME:
 		snprintf( ascii_command, sizeof(ascii_command),
-			"PREC=OFF;PRER=OFF;PRET=%f;", mca->preset_real_time );
+			"PREC=OFF;PRET=OFF;PRER=%f;", mca->preset_real_time );
 
 		mx_status = mxi_amptek_dp5_ascii_command( amptek_dp5,
 						ascii_command, NULL, 0, TRUE,

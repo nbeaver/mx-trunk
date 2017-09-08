@@ -169,7 +169,8 @@ MX_API mx_status_type mxi_amptek_dp5_ascii_command(
 
 MX_API mx_status_type mxi_amptek_dp5_binary_command(
 				MX_AMPTEK_DP5 *amptek_dp5,
-				long pid1, long pid2,
+				long command_pid1, long command_pid2,
+				long *response_pid1, long *response_pid2,
 				char *binary_command,
 				unsigned long binary_command_length,
 				char *binary_response,
