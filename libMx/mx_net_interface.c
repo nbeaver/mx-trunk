@@ -581,6 +581,12 @@ mx_network_get_interface_from_host_address( MX_NETWORK_INTERFACE **ni,
 #include <net/if.h>
 #include <ifaddrs.h>
 
+#include "mx_unistd.h"
+
+#if defined(OS_SOLARIS)
+#  include <sys/sockio.h>
+#endif
+
 /* FIXME: This function currently supports only IPV4 addresses. */
 
 MX_EXPORT mx_status_type

@@ -416,6 +416,6 @@ mxd_wti_nps_relay_get_relay_status( MX_RELAY *relay )
 		}
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	MXW_NOT_REACHED( return MX_SUCCESSFUL_RESULT );
 }
 

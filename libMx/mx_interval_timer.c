@@ -1719,8 +1719,8 @@ mx_interval_timer_create_event_handler( MX_INTERVAL_TIMER *itimer,
 {
 	mx_status_type mx_status;
 
-	if ( mx_signals_are_initialized() == FALSE ) {
-		mx_status = mx_signal_initialize();
+	if ( mx_signal_alloc_is_initialized() == FALSE ) {
+		mx_status = mx_signal_alloc_initialize();
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

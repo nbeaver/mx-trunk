@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2000, 2003, 2005-2007, 2012-2016
+ * Copyright 1999-2000, 2003, 2005-2007, 2012-2017
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -65,6 +65,9 @@ extern "C" {
 
 #elif defined(_MSC_VER)
 #  define MX_ALIGNED(x,a)	( __declspec(align(a)) (x) )
+
+#elif defined(__SUNPRO_C)
+#  define MX_ALIGNED(X,A)	( (x) __attribute__((aligned(a))))
 
 #else
 #  error This platform does not yet implement the MX_ALIGNED macro.

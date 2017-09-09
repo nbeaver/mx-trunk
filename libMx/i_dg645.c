@@ -731,5 +731,5 @@ mxi_dg645_interpret_trigger_source( MX_DG645 *dg645 )
 	}
 
 	return MX_SUCCESSFUL_RESULT;
-};
+}
 

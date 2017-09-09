@@ -1607,11 +1607,20 @@ mx_video_input_register_capture_callback( MX_RECORD *record,
 			record->name );
 	}
 
+#if defined(OS_SOLARIS)
+	/* FIXME: The Solaris Studio compiler does not like the 
+	 *        assignments below.
+	 */
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"This feature is not yet implemented for Solaris." );
+#else
 	vinput->capture_callback_function = capture_callback_function;
 
 	vinput->capture_callback_argument = capture_callback_argument;
 
 	return MX_SUCCESSFUL_RESULT;
+#endif
 }
 
 /*-----------------------------------------------------------------------*/

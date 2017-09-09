@@ -42,8 +42,8 @@ READLINE_LIBRARIES = -ledit
 # /opt/sunstudio12.1/
 #
 
-#CC_CMD = /opt/solarisstudio12.3/bin/cc
-CC_CMD = /opt/sunstudio12.1/bin/cc
+CC_CMD = /opt/solarisstudio12.3/bin/cc
+#CC_CMD = /opt/sunstudio12.1/bin/cc
 #CC_CMD = /opt/SUNWspro/bin/cc
 
 #
@@ -72,6 +72,9 @@ CFLAGS		= -g -KPIC -errwarn=%all $(INCLUDES) -DOS_SOLARIS \
 				$(EXTRA_FLAGS) -DDEBUG $(USE_64_BITS)
 
 LINKFLAGS	= $(CFLAGS)
+
+INSTALL		= /usr/gnu/bin/install
+#INSTALL	= /usr/ucb/install
 
 # Special cases for individual files.
 
@@ -160,19 +163,19 @@ library_install:
 	-mkdir $(MX_INSTALL_DIR)/run
 	-mkdir $(MX_INSTALL_DIR)/sbin
 	-mkdir $(MX_INSTALL_DIR)/state
-	/usr/ucb/install -m 644 mx*.h $(MX_INSTALL_DIR)/include 
-	/usr/ucb/install -m 644 $(MX_LIBRARY_NAME) $(MX_INSTALL_DIR)/lib 
-	/usr/ucb/install -m 644 $(MX_LIBRARY_STATIC_NAME) $(MX_INSTALL_DIR)/lib 
+	$(INSTALL) -m 644 mx*.h $(MX_INSTALL_DIR)/include 
+	$(INSTALL) -m 644 $(MX_LIBRARY_NAME) $(MX_INSTALL_DIR)/lib 
+	$(INSTALL) -m 644 $(MX_LIBRARY_STATIC_NAME) $(MX_INSTALL_DIR)/lib 
 	-( cd $(MX_INSTALL_DIR)/lib ; rm libMx.so )
 	( cd $(MX_INSTALL_DIR)/lib ; ln -sf $(MX_LIBRARY_NAME) libMx.so )
 	touch $(MX_INSTALL_DIR)/etc/mxmotor.dat
 	touch $(MX_INSTALL_DIR)/etc/mxscan.dat
-	/usr/ucb/install -m 755 ../plotgnu/plotgnu.pl $(MX_INSTALL_DIR)/bin 
-	/usr/ucb/install -m 755 ../plotgnu/showdata $(MX_INSTALL_DIR)/bin 
-	/usr/ucb/install -m 755 ../plotgnu/showplot $(MX_INSTALL_DIR)/bin 
-	/usr/ucb/install -m 755 ../plotgnu/plot2ps $(MX_INSTALL_DIR)/bin 
-	/usr/ucb/install -m 755 ../scripts/mxsetup.sh $(MX_INSTALL_DIR)/bin 
-	/usr/ucb/install -m 755 ../tools/mx_config $(MX_INSTALL_DIR)/bin
+	$(INSTALL) -m 755 ../plotgnu/plotgnu.pl $(MX_INSTALL_DIR)/bin 
+	$(INSTALL) -m 755 ../plotgnu/showdata $(MX_INSTALL_DIR)/bin 
+	$(INSTALL) -m 755 ../plotgnu/showplot $(MX_INSTALL_DIR)/bin 
+	$(INSTALL) -m 755 ../plotgnu/plot2ps $(MX_INSTALL_DIR)/bin 
+	$(INSTALL) -m 755 ../scripts/mxsetup.sh $(MX_INSTALL_DIR)/bin 
+	$(INSTALL) -m 755 ../tools/mx_config $(MX_INSTALL_DIR)/bin
 
 mx_list_head.$(OBJ): Makefile.version mx_list_head.c mx_version.h
 	$(COMPILE) $(CFLAGS) -DMX_CFLAGS="${CFLAGS}" mx_list_head.c
@@ -194,8 +197,8 @@ $(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
 			$(LIBRARIES) $(READLINE_LIBRARIES)
 
 motor_install:
-	/usr/ucb/install -m 755 $(MOTOR_NAME) $(MX_INSTALL_DIR)/bin 
-	/usr/ucb/install -m 755 $(MOTOR_NAME2) $(MX_INSTALL_DIR)/bin 
+	$(INSTALL) -m 755 $(MOTOR_NAME) $(MX_INSTALL_DIR)/bin 
+	$(INSTALL) -m 755 $(MOTOR_NAME2) $(MX_INSTALL_DIR)/bin 
 
 #
 #---------------------------------------------------
@@ -207,9 +210,9 @@ $(SERVER_NAME): $(SERVER_OBJS) $(MX_LIBRARY_PATH)
 			$(LIB_DIRS) -lMx $(LIBRARIES)
 
 server_install:
-	/usr/ucb/install -m 755 $(SERVER_NAME) $(MX_INSTALL_DIR)/sbin 
-	/usr/ucb/install -m 755 ../scripts/startmxserver $(MX_INSTALL_DIR)/sbin 
-	/usr/ucb/install -m 755 ../scripts/mx $(MX_INSTALL_DIR)/sbin 
+	$(INSTALL) -m 755 $(SERVER_NAME) $(MX_INSTALL_DIR)/sbin 
+	$(INSTALL) -m 755 ../scripts/startmxserver $(MX_INSTALL_DIR)/sbin 
+	$(INSTALL) -m 755 ../scripts/mx $(MX_INSTALL_DIR)/sbin 
 	touch $(MX_INSTALL_DIR)/etc/mxserver.dat
 	touch $(MX_INSTALL_DIR)/etc/mxserver.acl
 
@@ -223,10 +226,10 @@ $(AUTOSAVE_NAME): $(AUTOSAVE_OBJS) $(MX_LIBRARY_PATH)
 			$(LIB_DIRS) -lMx $(LIBRARIES)
 
 autosave_install:
-	/usr/ucb/install -m 755 $(AUTOSAVE_NAME) $(MX_INSTALL_DIR)/sbin 
-	/usr/ucb/install -m 755 ../scripts/startmxautosave $(MX_INSTALL_DIR)/sbin 
-	/usr/ucb/install -m 755 ../scripts/mxsave $(MX_INSTALL_DIR)/bin 
-	/usr/ucb/install -m 755 ../scripts/mxrestore $(MX_INSTALL_DIR)/bin 
+	$(INSTALL) -m 755 $(AUTOSAVE_NAME) $(MX_INSTALL_DIR)/sbin 
+	$(INSTALL) -m 755 ../scripts/startmxautosave $(MX_INSTALL_DIR)/sbin 
+	$(INSTALL) -m 755 ../scripts/mxsave $(MX_INSTALL_DIR)/bin 
+	$(INSTALL) -m 755 ../scripts/mxrestore $(MX_INSTALL_DIR)/bin 
 	touch $(MX_INSTALL_DIR)/etc/mxautosave.dat
 
 #
@@ -258,7 +261,7 @@ mxserial.o: mxserial_fork.c
 	$(CC) $(CFLAGS) -D__MX_APP__ -c mxserial_fork.c -o mxserial.o
 
 util_install:
-	/usr/ucb/install -m 755 $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
-	/usr/ucb/install -m 755 $(MXMONITOR_NAME) $(MX_INSTALL_DIR)/bin
-	/usr/ucb/install -m 755 $(MXSERIAL_NAME) $(MX_INSTALL_DIR)/bin
+	$(INSTALL) -m 755 $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
+	$(INSTALL) -m 755 $(MXMONITOR_NAME) $(MX_INSTALL_DIR)/bin
+	$(INSTALL) -m 755 $(MXSERIAL_NAME) $(MX_INSTALL_DIR)/bin
 

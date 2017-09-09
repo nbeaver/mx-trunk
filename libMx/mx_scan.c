@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2012, 2014-2016 Illinois Institute of Technology
+ * Copyright 1999-2012, 2014-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -3297,7 +3297,7 @@ mx_scan_default_set_parameter_handler( MX_SCAN *scan )
 		break;
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	MXW_NOT_REACHED( return MX_SUCCESSFUL_RESULT );
 }
 
 /* --------------- */
@@ -3334,8 +3334,7 @@ mx_scan_get_estimated_scan_duration( MX_RECORD *scan_record,
 	}
 
 	return MX_SUCCESSFUL_RESULT;
-#endif
-
+#else
 	flist_ptr = (MX_SCAN_FUNCTION_LIST *)
 			scan_record->superclass_specific_function_list;
 
@@ -3363,6 +3362,7 @@ mx_scan_get_estimated_scan_duration( MX_RECORD *scan_record,
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+#endif
 }
 
 /* --------------- */
