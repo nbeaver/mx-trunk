@@ -669,7 +669,8 @@ mx_list_head_record_show_field( MX_LIST_HEAD *list_head )
 	fprintf( stderr, " ]\n" );
 	fprintf( stderr, "  data_element_size = [" );
 	for ( i = 0; i < mx_field->num_dimensions; i++ ) {
-		fprintf( stderr, " %ld", mx_field->data_element_size[i] );
+		fprintf( stderr,
+			" %ld", (long) mx_field->data_element_size[i] );
 	}
 	fprintf( stderr, " ]\n" );
 	fprintf( stderr, "  data_pointer = %p\n", mx_field->data_pointer );
