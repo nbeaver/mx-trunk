@@ -208,6 +208,8 @@ mxd_amptek_dp5_mca_open( MX_RECORD *record )
 	MX_MCA *mca = NULL;
 	MX_AMPTEK_DP5_MCA *amptek_dp5_mca = NULL;
 	MX_AMPTEK_DP5 *amptek_dp5 = NULL;
+	char response[80];
+	int num_items;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -222,6 +224,24 @@ mxd_amptek_dp5_mca_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Read in the currently configured number of MCA channels. */
+
+	mx_status = mxi_amptek_dp5_ascii_command( amptek_dp5, "MCAC;",
+					response, sizeof(response),
+					FALSE, amptek_dp5->amptek_dp5_flags );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	num_items = sscanf( response, "MCAC=%ld;", 
+				&(mca->current_num_channels) );
+
+	if ( num_items != 1 ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"Unable to parse the response '%s' to command 'MCAC;' "
+		"for MCA '%s'.",  response, record->name );
+	}
 
 	return mx_status;
 }
@@ -258,6 +278,7 @@ mxd_amptek_dp5_mca_start( MX_MCA *mca )
 
 	MX_AMPTEK_DP5_MCA *amptek_dp5_mca = NULL;
 	MX_AMPTEK_DP5 *amptek_dp5 = NULL;
+	char command[200];
 	mx_status_type mx_status;
 
 	mx_status = mxd_amptek_dp5_mca_get_pointers( mca,
@@ -265,6 +286,42 @@ mxd_amptek_dp5_mca_start( MX_MCA *mca )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	switch( mca->preset_type ) {
+	case MXF_MCA_PRESET_LIVE_TIME:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Preset live time is not supported for MCA '%s'.  You must use "
+		"either preset real time or preset count instead.\n",
+			mca->record->name );
+		break;
+	case MXF_MCA_PRESET_REAL_TIME:
+		snprintf( command, sizeof(command),
+			"PREC=OFF;PRET=OFF;PRER=%f;",
+			mca->preset_real_time );
+
+		mx_status = mxi_amptek_dp5_ascii_command( amptek_dp5,
+						command, NULL, 0, TRUE,
+						amptek_dp5->amptek_dp5_flags );
+		break;
+	case MXF_MCA_PRESET_COUNT:
+		/* FIXME: You must specify values for PRCL and PRCH here. */
+
+		snprintf( command, sizeof(command),
+			"PRER=OFF;PRET=OFF;PREC=%lu;",
+			mca->preset_count );
+
+		mx_status = mxi_amptek_dp5_ascii_command( amptek_dp5,
+						command, NULL, 0, TRUE,
+						amptek_dp5->amptek_dp5_flags );
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Preset type %ld is not recognized for MCA '%s'.",
+			mca->preset_type, mca->record->name );
+		break;
+	}
+
+	/* Enable the MCA. */
 
 	mx_status = mxi_amptek_dp5_binary_command( amptek_dp5, 0xF0, 2,
 						NULL, NULL, NULL, 0,
@@ -386,7 +443,8 @@ mxd_amptek_dp5_mca_busy( MX_MCA *mca )
 	MX_AMPTEK_DP5_MCA *amptek_dp5_mca = NULL;
 	MX_AMPTEK_DP5 *amptek_dp5 = NULL;
 	char status_packet[64];
-	unsigned char byte_35;
+	uint8_t status_byte_35;
+	unsigned long flags;
 	mx_status_type mx_status;
 
 	mx_status = mxd_amptek_dp5_mca_get_pointers( mca,
@@ -406,14 +464,50 @@ mxd_amptek_dp5_mca_busy( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	byte_35 = status_packet[35];
+	flags = amptek_dp5_mca->amptek_dp5_mca_flags;
 
-	/* We check the 35th byte for the 'MCA enabled' bit 0x2. */
+	if ( flags & MXF_AMPTEK_DP5_MCA_DEBUG_STATUS_PACKET ) {
+		fprintf( stderr, "status[35] = %#x, status[36] = %#x\n",
+			((unsigned int) status_packet[35]) & 0xff,
+			((unsigned int) status_packet[36]) & 0xff );
+	}
 
-	if ( (byte_35 & 0x2) != 0 ) {
-		mca->busy = FALSE;
-	} else {
-		mca->busy = TRUE;
+	mca->busy = FALSE;
+
+	status_byte_35 = (uint8_t) status_packet[35];
+
+	switch( mca->preset_type ) {
+	case MXF_MCA_PRESET_LIVE_TIME:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Preset live time is not supported for MCA '%s'.  You must use "
+		"either preset real time or preset count instead.\n",
+			mca->record->name );
+		break;
+	case MXF_MCA_PRESET_REAL_TIME:
+		if ( (status_byte_35 & 0x20) == 0 ) {
+			mca->busy = FALSE;
+		} else
+		if ( status_byte_35 & 0x80 ) {
+			mca->busy = FALSE;
+		} else {
+			mca->busy = TRUE;
+		}
+		break;
+	case MXF_MCA_PRESET_COUNT:
+		if ( (status_byte_35 & 0x20) == 0 ) {
+			mca->busy = FALSE;
+		} else
+		if ( status_byte_35 & 0x10 ) {
+			mca->busy = FALSE;
+		} else {
+			mca->busy = TRUE;
+		}
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Preset type %ld is not recognized for MCA '%s'.",
+			mca->preset_type, mca->record->name );
+		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

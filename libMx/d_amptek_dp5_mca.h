@@ -20,10 +20,15 @@
 #define MXU_AMPTEK_DP5_MAX_SCAS	8
 #define MXU_AMPTEK_DP5_MAX_BINS	8192
 
+/* Bit values for the 'amptek_dp5_mca_flags' field. */
+
+#define MXF_AMPTEK_DP5_MCA_DEBUG_STATUS_PACKET	0x1000
+
 typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *amptek_dp5_record;
+	unsigned long amptek_dp5_mca_flags;
 
 	char raw_mca_spectrum[ 3 * MXU_AMPTEK_DP5_MAX_BINS ];
 } MX_AMPTEK_DP5_MCA;
@@ -31,7 +36,12 @@ typedef struct {
 #define MXD_AMPTEK_DP5_STANDARD_FIELDS \
   {-1, -1, "amptek_dp5_record", MXFT_RECORD, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_AMPTEK_DP5_MCA, amptek_dp5_record ), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "amptek_dp5_mca_flags", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof( MX_AMPTEK_DP5_MCA, amptek_dp5_mca_flags ), \
+	{0}, NULL, MXFF_IN_DESCRIPTION }
 
 MX_API mx_status_type mxd_amptek_dp5_mca_initialize_driver( MX_DRIVER *driver );
 MX_API mx_status_type mxd_amptek_dp5_mca_create_record_structures(

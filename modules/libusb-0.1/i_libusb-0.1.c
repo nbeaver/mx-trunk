@@ -633,8 +633,8 @@ mxi_libusb_01_find_device( MX_USB *usb, MX_USB_DEVICE **usb_device )
 			}
 
 			return mx_error( mx_error_code, fname,
-			"The requested device (vendor %#lx, product %#lx) "
-			"order number %d for USB record '%s' was not found.",
+			"The requested device (vendor %#lx, product %#lx, "
+			"order number %d) for USB record '%s' was not found.",
 				vendor_id, product_id, order_number,
 				usb->record->name);
 		} else {

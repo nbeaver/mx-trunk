@@ -3309,9 +3309,11 @@ mx_scan_get_estimated_scan_duration( MX_RECORD *scan_record,
 	static const char fname[] = "mx_scan_get_estimated_scan_duration()";
 
 	MX_SCAN *scan;
+#if 0
 	MX_SCAN_FUNCTION_LIST *flist_ptr;
 	mx_status_type ( *fptr )( MX_SCAN * );
 	mx_status_type mx_status;
+#endif
 
 	if ( scan_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
