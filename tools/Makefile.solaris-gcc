@@ -12,7 +12,7 @@ EDITLINE_RANLIB = ranlib
 EDITLINE_MAKECMD = \
   make CC=$(EDITLINE_CC) CFLAGS=$(EDITLINE_CFLAGS) RANLIB=$(EDITLINE_RANLIB)
 
-all: ../libMx/mx_private_version.h
+all: ../libMx/mx_private_version.h mx_config
 	( cd unix/src/editline ; $(EDITLINE_MAKECMD) )
 
 include ../libMx/Makefile.version
@@ -35,4 +35,8 @@ mx_private_version: ../libMx/Makefile.version version/src/mx_private_version.c
 
 ../libMx/mx_private_version.h: mx_private_version
 	./mx_private_version > ../libMx/mx_private_version.h
+
+mx_config: version/src/mx_config.c ../libMx/mx_private_version.h
+	$(CC) -I../libMx -DOS_LINUX -DMX_ARCH="\"$(MX_ARCH)\"" \
+		-o mx_config version/src/mx_config.c
 
