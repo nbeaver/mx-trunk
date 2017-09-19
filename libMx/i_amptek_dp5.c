@@ -860,12 +860,14 @@ mxi_amptek_dp5_raw_command( MX_AMPTEK_DP5 *amptek_dp5,
 		if ( max_show_write_bytes > 0 ) {
 			byte_to_write = raw_command[0];
 
-			fprintf(stderr, "%#hx", byte_to_write );
+			fprintf(stderr, "%#hx",
+					(unsigned short) byte_to_write );
 		}
 		for ( i = 1; i < max_show_write_bytes; i++ ) {
 			byte_to_write = raw_command[i];
 
-			fprintf(stderr, ", %#hx", byte_to_write );
+			fprintf(stderr, ", %#hx",
+					(unsigned short) byte_to_write );
 		}
 
 		fprintf( stderr, "\n" );
@@ -961,12 +963,12 @@ mxi_amptek_dp5_raw_command( MX_AMPTEK_DP5 *amptek_dp5,
 		if ( max_show_read_bytes > 0 ) {
 			byte_read = raw_response_ptr[0];
 
-			fprintf(stderr, "%#hx", byte_read );
+			fprintf(stderr, "%#hx", (unsigned short) byte_read );
 		}
 		for ( i = 1; i < max_show_read_bytes; i++ ) {
 			byte_read = raw_response_ptr[i];
 
-			fprintf(stderr, ", %#hx", byte_read );
+			fprintf(stderr, ", %#hx", (unsigned short) byte_read );
 		}
 
 		fprintf( stderr, "\n" );
