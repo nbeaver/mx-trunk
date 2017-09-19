@@ -338,6 +338,12 @@ mx_prepare_for_debugging( char *command, int just_in_time_debugging )
 			} else
 #endif
 #if defined(OS_SOLARIS)
+			if ( mx_command_found( "dbxtool" ) ) {
+
+				snprintf( mx_debugger_command,
+					sizeof(mx_debugger_command),
+					"dbxtool - %lu", pid );
+			} else
 			if ( mx_command_found( "sunstudio" ) ) {
 
 				snprintf( mx_debugger_command,
