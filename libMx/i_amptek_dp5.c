@@ -1058,6 +1058,8 @@ mxi_amptek_dp5_raw_command( MX_AMPTEK_DP5 *amptek_dp5,
 		*actual_raw_response_length = raw_read_packet_length;
 	}
 
+	MXW_UNUSED( mx_status );
+
 	return MX_SUCCESSFUL_RESULT;
 }
 

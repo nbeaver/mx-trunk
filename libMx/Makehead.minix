@@ -144,7 +144,7 @@ $(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
 	ar rc $(MX_LIBRARY_STATIC_NAME) $(MX_LIB_OBJS)
 	ranlib $(MX_LIBRARY_STATIC_NAME)
 
-mx_library_install:
+library_install:
 	-mkdir $(MX_INSTALL_DIR)/bin
 	-mkdir $(MX_INSTALL_DIR)/etc
 	-mkdir $(MX_INSTALL_DIR)/etc/startup

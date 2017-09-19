@@ -2908,6 +2908,9 @@ mx_image_fix_region( MX_IMAGE_FRAME *image_frame,
 		}
 		break;
 	case MXF_IMAGE_FIX_VERTICAL:
+		MXW_UNUSED( touches_left_edge );
+		MXW_UNUSED( touches_right_edge );
+
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 		"Fixing vertical lines is not yet implemented." );
 		break;

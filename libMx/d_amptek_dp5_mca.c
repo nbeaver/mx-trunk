@@ -670,6 +670,8 @@ mxd_amptek_dp5_mca_set_parameter( MX_MCA *mca )
 				mca->record->name );
 
 			mx_status_2 = mxd_amptek_dp5_mca_get_parameter( mca );
+
+			MXW_UNUSED( mx_status_2 );
 			break;
 		}
 
@@ -723,6 +725,8 @@ mxd_amptek_dp5_mca_process_function( void *record_ptr,
 	record = (MX_RECORD *) record_ptr;
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
 	amptek_dp5_mca = (MX_AMPTEK_DP5_MCA *) record->record_type_struct;
+
+	MXW_UNUSED( amptek_dp5_mca );
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 

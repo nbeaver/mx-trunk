@@ -459,7 +459,7 @@ mx_get_signal_allocation( int max_signals,
 {
 	static const char fname[] = "mx_get_signal_allocation()";
 
-	int i, signals_to_copy;
+	int i;
 
 	if ( mx_signal_array == (int *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -474,9 +474,7 @@ mx_get_signal_allocation( int max_signals,
 	memset( users_mx_signal_array, 0, max_signals * sizeof(int) );
 
 	if ( max_signals > MX_MAX_SIGNALS ) {
-		signals_to_copy = MX_MAX_SIGNALS;
-	} else {
-		signals_to_copy = max_signals;
+		max_signals = MX_MAX_SIGNALS;
 	}
 
 	for ( i = 0; i < max_signals; i++ ) {
