@@ -138,6 +138,9 @@ mxsrv_user_interrupt_function( void )
 	return MXF_USER_INT_NONE;
 }
 
+#if defined(SA_SIGINFO)
+	/* Not OS_MINIX */
+
 static void
 mxsrv_sigterm_handler( int signal_number, siginfo_t *siginfo, void *ignored )
 {
@@ -183,27 +186,34 @@ mxsrv_sigint_termination_handler( int signal_number,
 	exit(0);
 }
 
+#endif /* SA_SIGINFO - not OS_MINIX */
+
 static void
 mxsrv_install_signal_and_exit_handlers( int sigint_displays_traceback )
 {
-	struct sigaction sa;
-
 	atexit( mxsrv_exit_handler );
 
-	memset( &sa, 0, sizeof(sa) );
+#if defined(SA_SIGINFO)
+	/* Not OS_MINIX */
+	{
+		struct sigaction sa;
 
-	sa.sa_flags = SA_SIGINFO;
-	sa.sa_sigaction = mxsrv_sigterm_handler;
+		memset( &sa, 0, sizeof(sa) );
 
-	sigaction( SIGTERM, &sa, NULL );
+		sa.sa_flags = SA_SIGINFO;
+		sa.sa_sigaction = mxsrv_sigterm_handler;
 
-	if ( sigint_displays_traceback ) {
-		sa.sa_sigaction = mxsrv_sigint_traceback_handler;
-	} else {
-		sa.sa_sigaction = mxsrv_sigint_termination_handler;
+		sigaction( SIGTERM, &sa, NULL );
+
+		if ( sigint_displays_traceback ) {
+			sa.sa_sigaction = mxsrv_sigint_traceback_handler;
+		} else {
+			sa.sa_sigaction = mxsrv_sigint_termination_handler;
+		}
+
+		sigaction( SIGINT, &sa, NULL );
 	}
-
-	sigaction( SIGINT, &sa, NULL );
+#endif /* SA_SIGINFO - not OS_MINIX */
 
 	mx_setup_standard_signal_error_handlers();
 

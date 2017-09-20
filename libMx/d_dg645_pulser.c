@@ -172,7 +172,7 @@ mxd_dg645_pulser_open( MX_RECORD *record )
 	MX_DG645_PULSER *dg645_pulser = NULL;
 	MX_DG645 *dg645 = NULL;
 	size_t i, length;
-	char c;
+	int c;
 	char *output_name;
 	mx_status_type mx_status;
 

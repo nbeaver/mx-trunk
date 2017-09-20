@@ -51,6 +51,9 @@ msauto_exit_handler( void )
 	}
 }
 
+#if defined(SA_SIGINFO)
+	/* Not OS_MINIX */
+
 static void
 msauto_sigterm_handler( int signal_number,
 			siginfo_t *siginfo, void *ignored )
@@ -68,19 +71,27 @@ msauto_sigterm_handler( int signal_number,
 	exit(0);
 }
 
+#endif /* SA_SIGINFO - Not OS_MINIX */
+
 static void
 msauto_install_signal_and_exit_handlers( void )
 {
-	struct sigaction sa;
-
 	atexit( msauto_exit_handler );
 
-	memset( &sa, 0, sizeof(sa) );
+#if defined(SA_SIGINFO)
+	/* Not OS_MINIX */
 
-	sa.sa_flags = SA_SIGINFO;
-	sa.sa_sigaction = msauto_sigterm_handler;
+	{
+		struct sigaction sa;
 
-	sigaction( SIGTERM, &sa, NULL );
+		memset( &sa, 0, sizeof(sa) );
+
+		sa.sa_flags = SA_SIGINFO;
+		sa.sa_sigaction = msauto_sigterm_handler;
+
+		sigaction( SIGTERM, &sa, NULL );
+	}
+#endif /* SA_SIGINFO - Not OS_MINIX */
 
 	mx_setup_standard_signal_error_handlers();
 
