@@ -1283,7 +1283,7 @@ mx_set_watchpoint( MX_WATCHPOINT *watchpoint,
 
 #elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_ANDROID) \
 	|| defined(OS_CYGWIN) || defined(OS_SOLARIS) || defined(OS_BSD) \
-	|| defined(OS_MINIX)
+	|| defined(OS_MINIX) || defined(OS_RTEMS)
 
 /* FIXME: Implement real watchpoints for Linux at least. */
 

@@ -144,6 +144,10 @@ mxsrv_user_interrupt_function( void )
 static void
 mxsrv_sigterm_handler( int signal_number, siginfo_t *siginfo, void *ignored )
 {
+#  if defined(OS_RTEMS)
+	mx_info( "Received a request to shutdown via a SIGTERM signal." );
+#  else /* not OS_RTEMS */
+
 	if ( siginfo == NULL ) {
 	    mx_info( "Received a request to shutdown via a SIGTERM signal." );
 	} else {
@@ -152,6 +156,7 @@ mxsrv_sigterm_handler( int signal_number, siginfo_t *siginfo, void *ignored )
 	    mx_info( "Received a request from process ID %ld "
 		"to shutdown via a SIGTERM signal.", process_id );
 	}
+#  endif /* not OS_RTEMS */
 
 	exit(0);
 }
@@ -174,6 +179,10 @@ static void
 mxsrv_sigint_termination_handler( int signal_number,
 				siginfo_t *siginfo, void *ignored )
 {
+#  if defined(OS_RTEMS)
+	mx_info( "Received a request to shutdown via a SIGINT signal." );
+#  else /* not OS_RTEMS */
+
 	if ( siginfo == NULL ) {
 	    mx_info( "Received a request to shutdown via a SIGINT signal." );
 	} else {
@@ -182,6 +191,7 @@ mxsrv_sigint_termination_handler( int signal_number,
 	    mx_info( "Received a request from process ID %ld "
 		"to shutdown via a SIGINT signal.", process_id );
 	}
+#  endif /* not OS_RTEMS */
 
 	exit(0);
 }
