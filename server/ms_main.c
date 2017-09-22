@@ -144,7 +144,7 @@ mxsrv_user_interrupt_function( void )
 static void
 mxsrv_sigterm_handler( int signal_number, siginfo_t *siginfo, void *ignored )
 {
-#  if defined(OS_RTEMS)
+#  if ( defined(OS_RTEMS) || defined(OS_VXWORKS) )
 	mx_info( "Received a request to shutdown via a SIGTERM signal." );
 #  else /* not OS_RTEMS */
 
@@ -179,7 +179,7 @@ static void
 mxsrv_sigint_termination_handler( int signal_number,
 				siginfo_t *siginfo, void *ignored )
 {
-#  if defined(OS_RTEMS)
+#  if ( defined(OS_RTEMS) || defined(OS_VXWORKS) )
 	mx_info( "Received a request to shutdown via a SIGINT signal." );
 #  else /* not OS_RTEMS */
 
