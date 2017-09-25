@@ -18,7 +18,7 @@
 #   macosx        - x86/powerpc with MacOS X using GCC
 #   macosx-clang  - x86 with MacOS X using Clang
 #   minix         - Minix 3.3.0 using Clang
-#   qnx           - x86 with QNX Neutrino
+#   qnx           - x86 with QNX Neutrino 6.x
 #   rtems         - x86/m68k/powerpc with RTEMS
 #   solaris       - sparc/x86 with Solaris 8 or above
 #   solaris-gcc   - sparc/x86 with Solaris 8 or above using GCC
