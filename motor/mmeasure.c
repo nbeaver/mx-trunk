@@ -342,7 +342,7 @@ motor_measure_dark_currents( int argc, char *argv[] )
 				{
 					device_array[i] = current_record;
 
-					MX_DEBUG(-2,(
+					MX_DEBUG( 2,(
 					"%s: scaler '%s' will be measured.",
 						cname, current_record->name ));
 					i++;
@@ -367,7 +367,7 @@ motor_measure_dark_currents( int argc, char *argv[] )
 				{
 					device_array[i] = current_record;
 
-					MX_DEBUG(-2,(
+					MX_DEBUG( 2,(
 				    "%s: analog input '%s' will be measured.",
 						cname, current_record->name ));
 					i++;
