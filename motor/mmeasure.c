@@ -11,7 +11,8 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004, 2006, 2010 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2004, 2006, 2010, 2017
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -30,6 +31,7 @@
 #include "mx_analog_input.h"
 #include "mx_autoscale.h"
 #include "d_auto_scaler.h"
+#include "d_timer_fanout.h"
 
 #define FREE_DEVICE_ARRAYS \
 	do { \
@@ -84,6 +86,60 @@ motor_measure_fn( int argc, char *argv[] )
 	return status;
 }
 
+static mx_bool_type
+mxp_belongs_to_this_timer( MX_RECORD *current_record,
+			MX_RECORD *dark_timer_record )
+{
+	MX_SCALER *current_scaler = NULL;
+	MX_ANALOG_INPUT *current_ainput = NULL;
+	MX_RECORD *current_timer_record = NULL;
+
+	switch( current_record->mx_class ) {
+	case MXC_SCALER:
+		current_scaler = (MX_SCALER *)
+					current_record->record_class_struct;
+
+		current_timer_record = current_scaler->timer_record;
+		break;
+	case MXC_ANALOG_INPUT:
+		current_ainput = (MX_ANALOG_INPUT *)
+					current_record->record_class_struct;
+
+		current_timer_record = current_ainput->timer_record;
+		break;
+	}
+
+	if ( current_timer_record == (MX_RECORD *) NULL ) {
+		return FALSE;
+	}
+
+	if ( current_timer_record == dark_timer_record ) {
+		return TRUE;
+	}
+
+	/* If dark_timer_record is a 'timer_fanout' record, then we must
+	 * look at the children of the timer fanout record to see if one
+	 * of them match current_timer_record.
+	 */
+
+	if ( dark_timer_record->mx_type == MXT_TIM_FANOUT ) {
+	    long i;
+	    MX_RECORD *timer_array_member = NULL;
+	    MX_TIMER_FANOUT *timer_fanout = (MX_TIMER_FANOUT *)
+					dark_timer_record->record_type_struct;
+
+	    for ( i = 0; i < timer_fanout->num_timers; i++ ) {
+		timer_array_member = timer_fanout->timer_record_array[i];
+
+		if ( timer_array_member == current_timer_record ) {
+			return TRUE;
+		}
+	    }
+	}
+
+	return FALSE;
+}
+
 static int
 motor_measure_dark_currents( int argc, char *argv[] )
 {
@@ -101,6 +157,7 @@ motor_measure_dark_currents( int argc, char *argv[] )
 	double new_dark_current;
 	unsigned long scaler_mask, ainput_mask;
 	int status;
+	mx_bool_type timer_found;
 	mx_status_type mx_status;
 
 	device_array = NULL;
@@ -114,28 +171,60 @@ motor_measure_dark_currents( int argc, char *argv[] )
 	MX_HRT_START( start_timing );
 #endif
 
-	/* Look for a record called 'dark_timer'. */
+	timer_found = FALSE;
 
-	timer_record = mx_get_record( motor_record_list, "dark_timer" );
+	/* Is argv[3] the name of a timer record? */
 
-	if ( timer_record == (MX_RECORD *) NULL ) {
+	timer_record = mx_get_record( motor_record_list, argv[3] );
 
-		/* 'dark_timer' does not exist, so look for 'timer1' instead. */
+	if ( timer_record != (MX_RECORD *) NULL ) {
+		if ( (timer_record->mx_superclass == MXR_DEVICE)
+		  && (timer_record->mx_class == MXC_TIMER) )
+		{
+			timer_found = TRUE;
+
+			/* Now skip over this entry in the argument list. */
+
+			argc--;
+			argv++;
+		}
+	}
+
+	if ( timer_found == FALSE ) { 
+		/* Alternately, look for a record called 'dark_timer'. */
+
+		timer_record = mx_get_record( motor_record_list, "dark_timer" );
+
+		if ( timer_record != (MX_RECORD *) NULL ) {
+			if ( (timer_record->mx_superclass == MXR_DEVICE)
+			  && (timer_record->mx_class == MXC_TIMER) )
+			{
+				timer_found = TRUE;
+			}
+		}
+	}
+
+	if ( timer_found == FALSE ) { 
+		/* Alternately, look for a record called 'timer1'. */
 
 		timer_record = mx_get_record( motor_record_list, "timer1" );
 
-		if ( timer_record == (MX_RECORD *) NULL ) {
-
-			fprintf(output,
-"Dark current measurements require the presence of either a timer record\n");
-			fprintf(output,
-"called 'dark_timer' or a timer record called 'timer1'.  Neither of these\n");
-			fprintf(output,
-"records exists in the current database, so a dark current measurement\n");
-			fprintf(output,
-"cannot be performed.\n");
-			return FAILURE;
+		if ( timer_record != (MX_RECORD *) NULL ) {
+			if ( (timer_record->mx_superclass == MXR_DEVICE)
+			  && (timer_record->mx_class == MXC_TIMER) )
+			{
+				timer_found = TRUE;
+			}
 		}
+	}
+
+	if ( timer_found == FALSE ) { 
+		fprintf(output,
+"Dark current measurements require the presence of either an explicitly\n"
+"specified timer name, or a timer called 'dark_timer' or a timer record\n"
+"called 'timer1'.  None of these are true, so a dark current measurement\n"
+"cannot be performed.\n");
+		return FAILURE;
 	}
 
 	/* Get a list of all the scaler records. */
@@ -171,8 +260,13 @@ motor_measure_dark_currents( int argc, char *argv[] )
 
 				return FAILURE;
 			}
-			if ( ( scaler->scaler_flags & scaler_mask ) != 0 )
-				num_devices++;
+			if ( ( scaler->scaler_flags & scaler_mask ) != 0 ) {
+				if ( mxp_belongs_to_this_timer( current_record,
+								timer_record ) )
+				{
+					num_devices++;
+				}
+			}
 		} else
 		if ( current_record->mx_class == MXC_ANALOG_INPUT ) {
 
@@ -187,7 +281,13 @@ motor_measure_dark_currents( int argc, char *argv[] )
 				return FAILURE;
 			}
 			if ( ( ainput->analog_input_flags & ainput_mask ) != 0 )
-				num_devices++;
+			{
+				if ( mxp_belongs_to_this_timer( current_record,
+								timer_record ) )
+				{
+					num_devices++;
+				}
+			}
 		}
 
 		current_record = current_record->next_record;
@@ -237,12 +337,16 @@ motor_measure_dark_currents( int argc, char *argv[] )
 				return FAILURE;
 			}
 			if (( scaler->scaler_flags & scaler_mask ) != 0) {
-				device_array[i] = current_record;
+				if ( mxp_belongs_to_this_timer( current_record,
+								timer_record ) )
+				{
+					device_array[i] = current_record;
 
-				MX_DEBUG( 2,(
-				"%s: scaler '%s' will be measured.",
-					cname, current_record->name ));
-				i++;
+					MX_DEBUG(-2,(
+					"%s: scaler '%s' will be measured.",
+						cname, current_record->name ));
+					i++;
+				}
 			}
 		} else
 		if ( current_record->mx_class == MXC_ANALOG_INPUT ) {
@@ -258,12 +362,16 @@ motor_measure_dark_currents( int argc, char *argv[] )
 				return FAILURE;
 			}
 			if (( ainput->analog_input_flags & ainput_mask ) != 0) {
-				device_array[i] = current_record;
+				if ( mxp_belongs_to_this_timer( current_record,
+								timer_record ) )
+				{
+					device_array[i] = current_record;
 
-				MX_DEBUG( 2,(
-				"%s: analog input '%s' will be measured.",
-					cname, current_record->name ));
-				i++;
+					MX_DEBUG(-2,(
+				    "%s: analog input '%s' will be measured.",
+						cname, current_record->name ));
+					i++;
+				}
 			}
 		}
 

@@ -21,7 +21,7 @@ all: build
 
 #MODULES += avt_vimba		# linux,
 
-MODULES += cbflib		# linux, (not yet finished)
+#MODULES += cbflib		# linux, (not yet finished)
 
 #MODULES += edt			# linux,
 
@@ -33,11 +33,11 @@ MODULES += cbflib		# linux, (not yet finished)
 
 #MODULES += labjack_ux		# linux,
 
-MODULES += libtiff		# cygwin, linux, win32
+#MODULES += libtiff		# cygwin, linux, win32
 
-MODULES += libusb-0.1		# linux,
+#MODULES += libusb-0.1		# linux,
 
-#MODULES += newport_xps		# linux,
+MODULES += newport_xps		# linux,
 
 #MODULES += ni488		# linux,
 
@@ -45,7 +45,7 @@ MODULES += libusb-0.1		# linux,
 
 #MODULES += nuvant_ezstat	# linux, win32
 
-MODULES += python		# (Warning: not yet finished)
+#MODULES += python		# (Warning: not yet finished)
 
 #MODULES += pmc_mcapi		# linux, win32
 
@@ -55,20 +55,20 @@ MODULES += python		# (Warning: not yet finished)
 
 #MODULES += xia_handel		# linux, win32
 
-MODULES += xineos_gige		# linux, win32
+#MODULES += xineos_gige		# linux, win32
 
 #-------------------------------------------------------------------
 # Linux-only modules.
 
-MODULES += aravis
+#MODULES += aravis
 
-MODULES += dalsa_gev
+#MODULES += dalsa_gev
 
 #MODULES += linux_portio
 
 #MODULES += powerpmac
 
-MODULES += v4l2_input
+#MODULES += v4l2_input
 
 #-------------------------------------------------------------------
 # Win32-only modules.
@@ -89,7 +89,7 @@ MODULES += v4l2_input
 
 #MODULES += radicon_helios
 
-MODULES += radicon_taurus
+#MODULES += radicon_taurus
 
 #MODULES += rdi_mbc
 
@@ -104,7 +104,7 @@ MODULES += epics
 
 MODULES += epics_aps 
 
-MODULES += epics_pmac_biocat
+#MODULES += epics_pmac_biocat
 
 #MODULES += epics_mbc
 
