@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2009-2010, 2015 Illinois Institute of Technology
+ * Copyright 2009-2010, 2015, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -210,9 +210,12 @@ mxi_prologix_open( MX_RECORD *record )
 			prologix->rs232_record->name );
 	}
 
-	/* If possible, discard any unwritten characters. */
+	/* If possible, discard any unwritten or unread characters. */
 
 	(void) mx_rs232_discard_unwritten_output( prologix->rs232_record,
+						MXI_PROLOGIX_DEBUG );
+
+	(void) mx_rs232_discard_unread_input( prologix->rs232_record,
 						MXI_PROLOGIX_DEBUG );
 
 	/* Configure the Prologix interface to be a System Controller. */
@@ -324,6 +327,18 @@ mxi_prologix_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Skip over 'Unrecognized command' response here if we get it. */
+
+	if ( strncmp( response, "Unrecognized command", 8 ) == 0 )
+	{
+		mx_status = mx_rs232_getline( prologix->rs232_record,
+					response, sizeof(response),
+					NULL, MXI_PROLOGIX_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
 #if MXI_PROLOGIX_DEBUG
 	MX_DEBUG(-2,("%s: Prologix version = '%s'", fname, response));
 #endif
@@ -396,6 +411,7 @@ mxi_prologix_read( MX_GPIB *gpib,
 	MX_PROLOGIX *prologix = NULL;
 	int debug;
 	char command[20];
+	size_t local_bytes_read = 0;
 	mx_status_type mx_status;
 
 	mx_status = mxi_prologix_get_pointers( gpib, &prologix, fname );
@@ -403,6 +419,9 @@ mxi_prologix_read( MX_GPIB *gpib,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXI_PROLOGIX_DEBUG
+	debug = TRUE;
+#else
 	if ( transfer_flags & MXF_232_DEBUG ) {
 		debug = TRUE;
 
@@ -410,6 +429,7 @@ mxi_prologix_read( MX_GPIB *gpib,
 	} else {
 		debug = FALSE;
 	}
+#endif
 
 	mx_status = mxi_prologix_update_address( prologix, address, debug );
 
@@ -418,13 +438,19 @@ mxi_prologix_read( MX_GPIB *gpib,
 
 	/* Tell the Prologix to address the device to talk. */
 
+#if 1
+	strlcpy( command, "++read", sizeof(command) );
+#else
+	if ( gpib->default_eoi_mode != 0 ) {
+		strlcpy( command, "++read eoi", sizeof(command) );
+	} else
 	if ( gpib->read_terminator[0] != '\0' ) {
 		snprintf( command, sizeof(command),
 			"++read %lu", gpib->read_terminator[0] );
 	} else {
-		strlcpy( command, "++read eoi", sizeof(command) );
+		strlcpy( command, "++read", sizeof(command) );
 	}
-
+#endif
 	mx_status = mx_rs232_putline( prologix->rs232_record,
 					command, NULL, transfer_flags );
 
@@ -435,10 +461,24 @@ mxi_prologix_read( MX_GPIB *gpib,
 
 	mx_status = mx_rs232_getline( prologix->rs232_record,
 					buffer, max_bytes_to_read,
-					bytes_read, transfer_flags );
+					&local_bytes_read, transfer_flags );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* If present, delete the read terminator character at the end
+	 * of the string.
+	 */
+
+	if ( buffer[local_bytes_read - 1] == gpib->read_terminator[address] ) {
+		buffer[ local_bytes_read - 1 ] = '\0';
+
+		local_bytes_read--;
+	}
+
+	if ( bytes_read != (size_t *) NULL ) {
+		*bytes_read = local_bytes_read;
+	}
 
 	if ( debug ) {
 		MX_DEBUG(-2,("%s: received '%s' from '%s'.",
@@ -468,6 +508,9 @@ mxi_prologix_write( MX_GPIB *gpib,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXI_PROLOGIX_DEBUG
+	debug = TRUE;
+#else
 	if ( transfer_flags & MXF_232_DEBUG ) {
 		debug = TRUE;
 
@@ -475,6 +518,7 @@ mxi_prologix_write( MX_GPIB *gpib,
 	} else {
 		debug = FALSE;
 	}
+#endif
 
 	if ( debug ) {
 		MX_DEBUG(-2,("%s: sending '%s' to '%s'.",

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004, 2006, 2008, 2010, 2015
+ * Copyright 1999-2002, 2004, 2006, 2008, 2010, 2015, 2017
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -109,14 +109,14 @@ mxd_keithley428_get_pointers( MX_AMPLIFIER *amplifier,
 }
 
 static mx_status_type
-mxd_keithley428_get_machine_status_word( MX_INTERFACE *interface,
+mxd_keithley428_get_machine_status_word( MX_KEITHLEY428 *keithley428,
 			char *buffer, int buffer_length, int debug_flag )
 {
 	static const char fname[] = "mxd_keithley428_get_machine_status_word()";
 
 	mx_status_type mx_status;
 
-	mx_status = mxd_keithley428_command( interface, "U0X",
+	mx_status = mxd_keithley428_command( keithley428, "U0X",
 				buffer, buffer_length, debug_flag );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -166,6 +166,7 @@ mxd_keithley428_create_record_structures( MX_RECORD *record )
 			= &mxd_keithley428_amplifier_function_list;
 
 	amplifier->record = record;
+	keithley428->record = record;
 
 	/* The gain range for a Keithley model 428 is from 1e3 to 1e10. */
 
@@ -282,7 +283,7 @@ mxd_keithley428_open( MX_RECORD *record )
 			read_terminator, record->name );
 	}
 
-	mx_status = mxd_keithley428_command( interface, command,
+	mx_status = mxd_keithley428_command( keithley428, command,
 					NULL, 0, KEITHLEY428_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -290,7 +291,7 @@ mxd_keithley428_open( MX_RECORD *record )
 
 	/* Turn zero check off. */
 
-	mx_status = mxd_keithley428_command( interface, "C0X",
+	mx_status = mxd_keithley428_command( keithley428, "C0X",
 					NULL, 0, KEITHLEY428_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -320,7 +321,7 @@ mxd_keithley428_open( MX_RECORD *record )
 
 	/* Get the firmware version for this Keithley. */
 
-	mx_status = mxd_keithley428_command( interface, "U4X",
+	mx_status = mxd_keithley428_command( keithley428, "U4X",
 				keithley428->firmware_version,
 				MXU_KEITHLEY428_FIRMWARE_VERSION_LENGTH,
 				KEITHLEY428_DEBUG );
@@ -384,6 +385,7 @@ mxd_keithley428_get_gain( MX_AMPLIFIER *amplifier )
 	char buffer[50];
 	int num_items, gain_setting;
 	mx_bool_type fast_mode;
+	unsigned long flags;
 	mx_status_type mx_status;
 
 	mx_status = mxd_keithley428_get_pointers( amplifier,
@@ -391,6 +393,14 @@ mxd_keithley428_get_gain( MX_AMPLIFIER *amplifier )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* If status checking is bypassed, then return without doing anything.*/
+
+	flags = keithley428->keithley_flags;
+
+	if ( flags & MXF_KEITHLEY428_BYPASS_GET_STATUS ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
 
 	/* Skip communicating with the Keithley if the database
 	 * is in fast mode.
@@ -407,7 +417,7 @@ mxd_keithley428_get_gain( MX_AMPLIFIER *amplifier )
 
 	/* Get the Keithley status. */
 
-	mx_status = mxd_keithley428_get_machine_status_word( interface,
+	mx_status = mxd_keithley428_get_machine_status_word( keithley428,
 			buffer, sizeof(buffer) - 1, KEITHLEY428_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -485,7 +495,7 @@ mxd_keithley428_set_gain( MX_AMPLIFIER *amplifier )
 
 	snprintf( command, sizeof(command), "R%dX", gain_setting );
 
-	mx_status = mxd_keithley428_command( interface, command,
+	mx_status = mxd_keithley428_command( keithley428, command,
 						NULL, 0, KEITHLEY428_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -508,6 +518,7 @@ mxd_keithley428_get_offset( MX_AMPLIFIER *amplifier )
 	char response[50];
 	double current_suppress_value;
 	int num_items;
+	unsigned long flags;
 	mx_bool_type fast_mode;
 	mx_status_type mx_status;
 
@@ -516,6 +527,14 @@ mxd_keithley428_get_offset( MX_AMPLIFIER *amplifier )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* If status checking is bypassed, then return without doing anything.*/
+
+	flags = keithley428->keithley_flags;
+
+	if ( flags & MXF_KEITHLEY428_BYPASS_GET_STATUS ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
 
 	/* Skip communicating with the Keithley if the database
 	 * is in fast mode.
@@ -532,7 +551,7 @@ mxd_keithley428_get_offset( MX_AMPLIFIER *amplifier )
 
 	/* Get the Keithley current suppress setting. */
 
-	mx_status = mxd_keithley428_command( interface, "UX",
+	mx_status = mxd_keithley428_command( keithley428, "UX",
 			response, sizeof(response) - 1, KEITHLEY428_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -585,7 +604,7 @@ mxd_keithley428_set_offset( MX_AMPLIFIER *amplifier )
 
 	/* Set the Keithley current suppression range to auto-ranging. */
 
-	mx_status = mxd_keithley428_command( interface,
+	mx_status = mxd_keithley428_command( keithley428,
 					"S,0X", NULL, 0, KEITHLEY428_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -595,7 +614,7 @@ mxd_keithley428_set_offset( MX_AMPLIFIER *amplifier )
 
 	snprintf( command, sizeof(command), "S%g,X", current_offset );
 
-	mx_status = mxd_keithley428_command( interface, command,
+	mx_status = mxd_keithley428_command( keithley428, command,
 						NULL, 0, KEITHLEY428_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -603,7 +622,7 @@ mxd_keithley428_set_offset( MX_AMPLIFIER *amplifier )
 
 	/* Turn on current suppression. */
 
-	mx_status = mxd_keithley428_command( interface,
+	mx_status = mxd_keithley428_command( keithley428,
 					"N1X", NULL, 0, KEITHLEY428_DEBUG );
 
 	return mx_status;
@@ -621,6 +640,7 @@ mxd_keithley428_get_time_constant( MX_AMPLIFIER *amplifier )
 	MX_INTERFACE *interface = NULL;
 	char buffer[50];
 	int num_items, filter_enabled, rise_time_setting;
+	unsigned long flags;
 	mx_bool_type fast_mode;
 	mx_status_type mx_status;
 
@@ -629,6 +649,14 @@ mxd_keithley428_get_time_constant( MX_AMPLIFIER *amplifier )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* If status checking is bypassed, then return without doing anything.*/
+
+	flags = keithley428->keithley_flags;
+
+	if ( flags & MXF_KEITHLEY428_BYPASS_GET_STATUS ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
 
 	/* Skip communicating with the Keithley if the database
 	 * is in fast mode.
@@ -645,7 +673,7 @@ mxd_keithley428_get_time_constant( MX_AMPLIFIER *amplifier )
 
 	/* Get the Keithley status. */
 
-	mx_status = mxd_keithley428_get_machine_status_word( interface,
+	mx_status = mxd_keithley428_get_machine_status_word( keithley428,
 			buffer, sizeof(buffer) - 1, KEITHLEY428_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -779,7 +807,7 @@ mxd_keithley428_set_time_constant( MX_AMPLIFIER *amplifier )
 	if ( rise_time_range >= 0 ) {
 		snprintf( command, sizeof(command),"T%dX", rise_time_range );
 
-		mx_status = mxd_keithley428_command( interface, command,
+		mx_status = mxd_keithley428_command( keithley428, command,
 						NULL, 0, KEITHLEY428_DEBUG );
 
 		switch( mx_status.code ) {
@@ -804,10 +832,10 @@ mxd_keithley428_set_time_constant( MX_AMPLIFIER *amplifier )
 	/* Enable or disable the filter. */
 
 	if ( enable_filter ) {
-		mx_status = mxd_keithley428_command( interface, "P1X",
+		mx_status = mxd_keithley428_command( keithley428, "P1X",
 						NULL, 0, KEITHLEY428_DEBUG );
 	} else {
-		mx_status = mxd_keithley428_command( interface, "P0X",
+		mx_status = mxd_keithley428_command( keithley428, "P0X",
 						NULL, 0, KEITHLEY428_DEBUG );
 	}
 	return mx_status;
@@ -816,7 +844,7 @@ mxd_keithley428_set_time_constant( MX_AMPLIFIER *amplifier )
 /* === Driver specific commands === */
 
 MX_EXPORT mx_status_type
-mxd_keithley428_command( MX_INTERFACE *interface, char *command,
+mxd_keithley428_command( MX_KEITHLEY428 *keithley428, char *command,
 		char *response, int response_buffer_length,
 		int debug_flag )
 {
@@ -849,16 +877,28 @@ mxd_keithley428_command( MX_INTERFACE *interface, char *command,
 	char error_status[40];
 	char *ptr;
 	int i;
+	MX_INTERFACE *interface = NULL;
+	unsigned long flags;
 	mx_status_type mx_status;
 
-	if ( interface == (MX_INTERFACE *) NULL ) {
+	if ( keithley428 == (MX_KEITHLEY428 *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"MX_INTERFACE pointer passed was NULL." );
+		"The MX_KEITHLEY428 pointer passed was NULL." );
 	}
 	if ( command == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"'command' buffer pointer passed was NULL.  No command sent.");
 	}
+
+	interface = &(keithley428->gpib_interface);
+
+	if ( interface == (MX_INTERFACE *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_INTERFACE pointer for keithley '%s' was NULL.",
+			keithley428->record->name );
+	}
+
+	flags = keithley428->keithley_flags;
 
 	/* Send the command string. */
 
@@ -876,6 +916,12 @@ mxd_keithley428_command( MX_INTERFACE *interface, char *command,
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+	}
+
+	/* Do we skip over checking for errors? */
+
+	if ( flags & MXF_KEITHLEY428_BYPASS_ERROR_CHECK ) {
+		return MX_SUCCESSFUL_RESULT;
 	}
 
 	/* Check to see if there was an error in the command we just did. */

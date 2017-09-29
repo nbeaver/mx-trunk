@@ -796,8 +796,22 @@ mxi_telnet_getline( MX_RS232 *rs232,
 	for ( i = 0; i < max_bytes_to_read; i++ ) {
 		mx_status = mxi_telnet_getchar( rs232, &c );
 
-		if ( mx_status.code != MXE_SUCCESS )
+		switch( mx_status.code ) {
+		case MXE_SUCCESS:
+			break;
+		case MXE_NOT_READY:
+			if ( bytes_read != (size_t *) NULL ) {
+				*bytes_read = i - num_terminators_seen;
+			}
+			return MX_SUCCESSFUL_RESULT;
+			break;
+		default:
+			if ( bytes_read != (size_t *) NULL ) {
+				*bytes_read = i;
+			}
 			return mx_status;
+			break;
+		}
 
 		/* Check to see if this is a null character to be discarded. */
 
@@ -835,6 +849,10 @@ mxi_telnet_getline( MX_RS232 *rs232,
 		} else {
 			buffer[i] = c;
 		}
+	}
+
+	if ( bytes_read != (size_t *) NULL ) {
+		*bytes_read = i-1;
 	}
 
 #if MXI_TELNET_DEBUG_GETLINE

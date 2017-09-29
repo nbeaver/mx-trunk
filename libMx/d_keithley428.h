@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004, 2006, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,8 +21,17 @@
 
 #define MXU_KEITHLEY428_FIRMWARE_VERSION_LENGTH 20
 
+/* Values for 'keithley_flags'. */
+
+#define MXF_KEITHLEY428_BYPASS_ERROR_CHECK	0x1
+#define MXF_KEITHLEY428_BYPASS_GET_STATUS	0x2
+
 typedef struct {
+	MX_RECORD *record;
+
 	MX_INTERFACE gpib_interface;
+	unsigned long keithley_flags;
+
 	char firmware_version[MXU_KEITHLEY428_FIRMWARE_VERSION_LENGTH+1];
 
 	int bypass_get_gain_or_offset;		/* Private field. */
@@ -44,7 +53,7 @@ MX_API mx_status_type mxd_keithley428_get_time_constant(
 MX_API mx_status_type mxd_keithley428_set_time_constant(
 						MX_AMPLIFIER *amplifier );
 
-MX_API mx_status_type mxd_keithley428_command( MX_INTERFACE *gpib_interface,
+MX_API mx_status_type mxd_keithley428_command( MX_KEITHLEY428 *keithley428,
 		char *command, char *response, int response_buffer_length,
 		int debug_flag );
 
@@ -58,6 +67,10 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_keithley428_rfield_def_ptr;
   {-1, -1, "gpib_interface", MXFT_INTERFACE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_KEITHLEY428, gpib_interface), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "keithley_flags", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_KEITHLEY428, keithley_flags), \
+	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
   {-1, -1, "firmware_version", MXFT_STRING, \
   			NULL, 1, {MXU_KEITHLEY428_FIRMWARE_VERSION_LENGTH}, \
