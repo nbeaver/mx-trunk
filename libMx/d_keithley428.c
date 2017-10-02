@@ -229,6 +229,7 @@ mxd_keithley428_open( MX_RECORD *record )
 	MX_GPIB *gpib;
 	char command[20];
 	unsigned long read_terminator;
+	unsigned long flags;
 	mx_status_type mx_status;
 
 	amplifier = (MX_AMPLIFIER *) (record->record_class_struct);
@@ -244,6 +245,8 @@ mxd_keithley428_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	flags = keithley428->keithley_flags;
 
 	mx_status = mx_gpib_open_device(interface->record, interface->address);
 
@@ -289,35 +292,38 @@ mxd_keithley428_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Turn zero check off. */
+	if ( (flags & MXF_KEITHLEY428_BYPASS_STARTUP_SET) == 0 ) {
 
-	mx_status = mxd_keithley428_command( keithley428, "C0X",
-					NULL, 0, KEITHLEY428_DEBUG );
+		/* Turn zero check off. */
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		mx_status = mxd_keithley428_command( keithley428, "C0X",
+						NULL, 0, KEITHLEY428_DEBUG );
 
-	/* Set the gain, offset, and time constant. */
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-	keithley428->bypass_get_gain_or_offset = TRUE;
+		/* Set the gain, offset, and time constant. */
 
-	mx_status = mxd_keithley428_set_gain( amplifier );
+		keithley428->bypass_get_gain_or_offset = TRUE;
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		mx_status = mxd_keithley428_set_gain( amplifier );
 
-	keithley428->bypass_get_gain_or_offset = FALSE;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-	/* Given that bypass_get_gain_or_offset was set to TRUE, the
-	 * function mxd_keithley_set_gain() will have set the offset
-	 * correctly as a side effect, so we don't need to explicitly
-	 * set the offset here.
-	 */
+		keithley428->bypass_get_gain_or_offset = FALSE;
 
-	mx_status = mxd_keithley428_set_time_constant( amplifier );
+		/* Given that bypass_get_gain_or_offset was set to TRUE, the
+		 * function mxd_keithley_set_gain() will have set the offset
+		 * correctly as a side effect, so we don't need to explicitly
+		 * set the offset here.
+		 */
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		mx_status = mxd_keithley428_set_time_constant( amplifier );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
 	/* Get the firmware version for this Keithley. */
 

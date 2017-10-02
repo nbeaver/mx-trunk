@@ -21,10 +21,15 @@
 
 #define MXU_KEITHLEY428_FIRMWARE_VERSION_LENGTH 20
 
-/* Values for 'keithley_flags'. */
+/* Values for 'keithley_flags'.
+ *
+ * All of the flag values below are to cope with the fact that
+ * communication with a Keithley 428 is extremely slow.
+ */
 
 #define MXF_KEITHLEY428_BYPASS_ERROR_CHECK	0x1
 #define MXF_KEITHLEY428_BYPASS_GET_STATUS	0x2
+#define MXF_KEITHLEY428_BYPASS_STARTUP_SET	0x4
 
 typedef struct {
 	MX_RECORD *record;
