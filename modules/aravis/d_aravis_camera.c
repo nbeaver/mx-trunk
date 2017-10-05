@@ -380,6 +380,15 @@ mxd_aravis_camera_open( MX_RECORD *record )
 
 	/*---------*/
 
+	if ( strlen( aravis_camera->debug_configuration ) > 0 ) {
+		MX_DEBUG(-2,("%s: setting debug configuration to '%s'",
+			fname, aravis_camera->debug_configuration));
+
+		arv_debug_enable( aravis_camera->debug_configuration );
+	}
+
+	/*---------*/
+
 	aravis_camera->arv_camera = arv_camera_new( aravis_camera->device_id );
 
 	if ( aravis_camera->arv_camera == NULL ) {

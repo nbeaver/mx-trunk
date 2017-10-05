@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2016 Illinois Institute of Technology
+ * Copyright 2016-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,6 +21,8 @@
 extern "C" {
 #endif
 
+#define MXU_ARAVIS_CAMERA_DEBUG_CONFIGURATION_LENGTH	200
+
 /* 'aravis_camera_flags' bitflag macros */
 
 #define MXF_ARAVIS_CAMERA_SHOW_INFO			0x1
@@ -31,6 +33,8 @@ typedef struct {
 	MX_RECORD *aravis_record;
 	char device_id[MXU_ARAVIS_DEVICE_ID_LENGTH+1];
 	long num_frame_buffers;
+	char debug_configuration[MXU_ARAVIS_CAMERA_DEBUG_CONFIGURATION_LENGTH+1];
+
 	ArvBuffer **frame_buffer_array;
 
 	char vendor_name[MXU_ARAVIS_NAME_LENGTH+1];
@@ -58,6 +62,12 @@ typedef struct {
   {-1, -1, "num_frame_buffers", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_ARAVIS_CAMERA, num_frame_buffers), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_READ_ONLY) }, \
+  \
+  {-1, -1, "debug_configuration", MXFT_STRING, \
+	  	NULL, 1, {MXU_ARAVIS_CAMERA_DEBUG_CONFIGURATION_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_ARAVIS_CAMERA, debug_configuration), \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_READ_ONLY) }, \
+  \
   \
   {-1, -1, "vendor_name", MXFT_STRING, NULL, 1, {MXU_ARAVIS_DEVICE_ID_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_ARAVIS_CAMERA, vendor_name), \
