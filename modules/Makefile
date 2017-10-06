@@ -53,7 +53,7 @@ MODULES += python		# (Warning: not yet finished)
 
 #MODULES += vxi_memacc		# linux,
 
-#MODULES += xia_handel		# linux, win32
+MODULES += xia_handel		# linux, win32
 
 MODULES += xineos_gige		# linux, win32
 

@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2006, 2008-2012, 2015-2016 Illinois Institute of Technology
+ * Copyright 2001-2006, 2008-2012, 2015-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -549,7 +549,8 @@ mxd_handel_mca_handel_open( MX_MCA *mca,
 
 	module_channel = handel_mca->detector_channel % handel->mcas_per_module;
 
-	sprintf( item_name, "channel%ld_alias", module_channel );
+	snprintf( item_name, sizeof(item_name),
+		"channel%ld_alias", module_channel );
 
 	xia_status = xiaGetModuleItem( handel_mca->module_alias,
 					item_name,
@@ -1704,11 +1705,13 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 
 		    } else {
 			if ( handel_mca->hardware_scas_are_enabled ) {
-				sprintf( acquisition_value_name,
-						"sca%ld_lo", i );
+				snprintf( acquisition_value_name,
+					sizeof(acquisition_value_name),
+					"sca%ld_lo", i );
 			} else {
-				sprintf( acquisition_value_name,
-						"SCA%ldLO", i );
+				snprintf( acquisition_value_name,
+					sizeof(acquisition_value_name),
+					"SCA%ldLO", i );
 			}
 			
 			xia_status = xiaGetAcquisitionValues(
@@ -1728,10 +1731,12 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 			mca->roi_array[i][0] = mx_round( acquisition_value );
 
 			if ( handel_mca->hardware_scas_are_enabled ) {
-				sprintf( acquisition_value_name,
+				snprintf( acquisition_value_name,
+					sizeof(acquisition_value_name),
 						"sca%ld_hi", i );
 			} else {
-				sprintf( acquisition_value_name,
+				snprintf( acquisition_value_name,
+					sizeof(acquisition_value_name),
 						"SCA%ldHI", i );
 			}
 			
@@ -1895,9 +1900,13 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 		} else {
 
 		    if ( handel_mca->hardware_scas_are_enabled ) {
-			sprintf( acquisition_value_name, "sca%ld_lo", i );
+			snprintf( acquisition_value_name,
+				sizeof(acquisition_value_name),
+				"sca%ld_lo", i );
 		    } else {
-			sprintf( acquisition_value_name, "SCA%ldLO", i );
+			snprintf( acquisition_value_name,
+				sizeof(acquisition_value_name),
+				"SCA%ldLO", i );
 		    }
 			
 		    xia_status = xiaGetAcquisitionValues(
@@ -1924,9 +1933,13 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 		    mca->roi_array[i][0] = mca->roi[0];
 
 		    if ( handel_mca->hardware_scas_are_enabled ) {
-			sprintf( acquisition_value_name, "sca%ld_hi", i );
+			snprintf( acquisition_value_name,
+				sizeof(acquisition_value_name),
+				"sca%ld_hi", i );
 		    } else {
-			sprintf( acquisition_value_name, "SCA%ldHI", i );
+			snprintf( acquisition_value_name,
+				sizeof(acquisition_value_name),
+				"SCA%ldHI", i );
 		    }
 			
 		    xia_status = xiaGetAcquisitionValues(
@@ -2182,7 +2195,9 @@ mxd_handel_mca_set_parameter( MX_MCA *mca )
 
 	case MXLV_MCA_ROI_ARRAY:
 		for ( i = 0; i < mca->current_num_rois; i++ ) {
-			sprintf( acquisition_value_name, "sca%ld_lo", i );
+			snprintf( acquisition_value_name,
+				sizeof(acquisition_value_name),
+				"sca%ld_lo", i );
 
 			acquisition_value = (double) mca->roi_array[i][0];
 			
@@ -2193,7 +2208,9 @@ mxd_handel_mca_set_parameter( MX_MCA *mca )
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			sprintf( acquisition_value_name, "sca%ld_hi", i );
+			snprintf( acquisition_value_name,
+				sizeof(acquisition_value_name),
+				"sca%ld_hi", i );
 			
 			acquisition_value = (double) mca->roi_array[i][1];
 			
@@ -2214,7 +2231,9 @@ mxd_handel_mca_set_parameter( MX_MCA *mca )
 	case MXLV_MCA_ROI:
 		i = mca->roi_number;
 
-		sprintf( acquisition_value_name, "sca%ld_lo", i );
+		snprintf( acquisition_value_name,
+			sizeof(acquisition_value_name),
+			"sca%ld_lo", i );
 
 		acquisition_value = (double) mca->roi[0];
 
@@ -2233,7 +2252,9 @@ mxd_handel_mca_set_parameter( MX_MCA *mca )
 
 		/*---*/
 
-		sprintf( acquisition_value_name, "sca%ld_hi", i );
+		snprintf( acquisition_value_name,
+			sizeof(acquisition_value_name),
+			"sca%ld_hi", i );
 
 		acquisition_value = (double) mca->roi[1];
 			
@@ -3406,6 +3427,9 @@ mxd_handel_mca_get_baseline_history_array( MX_MCA *mca )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/* mxp_string_sort() is used as an argument to qsort() */
+
+#if 0
 static int
 mxp_string_sort( const void *ptr1, const void *ptr2 )
 {
@@ -3417,6 +3441,40 @@ mxp_string_sort( const void *ptr1, const void *ptr2 )
 
 	return result;
 }
+#else
+static int
+mxp_string_sort( const void *ptr1, const void *ptr2 )
+{
+	/* Sigh.  The unions are to get around GCC's warning about
+	 * "cast discards 'const' qualifier".  All I can say is that
+	 * I didn't get to choose the datatypes involved.
+	 */
+
+	union {
+		const char *ptr1;
+		const char **string1;
+	} union1;
+	const char **string1;
+
+	union {
+		const char *ptr2;
+		const char **string2;
+	} union2;
+	const char **string2;
+
+	int result;
+
+	union1.ptr1 = ptr1;
+	string1 = union1.string1;
+
+	union2.ptr2 = ptr2;
+	string2 = union2.string2;
+
+	result = strcmp( *string1, *string2 );
+
+	return result;
+}
+#endif
 
 #define MXP_HANDEL_PARAMETER_NAME_LENGTH	40
 
@@ -3432,10 +3490,10 @@ mxd_handel_mca_show_parameters( MX_MCA *mca )
 	unsigned short num_parameters;
 	char parameter_name[200];
 	unsigned short *parameter_values = NULL;
-	unsigned short i, j;
+	unsigned short i;
 	char **string_array;
 	long dimension_array[2];
-	long size_array[2];
+	size_t size_array[2];
 	int xia_status;
 	mx_status_type mx_status;
 
@@ -3460,7 +3518,7 @@ mxd_handel_mca_show_parameters( MX_MCA *mca )
 	mx_info( "-------------------------------------------------------" );
 	mx_info( "Parameters for MCA '%s'   (%hu parameters)",
 		mca->record->name, num_parameters );
-	mx_info( "" );
+	mx_info( " " );
 
 	/* Allocate memory for the string array. */
 
@@ -3490,7 +3548,7 @@ mxd_handel_mca_show_parameters( MX_MCA *mca )
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Cannot allocate a %hu element array "
 		"of parameter values for MCA '%s'.",
-			mca->record->name );
+		num_parameters, mca->record->name );
 	}
 
 	/* Read the values from Handel. */
@@ -3602,7 +3660,7 @@ mxd_handel_mca_show_acquisition_values( MX_MCA *mca )
 	mx_info( "-------------------------------------------------------" );
 	mx_info( "Acquisition values for MCA '%s'   (%lu parameters)",
 		mca->record->name, num_acquisition_value_names );
-	mx_info( "" );
+	mx_info( " " );
 
 	for ( i = 0; i < num_acquisition_value_names; i++ ) {
 		xia_status = xiaGetAcquisitionValues(

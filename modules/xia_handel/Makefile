@@ -13,7 +13,7 @@ endif
 ifeq ($(MX_ARCH),linux)
 	XIA_HANDEL_DIR = /usr/local/src/handel-1.1.11
 
-	CFLAGS += -I$(XIA_HANDEL_DIR)
+	CFLAGS += -I$(XIA_HANDEL_DIR)/inc
 endif
 
 ifeq ($(MX_ARCH),win32)

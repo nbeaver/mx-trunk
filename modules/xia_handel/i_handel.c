@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2006, 2009-2012, 2016 Illinois Institute of Technology
+ * Copyright 2003-2006, 2009-2012, 2016-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -388,7 +388,7 @@ mxi_handel_load_config( MX_HANDEL *handel )
 					mca_record->record_type_struct;
 
 				handel_mca->old_preset_type
-					= (unsigned long) MX_ULONG_MAX;
+					= (unsigned long) ULONG_MAX;
 			}
 		}
 	}
@@ -553,9 +553,12 @@ mxi_handel_redirect_log_output( MX_HANDEL *handel )
 		mxdir = getenv("MXDIR");
 
 		if ( mxdir == NULL ) {
-			strcpy( log_filename, "/opt/mx/log/handel.log" );
+			strlcpy( log_filename,
+				"/opt/mx/log/handel.log",
+				sizeof(log_filename)  );
 		} else {
-			sprintf( log_filename, "%s/log/handel.log", mxdir );
+			snprintf( log_filename, sizeof(log_filename),
+				"%s/log/handel.log", mxdir );
 		}
 	}
 
@@ -1588,7 +1591,6 @@ mxi_handel_show_parameter( MX_HANDEL *handel )
 	unsigned long i;
 	unsigned short parameter_value;
 	int xia_status;
-	mx_status_type mx_status;
 
 	if ( handel == (MX_HANDEL *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -1597,7 +1599,7 @@ mxi_handel_show_parameter( MX_HANDEL *handel )
 
 	mx_info( "-------------------------------------------------------" );
 	mx_info( "Parameter '%s' values:", handel->parameter_name );
-	mx_info( "" );
+	mx_info( " " );
 
 	for ( i = 0; i < handel->num_mcas; i++ ) {
 		mca_record = handel->mca_record_array[i];
@@ -1645,7 +1647,6 @@ mxi_handel_show_acquisition_value( MX_HANDEL *handel )
 	unsigned long i;
 	double acquisition_value;
 	int xia_status;
-	mx_status_type mx_status;
 
 	if ( handel == (MX_HANDEL *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -1654,7 +1655,7 @@ mxi_handel_show_acquisition_value( MX_HANDEL *handel )
 
 	mx_info( "-------------------------------------------------------" );
 	mx_info( "Parameter '%s' values:", handel->parameter_name );
-	mx_info( "" );
+	mx_info( " " );
 
 	for ( i = 0; i < handel->num_mcas; i++ ) {
 		mca_record = handel->mca_record_array[i];
