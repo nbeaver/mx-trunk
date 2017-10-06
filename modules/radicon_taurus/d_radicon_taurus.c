@@ -2469,7 +2469,7 @@ mxp_radicon_taurus_save_raw_image( MX_AREA_DETECTOR *ad,
 
 	frame_number = ad->readout_frame;
 
-	frame_number = frame_number;  /* Suppress 'set but not used' warning. */
+	MXW_UNUSED( frame_number );
 
 #if MXD_RADICON_TAURUS_DEBUG_SAVING_RAW_FILES
 	MX_DEBUG(-2,("%s invoked for detector '%s', frame number = %ld, "

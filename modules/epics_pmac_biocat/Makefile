@@ -48,6 +48,19 @@ endif
 
 #--------------------------------------------------------------------------
 
+# Linux with Clang.
+
+ifeq ($(MX_ARCH),linux-clang)
+
+epics_pmac_biocat.mxo: $(EPICS_TC_OBJS)
+	gcc -shared -rdynamic -Wl,-soname,epics_pmac_biocat.mxo \
+		-o epics_pmac_biocat.mxo \
+		$(EPICS_TC_OBJS) ../../libMx/libMx.so ../epics/epics.mxo \
+		$(EPICS_LIB_DIRS) $(EPICS_LIBRARIES)
+endif
+
+#--------------------------------------------------------------------------
+
 # MacOS X
 
 ifeq ($(MX_ARCH),macosx)

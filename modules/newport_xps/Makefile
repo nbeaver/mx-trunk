@@ -68,6 +68,19 @@ endif
 
 #--------------------------------------------------------------------------
 
+ifeq ($(MX_ARCH),linux-clang)
+
+XPS_C8_DRIVERS_FLAGS = -g -fPIC
+
+newport_xps.mxo: vendor_downloads $(NEWPORT_XPS_OBJS) $(VENDOR_OBJS)
+	$(CXX) -shared -rdynamic -Wl,-soname,newport_xps.mxo \
+		-o newport_xps.mxo $(NEWPORT_XPS_OBJS) $(VENDOR_OBJS) \
+		../../libMx/libMx.so
+
+endif
+
+#--------------------------------------------------------------------------
+
 ifeq ($(MX_ARCH),win32)
 
 XPS_C8_DRIVERS_FLAGS = -D_WIN32

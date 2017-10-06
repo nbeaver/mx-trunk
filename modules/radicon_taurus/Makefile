@@ -19,6 +19,8 @@ CFLAGS += -I../../libMx -D__MX_LIBRARY__
 RADICON_TAURUS_OBJS = radicon_taurus.$(OBJ) d_radicon_taurus.$(OBJ) \
 		i_radicon_taurus_rs232.$(OBJ)
 
+#-----------------------------------------------------------------------------
+
 ifeq ($(MX_ARCH),win32)
     radicon_taurus.mxo: $(RADICON_TAURUS_OBJS)
 	link /dll /debug /nologo /out:radicon_taurus.mxo /nodefaultlib:libc \
@@ -35,11 +37,23 @@ ifeq ($(MX_ARCH),win32)
 	fi
 endif
 
+#-----------------------------------------------------------------------------
+
 ifeq ($(MX_ARCH),linux)
     radicon_taurus.mxo: $(RADICON_TAURUS_OBJS)
 	$(CC) -shared -rdynamic -Wl,-soname,radicon_taurus.mxo \
 		-o radicon_taurus.mxo $(RADICON_TAURUS_OBJS)
 endif
+
+#-----------------------------------------------------------------------------
+
+ifeq ($(MX_ARCH),linux-clang)
+    radicon_taurus.mxo: $(RADICON_TAURUS_OBJS)
+	$(CC) -shared -rdynamic -Wl,-soname,radicon_taurus.mxo \
+		-o radicon_taurus.mxo $(RADICON_TAURUS_OBJS)
+endif
+
+#-----------------------------------------------------------------------------
 
 radicon_taurus.$(OBJ): radicon_taurus.c d_radicon_taurus.h \
 						i_radicon_taurus_rs232.h

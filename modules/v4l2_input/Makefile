@@ -27,6 +27,16 @@ endif
 
 #--------------------------------------------------------------------------
 
+ifeq ($(MX_ARCH),linux-clang)
+
+v4l2_input.mxo: $(V4L2_INPUT_OBJS)
+	$(CC) -shared -rdynamic -Wl,-soname,v4l2_input.mxo \
+		-o v4l2_input.mxo $(V4L2_INPUT_OBJS) \
+
+endif
+
+#--------------------------------------------------------------------------
+
 v4l2_input.$(OBJ): v4l2_input.c d_v4l2_input.h
 	$(COMPILE) $(CFLAGS) v4l2_input.c
 

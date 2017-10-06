@@ -85,6 +85,17 @@ endif
 
 #--------------------------------------------------------------------------
 
+ifeq ($(MX_ARCH),linux-clang)
+
+python.mxo: $(PYTHON_OBJS)
+	$(CC) -shared -rdynamic -Wl,-soname,python.mxo \
+		-o python.mxo $(PYTHON_OBJS) $(PYTHON_LINK) \
+		../../libMx/libMx.so
+
+endif
+
+#--------------------------------------------------------------------------
+
 python.$(OBJ): python.c e_python.h
 	$(COMPILE) $(CFLAGS) python.c
 

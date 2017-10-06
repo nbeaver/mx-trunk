@@ -40,6 +40,16 @@ endif
 
 #--------------------------------------------------------------------------
 
+ifeq ($(MX_ARCH),linux-clang)
+
+libusb-0.1.mxo: $(LIBUSB-0.1_OBJS)
+	$(CC) -shared -rdynamic -Wl,-soname,libusb-0.1.mxo \
+		-o libusb-0.1.mxo $(LIBUSB-0.1_OBJS) -lusb
+
+endif
+
+#--------------------------------------------------------------------------
+
 ifeq ($(MX_ARCH),win32)
 
 libusb-0.1.mxo: $(LIBUSB-0.1_OBJS)

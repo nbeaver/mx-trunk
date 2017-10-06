@@ -278,12 +278,10 @@ mxi_libusb_01_enumerate_devices( MX_USB *usb )
 
 	num_device_changes = usb_find_devices();
 
-#if 1
 	/* Suppress GCC warnings. */
 
-	num_bus_changes = num_bus_changes;
-	num_device_changes = num_device_changes;
-#endif
+	MXW_UNUSED( num_bus_changes );
+	MXW_UNUSED( num_device_changes );
 
 #if defined(OS_WIN32)
 	libusb_01->usb_busses = usb_get_busses();
@@ -561,7 +559,7 @@ mxi_libusb_01_find_device( MX_USB *usb, MX_USB_DEVICE **usb_device )
 		break;
 	}
 
-	serial_number = serial_number;	/* Suppress GCC warning. */
+	MXW_UNUSED( serial_number );
 
 	current_bus = libusb_01->usb_busses;
 
