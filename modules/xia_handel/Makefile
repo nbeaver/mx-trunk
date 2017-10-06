@@ -43,7 +43,7 @@ ifeq ($(MX_ARCH),linux)
 xia_handel.mxo: $(XIA_HANDEL_OBJS)
 	gcc -shared -rdynamic -Wl,-soname,xia_handel.mxo \
 		-o xia_handel.mxo $(XIA_HANDEL_OBJS) \
-		-L$(XIA_HANDEL_DIR) -lhandel
+		-L$(XIA_HANDEL_DIR)/src -lhandel
 
 endif
 
