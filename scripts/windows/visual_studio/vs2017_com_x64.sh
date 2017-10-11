@@ -43,22 +43,22 @@ export FrameworkDir64="$DOTNET_DIR\\Framework64\\"
 export FrameworkVersion=v4.0.30319
 export FrameworkVersion64=v4.0.30319
 
-   INCLUDE="$VISUAL_STUDIO_DIR\\VC\\Tools\\MSVC\\14.10.25017\\ATLMFC\\include"
-   INCLUDE="$INCLUDE;$VISUAL_STUDIO_DIR\\VC\\Tools\\MSVC\\14.10.25017\\include"
+   INCLUDE="$VISUAL_STUDIO_DIR\\VC\\Tools\\MSVC\\14.11.25503\\ATLMFC\\include"
+   INCLUDE="$INCLUDE;$VISUAL_STUDIO_DIR\\VC\\Tools\\MSVC\\14.11.25503\\include"
        INCLUDE="$INCLUDE;$KIT_DIR\\NETFXSDK\\4.6.1\\include\\um"
-       INCLUDE="$INCLUDE;$KIT_DIR\\10\\include\\10.0.15063.0\\ucrt"
-       INCLUDE="$INCLUDE;$KIT_DIR\\10\\include\\10.0.14393.0\\shared"
-       INCLUDE="$INCLUDE;$KIT_DIR\\10\\include\\10.0.14393.0\\um"
-export INCLUDE="$INCLUDE;$KIT_DIR\\10\\include\\10.0.14393.0\\winrt;"
+       INCLUDE="$INCLUDE;$KIT_DIR\\10\\include\\10.0.16299.0\\ucrt"
+       INCLUDE="$INCLUDE;$KIT_DIR\\10\\include\\10.0.16299.0\\shared"
+       INCLUDE="$INCLUDE;$KIT_DIR\\10\\include\\10.0.16299.0\\um"
+export INCLUDE="$INCLUDE;$KIT_DIR\\10\\include\\10.0.16299.0\\winrt;"
 
-       LIB="$VISUAL_STUDIO_DIR\\VC\\Tools\\MSVC\\14.10.25017\\ATLMFC\\lib\\x64"
-       LIB="$LIB;$VISUAL_STUDIO_DIR\\VC\\Tools\\MSVC\\14.10.25017\\lib\\x64"
+       LIB="$VISUAL_STUDIO_DIR\\VC\\Tools\\MSVC\\14.11.25503\\ATLMFC\\lib\\x64"
+       LIB="$LIB;$VISUAL_STUDIO_DIR\\VC\\Tools\\MSVC\\14.11.25503\\lib\\x64"
        LIB="$LIB;$KIT_DIR\\NETFXSDK\\4.6.1\\lib\\um\\x64"
-       LIB="$LIB;$KIT_DIR\\10\\lib\\10.0.15063.0\\ucrt\\x64"
-export LIB="$LIB;$KIT_DIR\\10\\lib\\10.0.14393.0\\um\\x64;"
+       LIB="$LIB;$KIT_DIR\\10\\lib\\10.0.16299.0\\ucrt\\x64"
+export LIB="$LIB;$KIT_DIR\\10\\lib\\10.0.16299.0\\um\\x64;"
 
-   LIBPATH="$VISUAL_STUDIO_DIR\\VC\\Tools\\MSVC\\14.10.25017\\ATLMFC\\lib\\x64"
-   LIBPATH="$LIBPATH;$VISUAL_STUDIO_DIR\\VC\\Tools\\MSVC\\14.10.25017\\lib\\x64"
+   LIBPATH="$VISUAL_STUDIO_DIR\\VC\\Tools\\MSVC\\14.11.25503\\ATLMFC\\lib\\x64"
+   LIBPATH="$LIBPATH;$VISUAL_STUDIO_DIR\\VC\\Tools\\MSVC\\14.11.25503\\lib\\x64"
        LIBPATH="$LIBPATH;$KIT_DIR\\10\\UnionMetadata"
        LIBPATH="$LIBPATH;$KIT_DIR\\10\\References"
 export LIBPATH="$LIBPATH;$DOTNET_DIR\\Framework64\\v4.0.30319;"
@@ -106,7 +106,7 @@ cyg_netfx_dir=`cygpath -u "$tmp"`
 
 old_path="$PATH"
 
-new_path="$new_path:$cyg_visual_studio_dir/VC/Tools/MSVC/14.10.25017/bin/HostX64/x64"
+new_path="$new_path:$cyg_visual_studio_dir/VC/Tools/MSVC/14.11.25503/bin/HostX64/x64"
 new_path="$new_path:$cyg_visual_studio_dir/Common7/IDE/VC/VCPackages"
 new_path="$new_path:$cyg_sdk_dir/TypeScript/2.1"
 new_path="$new_path:$cyg_visual_studio_dir/Common7/IDE/CommonExtensions/Microsoft/TestWindow"
@@ -116,7 +116,7 @@ new_path="$new_path:$cyg_performance_tools_dir"
 new_path="$new_path:$cyg_short_visual_studio_dir/Shared/Common/VSPerfCollectionTools/"
 new_path="$new_path:$cyg_netfx_dir"
 new_path="$new_path:$cyg_kit_dir/10/bin/x64"
-new_path="$new_path:$cyg_kit_dir/10/bin/10.0.14393.0/x64"
+new_path="$new_path:$cyg_kit_dir/10/bin/10.0.16299.0/x64"
 new_path="$new_path:$cyg_visual_studio_dir/MSBuild/15.0/bin"
 new_path="$new_path:$cyg_fw_dir/$FrameworkVersion"
 new_path="$new_path:$cyg_visual_studio_dir/Common7/IDE/"
@@ -125,26 +125,26 @@ new_path="$new_path:$cyg_visual_studio_dir/Common7/Tools/"
 export PATH="$new_path:$old_path"
 
 export Platform=x64
-export UCRTVersion=10.0.15063.0
+export UCRTVersion=10.0.16299.0
 export VCIDEInstallDir="$VISUAL_STUDIO_DIR\\Common7\\IDE\\VC\\"
 export VCINSTALLDIR="$VISUAL_STUDIO_DIR\\VC\\"
-export VCToolsInstallDir="$VISUAL_STUDIO_DIR\\VC\\Tools\\MSVC\\14.10.25017\\"
-export VCToolsRedistDir="$VISUAL_STUDIO_DIR\\VC\\Redist\\MSVC\\14.10.25017\\"
+export VCToolsInstallDir="$VISUAL_STUDIO_DIR\\VC\\Tools\\MSVC\\14.11.25503\\"
+export VCToolsRedistDir="$VISUAL_STUDIO_DIR\\VC\\Redist\\MSVC\\14.11.25503\\"
 export VisualStudioVersion=15.0
 export VS150COMNTOOLS="$VISUAL_STUDIO_DIR\\Common7\\Tools\\"
 export VSCMD_ARG_app_plat=Desktop
 export VSCMD_ARG_HOST_ARCH=x64
 export VSCMD_ARG_TGT_ARCH=x64
-export VSCMD_VER=15.0.26403.0
+export VSCMD_VER=15.4.0
 export VSINSTALLDIR="$VISUAL_STUDIO_DIR\\"
 export VSSDK150INSTALL="$VISUAL_STUDIO_DIR\\VSSDK"
 
 export WindowsLibPath="$KIT_DIR\\10\\UnionMetadata;$KIT_DIR\\10\\References"
 export WindowsSdkBinPath="$KIT_DIR\\bin\\"
 export WindowsSdkDir="$KIT_DIR\\10\\"
-export WindowsSDKLibVersion="10.0.14393.0\\"
-export WindowsSdkVerBinPath="$KIT_DIR\\10\\bin\\10.0.14393.0\\"
-export WindowsSDKVersion="10.0.14393.0\\"
+export WindowsSDKLibVersion="10.0.16299.0\\"
+export WindowsSdkVerBinPath="$KIT_DIR\\10\\bin\\10.0.16299.0\\"
+export WindowsSDKVersion="10.0.16299.0\\"
 export WindowsSDK_ExecutablePath_x64="$WINSDK_DIR\\bin\\NETFX 4.6.1 Tools\\x64\\"
 export WindowsSDK_ExecutablePath_x86="$WINSDK_DIR\\bin\\NETFX 4.6.1 Tools\\"
 
@@ -158,7 +158,7 @@ export __VSCMD_PREINIT_PATH="C:\\Windows\\system32;C:\\Windows;C:\\Windows\\Syst
 # then you can delete everything from here to the end.
 #
 
-export MX_MSDEV_DIR=`cygpath -w "$cyg_kit_dir/10/Lib/10.0.14393.0/um" | sed 's/\\\\/\\\\\\\\/g'`
+export MX_MSDEV_DIR=`cygpath -w "$cyg_kit_dir/10/Lib/10.0.16299.0/um" | sed 's/\\\\/\\\\\\\\/g'`
 
 #
 # The following provides a way for Windows CMD scripts to find the
