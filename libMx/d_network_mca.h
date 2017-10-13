@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2004, 2010, 2012 Illinois Institute of Technology
+ * Copyright 2000-2001, 2004, 2010, 2012, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -27,6 +27,7 @@ typedef struct {
 	MX_RECORD *server_record;
 	char remote_record_name[ MXU_RECORD_NAME_LENGTH+1 ];
 
+	MX_NETWORK_FIELD arm_nf;
 	MX_NETWORK_FIELD busy_nf;
 	MX_NETWORK_FIELD channel_array_nf;
 	MX_NETWORK_FIELD channel_number_nf;
@@ -59,6 +60,8 @@ typedef struct {
 	MX_NETWORK_FIELD soft_roi_number_nf;
 	MX_NETWORK_FIELD start_nf;
 	MX_NETWORK_FIELD stop_nf;
+	MX_NETWORK_FIELD trigger_nf;
+	MX_NETWORK_FIELD trigger_mode_nf;
 
 	mx_bool_type callbacks_enabled;
 	MX_CALLBACK *new_data_available_callback;
@@ -85,7 +88,8 @@ MX_API mx_status_type mxd_network_mca_print_structure( FILE *file,
 MX_API mx_status_type mxd_network_mca_open( MX_RECORD *record );
 MX_API mx_status_type mxd_network_mca_resynchronize( MX_RECORD *record );
 
-MX_API mx_status_type mxd_network_mca_start( MX_MCA *mca );
+MX_API mx_status_type mxd_network_mca_arm( MX_MCA *mca );
+MX_API mx_status_type mxd_network_mca_trigger( MX_MCA *mca );
 MX_API mx_status_type mxd_network_mca_stop( MX_MCA *mca );
 MX_API mx_status_type mxd_network_mca_read( MX_MCA *mca );
 MX_API mx_status_type mxd_network_mca_clear( MX_MCA *mca );

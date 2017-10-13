@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2001-2006, 2009-2010, 2012 Illinois Institute of Technology
+ * Copyright 2001-2006, 2009-2010, 2012, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -335,7 +335,7 @@ MX_API mx_status_type mxd_handel_mca_close( MX_RECORD *record );
 MX_API mx_status_type mxd_handel_mca_special_processing_setup(
 							MX_RECORD *record );
 
-MX_API mx_status_type mxd_handel_mca_start( MX_MCA *mca );
+MX_API mx_status_type mxd_handel_mca_trigger( MX_MCA *mca );
 MX_API mx_status_type mxd_handel_mca_stop( MX_MCA *mca );
 MX_API mx_status_type mxd_handel_mca_read( MX_MCA *mca );
 MX_API mx_status_type mxd_handel_mca_clear( MX_MCA *mca );

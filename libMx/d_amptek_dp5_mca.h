@@ -50,7 +50,7 @@ MX_API mx_status_type mxd_amptek_dp5_mca_open( MX_RECORD *record );
 MX_API mx_status_type mxd_amptek_dp5_mca_special_processing_setup(
 							MX_RECORD *record );
 
-MX_API mx_status_type mxd_amptek_dp5_mca_start( MX_MCA *mca );
+MX_API mx_status_type mxd_amptek_dp5_mca_trigger( MX_MCA *mca );
 MX_API mx_status_type mxd_amptek_dp5_mca_stop( MX_MCA *mca );
 MX_API mx_status_type mxd_amptek_dp5_mca_read( MX_MCA *mca );
 MX_API mx_status_type mxd_amptek_dp5_mca_clear( MX_MCA *mca );

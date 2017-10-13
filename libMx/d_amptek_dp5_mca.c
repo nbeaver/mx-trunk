@@ -55,7 +55,8 @@ MX_RECORD_FUNCTION_LIST mxd_amptek_dp5_mca_record_function_list = {
 };
 
 MX_MCA_FUNCTION_LIST mxd_amptek_dp5_mca_mca_function_list = {
-	mxd_amptek_dp5_mca_start,
+	NULL,
+	mxd_amptek_dp5_mca_trigger,
 	mxd_amptek_dp5_mca_stop,
 	mxd_amptek_dp5_mca_read,
 	mxd_amptek_dp5_mca_clear,
@@ -272,9 +273,9 @@ mxd_amptek_dp5_mca_special_processing_setup( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_amptek_dp5_mca_start( MX_MCA *mca )
+mxd_amptek_dp5_mca_trigger( MX_MCA *mca )
 {
-	static const char fname[] = "mxd_amptek_dp5_mca_start()";
+	static const char fname[] = "mxd_amptek_dp5_mca_trigger()";
 
 	MX_AMPTEK_DP5_MCA *amptek_dp5_mca = NULL;
 	MX_AMPTEK_DP5 *amptek_dp5 = NULL;

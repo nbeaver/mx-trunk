@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2012-2016 Illinois Institute of Technology
+ * Copyright 2012-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -50,7 +50,8 @@ MX_RECORD_FUNCTION_LIST mxd_monte_carlo_mca_record_function_list = {
 };
 
 MX_MCA_FUNCTION_LIST mxd_monte_carlo_mca_mca_function_list = {
-	mxd_monte_carlo_mca_start,
+	NULL,
+	mxd_monte_carlo_mca_trigger,
 	mxd_monte_carlo_mca_stop,
 	mxd_monte_carlo_mca_read,
 	mxd_monte_carlo_mca_clear,
@@ -1028,9 +1029,9 @@ mxd_monte_carlo_mca_open( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_monte_carlo_mca_start( MX_MCA *mca )
+mxd_monte_carlo_mca_trigger( MX_MCA *mca )
 {
-	static const char fname[] = "mxd_monte_carlo_mca_start()";
+	static const char fname[] = "mxd_monte_carlo_mca_trigger()";
 
 	MX_MONTE_CARLO_MCA *monte_carlo_mca = NULL;
 	MX_CLOCK_TICK measurement_time_in_clock_ticks;
@@ -1054,8 +1055,9 @@ mxd_monte_carlo_mca_start( MX_MCA *mca )
 		break;
 	case MXF_MCA_PRESET_COUNT:
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"Preset count operation is not supported by the 'soft mca' "
-		"driver used for MCA '%s'.", mca->record->name );
+		"Preset count operation is not supported by the "
+		"'monte_carlo_mca' driver used for MCA '%s'.",
+			mca->record->name );
 		break;
 	}
 

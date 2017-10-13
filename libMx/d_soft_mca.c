@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2005-2006, 2008, 2010-2012, 2016
+ * Copyright 2000-2001, 2005-2006, 2008, 2010-2012, 2016-2017
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -40,7 +40,8 @@ MX_RECORD_FUNCTION_LIST mxd_soft_mca_record_function_list = {
 };
 
 MX_MCA_FUNCTION_LIST mxd_soft_mca_mca_function_list = {
-	mxd_soft_mca_start,
+	NULL,
+	mxd_soft_mca_trigger,
 	mxd_soft_mca_stop,
 	mxd_soft_mca_read,
 	mxd_soft_mca_clear,
@@ -372,9 +373,9 @@ mxd_soft_mca_open( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_soft_mca_start( MX_MCA *mca )
+mxd_soft_mca_trigger( MX_MCA *mca )
 {
-	static const char fname[] = "mxd_soft_mca_start()";
+	static const char fname[] = "mxd_soft_mca_trigger()";
 
 	MX_SOFT_MCA *soft_mca = NULL;
 	MX_CLOCK_TICK start_time_in_clock_ticks;

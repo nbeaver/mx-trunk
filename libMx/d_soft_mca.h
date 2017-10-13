@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2010, 2012 Illinois Institute of Technology
+ * Copyright 2000-2001, 2010, 2012, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -43,7 +43,7 @@ MX_API mx_status_type mxd_soft_mca_print_structure( FILE *file,
 							MX_RECORD *record );
 MX_API mx_status_type mxd_soft_mca_open( MX_RECORD *record );
 
-MX_API mx_status_type mxd_soft_mca_start( MX_MCA *mca );
+MX_API mx_status_type mxd_soft_mca_trigger( MX_MCA *mca );
 MX_API mx_status_type mxd_soft_mca_stop( MX_MCA *mca );
 MX_API mx_status_type mxd_soft_mca_read( MX_MCA *mca );
 MX_API mx_status_type mxd_soft_mca_clear( MX_MCA *mca );

@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004, 2006, 2010 Illinois Institute of Technology
+ * Copyright 2004, 2006, 2010, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -72,7 +72,7 @@ MX_API mx_status_type mxd_roentec_rcl_resynchronize( MX_RECORD *record );
 MX_API mx_status_type mxd_roentec_rcl_special_processing_setup(
 							MX_RECORD *record );
 
-MX_API mx_status_type mxd_roentec_rcl_start( MX_MCA *mca );
+MX_API mx_status_type mxd_roentec_rcl_trigger( MX_MCA *mca );
 MX_API mx_status_type mxd_roentec_rcl_stop( MX_MCA *mca );
 MX_API mx_status_type mxd_roentec_rcl_read( MX_MCA *mca );
 MX_API mx_status_type mxd_roentec_rcl_clear( MX_MCA *mca );

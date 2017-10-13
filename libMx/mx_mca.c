@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004-2007, 2010, 2012, 2015-2016
+ * Copyright 1999-2002, 2004-2007, 2010, 2012, 2015-2017
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -314,13 +314,13 @@ mx_mca_finish_record_initialization( MX_RECORD *mca_record )
 /*=======================================================================*/
 
 MX_EXPORT mx_status_type
-mx_mca_start( MX_RECORD *mca_record )
+mx_mca_arm( MX_RECORD *mca_record )
 {
-	static const char fname[] = "mx_mca_start()";
+	static const char fname[] = "mx_mca_arm()";
 
 	MX_MCA *mca;
 	MX_MCA_FUNCTION_LIST *function_list;
-	mx_status_type ( *start_fn ) ( MX_MCA * );
+	mx_status_type ( *arm_fn ) ( MX_MCA * );
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked for MCA '%s'", fname, mca_record->name));
@@ -330,14 +330,6 @@ mx_mca_start( MX_RECORD *mca_record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	start_fn = function_list->start;
-
-	if ( start_fn == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"start function ptr for record '%s' is NULL.",
-			mca_record->name );
-	}
 
 	mca->busy = TRUE;
 	mca->new_data_available = TRUE;
@@ -349,7 +341,67 @@ mx_mca_start( MX_RECORD *mca_record )
 
 	mca->last_start_tick = mx_current_clock_tick();
 
-	mx_status = (*start_fn)( mca );
+	arm_fn = function_list->arm;
+
+	if ( arm_fn != NULL ) {
+		mx_status = (*arm_fn)( mca );
+	} else {
+		mx_status = MX_SUCCESSFUL_RESULT;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_mca_trigger( MX_RECORD *mca_record )
+{
+	static const char fname[] = "mx_mca_trigger()";
+
+	MX_MCA *mca;
+	MX_MCA_FUNCTION_LIST *function_list;
+	mx_status_type ( *trigger_fn ) ( MX_MCA * );
+	mx_status_type mx_status;
+
+	MX_DEBUG( 2,("%s invoked for MCA '%s'", fname, mca_record->name));
+
+	mx_status = mx_mca_get_pointers( mca_record,
+					&mca, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mca->busy = TRUE;
+	mca->new_data_available = TRUE;
+
+#if DEBUG_MCA_NEW_DATA_AVAILABLE
+	MX_DEBUG(-2,("%s: mca '%s' new_data_available = %d",
+		fname, mca_record->name, (int) mca->new_data_available));
+#endif
+
+	mca->last_start_tick = mx_current_clock_tick();
+
+	trigger_fn = function_list->trigger;
+
+	if ( trigger_fn != NULL ) {
+		mx_status = (*trigger_fn)( mca );
+	} else {
+		mx_status = MX_SUCCESSFUL_RESULT;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_mca_start( MX_RECORD *mca_record )
+{
+	mx_status_type mx_status;
+
+	mx_status = mx_mca_arm( mca_record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_mca_trigger( mca_record );
 
 	return mx_status;
 }
@@ -648,25 +700,14 @@ mx_mca_start_without_preset( MX_RECORD *mca_record )
 	static const char fname[] = "mx_mca_start_without_preset()";
 
 	MX_MCA *mca;
-	MX_MCA_FUNCTION_LIST *function_list;
-	mx_status_type ( *start_fn ) ( MX_MCA * );
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked for MCA '%s'", fname, mca_record->name));
 
-	mx_status = mx_mca_get_pointers( mca_record,
-					&mca, &function_list, fname );
+	mx_status = mx_mca_get_pointers( mca_record, &mca, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	start_fn = function_list->start;
-
-	if ( start_fn == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"start function ptr for record '%s' is NULL.",
-			mca_record->name );
-	}
 
 	mca->busy = TRUE;
 	mca->new_data_available = TRUE;
@@ -680,7 +721,7 @@ mx_mca_start_without_preset( MX_RECORD *mca_record )
 
 	mca->preset_type = MXF_MCA_PRESET_NONE;
 
-	mx_status = (*start_fn)( mca );
+	mx_status = mx_mca_start( mca_record );
 
 	return mx_status;
 }
@@ -693,25 +734,14 @@ mx_mca_start_with_preset( MX_RECORD *mca_record,
 	static const char fname[] = "mx_mca_start_with_preset()";
 
 	MX_MCA *mca;
-	MX_MCA_FUNCTION_LIST *function_list;
-	mx_status_type ( *start_fn ) ( MX_MCA * );
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked for MCA '%s'", fname, mca_record->name));
 
-	mx_status = mx_mca_get_pointers( mca_record,
-					&mca, &function_list, fname );
+	mx_status = mx_mca_get_pointers( mca_record, &mca, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	start_fn = function_list->start;
-
-	if ( start_fn == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"start function ptr for record '%s' is NULL.",
-			mca_record->name );
-	}
 
 	mca->busy = TRUE;
 	mca->new_data_available = TRUE;
@@ -742,7 +772,7 @@ mx_mca_start_with_preset( MX_RECORD *mca_record,
 
 	mca->last_start_tick = mx_current_clock_tick();
 
-	mx_status = (*start_fn)( mca );
+	mx_status = mx_mca_start( mca_record );
 
 	return mx_status;
 }
@@ -754,25 +784,14 @@ mx_mca_start_for_preset_live_time( MX_RECORD *mca_record,
 	static const char fname[] = "mx_mca_start_for_preset_live_time()";
 
 	MX_MCA *mca;
-	MX_MCA_FUNCTION_LIST *function_list;
-	mx_status_type ( *start_fn ) ( MX_MCA * );
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked for MCA '%s'", fname, mca_record->name));
 
-	mx_status = mx_mca_get_pointers( mca_record,
-					&mca, &function_list, fname );
+	mx_status = mx_mca_get_pointers( mca_record, &mca, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	start_fn = function_list->start;
-
-	if ( start_fn == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"start function ptr for record '%s' is NULL.",
-			mca_record->name );
-	}
 
 	mca->busy = TRUE;
 	mca->new_data_available = TRUE;
@@ -789,7 +808,7 @@ mx_mca_start_for_preset_live_time( MX_RECORD *mca_record,
 
 	mca->last_start_tick = mx_current_clock_tick();
 
-	mx_status = (*start_fn)( mca );
+	mx_status = mx_mca_start( mca_record );
 
 	return mx_status;
 }
@@ -801,25 +820,14 @@ mx_mca_start_for_preset_real_time( MX_RECORD *mca_record,
 	static const char fname[] = "mx_mca_start_for_preset_real_time()";
 
 	MX_MCA *mca;
-	MX_MCA_FUNCTION_LIST *function_list;
-	mx_status_type ( *start_fn ) ( MX_MCA * );
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked for MCA '%s'", fname, mca_record->name));
 
-	mx_status = mx_mca_get_pointers( mca_record,
-					&mca, &function_list, fname );
+	mx_status = mx_mca_get_pointers( mca_record, &mca, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	start_fn = function_list->start;
-
-	if ( start_fn == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"start function ptr for record '%s' is NULL.",
-			mca_record->name );
-	}
 
 	mca->busy = TRUE;
 	mca->new_data_available = TRUE;
@@ -836,7 +844,7 @@ mx_mca_start_for_preset_real_time( MX_RECORD *mca_record,
 
 	mca->last_start_tick = mx_current_clock_tick();
 
-	mx_status = (*start_fn)( mca );
+	mx_status = mx_mca_start( mca_record );
 
 	return mx_status;
 }
@@ -848,25 +856,14 @@ mx_mca_start_for_preset_count( MX_RECORD *mca_record,
 	static const char fname[] = "mx_mca_start_for_preset_count()";
 
 	MX_MCA *mca;
-	MX_MCA_FUNCTION_LIST *function_list;
-	mx_status_type ( *start_fn ) ( MX_MCA * );
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked for MCA '%s'", fname, mca_record->name));
 
-	mx_status = mx_mca_get_pointers( mca_record,
-					&mca, &function_list, fname );
+	mx_status = mx_mca_get_pointers( mca_record, &mca, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	start_fn = function_list->start;
-
-	if ( start_fn == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"start function ptr for record '%s' is NULL.",
-			mca_record->name );
-	}
 
 	mca->busy = TRUE;
 	mca->new_data_available = TRUE;
@@ -883,7 +880,79 @@ mx_mca_start_for_preset_count( MX_RECORD *mca_record,
 
 	mca->last_start_tick = mx_current_clock_tick();
 
-	mx_status = (*start_fn)( mca );
+	mx_status = mx_mca_start( mca_record );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_mca_get_trigger_mode( MX_RECORD *mca_record, unsigned long *trigger_mode )
+{
+	static const char fname[] = "mx_mca_get_trigger_mode()";
+
+	MX_MCA *mca;
+	MX_MCA_FUNCTION_LIST *function_list;
+	mx_status_type ( *get_parameter ) ( MX_MCA * );
+	mx_status_type mx_status;
+
+	MX_DEBUG( 2,("%s invoked for MCA '%s'", fname, mca_record->name));
+
+	mx_status = mx_mca_get_pointers( mca_record,
+					&mca, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter = function_list->get_parameter;
+
+	if ( get_parameter == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"get_parameter function ptr for record '%s' is NULL.",
+			mca_record->name);
+	}
+
+	mca->parameter_type = MXLV_MCA_TRIGGER_MODE;
+
+	mx_status = (*get_parameter)( mca );
+
+	if ( trigger_mode != NULL ) {
+		*trigger_mode = mca->trigger_mode;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_mca_set_trigger_mode( MX_RECORD *mca_record, unsigned long trigger_mode )
+{
+	static const char fname[] = "mx_mca_set_trigger_mode()";
+
+	MX_MCA *mca;
+	MX_MCA_FUNCTION_LIST *function_list;
+	mx_status_type ( *set_parameter ) ( MX_MCA * );
+	mx_status_type mx_status;
+
+	MX_DEBUG( 2,("%s invoked for MCA '%s'", fname, mca_record->name));
+
+	mx_status = mx_mca_get_pointers( mca_record,
+					&mca, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	set_parameter = function_list->set_parameter;
+
+	if ( set_parameter == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"set_parameter function ptr for record '%s' is NULL.",
+			mca_record->name);
+	}
+
+	mca->parameter_type = MXLV_MCA_TRIGGER_MODE;
+
+	mca->trigger_mode = trigger_mode;
+
+	mx_status = (*set_parameter)( mca );
 
 	return mx_status;
 }
@@ -2536,6 +2605,7 @@ mx_mca_default_get_parameter_handler( MX_MCA *mca )
 	case MXLV_MCA_ENERGY_SCALE:
 	case MXLV_MCA_ENERGY_OFFSET:
 	case MXLV_MCA_NEW_DATA_AVAILABLE:
+	case MXLV_MCA_TRIGGER_MODE:
 
 		/* None of these cases require any action since the value
 		 * is already in the location it needs to be in.
@@ -2677,6 +2747,7 @@ mx_mca_default_set_parameter_handler( MX_MCA *mca )
 	case MXLV_MCA_PRESET_COUNT:
 	case MXLV_MCA_ENERGY_SCALE:
 	case MXLV_MCA_ENERGY_OFFSET:
+	case MXLV_MCA_TRIGGER_MODE:
 
 		/* These cases do not require any special action since the
 		 * correct value is already in the right place by the time

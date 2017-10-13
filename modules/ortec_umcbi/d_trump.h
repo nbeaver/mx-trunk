@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2000, 2006, 2008, 2010 Illinois Institute of Technology
+ * Copyright 1999-2000, 2006, 2008, 2010, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -45,7 +45,7 @@ MX_API mx_status_type mxd_trump_print_structure( FILE *file,
 MX_API mx_status_type mxd_trump_open( MX_RECORD *record );
 MX_API mx_status_type mxd_trump_close( MX_RECORD *record );
 
-MX_API mx_status_type mxd_trump_start( MX_MCA *mca );
+MX_API mx_status_type mxd_trump_trigger( MX_MCA *mca );
 MX_API mx_status_type mxd_trump_stop( MX_MCA *mca );
 MX_API mx_status_type mxd_trump_read( MX_MCA *mca );
 MX_API mx_status_type mxd_trump_clear( MX_MCA *mca );

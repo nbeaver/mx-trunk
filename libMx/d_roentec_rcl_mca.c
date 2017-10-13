@@ -53,7 +53,8 @@ MX_RECORD_FUNCTION_LIST mxd_roentec_rcl_record_function_list = {
 };
 
 MX_MCA_FUNCTION_LIST mxd_roentec_rcl_mca_function_list = {
-	mxd_roentec_rcl_start,
+	NULL,
+	mxd_roentec_rcl_trigger,
 	mxd_roentec_rcl_stop,
 	mxd_roentec_rcl_read,
 	mxd_roentec_rcl_clear,
@@ -602,9 +603,9 @@ mxd_roentec_rcl_special_processing_setup( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_roentec_rcl_start( MX_MCA *mca )
+mxd_roentec_rcl_trigger( MX_MCA *mca )
 {
-	static const char fname[] = "mxd_roentec_rcl_start()";
+	static const char fname[] = "mxd_roentec_rcl_trigger()";
 
 	MX_ROENTEC_RCL_MCA *roentec_rcl_mca = NULL;
 	char command[40];

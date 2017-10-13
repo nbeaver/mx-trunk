@@ -7,7 +7,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004-2008, 2012, 2015 Illinois Institute of Technology
+ * Copyright 1999-2002, 2004-2008, 2012, 2015, 2017
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -35,11 +36,15 @@ typedef struct {
 
 	unsigned long *channel_array;
 
+	mx_bool_type arm;
+	mx_bool_type trigger;
 	mx_bool_type start;
 	mx_bool_type stop;
 	mx_bool_type clear;
 	mx_bool_type busy;
 	mx_bool_type new_data_available;
+
+	unsigned long trigger_mode;
 
 	long preset_type;
 	long parameter_type;
@@ -120,43 +125,46 @@ typedef struct {
 #define MXLV_MCA_CHANNEL_ARRAY			1001
 #define MXLV_MCA_MAXIMUM_NUM_CHANNELS		1002
 #define MXLV_MCA_CURRENT_NUM_CHANNELS		1003
-#define MXLV_MCA_START				1004
-#define MXLV_MCA_STOP				1005
-#define MXLV_MCA_READ				1006
-#define MXLV_MCA_CLEAR				1007
-#define MXLV_MCA_BUSY				1008
-#define MXLV_MCA_NEW_DATA_AVAILABLE		1009
-#define MXLV_MCA_PRESET_TYPE			1010
-#define MXLV_MCA_START_WITH_PRESET		1011
-#define MXLV_MCA_BUSY_START_INTERVAL_ENABLED	1012
-#define MXLV_MCA_BUSY_START_INTERVAL		1013
-#define MXLV_MCA_LAST_START_TIME		1014
-#define MXLV_MCA_MAXIMUM_NUM_ROIS		1015
-#define MXLV_MCA_CURRENT_NUM_ROIS		1016
-#define MXLV_MCA_ROI_ARRAY   			1017
-#define MXLV_MCA_ROI_INTEGRAL_ARRAY   		1018
-#define MXLV_MCA_ROI				1019
-#define MXLV_MCA_ROI_INTEGRAL			1020
-#define MXLV_MCA_CHANNEL_NUMBER			1021
-#define MXLV_MCA_CHANNEL_VALUE			1022
-#define MXLV_MCA_ROI_NUMBER			1023
-#define MXLV_MCA_REAL_TIME			1024
-#define MXLV_MCA_LIVE_TIME			1025
-#define MXLV_MCA_COUNTS				1026
-#define MXLV_MCA_PRESET_REAL_TIME		1027
-#define MXLV_MCA_PRESET_LIVE_TIME		1028
-#define MXLV_MCA_PRESET_COUNT			1029
-#define MXLV_MCA_PRESET_COUNT_REGION		1030
-#define MXLV_MCA_NUM_SOFT_ROIS			1031
-#define MXLV_MCA_SOFT_ROI_NUMBER		1032
-#define MXLV_MCA_SOFT_ROI			1033
-#define MXLV_MCA_SOFT_ROI_INTEGRAL		1034
-#define MXLV_MCA_SOFT_ROI_ARRAY			1035
-#define MXLV_MCA_SOFT_ROI_INTEGRAL_ARRAY	1036
-#define MXLV_MCA_ENERGY_SCALE			1037
-#define MXLV_MCA_ENERGY_OFFSET			1038
-#define MXLV_MCA_INPUT_COUNT_RATE		1039
-#define MXLV_MCA_OUTPUT_COUNT_RATE		1040
+#define MXLV_MCA_ARM				1004
+#define MXLV_MCA_TRIGGER			1005
+#define MXLV_MCA_START				1006
+#define MXLV_MCA_STOP				1007
+#define MXLV_MCA_READ				1008
+#define MXLV_MCA_CLEAR				1009
+#define MXLV_MCA_BUSY				1010
+#define MXLV_MCA_NEW_DATA_AVAILABLE		1011
+#define MXLV_MCA_TRIGGER_MODE			1012
+#define MXLV_MCA_PRESET_TYPE			1013
+#define MXLV_MCA_START_WITH_PRESET		1014
+#define MXLV_MCA_BUSY_START_INTERVAL_ENABLED	1015
+#define MXLV_MCA_BUSY_START_INTERVAL		1016
+#define MXLV_MCA_LAST_START_TIME		1017
+#define MXLV_MCA_MAXIMUM_NUM_ROIS		1018
+#define MXLV_MCA_CURRENT_NUM_ROIS		1019
+#define MXLV_MCA_ROI_ARRAY   			1020
+#define MXLV_MCA_ROI_INTEGRAL_ARRAY   		1021
+#define MXLV_MCA_ROI				1022
+#define MXLV_MCA_ROI_INTEGRAL			1023
+#define MXLV_MCA_CHANNEL_NUMBER			1024
+#define MXLV_MCA_CHANNEL_VALUE			1025
+#define MXLV_MCA_ROI_NUMBER			1026
+#define MXLV_MCA_REAL_TIME			1027
+#define MXLV_MCA_LIVE_TIME			1028
+#define MXLV_MCA_COUNTS				1029
+#define MXLV_MCA_PRESET_REAL_TIME		1030
+#define MXLV_MCA_PRESET_LIVE_TIME		1031
+#define MXLV_MCA_PRESET_COUNT			1032
+#define MXLV_MCA_PRESET_COUNT_REGION		1033
+#define MXLV_MCA_NUM_SOFT_ROIS			1034
+#define MXLV_MCA_SOFT_ROI_NUMBER		1035
+#define MXLV_MCA_SOFT_ROI			1036
+#define MXLV_MCA_SOFT_ROI_INTEGRAL		1037
+#define MXLV_MCA_SOFT_ROI_ARRAY			1038
+#define MXLV_MCA_SOFT_ROI_INTEGRAL_ARRAY	1039
+#define MXLV_MCA_ENERGY_SCALE			1040
+#define MXLV_MCA_ENERGY_OFFSET			1041
+#define MXLV_MCA_INPUT_COUNT_RATE		1042
+#define MXLV_MCA_OUTPUT_COUNT_RATE		1043
 
 #define MX_MCA_STANDARD_FIELDS \
   {MXLV_MCA_MAXIMUM_NUM_CHANNELS, -1, "maximum_num_channels", \
@@ -173,6 +181,14 @@ typedef struct {
 			MXFT_ULONG, NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCA, channel_array), \
 	{sizeof(unsigned long)}, NULL, MXFF_VARARGS}, \
+  \
+  {MXLV_MCA_ARM, -1, "arm", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCA, arm), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_MCA_TRIGGER, -1, "trigger", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCA, trigger), \
+	{0}, NULL, 0}, \
   \
   {MXLV_MCA_START, -1, "start", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCA, start), \
@@ -193,6 +209,10 @@ typedef struct {
   {MXLV_MCA_NEW_DATA_AVAILABLE, -1, "new_data_available", \
 						MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCA, new_data_available), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_MCA_TRIGGER_MODE, -1, "trigger_mode", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCA, trigger_mode), \
 	{0}, NULL, 0}, \
   \
   {MXLV_MCA_PRESET_TYPE, -1, "preset_type", MXFT_LONG, NULL, 0, {0}, \
@@ -347,7 +367,8 @@ typedef struct {
 	{0}, NULL, 0}
 
 typedef struct {
-	mx_status_type ( *start ) ( MX_MCA *mca );
+	mx_status_type ( *arm ) ( MX_MCA *mca );
+	mx_status_type ( *trigger ) ( MX_MCA *mca );
 	mx_status_type ( *stop ) ( MX_MCA *mca );
 	mx_status_type ( *read ) ( MX_MCA *mca );
 	mx_status_type ( *clear ) ( MX_MCA *mca );
@@ -368,6 +389,8 @@ MX_API mx_status_type mx_mca_initialize_driver( MX_DRIVER *driver,
 MX_API_PRIVATE mx_status_type mx_mca_finish_record_initialization(
 						MX_RECORD *mca_record );
 
+MX_API mx_status_type mx_mca_arm( MX_RECORD *mca_record );
+MX_API mx_status_type mx_mca_trigger( MX_RECORD *mca_record );
 MX_API mx_status_type mx_mca_start( MX_RECORD *mca_record );
 MX_API mx_status_type mx_mca_stop( MX_RECORD *mca_record );
 MX_API mx_status_type mx_mca_read( MX_RECORD *mca_record,
@@ -395,6 +418,12 @@ MX_API mx_status_type mx_mca_get_parameter( MX_RECORD *mca_record,
 						long parameter_type );
 MX_API mx_status_type mx_mca_set_parameter( MX_RECORD *mca_record,
 						long parameter_type );
+
+MX_API mx_status_type mx_mca_get_trigger_mode( MX_RECORD *mca_record,
+						unsigned long *trigger_mode );
+
+MX_API mx_status_type mx_mca_set_trigger_mode( MX_RECORD *mca_record,
+						unsigned long trigger_mode );
 
 MX_API mx_status_type mx_mca_get_preset_type( MX_RECORD *mca_record,
 						long *preset_type );

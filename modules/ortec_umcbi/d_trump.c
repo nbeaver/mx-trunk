@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2005, 2008, 2010, 2012 Illinois Institute of Technology
+ * Copyright 1999-2001, 2005, 2008, 2010, 2012, 2017
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -45,7 +46,8 @@ MX_RECORD_FUNCTION_LIST mxd_trump_record_function_list = {
 };
 
 MX_MCA_FUNCTION_LIST mxd_trump_mca_function_list = {
-	mxd_trump_start,
+	NULL,
+	mxd_trump_trigger,
 	mxd_trump_stop,
 	mxd_trump_read,
 	mxd_trump_clear,
@@ -362,9 +364,9 @@ mxd_trump_close( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_trump_start( MX_MCA *mca )
+mxd_trump_trigger( MX_MCA *mca )
 {
-	static const char fname[] = "mxd_trump_start()";
+	static const char fname[] = "mxd_trump_trigger()";
 
 	MX_TRUMP_MCA *trump_mca = NULL;
 	MX_UMCBI_DETECTOR *detector = NULL;

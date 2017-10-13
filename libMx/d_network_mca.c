@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2006, 2010, 2012, 2014 Illinois Institute of Technology
+ * Copyright 2000-2006, 2010, 2012, 2014, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -42,7 +42,8 @@ MX_RECORD_FUNCTION_LIST mxd_network_mca_record_function_list = {
 };
 
 MX_MCA_FUNCTION_LIST mxd_network_mca_mca_function_list = {
-	mxd_network_mca_start,
+	mxd_network_mca_arm,
+	mxd_network_mca_trigger,
 	mxd_network_mca_stop,
 	mxd_network_mca_read,
 	mxd_network_mca_clear,
@@ -209,6 +210,10 @@ mxd_network_mca_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	mx_network_field_init( &(network_mca->arm_nf),
+		network_mca->server_record,
+		"%s.arm", network_mca->remote_record_name );
+
 	mx_network_field_init( &(network_mca->busy_nf),
 		network_mca->server_record,
 		"%s.busy", network_mca->remote_record_name );
@@ -336,6 +341,14 @@ mxd_network_mca_finish_record_initialization( MX_RECORD *record )
 	mx_network_field_init( &(network_mca->stop_nf),
 		network_mca->server_record,
 		"%s.stop", network_mca->remote_record_name );
+
+	mx_network_field_init( &(network_mca->trigger_nf),
+		network_mca->server_record,
+		"%s.trigger", network_mca->remote_record_name );
+
+	mx_network_field_init( &(network_mca->trigger_mode_nf),
+		network_mca->server_record,
+		"%s.trigger_mode", network_mca->remote_record_name );
 
 #if 0
 	mca->mca_flags |= MXF_MCA_NO_READ_OPTIMIZATION;
@@ -611,12 +624,12 @@ mxd_network_mca_resynchronize( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_network_mca_start( MX_MCA *mca )
+mxd_network_mca_arm( MX_MCA *mca )
 {
-	static const char fname[] = "mxd_network_mca_start()";
+	static const char fname[] = "mxd_network_mca_arm()";
 
 	MX_NETWORK_MCA *network_mca;
-	mx_bool_type start;
+	mx_bool_type arm;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_mca_get_pointers( mca, &network_mca, fname );
@@ -661,11 +674,34 @@ mxd_network_mca_start( MX_MCA *mca )
 			mca->preset_type, mca->record->name );
 	}
 
-	/* Tell the counting to start. */
+	/* Send the arm signal. */
 
-	start = TRUE;
+	arm = TRUE;
 
-	mx_status = mx_put( &(network_mca->start_nf), MXFT_BOOL, &start );
+	mx_status = mx_put( &(network_mca->arm_nf), MXFT_BOOL, &arm );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_network_mca_trigger( MX_MCA *mca )
+{
+	static const char fname[] = "mxd_network_mca_trigger()";
+
+	MX_NETWORK_MCA *network_mca;
+	mx_bool_type trigger;
+	mx_status_type mx_status;
+
+	mx_status = mxd_network_mca_get_pointers( mca, &network_mca, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Send the trigger signal. */
+
+	trigger = TRUE;
+
+	mx_status = mx_put( &(network_mca->trigger_nf), MXFT_BOOL, &trigger );
 
 	return mx_status;
 }
@@ -781,8 +817,8 @@ mxd_network_mca_get_parameter( MX_MCA *mca )
 			mca->parameter_type ),
 		mca->parameter_type));
 
-	if ( mca->parameter_type == MXLV_MCA_CURRENT_NUM_CHANNELS ) {
-
+	switch( mca->parameter_type ) {
+	case MXLV_MCA_CURRENT_NUM_CHANNELS:
 		mx_status = mx_get( &(network_mca->current_num_channels_nf),
 				MXFT_LONG, &(mca->current_num_channels) );
 
@@ -796,8 +832,8 @@ mxd_network_mca_get_parameter( MX_MCA *mca )
 				mca->record->name,
 				mca->maximum_num_channels );
 		}
-	} else
-	if ( mca->parameter_type == MXLV_MCA_NEW_DATA_AVAILABLE ) {
+		break;
+	case MXLV_MCA_NEW_DATA_AVAILABLE:
 
 		/* If the server implements callbacks, then we will have
 		 * set up a value changed callback for new_data_available_nf,
@@ -823,29 +859,28 @@ mxd_network_mca_get_parameter( MX_MCA *mca )
 
 		mx_status = mx_get( &(network_mca->new_data_available_nf),
 					MXFT_ULONG, &(mca->new_data_available));
-	} else
-	if ( mca->parameter_type == MXLV_MCA_PRESET_COUNT ) {
-
+		break;
+	case MXLV_MCA_TRIGGER_MODE:
+		mx_status = mx_get( &(network_mca->trigger_mode_nf),
+					MXFT_HEX, &(mca->trigger_mode));
+		break;
+	case MXLV_MCA_PRESET_COUNT:
 		mx_status = mx_get( &(network_mca->preset_count_nf),
 					MXFT_ULONG, &(mca->preset_count) );
-	} else
-	if ( mca->parameter_type == MXLV_MCA_PRESET_LIVE_TIME ) {
-
+		break;
+	case MXLV_MCA_PRESET_LIVE_TIME:
 		mx_status = mx_get( &(network_mca->preset_live_time_nf),
 					MXFT_DOUBLE, &(mca->preset_live_time) );
-	} else
-	if ( mca->parameter_type == MXLV_MCA_PRESET_REAL_TIME ) {
-
+		break;
+	case MXLV_MCA_PRESET_REAL_TIME:
 		mx_status = mx_get( &(network_mca->preset_real_time_nf),
 					MXFT_DOUBLE, &(mca->preset_real_time) );
-	} else
-	if ( mca->parameter_type == MXLV_MCA_PRESET_TYPE ) {
-
+		break;
+	case MXLV_MCA_PRESET_TYPE:
 		mx_status = mx_get( &(network_mca->preset_type_nf),
 					MXFT_LONG, &(mca->preset_type) );
-	} else
-	if ( mca->parameter_type == MXLV_MCA_ROI_ARRAY ) {
-
+		break;
+	case MXLV_MCA_ROI_ARRAY:
 		mx_status = mx_put( &(network_mca->current_num_rois_nf),
 					MXFT_LONG, &(mca->current_num_rois) );
 
@@ -858,9 +893,8 @@ mxd_network_mca_get_parameter( MX_MCA *mca )
 		mx_status = mx_get_array( &(network_mca->roi_array_nf),
 					MXFT_ULONG, 2, dimension_array,
 					&(mca->roi_array) );
-	} else
-	if ( mca->parameter_type == MXLV_MCA_ROI_INTEGRAL_ARRAY ) {
-
+		break;
+	case MXLV_MCA_ROI_INTEGRAL_ARRAY:
 		mx_status = mx_put( &(network_mca->current_num_rois_nf),
 					MXFT_LONG, &(mca->current_num_rois) );
 
@@ -872,9 +906,8 @@ mxd_network_mca_get_parameter( MX_MCA *mca )
 		mx_status = mx_get_array( &(network_mca->roi_integral_array_nf),
 						MXFT_ULONG, 1, dimension_array,
 						&(mca->roi_integral_array) );
-	} else
-	if ( mca->parameter_type == MXLV_MCA_ROI ) {
-
+		break;
+	case MXLV_MCA_ROI:
 		mx_status = mx_put( &(network_mca->roi_number_nf),
 					MXFT_ULONG, &(mca->roi_number) );
 
@@ -886,9 +919,8 @@ mxd_network_mca_get_parameter( MX_MCA *mca )
 		mx_status = mx_get_array( &(network_mca->roi_nf),
 					MXFT_ULONG, 1, dimension_array,
 					&(mca->roi) );
-	} else
-	if ( mca->parameter_type == MXLV_MCA_ROI_INTEGRAL ) {
-
+		break;
+	case MXLV_MCA_ROI_INTEGRAL:
 		mx_status = mx_put( &(network_mca->roi_number_nf),
 					MXFT_ULONG, &(mca->roi_number) );
 
@@ -897,27 +929,24 @@ mxd_network_mca_get_parameter( MX_MCA *mca )
 
 		mx_status = mx_get( &(network_mca->roi_integral_nf),
 					MXFT_ULONG, &(mca->roi_integral) );
-	} else
-	if ( mca->parameter_type == MXLV_MCA_SOFT_ROI_ARRAY ) {
-
+		break;
+	case MXLV_MCA_SOFT_ROI_ARRAY:
 		dimension_array[0] = mca->num_soft_rois;
 		dimension_array[1] = 2;
 
 		mx_status = mx_get_array( &(network_mca->soft_roi_array_nf),
 					MXFT_ULONG, 2, dimension_array,
 					&(mca->soft_roi_array) );
-	} else
-	if ( mca->parameter_type == MXLV_MCA_SOFT_ROI_INTEGRAL_ARRAY ) {
-
+		break;
+	case MXLV_MCA_SOFT_ROI_INTEGRAL_ARRAY:
 		dimension_array[0] = mca->num_soft_rois;
 
 		mx_status = mx_get_array(
 				&(network_mca->soft_roi_integral_array_nf),
 				MXFT_ULONG, 1, dimension_array,
 				&(mca->soft_roi_integral_array) );
-	} else
-	if ( mca->parameter_type == MXLV_MCA_SOFT_ROI ) {
-
+		break;
+	case MXLV_MCA_SOFT_ROI:
 		mx_status = mx_put( &(network_mca->soft_roi_number_nf),
 					MXFT_ULONG, &(mca->soft_roi_number) );
 
@@ -929,9 +958,8 @@ mxd_network_mca_get_parameter( MX_MCA *mca )
 		mx_status = mx_get_array( &(network_mca->soft_roi_nf),
 						MXFT_ULONG, 1, dimension_array,
 						&(mca->soft_roi) );
-	} else
-	if ( mca->parameter_type == MXLV_MCA_SOFT_ROI_INTEGRAL ) {
-
+		break;
+	case MXLV_MCA_SOFT_ROI_INTEGRAL:
 		mx_status = mx_put( &(network_mca->soft_roi_number_nf),
 					MXFT_ULONG, &(mca->soft_roi_number) );
 
@@ -940,50 +968,44 @@ mxd_network_mca_get_parameter( MX_MCA *mca )
 
 		mx_status = mx_get( &(network_mca->soft_roi_integral_nf),
 					MXFT_ULONG, &(mca->soft_roi_integral) );
-	} else
-	if ( mca->parameter_type == MXLV_MCA_CHANNEL_NUMBER ) {
-
+		break;
+	case MXLV_MCA_CHANNEL_NUMBER:
 		mx_status = mx_get( &(network_mca->channel_number_nf),
 					MXFT_ULONG, &(mca->channel_number) );
-	} else
-	if ( mca->parameter_type == MXLV_MCA_CHANNEL_VALUE ) {
-
+		break;
+	case MXLV_MCA_CHANNEL_VALUE:
 		mx_status = mx_get( &(network_mca->channel_value_nf),
 					MXFT_ULONG, &(mca->channel_value) );
-	} else
-	if ( mca->parameter_type == MXLV_MCA_REAL_TIME ) {
-
+		break;
+	case MXLV_MCA_REAL_TIME:
 		mx_status = mx_get( &(network_mca->real_time_nf),
 					MXFT_DOUBLE, &(mca->real_time) );
-	} else
-	if ( mca->parameter_type == MXLV_MCA_LIVE_TIME ) {
-
+		break;
+	case MXLV_MCA_LIVE_TIME:
 		mx_status = mx_get( &(network_mca->live_time_nf),
 					MXFT_DOUBLE, &(mca->live_time) );
-	} else
-	if ( mca->parameter_type == MXLV_MCA_ENERGY_SCALE ) {
-
+		break;
+	case MXLV_MCA_ENERGY_SCALE:
 		mx_status = mx_get( &(network_mca->energy_scale_nf),
 					MXFT_DOUBLE, &(mca->energy_scale) );
-	} else
-	if ( mca->parameter_type == MXLV_MCA_ENERGY_OFFSET ) {
-
+		break;
+	case MXLV_MCA_ENERGY_OFFSET:
 		mx_status = mx_get( &(network_mca->energy_offset_nf),
 					MXFT_DOUBLE, &(mca->energy_offset) );
-	} else
-	if ( mca->parameter_type == MXLV_MCA_INPUT_COUNT_RATE ) {
-
+		break;
+	case MXLV_MCA_INPUT_COUNT_RATE:
 		mx_status = mx_get( &(network_mca->input_count_rate_nf),
 					MXFT_DOUBLE, &(mca->input_count_rate) );
-	} else
-	if ( mca->parameter_type == MXLV_MCA_OUTPUT_COUNT_RATE ) {
-
+		break;
+	case MXLV_MCA_OUTPUT_COUNT_RATE:
 		mx_status = mx_get( &(network_mca->output_count_rate_nf),
 					MXFT_DOUBLE, &(mca->output_count_rate));
-	} else {
+		break;
+	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type %ld is not supported by this driver.",
 			mca->parameter_type );
+		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1009,28 +1031,28 @@ mxd_network_mca_set_parameter( MX_MCA *mca )
 			mca->parameter_type ),
 		mca->parameter_type));
 
-	if ( mca->parameter_type == MXLV_MCA_PRESET_COUNT ) {
-
+	switch( mca->parameter_type ) {
+	case MXLV_MCA_TRIGGER_MODE:
+		mx_status = mx_put( &(network_mca->trigger_mode_nf),
+					MXFT_HEX, &(mca->trigger_mode));
+		break;
+	case MXLV_MCA_PRESET_COUNT:
 		mx_status = mx_put( &(network_mca->preset_count_nf),
 					MXFT_ULONG, &(mca->preset_count) );
-	} else
-	if ( mca->parameter_type == MXLV_MCA_PRESET_LIVE_TIME ) {
-
+		break;
+	case MXLV_MCA_PRESET_LIVE_TIME:
 		mx_status = mx_put( &(network_mca->preset_live_time_nf),
 					MXFT_DOUBLE, &(mca->preset_live_time) );
-	} else
-	if ( mca->parameter_type == MXLV_MCA_PRESET_REAL_TIME ) {
-
+		break;
+	case MXLV_MCA_PRESET_REAL_TIME:
 		mx_status = mx_put( &(network_mca->preset_real_time_nf),
 					MXFT_DOUBLE, &(mca->preset_real_time) );
-	} else
-	if ( mca->parameter_type == MXLV_MCA_PRESET_TYPE ) {
-
+		break;
+	case MXLV_MCA_PRESET_TYPE:
 		mx_status = mx_put( &(network_mca->preset_type_nf),
 					MXFT_LONG, &(mca->preset_type) );
-	} else
-	if ( mca->parameter_type == MXLV_MCA_ROI_ARRAY ) {
-
+		break;
+	case MXLV_MCA_ROI_ARRAY:
 		mx_status = mx_put( &(network_mca->current_num_rois_nf),
 					MXFT_LONG, &(mca->current_num_rois) );
 
@@ -1043,9 +1065,8 @@ mxd_network_mca_set_parameter( MX_MCA *mca )
 		mx_status = mx_put_array( &(network_mca->roi_array_nf),
 						MXFT_ULONG, 2, dimension_array,
 						&(mca->roi_array) );
-	} else
-	if ( mca->parameter_type == MXLV_MCA_ROI ) {
-
+		break;
+	case MXLV_MCA_ROI:
 		mx_status = mx_put( &(network_mca->roi_number_nf),
 					MXFT_ULONG, &(mca->roi_number) );
 
@@ -1057,18 +1078,16 @@ mxd_network_mca_set_parameter( MX_MCA *mca )
 		mx_status = mx_put_array( &(network_mca->roi_nf),
 						MXFT_ULONG, 1, dimension_array,
 						&(mca->roi) );
-	} else
-	if ( mca->parameter_type == MXLV_MCA_SOFT_ROI_ARRAY ) {
-
+		break;
+	case MXLV_MCA_SOFT_ROI_ARRAY:
 		dimension_array[0] = mca->num_soft_rois;
 		dimension_array[1] = 2;
 
 		mx_status = mx_put_array( &(network_mca->soft_roi_array_nf),
 						MXFT_ULONG, 2, dimension_array,
 						&(mca->soft_roi_array) );
-	} else
-	if ( mca->parameter_type == MXLV_MCA_SOFT_ROI ) {
-
+		break;
+	case MXLV_MCA_SOFT_ROI:
 		mx_status = mx_put( &(network_mca->soft_roi_number_nf),
 					MXFT_ULONG, &(mca->soft_roi_number) );
 
@@ -1080,25 +1099,24 @@ mxd_network_mca_set_parameter( MX_MCA *mca )
 		mx_status = mx_put_array( &(network_mca->soft_roi_nf),
 						MXFT_ULONG, 1, dimension_array,
 						&(mca->soft_roi) );
-	} else
-	if ( mca->parameter_type == MXLV_MCA_CHANNEL_NUMBER ) {
-
+		break;
+	case MXLV_MCA_CHANNEL_NUMBER:
 		mx_status = mx_put( &(network_mca->channel_number_nf),
 					MXFT_ULONG, &(mca->channel_number) );
-	} else
-	if ( mca->parameter_type == MXLV_MCA_ENERGY_SCALE ) {
-
+		break;
+	case MXLV_MCA_ENERGY_SCALE:
 		mx_status = mx_put( &(network_mca->energy_scale_nf),
 					MXFT_DOUBLE, &(mca->energy_scale) );
-	} else
-	if ( mca->parameter_type == MXLV_MCA_ENERGY_OFFSET ) {
-
+		break;
+	case MXLV_MCA_ENERGY_OFFSET:
 		mx_status = mx_put( &(network_mca->energy_offset_nf),
 					MXFT_DOUBLE, &(mca->energy_offset) );
-	} else {
+		break;
+	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type %ld is not supported by this driver.",
 			mca->parameter_type );
+		break;
 	}
 
 	return mx_status;

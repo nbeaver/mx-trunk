@@ -369,6 +369,17 @@ typedef struct {
 
 #define MXF_PROC_PROCESSING_IS_INITIALIZED	0x8000
 
+/* Definition of trigger modes for devices that support triggers. */
+
+#define MXT_DEV_NO_TRIGGER		0x0
+#define MXT_DEV_INTERNAL_TRIGGER	0x1
+#define MXT_DEV_EXTERNAL_TRIGGER	0x2
+#define MXT_DEV_DATABASE_TRIGGER	0x4
+#define MXT_DEV_MANUAL_TRIGGER		0x8
+
+#define MXT_DEV_EDGE_TRIGGER		0x1000
+#define MXT_DEV_LEVEL_TRIGGER		0x2000
+
 /* An MX_RECORD_FUNCTION_LIST structure contains a list of the functions
  * that are the same for all record types.
  */

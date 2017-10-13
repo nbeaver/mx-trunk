@@ -68,7 +68,8 @@ MX_RECORD_FUNCTION_LIST mxd_handel_mca_record_function_list = {
 };
 
 MX_MCA_FUNCTION_LIST mxd_handel_mca_mca_function_list = {
-	mxd_handel_mca_start,
+	NULL,
+	mxd_handel_mca_trigger,
 	mxd_handel_mca_stop,
 	mxd_handel_mca_read,
 	mxd_handel_mca_clear,
@@ -1089,9 +1090,9 @@ mxd_handel_mca_special_processing_setup( MX_RECORD *record )
 /*---------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mxd_handel_mca_start( MX_MCA *mca )
+mxd_handel_mca_trigger( MX_MCA *mca )
 {
-	static const char fname[] = "mxd_handel_mca_start()";
+	static const char fname[] = "mxd_handel_mca_trigger()";
 
 	MX_HANDEL_MCA *handel_mca = NULL;
 	MX_HANDEL *handel = NULL;
