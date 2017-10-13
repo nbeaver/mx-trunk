@@ -85,10 +85,20 @@ LIBRARIES = $(WIN32_LIBS)
 #     directory layout differently that Visual Studio 2010 and before, so we
 #     must be able to distinguish between the two.
 #
+#     Note: If you have defined the environment MX_ARCH in your Cygwin, Msys,
+#     etc. environment and set it to 'win32', then there should be no need
+#     to set the MSDEV_ARCH variables below.  Instead, the makefile itself
+#     will figure out the value that MSDEV_ARCH should be set to.
+#
 
+# The following definitions are from Visual C++ 4.0 to Visual Studio 2010.
+#
 #MSDEV_ARCH	= x86
 #MSDEV_ARCH	= x64
 
+# The directory layout for Visual Studio 2012 and after is different from
+# earlier versions.
+#
 #MSDEV_ARCH	= x86_vs2012
 #MSDEV_ARCH	= x64_vs2012
 
