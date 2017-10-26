@@ -235,6 +235,22 @@ mxi_dalsa_gev_open( MX_RECORD *record )
 				(long) config_options.gvcp_port_range_start );
 		mx_info( "  gvcp_port_range_end = %lu",
 				(long) config_options.gvcp_port_range_end );
+
+		config_options.logLevel = GEV_LOG_LEVEL_TRACE;
+
+		gev_status = GevSetLibraryConfigOptions( &config_options );
+
+		switch( gev_status ) {
+		case GEVLIB_OK:
+			break;
+		default:
+			return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"GevSetLibraryConfigOptions() returned %ld "
+			"for record '%s'.",
+				gev_status, record->name );
+			break;
+		}
+
 	}
 
 	/* If requested, show all the cameras that were found. */

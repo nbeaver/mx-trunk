@@ -805,9 +805,15 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 
 	/*---------------------------------------------------------------*/
 
-	gev_status = GevOpenCamera( selected_camera_object,
+	if ( strlen( dalsa_gev_camera->serial_number ) > 0 ) {
+		gev_status = GevOpenCameraBySN( serial_number_string,
 					GevExclusiveMode,
 					&(dalsa_gev_camera->camera_handle) );
+	} else {
+		gev_status = GevOpenCamera( selected_camera_object,
+					GevExclusiveMode,
+					&(dalsa_gev_camera->camera_handle) );
+	}
 
 	switch ( gev_status ) {
 	case GEVLIB_OK:
