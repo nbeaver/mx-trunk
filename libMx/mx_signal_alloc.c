@@ -74,7 +74,11 @@
 
 #if HAVE_POSIX_REALTIME_SIGNALS || defined( OS_CYGWIN )
 
-#define MX_MAX_SIGNALS	SIGRTMAX
+#if defined(OS_ANDROID)
+#  define MX_MAX_SIGNALS	34
+#else
+#  define MX_MAX_SIGNALS	SIGRTMAX
+#endif
 
 static int *mx_signal_array = NULL;
 static int mx_num_signals;

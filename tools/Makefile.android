@@ -41,14 +41,14 @@ mx_clean:
 	( cd unix/src/editline ; make clean )
 
 mx_private_version: ../libMx/Makefile.version version/src/mx_private_version.c
-	$(HOST_CC) $(CFLAGS_MX_VERS) -o mx_private_version \
+	$(CC) $(CFLAGS_MX_VERS) -o mx_private_version \
 		version/src/mx_private_version.c
 
 ../libMx/mx_private_version.h: mx_private_version
 	./mx_private_version > ../libMx/mx_private_version.h
 
 mx_config: version/src/mx_config.c ../libMx/mx_private_version.h
-	$(HOST_CC) -I../libMx -DOS_ANDROID -DMX_ARCH="\"$(MX_ARCH)\"" \
+	$(CC) -I../libMx -DOS_ANDROID -DMX_ARCH="\"$(MX_ARCH)\"" \
 		-o mx_config version/src/mx_config.c
 
 smvspatial.o: xgen/smvspatial.c

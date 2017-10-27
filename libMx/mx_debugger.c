@@ -622,11 +622,6 @@ mx_prepare_for_debugging( char *command, int just_in_time_debugging )
 {
 	mx_debugger_command[0] = '\0';
 	mxp_just_in_time_debugging_enabled = FALSE;
-
-	fprintf(stderr, "\n"
-"Warning: Starting a debugger is not currently supported on this platform.\n"
-"         The request to start a debugger will be ignored.  Sorry...\n\n" );
-	fflush(stderr);
 	return;
 }
 
