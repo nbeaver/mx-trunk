@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2016 Illinois Institute of Technology
+ * Copyright 2016-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,7 +28,8 @@ extern "C" {
 /* 'dalsa_gev_camera_flags' bitflag macros */
 
 #define MXF_DALSA_GEV_CAMERA_WRITE_XML_FILE		0x1
-#define MXF_DALSA_GEV_CAMERA_SHOW_INFO			0x2
+
+#define MXF_DALSA_GEV_CAMERA_SHOW_FEATURES		0x1000
 
 typedef struct {
 	MX_RECORD *record;
@@ -36,13 +37,17 @@ typedef struct {
 	MX_RECORD *dalsa_gev_record;
 	char serial_number[MAX_GEVSTRING_LENGTH+1];
 	long user_set_selector;
-	long num_frame_buffers;
+	unsigned long num_frame_buffers;
 	unsigned long dalsa_gev_camera_flags;
 	char xml_filename[MXU_FILENAME_LENGTH+1];
+
+	unsigned long frame_buffer_size;
+	char **frame_buffer_array;
 
 	long camera_index;
 	GEV_CAMERA_INFO *camera_object;
 	GEV_CAMERA_HANDLE camera_handle;
+	void *feature_node_map;
 
 	MX_THREAD *next_image_thread;
 
@@ -78,7 +83,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DALSA_GEV_CAMERA, user_set_selector), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
   \
-  {-1, -1, "num_frame_buffers", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "num_frame_buffers", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DALSA_GEV_CAMERA, num_frame_buffers), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
   \
@@ -90,6 +95,10 @@ typedef struct {
   {-1, -1, "xml_filename", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DALSA_GEV_CAMERA, xml_filename), \
 	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {-1, -1, "frame_buffer_size", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DALSA_GEV_CAMERA, frame_buffer_size), \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_DALSA_GEV_CAMERA_SHOW_FEATURES, -1, "show_features", \
 						MXFT_BOOL, NULL, 0, {0}, \

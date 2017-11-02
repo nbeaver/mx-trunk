@@ -23,7 +23,6 @@
 #define MXD_DALSA_GEV_CAMERA_DEBUG_REGISTER_READ	FALSE
 #define MXD_DALSA_GEV_CAMERA_DEBUG_REGISTER_WRITE	TRUE
 
-#define MXD_DALSA_GEV_CAMERA_ENABLE_GET_FEATURE_NODE_MAP_IN_OPEN	TRUE
 #define MXD_DALSA_GEV_CAMERA_ENABLE_DUMP_FEATURE_HIERARCHY		TRUE
 
 #include <stdio.h>
@@ -551,7 +550,7 @@ mxd_dalsa_gev_camera_show_feature( SapAcqDevice *acq_device,
 
 #if MXD_DALSA_GEV_CAMERA_ENABLE_DUMP_FEATURE_HIERARCHY
 
-#if 0
+#if 1
 static const char *type_names[] = {
 	"Value", "Base", "Integer", "Boolean", "Command", "Float", "String",
 	"Register", "Category", "Enumeration", "EnumEntry", "Port"
@@ -564,18 +563,18 @@ static int num_type_names =
 static void
 dump_feature_hierarchy( const GenApi::CNodePtr &feature_ptr, int indent )
 {
-	MX_DEBUG(-2,("dump_feature_hierarchy() invoked: indent = %d", indent));
+#if 0
+	static const char fname[] = "dump_feature_hierarchy()";
+#endif
 
 	int i = 0;
 
 	for ( i = 0; i < indent; i++ ) {
-		fprintf( stderr, "\t" );
+		fputc( ' ', stderr );
 	}
 
-	MX_DEBUG(-2,("MARKER 1"));
-
 	GenApi::CCategoryPtr category_ptr( feature_ptr );
-#if 0
+#if 1
 
 	if ( category_ptr.IsValid() ) {
 		const char *category_name = static_cast<const char *>
@@ -611,8 +610,6 @@ dump_feature_hierarchy( const GenApi::CNodePtr &feature_ptr, int indent )
 		}
 	}
 #endif
-
-	MX_DEBUG(-2,("dump_feature_hierarchy() complete: indent = %d", indent));
 }
 
 #endif /* MXD_DALSA_GEV_CAMERA_ENABLE_DUMP_FEATURE_HIERARCHY */
@@ -625,9 +622,6 @@ mxd_dalsa_gev_camera_show_features( MX_DALSA_GEV_CAMERA *dalsa_gev_camera )
 	static const char fname[] = "mxd_dalsa_gev_camera_show_features()";
 
 	MX_RECORD *record;
-#if 0
-	mx_status_type mx_status;
-#endif
 
 	if ( dalsa_gev_camera == (MX_DALSA_GEV_CAMERA *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -642,21 +636,16 @@ mxd_dalsa_gev_camera_show_features( MX_DALSA_GEV_CAMERA *dalsa_gev_camera )
 			dalsa_gev_camera );
 	}
 
-	MX_DEBUG(-2,("%s invoked for camera '%s'.", fname, record->name ));
-
 	/* Get the "Root" node for this camera. */
 
 	GenApi::CNodeMapRef *feature_node_map =
-static_cast<GenApi::CNodeMapRef*>( GevGetFeatureNodeMap(
-					dalsa_gev_camera->camera_handle ) );
+		(GenApi::CNodeMapRef *) dalsa_gev_camera->feature_node_map;
 
 	GenApi::CNodePtr root_ptr = feature_node_map->_GetNode("Root");
 
 #if MXD_DALSA_GEV_CAMERA_ENABLE_DUMP_FEATURE_HIERARCHY
 	dump_feature_hierarchy( root_ptr, 1 );
 #endif /* MXD_DALSA_GEV_CAMERA_ENABLE_DUMP_FEATURE_HIERARCHY */
-
-	MX_DEBUG(-2,("%s complete.", fname));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -938,16 +927,78 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 		break;
 	}
 
-	/* Read in the feature node map. */
-
-#if MXD_DALSA_GEV_CAMERA_ENABLE_GET_FEATURE_NODE_MAP_IN_OPEN
+	/* Read in the feature node map. */ 
 
 	GenApi::CNodeMapRef *feature_node_map = 
     static_cast<GenApi::CNodeMapRef*>( GevGetFeatureNodeMap(
 					dalsa_gev_camera->camera_handle ) );
 
-	MXW_UNUSED( feature_node_map );
-#endif /* MXD_DALSA_GEV_CAMERA_ENABLE_GET_FEATURE_NODE_MAP_IN_OPEN */
+	dalsa_gev_camera->feature_node_map = feature_node_map;
+
+	/* Optionally, show the available features. */
+
+	if ( flags & MXF_DALSA_GEV_CAMERA_SHOW_FEATURES ) {
+		mx_status = mxd_dalsa_gev_camera_show_features(
+						dalsa_gev_camera );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	/* Get camera paraameters from the camera. */
+
+	GenApi::CIntegerPtr int_node = NULL;
+	GenApi::CEnumerationPtr enumeration = NULL;
+	uint32_t pixel_format_value;
+
+	int_node = feature_node_map->_GetNode("Width");
+
+	vinput->framesize[0] = int_node->GetValue();
+
+	int_node = feature_node_map->_GetNode("Height");
+
+	vinput->framesize[1] = int_node->GetValue();
+
+	enumeration = feature_node_map->_GetNode("PixelFormat");
+
+	pixel_format_value = enumeration->GetIntValue();
+
+	vinput->bytes_per_pixel = GetPixelSizeInBytes( pixel_format_value );
+
+	/* Allocate memory for the image buffers. */
+
+	dalsa_gev_camera->frame_buffer_size = 
+		mx_round( vinput->bytes_per_pixel
+			* vinput->framesize[0]
+			* vinput->framesize[1] );
+	
+	dalsa_gev_camera->frame_buffer_array = (char **)
+		calloc( dalsa_gev_camera->num_frame_buffers, sizeof(char *) );
+
+	if ( dalsa_gev_camera->frame_buffer_array == NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate an %lu element array "
+		"of frame buffer pointers for camera '%s'.",
+			dalsa_gev_camera->num_frame_buffers, record->name );
+	}
+
+	for ( i = 0; i < (long) dalsa_gev_camera->num_frame_buffers; i++ ) {
+		dalsa_gev_camera->frame_buffer_array[i] = (char *)
+		calloc( dalsa_gev_camera->frame_buffer_size, sizeof(char) );
+
+		if ( dalsa_gev_camera->frame_buffer_array[i] == NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate frame buffer %lu "
+			"for camera '%s'.", i, record->name );
+		}
+	}
+
+
+	MX_DEBUG(-2,("%s: framesize = (%lu,%lu), pixel_format_value = %#x",
+			fname, vinput->framesize[0], vinput->framesize[1],
+			(unsigned int) pixel_format_value));
+	MX_DEBUG(-2,("%s: bytes_per_pixel = %f",
+			fname, vinput->bytes_per_pixel));
 
 	/*---------------------------------------------------------------*/
 
