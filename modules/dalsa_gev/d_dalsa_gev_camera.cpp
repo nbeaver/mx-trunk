@@ -427,7 +427,7 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 
 	unsigned long flags;
 	char *serial_number_string;
-	long i;
+	unsigned long i;
 	short gev_status;
 	mx_status_type mx_status;
 
@@ -477,6 +477,8 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 			serial_number_string,
 			record->name );
 	}
+
+	dalsa_gev_camera->camera_object = selected_camera_object;
 
 	/*---------------------------------------------------------------*/
 
@@ -720,8 +722,9 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 			* vinput->framesize[0]
 			* vinput->framesize[1] );
 	
-	dalsa_gev_camera->frame_buffer_array = (char **)
-		calloc( dalsa_gev_camera->num_frame_buffers, sizeof(char *) );
+	dalsa_gev_camera->frame_buffer_array = (unsigned char **)
+		calloc( dalsa_gev_camera->num_frame_buffers,
+			sizeof(unsigned char *) );
 
 	if ( dalsa_gev_camera->frame_buffer_array == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -730,9 +733,11 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 			dalsa_gev_camera->num_frame_buffers, record->name );
 	}
 
-	for ( i = 0; i < (long) dalsa_gev_camera->num_frame_buffers; i++ ) {
-		dalsa_gev_camera->frame_buffer_array[i] = (char *)
-		calloc( dalsa_gev_camera->frame_buffer_size, sizeof(char) );
+	for ( i = 0; i < dalsa_gev_camera->num_frame_buffers; i++ ) {
+
+		dalsa_gev_camera->frame_buffer_array[i] = (unsigned char *)
+			calloc( dalsa_gev_camera->frame_buffer_size,
+					sizeof(char) );
 
 		if ( dalsa_gev_camera->frame_buffer_array[i] == NULL ) {
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -749,6 +754,48 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 			(unsigned int) pixel_format_value));
 	MX_DEBUG(-2,("%s: bytes_per_pixel = %f",
 			fname, vinput->bytes_per_pixel));
+
+	/*---------------------------------------------------------------*/
+
+#if 0
+	GevBufferCyclingMode cycling_mode = SynchronousNextEmpty;
+#else
+	GevBufferCyclingMode cycling_mode = Asynchronous;
+#endif
+
+#if 1
+	{
+	    if ( dalsa_gev_camera->frame_buffer_array == NULL ) {
+		MX_DEBUG(-2,("%s: frame_buffer_array = NULL", fname));
+	    } else {
+		MX_DEBUG(-2,("%s: frame_buffer_array = %p",
+			fname, dalsa_gev_camera->frame_buffer_array));
+
+		MX_DEBUG(-2,("%s: num_frame_buffers = %lu",
+			fname, dalsa_gev_camera->num_frame_buffers));
+
+		for ( i = 0; i < dalsa_gev_camera->num_frame_buffers; i++ ) {
+
+		    MX_DEBUG(-2,("%s: frame_buffer_array[%lu] = %p",
+			fname, i, dalsa_gev_camera->frame_buffer_array[i] ));
+		}
+	    }
+	}
+#endif
+
+	MX_DEBUG(-2,("%s: MARKER 1", fname));
+
+	gev_status = GevInitImageTransfer( dalsa_gev_camera->camera_handle,
+					cycling_mode,
+					dalsa_gev_camera->num_frame_buffers,
+					dalsa_gev_camera->frame_buffer_array );
+
+	if ( gev_status != GEVLIB_OK ) {
+		return mxd_dalsa_gev_camera_api_error( gev_status, fname,
+						"GevInitImageTransfer()");
+	}
+
+	MX_DEBUG(-2,("%s: MARKER 2", fname));
 
 	/*---------------------------------------------------------------*/
 
@@ -972,14 +1019,6 @@ mxd_dalsa_gev_camera_get_parameter( MX_VIDEO_INPUT *vinput )
 
 	case MXLV_VIN_FORMAT:
 	case MXLV_VIN_FORMAT_NAME:
-		/* FIXME: The 'PixelFormat' enum may have the value we want,
-		 *        but for now, we hard code the response.
-		 */
-
-		vinput->image_format = MXT_IMAGE_FORMAT_GREY16;
-		vinput->bytes_per_pixel = 2;
-		vinput->bits_per_pixel = 16;
-
 		mx_status = mx_image_get_image_format_name_from_type(
 				vinput->image_format, vinput->image_format_name,
 				MXU_IMAGE_FORMAT_NAME_LENGTH );
@@ -1000,16 +1039,6 @@ mxd_dalsa_gev_camera_get_parameter( MX_VIDEO_INPUT *vinput )
 		 */
 		break;
 
-	case MXLV_VIN_BYTES_PER_FRAME:
-	case MXLV_VIN_BYTES_PER_PIXEL:
-	case MXLV_VIN_BITS_PER_PIXEL:
-		vinput->bytes_per_pixel = 2;
-		vinput->bits_per_pixel = 16;
-
-		vinput->bytes_per_frame = mx_round( vinput->bytes_per_pixel
-			* vinput->framesize[0] * vinput->framesize[1] );
-		break;
-
 	case MXLV_VIN_BUSY:
 		vinput->busy = 0;
 		break;
@@ -1023,6 +1052,11 @@ mxd_dalsa_gev_camera_get_parameter( MX_VIDEO_INPUT *vinput )
 
 	case MXLV_VIN_NUM_SEQUENCE_PARAMETERS:
 	case MXLV_VIN_SEQUENCE_PARAMETER_ARRAY:
+		break;
+
+	case MXLV_VIN_BYTES_PER_PIXEL:
+	case MXLV_VIN_BITS_PER_PIXEL:
+	case MXLV_VIN_BYTES_PER_FRAME:
 		break;
 
 	default:

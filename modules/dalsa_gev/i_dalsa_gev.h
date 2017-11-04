@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2016 Illinois Institute of Technology
+ * Copyright 2016-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -33,7 +33,7 @@ typedef struct {
 	MX_RECORD *record;
 
 
-	long num_cameras;
+	unsigned long num_cameras;
 	GEV_CAMERA_INFO *camera_array;
 
 	MX_RECORD **device_record_array;
@@ -42,7 +42,7 @@ typedef struct {
 } MX_DALSA_GEV;
 
 #define MXI_DALSA_GEV_STANDARD_FIELDS \
-  {-1, -1, "num_cameras", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "num_cameras", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DALSA_GEV, num_cameras), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_READ_ONLY) }, \
   \

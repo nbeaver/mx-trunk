@@ -42,7 +42,7 @@ typedef struct {
 	char xml_filename[MXU_FILENAME_LENGTH+1];
 
 	unsigned long frame_buffer_size;
-	char **frame_buffer_array;
+	unsigned char **frame_buffer_array;
 
 	long camera_index;
 	GEV_CAMERA_INFO *camera_object;

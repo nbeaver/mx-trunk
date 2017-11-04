@@ -131,8 +131,9 @@ mxi_dalsa_gev_open( MX_RECORD *record )
 	static const char fname[] = "mxi_dalsa_gev_open()";
 
 	MX_DALSA_GEV *dalsa_gev;
-	long i, gev_status;
-	int num_cameras_found;
+	long gev_status;
+	unsigned long i, num_cameras_found;
+	int int_num_cameras_found;
 	mx_status_type mx_status;
 
 	mx_status = mxi_dalsa_gev_get_pointers( record, &dalsa_gev, fname );
@@ -185,7 +186,7 @@ mxi_dalsa_gev_open( MX_RECORD *record )
 
 	gev_status = GevGetCameraList( dalsa_gev->camera_array,
 					dalsa_gev->num_cameras,
-					&num_cameras_found );
+					&int_num_cameras_found );
 	switch( gev_status ) {
 	case GEVLIB_OK:
 		break;
@@ -197,6 +198,8 @@ mxi_dalsa_gev_open( MX_RECORD *record )
 			record->name, gev_status );
 		break;
 	}
+
+	num_cameras_found = int_num_cameras_found;
 
 	if ( num_cameras_found < dalsa_gev->num_cameras ) {
 		dalsa_gev->num_cameras = num_cameras_found;
