@@ -19,11 +19,11 @@
 #define MXD_DALSA_GEV_CAMERA_DEBUG_ARM			TRUE
 #define MXD_DALSA_GEV_CAMERA_DEBUG_STOP			TRUE
 #define MXD_DALSA_GEV_CAMERA_DEBUG_GET_FRAME		TRUE
-#define MXD_DALSA_GEV_CAMERA_DEBUG_MX_PARAMETERS	TRUE
+#define MXD_DALSA_GEV_CAMERA_DEBUG_MX_PARAMETERS	FALSE
 #define MXD_DALSA_GEV_CAMERA_DEBUG_REGISTER_READ	FALSE
 #define MXD_DALSA_GEV_CAMERA_DEBUG_REGISTER_WRITE	TRUE
 
-#define MXD_DALSA_GEV_CAMERA_ENABLE_DUMP_FEATURE_HIERARCHY		TRUE
+#define MXD_DALSA_GEV_CAMERA_ENABLE_DUMP_FEATURE_HIERARCHY    TRUE
 
 #include <stdio.h>
 
@@ -150,7 +150,6 @@ mxd_dalsa_gev_camera_get_pointers( MX_VIDEO_INPUT *vinput,
 
 /*---*/
 
-#if 0
 static mx_status_type
 mxd_dalsa_gev_camera_api_error( short gev_status,
 				const char *location,
@@ -232,319 +231,6 @@ mxd_dalsa_gev_camera_api_error( short gev_status,
 		break;
 	}
 }
-#endif
-
-/*---*/
-
-#if 0
-
-static mx_status_type
-mxd_dalsa_gev_camera_get_feature_value( MX_DALSA_GEV_CAMERA *dalsa_gev_camera,
-					const char *feature_name,
-					char *value_buffer,
-					size_t value_buffer_length )
-{
-	static const char fname[] = "mxd_dalsa_gev_camera_get_feature_value()";
-
-	SapAcqDevice *acq_device;
-	SapFeature *feature;
-	SapFeature::Type feature_type;
-	SapFeature::AccessMode access_mode;
-
-	INT32 int32_value;
-	INT64 int64_value;
-	float float_value;
-	double double_value;
-	BOOL bool_value;
-	int enum_value;
-	char enum_string[250];
-	char string_value[520];
-	int exponent;
-	char si_units[33];
-
-	BOOL sapera_status;
-
-	if ( dalsa_gev_camera == (MX_DALSA_GEV_CAMERA *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_DALSA_GEV_CAMERA pointer passed was NULL." );
-	}
-	if ( feature_name == (const char *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The feature_name pointer passed was NULL." );
-	}
-	if ( value_buffer == (char *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The value_buffer pointer passed was NULL." );
-	}
-	if ( value_buffer_length <= 0 ) {
-		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"There is no space available in the returned value buffer "
-		"for Sapera LT feature '%s'.", feature_name );
-	}
-
-	acq_device = dalsa_gev_camera->acq_device;
-
-	feature = dalsa_gev_camera->feature;
-
-	sapera_status = acq_device->GetFeatureInfo( feature_name, feature );
-
-	if ( sapera_status == 0 ) {
-		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-		"A call to GetFeatureInfo( '%s', ... ) for camera '%s' failed.",
-			feature_name, dalsa_gev_camera->record->name );
-	}
-
-	sapera_status = feature->GetType( &feature_type );
-
-	if ( sapera_status == 0 ) {
-		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-		"A call to GetType( '%s', ... ) for camera '%s' failed.",
-			feature_name, dalsa_gev_camera->record->name );
-	}
-
-	switch( feature_type ) {
-	case SapFeature::TypeUndefined:
-		strlcpy( value_buffer, "<undefined>", value_buffer_length );
-		break;
-	case SapFeature::TypeInt32:
-		sapera_status = acq_device->GetFeatureValue( feature_name,
-								&int32_value );
-
-		snprintf( value_buffer, value_buffer_length,
-			"%" PRId32, int32_value );
-		break;
-	case SapFeature::TypeInt64:
-		sapera_status = acq_device->GetFeatureValue( feature_name,
-								&int64_value );
-
-		snprintf( value_buffer, value_buffer_length,
-			"%" PRId64, int64_value );
-		break;
-	case SapFeature::TypeFloat:
-		sapera_status = acq_device->GetFeatureValue( feature_name,
-								&float_value );
-
-		snprintf( value_buffer, value_buffer_length,
-			"%f", float_value );
-		break;
-	case SapFeature::TypeDouble:
-		sapera_status = acq_device->GetFeatureValue( feature_name,
-								&double_value );
-
-		snprintf( value_buffer, value_buffer_length,
-			"%f", double_value );
-		break;
-	case SapFeature::TypeBool:
-		sapera_status = acq_device->GetFeatureValue( feature_name,
-								&bool_value );
-
-		snprintf( value_buffer, value_buffer_length,
-			"%d", (int) bool_value );
-		break;
-	case SapFeature::TypeEnum:
-		sapera_status = acq_device->GetFeatureValue( feature_name,
-								&enum_value );
-
-		sapera_status = feature->GetEnumStringFromValue(
-				enum_value, value_buffer, value_buffer_length );
-		break;
-	case SapFeature::TypeString:
-		sapera_status = acq_device->GetFeatureValue( feature_name,
-							value_buffer,
-							value_buffer_length );
-		break;
-	case SapFeature::TypeBuffer:
-		strlcpy( value_buffer, "<buffer>", value_buffer_length );
-		break;
-	case SapFeature::TypeLut:
-		strlcpy( value_buffer, "<lut>", value_buffer_length );
-		break;
-	case SapFeature::TypeArray:
-		strlcpy( value_buffer, "<array>", value_buffer_length );
-		break;
-	default:
-		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-		"Unrecognized feature type %ld for feature '%s' of record '%s'",
-			feature_type, feature_name,
-			dalsa_gev_camera->record->name );
-		break;
-	}
-
-	if ( sapera_status == 0 ) {
-		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-	    "A call to GetFeatureValue( '%s', ... ) for camera '%s' failed.",
-			feature_name, dalsa_gev_camera->record->name );
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-/*---*/
-
-static mx_status_type
-mxd_dalsa_gev_camera_show_feature( SapAcqDevice *acq_device,
-					SapFeature *feature, int i )
-{
-	SapFeature::Type feature_type;
-	SapFeature::AccessMode access_mode;
-	char feature_name[65];
-
-	INT32  int32_value;
-	INT64  int64_value;
-	float  float_value;
-	double double_value;
-	BOOL   bool_value;
-	int    enum_value;
-	char   enum_string[520];
-	char   string_value[520];
-	int    exponent;
-	char   si_units[33];
-
-	BOOL sapera_status;
-
-	sapera_status = acq_device->GetFeatureInfo( i, feature );
-
-	sapera_status = feature->GetName( feature_name, sizeof(feature_name) );
-
-	fprintf( stderr, "  Feature %d, name = '%s', ", i, feature_name );
-
-	sapera_status = feature->GetAccessMode( &access_mode );
-
-	if ( access_mode == SapFeature::AccessWO ) {
-		fprintf( stderr, "WRITE_ONLY\n" );
-		return MX_SUCCESSFUL_RESULT;
-	}
-
-	fprintf( stderr, "  type = " );
-
-	sapera_status = feature->GetType( &feature_type );
-
-	switch( feature_type ) {
-	case SapFeature::TypeUndefined:
-		fprintf( stderr, "'undefined'" );
-		break;
-
-	case SapFeature::TypeInt32:
-		sapera_status = acq_device->GetFeatureValue(
-						feature_name, &int32_value );
-
-		fprintf( stderr, "'int32', value = %d", (int) int32_value );
-		break;
-	case SapFeature::TypeInt64:
-		sapera_status = acq_device->GetFeatureValue(
-						feature_name, &int64_value );
-
-		fprintf( stderr, "'int64', value = %" PRId64, int64_value );
-		break;
-	case SapFeature::TypeFloat:
-		sapera_status = acq_device->GetFeatureValue(
-						feature_name, &float_value );
-
-		fprintf( stderr, "'float', value = %f", float_value );
-		break;
-	case SapFeature::TypeDouble:
-		sapera_status = acq_device->GetFeatureValue(
-						feature_name, &double_value );
-
-		fprintf( stderr, "'double', value = %f", double_value);
-		break;
-	case SapFeature::TypeBool:
-		sapera_status = acq_device->GetFeatureValue(
-						feature_name, &bool_value );
-
-		fprintf( stderr, "'bool', value = %d", (int) bool_value );
-		break;
-	case SapFeature::TypeEnum:
-		sapera_status = acq_device->GetFeatureValue(
-						feature_name, &enum_value );
-
-		sapera_status = feature->GetEnumStringFromValue(
-						enum_value, enum_string,
-						sizeof(enum_string) );
-
-		fprintf( stderr, "'enum', value = (%d) '%s'",
-					enum_value, enum_string );
-		break;
-	case SapFeature::TypeString:
-		sapera_status = acq_device->GetFeatureValue(
-						feature_name,
-						string_value,
-						sizeof(string_value) );
-
-		fprintf( stderr, "'string', value = '%s'", string_value );
-		break;
-	case SapFeature::TypeBuffer:
-		fprintf( stderr, "'buffer'" );
-		break;
-
-	case SapFeature::TypeLut:
-		fprintf( stderr, "'lut'" );
-		break;
-
-	case SapFeature::TypeArray:
-		fprintf( stderr, "'array'" );
-		break;
-
-	default:
-		fprintf( stderr, "'unrecognized feature type %d'",
-						feature_type );
-		break;
-	}
-
-	sapera_status = feature->GetSiToNativeExp10( &exponent );
-
-	if ( exponent != 0 ) {
-		fprintf( stderr, " * 10e%d", -exponent );
-	}
-
-	sapera_status = feature->GetSiUnit( si_units, sizeof(si_units) );
-
-	if ( strlen( si_units ) > 0 ) {
-		fprintf( stderr, " '%s'", si_units );
-	}
-
-	fprintf( stderr, "\n" );
-
-	/* If this feature is an Enum, then display the allowed
-	 * values of the Enum.
-	 */
-
-	if( feature_type == SapFeature::TypeEnum ) {
-		int j, enum_count;
-
-		sapera_status = feature->GetEnumCount( &enum_count );
-
-		fprintf( stderr, "    %d enum values = ", enum_count );
-
-		for ( j = 0; j < enum_count; j++ ) {
-			BOOL enum_enabled;
-
-			sapera_status =
-				    feature->IsEnumEnabled( j, &enum_enabled );
-
-			sapera_status =
-				    feature->GetEnumValue( j, &enum_value );
-
-			sapera_status =
-				    feature->GetEnumString( j, enum_string,
-							sizeof(enum_string) );
-
-			if ( j > 0 ) {
-				fprintf( stderr, ", " );
-			}
-			fprintf( stderr, "%s (%d)", enum_string, enum_value );
-
-			if ( enum_enabled == FALSE ) {
-				fprintf( stderr, " (DISABLED)" );
-			}
-		}
-		fprintf( stderr, "\n" );
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-#endif
 
 /*---*/
 
@@ -950,6 +636,8 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 	GenApi::CIntegerPtr int_node = NULL;
 	GenApi::CEnumerationPtr enumeration = NULL;
 	uint32_t pixel_format_value;
+	char pixel_format_string[80];
+	int type, num_items;
 
 	int_node = feature_node_map->_GetNode("Width");
 
@@ -959,7 +647,67 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 
 	vinput->framesize[1] = int_node->GetValue();
 
+	vinput->maximum_framesize[0] = vinput->framesize[0];
+	vinput->maximum_framesize[1] = vinput->framesize[1];
+
 	enumeration = feature_node_map->_GetNode("PixelFormat");
+
+	gev_status = GevGetFeatureValueAsString(
+			dalsa_gev_camera->camera_handle, "PixelFormat",
+			&type, sizeof(pixel_format_string),
+			pixel_format_string );
+
+	if ( gev_status != GEVLIB_OK ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+			"The attempt to get the pixel format string for "
+			"camera '%s' failed with error code %d.",
+			record->name, gev_status );
+	}
+
+	if ( strncmp( pixel_format_string, "Mono", 4 ) == 0 ) {
+		num_items = sscanf( pixel_format_string,
+				"Mono%ld", &(vinput->bits_per_pixel) );
+
+		if ( num_items != 1 ) {
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"Unable to find the bits per pixel in the returned "
+			"pixel format string '%s' for camera '%s'.",
+			pixel_format_string, record->name );
+		}
+	} else {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Pixel format '%s' is not supported for camera '%s'.",
+		pixel_format_string, record->name );
+	}
+
+	if ( vinput->bits_per_pixel <= 8 ) {
+		vinput->image_format = MXT_IMAGE_FORMAT_GREY8;
+		vinput->bytes_per_pixel = 1.0;
+	} else
+	if ( vinput->bits_per_pixel <= 16 ) {
+		vinput->image_format = MXT_IMAGE_FORMAT_GREY16;
+		vinput->bytes_per_pixel = 2.0;
+	} else
+	if ( vinput->bits_per_pixel <= 32 ) {
+		vinput->image_format = MXT_IMAGE_FORMAT_GREY32;
+		vinput->bytes_per_pixel = 4.0;
+	} else {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"The pixel format '%s' is not supported for camera '%s'.  "
+		"The largest pixel bit depth supported is 32 bits.",
+			pixel_format_string, record->name );
+	}
+
+	if ( vinput->image_format != MXT_IMAGE_FORMAT_GREY16 ) {
+		char image_format_name[80];
+
+		mx_image_get_image_format_name_from_type( vinput->image_format,
+				image_format_name, sizeof(image_format_name) );
+
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Image format '%s' is not yet implemented for camera '%s'.",
+		image_format_name, record->name );
+	}
 
 	pixel_format_value = enumeration->GetIntValue();
 
@@ -994,8 +742,10 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 	}
 
 
-	MX_DEBUG(-2,("%s: framesize = (%lu,%lu), pixel_format_value = %#x",
+	MX_DEBUG(-2,
+	("%s: framesize = (%lu,%lu), pixel_format_string = '%s' (%#x)",
 			fname, vinput->framesize[0], vinput->framesize[1],
+			pixel_format_string,
 			(unsigned int) pixel_format_value));
 	MX_DEBUG(-2,("%s: bytes_per_pixel = %f",
 			fname, vinput->bytes_per_pixel));
@@ -1392,6 +1142,8 @@ mxd_dalsa_gev_camera_process_function( void *record_ptr,
 	MX_VIDEO_INPUT *vinput;
 	MX_DALSA_GEV_CAMERA *dalsa_gev_camera;
 	mx_status_type mx_status;
+	short gev_status;
+	int feature_type;
 
 	record = (MX_RECORD *) record_ptr;
 
@@ -1428,6 +1180,21 @@ mxd_dalsa_gev_camera_process_function( void *record_ptr,
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
+		case MXLV_DALSA_GEV_CAMERA_FEATURE_VALUE:
+			gev_status = GevGetFeatureValueAsString(
+					dalsa_gev_camera->camera_handle,
+					dalsa_gev_camera->feature_name,
+					&feature_type,
+					sizeof(dalsa_gev_camera->feature_value),
+					dalsa_gev_camera->feature_value );
+
+			if ( gev_status != GEVLIB_OK ) {
+				mx_status =
+					mxd_dalsa_gev_camera_api_error(
+						gev_status, fname,
+						"GevGetFeatureValueAsString()");
+			}
+			break;
 		default:
 			break;
 		}
