@@ -1,5 +1,5 @@
 /*
- * Name:    d_dalsa_gev_camera.cpp
+ * Name:    d_dalsa_gev_camera.c
  *
  * Purpose: MX video input driver for a DALSA GigE-Vision camera
  *          controlled via the Gev API.
@@ -22,8 +22,6 @@
 #define MXD_DALSA_GEV_CAMERA_DEBUG_MX_PARAMETERS	FALSE
 #define MXD_DALSA_GEV_CAMERA_DEBUG_REGISTER_READ	FALSE
 #define MXD_DALSA_GEV_CAMERA_DEBUG_REGISTER_WRITE	TRUE
-
-#define MXD_DALSA_GEV_CAMERA_ENABLE_DUMP_FEATURE_HIERARCHY    TRUE
 
 #include <stdio.h>
 
@@ -234,9 +232,6 @@ mxd_dalsa_gev_camera_api_error( short gev_status,
 
 /*---*/
 
-#if MXD_DALSA_GEV_CAMERA_ENABLE_DUMP_FEATURE_HIERARCHY
-
-#if 1
 static const char *type_names[] = {
 	"Value", "Base", "Integer", "Boolean", "Command", "Float", "String",
 	"Register", "Category", "Enumeration", "EnumEntry", "Port"
@@ -244,7 +239,6 @@ static const char *type_names[] = {
 
 static int num_type_names = 
 		sizeof( type_names ) / sizeof(type_names[0]);
-#endif
 
 static void
 dump_feature_hierarchy( const GenApi::CNodePtr &feature_ptr, int indent )
@@ -260,7 +254,6 @@ dump_feature_hierarchy( const GenApi::CNodePtr &feature_ptr, int indent )
 	}
 
 	GenApi::CCategoryPtr category_ptr( feature_ptr );
-#if 1
 
 	if ( category_ptr.IsValid() ) {
 		const char *category_name = static_cast<const char *>
@@ -295,10 +288,7 @@ dump_feature_hierarchy( const GenApi::CNodePtr &feature_ptr, int indent )
 			fprintf( stderr, "%s: Unknown\n", feature_name );
 		}
 	}
-#endif
 }
-
-#endif /* MXD_DALSA_GEV_CAMERA_ENABLE_DUMP_FEATURE_HIERARCHY */
 
 /*---*/
 
@@ -329,9 +319,7 @@ mxd_dalsa_gev_camera_show_features( MX_DALSA_GEV_CAMERA *dalsa_gev_camera )
 
 	GenApi::CNodePtr root_ptr = feature_node_map->_GetNode("Root");
 
-#if MXD_DALSA_GEV_CAMERA_ENABLE_DUMP_FEATURE_HIERARCHY
 	dump_feature_hierarchy( root_ptr, 1 );
-#endif /* MXD_DALSA_GEV_CAMERA_ENABLE_DUMP_FEATURE_HIERARCHY */
 
 	return MX_SUCCESSFUL_RESULT;
 }

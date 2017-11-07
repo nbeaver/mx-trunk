@@ -53,12 +53,12 @@ dalsa_gev.mxo: $(DALSA_GEV_OBJS)
 dalsa_gev.$(OBJ): dalsa_gev.c i_dalsa_gev.h d_dalsa_gev_camera.h
 	$(GCC) -c $(CFLAGS) dalsa_gev.c
 
-i_dalsa_gev.$(OBJ): i_dalsa_gev.c i_dalsa_gev.h
-	$(GPP) -c $(CFLAGS) i_dalsa_gev.c
+i_dalsa_gev.$(OBJ): i_dalsa_gev.cpp i_dalsa_gev.h
+	$(GPP) -c $(CFLAGS) i_dalsa_gev.cpp
 
-d_dalsa_gev_camera.$(OBJ): d_dalsa_gev_camera.c \
+d_dalsa_gev_camera.$(OBJ): d_dalsa_gev_camera.cpp \
 				d_dalsa_gev_camera.h i_dalsa_gev.h
-	$(GPP) -c $(CFLAGS) d_dalsa_gev_camera.c
+	$(GPP) -c $(CFLAGS) d_dalsa_gev_camera.cpp
 
 install: dalsa_gev.mxo
 	-mkdir $(MX_INSTALL_DIR)/lib/modules
