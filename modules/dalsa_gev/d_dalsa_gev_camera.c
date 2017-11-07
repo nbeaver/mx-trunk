@@ -763,7 +763,7 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 	GevBufferCyclingMode cycling_mode = Asynchronous;
 #endif
 
-#if 1
+#if 0
 	{
 	    if ( dalsa_gev_camera->frame_buffer_array == NULL ) {
 		MX_DEBUG(-2,("%s: frame_buffer_array = NULL", fname));
@@ -783,8 +783,6 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 	}
 #endif
 
-	MX_DEBUG(-2,("%s: MARKER 1", fname));
-
 	gev_status = GevInitImageTransfer( dalsa_gev_camera->camera_handle,
 					cycling_mode,
 					dalsa_gev_camera->num_frame_buffers,
@@ -794,8 +792,6 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 		return mxd_dalsa_gev_camera_api_error( gev_status, fname,
 						"GevInitImageTransfer()");
 	}
-
-	MX_DEBUG(-2,("%s: MARKER 2", fname));
 
 	/*---------------------------------------------------------------*/
 
