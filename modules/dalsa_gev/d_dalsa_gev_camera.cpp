@@ -19,7 +19,7 @@
 #define MXD_DALSA_GEV_CAMERA_DEBUG_ARM			TRUE
 #define MXD_DALSA_GEV_CAMERA_DEBUG_STOP			TRUE
 #define MXD_DALSA_GEV_CAMERA_DEBUG_GET_FRAME		TRUE
-#define MXD_DALSA_GEV_CAMERA_DEBUG_MX_PARAMETERS	FALSE
+#define MXD_DALSA_GEV_CAMERA_DEBUG_MX_PARAMETERS	TRUE
 #define MXD_DALSA_GEV_CAMERA_DEBUG_REGISTER_READ	FALSE
 #define MXD_DALSA_GEV_CAMERA_DEBUG_REGISTER_WRITE	TRUE
 
@@ -30,6 +30,8 @@
 #include "mx_bit.h"
 #include "mx_process.h"
 #include "mx_thread.h"
+#include "mx_array.h"
+#include "mx_atomic.h"
 #include "mx_image.h"
 #include "mx_video_input.h"
 #include "i_dalsa_gev.h"
@@ -326,6 +328,92 @@ mxd_dalsa_gev_camera_show_features( MX_DALSA_GEV_CAMERA *dalsa_gev_camera )
 
 /*---*/
 
+static mx_status_type
+mxd_dalsa_gev_camera_image_wait_thread_fn( MX_THREAD *thread, void *args )
+{
+	static const char fname[] = "mxd_dalsa_gev_camera_image_wait_thread()";
+
+	MX_RECORD *record;
+	MX_VIDEO_INPUT *vinput;
+	MX_DALSA_GEV_CAMERA *dalsa_gev_camera;
+	unsigned long sleep_ms;
+	mx_bool_type image_available;
+	mx_status_type mx_status;
+
+	short gev_status;
+	GEV_BUFFER_OBJECT *gev_buffer_object;
+
+	if ( thread == (MX_THREAD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_THREAD pointer passed was NULL." );
+	}
+	if ( args == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	record = (MX_RECORD *) args;
+
+	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name));
+
+	vinput = (MX_VIDEO_INPUT *) record->record_class_struct;
+
+	if ( vinput == (MX_VIDEO_INPUT *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_VIDEO_INPUT pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	dalsa_gev_camera = (MX_DALSA_GEV_CAMERA *) record->record_class_struct;
+
+	if ( dalsa_gev_camera == (MX_DALSA_GEV_CAMERA *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_DALSA_GEV_CAMERA pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	sleep_ms = 1000;		/* in milliseconds */
+
+	while (TRUE) {
+		image_available = FALSE;
+
+		gev_status = GevWaitForNextImage(
+				dalsa_gev_camera->camera_handle,
+				&gev_buffer_object, sleep_ms );
+
+		MX_DEBUG(-2,("%s: gev_status = %d", fname, gev_status));
+
+		switch( gev_status ) {
+		case GEVLIB_OK:
+			image_available = TRUE;
+			break;
+		case GEVLIB_ERROR_TIME_OUT:
+		case GEVLIB_ERROR_NULL_PTR:
+			image_available = FALSE;
+			break;
+		case GEVLIB_ERROR_INVALID_HANDLE:
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The handle for Dalsa Gev camera '%s' is invalid.",
+				record->name );
+			break;
+		default:
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Unrecognized Gevlib error code %d returned "
+			"for Dalsa Gev camera '%s'.",
+				gev_status, record->name );
+			break;
+		}
+
+		if ( image_available ) {
+			MX_DEBUG(-2,("%s: BOOYAH!", fname));
+		}
+
+		mx_status = mx_thread_check_for_stop_request( thread );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
@@ -407,6 +495,9 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 	MX_VIDEO_INPUT *vinput;
 	MX_DALSA_GEV_CAMERA *dalsa_gev_camera = NULL;
 	MX_DALSA_GEV *dalsa_gev = NULL;
+	long frame_buffer_datatype;
+	long dimension_array[2];
+	size_t element_size_array[2];
 
 	GEV_CAMERA_INFO *camera_object, *selected_camera_object;
 
@@ -621,135 +712,58 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 			return mx_status;
 	}
 
-	/* Get camera paraameters from the camera. */
+	/* Get camera parameters from the camera. */
 
-	GenApi::CIntegerPtr int_node = NULL;
-	GenApi::CEnumerationPtr enumeration = NULL;
-	uint32_t pixel_format_value;
-	char pixel_format_string[80];
-	int type, num_items;
+	/* Reading the framesize gets a variety of other parameters as well. */
 
-	int_node = feature_node_map->_GetNode("Width");
+	vinput->parameter_type = MXLV_VIN_FRAMESIZE;
 
-	vinput->framesize[0] = int_node->GetValue();
+	mx_status = mxd_dalsa_gev_camera_get_parameter( vinput );
 
-	int_node = feature_node_map->_GetNode("Height");
-
-	vinput->framesize[1] = int_node->GetValue();
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	vinput->maximum_framesize[0] = vinput->framesize[0];
 	vinput->maximum_framesize[1] = vinput->framesize[1];
 
-	enumeration = feature_node_map->_GetNode("PixelFormat");
-
-	gev_status = GevGetFeatureValueAsString(
-			dalsa_gev_camera->camera_handle, "PixelFormat",
-			&type, sizeof(pixel_format_string),
-			pixel_format_string );
-
-	if ( gev_status != GEVLIB_OK ) {
-		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-			"The attempt to get the pixel format string for "
-			"camera '%s' failed with error code %d.",
-			record->name, gev_status );
-	}
-
-	if ( strncmp( pixel_format_string, "Mono", 4 ) == 0 ) {
-		num_items = sscanf( pixel_format_string,
-				"Mono%ld", &(vinput->bits_per_pixel) );
-
-		if ( num_items != 1 ) {
-			return mx_error( MXE_DEVICE_IO_ERROR, fname,
-			"Unable to find the bits per pixel in the returned "
-			"pixel format string '%s' for camera '%s'.",
-			pixel_format_string, record->name );
-		}
-	} else {
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"Pixel format '%s' is not supported for camera '%s'.",
-		pixel_format_string, record->name );
-	}
-
-	if ( vinput->bits_per_pixel <= 8 ) {
-		vinput->image_format = MXT_IMAGE_FORMAT_GREY8;
-		vinput->bytes_per_pixel = 1.0;
-	} else
-	if ( vinput->bits_per_pixel <= 16 ) {
-		vinput->image_format = MXT_IMAGE_FORMAT_GREY16;
-		vinput->bytes_per_pixel = 2.0;
-	} else
-	if ( vinput->bits_per_pixel <= 32 ) {
-		vinput->image_format = MXT_IMAGE_FORMAT_GREY32;
-		vinput->bytes_per_pixel = 4.0;
-	} else {
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"The pixel format '%s' is not supported for camera '%s'.  "
-		"The largest pixel bit depth supported is 32 bits.",
-			pixel_format_string, record->name );
-	}
-
-	if ( vinput->image_format != MXT_IMAGE_FORMAT_GREY16 ) {
-		char image_format_name[80];
-
-		mx_image_get_image_format_name_from_type( vinput->image_format,
-				image_format_name, sizeof(image_format_name) );
-
-		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"Image format '%s' is not yet implemented for camera '%s'.",
-		image_format_name, record->name );
-	}
-
-	pixel_format_value = enumeration->GetIntValue();
-
-	vinput->bytes_per_pixel = GetPixelSizeInBytes( pixel_format_value );
-
 	/* Allocate memory for the image buffers. */
 
-	dalsa_gev_camera->frame_buffer_size = 
-		mx_round( vinput->bytes_per_pixel
-			* vinput->framesize[0]
-			* vinput->framesize[1] );
+	switch( vinput->image_format ) {
+	case MXT_IMAGE_FORMAT_GREY8:
+		frame_buffer_datatype = MXFT_UCHAR;
+		break;
+	case MXT_IMAGE_FORMAT_GREY16:
+		frame_buffer_datatype = MXFT_USHORT;
+		break;
+	case MXT_IMAGE_FORMAT_GREY32:
+		frame_buffer_datatype = MXFT_ULONG;
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Image format '%s' is not supported for camera '%s'.",
+			vinput->image_format_name, record->name );
+		break;
+	}
+
+	dimension_array[0] = dalsa_gev_camera->num_frame_buffers;
+	dimension_array[1] = vinput->framesize[0] * vinput->framesize[1];
+
+	element_size_array[0] = mx_round( vinput->bytes_per_pixel );
+	element_size_array[1] = sizeof( void * );
 	
 	dalsa_gev_camera->frame_buffer_array = (unsigned char **)
-		calloc( dalsa_gev_camera->num_frame_buffers,
-			sizeof(unsigned char *) );
+		mx_allocate_array( frame_buffer_datatype,
+				2, dimension_array, element_size_array );
 
 	if ( dalsa_gev_camera->frame_buffer_array == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Ran out of memory trying to allocate an %lu element array "
-		"of frame buffer pointers for camera '%s'.",
-			dalsa_gev_camera->num_frame_buffers, record->name );
+		"Ran out of memory trying to allocate a %lu element array "
+		"of frame buffers for camera '%s'.",
+			dalsa_gev_camera->num_frame_buffers,
+			record->name );
 	}
-
-	for ( i = 0; i < dalsa_gev_camera->num_frame_buffers; i++ ) {
-
-		dalsa_gev_camera->frame_buffer_array[i] = (unsigned char *)
-			calloc( dalsa_gev_camera->frame_buffer_size,
-					sizeof(char) );
-
-		if ( dalsa_gev_camera->frame_buffer_array[i] == NULL ) {
-			return mx_error( MXE_OUT_OF_MEMORY, fname,
-			"Ran out of memory trying to allocate frame buffer %lu "
-			"for camera '%s'.", i, record->name );
-		}
-	}
-
-
-	MX_DEBUG(-2,
-	("%s: framesize = (%lu,%lu), pixel_format_string = '%s' (%#x)",
-			fname, vinput->framesize[0], vinput->framesize[1],
-			pixel_format_string,
-			(unsigned int) pixel_format_value));
-	MX_DEBUG(-2,("%s: bytes_per_pixel = %f",
-			fname, vinput->bytes_per_pixel));
 
 	/*---------------------------------------------------------------*/
-
-#if 0
-	GevBufferCyclingMode cycling_mode = SynchronousNextEmpty;
-#else
-	GevBufferCyclingMode cycling_mode = Asynchronous;
-#endif
 
 #if 0
 	{
@@ -770,9 +784,10 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 	    }
 	}
 #endif
+	/* Enable the GevAPI frame buffer array. */
 
 	gev_status = GevInitImageTransfer( dalsa_gev_camera->camera_handle,
-					cycling_mode,
+					Asynchronous,
 					dalsa_gev_camera->num_frame_buffers,
 					dalsa_gev_camera->frame_buffer_array );
 
@@ -780,6 +795,20 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 		return mxd_dalsa_gev_camera_api_error( gev_status, fname,
 						"GevInitImageTransfer()");
 	}
+
+	/* Initialize the frame counters. */
+
+	mx_atomic_write32( &(dalsa_gev_camera->total_num_frames_at_start), 0 );
+	mx_atomic_write32( &(dalsa_gev_camera->total_num_frames), 0 );
+
+	/* Create a thread to manage the reading of images from Dalsa Gev. */
+
+	mx_status = mx_thread_create( &(dalsa_gev_camera->image_wait_thread),
+				mxd_dalsa_gev_camera_image_wait_thread_fn,
+				record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/*---------------------------------------------------------------*/
 
@@ -864,6 +893,8 @@ mxd_dalsa_gev_camera_trigger( MX_VIDEO_INPUT *vinput )
 	static const char fname[] = "mxd_dalsa_gev_camera_trigger()";
 
 	MX_DALSA_GEV_CAMERA *dalsa_gev_camera = NULL;
+	UINT32 num_frames_to_acquire;
+	GEV_STATUS gev_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_dalsa_gev_camera_get_pointers( vinput,
@@ -871,6 +902,15 @@ mxd_dalsa_gev_camera_trigger( MX_VIDEO_INPUT *vinput )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Currently we set the camera to take only one frame. */
+
+	num_frames_to_acquire = 1;
+
+	gev_status = GevStartImageTransfer( dalsa_gev_camera->camera_handle,
+						num_frames_to_acquire );
+
+	MXW_UNUSED( gev_status );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -881,6 +921,7 @@ mxd_dalsa_gev_camera_stop( MX_VIDEO_INPUT *vinput )
 	static const char fname[] = "mxd_dalsa_gev_camera_stop()";
 
 	MX_DALSA_GEV_CAMERA *dalsa_gev_camera = NULL;
+	GEV_STATUS gev_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_dalsa_gev_camera_get_pointers( vinput,
@@ -893,6 +934,13 @@ mxd_dalsa_gev_camera_stop( MX_VIDEO_INPUT *vinput )
 	MX_DEBUG(-2,("%s invoked for video input '%s'.",
 		fname, vinput->record->name ));
 #endif
+
+	gev_status = GevStopImageTransfer( dalsa_gev_camera->camera_handle );
+
+	if ( gev_status != GEVLIB_OK ) {
+		return mxd_dalsa_gev_camera_api_error( gev_status,
+					fname, "GevStopImageTransfer()");
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -903,6 +951,7 @@ mxd_dalsa_gev_camera_abort( MX_VIDEO_INPUT *vinput )
 	static const char fname[] = "mxd_dalsa_gev_camera_abort()";
 
 	MX_DALSA_GEV_CAMERA *dalsa_gev_camera = NULL;
+	GEV_STATUS gev_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_dalsa_gev_camera_get_pointers( vinput,
@@ -915,6 +964,13 @@ mxd_dalsa_gev_camera_abort( MX_VIDEO_INPUT *vinput )
 	MX_DEBUG(-2,("%s invoked for video input '%s'.",
 		fname, vinput->record->name ));
 #endif
+
+	gev_status = GevAbortImageTransfer( dalsa_gev_camera->camera_handle );
+
+	if ( gev_status != GEVLIB_OK ) {
+		return mxd_dalsa_gev_camera_api_error( gev_status,
+					fname, "GevAbortImageTransfer()");
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -926,6 +982,7 @@ mxd_dalsa_gev_camera_get_extended_status( MX_VIDEO_INPUT *vinput )
 		"mxd_dalsa_gev_camera_get_extended_status()";
 
 	MX_DALSA_GEV_CAMERA *dalsa_gev_camera = NULL;
+	int32_t total_num_frames, total_num_frames_at_start;
 	mx_status_type mx_status;
 
 	mx_status = mxd_dalsa_gev_camera_get_pointers( vinput,
@@ -935,6 +992,17 @@ mxd_dalsa_gev_camera_get_extended_status( MX_VIDEO_INPUT *vinput )
 		return mx_status;
 
 	vinput->status = 0;
+
+	total_num_frames = 
+		mx_atomic_read32( &(dalsa_gev_camera->total_num_frames) );
+
+	total_num_frames_at_start = 
+	    mx_atomic_read32( &(dalsa_gev_camera->total_num_frames_at_start));
+
+	vinput->total_num_frames = total_num_frames;
+
+	vinput->last_frame_number =
+		total_num_frames - total_num_frames_at_start - 1;
 
 	if ( vinput->status & MXSF_VIN_IS_BUSY ) {
 		vinput->busy = TRUE;
@@ -975,6 +1043,10 @@ mxd_dalsa_gev_camera_get_parameter( MX_VIDEO_INPUT *vinput )
 			"mxd_dalsa_gev_camera_get_parameter()";
 
 	MX_DALSA_GEV_CAMERA *dalsa_gev_camera = NULL;
+	UINT32 uint32_width, uint32_height;
+	UINT32 uint32_x_offset, uint32_y_offset;
+	UINT32 uint32_image_format;
+	GEV_STATUS gev_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_dalsa_gev_camera_get_pointers( vinput,
@@ -991,25 +1063,88 @@ mxd_dalsa_gev_camera_get_parameter( MX_VIDEO_INPUT *vinput )
 #endif
 
 	switch( vinput->parameter_type ) {
+
+	case MXLV_VIN_BITS_PER_PIXEL:
+	case MXLV_VIN_BYTES_PER_FRAME:
+	case MXLV_VIN_BYTES_PER_PIXEL:
+	case MXLV_VIN_FORMAT:
+	case MXLV_VIN_FORMAT_NAME:
 	case MXLV_VIN_FRAMESIZE:
+		gev_status = GevGetImageParameters(
+				dalsa_gev_camera->camera_handle,
+				&uint32_width, &uint32_height,
+				&uint32_x_offset, &uint32_y_offset,
+				&uint32_image_format );
+
+		if ( gev_status != GEVLIB_OK ) {
+			return mxd_dalsa_gev_camera_api_error( gev_status,
+					fname, "GevGetImageParameters()");
+		}
+
+		vinput->framesize[0] = uint32_width;
+		vinput->framesize[1] = uint32_height;
+
+		switch( uint32_image_format ) {
+		case fmtMono8:
+			vinput->bits_per_pixel = 8;
+			break;
+		case fmtMono10:
+			vinput->bits_per_pixel = 10;
+			break;
+		case fmtMono12:
+			vinput->bits_per_pixel = 12;
+			break;
+		case fmtMono14:
+			vinput->bits_per_pixel = 14;
+			break;
+		case fmtMono16:
+			vinput->bits_per_pixel = 16;
+			break;
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Image format %#lx is not supported for camera '%s'.",
+				(unsigned long) uint32_image_format,
+				vinput->record->name );
+			break;
+		}
+
+		if ( vinput->bits_per_pixel <= 8 ) {
+			vinput->bytes_per_pixel = 1;
+			vinput->image_format = MXT_IMAGE_FORMAT_GREY8;
+		} else
+		if ( vinput->bits_per_pixel <= 16 ) {
+			vinput->bytes_per_pixel = 2;
+			vinput->image_format = MXT_IMAGE_FORMAT_GREY16;
+		} else
+		if ( vinput->bits_per_pixel <= 32 ) {
+			vinput->bytes_per_pixel = 4;
+			vinput->image_format = MXT_IMAGE_FORMAT_GREY32;
+		} else {
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"%lu bits per pixel is not supported for camera '%s'.",
+				vinput->bits_per_pixel, vinput->record->name );
+		}
+
+		mx_status = mx_image_get_image_format_name_from_type(
+				vinput->image_format, vinput->image_format_name,
+				MXU_IMAGE_FORMAT_NAME_LENGTH );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		vinput->bytes_per_frame = vinput->framesize[0]
+					* vinput->framesize[1]
+					* vinput->bytes_per_pixel;
 
 #if MXD_DALSA_GEV_CAMERA_DEBUG_MX_PARAMETERS
 		MX_DEBUG(-2,("%s: camera '%s' framesize = (%ld,%ld).",
 			fname, dalsa_gev_camera->record->name,
 			vinput->framesize[0], vinput->framesize[1]));
-#endif
-
-		break;
-
-	case MXLV_VIN_FORMAT:
-	case MXLV_VIN_FORMAT_NAME:
-		mx_status = mx_image_get_image_format_name_from_type(
-				vinput->image_format, vinput->image_format_name,
-				MXU_IMAGE_FORMAT_NAME_LENGTH );
-
-#if MXD_DALSA_GEV_CAMERA_DEBUG_MX_PARAMETERS
-		MX_DEBUG(-2,("%s: video format = %ld, format name = '%s'",
-		    fname, vinput->image_format, vinput->image_format_name));
+		MX_DEBUG(-2,("%s: bits_per_pixel = %lu, bytes_per_pixel = %f",
+		    fname, vinput->bits_per_pixel, vinput->bytes_per_pixel));
+		MX_DEBUG(-2,("%s: image format = '%s', bytes_per_frame = %lu",
+			fname, vinput->image_format_name,
+			vinput->bytes_per_frame ));
 #endif
 		break;
 
@@ -1036,11 +1171,6 @@ mxd_dalsa_gev_camera_get_parameter( MX_VIDEO_INPUT *vinput )
 
 	case MXLV_VIN_NUM_SEQUENCE_PARAMETERS:
 	case MXLV_VIN_SEQUENCE_PARAMETER_ARRAY:
-		break;
-
-	case MXLV_VIN_BYTES_PER_PIXEL:
-	case MXLV_VIN_BITS_PER_PIXEL:
-	case MXLV_VIN_BYTES_PER_FRAME:
 		break;
 
 	default:

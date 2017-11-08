@@ -41,7 +41,6 @@ typedef struct {
 	unsigned long dalsa_gev_camera_flags;
 	char xml_filename[MXU_FILENAME_LENGTH+1];
 
-	unsigned long frame_buffer_size;
 	unsigned char **frame_buffer_array;
 
 	long camera_index;
@@ -49,10 +48,9 @@ typedef struct {
 	GEV_CAMERA_HANDLE camera_handle;
 	void *feature_node_map;
 
-	MX_THREAD *next_image_thread;
-
-	int32_t dalsa_total_num_frames;
-	int32_t dalsa_last_frame_number;
+	MX_THREAD *image_wait_thread;
+	int32_t total_num_frames_at_start;
+	int32_t total_num_frames;
 
 	mx_bool_type show_features;
 	double gain;
@@ -95,10 +93,6 @@ typedef struct {
   {-1, -1, "xml_filename", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DALSA_GEV_CAMERA, xml_filename), \
 	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION }, \
-  \
-  {-1, -1, "frame_buffer_size", MXFT_ULONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_DALSA_GEV_CAMERA, frame_buffer_size), \
-	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_DALSA_GEV_CAMERA_SHOW_FEATURES, -1, "show_features", \
 						MXFT_BOOL, NULL, 0, {0}, \
