@@ -331,7 +331,8 @@ mxd_dalsa_gev_camera_show_features( MX_DALSA_GEV_CAMERA *dalsa_gev_camera )
 static mx_status_type
 mxd_dalsa_gev_camera_image_wait_thread_fn( MX_THREAD *thread, void *args )
 {
-	static const char fname[] = "mxd_dalsa_gev_camera_image_wait_thread()";
+	static const char fname[] =
+		"mxd_dalsa_gev_camera_image_wait_thread_fn()";
 
 	MX_RECORD *record;
 	MX_VIDEO_INPUT *vinput;
@@ -371,6 +372,9 @@ mxd_dalsa_gev_camera_image_wait_thread_fn( MX_THREAD *thread, void *args )
 		"The MX_DALSA_GEV_CAMERA pointer for record '%s' is NULL.",
 			record->name );
 	}
+
+	MX_DEBUG(-2,("%s: dalsa_gev_camera->camera_handle = %p",
+			fname, dalsa_gev_camera->camera_handle));
 
 	sleep_ms = 1000;		/* in milliseconds */
 
@@ -810,6 +814,9 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	MX_DEBUG(-2,("%s: MARKER X: camera_handle = %p",
+		fname, dalsa_gev_camera->camera_handle));
+
 	/*---------------------------------------------------------------*/
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1137,9 +1144,11 @@ mxd_dalsa_gev_camera_get_parameter( MX_VIDEO_INPUT *vinput )
 					* vinput->bytes_per_pixel;
 
 #if MXD_DALSA_GEV_CAMERA_DEBUG_MX_PARAMETERS
-		MX_DEBUG(-2,("%s: camera '%s' framesize = (%ld,%ld).",
-			fname, dalsa_gev_camera->record->name,
-			vinput->framesize[0], vinput->framesize[1]));
+		MX_DEBUG(-2,("%s: camera '%s' handle = %p",
+			fname, vinput->record->name,
+			dalsa_gev_camera->camera_handle));
+		MX_DEBUG(-2,("%s: framesize = (%ld,%ld).",
+			fname, vinput->framesize[0], vinput->framesize[1]));
 		MX_DEBUG(-2,("%s: bits_per_pixel = %lu, bytes_per_pixel = %f",
 		    fname, vinput->bits_per_pixel, vinput->bytes_per_pixel));
 		MX_DEBUG(-2,("%s: image format = '%s', bytes_per_frame = %lu",

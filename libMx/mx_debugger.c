@@ -17,6 +17,7 @@
 
 #define DEBUG_DEBUGGER			FALSE
 
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -24,7 +25,7 @@
 #include "mx_osdef.h"
 
 #if defined( OS_WIN32 )
-#include <windows.h>
+#  include <windows.h>
 #endif
 
 #include "mx_util.h"
@@ -915,21 +916,9 @@ typedef struct {
 
 /*---*/
 
-#if 0
-
-/* FIXME: This can only be implemented as an external process, since _ALL_
+/* NOTE: This can only be implemented as an external process, since _ALL_
  * threads in the process are stopped when WaitForDebugEvent() returns.
  */
-
-#endif
-
-static mx_status_type
-mxp_win32_watchpoint_debugger( MX_THREAD *thread, void *args )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-/*---*/
 
 static mx_status_type
 mxp_win32_set_watchpoint_spectator( MX_THREAD *thread, void *args )
@@ -1232,24 +1221,6 @@ mx_set_watchpoint( MX_WATCHPOINT *watchpoint,
 		return FALSE;
 	}
 
-#if 0
-	/* We need an additional thread to watch for debug events,
-	 * since the data_thread cannot do that.
-	 */
-
-	/* FIXME: No, it has to be an external process, since the function
-	 * WaitForDebugEvent() suspends _ALL_ threads in the process when
-	 * it receives a debug event.
-	 */
-
-	mx_status = mx_thread_create( &debugger_thread,
-					mxp_win32_watchpoint_debugger,
-					watchpoint );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return FALSE;
-#endif
-
 	/* SetThreadContext() only works correctly if the thread it
 	 * is applied to is suspended at the time.  In order to obey
 	 * this restriction, we create a 'spectator thread' which will
@@ -1276,12 +1247,239 @@ mx_set_watchpoint( MX_WATCHPOINT *watchpoint,
 	return TRUE;
 }
 
-#elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_ANDROID) \
+#elif defined(OS_LINUX)
+
+#include <sys/types.h>
+#include <sys/ptrace.h>
+#include <sys/wait.h>
+#include <sys/user.h>
+
+/* The following implementation is inspired by
+ *
+ *   https://stackoverflow.com/questions/8941711/is-is-possible-to-set-a-gdb-watchpoint-programmatically
+ *
+ * and
+ *
+ *   https://stackoverflow.com/questions/40818920/how-to-set-the-value-of-dr7-register-in-order-to-create-a-hardware-breakpoint-on
+ *
+ */ 
+
+typedef struct {
+	unsigned int dr0_local:      1;
+	unsigned int dr0_global:     1;
+	unsigned int dr1_local:      1;
+	unsigned int dr1_global:     1;
+	unsigned int dr2_local:      1;
+	unsigned int dr2_global:     1;
+	unsigned int dr3_local:      1;
+	unsigned int dr3_global:     1;
+	unsigned int le:             1;
+	unsigned int ge:             1;
+	unsigned int reserved_10:    1;
+	unsigned int rtm:            1;
+	unsigned int reserved_12:    1;
+	unsigned int gd:             1;
+	unsigned int reserved_14_15: 2;
+	unsigned int dr0_break:      2;
+	unsigned int dr0_len:        2;
+	unsigned int dr1_break:      2;
+	unsigned int dr1_len:        2;
+	unsigned int dr2_break:      2;
+	unsigned int dr2_len:        2;
+	unsigned int dr3_break:      2;
+	unsigned int dr3_len:        2;
+} dr7_t;
+
+/*------*/
+
+typedef struct {
+	struct sigaction saved_sigtrap_action;
+} MX_LINUX_WATCHPOINT_PRIVATE;
+
+static void
+mxp_sigtrap_handler( int signum, siginfo_t *info, void *ucontext )
+{
+	static const char fname[] = "mxp_sigtrap_handler()";
+
+	if ( signum != SIGTRAP ) {
+		fprintf( stderr, "ERROR: %s called for signal %d\n",
+			fname, signum );
+		return;
+	}
+
+	fprintf( stderr, "%s called. info = %p\n", fname, info );
+
+	if ( info == NULL ) {
+		fprintf( stderr,
+			"%s: si_code = %d, si_addr = %p\n",
+			fname, info->si_code, info->si_addr );
+	}
+
+	return;
+}
+
+MX_EXPORT int
+mx_set_watchpoint( MX_WATCHPOINT *watchpoint,
+		void *value_pointer,
+		long value_datatype,
+		unsigned long flags,
+		void *callback_function( MX_WATCHPOINT *, void * ),
+		void *callback_arguments )
+{
+	static const char fname[] = "mx_set_watchpoint()";
+
+	MX_LINUX_WATCHPOINT_PRIVATE *linux_private = NULL;
+	pid_t child_process;
+	pid_t parent_process;
+	pid_t waitpid_status;
+	int waitpid_child_status;
+	int child_exit_status;
+	struct sigaction sigtrap_action;
+
+	if ( watchpoint == (MX_WATCHPOINT *) NULL ) {
+		return FALSE;
+	}
+
+	/* FIXME: If value_pointer is NULL, then this should be a request
+	 * to clear the watchpoint.
+	 */
+
+	if ( value_pointer == NULL ) {
+		MX_DEBUG(-2,("%s: value_pointer == NULL", fname));
+	}
+
+	watchpoint->value_pointer = value_pointer;
+	watchpoint->value_datatype = value_datatype;
+	watchpoint->flags = flags;
+	watchpoint->callback_function = callback_function;
+	watchpoint->callback_arguments = callback_arguments;
+
+	linux_private = (MX_LINUX_WATCHPOINT_PRIVATE *)
+			calloc( 1, sizeof(MX_LINUX_WATCHPOINT_PRIVATE) );
+
+	if ( linux_private == (MX_LINUX_WATCHPOINT_PRIVATE *) NULL ) {
+		(void) mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate "
+		"an MX_LINUX_WATCHPOINT_PRIVATE structure." );
+
+		return FALSE;
+	}
+
+	watchpoint->watchpoint_private = linux_private;
+
+	/* Set up our custom SIGTRAP handler. */
+
+	sigaction( SIGTRAP, NULL, &sigtrap_action );
+
+	linux_private->saved_sigtrap_action = sigtrap_action;
+
+	sigtrap_action.sa_sigaction = mxp_sigtrap_handler;
+	sigtrap_action.sa_flags = SA_SIGINFO | SA_RESTART | SA_NODEFER;
+
+	sigaction( SIGTRAP, &sigtrap_action, NULL );
+
+	/* Now fork off a child process that runs ptrace() on the parent. */
+
+	parent_process = getpid();
+
+	child_process = fork();
+
+	if ( child_process == 0 ) {
+		/* We are in the child. */
+
+		dr7_t dr7 = {0};
+
+		int ptrace_status;
+		int return_value = EXIT_SUCCESS;
+
+		ptrace_status = ptrace( PTRACE_ATTACH, parent_process,
+						NULL, NULL );
+
+		if ( ptrace_status != 0 ) {
+			exit( EXIT_FAILURE );
+		}
+
+		/* We must wait a short time to make sure that the parent
+		 * process has reached the waitpid() call.
+		 */
+
+		sleep(1);
+
+
+		if ( ptrace_status != 0 ) {
+			return_value = EXIT_FAILURE;
+		}
+
+		ptrace_status = ptrace( PTRACE_POKEUSER, parent_process,
+					offsetof( struct user, u_debugreg[0] ),
+					value_pointer );
+
+		if ( ptrace_status != 0 ) {
+			return_value = EXIT_FAILURE;
+		}
+
+		dr7.dr0_local = 1;
+		dr7.dr0_break = 3;
+		dr7.dr0_len   = 3;
+
+		ptrace_status = ptrace( PTRACE_POKEUSER, parent_process,
+					offsetof( struct user, u_debugreg[7] ),
+					dr7 );
+
+		if ( ptrace_status != 0 ) {
+			return_value = EXIT_FAILURE;
+		}
+
+		ptrace_status = ptrace( PTRACE_DETACH, parent_process,
+						NULL, NULL );
+
+		if ( ptrace_status != 0 ) {
+			return_value = EXIT_FAILURE;
+		}
+
+		exit( return_value );
+	}
+
+	/* We are in the parent process and must wait for the child to finish.*/
+
+	waitpid_status = waitpid( child_process, &waitpid_child_status, 0 );
+
+	if ( waitpid_status < 0 ) {
+		fprintf( stderr, "Error in %s: waitpid() returned with %d\n",
+			fname, waitpid_status );
+		return TRUE;
+	}
+
+	if ( WIFEXITED( waitpid_child_status ) == 0 ) {
+		fprintf( stderr,
+		"Error in %s: child process %d returned abnormally.\n",
+			fname, child_process );
+		return TRUE;
+	}
+
+	child_exit_status = WEXITSTATUS( waitpid_child_status );
+
+	fprintf( stderr, "%s child process %d returned with status = %d\n",
+		fname, child_process, child_exit_status );
+
+	return FALSE;
+}
+
+MX_EXPORT int
+mx_clear_watchpoint( MX_WATCHPOINT *watchpoint ) {
+	int result;
+
+	result = mx_set_watchpoint( watchpoint, NULL, 0, 0, NULL, NULL );
+
+	return result;
+}
+
+#elif defined(OS_MACOSX) || defined(OS_ANDROID) \
 	|| defined(OS_CYGWIN) || defined(OS_SOLARIS) || defined(OS_BSD) \
 	|| defined(OS_MINIX) || defined(OS_RTEMS) || defined(OS_VXWORKS) \
 	|| defined(OS_HURD) || defined(OS_QNX)
 
-/* FIXME: Implement real watchpoints for Linux at least. */
+/* FIXME: Implement real watchpoints for these build targets. */
 
 MX_EXPORT int
 mx_set_watchpoint( MX_WATCHPOINT *watchpoint,
