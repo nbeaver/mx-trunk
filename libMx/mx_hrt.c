@@ -29,7 +29,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002-2004, 2006-2007, 2009-2012, 2014-2016
+ * Copyright 2002-2004, 2006-2007, 2009-2012, 2014-2017
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -794,7 +794,7 @@ mx_high_resolution_time( void )
 
 /*--------------------------------------------------------------------------*/
 
-#if defined(OS_LINUX) || defined(OS_CYGWIN)
+#if defined(OS_LINUX) || defined(OS_CYGWIN) || defined(OS_MINIX)
 
 /******* GCC on Linux or Cygwin using /proc/cpuinfo *******/
 
