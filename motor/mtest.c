@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2009-2010, 2012-2013, 2015-2016 Illinois Institute of Technology
+ * Copyright 2009-2010, 2012-2013, 2015-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -30,6 +30,8 @@ motor_test_fn( int argc, char *argv[] )
 {
 	int max_fds, num_open_fds;
 
+	MX_WATCHPOINT *watchpoint = NULL;
+	long watch_test;
 	static MX_FILE_MONITOR *monitor = NULL;
 	static char monitor_filename[MXU_FILENAME_LENGTH+1];
 	unsigned long monitor_access_type = 0;
@@ -50,6 +52,37 @@ motor_test_fn( int argc, char *argv[] )
 
 			MXW_UNUSED( k );
 			
+			return SUCCESS;
+		} else
+		if ( strcmp( argv[2], "watch" ) == 0 ) {
+			mx_info( "Beginning watchpoint test." );
+
+			watch_test = 42;
+
+			mx_info( "&watch_test = %p, (watch_test value = %ld)",
+				&watch_test, watch_test );
+
+			mx_info( "Setting up watchpoint." );
+
+			mx_set_watchpoint( &watchpoint,
+				&watch_test, MXFT_LONG, 0, NULL, NULL );
+
+			mx_info( "Watchpoint set up.  Now waiting to test it.");
+
+			mx_msleep(2000);
+
+			mx_info( "Testing watchpoint." );
+
+			watch_test = 39;	/* Should cause SIGTRAP. */
+
+			/* If we get here, shut down the watchpoint. */
+
+			mx_info( "Shutting down watchpoint." );
+
+			mx_clear_watchpoint( watchpoint );
+
+			mx_info( "Watchpoint test complete." );
+
 			return SUCCESS;
 		} else
 		if ( strcmp( argv[2], "num_open_fds" ) == 0 ) {

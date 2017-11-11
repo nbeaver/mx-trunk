@@ -527,7 +527,7 @@ typedef struct mx_watchpoint_type{
 	unsigned char old_value[8];
 } MX_WATCHPOINT;
 
-MX_API int mx_set_watchpoint( MX_WATCHPOINT *watchpoint,
+MX_API int mx_set_watchpoint( MX_WATCHPOINT **watchpoint,
 			void *value_pointer,
 			long value_datatype,
 			unsigned long flags,

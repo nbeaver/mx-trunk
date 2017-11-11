@@ -1172,7 +1172,7 @@ mxp_win32_set_watchpoint_spectator( MX_THREAD *thread, void *args )
 /*---*/
 
 MX_EXPORT int
-mx_set_watchpoint( MX_WATCHPOINT *watchpoint,
+mx_set_watchpoint( MX_WATCHPOINT **watchpoint_ptr,
 		void *value_pointer,
 		long value_datatype,
 		unsigned long flags,
@@ -1181,19 +1181,36 @@ mx_set_watchpoint( MX_WATCHPOINT *watchpoint,
 {
 	static const char fname[] = "mx_set_watchpoint()";
 
+	MX_WATCHPOINT *watchpoint;
 	MX_THREAD *spectator_thread = NULL;
-#if 0
-	MX_THREAD *debugger_thread = NULL;
-#endif
 	MX_WIN32_WATCHPOINT_PRIVATE *win32_private = NULL;
 	double timeout_seconds;
 	mx_status_type mx_status; 
 
-	if ( watchpoint == (MX_WATCHPOINT *) NULL ) {
+	if ( watchpoint_ptr == (MX_WATCHPOINT **) NULL ) {
 		return FALSE;
 	}
 	if ( value_pointer == NULL ) {
 		return FALSE;
+	}
+
+	/* Create a watchpoint if one does not yet exist. */
+
+	if ( *watchpoint_ptr == (MX_WATCHPOINT *) NULL ) {
+		watchpoint = (MX_WATCHPOINT *)
+				calloc( 1, sizeof(MX_WATCHPOINT) );
+
+		if ( watchpoint == (MX_WATCHPOINT *) NULL ) {
+			(void) mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate "
+			"an MX_WATCHPOINT structure." );
+
+			return FALSE;
+		}
+
+		*watchpoint_ptr = watchpoint;
+	} else {
+		watchpoint = *watchpoint_ptr;
 	}
 
 	watchpoint->value_pointer = value_pointer;
@@ -1297,9 +1314,9 @@ typedef struct {
 } MX_LINUX_WATCHPOINT_PRIVATE;
 
 static void
-mxp_sigtrap_handler( int signum, siginfo_t *info, void *ucontext )
+mxp_default_watchpoint_handler( int signum, siginfo_t *info, void *ucontext )
 {
-	static const char fname[] = "mxp_sigtrap_handler()";
+	static const char fname[] = "mxp_default_watchpoint_handler()";
 
 	if ( signum != SIGTRAP ) {
 		fprintf( stderr, "ERROR: %s called for signal %d\n",
@@ -1309,17 +1326,24 @@ mxp_sigtrap_handler( int signum, siginfo_t *info, void *ucontext )
 
 	fprintf( stderr, "%s called. info = %p\n", fname, info );
 
-	if ( info == NULL ) {
+	if ( info != NULL ) {
 		fprintf( stderr,
 			"%s: si_code = %d, si_addr = %p\n",
 			fname, info->si_code, info->si_addr );
+
+		fprintf( stderr,
+		"\nIf present, try 'addr2line -f -e <binary or so name> %p\n",
+			info->si_addr );
 	}
+
+	mx_stack_traceback();
+
 
 	return;
 }
 
 MX_EXPORT int
-mx_set_watchpoint( MX_WATCHPOINT *watchpoint,
+mx_set_watchpoint( MX_WATCHPOINT **watchpoint_ptr,
 		void *value_pointer,
 		long value_datatype,
 		unsigned long flags,
@@ -1328,6 +1352,7 @@ mx_set_watchpoint( MX_WATCHPOINT *watchpoint,
 {
 	static const char fname[] = "mx_set_watchpoint()";
 
+	MX_WATCHPOINT *watchpoint = NULL;
 	MX_LINUX_WATCHPOINT_PRIVATE *linux_private = NULL;
 	pid_t child_process;
 	pid_t parent_process;
@@ -1336,7 +1361,7 @@ mx_set_watchpoint( MX_WATCHPOINT *watchpoint,
 	int child_exit_status;
 	struct sigaction sigtrap_action;
 
-	if ( watchpoint == (MX_WATCHPOINT *) NULL ) {
+	if ( watchpoint_ptr == (MX_WATCHPOINT **) NULL ) {
 		return FALSE;
 	}
 
@@ -1344,8 +1369,25 @@ mx_set_watchpoint( MX_WATCHPOINT *watchpoint,
 	 * to clear the watchpoint.
 	 */
 
-	if ( value_pointer == NULL ) {
-		MX_DEBUG(-2,("%s: value_pointer == NULL", fname));
+	MX_DEBUG(-2,("%s: value_pointer == %p", fname, value_pointer));
+
+	/* Create a watchpoint if one does not yet exist. */
+
+	if ( *watchpoint_ptr == (MX_WATCHPOINT *) NULL ) {
+		watchpoint = (MX_WATCHPOINT *)
+				calloc( 1, sizeof(MX_WATCHPOINT) );
+
+		if ( watchpoint == (MX_WATCHPOINT *) NULL ) {
+			(void) mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate "
+			"an MX_WATCHPOINT structure." );
+
+			return FALSE;
+		}
+
+		*watchpoint_ptr = watchpoint;
+	} else {
+		watchpoint = *watchpoint_ptr;
 	}
 
 	watchpoint->value_pointer = value_pointer;
@@ -1373,7 +1415,7 @@ mx_set_watchpoint( MX_WATCHPOINT *watchpoint,
 
 	linux_private->saved_sigtrap_action = sigtrap_action;
 
-	sigtrap_action.sa_sigaction = mxp_sigtrap_handler;
+	sigtrap_action.sa_sigaction = mxp_default_watchpoint_handler;
 	sigtrap_action.sa_flags = SA_SIGINFO | SA_RESTART | SA_NODEFER;
 
 	sigaction( SIGTRAP, &sigtrap_action, NULL );
@@ -1469,7 +1511,7 @@ MX_EXPORT int
 mx_clear_watchpoint( MX_WATCHPOINT *watchpoint ) {
 	int result;
 
-	result = mx_set_watchpoint( watchpoint, NULL, 0, 0, NULL, NULL );
+	result = mx_set_watchpoint( &watchpoint, NULL, 0, 0, NULL, NULL );
 
 	return result;
 }
@@ -1482,7 +1524,7 @@ mx_clear_watchpoint( MX_WATCHPOINT *watchpoint ) {
 /* FIXME: Implement real watchpoints for these build targets. */
 
 MX_EXPORT int
-mx_set_watchpoint( MX_WATCHPOINT *watchpoint,
+mx_set_watchpoint( MX_WATCHPOINT **watchpoint_ptr,
 		void *value_pointer,
 		long value_datatype,
 		unsigned long flags,
