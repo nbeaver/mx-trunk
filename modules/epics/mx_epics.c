@@ -11,7 +11,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2009-2013 Illinois Institute of Technology
+ * Copyright 1999-2006, 2009-2013, 2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -83,7 +83,10 @@
  * distribution.
  */
 
-#include "tsDefs.h"
+#if ( MX_EPICS_VERSION < 3015000L )
+#  include "tsDefs.h"
+#endif
+
 #include "cadef.h"
 #include "errlog.h"
 
