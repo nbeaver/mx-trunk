@@ -907,6 +907,8 @@ mx_get_numbered_breakpoint( unsigned long breakpoint_number )
 #   endif
 #endif
 
+/*-------------------------------------------------------------------------*/
+
 #if defined(OS_WIN32)
 
 typedef struct {
@@ -1263,6 +1265,8 @@ mx_set_watchpoint( MX_WATCHPOINT **watchpoint_ptr,
 
 	return TRUE;
 }
+
+/*-------------------------------------------------------------------------*/
 
 #elif defined(OS_LINUX)
 

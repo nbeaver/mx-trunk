@@ -813,9 +813,13 @@ mx_stack_traceback( void )
 
 /*--------------------------------------------------------------------------*/
 
-#elif ( MX_GLIBC_VERSION >= 2001000L )
+#elif ( (MX_DARWIN_VERSION >= 9000000L) \
+     || (MX_GLIBC_VERSION >= 2001000L) )
 
-/* GNU Glibc 2.1 introduces the backtrace() family of functions. */
+/* GNU Glibc 2.1 introduces the backtrace() family of functions.
+ *
+ * MacOS X 10.5 and above has it too.
+ */
 
 /* MAXDEPTH is the maximum number of stack frames that will be dumped. */
 
