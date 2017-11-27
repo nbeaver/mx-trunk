@@ -864,9 +864,38 @@ mx_stack_traceback( void )
 	return;
 }
 
-#else
+/*--------------------------------------------------------------------------*/
+
+#elif defined(MX_GCC_VERSION) || defined(MX_CLANG_VERSION)
+
+/* FIXME: It may be necessary to use -funwind-tables on ARM to get stack traces.
+ */
+
+#include <unwind.h>
+
+static _Unwind_Reason_Code mxp_stack_traceback_fn( struct _Unwind_Context *ctx,
+								void *d )
+{
+	int *depth = (int *) d;
+	fprintf( stderr, "#%d: program counter at %#x\n",
+			*depth, _Unwind_GetIP(ctx) );
+	(*depth)++;
+	return _URC_NO_REASON;
+}
+
+MX_EXPORT void
+mx_stack_traceback( void )
+{
+	int depth = 0;
+
+	fprintf( stderr, "\nStack traceback:\n\n" );
+
+	_Unwind_Backtrace( &mxp_stack_traceback_fn, &depth );
+}
 
 /*--------------------------------------------------------------------------*/
+
+#else
 
 MX_EXPORT void
 mx_stack_traceback( void )
