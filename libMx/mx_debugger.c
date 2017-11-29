@@ -1266,6 +1266,15 @@ mx_set_watchpoint( MX_WATCHPOINT **watchpoint_ptr,
 	return TRUE;
 }
 
+MX_EXPORT int
+mx_clear_watchpoint( MX_WATCHPOINT *watchpoint ) {
+	int result;
+
+	result = mx_set_watchpoint( &watchpoint, NULL, 0, 0, NULL, NULL );
+
+	return result;
+}
+
 /*-------------------------------------------------------------------------*/
 
 #elif defined(OS_LINUX)

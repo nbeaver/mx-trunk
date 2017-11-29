@@ -21,7 +21,7 @@ all: build
 
 #MODULES += avt_vimba		# linux,
 
-MODULES += cbflib		# linux, (not yet finished)
+#MODULES += cbflib		# linux, (not yet finished)
 
 #MODULES += edt			# linux,
 
@@ -100,11 +100,11 @@ MODULES += libtiff		# cygwin, linux, win32
 #-------------------------------------------------------------------
 # EPICS modules.
 
-MODULES += epics
+#MODULES += epics
 
-MODULES += epics_aps 
+#MODULES += epics_aps 
 
-MODULES += epics_pmac_biocat
+#MODULES += epics_pmac_biocat
 
 #MODULES += epics_mbc
 
