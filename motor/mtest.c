@@ -65,7 +65,7 @@ motor_test_fn( int argc, char *argv[] )
 			mx_info( "Setting up watchpoint." );
 
 			mx_set_watchpoint( &watchpoint,
-				&watch_test, MXFT_LONG, 0, NULL, NULL );
+				&watch_test, MXFT_LONG, W_OK, NULL, NULL );
 
 			mx_info( "Watchpoint set up.  Now waiting to test it.");
 

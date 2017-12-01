@@ -953,7 +953,7 @@ mxp_win32_set_watchpoint_spectator( MX_THREAD *thread, void *args )
 
 	os_status = SuspendThread( parent_thread_handle );
 
-	if ( os_status == 0 ) {
+	if ( os_status == (DWORD)(-1) ) {
 		last_error_code = GetLastError();
 
 		mx_win32_error_message( last_error_code,
@@ -1023,7 +1023,7 @@ mxp_win32_set_watchpoint_spectator( MX_THREAD *thread, void *args )
 
 	value_pointer = watchpoint->value_pointer;
 
-#if 0
+#if 1
 	/* FIXME: The following does not compile on Visual Studio 2017. */
 
 #if ( MX_WORDSIZE == 64 )
@@ -1143,6 +1143,16 @@ mxp_win32_set_watchpoint_spectator( MX_THREAD *thread, void *args )
 			last_error_code,
 			error_message );
 	}
+
+#if 1
+	MX_DEBUG(-2,
+	("%s: Dr0 = %#lx, Dr1 = %#lx, Dr2 = %#lx, Dr3 = %#lx, Dr7 = %#lx",
+		fname, (unsigned long) parent_context.Dr0,
+		(unsigned long) parent_context.Dr1,
+		(unsigned long) parent_context.Dr2,
+		(unsigned long) parent_context.Dr3,
+		(unsigned long) parent_context.Dr7 ));
+#endif
 
 	/* Resume the parent thread since we are done modifying its context. */
 
