@@ -55,6 +55,9 @@ motor_test_fn( int argc, char *argv[] )
 			return SUCCESS;
 		} else
 		if ( strcmp( argv[2], "watch" ) == 0 ) {
+			MX_DEBUG(-2,("Debugger is present = %d",
+				mx_debugger_is_present() ));
+
 			mx_info( "Beginning watchpoint test." );
 
 			watch_test = 42;

@@ -33,6 +33,7 @@
 #include "mx_signal.h"
 #include "mx_stdint.h"
 #include "mx_thread.h"
+#include "mx_array.h"
 
 #if ( defined(OS_WIN32) && (_WIN32_WINNT >= 0x0400) ) || defined(OS_MACOSX)
 #  define USE_MX_DEBUGGER_IS_PRESENT	TRUE
@@ -82,7 +83,7 @@ mx_breakpoint_helper( void )
  * It is not possible to implement this for all platforms.
  */
 
-static mx_bool_type mx_debugger_started = FALSE;
+static mx_bool_type mxp_debugger_started = FALSE;
 
 /* Note: The argument to mx_set_debugger_started_flag() is an int, rather
  * than an mx_bool_type, so that we will not need to define mx_bool_type
@@ -93,16 +94,16 @@ MX_EXPORT void
 mx_set_debugger_started_flag( int flag )
 {
 	if ( flag ) {
-		mx_debugger_started = TRUE;
+		mxp_debugger_started = TRUE;
 	} else {
-		mx_debugger_started = FALSE;
+		mxp_debugger_started = FALSE;
 	}
 }
 
 MX_EXPORT int
 mx_get_debugger_started_flag( void )
 {
-	return mx_debugger_started;
+	return mxp_debugger_started;
 }
 
 /*-------------------------------------------------------------------------*/
@@ -112,7 +113,7 @@ mx_get_debugger_started_flag( void )
 MX_EXPORT void
 mx_breakpoint( void )
 {
-	mx_debugger_started = TRUE;
+	mxp_debugger_started = TRUE;
 
 	DebugBreak();
 }
@@ -126,7 +127,9 @@ mx_breakpoint( void )
 MX_EXPORT void
 mx_breakpoint( void )
 {
-	if ( mx_debugger_started ) {
+	MX_DEBUG(-2,("mxp_debugger_started = %d", mxp_debugger_started));
+
+	if ( mxp_debugger_started ) {
 		__asm__("int3");
 	} else {
 		mx_start_debugger(NULL);
@@ -144,7 +147,7 @@ mx_breakpoint( void )
 MX_EXPORT void
 mx_breakpoint( void )
 {
-	if ( mx_debugger_started ) {
+	if ( mxp_debugger_started ) {
 		mx_warning( "Calling mx_breakpoint_helper()." );
 
 		mx_breakpoint_helper();
@@ -213,7 +216,7 @@ mx_start_debugger( char *command )
 	    "\nWarning: The Visual C++ debugger is being started.\n\n");
 	fflush(stderr);
 
-	mx_debugger_started = TRUE;
+	mxp_debugger_started = TRUE;
 
 	DebugBreak();
 
@@ -240,14 +243,18 @@ mx_prepare_for_debugging( char *command, int just_in_time_debugging )
 	fprintf( stderr, "\n%s: command = '%s', just_in_time_debugging = %d\n",
 		fname, command, just_in_time_debugging );
 #endif
-
 	if ( just_in_time_debugging ) {
 		mxp_just_in_time_debugging_enabled = TRUE;
 	} else {
 		mxp_just_in_time_debugging_enabled = FALSE;
 	}
 
-	mx_debugger_started = TRUE;
+	/* FIXME: Why was the following write to mxp_debugger_started here
+	 * and why has it never bitten us before?  (WML 2017-12-01)
+	 */
+#if 0
+	mxp_debugger_started = TRUE;
+#endif
 
 	pid = mx_process_id();
 
@@ -711,7 +718,7 @@ mx_debugger_is_present( void )
 MX_EXPORT int
 mx_debugger_is_present( void )
 {
-	if ( mx_debugger_started ) {
+	if ( mxp_debugger_started ) {
 		return TRUE;
 	} else {
 		return FALSE;
@@ -1383,10 +1390,69 @@ mx_set_watchpoint( MX_WATCHPOINT **watchpoint_ptr,
 	int waitpid_child_status;
 	int child_exit_status;
 	struct sigaction sigtrap_action;
+	unsigned long debug_extension_flags;
+	unsigned long value_length, size_option;
+	size_t register_offset;
 
 	if ( watchpoint_ptr == (MX_WATCHPOINT **) NULL ) {
 		return FALSE;
 	}
+
+	/* Select the condition for the breakpoint. */
+
+	/* Note: We do not use debug_extension_flags == 0x2, which
+	 * stands for 'break on I/O reads or writes'.  I am no sure
+	 * what that one does.
+	 */
+
+	if ( flags == X_OK ) {
+		/* break on instruction execution only */
+		debug_extension_flags = 0x0;
+	} else
+	if ( flags == W_OK ) {
+		/* break on data writes only */
+		debug_extension_flags = 0x1;
+	} else
+	if ( flags & R_OK ) {
+		/* break on data reads or writes */
+		debug_extension_flags = 0x3;
+	} else {
+		(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Illegal watchpoint flags %#lx requested.", flags );
+		return FALSE;
+	}
+
+	/* Figure out the size of the memory location in bytes. */
+
+	value_length = mx_get_scalar_element_size( value_datatype, FALSE );
+
+	switch( value_length ) {
+	case 1:
+		size_option = 0x0;
+		break;
+	case 2:
+		size_option = 0x1;
+		break;
+	case 4:
+		size_option = 0x3;
+		break;
+	case 8:
+		/* This only checks the first 4 bytes of the value.
+		 * Apparently x86 processors do not really handle
+		 * the case of 8 bytes.
+		 */
+		size_option = 0x3;
+		break;
+	default:
+		(void) mx_error( MXE_UNSUPPORTED, fname,
+		"MX scalar element size %ld is not supported.",
+			value_length );
+
+		return FALSE;
+		break;
+	}
+
+	/*---*/
 
 	/* FIXME: If value_pointer is NULL, then this should be a request
 	 * to clear the watchpoint.
@@ -1452,17 +1518,10 @@ mx_set_watchpoint( MX_WATCHPOINT **watchpoint_ptr,
 	if ( child_process == 0 ) {
 		/* We are in the child. */
 
-		dr7_t dr7 = {0};
-
 		int ptrace_status;
 		int return_value = EXIT_SUCCESS;
-
-		ptrace_status = ptrace( PTRACE_ATTACH, parent_process,
-						NULL, NULL );
-
-		if ( ptrace_status != 0 ) {
-			exit( EXIT_FAILURE );
-		}
+		dr7_t old_dr7 = {0};
+		dr7_t new_dr7 = {0};
 
 		/* We must wait a short time to make sure that the parent
 		 * process has reached the waitpid() call.
@@ -1470,29 +1529,91 @@ mx_set_watchpoint( MX_WATCHPOINT **watchpoint_ptr,
 
 		sleep(1);
 
+		/* Attach to the parent process. */
+
+#if defined(PTRACE_SEIZE)
+		/* Note: PTRACE_SEIZE was only added in Linux 3.4 */
+
+		ptrace_status = ptrace( PTRACE_SEIZE, parent_process,
+						NULL, NULL );
+#else
+		/* This will stop the parent process. */
+
+		mx_warning( "Watchpoint child is stopping the parent." );
+
+		ptrace_status = ptrace( PTRACE_ATTACH, parent_process,
+						NULL, NULL );
+#endif
 
 		if ( ptrace_status != 0 ) {
-			return_value = EXIT_FAILURE;
+			exit( EXIT_FAILURE );
 		}
 
-		ptrace_status = ptrace( PTRACE_POKEUSER, parent_process,
-					offsetof( struct user, u_debugreg[0] ),
-					value_pointer );
+		/* Get the current contents of the D7 register. */
 
-		if ( ptrace_status != 0 ) {
-			return_value = EXIT_FAILURE;
-		}
-
-		dr7.dr0_local = 1;
-		dr7.dr0_break = 3;
-		dr7.dr0_len   = 3;
-
-		ptrace_status = ptrace( PTRACE_POKEUSER, parent_process,
+		ptrace_status = ptrace( PTRACE_PEEKUSER, parent_process,
 					offsetof( struct user, u_debugreg[7] ),
-					dr7 );
+					old_dr7 );
 
 		if ( ptrace_status != 0 ) {
 			return_value = EXIT_FAILURE;
+		}
+
+		new_dr7 = old_dr7;
+
+		/* Find an unused watchpoint. */
+
+		if ( (old_dr7.dr0_local == 0) && (old_dr7.dr0_global == 0) ) {
+			new_dr7.dr0_local = 1;
+			new_dr7.dr0_break = debug_extension_flags;
+			new_dr7.dr0_len = value_length;
+			register_offset = offsetof(struct user, u_debugreg[0]);
+		} else
+		if ( (old_dr7.dr1_local == 0) && (old_dr7.dr1_global == 0) ) {
+			new_dr7.dr1_local = 1;
+			new_dr7.dr1_break = debug_extension_flags;
+			new_dr7.dr1_len = value_length;
+			register_offset = offsetof(struct user, u_debugreg[1]);
+		} else
+		if ( (old_dr7.dr2_local == 0) && (old_dr7.dr2_global == 0) ) {
+			new_dr7.dr2_local = 1;
+			new_dr7.dr2_break = debug_extension_flags;
+			new_dr7.dr2_len = value_length;
+			register_offset = offsetof(struct user, u_debugreg[2]);
+		} else
+		if ( (old_dr7.dr3_local == 0) && (old_dr7.dr3_global == 0) ) {
+			new_dr7.dr3_local = 1;
+			new_dr7.dr3_break = debug_extension_flags;
+			new_dr7.dr3_len = value_length;
+			register_offset = offsetof(struct user, u_debugreg[3]);
+		} else {
+			(void) mx_error( MXE_NOT_AVAILABLE, fname,
+			"All debug registers are already in use." );
+
+			return_value = EXIT_FAILURE;
+		}
+
+		/* Set the watchpoint address. */
+
+		if ( return_value == EXIT_SUCCESS ) {
+			ptrace_status = ptrace( PTRACE_POKEUSER, parent_process,
+						register_offset, value_pointer);
+
+			if ( ptrace_status != 0 ) {
+				return_value = EXIT_FAILURE;
+			}
+		}
+
+		/* Enable the watchpoint. */
+
+		if ( return_value == EXIT_SUCCESS ) {
+			ptrace_status = ptrace( PTRACE_POKEUSER, parent_process,
+					offsetof( struct user, u_debugreg[7] ),
+					new_dr7 );
+
+			if ( ptrace_status != 0 ) {
+				return_value = EXIT_FAILURE;
+			}
 		}
 
 		ptrace_status = ptrace( PTRACE_DETACH, parent_process,
@@ -1531,10 +1652,15 @@ mx_set_watchpoint( MX_WATCHPOINT **watchpoint_ptr,
 }
 
 MX_EXPORT int
-mx_clear_watchpoint( MX_WATCHPOINT *watchpoint ) {
+mx_clear_watchpoint( MX_WATCHPOINT *watchpoint )
+{
+	static const char fname[] = "mx_clear_watchpoint()";
+
 	int result;
 
-	result = mx_set_watchpoint( &watchpoint, NULL, 0, 0, NULL, NULL );
+	MX_DEBUG(-2,("%s is not yet implemented.", fname));
+
+	result = FALSE;
 
 	return result;
 }
