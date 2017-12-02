@@ -250,6 +250,10 @@ MXPUT_OBJS        = $(MXPUT_SRCS:.c=.$(OBJ))
 MX_LIB_OBJS += ../tools/strlcpy.o ../tools/strlcat.o
 MX_LIB_OBJS += ../tools/smvspatial.o
 
+ifeq ($(_libc_version),musl)
+  MX_LIB_OBJS += ../tools/xdr_hyper.o
+endif
+
 #
 #---------------------------------------------------
 #

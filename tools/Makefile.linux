@@ -4,7 +4,8 @@
 
 all:   ../libMx/mx_private_version.h mx_config smvspatial.o \
 	strlcpy.o strlcat.o \
-	unix/src/editline/libedit.a
+	unix/src/editline/libedit.a \
+	xdr_hyper.o
 
 include ../libMx/Makefile.version
 
@@ -66,4 +67,17 @@ strlcat.o: generic/src/strlcat.c
 
 unix/src/editline/libedit.a:
 	( cd unix/src/editline ; $(EDITLINE_MAKECMD) )
+
+# FIXME: xdr_hyper.o is really only needed by Musl, but the 'mx_config'
+# program we use to detect MUSL is built by the very same makefile that
+# builds xdr_hyper.o.  So we have no good way of using 'mx_config' for
+# this purpose, since it may not yet exist when we need it.
+#
+# Instead, we build xdr_hyper.o for all runtime libraries, but only use it
+# if the runtime library is Musl.
+
+xdr_hyper.o: xdr/src/xdr_hyper.c xdr/src/xdr.h xdr/src/xdr_hyper.h
+	$(CC) -c $(OPTIMIZE) -I/usr/include/tirpc \
+	-fPIC -I../libMx -DOS_LINUX -D__MX_LIBRARY__ \
+		xdr/src/xdr_hyper.c
 
