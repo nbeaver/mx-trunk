@@ -46,7 +46,7 @@
 # location.  The directory $(MX_INSTALL_DIR) must exist # before you do
 # "make install".
 #
-# On 'win32', $(MX_INSTALL_DIR) should use forward slashes like / rather
+# On 'win32', $(MX_INSTALL_DIR) must use forward slashes like / rather
 # than backslashes.
 #
 # For 'djgpp' and 'vms' platforms, the 'scripts' subdirectory contains
@@ -68,27 +68,51 @@
 #
 
 #
-# If MX_ARCH and/or MX_INSTALL_DIR are defined in your shell's environment
-# variables, then they will automatically take precedence over the 
-# definitions below.
+# Attempt to automatically determine the values of MX_ARCH and MX_INSTALL_DIR.
+#
+# The logic works as follows:
+#
+# 1. If MX_ARCH and/or MX_INSTALL_DIR are defined in your shell's environment
+#    variables, then they will automatically take precedence over the 
+#    definitions below.
+#
+# 2. If they are not defined, but the 'mx/tools/mx_config' program was built by
+#    a previous 'make' command, then it will be interrogated for the values.
+#
+#    This has to be done for things like 'sudo make install' to work correctly
+#    on non-Linux platforms where 'sudo' strips out variables like MX_ARCH
+#    and MX_INSTALL_DIR from the root environment.
+#
+# 3. If none of the above is done, then the defaults are 'linux' and '/opt/mx'.
+#
+# Note: You can always ignore the above and explicitly set values for MX_ARCH
+# and MX_INSTALL_DIR below.
 #
 
+#MX_ARCH=linux
+#MX_INSTALL_DIR=/opt/mx
+#MX_INSTALL_DIR = c:/opt/mx-2.1.3-2017_12_07
+
+#--------
+
 ifndef MX_ARCH
-MX_ARCH = linux
+  ifneq ($(wildcard tools/mx_config),)
+    MX_ARCH=$(shell tools/mx_config mx_arch)
+  else
+    MX_ARCH = linux
+  endif
 endif
 
 ifndef MX_INSTALL_DIR
-MX_INSTALL_DIR = /opt/mx
-#MX_INSTALL_DIR = c:/opt/mx
-#MX_INSTALL_DIR = /mnt/mx
-#MX_INSTALL_DIR = /mnt/sdcard/opt/mx
-#MX_INSTALL_DIR = $(HOME)/local/mx
-#MX_INSTALL_DIR = $(HOME)/lavender/opt/mx
-#MX_INSTALL_DIR = $(HOME)/mxtest
-#MX_INSTALL_DIR = /programs/mx/
-#MX_INSTALL_DIR = c:/users/lavender/mxtest
-#MX_INSTALL_DIR = c:/opt/mx-2.1.1-2016_09_15
+  ifneq ($(wildcard tools/mx_config),)
+    MX_INSTALL_DIR=$(shell tools/mx_config mx_install_dir)
+  else
+    MX_INSTALL_DIR = /opt/mx
+  endif
 endif
+
+$(info MX_ARCH is [${MX_ARCH}])
+$(info MX_INSTALL_DIR is [${MX_INSTALL_DIR}])
 
 #------------------------------------------------------------------------------
 

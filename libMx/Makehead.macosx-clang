@@ -58,6 +58,10 @@ CC		= clang
 CFLAGS		= -g -O -fPIC -fno-common $(GCCFLAGS) $(INCLUDES) -DOS_MACOSX \
 				$(EXTRA_FLAGS) -DDEBUG
 
+LINKFLAGS = $(CFLAGS)
+
+#---
+
 # Special cases for individual files.
 
 CFLAGS_MX_VERS  = -DOS_MACOSX -DMX_MAJOR_VERSION=$(MX_MAJOR_VERSION) \
@@ -135,7 +139,10 @@ MX_LIBRARY_DELETE = rm $(MX_LIBRARY_NAME) $(MX_LIBRARY_STATIC_NAME)
 
 $(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
 	-$(MX_LIBRARY_DELETE)
+	PWD=$(shell pwd)
+	echo "PWD = $(PWD)"
 	$(CC) -dynamiclib -o $(MX_LIBRARY_NAME) \
+			-install_name "$(PWD)/$(MX_LIBRARY_NAME)" \
 			$(LIB_DIRS) $(MX_LIB_OBJS) $(LIBRARIES) 
 	ar rc $(MX_LIBRARY_STATIC_NAME) $(MX_LIB_OBJS)
 	ranlib $(MX_LIBRARY_STATIC_NAME)
@@ -173,10 +180,10 @@ MOTOR_NAME	= mxmotor
 MOTOR_NAME2	= mxmotor.static
 
 $(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
-	$(CC) $(CFLAGS) -o $(MOTOR_NAME) $(MOTOR_OBJS) \
+	$(CC) $(LINKFLAGS) -o $(MOTOR_NAME) $(MOTOR_OBJS) \
 			$(LIB_DIRS) $(READLINE_LIB_DIRS) \
 			-lMx $(LIBRARIES) $(READLINE_LIBRARIES)
-	$(CC) $(CFLAGS) -o $(MOTOR_NAME2) $(MOTOR_OBJS) \
+	$(CC) $(LINKFLAGS) -o $(MOTOR_NAME2) $(MOTOR_OBJS) \
 			$(LIB_DIRS) $(READLINE_LIB_DIRS) \
 			../libMx/$(MX_LIBRARY_STATIC_NAME) \
 			$(LIBRARIES) $(READLINE_LIBRARIES)
@@ -191,7 +198,7 @@ motor_install:
 SERVER_NAME	= mxserver
 
 $(SERVER_NAME): $(SERVER_OBJS) $(MX_LIBRARY_PATH)
-	$(CC) $(CFLAGS) -o $(SERVER_NAME) $(SERVER_OBJS) \
+	$(CC) $(LINKFLAGS) -o $(SERVER_NAME) $(SERVER_OBJS) \
 			$(LIB_DIRS) -lMx $(LIBRARIES)
 
 server_install:
@@ -207,7 +214,7 @@ server_install:
 AUTOSAVE_NAME	= mxautosave
 
 $(AUTOSAVE_NAME): $(AUTOSAVE_OBJS) $(MX_LIBRARY_PATH)
-	$(CC) $(CFLAGS) -o $(AUTOSAVE_NAME) $(AUTOSAVE_OBJS) \
+	$(CC) $(LINKFLAGS) -o $(AUTOSAVE_NAME) $(AUTOSAVE_OBJS) \
 			$(LIB_DIRS) -lMx $(LIBRARIES)
 
 autosave_install:
@@ -223,7 +230,7 @@ autosave_install:
 MXDRIVERINFO_NAME    = mxdriverinfo
 
 $(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
-	$(CC) $(CFLAGS) -o $(MXDRIVERINFO_NAME) \
+	$(CC) $(LINKFLAGS) -o $(MXDRIVERINFO_NAME) \
 		$(MXDRIVERINFO_OBJS) $(LIB_DIRS) -lMx $(LIBRARIES)
 
 #---
@@ -231,7 +238,7 @@ $(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
 MXMONITOR_NAME       = mxmonitor
 
 $(MXMONITOR_NAME): $(MXMONITOR_OBJS) $(MX_LIBRARY_PATH)
-	$(CC) $(CFLAGS) -o $(MXMONITOR_NAME) \
+	$(CC) $(LINKFLAGS) -o $(MXMONITOR_NAME) \
 		$(MXMONITOR_OBJS) $(LIB_DIRS) -lMx $(LIBRARIES)
 
 #---
@@ -239,18 +246,18 @@ $(MXMONITOR_NAME): $(MXMONITOR_OBJS) $(MX_LIBRARY_PATH)
 MXSERIAL_NAME        = mxserial
 
 $(MXSERIAL_NAME): mxserial.o $(MX_LIBRARY_PATH)
-	$(CC) $(CFLAGS) -o $(MXSERIAL_NAME) mxserial.o \
+	$(CC) $(LINKFLAGS) -o $(MXSERIAL_NAME) mxserial.o \
 				$(LIB_DIRS) -lMx $(LIBRARIES)
 
 mxserial.o: mxserial_fork.c
-	$(CC) $(CFLAGS) -D__MX_APP__ -c mxserial_fork.c -o mxserial.o
+	$(CC) $(LINKFLAGS) -D__MX_APP__ -c mxserial_fork.c -o mxserial.o
 
 #----
 
 MXGET_NAME           = mxget
 
 $(MXGET_NAME): $(MXGET_OBJS) $(MX_LIBRARY_PATH)
-	$(CC) $(CFLAGS) -o $(MXGET_NAME) \
+	$(CC) $(LINKFLAGS) -o $(MXGET_NAME) \
 		$(MXGET_OBJS) $(LIB_DIRS) -lMx $(LIBRARIES)
 
 #----
@@ -258,7 +265,7 @@ $(MXGET_NAME): $(MXGET_OBJS) $(MX_LIBRARY_PATH)
 MXPUT_NAME           = mxput
 
 $(MXPUT_NAME): $(MXPUT_OBJS) $(MX_LIBRARY_PATH)
-	$(CC) $(CFLAGS) -o $(MXPUT_NAME) \
+	$(CC) $(LINKFLAGS) -o $(MXPUT_NAME) \
 		$(MXPUT_OBJS) $(LIB_DIRS) -lMx $(LIBRARIES)
 
 #----
@@ -266,7 +273,7 @@ $(MXPUT_NAME): $(MXPUT_OBJS) $(MX_LIBRARY_PATH)
 util_install:
 	/usr/bin/install -c -m 755 $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
 	/usr/bin/install -c -m 755 $(MXMONITOR_NAME) $(MX_INSTALL_DIR)/bin
-	/usr/bin/install -c -m 755 $(MXSERIAL_NAME) $(MX_INSTALL_DIR)/bin
 	/usr/bin/install -c -m 755 $(MXGET_NAME) $(MX_INSTALL_DIR)/bin
 	/usr/bin/install -c -m 755 $(MXPUT_NAME) $(MX_INSTALL_DIR)/bin
+	/usr/bin/install -c -m 755 $(MXSERIAL_NAME) $(MX_INSTALL_DIR)/bin
 

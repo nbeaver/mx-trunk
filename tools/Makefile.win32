@@ -78,6 +78,7 @@ smvspatial.obj: xgen/smvspatial.c
 mx_config.exe: version/src/mx_config.c
 	cl -nologo -c $(RUN_TIME_LIBRARY_FLAGS) \
 		-DOS_WIN32 -DMX_ARCH="\"$(MX_ARCH)\"" \
+		-DMX_INSTALL_DIR="\"$(MX_INSTALL_DIR)\"" \
 		-I../libMx -WX -Z7 version/src/mx_config.c
 	link /nologo /debugtype:cv /out:mx_config.exe \
 			mx_config.obj $(WIN32_LIBS)

@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2011, 2014-2016 Illinois Institute of Technology
+ * Copyright 2011, 2014-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -39,8 +39,9 @@ print_usage( void )
 	printf(
 	"Usage: mx_config [option]\n"
 	"\n"
-	"  The available options (including all build targets) are:\n"
+	"  The known options (not available on all build targets) are:\n"
 	"\n"
+	"  clang\n"
 	"  gcc\n"
 	"  glibc\n"
 	"  gnuc\n"
@@ -123,6 +124,10 @@ main( int argc, char **argv )
 		exit(0);
 	}
 #endif
+	if ( strcmp( argv[1], "mx_install_dir" ) == 0 ) {
+		printf( "%s\n", MX_INSTALL_DIR );
+		exit(0);
+	}
 	if ( strcmp( argv[1], "mx_version" ) == 0 ) {
 		printf( "%ld\n", MX_VERSION );
 		exit(0);
@@ -147,6 +152,13 @@ main( int argc, char **argv )
 		printf( "%d\n", MX_POINTER_SIZE );
 		exit(0);
 	}
+
+#if defined(MX_CLANG_VERSION)
+	if ( strcmp( argv[1], "clang" ) == 0 ) {
+		printf( "%ld\n", MX_CLANG_VERSION );
+		exit(0);
+	}
+#endif
 
 #if defined(MX_GNUC_VERSION)
 	if ( strcmp( argv[1], "gnuc" ) == 0 ) {

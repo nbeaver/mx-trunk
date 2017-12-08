@@ -33,7 +33,8 @@ strlcat.obj: generic/src/strlcat.c
 	cc $(CFLAGS) [.generic.src]strlcat.c
 
 mx_config.exe: version/src/mx_config.c ../libMx/mx_private_version.h
-	cc $(CFLAGS) /define=("OS_VMS","DEBUG","MX_ARCH=\"$(MX_ARCH)\"") \
+	cc $(CFLAGS) \
+/define=("OS_VMS","DEBUG","MX_ARCH=\"$(MX_ARCH)\"","MX_INSTALL_DIR=\"$(MX_INSTALL_DIR)\"") \
 		[.version.src]mx_config.c
 	link /exe=mx_config.exe mx_config.obj
 

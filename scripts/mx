@@ -67,10 +67,16 @@ fi
 
 # Construct a prefix for the server startup commands below.
 
+UNAME_OS=`uname`
+
 if [ $SCRIPTUSER = $MXUSER ]; then
 	COMMAND_PREFIX=
 elif [ $SCRIPTUSER = "root" ]; then
-	COMMAND_PREFIX="/bin/su $MXUSER -c"
+	if [ $UNAME_OS = "Darwin" ]; then
+		COMMAND_PREFIX="/usr/bin/su $MXUSER -c"
+	else
+		COMMAND_PREFIX="/bin/su $MXUSER -c"
+	fi
 else
 	echo "This script must be run either as the MX user '$MXUSER' or as 'root'."
 	echo "You are '$SCRIPTUSER', so this script is aborting."
