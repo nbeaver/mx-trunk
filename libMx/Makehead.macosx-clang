@@ -58,7 +58,7 @@ CC		= clang
 CFLAGS		= -g -O -fPIC -fno-common $(GCCFLAGS) $(INCLUDES) -DOS_MACOSX \
 				$(EXTRA_FLAGS) -DDEBUG
 
-LINKFLAGS = $(CFLAGS)
+LINKFLAGS = $(CFLAGS) -Wl,-headerpad_max_install_names
 
 #---
 
@@ -133,6 +133,9 @@ MX_LIBRARY_PATH	= $(MX_LIB_DIR)/$(MX_LIBRARY_NAME)
 
 MX_LIBRARY_NAME	= libMx.dylib
 
+MX_LIBRARY_BUILD_NAME   = $(PWD)/$(MX_LIBRARY_NAME)
+MX_LIBRARY_INSTALL_NAME = $(MX_INSTALL_DIR)/lib/$(MX_LIBRARY_NAME)
+
 MX_LIBRARY_STATIC_NAME = libMx.a
 
 MX_LIBRARY_DELETE = rm $(MX_LIBRARY_NAME) $(MX_LIBRARY_STATIC_NAME)
@@ -142,7 +145,7 @@ $(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
 	PWD=$(shell pwd)
 	echo "PWD = $(PWD)"
 	$(CC) -dynamiclib -o $(MX_LIBRARY_NAME) \
-			-install_name "$(PWD)/$(MX_LIBRARY_NAME)" \
+			-install_name "$(MX_LIBRARY_BUILD_NAME)" \
 			$(LIB_DIRS) $(MX_LIB_OBJS) $(LIBRARIES) 
 	ar rc $(MX_LIBRARY_STATIC_NAME) $(MX_LIB_OBJS)
 	ranlib $(MX_LIBRARY_STATIC_NAME)
@@ -159,6 +162,8 @@ library_install:
 	-mkdir $(MX_INSTALL_DIR)/state
 	/usr/bin/install -c -m 644 mx*.h $(MX_INSTALL_DIR)/include 
 	/usr/bin/install -c -m 644 $(MX_LIBRARY_NAME) $(MX_INSTALL_DIR)/lib 
+	/usr/bin/install_name_tool \
+	    -id "$(MX_LIBRARY_INSTALL_NAME)" $(MX_LIBRARY_INSTALL_NAME)
 	/usr/bin/install -c -m 644 $(MX_LIBRARY_STATIC_NAME) $(MX_INSTALL_DIR)/lib 
 	touch $(MX_INSTALL_DIR)/etc/mxmotor.dat
 	touch $(MX_INSTALL_DIR)/etc/mxscan.dat
@@ -183,13 +188,16 @@ $(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
 	$(CC) $(LINKFLAGS) -o $(MOTOR_NAME) $(MOTOR_OBJS) \
 			$(LIB_DIRS) $(READLINE_LIB_DIRS) \
 			-lMx $(LIBRARIES) $(READLINE_LIBRARIES)
-	$(CC) $(LINKFLAGS) -o $(MOTOR_NAME2) $(MOTOR_OBJS) \
+	$(CC) -o $(MOTOR_NAME2) $(MOTOR_OBJS) \
 			$(LIB_DIRS) $(READLINE_LIB_DIRS) \
 			../libMx/$(MX_LIBRARY_STATIC_NAME) \
 			$(LIBRARIES) $(READLINE_LIBRARIES)
 
 motor_install:
 	/usr/bin/install -c -m 755 $(MOTOR_NAME) $(MX_INSTALL_DIR)/bin 
+	/usr/bin/install_name_tool \
+	    -change "$(MX_LIBRARY_BUILD_NAME)" "$(MX_LIBRARY_INSTALL_NAME)" \
+	    $(MX_INSTALL_DIR)/bin/$(MOTOR_NAME)
 	/usr/bin/install -c -m 755 $(MOTOR_NAME2) $(MX_INSTALL_DIR)/bin 
 
 #
