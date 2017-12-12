@@ -1,0 +1,12 @@
+#! /bin/sh
+
+PATHNAME=`/usr/bin/otool -L $1 | /usr/bin/grep $2 | /usr/bin/awk '{print $1}'`
+
+/bin/echo "$1: Changing $PATHNAME to $3"
+
+/usr/bin/install_name_tool -change $PATHNAME $3 $1
+
+PATHNAME_NEW=`/usr/bin/otool -L $1 | /usr/bin/grep $2 | /usr/bin/awk '{print $1}'`
+
+/bin/echo "$1: New library path is $PATHNAME_NEW"
+
