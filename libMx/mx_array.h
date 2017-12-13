@@ -110,7 +110,6 @@ MX_API mx_status_type mx_compute_array_size( long num_dimensions,
 
 MX_API size_t mx_get_scalar_element_size( long mx_datatype,
 					mx_bool_type longs_are_64bits );
-
 /*---*/
 
 MX_API mx_status_type mx_compute_array_header_length(
@@ -126,6 +125,18 @@ MX_API mx_status_type mx_setup_array_header( void *array_pointer,
 					long num_dimensions,
 					long *dimension_array,
 					size_t *data_element_size_array );
+
+/*---*/
+
+/* The following calls get the numer of elements and the size of the
+ * array from the array header.
+ */
+
+MX_API mx_status_type mx_array_get_num_elements( void *mx_array,
+	       					unsigned long *num_elements );
+
+MX_API mx_status_type mx_array_get_num_bytes( void *mx_array,
+	       					unsigned long *num_bytes );
 
 /*---*/
 

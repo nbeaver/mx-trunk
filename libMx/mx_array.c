@@ -343,6 +343,119 @@ mx_setup_array_header( void *array_pointer,
 
 /*---------------------------------------------------------------------------*/
 
+/* WARNING: mx_array_get_num_elements() and mx_array_get_num_bytes() only
+ * work correctly on MX-style arrays as created by mx_allocate_array(),
+ * mx_array_add_overlay(), and friends.  If the array is _NOT_ an MX-style
+ * array, then you will either get an error message, the wrong answer,
+ * or a segmentation fault.
+ *
+ * The moral is: Do not pass array pointers to these functions if they are
+ * not MX-style arrays.
+ */
+
+MX_EXPORT mx_status_type
+mx_array_get_num_elements( void *mx_array,
+			unsigned long *num_elements )
+{
+	static const char fname[] = "mx_array_get_num_elements()";
+
+	unsigned long *header;
+	unsigned long array_magic;
+	unsigned long total_num_elements;
+	unsigned long i, num_dimensions;
+
+	if ( mx_array == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The mx_array pointer is NULL." );
+	}
+	if ( num_elements == (unsigned long *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The num_elements pointer is NULL." );
+	}
+
+	/* Get a pointer to the top level array row which is 
+	 * at the same level as the header.
+	 */
+
+	header = (unsigned long *) mx_array;
+
+	/* There is no 1000% absolutely safe way of knowing whether or not
+	 * an array pointer was created by mx_allocate_array() and friends.
+	 * If this _is_ an MX array, then mx_array[-1] should have the MX
+	 * array magic number.  If it is not, then you should either get an
+	 * error due to the next line or you will get a segmentation fault.
+	 */
+
+	array_magic = header[MX_ARRAY_OFFSET_MAGIC];
+       
+	switch( array_magic ) {
+	case MX_ARRAY_HEADER_MAGIC:
+		break;
+	case MX_ARRAY_HEADER_BAD_MAGIC:
+		return mx_error( MXE_OBJECT_ABANDONED, fname,
+			"The MX array pointer %p passed points to an array "
+			"that has already been freed.", mx_array );
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The pointer %p does not point at an MX-style array.",
+			mx_array );
+		break;
+	}
+
+	total_num_elements = 1;
+
+	num_dimensions = header[MX_ARRAY_OFFSET_NUM_DIMENSIONS];
+
+	for ( i = 0; i < num_dimensions; i++ ) {
+	    total_num_elements *= header[MX_ARRAY_OFFSET_DIMENSION_ARRAY - i];
+	}
+
+	*num_elements = total_num_elements;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_array_get_num_bytes( void *mx_array,
+			unsigned long *num_bytes )
+{
+	static const char fname[] = "mx_array_get_num_bytes()";
+
+	unsigned long *header;
+	long mx_datatype;
+	unsigned long num_elements;
+	size_t scalar_element_size;
+	mx_status_type mx_status;
+
+	if ( num_bytes == (unsigned long *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"The num_bytes pointer passed was NULL." );
+	}
+
+	mx_status = mx_array_get_num_elements( mx_array, &num_elements );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* The MX array header was found to be present by the previous call
+	 * to mx_array_get_num_elements().  Because of that, we can just
+	 * assume here that the array header is present.
+	 */
+
+	header = (unsigned long *) mx_array;
+
+	mx_datatype = header[MX_ARRAY_OFFSET_MX_DATATYPE];
+
+	scalar_element_size = mx_get_scalar_element_size( mx_datatype, FALSE );
+
+	*num_bytes = num_elements * scalar_element_size;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---------------------------------------------------------------------------*/
+
 /* The highest level dimension of an array is where the array header info
  * is stored.  This function encapsulates the logic necessary to embed the
  * array header before the start of the actual array.

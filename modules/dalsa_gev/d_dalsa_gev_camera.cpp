@@ -365,7 +365,7 @@ mxd_dalsa_gev_camera_image_wait_thread_fn( MX_THREAD *thread, void *args )
 			record->name );
 	}
 
-	dalsa_gev_camera = (MX_DALSA_GEV_CAMERA *) record->record_class_struct;
+	dalsa_gev_camera = (MX_DALSA_GEV_CAMERA *) record->record_type_struct;
 
 	if ( dalsa_gev_camera == (MX_DALSA_GEV_CAMERA *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -373,6 +373,8 @@ mxd_dalsa_gev_camera_image_wait_thread_fn( MX_THREAD *thread, void *args )
 			record->name );
 	}
 
+	MX_DEBUG(-2,("%s: record = %p", fname, record));
+	MX_DEBUG(-2,("%s: dalsa_gev_camera = %p", fname, dalsa_gev_camera));
 	MX_DEBUG(-2,("%s: dalsa_gev_camera->camera_handle = %p",
 			fname, dalsa_gev_camera->camera_handle));
 
@@ -788,22 +790,17 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 	    }
 	}
 #endif
-	/* Enable the GevAPI frame buffer array. */
-
-	gev_status = GevInitImageTransfer( dalsa_gev_camera->camera_handle,
-					Asynchronous,
-					dalsa_gev_camera->num_frame_buffers,
-					dalsa_gev_camera->frame_buffer_array );
-
-	if ( gev_status != GEVLIB_OK ) {
-		return mxd_dalsa_gev_camera_api_error( gev_status, fname,
-						"GevInitImageTransfer()");
-	}
-
 	/* Initialize the frame counters. */
 
 	mx_atomic_write32( &(dalsa_gev_camera->total_num_frames_at_start), 0 );
 	mx_atomic_write32( &(dalsa_gev_camera->total_num_frames), 0 );
+
+#if 1
+	MX_DEBUG(-2,("%s: record = %p", fname, record));
+	MX_DEBUG(-2,("%s: dalsa_gev_camera = %p", fname, dalsa_gev_camera));
+	MX_DEBUG(-2,("%s: dalsa_gev_camera->camera_handle = %p",
+			fname, dalsa_gev_camera->camera_handle));
+#endif
 
 	/* Create a thread to manage the reading of images from Dalsa Gev. */
 
@@ -878,6 +875,12 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 	static const char fname[] = "mxd_dalsa_gev_camera_arm()";
 
 	MX_DALSA_GEV_CAMERA *dalsa_gev_camera = NULL;
+	MX_SEQUENCE_PARAMETERS *sp = NULL;
+	void *vector_pointer = NULL;
+	unsigned char **frame_buffer_array = NULL;
+	unsigned long num_frames, num_bytes_in_array;
+	double exposure_time, frame_time;
+	long gev_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_dalsa_gev_camera_get_pointers( vinput,
@@ -890,6 +893,95 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 	MX_DEBUG(-2,("%s invoked for video input '%s'",
 		fname, vinput->record->name ));
 #endif
+	/* If an imaging sequence was running, then stop it. */
+
+	gev_status = GevAbortImageTransfer( dalsa_gev_camera->camera_handle );
+
+	if ( gev_status != GEVLIB_OK ) {
+		return mxd_dalsa_gev_camera_api_error( gev_status, fname,
+						"GevInitImageTransfer()");
+	}
+
+	/* Clear out the image frame buffers. */
+
+	frame_buffer_array = dalsa_gev_camera->frame_buffer_array;
+
+	mx_status = mx_array_get_num_bytes( frame_buffer_array,
+						&num_bytes_in_array );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	vector_pointer = mx_array_get_vector( frame_buffer_array );
+
+	memset( vector_pointer, 0, num_bytes_in_array );
+
+	/* Make sure that the MX image frame buffer is the correct size. */
+
+	mx_status = mx_image_alloc( &(vinput->frame),
+					vinput->framesize[0],
+					vinput->framesize[1],
+					vinput->image_format,
+					vinput->byte_order,
+					vinput->bytes_per_pixel,
+					MXT_IMAGE_HEADER_LENGTH_IN_BYTES,
+					vinput->bytes_per_frame,
+					NULL, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Figure out the number of frames and the exposure time
+	 * for the upcoming imaging sequence.
+	 */
+
+	sp = &(vinput->sequence_parameters);
+
+	switch( sp->sequence_type ) {
+	case MXT_SQ_ONE_SHOT:
+	case MXT_SQ_STREAM:
+		num_frames = 1;
+		exposure_time = sp->parameter_array[0];
+		frame_time = exposure_time;
+		break;
+	case MXT_SQ_MULTIFRAME:
+		num_frames = sp->parameter_array[0];
+		exposure_time = sp->parameter_array[1];
+		frame_time = sp->parameter_array[2];
+		break;
+	case MXT_SQ_DURATION:
+		num_frames = sp->parameter_array[0];
+		exposure_time = 1;
+		frame_time = exposure_time;
+		break;
+	default:
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Sequence type %ld has not yet been implemented for '%s'.",
+			sp->sequence_type, vinput->record->name );
+		break;
+	}
+
+	/* FIXME: Set sequence parameters in the hardware as necessary. */
+
+	MX_DEBUG(-2,("%s: '%s' ARMED.", fname, vinput->record->name ));
+
+	num_frames = num_frames;
+	frame_time = frame_time;
+
+	/* Enable image transfer to the image buffers. */
+
+	gev_status = GevInitImageTransfer( dalsa_gev_camera->camera_handle,
+					Asynchronous,
+					dalsa_gev_camera->num_frame_buffers,
+					dalsa_gev_camera->frame_buffer_array );
+
+	if ( gev_status != GEVLIB_OK ) {
+		return mxd_dalsa_gev_camera_api_error( gev_status, fname,
+						"GevInitImageTransfer()");
+	}
+
+	if ( vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
+	}
 
 	return mx_status;
 }

@@ -62,7 +62,7 @@ MODULES += libtiff		# cygwin, linux, win32
 
 #MODULES += aravis
 
-#MODULES += dalsa_gev
+MODULES += dalsa_gev
 
 #MODULES += linux_portio
 
