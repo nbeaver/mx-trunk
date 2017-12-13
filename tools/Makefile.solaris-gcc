@@ -23,6 +23,16 @@ include ../libMx/Makehead.solaris-gcc
 
 include Include.subversion
 
+# Find the default Python version.
+
+python_version := $(shell python -V 2>&1 | cut -f2 -d' ' | cut -f1-2 -d'.' )
+
+$(info Python is [${python_version}])
+
+ifneq ($(python_version),)
+   python_args = -DMX_PYTHON="$(python_version)"
+endif
+
 #------------------------------------------------------------------------
 
 mx_clean:
@@ -39,5 +49,6 @@ mx_private_version: ../libMx/Makefile.version version/src/mx_private_version.c
 mx_config: version/src/mx_config.c ../libMx/mx_private_version.h
 	$(CC) -I../libMx -DOS_LINUX -DMX_ARCH="\"$(MX_ARCH)\"" \
 		-DMX_INSTALL_DIR="\"$(MX_INSTALL_DIR)\"" \
+		$(python_args) \
 		-o mx_config version/src/mx_config.c
 

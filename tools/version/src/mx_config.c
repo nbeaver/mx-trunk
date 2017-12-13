@@ -258,7 +258,15 @@ main( int argc, char **argv )
 
 /*------------------------------------------------------------------------*/
 
-#if defined(OS_WIN32)
+#if defined(MX_PYTHON)
+
+	if ( strcmp( argv[1], "python" ) == 0 ) {
+		fprintf( stderr, "Python is here.\n" );
+	}
+
+/*------------------------------------------------------------------------*/
+
+#elif defined(OS_WIN32)
 	if ( strcmp( argv[1], "python" ) == 0 ) {
 
 		HKEY hive_key;
