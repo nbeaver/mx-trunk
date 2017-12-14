@@ -42,6 +42,17 @@ else ifeq ($(MX_ARCH),cygwin)
 LIBTIFF_INCLUDES = 
 LIBTIFF_LIBRARY = -ltiff
 
+#----
+
+else ifeq ($(MX_ARCH),macosx-clang)
+
+# The following assumes that libtiff was 'make install'ed into /usr/local.
+
+LIBTIFF_INCLUDES = 
+LIBTIFF_LIBRARY = -ltiff
+
+#----
+
 else
 
 error not tested yet.
@@ -95,6 +106,17 @@ libtiff.mxo: $(LIBTIFF_OBJS)
 	$(CC) $(SANITIZE) -shared -rdynamic -Wl,-soname,libtiff.mxo \
 		-o libtiff.mxo $(LIBTIFF_OBJS) \
 		../../libMx/libMx.so $(LIBTIFF_LIBRARY)
+
+endif
+
+#--------------------------------------------------------------------------
+
+ifeq ($(MX_ARCH),macosx-clang)
+
+libtiff.mxo: $(LIBTIFF_OBJS)
+	$(CC) -dynamiclib -Wl,-headerpad_max_install_names \
+		-o libtiff.mxo -install_name "$(PWD)/libtiff.mxo \
+		$(LIBTIFF_OBJS) ../../libMx/libMx.dylib $(LIBTIFF_LIBRARY)
 
 endif
 

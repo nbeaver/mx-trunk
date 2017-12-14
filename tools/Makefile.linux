@@ -35,6 +35,16 @@ EDITLINE_MAKECMD = \
 
 include Include.subversion
 
+# Find the default Python version.
+
+python_version := $(shell python -V 2>&1 | cut -f2 -d' ' | cut -f1-2 -d'.' )
+
+$(info Python is [${python_version}])
+
+ifneq ($(python_version),)
+   python_args = -DMX_PYTHON="$(python_version)"
+endif
+
 #------------------------------------------------------------------------
 
 mx_clean:
