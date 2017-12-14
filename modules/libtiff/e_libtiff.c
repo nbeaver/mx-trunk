@@ -69,6 +69,8 @@ MX_EXTENSION_FUNCTION_LIST mxext_libtiff_extension_function_list = {
 
 #if defined(OS_WIN32)
 #  define MXP_LIBTIFF_LIBRARY_NAME	"libtiff.dll"
+#elif defined(OS_MACOSX)
+#  define MXP_LIBTIFF_LIBRARY_NAME	"libtiff.dylib"
 #else
 #  define MXP_LIBTIFF_LIBRARY_NAME	"libtiff.so"
 #endif
@@ -402,7 +404,7 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 	char temp_buffer[80];
 
 #if MX_USE_EXIF_TIFF_TAGS
-	uint64_t exif_dir_offset;
+	uint64 exif_dir_offset;
 #endif
 
 	MX_AREA_DETECTOR *ad = NULL;

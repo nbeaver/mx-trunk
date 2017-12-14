@@ -1,0 +1,22 @@
+#! /bin/sh
+
+PATHNAME=`/usr/bin/otool -L $1 | /usr/bin/grep $2 | /usr/bin/awk '{print $1}'`
+
+/bin/echo "$1: Changing library path ${PATHNAME} to $3"
+
+/usr/bin/install_name_tool -change ${PATHNAME} $3 $1
+
+#
+# Apparently install_name_tool does not necessarily return an error, if the
+# pathname change was not successfully made.  Because of this, we explicitly
+# check to verify that the name change succeeded.
+#
+
+PATHNAME_NEW=`/usr/bin/otool -L $1 | /usr/bin/grep $2 | /usr/bin/awk '{print $1}'`
+
+if [ ${PATHNAME_NEW} != $3 ]; then
+	/bin/echo "ERROR: The library path name was NOT changed to $3."
+	exit 1
+fi
+
+exit 0

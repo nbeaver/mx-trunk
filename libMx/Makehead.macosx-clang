@@ -173,7 +173,7 @@ library_install:
 	/usr/bin/install -c -m 755 ../plotgnu/showplot $(MX_INSTALL_DIR)/bin 
 	/usr/bin/install -c -m 755 ../plotgnu/plot2ps $(MX_INSTALL_DIR)/bin 
 	/usr/bin/install -c -m 755 ../scripts/mxsetup.sh $(MX_INSTALL_DIR)/bin
-	/usr/bin/install -c -m 755 ../scripts/mx_mac_fix_exe_path $(MX_INSTALL_DIR)/bin
+	/usr/bin/install -c -m 755 ../scripts/mx_mac_fix_lib_path $(MX_INSTALL_DIR)/bin
 	/usr/bin/install -c -m 755 ../tools/mx_config $(MX_INSTALL_DIR)/bin
 
 mx_list_head.$(OBJ): Makefile.version mx_list_head.c mx_version.h
@@ -197,7 +197,7 @@ $(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
 
 motor_install:
 	/usr/bin/install -c -m 755 $(MOTOR_NAME) $(MX_INSTALL_DIR)/bin 
-	$(MX_INSTALL_DIR)/bin/mx_mac_fix_exe_path \
+	$(MX_INSTALL_DIR)/bin/mx_mac_fix_lib_path \
 		$(MX_INSTALL_DIR)/bin/$(MOTOR_NAME) \
 		$(MX_LIBRARY_NAME) \
 		$(MX_INSTALL_DIR)/lib/$(MX_LIBRARY_NAME)
@@ -214,7 +214,7 @@ $(SERVER_NAME): $(SERVER_OBJS) $(MX_LIBRARY_PATH)
 
 server_install:
 	/usr/bin/install -c -m 755 $(SERVER_NAME) $(MX_INSTALL_DIR)/sbin 
-	$(MX_INSTALL_DIR)/bin/mx_mac_fix_exe_path \
+	$(MX_INSTALL_DIR)/bin/mx_mac_fix_lib_path \
 		$(MX_INSTALL_DIR)/sbin/$(SERVER_NAME) \
 		$(MX_LIBRARY_NAME) \
 		$(MX_INSTALL_DIR)/lib/$(MX_LIBRARY_NAME)
@@ -234,7 +234,7 @@ $(AUTOSAVE_NAME): $(AUTOSAVE_OBJS) $(MX_LIBRARY_PATH)
 
 autosave_install:
 	/usr/bin/install -c -m 755 $(AUTOSAVE_NAME) $(MX_INSTALL_DIR)/sbin 
-	$(MX_INSTALL_DIR)/bin/mx_mac_fix_exe_path \
+	$(MX_INSTALL_DIR)/bin/mx_mac_fix_lib_path \
 		$(MX_INSTALL_DIR)/sbin/$(AUTOSAVE_NAME) \
 		$(MX_LIBRARY_NAME) \
 		$(MX_INSTALL_DIR)/lib/$(MX_LIBRARY_NAME)
@@ -291,31 +291,31 @@ $(MXPUT_NAME): $(MXPUT_OBJS) $(MX_LIBRARY_PATH)
 
 util_install:
 	/usr/bin/install -c -m 755 $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
-	$(MX_INSTALL_DIR)/bin/mx_mac_fix_exe_path \
+	$(MX_INSTALL_DIR)/bin/mx_mac_fix_lib_path \
 		$(MX_INSTALL_DIR)/bin/$(MXDRIVERINFO_NAME) \
 		$(MX_LIBRARY_NAME) \
 		$(MX_INSTALL_DIR)/lib/$(MX_LIBRARY_NAME)
 
 	/usr/bin/install -c -m 755 $(MXMONITOR_NAME) $(MX_INSTALL_DIR)/bin
-	$(MX_INSTALL_DIR)/bin/mx_mac_fix_exe_path \
+	$(MX_INSTALL_DIR)/bin/mx_mac_fix_lib_path \
 		$(MX_INSTALL_DIR)/bin/$(MXMONITOR_NAME) \
 		$(MX_LIBRARY_NAME) \
 		$(MX_INSTALL_DIR)/lib/$(MX_LIBRARY_NAME)
 
 	/usr/bin/install -c -m 755 $(MXGET_NAME) $(MX_INSTALL_DIR)/bin
-	$(MX_INSTALL_DIR)/bin/mx_mac_fix_exe_path \
+	$(MX_INSTALL_DIR)/bin/mx_mac_fix_lib_path \
 		$(MX_INSTALL_DIR)/bin/$(MXGET_NAME) \
 		$(MX_LIBRARY_NAME) \
 		$(MX_INSTALL_DIR)/lib/$(MX_LIBRARY_NAME)
 
 	/usr/bin/install -c -m 755 $(MXPUT_NAME) $(MX_INSTALL_DIR)/bin
-	$(MX_INSTALL_DIR)/bin/mx_mac_fix_exe_path \
+	$(MX_INSTALL_DIR)/bin/mx_mac_fix_lib_path \
 		$(MX_INSTALL_DIR)/bin/$(MXPUT_NAME) \
 		$(MX_LIBRARY_NAME) \
 		$(MX_INSTALL_DIR)/lib/$(MX_LIBRARY_NAME)
 
 	/usr/bin/install -c -m 755 $(MXSERIAL_NAME) $(MX_INSTALL_DIR)/bin
-	$(MX_INSTALL_DIR)/bin/mx_mac_fix_exe_path \
+	$(MX_INSTALL_DIR)/bin/mx_mac_fix_lib_path \
 		$(MX_INSTALL_DIR)/bin/$(MXSERIAL_NAME) \
 		$(MX_LIBRARY_NAME) \
 		$(MX_INSTALL_DIR)/lib/$(MX_LIBRARY_NAME)

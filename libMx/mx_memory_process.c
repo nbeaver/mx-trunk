@@ -904,7 +904,7 @@ mx_get_process_meminfo( unsigned long process_id,
 
 /***************************************************************************/
 
-#elif defined(OS_MACOSX)
+#elif defined( OS_MACOSX )
 
 #include "mx_private_version.h"
 
@@ -921,26 +921,12 @@ mx_get_process_meminfo( unsigned long process_id,
  * #else case is present purely for the sake of 'make depend'.
  */
 
-#if defined( MX_DARWIN_VERSION ) && ( MX_DARWIN_VERSION >= 10000000L )
-
-/* FIXME: We must figure out how to get memory information on MacOS X.
+/* FIXME: We must figure out how to get memory information for versions
+ * of MacOS X newer than 10.5.
+ *
  * There are certain parts of MX (mostly area detector related) that 
  * assume that they can get real values from mx_get_process_meminfo().
  */
-
-MX_EXPORT mx_status_type
-mx_get_process_meminfo( unsigned long process_id,
-			MX_PROCESS_MEMINFO *meminfo )
-{
-	static const char fname[] = "mx_get_process_meminfo()";
-
-	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"Not yet implemented for MacOS X 10.6 and above." );
-}
-
-#elif defined( MX_DARWIN_VERSION ) && ( MX_DARWIN_VERSION < 10000000L )
-
-/* This is for older versions of Darwin. */
 
 #include <sys/sysctl.h>
 #include <mach/mach_port.h>
@@ -948,7 +934,9 @@ mx_get_process_meminfo( unsigned long process_id,
 #include <mach/mach_host.h>
 #include <mach/mach_traps.h>
 #include <mach/message.h>
+#if 0
 #include <mach/shared_memory_server.h>
+#endif
 #include <mach/task.h>
 #include <mach/task_info.h>
 #include <mach/vm_map.h>
@@ -970,10 +958,12 @@ mx_get_process_meminfo( unsigned long process_id,
 	mach_msg_type_number_t info_count;
 	kern_return_t kreturn;
 
+#if 0
 	vm_address_t vm_address;
 	vm_size_t vm_size;
 	vm_region_basic_info_data_64_t vm_basic_info;
 	mach_port_t vm_object_name;
+#endif
 
 	malloc_zone_t **malloc_zone_array, *zone;
 	unsigned int i, num_malloc_zones;
@@ -1042,6 +1032,7 @@ mx_get_process_meminfo( unsigned long process_id,
 
 	meminfo->resident_in_memory_bytes = basic_info.resident_size;
 
+#if 0
 	/************** Start of magical code ***************/
 
 	/* If this task has split libraries mapped in, then adjust its
@@ -1076,6 +1067,7 @@ mx_get_process_meminfo( unsigned long process_id,
 	}
 
 	/************** End of magical code ***************/
+#endif
 
 	meminfo->total_bytes = basic_info.virtual_size;
 
@@ -1138,12 +1130,6 @@ mx_get_process_meminfo( unsigned long process_id,
 
 	return MX_SUCCESSFUL_RESULT;
 }
-
-#else  /* MX_DARWIN_VERSION is not defined. */
-
-/* We do nothing in this block since it is only used by 'make depend'. */
-
-#endif /* MX_DARWIN_VERSION */
 
 /***************************************************************************/
 
@@ -1619,7 +1605,7 @@ mx_get_process_meminfo( unsigned long process_id,
 #include <sys/time.h>
 #include <sys/resource.h>
 
-#if (!defined( OS_BSD ))
+#if ( !defined(OS_BSD) )
 #include <malloc.h>
 #endif
 

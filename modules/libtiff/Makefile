@@ -115,7 +115,7 @@ ifeq ($(MX_ARCH),macosx-clang)
 
 libtiff.mxo: $(LIBTIFF_OBJS)
 	$(CC) -dynamiclib -Wl,-headerpad_max_install_names \
-		-o libtiff.mxo -install_name "$(PWD)/libtiff.mxo \
+		-o libtiff.mxo -install_name "$(PWD)/libtiff.mxo" \
 		$(LIBTIFF_OBJS) ../../libMx/libMx.dylib $(LIBTIFF_LIBRARY)
 
 endif
@@ -132,15 +132,29 @@ endif
 
 #--------------------------------------------------------------------------
 
+INSTALLED_MODULE_NAME=$(MX_INSTALL_DIR)/lib/modules/libtiff.mxo
+
 libtiff.$(OBJ): libtiff.c e_libtiff.h
 	$(COMPILE) $(CFLAGS) libtiff.c
 
 e_libtiff.$(OBJ): e_libtiff.c e_libtiff.h
 	$(COMPILE) $(CFLAGS) e_libtiff.c
 
+ifeq ($(MX_ARCH),macosx-clang)
+
 install: libtiff.mxo
 	-mkdir $(MX_INSTALL_DIR)/lib/modules
-	cp libtiff.mxo $(MX_INSTALL_DIR)/lib/modules
+	cp libtiff.mxo $(INSTALLED_MODULE_NAME)
+	/usr/bin/install_name_tool -id "$(INSTALLED_MODULE_NAME)" \
+				$(INSTALLED_MODULE_NAME)
+	mx_mac_fix_lib_path $(INSTALLED_MODULE_NAME) \
+			libMx.dylib $(MX_INSTALL_DIR)/lib/libMx.dylib
+else
+
+install: libtiff.mxo
+	-mkdir $(MX_INSTALL_DIR)/lib/modules
+	cp libtiff.mxo $(INSTALLED_MODULE_NAME)
+endif
 
 clean:
 	-$(RM) *.mxo *.o *.obj *.exp *.ilk *.lib *.pdb *.manifest
