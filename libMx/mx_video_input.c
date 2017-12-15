@@ -1738,6 +1738,31 @@ mx_video_input_get_frame( MX_RECORD *record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* If the frame number is (-1L), then the caller is asking for
+	 * the most recently acquired frame.
+	 */
+
+	if ( frame_number == (-1L) ) {
+		/* Find out the frame number of the most recently
+		 * acquired frame.
+		 */
+
+		mx_status = mx_video_input_get_last_frame_number( record,
+								&frame_number );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* If the frame number is _still_ (-1L), then no frames
+		 * have been captured yet by the video input device.
+		 */
+
+		if ( frame_number == (-1L) ) {
+			return mx_error( MXE_TRY_AGAIN, fname,
+			"No frames have been captured yet by video input '%s'.",
+				record->name );
+		}
+	}
+
 	/* Now get the actual frame. */
 
 	vinput->frame_number = frame_number;

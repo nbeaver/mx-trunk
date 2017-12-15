@@ -359,7 +359,7 @@ mx_array_get_num_elements( void *mx_array,
 {
 	static const char fname[] = "mx_array_get_num_elements()";
 
-	unsigned long *header;
+	MX_ARRAY_HEADER_WORD_TYPE *header;
 	unsigned long array_magic;
 	unsigned long total_num_elements;
 	unsigned long i, num_dimensions;
@@ -377,10 +377,14 @@ mx_array_get_num_elements( void *mx_array,
 	 * at the same level as the header.
 	 */
 
-	header = (unsigned long *) mx_array;
+	header = (MX_ARRAY_HEADER_WORD_TYPE *) mx_array;
 
 	/* There is no 1000% absolutely safe way of knowing whether or not
-	 * an array pointer was created by mx_allocate_array() and friends.
+	 * an array pointer was created by mx_allocate_array() and friends,
+	 * unless we are willing to perform extremely slow operations like
+	 * mx_vm_get_protection(), which in turn calls things like
+	 * VirtualQuery on Windows, reads /proc/self/maps on Linux, etc.
+	 *
 	 * If this _is_ an MX array, then mx_array[-1] should have the MX
 	 * array magic number.  If it is not, then you should either get an
 	 * error due to the next line or you will get a segmentation fault.
@@ -398,8 +402,9 @@ mx_array_get_num_elements( void *mx_array,
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"The pointer %p does not point at an MX-style array.",
-			mx_array );
+			"The pointer %p does not point at an MX-style array.  "
+			"The array header magic has the invalid value %#lx.",
+			mx_array, array_magic );
 		break;
 	}
 
