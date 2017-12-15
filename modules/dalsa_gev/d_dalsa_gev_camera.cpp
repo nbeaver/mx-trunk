@@ -337,12 +337,13 @@ mxd_dalsa_gev_camera_image_wait_thread_fn( MX_THREAD *thread, void *args )
 	MX_RECORD *record;
 	MX_VIDEO_INPUT *vinput;
 	MX_DALSA_GEV_CAMERA *dalsa_gev_camera;
+	long mx_total_num_frames;
 	unsigned long sleep_ms;
 	mx_bool_type image_available;
 	mx_status_type mx_status;
 
 	short gev_status;
-	GEV_BUFFER_OBJECT *gev_buffer_object;
+	GEV_BUFFER_OBJECT *gev_buffer_object = NULL;
 
 	if ( thread == (MX_THREAD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -387,7 +388,9 @@ mxd_dalsa_gev_camera_image_wait_thread_fn( MX_THREAD *thread, void *args )
 				dalsa_gev_camera->camera_handle,
 				&gev_buffer_object, sleep_ms );
 
+#if 0
 		MX_DEBUG(-2,("%s: gev_status = %d", fname, gev_status));
+#endif
 
 		switch( gev_status ) {
 		case GEVLIB_OK:
@@ -411,7 +414,26 @@ mxd_dalsa_gev_camera_image_wait_thread_fn( MX_THREAD *thread, void *args )
 		}
 
 		if ( image_available ) {
-			MX_DEBUG(-2,("%s: BOOYAH!", fname));
+		    if ( gev_buffer_object == (GEV_BUFFER_OBJECT *)NULL ) {
+			mx_warning("GEV_BUFFER_OBJECT returned was NULL.");
+		    } else {
+			switch( gev_buffer_object->status ) {
+			case GEV_FRAME_STATUS_RECVD:
+				mx_total_num_frames = mx_atomic_increment32(
+					&(dalsa_gev_camera->total_num_frames) );
+#if 1
+				MX_DEBUG(-2,("CAPTURE: Total num frames = %lu",
+					(unsigned long) mx_total_num_frames ));
+#endif
+				break;
+			default:
+				mx_warning(
+				"Gev buffer frame status for '%s' = %#lx",
+					dalsa_gev_camera->record->name,
+				    (unsigned long) gev_buffer_object->status );
+				break;
+			}
+		    }
 		}
 
 		mx_status = mx_thread_check_for_stop_request( thread );
@@ -906,6 +928,10 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 
 	frame_buffer_array = dalsa_gev_camera->frame_buffer_array;
 
+#if 1
+	mx_show_array_info( frame_buffer_array );
+#endif
+
 	mx_status = mx_array_get_num_bytes( frame_buffer_array,
 						&num_bytes_in_array );
 
@@ -992,6 +1018,7 @@ mxd_dalsa_gev_camera_trigger( MX_VIDEO_INPUT *vinput )
 	static const char fname[] = "mxd_dalsa_gev_camera_trigger()";
 
 	MX_DALSA_GEV_CAMERA *dalsa_gev_camera = NULL;
+	MX_SEQUENCE_PARAMETERS *sp = NULL;
 	UINT32 num_frames_to_acquire;
 	GEV_STATUS gev_status;
 	mx_status_type mx_status;
@@ -1002,9 +1029,25 @@ mxd_dalsa_gev_camera_trigger( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Currently we set the camera to take only one frame. */
+	sp = &(vinput->sequence_parameters);
 
-	num_frames_to_acquire = 1;
+	switch( sp->sequence_type ) {
+	case MXT_SQ_ONE_SHOT:
+		num_frames_to_acquire = 1;
+		break;
+	case MXT_SQ_STREAM:
+		num_frames_to_acquire = -1;
+		break;
+	case MXT_SQ_MULTIFRAME:
+	case MXT_SQ_DURATION:
+		num_frames_to_acquire = sp->parameter_array[0];
+		break;
+	default:
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Sequence type %ld has not yet been implemented for '%s'.",
+			sp->sequence_type, vinput->record->name );
+		break;
+	}
 
 	gev_status = GevStartImageTransfer( dalsa_gev_camera->camera_handle,
 						num_frames_to_acquire );
@@ -1117,14 +1160,44 @@ mxd_dalsa_gev_camera_get_frame( MX_VIDEO_INPUT *vinput )
 {
 	static const char fname[] = "mxd_dalsa_gev_camera_get_frame()";
 
-	MX_DALSA_GEV_CAMERA *dalsa_gev = NULL;
+	MX_DALSA_GEV_CAMERA *dalsa_gev_camera = NULL;
+	void *mx_data_address = NULL;
+	void *dalsa_gev_data_address = NULL;
+	unsigned long i;
 	mx_status_type mx_status;
 
 	mx_status = mxd_dalsa_gev_camera_get_pointers( vinput,
-					&dalsa_gev, NULL, fname );
+					&dalsa_gev_camera, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	if ( vinput->frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_NOT_READY, fname,
+		"No image frames have been acquired yet for camera '%s'.",
+			vinput->record->name );
+	}
+
+	/* Find the MX video input record's image data buffer. */
+
+	mx_data_address = vinput->frame->image_data;
+
+	if ( mx_data_address == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX data address for the primary image frame buffer "
+		"for camera '%s' is NULL.", vinput->record->name );
+	}
+
+	/* Find the DALSA GeV image data buffer for the requested image. */
+
+	i = vinput->frame_number;
+
+	dalsa_gev_data_address = dalsa_gev_camera->frame_buffer_array[i];
+
+	/* Now copy the image data from DALSA to the MX frame buffer. */
+
+	memcpy( mx_data_address, dalsa_gev_data_address,
+			vinput->frame->image_length );
 
 	/*----*/
 
