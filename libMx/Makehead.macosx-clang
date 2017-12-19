@@ -199,7 +199,6 @@ motor_install:
 	/usr/bin/install -c -m 755 $(MOTOR_NAME) $(MX_INSTALL_DIR)/bin 
 	$(MX_INSTALL_DIR)/bin/mx_mac_fix_lib_path \
 		$(MX_INSTALL_DIR)/bin/$(MOTOR_NAME) \
-		$(MX_LIBRARY_NAME) \
 		$(MX_INSTALL_DIR)/lib/$(MX_LIBRARY_NAME)
 	/usr/bin/install -c -m 755 $(MOTOR_NAME2) $(MX_INSTALL_DIR)/bin 
 
@@ -216,7 +215,6 @@ server_install:
 	/usr/bin/install -c -m 755 $(SERVER_NAME) $(MX_INSTALL_DIR)/sbin 
 	$(MX_INSTALL_DIR)/bin/mx_mac_fix_lib_path \
 		$(MX_INSTALL_DIR)/sbin/$(SERVER_NAME) \
-		$(MX_LIBRARY_NAME) \
 		$(MX_INSTALL_DIR)/lib/$(MX_LIBRARY_NAME)
 	/usr/bin/install -c -m 755 ../scripts/startmxserver $(MX_INSTALL_DIR)/sbin 
 	/usr/bin/install -c -m 755 ../scripts/mx $(MX_INSTALL_DIR)/sbin 
@@ -236,7 +234,6 @@ autosave_install:
 	/usr/bin/install -c -m 755 $(AUTOSAVE_NAME) $(MX_INSTALL_DIR)/sbin 
 	$(MX_INSTALL_DIR)/bin/mx_mac_fix_lib_path \
 		$(MX_INSTALL_DIR)/sbin/$(AUTOSAVE_NAME) \
-		$(MX_LIBRARY_NAME) \
 		$(MX_INSTALL_DIR)/lib/$(MX_LIBRARY_NAME)
 	/usr/bin/install -c -m 755 ../scripts/startmxautosave $(MX_INSTALL_DIR)/sbin 
 	/usr/bin/install -c -m 755 ../scripts/mxsave $(MX_INSTALL_DIR)/bin 
@@ -293,30 +290,25 @@ util_install:
 	/usr/bin/install -c -m 755 $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
 	$(MX_INSTALL_DIR)/bin/mx_mac_fix_lib_path \
 		$(MX_INSTALL_DIR)/bin/$(MXDRIVERINFO_NAME) \
-		$(MX_LIBRARY_NAME) \
 		$(MX_INSTALL_DIR)/lib/$(MX_LIBRARY_NAME)
 
 	/usr/bin/install -c -m 755 $(MXMONITOR_NAME) $(MX_INSTALL_DIR)/bin
 	$(MX_INSTALL_DIR)/bin/mx_mac_fix_lib_path \
 		$(MX_INSTALL_DIR)/bin/$(MXMONITOR_NAME) \
-		$(MX_LIBRARY_NAME) \
 		$(MX_INSTALL_DIR)/lib/$(MX_LIBRARY_NAME)
 
 	/usr/bin/install -c -m 755 $(MXGET_NAME) $(MX_INSTALL_DIR)/bin
 	$(MX_INSTALL_DIR)/bin/mx_mac_fix_lib_path \
 		$(MX_INSTALL_DIR)/bin/$(MXGET_NAME) \
-		$(MX_LIBRARY_NAME) \
 		$(MX_INSTALL_DIR)/lib/$(MX_LIBRARY_NAME)
 
 	/usr/bin/install -c -m 755 $(MXPUT_NAME) $(MX_INSTALL_DIR)/bin
 	$(MX_INSTALL_DIR)/bin/mx_mac_fix_lib_path \
 		$(MX_INSTALL_DIR)/bin/$(MXPUT_NAME) \
-		$(MX_LIBRARY_NAME) \
 		$(MX_INSTALL_DIR)/lib/$(MX_LIBRARY_NAME)
 
 	/usr/bin/install -c -m 755 $(MXSERIAL_NAME) $(MX_INSTALL_DIR)/bin
 	$(MX_INSTALL_DIR)/bin/mx_mac_fix_lib_path \
 		$(MX_INSTALL_DIR)/bin/$(MXSERIAL_NAME) \
-		$(MX_LIBRARY_NAME) \
 		$(MX_INSTALL_DIR)/lib/$(MX_LIBRARY_NAME)
 

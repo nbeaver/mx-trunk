@@ -148,7 +148,7 @@ install: libtiff.mxo
 	/usr/bin/install_name_tool -id "$(INSTALLED_MODULE_NAME)" \
 				$(INSTALLED_MODULE_NAME)
 	mx_mac_fix_lib_path $(INSTALLED_MODULE_NAME) \
-			libMx.dylib $(MX_INSTALL_DIR)/lib/libMx.dylib
+			$(MX_INSTALL_DIR)/lib/libMx.dylib
 else
 
 install: libtiff.mxo
