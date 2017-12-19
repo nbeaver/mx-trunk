@@ -62,6 +62,18 @@ endif
 
 #--------------------------------------------------------------------------
 
+# MacOS X (with Clang)
+
+ifeq ($(MX_ARCH),macosx-clang)
+
+epics_aps.mxo: $(EPICS_APS_OBJS)
+	clang -dynamiclib -o epics_aps.mxo \
+		$(EPICS_APS_OBJS) ../../libMx/libMx.dylib ../epics/epics.mxo \
+		$(EPICS_LIB_DIRS) $(EPICS_LIBRARIES)
+endif
+
+#--------------------------------------------------------------------------
+
 # Solaris
 
 ifeq ($(MX_ARCH),solaris)
@@ -122,9 +134,27 @@ v_aps_topup.$(OBJ): v_aps_topup.c
 
 #--------------------------------------------------------------------------
 
+INSTALLED_MODULE_NAME=$(MX_INSTALL_DIR)/lib/modules/epics_aps.mxo
+
+ifeq ($(MX_ARCH),macosx-clang)
+
 install: epics_aps.mxo
 	-mkdir $(MX_INSTALL_DIR)/lib/modules
-	cp epics_aps.mxo $(MX_INSTALL_DIR)/lib/modules
+	cp epics_aps.mxo $(INSTALLED_MODULE_NAME)
+	/usr/bin/install_name_tool -id "$(INSTALLED_MODULE_NAME)" \
+				$(INSTALLED_MODULE_NAME)
+	mx_mac_fix_lib_path $(INSTALLED_MODULE_NAME) \
+			$(MX_INSTALL_DIR)/lib/libMx.dylib
+	mx_mac_fix_lib_path $(INSTALLED_MODULE_NAME) \
+			$(MX_INSTALL_DIR)/lib/modules/epics.mxo
+
+else
+
+install: epics_aps.mxo
+	-mkdir $(MX_INSTALL_DIR)/lib/modules
+	cp epics_aps.mxo $(INSTALLED_MODULE_NAME)
+
+endif
 
 clean:
 	-$(RM) *.mxo *.o *.obj *.exp *.ilk *.lib *.pdb *.manifest

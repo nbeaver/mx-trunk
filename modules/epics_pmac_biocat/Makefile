@@ -73,6 +73,18 @@ endif
 
 #--------------------------------------------------------------------------
 
+# MacOS X (with Clang)
+
+ifeq ($(MX_ARCH),macosx-clang)
+
+epics_pmac_biocat.mxo: $(EPICS_TC_OBJS)
+	clang -dynamiclib -o epics_pmac_biocat.mxo \
+		$(EPICS_TC_OBJS) ../../libMx/libMx.dylib ../epics/epics.mxo \
+		$(EPICS_LIB_DIRS) $(EPICS_LIBRARIES)
+endif
+
+#--------------------------------------------------------------------------
+
 # Solaris
 
 ifeq ($(MX_ARCH),solaris)
@@ -124,9 +136,27 @@ d_epics_pmac_biocat.$(OBJ): d_epics_pmac_biocat.c d_epics_pmac_biocat.h
 
 #--------------------------------------------------------------------------
 
+INSTALLED_MODULE_NAME=$(MX_INSTALL_DIR)/lib/modules/epics_pmac_biocat.mxo
+
+ifeq ($(MX_ARCH),macosx-clang)
+
 install: epics_pmac_biocat.mxo
 	-mkdir $(MX_INSTALL_DIR)/lib/modules
-	cp epics_pmac_biocat.mxo $(MX_INSTALL_DIR)/lib/modules
+	cp epics_pmac_biocat.mxo $(INSTALLED_MODULE_NAME)
+	/usr/bin/install_name_tool -id "$(INSTALLED_MODULE_NAME)" \
+				$(INSTALLED_MODULE_NAME)
+	mx_mac_fix_lib_path $(INSTALLED_MODULE_NAME) \
+			$(MX_INSTALL_DIR)/lib/libMx.dylib
+	mx_mac_fix_lib_path $(INSTALLED_MODULE_NAME) \
+			$(MX_INSTALL_DIR)/lib/modules/epics.mxo
+
+else
+
+install: epics_pmac_biocat.mxo
+	-mkdir $(MX_INSTALL_DIR)/lib/modules
+	cp epics_pmac_biocat.mxo $(INSTALLED_MODULE_NAME)
+
+endif
 
 clean:
 	-$(RM) *.mxo *.o *.obj *.exp *.ilk *.lib *.pdb *.manifest

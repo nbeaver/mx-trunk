@@ -76,6 +76,18 @@ endif
 
 #--------------------------------------------------------------------------
 
+# MacOS X (with Clang)
+
+ifeq ($(MX_ARCH),macosx-clang)
+
+epics.mxo: $(EPICS_OBJS)
+	clang -dynamiclib -o epics.mxo \
+		$(EPICS_OBJS) ../../libMx/libMx.dylib \
+		$(EPICS_LIB_DIRS) $(EPICS_LIBRARIES)
+endif
+
+#--------------------------------------------------------------------------
+
 # Solaris
 
 ifeq ($(MX_ARCH),solaris)
@@ -172,9 +184,25 @@ mx_vepics.$(OBJ): mx_vepics.c
 
 #--------------------------------------------------------------------------
 
+INSTALLED_MODULE_NAME=$(MX_INSTALL_DIR)/lib/modules/epics.mxo
+
+ifeq ($(MX_ARCH),macosx-clang)
+
 install: epics.mxo
 	-mkdir $(MX_INSTALL_DIR)/lib/modules
-	cp epics.mxo $(MX_INSTALL_DIR)/lib/modules
+	cp epics.mxo $(INSTALLED_MODULE_NAME)
+	/usr/bin/install_name_tool -id "(INSTALLED_MODULE_NAME)" \
+				$(INSTALLED_MODULE_NAME)
+	mx_mac_fix_lib_path $(INSTALLED_MODULE_NAME) \
+			$(MX_INSTALL_DIR)/lib/libMx.dylib
+
+else
+
+install: epics.mxo
+	-mkdir $(MX_INSTALL_DIR)/lib/modules
+	cp epics.mxo $(INSTALLED_MODULE_NAME)
+
+endif
 
 clean:
 	-$(RM) *.mxo *.o *.obj *.exp *.ilk *.lib *.pdb *.manifest
