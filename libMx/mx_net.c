@@ -2054,7 +2054,7 @@ mx_network_buffer_show_value( void *buffer,
 				int32_t int32_value;
 
 				int32_value = 
-				    (0xffffffff & ((long *) raw_buffer)[i]);
+				    (0xffffffff & ((int32_t *) raw_buffer)[i]);
 
 				fprintf( stderr, "%ld ", (long) int32_value );
 			    }
@@ -2070,10 +2070,24 @@ mx_network_buffer_show_value( void *buffer,
 					((uint64_t *) raw_buffer)[i] );
 			    }
 			} else {
+#if ( MX_WORDSIZE == 32 )
 			    for ( i = 0; i < max_display_values; i++ ) {
 				fprintf( stderr, "%lu ",
 			    (0xffffffff & ((unsigned long *) raw_buffer)[i]) );
 			    }
+#elif ( MX_WORDSIZE == 64 )
+			    for ( i = 0; i < max_display_values; i++ ) {
+				uint32_t uint32_value;
+
+				uint32_value = 
+				    (0xffffffff & ((uint32_t *) raw_buffer)[i]);
+
+				fprintf( stderr, "%lu ",
+					(unsigned long) uint32_value );
+			    }
+#else
+#  error Unsupported MX_WORDSIZE value.
+#endif
 			}
 			break;
 		case MXFT_FLOAT:
@@ -2104,10 +2118,24 @@ mx_network_buffer_show_value( void *buffer,
 				fprintf( stderr, "%#" PRIx64 " ", hex_value );
 			    }
 			} else {
+#if ( MX_WORDSIZE == 32 )
 			    for ( i = 0; i < max_display_values; i++ ) {
 				fprintf( stderr, "%#lx ",
 			    (0xffffffff & ((unsigned long *) raw_buffer)[i]) );
 			    }
+#elif ( MX_WORDSIZE == 64 )
+			    for ( i = 0; i < max_display_values; i++ ) {
+				uint32_t uint32_value;
+
+				uint32_value = 
+				    (0xffffffff & ((uint32_t *) raw_buffer)[i]);
+
+				fprintf( stderr, "%#lx ",
+					(unsigned long) uint32_value );
+			    }
+#else
+#  error Unsupported MX_WORDSIZE value.
+#endif
 			}
 			break;
 		case MXFT_INT64:
