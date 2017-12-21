@@ -7,12 +7,14 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2009, 2011, 2013, 2015-2016 Illinois Institute of Technology
+ * Copyright 1999-2009, 2011, 2013, 2015-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define MX_SCAN_MCA_DEBUG_GET_DIRECTORY_AND_FILENAME	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,12 +23,14 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include "mx_osdef.h"
 #include "mx_util.h"
 #include "mx_unistd.h"
 #include "mx_key.h"
 #include "mx_driver.h"
 #include "mx_record.h"
 #include "mx_scan.h"
+#include "mx_cfn.h"
 #include "mx_image.h"
 #include "mx_area_detector.h"
 #include "mx_mca.h"
@@ -37,31 +41,33 @@
 #define NUMBER_STRING_LENGTH	40
 
 MX_EXPORT mx_status_type
-mx_scan_get_subdirectory_and_filename( MX_SCAN *scan,
+mx_scan_get_directory_and_filename( MX_SCAN *scan,
 				MX_RECORD *input_device,
 				long input_device_class,
-				char *subdirectory_name,
+				char *directory_name,
 				size_t max_dirname_length,
 				char *filename,
 				size_t max_filename_length )
 {
-	static const char fname[] = "mx_scan_get_subdirectory_and_filename()";
+	static const char fname[] = "mx_scan_get_directory_and_filename()";
 
 	MX_AREA_DETECTOR *ad;
 	char format_name[ MXU_IMAGE_FORMAT_NAME_LENGTH + 1 ];
-	char *datafile_filename = NULL;
+	char canonical_pathname_copy[ MXU_FILENAME_LENGTH + 1 ];
+	char current_directory_name[ MXU_FILENAME_LENGTH + 1 ];
+	char *datafile_pathname = NULL;
+	char *datafile_dirname_ptr = NULL;
+	char *datafile_filename_ptr = NULL;
+	char *separator_ptr = NULL;
 	char *extension_ptr = NULL;
 	long *number_ptr = NULL;
 	long measurement_number;
-	mx_bool_type use_subdirectory;
+	mx_bool_type datafile_dirname_is_absolute_pathname;
 	int i, c;
-	char number_string[NUMBER_STRING_LENGTH+1];
+	char datafile_basename[ MXU_FILENAME_LENGTH + 1 ];
+	char suffix_string[NUMBER_STRING_LENGTH+1];
 	ptrdiff_t basename_length;
 	mx_status_type mx_status;
-
-	mx_breakpoint();
-
-	use_subdirectory = TRUE;
 
 	if ( input_device != NULL ) {
 		input_device_class = input_device->mx_class;
@@ -75,21 +81,72 @@ mx_scan_get_subdirectory_and_filename( MX_SCAN *scan,
 
 	measurement_number = *number_ptr;
 
-	snprintf( number_string, sizeof(number_string),
-			"%03ld", measurement_number );
+	/* Get the current directory name, since we may need it later. */
 
-	/* Construct the name of the scan subdirectory based on the scan
-	 * datafile name.
-	 */
+	mx_status = mx_get_current_directory_name( current_directory_name,
+					sizeof(current_directory_name) );
 
-	mx_status = mx_scan_get_pointer_to_datafile_filename(
-						scan, &datafile_filename );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Get a pointer to the datafile pathname. */
+
+	mx_status = mx_scan_get_pointer_to_datafile_pathname(
+						scan, &datafile_pathname );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		return mx_status;
 	}
 
-	extension_ptr = strrchr( datafile_filename, '.' );
+	/* Canonicalize a local copy of the datafile pathname. */
+
+	mx_status = mx_canonicalize_filename( datafile_pathname,
+					canonical_pathname_copy,
+					sizeof(canonical_pathname_copy) );
+
+#if MX_SCAN_MCA_DEBUG_GET_DIRECTORY_AND_FILENAME
+	MX_DEBUG(-2,("%s: datafile_pathname = '%s'", fname, datafile_pathname));
+	MX_DEBUG(-2,("%s: canonical_pathname_copy = '%s'",
+			fname, canonical_pathname_copy ));
+#endif
+
+	/* Split the canonical filename into the directory name and
+	 * the filename.
+	 */
+
+#if defined(OS_WIN32) || defined(OS_MSDOS)
+	separator_ptr = strrchr( canonical_pathname_copy, '\\' );
+
+	if ( separator_ptr == NULL ) {
+		separator_ptr = strrchr( canonical_pathname_copy, '/' );
+	}
+#else
+	separator_ptr = strrchr( canonical_pathname_copy, '/' );
+#endif
+
+	if ( separator_ptr == NULL ) {
+		datafile_dirname_ptr = NULL;
+		datafile_filename_ptr = canonical_pathname_copy;
+	} else {
+		*separator_ptr = '\0';
+		datafile_dirname_ptr = canonical_pathname_copy;
+		datafile_filename_ptr = separator_ptr + 1;
+	}
+
+	/* Is the directory name an absolute pathname? */
+
+	if ( datafile_dirname_ptr == NULL ) {
+		datafile_dirname_is_absolute_pathname = FALSE;
+	} else {
+		datafile_dirname_is_absolute_pathname =
+			mx_is_absolute_filename( datafile_dirname_ptr );
+	}
+
+	/* Construct the name of the scan subdirectory based on the scan
+	 * datafile name.
+	 */
+
+	extension_ptr = strrchr( datafile_filename_ptr, '.' );
 
 	if ( extension_ptr == NULL ) {
 
@@ -97,54 +154,85 @@ mx_scan_get_subdirectory_and_filename( MX_SCAN *scan,
 		 * append the measurement number.
 		 */
 
-		if ( use_subdirectory ) {
-			switch( input_device_class ) {
-			case MXC_MULTICHANNEL_ANALYZER:
-				snprintf( subdirectory_name, max_dirname_length,
-					"%s_mca", datafile_filename );
-				break;
-			case MXC_AREA_DETECTOR:
-				snprintf( subdirectory_name, max_dirname_length,
-					"%s_ad", datafile_filename );
-				break;
-			default:
-				snprintf( subdirectory_name, max_dirname_length,
-					"%s_dev", datafile_filename );
-				break;
-			}
+		basename_length = sizeof(datafile_basename);
+
+		switch( input_device_class ) {
+		case MXC_MULTICHANNEL_ANALYZER:
+			strlcpy( suffix_string, "mca",
+					sizeof(suffix_string) );
+			break;
+		case MXC_AREA_DETECTOR:
+			strlcpy( suffix_string, "ad",
+					sizeof(suffix_string) );
+			break;
+		default:
+			strlcpy( suffix_string, "dev",
+					sizeof(suffix_string) );
+			break;
 		}
-
-		strlcpy( filename, datafile_filename, max_filename_length );
 	} else {
-		basename_length = extension_ptr - datafile_filename + 1;
+		basename_length = extension_ptr - datafile_filename_ptr + 1;
 
-		if ( basename_length > max_filename_length ) {
+		if ( basename_length > sizeof(datafile_basename) ) {
 			return mx_error( MXE_FUNCTION_FAILED, fname,
 "basename_length '%ld' is greater than the maximum length '%ld'.  "
 "This shouldn't be possible, so this is a bug if you see this message.",
 				(long) basename_length,
-				(long) max_filename_length );
+				(long) sizeof(datafile_basename) );
 		}
 
-		strlcpy( filename, datafile_filename, basename_length );
+		strlcpy( suffix_string, extension_ptr + 1,
+				sizeof(suffix_string) );
+	}
 
-		strlcat( filename, "_", max_filename_length );
+	strlcpy( datafile_basename, datafile_filename_ptr, basename_length );
 
-		extension_ptr++;
+#if MX_SCAN_MCA_DEBUG_GET_DIRECTORY_AND_FILENAME
+	if ( datafile_dirname_ptr == NULL ) {
+		MX_DEBUG(-2,("%s: datafile_dirname_ptr = %p",
+		fname, datafile_dirname_ptr));
+	} else {
+		MX_DEBUG(-2,("%s: datafile_dirname_ptr = '%s'",
+		fname, datafile_dirname_ptr));
+	}
+	MX_DEBUG(-2,("%s: datafile_filename_ptr = '%s'",
+		fname, datafile_filename_ptr));
+	MX_DEBUG(-2,("%s: datafile_basename = '%s'",
+		fname, datafile_basename));
+	MX_DEBUG(-2,("%s: suffix_string = '%s'",
+		fname, suffix_string));
+#endif
 
-		strlcat( filename, extension_ptr, max_filename_length );
-
-		if ( use_subdirectory ) {
-			strlcpy( subdirectory_name, filename,
-					max_dirname_length );
+	if ( datafile_dirname_is_absolute_pathname ) {
+		snprintf( directory_name, max_dirname_length,
+		    "%s/%s_%s",
+			datafile_dirname_ptr,
+			datafile_basename,
+			suffix_string );
+	} else {
+		if ( datafile_dirname_ptr == NULL ) {
+			snprintf( directory_name, max_dirname_length,
+			"%s/%s_%s", 
+			    current_directory_name,
+			    datafile_basename,
+			    suffix_string );
+		} else {
+			snprintf( directory_name, max_dirname_length,
+			"%s/%s/%s_%s",
+			    current_directory_name,
+			    datafile_dirname_ptr,
+			    datafile_basename,
+			    suffix_string );
 		}
 	}
 
-	if ( input_device_class != MXC_AREA_DETECTOR ) {
-		strlcat( filename, ".", max_filename_length );
-
-		strlcat( filename, number_string, max_filename_length );
-	} else {
+	switch( input_device_class ) {
+	case MXC_MULTICHANNEL_ANALYZER:
+		snprintf( filename, max_filename_length,
+			"%s.%03ld",
+			datafile_filename_ptr, measurement_number );
+		break;
+	case MXC_AREA_DETECTOR:
 		if ( input_device == (MX_RECORD *) NULL ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"For area detector measurements, a pointer to "
@@ -159,16 +247,6 @@ mx_scan_get_subdirectory_and_filename( MX_SCAN *scan,
 			"The MX_AREA_DETECTOR pointer for area detetor '%s' "
 			"is NULL.", input_device->name );
 		}
-
-		strlcat( filename, "_", max_filename_length );
-
-		strlcat( filename, input_device->name, max_filename_length );
-
-		strlcat( filename, "_", max_filename_length );
-
-		strlcat( filename, number_string, max_filename_length );
-
-		strlcat( filename, ".", max_filename_length );
 
 		if ( ad->datafile_save_format == 0 ) {
 			return mx_error( MXE_INITIALIZATION_ERROR, fname,
@@ -195,7 +273,22 @@ mx_scan_get_subdirectory_and_filename( MX_SCAN *scan,
 			}
 		}
 
-		strlcat( filename, format_name, max_filename_length );
+		snprintf( filename, max_filename_length, "%s_%s.%s",
+			datafile_filename_ptr,
+			input_device->name,
+			format_name );
+		break;
+	default:
+		if ( input_device != NULL ) {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Input device '%s' is not an MCA or area detector.",
+				input_device->name );
+		} else {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		    "Input device class (%ld) is not an MCA or area detector.",
+		    		input_device_class );
+		}
+		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -269,7 +362,7 @@ mx_scan_save_mca_measurements( MX_SCAN *scan, long num_mcas )
 	 * datafile name.
 	 */
 
-	mx_status = mx_scan_get_subdirectory_and_filename( scan,
+	mx_status = mx_scan_get_directory_and_filename( scan,
 						NULL,
 						MXC_MULTICHANNEL_ANALYZER,
 						mca_directory_name,
@@ -282,9 +375,11 @@ mx_scan_save_mca_measurements( MX_SCAN *scan, long num_mcas )
 		return mx_status;
 	}
 
+#if MX_SCAN_MCA_DEBUG_GET_DIRECTORY_AND_FILENAME
 	MX_DEBUG(-2,("%s: mca_directory_name = '%s'",
 		fname, mca_directory_name));
 	MX_DEBUG(-2,("%s: mca_filename = '%s'", fname, mca_filename));
+#endif
 
 	/* Open the MCA datafile. */
 
@@ -301,7 +396,9 @@ mx_scan_save_mca_measurements( MX_SCAN *scan, long num_mcas )
 		strlcpy( pathname, mca_filename, sizeof(pathname) );
 	}
 
+#if MX_SCAN_MCA_DEBUG_GET_DIRECTORY_AND_FILENAME
 	MX_DEBUG(-2,("%s: pathname = '%s'", fname, pathname ));
+#endif
 
 	savefile = fopen( pathname, "w" );
 
@@ -477,7 +574,7 @@ mx_scan_save_area_detector_image( MX_SCAN *scan,
 	 * the scan datafile name.
 	 */
 
-	mx_status = mx_scan_get_subdirectory_and_filename( scan,
+	mx_status = mx_scan_get_directory_and_filename( scan,
 						ad_record,
 						MXC_AREA_DETECTOR,
 						image_directory_name,

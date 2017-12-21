@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2010, 2013, 2016 Illinois Institute of Technology
+ * Copyright 1999-2010, 2013, 2016-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -211,13 +211,13 @@ MX_API mx_status_type mx_scan_get_pointer_to_measurement_number( MX_SCAN *scan,
 
 MX_API mx_status_type mx_scan_increment_measurement_number( MX_SCAN *scan );
 
-MX_API mx_status_type mx_scan_get_pointer_to_datafile_filename( MX_SCAN *scan,
+MX_API mx_status_type mx_scan_get_pointer_to_datafile_pathname( MX_SCAN *scan,
 								char **ptr );
 
-MX_API mx_status_type mx_scan_get_subdirectory_and_filename( MX_SCAN *scan,
+MX_API mx_status_type mx_scan_get_directory_and_filename( MX_SCAN *scan,
 					MX_RECORD *input_device,
 					long input_device_class,
-					char *subdirectory_name,
+					char *directory_name,
 					size_t max_dirname_length,
 					char *filename,
 					size_t max_filename_length );

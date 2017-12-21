@@ -3072,10 +3072,10 @@ mx_scan_increment_measurement_number( MX_SCAN *scan )
 }
 
 MX_EXPORT mx_status_type
-mx_scan_get_pointer_to_datafile_filename( MX_SCAN *scan, char **ptr )
+mx_scan_get_pointer_to_datafile_pathname( MX_SCAN *scan, char **ptr )
 {
 	static const char fname[] =
-		"mx_scan_get_pointer_to_datafile_filename()";
+		"mx_scan_get_pointer_to_datafile_pathname()";
 
 	MX_SCAN *parent_scan;
 	mx_status_type mx_status;

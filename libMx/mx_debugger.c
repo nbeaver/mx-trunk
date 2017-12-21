@@ -127,11 +127,11 @@ mx_breakpoint( void )
 MX_EXPORT void
 mx_breakpoint( void )
 {
-	MX_DEBUG(-2,("mxp_debugger_started = %d", mxp_debugger_started));
-
 	if ( mxp_debugger_started ) {
 		__asm__("int3");
 	} else {
+		mxp_debugger_started = TRUE;
+
 		mx_start_debugger(NULL);
 	}
 }
