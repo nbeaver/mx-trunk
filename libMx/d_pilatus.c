@@ -34,6 +34,7 @@
 #include "mx_hrt.h"
 #include "mx_process.h"
 #include "mx_inttypes.h"
+#include "mx_bit.h"
 #include "mx_image.h"
 #include "mx_area_detector.h"
 #include "d_pilatus.h"
@@ -333,6 +334,9 @@ mxd_pilatus_open( MX_RECORD *record )
 				"detector '%s'.",
 					line_ptr, pilatus->record->name );
 			}
+
+			ad->maximum_framesize[0] = ad->framesize[0];
+			ad->maximum_framesize[1] = ad->framesize[1];
 		}
 
 		if ( buffer_ptr == NULL ) {
@@ -356,6 +360,9 @@ mxd_pilatus_open( MX_RECORD *record )
 
 	framesize_field->flags |= MXFF_READ_ONLY;
 
+	ad->binsize[0] = 1;
+	ad->binsize[1] = 1;
+
 	/* Set generic area detector parameters. */
 
 	ad->maximum_frame_number = 0;
@@ -369,7 +376,7 @@ mxd_pilatus_open( MX_RECORD *record )
 	ad->bytes_per_frame =
 	  mx_round( ad->bytes_per_pixel * ad->framesize[0] * ad->framesize[1] );
 
-	ad->image_format = MXT_IMAGE_FORMAT_INT32;
+	ad->image_format = MXT_IMAGE_FORMAT_GREY32;
 
 	ad->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
 
@@ -380,6 +387,8 @@ mxd_pilatus_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	ad->byte_order = (long) mx_native_byteorder();
 
 	/* Initialize some Pilatus specific sequence parameters.
 	 *
