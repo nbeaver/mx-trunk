@@ -118,7 +118,7 @@ MX_API mx_status_type mxd_epics_mca_print_structure( FILE *file,
 							MX_RECORD *record );
 MX_API mx_status_type mxd_epics_mca_open( MX_RECORD *record );
 
-MX_API mx_status_type mxd_epics_mca_start( MX_MCA *mca );
+MX_API mx_status_type mxd_epics_mca_trigger( MX_MCA *mca );
 MX_API mx_status_type mxd_epics_mca_stop( MX_MCA *mca );
 MX_API mx_status_type mxd_epics_mca_read( MX_MCA *mca );
 MX_API mx_status_type mxd_epics_mca_clear( MX_MCA *mca );

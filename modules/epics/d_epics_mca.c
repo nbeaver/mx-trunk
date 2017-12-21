@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2003, 2006, 2008-2012, 2014-2015
+ * Copyright 2002-2003, 2006, 2008-2012, 2014-2015, 2017
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -42,7 +42,8 @@ MX_RECORD_FUNCTION_LIST mxd_epics_mca_record_function_list = {
 };
 
 MX_MCA_FUNCTION_LIST mxd_epics_mca_mca_function_list = {
-	mxd_epics_mca_start,
+	NULL,
+	mxd_epics_mca_trigger,
 	mxd_epics_mca_stop,
 	mxd_epics_mca_read,
 	mxd_epics_mca_clear,
@@ -702,9 +703,9 @@ mxd_epics_mca_open( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_epics_mca_start( MX_MCA *mca )
+mxd_epics_mca_trigger( MX_MCA *mca )
 {
-	static const char fname[] = "mxd_epics_mca_start()";
+	static const char fname[] = "mxd_epics_mca_trigger()";
 
 	MX_EPICS_MCA *epics_mca = NULL;
 	MX_EPICS_GROUP epics_group;
