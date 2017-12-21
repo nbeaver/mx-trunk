@@ -192,6 +192,8 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	ad_flags = ad->area_detector_flags;
+
 	ad->correction_flags = ad->initial_correction_flags & MXFT_AD_ALL;
 
 	ad->correction_measurement = NULL;
@@ -340,7 +342,11 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->shutter_record = NULL;
 	ad->last_shutter_name[0] = '\0';
 
-	ad->transfer_image_during_scan = TRUE;
+	if ( ad_flags & MXF_AD_SUPPRESS_SCAN_IMAGE_TRANSFER ) {
+		ad->transfer_image_during_scan = FALSE;
+	} else {
+		ad->transfer_image_during_scan = TRUE;
+	}
 
 	ad->image_log_file = NULL;
 	ad->image_log_filename[0] = '\0';
@@ -411,8 +417,6 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 
 	ad->measure_dark_current_correction_flags = 0x3;
 	ad->measure_flat_field_correction_flags  = 0x7;
-
-	ad_flags = ad->area_detector_flags;
 
 	if ( ad_flags & MXF_AD_GEOM_CORR_AFTER_FLAT_FIELD ) {
 		ad->geom_corr_after_flat_field = TRUE;

@@ -88,6 +88,17 @@ extern "C" {
 
 #define MXF_AD_DEZINGER_CORRECTION_FRAME           		0x8
 
+  /*
+   * If MXF_AD_SUPPRESS_SCAN_IMAGE_TRANSFER is set, then MX will initialize
+   * the 'transfer_image_during_scan' field to FALSE at startup time.  This
+   * will inhibit MX scans from saving area detector images locally if an
+   * area detector is listed as a scan 'input device'.  The user can change
+   * this at runtime by directly changing the 'transfer_image_during_scan'
+   * record field.
+   */
+
+#define MXF_AD_SUPPRESS_SCAN_IMAGE_TRANSFER			0x100
+
   /* If MXF_AD_SAVE_FRAME_AFTER_ACQUISITION is set and we are running in an
    * MX server, then the area detector datafile management routines will
    * automatically arrange to write the image frame data out to a file.
