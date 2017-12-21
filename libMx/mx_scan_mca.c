@@ -59,6 +59,8 @@ mx_scan_get_subdirectory_and_filename( MX_SCAN *scan,
 	ptrdiff_t basename_length;
 	mx_status_type mx_status;
 
+	mx_breakpoint();
+
 	use_subdirectory = TRUE;
 
 	if ( input_device != NULL ) {
@@ -216,6 +218,7 @@ mx_scan_save_mca_measurements( MX_SCAN *scan, long num_mcas )
 	unsigned long mca_data_value, max_current_num_channels;
 	char mca_filename[MXU_FILENAME_LENGTH + NUMBER_STRING_LENGTH + 1];
 	char mca_directory_name[MXU_FILENAME_LENGTH + NUMBER_STRING_LENGTH + 1];
+	char pathname[MXU_FILENAME_LENGTH + NUMBER_STRING_LENGTH + 1];
 	mx_bool_type use_subdirectory;
 	mx_status_type mx_status;
 
@@ -279,10 +282,13 @@ mx_scan_save_mca_measurements( MX_SCAN *scan, long num_mcas )
 		return mx_status;
 	}
 
+	MX_DEBUG(-2,("%s: mca_directory_name = '%s'",
+		fname, mca_directory_name));
+	MX_DEBUG(-2,("%s: mca_filename = '%s'", fname, mca_filename));
+
 	/* Open the MCA datafile. */
 
 	if ( use_subdirectory ) {
-		char pathname[MXU_FILENAME_LENGTH + NUMBER_STRING_LENGTH + 1];
 
 		mx_status = mx_verify_directory( mca_directory_name, TRUE );
 
@@ -291,11 +297,13 @@ mx_scan_save_mca_measurements( MX_SCAN *scan, long num_mcas )
 
 		snprintf( pathname, sizeof(pathname),
 			"%s/%s", mca_directory_name, mca_filename );
-
-		savefile = fopen( pathname, "w" );
 	} else {
-		savefile = fopen( mca_filename, "w" );
+		strlcpy( pathname, mca_filename, sizeof(pathname) );
 	}
+
+	MX_DEBUG(-2,("%s: pathname = '%s'", fname, pathname ));
+
+	savefile = fopen( pathname, "w" );
 
 	if ( savefile == NULL ) {
 		saved_errno = errno;
@@ -304,7 +312,7 @@ mx_scan_save_mca_measurements( MX_SCAN *scan, long num_mcas )
 
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 		"Could not open MCA datafile '%s'.  Reason = '%s'",
-			mca_filename, strerror(saved_errno) );
+			pathname, strerror(saved_errno) );
 	}
 
 	/* If requested, write an MCA file header. */
@@ -491,6 +499,12 @@ mx_scan_save_area_detector_image( MX_SCAN *scan,
 		strlcpy( image_pathname,
 			image_filename, sizeof(image_pathname) );
 	}
+
+	MX_DEBUG(-2,("%s: image_directory_name = '%s'",
+		fname, image_directory_name));
+	MX_DEBUG(-2,("%s: image_filename = '%s'", fname, image_filename));
+
+	MX_DEBUG(-2,("%s: image_pathname = '%s'", fname, image_pathname ));
 
 	/* Write the image to a file. */
 
