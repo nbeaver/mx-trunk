@@ -1296,6 +1296,8 @@ mx_clear_watchpoint( MX_WATCHPOINT *watchpoint ) {
 
 #elif defined(OS_LINUX)
 
+#  if ( defined(__i386__) || defined(__x86_64__) )
+
 #include <sys/types.h>
 #include <sys/ptrace.h>
 #include <sys/wait.h>
@@ -1664,6 +1666,33 @@ mx_clear_watchpoint( MX_WATCHPOINT *watchpoint )
 
 	return result;
 }
+
+#  elif 1
+
+MX_EXPORT int
+mx_set_watchpoint( MX_WATCHPOINT **watchpoint_ptr,
+		void *value_pointer,
+		long value_datatype,
+		unsigned long flags,
+		void *callback_function( MX_WATCHPOINT *, void * ),
+		void *callback_arguments )
+{
+	static const char fname[] = "mx_set_watchpoint()";
+
+	mx_error( MXE_UNSUPPORTED, fname,
+		"Watchpoints are not supported for this build target." );
+
+	return FALSE;
+}
+
+MX_EXPORT int
+mx_clear_watchpoint( MX_WATCHPOINT *watchpoint ) {
+	return TRUE;
+}
+
+#  else 
+#  error watchpoints are not defined for this Linux target.
+#  endif
 
 #elif defined(OS_MACOSX) || defined(OS_ANDROID) \
 	|| defined(OS_CYGWIN) || defined(OS_SOLARIS) || defined(OS_BSD) \
