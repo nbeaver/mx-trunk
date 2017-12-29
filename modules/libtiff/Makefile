@@ -1,5 +1,5 @@
 #
-# Supported values of MX_ARCH:   linux, win32
+# Supported values of MX_ARCH:   cygwin, linux, linux-clang, macosx-clang, win32
 #
 
 ifndef MX_ARCH
@@ -50,6 +50,13 @@ else ifeq ($(MX_ARCH),macosx-clang)
 
 LIBTIFF_INCLUDES = 
 LIBTIFF_LIBRARY = -ltiff
+
+#----
+
+else ifeq ($(MX_ARCH),minix)
+
+LIBTIFF_INCLUDES = 
+LIBTIFF_LIBRARY = -L/usr/pkg/lib -ltiff
 
 #----
 
@@ -127,6 +134,16 @@ ifeq ($(MX_ARCH),cygwin)
 libtiff.mxo: $(LIBTIFF_OBJS)
 	dllwrap -o libtiff.mxo \
 		$(LIBTIFF_OBJS) ../../libMx/libMx.dll.a $(LIBTIFF_LIBRARY)
+
+endif
+
+#--------------------------------------------------------------------------
+
+ifeq ($(MX_ARCH),minix)
+
+libtiff.mxo: $(LIBTIFF_OBJS)
+	$(CC) -shared -o libtiff.mxo $(LIBTIFF_OBJS) \
+		../../libMx/libMx.so $(LIBTIFF_LIBRARY)
 
 endif
 

@@ -140,7 +140,7 @@ $(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
 	-$(MX_LIBRARY_DELETE)
 	clang -shared -o $(MX_LIBRARY_NAME) \
 			$(LIB_DIRS) $(MX_LIB_OBJS) $(LIBRARIES)
-	ln -s $(MX_LIBRARY_NAME) libMx.so
+	ln -sf $(MX_LIBRARY_NAME) libMx.so
 	ar rc $(MX_LIBRARY_STATIC_NAME) $(MX_LIB_OBJS)
 	ranlib $(MX_LIBRARY_STATIC_NAME)
 
@@ -156,7 +156,7 @@ library_install:
 	-mkdir $(MX_INSTALL_DIR)/state
 	/usr/bin/install -c -m 644 mx*.h $(MX_INSTALL_DIR)/include 
 	/usr/bin/install -c -m 644 $(MX_LIBRARY_NAME) $(MX_INSTALL_DIR)/lib 
-	ln -s $(MX_LIBRARY_NAME) $(MX_INSTALL_DIR)/lib/libMx.so
+	ln -sf $(MX_LIBRARY_NAME) $(MX_INSTALL_DIR)/lib/libMx.so
 	/usr/bin/install -c -m 644 $(MX_LIBRARY_STATIC_NAME) $(MX_INSTALL_DIR)/lib 
 	touch $(MX_INSTALL_DIR)/etc/mxmotor.dat
 	touch $(MX_INSTALL_DIR)/etc/mxscan.dat
