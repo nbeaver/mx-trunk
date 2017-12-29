@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2009, 2011, 2013-2016 Illinois Institute of Technology
+ * Copyright 1999-2009, 2011, 2013-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1076,6 +1076,7 @@ mx_socket_close( MX_SOCKET *mx_socket )
 
 	case ENOTCONN:		/* The server has already disconnected. */
 	case EINVAL:
+	case EAGAIN:
 		/* Return now since there is nothing further we can do. */
 
 		mx_closesocket( socket_fd );

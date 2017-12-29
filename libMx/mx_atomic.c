@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2009, 2011-2012, 2014, 2016 Illinois Institute of Technology
+ * Copyright 2009, 2011-2012, 2014, 2016-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -330,7 +330,8 @@ mx_atomic_read32( int32_t *value_ptr )
 
 /*------------------------------------------------------------------------*/
 
-#elif defined(OS_SOLARIS) && ( MX_SOLARIS_VERSION >= 5010000L )
+#elif defined(OS_SOLARIS) && ( MX_SOLARIS_VERSION >= 5010000L ) \
+	|| defined(OS_MINIX)
 
 /* For Solaris 10 and above. */
 
@@ -562,9 +563,10 @@ mx_atomic_read32( int32_t *value_ptr )
 
 /*------------------------------------------------------------------------*/
 
-#elif defined(__GNUC__) && (MX_GNUC_VERSION >= 4001000L) && \
+#elif defined( MX_CLANG_VERSION) || \
+      ( defined(__GNUC__) && (MX_GNUC_VERSION >= 4001000L) && \
 	( defined(__i486__) || defined(__i586__) || \
-	  defined(__i686__) || defined(__MMX__) )
+	  defined(__i686__) || defined(__MMX__) ) )
 
 /* For GCC 4.1 and above.
  *

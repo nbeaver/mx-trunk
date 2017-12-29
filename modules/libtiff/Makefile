@@ -143,7 +143,7 @@ ifeq ($(MX_ARCH),minix)
 
 libtiff.mxo: $(LIBTIFF_OBJS)
 	$(CC) -shared -o libtiff.mxo $(LIBTIFF_OBJS) \
-		../../libMx/libMx.so $(LIBTIFF_LIBRARY)
+		-L../../libMx -lMx $(LIBTIFF_LIBRARY)
 
 endif
 
