@@ -1030,8 +1030,17 @@ mxp_win32_set_watchpoint_spectator( MX_THREAD *thread, void *args )
 
 	value_pointer = watchpoint->value_pointer;
 
-#if 1
-	/* FIXME: The following does not compile on Visual Studio 2017. */
+#if ( defined(_MSC_VER) && (_MSC_VER >=1900 ) )
+	/* For Visual Studio 2017 and above. */
+
+	switch( debug_reg_index ) {
+	case 0: parent_context.Dr0 = (DWORD64) value_pointer; break;
+	case 1: parent_context.Dr1 = (DWORD64) value_pointer; break;
+	case 2: parent_context.Dr2 = (DWORD64) value_pointer; break;
+	case 3: parent_context.Dr3 = (DWORD64) value_pointer; break;
+	}
+#else
+	/* Before Visual Studio 2017 */
 
 #if ( MX_WORDSIZE == 64 )
 	switch( debug_reg_index ) {
@@ -1048,6 +1057,7 @@ mxp_win32_set_watchpoint_spectator( MX_THREAD *thread, void *args )
 	case 3: parent_context.Dr3 = (DWORD) value_pointer; break;
 	}
 #endif
+
 #endif
 
 	/* Enable the matching local breakpoint. */
