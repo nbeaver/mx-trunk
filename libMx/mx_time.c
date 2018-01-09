@@ -9,7 +9,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2010, 2015-2017 Illinois Institute of Technology
+ * Copyright 2010, 2015-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -406,7 +406,12 @@ mx_ctime_tz_string( char *buffer, size_t buffer_length )
 	/* This format generates a string that looks like the string
 	 * generated with ctime(), but with timezone information as well.
 	 */
+
+#if ( defined( MX_GNUC_VERSION ) && ( MX_GNUC_VERSION < 3004000L ) )
+	static const char format[] = "%a %b %d %H:%M:%S %Y";
+#else
 	static const char format[] = "%c %Z";
+#endif
 
 	time_t now;
 	struct tm tm_struct;
