@@ -18,7 +18,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2017 Illinois Institute of Technology
+ * Copyright 1999-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -264,6 +264,7 @@ extern "C" {
 #define MXI_CTRL_WTI_NPS		465
 #define MXI_CTRL_DG645			466
 #define MXI_CTRL_AMPTEK_DP5		467
+#define MXI_CTRL_KEITHLEY2600		468
 
 #define MXI_PIO_PORTIO			600
 #define MXI_PIO_DOS			601
@@ -312,6 +313,7 @@ extern "C" {
 #define MXT_AIN_KEITHLEY2700		10026
 #define MXT_AIN_KEITHLEY2400		10027
 #define MXT_AIN_KEITHLEY2000		10028
+#define MXT_AIN_KEITHLEY2600		10029
 
 #define MXT_AIN_PICOMOTOR		10031
 #define MXT_AIN_TRACKER			10032
@@ -353,6 +355,7 @@ extern "C" {
 #define MXT_AOU_WAGO750_MODBUS		20015
 #define MXT_AOU_ISERIES			20016
 #define MXT_AOU_KEITHLEY2400		20017
+#define MXT_AOU_KEITHLEY2600		20018
 
 #define MXT_AOU_TRACKER			20020
 #define MXT_AOU_SR630			20021
@@ -392,6 +395,7 @@ extern "C" {
 #define MXT_DIN_SMARTMOTOR		30020
 #define MXT_DIN_MODBUS			30021
 #define MXT_DIN_ISERIES			30022
+#define MXT_DIN_KEITHLEY2600		30023
 
 #define MXT_DIN_PICOMOTOR		30026
 #define MXT_DIN_TRACKER			30027
@@ -433,6 +437,7 @@ extern "C" {
 #define MXT_DOU_WAGO750_MODBUS		40022
 #define MXT_DOU_ISERIES			40023
 #define MXT_DOU_KEITHLEY2400		40024
+#define MXT_DOU_KEITHLEY2600		40025
 
 #define MXT_DOU_PFCU_FILTER_SUMMARY	40026
 

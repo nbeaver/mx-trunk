@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013 Illinois Institute of Technology
+ * Copyright 2013, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -369,7 +369,7 @@ mxv_rdi_mbc_string_finish_record_initialization( MX_RECORD *record )
 			"40 characters, which is not compatible with "
 			"EPICS string PVs.  Instead, it is %ld characters.",
 			record->name,
-			rdi_mbc_string->internal_string_length );
+			(long) rdi_mbc_string->internal_string_length );
 	}
 	if ( rdi_mbc_string->external_string_length < 40 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -380,7 +380,7 @@ mxv_rdi_mbc_string_finish_record_initialization( MX_RECORD *record )
 			"for use with EPICS string PVs.",
 				rdi_mbc_string->external_field_name,
 				record->name,
-				rdi_mbc_string->external_string_length );
+				(long) rdi_mbc_string->external_string_length );
 	}
 
 	return MX_SUCCESSFUL_RESULT;

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2017 Illinois Institute of Technology
+ * Copyright 1999-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -196,6 +196,7 @@
 #include "i_sim900.h"
 #include "i_dg645.h"
 #include "i_amptek_dp5.h"
+#include "i_keithley2600.h"
 
 #include "d_ks3512.h"
 #include "d_ks3112.h"
@@ -1101,6 +1102,13 @@ MX_DRIVER mx_type_table[] = {
 				NULL,
 				&mxi_amptek_dp5_num_record_fields,
 				&mxi_amptek_dp5_rfield_def_ptr},
+
+{"keithley2600",  MXI_CTRL_KEITHLEY2600,   MXI_CONTROLLER,    MXR_INTERFACE,
+				&mxi_keithley2600_record_function_list,
+				NULL,
+				NULL,
+				&mxi_keithley2600_num_record_fields,
+				&mxi_keithley2600_rfield_def_ptr},
 
 #if ( defined(OS_LINUX) && (MX_GLIBC_VERSION >= 2002000L) )
 

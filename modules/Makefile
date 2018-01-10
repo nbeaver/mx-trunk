@@ -29,7 +29,7 @@ MODULES += cbflib		# linux, (not yet finished)
 
 #MODULES += esone_camac		# linux, win32
 
-MODULES += k8055		# linux,
+#MODULES += k8055		# linux,
 
 #MODULES += labjack_ux		# linux,
 
@@ -53,16 +53,16 @@ MODULES += python		# (Warning: not yet finished)
 
 #MODULES += vxi_memacc		# linux,
 
-MODULES += xia_handel		# linux, win32
+#MODULES += xia_handel		# linux, win32
 
 MODULES += xineos_gige		# linux, win32
 
 #-------------------------------------------------------------------
 # Linux-only modules.
 
-MODULES += aravis
+#MODULES += aravis
 
-MODULES += dalsa_gev
+#MODULES += dalsa_gev
 
 #MODULES += linux_portio
 
@@ -116,7 +116,7 @@ MODULES += epics_pmac_tc
 #   BioCAT (APS-18ID) 6K "toast" controller.
 #
 
-#MODULES += site_biocat_toast
+MODULES += site_biocat_toast
 
 #---
 
