@@ -251,6 +251,6 @@ mxi_keithley2600_command( MX_KEITHLEY2600 *keithley2600,
 			response, keithley2600->record->name );
 	}
 
-	return mx_status;
+	return MX_SUCCESSFUL_RESULT;
 }
 
