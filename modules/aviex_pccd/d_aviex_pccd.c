@@ -13,7 +13,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2013, 2015-2016 Illinois Institute of Technology
+ * Copyright 2006-2013, 2015-2016, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -3076,7 +3076,8 @@ mxd_aviex_pccd_readout_frame( MX_AREA_DETECTOR *ad )
 	MX_AVIEX_PCCD *aviex_pccd;
 	unsigned long flags;
 	long num_sector_rows, num_sector_columns;
-	long frame_number, maximum_num_frames, total_num_frames;
+	long frame_number;
+	unsigned long total_num_frames, maximum_num_frames;
 	long frame_difference, num_times_looped;
 	long number_of_frame_that_overwrote_the_frame_we_want;
 	long row_framesize, column_framesize;
