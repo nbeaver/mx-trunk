@@ -225,7 +225,6 @@ mxi_keithley2600_command( MX_KEITHLEY2600 *keithley2600,
 	static const char fname[] = "mxi_keithley2600_command()";
 
 	mx_bool_type debug, response_expected;
-	mx_status_type mx_status;
 
 	if ( keithley2600 == (MX_KEITHLEY2600 *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
