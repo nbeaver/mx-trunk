@@ -29,7 +29,7 @@ MODULES += cbflib		# linux, (not yet finished)
 
 #MODULES += esone_camac		# linux, win32
 
-#MODULES += k8055		# linux,
+MODULES += k8055		# linux,
 
 #MODULES += labjack_ux		# linux,
 
@@ -55,16 +55,16 @@ MODULES += radicon_taurus	# linux, win32
 
 #MODULES += vxi_memacc		# linux,
 
-#MODULES += xia_handel		# linux, win32
+MODULES += xia_handel		# linux, win32
 
 MODULES += xineos_gige		# linux, win32
 
 #-------------------------------------------------------------------
 # Linux-only modules.
 
-#MODULES += aravis
+MODULES += aravis
 
-#MODULES += dalsa_gev
+MODULES += dalsa_gev
 
 #MODULES += linux_portio
 

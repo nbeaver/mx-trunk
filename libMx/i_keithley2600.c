@@ -142,9 +142,9 @@ mxi_keithley2600_open( MX_RECORD *record )
 
 	snprintf( format, sizeof(format),
 		"Keithley Instruments Inc., Model %%%ds %%%ds %%%ds",
-			sizeof(keithley2600->model_name),
-			sizeof(keithley2600->serial_number),
-			sizeof(keithley2600->firmware_version) );
+			(int) sizeof(keithley2600->model_name),
+			(int) sizeof(keithley2600->serial_number),
+			(int) sizeof(keithley2600->firmware_version) );
 
 	num_items = sscanf( response, format,
 			keithley2600->model_name,
