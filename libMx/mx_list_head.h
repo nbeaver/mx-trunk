@@ -9,7 +9,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004, 2006-2010, 2012-2017
+ * Copyright 2000-2001, 2003-2004, 2006-2010, 2012-2018
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -200,7 +200,44 @@ extern "C" {
   {MXLV_LHD_SHOW_FIELD, -1, "show_field", \
 		MXFT_STRING, NULL, 1, {MXU_RECORD_FIELD_NAME_LENGTH}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, show_field), \
-	{sizeof(char)}, NULL, 0}
+	{sizeof(char)}, NULL, 0}, \
+  \
+  {-1, -1, "is_server", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, is_server), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {-1, -1, "plotting_enabled", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, plotting_enabled), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {-1, -1, "default_precision", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, default_precision), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {-1, -1, "default_data_format", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_SUPERCLASS_STRUCT, \
+	  		offsetof(MX_LIST_HEAD, default_data_format), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {-1, -1, "server_protocols_active", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_SUPERCLASS_STRUCT, \
+	  		offsetof(MX_LIST_HEAD, server_protocols_active), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {-1, -1, "num_server_records", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_SUPERCLASS_STRUCT, \
+	  		offsetof(MX_LIST_HEAD, num_server_records), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {-1, -1, "num_poll_callbacks", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_SUPERCLASS_STRUCT, \
+	  		offsetof(MX_LIST_HEAD, num_poll_callbacks), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {-1, -1, "poll_callback_interval", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_SUPERCLASS_STRUCT, \
+	  		offsetof(MX_LIST_HEAD, poll_callback_interval), \
+	{0}, NULL, MXFF_READ_ONLY}
 
 MX_API_PRIVATE mx_status_type mxr_create_list_head( MX_RECORD *record );
 

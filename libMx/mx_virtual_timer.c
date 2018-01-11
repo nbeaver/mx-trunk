@@ -5,7 +5,7 @@
  *
  * Author:  William Lavender
  *
- * Copyright 2006-2008 Illinois Institute of Technology
+ * Copyright 2006-2008, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -110,7 +110,7 @@ mx_virtual_timer_get_pointers( MX_VIRTUAL_TIMER *vtimer,
  *    with the event_list's mutex already LOCKED!!!
  */
 
-#if MX_VIRTUAL_TIMER_DEBUG
+#if ( MX_VIRTUAL_TIMER_DEBUG || MX_VIRTUAL_TIMER_DEBUG_MASTER_CALLBACK )
 
 static void
 mx_show_event_list( const char *calling_fname,
