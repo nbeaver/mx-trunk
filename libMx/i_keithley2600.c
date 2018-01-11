@@ -98,6 +98,9 @@ mxi_keithley2600_open( MX_RECORD *record )
 	MX_KEITHLEY2600 *keithley2600 = NULL;
 	unsigned long flags;
 	char response[80];
+	char format[80];
+	int num_items;
+	size_t len;
 	mx_status_type mx_status;
 
 #if MXI_KEITHLEY2600_DEBUG
@@ -127,11 +130,48 @@ mxi_keithley2600_open( MX_RECORD *record )
 			record->name );
 	}
 
-	mx_status = mxi_keithley2600_command( keithley2600, "IDN?",
+	/* Verify that the Keithley 2600 is responding to commands. */
+
+	mx_status = mxi_keithley2600_command( keithley2600, "*IDN?",
 					response, sizeof(response), flags );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Parse the response. */
+
+	snprintf( format, sizeof(format),
+		"Keithley Instruments Inc., Model %%%ds %%%ds %%%ds",
+			sizeof(keithley2600->model_name),
+			sizeof(keithley2600->serial_number),
+			sizeof(keithley2600->firmware_version) );
+
+	num_items = sscanf( response, format,
+			keithley2600->model_name,
+			keithley2600->serial_number,
+			keithley2600->firmware_version );
+
+	if ( num_items != 3 ) {
+		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+		"The device expected for '%s' on serial connection '%s' "
+		"is not a Keithley 2600.  "
+		"Its response to an '*IDN?' command was '%s'.",
+		record->name, keithley2600->rs232_record->name, response );
+	}
+
+	/* Zap trailing comma (,) characters if present. */
+
+	len = strlen( keithley2600->model_name );
+
+	if ( (keithley2600->model_name)[len-1] == ',' ) {
+		(keithley2600->model_name)[len-1] = '\0';
+	}
+
+	len = strlen( keithley2600->serial_number );
+
+	if ( (keithley2600->serial_number)[len-1] == ',' ) {
+		(keithley2600->serial_number)[len-1] = '\0';
+	}
 
 	return mx_status;
 }
@@ -225,17 +265,29 @@ mxi_keithley2600_command( MX_KEITHLEY2600 *keithley2600,
 	static const char fname[] = "mxi_keithley2600_command()";
 
 	mx_bool_type debug, response_expected;
+	mx_status_type mx_status;
 
 	if ( keithley2600 == (MX_KEITHLEY2600 *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_KEITHLEY2600 pointer passed was NULL." );
 	}
 
-	if ( keithley2600_flags & MXF_KEITHLEY2600_DEBUG ) {
+	if ( keithley2600_flags & MXF_KEITHLEY2600_DEBUG_RS232 ) {
 		debug = TRUE;
 	} else {
 		debug = FALSE;
 	}
+
+	if ( debug ) {
+		fprintf( stderr, "Sending '%s' to '%s'.\n",
+			command, keithley2600->record->name );
+	}
+
+	mx_status = mx_rs232_putline( keithley2600->rs232_record,
+					command, NULL, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Infer whether or not a response is expected. */
 
@@ -244,6 +296,16 @@ mxi_keithley2600_command( MX_KEITHLEY2600 *keithley2600,
 	} else {
 		response_expected = TRUE;
 	}
+
+	if ( response_expected == FALSE ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	mx_status = mx_rs232_getline( keithley2600->rs232_record,
+				response, max_response_length, NULL, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( debug ) {
 		fprintf( stderr, "Received '%s' from '%s'.\n",

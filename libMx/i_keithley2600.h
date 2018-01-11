@@ -19,10 +19,11 @@
 
 /* Values for the 'keithley2600_flags' field. */
 
-#define MXF_KEITHLEY2600_DEBUG				0x1
+#define MXF_KEITHLEY2600_DEBUG_RS232			0x1
 
 /*---*/
 
+#define MXU_KEITHLEY2600_MODEL_NAME_LENGTH		20
 #define MXU_KEITHLEY2600_SERIAL_NUMBER_LENGTH		20
 #define MXU_KEITHLEY2600_FIRMWARE_VERSION_LENGTH	20
 
@@ -35,6 +36,7 @@ typedef struct {
 	unsigned long keithley2600_flags;
 
 	MX_RECORD *rs232_record;
+	char model_name[MXU_KEITHLEY2600_MODEL_NAME_LENGTH+1];
 	char serial_number[MXU_KEITHLEY2600_SERIAL_NUMBER_LENGTH+1];
 	char firmware_version[MXU_KEITHLEY2600_FIRMWARE_VERSION_LENGTH+1];
 } MX_KEITHLEY2600;
@@ -49,6 +51,11 @@ typedef struct {
   {-1, -1, "keithley2600_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_KEITHLEY2600, keithley2600_flags), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "model_name", MXFT_STRING, NULL, \
+	  			1, {MXU_KEITHLEY2600_MODEL_NAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_KEITHLEY2600, model_name), \
+	{sizeof(char)}, NULL, MXFF_READ_ONLY}, \
   \
   {-1, -1, "serial_number", MXFT_STRING, NULL, \
 	  			1, {MXU_KEITHLEY2600_SERIAL_NUMBER_LENGTH}, \

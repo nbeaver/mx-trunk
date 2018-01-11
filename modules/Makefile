@@ -13,15 +13,15 @@
 all: build
 
 #-------------------------------------------------------------------
-# Multiplatform modules.
+# Multiplatform modules (potentially)
 
-#MODULES += aviex_pccd		# linux, win32
+MODULES += aviex_pccd		# linux, win32
 
 #MODULES += avt_pvapi		# linux,
 
 #MODULES += avt_vimba		# linux,
 
-#MODULES += cbflib		# linux, (not yet finished)
+MODULES += cbflib		# linux, (not yet finished)
 
 #MODULES += edt			# linux,
 
@@ -35,9 +35,9 @@ all: build
 
 MODULES += libtiff		# cygwin, linux, win32
 
-#MODULES += libusb-0.1		# linux,
+MODULES += libusb-0.1		# linux,
 
-#MODULES += newport_xps		# linux,
+MODULES += newport_xps		# linux,
 
 #MODULES += ni488		# linux,
 
@@ -45,9 +45,11 @@ MODULES += libtiff		# cygwin, linux, win32
 
 #MODULES += nuvant_ezstat	# linux, win32
 
-#MODULES += python		# (Warning: not yet finished)
+MODULES += python		# (Warning: not yet finished)
 
 #MODULES += pmc_mcapi		# linux, win32
+
+MODULES += radicon_taurus	# linux, win32
 
 #MODULES += sis3100		# linux,
 
@@ -55,7 +57,7 @@ MODULES += libtiff		# cygwin, linux, win32
 
 #MODULES += xia_handel		# linux, win32
 
-#MODULES += xineos_gige		# linux, win32
+MODULES += xineos_gige		# linux, win32
 
 #-------------------------------------------------------------------
 # Linux-only modules.
@@ -68,7 +70,7 @@ MODULES += libtiff		# cygwin, linux, win32
 
 #MODULES += powerpmac
 
-#MODULES += v4l2_input
+MODULES += v4l2_input
 
 #-------------------------------------------------------------------
 # Win32-only modules.
@@ -89,10 +91,6 @@ MODULES += libtiff		# cygwin, linux, win32
 
 #MODULES += radicon_helios
 
-#MODULES += radicon_taurus
-
-#MODULES += rdi_mbc
-
 #MODULES += sapera_lt 
 
 #MODULES += u500
@@ -100,15 +98,15 @@ MODULES += libtiff		# cygwin, linux, win32
 #-------------------------------------------------------------------
 # EPICS modules.
 
-#MODULES += epics
+MODULES += epics
 
-#MODULES += epics_aps 
+MODULES += epics_aps 
 
-#MODULES += epics_pmac_biocat
+MODULES += epics_pmac_biocat
 
-#MODULES += epics_mbc
+MODULES += epics_mbc
 
-#MODULES += epics_pmac_tc
+MODULES += epics_pmac_tc
 
 #-------------------------------------------------------------------
 # Site specific modules.
@@ -116,7 +114,9 @@ MODULES += libtiff		# cygwin, linux, win32
 #   BioCAT (APS-18ID) 6K "toast" controller.
 #
 
-#MODULES += site_biocat_toast
+MODULES += rdi_mbc
+
+MODULES += site_biocat_toast
 
 #---
 
