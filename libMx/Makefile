@@ -107,6 +107,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_keithley2000_ainput.c \
 	d_keithley2400_ainput.c d_keithley2400_amp.c \
 	d_keithley2400_aoutput.c d_keithley2400_doutput.c \
+	d_keithley2600_ainput.c \
 	d_keithley2700_ainput.c d_keithley2700_amp.c d_keithley428.c \
 	d_keyboard_dinput.c \
 	d_kohzu_sc.c d_ks3063.c d_ks3112.c d_ks3512.c d_ks3640.c \

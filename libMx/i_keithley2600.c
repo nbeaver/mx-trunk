@@ -173,6 +173,62 @@ mxi_keithley2600_open( MX_RECORD *record )
 		(keithley2600->serial_number)[len-1] = '\0';
 	}
 
+	/* Turn on autoranging. */
+
+	mx_status = mxi_keithley2600_command( keithley2600,
+				"smua.measure.autorangei = smua.AUTORANGE_ON",
+				NULL, 0,
+				keithley2600->keithley2600_flags );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxi_keithley2600_command( keithley2600,
+				"smua.measure.autorangev = smua.AUTORANGE_ON",
+				NULL, 0,
+				keithley2600->keithley2600_flags );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Select ASCII data format. */
+
+	mx_status = mxi_keithley2600_command( keithley2600,
+				"format.data = format.ASCII",
+				NULL, 0,
+				keithley2600->keithley2600_flags );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Clear the buffers. */
+
+	mx_status = mxi_keithley2600_command( keithley2600,
+				"smua.nvbuffer1.clear()",
+				NULL, 0,
+				keithley2600->keithley2600_flags );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxi_keithley2600_command( keithley2600,
+				"smua.nvbuffer2.clear()",
+				NULL, 0,
+				keithley2600->keithley2600_flags );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Tell the controller to take single measurements. */
+
+	mx_status = mxi_keithley2600_command( keithley2600,
+				"smua.measure_count = 1",
+				NULL, 0,
+				keithley2600->keithley2600_flags );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	return mx_status;
 }
 

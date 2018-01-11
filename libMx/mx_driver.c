@@ -177,9 +177,10 @@
 #include "i_iseries.h"
 #include "i_phidget_old_stepper.h"
 #include "i_pfcu.h"
-#include "i_keithley2700.h"
-#include "i_keithley2400.h"
 #include "i_keithley2000.h"
+#include "i_keithley2400.h"
+#include "i_keithley2600.h"
+#include "i_keithley2700.h"
 #include "i_kohzu_sc.h"
 #include "i_picomotor.h"
 #include "i_sr630.h"
@@ -196,7 +197,6 @@
 #include "i_sim900.h"
 #include "i_dg645.h"
 #include "i_amptek_dp5.h"
-#include "i_keithley2600.h"
 
 #include "d_ks3512.h"
 #include "d_ks3112.h"
@@ -241,6 +241,7 @@
 #include "d_keithley2400_aoutput.h"
 #include "d_keithley2400_doutput.h"
 #include "d_keithley2000_ainput.h"
+#include "d_keithley2600_ainput.h"
 #include "d_pfcu_filter_summary.h"
 #include "d_picomotor_aio.h"
 #include "d_picomotor_dio.h"
@@ -940,12 +941,12 @@ MX_DRIVER mx_type_table[] = {
 				&mxi_pfcu_num_record_fields,
 				&mxi_pfcu_rfield_def_ptr},
 
-{"keithley2700",   MXI_CTRL_KEITHLEY2700, MXI_CONTROLLER, MXR_INTERFACE,
-				&mxi_keithley2700_record_function_list,
+{"keithley2000",   MXI_CTRL_KEITHLEY2000, MXI_CONTROLLER, MXR_INTERFACE,
+				&mxi_keithley2000_record_function_list,
 				NULL,
 				NULL,
-				&mxi_keithley2700_num_record_fields,
-				&mxi_keithley2700_rfield_def_ptr},
+				&mxi_keithley2000_num_record_fields,
+				&mxi_keithley2000_rfield_def_ptr},
 
 {"keithley2400",   MXI_CTRL_KEITHLEY2400, MXI_CONTROLLER, MXR_INTERFACE,
 				&mxi_keithley2400_record_function_list,
@@ -954,12 +955,19 @@ MX_DRIVER mx_type_table[] = {
 				&mxi_keithley2400_num_record_fields,
 				&mxi_keithley2400_rfield_def_ptr},
 
-{"keithley2000",   MXI_CTRL_KEITHLEY2000, MXI_CONTROLLER, MXR_INTERFACE,
-				&mxi_keithley2000_record_function_list,
+{"keithley2600",   MXI_CTRL_KEITHLEY2600, MXI_CONTROLLER, MXR_INTERFACE,
+				&mxi_keithley2600_record_function_list,
 				NULL,
 				NULL,
-				&mxi_keithley2000_num_record_fields,
-				&mxi_keithley2000_rfield_def_ptr},
+				&mxi_keithley2600_num_record_fields,
+				&mxi_keithley2600_rfield_def_ptr},
+
+{"keithley2700",   MXI_CTRL_KEITHLEY2700, MXI_CONTROLLER, MXR_INTERFACE,
+				&mxi_keithley2700_record_function_list,
+				NULL,
+				NULL,
+				&mxi_keithley2700_num_record_fields,
+				&mxi_keithley2700_rfield_def_ptr},
 
 {"kohzu_sc",       MXI_CTRL_KOHZU_SC,      MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_kohzu_sc_record_function_list,
@@ -968,7 +976,7 @@ MX_DRIVER mx_type_table[] = {
 				&mxi_kohzu_sc_num_record_fields,
 				&mxi_kohzu_sc_rfield_def_ptr},
 
-{"picomotor_controller", MXI_CTRL_PICOMOTOR, MXI_CONTROLLER,       MXR_INTERFACE,
+{"picomotor_controller", MXI_CTRL_PICOMOTOR, MXI_CONTROLLER,     MXR_INTERFACE,
 				&mxi_picomotor_record_function_list,
 				NULL,
 				NULL,
@@ -1102,13 +1110,6 @@ MX_DRIVER mx_type_table[] = {
 				NULL,
 				&mxi_amptek_dp5_num_record_fields,
 				&mxi_amptek_dp5_rfield_def_ptr},
-
-{"keithley2600",  MXI_CTRL_KEITHLEY2600,   MXI_CONTROLLER,    MXR_INTERFACE,
-				&mxi_keithley2600_record_function_list,
-				NULL,
-				NULL,
-				&mxi_keithley2600_num_record_fields,
-				&mxi_keithley2600_rfield_def_ptr},
 
 #if ( defined(OS_LINUX) && (MX_GLIBC_VERSION >= 2002000L) )
 
@@ -1408,12 +1409,12 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_mcai_function_num_record_fields,
 				&mxd_mcai_function_rfield_def_ptr},
 
-{"keithley2700_ainput", MXT_AIN_KEITHLEY2700, MXC_ANALOG_INPUT, MXR_DEVICE,
-				&mxd_keithley2700_ainput_record_function_list,
+{"keithley2000_ainput", MXT_AIN_KEITHLEY2000, MXC_ANALOG_INPUT, MXR_DEVICE,
+				&mxd_keithley2000_ainput_record_function_list,
 				NULL,
-			    &mxd_keithley2700_ainput_analog_input_function_list,
-				&mxd_keithley2700_ainput_num_record_fields,
-				&mxd_keithley2700_ainput_rfield_def_ptr},
+			    &mxd_keithley2000_ainput_analog_input_function_list,
+				&mxd_keithley2000_ainput_num_record_fields,
+				&mxd_keithley2000_ainput_rfield_def_ptr},
 
 {"keithley2400_ainput", MXT_AIN_KEITHLEY2400, MXC_ANALOG_INPUT, MXR_DEVICE,
 				&mxd_keithley2400_ainput_record_function_list,
@@ -1429,12 +1430,19 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_keithley2400_aoutput_num_record_fields,
 				&mxd_keithley2400_aoutput_rfield_def_ptr},
 
-{"keithley2000_ainput", MXT_AIN_KEITHLEY2000, MXC_ANALOG_INPUT, MXR_DEVICE,
-				&mxd_keithley2000_ainput_record_function_list,
+{"keithley2600_ainput", MXT_AIN_KEITHLEY2600, MXC_ANALOG_INPUT, MXR_DEVICE,
+				&mxd_keithley2600_ainput_record_function_list,
 				NULL,
-			    &mxd_keithley2000_ainput_analog_input_function_list,
-				&mxd_keithley2000_ainput_num_record_fields,
-				&mxd_keithley2000_ainput_rfield_def_ptr},
+			    &mxd_keithley2600_ainput_analog_input_function_list,
+				&mxd_keithley2600_ainput_num_record_fields,
+				&mxd_keithley2600_ainput_rfield_def_ptr},
+
+{"keithley2700_ainput", MXT_AIN_KEITHLEY2700, MXC_ANALOG_INPUT, MXR_DEVICE,
+				&mxd_keithley2700_ainput_record_function_list,
+				NULL,
+			    &mxd_keithley2700_ainput_analog_input_function_list,
+				&mxd_keithley2700_ainput_num_record_fields,
+				&mxd_keithley2700_ainput_rfield_def_ptr},
 
 {"picomotor_ainput",     MXT_AIN_PICOMOTOR, MXC_ANALOG_INPUT, MXR_DEVICE,
 				&mxd_picomotor_ain_record_function_list,
