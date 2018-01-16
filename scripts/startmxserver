@@ -9,14 +9,14 @@ fi
 
 #
 # If we need to customize the environment of the MX server before
-# we start it, then we need to provide an mxserver.custom script
+# we start it, then we need to provide an mxserver_local.sh script
 # to do the customizations.
 #
 
-MXSERVER_CUSTOM_FILE=${MXDIR}/etc/mxserver.custom
+MXSERVER_LOCAL_FILE=${MXDIR}/etc/mxserver_local.sh
 
-if [ -f ${MXSERVER_CUSTOM_FILE} ]; then
-	. ${MXSERVER_CUSTOM_FILE}
+if [ -f ${MXSERVER_LOCAL_FILE} ]; then
+	. ${MXSERVER_LOCAL_FILE}
 fi
 
 MXSERVER_PRELOAD_FILE=${MXDIR}/etc/mxserver.preload
