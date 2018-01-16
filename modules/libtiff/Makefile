@@ -53,6 +53,13 @@ LIBTIFF_LIBRARY = -ltiff
 
 #----
 
+else ifeq ($(MX_ARCH),bsd-clang)
+
+LIBTIFF_INCLUDES = -I/usr/local/include
+LIBTIFF_LIBRARY = -L/usr/local/lib -ltiff
+
+#----
+
 else ifeq ($(MX_ARCH),minix)
 
 LIBTIFF_INCLUDES = 
@@ -131,6 +138,16 @@ libtiff.mxo: $(LIBTIFF_OBJS)
 	$(CC) -dynamiclib -Wl,-headerpad_max_install_names \
 		-o libtiff.mxo -install_name "$(PWD)/libtiff.mxo" \
 		$(LIBTIFF_OBJS) ../../libMx/libMx.dylib $(LIBTIFF_LIBRARY)
+
+endif
+
+#--------------------------------------------------------------------------
+
+ifeq ($(MX_ARCH),bsd-clang)
+
+libtiff.mxo: $(LIBTIFF_OBJS)
+	$(CC) -shared -o libtiff.mxo $(LIBTIFF_OBJS) \
+		../../libMx/libMx.so $(LIBTIFF_LIBRARY)
 
 endif
 

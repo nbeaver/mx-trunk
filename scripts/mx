@@ -74,6 +74,8 @@ if [ $SCRIPTUSER = $MXUSER ]; then
 elif [ $SCRIPTUSER = "root" ]; then
 	if [ $UNAME_OS = "Darwin" ]; then
 		COMMAND_PREFIX="/usr/bin/su $MXUSER -c"
+	elif [ $UNAME_OS = "OpenBSD" ]; then
+		COMMAND_PREFIX="/usr/bin/su $MXUSER -c"
 	else
 		COMMAND_PREFIX="/bin/su $MXUSER -c"
 	fi
