@@ -191,9 +191,9 @@ mxd_keithley2600_ainput_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( islower( keithley2600_ainput->channel_name ) ) {
+	if ( islower( (int) keithley2600_ainput->channel_name ) ) {
 		keithley2600_ainput->channel_name
-			= toupper( keithley2600_ainput->channel_name );
+			= toupper( (int) keithley2600_ainput->channel_name );
 	}
 
 	switch( keithley2600_ainput->channel_name ) {

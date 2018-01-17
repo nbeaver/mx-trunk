@@ -273,6 +273,8 @@ mxi_keithley2600_process_function( void *record_ptr,
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
 	keithley2600 = (MX_KEITHLEY2600 *) record->record_type_struct;
 
+	MXW_UNUSED( keithley2600 );
+
 	mx_status = MX_SUCCESSFUL_RESULT;
 
 	switch( operation ) {

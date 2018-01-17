@@ -47,7 +47,7 @@ START_MXAUTOSAVE=${MXSBIN}/startmxautosave
 # The following makes sure that whoami is in the path on Solaris 2 and SunOS 4
 # and that libMx.dll is in the path on Cygwin.
 
-PATH="$PATH:$MXBIN:/usr/ucb"
+PATH="$PATH:$MXBIN:/usr/ucb:/sbin"
 
 export PATH
 
@@ -73,6 +73,8 @@ if [ $SCRIPTUSER = $MXUSER ]; then
 	COMMAND_PREFIX=
 elif [ $SCRIPTUSER = "root" ]; then
 	if [ $UNAME_OS = "Darwin" ]; then
+		COMMAND_PREFIX="/usr/bin/su $MXUSER -c"
+	elif [ $UNAME_OS = "NetBSD" ]; then
 		COMMAND_PREFIX="/usr/bin/su $MXUSER -c"
 	elif [ $UNAME_OS = "OpenBSD" ]; then
 		COMMAND_PREFIX="/usr/bin/su $MXUSER -c"
