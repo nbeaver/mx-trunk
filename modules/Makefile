@@ -98,11 +98,11 @@ MODULES += libtiff		# cygwin, linux, win32
 #-------------------------------------------------------------------
 # EPICS modules.
 
-#MODULES += epics
+MODULES += epics
 
-#MODULES += epics_aps 
+MODULES += epics_aps 
 
-#MODULES += epics_pmac_biocat
+MODULES += epics_pmac_biocat
 
 #MODULES += epics_mbc
 
@@ -111,11 +111,15 @@ MODULES += libtiff		# cygwin, linux, win32
 #-------------------------------------------------------------------
 # Site specific modules.
 #
-#   BioCAT (APS-18ID) 6K "toast" controller.
-#
 
+#
+#   MBC (ALS 4.2.2) RDI detector
+#
 #MODULES += rdi_mbc
 
+#
+#   BioCAT (APS-18ID) 6K "toast" controller.
+#
 #MODULES += site_biocat_toast
 
 #---
