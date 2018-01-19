@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2016-2017 Illinois Institute of Technology
+ * Copyright 2016-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -243,13 +243,19 @@ static int num_type_names =
 		sizeof( type_names ) / sizeof(type_names[0]);
 
 static void
-dump_feature_hierarchy( const GenApi::CNodePtr &feature_ptr, int indent )
+dump_feature_hierarchy( MX_DALSA_GEV_CAMERA *dalsa_gev_camera,
+				const GenApi::CNodePtr &feature_ptr,
+				int indent, mx_bool_type show_value )
 {
 #if 0
 	static const char fname[] = "dump_feature_hierarchy()";
 #endif
 
-	int i = 0;
+	char saved_feature_name[MXU_DALSA_GEV_CAMERA_FEATURE_NAME_LENGTH+1];
+	char feature_value[MXU_DALSA_GEV_CAMERA_FEATURE_VALUE_LENGTH+1];
+	int feature_type;
+	short gev_status;
+	int i;
 
 	for ( i = 0; i < indent; i++ ) {
 		fputc( ' ', stderr );
@@ -271,7 +277,8 @@ dump_feature_hierarchy( const GenApi::CNodePtr &feature_ptr, int indent )
 		    it_feature != features.end();
 		    it_feature++ )
 		{
-			dump_feature_hierarchy( (*it_feature), indent + 2 );
+			dump_feature_hierarchy( dalsa_gev_camera,
+				(*it_feature), indent + 2, show_value );
 		}
 	} else {
 		const char *feature_name = static_cast<const char *>
@@ -284,8 +291,35 @@ dump_feature_hierarchy( const GenApi::CNodePtr &feature_ptr, int indent )
 
 		if ( ( index >= 0 ) && ( index < num_type_names ) )
 		{
-			fprintf( stderr, "%s: %s\n",
-				feature_name, type_names[index] );
+			if ( show_value == FALSE ) {
+				fprintf( stderr, "%s: %s\n",
+					feature_name, type_names[index] );
+			} else {
+				strlcpy( saved_feature_name,
+					feature_name,
+					sizeof(saved_feature_name) );
+
+				gev_status = GevGetFeatureValueAsString(
+					dalsa_gev_camera->camera_handle,
+					feature_name,
+					&feature_type,
+					sizeof(feature_value),
+					feature_value );
+
+				if ( gev_status != GEVLIB_OK ) {
+					fprintf( stderr,
+						"%s: %s --> Error %hd\n",
+						saved_feature_name,
+						type_names[index],
+						gev_status );
+				} else {
+					fprintf( stderr,
+						"%s: %s --> '%s'\n",
+						saved_feature_name,
+						type_names[index],
+						feature_value );
+				}
+			}
 		} else {
 			fprintf( stderr, "%s: Unknown\n", feature_name );
 		}
@@ -295,9 +329,11 @@ dump_feature_hierarchy( const GenApi::CNodePtr &feature_ptr, int indent )
 /*---*/
 
 static mx_status_type
-mxd_dalsa_gev_camera_show_features( MX_DALSA_GEV_CAMERA *dalsa_gev_camera )
+mxd_dalsa_gev_camera_show_feature_list( MX_DALSA_GEV_CAMERA *dalsa_gev_camera,
+						mx_bool_type show_value )
+					
 {
-	static const char fname[] = "mxd_dalsa_gev_camera_show_features()";
+	static const char fname[] = "mxd_dalsa_gev_camera_show_feature_list()";
 
 	MX_RECORD *record;
 
@@ -321,7 +357,7 @@ mxd_dalsa_gev_camera_show_features( MX_DALSA_GEV_CAMERA *dalsa_gev_camera )
 
 	GenApi::CNodePtr root_ptr = feature_node_map->_GetNode("Root");
 
-	dump_feature_hierarchy( root_ptr, 1 );
+	dump_feature_hierarchy( dalsa_gev_camera, root_ptr, 1, show_value );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -733,8 +769,15 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 	/* Optionally, show the available features. */
 
 	if ( flags & MXF_DALSA_GEV_CAMERA_SHOW_FEATURES ) {
-		mx_status = mxd_dalsa_gev_camera_show_features(
-						dalsa_gev_camera );
+		mx_status = mxd_dalsa_gev_camera_show_feature_list(
+						dalsa_gev_camera, FALSE );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+	if ( flags & MXF_DALSA_GEV_CAMERA_SHOW_FEATURE_VALUES ) {
+		mx_status = mxd_dalsa_gev_camera_show_feature_list(
+						dalsa_gev_camera, TRUE );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1440,6 +1483,7 @@ mxd_dalsa_gev_camera_special_processing_setup( MX_RECORD *record )
 		case MXLV_DALSA_GEV_CAMERA_FEATURE_VALUE:
 		case MXLV_DALSA_GEV_CAMERA_GAIN:
 		case MXLV_DALSA_GEV_CAMERA_SHOW_FEATURES:
+		case MXLV_DALSA_GEV_CAMERA_SHOW_FEATURE_VALUES:
 		case MXLV_DALSA_GEV_CAMERA_TEMPERATURE:
 			record_field->process_function
 				= mxd_dalsa_gev_camera_process_function;
@@ -1526,8 +1570,13 @@ mxd_dalsa_gev_camera_process_function( void *record_ptr,
 		switch( record_field->label_value ) {
 		case MXLV_DALSA_GEV_CAMERA_SHOW_FEATURES:
 			mx_status =
-			 mxd_dalsa_gev_camera_show_features( dalsa_gev_camera );
-
+		    mxd_dalsa_gev_camera_show_feature_list( dalsa_gev_camera,
+									FALSE );
+			break;
+		case MXLV_DALSA_GEV_CAMERA_SHOW_FEATURE_VALUES:
+			mx_status =
+		    mxd_dalsa_gev_camera_show_feature_list( dalsa_gev_camera,
+									TRUE );
 			break;
 		default:
 			break;

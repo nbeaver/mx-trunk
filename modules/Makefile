@@ -64,7 +64,7 @@ MODULES += libtiff		# cygwin, linux, win32
 
 #MODULES += aravis
 
-#MODULES += dalsa_gev
+MODULES += dalsa_gev
 
 #MODULES += linux_portio
 
@@ -98,11 +98,11 @@ MODULES += libtiff		# cygwin, linux, win32
 #-------------------------------------------------------------------
 # EPICS modules.
 
-MODULES += epics
+#MODULES += epics
 
-MODULES += epics_aps 
+#MODULES += epics_aps 
 
-MODULES += epics_pmac_biocat
+#MODULES += epics_pmac_biocat
 
 #MODULES += epics_mbc
 

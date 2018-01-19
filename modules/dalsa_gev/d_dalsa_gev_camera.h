@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2016-2017 Illinois Institute of Technology
+ * Copyright 2016-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -30,6 +30,7 @@ extern "C" {
 #define MXF_DALSA_GEV_CAMERA_WRITE_XML_FILE		0x1
 
 #define MXF_DALSA_GEV_CAMERA_SHOW_FEATURES		0x1000
+#define MXF_DALSA_GEV_CAMERA_SHOW_FEATURE_VALUES	0x2000
 
 typedef struct {
 	MX_RECORD *record;
@@ -53,6 +54,7 @@ typedef struct {
 	int32_t total_num_frames;
 
 	mx_bool_type show_features;
+	mx_bool_type show_feature_values;
 	double gain;
 	double temperature;
 
@@ -61,11 +63,12 @@ typedef struct {
 
 } MX_DALSA_GEV_CAMERA;
 
-#define MXLV_DALSA_GEV_CAMERA_SHOW_FEATURES	89800
-#define MXLV_DALSA_GEV_CAMERA_GAIN		89801
-#define MXLV_DALSA_GEV_CAMERA_TEMPERATURE	89802
-#define MXLV_DALSA_GEV_CAMERA_FEATURE_NAME	89803
-#define MXLV_DALSA_GEV_CAMERA_FEATURE_VALUE	89804
+#define MXLV_DALSA_GEV_CAMERA_SHOW_FEATURES		89800
+#define MXLV_DALSA_GEV_CAMERA_SHOW_FEATURE_VALUES	89801
+#define MXLV_DALSA_GEV_CAMERA_GAIN			89802
+#define MXLV_DALSA_GEV_CAMERA_TEMPERATURE		89803
+#define MXLV_DALSA_GEV_CAMERA_FEATURE_NAME		89804
+#define MXLV_DALSA_GEV_CAMERA_FEATURE_VALUE		89805
 
 #define MXD_DALSA_GEV_CAMERA_STANDARD_FIELDS \
   {-1, -1, "dalsa_gev_record", MXFT_RECORD, NULL, 0, {0}, \
@@ -97,6 +100,12 @@ typedef struct {
   {MXLV_DALSA_GEV_CAMERA_SHOW_FEATURES, -1, "show_features", \
 						MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DALSA_GEV_CAMERA, show_features), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_DALSA_GEV_CAMERA_SHOW_FEATURE_VALUES, -1, "show_feature_values", \
+						MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+			offsetof(MX_DALSA_GEV_CAMERA, show_feature_values), \
 	{0}, NULL, 0}, \
   \
   {MXLV_DALSA_GEV_CAMERA_GAIN, -1, "gain", MXFT_DOUBLE, NULL, 0, {0}, \
