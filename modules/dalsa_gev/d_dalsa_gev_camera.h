@@ -50,6 +50,10 @@ typedef struct {
 	void *feature_node_map;
 
 	MX_THREAD *image_wait_thread;
+
+	/* Note: The following int32_t variables must be read and written
+	 * using only atomic operations.
+	 */
 	int32_t total_num_frames_at_start;
 	int32_t total_num_frames;
 
