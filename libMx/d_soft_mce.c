@@ -745,6 +745,8 @@ mxd_soft_mce_open( MX_RECORD *record )
 
 	mx_status_code = mx_mutex_lock( soft_mce->monitor_thread_status_mutex );
 
+	MXW_UNUSED( mx_status_code );
+
 	/* Create the monitor thread to handle updates to 'mce->value_array'. */
 
 	mx_status = mx_thread_create( &(soft_mce->monitor_thread),
