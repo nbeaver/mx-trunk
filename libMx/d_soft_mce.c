@@ -330,7 +330,6 @@ mxd_soft_mce_monitor_thread_fn( MX_THREAD *thread, void *record_ptr )
 	MX_SOFT_MOTOR *soft_motor = NULL;
 
 	long i, n;
-	unsigned long mx_status_code;
 	unsigned long monitor_loop_counter;
 	mx_status_type mx_status;
 
@@ -678,7 +677,6 @@ mxd_soft_mce_open( MX_RECORD *record )
 	MX_MCE *mce = NULL;
 	MX_SOFT_MCE *soft_mce = NULL;
 	MX_MOTOR *motor = NULL;
-	int32_t test_value;
 	long mx_status_code;
 	mx_status_type mx_status;
 
@@ -1031,7 +1029,6 @@ mxd_soft_mce_set_parameter( MX_MCE *mce )
 	static const char fname[] = "mxd_soft_mce_set_parameter()";
 
 	MX_SOFT_MCE *soft_mce;
-	unsigned long mx_status_code;
 	mx_status_type mx_status;
 
 	mx_status = mxd_soft_mce_get_pointers( mce, &soft_mce, NULL, fname );
