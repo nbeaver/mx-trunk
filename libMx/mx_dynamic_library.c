@@ -92,6 +92,9 @@ mx_dynamic_library_open( const char *filename,
 
 	if ( filename == (char *) NULL ) {
 		(*library)->object = GetModuleHandle(NULL);
+	} else
+	if ( mx_strcasecmp( filename, "kernel32.dll" ) == 0 ) {
+		(*library)->object = GetModuleHandle( filename );
 	} else {
 		(*library)->object = LoadLibrary( filename );
 	}

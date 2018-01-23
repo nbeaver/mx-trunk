@@ -10,7 +10,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2016 Illinois Institute of Technology
+ * Copyright 2016, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,9 +21,11 @@
 
 #define MXD_SOFT_MCE_DEBUG_READ_MEASUREMENT	FALSE
 
-#define MXD_SOFT_MCE_DEBUG_MONITOR_THREAD	FALSE
+#define MXD_SOFT_MCE_DEBUG_MONITOR_THREAD	TRUE
 
 #define MXD_SOFT_MCE_DEBUG_INTERVAL_TIMER	FALSE
+
+#define MXD_SOFT_MCE_DEBUG_OBJECT_CREATION	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -98,6 +100,7 @@ mxd_soft_mce_get_pointers( MX_MCE *mce,
 {
 	static const char fname[] = "mxd_soft_mce_get_pointers()";
 
+	MX_RECORD *record = NULL;
 	MX_SOFT_MCE *soft_mce_ptr = NULL;
 	MX_RECORD *motor_record = NULL;
 
@@ -107,7 +110,9 @@ mxd_soft_mce_get_pointers( MX_MCE *mce,
 			calling_fname );
 	}
 
-	soft_mce_ptr = (MX_SOFT_MCE *) mce->record->record_type_struct;
+	record = mce->record;
+
+	soft_mce_ptr = (MX_SOFT_MCE *) record->record_type_struct;
 
 	if ( soft_mce_ptr == (MX_SOFT_MCE *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -167,34 +172,108 @@ mxd_soft_mce_send_command_to_monitor_thread( MX_SOFT_MCE *soft_mce,
 		"The MX_SOFT_MCE pointer passed was NULL." );
 	}
 
+#if MXD_SOFT_MCE_DEBUG_MONITOR_THREAD
+	MX_DEBUG(-2,("%s: sending (%d) command to monitor thread.",
+			fname, (int) monitor_command));
+#endif
+
 	/* Prepare to tell the "monitor" thread to start a command. */
 
-	mx_status_code = mx_mutex_lock( soft_mce->monitor_thread_mutex );
+	mx_status_code = mx_mutex_lock(
+				soft_mce->monitor_thread_command_mutex );
 
 	if ( mx_status_code != MXE_SUCCESS ) {
 		return mx_error( mx_status_code, fname,
-		"The attempt to lock the monitor thread mutex for "
+		"The attempt to lock the monitor thread command mutex for "
 		"soft MCE '%s' failed.",
 			soft_mce->record->name );
 	}
 
 	soft_mce->monitor_command = monitor_command;
 
-	mx_status_code = mx_mutex_unlock( soft_mce->monitor_thread_mutex );
+	/* Notify the monitor thread. */
+
+	mx_status = mx_condition_variable_signal(
+			soft_mce->monitor_thread_command_cv );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* We are done sending our notification. */
+
+	mx_status_code = mx_mutex_unlock(
+				soft_mce->monitor_thread_command_mutex );
 
 	if ( mx_status_code != MXE_SUCCESS ) {
 		return mx_error( mx_status_code, fname,
-		"The attempt to unlock the monitor thread mutex for "
+		"The attempt to unlock the monitor thread command mutex for "
 		"soft MCE '%s' failed.",
 			soft_mce->record->name );
 	}
 
-	/* Tell the "monitor" thread to start the command. */
 
-	mx_status = mx_condition_variable_signal( soft_mce->monitor_thread_cv );
-
-	return mx_status;
+	return MX_SUCCESSFUL_RESULT;
 }
+
+/*------------------------------------------------------------------*/
+
+static mx_status_type
+mxd_soft_mce_send_status_to_main_thread( MX_SOFT_MCE *soft_mce,
+					int32_t monitor_status )
+{
+	static const char fname[] =
+		"mxd_soft_mce_send_status_to_main_thread()";
+
+	unsigned long mx_status_code;
+	mx_status_type mx_status;
+
+	if ( soft_mce == (MX_SOFT_MCE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SOFT_MCE pointer passed was NULL." );
+	}
+
+#if MXD_SOFT_MCE_DEBUG_MONITOR_THREAD
+	MX_DEBUG(-2,("%s: sending (%d) status to main thread.",
+			fname, (int) monitor_status));
+#endif
+
+	/* Prepare to send the monitor thread status to the main thread. */
+
+	mx_status_code = mx_mutex_lock( soft_mce->monitor_thread_status_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"The attempt to lock the monitor thread status mutex for "
+		"soft MCE '%s' failed.",
+			soft_mce->record->name );
+	}
+
+	soft_mce->monitor_status = monitor_status;
+
+	/* Notify the main thread. */
+
+	mx_status = mx_condition_variable_signal(
+			soft_mce->monitor_thread_status_cv );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* We are done sending our notification. */
+
+	mx_status_code = mx_mutex_unlock(
+				soft_mce->monitor_thread_status_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"The attempt to unlock the monitor thread status mutex for "
+		"soft MCE '%s' failed.",
+			soft_mce->record->name );
+	}
+
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 
 /*------------------------------------------------------------------*/
 
@@ -255,6 +334,8 @@ mxd_soft_mce_monitor_thread_fn( MX_THREAD *thread, void *record_ptr )
 	unsigned long monitor_loop_counter;
 	mx_status_type mx_status;
 
+	MX_DEBUG(-2,("%s invoked.",fname));
+
 	/* Initialize the variables to be used by this thread. */
 
 	if ( thread == (MX_THREAD *) NULL ) {
@@ -304,23 +385,18 @@ mxd_soft_mce_monitor_thread_fn( MX_THREAD *thread, void *record_ptr )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Lock the mutex in preparation for entering the thread's
-	 * event handling loop.
-	 */
+#if MXD_SOFT_MCE_DEBUG_OBJECT_CREATION
+	MX_DEBUG(-2,("%s: soft_mce->measurement_timer = %p",
+		fname, soft_mce->measurement_timer));
+#endif
 
-	mx_status_code = mx_mutex_lock( soft_mce->monitor_thread_mutex );
+	/* Tell the main thread that we are ready. */
 
-	if ( mx_status_code != MXE_SUCCESS ) {
-		return mx_error( mx_status_code, fname,
-		"the attempt to lock the monitor_thread_mutex for "
-		"soft MCE record '%s' failed.", record->name );
-	}
+	mx_status = mxd_soft_mce_send_status_to_main_thread( soft_mce,
+							MXS_SOFT_MCE_STAT_IDLE);
 
-	/* Now that we have locked the mutex, we can set the
-	 * monitor status to idle.
-	 */
-
-	mx_atomic_write32( &(soft_mce->monitor_status), MXS_SOFT_MCE_STAT_IDLE);
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	monitor_loop_counter = 0;
 
@@ -334,12 +410,12 @@ mxd_soft_mce_monitor_thread_fn( MX_THREAD *thread, void *record_ptr )
 
 		monitor_loop_counter++;
 
-		/* Wait on the condition variable. */
+		/* Wait on the command condition variable. */
 
 		while ( soft_mce->monitor_command == MXS_SOFT_MCE_CMD_NONE ) {
 			mx_status = mx_condition_variable_wait(
-					soft_mce->monitor_thread_cv,
-					soft_mce->monitor_thread_mutex );
+					soft_mce->monitor_thread_command_cv,
+					soft_mce->monitor_thread_command_mutex);
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -360,19 +436,25 @@ mxd_soft_mce_monitor_thread_fn( MX_THREAD *thread, void *record_ptr )
 			mx_atomic_write32(
 			    &(soft_mce->monitor_last_measurement_number), -1 );
 
-			mx_atomic_write32( &(soft_mce->monitor_status),
-						MXS_SOFT_MCE_STAT_ACQUIRING );
+			mx_status = mxd_soft_mce_send_status_to_main_thread(
+					soft_mce, MXS_SOFT_MCE_STAT_ACQUIRING );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
 			mx_status = mx_interval_timer_start(
 					soft_mce->measurement_timer,
-					soft_mce->internal_measurement_time );
+					mce->measurement_time );
 			break;
 		case MXS_SOFT_MCE_CMD_STOP:
 			mx_status = mx_interval_timer_stop(
 					soft_mce->measurement_timer, NULL );
 
-			mx_atomic_write32( &(soft_mce->monitor_status),
-						MXS_SOFT_MCE_STAT_IDLE );
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			mx_status = mxd_soft_mce_send_status_to_main_thread(
+					soft_mce, MXS_SOFT_MCE_STAT_IDLE );
 			break;
 		case MXS_SOFT_MCE_CMD_CLEAR:
 			mx_status = mx_interval_timer_stop(
@@ -382,8 +464,8 @@ mxd_soft_mce_monitor_thread_fn( MX_THREAD *thread, void *record_ptr )
 				mce->value_array[i] = 0.0;
 			}
 
-			mx_atomic_write32( &(soft_mce->monitor_status),
-						MXS_SOFT_MCE_STAT_IDLE );
+			mx_status = mxd_soft_mce_send_status_to_main_thread(
+					soft_mce, MXS_SOFT_MCE_STAT_IDLE );
 			break;
 		case MXS_SOFT_MCE_CMD_READ_MOTOR:
 			/* First check to see if we have reached the
@@ -397,9 +479,12 @@ mxd_soft_mce_monitor_thread_fn( MX_THREAD *thread, void *record_ptr )
 				mx_status = mx_interval_timer_stop(
 					soft_mce->measurement_timer, NULL );
 
-				mx_atomic_write32( &(soft_mce->monitor_status),
-						MXS_SOFT_MCE_STAT_IDLE );
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
 
+				mx_status =
+				    mxd_soft_mce_send_status_to_main_thread(
+					soft_mce, MXS_SOFT_MCE_STAT_IDLE );
 				break;
 			}
 
@@ -508,6 +593,7 @@ mxd_soft_mce_create_record_structures( MX_RECORD *record )
 	record->class_specific_function_list = &mxd_soft_mce_mce_function_list;
 
 	mce->record = record;
+	soft_mce->record = record;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -593,6 +679,7 @@ mxd_soft_mce_open( MX_RECORD *record )
 	MX_SOFT_MCE *soft_mce = NULL;
 	MX_MOTOR *motor = NULL;
 	int32_t test_value;
+	long mx_status_code;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -618,16 +705,47 @@ mxd_soft_mce_open( MX_RECORD *record )
 	 * monitor thread.
 	 */
 
-	mx_status = mx_mutex_create( &(soft_mce->monitor_thread_mutex) );
+	mx_status = mx_mutex_create( &(soft_mce->monitor_thread_command_mutex));
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status =
-		mx_condition_variable_create( &(soft_mce->monitor_thread_cv) );
+	mx_status = mx_condition_variable_create(
+				&(soft_mce->monitor_thread_command_cv) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if MXD_SOFT_MCE_DEBUG_OBJECT_CREATION
+	MX_DEBUG(-2,("%s: command: mutex = %p, cv = %p",
+		fname, soft_mce->monitor_thread_command_mutex,
+		soft_mce->monitor_thread_command_cv));
+#endif
+
+	/*---*/
+
+	mx_status = mx_mutex_create( &(soft_mce->monitor_thread_status_mutex));
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_condition_variable_create(
+				&(soft_mce->monitor_thread_status_cv) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_SOFT_MCE_DEBUG_OBJECT_CREATION
+	MX_DEBUG(-2,("%s: status: mutex = %p, cv = %p",
+		fname, soft_mce->monitor_thread_status_mutex,
+		soft_mce->monitor_thread_status_cv));
+#endif
+
+	/* Prepare to wait for the notification that the monitor thread
+	 * is initialized.
+	 */
+
+	mx_status_code = mx_mutex_lock( soft_mce->monitor_thread_status_mutex );
 
 	/* Create the monitor thread to handle updates to 'mce->value_array'. */
 
@@ -640,9 +758,23 @@ mxd_soft_mce_open( MX_RECORD *record )
 
 	/* Wait for the monitor thread to get itself initialized. */
 
-	do {
-		test_value = mx_atomic_read32( &(soft_mce->monitor_status) );
-	} while ( test_value == MXS_SOFT_MCE_STAT_NOT_INITIALIZED );
+	while ( soft_mce->monitor_status == MXS_SOFT_MCE_STAT_NOT_INITIALIZED )
+	{
+		mx_status = mx_condition_variable_wait(
+				soft_mce->monitor_thread_status_cv,
+				soft_mce->monitor_thread_status_mutex );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	} 
+
+	/* We now know that the monitor thread has finished initializing
+	 * itself, so we unlock the monitor thread mutex until we need to
+	 * look at the condition variable again.
+	 */
+
+	mx_status_code =
+		mx_mutex_unlock( soft_mce->monitor_thread_status_mutex );
 
 	/*-----------------------------------------------------------------*/
 
@@ -915,34 +1047,6 @@ mxd_soft_mce_set_parameter( MX_MCE *mce )
 #endif
 
 	switch( mce->parameter_type ) {
-	case MXLV_MCE_MEASUREMENT_TIME:
-		/* We cannot put a mutex lock around writes to the
-		 * mce->measurement_time value.  However, we can create
-		 * a new variable soft_mce->internal_measurement_time
-		 * and wrap a mutex lock around writes to _that_.
-		 */
-
-		mx_status_code =
-			mx_mutex_lock( soft_mce->monitor_thread_mutex );
-
-		if ( mx_status_code != MXE_SUCCESS ) {
-			return mx_error( mx_status_code, fname,
-			"Attempting to lock the monitor thread mutex for "
-			"soft MCE '%s' failed.", mce->record->name );
-		}
-
-		soft_mce->internal_measurement_time = mce->measurement_time;
-
-		mx_status_code =
-			mx_mutex_unlock( soft_mce->monitor_thread_mutex );
-
-		if ( mx_status_code != MXE_SUCCESS ) {
-			return mx_error( mx_status_code, fname,
-			"Attempting to unlock the monitor thread mutex for "
-			"soft MCE '%s' failed.", mce->record->name );
-		}
-		break;
-
 	default:
 		return mx_mce_default_set_parameter_handler( mce );
 		break;

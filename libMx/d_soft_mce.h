@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2016 Illinois Institute of Technology
+ * Copyright 2016, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -31,11 +31,14 @@ typedef struct {
 	int32_t monitor_last_measurement_number;
 
 	MX_THREAD *monitor_thread;
-	MX_CONDITION_VARIABLE *monitor_thread_cv;
-	MX_MUTEX *monitor_thread_mutex;
+
+	MX_CONDITION_VARIABLE *monitor_thread_command_cv;
+	MX_MUTEX *monitor_thread_command_mutex;
+
+	MX_CONDITION_VARIABLE *monitor_thread_status_cv;
+	MX_MUTEX *monitor_thread_status_mutex;
 
 	MX_INTERVAL_TIMER *measurement_timer;
-	double internal_measurement_time;
 } MX_SOFT_MCE;
 
 /* Values for 'monitor_command' and 'monitor_status' */

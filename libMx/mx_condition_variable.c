@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2014-2016 Illinois Institute of Technology
+ * Copyright 2014-2017 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -123,6 +123,8 @@ mx_condition_variable_create( MX_CONDITION_VARIABLE **cv )
 	if ( mx_win32_type_tested_for == FALSE ) {
 	    mx_bool_type is_windows_9x;
 
+	    mx_breakpoint();
+
 	    mx_win32_type_tested_for = TRUE;
 
 	    mx_status = mx_win32_is_windows_9x( &is_windows_9x );
@@ -157,6 +159,17 @@ mx_condition_variable_create( MX_CONDITION_VARIABLE **cv )
 	                    "Original error = '%s'.",
 	                        mx_status.message );
 	            }
+
+		    if ( ptr_SignalObjectAndWait == NULL ) {
+			    mx_win32_signal_object_and_wait_available = FALSE;
+
+			    return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			    "mx_dynamic_library_get_library_and_signal() said "
+			    "that it successfully found a pointer to the "
+			    "SignalObjectAndWait() API function.  However, "
+			    "the pointer returned is NULL.  This makes "
+			    "no sense." );
+		    }
 
 	            mx_win32_signal_object_and_wait_available = TRUE;
 	        }
@@ -353,6 +366,14 @@ mx_condition_variable_timed_wait( MX_CONDITION_VARIABLE *cv,
 	EnterCriticalSection( &(win32_cv->waiters_count_lock_) );
 	win32_cv->waiters_count_++;
 	LeaveCriticalSection( &(win32_cv->waiters_count_lock_) );
+
+	if ( ptr_SignalObjectAndWait == NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The pointer to the SignalObjectAndWait() Win32 call "
+		"has not been found and is set to NULL.  This should "
+		"_not_ happen on versions of Windows starting with "
+		"Windows NT 4.0 and above!" );
+	}
 
 	// This call atomically releases the mutex and waits on the
 	// semaphore until "signal" or "broadcast"
