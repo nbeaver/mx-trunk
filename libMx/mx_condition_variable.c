@@ -9,12 +9,14 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2014-2017 Illinois Institute of Technology
+ * Copyright 2014-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define MX_CONDITION_VARIABLE_DEBUG_POINTERS	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -123,8 +125,6 @@ mx_condition_variable_create( MX_CONDITION_VARIABLE **cv )
 	if ( mx_win32_type_tested_for == FALSE ) {
 	    mx_bool_type is_windows_9x;
 
-	    mx_breakpoint();
-
 	    mx_win32_type_tested_for = TRUE;
 
 	    mx_status = mx_win32_is_windows_9x( &is_windows_9x );
@@ -148,7 +148,7 @@ mx_condition_variable_create( MX_CONDITION_VARIABLE **cv )
 	        } else {
 	            mx_status = mx_dynamic_library_get_library_and_symbol(
 	                "kernel32.dll", "SignalObjectAndWait",
-	                    NULL, (void **) ptr_SignalObjectAndWait, 0 );
+	                    NULL, (void **) &ptr_SignalObjectAndWait, 0 );
 
 	            if ( mx_status.code != MXE_SUCCESS ) {
 	                mx_win32_signal_object_and_wait_available = FALSE;
@@ -159,6 +159,13 @@ mx_condition_variable_create( MX_CONDITION_VARIABLE **cv )
 	                    "Original error = '%s'.",
 	                        mx_status.message );
 	            }
+
+#if MX_CONDITION_VARIABLE_DEBUG_POINTERS
+		    MX_DEBUG(-2,("%s: &ptr_SignalObjectAndWait = %p",
+			fname, &ptr_SignalObjectAndWait ));
+		    MX_DEBUG(-2,("%s: ptr_SignalObjectAndWait = %p",
+			fname, ptr_SignalObjectAndWait ));
+#endif
 
 		    if ( ptr_SignalObjectAndWait == NULL ) {
 			    mx_win32_signal_object_and_wait_available = FALSE;

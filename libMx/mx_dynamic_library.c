@@ -11,12 +11,17 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2007, 2009, 2011-2012, 2014-2016 Illinois Institute of Technology
+ * Copyright 2007, 2009, 2011-2012, 2014-2016, 2018
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define MX_DYNAMIC_LIBRARY_DEBUG_LIBRARY_POINTERS	FALSE
+
+#define MX_DYNAMIC_LIBRARY_DEBUG_SYMBOL_POINTERS	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -98,6 +103,11 @@ mx_dynamic_library_open( const char *filename,
 	} else {
 		(*library)->object = LoadLibrary( filename );
 	}
+
+#if MX_DYNAMIC_LIBRARY_DEBUG_LIBRARY_POINTERS
+	MX_DEBUG(-2,("%s: filename = '%s', *library = %p, object = %p",
+		fname, filename, *library, (*library)->object));
+#endif
 
 	if ( (*library)->object == NULL ) {
 
@@ -250,6 +260,14 @@ mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
 				symbol_name, library->filename,
 				last_error_code, message_buffer );
 	}
+
+#if MX_DYNAMIC_LIBRARY_DEBUG_SYMBOL_POINTERS
+	MX_DEBUG(-2,
+	("%s: library_name = '%s', library = %p, symbol_name = '%s', "
+		"symbol_pointer = %p, *symbol_pointer = %p",
+		fname, library->filename, library, symbol_name,
+		symbol_pointer, *symbol_pointer ));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -783,6 +801,10 @@ mx_dynamic_library_get_library_and_symbol( const char *filename,
 					void **symbol,
 					unsigned long flags )
 {
+#if 1
+	static const char fname[] =
+		"mx_dynamic_library_get_library_and_symbol()";
+#endif
 	MX_DYNAMIC_LIBRARY *library_ptr;
 	void *symbol_ptr;
 	mx_status_type mx_status;

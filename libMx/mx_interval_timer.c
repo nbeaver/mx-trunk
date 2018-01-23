@@ -499,6 +499,7 @@ mx_interval_timer_stop( MX_INTERVAL_TIMER *itimer,
 
 	switch( result ) {
 	case TIMERR_NOERROR:
+	case TIMERR_NOCANDO:
 		break;
 	case MMSYSERR_INVALPARAM:
 		return mx_error( MXE_NOT_FOUND, fname,
@@ -507,7 +508,7 @@ mx_interval_timer_stop( MX_INTERVAL_TIMER *itimer,
 		break;
 	default:
 		return mx_error( MXE_FUNCTION_FAILED, fname,
-		"Unexpected status %lu returned by timeGetDevCaps()",
+		"Unexpected status %lu returned by timeKillEvent()",
 			(unsigned long) result );
 		break;
 	}
