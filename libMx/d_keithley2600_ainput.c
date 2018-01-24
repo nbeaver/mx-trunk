@@ -175,6 +175,8 @@ mxd_keithley2600_ainput_open( MX_RECORD *record )
 	MX_ANALOG_INPUT *ainput;
 	MX_KEITHLEY2600_AINPUT *keithley2600_ainput;
 	MX_KEITHLEY2600 *keithley2600;
+	char command[MXU_KEITHLEY2600_COMMAND_LENGTH+1];
+	int i, length;
 	mx_status_type mx_status;
 
 	ainput = (MX_ANALOG_INPUT *) (record->record_class_struct);
@@ -196,6 +198,9 @@ mxd_keithley2600_ainput_open( MX_RECORD *record )
 			= toupper( (int) keithley2600_ainput->channel_name );
 	}
 
+	keithley2600_ainput->lowercase_channel_name
+		= tolower( (int) keithley2600_ainput->channel_name );
+
 	switch( keithley2600_ainput->channel_name ) {
 	case 'A':
 	    keithley2600_ainput->channel_number = 1;
@@ -210,6 +215,75 @@ mxd_keithley2600_ainput_open( MX_RECORD *record )
 	    break;
 	}
 
+	length = strlen( keithley2600_ainput->signal_type );
+
+	if ( mx_strncasecmp( "voltage",
+			keithley2600_ainput->signal_type, length ) == 0 )
+	{
+		keithley2600_ainput->lowercase_signal_type = 'v';
+	} else
+	if ( mx_strncasecmp( "current",
+			keithley2600_ainput->signal_type, length ) == 0 )
+	{
+		keithley2600_ainput->lowercase_signal_type = 'i';
+	} else
+	if ( mx_strncasecmp( "i",
+			keithley2600_ainput->signal_type, length ) == 0 )
+	{
+		keithley2600_ainput->lowercase_signal_type = 'i';
+	} else {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Unrecognized signal type '%s' for analog input '%s'.  "
+		"The allowed signal types are 'voltage', 'current', "
+		"'v' or 'i'.",
+			keithley2600_ainput->signal_type,
+			ainput->record->name );
+	}
+
+	/*======== Initialize the controller. ========*/
+
+	/* Turn on autoranging of current and voltage. */
+
+	snprintf( command, sizeof(command),
+		"smu%c.measure_autorangei = smu%c.AUTORANGE_ON",
+		keithley2600_ainput->lowercase_channel_name,
+		keithley2600_ainput->lowercase_channel_name );
+
+	mx_status = mxi_keithley2600_command( keithley2600,
+				command, NULL, 0,
+				keithley2600->keithley2600_flags );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	snprintf( command, sizeof(command),
+		"smu%c.measure_autorangev = smu%c.AUTORANGE_ON",
+		keithley2600_ainput->lowercase_channel_name,
+		keithley2600_ainput->lowercase_channel_name );
+
+	mx_status = mxi_keithley2600_command( keithley2600,
+				command, NULL, 0,
+				keithley2600->keithley2600_flags );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Clear the buffers. */
+
+	for ( i = 1; i < 3; i++ ) {
+
+		snprintf( command, sizeof(command),
+			"smu%c.nvbuffer%d.clear()",
+			keithley2600_ainput->lowercase_channel_name, i );
+
+		mx_status = mxi_keithley2600_command( keithley2600,
+				command, NULL, 0,
+				keithley2600->keithley2600_flags );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
 	return mx_status;
 }
 
@@ -220,8 +294,9 @@ mxd_keithley2600_ainput_read( MX_ANALOG_INPUT *ainput )
 
 	MX_KEITHLEY2600_AINPUT *keithley2600_ainput;
 	MX_KEITHLEY2600 *keithley2600;
-	char command[80];
-	char response[80];
+	char command[MXU_KEITHLEY2600_COMMAND_LENGTH+1];
+	char response[MXU_KEITHLEY2600_RESPONSE_LENGTH+1];
+	int num_inputs;
 	mx_status_type mx_status;
 
 	mx_status = mxd_keithley2600_ainput_get_pointers( ainput,
@@ -230,16 +305,34 @@ mxd_keithley2600_ainput_read( MX_ANALOG_INPUT *ainput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Tell the controller to take single measurements. */
+
+	snprintf( command, sizeof(command),
+		"smu%c.measure_count = 1",
+		keithley2600_ainput->lowercase_channel_name );
+
 	mx_status = mxi_keithley2600_command( keithley2600,
-					"smua.measure.interval = 0.1",
-				NULL, 0, keithley2600->keithley2600_flags );
+				command, NULL, 0,
+				keithley2600->keithley2600_flags );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	snprintf( command, sizeof(command),
-		"print(smua.measure.%ld())",
-		keithley2600_ainput->channel_number );
+		"smu%c.measure.interval = 0.1",
+		keithley2600_ainput->lowercase_channel_name );
+
+	mx_status = mxi_keithley2600_command( keithley2600,
+				command, NULL, 0,
+				keithley2600->keithley2600_flags );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	snprintf( command, sizeof(command),
+		"print(smu%c.measure.%c())",
+		keithley2600_ainput->lowercase_channel_name,
+		keithley2600_ainput->lowercase_signal_type );
 
 	mx_status = mxi_keithley2600_command( keithley2600, command,
 				response, sizeof(response),
@@ -247,6 +340,16 @@ mxd_keithley2600_ainput_read( MX_ANALOG_INPUT *ainput )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	num_inputs = sscanf( response, "%lg",
+			&(ainput->raw_value.double_value) );
+
+	if ( num_inputs != 1 ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"Did not find a number in the response '%s' to command '%s' "
+		"for analog input '%s'.",
+			response, command, ainput->record->name );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }

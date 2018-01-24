@@ -22,8 +22,11 @@
 typedef struct {
 	MX_RECORD *controller_record;
 	char channel_name;
+	char signal_type[MXU_KEITHLEY2600_SIGNAL_TYPE_NAME_LENGTH+1];
 
 	long channel_number;
+	char lowercase_channel_name;
+	char lowercase_signal_type;
 } MX_KEITHLEY2600_AINPUT;
 
 MX_API mx_status_type mxd_keithley2600_ainput_create_record_structures(
@@ -47,6 +50,11 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_keithley2600_ainput_rfield_def_ptr;
   \
   {-1, -1, "channel_name", MXFT_CHAR, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_KEITHLEY2600_AINPUT,channel_name),\
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "signal_type", MXFT_STRING, NULL, \
+			1, {MXU_KEITHLEY2600_SIGNAL_TYPE_NAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_KEITHLEY2600_AINPUT,signal_type),\
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
 
 #endif /* __D_KEITHLEY2600_AINPUT_H__ */
