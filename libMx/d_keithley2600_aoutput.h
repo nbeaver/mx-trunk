@@ -33,6 +33,7 @@ MX_API mx_status_type mxd_keithley2600_aoutput_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_keithley2600_aoutput_open( MX_RECORD *record );
 
+MX_API mx_status_type mxd_keithley2600_aoutput_read(MX_ANALOG_OUTPUT *aoutput);
 MX_API mx_status_type mxd_keithley2600_aoutput_write(MX_ANALOG_OUTPUT *aoutput);
 
 extern MX_RECORD_FUNCTION_LIST mxd_keithley2600_aoutput_record_function_list;

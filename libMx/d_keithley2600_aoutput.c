@@ -43,7 +43,7 @@ MX_RECORD_FUNCTION_LIST mxd_keithley2600_aoutput_record_function_list = {
 MX_ANALOG_OUTPUT_FUNCTION_LIST
 		mxd_keithley2600_aoutput_analog_output_function_list =
 {
-	NULL,
+	mxd_keithley2600_aoutput_read,
 	mxd_keithley2600_aoutput_write
 };
 
@@ -289,15 +289,17 @@ mxd_keithley2600_aoutput_open( MX_RECORD *record )
 	return mx_status;
 }
 
+
 MX_EXPORT mx_status_type
-mxd_keithley2600_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
+mxd_keithley2600_aoutput_read( MX_ANALOG_OUTPUT *aoutput )
 {
-	static const char fname[] = "mxd_keithley2600_aoutput_write()";
+	static const char fname[] = "mxd_keithley2600_aoutput_read()";
 
 	MX_KEITHLEY2600_AOUTPUT *keithley2600_aoutput;
 	MX_KEITHLEY2600 *keithley2600;
 	char command[MXU_KEITHLEY2600_COMMAND_LENGTH+1];
 	char response[MXU_KEITHLEY2600_RESPONSE_LENGTH+1];
+	int num_items;
 	mx_status_type mx_status;
 
 	mx_status = mxd_keithley2600_aoutput_get_pointers( aoutput,
@@ -306,7 +308,48 @@ mxd_keithley2600_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Based on page 2-36 of the manual. */
+	snprintf( command, sizeof(command),
+		"print(smu%c.source.level%c)",
+		keithley2600_aoutput->lowercase_channel_name,
+		keithley2600_aoutput->lowercase_signal_type );
+
+	mx_status = mxi_keithley2600_command( keithley2600,
+				command, response, sizeof(response),
+				keithley2600->keithley2600_flags );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	num_items = sscanf( response, "%lg",
+			&(aoutput->raw_value.double_value) );
+
+	if ( num_items != 1 ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"No analog output setpoint was seen in the response '%s' "
+		"to command '%s' for analog output '%s'.",
+			response, command, aoutput->record->name );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_keithley2600_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
+{
+	static const char fname[] = "mxd_keithley2600_aoutput_write()";
+
+	MX_KEITHLEY2600_AOUTPUT *keithley2600_aoutput;
+	MX_KEITHLEY2600 *keithley2600;
+	char command[MXU_KEITHLEY2600_COMMAND_LENGTH+1];
+	mx_status_type mx_status;
+
+	mx_status = mxd_keithley2600_aoutput_get_pointers( aoutput,
+		&keithley2600_aoutput, &keithley2600, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Based on page 2-35 of the manual. */
 
 	/* Configure the output for voltage or current as needed. */
 
@@ -362,8 +405,8 @@ mxd_keithley2600_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 		keithley2600_aoutput->lowercase_signal_type,
 		aoutput->raw_value.double_value );
 
-	mx_status = mxi_keithley2600_command( keithley2600, command,
-				response, sizeof(response),
+	mx_status = mxi_keithley2600_command( keithley2600,
+				command, NULL, 0,
 				keithley2600->keithley2600_flags );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -376,8 +419,8 @@ mxd_keithley2600_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 		keithley2600_aoutput->lowercase_channel_name,
 		keithley2600_aoutput->lowercase_channel_name );
 
-	mx_status = mxi_keithley2600_command( keithley2600, command,
-				response, sizeof(response),
+	mx_status = mxi_keithley2600_command( keithley2600,
+				command, NULL, 0,
 				keithley2600->keithley2600_flags );
 
 	return mx_status;
