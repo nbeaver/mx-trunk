@@ -9,12 +9,15 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004, 2006, 2012 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2004, 2006, 2012, 2018
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define MXD_DEBUG_REPLACE_VARARGS_COOKIES	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -242,16 +245,20 @@ mx_replace_varargs_cookies_with_values( MX_RECORD *record,
 
 	/**** Does 'num_dimensions' have a varargs cookie in it? ****/
 
-	MX_DEBUG( 8,("%s: field = '%s', num_dimensions = %ld",
-			fname, field->name, field->num_dimensions));
+#if MXD_DEBUG_REPLACE_VARARGS_COOKIES
+	MX_DEBUG(-2,("%s: field = '%s.%s', num_dimensions = %ld",
+		fname, record->name, field->name, field->num_dimensions));
+#endif
 
 	if ( field->num_dimensions >= 0 ) {
 
 		old_num_dimensions = field->num_dimensions;
 		new_num_dimensions = field->num_dimensions;
 
-		MX_DEBUG( 8,(
+#if MXD_DEBUG_REPLACE_VARARGS_COOKIES
+		MX_DEBUG(-2,(
 			"%s: field->num_dimensions is not varargs.", fname));
+#endif
 
 	} else {
 		old_num_dimensions = MXU_FIELD_MAX_DIMENSIONS;
@@ -276,8 +283,10 @@ mx_replace_varargs_cookies_with_values( MX_RECORD *record,
 			}
 		}
 
-		MX_DEBUG( 8,("%s: referenced_field_index = %ld",
+#if MXD_DEBUG_REPLACE_VARARGS_COOKIES
+		MX_DEBUG(-2,("%s: referenced_field_index = %ld",
 			fname, referenced_field_index ));
+#endif
 
 		mx_status = mx_convert_varargs_cookie_to_value(
 			record, varargs_cookie, &new_num_dimensions );
@@ -307,7 +316,9 @@ mx_replace_varargs_cookies_with_values( MX_RECORD *record,
 				record->mx_type );
 	}
 
-	MX_DEBUG( 8,("%s: driver '%s' selected.", fname, driver->name));
+#if MXD_DEBUG_REPLACE_VARARGS_COOKIES
+	MX_DEBUG(-2,("%s: driver '%s' selected.", fname, driver->name));
+#endif
 
 	field_defaults_array = *(driver->record_field_defaults_ptr);
 
@@ -328,8 +339,11 @@ mx_replace_varargs_cookies_with_values( MX_RECORD *record,
 	temp_ptr = field->dimension;
 
 	if ( field->num_dimensions == 1 ) {
-		MX_DEBUG( 8,("%s: field->dimension[0] = %ld",
+
+#if MXD_DEBUG_REPLACE_VARARGS_COOKIES
+		MX_DEBUG(-2,("%s: field->dimension[0] = %ld",
 					fname, field->dimension[0]));
+#endif
 	}
 
 	field->dimension = (long *) malloc(new_num_dimensions * sizeof(long));
@@ -354,16 +368,24 @@ mx_replace_varargs_cookies_with_values( MX_RECORD *record,
 		}
 	}
 
-	MX_DEBUG( 8,
+#if MXD_DEBUG_REPLACE_VARARGS_COOKIES
+	MX_DEBUG(-8,
 ("%s: temp_ptr = %p, field->dimension = %p, field_defaults->dimension = %p",
 		fname, temp_ptr, field->dimension, field_defaults->dimension));
+#endif
 
 	if ( temp_ptr == field_defaults->dimension ) {
-		MX_DEBUG( 8,
+
+#if MXD_DEBUG_REPLACE_VARARGS_COOKIES
+		MX_DEBUG(-2,
 			("%s: temp_ptr == field_defaults->dimension", fname));
+#endif
 	} else {
-		MX_DEBUG( 8,
+
+#if MXD_DEBUG_REPLACE_VARARGS_COOKIES
+		MX_DEBUG(-2,
 			("%s: temp_ptr != field_defaults->dimension", fname));
+#endif
 
 		free( temp_ptr );
 	}
@@ -402,6 +424,11 @@ mx_replace_varargs_cookies_with_values( MX_RECORD *record,
 				return mx_status;
 		}
 	}
+
+#if MXD_DEBUG_REPLACE_VARARGS_COOKIES
+	MX_DEBUG(-2,("%s complete for '%s.%s'.",
+		fname, record->name, field->name ));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }

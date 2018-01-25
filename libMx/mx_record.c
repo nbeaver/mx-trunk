@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2017 Illinois Institute of Technology
+ * Copyright 1999-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1294,6 +1294,12 @@ mx_read_database_private( MX_RECORD *record_list_head,
 
 	/* Try to read the first line. */
 
+#if 1
+	/* For ease in debugging the contents of the buffer. */
+
+	memset( buffer, 0, sizeof(buffer) );
+#endif
+
 	mx_status = (*mxp_readline)( db_source, buffer, sizeof(buffer) );
 
 	switch( mx_status.code ) {
@@ -1462,6 +1468,12 @@ mx_read_database_private( MX_RECORD *record_list_head,
 		}
 
 		/* Get the next line. */
+
+#if 1
+		/* For ease in debugging the contents of the buffer. */
+
+		memset( buffer, 0, sizeof(buffer) );
+#endif
 
 		mx_status = (*mxp_readline)( db_source, buffer, sizeof(buffer));
 

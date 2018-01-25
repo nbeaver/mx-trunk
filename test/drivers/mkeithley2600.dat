@@ -1,5 +1,6 @@
-k2600_int  interface rs232 tcp232 "" "" 9600 8 N 1 N 0x0a 0x0a 5 0x0 164.54.244.28 5025 0x0
+##k2600_int  interface rs232 tcp232 "" "" 9600 8 N 1 N 0x0a 0x0a 5 0x0 164.54.244.28 5025 0x0
+k2600_int  interface rs232 tcp232 "" "" 9600 8 N 1 N 0x0a 0x0a 5 0x0 127.0.0.1 5025 0x0
 k2600      interface controller keithley2600 "" "" k2600_int 0x1
 #
 k2600_ain  device analog_input keithley2600_ainput "" "" 0 1 0 volts 0x0 0 "" k2600 A voltage
-#k2600_aout device analog_output keithley2600_aoutput "" "" 0 1 0 volts 0x0 k2600 A voltage
+k2600_aout device analog_output keithley2600_aoutput "" "" 0 1 0 volts 0x0 k2600 A voltage
