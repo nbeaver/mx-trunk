@@ -298,7 +298,6 @@ mxd_keithley2600_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 	MX_KEITHLEY2600 *keithley2600;
 	char command[MXU_KEITHLEY2600_COMMAND_LENGTH+1];
 	char response[MXU_KEITHLEY2600_RESPONSE_LENGTH+1];
-	int num_outputs;
 	mx_status_type mx_status;
 
 	mx_status = mxd_keithley2600_aoutput_get_pointers( aoutput,
@@ -307,11 +306,31 @@ mxd_keithley2600_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Tell the controller to take single measurements. */
+	/* Based on page 2-36 of the manual. */
 
-	snprintf( command, sizeof(command),
-		"smu%c.measure_count = 1",
-		keithley2600_aoutput->lowercase_channel_name );
+	/* Configure the output for voltage or current as needed. */
+
+	switch( keithley2600_aoutput->lowercase_signal_type ) {
+	case 'v':
+		snprintf( command, sizeof(command),
+			"smu%c.source.func = smu%c.OUTPUT_DCVOLTS",
+			keithley2600_aoutput->lowercase_channel_name,
+			keithley2600_aoutput->lowercase_channel_name );
+		break;
+	case 'i':
+		snprintf( command, sizeof(command),
+			"smu%c.source.func = smu%c.OUTPUT_DCAMPS",
+			keithley2600_aoutput->lowercase_channel_name,
+			keithley2600_aoutput->lowercase_channel_name );
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The requested signal type '%s' for analog output '%s' "
+			"is not recognized.",
+				keithley2600_aoutput->signal_type,
+				aoutput->record->name );
+		break;
+	}
 
 	mx_status = mxi_keithley2600_command( keithley2600,
 				command, NULL, 0,
@@ -320,21 +339,28 @@ mxd_keithley2600_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	snprintf( command, sizeof(command),
-		"smu%c.measure.interval = 0.1",
-		keithley2600_aoutput->lowercase_channel_name );
-
-	mx_status = mxi_keithley2600_command( keithley2600,
-				command, NULL, 0,
-				keithley2600->keithley2600_flags );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	/* Configure for autoranging. */
 
 	snprintf( command, sizeof(command),
-		"print(smu%c.measure.%c())",
+		"smu%c.source.autorange%c = smu%c.AUTORANGE_ON",
 		keithley2600_aoutput->lowercase_channel_name,
-		keithley2600_aoutput->lowercase_signal_type );
+		keithley2600_aoutput->lowercase_signal_type,
+		keithley2600_aoutput->lowercase_channel_name );
+
+	mx_status = mxi_keithley2600_command( keithley2600,
+				command, NULL, 0,
+				keithley2600->keithley2600_flags );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Set the voltage or current. */
+
+	snprintf( command, sizeof(command),
+		"smu%c.source.level%c = %g",
+		keithley2600_aoutput->lowercase_channel_name,
+		keithley2600_aoutput->lowercase_signal_type,
+		aoutput->raw_value.double_value );
 
 	mx_status = mxi_keithley2600_command( keithley2600, command,
 				response, sizeof(response),
@@ -343,16 +369,17 @@ mxd_keithley2600_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_outputs = sscanf( response, "%lg",
-			&(aoutput->raw_value.double_value) );
+	/* Turn on the output. */
 
-	if ( num_outputs != 1 ) {
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"Did not find a number in the response '%s' to command '%s' "
-		"for analog output '%s'.",
-			response, command, aoutput->record->name );
-	}
+	snprintf( command, sizeof(command),
+		"smu%c.source.output = smu%c.OUTPUT_ON",
+		keithley2600_aoutput->lowercase_channel_name,
+		keithley2600_aoutput->lowercase_channel_name );
 
-	return MX_SUCCESSFUL_RESULT;
+	mx_status = mxi_keithley2600_command( keithley2600, command,
+				response, sizeof(response),
+				keithley2600->keithley2600_flags );
+
+	return mx_status;
 }
 
