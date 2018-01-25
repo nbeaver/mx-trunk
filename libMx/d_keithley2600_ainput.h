@@ -1,7 +1,7 @@
 /*
  * Name:    d_keithley2600_ainput.h
  *
- * Purpose: Header file for reading out Keithley 2600 multimeters.
+ * Purpose: Header file for analog inputs of Keithley 2600 SourceMeters.
  *
  * Author:  William Lavender
  *

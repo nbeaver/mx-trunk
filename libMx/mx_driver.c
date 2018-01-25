@@ -242,6 +242,7 @@
 #include "d_keithley2400_doutput.h"
 #include "d_keithley2000_ainput.h"
 #include "d_keithley2600_ainput.h"
+#include "d_keithley2600_aoutput.h"
 #include "d_pfcu_filter_summary.h"
 #include "d_picomotor_aio.h"
 #include "d_picomotor_dio.h"
@@ -1437,7 +1438,14 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_keithley2600_ainput_num_record_fields,
 				&mxd_keithley2600_ainput_rfield_def_ptr},
 
-{"keithley2700_ainput", MXT_AIN_KEITHLEY2700, MXC_ANALOG_INPUT, MXR_DEVICE,
+{"keithley2600_aoutput", MXT_AIN_KEITHLEY2600, MXC_ANALOG_OUTPUT, MXR_DEVICE,
+				&mxd_keithley2600_aoutput_record_function_list,
+				NULL,
+			&mxd_keithley2600_aoutput_analog_output_function_list,
+				&mxd_keithley2600_aoutput_num_record_fields,
+				&mxd_keithley2600_aoutput_rfield_def_ptr},
+
+{"keithley2700_aoutput", MXT_AIN_KEITHLEY2700, MXC_ANALOG_INPUT, MXR_DEVICE,
 				&mxd_keithley2700_ainput_record_function_list,
 				NULL,
 			    &mxd_keithley2700_ainput_analog_input_function_list,

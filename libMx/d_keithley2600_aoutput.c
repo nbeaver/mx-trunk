@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004, 2006, 2010 Illinois Institute of Technology
+ * Copyright 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <math.h>
 
 #include "mx_util.h"
@@ -36,8 +37,7 @@ MX_RECORD_FUNCTION_LIST mxd_keithley2600_aoutput_record_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	mxd_keithley2600_aoutput_open,
-	mxd_keithley2600_aoutput_close
+	mxd_keithley2600_aoutput_open
 };
 
 MX_ANALOG_OUTPUT_FUNCTION_LIST
@@ -69,7 +69,6 @@ static mx_status_type
 mxd_keithley2600_aoutput_get_pointers( MX_ANALOG_OUTPUT *aoutput,
 				MX_KEITHLEY2600_AOUTPUT **keithley2600_aoutput,
 				MX_KEITHLEY2600 **keithley2600,
-				MX_INTERFACE **interface,
 				const char *calling_fname )
 {
 	static const char fname[] = "mxd_keithley2600_aoutput_get_pointers()";
@@ -125,16 +124,6 @@ mxd_keithley2600_aoutput_get_pointers( MX_ANALOG_OUTPUT *aoutput,
 		*keithley2600 = keithley2600_ptr;
 	}
 
-	if ( interface != (MX_INTERFACE **) NULL ) {
-		*interface = &(keithley2600_ptr->port_interface);
-
-		if ( *interface == (MX_INTERFACE *) NULL ) {
-			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_INTERFACE pointer for Keithley 2600 '%s' is NULL.",
-				keithley2600_ptr->record->name );
-		}
-	}
-
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -175,7 +164,7 @@ mxd_keithley2600_aoutput_create_record_structures( MX_RECORD *record )
 
 	aoutput->record = record;
 
-	aoutput->subclass = MXT_AOU_DOUBLE;
+	aoutput->subclass = MXT_AIN_DOUBLE;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -188,8 +177,8 @@ mxd_keithley2600_aoutput_open( MX_RECORD *record )
 	MX_ANALOG_OUTPUT *aoutput;
 	MX_KEITHLEY2600_AOUTPUT *keithley2600_aoutput;
 	MX_KEITHLEY2600 *keithley2600;
-	MX_INTERFACE *interface;
-	long gpib_address;
+	char command[MXU_KEITHLEY2600_COMMAND_LENGTH+1];
+	int i, length;
 	mx_status_type mx_status;
 
 	aoutput = (MX_ANALOG_OUTPUT *) (record->record_class_struct);
@@ -201,64 +190,101 @@ mxd_keithley2600_aoutput_open( MX_RECORD *record )
 	}
 
 	mx_status = mxd_keithley2600_aoutput_get_pointers( aoutput,
-		&keithley2600_aoutput, &keithley2600, &interface, fname );
+		&keithley2600_aoutput, &keithley2600, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( interface->record->mx_superclass != MXR_INTERFACE ) {
-		return mx_error( MXE_TYPE_MISMATCH, fname,
-		"Record '%s' used by Keithley 2600 aoutput '%s' is not "
-		"an interface record.", interface->record->name, record->name );
+	if ( islower( (int) keithley2600_aoutput->channel_name ) ) {
+		keithley2600_aoutput->channel_name
+			= toupper( (int) keithley2600_aoutput->channel_name );
 	}
 
-	switch( interface->record->mx_class ) {
-	case MXI_RS232:
-		break;
-	case MXI_GPIB:
-		gpib_address = interface->address;
+	keithley2600_aoutput->lowercase_channel_name
+		= tolower( (int) keithley2600_aoutput->channel_name );
 
-		/* Check that the GPIB address is valid. */
-
-		if ( gpib_address < 0 || gpib_address > 30 ) {
-			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"GPIB address %ld for record '%s' is out of allowed range 0-30.",
-				gpib_address, record->name );
-		}
-		break;
+	switch( keithley2600_aoutput->channel_name ) {
+	case 'A':
+	    keithley2600_aoutput->channel_number = 1;
+	    break;
+	case 'B':
+	    keithley2600_aoutput->channel_number = 2;
+	    break;
 	default:
-		return mx_error( MXE_TYPE_MISMATCH, fname,
-		"Record '%s' is not an RS-232 or GPIB record.",
-			interface->record->name );
+	    return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+	    "Illegal channel name '%c' specified for analog output '%s'",
+	    	keithley2600_aoutput->channel_name, record->name );
+	    break;
 	}
 
-	return MX_SUCCESSFUL_RESULT;
-}
+	length = strlen( keithley2600_aoutput->signal_type );
 
-MX_EXPORT mx_status_type
-mxd_keithley2600_aoutput_close( MX_RECORD *record )
-{
-	static const char fname[] = "mxd_keithley2600_aoutput_close()";
-
-	MX_ANALOG_OUTPUT *aoutput;
-	MX_KEITHLEY2600_AOUTPUT *keithley2600_aoutput;
-	MX_KEITHLEY2600 *keithley2600;
-	MX_INTERFACE *interface;
-	mx_status_type mx_status;
-
-	aoutput = (MX_ANALOG_OUTPUT *) (record->record_class_struct);
-
-	if ( aoutput == (MX_ANALOG_OUTPUT *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"MX_ANALOG_OUTPUT pointer for record '%s' is NULL.",
-			record->name );
+	if ( mx_strncasecmp( "voltage",
+			keithley2600_aoutput->signal_type, length ) == 0 )
+	{
+		keithley2600_aoutput->lowercase_signal_type = 'v';
+	} else
+	if ( mx_strncasecmp( "current",
+			keithley2600_aoutput->signal_type, length ) == 0 )
+	{
+		keithley2600_aoutput->lowercase_signal_type = 'i';
+	} else
+	if ( mx_strncasecmp( "i",
+			keithley2600_aoutput->signal_type, length ) == 0 )
+	{
+		keithley2600_aoutput->lowercase_signal_type = 'i';
+	} else {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Unrecognized signal type '%s' for analog output '%s'.  "
+		"The allowed signal types are 'voltage', 'current', "
+		"'v' or 'i'.",
+			keithley2600_aoutput->signal_type,
+			aoutput->record->name );
 	}
 
-	mx_status = mxd_keithley2600_aoutput_get_pointers( aoutput,
-		&keithley2600_aoutput, &keithley2600, &interface, fname );
+	/*======== Initialize the controller. ========*/
+
+	/* Turn on autoranging of current and voltage. */
+
+	snprintf( command, sizeof(command),
+		"smu%c.measure_autorangei = smu%c.AUTORANGE_ON",
+		keithley2600_aoutput->lowercase_channel_name,
+		keithley2600_aoutput->lowercase_channel_name );
+
+	mx_status = mxi_keithley2600_command( keithley2600,
+				command, NULL, 0,
+				keithley2600->keithley2600_flags );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	snprintf( command, sizeof(command),
+		"smu%c.measure_autorangev = smu%c.AUTORANGE_ON",
+		keithley2600_aoutput->lowercase_channel_name,
+		keithley2600_aoutput->lowercase_channel_name );
+
+	mx_status = mxi_keithley2600_command( keithley2600,
+				command, NULL, 0,
+				keithley2600->keithley2600_flags );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Clear the buffers. */
+
+	for ( i = 1; i < 3; i++ ) {
+
+		snprintf( command, sizeof(command),
+			"smu%c.nvbuffer%d.clear()",
+			keithley2600_aoutput->lowercase_channel_name, i );
+
+		mx_status = mxi_keithley2600_command( keithley2600,
+				command, NULL, 0,
+				keithley2600->keithley2600_flags );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
 	return mx_status;
 }
@@ -270,41 +296,62 @@ mxd_keithley2600_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 
 	MX_KEITHLEY2600_AOUTPUT *keithley2600_aoutput;
 	MX_KEITHLEY2600 *keithley2600;
-	MX_INTERFACE *interface;
-	char command[80];
+	char command[MXU_KEITHLEY2600_COMMAND_LENGTH+1];
+	char response[MXU_KEITHLEY2600_RESPONSE_LENGTH+1];
+	int num_outputs;
 	mx_status_type mx_status;
 
 	mx_status = mxd_keithley2600_aoutput_get_pointers( aoutput,
-		&keithley2600_aoutput, &keithley2600, &interface, fname );
+		&keithley2600_aoutput, &keithley2600, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	switch( keithley2600_aoutput->source_type ) {
-	case MXT_KEITHLEY2600_VOLT:
-		snprintf( command, sizeof(command),
-			":SOUR:VOLT:LEV %g", aoutput->raw_value.double_value );
-		break;
-	case MXT_KEITHLEY2600_CURR:
-		snprintf( command, sizeof(command),
-			":SOUR:CURR:LEV %g", aoutput->raw_value.double_value );
-		break;
-	default:
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"Unsupported source type %ld for Keithley 2600 "
-		"analog output '%s' used by record '%s'.",
-			keithley2600_aoutput->source_type,
-			keithley2600->record->name,
-			aoutput->record->name );
+	/* Tell the controller to take single measurements. */
+
+	snprintf( command, sizeof(command),
+		"smu%c.measure_count = 1",
+		keithley2600_aoutput->lowercase_channel_name );
+
+	mx_status = mxi_keithley2600_command( keithley2600,
+				command, NULL, 0,
+				keithley2600->keithley2600_flags );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	snprintf( command, sizeof(command),
+		"smu%c.measure.interval = 0.1",
+		keithley2600_aoutput->lowercase_channel_name );
+
+	mx_status = mxi_keithley2600_command( keithley2600,
+				command, NULL, 0,
+				keithley2600->keithley2600_flags );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	snprintf( command, sizeof(command),
+		"print(smu%c.measure.%c())",
+		keithley2600_aoutput->lowercase_channel_name,
+		keithley2600_aoutput->lowercase_signal_type );
+
+	mx_status = mxi_keithley2600_command( keithley2600, command,
+				response, sizeof(response),
+				keithley2600->keithley2600_flags );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	num_outputs = sscanf( response, "%lg",
+			&(aoutput->raw_value.double_value) );
+
+	if ( num_outputs != 1 ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"Did not find a number in the response '%s' to command '%s' "
+		"for analog output '%s'.",
+			response, command, aoutput->record->name );
 	}
-
-	mx_status = mxi_keithley_command( aoutput->record, interface, command,
-					NULL, 0, KEITHLEY2600_AOUTPUT_DEBUG );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	keithley2600->last_source_type = keithley2600_aoutput->source_type;
 
 	return MX_SUCCESSFUL_RESULT;
 }
