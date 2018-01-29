@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2008, 2010, 2013-2017 Illinois Institute of Technology
+ * Copyright 1999-2008, 2010, 2013-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -91,6 +91,8 @@ extern "C" {
 #define MXSF_MTR_AT_HOME_SWITCH			0x8000
 #define MXSF_MTR_DEVICE_ACTION_FAILED		0x10000
 #define MXSF_MTR_NOT_READY			0x20000
+#define MXSF_MTR_IS_MOVING			0x40000
+#define MXSF_MTR_ENCODER_AVAILABLE		0x80000
 
 #define MXSF_MTR_ERROR				0x80000000
 

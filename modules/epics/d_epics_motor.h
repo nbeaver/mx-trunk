@@ -8,7 +8,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2006, 2013-2015 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2006, 2013-2015, 2018
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,6 +27,7 @@ typedef struct {
 	int driver_type;
 
 	MX_EPICS_PV accl_pv;
+	MX_EPICS_PV cnen_pv;
 	MX_EPICS_PV dcof_pv;
 	MX_EPICS_PV dir_pv;
 	MX_EPICS_PV dmov_pv;

@@ -55,14 +55,14 @@ MODULES += radicon_taurus	# linux, win32
 
 #MODULES += vxi_memacc		# linux,
 
-MODULES += xia_handel		# linux, win32
+#MODULES += xia_handel		# linux, win32
 
 MODULES += xineos_gige		# linux, win32
 
 #-------------------------------------------------------------------
 # Linux-only modules.
 
-MODULES += aravis
+#MODULES += aravis
 
 MODULES += dalsa_gev
 

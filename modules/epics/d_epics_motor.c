@@ -10,7 +10,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2006, 2008-2009, 2011, 2013-2015
+ * Copyright 1999-2001, 2003-2006, 2008-2009, 2011, 2013-2015, 2018
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -186,6 +186,8 @@ mxd_epics_motor_finish_record_initialization( MX_RECORD *record )
 
 	mx_epics_pvname_init( &(epics_motor->accl_pv),
 				"%s.ACCL", epics_motor->epics_record_name );
+	mx_epics_pvname_init( &(epics_motor->cnen_pv),
+				"%s.CNEN", epics_motor->epics_record_name );
 	mx_epics_pvname_init( &(epics_motor->dcof_pv),
 				"%s.DCOF", epics_motor->epics_record_name );
 	mx_epics_pvname_init( &(epics_motor->dir_pv),
@@ -604,6 +606,8 @@ mxd_epics_motor_get_parameter( MX_MOTOR *motor )
 			motor->parameter_type ),
 		motor->parameter_type));
 
+	mx_status = MX_SUCCESSFUL_RESULT;
+
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
 		mx_status = mx_caget( &(epics_motor->velo_pv),
@@ -681,7 +685,7 @@ mxd_epics_motor_get_parameter( MX_MOTOR *motor )
 		break;
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -691,6 +695,7 @@ mxd_epics_motor_set_parameter( MX_MOTOR *motor )
 
 	MX_EPICS_MOTOR *epics_motor = NULL;
 	float float_value;
+	long long_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_motor_get_pointers( motor, &epics_motor, fname );
@@ -704,15 +709,14 @@ mxd_epics_motor_set_parameter( MX_MOTOR *motor )
 			motor->parameter_type ),
 		motor->parameter_type));
 
+	mx_status = MX_SUCCESSFUL_RESULT;
+
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
 		float_value = motor->raw_speed;
 
 		mx_status = mx_caput( &(epics_motor->velo_pv),
 					MX_CA_FLOAT, 1, &float_value );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
 		break;
 
 	case MXLV_MTR_BASE_SPEED:
@@ -720,9 +724,6 @@ mxd_epics_motor_set_parameter( MX_MOTOR *motor )
 
 		mx_status = mx_caput( &(epics_motor->vbas_pv),
 					MX_CA_FLOAT, 1, &float_value );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
 		break;
 
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
@@ -730,38 +731,45 @@ mxd_epics_motor_set_parameter( MX_MOTOR *motor )
 
 		mx_status = mx_caput( &(epics_motor->accl_pv),
 					MX_CA_FLOAT, 1, &float_value );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		break;
-
-	case MXLV_MTR_AXIS_ENABLE:
-		return mx_error( MXE_UNSUPPORTED, fname,
-		    "Enabling or disabling EPICS motor '%s' is not supported.",
-			motor->record->name);
 		break;
 
 	case MXLV_MTR_CLOSED_LOOP:
-		return mx_error( MXE_UNSUPPORTED, fname,
-			"Enabling or disabling closed loop mode is not "
-			"supported for EPICS motor '%s'.", motor->record->name);
+		long_value = motor->closed_loop;
+
+		mx_status = mx_caput( &(epics_motor->cnen_pv),
+					MX_CA_LONG, 1, &long_value );
 		break;
+
+		/*--------------*/
+
+		/* NOTE: EPICS does not seem to implement anything comparable
+		 * to the MX axis_enable or fault_reset fields.  So we coopt
+		 * closed_loop field as the closest thing available.
+		 */
 	
-	case MXLV_MTR_FAULT_RESET:
-		return mx_error( MXE_UNSUPPORTED, fname,
-			"Fault reset is not supported for EPICS motor '%s'.",
-				motor->record->name );
+	case MXLV_MTR_AXIS_ENABLE:
+		motor->closed_loop = motor->axis_enable;
+
+		motor->parameter_type = MXLV_MTR_CLOSED_LOOP;
+
+		mx_status = mxd_epics_motor_set_parameter( motor );
 		break;
+
+	case MXLV_MTR_FAULT_RESET:
+		motor->closed_loop = motor->fault_reset;
+
+		motor->parameter_type = MXLV_MTR_CLOSED_LOOP;
+
+		mx_status = mxd_epics_motor_set_parameter( motor );
+		break;
+
+		/*--------------*/
 
 	case MXLV_MTR_PROPORTIONAL_GAIN:
 		float_value = motor->proportional_gain;
 
 		mx_status = mx_caput( &(epics_motor->pcof_pv),
 					MX_CA_FLOAT, 1, &float_value );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
 		break;
 
 	case MXLV_MTR_INTEGRAL_GAIN:
@@ -769,9 +777,6 @@ mxd_epics_motor_set_parameter( MX_MOTOR *motor )
 
 		mx_status = mx_caput( &(epics_motor->icof_pv),
 					MX_CA_FLOAT, 1, &float_value );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
 		break;
 
 	case MXLV_MTR_DERIVATIVE_GAIN:
@@ -779,9 +784,6 @@ mxd_epics_motor_set_parameter( MX_MOTOR *motor )
 
 		mx_status = mx_caput( &(epics_motor->dcof_pv),
 					MX_CA_FLOAT, 1, &float_value );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
 		break;
 
 	case MXLV_MTR_VELOCITY_FEEDFORWARD_GAIN:
@@ -797,7 +799,7 @@ mxd_epics_motor_set_parameter( MX_MOTOR *motor )
 		break;
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -1065,7 +1067,8 @@ mxd_epics_motor_get_extended_status( MX_MOTOR *motor )
 	/* Analyze the results.  The bit definitions for the MSTA field
 	 * stored here in the 'epics_motor_status' variable may be found
 	 * in the EPICS motor record documentation that can be found at
-	 * http://www.aps.anl.gov/upd/people/sluiter/epics/motor/index.html
+	 * https://www3.aps.anl.gov/bcda/synApps/motor/index.html as of
+	 * January 2018.
 	 */
 
 	motor->raw_position.analog = raw_position;
@@ -1075,6 +1078,8 @@ mxd_epics_motor_get_extended_status( MX_MOTOR *motor )
 	if ( miss_pv_value ) {
 		motor->status |= MXSF_MTR_FOLLOWING_ERROR;
 	}
+
+	/* Compute the state of limits. */
 
 	if ( epics_motor->epics_record_version < 4.5 ) {
 		if ( positive_limit_hit ) {
@@ -1099,12 +1104,6 @@ mxd_epics_motor_get_extended_status( MX_MOTOR *motor )
 				motor->status |= MXSF_MTR_POSITIVE_LIMIT_HIT;
 			}
 		}
-
-		if ( epics_motor_status & 0x1000 ) {
-			/* Controller communication error. */
-
-			motor->status |= MXSF_MTR_ERROR;
-		}
 	}
 
 	/* The EPICS motor record LVIO PV does not tell you which
@@ -1121,16 +1120,44 @@ mxd_epics_motor_get_extended_status( MX_MOTOR *motor )
 		motor->status |= MXSF_MTR_IS_BUSY;
 	}
 
+	/* Note: MSTA bits not used and why.
+	 *
+	 * 0x1. DIRECTION: Not a thing that MX tracks.  You can read the sign
+	 *          of the MX raw_destination field if you really want to know.
+	 * 0x8. HOMELS: If the home limit switch is set, then doesn't that
+	 *          mean that you are at the home position (bit 0x80)?
+	 */
+
 	if ( epics_motor->epics_record_version >= 4.0 ) {
 		if ( ( epics_motor_status & 0x2 ) == 0 ) {
 			/* Motion is complete. */
 
 			motor->status |= MXSF_MTR_IS_BUSY;
 		}
+		if ( epics_motor_status & 0x40 ) {
+			/* Fatal following error. */
+
+			motor->status |= MXSF_MTR_FOLLOWING_ERROR;
+		}
 		if ( epics_motor_status & 0x80 ) {
 			/* At home position. */
 
-			motor->status |= MXSF_MTR_HOME_SEARCH_SUCCEEDED;
+			motor->status |= MXSF_MTR_AT_HOME_SWITCH;
+		}
+		if ( epics_motor_status & 0x100 ) {
+			/* Encoder present */
+
+			motor->status |= MXSF_MTR_ENCODER_AVAILABLE;
+		}
+		if ( epics_motor_status & 0x200 ) {
+			/* Driver stopped polling, or hardware problem. */
+
+			motor->status |= MXSF_MTR_DRIVE_FAULT;
+		}
+		if ( epics_motor_status & 0x400 ) {
+			/* Non-zero velocity present. */
+
+			motor->status |= MXSF_MTR_IS_MOVING;
 		}
 		if ( epics_motor_status & 0x800 ) {
 			/* Closed loop position control is supported. */
@@ -1141,10 +1168,15 @@ mxd_epics_motor_get_extended_status( MX_MOTOR *motor )
 			    motor->status |= MXSF_MTR_OPEN_LOOP;
 			}
 		}
-		if ( epics_motor_status & 0x200 ) {
-			/* Driver stopped polling. */
+		if ( epics_motor_status & 0x1000 ) {
+			/* Controller communication error. */
 
-			motor->status |= MXSF_MTR_ERROR;
+			motor->status |= MXSF_MTR_COMMUNICATION_ERROR;
+		}
+		if ( epics_motor_status & 0x4000 ) {
+			/* The otor has been homed. */
+
+			motor->status |= MXSF_MTR_HOME_SEARCH_SUCCEEDED;
 		}
 	}
 
