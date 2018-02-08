@@ -27,7 +27,7 @@ MODULES += cbflib		# linux, (not yet finished)
 
 #MODULES += epix_xclib		# linux, win32
 
-#MODULES += esone_camac		# linux, win32
+MODULES += esone_camac		# linux, win32
 
 MODULES += k8055		# linux,
 
@@ -55,16 +55,16 @@ MODULES += radicon_taurus	# linux, win32
 
 #MODULES += vxi_memacc		# linux,
 
-#MODULES += xia_handel		# linux, win32
+MODULES += xia_handel		# linux, win32
 
 MODULES += xineos_gige		# linux, win32
 
 #-------------------------------------------------------------------
 # Linux-only modules.
 
-#MODULES += aravis
+MODULES += aravis
 
-#MODULES += dalsa_gev
+MODULES += dalsa_gev
 
 #MODULES += linux_portio
 
@@ -98,15 +98,15 @@ MODULES += v4l2_input
 #-------------------------------------------------------------------
 # EPICS modules.
 
-#MODULES += epics
+MODULES += epics
 
-#MODULES += epics_aps 
+MODULES += epics_aps 
 
-#MODULES += epics_pmac_biocat
+MODULES += epics_pmac_biocat
 
-#MODULES += epics_mbc
+MODULES += epics_mbc
 
-#MODULES += epics_pmac_tc
+MODULES += epics_pmac_tc
 
 #-------------------------------------------------------------------
 # Site specific modules.
