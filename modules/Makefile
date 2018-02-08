@@ -64,7 +64,7 @@ MODULES += xineos_gige		# linux, win32
 
 #MODULES += aravis
 
-MODULES += dalsa_gev
+#MODULES += dalsa_gev
 
 #MODULES += linux_portio
 
@@ -98,15 +98,15 @@ MODULES += v4l2_input
 #-------------------------------------------------------------------
 # EPICS modules.
 
-MODULES += epics
+#MODULES += epics
 
-MODULES += epics_aps 
+#MODULES += epics_aps 
 
-MODULES += epics_pmac_biocat
+#MODULES += epics_pmac_biocat
 
-MODULES += epics_mbc
+#MODULES += epics_mbc
 
-MODULES += epics_pmac_tc
+#MODULES += epics_pmac_tc
 
 #-------------------------------------------------------------------
 # Site specific modules.

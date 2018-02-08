@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2014-2015 Illinois Institute of Technology
+ * Copyright 2014-2015, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -613,6 +613,8 @@ mxo_biocat_6k_toast_signal( MX_BIOCAT_6K_TOAST *toast, int new_state )
 	mx_bool_type use_gate, use_trigger;
 	mx_status_type mx_status;
 
+	mx_status = MX_SUCCESSFUL_RESULT;
+
 	flags = toast->toast_flags;
 
 	use_gate = FALSE;
@@ -621,7 +623,7 @@ mxo_biocat_6k_toast_signal( MX_BIOCAT_6K_TOAST *toast, int new_state )
 	if ( flags & MXSF_TOAST_GENERATE_GATE_SIGNAL ) {
 		use_gate = TRUE;
 
-		use_gate = use_gate;	/* Suppress set but not used error. */
+		MXW_UNUSED(use_gate);	/* Suppress set but not used error. */
 	} else
 	if ( flags & MXSF_TOAST_GENERATE_TRIGGER_SIGNAL ) {
 		use_trigger = TRUE;

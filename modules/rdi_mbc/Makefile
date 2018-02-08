@@ -53,6 +53,17 @@ endif
 
 #--------------------------------------------------------------------------
 
+# Linux (with Clang)
+
+ifeq ($(MX_ARCH),linux-clang)
+
+rdi_mbc.mxo: $(RDI_MBC_OBJS)
+	clang -shared -rdynamic -Wl,-soname,rdi_mbc.mxo \
+		-o rdi_mbc.mxo $(RDI_MBC_OBJS)
+endif
+
+#--------------------------------------------------------------------------
+
 rdi_mbc.$(OBJ): rdi_mbc.c v_rdi_mbc_string.h v_rdi_mbc_pathname_builder.h \
 					v_rdi_mbc_log.h v_rdi_mbc_save_frame.h
 	$(COMPILE) $(CFLAGS) rdi_mbc.c

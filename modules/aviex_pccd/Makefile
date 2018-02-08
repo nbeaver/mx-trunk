@@ -43,6 +43,12 @@ ifeq ($(MX_ARCH),linux)
 		-o aviex_pccd.mxo $(AVIEX_OBJS)
 endif
 
+ifeq ($(MX_ARCH),linux-clang)
+    aviex_pccd.mxo: $(AVIEX_OBJS)
+	$(CC) -shared -rdynamic -Wl,-soname,aviex_pccd.mxo \
+		-o aviex_pccd.mxo $(AVIEX_OBJS)
+endif
+
 d_aviex_pccd.h: d_aviex_pccd_16080.h d_aviex_pccd_170170.h \
 		d_aviex_pccd_4824.h d_aviex_pccd_9785.h
 

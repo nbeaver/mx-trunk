@@ -53,6 +53,17 @@ endif
 
 #--------------------------------------------------------------------------
 
+# Linux (with Clang)
+
+ifeq ($(MX_ARCH),linux-clang)
+
+site_biocat_toast.mxo: $(SITE_BIOCAT_TOAST_OBJS)
+	clang -shared -rdynamic -Wl,-soname,site_biocat_toast.mxo \
+		-o site_biocat_toast.mxo $(SITE_BIOCAT_TOAST_OBJS)
+endif
+
+#--------------------------------------------------------------------------
+
 site_biocat_toast.$(OBJ): site_biocat_toast.c \
 			o_biocat_6k_toast.h v_biocat_6k_joystick.h
 	$(COMPILE) $(CFLAGS) site_biocat_toast.c
