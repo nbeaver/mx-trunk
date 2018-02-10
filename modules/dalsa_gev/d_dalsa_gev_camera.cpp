@@ -855,6 +855,13 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 	    }
 	}
 #endif
+	/* If an area detector driver wants us to skip frames, then it
+	 * must set our 'num_frames_to_skip' variable to a non-zero
+	 * value in the area detector's open() routine.
+	 */
+
+	dalsa_gev_camera->num_frames_to_skip = 0;
+
 	/* Initialize the frame counters. */
 
 	mx_atomic_write32( &(dalsa_gev_camera->total_num_frames_at_start), 0 );

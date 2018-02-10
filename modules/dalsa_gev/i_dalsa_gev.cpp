@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2016-2017 Illinois Institute of Technology
+ * Copyright 2016-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -239,7 +239,11 @@ mxi_dalsa_gev_open( MX_RECORD *record )
 		mx_info( "  gvcp_port_range_end = %lu",
 				(long) config_options.gvcp_port_range_end );
 
+#if 0
 		config_options.logLevel = GEV_LOG_LEVEL_TRACE;
+#else
+		config_options.logLevel = GEV_LOG_LEVEL_WARNINGS;
+#endif
 
 		gev_status = GevSetLibraryConfigOptions( &config_options );
 

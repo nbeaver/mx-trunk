@@ -1,0 +1,15 @@
+!load dalsa_gev.mxo
+!load ../../xineos_gige/xineos_gige.mxo
+#
+dalsa interface controller dalsa_gev "" "" 0 0x3
+#
+# ALS 12.2.2 detector = 1935
+# ALS 12.3.1 detector = 1856
+#
+cam1  device video_input dalsa_gev_camera "" "" 1032 1548 GREY16 -1 dalsa "1856" 0 10 0x2000 ""
+#
+pulser_rs232 interface rs232 tty "" "" 115200 8 N 1 N 0xa 0xa 5.0 0x0 /dev/ttyS0
+#
+pulser device pulse_generator gittelsohn_pulser "" "" 0 0 0 0 2 0 pulser_rs232 0x1 1.0
+#
+xineos device area_detector xineos_gige "" "" 0 0x0 0x0 "" "" "" "" "" cam1 0x0 pulser

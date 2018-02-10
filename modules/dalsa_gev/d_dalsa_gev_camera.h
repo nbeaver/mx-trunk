@@ -57,6 +57,10 @@ typedef struct {
 	int32_t total_num_frames_at_start;
 	int32_t total_num_frames;
 
+	/*---*/
+
+	long num_frames_to_skip;
+
 	mx_bool_type show_features;
 	mx_bool_type show_feature_values;
 	double gain;
@@ -100,6 +104,10 @@ typedef struct {
   {-1, -1, "xml_filename", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DALSA_GEV_CAMERA, xml_filename), \
 	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {-1, -1, "num_frames_to_skip", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DALSA_GEV_CAMERA, num_frames_to_skip),\
+	{0}, NULL, 0}, \
   \
   {MXLV_DALSA_GEV_CAMERA_SHOW_FEATURES, -1, "show_features", \
 						MXFT_BOOL, NULL, 0, {0}, \

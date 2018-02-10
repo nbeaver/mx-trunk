@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../../motor/mxmotor.static -F ./mxineos_dalsa.dat -s ./sxineos_dalsa.dat $*
+
