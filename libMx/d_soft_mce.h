@@ -32,6 +32,9 @@ typedef struct {
 
 	MX_THREAD *monitor_thread;
 
+	MX_CONDITION_VARIABLE *monitor_thread_init_cv;
+	MX_MUTEX *monitor_thread_init_mutex;
+
 	MX_CONDITION_VARIABLE *monitor_thread_command_cv;
 	MX_MUTEX *monitor_thread_command_mutex;
 

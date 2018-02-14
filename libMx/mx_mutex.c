@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005-2007, 2015-2016 Illinois Institute of Technology
+ * Copyright 2005-2007, 2015-2016, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -265,6 +265,14 @@ mx_mutex_trylock( MX_MUTEX *mutex )
 	return MXE_UNKNOWN_ERROR;
 }
 
+/*-----*/
+
+MX_EXPORT unsigned long
+mx_mutex_get_owner_thread_id( MX_MUTEX *mutex )
+{
+#error mx_mutex_get_owner_thread_id() is not yet implemented.
+}
+
 /************************ VxWorks ***********************/
 
 #elif defined(OS_VXWORKS)
@@ -439,6 +447,14 @@ mx_mutex_trylock( MX_MUTEX *mutex )
 	}
 
 	return MXE_SUCCESS;
+}
+
+/*-----*/
+
+MX_EXPORT unsigned long
+mx_mutex_get_owner_thread_id( MX_MUTEX *mutex )
+{
+#error mx_mutex_get_owner_thread_id() is not yet implemented.
 }
 
 /************************ RTEMS ***********************/
@@ -705,6 +721,14 @@ mx_mutex_trylock( MX_MUTEX *mutex )
 	}
 
 	return MXE_SUCCESS;
+}
+
+/*-----*/
+
+MX_EXPORT unsigned long
+mx_mutex_get_owner_thread_id( MX_MUTEX *mutex )
+{
+#error mx_mutex_get_owner_thread_id() is not yet implemented.
 }
 
 /************************ Posix Pthreads ***********************/
@@ -1015,6 +1039,53 @@ mx_mutex_trylock( MX_MUTEX *mutex )
 	}
 }
 
+/*-----*/
+
+#if defined(OS_LINUX)
+
+/* NOTE: The following *ugly hack* with Glibc internals should only work
+ *       with NPTL and not LinuxThreads.  To echo what the MX header file
+ *       says, bear in mind that this function is only meant for debugging
+ *       purposes.  So please only use this for good and not evil.  If it
+ *       does not work for you, then do not use this function.
+ *
+ *       Also note that current versions of MX do not support LinuxThreads
+ *       anyway.
+ */
+
+MX_EXPORT unsigned long
+mx_mutex_get_owner_thread_id( MX_MUTEX *mutex )
+{
+	pthread_mutex_t *p_mutex_ptr;
+	unsigned long owner_pthread_id;
+
+	if ( mutex == (MX_MUTEX *) NULL ) {
+		owner_pthread_id = (unsigned long) pthread_self;
+	} else {
+		p_mutex_ptr = mutex->mutex_ptr;
+
+		if ( p_mutex_ptr == NULL ) {
+			owner_pthread_id = 0;
+		} else {
+			/* Here we use Glibc internals.  Iaah!  Iaah! */
+
+			owner_pthread_id = p_mutex_ptr->__data.__owner;
+		}
+	}
+
+	return owner_pthread_id;
+}
+
+#else /* Not OS_LINUX */
+
+MX_EXPORT unsigned long
+mx_mutex_get_owner_thread_id( MX_MUTEX *mutex )
+{
+#error mx_mutex_get_owner_thread_id() is not yet implemented.
+}
+
+#endif /* Not OS_LINUX */
+
 /********** Use the following stubs when threads are not supported **********/
 
 #elif defined(OS_DJGPP)
@@ -1067,6 +1138,12 @@ MX_EXPORT long
 mx_mutex_trylock( MX_MUTEX *mutex )
 {
 	return MXE_SUCCESS;
+}
+
+MX_EXPORT unsigned long
+mx_mutex_get_owner_thread_id( MX_MUTEX *mutex )
+{
+	return 0;
 }
 
 /*-------------------------------------------------------------------------*/

@@ -331,6 +331,7 @@ mxd_soft_mce_monitor_thread_fn( MX_THREAD *thread, void *record_ptr )
 
 	long i, n;
 	unsigned long monitor_loop_counter;
+	unsigned long mx_status_code;
 	mx_status_type mx_status;
 
 	MX_DEBUG(-2,("%s invoked.",fname));
@@ -389,13 +390,54 @@ mxd_soft_mce_monitor_thread_fn( MX_THREAD *thread, void *record_ptr )
 		fname, soft_mce->measurement_timer));
 #endif
 
-	/* Tell the main thread that we are ready. */
+	/*------------------------------------------------------------------*/
 
-	mx_status = mxd_soft_mce_send_status_to_main_thread( soft_mce,
-							MXS_SOFT_MCE_STAT_IDLE);
+	/* Tell the main thread that we have finished initializing ourself. */
+
+	mx_status_code = mx_mutex_lock( soft_mce->monitor_thread_init_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"The attempt to lock the monitor thread initialization mutex "
+		"for soft MCE '%s' failed.",
+			soft_mce->record->name );
+	}
+
+	soft_mce->monitor_status = MXS_SOFT_MCE_STAT_IDLE;
+
+	mx_status = mx_condition_variable_signal(
+			soft_mce->monitor_thread_init_cv );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	mx_status_code = mx_mutex_unlock( soft_mce->monitor_thread_init_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"The attempt to unlock the monitor thread initialization mutex "
+		"for soft MCE '%s' failed.",
+			soft_mce->record->name );
+	}
+
+	/* NOTE: We should not attempt to use the initialization mutex and cv
+	 * after this point, since the main thread may have deallocated them.
+	 */
+
+	/*------------------------------------------------------------------*/
+
+	/* Take ownership of the command mutex. */
+
+	mx_status_code = mx_mutex_lock( soft_mce->monitor_thread_command_mutex);
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"The attempt to lock the monitor thread command mutex "
+		"for soft MCE '%s' failed.",
+			soft_mce->record->name );
+	}
+
+	/*------------------------------------------------------------------*/
 
 	monitor_loop_counter = 0;
 
@@ -703,6 +745,31 @@ mxd_soft_mce_open( MX_RECORD *record )
 	 * monitor thread.
 	 */
 
+	/* monitor_thread_init_mutex and monitor_thread_init_cv are used by
+	 * the main thread to wait until the monitor thread initializes itself.
+	 */
+
+	mx_status = mx_mutex_create( &(soft_mce->monitor_thread_init_mutex));
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_condition_variable_create(
+				&(soft_mce->monitor_thread_init_cv) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_SOFT_MCE_DEBUG_OBJECT_CREATION
+	MX_DEBUG(-2,("%s: init: mutex = %p, cv = %p",
+		fname, soft_mce->monitor_thread_init_mutex,
+		soft_mce->monitor_thread_init_cv));
+#endif
+
+	/* monitor_thread_command_mutex and monitor_thread_command_cv are used
+	 * to send commands to the monitor thread.
+	 */
+
 	mx_status = mx_mutex_create( &(soft_mce->monitor_thread_command_mutex));
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -720,7 +787,9 @@ mxd_soft_mce_open( MX_RECORD *record )
 		soft_mce->monitor_thread_command_cv));
 #endif
 
-	/*---*/
+	/* monitor_thread_status_mutex and monitor_thread_status_cv are used
+	 * to check the status of the monitor thread.
+	 */
 
 	mx_status = mx_mutex_create( &(soft_mce->monitor_thread_status_mutex));
 
@@ -739,11 +808,13 @@ mxd_soft_mce_open( MX_RECORD *record )
 		soft_mce->monitor_thread_status_cv));
 #endif
 
+	/*-----------------------------------------------------------------*/
+
 	/* Prepare to wait for the notification that the monitor thread
 	 * is initialized.
 	 */
 
-	mx_status_code = mx_mutex_lock( soft_mce->monitor_thread_status_mutex );
+	mx_status_code = mx_mutex_lock( soft_mce->monitor_thread_init_mutex );
 
 	MXW_UNUSED( mx_status_code );
 
@@ -761,20 +832,19 @@ mxd_soft_mce_open( MX_RECORD *record )
 	while ( soft_mce->monitor_status == MXS_SOFT_MCE_STAT_NOT_INITIALIZED )
 	{
 		mx_status = mx_condition_variable_wait(
-				soft_mce->monitor_thread_status_cv,
-				soft_mce->monitor_thread_status_mutex );
+				soft_mce->monitor_thread_init_cv,
+				soft_mce->monitor_thread_init_mutex );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	} 
 
 	/* We now know that the monitor thread has finished initializing
-	 * itself, so we unlock the monitor thread mutex until we need to
-	 * look at the condition variable again.
+	 * itself, so we unlock the initialization mutex.
 	 */
 
 	mx_status_code =
-		mx_mutex_unlock( soft_mce->monitor_thread_status_mutex );
+		mx_mutex_unlock( soft_mce->monitor_thread_init_mutex );
 
 	/*-----------------------------------------------------------------*/
 

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005, 2007, 2015 Illinois Institute of Technology
+ * Copyright 2005, 2007, 2015, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -42,6 +42,14 @@ MX_API long mx_mutex_lock( MX_MUTEX *mutex );
 MX_API long mx_mutex_unlock( MX_MUTEX *mutex );
 
 MX_API long mx_mutex_trylock( MX_MUTEX *mutex );
+
+/* Not all platforms give you a sane way to implement
+ * mx_mutex_get_owner_thread_id().  This function is
+ * only intended for debugging purposes, so don't try
+ * to use it for anything else.
+ */
+
+MX_API unsigned long mx_mutex_get_owner_thread_id( MX_MUTEX *mutex );
 
 #ifdef __cplusplus
 }

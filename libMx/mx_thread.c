@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005-2007, 2010-2011, 2013, 2015-2017
+ * Copyright 2005-2007, 2010-2011, 2013, 2015-2018
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -997,6 +997,31 @@ mx_show_thread_info( MX_THREAD *thread, char *message )
 #endif
 
 	return;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT unsigned long
+mx_get_thread_id( MX_THREAD *thread )
+{
+	unsigned long win32_thread_id;
+
+	if ( thread == (MX_THREAD *) NULL ) {
+		win32_thread_id = (unsigned long) GetCurrentThreadId();
+	} else {
+		MX_WIN32_THREAD_PRIVATE *thread_private;
+
+		thread_private = thread->thread_private;
+
+		if ( thread_private == NULL ) {
+			win32_thread_id = 0;
+		} else {
+			win32_thread_id = (unsigned long)
+						thread_private->thread_id;
+		}
+	}
+
+	return win32_thread_id;
 }
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
@@ -2111,6 +2136,30 @@ mx_show_thread_info( MX_THREAD *thread, char *message )
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 
+MX_EXPORT unsigned long
+mx_get_thread_id( MX_THREAD *thread )
+{
+	unsigned long pthread_id;
+
+	if ( thread == (MX_THREAD *) NULL ) {
+		pthread_id = (unsigned long) pthread_self();
+	} else {
+		MX_POSIX_THREAD_PRIVATE *thread_private;
+
+		thread_private = thread->thread_private;
+
+		if ( thread_private == NULL ) {
+			pthread_id = 0;
+		} else {
+			pthread_id = (unsigned long) thread_private->thread_id;
+		}
+	}
+
+	return pthread_id;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
 MX_EXPORT char *
 mx_thread_id_string( char *buffer, size_t buffer_length )
 {
@@ -3136,6 +3185,31 @@ mx_show_thread_info( MX_THREAD *thread, char *message )
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 
+MX_EXPORT unsigned long
+mx_get_thread_id( MX_THREAD *thread )
+{
+	unsigned long vxworks_thread_id;
+
+	if ( thread == (MX_THREAD *) NULL ) {
+		vxworks_thread_id = (unsigned long) vxworks_thread_self();
+	} else {
+		MX_VXWORKS_THREAD_PRIVATE *thread_private;
+
+		thread_private = thread->thread_private;
+
+		if ( thread_private == NULL ) {
+			vxworks_thread_id = 0;
+		} else {
+			vxworks_thread_id = (unsigned long)
+						thread_private->thread_id;
+		}
+	}
+
+	return vxworks_thread_id;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
 MX_EXPORT char *
 mx_thread_id_string( char *buffer, size_t buffer_length )
 {
@@ -3452,6 +3526,12 @@ mx_show_thread_info( MX_THREAD *thread, char *message )
 
 	(void) mx_error( MXE_UNSUPPORTED, fname,
 		"Threads are not supported on this platform." );
+}
+
+MX_EXPORT unsigned long
+mx_get_thread_id( MX_THREAD *thread )
+{
+	return 0;
 }
 
 MX_EXPORT char *

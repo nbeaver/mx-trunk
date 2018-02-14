@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005, 2007, 2017 Illinois Institute of Technology
+ * Copyright 2005, 2007, 2017-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -81,6 +81,8 @@ MX_API mx_status_type mx_get_current_thread( MX_THREAD **thread );
 MX_API MX_THREAD *mx_get_current_thread_pointer( void );
 
 MX_API void mx_show_thread_info( MX_THREAD *thread, char *message );
+
+MX_API unsigned long mx_get_thread_id( MX_THREAD *thread );
 
 MX_API char *mx_thread_id_string( char *buffer, size_t buffer_length );
 

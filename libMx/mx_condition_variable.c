@@ -27,6 +27,7 @@
 #include "mx_stdint.h"
 #include "mx_hrt.h"
 #include "mx_dynamic_library.h"
+#include "mx_thread.h"
 #include "mx_mutex.h"
 #include "mx_condition_variable.h"
 
@@ -657,6 +658,9 @@ mx_condition_variable_wait( MX_CONDITION_VARIABLE *cv,
 	pthread_mutex_t *pthread_mutex;
 	int pthread_status;
 
+	MX_THREAD *my_mx_thread;
+	unsigned long my_pthread_thread_id;
+
 	if ( cv == (MX_CONDITION_VARIABLE *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_CONDITION_VARIABLE pointer passed was NULL." );
@@ -683,7 +687,25 @@ mx_condition_variable_wait( MX_CONDITION_VARIABLE *cv,
 
 	pthread_status = pthread_cond_wait( pthread_cv, pthread_mutex );
 
-	if ( pthread_status != 0 ) {
+	switch( pthread_status ) {
+	case 0:
+		/* Nothing went wrong. */
+		break;
+	case EPERM:
+		/* This thread does not own the mutex that was passed to it. */
+
+		my_mx_thread = mx_get_current_thread_pointer();
+
+		my_pthread_thread_id = mx_get_thread_id( NULL );
+
+		return mx_error( MXE_PERMISSION_DENIED, fname,
+		"This thread %p (ID %#lx) does not own the mutex %p "
+		"that you tried to use with pthread_cond_wait() for "
+		"condition variable %p.",
+			my_mx_thread, my_pthread_thread_id, mutex, cv );
+
+		break;
+	default:
 		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 		"The attempt to wait for MX condition variable %p using "
 		"MX mutex %p failed.  "
@@ -691,6 +713,7 @@ mx_condition_variable_wait( MX_CONDITION_VARIABLE *cv,
 		"Error code = %d, error message = '%s'",
 			cv, mutex, pthread_cv, pthread_mutex,
 			pthread_status, strerror(pthread_status) );
+		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
