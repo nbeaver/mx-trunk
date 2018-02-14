@@ -1081,7 +1081,7 @@ mx_mutex_get_owner_thread_id( MX_MUTEX *mutex )
 MX_EXPORT unsigned long
 mx_mutex_get_owner_thread_id( MX_MUTEX *mutex )
 {
-#error mx_mutex_get_owner_thread_id() is not yet implemented.
+	return 0;
 }
 
 #endif /* Not OS_LINUX */
