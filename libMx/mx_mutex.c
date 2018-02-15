@@ -267,10 +267,36 @@ mx_mutex_trylock( MX_MUTEX *mutex )
 
 /*-----*/
 
+/* Note that this function is only intended for debugging purposes. */
+
+/* FIXME: As indicated below this should be implementable using
+ * NtQuerySystemInformation() while looking for SystemHandleInformation.
+ * A function for returning the list of handles would probably be useful.
+ */
+
 MX_EXPORT unsigned long
 mx_mutex_get_owner_thread_id( MX_MUTEX *mutex )
 {
-#error mx_mutex_get_owner_thread_id() is not yet implemented.
+	int is_windows_9x;
+	mx_status_type mx_status;
+
+	mx_status = mx_win32_is_windows_9x( &is_windows_9x );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return 0L;
+
+	if ( is_windows_9x ) {
+		mx_warning( "Windows 95/98/ME do not have a way of finding "
+			"the owner of mutex %p.", mutex );
+		return 0L;
+	} else {
+		mx_warning( "mx_mutex_get_owner_thread_id(%p) is not yet "
+		"implemented on Windows NT based systems.  However, it "
+		"should be implementable using NtQuerySystemInformation() "
+		"together with SystemHandleInformation.", mutex );
+
+		return 0L;
+	}
 }
 
 /************************ VxWorks ***********************/
