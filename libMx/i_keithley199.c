@@ -174,6 +174,9 @@ mxi_keithley199_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	MX_DEBUG(-2,("%s: opening '%s' at interface '%s:%ld'",
+	fname, record->name, interface->record->name, interface->address));
+
 	mx_status = mx_gpib_open_device( interface->record, interface->address);
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -190,6 +193,9 @@ mxi_keithley199_open( MX_RECORD *record )
 	gpib = (MX_GPIB *) interface->record->record_class_struct;
 
 	read_terminator = gpib->read_terminator[ interface->address - 1 ];
+
+	MX_DEBUG(-2,("%s: read_terminator[%ld] = %#lx",
+		fname, interface->address - 1, read_terminator));
 
 	switch( read_terminator ) {
 	case 0x0d0a:
@@ -211,6 +217,17 @@ mxi_keithley199_open( MX_RECORD *record )
 	}
 
 	mx_status = mxi_keithley199_command( keithley199, command,
+					NULL, 0, KEITHLEY199_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Just in case the Keithley 199 is in continuous output mode,
+	 * unilaterally transmit the 'T3' command to put the Keithley
+	 * into 'One-shot on GET' mode.
+	 */
+
+	mx_status = mxi_keithley199_command( keithley199, "T3X",
 					NULL, 0, KEITHLEY199_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )

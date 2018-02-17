@@ -265,6 +265,7 @@ extern "C" {
 #define MXI_CTRL_DG645			466
 #define MXI_CTRL_AMPTEK_DP5		467
 #define MXI_CTRL_KEITHLEY2600		468
+#define MXI_CTRL_KEITHLEY199		469
 
 #define MXI_PIO_PORTIO			600
 #define MXI_PIO_DOS			601

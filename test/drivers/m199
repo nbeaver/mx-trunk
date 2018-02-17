@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../motor/mxmotor.static -F ./m199.dat -s ./s199.dat $*
+

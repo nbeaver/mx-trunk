@@ -197,6 +197,7 @@
 #include "i_sim900.h"
 #include "i_dg645.h"
 #include "i_amptek_dp5.h"
+#include "i_keithley199.h"
 
 #include "d_ks3512.h"
 #include "d_ks3112.h"
@@ -1111,6 +1112,13 @@ MX_DRIVER mx_type_table[] = {
 				NULL,
 				&mxi_amptek_dp5_num_record_fields,
 				&mxi_amptek_dp5_rfield_def_ptr},
+
+{"keithley199",    MXI_CTRL_KEITHLEY199,   MXI_CONTROLLER,    MXR_INTERFACE,
+				&mxi_keithley199_record_function_list,
+				NULL,
+				NULL,
+				&mxi_keithley199_num_record_fields,
+				&mxi_keithley199_rfield_def_ptr},
 
 #if ( defined(OS_LINUX) && (MX_GLIBC_VERSION >= 2002000L) )
 

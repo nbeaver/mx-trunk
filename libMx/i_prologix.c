@@ -8,16 +8,16 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2009-2010, 2015, 2017 Illinois Institute of Technology
+ * Copyright 2009-2010, 2015, 2017-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXI_PROLOGIX_DEBUG		FALSE
+#define MXI_PROLOGIX_DEBUG		TRUE
 
-#define MXI_PROLOGIX_DEBUG_ESCAPE	FALSE
+#define MXI_PROLOGIX_DEBUG_ESCAPE	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -343,6 +343,7 @@ mxi_prologix_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: Prologix version = '%s'", fname, response));
 #endif
 
+#if 0
 	if ( strncmp( response, "Prologix", 8 ) != 0 ) {
 		return mx_error( MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
 		"The device connected to RS-232 record '%s' "
@@ -353,6 +354,7 @@ mxi_prologix_open( MX_RECORD *record )
 			prologix->record->name,
 			response );
 	}
+#endif
 
 	gpib->read_buffer_length = 0;
 	gpib->write_buffer_length = 0;
@@ -380,6 +382,27 @@ mxi_prologix_open( MX_RECORD *record )
 	}
 
 	prologix->write_buffer_length = MX_GPIB_DEFAULT_BUFFER_LENGTH;
+
+#if 1
+	{
+	    int i;
+	    fprintf(stderr, "\n");
+
+	    for ( i = 0; i < MX_NUM_GPIB_ADDRESSES; i++ ) {
+		fprintf(stderr, "read_terminator[%d] = %#lx\n",
+			i, gpib->read_terminator[i] );
+	    }
+	    fprintf(stderr, "\n");
+
+	    for ( i = 0; i < MX_NUM_GPIB_ADDRESSES; i++ ) {
+		fprintf(stderr, "write_terminator[%d] = %#lx\n",
+			i, gpib->write_terminator[i] );
+	    }
+
+	    fprintf( stderr, "prologix->write_buffer_length = %ld\n",
+		prologix->write_buffer_length);
+	}
+#endif
 
 	return mx_status;
 }
