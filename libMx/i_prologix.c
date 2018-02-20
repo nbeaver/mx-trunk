@@ -17,7 +17,7 @@
 
 #define MXI_PROLOGIX_DEBUG		TRUE
 
-#define MXI_PROLOGIX_DEBUG_ESCAPE	TRUE
+#define MXI_PROLOGIX_DEBUG_ESCAPE	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -383,7 +383,7 @@ mxi_prologix_open( MX_RECORD *record )
 
 	prologix->write_buffer_length = MX_GPIB_DEFAULT_BUFFER_LENGTH;
 
-#if 1
+#if 0
 	{
 	    int i;
 	    fprintf(stderr, "\n");
@@ -435,6 +435,7 @@ mxi_prologix_read( MX_GPIB *gpib,
 	int debug;
 	char command[20];
 	size_t local_bytes_read = 0;
+	unsigned long read_terminator;
 	mx_status_type mx_status;
 
 	mx_status = mxi_prologix_get_pointers( gpib, &prologix, fname );
@@ -453,6 +454,7 @@ mxi_prologix_read( MX_GPIB *gpib,
 		debug = FALSE;
 	}
 #endif
+	read_terminator = gpib->read_terminator[address];
 
 	mx_status = mxi_prologix_update_address( prologix, address, debug );
 
@@ -461,19 +463,21 @@ mxi_prologix_read( MX_GPIB *gpib,
 
 	/* Tell the Prologix to address the device to talk. */
 
-#if 1
-	strlcpy( command, "++read", sizeof(command) );
-#else
 	if ( gpib->default_eoi_mode != 0 ) {
-		strlcpy( command, "++read eoi", sizeof(command) );
+		if ( read_terminator != '\0' ) {
+			snprintf( command, sizeof(command),
+			"++read eoi %lu", read_terminator );
+		} else {
+			strlcpy( command, "++read eoi", sizeof(command) );
+		}
 	} else
-	if ( gpib->read_terminator[0] != '\0' ) {
+	if ( read_terminator != '\0' ) {
 		snprintf( command, sizeof(command),
-			"++read %lu", gpib->read_terminator[0] );
+			"++read %lu", read_terminator );
 	} else {
 		strlcpy( command, "++read", sizeof(command) );
 	}
-#endif
+
 	mx_status = mx_rs232_putline( prologix->rs232_record,
 					command, NULL, transfer_flags );
 
@@ -493,7 +497,7 @@ mxi_prologix_read( MX_GPIB *gpib,
 	 * of the string.
 	 */
 
-	if ( buffer[local_bytes_read - 1] == gpib->read_terminator[address] ) {
+	if ( buffer[local_bytes_read - 1] == read_terminator ) {
 		buffer[ local_bytes_read - 1 ] = '\0';
 
 		local_bytes_read--;

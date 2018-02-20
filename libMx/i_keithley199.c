@@ -21,6 +21,7 @@
 
 #include "mx_util.h"
 #include "mx_driver.h"
+#include "mx_ascii.h"
 #include "mx_gpib.h"
 #include "i_keithley199.h"
 
@@ -165,6 +166,7 @@ mxi_keithley199_open( MX_RECORD *record )
 	MX_INTERFACE *interface = NULL;
 	MX_GPIB *gpib = NULL;
 	char command[20];
+	char response[80];
 	unsigned long read_terminator;
 	mx_status_type mx_status;
 
@@ -222,23 +224,22 @@ mxi_keithley199_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Just in case the Keithley 199 is in continuous output mode,
-	 * unilaterally transmit the 'T3' command to put the Keithley
-	 * into 'One-shot on GET' mode.
-	 */
+	/* Verify that this is a Keithley 199. */
 
-	mx_status = mxi_keithley199_command( keithley199, "T3X",
-					NULL, 0, KEITHLEY199_DEBUG );
+	mx_status = mxi_keithley199_command( keithley199, "U0X",
+					response, sizeof(response),
+					KEITHLEY199_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Get the firmware version for this Keithley. */
+	if ( strncmp( response, "199", 3 ) != 0 ) {
+		(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Interface '%s' is not a Keithley 199, since its response "
+		"'%s' to a 'U0X' command did not begin with '199.'",
+			record->name, response );
+	}
 
-	mx_status = mxi_keithley199_command( keithley199, "U4X",
-				keithley199->firmware_version,
-				MXU_KEITHLEY199_FIRMWARE_VERSION_LENGTH,
-				KEITHLEY199_DEBUG );
 	keithley199->last_measurement_type = MXT_KEITHLEY199_UNKNOWN;
 
 	return mx_status;
@@ -339,8 +340,10 @@ mxi_keithley199_command( MX_KEITHLEY199 *keithley199, char *command,
 	/* Get the response, if one is expected. */
 
 	if ( response != NULL ) {
-		mx_status = mx_gpib_getline(interface->record, interface->address,
-			response, response_buffer_length, NULL, debug_flag );
+		mx_status = mx_gpib_getline( interface->record,
+				interface->address,
+				response, response_buffer_length,
+				NULL, debug_flag );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -366,7 +369,37 @@ mxi_keithley199_command( MX_KEITHLEY199 *keithley199, char *command,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( strcmp( error_status, "19900000000000" ) == 0 ) {
+	/* Strip off trailing CRs or LFs from the error status string. */
+
+	while (1) {
+		size_t length;
+		char last_byte;
+
+		length = strlen( error_status );
+
+		if ( length <= 0 ) {
+			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+			"Did not find any non-terminator characters in "
+			"the response to the 'U1X' command by '%s'.",
+				keithley199->record->name );
+		}
+
+		last_byte = error_status[length-1];
+
+		if ( (last_byte == MX_CR) || (last_byte == MX_LF) ) {
+			error_status[length-1] = '\0';
+		} else {
+			/* All trailing terminators have been stripped off,
+			 * so we break out of the while() loop here.
+			 */
+
+			break;
+		}
+	}
+
+	/* If no errors occurred, then we return now. */
+
+	if ( strcmp( error_status, "199000000000000000000000000" ) == 0 ) {
 		return MX_SUCCESSFUL_RESULT;
 	}
 
