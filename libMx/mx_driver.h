@@ -331,6 +331,7 @@ extern "C" {
 
 #define MXT_AIN_SIM980			10046
 #define MXT_AIN_SYNACCESS_NETBOOTER	10047
+#define MXT_AIN_KEITHLEY199		10048
 
 /* --- Analog input subclasses -- */
 

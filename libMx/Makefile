@@ -104,6 +104,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_interval_timer.c d_iseries_aio.c d_iseries_dio.c \
 	d_itc503_ainput.c d_itc503_aoutput.c d_itc503_doutput.c \
 	d_itc503_motor.c \
+	d_keithley199_ainput.c \
 	d_keithley2000_ainput.c \
 	d_keithley2400_ainput.c d_keithley2400_amp.c \
 	d_keithley2400_aoutput.c d_keithley2400_doutput.c \

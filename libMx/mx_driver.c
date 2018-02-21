@@ -273,6 +273,7 @@
 #include "d_relay_as_doutput.h"
 #include "d_digital_fanin.h"
 #include "d_digital_fanout.h"
+#include "d_keithley199_ainput.h"
 
 #include "d_soft_motor.h"
 #include "d_e500.h"
@@ -1559,6 +1560,13 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_ilm_ainput_analog_input_function_list,
 				&mxd_ilm_ainput_num_record_fields,
 				&mxd_ilm_ainput_rfield_def_ptr},
+
+{"keithley199_ainput", MXT_AIN_KEITHLEY199, MXC_ANALOG_INPUT, MXR_DEVICE,
+				&mxd_keithley199_ainput_record_function_list,
+				NULL,
+			&mxd_keithley199_ainput_analog_input_function_list,
+				&mxd_keithley199_ainput_num_record_fields,
+				&mxd_keithley199_ainput_rfield_def_ptr},
 
 
 {"soft_dinput",    MXT_DIN_SOFTWARE,   MXC_DIGITAL_INPUT,  MXR_DEVICE,

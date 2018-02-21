@@ -314,10 +314,6 @@ mxi_keithley199_command( MX_KEITHLEY199 *keithley199, char *command,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_KEITHLEY199 pointer passed was NULL." );
 	}
-	if ( command == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"'command' buffer pointer passed was NULL.  No command sent.");
-	}
 
 	interface = &(keithley199->gpib_interface);
 
@@ -329,13 +325,16 @@ mxi_keithley199_command( MX_KEITHLEY199 *keithley199, char *command,
 
 	flags = keithley199->keithley_flags;
 
-	/* Send the command string. */
+	/* If requested, send command string. */
 
-	mx_status = mx_gpib_putline( interface->record, interface->address,
-					command, NULL, debug_flag );
+	if ( command != NULL ) {
+		mx_status = mx_gpib_putline( interface->record,
+						interface->address,
+						command, NULL, debug_flag );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
 	/* Get the response, if one is expected. */
 
