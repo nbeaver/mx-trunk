@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2007, 2010-2012, 2014-2017 Illinois Institute of Technology
+ * Copyright 1999-2007, 2010-2012, 2014-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1381,6 +1381,40 @@ mx_rs232_getline_with_timeout( MX_RECORD *record,
 	mx_status = mx_rs232_unbuffered_getline( rs232,
 				buffer, max_bytes_to_read, bytes_read,
 				transfer_flags, timeout_in_seconds );
+
+	if ( mx_rs232_show_debugging( rs232, transfer_flags ) ) {
+	    if ( rs232->rs232_flags & MXF_232_DEBUG_SERIAL_HEX ) {
+		unsigned long i, max_values_to_show;
+
+		max_values_to_show = 10;
+
+		if ( rs232->rs232_flags & MXF_232_DEBUG_SERIAL ) {
+		    fprintf( stderr, "%s: received '%s' ", fname, buffer );
+		}
+
+		if ( 0 == (int) buffer[0] ) {
+		    fprintf( stderr, "0x0 " );
+		} else {
+		    fprintf( stderr, "%#x ", (int) buffer[0] );
+		}
+
+		for ( i = 1; i < max_values_to_show; i++ ) {
+		    if ( buffer[i] == '\0' ) {
+			break;
+		    }
+		    fprintf( stderr, "%#x ", (int) buffer[i] );
+		}
+
+		if ( i >= max_values_to_show ) {
+		    fprintf( stderr, "... " );
+		}
+
+		fprintf( stderr, "from '%s'\n", record->name );
+	    } else {
+		MX_DEBUG(-2,("%s: received '%s' from '%s'",
+				fname, buffer, record->name));
+	    }
+	}
 
 	return mx_status;
 }
