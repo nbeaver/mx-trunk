@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2009 Illinois Institute of Technology
+ * Copyright 2009, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -38,6 +38,8 @@ MX_API int32_t mx_atomic_increment32( int32_t * );
 MX_API int32_t mx_atomic_read32( int32_t * );
 
 MX_API void mx_atomic_write32( int32_t *, int32_t );
+
+MX_API void mx_atomic_memory_barrier( void );
 
 #ifdef __cplusplus
 }

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2009, 2011-2012, 2014, 2016-2017 Illinois Institute of Technology
+ * Copyright 2009, 2011-2012, 2014, 2016-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -213,6 +213,16 @@ mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
 	return;
 }
 
+MX_EXPORT void
+mx_atomic_memory_barrier( void )
+{
+#error Not yet tested on Win32.
+
+	MemoryBarrier();
+
+	return;
+}
+
 /*------------------------------------------------------------------------*/
 
 #elif defined(OS_MACOSX) 
@@ -280,6 +290,16 @@ mx_atomic_read32( int32_t *value_ptr )
 	return atomic_fetch_add( (_Atomic int32_t*) value_ptr, 0 );
 }
 
+MX_EXPORT void
+mx_atomic_memory_barrier( void )
+{
+#error Not yet tested for macOS.
+
+	atomic_thread_fence( memory_order_acq_rel );
+
+	return;
+}
+
 /*-----*/
 
 #  elif defined(MX_MACOSX_HAVE_OSATOMIC)
@@ -322,6 +342,18 @@ MX_EXPORT int32_t
 mx_atomic_read32( int32_t *value_ptr )
 {
 	return OSAtomicAdd32Barrier( 0, value_ptr );
+}
+
+MX_EXPORT void
+mx_atomic_memory_barrier( void )
+{
+#error Not yet tested for old Mac OS X.
+
+	UInt8 test_variable;
+
+	OSTestAndSet( 1, &test_variable );
+
+	return;
 }
 
 #  endif
@@ -389,6 +421,16 @@ mx_atomic_read32( int32_t *value_ptr )
 	return result;
 }
 
+MX_EXPORT void
+mx_atomic_memory_barrier( void )
+{
+#error Not yet tested for Solaris.
+
+	membar_producer();
+
+	return;
+}
+
 /*------------------------------------------------------------------------*/
 
 #elif defined(OS_IRIX)
@@ -453,6 +495,25 @@ mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
 	(void) test_and_set32( (__uint32_t *) value_ptr, new_value );
 }
 
+MX_EXPORT void
+mx_atomic_memory_barrier( void )
+{
+#error Very much not yet tested for Irix.
+
+	/* In general, MX will use a mutex to rendezvous with another thread,
+	 * so for our case the following is overly elaborate.  Oh well.
+	 */
+	barrier_t mx_barrier_shared_area;
+
+	barrier_t *mx_barrier = new_barrier( &mx_barrier_shared_area );
+
+	barrier( mx_barrier, 1 );
+
+	free_barrier( mx_barrier );
+
+	return;
+}
+
 /*------------------------------------------------------------------------*/
 
 #elif defined(OS_QNX)
@@ -511,6 +572,12 @@ mx_atomic_read32( int32_t *value_ptr )
 	return result;
 }
 
+MX_EXPORT void
+mx_atomic_memory_barrier( void )
+{
+#error not yet implemented.  QNX docs mention pthread_barrier_init() etc.
+}
+
 /*------------------------------------------------------------------------*/
 
 #elif defined(OS_VMS) && !defined(__VAX)
@@ -561,6 +628,12 @@ mx_atomic_read32( int32_t *value_ptr )
 	return *value_ptr;
 }
 
+MX_EXPORT void
+mx_atomic_memory_barrier( void )
+{
+#error Not yet implemented for OpenVMS.  Look up Synchronization Primitives.
+}
+
 /*------------------------------------------------------------------------*/
 
 #elif defined( MX_CLANG_VERSION) || \
@@ -607,6 +680,14 @@ MX_EXPORT int32_t
 mx_atomic_read32( int32_t *value_ptr )
 {
 	return __sync_add_and_fetch( value_ptr, 0 );
+}
+
+MX_EXPORT void
+mx_atomic_memory_barrier( void )
+{
+	__sync_synchronize();
+
+	return;
 }
 
 /*------------------------------------------------------------------------*/
@@ -703,6 +784,18 @@ mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
 
 	mx_mutex_unlock( mxp_atomic_mutex );
 
+	return;
+}
+
+/* WARNING: Note that the following fallback "implementation" of a memory
+ * barrier does not actually do anything.  Trying to emulate atomic ops
+ * on a platform that does not support atomics is a rather dicey thing
+ * to do anyway.
+ */
+
+MX_EXPORT void
+mx_atomic_memory_barrier( void )
+{
 	return;
 }
 

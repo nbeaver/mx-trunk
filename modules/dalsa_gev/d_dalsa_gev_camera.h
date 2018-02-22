@@ -28,6 +28,7 @@ extern "C" {
 /* 'dalsa_gev_camera_flags' bitflag macros */
 
 #define MXF_DALSA_GEV_CAMERA_WRITE_XML_FILE		0x1
+#define MXF_DALSA_GEV_CAMERA_USE_DEAD_RECKONING		0x2
 
 #define MXF_DALSA_GEV_CAMERA_SHOW_FEATURES		0x1000
 #define MXF_DALSA_GEV_CAMERA_SHOW_FEATURE_VALUES	0x2000
@@ -56,6 +57,12 @@ typedef struct {
 	 */
 	int32_t total_num_frames_at_start;
 	int32_t total_num_frames;
+	int32_t num_frames_left;
+
+	/* The following is only used by the dead reckoning version
+	 * of the wait thread.
+	 */
+	int32_t milliseconds_per_frame;
 
 	/*---*/
 

@@ -370,9 +370,9 @@ mxd_dalsa_gev_camera_image_wait_thread_fn( MX_THREAD *thread, void *args )
 	static const char fname[] =
 		"mxd_dalsa_gev_camera_image_wait_thread_fn()";
 
-	MX_RECORD *record;
-	MX_VIDEO_INPUT *vinput;
-	MX_DALSA_GEV_CAMERA *dalsa_gev_camera;
+	MX_RECORD *record = NULL;
+	MX_VIDEO_INPUT *vinput = NULL;
+	MX_DALSA_GEV_CAMERA *dalsa_gev_camera = NULL;
 	long mx_total_num_frames;
 	unsigned long sleep_ms;
 	mx_bool_type image_available;
@@ -457,6 +457,9 @@ mxd_dalsa_gev_camera_image_wait_thread_fn( MX_THREAD *thread, void *args )
 			case GEV_FRAME_STATUS_RECVD:
 				mx_total_num_frames = mx_atomic_increment32(
 					&(dalsa_gev_camera->total_num_frames) );
+
+				(void) mx_atomic_decrement32(
+					&(dalsa_gev_camera->num_frames_left) );
 #if 1
 				MX_DEBUG(-2,("CAPTURE: Total num frames = %lu",
 					(unsigned long) mx_total_num_frames ));
@@ -473,6 +476,114 @@ mxd_dalsa_gev_camera_image_wait_thread_fn( MX_THREAD *thread, void *args )
 		}
 
 		mx_status = mx_thread_check_for_stop_request( thread );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
+static mx_status_type
+mxd_dalsa_gev_camera_image_dead_reckoning_wait_thread_fn( MX_THREAD *thread,
+								void *args )
+{
+	static const char fname[] =
+		"mxd_dalsa_gev_camera_image_dead_reckoning_wait_thread_fn()";
+
+	MX_RECORD *record = NULL;
+	MX_VIDEO_INPUT *vinput = NULL;
+	MX_DALSA_GEV_CAMERA *dalsa_gev_camera = NULL;
+	int32_t num_frames_left, milliseconds_per_frame;
+	long mx_total_num_frames;
+	MX_CLOCK_TICK clock_ticks_per_frame;
+	MX_CLOCK_TICK start_tick, current_tick, finish_tick;
+	int comparison;
+
+	if ( thread == (MX_THREAD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_THREAD pointer passed was NULL." );
+	}
+	if ( args == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	record = (MX_RECORD *) args;
+
+	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name));
+
+	vinput = (MX_VIDEO_INPUT *) record->record_class_struct;
+
+	if ( vinput == (MX_VIDEO_INPUT *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_VIDEO_INPUT pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	dalsa_gev_camera = (MX_DALSA_GEV_CAMERA *) record->record_type_struct;
+
+	if ( dalsa_gev_camera == (MX_DALSA_GEV_CAMERA *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_DALSA_GEV_CAMERA pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	MX_DEBUG(-2,("%s: record = %p", fname, record));
+	MX_DEBUG(-2,("%s: dalsa_gev_camera = %p", fname, dalsa_gev_camera));
+	MX_DEBUG(-2,("%s: dalsa_gev_camera->camera_handle = %p",
+			fname, dalsa_gev_camera->camera_handle));
+
+	/* WARNING: We call this 'dead reckoning' because the following
+	 * is only an estimate of when the new frame will arrive.  If
+	 * for some reason the camera is not sending us actual frames,
+	 * then this logic will not take that into account.
+	 */
+
+	while (TRUE) {
+		num_frames_left =
+		    mx_atomic_read32( &(dalsa_gev_camera->num_frames_left) );
+
+		if ( num_frames_left <= 0 ) {
+			mx_msleep( 100 );
+		} else {
+			MX_DEBUG(-2,("%s: starting new sequence for %ld frames",
+				fname, (long) num_frames_left ));
+
+			milliseconds_per_frame = mx_atomic_read32(
+				&(dalsa_gev_camera->milliseconds_per_frame) );
+
+			clock_ticks_per_frame = 
+				mx_convert_seconds_to_clock_ticks(
+					0.001 * milliseconds_per_frame );
+
+			start_tick = mx_current_clock_tick();
+
+			finish_tick = mx_add_clock_ticks( start_tick,
+						clock_ticks_per_frame );
+
+			do {
+				do {
+					mx_msleep( 100 );
+
+					current_tick = mx_current_clock_tick();
+
+					comparison = mx_compare_clock_ticks(
+						current_tick, finish_tick );
+				} while( comparison < 0 );
+
+				mx_total_num_frames = mx_atomic_increment32(
+					&(dalsa_gev_camera->total_num_frames) );
+
+				num_frames_left = mx_atomic_decrement32(
+					&(dalsa_gev_camera->num_frames_left) );
+#if 1
+				/* Note the following statement may be a lie. */
+
+				MX_DEBUG(-2,("CAPTURE?: Total num frames = %lu",
+					(unsigned long) mx_total_num_frames ));
+#endif
+			} while( num_frames_left > 0 );
+		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -866,6 +977,8 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 
 	mx_atomic_write32( &(dalsa_gev_camera->total_num_frames_at_start), 0 );
 	mx_atomic_write32( &(dalsa_gev_camera->total_num_frames), 0 );
+	mx_atomic_write32( &(dalsa_gev_camera->num_frames_left), 0 );
+	mx_atomic_write32( &(dalsa_gev_camera->milliseconds_per_frame), 0 );
 
 #if 1
 	MX_DEBUG(-2,("%s: record = %p", fname, record));
@@ -874,11 +987,22 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 			fname, dalsa_gev_camera->camera_handle));
 #endif
 
+	flags = dalsa_gev_camera->dalsa_gev_camera_flags;
+
 	/* Create a thread to manage the reading of images from Dalsa Gev. */
 
-	mx_status = mx_thread_create( &(dalsa_gev_camera->image_wait_thread),
+	if ( flags & MXF_DALSA_GEV_CAMERA_USE_DEAD_RECKONING ) {
+
+		mx_status = mx_thread_create(
+				&(dalsa_gev_camera->image_wait_thread),
+		    mxd_dalsa_gev_camera_image_dead_reckoning_wait_thread_fn,
+				record );
+	} else {
+		mx_status = mx_thread_create(
+				&(dalsa_gev_camera->image_wait_thread),
 				mxd_dalsa_gev_camera_image_wait_thread_fn,
 				record );
+	}
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -952,6 +1076,7 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 	unsigned char **frame_buffer_array = NULL;
 	unsigned long num_frames, num_bytes_in_array;
 	double exposure_time, frame_time;
+	int32_t total_num_frames_at_start, milliseconds_per_frame;
 	long gev_status;
 	mx_status_type mx_status;
 
@@ -1037,14 +1162,35 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 		break;
 	}
 
-	/* FIXME: Set sequence parameters in the hardware as necessary. */
+	/* Save sequence parameters where the wait thread can find them. */
 
-	MX_DEBUG(-2,("%s: '%s' ARMED.", fname, vinput->record->name ));
+	total_num_frames_at_start =
+		mx_atomic_read32( &(dalsa_gev_camera->total_num_frames) );
 
-	num_frames = num_frames;
-	frame_time = frame_time;
+	mx_atomic_write32( &(dalsa_gev_camera->total_num_frames_at_start),
+				total_num_frames_at_start );
+
+	milliseconds_per_frame = mx_round( 1000.0 * frame_time );
+
+	mx_atomic_write32( &(dalsa_gev_camera->milliseconds_per_frame),
+				milliseconds_per_frame );
+
+	/* num_frames_left has to be written last, since the dead reckoning
+	 * version of the wait thread uses the change in value to decide
+	 * that it has to start estimating frame arrival times.
+	 */
+
+	/* We put a memory barrier here to prevent the order of events
+	 * from being changed.
+	 */
+
+	mx_atomic_memory_barrier();
+
+	mx_atomic_write32( &(dalsa_gev_camera->num_frames_left), num_frames );
 
 	/* Enable image transfer to the image buffers. */
+
+	MX_DEBUG(-2,("%s: '%s' ARMED.", fname, vinput->record->name ));
 
 	gev_status = GevInitImageTransfer( dalsa_gev_camera->camera_handle,
 					Asynchronous,
@@ -1055,6 +1201,9 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 		return mxd_dalsa_gev_camera_api_error( gev_status, fname,
 						"GevInitImageTransfer()");
 	}
+
+	MX_DEBUG(-2,("%s: '%s' GevInitImageTransfer() called.",
+			fname, vinput->record->name ));
 
 	if ( vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
 	}
@@ -1175,6 +1324,7 @@ mxd_dalsa_gev_camera_get_extended_status( MX_VIDEO_INPUT *vinput )
 
 	MX_DALSA_GEV_CAMERA *dalsa_gev_camera = NULL;
 	int32_t total_num_frames, total_num_frames_at_start;
+	int32_t num_frames_left;
 	mx_status_type mx_status;
 
 	mx_status = mxd_dalsa_gev_camera_get_pointers( vinput,
@@ -1196,11 +1346,27 @@ mxd_dalsa_gev_camera_get_extended_status( MX_VIDEO_INPUT *vinput )
 	vinput->last_frame_number =
 		total_num_frames - total_num_frames_at_start - 1;
 
+	num_frames_left = mx_atomic_read32(
+				&(dalsa_gev_camera->num_frames_left) );
+
+	if ( num_frames_left > 0 ) {
+		vinput->status |= MXSF_VIN_IS_BUSY;
+	}
+
 	if ( vinput->status & MXSF_VIN_IS_BUSY ) {
 		vinput->busy = TRUE;
 	} else {
 		vinput->busy = FALSE;
 	}
+
+	MX_DEBUG(-2,("%s: vinput->total_num_frames = %ld",
+			fname, vinput->total_num_frames));
+	MX_DEBUG(-2,("%s: vinput->last_frame_number = %ld",
+			fname, vinput->last_frame_number));
+	MX_DEBUG(-2,("%s: dalsa_gev_camera->num_frames_left = %ld",
+			fname, (long) num_frames_left));
+	MX_DEBUG(-2,("%s: vinput->status = %#lx",
+			fname, vinput->status));
 
 	return mx_status;
 }
