@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004-2006, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -486,7 +486,7 @@ mx_gpib_putline( MX_RECORD *gpib_record,
 
 	gpib->ascii_write = TRUE;
 
-	bytes_to_write = strlen( buffer );
+	bytes_to_write = strlen( buffer ) + 1;
 
 	mx_status = (*fptr)( gpib, address,
 			buffer, bytes_to_write, &local_bytes_written, flags );
