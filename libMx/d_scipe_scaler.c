@@ -7,7 +7,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2002, 2010, 2012, 2015-2016 Illinois Institute of Technology
+ * Copyright 2000-2002, 2010, 2012, 2015-2016, 2018
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -232,7 +233,7 @@ mxd_scipe_scaler_open( MX_RECORD *record )
 	MX_SCALER *scaler;
 	MX_SCIPE_SCALER *scipe_scaler;
 	MX_SCIPE_SERVER *scipe_server;
-	char command[40];
+	char command[80];
 	char response[80];
 	char *result_ptr;
 	int scipe_response_code;
@@ -287,7 +288,7 @@ mxd_scipe_scaler_clear( MX_SCALER *scaler )
 
 	MX_SCIPE_SCALER *scipe_scaler;
 	MX_SCIPE_SERVER *scipe_server;
-	char command[40];
+	char command[80];
 	char response[80];
 	char *result_ptr;
 	int scipe_response_code;
@@ -336,7 +337,7 @@ mxd_scipe_scaler_read( MX_SCALER *scaler )
 
 	MX_SCIPE_SCALER *scipe_scaler;
 	MX_SCIPE_SERVER *scipe_server;
-	char command[40];
+	char command[80];
 	char response[80];
 	char *result_ptr;
 	int num_items, scipe_response_code;
@@ -389,7 +390,7 @@ mxd_scipe_scaler_is_busy( MX_SCALER *scaler )
 
 	MX_SCIPE_SCALER *scipe_scaler;
 	MX_SCIPE_SERVER *scipe_server;
-	char command[40];
+	char command[80];
 	char response[80];
 	char *result_ptr;
 	int scipe_response_code;
@@ -438,7 +439,7 @@ mxd_scipe_scaler_start( MX_SCALER *scaler )
 
 	MX_SCIPE_SCALER *scipe_scaler;
 	MX_SCIPE_SERVER *scipe_server;
-	char command[40];
+	char command[80];
 	char response[80];
 	char *result_ptr;
 	int scipe_response_code;
@@ -498,7 +499,7 @@ mxd_scipe_scaler_stop( MX_SCALER *scaler )
 
 	MX_SCIPE_SCALER *scipe_scaler;
 	MX_SCIPE_SERVER *scipe_server;
-	char command[40];
+	char command[80];
 	char response[80];
 	char *result_ptr;
 	int scipe_response_code;

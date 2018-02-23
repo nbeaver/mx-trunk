@@ -57,14 +57,14 @@ MODULES += libtiff		# cygwin, linux, win32
 
 #MODULES += xia_handel		# linux, win32
 
-MODULES += xineos_gige		# linux, win32
+#MODULES += xineos_gige		# linux, win32
 
 #-------------------------------------------------------------------
 # Linux-only modules.
 
 #MODULES += aravis
 
-MODULES += dalsa_gev
+#MODULES += dalsa_gev
 
 #MODULES += linux_portio
 

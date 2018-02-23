@@ -13,7 +13,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2006, 2010, 2012 Illinois Institute of Technology
+ * Copyright 2002-2006, 2010, 2012, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -728,7 +728,7 @@ mxd_icplus_aout_write( MX_ANALOG_OUTPUT *aoutput )
 
 	MX_ICPLUS_AOUTPUT *icplus_aoutput;
 	MX_ICPLUS *icplus;
-	char command[80];
+	char command[200];
 	long long_value;
 	mx_status_type mx_status;
 

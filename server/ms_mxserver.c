@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2017 Illinois Institute of Technology
+ * Copyright 1999-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2444,7 +2444,7 @@ mxsrv_send_field_value_to_client(
 {
 	static const char fname[] = "mxsrv_send_field_value_to_client()";
 
-	char location[ sizeof(fname) + 40 ];
+	char location[ sizeof(fname) + 80 ];
 	uint32_t *send_buffer_header;
 	char *send_buffer_message;
 	long send_buffer_header_length, send_buffer_message_length;

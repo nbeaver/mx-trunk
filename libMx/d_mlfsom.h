@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2009-2010 Illinois Institute of Technology
+ * Copyright 2009-2010, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,7 +23,7 @@ typedef struct {
 	MX_RECORD *record;
 	MX_AREA_DETECTOR *ad;
 	struct mx_mlfsom_type *mlfsom;
-	char command[500];
+	char command[MXU_FILENAME_LENGTH + 100];
 } MX_MLFSOM_THREAD_INFO;
 
 typedef struct mx_mlfsom_type {

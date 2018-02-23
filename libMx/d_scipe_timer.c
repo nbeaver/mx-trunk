@@ -5,7 +5,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2002, 2010, 2012, 2015-2016 Illinois Institute of Technology
+ * Copyright 2000-2002, 2010, 2012, 2015-2016, 2018
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -180,7 +181,7 @@ mxd_scipe_timer_open( MX_RECORD *record )
 	MX_TIMER *timer;
 	MX_SCIPE_TIMER *scipe_timer;
 	MX_SCIPE_SERVER *scipe_server;
-	char command[40];
+	char command[80];
 	char response[80];
 	char *result_ptr;
 	int scipe_response_code;
@@ -231,7 +232,7 @@ mxd_scipe_timer_is_busy( MX_TIMER *timer )
 
 	MX_SCIPE_TIMER *scipe_timer;
 	MX_SCIPE_SERVER *scipe_server;
-	char command[40];
+	char command[80];
 	char response[80];
 	char *result_ptr;
 	int scipe_response_code;
@@ -279,7 +280,7 @@ mxd_scipe_timer_start( MX_TIMER *timer )
 
 	MX_SCIPE_TIMER *scipe_timer;
 	MX_SCIPE_SERVER *scipe_server;
-	char command[40];
+	char command[80];
 	char response[80];
 	char *result_ptr;
 	int scipe_response_code;
@@ -345,7 +346,7 @@ mxd_scipe_timer_stop( MX_TIMER *timer )
 
 	MX_SCIPE_TIMER *scipe_timer;
 	MX_SCIPE_SERVER *scipe_server;
-	char command[40];
+	char command[80];
 	char response[80];
 	char *result_ptr;
 	int scipe_response_code;
@@ -387,7 +388,7 @@ mxd_scipe_timer_clear( MX_TIMER *timer )
 
 	MX_SCIPE_TIMER *scipe_timer;
 	MX_SCIPE_SERVER *scipe_server;
-	char command[40];
+	char command[80];
 	char response[80];
 	char *result_ptr;
 	int scipe_response_code;
@@ -427,7 +428,7 @@ mxd_scipe_timer_read( MX_TIMER *timer )
 
 	MX_SCIPE_TIMER *scipe_timer;
 	MX_SCIPE_SERVER *scipe_server;
-	char command[40];
+	char command[80];
 	char response[80];
 	char *result_ptr;
 	int num_items, scipe_response_code;

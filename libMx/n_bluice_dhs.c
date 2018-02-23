@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2008, 2010, 2015-2016 Illinois Institute of Technology
+ * Copyright 2008, 2010, 2015-2016, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -288,7 +288,7 @@ stoh_configure_real_motor( MX_RECORD *motor_record,
 	static const char fname[] = "stoh_configure_real_motor()";
 
 	MX_BLUICE_FOREIGN_DEVICE *fdev;
-	char command[200];
+	char command[3000];
 	long mx_status_code;
 	mx_status_type mx_status;
 	

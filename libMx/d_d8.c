@@ -8,7 +8,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2006, 2010, 2013 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2006, 2010, 2013, 2018
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -389,7 +390,7 @@ mxd_d8_motor_move_absolute( MX_MOTOR *motor )
 
 	MX_D8 *d8;
 	MX_D8_MOTOR *d8_motor;
-	char command[20];
+	char command[200];
 	mx_status_type mx_status;
 
 	mx_status = mxd_d8_motor_get_pointers( motor,

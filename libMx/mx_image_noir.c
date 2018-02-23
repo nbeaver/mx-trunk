@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2012-2013, 2015-2016 Illinois Institute of Technology
+ * Copyright 2012-2013, 2015-2016, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -809,7 +809,7 @@ mx_image_noir_write_header( FILE *file,
 
 	MX_RECORD *imaging_device_record = NULL;
 	MX_AREA_DETECTOR *ad = NULL;
-	char scan_template[2*MXU_FILENAME_LENGTH+1];
+	char scan_template[2*MXU_FILENAME_LENGTH+3];
 
 	mx_status_type mx_status;
 
@@ -894,7 +894,7 @@ mx_image_noir_write_header( FILE *file,
 			 * for this frame.
 			 */
 
-			char temp_buffer[40];
+			char temp_buffer[400];
 			int c;
 
 			snprintf( temp_buffer, sizeof(temp_buffer),

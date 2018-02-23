@@ -8,7 +8,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2003, 2010, 2012, 2015-2016 Illinois Institute of Technology
+ * Copyright 2000-2003, 2010, 2012, 2015-2016, 2018
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -266,7 +267,7 @@ mxd_scipe_motor_open( MX_RECORD *record )
 	MX_MOTOR *motor;
 	MX_SCIPE_MOTOR *scipe_motor;
 	MX_SCIPE_SERVER *scipe_server;
-	char command[40];
+	char command[80];
 	char response[80];
 	char *result_ptr;
 	int scipe_response_code;
@@ -321,7 +322,7 @@ mxd_scipe_motor_move_absolute( MX_MOTOR *motor )
 
 	MX_SCIPE_MOTOR *scipe_motor;
 	MX_SCIPE_SERVER *scipe_server;
-	char command[40];
+	char command[80];
 	char response[80];
 	char *result_ptr;
 	int scipe_response_code;
@@ -363,7 +364,7 @@ mxd_scipe_motor_get_position( MX_MOTOR *motor )
 
 	MX_SCIPE_MOTOR *scipe_motor;
 	MX_SCIPE_SERVER *scipe_server;
-	char command[40];
+	char command[80];
 	char response[80];
 	char *result_ptr;
 	double raw_position;
@@ -417,7 +418,7 @@ mxd_scipe_motor_soft_abort( MX_MOTOR *motor )
 
 	MX_SCIPE_MOTOR *scipe_motor;
 	MX_SCIPE_SERVER *scipe_server;
-	char command[40];
+	char command[80];
 	char response[80];
 	char *result_ptr;
 	int scipe_response_code;
@@ -450,7 +451,7 @@ mxd_scipe_motor_get_status( MX_MOTOR *motor )
 
 	MX_SCIPE_MOTOR *scipe_motor;
 	MX_SCIPE_SERVER *scipe_server;
-	char command[40];
+	char command[80];
 	char response[80];
 	char *result_ptr;
 	int scipe_response_code;

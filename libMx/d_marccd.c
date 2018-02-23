@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008-2010, 2013-2015 Illinois Institute of Technology
+ * Copyright 2008-2010, 2013-2015, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -366,7 +366,7 @@ mxd_marccd_writefile( MX_AREA_DETECTOR *ad,
 
 	MX_FILE_MONITOR *file_monitor;
 	char command[(2*MXU_FILENAME_LENGTH)+20];
-	char filename[MXU_FILENAME_LENGTH+1];
+	char filename[2*MXU_FILENAME_LENGTH+3];
 	double timeout_in_seconds;
 	MX_CLOCK_TICK timeout_in_ticks, current_tick, finish_tick;
 	int comparison;

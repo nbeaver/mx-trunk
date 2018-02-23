@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008-2013, 2016 Illinois Institute of Technology
+ * Copyright 2008-2013, 2016, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1512,7 +1512,7 @@ mxd_bluice_area_detector_transfer_frame( MX_AREA_DETECTOR *ad )
 	MX_BLUICE_AREA_DETECTOR *bluice_area_detector;
 	MX_BLUICE_SERVER *bluice_server;
 	MX_BLUICE_FOREIGN_DEVICE *last_image_collected_string;
-	char image_filename[MXU_FILENAME_LENGTH+1];
+	char image_filename[2*MXU_FILENAME_LENGTH+10];
 	mx_status_type mx_status;
 
 	mx_status = mxd_bluice_area_detector_get_pointers( ad,

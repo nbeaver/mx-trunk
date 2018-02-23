@@ -199,6 +199,7 @@ mxi_keithley2600_special_processing_setup( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
+		case 0:
 			record_field->process_function
 					= mxi_keithley2600_process_function;
 			break;

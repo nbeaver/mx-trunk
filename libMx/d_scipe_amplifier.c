@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2006, 2010, 2015-2016 Illinois Institute of Technology
+ * Copyright 2002, 2006, 2010, 2015-2016, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -765,8 +765,8 @@ mxd_scipe_amplifier_set_offset( MX_AMPLIFIER *amplifier )
 
 	MX_SCIPE_AMPLIFIER *scipe_amplifier;
 	MX_SCIPE_SERVER *scipe_server;
-	char command[80];
-	char response[80];
+	char command[200];
+	char response[200];
 	char *result_ptr;
 	int scipe_response_code;
 	double offset_current, abs_offset_current, requested_offset;

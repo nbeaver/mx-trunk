@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2015-2016 Illinois Institute of Technology
+ * Copyright 2015-2016, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -17,10 +17,11 @@
 #ifndef __D_PILATUS_H__
 #define __D_PILATUS_H__
 
-#define MXU_PILATUS_THRESHOLD_STRING_LENGTH	80
-#define MXU_PILATUS_COMMAND_LENGTH		80
-#define MXU_PILATUS_TVX_VERSION_LENGTH		80
+#define MXU_PILATUS_COMMAND_LENGTH	(MXU_FILENAME_LENGTH+200)
+
 #define MXU_PILATUS_CAMERA_NAME_LENGTH		80
+#define MXU_PILATUS_THRESHOLD_STRING_LENGTH	80
+#define MXU_PILATUS_TVX_VERSION_LENGTH		80
 
 /* Values for the 'pilatus_flags' field. */
 

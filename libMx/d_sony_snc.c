@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2014-2015 Illinois Institute of Technology
+ * Copyright 2014-2015, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -723,7 +723,7 @@ mxd_sony_snc_send_command( MX_SONY_SNC *sony_snc,
 {
 	static const char fname[] = "mxd_sony_snc_send_command()";
 
-	char buffer[80];
+	char buffer[200];
 	mx_status_type mx_status;
 
 	if ( sony_snc == (MX_SONY_SNC *) NULL ) {

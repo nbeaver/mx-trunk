@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2015-2017 Illinois Institute of Technology
+ * Copyright 2015-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -401,7 +401,7 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 	double exposure_seconds;
 
 	char image_description[500];
-	char temp_buffer[80];
+	char temp_buffer[2*MXU_FILENAME_LENGTH+3];
 
 #if MX_USE_EXIF_TIFF_TAGS
 	uint64 exif_dir_offset;

@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2005-2006, 2010, 2012, 2015-2016
+ * Copyright 2002, 2005-2006, 2010, 2012, 2015-2016, 2018
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -266,7 +266,7 @@ mxd_scipe_din_read( MX_DIGITAL_INPUT *dinput )
 
 	MX_SCIPE_DINPUT *scipe_dinput;
 	MX_SCIPE_SERVER *scipe_server;
-	char command[40];
+	char command[80];
 	char response[80];
 	char *result_ptr;
 	int num_items, scipe_response_code;

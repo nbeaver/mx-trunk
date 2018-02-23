@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2009-2011, 2013, 2015-2016 Illinois Institute of Technology
+ * Copyright 2009-2011, 2013, 2015-2016, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -737,7 +737,7 @@ mxd_mlfsom_readout_frame( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_mlfsom_readout_frame()";
 
 	MX_MLFSOM *mlfsom = NULL;
-	char smv_filename[MXU_FILENAME_LENGTH+1];
+	char smv_filename[MXU_FILENAME_LENGTH+100];
 	mx_status_type mx_status;
 
 	mx_status = mxd_mlfsom_get_pointers( ad, &mlfsom, fname );

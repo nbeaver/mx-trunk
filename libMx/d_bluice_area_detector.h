@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008, 2010-2011 Illinois Institute of Technology
+ * Copyright 2008, 2010-2011, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -56,7 +56,7 @@ typedef struct {
 	MX_BLUICE_FOREIGN_DEVICE *last_image_collected_string;
 
 	MX_THREAD *collect_thread;
-	char collect_command[200];
+	char collect_command[5000];
 
 	mx_bool_type initialize_datafile_number;
 

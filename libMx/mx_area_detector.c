@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2017 Illinois Institute of Technology
+ * Copyright 2006-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -7216,7 +7216,7 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 
 	MX_AREA_DETECTOR *ad;
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
-	char filename[MXU_FILENAME_LENGTH+1];
+	char filename[2*MXU_FILENAME_LENGTH+3];
 	unsigned long flags;
 	int os_status, saved_errno;
 	mx_bool_type save_frame_after_acquisition;

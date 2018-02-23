@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2015-2017 Illinois Institute of Technology
+ * Copyright 2015-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -450,8 +450,8 @@ mxd_pilatus_arm( MX_AREA_DETECTOR *ad )
 	MX_SEQUENCE_PARAMETERS *sp = NULL;
 	unsigned long num_frames;
 	double exposure_time, exposure_period, delay_time;
-	char command[80];
-	char response[80];
+	char command[MXU_PILATUS_COMMAND_LENGTH+1];
+	char response[MXU_PILATUS_COMMAND_LENGTH+1];
 	mx_status_type mx_status;
 
 	pilatus = NULL;
@@ -1002,7 +1002,7 @@ mxd_pilatus_transfer_frame( MX_AREA_DETECTOR *ad )
 			"mxd_pilatus_transfer_frame()";
 
 	MX_PILATUS *pilatus = NULL;
-	char remote_image_filename[MXU_FILENAME_LENGTH+1];
+	char remote_image_filename[2*MXU_FILENAME_LENGTH+3];
 	char local_image_filename[MXU_FILENAME_LENGTH+1];
 	char *filename_ptr = NULL;
 	unsigned long flags;

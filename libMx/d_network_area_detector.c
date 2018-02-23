@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2011, 2013-2017 Illinois Institute of Technology
+ * Copyright 2006-2011, 2013-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1194,7 +1194,7 @@ mxp_network_ad_transfer_from_local_file( MX_AREA_DETECTOR *ad,
 	long dimension[1];
 	char server_datafile_save_format_name[MXU_IMAGE_FORMAT_NAME_LENGTH+1];
 	long server_datafile_save_format;
-	char remote_image_filename[MXU_FILENAME_LENGTH+1];
+	char remote_image_filename[2*MXU_FILENAME_LENGTH+3];
 	char local_image_filename[MXU_FILENAME_LENGTH+1];
 	char *filename_ptr;
 	mx_status_type mx_status;
