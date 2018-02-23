@@ -9,7 +9,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2006, 2011, 2014-2016 Illinois Institute of Technology
+ * Copyright 2006, 2011, 2014-2016, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,7 +20,7 @@
 #define __XDR_HYPER_H__
 
 #if defined(OS_WIN32) || defined(OS_DJGPP) || defined(OS_ECOS) \
-      || defined(OS_ANDROID) || defined(OS_MINIX)
+      || defined(OS_ANDROID) || defined(OS_MINIX) || defined(__riscv)
 #  include "xdr.h"
 #else
 #  include <rpc/types.h>
