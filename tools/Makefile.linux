@@ -5,7 +5,7 @@
 all:   ../libMx/mx_private_version.h mx_config smvspatial.o \
 	strlcpy.o strlcat.o \
 	unix/src/editline/libedit.a \
-	xdr_hyper.o
+	xdr.o xdr_hyper.o
 
 include ../libMx/Makefile.version
 
@@ -86,6 +86,11 @@ unix/src/editline/libedit.a:
 #
 # Instead, we build xdr_hyper.o for all runtime libraries, but only use it
 # if the runtime library is Musl.
+
+xdr.o: xdr/src/xdr.c xdr/src/xdr.h
+	$(CC) -c $(OPTIMIZE) -I/usr/include/tirpc \
+	-fPIC -I../libMx -DOS_LINUX -D__MX_LIBRARY__ \
+		xdr/src/xdr.c
 
 xdr_hyper.o: xdr/src/xdr_hyper.c xdr/src/xdr.h xdr/src/xdr_hyper.h
 	$(CC) -c $(OPTIMIZE) -I/usr/include/tirpc \

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005-2007, 2011, 2014-2017 Illinois Institute of Technology
+ * Copyright 2005-2007, 2011, 2014-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,7 +20,7 @@
 #include "mx_private_version.h"
 
 #if defined(OS_WIN32) || defined(OS_DJGPP) || defined(OS_ECOS) \
-	|| defined(OS_ANDROID) || defined(OS_MINIX)
+	|| defined(OS_ANDROID) || defined(OS_MINIX) || defined(__riscv)
 
 #   include "../tools/xdr/src/xdr.h"
 #   include "../tools/xdr/src/xdr_hyper.h"

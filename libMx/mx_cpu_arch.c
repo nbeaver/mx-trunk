@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2006, 2009-2012, 2015-2017 Illinois Institute of Technology
+ * Copyright 2006, 2009-2012, 2015-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -247,6 +247,11 @@ mx_get_cpu_architecture( char *architecture_type,
 #  elif defined(__powerpc__) || defined(__ppc__)
 
 		strlcpy( architecture_type, "powerpc",
+				max_architecture_type_length );
+
+#  elif defined(__riscv)
+
+		strlcpy( architecture_type, "riscv",
 				max_architecture_type_length );
 
 #  elif defined(__s390__)

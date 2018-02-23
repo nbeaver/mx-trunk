@@ -176,6 +176,13 @@ endif
 
 #--------------------------------------------------------------------------
 #
+# For doing architecture-specific stuff
+#
+
+_machine_name := $(shell uname -m)
+
+#--------------------------------------------------------------------------
+#
 # Intel x86/m68k/sparc with GCC under Linux.
 #
 CC      = gcc
@@ -252,6 +259,10 @@ MX_LIB_OBJS += ../tools/smvspatial.o
 
 ifeq ($(_libc_version),musl)
   MX_LIB_OBJS += ../tools/xdr_hyper.o
+endif
+
+ifeq ($(_machine_name),riscv64)
+  MX_LIB_OBJS += ../tools/xdr.o ../tools/xdr_hyper.o
 endif
 
 #
