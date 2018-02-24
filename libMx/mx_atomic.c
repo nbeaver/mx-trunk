@@ -216,8 +216,6 @@ mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
 MX_EXPORT void
 mx_atomic_memory_barrier( void )
 {
-#error Not yet tested on Win32.
-
 	MemoryBarrier();
 
 	return;
