@@ -7,7 +7,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2005-2006, 2010 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2005-2006, 2010, 2018
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -30,7 +31,7 @@ motor_modify_fn( int argc, char *argv[] )
 	MX_SCAN *scan;
 	char *scan_name;
 	static char scan_record_description[MXU_RECORD_DESCRIPTION_LENGTH+1];
-	char buffer[MXU_FILENAME_LENGTH + 12];
+	char buffer[MXU_FILENAME_LENGTH + 20];
 	size_t length;
 	int status;
 	static char usage[] = "Usage:  modify scan 'scan_name'\n";

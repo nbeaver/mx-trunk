@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2006, 2013 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2006, 2013, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -40,7 +40,7 @@ motor_mjog_fn( int argc, char *argv[] )
 	double position, relative_motion, step_size, jog_size;
 	size_t length;
 	mx_status_type mx_status;
-	char buffer[100];
+	char buffer[2*MXU_FILENAME_LENGTH + 10];
 	char left_arrow_label[25], ctrl_left_arrow_label[25];
 	char right_arrow_label[25], ctrl_right_arrow_label[25];
 

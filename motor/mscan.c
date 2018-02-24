@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004-2006, 2010, 2015-2016
+ * Copyright 1999, 2001-2002, 2004-2006, 2010, 2015-2016, 2018
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -31,7 +31,7 @@ motor_scan_fn( int argc, char *argv[] )
 	MX_RECORD *record;
 	MX_SCAN *scan;
 	char old_filename[ MXU_FILENAME_LENGTH + 1 ];
-	char buffer[ MXU_FILENAME_LENGTH + 12 ];
+	char buffer[ 2*MXU_FILENAME_LENGTH + 20 ];
 	double estimated_scan_duration;
 	int status;
 	mx_status_type mx_status;

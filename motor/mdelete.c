@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2005-2006, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,7 +25,7 @@ motor_delete_fn( int argc, char *argv[] )
 	static const char cname[] = "delete";
 
 	MX_RECORD *record;
-	char buffer[MXU_FILENAME_LENGTH + 12];
+	char buffer[MXU_FILENAME_LENGTH + 20];
 	size_t length;
 	mx_status_type mx_status;
 

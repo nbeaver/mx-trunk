@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2017 Illinois Institute of Technology
+ * Copyright 1999-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -155,7 +155,7 @@ timestamp_output( char *string )
 static void
 timestamp_warning_output( char *string )
 {
-	char timestamp_buffer[100];
+	char timestamp_buffer[2*MXU_FILENAME_LENGTH + 100];
 
 	mx_timestamp( timestamp_buffer, sizeof(timestamp_buffer) );
 
@@ -790,7 +790,7 @@ motor_cd_fn( int argc, char *argv[] )
 int
 motor_exit_fn( int argc, char *argv[] )
 {
-	char buffer[80];
+	char buffer[2*MXU_FILENAME_LENGTH + 20];
 	int status;
 	mx_status_type mx_status;
 
@@ -875,7 +875,7 @@ int
 motor_exit_save_dialog( void )
 {
 	char default_savefile[ MXU_FILENAME_LENGTH + 1 ];
-	char buffer[ MXU_FILENAME_LENGTH + 11 ];
+	char buffer[ MXU_FILENAME_LENGTH + 20 ];
 	char response[20];
 	int response_length, exitloop, status;
 

@@ -56,7 +56,7 @@ typedef struct {
 	MX_BLUICE_FOREIGN_DEVICE *last_image_collected_string;
 
 	MX_THREAD *collect_thread;
-	char collect_command[5000];
+	char collect_command[10000];
 
 	mx_bool_type initialize_datafile_number;
 

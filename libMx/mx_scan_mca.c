@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2009, 2011, 2013, 2015-2017 Illinois Institute of Technology
+ * Copyright 1999-2009, 2011, 2013, 2015-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -311,7 +311,7 @@ mx_scan_save_mca_measurements( MX_SCAN *scan, long num_mcas )
 	unsigned long mca_data_value, max_current_num_channels;
 	char mca_filename[MXU_FILENAME_LENGTH + NUMBER_STRING_LENGTH + 1];
 	char mca_directory_name[MXU_FILENAME_LENGTH + NUMBER_STRING_LENGTH + 1];
-	char pathname[MXU_FILENAME_LENGTH + NUMBER_STRING_LENGTH + 1];
+	char pathname[2*MXU_FILENAME_LENGTH + NUMBER_STRING_LENGTH + 100];
 	mx_bool_type use_subdirectory;
 	mx_status_type mx_status;
 
@@ -544,7 +544,7 @@ mx_scan_save_area_detector_image( MX_SCAN *scan,
 	MX_AREA_DETECTOR *ad;
 	char image_directory_name[ MXU_FILENAME_LENGTH + 1 ];
 	char image_filename[ MXU_FILENAME_LENGTH + 1 ];
-	char image_pathname[MXU_FILENAME_LENGTH + 1];
+	char image_pathname[2*MXU_FILENAME_LENGTH + 3];
 	mx_bool_type use_subdirectory = TRUE;
 	mx_status_type mx_status;
 

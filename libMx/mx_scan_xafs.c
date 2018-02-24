@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2006, 2010, 2015-2016
+ * Copyright 1999, 2001, 2003-2006, 2010, 2015-2016, 2018
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -455,7 +455,7 @@ mxs_xafs_scan_execute_scan_body( MX_SCAN *scan )
 	MX_RECORD *scan_region_record, *record_list;
 	char record_description[ MXU_RECORD_DESCRIPTION_LENGTH + 1 ];
 	char timer_name[ MXU_RECORD_NAME_LENGTH + 1 ];
-	char measurement_arguments[80];
+	char measurement_arguments[1000];
 	char preset_type_name[40];
 	char format_buffer[20];
 	double start_position, end_position, step_size, end_of_region;

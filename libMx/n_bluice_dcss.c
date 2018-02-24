@@ -7,7 +7,8 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005-2006, 2008, 2010-2011, 2015 Illinois Institute of Technology
+ * Copyright 2005-2006, 2008, 2010-2011, 2015, 2018
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -259,7 +260,7 @@ mxn_bluice_dcss_server_get_session_id(
 	int port_number, status, saved_errno;
 	mx_status_type mx_status;
 
-	char line[200];
+	char line[2000];
 	char password[40];
 
 	char plaintext[1000];
@@ -2002,7 +2003,7 @@ mxn_bluice_dcss_server_print_structure( FILE *file, MX_RECORD *record )
 /*-------------------------------------------------------------------------*/
 
 #define CLIENT_TYPE_RESPONSE_LENGTH \
-	((2*MXU_HOSTNAME_LENGTH) + MXU_USERNAME_LENGTH + 100)
+	((2*MXU_HOSTNAME_LENGTH) + MXU_USERNAME_LENGTH + 400)
 
 MX_EXPORT mx_status_type
 mxn_bluice_dcss_server_open( MX_RECORD *record )

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2006, 2009 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2006, 2009, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,7 +29,7 @@ motor_load_fn( int argc, char *argv[] )
 	MX_RECORD *old_record, *new_record;
 	MX_RECORD *list_head_record, *last_old_record, *current_record;
 	static char record_description[ MXU_RECORD_DESCRIPTION_LENGTH + 1 ];
-	char buffer[MXU_FILENAME_LENGTH + 12];
+	char buffer[MXU_FILENAME_LENGTH + 20];
 	int i;
 	unsigned long flags;
 	long length;

@@ -7,7 +7,7 @@
  *
  *-----------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2005-2006, 2009, 2016
+ * Copyright 1999, 2001, 2003, 2005-2006, 2009, 2016, 2018
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -34,7 +34,7 @@ motor_copy_or_rename_fn( int argc, char *argv[] )
 	MX_RECORD *old_scan_record, *new_scan_record;
 	MX_SCAN *old_scan;
 	char *old_scan_name, *new_scan_name;
-	char buffer[MXU_FILENAME_LENGTH + 12];
+	char buffer[2*MXU_FILENAME_LENGTH + 12];
 	char cname[80];
 	size_t argv1_length, argv2_length;
 	int cmd_type, status;

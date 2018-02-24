@@ -7,7 +7,8 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 1999-2010, 2012, 2014-2015, 2017 Illinois Institute of Technology
+ * Copyright 1999-2010, 2012, 2014-2015, 2017-2018
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -110,7 +111,7 @@ mx_error( long error_code, const char *location, const char *format, ... )
 
 	va_list args;
 	char buffer1[2500];
-	char buffer2[2500];
+	char buffer2[2600];
 	long i;
 	mx_bool_type quiet_flag;
 

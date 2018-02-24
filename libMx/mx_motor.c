@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2017 Illinois Institute of Technology
+ * Copyright 1999-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -7016,7 +7016,7 @@ mx_is_analog_motor_position_between_software_limits(
 	    "mx_is_analog_motor_position_between_software_limits()";
 
 	MX_MOTOR *motor;
-	char message_buffer[120];
+	char message_buffer[1000];
 	char units[80];
 	double positive_limit, negative_limit, test_var;
 	mx_status_type status;

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2006, 2013 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2006, 2013, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -62,7 +62,7 @@ motor_set_motor( MX_RECORD *motor_record, int argc, char *argv[] )
 	static const char cname[] = "set motor";
 
 	MX_MOTOR *motor;
-	char buffer[80];
+	char buffer[2*MXU_FILENAME_LENGTH + 100];
 	double position, reciprocal, deadband, speed;
 	long motor_steps;
 	size_t length0, length1;

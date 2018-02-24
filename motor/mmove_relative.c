@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2006, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -27,7 +27,7 @@ motor_mrel_fn( int argc, char *argv[] )
 	MX_RECORD *record;
 	int i, relative_steps;
 	double relative_position;
-	char buffer[100];
+	char buffer[2*MXU_FILENAME_LENGTH + 10];
 	size_t length;
 	int status;
 	mx_status_type mx_status;

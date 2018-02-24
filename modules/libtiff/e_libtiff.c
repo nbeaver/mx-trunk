@@ -391,7 +391,7 @@ mxext_libtiff_write_tiff_file( MX_IMAGE_FRAME *frame,
 	char mx_version_string[80];
 
 	char tiff_timestamp[25];
-	char full_timestamp[80];
+	char full_timestamp[200];
 	char full_leading_timestamp[80];
 	time_t time_in_seconds;
 	struct tm tm_struct;

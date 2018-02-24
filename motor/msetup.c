@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2005-2006, 2009-2010
+ * Copyright 1999, 2001, 2003, 2005-2006, 2009-2010, 2018
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -28,7 +28,7 @@ motor_setup_fn( int argc, char *argv[] )
 	static const char cname[] = "setup";
 
 	MX_RECORD *record;
-	char buffer[MXU_FILENAME_LENGTH + 12];
+	char buffer[2*MXU_FILENAME_LENGTH + 20];
 	char *scan_name;
 	static char scan_record_description[2*MXU_RECORD_DESCRIPTION_LENGTH+1];
 	long scan_class;
