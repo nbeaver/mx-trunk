@@ -291,9 +291,11 @@ mx_atomic_read32( int32_t *value_ptr )
 MX_EXPORT void
 mx_atomic_memory_barrier( void )
 {
-#error Not yet tested for macOS.
+	/* Apparently memory_order_acq_rel does not provide all possible
+	 * memory ordering, but memory_order_seq_cst does.
+	 */
 
-	atomic_thread_fence( memory_order_acq_rel );
+	atomic_thread_fence( memory_order_seq_cst );
 
 	return;
 }
