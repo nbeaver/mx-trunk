@@ -422,8 +422,6 @@ mx_atomic_read32( int32_t *value_ptr )
 MX_EXPORT void
 mx_atomic_memory_barrier( void )
 {
-#error Not yet tested for Solaris.
-
 	membar_producer();
 
 	return;
