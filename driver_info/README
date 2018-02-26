@@ -5,19 +5,9 @@ compumotor_int - This directory contains an example of the commands that
 		must be present in a Compumotor 6K or 6000 series controller
 		that is managed via the MX compumotor_int driver.
 
-epics_mcs - An add-on to the EPICS MCS database that provides a place
-		in the EPICS server for MCS dark currents to be stored.
-
-epics_scaler - An add-on to the EPICS scaler database that provides a place
-		in the EPICS server for scaler dark currents to be stored.
-
-epix_pixci - Contains an example /etc/init.d/pixci script that can be used
-		on Linux system to load the PIXCI driver at boot time.
-
 hsc1 - The 'hsc1' and 'hsc1_motor' records require some modification to the
 		variables in the HSC-1 memory map.  The README describes
 		what has to be done.
 
-pccd_170170 - Contains spline files for PCCD-170170 detectors.  The name
-                of the file indicates which detector the file is for.
+mardtb - A list of MarDTB commands available through its network interface.
 
