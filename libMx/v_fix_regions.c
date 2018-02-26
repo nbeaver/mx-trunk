@@ -8,16 +8,16 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2017 Illinois Institute of Technology
+ * Copyright 2017-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXV_FIX_REGIONS_DEBUG		FALSE
+#define MXV_FIX_REGIONS_DEBUG		TRUE
 
-#define MXV_FIX_REGIONS_DEBUG_VALUE	FALSE
+#define MXV_FIX_REGIONS_DEBUG_VALUE	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>

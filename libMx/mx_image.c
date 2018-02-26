@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2017 Illinois Institute of Technology
+ * Copyright 2006-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -244,7 +244,7 @@ mxp_double_converter = { 8, 8, mxp_double_converter_fn };
 
 #endif /* 0 */
 
-/*----*/
+/*--------------------------------------------------------------------------*/
 
 typedef struct {
 	char name[MXU_IMAGE_FORMAT_NAME_LENGTH+1];
@@ -2794,6 +2794,124 @@ mxp_image_fix_u16_horizontal( uint16_t **uint16_array,
 
 /*----*/
 
+static mx_status_type
+mxp_image_fix_u16_vertical( uint16_t **uint16_array,
+				long start_column,
+				long start_row,
+				long end_column,
+				long end_row,
+				mx_bool_type touches_right_edge,
+				mx_bool_type touches_left_edge )
+{
+	static const char fname[] = "mxp_image_fix_u16_vertical()";
+
+	long i, num_columns, column, row, column_to_copy_from;
+	long column_before, column_after;
+	double value_before, value_after;
+	double average;
+	double slope, intercept;
+
+	num_columns = end_column - start_column + 1;
+
+	if ( num_columns < 1 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The requested end column (%ld) is before the requested "
+		"start column (%ld) for image array %p.  This results in "
+		"a number of columns that is either 0 or negative, which "
+		"does not work.", end_column, start_column, uint16_array );
+	}
+
+	if ( touches_right_edge && touches_left_edge ) {
+		/* If we get here, then there are no valid pixels either
+		 * above or below this region.  The only thing we can do
+		 * is to set the pixels in this region to 0.
+		 */
+
+		for ( column = start_column; column <= end_column; column++ ) {
+			for ( row = start_row;
+				row <= end_row;
+				row++ )
+			{
+				uint16_array[column][row] = 0;
+			}
+		}
+	} else
+	if ( touches_right_edge || touches_left_edge ) {
+
+		/* If it touches one edge but not the other, then we just
+		 * copy the pixel values from the side of the region 
+		 * furthest from the edge into this region.
+		 */
+
+		if ( touches_right_edge ) {
+			column_to_copy_from = end_column + 1;
+		} else {
+			column_to_copy_from = start_column - 1;
+		}
+
+		for ( column = start_column; column <= end_column; column++ ) {
+			for ( row = start_row;
+				row <= end_row;
+				row++ )
+			{
+				uint16_array[column][row] =
+				uint16_array[column_to_copy_from][row];
+			}
+		}
+	} else {
+		if ( num_columns == 1 ) {
+			/* For this case, we just average the pixel values
+			 * on either side of this column.
+			 */
+
+			column = start_column;
+
+			for ( row = start_row;
+				row <= end_row;
+				row++ ) 
+			{
+				average = 0.5 * ( uint16_array[column-1][row]
+						+ uint16_array[column+1][row]);
+
+				uint16_array[column][row] = mx_round(average);
+			}
+		} else {
+			/* For this case, we linearly interpolate between
+			 * the values above and below this region.
+			 */
+
+			column = start_column;
+
+			column_before = column - 1;
+			column_after = column + num_columns;
+
+			for ( row = start_row;
+				row <= end_row;
+				row++ ) 
+			{
+				value_before = uint16_array[column_before][row];
+				value_after  = uint16_array[column_after][row];
+
+				slope =
+			    mx_divide_safely( value_after - value_before,
+						    num_columns + 1 );
+
+				intercept =
+				    value_after - slope * ( column + num_columns );
+
+				for ( i = 0; i < num_columns; i++ ) {
+					uint16_array[column+i][row] =
+						slope * (column+i) + intercept;
+				}
+			}
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*----*/
+
 /* WARNING: The image_array pointer must point to a 2-dimensional MX-style
  * array allocated with an MX function like mx_allocate_array(), or
  * mx_array_add_overlay(), and so forth.  Directly passing an array that
@@ -2908,11 +3026,30 @@ mx_image_fix_region( MX_IMAGE_FRAME *image_frame,
 		}
 		break;
 	case MXF_IMAGE_FIX_VERTICAL:
-		MXW_UNUSED( touches_left_edge );
-		MXW_UNUSED( touches_right_edge );
+		switch( mx_image_format ) {
+		case MXT_IMAGE_FORMAT_GREY8:
+		case MXT_IMAGE_FORMAT_GREY32:
+		case MXT_IMAGE_FORMAT_FLOAT:
+		case MXT_IMAGE_FORMAT_DOUBLE:
+			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Support for image format type (%lu) is not yet implemented.",
+				(unsigned long) mx_image_format );
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Image format (%lu) is not supported.",
+			(unsigned long) mx_image_format );
+			break;
 
-		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"Fixing vertical lines is not yet implemented." );
+		case MXT_IMAGE_FORMAT_GREY16:
+			mx_status = mxp_image_fix_u16_vertical(
+					image_frame->image_frame_2d_array,
+					start_row, start_column,
+					end_row, end_column,
+					touches_left_edge,
+					touches_right_edge );
+
+			break;
+		}
 		break;
 	case MXF_IMAGE_FIX_AREA:
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,

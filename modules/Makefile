@@ -49,7 +49,7 @@ MODULES += libtiff		# cygwin, linux, win32
 
 #MODULES += pmc_mcapi		# linux, win32
 
-#MODULES += radicon_taurus	# linux, win32
+MODULES += radicon_taurus	# linux, win32
 
 #MODULES += sis3100		# linux,
 
@@ -57,7 +57,7 @@ MODULES += libtiff		# cygwin, linux, win32
 
 #MODULES += xia_handel		# linux, win32
 
-#MODULES += xineos_gige		# linux, win32
+MODULES += xineos_gige		# linux, win32
 
 #-------------------------------------------------------------------
 # Linux-only modules.
@@ -91,7 +91,7 @@ MODULES += libtiff		# cygwin, linux, win32
 
 #MODULES += radicon_helios
 
-#MODULES += sapera_lt 
+MODULES += sapera_lt 
 
 #MODULES += u500
 
