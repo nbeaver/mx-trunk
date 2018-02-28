@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013 Illinois Institute of Technology
+ * Copyright 2013, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -70,7 +70,7 @@ typedef struct {
 	union {
 		MX_LABJACK_U3_CONFIG u3_config;
 		MX_LABJACK_U6_CONFIG u6_config;
-		MX_LABJACK_UE9_CONFIG ue9_confit;
+		MX_LABJACK_UE9_CONFIG ue9_config;
 	} u;
 
 	long timeout_msec;	/* milliseconds */

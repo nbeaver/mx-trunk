@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013 Illinois Institute of Technology
+ * Copyright 2013, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -378,6 +378,16 @@ mxi_labjack_ux_finish_delayed_initialization( MX_RECORD *record )
 			}
 		}
 
+		/* The write mask means the following:
+		 *
+		 * Bit 5 -> Write UART Related settings.
+		 * Bit 4 -> Reserved
+		 * Bit 3 -> EIOAnalog
+		 * Bit 2 -> FIOAnalog
+		 * Bit 1 -> DAC1Enagle
+		 * Bit 0 -> TimerCounterConfig
+		 */
+
 		write_mask  = 0xD;
 		dac1_enable = 0x0;
 
@@ -496,17 +506,18 @@ mxi_labjack_ux_read( MX_LABJACK_UX *labjack_ux,
 /*-------------------------------------------------------------------------*/
 
 static mx_status_type
-mxi_labjack_u3_setup_checksum( MX_LABJACK_UX *labjack_ux,
+mxi_labjack_u3_setup_checksums( MX_LABJACK_UX *labjack_ux,
 				uint8_t *buffer,
 				unsigned long num_bytes_to_write )
 {
-	static const char fname[] = "mxi_labjack_u3_setup_checksum()";
+	static const char fname[] = "mxi_labjack_u3_setup_checksums()";
 
-	uint8_t checksum8;
 	uint16_t checksum16;
+	uint16_t checksum1, checksum2, checksum3;
+	uint16_t remainder1, remainder2, quotient1, quotient2;
 
 	uint8_t command_byte;
-	uint16_t byte_value16, accumulator, quotient, remainder;
+	uint16_t byte_value16;
 	unsigned long i, command_length;
 	mx_bool_type is_extended_command;
 
@@ -514,7 +525,7 @@ mxi_labjack_u3_setup_checksum( MX_LABJACK_UX *labjack_ux,
 
 	command_byte = buffer[1];
 
-	if ( ( command_byte & 0x78 ) == 0x78 ) {
+	if ( command_byte >= 0xF8 ) {
 		is_extended_command = TRUE;
 	} else {
 		is_extended_command = FALSE;
@@ -545,20 +556,25 @@ mxi_labjack_u3_setup_checksum( MX_LABJACK_UX *labjack_ux,
 
 		/* Compute the 8-bit normal command checksum. */
 
-		accumulator = 0;
+		checksum1 = 0;
 
 		for ( i = 1; i < command_length; i++ ) {
 			byte_value16 = (uint16_t) buffer[i];
 
-			accumulator += byte_value16;
+			checksum1 += byte_value16;
 		}
 
-		quotient  = accumulator / 0x100;
-		remainder = accumulator % 0x100;
+		quotient1  = checksum1 / 0x100;
+		remainder1 = checksum1 % 0x100;
 
-		checksum8 = quotient + remainder;
+		checksum2 = quotient1 + remainder1;
 
-		buffer[0] = (uint8_t) ( checksum8 & 0xff );
+		quotient2  = checksum2 / 0x100;
+		remainder2 = checksum2 % 0x100;
+
+		checksum3 = quotient2 + remainder2;
+
+		buffer[0] = (uint8_t) ( checksum3 & 0xff );
 	} else {
 		/* Extended command format */
 
@@ -574,35 +590,38 @@ mxi_labjack_u3_setup_checksum( MX_LABJACK_UX *labjack_ux,
 
 		/* Compute 16-bit extended command checksum */
 
-		accumulator = 0;
+		checksum16 = 0;
 
 		for ( i = 6; i < command_length; i++ ) {
 			byte_value16 = (uint16_t) buffer[i];
 
-			accumulator += byte_value16;
+			checksum16 += byte_value16;
 		}
-
-		checksum16 = accumulator;
 
 		buffer[4] = (uint8_t) ( checksum16 & 0xff );
 		buffer[5] = (uint8_t) ( (checksum16 >> 8) & 0xff );
 
 		/* Compute the 8-bit extended command checksum. */
 
-		accumulator = 0;
+		checksum1 = 0;
 
 		for ( i = 1; i < 6; i++ ) {
 			byte_value16 = (uint16_t) buffer[i];
 
-			accumulator += byte_value16;
+			checksum1 += byte_value16;
 		}
 
-		quotient  = accumulator / 0x100;
-		remainder = accumulator % 0x100;
+		quotient1  = checksum1 / 0x100;
+		remainder1 = checksum1 % 0x100;
 
-		checksum8 = quotient + remainder;
+		checksum2 = quotient1 + remainder1;
 
-		buffer[0] = (uint8_t) ( checksum8 & 0xff );
+		quotient2  = checksum2 / 0x100;
+		remainder2 = checksum2 % 0x100;
+
+		checksum3 = quotient2 + remainder2;
+
+		buffer[0] = (uint8_t) ( checksum3 & 0xff );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -637,7 +656,7 @@ mxi_labjack_ux_write( MX_LABJACK_UX *labjack_ux,
 
 	switch( labjack_ux->product_id ) {
 	case U3_PRODUCT_ID:
-		mx_status = mxi_labjack_u3_setup_checksum( labjack_ux, buffer,
+		mx_status = mxi_labjack_u3_setup_checksums( labjack_ux, buffer,
 							num_bytes_to_write );
 		break;
 	default:
@@ -647,6 +666,8 @@ mxi_labjack_ux_write( MX_LABJACK_UX *labjack_ux,
 			labjack_ux->product_id, labjack_ux->record->name );
 		break;
 	}
+
+	MXW_UNUSED(mx_status);
 
 #if MXI_LABJACK_UX_DEBUG
 	fprintf( stderr, "%s: writing %lu bytes to '%s': ",
