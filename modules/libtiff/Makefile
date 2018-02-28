@@ -53,6 +53,13 @@ LIBTIFF_LIBRARY = -ltiff
 
 #----
 
+else ifeq ($(MX_ARCH),bsd)
+
+LIBTIFF_INCLUDES = -I/usr/local/include
+LIBTIFF_LIBRARY = -L/usr/local/lib -ltiff
+
+#----
+
 else ifeq ($(MX_ARCH),bsd-clang)
 
 LIBTIFF_INCLUDES = -I/usr/local/include
@@ -143,10 +150,20 @@ endif
 
 #--------------------------------------------------------------------------
 
+ifeq ($(MX_ARCH),bsd)
+
+libtiff.mxo: $(LIBTIFF_OBJS)
+	$(CC) -shared -rdynamic -o libtiff.mxo $(LIBTIFF_OBJS) \
+		../../libMx/libMx.so $(LIBTIFF_LIBRARY)
+
+endif
+
+#--------------------------------------------------------------------------
+
 ifeq ($(MX_ARCH),bsd-clang)
 
 libtiff.mxo: $(LIBTIFF_OBJS)
-	$(CC) -shared -o libtiff.mxo $(LIBTIFF_OBJS) \
+	$(CC) -shared -rdynamic -o libtiff.mxo $(LIBTIFF_OBJS) \
 		../../libMx/libMx.so $(LIBTIFF_LIBRARY)
 
 endif
