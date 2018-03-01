@@ -34,9 +34,24 @@
 #
 #------------------------------------------------------------------------------
 #
-#   WARNING: MX makefiles require GNU make.
+#   WARNING: MX makefiles require GNU Make 3.80 or above.
 #
 #   BSD make, Microsoft NMAKE, Solaris make, and the like are not supported.
+#
+#------------------------------------------------------------------------------
+#
+#   On Microsoft Windows, you must have a Unix-like shell environment with a
+#   shell compatible with sh/ksh/bash to build MX.  This can typically be done
+#   by installing Cygwin or possibly Msys.  If you are using the Visual C++
+#   compiler with Cygwin, then you must also source a compiler setup script
+#   for your version of the compiler from the ones found in the directory
+#   mx/scripts/windows/visual_studio.
+#
+#   The Unix-like shell environment must supply the following commands:
+#     awk, cp, cut, echo, head, make, rm, sh, test, touch, tr
+#
+#   Performing 'make depend' also requires that the shell environment
+#   provide a 'makedepend' command.
 #
 #------------------------------------------------------------------------------
 #

@@ -1,0 +1,38 @@
+#  Example Makefile.config file
+
+$(info *** Using mx/modules/Makefile.config ***)
+
+# Multiplatform
+
+MODULES += aviex_pccd
+MODULES += cbflib
+MODULES += esone_camac
+MODULES += k8055
+MODULES += labjack_ux
+MODULES += libtiff
+MODULES += libusb-0.1
+MODULES += newport_xps
+MODULES += python
+MODULES += radicon_taurus
+MODULES += xia_handel
+MODULES += xineos_gige
+
+# Linux
+
+MODULES += aravis
+MODULES += dalsa_gev
+MODULES += v4l2_input
+
+# EPICS
+
+MODULES += epics
+MODULES += epics_aps 
+MODULES += epics_pmac_biocat
+MODULES += epics_mbc
+MODULES += epics_pmac_tc
+
+# Site
+
+MODULES += rdi_mbc
+MODULES += site_biocat_toast
+
