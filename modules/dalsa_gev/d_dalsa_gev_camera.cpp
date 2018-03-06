@@ -737,10 +737,16 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 	/*---------------------------------------------------------------*/
 
 	if ( strlen( dalsa_gev_camera->serial_number ) > 0 ) {
+		MX_DEBUG(-2,
+		("%s: calling GevOpenCameraBySN() for camera '%s'",
+		 	fname, serial_number_string ));
+
 		gev_status = GevOpenCameraBySN( serial_number_string,
 					GevExclusiveMode,
 					&(dalsa_gev_camera->camera_handle) );
 	} else {
+		MX_DEBUG(-2,("%s: calling GevOpenCamera().", fname));
+
 		gev_status = GevOpenCamera( selected_camera_object,
 					GevExclusiveMode,
 					&(dalsa_gev_camera->camera_handle) );
@@ -748,6 +754,12 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 
 	switch ( gev_status ) {
 	case GEVLIB_OK:
+		break;
+	case GEVLIB_ERROR_GENERIC:
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"GEVLIB_ERROR_GENERIC: An unknown error occurred when "
+		"trying to open a connection to camera '%s'.",
+			record->name );
 		break;
 	case GEVLIB_ERROR_API_NOT_INITIALIZED:
 		return mx_error( MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
@@ -945,6 +957,10 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 			record->name );
 	}
 
+	dalsa_gev_camera->frame_buffer_array_size_in_bytes
+		= vinput->framesize[0] * vinput->framesize[1]
+			* mx_round( vinput->bytes_per_pixel );
+
 	/*---------------------------------------------------------------*/
 
 #if 0
@@ -1096,7 +1112,7 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 
 	if ( gev_status != GEVLIB_OK ) {
 		return mxd_dalsa_gev_camera_api_error( gev_status, fname,
-						"GevInitImageTransfer()");
+						"GevAbortImageTransfer()");
 	}
 
 	/* Clear out the image frame buffers. */
@@ -1192,6 +1208,7 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 
 	MX_DEBUG(-2,("%s: '%s' ARMED.", fname, vinput->record->name ));
 
+#if 0
 	gev_status = GevInitImageTransfer( dalsa_gev_camera->camera_handle,
 					Asynchronous,
 					dalsa_gev_camera->num_frame_buffers,
@@ -1204,6 +1221,22 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 
 	MX_DEBUG(-2,("%s: '%s' GevInitImageTransfer() called.",
 			fname, vinput->record->name ));
+#else
+	gev_status = GevInitializeTransfer(
+			dalsa_gev_camera->camera_handle,
+			Asynchronous,
+			dalsa_gev_camera->frame_buffer_array_size_in_bytes,
+			dalsa_gev_camera->num_frame_buffers,
+			dalsa_gev_camera->frame_buffer_array );
+
+	if ( gev_status != GEVLIB_OK ) {
+		return mxd_dalsa_gev_camera_api_error( gev_status, fname,
+						"GevInitImageTransfer()");
+	}
+
+	MX_DEBUG(-2,("%s: '%s' GevInitImageTransfer() called.",
+			fname, vinput->record->name ));
+#endif
 
 	if ( vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
 	}
