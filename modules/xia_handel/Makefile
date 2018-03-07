@@ -11,7 +11,7 @@ ifndef MX_INSTALL_DIR
 endif
 
 ifeq ($(MX_ARCH),linux)
-	XIA_HANDEL_DIR = /usr/local/src/handel-1.1.11
+	XIA_HANDEL_DIR = /usr/local/src/handel-1.2.17
 
 	CFLAGS += -I$(XIA_HANDEL_DIR)/inc
 endif

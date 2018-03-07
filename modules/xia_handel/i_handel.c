@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2006, 2009-2012, 2016-2017 Illinois Institute of Technology
+ * Copyright 2003-2006, 2009-2012, 2016-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -393,25 +393,6 @@ mxi_handel_load_config( MX_HANDEL *handel )
 		}
 	}
 
-	/* Add the active detector channels to the
-	 * active detector channel set.
-	 */
-
-	for ( i = 0; i < handel->num_active_detector_channels; i++ ) {
-		xia_status = xiaAddChannelSetElem(
-			MX_HANDEL_ACTIVE_DETECTOR_CHANNEL_SET,
-			(int) handel->active_detector_channel_array[i] );
-
-		if ( xia_status != XIA_SUCCESS ) {
-			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
-			"Unable to add detector channel %d to active "
-			"detector channel set %d.  Error code = %d, '%s'",
-			(int) handel->active_detector_channel_array[i],
-			MX_HANDEL_ACTIVE_DETECTOR_CHANNEL_SET,
-			xia_status, mxi_handel_strerror( xia_status ) );
-		}
-	}
-
 	mx_info("Successfully loaded Handel configuration '%s'.",
 				handel->config_filename);
 
@@ -442,20 +423,6 @@ mxi_handel_load_new_config( MX_HANDEL *handel )
 #if MXI_HANDEL_DEBUG_TIMING
 	MX_HRT_START( measurement );
 #endif
-
-	/* Remove the old active detector channel set. */
-
-	xia_status = xiaRemoveChannelSet(
-			MX_HANDEL_ACTIVE_DETECTOR_CHANNEL_SET );
-
-	if ( xia_status != XIA_SUCCESS ) {
-		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
-		"Attempt to delete active detector channel set %d "
-		"failed for MCA '%s'.  Error code = %d, '%s'",
-		MX_HANDEL_ACTIVE_DETECTOR_CHANNEL_SET,
-		handel->record->name,
-		xia_status, mxi_handel_strerror( xia_status ) );
-	}
 
 	/* Load the new configuration from the config file. */
 

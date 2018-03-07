@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2006, 2008-2012, 2015-2017 Illinois Institute of Technology
+ * Copyright 2001-2006, 2008-2012, 2015-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -3045,8 +3045,9 @@ mxd_handel_mca_set_gain_change( MX_MCA *mca )
 	MX_DEBUG(-2,("%s invoked for MCA '%s', gain_change = %g",
 		fname, mca->record->name, handel_mca->gain_change));
 
-	xia_status = xiaGainChange( handel_mca->detector_channel,
-					handel_mca->gain_change );
+	xia_status = xiaGainOperation( handel_mca->detector_channel,
+					"calibrate",
+					&(handel_mca->gain_change) );
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
