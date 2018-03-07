@@ -376,7 +376,11 @@ mxd_dalsa_gev_camera_image_wait_thread_fn( MX_THREAD *thread, void *args )
 	MX_VIDEO_INPUT *vinput = NULL;
 	MX_DALSA_GEV_CAMERA *dalsa_gev_camera = NULL;
 	long mx_total_num_frames;
+#if 0
 	unsigned long sleep_ms;
+#else
+	struct timeval wait_timeval;
+#endif
 	mx_bool_type image_available;
 	mx_status_type mx_status;
 
@@ -417,17 +421,27 @@ mxd_dalsa_gev_camera_image_wait_thread_fn( MX_THREAD *thread, void *args )
 	MX_DEBUG(-2,("%s: dalsa_gev_camera->camera_handle = %p",
 			fname, dalsa_gev_camera->camera_handle));
 
-	sleep_ms = 1000;		/* in milliseconds */
-
 	while (TRUE) {
 		image_available = FALSE;
+
+#if 0
+		sleep_ms = 1000;		/* in milliseconds */
 
 		gev_status = GevWaitForNextImage(
 				dalsa_gev_camera->camera_handle,
 				&gev_buffer_object, sleep_ms );
+#else
+		wait_timeval.tv_sec = 1;
+		wait_timeval.tv_usec = 0;
+
+		gev_status = GevGetNextImage(
+				dalsa_gev_camera->camera_handle,
+				&gev_buffer_object, &wait_timeval );
+#endif
 
 #if 0
-		MX_DEBUG(-2,("%s: gev_status = %d", fname, gev_status));
+		MX_DEBUG(-2,("%s: wait thread gev_status = %d",
+			fname, gev_status));
 #endif
 
 		switch( gev_status ) {
@@ -724,6 +738,17 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 
 			selected_camera_object = camera_object;
 		}
+#if 1
+		else
+		if (strcmp( serial_number_string + 4, camera_object->serial)==0)
+		{
+			dalsa_gev_camera->camera_index = i;
+
+			dalsa_gev_camera->camera_object = camera_object;
+
+			selected_camera_object = camera_object;
+		}
+#endif
 	}
 
 	if ( selected_camera_object == (GEV_CAMERA_INFO *) NULL ) {
@@ -763,12 +788,6 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 		"trying to open a connection to camera '%s'.",
 			record->name );
 		break;
-	case GEVLIB_ERROR_API_NOT_INITIALIZED:
-		return mx_error( MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
-		"GEVLIB_ERROR_API_NOT_INITIALIZED: The Gev API library "
-		"has not yet been initialized for camera record '%s'.",
-			record->name );
-		break;
 	case GEVLIB_ERROR_INVALID_HANDLE:
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
 		"GEVLIB_ERROR_INVALID_HANDLE: Something is wrong with "
@@ -789,14 +808,25 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 			dalsa_gev_camera->serial_number,
 			record->name );
 		break;
-#if 0
-	case GEV_STATUS_ACCESS_DENIED:
+	case GEVLIB_ERROR_API_NOT_INITIALIZED:
+		return mx_error( MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
+		"GEVLIB_ERROR_API_NOT_INITIALIZED: The Gev API library "
+		"has not yet been initialized for camera record '%s'.",
+			record->name );
+		break;
+	case GEVLIB_ERROR_DEVICE_NOT_FOUND:
+		return mx_error( MXE_NOT_FOUND, fname,
+		"GEVLIB_ERROR_DEVICE_NOT_FOUND: No DALSA GigE-Vision camera "
+		"was found with serial number '%s' for camera record '%s'.",
+			dalsa_gev_camera->serial_number,
+			record->name );
+		break;
+	case GEVLIB_ERROR_ACCESS_DENIED:
 		return mx_error( MXE_PERMISSION_DENIED, fname,
-		"GEV_STATUS_ACCESS_DENIED: For some reason we were "
+		"GEVLIB_ERROR_ACCESS_DENIED: For some reason we were "
 		"not permitted access to the Gev API for camera record '%s'.",
 			record->name );
 		break;
-#endif
 	default:
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
 		"A call to GevOpenCamera() for camera record '%s' "
