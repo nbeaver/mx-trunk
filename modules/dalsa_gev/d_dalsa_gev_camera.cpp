@@ -15,13 +15,15 @@
  *
  */
 
-#define MXD_DALSA_GEV_CAMERA_DEBUG_OPEN			FALSE
-#define MXD_DALSA_GEV_CAMERA_DEBUG_ARM			FALSE
-#define MXD_DALSA_GEV_CAMERA_DEBUG_STOP			FALSE
-#define MXD_DALSA_GEV_CAMERA_DEBUG_GET_FRAME		FALSE
-#define MXD_DALSA_GEV_CAMERA_DEBUG_MX_PARAMETERS	FALSE
-#define MXD_DALSA_GEV_CAMERA_DEBUG_REGISTER_READ	FALSE
-#define MXD_DALSA_GEV_CAMERA_DEBUG_REGISTER_WRITE	FALSE
+#define MXD_DALSA_GEV_CAMERA_DEBUG_OPEN				FALSE
+#define MXD_DALSA_GEV_CAMERA_DEBUG_ARM				FALSE
+#define MXD_DALSA_GEV_CAMERA_DEBUG_STOP				FALSE
+#define MXD_DALSA_GEV_CAMERA_DEBUG_GET_FRAME			FALSE
+#define MXD_DALSA_GEV_CAMERA_DEBUG_MX_PARAMETERS		FALSE
+#define MXD_DALSA_GEV_CAMERA_DEBUG_REGISTER_READ		FALSE
+#define MXD_DALSA_GEV_CAMERA_DEBUG_REGISTER_WRITE		FALSE
+
+#define MXD_DALSA_GEV_CAMERA_USE_GEV_INITIALIZE_TRANSFER	FALSE
 
 #include <stdio.h>
 
@@ -1208,20 +1210,8 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 
 	MX_DEBUG(-2,("%s: '%s' ARMED.", fname, vinput->record->name ));
 
-#if 0
-	gev_status = GevInitImageTransfer( dalsa_gev_camera->camera_handle,
-					Asynchronous,
-					dalsa_gev_camera->num_frame_buffers,
-					dalsa_gev_camera->frame_buffer_array );
+#if MXD_DALSA_GEV_CAMERA_USE_GEV_INITIALIZE_TRANSFER
 
-	if ( gev_status != GEVLIB_OK ) {
-		return mxd_dalsa_gev_camera_api_error( gev_status, fname,
-						"GevInitImageTransfer()");
-	}
-
-	MX_DEBUG(-2,("%s: '%s' GevInitImageTransfer() called.",
-			fname, vinput->record->name ));
-#else
 	gev_status = GevInitializeTransfer(
 			dalsa_gev_camera->camera_handle,
 			Asynchronous,
@@ -1236,9 +1226,27 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 
 	MX_DEBUG(-2,("%s: '%s' GevInitImageTransfer() called.",
 			fname, vinput->record->name ));
-#endif
+#else	/* Not GevInitializeTransfer() */
+
+	gev_status = GevInitImageTransfer( dalsa_gev_camera->camera_handle,
+					Asynchronous,
+					dalsa_gev_camera->num_frame_buffers,
+					dalsa_gev_camera->frame_buffer_array );
+
+	if ( gev_status != GEVLIB_OK ) {
+		return mxd_dalsa_gev_camera_api_error( gev_status, fname,
+						"GevInitImageTransfer()");
+	}
+
+	MX_DEBUG(-2,("%s: '%s' GevInitImageTransfer() called.",
+			fname, vinput->record->name ));
+
+#endif	/* Not GevInitializeTransfer() */
+
 
 	if ( vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
+		MX_DEBUG(-2,("%s: camera '%s' is using external trigger.",
+			fname, vinput->record->name ));
 	}
 
 	return mx_status;
