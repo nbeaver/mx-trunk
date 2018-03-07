@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2015-2017 Illinois Institute of Technology
+ * Copyright 2015-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -629,7 +629,7 @@ mxd_merlin_medipix_monitor_thread_fn( MX_THREAD *thread, void *args )
 	MX_RECORD *record;
 	MX_AREA_DETECTOR *ad;
 	MX_MERLIN_MEDIPIX *merlin_medipix;
-	long mx_sequence_frame_number;
+	long mx_sequence_frame_number = 0;
 	long mx_total_num_frames_at_start, mx_total_num_frames;
 	long merlin_sequence_frame_number;
 	long mx_absolute_frame_number, mx_modulo_frame_number;

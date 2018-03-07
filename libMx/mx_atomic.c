@@ -361,11 +361,9 @@ mx_atomic_read32( int32_t *value_ptr )
 MX_EXPORT void
 mx_atomic_memory_barrier( void )
 {
-#error Not yet tested for old Mac OS X.
+	uint8_t test_variable;
 
-	UInt8 test_variable;
-
-	OSTestAndSet( 1, &test_variable );
+	OSAtomicTestAndSet( 1, &test_variable );
 
 	return;
 }

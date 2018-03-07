@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2007-2011, 2014-2016 Illinois Institute of Technology
+ * Copyright 2007-2011, 2014-2016, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -424,7 +424,7 @@ mx_get_current_cpu_number( void )
 }
 
 #elif defined(OS_LINUX) || defined(OS_UNIXWARE) || defined(OS_VXWORKS) \
-	|| defined(OS_ANDROID) || defined(__BORLANDC__)
+	|| defined(OS_ANDROID) || defined(__BORLANDC__) || defined(OS_MACOSX)
 
 /* Select this case if this particular platform does not implement
  * the concept of a CPU number or does not provide a programmatic
