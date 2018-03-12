@@ -11,7 +11,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2009-2013, 2017 Illinois Institute of Technology
+ * Copyright 1999-2006, 2009-2013, 2017-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -142,7 +142,7 @@ static mx_bool_type mx_epics_connection_retry_warning = FALSE;
 /*---*/
 
 /* mx_epics_is_initialized is set to true the first time that
- * mx_epics_internal_connect() is called.
+ * mx_epics_pv_connect() or mx_epics_start_group() is called.
  */
 
 static int mx_epics_is_initialized = FALSE;
