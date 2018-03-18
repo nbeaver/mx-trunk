@@ -37,7 +37,7 @@ ni_daqmx.mxo: $(NI_DAQMX_OBJS)
 	$(CC) -shared -rdynamic -Wl,-soname,ni_daqmx.mxo \
 		-o ni_daqmx.mxo $(NI_DAQMX_OBJS) \
 		-lnidaqmxbase \
-		/usr/local/lib/LabVIEW-2012/libniCPULib.so
+		/usr/local/lib/LabVIEW-2015/libniCPULib.so
 
 endif
 
