@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2006, 2010, 2013, 2015-2016
+ * Copyright 1999-2001, 2003-2006, 2010, 2013, 2015-2016, 2018
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -97,6 +97,10 @@ extern MX_RECORD_FIELD_DEFAULTS *mxi_tcp232_rfield_def_ptr;
   \
   {-1, -1, "receive_buffer_size", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TCP232, receive_buffer_size), \
+	{0}, NULL, 0 }, \
+  \
+  {-1, -1, "resync_delay_milliseconds", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_TCP232, resync_delay_milliseconds), \
 	{0}, NULL, 0 }
 
 #endif /* __I_TCP232_H__ */

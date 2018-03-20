@@ -130,6 +130,14 @@ mxi_keithley2600_open( MX_RECORD *record )
 			record->name );
 	}
 
+	/* Discard any garbage left over by a previous session. */
+
+	mx_status = mx_rs232_discard_unread_input(
+			keithley2600->rs232_record, TRUE );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/* Verify that the Keithley 2600 is responding to commands. */
 
 	mx_status = mxi_keithley2600_command( keithley2600, "*IDN?",
@@ -276,6 +284,8 @@ mxi_keithley2600_command( MX_KEITHLEY2600 *keithley2600,
 {
 	static const char fname[] = "mxi_keithley2600_command()";
 
+	MX_RS232 *rs232 = NULL;
+	int i, max_attempts;
 	mx_bool_type debug, response_expected;
 	mx_status_type mx_status;
 
@@ -284,44 +294,88 @@ mxi_keithley2600_command( MX_KEITHLEY2600 *keithley2600,
 		"The MX_KEITHLEY2600 pointer passed was NULL." );
 	}
 
+	if ( keithley2600->rs232_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The rs232_record pointer for record '%s' is NULL.",
+			keithley2600->record->name );
+	}
+
+	rs232 = keithley2600->rs232_record->record_class_struct;
+
+	if ( rs232 == (MX_RS232 *) NULL )  {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_RS232 pointer for record '%s' is NULL.",
+			keithley2600->rs232_record->name );
+	}
+
 	if ( keithley2600_flags & MXF_KEITHLEY2600_DEBUG_RS232 ) {
 		debug = TRUE;
 	} else {
 		debug = FALSE;
 	}
 
-	if ( debug ) {
-		fprintf( stderr, "Sending '%s' to '%s'.\n",
-			command, keithley2600->record->name );
+	max_attempts = 5;
+
+	for ( i = 0; i < max_attempts; i++ ) {
+
+		if ( debug ) {
+			fprintf( stderr, "Sending '%s' to '%s'.\n",
+				command, keithley2600->record->name );
+		}
+
+		mx_status = mx_rs232_putline( keithley2600->rs232_record,
+						command, NULL, 0 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Infer whether or not a response is expected. */
+
+		if ( ( response == NULL) || ( max_response_length == 0 ) ) {
+			response_expected = FALSE;
+		} else {
+			response_expected = TRUE;
+		}
+
+		if ( response_expected == FALSE ) {
+			return MX_SUCCESSFUL_RESULT;
+		}
+
+		mx_status = mx_rs232_getline_with_timeout(
+						keithley2600->rs232_record,
+						response, max_response_length,
+						NULL, 0, rs232->timeout );
+
+		if ( mx_status.code == MXE_SUCCESS ) {
+			if ( debug ) {
+				fprintf( stderr, "Received '%s' from '%s'.\n",
+					response, keithley2600->record->name );
+			}
+
+			break;		/* Exit the for() loop. */
+		} else
+		if ( mx_status.code == MXE_TIMED_OUT ) {
+			(void) mx_rs232_putline( keithley2600->rs232_record,
+						"\r\n", NULL, 0x1 );
+			mx_msleep(500);
+
+			(void) mx_rs232_getline_with_timeout(
+					keithley2600->rs232_record,
+					response, max_response_length,
+					NULL, 0x1, rs232->timeout );
+		} else {
+			return mx_status;
+		}
+
+		fprintf( stderr, "Retrying command '%s' for '%s': retry = %d\n",
+			command, keithley2600->record->name, i+1 );
 	}
 
-	mx_status = mx_rs232_putline( keithley2600->rs232_record,
-					command, NULL, 0 );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Infer whether or not a response is expected. */
-
-	if ( ( response == NULL) || ( max_response_length == 0 ) ) {
-		response_expected = FALSE;
-	} else {
-		response_expected = TRUE;
-	}
-
-	if ( response_expected == FALSE ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-
-	mx_status = mx_rs232_getline( keithley2600->rs232_record,
-				response, max_response_length, NULL, 0 );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	if ( debug ) {
-		fprintf( stderr, "Received '%s' from '%s'.\n",
-			response, keithley2600->record->name );
+	if ( i >= max_attempts ) {
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"Did not receive a response to the command '%s' sent "
+		"to '%s' after %d attempts.",
+			command, keithley2600->record->name, i );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
