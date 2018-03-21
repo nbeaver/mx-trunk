@@ -14,7 +14,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 1999-2016 Illinois Institute of Technology
+ * Copyright 1999-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -134,6 +134,20 @@ typedef struct {
 	mx_bool_type is_non_blocking;
 	void *receive_buffer;
 } MX_SOCKET;
+
+/* MX socket types. */
+
+#define MXT_SOCKET_CLIENT	0x1
+#define MXT_SOCKET_SERVER	0x2
+
+#define MXT_SOCKET_TCP		0x1000
+#define MXT_SOCKET_UNIX		0x2000
+
+#define MXT_SOCKET_TCP_CLIENT	( MXT_SOCKET_TCP | MXT_SOCKET_CLIENT )
+#define MXT_SOCKET_TCP_SERVER	( MXT_SOCKET_TCP | MXT_SOCKET_SERVER )
+
+#define MXT_SOCKET_UNIX_CLIENT	( MXT_SOCKET_UNIX | MXT_SOCKET_CLIENT )
+#define MXT_SOCKET_UNIX_SERVER	( MXT_SOCKET_UNIX | MXT_SOCKET_SERVER )
 
 /* Redefine some error codes for Win32. */
 
@@ -264,6 +278,8 @@ MX_API mx_status_type mx_unix_socket_open_as_server( MX_SOCKET **server_socket,
 
 MX_API mx_status_type mx_socket_close( MX_SOCKET *mx_socket );
 
+MX_API mx_status_type mx_socket_resynchronize( MX_SOCKET **mx_socket );
+
 MX_API mx_status_type mx_get_socket_name( MX_SOCKET *mx_socket,
 						char *buffer,
 						size_t buffer_size );
@@ -271,6 +287,14 @@ MX_API mx_status_type mx_get_socket_name( MX_SOCKET *mx_socket,
 MX_API mx_status_type mx_get_socket_name_by_fd( MX_SOCKET_FD fd,
 						char *buffer,
 						size_t buffer_size );
+
+MX_API mx_status_type mx_get_socket_information( MX_SOCKET *mx_socket,
+						long *mx_socket_type,
+						char *name,
+						size_t max_name_length,
+						long *port_number,
+						unsigned long *socket_flags,
+						mx_bool_type *is_non_blocking );
 
 MX_API int mx_socket_ioctl( MX_SOCKET *mx_socket,
 					int ioctl_type,

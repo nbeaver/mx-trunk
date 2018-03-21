@@ -272,7 +272,7 @@ mx_tcp_socket_open_as_client( MX_SOCKET **client_socket,
 		unsigned long socket_flags,
 		long buffer_size )
 {
-	static char fname[] = "mx_tcp_socket_open_as_client()";
+	static const char fname[] = "mx_tcp_socket_open_as_client()";
 
 	struct sockaddr_in destination_address;
 	unsigned long inet_address;
@@ -456,7 +456,7 @@ mx_tcp_socket_open_as_server( MX_SOCKET **server_socket,
 				unsigned long socket_flags,
 				long buffer_size )
 {
-	static char fname[] = "mx_tcp_socket_open_as_server()";
+	static const char fname[] = "mx_tcp_socket_open_as_server()";
 
 	struct sockaddr_in server_address;
 	int saved_errno, status, reuseaddr;
@@ -646,7 +646,7 @@ mx_unix_socket_open_as_client( MX_SOCKET **client_socket,
 				unsigned long socket_flags,
 				long buffer_size )
 {
-	static char fname[] = "mx_unix_socket_open_as_client()";
+	static const char fname[] = "mx_unix_socket_open_as_client()";
 
 	return mx_error( MXE_UNSUPPORTED, fname,
 	"Unix domain sockets are not supported on this system." );
@@ -658,7 +658,7 @@ mx_unix_socket_open_as_server( MX_SOCKET **server_socket,
 				unsigned long socket_flags,
 				long buffer_size )
 {
-	static char fname[] = "mx_unix_socket_open_as_server()";
+	static const char fname[] = "mx_unix_socket_open_as_server()";
 
 	return mx_error( MXE_UNSUPPORTED, fname,
 	"Unix domain sockets are not supported on this system." );
@@ -672,7 +672,7 @@ mx_unix_socket_open_as_client( MX_SOCKET **client_socket,
 				unsigned long socket_flags,
 				long buffer_size )
 {
-	static char fname[] = "mx_unix_socket_open_as_client()";
+	static const char fname[] = "mx_unix_socket_open_as_client()";
 
 	struct sockaddr_un destination_address;
 	void *sockaddr_ptr;
@@ -819,7 +819,7 @@ mx_unix_socket_open_as_server( MX_SOCKET **server_socket,
 				unsigned long socket_flags,
 				long buffer_size )
 {
-	static char fname[] = "mx_unix_socket_open_as_server()";
+	static const char fname[] = "mx_unix_socket_open_as_server()";
 
 	struct sockaddr_un server_address;
 	void *sockaddr_ptr;
@@ -1008,7 +1008,7 @@ mx_unix_socket_open_as_server( MX_SOCKET **server_socket,
 MX_EXPORT mx_status_type
 mx_socket_close( MX_SOCKET *mx_socket )
 {
-	static char fname[] = "mx_socket_close()";
+	static const char fname[] = "mx_socket_close()";
 
 	MX_SOCKET_FD socket_fd;
 	int status, saved_errno;
@@ -1163,6 +1163,42 @@ mx_socket_close( MX_SOCKET *mx_socket )
 }
 
 #undef mx_closesocket
+
+/*---------*/
+
+MX_EXPORT mx_status_type
+mx_socket_resynchronize( MX_SOCKET **mx_socket )
+{
+	static const char fname[] = "mx_socket_resynchronize()";
+
+	long socket_type, port_number;
+	char name[ MXU_FILENAME_LENGTH + 1 ];
+	unsigned long socket_flags;
+	mx_bool_type is_non_blocking;
+	mx_status_type mx_status;
+
+	mx_breakpoint();
+
+	if ( mx_socket == (MX_SOCKET **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SOCKET pointer passed was NULL." );
+	}
+
+	/* Save information about the existing socket. */
+
+	mx_status = mx_get_socket_information( *mx_socket, &socket_type,
+					name, sizeof(name), &port_number,
+					&socket_flags, &is_non_blocking );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Close the existing socket. */
+
+	mx_status = mx_socket_close( *mx_socket );
+
+	return MX_SUCCESSFUL_RESULT;
+}
 
 /*---------*/
 
@@ -1392,6 +1428,213 @@ mx_get_socket_name_by_fd( MX_SOCKET_FD socket_fd,
 			peer.socket_address.sa_family );
 
 		strlcat( buffer, temp_string, buffer_size );
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---------*/
+
+MX_EXPORT mx_status_type
+mx_get_socket_information( MX_SOCKET *mx_socket,
+				long *mx_socket_type,
+				char *name,
+				size_t max_name_length,
+				long *port_number,
+				unsigned long *socket_flags,
+				mx_bool_type *is_non_blocking )
+{
+	static const char fname[] = "mx_get_socket_information()";
+
+	union {
+		struct sockaddr socket_address;
+		struct sockaddr_in ip_address;
+#if HAVE_IPV6_SOCKETS
+		struct sockaddr_in6 ipv6_address;
+#endif
+#if HAVE_UNIX_DOMAIN_SOCKETS
+		struct sockaddr_un unix_address;
+#endif
+	} local;
+
+	union {
+		struct sockaddr socket_address;
+		struct sockaddr_in ip_address;
+#if HAVE_IPV6_SOCKETS
+		struct sockaddr_in6 ipv6_address;
+#endif
+#if HAVE_UNIX_DOMAIN_SOCKETS
+		struct sockaddr_un unix_address;
+#endif
+	} peer;
+
+	MX_SOCKET_FD socket_fd;
+	mx_socklen_t local_length, peer_length;
+	int os_status, saved_errno;
+	int local_socket_type;
+	void *local_socket_type_ptr;
+	int option_length;
+
+	if ( mx_socket == (MX_SOCKET *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SOCKET pointer passed was NULL." );
+	}
+
+	if ( mx_sockets_are_initialized == FALSE ) {
+		mx_status_type mx_status;
+
+		mx_status = mx_socket_initialize();
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_sockets_are_initialized = TRUE;
+
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"MX sockets were not initialized when this function "
+		"was called, so the MX_SOCKET pointer %p passed to us "
+		"could not possibly be valid.  However, MX sockets "
+		"are _now_ initialized.", mx_socket );
+	}
+
+
+	/*----*/
+
+	socket_fd = mx_socket->socket_fd;
+
+	local_length = sizeof(local);
+
+	os_status = getsockname( socket_fd,
+			(struct sockaddr *) &local,
+			&local_length );
+
+#if defined(OS_WIN32)
+	if ( os_status == SOCKET_ERROR ) {
+		int last_error_code = WSAGetLastError();
+
+		if ( last_error_code == WSAENOTSOCK ) {
+			return mx_error( (MXE_NOT_FOUND | MXE_QUIET), fname,
+			"%d is not a socket fd.", (int) socket_fd );
+		} else {
+			return mx_error( MXE_NETWORK_IO_ERROR, fname,
+			"getsockname() on %d failed.  "
+			"Winsock error code = %d, error message = '%s'.",
+				(int) socket_fd, last_error_code,
+				mx_winsock_strerror( last_error_code ) );
+		}
+	}
+#else
+	if ( os_status == (-1) ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"Could not get address of local socket "
+		"for socket %d.  Errno = %d, error message = '%s'",
+			socket_fd, saved_errno, strerror(saved_errno) );
+	}
+#endif
+
+	/*----*/
+
+	local_socket_type_ptr = &local_socket_type;
+
+	option_length = sizeof(local_socket_type);
+
+	os_status = getsockopt( socket_fd, SOL_SOCKET, SO_TYPE,
+				local_socket_type_ptr,
+				(mx_socklen_t *) &option_length );
+
+	if ( os_status == (-1) ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"Could not get local socket type for socket %d.  "
+		"Errno = %d, error message = '%s'",
+			(int) socket_fd, saved_errno, strerror(saved_errno) );
+	}
+
+	/*----*/
+
+	peer_length = sizeof(peer);
+
+	os_status = getpeername( socket_fd,
+			(struct sockaddr *) &peer,
+			&peer_length );
+
+	if ( os_status == (-1) ) {
+		saved_errno = errno;
+
+		switch( saved_errno ) {
+		case EBADF:
+		case ENOTCONN:
+			return mx_error( MXE_NETWORK_IO_ERROR, fname,
+				"Socket %d for MX_SOCKET %p is not "
+				"connected, so we cannot get information "
+				"for it.", socket_fd, mx_socket );
+			break;
+		default:
+			return mx_error( MXE_NETWORK_IO_ERROR, fname,
+			"Could not get address of remote socket peer "
+			"for socket %d.  "
+			"Errno = %d, error message = '%s'", (int) socket_fd,
+				saved_errno, strerror(saved_errno));
+			break;
+		}
+	}
+
+	/*----*/
+
+	switch( local.socket_address.sa_family ) {
+	case AF_INET:
+		if ( mx_socket_type != (long *) NULL ) {
+			*mx_socket_type = MXT_SOCKET_TCP_CLIENT;
+		}
+
+		if ( name != (char *) NULL ) {
+			strlcpy( name, inet_ntoa( peer.ip_address.sin_addr ),
+					max_name_length );
+		}
+
+		if ( port_number != (long *) NULL ) {
+			*port_number = ntohs( peer.ip_address.sin_port );
+		}
+		break;
+
+#if HAVE_IPV6_SOCKETS
+	case AF_INET6:
+		if ( name != (char *) NULL ) {
+			inet_ntop( AF_INET6, &(peer.ipv6_address.sin6_addr),
+				name, max_name_length );
+		}
+
+		if ( port_number != (long *) NULL ) {
+			*port_number = -1L;
+		}
+		break;
+#endif
+
+#if HAVE_UNIX_DOMAIN_SOCKETS
+	case AF_UNIX:
+		if ( mx_socket_type != (long *) NULL ) {
+			*mx_socket_type = MXT_SOCKET_UNIX_CLIENT;
+		}
+
+		if ( name != (char *) NULL ) {
+			strlcpy( name, peer.unix_address.sun_path,
+					max_name_length );
+		}
+
+		if ( port_number != (long *) NULL ) {
+			*port_number = -1L;
+		}
+		break;
+#endif
+
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+			"unrecognized address family %d",
+			peer.socket_address.sa_family );
 		break;
 	}
 
@@ -1679,7 +1922,7 @@ MX_EXPORT int
 mx_socket_check_error_status( void *value_to_check,
 				int type_of_check, char **error_string )
 {
-	static char fname[] = "mx_socket_check_error_status()";
+	static const char fname[] = "mx_socket_check_error_status()";
 
 	int saved_errno, int_value;
 
