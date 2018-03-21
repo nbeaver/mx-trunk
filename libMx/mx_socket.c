@@ -1195,9 +1195,27 @@ mx_socket_resynchronize( MX_SOCKET **mx_socket )
 
 	/* Close the existing socket. */
 
-	mx_status = mx_socket_close( *mx_socket );
+	(void) mx_socket_close( *mx_socket );
 
-	return MX_SUCCESSFUL_RESULT;
+	/* Open the new socket. */
+
+	switch( socket_type ) {
+	case MXT_SOCKET_TCP_CLIENT:
+		mx_status = mx_tcp_socket_open_as_client( mx_socket,
+				name, port_number, socket_flags, 0 );
+		break;
+	case MXT_SOCKET_UNIX_CLIENT:
+		mx_status = mx_unix_socket_open_as_client( mx_socket,
+				name, socket_flags, 0 );
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Resynchronizing sockets of type %ld is not supported.",
+			socket_type );
+		break;
+	}
+
+	return mx_status;
 }
 
 /*---------*/

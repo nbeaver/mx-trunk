@@ -333,16 +333,20 @@ mxi_tcp232_resynchronize( MX_RECORD *record )
 			record->name );
 	}
 
-	mx_status = mxi_tcp232_close( record );
+	if ( tcp232->tcp232_flags & MXF_TCP232_USE_MX_SOCKET_RESYNCHRONIZE ) {
+		mx_status = mx_socket_resynchronize( &(tcp232->socket) );
+	} else {
+		mx_status = mxi_tcp232_close( record );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-	if ( tcp232->resync_delay_milliseconds > 0 ) {
-		mx_msleep( tcp232->resync_delay_milliseconds );
+		if ( tcp232->resync_delay_milliseconds > 0 ) {
+			mx_msleep( tcp232->resync_delay_milliseconds );
+		}
+
+		mx_status = mxi_tcp232_open( record );
 	}
-
-	mx_status = mxi_tcp232_open( record );
 
 	return mx_status;
 }
