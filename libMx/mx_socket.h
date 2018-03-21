@@ -133,6 +133,7 @@ typedef struct {
 	unsigned long socket_flags;
 	mx_bool_type is_non_blocking;
 	void *receive_buffer;
+	long receive_buffer_size;
 } MX_SOCKET;
 
 /* MX socket types. */
@@ -289,13 +290,15 @@ MX_API mx_status_type mx_get_socket_name_by_fd( MX_SOCKET_FD fd,
 						size_t buffer_size );
 
 MX_API mx_status_type mx_get_socket_information( MX_SOCKET *mx_socket,
+						int *net_address_family,
+						int *net_socket_type,
 						long *mx_socket_type,
 						char *name,
 						size_t max_name_length,
 						long *port_number,
 						unsigned long *socket_flags,
-						mx_bool_type *is_non_blocking );
-
+						mx_bool_type *is_non_blocking,
+						long *receive_buffer_size );		
 MX_API int mx_socket_ioctl( MX_SOCKET *mx_socket,
 					int ioctl_type,
 					void *ioctl_value );

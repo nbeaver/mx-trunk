@@ -423,6 +423,9 @@ mx_tcp_socket_open_as_client( MX_SOCKET **client_socket,
 #endif
 	}
 
+	(*client_socket)->receive_buffer = NULL;
+	(*client_socket)->receive_buffer_size = 0;
+
 	if ( socket_flags & MXF_SOCKET_USE_MX_RECEIVE_BUFFER ) {
 		if ( buffer_size > 0 ) {
 			MX_CIRCULAR_BUFFER *circular_buffer;
@@ -440,7 +443,9 @@ mx_tcp_socket_open_as_client( MX_SOCKET **client_socket,
 #endif
 
 			(*client_socket)->receive_buffer = circular_buffer;
-		}		
+
+			(*client_socket)->receive_buffer_size = buffer_size;
+		}
 	}
 
 #if MX_SOCKET_DEBUG_OPEN
@@ -792,6 +797,9 @@ mx_unix_socket_open_as_client( MX_SOCKET **client_socket,
 				pathname, saved_errno, error_string );
 	}
 
+	(*client_socket)->receive_buffer = NULL;
+	(*client_socket)->receive_buffer_size = 0;
+
 	if ( socket_flags & MXF_SOCKET_USE_MX_RECEIVE_BUFFER ) {
 		if ( buffer_size > 0 ) {
 			MX_CIRCULAR_BUFFER *circular_buffer;
@@ -803,6 +811,8 @@ mx_unix_socket_open_as_client( MX_SOCKET **client_socket,
 				return mx_status;
 
 			(*client_socket)->receive_buffer = circular_buffer;
+
+			(*client_socket)->receive_buffer_size = buffer_size;
 		}		
 	}
 
@@ -1171,7 +1181,8 @@ mx_socket_resynchronize( MX_SOCKET **mx_socket )
 {
 	static const char fname[] = "mx_socket_resynchronize()";
 
-	long socket_type, port_number;
+	int net_address_family, net_socket_type;
+	long mx_socket_type, port_number, receive_buffer_size;
 	char name[ MXU_FILENAME_LENGTH + 1 ];
 	unsigned long socket_flags;
 	mx_bool_type is_non_blocking;
@@ -1186,9 +1197,13 @@ mx_socket_resynchronize( MX_SOCKET **mx_socket )
 
 	/* Save information about the existing socket. */
 
-	mx_status = mx_get_socket_information( *mx_socket, &socket_type,
+	mx_status = mx_get_socket_information( *mx_socket,
+					&net_address_family,
+					&net_socket_type,
+					&mx_socket_type,
 					name, sizeof(name), &port_number,
-					&socket_flags, &is_non_blocking );
+					&socket_flags, &is_non_blocking,
+					&receive_buffer_size );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1197,21 +1212,25 @@ mx_socket_resynchronize( MX_SOCKET **mx_socket )
 
 	(void) mx_socket_close( *mx_socket );
 
+	*mx_socket = NULL;
+
 	/* Open the new socket. */
 
-	switch( socket_type ) {
+	switch( mx_socket_type ) {
 	case MXT_SOCKET_TCP_CLIENT:
 		mx_status = mx_tcp_socket_open_as_client( mx_socket,
-				name, port_number, socket_flags, 0 );
+				name, port_number, socket_flags,
+				receive_buffer_size );
 		break;
 	case MXT_SOCKET_UNIX_CLIENT:
 		mx_status = mx_unix_socket_open_as_client( mx_socket,
-				name, socket_flags, 0 );
+				name, socket_flags,
+				receive_buffer_size );
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"Resynchronizing sockets of type %ld is not supported.",
-			socket_type );
+		"Resynchronizing MX sockets of type %ld is not supported.",
+			mx_socket_type );
 		break;
 	}
 
@@ -1456,12 +1475,15 @@ mx_get_socket_name_by_fd( MX_SOCKET_FD socket_fd,
 
 MX_EXPORT mx_status_type
 mx_get_socket_information( MX_SOCKET *mx_socket,
+				int *net_address_family,
+				int *net_socket_type,
 				long *mx_socket_type,
 				char *name,
 				size_t max_name_length,
 				long *port_number,
 				unsigned long *socket_flags,
-				mx_bool_type *is_non_blocking )
+				mx_bool_type *is_non_blocking,
+				long *receive_buffer_size )
 {
 	static const char fname[] = "mx_get_socket_information()";
 
@@ -1516,6 +1538,15 @@ mx_get_socket_information( MX_SOCKET *mx_socket,
 		"are _now_ initialized.", mx_socket );
 	}
 
+	if ( socket_flags != (unsigned long *) NULL ) {
+		*socket_flags = mx_socket->socket_flags;
+	}
+	if ( is_non_blocking != (mx_bool_type *) NULL ) {
+		*is_non_blocking = mx_socket->is_non_blocking;
+	}
+	if ( receive_buffer_size != (long *) NULL ) {
+		*receive_buffer_size = mx_socket->receive_buffer_size;
+	}
 
 	/*----*/
 
@@ -1553,7 +1584,11 @@ mx_get_socket_information( MX_SOCKET *mx_socket,
 	}
 #endif
 
-	/*----*/
+	if ( net_address_family != NULL ) {
+		*net_address_family = local.socket_address.sa_family;
+	}
+
+	/*----*/ 
 
 	local_socket_type_ptr = &local_socket_type;
 
@@ -1570,6 +1605,10 @@ mx_get_socket_information( MX_SOCKET *mx_socket,
 		"Could not get local socket type for socket %d.  "
 		"Errno = %d, error message = '%s'",
 			(int) socket_fd, saved_errno, strerror(saved_errno) );
+	}
+
+	if ( net_socket_type != NULL ) {
+		*net_socket_type = local_socket_type;
 	}
 
 	/*----*/

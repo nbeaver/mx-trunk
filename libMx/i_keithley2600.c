@@ -355,6 +355,10 @@ mxi_keithley2600_command( MX_KEITHLEY2600 *keithley2600,
 			break;		/* Exit the for() loop. */
 		} else
 		if ( mx_status.code == MXE_TIMED_OUT ) {
+#if 1
+			(void) mx_resynchronize_record(
+					keithley2600->rs232_record );
+#else
 			(void) mx_rs232_putline( keithley2600->rs232_record,
 						"\r\n", NULL, 0x1 );
 			mx_msleep(500);
@@ -363,6 +367,7 @@ mxi_keithley2600_command( MX_KEITHLEY2600 *keithley2600,
 					keithley2600->rs232_record,
 					response, max_response_length,
 					NULL, 0x1, rs232->timeout );
+#endif
 		} else {
 			return mx_status;
 		}
