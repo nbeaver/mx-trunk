@@ -25,6 +25,8 @@
 
 #define MXD_DALSA_GEV_CAMERA_USE_GEV_INITIALIZE_TRANSFER	FALSE
 
+#define MXD_DALSA_GEV_CAMERA_USE_CUSTOM_GEV_GET_NEXT_IMAGE	TRUE
+
 #include <stdio.h>
 
 #include "mx_util.h"
@@ -34,6 +36,7 @@
 #include "mx_thread.h"
 #include "mx_array.h"
 #include "mx_atomic.h"
+#include "mx_vm_alloc.h"
 #include "mx_image.h"
 #include "mx_video_input.h"
 #include "i_dalsa_gev.h"
@@ -366,6 +369,72 @@ mxd_dalsa_gev_camera_show_feature_list( MX_DALSA_GEV_CAMERA *dalsa_gev_camera,
 
 /*---*/
 
+#if MXD_DALSA_GEV_CAMERA_USE_CUSTOM_GEV_GET_NEXT_IMAGE
+
+extern "C" {
+	GEV_BUFFER_LIST *GevGetBufferListFromHandle( GEV_CAMERA_HANDLE handle );
+}
+
+static GEV_STATUS
+mx_gev_get_next_image( GEV_CAMERA_HANDLE handle,
+			GEV_BUFFER_OBJECT **image_object_ptr,
+			struct timeval *pTimeout )
+{
+	static const char fname[] = "mx_gev_get_next_image()";
+
+	GEV_STATUS gev_status = GEVLIB_ERROR_INVALID_HANDLE;
+
+	static mx_bool_type valid_address_range = FALSE;
+
+	unsigned long protection_flags;
+
+	if ( handle != NULL ) {
+	    gev_status = GEVLIB_ERROR_NULL_PTR;
+
+	    if ( image_object_ptr != NULL ) {
+
+		GEV_BUFFER_LIST *pBufList = GevGetBufferListFromHandle(handle);
+
+		if ( pBufList != NULL ) {
+
+		    if ( valid_address_range == FALSE ) {
+
+			protection_flags = ( R_OK | W_OK );
+
+			(void) mx_vm_get_protection(
+						pBufList->pFullBuffers, 1,
+						&valid_address_range,
+						&protection_flags );
+
+			MX_DEBUG(-2,
+			  ("%s: pBufList->pFullBuffers = %p, valid = %d",
+			  fname, pBufList->pFullBuffers, valid_address_range));
+		    }
+
+		    if ( valid_address_range ) {
+
+			*image_object_ptr = (GEV_BUFFER_OBJECT *)
+			    DQueuePendEx( pBufList->pFullBuffers, pTimeout );
+
+			if ( (*image_object_ptr) == NULL ) {
+			    gev_status = GEVLIB_ERROR_TIME_OUT;
+			} else {
+			    gev_status = GEVLIB_OK;
+			}
+		    } else {
+			gev_status = GEVLIB_ERROR_TIME_OUT;
+		    }
+		}
+	    }
+	}
+
+	return gev_status;
+}
+
+#endif /* MXD_DALSA_GEV_CAMERA_USE_CUSTOM_GEV_GET_NEXT_IMAGE */
+
+/*---*/
+
 static mx_status_type
 mxd_dalsa_gev_camera_image_wait_thread_fn( MX_THREAD *thread, void *args )
 {
@@ -424,16 +493,14 @@ mxd_dalsa_gev_camera_image_wait_thread_fn( MX_THREAD *thread, void *args )
 	while (TRUE) {
 		image_available = FALSE;
 
-#if 0
-		sleep_ms = 1000;		/* in milliseconds */
-
-		gev_status = GevWaitForNextImage(
-				dalsa_gev_camera->camera_handle,
-				&gev_buffer_object, sleep_ms );
-#else
 		wait_timeval.tv_sec = 1;
 		wait_timeval.tv_usec = 0;
 
+#if MXD_DALSA_GEV_CAMERA_USE_CUSTOM_GEV_GET_NEXT_IMAGE
+		gev_status = mx_gev_get_next_image(
+				dalsa_gev_camera->camera_handle,
+				&gev_buffer_object, &wait_timeval );
+#else
 		gev_status = GevGetNextImage(
 				dalsa_gev_camera->camera_handle,
 				&gev_buffer_object, &wait_timeval );

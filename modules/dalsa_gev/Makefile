@@ -15,7 +15,12 @@ include ../../libMx/Makehead.$(MX_ARCH)
 
 CFLAGS_MODULE = -I../../libMx -D__MX_LIBRARY__ $(DALSA_GEV_INCLUDES)
 
-DALSA_GEV_OBJS = dalsa_gev.$(OBJ) i_dalsa_gev.$(OBJ) d_dalsa_gev_camera.$(OBJ)
+# DALSA provided files
+#DALSA_GEV_OBJS += dynaqueue.o
+#DALSA_GEV_OBJS += gev_get_next_image.o
+
+DALSA_GEV_OBJS += dalsa_gev.$(OBJ) i_dalsa_gev.$(OBJ) d_dalsa_gev_camera.$(OBJ)
+
 
 #--------------------------------------------------------------------------
 
@@ -59,6 +64,14 @@ i_dalsa_gev.$(OBJ): i_dalsa_gev.cpp i_dalsa_gev.h
 d_dalsa_gev_camera.$(OBJ): d_dalsa_gev_camera.cpp \
 				d_dalsa_gev_camera.h i_dalsa_gev.h
 	$(GPP) -c $(CFLAGS) d_dalsa_gev_camera.cpp
+
+gev_get_next_image.$(OBJ): gev_get_next_image.cpp
+	$(GPP) -c $(CFLAGS) gev_get_next_image.cpp
+
+dynaqueue.$(OBJ): dynaqueue.c
+	$(GCC) -c $(CFLAGS) -DPOSIX_HOSTPC -DHOSTPC \
+		-DUSE_MONOTONIC_CLOCK -Dx86_64 -D_REENTRANT \
+		dynaqueue.c
 
 install: dalsa_gev.mxo
 	-mkdir $(MX_INSTALL_DIR)/lib/modules

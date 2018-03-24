@@ -10,7 +10,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2013-2016 Illinois Institute of Technology
+ * Copyright 2013-2016, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -159,7 +159,11 @@ mx_vm_get_protection( void *address,
 	}
 	if ( protection_flags == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"The protection_flags pointer passed was NULL." );
+			"The protection_flags pointer passed is NULL." );
+	}
+
+	if ( valid_address_range != NULL ) {
+		*valid_address_range = FALSE;
 	}
 
 	memset( &memory_info, 0, sizeof(memory_info) );
