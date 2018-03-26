@@ -14,7 +14,7 @@
  *
  */
 
-#define MXI_KEITHLEY2600_DEBUG		FALSE
+#define MXI_KEITHLEY2600_DEBUG		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,6 +24,7 @@
 #include "mx_driver.h"
 #include "mx_process.h"
 #include "mx_rs232.h"
+#include "mx_gpib.h"
 #include "i_keithley2600.h"
 
 MX_RECORD_FUNCTION_LIST mxi_keithley2600_record_function_list = {
@@ -96,6 +97,7 @@ mxi_keithley2600_open( MX_RECORD *record )
 	static const char fname[] = "mxi_keithley2600_open()";
 
 	MX_KEITHLEY2600 *keithley2600 = NULL;
+	MX_INTERFACE *port_interface = NULL;
 	unsigned long flags;
 	char response[80];
 	char format[80];
@@ -115,28 +117,40 @@ mxi_keithley2600_open( MX_RECORD *record )
 			record->name);
 	}
 
+	port_interface = &(keithley2600->port_interface);
+
 	flags = keithley2600->keithley2600_flags;
 
 	/* Connect to the device. */
 
-	keithley2600->rs232_record =
-		    mx_get_record( record, keithley2600->rs232_record_name );
+	switch( port_interface->record->mx_class ) {
+	case MXI_RS232:
+		mx_status = mx_rs232_discard_unread_input(
+			port_interface->record, MXI_KEITHLEY2600_DEBUG );
 
-	if ( keithley2600->rs232_record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NOT_FOUND, fname,
-		"The requested RS232 record '%s' was not found "
-		"in the MX database for record '%s'.",
-			keithley2600->rs232_record_name,
-			record->name );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+		break;
+	case MXI_GPIB:
+		mx_status = mx_gpib_open_device( port_interface->record,
+						port_interface->address );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	
+		mx_status = mx_gpib_selective_device_clear(
+			port_interface->record, port_interface->address );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+		break;
+	default:
+		return mx_error( MXE_TYPE_MISMATCH, fname,
+		"Interface '%s' for Keithley 2600 record '%s' "
+		"is not an RS-232 or GPIB record.",
+			port_interface->record->name, record->name );
+		break;
 	}
-
-	/* Discard any garbage left over by a previous session. */
-
-	mx_status = mx_rs232_discard_unread_input(
-			keithley2600->rs232_record, TRUE );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
 
 	/* Verify that the Keithley 2600 is responding to commands. */
 
@@ -161,10 +175,10 @@ mxi_keithley2600_open( MX_RECORD *record )
 
 	if ( num_items != 3 ) {
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
-		"The device expected for '%s' on serial connection '%s' "
+		"The device expected for '%s' on port interface '%s' "
 		"is not a Keithley 2600.  "
 		"Its response to an '*IDN?' command was '%s'.",
-		record->name, keithley2600->rs232_record->name, response );
+		record->name, port_interface->record->name, response );
 	}
 
 	/* Zap trailing comma (,) characters if present. */
@@ -284,8 +298,10 @@ mxi_keithley2600_command( MX_KEITHLEY2600 *keithley2600,
 {
 	static const char fname[] = "mxi_keithley2600_command()";
 
+	MX_INTERFACE *port_interface = NULL;
 	MX_RS232 *rs232 = NULL;
 	int i, max_attempts;
+	double timeout;
 	mx_bool_type debug, response_expected;
 	mx_status_type mx_status;
 
@@ -294,24 +310,29 @@ mxi_keithley2600_command( MX_KEITHLEY2600 *keithley2600,
 		"The MX_KEITHLEY2600 pointer passed was NULL." );
 	}
 
-	if ( keithley2600->rs232_record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"The rs232_record pointer for record '%s' is NULL.",
-			keithley2600->record->name );
-	}
-
-	rs232 = keithley2600->rs232_record->record_class_struct;
-
-	if ( rs232 == (MX_RS232 *) NULL )  {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"The MX_RS232 pointer for record '%s' is NULL.",
-			keithley2600->rs232_record->name );
-	}
+	port_interface = &(keithley2600->port_interface);
 
 	if ( keithley2600_flags & MXF_KEITHLEY2600_DEBUG_RS232 ) {
 		debug = TRUE;
 	} else {
 		debug = FALSE;
+	}
+
+	switch( port_interface->record->mx_class ) {
+	case MXI_RS232:
+		rs232 = (MX_RS232 *)
+			port_interface->record->record_class_struct;
+
+		timeout = rs232->timeout;
+		break;
+	case MXI_GPIB:
+		timeout = 1.0;
+		break;
+	default:
+		mx_status = mx_error( MXE_TYPE_MISMATCH, fname,
+		    "Interface record '%s' is not an RS-232 or GPIB record.",
+			port_interface->record->name );
+		break;
 	}
 
 	max_attempts = 5;
@@ -323,12 +344,29 @@ mxi_keithley2600_command( MX_KEITHLEY2600 *keithley2600,
 				command, keithley2600->record->name );
 		}
 
-		mx_status = mx_rs232_putline( keithley2600->rs232_record,
-						command, NULL, 0 );
+		switch( port_interface->record->mx_class ) {
+		case MXI_RS232:
+			mx_status = mx_rs232_putline( port_interface->record,
+							command, NULL, 0 );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+			break;
+		case MXI_GPIB:
+			mx_status = mx_gpib_putline( port_interface->record,
+							port_interface->address,
+							command, NULL, 0 );
+			break;
+		default:
+			mx_status = mx_error( MXE_TYPE_MISMATCH, fname,
+		    "Interface record '%s' is not an RS-232 or GPIB record.",
+				port_interface->record->name );
+			break;
+		}
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
-
+	
 		/* Infer whether or not a response is expected. */
 
 		if ( ( response == NULL) || ( max_response_length == 0 ) ) {
@@ -341,12 +379,29 @@ mxi_keithley2600_command( MX_KEITHLEY2600 *keithley2600,
 			return MX_SUCCESSFUL_RESULT;
 		}
 
-		mx_status = mx_rs232_getline_with_timeout(
-						keithley2600->rs232_record,
+		switch( port_interface->record->mx_class ) {
+		case MXI_RS232:
+			mx_status = mx_rs232_getline_with_timeout(
+						port_interface->record,
 						response, max_response_length,
 						NULL, 0, rs232->timeout );
+			break;
+		case MXI_GPIB:
+			mx_status = mx_gpib_getline(
+						port_interface->record,
+						port_interface->address,
+						response, max_response_length,
+						NULL, 0 );
+			break;
+		default:
+			mx_status = mx_error( MXE_TYPE_MISMATCH, fname,
+		    "Interface record '%s' is not an RS-232 or GPIB record.",
+				port_interface->record->name );
+			break;
+		}
 
 		if ( mx_status.code == MXE_SUCCESS ) {
+
 			if ( debug ) {
 				fprintf( stderr, "Received '%s' from '%s'.\n",
 					response, keithley2600->record->name );
@@ -355,19 +410,30 @@ mxi_keithley2600_command( MX_KEITHLEY2600 *keithley2600,
 			break;		/* Exit the for() loop. */
 		} else
 		if ( mx_status.code == MXE_TIMED_OUT ) {
+
+		    switch( port_interface->record->mx_class ) {
+		    case MXI_RS232:
 #if 1
 			(void) mx_resynchronize_record(
-					keithley2600->rs232_record );
+					port_interface->record );
 #else
-			(void) mx_rs232_putline( keithley2600->rs232_record,
+			(void) mx_rs232_putline( port_interface->record,
 						"\r\n", NULL, 0x1 );
 			mx_msleep(500);
 
 			(void) mx_rs232_getline_with_timeout(
-					keithley2600->rs232_record,
+					port_interface->record,
 					response, max_response_length,
 					NULL, 0x1, rs232->timeout );
 #endif
+			break;
+		    case MXI_GPIB:
+			break;
+		    default:
+			mx_status = mx_error( MXE_TYPE_MISMATCH, fname,
+		    "Interface record '%s' is not an RS-232 or GPIB record.",
+				port_interface->record->name );
+		    }
 		} else {
 			return mx_status;
 		}

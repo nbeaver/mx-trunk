@@ -37,21 +37,18 @@
 typedef struct {
 	MX_RECORD *record;
 
-	char rs232_record_name[MXU_RECORD_NAME_LENGTH+1];
+	MX_INTERFACE port_interface;
 	unsigned long keithley2600_flags;
 
-	MX_RECORD *rs232_record;
 	char model_name[MXU_KEITHLEY2600_MODEL_NAME_LENGTH+1];
 	char serial_number[MXU_KEITHLEY2600_SERIAL_NUMBER_LENGTH+1];
 	char firmware_version[MXU_KEITHLEY2600_FIRMWARE_VERSION_LENGTH+1];
 } MX_KEITHLEY2600;
 
 #define MXI_KEITHLEY2600_STANDARD_FIELDS \
-  {-1, -1, "rs232_record_name", MXFT_STRING, NULL, \
-	  			1, {MXU_RECORD_NAME_LENGTH}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_KEITHLEY2600, rs232_record_name), \
-	{sizeof(char)}, NULL, \
-		(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
+  {-1, -1, "port_interface", MXFT_INTERFACE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_KEITHLEY2600, port_interface), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
   \
   {-1, -1, "keithley2600_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_KEITHLEY2600, keithley2600_flags), \
