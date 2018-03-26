@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2009, 2011, 2013-2017 Illinois Institute of Technology
+ * Copyright 1999-2009, 2011, 2013-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1187,8 +1187,6 @@ mx_socket_resynchronize( MX_SOCKET **mx_socket )
 	unsigned long socket_flags;
 	mx_bool_type is_non_blocking;
 	mx_status_type mx_status;
-
-	mx_breakpoint();
 
 	if ( mx_socket == (MX_SOCKET **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
