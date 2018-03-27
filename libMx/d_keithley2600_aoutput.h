@@ -32,6 +32,8 @@ typedef struct {
 MX_API mx_status_type mxd_keithley2600_aoutput_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_keithley2600_aoutput_open( MX_RECORD *record );
+MX_API mx_status_type mxd_keithley2600_aoutput_special_processing_setup(
+							MX_RECORD *record );
 
 MX_API mx_status_type mxd_keithley2600_aoutput_read(MX_ANALOG_OUTPUT *aoutput);
 MX_API mx_status_type mxd_keithley2600_aoutput_write(MX_ANALOG_OUTPUT *aoutput);
@@ -43,6 +45,8 @@ extern MX_ANALOG_OUTPUT_FUNCTION_LIST
 extern long mxd_keithley2600_aoutput_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_keithley2600_aoutput_rfield_def_ptr;
 
+#define MXLV_KEITHLEY2600_AOUTPUT_SIGNAL_TYPE			82001
+
 #define MXD_KEITHLEY2600_AOUTPUT_STANDARD_FIELDS \
   {-1, -1, "controller_record", MXFT_RECORD, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
@@ -53,8 +57,8 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_keithley2600_aoutput_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_KEITHLEY2600_AOUTPUT,channel_name),\
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "signal_type", MXFT_STRING, NULL, \
-			1, {MXU_KEITHLEY2600_SIGNAL_TYPE_NAME_LENGTH}, \
+  {MXLV_KEITHLEY2600_AOUTPUT_SIGNAL_TYPE, -1, "signal_type", MXFT_STRING, \
+		NULL, 1, {MXU_KEITHLEY2600_SIGNAL_TYPE_NAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_KEITHLEY2600_AOUTPUT,signal_type),\
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
 

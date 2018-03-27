@@ -24,6 +24,7 @@
 
 #include "mx_util.h"
 #include "mx_driver.h"
+#include "mx_process.h"
 #include "mx_analog_output.h"
 #include "i_keithley.h"
 #include "i_keithley2600.h"
@@ -37,7 +38,11 @@ MX_RECORD_FUNCTION_LIST mxd_keithley2600_aoutput_record_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	mxd_keithley2600_aoutput_open
+	mxd_keithley2600_aoutput_open,
+	NULL,
+	NULL,
+	NULL,
+	mxd_keithley2600_aoutput_special_processing_setup
 };
 
 MX_ANALOG_OUTPUT_FUNCTION_LIST
@@ -62,6 +67,11 @@ long mxd_keithley2600_aoutput_num_record_fields
 
 MX_RECORD_FIELD_DEFAULTS *mxd_keithley2600_aoutput_rfield_def_ptr
 			= &mxd_keithley2600_aoutput_rf_defaults[0];
+
+/*----*/
+
+static mx_status_type
+mxd_keithley2600_aoutput_process_function( void *, void *, int );
 
 /* A private function for the use of the driver. */
 
@@ -422,6 +432,91 @@ mxd_keithley2600_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 	mx_status = mxi_keithley2600_command( keithley2600,
 				command, NULL, 0,
 				keithley2600->keithley2600_flags );
+
+	return mx_status;
+}
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxd_keithley2600_aoutput_special_processing_setup( MX_RECORD *record )
+{
+	static const char fname[] =
+		"mxd_keithley2600_aoutput_special_processing_setup()";
+
+	MX_RECORD_FIELD *record_field = NULL;
+	MX_RECORD_FIELD *record_field_array = NULL;
+	long i;
+
+	MX_DEBUG(-2,("%s invoked.", fname));
+
+	record_field_array = record->record_field_array;
+
+	for ( i = 0; i < record->num_record_fields; i++ ) {
+
+		record_field = &record_field_array[i];
+
+		switch( record_field->label_value )  {
+		case MXLV_KEITHLEY2600_AOUTPUT_SIGNAL_TYPE:
+			record_field->process_function
+				= mxd_keithley2600_aoutput_process_function;
+			break;
+		default:
+			break;
+		}
+	}
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+static mx_status_type
+mxd_keithley2600_aoutput_process_function( void *record_ptr,
+					void *record_field_ptr,
+					int operation )
+{
+	static const char fname[] =
+		"mxd_keithley2600_aoutput_special_processing_setup()";
+
+	MX_RECORD *record;
+	MX_RECORD_FIELD *record_field;
+	mx_status_type mx_status;
+
+	record = (MX_RECORD *) record_ptr;
+	record_field = (MX_RECORD_FIELD *) record_field_ptr;
+
+	mx_status = MX_SUCCESSFUL_RESULT;
+
+	switch( operation ) {
+	case MX_PROCESS_GET:
+		switch( record_field->label_value ) {
+		default:
+			MX_DEBUG( 1,
+			("%s: *** Unknown MX_PROCESS_GET label value = %ld",
+				fname, record_field->label_value ));
+			break;
+		}
+		break;
+	case MX_PROCESS_PUT:
+		switch( record_field->label_value ) {
+		case MXLV_KEITHLEY2600_AOUTPUT_SIGNAL_TYPE:
+			/* Re-executing the open() routine does
+			 * all that is needed.
+			 */
+			mx_status = mxd_keithley2600_aoutput_open( record );
+			break;
+		default:
+			MX_DEBUG( 1,
+			("%s: *** Unknown MX_PROCESS_PUT label value = %ld",
+				fname, record_field->label_value ));
+			break;
+		}
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Unknown operation code = %d", operation );
+		break;
+	}
 
 	return mx_status;
 }
