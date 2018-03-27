@@ -278,9 +278,15 @@ mxi_prologix_open( MX_RECORD *record )
 		strlcpy( command, "++eoi 0", sizeof(command) );
 	}
 
+#if 0
 	mx_status = mx_rs232_putline( prologix->rs232_record,
 					"++eoi 1",
 					NULL, MXI_PROLOGIX_DEBUG );
+#else
+	mx_status = mx_rs232_putline( prologix->rs232_record,
+					command,
+					NULL, MXI_PROLOGIX_DEBUG );
+#endif
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
