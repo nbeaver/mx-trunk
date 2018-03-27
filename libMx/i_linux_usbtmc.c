@@ -1,5 +1,5 @@
 /*
- * Name:    i_usbtmc.c
+ * Name:    i_linux_usbtmc.c
  *
  * Purpose: MX driver for treating a TCP socket connection as if
  *          it were an RS-232 device.
@@ -15,9 +15,9 @@
  *
  */
 
-#define MXI_USBTMC_DEBUG			FALSE
+#define MXI_LINUX_USBTMC_DEBUG			FALSE
 
-#define MXI_USBTMC_DEBUG_TIMING			FALSE
+#define MXI_LINUX_USBTMC_DEBUG_TIMING			FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,68 +35,68 @@
 #include "mx_rs232.h"
 #include "mx_socket.h"
 #include "mx_select.h"
-#include "i_usbtmc.h"
+#include "i_linux_usbtmc.h"
 
-#if MXI_USBTMC_DEBUG_TIMING
+#if MXI_LINUX_USBTMC_DEBUG_TIMING
 #  include "mx_hrt.h"
 #  include "mx_hrt_debug.h"
 #endif
 
-MX_RECORD_FUNCTION_LIST mxi_usbtmc_record_function_list = {
+MX_RECORD_FUNCTION_LIST mxi_linux_usbtmc_record_function_list = {
 	NULL,
-	mxi_usbtmc_create_record_structures,
-	mxi_usbtmc_finish_record_initialization,
+	mxi_linux_usbtmc_create_record_structures,
+	mxi_linux_usbtmc_finish_record_initialization,
 	NULL,
 	NULL,
-	mxi_usbtmc_open,
-	mxi_usbtmc_close,
+	mxi_linux_usbtmc_open,
+	mxi_linux_usbtmc_close,
 	NULL,
-	mxi_usbtmc_resynchronize
+	mxi_linux_usbtmc_resynchronize
 };
 
-MX_RS232_FUNCTION_LIST mxi_usbtmc_rs232_function_list = {
-	mxi_usbtmc_getchar,
-	mxi_usbtmc_putchar,
-	mxi_usbtmc_read,
-	mxi_usbtmc_write,
-	mxi_usbtmc_getline,
-	mxi_usbtmc_putline,
-	mxi_usbtmc_num_input_bytes_available,
-	mxi_usbtmc_discard_unread_input,
-	mxi_usbtmc_discard_unwritten_output,
+MX_RS232_FUNCTION_LIST mxi_linux_usbtmc_rs232_function_list = {
+	mxi_linux_usbtmc_getchar,
+	mxi_linux_usbtmc_putchar,
+	mxi_linux_usbtmc_read,
+	mxi_linux_usbtmc_write,
+	mxi_linux_usbtmc_getline,
+	mxi_linux_usbtmc_putline,
+	mxi_linux_usbtmc_num_input_bytes_available,
+	mxi_linux_usbtmc_discard_unread_input,
+	mxi_linux_usbtmc_discard_unwritten_output,
 	NULL,
 	NULL,
 	NULL,
 	NULL,
 	NULL,
-	mxi_usbtmc_wait_for_input_available,
+	mxi_linux_usbtmc_wait_for_input_available,
 	NULL,
 	NULL,
-	mxi_usbtmc_flush
+	mxi_linux_usbtmc_flush
 };
 
-MX_RECORD_FIELD_DEFAULTS mxi_usbtmc_record_field_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxi_linux_usbtmc_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_RS232_STANDARD_FIELDS,
-	MXI_USBTMC_STANDARD_FIELDS
+	MXI_LINUX_USBTMC_STANDARD_FIELDS
 };
 
-long mxi_usbtmc_num_record_fields
-		= sizeof( mxi_usbtmc_record_field_defaults )
-			/ sizeof( mxi_usbtmc_record_field_defaults[0] );
+long mxi_linux_usbtmc_num_record_fields
+		= sizeof( mxi_linux_usbtmc_record_field_defaults )
+			/ sizeof( mxi_linux_usbtmc_record_field_defaults[0] );
 
-MX_RECORD_FIELD_DEFAULTS *mxi_usbtmc_rfield_def_ptr
-			= &mxi_usbtmc_record_field_defaults[0];
+MX_RECORD_FIELD_DEFAULTS *mxi_linux_usbtmc_rfield_def_ptr
+			= &mxi_linux_usbtmc_record_field_defaults[0];
 
 /* ---- */
 
 MX_EXPORT mx_status_type
-mxi_usbtmc_create_record_structures( MX_RECORD *record )
+mxi_linux_usbtmc_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] = "mxi_usbtmc_create_record_structures()";
+	static const char fname[] = "mxi_linux_usbtmc_create_record_structures()";
 
 	MX_RS232 *rs232;
-	MX_USBTMC *usbtmc;
+	MX_LINUX_USBTMC *usbtmc;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -107,18 +107,18 @@ mxi_usbtmc_create_record_structures( MX_RECORD *record )
 		"Can't allocate memory for MX_RS232 structure." );
 	}
 
-	usbtmc = (MX_USBTMC *) malloc( sizeof(MX_USBTMC) );
+	usbtmc = (MX_LINUX_USBTMC *) malloc( sizeof(MX_LINUX_USBTMC) );
 
-	if ( usbtmc == (MX_USBTMC *) NULL ) {
+	if ( usbtmc == (MX_LINUX_USBTMC *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Can't allocate memory for MX_USBTMC structure." );
+		"Can't allocate memory for MX_LINUX_USBTMC structure." );
 	}
 
 	/* Now set up the necessary pointers. */
 
 	record->record_class_struct = rs232;
 	record->record_type_struct = usbtmc;
-	record->class_specific_function_list = &mxi_usbtmc_rs232_function_list;
+	record->class_specific_function_list = &mxi_linux_usbtmc_rs232_function_list;
 
 	rs232->record = record;
 	usbtmc->record = record;
@@ -130,9 +130,9 @@ mxi_usbtmc_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxi_usbtmc_finish_record_initialization( MX_RECORD *record )
+mxi_linux_usbtmc_finish_record_initialization( MX_RECORD *record )
 {
-	MX_USBTMC *usbtmc;
+	MX_LINUX_USBTMC *usbtmc;
 	mx_status_type mx_status;
 
 	/* Check to see if the RS-232 parameters are valid. */
@@ -144,7 +144,7 @@ mxi_usbtmc_finish_record_initialization( MX_RECORD *record )
 
 	/* Mark the USBTMC device as being closed. */
 
-	usbtmc = (MX_USBTMC *) record->record_type_struct;
+	usbtmc = (MX_LINUX_USBTMC *) record->record_type_struct;
 
 	usbtmc->socket = NULL;
 
@@ -154,9 +154,9 @@ mxi_usbtmc_finish_record_initialization( MX_RECORD *record )
 }
 
 static mx_status_type
-mxi_usbtmc_open_socket( MX_RS232 *rs232, MX_USBTMC *usbtmc )
+mxi_linux_usbtmc_open_socket( MX_RS232 *rs232, MX_LINUX_USBTMC *usbtmc )
 {
-	static const char fname[] = "mxi_usbtmc_open_socket()";
+	static const char fname[] = "mxi_linux_usbtmc_open_socket()";
 
 	unsigned long socket_flags;
 	mx_status_type mx_status;
@@ -166,12 +166,12 @@ mxi_usbtmc_open_socket( MX_RS232 *rs232, MX_USBTMC *usbtmc )
 		"The MX_RS232 pointer passed was NULL." );
 	}
 
-	if ( usbtmc == (MX_USBTMC *) NULL ) {
+	if ( usbtmc == (MX_LINUX_USBTMC *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"MX_USBTMC structure pointer passed is NULL." );
+		"MX_LINUX_USBTMC structure pointer passed is NULL." );
 	}
 
-#if MXI_USBTMC_DEBUG
+#if MXI_LINUX_USBTMC_DEBUG
 	MX_DEBUG(-2, ("%s invoked for host '%s', port %ld.",
 		fname, usbtmc->hostname, usbtmc->port_number));
 #endif
@@ -190,7 +190,7 @@ mxi_usbtmc_open_socket( MX_RS232 *rs232, MX_USBTMC *usbtmc )
 	 * the remote server closes the connection before we do?
 	 */
 
-	if ( usbtmc->usbtmc_flags & MXF_USBTMC_QUIET ) {
+	if ( usbtmc->usbtmc_flags & MXF_LINUX_USBTMC_QUIET ) {
 		socket_flags |= MXF_SOCKET_QUIET;
 	}
 
@@ -203,7 +203,7 @@ mxi_usbtmc_open_socket( MX_RS232 *rs232, MX_USBTMC *usbtmc )
 			return mx_status;
 	}
 
-	if ( usbtmc->usbtmc_flags & MXF_USBTMC_USE_MX_RECEIVE_BUFFER ) {
+	if ( usbtmc->usbtmc_flags & MXF_LINUX_USBTMC_USE_MX_RECEIVE_BUFFER ) {
 		socket_flags |= MXF_SOCKET_USE_MX_RECEIVE_BUFFER;
 		usbtmc->receive_buffer_size = 2500;
 	} else
@@ -230,9 +230,9 @@ mxi_usbtmc_open_socket( MX_RS232 *rs232, MX_USBTMC *usbtmc )
 }
 
 static mx_status_type
-mxi_usbtmc_close_socket( MX_RS232 *rs232, MX_USBTMC *usbtmc )
+mxi_linux_usbtmc_close_socket( MX_RS232 *rs232, MX_LINUX_USBTMC *usbtmc )
 {
-	static const char fname[] = "mxi_usbtmc_close_socket()";
+	static const char fname[] = "mxi_linux_usbtmc_close_socket()";
 
 	mx_status_type mx_status;
 
@@ -241,9 +241,9 @@ mxi_usbtmc_close_socket( MX_RS232 *rs232, MX_USBTMC *usbtmc )
 		"The MX_RS232 pointer passed was NULL." );
 	}
 
-	if ( usbtmc == (MX_USBTMC *) NULL ) {
+	if ( usbtmc == (MX_LINUX_USBTMC *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_USBTMC pointer passed was NULL." );
+		"The MX_LINUX_USBTMC pointer passed was NULL." );
 	}
 
 	/* If the usbtmc device is currently open, close it. */
@@ -259,12 +259,12 @@ mxi_usbtmc_close_socket( MX_RS232 *rs232, MX_USBTMC *usbtmc )
 }
 
 MX_EXPORT mx_status_type
-mxi_usbtmc_open( MX_RECORD *record )
+mxi_linux_usbtmc_open( MX_RECORD *record )
 {
-	static const char fname[] = "mxi_usbtmc_open()";
+	static const char fname[] = "mxi_linux_usbtmc_open()";
 
 	MX_RS232 *rs232;
-	MX_USBTMC *usbtmc;
+	MX_LINUX_USBTMC *usbtmc;
 	unsigned long flags;
 	mx_status_type mx_status;
 
@@ -275,14 +275,14 @@ mxi_usbtmc_open( MX_RECORD *record )
 
 	rs232 = (MX_RS232 *) record->record_class_struct;
 
-	usbtmc = (MX_USBTMC *) record->record_type_struct;
+	usbtmc = (MX_LINUX_USBTMC *) record->record_type_struct;
 
 	flags = usbtmc->usbtmc_flags;
 
 	/* If the socket is supposed to be open all the time, open it now. */
 
-	if ( ( flags & MXF_USBTMC_OPEN_DURING_TRANSACTION ) == 0 ) {
-		mx_status = mxi_usbtmc_open_socket( rs232, usbtmc );
+	if ( ( flags & MXF_LINUX_USBTMC_OPEN_DURING_TRANSACTION ) == 0 ) {
+		mx_status = mxi_linux_usbtmc_open_socket( rs232, usbtmc );
 
 		return mx_status;
 	}
@@ -290,12 +290,12 @@ mxi_usbtmc_open( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxi_usbtmc_close( MX_RECORD *record )
+mxi_linux_usbtmc_close( MX_RECORD *record )
 {
-	static const char fname[] = "mxi_usbtmc_close()";
+	static const char fname[] = "mxi_linux_usbtmc_close()";
 
 	MX_RS232 *rs232;
-	MX_USBTMC *usbtmc;
+	MX_LINUX_USBTMC *usbtmc;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -305,19 +305,19 @@ mxi_usbtmc_close( MX_RECORD *record )
 
 	rs232 = (MX_RS232 *) record->record_class_struct;
 
-	usbtmc = (MX_USBTMC *) record->record_type_struct;
+	usbtmc = (MX_LINUX_USBTMC *) record->record_type_struct;
 
-	mx_status = mxi_usbtmc_close_socket( rs232, usbtmc );
+	mx_status = mxi_linux_usbtmc_close_socket( rs232, usbtmc );
 
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mxi_usbtmc_resynchronize( MX_RECORD *record )
+mxi_linux_usbtmc_resynchronize( MX_RECORD *record )
 {
-	static const char fname[] = "mxi_usbtmc_resynchronize()";
+	static const char fname[] = "mxi_linux_usbtmc_resynchronize()";
 
-	MX_USBTMC *usbtmc;
+	MX_LINUX_USBTMC *usbtmc;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -325,18 +325,18 @@ mxi_usbtmc_resynchronize( MX_RECORD *record )
 		"The MX_RECORD pointer passed was NULL." );
 	}
 
-	usbtmc = (MX_USBTMC *) record->record_type_struct;
+	usbtmc = (MX_LINUX_USBTMC *) record->record_type_struct;
 
-	if ( usbtmc == (MX_USBTMC *) NULL ) {
+	if ( usbtmc == (MX_LINUX_USBTMC *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_USBTMC pointer for record '%s' is NULL.",
+		"The MX_LINUX_USBTMC pointer for record '%s' is NULL.",
 			record->name );
 	}
 
-	if ( usbtmc->usbtmc_flags & MXF_USBTMC_USE_MX_SOCKET_RESYNCHRONIZE ) {
+	if ( usbtmc->usbtmc_flags & MXF_LINUX_USBTMC_USE_MX_SOCKET_RESYNCHRONIZE ) {
 		mx_status = mx_socket_resynchronize( &(usbtmc->socket) );
 	} else {
-		mx_status = mxi_usbtmc_close( record );
+		mx_status = mxi_linux_usbtmc_close( record );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -345,7 +345,7 @@ mxi_usbtmc_resynchronize( MX_RECORD *record )
 			mx_msleep( usbtmc->resync_delay_milliseconds );
 		}
 
-		mx_status = mxi_usbtmc_open( record );
+		mx_status = mxi_linux_usbtmc_open( record );
 	}
 
 	return mx_status;
@@ -354,7 +354,7 @@ mxi_usbtmc_resynchronize( MX_RECORD *record )
 /*----*/
 
 static mx_status_type
-mxi_usbtmc_open_socket_if_necessary( MX_RS232 *rs232, MX_USBTMC *usbtmc )
+mxi_linux_usbtmc_open_socket_if_necessary( MX_RS232 *rs232, MX_LINUX_USBTMC *usbtmc )
 {
 	mx_bool_type open_socket;
 	unsigned long flags;
@@ -364,21 +364,21 @@ mxi_usbtmc_open_socket_if_necessary( MX_RS232 *rs232, MX_USBTMC *usbtmc )
 
 	open_socket = FALSE;
 
-	if ( flags & MXF_USBTMC_OPEN_DURING_TRANSACTION ) {
+	if ( flags & MXF_LINUX_USBTMC_OPEN_DURING_TRANSACTION ) {
 		open_socket = TRUE;
 	} else
-	if ( flags & MXF_USBTMC_AUTOMATIC_REOPEN ) {
+	if ( flags & MXF_LINUX_USBTMC_AUTOMATIC_REOPEN ) {
 		if ( mx_socket_is_open( usbtmc->socket ) == FALSE ) {
 			open_socket = TRUE;
 		}
 	}
 
-#if MXI_USBTMC_DEBUG
+#if MXI_LINUX_USBTMC_DEBUG
 	MX_DEBUG(-2,("open_socket = %d", (int) open_socket));
 #endif
 
 	if ( open_socket ) {
-		mx_status = mxi_usbtmc_open_socket( rs232, usbtmc );
+		mx_status = mxi_linux_usbtmc_open_socket( rs232, usbtmc );
 	} else {
 		mx_status = MX_SUCCESSFUL_RESULT;
 	}
@@ -389,11 +389,11 @@ mxi_usbtmc_open_socket_if_necessary( MX_RS232 *rs232, MX_USBTMC *usbtmc )
 /*----*/
 
 MX_EXPORT mx_status_type
-mxi_usbtmc_getchar( MX_RS232 *rs232, char *c )
+mxi_linux_usbtmc_getchar( MX_RS232 *rs232, char *c )
 {
-	static const char fname[] = "mxi_usbtmc_getchar()";
+	static const char fname[] = "mxi_linux_usbtmc_getchar()";
 
-	MX_USBTMC *usbtmc;
+	MX_LINUX_USBTMC *usbtmc;
 	struct timeval timeout;
 	int num_fds, saved_errno;
 	char *error_string;
@@ -408,13 +408,13 @@ mxi_usbtmc_getchar( MX_RS232 *rs232, char *c )
 	long read_mask;
 #endif
 
-#if MXI_USBTMC_DEBUG
-	MX_DEBUG(-2, ("mxi_usbtmc_getchar() invoked."));
+#if MXI_LINUX_USBTMC_DEBUG
+	MX_DEBUG(-2, ("mxi_linux_usbtmc_getchar() invoked."));
 #endif
 
-	usbtmc = (MX_USBTMC*) (rs232->record->record_type_struct);
+	usbtmc = (MX_LINUX_USBTMC*) (rs232->record->record_type_struct);
 
-	mx_status = mxi_usbtmc_open_socket_if_necessary( rs232, usbtmc );
+	mx_status = mxi_linux_usbtmc_open_socket_if_necessary( rs232, usbtmc );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -459,7 +459,7 @@ mxi_usbtmc_getchar( MX_RS232 *rs232, char *c )
 			rs232->record->name, saved_errno, error_string );
 	}
 
-	/* mxi_usbtmc_getchar() is often used to test whether there is
+	/* mxi_linux_usbtmc_getchar() is often used to test whether there is
 	 * input ready on the TTY port.  Normally, it is not desirable
 	 * to broadcast a message to the world when this fails, so we
 	 * add the MXE_QUIET flag to the error code.
@@ -496,8 +496,8 @@ mxi_usbtmc_getchar( MX_RS232 *rs232, char *c )
 
 	*c = (char) c_temp;
 
-#if MXI_USBTMC_DEBUG
-	MX_DEBUG(-2, ("mxi_usbtmc_getchar(): num_chars = %d, c = 0x%x, '%c'",
+#if MXI_LINUX_USBTMC_DEBUG
+	MX_DEBUG(-2, ("mxi_linux_usbtmc_getchar(): num_chars = %d, c = 0x%x, '%c'",
 		num_chars, *c, *c));
 #endif
 
@@ -511,22 +511,22 @@ mxi_usbtmc_getchar( MX_RS232 *rs232, char *c )
 }
 
 MX_EXPORT mx_status_type
-mxi_usbtmc_putchar( MX_RS232 *rs232, char c )
+mxi_linux_usbtmc_putchar( MX_RS232 *rs232, char c )
 {
-	static const char fname[] = "mxi_usbtmc_putchar()";
+	static const char fname[] = "mxi_linux_usbtmc_putchar()";
 
-	MX_USBTMC *usbtmc;
+	MX_LINUX_USBTMC *usbtmc;
 	mx_status_type mx_status;
 
-#if MXI_USBTMC_DEBUG
-	MX_DEBUG(-2, ("mxi_usbtmc_putchar() invoked.  c = 0x%x, '%c'", c, c));
+#if MXI_LINUX_USBTMC_DEBUG
+	MX_DEBUG(-2, ("mxi_linux_usbtmc_putchar() invoked.  c = 0x%x, '%c'", c, c));
 #endif
 
-	usbtmc = (MX_USBTMC*) rs232->record->record_type_struct;
+	usbtmc = (MX_LINUX_USBTMC*) rs232->record->record_type_struct;
 
 	/* If needed, open the connection to the remote host. */
 
-	mx_status = mxi_usbtmc_open_socket_if_necessary( rs232, usbtmc );
+	mx_status = mxi_linux_usbtmc_open_socket_if_necessary( rs232, usbtmc );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -548,15 +548,15 @@ mxi_usbtmc_putchar( MX_RS232 *rs232, char c )
 }
 
 MX_EXPORT mx_status_type
-mxi_usbtmc_read( MX_RS232 *rs232,
+mxi_linux_usbtmc_read( MX_RS232 *rs232,
 			char *buffer,
 			size_t max_bytes_to_read,
 			size_t *bytes_read )
 {
-	MX_USBTMC *usbtmc;
+	MX_LINUX_USBTMC *usbtmc;
 	mx_status_type mx_status;
 
-	usbtmc = (MX_USBTMC*) rs232->record->record_type_struct;
+	usbtmc = (MX_LINUX_USBTMC*) rs232->record->record_type_struct;
 
 	mx_status = mx_socket_receive( usbtmc->socket,
 					buffer, max_bytes_to_read,
@@ -570,19 +570,19 @@ mxi_usbtmc_read( MX_RS232 *rs232,
 }
 
 MX_EXPORT mx_status_type
-mxi_usbtmc_write( MX_RS232 *rs232,
+mxi_linux_usbtmc_write( MX_RS232 *rs232,
 			char *buffer,
 			size_t max_bytes_to_write,
 			size_t *bytes_written )
 {
-	MX_USBTMC *usbtmc;
+	MX_LINUX_USBTMC *usbtmc;
 	mx_status_type mx_status;
 
-	usbtmc = (MX_USBTMC*) rs232->record->record_type_struct;
+	usbtmc = (MX_LINUX_USBTMC*) rs232->record->record_type_struct;
 
 	/* If needed, open the connection to the remote host. */
 
-	mx_status = mxi_usbtmc_open_socket_if_necessary( rs232, usbtmc );
+	mx_status = mxi_linux_usbtmc_open_socket_if_necessary( rs232, usbtmc );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -600,19 +600,19 @@ mxi_usbtmc_write( MX_RS232 *rs232,
 }
 
 MX_EXPORT mx_status_type
-mxi_usbtmc_getline( MX_RS232 *rs232,
+mxi_linux_usbtmc_getline( MX_RS232 *rs232,
 			char *buffer,
 			size_t max_bytes_to_read,
 			size_t *bytes_read )
 {
-#if MXI_USBTMC_DEBUG
-	static const char fname[] = "mxi_usbtmc_getline()";
+#if MXI_LINUX_USBTMC_DEBUG
+	static const char fname[] = "mxi_linux_usbtmc_getline()";
 #endif
 
-	MX_USBTMC *usbtmc;
+	MX_LINUX_USBTMC *usbtmc;
 	mx_status_type mx_status;
 
-	usbtmc = (MX_USBTMC*) rs232->record->record_type_struct;
+	usbtmc = (MX_LINUX_USBTMC*) rs232->record->record_type_struct;
 
 	mx_status = mx_socket_getline( usbtmc->socket,
 					buffer, max_bytes_to_read,
@@ -622,7 +622,7 @@ mxi_usbtmc_getline( MX_RS232 *rs232,
 		*bytes_read = strlen( buffer );
 	}
 
-#if MXI_USBTMC_DEBUG
+#if MXI_LINUX_USBTMC_DEBUG
 	MX_DEBUG(-2,("%s buffer read = '%s'", fname, buffer));
 #endif
 
@@ -630,31 +630,31 @@ mxi_usbtmc_getline( MX_RS232 *rs232,
 }
 
 MX_EXPORT mx_status_type
-mxi_usbtmc_putline( MX_RS232 *rs232,
+mxi_linux_usbtmc_putline( MX_RS232 *rs232,
 			char *buffer,
 			size_t *bytes_written )
 {
-#if MXI_USBTMC_DEBUG
-	static const char fname[] = "mxi_usbtmc_putline()";
+#if MXI_LINUX_USBTMC_DEBUG
+	static const char fname[] = "mxi_linux_usbtmc_putline()";
 #endif
 
-	MX_USBTMC *usbtmc;
+	MX_LINUX_USBTMC *usbtmc;
 	mx_status_type mx_status;
 
-#if MXI_USBTMC_DEBUG
+#if MXI_LINUX_USBTMC_DEBUG
 	MX_DEBUG(-2, ("%s invoked, buffer = '%s'", fname, buffer));
 #endif
 
-	usbtmc = (MX_USBTMC*) rs232->record->record_type_struct;
+	usbtmc = (MX_LINUX_USBTMC*) rs232->record->record_type_struct;
 
 	/* If needed, open the connection to the remote host. */
 
-	mx_status = mxi_usbtmc_open_socket_if_necessary( rs232, usbtmc );
+	mx_status = mxi_linux_usbtmc_open_socket_if_necessary( rs232, usbtmc );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXI_USBTMC_DEBUG
+#if MXI_LINUX_USBTMC_DEBUG
 	MX_DEBUG(-2,("%s: transmitting the buffer '%s'.", fname, buffer));
 #endif
 
@@ -672,23 +672,23 @@ mxi_usbtmc_putline( MX_RS232 *rs232,
 }
 
 MX_EXPORT mx_status_type
-mxi_usbtmc_num_input_bytes_available( MX_RS232 *rs232 )
+mxi_linux_usbtmc_num_input_bytes_available( MX_RS232 *rs232 )
 {
-	static const char fname[] = "mxi_usbtmc_num_input_bytes_available()";
+	static const char fname[] = "mxi_linux_usbtmc_num_input_bytes_available()";
 
-	MX_USBTMC *usbtmc;
+	MX_LINUX_USBTMC *usbtmc;
 	long num_socket_bytes_available;
 	mx_status_type mx_status;
 
-	usbtmc = (MX_USBTMC *) (rs232->record->record_type_struct);
+	usbtmc = (MX_LINUX_USBTMC *) (rs232->record->record_type_struct);
 
-	if ( usbtmc == (MX_USBTMC *) NULL ) {
+	if ( usbtmc == (MX_LINUX_USBTMC *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"MX_USBTMC structure for USBTMC port '%s' is NULL.",
+		"MX_LINUX_USBTMC structure for USBTMC port '%s' is NULL.",
 			rs232->record->name);
 	}
 
-	mx_status = mxi_usbtmc_open_socket_if_necessary( rs232, usbtmc );
+	mx_status = mxi_linux_usbtmc_open_socket_if_necessary( rs232, usbtmc );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -705,22 +705,22 @@ mxi_usbtmc_num_input_bytes_available( MX_RS232 *rs232 )
 }
 
 MX_EXPORT mx_status_type
-mxi_usbtmc_discard_unread_input( MX_RS232 *rs232 )
+mxi_linux_usbtmc_discard_unread_input( MX_RS232 *rs232 )
 {
-	static const char fname[] = "mxi_usbtmc_discard_unread_input()";
+	static const char fname[] = "mxi_linux_usbtmc_discard_unread_input()";
 
-	MX_USBTMC *usbtmc;
+	MX_LINUX_USBTMC *usbtmc;
 	mx_status_type mx_status;
 
-	usbtmc = (MX_USBTMC *) (rs232->record->record_type_struct);
+	usbtmc = (MX_LINUX_USBTMC *) (rs232->record->record_type_struct);
 
-	if ( usbtmc == (MX_USBTMC *) NULL ) {
+	if ( usbtmc == (MX_LINUX_USBTMC *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"MX_USBTMC structure for USBTMC port '%s' is NULL.",
+		"MX_LINUX_USBTMC structure for USBTMC port '%s' is NULL.",
 			rs232->record->name);
 	}
 
-	mx_status = mxi_usbtmc_open_socket_if_necessary( rs232, usbtmc );
+	mx_status = mxi_linux_usbtmc_open_socket_if_necessary( rs232, usbtmc );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -731,9 +731,9 @@ mxi_usbtmc_discard_unread_input( MX_RS232 *rs232 )
 }
 
 MX_EXPORT mx_status_type
-mxi_usbtmc_discard_unwritten_output( MX_RS232 *rs232 )
+mxi_linux_usbtmc_discard_unwritten_output( MX_RS232 *rs232 )
 {
-	static const char fname[] = "mxi_usbtmc_discard_unwritten_output()";
+	static const char fname[] = "mxi_linux_usbtmc_discard_unwritten_output()";
 
 	/* This is not generally possible for a USBTMC device. */
 
@@ -742,12 +742,12 @@ mxi_usbtmc_discard_unwritten_output( MX_RS232 *rs232 )
 }
 
 MX_EXPORT mx_status_type
-mxi_usbtmc_wait_for_input_available( MX_RS232 *rs232,
+mxi_linux_usbtmc_wait_for_input_available( MX_RS232 *rs232,
 				double wait_time_in_seconds )
 {
-	static const char fname[] = "mxi_usbtmc_wait_for_input_available()";
+	static const char fname[] = "mxi_linux_usbtmc_wait_for_input_available()";
 
-	MX_USBTMC *usbtmc;
+	MX_LINUX_USBTMC *usbtmc;
 	mx_status_type mx_status;
 
 	if ( rs232 == (MX_RS232 *) NULL ) {
@@ -755,7 +755,7 @@ mxi_usbtmc_wait_for_input_available( MX_RS232 *rs232,
 		"The MX_RS232 pointer passed was NULL." );
 	}
 
-	usbtmc = (MX_USBTMC *) rs232->record->record_type_struct;
+	usbtmc = (MX_LINUX_USBTMC *) rs232->record->record_type_struct;
 
 	if ( usbtmc->socket == (MX_SOCKET *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -769,7 +769,7 @@ mxi_usbtmc_wait_for_input_available( MX_RS232 *rs232,
 }
 
 MX_EXPORT mx_status_type
-mxi_usbtmc_flush( MX_RS232 *rs232 )
+mxi_linux_usbtmc_flush( MX_RS232 *rs232 )
 {
 	/* There is no general way to flush bytes to the socket destination,
 	 * so we just return a success status without actually doing anything.
