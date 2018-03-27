@@ -410,6 +410,16 @@ mxi_prologix_open( MX_RECORD *record )
 	}
 #endif
 
+	/* If requested, send a GPIB Interface Clear message to make all
+	 * of the GPIB devices listen to the Prologix controller.
+	 */
+
+	if ( prologix->prologix_flags & MXF_PROLOGIX_ASSERT_INTERFACE_CLEAR ) {
+
+		mx_status = mx_rs232_putline( prologix->rs232_record,
+					"++ifc", NULL, MXI_PROLOGIX_DEBUG );
+	}
+
 	return mx_status;
 }
 

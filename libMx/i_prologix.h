@@ -20,12 +20,13 @@
 
 /* Values for the 'prologix_flags' field. */
 
-#define MXF_PROLOGIX_FOOBAR		0x1
+#define MXF_PROLOGIX_ASSERT_INTERFACE_CLEAR	0x1
 
 typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *rs232_record;
+	unsigned long prologix_flags;
 
 	int current_address;
 
@@ -76,7 +77,11 @@ extern MX_RECORD_FIELD_DEFAULTS *mxi_prologix_rfield_def_ptr;
 #define MXI_PROLOGIX_STANDARD_FIELDS \
   {-1, -1, "rs232_record", MXFT_RECORD, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PROLOGIX, rs232_record), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "prologix_flags", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PROLOGIX, prologix_flags), \
+	{0}, NULL, MXFF_IN_DESCRIPTION}
 
 #endif /* __I_PROLOGIX_H__ */
 
