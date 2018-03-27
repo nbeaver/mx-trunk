@@ -108,15 +108,15 @@
 #include "i_ks3344.h"
 #include "i_wago750_serial.h"
 
-#ifdef OS_WIN32
+#if defined( OS_WIN32 )
 #include "i_win32_com.h"
 #endif
 
-#ifdef OS_VMS
+#if defined( OS_VMS )
 #include "i_vms_terminal.h"
 #endif
 
-#ifdef OS_VXWORKS
+#if defined( OS_VXWORKS )
 #include "i_vxworks_rs232.h"
 #endif
 
@@ -135,6 +135,10 @@
 #include "i_k500serial.h"
 #include "i_micro488ex.h"
 #include "i_prologix.h"
+
+#if defined( OS_LINUX )
+#include "i_linux_usbtmc.h"
+#endif
 
 #include "i_soft_camac.h"
 #include "i_dsp6001.h"
@@ -676,6 +680,8 @@ MX_DRIVER mx_type_table[] = {
 				&mxi_vxworks_rs232_rfield_def_ptr},
 #endif /* OS_VXWORKS */
 
+#if ( defined(OS_LINUX) && (MX_GLIBC_VERSION >= 0L) )
+
 {"camera_link_rs232", MXI_232_CAMERA_LINK, MXI_RS232,    MXR_INTERFACE,
 				&mxi_camera_link_rs232_record_function_list,
 				NULL,
@@ -731,6 +737,15 @@ MX_DRIVER mx_type_table[] = {
 				&mxi_prologix_gpib_function_list,
 				&mxi_prologix_num_record_fields,
 				&mxi_prologix_rfield_def_ptr},
+
+{"linux_usbtmc",   MXI_GPIB_USBTMC,     MXI_GPIB,          MXR_INTERFACE,
+				&mxi_linux_usbtmc_record_function_list,
+				NULL,
+				&mxi_linux_usbtmc_gpib_function_list,
+				&mxi_linux_usbtmc_num_record_fields,
+				&mxi_linux_usbtmc_rfield_def_ptr},
+
+#endif /* OS_LINUX */
 
 {"soft_camac",     MXI_CAM_SOFTWARE,  MXI_CAMAC,          MXR_INTERFACE,
 				&mxi_scamac_record_function_list,
@@ -1132,7 +1147,7 @@ MX_DRIVER mx_type_table[] = {
 
 #endif /* OS_LINUX */
 
-#ifdef OS_LINUX
+#if defined( OS_LINUX )
 
 #if defined(__i386__) && defined(__GNUC__)
 

@@ -1,15 +1,14 @@
 /*
  * Name:    i_linux_usbtmc.h
  *
- * Purpose: Header for MX driver for treating a TCP socket connection
- *          as if it were an RS-232 device.
+ * Purpose: Header for a Linux MX GPIB driver for USBTMC devices controlled
+ *          via /dev/usbtmc0 and friends.
  *
  * Author:  William Lavender
  *
- *--------------------------------------------------------------------------
+ *------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2006, 2010, 2013, 2015-2016, 2018
- *    Illinois Institute of Technology
+ * Copyright 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -19,90 +18,67 @@
 #ifndef __I_LINUX_USBTMC_H__
 #define __I_LINUX_USBTMC_H__
 
-#include "mx_record.h"
+/* Values for the 'linux_usbtmc_flags' field. */
 
-/* Define all of the interface functions. */
-
-MX_API mx_status_type mxi_linux_usbtmc_create_record_structures( MX_RECORD *record );
-MX_API mx_status_type mxi_linux_usbtmc_finish_record_initialization(
-							MX_RECORD *record );
-MX_API mx_status_type mxi_linux_usbtmc_open( MX_RECORD *record );
-MX_API mx_status_type mxi_linux_usbtmc_close( MX_RECORD *record );
-MX_API mx_status_type mxi_linux_usbtmc_resynchronize( MX_RECORD *record );
-
-MX_API mx_status_type mxi_linux_usbtmc_getchar( MX_RS232 *rs232, char *c );
-MX_API mx_status_type mxi_linux_usbtmc_putchar( MX_RS232 *rs232, char c );
-MX_API mx_status_type mxi_linux_usbtmc_read( MX_RS232 *rs232,
-					char *buffer,
-					size_t max_bytes_to_read,
-					size_t *bytes_read );
-MX_API mx_status_type mxi_linux_usbtmc_write( MX_RS232 *rs232,
-					char *buffer,
-					size_t max_bytes_to_write,
-					size_t *bytes_written );
-MX_API mx_status_type mxi_linux_usbtmc_getline( MX_RS232 *rs232,
-					char *buffer,
-					size_t max_bytes_to_read,
-					size_t *bytes_read );
-MX_API mx_status_type mxi_linux_usbtmc_putline( MX_RS232 *rs232,
-					char *buffer,
-					size_t *bytes_written );
-MX_API mx_status_type mxi_linux_usbtmc_num_input_bytes_available( MX_RS232 *rs232 );
-MX_API mx_status_type mxi_linux_usbtmc_discard_unread_input( MX_RS232 *rs232 );
-MX_API mx_status_type mxi_linux_usbtmc_discard_unwritten_output( MX_RS232 *rs232 );
-MX_API mx_status_type mxi_linux_usbtmc_wait_for_input_available( MX_RS232 *rs232,
-						double wait_timeout_in_seconds);
-MX_API mx_status_type mxi_linux_usbtmc_flush( MX_RS232 *rs232 );
-
-/* Values for the 'usbtmc_flags' field. */
-
-#define MXF_LINUX_USBTMC_OPEN_DURING_TRANSACTION	0x1
-#define MXF_LINUX_USBTMC_QUIET			0x2
-#define MXF_LINUX_USBTMC_USE_MX_RECEIVE_BUFFER	0x4
-#define MXF_LINUX_USBTMC_AUTOMATIC_REOPEN		0x8
-#define MXF_LINUX_USBTMC_USE_MX_SOCKET_RESYNCHRONIZE	0x10
-
-/* Define the data structures used by this type of interface. */
+#define MXF_LINUX_USBTMC_ASSERT_INTERFACE_CLEAR	0x1
 
 typedef struct {
 	MX_RECORD *record;
 
-	MX_SOCKET *socket;
-	char hostname[MXU_HOSTNAME_LENGTH + 1];
-	long port_number;
-	unsigned long usbtmc_flags;
+	char filename[MXU_FILENAME_LENGTH+1];
+	unsigned long linux_usbtmc_flags;
 
-	long receive_buffer_size;
-
-	unsigned long resync_delay_milliseconds;
+	int usbtmc_fd;
 } MX_LINUX_USBTMC;
 
+/* Define all of the interface functions. */
+
+MX_API mx_status_type mxi_linux_usbtmc_create_record_structures(
+							MX_RECORD *record );
+MX_API mx_status_type mxi_linux_usbtmc_open( MX_RECORD *record );
+
+MX_API mx_status_type mxi_linux_usbtmc_open_device(MX_GPIB *gpib, long address);
+MX_API mx_status_type mxi_linux_usbtmc_close_device(MX_GPIB *gpib, long address);
+MX_API mx_status_type mxi_linux_usbtmc_read( MX_GPIB *gpib,
+						long address,
+						char *buffer,
+						size_t max_bytes_to_read,
+						size_t *bytes_read,
+						unsigned long flags);
+MX_API mx_status_type mxi_linux_usbtmc_write( MX_GPIB *gpib,
+						long address,
+						char *buffer,
+						size_t bytes_to_write,
+						size_t *bytes_written,
+						unsigned long flags);
+MX_API mx_status_type mxi_linux_usbtmc_interface_clear(MX_GPIB *gpib);
+MX_API mx_status_type mxi_linux_usbtmc_device_clear(MX_GPIB *gpib);
+MX_API mx_status_type mxi_linux_usbtmc_selective_device_clear(MX_GPIB *gpib,
+						long address);
+MX_API mx_status_type mxi_linux_usbtmc_local_lockout(MX_GPIB *gpib);
+MX_API mx_status_type mxi_linux_usbtmc_remote_enable(MX_GPIB *gpib, long address);
+MX_API mx_status_type mxi_linux_usbtmc_go_to_local(MX_GPIB *gpib, long address);
+MX_API mx_status_type mxi_linux_usbtmc_trigger(MX_GPIB *gpib, long address);
+MX_API mx_status_type mxi_linux_usbtmc_wait_for_service_request( MX_GPIB *gpib,
+						double timeout );
+MX_API mx_status_type mxi_linux_usbtmc_serial_poll( MX_GPIB *gpib, long address,
+					unsigned char *serial_poll_byte );
+MX_API mx_status_type mxi_linux_usbtmc_serial_poll_disable(MX_GPIB *gpib);
+
 extern MX_RECORD_FUNCTION_LIST mxi_linux_usbtmc_record_function_list;
-extern MX_RS232_FUNCTION_LIST mxi_linux_usbtmc_rs232_function_list;
+extern MX_GPIB_FUNCTION_LIST mxi_linux_usbtmc_gpib_function_list;
 
 extern long mxi_linux_usbtmc_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_linux_usbtmc_rfield_def_ptr;
 
 #define MXI_LINUX_USBTMC_STANDARD_FIELDS \
-  {-1, -1, "hostname", MXFT_STRING, NULL, 1, {MXU_HOSTNAME_LENGTH}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_LINUX_USBTMC, hostname), \
+  {-1, -1, "filename", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_LINUX_USBTMC, filename), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "port_number", MXFT_LONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_LINUX_USBTMC, port_number), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
-  \
-  {-1, -1, "usbtmc_flags", MXFT_HEX, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_LINUX_USBTMC, usbtmc_flags), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
-  \
-  {-1, -1, "receive_buffer_size", MXFT_LONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_LINUX_USBTMC, receive_buffer_size), \
-	{0}, NULL, 0 }, \
-  \
-  {-1, -1, "resync_delay_milliseconds", MXFT_ULONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_LINUX_USBTMC, resync_delay_milliseconds), \
-	{0}, NULL, 0 }
+  {-1, -1, "linux_usbtmc_flags", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_LINUX_USBTMC, linux_usbtmc_flags), \
+	{0}, NULL, MXFF_IN_DESCRIPTION}
 
 #endif /* __I_LINUX_USBTMC_H__ */
 

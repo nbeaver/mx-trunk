@@ -245,12 +245,9 @@ mx_gpib_open_device( MX_RECORD *gpib_record, long address )
 
 		fptr = fl_ptr->open_device;
 
-		if ( fptr == NULL ) {
-			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-				"open_device function pointer is NULL.");
+		if ( fptr != NULL ) {
+			mx_status = (*fptr)( gpib, address );
 		}
-
-		mx_status = (*fptr)( gpib, address );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 			gpib->open_semaphore[ address ] = 0;
@@ -293,12 +290,9 @@ mx_gpib_close_device( MX_RECORD *gpib_record, long address )
 
 		fptr = fl_ptr->close_device;
 
-		if ( fptr == NULL ) {
-			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-				"close_device function pointer is NULL.");
+		if ( fptr != NULL ) {
+			mx_status = (*fptr)( gpib, address );
 		}
-
-		mx_status = (*fptr)( gpib, address );
 
 		gpib->open_semaphore[ address ] = 0;
 

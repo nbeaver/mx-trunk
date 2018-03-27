@@ -174,8 +174,8 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	i_i404.c i_ilm.c i_iseries.c i_isobus.c i_itc503.c i_k500serial.c \
 	i_keithley.c i_keithley199.c i_keithley2000.c i_keithley2400.c \
 	i_keithley2600.c i_keithley2700.c \
-	i_kohzu_sc.c i_ks3344.c \
-	i_linkam_t9x.c i_linux_iopl.c i_linux_parport.c i_lpt.c \
+	i_kohzu_sc.c i_ks3344.c i_linkam_t9x.c \
+	i_linux_iopl.c i_linux_parport.c i_linux_usbtmc.c i_lpt.c \
 	i_mardtb.c i_micro488ex.c i_mmap_vme.c \
 	i_modbus_serial_rtu.c i_modbus_tcp.c \
 	i_network_gpib.c i_network_rs232.c i_newport.c \

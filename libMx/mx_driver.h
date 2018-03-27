@@ -178,7 +178,7 @@ extern "C" {
 #define MXI_232_KS3344			104
 #define MXI_232_WIN32COM		105
 #define MXI_232_TCP232			106
-#define MXI_232_USBTMC			107
+
 #define MXI_232_NETWORK			108
 #define MXI_232_VMS			109
 #define MXI_232_VXWORKS			110
@@ -198,6 +198,7 @@ extern "C" {
 #define MXI_GPIB_MICRO488EX		205
 #define MXI_GPIB_NETWORK		206
 #define MXI_GPIB_PROLOGIX		207
+#define MXI_GPIB_USBTMC			208
 
 #define MXI_CAM_SOFTWARE		300
 #define MXI_CAM_DSP6001			301
