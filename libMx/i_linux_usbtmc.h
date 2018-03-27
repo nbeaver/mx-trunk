@@ -28,7 +28,8 @@ typedef struct {
 	char filename[MXU_FILENAME_LENGTH+1];
 	unsigned long linux_usbtmc_flags;
 
-	int usbtmc_fd;
+	long usbtmc_fd;
+	unsigned long usb488_capabilities;
 } MX_LINUX_USBTMC;
 
 /* Define all of the interface functions. */
@@ -74,11 +75,20 @@ extern MX_RECORD_FIELD_DEFAULTS *mxi_linux_usbtmc_rfield_def_ptr;
 #define MXI_LINUX_USBTMC_STANDARD_FIELDS \
   {-1, -1, "filename", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_LINUX_USBTMC, filename), \
-	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+	{sizeof(char)}, NULL, \
+		(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
   \
   {-1, -1, "linux_usbtmc_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_LINUX_USBTMC, linux_usbtmc_flags), \
-	{0}, NULL, MXFF_IN_DESCRIPTION}
+	{0}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
+  {-1, -1, "usbtmc_fd", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_LINUX_USBTMC, usbtmc_fd), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {-1, -1, "usb488_capabilities", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_LINUX_USBTMC, usb488_capabilities), \
+	{0}, NULL, MXFF_READ_ONLY}
 
 #endif /* __I_LINUX_USBTMC_H__ */
 

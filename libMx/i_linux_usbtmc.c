@@ -4,6 +4,10 @@
  * Purpose: Linux MX GPIB driver for USBTMC devices controlled via
  *          /dev/usbtmc0 and friends.
  *
+ * Note:    This driver only supports one "GPIB device" at a time.
+ *          Because of this, it completely ignores the GPIB address
+ *          supplied by the caller.
+ *
  * Author:  William Lavender
  *
  *--------------------------------------------------------------------------
@@ -24,11 +28,15 @@
 #if defined( OS_LINUX ) && ( MX_GLIBC_VERSION >= 0L )
 
 #include <stdlib.h>
+#include <unistd.h>
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <unistd.h>
+#include <signal.h>
+#include <poll.h>
+#include <sys/ioctl.h>
+#include <linux/usb/tmc.h>
 
 #include "mx_record.h"
 #include "mx_gpib.h"
@@ -155,6 +163,7 @@ mxi_linux_usbtmc_open( MX_RECORD *record )
 
 	MX_GPIB *gpib;
 	MX_LINUX_USBTMC *linux_usbtmc = NULL;
+	int ioctl_status, int_capabilities;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -177,6 +186,8 @@ mxi_linux_usbtmc_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Create a file descriptor to talk to the Linux 'usbtmc' module. */
+
 	linux_usbtmc->usbtmc_fd = open( linux_usbtmc->filename, O_RDWR );
 
 	if ( linux_usbtmc->usbtmc_fd < 0 ) {
@@ -186,6 +197,14 @@ mxi_linux_usbtmc_open( MX_RECORD *record )
 			linux_usbtmc->filename,
 			errno, strerror(errno) );
 	}
+
+	/* Get a list of the available USB488 capabilities, if available. */
+
+	ioctl_status = ioctl( linux_usbtmc->usbtmc_fd,
+				USBTMC488_IOCTL_GET_CAPS,
+				&int_capabilities );
+
+	linux_usbtmc->usb488_capabilities = (unsigned long) int_capabilities;
 
 	return mx_status;
 }
@@ -237,6 +256,10 @@ mxi_linux_usbtmc_read( MX_GPIB *gpib,
 			gpib->record->name,
 			errno, strerror( errno ) );
 	}
+
+	/* Null terminate the string. */
+
+	buffer[local_bytes_read] = '\0';
 
 	/* If present, delete the read terminator character at the end
 	 * of the string.
@@ -315,15 +338,9 @@ mxi_linux_usbtmc_write( MX_GPIB *gpib,
 MX_EXPORT mx_status_type
 mxi_linux_usbtmc_interface_clear( MX_GPIB *gpib )
 {
-	static const char fname[] = "mxi_linux_usbtmc_interface_clear()";
-
-	MX_LINUX_USBTMC *linux_usbtmc = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxi_linux_usbtmc_get_pointers( gpib, &linux_usbtmc, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	mx_status = mxi_linux_usbtmc_device_clear( gpib );
 
 	return mx_status;
 }
@@ -331,15 +348,21 @@ mxi_linux_usbtmc_interface_clear( MX_GPIB *gpib )
 MX_EXPORT mx_status_type
 mxi_linux_usbtmc_device_clear( MX_GPIB *gpib )
 {
-	int i;
+	static const char fname[] = "mxi_linux_usbtmc_device_clear()";
 
-	/* Simulate a device clear by doing a selective device clear
-	 * to all devices on the GPIB bus.
-	 */
+	MX_LINUX_USBTMC *linux_usbtmc = NULL;
+	int ioctl_status;
+	mx_status_type mx_status;
 
-	for ( i = 0; i <= 30; i++ ) {
-		(void) mxi_linux_usbtmc_selective_device_clear( gpib, i );
-	}
+	mx_status = mxi_linux_usbtmc_get_pointers( gpib, &linux_usbtmc, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	ioctl_status = ioctl( linux_usbtmc->usbtmc_fd,
+				USBTMC_IOCTL_CLEAR );
+
+	MX_DEBUG(-2,("%s: ioctl_status = %d", fname, ioctl_status));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -347,15 +370,9 @@ mxi_linux_usbtmc_device_clear( MX_GPIB *gpib )
 MX_EXPORT mx_status_type
 mxi_linux_usbtmc_selective_device_clear( MX_GPIB *gpib, long address )
 {
-	static const char fname[] = "mxi_linux_usbtmc_selective_device_clear()";
-
-	MX_LINUX_USBTMC *linux_usbtmc = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxi_linux_usbtmc_get_pointers( gpib, &linux_usbtmc, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	mx_status = mxi_linux_usbtmc_device_clear( gpib );
 
 	return mx_status;
 }
@@ -365,9 +382,27 @@ mxi_linux_usbtmc_local_lockout( MX_GPIB *gpib )
 {
 	static const char fname[] = "mxi_linux_usbtmc_local_lockout()";
 
-	return mx_error( MXE_UNSUPPORTED, fname,
-	"Local lockout is not supported by GPIB interface '%s'.",
-		gpib->record->name );
+	MX_LINUX_USBTMC *linux_usbtmc = NULL;
+	int ioctl_status;
+	unsigned long available;
+	mx_status_type mx_status;
+
+	mx_status = mxi_linux_usbtmc_get_pointers( gpib, &linux_usbtmc, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	available =
+    ( linux_usbtmc->usb488_capabilities & USBTMC488_CAPABILITY_LOCAL_LOCKOUT );
+
+	if ( available ) {
+		ioctl_status = ioctl( linux_usbtmc->usbtmc_fd,
+				USBTMC488_IOCTL_LOCAL_LOCKOUT );
+
+		MX_DEBUG(-2,("%s: ioctl_status = %d", fname, ioctl_status));
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -375,9 +410,27 @@ mxi_linux_usbtmc_remote_enable( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_linux_usbtmc_remote_enable()";
 
-	return mx_error( MXE_UNSUPPORTED, fname,
-	"Remote enable is not supported by GPIB interface '%s'.",
-		gpib->record->name );
+	MX_LINUX_USBTMC *linux_usbtmc = NULL;
+	int ioctl_status;
+	unsigned long available;
+	mx_status_type mx_status;
+
+	mx_status = mxi_linux_usbtmc_get_pointers( gpib, &linux_usbtmc, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	available =
+    ( linux_usbtmc->usb488_capabilities & USBTMC488_CAPABILITY_REN_CONTROL );
+
+	if ( available ) {
+		ioctl_status = ioctl( linux_usbtmc->usbtmc_fd,
+				USBTMC488_IOCTL_REN_CONTROL );
+
+		MX_DEBUG(-2,("%s: ioctl_status = %d", fname, ioctl_status));
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -386,6 +439,8 @@ mxi_linux_usbtmc_go_to_local( MX_GPIB *gpib, long address )
 	static const char fname[] = "mxi_linux_usbtmc_go_to_local()";
 
 	MX_LINUX_USBTMC *linux_usbtmc = NULL;
+	int ioctl_status;
+	unsigned long available;
 	mx_status_type mx_status;
 
 	mx_status = mxi_linux_usbtmc_get_pointers( gpib, &linux_usbtmc, fname );
@@ -393,7 +448,17 @@ mxi_linux_usbtmc_go_to_local( MX_GPIB *gpib, long address )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	return mx_status;
+	available =
+    ( linux_usbtmc->usb488_capabilities & USBTMC488_CAPABILITY_GOTO_LOCAL );
+
+	if ( available ) {
+		ioctl_status = ioctl( linux_usbtmc->usbtmc_fd,
+				USBTMC488_IOCTL_GOTO_LOCAL );
+
+		MX_DEBUG(-2,("%s: ioctl_status = %d", fname, ioctl_status));
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -402,6 +467,7 @@ mxi_linux_usbtmc_trigger( MX_GPIB *gpib, long address )
 	static const char fname[] = "mxi_linux_usbtmc_trigger_device()";
 
 	MX_LINUX_USBTMC *linux_usbtmc = NULL;
+	unsigned long available;
 	mx_status_type mx_status;
 
 	mx_status = mxi_linux_usbtmc_get_pointers( gpib, &linux_usbtmc, fname );
@@ -409,7 +475,24 @@ mxi_linux_usbtmc_trigger( MX_GPIB *gpib, long address )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	return mx_status;
+	available =
+    ( linux_usbtmc->usb488_capabilities & USBTMC488_CAPABILITY_TRIGGER );
+
+	if ( available ) {
+#if 0
+		int ioctl_status;
+
+		ioctl_status = ioctl( linux_usbtmc->usbtmc_fd,
+				USBTMC488_IOCTL_TRIGGER );
+
+		MX_DEBUG(-2,("%s: ioctl_status = %d", fname, ioctl_status));
+#else
+		MX_DEBUG(-2,
+		    ("%s: We do not know how to do trigger yet.", fname));
+#endif
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -419,6 +502,8 @@ mxi_linux_usbtmc_wait_for_service_request( MX_GPIB *gpib, double timeout )
 			"mxi_linux_usbtmc_wait_for_service_request()";
 
 	MX_LINUX_USBTMC *linux_usbtmc = NULL;
+	struct pollfd poll_struct;
+	int poll_status, timeout_ms;
 	mx_status_type mx_status;
 
 	mx_status = mxi_linux_usbtmc_get_pointers( gpib, &linux_usbtmc, fname );
@@ -426,19 +511,36 @@ mxi_linux_usbtmc_wait_for_service_request( MX_GPIB *gpib, double timeout )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	return mx_error( MXE_TIMED_OUT, fname,
-		"Timed out after waiting %g seconds for the SRQ line "
-		"to be asserted by GPIB interface '%s'.",
-			timeout, gpib->record->name );
+	timeout_ms = mx_round( 1000.0 * timeout );
+
+	poll_struct.fd = linux_usbtmc->usbtmc_fd;
+	poll_struct.events = POLLIN;
+
+	poll_status = poll( &poll_struct, 1, timeout_ms );
+
+	if ( poll_status < 0 ) {
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"The attempt to wait for a service request for '%s' failed.  "
+		"errno = %d, error message = '%s'.",
+			gpib->record->name,
+			errno, strerror( errno ) );
+	}
+
+	/* FIXME: Should we do something more elaborate with the results
+	 * from poll()?
+	 */
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
 mxi_linux_usbtmc_serial_poll( MX_GPIB *gpib, long address,
-				unsigned char *serial_poll_byte)
+				unsigned char *serial_poll_byte )
 {
 	static const char fname[] = "mxi_linux_usbtmc_serial_poll()";
 
 	MX_LINUX_USBTMC *linux_usbtmc = NULL;
+	int ioctl_status;
 	mx_status_type mx_status;
 
 	mx_status = mxi_linux_usbtmc_get_pointers( gpib, &linux_usbtmc, fname );
@@ -448,7 +550,13 @@ mxi_linux_usbtmc_serial_poll( MX_GPIB *gpib, long address,
 
 	/* Get the serial poll byte. */
 
-	*serial_poll_byte = 0;
+	ioctl_status = ioctl( linux_usbtmc->usbtmc_fd,
+				USBTMC488_IOCTL_READ_STB,
+				serial_poll_byte );
+
+	MX_DEBUG(-2,("%s: ioctl_status = %d", fname, ioctl_status));
+	MX_DEBUG(-2,("%s: serial_poll_byte = %#x",
+			fname, (unsigned int) (*serial_poll_byte) ));
 
 	return MX_SUCCESSFUL_RESULT;
 }
