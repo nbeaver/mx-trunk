@@ -163,7 +163,6 @@ mxi_linux_usbtmc_open( MX_RECORD *record )
 
 	MX_GPIB *gpib;
 	MX_LINUX_USBTMC *linux_usbtmc = NULL;
-	int ioctl_status, int_capabilities;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -200,11 +199,21 @@ mxi_linux_usbtmc_open( MX_RECORD *record )
 
 	/* Get a list of the available USB488 capabilities, if available. */
 
-	ioctl_status = ioctl( linux_usbtmc->usbtmc_fd,
-				USBTMC488_IOCTL_GET_CAPS,
-				&int_capabilities );
+#if defined( USBTMC488_IOCTL_GET_CAPS )
 
-	linux_usbtmc->usb488_capabilities = (unsigned long) int_capabilities;
+	{
+		int ioctl_status, int_capabilities;
+
+		ioctl_status = ioctl( linux_usbtmc->usbtmc_fd,
+					USBTMC488_IOCTL_GET_CAPS,
+					&int_capabilities );
+
+		linux_usbtmc->usb488_capabilities
+				= (unsigned long) int_capabilities;
+	}
+#else
+	linux_usbtmc->usb488_capabilities = 0;
+#endif
 
 	return mx_status;
 }
@@ -382,6 +391,10 @@ mxi_linux_usbtmc_local_lockout( MX_GPIB *gpib )
 {
 	static const char fname[] = "mxi_linux_usbtmc_local_lockout()";
 
+#if !defined( USBTMC488_CAPABILITY_LOCAL_LOCKOUT )
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"Local lockout is not implemented for this version of Linux." );
+#else
 	MX_LINUX_USBTMC *linux_usbtmc = NULL;
 	int ioctl_status;
 	unsigned long available;
@@ -403,6 +416,7 @@ mxi_linux_usbtmc_local_lockout( MX_GPIB *gpib )
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+#endif
 }
 
 MX_EXPORT mx_status_type
@@ -410,6 +424,10 @@ mxi_linux_usbtmc_remote_enable( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_linux_usbtmc_remote_enable()";
 
+#if !defined( USBTMC488_CAPABILITY_REN_CONTROL )
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"Remote enable is not implemented for this version of Linux." );
+#else
 	MX_LINUX_USBTMC *linux_usbtmc = NULL;
 	int ioctl_status;
 	unsigned long available;
@@ -431,6 +449,7 @@ mxi_linux_usbtmc_remote_enable( MX_GPIB *gpib, long address )
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+#endif
 }
 
 MX_EXPORT mx_status_type
@@ -438,6 +457,10 @@ mxi_linux_usbtmc_go_to_local( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_linux_usbtmc_go_to_local()";
 
+#if !defined( USBTMC488_CAPABILITY_GOTO_LOCAL )
+	return mx_error( MXE_UNSUPPORTED, fname,
+		"Go to local is not implemented for this version of Linux." );
+#else
 	MX_LINUX_USBTMC *linux_usbtmc = NULL;
 	int ioctl_status;
 	unsigned long available;
@@ -459,6 +482,7 @@ mxi_linux_usbtmc_go_to_local( MX_GPIB *gpib, long address )
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+#endif
 }
 
 MX_EXPORT mx_status_type
@@ -466,6 +490,10 @@ mxi_linux_usbtmc_trigger( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_linux_usbtmc_trigger_device()";
 
+#if !defined( USBTMC488_CAPABILITY_TRIGGER )
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"Trigger is not implemented for this version of Linux." );
+#else
 	MX_LINUX_USBTMC *linux_usbtmc = NULL;
 	unsigned long available;
 	mx_status_type mx_status;
@@ -479,20 +507,16 @@ mxi_linux_usbtmc_trigger( MX_GPIB *gpib, long address )
     ( linux_usbtmc->usb488_capabilities & USBTMC488_CAPABILITY_TRIGGER );
 
 	if ( available ) {
-#if 0
 		int ioctl_status;
 
 		ioctl_status = ioctl( linux_usbtmc->usbtmc_fd,
 				USBTMC488_IOCTL_TRIGGER );
 
 		MX_DEBUG(-2,("%s: ioctl_status = %d", fname, ioctl_status));
-#else
-		MX_DEBUG(-2,
-		    ("%s: We do not know how to do trigger yet.", fname));
-#endif
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+#endif
 }
 
 MX_EXPORT mx_status_type
@@ -533,12 +557,17 @@ mxi_linux_usbtmc_wait_for_service_request( MX_GPIB *gpib, double timeout )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+
 MX_EXPORT mx_status_type
 mxi_linux_usbtmc_serial_poll( MX_GPIB *gpib, long address,
 				unsigned char *serial_poll_byte )
 {
 	static const char fname[] = "mxi_linux_usbtmc_serial_poll()";
 
+#if !defined( USBTMC488_IOCTL_READ_STB )
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"Serial poll is not implemented for this version of Linux." );
+#else
 	MX_LINUX_USBTMC *linux_usbtmc = NULL;
 	int ioctl_status;
 	mx_status_type mx_status;
@@ -559,6 +588,7 @@ mxi_linux_usbtmc_serial_poll( MX_GPIB *gpib, long address,
 			fname, (unsigned int) (*serial_poll_byte) ));
 
 	return MX_SUCCESSFUL_RESULT;
+#endif
 }
 
 MX_EXPORT mx_status_type
