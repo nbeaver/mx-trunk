@@ -490,7 +490,9 @@ mxi_linux_usbtmc_trigger( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_linux_usbtmc_trigger_device()";
 
-#if !defined( USBTMC488_CAPABILITY_TRIGGER )
+#if ( !defined( USBTMC488_CAPABILITY_TRIGGER ) \
+   || !defined( USBTMC488_IOCTL_TRIGGER ) )
+
 	return mx_error( MXE_UNSUPPORTED, fname,
 	"Trigger is not implemented for this version of Linux." );
 #else
