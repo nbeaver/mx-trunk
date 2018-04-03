@@ -480,7 +480,33 @@ mx_mutex_trylock( MX_MUTEX *mutex )
 MX_EXPORT unsigned long
 mx_mutex_get_owner_thread_id( MX_MUTEX *mutex )
 {
-#error mx_mutex_get_owner_thread_id() is not yet implemented.
+	static const char fname[] = "mx_mutex_get_owner_thread_id()";
+
+	SEM_ID semaphore_id;
+	struct semaphore *sem_ptr = NULL;
+	TASK_ID task_id;
+
+	MX_DEBUG( 2,("%s invoked.", fname));
+
+	if ( mutex == (MX_MUTEX *) NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_MUTEX pointer passed was NULL." );
+		return 0L;
+	}
+
+	semaphore_id = mutex->mutex_ptr;
+
+	if ( semaphore_id == NULL ) {
+		(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	    "The mutex_ptr field for the MX_MUTEX pointer passed was NULL.");
+		return 0L;
+	}
+
+	sem_ptr = (struct semaphore *) semaphore_id;
+
+	task_id = (TASK_ID) sem_ptr->state.owner;
+	
+	return ( (unsigned long) task_id );
 }
 
 /************************ RTEMS ***********************/

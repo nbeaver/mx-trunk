@@ -3191,7 +3191,7 @@ mx_get_thread_id( MX_THREAD *thread )
 	unsigned long vxworks_thread_id;
 
 	if ( thread == (MX_THREAD *) NULL ) {
-		vxworks_thread_id = (unsigned long) vxworks_thread_self();
+		vxworks_thread_id = (unsigned long) taskIdSelf();
 	} else {
 		MX_VXWORKS_THREAD_PRIVATE *thread_private;
 
@@ -3201,7 +3201,7 @@ mx_get_thread_id( MX_THREAD *thread )
 			vxworks_thread_id = 0;
 		} else {
 			vxworks_thread_id = (unsigned long)
-						thread_private->thread_id;
+						thread_private->task_id;
 		}
 	}
 
