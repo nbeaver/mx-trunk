@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2011, 2014-2017 Illinois Institute of Technology
+ * Copyright 2011, 2014-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,9 +24,11 @@
 #include "mx_private_version.h"
 #include "mx_program_model.h"
 #include "mx_util.h"
+#include "mx_unistd.h"
 
 #if defined(OS_UNIX)
 #  include <sys/utsname.h>
+#  include <dirent.h>
 #endif
 
 #if defined(OS_WIN32)
@@ -62,6 +64,30 @@ print_usage( void )
 
 	return;
 }
+
+#if defined(OS_LINUX)
+
+/* This is a copy of the mx_match() function from libMx.  The mx_config
+ * program _MUST_ _NOT_ depend on libMx, so we make a copy here.
+ */
+
+static int
+mxp_match( const char *pattern, const char *string )
+{
+	switch( *pattern ) {
+	case '\0':	return ! *string;
+
+	case '*':	return mxp_match( pattern+1, string ) ||
+				( *string && mxp_match( pattern, string+1 ) );
+
+	case '?':	return *string && mxp_match( pattern+1, string+1 );
+
+	default:	return *pattern == *string &&
+					mxp_match( pattern+1, string+1 );
+	}
+}
+
+#endif
 
 #if defined(OS_WIN32)
 
@@ -541,6 +567,178 @@ main( int argc, char **argv )
 			printf( "%s\n", python_item_double_backslash );
 		}
 
+		exit(0);
+	}
+
+#elif defined(OS_LINUX)
+	if ( strcmp( argv[1], "python" ) == 0 ) {
+
+#define MXCFG_DEFAULT_OPTION		1
+#define MXCFG_INCLUDE_OPTION		2
+#define MXCFG_LIBRARY_OPTION		3
+#define MXCFG_VERSIONS_OPTION		4
+#define MXCFG_VERSION_PATHS_OPTION	5
+
+		int i, option_type, file_status, match_status;
+		char *path_string, *path_string_copy, *path_element;
+		char *search_ptr;
+		char filename_match[PATH_MAX+1];
+		DIR *dir;
+		struct dirent *dirent_ptr;
+		char *name_ptr;
+
+		if ( argc < 3 ) {
+			printf(
+			"ERR -\n"
+			"Usage:  mx_config python [option] [version_number]\n"
+			"\n"
+			"    Where option may be\n"
+			"        default\n"
+			"        include\n"
+			"        library\n"
+			"        versions\n"
+			"        version_paths\n"
+			"\n"
+			);
+			exit(1);
+		}
+
+		if ( strcmp( argv[2], "default" ) == 0 ) {
+			option_type = MXCFG_DEFAULT_OPTION;
+		} else
+		if ( strcmp( argv[2], "include" ) == 0 ) {
+			option_type = MXCFG_INCLUDE_OPTION;
+		} else
+		if ( strcmp( argv[2], "library" ) == 0 ) {
+			option_type = MXCFG_LIBRARY_OPTION;
+		} else
+		if ( strcmp( argv[2], "versions" ) == 0 ) {
+			option_type = MXCFG_VERSIONS_OPTION;
+		} else
+		if ( strcmp( argv[2], "version_paths" ) == 0 ) {
+			option_type = MXCFG_VERSION_PATHS_OPTION;
+		} else {
+			fprintf( stderr,
+			"mx_config: Unrecognized option '%s'\n", argv[2] );
+			exit(1);
+		}
+
+		if ( ( option_type != MXCFG_DEFAULT_OPTION )
+		  && ( option_type != MXCFG_VERSIONS_OPTION )
+		  && ( option_type != MXCFG_VERSION_PATHS_OPTION ) )
+		{
+			if ( argc < 4 ) {
+				printf(
+			 "ERR - '%s %s %s' needs a version number argument.\n",
+					argv[0], argv[1], argv[2] );
+				exit(1);
+			}
+		}
+
+		/* Walk through the path looking for Python versions. */
+
+		path_string = getenv( "PATH" );
+
+		if ( path_string == NULL ) {
+			fprintf( stderr,
+		    "ERR - The 'PATH' environment variable is not defined.\n" );
+			exit(1);
+		}
+
+		path_string_copy = strdup( path_string );
+
+		if ( path_string_copy == NULL ) {
+			fprintf( stderr,
+			"ERR - Copying the PATH variable failed.\n" );
+			exit(1);
+		}
+
+		search_ptr = path_string_copy;
+
+		for ( i = 0; ; i++ ) {
+			path_element = strtok( search_ptr, ":" );
+
+			if ( path_element == NULL ) {
+				break;
+			}
+
+			search_ptr = NULL;
+
+#if 1
+			fprintf( stderr, "path_element[%d] = '%s'\n",
+				i, path_element );
+#endif
+
+			switch( option_type ) {
+			case MXCFG_DEFAULT_OPTION:
+				snprintf(filename_match, sizeof(filename_match),
+					"%s/python", path_element );
+
+				errno = 0;
+
+				file_status = access( filename_match, X_OK );
+
+#if 0
+				fprintf( stderr,
+				"filename_match = '%s' [%d] [errno = %d]\n",
+					filename_match, file_status, errno );
+#endif
+
+				if ( file_status == 0 ) {
+					printf( "%s\n", filename_match );
+					exit(0);
+				}
+				break;
+			case MXCFG_VERSIONS_OPTION:
+			case MXCFG_VERSION_PATHS_OPTION:
+				dir = opendir( path_element );
+
+				if ( dir == (DIR *) NULL ) {
+					/* Skip unavailable PATH elements. */
+					break;
+				}
+
+				while (1) {
+					errno = 0;
+
+					dirent_ptr = readdir(dir);
+
+					if ( dirent_ptr != NULL ) {
+						name_ptr = dirent_ptr->d_name;
+
+						match_status = mxp_match(
+						  name_ptr, "python*" );
+
+						if ( match_status == 1 ) {
+						    printf( "%s ", name_ptr );
+						}
+
+						fprintf( stderr,
+						"name_ptr = '%s' [%d]\n",
+						    name_ptr, match_status );
+					} else {
+						if ( errno == 0 ) {
+							break; /* Exit while. */
+						} else {
+							fprintf( stderr,
+					    "An error occurred while examining "
+					    "the files in the PATH directory "
+					    "'%s'.  Errno = %d, "
+					    "error message = '%s'\n",
+						path_element,
+						errno, strerror(errno) );
+							exit(1);
+						}
+					}
+				}
+
+				closedir(dir);
+
+				break;
+			}
+		}
+
+		free( path_string_copy );
 		exit(0);
 	}
 #endif
