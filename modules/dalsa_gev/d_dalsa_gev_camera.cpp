@@ -369,6 +369,124 @@ mxd_dalsa_gev_camera_show_feature_list( MX_DALSA_GEV_CAMERA *dalsa_gev_camera,
 
 /*---*/
 
+static mx_status_type
+mxd_dalsa_gev_camera_show_feature_range( MX_DALSA_GEV_CAMERA *dalsa_gev_camera )
+{
+	static const char fname[] = "mxd_dalsa_gev_camera_show_feature_range()";
+
+	GenApi::CNodeMapRef *feature_node_map =
+		   (GenApi::CNodeMapRef *) dalsa_gev_camera->feature_node_map;
+
+	GenApi::CNodePtr feature_ptr =
+		   feature_node_map->_GetNode( dalsa_gev_camera->feature_name );
+
+	int interface_type = static_cast<int>
+			( feature_ptr->GetPrincipalInterfaceType() );
+
+	switch( interface_type ) {
+	case GenApi::intfIInteger:
+	    {
+		GenApi::CIntegerPtr int_feature_ptr =
+		  feature_node_map->_GetNode( dalsa_gev_camera->feature_name );
+
+		snprintf( dalsa_gev_camera->feature_range,
+			sizeof(dalsa_gev_camera->feature_range),
+		    "Min = %" PRId64 ", Max = %" PRId64 ", Step = %" PRId64,
+				int_feature_ptr->GetMin(),
+				int_feature_ptr->GetMax(),
+				int_feature_ptr->GetInc() );
+	    }
+	    break;
+	case GenApi::intfIFloat:
+	    {
+		GenApi::CFloatPtr float_feature_ptr =
+		  feature_node_map->_GetNode( dalsa_gev_camera->feature_name );
+
+		if ( float_feature_ptr->HasInc() ) {
+			snprintf( dalsa_gev_camera->feature_range,
+				sizeof(dalsa_gev_camera->feature_range),
+				"Min = %g, Max = %g, Step = %g",
+				float_feature_ptr->GetMin(),
+				float_feature_ptr->GetMax(),
+				float_feature_ptr->GetInc() );
+		} else {
+			snprintf( dalsa_gev_camera->feature_range,
+				sizeof(dalsa_gev_camera->feature_range),
+				"Min = %g, Max = %g",
+				float_feature_ptr->GetMin(),
+				float_feature_ptr->GetMax() );
+		}
+	    }
+	    break;
+	case GenApi::intfIBoolean:
+	    {
+		strlcpy( dalsa_gev_camera->feature_range,
+			"Min = 0, Max = 1",
+			sizeof(dalsa_gev_camera->feature_range) );
+	    }
+	    break;
+	case GenApi::intfIString:
+	    {
+		GenApi::CStringPtr string_feature_ptr =
+		  feature_node_map->_GetNode( dalsa_gev_camera->feature_name );
+
+		snprintf( dalsa_gev_camera->feature_range,
+			sizeof(dalsa_gev_camera->feature_range),
+			"Max Length = %" PRId64,
+			string_feature_ptr->GetMaxLength() );
+	    }
+	    break;
+	case GenApi::intfIEnumeration:
+	    {
+		char enum_temp[80];
+
+		GenApi::CEnumerationPtr enum_feature_ptr =
+		  feature_node_map->_GetNode( dalsa_gev_camera->feature_name );
+
+		GenApi::NodeList_t entries;
+
+		enum_feature_ptr->GetEntries( entries );
+
+		int num_entries = entries.size();
+
+		dalsa_gev_camera->feature_range[0] = '\0';
+
+		for ( int i = 0; i < num_entries; i++ ) {
+
+			GenApi::CEnumEntryPtr enum_entry_ptr = entries[i];
+
+			const char *enum_string =
+				enum_entry_ptr->GetSymbolic().c_str();
+
+			if ( i == 0 ) {
+				snprintf( dalsa_gev_camera->feature_range,
+					sizeof(dalsa_gev_camera->feature_range),
+					"'%s'", enum_string );
+			} else {
+				snprintf( enum_temp, sizeof(enum_temp),
+						", '%s'", enum_string );
+
+				strlcat( dalsa_gev_camera->feature_range,
+				    enum_temp,
+				    sizeof(dalsa_gev_camera->feature_range) );
+			}
+		}
+	    }
+	    break;
+	default:
+	    return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Camera '%s' feature '%s' has illegal interface type %d",
+			dalsa_gev_camera->record->name,
+			dalsa_gev_camera->feature_name,
+			interface_type );
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
 #if MXD_DALSA_GEV_CAMERA_USE_CUSTOM_GEV_GET_NEXT_IMAGE
 
 extern "C" {
@@ -1792,6 +1910,7 @@ mxd_dalsa_gev_camera_special_processing_setup( MX_RECORD *record )
 		switch( record_field->label_value ) {
 		case MXLV_DALSA_GEV_CAMERA_FEATURE_NAME:
 		case MXLV_DALSA_GEV_CAMERA_FEATURE_VALUE:
+		case MXLV_DALSA_GEV_CAMERA_FEATURE_RANGE:
 		case MXLV_DALSA_GEV_CAMERA_GAIN:
 		case MXLV_DALSA_GEV_CAMERA_SHOW_FEATURES:
 		case MXLV_DALSA_GEV_CAMERA_SHOW_FEATURE_VALUES:
@@ -1857,6 +1976,10 @@ mxd_dalsa_gev_camera_process_function( void *record_ptr,
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
+		case MXLV_DALSA_GEV_CAMERA_FEATURE_RANGE:
+			return mxd_dalsa_gev_camera_show_feature_range(
+					dalsa_gev_camera );
+			break;
 		case MXLV_DALSA_GEV_CAMERA_FEATURE_VALUE:
 			gev_status = GevGetFeatureValueAsString(
 					dalsa_gev_camera->camera_handle,

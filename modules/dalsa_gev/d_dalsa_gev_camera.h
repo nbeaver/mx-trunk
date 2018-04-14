@@ -24,6 +24,7 @@ extern "C" {
 
 #define MXU_DALSA_GEV_CAMERA_FEATURE_NAME_LENGTH	80
 #define MXU_DALSA_GEV_CAMERA_FEATURE_VALUE_LENGTH	200
+#define MXU_DALSA_GEV_CAMERA_FEATURE_RANGE_LENGTH	2000
 
 /* 'dalsa_gev_camera_flags' bitflag macros */
 
@@ -42,6 +43,8 @@ typedef struct {
 	unsigned long num_frame_buffers;
 	unsigned long dalsa_gev_camera_flags;
 	char xml_filename[MXU_FILENAME_LENGTH+1];
+
+	unsigned long model_type;
 
 	unsigned char **frame_buffer_array;
 	uint64_t frame_buffer_array_size_in_bytes;
@@ -77,6 +80,8 @@ typedef struct {
 	char feature_name[MXU_DALSA_GEV_CAMERA_FEATURE_NAME_LENGTH+1];
 	char feature_value[MXU_DALSA_GEV_CAMERA_FEATURE_VALUE_LENGTH+1];
 
+	char feature_range[MXU_DALSA_GEV_CAMERA_FEATURE_RANGE_LENGTH+1];
+
 } MX_DALSA_GEV_CAMERA;
 
 #define MXLV_DALSA_GEV_CAMERA_SHOW_FEATURES		89800
@@ -85,6 +90,7 @@ typedef struct {
 #define MXLV_DALSA_GEV_CAMERA_TEMPERATURE		89803
 #define MXLV_DALSA_GEV_CAMERA_FEATURE_NAME		89804
 #define MXLV_DALSA_GEV_CAMERA_FEATURE_VALUE		89805
+#define MXLV_DALSA_GEV_CAMERA_FEATURE_RANGE		89806
 
 #define MXD_DALSA_GEV_CAMERA_STANDARD_FIELDS \
   {-1, -1, "dalsa_gev_record", MXFT_RECORD, NULL, 0, {0}, \
@@ -112,6 +118,10 @@ typedef struct {
   {-1, -1, "xml_filename", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DALSA_GEV_CAMERA, xml_filename), \
 	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {-1, -1, "model_type", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DALSA_GEV_CAMERA, model_type), \
+	{0}, NULL, MXFF_READ_ONLY }, \
   \
   {-1, -1, "num_frames_to_skip", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DALSA_GEV_CAMERA, num_frames_to_skip),\
@@ -145,6 +155,11 @@ typedef struct {
   {MXLV_DALSA_GEV_CAMERA_FEATURE_VALUE, -1, "feature_value", MXFT_STRING, \
 		NULL, 1, {MXU_DALSA_GEV_CAMERA_FEATURE_VALUE_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DALSA_GEV_CAMERA, feature_value), \
+	{sizeof(char)}, NULL, 0}, \
+  \
+  {MXLV_DALSA_GEV_CAMERA_FEATURE_RANGE, -1, "feature_range", MXFT_STRING, \
+		NULL, 1, {MXU_DALSA_GEV_CAMERA_FEATURE_RANGE_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DALSA_GEV_CAMERA, feature_range), \
 	{sizeof(char)}, NULL, 0}
 
 	
