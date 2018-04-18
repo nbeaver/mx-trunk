@@ -792,6 +792,78 @@ mxd_dalsa_gev_camera_image_dead_reckoning_wait_thread_fn( MX_THREAD *thread,
 
 /*--------------------------------------------------------------------------*/
 
+static mx_status_type
+mxd_dalsa_gev_camera_shadobox_trigger( MX_VIDEO_INPUT *vinput,
+					MX_DALSA_GEV_CAMERA *dalsa_gev_camera )
+{
+	static const char fname[] = "mxd_dalsa_gev_camera_shadobox_trigger()";
+
+	MX_SEQUENCE_PARAMETERS *sp = NULL;
+	char synchronization_mode[80];
+	long gev_status;
+
+	sp = &(vinput->sequence_parameters);
+
+	if ( vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
+		MX_DEBUG(-2,("%s: camera '%s' is using internal trigger.",
+			fname, vinput->record->name ));
+
+		strlcpy( synchronization_mode, "FreeRunning",
+				sizeof(synchronization_mode) );
+	} else
+	if ( vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
+		MX_DEBUG(-2,("%s: camera '%s' is using external trigger.",
+			fname, vinput->record->name ));
+
+		switch( sp->sequence_type ) {
+		case MXT_SQ_ONE_SHOT:
+		case MXT_SQ_STREAM:
+		case MXT_SQ_MULTIFRAME:
+			strlcpy( synchronization_mode, "ExtTrigger",
+					sizeof(synchronization_mode) );
+			break;
+		case MXT_SQ_DURATION:
+			strlcpy( synchronization_mode, "Snapshot",
+					sizeof(synchronization_mode) );
+			break;
+		}
+	}
+
+	gev_status = GevSetFeatureValueAsString(
+			dalsa_gev_camera->camera_handle,
+			"SynchronizationMode", synchronization_mode );
+
+	if ( gev_status != GEVLIB_OK ) {
+		return mxd_dalsa_gev_camera_api_error( gev_status, fname,
+					"Set SynchronizationMode value" );
+	}
+
+	/* If the camera is configured for streaming, then we must
+	 * set the exposure time for that mode.
+	 */
+
+	if ( sp->sequence_type == MXT_SQ_STREAM ) {
+		UINT32 extended_exposure_microseconds =
+			mx_round( 1.0e6 * sp->parameter_array[0] );
+
+		gev_status = GevSetFeatureValue(
+				dalsa_gev_camera->camera_handle,
+				"ExtendedExposure",
+				sizeof(UINT32), 
+				&extended_exposure_microseconds );
+
+		if ( gev_status != GEVLIB_OK ) {
+			return mxd_dalsa_gev_camera_api_error(
+					gev_status, fname,
+					"Set SynchronizationMode value" );
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mxd_dalsa_gev_camera_create_record_structures( MX_RECORD *record )
 {
@@ -884,6 +956,7 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 	char *serial_number_string;
 	unsigned long i;
 	short gev_status;
+	char *ptr;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -1123,7 +1196,36 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 			return mx_status;
 	}
 
-	/* Get camera parameters from the camera. */
+	/* Identify the camera model. */
+
+	GenApi::CStringPtr device_vendor_ptr =
+		feature_node_map->_GetNode( "DeviceVendorName" );
+
+	strlcpy( dalsa_gev_camera->device_vendor_name,
+		device_vendor_ptr->GetValue().c_str(),
+		sizeof(dalsa_gev_camera->device_vendor_name) );
+
+	GenApi::CStringPtr device_model_ptr =
+		feature_node_map->_GetNode( "DeviceModelName" );
+
+	strlcpy( dalsa_gev_camera->device_model_name,
+		device_model_ptr->GetValue().c_str(),
+		sizeof(dalsa_gev_camera->device_model_name) );
+
+	/*---*/
+
+	dalsa_gev_camera->model_type = 0;
+
+	ptr = strstr( dalsa_gev_camera->device_vendor_name, "Rad-icon" );
+
+	if ( ptr != NULL ) {
+		if ( strncmp( "ShadoBox",
+			dalsa_gev_camera->device_model_name, 8 ) == 0 )
+		{
+			dalsa_gev_camera->model_type =
+				MXT_DALSA_GEV_CAMERA_SHADOBOX;
+		}
+	}
 
 	/* Reading the framesize gets a variety of other parameters as well. */
 
@@ -1395,6 +1497,54 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 		break;
 	}
 
+	/* Configure the GenICam AcquisitionMode feature for this sequence. */
+
+	char acquisition_mode[40];
+
+	switch( sp->sequence_type ) {
+	case MXT_SQ_ONE_SHOT:
+		strlcpy( acquisition_mode, "SingleFrame",
+				sizeof(acquisition_mode) );
+		break;
+	case MXT_SQ_MULTIFRAME:
+	case MXT_SQ_DURATION:
+		strlcpy( acquisition_mode, "MultiFrame",
+				sizeof(acquisition_mode) );
+		break;
+	case MXT_SQ_STREAM:
+		strlcpy( acquisition_mode, "Continuous",
+				sizeof(acquisition_mode) );
+		break;
+	}
+
+	gev_status = GevSetFeatureValueAsString(
+			dalsa_gev_camera->camera_handle,
+			"AcquisitionMode", acquisition_mode );
+
+	if ( gev_status != GEVLIB_OK ) {
+		return mxd_dalsa_gev_camera_api_error( gev_status, fname,
+				"Set AcquisitionMode value" );
+	}
+
+	/* Configure external/internal triggering for the detector.
+	 * Regrettably, this is different for different models of 
+	 * detectors.
+	 */
+
+	switch( dalsa_gev_camera->model_type ) {
+	case MXT_DALSA_GEV_CAMERA_SHADOBOX:
+		mx_status = mxd_dalsa_gev_camera_shadobox_trigger(
+						vinput, dalsa_gev_camera );
+		break;
+	default:
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Triggering is not yet implemented for the DALSA camera "
+		"model '%s' used by video input '%s'.",
+			dalsa_gev_camera->device_model_name,
+			vinput->record->name );
+		break;
+	}
+
 	/* Save sequence parameters where the wait thread can find them. */
 
 	total_num_frames_at_start =
@@ -1436,7 +1586,7 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 
 	if ( gev_status != GEVLIB_OK ) {
 		return mxd_dalsa_gev_camera_api_error( gev_status, fname,
-						"GevInitImageTransfer()");
+						"GevInitializeTransfer()");
 	}
 
 	MX_DEBUG(-2,("%s: '%s' GevInitImageTransfer() called.",
@@ -1458,11 +1608,6 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 
 #endif	/* Not GevInitializeTransfer() */
 
-
-	if ( vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
-		MX_DEBUG(-2,("%s: camera '%s' is using external trigger.",
-			fname, vinput->record->name ));
-	}
 
 	return mx_status;
 }

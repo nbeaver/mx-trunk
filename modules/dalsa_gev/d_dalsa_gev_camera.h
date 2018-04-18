@@ -26,6 +26,8 @@ extern "C" {
 #define MXU_DALSA_GEV_CAMERA_FEATURE_VALUE_LENGTH	200
 #define MXU_DALSA_GEV_CAMERA_FEATURE_RANGE_LENGTH	2000
 
+#define MXU_DALSA_GEV_CAMERA_DEVICE_NAME_LENGTH		80
+
 /* 'dalsa_gev_camera_flags' bitflag macros */
 
 #define MXF_DALSA_GEV_CAMERA_WRITE_XML_FILE		0x1
@@ -33,6 +35,10 @@ extern "C" {
 
 #define MXF_DALSA_GEV_CAMERA_SHOW_FEATURES		0x1000
 #define MXF_DALSA_GEV_CAMERA_SHOW_FEATURE_VALUES	0x2000
+
+/* values for 'model_type' */
+
+#define MXT_DALSA_GEV_CAMERA_SHADOBOX		1
 
 typedef struct {
 	MX_RECORD *record;
@@ -45,6 +51,8 @@ typedef struct {
 	char xml_filename[MXU_FILENAME_LENGTH+1];
 
 	unsigned long model_type;
+	char device_vendor_name[MXU_DALSA_GEV_CAMERA_DEVICE_NAME_LENGTH+1];
+	char device_model_name[MXU_DALSA_GEV_CAMERA_DEVICE_NAME_LENGTH+1];
 
 	unsigned char **frame_buffer_array;
 	uint64_t frame_buffer_array_size_in_bytes;
@@ -122,6 +130,16 @@ typedef struct {
   {-1, -1, "model_type", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DALSA_GEV_CAMERA, model_type), \
 	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "device_vendor_name", MXFT_STRING, NULL, \
+	  			1, {MXU_DALSA_GEV_CAMERA_DEVICE_NAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DALSA_GEV_CAMERA, device_vendor_name),\
+	{sizeof(char)}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "device_model_name", MXFT_STRING, NULL, \
+	  			1, {MXU_DALSA_GEV_CAMERA_DEVICE_NAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DALSA_GEV_CAMERA, device_model_name),\
+	{sizeof(char)}, NULL, MXFF_READ_ONLY }, \
   \
   {-1, -1, "num_frames_to_skip", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DALSA_GEV_CAMERA, num_frames_to_skip),\
