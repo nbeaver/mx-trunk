@@ -533,6 +533,7 @@ mx_atomic_memory_barrier( void )
 static MX_MUTEX *mxp_atomic_write32_mutex = NULL;
 
 #include <atomic.h>
+#include <pthread.h>
 
 MX_EXPORT void
 mx_atomic_initialize( void )
@@ -585,7 +586,45 @@ mx_atomic_read32( int32_t *value_ptr )
 MX_EXPORT void
 mx_atomic_memory_barrier( void )
 {
-#error not yet implemented.  QNX docs mention pthread_barrier_init() etc.
+	static const char fname[] = "mx_atomic_memory_barrier()";
+
+	pthread_barrier_t barrier;
+	int result;
+
+	result = pthread_barrier_init( &barrier, NULL, 1 );
+
+	if ( result != 0 ) {
+		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"A call to pthread_barrier_init() returned "
+		"error code %d, error message '%s'",
+			result, strerror(result) );
+
+		return;
+	}
+
+	result = pthread_barrier_wait( &barrier );
+
+	if ( result != 0 ) {
+		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"A call to pthread_barrier_wait() returned "
+		"error code %d, error message '%s'",
+			result, strerror(result) );
+
+		return;
+	}
+
+	result = pthread_barrier_destroy( &barrier );
+
+	if ( result != 0 ) {
+		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"A call to pthread_barrier_destroy() returned "
+		"error code %d, error message '%s'",
+			result, strerror(result) );
+
+		return;
+	}
+
+	return;
 }
 
 /*------------------------------------------------------------------------*/

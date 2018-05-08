@@ -199,7 +199,7 @@ typedef struct {
 
 #elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
 	|| defined(OS_BSD) || defined(OS_HPUX) || defined(OS_HURD) \
-	|| defined(OS_RTEMS) || defined(OS_MINIX)
+	|| defined(OS_RTEMS) || defined(OS_MINIX) || defined(OS_QNX)
 #  define mx_socklen_t		socklen_t
 
 #else
