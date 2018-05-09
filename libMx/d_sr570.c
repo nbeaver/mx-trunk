@@ -655,9 +655,9 @@ mxd_sr570_set_offset( MX_AMPLIFIER *amplifier )
 	/* Set the sign of the input offset current. */
 
 	if ( sign_offset_current == 1 ) {
-		strlcpy( command, "IOSN 1", sizeof(command) );
-	} else {
 		strlcpy( command, "IOSN 0", sizeof(command) );
+	} else {
+		strlcpy( command, "IOSN 1", sizeof(command) );
 	}
 
 	mx_status = mx_rs232_putline( sr570->rs232_record,
