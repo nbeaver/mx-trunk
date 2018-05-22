@@ -49,7 +49,7 @@ MX_AMPLIFIER_FUNCTION_LIST mxd_sr570_amplifier_function_list = {
 	mxd_sr570_set_gain,
 	NULL,
 	mxd_sr570_set_offset,
-	NULL,
+	mxd_sr570_get_time_constant,
 	mxd_sr570_set_time_constant,
 	mxd_sr570_get_parameter,
 	mxd_sr570_set_parameter
@@ -683,6 +683,56 @@ mxd_sr570_set_offset( MX_AMPLIFIER *amplifier )
 }
 
 MX_EXPORT mx_status_type
+mxd_sr570_get_time_constant( MX_AMPLIFIER *amplifier )
+{
+	static const char fname[] = "mxd_sr570_get_time_constant()";
+
+	MX_SR570 *sr570 = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mxd_sr570_get_pointers( amplifier, &sr570, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	switch( sr570->filter_type ) {
+	case 0:
+	case 1:
+		mx_status = mx_amplifier_get_parameter( amplifier->record,
+					MXLV_SR570_LOWPASS_FILTER_TIME );
+
+		amplifier->time_constant = sr570->lowpass_filter_time;
+		break;
+	case 2:
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+			"Filter type 2 for SR570 '%s' is not yet implemented.",
+				amplifier->record->name );
+		break;
+	case 3:
+	case 4:
+		mx_status = mx_amplifier_get_parameter( amplifier->record,
+					MXLV_SR570_HIGHPASS_FILTER_TIME );
+
+		amplifier->time_constant = sr570->highpass_filter_time;
+		break;
+	case 5:
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+			"Filter type 5 for SR570 '%s' is not yet implemented.",
+				amplifier->record->name );
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Filter type %ld is not valid for SR570 '%s'.  "
+			"The allowed values are from 0 to 5.",
+				sr570->filter_type,
+				amplifier->record->name );
+		break;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
 mxd_sr570_set_time_constant( MX_AMPLIFIER *amplifier )
 {
 	static const char fname[] = "mxd_sr570_set_time_constant()";
@@ -695,15 +745,41 @@ mxd_sr570_set_time_constant( MX_AMPLIFIER *amplifier )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	amplifier->time_constant = 0.0;
+	switch( sr570->filter_type ) {
+	case 0:
+	case 1:
+		sr570->lowpass_filter_time = amplifier->time_constant;
 
-	return mx_error( MXE_UNSUPPORTED, fname,
-	"The '%s' driver for amplifier '%s' does not support "
-	"filter rise time constants.  You must control the filter via the "
-	"'filter_type', 'lowpass_filter_3db_point', and "
-	"'highpass_filter_3db_point' parameters instead.",
-		mx_get_driver_name( amplifier->record ),
-		amplifier->record->name );
+		mx_status = mx_amplifier_set_parameter( amplifier->record,
+					MXLV_SR570_LOWPASS_FILTER_TIME );
+		break;
+	case 2:
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+			"Filter type 2 for SR570 '%s' is not yet implemented.",
+				amplifier->record->name );
+		break;
+	case 3:
+	case 4:
+		sr570->highpass_filter_time = amplifier->time_constant;
+
+		mx_status = mx_amplifier_set_parameter( amplifier->record,
+					MXLV_SR570_HIGHPASS_FILTER_TIME );
+		break;
+	case 5:
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+			"Filter type 5 for SR570 '%s' is not yet implemented.",
+				amplifier->record->name );
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Filter type %ld is not valid for SR570 '%s'.  "
+			"The allowed values are from 0 to 5.",
+				sr570->filter_type,
+				amplifier->record->name );
+		break;
+	}
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type

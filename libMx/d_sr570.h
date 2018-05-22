@@ -68,6 +68,7 @@ MX_API mx_status_type mxd_sr570_special_processing_setup( MX_RECORD *record );
 
 MX_API mx_status_type mxd_sr570_set_gain( MX_AMPLIFIER *amplifier );
 MX_API mx_status_type mxd_sr570_set_offset( MX_AMPLIFIER *amplifier );
+MX_API mx_status_type mxd_sr570_get_time_constant( MX_AMPLIFIER *amplifier );
 MX_API mx_status_type mxd_sr570_set_time_constant( MX_AMPLIFIER *amplifier );
 MX_API mx_status_type mxd_sr570_get_parameter( MX_AMPLIFIER *amplifier );
 MX_API mx_status_type mxd_sr570_set_parameter( MX_AMPLIFIER *amplifier );
