@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2006, 2008, 2010, 2015 Illinois Institute of Technology
+ * Copyright 2002, 2006, 2008, 2010, 2015, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -712,6 +712,7 @@ mxd_sr570_get_parameter( MX_AMPLIFIER *amplifier )
 	static const char fname[] = "mxd_sr570_get_parameter()";
 
 	MX_SR570 *sr570 = NULL;
+	long saved_long;
 	mx_status_type mx_status;
 
 	mx_status = mxd_sr570_get_pointers( amplifier, &sr570, fname );
@@ -740,10 +741,35 @@ mxd_sr570_get_parameter( MX_AMPLIFIER *amplifier )
 		 */
 		break;
 
+	case MXLV_SR570_LOWPASS_FILTER_TIME:
+		saved_long = amplifier->parameter_type;
+
+		mx_status = mx_amplifier_get_parameter( amplifier->record,
+					MXLV_SR570_LOWPASS_FILTER_3DB_POINT );
+
+		amplifier->parameter_type = saved_long;
+
+		sr570->lowpass_filter_time = mx_divide_safely( 1.0,
+					sr570->lowpass_filter_3db_point );
+		break;
+
+	case MXLV_SR570_HIGHPASS_FILTER_TIME:
+		saved_long = amplifier->parameter_type;
+
+		mx_status = mx_amplifier_get_parameter( amplifier->record,
+					MXLV_SR570_HIGHPASS_FILTER_3DB_POINT );
+
+		amplifier->parameter_type = saved_long;
+
+		sr570->highpass_filter_time = mx_divide_safely( 1.0,
+					sr570->highpass_filter_3db_point );
+		break;
+
 	default:
 		return mx_amplifier_default_get_parameter_handler( amplifier );
 	}
-	return MX_SUCCESSFUL_RESULT;
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -753,9 +779,9 @@ mxd_sr570_set_parameter( MX_AMPLIFIER *amplifier )
 
 	MX_SR570 *sr570 = NULL;
 	char command[80];
-	int bias_voltage_setting, three_db_point_setting;
+	int bias_millivolts, three_db_point_setting;
 	int mantissa, exponent;
-	long saved_integer;
+	long saved_long;
 	double saved_double;
 	mx_status_type mx_status;
 
@@ -773,10 +799,10 @@ mxd_sr570_set_parameter( MX_AMPLIFIER *amplifier )
 
 	switch( amplifier->parameter_type ) {
 	case MXLV_SR570_BIAS_VOLTAGE:
-		bias_voltage_setting = 
+		bias_millivolts = 
 			(int) mx_round( 1000.0 * sr570->bias_voltage );
 
-		if ( abs( bias_voltage_setting ) > 5000 ) {
+		if ( abs( bias_millivolts ) > 5000 ) {
 			saved_double = sr570->bias_voltage;
 
 			sr570->bias_voltage = sr570->old_bias_voltage;
@@ -788,12 +814,12 @@ mxd_sr570_set_parameter( MX_AMPLIFIER *amplifier )
 				amplifier->record->name );
 		}
 
-		sr570->bias_voltage = 0.001 * (double) bias_voltage_setting;
+		sr570->bias_voltage = 0.001 * (double) bias_millivolts;
 
 		/* Set the bias voltage level. */
 
 		snprintf( command, sizeof(command),
-			"BSLV %d", bias_voltage_setting );
+			"BSLV %d", bias_millivolts );
 
 		mx_status = mx_rs232_putline( sr570->rs232_record,
 						command, NULL, SR570_DEBUG );
@@ -807,7 +833,7 @@ mxd_sr570_set_parameter( MX_AMPLIFIER *amplifier )
 		 * Otherwise, turn it on.
 		 */
 
-		if ( bias_voltage_setting == 0 ) {
+		if ( bias_millivolts == 0 ) {
 			strlcpy( command, "BSON 0", sizeof(command) );
 		} else {
 			strlcpy( command, "BSON 1", sizeof(command) );
@@ -826,14 +852,14 @@ mxd_sr570_set_parameter( MX_AMPLIFIER *amplifier )
 	case MXLV_SR570_FILTER_TYPE:
 		if ( ( sr570->filter_type < 0 ) || ( sr570->filter_type > 5 ) )
 		{
-			saved_integer = sr570->filter_type;
+			saved_long = sr570->filter_type;
 
 			sr570->filter_type = sr570->old_filter_type;
 
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"The requested filter type %ld for amplifier '%s' is outside "
 	"the allowed range of 0 to 5.",
-				saved_integer,
+				saved_long,
 				amplifier->record->name );
 		}
 
@@ -988,14 +1014,14 @@ mxd_sr570_set_parameter( MX_AMPLIFIER *amplifier )
 	case MXLV_SR570_GAIN_MODE:
 		if ( ( sr570->gain_mode < 0 ) || ( sr570->gain_mode > 2 ) )
 		{
-			saved_integer = sr570->gain_mode;
+			saved_long = sr570->gain_mode;
 
 			sr570->gain_mode = sr570->old_gain_mode;
 
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"The requested gain mode %ld for amplifier '%s' is outside "
 	"the allowed range of 0 to 2.",
-				saved_integer,
+				saved_long,
 				amplifier->record->name );
 		}
 
@@ -1018,14 +1044,14 @@ mxd_sr570_set_parameter( MX_AMPLIFIER *amplifier )
 		if ( ( sr570->invert_signal < 0 )
 		  || ( sr570->invert_signal > 1 ) )
 		{
-			saved_integer = sr570->invert_signal;
+			saved_long = sr570->invert_signal;
 
 			sr570->invert_signal = sr570->old_invert_signal;
 
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"The requested invert signal value %ld for amplifier '%s' is "
 	"not one of the allowed values, namely, 0 or 1.",
-				saved_integer,
+				saved_long,
 				amplifier->record->name );
 		}
 
@@ -1046,14 +1072,14 @@ mxd_sr570_set_parameter( MX_AMPLIFIER *amplifier )
 		if ( ( sr570->blank_output < 0 )
 		  || ( sr570->blank_output > 1 ) )
 		{
-			saved_integer = sr570->blank_output;
+			saved_long = sr570->blank_output;
 
 			sr570->blank_output = sr570->old_blank_output;
 
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"The requested blank output value %ld for amplifier '%s' is "
 	"not one of the allowed values, namely, 0 or 1.",
-				saved_integer,
+				saved_long,
 				amplifier->record->name );
 		}
 
@@ -1068,6 +1094,30 @@ mxd_sr570_set_parameter( MX_AMPLIFIER *amplifier )
 		} else {
 			sr570->old_blank_output = sr570->blank_output;
 		}
+		break;
+
+	case MXLV_SR570_LOWPASS_FILTER_TIME:
+		sr570->lowpass_filter_3db_point = mx_divide_safely( 1.0,
+						sr570->lowpass_filter_time );
+
+		saved_long = amplifier->parameter_type;
+
+		mx_status = mx_amplifier_set_parameter( amplifier->record,
+					MXLV_SR570_LOWPASS_FILTER_3DB_POINT );
+
+		amplifier->parameter_type = saved_long;
+		break;
+
+	case MXLV_SR570_HIGHPASS_FILTER_TIME:
+		sr570->highpass_filter_3db_point = mx_divide_safely( 1.0,
+						sr570->highpass_filter_time );
+
+		saved_long = amplifier->parameter_type;
+
+		mx_status = mx_amplifier_set_parameter( amplifier->record,
+					MXLV_SR570_HIGHPASS_FILTER_3DB_POINT );
+
+		amplifier->parameter_type = saved_long;
 		break;
 
 	default:

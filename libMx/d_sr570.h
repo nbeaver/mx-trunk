@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2006 Illinois Institute of Technology
+ * Copyright 2002, 2006, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -31,6 +31,8 @@ typedef struct {
 	long   gain_mode;
 	long   invert_signal;
 	long   blank_output;
+	double lowpass_filter_time;
+	double highpass_filter_time;
 
 	/* The following fields are used to store the old settings of SR570
 	 * parameters, so that if the user requests an invalid value, the
@@ -57,6 +59,8 @@ typedef struct {
 #define MXLV_SR570_GAIN_MODE		5
 #define MXLV_SR570_INVERT_SIGNAL	6
 #define MXLV_SR570_BLANK_OUTPUT		7
+#define MXLV_SR570_LOWPASS_FILTER_TIME	8
+#define MXLV_SR570_HIGHPASS_FILTER_TIME	9
 
 MX_API mx_status_type mxd_sr570_create_record_structures( MX_RECORD *record );
 MX_API mx_status_type mxd_sr570_open( MX_RECORD *record );
