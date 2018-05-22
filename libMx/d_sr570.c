@@ -716,9 +716,7 @@ mxd_sr570_get_time_constant( MX_AMPLIFIER *amplifier )
 		amplifier->time_constant = sr570->highpass_filter_time;
 		break;
 	case 5:
-		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-			"Filter type 5 for SR570 '%s' is not yet implemented.",
-				amplifier->record->name );
+		amplifier->time_constant = 0.0;
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
