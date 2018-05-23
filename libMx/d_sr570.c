@@ -344,12 +344,22 @@ mxd_sr570_open( MX_RECORD *record )
 	sr570->old_gain = 1.0e6;
 	sr570->old_offset = 0.0;
 	sr570->old_bias_voltage = 0.0;
-	sr570->old_filter_type = 5;
+	sr570->old_filter_type = 3;
 	sr570->old_lowpass_filter_3db_point = 1.0e6;
 	sr570->old_highpass_filter_3db_point = 0.03;
 	sr570->old_gain_mode = 0;
 	sr570->old_invert_signal = 0;
 	sr570->old_blank_output = 0;
+
+	/* Copy the old settings to the current. */
+
+	sr570->bias_voltage = sr570->old_bias_voltage;
+	sr570->filter_type = sr570->old_filter_type;
+	sr570->lowpass_filter_3db_point = sr570->old_lowpass_filter_3db_point;
+	sr570->highpass_filter_3db_point = sr570->old_highpass_filter_3db_point;
+	sr570->gain_mode = sr570->old_gain_mode;
+	sr570->invert_signal = sr570->old_invert_signal;
+	sr570->blank_output = sr570->old_blank_output;
 
 	/* Set the sensitivity to calibrated mode. */
 
