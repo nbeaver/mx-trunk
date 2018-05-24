@@ -797,6 +797,8 @@ mxd_sr570_get_parameter( MX_AMPLIFIER *amplifier )
 
 	MX_SR570 *sr570 = NULL;
 	long saved_long;
+	double filter_time_temp, mantissa;
+	long power_of_ten, rounded_mantissa;
 	mx_status_type mx_status;
 
 	mx_status = mxd_sr570_get_pointers( amplifier, &sr570, fname );
@@ -833,8 +835,18 @@ mxd_sr570_get_parameter( MX_AMPLIFIER *amplifier )
 
 		amplifier->parameter_type = saved_long;
 
-		sr570->lowpass_filter_time = mx_divide_safely( 1.0,
+		filter_time_temp = mx_divide_safely( 1.0,
 					sr570->lowpass_filter_3db_point );
+
+		power_of_ten = mx_round_down( log10( filter_time_temp ) );
+
+		mantissa = mx_divide_safely( filter_time_temp, power_of_ten );
+
+		rounded_mantissa = mx_round( mantissa );
+
+		filter_time_temp = rounded_mantissa * pow( 10.0, power_of_ten );
+
+		sr570->lowpass_filter_time = filter_time_temp;
 		break;
 
 	case MXLV_SR570_HIGHPASS_FILTER_TIME:
@@ -845,8 +857,18 @@ mxd_sr570_get_parameter( MX_AMPLIFIER *amplifier )
 
 		amplifier->parameter_type = saved_long;
 
-		sr570->highpass_filter_time = mx_divide_safely( 1.0,
+		filter_time_temp = mx_divide_safely( 1.0,
 					sr570->highpass_filter_3db_point );
+
+		power_of_ten = mx_round_down( log10( filter_time_temp ) );
+
+		mantissa = mx_divide_safely( filter_time_temp, power_of_ten );
+
+		rounded_mantissa = mx_round( mantissa );
+
+		filter_time_temp = rounded_mantissa * pow( 10.0, power_of_ten );
+
+		sr570->highpass_filter_time = filter_time_temp;
 		break;
 
 	default:
