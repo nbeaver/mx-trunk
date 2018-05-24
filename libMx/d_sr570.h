@@ -116,6 +116,16 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_sr570_rfield_def_ptr;
   \
   {MXLV_SR570_BLANK_OUTPUT, -1, "blank_output", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SR570, blank_output), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_SR570_LOWPASS_FILTER_TIME, -1, "lowpass_filter_time", \
+	    MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SR570, lowpass_filter_time), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_SR570_HIGHPASS_FILTER_TIME, -1, "highpass_filter_time", \
+	    MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SR570, highpass_filter_time), \
 	{0}, NULL, 0}
 
 #endif /* __D_SR570_H__ */
