@@ -25,8 +25,8 @@ typedef struct {
 
 	double bias_voltage;
 	long   filter_type;
-	double lowpass_filter_3db_point;
-	double highpass_filter_3db_point;
+	double lowpass_filter_hz;
+	double highpass_filter_hz;
 	long   reset_filter;
 	long   gain_mode;
 	long   invert_signal;
@@ -44,8 +44,8 @@ typedef struct {
 	double old_offset;
 	double old_bias_voltage;
 	long   old_filter_type;
-	double old_lowpass_filter_3db_point;
-	double old_highpass_filter_3db_point;
+	double old_lowpass_filter_hz;
+	double old_highpass_filter_hz;
 	long   old_gain_mode;
 	long   old_invert_signal;
 	long   old_blank_output;
@@ -53,8 +53,8 @@ typedef struct {
 
 #define MXLV_SR570_BIAS_VOLTAGE		0
 #define MXLV_SR570_FILTER_TYPE		1
-#define MXLV_SR570_LOWPASS_FILTER_3DB_POINT	2
-#define MXLV_SR570_HIGHPASS_FILTER_3DB_POINT	3
+#define MXLV_SR570_LOWPASS_FILTER_HZ	2
+#define MXLV_SR570_HIGHPASS_FILTER_HZ	3
 #define MXLV_SR570_RESET_FILTER		4
 #define MXLV_SR570_GAIN_MODE		5
 #define MXLV_SR570_INVERT_SIGNAL	6
@@ -92,14 +92,14 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_sr570_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SR570, filter_type), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {MXLV_SR570_LOWPASS_FILTER_3DB_POINT, -1, "lowpass_filter_3db_point", \
+  {MXLV_SR570_LOWPASS_FILTER_HZ, -1, "lowpass_filter_hz", \
 	  				MXFT_DOUBLE, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_SR570, lowpass_filter_3db_point), \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SR570, lowpass_filter_hz), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {MXLV_SR570_HIGHPASS_FILTER_3DB_POINT, -1, "highpass_filter_3db_point", \
+  {MXLV_SR570_HIGHPASS_FILTER_HZ, -1, "highpass_filter_hz", \
 	  				MXFT_DOUBLE, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_SR570, highpass_filter_3db_point), \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SR570, highpass_filter_hz), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
   {MXLV_SR570_RESET_FILTER, -1, "reset_filter", MXFT_LONG, NULL, 0, {0}, \

@@ -181,11 +181,11 @@ mxd_sr570_round_gain_or_offset( double requested_value,
 }
 
 static void
-mxd_sr570_round_filter_3db_point( double requested_value,
+mxd_sr570_round_filter_hz( double requested_value,
 			int *rounded_mantissa,
 			int *rounded_exponent )
 {
-	static const char fname[] = "mxd_sr570_round_filter_3db_point()";
+	static const char fname[] = "mxd_sr570_round_filter_hz()";
 
 	double mantissa, exponent, fractional_exponent;
 
@@ -345,8 +345,8 @@ mxd_sr570_open( MX_RECORD *record )
 	sr570->old_offset = 0.0;
 	sr570->old_bias_voltage = 0.0;
 	sr570->old_filter_type = 3;
-	sr570->old_lowpass_filter_3db_point = 1.0e6;
-	sr570->old_highpass_filter_3db_point = 0.03;
+	sr570->old_lowpass_filter_hz = 1.0e6;
+	sr570->old_highpass_filter_hz = 0.03;
 	sr570->old_gain_mode = 0;
 	sr570->old_invert_signal = 0;
 	sr570->old_blank_output = 0;
@@ -355,8 +355,8 @@ mxd_sr570_open( MX_RECORD *record )
 
 	sr570->bias_voltage = sr570->old_bias_voltage;
 	sr570->filter_type = sr570->old_filter_type;
-	sr570->lowpass_filter_3db_point = sr570->old_lowpass_filter_3db_point;
-	sr570->highpass_filter_3db_point = sr570->old_highpass_filter_3db_point;
+	sr570->lowpass_filter_hz = sr570->old_lowpass_filter_hz;
+	sr570->highpass_filter_hz = sr570->old_highpass_filter_hz;
 	sr570->gain_mode = sr570->old_gain_mode;
 	sr570->invert_signal = sr570->old_invert_signal;
 	sr570->blank_output = sr570->old_blank_output;
@@ -403,13 +403,13 @@ mxd_sr570_open( MX_RECORD *record )
 		return mx_status;
 
 	mx_status = mx_amplifier_set_parameter( record,
-					MXLV_SR570_LOWPASS_FILTER_3DB_POINT );
+					MXLV_SR570_LOWPASS_FILTER_HZ );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	mx_status = mx_amplifier_set_parameter( record,
-					MXLV_SR570_HIGHPASS_FILTER_3DB_POINT );
+					MXLV_SR570_HIGHPASS_FILTER_HZ );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -713,9 +713,9 @@ mxd_sr570_get_time_constant( MX_AMPLIFIER *amplifier )
 	case 0:
 	case 1:
 		mx_status = mx_amplifier_get_parameter( amplifier->record,
-					MXLV_SR570_LOWPASS_FILTER_TIME );
+					MXLV_SR570_HIGHPASS_FILTER_TIME );
 
-		amplifier->time_constant = sr570->lowpass_filter_time;
+		amplifier->time_constant = sr570->highpass_filter_time;
 		break;
 	case 2:
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
@@ -725,9 +725,9 @@ mxd_sr570_get_time_constant( MX_AMPLIFIER *amplifier )
 	case 3:
 	case 4:
 		mx_status = mx_amplifier_get_parameter( amplifier->record,
-					MXLV_SR570_HIGHPASS_FILTER_TIME );
+					MXLV_SR570_LOWPASS_FILTER_TIME );
 
-		amplifier->time_constant = sr570->highpass_filter_time;
+		amplifier->time_constant = sr570->lowpass_filter_time;
 		break;
 	case 5:
 		amplifier->time_constant = 0.0;
@@ -760,10 +760,10 @@ mxd_sr570_set_time_constant( MX_AMPLIFIER *amplifier )
 	switch( sr570->filter_type ) {
 	case 0:
 	case 1:
-		sr570->lowpass_filter_time = amplifier->time_constant;
+		sr570->highpass_filter_time = amplifier->time_constant;
 
 		mx_status = mx_amplifier_set_parameter( amplifier->record,
-					MXLV_SR570_LOWPASS_FILTER_TIME );
+					MXLV_SR570_HIGHPASS_FILTER_TIME );
 		break;
 	case 2:
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
@@ -772,10 +772,10 @@ mxd_sr570_set_time_constant( MX_AMPLIFIER *amplifier )
 		break;
 	case 3:
 	case 4:
-		sr570->highpass_filter_time = amplifier->time_constant;
+		sr570->lowpass_filter_time = amplifier->time_constant;
 
 		mx_status = mx_amplifier_set_parameter( amplifier->record,
-					MXLV_SR570_HIGHPASS_FILTER_TIME );
+					MXLV_SR570_LOWPASS_FILTER_TIME );
 		break;
 	case 5:
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
@@ -820,8 +820,8 @@ mxd_sr570_get_parameter( MX_AMPLIFIER *amplifier )
 	switch( amplifier->parameter_type ) {
 	case MXLV_SR570_BIAS_VOLTAGE:
 	case MXLV_SR570_FILTER_TYPE:
-	case MXLV_SR570_LOWPASS_FILTER_3DB_POINT:
-	case MXLV_SR570_HIGHPASS_FILTER_3DB_POINT:
+	case MXLV_SR570_LOWPASS_FILTER_HZ:
+	case MXLV_SR570_HIGHPASS_FILTER_HZ:
 	case MXLV_SR570_RESET_FILTER:
 	case MXLV_SR570_GAIN_MODE:
 	case MXLV_SR570_INVERT_SIGNAL:
@@ -835,16 +835,17 @@ mxd_sr570_get_parameter( MX_AMPLIFIER *amplifier )
 		saved_long = amplifier->parameter_type;
 
 		mx_status = mx_amplifier_get_parameter( amplifier->record,
-					MXLV_SR570_LOWPASS_FILTER_3DB_POINT );
+					MXLV_SR570_LOWPASS_FILTER_HZ );
 
 		amplifier->parameter_type = saved_long;
 
 		filter_time_temp = mx_divide_safely( 1.0,
-					sr570->lowpass_filter_3db_point );
+					sr570->lowpass_filter_hz );
 
 		power_of_ten = mx_round_down( log10( filter_time_temp ) );
 
-		mantissa = mx_divide_safely( filter_time_temp, power_of_ten );
+		mantissa = mx_divide_safely( filter_time_temp,
+					pow( 10.0, power_of_ten ) );
 
 		rounded_mantissa = mx_round( mantissa );
 
@@ -857,16 +858,17 @@ mxd_sr570_get_parameter( MX_AMPLIFIER *amplifier )
 		saved_long = amplifier->parameter_type;
 
 		mx_status = mx_amplifier_get_parameter( amplifier->record,
-					MXLV_SR570_HIGHPASS_FILTER_3DB_POINT );
+					MXLV_SR570_HIGHPASS_FILTER_HZ );
 
 		amplifier->parameter_type = saved_long;
 
 		filter_time_temp = mx_divide_safely( 1.0,
-					sr570->highpass_filter_3db_point );
+					sr570->highpass_filter_hz );
 
 		power_of_ten = mx_round_down( log10( filter_time_temp ) );
 
-		mantissa = mx_divide_safely( filter_time_temp, power_of_ten );
+		mantissa = mx_divide_safely( filter_time_temp,
+					pow( 10.0,  power_of_ten ) );
 
 		rounded_mantissa = mx_round( mantissa );
 
@@ -988,21 +990,21 @@ mxd_sr570_set_parameter( MX_AMPLIFIER *amplifier )
 		}
 		break;
 
-	case MXLV_SR570_LOWPASS_FILTER_3DB_POINT:
+	case MXLV_SR570_LOWPASS_FILTER_HZ:
 
-		if ( sr570->lowpass_filter_3db_point < 0.02 ) {
+		if ( sr570->lowpass_filter_hz < 0.02 ) {
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 			"The requested lowpass filter 3dB point of %g Hz "
 			"for amplifier '%s' is outside the allowed range "
 			"of 0.03 Hz to 1.0e6 Hz.",
-				sr570->lowpass_filter_3db_point,
+				sr570->lowpass_filter_hz,
 				amplifier->record->name );
 		}
 
 		/* Force the 3dB point to the nearest setting. */
 
-		mxd_sr570_round_filter_3db_point(
-				sr570->lowpass_filter_3db_point,
+		mxd_sr570_round_filter_hz(
+				sr570->lowpass_filter_hz,
 				&mantissa, &exponent );
 
 		if ( mantissa == 3 ) {
@@ -1016,10 +1018,10 @@ mxd_sr570_set_parameter( MX_AMPLIFIER *amplifier )
 		if ( ( three_db_point_setting < 0 )
 		  || ( three_db_point_setting > 15 ) )
 		{
-			saved_double = sr570->lowpass_filter_3db_point;
+			saved_double = sr570->lowpass_filter_hz;
 
-			sr570->lowpass_filter_3db_point
-				= sr570->old_lowpass_filter_3db_point;
+			sr570->lowpass_filter_hz
+				= sr570->old_lowpass_filter_hz;
 
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 	"The requested lowpass filter 3dB point of %g Hz "
@@ -1029,7 +1031,7 @@ mxd_sr570_set_parameter( MX_AMPLIFIER *amplifier )
 				amplifier->record->name );
 		}
 
-		sr570->lowpass_filter_3db_point = ( (double) mantissa )
+		sr570->lowpass_filter_hz = ( (double) mantissa )
 					* pow( 10.0, (double) exponent );
 
 		/* Set the filter 3db point. */
@@ -1041,29 +1043,29 @@ mxd_sr570_set_parameter( MX_AMPLIFIER *amplifier )
 						command, NULL, SR570_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
-			sr570->lowpass_filter_3db_point
-				= sr570->old_lowpass_filter_3db_point;
+			sr570->lowpass_filter_hz
+				= sr570->old_lowpass_filter_hz;
 		} else {
-			sr570->old_lowpass_filter_3db_point
-				= sr570->lowpass_filter_3db_point;
+			sr570->old_lowpass_filter_hz
+				= sr570->lowpass_filter_hz;
 		}
 		break;
 
-	case MXLV_SR570_HIGHPASS_FILTER_3DB_POINT:
+	case MXLV_SR570_HIGHPASS_FILTER_HZ:
 
-		if ( sr570->highpass_filter_3db_point < 0.02 ) {
+		if ( sr570->highpass_filter_hz < 0.02 ) {
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 			"The requested highpass filter 3dB point of %g Hz "
 			"for amplifier '%s' is outside the alhighed range "
 			"of 0.03 Hz to 1.0e6 Hz.",
-				sr570->highpass_filter_3db_point,
+				sr570->highpass_filter_hz,
 				amplifier->record->name );
 		}
 
 		/* Force the 3dB point to the nearest setting. */
 
-		mxd_sr570_round_filter_3db_point(
-				sr570->highpass_filter_3db_point,
+		mxd_sr570_round_filter_hz(
+				sr570->highpass_filter_hz,
 				&mantissa, &exponent );
 
 		if ( mantissa == 3 ) {
@@ -1077,10 +1079,10 @@ mxd_sr570_set_parameter( MX_AMPLIFIER *amplifier )
 		if ( ( three_db_point_setting < 0 )
 		  || ( three_db_point_setting > 11 ) )
 		{
-			saved_double = sr570->highpass_filter_3db_point;
+			saved_double = sr570->highpass_filter_hz;
 
-			sr570->highpass_filter_3db_point
-				= sr570->old_highpass_filter_3db_point;
+			sr570->highpass_filter_hz
+				= sr570->old_highpass_filter_hz;
 
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 	"The requested highpass filter 3dB point of %g Hz "
@@ -1090,7 +1092,7 @@ mxd_sr570_set_parameter( MX_AMPLIFIER *amplifier )
 				amplifier->record->name );
 		}
 
-		sr570->highpass_filter_3db_point = ( (double) mantissa )
+		sr570->highpass_filter_hz = ( (double) mantissa )
 					* pow( 10.0, (double) exponent );
 
 		/* Set the filter 3db point. */
@@ -1102,11 +1104,11 @@ mxd_sr570_set_parameter( MX_AMPLIFIER *amplifier )
 						command, NULL, SR570_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
-			sr570->highpass_filter_3db_point
-				= sr570->old_highpass_filter_3db_point;
+			sr570->highpass_filter_hz
+				= sr570->old_highpass_filter_hz;
 		} else {
-			sr570->old_highpass_filter_3db_point
-				= sr570->highpass_filter_3db_point;
+			sr570->old_highpass_filter_hz
+				= sr570->highpass_filter_hz;
 		}
 		break;
 
@@ -1207,25 +1209,25 @@ mxd_sr570_set_parameter( MX_AMPLIFIER *amplifier )
 		break;
 
 	case MXLV_SR570_LOWPASS_FILTER_TIME:
-		sr570->lowpass_filter_3db_point = mx_divide_safely( 1.0,
+		sr570->lowpass_filter_hz = mx_divide_safely( 1.0,
 						sr570->lowpass_filter_time );
 
 		saved_long = amplifier->parameter_type;
 
 		mx_status = mx_amplifier_set_parameter( amplifier->record,
-					MXLV_SR570_LOWPASS_FILTER_3DB_POINT );
+					MXLV_SR570_LOWPASS_FILTER_HZ );
 
 		amplifier->parameter_type = saved_long;
 		break;
 
 	case MXLV_SR570_HIGHPASS_FILTER_TIME:
-		sr570->highpass_filter_3db_point = mx_divide_safely( 1.0,
+		sr570->highpass_filter_hz = mx_divide_safely( 1.0,
 						sr570->highpass_filter_time );
 
 		saved_long = amplifier->parameter_type;
 
 		mx_status = mx_amplifier_set_parameter( amplifier->record,
-					MXLV_SR570_HIGHPASS_FILTER_3DB_POINT );
+					MXLV_SR570_HIGHPASS_FILTER_HZ );
 
 		amplifier->parameter_type = saved_long;
 		break;
@@ -1259,8 +1261,8 @@ mxd_sr570_special_processing_setup( MX_RECORD *record )
 		switch( record_field->label_value ) {
 		case MXLV_SR570_BIAS_VOLTAGE:
 		case MXLV_SR570_FILTER_TYPE:
-		case MXLV_SR570_LOWPASS_FILTER_3DB_POINT:
-		case MXLV_SR570_HIGHPASS_FILTER_3DB_POINT:
+		case MXLV_SR570_LOWPASS_FILTER_HZ:
+		case MXLV_SR570_HIGHPASS_FILTER_HZ:
 		case MXLV_SR570_RESET_FILTER:
 		case MXLV_SR570_GAIN_MODE:
 		case MXLV_SR570_INVERT_SIGNAL:
@@ -1302,12 +1304,14 @@ mxd_sr570_process_function( void *record_ptr,
 		switch( record_field->label_value ) {
 		case MXLV_SR570_BIAS_VOLTAGE:
 		case MXLV_SR570_FILTER_TYPE:
-		case MXLV_SR570_LOWPASS_FILTER_3DB_POINT:
-		case MXLV_SR570_HIGHPASS_FILTER_3DB_POINT:
+		case MXLV_SR570_LOWPASS_FILTER_HZ:
+		case MXLV_SR570_HIGHPASS_FILTER_HZ:
 		case MXLV_SR570_RESET_FILTER:
 		case MXLV_SR570_GAIN_MODE:
 		case MXLV_SR570_INVERT_SIGNAL:
 		case MXLV_SR570_BLANK_OUTPUT:
+		case MXLV_SR570_LOWPASS_FILTER_TIME:
+		case MXLV_SR570_HIGHPASS_FILTER_TIME:
 			/* Nothing to do since the necessary values are
 			 * already stored in the data structures.
 			 */
@@ -1324,12 +1328,14 @@ mxd_sr570_process_function( void *record_ptr,
 		switch( record_field->label_value ) {
 		case MXLV_SR570_BIAS_VOLTAGE:
 		case MXLV_SR570_FILTER_TYPE:
-		case MXLV_SR570_LOWPASS_FILTER_3DB_POINT:
-		case MXLV_SR570_HIGHPASS_FILTER_3DB_POINT:
+		case MXLV_SR570_LOWPASS_FILTER_HZ:
+		case MXLV_SR570_HIGHPASS_FILTER_HZ:
 		case MXLV_SR570_RESET_FILTER:
 		case MXLV_SR570_GAIN_MODE:
 		case MXLV_SR570_INVERT_SIGNAL:
 		case MXLV_SR570_BLANK_OUTPUT:
+		case MXLV_SR570_LOWPASS_FILTER_TIME:
+		case MXLV_SR570_HIGHPASS_FILTER_TIME:
 			mx_status = mx_amplifier_set_parameter( record,
 						record_field->label_value );
 
