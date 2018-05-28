@@ -448,7 +448,7 @@ mxd_sr570_set_gain( MX_AMPLIFIER *amplifier )
 
 	MX_SR570 *sr570 = NULL;
 	char command[20];
-	double requested_gain;
+	double requested_gain_in_volts_per_amp;
 	int mantissa, exponent, sensitivity_setting;
 	mx_status_type mx_status;
 
@@ -457,10 +457,12 @@ mxd_sr570_set_gain( MX_AMPLIFIER *amplifier )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	requested_gain = amplifier->gain;
+	requested_gain_in_volts_per_amp = amplifier->gain;
 
-	MX_DEBUG( 2,("%s: requested_gain = %g, requested sens = %g",
-		fname, requested_gain, mx_divide_safely(1.0, requested_gain) ));
+	MX_DEBUG( 2,
+	    ("%s: requested_gain_in_volts_per_amp = %g, requested sens = %g",
+		fname, requested_gain_in_volts_per_amp,
+		mx_divide_safely(1.0, requested_gain_in_volts_per_amp) ));
 
 	/* Attempting to set the gain to zero or a negative value is illegal. */
 
@@ -470,7 +472,8 @@ mxd_sr570_set_gain( MX_AMPLIFIER *amplifier )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"The requested gain of %g for amplifier '%s' is illegal.  "
 	"The amplifier gain must be a positive number.",
-			requested_gain, amplifier->record->name );
+			requested_gain_in_volts_per_amp,
+			amplifier->record->name );
 	}
 
 	/* Force the gain to the nearest allowed value and store the
@@ -512,7 +515,7 @@ mxd_sr570_set_gain( MX_AMPLIFIER *amplifier )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"The requested gain of %g for amplifier '%s' is outside "
 	"the allowed range is 1.0e3 to 1.0e12. ",
-			requested_gain,
+			requested_gain_in_volts_per_amp,
 			amplifier->record->name );
 	}
 
@@ -547,7 +550,8 @@ mxd_sr570_set_offset( MX_AMPLIFIER *amplifier )
 
 	MX_SR570 *sr570 = NULL;
 	char command[40];
-	double offset_current, abs_offset_current, requested_offset;
+	double requested_offset_in_volts;
+	double offset_current, abs_offset_current;
 	double max_offset_current, min_offset_current;
 	double max_offset_voltage;
 	int mantissa, exponent, sign_offset_current, offset_current_setting;
@@ -558,7 +562,7 @@ mxd_sr570_set_offset( MX_AMPLIFIER *amplifier )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	requested_offset = amplifier->offset;
+	requested_offset_in_volts = amplifier->offset;
 
 	/* Specify the minimum and maximum offset currents in amps. */
 
@@ -569,7 +573,7 @@ mxd_sr570_set_offset( MX_AMPLIFIER *amplifier )
 
 	/* Compute the input offset current in amps. */
 
-	offset_current = - mx_divide_safely( amplifier->offset,
+	offset_current = mx_divide_safely( amplifier->offset,
 						amplifier->gain );
 
 	abs_offset_current = fabs( offset_current );
@@ -645,7 +649,7 @@ mxd_sr570_set_offset( MX_AMPLIFIER *amplifier )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"The requested amplifier offset of %g volts for amplifier '%s' is "
 	"outside the allowed range of %g volts to %g volts.",
-			requested_offset, amplifier->record->name,
+			requested_offset_in_volts, amplifier->record->name,
 			-max_offset_voltage, max_offset_voltage );
 	}
 
@@ -665,9 +669,9 @@ mxd_sr570_set_offset( MX_AMPLIFIER *amplifier )
 	/* Set the sign of the input offset current. */
 
 	if ( sign_offset_current == 1 ) {
-		strlcpy( command, "IOSN 0", sizeof(command) );
-	} else {
 		strlcpy( command, "IOSN 1", sizeof(command) );
+	} else {
+		strlcpy( command, "IOSN 0", sizeof(command) );
 	}
 
 	mx_status = mx_rs232_putline( sr570->rs232_record,
