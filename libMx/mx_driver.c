@@ -680,8 +680,6 @@ MX_DRIVER mx_type_table[] = {
 				&mxi_vxworks_rs232_rfield_def_ptr},
 #endif /* OS_VXWORKS */
 
-#if ( defined(OS_LINUX) && (MX_GLIBC_VERSION >= 0L) )
-
 {"camera_link_rs232", MXI_232_CAMERA_LINK, MXI_RS232,    MXR_INTERFACE,
 				&mxi_camera_link_rs232_record_function_list,
 				NULL,
@@ -737,6 +735,8 @@ MX_DRIVER mx_type_table[] = {
 				&mxi_prologix_gpib_function_list,
 				&mxi_prologix_num_record_fields,
 				&mxi_prologix_rfield_def_ptr},
+
+#if ( defined(OS_LINUX) && (MX_GLIBC_VERSION >= 2008000L) )
 
 {"linux_usbtmc",   MXI_GPIB_USBTMC,     MXI_GPIB,          MXR_INTERFACE,
 				&mxi_linux_usbtmc_record_function_list,

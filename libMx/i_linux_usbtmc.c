@@ -25,7 +25,7 @@
 
 #include "mx_util.h"
 
-#if defined( OS_LINUX ) && ( MX_GLIBC_VERSION >= 0L )
+#if defined( OS_LINUX ) && ( MX_GLIBC_VERSION >= 2008000L )
 
 #include <stdlib.h>
 #include <unistd.h>
