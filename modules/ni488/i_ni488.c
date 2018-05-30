@@ -1030,10 +1030,10 @@ mxi_ni488_interface_clear( MX_GPIB *gpib )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXI_NI488_DEBUG
-	MX_DEBUG(-2,("%s invoked for GPIB board %d.",
-		fname, ni488->board_number));
-#endif
+	if ( gpib->gpib_flags & MXF_GPIB_DEBUG ) {
+		MX_DEBUG(-2,("%s invoked for GPIB '%s', board %ld.",
+			fname, gpib->record->name, ni488->board_number));
+	}
 
 	ibsta_value = ibsic( ni488->board_descriptor );
 
@@ -1060,10 +1060,10 @@ mxi_ni488_device_clear( MX_GPIB *gpib )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXI_NI488_DEBUG
-	MX_DEBUG(-2,("%s invoked for GPIB board %d.",
-		fname, ni488->board_number));
-#endif
+	if ( gpib->gpib_flags & MXF_GPIB_DEBUG ) {
+		MX_DEBUG(-2,("%s invoked for GPIB '%s', board %ld.",
+			fname, gpib->record->name, ni488->board_number));
+	}
 
 	DevClear( ni488->board_number, NOADDR );
 
@@ -1093,10 +1093,12 @@ mxi_ni488_selective_device_clear( MX_GPIB *gpib, long address )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXI_NI488_DEBUG
-	MX_DEBUG(-2,("%s invoked for GPIB board %d, address %d.",
-		fname, ni488->board_number, address));
-#endif
+	if ( gpib->gpib_flags & MXF_GPIB_DEBUG ) {
+		MX_DEBUG(-2,
+		("%s invoked for GPIB '%s', board %ld, address %ld.",
+			fname, gpib->record->name,
+			ni488->board_number, address));
+	}
 
 	mx_status = mxi_ni488_get_device_descriptor( gpib,
 						ni488, address, &dev );
@@ -1130,10 +1132,10 @@ mxi_ni488_local_lockout( MX_GPIB *gpib )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXI_NI488_DEBUG
-	MX_DEBUG(-2,("%s invoked for GPIB board %d.",
-		fname, ni488->board_number));
-#endif
+	if ( gpib->gpib_flags & MXF_GPIB_DEBUG ) {
+		MX_DEBUG(-2,("%s invoked for GPIB '%s', board %ld.",
+			fname, gpib->record->name, ni488->board_number));
+	}
 
 	SendLLO( ni488->board_number );
 
@@ -1163,10 +1165,12 @@ mxi_ni488_remote_enable( MX_GPIB *gpib, long address )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXI_NI488_DEBUG
-	MX_DEBUG(-2,("%s invoked for GPIB board %d, address %d.",
-		fname, ni488->board_number, address));
-#endif
+	if ( gpib->gpib_flags & MXF_GPIB_DEBUG ) {
+		MX_DEBUG(-2,
+		("%s invoked for GPIB '%s', board %ld, address %ld.",
+			fname, gpib->record->name,
+			ni488->board_number, address));
+	}
 
 	ibsta_value = ibsre( ni488->board_descriptor, 1 );
 
@@ -1195,10 +1199,12 @@ mxi_ni488_go_to_local( MX_GPIB *gpib, long address )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXI_NI488_DEBUG
-	MX_DEBUG(-2,("%s invoked for GPIB board %d, address %d.",
-		fname, ni488->board_number, address));
-#endif
+	if ( gpib->gpib_flags & MXF_GPIB_DEBUG ) {
+		MX_DEBUG(-2,
+		("%s invoked for GPIB '%s', board %ld, address %ld.",
+			fname, gpib->record->name,
+			ni488->board_number, address));
+	}
 
 	mx_status = mxi_ni488_get_device_descriptor( gpib,
 						ni488, address, &dev );
@@ -1232,10 +1238,12 @@ mxi_ni488_trigger( MX_GPIB *gpib, long address )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXI_NI488_DEBUG
-	MX_DEBUG(-2,("%s invoked for GPIB board %d, address %d.",
-		fname, ni488->board_number, address));
-#endif
+	if ( gpib->gpib_flags & MXF_GPIB_DEBUG ) {
+		MX_DEBUG(-2,
+		("%s invoked for GPIB '%s', board %ld, address %ld.",
+			fname, gpib->record->name,
+			ni488->board_number, address));
+	}
 
 	mx_status = mxi_ni488_get_device_descriptor( gpib,
 						ni488, address, &dev );
@@ -1269,10 +1277,12 @@ mxi_ni488_wait_for_service_request( MX_GPIB *gpib, double timeout )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXI_NI488_DEBUG
-	MX_DEBUG(-2,("%s invoked for GPIB board %d, timeout = %g.",
-		fname, ni488->board_number, timeout));
-#endif
+	if ( gpib->gpib_flags & MXF_GPIB_DEBUG ) {
+		MX_DEBUG(-2,
+		("%s invoked for GPIB '%s', board %ld, timeout = %g.",
+			fname, gpib->record->name,
+			ni488->board_number, timeout));
+	}
 
 	/* FIXME - The board address is _assumed_ to be zero. */
 
@@ -1313,10 +1323,12 @@ mxi_ni488_serial_poll( MX_GPIB *gpib, long address,
 		"The serial_poll_byte pointer passed was NULL." );
 	}
 
-#if MXI_NI488_DEBUG
-	MX_DEBUG(-2,("%s invoked for GPIB board %d, address %d.",
-		fname, ni488->board_number, address));
-#endif
+	if ( gpib->gpib_flags & MXF_GPIB_DEBUG ) {
+		MX_DEBUG(-2,
+		("%s invoked for GPIB '%s', board %ld, address %ld.",
+			fname, gpib->record->name,
+			ni488->board_number, address));
+	}
 
 	mx_status = mxi_ni488_get_device_descriptor( gpib,
 						ni488, address, &dev );
