@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004, 2006, 2008, 2010, 2015, 2017
+ * Copyright 1999-2002, 2004, 2006, 2008, 2010, 2015, 2017-2018
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -955,8 +955,11 @@ mxd_keithley428_command( MX_KEITHLEY428 *keithley428, char *command,
 	if ( strncmp( error_status, "428", 3 ) != 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 		"Attempt to contact the Keithley 428 at GPIB address %ld "
-			"on interface '%s' failed.  Is it turned on?",
-			interface->address, interface->record->name );
+			"on interface '%s' failed.  Is it turned on?  "
+			"error_status = '%s'",
+			interface->address,
+			interface->record->name,
+			error_status );
 	}
 
 	/* Some error occurred.  Exit with the first error message that

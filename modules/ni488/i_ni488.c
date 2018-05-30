@@ -20,7 +20,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004-2006, 2008, 2010, 2015
+ * Copyright 1999, 2001-2002, 2004-2006, 2008, 2010, 2015, 2018
  *   Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -766,6 +766,7 @@ mxi_ni488_read( MX_GPIB *gpib,
 	MX_NI488 *ni488 = NULL;
 	char *ptr;
 	int dev, ibsta_value;
+	mx_bool_type debug;
 	mx_status_type mx_status;
 
 	mx_status = mxi_ni488_get_pointers( gpib, &ni488, fname );
@@ -817,10 +818,22 @@ mxi_ni488_read( MX_GPIB *gpib,
 		}
 	}
 
-#if MXI_NI488_DEBUG
-	MX_DEBUG(-2,("%s: read '%s' from GPIB board %d, address %d",
-		fname, buffer, ni488->board_number, address));
-#endif
+	debug = FALSE;
+
+	if ( gpib->gpib_flags & MXF_GPIB_DEBUG ) {
+		debug = TRUE;
+	}
+	if ( flags & MXF_GPIB_DEBUG ) {
+		debug = TRUE;
+	}
+
+	if ( debug ) {
+		MX_DEBUG(-2,
+		("%s: read '%s' from GPIB '%s', board %ld, address %ld",
+			fname, buffer, gpib->record->name,
+			ni488->board_number, address));
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -840,6 +853,7 @@ mxi_ni488_write( MX_GPIB *gpib,
 	char stack_buffer[100];
 	char *heap_buffer_ptr, *buffer_ptr;
 	unsigned long write_terminator;
+	mx_bool_type debug;
 	mx_status_type mx_status;
 
 	mx_status = mxi_ni488_get_pointers( gpib, &ni488, fname );
@@ -852,11 +866,29 @@ mxi_ni488_write( MX_GPIB *gpib,
 		"The buffer pointer passed was NULL." );
 	}
 
+	debug = FALSE;
+
+	if ( gpib->gpib_flags & MXF_GPIB_DEBUG ) {
+		debug = TRUE;
+	}
+	if ( flags & MXF_GPIB_DEBUG ) {
+		debug = TRUE;
+	}
+
+	if ( debug ) {
+		MX_DEBUG(-2,
+		("%s: writing '%s' to GPIB '%s', board %ld, address %ld",
+			fname, buffer, gpib->record->name,
+			ni488->board_number, address));
+	}
+
+#if 0
 	MX_DEBUG( 2,
 	("%s: gpib = '%s', address = %ld, buffer = '%s', bytes_to_write = %ld, "
 	"bytes_written = %p, flags = %lu",
 		fname, gpib->record->name, address, buffer,
 		(long) bytes_to_write, bytes_written, flags ));
+#endif
 
 	/* If the write terminator is not '\0', then the buffer must
 	 * have a line terminator character added at the end, since
