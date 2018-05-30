@@ -21,6 +21,8 @@ MXGET_SRCS = mxget.c
 
 MXPUT_SRCS = mxput.c
 
+MXGPIB_SRCS = mxgpib.c
+
 # Mxserial is not available on all platforms, so we instead define the
 # MXSERIAL_SRCS macro in the platform-specific Makehead.* files.
 
@@ -50,7 +52,7 @@ include ../libMx/Makehead.$(MX_ARCH)
 #
 
 mx_build: $(MXDRIVERINFO_NAME) $(MXMONITOR_NAME) \
-		$(MXGET_NAME) $(MXPUT_NAME) $(MXSERIAL_NAME)
+		$(MXGET_NAME) $(MXPUT_NAME) $(MXSERIAL_NAME) $(MXGPIB_NAME)
 
 mx_clean:
 	-$(RM) *.$(OBJ)
@@ -94,4 +96,7 @@ mxget.$(OBJ):
 
 mxput.$(OBJ):
 	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mxput.c
+
+mxgpib.$(OBJ):
+	$(COMPILE) $(CFLAGS) $(APP_FLAGS) mxgpib.c
 

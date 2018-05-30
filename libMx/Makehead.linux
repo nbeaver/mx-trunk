@@ -251,6 +251,7 @@ MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.$(OBJ))
 MXMONITOR_OBJS    = $(MXMONITOR_SRCS:.c=.$(OBJ))
 MXGET_OBJS        = $(MXGET_SRCS:.c=.$(OBJ))
 MXPUT_OBJS        = $(MXPUT_SRCS:.c=.$(OBJ))
+MXGPIB_OBJS       = $(MXGPIB_SRCS:.c=.$(OBJ))
 
 #----
 
@@ -432,12 +433,21 @@ $(MXPUT_NAME): $(MXPUT_OBJS) $(MX_LIBRARY_PATH)
 
 #----
 
+MXGPIB_NAME           = mxgpib
+
+$(MXGPIB_NAME): $(MXGPIB_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(LINKFLAGS) -o $(MXGPIB_NAME) \
+		$(MXGPIB_OBJS) $(LIB_DIRS) -lMx $(LIBRARIES)
+
+#----
+
 util_install:
 	install -m 755 $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
 	install -m 755 $(MXMONITOR_NAME) $(MX_INSTALL_DIR)/bin
 	install -m 755 $(MXSERIAL_NAME) $(MX_INSTALL_DIR)/bin
 	install -m 755 $(MXGET_NAME) $(MX_INSTALL_DIR)/bin
 	install -m 755 $(MXPUT_NAME) $(MX_INSTALL_DIR)/bin
+	install -m 755 $(MXGPIB_NAME) $(MX_INSTALL_DIR)/bin
 
 #----
 
