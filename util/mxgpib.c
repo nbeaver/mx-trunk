@@ -255,8 +255,9 @@ main( int argc, char *argv[] )
 	}
 
 	fprintf( stderr,
-		"mxgpib for server %s, port %d, GPIB '%s', address %d\n",
+	"mxgpib starting for server %s, port %d, GPIB '%s', address %d\n",
 		server_name, server_port, gpib_record_name, gpib_address );
+	fprintf( stderr, "press ctrl-C to exit\n" );
 
 	while (TRUE) {
 		printf( "> " );
@@ -265,7 +266,7 @@ main( int argc, char *argv[] )
 
 		mx_gpib_putline( gpib_record, gpib_address,
 					gpib_buffer, NULL, 0x0 );
-		mx_msleep(1000);
+		mx_msleep(250);
 		mx_gpib_getline( gpib_record, gpib_address,
 					gpib_buffer, sizeof(gpib_buffer),
 					NULL, 0x0 );
