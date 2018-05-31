@@ -261,7 +261,6 @@ mxi_ni488_print_interface_structure( FILE *file, MX_RECORD *record )
 
 	MX_GPIB *gpib;
 	MX_NI488 *ni488 = NULL;
-	char read_eos_char, write_eos_char;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -285,28 +284,8 @@ mxi_ni488_print_interface_structure( FILE *file, MX_RECORD *record )
 					gpib->default_io_timeout);
 	fprintf(file, "  default EOI mode       = %ld\n",
 					gpib->default_eoi_mode);
-
-	read_eos_char = gpib->default_read_terminator;
-
-	if ( isprint(read_eos_char) ) {
-		fprintf(file,
-		      "  default read EOS char  = 0x%02x (%c)\n",
-			read_eos_char, read_eos_char);
-	} else {
-		fprintf(file,
-		      "  default read EOS char  = 0x%02x\n", read_eos_char);
-	}
-
-	write_eos_char = gpib->default_write_terminator;
-
-	if ( isprint(write_eos_char) ) {
-		fprintf(file,
-		      "  default write EOS char = 0x%02x (%c)\n",
-			write_eos_char, write_eos_char);
-	} else {
-		fprintf(file,
-		      "  default write EOS char = 0x%02x\n", write_eos_char);
-	}
+	fprintf(file, "  default EOS mode       = 0x%lx\n",
+					gpib->default_eos_mode);
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -354,65 +333,6 @@ mxi_ni488_open( MX_RECORD *record )
 }
 
 /* ========== Internal only functions ========== */
-
-static mx_status_type
-mxi_ni488_compute_eos_value( MX_GPIB *gpib,
-				long address,
-				unsigned long *eos_value )
-{
-	static const char fname[] = "mxi_ni488_compute_eos_value()";
-
-	unsigned long read_value, write_value;
-
-	if ( gpib == (MX_GPIB *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_GPIB pointer passed was NULL." );
-	}
-	if ( eos_value == (unsigned long *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The eos_value pointer passed was NULL." );
-	}
-
-	read_value = gpib->read_terminator[address];
-	write_value = gpib->write_terminator[address];
-
-	if ( read_value > 0xff ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"EOS terminators for the NI-488 driver must be only one byte long." );
-	}
-
-	if ( read_value != 0 ) {
-		if ( (write_value != read_value) && (write_value != 0) ) {
-			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"If the read terminator (currently %#lx) and "
-		"the write terminator (currently %#lx) for GPIB interface '%s' "
-		"are both not equal to zero, then they must be equal.  "
-		"However, the current values of the line terminators "
-		"are not equal.",  read_value, write_value,
-				gpib->record->name );
-		}
-	}
-
-#ifndef REOS
-#define REOS 	0x400
-#endif
-
-#ifndef XEOS
-#define XEOS	0x800
-#endif
-
-	if ( read_value ) {
-		*eos_value = REOS | read_value;
-	} else {
-		*eos_value = write_value;
-	}
-
-	if ( write_value ) {
-		*eos_value |= XEOS;
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
 
 static double
 mxi_ni488_compute_io_timeout( int time_duration_code )
@@ -553,7 +473,6 @@ mxi_ni488_open_device( MX_GPIB *gpib, long address )
 
 	MX_NI488 *ni488 = NULL;
 	int dev, ibsta_value, time_duration_code;
-	unsigned long eos_value;
 	short device_present;
 	mx_status_type mx_status;
 
@@ -561,8 +480,6 @@ mxi_ni488_open_device( MX_GPIB *gpib, long address )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	eos_value = 0;	/* Suppress GCC 4 uninitialized variable warning */
 
 #if MXI_NI488_DEBUG
 	MX_DEBUG(-2,("%s invoked for GPIB board %d, address %d.",
@@ -572,26 +489,21 @@ mxi_ni488_open_device( MX_GPIB *gpib, long address )
 	time_duration_code = mxi_ni488_compute_time_duration_code(
 						gpib->io_timeout[address] );
 
-	mx_status = mxi_ni488_compute_eos_value( gpib, address, &eos_value );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
 	/* Get a device descriptor for this address. */
 
 	dev = ibdev( ni488->board_number, address, 0,
 				time_duration_code,
 				gpib->eoi_mode[address],
-				(int) eos_value );
+				gpib->eos_mode[address] );
 
 	if ( gpib->gpib_flags & MXF_GPIB_DEBUG ) {
 		MX_DEBUG(-2,
 	("%s: ibdev( board_number = %ld, address = %ld, secondary_address=0, "
-	"io_timeout_value=%d, eoi_mode=%ld, eos_value=%#x ) = %d",
+	"io_timeout_value=%d, eoi_mode=%ld, eos_mode=%#lx ) = %d",
 				fname, ni488->board_number, address,
 				time_duration_code,
 				gpib->eoi_mode[address],
-				(int) eos_value, dev ));
+				gpib->eos_mode[address], dev ));
 	}
 
 	ni488->device_descriptor[address] = dev;

@@ -1,4 +1,4 @@
 ttyUSB0   interface rs232 tty "" "" 9600 8 N 1 N 0xa 0xa -1 0x1000000 /dev/ttyUSB0
-prologix  interface gpib prologix "" "" 1.0 1 0xa 0xa 0x0 ttyUSB0
+prologix  interface gpib prologix "" "" 1.0 1 0x0 0xa 0xa 0x0 ttyUSB0
 k1        interface controller keithley199 "" "" prologix:1 0x0
 k1_ainput device analog_input keithley199_ainput "" "" 0 1 0 units 0x0 0 soft_timer k1

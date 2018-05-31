@@ -53,6 +53,7 @@ mx_gpib_finish_record_initialization( MX_RECORD *gpib_record )
 
 		gpib->io_timeout[i] = gpib->default_io_timeout;
 		gpib->eoi_mode[i] = gpib->default_eoi_mode;
+		gpib->eos_mode[i] = gpib->default_eos_mode;
 		gpib->read_terminator[i] = gpib->default_read_terminator;
 		gpib->write_terminator[i] = gpib->default_write_terminator;
 	}

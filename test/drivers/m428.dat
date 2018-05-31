@@ -1,4 +1,4 @@
 keithley_rs232   interface rs232 tty "" "" 9600 8 N 1 S 0xd 0xd -1 0x0 /dev/ttyS1
-k500s            interface gpib k500serial "" "" 13 0 0xa 0xa 0x0 keithley_rs232
+k500s            interface gpib k500serial "" "" 13 0 0x0 0xa 0xa 0x0 keithley_rs232
 keithley2        device amplifier keithley428 "" "" 1e+09 0.95 0.1 k500s:2
 timer1           device timer soft_timer "" ""

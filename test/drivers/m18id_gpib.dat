@@ -1,5 +1,5 @@
 keithley_rs232 interface rs232 tty "" "" 9600 8 N 1 N 0xd 0xd -1 0x0 /dev/ttyb
-k500s          interface gpib k500serial "" "" 13 0 0xa 0xa 0x0 keithley_rs232
+k500s          interface gpib k500serial "" "" 13 0 0xa 0x0 0xa 0x0 keithley_rs232
 keithley_I0    device amplifier keithley428 "" "" 1000000 0.01 0.001 k500s:1
 keithley_I1    device amplifier keithley428 "" "" 1000000 0.01 0.001 k500s:2
 lakeshore      device motor ls330_motor "" "" 295.7 0 0 1000000 0 -1 -1 1 0 K k500s:12 0

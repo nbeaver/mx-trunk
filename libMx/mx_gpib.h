@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2007 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004-2007, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -45,6 +45,7 @@ typedef struct {
 
 	double default_io_timeout;			/* in seconds */
 	long default_eoi_mode;
+	unsigned long default_eos_mode;
 	unsigned long default_read_terminator;
 	unsigned long default_write_terminator;
 	unsigned long gpib_flags;
@@ -54,6 +55,7 @@ typedef struct {
 
 	double io_timeout[MX_NUM_GPIB_ADDRESSES];	/* in seconds */
 	long eoi_mode[MX_NUM_GPIB_ADDRESSES];
+	unsigned long eos_mode[MX_NUM_GPIB_ADDRESSES];
 	unsigned long read_terminator[MX_NUM_GPIB_ADDRESSES];
 	unsigned long write_terminator[MX_NUM_GPIB_ADDRESSES];
 
@@ -111,6 +113,10 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_GPIB, default_eoi_mode), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
+  {-1, -1, "default_eos_mode", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_GPIB, default_eos_mode), \
+	{0}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
   {-1, -1, "default_read_terminator", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_GPIB, default_read_terminator), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
@@ -138,6 +144,10 @@ typedef struct {
   {-1, -1, "eoi_mode", MXFT_LONG, NULL, 1, {MX_NUM_GPIB_ADDRESSES}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_GPIB, eoi_mode), \
 	{sizeof(int)}, NULL, 0}, \
+  \
+  {-1, -1, "eos_mode", MXFT_HEX, NULL, 1, {MX_NUM_GPIB_ADDRESSES}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_GPIB, eos_mode), \
+	{sizeof(unsigned long)}, NULL, 0}, \
   \
   {-1, -1, "read_terminator", MXFT_HEX, NULL, 1, {MX_NUM_GPIB_ADDRESSES}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_GPIB, read_terminator), \
