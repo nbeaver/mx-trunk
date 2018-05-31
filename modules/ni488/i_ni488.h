@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004-2006 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2004-2006, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,6 +26,8 @@ typedef struct {
 	MX_RECORD *record;
 
 	long board_number;
+	unsigned long ni488_flags;
+
 	long board_descriptor;
 	long device_descriptor[MX_NUM_GPIB_ADDRESSES];
 } MX_NI488;
@@ -77,6 +79,10 @@ extern MX_RECORD_FIELD_DEFAULTS *mxi_ni488_rfield_def_ptr;
   {-1, -1, "board_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NI488, board_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "ni488_flags", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_NI488, ni488_flags), \
+	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
   {-1, -1, "board_descriptor", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NI488, board_descriptor), \

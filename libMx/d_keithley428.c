@@ -246,6 +246,19 @@ mxd_keithley428_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	gpib = (MX_GPIB *) interface->record->record_class_struct;
+
+	/* For the Keithley 428, we force on EOI and force off EOS. */
+
+	/* Force EOI signalling on. */
+
+	gpib->eoi_mode[ interface->address - 1 ] = 1;
+
+	gpib->read_terminator[ interface->address - 1 ] = 0x0a;
+	gpib->write_terminator[ interface->address - 1 ] = 0x0;
+
+	/*---*/
+
 	flags = keithley428->keithley_flags;
 
 	mx_status = mx_gpib_open_device(interface->record, interface->address);
@@ -253,6 +266,7 @@ mxd_keithley428_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if 0
 	/* Send a selective device clear command to the Keithley. */
 
 	mx_status = mx_gpib_selective_device_clear(
@@ -260,15 +274,15 @@ mxd_keithley428_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+#endif
 
 	/* Set the ASCII terminator for the Keithley. */
-
-	gpib = (MX_GPIB *) interface->record->record_class_struct;
 
 	read_terminator = gpib->read_terminator[ interface->address - 1 ];
 
 	switch( read_terminator ) {
 	case 0x0d0a:
+	case 0x0:
 		strlcpy( command, "Y0X", sizeof(command) );	/* CR LF */
 		break;
 	case 0x0a0d:
@@ -884,6 +898,10 @@ mxd_keithley428_command( MX_KEITHLEY428 *keithley428, char *command,
 	char *ptr;
 	int i;
 	MX_INTERFACE *interface = NULL;
+	
+	int local_response_length = 0;
+	char *local_response_ptr = NULL;
+	char local_response_buffer[1024];
 	unsigned long flags;
 	mx_status_type mx_status;
 
@@ -914,15 +932,27 @@ mxd_keithley428_command( MX_KEITHLEY428 *keithley428, char *command,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Get the response, if one is expected. */
+	/* The Keithley 428 always sends a response of some sort, but
+	 * some of them we do not want.  If the response pointer is set
+	 * to NULL, then we redirect the response we are ignoring to
+	 * a local buffer.
+	 */
 
-	if ( response != NULL ) {
-		mx_status = mx_gpib_getline(interface->record, interface->address,
-			response, response_buffer_length, NULL, debug_flag );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+	if ( response == NULL ) {
+		local_response_ptr = local_response_buffer;
+		local_response_length = sizeof(local_response_buffer);
+	} else {
+		local_response_ptr = response;
+		local_response_length = response_buffer_length;
 	}
+
+	/* Get the response. */
+
+	mx_status = mx_gpib_getline(interface->record, interface->address,
+		local_response_ptr, local_response_length, NULL, debug_flag );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Do we skip over checking for errors? */
 
