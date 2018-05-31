@@ -579,24 +579,20 @@ mxi_ni488_open_device( MX_GPIB *gpib, long address )
 
 	/* Get a device descriptor for this address. */
 
-#if MXI_NI488_DEBUG
-	MX_DEBUG(-2,
-	("%s: ibdev( board_number = %d, address = %d, secondary_address=0, "
-	"io_timeout_value=%d, eoi_mode=%d, eos_value=%#x )",
-				fname, ni488->board_number, address,
-				time_duration_code,
-				gpib->eoi_mode[address],
-				(int) eos_value ));
-#endif
-
 	dev = ibdev( ni488->board_number, address, 0,
 				time_duration_code,
 				gpib->eoi_mode[address],
 				(int) eos_value );
 
-#if MXI_NI488_DEBUG
-	MX_DEBUG(-2,("%s: dev = %d", fname, dev));
-#endif
+	if ( gpib->gpib_flags & MXF_GPIB_DEBUG ) {
+		MX_DEBUG(-2,
+	("%s: ibdev( board_number = %ld, address = %ld, secondary_address=0, "
+	"io_timeout_value=%d, eoi_mode=%ld, eos_value=%#x ) = %d",
+				fname, ni488->board_number, address,
+				time_duration_code,
+				gpib->eoi_mode[address],
+				(int) eos_value, dev ));
+	}
 
 	ni488->device_descriptor[address] = dev;
 
@@ -641,10 +637,11 @@ mxi_ni488_open_device( MX_GPIB *gpib, long address )
 			address, ni488->record->name );
 	}
 
-#if MXI_NI488_DEBUG
-	MX_DEBUG(-2,("%s: device found at GPIB address %d for interface '%s'.",
-		fname, address, ni488->record->name));
-#endif
+	if ( gpib->gpib_flags & MXF_GPIB_DEBUG ) {
+		MX_DEBUG(-2,
+		("%s: device found at GPIB address %ld for interface '%s'.",
+			fname, address, ni488->record->name));
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
