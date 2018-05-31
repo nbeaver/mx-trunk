@@ -473,7 +473,9 @@ mxi_ni488_open_device( MX_GPIB *gpib, long address )
 
 	MX_NI488 *ni488 = NULL;
 	int dev, ibsta_value, time_duration_code;
+#if 1
 	short device_present;
+#endif
 	mx_status_type mx_status;
 
 	mx_status = mxi_ni488_get_pointers( gpib, &ni488, fname );
@@ -517,6 +519,7 @@ mxi_ni488_open_device( MX_GPIB *gpib, long address )
 			mxi_ni488_gpib_error_text( ibsta_value ) );
 	}
 
+#if 1
 	/* Is there an actual device located at this address? */
 
 	ibsta_value = ibln( ni488->board_descriptor,
@@ -554,6 +557,7 @@ mxi_ni488_open_device( MX_GPIB *gpib, long address )
 		("%s: device found at GPIB address %ld for interface '%s'.",
 			fname, address, ni488->record->name));
 	}
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -988,6 +992,13 @@ mxi_ni488_device_clear( MX_GPIB *gpib )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+#if 1
+MX_EXPORT mx_status_type
+mxi_ni488_selective_device_clear( MX_GPIB *gpib, long address )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+#else
 MX_EXPORT mx_status_type
 mxi_ni488_selective_device_clear( MX_GPIB *gpib, long address )
 {
@@ -1026,6 +1037,7 @@ mxi_ni488_selective_device_clear( MX_GPIB *gpib, long address )
 
 	return MX_SUCCESSFUL_RESULT;
 }
+#endif
 
 MX_EXPORT mx_status_type
 mxi_ni488_local_lockout( MX_GPIB *gpib )
