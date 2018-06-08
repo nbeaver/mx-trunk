@@ -276,7 +276,11 @@ mxv_epics_variable_open( MX_RECORD *record )
 	 */
 
 	#if ( MX_WORDSIZE == 64 )
-	epics_variable->do_64bit_conversion = TRUE;
+	if ( epics_variable->epics_type == MX_CA_LONG ) {
+		epics_variable->do_64bit_conversion = TRUE;
+	} else {
+		epics_variable->do_64bit_conversion = FALSE;
+	}
 	#else
 	epics_variable->do_64bit_conversion = FALSE;
 	#endif
