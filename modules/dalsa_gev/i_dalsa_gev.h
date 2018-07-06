@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2016-2017 Illinois Institute of Technology
+ * Copyright 2016-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,6 +26,9 @@
 
 #define MXF_DALSA_GEV_SHOW_CAMERA_LIST		0x1
 #define MXF_DALSA_GEV_SHOW_CONFIG_OPTIONS	0x2
+
+#define MXF_DALSA_GEV_DEBUG_DALSA_LIBRARY	0x1000
+#define MXF_DALSA_GEV_DEBUG_WAIT_THREAD		0x2000
 
 /*----*/
 

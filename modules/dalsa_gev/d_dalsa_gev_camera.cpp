@@ -249,18 +249,21 @@ static int num_type_names =
 
 static void
 dump_feature_hierarchy( MX_DALSA_GEV_CAMERA *dalsa_gev_camera,
+				MX_DALSA_GEV *dalsa_gev,
 				const GenApi::CNodePtr &feature_ptr,
 				int indent, mx_bool_type show_value )
 {
-#if 0
 	static const char fname[] = "dump_feature_hierarchy()";
-#endif
 
 	char saved_feature_name[MXU_DALSA_GEV_CAMERA_FEATURE_NAME_LENGTH+1];
 	char feature_value[MXU_DALSA_GEV_CAMERA_FEATURE_VALUE_LENGTH+1];
 	int feature_type;
 	short gev_status;
 	int i;
+	mx_bool_type debug_dalsa_library;
+
+	debug_dalsa_library =
+		dalsa_gev->dalsa_gev_flags & MXF_DALSA_GEV_DEBUG_DALSA_LIBRARY;
 
 	for ( i = 0; i < indent; i++ ) {
 		fputc( ' ', stderr );
@@ -282,7 +285,7 @@ dump_feature_hierarchy( MX_DALSA_GEV_CAMERA *dalsa_gev_camera,
 		    it_feature != features.end();
 		    it_feature++ )
 		{
-			dump_feature_hierarchy( dalsa_gev_camera,
+			dump_feature_hierarchy( dalsa_gev_camera, dalsa_gev,
 				(*it_feature), indent + 2, show_value );
 		}
 	} else {
@@ -304,12 +307,27 @@ dump_feature_hierarchy( MX_DALSA_GEV_CAMERA *dalsa_gev_camera,
 					feature_name,
 					sizeof(saved_feature_name) );
 
+				if ( debug_dalsa_library ) {
+					fprintf( stderr,
+				"%s: *** GevGetFeatureValueAsString( %p, '%s', "
+				"&feature_type, %lu, feature_value ) = ",
+					fname, dalsa_gev_camera->camera_handle,
+					feature_name, sizeof(feature_value) );
+				}
+
 				gev_status = GevGetFeatureValueAsString(
 					dalsa_gev_camera->camera_handle,
 					feature_name,
 					&feature_type,
 					sizeof(feature_value),
 					feature_value );
+
+				if ( debug_dalsa_library ) {
+					fprintf( stderr,
+				"%d; feature_type = %d, feature_value = "
+				"'%s' ***\n", gev_status,
+						feature_type, feature_value );
+				}
 
 				if ( gev_status != GEVLIB_OK ) {
 					fprintf( stderr,
@@ -335,6 +353,7 @@ dump_feature_hierarchy( MX_DALSA_GEV_CAMERA *dalsa_gev_camera,
 
 static mx_status_type
 mxd_dalsa_gev_camera_show_feature_list( MX_DALSA_GEV_CAMERA *dalsa_gev_camera,
+						MX_DALSA_GEV *dalsa_gev,
 						mx_bool_type show_value )
 					
 {
@@ -362,7 +381,8 @@ mxd_dalsa_gev_camera_show_feature_list( MX_DALSA_GEV_CAMERA *dalsa_gev_camera,
 
 	GenApi::CNodePtr root_ptr = feature_node_map->_GetNode("Root");
 
-	dump_feature_hierarchy( dalsa_gev_camera, root_ptr, 1, show_value );
+	dump_feature_hierarchy( dalsa_gev_camera, dalsa_gev,
+				root_ptr, 1, show_value );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -496,7 +516,8 @@ extern "C" {
 static GEV_STATUS
 mx_gev_get_next_image( GEV_CAMERA_HANDLE handle,
 			GEV_BUFFER_OBJECT **image_object_ptr,
-			struct timeval *pTimeout )
+			struct timeval *pTimeout,
+			mx_bool_type debug_wait_thread )
 {
 	static const char fname[] = "mx_gev_get_next_image()";
 
@@ -511,7 +532,17 @@ mx_gev_get_next_image( GEV_CAMERA_HANDLE handle,
 
 	    if ( image_object_ptr != NULL ) {
 
+		if ( debug_wait_thread ) {
+			fprintf( stderr,
+			"%s: *** GevGetBufferListFromHandle( %p ) = ",
+				fname, handle );
+		}
+
 		GEV_BUFFER_LIST *pBufList = GevGetBufferListFromHandle(handle);
+
+		if ( debug_wait_thread ) {
+			fprintf( stderr, "%p ***\n", pBufList );
+		}
 
 		if ( pBufList != NULL ) {
 
@@ -531,8 +562,20 @@ mx_gev_get_next_image( GEV_CAMERA_HANDLE handle,
 
 		    if ( valid_address_range ) {
 
+			if ( debug_wait_thread ) {
+			    fprintf( stderr,
+		"%s: *** DQueuePendEx( %p, %p [Timeout = (%lu,%lu)] ) = ",
+				fname, pBufList->pFullBuffers, pTimeout,
+				pTimeout->tv_sec, pTimeout->tv_usec );
+			}
+
 			*image_object_ptr = (GEV_BUFFER_OBJECT *)
 			    DQueuePendEx( pBufList->pFullBuffers, pTimeout );
+
+			if ( debug_wait_thread ) {
+				fprintf( stderr, "%p ***\n",
+					*image_object_ptr );
+			}
 
 			if ( (*image_object_ptr) == NULL ) {
 			    gev_status = GEVLIB_ERROR_TIME_OUT;
@@ -562,13 +605,12 @@ mxd_dalsa_gev_camera_image_wait_thread_fn( MX_THREAD *thread, void *args )
 	MX_RECORD *record = NULL;
 	MX_VIDEO_INPUT *vinput = NULL;
 	MX_DALSA_GEV_CAMERA *dalsa_gev_camera = NULL;
+	MX_DALSA_GEV *dalsa_gev = NULL;
 	long mx_total_num_frames;
-#if 0
-	unsigned long sleep_ms;
-#else
 	struct timeval wait_timeval;
-#endif
+
 	mx_bool_type image_available;
+	mx_bool_type debug_wait_thread;
 	mx_status_type mx_status;
 
 	short gev_status;
@@ -595,18 +637,22 @@ mxd_dalsa_gev_camera_image_wait_thread_fn( MX_THREAD *thread, void *args )
 			record->name );
 	}
 
-	dalsa_gev_camera = (MX_DALSA_GEV_CAMERA *) record->record_type_struct;
+	mx_status = mxd_dalsa_gev_camera_get_pointers( vinput,
+				&dalsa_gev_camera, &dalsa_gev, fname );
 
-	if ( dalsa_gev_camera == (MX_DALSA_GEV_CAMERA *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_DALSA_GEV_CAMERA pointer for record '%s' is NULL.",
-			record->name );
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	MX_DEBUG(-2,("%s: record = %p", fname, record));
 	MX_DEBUG(-2,("%s: dalsa_gev_camera = %p", fname, dalsa_gev_camera));
 	MX_DEBUG(-2,("%s: dalsa_gev_camera->camera_handle = %p",
 			fname, dalsa_gev_camera->camera_handle));
+	MX_DEBUG(-2,("%s: dalsa_gev = %p", fname, dalsa_gev));
+
+	debug_wait_thread =
+		dalsa_gev->dalsa_gev_flags & MXF_DALSA_GEV_DEBUG_WAIT_THREAD;
+
+	MX_DEBUG(-2,("%s: debug_wait_thread = %d", fname, debug_wait_thread ));
 
 	while (TRUE) {
 		image_available = FALSE;
@@ -617,7 +663,8 @@ mxd_dalsa_gev_camera_image_wait_thread_fn( MX_THREAD *thread, void *args )
 #if MXD_DALSA_GEV_CAMERA_USE_CUSTOM_GEV_GET_NEXT_IMAGE
 		gev_status = mx_gev_get_next_image(
 				dalsa_gev_camera->camera_handle,
-				&gev_buffer_object, &wait_timeval );
+				&gev_buffer_object, &wait_timeval,
+			        debug_wait_thread );
 #else
 		gev_status = GevGetNextImage(
 				dalsa_gev_camera->camera_handle,
@@ -794,15 +841,22 @@ mxd_dalsa_gev_camera_image_dead_reckoning_wait_thread_fn( MX_THREAD *thread,
 
 static mx_status_type
 mxd_dalsa_gev_camera_shadobox_trigger( MX_VIDEO_INPUT *vinput,
-					MX_DALSA_GEV_CAMERA *dalsa_gev_camera )
+					MX_DALSA_GEV_CAMERA *dalsa_gev_camera,
+					MX_DALSA_GEV *dalsa_gev )
 {
 	static const char fname[] = "mxd_dalsa_gev_camera_shadobox_trigger()";
 
 	MX_SEQUENCE_PARAMETERS *sp = NULL;
 	char synchronization_mode[80];
 	long gev_status;
+	mx_bool_type debug_dalsa_library;
 
 	sp = &(vinput->sequence_parameters);
+
+	synchronization_mode[0] = '\0';
+
+	MX_DEBUG(-2,("%s: vinput->trigger_mode = %#lx",
+		fname, vinput->trigger_mode ));
 
 	if ( vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
 		MX_DEBUG(-2,("%s: camera '%s' is using internal trigger.",
@@ -827,11 +881,32 @@ mxd_dalsa_gev_camera_shadobox_trigger( MX_VIDEO_INPUT *vinput,
 					sizeof(synchronization_mode) );
 			break;
 		}
+	} else {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The trigger mode for camera '%s' is not internal trigger "
+		"mode (0x1) or external trigger mode (0x2).  Instead, it is "
+		"in mode %#lx, which is illegal.",
+			vinput->record->name,
+			vinput->trigger_mode );
+	}
+
+	debug_dalsa_library =
+		dalsa_gev->dalsa_gev_flags & MXF_DALSA_GEV_DEBUG_DALSA_LIBRARY;
+
+	if ( debug_dalsa_library ) {
+		fprintf( stderr,
+    "%s: *** GevSetFeatureValueAsString( %p, 'SynchronizationMode', '%s' ) = ",
+			fname, dalsa_gev_camera->camera_handle,
+			synchronization_mode );
 	}
 
 	gev_status = GevSetFeatureValueAsString(
 			dalsa_gev_camera->camera_handle,
 			"SynchronizationMode", synchronization_mode );
+
+	if ( debug_dalsa_library ) {
+		fprintf( stderr, "%ld ***\n", gev_status );
+	}
 
 	if ( gev_status != GEVLIB_OK ) {
 		return mxd_dalsa_gev_camera_api_error( gev_status, fname,
@@ -846,11 +921,23 @@ mxd_dalsa_gev_camera_shadobox_trigger( MX_VIDEO_INPUT *vinput,
 		UINT32 extended_exposure_microseconds =
 			mx_round( 1.0e6 * sp->parameter_array[0] );
 
+		if ( debug_dalsa_library ) {
+			fprintf( stderr,
+	"%s: *** GevSetFeatureValue( %p, 'ExtendedExposure', %lu, &(%lu) ) = ",
+			fname, dalsa_gev_camera->camera_handle,
+			sizeof(UINT32),
+			(unsigned long) extended_exposure_microseconds );
+		}
+
 		gev_status = GevSetFeatureValue(
 				dalsa_gev_camera->camera_handle,
 				"ExtendedExposure",
 				sizeof(UINT32), 
 				&extended_exposure_microseconds );
+
+		if ( debug_dalsa_library ) {
+			fprintf( stderr, "%ld ***\n", gev_status );
+		}
 
 		if ( gev_status != GEVLIB_OK ) {
 			return mxd_dalsa_gev_camera_api_error(
@@ -957,6 +1044,7 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 	unsigned long i;
 	short gev_status;
 	char *ptr;
+	mx_bool_type debug_dalsa_library;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -975,6 +1063,9 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	debug_dalsa_library =
+		dalsa_gev->dalsa_gev_flags & MXF_DALSA_GEV_DEBUG_DALSA_LIBRARY;
 
 	/* Walk through the list of GEV_CAMERA_INFO objects to find the
 	 * camera that has the specified serial number.
@@ -1026,15 +1117,32 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 		("%s: calling GevOpenCameraBySN() for camera '%s'",
 		 	fname, serial_number_string ));
 
+		if ( debug_dalsa_library ) {
+			fprintf( stderr,
+    "%s: *** GevOpenCameraBySN( '%s', GevExclusiveMode, &camera_handle ) = ",
+				fname, serial_number_string );
+		}
+
 		gev_status = GevOpenCameraBySN( serial_number_string,
 					GevExclusiveMode,
 					&(dalsa_gev_camera->camera_handle) );
 	} else {
 		MX_DEBUG(-2,("%s: calling GevOpenCamera().", fname));
 
+		if ( debug_dalsa_library ) {
+			fprintf( stderr,
+		"%s: *** GevOpenCamera( GevExclusiveMode, &camera_handle ) = ",
+				fname );
+		}
+
 		gev_status = GevOpenCamera( selected_camera_object,
 					GevExclusiveMode,
 					&(dalsa_gev_camera->camera_handle) );
+	}
+
+	if ( debug_dalsa_library ) {
+		fprintf( stderr, "%d; camera_handle = %p ***\n",
+			gev_status, dalsa_gev_camera->camera_handle );
 	}
 
 	switch ( gev_status ) {
@@ -1132,6 +1240,13 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 			fname, dalsa_gev_camera->xml_filename ));
 #endif
 
+		if ( debug_dalsa_library ) {
+			fprintf( stderr,
+		"%s: *** GevInitGenICamXMLFeatures_From_File( %p, '%s' ) = ",
+				fname, dalsa_gev_camera->camera_handle,
+				dalsa_gev_camera->xml_filename );
+		}
+
 		gev_status = GevInitGenICamXMLFeatures_FromFile(
 					dalsa_gev_camera->camera_handle,
 					dalsa_gev_camera->xml_filename );
@@ -1141,9 +1256,20 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 		MX_DEBUG(-2,("%s: reading features from camera.", fname));
 #endif
 
+		if ( debug_dalsa_library ) {
+			fprintf( stderr,
+		"%s: *** GevInitGenICamXMLFeatures( %p, %d ) = ",
+				fname, dalsa_gev_camera->camera_handle,
+				write_xml_file );
+		}
+
 		gev_status = GevInitGenICamXMLFeatures(
 					dalsa_gev_camera->camera_handle,
 					write_xml_file );
+	}
+
+	if ( debug_dalsa_library ) {
+		fprintf( stderr, "%d ***\n", gev_status );
 	}
 
 	switch( gev_status ) {
@@ -1173,9 +1299,18 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 
 	/* Read in the feature node map. */ 
 
+	if ( debug_dalsa_library ) {
+		fprintf( stderr, "%s: *** GevGetFeatureNodeMap( %p ) = ",
+			fname, dalsa_gev_camera->camera_handle );
+	}
+
 	GenApi::CNodeMapRef *feature_node_map = 
     static_cast<GenApi::CNodeMapRef*>( GevGetFeatureNodeMap(
 					dalsa_gev_camera->camera_handle ) );
+
+	if ( debug_dalsa_library ) {
+		fprintf( stderr, "%p ***\n", feature_node_map );
+	}
 
 	dalsa_gev_camera->feature_node_map = feature_node_map;
 
@@ -1183,14 +1318,14 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 
 	if ( flags & MXF_DALSA_GEV_CAMERA_SHOW_FEATURES ) {
 		mx_status = mxd_dalsa_gev_camera_show_feature_list(
-						dalsa_gev_camera, FALSE );
+					dalsa_gev_camera, dalsa_gev, FALSE );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	}
 	if ( flags & MXF_DALSA_GEV_CAMERA_SHOW_FEATURE_VALUES ) {
 		mx_status = mxd_dalsa_gev_camera_show_feature_list(
-						dalsa_gev_camera, TRUE );
+					dalsa_gev_camera, dalsa_gev, TRUE );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1357,7 +1492,9 @@ mxd_dalsa_gev_camera_close( MX_RECORD *record )
 
 	MX_VIDEO_INPUT *vinput = NULL;
 	MX_DALSA_GEV_CAMERA *dalsa_gev_camera = NULL;
+	MX_DALSA_GEV *dalsa_gev = NULL;
 	short gev_status;
+	mx_bool_type debug_dalsa_library;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -1368,16 +1505,28 @@ mxd_dalsa_gev_camera_close( MX_RECORD *record )
 	vinput = (MX_VIDEO_INPUT *) record->record_class_struct;
 
 	mx_status = mxd_dalsa_gev_camera_get_pointers( vinput,
-					&dalsa_gev_camera, NULL, fname );
+					&dalsa_gev_camera, &dalsa_gev, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	debug_dalsa_library =
+		dalsa_gev->dalsa_gev_flags & MXF_DALSA_GEV_DEBUG_DALSA_LIBRARY;
 
 #if MXD_DALSA_GEV_CAMERA_DEBUG_OPEN
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
 
+	if ( debug_dalsa_library ) {
+		fprintf( stderr, "%s: *** GevCloseCamera( &(%p) ) = ",
+			fname, dalsa_gev_camera->camera_handle);
+	}
+
 	gev_status = GevCloseCamera( &(dalsa_gev_camera->camera_handle) );
+
+	if ( debug_dalsa_library ) {
+		fprintf( stderr, "%d ***\n", gev_status );
+	}
 
 	switch( gev_status ) {
 	case GEVLIB_OK:
@@ -1406,6 +1555,7 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 	static const char fname[] = "mxd_dalsa_gev_camera_arm()";
 
 	MX_DALSA_GEV_CAMERA *dalsa_gev_camera = NULL;
+	MX_DALSA_GEV *dalsa_gev = NULL;
 	MX_SEQUENCE_PARAMETERS *sp = NULL;
 	void *vector_pointer = NULL;
 	unsigned char **frame_buffer_array = NULL;
@@ -1413,10 +1563,11 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 	double exposure_time, frame_time;
 	int32_t total_num_frames_at_start, milliseconds_per_frame;
 	long gev_status;
+	mx_bool_type debug_dalsa_library;
 	mx_status_type mx_status;
 
 	mx_status = mxd_dalsa_gev_camera_get_pointers( vinput,
-					&dalsa_gev_camera, NULL, fname );
+					&dalsa_gev_camera, &dalsa_gev, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1425,9 +1576,21 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 	MX_DEBUG(-2,("%s invoked for video input '%s'",
 		fname, vinput->record->name ));
 #endif
+	debug_dalsa_library =
+		dalsa_gev->dalsa_gev_flags & MXF_DALSA_GEV_DEBUG_DALSA_LIBRARY;
+
 	/* If an imaging sequence was running, then stop it. */
 
+	if ( debug_dalsa_library ) {
+		fprintf( stderr, "%s: *** GevAbortImageTransfer( %p ) = ",
+			fname, dalsa_gev_camera->camera_handle );
+	}
+
 	gev_status = GevAbortImageTransfer( dalsa_gev_camera->camera_handle );
+
+	if ( debug_dalsa_library ) {
+		fprintf( stderr, "%ld ***\n", gev_status );
+	}
 
 	if ( gev_status != GEVLIB_OK ) {
 		return mxd_dalsa_gev_camera_api_error( gev_status, fname,
@@ -1517,9 +1680,20 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 		break;
 	}
 
+	if ( debug_dalsa_library ) {
+		fprintf( stderr,
+	 "%s: *** GevSetFeatureValueAsString( %p, 'AcquisitionMode', '%s' ) = ",
+	 		fname, dalsa_gev_camera->camera_handle,
+			acquisition_mode );
+	}
+
 	gev_status = GevSetFeatureValueAsString(
 			dalsa_gev_camera->camera_handle,
 			"AcquisitionMode", acquisition_mode );
+
+	if ( debug_dalsa_library ) {
+		fprintf( stderr, "%ld ***\n", gev_status );
+	}
 
 	if ( gev_status != GEVLIB_OK ) {
 		return mxd_dalsa_gev_camera_api_error( gev_status, fname,
@@ -1534,7 +1708,7 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 	switch( dalsa_gev_camera->model_type ) {
 	case MXT_DALSA_GEV_CAMERA_SHADOBOX:
 		mx_status = mxd_dalsa_gev_camera_shadobox_trigger(
-						vinput, dalsa_gev_camera );
+					vinput, dalsa_gev_camera, dalsa_gev );
 		break;
 	default:
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
@@ -1577,6 +1751,15 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 
 #if MXD_DALSA_GEV_CAMERA_USE_GEV_INITIALIZE_TRANSFER
 
+	if ( debug_dalsa_library ) {
+		fprintf( stderr,
+	    "%s: *** GevInitializeTransfer( %p, Asynchronous, %d, %d, %p ) = ",
+	    	fname, dalsa_gev_camera->camera_handle,
+		dalsa_gev_camera->frame_buffer_array_size_in_bytes,
+		dalsa_gev_camera->num_frame_buffers,
+		dalsa_gev_camera->frame_buffer_array );
+	}
+
 	gev_status = GevInitializeTransfer(
 			dalsa_gev_camera->camera_handle,
 			Asynchronous,
@@ -1593,6 +1776,14 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 			fname, vinput->record->name ));
 #else	/* Not GevInitializeTransfer() */
 
+	if ( debug_dalsa_library ) {
+		fprintf( stderr,
+	    "%s: *** GevInitImageTransfer( %p, Asynchronous, %lu, %p ) = ",
+	    	fname, dalsa_gev_camera->camera_handle,
+		dalsa_gev_camera->num_frame_buffers,
+		dalsa_gev_camera->frame_buffer_array );
+	}
+
 	gev_status = GevInitImageTransfer( dalsa_gev_camera->camera_handle,
 					Asynchronous,
 					dalsa_gev_camera->num_frame_buffers,
@@ -1608,6 +1799,9 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 
 #endif	/* Not GevInitializeTransfer() */
 
+	if ( debug_dalsa_library ) {
+		fprintf( stderr, "%ld ***\n", gev_status );
+	}
 
 	return mx_status;
 }
@@ -1618,16 +1812,21 @@ mxd_dalsa_gev_camera_trigger( MX_VIDEO_INPUT *vinput )
 	static const char fname[] = "mxd_dalsa_gev_camera_trigger()";
 
 	MX_DALSA_GEV_CAMERA *dalsa_gev_camera = NULL;
+	MX_DALSA_GEV *dalsa_gev = NULL;
 	MX_SEQUENCE_PARAMETERS *sp = NULL;
 	UINT32 num_frames_to_acquire;
 	GEV_STATUS gev_status;
+	mx_bool_type debug_dalsa_library;
 	mx_status_type mx_status;
 
 	mx_status = mxd_dalsa_gev_camera_get_pointers( vinput,
-					&dalsa_gev_camera, NULL, fname );
+					&dalsa_gev_camera, &dalsa_gev, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	debug_dalsa_library =
+		dalsa_gev->dalsa_gev_flags & MXF_DALSA_GEV_DEBUG_DALSA_LIBRARY;
 
 	sp = &(vinput->sequence_parameters);
 
@@ -1649,10 +1848,18 @@ mxd_dalsa_gev_camera_trigger( MX_VIDEO_INPUT *vinput )
 		break;
 	}
 
+	if ( debug_dalsa_library ) {
+		fprintf( stderr, "%s: *** GevStartImageTransfer( %p, %lu ) = ",
+			fname, dalsa_gev_camera->camera_handle,
+			(unsigned long) num_frames_to_acquire );
+	}
+
 	gev_status = GevStartImageTransfer( dalsa_gev_camera->camera_handle,
 						num_frames_to_acquire );
 
-	MXW_UNUSED( gev_status );
+	if ( debug_dalsa_library ) {
+		fprintf( stderr, "%d ***\n", gev_status );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1663,21 +1870,35 @@ mxd_dalsa_gev_camera_stop( MX_VIDEO_INPUT *vinput )
 	static const char fname[] = "mxd_dalsa_gev_camera_stop()";
 
 	MX_DALSA_GEV_CAMERA *dalsa_gev_camera = NULL;
+	MX_DALSA_GEV *dalsa_gev = NULL;
 	GEV_STATUS gev_status;
+	mx_bool_type debug_dalsa_library;
 	mx_status_type mx_status;
 
 	mx_status = mxd_dalsa_gev_camera_get_pointers( vinput,
-					&dalsa_gev_camera, NULL, fname );
+					&dalsa_gev_camera, &dalsa_gev, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	debug_dalsa_library =
+		dalsa_gev->dalsa_gev_flags & MXF_DALSA_GEV_DEBUG_DALSA_LIBRARY;
 
 #if MXD_DALSA_GEV_CAMERA_DEBUG_STOP
 	MX_DEBUG(-2,("%s invoked for video input '%s'.",
 		fname, vinput->record->name ));
 #endif
 
+	if ( debug_dalsa_library ) {
+		fprintf( stderr, "%s: *** GevStopImageTransfer( %p ) = ",
+			fname, dalsa_gev_camera->camera_handle );
+	}
+
 	gev_status = GevStopImageTransfer( dalsa_gev_camera->camera_handle );
+
+	if ( debug_dalsa_library ) {
+		fprintf( stderr, "%d ***\n", gev_status );
+	}
 
 	if ( gev_status != GEVLIB_OK ) {
 		return mxd_dalsa_gev_camera_api_error( gev_status,
@@ -1693,21 +1914,35 @@ mxd_dalsa_gev_camera_abort( MX_VIDEO_INPUT *vinput )
 	static const char fname[] = "mxd_dalsa_gev_camera_abort()";
 
 	MX_DALSA_GEV_CAMERA *dalsa_gev_camera = NULL;
+	MX_DALSA_GEV *dalsa_gev = NULL;
 	GEV_STATUS gev_status;
+	mx_bool_type debug_dalsa_library;
 	mx_status_type mx_status;
 
 	mx_status = mxd_dalsa_gev_camera_get_pointers( vinput,
-					&dalsa_gev_camera, NULL, fname );
+					&dalsa_gev_camera, &dalsa_gev, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	debug_dalsa_library =
+		dalsa_gev->dalsa_gev_flags & MXF_DALSA_GEV_DEBUG_DALSA_LIBRARY;
 
 #if MXD_DALSA_GEV_CAMERA_DEBUG_STOP
 	MX_DEBUG(-2,("%s invoked for video input '%s'.",
 		fname, vinput->record->name ));
 #endif
 
+	if ( debug_dalsa_library ) {
+		fprintf( stderr, "%s: *** GevAbortImageTransfer( %p ) = ",
+			fname, dalsa_gev_camera->camera_handle );
+	}
+
 	gev_status = GevAbortImageTransfer( dalsa_gev_camera->camera_handle );
+
+	if ( debug_dalsa_library ) {
+		fprintf( stderr, "%d ***\n", gev_status );
+	}
 
 	if ( gev_status != GEVLIB_OK ) {
 		return mxd_dalsa_gev_camera_api_error( gev_status,
@@ -1832,17 +2067,22 @@ mxd_dalsa_gev_camera_get_parameter( MX_VIDEO_INPUT *vinput )
 			"mxd_dalsa_gev_camera_get_parameter()";
 
 	MX_DALSA_GEV_CAMERA *dalsa_gev_camera = NULL;
+	MX_DALSA_GEV *dalsa_gev = NULL;
 	UINT32 uint32_width, uint32_height;
 	UINT32 uint32_x_offset, uint32_y_offset;
 	UINT32 uint32_image_format;
 	GEV_STATUS gev_status;
+	mx_bool_type debug_dalsa_library;
 	mx_status_type mx_status;
 
 	mx_status = mxd_dalsa_gev_camera_get_pointers( vinput,
-					&dalsa_gev_camera, NULL, fname );
+					&dalsa_gev_camera, &dalsa_gev, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	debug_dalsa_library =
+		dalsa_gev->dalsa_gev_flags & MXF_DALSA_GEV_DEBUG_DALSA_LIBRARY;
 
 #if MXD_DALSA_GEV_CAMERA_DEBUG_MX_PARAMETERS
 	MX_DEBUG(-2,("%s: record '%s', parameter '%s' (%ld)",
@@ -1859,11 +2099,30 @@ mxd_dalsa_gev_camera_get_parameter( MX_VIDEO_INPUT *vinput )
 	case MXLV_VIN_FORMAT:
 	case MXLV_VIN_FORMAT_NAME:
 	case MXLV_VIN_FRAMESIZE:
+
+		if ( debug_dalsa_library ) {
+			fprintf( stderr,
+			"%s: *** GevGetImageParameters( %p, &width, &height, "
+			"&x_offset, &y_offset, &image_format ) = ",
+				fname, dalsa_gev_camera->camera_handle );
+		}
+
 		gev_status = GevGetImageParameters(
 				dalsa_gev_camera->camera_handle,
 				&uint32_width, &uint32_height,
 				&uint32_x_offset, &uint32_y_offset,
 				&uint32_image_format );
+
+		if ( debug_dalsa_library ) {
+			fprintf( stderr,
+			"%d; width = %lu, height = %lu, x_offset = %lu, "
+			"y_offset = %lu, image_format = %lu ***\n",
+				gev_status, (unsigned long) uint32_width,
+				(unsigned long) uint32_height,
+				(unsigned long) uint32_x_offset,
+				(unsigned long) uint32_y_offset,
+				(unsigned long) uint32_image_format );
+		}
 
 		if ( gev_status != GEVLIB_OK ) {
 			return mxd_dalsa_gev_camera_api_error( gev_status,
@@ -2078,13 +2337,15 @@ mxd_dalsa_gev_camera_process_function( void *record_ptr,
 {
 	static const char fname[] = "mxd_dalsa_gev_camera_process_function()";
 
-	MX_RECORD *record;
-	MX_RECORD_FIELD *record_field;
-	MX_VIDEO_INPUT *vinput;
-	MX_DALSA_GEV_CAMERA *dalsa_gev_camera;
-	mx_status_type mx_status;
+	MX_RECORD *record = NULL;
+	MX_RECORD_FIELD *record_field = NULL;
+	MX_VIDEO_INPUT *vinput = NULL;
+	MX_DALSA_GEV_CAMERA *dalsa_gev_camera = NULL;
+	MX_DALSA_GEV *dalsa_gev = NULL;
 	short gev_status;
 	int feature_type;
+	mx_bool_type debug_dalsa_library;
+	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
 
@@ -2102,21 +2363,14 @@ mxd_dalsa_gev_camera_process_function( void *record_ptr,
 
 	vinput = (MX_VIDEO_INPUT *) record->record_class_struct;
 
-	if ( vinput == (MX_VIDEO_INPUT *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_VIDEO_INPUT pointer for record '%s' is NULL.",
-			record->name );
-	}
+	mx_status = mxd_dalsa_gev_camera_get_pointers( vinput,
+					&dalsa_gev_camera, &dalsa_gev, fname );
 
-	dalsa_gev_camera = (MX_DALSA_GEV_CAMERA *) record->record_type_struct;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	if ( dalsa_gev_camera == (MX_DALSA_GEV_CAMERA *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_DALSA_GEV_CAMERA pointer for record '%s' is NULL.",
-			record->name );
-	}
-
-	mx_status = MX_SUCCESSFUL_RESULT;
+	debug_dalsa_library =
+		dalsa_gev->dalsa_gev_flags & MXF_DALSA_GEV_DEBUG_DALSA_LIBRARY;
 
 	switch( operation ) {
 	case MX_PROCESS_GET:
@@ -2126,12 +2380,26 @@ mxd_dalsa_gev_camera_process_function( void *record_ptr,
 					dalsa_gev_camera );
 			break;
 		case MXLV_DALSA_GEV_CAMERA_FEATURE_VALUE:
+			if ( debug_dalsa_library ) {
+				fprintf( stderr,
+	"%s: *** GevGetFeatureValueAsString( %p, '%s', &(%d), %lu, '%s' ) = ",
+				fname, dalsa_gev_camera->camera_handle,
+				dalsa_gev_camera->feature_name,
+				feature_type,
+				sizeof(dalsa_gev_camera->feature_value),
+				dalsa_gev_camera->feature_value );
+			}
+
 			gev_status = GevGetFeatureValueAsString(
 					dalsa_gev_camera->camera_handle,
 					dalsa_gev_camera->feature_name,
 					&feature_type,
 					sizeof(dalsa_gev_camera->feature_value),
 					dalsa_gev_camera->feature_value );
+
+			if ( debug_dalsa_library ) {
+				fprintf( stderr, "%d ***\n", gev_status );
+			}
 
 			if ( gev_status != GEVLIB_OK ) {
 				mx_status =
@@ -2150,12 +2418,12 @@ mxd_dalsa_gev_camera_process_function( void *record_ptr,
 		case MXLV_DALSA_GEV_CAMERA_SHOW_FEATURES:
 			mx_status =
 		    mxd_dalsa_gev_camera_show_feature_list( dalsa_gev_camera,
-									FALSE );
+				    			dalsa_gev, FALSE );
 			break;
 		case MXLV_DALSA_GEV_CAMERA_SHOW_FEATURE_VALUES:
 			mx_status =
 		    mxd_dalsa_gev_camera_show_feature_list( dalsa_gev_camera,
-									TRUE );
+				    			dalsa_gev, TRUE );
 			break;
 		default:
 			break;

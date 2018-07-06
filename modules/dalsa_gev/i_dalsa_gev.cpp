@@ -134,6 +134,7 @@ mxi_dalsa_gev_open( MX_RECORD *record )
 	long gev_status;
 	unsigned long i, num_cameras_found;
 	int int_num_cameras_found;
+	mx_bool_type debug_dalsa_library;
 	mx_status_type mx_status;
 
 	mx_status = mxi_dalsa_gev_get_pointers( record, &dalsa_gev, fname );
@@ -144,9 +145,26 @@ mxi_dalsa_gev_open( MX_RECORD *record )
 #if MXI_DALSA_GEV_DEBUG_OPEN
 	MX_DEBUG(-2,("%s invoked for '%s'.", fname, record->name));
 #endif
+
+	debug_dalsa_library =
+		dalsa_gev->dalsa_gev_flags & MXF_DALSA_GEV_DEBUG_DALSA_LIBRARY;
+
+#if 1
+	fprintf(stderr, "%s: debug_dalsa_library = %d\n",
+			fname, debug_dalsa_library );
+#endif
+
 	/* Initialize the GigE-V Framework. */
 
+	if ( debug_dalsa_library ) {
+		fprintf( stderr, "%s: *** GevApiInitialize() = ", fname );
+	}
+
 	gev_status = GevApiInitialize();
+
+	if ( debug_dalsa_library ) {
+		fprintf( stderr, "%ld ***\n", gev_status );
+	}
 
 	switch( gev_status ) {
 	case GEVLIB_OK:
@@ -166,7 +184,15 @@ mxi_dalsa_gev_open( MX_RECORD *record )
 
 	/* How many cameras are available? */
 
+	if ( debug_dalsa_library ) {
+		fprintf( stderr, "%s: *** GevDeviceCount() = ", fname );
+	}
+
 	dalsa_gev->num_cameras = GevDeviceCount();
+
+	if ( debug_dalsa_library ) {
+		fprintf( stderr, "%ld ***\n", dalsa_gev->num_cameras );
+	}
 
 	/* Allocate memory for an array of GEV_CAMERA_INFO objects
 	 * for each camera.
@@ -184,9 +210,20 @@ mxi_dalsa_gev_open( MX_RECORD *record )
 
 	/* Get the list of cameras. */
 
+	if ( debug_dalsa_library ) {
+		fprintf( stderr,
+	    "%s: *** GevGetCameraList( %p, %ld, &int_num_cameras_found ) = ", 
+	    		fname, dalsa_gev->camera_array, dalsa_gev->num_cameras);
+	}
+
 	gev_status = GevGetCameraList( dalsa_gev->camera_array,
 					dalsa_gev->num_cameras,
 					&int_num_cameras_found );
+	if ( debug_dalsa_library ) {
+		fprintf( stderr, "%ld; int_num_cameras_found = %d ***\n",
+			gev_status, int_num_cameras_found );
+	}
+
 	switch( gev_status ) {
 	case GEVLIB_OK:
 		break;
@@ -210,7 +247,17 @@ mxi_dalsa_gev_open( MX_RECORD *record )
 	if ( dalsa_gev->dalsa_gev_flags & MXF_DALSA_GEV_SHOW_CONFIG_OPTIONS ) {
 		GEVLIB_CONFIG_OPTIONS config_options;
 
+		if ( debug_dalsa_library ) {
+		    fprintf( stderr,
+			"%s: *** GevGetLibraryConfigOptions( %p ) = ",
+			fname, &config_options );
+		}
+
 		gev_status = GevGetLibraryConfigOptions( &config_options );
+
+		if ( debug_dalsa_library ) {
+			fprintf( stderr, "%ld ***\n", gev_status );
+		}
 
 		switch( gev_status ) {
 		case GEVLIB_OK:
@@ -245,7 +292,17 @@ mxi_dalsa_gev_open( MX_RECORD *record )
 		config_options.logLevel = GEV_LOG_LEVEL_WARNINGS;
 #endif
 
+		if ( debug_dalsa_library ) {
+		    fprintf( stderr,
+			"%s: *** GevSetLibraryConfigOptions( %p ) = ",
+			fname, &config_options );
+		}
+
 		gev_status = GevSetLibraryConfigOptions( &config_options );
+
+		if ( debug_dalsa_library ) {
+			fprintf( stderr, "%ld ***\n", gev_status );
+		}
 
 		switch( gev_status ) {
 		case GEVLIB_OK:
@@ -316,6 +373,11 @@ mxi_dalsa_gev_close( MX_RECORD *record )
 #if MXI_DALSA_GEV_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name));
 #endif
+
+	if ( dalsa_gev->dalsa_gev_flags & MXF_DALSA_GEV_DEBUG_DALSA_LIBRARY ) {
+		fprintf( stderr,
+		"%s: *** GevApiUninitialize() invoked. ***\n", fname );
+	}
 
 	(void) GevApiUninitialize();
 
