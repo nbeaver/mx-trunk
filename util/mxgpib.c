@@ -229,6 +229,9 @@ main( int argc, char *argv[] )
 
 			server_port = atoi( ptr );
 		}
+	} else {
+		fprintf( stderr, "%s", usage );
+		exit(1);
 	}
 
 	mx_set_debug_level( debug_level );
