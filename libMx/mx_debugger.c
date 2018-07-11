@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2017 Illinois Institute of Technology
+ * Copyright 1999-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1302,6 +1302,8 @@ mx_clear_watchpoint( MX_WATCHPOINT *watchpoint ) {
 	return result;
 }
 
+#error mx_show_watchpoints has not yet been created for Windows
+
 /*-------------------------------------------------------------------------*/
 
 #elif defined(OS_LINUX)
@@ -1543,7 +1545,7 @@ mx_set_watchpoint( MX_WATCHPOINT **watchpoint_ptr,
 
 		/* Attach to the parent process. */
 
-#if defined(PTRACE_SEIZE)
+#if (0 && defined(PTRACE_SEIZE))
 		/* Note: PTRACE_SEIZE was only added in Linux 3.4 */
 
 		ptrace_status = ptrace( PTRACE_SEIZE, parent_process,
@@ -1551,7 +1553,8 @@ mx_set_watchpoint( MX_WATCHPOINT **watchpoint_ptr,
 #else
 		/* This will stop the parent process. */
 
-		mx_warning( "Watchpoint child is stopping the parent." );
+		mx_warning( "%s: Watchpoint child is stopping the parent.",
+				fname );
 
 		ptrace_status = ptrace( PTRACE_ATTACH, parent_process,
 						NULL, NULL );
@@ -1677,6 +1680,184 @@ mx_clear_watchpoint( MX_WATCHPOINT *watchpoint )
 	return result;
 }
 
+MX_EXPORT int
+mx_show_watchpoints( void )
+{
+	static const char fname[] = "mx_show_watchpoints()";
+
+	pid_t child_process;
+	pid_t parent_process;
+	pid_t waitpid_status;
+	int waitpid_child_status;
+	int waitpid_parent_status;
+	int child_exit_status;
+	int i;
+	void *value_pointer[4];
+
+	/* This process itself cannot directly look at its own hardware debug
+	 * registers using ptrace(), so we create a child process to do the job.
+	 */
+
+	parent_process = getpid();
+
+	child_process = fork();
+
+	if ( child_process == 0 ) {
+		/* We are in the child. */
+
+		int ptrace_status;
+		int return_value = EXIT_SUCCESS;
+		dr7_t dr7_register = {0};
+
+		/* We must wait a short time to make sure that the parent
+		 * process has reached the waitpid() call.
+		 */
+
+		sleep(1);
+
+		/* Attach to the parent process. */
+
+		mx_warning( "%s: Watchpoint child is stopping the parent.",
+				fname );
+
+		ptrace_status = ptrace( PTRACE_ATTACH, parent_process,
+						NULL, NULL );
+
+		MX_DEBUG(-2,("%s: PTRACE_ATTACH status = %d",
+			fname, ptrace_status ));
+
+		if ( ptrace_status != 0 ) {
+			exit( EXIT_FAILURE );
+		}
+
+		/* Wait for the parent to stop. */
+
+		waitpid_status = waitpid( parent_process,
+				&waitpid_parent_status, 0 );
+
+		if ( waitpid_status < 0 ) {
+			fprintf( stderr,
+			"Error in child waiting for parent to stop.\n" );
+			return TRUE;
+		}
+
+		if ( WIFSTOPPED( waitpid_parent_status ) == 0 ) {
+			fprintf( stderr,
+			"waitpid( parent_process, ... ) returned but "
+			"the parent process is not stopped!!!\n" );
+			return TRUE;
+		}
+
+		/* Get the current contents of the D7 register. */
+
+		errno = 0;
+
+		ptrace_status = ptrace( PTRACE_PEEKUSER, parent_process,
+					offsetof( struct user, u_debugreg[7] ),
+					&dr7_register );
+
+		if ( errno != 0 ) {
+			return_value = EXIT_FAILURE;
+		}
+
+		MX_DEBUG(-2,
+		("%s: PTRACE_PEEKUSER (D7), errno = %d, ptrace_status = %d",
+		 fname, errno, ptrace_status ));
+
+		/* Get the four hardware addresses. */
+
+		for ( i = 0; i < 4; i++ ) {
+			errno = 0;
+
+			ptrace_status = ptrace(
+					PTRACE_PEEKUSER, parent_process,
+					offsetof( struct user, u_debugreg[i] ),
+					value_pointer[i] );
+
+			if ( errno != 0 ) {
+				return_value = EXIT_FAILURE;
+			}
+
+			MX_DEBUG(-2,
+		("%s: PTRACE_PEEKUSER (D%d), errno = %d, ptrace_status = %d",
+		 fname, i, errno, ptrace_status ));
+
+		}
+
+		/* Now show the results. */
+
+		mx_info( "\nProcess ID %lu hardware watchpoints:\n",
+			(unsigned long) parent_process );
+		mx_info( "     local  global  break    len       address" );
+
+		mx_info( "DR0:   %1d      %1d      %#2x      %#2x       %p",
+			dr7_register.dr0_local,
+			dr7_register.dr0_global,
+			dr7_register.dr0_break,
+			dr7_register.dr0_len,
+			value_pointer[0] );
+
+		mx_info( "DR1:   %1d      %1d      %#2x      %#2x       %p",
+			dr7_register.dr1_local,
+			dr7_register.dr1_global,
+			dr7_register.dr1_break,
+			dr7_register.dr1_len,
+			value_pointer[1] );
+
+		mx_info( "DR2:   %1d      %1d      %#2x      %#2x       %p",
+			dr7_register.dr2_local,
+			dr7_register.dr2_global,
+			dr7_register.dr2_break,
+			dr7_register.dr2_len,
+			value_pointer[2] );
+
+		mx_info( "DR3:   %1d      %1d      %#2x      %#2x       %p",
+			dr7_register.dr3_local,
+			dr7_register.dr3_global,
+			dr7_register.dr3_break,
+			dr7_register.dr3_len,
+			value_pointer[3] );
+
+		ptrace_status = ptrace( PTRACE_DETACH, parent_process,
+						NULL, NULL );
+
+		if ( ptrace_status != 0 ) {
+			return_value = EXIT_FAILURE;
+		}
+
+		exit( return_value );
+	}
+
+	/* We are in the parent process and must wait for the child to finish.*/
+
+	waitpid_status = waitpid( child_process, &waitpid_child_status, 0 );
+
+	if ( waitpid_status < 0 ) {
+		fprintf( stderr, "Error in %s: waitpid() returned with %d\n",
+			fname, waitpid_status );
+		return TRUE;
+	}
+
+	if ( WIFEXITED( waitpid_child_status ) == 0 ) {
+		fprintf( stderr,
+		"Error in %s: child process %d returned abnormally.\n",
+			fname, child_process );
+		return TRUE;
+	}
+
+	child_exit_status = WEXITSTATUS( waitpid_child_status );
+
+	if ( child_exit_status == EXIT_FAILURE ) {
+		fprintf( stderr,
+			"%s child process %d returned a failure status.\n",
+			fname, child_process );
+	}
+
+	return FALSE;
+}
+
+/*---------------------*/
+
 #  elif 1
 
 MX_EXPORT int
@@ -1690,7 +1871,7 @@ mx_set_watchpoint( MX_WATCHPOINT **watchpoint_ptr,
 	static const char fname[] = "mx_set_watchpoint()";
 
 	mx_error( MXE_UNSUPPORTED, fname,
-		"Watchpoints are not supported for this build target." );
+		"MX watchpoints are not supported for this Linux target." );
 
 	return FALSE;
 }
@@ -1698,6 +1879,17 @@ mx_set_watchpoint( MX_WATCHPOINT **watchpoint_ptr,
 MX_EXPORT int
 mx_clear_watchpoint( MX_WATCHPOINT *watchpoint ) {
 	return TRUE;
+}
+
+MX_EXPORT int
+mx_show_watchpoints( void )
+{
+	static const char fname[] = "mx_show_watchpoints()";
+
+	mx_error( MXE_UNSUPPORTED, fname,
+		"MX watchpoints are not supported for this Linux target." );
+
+	return FALSE;
 }
 
 #  else 
@@ -1722,7 +1914,7 @@ mx_set_watchpoint( MX_WATCHPOINT **watchpoint_ptr,
 	static const char fname[] = "mx_set_watchpoint()";
 
 	mx_error( MXE_UNSUPPORTED, fname,
-		"Watchpoints are not supported for this build target." );
+		"MX watchpoints are not supported for this build target." );
 
 	return FALSE;
 }
@@ -1730,6 +1922,17 @@ mx_set_watchpoint( MX_WATCHPOINT **watchpoint_ptr,
 MX_EXPORT int
 mx_clear_watchpoint( MX_WATCHPOINT *watchpoint ) {
 	return TRUE;
+}
+
+MX_EXPORT int
+mx_show_watchpoints( void )
+{
+	static const char fname[] = "mx_show_watchpoints()";
+
+	mx_error( MXE_UNSUPPORTED, fname,
+		"MX watchpoints are not supported for this build target." );
+
+	return FALSE;
 }
 
 #else

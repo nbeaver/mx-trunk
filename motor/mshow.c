@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2007, 2009-2017 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2007, 2009-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -138,6 +138,8 @@ motor_show_fn( int argc, char *argv[] )
 "        show memory        -- show process memory usage\n"
 "        show system        -- show system memory usage\n"
 "\n"
+"        show watchpoints   -- show hardware watchpoints\n"
+"\n"
 "Commands to show record details:\n"
 "\n"
 "        show records        <or>  show record 'name'\n"
@@ -250,6 +252,9 @@ motor_show_fn( int argc, char *argv[] )
 			return FAILURE;
 
 		mx_display_system_meminfo( &system_meminfo );
+
+	} else if ( strncmp( "watchpoints", argv[2], length ) == 0 ) {
+		mx_show_watchpoints();
 
 	} else if ( strncmp( "plot", argv[2], length ) == 0 ) {
 		enable_flag = mx_plotting_is_enabled( motor_record_list );

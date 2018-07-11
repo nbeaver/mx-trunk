@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2009-2010, 2012-2013, 2015-2017 Illinois Institute of Technology
+ * Copyright 2009-2010, 2012-2013, 2015-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -70,7 +70,9 @@ motor_test_fn( int argc, char *argv[] )
 			mx_set_watchpoint( &watchpoint,
 				&watch_test, MXFT_LONG, W_OK, NULL, NULL );
 
-			mx_info( "Watchpoint set up.  Now waiting to test it.");
+			mx_show_watchpoints();
+
+			mx_info( "Now waiting to test the watchpoint.");
 
 			mx_msleep(2000);
 

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 1999-2017 Illinois Institute of Technology
+ * Copyright 1999-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -535,6 +535,8 @@ MX_API int mx_set_watchpoint( MX_WATCHPOINT **watchpoint,
 			void *callback_arguments );
 
 MX_API int mx_clear_watchpoint( MX_WATCHPOINT *watchpoint );
+
+MX_API int mx_show_watchpoints( void );
 
 /*
  * mx_set_debugger_started_flag() provides a way to directly set the internal
