@@ -1,6 +1,15 @@
-##k2600_int  interface rs232 tcp232 "" "" 9600 8 N 1 N 0x0a 0x0a 5 0x0 164.54.244.28 5025 0x0
-k2600_int  interface rs232 tcp232 "" "" 9600 8 N 1 N 0x0a 0x0a 5 0x0 10.54.244.28 5030 0x0
-k2600      interface controller keithley2600 "" "" k2600_int 0x1
+k2600_rs232 interface rs232 telnet "" "" 9600 8 N 1 N 0x0d0a 0x0d0a 5 0x0 164.54.204.189 23 0x10
+k2600      interface controller keithley2600 "" "" k2600_rs232 0x1
 #
-k2600_ain  device analog_input keithley2600_ainput "" "" 0 1 0 volts 0x0 0 "" k2600 A voltage
-k2600_aout device analog_output keithley2600_aoutput "" "" 0 1 0 volts 0x0 k2600 A voltage
+k2600_a_force   device analog_output keithley2600_aoutput "" "" 0 1 0 volts 0x0 k2600 A voltage
+k2600_a_voltage device analog_input keithley2600_ainput "" "" 0 1 0 volts 0x0 0 "" k2600 A voltage
+k2600_a_current device analog_input keithley2600_ainput "" "" 0 1 0 volts 0x0 0 "" k2600 A current
+#
+k2600_b_force   device analog_output keithley2600_aoutput "" "" 0 1 0 volts 0x0 k2600 B voltage
+k2600_b_voltage device analog_input keithley2600_ainput "" "" 0 1 0 volts 0x0 0 "" k2600 B voltage
+k2600_b_current device analog_input keithley2600_ainput "" "" 0 1 0 volts 0x0 0 "" k2600 B current
+#
+k2600_a_motor device motor dac_motor "" "" 0 0 -1000000000 1000000000 0 -1 -1 1 0 volts k2600_a_force
+#
+time    device motor elapsed_time "" "" 0 0 -2147483648 2147483647 0 -1 -1 1 0 sec 0
+timer1  device timer soft_timer "" ""

@@ -1,0 +1,2 @@
+k2600_test                               scan linear_scan motor_scan "" "" 1 1 1  k2600_a_motor 4  k2600_a_force k2600_a_voltage k2600_a_current time  0 0 preset_time "0.01 timer1" text k2600_test.006 none $f[0]  0  0.1  51
+k2600_test_10                            scan linear_scan motor_scan "" "" 1 1 1  k2600_a_motor 4  k2600_a_force k2600_a_voltage k2600_a_current time  0 0 preset_time "10 timer1" text k2600_test_10.002 none $f[0]  0  0.1  51
