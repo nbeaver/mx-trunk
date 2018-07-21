@@ -1200,6 +1200,113 @@ mxp_win32_set_watchpoint_spectator( MX_THREAD *thread, void *args )
 
 /*---*/
 
+/* WARNING: The following definition was copied from mx/libMx/mx_thread.c */
+
+typedef struct {
+	unsigned thread_id;
+	HANDLE thread_handle;
+	HANDLE stop_event_handle;
+} MX_WIN32_THREAD_PRIVATE;
+
+static mx_status_type
+mxp_win32_show_watchpoint_spectator( MX_THREAD *thread, void *args )
+{
+	static const char fname[] = "mxp_win32_show_watchpoint_spectator()";
+
+	HANDLE parent_thread_handle;
+	CONTEXT parent_context;
+	long last_error_code;
+	TCHAR error_message[100];
+	BOOL os_status;
+	unsigned long dr7_register;
+
+	parent_thread_handle = args;
+
+	/* Suspend the parent thread so that we can display its context. */
+
+	os_status = SuspendThread( parent_thread_handle );
+
+	if ( os_status == (DWORD)(-1) ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+					error_message,
+					sizeof(error_message) );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to call SuspendThread() for parent "
+		"thread handle %p failed.  "
+		"Win32 error code = %ld, error message = '%s'.",
+			parent_thread_handle,
+			last_error_code,
+			error_message );
+	}
+
+	/* We are only interested in the debug registers. */
+
+	parent_context.ContextFlags = CONTEXT_DEBUG_REGISTERS;
+
+	os_status = GetThreadContext( parent_thread_handle, &parent_context );
+
+	if ( os_status == 0 ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+					error_message,
+					sizeof(error_message) );
+
+		(void) ResumeThread( parent_thread_handle );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to call GetThreadContext() for parent "
+		"thread handle %p failed.  "
+		"Win32 error code = %ld, error message = '%s'.",
+			parent_thread_handle,
+			last_error_code,
+			error_message );
+	}
+
+	dr7_register = parent_context.Dr7;
+
+	/* Now show the debug registers that we are interested in. */
+
+	mx_info( "\nProcess ID %lu hardware watchpoints:\n", 0 );
+
+	mx_info( "     local  global  break    len       address" );
+
+	mx_info( "DR0:   %1d      %1d      %#2x      %#2x       %p",
+		dr7_register & 0x1,
+		( dr7_register >> 1 ) & 0x1,
+		( dr7_register >> 16 ) & 0x3,
+		( dr7_register >> 18 ) & 0x3,
+		parent_context.Dr0 );
+
+	mx_info( "DR1:   %1d      %1d      %#2x      %#2x       %p",
+		( dr7_register >> 2 ) & 0x1,
+		( dr7_register >> 3 ) & 0x1,
+		( dr7_register >> 20 ) & 0x3,
+		( dr7_register >> 22 ) & 0x3,
+		parent_context.Dr1 );
+
+	mx_info( "DR2:   %1d      %1d      %#2x      %#2x       %p",
+		( dr7_register >> 4 ) & 0x1,
+		( dr7_register >> 5 ) & 0x1,
+		( dr7_register >> 24 ) & 0x3,
+		( dr7_register >> 26 ) & 0x3,
+		parent_context.Dr2 );
+
+	mx_info( "DR3:   %1d      %1d      %#2x      %#2x       %p",
+		( dr7_register >> 6 ) & 0x1,
+		( dr7_register >> 7 ) & 0x1,
+		( dr7_register >> 28 ) & 0x3,
+		( dr7_register >> 30 ) & 0x3,
+		parent_context.Dr3 );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
 MX_EXPORT int
 mx_set_watchpoint( MX_WATCHPOINT **watchpoint_ptr,
 		void *value_pointer,
@@ -1302,7 +1409,40 @@ mx_clear_watchpoint( MX_WATCHPOINT *watchpoint ) {
 	return result;
 }
 
-#error mx_show_watchpoints has not yet been created for Windows
+MX_EXPORT int
+mx_show_watchpoints( void )
+{
+	static const char fname[] = "mx_show_watchpoints()";
+
+	MX_THREAD *our_thread = NULL;
+	MX_THREAD *spectator_thread = NULL;
+	double timeout_seconds;
+	mx_status_type mx_status;
+
+	/* GetThreadContext() only works correctly if the thread it
+	 * is applied to is suspended at the time.  In order to obey
+	 * this restriction, we create a 'spectator thread' which will
+	 * suspend the thread that mx_show_watchpoints() is running in
+	 * and then resume that thread after we have displayed its
+	 * watchpoints.
+	 */
+
+	mx_status = mx_thread_create( &spectator_thread,
+					mxp_win32_show_watchpoint_spectator,
+					mx_win32_get_current_thread_handle );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return FALSE;
+
+	timeout_seconds = 30.0;
+
+	mx_status = mx_thread_wait( spectator_thread, NULL, timeout_seconds );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return FALSE;
+
+	return TRUE;
+}
 
 /*-------------------------------------------------------------------------*/
 
