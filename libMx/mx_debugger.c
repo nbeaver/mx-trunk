@@ -1489,6 +1489,11 @@ typedef struct {
 	unsigned int dr2_len:        2;
 	unsigned int dr3_break:      2;
 	unsigned int dr3_len:        2;
+} dr7_bits_t;
+
+typedef struct {
+	uint32_t value;
+	dr7_bits_t bits;
 } dr7_t;
 
 /*------*/
@@ -1542,6 +1547,7 @@ mx_set_watchpoint( MX_WATCHPOINT **watchpoint_ptr,
 	pid_t parent_process;
 	pid_t waitpid_status;
 	int waitpid_child_status;
+	int waitpid_parent_status;
 	int child_exit_status;
 	struct sigaction sigtrap_action;
 	unsigned long debug_extension_flags;
@@ -1555,7 +1561,7 @@ mx_set_watchpoint( MX_WATCHPOINT **watchpoint_ptr,
 	/* Select the condition for the breakpoint. */
 
 	/* Note: We do not use debug_extension_flags == 0x2, which
-	 * stands for 'break on I/O reads or writes'.  I am no sure
+	 * stands for 'break on I/O reads or writes'.  I am not sure
 	 * what that one does.
 	 */
 
@@ -1674,72 +1680,91 @@ mx_set_watchpoint( MX_WATCHPOINT **watchpoint_ptr,
 
 		int ptrace_status;
 		int return_value = EXIT_SUCCESS;
-		dr7_t old_dr7 = {0};
-		dr7_t new_dr7 = {0};
 
-		/* We must wait a short time to make sure that the parent
-		 * process has reached the waitpid() call.
-		 */
+		dr7_t old_dr7;
+		dr7_t new_dr7;
 
-		sleep(1);
+		memset( &old_dr7, 0, sizeof(old_dr7) );
+		memset( &new_dr7, 0, sizeof(new_dr7) );
+
+		child_process = getpid();
 
 		/* Attach to the parent process. */
 
-#if (0 && defined(PTRACE_SEIZE))
-		/* Note: PTRACE_SEIZE was only added in Linux 3.4 */
-
-		ptrace_status = ptrace( PTRACE_SEIZE, parent_process,
-						NULL, NULL );
-#else
-		/* This will stop the parent process. */
-
-		mx_warning( "%s: Watchpoint child is stopping the parent.",
-				fname );
+		mx_warning(
+		"%s: Watchpoint child (%d) is stopping the parent (%d).",
+				fname, child_process, parent_process );
 
 		ptrace_status = ptrace( PTRACE_ATTACH, parent_process,
 						NULL, NULL );
-#endif
 
-		if ( ptrace_status != 0 ) {
+		if ( ptrace_status != 0 )
 			exit( EXIT_FAILURE );
+
+		/* Wait for the parent to stop. */
+
+		waitpid_status = waitpid( parent_process,
+				&waitpid_parent_status, 0 );
+
+		if ( waitpid_status < 0 ) {
+			fprintf( stderr,
+			"Error in child waiting for parent to stop.\n" );
+			return TRUE;
+		}
+
+		if ( WIFSTOPPED( waitpid_parent_status ) == 0 ) {
+			fprintf( stderr,
+			"waitpid( parent_process, ... ) returned but "
+			"the parent process is not stopped!!!\n" );
+			return TRUE;
 		}
 
 		/* Get the current contents of the D7 register. */
 
-		ptrace_status = ptrace( PTRACE_PEEKUSER, parent_process,
-					offsetof( struct user, u_debugreg[7] ),
-					old_dr7 );
+		errno = 0;
 
-		if ( ptrace_status != 0 ) {
+		old_dr7.value = ptrace( PTRACE_PEEKUSER, parent_process,
+					offsetof( struct user, u_debugreg[7] ),
+					NULL );
+
+		if ( errno != 0 ) {
 			return_value = EXIT_FAILURE;
 		}
 
-		new_dr7 = old_dr7;
+		memcpy( &new_dr7, &old_dr7, sizeof(new_dr7) );
 
 		/* Find an unused watchpoint. */
 
-		if ( (old_dr7.dr0_local == 0) && (old_dr7.dr0_global == 0) ) {
-			new_dr7.dr0_local = 1;
-			new_dr7.dr0_break = debug_extension_flags;
-			new_dr7.dr0_len = value_length;
+		if ( (old_dr7.bits.dr0_local == 0)
+		  && (old_dr7.bits.dr0_global == 0) )
+		{
+			new_dr7.bits.dr0_local = 1;
+			new_dr7.bits.dr0_break = debug_extension_flags;
+			new_dr7.bits.dr0_len = value_length;
 			register_offset = offsetof(struct user, u_debugreg[0]);
 		} else
-		if ( (old_dr7.dr1_local == 0) && (old_dr7.dr1_global == 0) ) {
-			new_dr7.dr1_local = 1;
-			new_dr7.dr1_break = debug_extension_flags;
-			new_dr7.dr1_len = value_length;
+		if ( (old_dr7.bits.dr1_local == 0)
+		  && (old_dr7.bits.dr1_global == 0) )
+		{
+			new_dr7.bits.dr1_local = 1;
+			new_dr7.bits.dr1_break = debug_extension_flags;
+			new_dr7.bits.dr1_len = value_length;
 			register_offset = offsetof(struct user, u_debugreg[1]);
 		} else
-		if ( (old_dr7.dr2_local == 0) && (old_dr7.dr2_global == 0) ) {
-			new_dr7.dr2_local = 1;
-			new_dr7.dr2_break = debug_extension_flags;
-			new_dr7.dr2_len = value_length;
+		if ( (old_dr7.bits.dr2_local == 0)
+		  && (old_dr7.bits.dr2_global == 0) )
+		{
+			new_dr7.bits.dr2_local = 1;
+			new_dr7.bits.dr2_break = debug_extension_flags;
+			new_dr7.bits.dr2_len = value_length;
 			register_offset = offsetof(struct user, u_debugreg[2]);
 		} else
-		if ( (old_dr7.dr3_local == 0) && (old_dr7.dr3_global == 0) ) {
-			new_dr7.dr3_local = 1;
-			new_dr7.dr3_break = debug_extension_flags;
-			new_dr7.dr3_len = value_length;
+		if ( (old_dr7.bits.dr3_local == 0)
+		  && (old_dr7.bits.dr3_global == 0) )
+		{
+			new_dr7.bits.dr3_local = 1;
+			new_dr7.bits.dr3_break = debug_extension_flags;
+			new_dr7.bits.dr3_len = value_length;
 			register_offset = offsetof(struct user, u_debugreg[3]);
 		} else {
 			(void) mx_error( MXE_NOT_AVAILABLE, fname,
@@ -1847,28 +1872,23 @@ mx_show_watchpoints( void )
 
 		int ptrace_status;
 		int return_value = EXIT_SUCCESS;
-		dr7_t dr7_register = {0};
+		dr7_t dr7;
 
-		/* We must wait a short time to make sure that the parent
-		 * process has reached the waitpid() call.
-		 */
+		memset( &dr7, 0, sizeof(dr7) );
 
-		sleep(1);
+		child_process = getpid();
 
 		/* Attach to the parent process. */
 
-		mx_warning( "%s: Watchpoint child is stopping the parent.",
-				fname );
+		mx_warning(
+		"%s: Watchpoint child (%d) is stopping the parent (%d).",
+				fname, child_process, parent_process );
 
 		ptrace_status = ptrace( PTRACE_ATTACH, parent_process,
 						NULL, NULL );
 
-		MX_DEBUG(-2,("%s: PTRACE_ATTACH status = %d",
-			fname, ptrace_status ));
-
-		if ( ptrace_status != 0 ) {
+		if ( ptrace_status != 0 ) 
 			exit( EXIT_FAILURE );
-		}
 
 		/* Wait for the parent to stop. */
 
@@ -1892,36 +1912,27 @@ mx_show_watchpoints( void )
 
 		errno = 0;
 
-		ptrace_status = ptrace( PTRACE_PEEKUSER, parent_process,
+		dr7.value = ptrace( PTRACE_PEEKUSER, parent_process,
 					offsetof( struct user, u_debugreg[7] ),
-					&dr7_register );
+					NULL );
 
 		if ( errno != 0 ) {
 			return_value = EXIT_FAILURE;
 		}
-
-		MX_DEBUG(-2,
-		("%s: PTRACE_PEEKUSER (D7), errno = %d, ptrace_status = %d",
-		 fname, errno, ptrace_status ));
 
 		/* Get the four hardware addresses. */
 
 		for ( i = 0; i < 4; i++ ) {
 			errno = 0;
 
-			ptrace_status = ptrace(
+			value_pointer[i] = (void *) ptrace(
 					PTRACE_PEEKUSER, parent_process,
 					offsetof( struct user, u_debugreg[i] ),
-					value_pointer[i] );
+					NULL );
 
 			if ( errno != 0 ) {
 				return_value = EXIT_FAILURE;
 			}
-
-			MX_DEBUG(-2,
-		("%s: PTRACE_PEEKUSER (D%d), errno = %d, ptrace_status = %d",
-		 fname, i, errno, ptrace_status ));
-
 		}
 
 		/* Now show the results. */
@@ -1931,32 +1942,36 @@ mx_show_watchpoints( void )
 		mx_info( "     local  global  break    len       address" );
 
 		mx_info( "DR0:   %1d      %1d      %#2x      %#2x       %p",
-			dr7_register.dr0_local,
-			dr7_register.dr0_global,
-			dr7_register.dr0_break,
-			dr7_register.dr0_len,
+			dr7.bits.dr0_local,
+			dr7.bits.dr0_global,
+			dr7.bits.dr0_break,
+			dr7.bits.dr0_len,
 			value_pointer[0] );
 
 		mx_info( "DR1:   %1d      %1d      %#2x      %#2x       %p",
-			dr7_register.dr1_local,
-			dr7_register.dr1_global,
-			dr7_register.dr1_break,
-			dr7_register.dr1_len,
+			dr7.bits.dr1_local,
+			dr7.bits.dr1_global,
+			dr7.bits.dr1_break,
+			dr7.bits.dr1_len,
 			value_pointer[1] );
 
 		mx_info( "DR2:   %1d      %1d      %#2x      %#2x       %p",
-			dr7_register.dr2_local,
-			dr7_register.dr2_global,
-			dr7_register.dr2_break,
-			dr7_register.dr2_len,
+			dr7.bits.dr2_local,
+			dr7.bits.dr2_global,
+			dr7.bits.dr2_break,
+			dr7.bits.dr2_len,
 			value_pointer[2] );
 
 		mx_info( "DR3:   %1d      %1d      %#2x      %#2x       %p",
-			dr7_register.dr3_local,
-			dr7_register.dr3_global,
-			dr7_register.dr3_break,
-			dr7_register.dr3_len,
+			dr7.bits.dr3_local,
+			dr7.bits.dr3_global,
+			dr7.bits.dr3_break,
+			dr7.bits.dr3_len,
 			value_pointer[3] );
+
+		mx_warning(
+		"%s: Watchpoint child (%d) is resuming the parent (%d).",
+				fname, child_process, parent_process );
 
 		ptrace_status = ptrace( PTRACE_DETACH, parent_process,
 						NULL, NULL );
