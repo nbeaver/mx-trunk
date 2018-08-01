@@ -224,7 +224,7 @@ mx_start_debugger( char *command )
 }
 
 #elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
-	|| defined(OS_BSD) || defined(OS_HURD)
+	|| defined(OS_BSD) || defined(OS_HURD) || defined(OS_ANDROID)
 
 MX_EXPORT void
 mx_prepare_for_debugging( char *command, int just_in_time_debugging )
