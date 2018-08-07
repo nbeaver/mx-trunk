@@ -160,6 +160,14 @@ ifeq ($(_have_mx_config),true)
   ifeq ($(_need_no_unused_but_set_variable),1)
       GCCFLAGS += -Wno-unused-but-set-variable
   endif
+
+  # FIXME: Find out when -fwrapv was added.
+
+  _have_fwrapv := $(shell expr $(_gccver) \> 0 )
+
+  ifeq ($(_have_fwrapv),1)
+      GCCFLAGS += -fwrapv
+  endif
 endif
 
 #--------------------------------------------------------------------------
