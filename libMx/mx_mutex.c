@@ -1097,8 +1097,6 @@ mx_mutex_trylock( MX_MUTEX *mutex )
 
 #  if defined(__GLIBC__)
 
-#error booyah
-
 /* NOTE: The following *ugly hack* with Glibc internals should only work
  *       with NPTL and not LinuxThreads.  To echo what the MX header file
  *       says, bear in mind that this function is only meant for debugging
