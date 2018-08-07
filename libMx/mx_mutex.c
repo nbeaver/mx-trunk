@@ -1095,6 +1095,10 @@ mx_mutex_trylock( MX_MUTEX *mutex )
 
 #if defined(OS_LINUX)
 
+#  if defined(__GLIBC__)
+
+#error booyah
+
 /* NOTE: The following *ugly hack* with Glibc internals should only work
  *       with NPTL and not LinuxThreads.  To echo what the MX header file
  *       says, bear in mind that this function is only meant for debugging
@@ -1112,7 +1116,7 @@ mx_mutex_get_owner_thread_id( MX_MUTEX *mutex )
 	unsigned long owner_pthread_id;
 
 	if ( mutex == (MX_MUTEX *) NULL ) {
-		owner_pthread_id = (unsigned long) pthread_self;
+		owner_pthread_id = (unsigned long) pthread_self();
 	} else {
 		p_mutex_ptr = mutex->mutex_ptr;
 
@@ -1127,6 +1131,55 @@ mx_mutex_get_owner_thread_id( MX_MUTEX *mutex )
 
 	return owner_pthread_id;
 }
+
+#  elif defined(MX_MUSL_VERSION)
+
+/* Sigh... The things we do in the name of debugging.
+ *
+ * "Worked" for Musl 1.1.19.
+ */
+
+#define _m_lock  __u.__vi[1]
+
+typedef struct {
+	union { int __i[10];
+		volatile int __vi[10];
+		volatile void *volatile __p[5];
+	} __u;
+} __my_pthread_mutex_t;
+
+/*---*/
+
+MX_EXPORT unsigned long
+mx_mutex_get_owner_thread_id( MX_MUTEX *mutex )
+{
+	__my_pthread_mutex_t *p_mutex_ptr;
+	unsigned long owner_pthread_id;
+
+	if ( mutex == (MX_MUTEX *) NULL ) {
+		owner_pthread_id = (unsigned long) pthread_self();
+	} else {
+		p_mutex_ptr = mutex->mutex_ptr;
+
+		if ( p_mutex_ptr == NULL ) {
+			owner_pthread_id = 0;
+		} else {
+			/* Here we use Musl internals.  Iaah!  Iaah! */
+
+			owner_pthread_id = p_mutex_ptr->_m_lock;
+
+			owner_pthread_id &= 0x7fffffff;
+		}
+	}
+
+	return owner_pthread_id;
+}
+
+#  else /* Not Glibc or Musl */
+
+#    error mx_mutex_get_owner_thread_id() not yet implemented for Linux using something other than Glibc or Musl.
+
+#  endif /* Not Glibc or Musl */
 
 #else /* Not OS_LINUX */
 
