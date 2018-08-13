@@ -7,18 +7,20 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2012, 2014-2017 Illinois Institute of Technology
+ * Copyright 1999-2012, 2014-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define DEBUG_PERFORM_SCAN_TIMING	FALSE
+#define DEBUG_PERFORM_SCAN_TIMING		FALSE
 
-#define DEBUG_CONFIGURE_TIMING		FALSE
+#define DEBUG_CONFIGURE_TIMING			FALSE
 
-#define DEBUG_CLEAR_TIMING		FALSE
+#define DEBUG_CLEAR_TIMING			FALSE
+
+#define DEBUG_PERFORM_SCAN_DATABASE_CORRUPTION	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -66,6 +68,35 @@ static mx_status_type mx_setup_measurement_permit_and_fault_handlers(
 
 static mx_status_type mx_scan_free_measurement_permit_and_fault_handlers(
 								MX_SCAN * );
+
+#if DEBUG_PERFORM_SCAN_DATABASE_CORRUPTION
+
+static void
+mxp_scan_show_record_list( MX_RECORD *record ) {
+	static const char fname[] = "mxp_scan_show_record_list()";
+
+	MX_RECORD *list_head_record, *current_record;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		MX_DEBUG(-2,("%s: MX_RECORD pointer is NULL.", fname));
+		return;
+	}
+
+	list_head_record = record->list_head;
+
+	current_record = list_head_record->next_record;
+
+	while ( current_record != list_head_record ){
+		MX_DEBUG(-2,("%s:   record = '%s'",
+			fname, current_record->name ));
+
+		current_record = current_record->next_record;
+	}
+
+	return;
+}
+
+#endif
 
 /* --------------- */
 
@@ -496,6 +527,12 @@ mx_perform_scan( MX_RECORD *scan_record )
 	MX_HRT_START( timing_measurement );
 #endif
 
+#if DEBUG_PERFORM_SCAN_DATABASE_CORRUPTION
+	MX_DEBUG(-2,("%s: MARKER START (before show)", fname));
+	mxp_scan_show_record_list( scan_record );
+	MX_DEBUG(-2,("%s: MARKER START (after show)", fname));
+#endif
+
 	/*** Find and check a lot of pointer variables that we will need. ***/
 
 	if ( scan_record == (MX_RECORD *) NULL ) {
@@ -907,6 +944,12 @@ mx_perform_scan( MX_RECORD *scan_record )
 		mx_log_scan_end( list_head, scan,
 					scan->execute_scan_body_status );
 	}
+
+#if DEBUG_PERFORM_SCAN_DATABASE_CORRUPTION
+	MX_DEBUG(-2,("%s: MARKER END (before show)", fname));
+	mxp_scan_show_record_list( scan_record );
+	MX_DEBUG(-2,("%s: MARKER END (after show)", fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
