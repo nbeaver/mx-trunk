@@ -279,12 +279,6 @@ include Makefile.depend
 # Now, list targets with non-standard rules or dependencies.
 #
 
-i_8255.$(OBJ): i_8255.c
-	$(COMPILE) $(CFLAGS) $(I8255_INCLUDES) i_8255.c
-
-i_am9513.$(OBJ): i_am9513.c
-	$(COMPILE) $(CFLAGS) $(AM9513_INCLUDES) i_am9513.c
-
 i_camera_link_api.$(OBJ): i_camera_link_api.c
 	$(COMPILE) $(CFLAGS) i_camera_link_api.c
 

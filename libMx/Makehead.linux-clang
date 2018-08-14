@@ -64,15 +64,6 @@ READLINE_LIBRARIES = -ledit
 #
 
 #
-I8255_INCLUDES  =
-
-#
-AM9513_INCLUDES =
-
-#
-LINUX_PORTIO_INCLUDES =
-
-#
 LINUX_IOPL_FLAGS = -Wno-missing-prototypes -O2
 
 #
