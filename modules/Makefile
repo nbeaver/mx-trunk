@@ -61,8 +61,6 @@ else
 
     #MODULES += nuvant_ezstat		# linux, win32
 
-    #MODULES += python			# (Warning: not yet finished)
-
     #MODULES += pmc_mcapi		# linux, win32
 
     #MODULES += radicon_taurus		# linux, win32

@@ -12,7 +12,6 @@ MODULES += labjack_ux
 MODULES += libtiff
 MODULES += libusb-0.1
 MODULES += newport_xps
-MODULES += python
 MODULES += radicon_taurus
 MODULES += xia_handel
 MODULES += xineos_gige
