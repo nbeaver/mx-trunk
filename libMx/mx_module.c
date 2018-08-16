@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2010-2012, 2014-2016 Illinois Institute of Technology
+ * Copyright 2010-2012, 2014-2016, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,6 +23,7 @@
 #define MX_MODULE_DEBUG_FINALIZE	FALSE
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -811,5 +812,186 @@ mx_set_default_script_extension( MX_EXTENSION *extension )
 	_mxp_default_script_extension = extension;
 
 	return;
+}
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_extension_call( MX_EXTENSION *extension, int argc, void **argv )
+{
+	static const char fname[] = "mx_extension_call()";
+
+	MX_EXTENSION_FUNCTION_LIST *flist = NULL;
+
+	mx_status_type ( *call_fn )( MX_EXTENSION *extension,
+					int argc, void **argv ) = NULL;
+	mx_status_type mx_status;
+
+	MX_DEBUG(-2,("%s invoked.", fname));
+
+	if ( extension == (MX_EXTENSION *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_EXTENSION pointer passed was NULL." );
+	}
+
+	flist = extension->extension_function_list;
+
+	if ( flist == (MX_EXTENSION_FUNCTION_LIST *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	  "The extension_function_list pointer for MX extension '%s' is NULL.",
+			extension->name );
+	}
+
+	call_fn = flist->call;
+
+	if ( call_fn == NULL ) {
+		return mx_error( MXE_NOT_FOUND, fname,
+			"MX extension '%s' does not have a call method.",
+			extension->name );
+	}
+
+	mx_status = (*call_fn)( extension, argc, argv );
+
+	return mx_status;;
+}
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_extension_call_string( MX_EXTENSION *extension, char *string_arguments )
+{
+	static const char fname[] = "mx_extension_call()";
+
+	MX_EXTENSION_FUNCTION_LIST *flist = NULL;
+
+	mx_status_type ( *call_fn )( MX_EXTENSION *extension,
+					int argc, void **argv ) = NULL;
+	mx_status_type ( *call_string_fn )( MX_EXTENSION *extension,
+					char *string_arguments ) = NULL;
+
+	char *string_arguments_copy = NULL;
+	int argc;
+	char **argv;
+	mx_status_type mx_status;
+
+	MX_DEBUG(-2,("%s invoked.", fname));
+
+	if ( extension == (MX_EXTENSION *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_EXTENSION pointer passed was NULL." );
+	}
+
+	flist = extension->extension_function_list;
+
+	if ( flist == (MX_EXTENSION_FUNCTION_LIST *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	  "The extension_function_list pointer for MX extension '%s' is NULL.",
+			extension->name );
+	}
+
+	/* Use the call_string entry point if available. */
+
+	call_string_fn = flist->call_string;
+
+	if ( call_string_fn != NULL ) {
+		mx_status = (*call_string_fn)( extension, string_arguments );
+
+		return mx_status;
+	}
+
+	/* If this extension does not have a call_string method, then
+	 * we use the call method instead.
+	 */
+
+	string_arguments_copy = strdup( string_arguments );
+
+	if ( string_arguments_copy == (char *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a copy of the "
+		"'string_arguments' argument." );
+	}
+
+	mx_string_split( string_arguments_copy, " ", &argc, &argv );
+
+	call_fn = flist->call;
+
+	if ( call_fn == NULL ) {
+		return mx_error( MXE_NOT_FOUND, fname,
+			"MX extension '%s' does not have a call method.",
+			extension->name );
+	} else {
+		mx_status = (*call_fn)( extension, argc, (void **) argv );
+	}
+
+	mx_free( argv );
+	mx_free( string_arguments_copy );
+
+	return mx_status;;
+}
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_extension_call_by_name( char *extension_name,
+			MX_RECORD *record_list,
+			int argc, void **argv )
+{
+	const char fname[] = "mx_extension_call_by_name()";
+
+	MX_EXTENSION *extension = NULL;
+	mx_status_type mx_status;
+
+	if ( extension_name == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The extension_name pointer passed was NULL." );
+	}
+	if ( record_list == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	mx_status = mx_get_extension( extension_name,
+					record_list,
+					&extension );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_extension_call( extension, argc, argv );
+
+	return mx_status;
+}
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_extension_call_string_by_name( char *extension_name,
+				MX_RECORD *record_list,
+				char *string_arguments )
+{
+	const char fname[] = "mx_extension_call_string_by_name()";
+
+	MX_EXTENSION *extension = NULL;
+	mx_status_type mx_status;
+
+	if ( extension_name == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The extension_name pointer passed was NULL." );
+	}
+	if ( record_list == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	mx_status = mx_get_extension( extension_name,
+					record_list,
+					&extension );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_extension_call_string( extension, string_arguments );
+
+	return mx_status;
 }
 

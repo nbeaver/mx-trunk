@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2010-2012, 2014-2015 Illinois Institute of Technology
+ * Copyright 2010-2012, 2014-2015, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -77,6 +77,20 @@ MX_API mx_status_type mx_finalize_extensions( MX_RECORD *record_list );
 MX_API MX_EXTENSION *mx_get_default_script_extension( void );
 
 MX_API void mx_set_default_script_extension( MX_EXTENSION *extension );
+
+MX_API mx_status_type mx_extension_call( MX_EXTENSION *extension,
+						int argc, void **argv );
+
+MX_API mx_status_type mx_extension_call_string( MX_EXTENSION *extension,
+						char *string_arguments );
+
+MX_API mx_status_type mx_extension_call_by_name( char *extension_name,
+						MX_RECORD *record_list,
+						int argc, void **argv );
+
+MX_API mx_status_type mx_extension_call_string_by_name( char *extension_name,
+						MX_RECORD *record_list,
+						char *string_arguments );
 
 #ifdef __cplusplus
 }
