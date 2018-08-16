@@ -11,7 +11,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2009-2010, 2015-2017 Illinois Institute of Technology
+ * Copyright 1999-2006, 2009-2010, 2015-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -219,15 +219,19 @@ mxdf_xafs_write_header( MX_DATAFILE *datafile,
 	double ring_energy;
 	double edge_energy;
 
-	MX_RECORD *amplifier_list_record;
-	MX_RECORD *amplifier_record;
-	char amplifier_list_record_name[40];
-	char **amplifier_list_array;
-	char *amp_name;
+	char xafs_header_device_list_record_name[MXU_RECORD_NAME_LENGTH+1];
+	MX_RECORD *xafs_header_device_list_record = NULL;
+
+	MX_RECORD *amplifier_list_record = NULL;
+	MX_RECORD *amplifier_record = NULL;
+	char amplifier_list_record_name[MXU_RECORD_NAME_LENGTH+1];
+	char **amplifier_list_array = NULL;
+	char *amp_name = NULL;
 	double measurement_time, gain_value;
 	size_t blank_length;
-	MX_RECORD *keithley_gain_record;
-	char keithley_gain_record_name[40];
+
+	MX_RECORD *keithley_gain_record = NULL;
+	char keithley_gain_record_name[MXU_RECORD_NAME_LENGTH+1];
 	long num_dimensions, *dimension_array, field_type;
 	long num_keithleys, *keithley_gain_array;
 	void *pointer_to_value;
@@ -553,15 +557,34 @@ mxdf_xafs_write_header( MX_DATAFILE *datafile,
 	status = fprintf( output_file, "\n" );
 	CHECK_FPRINTF_STATUS;
 
-	/*=== Keithley settings ===*/
+	/*=== Print device and variable values ===*/
 
-	strlcpy( amplifier_list_record_name, "amplifier_list",
+	/* Start by looking for mx_xafs_header_value_list */
+
+	strlcpy( xafs_header_device_list_record_name,
+			"mx_xafs_header_value_list",
+			sizeof(xafs_header_device_list_record_name) );
+
+	xafs_header_device_list_record = mx_get_record( scan->record,
+					xafs_header_device_list_record_name );
+
+	if ( xafs_header_device_list_record != (MX_RECORD *) NULL ) {
+		MX_DEBUG(-2,("%s: BOOYAH!", fname));
+
+	/***************************************************************/
+	} else {
+
+	    /* If mx_xafs_header_value_list is not found, then look
+	     * for amplifier_list.
+	     */
+
+	    strlcpy( amplifier_list_record_name, "amplifier_list",
 				sizeof(amplifier_list_record_name) );
 
-	amplifier_list_record = mx_get_record( scan->record->list_head,
+	    amplifier_list_record = mx_get_record( scan->record,
 						amplifier_list_record_name );
 
-	if ( amplifier_list_record != (MX_RECORD *) NULL ) {
+	    if ( amplifier_list_record != (MX_RECORD *) NULL ) {
 
 		/* Use the amplifier list to contact the real amplifiers. */
 
@@ -647,7 +670,14 @@ mxdf_xafs_write_header( MX_DATAFILE *datafile,
 		status = fprintf( output_file,
 				"\n" );
 		CHECK_FPRINTF_STATUS;
-	} else {
+
+	    /***************************************************************/
+
+	    } else {
+	    	/* If both mx_xafs_header_value_list and amplifier_list
+		 * are not found, then look for keithley_gains.
+		 */
+
 
 		/* Use the old 'keithley_gains' record to get a static list. */
 
@@ -727,6 +757,7 @@ mxdf_xafs_write_header( MX_DATAFILE *datafile,
 		status = fprintf( output_file,
 				"\n" );
 		CHECK_FPRINTF_STATUS;
+	    }
 	}
 
 	/*=== Scan header description ===*/
