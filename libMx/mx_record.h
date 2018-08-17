@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2010, 2012-2017 Illinois Institute of Technology
+ * Copyright 1999-2010, 2012-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -716,6 +716,13 @@ MX_API mx_bool_type    mx_database_is_valid( MX_RECORD *record_list,
 
 MX_API MX_RECORD_FIELD *mx_get_record_field( MX_RECORD *record,
 						const char *field_name );
+
+/* mx_get_record_field_by_name() expects to be provided a record_field_name
+ * in the format "record_name.field_name".
+ */
+
+MX_API MX_RECORD_FIELD *mx_get_record_field_by_name( MX_RECORD *mx_database,
+						const char *record_field_name );
 
 MX_API mx_status_type  mx_find_record_field( MX_RECORD *record,
 				const char *name_of_field_to_find,

@@ -219,8 +219,14 @@ mxdf_xafs_write_header( MX_DATAFILE *datafile,
 	double ring_energy;
 	double edge_energy;
 
-	char xafs_header_device_list_record_name[MXU_RECORD_NAME_LENGTH+1];
-	MX_RECORD *xafs_header_device_list_record = NULL;
+	char xafs_header_value_list_record_name[MXU_RECORD_NAME_LENGTH+1];
+	MX_RECORD *xafs_header_value_list_record = NULL;
+	long num_values = 0;
+
+	char **xafs_header_value_list_array = NULL;
+	char *value_name = NULL;
+	MX_RECORD_FIELD *value_field = NULL;
+
 
 	MX_RECORD *amplifier_list_record = NULL;
 	MX_RECORD *amplifier_record = NULL;
@@ -288,7 +294,7 @@ mxdf_xafs_write_header( MX_DATAFILE *datafile,
 	/*======== Write out the text of the header. ========*/
 
 	status = fprintf( output_file,
-			"MRCAT_XAFS V0.3 Datafile\n" );
+			"MRCAT_XAFS V0.4 Datafile\n" );
 	CHECK_FPRINTF_STATUS;
 
 	mx_status = mx_get_string_variable_by_name( scan->record->list_head,
@@ -557,34 +563,19 @@ mxdf_xafs_write_header( MX_DATAFILE *datafile,
 	status = fprintf( output_file, "\n" );
 	CHECK_FPRINTF_STATUS;
 
-	/*=== Print device and variable values ===*/
-
-	/* Start by looking for mx_xafs_header_value_list */
-
-	strlcpy( xafs_header_device_list_record_name,
-			"mx_xafs_header_value_list",
-			sizeof(xafs_header_device_list_record_name) );
-
-	xafs_header_device_list_record = mx_get_record( scan->record,
-					xafs_header_device_list_record_name );
-
-	if ( xafs_header_device_list_record != (MX_RECORD *) NULL ) {
-		MX_DEBUG(-2,("%s: BOOYAH!", fname));
-
 	/***************************************************************/
-	} else {
 
-	    /* If mx_xafs_header_value_list is not found, then look
-	     * for amplifier_list.
-	     */
+	/*== Amplifier gains == */
 
-	    strlcpy( amplifier_list_record_name, "amplifier_list",
+	/* Uses either amplifier_list or keithley_gains. */
+
+	strlcpy( amplifier_list_record_name, "amplifier_list",
 				sizeof(amplifier_list_record_name) );
 
-	    amplifier_list_record = mx_get_record( scan->record,
+	amplifier_list_record = mx_get_record( scan->record,
 						amplifier_list_record_name );
 
-	    if ( amplifier_list_record != (MX_RECORD *) NULL ) {
+	if ( amplifier_list_record != (MX_RECORD *) NULL ) {
 
 		/* Use the amplifier list to contact the real amplifiers. */
 
@@ -671,11 +662,11 @@ mxdf_xafs_write_header( MX_DATAFILE *datafile,
 				"\n" );
 		CHECK_FPRINTF_STATUS;
 
-	    /***************************************************************/
+	/***************************************************************/
 
-	    } else {
-	    	/* If both mx_xafs_header_value_list and amplifier_list
-		 * are not found, then look for keithley_gains.
+	} else {
+	    	/* If amplifier_list is not found,
+		 * then look for keithley_gains.
 		 */
 
 
@@ -757,7 +748,104 @@ mxdf_xafs_write_header( MX_DATAFILE *datafile,
 		status = fprintf( output_file,
 				"\n" );
 		CHECK_FPRINTF_STATUS;
-	    }
+	}
+
+	/*=== Additional header values ===*/
+
+	strlcpy( xafs_header_value_list_record_name,
+			"mx_xafs_header_value_list",
+			sizeof(xafs_header_value_list_record_name) );
+
+	xafs_header_value_list_record = mx_get_record( scan->record,
+					xafs_header_value_list_record_name );
+
+	if ( xafs_header_value_list_record != (MX_RECORD *) NULL ) {
+
+		/* Use the list to find the real record fields. */
+
+		if ( xafs_header_value_list_record->mx_superclass
+			!= MXR_VARIABLE )
+		{
+			return mx_error( MXE_TYPE_MISMATCH, fname,
+			"The record '%s' is not a variable record.  "
+			"Instead, it has a superclass = %ld",
+			xafs_header_value_list_record_name,
+			xafs_header_value_list_record->mx_superclass );
+		}
+
+		mx_status = mx_get_variable_parameters(
+					xafs_header_value_list_record,
+					&num_dimensions, &dimension_array,
+					&field_type, &pointer_to_value );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( field_type != MXFT_STRING ) {
+			return mx_error( MXE_TYPE_MISMATCH, fname,
+"The field '%s.value' has the wrong field type.  It should be of type %s, "
+"but is actually of type %s.",
+			xafs_header_value_list_record_name,
+			mx_get_field_type_string( MXFT_STRING ),
+			mx_get_field_type_string( field_type ) );
+		}
+
+		if ( num_dimensions != 2 ) {
+			return mx_error( MXE_TYPE_MISMATCH, fname,
+"The field '%s.value' has the wrong number of dimensions.  It should have "
+"2 dimensions, but actually has %ld dimensions.",
+			xafs_header_value_list_record_name, num_dimensions );
+		}
+
+		num_values = dimension_array[0];
+
+		xafs_header_value_list_array = (char **) pointer_to_value;
+
+		status = fprintf( output_file, "Values=" );
+		CHECK_FPRINTF_STATUS; 
+
+		fprintf( output_file,  "BOOYAH!");
+		CHECK_FPRINTF_STATUS; 
+
+		for ( i = 0; i < num_values; i++ ) {
+		    value_name = xafs_header_value_list_array[i];
+
+		    MX_DEBUG(-2,("%s: value_name[%ld] = '%s'",
+				fname, i, value_name));
+
+		    blank_length = strspn( value_name, " \t" );
+
+		    if ( blank_length >= strlen(value_name) ) {
+			status = fprintf(output_file, " 0.00" );
+		    } else {
+			value_field = mx_get_record_field_by_name(
+						scan->record, value_name );
+
+			if ( value_field == (MX_RECORD_FIELD *) NULL ) {
+			    return mx_error( MXE_NOT_FOUND, fname,
+					"MX record field '%s' was not found "
+					"in the MX database.", value_name );
+			}
+
+			if (value_field->num_dimensions >= 2) {
+			    return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+				    "Only 0 and 1 dimensional record fields "
+				    "can be displayed in an XAFS scan header.  "
+				    "Record field '%s' is %ld dimensional.",
+			    	    value_name, value_field->num_dimensions);
+				}
+			if (value_field->dimension[0] > 1)  {
+			    return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+				    "1 dimensional record fields used by "
+				    "XAFS headers can only be 1 element long.  "
+				    "Record field '%s' has %ld elements.",
+				    value_name, value_field->dimension[0] );
+			}
+		    }
+		}
+
+		fprintf( output_file, "\n" );
+		CHECK_FPRINTF_STATUS; 
 	}
 
 	/*=== Scan header description ===*/

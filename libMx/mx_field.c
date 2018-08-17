@@ -10,7 +10,7 @@
  *
  *-----------------------------------------------------------------------
  *
- * Copyright 1999-2016 Illinois Institute of Technology
+ * Copyright 1999-2016, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -397,6 +397,86 @@ mx_get_record_field( MX_RECORD *record, const char *field_name )
 	}
 
 	return NULL;
+}
+
+/*=====================================================================*/
+
+MX_EXPORT MX_RECORD_FIELD *
+mx_get_record_field_by_name( MX_RECORD *mx_database,
+				const char *record_field_name )
+{
+	static const char fname[] = "mx_get_record_field_by_name()";
+
+	MX_RECORD *mx_record = NULL;
+	MX_RECORD_FIELD *mx_record_field = NULL;
+	char *record_field_name_copy = NULL;
+	int argc; char **argv;
+
+	if ( mx_database == (MX_RECORD *) NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+			"The MX_RECORD pointer passed was NULL." );
+		return NULL;
+	}
+	if ( record_field_name == (char *) NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+			"The record_field_name pointer passed was NULL." );
+		return NULL;
+	}
+
+	MX_DEBUG(-2,("%s: record_field_name = '%s'", fname, record_field_name));
+
+	/* Make sure that we are at the MX record list head. */
+
+	mx_database = mx_database->list_head;
+
+	mx_record_field = NULL;
+
+	/* Split the record_field_name into the
+	 * record name and the field name.
+	 */
+
+	record_field_name_copy = strdup( record_field_name );
+
+	if ( record_field_name_copy == (char *) NULL ) {
+		(void) mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to make a copy of "
+			"record field name '%s'.", record_field_name );
+		return NULL;
+	}
+
+	mx_string_split( record_field_name_copy, ".", &argc, &argv );
+
+	if ( (argc == 0) || (argc >= 3) ) {
+		(void) mx_error( MXE_UNPARSEABLE_STRING, fname,
+			"Not able to parse '%s' as a record field name.",
+				record_field_name );
+	} else {
+		mx_record = mx_get_record( mx_database, argv[0] );
+
+		if ( mx_record == (MX_RECORD *) NULL ) {
+			(void) mx_error( MXE_NOT_FOUND, fname,
+			"Record '%s' specified for record field name '%s' "
+			"is not found in the MX database.",
+				argv[0], record_field_name );
+		} else {
+			char mx_field_name[MXU_FIELD_NAME_LENGTH+1];
+
+			if ( (argc == 1 ) || (strlen(argv[1]) == 0 ) ) {
+				strlcpy( mx_field_name, "value",
+						sizeof(mx_field_name) );
+			} else {
+				strlcpy( mx_field_name, argv[1],
+						sizeof(mx_field_name) );
+
+				mx_record_field = mx_get_record_field(
+						mx_record, mx_field_name );
+			}
+		}
+	}
+
+	mx_free( record_field_name_copy );
+
+	return mx_record_field;
 }
 
 /*=====================================================================*/
