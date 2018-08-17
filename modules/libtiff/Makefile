@@ -67,6 +67,13 @@ LIBTIFF_LIBRARY = -L/usr/local/lib -ltiff
 
 #----
 
+else ifeq ($(MX_ARCH),solaris-gcc)
+
+LIBTIFF_INCLUDES =
+LIBTIFF_LIBRARY = -ltiff
+
+#----
+
 else ifeq ($(MX_ARCH),minix)
 
 LIBTIFF_INCLUDES = 
@@ -161,6 +168,16 @@ endif
 #--------------------------------------------------------------------------
 
 ifeq ($(MX_ARCH),bsd-clang)
+
+libtiff.mxo: $(LIBTIFF_OBJS)
+	$(CC) -shared -rdynamic -o libtiff.mxo $(LIBTIFF_OBJS) \
+		../../libMx/libMx.so $(LIBTIFF_LIBRARY)
+
+endif
+
+#--------------------------------------------------------------------------
+
+ifeq ($(MX_ARCH),solaris-gcc)
 
 libtiff.mxo: $(LIBTIFF_OBJS)
 	$(CC) -shared -rdynamic -o libtiff.mxo $(LIBTIFF_OBJS) \
