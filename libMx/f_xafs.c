@@ -28,6 +28,9 @@
 #include "mx_util.h"
 #include "mx_time.h"
 #include "mx_driver.h"
+#include "mx_stdint.h"
+#include "mx_inttypes.h"
+#include "mx_process.h"
 #include "mx_scan.h"
 #include "mx_amplifier.h"
 #include "mx_datafile.h"
@@ -226,6 +229,7 @@ mxdf_xafs_write_header( MX_DATAFILE *datafile,
 	char **xafs_header_value_list_array = NULL;
 	char *value_name = NULL;
 	MX_RECORD_FIELD *value_field = NULL;
+	void *value_ptr = NULL;
 
 
 	MX_RECORD *amplifier_list_record = NULL;
@@ -804,14 +808,8 @@ mxdf_xafs_write_header( MX_DATAFILE *datafile,
 		status = fprintf( output_file, "Values=" );
 		CHECK_FPRINTF_STATUS; 
 
-		fprintf( output_file,  "BOOYAH!");
-		CHECK_FPRINTF_STATUS; 
-
 		for ( i = 0; i < num_values; i++ ) {
 		    value_name = xafs_header_value_list_array[i];
-
-		    MX_DEBUG(-2,("%s: value_name[%ld] = '%s'",
-				fname, i, value_name));
 
 		    blank_length = strspn( value_name, " \t" );
 
@@ -841,6 +839,101 @@ mxdf_xafs_write_header( MX_DATAFILE *datafile,
 				    "Record field '%s' has %ld elements.",
 				    value_name, value_field->dimension[0] );
 			}
+
+			/* We have found a compatible MX_RECORD_FIELD
+			 * so process it to update its current value.
+			 */
+
+			mx_status = mx_process_record_field(
+						value_field->record,
+						value_field,
+						MX_PROCESS_GET,
+						NULL );
+
+			if ( mx_status.code != MXE_SUCCESS )
+			    return mx_status;
+
+			/* Get a pointer to the field's value. */
+
+			value_ptr = mx_get_field_value_pointer( value_field );
+
+			/* And write its value to the data file. */
+
+			switch( value_field->datatype ) {
+			case MXFT_STRING:
+			    fprintf( output_file, " %s", (char *) value_ptr );
+			    break;
+			case MXFT_CHAR:
+			    fprintf( output_file, " %c", *((char *) value_ptr));
+			    break;
+			case MXFT_UCHAR:
+			    fprintf( output_file, " %c",
+					    *((unsigned char *) value_ptr) );
+			    break;
+			case MXFT_SHORT:
+			    fprintf( output_file, " %hd",
+					    *((short *) value_ptr) );
+			    break;
+			case MXFT_USHORT:
+			    fprintf( output_file, " %hu",
+					   *((unsigned short *) value_ptr) );
+			    break;
+			case MXFT_BOOL:
+			    fprintf( output_file, " %d", *((int *) value_ptr) );
+			    break;
+			case MXFT_LONG:
+			    fprintf( output_file, " %ld",
+					    *((long *) value_ptr) );
+			    break;
+			case MXFT_ULONG:
+			    fprintf( output_file, " %lu",
+					   *((unsigned long *) value_ptr) );
+			    break;
+			case MXFT_FLOAT:
+			    fprintf( output_file, " %g",
+					    *((float *) value_ptr) );
+			    break;
+			case MXFT_DOUBLE:
+			    fprintf( output_file, " %g",
+					    *((double *) value_ptr) );
+			    break;
+			case MXFT_HEX:
+			    fprintf( output_file, " %#lx",
+					   *((unsigned long *) value_ptr) );
+			    break;
+			case MXFT_INT64:
+			    fprintf( output_file, " %" PRId64,
+					   *((int64_t *) value_ptr) );
+			    break;
+			case MXFT_UINT64:
+			    fprintf( output_file, " %" PRIu64,
+					   *((uint64_t *) value_ptr) );
+			    break;
+			case MXFT_RECORD:
+			    fprintf( output_file, " %s",
+					    ((MX_RECORD *) value_ptr)->name );
+			    break;
+			case MXFT_RECORDTYPE:
+			    fprintf( output_file, " MXFT_RECORDTYPE" );
+			    break;
+			case MXFT_INTERFACE:
+			    fprintf( output_file, " %s:%ld",
+				    ((MX_INTERFACE *) value_ptr)->record->name,
+				    ((MX_INTERFACE *) value_ptr)->address );
+			    break;
+			case MXFT_RECORD_FIELD:
+			    fprintf( output_file, " %s:%s",
+			        ((MX_RECORD_FIELD *) value_ptr)->record->name,
+			        ((MX_RECORD_FIELD *) value_ptr)->name );
+			    break;
+			default:
+			    fprintf( output_file,
+				"ERROR-unsupported_field_type-%ld",
+				value_field->datatype );
+			    break;
+			}
+
+			CHECK_FPRINTF_STATUS;
 		    }
 		}
 

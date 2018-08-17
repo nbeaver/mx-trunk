@@ -423,8 +423,6 @@ mx_get_record_field_by_name( MX_RECORD *mx_database,
 		return NULL;
 	}
 
-	MX_DEBUG(-2,("%s: record_field_name = '%s'", fname, record_field_name));
-
 	/* Make sure that we are at the MX record list head. */
 
 	mx_database = mx_database->list_head;
