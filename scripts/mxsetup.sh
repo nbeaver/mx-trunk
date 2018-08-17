@@ -77,9 +77,9 @@ case $osname in
 	#
 
 	if [ "x${LD_LIBRARY_PATH}" = x ]; then
-		LD_LIBRARY_PATH="${MXDIR}/lib:${MXDIR}/lib/modules"
+		LD_LIBRARY_PATH="${MXDIR}/lib:${MXDIR}/lib/modules:${MXDIR}/lib/mp"
 	else
-		LD_LIBRARY_PATH="${MXDIR}/lib:${MXDIR}/lib/modules:${LD_LIBRARY_PATH}"
+		LD_LIBRARY_PATH="${MXDIR}/lib:${MXDIR}/lib/modules:${MXDIR}/lib/mp:${LD_LIBRARY_PATH}"
 	fi
 
 	export LD_LIBRARY_PATH

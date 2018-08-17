@@ -301,7 +301,6 @@ mxi_keithley2600_command( MX_KEITHLEY2600 *keithley2600,
 	MX_INTERFACE *port_interface = NULL;
 	MX_RS232 *rs232 = NULL;
 	int i, max_attempts;
-	double timeout;
 	mx_bool_type debug, response_expected;
 	mx_status_type mx_status;
 
@@ -323,10 +322,8 @@ mxi_keithley2600_command( MX_KEITHLEY2600 *keithley2600,
 		rs232 = (MX_RS232 *)
 			port_interface->record->record_class_struct;
 
-		timeout = rs232->timeout;
 		break;
 	case MXI_GPIB:
-		timeout = 1.0;
 		break;
 	default:
 		mx_status = mx_error( MXE_TYPE_MISMATCH, fname,
