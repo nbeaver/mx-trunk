@@ -15,6 +15,7 @@
  */
 
 #define DEBUG_DATABASE_BUFFERS	FALSE
+#define DEBUG_RECORD_IS_VALID	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -1968,6 +1969,65 @@ mx_database_is_server( MX_RECORD *record )
 	} else {
 		return FALSE;
 	}
+}
+
+MX_EXPORT mx_bool_type
+mx_record_is_valid( MX_RECORD *record )
+{
+#if DEBUG_RECORD_IS_VALID
+	static const char fname[] = "mx_record_is_valid()";
+#endif
+
+	MX_DRIVER *test = NULL;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return FALSE;
+	}
+
+	/* See if the record has a known superclass, class, and type. */
+
+#if DEBUG_RECORD_IS_VALID
+	MX_DEBUG(-2,("%s: record = %p", fname, record));
+	MX_DEBUG(-2,("%s: record = '%s'", fname, record->name));
+	MX_DEBUG(-2,("%s: mx_superclass = %ld", fname, record->mx_superclass));
+#endif
+
+	test = mx_get_superclass_driver_by_type( record->mx_superclass );
+
+#if DEBUG_RECORD_IS_VALID
+	MX_DEBUG(-2,("%s: superclass driver = %p", fname, test ));
+#endif
+
+	if ( test == (MX_DRIVER *) NULL )
+		return FALSE;
+
+#if DEBUG_RECORD_IS_VALID
+	MX_DEBUG(-2,("%s: mx_class = %ld", fname, record->mx_class));
+#endif
+
+	test = mx_get_class_driver_by_type( record->mx_class );
+
+#if DEBUG_RECORD_IS_VALID
+	MX_DEBUG(-2,("%s: class driver = %p", fname, test ));
+#endif
+
+	if ( test == (MX_DRIVER *) NULL )
+		return FALSE;
+
+#if DEBUG_RECORD_IS_VALID
+	MX_DEBUG(-2,("%s: mx_type = %ld", fname, record->mx_type));
+#endif
+
+	test = mx_get_driver_by_type( record->mx_type );
+
+#if DEBUG_RECORD_IS_VALID
+	MX_DEBUG(-2,("%s: type driver = %p", fname, test ));
+#endif
+
+	if ( test == (MX_DRIVER *) NULL )
+		return FALSE;
+
+	return TRUE;
 }
 
 /* ========= */

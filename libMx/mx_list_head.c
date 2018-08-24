@@ -7,7 +7,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004, 2006-2016 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2004, 2006-2016, 2018
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -74,8 +75,8 @@ mxr_create_list_head( MX_RECORD *record )
 	mx_status_type mx_status;
 
 	record->mx_superclass = MXR_LIST_HEAD;
-	record->mx_class = 0;
-	record->mx_type = 0;
+	record->mx_class = MXL_LIST_HEAD;
+	record->mx_type = MXT_LIST_HEAD;
 
 	strlcpy( record->name, "mx_database", MXU_RECORD_NAME_LENGTH );
 
