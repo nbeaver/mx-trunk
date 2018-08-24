@@ -1989,6 +1989,8 @@ mx_record_is_valid( MX_RECORD *record )
 #if DEBUG_RECORD_IS_VALID
 	MX_DEBUG(-2,("%s: record = %p", fname, record));
 	MX_DEBUG(-2,("%s: record = '%s'", fname, record->name));
+	MX_DEBUG(-2,("%s: record->script_object = %p",
+				fname, record->script_object));
 	MX_DEBUG(-2,("%s: mx_superclass = %ld", fname, record->mx_superclass));
 #endif
 
