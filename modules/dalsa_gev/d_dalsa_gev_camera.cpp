@@ -1,5 +1,5 @@
 /*
- * Name:    d_dalsa_gev_camera.c
+ * Name:    d_dalsa_gev_camera.cpp
  *
  * Purpose: MX video input driver for a DALSA GigE-Vision camera
  *          controlled via the Gev API.
@@ -19,9 +19,11 @@
 #define MXD_DALSA_GEV_CAMERA_DEBUG_ARM				FALSE
 #define MXD_DALSA_GEV_CAMERA_DEBUG_STOP				FALSE
 #define MXD_DALSA_GEV_CAMERA_DEBUG_GET_FRAME			FALSE
+#define MXD_DALSA_GEV_CAMERA_DEBUG_GET_EXTENDED_STATUS		FALSE
 #define MXD_DALSA_GEV_CAMERA_DEBUG_MX_PARAMETERS		FALSE
 #define MXD_DALSA_GEV_CAMERA_DEBUG_REGISTER_READ		FALSE
 #define MXD_DALSA_GEV_CAMERA_DEBUG_REGISTER_WRITE		FALSE
+#define MXD_DALSA_GEV_CAMERA_DEBUG_CONFIGURE_NETWORK		TRUE
 
 #define MXD_DALSA_GEV_CAMERA_USE_GEV_INITIALIZE_TRANSFER	FALSE
 
@@ -37,6 +39,7 @@
 #include "mx_array.h"
 #include "mx_atomic.h"
 #include "mx_vm_alloc.h"
+#include "mx_net_interface.h"
 #include "mx_image.h"
 #include "mx_video_input.h"
 #include "i_dalsa_gev.h"
@@ -951,6 +954,138 @@ mxd_dalsa_gev_camera_shadobox_trigger( MX_VIDEO_INPUT *vinput,
 
 /*--------------------------------------------------------------------------*/
 
+static mx_status_type
+mxd_dalsa_gev_camera_check_network_connection( MX_VIDEO_INPUT *vinput,
+					MX_DALSA_GEV_CAMERA *dalsa_gev_camera )
+{
+	static const char fname[] =
+		"mxd_dalsa_gev_camera_check_network_connection()";
+
+	unsigned long ipv4_address;
+	unsigned long dalsa_gev_camera_packet_size;
+	MX_NETWORK_INTERFACE *ni;
+	struct sockaddr_in sa_address_in;
+	unsigned long flags;
+	mx_status_type mx_status;
+
+	ipv4_address = dalsa_gev_camera->camera_object->host.ipAddr;
+
+	/* Convert the address to network byte order. */
+
+	ipv4_address = htonl( ipv4_address );
+
+#if MXD_DALSA_GEV_CAMERA_DEBUG_CONFIGURE_NETWORK
+	int ip1, ip2, ip3, ip4;
+
+	ip1 = (int) ( ipv4_address & 0xff );
+	ip2 = (int) ( ( ipv4_address >> 8L ) & 0xff );
+	ip3 = (int) ( ( ipv4_address >> 16L ) & 0xff );
+	ip4 = (int) ( ( ipv4_address >> 24L ) & 0xff );
+
+	MX_DEBUG(-2,
+	("%s: camera '%s' IP address = '%d.%d.%d.%d (%#lx)",
+		fname, vinput->record->name,
+		ip1, ip2, ip3, ip4, (unsigned long) ipv4_address ));
+#endif
+	/*------------------------------------------------------------------*/
+
+	/* Get the packet size that the detector will use to transmit data. */
+
+	/* We get this from the feature node map for the camera. */
+
+	if ( dalsa_gev_camera->feature_node_map == NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The feature node map has not yet been acquired from "
+		"Dalsa Gev camera '%s'.",
+			dalsa_gev_camera->record->name );
+	}
+
+	GenApi::CNodeMapRef *feature_node_map =
+		(GenApi::CNodeMapRef *) dalsa_gev_camera->feature_node_map;
+
+	GenApi::CIntegerPtr int_feature_ptr =
+		feature_node_map->_GetNode( "GevSCPSPacketSize" );
+
+	dalsa_gev_camera_packet_size = int_feature_ptr->GetValue();
+
+#if MXD_DALSA_GEV_CAMERA_DEBUG_CONFIGURE_NETWORK
+	MX_DEBUG(-2,("%s: Dalsa Gev camera packet size = %lu",
+		fname, dalsa_gev_camera_packet_size));
+#endif
+
+	/* Get an MX_NETWORK_INTERFACE structure that describes the
+	 * address listed above.  The DALSA GigE Vision cameras
+	 * currently all use IPV4.
+	 */
+
+	memset( &sa_address_in, 0, sizeof(sa_address_in) );
+
+	sa_address_in.sin_family = AF_INET;
+	sa_address_in.sin_port = 0;
+	sa_address_in.sin_addr.s_addr = ipv4_address;
+
+	mx_status = mx_network_get_interface_from_host_address( &ni,
+					(struct sockaddr *) &sa_address_in );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_DALSA_GEV_CAMERA_DEBUG_CONFIGURE_NETWORK
+
+	ip1 = (int) ( ni->ipv4_address & 0xff );
+	ip2 = (int) ( ( ni->ipv4_address >> 8L ) & 0xff );
+	ip3 = (int) ( ( ni->ipv4_address >> 16L ) & 0xff );
+	ip4 = (int) ( ( ni->ipv4_address >> 24L ) & 0xff );
+
+	MX_DEBUG(-2,("%s: host NIC ip address = '%d.%d.%d.%d (%#lx)",
+	 	fname, ip1, ip2, ip3, ip4, ni->ipv4_address));
+	MX_DEBUG(-2,("%s: name = '%s', raw name = '%s'",
+		fname, ni->name, ni->raw_name));
+	MX_DEBUG(-2,("%s: Host MTU = %lu", fname, ni->mtu));
+#endif
+
+	/******************************************************************
+	 * WARNING: If the MTU (Maximum Transmission Unit) for packets    *
+	 * received by the detector computer is _smaller_ than the packet *
+	 * size the camera will use to transmit data to the detector      *
+	 * computer, then hilarity ensues.                                *
+	 *                                                                *
+	 * If this happens, then we must strongly warn the end user that  *
+	 * this configuration will almost _certainly_ not work and must   *
+	 * be fixed.                                                      *
+	 ******************************************************************/
+
+	flags = dalsa_gev_camera->dalsa_gev_camera_flags;
+
+	if ( flags & MXF_DALSA_GEV_CAMERA_CHECK_PACKET_SIZES ) {
+		if ( dalsa_gev_camera_packet_size > ni->mtu ) {
+			fprintf( stderr,
+"\nWARNING:\n"
+"The DALSA camera is currently configured to send data to the detector using\n"
+"%lu byte packets.  However, the detector control computer network interface\n"
+"'%s' is configured so that it cannot receive packets that are larger\n"
+"than %lu bytes.  This kind of configuration WILL NOT WORK!\n"
+"\n"
+"If you attempt to use the detector in this configuration anyway, the detector\n"
+"electronics controller will spontaneously reboot itself quite frequently,\n"
+"making it difficult to complete even one imaging sequence.\n"
+"\n"
+"FIXME: To fix this, .....\n"
+"... to the\n"
+"'%s' network interface and change the maximum packet sie to a value\n"
+"that is %lu bytes or more.  Often, this is called enabling 'Jumbo Frames'\n"
+"or 'Jumbo Packets'.\n\n",
+			(unsigned long) dalsa_gev_camera_packet_size,
+			ni->name, ni->mtu, ni->name,
+			(unsigned long) dalsa_gev_camera_packet_size );
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mxd_dalsa_gev_camera_create_record_structures( MX_RECORD *record )
 {
@@ -1063,6 +1198,8 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	flags = dalsa_gev_camera->dalsa_gev_camera_flags;
 
 	debug_dalsa_library =
 		dalsa_gev->dalsa_gev_flags & MXF_DALSA_GEV_DEBUG_DALSA_LIBRARY;
@@ -1209,8 +1346,6 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 #endif
 
 	/*---------------------------------------------------------------*/
-
-	flags = dalsa_gev_camera->dalsa_gev_camera_flags;
 
 	if ( flags & MXF_DALSA_GEV_CAMERA_WRITE_XML_FILE ) {
 		write_xml_file = TRUE;
@@ -1360,6 +1495,16 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 			dalsa_gev_camera->model_type =
 				MXT_DALSA_GEV_CAMERA_SHADOBOX;
 		}
+	}
+
+	/*---------------------------------------------------------------*/
+
+	if ( flags & MXF_DALSA_GEV_CAMERA_CHECK_NETWORK_CONNECTION ) {
+		mx_status = mxd_dalsa_gev_camera_check_network_connection(
+						vinput, dalsa_gev_camera );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	/* Reading the framesize gets a variety of other parameters as well. */
@@ -1995,6 +2140,7 @@ mxd_dalsa_gev_camera_get_extended_status( MX_VIDEO_INPUT *vinput )
 		vinput->busy = FALSE;
 	}
 
+#if MXD_DALSA_GEV_CAMERA_DEBUG_GET_EXTENDED_STATUS
 	MX_DEBUG(-2,("%s: vinput->total_num_frames = %ld",
 			fname, vinput->total_num_frames));
 	MX_DEBUG(-2,("%s: vinput->last_frame_number = %ld",
@@ -2003,6 +2149,7 @@ mxd_dalsa_gev_camera_get_extended_status( MX_VIDEO_INPUT *vinput )
 			fname, (long) num_frames_left));
 	MX_DEBUG(-2,("%s: vinput->status = %#lx",
 			fname, vinput->status));
+#endif
 
 	return mx_status;
 }

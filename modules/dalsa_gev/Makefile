@@ -1,6 +1,27 @@
 #
 # This module is only for the 'linux' platform.
 #
+# WARNING: When building the DALSA GeV libraries for version 2.0.x, you
+# _MUST_ make a change to the file DALSA/src/gevlib/Makefile.
+#
+# As said by Hugh Parliament of Teledyne DALSA:
+#
+#----------------------------------------------------------------------------
+# Look in the file DALSA/src/gevlib/Makefile
+#
+# At the bottom there is a line specific to the source file "gev_xml_utils.c"
+#
+# Replace it with the one below - it adds in the "LEGACY_XML_FIXUP_SUPPORT" definition.
+#
+# # Specific file handling..... (to quiet warnings etc....)
+# gev_xml_utils.o: gev_xml_utils.c
+# 	$(CC) -I. $(INC_PATH) $(C_COMPILE_OPTIONS) -Wno-attributes -DUSE_MINIZ -DLEGACY_XML_FIXUP_SUPPORT $(BASE_OPTIONS) $(TARGET_OPTIONS) $(ARCH_OPTIONS) -c $< -o $@
+# 		
+# 		Then do a reinstall / remake of the library.
+#
+# 		I had removed this definition because it had unintended consequences on another camera. It does remove the NULL label definition but is uses a techniques that affects the XML definitions used for the CDATA conditional constructs. AFAIK - these are not used by the Xray panels so you can re-enable it for your case.
+#
+#----------------------------------------------------------------------------
 
 DALSA_GEV_INCLUDES += -I/usr/dalsa/GigeV/include
 DALSA_GEV_INCLUDES += -I/opt/genicam_v3_0/library/CPP/include
