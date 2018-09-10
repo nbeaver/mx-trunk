@@ -8,9 +8,16 @@
  *
  * Author:  William Lavender
  *
+ * FIXME:   If we ever need to display the Linux/BSD/etc. distribution
+ *          a place to start might be
+ *
+ *   https://unix.stackexchange.com/questions/35183/how-do-i-identify-which-linux-distro-is-running
+ *
+ *          But for now we do not do this.
+ *
  *---------------------------------------------------------------------------
  *
- * Copyright 2008-2009, 2011, 2014-2016 Illinois Institute of Technology
+ * Copyright 2008-2009, 2011, 2014-2016, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
