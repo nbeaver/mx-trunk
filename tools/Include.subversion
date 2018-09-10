@@ -7,6 +7,8 @@
 
 _mx_subversion_revision := $(shell svnversion .. 2>/dev/null | tr -d ' ')
 
+$(info revision = $(_mx_subversion_revision))
+
 # Create a label for the current version.
 
 ifndef _mx_subversion_revision
@@ -14,8 +16,10 @@ ifndef _mx_subversion_revision
 else
   ifeq ($(_mx_subversion_revision),Unversioneddirectory)
     _mx_subversion_label := none
+    _mx_subversion_revnumber := 0
   else
     _mx_subversion_label := SVN $(_mx_subversion_revision)
+    _mx_subversion_revnumber := $(shell echo $(_mx_subversion_revision) | grep -o '[0-9]\+' )
   endif
 endif
 
@@ -27,10 +31,13 @@ _mx_subversion_old_label := $(shell cat mx_revision.txt 2>/dev/null)
 
 $(info Old = $(_mx_subversion_old_label))
 $(info New = $(_mx_subversion_label))
+$(info Revnumber = $(_mx_subversion_revnumber))
 
 ifneq ($(_mx_subversion_label),$(_mx_subversion_old_label))
 $(shell echo $(_mx_subversion_label) > mx_revision.txt)
 $(shell echo \#define MX_REVISION_STRING \"$(_mx_subversion_label)\" > ../libMx/mx_private_revision.h)
+#
+$(shell echo \#define MX_REVISION_NUMBER $(_mx_subversion_revnumber) >> ../libMx/mx_private_revision.h)
 endif
 
 #------------------------------------------------------------------------
