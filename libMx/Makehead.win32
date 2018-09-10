@@ -104,8 +104,6 @@ LIBRARIES = $(WIN32_LIBS)
 
 #----
 
-ifndef MSDEV_ARCH
-
 oldarchitecture := $(shell cl 2>&1 | head -1 | awk '{print $$10}')
 
 ifeq ($(oldarchitecture),80x86)
@@ -117,6 +115,10 @@ else
 endif
 
 newlayout := $(shell if [ $(rtmversion) -gt 16 ]; then echo true ; else echo false ; fi)
+
+#----
+
+ifndef MSDEV_ARCH
 
 ifeq ($(architecture),x86)
 ifeq ($(newlayout),true)
@@ -134,13 +136,17 @@ else
 	MSDEV_ARCH = error
 endif
 
+endif
+
+#----
+
 ###$(info $$oldarchitecture is [${oldarchitecture}])
 ###$(info $$architecture is [${architecture}])
 ###$(info $$rtmversion is [${rtmversion}])
 ###$(info $$newlayout is [${newlayout}])
 ###$(info $$MSDEV_ARCH is [${MSDEV_ARCH}])
 
-endif
+#----
 
 #
 # 4.  You must specify the directory that the libraries for Microsoft
@@ -368,7 +374,18 @@ MSMANIFEST_TOOL = `echo "$(MSDEV_DIR)\\bin\\mt" | tr \\\\ / `
 
 CC		= cl
 CFLAGS		+= -nologo $(INCLUDES) $(RUN_TIME_LIBRARY_FLAGS) \
-			-Zi -WX -w14995 -DOS_WIN32 $(EXTRA_FLAGS) -DDEBUG
+			-Zi -WX -DOS_WIN32 $(EXTRA_FLAGS) -DDEBUG
+
+#
+# Options specific to specific versions of Visual C++
+#
+
+use_w14995 := $(shell if [ $(rtmversion) -gt 12 ]; then echo true ; else echo false ; fi)
+
+ifeq ($(use_w14995),true)
+CFLAGS += -w14995
+endif
+
 # Special cases for individual files.
 
 CFLAGS_MX_VERS  = -DOS_WIN32 -DMX_MAJOR_VERSION=$(MX_MAJOR_VERSION) \
