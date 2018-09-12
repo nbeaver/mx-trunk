@@ -18,7 +18,7 @@
 
 #define MXD_PILATUS_DEBUG_SERIAL			TRUE
 
-#define MXD_PILATUS_DEBUG_EXTENDED_STATUS		FALSE
+#define MXD_PILATUS_DEBUG_EXTENDED_STATUS		TRUE
 
 #define MXD_PILATUS_DEBUG_EXTENDED_STATUS_CHANGE	TRUE
 
@@ -1002,9 +1002,7 @@ mxd_pilatus_transfer_frame( MX_AREA_DETECTOR *ad )
 			"mxd_pilatus_transfer_frame()";
 
 	MX_PILATUS *pilatus = NULL;
-	char remote_image_filename[2*MXU_FILENAME_LENGTH+3];
 	char local_image_filename[MXU_FILENAME_LENGTH+1];
-	char *filename_ptr = NULL;
 	unsigned long flags;
 	mx_status_type mx_status;
 
@@ -1026,45 +1024,21 @@ mxd_pilatus_transfer_frame( MX_AREA_DETECTOR *ad )
 		 * by camserver.
 		 */
 
-		snprintf( remote_image_filename,
-			sizeof(remote_image_filename),
+		snprintf( local_image_filename,
+			sizeof(local_image_filename),
 			"%s/%s",
 			ad->datafile_directory,
 			ad->datafile_name );
 
 #if MXD_PILATUS_DEBUG_TRANSFER
 		MX_DEBUG(-2,("%s: Loading Pilatus image '%s'.\n",
-			fname, remote_image_filename ));
-#endif
-		/* If the MX process is not running on the same computer
-		 * as the Pilatus 'camserver' program, then we must convert
-		 * from the remote Pilatus filename to a local filename.
-		 */
-
-		if ( strlen( pilatus->local_datafile_directory ) == 0 ) {
-			filename_ptr = remote_image_filename;
-		} else {
-			mx_status = mx_change_filename_prefix(
-					remote_image_filename,
-					ad->datafile_directory,
-					pilatus->local_datafile_directory,
-					local_image_filename,
-					sizeof(local_image_filename) );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			filename_ptr = local_image_filename;
-		}
-		
-#if MXD_PILATUS_DEBUG_TRANSFER
-		MX_DEBUG(-2,("%s: local filename = '%s'", fname, filename_ptr));
+			fname, local_image_filename ));
 #endif
 
 		/* For now, we assume that the image file is in TIFF format. */
 
 		mx_status = mx_image_read_tiff_file( &(ad->image_frame),
-						NULL, filename_ptr );
+						NULL, local_image_filename );
 
 		if (mx_status.code != MXE_SUCCESS)
 			return mx_status;
@@ -1278,8 +1252,15 @@ mxd_pilatus_get_parameter( MX_AREA_DETECTOR *ad )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		strlcpy( ad->datafile_directory, response,
-			sizeof( ad->datafile_directory ) );
+		strlcpy( pilatus->detector_server_image_directory, response,
+			sizeof(pilatus->detector_server_image_directory) );
+
+		mx_status = mx_change_filename_prefix(
+				pilatus->detector_server_image_directory,
+				pilatus->detector_server_image_root,
+				pilatus->local_image_root,
+				ad->datafile_directory,
+				sizeof(ad->datafile_directory) );
 		break;
 
 	case MXLV_AD_DATAFILE_NAME:
@@ -1412,8 +1393,18 @@ mxd_pilatus_set_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_DATAFILE_DIRECTORY:
+		mx_status = mx_change_filename_prefix(
+				ad->datafile_directory,
+				pilatus->local_image_root,
+				pilatus->detector_server_image_root,
+				pilatus->detector_server_image_directory,
+			    sizeof(pilatus->detector_server_image_directory) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
 		snprintf( command, sizeof(command),
-			"ImgPath %s", ad->datafile_directory );
+		    "ImgPath %s", pilatus->detector_server_image_directory );
 
 		mx_status = mxd_pilatus_command( pilatus, command,
 					response, sizeof(response), NULL );

@@ -34,7 +34,9 @@ typedef struct {
 	MX_RECORD *rs232_record;
 	unsigned long pilatus_flags;
 	unsigned long acknowledgement_interval;
-	char local_datafile_directory[MXU_FILENAME_LENGTH+1];
+	char detector_server_image_directory[MXU_FILENAME_LENGTH+1];
+	char detector_server_image_root[MXU_FILENAME_LENGTH+1];
+	char local_image_root[MXU_FILENAME_LENGTH+1];
 
 	double delay_time;
 	double exposure_period;
@@ -79,9 +81,19 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, acknowledgement_interval), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "local_datafile_directory", \
+  {-1, -1, "detector_server_image_directory", \
 			MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, local_datafile_directory), \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_PILATUS, detector_server_image_directory), \
+	{sizeof(char)}, NULL, 0}, \
+  \
+  {-1, -1, "detector_server_image_root", \
+			MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, detector_server_image_root), \
+	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
+  {-1, -1, "local_image_root", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, local_image_root), \
 	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}, \
   \
   {-1, -1, "delay_time", MXFT_DOUBLE, NULL, 0, {0}, \
