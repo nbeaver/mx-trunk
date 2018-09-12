@@ -46,7 +46,7 @@
 MX_RECORD_FUNCTION_LIST mxd_pilatus_record_function_list = {
 	mxd_pilatus_initialize_driver,
 	mxd_pilatus_create_record_structures,
-	NULL,
+	mx_area_detector_finish_record_initialization,
 	NULL,
 	NULL,
 	mxd_pilatus_open,
@@ -833,6 +833,10 @@ mxd_pilatus_get_extended_status( MX_AREA_DETECTOR *ad )
 				ad->total_num_frames =
 					pilatus->old_total_num_frames
 						+ new_last_frame_number + 1;
+#if 1
+				MX_DEBUG(-2,("CAPTURE: Total num frames = %lu",
+					ad->total_num_frames));
+#endif
 			}
 		} else
 		if ( strncmp( response, "7 ERR", 5 ) == 0 ) {
@@ -945,6 +949,10 @@ mxd_pilatus_get_extended_status( MX_AREA_DETECTOR *ad )
 
 				pilatus->exposure_in_progress = FALSE;
 			}
+#if 1
+			MX_DEBUG(-2,("CAPTURE: Total num frames = %lu",
+					ad->total_num_frames));
+#endif
 		} else {
 			mx_warning(
 			"%s: Unexpected response '%s' seen for detector '%s'",
