@@ -18,9 +18,11 @@
 
 #define MXD_PILATUS_DEBUG_SERIAL			TRUE
 
-#define MXD_PILATUS_DEBUG_EXTENDED_STATUS		TRUE
+#define MXD_PILATUS_DEBUG_EXTENDED_STATUS		FALSE
 
 #define MXD_PILATUS_DEBUG_EXTENDED_STATUS_CHANGE	TRUE
+
+#define MXD_PILATUS_DEBUG_EXTENDED_STATUS_PARSING	TRUE
 
 #define MXD_PILATUS_DEBUG_PARAMETERS			FALSE
 
@@ -792,6 +794,11 @@ mxd_pilatus_get_extended_status( MX_AREA_DETECTOR *ad )
 	if ( num_input_bytes_available > 0 ) {
 		mx_bool_type debug_flag;
 
+#if MXD_PILATUS_DEBUG_EXTENDED_STATUS_CHANGE
+		MX_DEBUG(-2,("%s: num_input_bytes_available = %lu",
+			fname, num_input_bytes_available));
+#endif
+
 		if ( pilatus->pilatus_flags & MXF_PILATUS_DEBUG_SERIAL ) {
 			debug_flag = TRUE;
 		} else {
@@ -808,10 +815,6 @@ mxd_pilatus_get_extended_status( MX_AREA_DETECTOR *ad )
 		/* We have to go to extreme lengths to extract the information
 		 * that we want from the acknowledgements.
 		 */
-
-#if MXD_PILATUS_DEBUG_EXTENDED_STATUS
-		MX_DEBUG(-2,("%s: response = '%s'", fname, response));
-#endif
 
 		if ( strncmp( response, "15 OK", 5 ) == 0 ) {
 			int num_items;
@@ -838,19 +841,37 @@ mxd_pilatus_get_extended_status( MX_AREA_DETECTOR *ad )
 		if ( strncmp( response, "7 OK", 4 ) == 0 ) {
 			size_t prefix_length;
 			char *pattern_offset;
+			char last_char;
 
-			prefix_length = strlen( ad->datafile_directory );
+#if MXD_PILATUS_DEBUG_EXTENDED_STATUS_PARSING
+			MX_DEBUG(-2,
+			("%s: detector_server_image_directory = '%s'",
+			    fname, pilatus->detector_server_image_directory));
+#endif
+			prefix_length =
+			    strlen( pilatus->detector_server_image_directory );
 
+#if MXD_PILATUS_DEBUG_EXTENDED_STATUS_PARSING
+			MX_DEBUG(-2,("%s: prefix_length = %d",
+				fname, (int) prefix_length));
+#endif
 			/* See if we need to add a path separator that is not
 			 * already at the end of the datafile_directory string.
 			 */
 
-			if ( (ad->datafile_directory)[prefix_length-1] != '/') {
+			last_char =
+		(pilatus->detector_server_image_directory)[prefix_length-1];
+
+			if ( last_char != '/') {
 				prefix_length++;
 			}
 
 			pattern_offset = strchr( ad->datafile_pattern, '#' );
 
+#if MXD_PILATUS_DEBUG_EXTENDED_STATUS_PARSING
+			MX_DEBUG(-2,("%s: pattern_offset = '%s'",
+				fname, pattern_offset));
+#endif
 			if ( pattern_offset == NULL ) {
 				/* If there isn't a '#' pattern character in
 				 * the 'datafile_pattern' field, then only
@@ -877,7 +898,7 @@ mxd_pilatus_get_extended_status( MX_AREA_DETECTOR *ad )
 
 				prefix_length += 5;
 
-#if MXD_PILATUS_DEBUG_EXTENDED_STATUS
+#if MXD_PILATUS_DEBUG_EXTENDED_STATUS_PARSING
 				MX_DEBUG(-2,("%s: prefix_length = %lu",
 					fname, prefix_length));
 #endif
@@ -891,14 +912,14 @@ mxd_pilatus_get_extended_status( MX_AREA_DETECTOR *ad )
 
 				file_number_ptr = response + prefix_length;
 
-#if MXD_PILATUS_DEBUG_EXTENDED_STATUS
+#if MXD_PILATUS_DEBUG_EXTENDED_STATUS_PARSING
 				MX_DEBUG(-2,("%s: file_number_ptr = '%s'",
 					fname, file_number_ptr ));
 #endif
 
 				file_number = atol( file_number_ptr );
 
-#if MXD_PILATUS_DEBUG_EXTENDED_STATUS
+#if MXD_PILATUS_DEBUG_EXTENDED_STATUS_PARSING
 				MX_DEBUG(-2,("%s: file_number = %ld",
 					fname, file_number));
 				MX_DEBUG(-2,("%s: old_datafile_number = %lu",
@@ -908,7 +929,7 @@ mxd_pilatus_get_extended_status( MX_AREA_DETECTOR *ad )
 				num_frames_in_sequence =
 			    file_number - pilatus->old_datafile_number + 1;
 
-#if MXD_PILATUS_DEBUG_EXTENDED_STATUS
+#if MXD_PILATUS_DEBUG_EXTENDED_STATUS_PARSING
 				MX_DEBUG(-2,("%s: num_frames_in_sequence = %ld",
 					fname, num_frames_in_sequence));
 #endif
@@ -1775,6 +1796,9 @@ mxd_pilatus_special_processing_setup( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
+		case MXLV_PILATUS_DETECTOR_SERVER_IMAGE_DIRECTORY:
+		case MXLV_PILATUS_DETECTOR_SERVER_IMAGE_ROOT:
+		case MXLV_PILATUS_LOCAL_IMAGE_ROOT:
 		case MXLV_PILATUS_COMMAND:
 		case MXLV_PILATUS_RESPONSE:
 		case MXLV_PILATUS_SET_ENERGY:
@@ -1807,6 +1831,9 @@ mxd_pilatus_process_function( void *record_ptr,
 	char response[MXU_PILATUS_COMMAND_LENGTH+1];
 	int argc;
 	char **argv;
+	char directory_temp[MXU_FILENAME_LENGTH+1];
+	char *ptr = NULL;
+	size_t length;
 	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
@@ -1826,15 +1853,25 @@ mxd_pilatus_process_function( void *record_ptr,
 			 * written to these fields.
 			 */
 			break;
+		case MXLV_PILATUS_DETECTOR_SERVER_IMAGE_DIRECTORY:
+			mx_status = mxd_pilatus_command( pilatus, "ImgPath",
+						response, sizeof(response),
+						NULL );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			strlcpy( pilatus->detector_server_image_directory,
+				response,
+			    sizeof(pilatus->detector_server_image_directory) );
+			break;
 		case MXLV_PILATUS_TH:
 			snprintf( command, sizeof(command),
 				"THread %lu", pilatus->th_channel );
 
-			mx_status = mxd_pilatus_command( pilatus,
-							command,
-							response,
-							sizeof(response),
-							NULL );
+			mx_status = mxd_pilatus_command( pilatus, command,
+						response, sizeof(response),
+						NULL );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -1855,6 +1892,60 @@ mxd_pilatus_process_function( void *record_ptr,
 		break;
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
+		case MXLV_PILATUS_DETECTOR_SERVER_IMAGE_DIRECTORY:
+
+			/* See if the new directory is contained within
+ 			 * the directory pilatus->detector_server_image_root.
+ 			 */
+
+			/* Begin by making a copy of detector_server_image_root
+			 * with any trailing path separators stripped off.
+			 */
+
+			strlcpy( directory_temp,
+				pilatus->detector_server_image_root,
+				sizeof(directory_temp) );
+
+			length = strlen( directory_temp );
+
+			if ( ( directory_temp[length-1] == '/' )
+			  || ( directory_temp[length-1] == '\\' ) )
+			{
+				directory_temp[length-1] = '\0';
+
+				length = strlen( directory_temp );
+			}
+
+			/* Is directory_temp found at the beginning of
+			 * detector_server_image_directory?
+			 */
+
+			ptr = strstr( pilatus->detector_server_image_directory,
+					directory_temp );
+
+			if ( (ptr == NULL)
+			  || (ptr != pilatus->detector_server_image_directory) )
+			{
+				return mx_error(
+				MXE_CONFIGURATION_CONFLICT, fname,
+				"The requested detector server image directory "
+				"of '%s' for Pilatus detector '%s' is not "
+				"found within the detector server image root "
+				"directory of '%s'.",
+				    pilatus->detector_server_image_directory,
+				    pilatus->record->name,
+				    pilatus->detector_server_image_root );
+			}
+
+			/* Now we can send the new ImgPath. */
+
+			snprintf( command, sizeof(command), "ImgPath %s",
+				pilatus->detector_server_image_directory );
+
+			mx_status = mxd_pilatus_command( pilatus, command,
+						response, sizeof(response),
+						NULL );
+			break;
 		case MXLV_PILATUS_COMMAND:
 			mx_status = mxd_pilatus_command( pilatus,
 						pilatus->command,

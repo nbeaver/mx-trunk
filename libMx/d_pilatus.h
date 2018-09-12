@@ -61,11 +61,14 @@ typedef struct {
 	unsigned long old_datafile_number;
 } MX_PILATUS;
 
-#define MXLV_PILATUS_COMMAND			87801
-#define MXLV_PILATUS_RESPONSE			87802
-#define MXLV_PILATUS_SET_ENERGY			87803
-#define MXLV_PILATUS_SET_THRESHOLD		87804
-#define MXLV_PILATUS_TH				87805
+#define MXLV_PILATUS_DETECTOR_SERVER_IMAGE_DIRECTORY	87801
+#define MXLV_PILATUS_DETECTOR_SERVER_IMAGE_ROOT		87802
+#define MXLV_PILATUS_LOCAL_IMAGE_ROOT			87803
+#define MXLV_PILATUS_COMMAND				87804
+#define MXLV_PILATUS_RESPONSE				87805
+#define MXLV_PILATUS_SET_ENERGY				87806
+#define MXLV_PILATUS_SET_THRESHOLD			87807
+#define MXLV_PILATUS_TH					87808
 
 
 #define MXD_PILATUS_STANDARD_FIELDS \
@@ -81,18 +84,20 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, acknowledgement_interval), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "detector_server_image_directory", \
+  {MXLV_PILATUS_DETECTOR_SERVER_IMAGE_DIRECTORY, \
+			 -1, "detector_server_image_directory", \
 			MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_PILATUS, detector_server_image_directory), \
 	{sizeof(char)}, NULL, 0}, \
   \
-  {-1, -1, "detector_server_image_root", \
+  {MXLV_PILATUS_DETECTOR_SERVER_IMAGE_ROOT, -1, "detector_server_image_root", \
 			MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, detector_server_image_root), \
 	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "local_image_root", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
+  {MXLV_PILATUS_LOCAL_IMAGE_ROOT, -1, "local_image_root", \
+			MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, local_image_root), \
 	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}, \
   \
