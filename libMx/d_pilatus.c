@@ -24,7 +24,7 @@
 
 #define MXD_PILATUS_DEBUG_EXTENDED_STATUS_PARSING	TRUE
 
-#define MXD_PILATUS_DEBUG_PARAMETERS			FALSE
+#define MXD_PILATUS_DEBUG_PARAMETERS			TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -1180,7 +1180,7 @@ mxd_pilatus_get_parameter( MX_AREA_DETECTOR *ad )
 
 	case MXLV_AD_IMAGE_FORMAT:
 	case MXLV_AD_IMAGE_FORMAT_NAME:
-#if MXD_PILATUS_DEBUG_PARAMETERS
+#if 0
 		MX_DEBUG(-2,("%s: image format = %ld, format name = '%s'",
 		    fname, ad->image_format, ad->image_format_name));
 #endif
@@ -1218,7 +1218,7 @@ mxd_pilatus_get_parameter( MX_AREA_DETECTOR *ad )
 
 	case MXLV_AD_SEQUENCE_TYPE:
 
-#if MXD_PILATUS_DEBUG_PARAMETERS
+#if 0
 		MX_DEBUG(-2,("%s: GET sequence_type = %ld",
 			fname, ad->sequence_parameters.sequence_type));
 		MX_DEBUG(-2,("%s: sequence type = %ld",
