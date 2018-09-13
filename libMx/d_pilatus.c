@@ -24,7 +24,7 @@
 
 #define MXD_PILATUS_DEBUG_EXTENDED_STATUS_PARSING	TRUE
 
-#define MXD_PILATUS_DEBUG_PARAMETERS			TRUE
+#define MXD_PILATUS_DEBUG_PARAMETERS			FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -889,7 +889,7 @@ mxd_pilatus_get_extended_status( MX_AREA_DETECTOR *ad )
 				size_t pattern_prefix_length;
 				char *file_number_ptr;
 				long file_number;
-				long num_frames_in_sequence;
+				long new_last_frame_number;
 
 				pattern_prefix_length = pattern_offset
 						- ad->datafile_pattern;
@@ -930,22 +930,28 @@ mxd_pilatus_get_extended_status( MX_AREA_DETECTOR *ad )
 					fname, pilatus->old_datafile_number));
 #endif
 
-				num_frames_in_sequence =
+				new_last_frame_number =
 			    file_number - pilatus->old_datafile_number + 1;
 
 #if MXD_PILATUS_DEBUG_EXTENDED_STATUS_PARSING
-				MX_DEBUG(-2,("%s: num_frames_in_sequence = %ld",
-					fname, num_frames_in_sequence));
+				MX_DEBUG(-2,("%s: new_last_frame_number = %ld",
+					fname, new_last_frame_number));
 #endif
 
 				ad->datafile_number = file_number;
 
+				ad->last_frame_number = new_last_frame_number;
+
 				ad->total_num_frames =
 					pilatus->old_total_num_frames
-						+ num_frames_in_sequence;
+						+ new_last_frame_number + 1;
 
-				ad->last_frame_number =
-					num_frames_in_sequence - 1;
+#if MXD_PILATUS_DEBUG_EXTENDED_STATUS_PARSING
+				MX_DEBUG(-2,("%s: total_num_frames = %lu, "
+				"last_frame_number = %ld",
+					fname, ad->total_num_frames,
+					ad->last_frame_number));
+#endif
 
 				pilatus->exposure_in_progress = FALSE;
 			}
@@ -1274,15 +1280,32 @@ mxd_pilatus_get_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_DATAFILE_DIRECTORY:
-		mx_status = mxd_pilatus_command( pilatus, "ImgPath",
+		MX_DEBUG(-2,("%s: *** BOOYAH! ***", fname));
+
+		if ( pilatus->exposure_in_progress ) {
+			/* If an exposure sequence is currently in progress,
+			 * then we cannot send an 'ImgPath' command to the PPU.
+			 * The best we can do in this circumstances is to 
+			 * merely reuse the value that is already in the
+			 * pilatus->detector_server_image_directory array.
+			 */
+
+			MX_DEBUG(-2,
+			("%s: Exposure In Progress !!! (#1) ***",fname));
+
+			return MX_SUCCESSFUL_RESULT;
+		} else {
+			mx_status = mxd_pilatus_command( pilatus, "ImgPath",
 					response, sizeof(response),
 					&pilatus_return_code );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
-		strlcpy( pilatus->detector_server_image_directory, response,
-			sizeof(pilatus->detector_server_image_directory) );
+			strlcpy( pilatus->detector_server_image_directory,
+			    response,
+			    sizeof(pilatus->detector_server_image_directory) );
+		}
 
 		mx_status = mx_change_filename_prefix(
 				pilatus->detector_server_image_directory,
@@ -1862,16 +1885,36 @@ mxd_pilatus_process_function( void *record_ptr,
 			 */
 			break;
 		case MXLV_PILATUS_DETECTOR_SERVER_IMAGE_DIRECTORY:
-			mx_status = mxd_pilatus_command( pilatus, "ImgPath",
+			MX_DEBUG(-2,("%s: *** KANPAI! ***", fname ));
+
+			if ( pilatus->exposure_in_progress ) {
+
+				/* If an exposure sequence is currently in
+				 * progress, then we cannot send an 'ImgPath'
+				 * command to the PPU.  The best we can do
+				 * in this circumstances is to merely reuse
+				 * the value that is already in the
+				 * pilatus->detector_server_image_directory
+				 * array.
+				 */
+
+				MX_DEBUG(-2,
+			    ("%s: Exposure In Progress !!! (#2) ***",fname));
+
+				return MX_SUCCESSFUL_RESULT;
+			} else {
+				mx_status = mxd_pilatus_command( pilatus,
+						"ImgPath",
 						response, sizeof(response),
 						NULL );
 
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
 
-			strlcpy( pilatus->detector_server_image_directory,
-				response,
+				strlcpy(
+			    pilatus->detector_server_image_directory, response,
 			    sizeof(pilatus->detector_server_image_directory) );
+			}
 			break;
 		case MXLV_PILATUS_TH:
 			snprintf( command, sizeof(command),
