@@ -1280,7 +1280,7 @@ mxd_pilatus_get_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_DATAFILE_DIRECTORY:
-		MX_DEBUG(-2,("%s: *** BOOYAH! ***", fname));
+		MX_DEBUG(-2,("%s: *** Reading datafile_directory ***", fname));
 
 		if ( pilatus->exposure_in_progress ) {
 			/* If an exposure sequence is currently in progress,
@@ -1885,7 +1885,8 @@ mxd_pilatus_process_function( void *record_ptr,
 			 */
 			break;
 		case MXLV_PILATUS_DETECTOR_SERVER_IMAGE_DIRECTORY:
-			MX_DEBUG(-2,("%s: *** KANPAI! ***", fname ));
+			MX_DEBUG(-2,
+	("%s: *** Reading detector_server_image_directory ***", fname ));
 
 			if ( pilatus->exposure_in_progress ) {
 
