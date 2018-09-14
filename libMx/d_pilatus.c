@@ -14,15 +14,15 @@
  *
  */
 
-#define MXD_PILATUS_DEBUG				TRUE
+#define MXD_PILATUS_DEBUG				FALSE
 
-#define MXD_PILATUS_DEBUG_SERIAL			TRUE
+#define MXD_PILATUS_DEBUG_SERIAL			FALSE
 
 #define MXD_PILATUS_DEBUG_EXTENDED_STATUS		FALSE
 
-#define MXD_PILATUS_DEBUG_EXTENDED_STATUS_CHANGE	TRUE
+#define MXD_PILATUS_DEBUG_EXTENDED_STATUS_CHANGE	FALSE
 
-#define MXD_PILATUS_DEBUG_EXTENDED_STATUS_PARSING	TRUE
+#define MXD_PILATUS_DEBUG_EXTENDED_STATUS_PARSING	FALSE
 
 #define MXD_PILATUS_DEBUG_PARAMETERS			FALSE
 
@@ -797,11 +797,6 @@ mxd_pilatus_get_extended_status( MX_AREA_DETECTOR *ad )
 	if ( num_input_bytes_available > 0 ) {
 		mx_bool_type debug_flag;
 
-#if MXD_PILATUS_DEBUG_EXTENDED_STATUS_CHANGE
-		MX_DEBUG(-2,("%s: num_input_bytes_available = %lu",
-			fname, num_input_bytes_available));
-#endif
-
 		if ( pilatus->pilatus_flags & MXF_PILATUS_DEBUG_SERIAL ) {
 			debug_flag = TRUE;
 		} else {
@@ -840,10 +835,6 @@ mxd_pilatus_get_extended_status( MX_AREA_DETECTOR *ad )
 				ad->total_num_frames =
 					pilatus->old_total_num_frames
 						+ pilatus_image_counter;
-#if 1
-				MX_DEBUG(-2,("CAPTURE: Total num frames = %lu",
-					ad->total_num_frames));
-#endif
 			}
 		} else
 		if ( strncmp( response, "7 ERR", 5 ) == 0 ) {
@@ -1199,7 +1190,6 @@ mxd_pilatus_get_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_DATAFILE_DIRECTORY:
-		MX_DEBUG(-2,("%s: *** Reading datafile_directory ***", fname));
 
 		if ( pilatus->exposure_in_progress ) {
 			/* If an exposure sequence is currently in progress,
@@ -1208,9 +1198,6 @@ mxd_pilatus_get_parameter( MX_AREA_DETECTOR *ad )
 			 * merely reuse the value that is already in the
 			 * pilatus->detector_server_image_directory array.
 			 */
-
-			MX_DEBUG(-2,
-			("%s: Exposure In Progress !!! (#1) ***",fname));
 
 			return MX_SUCCESSFUL_RESULT;
 		} else {
@@ -1804,8 +1791,6 @@ mxd_pilatus_process_function( void *record_ptr,
 			 */
 			break;
 		case MXLV_PILATUS_DETECTOR_SERVER_IMAGE_DIRECTORY:
-			MX_DEBUG(-2,
-	("%s: *** Reading detector_server_image_directory ***", fname ));
 
 			if ( pilatus->exposure_in_progress ) {
 
@@ -1817,9 +1802,6 @@ mxd_pilatus_process_function( void *record_ptr,
 				 * pilatus->detector_server_image_directory
 				 * array.
 				 */
-
-				MX_DEBUG(-2,
-			    ("%s: Exposure In Progress !!! (#2) ***",fname));
 
 				return MX_SUCCESSFUL_RESULT;
 			} else {
