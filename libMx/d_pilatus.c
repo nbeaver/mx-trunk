@@ -467,6 +467,7 @@ mxd_pilatus_arm( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
+	pilatus->old_pilatus_image_counter = 0;
 
 	sp = &(ad->sequence_parameters);
 
@@ -773,6 +774,8 @@ mxd_pilatus_get_extended_status( MX_AREA_DETECTOR *ad )
 	MX_PILATUS *pilatus = NULL;
 	char response[80];
 	unsigned long num_input_bytes_available, old_status;
+	unsigned long pilatus_image_counter;
+	long num_frames_in_sequence;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pilatus_get_pointers( ad, &pilatus, fname );
@@ -818,21 +821,25 @@ mxd_pilatus_get_extended_status( MX_AREA_DETECTOR *ad )
 
 		if ( strncmp( response, "15 OK", 5 ) == 0 ) {
 			int num_items;
-			unsigned long new_last_frame_number;
 
 			num_items = sscanf( response,
 					"15 OK img %lu",
-					&new_last_frame_number );
+					&pilatus_image_counter );
 
 			if ( num_items != 1 ) {
 				mx_warning(
 				"%s: Unexpected status 15 seen: '%s'",
 					fname, response );
 			} else {
-				ad->last_frame_number = new_last_frame_number;
+				pilatus->old_pilatus_image_counter
+						= pilatus_image_counter;
+
+				ad->last_frame_number
+						= pilatus_image_counter - 1;
+
 				ad->total_num_frames =
 					pilatus->old_total_num_frames
-						+ new_last_frame_number + 1;
+						+ pilatus_image_counter;
 #if 1
 				MX_DEBUG(-2,("CAPTURE: Total num frames = %lu",
 					ad->total_num_frames));
@@ -841,124 +848,36 @@ mxd_pilatus_get_extended_status( MX_AREA_DETECTOR *ad )
 		} else
 		if ( strncmp( response, "7 ERR", 5 ) == 0 ) {
 			pilatus->exposure_in_progress = FALSE;
+		
+			ad->status = MXSF_AD_ERROR;
+
+			ad->last_frame_number =
+				pilatus->old_pilatus_image_counter - 1;
+
+			ad->total_num_frames = pilatus->old_total_num_frames
+				+ pilatus->old_pilatus_image_counter;
 		} else
 		if ( strncmp( response, "7 OK", 4 ) == 0 ) {
-			size_t prefix_length;
-			char *pattern_offset;
-			char last_char;
-
-#if MXD_PILATUS_DEBUG_EXTENDED_STATUS_PARSING
-			MX_DEBUG(-2,
-			("%s: detector_server_image_directory = '%s'",
-			    fname, pilatus->detector_server_image_directory));
-#endif
-			prefix_length =
-			    strlen( pilatus->detector_server_image_directory );
-
-#if MXD_PILATUS_DEBUG_EXTENDED_STATUS_PARSING
-			MX_DEBUG(-2,("%s: prefix_length = %d",
-				fname, (int) prefix_length));
-#endif
-			/* See if we need to add a path separator that is not
-			 * already at the end of the datafile_directory string.
+			/* If we get here, the Pilatus is saying that it
+			 * has finished the sequence correctly.  So we
+			 * update the frame counters assuming that this
+			 * is true.
 			 */
 
-			last_char =
-		(pilatus->detector_server_image_directory)[prefix_length-1];
+			pilatus->exposure_in_progress = FALSE;
 
-			if ( last_char != '/') {
-				prefix_length++;
-			}
+			ad->status = 0;
 
-			pattern_offset = strchr( ad->datafile_pattern, '#' );
+			mx_status = mx_sequence_get_num_frames(
+					&(ad->sequence_parameters),
+					&num_frames_in_sequence );
 
-#if MXD_PILATUS_DEBUG_EXTENDED_STATUS_PARSING
-			MX_DEBUG(-2,("%s: pattern_offset = '%s'",
-				fname, pattern_offset));
-#endif
-			if ( pattern_offset == NULL ) {
-				/* If there isn't a '#' pattern character in
-				 * the 'datafile_pattern' field, then only
-				 * the last frame acquired will be there.
-				 */
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
-				ad->last_frame_number = 0;
-				ad->total_num_frames =
-					pilatus->old_total_num_frames + 1;
-			} else {
-				size_t pattern_prefix_length;
-				char *file_number_ptr;
-				long file_number;
-				long new_last_frame_number;
-
-				pattern_prefix_length = pattern_offset
-						- ad->datafile_pattern;
-
-				prefix_length += pattern_prefix_length;
-
-				/* We need to add 5 more bytes for the 
-				 * '7 OK ' part of the response string.
-				 */
-
-				prefix_length += 5;
-
-#if MXD_PILATUS_DEBUG_EXTENDED_STATUS_PARSING
-				MX_DEBUG(-2,("%s: prefix_length = %lu",
-					fname, prefix_length));
-#endif
-
-				/* If we add the prefix length to the
-				 * address of the response buffer, we
-				 * should get a pointer that points to
-				 * the part of the newly saved filename
-				 * that contains the number.
-				 */
-
-				file_number_ptr = response + prefix_length;
-
-#if MXD_PILATUS_DEBUG_EXTENDED_STATUS_PARSING
-				MX_DEBUG(-2,("%s: file_number_ptr = '%s'",
-					fname, file_number_ptr ));
-#endif
-
-				file_number = atol( file_number_ptr );
-
-#if MXD_PILATUS_DEBUG_EXTENDED_STATUS_PARSING
-				MX_DEBUG(-2,("%s: file_number = %ld",
-					fname, file_number));
-				MX_DEBUG(-2,("%s: old_datafile_number = %lu",
-					fname, pilatus->old_datafile_number));
-#endif
-
-				new_last_frame_number =
-			    file_number - pilatus->old_datafile_number + 1;
-
-#if MXD_PILATUS_DEBUG_EXTENDED_STATUS_PARSING
-				MX_DEBUG(-2,("%s: new_last_frame_number = %ld",
-					fname, new_last_frame_number));
-#endif
-
-				ad->datafile_number = file_number;
-
-				ad->last_frame_number = new_last_frame_number;
-
-				ad->total_num_frames =
-					pilatus->old_total_num_frames
-						+ new_last_frame_number + 1;
-
-#if MXD_PILATUS_DEBUG_EXTENDED_STATUS_PARSING
-				MX_DEBUG(-2,("%s: total_num_frames = %lu, "
-				"last_frame_number = %ld",
-					fname, ad->total_num_frames,
-					ad->last_frame_number));
-#endif
-
-				pilatus->exposure_in_progress = FALSE;
-			}
-#if 1
-			MX_DEBUG(-2,("CAPTURE: Total num frames = %lu",
-					ad->total_num_frames));
-#endif
+			ad->last_frame_number = num_frames_in_sequence - 1;
+			ad->total_num_frames = pilatus->old_total_num_frames
+						+ num_frames_in_sequence;
 		} else {
 			mx_warning(
 			"%s: Unexpected response '%s' seen for detector '%s'",

@@ -59,6 +59,7 @@ typedef struct {
 	mx_bool_type exposure_in_progress;
 	unsigned long old_total_num_frames;
 	unsigned long old_datafile_number;
+	unsigned long old_pilatus_image_counter;
 } MX_PILATUS;
 
 #define MXLV_PILATUS_DETECTOR_SERVER_IMAGE_DIRECTORY	87801
