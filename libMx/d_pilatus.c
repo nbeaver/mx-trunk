@@ -947,7 +947,7 @@ mxd_pilatus_transfer_frame( MX_AREA_DETECTOR *ad )
 			"mxd_pilatus_transfer_frame()";
 
 	MX_PILATUS *pilatus = NULL;
-	char local_image_filename[MXU_FILENAME_LENGTH+1];
+	char local_image_filename[2*MXU_FILENAME_LENGTH+3];
 	unsigned long flags;
 	mx_status_type mx_status;
 
