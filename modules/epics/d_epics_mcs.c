@@ -226,6 +226,8 @@ mxd_epics_mcs_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	epics_mcs->num_measurements_to_read = -1L;
+
 	/* Initialize MX EPICS data structures whose PV names do not depend
 	 * on the version of the MCA record in the remote EPICS crate.
 	 *
@@ -647,11 +649,43 @@ mxd_epics_mcs_read_scaler( MX_MCS *mcs )
 
 	if ( copy_needed == FALSE ) {
 		data_ptr = (int32_t *) mcs->data_array[ mcs->scaler_index ];
-
-		num_measurements_from_epics = mcs->current_num_measurements;
 	} else {
 		data_ptr = epics_mcs->scaler_value_buffer;
+	}
 
+	if ( epics_mcs->num_measurements_to_read
+				> mcs->current_num_measurements )
+	{
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"Scaler channel %d for MCS '%s' was requested to "
+		"read %ld measurements from EPICS, but the "
+		"current number of measurements configured for "
+		"this MCS is %ld.",
+			mcs->scaler_index, mcs->record->name,
+			num_measurements_to_read,
+			mcs->current_num_measurements );
+	}
+
+	num_measurements_to_read = epics_mcs->num_measurements_to_read;
+
+	if ( num_measurements_to_read == 0L ) {
+		/* We are being asked to not return any data at all,
+		 * so there is no need to contact EPICS about it.
+		 */
+
+		return MX_SUCCESSFUL_RESULT;
+	} else
+	if ( num_measurements_to_read > (mcs->measurement_number + 1L) )
+	{
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"Scaler channel %d for MCS '%s' was requested to "
+		"read %ld measurements from EPICS, but only "
+		"%ld measurements have been acquired so far.",
+			mcs->scaler_index, mcs->record->name,
+			num_measurements_to_read,
+			mcs->measurement_number + 1L );
+	} else
+	if ( num_measurements_to_read < 0L ) {
 		if ( do_not_skip ) {
 			num_measurements_from_epics =
 				mcs->current_num_measurements;
@@ -659,7 +693,27 @@ mxd_epics_mcs_read_scaler( MX_MCS *mcs )
 			num_measurements_from_epics =
 				mcs->current_num_measurements + 1L;
 		}
+	} else {
+		if ( do_not_skip ) {
+			num_measurements_from_epics =
+				num_measurements_to_read;
+		} else {
+			num_measurements_from_epics =
+				num_measurements_to_read + 1L;
+		}
 	}
+
+	/* We must check to see if adding 1L to the number of
+	 * measurements has pushed us one step past the limit.
+	 */
+
+	if ( num_measurements_from_epics > mcs->current_num_measurements )
+	{
+		num_measurements_from_epics = mcs->current_num_measurements;
+	}
+
+	MX_DEBUG(-2,("%s: num_measurements_from_epics = %d",
+		fname, num_measurements_from_epics));
 
 	mx_status = mx_caget( &(epics_mcs->val_pv_array[ mcs->scaler_index ]),
 			MX_CA_LONG, num_measurements_from_epics, data_ptr );
@@ -710,8 +764,38 @@ mxd_epics_mcs_read_measurement( MX_MCS *mcs )
 {
 	static const char fname[] = "mxd_epics_mcs_read_measurement()";
 
-	return mx_error( MXE_UNSUPPORTED, fname,
-	"This function is not supported for EPICS multichannel scalers." );
+	MX_EPICS_MCS *epics_mcs = NULL;
+	long saved_epics_num_measurements_to_read;
+	mx_status_type mx_status;
+
+	mx_status = mxd_epics_mcs_get_pointers( mcs, &epics_mcs, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	saved_epics_mcs_num_measurements_to_read =
+			epics_mcs->num_measurements_to_read;
+
+	epics_mcs->num_measurements_to_read = mcs->measurement_index + 1L;
+
+	mx_status = mxd_epics_mcs_read_all( mcs );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		epics_mcs->num_measurements_to_read =
+			saved_epics_mcs_num_measurements_to_read;
+
+		return mx_status;
+	}
+
+	for ( i = 0; i < mcs->current_num_scalers; i++ ) {
+		mcs->measurement_data[i] = 
+			(mcs->data_array)[i][measurement_index];
+	}
+
+	epics_mcs->num_measurements_to_read =
+			saved_epics_mcs_num_measurements_to_read;
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type

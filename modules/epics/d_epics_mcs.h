@@ -7,7 +7,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2005, 2009-2010, 2014 Illinois Institute of Technology
+ * Copyright 1999-2003, 2005, 2009-2010, 2014, 2018
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,6 +30,8 @@ typedef struct {
 	unsigned long epics_mcs_flags;
 
 	double epics_record_version;
+	long num_measurements_to_read;
+
 	int32_t *scaler_value_buffer;
 
 	MX_EPICS_PV acquiring_pv;
@@ -89,6 +92,10 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_epics_mcs_rfield_def_ptr;
   \
   {-1, -1, "epics_record_version", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EPICS_MCS, epics_record_version), \
+	{0}, NULL, 0}, \
+  \
+  {-1, -1, "num_measurements_to_read", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EPICS_MCS, num_measurements_to_read), \
 	{0}, NULL, 0}
 
 #endif /* __D_EPICS_MCS_H__ */
