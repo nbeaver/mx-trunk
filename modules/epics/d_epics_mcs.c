@@ -656,7 +656,7 @@ mxd_epics_mcs_read_scaler( MX_MCS *mcs )
 	}
 
 	if ( epics_mcs->num_measurements_to_read
-				> mcs->current_num_measurements )
+				> (long) mcs->current_num_measurements )
 	{
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"Scaler channel %ld for MCS '%s' was requested to "

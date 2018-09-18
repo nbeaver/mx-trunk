@@ -15,7 +15,7 @@
  */
 
 #define DEBUG_DATABASE_BUFFERS	FALSE
-#define DEBUG_RECORD_IS_VALID	TRUE
+#define DEBUG_RECORD_IS_VALID	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
