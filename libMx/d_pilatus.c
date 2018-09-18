@@ -1196,7 +1196,7 @@ mxd_pilatus_get_parameter( MX_AREA_DETECTOR *ad )
 			 * then we cannot send an 'ImgPath' command to the PPU.
 			 * The best we can do in this circumstances is to 
 			 * merely reuse the value that is already in the
-			 * pilatus->detector_server_image_directory array.
+			 * pilatus->detector_server_datafile_directory array.
 			 */
 
 			return MX_SUCCESSFUL_RESULT;
@@ -1208,15 +1208,15 @@ mxd_pilatus_get_parameter( MX_AREA_DETECTOR *ad )
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			strlcpy( pilatus->detector_server_image_directory,
+			strlcpy( pilatus->detector_server_datafile_directory,
 			    response,
-			    sizeof(pilatus->detector_server_image_directory) );
+			    sizeof(pilatus->detector_server_datafile_directory) );
 		}
 
 		mx_status = mx_change_filename_prefix(
-				pilatus->detector_server_image_directory,
-				pilatus->detector_server_image_root,
-				pilatus->local_image_root,
+				pilatus->detector_server_datafile_directory,
+				pilatus->detector_server_datafile_root,
+				pilatus->local_datafile_root,
 				ad->datafile_directory,
 				sizeof(ad->datafile_directory) );
 		break;
@@ -1353,16 +1353,16 @@ mxd_pilatus_set_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_DATAFILE_DIRECTORY:
 		mx_status = mx_change_filename_prefix(
 				ad->datafile_directory,
-				pilatus->local_image_root,
-				pilatus->detector_server_image_root,
-				pilatus->detector_server_image_directory,
-			    sizeof(pilatus->detector_server_image_directory) );
+				pilatus->local_datafile_root,
+				pilatus->detector_server_datafile_root,
+				pilatus->detector_server_datafile_directory,
+			    sizeof(pilatus->detector_server_datafile_directory) );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
 		snprintf( command, sizeof(command),
-		    "ImgPath %s", pilatus->detector_server_image_directory );
+		    "ImgPath %s", pilatus->detector_server_datafile_directory );
 
 		mx_status = mxd_pilatus_command( pilatus, command,
 					response, sizeof(response), NULL );
@@ -1799,7 +1799,7 @@ mxd_pilatus_process_function( void *record_ptr,
 				 * command to the PPU.  The best we can do
 				 * in this circumstances is to merely reuse
 				 * the value that is already in the
-				 * pilatus->detector_server_image_directory
+				 * pilatus->detector_server_datafile_directory
 				 * array.
 				 */
 
@@ -1814,8 +1814,8 @@ mxd_pilatus_process_function( void *record_ptr,
 					return mx_status;
 
 				strlcpy(
-			    pilatus->detector_server_image_directory, response,
-			    sizeof(pilatus->detector_server_image_directory) );
+			    pilatus->detector_server_datafile_directory, response,
+			    sizeof(pilatus->detector_server_datafile_directory) );
 			}
 			break;
 		case MXLV_PILATUS_TH:
@@ -1848,15 +1848,15 @@ mxd_pilatus_process_function( void *record_ptr,
 		case MXLV_PILATUS_DETECTOR_SERVER_IMAGE_DIRECTORY:
 
 			/* See if the new directory is contained within
- 			 * the directory pilatus->detector_server_image_root.
+ 			 * the directory pilatus->detector_server_datafile_root.
  			 */
 
-			/* Begin by making a copy of detector_server_image_root
+			/* Begin by making a copy of detector_server_datafile_root
 			 * with any trailing path separators stripped off.
 			 */
 
 			strlcpy( directory_temp,
-				pilatus->detector_server_image_root,
+				pilatus->detector_server_datafile_root,
 				sizeof(directory_temp) );
 
 			length = strlen( directory_temp );
@@ -1870,14 +1870,14 @@ mxd_pilatus_process_function( void *record_ptr,
 			}
 
 			/* Is directory_temp found at the beginning of
-			 * detector_server_image_directory?
+			 * detector_server_datafile_directory?
 			 */
 
-			ptr = strstr( pilatus->detector_server_image_directory,
+			ptr = strstr( pilatus->detector_server_datafile_directory,
 					directory_temp );
 
 			if ( (ptr == NULL)
-			  || (ptr != pilatus->detector_server_image_directory) )
+			  || (ptr != pilatus->detector_server_datafile_directory) )
 			{
 				return mx_error(
 				MXE_CONFIGURATION_CONFLICT, fname,
@@ -1885,15 +1885,15 @@ mxd_pilatus_process_function( void *record_ptr,
 				"of '%s' for Pilatus detector '%s' is not "
 				"found within the detector server image root "
 				"directory of '%s'.",
-				    pilatus->detector_server_image_directory,
+				    pilatus->detector_server_datafile_directory,
 				    pilatus->record->name,
-				    pilatus->detector_server_image_root );
+				    pilatus->detector_server_datafile_root );
 			}
 
 			/* Now we can send the new ImgPath. */
 
 			snprintf( command, sizeof(command), "ImgPath %s",
-				pilatus->detector_server_image_directory );
+				pilatus->detector_server_datafile_directory );
 
 			mx_status = mxd_pilatus_command( pilatus, command,
 						response, sizeof(response),
