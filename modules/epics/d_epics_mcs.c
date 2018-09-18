@@ -11,7 +11,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2008-2011, 2014-2016 Illinois Institute of Technology
+ * Copyright 1999-2006, 2008-2011, 2014-2016, 2018
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -608,6 +609,7 @@ mxd_epics_mcs_read_scaler( MX_MCS *mcs )
 	int32_t *data_ptr, *source_ptr;
 	size_t num_bytes_to_copy;
 	mx_bool_type do_not_skip, long_is_32bits, copy_needed;
+	long num_measurements_to_read;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_mcs_get_pointers( mcs, &epics_mcs, fname );
@@ -657,12 +659,12 @@ mxd_epics_mcs_read_scaler( MX_MCS *mcs )
 				> mcs->current_num_measurements )
 	{
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"Scaler channel %d for MCS '%s' was requested to "
+		"Scaler channel %ld for MCS '%s' was requested to "
 		"read %ld measurements from EPICS, but the "
 		"current number of measurements configured for "
 		"this MCS is %ld.",
 			mcs->scaler_index, mcs->record->name,
-			num_measurements_to_read,
+			epics_mcs->num_measurements_to_read,
 			mcs->current_num_measurements );
 	}
 
@@ -678,7 +680,7 @@ mxd_epics_mcs_read_scaler( MX_MCS *mcs )
 	if ( num_measurements_to_read > (mcs->measurement_number + 1L) )
 	{
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"Scaler channel %d for MCS '%s' was requested to "
+		"Scaler channel %ld for MCS '%s' was requested to "
 		"read %ld measurements from EPICS, but only "
 		"%ld measurements have been acquired so far.",
 			mcs->scaler_index, mcs->record->name,
@@ -712,7 +714,7 @@ mxd_epics_mcs_read_scaler( MX_MCS *mcs )
 		num_measurements_from_epics = mcs->current_num_measurements;
 	}
 
-	MX_DEBUG(-2,("%s: num_measurements_from_epics = %d",
+	MX_DEBUG(-2,("%s: num_measurements_from_epics = %lu",
 		fname, num_measurements_from_epics));
 
 	mx_status = mx_caget( &(epics_mcs->val_pv_array[ mcs->scaler_index ]),
@@ -765,7 +767,8 @@ mxd_epics_mcs_read_measurement( MX_MCS *mcs )
 	static const char fname[] = "mxd_epics_mcs_read_measurement()";
 
 	MX_EPICS_MCS *epics_mcs = NULL;
-	long saved_epics_num_measurements_to_read;
+	long saved_epics_mcs_num_measurements_to_read;
+	long i, measurement_index;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_mcs_get_pointers( mcs, &epics_mcs, fname );
@@ -786,6 +789,8 @@ mxd_epics_mcs_read_measurement( MX_MCS *mcs )
 
 		return mx_status;
 	}
+
+	measurement_index = mcs->measurement_index;
 
 	for ( i = 0; i < mcs->current_num_scalers; i++ ) {
 		mcs->measurement_data[i] = 
