@@ -19,6 +19,8 @@
  *
  */
 
+#define MXD_EPICS_MCS_DEBUG_SCALER	FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -384,6 +386,17 @@ mxd_epics_mcs_open( MX_RECORD *record )
 				"%s1.PRTM", epics_mcs->channel_prefix );
 	}
 
+	if ( 0 ) {
+		mx_epics_pvname_init( &(epics_mcs->nuse_pv),
+				"%sNuseAll.VAL", epics_mcs->common_prefix );
+	} else {
+		mx_epics_pvname_init( &(epics_mcs->nuse_pv),
+				"%s1.NUSE", epics_mcs->channel_prefix );
+	}
+
+	mx_epics_pvname_init( &(epics_mcs->nord_pv),
+				"%s1.NORD", epics_mcs->channel_prefix );
+
 	if ( epics_mcs->epics_record_version >= 5.0 ) {
 
 		mx_epics_pvname_init(&(epics_mcs->acquiring_pv),
@@ -394,13 +407,6 @@ mxd_epics_mcs_open( MX_RECORD *record )
 
 		mx_epics_pvname_init( &(epics_mcs->erase_pv),
 				"%sEraseAll.VAL", epics_mcs->common_prefix );
-
-		mx_epics_pvname_init( &(epics_mcs->nord_pv),
-				"%s%s1.NORD", epics_mcs->common_prefix,
-				epics_mcs->channel_prefix );
-
-		mx_epics_pvname_init( &(epics_mcs->nuse_pv),
-				"%sNuseAll.VAL", epics_mcs->common_prefix );
 
 		mx_epics_pvname_init( &(epics_mcs->pltm_pv), " " );
 
@@ -425,12 +431,6 @@ mxd_epics_mcs_open( MX_RECORD *record )
 
 		mx_epics_pvname_init( &(epics_mcs->erase_pv),
 				"%s1.ERAS", epics_mcs->channel_prefix );
-
-		mx_epics_pvname_init( &(epics_mcs->nord_pv),
-				"%s%s1.NORD", epics_mcs->common_prefix,
-				epics_mcs->channel_prefix );
-
-		mx_epics_pvname_init( &(epics_mcs->nuse_pv), " " );
 
 		mx_epics_pvname_init( &(epics_mcs->pltm_pv),
 				"%s1.PLTM", epics_mcs->channel_prefix );
@@ -663,6 +663,21 @@ mxd_epics_mcs_read_scaler( MX_MCS *mcs )
 		data_ptr = epics_mcs->scaler_value_buffer;
 	}
 
+	mx_status = mx_mcs_get_measurement_number( mcs->record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_EPICS_MCS_DEBUG_SCALER
+	MX_DEBUG(-2,("%s: ********************************************",fname));
+	MX_DEBUG(-2,("%s: mcs->measurement_number = %ld",
+		fname, mcs->measurement_number));
+	MX_DEBUG(-2,("%s: epics_mcs->num_measurements_to_read = %ld",
+		fname, epics_mcs->num_measurements_to_read));
+	MX_DEBUG(-2,("%s: mcs->current_num_measurements = %lu",
+		fname, mcs->current_num_measurements));
+#endif
+
 	if ( epics_mcs->num_measurements_to_read
 				> (long) mcs->current_num_measurements )
 	{
@@ -677,6 +692,11 @@ mxd_epics_mcs_read_scaler( MX_MCS *mcs )
 	}
 
 	num_measurements_to_read = epics_mcs->num_measurements_to_read;
+
+#if MXD_EPICS_MCS_DEBUG_SCALER
+	MX_DEBUG(-2,("%s: num_measurements_to_read (#1) = %ld",
+		fname, num_measurements_to_read));
+#endif
 
 	if ( num_measurements_to_read == 0L ) {
 		/* We are being asked to not return any data at all,
@@ -713,6 +733,11 @@ mxd_epics_mcs_read_scaler( MX_MCS *mcs )
 		}
 	}
 
+#if MXD_EPICS_MCS_DEBUG_SCALER
+	MX_DEBUG(-2,("%s: num_measurements_from_epics (#1) = %lu",
+		fname, num_measurements_from_epics));
+#endif
+
 	/* We must check to see if adding 1L to the number of
 	 * measurements has pushed us one step past the limit.
 	 */
@@ -722,8 +747,10 @@ mxd_epics_mcs_read_scaler( MX_MCS *mcs )
 		num_measurements_from_epics = mcs->current_num_measurements;
 	}
 
+#if MXD_EPICS_MCS_DEBUG_SCALER
 	MX_DEBUG(-2,("%s: num_measurements_from_epics = %lu",
 		fname, num_measurements_from_epics));
+#endif
 
 	mx_status = mx_caget( &(epics_mcs->val_pv_array[ mcs->scaler_index ]),
 			MX_CA_LONG, num_measurements_from_epics, data_ptr );
@@ -818,6 +845,7 @@ mxd_epics_mcs_get_parameter( MX_MCS *mcs )
 
 	MX_EPICS_MCS *epics_mcs = NULL;
 	double dark_current;
+	int32_t measurement_number;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_mcs_get_pointers( mcs, &epics_mcs, fname );
@@ -831,6 +859,15 @@ mxd_epics_mcs_get_parameter( MX_MCS *mcs )
 		mcs->parameter_type));
 
 	switch( mcs->parameter_type ) {
+	case MXLV_MCS_MEASUREMENT_NUMBER:
+		mx_status = mx_caget( &(epics_mcs->nord_pv),
+				MX_CA_LONG, 1, &measurement_number );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mcs->measurement_number = measurement_number;
+		break;
 	case MXLV_MCS_DARK_CURRENT:
 
 		mx_status = mx_caget(
