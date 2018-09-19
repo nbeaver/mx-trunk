@@ -395,10 +395,14 @@ mxd_epics_mcs_open( MX_RECORD *record )
 		mx_epics_pvname_init( &(epics_mcs->erase_pv),
 				"%sEraseAll.VAL", epics_mcs->common_prefix );
 
+		mx_epics_pvname_init( &(epics_mcs->nord_pv),
+				"%s%s1.NORD", epics_mcs->common_prefix,
+				epics_mcs->channel_prefix );
+
 		mx_epics_pvname_init( &(epics_mcs->nuse_pv),
 				"%sNuseAll.VAL", epics_mcs->common_prefix );
 
-		mx_epics_pvname_init( &(epics_mcs->pltm_pv), "" );
+		mx_epics_pvname_init( &(epics_mcs->pltm_pv), " " );
 
 		if ( epics_mcs->epics_record_version >= 6.0 ) {
 			mx_epics_pvname_init( &(epics_mcs->start_pv),
@@ -422,7 +426,11 @@ mxd_epics_mcs_open( MX_RECORD *record )
 		mx_epics_pvname_init( &(epics_mcs->erase_pv),
 				"%s1.ERAS", epics_mcs->channel_prefix );
 
-		mx_epics_pvname_init( &(epics_mcs->nuse_pv), "" );
+		mx_epics_pvname_init( &(epics_mcs->nord_pv),
+				"%s%s1.NORD", epics_mcs->common_prefix,
+				epics_mcs->channel_prefix );
+
+		mx_epics_pvname_init( &(epics_mcs->nuse_pv), " " );
 
 		mx_epics_pvname_init( &(epics_mcs->pltm_pv),
 				"%s1.PLTM", epics_mcs->channel_prefix );

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010-2011, 2013-2016 Illinois Institute of Technology
+ * Copyright 2010-2011, 2013-2016, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -348,34 +348,34 @@ mxd_epics_ad_finish_record_initialization( MX_RECORD *record )
 		epics_ad_roi = &(epics_ad->epics_roi_array[i]);
 
 		mx_epics_pvname_init( &(epics_ad_roi->nd_array_port_pv),
-			"%sROI%d:NDArrayPort", epics_ad->prefix_name, i+1 );
+			"%sROI%ld:NDArrayPort", epics_ad->prefix_name, i+1 );
 
 		mx_epics_pvname_init( &(epics_ad_roi->nd_array_port_rbv_pv),
-			"%sROI%d:NDArrayPort_RBV", epics_ad->prefix_name, i+1 );
+			"%sROI%ld:NDArrayPort_RBV", epics_ad->prefix_name, i+1);
 
 		mx_epics_pvname_init( &(epics_ad_roi->min_x_pv),
-			"%sROI%d:MinX", epics_ad->prefix_name, i+1 );
+			"%sROI%ld:MinX", epics_ad->prefix_name, i+1 );
 
 		mx_epics_pvname_init( &(epics_ad_roi->min_x_rbv_pv),
-			"%sROI%d:MinX_RBV", epics_ad->prefix_name, i+1 );
+			"%sROI%ld:MinX_RBV", epics_ad->prefix_name, i+1 );
 
 		mx_epics_pvname_init( &(epics_ad_roi->size_x_pv),
-			"%sROI%d:SizeX", epics_ad->prefix_name, i+1 );
+			"%sROI%ld:SizeX", epics_ad->prefix_name, i+1 );
 
 		mx_epics_pvname_init( &(epics_ad_roi->size_x_rbv_pv),
-			"%sROI%d:SizeX_RBV", epics_ad->prefix_name, i+1 );
+			"%sROI%ld:SizeX_RBV", epics_ad->prefix_name, i+1 );
 
 		mx_epics_pvname_init( &(epics_ad_roi->min_y_pv),
-			"%sROI%d:MinY", epics_ad->prefix_name, i+1 );
+			"%sROI%ld:MinY", epics_ad->prefix_name, i+1 );
 
 		mx_epics_pvname_init( &(epics_ad_roi->min_y_rbv_pv),
-			"%sROI%d:MinY_RBV", epics_ad->prefix_name, i+1 );
+			"%sROI%ld:MinY_RBV", epics_ad->prefix_name, i+1 );
 
 		mx_epics_pvname_init( &(epics_ad_roi->size_y_pv),
-			"%sROI%d:SizeY", epics_ad->prefix_name, i+1 );
+			"%sROI%ld:SizeY", epics_ad->prefix_name, i+1 );
 
 		mx_epics_pvname_init( &(epics_ad_roi->size_y_rbv_pv),
-			"%sROI%d:SizeY_RBV", epics_ad->prefix_name, i+1 );
+			"%sROI%ld:SizeY_RBV", epics_ad->prefix_name, i+1 );
 
 	};
 

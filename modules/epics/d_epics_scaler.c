@@ -7,7 +7,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006, 2008-2012, 2014 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006, 2008-2012, 2014, 2018
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -276,7 +277,7 @@ mxd_epics_scaler_open( MX_RECORD *record )
 	}
 
 	mx_epics_pvname_init( &(epics_scaler->dark_pv),
-				"%s_Dark%d.VAL",
+				"%s_Dark%ld.VAL",
 					epics_scaler->epics_record_name,
 					epics_scaler->scaler_number );
 
@@ -284,15 +285,15 @@ mxd_epics_scaler_open( MX_RECORD *record )
 				"%s.NCH", epics_scaler->epics_record_name );
 
 	mx_epics_pvname_init( &(epics_scaler->pr_pv),
-				"%s.PR%d", epics_scaler->epics_record_name,
+				"%s.PR%ld", epics_scaler->epics_record_name,
 					epics_scaler->scaler_number );
 
 	mx_epics_pvname_init( &(epics_scaler->s_pv),
-				"%s.S%d", epics_scaler->epics_record_name,
+				"%s.S%ld", epics_scaler->epics_record_name,
 					epics_scaler->scaler_number );
 
 	mx_epics_pvname_init( &(epics_scaler->sd_pv),
-				"%s_SD%d.VAL", epics_scaler->epics_record_name,
+				"%s_SD%ld.VAL", epics_scaler->epics_record_name,
 					epics_scaler->scaler_number );
 
 	/* Find out what type of EPICS scaler record this is. */

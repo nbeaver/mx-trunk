@@ -105,7 +105,8 @@ typedef struct mx_epics_callback_type {
 
 /* MX EPICS functions for persistent connections. */
 
-MX_API void mx_epics_pvname_init( MX_EPICS_PV *pv, char *name_format, ... );
+MX_API void mx_epics_pvname_init( MX_EPICS_PV *pv,
+			char *name_format, ... ) MX_PRINTFLIKE( 2, 3 );
 
 MX_API mx_status_type mx_epics_pv_connect( MX_EPICS_PV *pv,
 				unsigned long connect_flags );

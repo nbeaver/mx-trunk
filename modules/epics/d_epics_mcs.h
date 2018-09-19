@@ -38,6 +38,7 @@ typedef struct {
 	MX_EPICS_PV dwell_pv;
 	MX_EPICS_PV erase_pv;
 	MX_EPICS_PV nmax_pv;
+	MX_EPICS_PV nord_pv;
 	MX_EPICS_PV nuse_pv;
 	MX_EPICS_PV pltm_pv;
 	MX_EPICS_PV prtm_pv;
