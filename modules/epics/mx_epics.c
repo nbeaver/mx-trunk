@@ -1468,7 +1468,7 @@ mx_caget_by_name( char *pvname,
 		"The pvname pointer passed was NULL." );
 	}
 
-	mx_epics_pvname_init( &pv, pvname );
+	mx_epics_pvname_init( &pv, "%s", pvname );
 
 	mx_status = mx_epics_pv_connect( &pv, MXF_EPVC_WAIT_FOR_CONNECTION );
 
@@ -2091,7 +2091,7 @@ mx_caput_by_name( char *pvname,
 		"The pvname pointer passed was NULL." );
 	}
 
-	mx_epics_pvname_init( &pv, pvname );
+	mx_epics_pvname_init( &pv, "%s", pvname );
 
 	mx_status = mx_epics_pv_connect( &pv, MXF_EPVC_WAIT_FOR_CONNECTION );
 
@@ -2358,7 +2358,7 @@ mx_caput_nowait_by_name( char *pvname,
 		"The pvname pointer passed was NULL." );
 	}
 
-	mx_epics_pvname_init( &pv, pvname );
+	mx_epics_pvname_init( &pv, "%s", pvname );
 
 	mx_status = mx_epics_pv_connect( &pv, MXF_EPVC_WAIT_FOR_CONNECTION );
 
@@ -3534,7 +3534,7 @@ mx_epics_get_pv_type( char *pvname,
 
 	/* Connect to the EPICS PV. */
 
-	mx_epics_pvname_init( &pv, pvname );
+	mx_epics_pvname_init( &pv, "%s", pvname );
 
 	mx_status = mx_epics_pv_connect( &pv, MXF_EPVC_WAIT_FOR_CONNECTION );
 

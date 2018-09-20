@@ -8,7 +8,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006, 2008-2011, 2014 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006, 2008-2011, 2014, 2018
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -224,10 +225,10 @@ mxd_epics_ain_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_epics_pvname_init( &(epics_ainput->epics_pv),
+	mx_epics_pvname_init( &(epics_ainput->epics_pv), "%s",
 				epics_ainput->epics_variable_name );
 
-	mx_epics_pvname_init( &(epics_ainput->dark_current_pv),
+	mx_epics_pvname_init( &(epics_ainput->dark_current_pv), "%s",
 				epics_ainput->dark_current_variable_name );
 
 	return MX_SUCCESSFUL_RESULT;
@@ -378,7 +379,7 @@ mxd_epics_aout_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_epics_pvname_init( &(epics_aoutput->epics_pv),
+	mx_epics_pvname_init( &(epics_aoutput->epics_pv), "%s",
 				epics_aoutput->epics_variable_name );
 
 	return mx_status;

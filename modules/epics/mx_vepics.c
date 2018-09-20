@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2006, 2009-2011, 2014-2015
+ * Copyright 1999, 2001, 2003-2006, 2009-2011, 2014-2015, 2018
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -225,7 +225,8 @@ mxv_epics_variable_finish_record_initialization( MX_RECORD *record )
 
 	epics_variable->num_elements = -1;
 
-	mx_epics_pvname_init( &(epics_variable->pv), epics_variable->pvname );
+	mx_epics_pvname_init( &(epics_variable->pv), "%s",
+					epics_variable->pvname );
 
 	return MX_SUCCESSFUL_RESULT;
 }
