@@ -88,6 +88,13 @@ LIBTIFF_LIBRARY = -ltiff
 
 #----
 
+else ifeq ($(MX_ARCH),android)
+
+LIBTIFF_INCLUDES = 
+LIBTIFF_LIBRARY = -ltiff
+
+#----
+
 else
 
 error not tested yet.
@@ -208,6 +215,16 @@ endif
 #--------------------------------------------------------------------------
 
 ifeq ($(MX_ARCH),hurd)
+
+libtiff.mxo: $(LIBTIFF_OBJS)
+	$(CC) -shared -o libtiff.mxo $(LIBTIFF_OBJS) \
+		-L../../libMx -lMx $(LIBTIFF_LIBRARY)
+
+endif
+
+#--------------------------------------------------------------------------
+
+ifeq ($(MX_ARCH),android)
 
 libtiff.mxo: $(LIBTIFF_OBJS)
 	$(CC) -shared -o libtiff.mxo $(LIBTIFF_OBJS) \
