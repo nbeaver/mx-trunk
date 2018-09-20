@@ -28,6 +28,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -127,6 +128,148 @@ mxd_pilatus_get_pointers( MX_AREA_DETECTOR *ad,
   "MX_PILATUS pointer for record '%s' passed by '%s' is NULL.",
 			ad->record->name, calling_fname );
 	}
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
+static mx_status_type
+mxd_pilatus_update_datafile_number( MX_AREA_DETECTOR *ad,
+					MX_PILATUS *pilatus,
+					char *response )
+{
+	static const char fname[] = "mxd_pilatus_update_datafile_number()";
+
+	char pathname[MXU_FILENAME_LENGTH+1];
+	char datafile_pattern_copy[MXU_FILENAME_LENGTH+1];
+	char datafile_name_copy[MXU_FILENAME_LENGTH+1];
+	char format[40];
+	int num_items;
+	char *filename_ptr = NULL;
+	char *hash_ptr = NULL;
+	char *extension_separator_ptr = NULL;
+	char *numeric_character_string = NULL;
+	char *number_char_ptr = NULL;
+	size_t numeric_character_length;
+	long new_datafile_number;
+
+	MX_DEBUG(-2,("%s: ***** Record '%s', response = '%s' *****",
+		fname, ad->record->name, response));
+
+	snprintf( format, sizeof(format), "7 OK %%%lds", sizeof(pathname)-1 );
+
+	num_items = sscanf( response, format, pathname );
+
+	if ( num_items != 1 ) {
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Did not find an image file name in the response '%s' "
+		"sent by Pilatus detector '%s'.", response, ad->record->name);
+	}
+
+	MX_DEBUG(-2,("%s: pathname = '%s'", fname, pathname));
+
+	/* Find the filename component of the full pathname. */
+
+	filename_ptr = strrchr( pathname, '/' );
+
+	if ( filename_ptr == NULL ) {
+		filename_ptr = pathname;
+	} else {
+		/* Move to the character after the '/' character. */
+		filename_ptr++;
+	}
+
+	MX_DEBUG(-2,("%s: filename = '%s'", fname, filename_ptr));
+
+	strlcpy( ad->datafile_name, filename_ptr, sizeof(ad->datafile_name) );
+
+	MX_DEBUG(-2,("%s: ad->datafile_pattern = '%s'",
+		fname, ad->datafile_pattern));
+
+	/* Are there any # characters in the datafile pattern? */
+
+	strlcpy( datafile_pattern_copy,
+			ad->datafile_pattern,
+			sizeof(datafile_pattern_copy) );
+
+	hash_ptr = strchr( datafile_pattern_copy,
+				MX_AREA_DETECTOR_DATAFILE_PATTERN_CHAR );
+
+	if ( hash_ptr == NULL ) {
+		/* If there is no MX # character in the pattern, then we
+		 * try to heuristically infer what the datafile number was
+		 * by looking for nonnumeric characters in it.
+		 */
+
+		strlcpy( datafile_name_copy, ad->datafile_name,
+					sizeof(datafile_name_copy) );
+
+		extension_separator_ptr = strrchr( datafile_name_copy, '.' );
+
+		if ( extension_separator_ptr != NULL ) {
+			*extension_separator_ptr = '\0';
+		}
+
+		numeric_character_length = 0;
+
+		number_char_ptr = datafile_name_copy
+				+ strlen(datafile_name_copy) - 1;
+
+		do {
+			if ( isdigit( *number_char_ptr ) == 0 )
+				break;
+
+			if ( number_char_ptr <= datafile_name_copy )
+				break;
+
+			numeric_character_length++;
+
+			number_char_ptr--;
+		} while (1);
+
+		MX_DEBUG(-2,("%s: numeric_character_length = %ld",
+			fname, numeric_character_length));
+
+		if ( numeric_character_length == 0 ) {
+			/* There does not appear to be a datafile number in
+			 * the name at all.  This is unlikely to happen.
+			 * But if it is, all we can do is report the
+			 * datafile number as 0.
+			 */
+
+			ad->datafile_number = 0;
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+
+		numeric_character_string = datafile_name_copy
+					+ strlen(datafile_name_copy)
+					- numeric_character_length;
+
+		MX_DEBUG(-2,("%s: numeric_character_string = '%s'",
+			fname, numeric_character_string));
+
+		num_items = sscanf( numeric_character_string,
+				"%ld", &new_datafile_number );
+
+		if ( num_items != 1 ) {
+			return mx_error( MXE_UNPARSEABLE_STRING, fname,
+			"Somehow we did not find a numeric character in "
+			"the \"numeric_character_string\" '%s' for "
+			"Pilatus detector '%s'.", numeric_character_string,
+				ad->record->name );
+		}
+
+		ad->datafile_number = new_datafile_number;
+	} else {
+		MX_DEBUG(-2,("%s: *** The case with datafile patterns "
+		"containing # characters is not yet handled. ***", fname ));
+
+	}
+
+	MX_DEBUG(-2,("%s: ad->datafile_number = %ld",
+		fname, ad->datafile_number));
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -869,6 +1012,13 @@ mxd_pilatus_get_extended_status( MX_AREA_DETECTOR *ad )
 			ad->last_frame_number = num_frames_in_sequence - 1;
 			ad->total_num_frames = pilatus->old_total_num_frames
 						+ num_frames_in_sequence;
+
+			/* Try to update ad->datafile_number from the
+			 * filename in the message.
+			 */
+
+			mx_status = mxd_pilatus_update_datafile_number(
+					ad, pilatus, response );
 		} else {
 			mx_warning(
 			"%s: Unexpected response '%s' seen for detector '%s'",
