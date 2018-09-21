@@ -133,6 +133,197 @@ mxd_pilatus_get_pointers( MX_AREA_DETECTOR *ad,
 
 /*---*/
 
+/* The procedure for mxd_pilatus_parse_datafile_name() is based on
+ * the naming scheme described in the Pilatus manual at the end of
+ * the "Camserver Commands" section.
+ */
+
+static mx_status_type
+mxd_pilatus_parse_datafile_name( MX_AREA_DETECTOR *ad,
+				MX_PILATUS *pilatus,
+				char *datafile_name_to_test,
+				unsigned long *datafile_number_found_in_test,
+				unsigned long *datafile_number_field_length,
+				char *datafile_directory_string,
+				size_t datafile_directory_string_max_length,
+				char *datafile_namestem_string,
+				size_t datafile_namestem_string_max_length,
+				char *datafile_number_string,
+				size_t datafile_number_string_max_length,
+				char *datafile_extension_string,
+				size_t datafile_extension_string_max_length )
+{
+	static const char fname[] = "mxd_pilatus_parse_datafile_name()";
+
+	char datafile_name_copy[MXU_FILENAME_LENGTH+1];
+	char *last_period_ptr = NULL;
+	char *last_underscore_ptr = NULL;
+	char *number_string_ptr = NULL;
+	char *directory_separator_ptr = NULL;
+	unsigned long nominal_number_field_length;
+	unsigned long actual_number_field_length;
+	unsigned long local_datafile_number_found_in_test;
+	int num_items;
+
+	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_AREA_DETECTOR pointer passed was NULL." );
+	}
+	if ( pilatus == (MX_PILATUS *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The PILATUS pointer passed for detector '%s' was NULL.",
+			ad->record->name );
+	}
+	if ( datafile_name_to_test == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The datafile_name_to_test pointer passed "
+		"for detector '%s' was NULL.",
+			ad->record->name );
+	}
+
+	/* Datafiles produced by the Pilatus detector software should always
+	 * be in the form {name}_{number}.{ext} or {name}_{number}.  The
+	 * contents of {name} is relatively arbitrary.  {number} must contain
+	 * only the integer digits 0 to 9, must be at least 3 digits long,
+	 * and may be zero filled at the start of the number field.  If the
+	 * .{ext} field is .tif, .edf, or .cbf, then the datafile will have
+	 * been created in that format.  If .{ext} is something else or is
+	 * absent, then raw format was used.
+	 *
+	 * We find the datafile number by looking at the part of the string
+	 * between the last '_' in the name and the last '.' in the name
+	 * (if present).
+	 */
+
+	strlcpy( datafile_name_copy,
+		datafile_name_to_test,
+		sizeof(datafile_name_copy) );
+
+	/*==== Attempt to find any extension at the end. ====*/
+
+	last_period_ptr = strrchr( datafile_name_copy, '.' );
+
+	if ( datafile_extension_string != (char *) NULL ) {
+		if ( last_period_ptr == (char *) NULL ) {
+			strlcpy( datafile_extension_string, "",
+				datafile_extension_string_max_length );
+		} else {
+			strlcpy( datafile_extension_string,
+				last_period_ptr + 1,
+				datafile_extension_string_max_length );
+		}
+	}
+
+	if ( last_period_ptr != (char *) NULL ) {
+		*last_period_ptr = '\0';
+	}
+
+	/*==== Attempt to find the number field. ====*/
+
+	last_underscore_ptr = strrchr( datafile_name_copy, '_' );
+
+	if ( last_underscore_ptr == (char *) NULL ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Datafile name '%s' _cannot_ have been produced by the "
+		"detector software for Pilatus detector '%s', since it "
+		"does not contain an '_' underscore character.  Thus, we "
+		"will not attempt to guess a datafile number from it.",
+			datafile_name_to_test, ad->record->name );
+	}
+
+	/* Figure out how long the space is for the datafile number. */
+
+	number_string_ptr = last_underscore_ptr + 1;
+
+	nominal_number_field_length = strlen( number_string_ptr );
+
+	/* Are any non-numeric characters found in the remaining part
+	 * of the filename after the underscore '_'?  If so, then this
+	 * cannot be a valid Pilatus datafile number.
+	 */
+
+	actual_number_field_length = strspn( number_string_ptr, "0123456789" );
+
+	if ( nominal_number_field_length > actual_number_field_length ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The part of filename '%s' that appears after the "
+		"underscore '_' character contains characters that are "
+		"not number characters.  Thus, this filename _cannot_ have "
+		"been produced by the detector software "
+		"for Pilatus detector '%s'.",
+			datafile_name_to_test, ad->record->name );
+	}
+
+	/*=====*/
+
+	if ( datafile_number_string != (char *) NULL ) {
+		strlcpy( datafile_number_string,
+			number_string_ptr,
+			datafile_number_string_max_length );
+	}
+
+	if ( datafile_number_field_length != (unsigned long *) NULL ) {
+		*datafile_number_field_length = actual_number_field_length;
+	}
+
+	/*=====*/
+
+	num_items = sscanf( number_string_ptr,
+			"%lu", &local_datafile_number_found_in_test );
+
+	if ( num_items != 1 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"A filename number was not found in the field '%s' extracted "
+		"from test filename '%s' for area detector '%s'.",
+			number_string_ptr, datafile_name_to_test,
+			ad->record->name );
+	}
+
+	if ( datafile_number_found_in_test != (unsigned long *) NULL ) {
+		*datafile_number_found_in_test
+			= local_datafile_number_found_in_test;
+	}
+
+	*last_underscore_ptr = '\0';
+
+	/*==== Attempt to get the namestem part of this filename ====*/
+
+	directory_separator_ptr = strrchr( datafile_name_copy, '/' );
+
+	if ( datafile_namestem_string != (char *) NULL ) {
+		if ( directory_separator_ptr == (char *) NULL ) {
+			strlcpy( datafile_namestem_string,
+				datafile_name_copy,
+				datafile_namestem_string_max_length );
+		} else {
+			strlcpy( datafile_namestem_string,
+				directory_separator_ptr + 1,
+				datafile_namestem_string_max_length );
+		}
+	}
+
+	if ( directory_separator_ptr != (char *) NULL ) {
+		*directory_separator_ptr = '\0';
+	}
+
+	/*==== Try to copy the directory name (if any) ====*/
+
+	if ( datafile_directory_string != (char *) NULL ) {
+		if ( directory_separator_ptr == (char *) NULL ) {
+			strlcpy( datafile_directory_string, "",
+				datafile_directory_string_max_length );
+		} else {
+			strlcpy( datafile_directory_string,
+				datafile_name_copy,
+				datafile_directory_string_max_length );
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
 static mx_status_type
 mxd_pilatus_update_datafile_number( MX_AREA_DETECTOR *ad,
 					MX_PILATUS *pilatus,
@@ -141,134 +332,54 @@ mxd_pilatus_update_datafile_number( MX_AREA_DETECTOR *ad,
 	static const char fname[] = "mxd_pilatus_update_datafile_number()";
 
 	char pathname[MXU_FILENAME_LENGTH+1];
-	char datafile_pattern_copy[MXU_FILENAME_LENGTH+1];
-	char datafile_name_copy[MXU_FILENAME_LENGTH+1];
-	char format[40];
-	int num_items;
-	char *filename_ptr = NULL;
-	char *hash_ptr = NULL;
-	char *extension_separator_ptr = NULL;
-	char *numeric_character_string = NULL;
-	char *number_char_ptr = NULL;
-	size_t numeric_character_length;
-	long new_datafile_number;
+	char datafile_directory_string[MXU_FILENAME_LENGTH+1];
+	char datafile_namestem_string[MXU_FILENAME_LENGTH+1];
+	char datafile_number_string[MXU_FILENAME_LENGTH+1];
+	char datafile_extension_string[MXU_FILENAME_LENGTH+1];
+	unsigned long datafile_number_found_in_test;
+	unsigned long datafile_number_field_length;
+	mx_status_type mx_status;
 
 	MX_DEBUG(-2,("%s: ***** Record '%s', response = '%s' *****",
 		fname, ad->record->name, response));
 
-	snprintf( format, sizeof(format), "7 OK %%%lds", sizeof(pathname)-1 );
-
-	num_items = sscanf( response, format, pathname );
-
-	if ( num_items != 1 ) {
-		return mx_error( MXE_UNPARSEABLE_STRING, fname,
-		"Did not find an image file name in the response '%s' "
-		"sent by Pilatus detector '%s'.", response, ad->record->name);
+	if ( strncmp( response, "7 OK ", 5 ) != 0 ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"Should not have been called if the response '%s' "
+		"did not start with '7 OK ' for detector '%s', but it did.",
+			response, ad->record->name );
 	}
+
+	strlcpy( pathname, response + strlen("7 OK "), sizeof(pathname) );
 
 	MX_DEBUG(-2,("%s: pathname = '%s'", fname, pathname));
 
-	/* Find the filename component of the full pathname. */
+	/* Parse the contents of the pathname. */
 
-	filename_ptr = strrchr( pathname, '/' );
+	mx_status = mxd_pilatus_parse_datafile_name( ad, pilatus, pathname,
+					&datafile_number_found_in_test,
+					&datafile_number_field_length,
+					datafile_directory_string,
+					sizeof(datafile_directory_string),
+					datafile_namestem_string,
+					sizeof(datafile_namestem_string),
+					datafile_number_string,
+					sizeof(datafile_number_string),
+					datafile_extension_string,
+					sizeof(datafile_extension_string) );
 
-	if ( filename_ptr == NULL ) {
-		filename_ptr = pathname;
-	} else {
-		/* Move to the character after the '/' character. */
-		filename_ptr++;
-	}
-
-	MX_DEBUG(-2,("%s: filename = '%s'", fname, filename_ptr));
-
-	strlcpy( ad->datafile_name, filename_ptr, sizeof(ad->datafile_name) );
-
-	MX_DEBUG(-2,("%s: ad->datafile_pattern = '%s'",
-		fname, ad->datafile_pattern));
-
-	/* Are there any # characters in the datafile pattern? */
-
-	strlcpy( datafile_pattern_copy,
-			ad->datafile_pattern,
-			sizeof(datafile_pattern_copy) );
-
-	hash_ptr = strchr( datafile_pattern_copy,
-				MX_AREA_DETECTOR_DATAFILE_PATTERN_CHAR );
-
-	if ( hash_ptr == NULL ) {
-		/* If there is no MX # character in the pattern, then we
-		 * try to heuristically infer what the datafile number was
-		 * by looking for nonnumeric characters in it.
-		 */
-
-		strlcpy( datafile_name_copy, ad->datafile_name,
-					sizeof(datafile_name_copy) );
-
-		extension_separator_ptr = strrchr( datafile_name_copy, '.' );
-
-		if ( extension_separator_ptr != NULL ) {
-			*extension_separator_ptr = '\0';
-		}
-
-		numeric_character_length = 0;
-
-		number_char_ptr = datafile_name_copy
-				+ strlen(datafile_name_copy) - 1;
-
-		do {
-			if ( isdigit( *number_char_ptr ) == 0 )
-				break;
-
-			if ( number_char_ptr <= datafile_name_copy )
-				break;
-
-			numeric_character_length++;
-
-			number_char_ptr--;
-		} while (1);
-
-		MX_DEBUG(-2,("%s: numeric_character_length = %ld",
-			fname, numeric_character_length));
-
-		if ( numeric_character_length == 0 ) {
-			/* There does not appear to be a datafile number in
-			 * the name at all.  This is unlikely to happen.
-			 * But if it is, all we can do is report the
-			 * datafile number as 0.
-			 */
-
-			ad->datafile_number = 0;
-
-			return MX_SUCCESSFUL_RESULT;
-		}
-
-		numeric_character_string = datafile_name_copy
-					+ strlen(datafile_name_copy)
-					- numeric_character_length;
-
-		MX_DEBUG(-2,("%s: numeric_character_string = '%s'",
-			fname, numeric_character_string));
-
-		num_items = sscanf( numeric_character_string,
-				"%ld", &new_datafile_number );
-
-		if ( num_items != 1 ) {
-			return mx_error( MXE_UNPARSEABLE_STRING, fname,
-			"Somehow we did not find a numeric character in "
-			"the \"numeric_character_string\" '%s' for "
-			"Pilatus detector '%s'.", numeric_character_string,
-				ad->record->name );
-		}
-
-		ad->datafile_number = new_datafile_number;
-	} else {
-		MX_DEBUG(-2,("%s: *** The case with datafile patterns "
-		"containing # characters is not yet handled. ***", fname ));
-
-	}
-
-	MX_DEBUG(-2,("%s: ad->datafile_number = %ld",
-		fname, ad->datafile_number));
+	MX_DEBUG(-2,("%s: datafile_number_found_in_test = %lu",
+		fname, datafile_number_found_in_test));
+	MX_DEBUG(-2,("%s: datafile_number_field_length = %lu",
+		fname, datafile_number_field_length));
+	MX_DEBUG(-2,("%s: datafile_directory_string = '%s'",
+		fname, datafile_directory_string));
+	MX_DEBUG(-2,("%s: datafile_namestem_string = '%s'",
+		fname, datafile_namestem_string));
+	MX_DEBUG(-2,("%s: datafile_number_string = '%s'",
+		fname, datafile_number_string));
+	MX_DEBUG(-2,("%s: datafile_extension_string = '%s'",
+		fname, datafile_extension_string));
 
 	return MX_SUCCESSFUL_RESULT;
 }
