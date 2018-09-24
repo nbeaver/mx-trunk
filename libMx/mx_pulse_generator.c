@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2006, 2015-2016 Illinois Institute of Technology
+ * Copyright 2002, 2006, 2015-2016, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -143,6 +143,7 @@ mx_pulse_generator_is_busy( MX_RECORD *pulse_generator_record,
 
 	MX_PULSE_GENERATOR *pulse_generator;
 	MX_PULSE_GENERATOR_FUNCTION_LIST *function_list;
+	mx_status_type ( *status_fn ) ( MX_PULSE_GENERATOR * );
 	mx_status_type ( *busy_fn ) ( MX_PULSE_GENERATOR * );
 	mx_status_type mx_status;
 
@@ -152,15 +153,38 @@ mx_pulse_generator_is_busy( MX_RECORD *pulse_generator_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	status_fn = function_list->get_status;
 	busy_fn = function_list->busy;
 
-	if ( busy_fn == NULL ) {
-		pulse_generator->busy = FALSE;
-	} else {
+	if ( status_fn != NULL ) {
+		mx_status = (*status_fn)( pulse_generator );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( pulse_generator->status & MXSF_PGN_IS_BUSY ) {
+			pulse_generator->busy = TRUE;
+		} else {
+			pulse_generator->busy = FALSE;
+		}
+	} else
+	if ( busy_fn != NULL ) {
 		mx_status = (*busy_fn)( pulse_generator );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( pulse_generator->busy ) {
+			pulse_generator->status = MXSF_PGN_IS_BUSY;
+		} else {
+			pulse_generator->status = 0;
+		}
+	} else {
+		pulse_generator->busy = FALSE;
+		pulse_generator->status = 0;
 	}
 
-	if ( busy != NULL ) {
+	if ( busy != (mx_bool_type *) NULL ) {
 		*busy = pulse_generator->busy;
 	}
 
@@ -705,6 +729,62 @@ mx_pulse_generator_get_last_pulse_number( MX_RECORD *pulse_generator_record,
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_pulse_generator_get_status( MX_RECORD *pulse_generator_record,
+						unsigned long *status )
+{
+	static const char fname[] = "mx_pulse_generator_get_status()";
+
+	MX_PULSE_GENERATOR *pulse_generator;
+	MX_PULSE_GENERATOR_FUNCTION_LIST *function_list;
+	mx_status_type ( *status_fn ) ( MX_PULSE_GENERATOR * );
+	mx_status_type ( *busy_fn ) ( MX_PULSE_GENERATOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_pulse_generator_get_pointers( pulse_generator_record,
+				&pulse_generator, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	status_fn = function_list->get_status;
+	busy_fn = function_list->busy;
+
+	if ( status_fn != NULL ) {
+		mx_status = (*status_fn)( pulse_generator );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( pulse_generator->status & MXSF_PGN_IS_BUSY ) {
+			pulse_generator->busy = TRUE;
+		} else {
+			pulse_generator->busy = FALSE;
+		}
+	} else
+	if ( busy_fn != NULL ) {
+		mx_status = (*busy_fn)( pulse_generator );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( pulse_generator->busy ) {
+			pulse_generator->status = MXSF_PGN_IS_BUSY;
+		} else {
+			pulse_generator->status = 0;
+		}
+	} else {
+		pulse_generator->busy = FALSE;
+		pulse_generator->status = 0;
+	}
+
+	if ( status != (unsigned long *) NULL ) {
+		*status = pulse_generator->status;
+	}
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type

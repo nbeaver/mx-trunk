@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2002, 2005-2007, 2015-2016 Illinois Institute of Technology
+ * Copyright 2002, 2005-2007, 2015-2016, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -40,6 +40,12 @@ extern "C" {
 
 #define MXF_PGN_FOREVER		0
 
+/* Status bit definitions for the status field. */
+
+#define MXSF_PGN_IS_BUSY	0x1
+
+#define MXSF_PGN_ERROR		0x80000000
+
 typedef struct {
 	MX_RECORD *record;
 
@@ -58,6 +64,8 @@ typedef struct {
 	mx_bool_type stop;
 
 	long last_pulse_number;
+
+	unsigned long status;
 } MX_PULSE_GENERATOR;
 
 #define MXLV_PGN_PULSE_PERIOD		16001
@@ -70,6 +78,7 @@ typedef struct {
 #define MXLV_PGN_START			16008
 #define MXLV_PGN_STOP			16009
 #define MXLV_PGN_LAST_PULSE_NUMBER	16010
+#define MXLV_PGN_STATUS			16011
 
 #define MX_PULSE_GENERATOR_STANDARD_FIELDS \
   {MXLV_PGN_PULSE_PERIOD, -1, "pulse_period", MXFT_DOUBLE, NULL, 0, {0}, \
@@ -99,7 +108,7 @@ typedef struct {
   \
   {MXLV_PGN_BUSY, -1, "busy", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_PULSE_GENERATOR, busy), \
-	{0}, NULL, MXFF_IN_SUMMARY }, \
+	{0}, NULL, MXFF_READ_ONLY }, \
   \
   {MXLV_PGN_START, -1, "start", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_PULSE_GENERATOR, start), \
@@ -112,7 +121,11 @@ typedef struct {
   {MXLV_PGN_LAST_PULSE_NUMBER, -1, "last_pulse_number", \
 					MXFT_LONG, NULL, 0, {0},\
 	MXF_REC_CLASS_STRUCT, offsetof(MX_PULSE_GENERATOR, last_pulse_number), \
-	{0}, NULL, MXFF_READ_ONLY }
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {MXLV_PGN_STATUS, -1, "status", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_PULSE_GENERATOR, status), \
+	{0}, NULL, (MXFF_IN_SUMMARY | MXFF_READ_ONLY)}
 
 typedef struct {
 	mx_status_type ( *busy ) ( MX_PULSE_GENERATOR *pulse_generator );
@@ -121,6 +134,7 @@ typedef struct {
 	mx_status_type ( *get_parameter ) (MX_PULSE_GENERATOR *pulse_generator);
 	mx_status_type ( *set_parameter ) (MX_PULSE_GENERATOR *pulse_generator);
 	mx_status_type ( *setup ) (MX_PULSE_GENERATOR *pulse_generator);
+	mx_status_type ( *get_status ) (MX_PULSE_GENERATOR *pulse_generator);
 } MX_PULSE_GENERATOR_FUNCTION_LIST;
 
 MX_API_PRIVATE mx_status_type mx_pulse_generator_get_pointers(
@@ -178,6 +192,9 @@ MX_API mx_status_type mx_pulse_generator_set_pulse_delay( MX_RECORD *record,
 MX_API mx_status_type mx_pulse_generator_get_last_pulse_number(
 						MX_RECORD *record,
 						long *last_pulse_number );
+
+MX_API mx_status_type mx_pulse_generator_get_status( MX_RECORD *record,
+						unsigned long *status );
 
 MX_API mx_status_type mx_pulse_generator_default_get_parameter_handler(
 					MX_PULSE_GENERATOR *pulse_generator );

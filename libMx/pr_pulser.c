@@ -7,7 +7,8 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2002, 2004, 2006, 2012, 2015-2016 Illinois Institute of Technology
+ * Copyright 2002, 2004, 2006, 2012, 2015-2016, 2018
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -52,6 +53,7 @@ mx_setup_pulser_process_functions( MX_RECORD *record )
 		case MXLV_PGN_PULSE_WIDTH:
 		case MXLV_PGN_SETUP:
 		case MXLV_PGN_START:
+		case MXLV_PGN_STATUS:
 		case MXLV_PGN_STOP:
 			record_field->process_function
 					    = mx_pulser_process_function;
@@ -149,6 +151,10 @@ mx_pulser_process_function( void *record_ptr,
 				return mx_status;
 
 			pulse_generator->setup[4] = long_value;
+			break;
+		case MXLV_PGN_STATUS:
+			mx_status = mx_pulse_generator_get_status( record,
+								NULL );
 			break;
 		case MXLV_PGN_BUSY:
 			mx_status = mx_pulse_generator_is_busy( record, NULL );
