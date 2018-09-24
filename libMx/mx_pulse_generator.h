@@ -194,7 +194,7 @@ MX_API mx_status_type mx_pulse_generator_get_last_pulse_number(
 						long *last_pulse_number );
 
 MX_API mx_status_type mx_pulse_generator_get_status( MX_RECORD *record,
-						unsigned long *status );
+						unsigned long *pulser_status );
 
 MX_API mx_status_type mx_pulse_generator_default_get_parameter_handler(
 					MX_PULSE_GENERATOR *pulse_generator );

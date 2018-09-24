@@ -733,7 +733,7 @@ mx_pulse_generator_get_last_pulse_number( MX_RECORD *pulse_generator_record,
 
 MX_EXPORT mx_status_type
 mx_pulse_generator_get_status( MX_RECORD *pulse_generator_record,
-						unsigned long *status )
+					unsigned long *pulser_status )
 {
 	static const char fname[] = "mx_pulse_generator_get_status()";
 
@@ -780,8 +780,8 @@ mx_pulse_generator_get_status( MX_RECORD *pulse_generator_record,
 		pulse_generator->status = 0;
 	}
 
-	if ( status != (unsigned long *) NULL ) {
-		*status = pulse_generator->status;
+	if ( pulser_status != (unsigned long *) NULL ) {
+		*pulser_status = pulse_generator->status;
 	}
 
 	return mx_status;
