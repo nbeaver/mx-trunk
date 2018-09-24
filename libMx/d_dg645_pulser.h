@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2017 Illinois Institute of Technology
+ * Copyright 2017-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -39,13 +39,13 @@ MX_API mx_status_type mxd_dg645_pulser_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_dg645_pulser_open( MX_RECORD *record );
 
-MX_API mx_status_type mxd_dg645_pulser_is_busy( MX_PULSE_GENERATOR *pulser );
 MX_API mx_status_type mxd_dg645_pulser_start( MX_PULSE_GENERATOR *pulser );
 MX_API mx_status_type mxd_dg645_pulser_stop( MX_PULSE_GENERATOR *pulser );
 MX_API mx_status_type mxd_dg645_pulser_get_parameter(
 					MX_PULSE_GENERATOR *pulser );
 MX_API mx_status_type mxd_dg645_pulser_set_parameter(
 					MX_PULSE_GENERATOR *pulser );
+MX_API mx_status_type mxd_dg645_pulser_get_status( MX_PULSE_GENERATOR *pulser );
 
 extern MX_RECORD_FUNCTION_LIST mxd_dg645_pulser_record_function_list;
 extern MX_PULSE_GENERATOR_FUNCTION_LIST mxd_dg645_pulser_pulser_function_list;

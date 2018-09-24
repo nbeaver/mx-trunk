@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2017 Illinois Institute of Technology
+ * Copyright 2017-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -40,11 +40,13 @@ MX_RECORD_FUNCTION_LIST mxd_dg645_pulser_record_function_list = {
 };
 
 MX_PULSE_GENERATOR_FUNCTION_LIST mxd_dg645_pulser_pulser_function_list = {
-	mxd_dg645_pulser_is_busy,
+	NULL,
 	mxd_dg645_pulser_start,
 	mxd_dg645_pulser_stop,
 	mxd_dg645_pulser_get_parameter,
-	mxd_dg645_pulser_set_parameter
+	mxd_dg645_pulser_set_parameter,
+	NULL,
+	mxd_dg645_pulser_get_status
 };
 
 /* MX digital output pulser data structures. */
@@ -239,41 +241,6 @@ mxd_dg645_pulser_open( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_dg645_pulser_is_busy( MX_PULSE_GENERATOR *pulser )
-{
-	static const char fname[] = "mxd_dg645_pulser_is_busy()";
-
-	MX_DG645_PULSER *dg645_pulser = NULL;
-	MX_DG645 *dg645 = NULL;
-	mx_status_type mx_status;
-
-	mx_status = mxd_dg645_pulser_get_pointers( pulser,
-					&dg645_pulser, &dg645, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* FIXME: As far as I can tell, the DG645 is always busy unless
-	 * it is in a single shot mode.  It is not obvious how you detect
-	 * when a single shot trigger sequence is currently generating
-	 * pulses.
-	 */
-
-	if ( dg645->single_shot ) {
-		pulser = FALSE;
-	} else {
-		pulser->busy = TRUE;
-	}
-
-#if MXD_DG645_PULSER_DEBUG
-	MX_DEBUG(-2,("%s: pulser '%s', busy = %d",
-		fname, pulser->record->name, (int) pulser->busy));
-#endif
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
 mxd_dg645_pulser_start( MX_PULSE_GENERATOR *pulser )
 {
 	static const char fname[] = "mxd_dg645_pulser_start()";
@@ -420,8 +387,12 @@ mxd_dg645_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 						NULL, NULL );
 		break;
 
-	case MXLV_PGN_MODE:
-		pulser->mode = MXF_PGN_SQUARE_WAVE;
+	case MXLV_PGN_FUNCTION_MODE:
+		pulser->function_mode = MXF_PGN_SQUARE_WAVE;
+		break;
+
+	case MXLV_PGN_TRIGGER_MODE:
+		/* FIXME: Leave this alone for now. */
 		break;
 
 	case MXLV_PGN_PULSE_PERIOD:
@@ -642,8 +613,26 @@ mxd_dg645_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 					NULL, 0, MXD_DG645_PULSER_DEBUG );
 		break;
 
-	case MXLV_PGN_MODE:
-		pulser->mode = MXF_PGN_SQUARE_WAVE;
+	case MXLV_PGN_FUNCTION_MODE:
+		switch( pulser->function_mode ) {
+		case MXF_PGN_PULSE:
+			break;
+		case MXF_PGN_SQUARE_WAVE:
+			pulser->pulse_width = 0.5 * pulser->pulse_period;
+			break;
+		default:
+			mx_status = mx_error(
+			    MXE_HARDWARE_CONFIGURATION_ERROR, fname,
+			"Illegal function mode %ld configured for pulser '%s'.",
+			    pulser->function_mode, pulser->record->name );
+
+			pulser->function_mode = -1;
+			break;
+		}
+		break;
+
+	case MXLV_PGN_TRIGGER_MODE:
+		/* FIXME: Leave this alone for now. */
 		break;
 
 	case MXLV_PGN_PULSE_PERIOD:
@@ -662,5 +651,41 @@ mxd_dg645_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 	MX_DEBUG( 2,("%s complete.", fname));
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_dg645_pulser_get_status( MX_PULSE_GENERATOR *pulser )
+{
+	static const char fname[] = "mxd_dg645_pulser_get_status()";
+
+	MX_DG645_PULSER *dg645_pulser = NULL;
+	MX_DG645 *dg645 = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mxd_dg645_pulser_get_pointers( pulser,
+					&dg645_pulser, &dg645, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxi_dg645_get_status( dg645 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_DG645_PULSER_DEBUG
+	MX_DEBUG(-2,("%s: pulser '%s', stb = %#lx, insr = %#lx, esr = %#lx",
+		fname, pulser->record->name,
+		dg645_pulser->status_byte,
+		dg645_pulser->instrument_status_register,
+		dg645_pulser->event_status_register));
+#endif
+
+#if MXD_DG645_PULSER_DEBUG
+	MX_DEBUG(-2,("%s: pulser '%s', status = %#lx",
+		fname, pulser->record->name, pulser->status));
+#endif
+
+	return mx_status;
 }
 

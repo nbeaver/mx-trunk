@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2015-2017 Illinois Institute of Technology
+ * Copyright 2015-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -225,7 +225,7 @@ mxd_gittelsohn_pulser_set_arduino_parameters( MX_PULSE_GENERATOR *pulser,
 
 	/* The Gittelsohn Arduino pulser only does square waves. */
 
-	pulser->mode = MXF_PGN_SQUARE_WAVE;
+	pulser->function_mode = MXF_PGN_SQUARE_WAVE;
 
 	/* The Gittelsohn Arduino pulser does not implement a pulse delay. */
 
@@ -881,10 +881,10 @@ mxd_gittelsohn_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 		pulser->pulse_delay = 0;
 		break;
 
-	case MXLV_PGN_MODE:
+	case MXLV_PGN_FUNCTION_MODE:
 		/* The Gittelsohn Arduino pulser only does square waves. */
 
-		pulser->mode = MXF_PGN_SQUARE_WAVE;
+		pulser->function_mode = MXF_PGN_SQUARE_WAVE;
 		break;
 
 	case MXLV_PGN_LAST_PULSE_NUMBER:
@@ -1034,7 +1034,7 @@ mxd_gittelsohn_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 	case MXLV_PGN_PULSE_DELAY:
 		break;
 
-	case MXLV_PGN_MODE:
+	case MXLV_PGN_FUNCTION_MODE:
 		break;
 
 	default:
@@ -1065,21 +1065,26 @@ mxd_gittelsohn_pulser_setup( MX_PULSE_GENERATOR *pulser )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	pulser->pulse_period = pulser->setup[0];
-	pulser->pulse_width = pulser->setup[1];
-	pulser->num_pulses = mx_round( pulser->setup[2] );
-	pulser->pulse_delay = pulser->setup[3];
-	pulser->mode = mx_round( pulser->setup[4] );
+	pulser->pulse_period  = pulser->setup[MXSUP_PGN_PULSE_PERIOD];
+	pulser->pulse_width   = pulser->setup[MXSUP_PGN_PULSE_WIDTH];
+	pulser->num_pulses    = mx_round( pulser->setup[MXSUP_PGN_NUM_PULSES] );
+	pulser->pulse_delay   = pulser->setup[MXSUP_PGN_PULSE_DELAY];
+	pulser->function_mode = 
+			mx_round( pulser->setup[MXSUP_PGN_FUNCTION_MODE] );
+	pulser->trigger_mode = 
+			mx_round( pulser->setup[MXSUP_PGN_TRIGGER_MODE] );
 
 #if MXD_GITTELSOHN_PULSER_DEBUG_SETUP
 	MX_DEBUG(-2,("%s: pulser '%s', period = %f, width = %f, "
-		"num_pulses = %lu, delay = %f, mode = %ld",
+		"num_pulses = %ld, delay = %f, "
+		"function mode = %ld, trigger_mode = %ld",
 		fname, pulser->record->name,
 		pulser->pulse_period,
 		pulser->pulse_width,
 		pulser->num_pulses,
 		pulser->pulse_delay,
-		pulser->mode ));
+		pulser->function_mode,
+		pulser->trigger_mode ));
 #endif
 
 	mx_status = mxd_gittelsohn_pulser_set_arduino_parameters( pulser,

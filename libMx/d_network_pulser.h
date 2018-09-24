@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2004-2005, 2015-2016 Illinois Institute of Technology
+ * Copyright 2002, 2004-2005, 2015-2016, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,8 +22,8 @@ typedef struct {
 	char remote_record_name[ MXU_RECORD_NAME_LENGTH+1 ];
 
 	MX_NETWORK_FIELD busy_nf;
+	MX_NETWORK_FIELD function_mode_nf;
 	MX_NETWORK_FIELD last_pulse_number_nf;
-	MX_NETWORK_FIELD mode_nf;
 	MX_NETWORK_FIELD num_pulses_nf;
 	MX_NETWORK_FIELD pulse_delay_nf;
 	MX_NETWORK_FIELD pulse_period_nf;
@@ -31,6 +31,7 @@ typedef struct {
 	MX_NETWORK_FIELD setup_nf;
 	MX_NETWORK_FIELD start_nf;
 	MX_NETWORK_FIELD stop_nf;
+	MX_NETWORK_FIELD trigger_mode_nf;
 } MX_NETWORK_PULSER;
 
 #define MXD_NETWORK_PULSER_STANDARD_FIELDS \

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002-2007, 2014-2016 Illinois Institute of Technology
+ * Copyright 2002-2007, 2014-2016, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -172,9 +172,9 @@ mxd_network_pulser_finish_record_initialization( MX_RECORD *record )
 		network_pulser->server_record,
 		"%s.last_pulse_number", network_pulser->remote_record_name );
 
-	mx_network_field_init( &(network_pulser->mode_nf),
+	mx_network_field_init( &(network_pulser->function_mode_nf),
 		network_pulser->server_record,
-		"%s.mode", network_pulser->remote_record_name );
+		"%s.function_mode", network_pulser->remote_record_name );
 
 	mx_network_field_init( &(network_pulser->num_pulses_nf),
 		network_pulser->server_record,
@@ -203,6 +203,10 @@ mxd_network_pulser_finish_record_initialization( MX_RECORD *record )
 	mx_network_field_init( &(network_pulser->stop_nf),
 		network_pulser->server_record,
 		"%s.stop", network_pulser->remote_record_name );
+
+	mx_network_field_init( &(network_pulser->trigger_mode_nf),
+		network_pulser->server_record,
+		"%s.trigger_mode", network_pulser->remote_record_name );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -400,6 +404,15 @@ mxd_network_pulser_get_parameter( MX_PULSE_GENERATOR *pulse_generator )
 #endif
 
 	switch( pulse_generator->parameter_type ) {
+	case MXLV_PGN_FUNCTION_MODE:
+		mx_status = mx_get( &(network_pulser->function_mode_nf),
+				MXFT_LONG, &(pulse_generator->function_mode) );
+
+		break;
+	case MXLV_PGN_LAST_PULSE_NUMBER:
+		mx_status = mx_get( &(network_pulser->last_pulse_number_nf),
+			MXFT_LONG, &(pulse_generator->last_pulse_number) );
+		break;
 	case MXLV_PGN_NUM_PULSES:
 		mx_status = mx_get( &(network_pulser->num_pulses_nf),
 				MXFT_ULONG, &(pulse_generator->num_pulses) );
@@ -415,19 +428,15 @@ mxd_network_pulser_get_parameter( MX_PULSE_GENERATOR *pulse_generator )
 				MXFT_DOUBLE, &(pulse_generator->pulse_delay) );
 
 		break;
-	case MXLV_PGN_MODE:
-		mx_status = mx_get( &(network_pulser->mode_nf),
-					MXFT_LONG, &(pulse_generator->mode) );
-
-		break;
 	case MXLV_PGN_PULSE_PERIOD:
 		mx_status = mx_get( &(network_pulser->pulse_period_nf),
 				MXFT_DOUBLE, &(pulse_generator->pulse_period) );
 
 		break;
-	case MXLV_PGN_LAST_PULSE_NUMBER:
-		mx_status = mx_get( &(network_pulser->last_pulse_number_nf),
-			MXFT_LONG, &(pulse_generator->last_pulse_number) );
+	case MXLV_PGN_TRIGGER_MODE:
+		mx_status = mx_get( &(network_pulser->trigger_mode_nf),
+				MXFT_LONG, &(pulse_generator->trigger_mode) );
+
 		break;
 	default:
 		return mx_pulse_generator_default_get_parameter_handler(
@@ -467,6 +476,11 @@ mxd_network_pulser_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 #endif
 
 	switch( pulse_generator->parameter_type ) {
+	case MXLV_PGN_FUNCTION_MODE:
+		mx_status = mx_put( &(network_pulser->function_mode_nf),
+				MXFT_LONG, &(pulse_generator->function_mode) );
+
+		break;
 	case MXLV_PGN_NUM_PULSES:
 		mx_status = mx_put( &(network_pulser->num_pulses_nf),
 				MXFT_ULONG, &(pulse_generator->num_pulses) );
@@ -482,14 +496,14 @@ mxd_network_pulser_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 				MXFT_DOUBLE, &(pulse_generator->pulse_delay) );
 
 		break;
-	case MXLV_PGN_MODE:
-		mx_status = mx_put( &(network_pulser->mode_nf),
-					MXFT_LONG, &(pulse_generator->mode) );
-
-		break;
 	case MXLV_PGN_PULSE_PERIOD:
 		mx_status = mx_put( &(network_pulser->pulse_period_nf),
 				MXFT_DOUBLE, &(pulse_generator->pulse_period) );
+
+		break;
+	case MXLV_PGN_TRIGGER_MODE:
+		mx_status = mx_put( &(network_pulser->trigger_mode_nf),
+				MXFT_LONG, &(pulse_generator->trigger_mode) );
 
 		break;
 	default:

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2006-2007, 2009-2010, 2013, 2015, 2017
+ * Copyright 1999-2003, 2006-2007, 2009-2010, 2013, 2015, 2017-2018
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -83,7 +83,7 @@ motor_set_fn( int argc, char *argv[] )
 "        set amplifier 'amplifiername' time_constant 'time_constant_value'\n"
 "        set amplifier 'amplifiername' sensitivity 'sensitivity_value'\n"
 "        set autoscale 'scalername' low_limit high_limit low_dead high_dead\n"
-"        set pulser 'pulsername' period width number delay mode\n"
+"        set pulser 'pulsername' period width number delay function_mode trigger_mode\n"
 "        set device 'devicename' 'value'\n"
 "        set variable 'variablename' 'value'\n"
 "        set field 'recordname.fieldname' 'value'\n"
@@ -267,7 +267,7 @@ motor_set_fn( int argc, char *argv[] )
 	/* SET PULSER function. */
 
 	} else if ( strncmp( argv[2], "pulser", length2 ) == 0 ) {
-		if ( argc != 9 ) {
+		if ( argc != 10 ) {
 			fprintf(output,"%s\n", usage);
 			return FAILURE;
 		} else {
@@ -305,8 +305,14 @@ motor_set_fn( int argc, char *argv[] )
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 
-			mx_status = mx_pulse_generator_set_mode( record,
-							atoi( argv[8] ) );
+			mx_status = mx_pulse_generator_set_function_mode(
+						record, atoi( argv[8] ) );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+
+			mx_status = mx_pulse_generator_set_trigger_mode(
+						record, atoi( argv[9] ) );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;

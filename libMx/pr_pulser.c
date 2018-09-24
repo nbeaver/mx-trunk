@@ -45,8 +45,8 @@ mx_setup_pulser_process_functions( MX_RECORD *record )
 
 		switch( record_field->label_value ) {
 		case MXLV_PGN_BUSY:
+		case MXLV_PGN_FUNCTION_MODE:
 		case MXLV_PGN_LAST_PULSE_NUMBER:
-		case MXLV_PGN_MODE:
 		case MXLV_PGN_NUM_PULSES:
 		case MXLV_PGN_PULSE_DELAY:
 		case MXLV_PGN_PULSE_PERIOD:
@@ -55,6 +55,7 @@ mx_setup_pulser_process_functions( MX_RECORD *record )
 		case MXLV_PGN_START:
 		case MXLV_PGN_STATUS:
 		case MXLV_PGN_STOP:
+		case MXLV_PGN_TRIGGER_MODE:
 			record_field->process_function
 					    = mx_pulser_process_function;
 			break;
@@ -88,6 +89,13 @@ mx_pulser_process_function( void *record_ptr,
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
+		case MXLV_PGN_BUSY:
+			mx_status = mx_pulse_generator_is_busy( record, NULL );
+			break;
+		case MXLV_PGN_FUNCTION_MODE:
+			mx_status = mx_pulse_generator_get_function_mode(
+								record, NULL );
+			break;
 		case MXLV_PGN_PULSE_PERIOD:
 			mx_status = mx_pulse_generator_get_pulse_period(
 								record, NULL );
@@ -108,9 +116,6 @@ mx_pulser_process_function( void *record_ptr,
 			mx_status = mx_pulse_generator_get_last_pulse_number(
 								record, NULL );
 			break;
-		case MXLV_PGN_MODE:
-			mx_status = mx_pulse_generator_get_mode( record, NULL );
-			break;
 		case MXLV_PGN_SETUP:
 			mx_status = mx_pulse_generator_get_pulse_period( record,
 								&double_value );
@@ -118,7 +123,8 @@ mx_pulser_process_function( void *record_ptr,
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			pulse_generator->setup[0] = double_value;
+			pulse_generator->setup[MXSUP_PGN_PULSE_PERIOD]
+								= double_value;
 
 			mx_status = mx_pulse_generator_get_pulse_width( record,
 								&double_value );
@@ -126,7 +132,8 @@ mx_pulser_process_function( void *record_ptr,
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			pulse_generator->setup[1] = double_value;
+			pulse_generator->setup[MXSUP_PGN_PULSE_WIDTH]
+								= double_value;
 
 			mx_status = mx_pulse_generator_get_num_pulses( record,
 								&ulong_value );
@@ -134,7 +141,8 @@ mx_pulser_process_function( void *record_ptr,
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			pulse_generator->setup[2] = ulong_value;
+			pulse_generator->setup[MXSUP_PGN_NUM_PULSES]
+								= ulong_value;
 
 			mx_status = mx_pulse_generator_get_pulse_delay( record,
 								&double_value );
@@ -142,22 +150,34 @@ mx_pulser_process_function( void *record_ptr,
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			pulse_generator->setup[3] = double_value;
+			pulse_generator->setup[MXSUP_PGN_PULSE_DELAY]
+								= double_value;
 
-			mx_status = mx_pulse_generator_get_mode( record,
-								&long_value );
+			mx_status = mx_pulse_generator_get_function_mode(
+							record, &long_value );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			pulse_generator->setup[4] = long_value;
+			pulse_generator->setup[MXSUP_PGN_FUNCTION_MODE]
+								= long_value;
+
+			mx_status = mx_pulse_generator_get_trigger_mode(
+							record, &long_value );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			pulse_generator->setup[MXSUP_PGN_TRIGGER_MODE]
+								= long_value;
 			break;
 		case MXLV_PGN_STATUS:
 			mx_status = mx_pulse_generator_get_status( record,
 								NULL );
 			break;
-		case MXLV_PGN_BUSY:
-			mx_status = mx_pulse_generator_is_busy( record, NULL );
+		case MXLV_PGN_TRIGGER_MODE:
+			mx_status = mx_pulse_generator_get_trigger_mode(
+								record, NULL );
 			break;
 		default:
 			MX_DEBUG( 1,(
@@ -184,17 +204,22 @@ mx_pulser_process_function( void *record_ptr,
 			mx_status = mx_pulse_generator_set_pulse_delay( record,
 						pulse_generator->pulse_delay );
 			break;
-		case MXLV_PGN_MODE:
-			mx_status = mx_pulse_generator_set_mode( record,
-						pulse_generator->mode );
+		case MXLV_PGN_FUNCTION_MODE:
+			mx_status = mx_pulse_generator_set_function_mode(
+					record, pulse_generator->function_mode);
+			break;
+		case MXLV_PGN_TRIGGER_MODE:
+			mx_status = mx_pulse_generator_set_trigger_mode(
+					record, pulse_generator->trigger_mode );
 			break;
 		case MXLV_PGN_SETUP:
 			mx_status = mx_pulse_generator_setup( record,
-					pulse_generator->setup[0],
-					pulse_generator->setup[1],
-					mx_round( pulse_generator->setup[2] ),
-					pulse_generator->setup[3],
-					mx_round( pulse_generator->setup[4] ) );
+		    pulse_generator->setup[MXSUP_PGN_PULSE_PERIOD],
+		    pulse_generator->setup[MXSUP_PGN_PULSE_WIDTH],
+		    mx_round( pulse_generator->setup[MXSUP_PGN_NUM_PULSES] ),
+		    pulse_generator->setup[MXSUP_PGN_PULSE_DELAY],
+		    mx_round( pulse_generator->setup[MXSUP_PGN_FUNCTION_MODE] ),
+		    mx_round( pulse_generator->setup[MXSUP_PGN_TRIGGER_MODE] ));
 			break;
 		case MXLV_PGN_START:
 			mx_status = mx_pulse_generator_start( record );

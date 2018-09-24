@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2008, 2010-2016 Illinois Institute of Technology
+ * Copyright 1999-2006, 2008, 2010-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2781,26 +2781,26 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 #if 1 /* WML: FIXME - This is a "temporary" kludge. */
 		{
 			MX_RECORD *kludge_record;
-			long pulse_mode;
+			long pulse_function_mode;
 
 			kludge_record = mx_get_record(clock_record,
 							"mx_pulse_tweak");
 
 			if ( kludge_record == NULL ) {
-				pulse_mode = MXF_PGN_PULSE;
+				pulse_function_mode = MXF_PGN_PULSE;
 			} else {
 				mx_status = mx_get_long_variable( kludge_record,
-								&pulse_mode );
+							&pulse_function_mode );
 
 				if ( mx_status.code != MXE_SUCCESS )
 					return mx_status;
 			}
 			
-			mx_status = mx_pulse_generator_set_mode( clock_record,
-								pulse_mode );
+			mx_status = mx_pulse_generator_set_function_mode(
+					clock_record, pulse_function_mode );
 		}
 #else /* WML */
-		mx_status = mx_pulse_generator_set_mode( clock_record,
+		mx_status = mx_pulse_generator_set_function_mode( clock_record,
 							MXF_PGN_PULSE );
 #endif /* WML */
 

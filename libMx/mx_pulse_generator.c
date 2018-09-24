@@ -119,8 +119,9 @@ mx_pulse_generator_initialize( MX_RECORD *record )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		mx_status = mx_pulse_generator_set_mode( record,
-						pulse_generator->mode );
+		mx_status = mx_pulse_generator_set_function_mode( record,
+					pulse_generator->function_mode );
+
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
@@ -259,9 +260,10 @@ MX_EXPORT mx_status_type
 mx_pulse_generator_setup( MX_RECORD *pulse_generator_record,
 			double pulse_period,
 			double pulse_width,
-			unsigned long num_pulses,
+			long num_pulses,
 			double pulse_delay,
-			long mode )
+			long function_mode,
+			long trigger_mode )
 {
 	static const char fname[] = "mx_pulse_generator_setup()";
 
@@ -282,11 +284,12 @@ mx_pulse_generator_setup( MX_RECORD *pulse_generator_record,
 
 		/* If a 'setup' method exists, use that. */
 
-		pulse_generator->setup[0] = pulse_period;
-		pulse_generator->setup[1] = pulse_width;
-		pulse_generator->setup[2] = num_pulses;
-		pulse_generator->setup[3] = pulse_delay;
-		pulse_generator->setup[4] = mode;
+		pulse_generator->setup[MXSUP_PGN_PULSE_PERIOD]  = pulse_period;
+		pulse_generator->setup[MXSUP_PGN_PULSE_WIDTH]   = pulse_width;
+		pulse_generator->setup[MXSUP_PGN_NUM_PULSES]    = num_pulses;
+		pulse_generator->setup[MXSUP_PGN_PULSE_DELAY]   = pulse_delay;
+		pulse_generator->setup[MXSUP_PGN_FUNCTION_MODE] = function_mode;
+		pulse_generator->setup[MXSUP_PGN_TRIGGER_MODE]  = trigger_mode;
 
 		mx_status = (*setup_fn)( pulse_generator );
 
@@ -314,11 +317,13 @@ mx_pulse_generator_setup( MX_RECORD *pulse_generator_record,
 			return mx_status;
 	}
 
-	mx_status = mx_pulse_generator_set_num_pulses(
+	if ( num_pulses >= 0 ) {
+		mx_status = mx_pulse_generator_set_num_pulses(
 				pulse_generator_record, num_pulses );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
 	if ( pulse_delay >= 0.0 ) {
 		mx_status = mx_pulse_generator_set_pulse_delay(
@@ -328,9 +333,17 @@ mx_pulse_generator_setup( MX_RECORD *pulse_generator_record,
 			return mx_status;
 	}
 
-	if ( mode >= 0 ) {
-		mx_status = mx_pulse_generator_set_mode(
-				pulse_generator_record, mode );
+	if ( function_mode >= 0 ) {
+		mx_status = mx_pulse_generator_set_function_mode(
+				pulse_generator_record, function_mode );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	if ( trigger_mode >= 0 ) {
+		mx_status = mx_pulse_generator_set_trigger_mode(
+				pulse_generator_record, trigger_mode );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -340,9 +353,10 @@ mx_pulse_generator_setup( MX_RECORD *pulse_generator_record,
 }
 
 MX_EXPORT mx_status_type
-mx_pulse_generator_get_mode( MX_RECORD *pulse_generator_record, long *mode )
+mx_pulse_generator_get_function_mode( MX_RECORD *pulse_generator_record,
+					long *function_mode )
 {
-	static const char fname[] = "mx_pulse_generator_get_mode()";
+	static const char fname[] = "mx_pulse_generator_get_function_mode()";
 
 	MX_PULSE_GENERATOR *pulse_generator;
 	MX_PULSE_GENERATOR_FUNCTION_LIST *function_list;
@@ -362,24 +376,25 @@ mx_pulse_generator_get_mode( MX_RECORD *pulse_generator_record, long *mode )
 			mx_pulse_generator_default_get_parameter_handler;
 	}
 
-	pulse_generator->parameter_type = MXLV_PGN_MODE;
+	pulse_generator->parameter_type = MXLV_PGN_FUNCTION_MODE;
 
 	mx_status = (*get_parameter_fn)( pulse_generator );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( mode != NULL ) {
-		*mode = pulse_generator->mode;
+	if ( function_mode != NULL ) {
+		*function_mode = pulse_generator->function_mode;
 	}
 
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mx_pulse_generator_set_mode( MX_RECORD *pulse_generator_record, long mode )
+mx_pulse_generator_set_function_mode( MX_RECORD *pulse_generator_record,
+					long function_mode )
 {
-	static const char fname[] = "mx_pulse_generator_set_mode()";
+	static const char fname[] = "mx_pulse_generator_set_function_mode()";
 
 	MX_PULSE_GENERATOR *pulse_generator;
 	MX_PULSE_GENERATOR_FUNCTION_LIST *function_list;
@@ -399,9 +414,80 @@ mx_pulse_generator_set_mode( MX_RECORD *pulse_generator_record, long mode )
 			mx_pulse_generator_default_set_parameter_handler;
 	}
 
-	pulse_generator->parameter_type = MXLV_PGN_MODE;
+	pulse_generator->parameter_type = MXLV_PGN_FUNCTION_MODE;
 
-	pulse_generator->mode = mode;
+	pulse_generator->function_mode = function_mode;
+
+	mx_status = (*set_parameter_fn)( pulse_generator );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_pulse_generator_get_trigger_mode( MX_RECORD *pulse_generator_record,
+					long *trigger_mode )
+{
+	static const char fname[] = "mx_pulse_generator_get_trigger_mode()";
+
+	MX_PULSE_GENERATOR *pulse_generator;
+	MX_PULSE_GENERATOR_FUNCTION_LIST *function_list;
+	mx_status_type ( *get_parameter_fn ) ( MX_PULSE_GENERATOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_pulse_generator_get_pointers( pulse_generator_record,
+				&pulse_generator, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = function_list->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn =
+			mx_pulse_generator_default_get_parameter_handler;
+	}
+
+	pulse_generator->parameter_type = MXLV_PGN_TRIGGER_MODE;
+
+	mx_status = (*get_parameter_fn)( pulse_generator );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( trigger_mode != NULL ) {
+		*trigger_mode = pulse_generator->trigger_mode;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_pulse_generator_set_trigger_mode( MX_RECORD *pulse_generator_record,
+					long trigger_mode )
+{
+	static const char fname[] = "mx_pulse_generator_set_trigger_mode()";
+
+	MX_PULSE_GENERATOR *pulse_generator;
+	MX_PULSE_GENERATOR_FUNCTION_LIST *function_list;
+	mx_status_type ( *set_parameter_fn ) ( MX_PULSE_GENERATOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_pulse_generator_get_pointers( pulse_generator_record,
+				&pulse_generator, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	set_parameter_fn = function_list->set_parameter;
+
+	if ( set_parameter_fn == NULL ) {
+		set_parameter_fn =
+			mx_pulse_generator_default_set_parameter_handler;
+	}
+
+	pulse_generator->parameter_type = MXLV_PGN_TRIGGER_MODE;
+
+	pulse_generator->trigger_mode = trigger_mode;
 
 	mx_status = (*set_parameter_fn)( pulse_generator );
 
@@ -799,11 +885,12 @@ mx_pulse_generator_default_get_parameter_handler(
 	mx_status_type mx_status;
 
 	switch( pulse_generator->parameter_type ) {
-	case MXLV_PGN_MODE:
+	case MXLV_PGN_FUNCTION_MODE:
 	case MXLV_PGN_NUM_PULSES:
 	case MXLV_PGN_PULSE_DELAY:
 	case MXLV_PGN_PULSE_PERIOD:
 	case MXLV_PGN_PULSE_WIDTH:
+	case MXLV_PGN_TRIGGER_MODE:
 
 		/* We just return the value that is already in the 
 		 * data structure.
@@ -865,11 +952,12 @@ mx_pulse_generator_default_set_parameter_handler(
 		"mx_pulse_generator_default_set_parameter_handler()";
 
 	switch( pulse_generator->parameter_type ) {
-	case MXLV_PGN_MODE:
+	case MXLV_PGN_FUNCTION_MODE:
 	case MXLV_PGN_NUM_PULSES:
 	case MXLV_PGN_PULSE_DELAY:
 	case MXLV_PGN_PULSE_PERIOD:
 	case MXLV_PGN_PULSE_WIDTH:
+	case MXLV_PGN_TRIGGER_MODE:
 
 		/* We do nothing but leave alone the value that is already
 		 * stored in the data structure.

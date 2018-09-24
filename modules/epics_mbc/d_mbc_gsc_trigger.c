@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2011, 2015 Illinois Institute of Technology
+ * Copyright 2011, 2015, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -530,15 +530,17 @@ mxd_mbc_gsc_trigger_get_parameter( MX_PULSE_GENERATOR *pulser )
 #endif
 
 	switch( pulser->parameter_type ) {
+	case MXLV_PGN_FUNCTION_MODE:
+		break;
 	case MXLV_PGN_NUM_PULSES:
 		break;
 	case MXLV_PGN_PULSE_WIDTH:
 		break;
 	case MXLV_PGN_PULSE_DELAY:
 		break;
-	case MXLV_PGN_MODE:
-		break;
 	case MXLV_PGN_PULSE_PERIOD:
+		break;
+	case MXLV_PGN_TRIGGER_MODE:
 		break;
 	default:
 		return
@@ -578,6 +580,10 @@ mxd_mbc_gsc_trigger_set_parameter( MX_PULSE_GENERATOR *pulser )
 #endif
 
 	switch( pulser->parameter_type ) {
+	case MXLV_PGN_FUNCTION_MODE:
+		pulser->function_mode = MXF_PGN_SQUARE_WAVE;
+		break;
+
 	case MXLV_PGN_NUM_PULSES:
 		pulser->num_pulses = 1;
 		break;
@@ -590,12 +596,11 @@ mxd_mbc_gsc_trigger_set_parameter( MX_PULSE_GENERATOR *pulser )
 		pulser->pulse_delay = 0;
 		break;
 
-	case MXLV_PGN_MODE:
-		pulser->mode = MXF_PGN_SQUARE_WAVE;
-		break;
-
 	case MXLV_PGN_PULSE_PERIOD:
 		pulser->pulse_period = pulser->pulse_width;
+		break;
+
+	case MXLV_PGN_TRIGGER_MODE:
 		break;
 
 	default:

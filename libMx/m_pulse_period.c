@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002, 2006, 2008, 2012, 2015 Illinois Institute of Technology
+ * Copyright 2002, 2006, 2008, 2012, 2015, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -121,7 +121,8 @@ mxm_preset_pulse_period_configure( MX_MEASUREMENT *measurement )
 	 * in pulse mode already.
 	 */
 
-	mx_status = mx_pulse_generator_set_mode( pulse_generator_record,
+	mx_status = mx_pulse_generator_set_function_mode(
+						pulse_generator_record,
 						MXF_PGN_PULSE );
 
 	if ( mx_status.code != MXE_SUCCESS )

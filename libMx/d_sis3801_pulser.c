@@ -10,7 +10,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002, 2006, 2008, 2010, 2015 Illinois Institute of Technology
+ * Copyright 2002, 2006, 2008, 2010, 2015, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -525,6 +525,11 @@ mxd_sis3801_pulser_get_parameter( MX_PULSE_GENERATOR *pulse_generator )
 		pulse_generator->parameter_type));
 
 	switch( pulse_generator->parameter_type ) {
+	case MXLV_PGN_FUNCTION_MODE:
+		/* Only pulse mode is supported, so return that. */
+
+		pulse_generator->function_mode = MXF_PGN_PULSE;
+		break;
 	case MXLV_PGN_NUM_PULSES:
 
 		/* The SIS3801 does not have a countdown register, so just
@@ -547,11 +552,6 @@ mxd_sis3801_pulser_get_parameter( MX_PULSE_GENERATOR *pulse_generator )
 		 */
 
 		pulse_generator->pulse_delay = 0.0;
-		break;
-	case MXLV_PGN_MODE:
-		/* Only pulse mode is supported, so return that. */
-
-		pulse_generator->mode = MXF_PGN_PULSE;
 		break;
 	case MXLV_PGN_PULSE_PERIOD:
 		/* Read the prescale factor and then compute the pulse period.*/
@@ -624,13 +624,13 @@ mxd_sis3801_pulser_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 
 		pulse_generator->pulse_delay = 0.0;
 		break;
-	case MXLV_PGN_MODE:
-		if ( pulse_generator->mode != MXF_PGN_PULSE ) {
-			return mx_error( MXE_UNSUPPORTED, fname,
-			"Pulse generator mode %ld is not supported for "
-			"pulse generator '%s'.  "
+	case MXLV_PGN_FUNCTION_MODE:
+		if ( pulse_generator->function_mode != MXF_PGN_PULSE ) {
+			mx_status = mx_error( MXE_UNSUPPORTED, fname,
+			"Pulse generator function mode %ld is not supported "
+			"for pulse generator '%s'.  "
 			"Only pulse mode (1) is supported.",
-				pulse_generator->mode,
+				pulse_generator->function_mode,
 				pulse_generator->record->name );
 		}
 		break;
@@ -672,9 +672,6 @@ mxd_sis3801_pulser_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 		sis3801_pulser->base_address + MX_SIS3801_PRESCALE_FACTOR_REG,
 				prescale_factor );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
 		break;
 	default:
 		return mx_pulse_generator_default_set_parameter_handler(
@@ -682,6 +679,6 @@ mxd_sis3801_pulser_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 	}
 	MX_DEBUG( 2,("%s complete.", fname));
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 

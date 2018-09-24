@@ -9,7 +9,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2011-2013, 2017 Illinois Institute of Technology
+ * Copyright 2011-2013, 2017-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -659,15 +659,33 @@ mxd_doutput_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 	case MXLV_PGN_PULSE_DELAY:
 		break;
 
-	case MXLV_PGN_MODE:
-		pulser->mode = MXF_PGN_SQUARE_WAVE;
+	case MXLV_PGN_FUNCTION_MODE:
+		switch( pulser->function_mode ) {
+		case MXF_PGN_PULSE:
+			break;
+		case MXF_PGN_SQUARE_WAVE:
+			pulser->pulse_width = 0.5 * pulser->pulse_period;
+			break;
+		default:
+			mx_status = mx_error(
+			    MXE_HARDWARE_CONFIGURATION_ERROR, fname,
+			"Illegal function mode %ld configured for pulser '%s'.",
+			    pulser->function_mode, pulser->record->name );
+
+			pulser->function_mode = -1;
+			break;
+		}
+		break;
+
+	case MXLV_PGN_TRIGGER_MODE:
+		pulser->trigger_mode = MXF_PGN_INTERNAL_TRIGGER;
 		break;
 
 	case MXLV_PGN_PULSE_PERIOD:
 		break;
 
 	default:
-		return
+		mx_status =
 		    mx_pulse_generator_default_get_parameter_handler( pulser );
 	}
 
@@ -675,7 +693,7 @@ mxd_doutput_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 	MX_DEBUG(-2,("%s complete.", fname));
 #endif
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -711,18 +729,34 @@ mxd_doutput_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 	case MXLV_PGN_PULSE_DELAY:
 		break;
 
-	case MXLV_PGN_MODE:
-		pulser->mode = MXF_PGN_SQUARE_WAVE;
+	case MXLV_PGN_FUNCTION_MODE:
+		switch( pulser->function_mode ) {
+		case MXF_PGN_PULSE:
+		case MXF_PGN_SQUARE_WAVE:
+			break;
+		default:
+			mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		    "Illegal function mode %ld requested for pulser '%s'.  "
+		    "The allowed modes are 'pulse' (1) or 'square wave' (2).",
+				pulser->function_mode, pulser->record->name );
+		}
+		break;
+
+	case MXLV_PGN_TRIGGER_MODE:
+		pulser->trigger_mode = MXF_PGN_INTERNAL_TRIGGER;
 		break;
 
 	case MXLV_PGN_PULSE_PERIOD:
 		break;
 
 	default:
-		return
+		mx_status =
 		    mx_pulse_generator_default_set_parameter_handler( pulser );
 	}
-	MX_DEBUG( 2,("%s complete.", fname));
+
+#if MXD_DOUTPUT_PULSER_DEBUG
+	MX_DEBUG(-2,("%s complete.", fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }

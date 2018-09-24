@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002, 2005-2008, 2010, 2016 Illinois Institute of Technology
+ * Copyright 2002, 2005-2008, 2010, 2016, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -486,7 +486,7 @@ mxd_sis3807_start_without_burst_register( MX_PULSE_GENERATOR *pulse_generator )
 
 		start_time = mx_current_clock_tick();
 
-		if ( pulse_generator->mode != MXF_PGN_PULSE ) {
+		if ( pulse_generator->function_mode != MXF_PGN_PULSE ) {
 			sis3807_pulser->finish_time = start_time;
 		} else {
 			pulse_time = 80.0e-9;
@@ -680,7 +680,7 @@ mxd_sis3807_get_parameter( MX_PULSE_GENERATOR *pulse_generator )
 		 */
 
 		if ( sis3807->pulse_width_available == FALSE ) {
-			if ( pulse_generator->mode == MXF_PGN_PULSE ) {
+			if ( pulse_generator->function_mode == MXF_PGN_PULSE ) {
 				if ( pulse_generator->num_pulses == 1 ) {
 					pulse_generator->pulse_width = 80.0e-9;
 				} else {
@@ -704,7 +704,7 @@ mxd_sis3807_get_parameter( MX_PULSE_GENERATOR *pulse_generator )
 
 		pulse_generator->pulse_delay = 0.0;
 		break;
-	case MXLV_PGN_MODE:
+	case MXLV_PGN_FUNCTION_MODE:
 		/* Read the SIS3807 status register. */
 
 		mx_status = mx_vme_in32( sis3807->vme_record,
@@ -719,9 +719,9 @@ mxd_sis3807_get_parameter( MX_PULSE_GENERATOR *pulse_generator )
 		mask = 1 << ( 15 + sis3807_pulser->channel_number );
 
 		if ( status_register & mask ) {
-			pulse_generator->mode = MXF_PGN_SQUARE_WAVE;
+			pulse_generator->function_mode = MXF_PGN_SQUARE_WAVE;
 		} else {
-			pulse_generator->mode = MXF_PGN_PULSE;
+			pulse_generator->function_mode = MXF_PGN_PULSE;
 		}
 		break;
 	case MXLV_PGN_PULSE_PERIOD:
@@ -843,8 +843,8 @@ mxd_sis3807_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 
 		pulse_generator->pulse_delay = 0.0;
 		break;
-	case MXLV_PGN_MODE:
-		switch( pulse_generator->mode ) {
+	case MXLV_PGN_FUNCTION_MODE:
+		switch( pulse_generator->function_mode ) {
 		case MXF_PGN_PULSE:
 			control_register =
 				1 << ( 23 + sis3807_pulser->channel_number );
@@ -857,7 +857,7 @@ mxd_sis3807_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 			return mx_error( MXE_UNSUPPORTED, fname,
 		"Pulse mode %ld is not supported for pulse generator '%s'.  "
 		"Only pulse mode (1) and square wave mode (2) are supported.",
-				pulse_generator->mode,
+				pulse_generator->function_mode,
 				pulse_generator->record->name );
 		}
 		/* Reprogram the waveform mode. */
@@ -925,7 +925,7 @@ mxd_sis3807_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 			 * the pulse width to a plausible value.
 			 */
 
-			if ( pulse_generator->mode == MXF_PGN_PULSE ) {
+			if ( pulse_generator->function_mode == MXF_PGN_PULSE ) {
 				if ( pulse_generator->num_pulses == 1 ) {
 					pulse_generator->pulse_width = 80.0e-9;
 				} else {
@@ -953,7 +953,7 @@ mxd_sis3807_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 		} else {
 			time_quantum = 100.0e-9;
 		}
-		if ( pulse_generator->mode == MXF_PGN_SQUARE_WAVE ) {
+		if ( pulse_generator->function_mode == MXF_PGN_SQUARE_WAVE ) {
 			time_quantum *= 2.0;
 		}
 

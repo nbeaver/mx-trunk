@@ -869,8 +869,9 @@ mxd_marccd_arm( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_pulse_generator_set_mode( pulse_generator_record,
-							MXF_PGN_SQUARE_WAVE );
+	mx_status = mx_pulse_generator_set_function_mode(
+						pulse_generator_record,
+						MXF_PGN_SQUARE_WAVE );
 
 	return mx_status;
 }

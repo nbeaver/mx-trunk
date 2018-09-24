@@ -25,14 +25,28 @@
 extern "C" {
 #endif
 
-#define MXU_PGN_NUM_SETUP_PARAMETERS	5
+#define MXU_PGN_NUM_SETUP_PARAMETERS	6
 
-/* Values for the mode field. */
+/* Labels for the setup array. */
+
+#define MXSUP_PGN_PULSE_PERIOD	0
+#define MXSUP_PGN_PULSE_WIDTH	1
+#define MXSUP_PGN_NUM_PULSES	2
+#define MXSUP_PGN_PULSE_DELAY	3
+#define MXSUP_PGN_FUNCTION_MODE	4
+#define MXSUP_PGN_TRIGGER_MODE	5
+
+/* Values for the function mode field. */
 
 #define MXF_PGN_PULSE		1
 #define MXF_PGN_SQUARE_WAVE	2
 #define MXF_PGN_TRIANGLE_WAVE	3
 #define MXF_PGN_SAWTOOTH_WAVE	4
+
+/* Values for the trigger mode field. */
+
+#define MXF_PGN_INTERNAL_TRIGGER	0x1
+#define MXF_PGN_EXTERNAL_TRIGGER	0x2
 
 /* If num_pulses is set to MXF_PGN_FOREVER, then the pulse generator
  * will pulse until explicitly stopped.
@@ -51,9 +65,10 @@ typedef struct {
 
 	double pulse_period;
 	double pulse_width;
-	unsigned long num_pulses;
+	long num_pulses;
 	double pulse_delay;
-	long mode;
+	long function_mode;
+	long trigger_mode;
 
 	double setup[MXU_PGN_NUM_SETUP_PARAMETERS];
 
@@ -64,15 +79,16 @@ typedef struct {
 	mx_bool_type stop;
 
 	long last_pulse_number;
-
 	unsigned long status;
+
 } MX_PULSE_GENERATOR;
 
-#define MXLV_PGN_PULSE_PERIOD		16001
-#define MXLV_PGN_PULSE_WIDTH		16002
-#define MXLV_PGN_NUM_PULSES		16003
-#define MXLV_PGN_PULSE_DELAY		16004
-#define MXLV_PGN_MODE			16005
+#define MXLV_PGN_PULSE_PERIOD		16000
+#define MXLV_PGN_PULSE_WIDTH		16001
+#define MXLV_PGN_NUM_PULSES		16002
+#define MXLV_PGN_PULSE_DELAY		16003
+#define MXLV_PGN_FUNCTION_MODE		16004
+#define MXLV_PGN_TRIGGER_MODE		16005
 #define MXLV_PGN_SETUP			16006
 #define MXLV_PGN_BUSY			16007
 #define MXLV_PGN_START			16008
@@ -89,7 +105,7 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_PULSE_GENERATOR, pulse_width), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {MXLV_PGN_NUM_PULSES, -1, "num_pulses", MXFT_ULONG, NULL, 0, {0}, \
+  {MXLV_PGN_NUM_PULSES, -1, "num_pulses", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_PULSE_GENERATOR, num_pulses), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
@@ -97,8 +113,12 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_PULSE_GENERATOR, pulse_delay), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {MXLV_PGN_MODE, -1, "mode", MXFT_LONG, NULL, 0, {0}, \
-	MXF_REC_CLASS_STRUCT, offsetof(MX_PULSE_GENERATOR, mode), \
+  {MXLV_PGN_FUNCTION_MODE, -1, "function_mode", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_PULSE_GENERATOR, function_mode), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+  \
+  {MXLV_PGN_TRIGGER_MODE, -1, "trigger_mode", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_PULSE_GENERATOR, trigger_mode), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
   {MXLV_PGN_SETUP, -1, "setup", MXFT_DOUBLE, \
@@ -155,15 +175,22 @@ MX_API mx_status_type mx_pulse_generator_stop( MX_RECORD *record );
 MX_API mx_status_type mx_pulse_generator_setup( MX_RECORD *record,
 						double pulse_period,
 						double pulse_width,
-						unsigned long num_pulses,
+						long num_pulses,
 						double pulse_delay,
-						long mode );
+						long function_mode,
+						long trigger_mode );
 
-MX_API mx_status_type mx_pulse_generator_get_mode( MX_RECORD *record,
-							long *mode );
+MX_API mx_status_type mx_pulse_generator_get_function_mode( MX_RECORD *record,
+							long *function_mode );
 
-MX_API mx_status_type mx_pulse_generator_set_mode( MX_RECORD *record,
-							long mode );
+MX_API mx_status_type mx_pulse_generator_set_function_mode( MX_RECORD *record,
+							long function_mode );
+
+MX_API mx_status_type mx_pulse_generator_get_trigger_mode( MX_RECORD *record,
+							long *trigger_mode );
+
+MX_API mx_status_type mx_pulse_generator_set_trigger_mode( MX_RECORD *record,
+							long trigger_mode );
 
 MX_API mx_status_type mx_pulse_generator_get_pulse_period( MX_RECORD *record, 
 							double *pulse_period );
