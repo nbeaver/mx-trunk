@@ -177,6 +177,9 @@ MX_API mx_status_type mxi_dg645_compute_delay_between_channels(
 
 MX_API mx_status_type mxi_dg645_get_status( MX_DG645 *dg645 );
 
+MX_API mx_status_type mxi_dg645_setup_pulser_trigger_mode( MX_DG645 *dg645,
+							long new_trigger_mode );
+
 extern MX_RECORD_FUNCTION_LIST mxi_dg645_record_function_list;
 
 extern long mxi_dg645_num_record_fields;

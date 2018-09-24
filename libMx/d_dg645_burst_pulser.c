@@ -331,6 +331,7 @@ mxd_dg645_burst_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 #if 0
 	unsigned long t0_channel;
 #endif
+	long trigger_source;
 	char response[80];
 	int num_items;
 	mx_status_type mx_status;
@@ -409,10 +410,6 @@ mxd_dg645_burst_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 		}
 		break;
 
-	case MXLV_PGN_TRIGGER_MODE:
-		/* FIXME: Leave trigger mode alone for right now. */
-		break;
-
 	case MXLV_PGN_PULSE_PERIOD:
 		mx_status = mxi_dg645_command( dg645, "BURP?",
 						response, sizeof(response),
@@ -424,6 +421,24 @@ mxd_dg645_burst_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 			return mx_error( MXE_DEVICE_IO_ERROR, fname,
 			"Did not see the burst period in the response '%s' "
 			"to command 'BURP?' for DG645 controller '%s'.",
+				response, dg645->record->name );
+		}
+		break;
+
+	case MXLV_PGN_TRIGGER_MODE:
+		mx_status = mxi_dg645_command( dg645, "TSRC?",
+					response, sizeof(response),
+					MXD_DG645_BURST_PULSER_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		num_items = sscanf( response, "%ld", &trigger_source );
+
+		if ( num_items != 1 ) {
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"Did not see the trigger source in the response '%s' "
+			"to command 'TSRC?' for DG645 controller '%s'.",
 				response, dg645->record->name );
 		}
 		break;
@@ -481,6 +496,23 @@ mxd_dg645_burst_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 #endif
 
 	switch( pulser->parameter_type ) {
+	case MXLV_PGN_FUNCTION_MODE:
+		switch( pulser->function_mode ) {
+		case MXF_PGN_PULSE:
+			break;
+		case MXF_PGN_SQUARE_WAVE:
+			pulser->pulse_width = 0.5 * pulser->pulse_period;
+			break;
+		default:
+			mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Illegal function mode %ld requested for pulser '%s'.",
+			    pulser->function_mode, pulser->record->name );
+
+			pulser->function_mode = -1;
+			break;
+		}
+		break;
+
 	case MXLV_PGN_NUM_PULSES:
 		snprintf( command, sizeof(command),
 			"BURC %lu", pulser->num_pulses );
@@ -534,28 +566,6 @@ mxd_dg645_burst_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 					NULL, 0, MXD_DG645_BURST_PULSER_DEBUG );
 		break;
 
-	case MXLV_PGN_FUNCTION_MODE:
-		switch( pulser->function_mode ) {
-		case MXF_PGN_PULSE:
-			break;
-		case MXF_PGN_SQUARE_WAVE:
-			pulser->pulse_width = 0.5 * pulser->pulse_period;
-			break;
-		default:
-			mx_status = mx_error(
-			    MXE_HARDWARE_CONFIGURATION_ERROR, fname,
-			"Illegal function mode %ld configured for pulser '%s'.",
-			    pulser->function_mode, pulser->record->name );
-
-			pulser->function_mode = -1;
-			break;
-		}
-		break;
-
-	case MXLV_PGN_TRIGGER_MODE:
-		/* FIXME: Leave this alone for now. */
-		break;
-
 	case MXLV_PGN_PULSE_PERIOD:
 		snprintf( command, sizeof(command),
 			"BURP %g", pulser->pulse_period );
@@ -564,13 +574,18 @@ mxd_dg645_burst_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 					NULL, 0, MXD_DG645_BURST_PULSER_DEBUG );
 		break;
 
+	case MXLV_PGN_TRIGGER_MODE:
+		mx_status = mxi_dg645_setup_pulser_trigger_mode( dg645,
+						pulser->trigger_mode );
+		break;
+
 	default:
-		return
+		mx_status =
 		    mx_pulse_generator_default_set_parameter_handler( pulser );
 	}
 	MX_DEBUG( 2,("%s complete.", fname));
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type

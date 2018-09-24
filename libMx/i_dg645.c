@@ -26,6 +26,7 @@
 #include "mx_record.h"
 #include "mx_driver.h"
 #include "mx_process.h"
+#include "mx_pulse_generator.h"
 #include "mx_rs232.h"
 #include "mx_gpib.h"
 #include "i_dg645.h"
@@ -542,6 +543,51 @@ mxi_dg645_get_status( MX_DG645 *dg645 )
 	/* Indicate that we successfully read the status. */
 
 	dg645->dg645_status = TRUE;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxi_dg645_setup_pulser_trigger_mode( MX_DG645 *dg645, long new_trigger_mode )
+{
+	static const char fname[] = "mxi_dg645_setup_pulser_trigger_mode()";
+
+	switch( new_trigger_mode ) {
+	case MXF_PGN_INTERNAL_TRIGGER:
+		dg645->trigger_type = MXF_DG645_INTERNAL_TRIGGER;
+		dg645->trigger_direction = 0;
+
+		if ( dg645->single_shot == FALSE ) {
+			dg645->trigger_source = 0;
+		} else {
+			dg645->trigger_source = 5;
+		}
+		break;
+
+	case MXF_PGN_EXTERNAL_TRIGGER:
+		dg645->trigger_type = MXF_DG645_EXTERNAL_TRIGGER;
+		
+		if ( dg645->trigger_direction >= 0 ) {
+			if ( dg645->single_shot == FALSE ) {
+				dg645->trigger_source = 1;
+			} else {
+				dg645->trigger_source = 3;
+			}
+		} else {
+			if ( dg645->single_shot == FALSE ) {
+				dg645->trigger_source = 2;
+			} else {
+				dg645->trigger_source = 4;
+			}
+		}
+		break;
+
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Trigger source %ld is not supported for pulse generator '%s'.",
+			new_trigger_mode, dg645->record->name );
+		break;
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }

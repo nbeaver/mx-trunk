@@ -327,6 +327,7 @@ mxd_dg645_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 	MX_DG645 *dg645 = NULL;
 	unsigned long starting_channel, ending_channel;
 	unsigned long t0_channel;
+	long trigger_source;
 	char response[80];
 	int num_items;
 	double trigger_rate;
@@ -348,6 +349,12 @@ mxd_dg645_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 #endif
 
 	switch( pulser->parameter_type ) {
+	case MXLV_PGN_FUNCTION_MODE:
+		if ( pulser->function_mode == MXF_PGN_SQUARE_WAVE ) {
+			pulser->pulse_width = 0.5 * pulser->pulse_period;
+		}
+		break;
+
 	case MXLV_PGN_NUM_PULSES:
 		mx_status = mx_process_record_field_by_name( dg645->record,
 							"trigger_source",
@@ -387,14 +394,6 @@ mxd_dg645_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 						NULL, NULL );
 		break;
 
-	case MXLV_PGN_FUNCTION_MODE:
-		pulser->function_mode = MXF_PGN_SQUARE_WAVE;
-		break;
-
-	case MXLV_PGN_TRIGGER_MODE:
-		/* FIXME: Leave this alone for now. */
-		break;
-
 	case MXLV_PGN_PULSE_PERIOD:
 		mx_status = mxi_dg645_command( dg645, "TRAT?",
 						response, sizeof(response),
@@ -410,6 +409,24 @@ mxd_dg645_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 		}
 
 		pulser->pulse_period = mx_divide_safely( 1.0, trigger_rate );
+		break;
+
+	case MXLV_PGN_TRIGGER_MODE:
+		mx_status = mxi_dg645_command( dg645, "TSRC?",
+					response, sizeof(response),
+					MXD_DG645_PULSER_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		num_items = sscanf( response, "%ld", &trigger_source );
+
+		if ( num_items != 1 ) {
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"Did not see the trigger source in the response '%s' "
+			"to command 'TSRC?' for DG645 controller '%s'.",
+				response, dg645->record->name );
+		}
 		break;
 
 	default:
@@ -458,6 +475,23 @@ mxd_dg645_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 #endif
 
 	switch( pulser->parameter_type ) {
+	case MXLV_PGN_FUNCTION_MODE:
+		switch( pulser->function_mode ) {
+		case MXF_PGN_PULSE:
+			break;
+		case MXF_PGN_SQUARE_WAVE:
+			pulser->pulse_width = 0.5 * pulser->pulse_period;
+			break;
+		default:
+			mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Illegal function mode %ld requested for pulser '%s'.",
+			    pulser->function_mode, pulser->record->name );
+
+			pulser->function_mode = -1;
+			break;
+		}
+		break;
+
 	case MXLV_PGN_NUM_PULSES:
 		/* First, get the existing trigger source, so that we
 		 * can modify it to match what we want here.
@@ -474,6 +508,8 @@ mxd_dg645_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 
 		switch( dg645->trigger_type ) {
 		case MXF_DG645_INTERNAL_TRIGGER:
+			pulser->trigger_mode = MXF_PGN_INTERNAL_TRIGGER;
+
 			if ( pulser->num_pulses == 1 ) {
 				/* Single shot */
 				new_trigger_source = 5;
@@ -484,6 +520,8 @@ mxd_dg645_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 			}
 			break;
 		case MXF_DG645_EXTERNAL_TRIGGER:
+			pulser->trigger_mode = MXF_PGN_EXTERNAL_TRIGGER;
+
 			if ( pulser->num_pulses == 1 ) {
 				if ( dg645->trigger_direction < 0 ) {
 					/* Single shot ext falling edges */
@@ -513,6 +551,7 @@ mxd_dg645_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 			 * not send a command to the DG645.
 			 */
 
+			pulser->trigger_mode = 0;
 			pulser->num_pulses = 0;
 			dg645->trigger_direction = 0;
 			dg645->single_shot = FALSE;
@@ -613,28 +652,6 @@ mxd_dg645_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 					NULL, 0, MXD_DG645_PULSER_DEBUG );
 		break;
 
-	case MXLV_PGN_FUNCTION_MODE:
-		switch( pulser->function_mode ) {
-		case MXF_PGN_PULSE:
-			break;
-		case MXF_PGN_SQUARE_WAVE:
-			pulser->pulse_width = 0.5 * pulser->pulse_period;
-			break;
-		default:
-			mx_status = mx_error(
-			    MXE_HARDWARE_CONFIGURATION_ERROR, fname,
-			"Illegal function mode %ld configured for pulser '%s'.",
-			    pulser->function_mode, pulser->record->name );
-
-			pulser->function_mode = -1;
-			break;
-		}
-		break;
-
-	case MXLV_PGN_TRIGGER_MODE:
-		/* FIXME: Leave this alone for now. */
-		break;
-
 	case MXLV_PGN_PULSE_PERIOD:
 		trigger_rate = mx_divide_safely( 1.0, pulser->pulse_period );
 
@@ -644,13 +661,18 @@ mxd_dg645_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 					NULL, 0, MXD_DG645_PULSER_DEBUG );
 		break;
 
+	case MXLV_PGN_TRIGGER_MODE:
+		mx_status = mxi_dg645_setup_pulser_trigger_mode( dg645,
+						pulser->trigger_mode );
+		break;
+
 	default:
-		return
+		mx_status = 
 		    mx_pulse_generator_default_set_parameter_handler( pulser );
 	}
 	MX_DEBUG( 2,("%s complete.", fname));
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
