@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2017 Illinois Institute of Technology
+ * Copyright 2017-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -181,6 +181,20 @@ mxi_dg645_open( MX_RECORD *record )
 			return mx_status;
 	}
 
+	/* Enable status registers for the DG645. */
+
+	mx_status = mxi_dg645_command( dg645, "*ESE 255",
+					NULL, 0, MXI_DG645_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxi_dg645_command( dg645, "INSE 255",
+					NULL, 0, MXI_DG645_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 #if 0
 	/* Set the voltages of the 5 outputs T0, AB, CD, EF, and GH. */
 
@@ -211,6 +225,7 @@ mxi_dg645_special_processing_setup( MX_RECORD *record )
 		case MXLV_DG645_TRIGGER_LEVEL:
 		case MXLV_DG645_TRIGGER_RATE:
 		case MXLV_DG645_TRIGGER_SOURCE:
+		case MXLV_DG645_STATUS:
 			record_field->process_function
 					= mxi_dg645_process_function;
 			break;
@@ -357,6 +372,8 @@ mxi_dg645_command( MX_DG645 *dg645,
 				lerr_response, dg645->record->name );
 		}
 
+		dg645->last_error_code = lerr_code;
+
 		if ( lerr_code != 0 ) {
 			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
 			"Command '%s' sent to DG645 controller '%s' "
@@ -445,6 +462,90 @@ mxi_dg645_compute_delay_between_channels( MX_DG645 *dg645,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+MX_EXPORT mx_status_type
+mxi_dg645_get_status( MX_DG645 *dg645 )
+{
+	static const char fname[] = "mxi_dg645_get_status()";
+
+	char response[80];
+	int num_items;
+	mx_status_type mx_status;
+
+	if ( dg645 == (MX_DG645 *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_DG645 pointer passed was NULL." );
+	}
+
+	dg645->dg645_status = FALSE;
+
+	/* Get the status byte. */
+
+	mx_status = mxi_dg645_command( dg645, "*STB?",
+					response, sizeof(response),
+					MXI_DG645_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	num_items = sscanf( response, "%lu", &(dg645->status_byte) );
+
+	if ( num_items != 1 ) {
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"The response '%s' by interface '%s' to the command '*STB?' "
+		"did not seem to contain the numerical value of "
+		"the status byte.", response, dg645->record->name );
+	}
+
+	/* If the INSR summary bit is set, then ask for the
+	 * instrument status register.
+	 */
+
+	mx_status = mxi_dg645_command( dg645, "INSR?",
+					response, sizeof(response),
+					MXI_DG645_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	num_items = sscanf( response, "%lu",
+			&(dg645->instrument_status_register) );
+
+	if ( num_items != 1 ) {
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"The response '%s' by interface '%s' to the command '*STB?' "
+		"did not seem to contain the numerical value of "
+		"the instrument status register.",
+			response, dg645->record->name );
+	}
+
+	/* If the ESR summary bit is set, then ask for the
+	 * event status register.
+	 */
+
+	mx_status = mxi_dg645_command( dg645, "*ESR?",
+					response, sizeof(response),
+					MXI_DG645_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	num_items = sscanf( response, "%lu", &(dg645->event_status_register) );
+
+	if ( num_items != 1 ) {
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"The response '%s' by interface '%s' to the command '*STB?' "
+		"did not seem to contain the numerical value of "
+		"the event status register.",
+			response, dg645->record->name );
+	}
+
+	/* Indicate that we successfully read the status. */
+
+	dg645->dg645_status = TRUE;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /*==================================================================*/
 
 static mx_status_type
@@ -529,6 +630,9 @@ mxi_dg645_process_function( void *record_ptr,
 			}
 
 			mx_status = mxi_dg645_interpret_trigger_source( dg645 );
+			break;
+		case MXLV_DG645_STATUS:
+			mx_status = mxi_dg645_get_status( dg645 );
 			break;
 		default:
 			MX_DEBUG( 1,(

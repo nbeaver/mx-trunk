@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2017 Illinois Institute of Technology
+ * Copyright 2017-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -59,6 +59,14 @@ typedef struct {
 	unsigned long trigger_type;
 	long trigger_direction;
 	mx_bool_type single_shot;
+
+	unsigned long last_error_code;
+
+	unsigned long event_status_register;
+	unsigned long instrument_status_register;
+	unsigned long status_byte;
+
+	mx_bool_type dg645_status;
 } MX_DG645;
 
 
@@ -68,6 +76,7 @@ typedef struct {
 #define MXLV_DG645_TRIGGER_LEVEL		83003
 #define MXLV_DG645_TRIGGER_RATE			83004
 #define MXLV_DG645_TRIGGER_SOURCE		83005
+#define MXLV_DG645_STATUS			83006
 
 #define MXI_DG645_STANDARD_FIELDS \
   {-1, -1, "dg645_interface", MXFT_INTERFACE, NULL, 0, {0}, \
@@ -125,7 +134,28 @@ typedef struct {
   \
   {-1, -1, "single_shot", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, single_shot), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {-1, -1, "last_error_code", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, last_error_code), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {-1, -1, "event_status_register", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, event_status_register), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {-1, -1, "instrument_status_register", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, instrument_status_register), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {-1, -1, "status_byte", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, status_byte), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {MXLV_DG645_STATUS, -1, "dg645_status", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, dg645_status), \
 	{0}, NULL, MXFF_READ_ONLY}
+	
 
 MX_API mx_status_type mxi_dg645_create_record_structures( MX_RECORD *record );
 MX_API mx_status_type mxi_dg645_open( MX_RECORD *record );
@@ -144,6 +174,8 @@ MX_API mx_status_type mxi_dg645_compute_delay_between_channels(
 					double *requested_delay,
 					unsigned long *adjacent_channel,
 					double *adjacent_delay );
+
+MX_API mx_status_type mxi_dg645_get_status( MX_DG645 *dg645 );
 
 extern MX_RECORD_FUNCTION_LIST mxi_dg645_record_function_list;
 
