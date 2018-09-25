@@ -8,7 +8,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2005-2006, 2008, 2010-2011 Illinois Institute of Technology
+ * Copyright 2003, 2005-2006, 2008, 2010-2011, 2018
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -243,7 +244,7 @@ mxd_linux_parport_in_finish_record_initialization( MX_RECORD *record )
         linux_parport_in = (MX_LINUX_PARPORT_IN *) record->record_type_struct;
 
         if ( linux_parport_in == (MX_LINUX_PARPORT_IN *) NULL ) {
-                return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
+                return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
                 	"MX_LINUX_PARPORT_IN pointer for record '%s' is NULL.",
 			record->name);
         }
@@ -376,7 +377,7 @@ mxd_linux_parport_out_finish_record_initialization( MX_RECORD *record )
         linux_parport_out = (MX_LINUX_PARPORT_OUT *) record->record_type_struct;
 
         if ( linux_parport_out == (MX_LINUX_PARPORT_OUT *) NULL ) {
-                return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
+                return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
                 	"MX_LINUX_PARPORT_OUT pointer for record '%s' is NULL.",
 			record->name);
         }

@@ -1,5 +1,5 @@
-*** XPS_C8_drivers.cpp.orig	2015-02-18 18:36:35.000000000 -0600
---- XPS_C8_drivers.cpp	2015-02-18 18:51:11.000000000 -0600
+*** XPS_C8_drivers.cpp.orig	2018-09-25 02:22:36.785375464 -0500
+--- XPS_C8_drivers.cpp	2018-09-25 02:26:44.117374891 -0500
 ***************
 *** 16,22 ****
   	#define DLL 
@@ -51,3 +51,61 @@
   {
   	return (DLL_VERSION);
   }
+***************
+*** 7063,7072 ****
+  		ptNext = NULL;
+  		if (pt != NULL) pt = strchr (pt, ',');
+  		if (pt != NULL) pt++;
+! 		if (pt != NULL) sscanf (pt, "%d", DACOffset1);
+  		if (pt != NULL) pt = strchr (pt, ',');
+  		if (pt != NULL) pt++;
+! 		if (pt != NULL) sscanf (pt, "%d", DACOffset2);
+  	} 
+  	if (NULL != ReturnedValue)
+  		free (ReturnedValue);
+--- 7063,7072 ----
+  		ptNext = NULL;
+  		if (pt != NULL) pt = strchr (pt, ',');
+  		if (pt != NULL) pt++;
+! 		if (pt != NULL) sscanf (pt, "%hd", DACOffset1);
+  		if (pt != NULL) pt = strchr (pt, ',');
+  		if (pt != NULL) pt++;
+! 		if (pt != NULL) sscanf (pt, "%hd", DACOffset2);
+  	} 
+  	if (NULL != ReturnedValue)
+  		free (ReturnedValue);
+***************
+*** 7147,7162 ****
+  		ptNext = NULL;
+  		if (pt != NULL) pt = strchr (pt, ',');
+  		if (pt != NULL) pt++;
+! 		if (pt != NULL) sscanf (pt, "%d", PrimaryDACOffset1);
+  		if (pt != NULL) pt = strchr (pt, ',');
+  		if (pt != NULL) pt++;
+! 		if (pt != NULL) sscanf (pt, "%d", PrimaryDACOffset2);
+  		if (pt != NULL) pt = strchr (pt, ',');
+  		if (pt != NULL) pt++;
+! 		if (pt != NULL) sscanf (pt, "%d", SecondaryDACOffset1);
+  		if (pt != NULL) pt = strchr (pt, ',');
+  		if (pt != NULL) pt++;
+! 		if (pt != NULL) sscanf (pt, "%d", SecondaryDACOffset2);
+  	} 
+  	if (NULL != ReturnedValue)
+  		free (ReturnedValue);
+--- 7147,7162 ----
+  		ptNext = NULL;
+  		if (pt != NULL) pt = strchr (pt, ',');
+  		if (pt != NULL) pt++;
+! 		if (pt != NULL) sscanf (pt, "%hd", PrimaryDACOffset1);
+  		if (pt != NULL) pt = strchr (pt, ',');
+  		if (pt != NULL) pt++;
+! 		if (pt != NULL) sscanf (pt, "%hd", PrimaryDACOffset2);
+  		if (pt != NULL) pt = strchr (pt, ',');
+  		if (pt != NULL) pt++;
+! 		if (pt != NULL) sscanf (pt, "%hd", SecondaryDACOffset1);
+  		if (pt != NULL) pt = strchr (pt, ',');
+  		if (pt != NULL) pt++;
+! 		if (pt != NULL) sscanf (pt, "%hd", SecondaryDACOffset2);
+  	} 
+  	if (NULL != ReturnedValue)
+  		free (ReturnedValue);
