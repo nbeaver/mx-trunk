@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2011-2013, 2015-2016 Illinois Institute of Technology
+ * Copyright 2011-2013, 2015-2016, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1899,7 +1899,7 @@ mxd_radicon_helios_trigger( MX_AREA_DETECTOR *ad )
 
 	/* Configure the pulse generator for this measurement. */
 
-	mx_status = mx_pulse_generator_set_mode( pulser_record,
+	mx_status = mx_pulse_generator_set_function_mode( pulser_record,
 						MXF_PGN_SQUARE_WAVE );
 
 	if ( mx_status.code != MXE_SUCCESS )

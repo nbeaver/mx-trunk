@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013-2016 Illinois Institute of Technology
+ * Copyright 2013-2016, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -753,7 +753,7 @@ mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 					video_pulse_width,
 					num_pulses,
 					0.0,
-					MXF_PGN_PULSE );
+					MXF_PGN_PULSE, -1 );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -928,7 +928,7 @@ mxd_xineos_gige_trigger( MX_AREA_DETECTOR *ad )
 			video_pulse_period,
 			video_pulse_width,
 			num_pulses, 0.0,
-			MXF_PGN_PULSE );
+			MXF_PGN_PULSE, -1 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

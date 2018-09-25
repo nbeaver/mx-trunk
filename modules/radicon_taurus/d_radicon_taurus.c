@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2012-2017 Illinois Institute of Technology
+ * Copyright 2012-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1494,8 +1494,9 @@ mxd_radicon_taurus_generate_throwaway_frame( MX_AREA_DETECTOR *ad,
 
 	/* Program the pulse generator to send a short pulse. */
 
-	mx_status = mx_pulse_generator_set_mode( radicon_taurus->pulser_record,
-							MXF_PGN_PULSE );
+	mx_status = mx_pulse_generator_set_function_mode(
+						radicon_taurus->pulser_record,
+						MXF_PGN_PULSE );
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
@@ -2279,8 +2280,9 @@ mxd_radicon_taurus_trigger( MX_AREA_DETECTOR *ad )
 
 	/* Configure the pulse generator for this sequence. */
 
-	mx_status = mx_pulse_generator_set_mode( radicon_taurus->pulser_record,
-							MXF_PGN_PULSE );
+	mx_status = mx_pulse_generator_set_function_mode(
+						radicon_taurus->pulser_record,
+						MXF_PGN_PULSE );
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
