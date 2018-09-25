@@ -43,7 +43,7 @@ MX_API mx_status_type mxd_mbc_noir_trigger_finish_record_initialization(
 MX_API mx_status_type mxd_mbc_noir_trigger_open( MX_RECORD *record );
 
 MX_API mx_status_type mxd_mbc_noir_trigger_is_busy( MX_PULSE_GENERATOR *pulser );
-MX_API mx_status_type mxd_mbc_noir_trigger_start( MX_PULSE_GENERATOR *pulser );
+MX_API mx_status_type mxd_mbc_noir_trigger_arm( MX_PULSE_GENERATOR *pulser );
 MX_API mx_status_type mxd_mbc_noir_trigger_stop( MX_PULSE_GENERATOR *pulser );
 MX_API mx_status_type mxd_mbc_noir_trigger_get_parameter(
 					MX_PULSE_GENERATOR *pulser );

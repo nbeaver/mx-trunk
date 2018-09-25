@@ -2,13 +2,13 @@
  * Name:    d_pdi45_pulser.c
  *
  * Purpose: MX pulse generator driver for a single output channel of
- *          the Struck PDI45_PULSER.
+ *          the PDI45 controller.
  *
  * Author:  William Lavender
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003, 2006, 2008, 2010, 2015 Illinois Institute of Technology
+ * Copyright 2003, 2006, 2008, 2010, 2015, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -38,8 +38,10 @@ MX_RECORD_FUNCTION_LIST mxd_pdi45_pulser_record_function_list = {
 MX_PULSE_GENERATOR_FUNCTION_LIST
 		mxd_pdi45_pulser_pulse_generator_function_list = {
 	mxd_pdi45_pulser_is_busy,
-	mxd_pdi45_pulser_start,
+	mxd_pdi45_pulser_arm,
+	NULL,
 	mxd_pdi45_pulser_stop,
+	NULL,
 	mxd_pdi45_pulser_get_parameter,
 	mxd_pdi45_pulser_set_parameter
 };
@@ -241,9 +243,9 @@ mxd_pdi45_pulser_is_busy( MX_PULSE_GENERATOR *pulse_generator )
 }
 
 MX_EXPORT mx_status_type
-mxd_pdi45_pulser_start( MX_PULSE_GENERATOR *pulse_generator )
+mxd_pdi45_pulser_arm( MX_PULSE_GENERATOR *pulse_generator )
 {
-	static const char fname[] = "mxd_pdi45_pulser_start()";
+	static const char fname[] = "mxd_pdi45_pulser_arm()";
 
 	MX_PDI45_PULSER *pdi45_pulser = NULL;
 	MX_PDI45 *pdi45 = NULL;

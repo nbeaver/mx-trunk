@@ -47,8 +47,10 @@ MX_RECORD_FUNCTION_LIST mxd_sis3801_pulser_record_function_list = {
 MX_PULSE_GENERATOR_FUNCTION_LIST
 mxd_sis3801_pulser_pulse_generator_function_list = {
 	mxd_sis3801_pulser_busy,
-	mxd_sis3801_pulser_start,
+	mxd_sis3801_pulser_arm,
+	NULL,
 	mxd_sis3801_pulser_stop,
+	NULL,
 	mxd_sis3801_pulser_get_parameter,
 	mxd_sis3801_pulser_set_parameter
 };
@@ -368,9 +370,9 @@ mxd_sis3801_pulser_busy( MX_PULSE_GENERATOR *pulse_generator )
 }
 
 MX_EXPORT mx_status_type
-mxd_sis3801_pulser_start( MX_PULSE_GENERATOR *pulse_generator )
+mxd_sis3801_pulser_arm( MX_PULSE_GENERATOR *pulse_generator )
 {
-	static const char fname[] = "mxd_sis3801_pulser_start()";
+	static const char fname[] = "mxd_sis3801_pulser_arm()";
 
 	MX_SIS3801_PULSER *sis3801_pulser = NULL;
 	MX_CLOCK_TICK start_time, finish_time, countdown_ticks;

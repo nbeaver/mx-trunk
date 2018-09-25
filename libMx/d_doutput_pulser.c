@@ -42,8 +42,10 @@ MX_RECORD_FUNCTION_LIST mxd_doutput_pulser_record_function_list = {
 
 MX_PULSE_GENERATOR_FUNCTION_LIST mxd_doutput_pulser_pulser_function_list = {
 	mxd_doutput_pulser_is_busy,
-	mxd_doutput_pulser_start,
+	mxd_doutput_pulser_arm,
+	NULL,
 	mxd_doutput_pulser_stop,
+	NULL,
 	mxd_doutput_pulser_get_parameter,
 	mxd_doutput_pulser_set_parameter
 };
@@ -546,9 +548,9 @@ mxd_doutput_pulser_is_busy( MX_PULSE_GENERATOR *pulser )
 }
 
 MX_EXPORT mx_status_type
-mxd_doutput_pulser_start( MX_PULSE_GENERATOR *pulser )
+mxd_doutput_pulser_arm( MX_PULSE_GENERATOR *pulser )
 {
-	static const char fname[] = "mxd_doutput_pulser_start()";
+	static const char fname[] = "mxd_doutput_pulser_arm()";
 
 	MX_DOUTPUT_PULSER *doutput_pulser = NULL;
 	mx_status_type mx_status;

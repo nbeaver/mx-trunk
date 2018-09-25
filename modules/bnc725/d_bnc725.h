@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010-2011, 2016 Illinois Institute of Technology
+ * Copyright 2010-2011, 2016, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -63,8 +63,7 @@ MX_API mx_status_type mxd_bnc725_create_record_structures( MX_RECORD *record );
 MX_API mx_status_type mxd_bnc725_open( MX_RECORD *record );
 
 MX_API mx_status_type mxd_bnc725_busy( MX_PULSE_GENERATOR *pulser );
-MX_API mx_status_type mxd_bnc725_start( MX_PULSE_GENERATOR *pulser );
-MX_API mx_status_type mxd_bnc725_stop( MX_PULSE_GENERATOR *pulser );
+MX_API mx_status_type mxd_bnc725_arm( MX_PULSE_GENERATOR *pulser );
 MX_API mx_status_type mxd_bnc725_get_parameter( MX_PULSE_GENERATOR *pulser );
 MX_API mx_status_type mxd_bnc725_set_parameter( MX_PULSE_GENERATOR *pulser );
 

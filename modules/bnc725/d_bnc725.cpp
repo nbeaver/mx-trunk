@@ -40,7 +40,8 @@ MX_RECORD_FUNCTION_LIST mxd_bnc725_record_function_list = {
 
 MX_PULSE_GENERATOR_FUNCTION_LIST mxd_bnc725_pulse_generator_function_list = {
 	mxd_bnc725_busy,
-	mxd_bnc725_start,
+	mxd_bnc725_arm,
+	NULL,
 	mxd_bnc725_stop,
 	mxd_bnc725_get_parameter,
 	mxd_bnc725_set_parameter

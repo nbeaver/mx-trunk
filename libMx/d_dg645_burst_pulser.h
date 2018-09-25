@@ -39,7 +39,7 @@ MX_API mx_status_type mxd_dg645_burst_pulser_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_dg645_burst_pulser_open( MX_RECORD *record );
 
-MX_API mx_status_type mxd_dg645_burst_pulser_start( MX_PULSE_GENERATOR *pulser );
+MX_API mx_status_type mxd_dg645_burst_pulser_arm( MX_PULSE_GENERATOR *pulser );
 MX_API mx_status_type mxd_dg645_burst_pulser_stop( MX_PULSE_GENERATOR *pulser );
 MX_API mx_status_type mxd_dg645_burst_pulser_get_parameter(
 					MX_PULSE_GENERATOR *pulser );

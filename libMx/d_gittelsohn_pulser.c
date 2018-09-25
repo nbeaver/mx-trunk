@@ -47,8 +47,10 @@ MX_RECORD_FUNCTION_LIST mxd_gittelsohn_pulser_record_function_list = {
 
 MX_PULSE_GENERATOR_FUNCTION_LIST mxd_gittelsohn_pulser_pulser_function_list = {
 	mxd_gittelsohn_pulser_is_busy,
-	mxd_gittelsohn_pulser_start,
+	mxd_gittelsohn_pulser_arm,
+	NULL,
 	mxd_gittelsohn_pulser_stop,
+	NULL,
 	mxd_gittelsohn_pulser_get_parameter,
 	mxd_gittelsohn_pulser_set_parameter,
 	mxd_gittelsohn_pulser_setup
@@ -570,9 +572,9 @@ mxd_gittelsohn_pulser_is_busy( MX_PULSE_GENERATOR *pulser )
 }
 
 MX_EXPORT mx_status_type
-mxd_gittelsohn_pulser_start( MX_PULSE_GENERATOR *pulser )
+mxd_gittelsohn_pulser_arm( MX_PULSE_GENERATOR *pulser )
 {
-	static const char fname[] = "mxd_gittelsohn_pulser_start()";
+	static const char fname[] = "mxd_gittelsohn_pulser_arm()";
 
 	MX_GITTELSOHN_PULSER *gittelsohn_pulser = NULL;
 	long on_milliseconds, off_milliseconds;

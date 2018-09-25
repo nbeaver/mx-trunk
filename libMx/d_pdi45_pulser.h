@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2006 Illinois Institute of Technology
+ * Copyright 2003, 2006, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -40,7 +40,7 @@ MX_API mx_status_type mxd_pdi45_pulser_open( MX_RECORD *record );
 
 MX_API mx_status_type mxd_pdi45_pulser_is_busy(
 					MX_PULSE_GENERATOR *pulse_generator );
-MX_API mx_status_type mxd_pdi45_pulser_start(
+MX_API mx_status_type mxd_pdi45_pulser_arm(
 					MX_PULSE_GENERATOR *pulse_generator );
 MX_API mx_status_type mxd_pdi45_pulser_stop(
 					MX_PULSE_GENERATOR *pulse_generator );

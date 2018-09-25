@@ -193,13 +193,13 @@ mx_pulse_generator_is_busy( MX_RECORD *pulse_generator_record,
 }
 
 MX_EXPORT mx_status_type
-mx_pulse_generator_start( MX_RECORD *pulse_generator_record )
+mx_pulse_generator_arm( MX_RECORD *pulse_generator_record )
 {
-	static const char fname[] = "mx_pulse_generator_start()";
+	static const char fname[] = "mx_pulse_generator_arm()";
 
 	MX_PULSE_GENERATOR *pulse_generator;
 	MX_PULSE_GENERATOR_FUNCTION_LIST *function_list;
-	mx_status_type ( *start_fn ) ( MX_PULSE_GENERATOR * );
+	mx_status_type ( *arm_fn ) ( MX_PULSE_GENERATOR * );
 	mx_status_type mx_status;
 
 	mx_status = mx_pulse_generator_get_pointers( pulse_generator_record,
@@ -208,18 +208,76 @@ mx_pulse_generator_start( MX_RECORD *pulse_generator_record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	start_fn = function_list->start;
+	arm_fn = function_list->arm;
 
-	if ( start_fn == NULL ) {
+	if ( arm_fn == NULL ) {
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"Starting '%s' pulse generator '%s' is not yet implemented.",
+		"Arming '%s' pulse generator '%s' is not yet implemented.",
 			mx_get_driver_name( pulse_generator_record ),
 			pulse_generator_record->name );
 	}
 
-	mx_status = (*start_fn)( pulse_generator );
+	mx_status = (*arm_fn)( pulse_generator );
 
-	pulse_generator->start = 0;
+	pulse_generator->arm = FALSE;
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_pulse_generator_trigger( MX_RECORD *pulse_generator_record )
+{
+	static const char fname[] = "mx_pulse_generator_trigger()";
+
+	MX_PULSE_GENERATOR *pulse_generator;
+	MX_PULSE_GENERATOR_FUNCTION_LIST *function_list;
+	mx_status_type ( *trigger_fn ) ( MX_PULSE_GENERATOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_pulse_generator_get_pointers( pulse_generator_record,
+				&pulse_generator, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	trigger_fn = function_list->trigger;
+
+	if ( trigger_fn == NULL ) {
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Triggering '%s' pulse generator '%s' is not yet implemented.",
+			mx_get_driver_name( pulse_generator_record ),
+			pulse_generator_record->name );
+	}
+
+	mx_status = (*trigger_fn)( pulse_generator );
+
+	pulse_generator->trigger = FALSE;
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_pulse_generator_start( MX_RECORD *pulse_generator_record )
+{
+	static const char fname[] = "mx_pulse_generator_start()";
+
+	MX_PULSE_GENERATOR *pulse_generator = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mx_pulse_generator_get_pointers( pulse_generator_record,
+				&pulse_generator, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_pulse_generator_arm( pulse_generator_record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_pulse_generator_trigger( pulse_generator_record );
+
+	pulse_generator->start = FALSE;
 
 	return mx_status;
 }
@@ -252,6 +310,38 @@ mx_pulse_generator_stop( MX_RECORD *pulse_generator_record )
 	mx_status = (*stop_fn)( pulse_generator );
 
 	pulse_generator->stop = 0;
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_pulse_generator_abort( MX_RECORD *pulse_generator_record )
+{
+	static const char fname[] = "mx_pulse_generator_abort()";
+
+	MX_PULSE_GENERATOR *pulse_generator;
+	MX_PULSE_GENERATOR_FUNCTION_LIST *function_list;
+	mx_status_type ( *abort_fn ) ( MX_PULSE_GENERATOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_pulse_generator_get_pointers( pulse_generator_record,
+				&pulse_generator, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	abort_fn = function_list->abort;
+
+	if ( abort_fn == NULL ) {
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Stopping '%s' pulse generator '%s' is not yet implemented.",
+			mx_get_driver_name( pulse_generator_record ),
+			pulse_generator_record->name );
+	}
+
+	mx_status = (*abort_fn)( pulse_generator );
+
+	pulse_generator->abort = 0;
 
 	return mx_status;
 }

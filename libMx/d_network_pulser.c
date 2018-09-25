@@ -40,11 +40,14 @@ MX_RECORD_FUNCTION_LIST mxd_network_pulser_record_function_list = {
 MX_PULSE_GENERATOR_FUNCTION_LIST
 			mxd_network_pulser_pulse_generator_function_list = {
 	mxd_network_pulser_busy,
-	mxd_network_pulser_start,
+	mxd_network_pulser_arm,
+	mxd_network_pulser_trigger,
 	mxd_network_pulser_stop,
+	mxd_network_pulser_abort,
 	mxd_network_pulser_get_parameter,
 	mxd_network_pulser_set_parameter,
-	mxd_network_pulser_setup
+	mxd_network_pulser_setup,
+	mxd_network_pulser_get_status
 };
 
 MX_RECORD_FIELD_DEFAULTS mxd_network_pulser_record_field_defaults[] = {
@@ -164,17 +167,25 @@ mxd_network_pulser_finish_record_initialization( MX_RECORD *record )
 
 	strlcpy(record->network_type_name, "mx", MXU_NETWORK_TYPE_NAME_LENGTH);
 
+	mx_network_field_init( &(network_pulser->abort_nf),
+		network_pulser->server_record,
+		"%s.abort", network_pulser->remote_record_name );
+
+	mx_network_field_init( &(network_pulser->arm_nf),
+		network_pulser->server_record,
+		"%s.arm", network_pulser->remote_record_name );
+
 	mx_network_field_init( &(network_pulser->busy_nf),
 		network_pulser->server_record,
 		"%s.busy", network_pulser->remote_record_name );
 
-	mx_network_field_init( &(network_pulser->last_pulse_number_nf),
-		network_pulser->server_record,
-		"%s.last_pulse_number", network_pulser->remote_record_name );
-
 	mx_network_field_init( &(network_pulser->function_mode_nf),
 		network_pulser->server_record,
 		"%s.function_mode", network_pulser->remote_record_name );
+
+	mx_network_field_init( &(network_pulser->last_pulse_number_nf),
+		network_pulser->server_record,
+		"%s.last_pulse_number", network_pulser->remote_record_name );
 
 	mx_network_field_init( &(network_pulser->num_pulses_nf),
 		network_pulser->server_record,
@@ -200,9 +211,17 @@ mxd_network_pulser_finish_record_initialization( MX_RECORD *record )
 		network_pulser->server_record,
 		"%s.start", network_pulser->remote_record_name );
 
+	mx_network_field_init( &(network_pulser->status_nf),
+		network_pulser->server_record,
+		"%s.status", network_pulser->remote_record_name );
+
 	mx_network_field_init( &(network_pulser->stop_nf),
 		network_pulser->server_record,
 		"%s.stop", network_pulser->remote_record_name );
+
+	mx_network_field_init( &(network_pulser->trigger_nf),
+		network_pulser->server_record,
+		"%s.trigger", network_pulser->remote_record_name );
 
 	mx_network_field_init( &(network_pulser->trigger_mode_nf),
 		network_pulser->server_record,
@@ -321,6 +340,65 @@ mxd_network_pulser_busy( MX_PULSE_GENERATOR *pulse_generator )
 }
 
 MX_EXPORT mx_status_type
+mxd_network_pulser_arm( MX_PULSE_GENERATOR *pulse_generator )
+{
+	static const char fname[] = "mxd_network_pulser_arm()";
+
+	MX_NETWORK_PULSER *network_pulser;
+	mx_bool_type arm;
+	mx_status_type mx_status;
+
+	network_pulser = NULL;
+
+	mx_status = mxd_network_pulser_get_pointers( pulse_generator,
+						&network_pulser, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_NETWORK_PULSER_DEBUG
+	MX_DEBUG(-2,("%s invoked for record '%s'.",
+			fname, pulse_generator->record->name));
+#endif
+
+	arm = TRUE;
+
+	mx_status = mx_put( &(network_pulser->arm_nf), MXFT_BOOL, &arm );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_network_pulser_trigger( MX_PULSE_GENERATOR *pulse_generator )
+{
+	static const char fname[] = "mxd_network_pulser_trigger()";
+
+	MX_NETWORK_PULSER *network_pulser;
+	mx_bool_type trigger;
+	mx_status_type mx_status;
+
+	network_pulser = NULL;
+
+	mx_status = mxd_network_pulser_get_pointers( pulse_generator,
+						&network_pulser, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_NETWORK_PULSER_DEBUG
+	MX_DEBUG(-2,("%s invoked for record '%s'.",
+			fname, pulse_generator->record->name));
+#endif
+
+	trigger = TRUE;
+
+	mx_status = mx_put( &(network_pulser->trigger_nf),
+			MXFT_BOOL, &trigger );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
 mxd_network_pulser_start( MX_PULSE_GENERATOR *pulse_generator )
 {
 	static const char fname[] = "mxd_network_pulser_start()";
@@ -374,6 +452,35 @@ mxd_network_pulser_stop( MX_PULSE_GENERATOR *pulse_generator )
 	stop = TRUE;
 
 	mx_status = mx_put( &(network_pulser->stop_nf), MXFT_BOOL, &stop );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_network_pulser_abort( MX_PULSE_GENERATOR *pulse_generator )
+{
+	static const char fname[] = "mxd_network_pulser_abort()";
+
+	MX_NETWORK_PULSER *network_pulser;
+	mx_bool_type abort;
+	mx_status_type mx_status;
+
+	network_pulser = NULL;
+
+	mx_status = mxd_network_pulser_get_pointers( pulse_generator,
+						&network_pulser, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_NETWORK_PULSER_DEBUG
+	MX_DEBUG(-2,("%s invoked for record '%s'.",
+			fname, pulse_generator->record->name));
+#endif
+
+	abort = TRUE;
+
+	mx_status = mx_put( &(network_pulser->abort_nf), MXFT_BOOL, &abort );
 
 	return mx_status;
 }
@@ -544,6 +651,36 @@ mxd_network_pulser_setup( MX_PULSE_GENERATOR *pulse_generator )
 
 	mx_status = mx_put_array( &(network_pulser->setup_nf),
 			MXFT_DOUBLE, 1, dimension, pulse_generator->setup );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_network_pulser_get_status( MX_PULSE_GENERATOR *pulse_generator )
+{
+	static const char fname[] = "mxd_network_pulser_get_status()";
+
+	MX_NETWORK_PULSER *network_pulser;
+	long dimension[1];
+	mx_status_type mx_status;
+
+	network_pulser = NULL;
+
+	mx_status = mxd_network_pulser_get_pointers( pulse_generator,
+						&network_pulser, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_NETWORK_PULSER_DEBUG
+	MX_DEBUG(-2,("%s invoked for record '%s'.",
+			fname, pulse_generator->record->name));
+#endif
+
+	dimension[0] = MXU_PGN_NUM_SETUP_PARAMETERS;
+
+	mx_status = mx_put_array( &(network_pulser->status_nf),
+		MXFT_DOUBLE, 1, dimension, &(pulse_generator->status) );
 
 	return mx_status;
 }

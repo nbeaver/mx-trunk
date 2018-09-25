@@ -21,6 +21,8 @@ typedef struct {
 	MX_RECORD *server_record;
 	char remote_record_name[ MXU_RECORD_NAME_LENGTH+1 ];
 
+	MX_NETWORK_FIELD abort_nf;
+	MX_NETWORK_FIELD arm_nf;
 	MX_NETWORK_FIELD busy_nf;
 	MX_NETWORK_FIELD function_mode_nf;
 	MX_NETWORK_FIELD last_pulse_number_nf;
@@ -30,7 +32,9 @@ typedef struct {
 	MX_NETWORK_FIELD pulse_width_nf;
 	MX_NETWORK_FIELD setup_nf;
 	MX_NETWORK_FIELD start_nf;
+	MX_NETWORK_FIELD status_nf;
 	MX_NETWORK_FIELD stop_nf;
+	MX_NETWORK_FIELD trigger_nf;
 	MX_NETWORK_FIELD trigger_mode_nf;
 } MX_NETWORK_PULSER;
 
@@ -52,15 +56,23 @@ MX_API mx_status_type mxd_network_pulser_open( MX_RECORD *record );
 
 MX_API mx_status_type mxd_network_pulser_busy(
 					MX_PULSE_GENERATOR *pulse_generator );
+MX_API mx_status_type mxd_network_pulser_arm(
+					MX_PULSE_GENERATOR *pulse_generator );
+MX_API mx_status_type mxd_network_pulser_trigger(
+					MX_PULSE_GENERATOR *pulse_generator );
 MX_API mx_status_type mxd_network_pulser_start(
 					MX_PULSE_GENERATOR *pulse_generator );
 MX_API mx_status_type mxd_network_pulser_stop(
+					MX_PULSE_GENERATOR *pulse_generator );
+MX_API mx_status_type mxd_network_pulser_abort(
 					MX_PULSE_GENERATOR *pulse_generator );
 MX_API mx_status_type mxd_network_pulser_get_parameter(
 					MX_PULSE_GENERATOR *pulse_generator );
 MX_API mx_status_type mxd_network_pulser_set_parameter(
 					MX_PULSE_GENERATOR *pulse_generator );
 MX_API mx_status_type mxd_network_pulser_setup(
+					MX_PULSE_GENERATOR *pulse_generator );
+MX_API mx_status_type mxd_network_pulser_get_status(
 					MX_PULSE_GENERATOR *pulse_generator );
 
 extern MX_RECORD_FUNCTION_LIST mxd_network_pulser_record_function_list;

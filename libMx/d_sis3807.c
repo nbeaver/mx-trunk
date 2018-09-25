@@ -44,8 +44,10 @@ MX_RECORD_FUNCTION_LIST mxd_sis3807_record_function_list = {
 
 MX_PULSE_GENERATOR_FUNCTION_LIST mxd_sis3807_pulse_generator_function_list = {
 	mxd_sis3807_busy,
-	mxd_sis3807_start,
+	mxd_sis3807_arm,
+	NULL,
 	mxd_sis3807_stop,
+	NULL,
 	mxd_sis3807_get_parameter,
 	mxd_sis3807_set_parameter
 };
@@ -566,9 +568,9 @@ mxd_sis3807_start_without_burst_register( MX_PULSE_GENERATOR *pulse_generator )
 }
 
 MX_EXPORT mx_status_type
-mxd_sis3807_start( MX_PULSE_GENERATOR *pulse_generator )
+mxd_sis3807_arm( MX_PULSE_GENERATOR *pulse_generator )
 {
-	static const char fname[] = "mxd_sis3807_start()";
+	static const char fname[] = "mxd_sis3807_arm()";
 
 	MX_SIS3807_PULSER *sis3807_pulser = NULL;
 	MX_SIS3807 *sis3807 = NULL;

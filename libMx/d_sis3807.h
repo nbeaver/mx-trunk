@@ -53,7 +53,7 @@ MX_API mx_status_type mxd_sis3807_create_record_structures( MX_RECORD *record );
 MX_API mx_status_type mxd_sis3807_open( MX_RECORD *record );
 
 MX_API mx_status_type mxd_sis3807_busy( MX_PULSE_GENERATOR *pulse_generator );
-MX_API mx_status_type mxd_sis3807_start( MX_PULSE_GENERATOR *pulse_generator );
+MX_API mx_status_type mxd_sis3807_arm( MX_PULSE_GENERATOR *pulse_generator );
 MX_API mx_status_type mxd_sis3807_stop( MX_PULSE_GENERATOR *pulse_generator );
 MX_API mx_status_type mxd_sis3807_get_parameter(
 					MX_PULSE_GENERATOR *pulse_generator );

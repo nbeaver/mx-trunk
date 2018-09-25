@@ -42,8 +42,10 @@ MX_RECORD_FUNCTION_LIST mxd_dg645_burst_pulser_record_function_list = {
 MX_PULSE_GENERATOR_FUNCTION_LIST
 mxd_dg645_burst_pulser_pulser_function_list = {
 	NULL,
-	mxd_dg645_burst_pulser_start,
+	mxd_dg645_burst_pulser_arm,
+	NULL,
 	mxd_dg645_burst_pulser_stop,
+	NULL,
 	mxd_dg645_burst_pulser_get_parameter,
 	mxd_dg645_burst_pulser_set_parameter,
 	NULL,
@@ -243,9 +245,9 @@ mxd_dg645_burst_pulser_open( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_dg645_burst_pulser_start( MX_PULSE_GENERATOR *pulser )
+mxd_dg645_burst_pulser_arm( MX_PULSE_GENERATOR *pulser )
 {
-	static const char fname[] = "mxd_dg645_burst_pulser_start()";
+	static const char fname[] = "mxd_dg645_burst_pulser_arm()";
 
 	MX_DG645_BURST_PULSER *dg645_burst_pulser = NULL;
 	MX_DG645 *dg645 = NULL;

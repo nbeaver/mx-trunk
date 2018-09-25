@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2015-2017 Illinois Institute of Technology
+ * Copyright 2015-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -38,7 +38,7 @@ MX_API mx_status_type mxd_gittelsohn_pulser_create_record_structures(
 MX_API mx_status_type mxd_gittelsohn_pulser_open( MX_RECORD *record );
 
 MX_API mx_status_type mxd_gittelsohn_pulser_is_busy( MX_PULSE_GENERATOR *pulser );
-MX_API mx_status_type mxd_gittelsohn_pulser_start( MX_PULSE_GENERATOR *pulser );
+MX_API mx_status_type mxd_gittelsohn_pulser_arm( MX_PULSE_GENERATOR *pulser );
 MX_API mx_status_type mxd_gittelsohn_pulser_stop( MX_PULSE_GENERATOR *pulser );
 MX_API mx_status_type mxd_gittelsohn_pulser_get_parameter(
 					MX_PULSE_GENERATOR *pulser );

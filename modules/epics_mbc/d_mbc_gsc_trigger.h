@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2011 Illinois Institute of Technology
+ * Copyright 2011, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -55,7 +55,7 @@ MX_API mx_status_type mxd_mbc_gsc_trigger_finish_record_initialization(
 MX_API mx_status_type mxd_mbc_gsc_trigger_open( MX_RECORD *record );
 
 MX_API mx_status_type mxd_mbc_gsc_trigger_is_busy( MX_PULSE_GENERATOR *pulser );
-MX_API mx_status_type mxd_mbc_gsc_trigger_start( MX_PULSE_GENERATOR *pulser );
+MX_API mx_status_type mxd_mbc_gsc_trigger_arm( MX_PULSE_GENERATOR *pulser );
 MX_API mx_status_type mxd_mbc_gsc_trigger_stop( MX_PULSE_GENERATOR *pulser );
 MX_API mx_status_type mxd_mbc_gsc_trigger_get_parameter(
 					MX_PULSE_GENERATOR *pulser );

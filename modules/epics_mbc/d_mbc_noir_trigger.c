@@ -41,8 +41,10 @@ MX_RECORD_FUNCTION_LIST mxd_mbc_noir_trigger_record_function_list = {
 
 MX_PULSE_GENERATOR_FUNCTION_LIST mxd_mbc_noir_trigger_pulser_function_list = {
 	mxd_mbc_noir_trigger_is_busy,
-	mxd_mbc_noir_trigger_start,
+	mxd_mbc_noir_trigger_arm,
+	NULL,
 	mxd_mbc_noir_trigger_stop,
+	NULL,
 	mxd_mbc_noir_trigger_get_parameter,
 	mxd_mbc_noir_trigger_set_parameter
 };

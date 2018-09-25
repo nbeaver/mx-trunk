@@ -74,12 +74,27 @@ typedef struct {
 
 	long parameter_type;
 
-	mx_bool_type busy;
+	
+	mx_bool_type arm;
+	mx_bool_type trigger;
 	mx_bool_type start;
 	mx_bool_type stop;
+	mx_bool_type abort;
 
+	mx_bool_type busy;
 	long last_pulse_number;
 	unsigned long status;
+
+	/* The following fields are used to handle pulse generators that
+	 * do not set the 'busy' flag immediately after arming themselves.
+	 */
+
+	mx_bool_type busy_start_interval_enabled;
+	double busy_start_interval;	/* In seconds */
+	double last_start_time;		/* In seconds */
+
+	MX_CLOCK_TICK busy_start_ticks;
+	MX_CLOCK_TICK last_start_tick;
 
 } MX_PULSE_GENERATOR;
 
@@ -90,11 +105,14 @@ typedef struct {
 #define MXLV_PGN_FUNCTION_MODE		16004
 #define MXLV_PGN_TRIGGER_MODE		16005
 #define MXLV_PGN_SETUP			16006
-#define MXLV_PGN_BUSY			16007
-#define MXLV_PGN_START			16008
-#define MXLV_PGN_STOP			16009
-#define MXLV_PGN_LAST_PULSE_NUMBER	16010
-#define MXLV_PGN_STATUS			16011
+#define MXLV_PGN_ARM			16007
+#define MXLV_PGN_TRIGGER		16008
+#define MXLV_PGN_START			16009
+#define MXLV_PGN_STOP			16010
+#define MXLV_PGN_ABORT			16011
+#define MXLV_PGN_BUSY			16012
+#define MXLV_PGN_LAST_PULSE_NUMBER	16013
+#define MXLV_PGN_STATUS			16014
 
 #define MX_PULSE_GENERATOR_STANDARD_FIELDS \
   {MXLV_PGN_PULSE_PERIOD, -1, "pulse_period", MXFT_DOUBLE, NULL, 0, {0}, \
@@ -126,9 +144,13 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_PULSE_GENERATOR, setup), \
 	{0}, NULL, 0 }, \
   \
-  {MXLV_PGN_BUSY, -1, "busy", MXFT_BOOL, NULL, 0, {0}, \
-	MXF_REC_CLASS_STRUCT, offsetof(MX_PULSE_GENERATOR, busy), \
-	{0}, NULL, MXFF_READ_ONLY }, \
+  {MXLV_PGN_ARM, -1, "arm", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_PULSE_GENERATOR, arm), \
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {MXLV_PGN_TRIGGER, -1, "trigger", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_PULSE_GENERATOR, trigger), \
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
   \
   {MXLV_PGN_START, -1, "start", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_PULSE_GENERATOR, start), \
@@ -137,6 +159,14 @@ typedef struct {
   {MXLV_PGN_STOP, -1, "stop", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_PULSE_GENERATOR, stop), \
 	{0}, NULL, 0 }, \
+  \
+  {MXLV_PGN_ABORT, -1, "abort", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_PULSE_GENERATOR, abort), \
+	{0}, NULL, 0 }, \
+  \
+  {MXLV_PGN_BUSY, -1, "busy", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_PULSE_GENERATOR, busy), \
+	{0}, NULL, MXFF_READ_ONLY }, \
   \
   {MXLV_PGN_LAST_PULSE_NUMBER, -1, "last_pulse_number", \
 					MXFT_LONG, NULL, 0, {0},\
@@ -149,8 +179,10 @@ typedef struct {
 
 typedef struct {
 	mx_status_type ( *busy ) ( MX_PULSE_GENERATOR *pulse_generator );
-	mx_status_type ( *start ) ( MX_PULSE_GENERATOR *pulse_generator );
+	mx_status_type ( *arm ) ( MX_PULSE_GENERATOR *pulse_generator );
+	mx_status_type ( *trigger ) ( MX_PULSE_GENERATOR *pulse_generator );
 	mx_status_type ( *stop ) ( MX_PULSE_GENERATOR *pulse_generator );
+	mx_status_type ( *abort ) ( MX_PULSE_GENERATOR *pulse_generator );
 	mx_status_type ( *get_parameter ) (MX_PULSE_GENERATOR *pulse_generator);
 	mx_status_type ( *set_parameter ) (MX_PULSE_GENERATOR *pulse_generator);
 	mx_status_type ( *setup ) (MX_PULSE_GENERATOR *pulse_generator);
@@ -168,9 +200,15 @@ MX_API mx_status_type mx_pulse_generator_initialize( MX_RECORD *record );
 MX_API mx_status_type mx_pulse_generator_is_busy( MX_RECORD *record,
 							mx_bool_type *busy );
 
+MX_API mx_status_type mx_pulse_generator_arm( MX_RECORD *record );
+
+MX_API mx_status_type mx_pulse_generator_trigger( MX_RECORD *record );
+
 MX_API mx_status_type mx_pulse_generator_start( MX_RECORD *record );
 
 MX_API mx_status_type mx_pulse_generator_stop( MX_RECORD *record );
+
+MX_API mx_status_type mx_pulse_generator_abort( MX_RECORD *record );
 
 MX_API mx_status_type mx_pulse_generator_setup( MX_RECORD *record,
 						double pulse_period,

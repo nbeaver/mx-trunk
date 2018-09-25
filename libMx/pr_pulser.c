@@ -44,6 +44,8 @@ mx_setup_pulser_process_functions( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
+		case MXLV_PGN_ABORT:
+		case MXLV_PGN_ARM:
 		case MXLV_PGN_BUSY:
 		case MXLV_PGN_FUNCTION_MODE:
 		case MXLV_PGN_LAST_PULSE_NUMBER:
@@ -55,6 +57,7 @@ mx_setup_pulser_process_functions( MX_RECORD *record )
 		case MXLV_PGN_START:
 		case MXLV_PGN_STATUS:
 		case MXLV_PGN_STOP:
+		case MXLV_PGN_TRIGGER:
 		case MXLV_PGN_TRIGGER_MODE:
 			record_field->process_function
 					    = mx_pulser_process_function;
@@ -96,12 +99,8 @@ mx_pulser_process_function( void *record_ptr,
 			mx_status = mx_pulse_generator_get_function_mode(
 								record, NULL );
 			break;
-		case MXLV_PGN_PULSE_PERIOD:
-			mx_status = mx_pulse_generator_get_pulse_period(
-								record, NULL );
-			break;
-		case MXLV_PGN_PULSE_WIDTH:
-			mx_status = mx_pulse_generator_get_pulse_width(
+		case MXLV_PGN_LAST_PULSE_NUMBER:
+			mx_status = mx_pulse_generator_get_last_pulse_number(
 								record, NULL );
 			break;
 		case MXLV_PGN_NUM_PULSES:
@@ -112,8 +111,12 @@ mx_pulser_process_function( void *record_ptr,
 			mx_status = mx_pulse_generator_get_pulse_delay(
 								record, NULL );
 			break;
-		case MXLV_PGN_LAST_PULSE_NUMBER:
-			mx_status = mx_pulse_generator_get_last_pulse_number(
+		case MXLV_PGN_PULSE_PERIOD:
+			mx_status = mx_pulse_generator_get_pulse_period(
+								record, NULL );
+			break;
+		case MXLV_PGN_PULSE_WIDTH:
+			mx_status = mx_pulse_generator_get_pulse_width(
 								record, NULL );
 			break;
 		case MXLV_PGN_SETUP:
@@ -188,13 +191,15 @@ mx_pulser_process_function( void *record_ptr,
 		break;
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
-		case MXLV_PGN_PULSE_PERIOD:
-			mx_status = mx_pulse_generator_set_pulse_period( record,
-						pulse_generator->pulse_period );
+		case MXLV_PGN_ABORT:
+			mx_status = mx_pulse_generator_abort( record );
 			break;
-		case MXLV_PGN_PULSE_WIDTH:
-			mx_status = mx_pulse_generator_set_pulse_width( record,
-						pulse_generator->pulse_width );
+		case MXLV_PGN_ARM:
+			mx_status = mx_pulse_generator_arm( record );
+			break;
+		case MXLV_PGN_FUNCTION_MODE:
+			mx_status = mx_pulse_generator_set_function_mode(
+					record, pulse_generator->function_mode);
 			break;
 		case MXLV_PGN_NUM_PULSES:
 			mx_status = mx_pulse_generator_set_num_pulses( record,
@@ -204,13 +209,13 @@ mx_pulser_process_function( void *record_ptr,
 			mx_status = mx_pulse_generator_set_pulse_delay( record,
 						pulse_generator->pulse_delay );
 			break;
-		case MXLV_PGN_FUNCTION_MODE:
-			mx_status = mx_pulse_generator_set_function_mode(
-					record, pulse_generator->function_mode);
+		case MXLV_PGN_PULSE_PERIOD:
+			mx_status = mx_pulse_generator_set_pulse_period( record,
+						pulse_generator->pulse_period );
 			break;
-		case MXLV_PGN_TRIGGER_MODE:
-			mx_status = mx_pulse_generator_set_trigger_mode(
-					record, pulse_generator->trigger_mode );
+		case MXLV_PGN_PULSE_WIDTH:
+			mx_status = mx_pulse_generator_set_pulse_width( record,
+						pulse_generator->pulse_width );
 			break;
 		case MXLV_PGN_SETUP:
 			mx_status = mx_pulse_generator_setup( record,
@@ -226,6 +231,13 @@ mx_pulser_process_function( void *record_ptr,
 			break;
 		case MXLV_PGN_STOP:
 			mx_status = mx_pulse_generator_stop( record );
+			break;
+		case MXLV_PGN_TRIGGER:
+			mx_status = mx_pulse_generator_trigger( record );
+			break;
+		case MXLV_PGN_TRIGGER_MODE:
+			mx_status = mx_pulse_generator_set_trigger_mode(
+					record, pulse_generator->trigger_mode );
 			break;
 		default:
 			MX_DEBUG( 1,(
