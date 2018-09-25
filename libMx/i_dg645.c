@@ -203,6 +203,16 @@ mxi_dg645_open( MX_RECORD *record )
 							MX_PROCESS_PUT, NULL );
 #endif
 
+	/* Clear out any status bits left over from previous runs. */
+
+	mx_status = mxi_dg645_get_status( dg645 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,
+	("%s complete for record '%s'.", fname, dg645->record->name));
+
 	return mx_status;
 }
 
@@ -256,6 +266,10 @@ mxi_dg645_command( MX_DG645 *dg645,
 	char lerr_response[40];
 	int num_items, lerr_code;
 	mx_status_type mx_status;
+
+#if 1
+	MX_DEBUG(-2,("%s: ===========================================", fname));
+#endif
 
 	if ( dg645 == (MX_DG645 *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,

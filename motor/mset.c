@@ -83,7 +83,7 @@ motor_set_fn( int argc, char *argv[] )
 "        set amplifier 'amplifiername' time_constant 'time_constant_value'\n"
 "        set amplifier 'amplifiername' sensitivity 'sensitivity_value'\n"
 "        set autoscale 'scalername' low_limit high_limit low_dead high_dead\n"
-"        set pulser 'pulsername' period width number delay function_mode trigger_mode\n"
+"        set pulser 'pulsername' period width number delay function trigger\n"
 "        set device 'devicename' 'value'\n"
 "        set variable 'variablename' 'value'\n"
 "        set field 'recordname.fieldname' 'value'\n"

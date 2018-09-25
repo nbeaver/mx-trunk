@@ -286,7 +286,11 @@ mxd_dg645_pulser_start( MX_PULSE_GENERATOR *pulser )
 		break;
 	}
 
+#if 0
 	if ( single_shot_mode ) {
+#else
+	if ( 1 ) {
+#endif
 		mx_status = mxi_dg645_command( dg645, "*TRG",
 						NULL, 0, 
 						MXD_DG645_PULSER_DEBUG );
@@ -664,6 +668,15 @@ mxd_dg645_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 	case MXLV_PGN_TRIGGER_MODE:
 		mx_status = mxi_dg645_setup_pulser_trigger_mode( dg645,
 						pulser->trigger_mode );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		snprintf( command, sizeof(command),
+			"TSRC %lu", dg645->trigger_source );
+
+		mx_status = mxi_dg645_command( dg645, command,
+					NULL, 0, MXD_DG645_PULSER_DEBUG );
 		break;
 
 	default:
@@ -698,10 +711,16 @@ mxd_dg645_pulser_get_status( MX_PULSE_GENERATOR *pulser )
 #if MXD_DG645_PULSER_DEBUG
 	MX_DEBUG(-2,("%s: pulser '%s', stb = %#lx, insr = %#lx, esr = %#lx",
 		fname, pulser->record->name,
-		dg645_pulser->status_byte,
-		dg645_pulser->instrument_status_register,
-		dg645_pulser->event_status_register));
+		dg645->status_byte,
+		dg645->instrument_status_register,
+		dg645->event_status_register));
 #endif
+
+	pulser->status = 0;
+
+	if ( dg645->status_byte & 0x2 ) {
+		pulser->status |= MXSF_PGN_IS_BUSY;
+	}
 
 #if MXD_DG645_PULSER_DEBUG
 	MX_DEBUG(-2,("%s: pulser '%s', status = %#lx",
