@@ -121,7 +121,7 @@ typedef struct {
   \
   {MXLV_DG645_TRIGGER_SOURCE, -1, "trigger_source", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, trigger_source), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
   {-1, -1, "trigger_type", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, trigger_type), \

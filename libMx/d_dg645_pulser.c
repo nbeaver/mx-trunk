@@ -43,7 +43,7 @@ MX_RECORD_FUNCTION_LIST mxd_dg645_pulser_record_function_list = {
 MX_PULSE_GENERATOR_FUNCTION_LIST mxd_dg645_pulser_pulser_function_list = {
 	NULL,
 	mxd_dg645_pulser_arm,
-	NULL,
+	mxd_dg645_pulser_trigger,
 	mxd_dg645_pulser_stop,
 	NULL,
 	mxd_dg645_pulser_get_parameter,
@@ -284,6 +284,63 @@ mxd_dg645_pulser_arm( MX_PULSE_GENERATOR *pulser )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
+	/* If we are a burst mode pulser, then turn burst mode on. */
+
+	if ( pulser->record->mx_type == MXT_PGN_DG645_BURST ) {
+		mx_status = mxi_dg645_command( dg645, "BURM 1",
+					NULL, 0, MXD_DG645_PULSER_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	/* For single shot modes, enable the external trigger. */
+
+	if ( dg645->single_shot ) {
+		mx_status = mxi_dg645_command( dg645, "*TRG",
+					NULL, 0, MXD_DG645_PULSER_DEBUG );
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_dg645_pulser_trigger( MX_PULSE_GENERATOR *pulser )
+{
+	static const char fname[] = "mxd_dg645_pulser_trigger()";
+
+	MX_DG645_PULSER *dg645_pulser = NULL;
+	MX_DG645 *dg645 = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mxd_dg645_pulser_get_pointers( pulser,
+					&dg645_pulser, &dg645, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* If we are not in internal trigger mode, then there is
+	 * nothing to do here.
+	 */
+
+	if ( pulser->trigger_mode != MXF_PGN_INTERNAL_TRIGGER ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* If we are a burst mode pulser, then turn burst mode on. */
+
+	if ( pulser->record->mx_type == MXT_PGN_DG645_BURST ) {
+		mx_status = mxi_dg645_command( dg645, "BURM 1",
+					NULL, 0, MXD_DG645_PULSER_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	/* If we are in single shot mode (trigger source 5) then
+	 * send the internal trigger.
+	 */
+
 	if ( dg645->single_shot ) {
 		mx_status = mxi_dg645_command( dg645, "*TRG",
 						NULL, 0, 
@@ -308,12 +365,17 @@ mxd_dg645_pulser_stop( MX_PULSE_GENERATOR *pulser )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* FIXME: The DG645 does not seem to have a stop as such. 
-	 * All it seems you can do is to switch the trigger source
-	 * to a single shot trigger.
-	 */
+	/* If we are a burst mode pulser, then turn burst mode off. */
 
-	return MX_SUCCESSFUL_RESULT;
+	if ( pulser->record->mx_type == MXT_PGN_DG645_BURST ) {
+		mx_status = mxi_dg645_command( dg645, "BURM 0",
+					NULL, 0, MXD_DG645_PULSER_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -590,6 +652,8 @@ mxd_dg645_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 	case MXLV_PGN_NUM_PULSES:
 		switch( pulser->record->mx_type ) {
 		case MXT_PGN_DG645_BURST:
+			/* Burst mode pulser. */
+
 			snprintf( command, sizeof(command),
 				"BURC %lu", pulser->num_pulses );
 
