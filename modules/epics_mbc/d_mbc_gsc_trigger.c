@@ -430,9 +430,9 @@ mxd_mbc_gsc_trigger_start_expose( MX_PULSE_GENERATOR *pulser,
 }
 
 MX_EXPORT mx_status_type
-mxd_mbc_gsc_trigger_start( MX_PULSE_GENERATOR *pulser )
+mxd_mbc_gsc_trigger_arm( MX_PULSE_GENERATOR *pulser )
 {
-	static const char fname[] = "mxd_mbc_gsc_trigger_start()";
+	static const char fname[] = "mxd_mbc_gsc_trigger_arm()";
 
 	MX_MBC_GSC_TRIGGER *mbc_gsc_trigger;
 	mx_status_type mx_status;

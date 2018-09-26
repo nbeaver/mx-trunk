@@ -278,9 +278,9 @@ mxd_mbc_noir_trigger_send_command( MX_MBC_NOIR_TRIGGER *mbc_noir_trigger,
 }
 
 MX_EXPORT mx_status_type
-mxd_mbc_noir_trigger_start( MX_PULSE_GENERATOR *pulser )
+mxd_mbc_noir_trigger_arm( MX_PULSE_GENERATOR *pulser )
 {
-	static const char fname[] = "mxd_mbc_noir_trigger_start()";
+	static const char fname[] = "mxd_mbc_noir_trigger_arm()";
 
 	MX_MBC_NOIR_TRIGGER *mbc_noir_trigger;
 	double exposure_seconds;
