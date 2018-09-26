@@ -60,13 +60,14 @@ typedef struct {
 	long trigger_direction;
 	mx_bool_type single_shot;
 
-	unsigned long last_error_code;
+	unsigned long last_error;
 
 	unsigned long event_status_register;
 	unsigned long instrument_status_register;
+	unsigned long operation_complete;
 	unsigned long status_byte;
 
-	mx_bool_type dg645_status;
+	mx_bool_type status_update_succeeded;
 } MX_DG645;
 
 
@@ -136,8 +137,8 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, single_shot), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
-  {-1, -1, "last_error_code", MXFT_ULONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, last_error_code), \
+  {-1, -1, "last_error", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, last_error), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {-1, -1, "event_status_register", MXFT_HEX, NULL, 0, {0}, \
@@ -148,12 +149,16 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, instrument_status_register), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
+  {-1, -1, "operation_complete", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, operation_complete), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
   {-1, -1, "status_byte", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, status_byte), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
-  {MXLV_DG645_STATUS, -1, "dg645_status", MXFT_BOOL, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, dg645_status), \
+  {MXLV_DG645_STATUS, -1, "status_update_succeeded", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, status_update_succeeded), \
 	{0}, NULL, MXFF_READ_ONLY}
 	
 

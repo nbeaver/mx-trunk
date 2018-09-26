@@ -239,7 +239,19 @@ mxd_dg645_pulser_open( MX_RECORD *record )
 			output_name, record->name );
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	/* Call setup() to put the pulser into the state configured in
+	 * the MX configuration file.
+	 */
+
+	mx_status = mx_pulse_generator_setup( record,
+					pulser->pulse_period,
+					pulser->pulse_width,
+					pulser->num_pulses,
+					pulser->pulse_delay,
+					pulser->function_mode,
+					pulser->trigger_mode );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -720,8 +732,24 @@ mxd_dg645_pulser_get_status( MX_PULSE_GENERATOR *pulser )
 
 	pulser->status = 0;
 
-	if ( dg645->status_byte & 0x2 ) {
+	/* Busy if operation not complete. */
+	if ( dg645->operation_complete == 0 ) {
 		pulser->status |= MXSF_PGN_IS_BUSY;
+	}
+
+	/* Busy if BUSY or BURST is set. */
+	if ( dg645->status_byte & 0x6 ) {
+		pulser->status |= MXSF_PGN_IS_BUSY;
+	}
+
+	/* Error if PLL_UNLOCK or RB_UNLOCK is set. */
+	if ( dg645->instrument_status_register & 0xc0 ) {
+		pulser->status |= MXSF_PGN_ERROR;
+	}
+
+	/* Error if QYE, DDE, EXE, or CME is set. */
+	if ( dg645->event_status_register & 0x3c ) {
+		pulser->status |= MXSF_PGN_ERROR;
 	}
 
 #if MXD_DG645_PULSER_DEBUG

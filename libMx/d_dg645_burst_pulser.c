@@ -241,7 +241,19 @@ mxd_dg645_burst_pulser_open( MX_RECORD *record )
 			output_name, record->name );
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	/* Call setup() to put the pulser into the state configured in
+	 * the MX configuration file.
+	 */
+
+	mx_status = mx_pulse_generator_setup( record,
+					pulser->pulse_period,
+					pulser->pulse_width,
+					pulser->num_pulses,
+					pulser->pulse_delay,
+					pulser->function_mode,
+					pulser->trigger_mode );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -386,18 +398,15 @@ mxd_dg645_burst_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 		break;
 
 	case MXLV_PGN_PULSE_DELAY:
-		mx_status = mxi_dg645_command( dg645, "BURD?",
-						response, sizeof(response),
-						MXD_DG645_BURST_PULSER_DEBUG );
+		starting_channel = 0;
 
-		num_items = sscanf( response, "%lg", &(pulser->pulse_delay) );
+		ending_channel = 2 * dg645_burst_pulser->output_number;
 
-		if ( num_items != 1 ) {
-			return mx_error( MXE_DEVICE_IO_ERROR, fname,
-			"Did not see the burst delay in the response '%s' "
-			"to command 'BURD?' for DG645 controller '%s'.",
-				response, dg645->record->name );
-		}
+		mx_status = mxi_dg645_compute_delay_between_channels( dg645,
+						ending_channel,
+						starting_channel,
+						&(pulser->pulse_delay),
+						NULL, NULL );
 		break;
 
 	case MXLV_PGN_FUNCTION_MODE:
@@ -469,21 +478,11 @@ mxd_dg645_burst_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 	MX_DG645_BURST_PULSER *dg645_burst_pulser = NULL;
 	MX_DG645 *dg645 = NULL;
 	char command[80];
-#if 0
-	int new_trigger_source;
-	unsigned long t0_channel;
-#endif
 	unsigned long starting_channel, ending_channel;
 	unsigned long adjacent_channel;
 	double adjacent_delay, new_adjacent_delay;
 	double delay_difference;
-#if 0
-	double existing_delay;
-#endif
 	double existing_width;
-#if 0
-	double trigger_rate;
-#endif
 	mx_status_type mx_status;
 
 	mx_status = mxd_dg645_burst_pulser_get_pointers( pulser,
@@ -565,8 +564,10 @@ mxd_dg645_burst_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 		break;
 
 	case MXLV_PGN_PULSE_DELAY:
+		starting_channel = 2 * dg645_burst_pulser->output_number;
+
 		snprintf( command, sizeof(command),
-			"BURD %g", pulser->pulse_delay );
+		    "DLAY %ld,0,%g", starting_channel, pulser->pulse_delay );
 
 		mx_status = mxi_dg645_command( dg645, command,
 					NULL, 0, MXD_DG645_BURST_PULSER_DEBUG );
@@ -633,8 +634,24 @@ mxd_dg645_burst_pulser_get_status( MX_PULSE_GENERATOR *pulser )
 
 	pulser->status = 0;
 
-	if ( dg645->status_byte & 0x4 ) {
+	/* Busy if operation not complete. */
+	if ( dg645->operation_complete == 0 ) {
 		pulser->status |= MXSF_PGN_IS_BUSY;
+	}
+
+	/* Busy if BUSY or BURST is set. */
+	if ( dg645->status_byte & 0x6 ) {
+		pulser->status |= MXSF_PGN_IS_BUSY;
+	}
+
+	/* Error if PLL_UNLOCK or RB_UNLOCK is set. */
+	if ( dg645->instrument_status_register & 0xc0 ) {
+		pulser->status |= MXSF_PGN_ERROR;
+	}
+
+	/* Error if QYE, DDE, EXE, or CME is set. */
+	if ( dg645->event_status_register & 0x3c ) {
+		pulser->status |= MXSF_PGN_ERROR;
 	}
 
 #if MXD_DG645_BURST_PULSER_DEBUG

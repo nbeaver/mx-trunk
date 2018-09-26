@@ -387,7 +387,7 @@ mxi_dg645_command( MX_DG645 *dg645,
 				lerr_response, dg645->record->name );
 		}
 
-		dg645->last_error_code = lerr_code;
+		dg645->last_error = lerr_code;
 
 		if ( lerr_code != 0 ) {
 			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
@@ -491,7 +491,30 @@ mxi_dg645_get_status( MX_DG645 *dg645 )
 		"The MX_DG645 pointer passed was NULL." );
 	}
 
-	dg645->dg645_status = FALSE;
+	dg645->status_update_succeeded = FALSE;
+
+	dg645->event_status_register = 0;
+	dg645->instrument_status_register = 0;
+	dg645->operation_complete = 0;
+	dg645->status_byte = 0;
+
+	/* Get the operation complete bit first. */
+
+	mx_status = mxi_dg645_command( dg645, "*OPC?",
+					response, sizeof(response),
+					MXI_DG645_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	num_items = sscanf( response, "%lu", &(dg645->operation_complete) );
+
+	if ( num_items != 1 ) {
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"The response '%s' by interface '%s' to the command '*STB?' "
+		"did not seem to contain the numerical value of "
+		"the operation complete flag.", response, dg645->record->name );
+	}
 
 	/* Get the status byte. */
 
@@ -556,7 +579,7 @@ mxi_dg645_get_status( MX_DG645 *dg645 )
 
 	/* Indicate that we successfully read the status. */
 
-	dg645->dg645_status = TRUE;
+	dg645->status_update_succeeded = TRUE;
 
 	return MX_SUCCESSFUL_RESULT;
 }

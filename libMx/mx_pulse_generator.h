@@ -146,15 +146,15 @@ typedef struct {
   \
   {MXLV_PGN_ARM, -1, "arm", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_PULSE_GENERATOR, arm), \
-	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+	{0}, NULL, 0 }, \
   \
   {MXLV_PGN_TRIGGER, -1, "trigger", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_PULSE_GENERATOR, trigger), \
-	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+	{0}, NULL, 0 }, \
   \
   {MXLV_PGN_START, -1, "start", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_PULSE_GENERATOR, start), \
-	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+	{0}, NULL, 0 }, \
   \
   {MXLV_PGN_STOP, -1, "stop", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_PULSE_GENERATOR, stop), \

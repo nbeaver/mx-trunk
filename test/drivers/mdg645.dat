@@ -1,12 +1,12 @@
 dg645_rs232 interface rs232 tcp232 "" "" 9600 8 N 1 N 0x0d0a 0x0a 1 0x0 164.54.204.68 5025 0x0
 dg645       interface controller dg645 "" "" dg645_rs232 0x80000001 -1
 #
-ab          device pulse_generator dg645_pulser "" "" 0 0 0 0 0 0 0 dg645 ab 0x0
-cd          device pulse_generator dg645_pulser "" "" 0 0 0 0 0 0 0 dg645 cd 0x0
-ef          device pulse_generator dg645_pulser "" "" 0 0 0 0 0 0 0 dg645 ef 0x0
-gh          device pulse_generator dg645_pulser "" "" 0 0 0 0 0 0 0 dg645 gh 0x0
+ab          device pulse_generator dg645_pulser "" "" 2 0.5 1 0 1 1 dg645 ab 0x0
+cd          device pulse_generator dg645_pulser "" "" 2 0.5 1 0.333 1 1 dg645 cd 0x0
+ef          device pulse_generator dg645_pulser "" "" 2 0.5 1 0.667 1 1 dg645 ef 0x0
+gh          device pulse_generator dg645_pulser "" "" 2 0.5 1 1 1 1 dg645 gh 0x0
 #
-ab_burst    device pulse_generator dg645_burst_pulser "" "" 0 0 0 0 0 0 0 dg645 ab 0x0
-cd_burst    device pulse_generator dg645_burst_pulser "" "" 0 0 0 0 0 0 0 dg645 cd 0x0
-ef_burst    device pulse_generator dg645_burst_pulser "" "" 0 0 0 0 0 0 0 dg645 ef 0x0
-gh_burst    device pulse_generator dg645_burst_pulser "" "" 0 0 0 0 0 0 0 dg645 gh 0x0
+ab_burst    device pulse_generator dg645_burst_pulser "" "" 1 0.25 5 0 1 1 dg645 ab 0x0
+cd_burst    device pulse_generator dg645_burst_pulser "" "" 1 0.25 5 0.25 1 1 dg645 cd 0x0
+ef_burst    device pulse_generator dg645_burst_pulser "" "" 1 0.25 5 0.75 1 1 dg645 ef 0x0
+gh_burst    device pulse_generator dg645_burst_pulser "" "" 1 0.25 5 1.25 1 1 dg645 gh 0x0
