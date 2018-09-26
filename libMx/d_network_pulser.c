@@ -679,7 +679,7 @@ mxd_network_pulser_get_status( MX_PULSE_GENERATOR *pulse_generator )
 
 	dimension[0] = MXU_PGN_NUM_SETUP_PARAMETERS;
 
-	mx_status = mx_put_array( &(network_pulser->status_nf),
+	mx_status = mx_get_array( &(network_pulser->status_nf),
 		MXFT_DOUBLE, 1, dimension, &(pulse_generator->status) );
 
 	return mx_status;

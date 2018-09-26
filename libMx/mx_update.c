@@ -194,6 +194,12 @@ mx_update_record_values( MX_RECORD *record )
 			if ( mx_status.code != MXE_SUCCESS ) {
 				break;
 			}
+			mx_status = mx_pulse_generator_get_trigger_mode(
+						record, NULL );
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+				break;
+			}
 			mx_status = mx_pulse_generator_is_busy(
 						record, NULL );
 
