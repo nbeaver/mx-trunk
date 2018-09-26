@@ -20,9 +20,7 @@
 
 /* Values for the 'dg645_flags' field. */
 
-#define MXF_DG645_BURST_MODE	0x1
-
-#define MXF_DG645_DEBUG		0x80000000
+#define MXF_DG645_DEBUG		0x1
 
 /*---*/
 
@@ -184,6 +182,8 @@ MX_API mx_status_type mxi_dg645_get_status( MX_DG645 *dg645 );
 
 MX_API mx_status_type mxi_dg645_setup_pulser_trigger_mode( MX_DG645 *dg645,
 							long new_trigger_mode );
+
+MX_API mx_status_type mxi_dg645_interpret_trigger_source( MX_DG645 *dg645 );
 
 extern MX_RECORD_FUNCTION_LIST mxi_dg645_record_function_list;
 

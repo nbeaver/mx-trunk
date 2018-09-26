@@ -47,6 +47,7 @@ extern "C" {
 
 #define MXF_PGN_INTERNAL_TRIGGER	0x1
 #define MXF_PGN_EXTERNAL_TRIGGER	0x2
+#define MXF_PGN_LINE_TRIGGER		0x4
 
 /* If num_pulses is set to MXF_PGN_FOREVER, then the pulse generator
  * will pulse until explicitly stopped.

@@ -455,7 +455,6 @@
 #include "d_doutput_pulser.h"
 #include "d_gittelsohn_pulser.h"
 #include "d_dg645_pulser.h"
-#include "d_dg645_burst_pulser.h"
 
 #include "d_soft_sca.h"
 #include "d_network_sca.h"
@@ -3257,11 +3256,11 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_dg645_pulser_rfield_def_ptr},
 
 {"dg645_burst_pulser", MXT_PGN_DG645_BURST, MXC_PULSE_GENERATOR, MXR_DEVICE,
-				&mxd_dg645_burst_pulser_record_function_list,
+				&mxd_dg645_pulser_record_function_list,
 				NULL,
-				&mxd_dg645_burst_pulser_pulser_function_list,
-				&mxd_dg645_burst_pulser_num_record_fields,
-				&mxd_dg645_burst_pulser_rfield_def_ptr},
+				&mxd_dg645_pulser_pulser_function_list,
+				&mxd_dg645_pulser_num_record_fields,
+				&mxd_dg645_pulser_rfield_def_ptr},
 
 {"soft_sca",       MXT_SCA_SOFTWARE,  MXC_SINGLE_CHANNEL_ANALYZER, MXR_DEVICE,
 				&mxd_soft_sca_record_function_list,

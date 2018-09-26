@@ -23,6 +23,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_driver.h"
 #include "mx_process.h"
 #include "mx_pulse_generator.h"
 #include "i_dg645.h"
@@ -146,8 +147,7 @@ mxd_dg645_pulser_create_record_structures( MX_RECORD *record )
 		"Cannot allocate memory for an MX_PULSE_GENERATOR structure." );
 	}
 
-	dg645_pulser = (MX_DG645_PULSER *)
-				malloc( sizeof(MX_DG645_PULSER) );
+	dg645_pulser = (MX_DG645_PULSER *) malloc( sizeof(MX_DG645_PULSER) );
 
 	if ( dg645_pulser == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -261,7 +261,6 @@ mxd_dg645_pulser_arm( MX_PULSE_GENERATOR *pulser )
 
 	MX_DG645_PULSER *dg645_pulser = NULL;
 	MX_DG645 *dg645 = NULL;
-	mx_bool_type single_shot_mode;
 	mx_status_type mx_status;
 
 	mx_status = mxd_dg645_pulser_get_pointers( pulser,
@@ -270,41 +269,22 @@ mxd_dg645_pulser_arm( MX_PULSE_GENERATOR *pulser )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* This routine only actually does something if the trigger source
-	 * is using a single shot trigger.
-	 */
+	/* Update the trigger mode variables. */
 
-	/* Are we in a single shot mode? */
-
-	mx_status = mx_process_record_field_by_name( dg645->record,
-						"trigger_source",
-						MX_PROCESS_GET, NULL );
+	mx_status = mx_pulse_generator_get_trigger_mode( pulser->record, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	switch( dg645->trigger_source ) {
-	case 0: case 1: case 2: case 6:
-		single_shot_mode = FALSE;
-		break;
-	case 3: case 4: case 5:
-		single_shot_mode = TRUE;
-		break;
-	default:
-		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
-		"DG645 controller '%s' reported that it was using "
-		"an unsupported trigger mode %lu, which should _not_ "
-		"be able to happen.  The supported modes are from 0 to 6.",
-			dg645->record->name,
-			dg645->trigger_source );
-		break;
+	/* If we are in internal trigger mode, then we are done, since the
+	 * actual triggering takes place in the trigger() method.
+	 */
+
+	if ( pulser->trigger_mode == MXF_PGN_INTERNAL_TRIGGER ) {
+		return MX_SUCCESSFUL_RESULT;
 	}
 
-#if 0
-	if ( single_shot_mode ) {
-#else
-	if ( 1 ) {
-#endif
+	if ( dg645->single_shot ) {
 		mx_status = mxi_dg645_command( dg645, "*TRG",
 						NULL, 0, 
 						MXD_DG645_PULSER_DEBUG );
@@ -345,7 +325,6 @@ mxd_dg645_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 	MX_DG645 *dg645 = NULL;
 	unsigned long starting_channel, ending_channel;
 	unsigned long t0_channel;
-	long trigger_source;
 	char response[80];
 	int num_items;
 	double trigger_rate;
@@ -368,23 +347,69 @@ mxd_dg645_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 
 	switch( pulser->parameter_type ) {
 	case MXLV_PGN_FUNCTION_MODE:
-		if ( pulser->function_mode == MXF_PGN_SQUARE_WAVE ) {
+		switch( pulser->function_mode ) {
+		case MXF_PGN_PULSE:
+			break;
+		case MXF_PGN_SQUARE_WAVE:
 			pulser->pulse_width = 0.5 * pulser->pulse_period;
+			break;
+		default:
+			mx_status =  mx_error(
+			    MXE_HARDWARE_CONFIGURATION_ERROR, fname,
+			"Illegal function mode %ld configure for pulser '%s'.",
+			    pulser->function_mode, pulser->record->name );
+
+			pulser->function_mode = -1;
+			break;
 		}
 		break;
 
 	case MXLV_PGN_NUM_PULSES:
-		mx_status = mx_process_record_field_by_name( dg645->record,
+		switch( pulser->record->mx_type ) {
+		case MXT_PGN_DG645:
+			/* Single pulse pulser. */
+
+			mx_status = mx_process_record_field_by_name(
+							dg645->record,
 							"trigger_source",
 							MX_PROCESS_GET, NULL );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
-		if ( dg645->single_shot ) {
-			pulser->num_pulses = 1;
-		} else {
-			pulser->num_pulses = 0;
+			if ( dg645->single_shot ) {
+				pulser->num_pulses = 1;
+			} else {
+				pulser->num_pulses = 0;
+			}
+			break;
+
+		case MXT_PGN_DG645_BURST:
+			/* Burst mode pulser. */
+
+			mx_status = mxi_dg645_command( dg645, "BURC?",
+						response, sizeof(response),
+						MXD_DG645_PULSER_DEBUG );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			num_items = sscanf( response, "%lu",
+						&(pulser->num_pulses) );
+
+			if ( num_items != 1 ) {
+				return mx_error( MXE_DEVICE_IO_ERROR, fname,
+				"Did not see the number of pulses in the "
+				"response '%s' to command 'BURC?' for "
+				"DG645 controller '%s'.",
+					response, dg645->record->name );
+			}
+			break;
+		default:
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The record '%s' has unknown MX record type %ld.",
+				pulser->record->name, pulser->record->mx_type );
+			break;
 		}
 		break;
 
@@ -413,20 +438,50 @@ mxd_dg645_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 		break;
 
 	case MXLV_PGN_PULSE_PERIOD:
-		mx_status = mxi_dg645_command( dg645, "TRAT?",
+		switch( pulser->record->mx_type ) {
+		case MXT_PGN_DG645:
+			/* Single pulse pulser. */
+
+			mx_status = mxi_dg645_command( dg645, "TRAT?",
 						response, sizeof(response),
 						MXD_DG645_PULSER_DEBUG );
 
-		num_items = sscanf( response, "%lg", &trigger_rate );
+			num_items = sscanf( response, "%lg", &trigger_rate );
 
-		if ( num_items != 1 ) {
-			return mx_error( MXE_DEVICE_IO_ERROR, fname,
-			"Did not see the trigger rate in the response '%s' "
-			"to command 'TRAT?' for DG645 controller '%s'.",
-				response, dg645->record->name );
+			if ( num_items != 1 ) {
+				return mx_error( MXE_DEVICE_IO_ERROR, fname,
+				"Did not see the trigger rate in the "
+				"response '%s' to command 'TRAT?' for DG645 "
+				"controller '%s'.",
+					response, dg645->record->name );
+			}
+
+			pulser->pulse_period =
+				mx_divide_safely( 1.0, trigger_rate );
+			break;
+
+		case MXT_PGN_DG645_BURST:
+			/* Burst pulser. */
+
+			mx_status = mxi_dg645_command( dg645, "BURP?",
+						response, sizeof(response),
+						MXD_DG645_PULSER_DEBUG );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			num_items = sscanf( response, "%lg",
+						&(pulser->pulse_period) );
+
+			if ( num_items != 1 ) {
+			}
+			break;
+		default:
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The record '%s' has unknown MX record type %ld.",
+				pulser->record->name, pulser->record->mx_type );
+			break;
 		}
-
-		pulser->pulse_period = mx_divide_safely( 1.0, trigger_rate );
 		break;
 
 	case MXLV_PGN_TRIGGER_MODE:
@@ -437,7 +492,7 @@ mxd_dg645_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		num_items = sscanf( response, "%ld", &trigger_source );
+		num_items = sscanf( response, "%ld", &(dg645->trigger_source) );
 
 		if ( num_items != 1 ) {
 			return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -445,10 +500,33 @@ mxd_dg645_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 			"to command 'TSRC?' for DG645 controller '%s'.",
 				response, dg645->record->name );
 		}
+
+		mx_status = mxi_dg645_interpret_trigger_source( dg645 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		switch( dg645->trigger_source ) {
+		case 0: case 5:
+			pulser->trigger_mode = MXF_PGN_INTERNAL_TRIGGER;
+			break;
+		case 1: case 2: case 3: case 4:
+			pulser->trigger_mode = MXF_PGN_EXTERNAL_TRIGGER;
+			break;
+		case 6:
+			pulser->trigger_mode = MXF_PGN_LINE_TRIGGER;
+			break;
+		default:
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Pulse generator '%s' is configured for illegal "
+			"trigger source of %ld.",
+				dg645->record->name, dg645->trigger_source );
+			break;
+		}
 		break;
 
 	default:
-		return
+		mx_status = 
 		    mx_pulse_generator_default_get_parameter_handler( pulser );
 	}
 
@@ -468,11 +546,10 @@ mxd_dg645_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 	MX_DG645 *dg645 = NULL;
 	char command[80];
 	int new_trigger_source;
-	unsigned long t0_channel;
 	unsigned long starting_channel, ending_channel;
 	unsigned long adjacent_channel;
 	double adjacent_delay, new_adjacent_delay;
-	double existing_delay, delay_difference;
+	double delay_difference;
 	double existing_width;
 	double trigger_rate;
 	mx_status_type mx_status;
@@ -511,89 +588,113 @@ mxd_dg645_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 		break;
 
 	case MXLV_PGN_NUM_PULSES:
-		/* First, get the existing trigger source, so that we
-		 * can modify it to match what we want here.
-		 */
+		switch( pulser->record->mx_type ) {
+		case MXT_PGN_DG645_BURST:
+			snprintf( command, sizeof(command),
+				"BURC %lu", pulser->num_pulses );
 
-		mx_status = mx_process_record_field_by_name( dg645->record,
+			mx_status = mxi_dg645_command( dg645, command,
+					NULL, 0, MXD_DG645_PULSER_DEBUG );
+			break;
+
+		case MXT_PGN_DG645:
+			/* Single pulse pulser. */
+
+			/* First, get the existing trigger source, so that we
+			 * can modify it to match what we want here.
+			 */
+
+			mx_status = mx_process_record_field_by_name(
+							dg645->record,
 							"trigger_source",
 							MX_PROCESS_GET, NULL );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
-		/* Now construct the new trigger source value. */
+			/* Now construct the new trigger source value. */
 
-		switch( dg645->trigger_type ) {
-		case MXF_DG645_INTERNAL_TRIGGER:
-			pulser->trigger_mode = MXF_PGN_INTERNAL_TRIGGER;
+			switch( dg645->trigger_type ) {
+			case MXF_DG645_INTERNAL_TRIGGER:
+				pulser->trigger_mode = MXF_PGN_INTERNAL_TRIGGER;
 
-			if ( pulser->num_pulses == 1 ) {
-				/* Single shot */
-				new_trigger_source = 5;
-			} else {
-				/* Internal */
-				new_trigger_source = 1;
-				pulser->num_pulses = 0;
-			}
-			break;
-		case MXF_DG645_EXTERNAL_TRIGGER:
-			pulser->trigger_mode = MXF_PGN_EXTERNAL_TRIGGER;
-
-			if ( pulser->num_pulses == 1 ) {
-				if ( dg645->trigger_direction < 0 ) {
-					/* Single shot ext falling edges */
-					new_trigger_source = 4;
-					dg645->trigger_direction = -1;
+				if ( pulser->num_pulses == 1 ) {
+					/* Single shot */
+					new_trigger_source = 5;
 				} else {
-					/* Single shot ext rising edges */
-					new_trigger_source = 3;
-					dg645->trigger_direction = 1;
+					/* Internal */
+					new_trigger_source = 0;
+					pulser->num_pulses = 0;
 				}
-			} else {
-				if ( dg645->trigger_direction < 0 ) {
-					/* External falling edges */
-					new_trigger_source = 2;
-					dg645->trigger_direction = -1;
+				break;
+			case MXF_DG645_EXTERNAL_TRIGGER:
+				pulser->trigger_mode = MXF_PGN_EXTERNAL_TRIGGER;
+
+				if ( pulser->num_pulses == 1 ) {
+					/* Single shot */
+
+					if ( dg645->trigger_direction < 0 ) {
+						/* Ext falling edges */
+						new_trigger_source = 4;
+						dg645->trigger_direction = -1;
+					} else {
+						/* Ext rising edges */
+						new_trigger_source = 3;
+						dg645->trigger_direction = 1;
+					}
 				} else {
-					/* External rising edges */
-					new_trigger_source = 1;
-					dg645->trigger_direction = 1;
+					if ( dg645->trigger_direction < 0 ) {
+						/* External falling edges */
+						new_trigger_source = 2;
+						dg645->trigger_direction = -1;
+					} else {
+						/* External rising edges */
+						new_trigger_source = 1;
+						dg645->trigger_direction = 1;
+					}
+					pulser->num_pulses = 0;
 				}
+				break;
+			case MXF_DG645_LINE_TRIGGER:
+				/* For 'line trigger', the number of pulses
+				 * is always "infinite", so we can't change
+				 * anything and should not send a command
+				 * to the DG645.
+				 */
+
+				pulser->trigger_mode = 0;
 				pulser->num_pulses = 0;
+				dg645->trigger_direction = 0;
+				dg645->single_shot = FALSE;
+
+				return MX_SUCCESSFUL_RESULT;
+				break;
+			default:
+				return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+				"DG645 controller '%s' used by pulser '%s' is "
+				"somehow configured for an illegal trigger "
+				"type %lu.  This should never happen.",
+					dg645->record->name,
+					pulser->record->name,
+					dg645->trigger_type );
+				break;
 			}
-			break;
-		case MXF_DG645_LINE_TRIGGER:
-			/* For 'line trigger', the number of pulses is always
-			 * infinite, so we can't change anything and should
-			 * not send a command to the DG645.
-			 */
 
-			pulser->trigger_mode = 0;
-			pulser->num_pulses = 0;
-			dg645->trigger_direction = 0;
-			dg645->single_shot = FALSE;
+			/* Now set the new trigger source. */
 
-			return MX_SUCCESSFUL_RESULT;
+			snprintf( command, sizeof(command),
+				"TSRC %d", new_trigger_source );
+
+			mx_status = mxi_dg645_command( dg645, command,
+					NULL, 0, MXD_DG645_PULSER_DEBUG );
 			break;
+
 		default:
-			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-			"DG645 controller '%s' used by pulser '%s' is somehow "
-			"configured for an illegal trigger type %lu.  "
-			"This should never happen.",
-				dg645->record->name,
-				pulser->record->name,
-				dg645->trigger_type );
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The record '%s' has unknown MX record type %ld.",
+				pulser->record->name, pulser->record->mx_type );
 			break;
 		}
-
-		/* Now set the new trigger source. */
-
-		snprintf( command, sizeof(command),
-			"TSRC %d", new_trigger_source );
-
-		mx_status = mxi_dg645_command( dg645, command,
-					NULL, 0, MXD_DG645_PULSER_DEBUG );
 		break;
 
 	case MXLV_PGN_PULSE_WIDTH:
@@ -636,47 +737,42 @@ mxd_dg645_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 	case MXLV_PGN_PULSE_DELAY:
 		starting_channel = 2 * dg645_pulser->output_number;
 
-		t0_channel = 0;
-
-		/* We first need to figure out what the preexisting 
-		 * delay is as well as the channel our offset is
-		 * relative to.
-		 */
-
-		mx_status = mxi_dg645_compute_delay_between_channels( dg645,
-						starting_channel,
-						t0_channel,
-						&existing_delay,
-						&adjacent_channel,
-						&adjacent_delay );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		/* Reprogram the delay to the adjacent channel so that
-		 * we get the overall delay that we want.
-		 */
-
-		delay_difference = pulser->pulse_delay - existing_delay;
-
-		new_adjacent_delay = adjacent_delay + delay_difference;
-
 		snprintf( command, sizeof(command),
-			"DLAY %lu,%lu,%g",
-			starting_channel, adjacent_channel,
-			new_adjacent_delay );
+		    "DLAY %ld,0,%g", starting_channel, pulser->pulse_delay );
 
 		mx_status = mxi_dg645_command( dg645, command,
 					NULL, 0, MXD_DG645_PULSER_DEBUG );
 		break;
 
 	case MXLV_PGN_PULSE_PERIOD:
-		trigger_rate = mx_divide_safely( 1.0, pulser->pulse_period );
+		switch( pulser->record->mx_type ) {
+		case MXT_PGN_DG645:
+			/* Single pulse pulser. */
 
-		snprintf( command, sizeof(command), "TRAT %g", trigger_rate );
+			trigger_rate =
+				mx_divide_safely( 1.0, pulser->pulse_period );
 
-		mx_status = mxi_dg645_command( dg645, command,
+			snprintf( command, sizeof(command),
+				"TRAT %g", trigger_rate );
+
+			mx_status = mxi_dg645_command( dg645, command,
 					NULL, 0, MXD_DG645_PULSER_DEBUG );
+			break;
+
+		case MXT_PGN_DG645_BURST:
+			snprintf( command, sizeof(command),
+				"BURP %g", pulser->pulse_period );
+
+			mx_status = mxi_dg645_command( dg645, command,
+					NULL, 0, MXD_DG645_PULSER_DEBUG );
+			break;
+
+		default:
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The record '%s' has unknown MX record type %ld.",
+				pulser->record->name, pulser->record->mx_type );
+			break;
+		}
 		break;
 
 	case MXLV_PGN_TRIGGER_MODE:

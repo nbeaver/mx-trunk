@@ -62,8 +62,6 @@ static mx_status_type mxi_dg645_process_function( void *record_ptr,
 						void *record_field_ptr,
 						int operation );
 
-static mx_status_type mxi_dg645_interpret_trigger_source( MX_DG645 *dg645 );
-
 /*---*/
 
 MX_EXPORT mx_status_type
@@ -104,7 +102,6 @@ mxi_dg645_open( MX_RECORD *record )
 	MX_DG645 *dg645 = NULL;
 	unsigned long flags;
 	MX_RECORD_FIELD *rs_field = NULL;
-	char command[80];
 	char response[80];
 	unsigned long major, minor, update;
 	int num_items;
@@ -166,21 +163,13 @@ mxi_dg645_open( MX_RECORD *record )
 							MX_PROCESS_PUT );
 	}
 
-	/* If requested, turn burst mode on.  Otherwise, turn it off. */
+	/* Unconditionally turn burst mode off. */
 
-	if ( dg645->instrument_settings < 0 ) {
-		if ( flags & MXF_DG645_BURST_MODE ) {
-			strlcpy( command, "BURM 1", sizeof(command) );
-		} else {
-			strlcpy( command, "BURM 0", sizeof(command) );
-		}
+	mx_status = mxi_dg645_command( dg645, "BURM 0",
+					NULL, 0, MXI_DG645_DEBUG );
 
-		mx_status = mxi_dg645_command( dg645, command,
-						NULL, 0, MXI_DG645_DEBUG );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Enable status registers for the DG645. */
 
@@ -866,7 +855,7 @@ mxi_dg645_process_function( void *record_ptr,
 	return mx_status;
 }
 
-static mx_status_type
+MX_EXPORT mx_status_type
 mxi_dg645_interpret_trigger_source( MX_DG645 *dg645 )
 {
 	static const char fname[] = "mxi_dg645_interpret_trigger_source()";
