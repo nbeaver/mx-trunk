@@ -2714,17 +2714,14 @@ mx_poll_callback_handler( MX_CALLBACK_MESSAGE *callback_message )
 
 		    get_new_value = TRUE;
 
-		/* Else, if this is a local field callback, we
-		 * check to see if the MXFF_POLL flag is set.
-		 * If MXFF_POLL is set, then we fetch a new
-		 * value from the hardware.  Otherwise, we
+		/* Else, if this is a local field callback, we check to see
+		 * if the MXFF_POLL flag is set.  If MXFF_POLL is set, then
+		 * we fetch a new value from the hardware.  Otherwise, we
 		 * do not.
 		 *
-		 * MX client programs can modify the state
-		 * of the MXFF_POLL flag by setting the
-		 * MX_NETWORK_ATTRIBUTE_POLL (2) attribute
-		 * via the mx_network_field_set_attribute()
-		 * function.
+		 * MX client programs can modify the state of the MXFF_POLL
+		 * flag by setting the MXNA_POLL (2) attribute via the 
+		 * mx_network_field_set_attribute() function.
 		 */
 		 
 		} else
