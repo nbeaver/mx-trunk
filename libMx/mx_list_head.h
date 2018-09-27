@@ -52,6 +52,8 @@ extern "C" {
 #define MXLV_LHD_BRANCH_LABEL			1024
 #define MXLV_LHD_VERSION_STRING			1025
 #define MXLV_LHD_SHOW_FIELD			1026
+#define MXLV_LHD_SHOW_SOCKET_HANDLERS		1027
+#define MXLV_LHD_SHOW_SOCKET_ID		1028
 
 #define MXR_LIST_HEAD_STANDARD_FIELDS \
   {-1, -1, "list_is_active", MXFT_BOOL, NULL, 0, {0}, \
@@ -131,6 +133,16 @@ extern "C" {
   {MXLV_LHD_SHOW_CALLBACK_ID, -1, "show_callback_id", \
   					MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, show_callback_id), \
+	{sizeof(unsigned long)}, NULL, 0}, \
+  \
+  {MXLV_LHD_SHOW_SOCKET_HANDLERS, -1, "show_socket_handlers", \
+					MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_SUPERCLASS_STRUCT, \
+			offsetof(MX_LIST_HEAD, show_socket_handlers), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_LHD_SHOW_SOCKET_ID, -1, "show_socket_id", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, show_socket_id), \
 	{sizeof(unsigned long)}, NULL, 0}, \
   \
   {MXLV_LHD_BREAKPOINT_NUMBER, -1, "breakpoint_number", \

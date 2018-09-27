@@ -7,7 +7,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004-2008, 2011, 2013-2014, 2017 Illinois Institute of Technology
+ * Copyright 2004-2008, 2011, 2013-2014, 2017-2018
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -118,6 +119,12 @@ extern mx_status_type mx_list_head_record_show_callbacks(
 						MX_LIST_HEAD *list_head );
 
 extern mx_status_type mx_list_head_record_show_clbk_id(
+						MX_LIST_HEAD *list_head );
+
+extern mx_status_type mx_list_head_record_show_socket_handlers(
+						MX_LIST_HEAD *list_head );
+
+extern mx_status_type mx_list_head_record_show_socket_id(
 						MX_LIST_HEAD *list_head );
 
 /*---*/

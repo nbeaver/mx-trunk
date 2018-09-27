@@ -170,7 +170,7 @@ typedef struct {
   \
   {MXLV_PGN_BUSY, -1, "busy", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_PULSE_GENERATOR, busy), \
-	{0}, NULL, MXFF_READ_ONLY }, \
+	{0}, NULL, (MXFF_READ_ONLY | MXFF_POLL) }, \
   \
   {MXLV_PGN_LAST_PULSE_NUMBER, -1, "last_pulse_number", \
 					MXFT_LONG, NULL, 0, {0},\
@@ -179,7 +179,7 @@ typedef struct {
   \
   {MXLV_PGN_STATUS, -1, "status", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_PULSE_GENERATOR, status), \
-	{0}, NULL, (MXFF_IN_SUMMARY | MXFF_READ_ONLY)}
+	{0}, NULL, (MXFF_IN_SUMMARY | MXFF_READ_ONLY | MXFF_POLL)}
 
 typedef struct {
 	mx_status_type ( *busy ) ( MX_PULSE_GENERATOR *pulse_generator );

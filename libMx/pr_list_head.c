@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006-2009, 2011-2017 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006-2009, 2011-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -65,6 +65,8 @@ mx_setup_list_head_process_functions( MX_RECORD *record )
 		case MXLV_LHD_SHOW_HANDLE:
 		case MXLV_LHD_SHOW_OPEN_FDS:
 		case MXLV_LHD_SHOW_RECORD_LIST:
+		case MXLV_LHD_SHOW_SOCKET_HANDLERS:
+		case MXLV_LHD_SHOW_SOCKET_ID:
 		case MXLV_LHD_STATUS:
 		case MXLV_LHD_SUMMARY:
 		case MXLV_LHD_UPDATE_ALL:
@@ -199,6 +201,14 @@ mx_list_head_process_function( void *record_ptr,
 		case MXLV_LHD_SHOW_CALLBACK_ID:
 			mx_status =
 			    mx_list_head_record_show_clbk_id( list_head );
+			break;
+		case MXLV_LHD_SHOW_SOCKET_HANDLERS:
+			mx_status =
+			  mx_list_head_record_show_socket_handlers( list_head );
+			break;
+		case MXLV_LHD_SHOW_SOCKET_ID:
+			mx_status =
+			    mx_list_head_record_show_socket_id( list_head );
 			break;
 		case MXLV_LHD_VM_REGION:
 			return mx_error( MXE_UNSUPPORTED, fname,
@@ -976,6 +986,111 @@ mx_list_head_record_show_clbk_id( MX_LIST_HEAD *list_head )
 
 		list_entry = list_entry->next_list_entry;
 	} while ( list_entry != list_start );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+mx_status_type
+mx_list_head_record_show_socket_handlers( MX_LIST_HEAD *list_head )
+{
+	MX_SOCKET_HANDLER_LIST *socket_handler_list = NULL;
+	MX_SOCKET_HANDLER *socket_handler;
+	int i;
+
+	fprintf( stderr, "MX server socket handlers:\n" );
+
+	/* A pointer to an MX server's socket_handler_list is stored by
+	 * the server's main() function in the MX_LIST_HEAD struct's
+	 * application_ptr.
+	 */
+
+	socket_handler_list = (MX_SOCKET_HANDLER_LIST *)
+					list_head->application_ptr;
+
+	fprintf( stderr,
+	"Socket handler list = %p,  num sockets in use = %d\n",
+		socket_handler_list, socket_handler_list->num_sockets_in_use );
+
+	for ( i = 0; i < socket_handler_list->max_sockets; i++ ) {
+		socket_handler = socket_handler_list->array[i];
+
+		if ( socket_handler != (MX_SOCKET_HANDLER *) NULL ) {
+			fprintf( stderr,
+		  "socket_handler(%d) = %p, socket id = %d,\n"
+		  "        username = '%s', program = '%s', process_id = %lu\n",
+				i, socket_handler,
+				socket_handler->synchronous_socket->socket_fd,
+				socket_handler->username,
+				socket_handler->program_name,
+				socket_handler->process_id );
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+mx_status_type
+mx_list_head_record_show_socket_id( MX_LIST_HEAD *list_head )
+{
+	MX_SOCKET_HANDLER_LIST *socket_handler_list = NULL;
+	MX_SOCKET_HANDLER *socket_handler = NULL;
+	MX_EVENT_HANDLER *event_handler = NULL;
+	int i, socket_fd;
+
+	socket_fd = list_head->show_socket_id;
+
+	/* A pointer to an MX server's socket_handler_list is stored by
+	 * the server's main() function in the MX_LIST_HEAD struct's
+	 * application_ptr.
+	 */
+
+	socket_handler_list = (MX_SOCKET_HANDLER_LIST *)
+					list_head->application_ptr;
+
+	for ( i = 0; i < socket_handler_list->max_sockets; i++ ) {
+		socket_handler = socket_handler_list->array[i];
+
+		if (socket_fd == socket_handler->synchronous_socket->socket_fd)
+		{
+			break;
+		}
+	}
+
+	if ( i >= socket_handler_list->max_sockets ) {
+		fprintf( stderr, "Socket fd %d not found.\n", socket_fd );
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	fprintf( stderr, "\nSocket %d, socket_handler = %p\n",
+				socket_fd, socket_handler );
+	fprintf( stderr, "  handler_array_index = %ld, message_buffer = %p\n",
+				socket_handler->handler_array_index,
+				socket_handler->message_buffer );
+	fprintf( stderr,
+		"  username = '%s', program_name = '%s', process_id = %lu\n",
+		socket_handler->username, socket_handler->program_name,
+		socket_handler->process_id );
+	fprintf( stderr, "  data_format = %lu, use_64bit_network_longs = %d\n",
+		socket_handler->data_format,
+		socket_handler->use_64bit_network_longs );
+	fprintf( stderr,
+		"  network_debug_flags = %#lx, last_rpc_message_id = %#lx\n",
+		socket_handler->network_debug_flags,
+		socket_handler->last_rpc_message_id );
+	fprintf( stderr,
+		"  remote_header_length = %lu, remote_mx_version = %lu\n",
+		socket_handler->remote_header_length,
+		socket_handler->remote_mx_version );
+	fprintf( stderr,
+		"  remote_mx_version_time = %lu, authentication_type = %ld\n",
+		socket_handler->remote_mx_version_time,
+		socket_handler->authentication_type );
+
+	event_handler = socket_handler->event_handler;
+
+	fprintf( stderr,
+		"  event_handler = %p, type = %ld, name = '%s'\n",
+		event_handler, event_handler->type, event_handler->name );
 
 	return MX_SUCCESSFUL_RESULT;
 }
