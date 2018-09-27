@@ -205,8 +205,10 @@ mxi_dg645_open( MX_RECORD *record )
 	dg645->triggered = FALSE;
 	dg645->burst_mode_on = FALSE;
 
+#if 0
 	MX_DEBUG(-2,
 	("%s complete for record '%s'.", fname, dg645->record->name));
+#endif
 
 	return mx_status;
 }
