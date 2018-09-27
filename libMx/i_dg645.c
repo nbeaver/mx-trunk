@@ -199,6 +199,12 @@ mxi_dg645_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Clear some MX status bits. */
+
+	dg645->armed = FALSE;
+	dg645->triggered = FALSE;
+	dg645->burst_mode_on = FALSE;
+
 	MX_DEBUG(-2,
 	("%s complete for record '%s'.", fname, dg645->record->name));
 
@@ -256,10 +262,6 @@ mxi_dg645_command( MX_DG645 *dg645,
 	int num_items, lerr_code;
 	mx_status_type mx_status;
 
-#if 1
-	MX_DEBUG(-2,("%s: ===========================================", fname));
-#endif
-
 	if ( dg645 == (MX_DG645 *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_DG645 pointer passed was NULL." );
@@ -272,6 +274,11 @@ mxi_dg645_command( MX_DG645 *dg645,
 		debug = TRUE;
 	} else {
 		debug = FALSE;
+	}
+
+	if ( debug ) {
+		MX_DEBUG(-2,
+		("%s: ===========================================", fname));
 	}
 
 	interface_record = dg645->dg645_interface.record;
@@ -523,9 +530,7 @@ mxi_dg645_get_status( MX_DG645 *dg645 )
 		"the status byte.", response, dg645->record->name );
 	}
 
-	/* If the INSR summary bit is set, then ask for the
-	 * instrument status register.
-	 */
+	/* Get the instrument status register. */
 
 	mx_status = mxi_dg645_command( dg645, "INSR?",
 					response, sizeof(response),
@@ -545,9 +550,7 @@ mxi_dg645_get_status( MX_DG645 *dg645 )
 			response, dg645->record->name );
 	}
 
-	/* If the ESR summary bit is set, then ask for the
-	 * event status register.
-	 */
+	/* Get the event status register. */
 
 	mx_status = mxi_dg645_command( dg645, "*ESR?",
 					response, sizeof(response),

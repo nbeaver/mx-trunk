@@ -269,6 +269,17 @@ mxd_dg645_pulser_arm( MX_PULSE_GENERATOR *pulser )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* If the DG645 is already armed, then do not arm it again. */
+
+	if ( dg645->armed != FALSE ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* If we are _not_ already armed, then clear some status bits. */
+
+	dg645->triggered = FALSE;
+	dg645->burst_mode_on = FALSE;
+
 	/* Update the trigger mode variables. */
 
 	mx_status = mx_pulse_generator_get_trigger_mode( pulser->record, NULL );
@@ -281,6 +292,8 @@ mxd_dg645_pulser_arm( MX_PULSE_GENERATOR *pulser )
 	 */
 
 	if ( pulser->trigger_mode == MXF_PGN_INTERNAL_TRIGGER ) {
+		dg645->armed = TRUE;
+
 		return MX_SUCCESSFUL_RESULT;
 	}
 
@@ -292,6 +305,8 @@ mxd_dg645_pulser_arm( MX_PULSE_GENERATOR *pulser )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+		dg645->burst_mode_on = TRUE;
 	}
 
 	/* For single shot modes, enable the external trigger. */
@@ -299,7 +314,12 @@ mxd_dg645_pulser_arm( MX_PULSE_GENERATOR *pulser )
 	if ( dg645->single_shot ) {
 		mx_status = mxi_dg645_command( dg645, "*TRG",
 					NULL, 0, MXD_DG645_PULSER_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
+
+	dg645->armed = TRUE;
 
 	return mx_status;
 }
@@ -335,6 +355,8 @@ mxd_dg645_pulser_trigger( MX_PULSE_GENERATOR *pulser )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+		dg645->burst_mode_on = TRUE;
 	}
 
 	/* If we are in single shot mode (trigger source 5) then
@@ -345,6 +367,9 @@ mxd_dg645_pulser_trigger( MX_PULSE_GENERATOR *pulser )
 		mx_status = mxi_dg645_command( dg645, "*TRG",
 						NULL, 0, 
 						MXD_DG645_PULSER_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	return mx_status;
@@ -373,7 +398,12 @@ mxd_dg645_pulser_stop( MX_PULSE_GENERATOR *pulser )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+		dg645->burst_mode_on = FALSE;
 	}
+
+	dg645->armed = FALSE;
+	dg645->triggered = FALSE;
 
 	return mx_status;
 }
@@ -891,6 +921,14 @@ mxd_dg645_pulser_get_status( MX_PULSE_GENERATOR *pulser )
 #endif
 
 	pulser->status = 0;
+	dg645->triggered = FALSE;
+
+	/* Are we armed? */
+
+	if ( dg645->armed ) {
+		pulser->status |= MXSF_PGN_IS_BUSY;
+		pulser->status |= MXSF_PGN_ARMED;
+	}
 
 	/* Busy if operation not complete. */
 	if ( dg645->operation_complete == 0 ) {
@@ -902,14 +940,59 @@ mxd_dg645_pulser_get_status( MX_PULSE_GENERATOR *pulser )
 		pulser->status |= MXSF_PGN_IS_BUSY;
 	}
 
+	/* Error if QYE, DDE, EXE, or CME is set. */
+	if ( dg645->event_status_register & 0x3c ) {
+		pulser->status |= MXSF_PGN_ERROR;
+	}
+
+	/* Check the instrument status register in more detail.
+	 * This may turn off some bits that were set above.
+	 */
+
 	/* Error if PLL_UNLOCK or RB_UNLOCK is set. */
 	if ( dg645->instrument_status_register & 0xc0 ) {
 		pulser->status |= MXSF_PGN_ERROR;
 	}
 
-	/* Error if QYE, DDE, EXE, or CME is set. */
-	if ( dg645->event_status_register & 0x3c ) {
-		pulser->status |= MXSF_PGN_ERROR;
+	/* Have we been recently triggered? (TRIG or RATE) */
+
+	if ( dg645->instrument_status_register & 0x3 ) {
+		pulser->status |= MXSF_PGN_TRIGGERED;
+		dg645->triggered = TRUE;
+	}
+
+	/* Have we seen the end of a burst cycle? (END_OF_BURST) */
+
+	if ( dg645->instrument_status_register & 0x8 ) {
+		/* Turn off burst mode. */
+
+		mx_status = mxi_dg645_command( dg645, "BURM 0",
+					NULL, 0, MXD_DG645_PULSER_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		pulser->status &= (~MXSF_PGN_IS_BUSY);
+		pulser->status &= (~MXSF_PGN_ARMED);
+
+		dg645->armed = FALSE;
+		dg645->burst_mode_on = FALSE;
+	}
+
+	/* Have we seen the end of a delay cycle? (END_OF_DELAY) */
+
+	if ( dg645->instrument_status_register & 0x8 ) {
+		pulser->status &= (~MXSF_PGN_IS_BUSY);
+
+		/* FIXME: Do I turn off 'dg645->armed' here? */
+	}
+
+	/* FIXME: What do I do with the INHIBIT bit?  (0x10) */
+
+	/* Was a delay cycle aborted early? (ABORT_DELAY) */
+
+	if ( dg645->instrument_status_register & 0x8 ) {
+		pulser->status &= (~MXSF_PGN_IS_BUSY);
 	}
 
 #if MXD_DG645_PULSER_DEBUG

@@ -66,6 +66,10 @@ typedef struct {
 	unsigned long status_byte;
 
 	mx_bool_type status_update_succeeded;
+
+	mx_bool_type armed;
+	mx_bool_type triggered;
+	mx_bool_type burst_mode_on;
 } MX_DG645;
 
 
@@ -157,6 +161,18 @@ typedef struct {
   \
   {MXLV_DG645_STATUS, -1, "status_update_succeeded", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, status_update_succeeded), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {-1, -1, "armed", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, armed), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {-1, -1, "triggered", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, triggered), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {-1, -1, "burst_mode_on", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DG645, burst_mode_on), \
 	{0}, NULL, MXFF_READ_ONLY}
 	
 

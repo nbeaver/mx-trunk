@@ -58,6 +58,8 @@ extern "C" {
 /* Status bit definitions for the status field. */
 
 #define MXSF_PGN_IS_BUSY	0x1
+#define MXSF_PGN_ARMED		0x2
+#define MXSF_PGN_TRIGGERED	0x4
 
 #define MXSF_PGN_ERROR		0x80000000
 
