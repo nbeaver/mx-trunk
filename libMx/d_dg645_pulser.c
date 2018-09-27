@@ -926,7 +926,6 @@ mxd_dg645_pulser_get_status( MX_PULSE_GENERATOR *pulser )
 	/* Are we armed? */
 
 	if ( dg645->armed ) {
-		pulser->status |= MXSF_PGN_IS_BUSY;
 		pulser->status |= MXSF_PGN_ARMED;
 	}
 
@@ -972,11 +971,11 @@ mxd_dg645_pulser_get_status( MX_PULSE_GENERATOR *pulser )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		pulser->status &= (~MXSF_PGN_IS_BUSY);
-		pulser->status &= (~MXSF_PGN_ARMED);
-
 		dg645->armed = FALSE;
 		dg645->burst_mode_on = FALSE;
+
+		pulser->status &= (~MXSF_PGN_IS_BUSY);
+		pulser->status &= (~MXSF_PGN_ARMED);
 	}
 
 	/* Have we seen the end of a delay cycle? (END_OF_DELAY) */
