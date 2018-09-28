@@ -1,4 +1,4 @@
 ##tcp232_size variable field field_long "" "" camserver.receive_buffer_size 0x2 1 1 1000
 #
 camserver interface rs232 telnet "" "" 115200 8 N 1 N 0x18 0x0d0a 10 0x0 10.10.10.100 41234 0x0
-pilatus device area_detector pilatus "" "" 0 0x0 0x0 "" "" "" "" "" camserver 0x1 0 /ramdisk /nas_data/20180917Lavender
+pilatus device area_detector pilatus "" "" 0 0x0 0x0 "" "" "" "" "" camserver 0x301 0 "" ""
