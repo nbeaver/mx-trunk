@@ -462,7 +462,7 @@ mxd_network_pulser_abort( MX_PULSE_GENERATOR *pulse_generator )
 	static const char fname[] = "mxd_network_pulser_abort()";
 
 	MX_NETWORK_PULSER *network_pulser;
-	mx_bool_type abort;
+	mx_bool_type abort_flag;
 	mx_status_type mx_status;
 
 	network_pulser = NULL;
@@ -478,9 +478,10 @@ mxd_network_pulser_abort( MX_PULSE_GENERATOR *pulse_generator )
 			fname, pulse_generator->record->name));
 #endif
 
-	abort = TRUE;
+	abort_flag = TRUE;
 
-	mx_status = mx_put( &(network_pulser->abort_nf), MXFT_BOOL, &abort );
+	mx_status = mx_put( &(network_pulser->abort_nf),
+				MXFT_BOOL, &abort_flag );
 
 	return mx_status;
 }
