@@ -870,17 +870,37 @@ mxd_dg645_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 		break;
 
 	case MXLV_PGN_TRIGGER_MODE:
-		mx_status = mxi_dg645_setup_pulser_trigger_mode( dg645,
-						pulser->trigger_mode );
+		switch( pulser->trigger_mode ) {
+		case MXF_PGN_INTERNAL_TRIGGER:
+		case MXF_PGN_EXTERNAL_TRIGGER:
+		case MXF_PGN_LINE_TRIGGER:
+			/* These are valid trigger modes, so we reprogram
+			 * the pulse generator using them.
+			 */
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+			mx_status = mxi_dg645_setup_pulser_trigger_mode(
+						dg645, pulser->trigger_mode );
 
-		snprintf( command, sizeof(command),
-			"TSRC %lu", dg645->trigger_source );
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
-		mx_status = mxi_dg645_command( dg645, command,
+			snprintf( command, sizeof(command),
+				"TSRC %lu", dg645->trigger_source );
+
+			mx_status = mxi_dg645_command( dg645, command,
 					NULL, 0, MXD_DG645_PULSER_DEBUG );
+			break;
+		default:
+			mx_warning( "The requested trigger mode (%lu) for "
+			"pulse generator '%s' is illegal.  We are restoring "
+			"the trigger mode from the trigger source (%lu).",
+				pulser->trigger_mode,
+				pulser->record->name,
+				dg645->trigger_source );
+
+			mx_status = mxi_dg645_interpret_trigger_source( dg645 );
+			break;
+		}
 		break;
 
 	default:
