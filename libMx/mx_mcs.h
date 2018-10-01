@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004-2007, 2009-2010, 2014-2015
+ * Copyright 1999-2002, 2004-2007, 2009-2010, 2014-2015, 2018
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -25,6 +25,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#define MXF_MCS_INTERNAL_TRIGGER	0x1
+#define MXF_MCS_EXTERNAL_TRIGGER	0x2
 
 typedef struct {
 	MX_RECORD *record; /* Pointer to the MX_RECORD structure that points
@@ -47,12 +50,16 @@ typedef struct {
 	MX_RECORD *timer_record;
 	char timer_name[ MXU_RECORD_NAME_LENGTH + 1 ];
 
+	mx_bool_type arm;
+	mx_bool_type trigger;
 	mx_bool_type start;
 	mx_bool_type stop;
 	mx_bool_type clear;
 	mx_bool_type busy;
+	unsigned long status;
 
-	long mode;
+	long counting_mode;
+	long trigger_mode;
 	long parameter_type;
 
 	double measurement_time;
@@ -92,26 +99,30 @@ typedef struct {
 #define MXLV_MCS_EXTERNAL_CHANNEL_ADVANCE	1004
 #define MXLV_MCS_EXTERNAL_PRESCALE		1005
 #define MXLV_MCS_TIMER_RECORD_NAME		1006
-#define MXLV_MCS_START				1007
-#define MXLV_MCS_STOP				1008
-#define MXLV_MCS_CLEAR				1009
-#define MXLV_MCS_BUSY				1010
-#define MXLV_MCS_MODE				1011
-#define MXLV_MCS_MEASUREMENT_TIME		1012
-#define MXLV_MCS_MEASUREMENT_COUNTS		1013
-#define MXLV_MCS_CURRENT_NUM_SCALERS		1014
-#define MXLV_MCS_CURRENT_NUM_MEASUREMENTS	1015
-#define MXLV_MCS_MEASUREMENT_NUMBER		1016
-#define MXLV_MCS_READOUT_PREFERENCE		1017
-#define MXLV_MCS_SCALER_INDEX			1018
-#define MXLV_MCS_MEASUREMENT_INDEX		1019
-#define MXLV_MCS_DARK_CURRENT			1020
-#define MXLV_MCS_DARK_CURRENT_ARRAY		1021
-#define MXLV_MCS_SCALER_DATA			1022
-#define MXLV_MCS_MEASUREMENT_DATA		1023
-#define MXLV_MCS_SCALER_MEASUREMENT		1024
-#define MXLV_MCS_TIMER_DATA			1025
-#define MXLV_MCS_CLEAR_DEADBAND			1026
+#define MXLV_MCS_ARM				1007
+#define MXLV_MCS_TRIGGER			1008
+#define MXLV_MCS_START				1009
+#define MXLV_MCS_STOP				1010
+#define MXLV_MCS_CLEAR				1011
+#define MXLV_MCS_BUSY				1012
+#define MXLV_MCS_STATUS				1013
+#define MXLV_MCS_COUNTING_MODE			1014
+#define MXLV_MCS_TRIGGER_MODE			1015
+#define MXLV_MCS_MEASUREMENT_TIME		1016
+#define MXLV_MCS_MEASUREMENT_COUNTS		1017
+#define MXLV_MCS_CURRENT_NUM_SCALERS		1018
+#define MXLV_MCS_CURRENT_NUM_MEASUREMENTS	1019
+#define MXLV_MCS_MEASUREMENT_NUMBER		1020
+#define MXLV_MCS_READOUT_PREFERENCE		1021
+#define MXLV_MCS_SCALER_INDEX			1022
+#define MXLV_MCS_MEASUREMENT_INDEX		1023
+#define MXLV_MCS_DARK_CURRENT			1024
+#define MXLV_MCS_DARK_CURRENT_ARRAY		1025
+#define MXLV_MCS_SCALER_DATA			1026
+#define MXLV_MCS_MEASUREMENT_DATA		1027
+#define MXLV_MCS_SCALER_MEASUREMENT		1028
+#define MXLV_MCS_TIMER_DATA			1029
+#define MXLV_MCS_CLEAR_DEADBAND			1030
 
 #define MX_MCS_STANDARD_FIELDS \
   {MXLV_MCS_MAXIMUM_NUM_SCALERS, -1, "maximum_num_scalers",\
@@ -149,6 +160,14 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, timer_name), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
+  {MXLV_MCS_ARM, -1, "arm", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, arm), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_MCS_TRIGGER, -1, "trigger", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, trigger), \
+	{0}, NULL, 0}, \
+  \
   {MXLV_MCS_START, -1, "start", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, start), \
 	{0}, NULL, 0}, \
@@ -165,8 +184,16 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, busy), \
 	{0}, NULL, MXFF_POLL}, \
   \
-  {MXLV_MCS_MODE, -1, "mode", MXFT_LONG, NULL, 0, {0}, \
-	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, mode), \
+  {MXLV_MCS_STATUS, -1, "status", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, status), \
+	{0}, NULL, MXFF_POLL}, \
+  \
+  {MXLV_MCS_COUNTING_MODE, -1, "counting_mode", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, counting_mode), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_MCS_TRIGGER_MODE, -1, "trigger_mode", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, trigger_mode), \
 	{0}, NULL, 0}, \
   \
   {-1, -1, "parameter_type", MXFT_LONG, NULL, 0, {0}, \
@@ -252,10 +279,12 @@ typedef struct {
  */
 
 typedef struct {
-	mx_status_type ( *start ) ( MX_MCS *mcs );
+	mx_status_type ( *arm ) ( MX_MCS *mcs );
+	mx_status_type ( *trigger ) ( MX_MCS *mcs );
 	mx_status_type ( *stop ) ( MX_MCS *mcs );
 	mx_status_type ( *clear ) ( MX_MCS *mcs );
 	mx_status_type ( *busy ) ( MX_MCS *mcs );
+	mx_status_type ( *status ) ( MX_MCS *mcs );
 	mx_status_type ( *read_all ) ( MX_MCS *mcs );
 	mx_status_type ( *read_scaler ) ( MX_MCS *mcs );
 	mx_status_type ( *read_measurement ) ( MX_MCS *mcs );
@@ -276,6 +305,10 @@ MX_API mx_status_type mx_mcs_initialize_driver( MX_DRIVER *driver,
 MX_API mx_status_type mx_mcs_finish_record_initialization(
 					MX_RECORD *mcs_record );
 
+MX_API mx_status_type mx_mcs_arm( MX_RECORD *mcs_record );
+
+MX_API mx_status_type mx_mcs_trigger( MX_RECORD *mcs_record );
+
 MX_API mx_status_type mx_mcs_start( MX_RECORD *mcs_record );
 
 MX_API mx_status_type mx_mcs_stop( MX_RECORD *mcs_record );
@@ -284,6 +317,9 @@ MX_API mx_status_type mx_mcs_clear( MX_RECORD *mcs_record );
 
 MX_API mx_status_type mx_mcs_is_busy( MX_RECORD *mcs_record,
 					mx_bool_type *busy );
+
+MX_API mx_status_type mx_mcs_get_status( MX_RECORD *mcs_record,
+					unsigned long *mcs_status );
 
 MX_API mx_status_type mx_mcs_read_all( MX_RECORD *mcs_record,
 					unsigned long *num_scalers,
@@ -309,8 +345,17 @@ MX_API mx_status_type mx_mcs_read_timer( MX_RECORD *mcs_record,
 					unsigned long *num_measurements,
 					double **timer_data );
 
-MX_API mx_status_type mx_mcs_get_mode( MX_RECORD *mcs_record, long *mode );
-MX_API mx_status_type mx_mcs_set_mode( MX_RECORD *mcs_record, long mode );
+MX_API mx_status_type mx_mcs_get_counting_mode( MX_RECORD *mcs_record,
+							long *counting_mode );
+
+MX_API mx_status_type mx_mcs_set_counting_mode( MX_RECORD *mcs_record,
+							long counting_mode );
+
+MX_API mx_status_type mx_mcs_get_trigger_mode( MX_RECORD *mcs_record,
+							long *trigger_mode );
+
+MX_API mx_status_type mx_mcs_set_trigger_mode( MX_RECORD *mcs_record,
+							long trigger_mode );
 
 MX_API mx_status_type mx_mcs_get_external_channel_advance(
 					MX_RECORD *mcs_record,

@@ -26,8 +26,10 @@ typedef struct {
 	MX_RECORD *server_record;
 	char remote_record_name[ MXU_RECORD_NAME_LENGTH+1 ];
 
+	MX_NETWORK_FIELD arm_nf;
 	MX_NETWORK_FIELD busy_nf;
 	MX_NETWORK_FIELD clear_nf;
+	MX_NETWORK_FIELD counting_mode_nf;
 	MX_NETWORK_FIELD current_num_measurements_nf;
 	MX_NETWORK_FIELD current_num_scalers_nf;
 	MX_NETWORK_FIELD dark_current_nf;
@@ -39,15 +41,17 @@ typedef struct {
 	MX_NETWORK_FIELD measurement_index_nf;
 	MX_NETWORK_FIELD measurement_number_nf;
 	MX_NETWORK_FIELD measurement_time_nf;
-	MX_NETWORK_FIELD mode_nf;
 	MX_NETWORK_FIELD readout_preference_nf;
 	MX_NETWORK_FIELD scaler_data_nf;
 	MX_NETWORK_FIELD scaler_index_nf;
 	MX_NETWORK_FIELD scaler_measurement_nf;
 	MX_NETWORK_FIELD start_nf;
+	MX_NETWORK_FIELD status_nf;
 	MX_NETWORK_FIELD stop_nf;
 	MX_NETWORK_FIELD timer_data_nf;
 	MX_NETWORK_FIELD timer_name_nf;
+	MX_NETWORK_FIELD trigger_nf;
+	MX_NETWORK_FIELD trigger_mode_nf;
 } MX_NETWORK_MCS;
 
 #define MXD_NETWORK_MCS_STANDARD_FIELDS \
@@ -71,10 +75,12 @@ MX_API mx_status_type mxd_network_mcs_print_structure(
 					FILE *file, MX_RECORD *record );
 MX_API mx_status_type mxd_network_mcs_open( MX_RECORD *record );
 
-MX_API mx_status_type mxd_network_mcs_start( MX_MCS *mcs );
+MX_API mx_status_type mxd_network_mcs_arm( MX_MCS *mcs );
+MX_API mx_status_type mxd_network_mcs_trigger( MX_MCS *mcs );
 MX_API mx_status_type mxd_network_mcs_stop( MX_MCS *mcs );
 MX_API mx_status_type mxd_network_mcs_clear( MX_MCS *mcs );
 MX_API mx_status_type mxd_network_mcs_busy( MX_MCS *mcs );
+MX_API mx_status_type mxd_network_mcs_status( MX_MCS *mcs );
 MX_API mx_status_type mxd_network_mcs_read_all( MX_MCS *mcs );
 MX_API mx_status_type mxd_network_mcs_read_scaler( MX_MCS *mcs );
 MX_API mx_status_type mxd_network_mcs_read_measurement( MX_MCS *mcs );

@@ -7,7 +7,8 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2000-2004, 2006, 2009, 2012, 2015 Illinois Institute of Technology
+ * Copyright 2000-2004, 2006, 2009, 2012, 2015, 2018
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -43,9 +44,11 @@ mx_setup_mcs_process_functions( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
+		case MXLV_MCS_ARM:
 		case MXLV_MCS_BUSY:
 		case MXLV_MCS_CLEAR:
 		case MXLV_MCS_CLEAR_DEADBAND:
+		case MXLV_MCS_COUNTING_MODE:
 		case MXLV_MCS_CURRENT_NUM_MEASUREMENTS:
 		case MXLV_MCS_CURRENT_NUM_SCALERS:
 		case MXLV_MCS_DARK_CURRENT:
@@ -56,13 +59,15 @@ mx_setup_mcs_process_functions( MX_RECORD *record )
 		case MXLV_MCS_MEASUREMENT_DATA:
 		case MXLV_MCS_MEASUREMENT_INDEX:
 		case MXLV_MCS_MEASUREMENT_TIME:
-		case MXLV_MCS_MODE:
 		case MXLV_MCS_SCALER_DATA:
 		case MXLV_MCS_SCALER_INDEX:
 		case MXLV_MCS_SCALER_MEASUREMENT:
 		case MXLV_MCS_START:
+		case MXLV_MCS_STATUS:
 		case MXLV_MCS_STOP:
 		case MXLV_MCS_TIMER_DATA:
+		case MXLV_MCS_TRIGGER:
+		case MXLV_MCS_TRIGGER_MODE:
 			record_field->process_function
 					    = mx_mcs_process_function;
 			break;
@@ -96,8 +101,14 @@ mx_mcs_process_function( void *record_ptr,
 		case MXLV_MCS_BUSY:
 			mx_status = mx_mcs_is_busy( record, NULL );
 			break;
-		case MXLV_MCS_MODE:
-			mx_status = mx_mcs_get_mode( record, NULL );
+		case MXLV_MCS_STATUS:
+			mx_status = mx_mcs_get_status( record, NULL );
+			break;
+		case MXLV_MCS_COUNTING_MODE:
+			mx_status = mx_mcs_get_counting_mode( record, NULL );
+			break;
+		case MXLV_MCS_TRIGGER_MODE:
+			mx_status = mx_mcs_get_trigger_mode( record, NULL );
 			break;
 		case MXLV_MCS_EXTERNAL_CHANNEL_ADVANCE:
 			mx_status = mx_mcs_get_external_channel_advance(
@@ -152,6 +163,12 @@ mx_mcs_process_function( void *record_ptr,
 		break;
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
+		case MXLV_MCS_ARM:
+			mx_status = mx_mcs_arm( record );
+			break;
+		case MXLV_MCS_TRIGGER:
+			mx_status = mx_mcs_trigger( record );
+			break;
 		case MXLV_MCS_START:
 			mx_status = mx_mcs_start( record );
 			break;
@@ -161,8 +178,13 @@ mx_mcs_process_function( void *record_ptr,
 		case MXLV_MCS_CLEAR:
 			mx_status = mx_mcs_clear( record );
 			break;
-		case MXLV_MCS_MODE:
-			mx_status = mx_mcs_set_mode( record, mcs->mode );
+		case MXLV_MCS_COUNTING_MODE:
+			mx_status =
+			  mx_mcs_set_counting_mode( record, mcs->counting_mode);
+			break;
+		case MXLV_MCS_TRIGGER_MODE:
+			mx_status =
+			  mx_mcs_set_trigger_mode( record, mcs->trigger_mode );
 			break;
 		case MXLV_MCS_EXTERNAL_CHANNEL_ADVANCE:
 			mx_status = mx_mcs_set_external_channel_advance( record,

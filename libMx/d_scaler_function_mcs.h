@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003, 2010 Illinois Institute of Technology
+ * Copyright 2003, 2010, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -52,10 +52,12 @@ MX_API mx_status_type mxd_scaler_function_mcs_print_structure(
 					FILE *file, MX_RECORD *record );
 MX_API mx_status_type mxd_scaler_function_mcs_open( MX_RECORD *record );
 
-MX_API mx_status_type mxd_scaler_function_mcs_start( MX_MCS *mcs );
+MX_API mx_status_type mxd_scaler_function_mcs_arm( MX_MCS *mcs );
+MX_API mx_status_type mxd_scaler_function_mcs_trigger( MX_MCS *mcs );
 MX_API mx_status_type mxd_scaler_function_mcs_stop( MX_MCS *mcs );
 MX_API mx_status_type mxd_scaler_function_mcs_clear( MX_MCS *mcs );
 MX_API mx_status_type mxd_scaler_function_mcs_busy( MX_MCS *mcs );
+MX_API mx_status_type mxd_scaler_function_mcs_status( MX_MCS *mcs );
 MX_API mx_status_type mxd_scaler_function_mcs_read_all( MX_MCS *mcs );
 MX_API mx_status_type mxd_scaler_function_mcs_read_scaler( MX_MCS *mcs );
 MX_API mx_status_type mxd_scaler_function_mcs_read_measurement( MX_MCS *mcs );

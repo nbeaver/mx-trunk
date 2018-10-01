@@ -45,10 +45,12 @@ MX_RECORD_FUNCTION_LIST mxd_epics_mcs_record_function_list = {
 };
 
 MX_MCS_FUNCTION_LIST mxd_epics_mcs_mcs_function_list = {
-	mxd_epics_mcs_start,
+	mxd_epics_mcs_arm,
+	NULL,
 	mxd_epics_mcs_stop,
 	mxd_epics_mcs_clear,
 	mxd_epics_mcs_busy,
+	NULL,
 	mxd_epics_mcs_read_all,
 	mxd_epics_mcs_read_scaler,
 	mxd_epics_mcs_read_measurement,
@@ -314,14 +316,22 @@ mxd_epics_mcs_open( MX_RECORD *record )
 
 		mx_epics_pvname_init( &(epics_mcs->val_pv_array[i]),
 			"%s%ld.VAL", epics_mcs->channel_prefix, i + 1 );
+
+		mx_epics_pvname_init( &(epics_mcs->meas_indx_pv_array[i]),
+			"%s%ld_Meas.INDX", epics_mcs->channel_prefix, i + 1 );
+
+		mx_epics_pvname_init( &(epics_mcs->meas_val_pv_array[i]),
+			"%s%ld_Meas.VAL", epics_mcs->channel_prefix, i + 1 );
 	}
 
-#if 0
+#if 1
 	for ( i = 0; i < epics_mcs->num_scaler_pvs; i++ ) {
-		MX_DEBUG(-2,("i = %ld, %s, %s, %s", i,
+		MX_DEBUG(-2,("i = %ld, %s, %s, %s %s %s", i,
 			epics_mcs->dark_pv_array[i].pvname,
 			epics_mcs->read_pv_array[i].pvname,
-			epics_mcs->val_pv_array[i].pvname));
+			epics_mcs->val_pv_array[i].pvname,
+			epics_mcs->meas_indx_pv_array[i].pvname,
+			epics_mcs->meas_val_pv_array[i].pvname));
 	}
 #endif
 
@@ -503,9 +513,9 @@ mxd_epics_mcs_open( MX_RECORD *record )
 /*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mxd_epics_mcs_start( MX_MCS *mcs )
+mxd_epics_mcs_arm( MX_MCS *mcs )
 {
-	static const char fname[] = "mxd_epics_mcs_start()";
+	static const char fname[] = "mxd_epics_mcs_arm()";
 
 	MX_EPICS_MCS *epics_mcs = NULL;
 	int32_t start;
@@ -862,7 +872,7 @@ mxd_epics_mcs_read_measurement( MX_MCS *mcs )
 		return mx_status;
 
 	for ( i = 0; i < mcs->current_num_scalers; i++ ) {
-		indx_value = mcs->measurement_number;
+		indx_value = mcs->measurement_index;
 
 		mx_status = mx_group_caput( &epics_group,
 					&(epics_mcs->meas_indx_pv_array[i]),
@@ -1063,12 +1073,12 @@ mxd_epics_mcs_set_parameter( MX_MCS *mcs )
 		mcs->parameter_type));
 
 	switch( mcs->parameter_type ) {
-	case MXLV_MCS_MODE:
+	case MXLV_MCS_COUNTING_MODE:
 
-		if ( mcs->mode != MXM_PRESET_TIME ) {
+		if ( mcs->counting_mode != MXM_PRESET_TIME ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal MCS mode %ld selected.  Only preset time mode is "
-		"allowed for an EPICS MCS.", mcs->mode );
+		"allowed for an EPICS MCS.", mcs->counting_mode );
 		}
 		break;
 

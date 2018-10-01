@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2007 Illinois Institute of Technology
+ * Copyright 2000-2007, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -367,7 +367,7 @@ mxd_mcs_timer_get_mode( MX_TIMER *timer )
 	static const char fname[] = "mxd_mcs_timer_get_mode()";
 
 	MX_MCS_TIMER *mcs_timer;
-	long mode;
+	long counting_mode;
 	mx_status_type mx_status;
 
 	mcs_timer = NULL;
@@ -377,9 +377,10 @@ mxd_mcs_timer_get_mode( MX_TIMER *timer )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_mcs_get_mode( mcs_timer->mcs_record, &mode );
+	mx_status = mx_mcs_get_counting_mode( mcs_timer->mcs_record,
+							&counting_mode );
 
-	timer->mode = mode;
+	timer->mode = counting_mode;
 
 	return mx_status;
 }
@@ -399,7 +400,8 @@ mxd_mcs_timer_set_mode( MX_TIMER *timer )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_mcs_set_mode( mcs_timer->mcs_record, timer->mode );
+	mx_status = mx_mcs_set_counting_mode( mcs_timer->mcs_record,
+							timer->mode );
 
 	return mx_status;
 }

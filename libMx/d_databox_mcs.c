@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2006, 2010, 2015-2016
+ * Copyright 2000-2001, 2003-2006, 2010, 2015-2016, 2018
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -40,10 +40,12 @@ MX_RECORD_FUNCTION_LIST mxd_databox_mcs_record_function_list = {
 };
 
 MX_MCS_FUNCTION_LIST mxd_databox_mcs_mcs_function_list = {
-	mxd_databox_mcs_start,
+	mxd_databox_mcs_arm,
+	NULL,
 	mxd_databox_mcs_stop,
 	mxd_databox_mcs_clear,
 	mxd_databox_mcs_busy,
+	NULL,
 	mxd_databox_mcs_read_all,
 	mxd_databox_mcs_read_scaler,
 	mxd_databox_mcs_read_measurement,
@@ -224,9 +226,9 @@ mxd_databox_mcs_finish_record_initialization( MX_RECORD *record )
 /*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mxd_databox_mcs_start( MX_MCS *mcs )
+mxd_databox_mcs_arm( MX_MCS *mcs )
 {
-	static const char fname[] = "mxd_databox_mcs_start()";
+	static const char fname[] = "mxd_databox_mcs_arm()";
 
 	MX_DATABOX_MCS *databox_mcs;
 	MX_DATABOX *databox;
@@ -909,9 +911,9 @@ mxd_databox_mcs_set_parameter( MX_MCS *mcs )
 		    fname, mcs->record->name, mcs->current_num_measurements));
 		break;
 
-	case MXLV_MCS_MODE:
+	case MXLV_MCS_COUNTING_MODE:
 
-		switch( mcs->mode ) {
+		switch( mcs->counting_mode ) {
 		case MXM_PRESET_TIME:
 			limit_mode = MX_DATABOX_CONSTANT_TIME_MODE;
 			break;
@@ -922,7 +924,7 @@ mxd_databox_mcs_set_parameter( MX_MCS *mcs )
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal MCS mode %ld selected.  Only preset time and "
 		"preset count modes are allowed for a Databox MCS.",
-				mcs->mode );
+				mcs->counting_mode );
 		}
 
 		return mxi_databox_set_limit_mode( databox, limit_mode );

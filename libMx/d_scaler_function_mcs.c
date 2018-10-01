@@ -8,7 +8,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2003-2006, 2010, 2012, 2015 Illinois Institute of Technology
+ * Copyright 2003-2006, 2010, 2012, 2015, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -41,10 +41,12 @@ MX_RECORD_FUNCTION_LIST mxd_scaler_function_mcs_record_function_list = {
 };
 
 MX_MCS_FUNCTION_LIST mxd_scaler_function_mcs_mcs_function_list = {
-	mxd_scaler_function_mcs_start,
+	mxd_scaler_function_mcs_arm,
+	mxd_scaler_function_mcs_trigger,
 	mxd_scaler_function_mcs_stop,
 	mxd_scaler_function_mcs_clear,
 	mxd_scaler_function_mcs_busy,
+	mxd_scaler_function_mcs_busy,    /* 'status' uses 'busy' method */
 	mxd_scaler_function_mcs_read_all,
 	mxd_scaler_function_mcs_read_scaler,
 	NULL,
@@ -477,9 +479,9 @@ mxd_scaler_function_mcs_open( MX_RECORD *record )
 /*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mxd_scaler_function_mcs_start( MX_MCS *mcs )
+mxd_scaler_function_mcs_arm( MX_MCS *mcs )
 {
-	static const char fname[] = "mxd_scaler_function_mcs_start()";
+	static const char fname[] = "mxd_scaler_function_mcs_arm()";
 
 	MX_SCALER_FUNCTION_MCS *scaler_function_mcs;
 	MX_RECORD *mcs_record;
@@ -495,7 +497,35 @@ mxd_scaler_function_mcs_start( MX_MCS *mcs )
 	for ( i = 0; i < scaler_function_mcs->num_mcs; i++ ) {
 		mcs_record = scaler_function_mcs->mcs_record_array[i];
 
-		mx_status = mx_mcs_start( mcs_record );
+		mx_status = mx_mcs_arm( mcs_record );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_scaler_function_mcs_trigger( MX_MCS *mcs )
+{
+	static const char fname[] = "mxd_scaler_function_mcs_trigger()";
+
+	MX_SCALER_FUNCTION_MCS *scaler_function_mcs;
+	MX_RECORD *mcs_record;
+	long i;
+	mx_status_type mx_status;
+
+	mx_status = mxd_scaler_function_mcs_get_pointers( mcs,
+					&scaler_function_mcs, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	for ( i = 0; i < scaler_function_mcs->num_mcs; i++ ) {
+		mcs_record = scaler_function_mcs->mcs_record_array[i];
+
+		mx_status = mx_mcs_trigger( mcs_record );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -578,6 +608,7 @@ mxd_scaler_function_mcs_busy( MX_MCS *mcs )
 		return mx_status;
 
 	mcs->busy = FALSE;
+	mcs->status = FALSE;
 
 	for ( i = 0; i < scaler_function_mcs->num_mcs; i++ ) {
 		mcs_record = scaler_function_mcs->mcs_record_array[i];
@@ -589,6 +620,7 @@ mxd_scaler_function_mcs_busy( MX_MCS *mcs )
 
 		if ( busy ) {
 			mcs->busy = TRUE;
+			mcs->status = 0x1;
 
 			break;	/* Exit the for() loop. */
 		}
@@ -763,12 +795,12 @@ mxd_scaler_function_mcs_set_parameter( MX_MCS *mcs )
 	MX_DEBUG( 1,("%s invoked for MCS '%s', type = %ld",
 		fname, mcs->record->name, mcs->parameter_type));
 
-	if ( mcs->parameter_type == MXLV_MCS_MODE ) {
+	if ( mcs->parameter_type == MXLV_MCS_COUNTING_MODE ) {
 
 		for ( i = 0; i < scaler_function_mcs->num_mcs; i++ ) {
-			mx_status = mx_mcs_set_mode(
+			mx_status = mx_mcs_set_counting_mode(
 				scaler_function_mcs->mcs_record_array[i],
-				mcs->mode );
+				mcs->counting_mode );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;

@@ -58,10 +58,12 @@ MX_RECORD_FUNCTION_LIST mxd_sis3820_record_function_list = {
 };
 
 MX_MCS_FUNCTION_LIST mxd_sis3820_mcs_function_list = {
-	mxd_sis3820_start,
+	mxd_sis3820_arm,
+	NULL,
 	mxd_sis3820_stop,
 	mxd_sis3820_clear,
 	mxd_sis3820_busy,
+	NULL,
 	NULL,
 	NULL,
 	mxd_sis3820_read_measurement,
@@ -766,9 +768,9 @@ mxd_sis3820_close( MX_RECORD *record )
 /*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mxd_sis3820_start( MX_MCS *mcs )
+mxd_sis3820_arm( MX_MCS *mcs )
 {
-	static const char fname[] = "mxd_sis3820_start()";
+	static const char fname[] = "mxd_sis3820_arm()";
 
 	MX_SIS3820 *sis3820 = NULL;
 	uint32_t reference_pulser;
@@ -1285,7 +1287,7 @@ mxd_sis3820_get_parameter( MX_MCS *mcs )
 #endif
 
 	switch( mcs->parameter_type ) {
-	case MXLV_MCS_MODE:
+	case MXLV_MCS_COUNTING_MODE:
 	case MXLV_MCS_MEASUREMENT_TIME:
 	case MXLV_MCS_CURRENT_NUM_MEASUREMENTS:
 	case MXLV_MCS_DARK_CURRENT:
@@ -1325,7 +1327,7 @@ mxd_sis3820_set_parameter( MX_MCS *mcs )
 #endif
 
 	switch( mcs->parameter_type ) {
-	case MXLV_MCS_MODE:
+	case MXLV_MCS_COUNTING_MODE:
 	case MXLV_MCS_MEASUREMENT_TIME:
 	case MXLV_MCS_CURRENT_NUM_MEASUREMENTS:
 	case MXLV_MCS_DARK_CURRENT:

@@ -2626,7 +2626,8 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 		/**** Put the MCS into preset time mode. ****/
 
-		mx_status = mx_mcs_set_mode( mcs_record, MXM_PRESET_TIME );
+		mx_status = mx_mcs_set_counting_mode( mcs_record,
+							MXM_PRESET_TIME );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 			(void) mx_scan_restore_speeds( scan );

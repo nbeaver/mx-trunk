@@ -65,7 +65,7 @@ MX_API mx_status_type mxd_epics_mcs_finish_record_initialization(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_epics_mcs_open( MX_RECORD *record );
 
-MX_API mx_status_type mxd_epics_mcs_start( MX_MCS *mcs );
+MX_API mx_status_type mxd_epics_mcs_arm( MX_MCS *mcs );
 MX_API mx_status_type mxd_epics_mcs_stop( MX_MCS *mcs );
 MX_API mx_status_type mxd_epics_mcs_clear( MX_MCS *mcs );
 MX_API mx_status_type mxd_epics_mcs_busy( MX_MCS *mcs );

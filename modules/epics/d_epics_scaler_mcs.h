@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2014 Illinois Institute of Technology
+ * Copyright 2014, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -48,7 +48,7 @@ MX_API mx_status_type mxd_epics_scaler_mcs_finish_record_initialization(
                                                         MX_RECORD *record );
 MX_API mx_status_type mxd_epics_scaler_mcs_open( MX_RECORD *record );
 
-MX_API mx_status_type mxd_epics_scaler_mcs_start( MX_MCS *mcs );
+MX_API mx_status_type mxd_epics_scaler_mcs_arm( MX_MCS *mcs );
 MX_API mx_status_type mxd_epics_scaler_mcs_stop( MX_MCS *mcs );
 MX_API mx_status_type mxd_epics_scaler_mcs_clear( MX_MCS *mcs );
 MX_API mx_status_type mxd_epics_scaler_mcs_busy( MX_MCS *mcs );

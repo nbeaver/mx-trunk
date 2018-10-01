@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2004, 2006, 2008, 2010, 2012, 2016
+ * Copyright 2000-2001, 2004, 2006, 2008, 2010, 2012, 2016, 2018
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -45,10 +45,12 @@ MX_RECORD_FUNCTION_LIST mxd_soft_mcs_record_function_list = {
 };
 
 MX_MCS_FUNCTION_LIST mxd_soft_mcs_mcs_function_list = {
-	mxd_soft_mcs_start,
+	mxd_soft_mcs_arm,
+	NULL,
 	mxd_soft_mcs_stop,
 	mxd_soft_mcs_clear,
 	mxd_soft_mcs_busy,
+	NULL,
 	mxd_soft_mcs_read_all,
 	mxd_soft_mcs_read_scaler,
 	mxd_soft_mcs_read_measurement,
@@ -249,9 +251,9 @@ mxd_soft_mcs_open( MX_RECORD *record )
 /*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mxd_soft_mcs_start( MX_MCS *mcs )
+mxd_soft_mcs_arm( MX_MCS *mcs )
 {
-	static const char fname[] = "mxd_soft_mcs_start()";
+	static const char fname[] = "mxd_soft_mcs_arm()";
 
 	MX_SOFT_MCS *soft_mcs = NULL;
 	MX_RECORD *eca_record = NULL;
@@ -530,7 +532,7 @@ mxd_soft_mcs_get_parameter( MX_MCS *mcs )
 #endif
 
 	switch( mcs->parameter_type ) {
-	case MXLV_MCS_MODE:
+	case MXLV_MCS_COUNTING_MODE:
 	case MXLV_MCS_MEASUREMENT_TIME:
 	case MXLV_MCS_CURRENT_NUM_MEASUREMENTS:
 		break;
@@ -562,15 +564,15 @@ mxd_soft_mcs_set_parameter( MX_MCS *mcs )
 #endif
 
 	switch( mcs->parameter_type ) {
-	case MXLV_MCS_MODE:
+	case MXLV_MCS_COUNTING_MODE:
 
 #if MXD_SOFT_MCS_DEBUG
 		MX_DEBUG(-2,("%s: MCS mode = %ld", fname, mcs->mode));
 #endif
-		if ( mcs->mode != MXM_PRESET_TIME ) {
+		if ( mcs->counting_mode != MXM_PRESET_TIME ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal MCS mode %ld selected.  Only preset time mode is "
-		"allowed for a soft MCS.", mcs->mode );
+		"allowed for a soft MCS.", mcs->counting_mode );
 		}
 		break;
 	case MXLV_MCS_MEASUREMENT_TIME:

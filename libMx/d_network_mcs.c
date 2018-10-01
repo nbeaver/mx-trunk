@@ -40,10 +40,12 @@ MX_RECORD_FUNCTION_LIST mxd_network_mcs_record_function_list = {
 };
 
 MX_MCS_FUNCTION_LIST mxd_network_mcs_mcs_function_list = {
-	mxd_network_mcs_start,
+	mxd_network_mcs_arm,
+	mxd_network_mcs_trigger,
 	mxd_network_mcs_stop,
 	mxd_network_mcs_clear,
 	mxd_network_mcs_busy,
+	mxd_network_mcs_status,
 	mxd_network_mcs_read_all,
 	mxd_network_mcs_read_scaler,
 	mxd_network_mcs_read_measurement,
@@ -183,6 +185,10 @@ mxd_network_mcs_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	mx_network_field_init( &(network_mcs->arm_nf),
+		network_mcs->server_record,
+		"%s.arm", network_mcs->remote_record_name );
+
 	mx_network_field_init( &(network_mcs->busy_nf),
 		network_mcs->server_record,
 		"%s.busy", network_mcs->remote_record_name );
@@ -190,6 +196,10 @@ mxd_network_mcs_finish_record_initialization( MX_RECORD *record )
 	mx_network_field_init( &(network_mcs->clear_nf),
 		network_mcs->server_record,
 		"%s.clear", network_mcs->remote_record_name );
+
+	mx_network_field_init( &(network_mcs->counting_mode_nf),
+		network_mcs->server_record,
+		"%s.counting_mode", network_mcs->remote_record_name );
 
 	mx_network_field_init( &(network_mcs->current_num_measurements_nf),
 		network_mcs->server_record,
@@ -235,10 +245,6 @@ mxd_network_mcs_finish_record_initialization( MX_RECORD *record )
 		network_mcs->server_record,
 		"%s.measurement_time", network_mcs->remote_record_name );
 
-	mx_network_field_init( &(network_mcs->mode_nf),
-		network_mcs->server_record,
-		"%s.mode", network_mcs->remote_record_name );
-
 	mx_network_field_init( &(network_mcs->readout_preference_nf),
 		network_mcs->server_record,
 		"%s.readout_preference", network_mcs->remote_record_name );
@@ -259,6 +265,10 @@ mxd_network_mcs_finish_record_initialization( MX_RECORD *record )
 		network_mcs->server_record,
 		"%s.start", network_mcs->remote_record_name );
 
+	mx_network_field_init( &(network_mcs->status_nf),
+		network_mcs->server_record,
+		"%s.status", network_mcs->remote_record_name );
+
 	mx_network_field_init( &(network_mcs->stop_nf),
 		network_mcs->server_record,
 		"%s.stop", network_mcs->remote_record_name );
@@ -270,6 +280,14 @@ mxd_network_mcs_finish_record_initialization( MX_RECORD *record )
 	mx_network_field_init( &(network_mcs->timer_name_nf),
 		network_mcs->server_record,
 		"%s.timer_name", network_mcs->remote_record_name );
+
+	mx_network_field_init( &(network_mcs->trigger_nf),
+		network_mcs->server_record,
+		"%s.trigger", network_mcs->remote_record_name );
+
+	mx_network_field_init( &(network_mcs->trigger_mode_nf),
+		network_mcs->server_record,
+		"%s.trigger_mode", network_mcs->remote_record_name );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -474,12 +492,12 @@ mxd_network_mcs_open( MX_RECORD *record )
 /*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mxd_network_mcs_start( MX_MCS *mcs )
+mxd_network_mcs_arm( MX_MCS *mcs )
 {
-	static const char fname[] = "mxd_network_mcs_start()";
+	static const char fname[] = "mxd_network_mcs_arm()";
 
 	MX_NETWORK_MCS *network_mcs = NULL;
-	mx_bool_type start;
+	mx_bool_type arm;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_mcs_get_pointers( mcs, &network_mcs, fname );
@@ -487,9 +505,30 @@ mxd_network_mcs_start( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	start = TRUE;
+	arm = TRUE;
 
-	mx_status = mx_put( &(network_mcs->start_nf), MXFT_BOOL, &start );
+	mx_status = mx_put( &(network_mcs->arm_nf), MXFT_BOOL, &arm );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_network_mcs_trigger( MX_MCS *mcs )
+{
+	static const char fname[] = "mxd_network_mcs_trigger()";
+
+	MX_NETWORK_MCS *network_mcs = NULL;
+	mx_bool_type trigger;
+	mx_status_type mx_status;
+
+	mx_status = mxd_network_mcs_get_pointers( mcs, &network_mcs, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	trigger = TRUE;
+
+	mx_status = mx_put( &(network_mcs->trigger_nf), MXFT_BOOL, &trigger );
 
 	return mx_status;
 }
@@ -556,6 +595,38 @@ mxd_network_mcs_busy( MX_MCS *mcs )
 		return mx_status;
 
 	if ( busy ) {
+		mcs->busy = TRUE;
+		mcs->status = 0x1;
+	} else {
+		mcs->busy = FALSE;
+		mcs->status = 0x0;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_network_mcs_status( MX_MCS *mcs )
+{
+	static const char fname[] = "mxd_network_mcs_status()";
+
+	MX_NETWORK_MCS *network_mcs = NULL;
+	unsigned long mcs_status;
+	mx_status_type mx_status;
+
+	mx_status = mxd_network_mcs_get_pointers( mcs, &network_mcs, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_get( &(network_mcs->status_nf), MXFT_HEX, &mcs_status );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mcs->status = mcs_status;
+
+	if ( mcs_status ) {
 		mcs->busy = TRUE;
 	} else {
 		mcs->busy = FALSE;
@@ -796,7 +867,7 @@ mxd_network_mcs_get_parameter( MX_MCS *mcs )
 	static const char fname[] = "mxd_network_mcs_get_parameter()";
 
 	MX_NETWORK_MCS *network_mcs = NULL;
-	long mode;
+	long counting_mode, trigger_mode;
 	mx_bool_type external_channel_advance;
 	unsigned long external_prescale;
 	unsigned long num_measurements, measurement_counts;
@@ -814,10 +885,18 @@ mxd_network_mcs_get_parameter( MX_MCS *mcs )
 		fname, mcs->record->name, mcs->parameter_type));
 
 	switch( mcs->parameter_type ) {
-	case MXLV_MCS_MODE:
-		mx_status = mx_get( &(network_mcs->mode_nf), MXFT_LONG, &mode );
+	case MXLV_MCS_COUNTING_MODE:
+		mx_status = mx_get( &(network_mcs->counting_mode_nf),
+						MXFT_LONG, &counting_mode );
 
-		mcs->mode = mode;
+		mcs->counting_mode = counting_mode;
+		break;
+
+	case MXLV_MCS_TRIGGER_MODE:
+		mx_status = mx_get( &(network_mcs->trigger_mode_nf),
+						MXFT_LONG, &trigger_mode );
+
+		mcs->counting_mode = counting_mode;
 		break;
 
 	case MXLV_MCS_EXTERNAL_CHANNEL_ADVANCE:
@@ -922,7 +1001,7 @@ mxd_network_mcs_set_parameter( MX_MCS *mcs )
 	static const char fname[] = "mxd_network_mcs_set_parameter()";
 
 	MX_NETWORK_MCS *network_mcs = NULL;
-	long mode;
+	long counting_mode, trigger_mode;
 	mx_bool_type external_channel_advance;
 	unsigned long external_prescale;
 	unsigned long num_measurements, measurement_counts;
@@ -938,10 +1017,18 @@ mxd_network_mcs_set_parameter( MX_MCS *mcs )
 		fname, mcs->record->name, mcs->parameter_type));
 
 	switch( mcs->parameter_type ) {
-	case MXLV_MCS_MODE:
-		mode = mcs->mode;
+	case MXLV_MCS_COUNTING_MODE:
+		counting_mode = mcs->counting_mode;
 
-		mx_status = mx_put( &(network_mcs->mode_nf), MXFT_LONG, &mode );
+		mx_status = mx_put( &(network_mcs->counting_mode_nf),
+						MXFT_LONG, &counting_mode );
+		break;
+
+	case MXLV_MCS_TRIGGER_MODE:
+		trigger_mode = mcs->trigger_mode;
+
+		mx_status = mx_put( &(network_mcs->trigger_mode_nf),
+						MXFT_LONG, &trigger_mode );
 		break;
 
 	case MXLV_MCS_EXTERNAL_CHANNEL_ADVANCE:

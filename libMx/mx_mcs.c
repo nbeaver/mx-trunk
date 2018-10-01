@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2006, 2009-2010, 2012, 2014-2016
+ * Copyright 2000-2006, 2009-2010, 2012, 2014-2016, 2018
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -325,13 +325,13 @@ mx_mcs_finish_record_initialization( MX_RECORD *mcs_record )
 /*=======================================================================*/
 
 MX_EXPORT mx_status_type
-mx_mcs_start( MX_RECORD *mcs_record )
+mx_mcs_arm( MX_RECORD *mcs_record )
 {
-	static const char fname[] = "mx_mcs_start()";
+	static const char fname[] = "mx_mcs_arm()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
-	mx_status_type ( *start_fn ) ( MX_MCS * );
+	mx_status_type ( *arm_fn ) ( MX_MCS * );
 	mx_status_type mx_status;
 
 	mx_status = mx_mcs_get_pointers( mcs_record,
@@ -340,24 +340,79 @@ mx_mcs_start( MX_RECORD *mcs_record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	start_fn = function_list->start;
+	arm_fn = function_list->arm;
 
-	if ( start_fn == NULL ) {
+	if ( arm_fn == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"start function ptr for record '%s' is NULL.",
+		"arm function ptr for record '%s' is NULL.",
 			mcs_record->name );
 	}
 
 	mcs->measurement_number = -1;
 
-	mx_status = (*start_fn)( mcs );
+	mx_status = (*arm_fn)( mcs );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mcs->new_data_available = TRUE;
+	if ( mcs->trigger_mode == MXF_MCS_EXTERNAL_TRIGGER ) {
+		mcs->new_data_available = TRUE;
+	}
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_mcs_trigger( MX_RECORD *mcs_record )
+{
+	static const char fname[] = "mx_mcs_trigger()";
+
+	MX_MCS *mcs;
+	MX_MCS_FUNCTION_LIST *function_list;
+	mx_status_type ( *trigger_fn ) ( MX_MCS * );
+	mx_status_type mx_status;
+
+	mx_status = mx_mcs_get_pointers( mcs_record,
+					&mcs, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( mcs->trigger_mode == MXF_MCS_INTERNAL_TRIGGER ) {
+		mcs->measurement_number = -1;
+	}
+
+	trigger_fn = function_list->trigger;
+
+	if ( trigger_fn != NULL ) {
+		mx_status = (*trigger_fn)( mcs );
+	} else {
+		mx_status = MX_SUCCESSFUL_RESULT;
+	}
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( mcs->trigger_mode == MXF_MCS_INTERNAL_TRIGGER ) {
+		mcs->new_data_available = TRUE;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_mcs_start( MX_RECORD *mcs_record )
+{
+	mx_status_type mx_status;
+
+	mx_status = mx_mcs_arm( mcs_record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_mcs_trigger( mcs_record );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -496,6 +551,7 @@ mx_mcs_is_busy( MX_RECORD *mcs_record, mx_bool_type *busy )
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *busy_fn ) ( MX_MCS * );
+	mx_status_type ( *status_fn ) ( MX_MCS * );
 	mx_status_type mx_status;
 
 	mx_status = mx_mcs_get_pointers( mcs_record,
@@ -506,22 +562,109 @@ mx_mcs_is_busy( MX_RECORD *mcs_record, mx_bool_type *busy )
 
 	busy_fn = function_list->busy;
 
-	if ( busy_fn == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"busy function ptr for record '%s' is NULL.",
-			mcs_record->name );
+	if ( busy_fn != NULL ) {
+		mx_status = (*busy_fn)( mcs );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( mcs->busy ) {
+			mcs->status = 0x1;
+		} else {
+			mcs->status = 0x0;
+		}
+	} else {
+		status_fn = function_list->status;
+
+		if ( status_fn != NULL ) {
+			mx_status = (*status_fn)( mcs );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( mcs->status ) {
+				mcs->busy = TRUE;
+			} else {
+				mcs->busy = FALSE;
+			}
+		} else {
+			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+			"Neither the 'busy' nor the 'status' methods are "
+			"implemented for the '%s' driver of MCS '%s'.",
+				mx_get_driver_name( mcs_record ),
+				mcs_record->name );
+		}
 	}
-
-	mx_status = (*busy_fn)( mcs );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
 
 	if ( busy != NULL ) {
 		*busy = mcs->busy;
 	}
 
 	if ( mcs->busy ) {
+		mcs->new_data_available = TRUE;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_mcs_get_status( MX_RECORD *mcs_record, unsigned long *mcs_status )
+{
+	static const char fname[] = "mx_mcs_get_status()";
+
+	MX_MCS *mcs;
+	MX_MCS_FUNCTION_LIST *function_list;
+	mx_status_type ( *busy_fn ) ( MX_MCS * );
+	mx_status_type ( *status_fn ) ( MX_MCS * );
+	mx_status_type mx_status;
+
+	mx_status = mx_mcs_get_pointers( mcs_record,
+					&mcs, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	status_fn = function_list->status;
+
+	if ( status_fn != NULL ) {
+		mx_status = (*status_fn)( mcs );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( mcs->status ) {
+			mcs->busy = TRUE;
+		} else {
+			mcs->busy = FALSE;
+		}
+	} else {
+		busy_fn = function_list->busy;
+
+		if ( busy_fn != NULL ) {
+			mx_status = (*busy_fn)( mcs );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( mcs->busy ) {
+				mcs->status = 0x1;
+			} else {
+				mcs->status = 0x0;
+			}
+		} else {
+			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+			"Neither the 'busy' nor the 'status' methods are "
+			"implemented for the '%s' driver of MCS '%s'.",
+				mx_get_driver_name( mcs_record ),
+				mcs_record->name );
+		}
+	}
+
+	if ( mcs_status != NULL ) {
+		*mcs_status = mcs->status;
+	}
+
+	if ( mcs->status ) {
 		mcs->new_data_available = TRUE;
 	}
 
@@ -777,9 +920,9 @@ mx_mcs_read_timer( MX_RECORD *mcs_record,
 }
 
 MX_EXPORT mx_status_type
-mx_mcs_get_mode( MX_RECORD *mcs_record, long *mode )
+mx_mcs_get_counting_mode( MX_RECORD *mcs_record, long *counting_mode )
 {
-	static const char fname[] = "mx_mcs_get_mode()";
+	static const char fname[] = "mx_mcs_get_counting_mode()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
@@ -798,21 +941,21 @@ mx_mcs_get_mode( MX_RECORD *mcs_record, long *mode )
 		get_parameter_fn = mx_mcs_default_get_parameter_handler;
 	}
 
-	mcs->parameter_type = MXLV_MCS_MODE;
+	mcs->parameter_type = MXLV_MCS_COUNTING_MODE;
 
 	mx_status = (*get_parameter_fn)( mcs );
 
-	if ( mode != NULL ) {
-		*mode = mcs->mode;
+	if ( counting_mode != NULL ) {
+		*counting_mode = mcs->counting_mode;
 	}
 
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mx_mcs_set_mode( MX_RECORD *mcs_record, long mode )
+mx_mcs_set_counting_mode( MX_RECORD *mcs_record, long counting_mode )
 {
-	static const char fname[] = "mx_mcs_set_mode()";
+	static const char fname[] = "mx_mcs_set_counting_mode()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
@@ -831,9 +974,73 @@ mx_mcs_set_mode( MX_RECORD *mcs_record, long mode )
 		set_parameter_fn = mx_mcs_default_set_parameter_handler;
 	}
 
-	mcs->parameter_type = MXLV_MCS_MODE;
+	mcs->parameter_type = MXLV_MCS_COUNTING_MODE;
 
-	mcs->mode = mode;
+	mcs->counting_mode = counting_mode;
+
+	mx_status = (*set_parameter_fn)( mcs );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_mcs_get_trigger_mode( MX_RECORD *mcs_record, long *trigger_mode )
+{
+	static const char fname[] = "mx_mcs_get_trigger_mode()";
+
+	MX_MCS *mcs;
+	MX_MCS_FUNCTION_LIST *function_list;
+	mx_status_type ( *get_parameter_fn ) ( MX_MCS * );
+	mx_status_type mx_status;
+
+	mx_status = mx_mcs_get_pointers( mcs_record,
+					&mcs, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = function_list->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn = mx_mcs_default_get_parameter_handler;
+	}
+
+	mcs->parameter_type = MXLV_MCS_TRIGGER_MODE;
+
+	mx_status = (*get_parameter_fn)( mcs );
+
+	if ( trigger_mode != NULL ) {
+		*trigger_mode = mcs->trigger_mode;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_mcs_set_trigger_mode( MX_RECORD *mcs_record, long trigger_mode )
+{
+	static const char fname[] = "mx_mcs_set_trigger_mode()";
+
+	MX_MCS *mcs;
+	MX_MCS_FUNCTION_LIST *function_list;
+	mx_status_type ( *set_parameter_fn ) ( MX_MCS * );
+	mx_status_type mx_status;
+
+	mx_status = mx_mcs_get_pointers( mcs_record,
+					&mcs, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	set_parameter_fn = function_list->set_parameter;
+
+	if ( set_parameter_fn == NULL ) {
+		set_parameter_fn = mx_mcs_default_set_parameter_handler;
+	}
+
+	mcs->parameter_type = MXLV_MCS_TRIGGER_MODE;
+
+	mcs->trigger_mode = trigger_mode;
 
 	mx_status = (*set_parameter_fn)( mcs );
 
@@ -1483,7 +1690,8 @@ mx_mcs_default_get_parameter_handler( MX_MCS *mcs )
 	static const char fname[] = "mx_mcs_default_get_parameter_handler()";
 
 	switch( mcs->parameter_type ) {
-	case MXLV_MCS_MODE:
+	case MXLV_MCS_COUNTING_MODE:
+	case MXLV_MCS_TRIGGER_MODE:
 	case MXLV_MCS_EXTERNAL_CHANNEL_ADVANCE:
 	case MXLV_MCS_EXTERNAL_PRESCALE:
 	case MXLV_MCS_MEASUREMENT_TIME:
@@ -1517,7 +1725,8 @@ mx_mcs_default_set_parameter_handler( MX_MCS *mcs )
 	static const char fname[] ="mx_mcs_default_set_parameter_handler()";
 
 	switch( mcs->parameter_type ) {
-	case MXLV_MCS_MODE:
+	case MXLV_MCS_COUNTING_MODE:
+	case MXLV_MCS_TRIGGER_MODE:
 	case MXLV_MCS_EXTERNAL_CHANNEL_ADVANCE:
 	case MXLV_MCS_EXTERNAL_PRESCALE:
 	case MXLV_MCS_MEASUREMENT_TIME:

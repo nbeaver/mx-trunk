@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2002, 2005-2006, 2010 Illinois Institute of Technology
+ * Copyright 2001-2002, 2005-2006, 2010, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -139,10 +139,11 @@ MX_API mx_status_type mxd_sis3801_finish_record_initialization(
 MX_API mx_status_type mxd_sis3801_open( MX_RECORD *record );
 MX_API mx_status_type mxd_sis3801_close( MX_RECORD *record );
 
-MX_API mx_status_type mxd_sis3801_start( MX_MCS *mcs );
+MX_API mx_status_type mxd_sis3801_arm( MX_MCS *mcs );
 MX_API mx_status_type mxd_sis3801_stop( MX_MCS *mcs );
 MX_API mx_status_type mxd_sis3801_clear( MX_MCS *mcs );
 MX_API mx_status_type mxd_sis3801_busy( MX_MCS *mcs );
+MX_API mx_status_type mxd_sis3801_status( MX_MCS *mcs );
 MX_API mx_status_type mxd_sis3801_read_all( MX_MCS *mcs );
 MX_API mx_status_type mxd_sis3801_read_scaler( MX_MCS *mcs );
 MX_API mx_status_type mxd_sis3801_read_measurement( MX_MCS *mcs );

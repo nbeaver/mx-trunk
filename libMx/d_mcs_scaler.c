@@ -12,7 +12,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2002, 2004, 2006, 2008-2009 Illinois Institute of Technology
+ * Copyright 2000-2002, 2004, 2006, 2008-2009, 2018
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -553,7 +554,7 @@ mxd_mcs_scaler_get_parameter( MX_SCALER *scaler )
 
 	MX_MCS_SCALER *mcs_scaler = NULL;
 	unsigned long scaler_index;
-	long mode;
+	long counting_mode;
 	double dark_current;
 	mx_status_type mx_status;
 
@@ -565,9 +566,11 @@ mxd_mcs_scaler_get_parameter( MX_SCALER *scaler )
 
 	switch( scaler->parameter_type ) {
 	case MXLV_SCL_MODE:
-		mx_status = mx_mcs_get_mode( mcs_scaler->mcs_record, &mode );
+		mx_status =
+		    mx_mcs_get_counting_mode( mcs_scaler->mcs_record,
+							&counting_mode );
 
-		scaler->mode = mode;
+		scaler->mode = counting_mode;
 		break;
 	case MXLV_SCL_DARK_CURRENT:
 		if ( scaler->scaler_flags

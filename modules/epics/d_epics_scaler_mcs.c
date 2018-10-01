@@ -14,7 +14,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2014-2015 Illinois Institute of Technology
+ * Copyright 2014-2015, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -55,7 +55,8 @@ MX_RECORD_FUNCTION_LIST mxd_epics_scaler_mcs_record_function_list = {
 };
 
 MX_MCS_FUNCTION_LIST mxd_epics_scaler_mcs_mcs_function_list = {
-	mxd_epics_scaler_mcs_start,
+	mxd_epics_scaler_mcs_arm,
+	NULL,
 	mxd_epics_scaler_mcs_stop,
 	mxd_epics_scaler_mcs_clear,
 	mxd_epics_scaler_mcs_busy
@@ -551,9 +552,9 @@ mxd_epics_scaler_mcs_open( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_epics_scaler_mcs_start( MX_MCS *mcs )
+mxd_epics_scaler_mcs_arm( MX_MCS *mcs )
 {
-	static const char fname[] = "mxd_epics_scaler_mcs_start()";
+	static const char fname[] = "mxd_epics_scaler_mcs_arm()";
 
 	MX_EPICS_SCALER_MCS *epics_scaler_mcs;
 	int32_t cnt;

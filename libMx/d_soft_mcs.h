@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2004, 2010, 2016 Illinois Institute of Technology
+ * Copyright 2000-2001, 2004, 2010, 2016, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -37,7 +37,7 @@ MX_API mx_status_type mxd_soft_mcs_finish_record_initialization(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_soft_mcs_open( MX_RECORD *record );
 
-MX_API mx_status_type mxd_soft_mcs_start( MX_MCS *mcs );
+MX_API mx_status_type mxd_soft_mcs_arm( MX_MCS *mcs );
 MX_API mx_status_type mxd_soft_mcs_stop( MX_MCS *mcs );
 MX_API mx_status_type mxd_soft_mcs_clear( MX_MCS *mcs );
 MX_API mx_status_type mxd_soft_mcs_busy( MX_MCS *mcs );
