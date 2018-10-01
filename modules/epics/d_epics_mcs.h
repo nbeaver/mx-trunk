@@ -35,6 +35,7 @@ typedef struct {
 	int32_t *scaler_value_buffer;
 
 	MX_EPICS_PV acquiring_pv;
+	MX_EPICS_PV chas_pv;
 	MX_EPICS_PV dwell_pv;
 	MX_EPICS_PV erase_pv;
 	MX_EPICS_PV nmax_pv;

@@ -324,7 +324,7 @@ mxd_epics_mcs_open( MX_RECORD *record )
 			"%s%ld_Meas.VAL", epics_mcs->channel_prefix, i + 1 );
 	}
 
-#if 1
+#if 0
 	for ( i = 0; i < epics_mcs->num_scaler_pvs; i++ ) {
 		MX_DEBUG(-2,("i = %ld, %s, %s, %s %s %s", i,
 			epics_mcs->dark_pv_array[i].pvname,
@@ -442,6 +442,10 @@ mxd_epics_mcs_open( MX_RECORD *record )
 		mx_epics_pvname_init(&(epics_mcs->acquiring_pv),
 				"%sAcquiring.VAL", epics_mcs->common_prefix );
 
+		mx_epics_pvname_init( &(epics_mcs->chas_pv),
+				"%sChannelAdvance.VAL",
+				epics_mcs->common_prefix );
+
 		mx_epics_pvname_init( &(epics_mcs->dwell_pv),
 				"%sDwell.VAL", epics_mcs->common_prefix );
 
@@ -465,6 +469,9 @@ mxd_epics_mcs_open( MX_RECORD *record )
 
 		mx_epics_pvname_init(&(epics_mcs->acquiring_pv),
 				"%s1Start.VAL", epics_mcs->channel_prefix );
+
+		mx_epics_pvname_init( &(epics_mcs->chas_pv),
+				"%s1.CHAS", epics_mcs->channel_prefix );
 
 		mx_epics_pvname_init( &(epics_mcs->dwell_pv),
 				"%s1.DWEL", epics_mcs->channel_prefix );
@@ -1008,7 +1015,7 @@ mxd_epics_mcs_get_parameter( MX_MCS *mcs )
 
 	MX_EPICS_MCS *epics_mcs = NULL;
 	double dark_current;
-	int32_t measurement_number;
+	int32_t measurement_number, external_channel_advance;;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_mcs_get_pointers( mcs, &epics_mcs, fname );
@@ -1042,6 +1049,20 @@ mxd_epics_mcs_get_parameter( MX_MCS *mcs )
 
 		mcs->dark_current_array[ mcs->scaler_index ] = dark_current;
 		break;
+	case MXLV_MCS_TRIGGER_MODE:
+
+		mx_status = mx_caget( &(epics_mcs->chas_pv),
+				MX_CA_LONG, 1, &external_channel_advance );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( external_channel_advance ) {
+			mcs->trigger_mode = MXF_MCS_EXTERNAL_TRIGGER;
+		} else {
+			mcs->trigger_mode = MXF_MCS_INTERNAL_TRIGGER;
+		}
+		break;
 	default:
 		return mx_mcs_default_get_parameter_handler( mcs );
 		break;
@@ -1058,7 +1079,7 @@ mxd_epics_mcs_set_parameter( MX_MCS *mcs )
 	MX_EPICS_GROUP epics_group;
 	double dwell_time, preset_live_time, dark_current;
 	unsigned long do_not_skip;
-	int32_t stop, current_num_epics_measurements;
+	int32_t stop, current_num_epics_measurements, external_channel_advance;
 	float preset_real_time;
 	mx_status_type mx_status;
 
@@ -1209,6 +1230,27 @@ mxd_epics_mcs_set_parameter( MX_MCS *mcs )
 			return mx_status;
 		break;
 
+	case MXLV_MCS_TRIGGER_MODE:
+		switch( mcs->trigger_mode ) {
+		case MXF_MCS_INTERNAL_TRIGGER:
+			external_channel_advance = 0;
+			break;
+		case MXF_MCS_EXTERNAL_TRIGGER:
+			external_channel_advance = 1;
+			break;
+		default:
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Illegal trigger mode %ld specified for MCS '%s'.",
+				mcs->trigger_mode, mcs->record->name );
+			break;
+		}
+
+		mx_status = mx_caput( &(epics_mcs->chas_pv),
+				MX_CA_LONG, 1, &external_channel_advance );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+		break;
 	default:
 		return mx_mcs_default_set_parameter_handler( mcs );
 		break;
