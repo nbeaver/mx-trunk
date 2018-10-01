@@ -248,6 +248,8 @@ mxd_epics_mcs_open( MX_RECORD *record )
 
 	epics_mcs->num_scaler_pvs = mcs->maximum_num_scalers;
 
+	/*---*/
+
 	epics_mcs->dark_pv_array = (MX_EPICS_PV *)
 		malloc( epics_mcs->num_scaler_pvs * sizeof(MX_EPICS_PV) );
 
@@ -256,6 +258,8 @@ mxd_epics_mcs_open( MX_RECORD *record )
 	"Ran out of memory allocating %ld elments for dark_pv_array "
 	"used by MCS record '%s'.", epics_mcs->num_scaler_pvs, record->name );
 	}
+
+	/*---*/
 
 	epics_mcs->read_pv_array = (MX_EPICS_PV *)
 		malloc( epics_mcs->num_scaler_pvs * sizeof(MX_EPICS_PV) );
@@ -266,6 +270,8 @@ mxd_epics_mcs_open( MX_RECORD *record )
 	"used by MCS record '%s'.", epics_mcs->num_scaler_pvs, record->name );
 	}
 
+	/*---*/
+
 	epics_mcs->val_pv_array = (MX_EPICS_PV *)
 		malloc( epics_mcs->num_scaler_pvs * sizeof(MX_EPICS_PV) );
 
@@ -274,6 +280,30 @@ mxd_epics_mcs_open( MX_RECORD *record )
 	"Ran out of memory allocating %ld elments for val_pv_array "
 	"used by MCS record '%s'.", epics_mcs->num_scaler_pvs, record->name );
 	}
+
+	/*---*/
+
+	epics_mcs->meas_indx_pv_array = (MX_EPICS_PV *)
+		malloc( epics_mcs->num_scaler_pvs * sizeof(MX_EPICS_PV) );
+
+	if ( epics_mcs->meas_indx_pv_array == (MX_EPICS_PV *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+	"Ran out of memory allocating %ld elments for meas_indx_pv_array "
+	"used by MCS record '%s'.", epics_mcs->num_scaler_pvs, record->name );
+	}
+
+	/*---*/
+
+	epics_mcs->meas_val_pv_array = (MX_EPICS_PV *)
+		malloc( epics_mcs->num_scaler_pvs * sizeof(MX_EPICS_PV) );
+
+	if ( epics_mcs->meas_val_pv_array == (MX_EPICS_PV *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+	"Ran out of memory allocating %ld elments for meas_val_pv_array "
+	"used by MCS record '%s'.", epics_mcs->num_scaler_pvs, record->name );
+	}
+
+	/*---*/
 
 	for ( i = 0; i < epics_mcs->num_scaler_pvs; i++ ) {
 		mx_epics_pvname_init( &(epics_mcs->dark_pv_array[i]),
@@ -796,6 +826,127 @@ mxd_epics_mcs_read_scaler( MX_MCS *mcs )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+#if 1
+	/* This method uses EPICS subArrays to fetch only the values for a
+	 * given measurement in a channel rather than all the measurements
+	 * back to the beginning of time.
+	 *
+	 * Please note that .MALM is set to 1, so this is not designed to
+	 * be a way of reading multiple measurements at once.
+	 */
+
+MX_EXPORT mx_status_type
+mxd_epics_mcs_read_measurement( MX_MCS *mcs )
+{
+	static const char fname[] = "mxd_epics_mcs_read_measurement()";
+
+	MX_EPICS_MCS *epics_mcs = NULL;
+	MX_EPICS_GROUP epics_group;
+	long i;
+	int32_t indx_value;
+	int32_t *measurement_array = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mxd_epics_mcs_get_pointers( mcs, &epics_mcs, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Use an EPICS synchronous group to write the measurement number
+	 * to the .INDX field of each of the _Meas subArrays.
+	 */
+
+	mx_status = mx_epics_start_group( &epics_group );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	for ( i = 0; i < mcs->current_num_scalers; i++ ) {
+		indx_value = mcs->measurement_number;
+
+		mx_status = mx_group_caput( &epics_group,
+					&(epics_mcs->meas_indx_pv_array[i]),
+					MX_CA_LONG, 1, &indx_value );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	mx_status = mx_epics_end_group( &epics_group );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Now use another EPICS synchronous group to read out the
+	 * measurements from each scaler channel.
+	 *
+	 * Note that we create a separate measurement array for values
+	 * to be read to.  One reason for this is that on a 64-bit
+	 * computer, 'long's are 64 bits, but EPICS LONGs are 32-bit.
+	 * So there has to be a type conversion along the way.
+	 *
+	 * But we have to wait to copy them since the values going to
+	 * the temporary measurement_array cannot be guaranteed to 
+	 * have gotten there until after the call to the function
+	 * mx_epics_end_group().  Thus, we have to have a separate
+	 * int32_t array to use for the Channel Access I/O.
+	 */
+
+	measurement_array = (int32_t *)
+		malloc( mcs->current_num_scalers * sizeof(int32_t) );
+
+	if ( measurement_array == (int32_t *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Unable to create a %ld element array of measurement "
+		"values for EPICS MCS '%s'",
+			mcs->current_num_scalers,
+			mcs->record->name );
+	}
+
+	/*---*/
+
+	mx_status = mx_epics_start_group( &epics_group );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		mx_free( measurement_array );
+		return mx_status;
+	}
+
+	for ( i = 0; i < mcs->current_num_scalers; i++ ) {
+		indx_value = mcs->measurement_number;
+
+		mx_status = mx_group_caget( &epics_group,
+				&(epics_mcs->meas_val_pv_array[i]),
+				MX_CA_LONG, 1, &(measurement_array[i]) );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			mx_free( measurement_array );
+			return mx_status;
+		}
+	}
+
+	mx_status = mx_epics_end_group( &epics_group );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		mx_free( measurement_array );
+		return mx_status;
+	}
+
+	/* Now copy the measurements to the MCS measurement_data array. */
+
+	for ( i = 0; i < mcs->current_num_scalers; i++ ) {
+		mcs->measurement_data[i] = (long) (measurement_array[i]);
+	}
+
+	/* We can now discard measurement_array. */
+
+	mx_free( measurement_array );
+
+	return mx_status;
+}
+
+#else   /* The old mxd_epics_mcs_read_all() method. */
+
 MX_EXPORT mx_status_type
 mxd_epics_mcs_read_measurement( MX_MCS *mcs )
 {
@@ -837,6 +988,8 @@ mxd_epics_mcs_read_measurement( MX_MCS *mcs )
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+#endif
 
 MX_EXPORT mx_status_type
 mxd_epics_mcs_get_parameter( MX_MCS *mcs )

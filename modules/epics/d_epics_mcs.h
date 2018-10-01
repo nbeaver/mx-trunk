@@ -51,6 +51,9 @@ typedef struct {
 	MX_EPICS_PV *dark_pv_array;
 	MX_EPICS_PV *read_pv_array;
 	MX_EPICS_PV *val_pv_array;
+
+	MX_EPICS_PV *meas_indx_pv_array;
+	MX_EPICS_PV *meas_val_pv_array;
 } MX_EPICS_MCS;
 
 /* Define all of the interface functions. */
