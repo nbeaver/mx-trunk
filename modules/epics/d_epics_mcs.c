@@ -296,6 +296,17 @@ mxd_epics_mcs_open( MX_RECORD *record )
 
 	/*---*/
 
+	epics_mcs->meas_proc_pv_array = (MX_EPICS_PV *)
+		malloc( epics_mcs->num_scaler_pvs * sizeof(MX_EPICS_PV) );
+
+	if ( epics_mcs->meas_proc_pv_array == (MX_EPICS_PV *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+	"Ran out of memory allocating %ld elments for meas_proc_pv_array "
+	"used by MCS record '%s'.", epics_mcs->num_scaler_pvs, record->name );
+	}
+
+	/*---*/
+
 	epics_mcs->meas_val_pv_array = (MX_EPICS_PV *)
 		malloc( epics_mcs->num_scaler_pvs * sizeof(MX_EPICS_PV) );
 
@@ -320,6 +331,9 @@ mxd_epics_mcs_open( MX_RECORD *record )
 		mx_epics_pvname_init( &(epics_mcs->meas_indx_pv_array[i]),
 			"%s%ld_Meas.INDX", epics_mcs->channel_prefix, i + 1 );
 
+		mx_epics_pvname_init( &(epics_mcs->meas_proc_pv_array[i]),
+			"%s%ld_Meas.PROC", epics_mcs->channel_prefix, i + 1 );
+
 		mx_epics_pvname_init( &(epics_mcs->meas_val_pv_array[i]),
 			"%s%ld_Meas.VAL", epics_mcs->channel_prefix, i + 1 );
 	}
@@ -331,6 +345,7 @@ mxd_epics_mcs_open( MX_RECORD *record )
 			epics_mcs->read_pv_array[i].pvname,
 			epics_mcs->val_pv_array[i].pvname,
 			epics_mcs->meas_indx_pv_array[i].pvname,
+			epics_mcs->meas_proc_pv_array[i].pvname,
 			epics_mcs->meas_val_pv_array[i].pvname));
 	}
 #endif
@@ -843,7 +858,7 @@ mxd_epics_mcs_read_scaler( MX_MCS *mcs )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#if 1
+#if 0
 	/* This method uses EPICS subArrays to fetch only the values for a
 	 * given measurement in a channel rather than all the measurements
 	 * back to the beginning of time.
@@ -860,7 +875,7 @@ mxd_epics_mcs_read_measurement( MX_MCS *mcs )
 	MX_EPICS_MCS *epics_mcs = NULL;
 	MX_EPICS_GROUP epics_group;
 	long i;
-	int32_t indx_value;
+	int32_t indx_value, proc_value;
 	int32_t *measurement_array = NULL;
 	mx_status_type mx_status;
 
@@ -884,6 +899,29 @@ mxd_epics_mcs_read_measurement( MX_MCS *mcs )
 		mx_status = mx_group_caput( &epics_group,
 					&(epics_mcs->meas_indx_pv_array[i]),
 					MX_CA_LONG, 1, &indx_value );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	mx_status = mx_epics_end_group( &epics_group );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Use an EPICS synchronous group to process the subArrays. */
+
+	mx_status = mx_epics_start_group( &epics_group );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	for ( i = 0; i < mcs->current_num_scalers; i++ ) {
+		proc_value = 1;
+
+		mx_status = mx_group_caput( &epics_group,
+					&(epics_mcs->meas_proc_pv_array[i]),
+					MX_CA_LONG, 1, &proc_value );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
