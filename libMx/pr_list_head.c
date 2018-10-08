@@ -20,6 +20,7 @@
 
 #include "mx_util.h"
 #include "mx_driver.h"
+#include "mx_inttypes.h"
 #include "mx_socket.h"
 #include "mx_io.h"
 #include "mx_record.h"
@@ -1082,7 +1083,8 @@ mx_list_head_record_show_socket_id( MX_LIST_HEAD *list_head )
 		socket_handler->remote_header_length,
 		socket_handler->remote_mx_version );
 	fprintf( stderr,
-		"  remote_mx_version_time = %lu, authentication_type = %ld\n",
+		"  remote_mx_version_time = %" PRIu64
+		", authentication_type = %ld\n",
 		socket_handler->remote_mx_version_time,
 		socket_handler->authentication_type );
 
