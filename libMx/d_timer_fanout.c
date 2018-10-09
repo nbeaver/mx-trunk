@@ -23,13 +23,15 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2000-2002, 2004, 2006, 2008, 2010, 2013
+ * Copyright 2000-2002, 2004, 2006, 2008, 2010, 2013, 2018
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define MXD_TIMER_FANOUT_DEBUG		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -239,8 +241,11 @@ mxd_timer_fanout_is_busy( MX_TIMER *timer )
 	static const char fname[] = "mxd_timer_fanout_is_busy()";
 
 	MX_TIMER_FANOUT *timer_fanout = NULL;
-	MX_RECORD *child_timer_record;
-	long i;
+	MX_RECORD *child_timer_record = NULL;
+	MX_RECORD *next_timer_record = NULL;
+	long current_timer_number, next_timer_number;
+	long i, sequential;
+	double seconds_to_count;
 	mx_bool_type busy;
 	mx_status_type mx_status;
 
@@ -251,6 +256,23 @@ mxd_timer_fanout_is_busy( MX_TIMER *timer )
 
 	timer->busy = FALSE;
 
+	current_timer_number = timer_fanout->current_timer_number;
+
+	sequential = timer_fanout->timer_fanout_flags
+			& MXF_TFN_SEQUENTIAL_COUNTING_INTERVALS;
+
+#if MXD_TIMER_FANOUT_DEBUG
+	MX_DEBUG(-2,("%s: sequential = %ld", fname, sequential));
+#endif
+
+	if ( sequential ) {
+		current_timer_number = timer_fanout->current_timer_number;
+	} else {
+		current_timer_number = -1L;
+	}
+
+	/* Check _all_ the timers for busy. */
+
 	for ( i = 0; i < timer_fanout->num_timers; i++ ) {
 
 		child_timer_record = (timer_fanout->timer_record_array)[i];
@@ -260,10 +282,41 @@ mxd_timer_fanout_is_busy( MX_TIMER *timer )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
+		if ( i == current_timer_number ) {
+
+		    if ( busy != FALSE ) {
+			/* If the current timer has finished counting, then
+			 * start the next one, if there is a next one.
+			 */
+
+			next_timer_number = current_timer_number + 1;
+
+			if ( next_timer_number < timer_fanout->num_timers ) {
+			    seconds_to_count = timer->value;
+
+			    next_timer_record =
+			(timer_fanout->timer_record_array)[next_timer_number];
+
+			    mx_status = mx_timer_start( next_timer_record,
+							seconds_to_count );
+
+			    if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			    timer_fanout->current_timer_number
+				= next_timer_number;
+			}
+		    }
+		}
+
 		if ( busy ) {
 			timer->busy = TRUE;
 			break;
 		}
+	}
+
+	if ( sequential ) {
+
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -276,7 +329,7 @@ mxd_timer_fanout_start( MX_TIMER *timer )
 
 	MX_TIMER_FANOUT *timer_fanout = NULL;
 	MX_RECORD *child_timer_record;
-	long i;
+	long i, sequential;
 	double seconds_to_count;
 	mx_status_type mx_status;
 
@@ -287,14 +340,51 @@ mxd_timer_fanout_start( MX_TIMER *timer )
 
 	seconds_to_count = timer->value;
 
-	for ( i = 0; i < timer_fanout->num_timers; i++ ) {
+	sequential = timer_fanout->timer_fanout_flags
+			& MXF_TFN_SEQUENTIAL_COUNTING_INTERVALS;
 
-		child_timer_record = (timer_fanout->timer_record_array)[i];
+#if MXD_TIMER_FANOUT_DEBUG
+	MX_DEBUG(-2,("%s: sequential = %ld", fname, sequential));
+#endif
 
-		mx_status = mx_timer_start( child_timer_record, seconds_to_count );
+	if ( sequential ) {
+		/* If we are using sequential counting intervals, then
+		 * only start the first timer here.  The other timers will
+		 * be started in subsequent calls to ..._is_busy().
+		 */
+
+		timer_fanout->current_timer_number = 0;
+
+		child_timer_record = (timer_fanout->timer_record_array)[0];
+
+#if MXD_TIMER_FANOUT_DEBUG
+		MX_DEBUG(-2,("%s: Starting timer '%s'",
+			fname, child_timer_record->name));
+#endif
+
+		mx_status = mx_timer_start( child_timer_record,
+						seconds_to_count );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+	} else {
+		/* If we are not sequential, then start all timers now. */
+
+		for ( i = 0; i < timer_fanout->num_timers; i++ ) {
+
+		    child_timer_record = (timer_fanout->timer_record_array)[i];
+
+#if MXD_TIMER_FANOUT_DEBUG
+		    MX_DEBUG(-2,("%s: Starting timer '%s'",
+			fname, child_timer_record->name));
+#endif
+
+		    mx_status = mx_timer_start( child_timer_record,
+						seconds_to_count );
+
+		    if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;
