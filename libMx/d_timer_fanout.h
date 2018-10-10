@@ -24,6 +24,8 @@
 
 #define MXF_TFN_SEQUENTIAL_COUNTING_INTERVALS	0x1
 
+#define MXF_TFN_DEBUG				0x1000
+
 /* ==== MX timer fanout data structure ==== */
 
 typedef struct {
