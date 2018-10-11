@@ -8,14 +8,14 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010, 2012 Illinois Institute of Technology
+ * Copyright 2010, 2012, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXD_POWERPMAC_AIO_DEBUG		TRUE
+#define MXD_POWERPMAC_AIO_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

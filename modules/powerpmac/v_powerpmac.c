@@ -7,14 +7,14 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010, 2012 Illinois Institute of Technology
+ * Copyright 2010, 2012, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXV_POWERPMAC_DEBUG	TRUE
+#define MXV_POWERPMAC_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -305,7 +305,8 @@ mxv_powerpmac_receive_variable( MX_VARIABLE *variable )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "%s", powerpmac_variable->powerpmac_variable_name );
+	snprintf( command, sizeof(command),
+		"%s", powerpmac_variable->powerpmac_variable_name );
 
 	mx_status = mxi_powerpmac_command( powerpmac, command,
 			response, sizeof(response), MXV_POWERPMAC_DEBUG );
