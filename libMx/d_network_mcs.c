@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2000-2006, 2008, 2010, 2012, 2014-2016
+ * Copyright 2000-2006, 2008, 2010, 2012, 2014-2016, 2018
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -867,9 +867,10 @@ mxd_network_mcs_get_parameter( MX_MCS *mcs )
 	static const char fname[] = "mxd_network_mcs_get_parameter()";
 
 	MX_NETWORK_MCS *network_mcs = NULL;
-	long counting_mode, trigger_mode;
-	mx_bool_type external_channel_advance;
-	unsigned long external_prescale;
+	long counting_mode = 0;
+	long trigger_mode = 0;
+	mx_bool_type external_channel_advance = FALSE;
+	unsigned long external_prescale = 0;
 	unsigned long num_measurements, measurement_counts;
 	long measurement_number, current_num_scalers;
 	double measurement_time, dark_current;
