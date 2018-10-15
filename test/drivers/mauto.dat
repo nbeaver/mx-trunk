@@ -10,7 +10,7 @@ I0              device scaler autoscale_scaler "" "" 15833000 0 0 "" autoscale_I
 Ifilt           device scaler autoscale_scaler "" "" 6264 0 0 "" autoscale_Ifilt  0 0
 scaler_timer    device timer soft_timer "" ""
 mca_timer       device timer mca_timer "" "" mca1 0
-timer1          device timer timer_fanout "" "" 2  scaler_timer mca_timer
+timer1          device timer timer_fanout "" "" 0x0 2 scaler_timer mca_timer
 portb           device digital_input soft_dinput "" "" 0xff
 porta           device digital_output soft_doutput "" "" 0xd7
 filters         device digital_output bit_out "" "" 0xa 0 porta 3 4 porta 3 4

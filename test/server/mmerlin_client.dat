@@ -1,2 +1,2 @@
 merlin_server server network tcpip_server "" "" 0x20000000 localhost 9727
-merlin device area_detector network_area_detector "" "" 0 0x0 0x0 "" "" "" "" "" merlin_server merlin 0x0 ""
+merlin device area_detector network_area_detector "" "" 0 0x0 0x0 "" "" "" "" "" merlin_server merlin 0x0 "" ""

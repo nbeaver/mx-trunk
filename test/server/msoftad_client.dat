@@ -1,3 +1,3 @@
 adserver  server network tcp_server "" "" 0x20000000 localhost 9827
 #adserver  server network tcp_server "" "" 0x0 localhost 9827
-ad        device area_detector network_area_detector "" "" 8 adserver ad
+ad        device area_detector network_area_detector "" "" 8 0x0 0x0 "" "" "" "" "" adserver ad "" ""

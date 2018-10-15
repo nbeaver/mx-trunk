@@ -11,7 +11,7 @@ I0_real         device scaler soft_scaler "" "" 0 0 0 timer1 energy 101 ./i0.dat
 Ifilt_real      device scaler soft_scaler "" "" 0 0 0 timer1 energy 101 ./i.dat 1  filters
 scaler_timer    device timer soft_timer "" ""
 mca_timer       device timer mca_timer "" "" mca1 0
-timer1          device timer timer_fanout "" "" 2  scaler_timer mca_timer
+timer1          device timer timer_fanout "" "" 0x0 2  scaler_timer mca_timer
 portb           device digital_input soft_dinput "" "" 0
 porta           device digital_output soft_doutput "" "" 0
 filters         device digital_output bit_out "" "" 0 0 porta 3 4 porta 3 4

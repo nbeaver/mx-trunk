@@ -26,4 +26,4 @@ shutter   device digital_output soft_doutput "" "" 0
 #
 soft_timer device timer soft_timer "" ""
 ad_timer   device timer area_detector_timer "" "" ad 0
-timer1     device timer timer_fanout "" "" 2 soft_timer ad_timer
+timer1     device timer timer_fanout "" "" 0x0 2 soft_timer ad_timer

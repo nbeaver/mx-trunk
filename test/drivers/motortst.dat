@@ -92,7 +92,7 @@ Io              device scaler mcs_scaler "" "" 0 0 1 timer2 mcs1 0
 It              device scaler mcs_scaler "" "" 0 0 1 timer2 mcs1 1
 If              device scaler mcs_scaler "" "" 0 0 1 timer2 mcs1 2
 timer2          device timer mcs_timer "" "" mcs1
-dark_timer      device timer timer_fanout "" "" 2 timer1 timer2
+dark_timer      device timer timer_fanout "" "" 0x0 2 timer1 timer2
 #
 #
 ain1            device analog_input soft_ainput "" "" 0 1 0 V 0x0 0 "" aout1

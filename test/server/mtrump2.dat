@@ -8,4 +8,4 @@ Iref       device scaler mca_channel "" "" 0 0 1 mca_timer mca1 200
 Iroi       device scaler mca_roi_integral "" "" 0 0 1 mca_timer mca1 0
 soft_timer device timer soft_timer "" ""
 mca_timer  device timer mca_timer "" "" mca1 0
-timer1     device timer timer_fanout "" "" 2  soft_timer mca_timer
+timer1     device timer timer_fanout "" "" 0x0 2 soft_timer mca_timer
