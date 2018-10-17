@@ -908,6 +908,45 @@ mx_pulse_generator_get_last_pulse_number( MX_RECORD *pulse_generator_record,
 }
 
 MX_EXPORT mx_status_type
+mx_pulse_generator_get_total_num_pulses( MX_RECORD *pulse_generator_record,
+					unsigned long *total_num_pulses )
+{
+	static const char fname[] =
+			"mx_pulse_generator_get_total_num_pulses()";
+
+	MX_PULSE_GENERATOR *pulse_generator;
+	MX_PULSE_GENERATOR_FUNCTION_LIST *function_list;
+	mx_status_type ( *get_parameter_fn ) ( MX_PULSE_GENERATOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_pulse_generator_get_pointers( pulse_generator_record,
+				&pulse_generator, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = function_list->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn =
+			mx_pulse_generator_default_get_parameter_handler;
+	}
+
+	pulse_generator->parameter_type = MXLV_PGN_LAST_PULSE_NUMBER;
+
+	mx_status = (*get_parameter_fn)( pulse_generator );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( total_num_pulses != NULL ) {
+		*total_num_pulses = pulse_generator->total_num_pulses;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mx_pulse_generator_get_status( MX_RECORD *pulse_generator_record,
 					unsigned long *pulser_status )
 {
@@ -989,8 +1028,8 @@ mx_pulse_generator_default_get_parameter_handler(
 		break;
 
 	case MXLV_PGN_LAST_PULSE_NUMBER:
-		/* The default response is to return 0 if the pulser is busy
-		 * or -1 if the pulser is _not_ busy.
+		/* The default response is to return -1 if the pulser is busy
+		 * or 0 if the pulser is _not_ busy.
 		 */
 
 		flist = pulse_generator->record->class_specific_function_list;
@@ -1016,10 +1055,14 @@ mx_pulse_generator_default_get_parameter_handler(
 		}
 
 		if ( pulse_generator->busy ) {
-			pulse_generator->last_pulse_number = 0;
-		} else {
 			pulse_generator->last_pulse_number = -1;
+		} else {
+			pulse_generator->last_pulse_number = 0;
 		}
+		break;
+
+	case MXLV_PGN_TOTAL_NUM_PULSES:
+		pulse_generator->total_num_pulses = 0;
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,

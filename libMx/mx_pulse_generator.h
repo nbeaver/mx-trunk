@@ -87,6 +87,7 @@ typedef struct {
 
 	mx_bool_type busy;
 	long last_pulse_number;
+	unsigned long total_num_pulses;
 	unsigned long status;
 
 	/* The following fields are used to handle pulse generators that
@@ -116,7 +117,8 @@ typedef struct {
 #define MXLV_PGN_ABORT			16011
 #define MXLV_PGN_BUSY			16012
 #define MXLV_PGN_LAST_PULSE_NUMBER	16013
-#define MXLV_PGN_STATUS			16014
+#define MXLV_PGN_TOTAL_NUM_PULSES	16014
+#define MXLV_PGN_STATUS			16015
 
 #define MX_PULSE_GENERATOR_STANDARD_FIELDS \
   {MXLV_PGN_PULSE_PERIOD, -1, "pulse_period", MXFT_DOUBLE, NULL, 0, {0}, \
@@ -175,6 +177,11 @@ typedef struct {
   {MXLV_PGN_LAST_PULSE_NUMBER, -1, "last_pulse_number", \
 					MXFT_LONG, NULL, 0, {0},\
 	MXF_REC_CLASS_STRUCT, offsetof(MX_PULSE_GENERATOR, last_pulse_number), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {MXLV_PGN_TOTAL_NUM_PULSES, -1, "total_num_pulses", \
+					MXFT_ULONG, NULL, 0, {0},\
+	MXF_REC_CLASS_STRUCT, offsetof(MX_PULSE_GENERATOR, total_num_pulses), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
   {MXLV_PGN_STATUS, -1, "status", MXFT_HEX, NULL, 0, {0}, \
@@ -261,6 +268,10 @@ MX_API mx_status_type mx_pulse_generator_set_pulse_delay( MX_RECORD *record,
 MX_API mx_status_type mx_pulse_generator_get_last_pulse_number(
 						MX_RECORD *record,
 						long *last_pulse_number );
+
+MX_API mx_status_type mx_pulse_generator_get_total_num_pulses(
+					MX_RECORD *record,
+					unsigned long *total_num_pulses );
 
 MX_API mx_status_type mx_pulse_generator_get_status( MX_RECORD *record,
 						unsigned long *pulser_status );

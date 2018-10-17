@@ -39,6 +39,8 @@ MX_API mx_status_type mxd_gittelsohn_pulser_open( MX_RECORD *record );
 
 MX_API mx_status_type mxd_gittelsohn_pulser_is_busy( MX_PULSE_GENERATOR *pulser );
 MX_API mx_status_type mxd_gittelsohn_pulser_arm( MX_PULSE_GENERATOR *pulser );
+MX_API mx_status_type mxd_gittelsohn_pulser_trigger(
+					MX_PULSE_GENERATOR *pulser );
 MX_API mx_status_type mxd_gittelsohn_pulser_stop( MX_PULSE_GENERATOR *pulser );
 MX_API mx_status_type mxd_gittelsohn_pulser_get_parameter(
 					MX_PULSE_GENERATOR *pulser );

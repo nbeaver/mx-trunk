@@ -17,11 +17,11 @@
 
 #define MXD_GITTELSOHN_PULSER_DEBUG		FALSE
 
-#define MXD_GITTELSOHN_PULSER_DEBUG_CONF	FALSE
+#define MXD_GITTELSOHN_PULSER_DEBUG_CONF	TRUE
 
-#define MXD_GITTELSOHN_PULSER_DEBUG_RUNNING	FALSE
+#define MXD_GITTELSOHN_PULSER_DEBUG_RUNNING	TRUE
 
-#define MXD_GITTELSOHN_PULSER_DEBUG_SETUP	FALSE
+#define MXD_GITTELSOHN_PULSER_DEBUG_SETUP	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -48,7 +48,7 @@ MX_RECORD_FUNCTION_LIST mxd_gittelsohn_pulser_record_function_list = {
 MX_PULSE_GENERATOR_FUNCTION_LIST mxd_gittelsohn_pulser_pulser_function_list = {
 	mxd_gittelsohn_pulser_is_busy,
 	mxd_gittelsohn_pulser_arm,
-	NULL,
+	mxd_gittelsohn_pulser_trigger,
 	mxd_gittelsohn_pulser_stop,
 	NULL,
 	mxd_gittelsohn_pulser_get_parameter,
@@ -225,9 +225,9 @@ mxd_gittelsohn_pulser_set_arduino_parameters( MX_PULSE_GENERATOR *pulser,
 
 	/*----------------------------------------------------------------*/
 
-	/* The Gittelsohn Arduino pulser only does square waves. */
+	/* The Gittelsohn Arduino pulser only does pulses. */
 
-	pulser->function_mode = MXF_PGN_SQUARE_WAVE;
+	pulser->function_mode = MXF_PGN_PULSE;
 
 	/* The Gittelsohn Arduino pulser does not implement a pulse delay. */
 
@@ -563,6 +563,30 @@ mxd_gittelsohn_pulser_is_busy( MX_PULSE_GENERATOR *pulser )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Get the number of pulses generated so far to the total number of
+	 * pulses expected to be generated.
+	 */
+
+	mx_status = mx_pulse_generator_get_num_pulses( pulser->record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_pulse_generator_get_last_pulse_number( pulser->record,
+									NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( pulser->last_pulse_number < -1 ) {
+		pulser->busy = FALSE;
+	} else
+	if ( pulser->last_pulse_number < pulser->num_pulses ) {
+		pulser->busy = TRUE;
+	} else {
+		pulser->busy = FALSE;
+	}
+
 #if MXD_GITTELSOHN_PULSER_DEBUG_RUNNING
 	MX_DEBUG(-2,("%s: pulser '%s', busy = %d",
 		fname, pulser->record->name, (int) pulser->busy));
@@ -588,13 +612,15 @@ mxd_gittelsohn_pulser_arm( MX_PULSE_GENERATOR *pulser )
 		return mx_status;
 
 #if MXD_GITTELSOHN_PULSER_DEBUG_RUNNING
-	MX_DEBUG(-2,("%s: Pulse generator '%s' starting, "
+	MX_DEBUG(-2,("%s: Pulse generator '%s' armed, "
 		"pulse_width = %f, pulse_period = %f, num_pulses = %ld",
 			fname, pulser->record->name,
 			pulser->pulse_width,
 			pulser->pulse_period,
 			pulser->num_pulses));
 #endif
+	pulser->busy = FALSE;
+
 	if ( pulser->pulse_width < 0.0 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Pulser '%s' is configured for a negative pulse width %g.",
@@ -648,6 +674,19 @@ mxd_gittelsohn_pulser_arm( MX_PULSE_GENERATOR *pulser )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* If we are not in external trigger mode, then we are done. */
+
+	mx_status = mx_pulse_generator_get_trigger_mode( pulser->record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( (pulser->trigger_mode & MXF_PGN_EXTERNAL_TRIGGER) == 0 ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* We are in external trigger mode. */
+
 	/* Start the pulse generator. */
 
 	mx_status = mxd_gittelsohn_pulser_command( gittelsohn_pulser,
@@ -661,6 +700,48 @@ mxd_gittelsohn_pulser_arm( MX_PULSE_GENERATOR *pulser )
 	pulser->busy = TRUE;
 
 	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_gittelsohn_pulser_trigger( MX_PULSE_GENERATOR *pulser )
+{
+	static const char fname[] = "mxd_gittelsohn_pulser_arm()";
+
+	MX_GITTELSOHN_PULSER *gittelsohn_pulser = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mxd_gittelsohn_pulser_get_pointers( pulser,
+						&gittelsohn_pulser, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_GITTELSOHN_PULSER_DEBUG_RUNNING
+	MX_DEBUG(-2,("%s: Pulse generator '%s' triggered, "
+			"trigger_mode = %#lx",
+			fname, pulser->record->name,
+			pulser->trigger_mode ));
+#endif
+
+	if ( (pulser->trigger_mode & MXF_PGN_INTERNAL_TRIGGER) == 0 ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* We are in internal trigger mode. */
+
+	/* Start the pulse generator. */
+
+	mx_status = mxd_gittelsohn_pulser_command( gittelsohn_pulser,
+							"start", NULL, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Mark the pulse generator as busy. */
+
+	pulser->busy = TRUE;
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -884,9 +965,9 @@ mxd_gittelsohn_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 		break;
 
 	case MXLV_PGN_FUNCTION_MODE:
-		/* The Gittelsohn Arduino pulser only does square waves. */
+		/* The Gittelsohn Arduino pulser only does pulses. */
 
-		pulser->function_mode = MXF_PGN_SQUARE_WAVE;
+		pulser->function_mode = MXF_PGN_PULSE;
 		break;
 
 	case MXLV_PGN_LAST_PULSE_NUMBER:
