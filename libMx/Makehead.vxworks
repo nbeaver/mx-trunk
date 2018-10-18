@@ -5,38 +5,6 @@
 #          dependent features of the MX makefiles.  This version is customized
 #          for VxWorks.
 #
-# You must specify the following VxWorks specific variables:
-#
-# WIND_BASE      - This is the directory that VxWorks was installed in.
-# WIND_HOST_TYPE - This is Wind River's name for the development host platform,
-#                  which should be a subdirectory of the $(WIND_BASE)/host
-#                  directory.
-# VW_ARCH      - This is the suffix appended to the development system
-#                  command names as specified in Table 8-3: "Suffixes for
-#                  Cross-Development Tools" in the xxx manual.
-#                  This port of MX has been tested for the '68k' and 'ppc'
-#                  architectures.
-# WIND_CPU       - This is the CPU type taken from the list in the Wind River
-#                  include file $(WIND_BASE)/target/h/types/vxCpu.h.
-#
-
-#
-# Host: Solaris 8, Target: MVME162
-#
-#WIND_BASE	= /export/home/tornado/tornado2
-#WIND_HOST_TYPE	= sun4-solaris2
-#VW_ARCH	= 68k
-#WIND_CPU	= MC68040
-#INSTALL	= /usr/ucb/install
-
-#
-# Host: Linux, Target: MVME162
-#
-#WIND_BASE	= /opt/vxworks/tornado202
-#WIND_HOST_TYPE	= x86-linux
-#VW_ARCH	= 68k
-#WIND_CPU	= MC68040
-#INSTALL	= /usr/bin/install
 
 export WIND_BASE = /APSshare/vw/vxWorks-$(VW_VERSION)
 
@@ -45,6 +13,11 @@ VW_GCC_VERSION = 4.3.3
 
 VW_TARGET_ARCH = ppc
 VW_TARGET_ARCH_LONG = powerpc
+
+#VW_TARGET_ARCH = pentium
+#VW_TARGET_ARCH_LONG = i586
+
+#----
 
 VW_HOST_BIN = \
 	$(WIND_BASE)/gnu/$(VW_GCC_VERSION)-vxworks-$(VW_VERSION)/x86-linux2/bin
