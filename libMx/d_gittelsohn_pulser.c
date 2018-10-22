@@ -15,13 +15,15 @@
  *
  */
 
-#define MXD_GITTELSOHN_PULSER_DEBUG		FALSE
+#define MXD_GITTELSOHN_PULSER_DEBUG			FALSE
 
-#define MXD_GITTELSOHN_PULSER_DEBUG_CONF	TRUE
+#define MXD_GITTELSOHN_PULSER_DEBUG_CONF		TRUE
 
-#define MXD_GITTELSOHN_PULSER_DEBUG_RUNNING	TRUE
+#define MXD_GITTELSOHN_PULSER_DEBUG_RUNNING		TRUE
 
-#define MXD_GITTELSOHN_PULSER_DEBUG_SETUP	TRUE
+#define MXD_GITTELSOHN_PULSER_DEBUG_SETUP		TRUE
+
+#define MXD_GITTELSOHN_PULSER_DEBUG_LAST_PULSE_NUMBER	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -592,7 +594,12 @@ mxd_gittelsohn_pulser_is_busy( MX_PULSE_GENERATOR *pulser )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( pulser->last_pulse_number < -1 ) {
+#if MXD_GITTELSOHN_PULSER_DEBUG_RUNNING
+	MX_DEBUG(-2,("%s: num_pulses = %lu, last_pulse_number = %ld",
+		fname, pulser->num_pulses, pulser->last_pulse_number));
+#endif
+
+	if ( pulser->last_pulse_number < 0 ) {
 		pulser->busy = FALSE;
 	} else
 	if ( pulser->last_pulse_number < pulser->num_pulses ) {
@@ -1061,8 +1068,9 @@ mxd_gittelsohn_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 
 			mx_free(argv);
 
-#if MXD_GITTELSOHN_PULSER_DEBUG
-			MX_DEBUG(-2,("%s: '%s' pulser->last_pulse_number = %ld",
+#if MXD_GITTELSOHN_PULSER_DEBUG_LAST_PULSE_NUMBER
+
+			MX_DEBUG(-2,("%s: '%s' last_pulse_number = %ld",
 				fname, pulser->record->name,
 				pulser->last_pulse_number ));
 #endif
