@@ -785,7 +785,7 @@ mxd_gittelsohn_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 	char **argv;
 	double on_ms, off_ms;
 	long saved_parameter_type;
-	unsigned long flags;
+	unsigned long flags, debug_flag;
 	mx_status_type mx_status;
 
 	mx_status = mxd_gittelsohn_pulser_get_pointers( pulser,
@@ -986,8 +986,12 @@ mxd_gittelsohn_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 		 * 'count' command specially.
 		 */
 
-		mx_status = mxd_gittelsohn_pulser_command( gittelsohn_pulser,
-							"count", NULL, 0 );
+		mx_breakpoint();
+
+		debug_flag = flags & MXF_GITTELSOHN_PULSER_DEBUG;
+
+		mx_status = mx_rs232_putline( gittelsohn_pulser->rs232_record,
+						"count", NULL, debug_flag );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
