@@ -374,6 +374,11 @@ mxd_gittelsohn_pulser_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	memset( &(gittelsohn_pulser->last_internal_start_time),
+			0, sizeof(struct timespec) );
+
+	pulser->trigger_mode = MXF_PGN_INTERNAL_TRIGGER;
+
 	/* Make sure that the RS232 port is configured correctly. */
 
 	mx_status = mx_rs232_set_configuration( gittelsohn_pulser->rs232_record,
@@ -758,6 +763,10 @@ mxd_gittelsohn_pulser_trigger( MX_PULSE_GENERATOR *pulser )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Save the start time. */
+
+	gittelsohn_pulser->last_internal_start_time = mx_high_resolution_time();
+
 	/* Mark the pulse generator as busy. */
 
 	pulser->busy = TRUE;
@@ -791,8 +800,176 @@ mxd_gittelsohn_pulser_stop( MX_PULSE_GENERATOR *pulser )
 
 	pulser->busy = FALSE;
 
+	memset( &(gittelsohn_pulser->last_internal_start_time),
+			0, sizeof(struct timespec) );
+
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*-----*/
+
+static mx_status_type
+mxd_gittelsohn_pulser_internal_get_last_pulse_number(
+				MX_PULSE_GENERATOR *pulser,
+				MX_GITTELSOHN_PULSER *gittelsohn_pulser )
+{
+#if 0
+	static const char fname[] =
+		"mxd_gittelsohn_pulser_internal_get_last_pulse_number()";
+#endif
+
+	struct timespec last_internal_start_time;
+	struct timespec current_hrt_time;
+	struct timespec hrt_time_difference;
+	double difference_seconds, pulses_since_start_as_double;
+	long pulses_since_start;
+
+	last_internal_start_time = gittelsohn_pulser->last_internal_start_time;
+
+	/* If the pulser has never been started, then we can return now. */
+
+	if ( ( last_internal_start_time.tv_sec == 0 )
+	  && ( last_internal_start_time.tv_nsec == 0 ) )
+	{
+		pulser->last_pulse_number = -1L;
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* The pulser has been started at least once. */
+
+	current_hrt_time = mx_high_resolution_time();
+
+	hrt_time_difference =
+		mx_subtract_high_resolution_times( current_hrt_time,
+						last_internal_start_time );
+
+	difference_seconds =
+	    mx_convert_high_resolution_time_to_seconds( hrt_time_difference );
+
+	pulses_since_start_as_double = mx_divide_safely( difference_seconds,
+							pulser->pulse_period );
+
+	pulses_since_start = mx_round_down( pulses_since_start_as_double );
+
+	if ( pulses_since_start < 0L ) {
+		pulser->last_pulse_number = -1L;
+	} else
+	if ( pulses_since_start > pulser->num_pulses ) {
+		pulser->last_pulse_number = pulser->num_pulses - 1L;
+	} else {
+		pulser->last_pulse_number = pulses_since_start - 1L;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-----*/
+
+static mx_status_type
+mxd_gittelsohn_pulser_external_get_last_pulse_number(
+				MX_PULSE_GENERATOR *pulser,
+				MX_GITTELSOHN_PULSER *gittelsohn_pulser )
+{
+	static const char fname[] =
+		"mxd_gittelsohn_pulser_external_get_last_pulse_number()";
+
+	char response[200];
+	int i, argc, fn_status, saved_errno;
+	char **argv;
+	char c;
+	unsigned long flags;
+	mx_status_type mx_status;
+
+	flags = gittelsohn_pulser->gittelsohn_pulser_flags;
+
+	/* FIXME: At present (2015-05-05), the Gittelsohn pulser
+	 * sends only \n at the end of a 'count' response instead
+	 * of \r\n, which is what all of the other commands do.
+	 * Because of that, we must handle the response to a
+	 * 'count' command specially.
+	 */
+
+	mx_status = mxd_gittelsohn_pulser_command( gittelsohn_pulser,
+					"count", NULL, 0, 0x3 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	memset( response, 0, sizeof(response) );
+
+	/* Read until we get a line feed (0xa). */
+
+	for ( i = 0; i < sizeof(response); i++ ) {
+		mx_status = mx_rs232_getchar_with_timeout(
+			gittelsohn_pulser->rs232_record, &c,
+			0x0, 0.25 );
+
+		if ( mx_status.code == MXE_SUCCESS ) {
+			if ( c == MX_LF ) {
+				response[i] = '\0';
+
+				break;	/* Exit the for() loop. */
+			}
+
+			response[i] = c;
+		} else
+		if ( mx_status.code == MXE_TIMED_OUT ) {
+			MX_DEBUG(-2,("%s: TIMED_OUT", fname));
+			response[i] = '\0';
+
+			break;	/* Exit the for() loop. */
+		} else {
+			return mx_status;
+		}
+	}
+
+
+	if ( flags & MXF_GITTELSOHN_PULSER_DEBUG ) {
+		MX_DEBUG(-2,("%s: received '%s' from '%s'",
+			fname, response,
+			gittelsohn_pulser->rs232_record->name ));
+	}
+
+	fn_status = mx_string_split( response, " ", &argc, &argv );
+
+	if ( fn_status < 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"The attempt to split the response '%s' "
+		"to command '%s' for record '%s' "
+		"using mx_string_split() failed with an errno value "
+		"of %d.  Error message = '%s'",
+			response, "count", pulser->record->name,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	if ( argc < 4 ) {
+		mx_free(argv);
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"The response '%s' to the 'count' command did not "
+		"have at least 4 tokens in it for record '%s'.",
+			response, pulser->record->name );
+	} else {
+		pulser->last_pulse_number = atol( argv[3] );
+
+		mx_free(argv);
+
+#if MXD_GITTELSOHN_PULSER_DEBUG_LAST_PULSE_NUMBER
+
+		MX_DEBUG(-2,("%s: '%s' last_pulse_number = %ld",
+			fname, pulser->record->name,
+			pulser->last_pulse_number ));
+#endif
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-----*/
 
 MX_EXPORT mx_status_type
 mxd_gittelsohn_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
@@ -802,9 +979,8 @@ mxd_gittelsohn_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 	MX_GITTELSOHN_PULSER *gittelsohn_pulser = NULL;
 	MX_PULSE_GENERATOR_FUNCTION_LIST *pulser_flist = NULL;
 	char response[200];
-	int i, argc, fn_status, saved_errno;
+	int argc, fn_status, saved_errno;
 	char **argv;
-	char c;
 	double on_ms, off_ms;
 	long saved_parameter_type;
 	unsigned long flags;
@@ -994,88 +1170,25 @@ mxd_gittelsohn_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 
 	case MXLV_PGN_LAST_PULSE_NUMBER:
 
-		/* FIXME: At present (2015-05-05), the Gittelsohn pulser
-		 * sends only \n at the end of a 'count' response instead
-		 * of \r\n, which is what all of the other commands do.
-		 * Because of that, we must handle the response to a
-		 * 'count' command specially.
-		 */
-
-		mx_status = mxd_gittelsohn_pulser_command( gittelsohn_pulser,
-						"count", NULL, 0, 0x3 );
+		if ( pulser->trigger_mode & MXF_PGN_INTERNAL_TRIGGER ) {
+			mx_status =
+			  mxd_gittelsohn_pulser_internal_get_last_pulse_number(
+				pulser, gittelsohn_pulser );
+		} else
+		if ( pulser->trigger_mode & MXF_PGN_EXTERNAL_TRIGGER ) {
+			mx_status =
+			  mxd_gittelsohn_pulser_external_get_last_pulse_number(
+				pulser, gittelsohn_pulser );
+		}
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		memset( response, 0, sizeof(response) );
-
-		/* Read until we get a line feed (0xa). */
-
-		for ( i = 0; i < sizeof(response); i++ ) {
-			mx_status = mx_rs232_getchar_with_timeout(
-				gittelsohn_pulser->rs232_record, &c,
-				0x0, 0.25 );
-
-			if ( mx_status.code == MXE_SUCCESS ) {
-				if ( c == MX_LF ) {
-					response[i] = '\0';
-
-					break;	/* Exit the for() loop. */
-				}
-
-				response[i] = c;
-			} else
-			if ( mx_status.code == MXE_TIMED_OUT ) {
-				MX_DEBUG(-2,("%s: TIMED_OUT", fname));
-				response[i] = '\0';
-
-				break;	/* Exit the for() loop. */
-			} else {
-				return mx_status;
-			}
-		}
-
-
-		if ( flags & MXF_GITTELSOHN_PULSER_DEBUG ) {
-			MX_DEBUG(-2,("%s: received '%s' from '%s'",
-				fname, response,
-				gittelsohn_pulser->rs232_record->name ));
-		}
-
-		fn_status = mx_string_split( response, " ", &argc, &argv );
-
-		if ( fn_status < 0 ) {
-			saved_errno = errno;
-
-			return mx_error( MXE_FUNCTION_FAILED, fname,
-			"The attempt to split the response '%s' "
-			"to command '%s' for record '%s' "
-			"using mx_string_split() failed with an errno value "
-			"of %d.  Error message = '%s'",
-				response, "count", pulser->record->name,
-				saved_errno, strerror(saved_errno) );
-		}
-
-		if ( argc < 4 ) {
-			mx_free(argv);
-
-			return mx_error( MXE_DEVICE_IO_ERROR, fname,
-			"The response '%s' to the 'count' command did not "
-			"have at least 4 tokens in it for record '%s'.",
-				response, pulser->record->name );
-		} else {
-			pulser->last_pulse_number = atol( argv[3] );
-
-			mx_free(argv);
-
 #if MXD_GITTELSOHN_PULSER_DEBUG_LAST_PULSE_NUMBER
-
-			MX_DEBUG(-2,("%s: '%s' last_pulse_number = %ld",
-				fname, pulser->record->name,
-				pulser->last_pulse_number ));
+		MX_DEBUG(-2,("%s: '%s' last_pulse_number = %ld",
+			fname, pulser->record->name,
+			pulser->last_pulse_number ));
 #endif
-			return MX_SUCCESSFUL_RESULT;
-		}
 		break;
 
 	default:

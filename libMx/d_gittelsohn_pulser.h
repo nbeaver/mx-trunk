@@ -29,6 +29,8 @@ typedef struct {
 	double timeout;
 
 	double firmware_version;
+
+	struct timespec last_internal_start_time;
 } MX_GITTELSOHN_PULSER;
 
 /* Define all of the interface functions. */
