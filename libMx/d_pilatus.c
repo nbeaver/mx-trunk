@@ -384,7 +384,7 @@ mxd_pilatus_update_datafile_number( MX_AREA_DETECTOR *ad,
 	MX_DEBUG(-2,("%s: datafile_extension_string = '%s'",
 		fname, datafile_extension_string));
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 /*---*/

@@ -125,6 +125,8 @@ mxi_dg645_open( MX_RECORD *record )
 
 	flags = dg645->dg645_flags;
 
+	MXW_UNUSED(flags);
+
 	/* Verify that this is an SRS DG645 controller. */
 
 	mx_status = mxi_dg645_command( dg645, "*IDN?",
