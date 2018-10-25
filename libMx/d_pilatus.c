@@ -339,8 +339,8 @@ mxd_pilatus_update_datafile_number( MX_AREA_DETECTOR *ad,
 	char datafile_namestem_string[MXU_FILENAME_LENGTH+1];
 	char datafile_number_string[MXU_FILENAME_LENGTH+1];
 	char datafile_extension_string[MXU_FILENAME_LENGTH+1];
-	unsigned long datafile_number_found_in_test;
-	unsigned long datafile_number_field_length;
+	unsigned long datafile_number_found_in_test = 0;
+	unsigned long datafile_number_field_length = 0;
 	mx_status_type mx_status;
 
 	MX_DEBUG(-2,("%s: ***** Record '%s', response = '%s' *****",
