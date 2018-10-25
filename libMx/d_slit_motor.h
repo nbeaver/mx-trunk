@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -75,6 +75,7 @@ MX_API mx_status_type mxd_slit_motor_move_absolute( MX_MOTOR *motor );
 MX_API mx_status_type mxd_slit_motor_get_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_slit_motor_soft_abort( MX_MOTOR *motor );
 MX_API mx_status_type mxd_slit_motor_immediate_abort( MX_MOTOR *motor );
+MX_API mx_status_type mxd_slit_motor_get_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_slit_motor_set_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_slit_motor_get_status( MX_MOTOR *motor );
 

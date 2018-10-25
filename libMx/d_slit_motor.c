@@ -15,7 +15,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2006, 2016 Illinois Institute of Technology
+ * Copyright 1999-2003, 2006, 2016, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -53,7 +53,7 @@ MX_MOTOR_FUNCTION_LIST mxd_slit_motor_motor_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	NULL,
+	mxd_slit_motor_get_parameter,
 	mxd_slit_motor_set_parameter,
 	NULL,
 	mxd_slit_motor_get_status
@@ -550,15 +550,13 @@ mxd_slit_motor_immediate_abort( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_slit_motor_set_parameter( MX_MOTOR *motor )
+mxd_slit_motor_get_parameter( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_slit_motor_set_parameter()";
+	static const char fname[] = "mxd_slit_motor_get_parameter()";
 
 	MX_SLIT_MOTOR *slit_motor;
 	MX_RECORD *negative_motor_record, *positive_motor_record;
-	double pseudomotor_start, pseudomotor_difference;
-	double negative_position, positive_position;
-	double negative_start, positive_start;
+	double negative_motor_speed, positive_motor_speed;
 	mx_status_type mx_status;
 
 	mx_status = mxd_slit_motor_get_pointers( motor, &slit_motor,
@@ -575,6 +573,105 @@ mxd_slit_motor_set_parameter( MX_MOTOR *motor )
 		motor->parameter_type));
 
 	switch ( motor->parameter_type ) {
+	case MXLV_MTR_SPEED:
+		mx_status = mx_motor_get_speed( negative_motor_record,
+						&negative_motor_speed );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_motor_get_speed( positive_motor_record,
+						&positive_motor_speed );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		switch( slit_motor->slit_type ) {
+		case MXF_SLIT_CENTER_SAME:
+		case MXF_SLIT_CENTER_OPPOSITE:
+			motor->raw_speed = 0.5 *
+				( negative_motor_speed + positive_motor_speed );
+			break;
+		case MXF_SLIT_WIDTH_SAME:
+		case MXF_SLIT_WIDTH_OPPOSITE:
+			motor->raw_speed =
+				negative_motor_speed + positive_motor_speed;
+			break;
+		default:
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Illegal slit type %ld specified for slit motor '%s'.  "
+			"The allowed types are 1, 2, 3, and 4.",
+				slit_motor->slit_type,
+				motor->record->name );
+			break;
+		}
+		break;
+	default:
+		return mx_motor_default_set_parameter_handler( motor );
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_slit_motor_set_parameter( MX_MOTOR *motor )
+{
+	static const char fname[] = "mxd_slit_motor_set_parameter()";
+
+	MX_SLIT_MOTOR *slit_motor;
+	MX_RECORD *negative_motor_record, *positive_motor_record;
+	double pseudomotor_start, pseudomotor_difference;
+	double negative_position, positive_position;
+	double negative_start, positive_start;
+	double new_motor_speed;
+	mx_status_type mx_status;
+
+	mx_status = mxd_slit_motor_get_pointers( motor, &slit_motor,
+						&positive_motor_record,
+						&negative_motor_record, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
+		fname, motor->record->name,
+		mx_get_field_label_string( motor->record,
+			motor->parameter_type ),
+		motor->parameter_type));
+
+	switch ( motor->parameter_type ) {
+	case MXLV_MTR_SPEED:
+		switch( slit_motor->slit_type ) {
+		case MXF_SLIT_CENTER_SAME:
+		case MXF_SLIT_CENTER_OPPOSITE:
+			new_motor_speed = motor->raw_speed;
+			break;
+		case MXF_SLIT_WIDTH_SAME:
+		case MXF_SLIT_WIDTH_OPPOSITE:
+			new_motor_speed = 0.5 * motor->raw_speed;
+			break;
+		default:
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Illegal slit type %ld specified for slit motor '%s'.  "
+			"The allowed types are 1, 2, 3, and 4.",
+				slit_motor->slit_type,
+				motor->record->name );
+			break;
+		}
+
+		mx_status = mx_motor_set_speed( negative_motor_record,
+							new_motor_speed );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_motor_set_speed( positive_motor_record,
+							new_motor_speed );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+		break;
+
 	case MXLV_MTR_SAVE_START_POSITIONS:
 		MX_DEBUG( 2,("%s: motor '%s' invoked for %g %s",
 			fname, motor->record->name,
