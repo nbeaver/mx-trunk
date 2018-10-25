@@ -443,6 +443,59 @@ mx_pulse_generator_setup( MX_RECORD *pulse_generator_record,
 }
 
 MX_EXPORT mx_status_type
+mx_pulse_generator_update_settings_from_setup( MX_PULSE_GENERATOR *pulser )
+{
+	static const char fname[] =
+		"mx_pulse_generator_update_settings_from_setup()";
+
+	double pulse_period, pulse_width, pulse_delay;
+	long num_pulses, function_mode, trigger_mode;
+
+	if ( pulser == (MX_PULSE_GENERATOR *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_PULSE_GENERATOR pointer passed was NULL." );
+	}
+
+        pulse_period = pulser->setup[MXSUP_PGN_PULSE_PERIOD];
+
+	if ( pulse_period >= 0 ) {
+		pulser->pulse_period = pulse_period;
+	}
+
+	pulse_width = pulser->setup[MXSUP_PGN_PULSE_WIDTH];
+
+	if ( pulse_width >= 0 ) {
+		pulser->pulse_width = pulse_width;
+	}
+
+	num_pulses = mx_round( pulser->setup[MXSUP_PGN_NUM_PULSES] );
+
+	if ( num_pulses >= 0 ) {
+		pulser->num_pulses = num_pulses;
+	}
+
+	pulse_delay = pulser->setup[MXSUP_PGN_PULSE_DELAY];
+
+	if ( pulse_delay >= 0 ) {
+		pulser->pulse_delay = pulse_delay;
+	}
+
+	function_mode = mx_round( pulser->setup[MXSUP_PGN_FUNCTION_MODE] );
+
+	if ( function_mode >= 0 ) {
+		pulser->function_mode = function_mode;
+	}
+
+	trigger_mode = mx_round( pulser->setup[MXSUP_PGN_TRIGGER_MODE] );
+
+	if ( trigger_mode >= 0 ) {
+		pulser->trigger_mode = trigger_mode;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mx_pulse_generator_get_function_mode( MX_RECORD *pulse_generator_record,
 					long *function_mode )
 {

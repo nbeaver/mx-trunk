@@ -229,6 +229,9 @@ MX_API mx_status_type mx_pulse_generator_setup( MX_RECORD *record,
 						long function_mode,
 						long trigger_mode );
 
+MX_API mx_status_type mx_pulse_generator_update_settings_from_setup(
+						MX_PULSE_GENERATOR *pulser );
+
 MX_API mx_status_type mx_pulse_generator_get_function_mode( MX_RECORD *record,
 							long *function_mode );
 

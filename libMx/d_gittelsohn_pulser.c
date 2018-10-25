@@ -379,6 +379,9 @@ mxd_gittelsohn_pulser_open( MX_RECORD *record )
 
 	pulser->trigger_mode = MXF_PGN_INTERNAL_TRIGGER;
 
+	MX_DEBUG(-2,("%s: pulser '%s' trigger_mode = %ld",
+		fname, record->name, pulser->trigger_mode));
+
 	/* Make sure that the RS232 port is configured correctly. */
 
 	mx_status = mx_rs232_set_configuration( gittelsohn_pulser->rs232_record,
@@ -1290,6 +1293,7 @@ mxd_gittelsohn_pulser_setup( MX_PULSE_GENERATOR *pulser )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if 0
 	pulser->pulse_period  = pulser->setup[MXSUP_PGN_PULSE_PERIOD];
 	pulser->pulse_width   = pulser->setup[MXSUP_PGN_PULSE_WIDTH];
 	pulser->num_pulses    = mx_round( pulser->setup[MXSUP_PGN_NUM_PULSES] );
@@ -1298,6 +1302,12 @@ mxd_gittelsohn_pulser_setup( MX_PULSE_GENERATOR *pulser )
 			mx_round( pulser->setup[MXSUP_PGN_FUNCTION_MODE] );
 	pulser->trigger_mode = 
 			mx_round( pulser->setup[MXSUP_PGN_TRIGGER_MODE] );
+#else
+	mx_status = mx_pulse_generator_update_settings_from_setup( pulser );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+#endif
 
 #if MXD_GITTELSOHN_PULSER_DEBUG_SETUP
 	MX_DEBUG(-2,("%s: pulser '%s', period = %f, width = %f, "
