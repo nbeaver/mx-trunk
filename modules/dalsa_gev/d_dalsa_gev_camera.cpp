@@ -534,20 +534,36 @@ mx_gev_get_next_image( GEV_CAMERA_HANDLE handle,
 	    gev_status = GEVLIB_ERROR_NULL_PTR;
 
 	    if ( image_object_ptr != NULL ) {
+		static int i = 0;
 
+		if ( i < 4 ) {
+			fprintf( stderr, "%s: i = %d\n", fname, i );
+			i++;
+		}
+
+#if 0
 		if ( debug_wait_thread ) {
 			fprintf( stderr,
 			"%s: *** GevGetBufferListFromHandle( %p ) = ",
 				fname, handle );
 		}
+#endif
 
 		GEV_BUFFER_LIST *pBufList = GevGetBufferListFromHandle(handle);
 
+#if 0
 		if ( debug_wait_thread ) {
 			fprintf( stderr, "%p ***\n", pBufList );
 		}
+#endif
 
 		if ( pBufList != NULL ) {
+
+		    if ( debug_wait_thread ) {
+			fprintf( stderr,
+			"%s: *** GevGetBufferListFromHandle( %p ) = %p ***\n",
+				fname, handle, pBufList );
+		    }
 
 		    if ( valid_address_range == FALSE ) {
 
@@ -727,6 +743,8 @@ mxd_dalsa_gev_camera_image_wait_thread_fn( MX_THREAD *thread, void *args )
 		}
 
 		mx_status = mx_thread_check_for_stop_request( thread );
+
+		mx_msleep(10);
 	}
 
 	return MX_SUCCESSFUL_RESULT;
