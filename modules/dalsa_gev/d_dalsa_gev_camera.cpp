@@ -1058,6 +1058,17 @@ mxd_dalsa_gev_camera_check_network_connection( MX_VIDEO_INPUT *vinput,
 	flags = dalsa_gev_camera->dalsa_gev_camera_flags;
 
 	if ( flags & MXF_DALSA_GEV_CAMERA_CHECK_PACKET_SIZES ) {
+		if ( ni->mtu <= 1500 ) {
+			fprintf( stderr,
+"\nWARNING:\n"
+"The detector control network interface '%s' for DALSA camera '%s'\n"
+"is not configured for jumbo packets!  Instead, it has an MTU of %lu,\n"
+"which is too small for image frame readout.\n"
+"\n"
+"To fix this, you must enable Jumbo Packets on this interface.\n\n",
+			ni->name, dalsa_gev_camera->record->name, ni->mtu );
+		}
+
 		if ( dalsa_gev_camera_packet_size > ni->mtu ) {
 			fprintf( stderr,
 "\nWARNING:\n"
