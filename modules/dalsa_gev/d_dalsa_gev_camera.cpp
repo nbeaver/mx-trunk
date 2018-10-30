@@ -1440,10 +1440,17 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 	case GEVLIB_OK:
 		break;
 	case GEVLIB_ERROR_GENERIC:
-		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		mx_status = mx_error( MXE_UNKNOWN_ERROR, fname,
 		"GEVLIB_ERROR_GENERIC - Attempting to read in the XML "
 		"data for camera '%s' failed.  gev_status = %hd",
 			record->name, gev_status );
+		mx_warning( "If you are running DALSA GigeV 2.0.2 for "
+			"Linux, you should verify that the macro "
+			"-DLEGACY_XML_FIXUP_SUPPORT has been defined for "
+			"the compilation of the file gev_xml_utils.c "
+			"in ./DALSA/src/gevlib/Makefile." );
+
+		return mx_status;
 		break;
 	case GEVLIB_ERROR_INVALID_HANDLE:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
