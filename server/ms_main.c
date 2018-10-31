@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2017 Illinois Institute of Technology
+ * Copyright 1999-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -158,6 +158,8 @@ mxsrv_sigterm_handler( int signal_number, siginfo_t *siginfo, void *ignored )
 	}
 #  endif /* not OS_RTEMS */
 
+	mx_abort_after_timeout( 10.0 );		/* Abort if exit() hangs. */
+
 	exit(0);
 }
 
@@ -192,6 +194,8 @@ mxsrv_sigint_termination_handler( int signal_number,
 		"to shutdown via a SIGINT signal.", process_id );
 	}
 #  endif /* not OS_RTEMS */
+
+	mx_abort_after_timeout( 10.0 );		/* Abort if exit() hangs. */
 
 	exit(0);
 }

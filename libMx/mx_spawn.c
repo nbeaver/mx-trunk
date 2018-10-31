@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2006, 2009-2010, 2013-2017 Illinois Institute of Technology
+ * Copyright 2006, 2009-2010, 2013-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -855,3 +855,29 @@ mx_wait_for_process_id( unsigned long process_id,
 #else
 #error mx_wait_for_process_id() is not yet implemented for this platform.
 #endif
+
+/*=========================================================================*/
+
+#if defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_ANDROID) \
+	|| defined(OS_MINIX)
+
+static void
+sigalrm_abort_handler( int signal )
+{
+	abort();
+}
+
+MX_EXPORT void
+mx_abort_after_timeout( double timeout_in_seconds )
+{
+	signal( SIGALRM, sigalrm_abort_handler );
+
+	alarm( timeout_in_seconds );
+
+	return;
+}
+
+#else
+#error mx_abort_after_timeout() is not yet implemented for this platform.
+#endif
+

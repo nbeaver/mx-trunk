@@ -1092,6 +1092,8 @@ MX_API unsigned long mx_process_id( void );
 MX_API mx_status_type mx_wait_for_process_id( unsigned long process_id,
 						long *process_status );
 
+MX_API void mx_abort_after_timeout( double timeout_seconds );
+
 /*------------------------------------------------------------------------*/
 
 MX_API char *mx_username( char *buffer, size_t buffer_length );
