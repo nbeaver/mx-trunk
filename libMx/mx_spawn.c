@@ -877,6 +877,29 @@ mx_abort_after_timeout( double timeout_in_seconds )
 	return;
 }
 
+/*-------------------------------------------------------------------------*/
+
+#elif defined(OS_WIN32)
+
+static void
+abort_timer_proc( HWND arg1, UINT arg2, void *arg3, DWORD arg4 )
+{
+	abort();
+}
+
+MX_EXPORT void
+mx_abort_after_timeout( double timeout_in_seconds )
+{
+	UINT timeout_in_msec;
+
+	timeout_in_msec = mx_round( 1000.0 * timeout_in_seconds );
+
+	(void) SetTimer( NULL, 0, timeout_in_msec,
+			(TIMERPROC) &abort_timer_proc );
+
+	return;
+}
+
 #else
 #error mx_abort_after_timeout() is not yet implemented for this platform.
 #endif
