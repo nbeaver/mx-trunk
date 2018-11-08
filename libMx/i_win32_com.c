@@ -906,9 +906,11 @@ mxi_win32com_set_configuration( MX_RS232 *rs232 )
 			message_buffer, sizeof(message_buffer) );
 
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-		"Attempt to get current port settings for '%s' failed.  "
+		"Attempt to get current port settings for '%s' used by "
+		"MX interface '%s' failed.  "
 		"Win32 error code = %ld, error message = '%s'",
-			win32com->filename, last_error_code, message_buffer );
+			win32com->filename, rs232->record->name,
+		       	last_error_code, message_buffer );
 	}
 
 	/* Set the port speed. */
