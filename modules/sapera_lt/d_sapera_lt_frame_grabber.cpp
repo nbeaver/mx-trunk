@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2011-2013, 2015-2017 Illinois Institute of Technology
+ * Copyright 2011-2013, 2015-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -19,6 +19,10 @@
 #define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN				FALSE
 
 #define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_FRAME_BUFFER_ALLOCATION	TRUE
+
+#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_SAP_BUFFER			TRUE
+
+#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_SAP_ACQ_TO_BUF		TRUE
 
 #define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_ARM				FALSE
 
@@ -1049,8 +1053,10 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 	for ( i = 0; i < max_attempts; i++ ) {
 		sapera_status = sapera_lt_frame_grabber->buffer->Create();
 
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_SAP_BUFFER
 		MX_DEBUG(-2,("%s: SapBuffer attempt %ld, sapera_status = %d",
 			fname, i+1, (int) sapera_status));
+#endif
 
 		if ( sapera_status != FALSE )
 			break;
@@ -1082,6 +1088,10 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 		"Sapera error text = '%s'.",
 			record->name, sapera_status_text );
 	}
+
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_SAP_BUFFER
+	MX_DEBUG(-2,("%s: SapBuffer Create() succeeded", fname));
+#endif
 
 #if ( MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN )
 	{
@@ -1182,34 +1192,33 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 
 	sapera_status = FALSE;
 
-	MX_DEBUG(-2,("%s: MARKER 0",fname));
-
 	for ( i = 0; i < max_attempts; i++ ) {
-
-		MX_DEBUG(-2,("%s: MARKER 1",fname));
 
 		sapera_status = sapera_lt_frame_grabber->transfer->Create();
 
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_SAP_ACQ_TO_BUF
 		MX_DEBUG(-2,("%s: SapAcqToBuf attempt %ld, sapera_status = %d",
 			fname, i+1, (int) sapera_status));
+#endif
 
 		if ( sapera_status != FALSE ) {
-			MX_DEBUG(-2,("%s: MARKER 2 (exit)",fname));
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_SAP_ACQ_TO_BUF
+			MX_DEBUG(-2,
+			("%s: SapAcqToBuf Create() succeeded",fname));
+#endif
 			break;
 		}
 
-		MX_DEBUG(-2,("%s: MARKER 2",fname));
-
 		if ( i < (max_attempts - 1) ) {
-			MX_DEBUG(-2,("%s: MARKER 3",fname));
-
 			sapera_status_text = SapManager::GetLastStatus();
 
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_SAP_ACQ_TO_BUF
 			MX_DEBUG(-2,("%s: Attempt %ld to create the low-level "
 			"resources used by the SapAcqToBuf object of "
 			"frame grabber '%s'.  Sapera error text = '%s'.",
 				fname, i+1, record->name, sapera_status_text ));
 			MX_DEBUG(-2,("%s: Retrying...", fname));
+#endif
 		}
 	}
 
@@ -1223,9 +1232,12 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 		"Unable to create the low-level resources used by the "
-		"SapAcqToBuf object of frame grabber '%s'.  If this happens "
-		"more than twice in a row, you should try rebooting the "
-		"computer to free up resources (probably memory).  "
+		"SapAcqToBuf object of frame grabber '%s'.  To fix this: "
+		"1. Verify that the detector is turned on and connected.  "
+	       	"2. Kill and then restart the MX server (and MX autosave).  "
+		"If you find yourself doing this more than "
+		"twice in a row, you should try rebooting the computer to "
+		"free up resources (probably memory).  "
 		"Sapera error text = '%s'.",
 			record->name, sapera_status_text );
 	}
