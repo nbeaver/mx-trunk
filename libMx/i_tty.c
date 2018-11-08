@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2008, 2010-2011, 2014 Illinois Institute of Technology
+ * Copyright 1999-2008, 2010-2011, 2014, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -382,11 +382,27 @@ mxi_tty_open( MX_RECORD *record )
 	if ( tty->file_handle < 0 ) {
 		saved_errno = errno;
 
-		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-		"Error opening TTY device '%s, device filename = '%s'.  "
-		"Errno = %d, error text = '%s'",
-			record->name, tty->filename,
-			saved_errno, strerror( saved_errno ) );
+		switch( saved_errno ) {
+		case ENOENT:
+			return mx_error( MXE_NOT_FOUND, fname,
+			"The requested device '%s' for MX interface '%s' "
+			"was not found.",
+				tty->filename, record->name );
+			break;
+		case EACCES:
+			return mx_error( MXE_PERMISSION_DENIED, fname,
+			"Your account does not have permission to "
+			"read and write the device '%s' for MX interface '%s'.",
+				tty->filename, record->name );
+			break;
+		default:
+			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		    "Error opening TTY device '%s, device filename = '%s'.  "
+		    "Errno = %d, error text = '%s'",
+				record->name, tty->filename,
+				saved_errno, strerror( saved_errno ) );
+			break;
+		}
 	}
 
 	/* If blocking was turned off for the open(), turn it back on. */

@@ -7,7 +7,7 @@
  *
  *-----------------------------------------------------------------------
  *
- * Copyright 1999-2007, 2010 Illinois Institute of Technology
+ * Copyright 1999-2007, 2010, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -224,10 +224,28 @@ mxi_win32com_open( MX_RECORD *record )
 		mx_win32_error_message( last_error_code,
 			message_buffer, sizeof(message_buffer) );
 
-		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-			"Error opening Win32 COM port '%s'.  "
-			"Win32 error code = %ld, error message = '%s'",
-			win32com->filename, last_error_code, message_buffer );
+		switch( last_error_code ) {
+		case ERROR_FILE_NOT_FOUND:
+		case ERROR_PATH_NOT_FOUND:
+			return mx_error( MXE_NOT_FOUND, fname,
+			"The requested device '%s' for MX interface '%s' "
+			"was not found.",
+				win32com->filename, record->name );
+			break;
+		case ERROR_ACCESS_DENIED:
+			return mx_error( MXE_PERMISSION_DENIED, fname,
+			"Your account does not have permission to "
+			"read and write the device '%s' for MX interface '%s'.",
+				win32com->filename, record->name );
+			break;
+		default:
+			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+				"Error opening Win32 COM port '%s'.  "
+				"Win32 error code = %ld, error message = '%s'",
+				win32com->filename, last_error_code,
+				message_buffer );
+			break;
+		}
 	}
 
 	win32com->handle = com_port_handle;
