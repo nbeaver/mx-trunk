@@ -267,7 +267,7 @@ mxv_fix_regions_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if 1
+#if 0
 	{
 		long **fix_region_array;
 		long i, j;
