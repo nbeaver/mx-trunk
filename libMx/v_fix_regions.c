@@ -15,7 +15,7 @@
  *
  */
 
-#define MXV_FIX_REGIONS_DEBUG		TRUE
+#define MXV_FIX_REGIONS_DEBUG		FALSE
 
 #define MXV_FIX_REGIONS_DEBUG_VALUE	TRUE
 
@@ -249,12 +249,14 @@ mxv_fix_regions_open( MX_RECORD *record )
 	fix_region_array_field->dimension[0] = dimension[0];
 	fix_region_array_field->dimension[1] = dimension[1];
 
+#if 0
 	MX_DEBUG(-2,("%s: fix_region_array_field->num_dimensions = %ld",
 		fname, fix_region_array_field->num_dimensions));
 	MX_DEBUG(-2,("%s: fix_region_array_field->dimension[0] = %ld",
 		fname, fix_region_array_field->dimension[0]));
 	MX_DEBUG(-2,("%s: fix_region_array_field->dimension[1] = %ld",
 		fname, fix_region_array_field->dimension[1]));
+#endif
 
 	/* Copy the starting configuration of the fix regions from
 	 * the 'value' field to 'fix_region_array'.
@@ -298,7 +300,7 @@ mxv_fix_regions_send_variable( MX_VARIABLE *variable )
 	MX_RECORD_FIELD *string_value_field = NULL;
 	const char **string_value_pointer = NULL;
 	char *string_copy = NULL;
-	long i, j;
+	long i;
 	int argc;
 	char **argv = NULL;
 	size_t argv0_length;
@@ -307,6 +309,10 @@ mxv_fix_regions_send_variable( MX_VARIABLE *variable )
 	long **fix_region_array;
 	long *fix_region;
 	mx_status_type mx_status;
+
+#if 0
+	long j;
+#endif
 
 	if ( variable == (MX_VARIABLE *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -339,8 +345,10 @@ mxv_fix_regions_send_variable( MX_VARIABLE *variable )
 	for ( i = 0; i < num_fix_regions; i++ ) {
 		fix_region = fix_region_array[i];
 
+#if MXV_FIX_REGIONS_DEBUG_VALUE
 		MX_DEBUG(-2,("%s: region [%ld] = '%s'",
 		fname, i, string_value_pointer[i] ));
+#endif
 
 		string_copy = strdup( string_value_pointer[i] );
 
@@ -362,10 +370,12 @@ mxv_fix_regions_send_variable( MX_VARIABLE *variable )
 				i, variable->record->name );
 		}
 
+#if 0
 		for ( j = 0; j < argc; j++ ) {
 			MX_DEBUG(-2,("%s: argv[%ld] = '%s'",
 				fname, j, argv[j]));
 		}
+#endif
 
 		argv0_length = strlen( argv[0] );
 
