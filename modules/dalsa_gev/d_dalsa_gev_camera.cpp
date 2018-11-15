@@ -883,8 +883,24 @@ mxd_dalsa_gev_camera_shadobox_trigger( MX_VIDEO_INPUT *vinput,
 		MX_DEBUG(-2,("%s: camera '%s' is using internal trigger.",
 			fname, vinput->record->name ));
 
-		strlcpy( synchronization_mode, "FreeRunning",
+		switch( sp->sequence_type ) {
+		case MXT_SQ_ONE_SHOT:
+		case MXT_SQ_MULTIFRAME:
+			strlcpy( synchronization_mode, "Snapshot",
 				sizeof(synchronization_mode) );
+			break;
+		case MXT_SQ_STREAM:
+			strlcpy( synchronization_mode, "FreeRunning",
+				sizeof(synchronization_mode) );
+			break;
+		case MXT_SQ_DURATION:
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Duration mode sequences are not supported "
+			"for detector '%s' in internal trigger mode.",
+				vinput->record->name );
+			break;
+		}
+				
 	} else
 	if ( vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
 		MX_DEBUG(-2,("%s: camera '%s' is using external trigger.",
