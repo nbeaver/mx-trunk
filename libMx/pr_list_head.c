@@ -1073,7 +1073,7 @@ mx_list_head_record_show_socket_id( MX_LIST_HEAD *list_head )
 		socket_handler->process_id );
 	fprintf( stderr, "  data_format = %lu, use_64bit_network_longs = %d\n",
 		socket_handler->data_format,
-		socket_handler->use_64bit_network_longs );
+		(int) socket_handler->use_64bit_network_longs );
 	fprintf( stderr,
 		"  network_debug_flags = %#lx, last_rpc_message_id = %#lx\n",
 		socket_handler->network_debug_flags,

@@ -16,7 +16,7 @@ mx_clean:
 mx_private_version: ../libMx/Makefile.version version/src/mx_private_version.c
 	$(TARGET_CPP) -dM < /dev/null | grep __VERSION__ \
 		| sed 's/__VERSION__/MX_GNUC_TARGET_VERSION/' > version_temp.h
-	echo "#include \"$(MX_RTEMS_BSP_PATH)/lib/include/rtems/score/cpuopts.h\"" >> version_temp.h
+	echo "#include \"$(MX_RTEMS_BSP_DIR)/lib/include/rtems/score/cpuopts.h\"" >> version_temp.h
 	$(HOST_CC) $(CFLAGS_MX_VERS) -o mx_private_version \
 		version/src/mx_private_version.c
 

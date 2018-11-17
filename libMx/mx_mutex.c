@@ -780,7 +780,11 @@ mx_mutex_trylock( MX_MUTEX *mutex )
 MX_EXPORT unsigned long
 mx_mutex_get_owner_thread_id( MX_MUTEX *mutex )
 {
-#error mx_mutex_get_owner_thread_id() is not yet implemented.
+	unsigned long thread_id;
+
+	thread_id = (unsigned long) rtems_task_self();
+
+	return thread_id;
 }
 
 /************************ Posix Pthreads ***********************/

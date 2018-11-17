@@ -11,29 +11,39 @@
 #            deb http://epics.nsls2.bnl.gov/debian/ wheezy main contrib
 #
 
-MX_RTEMS_PATH = /usr/i386-rtems4.9
+MX_RTEMS_DIR = /opt/rtems/4.11.3
 
-MX_RTEMS_BSP_PATH = $(MX_RTEMS_PATH)/pc386
+MX_RTEMS_INSTALLED_DIR = $(MX_RTEMS_DIR)/kernel/installed/i386-rtems4.11
 
-MX_RTEMS_GCC_PATH = /usr/lib/gcc/i386-rtems4.9/4.3.2
+MX_RTEMS_BSP_DIR = $(MX_RTEMS_INSTALLED_DIR)/pc686
+
+MX_RTEMS_CPUKIT_DIR = $(MX_RTEMS_DIR)/kernel/pc686/i386-rtems4.11/c/pc686/cpukit
+
+MX_RTEMS_GCC_DIR = $(MX_RTEMS_DIR)/lib/gcc/i386-rtems4.11/4.9.3
+
+MX_RTEMS_GCC = $(MX_RTEMS_DIR)/bin/i386-rtems4.11-gcc
 
 #---
 
 INCLUDES	= $(MX_INCLUDES)
 
 LIB_DIRS	= -L$(MX_RTEMS_PATH)/lib \
-			-L$(MX_RTEMS_BSP_PATH)/lib \
-			-L$(MX_RTEMS_GCC_PATH) \
-			-L$(MX_LIB_DIR) 
+			-L$(MX_RTEMS_BSP_DIR)/lib \
+			-L$(MX_RTEMS_GCC_DIR) \
+			-L$(MX_RTEMS_CPUKIT_DIR)/posix \
+			-L$(MX_RTEMS_DIR)/i386-rtems4.11/lib/mpentiumpro \
+			-L../libMx
 
 # FIXME: The following definition is an atrocity.  There must be a better way
 #        to do this.
 
-LIBRARIES	= -lrtemsbsp -lrtemscpu -lm -lc -lposix -lgcc \
-			-lrtemsbsp -lrtemscpu \
-			$(MX_RTEMS_BSP_PATH)/lib/start.o \
-			$(MX_RTEMS_GCC_PATH)/crti.o \
-			-lrtemsbsp -lrtemscpu
+#LIBRARIES	= -lrtemsbsp -lrtemscpu -lm -lc -lposix -lgcc \
+#			-lrtemsbsp -lrtemscpu \
+#			$(MX_RTEMS_BSP_DIR)/lib/start.o \
+#			$(MX_RTEMS_GCC_DIR)/crti.o \
+#			-lrtemsbsp -lrtemscpu
+
+LIBRARIES	= -lrtemsbsp -lrtemscpu -lposix -lc -lm -lgcc
 
 # 
 # RTEMS often runs on resource constrained systems, so we define here
@@ -89,7 +99,7 @@ MX_DRIVER_RTEMS_SRCS = i_tty.c i_rtems_vme.c \
 # makefile conditionals that use RTEMS_BSP below.
 #
 
-include $(MX_RTEMS_BSP_PATH)/Makefile.inc
+include $(MX_RTEMS_BSP_DIR)/Makefile.inc
 include $(RTEMS_CUSTOM)
 #include $(PROJECT_ROOT)/make/leaf.cfg
 
@@ -105,13 +115,13 @@ include $(RTEMS_CUSTOM)
 # directory /opt/rtems-4.6/make/custom for the details.
 #
 
-ifeq ($(RTEMS_BSP),pc386)
-	BSP_FLAGS = -DMX_RTEMS_BSP_PC386
+ifeq ($(RTEMS_BSP),pc686)
+	BSP_FLAGS = -DMX_RTEMS_BSP_PC686
 
 	MX_LIB_SRCS = mx_driver_rtems.c $(MX_CORE_SRCS) $(MX_DRIVER_RTEMS_SRCS)
 
 	HOST_CC = gcc
-	TARGET_CPP = i386-rtems4.9-cpp
+	TARGET_CPP = i386-rtems4.11-cpp
 endif
 
 ifeq ($(RTEMS_BSP),mvme162)
@@ -168,7 +178,7 @@ GCCFLAGS = -Wall -Werror \
 #  RTEMS with GCC
 #
 CFLAGS		= -g -O $(GCCFLAGS) \
-				-I$(MX_RTEMS_BSP_PATH)/lib/include \
+				-I$(MX_RTEMS_BSP_DIR)/lib/include \
 				$(INCLUDES) -DOS_RTEMS \
 				$(EXTRA_FLAGS) -DDEBUG \
 				$(BSP_FLAGS)
@@ -180,9 +190,9 @@ CFLAGS_MX_VERS  = -DOS_RTEMS -DMX_MAJOR_VERSION=$(MX_MAJOR_VERSION) \
 			-DMX_UPDATE_VERSION=$(MX_UPDATE_VERSION) \
 			-DMX_BRANCH_LABEL="\"$(MX_BRANCH_LABEL)\""
 
-COMPILE		= $(CC) -c
+COMPILE		= $(MX_RTEMS_GCC) -c
 DEFINE		= -D
-MAKEDEPEND	= $(CC) -MM $(CFLAGS) *.c > Makefile.depend
+MAKEDEPEND	= $(MX_RTEMS_GCC) -MM $(CFLAGS) *.c > Makefile.depend
 
 MAKEDEPEND_CLEAN = rm Makefile.depend
 

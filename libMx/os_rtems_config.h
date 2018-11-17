@@ -9,7 +9,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2003, 2005 Illinois Institute of Technology
+ * Copyright 2003, 2005, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -44,7 +44,7 @@
 
 #define CONFIGURE_APPLICATION_NEEDS_CONSOLE_DRIVER
 #define CONFIGURE_APPLICATION_NEEDS_CLOCK_DRIVER
-#define CONFIGURE_APPLICATION_NEEDS_TIMER_DRIVER
+/* #define CONFIGURE_APPLICATION_NEEDS_TIMER_DRIVER */
 
 /*========== Network definitions ==========*/
 

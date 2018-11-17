@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2009, 2011, 2015-2017 Illinois Institute of Technology
+ * Copyright 1999-2006, 2009, 2011, 2015-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -193,14 +193,8 @@ mx_current_cpu_tick( void )
 	current_cpu_tick = (clock_t) timeGetTime();
 
 #elif defined(OS_RTEMS)
-	{
-		uint32_t ticks_since_boot;
 
-		(void) rtems_clock_get( RTEMS_CLOCK_GET_TICKS_SINCE_BOOT,
-					&ticks_since_boot );
-
-		current_cpu_tick = ticks_since_boot;
-	}
+	current_cpu_tick = rtems_clock_get_ticks_since_boot();
 #elif defined(OS_VXWORKS)
 	{
 		struct timespec current_time;
@@ -256,14 +250,8 @@ mx_clock_ticks_per_second( void )
 	clock_ticks_per_second = CLOCKS_PER_SEC;
 
 #elif defined(OS_RTEMS)
-	{
-		uint32_t ticks_per_second;
 
-		(void) rtems_clock_get( RTEMS_CLOCK_GET_TICKS_PER_SECOND,
-					&ticks_per_second );
-
-		clock_ticks_per_second = ticks_per_second;
-	}
+	clock_ticks_per_second = rtems_clock_get_ticks_per_second();
 #elif defined(USE_POSIX_CLOCKS)
 
 	if ( posix_clock_ticks_per_second <= 0.0 ) {

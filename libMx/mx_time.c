@@ -305,6 +305,11 @@ mx_current_os_time( void )
 
 #else
 
+#if defined(OS_RTEMS)
+#  include <sys/time.h>
+#  include <unistd.h>
+#endif
+
 MX_EXPORT struct timespec
 mx_current_os_time( void )
 {

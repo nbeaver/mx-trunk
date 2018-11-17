@@ -801,8 +801,8 @@ mx_dynamic_library_get_library_and_symbol( const char *filename,
 					void **symbol,
 					unsigned long flags )
 {
-	MX_DYNAMIC_LIBRARY *library_ptr;
-	void *symbol_ptr;
+	MX_DYNAMIC_LIBRARY *library_ptr = NULL;
+	void *symbol_ptr = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mx_dynamic_library_open( filename, &library_ptr, flags );
