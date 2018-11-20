@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2017 Illinois Institute of Technology
+ * Copyright 2017-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -32,7 +32,7 @@ extern "C" {
  * then we must define the necessary data structures ourself.
  */
 
-#if defined(OS_WIN32)
+#if ( defined(OS_WIN32) && defined(_MSC_VER) )
 
 typedef int pid_t;
 typedef unsigned int uid_t;

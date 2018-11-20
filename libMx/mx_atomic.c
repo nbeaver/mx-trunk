@@ -213,7 +213,16 @@ mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
 	return;
 }
 
-#if ( defined(_MSC_VER) && (_MSC_VER < 1300) )
+#if defined(__MINGW32__)
+
+MX_EXPORT void
+mx_atomic_memory_barrier( void )
+{
+	asm("mfence;");
+	return;
+}
+
+#elif ( defined(_MSC_VER) && (_MSC_VER < 1300) )
 
 /* FIXME: Need a replacement for MemoryBarrier() on old Microsoft platforms. */
 

@@ -197,6 +197,8 @@ mx_prepare_for_debugging( char *command, int just_in_time_debugging )
 
 	error_mode = SetErrorMode( 0 );
 
+	MXW_UNUSED( error_mode );
+
 	/* For reference, Cygwin sets the error mode to 0x3, which sets
 	 * the SEM_FAILCRITICALERRORS(0x1) and SEM_NOGPFAULTERRORBOX(0x2)
 	 * error bits.  That is enough to suppress the message box.
@@ -916,7 +918,7 @@ mx_get_numbered_breakpoint( unsigned long breakpoint_number )
 
 /*-------------------------------------------------------------------------*/
 
-#if defined(OS_WIN32)
+#if ( defined(OS_WIN32) && !defined(__MINGW32__) )
 
 typedef struct {
 	HANDLE data_thread_handle;
@@ -1128,7 +1130,7 @@ mxp_win32_set_watchpoint_spectator( MX_THREAD *thread, void *args )
 
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"MX scalar element size %ld is not supported.",
-			value_length );
+			(long) value_length );
 		break;
 	}
 
@@ -2054,7 +2056,7 @@ mx_show_watchpoints( void )
 #elif defined(OS_MACOSX) || defined(OS_ANDROID) \
 	|| defined(OS_CYGWIN) || defined(OS_SOLARIS) || defined(OS_BSD) \
 	|| defined(OS_MINIX) || defined(OS_RTEMS) || defined(OS_VXWORKS) \
-	|| defined(OS_HURD) || defined(OS_QNX)
+	|| defined(OS_HURD) || defined(OS_QNX) || defined(__MINGW32__)
 
 /* FIXME: Implement real watchpoints for these build targets. */
 
