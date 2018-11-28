@@ -30,18 +30,24 @@ typedef struct {
 } MX_URL;
 
 typedef struct {
-	mx_status_type ( *get ) ( MX_URL *url );
-	mx_status_type ( *put ) ( MX_URL *url );
-	mx_status_type ( *post ) ( MX_URL *url );
+	mx_status_type ( *open ) ( MX_URL *url, char *url_string );
+	mx_status_type ( *get ) ( MX_URL *url,
+				char *response, size_t max_response_length );
+	mx_status_type ( *put ) ( MX_URL *url, char *command );
+	mx_status_type ( *post ) ( MX_URL *url, char *command );
 } MX_URL_FUNCTION_LIST;
 
 /*----*/
 
-MX_API mx_status_type mx_url_get( MX_URL *url );
+MX_API mx_status_type mx_url_open( MX_URL *url, char *url_string );
 
-MX_API mx_status_type mx_url_put( MX_URL *put );
+MX_API mx_status_type mx_url_get( MX_URL *url,
+				char *response,
+				size_t max_response_length );
 
-MX_API mx_status_type mx_url_post( MX_URL *put );
+MX_API mx_status_type mx_url_put( MX_URL *put, char *command );
+
+MX_API mx_status_type mx_url_post( MX_URL *put, char *command );
 
 #ifdef __cplusplus
 }
