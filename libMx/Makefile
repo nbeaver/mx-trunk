@@ -94,7 +94,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_delta_motor.c d_dg645_pulser.c \
 	d_digital_fanin.c d_digital_fanout.c \
 	d_disabled_motor.c d_doutput_pulser.c d_e500.c \
-	d_e662.c d_elapsed_time.c d_energy.c \
+	d_e662.c d_eiger.c d_elapsed_time.c d_energy.c \
 	d_fg_scaler.c d_file_dinput.c d_file_vinput.c \
 	d_gain_tracking_scaler.c d_gated_backlash.c d_generic_relay.c \
 	d_gittelsohn_pulser.c d_gm10_scaler.c d_gm10_timer.c \
