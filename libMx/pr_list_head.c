@@ -1020,7 +1020,7 @@ mx_list_head_record_show_socket_handlers( MX_LIST_HEAD *list_head )
 		  "socket_handler(%d) = %p, socket id = %d,\n"
 		  "        username = '%s', program = '%s', process_id = %lu\n",
 				i, socket_handler,
-				socket_handler->synchronous_socket->socket_fd,
+			(int) socket_handler->synchronous_socket->socket_fd,
 				socket_handler->username,
 				socket_handler->program_name,
 				socket_handler->process_id );
