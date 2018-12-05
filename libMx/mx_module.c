@@ -823,8 +823,7 @@ mx_extension_call( MX_EXTENSION *extension, int argc, void **argv )
 
 	MX_EXTENSION_FUNCTION_LIST *flist = NULL;
 
-	mx_status_type ( *call_fn )( MX_EXTENSION *extension,
-					int argc, void **argv ) = NULL;
+	mx_status_type ( *call_fn )( MX_EXTENSION *, int, void ** ) = NULL;
 	mx_status_type mx_status;
 
 	MX_DEBUG(-2,("%s invoked.", fname));
@@ -864,10 +863,8 @@ mx_extension_call_string( MX_EXTENSION *extension, char *string_arguments )
 
 	MX_EXTENSION_FUNCTION_LIST *flist = NULL;
 
-	mx_status_type ( *call_fn )( MX_EXTENSION *extension,
-					int argc, void **argv ) = NULL;
-	mx_status_type ( *call_string_fn )( MX_EXTENSION *extension,
-					char *string_arguments ) = NULL;
+	mx_status_type ( *call_fn )( MX_EXTENSION *, int, void ** ) = NULL;
+	mx_status_type ( *call_string_fn )( MX_EXTENSION *, char * ) = NULL;
 
 	char *string_arguments_copy = NULL;
 	int argc;

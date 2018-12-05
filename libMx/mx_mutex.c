@@ -1127,7 +1127,14 @@ mx_mutex_get_owner_thread_id( MX_MUTEX *mutex )
 		} else {
 			/* Here we use Glibc internals.  Iaah!  Iaah! */
 
+# if ( MX_GLIBC_VERSION >= 2003003 )
 			owner_pthread_id = p_mutex_ptr->__data.__owner;
+# else
+			/* Glibc 2.3.2 and before did not have NPTL
+			 * in the main source code tree.
+			 */
+			owner_pthread_id = 0;
+# endif
 		}
 	}
 

@@ -152,9 +152,9 @@ ifeq ($(_have_mx_config),true)
       GCCFLAGS += -Wno-unused-but-set-variable
   endif
 
-  # FIXME: Find out when -fwrapv was added.
+  # -fwrapv in GCC 4.9 and above
 
-  _have_fwrapv := $(shell expr $(_gccver) \> 0 )
+  _have_fwrapv := $(shell expr $(_gccver) \> 4009000 )
 
   ifeq ($(_have_fwrapv),1)
       GCCFLAGS += -fwrapv

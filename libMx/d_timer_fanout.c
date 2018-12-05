@@ -301,7 +301,7 @@ mxd_timer_fanout_is_busy( MX_TIMER *timer )
 
 			    if ( debug ) {
 				MX_DEBUG(-2,
-				("%s: starting timer '%s' for %lg seconds.",
+				("%s: starting timer '%s' for %g seconds.",
 				    fname, next_timer_record->name,
 				    seconds_to_count));
 			    }
@@ -366,7 +366,7 @@ mxd_timer_fanout_start( MX_TIMER *timer )
 		child_timer_record = (timer_fanout->timer_record_array)[0];
 
 		if ( debug ) {
-			MX_DEBUG(-2,("%s: Starting timer '%s' for %lg seconds",
+			MX_DEBUG(-2,("%s: Starting timer '%s' for %g seconds",
 				fname, child_timer_record->name,
 				seconds_to_count));
 		}
@@ -384,7 +384,7 @@ mxd_timer_fanout_start( MX_TIMER *timer )
 		    child_timer_record = (timer_fanout->timer_record_array)[i];
 
 		    if ( debug ) {
-			MX_DEBUG(-2,("%s: Starting timer '%s' for %lg seconds",
+			MX_DEBUG(-2,("%s: Starting timer '%s' for %g seconds",
 				fname, child_timer_record->name,
 				seconds_to_count));
 		    }

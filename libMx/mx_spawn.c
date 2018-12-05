@@ -862,7 +862,7 @@ mx_wait_for_process_id( unsigned long process_id,
 	|| defined(OS_MINIX) || defined(OS_RTEMS)
 
 static void
-sigalrm_abort_handler( int signal )
+sigalrm_abort_handler( int mx_signal )
 {
 	abort();
 }
