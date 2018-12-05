@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2016-2017 Illinois Institute of Technology
+ * Copyright 2016-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,8 +16,8 @@
 
 #define MXD_NETWORK_GET_INTERFACE_DEBUG		FALSE
 
-#if defined( OS_WIN32 )
-#include <winsock2.h>
+#if ( defined( OS_WIN32 ) && defined( _MSC_VER ) && ( _MSC_VER >= 1300 ) )
+#  include <winsock2.h>
 #endif
 
 #include <stdio.h>

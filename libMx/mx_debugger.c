@@ -918,7 +918,47 @@ mx_get_numbered_breakpoint( unsigned long breakpoint_number )
 
 /*-------------------------------------------------------------------------*/
 
-#if ( defined(OS_WIN32) && !defined(__MINGW32__) )
+#if ( defined(OS_WIN32) && defined(_MSC_VER) )
+
+# if (_MSC_VER < 1200)
+  /* Stubs for Visual C++ 5.0 and before. */
+
+MX_EXPORT int
+mx_set_watchpoint( MX_WATCHPOINT **watchpoint_ptr,
+		void *value_pointer,
+		long value_datatype,
+		unsigned long flags,
+		void *callback_function( MX_WATCHPOINT *, void * ),
+		void *callback_arguments )
+{
+	static const char fname[] = "mx_set_watchpoint()";
+
+	mx_error( MXE_UNSUPPORTED, fname,
+		"MX watchpoints are not supported for this build target." );
+
+	return FALSE;
+}
+
+MX_EXPORT int
+mx_clear_watchpoint( MX_WATCHPOINT *watchpoint ) {
+	return TRUE;
+}
+
+MX_EXPORT int
+mx_show_watchpoints( void )
+{
+	static const char fname[] = "mx_show_watchpoints()";
+
+	mx_error( MXE_UNSUPPORTED, fname,
+		"MX watchpoints are not supported for this build target." );
+
+	return FALSE;
+}
+
+/*------------*/
+
+# else
+  /* For Visual C++ 6.0 and above. */
 
 typedef struct {
 	HANDLE data_thread_handle;
@@ -1445,6 +1485,9 @@ mx_show_watchpoints( void )
 
 	return TRUE;
 }
+
+  /* For Visual C++ 6.0 and above. */
+# endif
 
 /*-------------------------------------------------------------------------*/
 
