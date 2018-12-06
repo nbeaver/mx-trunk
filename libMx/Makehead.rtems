@@ -5,17 +5,14 @@
 #          dependent features of the MX makefiles.  This version is customized
 #          for RTEMS.
 #
-# Note:    This version of MX has been tested using the Debian packages
-#          for RTEMS 4.9 from the NSLS II laboratory found at
-#
-#            deb http://epics.nsls2.bnl.gov/debian/ wheezy main contrib
-#
 
 MX_RTEMS_DIR = /opt/rtems/4.11.3
 
 MX_RTEMS_INSTALLED_DIR = $(MX_RTEMS_DIR)/kernel/installed/i386-rtems4.11
 
 MX_RTEMS_BSP_DIR = $(MX_RTEMS_INSTALLED_DIR)/pc686
+
+MX_RTEMS_LIBBSP_DIR = $(MX_RTEMS_DIR)/kernel/pc686/i386-rtems4.11/c/pc686/lib/libbsp/i386/pc386
 
 MX_RTEMS_CPUKIT_DIR = $(MX_RTEMS_DIR)/kernel/pc686/i386-rtems4.11/c/pc686/cpukit
 
@@ -31,19 +28,17 @@ LIB_DIRS	= -L$(MX_RTEMS_PATH)/lib \
 			-L$(MX_RTEMS_BSP_DIR)/lib \
 			-L$(MX_RTEMS_GCC_DIR) \
 			-L$(MX_RTEMS_CPUKIT_DIR)/posix \
+			-L$(MX_RTEMS_LIBBSP_DIR) \
 			-L$(MX_RTEMS_DIR)/i386-rtems4.11/lib/mpentiumpro \
 			-L../libMx
 
 # FIXME: The following definition is an atrocity.  There must be a better way
 #        to do this.
 
-#LIBRARIES	= -lrtemsbsp -lrtemscpu -lm -lc -lposix -lgcc \
-#			-lrtemsbsp -lrtemscpu \
-#			$(MX_RTEMS_BSP_DIR)/lib/start.o \
-#			$(MX_RTEMS_GCC_DIR)/crti.o \
-#			-lrtemsbsp -lrtemscpu
-
-LIBRARIES	= -lrtemsbsp -lrtemscpu -lposix -lc -lm -lgcc
+LIBRARIES	= -lrtemsbsp -lrtemscpu -lbsp -lbspstart \
+			-lposix -lc -lm -lgcc \
+			$(MX_RTEMS_GCC_DIR)/mpentiumpro/crti.o \
+			-lrtemsbsp -lrtemscpu
 
 # 
 # RTEMS often runs on resource constrained systems, so we define here
