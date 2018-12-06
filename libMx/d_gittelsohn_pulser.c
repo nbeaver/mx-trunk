@@ -170,6 +170,8 @@ mxd_gittelsohn_pulser_command( MX_GITTELSOHN_PULSER *gittelsohn_pulser,
 	 * this line away.
 	 */
 
+	memset( discard_buffer, 0, sizeof(discard_buffer) );
+
 	mx_status = mx_rs232_getline_with_timeout( rs232_record,
 			discard_buffer, sizeof(discard_buffer),
 			NULL, debug_flag,
@@ -179,7 +181,6 @@ mxd_gittelsohn_pulser_command( MX_GITTELSOHN_PULSER *gittelsohn_pulser,
 	case MXE_SUCCESS:
 		break;
 	case MXE_TIMED_OUT:
-		mx_stack_traceback();
 		return mx_error( MXE_TIMED_OUT, fname,
 		"Gittelsohn pulser '%s' timed out while waiting for the "
 		"echoing of the command '%s'.",
