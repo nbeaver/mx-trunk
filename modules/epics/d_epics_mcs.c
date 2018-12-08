@@ -1053,7 +1053,7 @@ mxd_epics_mcs_get_parameter( MX_MCS *mcs )
 
 	MX_EPICS_MCS *epics_mcs = NULL;
 	double dark_current;
-	int32_t measurement_number, external_channel_advance;;
+	int32_t measurement_number, external_channel_advance;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_mcs_get_pointers( mcs, &epics_mcs, fname );
