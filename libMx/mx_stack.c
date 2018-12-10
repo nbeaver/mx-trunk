@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004, 2006, 2008-2010, 2015, 2017
+ * Copyright 2000-2001, 2003-2004, 2006, 2008-2010, 2015, 2017-2018
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -720,7 +720,7 @@ mx_stack_traceback( void )
 
 #include <unistd.h>
 
-/* Solaris 2 has a stack traceback program called 'ptrace' that uses the
+/* Solaris 2 has a stack traceback program called 'pstack' that uses the
  * /proc filesystem to do the traceback.
  */
 
