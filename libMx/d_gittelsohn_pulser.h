@@ -20,6 +20,7 @@
 #include "mx_pulse_generator.h"
 
 #define MXF_GITTELSOHN_PULSER_DEBUG			0x1
+#define MXF_GITTELSOHN_PULSER_AUTO_RESYNC_ON_ERROR	0x2
 
 typedef struct {
 	MX_RECORD *record;
@@ -27,6 +28,7 @@ typedef struct {
 	MX_RECORD *rs232_record;
 	unsigned long gittelsohn_pulser_flags;
 	double timeout;
+	unsigned long max_retries;
 
 	double firmware_version;
 
@@ -64,6 +66,10 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_gittelsohn_pulser_rfield_def_ptr;
   {-1, -1, "gittelsohn_pulser_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_GITTELSOHN_PULSER, gittelsohn_pulser_flags), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) } , \
+  \
+  {-1, -1, "max_retries", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_GITTELSOHN_PULSER, max_retries), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) } , \
   \
   {-1, -1, "timeout", MXFT_DOUBLE, NULL, 0, {0}, \

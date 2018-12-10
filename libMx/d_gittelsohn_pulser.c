@@ -131,7 +131,9 @@ mxd_gittelsohn_pulser_command( MX_GITTELSOHN_PULSER *gittelsohn_pulser,
 	unsigned long debug_flag, flags;
 	char discard_buffer[200];
 	mx_bool_type discard_additional_chars;
-	mx_status_type mx_status;
+	mx_bool_type resync_on_error;
+	unsigned long i, max_attempts;
+	mx_status_type mx_status, mx_status_2;
 
 	if ( gittelsohn_pulser == (MX_GITTELSOHN_PULSER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -158,69 +160,121 @@ mxd_gittelsohn_pulser_command( MX_GITTELSOHN_PULSER *gittelsohn_pulser,
 		debug_flag = 0;
 	}
 
-	/* Send the command to the Arduino. */
-
-	mx_status = mx_rs232_putline( rs232_record, command, NULL, debug_flag );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* The Arduino immediately sends back a line that just reports
-	 * back the command that was sent to the caller.  We just throw
-	 * this line away.
-	 */
-
-	memset( discard_buffer, 0, sizeof(discard_buffer) );
-
-	mx_status = mx_rs232_getline_with_timeout( rs232_record,
-			discard_buffer, sizeof(discard_buffer),
-			NULL, debug_flag,
-			gittelsohn_pulser->timeout );
-
-	switch( mx_status.code ) {
-	case MXE_SUCCESS:
-		break;
-	case MXE_TIMED_OUT:
-		return mx_error( MXE_TIMED_OUT, fname,
-		"Gittelsohn pulser '%s' timed out while waiting for the "
-		"echoing of the command '%s'.",
-			gittelsohn_pulser->record->name, command );
-		break;
-	default:
-		return mx_status;
-		break;
+	if ( flags & MXF_GITTELSOHN_PULSER_AUTO_RESYNC_ON_ERROR ) {
+		resync_on_error = TRUE;
+	} else {
+		resync_on_error = FALSE;
 	}
 
-	/* If requested, read back the _real_ data from the Arduino. */
+	max_attempts = gittelsohn_pulser->max_retries + 1;
 
-	if ( response != NULL ) {
+	for ( i = 0; i < max_attempts; i++ ) {
+		/* Send the command to the Arduino. */
+
+		mx_status = mx_rs232_putline( rs232_record, command,
+						NULL, debug_flag );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* The Arduino immediately sends back a line that just reports
+		 * back the command that was sent to the caller.  We just throw
+		 * this line away.
+		 */
+
+		memset( discard_buffer, 0, sizeof(discard_buffer) );
+
 		mx_status = mx_rs232_getline_with_timeout( rs232_record,
-			response, max_response_size, NULL, debug_flag,
-			gittelsohn_pulser->timeout );
+				discard_buffer, sizeof(discard_buffer),
+				NULL, debug_flag,
+				gittelsohn_pulser->timeout );
 
 		switch( mx_status.code ) {
 		case MXE_SUCCESS:
 			break;
 		case MXE_TIMED_OUT:
 			mx_stack_traceback();
-			return mx_error( MXE_TIMED_OUT, fname,
+			mx_status = mx_error( MXE_TIMED_OUT, fname,
 			"Gittelsohn pulser '%s' timed out while waiting for "
-			"the response to the command '%s'.",
+			"the echoing of the command '%s'.",
 				gittelsohn_pulser->record->name, command );
+
+			if ( resync_on_error ) {
+				mx_status_2 = mx_resynchronize_record(
+						gittelsohn_pulser->record );
+
+				if ( mx_status_2.code != MXE_SUCCESS ) {
+					/* If resynchronize failed, then 
+					 * we give up.
+					 */
+					return mx_status;
+				} else {
+					/* Otherwise, we retry the command. */
+					continue;
+				}
+			}
 			break;
 		default:
 			return mx_status;
 			break;
 		}
-	} else if ( discard_additional_chars  ) {
 
-		/* If there are additional bytes available that we did not
-		 * expect, then discard them.
+		/* If requested, read back the _real_ data from the Arduino. */
+
+		if ( response != NULL ) {
+			mx_status = mx_rs232_getline_with_timeout( rs232_record,
+				response, max_response_size, NULL, debug_flag,
+				gittelsohn_pulser->timeout );
+
+			switch( mx_status.code ) {
+			case MXE_SUCCESS:
+				break;
+			case MXE_TIMED_OUT:
+				mx_stack_traceback();
+				mx_status = mx_error( MXE_TIMED_OUT, fname,
+				"Gittelsohn pulser '%s' timed out while "
+				"waiting for the response to the command '%s'.",
+				gittelsohn_pulser->record->name, command );
+
+				if ( resync_on_error ) {
+				    mx_status_2 = mx_resynchronize_record(
+						gittelsohn_pulser->record );
+
+				    if ( mx_status_2.code != MXE_SUCCESS ) {
+					/* If resynchronize failed, then 
+					 * we give up.
+					 */
+					return mx_status;
+				    } else {
+					/* Otherwise, we retry the command. */
+					continue;
+				    }
+				}
+				break;
+			default:
+				return mx_status;
+				break;
+			}
+		} else if ( discard_additional_chars  ) {
+
+			/* If there are additional bytes available that we
+			 * did not expect, then discard them.
+			 */
+
+			mx_status = mx_rs232_discard_unread_input( rs232_record,
+								debug_flag );
+		}
+
+		/* NOTE: This loop only continues past i == 0 if an error
+		 * returned above by MX caused a 'continue' statement to be
+		 * executed.  We should only get here if the communication
+		 * with the Arduino succeeded!  If so, then we immediately
+		 * exit the loop via the 'break' statement right after
+		 * this comment.
 		 */
+		break;
 
-		mx_status = mx_rs232_discard_unread_input( rs232_record,
-							debug_flag );
-	}
+	} /* End of the 'max_attempts' loop. */
 
 	return mx_status;
 }
