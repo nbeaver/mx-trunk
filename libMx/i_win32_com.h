@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005, 2010 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2005, 2010, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,6 +29,7 @@ MX_API mx_status_type mxi_win32com_finish_record_initialization(
 							MX_RECORD *record );
 MX_API mx_status_type mxi_win32com_open( MX_RECORD *record );
 MX_API mx_status_type mxi_win32com_close( MX_RECORD *record );
+MX_API mx_status_type mxi_win32com_resynchronize( MX_RECORD *record );
 
 MX_API mx_status_type mxi_win32com_getchar( MX_RS232 *rs232, char *c );
 MX_API mx_status_type mxi_win32com_putchar( MX_RS232 *rs232, char c );

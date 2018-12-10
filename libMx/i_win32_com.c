@@ -41,7 +41,9 @@ MX_RECORD_FUNCTION_LIST mxi_win32com_record_function_list = {
 	NULL,
 	NULL,
 	mxi_win32com_open,
-	mxi_win32com_close
+	mxi_win32com_close,
+	NULL,
+	mxi_win32com_resynchronize
 };
 
 MX_RS232_FUNCTION_LIST mxi_win32com_rs232_function_list = {
@@ -287,6 +289,37 @@ mxi_win32com_close( MX_RECORD *record )
 	win32com->handle = INVALID_HANDLE_VALUE;
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxi_win32com_resynchronize( MX_RECORD *record )
+{
+	static const char fname[] = "mxi_win32com_resynchronize()";
+
+	MX_RS232 *rs232 = NULL;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	rs232 = (MX_RS232 *) record->record_class_struct;
+
+	mx_status = mxi_win32com_discard_unread_input( rs232 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxi_win32com_close( record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+
+	mx_status = mxi_win32com_open( record );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
