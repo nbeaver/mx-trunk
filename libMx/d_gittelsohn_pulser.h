@@ -40,6 +40,7 @@ typedef struct {
 MX_API mx_status_type mxd_gittelsohn_pulser_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_gittelsohn_pulser_open( MX_RECORD *record );
+MX_API mx_status_type mxd_gittelsohn_pulser_resynchronize( MX_RECORD *record );
 
 MX_API mx_status_type mxd_gittelsohn_pulser_is_busy( MX_PULSE_GENERATOR *pulser );
 MX_API mx_status_type mxd_gittelsohn_pulser_arm( MX_PULSE_GENERATOR *pulser );
@@ -68,12 +69,12 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_gittelsohn_pulser_rfield_def_ptr;
 		offsetof(MX_GITTELSOHN_PULSER, gittelsohn_pulser_flags), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) } , \
   \
-  {-1, -1, "max_retries", MXFT_ULONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_GITTELSOHN_PULSER, max_retries), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) } , \
-  \
   {-1, -1, "timeout", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_GITTELSOHN_PULSER, timeout), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) } , \
+  \
+  {-1, -1, "max_retries", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_GITTELSOHN_PULSER, max_retries), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) } , \
   \
   {-1, -1, "firmware_version", MXFT_DOUBLE, NULL, 0, {0}, \

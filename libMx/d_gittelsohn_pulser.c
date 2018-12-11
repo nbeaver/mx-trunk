@@ -49,7 +49,10 @@ MX_RECORD_FUNCTION_LIST mxd_gittelsohn_pulser_record_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	mxd_gittelsohn_pulser_open
+	mxd_gittelsohn_pulser_open,
+	NULL,
+	NULL,
+	mxd_gittelsohn_pulser_resynchronize
 };
 
 MX_PULSE_GENERATOR_FUNCTION_LIST mxd_gittelsohn_pulser_pulser_function_list = {
@@ -169,6 +172,7 @@ mxd_gittelsohn_pulser_command( MX_GITTELSOHN_PULSER *gittelsohn_pulser,
 	max_attempts = gittelsohn_pulser->max_retries + 1;
 
 	for ( i = 0; i < max_attempts; i++ ) {
+
 		/* Send the command to the Arduino. */
 
 		mx_status = mx_rs232_putline( rs232_record, command,
@@ -624,6 +628,36 @@ mxd_gittelsohn_pulser_open( MX_RECORD *record )
 
 	mx_status = mxd_gittelsohn_pulser_set_arduino_parameters( pulser,
 							gittelsohn_pulser );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_gittelsohn_pulser_resynchronize( MX_RECORD *record )
+{
+	static const char fname[] = "mxd_gittelsohn_pulser_resynchronize()";
+
+	MX_PULSE_GENERATOR *pulser = NULL;
+	MX_GITTELSOHN_PULSER *gittelsohn_pulser = NULL;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	pulser = (MX_PULSE_GENERATOR *) record->record_class_struct;
+
+	mx_status = mxd_gittelsohn_pulser_get_pointers( pulser,
+						&gittelsohn_pulser, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_warning("Attempting to restore communication with pulser '%s'.",
+						record->name );
+
+	mx_status = mx_resynchronize_record( gittelsohn_pulser->rs232_record );
 
 	return mx_status;
 }
