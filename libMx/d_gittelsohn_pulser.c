@@ -33,6 +33,7 @@
 #include "mx_record.h"
 #include "mx_hrt.h"
 #include "mx_ascii.h"
+#include "mx_cfn.h"
 #include "mx_rs232.h"
 #include "mx_pulse_generator.h"
 #include "d_gittelsohn_pulser.h"
@@ -639,6 +640,9 @@ mxd_gittelsohn_pulser_resynchronize( MX_RECORD *record )
 
 	MX_PULSE_GENERATOR *pulser = NULL;
 	MX_GITTELSOHN_PULSER *gittelsohn_pulser = NULL;
+	FILE *log_file = NULL;
+	char timestamp_buffer[100];
+	char error_message[500];
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -654,10 +658,26 @@ mxd_gittelsohn_pulser_resynchronize( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	log_file = mx_cfn_fopen( MX_CFN_LOGFILE, "pulser_timeout.log", "a" );
+
 	mx_warning("Attempting to restore communication with pulser '%s'.",
 						record->name );
 
+	if ( log_file ) {
+		fprintf( log_file,"%s: Timeout occurred for '%s'.\n",
+		    mx_timestamp( timestamp_buffer, sizeof(timestamp_buffer)),
+			record->name );
+	}
+
 	mx_status = mx_resynchronize_record( gittelsohn_pulser->rs232_record );
+
+	if ( log_file ) {
+		fprintf( log_file,"%s: Resynchronization status = %lu.\n",
+		    mx_timestamp( timestamp_buffer, sizeof(timestamp_buffer)),
+			mx_status.code );
+
+		fclose( log_file );
+	}
 
 	return mx_status;
 }
