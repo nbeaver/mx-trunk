@@ -642,7 +642,6 @@ mxd_gittelsohn_pulser_resynchronize( MX_RECORD *record )
 	MX_GITTELSOHN_PULSER *gittelsohn_pulser = NULL;
 	FILE *log_file = NULL;
 	char timestamp_buffer[100];
-	char error_message[500];
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
