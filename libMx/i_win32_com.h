@@ -63,6 +63,7 @@ typedef struct {
 	HANDLE handle;
 	char filename[MXU_FILENAME_LENGTH + 1];
 
+	unsigned long modem_status;
 	int signal_state_initialized;
 } MX_WIN32COM;
 
@@ -75,7 +76,11 @@ extern MX_RECORD_FIELD_DEFAULTS *mxi_win32com_rfield_def_ptr;
 #define MXI_WIN32COM_STANDARD_FIELDS \
   {-1, -1, "filename", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_WIN32COM, filename), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "modem_status", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_WIN32COM, modem_status), \
+	{0}, NULL, MXFF_READ_ONLY}
 
 #endif /* __I_WIN32_COM_H__ */
 

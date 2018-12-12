@@ -671,6 +671,8 @@ mxi_win32com_get_signal_state( MX_RS232 *rs232 )
 			win32com->filename, last_error_code, message_buffer );
 	}
 
+	win32com->modem_status = (unsigned long) modem_status;
+
 	if ( modem_status & MS_CTS_ON ) {
 		rs232->signal_state |= MXF_232_CLEAR_TO_SEND;
 	}

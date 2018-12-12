@@ -367,6 +367,30 @@ mxd_gittelsohn_pulser_set_arduino_parameters( MX_PULSE_GENERATOR *pulser,
 	return mx_status;
 }
 				
+static mx_status_type
+mxd_gittelsohn_pulser_pulse_dtr( MX_GITTELSOHN_PULSER *gittelsohn_pulser )
+{
+	static const char fname[] = "mxd_gittelsohn_pulser_pulse_dtr()";
+
+	MX_RECORD *rs232_record = NULL;
+
+	if ( gittelsohn_pulser == (MX_GITTELSOHN_PULSER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_GITTELSOHN_PULSER pointer passed was NULL." );
+	}
+
+	rs232_record = gittelsohn_pulser->rs232_record;
+
+	if ( rs232_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The rs232_record pointer for pulser '%s' is NULL.",
+			gittelsohn_pulser->record->name );
+	}
+
+	mx_rs232_print_signal_state( rs232_record );
+
+	return MX_SUCCESSFUL_RESULT;
+}
 
 /*=======================================================================*/
 
@@ -419,6 +443,7 @@ mxd_gittelsohn_pulser_open( MX_RECORD *record )
 	char response[255];
 	int num_items, i, max_attempts;
 	unsigned long debug_flag, flags;
+	mx_bool_type pulse_dtr;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -473,6 +498,19 @@ mxd_gittelsohn_pulser_open( MX_RECORD *record )
 		debug_flag = MXF_232_DEBUG;
 	} else {
 		debug_flag = 0;
+	}
+
+	if ( flags & MXF_GITTELSOHN_PULSER_PULSE_DTR_ON_STOP ) {
+		pulse_dtr = TRUE;
+	} else {
+		pulse_dtr = FALSE;
+	}
+
+	if ( pulse_dtr ) {
+		mx_status = mxd_gittelsohn_pulser_pulse_dtr( gittelsohn_pulser);
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	/* Attempt to synchronize communication with the Arduino controller. */
@@ -618,12 +656,14 @@ mxd_gittelsohn_pulser_open( MX_RECORD *record )
 		"Instead, it was '%s'.", record->name, response );
 	}
 
-	/* Unconditionally stop the pulse generator. */
+	/* Stop the pulse generator. */
 
-	mx_status = mx_pulse_generator_stop( record );
+	if ( pulse_dtr == FALSE ) {
+		mx_status = mx_pulse_generator_stop( record );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
 	/* Initialize the pulse generator settings to known values. */
 
