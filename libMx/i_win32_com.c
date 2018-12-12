@@ -747,9 +747,9 @@ mxi_win32com_set_signal_state( MX_RS232 *rs232 )
 
 	/* DTR */
 
-	old_dtr = rs232->old_signal_state | MXF_232_REQUEST_TO_SEND;
+	old_dtr = rs232->old_signal_state | MXF_232_DATA_TERMINAL_READY;
 
-	new_dtr = rs232->signal_state | MXF_232_REQUEST_TO_SEND;
+	new_dtr = rs232->signal_state | MXF_232_DATA_TERMINAL_READY;
 
 	if ( ( new_dtr != old_dtr ) || ( ! initialized ) ) {
 		if ( new_dtr == 0 ) {
