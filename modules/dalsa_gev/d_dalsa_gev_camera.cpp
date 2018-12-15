@@ -908,13 +908,13 @@ mxd_dalsa_gev_camera_shadobox_trigger( MX_VIDEO_INPUT *vinput,
 
 		switch( sp->sequence_type ) {
 		case MXT_SQ_ONE_SHOT:
-		case MXT_SQ_STREAM:
 		case MXT_SQ_MULTIFRAME:
+		case MXT_SQ_DURATION:
 			strlcpy( synchronization_mode, "ExtTrigger",
 					sizeof(synchronization_mode) );
 			break;
-		case MXT_SQ_DURATION:
-			strlcpy( synchronization_mode, "Snapshot",
+		case MXT_SQ_STREAM:
+			strlcpy( synchronization_mode, "FreeRunning",
 					sizeof(synchronization_mode) );
 			break;
 		}
