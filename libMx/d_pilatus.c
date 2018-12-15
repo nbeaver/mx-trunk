@@ -1137,7 +1137,7 @@ mxd_pilatus_stop( MX_AREA_DETECTOR *ad )
 
 	pilatus->exposure_in_progress = FALSE;
 
-	mx_status = mxd_pilatus_command( pilatus, "Stop",
+	mx_status = mxd_pilatus_command( pilatus, "K",
 				response, sizeof(response), NULL );
 
 	return mx_status;
@@ -1164,7 +1164,7 @@ mxd_pilatus_abort( MX_AREA_DETECTOR *ad )
 
 	pilatus->exposure_in_progress = FALSE;
 
-	mx_status = mxd_pilatus_command( pilatus, "K",
+	mx_status = mxd_pilatus_command( pilatus, "camcmd k",
 					response, sizeof(response), NULL );
 
 	return mx_status;
