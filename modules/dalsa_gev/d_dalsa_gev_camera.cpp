@@ -879,7 +879,7 @@ mxd_dalsa_gev_camera_shadobox_trigger( MX_VIDEO_INPUT *vinput,
 	MX_DEBUG(-2,("%s: vinput->trigger_mode = %#lx",
 		fname, vinput->trigger_mode ));
 
-	if ( vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
+	if ( vinput->trigger_mode & MXF_DEV_INTERNAL_TRIGGER ) {
 		MX_DEBUG(-2,("%s: camera '%s' is using internal trigger.",
 			fname, vinput->record->name ));
 
@@ -902,7 +902,7 @@ mxd_dalsa_gev_camera_shadobox_trigger( MX_VIDEO_INPUT *vinput,
 		}
 				
 	} else
-	if ( vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
+	if ( vinput->trigger_mode & MXF_DEV_EXTERNAL_TRIGGER ) {
 		MX_DEBUG(-2,("%s: camera '%s' is using external trigger.",
 			fname, vinput->record->name ));
 

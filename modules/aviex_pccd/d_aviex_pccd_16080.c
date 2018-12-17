@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2009, 2011-2012, 2015 Illinois Institute of Technology
+ * Copyright 2006-2009, 2011-2012, 2015, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -679,19 +679,19 @@ mxd_aviex_pccd_16080_set_trigger_mode( MX_AVIEX_PCCD *aviex_pccd,
                 control_register_value
                         |= MXF_AVIEX_PCCD_16080_EXTERNAL_TRIGGER;
 
-		ad->trigger_mode |= MXT_IMAGE_EXTERNAL_TRIGGER;
+		ad->trigger_mode |= MXF_DEV_EXTERNAL_TRIGGER;
         } else {
                 control_register_value
                         &= (~MXF_AVIEX_PCCD_16080_EXTERNAL_TRIGGER);
 
-		ad->trigger_mode |= MXT_IMAGE_INTERNAL_TRIGGER;
+		ad->trigger_mode |= MXF_DEV_INTERNAL_TRIGGER;
         }
 
         if ( edge_triggered ) {
                 control_register_value
                         |= MXF_AVIEX_PCCD_16080_EDGE_TRIGGER;
 
-		ad->trigger_mode |= MXT_IMAGE_EDGE_TRIGGER;
+		ad->trigger_mode |= MXF_DEV_EDGE_TRIGGER;
         } else {
                 control_register_value
                         &= (~MXF_AVIEX_PCCD_16080_EDGE_TRIGGER);
@@ -1013,10 +1013,10 @@ mxd_aviex_pccd_16080_configure_for_sequence( MX_AREA_DETECTOR *ad,
 
 		original_trigger_mode = ad->trigger_mode;
 
-		mask = MXT_IMAGE_INTERNAL_TRIGGER
-				| MXT_IMAGE_EXTERNAL_TRIGGER
-				| MXT_IMAGE_EDGE_TRIGGER
-				| MXT_IMAGE_LEVEL_TRIGGER;
+		mask = MXF_DEV_INTERNAL_TRIGGER
+				| MXF_DEV_EXTERNAL_TRIGGER
+				| MXF_DEV_EDGE_TRIGGER
+				| MXF_DEV_LEVEL_TRIGGER;
 
 		trigger_mode = original_trigger_mode & (~mask);
 
@@ -1025,8 +1025,8 @@ mxd_aviex_pccd_16080_configure_for_sequence( MX_AREA_DETECTOR *ad,
 			num_frames = 1;
 			exposure_time = sp->parameter_array[0];
 			camera_is_master = FALSE;
-			trigger_mode |= MXT_IMAGE_INTERNAL_TRIGGER;
-			trigger_mode |= MXT_IMAGE_EDGE_TRIGGER;
+			trigger_mode |= MXF_DEV_INTERNAL_TRIGGER;
+			trigger_mode |= MXF_DEV_EDGE_TRIGGER;
 			break;
 		case MXT_SQ_MULTIFRAME:
 			num_frames = mx_round( sp->parameter_array[0] );
@@ -1036,25 +1036,25 @@ mxd_aviex_pccd_16080_configure_for_sequence( MX_AREA_DETECTOR *ad,
 			/* Internal/external trigger setting is left alone. */
 
 			multiframe_trigger = original_trigger_mode
-		  & ( MXT_IMAGE_INTERNAL_TRIGGER | MXT_IMAGE_EXTERNAL_TRIGGER );
+		  & ( MXF_DEV_INTERNAL_TRIGGER | MXF_DEV_EXTERNAL_TRIGGER );
 
 			trigger_mode |= multiframe_trigger;
 
-			trigger_mode |= MXT_IMAGE_EDGE_TRIGGER;
+			trigger_mode |= MXF_DEV_EDGE_TRIGGER;
 			break;
 		case MXT_SQ_STROBE:
 			num_frames = mx_round( sp->parameter_array[0] );
 			exposure_time = sp->parameter_array[1];
 			camera_is_master = TRUE;
-			trigger_mode |= MXT_IMAGE_EXTERNAL_TRIGGER;
-			trigger_mode |= MXT_IMAGE_EDGE_TRIGGER;
+			trigger_mode |= MXF_DEV_EXTERNAL_TRIGGER;
+			trigger_mode |= MXF_DEV_EDGE_TRIGGER;
 			break;
 		case MXT_SQ_DURATION:
 			num_frames = mx_round( sp->parameter_array[0] );
 			exposure_time = -1.0;
 			camera_is_master = TRUE;
-			trigger_mode |= MXT_IMAGE_EXTERNAL_TRIGGER;
-			trigger_mode |= MXT_IMAGE_LEVEL_TRIGGER;
+			trigger_mode |= MXF_DEV_EXTERNAL_TRIGGER;
+			trigger_mode |= MXF_DEV_LEVEL_TRIGGER;
 			break;
 		default:
 			return mx_error( MXE_FUNCTION_FAILED, fname,

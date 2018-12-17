@@ -462,7 +462,7 @@ mxd_gittelsohn_pulser_open( MX_RECORD *record )
 	memset( &(gittelsohn_pulser->last_internal_start_time),
 			0, sizeof(struct timespec) );
 
-	pulser->trigger_mode = MXF_PGN_INTERNAL_TRIGGER;
+	pulser->trigger_mode = MXF_DEV_INTERNAL_TRIGGER;
 
 	MX_DEBUG(-2,("%s: pulser '%s' trigger_mode = %ld",
 		fname, record->name, pulser->trigger_mode));
@@ -858,7 +858,7 @@ mxd_gittelsohn_pulser_arm( MX_PULSE_GENERATOR *pulser )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( (pulser->trigger_mode & MXF_PGN_EXTERNAL_TRIGGER) == 0 ) {
+	if ( (pulser->trigger_mode & MXF_DEV_EXTERNAL_TRIGGER) == 0 ) {
 		return MX_SUCCESSFUL_RESULT;
 	}
 
@@ -900,7 +900,7 @@ mxd_gittelsohn_pulser_trigger( MX_PULSE_GENERATOR *pulser )
 			pulser->trigger_mode ));
 #endif
 
-	if ( (pulser->trigger_mode & MXF_PGN_INTERNAL_TRIGGER) == 0 ) {
+	if ( (pulser->trigger_mode & MXF_DEV_INTERNAL_TRIGGER) == 0 ) {
 		return MX_SUCCESSFUL_RESULT;
 	}
 
@@ -1321,12 +1321,12 @@ mxd_gittelsohn_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 
 	case MXLV_PGN_LAST_PULSE_NUMBER:
 
-		if ( pulser->trigger_mode & MXF_PGN_INTERNAL_TRIGGER ) {
+		if ( pulser->trigger_mode & MXF_DEV_INTERNAL_TRIGGER ) {
 			mx_status =
 			  mxd_gittelsohn_pulser_internal_get_last_pulse_number(
 				pulser, gittelsohn_pulser );
 		} else
-		if ( pulser->trigger_mode & MXF_PGN_EXTERNAL_TRIGGER ) {
+		if ( pulser->trigger_mode & MXF_DEV_EXTERNAL_TRIGGER ) {
 			mx_status =
 			  mxd_gittelsohn_pulser_external_get_last_pulse_number(
 				pulser, gittelsohn_pulser );

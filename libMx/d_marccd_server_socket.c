@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008-2010, 2013, 2015-2016 Illinois Institute of Technology
+ * Copyright 2008-2010, 2013, 2015-2016, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -296,7 +296,7 @@ mxd_marccd_server_socket_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	ad->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
+	ad->trigger_mode = MXF_DEV_INTERNAL_TRIGGER;
 
 	/*---*/
 
@@ -1004,13 +1004,13 @@ mxd_marccd_server_socket_set_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_TRIGGER_MODE:
-		if ( ad->trigger_mode != MXT_IMAGE_INTERNAL_TRIGGER ) {
+		if ( ad->trigger_mode != MXF_DEV_INTERNAL_TRIGGER ) {
 			mx_status = mx_error( MXE_UNSUPPORTED, fname,
 			"Trigger mode %ld is not supported for MarCCD detector "
 		    "'%s'.  Only internal trigger mode (mode 1) is supported.",
 				ad->trigger_mode, ad->record->name );
 
-			ad->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
+			ad->trigger_mode = MXF_DEV_INTERNAL_TRIGGER;
 			return mx_status;
 		}
 		break;

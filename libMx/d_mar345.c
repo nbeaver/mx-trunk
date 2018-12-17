@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010-2011, 2013, 2015-2016 Illinois Institute of Technology
+ * Copyright 2010-2011, 2013, 2015-2016, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -985,10 +985,10 @@ mxd_mar345_get_parameter( MX_AREA_DETECTOR *ad )
 
 		switch( trigger_mode ) {
 		case 0:			/* Internal */
-			ad->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
+			ad->trigger_mode = MXF_DEV_INTERNAL_TRIGGER;
 			break;
 		case 1:			/* External */
-			ad->trigger_mode = MXT_IMAGE_EXTERNAL_TRIGGER;
+			ad->trigger_mode = MXF_DEV_EXTERNAL_TRIGGER;
 			break;
 		default:
 			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
@@ -1104,10 +1104,10 @@ mxd_mar345_set_parameter( MX_AREA_DETECTOR *ad )
 
 	case MXLV_AD_TRIGGER_MODE:
 		switch( ad->trigger_mode ) {
-		case MXT_IMAGE_INTERNAL_TRIGGER:
+		case MXF_DEV_INTERNAL_TRIGGER:
 			trigger_mode = 0;
 			break;
-		case MXT_IMAGE_EXTERNAL_TRIGGER:
+		case MXF_DEV_EXTERNAL_TRIGGER:
 			trigger_mode = 1;
 			break;
 		default:

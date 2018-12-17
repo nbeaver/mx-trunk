@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013-2017 Illinois Institute of Technology
+ * Copyright 2013-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1542,10 +1542,10 @@ mxd_sapera_lt_camera_open( MX_RECORD *record )
 
 	vinput->master_clock = MXF_VIN_MASTER_CAMERA;
 
-	vinput->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
+	vinput->trigger_mode = MXF_DEV_INTERNAL_TRIGGER;
 
 	mx_status = mx_video_input_set_trigger_mode( record,
-						MXT_IMAGE_INTERNAL_TRIGGER );
+						MXF_DEV_INTERNAL_TRIGGER );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1677,7 +1677,7 @@ mxd_sapera_lt_camera_resynchronize( MX_RECORD *record )
 	 */
 
 	mx_status = mx_video_input_set_trigger_mode( record,
-						MXT_IMAGE_INTERNAL_TRIGGER );
+						MXF_DEV_INTERNAL_TRIGGER );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1833,7 +1833,7 @@ mxd_sapera_lt_camera_arm( MX_VIDEO_INPUT *vinput )
 
 	acq_device = sapera_lt_camera->acq_device;
 
-	if ( vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
+	if ( vinput->trigger_mode & MXF_DEV_EXTERNAL_TRIGGER ) {
 
 		if ( sp->sequence_type != MXT_SQ_DURATION ) {
 			return mx_error( MXE_UNSUPPORTED, fname,
@@ -1876,7 +1876,7 @@ mxd_sapera_lt_camera_arm( MX_VIDEO_INPUT *vinput )
 			vinput->record->name );
 		}
 	} else
-	if ( vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
+	if ( vinput->trigger_mode & MXF_DEV_INTERNAL_TRIGGER ) {
 
 		switch( sp->sequence_type ) {
 		case MXT_SQ_ONE_SHOT:
@@ -1980,13 +1980,13 @@ mxd_sapera_lt_camera_trigger( MX_VIDEO_INPUT *vinput )
 		break;
 	}
 
-	if ( vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
+	if ( vinput->trigger_mode & MXF_DEV_EXTERNAL_TRIGGER ) {
 
 		/* For external triggering, this function does nothing. */
 
 		return MX_SUCCESSFUL_RESULT;
 	} else
-	if ( vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
+	if ( vinput->trigger_mode & MXF_DEV_INTERNAL_TRIGGER ) {
 
 #if MXD_SAPERA_LT_CAMERA_DEBUG_TRIGGER
 		MX_DEBUG(-2,

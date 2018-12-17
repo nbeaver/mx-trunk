@@ -1096,9 +1096,9 @@ mxd_epics_mcs_get_parameter( MX_MCS *mcs )
 			return mx_status;
 
 		if ( external_channel_advance ) {
-			mcs->trigger_mode = MXF_MCS_EXTERNAL_TRIGGER;
+			mcs->trigger_mode = MXF_DEV_EXTERNAL_TRIGGER;
 		} else {
-			mcs->trigger_mode = MXF_MCS_INTERNAL_TRIGGER;
+			mcs->trigger_mode = MXF_DEV_INTERNAL_TRIGGER;
 		}
 		break;
 	default:
@@ -1270,10 +1270,10 @@ mxd_epics_mcs_set_parameter( MX_MCS *mcs )
 
 	case MXLV_MCS_TRIGGER_MODE:
 		switch( mcs->trigger_mode ) {
-		case MXF_MCS_INTERNAL_TRIGGER:
+		case MXF_DEV_INTERNAL_TRIGGER:
 			external_channel_advance = 0;
 			break;
-		case MXF_MCS_EXTERNAL_TRIGGER:
+		case MXF_DEV_EXTERNAL_TRIGGER:
 			external_channel_advance = 1;
 			break;
 		default:

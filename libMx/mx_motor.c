@@ -79,7 +79,7 @@ mx_motor_finish_record_initialization( MX_RECORD *motor_record )
 
 	motor->triggered_move_destination = 0.0;
 	motor->trigger_move = FALSE;
-	motor->trigger_mode = MXF_MTR_NO_TRIGGER;
+	motor->trigger_mode = MXF_DEV_NO_TRIGGER;
 
 	motor->window_is_available = FALSE;
 	motor->use_window = FALSE;

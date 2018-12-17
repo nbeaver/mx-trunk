@@ -1768,7 +1768,7 @@ mxd_radicon_helios_arm( MX_AREA_DETECTOR *ad )
 	switch( sp->sequence_type ) {
 	case MXT_SQ_ONE_SHOT:
 		if ( radicon_helios->pulse_generator_record != NULL ) {
-			ad->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
+			ad->trigger_mode = MXF_DEV_INTERNAL_TRIGGER;
 
 			break;		/* Exit the switch() statement. */
 		}
@@ -1867,7 +1867,7 @@ mxd_radicon_helios_trigger( MX_AREA_DETECTOR *ad )
 
 	sp = &(ad->sequence_parameters);
 
-	if ( ( ad->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) == 0 ) {
+	if ( ( ad->trigger_mode & MXF_DEV_INTERNAL_TRIGGER ) == 0 ) {
 		return MX_SUCCESSFUL_RESULT;
 	}
 

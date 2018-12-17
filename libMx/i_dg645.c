@@ -586,7 +586,7 @@ mxi_dg645_setup_pulser_trigger_mode( MX_DG645 *dg645, long new_trigger_mode )
 	static const char fname[] = "mxi_dg645_setup_pulser_trigger_mode()";
 
 	switch( new_trigger_mode ) {
-	case MXF_PGN_INTERNAL_TRIGGER:
+	case MXF_DEV_INTERNAL_TRIGGER:
 		dg645->trigger_type = MXF_DG645_INTERNAL_TRIGGER;
 		dg645->trigger_direction = 0;
 
@@ -597,7 +597,7 @@ mxi_dg645_setup_pulser_trigger_mode( MX_DG645 *dg645, long new_trigger_mode )
 		}
 		break;
 
-	case MXF_PGN_EXTERNAL_TRIGGER:
+	case MXF_DEV_EXTERNAL_TRIGGER:
 		dg645->trigger_type = MXF_DG645_EXTERNAL_TRIGGER;
 		
 		if ( dg645->trigger_direction >= 0 ) {

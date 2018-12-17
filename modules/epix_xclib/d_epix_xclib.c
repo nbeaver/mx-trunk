@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2013, 2015, 2017 Illinois Institute of Technology
+ * Copyright 2006-2013, 2015, 2017-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1408,7 +1408,7 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 		fname, vinput->trigger_mode));
 #endif
 
-	if ( ( vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) == 0 ) {
+	if ( ( vinput->trigger_mode & MXF_DEV_EXTERNAL_TRIGGER ) == 0 ) {
 
 #if MXD_EPIX_XCLIB_DEBUG_TRIGGER
 		MX_DEBUG(-2,
@@ -1628,7 +1628,7 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 #endif
 	flags = epix_xclib->epix_xclib_flags;
 
-	if ( ( vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) == 0 ) {
+	if ( ( vinput->trigger_mode & MXF_DEV_INTERNAL_TRIGGER ) == 0 ) {
 
 		/* If internal triggering is not enabled,
 		 * return without doing anything
@@ -2988,13 +2988,13 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 			fname, vinput->trigger_mode));
 #endif
 		switch( vinput->trigger_mode ) {
-		case MXT_IMAGE_INTERNAL_TRIGGER:
-		case MXT_IMAGE_EXTERNAL_TRIGGER:
+		case MXF_DEV_INTERNAL_TRIGGER:
+		case MXF_DEV_EXTERNAL_TRIGGER:
 			break;
 		default:
 			saved_trigger_mode = vinput->trigger_mode;
 
-			vinput->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
+			vinput->trigger_mode = MXF_DEV_INTERNAL_TRIGGER;
 
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 				"Illegal trigger mode %ld requested for "
@@ -3002,8 +3002,8 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 				"'internal' (%d) and 'external' (%d).",
 					saved_trigger_mode,
 					vinput->record->name,
-					MXT_IMAGE_INTERNAL_TRIGGER,
-					MXT_IMAGE_EXTERNAL_TRIGGER );
+					MXF_DEV_INTERNAL_TRIGGER,
+					MXF_DEV_EXTERNAL_TRIGGER );
 			break;
 		}
 		break;

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2007-2010, 2013, 2015-2016 Illinois Institute of Technology
+ * Copyright 2007-2010, 2013, 2015-2016, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -250,7 +250,7 @@ mxd_file_vinput_open( MX_RECORD *record )
 	vinput->frame          = NULL;
 	vinput->frame_buffer   = NULL;
 	vinput->byte_order     = (long) mx_native_byteorder();
-	vinput->trigger_mode   = MXT_IMAGE_NO_TRIGGER;
+	vinput->trigger_mode   = MXF_DEV_NO_TRIGGER;
 
 	vinput->total_num_frames = 0;
 
@@ -587,10 +587,10 @@ mxd_file_vinput_arm( MX_VIDEO_INPUT *vinput )
 	}
 
 	switch( vinput->trigger_mode ) {
-	case MXT_IMAGE_INTERNAL_TRIGGER:
+	case MXF_DEV_INTERNAL_TRIGGER:
 		file_vinput->sequence_in_progress = FALSE;
 		break;
-	case MXT_IMAGE_EXTERNAL_TRIGGER:
+	case MXF_DEV_EXTERNAL_TRIGGER:
 		file_vinput->sequence_in_progress = TRUE;
 		file_vinput->start_tick = mx_current_clock_tick();
 		break;

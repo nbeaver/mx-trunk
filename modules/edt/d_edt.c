@@ -385,7 +385,7 @@ mxd_edt_open( MX_RECORD *record )
 	vinput->frame          = NULL;
 	vinput->frame_buffer   = NULL;
 	vinput->byte_order     = mx_native_byteorder();
-	vinput->trigger_mode   = MXT_IMAGE_INTERNAL_TRIGGER;
+	vinput->trigger_mode   = MXF_DEV_INTERNAL_TRIGGER;
 
 	mx_status = mx_video_input_get_image_format( record, NULL );
 
@@ -514,7 +514,7 @@ mxd_edt_trigger( MX_VIDEO_INPUT *vinput )
 	MX_DEBUG(-2,("%s invoked for video input '%s'",
 		fname, vinput->record->name ));
 #endif
-	if ( ( vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) == 0 ) {
+	if ( ( vinput->trigger_mode & MXF_DEV_INTERNAL_TRIGGER ) == 0 ) {
 
 		/* If internal triggering is not enabled,
 		 * return without doing anything

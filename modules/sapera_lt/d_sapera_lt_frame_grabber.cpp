@@ -1278,10 +1278,10 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 
 	vinput->master_clock = MXF_VIN_MASTER_VIDEO_BOARD;
 
-	vinput->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
+	vinput->trigger_mode = MXF_DEV_INTERNAL_TRIGGER;
 
 	mx_status = mx_video_input_set_trigger_mode( record,
-						MXT_IMAGE_INTERNAL_TRIGGER );
+						MXF_DEV_INTERNAL_TRIGGER );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1619,7 +1619,7 @@ mxd_sapera_lt_frame_grabber_trigger( MX_VIDEO_INPUT *vinput )
 		fname, vinput->record->name ));
 #endif
 
-	if ( ( vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) == 0 ) {
+	if ( ( vinput->trigger_mode & MXF_DEV_INTERNAL_TRIGGER ) == 0 ) {
 
 		/* If internal triggering is not enabled,
 		 * return without doing anything.

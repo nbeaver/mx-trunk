@@ -8,7 +8,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2009, 2011-2013, 2015-2016 Illinois Institute of Technology
+ * Copyright 2006-2009, 2011-2013, 2015-2016, 2018
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -996,7 +997,7 @@ mxd_aviex_pccd_9785_configure_for_sequence( MX_AREA_DETECTOR *ad,
 		 */
 
 		if ( ( sp->sequence_type == MXT_SQ_MULTIFRAME )
-		  && ( ad->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) 
+		  && ( ad->trigger_mode & MXF_DEV_INTERNAL_TRIGGER ) 
 		  && ( aviex_pccd->multiframe_needs_extra_frame ) )
 		{
 			frames_per_sequence = num_frames + 1;

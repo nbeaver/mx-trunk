@@ -1199,7 +1199,7 @@ mxd_merlin_medipix_open( MX_RECORD *record )
 	ad->correction_flags = 0;
 
 	mx_status = mx_area_detector_set_trigger_mode( record,
-						MXT_IMAGE_INTERNAL_TRIGGER );
+						MXF_DEV_INTERNAL_TRIGGER );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1363,7 +1363,7 @@ mxd_merlin_medipix_open( MX_RECORD *record )
 	/* Set the detector trigger input mode to 'internal'. */
 
 	mx_status = mx_area_detector_set_trigger_mode( record,
-						MXT_IMAGE_INTERNAL_TRIGGER );
+						MXF_DEV_INTERNAL_TRIGGER );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1531,7 +1531,7 @@ mxd_merlin_medipix_arm( MX_AREA_DETECTOR *ad )
 	/* Configure the type of trigger mode we want. */
 
 	switch( ad->trigger_mode ) {
-	case MXT_IMAGE_INTERNAL_TRIGGER:
+	case MXF_DEV_INTERNAL_TRIGGER:
 		mx_status = mxd_merlin_medipix_command( merlin_medipix,
 					"SET,TRIGGERSTART,0", NULL, 0, FALSE );
 
@@ -1544,7 +1544,7 @@ mxd_merlin_medipix_arm( MX_AREA_DETECTOR *ad )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 		break;
-	case MXT_IMAGE_EXTERNAL_TRIGGER:
+	case MXF_DEV_EXTERNAL_TRIGGER:
 		mx_status = mxd_merlin_medipix_command( merlin_medipix,
 					"SET,TRIGGERSTART,1", NULL, 0, FALSE );
 
@@ -1610,7 +1610,7 @@ mxd_merlin_medipix_arm( MX_AREA_DETECTOR *ad )
 			return mx_status;
 
 		if ( ( sp->sequence_type == MXT_SQ_MULTIFRAME )
-		  && ( ad->trigger_mode == MXT_IMAGE_EXTERNAL_TRIGGER ) )
+		  && ( ad->trigger_mode == MXF_DEV_EXTERNAL_TRIGGER ) )
 		{
 			snprintf( command, sizeof(command),
 				"SET,NUMFRAMESPERTRIGGER,%lu", num_frames );
@@ -1676,7 +1676,7 @@ mxd_merlin_medipix_arm( MX_AREA_DETECTOR *ad )
 	 * acquisition sequence to start.
 	 */
 
-	if ( ad->trigger_mode == MXT_IMAGE_EXTERNAL_TRIGGER ) {
+	if ( ad->trigger_mode == MXF_DEV_EXTERNAL_TRIGGER ) {
 		mx_status = mxd_merlin_medipix_command( merlin_medipix,
 					"CMD,STARTACQUISITION", NULL, 0, FALSE);
 
@@ -1714,7 +1714,7 @@ mxd_merlin_medipix_trigger( MX_AREA_DETECTOR *ad )
 	 * acquisition sequence to start.
 	 */
 
-	if ( ad->trigger_mode == MXT_IMAGE_INTERNAL_TRIGGER ) {
+	if ( ad->trigger_mode == MXF_DEV_INTERNAL_TRIGGER ) {
 		mx_status = mxd_merlin_medipix_command( merlin_medipix,
 					"CMD,STARTACQUISITION", NULL, 0, FALSE);
 

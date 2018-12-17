@@ -376,7 +376,7 @@ mxd_xineos_gige_open( MX_RECORD *record )
 	/* The detector will default to internal triggering. */
 
 	mx_status = mx_area_detector_set_trigger_mode( record,
-						MXT_IMAGE_INTERNAL_TRIGGER );
+						MXF_DEV_INTERNAL_TRIGGER );
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
@@ -608,7 +608,7 @@ mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 	xineos_gige->start_with_pulse_generator = FALSE;
 
 	if ( xineos_gige->pulse_generator_is_available ) {
-	    if ( ad->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
+	    if ( ad->trigger_mode & MXF_DEV_INTERNAL_TRIGGER ) {
 		switch( sp->sequence_type ) {
 		case MXT_SQ_ONE_SHOT:
 		case MXT_SQ_STREAM:
@@ -635,7 +635,7 @@ mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 		    xineos_gige->start_with_pulse_generator = FALSE;
 		}
 	    } else
-	    if ( ad->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
+	    if ( ad->trigger_mode & MXF_DEV_EXTERNAL_TRIGGER ) {
 		xineos_gige->start_with_pulse_generator = FALSE;
 	    } else {
 		return mx_error( MXE_NOT_VALID_FOR_CURRENT_STATE, fname,
@@ -656,7 +656,7 @@ mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 	 */
 
 	if ( xineos_gige->start_with_pulse_generator ) {
-		vinput_trigger_mode = MXT_IMAGE_EXTERNAL_TRIGGER;
+		vinput_trigger_mode = MXF_DEV_EXTERNAL_TRIGGER;
 	} else {
 		vinput_trigger_mode = ad->trigger_mode;
 	}
@@ -701,7 +701,7 @@ mxd_xineos_gige_arm( MX_AREA_DETECTOR *ad )
 		 * external trigger sent to the _pulser_.
 		 */
 
-		if ( ( ad->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER )
+		if ( ( ad->trigger_mode & MXF_DEV_EXTERNAL_TRIGGER )
 		  && ( xineos_gige->pulse_generator_is_available ) )
 		{
 			/* For this detector, there is no gap time, so we
@@ -854,7 +854,7 @@ mxd_xineos_gige_trigger( MX_AREA_DETECTOR *ad )
 		fname, ad->record->name ));
 #endif
 
-	if ( ( ad->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) == 0 ) {
+	if ( ( ad->trigger_mode & MXF_DEV_INTERNAL_TRIGGER ) == 0 ) {
 		/* If the area detector is using a 'real' external trigger,
 		 * then we do not need to do anything in this function.
 		 */
@@ -1365,13 +1365,13 @@ mxd_xineos_gige_measure_correction( MX_AREA_DETECTOR *ad )
 		return mx_status;
 
 	switch( ad->trigger_mode ) {
-	case MXT_IMAGE_INTERNAL_TRIGGER:
+	case MXF_DEV_INTERNAL_TRIGGER:
 		mx_status = mx_area_detector_set_multiframe_mode( ad->record,
 							corr->num_exposures,
 							corr->exposure_time,
 							corr->exposure_time );
 		break;
-	case MXT_IMAGE_EXTERNAL_TRIGGER:
+	case MXF_DEV_EXTERNAL_TRIGGER:
 		mx_status = mx_area_detector_set_duration_mode( ad->record,
 							corr->num_exposures );
 		break;

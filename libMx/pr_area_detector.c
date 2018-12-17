@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2006-2009, 2011-2015, 2017 Illinois Institute of Technology
+ * Copyright 2006-2009, 2011-2015, 2017-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -602,7 +602,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 #endif
 
 		mx_status = mx_area_detector_set_trigger_mode( record,
-						MXT_IMAGE_INTERNAL_TRIGGER );
+						MXF_DEV_INTERNAL_TRIGGER );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 			mx_area_detector_cleanup_after_correction( NULL, corr );
@@ -617,7 +617,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 #endif
 
 		mx_status = mx_area_detector_set_trigger_mode( record,
-						MXT_IMAGE_EXTERNAL_TRIGGER );
+						MXF_DEV_EXTERNAL_TRIGGER );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 			mx_area_detector_cleanup_after_correction( NULL, corr );

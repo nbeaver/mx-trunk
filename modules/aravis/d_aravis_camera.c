@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2016 Illinois Institute of Technology
+ * Copyright 2016, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -599,7 +599,7 @@ mxd_aravis_camera_open( MX_RECORD *record )
 	vinput->master_clock = MXF_VIN_MASTER_CAMERA;
 
 	mx_status = mx_video_input_set_trigger_mode( record,
-						MXT_IMAGE_INTERNAL_TRIGGER );
+						MXF_DEV_INTERNAL_TRIGGER );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -774,7 +774,7 @@ mxd_aravis_camera_arm( MX_VIDEO_INPUT *vinput )
 
 	/* Prepare the camera triggering mode. */
 
-	if ( vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
+	if ( vinput->trigger_mode & MXF_DEV_EXTERNAL_TRIGGER ) {
 		aravis_camera->acquisition_in_progress = TRUE;
 
 		arv_camera_set_trigger( aravis_camera->arv_camera, "Line 1" );
@@ -786,7 +786,7 @@ mxd_aravis_camera_arm( MX_VIDEO_INPUT *vinput )
 
 		arv_camera_start_acquisition( aravis_camera->arv_camera );
 	} else
-	if ( vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
+	if ( vinput->trigger_mode & MXF_DEV_INTERNAL_TRIGGER ) {
 		aravis_camera->acquisition_in_progress = FALSE;
 
 		arv_camera_set_trigger( aravis_camera->arv_camera, "Software" );
@@ -818,7 +818,7 @@ mxd_aravis_camera_trigger( MX_VIDEO_INPUT *vinput )
 
 	/* If we are in internal trigger mode, then send a software trigger. */
 
-	if ( vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
+	if ( vinput->trigger_mode & MXF_DEV_INTERNAL_TRIGGER ) {
 		aravis_camera->acquisition_in_progress = TRUE;
 
 		arv_camera_software_trigger( aravis_camera->arv_camera );

@@ -680,7 +680,7 @@ mxd_doutput_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 		break;
 
 	case MXLV_PGN_TRIGGER_MODE:
-		pulser->trigger_mode = MXF_PGN_INTERNAL_TRIGGER;
+		pulser->trigger_mode = MXF_DEV_INTERNAL_TRIGGER;
 		break;
 
 	case MXLV_PGN_PULSE_PERIOD:
@@ -745,7 +745,7 @@ mxd_doutput_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 		break;
 
 	case MXLV_PGN_TRIGGER_MODE:
-		pulser->trigger_mode = MXF_PGN_INTERNAL_TRIGGER;
+		pulser->trigger_mode = MXF_DEV_INTERNAL_TRIGGER;
 		break;
 
 	case MXLV_PGN_PULSE_PERIOD:

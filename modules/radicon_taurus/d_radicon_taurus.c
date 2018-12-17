@@ -1122,7 +1122,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	/* The detector will default to external triggering. */
 
 	mx_status = mx_area_detector_set_trigger_mode( record,
-						MXT_IMAGE_EXTERNAL_TRIGGER );
+						MXF_DEV_EXTERNAL_TRIGGER );
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
@@ -1919,7 +1919,7 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 		 */
 
 		if ( rt_flags & MXF_RADICON_TAURUS_GENERATE_THROWAWAY_FRAME ) {
-		    if ( ad->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
+		    if ( ad->trigger_mode & MXF_DEV_INTERNAL_TRIGGER ) {
 			if ( new_sro_mode != old_sro_mode ) {
 				mx_status =
 			    mxd_radicon_taurus_generate_throwaway_frame(
@@ -2014,11 +2014,11 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		if ( ad->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
+		if ( ad->trigger_mode & MXF_DEV_EXTERNAL_TRIGGER ) {
 
 			strlcpy( command, "STM 2137", sizeof(command) );
 		} else
-		if ( ad->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
+		if ( ad->trigger_mode & MXF_DEV_INTERNAL_TRIGGER ) {
 
 			strlcpy( command, "STM 64", sizeof(command) );
 		} else {
@@ -2029,7 +2029,7 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 
 			strlcpy( command, "STM 64", sizeof(command) );
 
-			ad->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
+			ad->trigger_mode = MXF_DEV_INTERNAL_TRIGGER;
 		}
 
 		mx_status = mxd_radicon_taurus_command( radicon_taurus, command,
@@ -2058,7 +2058,7 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 	 * need to be there for some reason, at least on the new detector.
 	 */
 
-	if ( ad->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
+	if ( ad->trigger_mode & MXF_DEV_EXTERNAL_TRIGGER ) {
 		double delay_time_in_seconds
 			= radicon_taurus->next_get_extended_status_delay;
 
@@ -2123,7 +2123,7 @@ mxd_radicon_taurus_trigger( MX_AREA_DETECTOR *ad )
 
 	/*----------------------------------------------------------------*/
 
-	if ( ( ad->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) == 0 ) {
+	if ( ( ad->trigger_mode & MXF_DEV_INTERNAL_TRIGGER ) == 0 ) {
 
 		/* If internal triggering is not enabled,
 		 * return without doing anything.

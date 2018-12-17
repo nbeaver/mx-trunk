@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2008-2010 Illinois Institute of Technology
+ * Copyright 2008-2010, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -924,13 +924,13 @@ mxd_bkprecision_912x_wvout_get_parameter( MX_WAVEFORM_OUTPUT *wvout )
 		 */
 
 		if ( strcmp( response, "BUS" ) == 0 ) {
-			wvout->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
+			wvout->trigger_mode = MXF_DEV_INTERNAL_TRIGGER;
 		} else
 		if ( strcmp( response, "EXTERNAL" ) == 0 ) {
-			wvout->trigger_mode = MXT_IMAGE_EXTERNAL_TRIGGER;
+			wvout->trigger_mode = MXF_DEV_EXTERNAL_TRIGGER;
 		} else
 		if ( strcmp( response, "IMMEDIATE" ) == 0 ) {
-			wvout->trigger_mode = MXT_IMAGE_MANUAL_TRIGGER;
+			wvout->trigger_mode = MXF_DEV_MANUAL_TRIGGER;
 		} else {
 			return mx_error( MXE_DEVICE_IO_ERROR, fname,
 			"Unexpected response '%s' seen for command '%s' "
@@ -1040,15 +1040,15 @@ mxd_bkprecision_912x_wvout_set_parameter( MX_WAVEFORM_OUTPUT *wvout )
 		 */
 
 		switch( wvout->trigger_mode ) {
-		case MXT_IMAGE_INTERNAL_TRIGGER:
+		case MXF_DEV_INTERNAL_TRIGGER:
 			strlcpy( command, "TRIGGER:SOURCE BUS",
 						sizeof(command) );
 			break;
-		case MXT_IMAGE_EXTERNAL_TRIGGER:
+		case MXF_DEV_EXTERNAL_TRIGGER:
 			strlcpy( command, "TRIGGER:SOURCE EXTERNAL",
 						sizeof(command) );
 			break;
-		case MXT_IMAGE_MANUAL_TRIGGER:
+		case MXF_DEV_MANUAL_TRIGGER:
 			strlcpy( command, "TRIGGER:SOURCE IMMEDIATE",
 						sizeof(command) );
 			break;

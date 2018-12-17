@@ -65,12 +65,6 @@ extern "C" {
 
 #define MXF_MTR_ACCEL_OTHER			0x10000
 
-/* Move trigger modes. */
-
-#define MXF_MTR_NO_TRIGGER			0x0
-#define MXF_MTR_INTERNAL_TRIGGER		0x1
-#define MXF_MTR_EXTERNAL_TRIGGER		0x2
-
 /* Status bit definitions for the 'status' and 'extended_status' fields. */
 
 #define MXSF_MTR_IS_BUSY			0x1

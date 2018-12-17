@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010-2013, 2015 Illinois Institute of Technology
+ * Copyright 2010-2013, 2015, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -849,7 +849,7 @@ mxd_mbc_noir_get_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_TRIGGER_MODE:
-		ad->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
+		ad->trigger_mode = MXF_DEV_INTERNAL_TRIGGER;
 		break;
 
 	default:
@@ -923,7 +923,7 @@ mxd_mbc_noir_set_parameter( MX_AREA_DETECTOR *ad )
 		break; 
 
 	case MXLV_AD_TRIGGER_MODE:
-		ad->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
+		ad->trigger_mode = MXF_DEV_INTERNAL_TRIGGER;
 		break;
 
 	case MXLV_AD_IMAGE_FORMAT:

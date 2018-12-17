@@ -202,7 +202,7 @@ mxd_sony_snc_open( MX_RECORD *record )
 	vinput->frame          = NULL;
 	vinput->frame_buffer   = NULL;
 	vinput->byte_order     = (long) mx_native_byteorder();
-	vinput->trigger_mode   = MXT_IMAGE_NO_TRIGGER;
+	vinput->trigger_mode   = MXF_DEV_NO_TRIGGER;
 
 	vinput->total_num_frames = 0;
 
@@ -311,7 +311,7 @@ mxd_sony_snc_arm( MX_VIDEO_INPUT *vinput )
 	}
 
 	switch( vinput->trigger_mode ) {
-	case MXT_IMAGE_INTERNAL_TRIGGER:
+	case MXF_DEV_INTERNAL_TRIGGER:
 		sony_snc->sequence_in_progress = FALSE;
 		break;
 	case MXT_IMAGE_EXTERNAL_TRIGGER:
@@ -603,7 +603,7 @@ mxd_sony_snc_get_parameter( MX_VIDEO_INPUT *vinput )
 		break;
 
 	case MXLV_VIN_TRIGGER_MODE:
-		vinput->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
+		vinput->trigger_mode = MXF_DEV_INTERNAL_TRIGGER;
 		break;
 
 	case MXLV_VIN_BYTES_PER_FRAME:

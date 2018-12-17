@@ -818,7 +818,7 @@ mxd_epics_ad_arm( MX_AREA_DETECTOR *ad )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		if ( (ad->trigger_mode) & MXT_IMAGE_EXTERNAL_TRIGGER ) {
+		if ( (ad->trigger_mode) & MXF_DEV_EXTERNAL_TRIGGER ) {
 			mx_status = mx_area_detector_get_total_num_frames(
 							ad->record, NULL );
 
@@ -898,7 +898,7 @@ mxd_epics_ad_trigger( MX_AREA_DETECTOR *ad )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		if ( (ad->trigger_mode) & MXT_IMAGE_INTERNAL_TRIGGER ) {
+		if ( (ad->trigger_mode) & MXF_DEV_INTERNAL_TRIGGER ) {
 			mx_status = mx_area_detector_get_total_num_frames(
 							ad->record, NULL );
 
@@ -1613,10 +1613,10 @@ mxd_epics_ad_get_parameter( MX_AREA_DETECTOR *ad )
 
 		switch( trigger_mode ) {
 		case 0:			/* Internal */
-			ad->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
+			ad->trigger_mode = MXF_DEV_INTERNAL_TRIGGER;
 			break;
 		case 1:			/* External */
-			ad->trigger_mode = MXT_IMAGE_EXTERNAL_TRIGGER;
+			ad->trigger_mode = MXF_DEV_EXTERNAL_TRIGGER;
 			break;
 		default:
 			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
@@ -1971,10 +1971,10 @@ mxd_epics_ad_set_parameter( MX_AREA_DETECTOR *ad )
 
 	case MXLV_AD_TRIGGER_MODE:
 		switch( ad->trigger_mode ) {
-		case MXT_IMAGE_INTERNAL_TRIGGER:
+		case MXF_DEV_INTERNAL_TRIGGER:
 			trigger_mode = 0;
 			break;
-		case MXT_IMAGE_EXTERNAL_TRIGGER:
+		case MXF_DEV_EXTERNAL_TRIGGER:
 			trigger_mode = 1;
 			break;
 		default:

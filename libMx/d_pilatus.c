@@ -637,7 +637,7 @@ mxd_pilatus_open( MX_RECORD *record )
 
 	ad->image_format = MXT_IMAGE_FORMAT_GREY32;
 
-	ad->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
+	ad->trigger_mode = MXF_DEV_INTERNAL_TRIGGER;
 
 	mx_status = mx_image_get_image_format_name_from_type(
 						ad->image_format,
@@ -875,7 +875,7 @@ mxd_pilatus_arm( MX_AREA_DETECTOR *ad )
 
 	sp = &(ad->sequence_parameters);
 
-	if ( ad->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
+	if ( ad->trigger_mode & MXF_DEV_INTERNAL_TRIGGER ) {
 		switch( sp->sequence_type ) {
 		case MXT_SQ_ONE_SHOT:
 		case MXT_SQ_MULTIFRAME:
@@ -1024,7 +1024,7 @@ mxd_pilatus_arm( MX_AREA_DETECTOR *ad )
 
 	/* If we are not in external trigger mode, then we are done here. */
 
-	if ( ( ad->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) == 0 ) {
+	if ( ( ad->trigger_mode & MXF_DEV_EXTERNAL_TRIGGER ) == 0 ) {
 		pilatus->exposure_in_progress = FALSE;
 
 		return MX_SUCCESSFUL_RESULT;
@@ -1089,7 +1089,7 @@ mxd_pilatus_trigger( MX_AREA_DETECTOR *ad )
 #endif
 	/* If we are not in internal trigger mode, we do nothing here. */
 
-	if ( ( ad->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) == 0 ) {
+	if ( ( ad->trigger_mode & MXF_DEV_INTERNAL_TRIGGER ) == 0 ) {
 		return MX_SUCCESSFUL_RESULT;
 	}
 

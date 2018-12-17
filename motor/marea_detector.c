@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2009, 2011-2013, 2015-2017 Illinois Institute of Technology
+ * Copyright 2006-2009, 2011-2013, 2015-2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -533,17 +533,17 @@ motor_area_detector_fn( int argc, char *argv[] )
 		}
 
 		trigger_mask =
-		    MXT_IMAGE_INTERNAL_TRIGGER | MXT_IMAGE_EXTERNAL_TRIGGER;
+		    MXF_DEV_INTERNAL_TRIGGER | MXF_DEV_EXTERNAL_TRIGGER;
 
 		if ( (trigger_mode & trigger_mask) == trigger_mask ) {
 			fprintf( output,
 		    "Starting sequence in internal/external trigger mode.\n" );
 		} else
-		if ( trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
+		if ( trigger_mode & MXF_DEV_INTERNAL_TRIGGER ) {
 			fprintf( output,
 			"Starting sequence in internal trigger mode.\n" );
 		} else
-		if ( trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
+		if ( trigger_mode & MXF_DEV_EXTERNAL_TRIGGER ) {
 			fprintf( output,
 			"Starting sequence in external trigger mode.\n" );
 		} else {
@@ -1599,19 +1599,19 @@ motor_area_detector_fn( int argc, char *argv[] )
 				return FAILURE;
 
 			trigger_mask =
-		    MXT_IMAGE_INTERNAL_TRIGGER | MXT_IMAGE_EXTERNAL_TRIGGER;
+		    MXF_DEV_INTERNAL_TRIGGER | MXF_DEV_EXTERNAL_TRIGGER;
 
 			if ( (trigger_mode & trigger_mask) == trigger_mask ) {
 				fprintf( output,
 		"Area detector '%s': trigger mode = internal/external (%#lx)\n",
 				ad_record->name, trigger_mode );
 			} else
-			if( trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
+			if( trigger_mode & MXF_DEV_INTERNAL_TRIGGER ) {
 				fprintf( output,
 			"Area detector '%s': trigger mode = internal (%#lx)\n",
 				ad_record->name, trigger_mode );
 			} else
-			if ( trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
+			if ( trigger_mode & MXF_DEV_EXTERNAL_TRIGGER ) {
 				fprintf( output,
 			"Area detector '%s': trigger mode = external (%#lx)\n",
 				ad_record->name, trigger_mode );
@@ -1863,8 +1863,8 @@ motor_area_detector_fn( int argc, char *argv[] )
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 
-			mask = MXT_IMAGE_INTERNAL_TRIGGER
-				| MXT_IMAGE_EXTERNAL_TRIGGER;
+			mask = MXF_DEV_INTERNAL_TRIGGER
+				| MXF_DEV_EXTERNAL_TRIGGER;
 
 			trigger_mode &= (~mask);
 
@@ -1872,11 +1872,11 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 			if (mx_strncasecmp( argv[5], "internal", length ) == 0)
 			{
-				trigger_mode |= MXT_IMAGE_INTERNAL_TRIGGER;
+				trigger_mode |= MXF_DEV_INTERNAL_TRIGGER;
 			} else
 			if (mx_strncasecmp( argv[5], "external", length ) == 0)
 			{
-				trigger_mode |= MXT_IMAGE_EXTERNAL_TRIGGER;
+				trigger_mode |= MXF_DEV_EXTERNAL_TRIGGER;
 			} else {
 				trigger_mode = strtol( argv[5], &endptr, 0 );
 

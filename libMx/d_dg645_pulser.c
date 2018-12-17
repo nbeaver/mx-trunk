@@ -291,7 +291,7 @@ mxd_dg645_pulser_arm( MX_PULSE_GENERATOR *pulser )
 	 * actual triggering takes place in the trigger() method.
 	 */
 
-	if ( pulser->trigger_mode == MXF_PGN_INTERNAL_TRIGGER ) {
+	if ( pulser->trigger_mode == MXF_DEV_INTERNAL_TRIGGER ) {
 		dg645->armed = TRUE;
 
 		return MX_SUCCESSFUL_RESULT;
@@ -343,7 +343,7 @@ mxd_dg645_pulser_trigger( MX_PULSE_GENERATOR *pulser )
 	 * nothing to do here.
 	 */
 
-	if ( pulser->trigger_mode != MXF_PGN_INTERNAL_TRIGGER ) {
+	if ( pulser->trigger_mode != MXF_DEV_INTERNAL_TRIGGER ) {
 		return MX_SUCCESSFUL_RESULT;
 	}
 
@@ -600,13 +600,13 @@ mxd_dg645_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 
 		switch( dg645->trigger_source ) {
 		case 0: case 5:
-			pulser->trigger_mode = MXF_PGN_INTERNAL_TRIGGER;
+			pulser->trigger_mode = MXF_DEV_INTERNAL_TRIGGER;
 			break;
 		case 1: case 2: case 3: case 4:
-			pulser->trigger_mode = MXF_PGN_EXTERNAL_TRIGGER;
+			pulser->trigger_mode = MXF_DEV_EXTERNAL_TRIGGER;
 			break;
 		case 6:
-			pulser->trigger_mode = MXF_PGN_LINE_TRIGGER;
+			pulser->trigger_mode = MXF_DEV_LINE_TRIGGER;
 			break;
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -710,7 +710,7 @@ mxd_dg645_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 
 			switch( dg645->trigger_type ) {
 			case MXF_DG645_INTERNAL_TRIGGER:
-				pulser->trigger_mode = MXF_PGN_INTERNAL_TRIGGER;
+				pulser->trigger_mode = MXF_DEV_INTERNAL_TRIGGER;
 
 				if ( pulser->num_pulses == 1 ) {
 					/* Single shot */
@@ -722,7 +722,7 @@ mxd_dg645_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 				}
 				break;
 			case MXF_DG645_EXTERNAL_TRIGGER:
-				pulser->trigger_mode = MXF_PGN_EXTERNAL_TRIGGER;
+				pulser->trigger_mode = MXF_DEV_EXTERNAL_TRIGGER;
 
 				if ( pulser->num_pulses == 1 ) {
 					/* Single shot */
@@ -871,9 +871,9 @@ mxd_dg645_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 
 	case MXLV_PGN_TRIGGER_MODE:
 		switch( pulser->trigger_mode ) {
-		case MXF_PGN_INTERNAL_TRIGGER:
-		case MXF_PGN_EXTERNAL_TRIGGER:
-		case MXF_PGN_LINE_TRIGGER:
+		case MXF_DEV_INTERNAL_TRIGGER:
+		case MXF_DEV_EXTERNAL_TRIGGER:
+		case MXF_DEV_LINE_TRIGGER:
 			/* These are valid trigger modes, so we reprogram
 			 * the pulse generator using them.
 			 */

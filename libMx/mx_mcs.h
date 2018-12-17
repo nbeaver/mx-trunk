@@ -26,9 +26,6 @@
 extern "C" {
 #endif
 
-#define MXF_MCS_INTERNAL_TRIGGER	0x1
-#define MXF_MCS_EXTERNAL_TRIGGER	0x2
-
 typedef struct {
 	MX_RECORD *record; /* Pointer to the MX_RECORD structure that points
 			    * to this MCS.

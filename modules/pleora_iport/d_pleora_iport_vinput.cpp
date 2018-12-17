@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2011, 2016 Illinois Institute of Technology
+ * Copyright 2011, 2016, 2018 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -716,7 +716,7 @@ mxd_pleora_iport_vinput_trigger( MX_VIDEO_INPUT *vinput )
 		fname, vinput->record->name ));
 #endif
 
-	if ( ( vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) == 0 ) {
+	if ( ( vinput->trigger_mode & MXF_DEV_INTERNAL_TRIGGER ) == 0 ) {
 
 		/* If internal triggering is not enabled,
 		 * return without doing anything.

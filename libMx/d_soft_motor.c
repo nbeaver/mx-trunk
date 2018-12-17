@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2004, 2006-2007, 2009, 2011, 2013, 2015-2016
+ * Copyright 1999, 2001-2004, 2006-2007, 2009, 2011, 2013, 2015-2016, 2018
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -667,9 +667,9 @@ mxd_soft_motor_trigger_move( MX_MOTOR *motor )
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 
-	mask = ( MXF_MTR_INTERNAL_TRIGGER | MXF_MTR_EXTERNAL_TRIGGER );
+	mask = ( MXF_DEV_INTERNAL_TRIGGER | MXF_DEV_EXTERNAL_TRIGGER );
 
-	if( motor->trigger_mode == MXF_MTR_NO_TRIGGER ) {
+	if( motor->trigger_mode == MXF_DEV_NO_TRIGGER ) {
 		/* Ignore the trigger request. */
 	} else
 	if ( motor->trigger_mode & mask ) {

@@ -206,7 +206,7 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 
 	ad->byte_order = (long) mx_native_byteorder();
 
-	ad->trigger_mode = MXT_IMAGE_NO_TRIGGER;
+	ad->trigger_mode = MXF_DEV_NO_TRIGGER;
 	ad->exposure_mode = MXF_AD_STILL_MODE;
 
 	ad->maximum_frame_number = 0;

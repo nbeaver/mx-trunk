@@ -2377,9 +2377,9 @@ mxd_aviex_pccd_arm( MX_AREA_DETECTOR *ad )
 		camera_is_master = FALSE;
 	}
 
-	external_trigger = (ad->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER);
+	external_trigger = (ad->trigger_mode & MXF_DEV_EXTERNAL_TRIGGER);
 
-	edge_trigger = (ad->trigger_mode & MXT_IMAGE_EDGE_TRIGGER);
+	edge_trigger = (ad->trigger_mode & MXF_DEV_EDGE_TRIGGER);
 
 #if MXD_AVIEX_PCCD_DEBUG
 	MX_DEBUG(-2,
@@ -2615,7 +2615,7 @@ mxd_aviex_pccd_trigger( MX_AREA_DETECTOR *ad )
 		camera_is_master = FALSE;
 	}
 
-	internal_trigger = (vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER);
+	internal_trigger = (vinput->trigger_mode & MXF_DEV_INTERNAL_TRIGGER);
 
 #if MXD_AVIEX_PCCD_DEBUG
 	MX_DEBUG(-2,("%s: camera_is_master = %d, internal_trigger = %d",
@@ -2963,7 +2963,7 @@ mxd_aviex_pccd_get_extended_status( MX_AREA_DETECTOR *ad )
 	}
 
 	if ( ( aviex_pccd->aviex_pccd_type == MXT_AD_PCCD_9785 )
-	  && ( ad->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER )
+	  && ( ad->trigger_mode & MXF_DEV_EXTERNAL_TRIGGER )
 	  && ( aviex_pccd->sequence_in_progress ) )
 	{
 		/* If the PCCD-9785 is in external trigger mode, then it
@@ -4152,7 +4152,7 @@ mxd_aviex_pccd_get_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_TRIGGER_MODE:
-		mask = MXT_IMAGE_INTERNAL_TRIGGER | MXT_IMAGE_EXTERNAL_TRIGGER;
+		mask = MXF_DEV_INTERNAL_TRIGGER | MXF_DEV_EXTERNAL_TRIGGER;
 
 		mx_status = mx_video_input_get_trigger_mode(
 				video_input_record, &vinput_trigger_mode );
@@ -4515,14 +4515,14 @@ mxd_aviex_pccd_set_parameter( MX_AREA_DETECTOR *ad )
 		case MXT_SQ_STREAM:
 			mx_status = mx_video_input_set_trigger_mode( 
 						aviex_pccd->video_input_record,
-						MXT_IMAGE_INTERNAL_TRIGGER );
+						MXF_DEV_INTERNAL_TRIGGER );
 			break;
 
 		case MXT_SQ_STROBE:
 		case MXT_SQ_DURATION:
 			mx_status = mx_video_input_set_trigger_mode( 
 						aviex_pccd->video_input_record,
-						MXT_IMAGE_EXTERNAL_TRIGGER );
+						MXF_DEV_EXTERNAL_TRIGGER );
 			break;
 
 		case MXT_SQ_MULTIFRAME:

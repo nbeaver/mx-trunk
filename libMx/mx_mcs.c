@@ -355,7 +355,7 @@ mx_mcs_arm( MX_RECORD *mcs_record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( mcs->trigger_mode == MXF_MCS_EXTERNAL_TRIGGER ) {
+	if ( mcs->trigger_mode == MXF_DEV_EXTERNAL_TRIGGER ) {
 		mcs->new_data_available = TRUE;
 	}
 
@@ -378,7 +378,7 @@ mx_mcs_trigger( MX_RECORD *mcs_record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( mcs->trigger_mode == MXF_MCS_INTERNAL_TRIGGER ) {
+	if ( mcs->trigger_mode == MXF_DEV_INTERNAL_TRIGGER ) {
 		mcs->measurement_number = -1;
 	}
 
@@ -393,7 +393,7 @@ mx_mcs_trigger( MX_RECORD *mcs_record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( mcs->trigger_mode == MXF_MCS_INTERNAL_TRIGGER ) {
+	if ( mcs->trigger_mode == MXF_DEV_INTERNAL_TRIGGER ) {
 		mcs->new_data_available = TRUE;
 	}
 
