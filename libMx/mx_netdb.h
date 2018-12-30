@@ -41,7 +41,7 @@
 #  define AF_INET6	10
 #endif
 
-#if !defined( _NETDB_H )
+#if !defined( _NETDB_H ) && !defined(OS_ANDROID)
 
   struct addrinfo {
     int              ai_flags;
