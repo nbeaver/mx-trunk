@@ -48,6 +48,13 @@ mx_getaddrinfo( const char *node,
 		return EAI_SYSTEM;
 	}
 
+	/* FIXME: At present, we do not support the hints structure. */
+
+	if ( hints != (struct addrinfo *) NULL ) {
+		errno = EINVAL;
+		return EAI_SYSTEM;
+	}
+
 	/* Allocate memory for 'new_addrinfo' before trying to do the lookup. */
 
 	new_addrinfo = calloc( 1, sizeof(struct addrinfo) );
@@ -67,12 +74,9 @@ mx_getaddrinfo( const char *node,
 
 	/*---*/
 
-	hostent_ptr = gethostbyname( node );
-
-	if ( hostent_ptr == (struct hostent *) NULL ) {
-		errno = EINVAL;
-		return EAI_SYSTEM;
-	}
+	/* FIXME: Lock getservbyname() mutex?  But this function is not
+	 * necessarily the only user of getservbyname().
+	 */
 
 	servent_ptr = getservbyname( service, NULL );
 
@@ -81,19 +85,43 @@ mx_getaddrinfo( const char *node,
 		return EAI_SYSTEM;
 	}
 
-	new_addrinfo->ai_flags = 0x0;
-	new_addrinfo->ai_family = AF_INET;
-	new_addrinfo->ai_socktype = SOCK_STREAM;
-	new_addrinfo->ai_protocol = AF_INET;
-	new_addrinfo->ai_addrlen = sizeof(struct sockaddr_in);
+	/* FIXME: Unlock getservbyname() mutex? */
+
+	/*---*/
+
+	/* FIXME: Lock gethostbyname() mutex?  But this function is not
+	 * necessarily the only user of gethostbyname().
+	 */
+
+	hostent_ptr = gethostbyname( node );
+
+	if ( hostent_ptr == (struct hostent *) NULL ) {
+		errno = EINVAL;
+		return EAI_SYSTEM;
+	}
+
+	new_sockaddr_in->sin_addr.s_addr = inet_addr( hostent_ptr->h_addr );
+	new_addrinfo->ai_canonname = strdup( hostent_ptr->h_name );
+
+	/* FIXME: Unlock gethostbyname() mutex? */
 
 	new_sockaddr_in->sin_family = AF_INET;
-	new_sockaddr_in->sin_addr.s_addr = hostent_ptr->h_addr[0];
 	new_sockaddr_in->sin_port = servent_ptr->s_port;
+
+	/* Only IPv4 is supported here. */
+
+	new_addrinfo->ai_flags = 0x0;
+	new_addrinfo->ai_family = AF_INET;
+
+	/* FIXME: We hardcode the following for now. */
+
+	new_addrinfo->ai_socktype = SOCK_STREAM;
+	new_addrinfo->ai_protocol = IPPROTO_TCP;
+
+	new_addrinfo->ai_addrlen = sizeof(struct sockaddr_in);
 
 	new_addrinfo->ai_addr = (struct sockaddr *) new_sockaddr_in;
 
-	new_addrinfo->ai_canonname = strdup( hostent_ptr->h_name );
 	new_addrinfo->ai_next = NULL;
 
 	*res = new_addrinfo;
