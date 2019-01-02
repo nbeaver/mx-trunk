@@ -13,7 +13,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 2018 Illinois Institute of Technology
+ * Copyright 2018-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -41,7 +41,19 @@
 #  define AF_INET6	10
 #endif
 
-#if !defined( _NETDB_H ) && !defined(OS_ANDROID)
+#if defined( _NETDB_H )
+#  define __MX_NEED_ADDRINFO	FALSE
+
+#elif defined( _NETDB_H_ )
+#  define __MX_NEED_ADDRINFO	FALSE
+
+#elif defined( OS_ANDROID )
+#  define __MX_NEED_ADDRINFO	FALSE
+#else
+#  define __MX_NEED_ADDRINFO	TRUE
+#endif
+
+#if __MX_NEED_ADDRINFO
 
   struct addrinfo {
     int              ai_flags;
