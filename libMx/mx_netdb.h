@@ -23,7 +23,21 @@
 #ifndef __MX_NETDB_H__
 #define __MX_NETDB_H__
 
-#include <netdb.h>
+#include "mx_socket.h"
+
+#if defined( _NETDB_H )
+#  define __MX_NEED_ADDRINFO	FALSE
+
+#elif defined( _NETDB_H_ )
+#  define __MX_NEED_ADDRINFO	FALSE
+
+#elif defined( OS_ANDROID )
+#  define __MX_NEED_ADDRINFO	FALSE
+#else
+#  define __MX_NEED_ADDRINFO	TRUE
+#endif
+
+/*---*/
 
 #if !defined( PF_UNSPEC )
 #  define PF_UNSPEC	0
@@ -41,17 +55,11 @@
 #  define AF_INET6	10
 #endif
 
-#if defined( _NETDB_H )
-#  define __MX_NEED_ADDRINFO	FALSE
-
-#elif defined( _NETDB_H_ )
-#  define __MX_NEED_ADDRINFO	FALSE
-
-#elif defined( OS_ANDROID )
-#  define __MX_NEED_ADDRINFO	FALSE
-#else
-#  define __MX_NEED_ADDRINFO	TRUE
+#if !defined( EAI_SYSTEM )
+#  define EAI_SYSTEM    -11
 #endif
+
+/*---*/
 
 #if __MX_NEED_ADDRINFO
 
@@ -60,11 +68,11 @@
     int              ai_family;
     int              ai_socktype;
     int              ai_protocol;
-    socklen_t        ai_addrlen;
+    mx_socklen_t     ai_addrlen;
     struct sockaddr *ai_addr;
     char            *ai_canonname;
     struct addrinfo *ai_next;
-  }
+  };
 
 #endif
 
@@ -96,11 +104,11 @@ mx_gai_strerror( int errcode );
 
 MX_API int
 mx_getnameinfo( const struct sockaddr *sa,
-		socklen_t salen,
+		mx_socklen_t salen,
 		char *host,
-		socklen_t hostlen,
+		mx_socklen_t hostlen,
 		char *serv,
-		socklen_t servlen,
+		mx_socklen_t servlen,
 		int flags );
 
 #if 0

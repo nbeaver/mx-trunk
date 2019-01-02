@@ -16,7 +16,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 2018 Illinois Institute of Technology
+ * Copyright 2018-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,8 +28,8 @@
 #include <errno.h>
 
 #include "mx_util.h"
-#include "mx_netdb.h"
 #include "mx_socket.h"
+#include "mx_netdb.h"
 
 MX_EXPORT int
 mx_getaddrinfo( const char *node,
@@ -123,11 +123,11 @@ mx_gai_strerror( int foo )
 
 MX_EXPORT int
 mx_getnameinfo( const struct sockaddr *sa,
-		socklen_t salen,
+		mx_socklen_t salen,
 		char *host,
-		socklen_t hostlen,
+		mx_socklen_t hostlen,
 		char *serv,
-		socklen_t servlen,
+		mx_socklen_t servlen,
 		int flags )
 {
 	return (-1);
