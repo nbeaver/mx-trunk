@@ -175,6 +175,64 @@ mx_getnameinfo( const struct sockaddr *sa,
 		mx_socklen_t servlen,
 		int flags )
 {
-	return (-1);
+	const struct sockaddr_in *sa_in = NULL;
+	struct hostent *hostent_ptr = NULL;
+	struct servent *servent_ptr = NULL;
+	size_t host_name_length, service_name_length;
+
+	if ( sa == (struct sockaddr *) NULL ) {
+		return EAI_FAIL;
+	}
+
+	/* The size of the 'struct sockaddr' needs to be at least as big
+	 * as a 'struct sockaddr_in', since only AF_INET is supported.
+	 */
+
+	if ( salen < sizeof(struct sockaddr_in) ) {
+		return EAI_FAIL;
+	}
+
+	/* Once again, only IPv4 is supported here. */
+
+	sa_in = (const struct sockaddr_in *) sa;
+
+	if ( sa_in->sin_family != AF_INET ) {
+		return EAI_FAIL;
+	}
+
+	/* Get the host name for this address. */
+
+	/* FIXME: gethostbyaddr() is not thread-safe. */
+
+	hostent_ptr = gethostbyaddr( &(sa_in->sin_addr),
+				sizeof(struct in_addr), AF_INET );
+
+	if ( hostent_ptr == (struct hostent *) NULL ) {
+		return EAI_FAIL;
+	}
+
+	host_name_length = strlcpy( host, hostent_ptr->h_name, hostlen );
+
+	if ( host_name_length >= hostlen ) {
+		return EAI_OVERFLOW;
+	}
+
+	/* Get the service name for this address. */
+
+	/* FIXME: getservbyport() is not thread-safe. */
+
+	servent_ptr = getservbyport( sa_in->sin_port, NULL );
+
+	if ( servent_ptr == (struct servent *) NULL ) {
+		return EAI_FAIL;
+	}
+
+	service_name_length = strlcpy( serv, servent_ptr->s_name, servlen );
+
+	if ( service_name_length >= servlen ) {
+		return EAI_OVERFLOW;
+	}
+
+	return 0;
 }
 
