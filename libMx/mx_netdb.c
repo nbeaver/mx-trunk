@@ -58,6 +58,8 @@ mx_getaddrinfo( const char *node,
 	struct addrinfo *new_addrinfo = NULL;
 	struct sockaddr_in *new_sockaddr_in = NULL;
 
+	errno = 0;
+
 	if ( node == (const char *) NULL ) {
 		errno = EINVAL;
 		return EAI_SYSTEM;
@@ -68,15 +70,13 @@ mx_getaddrinfo( const char *node,
 	new_addrinfo = calloc( 1, sizeof(struct addrinfo) );
 
 	if ( new_addrinfo == (struct addrinfo *) NULL ) {
-		errno = ENOMEM;
-		return EAI_SYSTEM;
+		return EAI_MEMORY;
 	}
 
 	new_sockaddr_in = calloc( 1, sizeof(struct sockaddr_in) );
 
 	if ( new_sockaddr_in == (struct sockaddr_in *) NULL ) {
-		errno = ENOMEM;
-		return EAI_SYSTEM;
+		return EAI_MEMORY;
 	}
 
 	/*---*/
@@ -84,8 +84,7 @@ mx_getaddrinfo( const char *node,
 	servent_ptr = getservbyname( service, NULL );
 
 	if ( servent_ptr == (struct servent *) NULL ) {
-		errno = EINVAL;
-		return EAI_SYSTEM;
+		return EAI_FAIL;
 	}
 
 	/*---*/
@@ -93,8 +92,7 @@ mx_getaddrinfo( const char *node,
 	protoent_ptr = getprotobyname( servent_ptr->s_proto );
 
 	if ( protoent_ptr == (struct protoent *) NULL ) {
-		errno = EINVAL;
-		return EAI_SYSTEM;
+		return EAI_FAIL;
 	}
 
 	new_addrinfo->ai_protocol = protoent_ptr->p_proto;
@@ -106,23 +104,30 @@ mx_getaddrinfo( const char *node,
 	hostent_ptr = gethostbyname( node );
 
 	if ( hostent_ptr == (struct hostent *) NULL ) {
-		errno = EINVAL;
-		return EAI_SYSTEM;
+		return EAI_FAIL;
 	}
 
 	new_sockaddr_in->sin_addr.s_addr = inet_addr( hostent_ptr->h_addr );
 	new_addrinfo->ai_canonname = strdup( hostent_ptr->h_name );
 
-	/* If the hints specifies a value for the socket type, then use that.
-	 * Otherwise, we assume that we should use SOCK_STREAM.  We ignore
-	 * the rest of the fields in 'hints'.
-	 */
+	/* If present, examine the requested values in the 'hints' structure. */
 
 	if ( hints != (struct addrinfo *) NULL ) {
-		if ( hints->ai_socktype == 0 ) {
+		if ( hints->ai_family != AF_INET ) {
+			return EAI_FAMILY;
+		}
+
+		switch( hints->ai_socktype ) {
+		case 0:
 			new_addrinfo->ai_socktype = SOCK_STREAM;
-		} else {
+			break;
+		case SOCK_STREAM:
+		case SOCK_DGRAM:
 			new_addrinfo->ai_socktype = hints->ai_socktype;
+			break;
+		default:
+			return EAI_SOCKTYPE;
+			break;
 		}
 	}
 
@@ -178,8 +183,11 @@ mx_getnameinfo( const struct sockaddr *sa,
 	struct servent *servent_ptr = NULL;
 	size_t host_name_length, service_name_length;
 
+	errno = 0;
+
 	if ( sa == (struct sockaddr *) NULL ) {
-		return EAI_FAIL;
+		errno = EINVAL;
+		return EAI_SYSTEM;
 	}
 
 	/* The size of the 'struct sockaddr' needs to be at least as big
@@ -187,7 +195,7 @@ mx_getnameinfo( const struct sockaddr *sa,
 	 */
 
 	if ( salen < sizeof(struct sockaddr_in) ) {
-		return EAI_FAIL;
+		return EAI_OVERFLOW;
 	}
 
 	/* Once again, only IPv4 is supported here. */
@@ -195,14 +203,12 @@ mx_getnameinfo( const struct sockaddr *sa,
 	sa_in = (const struct sockaddr_in *) sa;
 
 	if ( sa_in->sin_family != AF_INET ) {
-		return EAI_FAIL;
+		return EAI_FAMILY;
 	}
 
 	/* Get the host name for this address. */
 
-	/* FIXME: gethostbyaddr() is not thread-safe. */
-
-	hostent_ptr = gethostbyaddr( &(sa_in->sin_addr),
+	hostent_ptr = gethostbyaddr( (const void *) &(sa_in->sin_addr),
 				sizeof(struct in_addr), AF_INET );
 
 	if ( hostent_ptr == (struct hostent *) NULL ) {
@@ -216,8 +222,6 @@ mx_getnameinfo( const struct sockaddr *sa,
 	}
 
 	/* Get the service name for this address. */
-
-	/* FIXME: getservbyport() is not thread-safe. */
 
 	servent_ptr = getservbyport( sa_in->sin_port, NULL );
 

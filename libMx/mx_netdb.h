@@ -55,8 +55,30 @@
 #  define AF_INET6	10
 #endif
 
-#if !defined( EAI_SYSTEM )
+#if !defined( EAI_BADFLAGS )
+#  define EAI_BADFLAGS	-1
+#  define EAI_NONAME	-2
+#  define EAI_AGAIN	-3
+#  define EAI_FAIL	-4
+#  define EAI_FAMILY	-6
+#  define EAI_SOCKTYPE	-7
+#  define EAI_SERVICE	-8
+#  define EAI_MEMORY	-10
 #  define EAI_SYSTEM    -11
+#  define EAI_OVERFLOW	-12
+#endif
+
+/* The following are GNU extensions. */
+
+#if !defined( EAI_NODATA )
+#  define EAI_NODATA		-5
+#  define EAI_ADDRFAMILY	-9
+#  define EAI_INPROGRESS	-100
+#  define EAI_CANCELED		-101
+#  define EAI_NOTCANCELED	-102
+#  define EAI_ALLDONE		-103
+#  define EAI_INTR		-104
+#  define EAI_IDN_ENCODE	-105
 #endif
 
 /*---*/
