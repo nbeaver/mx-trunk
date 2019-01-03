@@ -11,6 +11,16 @@
  * built on top of the old, deprecated gethostbyname() and gethostbyaddr()
  * functions.  Of course, these versions only provide support for IPV4.
  *
+ * WARNING: The implementations below of mx_getaddrinfo() and mx_getnameinfo()
+ *          are not thread-safe, since they rely on underlying functions like
+ *          gethostbyname(), gethostbyaddr(), etc. that are not thread-safe.
+ *
+ *          There _do_ exist platforms that add reentrant versions of the
+ *          underlying functions such as gethostbyname_r() and friends.
+ *          However, such platforms tend to have _real_ versions of 
+ *          getaddrinfo() and getnameinfo(), so gethostbyname_r() and
+ *          friends are probably irrelevant here.
+ *
  * WARNING: The functions in this file are not yet tested!!!  Do not
  *          use them just yet.
  *
@@ -30,6 +40,10 @@
 #include "mx_util.h"
 #include "mx_socket.h"
 #include "mx_netdb.h"
+
+/* Note: gethostbyname(), getprotobyname(), and getservbyname() are not
+ *       thread-safe.
+ */
 
 MX_EXPORT int
 mx_getaddrinfo( const char *node,
@@ -67,10 +81,6 @@ mx_getaddrinfo( const char *node,
 
 	/*---*/
 
-	/* FIXME: Lock getservbyname() mutex?  But this function is not
-	 * necessarily the only user of getservbyname().
-	 */
-
 	servent_ptr = getservbyname( service, NULL );
 
 	if ( servent_ptr == (struct servent *) NULL ) {
@@ -79,10 +89,6 @@ mx_getaddrinfo( const char *node,
 	}
 
 	/*---*/
-
-	/* FIXME: Lock getprotobyname() mutex?  But this function is not
-	 * necessarily the only user of getprotobyname().
-	 */
 
 	protoent_ptr = getprotobyname( servent_ptr->s_proto );
 
@@ -93,17 +99,9 @@ mx_getaddrinfo( const char *node,
 
 	new_addrinfo->ai_protocol = protoent_ptr->p_proto;
 
-	/* FIXME: Unlock getprotobyname() mutex? */
-
 	new_sockaddr_in->sin_port = servent_ptr->s_port;
 
-	/* FIXME: Unlock getservbyname() mutex? */
-
 	/*---*/
-
-	/* FIXME: Lock gethostbyname() mutex?  But this function is not
-	 * necessarily the only user of gethostbyname().
-	 */
 
 	hostent_ptr = gethostbyname( node );
 
@@ -114,8 +112,6 @@ mx_getaddrinfo( const char *node,
 
 	new_sockaddr_in->sin_addr.s_addr = inet_addr( hostent_ptr->h_addr );
 	new_addrinfo->ai_canonname = strdup( hostent_ptr->h_name );
-
-	/* FIXME: Unlock gethostbyname() mutex? */
 
 	/* If the hints specifies a value for the socket type, then use that.
 	 * Otherwise, we assume that we should use SOCK_STREAM.  We ignore
@@ -165,6 +161,8 @@ mx_gai_strerror( int foo )
 {
 	return NULL;
 }
+
+/* Note: gethostbyaddr() and getservbyport() are not thread-safe. */
 
 MX_EXPORT int
 mx_getnameinfo( const struct sockaddr *sa,
