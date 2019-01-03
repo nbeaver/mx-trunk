@@ -38,19 +38,13 @@ mx_getaddrinfo( const char *node,
 		struct addrinfo **res )
 {
 	struct hostent *hostent_ptr = NULL;
+	struct protoent *protoent_ptr = NULL;
 	struct servent *servent_ptr = NULL;
 
 	struct addrinfo *new_addrinfo = NULL;
 	struct sockaddr_in *new_sockaddr_in = NULL;
 
 	if ( node == (const char *) NULL ) {
-		errno = EINVAL;
-		return EAI_SYSTEM;
-	}
-
-	/* FIXME: At present, we do not support the hints structure. */
-
-	if ( hints != (struct addrinfo *) NULL ) {
 		errno = EINVAL;
 		return EAI_SYSTEM;
 	}
@@ -71,7 +65,6 @@ mx_getaddrinfo( const char *node,
 		return EAI_SYSTEM;
 	}
 
-
 	/*---*/
 
 	/* FIXME: Lock getservbyname() mutex?  But this function is not
@@ -84,6 +77,25 @@ mx_getaddrinfo( const char *node,
 		errno = EINVAL;
 		return EAI_SYSTEM;
 	}
+
+	/*---*/
+
+	/* FIXME: Lock getprotobyname() mutex?  But this function is not
+	 * necessarily the only user of getprotobyname().
+	 */
+
+	protoent_ptr = getprotobyname( servent_ptr->s_proto );
+
+	if ( protoent_ptr == (struct protoent *) NULL ) {
+		errno = EINVAL;
+		return EAI_SYSTEM;
+	}
+
+	new_addrinfo->ai_protocol = protoent_ptr->p_proto;
+
+	/* FIXME: Unlock getprotobyname() mutex? */
+
+	new_sockaddr_in->sin_port = servent_ptr->s_port;
 
 	/* FIXME: Unlock getservbyname() mutex? */
 
@@ -105,21 +117,26 @@ mx_getaddrinfo( const char *node,
 
 	/* FIXME: Unlock gethostbyname() mutex? */
 
-	new_sockaddr_in->sin_family = AF_INET;
-	new_sockaddr_in->sin_port = servent_ptr->s_port;
+	/* If the hints specifies a value for the socket type, then use that.
+	 * Otherwise, we assume that we should use SOCK_STREAM.  We ignore
+	 * the rest of the fields in 'hints'.
+	 */
+
+	if ( hints != (struct addrinfo *) NULL ) {
+		if ( hints->ai_socktype == 0 ) {
+			new_addrinfo->ai_socktype = SOCK_STREAM;
+		} else {
+			new_addrinfo->ai_socktype = hints->ai_socktype;
+		}
+	}
 
 	/* Only IPv4 is supported here. */
 
 	new_addrinfo->ai_flags = 0x0;
 	new_addrinfo->ai_family = AF_INET;
-
-	/* FIXME: We hardcode the following for now. */
-
-	new_addrinfo->ai_socktype = SOCK_STREAM;
-	new_addrinfo->ai_protocol = IPPROTO_TCP;
+	new_sockaddr_in->sin_family = AF_INET;
 
 	new_addrinfo->ai_addrlen = sizeof(struct sockaddr_in);
-
 	new_addrinfo->ai_addr = (struct sockaddr *) new_sockaddr_in;
 
 	new_addrinfo->ai_next = NULL;
