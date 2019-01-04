@@ -200,7 +200,9 @@ mx_getnameinfo( const struct sockaddr *sa,
 
 	/* Once again, only IPv4 is supported here. */
 
-	sa_in = (const struct sockaddr_in *) sa;
+	/* The (const void *) cast is to make clang on macOS happy. */
+
+	sa_in = (const void *) sa;
 
 	if ( sa_in->sin_family != AF_INET ) {
 		return EAI_FAMILY;
