@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2009, 2011-2013, 2015-2018 Illinois Institute of Technology
+ * Copyright 2006-2009, 2011-2013, 2015-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -60,7 +60,8 @@ motor_area_detector_fn( int argc, char *argv[] )
 	unsigned long ad_status_mask, trigger_mask;
 	long frame_number, measurement_number;
 	long x_binsize, y_binsize, x_framesize, y_framesize;
-	long trigger_mode, bytes_per_frame, bits_per_pixel, num_frames;
+	long trigger_mode, raw_trigger_mode;
+	long bytes_per_frame, bits_per_pixel, num_frames;
 	long frame_type, src_frame_type, dest_frame_type;
 	long i, last_frame_number, total_num_frames;
 	long n, starting_total_num_frames, starting_last_frame_number;
@@ -1858,7 +1859,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 			}
 
 			mx_status = mx_area_detector_get_trigger_mode(
-						ad_record, &trigger_mode );
+						ad_record, &raw_trigger_mode );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
@@ -1866,7 +1867,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 			mask = MXF_DEV_INTERNAL_TRIGGER
 				| MXF_DEV_EXTERNAL_TRIGGER;
 
-			trigger_mode &= (~mask);
+			trigger_mode = raw_trigger_mode & (~mask);
 
 			length = strlen(argv[5]);
 

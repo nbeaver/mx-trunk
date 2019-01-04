@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2008-2011, 2014-2016, 2018
+ * Copyright 1999-2006, 2008-2011, 2014-2016, 2018-2019
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -351,7 +351,9 @@ mxd_epics_mcs_open( MX_RECORD *record )
 #endif
 
 	/* Find out if this EPICS device really exists in an IOC's database
-	 * by asking for the record's version number.
+	 * by asking for the record's version number.  We also need the
+	 * version number to find PVs that have used different pvnames in
+	 * different versions.
 	 */
 
 	mx_status = mx_caget( &(epics_mcs->vers_pv),
@@ -505,6 +507,15 @@ mxd_epics_mcs_open( MX_RECORD *record )
 
 	}
 
+	if ( epics_mcs->epics_record_version >= 6.0 ) {
+		mx_epics_pvname_init( &(epics_mcs->count_on_start_pv),
+			"%sCountOnStart.VAL", epics_mcs->common_prefix );
+	} else {
+		mx_epics_pvname_init( &(epics_mcs->count_on_start_pv),
+			"%sInitialChannelAdvance.VAL",
+					epics_mcs->common_prefix );
+	}
+
 #if 1
 	/* FIXME:
 	 *
@@ -540,7 +551,7 @@ mxd_epics_mcs_arm( MX_MCS *mcs )
 	static const char fname[] = "mxd_epics_mcs_arm()";
 
 	MX_EPICS_MCS *epics_mcs = NULL;
-	int32_t start;
+	int32_t start, count_on_start;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_mcs_get_pointers( mcs, &epics_mcs, fname );
@@ -554,6 +565,15 @@ mxd_epics_mcs_arm( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 #endif
+
+	if ( mcs->trigger_mode & MXF_DEV_AUTO_TRIGGER ) {
+		count_on_start = 1;
+	} else {
+		count_on_start = 0;
+	}
+
+	mx_status = mx_caput( &(epics_mcs->count_on_start_pv),
+					MX_CA_LONG, 1, &count_on_start );
 
 	start = 1;
 

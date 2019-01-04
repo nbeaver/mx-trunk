@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2005, 2009-2010, 2014, 2018
+ * Copyright 1999-2003, 2005, 2009-2010, 2014, 2018-2019
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -36,6 +36,7 @@ typedef struct {
 
 	MX_EPICS_PV acquiring_pv;
 	MX_EPICS_PV chas_pv;
+	MX_EPICS_PV count_on_start_pv;
 	MX_EPICS_PV dwell_pv;
 	MX_EPICS_PV erase_pv;
 	MX_EPICS_PV nmax_pv;

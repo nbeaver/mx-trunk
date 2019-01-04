@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2010, 2012-2018 Illinois Institute of Technology
+ * Copyright 1999-2010, 2012-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -377,12 +377,13 @@ typedef struct {
  * the device can be waiting for any of several possible kinds of triggers.
  * However, most devices do not do this.
  *
- * No trigger       (0x0) = Ignore any triggers.
- * Internal trigger (0x1) = Usually a software generated trigger.
- * External trigger (0x2) = An external voltage/current/whatever pulse.
- * Line trigger     (0x4) = Typically an AC voltage line crossing.
- * Database trigger (0x8) = Waiting for a change in a database variable.
- * Manual trigger  (0x10) = Waiting for the user to push a button or some such.
+ * No trigger        (0x0) = Ignore any triggers.
+ * Internal trigger  (0x1) = Usually a software generated trigger.
+ * External trigger  (0x2) = An external voltage/current/whatever pulse.
+ * Line trigger      (0x4) = Typically an AC voltage line crossing.
+ * Auto trigger      (0x8) - Always trigger.
+ * Database trigger (0x10) = Waiting for a change in a database variable.
+ * Manual trigger   (0x20) = Waiting for the user to push a button or some such.
  *
  * Some devices can be configured either for edge triggers (0x1000)
  * or level triggers (0x2000).  Typically this will be (|) OR-ed with
@@ -393,8 +394,9 @@ typedef struct {
 #define MXF_DEV_INTERNAL_TRIGGER	0x1
 #define MXF_DEV_EXTERNAL_TRIGGER	0x2
 #define MXF_DEV_LINE_TRIGGER		0x4
-#define MXF_DEV_DATABASE_TRIGGER	0x8
-#define MXF_DEV_MANUAL_TRIGGER		0x10
+#define MXF_DEV_AUTO_TRIGGER		0x8
+#define MXF_DEV_DATABASE_TRIGGER	0x10
+#define MXF_DEV_MANUAL_TRIGGER		0x20
 
 #define MXF_DEV_EDGE_TRIGGER		0x1000
 #define MXF_DEV_LEVEL_TRIGGER		0x2000

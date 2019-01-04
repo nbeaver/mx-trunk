@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005-2006, 2015-2016
+ * Copyright 1999-2001, 2003, 2005-2006, 2015-2016, 2019
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -61,6 +61,8 @@ motor_mcs_fn( int argc, char *argv[] )
 	char *endptr;
 	double measurement_time;
 	unsigned long i, j, channel, measurement, num_scalers, num_measurements;
+	unsigned long mcs_status;
+	long trigger_mode, raw_trigger_mode;
 	long *scaler_data;
 	long **mcs_data;
 	int status;
@@ -84,6 +86,9 @@ motor_mcs_fn( int argc, char *argv[] )
   "        mcs 'mcs_name' set measurement_time 'seconds'\n"
   "        mcs 'mcs_name' get num_measurements\n"
   "        mcs 'mcs_name' set num_measurements 'value'\n"
+  "        mcs 'mcs_name' get status\n"
+  "        mcs 'mcs_name' get trigger_mode\n"
+  "        mcs 'mcs_name' set trigger_mode 'trigger_mode'\n"
 	;
 
 	if ( argc < 4 ) {
@@ -460,6 +465,78 @@ motor_mcs_fn( int argc, char *argv[] )
 			fprintf( output,
 				"MCS '%s' num measurements = %lu\n",
 				mcs_record->name, num_measurements );
+		} else
+		if ( strncmp( "status",
+				argv[4], strlen(argv[4]) ) == 0 )
+		{
+			mx_status = mx_mcs_get_status(
+					mcs_record, &mcs_status );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+
+			fprintf( output,
+				"MCS '%s' status = %#lx\n",
+				mcs_record->name, mcs_status );
+		} else
+		if ( strncmp( "trigger_mode",
+				argv[4], strlen(argv[4]) ) == 0 )
+		{
+			mx_status = mx_mcs_get_trigger_mode(
+					mcs_record, &raw_trigger_mode );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+
+			trigger_mode = raw_trigger_mode & 0xFFF;
+
+			if ( trigger_mode & MXF_DEV_INTERNAL_TRIGGER ) {
+				fprintf( output,
+				"MCS '%s' trigger mode = internal (%#lx)\n",
+				mcs_record->name, trigger_mode );
+			} else 
+			if ( trigger_mode & MXF_DEV_EXTERNAL_TRIGGER ) {
+				fprintf( output,
+				"MCS '%s' trigger mode = external (%#lx)\n",
+				mcs_record->name, trigger_mode );
+			} else 
+			if ( trigger_mode & MXF_DEV_LINE_TRIGGER ) {
+				fprintf( output,
+				"MCS '%s' trigger mode = line (%#lx)\n",
+				mcs_record->name, trigger_mode );
+			} else 
+			if ( trigger_mode & MXF_DEV_AUTO_TRIGGER ) {
+				fprintf( output,
+				"MCS '%s' trigger mode = auto (%#lx)\n",
+				mcs_record->name, trigger_mode );
+			} else 
+			if ( trigger_mode & MXF_DEV_DATABASE_TRIGGER ) {
+				fprintf( output,
+				"MCS '%s' trigger mode = database (%#lx)\n",
+				mcs_record->name, trigger_mode );
+			} else 
+			if ( trigger_mode & MXF_DEV_MANUAL_TRIGGER ) {
+				fprintf( output,
+				"MCS '%s' trigger mode = manual (%#lx)\n",
+				mcs_record->name, trigger_mode );
+			} else {
+				fprintf( output,
+				"MCS '%s' trigger mode = ILLEGAL (%#lx)\n",
+				mcs_record->name, trigger_mode );
+			}
+
+			if ( raw_trigger_mode & MXF_DEV_EDGE_TRIGGER ) {
+				fprintf( output,
+				"  Trigger is edge triggered.\n" );
+			} else
+			if ( raw_trigger_mode & MXF_DEV_LEVEL_TRIGGER ) {
+				fprintf( output,
+				"  Trigger is level triggered.\n" );
+			}
+
+			fprintf( output,
+				"MCS '%s' trigger_mode = %#lx\n",
+				mcs_record->name, mcs_status );
 		} else {
 			fprintf( output,
 				"%s: unknown get command argument '%s'\n",
@@ -525,6 +602,64 @@ motor_mcs_fn( int argc, char *argv[] )
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
+		} else
+		if ( strncmp( "trigger_mode", argv[4], strlen(argv[4]) ) == 0) {
+			unsigned long mask;
+			size_t length;
+
+			if ( argc != 6 ) {
+				fprintf( output,
+			"Wrong number of arguments specified for 'set %s'.\n",
+					argv[4] );
+				return FAILURE;
+			}
+
+			mx_status = mx_mcs_get_trigger_mode(
+						mcs_record, &raw_trigger_mode );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+
+			mask = 0xFFF;
+
+			trigger_mode = raw_trigger_mode & (~mask);
+
+			length = strlen(argv[5]);
+
+			if (mx_strncasecmp( argv[5], "internal", length ) == 0)
+			{
+				trigger_mode |= MXF_DEV_INTERNAL_TRIGGER;
+			} else
+			if (mx_strncasecmp( argv[5], "external", length ) == 0)
+			{
+				trigger_mode |= MXF_DEV_EXTERNAL_TRIGGER;
+			} else
+			if (mx_strncasecmp( argv[5], "line", length ) == 0)
+			{
+				trigger_mode |= MXF_DEV_LINE_TRIGGER;
+			} else
+			if (mx_strncasecmp( argv[5], "auto", length ) == 0)
+			{
+				trigger_mode |= MXF_DEV_AUTO_TRIGGER;
+			} else
+			if (mx_strncasecmp( argv[5], "database", length ) == 0)
+			{
+				trigger_mode |= MXF_DEV_DATABASE_TRIGGER;
+			} else
+			if (mx_strncasecmp( argv[5], "manual", length ) == 0)
+			{
+				trigger_mode |= MXF_DEV_MANUAL_TRIGGER;
+			} else {
+				trigger_mode = strtol( argv[5], &endptr, 0 );
+
+				if ( *endptr != '\0' ) {
+					fprintf( output,
+		"%s: Non-numeric characters found in trigger mode '%s'\n",
+						cname, argv[5] );
+
+					return FAILURE;
+				}
+			}
 
 		} else {
 			fprintf( output,
