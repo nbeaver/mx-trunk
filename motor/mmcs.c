@@ -533,10 +533,6 @@ motor_mcs_fn( int argc, char *argv[] )
 				fprintf( output,
 				"  Trigger is level triggered.\n" );
 			}
-
-			fprintf( output,
-				"MCS '%s' trigger_mode = %#lx\n",
-				mcs_record->name, mcs_status );
 		} else {
 			fprintf( output,
 				"%s: unknown get command argument '%s'\n",
