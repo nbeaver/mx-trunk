@@ -551,7 +551,7 @@ mxd_epics_mcs_arm( MX_MCS *mcs )
 	static const char fname[] = "mxd_epics_mcs_arm()";
 
 	MX_EPICS_MCS *epics_mcs = NULL;
-	int32_t start, count_on_start;
+	int32_t start;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_mcs_get_pointers( mcs, &epics_mcs, fname );
@@ -559,21 +559,10 @@ mxd_epics_mcs_arm( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if 1
 	mx_status = mxd_epics_mcs_stop( mcs );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-#endif
-
-	if ( mcs->trigger_mode & MXF_DEV_AUTO_TRIGGER ) {
-		count_on_start = 1;
-	} else {
-		count_on_start = 0;
-	}
-
-	mx_status = mx_caput( &(epics_mcs->count_on_start_pv),
-					MX_CA_LONG, 1, &count_on_start );
 
 	start = 1;
 
@@ -1073,7 +1062,7 @@ mxd_epics_mcs_get_parameter( MX_MCS *mcs )
 
 	MX_EPICS_MCS *epics_mcs = NULL;
 	double dark_current;
-	int32_t measurement_number, external_channel_advance;
+	int32_t measurement_number, external_channel_advance, count_on_start;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_mcs_get_pointers( mcs, &epics_mcs, fname );
@@ -1108,6 +1097,19 @@ mxd_epics_mcs_get_parameter( MX_MCS *mcs )
 		mcs->dark_current_array[ mcs->scaler_index ] = dark_current;
 		break;
 	case MXLV_MCS_TRIGGER_MODE:
+		mx_status = mx_caget( &(epics_mcs->count_on_start_pv),
+				MX_CA_LONG, 1, &count_on_start );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Auto trigger takes precedence over internal and external. */
+
+		if ( count_on_start ) {
+			mcs->trigger_mode = MXF_DEV_AUTO_TRIGGER;
+
+			return MX_SUCCESSFUL_RESULT;
+		}
 
 		mx_status = mx_caget( &(epics_mcs->chas_pv),
 				MX_CA_LONG, 1, &external_channel_advance );
@@ -1138,6 +1140,7 @@ mxd_epics_mcs_set_parameter( MX_MCS *mcs )
 	double dwell_time, preset_live_time, dark_current;
 	unsigned long do_not_skip;
 	int32_t stop, current_num_epics_measurements, external_channel_advance;
+	int32_t count_on_start;
 	float preset_real_time;
 	mx_status_type mx_status;
 
@@ -1289,6 +1292,26 @@ mxd_epics_mcs_set_parameter( MX_MCS *mcs )
 		break;
 
 	case MXLV_MCS_TRIGGER_MODE:
+		/* Auto trigger takes precedence over other trigger modes. */
+
+		if ( mcs->trigger_mode == MXF_DEV_AUTO_TRIGGER ) {
+			count_on_start = 1;
+		} else {
+			count_on_start = 0;
+		}
+
+		mx_status = mx_caput( &(epics_mcs->count_on_start_pv),
+				MX_CA_LONG, 1, &count_on_start );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( mcs->trigger_mode == MXF_DEV_AUTO_TRIGGER ) {
+			return MX_SUCCESSFUL_RESULT;
+		}
+
+		/* Otherwise, handle other possible trigger modes. */
+
 		switch( mcs->trigger_mode ) {
 		case MXF_DEV_INTERNAL_TRIGGER:
 			external_channel_advance = 0;
