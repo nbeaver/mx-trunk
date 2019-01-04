@@ -657,6 +657,11 @@ motor_mcs_fn( int argc, char *argv[] )
 				}
 			}
 
+			mx_status = mx_mcs_set_trigger_mode(
+						mcs_record, trigger_mode );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
 		} else {
 			fprintf( output,
 				"%s: unknown set command argument '%s'\n",
