@@ -26,7 +26,9 @@ CFLAGS += -DIS_MX_DRIVER
 
 #--------------------------------------------------------------------------
 
-all: xia_handel.mxo
+XIA_HANDEL_MXO = xia_handel_new.mxo
+
+all: $(XIA_HANDEL_MXO)
 
 include ../../libMx/Makehead.$(MX_ARCH)
 
@@ -40,9 +42,9 @@ XIA_HANDEL_OBJS = xia_handel.$(OBJ) i_handel.$(OBJ) \
 
 ifeq ($(MX_ARCH),linux)
 
-xia_handel.mxo: $(XIA_HANDEL_OBJS)
-	gcc -shared -rdynamic -Wl,-soname,xia_handel.mxo \
-		-o xia_handel.mxo $(XIA_HANDEL_OBJS) \
+$(XIA_HANDEL_MXO): $(XIA_HANDEL_OBJS)
+	gcc -shared -rdynamic -Wl,-soname,$(XIA_HANDEL_MXO) \
+		-o $(XIA_HANDEL_MXO) $(XIA_HANDEL_OBJS) \
 		-L$(XIA_HANDEL_DIR)/src -lhandel
 
 endif
@@ -51,19 +53,19 @@ endif
 
 ifeq ($(MX_ARCH),win32)
 
-xia_handel.mxo: $(XIA_HANDEL_OBJS)
-	link /dll /debug /nologo /out:xia_handel.mxo /nodefaultlib:libc \
+$(XIA_HANDEL_MXO): $(XIA_HANDEL_OBJS)
+	link /dll /debug /nologo /out:$(XIA_HANDEL_MXO) /nodefaultlib:libc \
 		$(XIA_HANDEL_OBJS) \
 		..\\..\\libMx\\$(MX_LIBRARY_NAME) \
 		$(XIA_HANDEL_DIR)\\lib\\handel.lib
 
 	# For VC2005 or later, embed the manifest in the module.
 
-	if test -f xia_handel.mxo.manifest; then \
+	if test -f $(XIA_HANDEL_MXO).manifest; then \
 		$(MSMANIFEST_TOOL) -nologo \
-			-outputresource:xia_handel.mxo\;2 \
-			-manifest xia_handel.mxo.manifest ; \
-		rm -f xia_handel.mxo.manifest; \
+			-outputresource:$(XIA_HANDEL_MXO)\;2 \
+			-manifest $(XIA_HANDEL_MXO).manifest ; \
+		rm -f $(XIA_HANDEL_MXO).manifest; \
 	fi
 
 endif
@@ -92,9 +94,9 @@ d_handel_timer.$(OBJ): d_handel_timer.c d_handel_timer.h \
 				i_handel.h d_handel_mca.h
 	$(COMPILE) $(CFLAGS) d_handel_timer.c
 
-install: xia_handel.mxo
+install: $(XIA_HANDEL_MXO)
 	-mkdir $(MX_INSTALL_DIR)/lib/modules
-	cp xia_handel.mxo $(MX_INSTALL_DIR)/lib/modules
+	cp $(XIA_HANDEL_MXO) $(MX_INSTALL_DIR)/lib/modules
 
 
 clean:
