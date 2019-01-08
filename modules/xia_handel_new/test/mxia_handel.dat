@@ -1,0 +1,4 @@
+!load ../xia_handel.mxo
+#
+xia interface controller handel "" "" 0x0 0 /home/lavender/xia/test/xmap_reset_std.ini "" 0
+mca1 device mca handel_mca "" "" 8192 16 0 xia "module1 detector1:0"
