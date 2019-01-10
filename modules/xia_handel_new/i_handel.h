@@ -9,7 +9,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003-2006, 2009-2010, 2012 Illinois Institute of Technology
+ * Copyright 2003-2006, 2009-2010, 2012, 2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -75,6 +75,13 @@ typedef struct {
 
 	double last_measurement_interval;
 
+	/* The hardware uses 'double' for the mapping mode, but
+	 * in MX we round to the nearest integer so that we can
+	 * do equality tests in the MX drivers.
+	 */
+
+	long mapping_mode;
+
 	mx_bool_type debug_flag;
 
 	mx_bool_type use_module_statistics_2;
@@ -94,6 +101,7 @@ typedef struct {
 #define MXLV_HANDEL_SAVE_FILENAME		2002
 #define MXLV_HANDEL_PARAMETER_NAME		2003
 #define MXLV_HANDEL_ACQUISITION_VALUE_NAME	2004
+#define MXLV_HANDEL_MAPPING_MODE		2005
 
 #define MXI_HANDEL_STANDARD_FIELDS \
   {-1, -1, "handel_flags", MXFT_HEX, NULL, 0, {0}, \
@@ -154,7 +162,11 @@ typedef struct {
   {-1, -1, "last_measurement_interval", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_HANDEL, last_measurement_interval),\
-	{0}, NULL, 0 }
+	{0}, NULL, 0 }, \
+  \
+  {MXLV_HANDEL_MAPPING_MODE, -1, "mapping_mode", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_HANDEL, mapping_mode), \
+	{0}, NULL, MXFF_IN_DESCRIPTION }
 
 
 MX_API mx_status_type mxi_handel_initialize_driver( MX_DRIVER *driver );
@@ -218,6 +230,14 @@ MX_API mx_status_type mxi_handel_set_preset( MX_HANDEL *handel,
 MX_API mx_status_type mxi_handel_show_parameter( MX_HANDEL *handel );
 
 MX_API mx_status_type mxi_handel_show_acquisition_value( MX_HANDEL *handel );
+
+/*------*/
+
+MX_API mx_status_type mxi_handel_get_mapping_mode( MX_HANDEL *handel,
+						long *mapping_mode );
+
+MX_API mx_status_type mxi_handel_set_mapping_mode( MX_HANDEL *handel,
+						long mapping_mode );
 
 /*------*/
 

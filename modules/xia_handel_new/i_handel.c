@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2006, 2009-2012, 2016-2018 Illinois Institute of Technology
+ * Copyright 2003-2006, 2009-2012, 2016-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1221,6 +1221,7 @@ mxi_handel_special_processing_setup( MX_RECORD *record )
 		case MXLV_HANDEL_SAVE_FILENAME:
 		case MXLV_HANDEL_PARAMETER_NAME:
 		case MXLV_HANDEL_ACQUISITION_VALUE_NAME:
+		case MXLV_HANDEL_MAPPING_MODE:
 			record_field->process_function
 					    = mxi_handel_process_function;
 			break;
@@ -1661,6 +1662,22 @@ mxi_handel_show_acquisition_value( MX_HANDEL *handel )
 
 /*-------------------------------------------------------------------------*/
 
+MX_EXPORT mx_status_type
+mxi_handel_get_mapping_mode( MX_HANDEL *handel, long *mapping_mode )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxi_handel_set_mapping_mode( MX_HANDEL *handel, long mapping_mode )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
 const char *
 mxi_handel_strerror( int handel_status )
 {
@@ -1894,6 +1911,10 @@ mxi_handel_process_function( void *record_ptr,
 			 */
 
 			break;
+		case MXLV_HANDEL_MAPPING_MODE:
+			mx_status = mxi_handel_get_mapping_mode( handel,
+						&(handel->mapping_mode) );
+			break;
 		default:
 			MX_DEBUG( 1,(
 			    "%s: *** Unknown MX_PROCESS_GET label value = %ld",
@@ -1916,6 +1937,10 @@ mxi_handel_process_function( void *record_ptr,
 			break;
 		case MXLV_HANDEL_ACQUISITION_VALUE_NAME:
 			mx_status = mxi_handel_show_acquisition_value(handel);
+			break;
+		case MXLV_HANDEL_MAPPING_MODE:
+			mx_status = mxi_handel_set_mapping_mode( handel,
+							handel->mapping_mode );
 			break;
 		default:
 			MX_DEBUG( 1,(
