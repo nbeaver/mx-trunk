@@ -778,6 +778,13 @@ mxi_handel_open( MX_RECORD *record )
 
 	handel->use_module_statistics_2 = TRUE;
 
+	/* Apply the initial mapping mode for the MCA system. */
+
+	mx_status = mxi_handel_set_mapping_mode( handel, handel->mapping_mode );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 #if MXI_HANDEL_DEBUG_TIMING
 	MX_HRT_END( measurement );
 
@@ -1665,6 +1672,34 @@ mxi_handel_show_acquisition_value( MX_HANDEL *handel )
 MX_EXPORT mx_status_type
 mxi_handel_get_mapping_mode( MX_HANDEL *handel, long *mapping_mode )
 {
+	static const char fname[] = "mxi_handel_get_mapping_mode()";
+
+	double mapping_mode_as_double;
+	int xia_status;
+
+	if ( handel == (MX_HANDEL *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_HANDEL pointer passed was NULL." );
+	}
+
+	xia_status = xiaGetAcquisitionValues( -1, "mapping_mode",
+						&mapping_mode_as_double );
+
+	if ( xia_status != XIA_SUCCESS ) {
+		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+		"Cannot get 'mapping_mode' for Handel record '%s'.  "
+		"Error code = %d, '%s'",
+			handel->record->name,
+			xia_status,
+			mxi_handel_strerror( xia_status ) );
+	}
+
+	handel->mapping_mode = mx_round( mapping_mode_as_double );
+
+	if ( mapping_mode != (long *) NULL ) {
+		*mapping_mode = handel->mapping_mode;
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -1673,6 +1708,32 @@ mxi_handel_get_mapping_mode( MX_HANDEL *handel, long *mapping_mode )
 MX_EXPORT mx_status_type
 mxi_handel_set_mapping_mode( MX_HANDEL *handel, long mapping_mode )
 {
+	static const char fname[] = "mxi_handel_set_mapping_mode()";
+
+	double mapping_mode_as_double;
+	int xia_status;
+
+	if ( handel == (MX_HANDEL *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_HANDEL pointer passed was NULL." );
+	}
+
+	mapping_mode_as_double = mapping_mode;
+
+	xia_status = xiaSetAcquisitionValues( -1, "mapping_mode",
+						&mapping_mode_as_double );
+
+	if ( xia_status != XIA_SUCCESS ) {
+		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+		"Cannot set 'mapping_mode' for Handel record '%s'.  "
+		"Error code = %d, '%s'",
+			handel->record->name,
+			xia_status,
+			mxi_handel_strerror( xia_status ) );
+	}
+
+	handel->mapping_mode = mapping_mode;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 

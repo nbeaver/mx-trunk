@@ -38,6 +38,13 @@
 
 #define MXU_HANDEL_MAX_MODULES		4
 
+/* The available values for 'mapping_mode' (expressed as an integer). */
+
+#define MXF_HANDEL_NORMAL_MODE		0
+#define MXF_HANDEL_MCA_MODE		1
+#define MXF_HANDEL_SCA_MODE		2
+#define MXF_HANDEL_LIST_MODE		3
+
 /* Define the data structures used by the Handel driver. */
 
 typedef struct {
