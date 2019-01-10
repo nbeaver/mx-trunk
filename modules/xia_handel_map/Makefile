@@ -26,7 +26,7 @@ CFLAGS += -DIS_MX_DRIVER
 
 #--------------------------------------------------------------------------
 
-XIA_HANDEL_MXO = xia_handel_new.mxo
+XIA_HANDEL_MXO = xia_handel_map.mxo
 
 all: $(XIA_HANDEL_MXO)
 
