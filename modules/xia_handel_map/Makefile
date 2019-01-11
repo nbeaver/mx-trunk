@@ -38,7 +38,8 @@ CFLAGS += -I../../libMx -D__MX_LIBRARY__
 
 XIA_HANDEL_OBJS = xia_handel.$(OBJ) i_handel.$(OBJ) \
 		d_handel_input.$(OBJ) d_handel_mca.$(OBJ) \
-		d_handel_sum.$(OBJ) d_handel_timer.$(OBJ)
+		d_handel_mcs.$(OBJ) d_handel_sum.$(OBJ) \
+		d_handel_timer.$(OBJ)
 
 #--------------------------------------------------------------------------
 
@@ -76,10 +77,11 @@ endif
 
 xia_handel.$(OBJ): xia_handel.c i_handel.h \
 			d_handel_input.h d_handel_mca.h \
-			d_handel_sum.h d_handel_timer.h
+			d_handel_mcs.h d_handel_sum.h \
+			d_handel_timer.h
 	$(COMPILE) $(CFLAGS) xia_handel.c
 
-i_handel.$(OBJ): i_handel.c i_handel.h d_handel_mca.h
+i_handel.$(OBJ): i_handel.c i_handel.h d_handel_mca.h d_handel_mcs.h
 	$(COMPILE) $(CFLAGS) i_handel.c
 
 d_handel_input.$(OBJ): d_handel_input.c d_handel_input.h \
@@ -89,11 +91,15 @@ d_handel_input.$(OBJ): d_handel_input.c d_handel_input.h \
 d_handel_mca.$(OBJ): d_handel_mca.c i_handel.h d_handel_mca.h
 	$(COMPILE) $(CFLAGS) d_handel_mca.c
 
-d_handel_sum.$(OBJ): d_handel_sum.c d_handel_sum.h d_handel_mca.h
+d_handel_mcs.$(OBJ): d_handel_mcs.c i_handel.h d_handel_mcs.h
+	$(COMPILE) $(CFLAGS) d_handel_mcs.c
+
+d_handel_sum.$(OBJ): d_handel_sum.c d_handel_sum.h d_handel_mcs.h
 	$(COMPILE) $(CFLAGS) d_handel_sum.c
 
 d_handel_timer.$(OBJ): d_handel_timer.c d_handel_timer.h \
-				i_handel.h d_handel_mca.h
+				i_handel.h d_handel_mca.h \
+				d_handel_mcs.h
 	$(COMPILE) $(CFLAGS) d_handel_timer.c
 
 install: $(XIA_HANDEL_MXO)

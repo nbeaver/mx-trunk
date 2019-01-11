@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2011-2012 Illinois Institute of Technology
+ * Copyright 2011-2012, 2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,11 +23,13 @@
 #include "mx_net.h"
 #include "mx_module.h"
 #include "mx_mca.h"
+#include "mx_mcs.h"
 #include "mx_analog_input.h"
 
 #include "i_handel.h"
 #include "d_handel_input.h"
 #include "d_handel_mca.h"
+#include "d_handel_mcs.h"
 #include "d_handel_sum.h"
 #include "d_handel_timer.h"
 
@@ -46,6 +48,13 @@ MX_DRIVER xia_handel_driver_table[] = {
 				&mxd_handel_mca_mca_function_list,
 				&mxd_handel_mca_num_record_fields,
 				&mxd_handel_mca_rfield_def_ptr},
+
+{"handel_mcs",     -1, MXC_MULTICHANNEL_SCALER, MXR_DEVICE,
+				&mxd_handel_mcs_record_function_list,
+				NULL,
+				&mxd_handel_mcs_mcs_function_list,
+				&mxd_handel_mcs_num_record_fields,
+				&mxd_handel_mcs_rfield_def_ptr},
 
 {"handel_input",   -1, MXC_ANALOG_INPUT, MXR_DEVICE,
 				&mxd_handel_input_record_function_list,

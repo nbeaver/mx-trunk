@@ -40,8 +40,10 @@
 #include "mx_array.h"
 #include "mx_unistd.h"
 #include "mx_mca.h"
+#include "mx_mcs.h"
 #include "i_handel.h"
 #include "d_handel_mca.h"
+#include "d_handel_mcs.h"
 
 #if MXI_HANDEL_DEBUG_TIMING
 #  include "mx_hrt_debug.h"
@@ -778,9 +780,23 @@ mxi_handel_open( MX_RECORD *record )
 
 	handel->use_module_statistics_2 = TRUE;
 
-	/* Apply the initial mapping mode for the MCA system. */
+	/* Apply some initial mapping related acquisition values. */
 
-	mx_status = mxi_handel_set_mapping_mode( handel, handel->mapping_mode );
+	mx_status = mxi_handel_set_acq_value_as_long( handel, "mapping_mode",
+						handel->mapping_mode, TRUE );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxi_handel_set_acq_value_as_long(
+					handel, "pixel_advance_mode",
+					handel->pixel_advance_mode, TRUE );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxi_handel_set_acq_value_as_long( handel, "sync_count",
+						handel->sync_count, TRUE );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1224,11 +1240,13 @@ mxi_handel_special_processing_setup( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
-		case MXLV_HANDEL_CONFIG_FILENAME:
-		case MXLV_HANDEL_SAVE_FILENAME:
-		case MXLV_HANDEL_PARAMETER_NAME:
 		case MXLV_HANDEL_ACQUISITION_VALUE_NAME:
+		case MXLV_HANDEL_CONFIG_FILENAME:
 		case MXLV_HANDEL_MAPPING_MODE:
+		case MXLV_HANDEL_PARAMETER_NAME:
+		case MXLV_HANDEL_PIXEL_ADVANCE_MODE:
+		case MXLV_HANDEL_SAVE_FILENAME:
+		case MXLV_HANDEL_SYNC_COUNT:
 			record_field->process_function
 					    = mxi_handel_process_function;
 			break;
@@ -1670,34 +1688,44 @@ mxi_handel_show_acquisition_value( MX_HANDEL *handel )
 /*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mxi_handel_get_mapping_mode( MX_HANDEL *handel, long *mapping_mode )
+mxi_handel_get_acq_value_as_long( MX_HANDEL *handel,
+				char *value_name,
+				long *acq_value,
+				mx_bool_type apply_flag )
 {
-	static const char fname[] = "mxi_handel_get_mapping_mode()";
+	static const char fname[] = "mxi_handel_get_acq_value_as_long()";
 
-	double mapping_mode_as_double;
+	double acq_value_as_double;
 	int xia_status;
+	mx_status_type mx_status;
 
 	if ( handel == (MX_HANDEL *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_HANDEL pointer passed was NULL." );
 	}
 
-	xia_status = xiaGetAcquisitionValues( -1, "mapping_mode",
-						&mapping_mode_as_double );
+	xia_status = xiaGetAcquisitionValues( -1, value_name,
+						&acq_value_as_double );
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
-		"Cannot get 'mapping_mode' for Handel record '%s'.  "
+		"Cannot get acquisition value '%s' for Handel record '%s'.  "
 		"Error code = %d, '%s'",
+			value_name,
 			handel->record->name,
 			xia_status,
 			mxi_handel_strerror( xia_status ) );
 	}
 
-	handel->mapping_mode = mx_round( mapping_mode_as_double );
+	if ( apply_flag ) {
+		mx_status = mxi_handel_apply_to_all_channels( handel );
 
-	if ( mapping_mode != (long *) NULL ) {
-		*mapping_mode = handel->mapping_mode;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	if ( acq_value != (long *) NULL ) {
+		*acq_value = mx_round( acq_value_as_double );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1706,33 +1734,43 @@ mxi_handel_get_mapping_mode( MX_HANDEL *handel, long *mapping_mode )
 /*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mxi_handel_set_mapping_mode( MX_HANDEL *handel, long mapping_mode )
+mxi_handel_set_acq_value_as_long( MX_HANDEL *handel,
+				char *value_name,
+				long acq_value,
+				mx_bool_type apply_flag )
 {
-	static const char fname[] = "mxi_handel_set_mapping_mode()";
+	static const char fname[] = "mxi_handel_set_acq_value_as_long()";
 
-	double mapping_mode_as_double;
+	double acq_value_as_double;
 	int xia_status;
+	mx_status_type mx_status;
 
 	if ( handel == (MX_HANDEL *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_HANDEL pointer passed was NULL." );
 	}
 
-	mapping_mode_as_double = mapping_mode;
+	acq_value_as_double = acq_value;
 
-	xia_status = xiaSetAcquisitionValues( -1, "mapping_mode",
-						&mapping_mode_as_double );
+	xia_status = xiaSetAcquisitionValues( -1, value_name,
+						&acq_value_as_double );
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
-		"Cannot set 'mapping_mode' for Handel record '%s'.  "
+		"Cannot set acquisition value '%s' for Handel record '%s'.  "
 		"Error code = %d, '%s'",
+			value_name,
 			handel->record->name,
 			xia_status,
 			mxi_handel_strerror( xia_status ) );
 	}
 
-	handel->mapping_mode = mapping_mode;
+	if ( apply_flag ) {
+		mx_status = mxi_handel_apply_to_all_channels( handel );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1973,8 +2011,10 @@ mxi_handel_process_function( void *record_ptr,
 
 			break;
 		case MXLV_HANDEL_MAPPING_MODE:
-			mx_status = mxi_handel_get_mapping_mode( handel,
-						&(handel->mapping_mode) );
+			mx_status = mxi_handel_get_acq_value_as_long( handel,
+							"mapping_mode",
+							&(handel->mapping_mode),
+							TRUE );
 			break;
 		default:
 			MX_DEBUG( 1,(
@@ -2000,8 +2040,10 @@ mxi_handel_process_function( void *record_ptr,
 			mx_status = mxi_handel_show_acquisition_value(handel);
 			break;
 		case MXLV_HANDEL_MAPPING_MODE:
-			mx_status = mxi_handel_set_mapping_mode( handel,
-							handel->mapping_mode );
+			mx_status = mxi_handel_set_acq_value_as_long( handel,
+							"mapping_mode",
+							handel->mapping_mode,
+							TRUE );
 			break;
 		default:
 			MX_DEBUG( 1,(

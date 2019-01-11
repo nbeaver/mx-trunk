@@ -40,10 +40,17 @@
 
 /* The available values for 'mapping_mode' (expressed as an integer). */
 
-#define MXF_HANDEL_NORMAL_MODE		0
-#define MXF_HANDEL_MCA_MODE		1
-#define MXF_HANDEL_SCA_MODE		2
-#define MXF_HANDEL_LIST_MODE		3
+#define MXF_HANDEL_MAP_NORMAL_MODE	0
+#define MXF_HANDEL_MAP_MCA_MODE		1
+#define MXF_HANDEL_MAP_SCA_MODE		2
+#define MXF_HANDEL_MAP_LIST_MODE	3
+
+/* The available values for 'pixel_advance_mode' (expressed as an integer). */
+
+#define MXF_HANDEL_ADV_NONE_MODE	0
+#define MXF_HANDEL_ADV_GATE_MODE	1
+#define MXF_HANDEL_ADV_SYNC_MODE	2
+#define MXF_HANDEL_ADV_HOST_MODE	3
 
 /* Define the data structures used by the Handel driver. */
 
@@ -82,12 +89,15 @@ typedef struct {
 
 	double last_measurement_interval;
 
-	/* The hardware uses 'double' for the mapping mode, but
-	 * in MX we round to the nearest integer so that we can
-	 * do equality tests in the MX drivers.
+	/* The hardware uses 'double' for mapping_mode and
+	 * pixel_advance_mode, but in MX we round to the
+	 * nearest integer so that we can do equality tests
+	 * simply in the MX drivers.
 	 */
 
 	long mapping_mode;
+	long pixel_advance_mode;
+	long sync_count;
 
 	mx_bool_type debug_flag;
 
@@ -109,6 +119,8 @@ typedef struct {
 #define MXLV_HANDEL_PARAMETER_NAME		2003
 #define MXLV_HANDEL_ACQUISITION_VALUE_NAME	2004
 #define MXLV_HANDEL_MAPPING_MODE		2005
+#define MXLV_HANDEL_PIXEL_ADVANCE_MODE		2006
+#define MXLV_HANDEL_SYNC_COUNT			2007
 
 #define MXI_HANDEL_STANDARD_FIELDS \
   {-1, -1, "handel_flags", MXFT_HEX, NULL, 0, {0}, \
@@ -173,6 +185,15 @@ typedef struct {
   \
   {MXLV_HANDEL_MAPPING_MODE, -1, "mapping_mode", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_HANDEL, mapping_mode), \
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {MXLV_HANDEL_PIXEL_ADVANCE_MODE, -1, \
+		"pixel_advance_mode", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_HANDEL, pixel_advance_mode), \
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {MXLV_HANDEL_SYNC_COUNT, -1, "sync_count", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_HANDEL, sync_count), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }
 
 
@@ -240,11 +261,15 @@ MX_API mx_status_type mxi_handel_show_acquisition_value( MX_HANDEL *handel );
 
 /*------*/
 
-MX_API mx_status_type mxi_handel_get_mapping_mode( MX_HANDEL *handel,
-						long *mapping_mode );
+MX_API mx_status_type mxi_handel_get_acq_value_as_long( MX_HANDEL *handel,
+						char *value_name,
+						long *acq_value,
+						mx_bool_type apply_all );
 
-MX_API mx_status_type mxi_handel_set_mapping_mode( MX_HANDEL *handel,
-						long mapping_mode );
+MX_API mx_status_type mxi_handel_set_acq_value_as_long( MX_HANDEL *handel,
+						char *value_name,
+						long acq_value,
+						mx_bool_type apply_all );
 
 /*------*/
 
