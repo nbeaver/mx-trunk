@@ -8,7 +8,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2001-2006, 2009-2010, 2012, 2017 Illinois Institute of Technology
+ * Copyright 2001-2006, 2009-2010, 2012, 2017, 2019
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -131,6 +132,8 @@ typedef struct {
 
 	mx_bool_type use_double_roi_integral_array;
 	double *double_roi_integral_array;
+
+	mx_bool_type has_mapping_firmware;
 
 } MX_HANDEL_MCA;
 
@@ -320,7 +323,11 @@ typedef struct {
   \
   {-1, -1, "module_type", MXFT_STRING, NULL, 1, {200}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_HANDEL_MCA, module_type ), \
-	{sizeof(char)}, NULL, MXFF_VARARGS}
+	{sizeof(char)}, NULL, MXFF_VARARGS}, \
+  \
+  {-1, -1, "has_mapping_firmware", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof( MX_HANDEL_MCA, has_mapping_firmware ), \
+	{0}, NULL, MXFF_READ_ONLY}
 
 MX_API mx_status_type mxd_handel_mca_initialize_driver( MX_DRIVER *driver );
 MX_API mx_status_type mxd_handel_mca_create_record_structures(
@@ -335,6 +342,7 @@ MX_API mx_status_type mxd_handel_mca_close( MX_RECORD *record );
 MX_API mx_status_type mxd_handel_mca_special_processing_setup(
 							MX_RECORD *record );
 
+MX_API mx_status_type mxd_handel_mca_arm( MX_MCA *mca );
 MX_API mx_status_type mxd_handel_mca_trigger( MX_MCA *mca );
 MX_API mx_status_type mxd_handel_mca_stop( MX_MCA *mca );
 MX_API mx_status_type mxd_handel_mca_read( MX_MCA *mca );

@@ -2016,6 +2016,18 @@ mxi_handel_process_function( void *record_ptr,
 							&(handel->mapping_mode),
 							TRUE );
 			break;
+		case MXLV_HANDEL_PIXEL_ADVANCE_MODE:
+			mx_status = mxi_handel_get_acq_value_as_long( handel,
+							"pixel_advance_mode",
+						&(handel->pixel_advance_mode),
+							TRUE );
+			break;
+		case MXLV_HANDEL_SYNC_COUNT:
+			mx_status = mxi_handel_get_acq_value_as_long( handel,
+							"sync_count",
+							&(handel->sync_count),
+							TRUE );
+			break;
 		default:
 			MX_DEBUG( 1,(
 			    "%s: *** Unknown MX_PROCESS_GET label value = %ld",
@@ -2043,6 +2055,18 @@ mxi_handel_process_function( void *record_ptr,
 			mx_status = mxi_handel_set_acq_value_as_long( handel,
 							"mapping_mode",
 							handel->mapping_mode,
+							TRUE );
+			break;
+		case MXLV_HANDEL_PIXEL_ADVANCE_MODE:
+			mx_status = mxi_handel_set_acq_value_as_long( handel,
+							"pixel_advance_mode",
+						handel->pixel_advance_mode,
+							TRUE );
+			break;
+		case MXLV_HANDEL_SYNC_COUNT:
+			mx_status = mxi_handel_set_acq_value_as_long( handel,
+							"sync_count",
+							handel->sync_count,
 							TRUE );
 			break;
 		default:

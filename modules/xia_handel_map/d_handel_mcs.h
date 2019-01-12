@@ -24,6 +24,10 @@ typedef struct {
 
 	MX_RECORD *mca_record;
 	unsigned long handel_mcs_flags;
+
+	unsigned long buffer_length;
+	unsigned long *buffer_a;
+	unsigned long *buffer_b;
 } MX_HANDEL_MCS;
 
 /* Define all of the interface functions. */
@@ -36,12 +40,10 @@ MX_API mx_status_type mxd_handel_mcs_finish_record_initialization(
 MX_API mx_status_type mxd_handel_mcs_open( MX_RECORD *record );
 
 MX_API mx_status_type mxd_handel_mcs_arm( MX_MCS *mcs );
+MX_API mx_status_type mxd_handel_mcs_trigger( MX_MCS *mcs );
 MX_API mx_status_type mxd_handel_mcs_stop( MX_MCS *mcs );
 MX_API mx_status_type mxd_handel_mcs_clear( MX_MCS *mcs );
 MX_API mx_status_type mxd_handel_mcs_busy( MX_MCS *mcs );
-MX_API mx_status_type mxd_handel_mcs_read_all( MX_MCS *mcs );
-MX_API mx_status_type mxd_handel_mcs_read_scaler( MX_MCS *mcs );
-MX_API mx_status_type mxd_handel_mcs_read_measurement( MX_MCS *mcs );
 MX_API mx_status_type mxd_handel_mcs_get_parameter( MX_MCS *mcs );
 MX_API mx_status_type mxd_handel_mcs_set_parameter( MX_MCS *mcs );
 

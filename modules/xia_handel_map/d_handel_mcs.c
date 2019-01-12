@@ -25,6 +25,12 @@
 #include "mx_measurement.h"
 #include "mx_mca.h"
 #include "mx_mcs.h"
+
+#include <handel.h>
+#include <handel_constants.h>
+#include <handel_errors.h>
+#include <handel_generic.h>
+
 #include "i_handel.h"
 #include "d_handel_mca.h"
 #include "d_handel_mcs.h"
@@ -42,14 +48,14 @@ MX_RECORD_FUNCTION_LIST mxd_handel_mcs_record_function_list = {
 
 MX_MCS_FUNCTION_LIST mxd_handel_mcs_mcs_function_list = {
 	mxd_handel_mcs_arm,
-	NULL,
+	mxd_handel_mcs_trigger,
 	mxd_handel_mcs_stop,
 	mxd_handel_mcs_clear,
 	mxd_handel_mcs_busy,
 	NULL,
-	mxd_handel_mcs_read_all,
-	mxd_handel_mcs_read_scaler,
-	mxd_handel_mcs_read_measurement,
+	NULL,
+	NULL,
+	NULL,
 	NULL,
 	NULL,
 	mxd_handel_mcs_get_parameter,
@@ -74,6 +80,7 @@ MX_RECORD_FIELD_DEFAULTS *mxd_handel_mcs_rfield_def_ptr
 static mx_status_type
 mxd_handel_mcs_get_pointers( MX_MCS *mcs,
 			MX_HANDEL_MCS **handel_mcs,
+			MX_MCA **mca,
 			MX_HANDEL_MCA **handel_mca,
 			MX_HANDEL **handel,
 			const char *calling_fname )
@@ -120,6 +127,17 @@ mxd_handel_mcs_get_pointers( MX_MCS *mcs,
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The mca_record pointer for Handel MCS '%s' is NULL.",
 			mcs_record->name );
+	}
+
+	if ( mca != (MX_MCA **) NULL ) {
+		*mca = (MX_MCA *) mca_record->record_class_struct;
+
+		if ( (*mca) == (MX_MCA *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_MCA pointer for MCA '%s' used by "
+			"Handel MCS '%s' is NULL.",
+			mca_record->name, mcs_record->name );
+		}
 	}
 
 	handel_mca_ptr = (MX_HANDEL_MCA *) mca_record->record_type_struct;
@@ -239,6 +257,9 @@ mxd_handel_mcs_open( MX_RECORD *record )
 
 	MX_MCS *mcs;
 	MX_HANDEL_MCS *handel_mcs = NULL;
+	MX_HANDEL_MCA *handel_mca = NULL;
+	double num_map_pixels, num_map_pixels_per_buffer;;
+	int xia_status;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -249,12 +270,55 @@ mxd_handel_mcs_open( MX_RECORD *record )
 	mcs = (MX_MCS *) (record->record_class_struct);
 
 	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs,
-						NULL, NULL, fname );
+					NULL, &handel_mca, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/*---*/
+	/* Most of the work was already done by the MCA record that we
+	 * point to.  We just need to set up mapping-specific stuff here
+	 * that an ordinary XIA MCA will not understand.
+	 */
+
+	handel_mca->has_mapping_firmware = TRUE;
+
+	handel_mcs->buffer_length = 0;
+	handel_mcs->buffer_a = NULL;
+	handel_mcs->buffer_b = NULL;
+
+	/* Initialize the MCS to 1 measurement. */
+
+	mcs->current_num_measurements = 1;
+
+	num_map_pixels = mcs->current_num_measurements;
+
+	xia_status = xiaSetAcquisitionValues( handel_mca->detector_channel,
+						"num_map_pixels",
+						(void *) &num_map_pixels );
+
+	if ( xia_status != XIA_SUCCESS ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"The attempt to set the number of measurements to 1 "
+		"for MCS '%s' failed.  Error code = %d, '%s'",
+		mcs->record->name,
+		xia_status, mxi_handel_strerror(xia_status) );
+	}
+
+	/* Let handel decide the number of pixels per buffer. */
+
+	num_map_pixels_per_buffer = -1.0;
+
+	xia_status = xiaSetAcquisitionValues( handel_mca->detector_channel,
+						"num_map_pixels_per_buffer",
+					(void *) &num_map_pixels_per_buffer );
+
+	if ( xia_status != XIA_SUCCESS ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"The attempt to set 'num_map_pixels_per_buffer' to -1 "
+		"for MCS '%s' failed.  Error code = %d, '%s'",
+		mcs->record->name,
+		xia_status, mxi_handel_strerror(xia_status) );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -267,10 +331,17 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 	static const char fname[] = "mxd_handel_mcs_arm()";
 
 	MX_HANDEL_MCS *handel_mcs = NULL;
+	MX_MCA *mca = NULL;
+	MX_HANDEL_MCA *handel_mca = NULL;
+	MX_HANDEL *handel = NULL;
+	double mapping_mode;
+	double pixel_advance_mode, gate_master, sync_master, sync_count;
+	unsigned long old_buffer_length;
+	int xia_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs,
-						NULL, NULL, fname );
+					&mca, &handel_mca, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -280,6 +351,214 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Turn on mapping mode. */
+
+	switch( handel->mapping_mode ) {
+	case MXF_HANDEL_MAP_MCA_MODE:
+		mapping_mode = handel->mapping_mode;
+		break;
+	case MXF_HANDEL_MAP_NORMAL_MODE:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Normal mode (0) is not supported for XIA MCS '%s'.",
+			mcs->record->name );
+		break;
+	case MXF_HANDEL_MAP_SCA_MODE:
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"SCA mode (2) is not yet implemented for XIA MCS '%s'.",
+			mcs->record->name );
+		break;
+	case MXF_HANDEL_MAP_LIST_MODE:
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"LIST mode (3) is not yet implemented for XIA MCS '%s'.",
+			mcs->record->name );
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Mapping mode (%ld) is not supported for XIA MCS '%s'.",
+			handel->mapping_mode, mcs->record->name );
+		break;
+	}
+
+	mapping_mode = handel->mapping_mode;
+
+	xia_status = xiaSetAcquisitionValues( -1,
+				"mapping_mode", &mapping_mode );
+
+	if ( xia_status != XIA_SUCCESS ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"The attempt to set 'mapping_mode' to %f "
+		"for MCS '%s' failed.  Error code = %d, '%s'",
+		mapping_mode, mcs->record->name,
+		xia_status, mxi_handel_strerror(xia_status) );
+	}
+
+	/* Configure the hardware pixel_advance_mode based on the MX variable.*/
+
+	switch( mcs->trigger_mode ) {
+	case MXF_DEV_INTERNAL_TRIGGER:
+		gate_master = 0.0;
+		sync_master = 0.0;
+		pixel_advance_mode = 0.0;
+		sync_count = 0.0;
+		break;
+	case MXF_DEV_EXTERNAL_TRIGGER:
+		switch( handel->pixel_advance_mode ) {
+		case MXF_HANDEL_ADV_GATE_MODE:
+			gate_master = 1.0;
+			sync_master = 0.0;
+			pixel_advance_mode = XIA_MAPPING_CTL_GATE;
+			sync_count = 0.0;
+			break;
+		case MXF_HANDEL_ADV_SYNC_MODE:
+			gate_master = 0.0;
+			sync_master = 1.0;
+			pixel_advance_mode = XIA_MAPPING_CTL_SYNC;
+			sync_count = handel->sync_count;
+			break;
+		default:
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"pixel_advance_mode (%ld) is not supported for "
+			"XIA MCS '%s' in external trigger mode.  "
+			"The only supported pixel advance modes are "
+			"GATE (1) and SYNC (2).",
+				handel->pixel_advance_mode,
+				mcs->record->name );
+			break;
+		}
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"MCS trigger mode (%ld) is not supported for XIA MCS '%s'.  "
+		"The only supported trigger modes are INTERNAL (1) "
+		"and EXTERNAL (2).",
+			mcs->trigger_mode, mcs->record->name );
+		break;
+	}
+
+	xia_status = xiaSetAcquisitionValues( handel_mca->detector_channel,
+						"gate_master", &gate_master );
+
+	if ( xia_status != XIA_SUCCESS ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"The attempt to set 'gate_master' to %f "
+		"for MCS '%s' failed.  Error code = %d, '%s'",
+		gate_master, mcs->record->name,
+		xia_status, mxi_handel_strerror(xia_status) );
+	}
+
+	xia_status = xiaSetAcquisitionValues( handel_mca->detector_channel,
+						"sync_master", &sync_master );
+
+	if ( xia_status != XIA_SUCCESS ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"The attempt to set 'sync_master' to %f "
+		"for MCS '%s' failed.  Error code = %d, '%s'",
+		sync_master, mcs->record->name,
+		xia_status, mxi_handel_strerror(xia_status) );
+	}
+
+	xia_status = xiaSetAcquisitionValues( handel_mca->detector_channel,
+				"pixel_advance_mode", &pixel_advance_mode );
+
+	if ( xia_status != XIA_SUCCESS ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"The attempt to set 'pixel_advance_mode' to %f "
+		"for MCS '%s' failed.  Error code = %d, '%s'",
+		pixel_advance_mode, mcs->record->name,
+		xia_status, mxi_handel_strerror(xia_status) );
+	}
+
+	xia_status = xiaSetAcquisitionValues( handel_mca->detector_channel,
+						"sync_count", &sync_count );
+
+	if ( xia_status != XIA_SUCCESS ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"The attempt to set 'sync_count' to %f "
+		"for MCS '%s' failed.  Error code = %d, '%s'",
+		sync_count, mcs->record->name,
+		xia_status, mxi_handel_strerror(xia_status) );
+	}
+
+	/* Apply the settings to all channels. */
+
+	mx_status = mxi_handel_apply_to_all_channels( handel );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* See if we need to change the lengths of the Handel
+	 * 'buffer_a' and 'buffer_b' arrays.
+	 */
+
+	old_buffer_length = handel_mcs->buffer_length;
+
+	xia_status = xiaGetRunData( handel_mca->detector_channel,
+				"buffer_len", &(handel_mcs->buffer_length) );
+
+	if ( xia_status != XIA_SUCCESS ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"The attempt to get the 'buffer_len' run data "
+		"for MCS '%s' failed.  Error code = %d, '%s'",
+		mcs->record->name,
+		xia_status, mxi_handel_strerror(xia_status) );
+	}
+
+	if ( old_buffer_length != handel_mcs->buffer_length ) {
+		/* Free the old buffers. */
+
+		mx_free( handel_mcs->buffer_a );
+		mx_free( handel_mcs->buffer_b );
+
+		/* Allocate the new buffers. */
+
+		handel_mcs->buffer_a = malloc( handel_mcs->buffer_length
+						* sizeof(long) );
+
+		if ( handel_mcs->buffer_a == (unsigned long *) NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate a "
+			"%lu element array of unsigned longs for "
+			"'buffer_a' belonging to XIA MCS '%s'.",
+				handel_mcs->buffer_length,
+				mcs->record->name );
+		}
+	}
+
+	/* Reconfigure the MCS 'buffer_a' and 'buffer_b' arrays to 
+	 * match the number of MCS scaler channels.
+	 */
+
+	/* If we are in external trigger mode, then start the MCS. */
+
+	if ( mcs->trigger_mode == MXF_DEV_EXTERNAL_TRIGGER ) {
+		/* Start the MCS. */
+
+		mx_status = mxd_handel_mca_start_run( mca, 1 );
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_handel_mcs_trigger( MX_MCS *mcs )
+{
+	static const char fname[] = "mxd_handel_mcs_trigger()";
+
+	MX_MCA *mca = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mxd_handel_mcs_get_pointers( mcs, NULL,
+					&mca, NULL, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( mcs->trigger_mode == MXF_DEV_INTERNAL_TRIGGER ) {
+		/* Start the MCS. */
+
+		mx_status = mxd_handel_mca_start_run( mca, 1 );
+	}
+
 	return mx_status;
 }
 
@@ -288,14 +567,16 @@ mxd_handel_mcs_stop( MX_MCS *mcs )
 {
 	static const char fname[] = "mxd_handel_mcs_stop()";
 
-	MX_HANDEL_MCS *handel_mcs = NULL;
+	MX_MCA *mca = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs,
-						NULL, NULL, fname );
+	mx_status = mxd_handel_mcs_get_pointers( mcs, NULL,
+					&mca, NULL, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	mx_status = mxd_handel_mca_stop_run( mca );
 
 	return mx_status;
 }
@@ -309,7 +590,7 @@ mxd_handel_mcs_clear( MX_MCS *mcs )
 	mx_status_type mx_status;
 
 	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs,
-						NULL, NULL, fname );
+					NULL, NULL, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -326,71 +607,12 @@ mxd_handel_mcs_busy( MX_MCS *mcs )
 	mx_status_type mx_status;
 
 	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs,
-						NULL, NULL, fname );
+					NULL, NULL, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxd_handel_mcs_read_all( MX_MCS *mcs )
-{
-	static const char fname[] = "mxd_handel_mcs_read_all()";
-
-	long i;
-	mx_status_type mx_status;
-
-	if ( mcs == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"MX_MCS pointer passed was NULL." );
-	}
-
-	for ( i = 0; i < mcs->current_num_scalers; i++ ) {
-
-		mcs->scaler_index = i;
-
-		mx_status = mxd_handel_mcs_read_scaler( mcs );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-	}
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_handel_mcs_read_scaler( MX_MCS *mcs )
-{
-	static const char fname[] = "mxd_handel_mcs_read_scaler()";
-
-	MX_HANDEL_MCS *handel_mcs = NULL;
-	mx_status_type mx_status;
-
-	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs,
-						NULL, NULL, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	return MX_SUCCESSFUL_RESULT;
-}
- 
-MX_EXPORT mx_status_type
-mxd_handel_mcs_read_measurement( MX_MCS *mcs )
-{
-	static const char fname[] = "mxd_handel_mcs_read_measurement()";
-
-	MX_HANDEL_MCS *handel_mcs = NULL;
-	mx_status_type mx_status;
-
-	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs,
-						NULL, NULL, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -402,7 +624,7 @@ mxd_handel_mcs_get_parameter( MX_MCS *mcs )
 	mx_status_type mx_status;
 
 	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs,
-						NULL, NULL, fname );
+					NULL, NULL, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -435,7 +657,7 @@ mxd_handel_mcs_set_parameter( MX_MCS *mcs )
 	mx_status_type mx_status;
 
 	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs,
-						NULL, NULL, fname );
+					NULL, NULL, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

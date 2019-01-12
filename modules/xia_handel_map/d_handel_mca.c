@@ -40,6 +40,7 @@
 #include "mx_socket.h"
 #include "mx_net.h"
 #include "mx_mca.h"
+#include "mx_mcs.h"
 
 #include <handel.h>
 #include <handel_errors.h>
@@ -47,6 +48,7 @@
 
 #include "i_handel.h"
 #include "d_handel_mca.h"
+#include "d_handel_mcs.h"
 
 #if MXD_HANDEL_MCA_DEBUG_TIMING
 #  include "mx_hrt_debug.h"
@@ -68,7 +70,7 @@ MX_RECORD_FUNCTION_LIST mxd_handel_mca_record_function_list = {
 };
 
 MX_MCA_FUNCTION_LIST mxd_handel_mca_mca_function_list = {
-	NULL,
+	mxd_handel_mca_arm,
 	mxd_handel_mca_trigger,
 	mxd_handel_mca_stop,
 	mxd_handel_mca_read,
@@ -230,6 +232,8 @@ mxd_handel_mca_create_record_structures( MX_RECORD *record )
 	handel_mca->firmware_code_variant = (unsigned long) -1;
 	handel_mca->firmware_code_revision = (unsigned long) -1;
 	handel_mca->hardware_scas_are_enabled = FALSE;
+
+	handel_mca->has_mapping_firmware = FALSE;
 
 	for ( i = 0; i < MX_HANDEL_MCA_MAX_SCAS; i++ ) {
 		handel_mca->sca_has_been_initialized[i] = FALSE;
@@ -1090,9 +1094,9 @@ mxd_handel_mca_special_processing_setup( MX_RECORD *record )
 /*---------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mxd_handel_mca_trigger( MX_MCA *mca )
+mxd_handel_mca_arm( MX_MCA *mca )
 {
-	static const char fname[] = "mxd_handel_mca_trigger()";
+	static const char fname[] = "mxd_handel_mca_arm()";
 
 	MX_HANDEL_MCA *handel_mca = NULL;
 	MX_HANDEL *handel = NULL;
@@ -1106,6 +1110,26 @@ mxd_handel_mca_trigger( MX_MCA *mca )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* If mapping-capable firmware is running, then we turn off
+	 * mapping_mode.
+	 */
+
+	if ( handel_mca->has_mapping_firmware ) {
+		double mapping_mode = 0.0;
+		int xia_status;
+
+		xia_status = xiaSetAcquisitionValues( -1,
+					"mapping_mode", &mapping_mode );
+
+		if ( xia_status != XIA_SUCCESS ) {
+			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+			"The attempt to set 'mapping_mode' to %f "
+			"for MCA '%s' failed.  Error code = %d, '%s'",
+			mapping_mode, mca->record->name,
+			xia_status, mxi_handel_strerror(xia_status) );
+		}
+	}
 
 	/* Select the preset type. */
 
@@ -1196,9 +1220,32 @@ mxd_handel_mca_trigger( MX_MCA *mca )
 
 	HANDEL_MCA_DEBUG_STATISTICS( handel_mca );
 
-	/* Start the MCA. */
+	if ( mca->trigger_mode == MXF_DEV_EXTERNAL_TRIGGER ) {
+		/* Start the MCA. */
 
-	mx_status = mxd_handel_mca_start_run( mca, 1 );
+		mx_status = mxd_handel_mca_start_run( mca, 1 );
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_handel_mca_trigger( MX_MCA *mca )
+{
+	static const char fname[] = "mxd_handel_mca_trigger()";
+
+	mx_status_type mx_status;
+
+	mx_status = mxd_handel_mca_get_pointers( mca, NULL, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( mca->trigger_mode == MXF_DEV_INTERNAL_TRIGGER ) {
+		/* Start the MCA. */
+
+		mx_status = mxd_handel_mca_start_run( mca, 1 );
+	}
 
 	return mx_status;
 }
