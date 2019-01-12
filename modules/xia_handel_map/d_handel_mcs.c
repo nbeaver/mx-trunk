@@ -26,6 +26,7 @@
 #include "mx_mca.h"
 #include "mx_mcs.h"
 #include "i_handel.h"
+#include "d_handel_mca.h"
 #include "d_handel_mcs.h"
 
 /* Initialize the mcs driver jump table. */
@@ -55,8 +56,6 @@ MX_MCS_FUNCTION_LIST mxd_handel_mcs_mcs_function_list = {
 	mxd_handel_mcs_set_parameter
 };
 
-/* EPICS mcs data structures. */
-
 MX_RECORD_FIELD_DEFAULTS mxd_handel_mcs_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_MCS_STANDARD_FIELDS,
@@ -75,9 +74,19 @@ MX_RECORD_FIELD_DEFAULTS *mxd_handel_mcs_rfield_def_ptr
 static mx_status_type
 mxd_handel_mcs_get_pointers( MX_MCS *mcs,
 			MX_HANDEL_MCS **handel_mcs,
+			MX_HANDEL_MCA **handel_mca,
+			MX_HANDEL **handel,
 			const char *calling_fname )
 {
 	static const char fname[] = "mxd_handel_mcs_get_pointers()";
+
+	MX_RECORD *mcs_record = NULL;
+	MX_HANDEL_MCS *handel_mcs_ptr = NULL;
+
+	MX_RECORD *mca_record = NULL;
+	MX_HANDEL_MCA *handel_mca_ptr = NULL;
+
+	MX_RECORD *handel_record = NULL;
 
 	if ( mcs == (MX_MCS *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -85,24 +94,60 @@ mxd_handel_mcs_get_pointers( MX_MCS *mcs,
 			calling_fname );
 	}
 
-	if ( handel_mcs == (MX_HANDEL_MCS **) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_HANDEL_MCS pointer passed by '%s' was NULL.",
+	mcs_record = mcs->record;
+
+	if ( mcs_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"The MX_RECORD pointer for the MX_MCS pointer passed by '%s' is NULL.",
 			calling_fname );
 	}
 
-	if ( mcs->record == (MX_RECORD *) NULL ) {
+	handel_mcs_ptr = (MX_HANDEL_MCS *) mcs_record->record_type_struct;
+
+	if ( handel_mcs_ptr == (MX_HANDEL_MCS *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-    "The MX_RECORD pointer for the MX_MCS pointer passed by '%s' is NULL.",
-			calling_fname );
+		"The MX_HANDEL_MCS pointer for MCS record '%s' is NULL.",
+			mcs_record->name );
 	}
 
-	*handel_mcs = (MX_HANDEL_MCS *) mcs->record->record_type_struct;
+	if ( handel_mcs != (MX_HANDEL_MCS **) NULL ) {
+		*handel_mcs = handel_mcs_ptr;
+	}
 
-	if ( *handel_mcs == (MX_HANDEL_MCS *) NULL ) {
+	mca_record = handel_mcs_ptr->mca_record;
+
+	if ( mca_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_HANDEL_MCS pointer for record '%s' is NULL.",
-			mcs->record->name );
+		"The mca_record pointer for Handel MCS '%s' is NULL.",
+			mcs_record->name );
+	}
+
+	handel_mca_ptr = (MX_HANDEL_MCA *) mca_record->record_type_struct;
+
+	if ( handel_mca_ptr == (MX_HANDEL_MCA *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_HANDEL_MCA pointer for MCA '%s' used by "
+			"Handel MCS '%s' is NULL.",
+			mca_record->name, mcs_record->name );
+	}
+
+	if ( handel != (MX_HANDEL **) NULL ) {
+		handel_record = handel_mca_ptr->handel_record;
+
+		if ( handel_record == (MX_RECORD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The handel_record pointer for MCA '%s' used by "
+			"Handel MCS '%s' is NULL.",
+			mca_record->name, mcs_record->name );
+		}
+
+		*handel = (MX_HANDEL *) handel_record->record_type_struct;
+
+		if ( (*handel) == (MX_HANDEL *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_HANDEL pointer for Handel record '%s' is NULL.",
+				handel_record->name );
+		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -157,6 +202,8 @@ mxd_handel_mcs_create_record_structures( MX_RECORD *record )
 
 	mcs->record = record;
 
+	handel_mcs->record = record;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -173,9 +220,6 @@ mxd_handel_mcs_finish_record_initialization( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	strlcpy( record->network_type_name, "epics",
-				MXU_NETWORK_TYPE_NAME_LENGTH );
 
 	mcs = (MX_MCS *) (record->record_class_struct);
 
@@ -204,7 +248,8 @@ mxd_handel_mcs_open( MX_RECORD *record )
 
 	mcs = (MX_MCS *) (record->record_class_struct);
 
-	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs, fname );
+	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs,
+						NULL, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -224,7 +269,8 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 	MX_HANDEL_MCS *handel_mcs = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs, fname );
+	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs,
+						NULL, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -245,7 +291,8 @@ mxd_handel_mcs_stop( MX_MCS *mcs )
 	MX_HANDEL_MCS *handel_mcs = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs, fname );
+	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs,
+						NULL, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -261,7 +308,8 @@ mxd_handel_mcs_clear( MX_MCS *mcs )
 	MX_HANDEL_MCS *handel_mcs = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs, fname );
+	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs,
+						NULL, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -277,7 +325,8 @@ mxd_handel_mcs_busy( MX_MCS *mcs )
 	MX_HANDEL_MCS *handel_mcs = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs, fname );
+	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs,
+						NULL, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -318,7 +367,8 @@ mxd_handel_mcs_read_scaler( MX_MCS *mcs )
 	MX_HANDEL_MCS *handel_mcs = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs, fname );
+	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs,
+						NULL, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -334,7 +384,8 @@ mxd_handel_mcs_read_measurement( MX_MCS *mcs )
 	MX_HANDEL_MCS *handel_mcs = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs, fname );
+	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs,
+						NULL, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -350,7 +401,8 @@ mxd_handel_mcs_get_parameter( MX_MCS *mcs )
 	MX_HANDEL_MCS *handel_mcs = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs, fname );
+	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs,
+						NULL, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -382,7 +434,8 @@ mxd_handel_mcs_set_parameter( MX_MCS *mcs )
 	MX_HANDEL_MCS *handel_mcs = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs, fname );
+	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs,
+						NULL, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

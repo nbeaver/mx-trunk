@@ -20,6 +20,9 @@
 /* Handel MCS flag values. */
 
 typedef struct {
+	MX_RECORD *record;
+
+	MX_RECORD *mca_record;
 	unsigned long handel_mcs_flags;
 } MX_HANDEL_MCS;
 
@@ -49,6 +52,10 @@ extern long mxd_handel_mcs_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_handel_mcs_rfield_def_ptr;
 
 #define MXD_HANDEL_MCS_STANDARD_FIELDS \
+  {-1, -1, "mca_record", MXFT_RECORD, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_HANDEL_MCS, mca_record), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+  \
   {-1, -1, "handel_mcs_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_HANDEL_MCS, handel_mcs_flags), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }

@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2006, 2008-2012, 2015-2018 Illinois Institute of Technology
+ * Copyright 2001-2006, 2008-2012, 2015-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -130,7 +130,7 @@ mxd_handel_mca_get_pointers( MX_MCA *mca,
 			calling_fname );
 	}
 
-	handel_mca_ptr = (MX_HANDEL_MCA *) mca->record->record_type_struct;
+	handel_mca_ptr = (MX_HANDEL_MCA *) mca_record->record_type_struct;
 
 	if ( handel_mca_ptr == (MX_HANDEL_MCA *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,

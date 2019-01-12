@@ -11,7 +11,9 @@ ifndef MX_INSTALL_DIR
 endif
 
 ifeq ($(MX_ARCH),linux)
-	XIA_HANDEL_DIR = /usr/local/src/handel-1.2.17
+	#XIA_HANDEL_DIR = /usr/local/src/handel-1.2.17
+	#
+	XIA_HANDEL_DIR = /home/lavender/xia/handel-src-1_1_11
 
 	CFLAGS += -I$(XIA_HANDEL_DIR)/inc
 endif
@@ -91,7 +93,7 @@ d_handel_input.$(OBJ): d_handel_input.c d_handel_input.h \
 d_handel_mca.$(OBJ): d_handel_mca.c i_handel.h d_handel_mca.h
 	$(COMPILE) $(CFLAGS) d_handel_mca.c
 
-d_handel_mcs.$(OBJ): d_handel_mcs.c i_handel.h d_handel_mcs.h
+d_handel_mcs.$(OBJ): d_handel_mcs.c i_handel.h d_handel_mcs.h d_handel_mca.h
 	$(COMPILE) $(CFLAGS) d_handel_mcs.c
 
 d_handel_sum.$(OBJ): d_handel_sum.c d_handel_sum.h d_handel_mcs.h
