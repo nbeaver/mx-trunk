@@ -361,6 +361,19 @@ extern "C" {
 
 /*------------------------------------------------------------------------*/
 
+/* MX_INLINE tells the compiler to think about the hypothetical possibility
+ * of inlining the function that follows the keyword.  If it wants to.
+ * In the fullness of time.
+ *
+ * The reason that it is a macro is to allow for the possibility of 
+ * compilers that either use something other than the C99 'inline'
+ * keyword to specify inlining, or that don't support inlining.
+ */
+
+#define MX_INLINE	inline
+
+/*------------------------------------------------------------------------*/
+
 #define MX_WHITESPACE		" \t"
 
 #define MXU_STRING_LENGTH       20

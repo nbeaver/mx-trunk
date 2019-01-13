@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2005-2006, 2009-2012 Illinois Institute of Technology
+ * Copyright 2005-2006, 2009-2012, 2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,6 +28,8 @@
 #include "mx_callback.h"
 #include "mx_measurement.h"
 #include "mx_hrt_debug.h"
+#include "mx_mutex.h"
+#include "mx_thread.h"
 #include "mx_timer.h"
 #include "mx_mca.h"
 

@@ -102,7 +102,34 @@ typedef struct {
 	mx_bool_type debug_flag;
 
 	mx_bool_type use_module_statistics_2;
+
+	MX_MUTEX *mutex;
+
+	MX_THREAD *monitor_thread;
 } MX_HANDEL;
+
+/* WARNING: The following macro _EXPECTS_ that the variables 'handel'
+ *          and 'xia_status' are present in the function block that
+ *          this macro is used in.  In an ideal world, we could use
+ *          an inline function here, but the function specified by
+ *          the (x) macro argument do not always have the same
+ *          function calling signature, so we can't easily go the
+ *          inline function route.
+ * 
+ * Note:    The if() test is to avoid using the mutex if the monitor
+ *          thread is not running.
+ */
+
+#define MX_XIA_SYNC(x) \
+    do { \
+        if ( handel->monitor_thread == NULL ) { \
+            xia_status = (x); \
+        } else { \
+            mx_mutex_lock( handel->mutex ); \
+            xia_status = (x); \
+            mx_mutex_unlock( handel->mutex ); \
+        } \
+    } while (0)
 
 /* The following flags are used by the "PRESET" MCA parameter. */
 

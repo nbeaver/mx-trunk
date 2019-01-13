@@ -21,6 +21,8 @@
 #include "mx_record.h"
 #include "mx_driver.h"
 #include "mx_net.h"
+#include "mx_mutex.h"
+#include "mx_thread.h"
 #include "mx_module.h"
 #include "mx_mca.h"
 #include "mx_mcs.h"

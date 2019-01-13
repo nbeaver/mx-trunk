@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2006, 2009, 2012 Illinois Institute of Technology
+ * Copyright 2001-2006, 2009, 2012, 2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,6 +24,8 @@
 #include "mx_record.h"
 #include "mx_stdint.h"
 #include "mx_driver.h"
+#include "mx_mutex.h"
+#include "mx_thread.h"
 #include "mx_variable.h"
 #include "mx_analog_input.h"
 #include "mx_mca.h"

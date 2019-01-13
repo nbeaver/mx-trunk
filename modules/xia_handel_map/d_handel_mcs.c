@@ -23,6 +23,8 @@
 #include "mx_util.h"
 #include "mx_driver.h"
 #include "mx_measurement.h"
+#include "mx_mutex.h"
+#include "mx_thread.h"
 #include "mx_mca.h"
 #include "mx_mcs.h"
 
@@ -258,6 +260,7 @@ mxd_handel_mcs_open( MX_RECORD *record )
 	MX_MCS *mcs;
 	MX_HANDEL_MCS *handel_mcs = NULL;
 	MX_HANDEL_MCA *handel_mca = NULL;
+	MX_HANDEL *handel = NULL;
 	double num_map_pixels, num_map_pixels_per_buffer;;
 	int xia_status;
 	mx_status_type mx_status;
@@ -270,7 +273,7 @@ mxd_handel_mcs_open( MX_RECORD *record )
 	mcs = (MX_MCS *) (record->record_class_struct);
 
 	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs,
-					NULL, &handel_mca, NULL, fname );
+					NULL, &handel_mca, &handel, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -292,9 +295,9 @@ mxd_handel_mcs_open( MX_RECORD *record )
 
 	num_map_pixels = mcs->current_num_measurements;
 
-	xia_status = xiaSetAcquisitionValues( handel_mca->detector_channel,
+	MX_XIA_SYNC( xiaSetAcquisitionValues( handel_mca->detector_channel,
 						"num_map_pixels",
-						(void *) &num_map_pixels );
+						(void *) &num_map_pixels ) );
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
@@ -308,9 +311,9 @@ mxd_handel_mcs_open( MX_RECORD *record )
 
 	num_map_pixels_per_buffer = -1.0;
 
-	xia_status = xiaSetAcquisitionValues( handel_mca->detector_channel,
+	MX_XIA_SYNC( xiaSetAcquisitionValues( handel_mca->detector_channel,
 						"num_map_pixels_per_buffer",
-					(void *) &num_map_pixels_per_buffer );
+					(void *) &num_map_pixels_per_buffer ) );
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
@@ -381,8 +384,8 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 
 	mapping_mode = handel->mapping_mode;
 
-	xia_status = xiaSetAcquisitionValues( -1,
-				"mapping_mode", &mapping_mode );
+	MX_XIA_SYNC( xiaSetAcquisitionValues( -1,
+				"mapping_mode", &mapping_mode ) );
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
@@ -435,8 +438,8 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 		break;
 	}
 
-	xia_status = xiaSetAcquisitionValues( handel_mca->detector_channel,
-						"gate_master", &gate_master );
+	MX_XIA_SYNC( xiaSetAcquisitionValues( handel_mca->detector_channel,
+						"gate_master", &gate_master ) );
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
@@ -446,8 +449,8 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 		xia_status, mxi_handel_strerror(xia_status) );
 	}
 
-	xia_status = xiaSetAcquisitionValues( handel_mca->detector_channel,
-						"sync_master", &sync_master );
+	MX_XIA_SYNC( xiaSetAcquisitionValues( handel_mca->detector_channel,
+						"sync_master", &sync_master ) );
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
@@ -457,8 +460,8 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 		xia_status, mxi_handel_strerror(xia_status) );
 	}
 
-	xia_status = xiaSetAcquisitionValues( handel_mca->detector_channel,
-				"pixel_advance_mode", &pixel_advance_mode );
+	MX_XIA_SYNC( xiaSetAcquisitionValues( handel_mca->detector_channel,
+				"pixel_advance_mode", &pixel_advance_mode ) );
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
@@ -468,8 +471,8 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 		xia_status, mxi_handel_strerror(xia_status) );
 	}
 
-	xia_status = xiaSetAcquisitionValues( handel_mca->detector_channel,
-						"sync_count", &sync_count );
+	MX_XIA_SYNC( xiaSetAcquisitionValues( handel_mca->detector_channel,
+						"sync_count", &sync_count ) );
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
@@ -492,8 +495,8 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 
 	old_buffer_length = handel_mcs->buffer_length;
 
-	xia_status = xiaGetRunData( handel_mca->detector_channel,
-				"buffer_len", &(handel_mcs->buffer_length) );
+	MX_XIA_SYNC( xiaGetRunData( handel_mca->detector_channel,
+				"buffer_len", &(handel_mcs->buffer_length) ) );
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,

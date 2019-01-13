@@ -39,6 +39,8 @@
 #include "mx_array.h"
 #include "mx_socket.h"
 #include "mx_net.h"
+#include "mx_mutex.h"
+#include "mx_thread.h"
 #include "mx_mca.h"
 #include "mx_mcs.h"
 
@@ -364,7 +366,7 @@ mxd_handel_mca_handel_open( MX_MCA *mca,
 {
 	static const char fname[] = "mxd_handel_mca_handel_open()";
 
-	MX_HANDEL *handel;
+	MX_HANDEL *handel = NULL;
 	char mca_label_format[40];
 	char *mca_label_copy, *ptr;
 	char item_name[40];
@@ -528,9 +530,9 @@ mxd_handel_mca_handel_open( MX_MCA *mca,
 
 	/* Get the module type. */
 
-	xia_status = xiaGetModuleItem( handel_mca->module_alias,
+	MX_XIA_SYNC( xiaGetModuleItem( handel_mca->module_alias,
 					"module_type",
-					handel_mca->module_type );
+					handel_mca->module_type ) );
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
@@ -557,9 +559,9 @@ mxd_handel_mca_handel_open( MX_MCA *mca,
 	snprintf( item_name, sizeof(item_name),
 		"channel%ld_alias", module_channel );
 
-	xia_status = xiaGetModuleItem( handel_mca->module_alias,
+	MX_XIA_SYNC( xiaGetModuleItem( handel_mca->module_alias,
 					item_name,
-					&detector_channel_alt );
+					&detector_channel_alt ) );
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
@@ -595,7 +597,7 @@ mxd_handel_mca_handel_open( MX_MCA *mca,
 	 * a stop run command.
 	 */
 
-	xia_status = xiaStopRun( handel_mca->detector_channel );
+	MX_XIA_SYNC( xiaStopRun( handel_mca->detector_channel ) );
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
@@ -676,8 +678,8 @@ mxd_handel_mca_handel_open( MX_MCA *mca,
 
 	/* See how many bins are in the spectrum. */
 
-	xia_status = xiaGetRunData( handel_mca->detector_channel,
-					"mca_length", &ulong_value );
+	MX_XIA_SYNC( xiaGetRunData( handel_mca->detector_channel,
+					"mca_length", &ulong_value ) );
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
@@ -742,8 +744,8 @@ mxd_handel_mca_handel_open( MX_MCA *mca,
 
 	/* Allocate memory for the baseline array. */
 
-	xia_status = xiaGetRunData( handel_mca->detector_channel,
-					"baseline_length", &ulong_value );
+	MX_XIA_SYNC( xiaGetRunData( handel_mca->detector_channel,
+					"baseline_length", &ulong_value ) );
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
@@ -879,10 +881,10 @@ mxd_handel_mca_open( MX_RECORD *record )
 				fname, num_scas));
 		}
 
-		xia_status = xiaSetAcquisitionValues(
+		MX_XIA_SYNC( xiaSetAcquisitionValues(
 				handel_mca->detector_channel,
 				"number_of_scas",
-				(void *) &num_scas );
+				(void *) &num_scas ) );
 
 #if MXD_HANDEL_MCA_DEBUG_TIMING
 		MX_HRT_END( measurement );
@@ -957,10 +959,10 @@ mxd_handel_mca_open( MX_RECORD *record )
 
 		num_mx_channels = (double) mca->maximum_num_channels;
 
-		xia_status = xiaSetAcquisitionValues(
+		MX_XIA_SYNC( xiaSetAcquisitionValues(
 					handel_mca->detector_channel,
 					"number_mca_channels",
-					(void *) &num_mx_channels );
+					(void *) &num_mx_channels ) );
 
 		if ( xia_status != XIA_SUCCESS ) {
 			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
@@ -1119,8 +1121,8 @@ mxd_handel_mca_arm( MX_MCA *mca )
 		double mapping_mode = 0.0;
 		int xia_status;
 
-		xia_status = xiaSetAcquisitionValues( -1,
-					"mapping_mode", &mapping_mode );
+		MX_XIA_SYNC( xiaSetAcquisitionValues( -1,
+					"mapping_mode", &mapping_mode ) );
 
 		if ( xia_status != XIA_SUCCESS ) {
 			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
@@ -1310,8 +1312,8 @@ mxd_handel_mca_read( MX_MCA *mca )
 	MX_HRT_START( measurement );
 #endif
 
-	xia_status = xiaGetRunData( handel_mca->detector_channel,
-					"mca", array_ptr );
+	MX_XIA_SYNC( xiaGetRunData( handel_mca->detector_channel,
+					"mca", array_ptr ) );
 
 #if MXI_HANDEL_DEBUG_TIMING
 	MX_HRT_END( measurement );
@@ -1390,6 +1392,7 @@ mxd_handel_mca_busy( MX_MCA *mca )
 	static const char fname[] = "mxd_handel_mca_busy()";
 
 	MX_HANDEL_MCA *handel_mca = NULL;
+	MX_HANDEL *handel = NULL;
 	unsigned long run_active, mask;
 	int xia_status;
 	mx_status_type mx_status;
@@ -1399,7 +1402,7 @@ mxd_handel_mca_busy( MX_MCA *mca )
 #endif
 
 	mx_status = mxd_handel_mca_get_pointers( mca,
-						&handel_mca, NULL, fname );
+					&handel_mca, &handel, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1408,8 +1411,8 @@ mxd_handel_mca_busy( MX_MCA *mca )
 	MX_HRT_START( measurement );
 #endif
 
-	xia_status = xiaGetRunData( handel_mca->detector_channel,
-					"run_active", &run_active );
+	MX_XIA_SYNC( xiaGetRunData( handel_mca->detector_channel,
+					"run_active", &run_active ) );
 
 #if MXD_HANDEL_MCA_DEBUG_TIMING
 	MX_HRT_END( measurement );
@@ -1762,10 +1765,10 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 					"SCA%ldLO", i );
 			}
 			
-			xia_status = xiaGetAcquisitionValues(
+			MX_XIA_SYNC( xiaGetAcquisitionValues(
 				handel_mca->detector_channel,
 				acquisition_value_name,
-				(void *) &acquisition_value );
+				(void *) &acquisition_value ) );
 
 			if ( xia_status != XIA_SUCCESS ) {
 				return mx_error(
@@ -1788,10 +1791,10 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 						"SCA%ldHI", i );
 			}
 			
-			xia_status = xiaGetAcquisitionValues(
+			MX_XIA_SYNC( xiaGetAcquisitionValues(
 				handel_mca->detector_channel,
 				acquisition_value_name,
-				(void *) &acquisition_value );
+				(void *) &acquisition_value ) );
 
 			if ( xia_status != XIA_SUCCESS ) {
 				return mx_error(
@@ -1835,9 +1838,9 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 				integral_array = mca->roi_integral_array;
 			}
 
-			xia_status = xiaGetRunData(
+			MX_XIA_SYNC( xiaGetRunData(
 				handel_mca->detector_channel,
-				"sca", integral_array );
+				"sca", integral_array ) );
 
 #if 0
 			{
@@ -1957,10 +1960,10 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 				"SCA%ldLO", i );
 		    }
 			
-		    xia_status = xiaGetAcquisitionValues(
+		    MX_XIA_SYNC( xiaGetAcquisitionValues(
 				handel_mca->detector_channel,
 				acquisition_value_name,
-				(void *) &acquisition_value );
+				(void *) &acquisition_value ) );
 
 		    if ( xia_status != XIA_SUCCESS ) {
 			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
@@ -1990,10 +1993,10 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 				"SCA%ldHI", i );
 		    }
 			
-		    xia_status = xiaGetAcquisitionValues(
+		    MX_XIA_SYNC( xiaGetAcquisitionValues(
 				handel_mca->detector_channel,
 				acquisition_value_name,
-				(void *) &acquisition_value );
+				(void *) &acquisition_value ) );
 
 		    if ( xia_status != XIA_SUCCESS ) {
 			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
@@ -2021,8 +2024,8 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 		break;
 	
 	case MXLV_MCA_REAL_TIME:
-		xia_status = xiaGetRunData( handel_mca->detector_channel,
-			"runtime", (void *) &(mca->real_time) );
+		MX_XIA_SYNC( xiaGetRunData( handel_mca->detector_channel,
+			"runtime", (void *) &(mca->real_time) ) );
 
 		if ( xia_status != XIA_SUCCESS ) {
 			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
@@ -2038,8 +2041,8 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 		break;
 
 	case MXLV_MCA_LIVE_TIME:
-		xia_status = xiaGetRunData( handel_mca->detector_channel,
-			"trigger_livetime", (void *) &(mca->live_time) );
+		MX_XIA_SYNC( xiaGetRunData( handel_mca->detector_channel,
+			"trigger_livetime", (void *) &(mca->live_time) ) );
 
 		if ( xia_status != XIA_SUCCESS ) {
 			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
@@ -2055,8 +2058,8 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 		break;
 
 	case MXLV_MCA_INPUT_COUNT_RATE:
-		xia_status = xiaGetRunData( handel_mca->detector_channel,
-		    "input_count_rate", (void *) &(mca->input_count_rate) );
+		MX_XIA_SYNC( xiaGetRunData( handel_mca->detector_channel,
+		    "input_count_rate", (void *) &(mca->input_count_rate) ) );
 
 		if ( xia_status != XIA_SUCCESS ) {
 			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
@@ -2072,8 +2075,8 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 		break;
 
 	case MXLV_MCA_OUTPUT_COUNT_RATE:
-		xia_status = xiaGetRunData( handel_mca->detector_channel,
-		    "output_count_rate", (void *) &(mca->output_count_rate) );
+		MX_XIA_SYNC( xiaGetRunData( handel_mca->detector_channel,
+		    "output_count_rate", (void *) &(mca->output_count_rate) ) );
 
 		if ( xia_status != XIA_SUCCESS ) {
 			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
@@ -2089,8 +2092,8 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 		break;
 
 	case MXLV_MCA_COUNTS:
-		xia_status = xiaGetRunData( handel_mca->detector_channel,
-			"events_in_run", (void *) &(mca->counts) );
+		MX_XIA_SYNC( xiaGetRunData( handel_mca->detector_channel,
+			"events_in_run", (void *) &(mca->counts) ) );
 
 		if ( xia_status != XIA_SUCCESS ) {
 			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
@@ -2645,8 +2648,8 @@ mxd_handel_mca_get_run_data( MX_MCA *mca,
 	MX_HRT_START( measurement );
 #endif
 
-	xia_status = xiaGetRunData( handel_mca->detector_channel,
-					name, value_ptr );
+	MX_XIA_SYNC( xiaGetRunData( handel_mca->detector_channel,
+					name, value_ptr ) );
 
 #if MXI_HANDEL_DEBUG_TIMING
 	MX_HRT_END( measurement );
@@ -2705,8 +2708,8 @@ mxd_handel_mca_get_acquisition_values( MX_MCA *mca,
 			fname, value_name, mca->record->name ));
 	}
 
-	xia_status = xiaGetAcquisitionValues( handel_mca->detector_channel,
-					value_name, (void *) value_ptr );
+	MX_XIA_SYNC( xiaGetAcquisitionValues( handel_mca->detector_channel,
+					value_name, (void *) value_ptr ) );
 
 	switch( xia_status ) {
 	case XIA_SUCCESS:
@@ -2770,8 +2773,8 @@ mxd_handel_mca_set_acquisition_values( MX_MCA *mca,
 		fname, value_name, mca->record->name, *value_ptr ));
 	}
 
-	xia_status = xiaSetAcquisitionValues( handel_mca->detector_channel,
-					value_name, (void *) value_ptr );
+	MX_XIA_SYNC( xiaSetAcquisitionValues( handel_mca->detector_channel,
+					value_name, (void *) value_ptr ) );
 
 	switch( xia_status ) {
 	case XIA_SUCCESS:
@@ -2824,8 +2827,8 @@ mxd_handel_mca_apply( MX_MCA *mca )
 
 	ignored = 0;
 
-	xia_status = xiaBoardOperation( handel_mca->detector_channel,
-						"apply", (void *) &ignored );
+	MX_XIA_SYNC( xiaBoardOperation( handel_mca->detector_channel,
+						"apply", (void *) &ignored ) );
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
@@ -2877,7 +2880,7 @@ mxd_handel_mca_start_run( MX_MCA *mca, mx_bool_type clear_flag )
 	MX_HRT_START( measurement );
 #endif
 
-	xia_status = xiaStartRun( handel_mca->detector_channel, resume_flag );
+	MX_XIA_SYNC( xiaStartRun( handel_mca->detector_channel, resume_flag ) );
 
 #if MXI_HANDEL_DEBUG_TIMING
 	MX_HRT_END( measurement );
@@ -2924,7 +2927,7 @@ mxd_handel_mca_stop_run( MX_MCA *mca )
 	MX_HRT_START( measurement );
 #endif
 
-	xia_status = xiaStopRun( handel_mca->detector_channel );
+	MX_XIA_SYNC( xiaStopRun( handel_mca->detector_channel ) );
 
 #if MXI_HANDEL_DEBUG_TIMING
 	MX_HRT_END( measurement );
@@ -2968,8 +2971,8 @@ mxd_handel_mca_get_baseline_array( MX_MCA *mca )
 
 	void_ptr = (void *) &baseline_length;
 
-	xia_status = xiaGetRunData( handel_mca->detector_channel,
-					"baseline_length", void_ptr );
+	MX_XIA_SYNC( xiaGetRunData( handel_mca->detector_channel,
+					"baseline_length", void_ptr ) );
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
@@ -3031,8 +3034,8 @@ mxd_handel_mca_get_baseline_array( MX_MCA *mca )
 
 	void_ptr = (void *) &(handel_mca->baseline_array[0]);
 
-	xia_status = xiaGetRunData( handel_mca->detector_channel,
-					"baseline", void_ptr );
+	MX_XIA_SYNC( xiaGetRunData( handel_mca->detector_channel,
+					"baseline", void_ptr ) );
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
@@ -3092,9 +3095,9 @@ mxd_handel_mca_set_gain_change( MX_MCA *mca )
 	MX_DEBUG(-2,("%s invoked for MCA '%s', gain_change = %g",
 		fname, mca->record->name, handel_mca->gain_change));
 
-	xia_status = xiaGainOperation( handel_mca->detector_channel,
+	MX_XIA_SYNC( xiaGainOperation( handel_mca->detector_channel,
 					"calibrate",
-					&(handel_mca->gain_change) );
+					&(handel_mca->gain_change) ) );
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
@@ -3128,8 +3131,8 @@ mxd_handel_mca_set_gain_calibration( MX_MCA *mca )
 	MX_DEBUG(-2,("%s invoked for MCA '%s', gain_calibration = %g",
 		fname, mca->record->name, handel_mca->gain_calibration));
 
-	xia_status = xiaGainCalibrate( handel_mca->detector_channel,
-					handel_mca->gain_calibration );
+	MX_XIA_SYNC( xiaGainCalibrate( handel_mca->detector_channel,
+					handel_mca->gain_calibration ) );
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
@@ -3173,8 +3176,8 @@ mxd_handel_mca_get_adc_trace_array( MX_MCA *mca )
 
 	void_ptr = (void *) &adc_trace_length;
 
-	xia_status = xiaGetSpecialRunData( handel_mca->detector_channel,
-					"adc_trace_length", void_ptr );
+	MX_XIA_SYNC( xiaGetSpecialRunData( handel_mca->detector_channel,
+					"adc_trace_length", void_ptr ) );
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
@@ -3234,8 +3237,8 @@ mxd_handel_mca_get_adc_trace_array( MX_MCA *mca )
 
 	void_ptr = (void *) &(info[0]);
 
-	xia_status = xiaDoSpecialRun( handel_mca->detector_channel,
-					"adc_trace", void_ptr );
+	MX_XIA_SYNC( xiaDoSpecialRun( handel_mca->detector_channel,
+					"adc_trace", void_ptr ) );
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
@@ -3283,8 +3286,8 @@ mxd_handel_mca_get_adc_trace_array( MX_MCA *mca )
 
 	void_ptr = (void *) &(handel_mca->adc_trace_array[0]);
 
-	xia_status = xiaGetSpecialRunData( handel_mca->detector_channel,
-					"adc_trace", void_ptr );
+	MX_XIA_SYNC( xiaGetSpecialRunData( handel_mca->detector_channel,
+					"adc_trace", void_ptr ) );
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
@@ -3352,8 +3355,8 @@ mxd_handel_mca_get_baseline_history_array( MX_MCA *mca )
 
 	void_ptr = (void *) &baseline_history_length;
 
-	xia_status = xiaGetSpecialRunData( handel_mca->detector_channel,
-					"baseline_history_length", void_ptr );
+	MX_XIA_SYNC( xiaGetSpecialRunData( handel_mca->detector_channel,
+					"baseline_history_length", void_ptr ) );
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
@@ -3415,8 +3418,8 @@ mxd_handel_mca_get_baseline_history_array( MX_MCA *mca )
 
 	void_ptr = (void *) &(info[0]);
 
-	xia_status = xiaDoSpecialRun( handel_mca->detector_channel,
-					"baseline_history", void_ptr );
+	MX_XIA_SYNC( xiaDoSpecialRun( handel_mca->detector_channel,
+					"baseline_history", void_ptr ) );
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
@@ -3434,8 +3437,8 @@ mxd_handel_mca_get_baseline_history_array( MX_MCA *mca )
 
 	void_ptr = (void *) &(handel_mca->baseline_history_array[0]);
 
-	xia_status = xiaGetSpecialRunData( handel_mca->detector_channel,
-					"baseline_history", void_ptr );
+	MX_XIA_SYNC( xiaGetSpecialRunData( handel_mca->detector_channel,
+					"baseline_history", void_ptr ) );
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
@@ -3552,8 +3555,8 @@ mxd_handel_mca_show_parameters( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	xia_status = xiaGetNumParams( handel_mca->detector_channel,
-					&num_parameters );
+	MX_XIA_SYNC( xiaGetNumParams( handel_mca->detector_channel,
+					&num_parameters ) );
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
@@ -3602,8 +3605,8 @@ mxd_handel_mca_show_parameters( MX_MCA *mca )
 
 	/* Read the values from Handel. */
 
-	xia_status = xiaGetParamData( handel_mca->detector_channel,
-					"values", (void *) parameter_values );
+	MX_XIA_SYNC( xiaGetParamData( handel_mca->detector_channel,
+					"values", (void *) parameter_values ) );
 
 	if ( xia_status != XIA_SUCCESS ) {
 		mx_free_array( string_array );
@@ -3620,8 +3623,8 @@ mxd_handel_mca_show_parameters( MX_MCA *mca )
 	/* Format the parameter information. */
 
 	for ( i = 0; i < num_parameters; i++ ) {
-		xia_status = xiaGetParamName( handel_mca->detector_channel,
-						i, parameter_name );
+		MX_XIA_SYNC( xiaGetParamName( handel_mca->detector_channel,
+						i, parameter_name ) );
 
 		if ( xia_status != XIA_SUCCESS ) {
 			snprintf( parameter_name, sizeof(parameter_name),
@@ -3712,10 +3715,10 @@ mxd_handel_mca_show_acquisition_values( MX_MCA *mca )
 	mx_info( " " );
 
 	for ( i = 0; i < num_acquisition_value_names; i++ ) {
-		xia_status = xiaGetAcquisitionValues(
+		MX_XIA_SYNC( xiaGetAcquisitionValues(
 				handel_mca->detector_channel,
 				acquisition_value_name_array[i],
-				(void *) &acquisition_value );
+				(void *) &acquisition_value ) );
 
 		if ( xia_status != XIA_SUCCESS ) {
 			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
