@@ -99,6 +99,12 @@ typedef struct {
 	long pixel_advance_mode;
 	long sync_count;
 
+	/* Writing anything to 'mapping_pixel_next' causes mapping mode
+	 * acquisition to advance to the next "pixel" (measurement).
+	 */
+
+	unsigned long mapping_pixel_next;
+
 	mx_bool_type debug_flag;
 
 	mx_bool_type use_module_statistics_2;
@@ -148,6 +154,7 @@ typedef struct {
 #define MXLV_HANDEL_MAPPING_MODE		2005
 #define MXLV_HANDEL_PIXEL_ADVANCE_MODE		2006
 #define MXLV_HANDEL_SYNC_COUNT			2007
+#define MXLV_HANDEL_MAPPING_PIXEL_NEXT		2008
 
 #define MXI_HANDEL_STANDARD_FIELDS \
   {-1, -1, "handel_flags", MXFT_HEX, NULL, 0, {0}, \
@@ -221,7 +228,12 @@ typedef struct {
   \
   {MXLV_HANDEL_SYNC_COUNT, -1, "sync_count", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_HANDEL, sync_count), \
-	{0}, NULL, MXFF_IN_DESCRIPTION }
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {MXLV_HANDEL_MAPPING_PIXEL_NEXT, -1, "mapping_pixel_next", \
+	  	MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_HANDEL, mapping_pixel_next), \
+	{0}, NULL, 0 },
 
 
 MX_API mx_status_type mxi_handel_initialize_driver( MX_DRIVER *driver );

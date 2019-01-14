@@ -473,7 +473,7 @@ mxd_handel_mcs_open( MX_RECORD *record )
 	MX_HANDEL_MCS *handel_mcs = NULL;
 	MX_HANDEL_MCA *handel_mca = NULL;
 	MX_HANDEL *handel = NULL;
-	double num_map_pixels, num_map_pixels_per_buffer;;
+	double num_map_pixels, num_map_pixels_per_buffer;
 	int xia_status;
 	mx_status_type mx_status;
 

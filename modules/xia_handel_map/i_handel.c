@@ -1254,6 +1254,7 @@ mxi_handel_special_processing_setup( MX_RECORD *record )
 		case MXLV_HANDEL_ACQUISITION_VALUE_NAME:
 		case MXLV_HANDEL_CONFIG_FILENAME:
 		case MXLV_HANDEL_MAPPING_MODE:
+		case MXLV_HANDEL_MAPPING_PIXEL_NEXT:
 		case MXLV_HANDEL_PARAMETER_NAME:
 		case MXLV_HANDEL_PIXEL_ADVANCE_MODE:
 		case MXLV_HANDEL_SAVE_FILENAME:
@@ -1998,6 +1999,7 @@ mxi_handel_process_function( void *record_ptr,
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;
 	MX_HANDEL *handel;
+	int xia_status, ignored;
 	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
@@ -2079,6 +2081,22 @@ mxi_handel_process_function( void *record_ptr,
 							"sync_count",
 							handel->sync_count,
 							TRUE );
+			break;
+		case MXLV_HANDEL_MAPPING_PIXEL_NEXT:
+			ignored = 0;
+
+			MX_XIA_SYNC( xiaBoardOperation(
+				0, "mapping_pixel_next", (void *) &ignored ) );
+
+			if ( xia_status != XIA_SUCCESS ) {
+				mx_status = mx_error( MXE_DEVICE_ACTION_FAILED,
+				"Writing to 'mapping_pixel_next' for XIA "
+				"Handel controller '%s' failed.  "
+				"Error code = %d, '%s'.",
+					record->name,
+					xia_status,
+					mxi_handel_strerror(xia_status) );
+			}
 			break;
 		default:
 			MX_DEBUG( 1,(
