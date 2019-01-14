@@ -26,8 +26,8 @@ typedef struct {
 	unsigned long handel_mcs_flags;
 
 	unsigned long buffer_length;
-	unsigned long *buffer_a;
-	unsigned long *buffer_b;
+	uint16_t *buffer_a;
+	uint16_t *buffer_b;
 } MX_HANDEL_MCS;
 
 /* Define all of the interface functions. */

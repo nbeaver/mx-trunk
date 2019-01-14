@@ -629,7 +629,7 @@ mxi_handel_open( MX_RECORD *record )
 
 	/* Initialize Handel. */
 
-	xia_status = xiaInitHandel();
+	MX_XIA_SYNC( xiaInitHandel() );
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
@@ -654,7 +654,7 @@ mxi_handel_open( MX_RECORD *record )
 		handel->handel_log_level = MD_DEBUG;
 	}
 
-	xia_status = xiaSetLogLevel( handel->handel_log_level );
+	MX_XIA_SYNC( xiaSetLogLevel( handel->handel_log_level ) );
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
@@ -678,7 +678,7 @@ mxi_handel_open( MX_RECORD *record )
 
 	/* How many detectors are there? */
 
-	xia_status = xiaGetNumDetectors( &num_detectors );
+	MX_XIA_SYNC( xiaGetNumDetectors( &num_detectors ) );
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
@@ -699,7 +699,7 @@ mxi_handel_open( MX_RECORD *record )
 
 	for ( i = 0; i < num_detectors; i++ ) {
 
-		xia_status = xiaGetDetectors_VB( i, detector_alias );
+		MX_XIA_SYNC( xiaGetDetectors_VB( i, detector_alias ) );
 
 		if ( xia_status != XIA_SUCCESS ) {
 			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
@@ -712,9 +712,9 @@ mxi_handel_open( MX_RECORD *record )
 
 		void_ptr = (void *) &num_mcas;
 
-		xia_status = xiaGetDetectorItem( detector_alias,
+		MX_XIA_SYNC( xiaGetDetectorItem( detector_alias,
 						"number_of_channels",
-						void_ptr );
+						void_ptr ) );
 
 		if ( xia_status != XIA_SUCCESS ) {
 			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
@@ -749,7 +749,7 @@ mxi_handel_open( MX_RECORD *record )
 
 	/* Find out how many modules there are. */
 
-	xia_status = xiaGetNumModules( &num_modules );
+	MX_XIA_SYNC( xiaGetNumModules( &num_modules ) );
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
