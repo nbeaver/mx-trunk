@@ -789,7 +789,6 @@ mxd_handel_mca_open( MX_RECORD *record )
 	MX_HANDEL_MCA *handel_mca = NULL;
 	MX_HANDEL *handel = NULL;
 	unsigned long i;
-	int display_config = FALSE;
 	double mapping_mode;
 #if 0
 	unsigned long codevar, coderev;
@@ -825,8 +824,10 @@ mxd_handel_mca_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if 0
 	display_config = handel->handel_flags &
 			MXF_HANDEL_DISPLAY_CONFIGURATION_AT_STARTUP;
+#endif
 
 	/* Does this MCA have mapping firmware installed.  We attempt to
 	 * detect this at runtime by reading the value of 'mapping_mode'
@@ -890,7 +891,6 @@ mxd_handel_mca_open( MX_RECORD *record )
 
 	if ( handel_mca->hardware_scas_are_enabled ) {
 
-		int xia_status;
 		double num_scas;
 
 		num_scas = mca->maximum_num_rois;
@@ -977,8 +977,6 @@ mxd_handel_mca_open( MX_RECORD *record )
 	/* Initialize the range of bin numbers used by the MCA. */
 
 	if ( 1 ) {
-
-		int xia_status;
 		double num_mx_channels;
 
 		num_mx_channels = (double) mca->maximum_num_channels;
