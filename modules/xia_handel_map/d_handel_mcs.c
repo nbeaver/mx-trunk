@@ -15,9 +15,11 @@
  *
  */
 
-#define MXD_HANDEL_MCS_DEBUG_MONITOR_THREAD	TRUE
+#define MXD_HANDEL_MCS_DEBUG_MONITOR_THREAD		TRUE
 
-#define MXD_HANDEL_MCS_DEBUG_BUSY		TRUE
+#define MXD_HANDEL_MCS_DEBUG_MONITOR_THREAD_BUFFERS	TRUE
+
+#define MXD_HANDEL_MCS_DEBUG_BUSY			TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -211,6 +213,10 @@ mxd_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *args )
 	unsigned short buffer_full = 0;
 	unsigned long wait_for_buffer_sleep_ms = 1000;	/* in milliseconds */
 
+#if 0
+	mx_breakpoint();
+#endif
+
 	if ( args == NULL ) {
 		handel->monitor_thread = NULL;
 
@@ -245,6 +251,10 @@ mxd_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *args )
 
 	    /********* Wait for 'buffer_a' to be full. *********/
 
+#if MXD_HANDEL_MCS_DEBUG_MONITOR_THREAD_BUFFERS
+	    MX_DEBUG(-2,("%s: j = %lu, waiting for buffer_a", fname, j));
+#endif
+
 	    buffer_full = 0;
 
 	    while ( buffer_full == 0 ) {
@@ -262,6 +272,10 @@ mxd_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *args )
 
 		mx_msleep( wait_for_buffer_sleep_ms );
 	    }
+
+#if MXD_HANDEL_MCS_DEBUG_MONITOR_THREAD_BUFFERS
+	    MX_DEBUG(-2,("%s: j = %lu, buffer_a available.", fname, j));
+#endif
 
 	    mx_mutex_lock( handel->mutex );
 
@@ -286,6 +300,10 @@ mxd_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *args )
 	    }
 
 	    mx_mutex_unlock( handel->mutex );
+
+#if MXD_HANDEL_MCS_DEBUG_MONITOR_THREAD_BUFFERS
+	    MX_DEBUG(-2,("%s: j = %lu, buffer_a copied.", fname, j));
+#endif
 
 	    /* Notify the XIA hardware that the buffer has been read. */
 
@@ -316,6 +334,10 @@ mxd_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *args )
 
 	    /********* Wait for 'buffer_b' to be full. *********/
 
+#if MXD_HANDEL_MCS_DEBUG_MONITOR_THREAD_BUFFERS
+	    MX_DEBUG(-2,("%s: j = %lu, waiting for buffer_b", fname, j));
+#endif
+
 	    buffer_full = 0;
 
 	    while ( buffer_full == 0 ) {
@@ -333,6 +355,10 @@ mxd_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *args )
 
 		mx_msleep( wait_for_buffer_sleep_ms );
 	    }
+
+#if MXD_HANDEL_MCS_DEBUG_MONITOR_THREAD_BUFFERS
+	    MX_DEBUG(-2,("%s: j = %lu, buffer_b available.", fname, j));
+#endif
 
 	    mx_mutex_lock( handel->mutex );
 
@@ -357,6 +383,10 @@ mxd_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *args )
 	    }
 
 	    mx_mutex_unlock( handel->mutex );
+
+#if MXD_HANDEL_MCS_DEBUG_MONITOR_THREAD_BUFFERS
+	    MX_DEBUG(-2,("%s: j = %lu, buffer_b copied.", fname, j));
+#endif
 
 	    /* Notify the XIA hardware that the buffer has been read. */
 
