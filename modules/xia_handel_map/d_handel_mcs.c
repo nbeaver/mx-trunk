@@ -17,6 +17,8 @@
 
 #define MXD_HANDEL_MCS_DEBUG_MONITOR_THREAD	TRUE
 
+#define MXD_HANDEL_MCS_DEBUG_BUSY		TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -265,7 +267,7 @@ mxd_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *args )
 
 	    xia_status = xiaGetRunData( 0, "buffer_a", handel_mcs->buffer_a );
 
-	    if ( xia_status != MXE_SUCCESS ) {
+	    if ( xia_status != XIA_SUCCESS ) {
 		mx_mutex_unlock( handel->mutex );
 
 		handel->monitor_thread = NULL;
@@ -336,7 +338,7 @@ mxd_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *args )
 
 	    xia_status = xiaGetRunData( 0, "buffer_b", handel_mcs->buffer_b );
 
-	    if ( xia_status != MXE_SUCCESS ) {
+	    if ( xia_status != XIA_SUCCESS ) {
 		mx_mutex_unlock( handel->mutex );
 
 		handel->monitor_thread = NULL;
@@ -379,6 +381,8 @@ mxd_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *args )
 
 	    j++;
 	}
+
+	(void) mxd_handel_mcs_stop( mcs );
 
 #if MXD_HANDEL_MCS_DEBUG_MONITOR_THREAD
 	MX_DEBUG(-2,("%s complete for MCS record '%s'.",
@@ -540,6 +544,10 @@ mxd_handel_mcs_open( MX_RECORD *record )
 		xia_status, mxi_handel_strerror(xia_status) );
 	}
 
+	/* Default to external trigger. */
+
+	mcs->trigger_mode = MXF_DEV_EXTERNAL_TRIGGER;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -559,8 +567,6 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 	unsigned long old_buffer_length;
 	int xia_status;
 	mx_status_type mx_status;
-
-	mx_breakpoint();
 
 	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs,
 					&mca, &handel_mca, &handel, fname );
@@ -655,6 +661,15 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 		break;
 	}
 
+#if 1
+	MX_DEBUG(-2,("%s: MCS '%s' trigger_mode = %d, mapping_mode = %d, "
+		"handel->pixel_advance_mode = %ld, pixel_advance_mode = %f, "
+		"gate_master = %ld, sync_master = %ld, sync_count = %ld",
+		fname, mcs->record->name, mcs->trigger_mode,
+		handel->mapping_mode, handel->pixel_advance_mode,
+		pixel_advance_mode, gate_master, sync_master, sync_count));
+#endif
+
 	MX_XIA_SYNC( xiaSetAcquisitionValues(0, "gate_master", &gate_master ));
 
 	if ( xia_status != XIA_SUCCESS ) {
@@ -675,15 +690,24 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 		xia_status, mxi_handel_strerror(xia_status) );
 	}
 
-	MX_XIA_SYNC( xiaSetAcquisitionValues(0, "pixel_advance_mode",
+	if ( mcs->trigger_mode == MXF_DEV_EXTERNAL_TRIGGER ) {
+	    switch( handel->pixel_advance_mode ) {
+	    case MXF_HANDEL_ADV_GATE_MODE:
+	    case MXF_HANDEL_ADV_SYNC_MODE:
+		MX_XIA_SYNC( xiaSetAcquisitionValues(0, "pixel_advance_mode",
 							&pixel_advance_mode ));
 
-	if ( xia_status != XIA_SUCCESS ) {
-		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-		"The attempt to set 'pixel_advance_mode' to %f "
-		"for MCS '%s' failed.  Error code = %d, '%s'",
-		pixel_advance_mode, mcs->record->name,
-		xia_status, mxi_handel_strerror(xia_status) );
+		if ( xia_status != XIA_SUCCESS ) {
+			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+			"The attempt to set 'pixel_advance_mode' to %f "
+			"for MCS '%s' failed.  Error code = %d, '%s'",
+			pixel_advance_mode, mcs->record->name,
+			xia_status, mxi_handel_strerror(xia_status) );
+		}
+		break;
+	    default:
+		break;
+	    }
 	}
 
 	MX_XIA_SYNC( xiaSetAcquisitionValues(0, "sync_count", &sync_count ));
@@ -842,13 +866,47 @@ mxd_handel_mcs_busy( MX_MCS *mcs )
 	static const char fname[] = "mxd_handel_mcs_busy()";
 
 	MX_HANDEL_MCS *handel_mcs = NULL;
+	MX_HANDEL *handel = NULL;
+	unsigned long run_active = 0;
+	int xia_status;
 	mx_status_type mx_status;
 
+#if MXD_HANDEL_MCS_DEBUG_BUSY
+	static mx_bool_type old_busy = FALSE;
+#endif
+
 	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs,
-					NULL, NULL, NULL, fname );
+					NULL, NULL, &handel, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	MX_XIA_SYNC( xiaGetRunData( 0, "run_active", &run_active ) );
+
+	if ( xia_status != XIA_SUCCESS ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"The attempt to get 'run_active' for MCS '%s' failed.  "
+		"Error code = %d, '%s'",
+		mcs->record->name,
+		xia_status, mxi_handel_strerror(xia_status) );
+	}
+
+	if ( run_active ) {
+		mcs->busy = TRUE;
+		mcs->status = 0x1;
+	} else {
+		mcs->busy = FALSE;
+		mcs->status = 0x0;
+	}
+
+#if MXD_HANDEL_MCS_DEBUG_BUSY
+	if ( old_busy != mcs->busy ) {
+		MX_DEBUG(-2,("%s: MCS '%s' busy = %d",
+		fname, mcs->record->name, (int) mcs->busy ));
+	}
+
+	old_busy = mcs->busy;
+#endif
 
 	return mx_status;
 }

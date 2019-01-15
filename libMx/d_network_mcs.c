@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2000-2006, 2008, 2010, 2012, 2014-2016, 2018
+ * Copyright 2000-2006, 2008, 2010, 2012, 2014-2016, 2018-2019
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -897,7 +897,7 @@ mxd_network_mcs_get_parameter( MX_MCS *mcs )
 		mx_status = mx_get( &(network_mcs->trigger_mode_nf),
 						MXFT_LONG, &trigger_mode );
 
-		mcs->counting_mode = counting_mode;
+		mcs->trigger_mode = trigger_mode;
 		break;
 
 	case MXLV_MCS_EXTERNAL_CHANNEL_ADVANCE:
