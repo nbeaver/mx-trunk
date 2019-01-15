@@ -790,9 +790,11 @@ mxd_handel_mca_open( MX_RECORD *record )
 	MX_HANDEL *handel = NULL;
 	unsigned long i;
 	int display_config = FALSE;
+	double mapping_mode;
 #if 0
 	unsigned long codevar, coderev;
 #endif
+	int xia_status;
 	mx_status_type mx_status;
 
 #if MXD_HANDEL_MCA_DEBUG_TIMING
@@ -816,9 +818,7 @@ mxd_handel_mca_open( MX_RECORD *record )
 			fname, record->name ));
 	}
 
-	/* Suppress GCC 'set but not used' warning. */
-
-	display_config = display_config;
+	mca->trigger_mode = MXF_DEV_INTERNAL_TRIGGER;
 
 	mx_status = mxd_handel_mca_handel_open(mca, handel_mca, handel->record);
 
@@ -827,6 +827,30 @@ mxd_handel_mca_open( MX_RECORD *record )
 
 	display_config = handel->handel_flags &
 			MXF_HANDEL_DISPLAY_CONFIGURATION_AT_STARTUP;
+
+	/* Does this MCA have mapping firmware installed.  We attempt to
+	 * detect this at runtime by reading the value of 'mapping_mode'
+	 * to see if it exists.
+	 */
+
+	mapping_mode = 0.0;
+
+	MX_XIA_SYNC( xiaGetAcquisitionValues( handel_mca->detector_channel,
+					"mapping_mode", &mapping_mode ) );
+
+	switch( xia_status ) {
+	case XIA_SUCCESS:
+		handel_mca->has_mapping_firmware = TRUE;
+		break;
+	default:
+		handel_mca->has_mapping_firmware = FALSE;
+		break;
+	}
+
+#if 1
+	MX_DEBUG(-2,("%s: MCA '%s' has_mapping_firmware = %d",
+		fname, record->name, (int) handel_mca->has_mapping_firmware));
+#endif
 
 #if 0
 	/* Find out what firmware variant and revision is used by this MCA. */

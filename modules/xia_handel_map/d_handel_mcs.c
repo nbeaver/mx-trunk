@@ -153,6 +153,10 @@ mxd_handel_mcs_get_pointers( MX_MCS *mcs,
 			mca_record->name, mcs_record->name );
 	}
 
+	if ( handel_mca != (MX_HANDEL_MCA **) NULL ) {
+		*handel_mca = handel_mca_ptr;
+	}
+
 	if ( handel != (MX_HANDEL **) NULL ) {
 		handel_record = handel_mca_ptr->handel_record;
 
@@ -469,8 +473,9 @@ mxd_handel_mcs_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_handel_mcs_open()";
 
-	MX_MCS *mcs;
+	MX_MCS *mcs = NULL;
 	MX_HANDEL_MCS *handel_mcs = NULL;
+	MX_MCA *mca = NULL;
 	MX_HANDEL_MCA *handel_mca = NULL;
 	MX_HANDEL *handel = NULL;
 	double num_map_pixels, num_map_pixels_per_buffer;
@@ -485,10 +490,12 @@ mxd_handel_mcs_open( MX_RECORD *record )
 	mcs = (MX_MCS *) (record->record_class_struct);
 
 	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs,
-					NULL, &handel_mca, &handel, fname );
+					&mca, &handel_mca, &handel, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	MX_DEBUG(-2,("%s: MCA = '%s'", fname, mca->record->name));
 
 	/* Most of the work was already done by the MCA record that we
 	 * point to.  We just need to set up mapping-specific stuff here
@@ -507,8 +514,7 @@ mxd_handel_mcs_open( MX_RECORD *record )
 
 	num_map_pixels = mcs->current_num_measurements;
 
-	MX_XIA_SYNC( xiaSetAcquisitionValues( handel_mca->detector_channel,
-						"num_map_pixels",
+	MX_XIA_SYNC( xiaSetAcquisitionValues( -1, "num_map_pixels",
 						(void *) &num_map_pixels ) );
 
 	if ( xia_status != XIA_SUCCESS ) {
@@ -523,8 +529,7 @@ mxd_handel_mcs_open( MX_RECORD *record )
 
 	num_map_pixels_per_buffer = -1.0;
 
-	MX_XIA_SYNC( xiaSetAcquisitionValues( handel_mca->detector_channel,
-						"num_map_pixels_per_buffer",
+	MX_XIA_SYNC( xiaSetAcquisitionValues( -1, "num_map_pixels_per_buffer",
 					(void *) &num_map_pixels_per_buffer ) );
 
 	if ( xia_status != XIA_SUCCESS ) {
@@ -555,8 +560,10 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 	int xia_status;
 	mx_status_type mx_status;
 
+	mx_breakpoint();
+
 	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs,
-					&mca, &handel_mca, NULL, fname );
+					&mca, &handel_mca, &handel, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -593,8 +600,6 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 			handel->mapping_mode, mcs->record->name );
 		break;
 	}
-
-	mapping_mode = handel->mapping_mode;
 
 	MX_XIA_SYNC( xiaSetAcquisitionValues( -1,
 				"mapping_mode", &mapping_mode ) );
@@ -650,8 +655,7 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 		break;
 	}
 
-	MX_XIA_SYNC( xiaSetAcquisitionValues( handel_mca->detector_channel,
-						"gate_master", &gate_master ) );
+	MX_XIA_SYNC( xiaSetAcquisitionValues(0, "gate_master", &gate_master ));
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
@@ -661,8 +665,7 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 		xia_status, mxi_handel_strerror(xia_status) );
 	}
 
-	MX_XIA_SYNC( xiaSetAcquisitionValues( handel_mca->detector_channel,
-						"sync_master", &sync_master ) );
+	MX_XIA_SYNC( xiaSetAcquisitionValues(0, "sync_master", &sync_master ));
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
@@ -672,8 +675,8 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 		xia_status, mxi_handel_strerror(xia_status) );
 	}
 
-	MX_XIA_SYNC( xiaSetAcquisitionValues( handel_mca->detector_channel,
-				"pixel_advance_mode", &pixel_advance_mode ) );
+	MX_XIA_SYNC( xiaSetAcquisitionValues(0, "pixel_advance_mode",
+							&pixel_advance_mode ));
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
@@ -683,8 +686,7 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 		xia_status, mxi_handel_strerror(xia_status) );
 	}
 
-	MX_XIA_SYNC( xiaSetAcquisitionValues( handel_mca->detector_channel,
-						"sync_count", &sync_count ) );
+	MX_XIA_SYNC( xiaSetAcquisitionValues(0, "sync_count", &sync_count ));
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
@@ -708,7 +710,7 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 
 	old_buffer_length = handel_mcs->buffer_length;
 
-	MX_XIA_SYNC( xiaGetRunData( handel_mca->detector_channel,
+	MX_XIA_SYNC( xiaGetRunData( 0,
 				"buffer_len", &(handel_mcs->buffer_length) ) );
 
 	if ( xia_status != XIA_SUCCESS ) {
