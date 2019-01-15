@@ -692,9 +692,9 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 	}
 
 #if 1
-	MX_DEBUG(-2,("%s: MCS '%s' trigger_mode = %d, mapping_mode = %d, "
+	MX_DEBUG(-2,("%s: MCS '%s' trigger_mode = %ld, mapping_mode = %ld, "
 		"handel->pixel_advance_mode = %ld, pixel_advance_mode = %f, "
-		"gate_master = %ld, sync_master = %ld, sync_count = %ld",
+		"gate_master = %f, sync_master = %f, sync_count = %f",
 		fname, mcs->record->name, mcs->trigger_mode,
 		handel->mapping_mode, handel->pixel_advance_mode,
 		pixel_advance_mode, gate_master, sync_master, sync_count));
