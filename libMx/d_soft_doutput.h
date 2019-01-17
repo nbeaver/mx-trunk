@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2008, 2010 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2008, 2010, 2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,8 +20,13 @@
 #include "mx_digital_output.h"
 
 typedef struct {
-	int dummy;
+	long dummy;
 } MX_SOFT_DOUTPUT;
+
+#define MXD_SOFT_DOUTPUT_STANDARD_FIELDS \
+  {-1, -1, "dummy", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof( MX_SOFT_DOUTPUT, dummy ), \
+	{0}, NULL, 0 }
 
 /* Define all of the interface functions. */
 

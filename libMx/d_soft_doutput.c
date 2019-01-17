@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2006, 2008 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006, 2008, 2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -38,7 +38,8 @@ MX_DIGITAL_OUTPUT_FUNCTION_LIST
 
 MX_RECORD_FIELD_DEFAULTS mxd_soft_doutput_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
-	MX_DIGITAL_OUTPUT_STANDARD_FIELDS
+	MX_DIGITAL_OUTPUT_STANDARD_FIELDS,
+	MXD_SOFT_DOUTPUT_STANDARD_FIELDS
 };
 
 long mxd_soft_doutput_num_record_fields
