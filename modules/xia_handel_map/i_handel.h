@@ -253,6 +253,11 @@ extern MX_RECORD_FIELD_DEFAULTS *mxi_handel_rfield_def_ptr;
 
 /* === Driver specific functions === */
 
+MX_API mx_status_type mxi_handel_mcs_monitor_thread_fn( MX_THREAD *thread,
+							void *thread_args );
+
+/*------*/
+
 MX_API mx_status_type mxi_handel_restore_configuration( MX_RECORD *record,
 					char *configuration_filename,
 					int debug_flag );

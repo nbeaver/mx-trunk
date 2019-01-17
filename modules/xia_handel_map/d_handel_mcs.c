@@ -474,6 +474,8 @@ mxd_handel_mcs_create_record_structures( MX_RECORD *record )
 
 	handel_mcs->record = record;
 
+	handel_mcs->mcs_sequence_is_running = FALSE;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -541,6 +543,12 @@ mxd_handel_mcs_open( MX_RECORD *record )
 	handel_mcs->buffer_length = 0;
 	handel_mcs->buffer_a = NULL;
 	handel_mcs->buffer_b = NULL;
+
+	/* Give the parent MCA record a way of finding the child MCS
+	 * that depends on it.
+	 */
+
+	handel_mca->child_mcs_record = record;
 
 	/* Initialize the MCS to 1 measurement. */
 
@@ -807,6 +815,8 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 				mcs->record->name );
 		}
 	}
+
+	handel_mcs->mcs_sequence_is_running = TRUE;
 
 	/* Create a thread that handles reading out 'buffer_a' and
 	 * 'buffer_b' fast enough to keep up with the rate that the

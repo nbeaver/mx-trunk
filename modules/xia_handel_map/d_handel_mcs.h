@@ -28,6 +28,14 @@ typedef struct {
 	unsigned long buffer_length;
 	uint16_t *buffer_a;
 	uint16_t *buffer_b;
+
+	/* mcs_sequence_is_running should only be accessed 
+	 * via atomic operations like mx_atomic_read32(),
+	 * since it may be accessed by both the mcs monitor
+	 * thread and the main thread.
+	 */
+
+	uint32_t mcs_sequence_is_running;
 } MX_HANDEL_MCS;
 
 /* Define all of the interface functions. */

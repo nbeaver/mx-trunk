@@ -19,6 +19,8 @@
 
 #define MXI_HANDEL_DEBUG_TIMING		FALSE
 
+#define MXI_HANDEL_DEBUG_MONITOR_THREAD	TRUE
+
 #include <stdio.h>
 #include <limits.h>
 #include <stdlib.h>
@@ -134,7 +136,159 @@ mxi_handel_get_pointers( MX_MCA *mca,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*==========================*/
+/*-------------------------------------------------------------------------*/
+
+/* mxi_handel_get_master_mcs() is used to find the MCS that started
+ * this sequence.
+ */
+
+static mx_status_type
+mxi_handel_get_mcs_array( MX_HANDEL *handel,
+				unsigned long num_mcs,
+				 MX_MCS **mcs_array )
+{
+	static const char fname[] = "mxi_handel_get_mcs_array()";
+
+	MX_RECORD *mca_record = NULL;
+	MX_HANDEL_MCA *handel_mca = NULL;
+	MX_RECORD *mcs_record = NULL;
+	MX_MCS *mcs = NULL;
+	unsigned long i;
+
+	if ( handel == (MX_HANDEL *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_HANDEL pointer passed was NULL." );
+	}
+	if ( mcs_array == (MX_MCS **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The mcs_array pointer passed was NULL." );
+	}
+
+	for ( i = 0; i < num_mcs; i++ ) {
+		mcs_array[0] = NULL;
+
+		mca_record = handel->mca_record_array[i];
+
+		if ( mca_record == (MX_RECORD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"mca_record_array[%lu] is NULL for Handel record '%s'.",
+				i, handel->record->name );
+		}
+
+		handel_mca = (MX_HANDEL_MCA *) mca_record->record_class_struct;
+
+		if ( handel_mca == (MX_HANDEL_MCA *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_HANDEL_MCA pointer for MCA '%s' belonging "
+			"to Handel record '%s' is NULL.",
+				mca_record->name, handel->record->name );
+		}
+
+		mcs_record = handel_mca->child_mcs_record;
+
+		/* If mcs_record is NULL, then no child MCS record has
+		 * been set up for this MCA in the MX database.  This
+		 * means that we can skip over this mcs_array entry
+		 * by setting the array element to NULL.
+		 */
+
+		if ( mcs_record == (MX_RECORD *) NULL ) {
+			mcs_array[0] = NULL;
+
+			/* Go on to the next entry in the MCA array. */
+			continue;	
+		}
+
+		mcs = (MX_MCS *) mcs_record->record_class_struct;
+
+		if ( mcs == (MX_MCS *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_MCS pointer for MCS record '%s' that depends "
+			"on MCA '%s' and Handel record '%s' is NULL.",
+				mcs_record->name, mca_record->name,
+				handel->record->name );
+		}
+
+		mcs_array[i] = mcs;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-----*/
+
+/*
+ * mxi_handel_mcs_monitor_thread_fn() should only be running while an
+ * MCS sequence is running.  It is started by mxd_handel_mcs_arm()
+ * and exits when the MCS sequence is complete.
+ */
+
+MX_EXPORT mx_status_type
+mxi_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *thread_args )
+{
+	static const char fname[] = "mxi_handel_mcs_monitor_thread_fn()";
+
+	MX_HANDEL *handel = NULL;
+
+	unsigned long num_mcs = 0;
+	MX_MCS **mcs_array = NULL;
+
+	MX_MCS *master_mcs = NULL;
+
+	unsigned long j;
+	mx_status_type mx_status;
+
+	mx_breakpoint();
+
+	if ( thread_args == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The thread_args pointer passed was NULL.  Warning: The "
+		"handel->monitor_thread will now point to a memory block "
+		"that has been freed.  However, there is no real way to do "
+		"anything about this, since we were supposed to get the "
+		"MX_HANDEL pointer from the thread_args pointer." );
+	}
+
+	handel = (MX_HANDEL *) thread_args;
+
+#if MXI_HANDEL_DEBUG_MONITOR_THREAD
+	MX_DEBUG(-2,("%s invoked for XIA Handel record '%s'.",
+		fname, handel->record->name ));
+#endif
+	/* Get an array of all the MX_MCS data structures that the MX_HANDEL
+	 * record knows about.
+	 */
+
+	num_mcs = handel->num_mcas;
+
+	mx_status = mxi_handel_get_mcs_array( handel, num_mcs, mcs_array );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* We need to find the MX_HANDEL_MCS that started this sequence. */
+
+	master_mcs = mcs_array[0];	/* FIXME: This may be wrong. */
+
+	/* Loop until all of the requested measurements have been taken. */
+
+	j = 0;		/* j is the measurement number (starting at 0) */
+
+	while (TRUE) {
+	    if ( j >= master_mcs->current_num_measurements ) {
+		break;		/* Exit the while() loop. */
+	    }
+	}
+
+#if MXI_HANDEL_DEBUG_MONITOR_THREAD
+	MX_DEBUG(-2,("%s complete for XIA Handel record '%s'.",
+		fname, handel->record->name ));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mxi_handel_initialize_driver( MX_DRIVER *driver )
@@ -190,6 +344,8 @@ mxi_handel_initialize_driver( MX_DRIVER *driver )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*-------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mxi_handel_create_record_structures( MX_RECORD *record )
 {
@@ -226,6 +382,8 @@ mxi_handel_create_record_structures( MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*-------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mxi_handel_finish_record_initialization( MX_RECORD *record )
 {
@@ -258,6 +416,8 @@ mxi_handel_finish_record_initialization( MX_RECORD *record )
  * and handel_mca->new_statistics_available for all of the MCAs controlled
  * by this Handel interface.
  */
+
+/*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mxi_handel_set_data_available_flags( MX_HANDEL *handel,
@@ -319,6 +479,8 @@ mxi_handel_set_data_available_flags( MX_HANDEL *handel,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*-------------------------------------------------------------------------*/
 
 static mx_status_type
 mxi_handel_load_config( MX_HANDEL *handel )
@@ -403,6 +565,8 @@ mxi_handel_load_config( MX_HANDEL *handel )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*-------------------------------------------------------------------------*/
+
 /*
  * mxi_handel_load_new_config() encapsulates all of the operations that
  * must happen when a new configuration file is loaded by writing to the
@@ -476,6 +640,8 @@ mxi_handel_load_new_config( MX_HANDEL *handel )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*-------------------------------------------------------------------------*/
+
 static mx_status_type
 mxi_handel_save_config( MX_HANDEL *handel )
 {
@@ -509,6 +675,8 @@ mxi_handel_save_config( MX_HANDEL *handel )
 #endif
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*-------------------------------------------------------------------------*/
 
 static void
 mxi_handel_redirect_log_output( MX_HANDEL *handel )
@@ -548,6 +716,8 @@ mxi_handel_redirect_log_output( MX_HANDEL *handel )
 
 	return;
 }
+
+/*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mxi_handel_open( MX_RECORD *record )
@@ -832,6 +1002,8 @@ mxi_handel_open( MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*-------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mxi_handel_resynchronize( MX_RECORD *record )
 {
@@ -945,6 +1117,8 @@ mxi_handel_set_acquisition_values_for_all_channels( MX_HANDEL *handel,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*-------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mxi_handel_apply_to_all_channels( MX_HANDEL *handel )
 {
@@ -1009,6 +1183,8 @@ mxi_handel_apply_to_all_channels( MX_HANDEL *handel )
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mxi_handel_read_parameter( MX_MCA *mca,
@@ -1075,6 +1251,8 @@ mxi_handel_read_parameter( MX_MCA *mca,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mxi_handel_write_parameter( MX_MCA *mca,
@@ -1145,6 +1323,8 @@ mxi_handel_write_parameter( MX_MCA *mca,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mxi_handel_write_parameter_to_all_channels( MX_HANDEL *handel,
@@ -1232,6 +1412,8 @@ mxi_handel_write_parameter_to_all_channels( MX_HANDEL *handel,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mxi_handel_special_processing_setup( MX_RECORD *record )
@@ -1343,6 +1525,8 @@ mxi_handel_start_run( MX_HANDEL *handel,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*-------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mxi_handel_stop_run( MX_HANDEL *handel )
 {
@@ -1403,6 +1587,8 @@ mxi_handel_stop_run( MX_HANDEL *handel )
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mxi_handel_is_busy( MX_HANDEL *handel,
@@ -1496,6 +1682,8 @@ mxi_handel_is_busy( MX_HANDEL *handel,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mxi_handel_set_preset( MX_HANDEL *handel,
@@ -1982,6 +2170,8 @@ mxi_handel_strerror( int handel_status )
 
 	return &( error_code_table[i].handel_error_message[0] );
 }
+
+/*-------------------------------------------------------------------------*/
 
 #ifndef MX_PROCESS_GET
 

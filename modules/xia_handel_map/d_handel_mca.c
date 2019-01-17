@@ -222,6 +222,8 @@ mxd_handel_mca_create_record_structures( MX_RECORD *record )
 	mca->record = record;
 	handel_mca->record = record;
 
+	handel_mca->child_mcs_record = NULL;
+
 	handel_mca->adc_trace_step_size = 5000.0;	/* in nanoseconds */
 	handel_mca->adc_trace_length = 0;
 	handel_mca->adc_trace_array = NULL;

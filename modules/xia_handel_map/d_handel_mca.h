@@ -50,6 +50,8 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *handel_record;
+	MX_RECORD *child_mcs_record;
+
 	char mca_label[MXU_HANDEL_MCA_LABEL_LENGTH + 1];
 
 	double statistics[ MX_HANDEL_MCA_NUM_STATISTICS ];
