@@ -537,7 +537,10 @@ mxd_handel_mcs_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s: MCA = '%s'", fname, mca->record->name));
+#if 1
+	MX_DEBUG(-2,("%s: MCA = '%s', mca->record = %p",
+		fname, mca->record->name, mca->record));
+#endif
 
 	/* Most of the work was already done by the MCA record that we
 	 * point to.  We just need to set up mapping-specific stuff here
@@ -555,6 +558,14 @@ mxd_handel_mcs_open( MX_RECORD *record )
 	 */
 
 	handel_mca->child_mcs_record = record;
+
+#if 1
+	MX_DEBUG(-2,("%s: record = %p, record->name = '%s'",
+		fname, record, record->name));
+	MX_DEBUG(-2,("%s: handel_mca = %p", fname, handel_mca));
+	MX_DEBUG(-2,("%s: handel_mca->record->name = '%s'",
+				fname, handel_mca->record->name));
+#endif
 
 	/* Initialize the MCS to 1 measurement. */
 

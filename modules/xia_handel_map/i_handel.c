@@ -23,7 +23,7 @@
 
 #define MXI_HANDEL_DEBUG_MONITOR_THREAD_BUFFERS	TRUE
 
-#define MXI_HANDEL_CHANNELS_PER_MODULE	4
+#define MXI_HANDEL_CHANNELS_PER_MODULE		4
 
 #include <stdio.h>
 #include <limits.h>
@@ -169,7 +169,7 @@ mxi_handel_get_mcs_array( MX_HANDEL *handel,
 	}
 
 	for ( i = 0; i < num_mcs; i++ ) {
-		mcs_array[0] = NULL;
+		mcs_array[i] = NULL;
 
 		mca_record = handel->mca_record_array[i];
 
@@ -399,7 +399,8 @@ mxi_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *thread_args )
 	MX_HANDEL *handel = NULL;
 
 	unsigned long num_mcs = 0;
-	MX_MCS **mcs_array = NULL;
+
+	MX_MCS *mcs_array[MXI_HANDEL_CHANNELS_PER_MODULE];
 
 	MX_MCS *master_mcs = NULL;
 
@@ -423,16 +424,48 @@ mxi_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *thread_args )
 	MX_DEBUG(-2,("%s invoked for XIA Handel record '%s'.",
 		fname, handel->record->name ));
 #endif
+
 	/* Get an array of all the MX_MCS data structures that the MX_HANDEL
 	 * record knows about.
 	 */
 
 	num_mcs = handel->num_mcas;
 
+	if ( num_mcs > MXI_HANDEL_CHANNELS_PER_MODULE ) {
+		handel->monitor_thread = NULL;
+
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"This version of the MX 'handel' driver only handles "
+		"up to %d MCAs for MCS quick scanning.",
+			MXI_HANDEL_CHANNELS_PER_MODULE );
+	}
+
+#if 1
+	MX_DEBUG(-2,("%s: handel = %p '%s', handel->num_mcas = %ld",
+		fname, handel, handel->record->name, handel->num_mcas));
+	MX_DEBUG(-2,("%s: handel->mca_record_array = %p",
+		fname, handel->mca_record_array));
+	{
+		int n;
+
+		for ( n = 0; n < num_mcs; n++ ) {
+			MX_DEBUG(-2,("%s: handel->mca_record_array[%d] = %p",
+				fname, n, handel->mca_record_array[n]));
+
+			if ( handel->mca_record_array[n] != NULL ) {
+			 MX_DEBUG(-2,("%s: handel->mca_record_array[%d] = '%s'",
+				fname, n, handel->mca_record_array[n]->name));
+			}
+		}
+	}
+#endif
+
 	mx_status = mxi_handel_get_mcs_array( handel, num_mcs, mcs_array );
 
-	if ( mx_status.code != MXE_SUCCESS )
+	if ( mx_status.code != MXE_SUCCESS ) {
+		handel->monitor_thread = NULL;
 		return mx_status;
+	}
 
 	/* We need to find the MX_HANDEL_MCS that started this sequence. */
 
@@ -493,8 +526,10 @@ mxi_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *thread_args )
 #endif
 		mx_status = mxi_handel_wait_for_buffers_full( handel, 'b' );
 
-		if ( mx_status.code != MXE_SUCCESS )
+		if ( mx_status.code != MXE_SUCCESS ) {
+			handel->monitor_thread = NULL;
 			return mx_status;
+		}
 
 #if MXI_HANDEL_DEBUG_MONITOR_THREAD_BUFFERS
 	MX_DEBUG(-2,("%s: j = %lu, buffer_b available", fname, j ));
@@ -502,16 +537,20 @@ mxi_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *thread_args )
 		mx_status = mxi_handel_read_buffers( handel, j,
 			       				'b', 4, mcs_array );
 
-		if ( mx_status.code != MXE_SUCCESS )
+		if ( mx_status.code != MXE_SUCCESS ) {
+			handel->monitor_thread = NULL;
 			return mx_status;
+		}
 
 #if MXI_HANDEL_DEBUG_MONITOR_THREAD_BUFFERS
 	MX_DEBUG(-2,("%s: j = %lu, buffer_b copied", fname, j ));
 #endif
 		mx_status = mxi_handel_notify_buffers_read( handel, 'b' );
 
-		if ( mx_status.code != MXE_SUCCESS )
+		if ( mx_status.code != MXE_SUCCESS ) {
+			handel->monitor_thread = NULL;
 			return mx_status;
+		}
 
 #if MXI_HANDEL_DEBUG_MONITOR_THREAD
 		MX_DEBUG(-2,("%s: Handel '%s' measurement %ld complete.",
@@ -523,6 +562,7 @@ mxi_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *thread_args )
 	MX_DEBUG(-2,("%s complete for XIA Handel record '%s'.",
 		fname, handel->record->name ));
 #endif
+	handel->monitor_thread = NULL;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1151,6 +1191,11 @@ mxi_handel_open( MX_RECORD *record )
 		"structure of record '%s'.",
 			handel->num_mcas, record->name );
 	}
+
+#if 1
+	MX_DEBUG(-2,("%s: handel->mca_record_array = %p",
+		fname, handel->mca_record_array));
+#endif
 
 	for ( i = 0; i < handel->num_mcas; i++ ) {
 		handel->mca_record_array[i] = NULL;

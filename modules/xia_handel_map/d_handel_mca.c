@@ -26,6 +26,8 @@
 
 #define MXD_HANDEL_MCA_DEBUG_GET_PRESETS	FALSE
 
+#define MXD_HANDEL_MCA_DEBUG_MCA_RECORD_ARRAY	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -641,6 +643,15 @@ mxd_handel_mca_handel_open( MX_MCA *mca,
 			i+1 );
 	}
 
+#if MXD_HANDEL_MCA_DEBUG_MCA_RECORD_ARRAY
+	MX_DEBUG(-2,("%s: handel_mca = '%s', handel_mca->record = %p",
+		fname, handel_mca->record->name, handel_mca->record));
+	MX_DEBUG(-2,("%s: handel->mca_record_array = %p",
+		fname, handel->mca_record_array));
+	MX_DEBUG(-2,("%s: handel->mca_record_array[%lu] = %p",
+		fname, i, handel->mca_record_array[i] ));
+#endif
+
 	/* Search for an empty slot in the modules array. */
 
 	if ( ( handel_mca->module_number < 1 )
@@ -677,6 +688,13 @@ mxd_handel_mca_handel_open( MX_MCA *mca,
 			handel_mca->module_number, j,
 			handel->mcas_per_module );
 	}
+
+#if MXD_HANDEL_MCA_DEBUG_MCA_RECORD_ARRAY
+	MX_DEBUG(-2,("%s: handel_mca->module_number = %lu",
+		fname, handel_mca->module_number));
+	MX_DEBUG(-2,("%s: handel->module_array[%lu][%lu] = %p",
+		fname, i, j, handel->module_array[i][j]));
+#endif
 
 	/* See how many bins are in the spectrum. */
 
