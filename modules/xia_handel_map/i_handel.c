@@ -23,6 +23,8 @@
 
 #define MXI_HANDEL_DEBUG_MONITOR_THREAD_BUFFERS	TRUE
 
+#define MXI_HANDEL_CHANNELS_PER_MODULE	4
+
 #include <stdio.h>
 #include <limits.h>
 #include <stdlib.h>
@@ -220,8 +222,45 @@ mxi_handel_get_mcs_array( MX_HANDEL *handel,
 /*-----*/
 
 static mx_status_type
-mxi_handel_wait_for_buffers_full( MX_HANDEL *handel, char *buffer_name )
+mxi_handel_wait_for_buffers_full( MX_HANDEL *handel, char buffer_name )
 {
+	static const char fname[] = "mxi_handel_wait_for_buffers_full()";
+
+	char run_data_name[20];
+	unsigned short buffer_full;
+	int xia_status, channel;
+
+	unsigned long wait_for_buffer_sleep_ms = 1000;  /* in milliseconds */
+
+	snprintf( run_data_name, sizeof(run_data_name),
+		"buffer_full_%c", buffer_name );
+
+	for ( channel = 0;
+		channel < MXI_HANDEL_CHANNELS_PER_MODULE;
+		channel++ )
+	{
+	    buffer_full = 0;
+
+	    while ( buffer_full == 0 ) {
+		MX_XIA_SYNC( xiaGetRunData( channel,
+					run_data_name,
+					&buffer_full ) );
+
+		if ( xia_status != XIA_SUCCESS ) {
+			handel->monitor_thread = NULL;
+
+			return mx_error( MXE_DEVICE_ACTION_FAILED,fname,
+			"The attempt to check the status of XIA buffer_%c "
+			"for channel %d failed for Handel record '%s'.  "
+			"Error code = %d, '%s'.",
+				buffer_name, channel, handel->record->name,
+				xia_status, mxi_handel_strerror(xia_status) );
+		}
+
+		mx_msleep( wait_for_buffer_sleep_ms );
+	    }
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -229,18 +268,118 @@ mxi_handel_wait_for_buffers_full( MX_HANDEL *handel, char *buffer_name )
 
 static mx_status_type
 mxi_handel_read_buffers( MX_HANDEL *handel,
-			char *buffer_name,
+			unsigned long measurement_number,
+			char buffer_name,
 			unsigned long num_buffers,
 			MX_MCS **mcs_array )
 {
+	static const char fname[] = "mxi_handel_read_buffers()";
+
+	MX_MCS *mcs = NULL;
+	MX_HANDEL_MCS *handel_mcs = NULL;
+	uint16_t *buffer_ptr = NULL;
+	char run_data_name[20];
+	int xia_status, channel, scaler;
+
+	snprintf( run_data_name, sizeof(run_data_name),
+		"buffer_%c", buffer_name );
+
+	for ( channel = 0;
+		channel < MXI_HANDEL_CHANNELS_PER_MODULE;
+		channel++ )
+	{
+	    mcs = mcs_array[channel];
+
+	    /* We do not necessarily read from _all_ channels. */
+
+	    if ( mcs != (MX_MCS *) NULL ) {
+		if ( mcs->record == (MX_RECORD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_RECORD pointer for MCS channel %d is NULL.",
+				channel );
+		}
+
+		handel_mcs = (MX_HANDEL_MCS *) mcs->record->record_type_struct;
+
+		if ( handel_mcs == (MX_HANDEL_MCS *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_HANDEL_MCS pointer for MCS '%s' is NULL.",
+				mcs->record->name );
+		}
+
+		switch( buffer_name ) {
+		case 'a':
+			buffer_ptr = handel_mcs->buffer_a;
+			break;
+		case 'b':
+			buffer_ptr = handel_mcs->buffer_b;
+			break;
+		default:
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Illegal Handel buffer name 'buffer_%c' requested "
+			"for Handel MCS '%s'.  The allowed names are "
+			"'buffer_a' and 'buffer_b'.",
+				buffer_name, mcs->record->name );
+			break;
+		}
+
+		mx_mutex_lock( handel->mutex );
+
+		xia_status = xiaGetRunData( channel, run_data_name, buffer_ptr);
+
+		if ( xia_status != XIA_SUCCESS ) {
+			mx_mutex_unlock( handel->mutex );
+
+			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+			"The attempt to read XIA '%s' for MCS '%s' failed.  "
+			"Error code = %d, '%s'.",
+				run_data_name, mcs->record->name,
+				xia_status, mxi_handel_strerror(xia_status) );
+		}
+
+		/* Copy the XIA buffer to the appropriate MCS buffer. */
+
+		for ( scaler = 0; scaler < mcs->current_num_scalers; scaler++ )
+		{
+			mcs->data_array[ scaler ][ measurement_number ]
+							= buffer_ptr[ scaler ];
+		}
+
+		mx_mutex_unlock( handel->mutex );
+	    }
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
 /*-----*/
 
 static mx_status_type
-mxi_handel_notify_buffers_read( MX_HANDEL *handel, char *buffer_name )
+mxi_handel_notify_buffers_read( MX_HANDEL *handel, char buffer_name )
 {
+	static const char fname[] = "mxi_handel_notify_buffers_read()";
+
+	int xia_status, channel;
+
+	for ( channel = 0;
+		channel < MXI_HANDEL_CHANNELS_PER_MODULE;
+		channel++ )
+	{
+		MX_XIA_SYNC( xiaBoardOperation( channel,
+					"buffer_done", &buffer_name ) );
+
+		if ( xia_status != XIA_SUCCESS ) {
+			handel->monitor_thread = NULL;
+
+			return mx_error( MXE_DEVICE_ACTION_FAILED,fname,
+			"The attempt to signal completion of XIA buffer_%c "
+			"for channel %d failed for Handel record '%s'.  "
+			"Error code = %d, '%s'.",
+				buffer_name, channel, handel->record->name,
+				xia_status, mxi_handel_strerror(xia_status) );
+		}
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -308,20 +447,36 @@ mxi_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *thread_args )
 			break;		/* Exit the while() loop. */
 		}
 
-		mx_status = mxi_handel_wait_for_buffers_full( handel, "a" );
+#if MXI_HANDEL_DEBUG_MONITOR_THREAD_BUFFERS
+	MX_DEBUG(-2,("%s: j = %lu, waiting for buffer_a", fname, j ));
+#endif
+		mx_status = mxi_handel_wait_for_buffers_full( handel, 'a' );
 
-		if ( mx_status.code != MXE_SUCCESS )
+		if ( mx_status.code != MXE_SUCCESS ) {
+			handel->monitor_thread = NULL;
 			return mx_status;
+		}
 
-		mx_status = mxi_handel_read_buffers( handel, "a", 4, mcs_array);
+#if MXI_HANDEL_DEBUG_MONITOR_THREAD_BUFFERS
+	MX_DEBUG(-2,("%s: j = %lu, buffer_a available", fname, j ));
+#endif
+		mx_status = mxi_handel_read_buffers( handel, j,
+							'a', 4, mcs_array );
 
-		if ( mx_status.code != MXE_SUCCESS )
+		if ( mx_status.code != MXE_SUCCESS ) {
+			handel->monitor_thread = NULL;
 			return mx_status;
+		}
 
-		mx_status = mxi_handel_notify_buffers_read( handel, "a" );
+#if MXI_HANDEL_DEBUG_MONITOR_THREAD_BUFFERS
+	MX_DEBUG(-2,("%s: j = %lu, buffer_a copied", fname, j ));
+#endif
+		mx_status = mxi_handel_notify_buffers_read( handel, 'a' );
 
-		if ( mx_status.code != MXE_SUCCESS )
+		if ( mx_status.code != MXE_SUCCESS ) {
+			handel->monitor_thread = NULL;
 			return mx_status;
+		}
 
 #if MXI_HANDEL_DEBUG_MONITOR_THREAD
 		MX_DEBUG(-2,("%s: Handel '%s' measurement %ld complete.",
@@ -333,17 +488,27 @@ mxi_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *thread_args )
 			break;		/* Exit the while() loop. */
 		}
 
-		mx_status = mxi_handel_wait_for_buffers_full( handel, "b" );
+#if MXI_HANDEL_DEBUG_MONITOR_THREAD_BUFFERS
+	MX_DEBUG(-2,("%s: j = %lu, waiting for buffer_b", fname, j ));
+#endif
+		mx_status = mxi_handel_wait_for_buffers_full( handel, 'b' );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		mx_status = mxi_handel_read_buffers( handel, "b", 4, mcs_array);
+#if MXI_HANDEL_DEBUG_MONITOR_THREAD_BUFFERS
+	MX_DEBUG(-2,("%s: j = %lu, buffer_b available", fname, j ));
+#endif
+		mx_status = mxi_handel_read_buffers( handel, j,
+			       				'b', 4, mcs_array );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		mx_status = mxi_handel_notify_buffers_read( handel, "b" );
+#if MXI_HANDEL_DEBUG_MONITOR_THREAD_BUFFERS
+	MX_DEBUG(-2,("%s: j = %lu, buffer_b copied", fname, j ));
+#endif
+		mx_status = mxi_handel_notify_buffers_read( handel, 'b' );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

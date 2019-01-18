@@ -21,6 +21,8 @@
 
 #define MXD_HANDEL_MCS_DEBUG_BUSY			TRUE
 
+#define USE_LOCAL_THREAD_FN				FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -184,6 +186,8 @@ mxd_handel_mcs_get_pointers( MX_MCS *mcs,
 }
 
 /* === */
+
+#if USE_LOCAL_THREAD_FN
 
 /* For successful operation, MX support for XIA Handel mapping mode _MUST_
  * be able to keep up with the rate that the XIA hardware generates new
@@ -422,6 +426,8 @@ mxd_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *args )
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+#endif /* USE_LOCAL_THREAD_FN */
 
 /* === */
 
@@ -823,9 +829,15 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 	 * XIA hardware generates it.
 	 */
 
+#if USE_LOCAL_THREAD_FN
 	mx_status = mx_thread_create( &(handel->monitor_thread),
 					mxd_handel_mcs_monitor_thread_fn,
 					mcs->record );
+#else
+	mx_status = mx_thread_create( &(handel->monitor_thread),
+					mxi_handel_mcs_monitor_thread_fn,
+					handel );
+#endif
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
