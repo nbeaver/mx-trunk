@@ -86,6 +86,7 @@ mxd_soft_doutput_create_record_structures( MX_RECORD *record )
 			= &mxd_soft_doutput_digital_output_function_list;
 
         digital_output->record = record;
+	soft_doutput->record = record;
 
         return MX_SUCCESSFUL_RESULT;
 }

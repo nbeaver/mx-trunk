@@ -15,11 +15,13 @@
  *
  */
 
-#define MXI_HANDEL_DEBUG		FALSE
+#define MXI_HANDEL_DEBUG			FALSE
 
-#define MXI_HANDEL_DEBUG_TIMING		FALSE
+#define MXI_HANDEL_DEBUG_TIMING			FALSE
 
-#define MXI_HANDEL_DEBUG_MONITOR_THREAD	TRUE
+#define MXI_HANDEL_DEBUG_MONITOR_THREAD		TRUE
+
+#define MXI_HANDEL_DEBUG_MONITOR_THREAD_BUFFERS	TRUE
 
 #include <stdio.h>
 #include <limits.h>
@@ -217,6 +219,33 @@ mxi_handel_get_mcs_array( MX_HANDEL *handel,
 
 /*-----*/
 
+static mx_status_type
+mxi_handel_wait_for_buffers_full( MX_HANDEL *handel, char *buffer_name )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-----*/
+
+static mx_status_type
+mxi_handel_read_buffers( MX_HANDEL *handel,
+			char *buffer_name,
+			unsigned long num_buffers,
+			MX_MCS **mcs_array )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-----*/
+
+static mx_status_type
+mxi_handel_notify_buffers_read( MX_HANDEL *handel, char *buffer_name )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-----*/
+
 /*
  * mxi_handel_mcs_monitor_thread_fn() should only be running while an
  * MCS sequence is running.  It is started by mxd_handel_mcs_arm()
@@ -275,9 +304,54 @@ mxi_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *thread_args )
 	j = 0;		/* j is the measurement number (starting at 0) */
 
 	while (TRUE) {
-	    if ( j >= master_mcs->current_num_measurements ) {
-		break;		/* Exit the while() loop. */
-	    }
+		if ( j >= master_mcs->current_num_measurements ) {
+			break;		/* Exit the while() loop. */
+		}
+
+		mx_status = mxi_handel_wait_for_buffers_full( handel, "a" );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mxi_handel_read_buffers( handel, "a", 4, mcs_array);
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mxi_handel_notify_buffers_read( handel, "a" );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+#if MXI_HANDEL_DEBUG_MONITOR_THREAD
+		MX_DEBUG(-2,("%s: Handel '%s' measurement %ld complete.",
+			fname, handel->record->name, j ));
+#endif
+		j++;
+
+		if ( j >= master_mcs->current_num_measurements ) {
+			break;		/* Exit the while() loop. */
+		}
+
+		mx_status = mxi_handel_wait_for_buffers_full( handel, "b" );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mxi_handel_read_buffers( handel, "b", 4, mcs_array);
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mxi_handel_notify_buffers_read( handel, "b" );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+#if MXI_HANDEL_DEBUG_MONITOR_THREAD
+		MX_DEBUG(-2,("%s: Handel '%s' measurement %ld complete.",
+			fname, handel->record->name, j ));
+#endif
 	}
 
 #if MXI_HANDEL_DEBUG_MONITOR_THREAD

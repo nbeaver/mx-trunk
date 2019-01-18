@@ -20,6 +20,8 @@
 #include "mx_digital_output.h"
 
 typedef struct {
+	MX_RECORD *record;
+
 	long dummy;
 } MX_SOFT_DOUTPUT;
 
