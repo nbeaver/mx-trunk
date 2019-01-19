@@ -565,6 +565,10 @@ mxd_handel_mcs_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: handel_mca = %p", fname, handel_mca));
 	MX_DEBUG(-2,("%s: handel_mca->record->name = '%s'",
 				fname, handel_mca->record->name));
+	MX_DEBUG(-2,("%s: handel_mca->child_mcs_record = %p",
+				fname, handel_mca->child_mcs_record));
+	MX_DEBUG(-2,("%s: handel_mca->child_mcs_record = '%s'",
+				fname, handel_mca->child_mcs_record->name));
 #endif
 
 	/* Initialize the MCS to 1 measurement. */

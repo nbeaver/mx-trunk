@@ -174,12 +174,11 @@ mxi_handel_get_mcs_array( MX_HANDEL *handel,
 		mca_record = handel->mca_record_array[i];
 
 		if ( mca_record == (MX_RECORD *) NULL ) {
-			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"mca_record_array[%lu] is NULL for Handel record '%s'.",
-				i, handel->record->name );
+			/* Skip over MCA records that are not present. */
+			continue;
 		}
 
-		handel_mca = (MX_HANDEL_MCA *) mca_record->record_class_struct;
+		handel_mca = (MX_HANDEL_MCA *) mca_record->record_type_struct;
 
 		if ( handel_mca == (MX_HANDEL_MCA *) NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
