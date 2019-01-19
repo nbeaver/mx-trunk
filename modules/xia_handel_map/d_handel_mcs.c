@@ -21,7 +21,7 @@
 
 #define MXD_HANDEL_MCS_DEBUG_BUSY			TRUE
 
-#define USE_LOCAL_THREAD_FN				FALSE
+#define USE_IN_FILE_THREAD_FN				FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -187,7 +187,7 @@ mxd_handel_mcs_get_pointers( MX_MCS *mcs,
 
 /* === */
 
-#if USE_LOCAL_THREAD_FN
+#if USE_IN_FILE_THREAD_FN
 
 /* For successful operation, MX support for XIA Handel mapping mode _MUST_
  * be able to keep up with the rate that the XIA hardware generates new
@@ -427,7 +427,7 @@ mxd_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *args )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#endif /* USE_LOCAL_THREAD_FN */
+#endif /* USE_IN_FILE_THREAD_FN */
 
 /* === */
 
@@ -621,7 +621,7 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 	MX_MCA *mca = NULL;
 	MX_HANDEL_MCA *handel_mca = NULL;
 	MX_HANDEL *handel = NULL;
-	double mapping_mode;
+	double mapping_mode, num_map_pixels;
 	double pixel_advance_mode, gate_master, sync_master, sync_count;
 	unsigned long old_buffer_length;
 	int xia_status;
@@ -837,6 +837,32 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 		}
 	}
 
+	/* Tell Handel the number of measurements ("pixels") to take. */
+
+	num_map_pixels = mcs->current_num_measurements;
+
+	MX_XIA_SYNC( xiaSetAcquisitionValues( -1, "num_map_pixels",
+						(void *) &num_map_pixels ) );
+
+	if ( xia_status != XIA_SUCCESS ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"The attempt to set the number of measurements to %lu "
+		"for MCS '%s' failed.  Error code = %d, '%s'.",
+		mcs->current_num_measurements,
+		xia_status, mxi_handel_strerror(xia_status) );
+	}
+
+#if 0
+	/* Apply the settings to all channels. */
+
+	mx_status = mxi_handel_apply_to_all_channels( handel );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+#endif
+
+	/*----*/
+
 	handel_mcs->mcs_sequence_is_running = TRUE;
 
 	/* Create a thread that handles reading out 'buffer_a' and
@@ -844,7 +870,7 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 	 * XIA hardware generates it.
 	 */
 
-#if USE_LOCAL_THREAD_FN
+#if USE_IN_FILE_THREAD_FN
 	mx_status = mx_thread_create( &(handel->monitor_thread),
 					mxd_handel_mcs_monitor_thread_fn,
 					mcs->record );

@@ -406,7 +406,9 @@ mxi_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *thread_args )
 	unsigned long j;
 	mx_status_type mx_status;
 
+#if 0
 	mx_breakpoint();
+#endif
 
 	if ( thread_args == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -439,7 +441,7 @@ mxi_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *thread_args )
 			MXI_HANDEL_CHANNELS_PER_MODULE );
 	}
 
-#if 1
+#if 0
 	MX_DEBUG(-2,("%s: handel = %p '%s', handel->num_mcas = %ld",
 		fname, handel, handel->record->name, handel->num_mcas));
 	MX_DEBUG(-2,("%s: handel->mca_record_array = %p",
