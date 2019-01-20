@@ -848,7 +848,7 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 		"The attempt to set the number of measurements to %lu "
 		"for MCS '%s' failed.  Error code = %d, '%s'.",
-		mcs->current_num_measurements,
+		mcs->current_num_measurements, mcs->record->name,
 		xia_status, mxi_handel_strerror(xia_status) );
 	}
 
