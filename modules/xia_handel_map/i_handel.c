@@ -406,7 +406,7 @@ mxi_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *thread_args )
 	unsigned long j;
 	mx_status_type mx_status;
 
-#if 0
+#if 1
 	mx_breakpoint();
 #endif
 

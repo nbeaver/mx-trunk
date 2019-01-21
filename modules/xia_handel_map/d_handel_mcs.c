@@ -21,8 +21,6 @@
 
 #define MXD_HANDEL_MCS_DEBUG_BUSY			TRUE
 
-#define USE_IN_FILE_THREAD_FN				FALSE
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -187,250 +185,6 @@ mxd_handel_mcs_get_pointers( MX_MCS *mcs,
 
 /* === */
 
-#if USE_IN_FILE_THREAD_FN
-
-/* For successful operation, MX support for XIA Handel mapping mode _MUST_
- * be able to keep up with the rate that the XIA hardware generates new
- * spectra ("pixels") to read out.  Thus, we have a dedicated monitor thread
- * to do that.
- *
- * Note that the monitor thread only lasts until all of the data has been
- * read out or until an error occurs.
- */
-
-static mx_status_type
-mxd_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *args )
-{
-	static const char fname[] = "mxd_handel_mcs_monitor_thread_fn()";
-
-	MX_RECORD *mcs_record = NULL;
-	MX_MCS *mcs = NULL;
-	MX_HANDEL_MCS *handel_mcs = NULL;
-	MX_MCA *mca = NULL;
-	MX_HANDEL_MCA *handel_mca = NULL;
-	MX_HANDEL *handel = NULL;
-	unsigned long i, j;
-	int xia_status;
-	mx_status_type mx_status;
-
-	char current_buffer = '\0';
-	unsigned short buffer_full = 0;
-	unsigned long wait_for_buffer_sleep_ms = 1000;	/* in milliseconds */
-
-#if 0
-	mx_breakpoint();
-#endif
-
-	if ( args == NULL ) {
-		handel->monitor_thread = NULL;
-
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The args pointer passed was NULL." );
-	}
-
-	mcs_record = (MX_RECORD *) args;
-
-#if MXD_HANDEL_MCS_DEBUG_MONITOR_THREAD
-	MX_DEBUG(-2,("%s invoked for MCS record '%s'.",
-		fname, mcs_record->name ));
-#endif
-
-	mcs = (MX_MCS *) mcs_record->record_class_struct;
-
-	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs,
-						&mca, &handel_mca,
-						&handel, fname );
-
-	if ( mx_status.code != MXE_SUCCESS ) {
-		handel->monitor_thread = NULL;
-		return mx_status;
-	}
-
-	j = 0;		/* j is the measurement number (starting at 0) */
-
-	while (TRUE) {
-	    if ( j >= mcs->current_num_measurements ) {
-		    break;	/* Exit the outer while() loop. */
-	    }
-
-	    /********* Wait for 'buffer_a' to be full. *********/
-
-#if MXD_HANDEL_MCS_DEBUG_MONITOR_THREAD_BUFFERS
-	    MX_DEBUG(-2,("%s: j = %lu, waiting for buffer_a", fname, j));
-#endif
-
-	    buffer_full = 0;
-
-	    while ( buffer_full == 0 ) {
-		MX_XIA_SYNC( xiaGetRunData(0, "buffer_full_a", &buffer_full ) );
-
-		if ( xia_status != XIA_SUCCESS ) {
-			handel->monitor_thread = NULL;
-
-			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-			"The attempt to check the status of XIA buffer_a "
-			"failed for MCS '%s'.  Error code = %d, '%s'.",
-				mcs_record->name,
-				xia_status, mxi_handel_strerror(xia_status) );
-		}
-
-		mx_msleep( wait_for_buffer_sleep_ms );
-	    }
-
-#if MXD_HANDEL_MCS_DEBUG_MONITOR_THREAD_BUFFERS
-	    MX_DEBUG(-2,("%s: j = %lu, buffer_a available.", fname, j));
-#endif
-
-	    mx_mutex_lock( handel->mutex );
-
-	    xia_status = xiaGetRunData( 0, "buffer_a", handel_mcs->buffer_a );
-
-	    if ( xia_status != XIA_SUCCESS ) {
-		mx_mutex_unlock( handel->mutex );
-
-		handel->monitor_thread = NULL;
-
-	    	return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-		"The attempt to read XIA 'buffer_a' for MCS '%s' failed.  "
-		"Error code = %d, '%s'.",
-			mcs_record->name,
-			xia_status, mxi_handel_strerror(xia_status) );
-	    }
-
-	    /* Copy 'buffer_a' to the appropriate MCS buffer. */
-
-	    for ( i = 0; i < mcs->current_num_scalers; i++ ) {
-		mcs->data_array[i][j] = handel_mcs->buffer_a[i];
-	    }
-
-	    mx_mutex_unlock( handel->mutex );
-
-#if MXD_HANDEL_MCS_DEBUG_MONITOR_THREAD_BUFFERS
-	    MX_DEBUG(-2,("%s: j = %lu, buffer_a copied.", fname, j));
-#endif
-
-	    /* Notify the XIA hardware that the buffer has been read. */
-
-	    current_buffer = 'a';
-
-	    MX_XIA_SYNC( xiaBoardOperation(0, "buffer_done", &current_buffer) );
-
-	    if ( xia_status != XIA_SUCCESS ) {
-		handel->monitor_thread = NULL;
-
-		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-		"The attempt to signal completion of the 'buffer_a' read "
-		"failed for MCS '%s'.  Error code = %d, '%s'.",
-			mcs_record->name,
-			xia_status, mxi_handel_strerror(xia_status) );
-	    }
-
-#if MXD_HANDEL_MCS_DEBUG_MONITOR_THREAD
-	    MX_DEBUG(-2,("%s: MCS '%s' measurement %ld complete.",
-		fname, mcs_record->name, j ));
-#endif
-
-	    j++;
-
-	    if ( j >= mcs->current_num_measurements ) {
-		    break;	/* Exit the outer while() loop. */
-	    }
-
-	    /********* Wait for 'buffer_b' to be full. *********/
-
-#if MXD_HANDEL_MCS_DEBUG_MONITOR_THREAD_BUFFERS
-	    MX_DEBUG(-2,("%s: j = %lu, waiting for buffer_b", fname, j));
-#endif
-
-	    buffer_full = 0;
-
-	    while ( buffer_full == 0 ) {
-		MX_XIA_SYNC( xiaGetRunData(0, "buffer_full_b", &buffer_full ) );
-
-		if ( xia_status != XIA_SUCCESS ) {
-			handel->monitor_thread = NULL;
-
-			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-			"The attempt to check the status of XIA buffer_b "
-			"failed for MCS '%s'.  Error code = %d, '%s'.",
-				mcs_record->name,
-				xia_status, mxi_handel_strerror(xia_status) );
-		}
-
-		mx_msleep( wait_for_buffer_sleep_ms );
-	    }
-
-#if MXD_HANDEL_MCS_DEBUG_MONITOR_THREAD_BUFFERS
-	    MX_DEBUG(-2,("%s: j = %lu, buffer_b available.", fname, j));
-#endif
-
-	    mx_mutex_lock( handel->mutex );
-
-	    xia_status = xiaGetRunData( 0, "buffer_b", handel_mcs->buffer_b );
-
-	    if ( xia_status != XIA_SUCCESS ) {
-		mx_mutex_unlock( handel->mutex );
-
-		handel->monitor_thread = NULL;
-
-	    	return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-		"The attempt to read XIA 'buffer_b' for MCS '%s' failed.  "
-		"Error code = %d, '%s'.",
-			mcs_record->name,
-			xia_status, mxi_handel_strerror(xia_status) );
-	    }
-
-	    /* Copy 'buffer_b' to the appropriate MCS buffer. */
-
-	    for ( i = 0; i < mcs->current_num_scalers; i++ ) {
-		mcs->data_array[i][j] = handel_mcs->buffer_b[i];
-	    }
-
-	    mx_mutex_unlock( handel->mutex );
-
-#if MXD_HANDEL_MCS_DEBUG_MONITOR_THREAD_BUFFERS
-	    MX_DEBUG(-2,("%s: j = %lu, buffer_b copied.", fname, j));
-#endif
-
-	    /* Notify the XIA hardware that the buffer has been read. */
-
-	    current_buffer = 'b';
-
-	    MX_XIA_SYNC( xiaBoardOperation(0, "buffer_done", &current_buffer) );
-
-	    if ( xia_status != XIA_SUCCESS ) {
-		handel->monitor_thread = NULL;
-
-		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-		"The attempt to signal completion of the 'buffer_a' read "
-		"failed for MCS '%s'.  Error code = %d, '%s'.",
-			mcs_record->name,
-			xia_status, mxi_handel_strerror(xia_status) );
-	    }
-
-#if MXD_HANDEL_MCS_DEBUG_MONITOR_THREAD
-	    MX_DEBUG(-2,("%s: MCS '%s' measurement %ld complete.",
-		fname, mcs_record->name, j ));
-#endif
-
-	    j++;
-	}
-
-	(void) mxd_handel_mcs_stop( mcs );
-
-#if MXD_HANDEL_MCS_DEBUG_MONITOR_THREAD
-	MX_DEBUG(-2,("%s complete for MCS record '%s'.",
-		fname, mcs_record->name ));
-#endif
-	handel->monitor_thread = NULL;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-#endif /* USE_IN_FILE_THREAD_FN */
-
-/* === */
-
 MX_EXPORT mx_status_type
 mxd_handel_mcs_initialize_driver( MX_DRIVER *driver )
 {
@@ -520,7 +274,6 @@ mxd_handel_mcs_open( MX_RECORD *record )
 	MX_MCA *mca = NULL;
 	MX_HANDEL_MCA *handel_mca = NULL;
 	MX_HANDEL *handel = NULL;
-	double num_map_pixels, num_map_pixels_per_buffer;
 	int xia_status;
 	mx_status_type mx_status;
 
@@ -571,41 +324,17 @@ mxd_handel_mcs_open( MX_RECORD *record )
 				fname, handel_mca->child_mcs_record->name));
 #endif
 
-	/* Initialize the MCS to 1 measurement. */
-
-	mcs->current_num_measurements = 1;
-
-	num_map_pixels = mcs->current_num_measurements;
-
-	MX_XIA_SYNC( xiaSetAcquisitionValues( -1, "num_map_pixels",
-						(void *) &num_map_pixels ) );
-
-	if ( xia_status != XIA_SUCCESS ) {
-		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-		"The attempt to set the number of measurements to 1 "
-		"for MCS '%s' failed.  Error code = %d, '%s'",
-		mcs->record->name,
-		xia_status, mxi_handel_strerror(xia_status) );
-	}
-
-	/* Let handel decide the number of pixels per buffer. */
-
-	num_map_pixels_per_buffer = -1.0;
-
-	MX_XIA_SYNC( xiaSetAcquisitionValues( -1, "num_map_pixels_per_buffer",
-					(void *) &num_map_pixels_per_buffer ) );
-
-	if ( xia_status != XIA_SUCCESS ) {
-		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-		"The attempt to set 'num_map_pixels_per_buffer' to -1 "
-		"for MCS '%s' failed.  Error code = %d, '%s'",
-		mcs->record->name,
-		xia_status, mxi_handel_strerror(xia_status) );
-	}
-
 	/* Default to external trigger. */
 
 	mcs->trigger_mode = MXF_DEV_EXTERNAL_TRIGGER;
+
+#if 1
+	/* Some test defaults. */
+
+	handel->sync_count = 1;
+	handel->pixel_advance_mode = MXF_HANDEL_ADV_SYNC_MODE;
+	handel->mapping_mode = MXF_HANDEL_MAP_MCA_MODE;
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -621,10 +350,11 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 	MX_MCA *mca = NULL;
 	MX_HANDEL_MCA *handel_mca = NULL;
 	MX_HANDEL *handel = NULL;
-	double mapping_mode, num_map_pixels;
+	double number_mca_channels;
+	double mapping_mode, num_map_pixels, num_map_pixels_per_buffer;
 	double pixel_advance_mode, gate_master, sync_master, sync_count;
 	unsigned long old_buffer_length;
-	int xia_status;
+	int xia_status, ignored;
 	mx_status_type mx_status;
 
 	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs,
@@ -638,42 +368,48 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Turn on mapping mode. */
+	/* Tell Handel the number of MCA channels.  (It should already know.) */
 
-	switch( handel->mapping_mode ) {
-	case MXF_HANDEL_MAP_MCA_MODE:
-		mapping_mode = handel->mapping_mode;
-		break;
-	case MXF_HANDEL_MAP_NORMAL_MODE:
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"Normal mode (0) is not supported for XIA MCS '%s'.",
-			mcs->record->name );
-		break;
-	case MXF_HANDEL_MAP_SCA_MODE:
-		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"SCA mode (2) is not yet implemented for XIA MCS '%s'.",
-			mcs->record->name );
-		break;
-	case MXF_HANDEL_MAP_LIST_MODE:
-		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"LIST mode (3) is not yet implemented for XIA MCS '%s'.",
-			mcs->record->name );
-		break;
-	default:
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Mapping mode (%ld) is not supported for XIA MCS '%s'.",
-			handel->mapping_mode, mcs->record->name );
-		break;
-	}
+	number_mca_channels = mca->current_num_channels;
 
-	MX_XIA_SYNC( xiaSetAcquisitionValues( -1,
-				"mapping_mode", &mapping_mode ) );
+	MX_XIA_SYNC( xiaSetAcquisitionValues( -1, "number_mca_channels",
+					(void *) &number_mca_channels ));
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-		"The attempt to set 'mapping_mode' to %f "
-		"for MCS '%s' failed.  Error code = %d, '%s'",
-		mapping_mode, mcs->record->name,
+		"The attempt to set the number of MCA channels to %lu "
+		"for MCS '%s' failed.  Error code = %d, '%s'.",
+		mca->current_num_channels, mcs->record->name,
+		xia_status, mxi_handel_strerror(xia_status) );
+	}
+
+	/* Tell Handel the number of measurements ("pixels") to take. */
+
+	num_map_pixels = mcs->current_num_measurements;
+
+	MX_XIA_SYNC( xiaSetAcquisitionValues( -1, "num_map_pixels",
+					(void *) &num_map_pixels ));
+
+	if ( xia_status != XIA_SUCCESS ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"The attempt to set the number of measurements to %lu "
+		"for MCS '%s' failed.  Error code = %d, '%s'.",
+		mcs->current_num_measurements, mcs->record->name,
+		xia_status, mxi_handel_strerror(xia_status) );
+	}
+
+	/* Tell Handel to choose the number of pixels per buffer on its own. */
+
+	num_map_pixels_per_buffer = -1.0;
+
+	MX_XIA_SYNC( xiaSetAcquisitionValues(-1, "num_map_pixels_per_buffer",
+					(void *) &num_map_pixels_per_buffer ));
+
+	if ( xia_status != XIA_SUCCESS ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"The attempt to set the number of pixels per buffer "
+		"to %f for MCS '%s' failed.  Error code = %d, '%s'.",
+		num_map_pixels_per_buffer, mcs->record->name,
 		xia_status, mxi_handel_strerror(xia_status) );
 	}
 
@@ -729,7 +465,8 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 		pixel_advance_mode, gate_master, sync_master, sync_count));
 #endif
 
-	MX_XIA_SYNC( xiaSetAcquisitionValues(0, "gate_master", &gate_master ));
+#if 1
+	MX_XIA_SYNC( xiaSetAcquisitionValues(-1, "gate_master", &gate_master ));
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
@@ -739,7 +476,7 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 		xia_status, mxi_handel_strerror(xia_status) );
 	}
 
-	MX_XIA_SYNC( xiaSetAcquisitionValues(0, "sync_master", &sync_master ));
+	MX_XIA_SYNC( xiaSetAcquisitionValues(-1, "sync_master", &sync_master ));
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
@@ -749,11 +486,27 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 		xia_status, mxi_handel_strerror(xia_status) );
 	}
 
+	MX_XIA_SYNC( xiaSetAcquisitionValues(-1, "sync_count", &sync_count ));
+
+	if ( xia_status != XIA_SUCCESS ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"The attempt to set 'sync_count' to %f "
+		"for MCS '%s' failed.  Error code = %d, '%s'",
+		sync_count, mcs->record->name,
+		xia_status, mxi_handel_strerror(xia_status) );
+	}
+#endif
+
+	MX_DEBUG(-2,("%s: xyzzy, trigger_mode = %lu",fname, mcs->trigger_mode));
+
 	if ( mcs->trigger_mode == MXF_DEV_EXTERNAL_TRIGGER ) {
 	    switch( handel->pixel_advance_mode ) {
 	    case MXF_HANDEL_ADV_GATE_MODE:
 	    case MXF_HANDEL_ADV_SYNC_MODE:
-		MX_XIA_SYNC( xiaSetAcquisitionValues(0, "pixel_advance_mode",
+			MX_DEBUG(-2,("%s: xyzzy, pixel_advance_mode = %f",
+			fname, pixel_advance_mode));
+
+		MX_XIA_SYNC( xiaSetAcquisitionValues(-1, "pixel_advance_mode",
 							&pixel_advance_mode ));
 
 		if ( xia_status != XIA_SUCCESS ) {
@@ -769,22 +522,56 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 	    }
 	}
 
-	MX_XIA_SYNC( xiaSetAcquisitionValues(0, "sync_count", &sync_count ));
+	/* Turn on mapping mode. */
+
+	switch( handel->mapping_mode ) {
+	case MXF_HANDEL_MAP_MCA_MODE:
+		mapping_mode = handel->mapping_mode;
+		break;
+	case MXF_HANDEL_MAP_NORMAL_MODE:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Normal mode (0) is not supported for XIA MCS '%s'.",
+			mcs->record->name );
+		break;
+	case MXF_HANDEL_MAP_SCA_MODE:
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"SCA mode (2) is not yet implemented for XIA MCS '%s'.",
+			mcs->record->name );
+		break;
+	case MXF_HANDEL_MAP_LIST_MODE:
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"LIST mode (3) is not yet implemented for XIA MCS '%s'.",
+			mcs->record->name );
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Mapping mode (%ld) is not supported for XIA MCS '%s'.",
+			handel->mapping_mode, mcs->record->name );
+		break;
+	}
+
+	MX_XIA_SYNC( xiaSetAcquisitionValues( -1,
+				"mapping_mode", &mapping_mode ) );
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-		"The attempt to set 'sync_count' to %f "
+		"The attempt to set 'mapping_mode' to %f "
 		"for MCS '%s' failed.  Error code = %d, '%s'",
-		sync_count, mcs->record->name,
+		mapping_mode, mcs->record->name,
 		xia_status, mxi_handel_strerror(xia_status) );
 	}
 
 	/* Apply the settings to all channels. */
 
-	mx_status = mxi_handel_apply_to_all_channels( handel );
+	MX_XIA_SYNC( xiaBoardOperation( 0, "apply", (void *) &ignored ) );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( xia_status != XIA_SUCCESS ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"The attempt to apply acquisition values for MCS '%s' "
+		"failed.  Error code = %d, '%s'.",
+		mcs->record->name,
+		xia_status, mxi_handel_strerror(xia_status) );
+	}
 
 	/* See if we need to change the lengths of the Handel
 	 * 'buffer_a' and 'buffer_b' arrays and reallocate them
@@ -837,48 +624,16 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 		}
 	}
 
-	/* Tell Handel the number of measurements ("pixels") to take. */
-
-	num_map_pixels = mcs->current_num_measurements;
-
-	MX_XIA_SYNC( xiaSetAcquisitionValues( -1, "num_map_pixels",
-						(void *) &num_map_pixels ) );
-
-	if ( xia_status != XIA_SUCCESS ) {
-		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-		"The attempt to set the number of measurements to %lu "
-		"for MCS '%s' failed.  Error code = %d, '%s'.",
-		mcs->current_num_measurements, mcs->record->name,
-		xia_status, mxi_handel_strerror(xia_status) );
-	}
-
-#if 0
-	/* Apply the settings to all channels. */
-
-	mx_status = mxi_handel_apply_to_all_channels( handel );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-#endif
-
 	/*----*/
-
-	handel_mcs->mcs_sequence_is_running = TRUE;
 
 	/* Create a thread that handles reading out 'buffer_a' and
 	 * 'buffer_b' fast enough to keep up with the rate that the
 	 * XIA hardware generates it.
 	 */
 
-#if USE_IN_FILE_THREAD_FN
 	mx_status = mx_thread_create( &(handel->monitor_thread),
-					mxd_handel_mcs_monitor_thread_fn,
-					mcs->record );
-#else
-	mx_status = mx_thread_create( &(handel->monitor_thread),
-					mxi_handel_mcs_monitor_thread_fn,
-					handel );
-#endif
+				mxi_handel_mcs_monitor_thread_fn,
+				handel );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -886,9 +641,18 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 	/* If we are in external trigger mode, then start the MCS. */
 
 	if ( mcs->trigger_mode == MXF_DEV_EXTERNAL_TRIGGER ) {
+
 		/* Start the MCS. */
 
-		mx_status = mxd_handel_mca_start_run( mca, 1 );
+		MX_XIA_SYNC( xiaStartRun( -1, 0 ) );
+
+		if ( xia_status != XIA_SUCCESS ) {
+			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+			"The attempt to start a run for MCS '%s' failed.  "
+			"Error code = %d, '%s'.",
+			mcs->record->name,
+			xia_status, mxi_handel_strerror(xia_status) );
+		}
 	}
 
 	return mx_status;
@@ -899,19 +663,29 @@ mxd_handel_mcs_trigger( MX_MCS *mcs )
 {
 	static const char fname[] = "mxd_handel_mcs_trigger()";
 
-	MX_MCA *mca = NULL;
+	MX_HANDEL *handel = NULL;
+	int xia_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_handel_mcs_get_pointers( mcs, NULL,
-					&mca, NULL, NULL, fname );
+					NULL, NULL, &handel, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	if ( mcs->trigger_mode == MXF_DEV_INTERNAL_TRIGGER ) {
+
 		/* Start the MCS. */
 
-		mx_status = mxd_handel_mca_start_run( mca, 1 );
+		MX_XIA_SYNC( xiaStartRun( -1, 0 ) );
+
+		if ( xia_status != XIA_SUCCESS ) {
+			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+			"The attempt to start a run for MCS '%s' failed.  "
+			"Error code = %d, '%s'.",
+			mcs->record->name,
+			xia_status, mxi_handel_strerror(xia_status) );
+		}
 	}
 
 	return mx_status;
