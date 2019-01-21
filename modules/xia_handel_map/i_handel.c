@@ -229,7 +229,7 @@ mxi_handel_wait_for_buffers_full( MX_HANDEL *handel, char buffer_name )
 	unsigned short buffer_full;
 	int xia_status, channel;
 
-	unsigned long wait_for_buffer_sleep_ms = 1000;  /* in milliseconds */
+	unsigned long wait_for_buffer_sleep_ms = 100;  /* in milliseconds */
 
 	snprintf( run_data_name, sizeof(run_data_name),
 		"buffer_full_%c", buffer_name );
@@ -1263,27 +1263,6 @@ mxi_handel_open( MX_RECORD *record )
 	}
 
 	handel->use_module_statistics_2 = TRUE;
-
-	/* Apply some initial mapping related acquisition values. */
-
-	mx_status = mxi_handel_set_acq_value_as_long( handel, "mapping_mode",
-						handel->mapping_mode, TRUE );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mxi_handel_set_acq_value_as_long(
-					handel, "pixel_advance_mode",
-					handel->pixel_advance_mode, TRUE );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mxi_handel_set_acq_value_as_long( handel, "sync_count",
-						handel->sync_count, TRUE );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
 
 #if MXI_HANDEL_DEBUG_TIMING
 	MX_HRT_END( measurement );
