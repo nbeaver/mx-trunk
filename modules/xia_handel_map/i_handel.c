@@ -404,9 +404,10 @@ mxi_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *thread_args )
 	MX_MCS *master_mcs = NULL;
 
 	unsigned long j;
+	int xia_status;
 	mx_status_type mx_status;
 
-#if 1
+#if 0
 	mx_breakpoint();
 #endif
 
@@ -558,6 +559,23 @@ mxi_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *thread_args )
 			fname, handel->record->name, j ));
 #endif
 	}
+
+	MX_XIA_SYNC( xiaStopRun(-1) );
+
+	if ( xia_status != XIA_SUCCESS ) {
+		handel->monitor_thread = NULL;
+
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"The attempt to stop a run for Handel '%s' failed.  "
+		"Error code = %d, '%s'.",
+			handel->record->name,
+			xia_status, mxi_handel_strerror(xia_status) );
+	}
+
+#if MXI_HANDEL_DEBUG_MONITOR_THREAD
+	MX_DEBUG(-2,("%s: Handel '%s' run stopped.",
+		fname, handel->record->name));
+#endif
 
 #if MXI_HANDEL_DEBUG_MONITOR_THREAD
 	MX_DEBUG(-2,("%s complete for XIA Handel record '%s'.",
@@ -2498,6 +2516,12 @@ mxi_handel_process_function( void *record_ptr,
 			 */
 
 			break;
+
+		/* Note: The following are commented out since they appear to
+		 * be write-only variables.  Trying to read from them returns
+		 * an XIA_BAD_YPTE error saying that they are invalid.
+		 */
+#if 0
 		case MXLV_HANDEL_MAPPING_MODE:
 			mx_status = mxi_handel_get_acq_value_as_long( handel,
 							"mapping_mode",
@@ -2516,6 +2540,7 @@ mxi_handel_process_function( void *record_ptr,
 							&(handel->sync_count),
 							TRUE );
 			break;
+#endif
 		default:
 			MX_DEBUG( 1,(
 			    "%s: *** Unknown MX_PROCESS_GET label value = %ld",
