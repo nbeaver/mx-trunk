@@ -296,7 +296,7 @@ mxi_handel_read_buffers( MX_HANDEL *handel,
 #if MXI_HANDEL_DEBUG_WORK_FUNCTIONS
 	MX_DEBUG(-2,("%s invoked for record '%s', measurement_number = %lu, "
 		"buffer_name = '%c', num_buffers = %lu, mcs_array = %p",
-		handel->record->name, measurement_number,
+		fname, handel->record->name, measurement_number,
 		buffer_name, num_buffers, mcs_array));
 #endif
 

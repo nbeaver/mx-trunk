@@ -274,7 +274,6 @@ mxd_handel_mcs_open( MX_RECORD *record )
 	MX_MCA *mca = NULL;
 	MX_HANDEL_MCA *handel_mca = NULL;
 	MX_HANDEL *handel = NULL;
-	int xia_status;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
