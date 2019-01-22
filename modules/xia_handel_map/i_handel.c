@@ -23,6 +23,10 @@
 
 #define MXI_HANDEL_DEBUG_MONITOR_THREAD_BUFFERS	TRUE
 
+#define MXI_HANDEL_DEBUG_WORK_FUNCTIONS		TRUE
+
+#define MXI_HANDEL_DEBUG_MAPPING_PIXEL_NEXT	TRUE
+
 #define MXI_HANDEL_CHANNELS_PER_MODULE		4
 
 #include <stdio.h>
@@ -231,6 +235,11 @@ mxi_handel_wait_for_buffers_full( MX_HANDEL *handel, char buffer_name )
 
 	unsigned long wait_for_buffer_sleep_ms = 100;  /* in milliseconds */
 
+#if MXI_HANDEL_DEBUG_WORK_FUNCTIONS
+	MX_DEBUG(-2,("%s invoked for record '%s', buffer_name = '%c'",
+		fname, handel->record->name, buffer_name ));
+#endif
+
 	snprintf( run_data_name, sizeof(run_data_name),
 		"buffer_full_%c", buffer_name );
 
@@ -260,6 +269,10 @@ mxi_handel_wait_for_buffers_full( MX_HANDEL *handel, char buffer_name )
 	    }
 	}
 
+#if MXI_HANDEL_DEBUG_WORK_FUNCTIONS
+	MX_DEBUG(-2,("%s complete.", fname));
+#endif
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -279,6 +292,13 @@ mxi_handel_read_buffers( MX_HANDEL *handel,
 	uint16_t *buffer_ptr = NULL;
 	char run_data_name[20];
 	int xia_status, channel, scaler;
+
+#if MXI_HANDEL_DEBUG_WORK_FUNCTIONS
+	MX_DEBUG(-2,("%s invoked for record '%s', measurement_number = %lu, "
+		"buffer_name = '%c', num_buffers = %lu, mcs_array = %p",
+		handel->record->name, measurement_number,
+		buffer_name, num_buffers, mcs_array));
+#endif
 
 	snprintf( run_data_name, sizeof(run_data_name),
 		"buffer_%c", buffer_name );
@@ -348,6 +368,10 @@ mxi_handel_read_buffers( MX_HANDEL *handel,
 	    }
 	}
 
+#if MXI_HANDEL_DEBUG_WORK_FUNCTIONS
+	MX_DEBUG(-2,("%s complete.", fname));
+#endif
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -359,6 +383,11 @@ mxi_handel_notify_buffers_read( MX_HANDEL *handel, char buffer_name )
 	static const char fname[] = "mxi_handel_notify_buffers_read()";
 
 	int xia_status, channel;
+
+#if MXI_HANDEL_DEBUG_WORK_FUNCTIONS
+	MX_DEBUG(-2,("%s invoked for record '%s', buffer_name = '%c'",
+		fname, handel->record->name, buffer_name));
+#endif
 
 	for ( channel = 0;
 		channel < MXI_HANDEL_CHANNELS_PER_MODULE;
@@ -378,6 +407,10 @@ mxi_handel_notify_buffers_read( MX_HANDEL *handel, char buffer_name )
 				xia_status, mxi_handel_strerror(xia_status) );
 		}
 	}
+
+#if MXI_HANDEL_DEBUG_WORK_FUNCTIONS
+	MX_DEBUG(-2,("%s complete.", fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -2562,6 +2595,12 @@ mxi_handel_process_function( void *record_ptr,
 							TRUE );
 			break;
 		case MXLV_HANDEL_MAPPING_PIXEL_NEXT:
+
+#if MXI_HANDEL_DEBUG_MAPPING_PIXEL_NEXT
+			MX_DEBUG(-2,
+			("%s: Writing to 'mapping_pixel_next' for record '%s'.",
+				fname, handel->record->name ));
+#endif
 			ignored = 0;
 
 			MX_XIA_SYNC( xiaBoardOperation(
