@@ -150,7 +150,7 @@ typedef struct {
   {MXLV_MCS_EXTERNAL_NEXT_MEASUREMENT, -1, "external_channel_advance", \
 					  	MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, external_next_measurement), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+	{0}, NULL, 0}, \
   \
   {MXLV_MCS_EXTERNAL_PRESCALE, -1, "external_prescale", \
 	  					MXFT_ULONG, NULL, 0, {0}, \
