@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004-2007, 2009-2010, 2014-2015, 2018
+ * Copyright 1999-2002, 2004-2007, 2009-2010, 2014-2015, 2018-2019
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -38,10 +38,10 @@ typedef struct {
 
 	long **data_array;
 
-	MX_RECORD *external_channel_advance_record;
-	char external_channel_advance_name[ MXU_RECORD_NAME_LENGTH + 1 ];
+	MX_RECORD *external_next_measurement_record;
+	char external_next_measurement_name[ MXU_RECORD_NAME_LENGTH + 1 ];
 
-	mx_bool_type external_channel_advance;
+	mx_bool_type external_next_measurement;
 	unsigned long external_prescale;
 
 	MX_RECORD *timer_record;
@@ -93,7 +93,7 @@ typedef struct {
 #define MXLV_MCS_MAXIMUM_NUM_SCALERS		1001
 #define MXLV_MCS_MAXIMUM_NUM_MEASUREMENTS	1002
 #define MXLV_MCS_DATA_ARRAY			1003
-#define MXLV_MCS_EXTERNAL_CHANNEL_ADVANCE	1004
+#define MXLV_MCS_EXTERNAL_NEXT_MEASUREMENT	1004
 #define MXLV_MCS_EXTERNAL_PRESCALE		1005
 #define MXLV_MCS_TIMER_RECORD_NAME		1006
 #define MXLV_MCS_ARM				1007
@@ -137,14 +137,19 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, data_array), \
 	{sizeof(unsigned long), sizeof(unsigned long *)}, NULL, MXFF_VARARGS},\
   \
-  {-1, -1, "external_channel_advance_name", \
+  {-1, -1, "external_next_measurement_name", \
 	  	MXFT_STRING, NULL, 1, {MXU_RECORD_NAME_LENGTH}, \
-	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, external_channel_advance_name), \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, external_next_measurement_name),\
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {MXLV_MCS_EXTERNAL_CHANNEL_ADVANCE, -1, "external_channel_advance", \
+  {MXLV_MCS_EXTERNAL_NEXT_MEASUREMENT, -1, "external_next_measurement", \
 					  	MXFT_BOOL, NULL, 0, {0}, \
-	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, external_channel_advance), \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, external_next_measurement), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {MXLV_MCS_EXTERNAL_NEXT_MEASUREMENT, -1, "external_channel_advance", \
+					  	MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, external_next_measurement), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {MXLV_MCS_EXTERNAL_PRESCALE, -1, "external_prescale", \
@@ -354,13 +359,13 @@ MX_API mx_status_type mx_mcs_get_trigger_mode( MX_RECORD *mcs_record,
 MX_API mx_status_type mx_mcs_set_trigger_mode( MX_RECORD *mcs_record,
 							long trigger_mode );
 
-MX_API mx_status_type mx_mcs_get_external_channel_advance(
+MX_API mx_status_type mx_mcs_get_external_next_measurement(
 					MX_RECORD *mcs_record,
-					mx_bool_type *external_channel_advance);
+					mx_bool_type *external_next_measurement);
 
-MX_API mx_status_type mx_mcs_set_external_channel_advance(
+MX_API mx_status_type mx_mcs_set_external_next_measurement(
 					MX_RECORD *mcs_record,
-					mx_bool_type external_channel_advance );
+					mx_bool_type external_next_measurement );
 
 MX_API mx_status_type mx_mcs_get_external_prescale( MX_RECORD *mcs_record,
 					unsigned long *external_prescale );

@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2000-2004, 2006, 2009, 2012, 2015, 2018
+ * Copyright 2000-2004, 2006, 2009, 2012, 2015, 2018-2019
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -53,7 +53,7 @@ mx_setup_mcs_process_functions( MX_RECORD *record )
 		case MXLV_MCS_CURRENT_NUM_SCALERS:
 		case MXLV_MCS_DARK_CURRENT:
 		case MXLV_MCS_DARK_CURRENT_ARRAY:
-		case MXLV_MCS_EXTERNAL_CHANNEL_ADVANCE:
+		case MXLV_MCS_EXTERNAL_NEXT_MEASUREMENT:
 		case MXLV_MCS_EXTERNAL_PRESCALE:
 		case MXLV_MCS_MEASUREMENT_COUNTS:
 		case MXLV_MCS_MEASUREMENT_DATA:
@@ -110,8 +110,8 @@ mx_mcs_process_function( void *record_ptr,
 		case MXLV_MCS_TRIGGER_MODE:
 			mx_status = mx_mcs_get_trigger_mode( record, NULL );
 			break;
-		case MXLV_MCS_EXTERNAL_CHANNEL_ADVANCE:
-			mx_status = mx_mcs_get_external_channel_advance(
+		case MXLV_MCS_EXTERNAL_NEXT_MEASUREMENT:
+			mx_status = mx_mcs_get_external_next_measurement(
 								record, NULL );
 			break;
 		case MXLV_MCS_EXTERNAL_PRESCALE:
@@ -186,9 +186,9 @@ mx_mcs_process_function( void *record_ptr,
 			mx_status =
 			  mx_mcs_set_trigger_mode( record, mcs->trigger_mode );
 			break;
-		case MXLV_MCS_EXTERNAL_CHANNEL_ADVANCE:
-			mx_status = mx_mcs_set_external_channel_advance( record,
-						mcs->external_channel_advance );
+		case MXLV_MCS_EXTERNAL_NEXT_MEASUREMENT:
+			mx_status = mx_mcs_set_external_next_measurement(
+				record, mcs->external_next_measurement );
 			break;
 		case MXLV_MCS_EXTERNAL_PRESCALE:
 			mx_status = mx_mcs_set_external_prescale( record,

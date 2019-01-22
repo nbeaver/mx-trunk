@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2008, 2010-2018 Illinois Institute of Technology
+ * Copyright 1999-2006, 2008, 2010-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2698,16 +2698,16 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 		MX_HRT_START( timing_measurement );
 #endif
 
-		/**** Reprogram the channel advance for this measurement. */
+		/**** Reprogram the next measurement for this measurement. */
 
 		switch( scan->measurement.type ) {
 		case MXM_PRESET_TIME:
-			/* Disable external channel advance for a preset
+			/* Disable external next measurement for a preset
 			 * time measurement.  The MCS will use its own
 			 * internal clock.
 			 */
 
-			mx_status = mx_mcs_set_external_channel_advance(
+			mx_status = mx_mcs_set_external_next_measurement(
 							mcs_record, FALSE );
 
 			if ( mx_status.code != MXE_SUCCESS ) {
@@ -2717,11 +2717,11 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 			break;
 
 		case MXM_PRESET_PULSE_PERIOD:
-			/* Enable external channel advance for a measurement
+			/* Enable external next measurement for a measurement
 			 * that uses an external pulse generator as a clock.
 			 */
 
-			mx_status = mx_mcs_set_external_channel_advance(
+			mx_status = mx_mcs_set_external_next_measurement(
 							mcs_record, TRUE );
 
 			if ( mx_status.code != MXE_SUCCESS ) {
@@ -2764,7 +2764,7 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 #if DEBUG_TIMING
 		MX_HRT_END( timing_measurement );
 		MX_HRT_RESULTS( timing_measurement, fname,
-			"reprogramming '%s' channel advance.",
+			"reprogramming '%s' next measurement.",
 			mcs_record->name );
 
 		MX_HRT_START( timing_measurement );

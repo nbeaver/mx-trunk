@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2006, 2009-2010, 2012, 2014-2016, 2018
+ * Copyright 2000-2006, 2009-2010, 2012, 2014-2016, 2018-2019
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -217,7 +217,7 @@ mx_mcs_finish_record_initialization( MX_RECORD *mcs_record )
 
 	mcs->readout_preference = MXF_MCS_PREFER_READ_SCALER;
 
-	mcs->external_channel_advance_record = NULL;
+	mcs->external_next_measurement_record = NULL;
 	mcs->timer_record = NULL;
 
 	mcs->scaler_record_array = (MX_RECORD **)
@@ -262,22 +262,22 @@ mx_mcs_finish_record_initialization( MX_RECORD *mcs_record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* If the 'external_channel_advance_name' field has a non-zero
-	 * length value then make mcs->external_channel_advance_record
+	/* If the 'external_next_measurement_name' field has a non-zero
+	 * length value then make mcs->external_next_measurement_record
 	 * point to the record with that name.
 	 */
 
-	if ( strlen( mcs->external_channel_advance_name ) > 0 ) {
+	if ( strlen( mcs->external_next_measurement_name ) > 0 ) {
 
-		mcs->external_channel_advance_record = mx_get_record(mcs_record,
-				mcs->external_channel_advance_name );
+		mcs->external_next_measurement_record = mx_get_record(mcs_record,
+				mcs->external_next_measurement_name );
 
-		if ( mcs->external_channel_advance_record == (MX_RECORD *)NULL){
+		if ( mcs->external_next_measurement_record == (MX_RECORD *)NULL){
 			return mx_error( MXE_NOT_FOUND, fname,
 	"Record '%s' was specified as the external channel advance record "
 	"for MCS '%s'.  However, record '%s' does not exist.",
 				mcs_record->name,
-				mcs->external_channel_advance_name,
+				mcs->external_next_measurement_name,
 				mcs_record->name );
 		}
 	}
@@ -1048,10 +1048,10 @@ mx_mcs_set_trigger_mode( MX_RECORD *mcs_record, long trigger_mode )
 }
 
 MX_EXPORT mx_status_type
-mx_mcs_get_external_channel_advance( MX_RECORD *mcs_record,
-					mx_bool_type *external_channel_advance )
+mx_mcs_get_external_next_measurement( MX_RECORD *mcs_record,
+					mx_bool_type *external_next_measurement )
 {
-	static const char fname[] = "mx_mcs_get_external_channel_advance()";
+	static const char fname[] = "mx_mcs_get_external_next_measurement()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
@@ -1070,22 +1070,22 @@ mx_mcs_get_external_channel_advance( MX_RECORD *mcs_record,
 		get_parameter_fn = mx_mcs_default_get_parameter_handler;
 	}
 
-	mcs->parameter_type = MXLV_MCS_EXTERNAL_CHANNEL_ADVANCE;
+	mcs->parameter_type = MXLV_MCS_EXTERNAL_NEXT_MEASUREMENT;
 
 	mx_status = (*get_parameter_fn)( mcs );
 
-	if ( external_channel_advance != NULL ) {
-		*external_channel_advance = mcs->external_channel_advance;
+	if ( external_next_measurement != NULL ) {
+		*external_next_measurement = mcs->external_next_measurement;
 	}
 
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mx_mcs_set_external_channel_advance( MX_RECORD *mcs_record,
-					mx_bool_type external_channel_advance )
+mx_mcs_set_external_next_measurement( MX_RECORD *mcs_record,
+					mx_bool_type external_next_measurement )
 {
-	static const char fname[] = "mx_mcs_set_external_channel_advance()";
+	static const char fname[] = "mx_mcs_set_external_next_measurement()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
@@ -1104,9 +1104,9 @@ mx_mcs_set_external_channel_advance( MX_RECORD *mcs_record,
 		set_parameter_fn = mx_mcs_default_set_parameter_handler;
 	}
 
-	mcs->parameter_type = MXLV_MCS_EXTERNAL_CHANNEL_ADVANCE;
+	mcs->parameter_type = MXLV_MCS_EXTERNAL_NEXT_MEASUREMENT;
 
-	mcs->external_channel_advance = external_channel_advance;
+	mcs->external_next_measurement = external_next_measurement;
 
 	mx_status = (*set_parameter_fn)( mcs );
 
@@ -1692,7 +1692,7 @@ mx_mcs_default_get_parameter_handler( MX_MCS *mcs )
 	switch( mcs->parameter_type ) {
 	case MXLV_MCS_COUNTING_MODE:
 	case MXLV_MCS_TRIGGER_MODE:
-	case MXLV_MCS_EXTERNAL_CHANNEL_ADVANCE:
+	case MXLV_MCS_EXTERNAL_NEXT_MEASUREMENT:
 	case MXLV_MCS_EXTERNAL_PRESCALE:
 	case MXLV_MCS_MEASUREMENT_TIME:
 	case MXLV_MCS_MEASUREMENT_COUNTS:
@@ -1727,7 +1727,7 @@ mx_mcs_default_set_parameter_handler( MX_MCS *mcs )
 	switch( mcs->parameter_type ) {
 	case MXLV_MCS_COUNTING_MODE:
 	case MXLV_MCS_TRIGGER_MODE:
-	case MXLV_MCS_EXTERNAL_CHANNEL_ADVANCE:
+	case MXLV_MCS_EXTERNAL_NEXT_MEASUREMENT:
 	case MXLV_MCS_EXTERNAL_PRESCALE:
 	case MXLV_MCS_MEASUREMENT_TIME:
 	case MXLV_MCS_MEASUREMENT_COUNTS:

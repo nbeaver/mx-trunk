@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2001-2006, 2008, 2010, 2018 Illinois Institute of Technology
+ * Copyright 2001-2006, 2008, 2010, 2018-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -458,17 +458,17 @@ mxd_sis3801_arm( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* If external channel advance is disabled, enable the internal
-	 * 10 MHz clock so that it can do the channel advance.
+	/* If external next measurement is disabled, enable the internal
+	 * 10 MHz clock so that it can do the next measurement.
 	 */
 
-	if ( mcs->external_channel_advance_record == NULL ) {
-		mcs->external_channel_advance = 0;
+	if ( mcs->external_next_measurement_record == NULL ) {
+		mcs->external_next_measurement = 0;
 	}
 
 	control_register = 0;
 
-	if ( mcs->external_channel_advance ) {
+	if ( mcs->external_next_measurement ) {
 		control_register |= MXF_SIS3801_DISABLE_10MHZ_TO_LNE_PRESCALER;
 		control_register |= MXF_SIS3801_ENABLE_EXTERNAL_NEXT;
 	} else {
@@ -487,14 +487,14 @@ mxd_sis3801_arm( MX_MCS *mcs )
 
 	/* Set the prescale factor. */
 
-	if ( mcs->external_channel_advance ) {
+	if ( mcs->external_next_measurement ) {
 
-		/* Use external channel advance. */
+		/* Use external next measurement. */
 
-		switch( mcs->external_channel_advance_record->mx_class ) {
+		switch( mcs->external_next_measurement_record->mx_class ) {
 		case MXC_PULSE_GENERATOR:
 			mx_status = mx_pulse_generator_get_pulse_period(
-					mcs->external_channel_advance_record,
+					mcs->external_next_measurement_record,
 					&pulse_period );
 
 			if ( mx_status.code != MXE_SUCCESS )
@@ -505,7 +505,7 @@ mxd_sis3801_arm( MX_MCS *mcs )
 	"Cannot start MCS '%s' since its external pulse generator '%s' "
 	"is currently configured for a negative pulse period.",
 				mcs->record->name,
-				mcs->external_channel_advance_record->name );
+				mcs->external_next_measurement_record->name );
 			}
 
 			if ( pulse_period < 1.0e-30 ) {
@@ -513,7 +513,7 @@ mxd_sis3801_arm( MX_MCS *mcs )
 	"Cannot start MCS '%s' since its external pulse generator '%s' "
 	"is currently configured for an essentially zero pulse period.",
 				mcs->record->name,
-				mcs->external_channel_advance_record->name );
+				mcs->external_next_measurement_record->name );
 			}
 
 			clock_frequency = mx_divide_safely( 1.0, pulse_period );
@@ -546,7 +546,7 @@ mxd_sis3801_arm( MX_MCS *mcs )
 			/* Is the pulse generator running? */
 
 			mx_status = mx_pulse_generator_is_busy( 
-					mcs->external_channel_advance_record,
+					mcs->external_next_measurement_record,
 					&busy );
 
 			if ( mx_status.code != MXE_SUCCESS )
@@ -556,7 +556,7 @@ mxd_sis3801_arm( MX_MCS *mcs )
 				/* If not, then start the pulse generator. */
 
 				mx_status = mx_pulse_generator_start(
-					mcs->external_channel_advance_record );
+					mcs->external_next_measurement_record );
 
 				if ( mx_status.code != MXE_SUCCESS )
 					return mx_status;
@@ -569,7 +569,7 @@ mxd_sis3801_arm( MX_MCS *mcs )
 
 #if MXD_SIS3801_DEBUG
 		MX_DEBUG(-2,
-		("%s: Using external channel advance, prescale_factor = %lu",
+		("%s: Using external next measurement, prescale_factor = %lu",
 		 	fname, prescale_factor));
 #endif
 
@@ -637,7 +637,7 @@ mxd_sis3801_arm( MX_MCS *mcs )
 	/* The SIS3801 treats a prescale factor of 0 as if it were the same
 	 * as a prescale factor of 0xffffffff.  Thus, the prescale register
 	 * will count down for a very long time.  However, if all we want
-	 * to do is cause the 3801 to do a channel advance on each incoming
+	 * to do is cause the 3801 to do a next measurement on each incoming
 	 * pulse, then we can get the same effect by merely disabling the
 	 * LNE prescaler.
 	 */

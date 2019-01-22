@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2004, 2006, 2008, 2010, 2012, 2016, 2018
+ * Copyright 2000-2001, 2004, 2006, 2008, 2010, 2012, 2016, 2018-2019
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -306,9 +306,9 @@ mxd_soft_mcs_arm( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Check for external channel advance actions. */
+	/* Check for external next measurement actions. */
 
-	eca_record = mcs->external_channel_advance_record;
+	eca_record = mcs->external_next_measurement_record;
 
 	if ( eca_record != (MX_RECORD *) NULL ) {
 
@@ -348,9 +348,9 @@ mxd_soft_mcs_stop( MX_MCS *mcs )
 
 	soft_mcs->finish_time_in_clock_ticks = mx_current_clock_tick();
 
-	/* Check for external channel advance actions. */
+	/* Check for external next measurement actions. */
 
-	eca_record = mcs->external_channel_advance_record;
+	eca_record = mcs->external_next_measurement_record;
 
 	if ( eca_record != (MX_RECORD *) NULL ) {
 
@@ -389,9 +389,9 @@ mxd_soft_mcs_clear( MX_MCS *mcs )
 		}
 	}
 
-	/* Check for external channel advance actions. */
+	/* Check for external next measurement actions. */
 
-	eca_record = mcs->external_channel_advance_record;
+	eca_record = mcs->external_next_measurement_record;
 
 	if ( eca_record != (MX_RECORD *) NULL ) {
 
@@ -442,11 +442,11 @@ mxd_soft_mcs_busy( MX_MCS *mcs )
 
 	if ( mcs->busy == FALSE ) {
 
-	    /* If an MCE is attached for external channel advance
+	    /* If an MCE is attached for external next measurement
 	     * and the MCS is not busy, then stop the MCE as well.
 	     */
 
-	    eca_record = mcs->external_channel_advance_record;
+	    eca_record = mcs->external_next_measurement_record;
 
 	    if ( eca_record != (MX_RECORD *) NULL ) {
 

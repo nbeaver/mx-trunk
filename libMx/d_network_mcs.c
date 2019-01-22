@@ -217,9 +217,9 @@ mxd_network_mcs_finish_record_initialization( MX_RECORD *record )
 		network_mcs->server_record,
 		"%s.dark_current_array", network_mcs->remote_record_name );
 
-	mx_network_field_init( &(network_mcs->external_channel_advance_nf),
+	mx_network_field_init( &(network_mcs->external_next_measurement_nf),
 		network_mcs->server_record,
-	    "%s.external_channel_advance", network_mcs->remote_record_name );
+	    "%s.external_next_measurement", network_mcs->remote_record_name );
 
 	mx_network_field_init( &(network_mcs->external_prescale_nf),
 		network_mcs->server_record,
@@ -869,7 +869,7 @@ mxd_network_mcs_get_parameter( MX_MCS *mcs )
 	MX_NETWORK_MCS *network_mcs = NULL;
 	long counting_mode = 0;
 	long trigger_mode = 0;
-	mx_bool_type external_channel_advance = FALSE;
+	mx_bool_type external_next_measurement = FALSE;
 	unsigned long external_prescale = 0;
 	unsigned long num_measurements, measurement_counts;
 	long measurement_number, current_num_scalers;
@@ -900,11 +900,11 @@ mxd_network_mcs_get_parameter( MX_MCS *mcs )
 		mcs->trigger_mode = trigger_mode;
 		break;
 
-	case MXLV_MCS_EXTERNAL_CHANNEL_ADVANCE:
-		mx_status = mx_get( &(network_mcs->external_channel_advance_nf),
-					MXFT_BOOL, &external_channel_advance );
+	case MXLV_MCS_EXTERNAL_NEXT_MEASUREMENT:
+		mx_status = mx_get( &(network_mcs->external_next_measurement_nf),
+					MXFT_BOOL, &external_next_measurement );
 
-		mcs->external_channel_advance = external_channel_advance;
+		mcs->external_next_measurement = external_next_measurement;
 		break;
 
 	case MXLV_MCS_EXTERNAL_PRESCALE:
@@ -1003,7 +1003,7 @@ mxd_network_mcs_set_parameter( MX_MCS *mcs )
 
 	MX_NETWORK_MCS *network_mcs = NULL;
 	long counting_mode, trigger_mode;
-	mx_bool_type external_channel_advance;
+	mx_bool_type external_next_measurement;
 	unsigned long external_prescale;
 	unsigned long num_measurements, measurement_counts;
 	double measurement_time, dark_current;
@@ -1032,15 +1032,15 @@ mxd_network_mcs_set_parameter( MX_MCS *mcs )
 						MXFT_LONG, &trigger_mode );
 		break;
 
-	case MXLV_MCS_EXTERNAL_CHANNEL_ADVANCE:
-		external_channel_advance = mcs->external_channel_advance;
+	case MXLV_MCS_EXTERNAL_NEXT_MEASUREMENT:
+		external_next_measurement = mcs->external_next_measurement;
 
 		MX_DEBUG( 2,("%s: sending %d to '%s'",
-				fname, (int) external_channel_advance,
-			network_mcs->external_channel_advance_nf.nfname ));
+				fname, (int) external_next_measurement,
+			network_mcs->external_next_measurement_nf.nfname ));
 
-		mx_status = mx_put( &(network_mcs->external_channel_advance_nf),
-					MXFT_BOOL, &external_channel_advance );
+		mx_status = mx_put(&(network_mcs->external_next_measurement_nf),
+					MXFT_BOOL, &external_next_measurement );
 		break;
 
 	case MXLV_MCS_EXTERNAL_PRESCALE:

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2016 Illinois Institute of Technology
+ * Copyright 2016, 2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -622,9 +622,9 @@ mxd_sis3820_open( MX_RECORD *record )
 	/* Setup default acquisition mode for MCS operation. */
 
 	if ( sis3820->sis3820_flags & MXF_SIS3820_USE_REFERENCE_PULSER ) {
-		mcs->external_channel_advance = FALSE;
+		mcs->external_next_measurement = FALSE;
 	} else {
-		mcs->external_channel_advance = TRUE;
+		mcs->external_next_measurement = TRUE;
 	}
 
 	/* Disable interrupts 0 to 4, since we want to read the status
@@ -832,27 +832,27 @@ mxd_sis3820_arm( MX_MCS *mcs )
 	 * advance signal, then we currently ignore the LNE prescaler factor.
 	 */
 
-	if ( mcs->external_channel_advance == FALSE ) {
+	if ( mcs->external_next_measurement == FALSE ) {
 		/* Use the internal 10 MHz pulse generator. */
 
 		lne_prescale_factor =
 	    mx_round( MX_SIS3820_10MHZ_INTERNAL_CLOCK * mcs->measurement_time );
 
 	} else {
-		/* Use the external channel advance. */
+		/* Use the external next measurement. */
 
-		if ( mcs->external_channel_advance_record == NULL ) {
+		if ( mcs->external_next_measurement_record == NULL ) {
 
 			return mx_error(MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
-			"External channel advance has been requested for "
+			"External next measurement has been requested for "
 			"MCS '%s', but no external source of channel "
 			"advance pulses has been set up.", mcs->record->name );
 		}
 
-		switch( mcs->external_channel_advance_record->mx_class ) {
+		switch( mcs->external_next_measurement_record->mx_class ) {
 		case MXC_PULSE_GENERATOR:
 			mx_status = mx_pulse_generator_get_pulse_period(
-					mcs->external_channel_advance_record,
+					mcs->external_next_measurement_record,
 					&pulse_period );
 
 			if ( mx_status.code != MXE_SUCCESS )
@@ -863,7 +863,7 @@ mxd_sis3820_arm( MX_MCS *mcs )
 	"Cannot start MCS '%s' since its external pulse generator '%s' "
 	"is currently configured for a negative pulse period.",
 				mcs->record->name,
-				mcs->external_channel_advance_record->name );
+				mcs->external_next_measurement_record->name );
 			}
 
 			if ( pulse_period < 1.0e-30 ) {
@@ -871,7 +871,7 @@ mxd_sis3820_arm( MX_MCS *mcs )
 	"Cannot start MCS '%s' since its external pulse generator '%s' "
 	"is currently configured for an essentially zero pulse period.",
 				mcs->record->name,
-				mcs->external_channel_advance_record->name );
+				mcs->external_next_measurement_record->name );
 			}
 
 			clock_frequency = mx_divide_safely( 1.0, pulse_period );
@@ -916,7 +916,7 @@ mxd_sis3820_arm( MX_MCS *mcs )
 			/* Is the pulse generator running? */
 
 			mx_status = mx_pulse_generator_is_busy( 
-					mcs->external_channel_advance_record,
+					mcs->external_next_measurement_record,
 					&pulse_generator_busy );
 
 			if ( mx_status.code != MXE_SUCCESS )
@@ -926,7 +926,7 @@ mxd_sis3820_arm( MX_MCS *mcs )
 				/* If not, then start the pulse generator. */
 
 				mx_status = mx_pulse_generator_start(
-					mcs->external_channel_advance_record );
+					mcs->external_next_measurement_record );
 
 				if ( mx_status.code != MXE_SUCCESS )
 					return mx_status;
@@ -939,7 +939,7 @@ mxd_sis3820_arm( MX_MCS *mcs )
 
 #if MXD_SIS3820_DEBUG_START
 		MX_DEBUG(-2,
-	    ("%s: Using external channel advance, lne_prescale_factor = %lu",
+	    ("%s: Using external next measurement, lne_prescale_factor = %lu",
 		 	fname, (unsigned long) lne_prescale_factor));
 #endif
 	}
@@ -958,11 +958,11 @@ mxd_sis3820_arm( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Configure channel advance. */
+	/* Configure next measurement. */
 
 #if MXD_SIS3820_DEBUG_START
-	MX_DEBUG(-2,("%s: mcs->external_channel_advance = %d",
-		fname, (int) mcs->external_channel_advance));
+	MX_DEBUG(-2,("%s: mcs->external_next_measurement = %d",
+		fname, (int) mcs->external_next_measurement));
 #endif
 	ctl_input_mode  = sis3820->control_input_mode;
 	ctl_output_mode = sis3820->control_output_mode;
@@ -975,9 +975,9 @@ mxd_sis3820_arm( MX_MCS *mcs )
 		acq_op_mode |= ( ctl_output_mode << 20 );
 	}
 
-	if ( mcs->external_channel_advance ) {
+	if ( mcs->external_next_measurement ) {
 
-		/* External channel advance mode (front panel control) */
+		/* External next measurement mode (front panel control) */
 
 		acq_op_mode |= MXF_SIS3820_LNE_SOURCE_CONTROL_SIGNAL;
 
@@ -1018,7 +1018,7 @@ mxd_sis3820_arm( MX_MCS *mcs )
 
 	/* Enable the internal pulse generator if necessary. */
 
-	if ( mcs->external_channel_advance ) {
+	if ( mcs->external_next_measurement ) {
 		reference_pulser = MXF_SIS3820_CTRL_REFERENCE_CH1_DISABLE;
 	} else {
 		reference_pulser = MXF_SIS3820_CTRL_REFERENCE_CH1_ENABLE;
@@ -1040,9 +1040,9 @@ mxd_sis3820_arm( MX_MCS *mcs )
 
 	/* Prepare the MCS for counting. */
 
-	if ( mcs->external_channel_advance ) {
+	if ( mcs->external_next_measurement ) {
 
-		/* For external channel advance, we arm the MCS. */
+		/* For external next measurement, we arm the MCS. */
 
 #if MXD_SIS3820_DEBUG_START
 		MX_DEBUG(-2,("%s: Calling KEY_OPERATION_ARM", fname));
