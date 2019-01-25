@@ -22,32 +22,20 @@
 #ifndef __MX_HTTP_H__
 #define __MX_HTTP_H__
 
-/* In principle, there is no maximum length.  However, the convention
- * of search engines appears to be to only keep up to 2048 or so 
- * characters in a URL.  See here:
- *
- * https://stackoverflow.com/questions/417142/what-is-the-maximum-length-of-a-url-in-different-browsers
- *
- */
-
-#define MXU_HTTP_MAX_URL_LENGTH	2048
-
-/*----*/
-
 #define MXU_HTTP_DRIVER_NAME_LENGTH	40
 
 /*----*/
 
 typedef struct {
 	char driver_name[MXU_HTTP_DRIVER_NAME_LENGTH+1];
-
+	MX_EXTENSION *http_extension;
 	struct mx_http_function_list *http_function_list;
 
 	void *http_private;
 } MX_HTTP;
 
 typedef struct mx_http_function_list {
-	mx_status_type ( *create )( MX_HTTP **http );
+	mx_status_type ( *create )( MX_HTTP *http );
 	mx_status_type ( *destroy )( MX_HTTP *http );
 	mx_status_type ( *http_delete )( MX_HTTP *http, char *url,
 			unsigned long *http_status_code );
@@ -70,12 +58,11 @@ typedef struct mx_http_function_list {
 MX_API mx_status_type mx_http_get_default_driver( char *driver_name_buffer,
 							size_t max_length );
 
-MX_API void mx_http_set_default_driver( const char *driver_name );
+MX_API void mx_http_set_default_driver( char *driver_name );
 
-MX_API mx_status_type mx_http_create_object( MX_HTTP **http,
-					const char *driver_name ); 
-
-MX_API mx_status_type mx_http_destroy_object( MX_HTTP *http );
+MX_API mx_status_type mx_http_get_extension( MX_HTTP **http,
+						MX_RECORD *mx_database,
+						char *driver_name ); 
 
 /*---*/
 

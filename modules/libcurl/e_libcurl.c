@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2018 Illinois Institute of Technology
+ * Copyright 2018-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -36,6 +36,7 @@
 #include "mx_image.h"
 #include "mx_area_detector.h"
 #include "mx_video_input.h"
+#include "mx_http.h"
 #include "e_libcurl.h"
 
 /* FIXME: The following definition of strptime() should not be necessary. */
@@ -58,6 +59,13 @@ MX_EXTENSION_FUNCTION_LIST mxext_libcurl_extension_function_list = {
 
 /*------*/
 
+MX_HTTP_FUNCTION_LIST mxe_libcurl_http_function_list = {
+	mxe_libcurl_create,
+};
+
+
+/*------*/
+
 MX_EXPORT mx_status_type
 mxext_libcurl_initialize( MX_EXTENSION *extension )
 {
@@ -66,6 +74,15 @@ mxext_libcurl_initialize( MX_EXTENSION *extension )
 	MX_LIBCURL_EXTENSION_PRIVATE *libcurl_ext;
 	MX_DYNAMIC_LIBRARY *libcurl_library;
 	mx_status_type mx_status;
+
+	if ( extension == (MX_EXTENSION *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_EXTENSION pointer passed was NULL." );
+	}
+
+#if LIBCURL_MODULE_DEBUG_INITIALIZE
+	MX_DEBUG(-2,("%s invoked for extension '%s'.", fname, extension->name));
+#endif
 
 	libcurl_ext = (MX_LIBCURL_EXTENSION_PRIVATE *)
 			malloc( sizeof(MX_LIBCURL_EXTENSION_PRIVATE) );
@@ -98,9 +115,9 @@ mxext_libcurl_initialize( MX_EXTENSION *extension )
 	libcurl_ext->libcurl_library = libcurl_library;
 
 	/* WARNING: Do _NOT_ use the flags CURL_GLOBAL_WIN32 or CURL_GLOBAL_ALL
-	 * below in curl_global_init()!  Platform-specific has already been
-	 * done in libMx by the function mx_socket_initialize().  Doing socket
-	 * initialization more than once can mess things up.
+	 * below in curl_global_init()!  Platform-specific initialization has
+	 * already been done in libMx by the function mx_socket_initialize().
+	 * Doing socket initialization more than once can mess things up.
 	 */
 
 	curl_global_init( CURL_GLOBAL_SSL );
@@ -109,4 +126,14 @@ mxext_libcurl_initialize( MX_EXTENSION *extension )
 }
 
 /*------*/
+
+MX_EXPORT mx_status_type
+mxe_libcurl_create( MX_HTTP *http )
+{
+	static const char fname[] = "mxe_libcurl_create()";
+
+	MX_DEBUG(-2,("%s invoked.", fname));
+
+	return MX_SUCCESSFUL_RESULT;
+}
 

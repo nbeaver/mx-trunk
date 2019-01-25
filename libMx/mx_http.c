@@ -23,6 +23,8 @@
 #include <stdlib.h>
 
 #include "mx_util.h"
+#include "mx_record.h"
+#include "mx_module.h"
 #include "mx_http.h"
 
 #define MX_HTTP_DRIVER_BUILTIN_DEFAULT	"libcurl"
@@ -49,7 +51,7 @@ mx_http_get_default_driver( char *driver_name_buffer, size_t max_length )
 }
 
 MX_EXPORT void
-mx_http_set_default_driver( const char *driver_name )
+mx_http_set_default_driver( char *driver_name )
 {
 	if ( driver_name == (const char *) NULL ) {
 		strlcpy( mx_http_default_driver_name,
@@ -65,11 +67,20 @@ mx_http_set_default_driver( const char *driver_name )
 
 MX_EXPORT
 mx_status_type
-mx_http_create_object( MX_HTTP **http, const char *driver_name )
+mx_http_get_extension( MX_HTTP **http,
+			MX_RECORD *mx_database,
+			char *http_driver_name )
 {
-	static const char fname[] = "mx_http_create_object()";
+	static const char fname[] = "mx_http_get_extension()";
 
 	MX_HTTP *http_ptr = NULL;
+	MX_RECORD *mx_database_ptr = NULL;
+	MX_MODULE *http_driver_module = NULL;
+	MX_EXTENSION *extension_table = NULL;
+	MX_EXTENSION *extension = NULL;
+	char http_extension_name[MXU_EXTENSION_NAME_LENGTH+1];
+	unsigned long i;
+	mx_status_type mx_status;
 
 	if ( http == (MX_HTTP **) http ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -85,22 +96,84 @@ mx_http_create_object( MX_HTTP **http, const char *driver_name )
 
 	*http = http_ptr;
 
-	if ( driver_name == (const char *) NULL ) {
+	if ( http_driver_name == (const char *) NULL ) {
 		strlcpy( http_ptr->driver_name,
 			mx_http_default_driver_name,
 			sizeof( http_ptr->driver_name ) );
 	} else
-	if ( strlen(driver_name) == 0 ) {
+	if ( strlen(http_driver_name) == 0 ) {
 		strlcpy( http_ptr->driver_name,
 			mx_http_default_driver_name,
 			sizeof( http_ptr->driver_name ) );
 	} else {
-		strlcpy( http_ptr->driver_name, driver_name,
+		strlcpy( http_ptr->driver_name, http_driver_name,
 			sizeof( http_ptr->driver_name ) );
 	}
 
-	MX_DEBUG(-2,("%s: http = %p, driver_name = '%s'",
+	MX_DEBUG(-2,("%s: http = %p, http_ptr->driver_name = '%s'",
 		fname, http_ptr, http_ptr->driver_name ));
 
-	return MX_SUCCESSFUL_RESULT;
+	/* Find the requested HTTP driver by looking for
+	 * a module with that name.  It is expected that
+	 * the module has already been loaded via the
+	 * MX database file or some other method.
+	 */
+
+	if ( mx_database == (MX_RECORD *) NULL ) {
+		mx_database_ptr = mx_get_database();
+	} else {
+		mx_database_ptr = mx_database;
+	}
+
+	mx_status = mx_get_module( http_driver_name,
+			mx_database_ptr, &http_driver_module );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	switch( mx_status.code ) {
+	case MXE_SUCCESS:
+		break;
+	case MXE_NOT_FOUND:
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"The built-in HTTP driver has not yet been implemented." );
+		break;
+	default:
+		return mx_status;
+		break;
+	}
+
+	/* If the module is called 'x', then look in the module for an
+	 * extension with the name 'http_x'.  If we do not find it, then
+	 * this module does not contain an HTTP driver.
+	 */
+
+	snprintf( http_extension_name, sizeof(http_extension_name),
+		"http_%s", http_driver_module->name );
+
+	extension_table = http_driver_module->extension_table;
+
+	for ( i = 0; ; i++ ) {
+		extension = &(extension_table[i]);
+
+		if ( strcmp( extension->name, http_extension_name ) == 0 ) {
+			MX_DEBUG(-2,("%s: http driver extension '%s' found.",
+				fname, http_driver_name ));
+			break;
+		} else
+		if ( strlen( extension->name ) == 0 ) {
+			/* We have reached the end of the extension table. */
+
+			return mx_error( MXE_ILLEGAL_ARGUMENT ,fname,
+			"MX module '%s' does not contain an HTTP extension.",
+				http_driver_module->name );
+		}
+	}
+
+	/* If this is indeed an HTTP extension driver, then the initialize
+	 * method of the extension should have stored information we need.
+	 */
+
+	return mx_status;
 }
+
