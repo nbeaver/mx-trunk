@@ -47,6 +47,8 @@ extern char *strptime( const char *, const char *, struct tm * );
 
 MX_EXTENSION_FUNCTION_LIST mxext_libcurl_extension_function_list = {
 	mxext_libcurl_initialize,
+	NULL,
+	mxext_libcurl_call
 };
 
 #if defined(OS_WIN32)
@@ -59,8 +61,8 @@ MX_EXTENSION_FUNCTION_LIST mxext_libcurl_extension_function_list = {
 
 /*------*/
 
-MX_HTTP_FUNCTION_LIST mxe_libcurl_http_function_list = {
-	mxe_libcurl_create,
+MX_HTTP_FUNCTION_LIST mxext_libcurl_http_function_list = {
+	mxext_libcurl_create,
 };
 
 
@@ -114,6 +116,12 @@ mxext_libcurl_initialize( MX_EXTENSION *extension )
 
 	libcurl_ext->libcurl_library = libcurl_library;
 
+	/* Put the MX_HTTP_FUNCTION_LIST somewhere that the module 
+	 * will be able to find it.
+	 */
+
+	libcurl_ext->http_function_list = &mxext_libcurl_http_function_list;
+
 	/* WARNING: Do _NOT_ use the flags CURL_GLOBAL_WIN32 or CURL_GLOBAL_ALL
 	 * below in curl_global_init()!  Platform-specific initialization has
 	 * already been done in libMx by the function mx_socket_initialize().
@@ -128,9 +136,9 @@ mxext_libcurl_initialize( MX_EXTENSION *extension )
 /*------*/
 
 MX_EXPORT mx_status_type
-mxe_libcurl_create( MX_HTTP *http )
+mxext_libcurl_create( MX_HTTP *http )
 {
-	static const char fname[] = "mxe_libcurl_create()";
+	static const char fname[] = "mxext_libcurl_create()";
 
 	MX_DEBUG(-2,("%s invoked.", fname));
 

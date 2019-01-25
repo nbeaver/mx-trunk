@@ -67,22 +67,18 @@ mx_http_set_default_driver( char *driver_name )
 
 MX_EXPORT
 mx_status_type
-mx_http_get_extension( MX_HTTP **http,
-			MX_RECORD *mx_database,
-			char *http_driver_name )
+mx_http_create( MX_HTTP **http,
+		MX_RECORD *mx_database,
+		char *http_driver_name )
 {
-	static const char fname[] = "mx_http_get_extension()";
+	static const char fname[] = "mx_http_create()";
 
 	MX_HTTP *http_ptr = NULL;
 	MX_RECORD *mx_database_ptr = NULL;
 	MX_MODULE *http_driver_module = NULL;
-	MX_EXTENSION *extension_table = NULL;
-	MX_EXTENSION *extension = NULL;
-	char http_extension_name[MXU_EXTENSION_NAME_LENGTH+1];
-	unsigned long i;
 	mx_status_type mx_status;
 
-	if ( http == (MX_HTTP **) http ) {
+	if ( http == (MX_HTTP **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_HTTP pointer passed was NULL." );
 	}
@@ -143,37 +139,26 @@ mx_http_get_extension( MX_HTTP **http,
 		break;
 	}
 
-	/* If the module is called 'x', then look in the module for an
-	 * extension with the name 'http_x'.  If we do not find it, then
-	 * this module does not contain an HTTP driver.
-	 */
+	/* Call the HTTP driver create function. */
 
-	snprintf( http_extension_name, sizeof(http_extension_name),
-		"http_%s", http_driver_module->name );
-
-	extension_table = http_driver_module->extension_table;
-
-	for ( i = 0; ; i++ ) {
-		extension = &(extension_table[i]);
-
-		if ( strcmp( extension->name, http_extension_name ) == 0 ) {
-			MX_DEBUG(-2,("%s: http driver extension '%s' found.",
-				fname, http_driver_name ));
-			break;
-		} else
-		if ( strlen( extension->name ) == 0 ) {
-			/* We have reached the end of the extension table. */
-
-			return mx_error( MXE_ILLEGAL_ARGUMENT ,fname,
-			"MX module '%s' does not contain an HTTP extension.",
-				http_driver_module->name );
-		}
-	}
-
-	/* If this is indeed an HTTP extension driver, then the initialize
-	 * method of the extension should have stored information we need.
-	 */
+	
 
 	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_http_get( MX_HTTP *http,
+		char *url,
+		unsigned long *http_status_code,
+		char **received_data_ptr,
+		size_t *received_data_length )
+{
+	static const char fname[] = "mx_http_get()";
+
+#if 1
+	MX_DEBUG(-2,("%s: url = '%s'", fname, url));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
 }
 

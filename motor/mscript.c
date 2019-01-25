@@ -136,7 +136,8 @@ motor_script_fn( int argc, char *argv[] )
 
 	/* Invoke the call function for this extension. */
 
-	mx_status = ( flist->call )( extension, call_argc, (void **)call_argv );
+	mx_status = ( flist->call )( extension,
+				0, call_argc, (void **)call_argv );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return FAILURE;

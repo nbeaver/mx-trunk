@@ -817,13 +817,14 @@ mx_set_default_script_extension( MX_EXTENSION *extension )
 /*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mx_extension_call( MX_EXTENSION *extension, int argc, void **argv )
+mx_extension_call( MX_EXTENSION *extension,
+			int request_code, int argc, void **argv )
 {
 	static const char fname[] = "mx_extension_call()";
 
 	MX_EXTENSION_FUNCTION_LIST *flist = NULL;
 
-	mx_status_type ( *call_fn )( MX_EXTENSION *, int, void ** ) = NULL;
+	mx_status_type ( *call_fn )( MX_EXTENSION *, int, int, void ** ) = NULL;
 	mx_status_type mx_status;
 
 	MX_DEBUG(-2,("%s invoked.", fname));
@@ -849,7 +850,7 @@ mx_extension_call( MX_EXTENSION *extension, int argc, void **argv )
 			extension->name );
 	}
 
-	mx_status = (*call_fn)( extension, argc, argv );
+	mx_status = (*call_fn)( extension, request_code, argc, argv );
 
 	return mx_status;;
 }
@@ -857,14 +858,18 @@ mx_extension_call( MX_EXTENSION *extension, int argc, void **argv )
 /*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mx_extension_call_string( MX_EXTENSION *extension, char *string_arguments )
+mx_extension_call_string( MX_EXTENSION *extension,
+			char *string_arguments,
+			char *string_response,
+			size_t max_response_length )
 {
 	static const char fname[] = "mx_extension_call()";
 
 	MX_EXTENSION_FUNCTION_LIST *flist = NULL;
 
-	mx_status_type ( *call_fn )( MX_EXTENSION *, int, void ** ) = NULL;
-	mx_status_type ( *call_string_fn )( MX_EXTENSION *, char * ) = NULL;
+	mx_status_type ( *call_fn )( MX_EXTENSION *, int, int, void ** ) = NULL;
+	mx_status_type ( *call_string_fn )( MX_EXTENSION *,
+					char *, char *, size_t ) = NULL;
 
 	char *string_arguments_copy = NULL;
 	int argc;
@@ -891,7 +896,8 @@ mx_extension_call_string( MX_EXTENSION *extension, char *string_arguments )
 	call_string_fn = flist->call_string;
 
 	if ( call_string_fn != NULL ) {
-		mx_status = (*call_string_fn)( extension, string_arguments );
+		mx_status = (*call_string_fn)( extension, string_arguments,
+					string_response, max_response_length );
 
 		return mx_status;
 	}
@@ -917,7 +923,7 @@ mx_extension_call_string( MX_EXTENSION *extension, char *string_arguments )
 			"MX extension '%s' does not have a call method.",
 			extension->name );
 	} else {
-		mx_status = (*call_fn)( extension, argc, (void **) argv );
+		mx_status = (*call_fn)( extension, 0, argc, (void **) argv );
 	}
 
 	mx_free( argv );
@@ -931,6 +937,7 @@ mx_extension_call_string( MX_EXTENSION *extension, char *string_arguments )
 MX_EXPORT mx_status_type
 mx_extension_call_by_name( char *extension_name,
 			MX_RECORD *record_list,
+			int request_type,
 			int argc, void **argv )
 {
 	const char fname[] = "mx_extension_call_by_name()";
@@ -954,7 +961,7 @@ mx_extension_call_by_name( char *extension_name,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_extension_call( extension, argc, argv );
+	mx_status = mx_extension_call( extension, request_type, argc, argv );
 
 	return mx_status;
 }
@@ -964,7 +971,9 @@ mx_extension_call_by_name( char *extension_name,
 MX_EXPORT mx_status_type
 mx_extension_call_string_by_name( char *extension_name,
 				MX_RECORD *record_list,
-				char *string_arguments )
+				char *string_arguments,
+				char *string_response,
+				size_t max_response_length )
 {
 	const char fname[] = "mx_extension_call_string_by_name()";
 
@@ -987,7 +996,8 @@ mx_extension_call_string_by_name( char *extension_name,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_extension_call_string( extension, string_arguments );
+	mx_status = mx_extension_call_string( extension, string_arguments,
+					string_response, max_response_length );
 
 	return mx_status;
 }

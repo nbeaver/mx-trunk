@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2018 Illinois Institute of Technology
+ * Copyright 2018-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -33,6 +33,8 @@
 #include "mx_array.h"
 #include "mx_thread.h"
 #include "mx_image.h"
+#include "mx_module.h"
+#include "mx_http.h"
 #include "mx_area_detector.h"
 #include "d_eiger.h"
 
@@ -182,6 +184,10 @@ mxd_eiger_open( MX_RECORD *record )
 
 	MX_AREA_DETECTOR *ad = NULL;
 	MX_EIGER *eiger = NULL;
+	char command_url[80];
+	char *response = NULL;
+	size_t response_length;
+	unsigned long http_status_code;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -197,6 +203,31 @@ mxd_eiger_open( MX_RECORD *record )
 	ad = (MX_AREA_DETECTOR *) record->record_class_struct;
 
 	mx_status = mxd_eiger_get_pointers( ad, &eiger, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_breakpoint();
+
+	/* Create an EIGER HTTP handler. */
+
+	mx_status = mx_http_create( &(eiger->http), record, "libcurl" );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_EIGER_DEBUG
+	MX_DEBUG(-2,("%s: Getting the detector state.", fname));
+#endif
+
+	/* Get the detector state. */
+
+	snprintf( command_url, sizeof(command_url),
+		"http://%s/detector/api/%s/status/state",
+		eiger->hostname, eiger->simplon_version );
+
+	mx_status = mx_http_get( eiger->http, command_url, &http_status_code,
+						&response, &response_length );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2018 Illinois Institute of Technology
+ * Copyright 2018-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -17,14 +17,16 @@
 #ifndef __D_EIGER_H__
 #define __D_EIGER_H__
 
-#define MXU_EIGER_VERSION_LENGTH	20
+#define MXU_SIMPLON_VERSION_LENGTH	20
 
 typedef struct {
 	MX_RECORD *record;
 
 	char hostname[MXU_HOSTNAME_LENGTH+1];
-	char version[MXU_EIGER_VERSION_LENGTH+1];
+	char simplon_version[MXU_SIMPLON_VERSION_LENGTH+1];
 	unsigned long eiger_flags;
+
+	MX_HTTP *http;
 } MX_EIGER;
 
 #define MXD_EIGER_STANDARD_FIELDS \
@@ -32,8 +34,9 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, hostname), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "version", MXFT_STRING, NULL, 1, {MXU_EIGER_VERSION_LENGTH}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, version), \
+  {-1, -1, "simplon_version", MXFT_STRING, \
+			NULL, 1, {MXU_SIMPLON_VERSION_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, simplon_version), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
   {-1, -1, "eiger_flags", MXFT_HEX, NULL, 0, {0}, \

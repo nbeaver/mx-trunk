@@ -45,6 +45,9 @@
 #include "mx_socket.h"
 #endif
 
+#include "mx_module.h"
+#include "mx_http.h"
+
 #include "mx_net.h"
 #include "mx_spec.h"
 

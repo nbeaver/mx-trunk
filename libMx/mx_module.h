@@ -43,8 +43,9 @@ typedef struct {
 typedef struct mx_extension_function_list_type {
 	mx_status_type ( *initialize )( MX_EXTENSION * );
 	mx_status_type ( *finalize )( MX_EXTENSION * );
-	mx_status_type ( *call )( MX_EXTENSION *, int argc, void **argv );
-	mx_status_type ( *call_string )( MX_EXTENSION*, char * );
+	mx_status_type ( *call )( MX_EXTENSION *, int request_code,
+						int argc, void **argv );
+	mx_status_type ( *call_string )( MX_EXTENSION*, char *, char *, size_t);
 } MX_EXTENSION_FUNCTION_LIST;
 
 typedef struct mx_module_type {
@@ -79,18 +80,24 @@ MX_API MX_EXTENSION *mx_get_default_script_extension( void );
 MX_API void mx_set_default_script_extension( MX_EXTENSION *extension );
 
 MX_API mx_status_type mx_extension_call( MX_EXTENSION *extension,
+						int request_code,
 						int argc, void **argv );
 
 MX_API mx_status_type mx_extension_call_string( MX_EXTENSION *extension,
-						char *string_arguments );
+						char *string_arguments,
+						char *string_response,
+						size_t max_response_length );
 
 MX_API mx_status_type mx_extension_call_by_name( char *extension_name,
 						MX_RECORD *record_list,
+						int request_code,
 						int argc, void **argv );
 
 MX_API mx_status_type mx_extension_call_string_by_name( char *extension_name,
 						MX_RECORD *record_list,
-						char *string_arguments );
+						char *string_arguments,
+						char *string_response,
+						size_t max_response_length );
 
 #ifdef __cplusplus
 }

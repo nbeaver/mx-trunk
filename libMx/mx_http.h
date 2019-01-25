@@ -60,9 +60,9 @@ MX_API mx_status_type mx_http_get_default_driver( char *driver_name_buffer,
 
 MX_API void mx_http_set_default_driver( char *driver_name );
 
-MX_API mx_status_type mx_http_get_extension( MX_HTTP **http,
-						MX_RECORD *mx_database,
-						char *driver_name ); 
+MX_API mx_status_type mx_http_create( MX_HTTP **http,
+					MX_RECORD *mx_database,
+					char *driver_name ); 
 
 /*---*/
 
