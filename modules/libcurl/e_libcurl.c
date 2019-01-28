@@ -136,6 +136,62 @@ mxext_libcurl_initialize( MX_EXTENSION *extension )
 /*------*/
 
 MX_EXPORT mx_status_type
+mxext_libcurl_call( MX_EXTENSION *extension,
+		int request_code,
+		int argc, void **argv )
+{
+	static const char fname[] = "mxext_libcurl_call()";
+
+	MX_LIBCURL_EXTENSION_PRIVATE *libcurl_private = NULL;
+
+	if ( extension == (MX_EXTENSION *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_EXTENSION pointer passed was NULL." );
+	}
+	if ( request_code != MXRC_HTTP_GET_FUNCTION_LIST ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Unsupported request code (%d) passed for extension 'libcurl'.",
+			request_code );
+	}
+	if ( argc < 1 ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"argc (%d) must be >= 1 for 'libcurl' extension", argc );
+	}
+	if ( argv == (void **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The argv pointer passed for 'libcurl' is NULL." );
+	}
+	if ( argv[0] == (void *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The argv[0] pointer passed for 'libcurl' is NULL." );
+	}
+
+	/* Having validated all the arguments, now let us find the 
+	 * MX_HTTP_FUNCTION_LIST.
+	 */
+
+	libcurl_private = (MX_LIBCURL_EXTENSION_PRIVATE *)
+				extension->ext_private;
+
+	if ( libcurl_private == (MX_LIBCURL_EXTENSION_PRIVATE *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_LIBCURL_EXTENSION_PRIVATE pointer for "
+		"extension '%s' is NULL.", extension->name );
+	}
+
+	/* Finally we return the MX_HTTP_FUNCTION_LIST for our caller. */
+
+	MX_DEBUG(-2,("%s: libcurl_private->http_function_list = %p",
+		fname, libcurl_private->http_function_list));
+
+	argv[0] = (void *) libcurl_private->http_function_list;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*------*/
+
+MX_EXPORT mx_status_type
 mxext_libcurl_create( MX_HTTP *http )
 {
 	static const char fname[] = "mxext_libcurl_create()";

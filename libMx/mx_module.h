@@ -69,6 +69,10 @@ MX_API mx_status_type mx_get_module( char *module_name,
 					MX_RECORD *record_list,
 					MX_MODULE **module );
 
+MX_API mx_status_type mx_get_extension_from_module( MX_MODULE *module,
+					char *extension_name,
+					MX_EXTENSION **extension );
+
 MX_API mx_status_type mx_get_extension( char *extension_name,
 					MX_RECORD *record_list,
 					MX_EXTENSION **extension );

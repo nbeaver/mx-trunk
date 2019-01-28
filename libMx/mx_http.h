@@ -24,6 +24,10 @@
 
 #define MXU_HTTP_DRIVER_NAME_LENGTH	40
 
+/* extension call() request code. */
+
+#define MXRC_HTTP_GET_FUNCTION_LIST	1
+
 /*----*/
 
 typedef struct {

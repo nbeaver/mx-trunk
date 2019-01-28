@@ -473,6 +473,91 @@ mx_get_module( char *module_name, MX_RECORD *record_list, MX_MODULE **module )
 
 /*-------------------------------------------------------------------------*/
 
+MX_EXPORT mx_status_type
+mx_get_extension_from_module( MX_MODULE *module,
+				char *extension_name,
+				MX_EXTENSION **extension )
+{
+	static const char fname[] = "mx_get_extension_from_module()";
+
+	MX_EXTENSION *extension_table = NULL;
+	MX_EXTENSION *extension_ptr = NULL;
+
+	unsigned long i;
+
+	if ( module == (MX_MODULE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_MODULE pointer passed was NULL." );
+	}
+	if ( extension_name == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The extension_name pointer passed for module '%s' was NULL.",
+			module->name );
+	}
+	if ( extension == (MX_EXTENSION **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_EXTENSION pointer passed for extension '%s' "
+		"in module '%s' was NULL.", extension_name, module->name );
+	}
+
+#if MX_MODULE_DEBUG_EXTENSION
+	MX_DEBUG(-2,("%s: Checking module '%s' for extension '%s'.",
+		fname, module->name, extension_name ));
+#endif
+
+
+	extension_table = module->extension_table;
+
+	if ( extension_table == (MX_EXTENSION *) NULL ) {
+		/* This module does not have any extensions. */
+
+		return mx_error( MXE_NOT_FOUND, fname,
+		"Did not find extension '%s' since module '%s' "
+		"does not have an extension_table.",
+			extension_name, module->name );
+	}
+
+	/* Walk through the extensions. */
+
+	for ( i = 0; ; i++ ) {
+		extension_ptr = &extension_table[i];
+
+		if ( extension_ptr->name[0] == '\0' ) {
+
+			/* We have reached the end of the extension table
+			 * without finding the extension, so return.
+			 */
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+
+		if ( strcmp( extension_ptr->name, extension_name ) == 0 ) {
+
+			/* We have _found_ the extension. */
+
+			/* If the extension has not set a pointer back to
+			 * the enclosing module, then add that pointer now.
+			 */
+
+			if ( extension_ptr->module == (MX_MODULE *) NULL ) {
+				extension_ptr->module = module;
+			}
+
+			/* Return the extension pointer. */
+
+			*extension = extension_ptr;
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+	}
+
+	return mx_error( MXE_NOT_FOUND, fname,
+	"Did not find extension '%s' in the extension table for module '%s'.",
+		extension_name, module->name );
+}
+
+/*-------------------------------------------------------------------------*/
+
 static mx_status_type
 mxp_extension_traverse_fn( MX_LIST_ENTRY *list_entry,
 				void *extension_name_ptr,

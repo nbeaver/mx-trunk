@@ -76,6 +76,8 @@ mx_http_create( MX_HTTP **http,
 	MX_HTTP *http_ptr = NULL;
 	MX_RECORD *mx_database_ptr = NULL;
 	MX_MODULE *http_driver_module = NULL;
+	MX_EXTENSION *http_extension = NULL;
+	char http_extension_name[80];
 	mx_status_type mx_status;
 
 	if ( http == (MX_HTTP **) NULL ) {
@@ -138,6 +140,33 @@ mx_http_create( MX_HTTP **http,
 		return mx_status;
 		break;
 	}
+
+	/* If the module name is 'x', then there should be an extension
+	 * named 'http_x'.
+	 */
+
+	snprintf( http_extension_name, sizeof(http_extension_name),
+		"http_%s", http_driver_name );
+
+	mx_status = mx_get_extension_from_module( http_driver_module,
+						http_extension_name,
+						&(http_extension) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* FIXME: Here we are leaping two pointer in a single bound. */
+
+	http_extension = &(http_driver_module->extension_table[0]);
+
+	/* Get the MX_HTTP_FUNCTION_LIST pointer. */
+
+	mx_status = mx_extension_call( http_extension,
+				MXRC_HTTP_GET_FUNCTION_LIST,
+				1, (void *) &(http_ptr->http_function_list) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Call the HTTP driver create function. */
 
