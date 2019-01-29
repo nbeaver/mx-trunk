@@ -63,6 +63,9 @@ MX_EXTENSION_FUNCTION_LIST mxext_libcurl_extension_function_list = {
 
 MX_HTTP_FUNCTION_LIST mxext_libcurl_http_function_list = {
 	mxext_libcurl_create,
+	NULL,
+	NULL,
+	mxext_libcurl_http_get,
 };
 
 
@@ -231,6 +234,48 @@ mxext_libcurl_create( MX_HTTP *http )
 
 	MX_DEBUG(-2,("%s: libcurl_private->curl_handle = %p",
 		fname, libcurl_private->curl_handle));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*------*/
+
+MX_EXPORT mx_status_type
+mxext_libcurl_http_get( MX_HTTP *http, char *url,
+			unsigned long *http_status_code,
+			char **received_data_ptr, size_t *received_length )
+{
+	static const char fname[] = "mxext_libcurl_http_get()";
+
+	MX_EXTENSION *libcurl_extension = NULL;
+	MX_LIBCURL_EXTENSION_PRIVATE *libcurl_private = NULL;
+
+	if ( http == (MX_HTTP *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_HTTP pointer passed was NULL." );
+	}
+
+	libcurl_extension = http->http_extension;
+
+	if ( libcurl_extension == (MX_EXTENSION *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_EXTENSION pointer for MX_HTTP %p is NULL.", http );
+	}
+
+	libcurl_private = (MX_LIBCURL_EXTENSION_PRIVATE *)
+				libcurl_extension->ext_private;
+
+	if ( libcurl_private == (MX_LIBCURL_EXTENSION_PRIVATE *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The ext_private pointer for MX extension '%s' is NULL.",
+			libcurl_extension->name );
+	}
+
+	MX_DEBUG(-2,("%s invoked for URL '%s'.", fname, url));
+
+	/* FIXME: Finish the implementation of this method. */
+
+	MX_DEBUG(-2,("%s: Not yet complete.", fname));
 
 	return MX_SUCCESSFUL_RESULT;
 }

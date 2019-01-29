@@ -176,8 +176,6 @@ mx_http_create( MX_HTTP **http,
 			http_extension->name );
 	}
 
-	mx_breakpoint();
-
 	mx_status = (*create_fn)( http_ptr );
 
 	return mx_status;
@@ -192,10 +190,29 @@ mx_http_get( MX_HTTP *http,
 {
 	static const char fname[] = "mx_http_get()";
 
+	mx_status_type (*get_fn)( MX_HTTP *, char *, unsigned long *,
+					char **, size_t * ) = NULL;
+	mx_status_type mx_status;
+
 #if 1
 	MX_DEBUG(-2,("%s: url = '%s'", fname, url));
 #endif
+	if ( http == (MX_HTTP *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_HTTP pointer passed was NULL." );
+	}
 
-	return MX_SUCCESSFUL_RESULT;
+	get_fn = http->http_function_list->http_get;
+
+	if ( get_fn == NULL ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"The MX HTTP driver '%s' does not support GET operations.",
+			http->driver_name );
+	}
+
+	mx_status = (*get_fn)( http, url, http_status_code,
+				received_data_ptr, received_data_length );
+
+	return mx_status;
 }
 
