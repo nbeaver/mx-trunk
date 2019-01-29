@@ -912,12 +912,12 @@ mx_extension_call( MX_EXTENSION *extension,
 	mx_status_type ( *call_fn )( MX_EXTENSION *, int, int, void ** ) = NULL;
 	mx_status_type mx_status;
 
-	MX_DEBUG(-2,("%s invoked.", fname));
-
 	if ( extension == (MX_EXTENSION *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_EXTENSION pointer passed was NULL." );
 	}
+
+	MX_DEBUG(-2,("%s invoked for extension '%s'.", fname, extension->name));
 
 	flist = extension->extension_function_list;
 

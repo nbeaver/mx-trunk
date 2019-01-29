@@ -207,8 +207,6 @@ mxd_eiger_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_breakpoint();
-
 	/* Create an EIGER HTTP handler. */
 
 	mx_status = mx_http_create( &(eiger->http), record, "libcurl" );

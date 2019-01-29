@@ -23,6 +23,8 @@ typedef struct {
 	MX_DYNAMIC_LIBRARY *libcurl_library;
 
 	MX_HTTP_FUNCTION_LIST *http_function_list;
+
+	CURL *curl_handle;
 } MX_LIBCURL_EXTENSION_PRIVATE;
 
 extern MX_EXTENSION_FUNCTION_LIST mxext_libcurl_extension_function_list;

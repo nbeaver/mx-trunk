@@ -161,10 +161,6 @@ mxext_libcurl_call( MX_EXTENSION *extension,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The argv pointer passed for 'libcurl' is NULL." );
 	}
-	if ( argv[0] == (void *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The argv[0] pointer passed for 'libcurl' is NULL." );
-	}
 
 	/* Having validated all the arguments, now let us find the 
 	 * MX_HTTP_FUNCTION_LIST.
@@ -196,7 +192,45 @@ mxext_libcurl_create( MX_HTTP *http )
 {
 	static const char fname[] = "mxext_libcurl_create()";
 
+	MX_EXTENSION *libcurl_extension = NULL;
+	MX_LIBCURL_EXTENSION_PRIVATE *libcurl_private = NULL;
+
 	MX_DEBUG(-2,("%s invoked.", fname));
+
+	if ( http == (MX_HTTP *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_HTTP pointer passed was NULL." );
+	}
+
+	libcurl_extension = http->http_extension;
+
+	if ( libcurl_extension == (MX_EXTENSION *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_EXTENSION pointer for MX_HTTP %p is NULL.", http );
+	}
+
+	libcurl_private = (MX_LIBCURL_EXTENSION_PRIVATE *)
+				libcurl_extension->ext_private;
+
+	if ( libcurl_private == (MX_LIBCURL_EXTENSION_PRIVATE *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The ext_private pointer for MX extension '%s' is NULL.",
+			libcurl_extension->name );
+	}
+
+	/* Create an "easy" Curl session. */
+
+	libcurl_private->curl_handle = curl_easy_init();
+
+	if ( libcurl_private->curl_handle == (CURL *) NULL ) {
+		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+		"The attempt to get a CURL handle for "
+		"HTTP extension '%s' failed.",
+			libcurl_extension->name );
+	}
+
+	MX_DEBUG(-2,("%s: libcurl_private->curl_handle = %p",
+		fname, libcurl_private->curl_handle));
 
 	return MX_SUCCESSFUL_RESULT;
 }

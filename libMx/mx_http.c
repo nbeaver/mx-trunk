@@ -77,6 +77,7 @@ mx_http_create( MX_HTTP **http,
 	MX_RECORD *mx_database_ptr = NULL;
 	MX_MODULE *http_driver_module = NULL;
 	MX_EXTENSION *http_extension = NULL;
+	mx_status_type (*create_fn)( MX_HTTP * ) = NULL;
 	char http_extension_name[80];
 	mx_status_type mx_status;
 
@@ -141,12 +142,10 @@ mx_http_create( MX_HTTP **http,
 		break;
 	}
 
-	/* If the module name is 'x', then there should be an extension
-	 * named 'http_x'.
-	 */
+	/* If the module name is 'x', then look for an extension named 'x'. */
 
-	snprintf( http_extension_name, sizeof(http_extension_name),
-		"http_%s", http_driver_name );
+	strlcpy( http_extension_name, http_driver_name,
+			sizeof(http_extension_name) );
 
 	mx_status = mx_get_extension_from_module( http_driver_module,
 						http_extension_name,
@@ -155,9 +154,7 @@ mx_http_create( MX_HTTP **http,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* FIXME: Here we are leaping two pointer in a single bound. */
-
-	http_extension = &(http_driver_module->extension_table[0]);
+	http_ptr->http_extension = http_extension;
 
 	/* Get the MX_HTTP_FUNCTION_LIST pointer. */
 
@@ -170,7 +167,18 @@ mx_http_create( MX_HTTP **http,
 
 	/* Call the HTTP driver create function. */
 
-	
+	create_fn = http_ptr->http_function_list->create;
+
+	if ( create_fn == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"MX HTTP extension '%s' does not implement "
+		"an HTTP 'create' method.",
+			http_extension->name );
+	}
+
+	mx_breakpoint();
+
+	mx_status = (*create_fn)( http_ptr );
 
 	return mx_status;
 }
