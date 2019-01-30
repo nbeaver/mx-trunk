@@ -185,8 +185,8 @@ mxd_eiger_open( MX_RECORD *record )
 	MX_AREA_DETECTOR *ad = NULL;
 	MX_EIGER *eiger = NULL;
 	char command_url[80];
-	char *response = NULL;
-	size_t response_length;
+	char content_type[80];
+	char response[200];
 	unsigned long http_status_code;
 	mx_status_type mx_status;
 
@@ -225,7 +225,8 @@ mxd_eiger_open( MX_RECORD *record )
 		eiger->hostname, eiger->simplon_version );
 
 	mx_status = mx_http_get( eiger->http, command_url, &http_status_code,
-						&response, &response_length );
+					content_type, sizeof(content_type),
+					response, sizeof(response) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

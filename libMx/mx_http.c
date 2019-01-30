@@ -200,13 +200,16 @@ MX_EXPORT mx_status_type
 mx_http_get( MX_HTTP *http,
 		char *url,
 		unsigned long *http_status_code,
-		char **received_data_ptr,
-		size_t *received_data_length )
+		char *content_type,
+		size_t max_content_type_length,
+		char *received_data,
+		size_t max_received_data_length )
 {
 	static const char fname[] = "mx_http_get()";
 
 	mx_status_type (*get_fn)( MX_HTTP *, char *, unsigned long *,
-					char **, size_t * ) = NULL;
+					char *, size_t,
+					char *, size_t ) = NULL;
 	mx_status_type mx_status;
 
 #if MX_HTTP_DEBUG
@@ -226,7 +229,8 @@ mx_http_get( MX_HTTP *http,
 	}
 
 	mx_status = (*get_fn)( http, url, http_status_code,
-				received_data_ptr, received_data_length );
+				content_type, max_content_type_length,
+				received_data, max_received_data_length );
 
 	return mx_status;
 }

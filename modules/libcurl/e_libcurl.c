@@ -107,12 +107,49 @@ mxext_libcurl_header_callback( char *buffer,
 	static const char fname[] = "mxext_libcurl_header_callback()";
 
 	MX_LIBCURL_EXTENSION_PRIVATE *libcurl_private = NULL;
+	static const char content_type_label[] = "content-type: ";
+	char *type_ptr = NULL;
+	char *end_ptr = NULL;
 
 	libcurl_private = (MX_LIBCURL_EXTENSION_PRIVATE *) userdata;
 
 	MX_DEBUG(-2,("%s invoked for %p.", fname, libcurl_private));
 
-	return 0;
+	MX_DEBUG(-2,("%s: buffer = '%s'", fname, buffer));
+
+	if ( libcurl_private->header_ptr != NULL ) {
+		strlcat( libcurl_private->header_ptr, buffer,
+			libcurl_private->max_header_length );
+	}
+
+	if ( libcurl_private->content_type_ptr != NULL ) {
+		if ( strncasecmp( buffer,
+				content_type_label,
+				sizeof(content_type_label)-1 ) == 0 )
+		{
+			type_ptr = buffer + sizeof(content_type_label) - 1;
+
+			end_ptr = strchr( type_ptr, ' ' );
+
+			if ( end_ptr != NULL ) {
+				*end_ptr = '\0';
+			} else {
+				end_ptr = strchr( type_ptr, '\n' );
+
+				if ( end_ptr != NULL ) {
+					*end_ptr = '\0';
+				}
+			}
+
+			strlcpy( libcurl_private->content_type_ptr, type_ptr,
+				libcurl_private->max_content_type_length );
+
+			MX_DEBUG(-2,("%s: content_type = '%s'",
+				fname, libcurl_private->content_type_ptr ));
+		}
+	}
+
+	return num_items;
 }
 
 /*------*/
@@ -469,7 +506,8 @@ mxext_libcurl_create( MX_HTTP *http )
 MX_EXPORT mx_status_type
 mxext_libcurl_http_get( MX_HTTP *http, char *url,
 			unsigned long *http_status_code,
-			char **received_data_ptr, size_t *received_length )
+			char *content_type, size_t max_content_type_length,
+			char *response, size_t max_response_length )
 {
 	static const char fname[] = "mxext_libcurl_http_get()";
 
@@ -511,6 +549,14 @@ mxext_libcurl_http_get( MX_HTTP *http, char *url,
 		http->http_extension->name );
 	}
 
+	MX_LIBCURL_INITIALIZE_CONTEXT( libcurl_private );
+
+	libcurl_private->content_type_ptr = content_type;
+	libcurl_private->max_content_type_length = max_content_type_length;
+
+	libcurl_private->response_ptr = response;
+	libcurl_private->max_response_length = max_response_length;
+
 	/* Tell libcurl the URL to read from. */
 
 	curl_status = curl_easy_setopt( curl_handle,
@@ -535,6 +581,8 @@ mxext_libcurl_http_get( MX_HTTP *http, char *url,
 	}
 
 #if LIBCURL_MODULE_DEBUG_HTTP_GET
+	MX_DEBUG(-2,("%s: content_type = '%s'", fname, content_type));
+
 	MX_DEBUG(-2,("%s complete.", fname));
 #endif
 

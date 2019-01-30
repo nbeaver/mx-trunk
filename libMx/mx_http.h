@@ -47,15 +47,19 @@ typedef struct mx_http_function_list {
 			unsigned long *http_status_code );
 	mx_status_type ( *http_get )( MX_HTTP *http, char *url,
 			unsigned long *http_status_code,
-			char **received_data_ptr, size_t *received_data_length);
+			char *content_type, size_t max_content_type_length,
+			char *received_data, size_t max_received_data_length );
 	mx_status_type ( *http_head )( MX_HTTP *http, char *url,
 			unsigned long *http_status_code,
-			char **received_data_ptr, size_t *received_data_length);
+			char *received_header,
+			size_t max_received_header_length);
 	mx_status_type ( *http_post )( MX_HTTP *http, char *url,
 			unsigned long *http_status_code,
+			char *content_type,
 			char *sent_data, size_t sent_data_length );
 	mx_status_type ( *http_put )( MX_HTTP *http, char *url,
 			unsigned long *http_status_code,
+			char *content_type,
 			char *sent_data, size_t sent_data_length );
 } MX_HTTP_FUNCTION_LIST;
 
@@ -77,21 +81,25 @@ MX_API mx_status_type mx_http_delete( MX_HTTP *http, char *url,
 
 MX_API mx_status_type mx_http_get( MX_HTTP *http, char *url,
 					unsigned long *http_status_code,
-					char **received_data_ptr,
-					size_t *received_data_length );
+					char *content_type,
+					size_t max_content_type_length,
+					char *received_data,
+					size_t max_received_data_length );
 
 MX_API mx_status_type mx_http_head( MX_HTTP *http, char *url,
 					unsigned long *http_status_code,
-					char **received_data_ptr,
-					size_t *received_data_length );
+					char *received_header,
+					size_t max_received_header_length );
 
 MX_API mx_status_type mx_http_post( MX_HTTP *http, char *url,
 					unsigned long *http_status_code,
+					char *content_type,
 					char *sent_data,
 					size_t sent_data_length );
 
 MX_API mx_status_type mx_http_put( MX_HTTP *http, char *url,
 					unsigned long *http_status_code,
+					char *content_type,
 					char *sent_data,
 					size_t sent_data_length );
 
