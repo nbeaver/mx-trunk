@@ -98,6 +98,63 @@ mxext_libcurl_set_mx_status( const char *calling_fname,
 
 /*------*/
 
+static size_t
+mxext_libcurl_header_callback( char *buffer,
+				size_t size,
+				size_t num_items,
+				void *userdata )
+{
+	static const char fname[] = "mxext_libcurl_header_callback()";
+
+	MX_LIBCURL_EXTENSION_PRIVATE *libcurl_private = NULL;
+
+	libcurl_private = (MX_LIBCURL_EXTENSION_PRIVATE *) userdata;
+
+	MX_DEBUG(-2,("%s invoked for %p.", fname, libcurl_private));
+
+	return 0;
+}
+
+/*------*/
+
+static size_t
+mxext_libcurl_read_callback( char *buffer,
+				size_t size,
+				size_t num_items,
+				void *userdata )
+{
+	static const char fname[] = "mxext_libcurl_read_callback()";
+
+	MX_LIBCURL_EXTENSION_PRIVATE *libcurl_private = NULL;
+
+	libcurl_private = (MX_LIBCURL_EXTENSION_PRIVATE *) userdata;
+
+	MX_DEBUG(-2,("%s invoked for %p.", fname, libcurl_private));
+
+	return 0;
+}
+
+/*------*/
+
+static size_t
+mxext_libcurl_write_callback( char *buffer,
+				size_t size,
+				size_t num_items,
+				void *userdata )
+{
+	static const char fname[] = "mxext_libcurl_write_callback()";
+
+	MX_LIBCURL_EXTENSION_PRIVATE *libcurl_private = NULL;
+
+	libcurl_private = (MX_LIBCURL_EXTENSION_PRIVATE *) userdata;
+
+	MX_DEBUG(-2,("%s invoked for %p.", fname, libcurl_private));
+
+	return 0;
+}
+
+/*========================================================================*/
+
 MX_EXPORT mx_status_type
 mxext_libcurl_initialize( MX_EXTENSION *extension )
 {
@@ -321,7 +378,7 @@ mxext_libcurl_create( MX_HTTP *http )
 							libcurl_private );
 	}
 
-	/* Setup the default Curl options. */
+	/* Do we want debugging messages from libcurl? */
 
 	if ( http->http_debug ) {
 		curl_status = curl_easy_setopt( curl_handle,
@@ -341,6 +398,68 @@ mxext_libcurl_create( MX_HTTP *http )
 		return mxext_libcurl_set_mx_status( fname, curl_status,
 							libcurl_private );
 	}
+
+	/* Pass the libcurl_private pointer to callbacks. */
+
+	curl_status = curl_easy_setopt( curl_handle,
+					CURLOPT_WRITEDATA,
+					libcurl_private );
+
+	if ( curl_status != CURLE_OK ) {
+		return mxext_libcurl_set_mx_status( fname, curl_status,
+							libcurl_private );
+	}
+
+	curl_status = curl_easy_setopt( curl_handle,
+					CURLOPT_READDATA,
+					libcurl_private );
+
+	if ( curl_status != CURLE_OK ) {
+		return mxext_libcurl_set_mx_status( fname, curl_status,
+							libcurl_private );
+	}
+
+	curl_status = curl_easy_setopt( curl_handle,
+					CURLOPT_HEADERDATA,
+					libcurl_private );
+
+	if ( curl_status != CURLE_OK ) {
+		return mxext_libcurl_set_mx_status( fname, curl_status,
+							libcurl_private );
+	}
+
+	/* Set up the callbacks. */
+
+	curl_status = curl_easy_setopt( curl_handle,
+					CURLOPT_HEADERFUNCTION,
+					mxext_libcurl_header_callback );
+
+	if ( curl_status != CURLE_OK ) {
+		return mxext_libcurl_set_mx_status( fname, curl_status,
+							libcurl_private );
+	}
+
+	curl_status = curl_easy_setopt( curl_handle,
+					CURLOPT_READFUNCTION,
+					mxext_libcurl_read_callback );
+
+	if ( curl_status != CURLE_OK ) {
+		return mxext_libcurl_set_mx_status( fname, curl_status,
+							libcurl_private );
+	}
+
+	curl_status = curl_easy_setopt( curl_handle,
+					CURLOPT_WRITEFUNCTION,
+					mxext_libcurl_write_callback );
+
+	if ( curl_status != CURLE_OK ) {
+		return mxext_libcurl_set_mx_status( fname, curl_status,
+							libcurl_private );
+	}
+
+#if LIBCURL_MODULE_DEBUG_CREATE
+	MX_DEBUG(-2,("%s complete.", fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
