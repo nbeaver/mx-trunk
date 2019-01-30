@@ -22,13 +22,19 @@
  * and make sure that everything is thread safe.
  */
 
-#define LIBCURL_MODULE_DEBUG_INITIALIZE	FALSE
+#define MX_LIBCURL_DEBUG_INITIALIZE	FALSE
 
-#define LIBCURL_MODULE_DEBUG_CALL	FALSE
+#define MX_LIBCURL_DEBUG_CALL		FALSE
 
-#define LIBCURL_MODULE_DEBUG_CREATE	FALSE
+#define MX_LIBCURL_DEBUG_CREATE		FALSE
 
-#define LIBCURL_MODULE_DEBUG_HTTP_GET	TRUE
+#define MX_LIBCURL_DEBUG_HEADER		FALSE
+
+#define MX_LIBCURL_DEBUG_READ		TRUE
+
+#define MX_LIBCURL_DEBUG_WRITE		TRUE
+
+#define MX_LIBCURL_DEBUG_HTTP_GET	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -104,7 +110,9 @@ mxext_libcurl_header_callback( char *buffer,
 				size_t num_items,
 				void *userdata )
 {
+#if MX_LIBCURL_DEBUG_HEADER
 	static const char fname[] = "mxext_libcurl_header_callback()";
+#endif
 
 	MX_LIBCURL_EXTENSION_PRIVATE *libcurl_private = NULL;
 	static const char content_type_label[] = "content-type: ";
@@ -113,9 +121,10 @@ mxext_libcurl_header_callback( char *buffer,
 
 	libcurl_private = (MX_LIBCURL_EXTENSION_PRIVATE *) userdata;
 
+#if MX_LIBCURL_DEBUG_HEADER
 	MX_DEBUG(-2,("%s invoked for %p.", fname, libcurl_private));
-
 	MX_DEBUG(-2,("%s: buffer = '%s'", fname, buffer));
+#endif
 
 	if ( libcurl_private->header_ptr != NULL ) {
 		strlcat( libcurl_private->header_ptr, buffer,
@@ -132,20 +141,23 @@ mxext_libcurl_header_callback( char *buffer,
 			end_ptr = strchr( type_ptr, ' ' );
 
 			if ( end_ptr != NULL ) {
-				*end_ptr = '\0';
+			    *end_ptr = '\0';
 			} else {
+			    end_ptr = strchr( type_ptr, '\r' );
+
+			    if ( end_ptr != NULL ) {
+				*end_ptr = '\0';
+			    } else {
 				end_ptr = strchr( type_ptr, '\n' );
 
 				if ( end_ptr != NULL ) {
-					*end_ptr = '\0';
+				    *end_ptr = '\0';
 				}
+			    }
 			}
 
 			strlcpy( libcurl_private->content_type_ptr, type_ptr,
 				libcurl_private->max_content_type_length );
-
-			MX_DEBUG(-2,("%s: content_type = '%s'",
-				fname, libcurl_private->content_type_ptr ));
 		}
 	}
 
@@ -179,15 +191,40 @@ mxext_libcurl_write_callback( char *buffer,
 				size_t num_items,
 				void *userdata )
 {
+#if MX_LIBCURL_DEBUG_WRITE
 	static const char fname[] = "mxext_libcurl_write_callback()";
+#endif
 
 	MX_LIBCURL_EXTENSION_PRIVATE *libcurl_private = NULL;
+	size_t maximum_bytes, bytes_so_far, new_bytes_so_far, new_bytes;
 
 	libcurl_private = (MX_LIBCURL_EXTENSION_PRIVATE *) userdata;
 
+#if MX_LIBCURL_DEBUG_WRITE
 	MX_DEBUG(-2,("%s invoked for %p.", fname, libcurl_private));
+	MX_DEBUG(-2,("%s: buffer = '%s'", fname, buffer));
+#endif
+	maximum_bytes = libcurl_private->max_response_length;
+	bytes_so_far = libcurl_private->data_bytes_received;
 
-	return 0;
+	new_bytes_so_far = strlcat( libcurl_private->response_ptr,
+					buffer, size * num_items );
+
+	if ( new_bytes_so_far >= maximum_bytes ) {
+		new_bytes = maximum_bytes - bytes_so_far;
+
+		libcurl_private->data_bytes_received = maximum_bytes;
+	} else {
+		new_bytes = new_bytes_so_far - bytes_so_far;
+
+		libcurl_private->data_bytes_received = new_bytes_so_far;
+	}
+
+#if MX_LIBCURL_DEBUG_WRITE
+	MX_DEBUG(-2,("%s: new_bytes = %ld", fname, (long) new_bytes));
+#endif
+
+	return new_bytes;
 }
 
 /*========================================================================*/
@@ -206,7 +243,7 @@ mxext_libcurl_initialize( MX_EXTENSION *extension )
 		"The MX_EXTENSION pointer passed was NULL." );
 	}
 
-#if LIBCURL_MODULE_DEBUG_INITIALIZE
+#if MX_LIBCURL_DEBUG_INITIALIZE
 	MX_DEBUG(-2,("%s invoked for extension '%s'.", fname, extension->name));
 #endif
 
@@ -235,7 +272,7 @@ mxext_libcurl_initialize( MX_EXTENSION *extension )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if LIBCURL_MODULE_DEBUG_INITIALIZE
+#if MX_LIBCURL_DEBUG_INITIALIZE
 	MX_DEBUG(-2,("%s: libcurl library name = '%s', libcurl_library = %p",
 		fname, MXP_LIBCURL_LIBRARY_NAME, libcurl_library));
 #endif
@@ -304,7 +341,7 @@ mxext_libcurl_call( MX_EXTENSION *extension,
 
 		libcurl_private->http = (MX_HTTP *) argv[0];
 
-#if LIBCURL_MODULE_DEBUG_CALL
+#if MX_LIBCURL_DEBUG_CALL
 		MX_DEBUG(-2,("%s: libcurl_private->http = %p",
 			fname, libcurl_private->http));
 #endif
@@ -313,7 +350,7 @@ mxext_libcurl_call( MX_EXTENSION *extension,
 	case MXRC_HTTP_GET_FUNCTION_LIST:
 		/* Return the MX_HTTP_FUNCTION_LIST for our caller. */
 
-#if LIBCURL_MODULE_DEBUG_CALL
+#if MX_LIBCURL_DEBUG_CALL
 		MX_DEBUG(-2,("%s: libcurl_private->http_function_list = %p",
 			fname, libcurl_private->http_function_list));
 #endif
@@ -343,7 +380,7 @@ mxext_libcurl_create( MX_HTTP *http )
 	CURL *curl_handle = NULL;
 	CURLcode curl_status;
 
-#if LIBCURL_MODULE_DEBUG_CREATE
+#if MX_LIBCURL_DEBUG_CREATE
 	MX_DEBUG(-2,("%s invoked.", fname));
 #endif
 
@@ -401,7 +438,7 @@ mxext_libcurl_create( MX_HTTP *http )
 
 	libcurl_private->curl_handle = curl_handle;
 
-#if LIBCURL_MODULE_DEBUG_CREATE
+#if MX_LIBCURL_DEBUG_CREATE
 	MX_DEBUG(-2,("%s: curl_handle = %p", fname, curl_handle));
 #endif
 	/* Arrange for libcurl errors to be written to our error buffer. */
@@ -494,7 +531,7 @@ mxext_libcurl_create( MX_HTTP *http )
 							libcurl_private );
 	}
 
-#if LIBCURL_MODULE_DEBUG_CREATE
+#if MX_LIBCURL_DEBUG_CREATE
 	MX_DEBUG(-2,("%s complete.", fname));
 #endif
 
@@ -537,7 +574,7 @@ mxext_libcurl_http_get( MX_HTTP *http, char *url,
 			libcurl_extension->name );
 	}
 
-#if LIBCURL_MODULE_DEBUG_HTTP_GET
+#if MX_LIBCURL_DEBUG_HTTP_GET
 	MX_DEBUG(-2,("%s invoked for URL '%s'.", fname, url));
 #endif
 
@@ -552,9 +589,11 @@ mxext_libcurl_http_get( MX_HTTP *http, char *url,
 	MX_LIBCURL_INITIALIZE_CONTEXT( libcurl_private );
 
 	libcurl_private->content_type_ptr = content_type;
+	libcurl_private->content_type_ptr[0] = '\0';
 	libcurl_private->max_content_type_length = max_content_type_length;
 
 	libcurl_private->response_ptr = response;
+	libcurl_private->response_ptr[0] = '\0';
 	libcurl_private->max_response_length = max_response_length;
 
 	/* Tell libcurl the URL to read from. */
@@ -567,7 +606,7 @@ mxext_libcurl_http_get( MX_HTTP *http, char *url,
 							libcurl_private );
 	}
 
-#if LIBCURL_MODULE_DEBUG_HTTP_GET
+#if MX_LIBCURL_DEBUG_HTTP_GET
 	MX_DEBUG(-2,("%s: Now performing the request.", fname));
 #endif
 
@@ -575,14 +614,22 @@ mxext_libcurl_http_get( MX_HTTP *http, char *url,
 
 	curl_status = curl_easy_perform( curl_handle );
 
+#if MX_LIBCURL_DEBUG_HTTP_GET
+	MX_DEBUG(-2,("%s: libcurl_private->content_type_ptr = '%s'",
+			fname, libcurl_private->content_type_ptr ));
+#endif
+
 	if ( curl_status != CURLE_OK ) {
 		return mxext_libcurl_set_mx_status( fname, curl_status,
 							libcurl_private );
 	}
 
-#if LIBCURL_MODULE_DEBUG_HTTP_GET
-	MX_DEBUG(-2,("%s: content_type = '%s'", fname, content_type));
+#if MX_LIBCURL_DEBUG_HTTP_GET
+	MX_DEBUG(-2,("%s: libcurl_private->response_ptr = '%s'",
+			fname, libcurl_private->response_ptr ));
+#endif
 
+#if MX_LIBCURL_DEBUG_HTTP_GET
 	MX_DEBUG(-2,("%s complete.", fname));
 #endif
 

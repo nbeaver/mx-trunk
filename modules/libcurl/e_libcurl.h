@@ -29,9 +29,9 @@
 		(x)->max_content_type_length = 0; \
 		(x)->max_header_length = 0; \
 		(x)->max_response_length = 0; \
-		(x)->header_bytes_read = 0; \
-		(x)->data_bytes_read = 0; \
-		(x)->data_bytes_written = 0; \
+		(x)->header_bytes_received = 0; \
+		(x)->data_bytes_received = 0; \
+		(x)->data_bytes_sent = 0; \
 		(x)->header_complete = FALSE; \
 		(x)->read_complete = FALSE; \
 		(x)->write_complete = FALSE; \
@@ -56,9 +56,9 @@ typedef struct {
 	size_t max_header_length;
 	size_t max_response_length;
 
-	size_t header_bytes_read;
-	size_t data_bytes_read;
-	size_t data_bytes_written;
+	size_t header_bytes_received;
+	size_t data_bytes_received;
+	size_t data_bytes_sent;
 
 	mx_bool_type header_complete;
 	mx_bool_type read_complete;

@@ -16,6 +16,8 @@
 
 #define MXD_EIGER_DEBUG			TRUE
 
+#define MXD_EIGER_DEBUG_OPEN		TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -195,7 +197,7 @@ mxd_eiger_open( MX_RECORD *record )
 		"The MX_RECORD pointer passed was NULL." );
 	}
 
-#if MXD_EIGER_DEBUG
+#if MXD_EIGER_DEBUG_OPEN
 	MX_DEBUG( 2,("%s invoked for area detector '%s'.",
 		fname, record->name ));
 #endif
@@ -214,7 +216,7 @@ mxd_eiger_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_EIGER_DEBUG
+#if MXD_EIGER_DEBUG_OPEN
 	MX_DEBUG(-2,("%s: Getting the detector state.", fname));
 #endif
 
@@ -231,7 +233,10 @@ mxd_eiger_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_EIGER_DEBUG
+#if MXD_EIGER_DEBUG_OPEN
+	MX_DEBUG(-2,("%s: content_type = '%s', response = '%s'",
+		fname, content_type, response));
+
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
 #endif
 
