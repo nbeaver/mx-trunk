@@ -17,14 +17,21 @@
 #ifndef __E_LIBCURL_H__
 #define __E_LIBCURL_H__
 
+#define MXU_MAXIMUM_CURL_FORMAT_LENGTH	80
+
 /*----*/
 
 typedef struct {
 	MX_DYNAMIC_LIBRARY *libcurl_library;
 
+	MX_HTTP *http;
 	MX_HTTP_FUNCTION_LIST *http_function_list;
+	MX_EXTENSION *extension;
 
 	CURL *curl_handle;
+
+	char curl_error_buffer[CURL_ERROR_SIZE+1];
+	char curl_error_format[MXU_MAXIMUM_CURL_FORMAT_LENGTH+1];
 } MX_LIBCURL_EXTENSION_PRIVATE;
 
 extern MX_EXTENSION_FUNCTION_LIST mxext_libcurl_extension_function_list;

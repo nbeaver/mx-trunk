@@ -19,6 +19,8 @@
  *
  */
 
+#define MX_HTTP_DEBUG		FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -93,6 +95,8 @@ mx_http_create( MX_HTTP **http,
 		"Ran out of memory trying to allocate an MX_HTTP object." );
 	}
 
+	http_ptr->http_debug = FALSE;
+
 	*http = http_ptr;
 
 	if ( http_driver_name == (const char *) NULL ) {
@@ -109,8 +113,10 @@ mx_http_create( MX_HTTP **http,
 			sizeof( http_ptr->driver_name ) );
 	}
 
+#if MX_HTTP_DEBUG
 	MX_DEBUG(-2,("%s: http = %p, http_ptr->driver_name = '%s'",
 		fname, http_ptr, http_ptr->driver_name ));
+#endif
 
 	/* Find the requested HTTP driver by looking for
 	 * a module with that name.  It is expected that
@@ -156,6 +162,15 @@ mx_http_create( MX_HTTP **http,
 
 	http_ptr->http_extension = http_extension;
 
+	/* Tell the extension where to find the MX_HTTP pointer. */
+
+	mx_status = mx_extension_call( http_extension,
+				MXRC_HTTP_SET_HTTP_POINTER,
+				1, (void *) http_ptr );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/* Get the MX_HTTP_FUNCTION_LIST pointer. */
 
 	mx_status = mx_extension_call( http_extension,
@@ -194,7 +209,7 @@ mx_http_get( MX_HTTP *http,
 					char **, size_t * ) = NULL;
 	mx_status_type mx_status;
 
-#if 1
+#if MX_HTTP_DEBUG
 	MX_DEBUG(-2,("%s: url = '%s'", fname, url));
 #endif
 	if ( http == (MX_HTTP *) NULL ) {

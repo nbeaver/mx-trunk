@@ -26,7 +26,8 @@
 
 /* extension call() request code. */
 
-#define MXRC_HTTP_GET_FUNCTION_LIST	1
+#define MXRC_HTTP_SET_HTTP_POINTER	1
+#define MXRC_HTTP_GET_FUNCTION_LIST	2
 
 /*----*/
 
@@ -35,6 +36,7 @@ typedef struct {
 	MX_EXTENSION *http_extension;
 	struct mx_http_function_list *http_function_list;
 
+	mx_bool_type http_debug;
 	void *http_private;
 } MX_HTTP;
 

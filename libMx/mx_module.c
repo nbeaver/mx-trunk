@@ -917,7 +917,9 @@ mx_extension_call( MX_EXTENSION *extension,
 		"The MX_EXTENSION pointer passed was NULL." );
 	}
 
+#if MX_MODULE_DEBUG_EXTENSION
 	MX_DEBUG(-2,("%s invoked for extension '%s'.", fname, extension->name));
+#endif
 
 	flist = extension->extension_function_list;
 
@@ -961,7 +963,9 @@ mx_extension_call_string( MX_EXTENSION *extension,
 	char **argv;
 	mx_status_type mx_status;
 
+#if MX_MODULE_DEBUG_EXTENSION
 	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	if ( extension == (MX_EXTENSION *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,

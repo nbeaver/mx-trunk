@@ -14,7 +14,21 @@
  *
  */
 
-#define LIBCURL_MODULE_DEBUG_INITIALIZE	TRUE
+/* WARNING: This version of the MX 'libcurl' module uses callbacks 
+ * via the Curl Easy Interface rather than the Curl Multi Interface.
+ *
+ * If we ever want to use multiple threads in this 'libcurl' module,
+ * then we will need to rewrite things using the Multi Interface
+ * and make sure that everything is thread safe.
+ */
+
+#define LIBCURL_MODULE_DEBUG_INITIALIZE	FALSE
+
+#define LIBCURL_MODULE_DEBUG_CALL	FALSE
+
+#define LIBCURL_MODULE_DEBUG_CREATE	FALSE
+
+#define LIBCURL_MODULE_DEBUG_HTTP_GET	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -71,13 +85,26 @@ MX_HTTP_FUNCTION_LIST mxext_libcurl_http_function_list = {
 
 /*------*/
 
+static mx_status_type
+mxext_libcurl_set_mx_status( const char *calling_fname,
+				CURLcode curl_error_code,
+				MX_LIBCURL_EXTENSION_PRIVATE *libcurl_private )
+{
+	return mx_error( MXE_FUNCTION_FAILED, calling_fname,
+		libcurl_private->curl_error_format,
+		curl_error_code, curl_easy_strerror( curl_error_code ),
+		libcurl_private->curl_error_buffer );
+}
+
+/*------*/
+
 MX_EXPORT mx_status_type
 mxext_libcurl_initialize( MX_EXTENSION *extension )
 {
 	static const char fname[] = "mxext_libcurl_initialize()";
 
-	MX_LIBCURL_EXTENSION_PRIVATE *libcurl_ext;
-	MX_DYNAMIC_LIBRARY *libcurl_library;
+	MX_LIBCURL_EXTENSION_PRIVATE *libcurl_private = NULL;
+	MX_DYNAMIC_LIBRARY *libcurl_library = NULL;
 	mx_status_type mx_status;
 
 	if ( extension == (MX_EXTENSION *) NULL ) {
@@ -89,16 +116,18 @@ mxext_libcurl_initialize( MX_EXTENSION *extension )
 	MX_DEBUG(-2,("%s invoked for extension '%s'.", fname, extension->name));
 #endif
 
-	libcurl_ext = (MX_LIBCURL_EXTENSION_PRIVATE *)
+	libcurl_private = (MX_LIBCURL_EXTENSION_PRIVATE *)
 			malloc( sizeof(MX_LIBCURL_EXTENSION_PRIVATE) );
 
-	if ( libcurl_ext == (MX_LIBCURL_EXTENSION_PRIVATE *) NULL ) {
+	if ( libcurl_private == (MX_LIBCURL_EXTENSION_PRIVATE *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to allocate an "
 		"MX_LIBCURL_EXTENSION_PRIVATE structure." );
 	}
 
-	extension->ext_private = libcurl_ext;
+	libcurl_private->extension = extension;
+
+	extension->ext_private = libcurl_private;
 
 	/* Find and save a copy of the MX_DYNAMIC_LIBRARY pointer for
 	 * the libcurl library where other MX routines can find it.
@@ -117,13 +146,13 @@ mxext_libcurl_initialize( MX_EXTENSION *extension )
 		fname, MXP_LIBCURL_LIBRARY_NAME, libcurl_library));
 #endif
 
-	libcurl_ext->libcurl_library = libcurl_library;
+	libcurl_private->libcurl_library = libcurl_library;
 
 	/* Put the MX_HTTP_FUNCTION_LIST somewhere that the module 
 	 * will be able to find it.
 	 */
 
-	libcurl_ext->http_function_list = &mxext_libcurl_http_function_list;
+	libcurl_private->http_function_list = &mxext_libcurl_http_function_list;
 
 	/* WARNING: Do _NOT_ use the flags CURL_GLOBAL_WIN32 or CURL_GLOBAL_ALL
 	 * below in curl_global_init()!  Platform-specific initialization has
@@ -151,11 +180,6 @@ mxext_libcurl_call( MX_EXTENSION *extension,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_EXTENSION pointer passed was NULL." );
 	}
-	if ( request_code != MXRC_HTTP_GET_FUNCTION_LIST ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Unsupported request code (%d) passed for extension 'libcurl'.",
-			request_code );
-	}
 	if ( argc < 1 ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"argc (%d) must be >= 1 for 'libcurl' extension", argc );
@@ -178,12 +202,37 @@ mxext_libcurl_call( MX_EXTENSION *extension,
 		"extension '%s' is NULL.", extension->name );
 	}
 
-	/* Finally we return the MX_HTTP_FUNCTION_LIST for our caller. */
+	/* Implement the various requests that the caller can make. */
 
-	MX_DEBUG(-2,("%s: libcurl_private->http_function_list = %p",
-		fname, libcurl_private->http_function_list));
+	switch( request_code ) {
+	case MXRC_HTTP_SET_HTTP_POINTER:
+		/* Save a copy of the MX_HTTP pointer for our future use. */
 
-	argv[0] = (void *) libcurl_private->http_function_list;
+		libcurl_private->http = (MX_HTTP *) argv[0];
+
+#if LIBCURL_MODULE_DEBUG_CALL
+		MX_DEBUG(-2,("%s: libcurl_private->http = %p",
+			fname, libcurl_private->http));
+#endif
+		break;
+
+	case MXRC_HTTP_GET_FUNCTION_LIST:
+		/* Return the MX_HTTP_FUNCTION_LIST for our caller. */
+
+#if LIBCURL_MODULE_DEBUG_CALL
+		MX_DEBUG(-2,("%s: libcurl_private->http_function_list = %p",
+			fname, libcurl_private->http_function_list));
+#endif
+
+		argv[0] = (void *) libcurl_private->http_function_list;
+		break;
+
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Unsupported request code (%d) passed for extension '%s'.",
+			request_code, extension->name );
+		break;
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -197,13 +246,21 @@ mxext_libcurl_create( MX_HTTP *http )
 
 	MX_EXTENSION *libcurl_extension = NULL;
 	MX_LIBCURL_EXTENSION_PRIVATE *libcurl_private = NULL;
+	CURL *curl_handle = NULL;
+	CURLcode curl_status;
 
+#if LIBCURL_MODULE_DEBUG_CREATE
 	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	if ( http == (MX_HTTP *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_HTTP pointer passed was NULL." );
 	}
+
+#if 1
+	http->http_debug = TRUE;
+#endif
 
 	libcurl_extension = http->http_extension;
 
@@ -221,19 +278,69 @@ mxext_libcurl_create( MX_HTTP *http )
 			libcurl_extension->name );
 	}
 
+	/* Before we start using Curl, we initialize curl_error_buffer
+	 * and curl_error_format.
+	 */
+
+	libcurl_private->curl_error_buffer[0] = '\0';
+
+	snprintf( libcurl_private->curl_error_format,
+			MXU_MAXIMUM_CURL_FORMAT_LENGTH,
+			"Curl error (%%ld) '%%40s'.  Error message = '%%%ds'",
+			CURL_ERROR_SIZE );
+
+#if 0
+	MX_DEBUG(-2,("%s: curl_error_format = '%s'",
+		fname, libcurl_private->curl_error_format ));
+#endif
+
 	/* Create an "easy" Curl session. */
 
-	libcurl_private->curl_handle = curl_easy_init();
+	curl_handle = curl_easy_init();
 
-	if ( libcurl_private->curl_handle == (CURL *) NULL ) {
+	if ( curl_handle == (CURL *) NULL ) {
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
 		"The attempt to get a CURL handle for "
 		"HTTP extension '%s' failed.",
 			libcurl_extension->name );
 	}
 
-	MX_DEBUG(-2,("%s: libcurl_private->curl_handle = %p",
-		fname, libcurl_private->curl_handle));
+	libcurl_private->curl_handle = curl_handle;
+
+#if LIBCURL_MODULE_DEBUG_CREATE
+	MX_DEBUG(-2,("%s: curl_handle = %p", fname, curl_handle));
+#endif
+	/* Arrange for libcurl errors to be written to our error buffer. */
+
+	curl_status = curl_easy_setopt( curl_handle,
+					CURLOPT_ERRORBUFFER,
+					libcurl_private->curl_error_buffer );
+
+	if ( curl_status != CURLE_OK ) {
+		return mxext_libcurl_set_mx_status( fname, curl_status,
+							libcurl_private );
+	}
+
+	/* Setup the default Curl options. */
+
+	if ( http->http_debug ) {
+		curl_status = curl_easy_setopt( curl_handle,
+						CURLOPT_VERBOSE, 1 );
+		if ( curl_status != CURLE_OK ) {
+		    return mxext_libcurl_set_mx_status( fname, curl_status,
+							    libcurl_private );
+		}
+	}
+
+	/* Tell libcurl that we want to follow redirection. */
+
+	curl_status = curl_easy_setopt( curl_handle,
+					CURLOPT_FOLLOWLOCATION, 1L );
+
+	if ( curl_status != CURLE_OK ) {
+		return mxext_libcurl_set_mx_status( fname, curl_status,
+							libcurl_private );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -249,6 +356,8 @@ mxext_libcurl_http_get( MX_HTTP *http, char *url,
 
 	MX_EXTENSION *libcurl_extension = NULL;
 	MX_LIBCURL_EXTENSION_PRIVATE *libcurl_private = NULL;
+	CURL *curl_handle = NULL;
+	CURLcode curl_status;
 
 	if ( http == (MX_HTTP *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -271,11 +380,44 @@ mxext_libcurl_http_get( MX_HTTP *http, char *url,
 			libcurl_extension->name );
 	}
 
+#if LIBCURL_MODULE_DEBUG_HTTP_GET
 	MX_DEBUG(-2,("%s invoked for URL '%s'.", fname, url));
+#endif
 
-	/* FIXME: Finish the implementation of this method. */
+	curl_handle = libcurl_private->curl_handle;
 
-	MX_DEBUG(-2,("%s: Not yet complete.", fname));
+	if ( curl_handle == (CURL *) NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"No CURL handle has been acquired for HTTP extension '%s'.",
+		http->http_extension->name );
+	}
+
+	/* Tell libcurl the URL to read from. */
+
+	curl_status = curl_easy_setopt( curl_handle,
+					CURLOPT_URL, url );
+
+	if ( curl_status != CURLE_OK ) {
+		return mxext_libcurl_set_mx_status( fname, curl_status,
+							libcurl_private );
+	}
+
+#if LIBCURL_MODULE_DEBUG_HTTP_GET
+	MX_DEBUG(-2,("%s: Now performing the request.", fname));
+#endif
+
+	/* Tell libcurl to actually perform the request. */
+
+	curl_status = curl_easy_perform( curl_handle );
+
+	if ( curl_status != CURLE_OK ) {
+		return mxext_libcurl_set_mx_status( fname, curl_status,
+							libcurl_private );
+	}
+
+#if LIBCURL_MODULE_DEBUG_HTTP_GET
+	MX_DEBUG(-2,("%s complete.", fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }

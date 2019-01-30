@@ -36,7 +36,7 @@ MX_EXTENSION mxext_libcurl_extension_table[] = {
 static mx_bool_type
 libcurl_driver_init( MX_MODULE *module )
 {
-#if 1
+#if 0
 	static const char fname[] = "libcurl_driver_init()";
 
 	MX_DEBUG(-2,("%s invoked for module '%s'", fname, module->name));
