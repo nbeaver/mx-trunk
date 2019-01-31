@@ -48,6 +48,8 @@ typedef struct {
 
 	CURL *curl_handle;
 
+	unsigned long http_status_code;
+
 	char *content_type_ptr;
 	char *header_ptr;
 	char *response_ptr;

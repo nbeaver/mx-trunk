@@ -32,9 +32,9 @@
 
 #define MX_LIBCURL_DEBUG_READ		TRUE
 
-#define MX_LIBCURL_DEBUG_WRITE		TRUE
+#define MX_LIBCURL_DEBUG_WRITE		FALSE
 
-#define MX_LIBCURL_DEBUG_HTTP_GET	TRUE
+#define MX_LIBCURL_DEBUG_HTTP_GET	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -110,14 +110,16 @@ mxext_libcurl_header_callback( char *buffer,
 				size_t num_items,
 				void *userdata )
 {
-#if MX_LIBCURL_DEBUG_HEADER
 	static const char fname[] = "mxext_libcurl_header_callback()";
-#endif
 
 	MX_LIBCURL_EXTENSION_PRIVATE *libcurl_private = NULL;
 	static const char content_type_label[] = "content-type: ";
+	char http_version_string[20];
+	char http_version_format[30];
 	char *type_ptr = NULL;
 	char *end_ptr = NULL;
+	unsigned long http_status_code;
+	int sscanf_num_items;
 
 	libcurl_private = (MX_LIBCURL_EXTENSION_PRIVATE *) userdata;
 
@@ -130,6 +132,33 @@ mxext_libcurl_header_callback( char *buffer,
 		strlcat( libcurl_private->header_ptr, buffer,
 			libcurl_private->max_header_length );
 	}
+
+	/* Get the HTTP version and response code. */
+
+	if ( strncmp( buffer, "HTTP", 4 ) == 0 ) {
+		snprintf( http_version_format, sizeof(http_version_format),
+			"HTTP/%%%ds %%lu", (int) sizeof(http_version_string) );
+
+		sscanf_num_items = sscanf( buffer, http_version_format,
+				http_version_string, &http_status_code );
+
+		if ( sscanf_num_items != 2 ) {
+			(void) mx_error( MXE_UNPARSEABLE_STRING, fname,
+			"The HTTP header line returned '%s' has an "
+			"unrecognized format.", buffer );
+
+			return 0;
+		}
+
+		libcurl_private->http_status_code = http_status_code;
+
+#if MX_LIBCURL_DEBUG_HEADER
+		MX_DEBUG(-2,("%s: libcurl_private->http_status_code = %lu",
+			fname, libcurl_private->http_status_code));
+#endif
+	}
+
+	/* Look for the content type, if wanted.  You should normally want it.*/
 
 	if ( libcurl_private->content_type_ptr != NULL ) {
 		if ( strncasecmp( buffer,
@@ -158,6 +187,12 @@ mxext_libcurl_header_callback( char *buffer,
 
 			strlcpy( libcurl_private->content_type_ptr, type_ptr,
 				libcurl_private->max_content_type_length );
+
+#if MX_LIBCURL_DEBUG_HEADER
+			MX_DEBUG(-2,
+			("%s: libcurl_private->content_type_ptr = '%s'",
+				fname, libcurl_private->content_type_ptr));
+#endif
 		}
 	}
 
@@ -628,6 +663,15 @@ mxext_libcurl_http_get( MX_HTTP *http, char *url,
 	MX_DEBUG(-2,("%s: libcurl_private->response_ptr = '%s'",
 			fname, libcurl_private->response_ptr ));
 #endif
+
+	if ( http_status_code != (unsigned long *) NULL ) {
+		*http_status_code = libcurl_private->http_status_code;
+
+#if MX_LIBCURL_DEBUG_HTTP_GET
+		MX_DEBUG(-2,("%s: *http_status_code = %lu",
+			fname, *http_status_code));
+#endif
+	}
 
 #if MX_LIBCURL_DEBUG_HTTP_GET
 	MX_DEBUG(-2,("%s complete.", fname));

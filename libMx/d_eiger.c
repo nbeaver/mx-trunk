@@ -128,6 +128,71 @@ mxd_eiger_get_pointers( MX_AREA_DETECTOR *ad,
 
 /*---*/
 
+static mx_status_type
+mxd_eiger_get( MX_AREA_DETECTOR *ad,
+		MX_EIGER *eiger,
+		char *command_url,
+		char *response,
+		size_t max_response_length )
+{
+	static const char fname[] = "mxd_eiger_get()";
+
+	unsigned long http_status_code;
+	char content_type[80];
+	mx_status_type mx_status;
+
+	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_AREA_DETECTOR pointer passed was NULL." );
+	}
+	if ( eiger == (MX_EIGER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_EIGER pointer passed was NULL." );
+	}
+	if ( command_url == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The command_url pointer passed was NULL." );
+	}
+	if ( response == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The response pointer passed was NULL." );
+	}
+
+	mx_status = mx_http_get( eiger->http, command_url,
+				&http_status_code,
+				content_type, sizeof(content_type),
+				response, max_response_length );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* FIXME: Define some macros for the HTTP status code values. */
+
+	if ( http_status_code != 200 ) {
+		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+		"HTTP status code (%ld) returned for EIGER detector '%s' "
+		"for URL '%s'.",
+			http_status_code, eiger->record->name, command_url );
+	}
+
+	if ( strcmp( content_type, "application/json" ) != 0 ) {
+		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+		"The HTTP content type '%s' returned for URL '%s' at "
+		"EIGER detector '%s' was not 'application/json'.  "
+		"The body of the response was '%s'.",
+			content_type, command_url, eiger->record->name,
+			response );
+	}
+
+	MX_DEBUG(-2,("%s: EIGER response = '%s'", fname, response ));
+	MX_DEBUG(-2,("%s: FIXME: At this point I have to parse the JSON.",
+		fname ));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*========================================================================*/
+
 MX_EXPORT mx_status_type
 mxd_eiger_initialize_driver( MX_DRIVER *driver )
 {
@@ -187,9 +252,7 @@ mxd_eiger_open( MX_RECORD *record )
 	MX_AREA_DETECTOR *ad = NULL;
 	MX_EIGER *eiger = NULL;
 	char command_url[80];
-	char content_type[80];
-	char response[200];
-	unsigned long http_status_code;
+	char response[1000];
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -226,16 +289,12 @@ mxd_eiger_open( MX_RECORD *record )
 		"http://%s/detector/api/%s/status/state",
 		eiger->hostname, eiger->simplon_version );
 
-	mx_status = mx_http_get( eiger->http, command_url, &http_status_code,
-					content_type, sizeof(content_type),
+	mx_status = mxd_eiger_get( ad, eiger, command_url,
 					response, sizeof(response) );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
 #if MXD_EIGER_DEBUG_OPEN
-	MX_DEBUG(-2,("%s: content_type = '%s', response = '%s'",
-		fname, content_type, response));
+	MX_DEBUG(-2,("%s: EIGER '%s' response = '%s'.",
+				fname, record->name, response));
 
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
 #endif
