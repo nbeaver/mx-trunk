@@ -1,0 +1,13 @@
+This directory contains files from cJSON version 1.7.10 as retrieved
+on January 31, 2019.  It was retrieved using 
+
+  git clone https://github.com/DaveGamble/cJSON
+
+The primary virtues of this package:
+
+  MIT license.
+
+  Compilable with C89.
+
+  Only a single header file and source file.
+

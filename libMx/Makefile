@@ -27,9 +27,9 @@ MX_CORE_SRCS = mx_amplifier.c mx_analog_input.c mx_analog_output.c \
 	mx_encoder.c mx_error.c mx_export.c \
 	mx_field.c mx_fvarargs.c \
 	mx_generic.c mx_gpib.c mx_handle.c mx_hash_table.c mx_heap.c \
-	mx_hrt.c mx_hrt_debug.c \
+	mx_hrt.c mx_hrt_debug.c mx_http.c \
 	mx_image.c mx_image_noir.c \
-	mx_info.c mx_interval_timer.c mx_io.c mx_http.c mx_key.c \
+	mx_info.c mx_interval_timer.c mx_io.c mx_json.c mx_key.c \
 	mx_log.c mx_list.c mx_list_head.c \
 	mx_malloc.c mx_math.c mx_mca.c mx_mcai.c mx_mce.c mx_mcs.c \
 	mx_measurement.c mx_memory_process.c mx_memory_system.c \
