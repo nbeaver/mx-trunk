@@ -38,8 +38,6 @@ mx_json_parse( MX_JSON **json, char *json_string )
 
 	cJSON *cjson = NULL;
 
-	mx_breakpoint();
-
 	if ( json == (MX_JSON **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_JSON pointer passed was NULL." );
@@ -48,8 +46,8 @@ mx_json_parse( MX_JSON **json, char *json_string )
 	cjson = cJSON_Parse( json_string );
 
 	if ( cjson == (cJSON *) NULL ) {
-		return mx_error( MXE_UNKNOWN_ERROR, fname,
-		"The attempt to parse a JSON string failed.  "
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"The attempt to parse the JSON string failed.  "
 		"cJSON error = '%s'.  Original JSON string = '%s'",
 			cJSON_GetErrorPtr(), json_string );
 	}

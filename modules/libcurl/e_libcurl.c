@@ -232,18 +232,40 @@ mxext_libcurl_write_callback( char *buffer,
 
 	MX_LIBCURL_EXTENSION_PRIVATE *libcurl_private = NULL;
 	size_t maximum_bytes, bytes_so_far, new_bytes_so_far, new_bytes;
+	size_t num_bytes_received;
 
 	libcurl_private = (MX_LIBCURL_EXTENSION_PRIVATE *) userdata;
+
+	/* Try to make sure that the received buffer is NUL terminated. */
+
+	num_bytes_received = size * num_items;
+
+	if ( buffer[ num_bytes_received ] != '\0' ) {
+		mx_warning(
+		    "The received buffer was not null terminated. Fixing..." );
+
+		/* NOTE: It is possible that the following line will cause
+		 * a segmentation fault or access violation due to an attempt
+		 * to access beyond the end of 'buffer'.  We are crossing
+		 * our fingers and hoping that 'libcurl' itself allocates
+		 * enough memory that this is not a problem.
+		 */
+
+		buffer[ num_bytes_received ] = '\0';
+	}
 
 #if MX_LIBCURL_DEBUG_WRITE
 	MX_DEBUG(-2,("%s invoked for %p.", fname, libcurl_private));
 	MX_DEBUG(-2,("%s: buffer = '%s'", fname, buffer));
+	MX_DEBUG(-2,("%s: num_bytes_received = %lu",
+			fname, num_bytes_received));
 #endif
+
 	maximum_bytes = libcurl_private->max_response_length;
 	bytes_so_far = libcurl_private->data_bytes_received;
 
 	new_bytes_so_far = strlcat( libcurl_private->response_ptr,
-					buffer, size * num_items );
+					buffer, maximum_bytes );
 
 	if ( new_bytes_so_far >= maximum_bytes ) {
 		new_bytes = maximum_bytes - bytes_so_far;
