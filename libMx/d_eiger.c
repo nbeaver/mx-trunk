@@ -37,6 +37,7 @@
 #include "mx_image.h"
 #include "mx_module.h"
 #include "mx_http.h"
+#include "mx_json.h"
 #include "mx_area_detector.h"
 #include "d_eiger.h"
 
@@ -137,6 +138,7 @@ mxd_eiger_get( MX_AREA_DETECTOR *ad,
 {
 	static const char fname[] = "mxd_eiger_get()";
 
+	MX_JSON *json = NULL;
 	unsigned long http_status_code;
 	char content_type[80];
 	mx_status_type mx_status;
@@ -187,6 +189,8 @@ mxd_eiger_get( MX_AREA_DETECTOR *ad,
 	MX_DEBUG(-2,("%s: EIGER response = '%s'", fname, response ));
 	MX_DEBUG(-2,("%s: FIXME: At this point I have to parse the JSON.",
 		fname ));
+
+	mx_status = mx_json_parse( &json, response);
 
 	return MX_SUCCESSFUL_RESULT;
 }

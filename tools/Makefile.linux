@@ -81,7 +81,7 @@ unix/src/editline/libedit.a:
 	( cd unix/src/editline ; $(EDITLINE_MAKECMD) )
 
 cJSON.o: cJSON/cJSON.c cJSON/cJSON.h
-	$(CC) -c $(OPTIMIZE) -fPIC cJSON/cJSON.c
+	$(CC) -g -c $(OPTIMIZE) -fPIC cJSON/cJSON.c
 
 # FIXME: xdr_hyper.o is really only needed by Musl, but the 'mx_config'
 # program we use to detect MUSL is built by the very same makefile that

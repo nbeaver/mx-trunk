@@ -38,6 +38,8 @@ mx_json_parse( MX_JSON **json, char *json_string )
 
 	cJSON *cjson = NULL;
 
+	mx_breakpoint();
+
 	if ( json == (MX_JSON **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_JSON pointer passed was NULL." );
@@ -62,6 +64,10 @@ mx_json_parse( MX_JSON **json, char *json_string )
 	}
 
 	(*json)->cjson = cjson;
+
+#if 1
+	MX_DEBUG(-2,("%s: cJSON = '%s'", fname, cJSON_Print( cjson ) ));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
