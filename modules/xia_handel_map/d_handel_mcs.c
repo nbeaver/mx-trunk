@@ -330,8 +330,8 @@ mxd_handel_mcs_open( MX_RECORD *record )
 #if 1
 	/* Some test defaults. */
 
-	handel->sync_count = 1;
-	handel->pixel_advance_mode = MXF_HANDEL_ADV_SYNC_MODE;
+	handel->sync_count = 4;
+	handel->pixel_advance_mode = MXF_HANDEL_ADV_GATE_MODE;
 	handel->mapping_mode = MXF_HANDEL_MAP_MCA_MODE;
 #endif
 
@@ -367,6 +367,49 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Turn on mapping mode. */
+
+	switch( handel->mapping_mode ) {
+	case MXF_HANDEL_MAP_MCA_MODE:
+		mapping_mode = handel->mapping_mode;
+		break;
+	case MXF_HANDEL_MAP_NORMAL_MODE:
+		mapping_mode = -1.0;
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Normal mode (0) is not supported for XIA MCS '%s'.",
+			mcs->record->name );
+		break;
+	case MXF_HANDEL_MAP_SCA_MODE:
+		mapping_mode = -1.0;
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"SCA mode (2) is not yet implemented for XIA MCS '%s'.",
+			mcs->record->name );
+		break;
+	case MXF_HANDEL_MAP_LIST_MODE:
+		mapping_mode = -1.0;
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"LIST mode (3) is not yet implemented for XIA MCS '%s'.",
+			mcs->record->name );
+		break;
+	default:
+		mapping_mode = -1.0;
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Mapping mode (%ld) is not supported for XIA MCS '%s'.",
+			handel->mapping_mode, mcs->record->name );
+		break;
+	}
+
+	MX_XIA_SYNC( xiaSetAcquisitionValues( -1,
+				"mapping_mode", &mapping_mode ) );
+
+	if ( xia_status != XIA_SUCCESS ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"The attempt to set 'mapping_mode' to %f "
+		"for MCS '%s' failed.  Error code = %d, '%s'",
+		mapping_mode, mcs->record->name,
+		xia_status, mxi_handel_strerror(xia_status) );
+	}
+
 	/* Tell Handel the number of MCA channels.  (It should already know.) */
 
 	number_mca_channels = mca->current_num_channels;
@@ -397,9 +440,23 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 		xia_status, mxi_handel_strerror(xia_status) );
 	}
 
+	/* WARNING: if you set 'num_map_pixels_per_buffer' to a value
+	 * greater than 1, either directly or indirectly through -1, 
+	 * then you cannot read out anything from the buffer until
+	 * _ALL_ of the pixels have been acquired.
+	 */
+#if 0
 	/* Tell Handel to choose the number of pixels per buffer on its own. */
 
 	num_map_pixels_per_buffer = -1.0;
+#else
+	/* FIXME: Setting num_map_pixels_per_buffer to 1.0 should make things
+	 * easier to debug, but it is probably the slowest way possible to
+	 * handle the acquisition of data.
+	 */
+
+	num_map_pixels_per_buffer = 1.0;
+#endif
 
 	MX_XIA_SYNC( xiaSetAcquisitionValues(-1, "num_map_pixels_per_buffer",
 					(void *) &num_map_pixels_per_buffer ));
@@ -464,46 +521,39 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 		pixel_advance_mode, gate_master, sync_master, sync_count));
 #endif
 
-#if 1
-	MX_XIA_SYNC( xiaSetAcquisitionValues(-1, "gate_master", &gate_master ));
+	if ( pixel_advance_mode == XIA_MAPPING_CTL_GATE ) {
+		MX_XIA_SYNC( xiaSetAcquisitionValues(-1,
+					"gate_master", &gate_master ));
 
-	if ( xia_status != XIA_SUCCESS ) {
-		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-		"The attempt to set 'gate_master' to %f "
-		"for MCS '%s' failed.  Error code = %d, '%s'",
-		gate_master, mcs->record->name,
-		xia_status, mxi_handel_strerror(xia_status) );
+		if ( xia_status != XIA_SUCCESS ) {
+			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+			"The attempt to set 'gate_master' to %f "
+			"for MCS '%s' failed.  Error code = %d, '%s'",
+			gate_master, mcs->record->name,
+			xia_status, mxi_handel_strerror(xia_status) );
+		}
 	}
 
-	MX_XIA_SYNC( xiaSetAcquisitionValues(-1, "sync_master", &sync_master ));
+	if ( pixel_advance_mode == XIA_MAPPING_CTL_SYNC ) {
+		MX_XIA_SYNC( xiaSetAcquisitionValues(-1,
+					"sync_master", &sync_master ));
 
-	if ( xia_status != XIA_SUCCESS ) {
-		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-		"The attempt to set 'sync_master' to %f "
-		"for MCS '%s' failed.  Error code = %d, '%s'",
-		sync_master, mcs->record->name,
-		xia_status, mxi_handel_strerror(xia_status) );
+		if ( xia_status != XIA_SUCCESS ) {
+			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+			"The attempt to set 'sync_master' to %f "
+			"for MCS '%s' failed.  Error code = %d, '%s'",
+			sync_master, mcs->record->name,
+			xia_status, mxi_handel_strerror(xia_status) );
+		}
 	}
-
-	MX_XIA_SYNC( xiaSetAcquisitionValues(-1, "sync_count", &sync_count ));
-
-	if ( xia_status != XIA_SUCCESS ) {
-		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-		"The attempt to set 'sync_count' to %f "
-		"for MCS '%s' failed.  Error code = %d, '%s'",
-		sync_count, mcs->record->name,
-		xia_status, mxi_handel_strerror(xia_status) );
-	}
-#endif
 
 	MX_DEBUG(-2,("%s: xyzzy, trigger_mode = %lu",fname, mcs->trigger_mode));
 
-	if ( mcs->trigger_mode == MXF_DEV_EXTERNAL_TRIGGER ) {
-	    switch( handel->pixel_advance_mode ) {
-	    case MXF_HANDEL_ADV_GATE_MODE:
-	    case MXF_HANDEL_ADV_SYNC_MODE:
-			MX_DEBUG(-2,("%s: xyzzy, pixel_advance_mode = %f",
-			fname, pixel_advance_mode));
+	switch( handel->pixel_advance_mode ) {
+	case MXF_HANDEL_ADV_GATE_MODE:
+	case MXF_HANDEL_ADV_SYNC_MODE:
+		MX_DEBUG(-2,("%s: xyzzy, pixel_advance_mode = %f",
+				fname, pixel_advance_mode));
 
 		MX_XIA_SYNC( xiaSetAcquisitionValues(-1, "pixel_advance_mode",
 							&pixel_advance_mode ));
@@ -516,48 +566,21 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 			xia_status, mxi_handel_strerror(xia_status) );
 		}
 		break;
-	    default:
-		break;
-	    }
-	}
-
-	/* Turn on mapping mode. */
-
-	switch( handel->mapping_mode ) {
-	case MXF_HANDEL_MAP_MCA_MODE:
-		mapping_mode = handel->mapping_mode;
-		break;
-	case MXF_HANDEL_MAP_NORMAL_MODE:
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"Normal mode (0) is not supported for XIA MCS '%s'.",
-			mcs->record->name );
-		break;
-	case MXF_HANDEL_MAP_SCA_MODE:
-		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"SCA mode (2) is not yet implemented for XIA MCS '%s'.",
-			mcs->record->name );
-		break;
-	case MXF_HANDEL_MAP_LIST_MODE:
-		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"LIST mode (3) is not yet implemented for XIA MCS '%s'.",
-			mcs->record->name );
-		break;
 	default:
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Mapping mode (%ld) is not supported for XIA MCS '%s'.",
-			handel->mapping_mode, mcs->record->name );
 		break;
 	}
 
-	MX_XIA_SYNC( xiaSetAcquisitionValues( -1,
-				"mapping_mode", &mapping_mode ) );
+	if ( pixel_advance_mode == XIA_MAPPING_CTL_SYNC ) {
+		MX_XIA_SYNC( xiaSetAcquisitionValues(-1,
+					"sync_count", &sync_count ));
 
-	if ( xia_status != XIA_SUCCESS ) {
-		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-		"The attempt to set 'mapping_mode' to %f "
-		"for MCS '%s' failed.  Error code = %d, '%s'",
-		mapping_mode, mcs->record->name,
-		xia_status, mxi_handel_strerror(xia_status) );
+		if ( xia_status != XIA_SUCCESS ) {
+			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+			"The attempt to set 'sync_count' to %f "
+			"for MCS '%s' failed.  Error code = %d, '%s'",
+			sync_count, mcs->record->name,
+			xia_status, mxi_handel_strerror(xia_status) );
+		}
 	}
 
 	/* Apply the settings to all channels. */
@@ -639,7 +662,12 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 
 	/* If we are in external trigger mode, then start the MCS. */
 
-	if ( mcs->trigger_mode == MXF_DEV_EXTERNAL_TRIGGER ) {
+#if 1
+	if (TRUE)
+#else
+	if ( mcs->trigger_mode == MXF_DEV_EXTERNAL_TRIGGER )
+#endif
+	{
 
 		/* Start the MCS. */
 
@@ -660,6 +688,7 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 MX_EXPORT mx_status_type
 mxd_handel_mcs_trigger( MX_MCS *mcs )
 {
+#if 0
 	static const char fname[] = "mxd_handel_mcs_trigger()";
 
 	MX_HANDEL *handel = NULL;
@@ -688,6 +717,9 @@ mxd_handel_mcs_trigger( MX_MCS *mcs )
 	}
 
 	return mx_status;
+#else
+	return MX_SUCCESSFUL_RESULT;
+#endif
 }
 
 MX_EXPORT mx_status_type

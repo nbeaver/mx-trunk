@@ -504,7 +504,7 @@ mxi_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *thread_args )
 
 	/* We need to find the MX_HANDEL_MCS that started this sequence. */
 
-	master_mcs = mcs_array[0];	/* FIXME: This may be wrong. */
+	master_mcs = mcs_array[0];   /* FIXME: This is an oversimplfication. */
 
 	/* Loop until all of the requested measurements have been taken. */
 
@@ -516,7 +516,7 @@ mxi_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *thread_args )
 		}
 
 #if MXI_HANDEL_DEBUG_MONITOR_THREAD_BUFFERS
-	MX_DEBUG(-2,("%s: j = %lu, waiting for buffer_a", fname, j ));
+	MX_DEBUG(-2,("%s: j = %lu, WAITING for buffer_a", fname, j ));
 #endif
 		mx_status = mxi_handel_wait_for_buffers_full( handel, 'a' );
 
@@ -526,7 +526,7 @@ mxi_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *thread_args )
 		}
 
 #if MXI_HANDEL_DEBUG_MONITOR_THREAD_BUFFERS
-	MX_DEBUG(-2,("%s: j = %lu, buffer_a available", fname, j ));
+	MX_DEBUG(-2,("%s: j = %lu, buffer_a AVAILABLE", fname, j ));
 #endif
 		mx_status = mxi_handel_read_buffers( handel, j,
 							'a', 4, mcs_array );
@@ -537,7 +537,7 @@ mxi_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *thread_args )
 		}
 
 #if MXI_HANDEL_DEBUG_MONITOR_THREAD_BUFFERS
-	MX_DEBUG(-2,("%s: j = %lu, buffer_a copied", fname, j ));
+	MX_DEBUG(-2,("%s: j = %lu, buffer_a COPIED", fname, j ));
 #endif
 		mx_status = mxi_handel_notify_buffers_read( handel, 'a' );
 
@@ -547,7 +547,7 @@ mxi_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *thread_args )
 		}
 
 #if MXI_HANDEL_DEBUG_MONITOR_THREAD
-		MX_DEBUG(-2,("%s: Handel '%s' measurement %ld complete.",
+		MX_DEBUG(-2,("%s: Handel '%s' MEASUREMENT %ld COMPLETE.",
 			fname, handel->record->name, j ));
 #endif
 		j++;
@@ -557,7 +557,7 @@ mxi_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *thread_args )
 		}
 
 #if MXI_HANDEL_DEBUG_MONITOR_THREAD_BUFFERS
-	MX_DEBUG(-2,("%s: j = %lu, waiting for buffer_b", fname, j ));
+	MX_DEBUG(-2,("%s: j = %lu, WAITING for buffer_b", fname, j ));
 #endif
 		mx_status = mxi_handel_wait_for_buffers_full( handel, 'b' );
 
@@ -567,7 +567,7 @@ mxi_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *thread_args )
 		}
 
 #if MXI_HANDEL_DEBUG_MONITOR_THREAD_BUFFERS
-	MX_DEBUG(-2,("%s: j = %lu, buffer_b available", fname, j ));
+	MX_DEBUG(-2,("%s: j = %lu, buffer_b AVAILABLE", fname, j ));
 #endif
 		mx_status = mxi_handel_read_buffers( handel, j,
 			       				'b', 4, mcs_array );
@@ -578,7 +578,7 @@ mxi_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *thread_args )
 		}
 
 #if MXI_HANDEL_DEBUG_MONITOR_THREAD_BUFFERS
-	MX_DEBUG(-2,("%s: j = %lu, buffer_b copied", fname, j ));
+	MX_DEBUG(-2,("%s: j = %lu, buffer_b COPIED", fname, j ));
 #endif
 		mx_status = mxi_handel_notify_buffers_read( handel, 'b' );
 
@@ -588,9 +588,10 @@ mxi_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *thread_args )
 		}
 
 #if MXI_HANDEL_DEBUG_MONITOR_THREAD
-		MX_DEBUG(-2,("%s: Handel '%s' measurement %ld complete.",
+		MX_DEBUG(-2,("%s: Handel '%s' MEASUREMENT %ld COMPLETE.",
 			fname, handel->record->name, j ));
 #endif
+		j++;
 	}
 
 	MX_XIA_SYNC( xiaStopRun(-1) );
@@ -2598,7 +2599,7 @@ mxi_handel_process_function( void *record_ptr,
 
 #if MXI_HANDEL_DEBUG_MAPPING_PIXEL_NEXT
 			MX_DEBUG(-2,
-			("%s: Writing to 'mapping_pixel_next' for record '%s'.",
+			("%s: WRITING TO 'mapping_pixel_next' for record '%s'.",
 				fname, handel->record->name ));
 #endif
 			ignored = 0;
