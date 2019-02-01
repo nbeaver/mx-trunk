@@ -255,7 +255,7 @@ mxd_eiger_open( MX_RECORD *record )
 
 	MX_AREA_DETECTOR *ad = NULL;
 	MX_EIGER *eiger = NULL;
-	char command_url[80];
+	char command_url[200];
 	char response[1000];
 	mx_status_type mx_status;
 

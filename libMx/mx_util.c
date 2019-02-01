@@ -49,6 +49,7 @@
 #include "mx_record.h"
 #include "mx_signal_alloc.h"
 #include "mx_atomic.h"
+#include "mx_json.h"
 
 /*-------------------------------------------------------------------------*/
 

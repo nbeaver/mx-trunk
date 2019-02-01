@@ -2,7 +2,7 @@
 # tools/Makefile.cygwin
 #
 
-all:  ../libMx/mx_private_version.h mx_config xdr_hyper.o
+all:  ../libMx/mx_private_version.h mx_config xdr_hyper.o cJSON.o
 
 include ../libMx/Makefile.version
 
@@ -29,6 +29,9 @@ mx_config: version/src/mx_config.c ../libMx/mx_private_version.h
 xdr_hyper.o: xdr/src/xdr_hyper.c xdr/src/xdr.h xdr/src/xdr_hyper.h
 	gcc -c $(CFLAGS) -I../libMx -DOS_CYGWIN \
 		-D__MX_LIBRARY__ xdr/src/xdr_hyper.c
+
+cJSON.o: cJSON/cJSON.c cJSON/cJSON.h
+	gcc -c $(CFLAGS) -I../libMx -DOS_CYGWIN -D__MX_LIBRARY__ cJSON/cJSON.c
 
 mx_clean:
 	-rm *.o *.exe mx_private_version mx_config
