@@ -21,11 +21,21 @@
 extern "C" {
 #endif
 
+#if defined(OS_WIN32)
+#  define __WINDOWS__
+#  if defined(__MX_LIBRARY__)
+#    define CJSON_EXPORT_SYMBOLS
+#  else
+#    define CJSON_IMPORT_SYMBOLS
+#  endif
+#endif
+
 #if defined(__MX_LIBRARY__)
 #  include "../tools/cJSON/cJSON.h"
 #else
 #  include "cJSON.h"
 #endif
+
 
 /*---*/
 

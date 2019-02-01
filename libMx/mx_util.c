@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2017 Illinois Institute of Technology
+ * Copyright 1999-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -217,6 +217,12 @@ mx_initialize_runtime( void )
 	/* Initialize atomic operations (if they need it). */
 
 	mx_atomic_initialize();
+
+	/* Initialize JSON support. */
+
+#if !defined(OS_WIN32)
+	mx_json_initialize();
+#endif
 
 	/* We are done, so return to the caller. */
 

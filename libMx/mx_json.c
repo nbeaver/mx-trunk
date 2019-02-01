@@ -24,8 +24,23 @@ MX_EXPORT mx_status_type
 mx_json_initialize( void )
 {
 
-#if defined(OS_WIN32)
-#  error We must redirect cJSON malloc, free to the mx_win32 versions.
+#if 0 && defined(OS_WIN32)
+	{
+		static const char fname[] = "mx_json_initialize()";
+
+		MX_DEBUG(-2,("%s: Initializing cJSON hooks.", fname));
+
+		/* We want cJSON to use the same heap as MX. */
+
+		cJSON_Hooks hooks;
+
+		hooks.malloc_fn = mx_win32_malloc;
+		hooks.free_fn = mx_win32_free;
+
+		cJSON_InitHooks( &hooks );
+
+		MX_DEBUG(-2,("%s: cJSON hooks initialized.", fname));
+	}
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
