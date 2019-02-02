@@ -24,15 +24,15 @@ MX_EXPORT mx_status_type
 mx_json_initialize( void )
 {
 
-#if 0 && defined(OS_WIN32)
+#if defined(OS_WIN32)
 	{
 		static const char fname[] = "mx_json_initialize()";
+
+		cJSON_Hooks hooks;
 
 		MX_DEBUG(-2,("%s: Initializing cJSON hooks.", fname));
 
 		/* We want cJSON to use the same heap as MX. */
-
-		cJSON_Hooks hooks;
 
 		hooks.malloc_fn = mx_win32_malloc;
 		hooks.free_fn = mx_win32_free;
