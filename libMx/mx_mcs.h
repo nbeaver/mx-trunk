@@ -26,6 +26,8 @@
 extern "C" {
 #endif
 
+#define MXU_MCS_EXTENDED_STATUS_STRING_LENGTH	40
+
 typedef struct {
 	MX_RECORD *record; /* Pointer to the MX_RECORD structure that points
 			    * to this MCS.
@@ -53,7 +55,10 @@ typedef struct {
 	mx_bool_type stop;
 	mx_bool_type clear;
 	mx_bool_type busy;
+	long last_measurement_number;
+	long total_num_measurements;
 	unsigned long status;
+	char extended_status[ MXU_MCS_EXTENDED_STATUS_STRING_LENGTH + 1 ];
 
 	long counting_mode;
 	long trigger_mode;
@@ -102,24 +107,27 @@ typedef struct {
 #define MXLV_MCS_STOP				1010
 #define MXLV_MCS_CLEAR				1011
 #define MXLV_MCS_BUSY				1012
-#define MXLV_MCS_STATUS				1013
-#define MXLV_MCS_COUNTING_MODE			1014
-#define MXLV_MCS_TRIGGER_MODE			1015
-#define MXLV_MCS_MEASUREMENT_TIME		1016
-#define MXLV_MCS_MEASUREMENT_COUNTS		1017
-#define MXLV_MCS_CURRENT_NUM_SCALERS		1018
-#define MXLV_MCS_CURRENT_NUM_MEASUREMENTS	1019
-#define MXLV_MCS_MEASUREMENT_NUMBER		1020
-#define MXLV_MCS_READOUT_PREFERENCE		1021
-#define MXLV_MCS_SCALER_INDEX			1022
-#define MXLV_MCS_MEASUREMENT_INDEX		1023
-#define MXLV_MCS_DARK_CURRENT			1024
-#define MXLV_MCS_DARK_CURRENT_ARRAY		1025
-#define MXLV_MCS_SCALER_DATA			1026
-#define MXLV_MCS_MEASUREMENT_DATA		1027
-#define MXLV_MCS_SCALER_MEASUREMENT		1028
-#define MXLV_MCS_TIMER_DATA			1029
-#define MXLV_MCS_CLEAR_DEADBAND			1030
+#define MXLV_MCS_LAST_MEASUREMENT_NUMBER	1013
+#define MXLV_MCS_TOTAL_NUM_MEASUREMENTS		1014
+#define MXLV_MCS_STATUS				1015
+#define MXLV_MCS_EXTENDED_STATUS		1016
+#define MXLV_MCS_COUNTING_MODE			1017
+#define MXLV_MCS_TRIGGER_MODE			1018
+#define MXLV_MCS_MEASUREMENT_TIME		1019
+#define MXLV_MCS_MEASUREMENT_COUNTS		1020
+#define MXLV_MCS_CURRENT_NUM_SCALERS		1021
+#define MXLV_MCS_CURRENT_NUM_MEASUREMENTS	1022
+#define MXLV_MCS_MEASUREMENT_NUMBER		1023
+#define MXLV_MCS_READOUT_PREFERENCE		1024
+#define MXLV_MCS_SCALER_INDEX			1025
+#define MXLV_MCS_MEASUREMENT_INDEX		1026
+#define MXLV_MCS_DARK_CURRENT			1027
+#define MXLV_MCS_DARK_CURRENT_ARRAY		1028
+#define MXLV_MCS_SCALER_DATA			1029
+#define MXLV_MCS_MEASUREMENT_DATA		1030
+#define MXLV_MCS_SCALER_MEASUREMENT		1031
+#define MXLV_MCS_TIMER_DATA			1032
+#define MXLV_MCS_CLEAR_DEADBAND			1033
 
 #define MX_MCS_STANDARD_FIELDS \
   {MXLV_MCS_MAXIMUM_NUM_SCALERS, -1, "maximum_num_scalers",\
@@ -186,9 +194,24 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, busy), \
 	{0}, NULL, MXFF_POLL}, \
   \
+  {MXLV_MCS_LAST_MEASUREMENT_NUMBER, -1, "last_measurement_number", \
+		MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, last_measurement_number), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_MCS_TOTAL_NUM_MEASUREMENTS, -1, "total_num_measurements", \
+		MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, total_num_measurements), \
+	{0}, NULL, 0}, \
+  \
   {MXLV_MCS_STATUS, -1, "status", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, status), \
 	{0}, NULL, MXFF_POLL}, \
+  \
+  {MXLV_MCS_EXTENDED_STATUS, -1, "extended_status", MXFT_STRING, \
+			NULL, 1, {MXU_MCS_EXTENDED_STATUS_STRING_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, extended_status), \
+	{sizeof(char)}, NULL, 0}, \
   \
   {MXLV_MCS_COUNTING_MODE, -1, "counting_mode", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, counting_mode), \
@@ -294,6 +317,9 @@ typedef struct {
 	mx_status_type ( *read_timer ) ( MX_MCS * );
 	mx_status_type ( *get_parameter ) ( MX_MCS *mcs );
 	mx_status_type ( *set_parameter ) ( MX_MCS *mcs );
+	mx_status_type ( *get_last_measurement_number ) ( MX_MCS *mcs );
+	mx_status_type ( *get_total_num_measurements ) ( MX_MCS *mcs );
+	mx_status_type ( *get_extended_status ) ( MX_MCS *mcs );
 } MX_MCS_FUNCTION_LIST;
 
 MX_API mx_status_type mx_mcs_get_pointers( MX_RECORD *mcs_record,
