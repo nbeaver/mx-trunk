@@ -105,6 +105,8 @@ hdet2theta      device motor soft_motor "" "" 0 0 -100000000 100000000 0 -1 -1 0
 hth2th          device motor theta_2theta "" "" 0.626 0 -1e+09 1e+09 0 -1 -1 1 0 deg htheta hdelta 0x0
 q               device motor q_motor "" "" 0.10880874 0 -100000 100000 0 -1 -1 1 0 A-1 hdelta lambda 0.01745329251994330
 #
+dis             device motor disabled_motor "" "" 700 0 -100000000 100000000 0 -1 -1 0.001 0 deg
+#
 # tangent_arm example.
 #   moving_motor_record (= tangent_motor) is the motor that actually moves.
 #   angle_offset_record (= angle_offset) could be a motor rather than
