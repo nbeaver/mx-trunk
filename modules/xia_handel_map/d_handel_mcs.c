@@ -449,13 +449,15 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 	/* Tell Handel to choose the number of pixels per buffer on its own. */
 
 	num_map_pixels_per_buffer = -1.0;
-#else
+#elif 0
 	/* FIXME: Setting num_map_pixels_per_buffer to 1.0 should make things
 	 * easier to debug, but it is probably the slowest way possible to
 	 * handle the acquisition of data.
 	 */
 
 	num_map_pixels_per_buffer = 1.0;
+#else
+	num_map_pixels_per_buffer = handel_mcs->num_measurements_per_buffer;
 #endif
 
 	MX_XIA_SYNC( xiaSetAcquisitionValues(-1, "num_map_pixels_per_buffer",
@@ -688,11 +690,10 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 MX_EXPORT mx_status_type
 mxd_handel_mcs_trigger( MX_MCS *mcs )
 {
-#if 0
 	static const char fname[] = "mxd_handel_mcs_trigger()";
 
 	MX_HANDEL *handel = NULL;
-	int xia_status;
+	int xia_status, ignored;
 	mx_status_type mx_status;
 
 	mx_status = mxd_handel_mcs_get_pointers( mcs, NULL,
@@ -703,9 +704,12 @@ mxd_handel_mcs_trigger( MX_MCS *mcs )
 
 	if ( mcs->trigger_mode == MXF_DEV_INTERNAL_TRIGGER ) {
 
-		/* Start the MCS. */
+		/* Manually advance to the next measurement ("pixel"). */
 
-		MX_XIA_SYNC( xiaStartRun( -1, 0 ) );
+		ignored = 0;
+
+		MX_XIA_SYNC( xiaBoardOperation( 0,
+				"mapping_pixel_next", (void *) &ignored ) );
 
 		if ( xia_status != XIA_SUCCESS ) {
 			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
@@ -717,9 +721,6 @@ mxd_handel_mcs_trigger( MX_MCS *mcs )
 	}
 
 	return mx_status;
-#else
-	return MX_SUCCESSFUL_RESULT;
-#endif
 }
 
 MX_EXPORT mx_status_type

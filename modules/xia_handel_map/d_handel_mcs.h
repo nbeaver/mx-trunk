@@ -24,6 +24,7 @@ typedef struct {
 
 	MX_RECORD *mca_record;
 	unsigned long handel_mcs_flags;
+	long num_measurements_per_buffer;
 
 	unsigned long buffer_length;
 	uint16_t *buffer_a;
@@ -68,6 +69,11 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_handel_mcs_rfield_def_ptr;
   \
   {-1, -1, "handel_mcs_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_HANDEL_MCS, handel_mcs_flags), \
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {-1, -1, "num_measurements_per_buffer", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_HANDEL_MCS, num_measurements_per_buffer), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }
 
 #endif /* __D_HANDEL_MCS_H__ */
