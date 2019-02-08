@@ -4,6 +4,7 @@
 
 all: ../libMx/mx_private_version.h smvspatial.o \
 			unix/src/editline/libedit.a \
+			cJSON.o \
 			mx_config
 
 include ../libMx/Makefile.version
@@ -61,4 +62,7 @@ smvspatial.o: xgen/smvspatial.c
 
 unix/src/editline/libedit.a:
 	( cd unix/src/editline ; $(EDITLINE_MAKECMD) )
+
+cJSON.o: cJSON/cJSON.c cJSON/cJSON.h
+	$(CC) -c -D__MX_LIBRARY__ cJSON/cJSON.c
 
