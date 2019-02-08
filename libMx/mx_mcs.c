@@ -548,64 +548,30 @@ mx_mcs_is_busy( MX_RECORD *mcs_record, mx_bool_type *busy )
 {
 	static const char fname[] = "mx_mcs_is_busy()";
 
-	MX_MCS *mcs;
-	MX_MCS_FUNCTION_LIST *function_list;
-	mx_status_type ( *busy_fn ) ( MX_MCS * );
-	mx_status_type ( *status_fn ) ( MX_MCS * );
+	MX_MCS *mcs = NULL;
+	unsigned long status_flags;
 	mx_status_type mx_status;
 
-	mx_status = mx_mcs_get_pointers( mcs_record,
-					&mcs, &function_list, fname );
+	mx_status = mx_mcs_get_pointers( mcs_record, &mcs, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	busy_fn = function_list->busy;
+	mx_status = mx_mcs_get_status( mcs_record, &status_flags );
 
-	if ( busy_fn != NULL ) {
-		mx_status = (*busy_fn)( mcs );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		if ( mcs->busy ) {
-			mcs->status = 0x1;
-		} else {
-			mcs->status = 0x0;
-		}
-	} else {
-		status_fn = function_list->status;
-
-		if ( status_fn != NULL ) {
-			mx_status = (*status_fn)( mcs );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			if ( mcs->status ) {
-				mcs->busy = TRUE;
-			} else {
-				mcs->busy = FALSE;
-			}
-		} else {
-			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-			"Neither the 'busy' nor the 'status' methods are "
-			"implemented for the '%s' driver of MCS '%s'.",
-				mx_get_driver_name( mcs_record ),
-				mcs_record->name );
-		}
-	}
-
-	if ( busy != NULL ) {
+	if ( busy != (mx_bool_type *) NULL ) {
 		*busy = mcs->busy;
-	}
-
-	if ( mcs->busy ) {
-		mcs->new_data_available = TRUE;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/* mx_mcs_get_last_measurement_number */
+
+/* mx_mcs_get_total_num_measurements */
 
 MX_EXPORT mx_status_type
 mx_mcs_get_status( MX_RECORD *mcs_record, unsigned long *mcs_status )
@@ -615,7 +581,8 @@ mx_mcs_get_status( MX_RECORD *mcs_record, unsigned long *mcs_status )
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *busy_fn ) ( MX_MCS * );
-	mx_status_type ( *status_fn ) ( MX_MCS * );
+	mx_status_type ( *get_status_fn ) ( MX_MCS * );
+	mx_status_type ( *get_extended_status_fn ) ( MX_MCS * );
 	mx_status_type mx_status;
 
 	mx_status = mx_mcs_get_pointers( mcs_record,
@@ -624,52 +591,69 @@ mx_mcs_get_status( MX_RECORD *mcs_record, unsigned long *mcs_status )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	status_fn = function_list->status;
+	mcs->status = 0;
 
-	if ( status_fn != NULL ) {
-		mx_status = (*status_fn)( mcs );
+	busy_fn = function_list->busy;
+	get_status_fn = function_list->get_status;
+	get_extended_status_fn = function_list->get_extended_status;
+
+	if ( get_status_fn != NULL ) {
+		mx_status = (*get_status_fn)( mcs );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		if ( mcs->status ) {
+		if ( mcs->status & MXSF_MCS_IS_BUSY ) {
+			mcs->busy = TRUE;
+		} else {
+			mcs->busy = FALSE;
+		}
+	} else
+	if ( busy_fn != NULL ) {
+		mx_status = (*busy_fn)( mcs );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( mcs->busy ) {
+			mcs->status |= MXSF_MCS_IS_BUSY;
+		} else {
+			mcs->status &= (~MXSF_MCS_IS_BUSY);
+		}
+	} else 
+	if ( get_extended_status_fn != NULL ) {
+		mx_status = (*get_extended_status_fn)( mcs );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( mcs->status & MXSF_MCS_IS_BUSY ) {
 			mcs->busy = TRUE;
 		} else {
 			mcs->busy = FALSE;
 		}
 	} else {
-		busy_fn = function_list->busy;
-
-		if ( busy_fn != NULL ) {
-			mx_status = (*busy_fn)( mcs );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			if ( mcs->busy ) {
-				mcs->status = 0x1;
-			} else {
-				mcs->status = 0x0;
-			}
-		} else {
-			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-			"Neither the 'busy' nor the 'status' methods are "
-			"implemented for the '%s' driver of MCS '%s'.",
-				mx_get_driver_name( mcs_record ),
-				mcs_record->name );
-		}
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"The 'busy', 'status', and 'extended_status' functions are "
+		"not implemented for the '%s' driver of MCS '%s'.",
+			mx_get_driver_name( mcs_record ),
+			mcs_record->name );
 	}
 
 	if ( mcs_status != NULL ) {
 		*mcs_status = mcs->status;
 	}
 
-	if ( mcs->status ) {
+	if ( mcs->status & MXSF_MCS_IS_BUSY ) {
 		mcs->new_data_available = TRUE;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/* mx_mcs_get_extended_status */
+
+/* mx_mcs_get_current_num_measurements */
 
 MX_EXPORT mx_status_type
 mx_mcs_read_all( MX_RECORD *mcs_record,

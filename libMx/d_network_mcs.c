@@ -44,7 +44,7 @@ MX_MCS_FUNCTION_LIST mxd_network_mcs_mcs_function_list = {
 	mxd_network_mcs_trigger,
 	mxd_network_mcs_stop,
 	mxd_network_mcs_clear,
-	mxd_network_mcs_busy,
+	NULL,
 	mxd_network_mcs_status,
 	mxd_network_mcs_read_all,
 	mxd_network_mcs_read_scaler,
@@ -576,41 +576,13 @@ mxd_network_mcs_clear( MX_MCS *mcs )
 }
 
 MX_EXPORT mx_status_type
-mxd_network_mcs_busy( MX_MCS *mcs )
-{
-	static const char fname[] = "mxd_network_mcs_busy()";
-
-	MX_NETWORK_MCS *network_mcs = NULL;
-	mx_bool_type busy;
-	mx_status_type mx_status;
-
-	mx_status = mxd_network_mcs_get_pointers( mcs, &network_mcs, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_get( &(network_mcs->busy_nf), MXFT_BOOL, &busy );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	if ( busy ) {
-		mcs->busy = TRUE;
-		mcs->status = 0x1;
-	} else {
-		mcs->busy = FALSE;
-		mcs->status = 0x0;
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_network_mcs_status( MX_MCS *mcs )
 {
 	static const char fname[] = "mxd_network_mcs_status()";
 
 	MX_NETWORK_MCS *network_mcs = NULL;
+	MX_NETWORK_SERVER *network_server = NULL;
+	mx_bool_type mcs_is_busy;
 	unsigned long mcs_status;
 	mx_status_type mx_status;
 
@@ -619,17 +591,49 @@ mxd_network_mcs_status( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_get( &(network_mcs->status_nf), MXFT_HEX, &mcs_status );
+	network_server = (MX_NETWORK_SERVER *)
+			network_mcs->server_record->record_class_struct;
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( network_server == (MX_NETWORK_SERVER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_NETWORK_SERVER pointer for the MX server record '%s' "
+		"used by record '%s' is NULL.",
+			network_mcs->server_record->name,
+			mcs->record->name );
+	}
 
-	mcs->status = mcs_status;
+	if ( network_server->remote_mx_version < 2001005L ) {
+		/* Before MX 2.1.5, call the old 'busy' field. */
 
-	if ( mcs_status ) {
-		mcs->busy = TRUE;
+		mx_status = mx_get( &(network_mcs->busy_nf),
+						MXFT_BOOL, &mcs_is_busy );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mcs->busy = mcs_is_busy;
+
+		if ( mcs->busy ) {
+			mcs->status = MXSF_MCS_IS_BUSY;
+		} else {
+			mcs->status = 0;
+		}
 	} else {
-		mcs->busy = FALSE;
+		/* Starting with 2.1.5, call the 'status' field. */
+
+		mx_status = mx_get( &(network_mcs->status_nf),
+						MXFT_HEX, &mcs_status );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mcs->status = mcs_status;
+
+		if ( mcs_status & MXSF_MCS_IS_BUSY ) {
+			mcs->busy = TRUE;
+		} else {
+			mcs->busy = FALSE;
+		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;

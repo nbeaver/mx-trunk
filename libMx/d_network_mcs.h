@@ -79,7 +79,6 @@ MX_API mx_status_type mxd_network_mcs_arm( MX_MCS *mcs );
 MX_API mx_status_type mxd_network_mcs_trigger( MX_MCS *mcs );
 MX_API mx_status_type mxd_network_mcs_stop( MX_MCS *mcs );
 MX_API mx_status_type mxd_network_mcs_clear( MX_MCS *mcs );
-MX_API mx_status_type mxd_network_mcs_busy( MX_MCS *mcs );
 MX_API mx_status_type mxd_network_mcs_status( MX_MCS *mcs );
 MX_API mx_status_type mxd_network_mcs_read_all( MX_MCS *mcs );
 MX_API mx_status_type mxd_network_mcs_read_scaler( MX_MCS *mcs );

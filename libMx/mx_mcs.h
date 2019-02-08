@@ -91,6 +91,14 @@ typedef struct {
 	MX_CLOCK_TICK next_clear_tick;
 } MX_MCS;
 
+/*---*/
+
+/* Flag bits for the 'status' field. */
+
+#define MXSF_MCS_IS_BUSY		0x1
+
+/*---*/
+
 #define MXF_MCS_PREFER_READ_SCALER	1
 #define MXF_MCS_PREFER_READ_MEASUREMENT	2
 #define MXF_MCS_PREFER_READ_ALL		3
@@ -309,7 +317,7 @@ typedef struct {
 	mx_status_type ( *stop ) ( MX_MCS *mcs );
 	mx_status_type ( *clear ) ( MX_MCS *mcs );
 	mx_status_type ( *busy ) ( MX_MCS *mcs );
-	mx_status_type ( *status ) ( MX_MCS *mcs );
+	mx_status_type ( *get_status ) ( MX_MCS *mcs );
 	mx_status_type ( *read_all ) ( MX_MCS *mcs );
 	mx_status_type ( *read_scaler ) ( MX_MCS *mcs );
 	mx_status_type ( *read_measurement ) ( MX_MCS *mcs );
@@ -346,8 +354,23 @@ MX_API mx_status_type mx_mcs_clear( MX_RECORD *mcs_record );
 MX_API mx_status_type mx_mcs_is_busy( MX_RECORD *mcs_record,
 					mx_bool_type *busy );
 
+MX_API mx_status_type mx_mcs_get_last_measurement_number( MX_RECORD *mcs_record,
+					long *last_measurement_number );
+
+MX_API mx_status_type mx_mcs_get_total_num_measurements( MX_RECORD *mcs_record,
+						long *total_num_measurements );
+
 MX_API mx_status_type mx_mcs_get_status( MX_RECORD *mcs_record,
 					unsigned long *mcs_status );
+
+MX_API mx_status_type mx_mcs_get_extended_status( MX_RECORD *mcs_record,
+					long *last_measurement_number,
+					long *total_num_measurements,
+					unsigned long *mcs_status );
+
+MX_API mx_status_type mx_mcs_get_current_num_measurements(
+					MX_RECORD *mcs_record,
+					long *current_num_measurements );
 
 MX_API mx_status_type mx_mcs_read_all( MX_RECORD *mcs_record,
 					unsigned long *num_scalers,
