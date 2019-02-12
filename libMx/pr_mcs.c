@@ -55,6 +55,7 @@ mx_setup_mcs_process_functions( MX_RECORD *record )
 		case MXLV_MCS_DARK_CURRENT_ARRAY:
 		case MXLV_MCS_EXTERNAL_NEXT_MEASUREMENT:
 		case MXLV_MCS_EXTERNAL_PRESCALE:
+		case MXLV_MCS_LAST_MEASUREMENT_NUMBER:
 		case MXLV_MCS_MEASUREMENT_COUNTS:
 		case MXLV_MCS_MEASUREMENT_DATA:
 		case MXLV_MCS_MEASUREMENT_INDEX:
@@ -66,6 +67,7 @@ mx_setup_mcs_process_functions( MX_RECORD *record )
 		case MXLV_MCS_STATUS:
 		case MXLV_MCS_STOP:
 		case MXLV_MCS_TIMER_DATA:
+		case MXLV_MCS_TOTAL_NUM_MEASUREMENTS:
 		case MXLV_MCS_TRIGGER:
 		case MXLV_MCS_TRIGGER_MODE:
 			record_field->process_function
@@ -153,6 +155,14 @@ mx_mcs_process_function( void *record_ptr,
 			break;
 		case MXLV_MCS_TIMER_DATA:
 			mx_status = mx_mcs_read_timer( record, NULL, NULL );
+			break;
+		case MXLV_MCS_LAST_MEASUREMENT_NUMBER:
+			mx_status = mx_mcs_get_last_measurement_number(
+								record, NULL );
+			break;
+		case MXLV_MCS_TOTAL_NUM_MEASUREMENTS:
+			mx_status = mx_mcs_get_total_num_measurements(
+								record, NULL );
 			break;
 		default:
 			MX_DEBUG( 1,(

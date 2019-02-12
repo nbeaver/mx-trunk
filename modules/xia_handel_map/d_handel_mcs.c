@@ -354,7 +354,7 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 	double pixel_advance_mode, gate_master, sync_master, sync_count;
 	unsigned long old_buffer_length;
 	int xia_status, ignored;
-	int32_t last_pixel_number, total_num_pixels_at_start;
+	int32_t total_num_pixels_at_start;
 	mx_status_type mx_status;
 
 	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs,
@@ -641,14 +641,13 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 
 	/* Before creating the monitor thread, we initialize some counters. */
 
-	last_pixel_number = -1;
-	mx_atomic_write32( &(handel->last_pixel_number), &last_pixel_number );
+	mx_atomic_write32( &(handel->last_pixel_number), -1L );
 
 	total_num_pixels_at_start =
 		mx_atomic_read32( &(handel->total_num_pixels) );
 
 	mx_atomic_write32( &(handel->total_num_pixels_at_start),
-						&total_num_pixels_at_start );
+						total_num_pixels_at_start );
 
 #if 1
 	MX_DEBUG(-2,("%s: last_pixel_number = %d, total_num_pixels = %d, "
@@ -916,6 +915,9 @@ mxd_handel_mcs_get_last_measurement_number( MX_MCS *mcs )
 
 	mcs->last_measurement_number = last_pixel_number;
 
+	MX_DEBUG(-2,("%s: mcs->last_measurement_number = %ld",
+		fname, mcs->last_measurement_number));
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -939,6 +941,9 @@ mxd_handel_mcs_get_total_num_measurements( MX_MCS *mcs )
 	total_num_pixels = mx_atomic_read32( &(handel->total_num_pixels) );
 
 	mcs->total_num_measurements = total_num_pixels;
+
+	MX_DEBUG(-2,("%s: mcs->total_num_measurements = %ld",
+		fname, mcs->total_num_measurements));
 
 	return MX_SUCCESSFUL_RESULT;
 }
