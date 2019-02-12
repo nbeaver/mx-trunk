@@ -29,14 +29,6 @@ typedef struct {
 	unsigned long buffer_length;
 	uint16_t *buffer_a;
 	uint16_t *buffer_b;
-
-	/* mcs_sequence_is_running should only be accessed 
-	 * via atomic operations like mx_atomic_read32(),
-	 * since it may be accessed by both the mcs monitor
-	 * thread and the main thread.
-	 */
-
-	uint32_t mcs_sequence_is_running;
 } MX_HANDEL_MCS;
 
 /* Define all of the interface functions. */
@@ -55,6 +47,8 @@ MX_API mx_status_type mxd_handel_mcs_clear( MX_MCS *mcs );
 MX_API mx_status_type mxd_handel_mcs_busy( MX_MCS *mcs );
 MX_API mx_status_type mxd_handel_mcs_get_parameter( MX_MCS *mcs );
 MX_API mx_status_type mxd_handel_mcs_set_parameter( MX_MCS *mcs );
+MX_API mx_status_type mxd_handel_mcs_get_last_measurement_number( MX_MCS *mcs );
+MX_API mx_status_type mxd_handel_mcs_get_total_num_measurements( MX_MCS *mcs );
 
 extern MX_RECORD_FUNCTION_LIST mxd_handel_mcs_record_function_list;
 extern MX_MCS_FUNCTION_LIST mxd_handel_mcs_mcs_function_list;

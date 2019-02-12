@@ -112,6 +112,16 @@ typedef struct {
 	MX_MUTEX *mutex;
 
 	MX_THREAD *monitor_thread;
+
+	/* The following int32_t variables should only be accessed via
+	 * atomic operations like mx_atomic_read32(), since they may be
+	 * accessed by both the mcs monitor thread and the main thread.
+	 */
+
+	int32_t last_pixel_number;
+	int32_t total_num_pixels;
+
+	int32_t total_num_pixels_at_start;
 } MX_HANDEL;
 
 /* WARNING: The following macro _EXPECTS_ that the variables 'handel'

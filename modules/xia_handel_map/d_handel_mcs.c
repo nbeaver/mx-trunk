@@ -67,7 +67,9 @@ MX_MCS_FUNCTION_LIST mxd_handel_mcs_mcs_function_list = {
 	NULL,
 	NULL,
 	mxd_handel_mcs_get_parameter,
-	mxd_handel_mcs_set_parameter
+	mxd_handel_mcs_set_parameter,
+	mxd_handel_mcs_get_last_measurement_number,
+	mxd_handel_mcs_get_total_num_measurements
 };
 
 MX_RECORD_FIELD_DEFAULTS mxd_handel_mcs_record_field_defaults[] = {
@@ -234,8 +236,6 @@ mxd_handel_mcs_create_record_structures( MX_RECORD *record )
 
 	handel_mcs->record = record;
 
-	handel_mcs->mcs_sequence_is_running = FALSE;
-
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -274,6 +274,7 @@ mxd_handel_mcs_open( MX_RECORD *record )
 	MX_MCA *mca = NULL;
 	MX_HANDEL_MCA *handel_mca = NULL;
 	MX_HANDEL *handel = NULL;
+	int32_t last_pixel_number, zero_pixels;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -327,6 +328,17 @@ mxd_handel_mcs_open( MX_RECORD *record )
 
 	mcs->trigger_mode = MXF_DEV_EXTERNAL_TRIGGER;
 
+	/* Initialize atomic counter variables. */
+
+	last_pixel_number = -1;
+	mx_atomic_write32( &(handel->last_pixel_number), &last_pixel_number );
+
+	zero_pixels = 0;
+	mx_atomic_write32( &(handel->total_num_pixels), &zero_pixels );
+
+	zero_pixels = 0;
+	mx_atomic_write32( &(handel->total_num_pixels_at_start), &zero_pixels );
+
 #if 1
 	/* Some test defaults. */
 
@@ -354,6 +366,7 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 	double pixel_advance_mode, gate_master, sync_master, sync_count;
 	unsigned long old_buffer_length;
 	int xia_status, ignored;
+	int32_t last_pixel_number, total_num_pixels_at_start;
 	mx_status_type mx_status;
 
 	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs,
@@ -445,20 +458,8 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 	 * then you cannot read out anything from the buffer until
 	 * _ALL_ of the pixels have been acquired.
 	 */
-#if 0
-	/* Tell Handel to choose the number of pixels per buffer on its own. */
 
-	num_map_pixels_per_buffer = -1.0;
-#elif 0
-	/* FIXME: Setting num_map_pixels_per_buffer to 1.0 should make things
-	 * easier to debug, but it is probably the slowest way possible to
-	 * handle the acquisition of data.
-	 */
-
-	num_map_pixels_per_buffer = 1.0;
-#else
 	num_map_pixels_per_buffer = handel_mcs->num_measurements_per_buffer;
-#endif
 
 	MX_XIA_SYNC( xiaSetAcquisitionValues(-1, "num_map_pixels_per_buffer",
 					(void *) &num_map_pixels_per_buffer ));
@@ -648,6 +649,18 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 		}
 	}
 
+	/*----*/
+
+	/* Before creating the monitor thread, we initialize some counters. */
+
+	last_pixel_number = -1;
+	mx_atomic_write32( &(handel->last_pixel_number), &last_pixel_number );
+
+	total_num_pixels_at_start =
+		mx_atomic_read32( &(handel->total_num_pixels) );
+
+	mx_atomic_write32( &(handel->total_num_pixels_at_start),
+						&total_num_pixels_at_start );
 	/*----*/
 
 	/* Create a thread that handles reading out 'buffer_a' and
@@ -882,6 +895,54 @@ mxd_handel_mcs_set_parameter( MX_MCS *mcs )
 		break;
 	}
 	MX_DEBUG( 2,("%s complete.", fname));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_handel_mcs_get_last_measurement_number( MX_MCS *mcs )
+{
+	static const char fname[] =
+		"mxd_handel_mcs_get_last_measurement_number()";
+
+	MX_HANDEL_MCS *handel_mcs = NULL;
+	MX_HANDEL *handel = NULL;
+	int32_t last_pixel_number;
+	mx_status_type mx_status;
+
+	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs,
+					NULL, NULL, &handel, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	last_pixel_number = mx_atomic_read32( &(handel->last_pixel_number) );
+
+	mcs->last_measurement_number = last_pixel_number;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_handel_mcs_get_total_num_measurements( MX_MCS *mcs )
+{
+	static const char fname[] =
+		"mxd_handel_mcs_get_total_num_measurements()";
+
+	MX_HANDEL_MCS *handel_mcs = NULL;
+	MX_HANDEL *handel = NULL;
+	int32_t total_num_pixels;
+	mx_status_type mx_status;
+
+	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs,
+					NULL, NULL, &handel, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	total_num_pixels = mx_atomic_read32( &(handel->total_num_pixels) );
+
+	mcs->total_num_measurements = total_num_pixels;
 
 	return MX_SUCCESSFUL_RESULT;
 }

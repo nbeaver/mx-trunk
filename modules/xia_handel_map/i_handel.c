@@ -552,6 +552,10 @@ mxi_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *thread_args )
 #endif
 		j++;
 
+		mx_atomic_increment32( &(handel->last_pixel_number) );
+
+		mx_atomic_increment32( &(handel->total_num_pixels) );
+
 		if ( j >= master_mcs->current_num_measurements ) {
 			break;		/* Exit the while() loop. */
 		}
@@ -592,6 +596,10 @@ mxi_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *thread_args )
 			fname, handel->record->name, j ));
 #endif
 		j++;
+
+		mx_atomic_increment32( &(handel->last_pixel_number) );
+
+		mx_atomic_increment32( &(handel->total_num_pixels) );
 	}
 
 	MX_XIA_SYNC( xiaStopRun(-1) );
