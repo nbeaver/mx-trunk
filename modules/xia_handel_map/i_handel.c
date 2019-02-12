@@ -1073,6 +1073,7 @@ mxi_handel_open( MX_RECORD *record )
 	void *void_ptr;
 	long dimension_array[2];
 	size_t size_array[2];
+	int32_t last_pixel_number, zero_pixels;
 	mx_status_type mx_status;
 
 #if MX_IGNORE_XIA_NULL_STRING
@@ -1305,6 +1306,27 @@ mxi_handel_open( MX_RECORD *record )
 	}
 
 	handel->use_module_statistics_2 = TRUE;
+
+	/* Initialize atomic counter variables. */
+
+	mx_breakpoint();
+
+	last_pixel_number = -1;
+	mx_atomic_write32( &(handel->last_pixel_number), &last_pixel_number );
+
+	zero_pixels = 0;
+	mx_atomic_write32( &(handel->total_num_pixels), &zero_pixels );
+
+	zero_pixels = 0;
+	mx_atomic_write32( &(handel->total_num_pixels_at_start), &zero_pixels );
+
+#if 1
+	MX_DEBUG(-2,("%s: last_pixel_number = %d, total_num_pixels = %d, "
+	"total_num_pixels_at_start = %d",
+		fname, (int) handel->last_pixel_number,
+		(int) handel->total_num_pixels,
+		(int) handel->total_num_pixels_at_start ));
+#endif
 
 #if MXI_HANDEL_DEBUG_TIMING
 	MX_HRT_END( measurement );

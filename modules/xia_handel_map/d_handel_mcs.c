@@ -274,7 +274,6 @@ mxd_handel_mcs_open( MX_RECORD *record )
 	MX_MCA *mca = NULL;
 	MX_HANDEL_MCA *handel_mca = NULL;
 	MX_HANDEL *handel = NULL;
-	int32_t last_pixel_number, zero_pixels;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -327,17 +326,6 @@ mxd_handel_mcs_open( MX_RECORD *record )
 	/* Default to external trigger. */
 
 	mcs->trigger_mode = MXF_DEV_EXTERNAL_TRIGGER;
-
-	/* Initialize atomic counter variables. */
-
-	last_pixel_number = -1;
-	mx_atomic_write32( &(handel->last_pixel_number), &last_pixel_number );
-
-	zero_pixels = 0;
-	mx_atomic_write32( &(handel->total_num_pixels), &zero_pixels );
-
-	zero_pixels = 0;
-	mx_atomic_write32( &(handel->total_num_pixels_at_start), &zero_pixels );
 
 #if 1
 	/* Some test defaults. */
@@ -661,6 +649,14 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 
 	mx_atomic_write32( &(handel->total_num_pixels_at_start),
 						&total_num_pixels_at_start );
+
+#if 1
+	MX_DEBUG(-2,("%s: last_pixel_number = %d, total_num_pixels = %d, "
+	"total_num_pixels_at_start = %d",
+		fname, (int) handel->last_pixel_number,
+		(int) handel->total_num_pixels,
+		(int) handel->total_num_pixels_at_start ));
+#endif
 	/*----*/
 
 	/* Create a thread that handles reading out 'buffer_a' and
