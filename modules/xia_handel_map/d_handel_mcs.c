@@ -31,6 +31,7 @@
 #include "mx_measurement.h"
 #include "mx_mutex.h"
 #include "mx_thread.h"
+#include "mx_atomic.h"
 #include "mx_mca.h"
 #include "mx_mcs.h"
 
