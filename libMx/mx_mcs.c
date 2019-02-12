@@ -569,20 +569,118 @@ mx_mcs_is_busy( MX_RECORD *mcs_record, mx_bool_type *busy )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/* mx_mcs_get_last_measurement_number */
+MX_EXPORT mx_status_type
+mx_mcs_get_last_measurement_number( MX_RECORD *mcs_record,
+				long *last_measurement_number )
+{
+	static const char fname[] = "mx_mcs_get_last_measurement_number()";
 
-/* mx_mcs_get_total_num_measurements */
+	MX_MCS *mcs = NULL;
+	MX_MCS_FUNCTION_LIST *function_list = NULL;
+	mx_status_type ( *get_last_measurement_number_fn ) ( MX_MCS * ) = NULL;
+	mx_status_type ( *get_extended_status_fn ) ( MX_MCS * ) = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mx_mcs_get_pointers( mcs_record,
+					&mcs, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mcs->last_measurement_number = -1;
+
+	get_last_measurement_number_fn =
+		function_list->get_last_measurement_number;
+	get_extended_status_fn = function_list->get_extended_status;
+
+	if ( get_last_measurement_number_fn != NULL ) {
+		mx_status = (*get_last_measurement_number_fn)( mcs );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	} else
+	if ( get_extended_status_fn != NULL ) {
+		mx_status = (*get_extended_status_fn)( mcs );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	} else {
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"The 'last_measurement_number' and 'extended_status' "
+		"functions are not implemented for the '%s' driver "
+		"of MCS '%s'.",
+			mx_get_driver_name( mcs_record ),
+			mcs_record->name );
+	}
+
+	if ( last_measurement_number != (long *) NULL ) {
+		*last_measurement_number = mcs->last_measurement_number;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_mcs_get_total_num_measurements( MX_RECORD *mcs_record,
+				long *total_num_measurements )
+{
+	static const char fname[] = "mx_mcs_get_total_num_measurements()";
+
+	MX_MCS *mcs = NULL;
+	MX_MCS_FUNCTION_LIST *function_list = NULL;
+	mx_status_type ( *get_total_num_measurements_fn ) ( MX_MCS * ) = NULL;
+	mx_status_type ( *get_extended_status_fn ) ( MX_MCS * ) = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mx_mcs_get_pointers( mcs_record,
+					&mcs, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mcs->total_num_measurements = -1;
+
+	get_total_num_measurements_fn =
+			function_list->get_total_num_measurements;
+	get_extended_status_fn = function_list->get_extended_status;
+
+	if ( get_total_num_measurements_fn != NULL ) {
+		mx_status = (*get_total_num_measurements_fn)( mcs );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	} else
+	if ( get_extended_status_fn != NULL ) {
+		mx_status = (*get_extended_status_fn)( mcs );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	} else {
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"The 'total_num_measurements' and 'extended_status' "
+		"functions are not implemented for the '%s' driver "
+		"of MCS '%s'.",
+			mx_get_driver_name( mcs_record ),
+			mcs_record->name );
+	}
+
+	if ( total_num_measurements != (long *) NULL ) {
+		*total_num_measurements = mcs->total_num_measurements;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
 
 MX_EXPORT mx_status_type
 mx_mcs_get_status( MX_RECORD *mcs_record, unsigned long *mcs_status )
 {
 	static const char fname[] = "mx_mcs_get_status()";
 
-	MX_MCS *mcs;
-	MX_MCS_FUNCTION_LIST *function_list;
-	mx_status_type ( *busy_fn ) ( MX_MCS * );
-	mx_status_type ( *get_status_fn ) ( MX_MCS * );
-	mx_status_type ( *get_extended_status_fn ) ( MX_MCS * );
+	MX_MCS *mcs = NULL;
+	MX_MCS_FUNCTION_LIST *function_list = NULL;
+	mx_status_type ( *busy_fn ) ( MX_MCS * ) = NULL;
+	mx_status_type ( *get_status_fn ) ( MX_MCS * ) = NULL;
+	mx_status_type ( *get_extended_status_fn ) ( MX_MCS * ) = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mx_mcs_get_pointers( mcs_record,
