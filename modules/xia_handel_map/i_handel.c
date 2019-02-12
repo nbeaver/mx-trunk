@@ -467,12 +467,14 @@ mxi_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *thread_args )
 	num_mcs = handel->num_mcas;
 
 	if ( num_mcs > MXI_HANDEL_CHANNELS_PER_MODULE ) {
-		handel->monitor_thread = NULL;
-
-		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"This version of the MX 'handel' driver only handles "
-		"up to %d MCAs for MCS quick scanning.",
+		mx_warning( "The detector connected to XIA record '%s' "
+		"has %ld MCAs, but this alpha-test version of MX MCS emulation "
+		"only supports the first %d channels.",
+			handel->record->name,
+			handel->num_mcas,
 			MXI_HANDEL_CHANNELS_PER_MODULE );
+
+		num_mcs = MXI_HANDEL_CHANNELS_PER_MODULE;
 	}
 
 #if 0
