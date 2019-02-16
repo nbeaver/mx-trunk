@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2017 Illinois Institute of Technology
+ * Copyright 2017-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -371,6 +371,9 @@ mxd_amptek_dp5_mca_read( MX_MCA *mca )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	memset( amptek_dp5_mca->raw_mca_spectrum, 0,
+		sizeof( amptek_dp5_mca->raw_mca_spectrum ) );
 
 	/* Read out the spectrum into the 24-bit array called
 	 * 'amptek_dp5_mca->raw_mca_spectrum' and then copy that
