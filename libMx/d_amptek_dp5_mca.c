@@ -366,6 +366,11 @@ mxd_amptek_dp5_mca_read( MX_MCA *mca )
 	long response_pid1, response_pid2;
 	mx_status_type mx_status;
 
+#if 1
+	unsigned long low_val, mid_val, high_val;
+	unsigned long channel_value;
+#endif
+
 	mx_status = mxd_amptek_dp5_mca_get_pointers( mca,
 					&amptek_dp5_mca, &amptek_dp5, fname );
 
@@ -404,10 +409,31 @@ mxd_amptek_dp5_mca_read( MX_MCA *mca )
 	for ( i = 0; i < mca->current_num_channels; i++ ) {
 		j = 3 * i;
 
-		channel_array[i] =
-			((unsigned long) raw_mca_spectrum[j])
-			+ ( ((unsigned long) raw_mca_spectrum[j+1]) << 8 )
-			+ ( ((unsigned long) raw_mca_spectrum[j+2]) << 16 );
+		/* We must be careful here to avoid unwanted sign extension. */
+
+		low_val =
+		    ((unsigned long) raw_mca_spectrum[j]) & 0xff;
+		mid_val = 
+		    (((unsigned long) raw_mca_spectrum[j+1]) << 8) & 0xff00;
+		high_val =
+		    (((unsigned long) raw_mca_spectrum[j+2]) << 16) & 0xff0000;
+
+		channel_value = low_val + mid_val + high_val;
+
+#if 0
+		if ( i < 50 ) {
+			MX_DEBUG(-2,("RAW[%lu]     = %#x, %#x, %#x", i,
+				(unsigned char) raw_mca_spectrum[j+2],
+				(unsigned char) raw_mca_spectrum[j+1],
+				(unsigned char) raw_mca_spectrum[j] ));
+			MX_DEBUG(-2,("SHIFTED[%lu] = %#lx, %#lx, %#lx", i,
+				high_val, mid_val, low_val));
+			MX_DEBUG(-2,("RESULT[%lu]  = %#lx, %lu", i,
+				channel_value, channel_value));
+		}
+#endif
+
+		channel_array[i] = channel_value;
 	}
 
 	return mx_status;
