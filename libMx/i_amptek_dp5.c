@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2017 Illinois Institute of Technology
+ * Copyright 2017-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,10 +22,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <errno.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
+#include "mx_cfn.h"
 #include "mx_process.h"
 #include "mx_rs232.h"
 #include "mx_gpib.h"
@@ -64,6 +66,184 @@ static mx_status_type mxi_amptek_dp5_process_function( void *record_ptr,
 						int operation );
 
 /*---*/
+
+static mx_status_type
+mxi_amptek_dp5_load_filename( MX_AMPTEK_DP5 *amptek_dp5, char *load_filename )
+{
+	static const char fname[] = "mxi_amptek_dp5_load_filename[]";
+
+	FILE *load_file = NULL;
+	int saved_errno;
+	char buffer[400];
+	char *status_ptr;
+	mx_status_type mx_status;
+
+	if ( amptek_dp5 == (MX_AMPTEK_DP5 *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_AMPTEK_DP5 pointer passed was NULL." );
+	}
+
+	if ( load_filename == (char *) NULL ) {
+		mx_warning( "No filename to load configuration settings "
+			"from was specified for Amptek DP5 '%s'.",
+			amptek_dp5->record->name );
+	}
+
+	/* Using mx_cfn_fopen() allows MX to automatically look for
+	 * files in the $MXDIR/etc directory without needing to
+	 * specify the full name of the etc directory.  If you want
+	 * to load the configuration file from somewhere else, then
+	 * either specify a path that is relative to the current
+	 * directory or an absolute path.
+	 */
+
+	load_file = mx_cfn_fopen( MX_CFN_CONFIG, load_filename, "r" );
+
+	if ( load_file == (FILE *) NULL ) {
+		saved_errno = errno;
+
+		switch( saved_errno ) {
+		case EACCES:
+			return mx_error( MXE_PERMISSION_DENIED, fname,
+			"MX does not have permission to load configuration "
+			"file '%s' on behalf of Amptek DP5 record '%s'.",
+				load_filename, amptek_dp5->record->name );
+			break;
+		default:
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"The attempt to load configuration file '%s' on "
+			"behalf of Amptek DP5 record '%s' failed with "
+			"errno = %d, error message = '%s'",
+				load_filename, amptek_dp5->record->name,
+				saved_errno, strerror( saved_errno ) );
+			break;
+		}
+	}
+
+	/* Read the configuration file one line at a time until we
+	 * either reach the end or an error occurs.
+	 */
+
+	while (TRUE) {
+		status_ptr = mx_fgets( buffer, sizeof(buffer), load_file );
+
+		if ( status_ptr == (char *) NULL ) {
+			if ( feof( load_file ) ) {
+				/* We have reached the end of the config file,
+				 * so break out of this loop.
+				 */
+				(void) fclose( load_file );
+				break;
+			}
+			if ( ferror( load_file ) ) {
+				/* An error occurred while reading the config
+				 * file, so abort the attempt to read the file.
+				 */
+				(void) fclose( load_file );
+
+				return mx_error( MXE_FILE_IO_ERROR, fname,
+				"An error occurred while reading from "
+				"configuration file '%s' on behalf of "
+				"Amptek DP5 record '%s'.",
+					load_filename,
+					amptek_dp5->record->name );
+			}
+
+			/* We should not be able to get here. */
+
+			(void) fclose( load_file );
+
+			return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"fgets() returned a NULL pointer, but no end-of-file "
+			"or error condition were detected when reading from "
+			"configuration file '%s' on behalf of Amptek DP5 "
+			"record '%s'.  This should not be able to happen, so "
+			"if it does, then report it to the MX developers "
+			"(currently Bill Lavender).",
+				load_filename, amptek_dp5->record->name );
+		}
+
+#if 1
+		MX_DEBUG(-2,("%s: buffer = '%s'", fname, buffer ));
+#endif
+
+		/* If this line starts with a '[' character, then
+		 * this is a section header, which we skip over.
+		 */
+
+		if ( buffer[0] == '[' ) {
+			/* Go back to the start of the while () loop. */
+			continue;
+		}
+
+		/* Otherwise, this line is sent to the Amptek DP5 detector
+		 * as an ASCII command.  At present, we are not checking for
+		 * invalid commands and are relying on the DP5 processor
+		 * to tell us if the command is bad.  We assume that the
+		 * DP5 will not send us a response.
+		 */
+
+		mx_status = mxi_amptek_dp5_ascii_command( amptek_dp5,
+						buffer, NULL, 0, TRUE,
+						amptek_dp5->amptek_dp5_flags );
+
+		switch( mx_status.code ) {
+		case MXE_SUCCESS:
+			break;
+
+		case MXE_ILLEGAL_COMMAND:
+			/* If the command we sent was an unrecognized command,
+			 * then we skip over it and go on to the next command.
+			 */
+
+			mx_warning( "Skipping unrecognized command '%s' for "
+				"Amptek DP5 interface '%s'.",
+				buffer, amptek_dp5->record->name );
+			break;
+
+		case MXE_ILLEGAL_ARGUMENT:
+			/* If the command we sent had a bad parameter value,
+			 * then we skip over it and go on to the next command.
+			 */
+
+			mx_warning( "Skipping command '%s' for Amptek DP5 "
+				"interface '%s' since it has a bad "
+				"parameter value.",
+				buffer, amptek_dp5->record->name );
+			break;
+
+		default:
+			(void) fclose( load_file );
+
+			return mx_status;
+		}
+	}
+
+#if 0
+	/* FIXME: Doing the fclose() causes a SIGABRT by Glibc stating that
+	 * there has been a double free or corruption.  By skipping the
+	 * fclose(), we are creating a memory leak.
+	 */
+
+	(void) fclose( load_file );
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
+static mx_status_type
+mxi_amptek_dp5_save_filename( MX_AMPTEK_DP5 *amptek_dp5, char *save_filename )
+{
+	static const char fname[] = "mxi_amptek_dp5_save_filename[]";
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+	"%s is not yet implemented for Amptek DP5 '%s'.",
+		fname, amptek_dp5->record->name );
+}
+
+/*==================================================================*/
 
 MX_EXPORT mx_status_type
 mxi_amptek_dp5_create_record_structures( MX_RECORD *record )
@@ -294,6 +474,14 @@ mxi_amptek_dp5_open( MX_RECORD *record )
 		mx_status = mxi_amptek_dp5_ascii_command( amptek_dp5,
 						"RESC=Y;", NULL, 0, TRUE,
 						amptek_dp5->amptek_dp5_flags );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	if ( strlen( amptek_dp5->load_filename ) > 0 ) {
+		mx_status = mxi_amptek_dp5_load_filename( amptek_dp5,
+						amptek_dp5->load_filename );
 	}
 
 	return mx_status;
@@ -313,6 +501,8 @@ mxi_amptek_dp5_special_processing_setup( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
+		case MXLV_AMPTEK_DP5_LOAD_FILENAME:
+		case MXLV_AMPTEK_DP5_SAVE_FILENAME:
 		case MXLV_AMPTEK_DP5_GET_CONFIGURATION:
 		case MXLV_AMPTEK_DP5_SET_CONFIGURATION:
 		case MXLV_AMPTEK_DP5_SAVE_CONFIGURATION:
@@ -348,6 +538,8 @@ mxi_amptek_dp5_process_function( void *record_ptr,
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
+		case MXLV_AMPTEK_DP5_LOAD_FILENAME:
+		case MXLV_AMPTEK_DP5_SAVE_FILENAME:
 		case MXLV_AMPTEK_DP5_GET_CONFIGURATION:
 		case MXLV_AMPTEK_DP5_SET_CONFIGURATION:
 		case MXLV_AMPTEK_DP5_SAVE_CONFIGURATION:
@@ -364,6 +556,14 @@ mxi_amptek_dp5_process_function( void *record_ptr,
 		break;
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
+		case MXLV_AMPTEK_DP5_LOAD_FILENAME:
+			mx_status = mxi_amptek_dp5_load_filename( amptek_dp5,
+						amptek_dp5->load_filename );
+			break;
+		case MXLV_AMPTEK_DP5_SAVE_FILENAME:
+			mx_status = mxi_amptek_dp5_save_filename( amptek_dp5,
+						amptek_dp5->save_filename );
+			break;
 		case MXLV_AMPTEK_DP5_GET_CONFIGURATION:
 			mx_status = mxi_amptek_dp5_ascii_command( amptek_dp5,
 					amptek_dp5->get_configuration,
@@ -986,6 +1186,21 @@ mxi_amptek_dp5_raw_command( MX_AMPTEK_DP5 *amptek_dp5,
 		case 0x0:	/* OK */
 		case 0x0C:	/* OK, with Interface Sharing Request. */
 		    break;
+
+		case 0x5:	/* Bad Parameter. */
+
+		    return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		    "The command sent to Amptek DP5 interface '%s' had a "
+		    "bad parameter value.", amptek_dp5->record->name );
+		    break;
+
+		case 0x7:	/* Unrecognized Command. */
+
+		    return mx_error( MXE_ILLEGAL_COMMAND, fname,
+		    "The command sent to Amptek DP5 '%s' was not a "
+		    "valid command.", amptek_dp5->record->name );
+		    break;
+
 		default:
 		    /* Yes, we _are_ nesting switches that use the same switch
 		     * control variable 'response_pid_2'.  It makes it
@@ -1012,7 +1227,7 @@ mxi_amptek_dp5_raw_command( MX_AMPTEK_DP5 *amptek_dp5,
 			strlcpy( errname, "Bad Hex Record", sizeof(errname) );
 			break;
 		    case 0x7:
-			strlcpy( errname, "Unrecognized command",
+			strlcpy( errname, "Unrecognized Command",
 						sizeof(errname) );
 			break;
 		    case 0x8:
@@ -1048,7 +1263,7 @@ mxi_amptek_dp5_raw_command( MX_AMPTEK_DP5 *amptek_dp5,
 			break;
 		    }
 
-		    return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		    return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
 		    "A command sent to Amptek DP5 '%s' resulted in "
 		    "error code (%#lx) '%s'.",
 		    	amptek_dp5->record->name,

@@ -86,6 +86,7 @@ static MX_ERROR_MESSAGE error_message_list[] = {
 { MXE_DATA_WAS_LOST,			"MXE_DATA_WAS_LOST" },
 { MXE_NETWORK_CONNECTION_REFUSED,	"MXE_NETWORK_CONNECTION_REFUSED" },
 { MXE_CALLBACK_IN_PROGRESS,		"MXE_CALLBACK_IN_PROGRESS" },
+{ MXE_ILLEGAL_COMMAND,			"MXE_ILLEGAL_COMMAND" },
 { 0, "" } };
 
 static long num_error_messages = sizeof(error_message_list)

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2017 Illinois Institute of Technology
+ * Copyright 2017-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -83,6 +83,9 @@ typedef struct {
 	char interface_arguments[MXU_AMPTEK_DP5_ARGUMENTS_LENGTH+1];
 	unsigned long amptek_dp5_flags;
 	double timeout;
+	char load_filename[MXU_FILENAME_LENGTH+1];
+
+	char save_filename[MXU_FILENAME_LENGTH+1];
 
 	unsigned long firmware_version;
 	unsigned long fpga_version;
@@ -101,9 +104,11 @@ typedef struct {
 	char save_configuration[MXU_AMPTEK_DP5_MAX_WRITE_PACKET_LENGTH+1];
 } MX_AMPTEK_DP5;
 
-#define MXLV_AMPTEK_DP5_GET_CONFIGURATION		86000
-#define MXLV_AMPTEK_DP5_SET_CONFIGURATION		86001
-#define MXLV_AMPTEK_DP5_SAVE_CONFIGURATION		86002
+#define MXLV_AMPTEK_DP5_LOAD_FILENAME			86001
+#define MXLV_AMPTEK_DP5_SAVE_FILENAME			86002
+#define MXLV_AMPTEK_DP5_GET_CONFIGURATION		86003
+#define MXLV_AMPTEK_DP5_SET_CONFIGURATION		86004
+#define MXLV_AMPTEK_DP5_SAVE_CONFIGURATION		86005
 
 #define MXI_AMPTEK_DP5_STANDARD_FIELDS \
   {-1, -1, "interface_type_name", MXFT_STRING, NULL, \
@@ -125,6 +130,16 @@ typedef struct {
   {-1, -1, "timeout", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_AMPTEK_DP5,timeout), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
+  {MXLV_AMPTEK_DP5_LOAD_FILENAME, -1, "load_filename", MXFT_STRING, NULL, \
+	  					1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_AMPTEK_DP5, load_filename), \
+	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
+  {MXLV_AMPTEK_DP5_SAVE_FILENAME, -1, "save_filename", MXFT_STRING, NULL, \
+	  					1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_AMPTEK_DP5, save_filename), \
+	{sizeof(char)}, NULL, 0}, \
   \
   {-1, -1, "firmware_version", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_AMPTEK_DP5, firmware_version), \
