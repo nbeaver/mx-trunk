@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004, 2007-2008, 2010, 2012-2013, 2017
+ * Copyright 2004, 2007-2008, 2010, 2012-2013, 2017, 2019
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -40,7 +40,7 @@
 MX_RECORD_FUNCTION_LIST mxi_libusb_01_record_function_list = {
 	NULL,
 	mxi_libusb_01_create_record_structures,
-	mxi_libusb_01_finish_record_initialization,
+	mx_usb_finish_record_initialization,
 	mxi_libusb_01_delete_record,
 	NULL,
 	mxi_libusb_01_open,
@@ -74,7 +74,7 @@ MX_RECORD_FIELD_DEFAULTS *mxi_libusb_01_rfield_def_ptr
 /* A private function for the use of the driver. */
 
 static mx_status_type
-mxi_libusb_01_get_pointers( MX_USB *usb,
+mxi_libusb_01_get_pointers( MX_USB *mx_usb,
 			MX_LIBUSB_01 **libusb_01,
 			const char *calling_fname )
 {
@@ -82,7 +82,7 @@ mxi_libusb_01_get_pointers( MX_USB *usb,
 
 	MX_RECORD *libusb_01_record;
 
-	if ( usb == (MX_USB *) NULL ) {
+	if ( mx_usb == (MX_USB *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"The MX_USB pointer passed by '%s' was NULL.",
 			calling_fname );
@@ -94,7 +94,7 @@ mxi_libusb_01_get_pointers( MX_USB *usb,
 			calling_fname );
 	}
 
-	libusb_01_record = usb->record;
+	libusb_01_record = mx_usb->record;
 
 	if ( libusb_01_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -121,42 +121,35 @@ mxi_libusb_01_create_record_structures( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_libusb_01_create_record_structures()";
 
-	MX_USB *usb;
+	MX_USB *mx_usb;
 	MX_LIBUSB_01 *libusb_01;
 
 	/* Allocate memory for the necessary structures. */
 
-	usb = (MX_USB *) malloc( sizeof(MX_USB) );
+	mx_usb = (MX_USB *) malloc( sizeof(MX_USB) );
 
-	if ( usb == NULL ) {
+	if ( mx_usb == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Can't allocate memory for MX_USB structure." );
+		"Cannot allocate memory for MX_USB structure." );
 	}
 
 	libusb_01 = (MX_LIBUSB_01 *) malloc( sizeof(MX_LIBUSB_01) );
 
 	if ( libusb_01 == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Can't allocate memory for MX_LIBUSB_01 structure." );
+		"Cannot allocate memory for MX_LIBUSB_01 structure." );
 	}
 
 	/* Now set up the necessary pointers. */
 
-	record->record_class_struct = usb;
+	record->record_class_struct = mx_usb;
 	record->record_type_struct = libusb_01;
-	record->class_specific_function_list
-			= &mxi_libusb_01_usb_function_list;
+	record->class_specific_function_list = &mxi_libusb_01_usb_function_list;
 
-	usb->record = record;
+	mx_usb->record = record;
 	libusb_01->record = record;
 
 	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_libusb_01_finish_record_initialization( MX_RECORD *record )
-{
-	return mx_usb_finish_record_initialization( record );
 }
 
 MX_EXPORT mx_status_type
@@ -164,7 +157,7 @@ mxi_libusb_01_delete_record( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_libusb_01_delete_record()";
 
-	MX_USB *usb;
+	MX_USB *mx_usb;
 	MX_LIBUSB_01 *libusb_01 = NULL;
 	mx_status_type mx_status;
 
@@ -177,14 +170,14 @@ mxi_libusb_01_delete_record( MX_RECORD *record )
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name));
 #endif
 
-	usb = (MX_USB *) record->record_class_struct;
+	mx_usb = (MX_USB *) record->record_class_struct;
 
-	mx_status = mxi_libusb_01_get_pointers( usb, &libusb_01, fname );
+	mx_status = mxi_libusb_01_get_pointers( mx_usb, &libusb_01, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_delete_handle_table( usb->handle_table );
+	mx_delete_handle_table( mx_usb->handle_table );
 
 
 	mx_status = mx_default_delete_record_handler( record );
@@ -197,7 +190,7 @@ mxi_libusb_01_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_libusb_01_open()";
 
-	MX_USB *usb;
+	MX_USB *mx_usb;
 	MX_LIBUSB_01 *libusb_01 = NULL;
 	mx_status_type mx_status;
 
@@ -210,9 +203,9 @@ mxi_libusb_01_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name));
 #endif
 
-	usb = (MX_USB *) record->record_class_struct;
+	mx_usb = (MX_USB *) record->record_class_struct;
 
-	mx_status = mxi_libusb_01_get_pointers( usb, &libusb_01, fname );
+	mx_status = mxi_libusb_01_get_pointers( mx_usb, &libusb_01, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -223,7 +216,7 @@ mxi_libusb_01_open( MX_RECORD *record )
 
 	/* Now ask libusb_01 to find all of the devices. */
 
-	mx_status = mxi_libusb_01_enumerate_devices( usb );
+	mx_status = mxi_libusb_01_enumerate_devices( mx_usb );
 
 	return mx_status;
 }
@@ -233,7 +226,7 @@ mxi_libusb_01_close( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_libusb_01_close()";
 
-	MX_USB *usb;
+	MX_USB *mx_usb;
 	MX_LIBUSB_01 *libusb_01 = NULL;
 	mx_status_type mx_status;
 
@@ -246,9 +239,9 @@ mxi_libusb_01_close( MX_RECORD *record )
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name));
 #endif
 
-	usb = (MX_USB *) record->record_class_struct;
+	mx_usb = (MX_USB *) record->record_class_struct;
 
-	mx_status = mxi_libusb_01_get_pointers( usb, &libusb_01, fname );
+	mx_status = mxi_libusb_01_get_pointers( mx_usb, &libusb_01, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -257,7 +250,7 @@ mxi_libusb_01_close( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxi_libusb_01_enumerate_devices( MX_USB *usb )
+mxi_libusb_01_enumerate_devices( MX_USB *mx_usb )
 {
 	static const char fname[] = "mxi_libusb_01_enumerate_devices()";
 
@@ -265,13 +258,14 @@ mxi_libusb_01_enumerate_devices( MX_USB *usb )
 	int num_bus_changes, num_device_changes;
 	mx_status_type mx_status;
 
-	mx_status = mxi_libusb_01_get_pointers( usb, &libusb_01, fname );
+	mx_status = mxi_libusb_01_get_pointers( mx_usb, &libusb_01, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 #if MXI_LIBUSB_01_DEBUG
-	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, usb->record->name));
+	MX_DEBUG(-2,("%s invoked for record '%s'.",
+			fname, mx_usb->record->name));
 #endif
 
 	num_bus_changes = usb_find_busses();
@@ -332,12 +326,13 @@ mxi_libusb_01_enumerate_devices( MX_USB *usb )
 }
 
 static mx_status_type
-mxi_libusb_01_setup_device_structures( MX_USB *usb, MX_USB_DEVICE **device,
+mxi_libusb_01_setup_device_structures( MX_USB *mx_usb,
+				MX_USB_DEVICE **mx_device,
 				struct usb_device *libusb_01_device )
 {
 	static const char fname[] = "mxi_libusb_01_setup_device_structures()";
 
-	MX_USB_DEVICE *usb_device;
+	MX_USB_DEVICE *mx_usb_device;
 	usb_dev_handle *libusb_01_device_handle;
 	int usb_status;
 
@@ -347,22 +342,22 @@ mxi_libusb_01_setup_device_structures( MX_USB *usb, MX_USB_DEVICE **device,
 
 	/* Allocate memory for an MX_USB_DEVICE structure. */
 
-	usb_device = (MX_USB_DEVICE *) malloc( sizeof( MX_USB_DEVICE ) );
+	mx_usb_device = (MX_USB_DEVICE *) malloc( sizeof( MX_USB_DEVICE ) );
 
-	if ( usb_device == NULL ) {
+	if ( mx_usb_device == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Cannot allocate memory for a new MX_USB_DEVICE structure." );
 	}
 
 	/* Initialize the MX_USB_DEVICE structure. */
 
-	usb_device->usb = usb;
-	usb_device->vendor_id = libusb_01_device->descriptor.idVendor;
-	usb_device->product_id = libusb_01_device->descriptor.idProduct;
+	mx_usb_device->usb = mx_usb;
+	mx_usb_device->vendor_id = libusb_01_device->descriptor.idVendor;
+	mx_usb_device->product_id = libusb_01_device->descriptor.idProduct;
 
 #if MXI_LIBUSB_01_DEBUG
 	MX_DEBUG(-2,("%s: setting up device (vendor %#lx, product %#lx)",
-		fname, usb_device->vendor_id, usb_device->product_id));
+		fname, mx_usb_device->vendor_id, mx_usb_device->product_id));
 #endif
 
 	/* Open a libusb_01 handle for the device. */
@@ -377,16 +372,16 @@ mxi_libusb_01_setup_device_structures( MX_USB *usb, MX_USB_DEVICE **device,
 
 	/* Save the handle in the generic MX_USB_DEVICE structure. */
 
-	usb_device->device_data = libusb_01_device_handle;
+	mx_usb_device->device_data = libusb_01_device_handle;
 
-	*device = usb_device;
+	*mx_device = mx_usb_device;
 
 	/* Set the configuration. */
 
-	usb_device->configuration_number = usb->configuration_number;
+	mx_usb_device->configuration_number = mx_usb->configuration_number;
 
 	usb_status = usb_set_configuration( libusb_01_device_handle,
-					usb_device->configuration_number );
+					mx_usb_device->configuration_number );
 
 	switch( usb_status ) {
 	case 0:
@@ -395,35 +390,35 @@ mxi_libusb_01_setup_device_structures( MX_USB *usb, MX_USB_DEVICE **device,
 		return mx_error( MXE_PERMISSION_DENIED, fname,
 			"You do not have permission to set configuration %d "
 			"for device (%#lx, %#lx) on USB bus '%s'.",
-				usb_device->configuration_number,
-				usb_device->vendor_id,
-				usb_device->product_id,
-				usb_device->usb->record->name );
+				mx_usb_device->configuration_number,
+				mx_usb_device->vendor_id,
+				mx_usb_device->product_id,
+				mx_usb_device->usb->record->name );
 		break;
 	default:
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 			"The attempt to set configuration %d for device "
 			"(%#lx, %#lx) on USB bus '%s' failed.  "
 			"USB status = %d, error message = '%s'",
-				usb_device->configuration_number,
-				usb_device->vendor_id,
-				usb_device->product_id,
-				usb_device->usb->record->name,
+				mx_usb_device->configuration_number,
+				mx_usb_device->vendor_id,
+				mx_usb_device->product_id,
+				mx_usb_device->usb->record->name,
 				usb_status, usb_strerror() );
 		break;
 	}
 
 #if MXI_LIBUSB_01_DEBUG
 	MX_DEBUG(-2,("%s: configuration %d set.",
-		fname, usb_device->configuration_number));
+		fname, mx_usb_device->configuration_number));
 #endif
 
 	/* Claim the interface. */
 
-	usb_device->interface_number = usb->interface_number;
+	mx_usb_device->interface_number = mx_usb->interface_number;
 
 	usb_status = usb_claim_interface( libusb_01_device_handle,
-					usb_device->interface_number );
+					mx_usb_device->interface_number );
 
 	switch( usb_status ) {
 	case 0:
@@ -432,36 +427,36 @@ mxi_libusb_01_setup_device_structures( MX_USB *usb, MX_USB_DEVICE **device,
 		return mx_error( MXE_PERMISSION_DENIED, fname,
 			"You do not have permission to claim interface %d "
 			"for device (%#lx, %#lx) on USB bus '%s'.",
-				usb_device->interface_number,
-				usb_device->vendor_id,
-				usb_device->product_id,
-				usb_device->usb->record->name );
+				mx_usb_device->interface_number,
+				mx_usb_device->vendor_id,
+				mx_usb_device->product_id,
+				mx_usb_device->usb->record->name );
 		break;
 	default:
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 			"The attempt to claim interface %d for device "
 			"(%#lx, %#lx) on USB bus '%s' failed.  "
 			"USB status = %d, error message = '%s'",
-				usb_device->interface_number,
-				usb_device->vendor_id,
-				usb_device->product_id,
-				usb_device->usb->record->name,
+				mx_usb_device->interface_number,
+				mx_usb_device->vendor_id,
+				mx_usb_device->product_id,
+				mx_usb_device->usb->record->name,
 				usb_status, usb_strerror() );
 		break;
 	}
 
 #if MXI_LIBUSB_01_DEBUG
 	MX_DEBUG(-2,("%s: interface %d claimed.",
-		fname, usb_device->interface_number));
+		fname, mx_usb_device->interface_number));
 #endif
 
 	/* Select the alternate interface. */
 
-	usb_device->alternate_interface_number =
-				usb->alternate_interface_number;
+	mx_usb_device->alternate_interface_number =
+				mx_usb->alternate_interface_number;
 
 	usb_status = usb_set_altinterface( libusb_01_device_handle,
-				usb_device->alternate_interface_number );
+				mx_usb_device->alternate_interface_number );
 
 	switch( usb_status ) {
 	case 0:
@@ -470,34 +465,34 @@ mxi_libusb_01_setup_device_structures( MX_USB *usb, MX_USB_DEVICE **device,
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"The requested alternate interface number %d for "
 			"device (%#lx, %#lx) on USB bus '%s' is not valid.",
-				usb_device->alternate_interface_number,
-				usb_device->vendor_id,
-				usb_device->product_id,
-				usb_device->usb->record->name );
+				mx_usb_device->alternate_interface_number,
+				mx_usb_device->vendor_id,
+				mx_usb_device->product_id,
+				mx_usb_device->usb->record->name );
 		break;
 	default:
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 			"The attempt to set alternate interface %d for device "
 			"(%#lx, %#lx) on USB bus '%s' failed.  "
 			"USB status = %d, error message = '%s'",
-				usb_device->alternate_interface_number,
-				usb_device->vendor_id,
-				usb_device->product_id,
-				usb_device->usb->record->name,
+				mx_usb_device->alternate_interface_number,
+				mx_usb_device->vendor_id,
+				mx_usb_device->product_id,
+				mx_usb_device->usb->record->name,
 				usb_status, usb_strerror() );
 		break;
 	}
 
 #if MXI_LIBUSB_01_DEBUG
 	MX_DEBUG(-2,("%s: alternate interface %d set.",
-		fname, usb_device->alternate_interface_number));
+		fname, mx_usb_device->alternate_interface_number));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
-mxi_libusb_01_find_device( MX_USB *usb, MX_USB_DEVICE **usb_device )
+mxi_libusb_01_find_device( MX_USB *mx_usb, MX_USB_DEVICE **mx_usb_device )
 {
 	static const char fname[] = "mxi_libusb_01_find_device()";
 
@@ -511,51 +506,52 @@ mxi_libusb_01_find_device( MX_USB *usb, MX_USB_DEVICE **usb_device )
 	char *serial_number;
 	mx_status_type mx_status;
 
-	if ( usb_device == (MX_USB_DEVICE **) NULL ) {
+	if ( mx_usb_device == (MX_USB_DEVICE **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_USB_DEVICE pointer passed was NULL." );
 	}
 
-	mx_status = mxi_libusb_01_get_pointers( usb, &libusb_01, fname );
+	mx_status = mxi_libusb_01_get_pointers( mx_usb, &libusb_01, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 #if MXI_LIBUSB_01_DEBUG
-	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, usb->record->name));
+	MX_DEBUG(-2,("%s invoked for record '%s'.",
+			fname, mx_usb->record->name));
 #endif
 
-	quiet_flag = usb->quiet_flag;
+	quiet_flag = mx_usb->quiet_flag;
 
-	usb->quiet_flag = FALSE;
+	mx_usb->quiet_flag = FALSE;
 
 	num_matching_devices_found = 0;
 
-	switch( usb->find_type ) {
+	switch( mx_usb->find_type ) {
 	case MXF_USB_FIND_TYPE_ORDER:
-		vendor_id = usb->find.by_order.vendor_id;
-		product_id = usb->find.by_order.product_id;
-		order_number = usb->find.by_order.order_number;
+		vendor_id = mx_usb->find.by_order.vendor_id;
+		product_id = mx_usb->find.by_order.product_id;
+		order_number = mx_usb->find.by_order.order_number;
 		serial_number = NULL;
 		product_id_in_use = TRUE;
 		break;
 
 	case MXF_USB_FIND_TYPE_SERIAL_NUMBER:
-		vendor_id = usb->find.by_serial_number.vendor_id;
-		product_id = usb->find.by_serial_number.product_id;
+		vendor_id = mx_usb->find.by_serial_number.vendor_id;
+		product_id = mx_usb->find.by_serial_number.product_id;
 		order_number = -1;
-		serial_number = usb->find.by_serial_number.serial_number;
+		serial_number = mx_usb->find.by_serial_number.serial_number;
 		product_id_in_use = TRUE;
 
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 		    "Device lookup by serial number is not yet implemented "
-		    "for USB bus record '%s'.", usb->record->name );
+		    "for USB bus record '%s'.", mx_usb->record->name );
 		break;
 
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Unsupported device find type %d for USB bus record '%s'.",
-			usb->find_type, usb->record->name );
+			mx_usb->find_type, mx_usb->record->name );
 		break;
 	}
 
@@ -563,7 +559,7 @@ mxi_libusb_01_find_device( MX_USB *usb, MX_USB_DEVICE **usb_device )
 
 	current_bus = libusb_01->usb_busses;
 
-	*usb_device = NULL;
+	*mx_usb_device = NULL;
 
 	while ( current_bus != NULL ) {
 
@@ -589,7 +585,7 @@ mxi_libusb_01_find_device( MX_USB *usb, MX_USB_DEVICE **usb_device )
 		    if ( ( vendor_id == current_device->descriptor.idVendor )
 		      && ( product_id == current_device->descriptor.idProduct ))
 		    {
-			switch( usb->find_type ) {
+			switch( mx_usb->find_type ) {
 			case MXF_USB_FIND_TYPE_ORDER:
 
 #if MXI_LIBUSB_01_DEBUG
@@ -605,8 +601,10 @@ mxi_libusb_01_find_device( MX_USB *usb, MX_USB_DEVICE **usb_device )
 				    MX_DEBUG(-2,("%s: Device found!", fname));
 #endif
 
-				    return mxi_libusb_01_setup_device_structures(
-					    usb, usb_device, current_device );
+				    return
+					mxi_libusb_01_setup_device_structures(
+				    	    mx_usb, mx_usb_device,
+					    current_device );
 			    }
 			    break;
 			case MXF_USB_FIND_TYPE_SERIAL_NUMBER:
@@ -623,7 +621,7 @@ mxi_libusb_01_find_device( MX_USB *usb, MX_USB_DEVICE **usb_device )
 	}
 
 	if ( product_id_in_use ) {
-		if ( usb->find_type == MXF_USB_FIND_TYPE_ORDER ) {
+		if ( mx_usb->find_type == MXF_USB_FIND_TYPE_ORDER ) {
 			if ( quiet_flag ) {
 				mx_error_code = (MXE_NOT_FOUND | MXE_QUIET);
 			} else {
@@ -634,7 +632,7 @@ mxi_libusb_01_find_device( MX_USB *usb, MX_USB_DEVICE **usb_device )
 			"The requested device (vendor %#lx, product %#lx, "
 			"order number %d) for USB record '%s' was not found.",
 				vendor_id, product_id, order_number,
-				usb->record->name);
+				mx_usb->record->name);
 		} else {
 			if ( quiet_flag ) {
 				mx_error_code = (MXE_NOT_FOUND | MXE_QUIET);
@@ -645,7 +643,7 @@ mxi_libusb_01_find_device( MX_USB *usb, MX_USB_DEVICE **usb_device )
 			return mx_error( mx_error_code, fname,
 			"The requested device (vendor %#lx, product %#lx) "
 			"for USB record '%s' was not found.",
-				vendor_id, product_id, usb->record->name );
+				vendor_id, product_id, mx_usb->record->name );
 		}
 	} else {
 		if ( quiet_flag ) {
@@ -656,12 +654,12 @@ mxi_libusb_01_find_device( MX_USB *usb, MX_USB_DEVICE **usb_device )
 
 		return mx_error( mx_error_code, fname,
 		"The requested device for USB record '%s' was not found.",
-			usb->record->name );
+			mx_usb->record->name );
 	}
 }
 
 MX_EXPORT mx_status_type
-mxi_libusb_01_delete_device( MX_USB_DEVICE *usb_device )
+mxi_libusb_01_delete_device( MX_USB_DEVICE *mx_usb_device )
 {
 	static const char fname[] = "mxi_libusb_01_delete_device()";
 
@@ -669,59 +667,60 @@ mxi_libusb_01_delete_device( MX_USB_DEVICE *usb_device )
 	int usb_status;
 	mx_status_type mx_status;
 
-	if ( usb_device == (MX_USB_DEVICE *) NULL ) {
+	if ( mx_usb_device == (MX_USB_DEVICE *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_USB_DEVICE pointer passed was NULL." );
 	}
 
-	mx_status = mxi_libusb_01_get_pointers( usb_device->usb, &libusb_01, fname );
+	mx_status = mxi_libusb_01_get_pointers( mx_usb_device->usb,
+							&libusb_01, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 #if MXI_LIBUSB_01_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname,
-				usb_device->usb->record->name));
+				mx_usb_device->usb->record->name));
 #endif
 
-	if ( usb_device->interface_number >= 0 ) {
+	if ( mx_usb_device->interface_number >= 0 ) {
 		usb_status = usb_release_interface(
-			( usb_dev_handle *) usb_device->device_data,
-			usb_device->interface_number );
+			( usb_dev_handle *) mx_usb_device->device_data,
+			mx_usb_device->interface_number );
 
 		if ( usb_status != 0 ) {
 			mx_status = mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 				"The attempt to release interface %d for "
 				"device (%#lx, %#lx) on USB bus '%s' failed.  "
 				"USB status = %d, error message = '%s'",
-					usb_device->interface_number,
-					usb_device->vendor_id,
-					usb_device->product_id,
-					usb_device->usb->record->name,
+					mx_usb_device->interface_number,
+					mx_usb_device->vendor_id,
+					mx_usb_device->product_id,
+					mx_usb_device->usb->record->name,
 					usb_status, usb_strerror() );
 		}
 	}
 
-	usb_status = usb_close( ( usb_dev_handle *) usb_device->device_data );
+	usb_status = usb_close(( usb_dev_handle *) mx_usb_device->device_data );
 
 	if ( usb_status != 0 ) {
 		mx_status = mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 			"The attempt to close device "
 			"(%#lx, %#lx) on USB bus '%s' failed.  "
 			"USB status = %d, error message = '%s'",
-				usb_device->vendor_id,
-				usb_device->product_id,
-				usb_device->usb->record->name,
+				mx_usb_device->vendor_id,
+				mx_usb_device->product_id,
+				mx_usb_device->usb->record->name,
 				usb_status, usb_strerror() );
 	}
 
-	mx_free( usb_device->device_data );
+	mx_free( mx_usb_device->device_data );
 
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mxi_libusb_01_control_transfer( MX_USB_DEVICE *usb_device,
+mxi_libusb_01_control_transfer( MX_USB_DEVICE *mx_usb_device,
 				int request_type,
 				int request,
 				int value,
@@ -741,19 +740,20 @@ mxi_libusb_01_control_transfer( MX_USB_DEVICE *usb_device,
 	MX_HRT_TIMING measurement;
 #endif
 
-	if ( usb_device == (MX_USB_DEVICE *) NULL ) {
+	if ( mx_usb_device == (MX_USB_DEVICE *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_USB_DEVICE pointer passed was NULL." );
 	}
 
-	mx_status = mxi_libusb_01_get_pointers( usb_device->usb, &libusb_01, fname );
+	mx_status = mxi_libusb_01_get_pointers( mx_usb_device->usb,
+							&libusb_01, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 #if MXI_LIBUSB_01_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s', timeout = %g sec", fname,
-				usb_device->usb->record->name, timeout ));
+				mx_usb_device->usb->record->name, timeout ));
 #endif
 
 #if MXI_LIBUSB_01_DEBUG_TIMING
@@ -761,7 +761,7 @@ mxi_libusb_01_control_transfer( MX_USB_DEVICE *usb_device,
 #endif
 
 	usb_result = usb_control_msg(
-			( usb_dev_handle *) usb_device->device_data,
+			( usb_dev_handle *) mx_usb_device->device_data,
 			request_type, request, value, index_or_offset,
 			transfer_buffer, transfer_buffer_length,
 			mx_round( 1000.0 * timeout ) );
@@ -769,7 +769,7 @@ mxi_libusb_01_control_transfer( MX_USB_DEVICE *usb_device,
 #if MXI_LIBUSB_01_DEBUG_TIMING
 	MX_HRT_END( measurement );
 
-	MX_HRT_RESULTS( measurement, fname, usb_device->usb->record->name );
+	MX_HRT_RESULTS( measurement, fname, mx_usb_device->usb->record->name );
 #endif
 
 	if ( usb_result >= 0 ) {
@@ -781,23 +781,25 @@ mxi_libusb_01_control_transfer( MX_USB_DEVICE *usb_device,
 			"The attempt to send a control message to device "
 			"(%#lx, %#lx) on USB bus '%s' failed.  "
 			"USB status = %d, error message = '%s'",
-				usb_device->vendor_id,
-				usb_device->product_id,
-				usb_device->usb->record->name,
+				mx_usb_device->vendor_id,
+				mx_usb_device->product_id,
+				mx_usb_device->usb->record->name,
 				usb_result, usb_strerror() );
 	}
 
 #if MXI_LIBUSB_01_DEBUG
 	MX_DEBUG(-2,
 	("%s: USB device (%#lx, %#lx), bytes transferred = %d", fname,
-	 	usb_device->vendor_id, usb_device->product_id, usb_result ));
+	 	mx_usb_device->vendor_id,
+		mx_usb_device->product_id,
+		usb_result ));
 #endif
 
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mxi_libusb_01_bulk_read( MX_USB_DEVICE *usb_device,
+mxi_libusb_01_bulk_read( MX_USB_DEVICE *mx_usb_device,
 				int endpoint_number,
 				char *transfer_buffer,
 				int transfer_buffer_length,
@@ -814,19 +816,20 @@ mxi_libusb_01_bulk_read( MX_USB_DEVICE *usb_device,
 	MX_HRT_TIMING measurement;
 #endif
 
-	if ( usb_device == (MX_USB_DEVICE *) NULL ) {
+	if ( mx_usb_device == (MX_USB_DEVICE *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_USB_DEVICE pointer passed was NULL." );
 	}
 
-	mx_status = mxi_libusb_01_get_pointers( usb_device->usb, &libusb_01, fname);
+	mx_status = mxi_libusb_01_get_pointers( mx_usb_device->usb,
+							&libusb_01, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 #if MXI_LIBUSB_01_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s', timeout = %g sec", fname,
-				usb_device->usb->record->name, timeout ));
+				mx_usb_device->usb->record->name, timeout ));
 #endif
 
 #if MXI_LIBUSB_01_DEBUG_TIMING
@@ -834,7 +837,7 @@ mxi_libusb_01_bulk_read( MX_USB_DEVICE *usb_device,
 #endif
 
 	usb_result = usb_bulk_read(
-		( usb_dev_handle *) usb_device->device_data,
+		( usb_dev_handle *) mx_usb_device->device_data,
 			endpoint_number,
 			transfer_buffer, transfer_buffer_length,
 			mx_round( 1000.0 * timeout ) );
@@ -842,7 +845,7 @@ mxi_libusb_01_bulk_read( MX_USB_DEVICE *usb_device,
 #if MXI_LIBUSB_01_DEBUG_TIMING
 	MX_HRT_END( measurement );
 
-	MX_HRT_RESULTS( measurement, fname, usb_device->usb->record->name );
+	MX_HRT_RESULTS( measurement, fname, mx_usb_device->usb->record->name );
 #endif
 
 	if ( usb_result >= 0 ) {
@@ -857,16 +860,16 @@ mxi_libusb_01_bulk_read( MX_USB_DEVICE *usb_device,
 			"USB status = %d, error message = '%s'",
 				transfer_buffer_length,
 				endpoint_number,
-				usb_device->vendor_id,
-				usb_device->product_id,
-				usb_device->usb->record->name,
+				mx_usb_device->vendor_id,
+				mx_usb_device->product_id,
+				mx_usb_device->usb->record->name,
 				usb_result, usb_strerror() );
 	}
 
 #if MXI_LIBUSB_01_DEBUG
 	MX_DEBUG(-2,
 	("%s: USB device (%#lx, %#lx), endpoint %#x, bytes read = %d", fname,
-	 	usb_device->vendor_id, usb_device->product_id,
+	 	mx_usb_device->vendor_id, mx_usb_device->product_id,
 		endpoint_number, usb_result ));
 
 	{
@@ -887,7 +890,7 @@ mxi_libusb_01_bulk_read( MX_USB_DEVICE *usb_device,
 }
 
 MX_EXPORT mx_status_type
-mxi_libusb_01_bulk_write( MX_USB_DEVICE *usb_device,
+mxi_libusb_01_bulk_write( MX_USB_DEVICE *mx_usb_device,
 				int endpoint_number,
 				char *transfer_buffer,
 				int transfer_buffer_length,
@@ -904,19 +907,20 @@ mxi_libusb_01_bulk_write( MX_USB_DEVICE *usb_device,
 	MX_HRT_TIMING measurement;
 #endif
 
-	if ( usb_device == (MX_USB_DEVICE *) NULL ) {
+	if ( mx_usb_device == (MX_USB_DEVICE *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_USB_DEVICE pointer passed was NULL." );
 	}
 
-	mx_status = mxi_libusb_01_get_pointers( usb_device->usb, &libusb_01, fname);
+	mx_status = mxi_libusb_01_get_pointers( mx_usb_device->usb,
+							&libusb_01, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 #if MXI_LIBUSB_01_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s', timeout = %g sec", fname,
-				usb_device->usb->record->name, timeout ));
+				mx_usb_device->usb->record->name, timeout ));
 	{
 		int i;
 
@@ -936,7 +940,7 @@ mxi_libusb_01_bulk_write( MX_USB_DEVICE *usb_device,
 #endif
 
 	usb_result = usb_bulk_write(
-		( usb_dev_handle *) usb_device->device_data,
+		( usb_dev_handle *) mx_usb_device->device_data,
 			endpoint_number,
 			transfer_buffer, transfer_buffer_length,
 			mx_round( 1000.0 * timeout ) );
@@ -944,7 +948,7 @@ mxi_libusb_01_bulk_write( MX_USB_DEVICE *usb_device,
 #if MXI_LIBUSB_01_DEBUG_TIMING
 	MX_HRT_END( measurement );
 
-	MX_HRT_RESULTS( measurement, fname, usb_device->usb->record->name );
+	MX_HRT_RESULTS( measurement, fname, mx_usb_device->usb->record->name );
 #endif
 
 	if ( usb_result >= 0 ) {
@@ -959,16 +963,16 @@ mxi_libusb_01_bulk_write( MX_USB_DEVICE *usb_device,
 			"USB status = %d, error message = '%s'",
 				transfer_buffer_length,
 				endpoint_number,
-				usb_device->vendor_id,
-				usb_device->product_id,
-				usb_device->usb->record->name,
+				mx_usb_device->vendor_id,
+				mx_usb_device->product_id,
+				mx_usb_device->usb->record->name,
 				usb_result, usb_strerror() );
 	}
 
 #if MXI_LIBUSB_01_DEBUG
 	MX_DEBUG(-2,
 	("%s: USB device (%#lx, %#lx), endpoint %#x, bytes written = %d", fname,
-	 	usb_device->vendor_id, usb_device->product_id,
+	 	mx_usb_device->vendor_id, mx_usb_device->product_id,
 		endpoint_number, usb_result ));
 #endif
 
