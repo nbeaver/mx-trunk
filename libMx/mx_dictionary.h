@@ -27,25 +27,32 @@ extern "C" {
 #define MXU_DICTIONARY_NAME_LENGTH	40
 #define MXU_DICTIONARY_KEY_LENGTH	200
 
-typedef struct {
+struct mx_dictionary_entry_type {
+	struct mx_dictionary_type *dictionary;
+
+	struct mx_dictionary_entry_type *next_dictionary_entry;
+	struct mx_dictionary_entry_type *previous_dictionary_entry;
+
+	char key[MXU_DICTIONARY_KEY_LENGTH+1];
+	void *value;
+
+	void (*destructor)( void * );
+};
+
+struct mx_dictionary_type {
 	char name[MXU_DICTIONARY_NAME_LENGTH+1];
 
-	struct mx_dictionary_element *head_element;
+	unsigned long num_dictionary_entries;
+
+	struct mx_dictionary_entry_type *dictionary_start;
 
 	MX_RECORD *record;
 
 	void *application_ptr;
-} MX_DICTIONARY;
+};
 
-typedef struct mx_dictionary_element {
-	MX_DICTIONARY *dictionary;
-	struct mx_dictionary_element *next;
-	struct mx_dictionary_element *previous;
-
-	char key[MXU_DICTIONARY_KEY_LENGTH+1];
-	void *value;
-} MX_DICTIONARY_ELEMENT;
-
+typedef struct mx_dictionary_entry_type MX_DICTIONARY_ENTRY;
+typedef struct mx_dictionary_type	MX_DICTIONARY;
 
 /*---*/
 
@@ -53,12 +60,30 @@ MX_API mx_status_type mx_dictionary_create( MX_DICTIONARY **new_dictionary,
 						const char *dictionary_name,
 						MX_RECORD *record );
 
-MX_API mx_status_type mx_dictionary_show_dictionary(
-					MX_DICTIONARY *dictionary );
+MX_API void mx_dictionary_destroy( MX_DICTIONARY *dictionary );
 
-MX_API mx_status_type mx_dictionary_read_file( MX_DICTIONARY *dictionary,
-					const char *dictionary_filename );
+MX_API mx_status_type mx_dictionary_add_entry( MX_DICTIONARY *dictionary,
+					MX_DICTIONARY_ENTRY *dictionary_entry );
 
+MX_API mx_status_type mx_dictionary_delete_entry( MX_DICTIONARY *dictionary,
+					MX_DICTIONARY_ENTRY *dictionary_entry );
+
+MX_API mx_status_type mx_dictionary_add_entry_from_description(
+					MX_DICTIONARY *dictionary,
+					char *entry_key,
+					long mx_datatype,
+					long num_dimensions,
+					long *dimension_array,
+					char *entry_description );
+					
+MX_API mx_status_type mx_dictionary_entry_create_from_description(
+					MX_DICTIONARY_ENTRY **dictionary_entry,
+					char *entry_key,
+					long mx_datatype,
+					long num_dimensions,
+					long *dimension_array,
+					char *entry_description );
+					
 #ifdef __cplusplus
 }
 #endif
