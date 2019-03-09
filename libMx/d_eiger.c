@@ -217,8 +217,6 @@ mxd_eiger_get_value( MX_AREA_DETECTOR *ad,
 	long i;
 	mx_status_type mx_status;
 
-	mx_breakpoint();
-
 	if ( dimension == (long *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The dimension pointer passed was NULL for command URL '%s'.",
@@ -264,6 +262,11 @@ mxd_eiger_get_value( MX_AREA_DETECTOR *ad,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	MX_DEBUG(-2,("%s: json->cjson = %p", fname, json->cjson));
+
+	MX_DEBUG(-2,("%s: cJSON_Print( json->cjson ) = '%s'.",
+		fname, cJSON_Print( json->cjson ) ));
+
 	original_cjson_object = json->cjson;
 
 	if ( original_cjson_object == NULL ) {
@@ -271,6 +274,25 @@ mxd_eiger_get_value( MX_AREA_DETECTOR *ad,
 		"The cJSON pointer for MX_JSON object %p is NULL "
 		"for command '%s'.", json, command_url );
 	}
+
+	if ( cJSON_IsObject( original_cjson_object ) 
+	  && ( original_cjson_object->child != NULL ) )
+	{
+		original_cjson_object = original_cjson_object->child;
+
+		MX_DEBUG(-2,("%s: NEW original_cjson_object->type = %d",
+			fname, original_cjson_object->type ));
+	}
+
+	MX_DEBUG(-2,("%s: cJSON_Print(original_cjson_object = %p) is:",
+		fname, original_cjson_object ));
+
+#if 0
+	mx_breakpoint();
+#endif
+
+	cJSON_Print( original_cjson_object );
+
 #if 0
 	if ( original_cjson_object->child != NULL ) {
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -376,15 +398,17 @@ mxd_eiger_get_value( MX_AREA_DETECTOR *ad,
 				original_cjson_type, command_url );
 	}
 
-	/* A string field can be handled immediately. */
+	if ( mx_datatype == MXFT_STRING ) {
 
-	strlcpy( value, mx_string, dimension_ptr[0] );
+	    /* A string field can be handled directly. */
 
-	/* Now walk through the cJSON objects. */
+	    strlcpy( value, mx_string, dimension_ptr[0] );
 
-	current_cjson_object = original_cjson_object;
+	} else {
+	    current_cjson_object = original_cjson_object;
 
-	for ( i = 0; i < dimension_ptr[0]; i++ ) {
+	    for ( i = 0; i < dimension_ptr[0]; i++ )
+	    {
 		switch( mx_datatype ) {
 		case MXFT_CHAR:
 		case MXFT_UCHAR:
@@ -435,6 +459,7 @@ mxd_eiger_get_value( MX_AREA_DETECTOR *ad,
 		}
 
 		current_cjson_object = current_cjson_object->next;
+	    }
 	}
 
 	/* We are done with the original cJSON object, so delete it. */
