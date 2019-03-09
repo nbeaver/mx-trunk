@@ -200,10 +200,24 @@ mxd_eiger_get_value( MX_AREA_DETECTOR *ad,
 	static const char fname[] = "mxd_eiger_get_value()";
 
 	MX_JSON *json = NULL;
+	cJSON *current_cjson_object = NULL;
 	cJSON *original_cjson_object = NULL;
 	int original_cjson_type = -1;
 	char response[1024];
+	long *dimension_ptr = NULL;
+	long dimension_zero[0];
+	char *mx_char_array = NULL;
+	short *mx_short_array = NULL;
+	long *mx_long_array = NULL;
+	float *mx_float_array = NULL;
+	double *mx_double_array = NULL;
+	int64_t *mx_int64_array = NULL;
+	mx_bool_type *mx_bool_array = NULL;
+	char *mx_string = NULL;
+	long i;
 	mx_status_type mx_status;
+
+	mx_breakpoint();
 
 	if ( dimension == (long *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -225,7 +239,11 @@ mxd_eiger_get_value( MX_AREA_DETECTOR *ad,
 
 	if ( num_dimensions == 0 ) {
 		num_dimensions = 1;
-		dimension[0] = 1;
+		dimension_ptr = dimension_zero;
+		dimension_ptr[0] = 1L;
+	} else
+	if ( num_dimensions == 1 ) {
+		dimension_ptr = dimension;
 	} else
 	if ( num_dimensions > 1 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -253,12 +271,14 @@ mxd_eiger_get_value( MX_AREA_DETECTOR *ad,
 		"The cJSON pointer for MX_JSON object %p is NULL "
 		"for command '%s'.", json, command_url );
 	}
+#if 0
 	if ( original_cjson_object->child != NULL ) {
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Multidimensional cJSON objects ( cjson->child != NULL ) "
 		"are not currently supported for command '%s'.",
 			command_url );
 	}
+#endif
 
 	original_cjson_type = original_cjson_object->type;
 
@@ -274,6 +294,8 @@ mxd_eiger_get_value( MX_AREA_DETECTOR *ad,
 			"(%#x) is not a string for command '%s'.",
 				original_cjson_type, command_url );
 		}
+
+		mx_string = value;
 	} else
 	if ( cJSON_IsBool( original_cjson_object ) ) {
 		if ( mx_datatype != MXFT_BOOL ) {
@@ -284,20 +306,33 @@ mxd_eiger_get_value( MX_AREA_DETECTOR *ad,
 			    mx_get_datatype_name_from_datatype( mx_datatype ),
 			    mx_datatype, original_cjson_type, command_url );
 		}
+
+		mx_bool_array = value;
 	} else
 	if ( cJSON_IsNumber( original_cjson_object ) ) {
 		switch( mx_datatype ) {
 		case MXFT_CHAR:
 		case MXFT_UCHAR:
+			mx_char_array = value;
+			break;
 		case MXFT_SHORT:
 		case MXFT_USHORT:
+			mx_short_array = value;
+			break;
 		case MXFT_LONG:
 		case MXFT_ULONG:
-		case MXFT_FLOAT:
-		case MXFT_DOUBLE:
 		case MXFT_HEX:
+			mx_long_array = value;
+			break;
+		case MXFT_FLOAT:
+			mx_float_array = value;
+			break;
+		case MXFT_DOUBLE:
+			mx_double_array = value;
+			break;
 		case MXFT_INT64:
 		case MXFT_UINT64:
+			mx_int64_array = value;
 			break;
 		default:
 			return mx_error( MXE_TYPE_MISMATCH, fname,
@@ -324,9 +359,11 @@ mxd_eiger_get_value( MX_AREA_DETECTOR *ad,
 			"at this time for command '%s'.", command_url );
 	} else
 	if ( cJSON_IsObject( original_cjson_object ) ) {
+#if 0
 		return mx_error( MXE_UNSUPPORTED, fname,
 			"Arrays of cJSON objects are not supported "
 			"at this time for command '%s'.", command_url );
+#endif
 	} else
 	if ( cJSON_IsRaw( original_cjson_object ) ) {
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -338,6 +375,75 @@ mxd_eiger_get_value( MX_AREA_DETECTOR *ad,
 			"type for command '%s'.",
 				original_cjson_type, command_url );
 	}
+
+	/* A string field can be handled immediately. */
+
+	strlcpy( value, mx_string, dimension_ptr[0] );
+
+	/* Now walk through the cJSON objects. */
+
+	current_cjson_object = original_cjson_object;
+
+	for ( i = 0; i < dimension_ptr[0]; i++ ) {
+		switch( mx_datatype ) {
+		case MXFT_CHAR:
+		case MXFT_UCHAR:
+			mx_char_array[i] = current_cjson_object->valueint;
+			break;
+		case MXFT_SHORT:
+		case MXFT_USHORT:
+			mx_short_array[i] = current_cjson_object->valueint;
+			break;
+		case MXFT_LONG:
+		case MXFT_ULONG:
+		case MXFT_HEX:
+			mx_long_array[i] = current_cjson_object->valueint;
+			break;
+		case MXFT_FLOAT:
+			mx_float_array[i] = current_cjson_object->valuedouble;
+			break;
+		case MXFT_DOUBLE:
+			mx_double_array[i] = current_cjson_object->valuedouble;
+			break;
+		case MXFT_INT64:
+		case MXFT_UINT64:
+			mx_int64_array[i] = current_cjson_object->valueint;
+			break;
+		case MXFT_BOOL:
+			if ( cJSON_IsFalse( current_cjson_object ) ) {
+				mx_bool_array[i] = FALSE;
+			} else
+			if ( cJSON_IsTrue( current_cjson_object ) ) {
+				mx_bool_array[i] = TRUE;
+			} else {
+				return mx_error( MXE_UNPARSEABLE_STRING, fname,
+				"The supposed boolean object '%s' was neither "
+				"'false' or 'true' for command '%s'.",
+					current_cjson_object->valuestring,
+					command_url );
+			}
+			break;
+		default:
+			return mx_error( MXE_FUNCTION_FAILED, fname,
+			"Unexpected datatype (%ld) seen while attempting to "
+			"copy a cJSON value '%s' to an MX array "
+			"for command '%s'.",
+				mx_datatype,
+				current_cjson_object->string,
+				command_url );
+			break;
+		}
+
+		current_cjson_object = current_cjson_object->next;
+	}
+
+	/* We are done with the original cJSON object, so delete it. */
+
+	cJSON_Delete( original_cjson_object );
+
+	mx_free( json );
+
+	MX_DEBUG(-2,("%s complete.", fname ));
 
 	return MX_SUCCESSFUL_RESULT;
 }
