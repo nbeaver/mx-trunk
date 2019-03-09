@@ -138,7 +138,6 @@ mxd_eiger_get( MX_AREA_DETECTOR *ad,
 {
 	static const char fname[] = "mxd_eiger_get()";
 
-	MX_JSON *json = NULL;
 	unsigned long http_status_code;
 	char content_type[80];
 	mx_status_type mx_status;
@@ -186,11 +185,159 @@ mxd_eiger_get( MX_AREA_DETECTOR *ad,
 			response );
 	}
 
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mxd_eiger_get_value( MX_AREA_DETECTOR *ad,
+			MX_EIGER *eiger,
+			char *command_url,
+			long mx_datatype,
+			long num_dimensions,
+			long *dimension,
+			void *value )
+{
+	static const char fname[] = "mxd_eiger_get_value()";
+
+	MX_JSON *json = NULL;
+	cJSON *original_cjson_object = NULL;
+	int original_cjson_type = -1;
+	char response[1024];
+	mx_status_type mx_status;
+
+	if ( dimension == (long *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The dimension pointer passed was NULL for command URL '%s'.",
+			command_url );
+	}
+	if ( num_dimensions < 0 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The number of dimensions (%ld) is less than zero for "
+		"command URL '%s'.", num_dimensions, command_url );
+	}
+	if ( value == (void *) NULL ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The value pointer passed for command '%s' was NULL.",
+			command_url );
+	}
+
+	/* Treat a scalar as a 1-dimensional object with only one element. */
+
+	if ( num_dimensions == 0 ) {
+		num_dimensions = 1;
+		dimension[0] = 1;
+	} else
+	if ( num_dimensions > 1 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Objects with dimension (%ld) greater than 1 are not "
+		"currently supported.", num_dimensions );
+	}
+
+	mx_status = mxd_eiger_get( ad, eiger, command_url,
+			response, sizeof(response) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	MX_DEBUG(-2,("%s: EIGER response = '%s'", fname, response ));
-	MX_DEBUG(-2,("%s: FIXME: At this point I have to parse the JSON.",
-		fname ));
 
 	mx_status = mx_json_parse( &json, response);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	original_cjson_object = json->cjson;
+
+	if ( original_cjson_object == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The cJSON pointer for MX_JSON object %p is NULL "
+		"for command '%s'.", json, command_url );
+	}
+	if ( original_cjson_object->child != NULL ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Multidimensional cJSON objects ( cjson->child != NULL ) "
+		"are not currently supported for command '%s'.",
+			command_url );
+	}
+
+	original_cjson_type = original_cjson_object->type;
+
+	/* Regrettably, original_cjson_type is a bitmask and the bitmask
+	 * positions are not officially documented, so we can't just do
+	 * this using a switch statement.
+	 */
+
+	if ( cJSON_IsString( original_cjson_object ) ) {
+		if ( mx_datatype != MXFT_STRING ) {
+			return mx_error( MXE_TYPE_MISMATCH, fname,
+			"MX expected a string value, but the cJSON type "
+			"(%#x) is not a string for command '%s'.",
+				original_cjson_type, command_url );
+		}
+	} else
+	if ( cJSON_IsBool( original_cjson_object ) ) {
+		if ( mx_datatype != MXFT_BOOL ) {
+			return mx_error( MXE_TYPE_MISMATCH, fname,
+			"MX expected a value of type '%s' (%ld), but the "
+			"cJSON object is a cJSON boolean (%d) "
+			"for command '%s'.",
+			    mx_get_datatype_name_from_datatype( mx_datatype ),
+			    mx_datatype, original_cjson_type, command_url );
+		}
+	} else
+	if ( cJSON_IsNumber( original_cjson_object ) ) {
+		switch( mx_datatype ) {
+		case MXFT_CHAR:
+		case MXFT_UCHAR:
+		case MXFT_SHORT:
+		case MXFT_USHORT:
+		case MXFT_LONG:
+		case MXFT_ULONG:
+		case MXFT_FLOAT:
+		case MXFT_DOUBLE:
+		case MXFT_HEX:
+		case MXFT_INT64:
+		case MXFT_UINT64:
+			break;
+		default:
+			return mx_error( MXE_TYPE_MISMATCH, fname,
+			"MX expected a value of type '%s' (%ld), but the "
+			"cJSON object is a cJSON_Number for command '%s'.",
+			    mx_get_datatype_name_from_datatype( mx_datatype ),
+			    mx_datatype, command_url );
+			break;
+		}
+	} else
+	if ( cJSON_IsInvalid( original_cjson_object ) ) {
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+			"The cJSON object returned for command '%s' "
+			"was Invalid.", command_url );
+	} else
+	if ( cJSON_IsNull( original_cjson_object ) ) {
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+			"The cJSON object returned for command '%s' "
+			"was a cJSON Null.", command_url );
+	} else
+	if ( cJSON_IsArray( original_cjson_object ) ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+			"Arrays of cJSON arrays are not supported "
+			"at this time for command '%s'.", command_url );
+	} else
+	if ( cJSON_IsObject( original_cjson_object ) ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+			"Arrays of cJSON objects are not supported "
+			"at this time for command '%s'.", command_url );
+	} else
+	if ( cJSON_IsRaw( original_cjson_object ) ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+			"Arrays of cJSON raw objects are not supported "
+			"at this time for command '%s'.", command_url );
+	} else {
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+			"The cJSON object type (%d) is not a recognized "
+			"type for command '%s'.",
+				original_cjson_type, command_url );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -257,6 +404,7 @@ mxd_eiger_open( MX_RECORD *record )
 	MX_EIGER *eiger = NULL;
 	char command_url[200];
 	char response[1000];
+	long dimension[1];
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -293,8 +441,13 @@ mxd_eiger_open( MX_RECORD *record )
 		"http://%s/detector/api/%s/status/state",
 		eiger->hostname, eiger->simplon_version );
 
-	mx_status = mxd_eiger_get( ad, eiger, command_url,
-					response, sizeof(response) );
+	dimension[0] = sizeof(response);
+
+	mx_status = mxd_eiger_get_value( ad, eiger, command_url,
+					MXFT_STRING, 1, dimension,
+					response );
+
+	if ( mx_status.code != MXE_SUCCESS );
 
 #if MXD_EIGER_DEBUG_OPEN
 	MX_DEBUG(-2,("%s: EIGER '%s' response = '%s'.",
