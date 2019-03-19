@@ -60,7 +60,7 @@ MX_MCA_FUNCTION_LIST mxd_amptek_dp5_mca_mca_function_list = {
 	mxd_amptek_dp5_mca_stop,
 	mxd_amptek_dp5_mca_read,
 	mxd_amptek_dp5_mca_clear,
-	mxd_amptek_dp5_mca_busy,
+	mxd_amptek_dp5_mca_get_status,
 	mxd_amptek_dp5_mca_get_parameter,
 	mxd_amptek_dp5_mca_set_parameter,
 };
@@ -261,7 +261,13 @@ mxd_amptek_dp5_mca_special_processing_setup( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
-		case 0:
+		case MXLV_AMPTEK_DP5_STATUS_DATA:
+		case MXLV_AMPTEK_DP5_FAST_COUNTS:
+		case MXLV_AMPTEK_DP5_SLOW_COUNTS:
+		case MXLV_AMPTEK_DP5_GENERAL_PURPOSE_COUNTER:
+		case MXLV_AMPTEK_DP5_ACCUMULATION_TIME:
+		case MXLV_AMPTEK_DP5_HIGH_VOLTAGE:
+		case MXLV_AMPTEK_DP5_TEMPERATURE:
 			record_field->process_function
 				    = mxd_amptek_dp5_mca_process_function;
 			break;
@@ -465,15 +471,20 @@ mxd_amptek_dp5_mca_clear( MX_MCA *mca )
 	return mx_status;
 }
 
+/* FIXME: mxd_amptek_dp5_get_status() should become an API function as
+ * mx_mca_get_status() or some such.  Other device classes already do this.
+ */
+
 MX_EXPORT mx_status_type
-mxd_amptek_dp5_mca_busy( MX_MCA *mca )
+mxd_amptek_dp5_mca_get_status( MX_MCA *mca )
 {
-	static const char fname[] = "mxd_amptek_dp5_mca_busy()";
+	static const char fname[] = "mxd_amptek_dp5_mca_get_status()";
 
 	MX_AMPTEK_DP5_MCA *amptek_dp5_mca = NULL;
 	MX_AMPTEK_DP5 *amptek_dp5 = NULL;
-	char status_packet[64];
 	uint8_t status_byte_35;
+	char *status_data;
+	unsigned long accumulation_time_msec, real_time_msec;
 	unsigned long flags;
 	mx_status_type mx_status;
 
@@ -485,10 +496,12 @@ mxd_amptek_dp5_mca_busy( MX_MCA *mca )
 
 	/* Send a 'Request Status Packet'. */
 
+	status_data = amptek_dp5_mca->status_data;
+
 	mx_status = mxi_amptek_dp5_binary_command( amptek_dp5, 1, 1,
 						NULL, NULL, NULL, 0,
-						status_packet,
-						sizeof(status_packet),
+						status_data,
+						MXU_AMPTEK_DP5_NUM_STATUS_BYTES,
 						NULL, TRUE );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -498,13 +511,64 @@ mxd_amptek_dp5_mca_busy( MX_MCA *mca )
 
 	if ( flags & MXF_AMPTEK_DP5_MCA_DEBUG_STATUS_PACKET ) {
 		fprintf( stderr, "status[35] = %#x, status[36] = %#x\n",
-			((unsigned int) status_packet[35]) & 0xff,
-			((unsigned int) status_packet[36]) & 0xff );
+			((unsigned int) status_data[35]) & 0xff,
+			((unsigned int) status_data[36]) & 0xff );
 	}
+
+	/* Fast counts (bytes 0 to 3) */
+
+	amptek_dp5_mca->fast_counts = ( status_data[3] << 24 )
+					+ ( status_data[2] << 16 )
+					+ ( status_data[1] << 8 )
+					+ status_data[0]; 
+
+	/* Slow counts (bytes 4 to 7) */
+
+	amptek_dp5_mca->slow_counts = ( status_data[7] << 24 )
+					+ ( status_data[6] << 16 )
+					+ ( status_data[5] << 8 )
+					+ status_data[4]; 
+
+	/* General purpose counter (bytes 8 to 11) */
+
+	amptek_dp5_mca->general_purpose_counter = ( status_data[11] << 24 )
+						+ ( status_data[10] << 16 )
+						+ ( status_data[9] << 8 )
+						+ status_data[8]; 
+
+	/* Accumulation time milliseconds (bytes 12 to 15) */
+
+	accumulation_time_msec = ( status_data[15] << 24 )
+					+ ( status_data[14] << 16 )
+					+ ( status_data[13] << 8 )
+					+ status_data[12]; 
+
+	amptek_dp5_mca->accumulation_time = 0.001 * accumulation_time_msec;
+
+	/* Real time milliseconds (bytes 20 to 23) */
+
+	real_time_msec = ( status_data[23] << 24 )
+			+ ( status_data[22] << 16 )
+			+ ( status_data[21] << 8 )
+			+ status_data[20]; 
+
+	mca->real_time = 0.001 * real_time_msec;
+
+	/* High voltage (bytes 30 to 31) */
+
+	amptek_dp5_mca->high_voltage = 0.5 * ( ( status_data[30] << 8 )
+						+ status_data[31] );
+
+	/* Detector temperature (bytes 32 to 33) */
+
+	amptek_dp5_mca->temperature = 0.5 * ( (( status_data[32] << 8 ) & 0xf)
+						+ status_data[33] );
+
+	/* Update the busy status from byte 35. */
 
 	mca->busy = FALSE;
 
-	status_byte_35 = (uint8_t) status_packet[35];
+	status_byte_35 = (uint8_t) status_data[35];
 
 	switch( mca->preset_type ) {
 	case MXF_MCA_PRESET_LIVE_TIME:
@@ -645,8 +709,8 @@ mxd_amptek_dp5_mca_get_parameter( MX_MCA *mca )
 	case MXLV_MCA_ROI_INTEGRAL:
 		break;
 	case MXLV_MCA_INPUT_COUNT_RATE:
-		break;
 	case MXLV_MCA_OUTPUT_COUNT_RATE:
+		mx_status = mxd_amptek_dp5_mca_get_status( mca );
 		break;
 	default:
 		mx_status = mx_mca_default_get_parameter_handler( mca );
@@ -747,13 +811,16 @@ mxd_amptek_dp5_mca_process_function( void *record_ptr,
 {
 	static const char fname[] = "mxd_amptek_dp5_mca_process_function()";
 
-	MX_RECORD *record;
-	MX_RECORD_FIELD *record_field;
-	MX_AMPTEK_DP5_MCA *amptek_dp5_mca;
+	MX_RECORD *record = NULL;
+	MX_RECORD_FIELD *record_field = NULL;
+	MX_MCA *mca = NULL;
+	MX_AMPTEK_DP5_MCA *amptek_dp5_mca = NULL;
 	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
+
+	mca = (MX_MCA *) record->record_class_struct;
 	amptek_dp5_mca = (MX_AMPTEK_DP5_MCA *) record->record_type_struct;
 
 	MXW_UNUSED( amptek_dp5_mca );
@@ -763,6 +830,15 @@ mxd_amptek_dp5_mca_process_function( void *record_ptr,
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
+		case MXLV_AMPTEK_DP5_STATUS_DATA:
+		case MXLV_AMPTEK_DP5_FAST_COUNTS:
+		case MXLV_AMPTEK_DP5_SLOW_COUNTS:
+		case MXLV_AMPTEK_DP5_GENERAL_PURPOSE_COUNTER:
+		case MXLV_AMPTEK_DP5_ACCUMULATION_TIME:
+		case MXLV_AMPTEK_DP5_HIGH_VOLTAGE:
+		case MXLV_AMPTEK_DP5_TEMPERATURE:
+			mx_status = mxd_amptek_dp5_mca_get_status( mca );
+			break;
 		default:
 			MX_DEBUG( 1,(
 			    "%s: *** Unknown MX_PROCESS_GET label value = %ld",
