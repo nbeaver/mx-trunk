@@ -51,8 +51,10 @@ MX_API mx_status_type mx_json_parse( MX_JSON **json,
 MX_API mx_status_type mx_json_delete( MX_JSON *json );
 
 MX_API mx_status_type mx_json_get_key( MX_JSON *json,
-					long datatype,
-					void *value );
+					char *key_name,
+					long key_datatype,
+					void *key_value,
+					size_t max_key_value_bytes );
 
 /*---*/
 
