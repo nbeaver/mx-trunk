@@ -165,7 +165,7 @@ mx_json_get_key( MX_JSON *json,
 			key_name );
 	}
 
-	if ( json->cjson != (cJSON *) NULL ) {
+	if ( json->cjson == (cJSON *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The cJSON pointer for MX_JSON pointer %p is NULL.", json );
 	}
@@ -298,20 +298,24 @@ mx_json_get_key( MX_JSON *json,
 					key_datatype, key_name );
 				break;
 			}
+
+			/* We have found the key, so return to our caller. */
+
+			return MX_SUCCESSFUL_RESULT;
 		} else {
 			/* Proceed on to the next key. */
 
 			current_cjson_element = current_cjson_element->next;
-		}
 
-		if ( current_cjson_element == (struct cJSON *) NULL ) {
-			/* Oops, there _is_ no next element.  We have
-			 * not succeeded in finding our key.
-			 */
+			if ( current_cjson_element == (struct cJSON *) NULL ) {
+				/* Oops, there _is_ no next element.  We have
+				 * not succeeded in finding our key.
+				 */
 
-			return mx_error( MXE_NOT_FOUND, fname,
-			"JSON key '%s' was not found for JSON structure %p.",
-				key_name, json );
+				return mx_error( MXE_NOT_FOUND, fname,
+				"JSON key '%s' was not found for "
+				"JSON structure %p.", key_name, json );
+			}
 		}
 	}
 
