@@ -133,12 +133,13 @@ mxd_eiger_get_pointers( MX_AREA_DETECTOR *ad,
 static mx_status_type
 mxd_eiger_get( MX_AREA_DETECTOR *ad,
 		MX_EIGER *eiger,
-		char *command_url,
+		char *key_name,
 		char *response,
 		size_t max_response_length )
 {
 	static const char fname[] = "mxd_eiger_get()";
 
+	char command_url[200];
 	unsigned long http_status_code;
 	char content_type[80];
 	mx_status_type mx_status;
@@ -159,6 +160,9 @@ mxd_eiger_get( MX_AREA_DETECTOR *ad,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The response pointer passed was NULL." );
 	}
+
+	snprintf( command_url, sizeof(command_url), "%s%s",
+		eiger->url_prefix, key_name );
 
 	mx_status = mx_http_get( eiger->http, command_url,
 				&http_status_code,
@@ -321,7 +325,7 @@ mxd_eiger_get_value( MX_AREA_DETECTOR *ad,
 static mx_status_type
 mxd_eiger_put_value( MX_AREA_DETECTOR *ad,
 			MX_EIGER *eiger,
-			char *command_url,
+			char *key_name,
 			long mx_datatype,
 			long num_dimensions,
 			long *dimension,
@@ -395,7 +399,6 @@ mxd_eiger_open( MX_RECORD *record )
 
 	MX_AREA_DETECTOR *ad = NULL;
 	MX_EIGER *eiger = NULL;
-	char command_url[200];
 	char response[1000];
 	long dimension[1];
 	mx_status_type mx_status;
@@ -417,6 +420,12 @@ mxd_eiger_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Construct the EIGER URL prefix for all commands. */
+
+	snprintf( eiger->url_prefix, sizeof(eiger->url_prefix),
+		"http://%s/detector/api/%s/",
+		eiger->hostname, eiger->simplon_version );
+
 	/* Create an EIGER HTTP handler. */
 
 	mx_status = mx_http_create( &(eiger->http), record, "libcurl" );
@@ -424,29 +433,31 @@ mxd_eiger_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_EIGER_DEBUG_OPEN
-	MX_DEBUG(-2,("%s: Getting the detector state.", fname));
-#endif
+	/* Get the detector model and type. */
+
+	dimension[0] = sizeof(eiger->description);
+
+	mx_status = mxd_eiger_get_value( ad, eiger, "config/description",
+					MXFT_STRING, 1, dimension,
+					eiger->description );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Get the detector state. */
 
-	snprintf( command_url, sizeof(command_url),
-		"http://%s/detector/api/%s/status/state",
-		eiger->hostname, eiger->simplon_version );
-
 	dimension[0] = sizeof(response);
 
-	mx_status = mxd_eiger_get_value( ad, eiger, command_url,
+	mx_status = mxd_eiger_get_value( ad, eiger, "status/state",
 					MXFT_STRING, 1, dimension,
 					response );
 
-	if ( mx_status.code != MXE_SUCCESS );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 #if MXD_EIGER_DEBUG_OPEN
-	MX_DEBUG(-2,("%s: EIGER '%s' response = '%s'.",
+	MX_DEBUG(-2,("%s: EIGER '%s' detector state = '%s'.",
 				fname, record->name, response));
-
-	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
@@ -462,7 +473,6 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 	unsigned long num_frames;
 	double exposure_time, exposure_period;
 	double photon_energy;
-	char command_url[200];
 	long dimension[1];
 	void *value = NULL;
 	mx_status_type mx_status;
@@ -508,13 +518,9 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 
 	/* Set the number of image frames. */
 
-	snprintf( command_url, sizeof(command_url),
-		"http://%s/detector/api/%s/config/nimages",
-		eiger->hostname, eiger->simplon_version );
-
 	dimension[0] = 1;
 
-	mx_status = mxd_eiger_put_value( ad, eiger, command_url,
+	mx_status = mxd_eiger_put_value( ad, eiger, "config/nimages",
 			MXFT_ULONG, 1, dimension, (void *) &num_frames );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -522,13 +528,9 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 
 	/* Set the exposure time. */
 
-	snprintf( command_url, sizeof(command_url),
-		"http://%s/detector/api/%s/config/count_time",
-		eiger->hostname, eiger->simplon_version );
-
 	dimension[0] = 1;
 
-	mx_status = mxd_eiger_put_value( ad, eiger, command_url,
+	mx_status = mxd_eiger_put_value( ad, eiger, "config/count_time",
 			MXFT_DOUBLE, 1, dimension, (void *) &exposure_time );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -536,13 +538,9 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 
 	/* Set the frame time. */
 
-	snprintf( command_url, sizeof(command_url),
-		"http://%s/detector/api/%s/config/frame_time",
-		eiger->hostname, eiger->simplon_version );
-
 	dimension[0] = 1;
 
-	mx_status = mxd_eiger_put_value( ad, eiger, command_url,
+	mx_status = mxd_eiger_put_value( ad, eiger, "config/frame_time",
 			MXFT_DOUBLE, 1, dimension, (void *) &exposure_period );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -556,15 +554,11 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	snprintf( command_url, sizeof(command_url),
-		"http://%s/detector/api/%s/config/photon_energy",
-		eiger->hostname, eiger->simplon_version );
-
 	dimension[0] = 1;
 
 	*((double *) value) = photon_energy;
 
-	mx_status = mxd_eiger_put_value( ad, eiger, command_url,
+	mx_status = mxd_eiger_put_value( ad, eiger, "config/photon_energy",
 			MXFT_DOUBLE, 1, dimension, value );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -572,13 +566,9 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 
 	/* Arm the detector. */
 
-	snprintf( command_url, sizeof(command_url),
-		"http://%s/detector/api/%s/command/arm",
-		eiger->hostname, eiger->simplon_version );
-
 	dimension[0] = 1;
 
-	mx_status = mxd_eiger_put_value( ad, eiger, command_url,
+	mx_status = mxd_eiger_put_value( ad, eiger, "command/arm",
 			MXFT_DOUBLE, 1, dimension, NULL );
 
 	return mx_status;
@@ -1171,7 +1161,7 @@ mxd_eiger_special_processing_setup( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
-		case 0:
+		case MXLV_EIGER_KEY_VALUE:
 			record_field->process_function
 					= mxd_eiger_process_function;
 			break;
@@ -1194,18 +1184,30 @@ mxd_eiger_process_function( void *record_ptr,
 
 	MX_RECORD *record = NULL;
 	MX_RECORD_FIELD *record_field = NULL;
+	MX_AREA_DETECTOR *ad = NULL;
 	MX_EIGER *eiger = NULL;
+	long dimension[1];
 	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
+	ad = (MX_AREA_DETECTOR *) record->record_class_struct;
 	eiger = (MX_EIGER *) record->record_type_struct;
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 
+	dimension[0] = sizeof(eiger->key_value);
+
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
+		case MXLV_EIGER_KEY_VALUE:
+			mx_status = mxd_eiger_get_value( ad, eiger,
+						eiger->key_name,
+						MXFT_STRING,
+						1, dimension,
+						eiger->key_value );
+			break;
 		default:
 			MX_DEBUG( 1,(
 			    "%s: *** unknown MX_PROCESS_GET label value = %ld",
@@ -1215,6 +1217,13 @@ mxd_eiger_process_function( void *record_ptr,
 		break;
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
+		case MXLV_EIGER_KEY_VALUE:
+			mx_status = mxd_eiger_put_value( ad, eiger,
+						eiger->key_name,
+						MXFT_STRING,
+						1, dimension,
+						eiger->key_value );
+			break;
 		default:
 			MX_DEBUG( 1,(
 			    "%s: *** unknown MX_PROCESS_PUT label value = %ld",

@@ -17,18 +17,34 @@
 #ifndef __D_EIGER_H__
 #define __D_EIGER_H__
 
-#define MXU_SIMPLON_VERSION_LENGTH	20
+#define MXU_EIGER_SIMPLON_VERSION_LENGTH	20
+#define MXU_EIGER_DESCRIPTION_LENGTH		40
+#define MXU_EIGER_URL_PREFIX_LENGTH		80
+
+#define MXU_EIGER_KEY_NAME_LENGTH		40
+#define MXU_EIGER_KEY_VALUE_LENGTH		80
+
+#define MXU_EIGER_KEY_TYPE_LENGTH		20
 
 typedef struct {
 	MX_RECORD *record;
 
 	char hostname[MXU_HOSTNAME_LENGTH+1];
-	char simplon_version[MXU_SIMPLON_VERSION_LENGTH+1];
+	char simplon_version[MXU_EIGER_SIMPLON_VERSION_LENGTH+1];
 	unsigned long eiger_flags;
 	MX_RECORD *photon_energy_record;
+	char description[MXU_EIGER_DESCRIPTION_LENGTH+1];
+	char url_prefix[MXU_EIGER_URL_PREFIX_LENGTH+1];
+
+	char key_name[MXU_EIGER_KEY_NAME_LENGTH+1];
+	char key_value[MXU_EIGER_KEY_VALUE_LENGTH+1];
+
+	char key_type[MXU_EIGER_KEY_TYPE_LENGTH+1];
 
 	MX_HTTP *http;
 } MX_EIGER;
+
+#define MXLV_EIGER_KEY_VALUE			94001
 
 #define MXD_EIGER_STANDARD_FIELDS \
   {-1, -1, "hostname", MXFT_STRING, NULL, 1, {MXU_HOSTNAME_LENGTH}, \
@@ -36,7 +52,7 @@ typedef struct {
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
   {-1, -1, "simplon_version", MXFT_STRING, \
-			NULL, 1, {MXU_SIMPLON_VERSION_LENGTH}, \
+			NULL, 1, {MXU_EIGER_SIMPLON_VERSION_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, simplon_version), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
@@ -44,9 +60,30 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, eiger_flags), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "hostname", MXFT_RECORD, NULL, 0, {0}, \
+  {-1, -1, "photon_energy_record", MXFT_RECORD, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, photon_energy_record), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY) }, \
+  \
+  {-1, -1, "description", MXFT_STRING, NULL, 1, {MXU_EIGER_DESCRIPTION_LENGTH},\
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, description), \
+	{sizeof(char)}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "url_prefix", MXFT_STRING, NULL, 1, {MXU_EIGER_URL_PREFIX_LENGTH},\
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, url_prefix), \
+	{sizeof(char)}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "key_name", MXFT_STRING, NULL, 1, {MXU_EIGER_KEY_NAME_LENGTH},\
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, key_name), \
+	{sizeof(char)}, NULL, 0 }, \
+  \
+  {MXLV_EIGER_KEY_VALUE, -1, "key_value", MXFT_STRING, NULL, \
+	  				1, {MXU_EIGER_KEY_VALUE_LENGTH},\
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, key_value), \
+	{sizeof(char)}, NULL, 0 }, \
+  \
+  {-1, -1, "key_type", MXFT_STRING, NULL, 1, {MXU_EIGER_KEY_TYPE_LENGTH},\
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, key_type), \
+	{sizeof(char)}, NULL, MXFF_READ_ONLY }
 
 MX_API mx_status_type mxd_eiger_initialize_driver( MX_DRIVER *driver );
 MX_API mx_status_type mxd_eiger_create_record_structures( MX_RECORD *record );
