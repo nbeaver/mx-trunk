@@ -25,6 +25,7 @@ typedef struct {
 	char hostname[MXU_HOSTNAME_LENGTH+1];
 	char simplon_version[MXU_SIMPLON_VERSION_LENGTH+1];
 	unsigned long eiger_flags;
+	MX_RECORD *photon_energy_record;
 
 	MX_HTTP *http;
 } MX_EIGER;
@@ -41,6 +42,10 @@ typedef struct {
   \
   {-1, -1, "eiger_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, eiger_flags), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+  \
+  {-1, -1, "hostname", MXFT_RECORD, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, photon_energy_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
 
 MX_API mx_status_type mxd_eiger_initialize_driver( MX_DRIVER *driver );

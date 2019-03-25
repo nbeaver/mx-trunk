@@ -28,6 +28,7 @@
 #include "mx_util.h"
 #include "mx_time.h"
 #include "mx_record.h"
+#include "mx_variable.h"
 #include "mx_driver.h"
 #include "mx_atomic.h"
 #include "mx_bit.h"
@@ -251,10 +252,12 @@ mxd_eiger_get_value( MX_AREA_DETECTOR *ad,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if 0
 	MX_DEBUG(-2,("%s: json->cjson = %p", fname, json->cjson));
 
 	MX_DEBUG(-2,("%s: cJSON_Print( json->cjson ) = '%s'.",
 		fname, cJSON_Print( json->cjson ) ));
+#endif
 
 	/* The 'value_type' key should contain the EIGER datatype of the
 	 * 'value' key.  The 'value_type' key itself should be a 'string'.
@@ -266,7 +269,9 @@ mxd_eiger_get_value( MX_AREA_DETECTOR *ad,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if 0
 	MX_DEBUG(-2,("%s: value_type = '%s'", fname, value_type_string));
+#endif
 
 	/* So does the 'value' key have the datatype that the 
 	 * MX driver expects?
@@ -306,7 +311,26 @@ mxd_eiger_get_value( MX_AREA_DETECTOR *ad,
 
 	mx_free( json );
 
+#if 0
 	MX_DEBUG(-2,("%s complete.", fname ));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mxd_eiger_put_value( MX_AREA_DETECTOR *ad,
+			MX_EIGER *eiger,
+			char *command_url,
+			long mx_datatype,
+			long num_dimensions,
+			long *dimension,
+			void *value )
+{
+	static const char fname[] = "mxd_eiger_put_value()";
+
+	MX_DEBUG(-2,("%s invoked for detector '%s'.",
+			fname, eiger->record->name));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -435,6 +459,12 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 
 	MX_EIGER *eiger = NULL;
 	MX_SEQUENCE_PARAMETERS *sp = NULL;
+	unsigned long num_frames;
+	double exposure_time, exposure_period;
+	double photon_energy;
+	char command_url[200];
+	long dimension[1];
+	void *value = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_eiger_get_pointers( ad, &eiger, fname );
@@ -449,7 +479,109 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 
 	sp = &(ad->sequence_parameters);
 
-	return MX_SUCCESSFUL_RESULT;
+	switch( sp->sequence_type ) {
+	case MXT_SQ_ONE_SHOT:
+		num_frames = 1;
+		exposure_time = sp->parameter_array[0];
+		exposure_period = -1.0;
+		break;
+	case MXT_SQ_MULTIFRAME:
+		num_frames = mx_round( sp->parameter_array[0] );
+		exposure_time = sp->parameter_array[1];
+		exposure_period = sp->parameter_array[2];
+		break;
+	case MXT_SQ_STROBE:
+		num_frames = mx_round( sp->parameter_array[0] );
+		exposure_time = sp->parameter_array[1];
+		exposure_period = -1.0;
+		break;
+	case MXT_SQ_DURATION:
+		num_frames = mx_round( sp->parameter_array[0] );
+		exposure_time = -1.0;		/* Not used. */
+		exposure_period = -1.0;
+		break;
+	default:
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Detector '%s' invalid sequence type.", ad->record->name );
+		break;
+	}
+
+	/* Set the number of image frames. */
+
+	snprintf( command_url, sizeof(command_url),
+		"http://%s/detector/api/%s/config/nimages",
+		eiger->hostname, eiger->simplon_version );
+
+	dimension[0] = 1;
+
+	mx_status = mxd_eiger_put_value( ad, eiger, command_url,
+			MXFT_ULONG, 1, dimension, (void *) &num_frames );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Set the exposure time. */
+
+	snprintf( command_url, sizeof(command_url),
+		"http://%s/detector/api/%s/config/count_time",
+		eiger->hostname, eiger->simplon_version );
+
+	dimension[0] = 1;
+
+	mx_status = mxd_eiger_put_value( ad, eiger, command_url,
+			MXFT_DOUBLE, 1, dimension, (void *) &exposure_time );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Set the frame time. */
+
+	snprintf( command_url, sizeof(command_url),
+		"http://%s/detector/api/%s/config/frame_time",
+		eiger->hostname, eiger->simplon_version );
+
+	dimension[0] = 1;
+
+	mx_status = mxd_eiger_put_value( ad, eiger, command_url,
+			MXFT_DOUBLE, 1, dimension, (void *) &exposure_period );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Set the photon energy. */
+
+	mx_status = mx_get_double_variable( eiger->photon_energy_record,
+							&photon_energy );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	snprintf( command_url, sizeof(command_url),
+		"http://%s/detector/api/%s/config/photon_energy",
+		eiger->hostname, eiger->simplon_version );
+
+	dimension[0] = 1;
+
+	*((double *) value) = photon_energy;
+
+	mx_status = mxd_eiger_put_value( ad, eiger, command_url,
+			MXFT_DOUBLE, 1, dimension, value );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Arm the detector. */
+
+	snprintf( command_url, sizeof(command_url),
+		"http://%s/detector/api/%s/command/arm",
+		eiger->hostname, eiger->simplon_version );
+
+	dimension[0] = 1;
+
+	mx_status = mxd_eiger_put_value( ad, eiger, command_url,
+			MXFT_DOUBLE, 1, dimension, NULL );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type

@@ -80,11 +80,9 @@ mx_json_parse( MX_JSON **json, char *json_string )
 
 	(*json)->cjson = cjson;
 
-#if 1
+#if 0
 	MX_DEBUG(-2,
 	("%s: cJSON = %p '%s'", fname, cjson, cJSON_Print(cjson) ));
-	MX_DEBUG(-2,
-	("%s: cJSON #2 = %p '%s'", fname, cjson, cJSON_Print(cjson) ));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
