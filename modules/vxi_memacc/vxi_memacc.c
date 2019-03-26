@@ -1,13 +1,13 @@
 /*
  * Name:    vxi_memacc.c
  *
- * Purpose: Module wrapper for the Struck
+ * Purpose: Module wrapper for NI-VISA VXI/VME access vis the MEMACC resource
  *
  * Author:  William Lavender
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2012 Illinois Institute of Technology
+ * Copyright 2012, 2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
