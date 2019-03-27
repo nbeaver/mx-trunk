@@ -22,6 +22,8 @@
 #include "mx_array.h"
 #include "mx_json.h"
 
+/*--------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mx_json_initialize( void )
 {
@@ -47,6 +49,8 @@ mx_json_initialize( void )
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mx_json_parse( MX_JSON **json, char *json_string )
@@ -88,6 +92,8 @@ mx_json_parse( MX_JSON **json, char *json_string )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*--------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mx_json_delete( MX_JSON *json )
 {
@@ -123,6 +129,8 @@ mx_json_delete( MX_JSON *json )
  *     assign that datatype to the 'datatype' item of the function signature
  *     and then progress like in step 3 above.
  */
+
+/*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mx_json_get_key( MX_JSON *json,
@@ -318,5 +326,138 @@ mx_json_get_key( MX_JSON *json,
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
+
+/* FIXME: Find a way to get rid of MXU_JSON_MAX_COMPATIBLE_ELEMENTS and
+ * make the arrays below that use it adjustable in size in a thread safe
+ * way.  Probably means using Thread Local Storage.  Is is worth it?
+ */
+
+#define MXU_JSON_MAX_COMPATIBLE_ELEMENTS	100
+
+MX_EXPORT mx_status_type
+mx_json_get_compatible_key( MX_JSON *json,
+		char *key_name,
+		long mx_datatype,
+		long mx_json_datatype,
+		void *key_value,
+		size_t max_key_value_bytes )
+{
+	static const char fname[] = "mx_json_get_compatible_key()";
+
+	/* FIXME: The following stuff is an attempt to make all of the
+	 * datatype arrays share stack space.  It _ASSUMES_ that
+	 * sizeof(double) is bigger than the size of the other data types.
+	 * We declare the space using the double datatype first to try to
+	 * make sure that memory alignment is OK.
+	 */
+
+	double double_array[MXU_JSON_MAX_COMPATIBLE_ELEMENTS];
+	float *float_array = (float *) double_array;
+	long *long_array = (long *) double_array;
+	unsigned long *ulong_array = (unsigned long *) double_array;
+	mx_bool_type *bool_array = (mx_bool_type *) double_array;
+
+	mx_status_type mx_status;
+
+	if ( mx_datatype != mx_json_datatype ) {
+	    if ( max_key_value_bytes > sizeof(double_array) ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"max_key_value_types = %ld is bigger than the maximum = %ld",
+			max_key_value_bytes, sizeof(double_array) );
+	    }
+	}
+
+	switch( mx_json_datatype ) {
+	case MXFT_STRING:
+		switch( mx_datatype ) {
+		case MXFT_STRING:
+			mx_status = mx_json_get_key( json, key_name,
+						mx_json_datatype,
+						key_value,
+						max_key_value_bytes );
+			return mx_status;
+			break;
+		}
+		break;
+	case MXFT_BOOL:
+		switch( mx_datatype ) {
+		case MXFT_STRING:
+			mx_status = mx_json_get_key( json, key_name,
+						mx_json_datatype,
+						bool_array,
+						max_key_value_bytes );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			snprintf( key_value, max_key_value_bytes, "%d",
+					bool_array[0] );
+
+			return MX_SUCCESSFUL_RESULT;
+			break;
+		}
+		break;
+	case MXFT_LONG:
+		switch( mx_datatype ) {
+		case MXFT_STRING:
+			mx_status = mx_json_get_key( json, key_name,
+						mx_json_datatype,
+						long_array,
+						max_key_value_bytes );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			snprintf( key_value, max_key_value_bytes, "%ld",
+					long_array[0] );
+
+			return MX_SUCCESSFUL_RESULT;
+			break;
+		}
+		break;
+	case MXFT_ULONG:
+		switch( mx_datatype ) {
+		case MXFT_STRING:
+			mx_status = mx_json_get_key( json, key_name,
+						mx_json_datatype,
+						ulong_array,
+						max_key_value_bytes );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			snprintf( key_value, max_key_value_bytes, "%lu",
+					ulong_array[0] );
+
+			return MX_SUCCESSFUL_RESULT;
+			break;
+		}
+		break;
+	case MXFT_FLOAT:
+		switch( mx_datatype ) {
+		case MXFT_STRING:
+			mx_status = mx_json_get_key( json, key_name,
+						mx_json_datatype,
+						float_array,
+						max_key_value_bytes );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			snprintf( key_value, max_key_value_bytes, "%g",
+					float_array[0] );
+
+			return MX_SUCCESSFUL_RESULT;
+			break;
+		}
+		break;
+	}
+
+	return mx_error( MXE_NOT_FOUND, fname,
+		"Foooooooooo!  mx_datatype = %ld, mx_json_datatype = %ld",
+		mx_datatype, mx_json_datatype );
 }
 

@@ -209,6 +209,7 @@ mxd_eiger_get_value( MX_AREA_DETECTOR *ad,
 	long *dimension_ptr = NULL;
 	long dimension_zero[0];
 	char value_type_string[40];
+	long mx_json_datatype;
 	mx_status_type mx_status;
 
 	if ( dimension == (long *) NULL ) {
@@ -273,37 +274,33 @@ mxd_eiger_get_value( MX_AREA_DETECTOR *ad,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if 0
+#if 1
 	MX_DEBUG(-2,("%s: value_type = '%s'", fname, value_type_string));
 #endif
-
-	/* So does the 'value' key have the datatype that the 
-	 * MX driver expects?
-	 */
-
-	switch( mx_datatype ) {
-	case MXFT_STRING:
-		if ( strcmp( value_type_string, "string" ) != 0 ) {
-			return mx_error( MXE_TYPE_MISMATCH, fname,
-			"The MX driver for EIGER detector '%s' expected "
-			"that the EIGER datatype would be of type 'string' "
-			"for EIGER URL '%s'.  "
-			"Instead, it is found to be of type '%s'.",
-				eiger->record->name,
-				command_url,
-				value_type_string );
-		}
-		break;
-	default:
+	if ( strcmp( value_type_string, "string" ) == 0 ) {
+		mx_json_datatype = MXFT_STRING;
+	} else
+	if ( strcmp( value_type_string, "bool" ) == 0 ) {
+		mx_json_datatype = MXFT_BOOL;
+	} else
+	if ( strcmp( value_type_string, "int" ) == 0 ) {
+		mx_json_datatype = MXFT_LONG;
+	} else
+	if ( strcmp( value_type_string, "uint" ) == 0 ) {
+		mx_json_datatype = MXFT_ULONG;
+	} else
+	if ( strcmp( value_type_string, "float" ) == 0 ) {
+		mx_json_datatype = MXFT_FLOAT;
+	} else {
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"Support for MX datatype %ld is not yet implemented.",
-			mx_datatype );
-		break;
+		"Support for EIGER JSON datatype '%s' is not yet implemented.",
+			value_type_string );
 	}
 
 	/* Now we can return the actual returned EIGER value for this URL. */
 
-	mx_status = mx_json_get_key( json, "value", mx_datatype,
+	mx_status = mx_json_get_compatible_key( json, "value",
+					mx_datatype, mx_json_datatype,
 					value, dimension[0] );
 
 	if ( mx_status.code != MXE_SUCCESS )
