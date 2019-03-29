@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2005, 2008, 2010, 2012 Illinois Institute of Technology
+ * Copyright 2004-2005, 2008, 2010, 2012, 2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -82,8 +82,10 @@ mxi_pmc_mcapi_download_file( MX_PMC_MCAPI *pmc_mcapi, char *filename );
 static mx_status_type
 mxi_pmc_mcapi_process_function( void *record_ptr,
 				void *record_field_ptr,
+				void *socket_handler_ptr,
 				int operation );
 
+				void *socket_handler_ptr,
 /* A private function for the use of the driver. */
 
 static mx_status_type
@@ -651,7 +653,9 @@ mxi_pmc_mcapi_special_processing_setup( MX_RECORD *record )
 
 static mx_status_type
 mxi_pmc_mcapi_process_function( void *record_ptr,
-			void *record_field_ptr, int operation )
+				void *record_field_ptr,
+				void *socket_handler_ptr,
+				int operation )
 {
 	static const char fname[] = "mxi_pmc_mcapi_process_function()";
 

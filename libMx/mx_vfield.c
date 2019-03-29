@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2012, 2014-2015 Illinois Institute of Technology
+ * Copyright 2012, 2014-2015, 2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -632,7 +632,7 @@ mxv_field_variable_open( MX_RECORD *record )
 
 		mx_status = mx_process_record_field(
 				field_variable->external_record,
-				external_field,
+				external_field, NULL,
 				MX_PROCESS_PUT, NULL );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -683,7 +683,7 @@ mxv_field_variable_send_variable( MX_VARIABLE *variable )
 
 	mx_status = mx_process_record_field( field_variable->external_record,
 						field_variable->external_field,
-						MX_PROCESS_PUT, NULL );
+						NULL, MX_PROCESS_PUT, NULL );
 
 	return mx_status;
 }
@@ -719,7 +719,7 @@ mxv_field_variable_receive_variable( MX_VARIABLE *variable )
 
 	mx_status = mx_process_record_field( field_variable->external_record,
 						field_variable->external_field,
-						MX_PROCESS_GET, NULL );
+						NULL, MX_PROCESS_GET, NULL );
 
 	return mx_status;
 }

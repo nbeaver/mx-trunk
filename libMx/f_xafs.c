@@ -11,7 +11,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2009-2010, 2015-2018 Illinois Institute of Technology
+ * Copyright 1999-2006, 2009-2010, 2015-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -847,6 +847,7 @@ mxdf_xafs_write_header( MX_DATAFILE *datafile,
 			mx_status = mx_process_record_field(
 						value_field->record,
 						value_field,
+						NULL,
 						MX_PROCESS_GET,
 						NULL );
 

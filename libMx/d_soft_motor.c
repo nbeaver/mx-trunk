@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2004, 2006-2007, 2009, 2011, 2013, 2015-2016, 2018
+ * Copyright 1999, 2001-2004, 2006-2007, 2009, 2011, 2013, 2015-2016, 2018-2019
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -114,8 +114,9 @@ mxd_soft_motor_get_pointers( MX_MOTOR *motor,
 /* === */
 
 static mx_status_type mxd_soft_motor_process_function( void *record_ptr,
-							void *record_field_ptr,
-							int operation );
+						void *record_field_ptr,
+						void *socket_handler_ptr,
+						int operation );
 
 /* === */
 
@@ -700,7 +701,9 @@ mxd_soft_motor_trigger_move( MX_MOTOR *motor )
 
 static mx_status_type
 mxd_soft_motor_process_function( void *record_ptr,
-			void *record_field_ptr, int operation )
+				void *record_field_ptr,
+				void *socket_handler_ptr,
+				int operation )
 {
 	static const char fname[] = "mxd_soft_motor_process_function()";
 

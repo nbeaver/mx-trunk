@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2000-2004, 2006, 2010, 2012, 2015, 2017
+ * Copyright 2000-2004, 2006, 2010, 2012, 2015, 2017, 2019
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -86,7 +86,9 @@ mx_setup_mca_process_functions( MX_RECORD *record )
 
 mx_status_type
 mx_mca_process_function( void *record_ptr,
-			void *record_field_ptr, int operation )
+			void *record_field_ptr,
+			void *socket_handler_ptr,
+			int operation )
 {
 	static const char fname[] = "mx_mca_process_function()";
 
@@ -139,7 +141,8 @@ mx_mca_process_function( void *record_ptr,
 						mca->current_num_rois, NULL );
 			break;
 		case MXLV_MCA_ROI:
-			mx_status = mx_mca_get_roi(record, mca->roi_number, NULL);
+			mx_status = mx_mca_get_roi( record,
+						mca->roi_number, NULL );
 			break;
 		case MXLV_MCA_ROI_INTEGRAL:
 			mx_status = mx_mca_get_roi_integral( record,

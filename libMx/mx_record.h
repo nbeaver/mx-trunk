@@ -106,7 +106,7 @@ typedef struct mx_record_field_type {
 	long *dimension;
 	void *data_pointer;
 	size_t *data_element_size;
-	mx_status_type (*process_function) (void *, void *, int);
+	mx_status_type (*process_function) (void *, void *, void *, int);
 	long flags;
 	long timer_interval;
 
@@ -134,7 +134,7 @@ typedef struct {
 	short structure_id;
 	size_t structure_offset;
 	size_t data_element_size[MXU_FIELD_MAX_DIMENSIONS];
-	mx_status_type (*process_function) (void *, void *, int);
+	mx_status_type (*process_function) (void *, void *, void *, int);
 	long flags;
 	long timer_interval;
 	double value_change_threshold;

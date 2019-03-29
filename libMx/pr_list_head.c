@@ -85,7 +85,9 @@ mx_setup_list_head_process_functions( MX_RECORD *record )
 
 mx_status_type
 mx_list_head_process_function( void *record_ptr,
-			void *record_field_ptr, int operation )
+				void *record_field_ptr,
+				void *socket_handler_ptr,
+				int operation )
 {
 	static const char fname[] = "mx_list_head_process_function()";
 
@@ -328,7 +330,7 @@ mx_list_head_print_clients( MX_LIST_HEAD *list_head )
 			}
 
 			mx_info( "%3d %3d   %s  %-16s %-8s %6ld %-8s", i,
-			(int) socket_handler->synchronous_socket->socket_fd,
+				(int) socket_handler->mx_socket->socket_fd,
 				event_handler->name,
 				socket_handler->client_address_string,
 				socket_handler->username,
@@ -973,7 +975,7 @@ mx_list_head_record_show_clbk_id( MX_LIST_HEAD *list_head )
 				fprintf( stderr,
 				    "  Socket handler %p, socket %d\n",
 				socket_handler,
-			  (int) socket_handler->synchronous_socket->socket_fd );
+				  (int) socket_handler->mx_socket->socket_fd );
 
 				fprintf( stderr,
 				    "    Client '%s', username '%s'\n",
@@ -1022,7 +1024,7 @@ mx_list_head_record_show_socket_handlers( MX_LIST_HEAD *list_head )
 		  "socket_handler(%d) = %p, socket id = %d,\n"
 		  "        username = '%s', program = '%s', process_id = %lu\n",
 				i, socket_handler,
-			(int) socket_handler->synchronous_socket->socket_fd,
+				(int) socket_handler->mx_socket->socket_fd,
 				socket_handler->username,
 				socket_handler->program_name,
 				socket_handler->process_id );
@@ -1053,8 +1055,7 @@ mx_list_head_record_show_socket_id( MX_LIST_HEAD *list_head )
 	for ( i = 0; i < socket_handler_list->max_sockets; i++ ) {
 		socket_handler = socket_handler_list->array[i];
 
-		if (socket_fd == socket_handler->synchronous_socket->socket_fd)
-		{
+		if (socket_fd == socket_handler->mx_socket->socket_fd) {
 			break;
 		}
 	}

@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2017-2018 Illinois Institute of Technology
+ * Copyright 2017-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -462,9 +462,8 @@ mxd_dg645_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 			/* Single pulse pulser. */
 
 			mx_status = mx_process_record_field_by_name(
-							dg645->record,
-							"trigger_source",
-							MX_PROCESS_GET, NULL );
+						dg645->record, "trigger_source",
+						NULL, MX_PROCESS_GET, NULL );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -699,9 +698,8 @@ mxd_dg645_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 			 */
 
 			mx_status = mx_process_record_field_by_name(
-							dg645->record,
-							"trigger_source",
-							MX_PROCESS_GET, NULL );
+						dg645->record, "trigger_source",
+						NULL, MX_PROCESS_GET, NULL );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;

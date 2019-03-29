@@ -2167,7 +2167,7 @@ mx_print_structure( FILE *file, MX_RECORD *record, unsigned long mask )
 
 				if ( mask & MXFF_UPDATE_ALL ) {
 					mx_status = mx_process_record_field(
-							record, field,
+							record, field, NULL,
 							MX_PROCESS_GET,
 							NULL );
 				}

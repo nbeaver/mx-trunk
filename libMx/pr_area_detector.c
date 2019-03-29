@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2006-2009, 2011-2015, 2017-2018 Illinois Institute of Technology
+ * Copyright 2006-2009, 2011-2015, 2017-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1030,7 +1030,9 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 
 mx_status_type
 mx_area_detector_process_function( void *record_ptr,
-			void *record_field_ptr, int operation )
+				void *record_field_ptr,
+				void *socket_handler_ptr,
+				int operation )
 {
 	static const char fname[] = "mx_area_detector_process_function()";
 

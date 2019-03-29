@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2007-2015, 2017 Illinois Institute of Technology
+ * Copyright 2007-2015, 2017, 2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2758,7 +2758,7 @@ mx_poll_callback_handler( MX_CALLBACK_MESSAGE *callback_message )
 			fname, record->name, record_field->name));
 #endif
 			mx_status = mx_process_record_field(
-						record, record_field,
+						record, record_field, NULL,
 						MX_PROCESS_GET, NULL );
 
 			if ( mx_status.code != MXE_SUCCESS )

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013, 2015 Illinois Institute of Technology
+ * Copyright 2013, 2015, 2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -308,7 +308,7 @@ mxv_indirect_string_receive_variable( MX_VARIABLE *variable )
 #endif
 
 		mx_status = mx_process_record_field( referenced_field->record,
-							referenced_field,
+							referenced_field, NULL,
 							MX_PROCESS_GET, NULL );
 
 		if ( mx_status.code != MXE_SUCCESS )

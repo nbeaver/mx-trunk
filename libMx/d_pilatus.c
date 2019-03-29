@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2015-2018 Illinois Institute of Technology
+ * Copyright 2015-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -60,8 +60,7 @@ MX_RECORD_FUNCTION_LIST mxd_pilatus_record_function_list = {
 	mxd_pilatus_special_processing_setup,
 };
 
-MX_AREA_DETECTOR_FUNCTION_LIST
-mxd_pilatus_ad_function_list = {
+MX_AREA_DETECTOR_FUNCTION_LIST mxd_pilatus_ad_function_list = {
 	mxd_pilatus_arm,
 	mxd_pilatus_trigger,
 	NULL,
@@ -102,6 +101,7 @@ MX_RECORD_FIELD_DEFAULTS *mxd_pilatus_rfield_def_ptr
 
 static mx_status_type mxd_pilatus_process_function( void *record_ptr,
 						void *record_field_ptr,
+						void *socket_handler_ptr,
 						int operation );
 
 /*---*/
@@ -2168,6 +2168,7 @@ mxd_pilatus_special_processing_setup( MX_RECORD *record )
 static mx_status_type
 mxd_pilatus_process_function( void *record_ptr,
 			void *record_field_ptr,
+			void *socket_handler_ptr,
 			int operation )
 {
 	static const char fname[] = "mxd_pilatus_process_function()";

@@ -89,6 +89,7 @@ MX_RECORD_FIELD_DEFAULTS *mxi_handel_rfield_def_ptr
 
 static mx_status_type mxi_handel_process_function( void *record_ptr,
 						void *record_field_ptr,
+						void *socket_handler_ptr,
 						int operation );
 
 extern const char *mxi_handel_strerror( int xia_status );
@@ -2523,7 +2524,9 @@ mxi_handel_strerror( int handel_status )
 
 static mx_status_type
 mxi_handel_process_function( void *record_ptr,
-			void *record_field_ptr, int operation )
+			void *record_field_ptr,
+			void *socket_handler_ptr,
+			int operation )
 {
 	static const char fname[] = "mxi_handel_process_function()";
 

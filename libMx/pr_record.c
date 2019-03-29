@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004, 2006-2007, 2012-2013
+ * Copyright 1999, 2001-2002, 2004, 2006-2007, 2012-2013, 2019
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -58,7 +58,9 @@ mx_setup_record_process_functions( MX_RECORD *record )
 
 mx_status_type
 mx_record_process_function( void *record_ptr,
-			void *record_field_ptr, int operation )
+				void *record_field_ptr,
+				void *socket_handler_ptr,
+				int operation )
 {
 	static const char fname[] = "mx_record_process_function()";
 

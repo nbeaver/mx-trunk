@@ -7,7 +7,8 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004, 2006, 2012 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2004, 2006, 2012, 2019
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -63,7 +64,9 @@ mx_setup_scaler_process_functions( MX_RECORD *record )
 
 mx_status_type
 mx_scaler_process_function( void *record_ptr,
-			void *record_field_ptr, int operation )
+			void *record_field_ptr,
+			void *socket_handler_ptr,
+			int operation )
 {
 	static const char fname[] = "mx_scaler_process_function()";
 

@@ -6,11 +6,9 @@
  *
  * Author:  William Lavender
  *
- * NOTE:    This file must be compiled as C++ code.
- *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010-2011, 2016 Illinois Institute of Technology
+ * Copyright 2010-2011, 2016, 2016 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -89,6 +87,7 @@ mxi_bnc725_get_pointers( MX_RECORD *record,
 
 static mx_status_type mxip_bnc725_process_function( void *record_ptr,
 						void *record_field_ptr,
+						void *socket_handler_ptr,
 						int operation );
 
 /*------*/
@@ -308,7 +307,9 @@ mxi_bnc725_special_processing_setup( MX_RECORD *record )
 
 static mx_status_type
 mxip_bnc725_process_function( void *record_ptr,
-			void *record_field_ptr, int operation )
+				void *record_field_ptr,
+				void *socket_handler_ptr,
+				int operation )
 {
 	static const char fname[] = "mxip_bnc725_process_function()";
 

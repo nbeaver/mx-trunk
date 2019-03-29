@@ -13,7 +13,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2013, 2015-2016, 2018 Illinois Institute of Technology
+ * Copyright 2006-2013, 2015-2016, 2018-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -173,8 +173,9 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_aviex_pccd_ad_function_list = {
 /*---*/
 
 static mx_status_type mxd_aviex_pccd_process_function( void *record_ptr,
-							void *record_field_ptr,
-							int operation );
+						void *record_field_ptr,
+						void *socket_handler_ptr,
+						int operation );
 
 static mx_status_type
 mxd_aviex_pccd_get_pointers( MX_AREA_DETECTOR *ad,
@@ -5212,7 +5213,7 @@ mxd_aviex_pccd_prepare_for_correction( MX_AREA_DETECTOR *ad,
 
 	mx_status = mx_process_record_field_by_name( ad->record,
 						"correction_flags",
-						MX_PROCESS_PUT, NULL );
+						NULL, MX_PROCESS_PUT, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -5227,7 +5228,7 @@ mxd_aviex_pccd_prepare_for_correction( MX_AREA_DETECTOR *ad,
 
 	mx_status = mx_process_record_field_by_name( ad->record,
 						"mx_automatic_offset_flags",
-						MX_PROCESS_PUT, NULL );
+						NULL, MX_PROCESS_PUT, NULL );
 
 	return mx_status;
 }
@@ -5267,7 +5268,7 @@ mxd_aviex_pccd_cleanup_after_correction( MX_AREA_DETECTOR *ad,
 
 	mx_status1 = mx_process_record_field_by_name( ad->record,
 						"correction_flags",
-						MX_PROCESS_PUT, NULL );
+						NULL, MX_PROCESS_PUT, NULL );
 
 	/* We reset the offset flags no matter what happened when we
 	 * tried to reset the correction flags.
@@ -5278,7 +5279,7 @@ mxd_aviex_pccd_cleanup_after_correction( MX_AREA_DETECTOR *ad,
 
 	mx_status2 = mx_process_record_field_by_name( ad->record,
 						"mx_automatic_offset_flags",
-						MX_PROCESS_PUT, NULL );
+						NULL, MX_PROCESS_PUT, NULL );
 
 	if ( mx_status1.code == MXE_SUCCESS ) {
 		return mx_status2;
@@ -5853,6 +5854,7 @@ mxd_aviex_pccd_special_processing_setup( MX_RECORD *record )
 static mx_status_type
 mxd_aviex_pccd_process_function( void *record_ptr,
 				void *record_field_ptr,
+				void *socket_handler_ptr,
 				int operation )
 {
 	static const char fname[] = "mxd_aviex_pccd_process_function()";

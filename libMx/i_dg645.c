@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2017-2018 Illinois Institute of Technology
+ * Copyright 2017-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -60,6 +60,7 @@ MX_RECORD_FIELD_DEFAULTS *mxi_dg645_rfield_def_ptr
 
 static mx_status_type mxi_dg645_process_function( void *record_ptr,
 						void *record_field_ptr,
+						void *socket_handler_ptr,
 						int operation );
 
 /*---*/
@@ -162,7 +163,7 @@ mxi_dg645_open( MX_RECORD *record )
 		}
 		
 		mx_status = mxi_dg645_process_function( record, rs_field,
-							MX_PROCESS_PUT );
+							NULL, MX_PROCESS_PUT );
 	}
 
 	/* Unconditionally turn burst mode off. */
@@ -629,7 +630,9 @@ mxi_dg645_setup_pulser_trigger_mode( MX_DG645 *dg645, long new_trigger_mode )
 
 static mx_status_type
 mxi_dg645_process_function( void *record_ptr,
-			void *record_field_ptr, int operation )
+			void *record_field_ptr,
+			void *socket_handler_ptr,
+			int operation )
 {
 	static const char fname[] = "mxi_dg645_process_function()";
 

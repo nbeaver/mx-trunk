@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2006-2007, 2009-2010, 2013, 2015, 2017-2018
+ * Copyright 1999-2003, 2006-2007, 2009-2010, 2013, 2015, 2017-2019
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -599,7 +599,7 @@ motor_set_fn( int argc, char *argv[] )
 			return FAILURE;
 
 		mx_status = mx_process_record_field( record, record_field,
-						MX_PROCESS_PUT, NULL );
+						NULL, MX_PROCESS_PUT, NULL );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;

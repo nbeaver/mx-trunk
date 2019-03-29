@@ -63,6 +63,7 @@ MX_RECORD_FIELD_DEFAULTS *mxi_amptek_dp5_rfield_def_ptr
 
 static mx_status_type mxi_amptek_dp5_process_function( void *record_ptr,
 						void *record_field_ptr,
+						void *socket_handler_ptr,
 						int operation );
 
 /*---*/
@@ -520,7 +521,9 @@ mxi_amptek_dp5_special_processing_setup( MX_RECORD *record )
 
 static mx_status_type
 mxi_amptek_dp5_process_function( void *record_ptr,
-			void *record_field_ptr, int operation )
+				void *record_field_ptr,
+				void *socket_handler_ptr,
+				int operation )
 {
 	static const char fname[] = "mxi_amptek_dp5_process_function()";
 

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2014, 2016 Illinois Institute of Technology
+ * Copyright 2014, 2016, 2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -54,7 +54,7 @@ mxsrv_update_select_fds( MX_SOCKET_HANDLER_LIST *socket_handler_list )
 	for ( i = 0; i < handler_array_size; i++ ) {
 		if ( socket_handler_list->array[i] != NULL ) {
 			current_socket
-		    = socket_handler_list->array[i]->synchronous_socket;
+				= socket_handler_list->array[i]->mx_socket;
 
 			if ( current_socket->socket_fd < 0 ) {
 			    MX_DEBUG(0,
@@ -223,7 +223,7 @@ mxsrv_process_sockets_with_select( MX_RECORD *mx_record_list,
 		    if ( socket_handler_list->array[i] != NULL ) {
 
 			current_socket
-		    = socket_handler_list->array[i]->synchronous_socket;
+				= socket_handler_list->array[i]->mx_socket;
 
 			if ( current_socket->socket_fd < 0 ) {
 				MX_DEBUG(0,

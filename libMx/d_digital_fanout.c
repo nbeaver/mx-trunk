@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2014-2015 Illinois Institute of Technology
+ * Copyright 2014-2015, 2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -360,7 +360,7 @@ mxd_digital_fanout_write( MX_DIGITAL_OUTPUT *doutput )
 		}
 
 		mx_status = mx_process_record_field( field->record, field,
-							MX_PROCESS_PUT, NULL );
+						NULL, MX_PROCESS_PUT, NULL );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

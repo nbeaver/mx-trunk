@@ -6,7 +6,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013-2015 Illinois Institute of Technology
+ * Copyright 2013-2015, 2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -113,6 +113,7 @@ mxd_coordinated_angle_get_pointers( MX_MOTOR *motor,
 static mx_status_type
 mxd_coordinated_angle_process_function( void *record_ptr,
 				void *record_field_ptr,
+				void *socket_handler_ptr,
 				int operation )
 {
 	MX_RECORD *record;

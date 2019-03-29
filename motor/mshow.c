@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2007, 2009-2018 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2007, 2009-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -856,7 +856,7 @@ motor_show_field( char *record_field_name )
 		return FAILURE;
 
 	mx_status = mx_process_record_field( record, record_field,
-						MX_PROCESS_GET, NULL );
+						NULL, MX_PROCESS_GET, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return FAILURE;

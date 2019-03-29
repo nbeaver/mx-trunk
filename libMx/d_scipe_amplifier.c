@@ -8,7 +8,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2006, 2010, 2015-2016, 2018 Illinois Institute of Technology
+ * Copyright 2002, 2006, 2010, 2015-2016, 2018-2019
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -75,6 +76,7 @@ MX_RECORD_FIELD_DEFAULTS *mxd_scipe_amplifier_rfield_def_ptr
 #if 0
 static mx_status_type mxd_scipe_amplifier_process_function( void *record_ptr,
 						void *record_field_ptr,
+						void *socket_handler_ptr,
 						int operation );
 #endif
 
@@ -1495,7 +1497,9 @@ mxd_scipe_amplifier_special_processing_setup( MX_RECORD *record )
 #if 0
 static mx_status_type
 mxd_scipe_amplifier_process_function( void *record_ptr,
-			void *record_field_ptr, int operation )
+					void *record_field_ptr,
+					void *socket_handler_ptr,
+					int operation )
 {
 	static const char fname[] = "mxd_scipe_amplifier_process_function()";
 

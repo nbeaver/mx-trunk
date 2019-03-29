@@ -7,7 +7,8 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2008, 2011-2017 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004-2008, 2011-2017, 2019
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -216,12 +217,13 @@ mx_initialize_record_processing( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mx_process_record_field_without_callbacks( MX_RECORD *record,
 			MX_RECORD_FIELD *record_field,
+			MX_SOCKET_HANDLER *socket_handler,
 			int direction )
 {
 	static const char fname[] =
 		"mx_process_record_field_without_callbacks()";
 
-	mx_status_type (*process_fn) ( void *, void *, int );
+	mx_status_type (*process_fn) ( void *, void *, void *, int );
 	unsigned long rp_flags;
 	mx_status_type mx_status;
 
@@ -322,7 +324,8 @@ mx_process_record_field_without_callbacks( MX_RECORD *record,
 			/* Invoke the record processing function. */
 
 			mx_status = ( *process_fn )
-				    ( record, record_field, direction );
+				    ( record, record_field,
+					socket_handler, direction );
 
 			record_field->active = FALSE;
 
@@ -360,6 +363,7 @@ mx_process_record_field_without_callbacks( MX_RECORD *record,
 MX_EXPORT mx_status_type
 mx_process_record_field( MX_RECORD *record,
 			MX_RECORD_FIELD *record_field,
+			MX_SOCKET_HANDLER *socket_handler,
 			int direction,
 			mx_bool_type *value_changed_ptr )
 {
@@ -393,6 +397,7 @@ mx_process_record_field( MX_RECORD *record,
 
 	mx_status = mx_process_record_field_without_callbacks( record,
 							record_field,
+							socket_handler,
 							direction );
 
 #if PROCESS_DEBUG
@@ -448,6 +453,7 @@ mx_process_record_field( MX_RECORD *record,
 MX_EXPORT mx_status_type
 mx_process_record_field_by_name( MX_RECORD *record,
 				const char *field_name,
+				MX_SOCKET_HANDLER *socket_handler,
 				int direction,
 				mx_bool_type *value_changed )
 {
@@ -471,8 +477,8 @@ mx_process_record_field_by_name( MX_RECORD *record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_process_record_field( record, field,
-					direction, value_changed );
+	mx_status = mx_process_record_field( record, field, socket_handler,
+						direction, value_changed );
 
 	return mx_status;
 }

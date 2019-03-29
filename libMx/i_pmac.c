@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2004, 2006, 2009-2010, 2012, 2014, 2016
+ * Copyright 1999, 2001-2004, 2006, 2009-2010, 2012, 2014, 2016, 2019
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -81,6 +81,7 @@ MX_RECORD_FIELD_DEFAULTS *mxi_pmac_rfield_def_ptr
 
 static mx_status_type mxi_pmac_process_function( void *record_ptr,
 						void *record_field_ptr,
+						void *socket_handler_ptr,
 						int operation );
 /*--*/
 
@@ -2024,7 +2025,9 @@ mxi_pmac_epics_ect_command( MX_PMAC *pmac, char *command,
 
 static mx_status_type
 mxi_pmac_process_function( void *record_ptr,
-			void *record_field_ptr, int operation )
+			void *record_field_ptr,
+			void *socket_handler_ptr,
+			int operation )
 {
 	static const char fname[] = "mxi_pmac_process_function()";
 

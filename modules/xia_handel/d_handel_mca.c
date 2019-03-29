@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2006, 2008-2012, 2015-2018 Illinois Institute of Technology
+ * Copyright 2001-2006, 2008-2012, 2015-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -101,6 +101,7 @@ MX_RECORD_FIELD_DEFAULTS *mxd_handel_mca_rfield_def_ptr
 
 static mx_status_type mxd_handel_mca_process_function( void *record_ptr,
 						void *record_field_ptr,
+						void *socket_handler_ptr,
 						int operation );
 
 /* A private function for the use of the driver. */
@@ -3697,7 +3698,9 @@ mxd_handel_mca_show_acquisition_values( MX_MCA *mca )
 
 static mx_status_type
 mxd_handel_mca_process_function( void *record_ptr,
-			void *record_field_ptr, int operation )
+				void *record_field_ptr,
+				void *socket_handler_ptr,
+				int operation )
 {
 	static const char fname[] = "mxd_handel_mca_process_function()";
 

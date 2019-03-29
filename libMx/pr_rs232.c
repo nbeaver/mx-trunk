@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2005, 2010, 2012, 2014, 2017 Illinois Institute of Technology
+ * Copyright 2001-2005, 2010, 2012, 2014, 2017, 2019
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -68,7 +69,9 @@ mx_setup_rs232_process_functions( MX_RECORD *record )
 
 mx_status_type
 mx_rs232_process_function( void *record_ptr,
-			void *record_field_ptr, int operation )
+			void *record_field_ptr,
+			void *socket_handler_ptr,
+			int operation )
 {
 	static const char fname[] = "mx_rs232_process_function()";
 

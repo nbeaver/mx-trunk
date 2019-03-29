@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2011-2013, 2015-2018 Illinois Institute of Technology
+ * Copyright 2011-2013, 2015-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2190,8 +2190,9 @@ mxd_sapera_lt_frame_grabber_set_parameter( MX_VIDEO_INPUT *vinput )
 
 static mx_status_type
 mxd_sapera_lt_frame_grabber_process_function( void *record_ptr,
-			void *record_field_ptr,
-			int operation )
+						void *record_field_ptr,
+						void *socket_handler_ptr,
+						int operation )
 {
 	static const char fname[] = "mxd_sapera_lt_frame_grabber_process_function()";
 

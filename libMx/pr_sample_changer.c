@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004, 2006, 2012, 2017 Illinois Institute of Technology
+ * Copyright 2004, 2006, 2012, 2017, 2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -73,7 +73,9 @@ mx_setup_sample_changer_process_functions( MX_RECORD *record )
 
 mx_status_type
 mx_sample_changer_process_function( void *record_ptr,
-			void *record_field_ptr, int operation )
+				void *record_field_ptr,
+				void *socket_handler_ptr,
+				int operation )
 {
 	static const char fname[] = "mx_sample_changer_process_function()";
 

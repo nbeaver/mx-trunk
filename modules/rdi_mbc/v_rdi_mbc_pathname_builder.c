@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013, 2018 Illinois Institute of Technology
+ * Copyright 2013, 2018-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -523,7 +523,7 @@ mxv_rdi_mbc_pathname_builder_send_variable( MX_VARIABLE *variable )
 
 	mx_status = mx_process_record_field( record_field->record,
 						record_field,
-						MX_PROCESS_PUT, NULL );
+						NULL, MX_PROCESS_PUT, NULL );
 
 	return mx_status;
 }

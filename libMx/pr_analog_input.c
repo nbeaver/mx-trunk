@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004, 2006, 2012, 2015
+ * Copyright 1999, 2001-2002, 2004, 2006, 2012, 2015, 2019
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -58,7 +58,9 @@ mx_setup_analog_input_process_functions( MX_RECORD *record )
 
 mx_status_type
 mx_analog_input_process_function( void *record_ptr,
-			void *record_field_ptr, int operation )
+				void *record_field_ptr,
+				void *socket_handler_ptr,
+				int operation )
 {
 	static const char fname[] = "mx_analog_input_process_function()";
 

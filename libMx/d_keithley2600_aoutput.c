@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2018 Illinois Institute of Technology
+ * Copyright 2018-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -71,7 +71,7 @@ MX_RECORD_FIELD_DEFAULTS *mxd_keithley2600_aoutput_rfield_def_ptr
 /*----*/
 
 static mx_status_type
-mxd_keithley2600_aoutput_process_function( void *, void *, int );
+mxd_keithley2600_aoutput_process_function( void *, void *, void *, int );
 
 /* A private function for the use of the driver. */
 
@@ -473,6 +473,7 @@ mxd_keithley2600_aoutput_special_processing_setup( MX_RECORD *record )
 static mx_status_type
 mxd_keithley2600_aoutput_process_function( void *record_ptr,
 					void *record_field_ptr,
+					void *socket_handler_ptr,
 					int operation )
 {
 	static const char fname[] =

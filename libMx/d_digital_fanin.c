@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2015, 2017 Illinois Institute of Technology
+ * Copyright 2015, 2017, 2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -341,7 +341,7 @@ mxd_digital_fanin_read( MX_DIGITAL_INPUT *dinput )
 			fname, i, field->record->name, field->name));
 #endif
 		mx_status = mx_process_record_field( field->record, field,
-							MX_PROCESS_GET, NULL );
+						NULL, MX_PROCESS_GET, NULL );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2018 Illinois Institute of Technology
+ * Copyright 2018-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -56,6 +56,7 @@ MX_RECORD_FIELD_DEFAULTS *mxi_keithley2600_rfield_def_ptr
 
 static mx_status_type mxi_keithley2600_process_function( void *record_ptr,
 						void *record_field_ptr,
+						void *socket_handler_ptr,
 						int operation );
 
 /*---*/
@@ -236,7 +237,9 @@ mxi_keithley2600_special_processing_setup( MX_RECORD *record )
 
 static mx_status_type
 mxi_keithley2600_process_function( void *record_ptr,
-			void *record_field_ptr, int operation )
+				void *record_field_ptr,
+				void *socket_handler_ptr,
+				int operation )
 {
 	static const char fname[] = "mxi_keithley2600_process_function()";
 

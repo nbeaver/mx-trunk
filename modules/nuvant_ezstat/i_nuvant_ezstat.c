@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2014 Illinois Institute of Technology
+ * Copyright 2014, 2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -234,6 +234,7 @@ mxi_nuvant_ezstat_open( MX_RECORD *record )
 static mx_status_type
 mxi_nuvant_ezstat_process_function( void *record_ptr,
 				void *record_field_ptr,
+				void *socket_handler_ptr,
 				int operation )
 {
 	static const char fname[] = "mxi_nuvant_ezstat_process_function()";

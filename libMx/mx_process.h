@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2008, 2010-2012, 2014-2015, 2017
+ * Copyright 1999-2001, 2003-2008, 2010-2012, 2014-2015, 2017, 2019
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -54,7 +54,7 @@ struct mx_unix_domain_auth {
 #endif
 
 typedef struct {
-	MX_SOCKET *synchronous_socket;
+	MX_SOCKET *mx_socket;
 	MX_LIST_HEAD *list_head;
 	long handler_array_index;
 	struct mx_event_handler_type *event_handler;
@@ -70,6 +70,7 @@ typedef struct {
 	unsigned long remote_header_length;
 	unsigned long remote_mx_version;
 	uint64_t      remote_mx_version_time;
+	mx_bool_type short_error_codes;
 
 	long authentication_type;
 	union {
@@ -131,7 +132,7 @@ typedef struct mx_event_handler_type MX_EVENT_HANDLER;
 /*---*/
 
 /* An MX process function is invoked when an MX_RECORD_FIELD is read or
- * written, unles the pointer to the function in the MX_RECORD_FIELD array
+ * written, unless the pointer to the function in the MX_RECORD_FIELD array
  * is NULL, or the pointer to the MX_RECORD_FIELD array is NULL.
  *
  * MX process functions are declared as follows:
@@ -139,6 +140,7 @@ typedef struct mx_event_handler_type MX_EVENT_HANDLER;
  * extern mx_status_type ( *mx_process_function )
  *	( void *record,			! MX_RECORD ptr
  *	  void *record_field,		! MX_RECORD_FIELD ptr
+ *	  void *socket_handler,		! MX_SOCKET_HANDLER ptr
  *	  int operation );
  *
  * I would like to make the above a typedef, but there doesn't seem to be
@@ -159,17 +161,20 @@ MX_API mx_status_type mx_initialize_record_processing( MX_RECORD *record );
 MX_API mx_status_type mx_process_record_field_without_callbacks(
 				MX_RECORD *record,
 				MX_RECORD_FIELD *record_field,
+				MX_SOCKET_HANDLER *socket_handler,
 				int direction );
 
 MX_API mx_status_type mx_process_record_field(
 				MX_RECORD *record,
 				MX_RECORD_FIELD *record_field,
+				MX_SOCKET_HANDLER *socket_handler,
 				int direction,
 				mx_bool_type *value_changed );
 
 MX_API mx_status_type mx_process_record_field_by_name(
 				MX_RECORD *record,
 				const char *field_name,
+				MX_SOCKET_HANDLER *socket_handler,
 				int direction,
 				mx_bool_type *value_changed );
 

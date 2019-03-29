@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010, 2012-2014, 2018 Illinois Institute of Technology
+ * Copyright 2010, 2012-2014, 2018-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -81,6 +81,7 @@ MX_RECORD_FIELD_DEFAULTS *mxd_powerpmac_rfield_def_ptr
 
 static mx_status_type mxd_powerpmac_process_function( void *record,
 						void *record_field,
+						void *socket_handler_ptr,
 						int operation );
 
 /*--------*/
@@ -1486,7 +1487,9 @@ mxd_powerpmac_set_motor_variable( MX_POWERPMAC_MOTOR *powerpmac_motor,
 
 static mx_status_type
 mxd_powerpmac_process_function( void *record_ptr,
-			void *record_field_ptr, int operation )
+				void *record_field_ptr,
+				void *socket_handler_ptr,
+				int operation )
 {
 	static const char fname[] = "mxd_powerpmac_process_function()";
 

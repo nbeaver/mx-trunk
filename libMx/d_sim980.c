@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010-2011 Illinois Institute of Technology
+ * Copyright 2010-2011, 2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -205,6 +205,7 @@ mxd_sim980_command( MX_SIM980 *sim980,
 
 static mx_status_type mxd_sim980_process_function( void *record_ptr,
 						void *record_field_ptr,
+						void *socket_handler_ptr,
 						int operation );
 
 /* === */
@@ -429,7 +430,9 @@ mxd_sim980_read( MX_ANALOG_INPUT *ainput )
 
 static mx_status_type
 mxd_sim980_process_function( void *record_ptr,
-			void *record_field_ptr, int operation )
+				void *record_field_ptr,
+				void *socket_handler_ptr,
+				int operation )
 {
 	static const char fname[] = "mxd_sim980_process_function()";
 

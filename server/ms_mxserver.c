@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2018 Illinois Institute of Technology
+ * Copyright 1999-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -175,7 +175,7 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 
 	if ( n >= 0 ) {
 		mx_info("Client %ld (socket %d) disconnected.",
-			n, (int) socket_handler->synchronous_socket->socket_fd);
+			n, (int) socket_handler->mx_socket->socket_fd);
 	}
 
 	list_head = socket_handler->list_head;
@@ -494,7 +494,7 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 				fprintf( stderr,
 				"MX (socket %d) deleting callback %#lx "
 				"for newly disconnected client.\n",
-			    (int) socket_handler->synchronous_socket->socket_fd,
+			    (int) socket_handler->mx_socket->socket_fd,
 				(unsigned long) callback_ptr->callback_id );
 			    }
 
@@ -704,14 +704,14 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 
 	/* Close our end of the synchronous socket. */
 
-	(void) mx_socket_close( socket_handler->synchronous_socket );
+	(void) mx_socket_close( socket_handler->mx_socket );
 
 	if ( socket_handler_list != NULL ) {
 		socket_handler_list->num_sockets_in_use--;
 	}
 
 #if 0
-	mx_free( socket_handler->synchronous_socket );
+	mx_free( socket_handler->mx_socket );
 #endif
 
 	/* Free the message buffer. */
@@ -724,7 +724,7 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 	 * someone has a pointer to it.
 	 */
 
-	socket_handler->synchronous_socket = NULL;
+	socket_handler->mx_socket = NULL;
 	socket_handler->handler_array_index = -1;
 	socket_handler->event_handler = NULL;
 	socket_handler->message_buffer = NULL;
@@ -918,7 +918,7 @@ mxsrv_mx_server_socket_init( MX_RECORD *list_head_record,
 
 	socket_handler_list->array[i] = socket_handler;
 
-	socket_handler->synchronous_socket = server_socket;
+	socket_handler->mx_socket = server_socket;
 	socket_handler->list_head = list_head;
 	socket_handler->handler_array_index = i;
 	socket_handler->event_handler = event_handler;
@@ -1120,7 +1120,7 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 	 */
 
 	client_socket->socket_fd = accept(
-				socket_handler->synchronous_socket->socket_fd,
+				socket_handler->mx_socket->socket_fd,
 				( struct sockaddr *) client_address_ptr,
 				&client_address_size );
 
@@ -1190,7 +1190,7 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 	new_socket_handler->message_buffer->data_format
 					= new_socket_handler->data_format;
 
-	new_socket_handler->synchronous_socket = client_socket;
+	new_socket_handler->mx_socket = client_socket;
 	new_socket_handler->event_handler
 			= server_socket_struct->client_event_handler;
 
@@ -1411,15 +1411,15 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 
 	record = NULL;
 
-	client_socket = socket_handler->synchronous_socket;
+	client_socket = socket_handler->mx_socket;
 
 #if NETWORK_DEBUG_VERBOSE
 	MX_DEBUG(-2,
 	  ("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"));
 	MX_DEBUG(-2,("%s invoked for socket handler %ld.", fname,
 				socket_handler->handler_array_index));
-	MX_DEBUG(-2,("socket_handler->synchronous_socket = %p",
-				socket_handler->synchronous_socket));
+	MX_DEBUG(-2,("socket_handler->mx_socket = %p",
+				socket_handler->mx_socket));
 	MX_DEBUG(-2,("socket_handler->handler_array_index = %ld",
 				socket_handler->handler_array_index));
 	MX_DEBUG(-2,("socket_handler->event_handler = %p",
@@ -2061,8 +2061,8 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 	}
 
 #if NETWORK_DEBUG_VERBOSE
-	MX_DEBUG(-2,("socket_handler->synchronous_socket = %p",
-				socket_handler->synchronous_socket));
+	MX_DEBUG(-2,("socket_handler->mx_socket = %p",
+				socket_handler->mx_socket));
 	MX_DEBUG(-2,("socket_handler->handler_array_index = %ld",
 				socket_handler->handler_array_index));
 	MX_DEBUG(-2,("socket_handler->event_handler = %p",
@@ -2161,8 +2161,8 @@ mxsrv_mx_client_socket_proc_queued_event( MX_RECORD *record_list,
 	  ("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"));
 	MX_DEBUG(-2,("%s invoked.", fname));
 	MX_DEBUG(-2,("socket_handler = %p", socket_handler));
-	MX_DEBUG(-2,("socket_handler->synchronous_socket = %p",
-				socket_handler->synchronous_socket));
+	MX_DEBUG(-2,("socket_handler->mx_socket = %p",
+				socket_handler->mx_socket));
 	MX_DEBUG(-2,("socket_handler->handler_array_index = %ld",
 				socket_handler->handler_array_index));
 	MX_DEBUG(-2,("socket_handler->event_handler = %p",
@@ -2243,8 +2243,8 @@ mxsrv_mx_client_socket_proc_queued_event( MX_RECORD *record_list,
 	}
 
 #if NETWORK_DEBUG_VERBOSE
-	MX_DEBUG(-2,("socket_handler->synchronous_socket = %p",
-				socket_handler->synchronous_socket));
+	MX_DEBUG(-2,("socket_handler->mx_socket = %p",
+				socket_handler->mx_socket));
 	MX_DEBUG(-2,("socket_handler->handler_array_index = %ld",
 				socket_handler->handler_array_index));
 	MX_DEBUG(-2,("socket_handler->event_handler = %p",
@@ -2376,7 +2376,8 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 #endif
 
 		mx_status = mx_process_record_field_without_callbacks(
-					record, record_field, MX_PROCESS_GET );
+					record, record_field,
+					socket_handler, MX_PROCESS_GET );
 
 		if ( mx_status.code == MXE_SUCCESS ) {
 			check_for_callbacks = TRUE;
@@ -2385,7 +2386,7 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_status = mx_network_socket_send_error_message(
-					socket_handler->synchronous_socket,
+					socket_handler->mx_socket,
 					receive_buffer_message_id,
 					socket_handler->remote_header_length,
 					socket_handler->network_debug_flags,
@@ -2470,7 +2471,7 @@ mxsrv_send_field_value_to_client(
 		"The MX_NETWORK_MESSAGE_BUFFER pointer passed was NULL." );
 	}
 
-	mx_socket = socket_handler->synchronous_socket;
+	mx_socket = socket_handler->mx_socket;
 
 #if NETWORK_DEBUG_MESSAGE_IDS
 	MX_DEBUG(-2,("%s: [%#lx] sending '%s.%s' to socket %d",
@@ -2783,13 +2784,13 @@ mxsrv_send_field_value_to_client(
 	    if ( message_id_for_client & MX_NETWORK_MESSAGE_IS_CALLBACK ) {
 		fprintf( stderr,
 			"MX (socket %d) VC_CALLBACK('%s.%s') = ",
-			(int) socket_handler->synchronous_socket->socket_fd,
+			(int) socket_handler->mx_socket->socket_fd,
 			record->name,
 			record_field->name );
 	    } else {
 		fprintf( stderr,
 			"MX (socket %d) GET_ARRAY('%s.%s') = ",
-			(int) socket_handler->synchronous_socket->socket_fd,
+			(int) socket_handler->mx_socket->socket_fd,
 			record->name,
 			record_field->name );
 	    }
@@ -2903,7 +2904,7 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 
-	mx_socket = socket_handler->synchronous_socket;
+	mx_socket = socket_handler->mx_socket;
 
 	/* The do...while(0) loop below is just a trick to make it easy
 	 * to jump to the end of this block of code, since we need to send
@@ -3186,7 +3187,8 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 		/* Send the client request just received to the hardware. */
 
 		mx_status = mx_process_record_field_without_callbacks(
-					record, record_field, MX_PROCESS_PUT );
+					record, record_field,
+					socket_handler, MX_PROCESS_PUT );
 
 		if ( mx_status.code == MXE_SUCCESS ) {
 			check_for_callbacks = TRUE;
@@ -3299,7 +3301,7 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 
 		fprintf( stderr,
 			"MX (socket %d) PUT_ARRAY('%s.%s') = ",
-			(int) socket_handler->synchronous_socket->socket_fd,
+			(int) socket_handler->mx_socket->socket_fd,
 			record->name,
 			record_field->name );
 
@@ -3451,7 +3453,7 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 		/* Send back the error message. */
 
 		(void) mx_network_socket_send_error_message(
-					socket_handler->synchronous_socket,
+					socket_handler->mx_socket,
 					socket_handler->last_rpc_message_id,
 					socket_handler->remote_header_length,
 					socket_handler->network_debug_flags,
@@ -3530,7 +3532,7 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
-			(int) socket_handler->synchronous_socket->socket_fd );
+			(int) socket_handler->mx_socket->socket_fd );
 
 		mx_network_display_message( network_message, NULL,
 				socket_handler->use_64bit_network_longs );
@@ -3547,7 +3549,7 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 
 		fprintf( stderr,
 		    "MX (socket %d) GET_NETWORK_HANDLE('%s.%s') = (%lu,%lu)\n",
-			(int) socket_handler->synchronous_socket->socket_fd,
+			(int) socket_handler->mx_socket->socket_fd,
 			record->name,
 			record_field->name,
 			record_handle,
@@ -3557,12 +3559,12 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 	/* Send the record field handle back to the client. */
 
 	mx_status = mx_network_socket_send_message(
-		socket_handler->synchronous_socket, -1.0, network_message );
+		socket_handler->mx_socket, -1.0, network_message );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		snprintf( location, sizeof(location),
 			"%s to client socket %d",
-			fname, socket_handler->synchronous_socket->socket_fd );
+			fname, socket_handler->mx_socket->socket_fd );
 
 		return mx_error( mx_status.code, location,
 					"%s", mx_status.message );
@@ -3677,7 +3679,7 @@ mxsrv_handle_get_field_type( MX_RECORD *record_list,
 			"MX (socket %d) GET_FIELD_TYPE('%s.%s') = "
 			"( 'datatype' = %lu, 'num_dimensions' = %lu,"
 			" dimension = <",
-			(int) socket_handler->synchronous_socket->socket_fd,
+			(int) socket_handler->mx_socket->socket_fd,
 			field->record->name,
 			field->name,
 			field->datatype,
@@ -3888,7 +3890,7 @@ mxsrv_handle_get_attribute( MX_RECORD *record_list,
 
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
-			(int) socket_handler->synchronous_socket->socket_fd );
+			(int) socket_handler->mx_socket->socket_fd );
 
 		mx_network_display_message( network_message, NULL,
 				socket_handler->use_64bit_network_longs );
@@ -3905,7 +3907,7 @@ mxsrv_handle_get_attribute( MX_RECORD *record_list,
 
 		fprintf( stderr,
 			"MX (socket %d) GET_ATTRIBUTE('%s.%s', %lu) = %g\n",
-			(int) socket_handler->synchronous_socket->socket_fd,
+			(int) socket_handler->mx_socket->socket_fd,
 			record->name,
 			record_field->name,
 			(unsigned long) attribute_number,
@@ -3915,12 +3917,12 @@ mxsrv_handle_get_attribute( MX_RECORD *record_list,
 	/* Send the attribute information back to the client. */
 
 	mx_status = mx_network_socket_send_message(
-		socket_handler->synchronous_socket, -1.0, network_message );
+		socket_handler->mx_socket, -1.0, network_message );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		snprintf( location, sizeof(location),
 			"%s to client socket %d",
-			fname, socket_handler->synchronous_socket->socket_fd );
+			fname, socket_handler->mx_socket->socket_fd );
 
 		return mx_error( mx_status.code, location,
 					"%s", mx_status.message );
@@ -4108,7 +4110,7 @@ mxsrv_handle_set_attribute( MX_RECORD *record_list,
 
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
-			(int) socket_handler->synchronous_socket->socket_fd );
+			(int) socket_handler->mx_socket->socket_fd );
 
 		mx_network_display_message( network_message, NULL,
 				socket_handler->use_64bit_network_longs );
@@ -4125,7 +4127,7 @@ mxsrv_handle_set_attribute( MX_RECORD *record_list,
 
 		fprintf( stderr,
 			"MX (socket %d) SET_ATTRIBUTE('%s.%s', %lu) = %g\n",
-			(int) socket_handler->synchronous_socket->socket_fd,
+			(int) socket_handler->mx_socket->socket_fd,
 			record->name,
 			record_field->name,
 			(unsigned long) attribute_number,
@@ -4135,12 +4137,12 @@ mxsrv_handle_set_attribute( MX_RECORD *record_list,
 	/* Send the attribute information back to the client. */
 
 	mx_status = mx_network_socket_send_message(
-		socket_handler->synchronous_socket, -1.0, network_message );
+		socket_handler->mx_socket, -1.0, network_message );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		snprintf( location, sizeof(location),
 			"%s to client socket %d",
-			fname, socket_handler->synchronous_socket->socket_fd );
+			fname, socket_handler->mx_socket->socket_fd );
 
 		return mx_error( mx_status.code, location,
 					"%s", mx_status.message );
@@ -4321,7 +4323,7 @@ mxsrv_handle_set_client_info( MX_RECORD *record_list,
 
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
-			(int) socket_handler->synchronous_socket->socket_fd );
+			(int) socket_handler->mx_socket->socket_fd );
 
 		mx_network_display_message( network_message, NULL,
 				socket_handler->use_64bit_network_longs );
@@ -4339,7 +4341,7 @@ mxsrv_handle_set_client_info( MX_RECORD *record_list,
 		fprintf( stderr,
 			"MX (socket %d) SET_CLIENT_INFO(user = '%s', "
 				"program = '%s')\n",
-			(int) socket_handler->synchronous_socket->socket_fd,
+			(int) socket_handler->mx_socket->socket_fd,
 			socket_handler->username,
 			socket_handler->program_name );
 	}
@@ -4347,12 +4349,12 @@ mxsrv_handle_set_client_info( MX_RECORD *record_list,
 	/* Send the success message back to the client. */
 
 	mx_status = mx_network_socket_send_message(
-		socket_handler->synchronous_socket, -1.0, network_message );
+		socket_handler->mx_socket, -1.0, network_message );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		snprintf( location, sizeof(location),
 			"%s to client socket %d",
-			fname, socket_handler->synchronous_socket->socket_fd );
+			fname, socket_handler->mx_socket->socket_fd );
 
 		return mx_error( mx_status.code, location,
 					"%s", mx_status.message );
@@ -4485,7 +4487,7 @@ mxsrv_handle_get_option( MX_RECORD *record_list,
 
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
-			(int) socket_handler->synchronous_socket->socket_fd );
+			(int) socket_handler->mx_socket->socket_fd );
 
 		mx_network_display_message( network_message, NULL,
 				socket_handler->use_64bit_network_longs );
@@ -4502,7 +4504,7 @@ mxsrv_handle_get_option( MX_RECORD *record_list,
 
 		fprintf( stderr,
 			"MX (socket %d) GET_OPTION( %lu ) = %lu\n",
-			(int) socket_handler->synchronous_socket->socket_fd,
+			(int) socket_handler->mx_socket->socket_fd,
 			(unsigned long) option_number,
 			(unsigned long) option_value );
 	}
@@ -4510,12 +4512,12 @@ mxsrv_handle_get_option( MX_RECORD *record_list,
 	/* Send the option information back to the client. */
 
 	mx_status = mx_network_socket_send_message(
-		socket_handler->synchronous_socket, -1.0, network_message );
+		socket_handler->mx_socket, -1.0, network_message );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		snprintf( location, sizeof(location),
 			"%s to client socket %d",
-			fname, socket_handler->synchronous_socket->socket_fd );
+			fname, socket_handler->mx_socket->socket_fd );
 
 		return mx_error( mx_status.code, location,
 					"%s", mx_status.message );
@@ -4705,7 +4707,7 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
-			(int) socket_handler->synchronous_socket->socket_fd );
+			(int) socket_handler->mx_socket->socket_fd );
 
 		mx_network_display_message( network_message, NULL,
 				socket_handler->use_64bit_network_longs );
@@ -4722,7 +4724,7 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 
 		fprintf( stderr,
 			"MX (socket %d) SET_OPTION: Set option %lu to %lu\n",
-			(int) socket_handler->synchronous_socket->socket_fd,
+			(int) socket_handler->mx_socket->socket_fd,
 			(unsigned long) option_number,
 			(unsigned long) option_value );
 	}
@@ -4730,12 +4732,12 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 	/* Send the option information back to the client. */
 
 	mx_status = mx_network_socket_send_message(
-		socket_handler->synchronous_socket, -1.0, network_message );
+		socket_handler->mx_socket, -1.0, network_message );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		snprintf( location, sizeof(location),
 			"%s to client socket %d",
-			fname, socket_handler->synchronous_socket->socket_fd );
+			fname, socket_handler->mx_socket->socket_fd );
 
 		return mx_error( mx_status.code, location,
 					"%s", mx_status.message );
@@ -4919,7 +4921,7 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 		"The ADD_CALLBACK message of length %lu sent by "
 		"client socket %d is shorter than the required length of %lu.",
 			message_length,
-			(int) socket_handler->synchronous_socket->socket_fd,
+			(int) socket_handler->mx_socket->socket_fd,
 			(unsigned long) (3L * sizeof(uint32_t)) );
 	}
 
@@ -4952,7 +4954,7 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 		"if the '-c' option is present there." );
 
 		(void) mx_network_socket_send_error_message(
-					socket_handler->synchronous_socket,
+					socket_handler->mx_socket,
 					message_id,
 					socket_handler->remote_header_length,
 					socket_handler->network_debug_flags,
@@ -5012,7 +5014,7 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
-			(int) socket_handler->synchronous_socket->socket_fd );
+			(int) socket_handler->mx_socket->socket_fd );
 
 		mx_network_display_message( network_message, NULL,
 				socket_handler->use_64bit_network_longs );
@@ -5029,7 +5031,7 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 
 		fprintf( stderr,
 			"MX (socket %d) ADD_CALLBACK('%s.%s') = %#lx\n",
-			(int) socket_handler->synchronous_socket->socket_fd,
+			(int) socket_handler->mx_socket->socket_fd,
 			record->name,
 			field->name,
 			(unsigned long) callback_object->callback_id );
@@ -5038,7 +5040,7 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 	/* Send the message to the client. */
 
 	mx_status = mx_network_socket_send_message(
-		socket_handler->synchronous_socket, -1.0, network_message );
+		socket_handler->mx_socket, -1.0, network_message );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -5172,7 +5174,7 @@ mxsrv_handle_delete_callback( MX_RECORD *record,
 				(unsigned long) callback_id );
 
 		return mx_network_socket_send_error_message(
-					socket_handler->synchronous_socket,
+					socket_handler->mx_socket,
 					message_id,
 					socket_handler->remote_header_length,
 					socket_handler->network_debug_flags,
@@ -5402,7 +5404,7 @@ mxsrv_handle_delete_callback( MX_RECORD *record,
 
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
-			(int) socket_handler->synchronous_socket->socket_fd );
+			(int) socket_handler->mx_socket->socket_fd );
 
 		mx_network_display_message( network_message, NULL,
 				socket_handler->use_64bit_network_longs );
@@ -5419,7 +5421,7 @@ mxsrv_handle_delete_callback( MX_RECORD *record,
 
 		fprintf( stderr,
 			"MX (socket %d) DELETE_CALLBACK('%s.%s') = %#lx\n",
-			(int) socket_handler->synchronous_socket->socket_fd,
+			(int) socket_handler->mx_socket->socket_fd,
 			record->name,
 			record_field->name,
 			(unsigned long) callback_id );
@@ -5428,7 +5430,7 @@ mxsrv_handle_delete_callback( MX_RECORD *record,
 	/* Send the message to the client. */
 
 	mx_status = mx_network_socket_send_message(
-		socket_handler->synchronous_socket, -1.0, network_message );
+		socket_handler->mx_socket, -1.0, network_message );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -5468,7 +5470,7 @@ mxsrv_get_unix_domain_socket_credentials( MX_SOCKET_HANDLER *socket_handler )
 
 	socket_handler->username[0] = '\0';
 
-	mx_status = mx_socket_receive( socket_handler->synchronous_socket,
+	mx_status = mx_socket_receive( socket_handler->mx_socket,
 					&null_byte, 1,
 					NULL, NULL, 0, 0 );
 
@@ -5517,7 +5519,7 @@ mxsrv_ascii_client_send_error_message( MX_SOCKET_HANDLER *socket_handler,
 		"The MX_SOCKET_HANDLER pointer passed was NULL." );
 	}
 
-	client_socket = socket_handler->synchronous_socket;
+	client_socket = socket_handler->mx_socket;
 
 	message_buffer = socket_handler->message_buffer;
 
@@ -5571,7 +5573,7 @@ mxsrv_ascii_client_socket_process_event( MX_RECORD *record_list,
 		"MX_SOCKET_HANDLER pointer passed was NULL." );
 	}
 
-	client_socket = socket_handler->synchronous_socket;
+	client_socket = socket_handler->mx_socket;
 
 #if 0
 	MX_DEBUG(-2,("%s: event from client socket %d.",
@@ -5843,10 +5845,10 @@ mxsrv_ascii_client_handle_get( MX_RECORD *mx_record_list,
 		fname, mx_record->name, mx_field->name));
 #endif
 
-	client_socket = socket_handler->synchronous_socket;
+	client_socket = socket_handler->mx_socket;
 
 	mx_status = mx_process_record_field( mx_record, mx_field,
-						MX_PROCESS_GET, NULL );
+					socket_handler, MX_PROCESS_GET, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_status2 = mxsrv_ascii_client_send_error_message(
@@ -5923,7 +5925,7 @@ mxsrv_ascii_client_handle_put( MX_RECORD *mx_record_list,
 		fname, mx_record->name, mx_field->name, put_arguments));
 #endif
 
-	client_socket = socket_handler->synchronous_socket;
+	client_socket = socket_handler->mx_socket;
 
 	mx_initialize_parse_status( &parse_status, put_arguments, separators );
 
@@ -5942,7 +5944,7 @@ mxsrv_ascii_client_handle_put( MX_RECORD *mx_record_list,
 	}
 
 	mx_status = mx_process_record_field( mx_record, mx_field,
-						MX_PROCESS_PUT, NULL );
+					socket_handler, MX_PROCESS_PUT, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_status2 = mxsrv_ascii_client_send_error_message(
