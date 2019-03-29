@@ -76,7 +76,7 @@ mxn_umx_server_open( MX_RECORD *record )
 
 	MX_UMX_SERVER *umx_server = NULL;
 	MX_RECORD *rs232_record = NULL;
-	size_t num_bytes_read;
+	size_t num_bytes_read, length;
 	char response[80];
 	mx_status_type mx_status;
 
@@ -98,6 +98,9 @@ mxn_umx_server_open( MX_RECORD *record )
 			record->name );
 	}
 
+	/* FIXME: Make sure that the RS232 interface is configured correctly? */
+
+
 	/* We should have already received a UMX or ASCII MX server message. */
 
 	mx_status = mx_rs232_getline_with_timeout( rs232_record,
@@ -109,6 +112,8 @@ mxn_umx_server_open( MX_RECORD *record )
 		return mx_status;
 
 	MX_DEBUG(-2,("%s: num_bytes_read = %ld", fname, num_bytes_read ));
+
+	length = strlen( response );
 
 	MX_DEBUG(-2,("%s: response = '%s'", fname, response));
 
