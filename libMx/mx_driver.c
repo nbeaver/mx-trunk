@@ -50,6 +50,7 @@
 
 #include "mx_net.h"
 #include "mx_spec.h"
+#include "mx_umx.h"
 
 #include "mx_callback.h"
 
@@ -565,6 +566,8 @@
 #include "n_bluice_dhs.h"
 #include "n_bluice_dhs_manager.h"
 #endif
+
+#include "n_umx.h"
 
 #include "o_network.h"
 #include "o_toast.h"
@@ -4173,6 +4176,12 @@ MX_DRIVER mx_type_table[] = {
 				&mxn_bluice_dhs_manager_num_record_fields,
 				&mxn_bluice_dhs_manager_rfield_def_ptr},
 #endif
+
+{"umx_server",         MXN_UMX_SERVER,  MXN_UMX,           MXR_SERVER,
+				&mxn_umx_server_record_function_list,
+				NULL, NULL,
+				&mxn_umx_server_num_record_fields,
+				&mxn_umx_server_rfield_def_ptr},
 
   /* =================== Operation driver types ================== */
 

@@ -18,7 +18,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2018 Illinois Institute of Technology
+ * Copyright 1999-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -146,12 +146,14 @@ extern "C" {
 #define MXV_POWERPMAC			70
 #define MXV_FIELD			71
 #define MXV_SPECIAL			72
+#define MXV_UMX				73
 
 /* --- Server classes --- */
 
 #define MXN_NETWORK_SERVER		81
 #define MXN_SPEC			82
 #define MXN_BLUICE			83
+#define MXN_UMX				84
 
 /* --- Operation classes --- */
 
@@ -333,6 +335,7 @@ extern "C" {
 #define MXT_AIN_SIM980			10046
 #define MXT_AIN_SYNACCESS_NETBOOTER	10047
 #define MXT_AIN_KEITHLEY199		10048
+#define MXT_AIN_UMX			10049
 
 /* --- Analog input subclasses -- */
 
@@ -368,6 +371,7 @@ extern "C" {
 #define MXT_AOU_SYSTRON_DONNER_M107	20025
 #define MXT_AOU_LINKAM_T9X_PUMP		20026
 #define MXT_AOU_FANOUT			20027
+#define MXT_AOU_UMX			20028
 
 /* --- Analog output subclasses -- */
 
@@ -413,6 +417,7 @@ extern "C" {
 #define MXT_DIN_FILE			30036
 #define MXT_DIN_AINPUT			30037
 #define MXT_DIN_FANIN			30038
+#define MXT_DIN_UMX			30039
 
 /* --- Digital output types --- */
 
@@ -457,6 +462,7 @@ extern "C" {
 #define MXT_DOU_AOUTPUT			40038
 #define MXT_DOU_RELAY			40039
 #define MXT_DOU_FANOUT			40040
+#define MXT_DOU_UMX			40041
 
 /* --- Motor subclasses --- */
 
@@ -692,6 +698,7 @@ extern "C" {
 #define MXT_PGN_GITTELSOHN		160009
 #define MXT_PGN_DG645			160010
 #define MXT_PGN_DG645_BURST		160011
+#define MXT_PGN_UMX			160012
 
 /* --- Single channel analyzer types --- */
 
@@ -875,6 +882,16 @@ extern "C" {
 #define MXV_FIELD_UINT64		508015
 #define MXV_FIELD_RECORD		508031
 
+#define MXV_UMX_STRING			509001
+#define MXV_UMX_CHAR			509002
+#define MXV_UMX_UCHAR			509003
+#define MXV_UMX_SHORT			509004
+#define MXV_UMX_USHORT			509005
+#define MXV_UMX_LONG			509008
+#define MXV_UMX_ULONG			509009
+#define MXV_UMX_FLOAT			509010
+#define MXV_UMX_DOUBLE			509011
+
 #define MXV_SPECIAL_FIX_REGIONS		590001
 
 /* --- Server types --- */
@@ -888,6 +905,8 @@ extern "C" {
 #define MXN_BLUICE_DHS_SERVER		602002
 
 #define MXN_BLUICE_DHS_MANAGER		602101
+
+#define MXN_UMX_SERVER			603001
 
 /* --- Operation types --- */
 

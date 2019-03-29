@@ -46,7 +46,7 @@ MX_CORE_SRCS = mx_amplifier.c mx_analog_input.c mx_analog_output.c \
 	mx_signal.c mx_signal_alloc.c mx_sleep.c mx_socket.c mx_spawn.c \
 	mx_spec.c mx_stack.c mx_syslog.c \
 	mx_table.c mx_test.c mx_thread.c mx_time.c mx_timer.c \
-	mx_update.c mx_usb.c mx_user_interrupt.c \
+	mx_umx.c mx_update.c mx_usb.c mx_user_interrupt.c \
 	mx_url.c mx_util.c mx_util_cfaqs.c mx_util_file.c mx_util_poison.c \
 	mx_variable.c mx_version.c mx_vfield.c mx_vfile.c \
 	mx_video_input.c mx_vinline.c \
@@ -192,7 +192,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	i_vxworks_rs232.c i_vxworks_vme.c \
 	i_wago750_serial.c i_win32_com.c i_wti_nps.c \
 	n_bluice_dcss.c n_bluice_dhs.c n_bluice_dhs_manager.c \
-	n_spec.c n_tcpip.c n_unix.c \
+	n_spec.c n_tcpip.c n_umx.c n_unix.c \
 	o_network.c o_toast.c \
 	v_bluice_command.c v_bluice_master.c \
 	v_bluice_operation.c v_bluice_self_operation.c v_bluice_string.c \
