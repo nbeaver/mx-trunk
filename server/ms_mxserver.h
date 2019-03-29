@@ -217,11 +217,37 @@ extern mx_status_type mxsrv_ascii_client_handle_put(
 
 /*---*/
 
+extern void mxsrv_process_sockets( MX_RECORD *record_list,
+				MX_SOCKET_HANDLER_LIST *socket_handler_list );
+
+extern void mxsrv_update_fds( MX_SOCKET_HANDLER_LIST *socket_handler_list );
+
+/*---*/
+
 extern void mxsrv_process_sockets_with_select( MX_RECORD *record_list,
 				MX_SOCKET_HANDLER_LIST *socket_handler_list );
 
 extern void mxsrv_update_select_fds(
 				MX_SOCKET_HANDLER_LIST *socket_handler_list );
+
+/*---*/
+
+#if ( defined(OS_LINUX) && defined(MX_GLIBC_VERSION) \
+	&& (MX_GLIBC_VERSION >= 2003002L) )
+#  define HAVE_LINUX_EPOLL	TRUE
+#else
+#  define HAVE_LINUX_EPOLL	FALSE
+#endif
+
+#if HAVE_LINUX_EPOLL
+
+extern void mxsrv_process_sockets_with_epoll( MX_RECORD *record_list,
+				MX_SOCKET_HANDLER_LIST *socket_handler_list );
+
+extern void mxsrv_update_epoll_fds(
+				MX_SOCKET_HANDLER_LIST *socket_handler_list );
+
+#endif /* HAVE_LINUX_EPOLL */
 
 /*---*/
 

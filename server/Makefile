@@ -13,7 +13,7 @@
 # List all of the source code files used to build mxserver.
 #
 
-SERVER_SRCS = ms_main.c ms_mxserver.c ms_socket_select.c
+SERVER_SRCS = ms_main.c ms_mxserver.c ms_socket_select.c ms_socket_epoll.c
 
 #
 # This variable specifies the name of the directory containing the

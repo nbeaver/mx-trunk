@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2018 Illinois Institute of Technology
+ * Copyright 1999-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -959,6 +959,9 @@ mxserver_main( int argc, char *argv[] )
 
 	socket_handler_list.max_sockets = max_sockets;
 	socket_handler_list.num_sockets_in_use = 0;
+
+	socket_handler_list.epoll_fd = -1;
+
 	socket_handler_list.handler_array_size = handler_array_size;
 
 	socket_handler_list.array = (MX_SOCKET_HANDLER **)

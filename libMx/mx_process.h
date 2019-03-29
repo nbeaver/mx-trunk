@@ -89,6 +89,7 @@ typedef struct {
 	int handler_array_size;
 	MX_SOCKET_HANDLER **array;
 	fd_set select_readfds;
+	int epoll_fd;
 } MX_SOCKET_HANDLER_LIST;
 
 /* Define values for the 'event_type' member of MX_QUEUED_EVENT. */

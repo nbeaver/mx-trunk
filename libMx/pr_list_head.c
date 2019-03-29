@@ -93,11 +93,13 @@ mx_list_head_process_function( void *record_ptr,
 
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;
+	MX_SOCKET_HANDLER *socket_handler;
 	MX_LIST_HEAD *list_head;
 	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
+	socket_handler = (MX_SOCKET_HANDLER *) socket_handler_ptr;
 	list_head = (MX_LIST_HEAD *) (record->record_superclass_struct);
 
 	mx_status = MX_SUCCESSFUL_RESULT;
@@ -126,6 +128,12 @@ mx_list_head_process_function( void *record_ptr,
 			break;
 		case MXLV_LHD_POSIX_TIME:
 			list_head->posix_time = mx_posix_time();
+			break;
+		case MXLV_LHD_SHORT_ERROR_CODES:
+			if ( socket_handler != (MX_SOCKET_HANDLER *) NULL ) {
+				list_head->short_error_codes = 
+					socket_handler->short_error_codes;
+			}
 			break;
 		default:
 			MX_DEBUG( 1,(
@@ -275,6 +283,11 @@ mx_list_head_process_function( void *record_ptr,
 #endif
 			break;
 		case MXLV_LHD_SHORT_ERROR_CODES:
+			if ( socket_handler != (MX_SOCKET_HANDLER *) NULL ) {
+				socket_handler->short_error_codes
+					= list_head->short_error_codes;
+			}
+			break;
 		case MXLV_LHD_CALLBACKS_ENABLED:
 			/* Nothing to do here. */
 			break;
