@@ -494,6 +494,7 @@ typedef struct {
 	unsigned long show_callback_id;
 	mx_bool_type show_socket_handlers;
 	unsigned long show_socket_id;
+	mx_bool_type short_error_codes;
 
 	unsigned long breakpoint_number;
 	mx_bool_type numbered_breakpoint_status;

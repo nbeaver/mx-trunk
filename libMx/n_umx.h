@@ -31,10 +31,7 @@ typedef struct {
 
 MX_API mx_status_type mxn_umx_server_create_record_structures(
 							MX_RECORD *record );
-MX_API mx_status_type mxn_umx_server_delete_record( MX_RECORD *record );
 MX_API mx_status_type mxn_umx_server_open( MX_RECORD *record );
-MX_API mx_status_type mxn_umx_server_close( MX_RECORD *record );
-MX_API mx_status_type mxn_umx_server_resynchronize( MX_RECORD *record );
 
 extern MX_RECORD_FUNCTION_LIST mxn_umx_server_record_function_list;
 

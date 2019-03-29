@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006-2009, 2011-2018 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006-2009, 2011-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -60,6 +60,7 @@ mx_setup_list_head_process_functions( MX_RECORD *record )
 		case MXLV_LHD_POSIX_TIME:
 		case MXLV_LHD_REPORT:
 		case MXLV_LHD_REPORT_ALL:
+		case MXLV_LHD_SHORT_ERROR_CODES:
 		case MXLV_LHD_SHOW_CALLBACKS:
 		case MXLV_LHD_SHOW_CALLBACK_ID:
 		case MXLV_LHD_SHOW_FIELD:
@@ -271,6 +272,7 @@ mx_list_head_process_function( void *record_ptr,
 			mx_win32_show_socket_names();
 #endif
 			break;
+		case MXLV_LHD_SHORT_ERROR_CODES:
 		case MXLV_LHD_CALLBACKS_ENABLED:
 			/* Nothing to do here. */
 			break;

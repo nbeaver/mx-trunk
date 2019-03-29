@@ -31,10 +31,7 @@ MX_RECORD_FUNCTION_LIST mxn_umx_server_record_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	mxn_umx_server_open,
-	mxn_umx_server_close,
-	NULL,
-	mxn_umx_server_resynchronize
+	mxn_umx_server_open
 };
 
 MX_RECORD_FIELD_DEFAULTS mxn_umx_server_record_field_defaults[] = {
@@ -114,27 +111,6 @@ mxn_umx_server_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: num_bytes_read = %ld", fname, num_bytes_read ));
 
 	MX_DEBUG(-2,("%s: response = '%s'", fname, response));
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxn_umx_server_close( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxn_umx_server_resynchronize( MX_RECORD *record )
-{
-	mx_status_type mx_status;
-
-	mx_status = mxn_umx_server_close( record );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mxn_umx_server_open( record );
 
 	return mx_status;
 }

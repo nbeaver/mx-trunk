@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2018 Illinois Institute of Technology
+ * Copyright 1999-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -3055,33 +3055,11 @@ mx_resynchronize_record( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mx_reset_record( MX_RECORD *record )
 {
-	static const char fname[] = "mx_reset_record()";
-
-	MX_RECORD_FUNCTION_LIST *fl_ptr;
-	mx_status_type (*fptr)( MX_RECORD * );
 	mx_status_type mx_status;
 
-	if ( record == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"MX_RECORD structure pointer is NULL.");
-	}
+	mx_status = mx_resynchronize_record( record );
 
-	fl_ptr = (MX_RECORD_FUNCTION_LIST *)(record->record_function_list);
-
-	if ( fl_ptr == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"MX_RECORD_FUNCTION_LIST pointer is NULL." );
-	}
-
-	fptr = ( fl_ptr->resynchronize );
-
-	if ( fptr == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	} else {
-		mx_status = (*fptr)( record );
-
-		return mx_status;
-	}
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
