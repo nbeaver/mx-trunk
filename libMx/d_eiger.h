@@ -21,6 +21,7 @@
 #define MXU_EIGER_DESCRIPTION_LENGTH		40
 #define MXU_EIGER_URL_PREFIX_LENGTH		80
 
+#define MXU_EIGER_MODULE_NAME_LENGTH		40
 #define MXU_EIGER_KEY_NAME_LENGTH		80
 #define MXU_EIGER_KEY_VALUE_LENGTH		80
 
@@ -34,8 +35,8 @@ typedef struct {
 	unsigned long eiger_flags;
 	MX_RECORD *photon_energy_record;
 	char description[MXU_EIGER_DESCRIPTION_LENGTH+1];
-	char url_prefix[MXU_EIGER_URL_PREFIX_LENGTH+1];
 
+	char module_name[MXU_EIGER_MODULE_NAME_LENGTH+1];
 	char key_name[MXU_EIGER_KEY_NAME_LENGTH+1];
 	char key_value[MXU_EIGER_KEY_VALUE_LENGTH+1];
 
@@ -68,9 +69,9 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, description), \
 	{sizeof(char)}, NULL, MXFF_READ_ONLY }, \
   \
-  {-1, -1, "url_prefix", MXFT_STRING, NULL, 1, {MXU_EIGER_URL_PREFIX_LENGTH},\
-	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, url_prefix), \
-	{sizeof(char)}, NULL, MXFF_READ_ONLY }, \
+  {-1, -1, "module_name", MXFT_STRING, NULL, 1, {MXU_EIGER_MODULE_NAME_LENGTH},\
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, module_name), \
+	{sizeof(char)}, NULL, 0 }, \
   \
   {-1, -1, "key_name", MXFT_STRING, NULL, 1, {MXU_EIGER_KEY_NAME_LENGTH},\
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, key_name), \

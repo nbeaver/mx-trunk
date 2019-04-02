@@ -30,11 +30,13 @@
 
 #define MX_LIBCURL_DEBUG_HEADER		FALSE
 
-#define MX_LIBCURL_DEBUG_READ		FALSE
+#define MX_LIBCURL_DEBUG_READ		TRUE
 
-#define MX_LIBCURL_DEBUG_WRITE		FALSE
+#define MX_LIBCURL_DEBUG_WRITE		TRUE
 
 #define MX_LIBCURL_DEBUG_HTTP_GET	FALSE
+
+#define MX_LIBCURL_DEBUG_HTTP_PUT	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -86,6 +88,9 @@ MX_HTTP_FUNCTION_LIST mxext_libcurl_http_function_list = {
 	NULL,
 	NULL,
 	mxext_libcurl_http_get,
+	NULL,
+	NULL,
+	mxext_libcurl_http_put
 };
 
 
@@ -663,6 +668,15 @@ mxext_libcurl_http_get( MX_HTTP *http, char *url,
 							libcurl_private );
 	}
 
+	/* Tell libcurl that we want to do a GET. */
+
+	curl_status = curl_easy_setopt( curl_handle, CURLOPT_PUT, 0 );
+
+	if ( curl_status != CURLE_OK ) {
+		return mxext_libcurl_set_mx_status( fname, curl_status,
+							libcurl_private );
+	}
+
 #if MX_LIBCURL_DEBUG_HTTP_GET
 	MX_DEBUG(-2,("%s: Now performing the request.", fname));
 #endif
@@ -696,6 +710,154 @@ mxext_libcurl_http_get( MX_HTTP *http, char *url,
 	}
 
 #if MX_LIBCURL_DEBUG_HTTP_GET
+	MX_DEBUG(-2,("%s complete.", fname));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*------*/
+
+MX_EXPORT mx_status_type
+mxext_libcurl_http_put( MX_HTTP *http, char *url,
+			unsigned long *http_status_code,
+			char *content_type,
+			char *sent_data, ssize_t sent_data_length )
+{
+	static const char fname[] = "mxext_libcurl_http_put()";
+
+	MX_EXTENSION *libcurl_extension = NULL;
+	MX_LIBCURL_EXTENSION_PRIVATE *libcurl_private = NULL;
+	CURL *curl_handle = NULL;
+	CURLcode curl_status;
+
+	if ( http == (MX_HTTP *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_HTTP pointer passed was NULL." );
+	}
+
+	libcurl_extension = http->http_extension;
+
+	if ( libcurl_extension == (MX_EXTENSION *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_EXTENSION pointer for MX_HTTP %p is NULL.", http );
+	}
+
+	libcurl_private = (MX_LIBCURL_EXTENSION_PRIVATE *)
+				libcurl_extension->ext_private;
+
+	if ( libcurl_private == (MX_LIBCURL_EXTENSION_PRIVATE *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The ext_private pointer for MX extension '%s' is NULL.",
+			libcurl_extension->name );
+	}
+
+	if ( sent_data_length < 0 ) {
+		sent_data_length = strlen(sent_data);
+	}
+
+#if MX_LIBCURL_DEBUG_HTTP_PUT
+	MX_DEBUG(-2,("%s invoked for URL '%s', sent_data = '%s'.",
+			fname, url, sent_data));
+#endif
+
+	curl_handle = libcurl_private->curl_handle;
+
+	if ( curl_handle == (CURL *) NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"No CURL handle has been acquired for HTTP extension '%s'.",
+		http->http_extension->name );
+	}
+
+	MX_LIBCURL_INITIALIZE_CONTEXT( libcurl_private );
+
+	libcurl_private->content_type_ptr = content_type;
+	libcurl_private->max_content_type_length = strlen(content_type);
+
+	libcurl_private->response_ptr = NULL;
+	libcurl_private->max_response_length = 0;
+
+	/* Tell libcurl the URL to write to. */
+
+	curl_status = curl_easy_setopt( curl_handle,
+					CURLOPT_URL, url );
+
+	if ( curl_status != CURLE_OK ) {
+		return mxext_libcurl_set_mx_status( fname, curl_status,
+							libcurl_private );
+	}
+
+	/* Tell libcurl that we want to do a PUT. */
+
+	curl_status = curl_easy_setopt( curl_handle, CURLOPT_PUT, 1 );
+
+	if ( curl_status != CURLE_OK ) {
+		return mxext_libcurl_set_mx_status( fname, curl_status,
+							libcurl_private );
+	}
+
+	/* Give libcurl a pointer to the data we want to PUT. */
+
+	libcurl_private->send_ptr = sent_data;
+	libcurl_private->max_send_length = sent_data_length;
+
+#if 0
+	/* FIXME: Add "Expect: " header to the PUT. */
+
+	curl_status = curl_easy_setopt( curl_handle,
+			CURLOPT_HTTPHEADER, "Expect: " );
+
+	if ( curl_status != CURLE_OK ) {
+		return mxext_libcurl_set_mx_status( fname, curl_status,
+							libcurl_private );
+	}
+#endif
+
+#if MX_LIBCURL_DEBUG_HTTP_PUT
+	MX_DEBUG(-2,("%s: Now performing the request.", fname));
+#endif
+
+	/* Tell libcurl to actually perform the request. */
+
+	curl_status = curl_easy_perform( curl_handle );
+
+#if MX_LIBCURL_DEBUG_HTTP_PUT
+	MX_DEBUG(-2,("%s: libcurl_private->content_type_ptr = '%s'",
+			fname, libcurl_private->content_type_ptr ));
+#endif
+
+	if ( curl_status != CURLE_OK ) {
+		return mxext_libcurl_set_mx_status( fname, curl_status,
+							libcurl_private );
+	}
+
+#if MX_LIBCURL_DEBUG_HTTP_PUT
+	MX_DEBUG(-2,("%s: libcurl_private->response_ptr = '%s'",
+			fname, libcurl_private->response_ptr ));
+#endif
+
+	if ( http_status_code != (unsigned long *) NULL ) {
+		*http_status_code = libcurl_private->http_status_code;
+
+#if MX_LIBCURL_DEBUG_HTTP_PUT
+		MX_DEBUG(-2,("%s: *http_status_code = %lu",
+			fname, *http_status_code));
+#endif
+	}
+
+#if 0
+	/* FIXME: Disable sending "Expect: " header to the PUT. */
+
+	curl_status = curl_easy_setopt( curl_handle,
+			CURLOPT_HTTPHEADER, NULL );
+
+	if ( curl_status != CURLE_OK ) {
+		return mxext_libcurl_set_mx_status( fname, curl_status,
+							libcurl_private );
+	}
+#endif
+
+#if MX_LIBCURL_DEBUG_HTTP_PUT
 	MX_DEBUG(-2,("%s complete.", fname));
 #endif
 

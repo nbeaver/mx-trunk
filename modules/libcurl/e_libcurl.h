@@ -25,9 +25,11 @@
 	do { \
 		(x)->content_type_ptr = NULL; \
 		(x)->header_ptr = NULL; \
+		(x)->send_ptr = NULL; \
 		(x)->response_ptr = NULL; \
 		(x)->max_content_type_length = 0; \
 		(x)->max_header_length = 0; \
+		(x)->max_send_length = 0; \
 		(x)->max_response_length = 0; \
 		(x)->header_bytes_received = 0; \
 		(x)->data_bytes_received = 0; \
@@ -52,10 +54,12 @@ typedef struct {
 
 	char *content_type_ptr;
 	char *header_ptr;
+	char *send_ptr;
 	char *response_ptr;
 
 	size_t max_content_type_length;
 	size_t max_header_length;
+	size_t max_send_length;
 	size_t max_response_length;
 
 	size_t header_bytes_received;
@@ -96,10 +100,10 @@ MX_API mx_status_type mxext_libcurl_http_head( MX_HTTP *, char *,
 						char *, size_t );
 MX_API mx_status_type mxext_libcurl_http_post( MX_HTTP *, char *,
 						unsigned long *,
-						char *, char *, size_t );
+						char *, char *, ssize_t );
 MX_API mx_status_type mxext_libcurl_http_put( MX_HTTP *, char *,
 						unsigned long *,
-						char *, char *, size_t );
+						char *, char *, ssize_t );
 
 extern MX_HTTP_FUNCTION_LIST mxext_libcurl_http_function_list;
 

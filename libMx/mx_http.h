@@ -56,11 +56,11 @@ typedef struct mx_http_function_list {
 	mx_status_type ( *http_post )( MX_HTTP *http, char *url,
 			unsigned long *http_status_code,
 			char *content_type,
-			char *sent_data, size_t sent_data_length );
+			char *sent_data, ssize_t sent_data_length );
 	mx_status_type ( *http_put )( MX_HTTP *http, char *url,
 			unsigned long *http_status_code,
 			char *content_type,
-			char *sent_data, size_t sent_data_length );
+			char *sent_data, ssize_t sent_data_length );
 } MX_HTTP_FUNCTION_LIST;
 
 /*-------------------------------------------------------------------------*/

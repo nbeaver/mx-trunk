@@ -235,3 +235,40 @@ mx_http_get( MX_HTTP *http,
 	return mx_status;
 }
 
+MX_EXPORT mx_status_type
+mx_http_put( MX_HTTP *http,
+		char *url,
+		unsigned long *http_status_code,
+		char *content_type,
+		char *sent_data,
+		size_t sent_data_length )
+{
+	static const char fname[] = "mx_http_get()";
+
+	mx_status_type (*put_fn)( MX_HTTP *, char *, unsigned long *,
+					char *, char *, ssize_t ) = NULL;
+	mx_status_type mx_status;
+
+#if MX_HTTP_DEBUG
+	MX_DEBUG(-2,("%s: url = '%s'", fname, url));
+	MX_DEBUG(-2,("%s: sent_data = '%s'", fname, sent_data));
+#endif
+	if ( http == (MX_HTTP *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_HTTP pointer passed was NULL." );
+	}
+
+	put_fn = http->http_function_list->http_put;
+
+	if ( put_fn == NULL ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"The MX HTTP driver '%s' does not support PUT operations.",
+			http->driver_name );
+	}
+
+	mx_status = (*put_fn)( http, url, http_status_code, content_type, 
+				sent_data, sent_data_length );
+
+	return mx_status;
+}
+
