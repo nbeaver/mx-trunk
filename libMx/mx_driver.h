@@ -154,7 +154,7 @@ extern "C" {
 #define MXN_SPEC			82
 #define MXN_BLUICE			83
 #define MXN_UMX				84
-#define MXN_HTTP			85
+#define MXN_URL				85
 
 /* --- Operation classes --- */
 
@@ -908,6 +908,8 @@ extern "C" {
 #define MXN_BLUICE_DHS_MANAGER		602101
 
 #define MXN_UMX_SERVER			603001
+
+#define MXN_URL_HTTP			604001
 
 /* --- Operation types --- */
 
