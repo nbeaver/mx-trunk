@@ -19,7 +19,7 @@
  *
  */
 
-#define MX_HTTP_DEBUG		FALSE
+#define MX_HTTP_DEBUG		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,7 +29,7 @@
 #include "mx_module.h"
 #include "mx_http.h"
 
-#define MX_HTTP_DRIVER_BUILTIN_DEFAULT	"libcurl"
+#define MX_HTTP_DRIVER_BUILTIN_DEFAULT	"http"
 
 static char
 mx_http_default_driver_name[MXU_HTTP_DRIVER_NAME_LENGTH+1]
@@ -130,7 +130,7 @@ mx_http_create( MX_HTTP **http,
 		mx_database_ptr = mx_database;
 	}
 
-	mx_status = mx_get_module( http_driver_name,
+	mx_status = mx_get_module( http_ptr->driver_name,
 			mx_database_ptr, &http_driver_module );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -150,7 +150,7 @@ mx_http_create( MX_HTTP **http,
 
 	/* If the module name is 'x', then look for an extension named 'x'. */
 
-	strlcpy( http_extension_name, http_driver_name,
+	strlcpy( http_extension_name, http_ptr->driver_name,
 			sizeof(http_extension_name) );
 
 	mx_status = mx_get_extension_from_module( http_driver_module,

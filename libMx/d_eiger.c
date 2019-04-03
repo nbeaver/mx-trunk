@@ -549,7 +549,7 @@ mxd_eiger_open( MX_RECORD *record )
 
 	/* Create an EIGER HTTP handler. */
 
-	mx_status = mx_http_create( &(eiger->http), record, "libcurl" );
+	mx_status = mx_http_create( &(eiger->http), record, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

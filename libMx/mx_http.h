@@ -22,6 +22,8 @@
 #ifndef __MX_HTTP_H__
 #define __MX_HTTP_H__
 
+#define MX_HTTP_DEFAULT_PORT		80
+
 #define MXU_HTTP_DRIVER_NAME_LENGTH	40
 
 /* extension call() request code. */
