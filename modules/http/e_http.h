@@ -22,7 +22,7 @@ typedef struct {
 	MX_HTTP_FUNCTION_LIST *http_function_list;
 	MX_EXTENSION *extension;
 
-	MX_SOCKET *mx_socket;
+	MX_RECORD *rs232_record;
 } MX_HTTP_EXTENSION_PRIVATE;
 
 extern MX_EXTENSION_FUNCTION_LIST mxext_http_extension_function_list;

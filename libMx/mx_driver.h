@@ -154,6 +154,7 @@ extern "C" {
 #define MXN_SPEC			82
 #define MXN_BLUICE			83
 #define MXN_UMX				84
+#define MXN_HTTP			85
 
 /* --- Operation classes --- */
 

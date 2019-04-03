@@ -23,6 +23,19 @@
 #include "mx_socket.h"
 #include "mx_http.h"
 #include "e_http.h"
+#include "n_http.h"
+
+MX_DRIVER mxext_http_driver_table[] = {
+
+{"http_server", -1, MXN_HTTP, MXR_SERVER,
+		&mxn_http_server_record_function_list,
+		NULL,
+		NULL,
+		&mxn_http_server_num_record_fields,
+		&mxn_http_server_rfield_def_ptr},
+
+{"", 0, 0, 0, NULL, NULL, NULL, NULL, NULL}
+};
 
 MX_EXTENSION mxext_http_extension_table[] = {
 
@@ -51,7 +64,7 @@ MX_EXPORT
 MX_MODULE __MX_MODULE__ = {
 	"http",
 	MX_VERSION,
-	NULL,
+	mxext_http_driver_table,
 	mxext_http_extension_table
 };
 

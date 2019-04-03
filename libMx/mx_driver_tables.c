@@ -185,6 +185,8 @@ static MX_DRIVER mx_class_table[] = {
 				NULL, NULL, NULL, NULL, NULL},
 {"umx",            0, MXN_UMX,            MXR_SERVER,
 				NULL, NULL, NULL, NULL, NULL},
+{"http",           0, MXN_HTTP,           MXR_SERVER,
+				NULL, NULL, NULL, NULL, NULL},
 
   /* ================== Operation classes ================== */
 

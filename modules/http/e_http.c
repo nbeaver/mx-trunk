@@ -27,7 +27,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_module.h"
-#include "mx_socket.h"
+#include "mx_rs232.h"
 #include "mx_http.h"
 #include "e_http.h"
 
@@ -230,7 +230,7 @@ mxext_http_create( MX_HTTP *http )
 	http->http_debug = TRUE;
 #endif
 
-	http_private->mx_socket = NULL;
+	http_private->rs232_record = NULL;
 
 #if MX_HTTP_DEBUG_CREATE
 	MX_DEBUG(-2,("%s complete.", fname));
@@ -386,13 +386,12 @@ mxext_http_http_get( MX_HTTP *http, char *url,
 
 	MX_EXTENSION *http_extension = NULL;
 	MX_HTTP_EXTENSION_PRIVATE *http_private = NULL;
-	MX_SOCKET *mx_socket = NULL;
+	MX_RECORD *rs232_record = NULL;
 	char protocol[40];
 	char hostname[MXU_HOSTNAME_LENGTH+1];
 	char filename[MXU_FILENAME_LENGTH+1];
-	long port_number;
 	char http_message[500];
-	long num_input_bytes_available;
+	unsigned long num_input_bytes_available;
 	char local_response[500];
 	mx_status_type mx_status;
 
@@ -431,18 +430,6 @@ mxext_http_http_get( MX_HTTP *http, char *url,
 			protocol, url );
 	}
 
-	/* Try to open a connection to the web server. */
-
-	port_number = MX_HTTP_DEFAULT_PORT;
-
-	mx_status = mx_tcp_socket_open_as_client( &mx_socket,
-					hostname, port_number,
-					MXF_SOCKET_USE_MX_RECEIVE_BUFFER,
-					8000 );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
 	/* Send the initial query to the Web server. */
 
 	snprintf( http_message, sizeof(http_message),
@@ -454,7 +441,8 @@ mxext_http_http_get( MX_HTTP *http, char *url,
 
 	MX_DEBUG(-2,("%s: http_message = '%s'", fname, http_message));
 
-	mx_status = mx_socket_putline( mx_socket, http_message, "\r\n" );
+	mx_status = mx_rs232_putline( rs232_record, http_message,
+					NULL, http->http_debug );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -465,7 +453,7 @@ mxext_http_http_get( MX_HTTP *http, char *url,
 
 	while ( TRUE ) {
 
-		mx_status = mx_socket_num_input_bytes_available( mx_socket,
+		mx_status = mx_rs232_num_input_bytes_available( rs232_record,
 						&num_input_bytes_available );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -480,10 +468,10 @@ mxext_http_http_get( MX_HTTP *http, char *url,
 		}
 #endif
 
-		mx_status = mx_socket_getline( mx_socket,
+		mx_status = mx_rs232_getline( rs232_record,
 					local_response,
 					sizeof(local_response),
-					"\r\n" );
+					NULL, http->http_debug );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
