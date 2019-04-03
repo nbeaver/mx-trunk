@@ -30,6 +30,7 @@
 typedef struct {
 	MX_RECORD *record;
 
+	MX_RECORD *url_server_record;
 	char hostname[MXU_HOSTNAME_LENGTH+1];
 	char simplon_version[MXU_EIGER_SIMPLON_VERSION_LENGTH+1];
 	unsigned long eiger_flags;
@@ -42,12 +43,15 @@ typedef struct {
 
 	char key_type[MXU_EIGER_KEY_TYPE_LENGTH+1];
 
-	MX_HTTP *http;
 } MX_EIGER;
 
 #define MXLV_EIGER_KEY_VALUE			94001
 
 #define MXD_EIGER_STANDARD_FIELDS \
+  {-1, -1, "url_server_record", MXFT_RECORD, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, url_server_record), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+  \
   {-1, -1, "hostname", MXFT_STRING, NULL, 1, {MXU_HOSTNAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, hostname), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \

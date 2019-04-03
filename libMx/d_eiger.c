@@ -37,7 +37,7 @@
 #include "mx_thread.h"
 #include "mx_image.h"
 #include "mx_module.h"
-#include "mx_http.h"
+#include "mx_url.h"
 #include "mx_json.h"
 #include "mx_area_detector.h"
 #include "d_eiger.h"
@@ -171,7 +171,8 @@ mxd_eiger_get( MX_AREA_DETECTOR *ad,
 		eiger->hostname, module_name,
 		eiger->simplon_version, key_name );
 
-	mx_status = mx_http_get( eiger->http, command_url,
+	mx_status = mx_url_get( eiger->url_server_record,
+				command_url,
 				&http_status_code,
 				content_type, sizeof(content_type),
 				response, max_response_length );
@@ -373,7 +374,8 @@ mxd_eiger_put( MX_AREA_DETECTOR *ad,
 		eiger->hostname, module_name,
 		eiger->simplon_version, key_name );
 
-	mx_status = mx_http_put( eiger->http, command_url,
+	mx_status = mx_url_put( eiger->url_server_record,
+				command_url,
 				&http_status_code,
 				"application/json",
 				key_value, -1 );
@@ -543,13 +545,6 @@ mxd_eiger_open( MX_RECORD *record )
 	ad = (MX_AREA_DETECTOR *) record->record_class_struct;
 
 	mx_status = mxd_eiger_get_pointers( ad, &eiger, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Create an EIGER HTTP handler. */
-
-	mx_status = mx_http_create( &(eiger->http), record, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

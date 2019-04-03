@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2018 Illinois Institute of Technology
+ * Copyright 1999-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -46,7 +46,7 @@
 #endif
 
 #include "mx_module.h"
-#include "mx_http.h"
+#include "mx_url.h"
 
 #include "mx_net.h"
 #include "mx_spec.h"
@@ -568,6 +568,8 @@
 #endif
 
 #include "n_umx.h"
+
+#include "n_http.h"
 
 #include "o_network.h"
 #include "o_toast.h"
@@ -4182,6 +4184,12 @@ MX_DRIVER mx_type_table[] = {
 				NULL, NULL,
 				&mxn_umx_server_num_record_fields,
 				&mxn_umx_server_rfield_def_ptr},
+
+{"http_server",        MXN_URL_HTTP,    MXN_URL,           MXR_SERVER,
+				&mxn_http_server_record_function_list,
+				NULL, NULL,
+				&mxn_http_server_num_record_fields,
+				&mxn_http_server_rfield_def_ptr},
 
   /* =================== Operation driver types ================== */
 

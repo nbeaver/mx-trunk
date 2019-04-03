@@ -27,7 +27,7 @@ MX_CORE_SRCS = mx_amplifier.c mx_analog_input.c mx_analog_output.c \
 	mx_encoder.c mx_error.c mx_export.c \
 	mx_field.c mx_fvarargs.c \
 	mx_generic.c mx_gpib.c mx_handle.c mx_hash_table.c mx_heap.c \
-	mx_hrt.c mx_hrt_debug.c mx_http.c \
+	mx_hrt.c mx_hrt_debug.c \
 	mx_image.c mx_image_noir.c \
 	mx_info.c mx_interval_timer.c mx_io.c mx_json.c mx_key.c \
 	mx_log.c mx_list.c mx_list_head.c \
@@ -193,7 +193,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	i_vxworks_rs232.c i_vxworks_vme.c \
 	i_wago750_serial.c i_win32_com.c i_wti_nps.c \
 	n_bluice_dcss.c n_bluice_dhs.c n_bluice_dhs_manager.c \
-	n_spec.c n_tcpip.c n_umx.c n_unix.c \
+	n_http.c n_spec.c n_tcpip.c n_umx.c n_unix.c \
 	o_network.c o_toast.c \
 	v_bluice_command.c v_bluice_master.c \
 	v_bluice_operation.c v_bluice_self_operation.c v_bluice_string.c \
