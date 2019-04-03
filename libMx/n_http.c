@@ -303,9 +303,11 @@ mxn_http_server_get( MX_URL_SERVER *url_server,
 
 	MX_HTTP_SERVER *http_server = NULL;
 	MX_RECORD *rs232_record = NULL;
+
 	char protocol[40];
 	char hostname[MXU_HOSTNAME_LENGTH+1];
 	char filename[MXU_FILENAME_LENGTH+1];
+
 	char http_message[500];
 	unsigned long num_input_bytes_available;
 	char local_response[500];
@@ -552,6 +554,18 @@ mxn_http_server_put( MX_URL_SERVER *url_server,
 
 	MX_HTTP_SERVER *http_server = NULL;
 	MX_RECORD *rs232_record = NULL;
+
+	char protocol[40];
+	char hostname[MXU_HOSTNAME_LENGTH+1];
+	char filename[MXU_FILENAME_LENGTH+1];
+
+	char http_message[5000];
+	unsigned long num_input_bytes_available;
+	char local_response[500];
+	size_t num_bytes_to_write, num_bytes_written;
+	size_t num_bytes_to_read, num_bytes_read;
+	int num_items;
+	double wait_timeout;
 	mx_status_type mx_status;
 
 #if MXN_HTTP_DEBUG_PUT
@@ -564,10 +578,6 @@ mxn_http_server_put( MX_URL_SERVER *url_server,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( sent_data_length < 0 ) {
-		sent_data_length = strlen(sent_data);
-	}
-
 	rs232_record = http_server->rs232_record;
 
 	if ( rs232_record == (MX_RECORD *) NULL ) {
@@ -577,9 +587,157 @@ mxn_http_server_put( MX_URL_SERVER *url_server,
 	}
 
 #if MXN_HTTP_DEBUG_PUT
-	MX_DEBUG(-2,("%s invoked for URL '%s', sent_data = '%s'.",
-			fname, url, sent_data));
+	MX_DEBUG(-2,("%s invoked for URL '%s'.", fname, url));
 #endif
+
+	if ( url_status_code != (unsigned long *) NULL ) {
+		*url_status_code = 0;
+	}
+
+	mx_status = mxn_http_server_parse_address( url,
+				protocol, sizeof(protocol),
+				hostname, sizeof(hostname),
+				filename, sizeof(filename) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXN_HTTP_DEBUG_PUT
+	MX_DEBUG(-2,("%s: protocol = '%s', hostname = '%s', filename = '%s'.",
+		fname, protocol, hostname, filename ));
+#endif
+
+	if ( strcmp( protocol, "http" ) != 0 ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"The MX 'http.mxo' module does not support the use of "
+		"the '%s' protocol requested by URL '%s'.  "
+		"Only the 'http' protocol is supported.",
+			protocol, url );
+	}
+
+	/* Send the PUT header to the Web server. */
+
+	snprintf( http_message, sizeof(http_message),
+		"PUT %s HTTP/1.1\r\n"
+		"Host: %s\r\n"
+		"Content-Type: %s\r\n"
+		"\r\n"
+		"%s\r\n",
+		filename, hostname, content_type, sent_data );
+
+#if MXN_HTTP_DEBUG_PUT_DETAILS
+	MX_DEBUG(-2,("%s: http_message = '%s'", fname, http_message));
+#endif
+
+	num_bytes_to_write = strlen(http_message);
+
+#if MXN_HTTP_DEBUG_PUT_DETAILS
+	MX_DEBUG(-2,("%s: num_bytes_to_write = %ld",
+				fname, (long) num_bytes_to_write ));
+#endif
+
+	mx_status = mx_rs232_write( rs232_record,
+				http_message,
+				num_bytes_to_write,
+				&num_bytes_written,
+				MXN_HTTP_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXN_HTTP_DEBUG_PUT_DETAILS
+	MX_DEBUG(-2,("%s: num_bytes_written = %ld",
+			fname, (long) num_bytes_written));
+#endif
+
+	/* Wait a while for a response to arrive. */
+
+	wait_timeout = 5.0;	/* in seconds */
+
+	mx_status = mx_rs232_wait_for_input_available( rs232_record,
+						&num_input_bytes_available,
+						wait_timeout );
+
+	if ( mx_status.code == MXE_SUCCESS ) {
+		/* A response has arrived. */
+	} else
+	if ( mx_status.code == MXE_TIMED_OUT ) {
+		return mx_error( MXE_TIMED_OUT, fname,
+		"Timed out after waiting %g seconds for a response "
+		"from the HTTP server to a PUT for '%s'.",
+			wait_timeout, url );
+	} else {
+		return mx_status;
+	}
+
+	/* Read the response. */
+
+	while ( TRUE ) {
+
+		mx_status = mx_rs232_num_input_bytes_available( rs232_record,
+						&num_input_bytes_available );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+#if MXN_HTTP_DEBUG_PUT_DETAILS
+		MX_DEBUG(-2,("%s: num_input_bytes_available = %ld",
+			fname, num_input_bytes_available));
+#endif
+
+		if ( num_input_bytes_available == 0 ) {
+			break;
+		}
+
+		if ( num_input_bytes_available > sizeof(local_response) ) {
+			num_bytes_to_read = sizeof(local_response);
+		} else {
+			num_bytes_to_read = num_input_bytes_available;
+		}
+
+#if MXN_HTTP_DEBUG_PUT_DETAILS
+		MX_DEBUG(-2,("%s: num_bytes_to_read = %ld",
+			fname, (long) num_bytes_to_read));
+#endif
+
+		mx_status = mx_rs232_read( rs232_record,
+					local_response,
+					num_bytes_to_read,
+					&num_bytes_read,
+					MXN_HTTP_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+#if MXN_HTTP_DEBUG_PUT_DETAILS
+		MX_DEBUG(-2,("%s: num_bytes_read = %ld",
+			fname, (long) num_bytes_read));
+#endif
+
+#if MXN_HTTP_DEBUG_PUT_DETAILS
+		MX_DEBUG(-2,("%s: local_response = '%s'",
+			fname, local_response));
+#endif
+
+		/* Get the HTTP status code that was sent to us. */
+
+		if ( url_status_code != (unsigned long *) NULL ) {
+			num_items = sscanf( local_response,
+					"HTTP/1.1 %lu", url_status_code );
+
+			if ( num_items != 1 ) {
+				return mx_error( MXE_UNPARSEABLE_STRING, fname,
+				"Could not find the HTTP status code in the "
+				"response '%s' from the HTTP server to the "
+				"url '%s'.", local_response, url );
+			}
+
+#if MXN_HTTP_DEBUG_PUT_DETAILS
+			MX_DEBUG(-2,("%s: HTTP status code = %lu",
+				fname, *url_status_code ));
+#endif
+		}
+	}
 
 #if MXN_HTTP_DEBUG_PUT
 	MX_DEBUG(-2,("******** %s complete ********", fname));

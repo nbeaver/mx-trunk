@@ -399,6 +399,7 @@ mxd_eiger_put_value( MX_AREA_DETECTOR *ad,
 	static const char fname[] = "mxd_eiger_put_value()";
 
 	char key_value[MXU_EIGER_KEY_VALUE_LENGTH+1];
+	char key_body[500];
 	mx_bool_type bool_value;
 	mx_status_type mx_status;
 
@@ -411,46 +412,48 @@ mxd_eiger_put_value( MX_AREA_DETECTOR *ad,
 
 	switch( mx_datatype ) {
 	case MXFT_STRING:
-		strlcpy( key_value, (char *) value, sizeof(key_value) );
+		snprintf( key_body, sizeof(key_body),
+			"\"%s\"", (char *) value );
+		break;
 	case MXFT_BOOL:
 		bool_value = *((mx_bool_type *) value);
 
 		if (bool_value == 0 ) {
-			strlcpy( key_value, "0", sizeof(key_value) );
+			strlcpy( key_body, "0", sizeof(key_body) );
 		} else {
-			strlcpy( key_value, "1", sizeof(key_value) );
+			strlcpy( key_body, "1", sizeof(key_body) );
 		}
 		break;
 	case MXFT_CHAR:
-		snprintf( key_value, sizeof(key_value),
+		snprintf( key_body, sizeof(key_body),
 			"%d", (int) *((char *) value) );
 		break;
 	case MXFT_UCHAR:
-		snprintf( key_value, sizeof(key_value),
+		snprintf( key_body, sizeof(key_body),
 			"%u", (unsigned int) *((unsigned char *) value) );
 		break;
 	case MXFT_SHORT:
-		snprintf( key_value, sizeof(key_value),
+		snprintf( key_body, sizeof(key_body),
 			"%hd", *((short *) value) );
 		break;
 	case MXFT_USHORT:
-		snprintf( key_value, sizeof(key_value),
+		snprintf( key_body, sizeof(key_body),
 			"%hu", *((unsigned short *) value) );
 		break;
 	case MXFT_LONG:
-		snprintf( key_value, sizeof(key_value),
+		snprintf( key_body, sizeof(key_body),
 			"%ld", *((long *) value) );
 		break;
 	case MXFT_ULONG:
-		snprintf( key_value, sizeof(key_value),
+		snprintf( key_body, sizeof(key_body),
 			"%lu", *((unsigned long *) value) );
 		break;
 	case MXFT_FLOAT:
-		snprintf( key_value, sizeof(key_value),
+		snprintf( key_body, sizeof(key_body),
 			"%f", *((float *) value) );
 		break;
 	case MXFT_DOUBLE:
-		snprintf( key_value, sizeof(key_value),
+		snprintf( key_body, sizeof(key_body),
 			"%f", *((double *) value) );
 		break;
 	default:
@@ -461,6 +464,9 @@ mxd_eiger_put_value( MX_AREA_DETECTOR *ad,
 			module_name, key_name );
 		break;
 	}
+
+	snprintf( key_value, sizeof(key_value),
+		"{\r\n  \"value\" : %s\r\n}\r\n", key_body );
 
 	mx_status = mxd_eiger_put( ad, eiger,
 			module_name, key_name, key_value );
