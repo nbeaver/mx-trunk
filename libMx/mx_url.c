@@ -29,6 +29,36 @@ mx_url_get_pointers( MX_RECORD *url_record,
 			MX_URL_FUNCTION_LIST **url_flist,
 			const char *calling_fname )
 {
+	static const char fname[] = "mx_url_get_pointers()";
+
+	if ( url_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The url_record pointer passed by '%s' is NULL.",
+			calling_fname );
+	}
+
+	if ( url_server != (MX_URL_SERVER **) NULL ) {
+		*url_server = (MX_URL_SERVER *)
+				url_record->record_class_struct;
+
+		if ( (*url_server) == (MX_URL_SERVER *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_URL_SERVER pointer for record '%s' is NULL.",
+				url_record->name );
+		}
+	}
+
+	if ( url_flist != (MX_URL_FUNCTION_LIST **) NULL ) {
+		*url_flist = (MX_URL_FUNCTION_LIST *)
+				url_record->class_specific_function_list;
+
+		if ( (*url_flist) == (MX_URL_FUNCTION_LIST *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		    "The MX_URL_FUNCTION_LIST pointer for record '%s' is NULL.",
+				url_record->name );
+		}
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 

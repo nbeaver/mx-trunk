@@ -14,10 +14,13 @@
  *
  */
 
-#define MXN_HTTP_DEBUG		TRUE
+#define MXN_HTTP_DEBUG			TRUE
 
-#define MXN_HTTP_DEBUG_GET	TRUE
-#define MXN_HTTP_DEBUG_PUT	TRUE
+#define MXN_HTTP_DEBUG_GET		FALSE
+#define MXN_HTTP_DEBUG_PUT		TRUE
+
+#define MXN_HTTP_DEBUG_GET_DETAILS	FALSE
+#define MXN_HTTP_DEBUG_PUT_DETAILS	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -306,7 +309,16 @@ mxn_http_server_get( MX_URL_SERVER *url_server,
 	char http_message[500];
 	unsigned long num_input_bytes_available;
 	char local_response[500];
+	size_t num_bytes_to_write, num_bytes_written;
+	size_t num_bytes_to_read, num_bytes_read;
+	int num_items;
+	char *ptr, *blank_ptr, *body_ptr;
+	char *content_type_ptr, *end_of_string_ptr;
 	mx_status_type mx_status;
+
+#if MXN_HTTP_DEBUG_GET
+	MX_DEBUG(-2,("******** %s invoked ********", fname));
+#endif
 
 	mx_status = mxn_http_server_get_pointers( url_server,
 						&http_server, fname );
@@ -360,17 +372,38 @@ mxn_http_server_get( MX_URL_SERVER *url_server,
 		"\r\n",
 		filename, hostname );
 
+#if MXN_HTTP_DEBUG_GET_DETAILS
 	MX_DEBUG(-2,("%s: http_message = '%s'", fname, http_message));
+#endif
 
-	mx_status = mx_rs232_putline( rs232_record,
-				http_message, NULL, MXN_HTTP_DEBUG );
+	num_bytes_to_write = strlen(http_message);
+
+#if MXN_HTTP_DEBUG_GET_DETAILS
+	MX_DEBUG(-2,("%s: num_bytes_to_write = %ld",
+				fname, (long) num_bytes_to_write ));
+#endif
+
+	mx_status = mx_rs232_write( rs232_record,
+				http_message,
+				num_bytes_to_write,
+				&num_bytes_written,
+				MXN_HTTP_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXN_HTTP_DEBUG_GET_DETAILS
+	MX_DEBUG(-2,("%s: num_bytes_written = %ld",
+			fname, (long) num_bytes_written));
+#endif
+
 	/* Read the response. */
 
-	mx_msleep(1000);
+#if 1
+	/* FIXME: We need to to better than just waiting an arbitrary 100 ms. */
+
+	mx_msleep(100);
+#endif
 
 	while ( TRUE ) {
 
@@ -380,29 +413,113 @@ mxn_http_server_get( MX_URL_SERVER *url_server,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
+#if MXN_HTTP_DEBUG_GET_DETAILS
 		MX_DEBUG(-2,("%s: num_input_bytes_available = %ld",
 			fname, num_input_bytes_available));
+#endif
 
-#if 1
 		if ( num_input_bytes_available == 0 ) {
 			break;
 		}
+
+		if ( num_input_bytes_available > sizeof(local_response) ) {
+			num_bytes_to_read = sizeof(local_response);
+		} else {
+			num_bytes_to_read = num_input_bytes_available;
+		}
+
+#if MXN_HTTP_DEBUG_GET_DETAILS
+		MX_DEBUG(-2,("%s: num_bytes_to_read = %ld",
+			fname, (long) num_bytes_to_read));
 #endif
 
-		mx_status = mx_rs232_getline( rs232_record,
+		mx_status = mx_rs232_read( rs232_record,
 					local_response,
-					sizeof(local_response),
-					NULL, MXN_HTTP_DEBUG );
+					num_bytes_to_read,
+					&num_bytes_read,
+					MXN_HTTP_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
+#if MXN_HTTP_DEBUG_GET_DETAILS
+		MX_DEBUG(-2,("%s: num_bytes_read = %ld",
+			fname, (long) num_bytes_read));
+#endif
+
+#if MXN_HTTP_DEBUG_GET_DETAILS
 		MX_DEBUG(-2,("%s: local_response = '%s'",
 			fname, local_response));
+#endif
+
+		/* FIXME: The parsing of the HTTP server's response
+		 * is inefficient and crufty.
+		 */
+
+		/* The end of the HTTP header is a blank line. */
+
+		blank_ptr = strstr( local_response, "\r\n\r\n" );
+
+		if ( blank_ptr == (char *) NULL ) {
+			return mx_error( MXE_NOT_FOUND, fname,
+			"Did not find the end of the HTTP header in "
+			"response '%s'.", response );
+		}
+
+		body_ptr = blank_ptr + strlen("\r\n\r\n");
+
+		strlcpy( response, body_ptr, max_response_length );
+
+		/* Get the HTTP status code that was sent to us. */
+
+		if ( url_status_code != (unsigned long *) NULL ) {
+			num_items = sscanf( local_response,
+					"HTTP/1.1 %lu", url_status_code );
+
+			if ( num_items != 1 ) {
+				return mx_error( MXE_UNPARSEABLE_STRING, fname,
+				"Could not find the HTTP status code in the "
+				"response '%s' from the HTTP server to the "
+				"url '%s'.", local_response, url );
+			}
+
+#if MXN_HTTP_DEBUG_GET_DETAILS
+			MX_DEBUG(-2,("%s: HTTP status code = %lu",
+				fname, *url_status_code ));
+#endif
+		}
+
+		/* Get the content type. */
+
+		ptr = strcasestr( local_response, "Content-Type: " );
+
+		if ( ptr == (char *) NULL ) {
+			mx_warning( "No Content-Type: seen in response '%s'.",
+				local_response );
+		} else {
+			ptr = strchr( ptr, ' ' );
+
+			content_type_ptr = ptr + 1;
+
+			end_of_string_ptr = strchr( ptr, '\r' );
+
+			if ( end_of_string_ptr != NULL ) {
+				*end_of_string_ptr = '\0';
+			}
+
+			strlcpy( content_type, content_type_ptr,
+					max_content_type_length );
+
+#if MXN_HTTP_DEBUG_GET_DETAILS
+			MX_DEBUG(-2,("%s: content type = '%s'",
+				fname, content_type));
+#endif
+		}
+
 	}
 
 #if MXN_HTTP_DEBUG_GET
-	MX_DEBUG(-2,("%s complete.", fname));
+	MX_DEBUG(-2,("******** %s complete ********", fname));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;

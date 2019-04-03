@@ -730,13 +730,25 @@ MX_API size_t strlcat( char *dest, const char *src, size_t maxlen );
 
 #endif
 
+#if defined(OS_LINUX)
+
+/* This prototype provides a definition of strcasestr() for systems that
+ * do not come with it.  For such systems, the OpenBSD source code for
+ * strcasestr() is bundled with the base MX distribution in the directory
+ * mx/tools/generic/src.
+ */
+
+MX_API char *strcasestr( const char *s, const char *find );
+
+#endif
+
+#if defined(OS_WIN32) || defined(OS_DJGPP) || defined(OS_VXWORKS)
+
 /* This prototype provides a definition of strptime() for systems that
  * do not come with it.  For such systems, the NetBSD source code for
  * strptime() is bundled with the base MX distribution in the directory
  * mx/tools/generic/strptime.
  */
-
-#if defined(OS_WIN32) || defined(OS_DJGPP) || defined(OS_VXWORKS)
 
 MX_API char *strptime( const char *s, const char *format, struct tm *tm );
 
