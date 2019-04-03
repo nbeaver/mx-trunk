@@ -14,7 +14,7 @@
  *
  */
 
-#define MXN_HTTP_DEBUG			TRUE
+#define MXN_HTTP_DEBUG			FALSE
 
 #define MXN_HTTP_DEBUG_GET		FALSE
 #define MXN_HTTP_DEBUG_PUT		TRUE
@@ -312,6 +312,7 @@ mxn_http_server_get( MX_URL_SERVER *url_server,
 	size_t num_bytes_to_write, num_bytes_written;
 	size_t num_bytes_to_read, num_bytes_read;
 	int num_items;
+	double wait_timeout;
 	char *ptr, *blank_ptr, *body_ptr;
 	char *content_type_ptr, *end_of_string_ptr;
 	mx_status_type mx_status;
@@ -397,13 +398,27 @@ mxn_http_server_get( MX_URL_SERVER *url_server,
 			fname, (long) num_bytes_written));
 #endif
 
+	/* Wait a while for a response to arrive. */
+
+	wait_timeout = 5.0;	/* in seconds */
+
+	mx_status = mx_rs232_wait_for_input_available( rs232_record,
+						&num_input_bytes_available,
+						wait_timeout );
+
+	if ( mx_status.code == MXE_SUCCESS ) {
+		/* A response has arrived. */
+	} else
+	if ( mx_status.code == MXE_TIMED_OUT ) {
+		return mx_error( MXE_TIMED_OUT, fname,
+		"Timed out after waiting %g seconds for a response "
+		"from the HTTP server to a GET for '%s'.",
+			wait_timeout, url );
+	} else {
+		return mx_status;
+	}
+
 	/* Read the response. */
-
-#if 1
-	/* FIXME: We need to to better than just waiting an arbitrary 100 ms. */
-
-	mx_msleep(100);
-#endif
 
 	while ( TRUE ) {
 
@@ -539,6 +554,10 @@ mxn_http_server_put( MX_URL_SERVER *url_server,
 	MX_RECORD *rs232_record = NULL;
 	mx_status_type mx_status;
 
+#if MXN_HTTP_DEBUG_PUT
+	MX_DEBUG(-2,("******** %s invoked ********", fname));
+#endif
+
 	mx_status = mxn_http_server_get_pointers( url_server,
 						&http_server, fname );
 
@@ -563,7 +582,7 @@ mxn_http_server_put( MX_URL_SERVER *url_server,
 #endif
 
 #if MXN_HTTP_DEBUG_PUT
-	MX_DEBUG(-2,("%s complete.", fname));
+	MX_DEBUG(-2,("******** %s complete ********", fname));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
