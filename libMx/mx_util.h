@@ -730,7 +730,7 @@ MX_API size_t strlcat( char *dest, const char *src, size_t maxlen );
 
 #endif
 
-#if defined(OS_LINUX)
+#if 0
 
 /* This prototype provides a definition of strcasestr() for systems that
  * do not come with it.  For such systems, the OpenBSD source code for

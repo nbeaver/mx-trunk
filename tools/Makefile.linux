@@ -3,7 +3,7 @@
 #
 
 all:   ../libMx/mx_private_version.h mx_config smvspatial.o \
-	strlcpy.o strlcat.o strcasestr.o \
+	strlcpy.o strlcat.o \
 	unix/src/editline/libedit.a \
 	cJSON.o \
 	xdr.o xdr_hyper.o
@@ -77,9 +77,9 @@ strlcat.o: generic/src/strlcat.c
 	$(CC) -c $(OPTIMIZE) -fPIC -I../libMx -DOS_LINUX -D__MX_LIBRARY__ \
 		generic/src/strlcat.c
 
-strcasestr.o: generic/src/strcasestr.c
-	$(CC) -c $(OPTIMIZE) -fPIC -I../libMx -DOS_LINUX -D__MX_LIBRARY__ \
-		generic/src/strcasestr.c
+#strcasestr.o: generic/src/strcasestr.c
+#	$(CC) -c $(OPTIMIZE) -fPIC -I../libMx -DOS_LINUX -D__MX_LIBRARY__ \
+#		generic/src/strcasestr.c
 
 unix/src/editline/libedit.a:
 	( cd unix/src/editline ; $(EDITLINE_MAKECMD) )

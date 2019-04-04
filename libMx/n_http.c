@@ -22,8 +22,17 @@
 #define MXN_HTTP_DEBUG_GET_DETAILS	FALSE
 #define MXN_HTTP_DEBUG_PUT_DETAILS	TRUE
 
+/* On Linux, we must define _GNU_SOURCE before including any C library header
+ * in order to get strcasestr() from string.h
+ */
+
+#if defined(OS_LINUX)
+#  define _GNU_SOURCE
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
