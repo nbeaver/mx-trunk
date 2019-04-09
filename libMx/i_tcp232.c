@@ -8,7 +8,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2007, 2010, 2013, 2015-2017 Illinois Institute of Technology
+ * Copyright 1999-2007, 2010, 2013, 2015-2017, 2019
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -146,7 +147,7 @@ mxi_tcp232_finish_record_initialization( MX_RECORD *record )
 
 	tcp232 = (MX_TCP232 *) record->record_type_struct;
 
-	tcp232->socket = NULL;
+	tcp232->mx_socket = NULL;
 
 	record->record_flags |= ( ~MXF_REC_OPEN );
 
@@ -196,8 +197,8 @@ mxi_tcp232_open_socket( MX_RS232 *rs232, MX_TCP232 *tcp232 )
 
 	/* If the tcp232 device is currently open, close it. */
 
-	if ( mx_socket_is_open( tcp232->socket ) ) {
-		mx_status = mx_socket_close( tcp232->socket );
+	if ( mx_socket_is_open( tcp232->mx_socket ) ) {
+		mx_status = mx_socket_close( tcp232->mx_socket );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -215,7 +216,7 @@ mxi_tcp232_open_socket( MX_RS232 *rs232, MX_TCP232 *tcp232 )
 
 	/* Now open the tcp232 device. */
 
-	mx_status = mx_tcp_socket_open_as_client( &(tcp232->socket),
+	mx_status = mx_tcp_socket_open_as_client( &(tcp232->mx_socket),
 				tcp232->hostname, tcp232->port_number,
 				socket_flags, tcp232->receive_buffer_size );
 
@@ -225,7 +226,22 @@ mxi_tcp232_open_socket( MX_RS232 *rs232, MX_TCP232 *tcp232 )
 			tcp232->record->name,
 			tcp232->hostname,
 			tcp232->port_number );
+
+		return mx_status;
 	}
+
+	/* If TCP keepalive messages are requested, then set them up now. */
+
+	if ( tcp232->tcp232_flags & MXF_TCP232_USE_TCP_KEEPALIVE ) {
+		tcp232->enable_keepalive = TRUE;
+
+		mx_status = mx_socket_set_keepalive( tcp232->mx_socket,
+					tcp232->enable_keepalive,
+					tcp232->keepalive_time_ms,
+					tcp232->keepalive_interval_ms,
+					tcp232->keepalive_retry_count );
+	}
+
 	return mx_status;
 }
 
@@ -248,8 +264,8 @@ mxi_tcp232_close_socket( MX_RS232 *rs232, MX_TCP232 *tcp232 )
 
 	/* If the tcp232 device is currently open, close it. */
 
-	if ( mx_socket_is_open( tcp232->socket ) ) {
-		mx_status = mx_socket_close( tcp232->socket );
+	if ( mx_socket_is_open( tcp232->mx_socket ) ) {
+		mx_status = mx_socket_close( tcp232->mx_socket );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -278,6 +294,13 @@ mxi_tcp232_open( MX_RECORD *record )
 	tcp232 = (MX_TCP232 *) record->record_type_struct;
 
 	flags = tcp232->tcp232_flags;
+
+	/* Default TCP keepalive parameters. */
+
+	tcp232->enable_keepalive = FALSE;
+	tcp232->keepalive_time_ms = 5000;	/* in milliseconds */
+	tcp232->keepalive_interval_ms = 1000;	/* in milliseconds */
+	tcp232->keepalive_retry_count = 10;
 
 	/* If the socket is supposed to be open all the time, open it now. */
 
@@ -334,7 +357,7 @@ mxi_tcp232_resynchronize( MX_RECORD *record )
 	}
 
 	if ( tcp232->tcp232_flags & MXF_TCP232_USE_MX_SOCKET_RESYNCHRONIZE ) {
-		mx_status = mx_socket_resynchronize( &(tcp232->socket) );
+		mx_status = mx_socket_resynchronize( &(tcp232->mx_socket) );
 	} else {
 		mx_status = mxi_tcp232_close( record );
 
@@ -368,7 +391,7 @@ mxi_tcp232_open_socket_if_necessary( MX_RS232 *rs232, MX_TCP232 *tcp232 )
 		open_socket = TRUE;
 	} else
 	if ( flags & MXF_TCP232_AUTOMATIC_REOPEN ) {
-		if ( mx_socket_is_open( tcp232->socket ) == FALSE ) {
+		if ( mx_socket_is_open( tcp232->mx_socket ) == FALSE ) {
 			open_socket = TRUE;
 		}
 	}
@@ -424,14 +447,14 @@ mxi_tcp232_getchar( MX_RS232 *rs232, char *c )
 #ifdef OS_WIN32
 	num_fds = -1;		/* Win32 doesn't really use this argument. */
 #else
-	num_fds = 1 + tcp232->socket->socket_fd;
+	num_fds = 1 + tcp232->mx_socket->socket_fd;
 #endif
 
 #if HAVE_FD_SET
 	FD_ZERO( &read_mask );
-	FD_SET( (tcp232->socket->socket_fd), &read_mask );
+	FD_SET( (tcp232->mx_socket->socket_fd), &read_mask );
 #else
-	read_mask = 1 << (tcp232->socket);
+	read_mask = 1 << (tcp232->mx_socket->socket_fd);
 #endif
 	/* Set the timeout for waiting for input appropriately. 
 	 * For MXF_232_WAIT, time out after 5 seconds.
@@ -473,7 +496,7 @@ mxi_tcp232_getchar( MX_RS232 *rs232, char *c )
 
 	/* Now try to read the character. */
 
-	num_chars = recv( tcp232->socket->socket_fd, &c_temp, 1, 0 );
+	num_chars = recv( tcp232->mx_socket->socket_fd, &c_temp, 1, 0 );
 
 	saved_errno = mx_socket_check_error_status(
 			&num_chars, MXF_SOCKCHK_INVALID, &error_string );
@@ -538,7 +561,7 @@ mxi_tcp232_putchar( MX_RS232 *rs232, char c )
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 			"Non-blocking TCP232 I/O not yet implemented.");
 	} else {
-		mx_status = mx_socket_send( tcp232->socket, &c, 1 );
+		mx_status = mx_socket_send( tcp232->mx_socket, &c, 1 );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -558,7 +581,7 @@ mxi_tcp232_read( MX_RS232 *rs232,
 
 	tcp232 = (MX_TCP232*) rs232->record->record_type_struct;
 
-	mx_status = mx_socket_receive( tcp232->socket,
+	mx_status = mx_socket_receive( tcp232->mx_socket,
 					buffer, max_bytes_to_read,
 					NULL, NULL, 0, 0 );
 
@@ -589,7 +612,7 @@ mxi_tcp232_write( MX_RS232 *rs232,
 
 	/* Send the data. */
 
-	mx_status = mx_socket_send( tcp232->socket,
+	mx_status = mx_socket_send( tcp232->mx_socket,
 					buffer, max_bytes_to_write );
 
 	if ( bytes_written != NULL ) {
@@ -614,7 +637,7 @@ mxi_tcp232_getline( MX_RS232 *rs232,
 
 	tcp232 = (MX_TCP232*) rs232->record->record_type_struct;
 
-	mx_status = mx_socket_getline( tcp232->socket,
+	mx_status = mx_socket_getline( tcp232->mx_socket,
 					buffer, max_bytes_to_read,
 					rs232->read_terminator_array );
 
@@ -660,7 +683,7 @@ mxi_tcp232_putline( MX_RS232 *rs232,
 
 	/* Send the line. */
 
-	mx_status = mx_socket_putline( tcp232->socket, buffer,
+	mx_status = mx_socket_putline( tcp232->mx_socket, buffer,
 					rs232->write_terminator_array );
 
 	if ( bytes_written != NULL ) {
@@ -693,7 +716,7 @@ mxi_tcp232_num_input_bytes_available( MX_RS232 *rs232 )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_socket_num_input_bytes_available( tcp232->socket,
+	mx_status = mx_socket_num_input_bytes_available( tcp232->mx_socket,
 						&num_socket_bytes_available );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -725,7 +748,7 @@ mxi_tcp232_discard_unread_input( MX_RS232 *rs232 )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_socket_discard_unread_input( tcp232->socket );
+	mx_status = mx_socket_discard_unread_input( tcp232->mx_socket );
 
 	return mx_status;
 }
@@ -757,13 +780,13 @@ mxi_tcp232_wait_for_input_available( MX_RS232 *rs232,
 
 	tcp232 = (MX_TCP232 *) rs232->record->record_type_struct;
 
-	if ( tcp232->socket == (MX_SOCKET *) NULL ) {
+	if ( tcp232->mx_socket == (MX_SOCKET *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_SOCKET pointer for RS-232 record '%s' is NULL.",
 			rs232->record->name );
 	}
 
-	mx_status = mx_socket_wait_for_event( tcp232->socket,
+	mx_status = mx_socket_wait_for_event( tcp232->mx_socket,
 						wait_time_in_seconds );
 	return mx_status;
 }
