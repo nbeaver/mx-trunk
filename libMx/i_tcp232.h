@@ -29,6 +29,7 @@ MX_API mx_status_type mxi_tcp232_finish_record_initialization(
 MX_API mx_status_type mxi_tcp232_open( MX_RECORD *record );
 MX_API mx_status_type mxi_tcp232_close( MX_RECORD *record );
 MX_API mx_status_type mxi_tcp232_resynchronize( MX_RECORD *record );
+MX_API mx_status_type mxi_tcp232_special_processing_setup( MX_RECORD *record );
 
 MX_API mx_status_type mxi_tcp232_getchar( MX_RS232 *rs232, char *c );
 MX_API mx_status_type mxi_tcp232_putchar( MX_RS232 *rs232, char c );
@@ -79,7 +80,7 @@ typedef struct {
 
 	/* TCP keepalive settings. */
 
-	mx_bool_type enable_keepalive;
+	mx_bool_type keepalive_enabled;
 	unsigned long keepalive_time_ms;
 	unsigned long keepalive_interval_ms;
 	unsigned long keepalive_retry_count;
@@ -91,7 +92,10 @@ extern MX_RS232_FUNCTION_LIST mxi_tcp232_rs232_function_list;
 extern long mxi_tcp232_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_tcp232_rfield_def_ptr;
 
-#define MXLV_TCP232_ENABLE_KEEPALIVE			83001
+#define MXLV_TCP232_KEEPALIVE_ENABLED			83001
+#define MXLV_TCP232_KEEPALIVE_TIME_MS			83002
+#define MXLV_TCP232_KEEPALIVE_INTERVAL_MS		83003
+#define MXLV_TCP232_KEEPALIVE_RETRY_COUNT		83004
 
 #define MXI_TCP232_STANDARD_FIELDS \
   {-1, -1, "hostname", MXFT_STRING, NULL, 1, {MXU_HOSTNAME_LENGTH}, \
@@ -114,20 +118,23 @@ extern MX_RECORD_FIELD_DEFAULTS *mxi_tcp232_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TCP232, resync_delay_milliseconds), \
 	{0}, NULL, 0 }, \
   \
-  {MXLV_TCP232_ENABLE_KEEPALIVE, -1, "enable_keepalive", \
+  {MXLV_TCP232_KEEPALIVE_ENABLED, -1, "keepalive_enabled", \
 	  				MXFT_BOOL, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_TCP232, enable_keepalive), \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_TCP232, keepalive_enabled), \
 	{0}, NULL, 0 }, \
   \
-  {-1, -1, "keepalive_time_ms", MXFT_ULONG, NULL, 0, {0}, \
+  {MXLV_TCP232_KEEPALIVE_TIME_MS, -1, "keepalive_time_ms", \
+	  				MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TCP232, keepalive_time_ms), \
 	{0}, NULL, 0 }, \
   \
-  {-1, -1, "keepalive_interval_ms", MXFT_ULONG, NULL, 0, {0}, \
+  {MXLV_TCP232_KEEPALIVE_INTERVAL_MS, -1, "keepalive_interval_ms", \
+	  				MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TCP232, keepalive_interval_ms), \
 	{0}, NULL, 0 }, \
   \
-  {-1, -1, "keepalive_retry_count", MXFT_ULONG, NULL, 0, {0}, \
+  {MXLV_TCP232_KEEPALIVE_RETRY_COUNT, -1, "keepalive_retry_count", \
+	  				MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TCP232, keepalive_retry_count), \
 	{0}, NULL, 0 }
 

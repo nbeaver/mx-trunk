@@ -33,6 +33,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_process.h"
 #include "mx_rs232.h"
 #include "mx_socket.h"
 #include "mx_select.h"
@@ -52,7 +53,8 @@ MX_RECORD_FUNCTION_LIST mxi_tcp232_record_function_list = {
 	mxi_tcp232_open,
 	mxi_tcp232_close,
 	NULL,
-	mxi_tcp232_resynchronize
+	mxi_tcp232_resynchronize,
+	mxi_tcp232_special_processing_setup
 };
 
 MX_RS232_FUNCTION_LIST mxi_tcp232_rs232_function_list = {
@@ -88,6 +90,13 @@ long mxi_tcp232_num_record_fields
 
 MX_RECORD_FIELD_DEFAULTS *mxi_tcp232_rfield_def_ptr
 			= &mxi_tcp232_record_field_defaults[0];
+
+/* ---- */
+
+static mx_status_type mxi_tcp232_process_function( void *record_ptr,
+						void *record_field_ptr,
+						void *socket_handler_ptr,
+						int operation );
 
 /* ---- */
 
@@ -233,10 +242,10 @@ mxi_tcp232_open_socket( MX_RS232 *rs232, MX_TCP232 *tcp232 )
 	/* If TCP keepalive messages are requested, then set them up now. */
 
 	if ( tcp232->tcp232_flags & MXF_TCP232_USE_TCP_KEEPALIVE ) {
-		tcp232->enable_keepalive = TRUE;
+		tcp232->keepalive_enabled = TRUE;
 
 		mx_status = mx_socket_set_keepalive( tcp232->mx_socket,
-					tcp232->enable_keepalive,
+					tcp232->keepalive_enabled,
 					tcp232->keepalive_time_ms,
 					tcp232->keepalive_interval_ms,
 					tcp232->keepalive_retry_count );
@@ -297,7 +306,7 @@ mxi_tcp232_open( MX_RECORD *record )
 
 	/* Default TCP keepalive parameters. */
 
-	tcp232->enable_keepalive = FALSE;
+	tcp232->keepalive_enabled = FALSE;
 	tcp232->keepalive_time_ms = 5000;	/* in milliseconds */
 	tcp232->keepalive_interval_ms = 1000;	/* in milliseconds */
 	tcp232->keepalive_retry_count = 10;
@@ -372,6 +381,35 @@ mxi_tcp232_resynchronize( MX_RECORD *record )
 	}
 
 	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxi_tcp232_special_processing_setup( MX_RECORD *record )
+{
+	MX_RECORD_FIELD *record_field;
+	MX_RECORD_FIELD *record_field_array;
+	long i;
+
+	record_field_array = record->record_field_array;
+
+	for ( i = 0; i < record->num_record_fields; i++ ) {
+
+		record_field = &record_field_array[i];
+
+		switch( record_field->label_value ) {
+		case MXLV_TCP232_KEEPALIVE_ENABLED:
+		case MXLV_TCP232_KEEPALIVE_TIME_MS:
+		case MXLV_TCP232_KEEPALIVE_INTERVAL_MS:
+		case MXLV_TCP232_KEEPALIVE_RETRY_COUNT:
+			record_field->process_function
+					= mxi_tcp232_process_function;
+			break;
+		default:
+			break;
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*----*/
@@ -801,6 +839,86 @@ mxi_tcp232_flush( MX_RS232 *rs232 )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/* ---- */
+
+static mx_status_type
+mxi_tcp232_process_function( void *record_ptr,
+			void *record_field_ptr,
+			void *socket_handler_ptr,
+			int operation )
+{
+	static const char fname[] = "mxi_tcp232_process_function()";
+
+	MX_RECORD *record;
+	MX_RECORD_FIELD *record_field;
+	MX_TCP232 *tcp232;
+	mx_status_type mx_status;
+
+	record = (MX_RECORD *) record_ptr;
+	record_field = (MX_RECORD_FIELD *) record_field_ptr;
+	tcp232 = (MX_TCP232 *) record->record_type_struct;
+
+	mx_status = MX_SUCCESSFUL_RESULT;
+
+	switch( operation ) {
+	case MX_PROCESS_GET:
+		switch( record_field->label_value ) {
+		case MXLV_TCP232_KEEPALIVE_ENABLED:
+			if ( tcp232->mx_socket != (MX_SOCKET *) NULL ) {
+				tcp232->keepalive_enabled =
+					tcp232->mx_socket->keepalive_enabled;
+			}
+			break;
+		case MXLV_TCP232_KEEPALIVE_TIME_MS:
+			if ( tcp232->mx_socket != (MX_SOCKET *) NULL ) {
+				tcp232->keepalive_time_ms =
+					tcp232->mx_socket->keepalive_time_ms;
+			}
+			break;
+		case MXLV_TCP232_KEEPALIVE_INTERVAL_MS:
+			if ( tcp232->mx_socket != (MX_SOCKET *) NULL ) {
+				tcp232->keepalive_interval_ms =
+				    tcp232->mx_socket->keepalive_interval_ms;
+			}
+			break;
+		case MXLV_TCP232_KEEPALIVE_RETRY_COUNT:
+			if ( tcp232->mx_socket != (MX_SOCKET *) NULL ) {
+				tcp232->keepalive_retry_count =
+				    tcp232->mx_socket->keepalive_retry_count;
+			}
+			break;
+		default:
+			MX_DEBUG( 1,(
+			    "%s: *** Unknown MX_PROCESS_GET label value = %ld",
+				fname, record_field->label_value));
+			break;
+		}
+		break;
+	case MX_PROCESS_PUT:
+		switch( record_field->label_value ) {
+		case MXLV_TCP232_KEEPALIVE_ENABLED:
+			mx_status = mx_socket_set_keepalive( tcp232->mx_socket,
+						tcp232->keepalive_enabled,
+						tcp232->keepalive_time_ms,
+						tcp232->keepalive_interval_ms,
+						tcp232->keepalive_retry_count );
+			break;
+		default:
+			MX_DEBUG( 1,(
+			    "%s: *** Unknown MX_PROCESS_PUT label value = %ld",
+				fname, record_field->label_value));
+			break;
+		}
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Unknown operation code (%d) for record '%s'.",
+			operation, record->name );
+		break;
+	}
+
+	return mx_status;
+}
 
 #endif /* HAVE_TCPIP */
 
