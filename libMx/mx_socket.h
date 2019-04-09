@@ -14,7 +14,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 1999-2018 Illinois Institute of Technology
+ * Copyright 1999-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -134,6 +134,13 @@ typedef struct {
 	mx_bool_type is_non_blocking;
 	void *receive_buffer;
 	long receive_buffer_size;
+
+	/* Keepalive-related times are specified in milliseconds. */
+
+	mx_bool_type keepalive_enabled;
+	unsigned long keepalive_time_ms;
+	unsigned long keepalive_interval_ms;
+	unsigned long keepalive_retry_count;
 } MX_SOCKET;
 
 /* MX socket types. */
@@ -308,6 +315,12 @@ MX_API mx_status_type mx_socket_get_non_blocking_mode( MX_SOCKET *mx_socket,
 
 MX_API mx_status_type mx_socket_set_non_blocking_mode( MX_SOCKET *mx_socket,
 					mx_bool_type non_blocking_flag );
+
+MX_API mx_status_type mx_socket_set_keepalive( MX_SOCKET *mx_socket,
+					mx_bool_type enable_keepalive,
+					unsigned long keepalive_time_ms,
+					unsigned long keepalive_interval_ms,
+					unsigned long keepalive_retry_count );
 
 MX_API mx_bool_type mx_socket_is_open( MX_SOCKET *mx_socket );
 

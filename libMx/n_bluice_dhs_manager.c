@@ -306,7 +306,7 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 
 		/* Allocate memory for a new MX_SOCKET structure. */
 
-		dhs_socket = (MX_SOCKET *) malloc( sizeof(MX_SOCKET) );
+		dhs_socket = (MX_SOCKET *) calloc( 1, sizeof(MX_SOCKET) );
 
 		if ( dhs_socket == (MX_SOCKET *) NULL ) {
 			return mx_error( MXE_OUT_OF_MEMORY, fname,

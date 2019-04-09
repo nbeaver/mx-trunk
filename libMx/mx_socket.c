@@ -322,7 +322,7 @@ mx_tcp_socket_open_as_client( MX_SOCKET **client_socket,
 
 	/* Create a socket. */
 
-	*client_socket = (MX_SOCKET *) malloc( sizeof(MX_SOCKET) );
+	*client_socket = (MX_SOCKET *) calloc( 1, sizeof(MX_SOCKET) );
 
 	if ( (*client_socket) == (MX_SOCKET *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -494,7 +494,7 @@ mx_tcp_socket_open_as_server( MX_SOCKET **server_socket,
 
 	/* Create a socket. */
 
-	*server_socket = (MX_SOCKET *) malloc( sizeof(MX_SOCKET) );
+	*server_socket = (MX_SOCKET *) calloc( 1, sizeof(MX_SOCKET) );
 
 	if ( (*server_socket) == (MX_SOCKET *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -719,7 +719,7 @@ mx_unix_socket_open_as_client( MX_SOCKET **client_socket,
 
 	/* Create a socket. */
 
-	*client_socket = (MX_SOCKET *) malloc( sizeof(MX_SOCKET) );
+	*client_socket = (MX_SOCKET *) calloc( 1, sizeof(MX_SOCKET) );
 
 	if ( (*client_socket) == (MX_SOCKET *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -879,7 +879,7 @@ mx_unix_socket_open_as_server( MX_SOCKET **server_socket,
 
 	/* Create a socket. */
 
-	*server_socket = (MX_SOCKET *) malloc( sizeof(MX_SOCKET) );
+	*server_socket = (MX_SOCKET *) calloc( 1, sizeof(MX_SOCKET) );
 
 	if ( (*server_socket) == (MX_SOCKET *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
