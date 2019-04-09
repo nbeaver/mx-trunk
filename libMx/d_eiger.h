@@ -45,7 +45,8 @@ typedef struct {
 
 } MX_EIGER;
 
-#define MXLV_EIGER_KEY_VALUE			94001
+#define MXLV_EIGER_KEY_NAME			94001
+#define MXLV_EIGER_KEY_VALUE			94002
 
 #define MXD_EIGER_STANDARD_FIELDS \
   {-1, -1, "url_server_record", MXFT_RECORD, NULL, 0, {0}, \
@@ -77,7 +78,8 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, module_name), \
 	{sizeof(char)}, NULL, 0 }, \
   \
-  {-1, -1, "key_name", MXFT_STRING, NULL, 1, {MXU_EIGER_KEY_NAME_LENGTH},\
+  {MXLV_EIGER_KEY_NAME, -1, "key_name", MXFT_STRING, NULL, \
+	  				1, {MXU_EIGER_KEY_NAME_LENGTH},\
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, key_name), \
 	{sizeof(char)}, NULL, 0 }, \
   \

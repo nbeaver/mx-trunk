@@ -594,11 +594,12 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 
 	MX_EIGER *eiger = NULL;
 	MX_SEQUENCE_PARAMETERS *sp = NULL;
-	unsigned long num_frames;
+	unsigned long num_frames, arm;
 	double exposure_time, exposure_period;
 	double photon_energy;
 	long dimension[1];
 	void *value = NULL;
+	char trigger_mode[20];
 	mx_status_type mx_status;
 
 	mx_status = mxd_eiger_get_pointers( ad, &eiger, fname );
@@ -610,68 +611,6 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
-	sp = &(ad->sequence_parameters);
-
-	switch( sp->sequence_type ) {
-	case MXT_SQ_ONE_SHOT:
-		num_frames = 1;
-		exposure_time = sp->parameter_array[0];
-		exposure_period = -1.0;
-		break;
-	case MXT_SQ_MULTIFRAME:
-		num_frames = mx_round( sp->parameter_array[0] );
-		exposure_time = sp->parameter_array[1];
-		exposure_period = sp->parameter_array[2];
-		break;
-	case MXT_SQ_STROBE:
-		num_frames = mx_round( sp->parameter_array[0] );
-		exposure_time = sp->parameter_array[1];
-		exposure_period = -1.0;
-		break;
-	case MXT_SQ_DURATION:
-		num_frames = mx_round( sp->parameter_array[0] );
-		exposure_time = -1.0;		/* Not used. */
-		exposure_period = -1.0;
-		break;
-	default:
-		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"Detector '%s' invalid sequence type.", ad->record->name );
-		break;
-	}
-
-	/* Set the number of image frames. */
-
-	dimension[0] = 1;
-
-	mx_status = mxd_eiger_put_value( ad, eiger,
-			"detector", "config/nimages",
-			MXFT_ULONG, 1, dimension, (void *) &num_frames );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Set the exposure time. */
-
-	dimension[0] = 1;
-
-	mx_status = mxd_eiger_put_value( ad, eiger,
-			"detector", "config/count_time",
-			MXFT_DOUBLE, 1, dimension, (void *) &exposure_time );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Set the frame time. */
-
-	dimension[0] = 1;
-
-	mx_status = mxd_eiger_put_value( ad, eiger,
-			"detector", "config/frame_time",
-			MXFT_DOUBLE, 1, dimension, (void *) &exposure_period );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
 	/* Set the photon energy. */
 
 	mx_status = mx_get_double_variable( eiger->photon_energy_record,
@@ -691,13 +630,128 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Get the trigger mode and sequence parameters. */
+
+	/* FIXME: Haven't figured out how to make use of
+	 * 'inte' trigger mode yet.
+	 */
+
+	switch( ad->trigger_mode ) {
+	case MXF_DEV_INTERNAL_TRIGGER:
+		switch( sp->sequence_type ) {
+		case MXT_SQ_ONE_SHOT:
+			num_frames = 1;
+			exposure_time = sp->parameter_array[0];
+			exposure_period = -1.0;
+			strlcpy( trigger_mode, "ints", sizeof(trigger_mode) );
+			break;
+		case MXT_SQ_MULTIFRAME:
+			num_frames = mx_round( sp->parameter_array[0] );
+			exposure_time = sp->parameter_array[1];
+			exposure_period = sp->parameter_array[2];
+			strlcpy( trigger_mode, "ints", sizeof(trigger_mode) );
+			break;
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"MX sequence type %ld is not supported for internal "
+			"trigger mode by area detector '%s'.",
+				sp->sequence_type, ad->record->name );
+			break;
+		}
+		break;
+	case MXF_DEV_EXTERNAL_TRIGGER:
+		switch( sp->sequence_type ) {
+		case MXT_SQ_ONE_SHOT:
+			num_frames = 1;
+			exposure_time = sp->parameter_array[0];
+			exposure_period = -1.0;
+			strlcpy( trigger_mode, "exts", sizeof(trigger_mode) );
+			break;
+		case MXT_SQ_MULTIFRAME:
+			num_frames = mx_round( sp->parameter_array[0] );
+			exposure_time = sp->parameter_array[1];
+			exposure_period = sp->parameter_array[2];
+			strlcpy( trigger_mode, "exts", sizeof(trigger_mode) );
+			break;
+		case MXT_SQ_STROBE:
+			num_frames = mx_round( sp->parameter_array[0] );
+			exposure_time = -1.0;
+			exposure_period = -1.0;
+			strlcpy( trigger_mode, "exte", sizeof(trigger_mode) );
+			break;
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"MX sequence type %ld is not supported for external "
+			"trigger mode by area detector '%s'.",
+				sp->sequence_type, ad->record->name );
+			break;
+		}
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Unsupported trigger mode %ld requested for "
+		"area detector '%s'.  The supported modes are internal (1) "
+		"and external (2).", ad->trigger_mode, ad->record->name );
+
+		break;
+	}
+
+	dimension[0] = strlen(trigger_mode) + 1;
+
+	mx_status = mxd_eiger_put_value( ad, eiger,
+			"detector", "config/trigger_mode",
+			MXFT_STRING, 1, dimension, trigger_mode );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Set the frame time. */
+
+	dimension[0] = 1;
+
+	mx_status = mxd_eiger_put_value( ad, eiger,
+			"detector", "config/frame_time",
+			MXFT_DOUBLE, 1, dimension, (void *) &exposure_period );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Set the exposure time. */
+
+	dimension[0] = 1;
+
+	mx_status = mxd_eiger_put_value( ad, eiger,
+			"detector", "config/count_time",
+			MXFT_DOUBLE, 1, dimension, (void *) &exposure_time );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Set the number of image frames. */
+
+	dimension[0] = 1;
+
+	mx_status = mxd_eiger_put_value( ad, eiger,
+			"detector", "config/nimages",
+			MXFT_ULONG, 1, dimension, (void *) &num_frames );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/* Arm the detector. */
+
+	arm = 1;
 
 	dimension[0] = 1;
 
 	mx_status = mxd_eiger_put_value( ad, eiger,
 			"detector", "command/arm",
-			MXFT_DOUBLE, 1, dimension, NULL );
+			MXFT_ULONG, 1, dimension, (void *) &arm );
+
+	/* Note: If we are in external trigger mode ("exts"), then the
+	 * detector will start taking images once the external trigger
+	 * arrives.
+	 */
 
 	return mx_status;
 }
@@ -708,6 +762,8 @@ mxd_eiger_trigger( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_eiger_trigger()";
 
 	MX_EIGER *eiger = NULL;
+	unsigned long trigger;
+	long dimension[1];
 	mx_status_type mx_status;
 
 	eiger = NULL;
@@ -721,6 +777,23 @@ mxd_eiger_trigger( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
+	/* If we are in external trigger mode, then explicit EIGER
+	 * 'trigger' commands should not be sent.
+	 */
+
+	if ( ad->trigger_mode == MXF_DEV_EXTERNAL_TRIGGER ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* Otherwise, send the trigger command. */
+
+	dimension[0] = 1;
+
+	trigger = 1;
+
+	mx_status = mxd_eiger_put_value( ad, eiger,
+			"detector", "command/trigger",
+			MXFT_LONG, 1, dimension, (void *) &trigger );
 
 	return mx_status;
 }
@@ -1244,37 +1317,6 @@ mxd_eiger_measure_correction( MX_AREA_DETECTOR *ad )
 
 /*==========================================================================*/
 
-#if 0
-MX_EXPORT mx_status_type
-mxd_eiger_command( MX_EIGER *eiger,
-			char *command,
-			char *response,
-			size_t response_buffer_length,
-			mx_bool_type suppress_output )
-
-{
-	static const char fname[] = "mxd_eiger_command()";
-
-	mx_status_type mx_status;
-
-	if ( eiger == (MX_EIGER *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_EIGER pointer passed was NULL." );
-	}
-	if ( command == (char *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The command pointer passed was NULL." );
-	}
-
-	mx_status =  mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-			"%s is not yet implemented.", fname );
-
-	return mx_status;
-}
-#endif
-
-/*==========================================================================*/
-
 MX_EXPORT mx_status_type
 mxd_eiger_special_processing_setup( MX_RECORD *record )
 {
@@ -1289,6 +1331,7 @@ mxd_eiger_special_processing_setup( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
+		case MXLV_EIGER_KEY_NAME:
 		case MXLV_EIGER_KEY_VALUE:
 			record_field->process_function
 					= mxd_eiger_process_function;
@@ -1316,6 +1359,10 @@ mxd_eiger_process_function( void *record_ptr,
 	MX_AREA_DETECTOR *ad = NULL;
 	MX_EIGER *eiger = NULL;
 	long dimension[1];
+	char *ptr_first_slash = NULL;
+	char *ptr_second_slash = NULL;
+	char *temp_key_name = NULL;
+	size_t temp_key_length;
 	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
@@ -1330,6 +1377,8 @@ mxd_eiger_process_function( void *record_ptr,
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
+		case MXLV_EIGER_KEY_NAME:
+			break;
 		case MXLV_EIGER_KEY_VALUE:
 			mx_status = mxd_eiger_get_value( ad, eiger,
 						eiger->module_name,
@@ -1347,6 +1396,60 @@ mxd_eiger_process_function( void *record_ptr,
 		break;
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
+		case MXLV_EIGER_KEY_NAME:
+			/* If the key name has zero slashes in it, then
+			 * it is an invalid key name.
+			 */
+
+			ptr_first_slash = strchr( eiger->key_name, '/' );
+
+			if ( ptr_first_slash == (char *) NULL ) {
+				mx_status = mx_error(MXE_ILLEGAL_ARGUMENT,fname,
+				"The requested EIGER key name '%s' for "
+				"area detector '%s' does not have any '/' "
+				"characters in it, so it cannot "
+				"be a valid EIGER key name.",
+					eiger->key_name,
+					eiger->record->name );
+
+				eiger->module_name[0] = '\0';
+				eiger->key_name[0] = '\0';
+
+				return mx_status;
+			}
+
+			/* If the key name has only one slash in it, then
+			 * it is a valid key name and we leave it alone.
+			 */
+
+			ptr_second_slash = strchr( ptr_first_slash, '/' );
+
+			if ( ptr_second_slash == (char *) NULL ) {
+				return MX_SUCCESSFUL_RESULT;
+			}
+
+			/* If we get here, then the key name has two or more
+			 * slashes in it.  We need to move the part before
+			 * the first slash into the module name and leave
+			 * the rest of the name in eiger->key_name.
+			 */
+
+			/* Split the user-supplied string into two strings. */
+
+			*ptr_first_slash = '\0';
+
+			strlcpy( eiger->module_name, eiger->key_name,
+					sizeof( eiger->module_name ) );
+
+			temp_key_name = ptr_first_slash + 1;
+
+			temp_key_length = strlen( temp_key_name );
+
+			/* We must use memmove() here and _NOT_ memcpy().*/
+
+			memmove( eiger->key_name, temp_key_name,
+					temp_key_length + 1 );
+			break;
 		case MXLV_EIGER_KEY_VALUE:
 			mx_status = mxd_eiger_put_value( ad, eiger,
 						eiger->module_name,
