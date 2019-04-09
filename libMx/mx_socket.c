@@ -2202,6 +2202,13 @@ mx_socket_set_keepalive( MX_SOCKET *mx_socket,
 MX_EXPORT mx_bool_type
 mx_socket_is_open( MX_SOCKET *mx_socket )
 {
+
+#if HAVE_FIONREAD_FOR_SOCKETS
+	unsigned long saved_socket_flags;
+	long num_bytes;
+	mx_status_type mx_status;
+#endif
+
 	/* Check for simple error cases. */
 
 	if ( mx_socket == (MX_SOCKET *) NULL ) {
@@ -2216,6 +2223,25 @@ mx_socket_is_open( MX_SOCKET *mx_socket )
 	if ( mx_socket->socket_fd < 0 ) {
 		return FALSE;
 	}
+#endif
+
+#if HAVE_FIONREAD_FOR_SOCKETS
+	/* If we call mx_socket_num_input_bytes_available() on a dead socket,
+	 * then we may get an MXE_NETWORK_CONNECTION_LOST error back, at least
+	 * on platforms that support FIONREAD.  But we need to suppress the
+	 * error message, so that it is not visible to users.
+	 */
+
+	saved_socket_flags = mx_socket->socket_flags;
+
+	mx_socket->socket_flags |= MXF_SOCKET_QUIET;
+
+	mx_status = mx_socket_num_input_bytes_available( mx_socket, &num_bytes);
+
+	mx_socket->socket_flags = saved_socket_flags;
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return FALSE;
 #endif
 
 	return TRUE;

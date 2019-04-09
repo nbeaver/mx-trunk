@@ -988,6 +988,8 @@ mxd_eiger_get_parameter( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_eiger_get_parameter()";
 
 	MX_EIGER *eiger = NULL;
+	long dimension[1];
+	long temp_long;
 	mx_status_type mx_status;
 
 	mx_status = mxd_eiger_get_pointers( ad, &eiger, fname );
@@ -1007,6 +1009,8 @@ mxd_eiger_get_parameter( MX_AREA_DETECTOR *ad )
 					sizeof(parameter_name_buffer) ) ));
 	}
 #endif
+
+	dimension[0] = 1;
 
 	switch( ad->parameter_type ) {
 	case MXLV_AD_MAXIMUM_FRAME_NUMBER:
@@ -1045,9 +1049,22 @@ mxd_eiger_get_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_BYTES_PER_PIXEL:
+		mx_status = mxd_eiger_get_value( ad, eiger,
+				"detector", "config/bit_depth_image",
+				MXFT_LONG, 1, dimension,
+				(void *) &temp_long );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		ad->bytes_per_pixel = mx_round( temp_long / 8L );
 		break;
 
 	case MXLV_AD_BITS_PER_PIXEL:
+		mx_status = mxd_eiger_get_value( ad, eiger,
+				"detector", "config/bit_depth_readout",
+				MXFT_LONG, 1, dimension,
+				(void *) &(ad->bits_per_pixel) );
 		break;
 
 	case MXLV_AD_DETECTOR_READOUT_TIME:
