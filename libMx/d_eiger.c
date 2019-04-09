@@ -219,6 +219,8 @@ mxd_eiger_get_value( MX_AREA_DETECTOR *ad,
 	long dimension_zero[0];
 	char value_type_string[40];
 	long mx_json_datatype;
+	mx_bool_type native_longs_are_64bits;
+	size_t scalar_element_size, max_key_value_bytes;
 	mx_status_type mx_status;
 
 	if ( dimension == (long *) NULL ) {
@@ -257,6 +259,25 @@ mxd_eiger_get_value( MX_AREA_DETECTOR *ad,
 		"currently supported.", num_dimensions );
 	}
 
+	if ( MX_WORDSIZE >= 64 ) {
+		native_longs_are_64bits = TRUE;
+	} else {
+		native_longs_are_64bits = FALSE;
+	}
+
+	scalar_element_size = mx_get_scalar_element_size( mx_datatype,
+						native_longs_are_64bits );
+
+	/* FIXME: Need to handle bigger arrays here. */
+
+	if ( mx_datatype == MXFT_STRING ) {
+		max_key_value_bytes = dimension_ptr[0];
+	} else {
+		max_key_value_bytes = scalar_element_size;
+	}
+
+	/* Get the JSON key value. */
+
 	mx_status = mxd_eiger_get( ad, eiger,
 			module_name, key_name,
 			response, sizeof(response) );
@@ -270,13 +291,6 @@ mxd_eiger_get_value( MX_AREA_DETECTOR *ad,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-#if 0
-	MX_DEBUG(-2,("%s: json->cjson = %p", fname, json->cjson));
-
-	MX_DEBUG(-2,("%s: cJSON_Print( json->cjson ) = '%s'.",
-		fname, cJSON_Print( json->cjson ) ));
-#endif
 
 	/* The 'value_type' key should contain the EIGER datatype of the
 	 * 'value' key.  The 'value_type' key itself should be a 'string'.
@@ -315,7 +329,7 @@ mxd_eiger_get_value( MX_AREA_DETECTOR *ad,
 
 	mx_status = mx_json_get_compatible_key( json, "value",
 					mx_datatype, mx_json_datatype,
-					value, dimension[0] );
+					value, max_key_value_bytes );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

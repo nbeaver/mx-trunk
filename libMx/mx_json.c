@@ -383,81 +383,203 @@ mx_json_get_compatible_key( MX_JSON *json,
 		}
 		break;
 	case MXFT_BOOL:
+		mx_status = mx_json_get_key( json, key_name,
+					mx_json_datatype,
+					bool_array,
+					max_key_value_bytes );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
 		switch( mx_datatype ) {
 		case MXFT_STRING:
-			mx_status = mx_json_get_key( json, key_name,
-						mx_json_datatype,
-						bool_array,
-						max_key_value_bytes );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
 			snprintf( key_value, max_key_value_bytes, "%d",
 					bool_array[0] );
-
-			return MX_SUCCESSFUL_RESULT;
+			break;
+		case MXFT_BOOL:
+			*((mx_bool_type *) key_value) = bool_array[0];
+			break;
+		case MXFT_CHAR:
+			*((char *) key_value) = bool_array[0];
+			break;
+		case MXFT_UCHAR:
+			*((unsigned char *) key_value) = bool_array[0];
+			break;
+		case MXFT_SHORT:
+			*((short *) key_value) = bool_array[0];
+			break;
+		case MXFT_USHORT:
+			*((unsigned short *) key_value) = bool_array[0];
+			break;
+		case MXFT_LONG:
+			*((long *) key_value) = bool_array[0];
+			break;
+		case MXFT_ULONG:
+		case MXFT_HEX:
+			*((unsigned long *) key_value) = bool_array[0];
+			break;
+		case MXFT_FLOAT:
+			*((float *) key_value) = bool_array[0];
+			break;
+		case MXFT_DOUBLE:
+			*((double *) key_value) = bool_array[0];
+			break;
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Unsupported MX datatype %ld for EIGER key '%s'.",
+				mx_datatype, key_name );
 			break;
 		}
 		break;
 	case MXFT_LONG:
+		mx_status = mx_json_get_key( json, key_name,
+					mx_json_datatype,
+					long_array,
+					max_key_value_bytes );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
 		switch( mx_datatype ) {
 		case MXFT_STRING:
-			mx_status = mx_json_get_key( json, key_name,
-						mx_json_datatype,
-						long_array,
-						max_key_value_bytes );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
 			snprintf( key_value, max_key_value_bytes, "%ld",
 					long_array[0] );
-
-			return MX_SUCCESSFUL_RESULT;
+			break;
+		case MXFT_BOOL:
+			*((mx_bool_type *) key_value) = long_array[0];
+			break;
+		case MXFT_CHAR:
+			*((char *) key_value) = long_array[0];
+			break;
+		case MXFT_UCHAR:
+			*((unsigned char *) key_value) = long_array[0];
+			break;
+		case MXFT_SHORT:
+			*((short *) key_value) = long_array[0];
+			break;
+		case MXFT_USHORT:
+			*((unsigned short *) key_value) = long_array[0];
+			break;
+		case MXFT_LONG:
+			*((long *) key_value) = long_array[0];
+			break;
+		case MXFT_ULONG:
+		case MXFT_HEX:
+			*((unsigned long *) key_value) = long_array[0];
+			break;
+		case MXFT_FLOAT:
+			*((float *) key_value) = long_array[0];
+			break;
+		case MXFT_DOUBLE:
+			*((double *) key_value) = long_array[0];
+			break;
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Unsupported MX datatype %ld for EIGER key '%s'.",
+				mx_datatype, key_name );
 			break;
 		}
 		break;
 	case MXFT_ULONG:
+		mx_status = mx_json_get_key( json, key_name,
+					mx_json_datatype,
+					ulong_array,
+					max_key_value_bytes );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
 		switch( mx_datatype ) {
 		case MXFT_STRING:
-			mx_status = mx_json_get_key( json, key_name,
-						mx_json_datatype,
-						ulong_array,
-						max_key_value_bytes );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
 			snprintf( key_value, max_key_value_bytes, "%lu",
 					ulong_array[0] );
-
-			return MX_SUCCESSFUL_RESULT;
+			break;
+		case MXFT_BOOL:
+			*((mx_bool_type *) key_value) = ulong_array[0];
+			break;
+		case MXFT_CHAR:
+			*((char *) key_value) = ulong_array[0];
+			break;
+		case MXFT_UCHAR:
+			*((unsigned char *) key_value) = ulong_array[0];
+			break;
+		case MXFT_SHORT:
+			*((short *) key_value) = ulong_array[0];
+			break;
+		case MXFT_USHORT:
+			*((unsigned short *) key_value) = ulong_array[0];
+			break;
+		case MXFT_LONG:
+			*((long *) key_value) = ulong_array[0];
+			break;
+		case MXFT_ULONG:
+		case MXFT_HEX:
+			*((unsigned long *) key_value) = ulong_array[0];
+			break;
+		case MXFT_FLOAT:
+			*((float *) key_value) = ulong_array[0];
+			break;
+		case MXFT_DOUBLE:
+			*((double *) key_value) = ulong_array[0];
+			break;
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Unsupported MX datatype %ld for EIGER key '%s'.",
+				mx_datatype, key_name );
 			break;
 		}
 		break;
 	case MXFT_FLOAT:
+		mx_status = mx_json_get_key( json, key_name,
+					mx_json_datatype,
+					float_array,
+					max_key_value_bytes );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
 		switch( mx_datatype ) {
 		case MXFT_STRING:
-			mx_status = mx_json_get_key( json, key_name,
-						mx_json_datatype,
-						float_array,
-						max_key_value_bytes );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
 			snprintf( key_value, max_key_value_bytes, "%g",
 					float_array[0] );
-
-			return MX_SUCCESSFUL_RESULT;
+			break;
+		case MXFT_BOOL:
+			*((mx_bool_type *) key_value) = float_array[0];
+			break;
+		case MXFT_CHAR:
+			*((char *) key_value) = float_array[0];
+			break;
+		case MXFT_UCHAR:
+			*((unsigned char *) key_value) = float_array[0];
+			break;
+		case MXFT_SHORT:
+			*((short *) key_value) = float_array[0];
+			break;
+		case MXFT_USHORT:
+			*((unsigned short *) key_value) = float_array[0];
+			break;
+		case MXFT_LONG:
+			*((long *) key_value) = float_array[0];
+			break;
+		case MXFT_ULONG:
+		case MXFT_HEX:
+			*((unsigned long *) key_value) = float_array[0];
+			break;
+		case MXFT_FLOAT:
+			*((float *) key_value) = float_array[0];
+			break;
+		case MXFT_DOUBLE:
+			*((double *) key_value) = float_array[0];
+			break;
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Unsupported MX datatype %ld for EIGER key '%s'.",
+				mx_datatype, key_name );
 			break;
 		}
 		break;
 	}
 
-	return mx_error( MXE_NOT_FOUND, fname,
-		"Foooooooooo!  mx_datatype = %ld, mx_json_datatype = %ld",
-		mx_datatype, mx_json_datatype );
+	return MX_SUCCESSFUL_RESULT;
 }
 
