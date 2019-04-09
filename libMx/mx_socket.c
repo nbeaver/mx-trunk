@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2009, 2011, 2013-2018 Illinois Institute of Technology
+ * Copyright 1999-2009, 2011, 2013-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1931,6 +1931,274 @@ mx_socket_set_non_blocking_mode( MX_SOCKET *mx_socket,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*--------------------------------------------------------------------------*/
+
+/* The initial version of mx_socket_set_keepalive was based on this
+ * GitHub commit, which says that it had been verified using Wireshark:
+ *     https://gist.github.com/shi-yan/611cc0221eeff1644797
+ */
+
+#if defined(OS_WIN32)
+
+#   if ( MX_WINVER >= 0x0500 )
+	/* Windows 2000 and newer */
+
+MX_EXPORT mx_status_type
+mx_socket_set_keepalive( MX_SOCKET *mx_socket,
+			mx_bool_type enable_keepalive,
+			unsigned long keepalive_time_ms,
+			unsigned long keepalive_interval_ms,
+			unsigned long keepalive_retry_count )
+{
+	static const char fname[] = "mx_socket_set_keepalive()";
+
+	tcp_keepalive keepalive_struct;
+	int ioctl_status, last_error_code;
+	DWORD bytes_returned;
+
+	if ( mx_socket == (MX_SOCKET *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SOCKET pointer passed was NULL." );
+	}
+
+	keepalive_struct.onoff = enable_keepalive;
+	keepalive_struct.keepalive_time_ms = keepalive_time_ms;
+	keepalive_struct.keepalive_interval_ms = keepalive_interval_ms;
+
+	/* keepalive_retry_count is not settable on Vista and after, so
+	 * we skip it.
+	 */
+
+	ioctl_status = WSAIoctl( mx_socket->socket_fd, SIO_KEEPALIVE_VALS,
+			&keepalive_struct, sizeof(keepalive_struct),
+			NULL, 0, &bytes_returned, NULL, NULL );
+
+	if ( ioctl_status != 0 ) {
+		last_error_code = WSAGetLastError();
+
+		mx_socket->keepalive_enabled = FALSE;
+
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"WSAIoctl() returned with error code %d, reason = '%s'",
+			last_error_code, mx_socket_strerror(last_error_code) );
+	}
+
+	mx_socket->keepalive_enabled = enable_keepalive;
+
+	if ( enable_keepalive ) {
+		mx_socket->keepalive_time_ms = keepalive_time_ms;
+		mx_socket->keepalive_interval_ms = keepalive_interval_ms;
+	} else {
+		mx_socket->keepalive_time_ms = 0;
+		mx_socket->keepalive_interval_ms = 0;
+	}
+
+	mx_socket->keepalive_retry_count = 0;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#   else
+#   error mx_socket_set_keepalive() not yet implemented before Windows 2000.
+#   endif
+
+#elif defined(OS_MACOSX)
+
+MX_EXPORT mx_status_type
+mx_socket_set_keepalive( MX_SOCKET *mx_socket,
+			mx_bool_type enable_keepalive,
+			unsigned long keepalive_time_ms,
+			unsigned long keepalive_interval_ms,
+			unsigned long keepalive_retry_count )
+{
+	static const char fname[] = "mx_socket_set_keepalive()";
+
+	int sockopt_status, keepalive_on, keepalive_seconds;
+
+	if ( mx_socket == (MX_SOCKET *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SOCKET pointer passed was NULL." );
+	}
+
+	if ( enable_keepalive ) {
+		keepalive_on = 1;
+	} else {
+		keepalive_on = 0;
+	}
+
+	sockopt_status = setsockopt( mx_socket->socket_fd,
+				SOL_SOCKET, SO_KEEPALIVE,
+				&keepalive_on, sizeof(keepalive_on) );
+
+	if ( sockopt_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"The attempt to set SO_KEEPALIVE for socket %d failed.  "
+		"Errno = %d, error message = '%s'.",
+			mx_socket->socket_fd,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	keepalive_seconds = mx_round( 0.001 * (double) keepalive_time_ms );
+
+	sockopt_status = setsockopt( mx_socket->socket_fd,
+				IPPROTO_TCP, TCP_KEEPALIVE,
+				&keepalive_seconds, sizeof(keepalive_seconds) );
+
+	if ( sockopt_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"The attempt to set TCP_KEEPALIVE for socket %d failed.  "
+		"Errno = %d, error message = '%s'.",
+			mx_socket->socket_fd,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	mx_socket->keepalive_enabled = enable_keepalive;
+
+	if ( enable_keepalive ) {
+		mx_socket->keepalive_time_ms = keepalive_time_ms;
+	} else {
+		mx_socket->keepalive_time_ms = 0;
+	}
+
+	mx_socket->keepalive_interval_ms = 0;
+	mx_socket->keepalive_retry_count = 0;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#elif defined(OS_LINUX)
+
+MX_EXPORT mx_status_type
+mx_socket_set_keepalive( MX_SOCKET *mx_socket,
+			mx_bool_type enable_keepalive,
+			unsigned long keepalive_time_ms,
+			unsigned long keepalive_interval_ms,
+			unsigned long keepalive_retry_count )
+{
+	static const char fname[] = "mx_socket_set_keepalive()";
+
+	int32_t keepalive_on;
+       	int32_t keepalive_time_seconds;
+       	int32_t keepalive_interval_seconds;
+       	int32_t keepalive_count;
+	int sockopt_status, saved_errno;
+
+	if ( mx_socket == (MX_SOCKET *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SOCKET pointer passed was NULL." );
+	}
+
+	if ( enable_keepalive ) {
+		keepalive_on = 1;
+	} else {
+		keepalive_on = 0;
+	}
+
+	sockopt_status = setsockopt( mx_socket->socket_fd,
+				SOL_SOCKET, SO_KEEPALIVE,
+				&keepalive_on, sizeof(keepalive_on) );
+
+	if ( sockopt_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"The attempt to set SO_KEEPALIVE for socket %d failed.  "
+		"Errno = %d, error message = '%s'.",
+			mx_socket->socket_fd,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	keepalive_time_seconds = mx_round( 0.001 * (double) keepalive_time_ms );
+
+	sockopt_status = setsockopt( mx_socket->socket_fd,
+				IPPROTO_TCP, TCP_KEEPIDLE,
+				&keepalive_time_seconds,
+				sizeof(keepalive_time_seconds) );
+
+	if ( sockopt_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"The attempt to set TCP_KEEPIDLE for socket %d failed.  "
+		"Errno = %d, error message = '%s'.",
+			mx_socket->socket_fd,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	keepalive_interval_seconds =
+		mx_round( 0.001 * (double) keepalive_interval_ms );
+
+	sockopt_status = setsockopt( mx_socket->socket_fd,
+				IPPROTO_TCP, TCP_KEEPINTVL,
+				&keepalive_interval_seconds,
+				sizeof(keepalive_interval_seconds) );
+
+	if ( sockopt_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"The attempt to set TCP_KEEPINTVL for socket %d failed.  "
+		"Errno = %d, error message = '%s'.",
+			mx_socket->socket_fd,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	keepalive_count = (int32_t) keepalive_retry_count;
+
+	sockopt_status = setsockopt( mx_socket->socket_fd,
+				IPPROTO_TCP, TCP_KEEPCNT,
+				&keepalive_count,
+				sizeof(keepalive_count) );
+
+	if ( sockopt_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"The attempt to set TCP_KEEPCNT for socket %d failed.  "
+		"Errno = %d, error message = '%s'.",
+			mx_socket->socket_fd,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	mx_socket->keepalive_enabled = enable_keepalive;
+
+	if ( enable_keepalive ) {
+		mx_socket->keepalive_time_ms = keepalive_time_ms;
+		mx_socket->keepalive_interval_ms = keepalive_interval_ms;
+		mx_socket->keepalive_retry_count = keepalive_retry_count;
+	} else {
+		mx_socket->keepalive_time_ms = 0;
+		mx_socket->keepalive_interval_ms = 0;
+		mx_socket->keepalive_retry_count = 0;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#elif 0
+
+MX_EXPORT mx_status_type
+mx_socket_set_keepalive( MX_SOCKET *mx_socket,
+			mx_bool_type enable_keepalive,
+			unsigned long keepalive_time_ms,
+			unsigned long keepalive_interval_ms,
+			unsigned long keepalive_retry_count )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#else
+
+#error mx_socket_set_keepalive() has not been implemented for this build target.
+
+#endif /* Not Win32, macOS, or Linux */
+
+/*--------------------------------------------------------------------------*/
+
 MX_EXPORT mx_bool_type
 mx_socket_is_open( MX_SOCKET *mx_socket )
 {
@@ -1952,6 +2220,8 @@ mx_socket_is_open( MX_SOCKET *mx_socket )
 
 	return TRUE;
 }
+
+/*--------------------------------------------------------------------------*/
 
 MX_EXPORT void
 mx_socket_mark_as_closed( MX_SOCKET *mx_socket )
