@@ -378,7 +378,7 @@ mxn_http_server_get( MX_URL_SERVER *url_server,
 	/* Send the initial query to the Web server. */
 
 	snprintf( http_message, sizeof(http_message),
-		"GET %s HTTP/1.1\r\n"
+		"GET /%s HTTP/1.1\r\n"
 		"Host: %s\r\n"
 		"Accept: */*\r\n"
 		"\r\n",
@@ -627,12 +627,14 @@ mxn_http_server_put( MX_URL_SERVER *url_server,
 	/* Send the PUT header to the Web server. */
 
 	snprintf( http_message, sizeof(http_message),
-		"PUT %s HTTP/1.1\r\n"
+		"PUT /%s HTTP/1.1\r\n"
 		"Host: %s\r\n"
 		"Content-Type: %s\r\n"
+		"Content-Length: %lu\r\n"
 		"\r\n"
 		"%s\r\n",
-		filename, hostname, content_type, sent_data );
+		filename, hostname, content_type,
+		strlen(sent_data), sent_data );
 
 #if MXN_HTTP_DEBUG_PUT_DETAILS
 	MX_DEBUG(-2,("%s: http_message = '%s'", fname, http_message));

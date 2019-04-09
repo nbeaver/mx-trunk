@@ -479,8 +479,13 @@ mxd_eiger_put_value( MX_AREA_DETECTOR *ad,
 		break;
 	}
 
+#if 0
 	snprintf( key_value, sizeof(key_value),
 		"{\r\n  \"value\" : %s\r\n}\r\n", key_body );
+#else
+	snprintf( key_value, sizeof(key_value),
+		"{ \"value\" : %s }\r\n", key_body );
+#endif
 
 	mx_status = mxd_eiger_put( ad, eiger,
 			module_name, key_name, key_value );
