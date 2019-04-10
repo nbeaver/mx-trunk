@@ -19,7 +19,7 @@
 
 #define MXU_EIGER_SIMPLON_VERSION_LENGTH	20
 #define MXU_EIGER_DESCRIPTION_LENGTH		40
-#define MXU_EIGER_URL_PREFIX_LENGTH		80
+#define MXU_EIGER_SERIAL_NUMBER_LENGTH		40
 
 #define MXU_EIGER_MODULE_NAME_LENGTH		40
 #define MXU_EIGER_KEY_NAME_LENGTH		80
@@ -35,7 +35,11 @@ typedef struct {
 	char simplon_version[MXU_EIGER_SIMPLON_VERSION_LENGTH+1];
 	unsigned long eiger_flags;
 	MX_RECORD *photon_energy_record;
+
+	mx_bool_type monitor_enabled;
+
 	char description[MXU_EIGER_DESCRIPTION_LENGTH+1];
+	char serial_number[MXU_EIGER_SERIAL_NUMBER_LENGTH+1];
 
 	char module_name[MXU_EIGER_MODULE_NAME_LENGTH+1];
 	char key_name[MXU_EIGER_KEY_NAME_LENGTH+1];
@@ -45,8 +49,9 @@ typedef struct {
 
 } MX_EIGER;
 
-#define MXLV_EIGER_KEY_NAME			94001
-#define MXLV_EIGER_KEY_VALUE			94002
+#define MXLV_EIGER_MONITOR_ENABLED		94001
+#define MXLV_EIGER_KEY_NAME			94002
+#define MXLV_EIGER_KEY_VALUE			94003
 
 #define MXD_EIGER_STANDARD_FIELDS \
   {-1, -1, "url_server_record", MXFT_RECORD, NULL, 0, {0}, \
@@ -70,8 +75,17 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, photon_energy_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY) }, \
   \
+  {MXLV_EIGER_MONITOR_ENABLED, -1, "monitor_enabled", MXFT_BOOL, NULL, 0, {0},\
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, monitor_enabled), \
+	{0}, NULL, 0 }, \
+  \
   {-1, -1, "description", MXFT_STRING, NULL, 1, {MXU_EIGER_DESCRIPTION_LENGTH},\
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, description), \
+	{sizeof(char)}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "serial_number", MXFT_STRING, NULL, \
+	  				1, {MXU_EIGER_SERIAL_NUMBER_LENGTH},\
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, serial_number), \
 	{sizeof(char)}, NULL, MXFF_READ_ONLY }, \
   \
   {-1, -1, "module_name", MXFT_STRING, NULL, 1, {MXU_EIGER_MODULE_NAME_LENGTH},\

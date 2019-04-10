@@ -1366,6 +1366,7 @@ mxd_eiger_special_processing_setup( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
+		case MXLV_EIGER_MONITOR_ENABLED:
 		case MXLV_EIGER_KEY_NAME:
 		case MXLV_EIGER_KEY_VALUE:
 			record_field->process_function
@@ -1412,14 +1413,36 @@ mxd_eiger_process_function( void *record_ptr,
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
+		case MXLV_EIGER_MONITOR_ENABLED:
+			mx_status = mxd_eiger_get_value( ad, eiger,
+						"monitor", "config/mode",
+						MXFT_STRING, 1, dimension,
+						eiger->key_value );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( strcmp( eiger->key_value, "enabled" ) == 0 ) {
+				eiger->monitor_enabled = TRUE;
+			} else
+			if ( strcmp( eiger->key_value, "disabled" ) == 0 ) {
+				eiger->monitor_enabled = FALSE;
+			} else {
+				return mx_error( MXE_UNPARSEABLE_STRING, fname,
+				"The value '%s' returned by EIGER detector "
+				"'%s' for 'monitor/config/mode' was not "
+				"one of the two expected values: 'enabled' "
+				"or 'disabled'.", eiger->key_value,
+					eiger->record->name );
+			}
+			break;
 		case MXLV_EIGER_KEY_NAME:
 			break;
 		case MXLV_EIGER_KEY_VALUE:
 			mx_status = mxd_eiger_get_value( ad, eiger,
 						eiger->module_name,
 						eiger->key_name,
-						MXFT_STRING,
-						1, dimension,
+						MXFT_STRING, 1, dimension,
 						eiger->key_value );
 			break;
 		default:
@@ -1431,6 +1454,20 @@ mxd_eiger_process_function( void *record_ptr,
 		break;
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
+		case MXLV_EIGER_MONITOR_ENABLED:
+			if ( eiger->monitor_enabled ) {
+				strlcpy( eiger->key_value, "enabled",
+					sizeof( eiger->key_value ) );
+			} else {
+				strlcpy( eiger->key_value, "disabled",
+					sizeof( eiger->key_value ) );
+			}
+
+			mx_status = mxd_eiger_put_value( ad, eiger,
+						"monitor", "config/mode",
+						MXFT_STRING, 1, dimension,
+						eiger->key_value );
+			break;
 		case MXLV_EIGER_KEY_NAME:
 			/* If the key name has zero slashes in it, then
 			 * it is an invalid key name.
