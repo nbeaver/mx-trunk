@@ -1,6 +1,6 @@
 ###!load libcurl.mxo
 #
-xray_energy  variable inline double "" "" 1 1 12.358
+xray_energy  variable inline double "" "" 1 1 12358.0
 #
 eiger_port   interface rs232 tcp232 "" "" 9600 8 N 1 N 0x0d0a 0x0d0a 5.0 0x0 164.54.204.182 80 0xc
 eiger_server server url http_server "" "" eiger_port

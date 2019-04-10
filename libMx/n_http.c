@@ -17,10 +17,13 @@
 #define MXN_HTTP_DEBUG			FALSE
 
 #define MXN_HTTP_DEBUG_GET		FALSE
-#define MXN_HTTP_DEBUG_PUT		TRUE
+#define MXN_HTTP_DEBUG_PUT		FALSE
 
 #define MXN_HTTP_DEBUG_GET_DETAILS	FALSE
-#define MXN_HTTP_DEBUG_PUT_DETAILS	TRUE
+#define MXN_HTTP_DEBUG_PUT_DETAILS	FALSE
+
+#define MXN_HTTP_DEBUG_PUT_MESSAGE	FALSE
+#define MXN_HTTP_DEBUG_PUT_RESPONSE	FALSE
 
 /* On Linux, we must define _GNU_SOURCE before including any C library header
  * in order to get strcasestr() from string.h
@@ -636,7 +639,7 @@ mxn_http_server_put( MX_URL_SERVER *url_server,
 		filename, hostname, content_type,
 		strlen(sent_data), sent_data );
 
-#if MXN_HTTP_DEBUG_PUT_DETAILS
+#if MXN_HTTP_DEBUG_PUT_MESSAGE
 	MX_DEBUG(-2,("%s: http_message = '%s'", fname, http_message));
 #endif
 
@@ -725,7 +728,7 @@ mxn_http_server_put( MX_URL_SERVER *url_server,
 			fname, (long) num_bytes_read));
 #endif
 
-#if MXN_HTTP_DEBUG_PUT_DETAILS
+#if MXN_HTTP_DEBUG_PUT_RESPONSE
 		MX_DEBUG(-2,("%s: local_response = '%s'",
 			fname, local_response));
 #endif

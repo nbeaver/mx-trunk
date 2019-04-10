@@ -540,7 +540,7 @@ mxd_eiger_create_record_structures( MX_RECORD *record )
 	ad->record = record;
 	eiger->record = record;
 
-	ad->trigger_mode = 0;
+	ad->trigger_mode = MXF_DEV_INTERNAL_TRIGGER;
 	ad->initial_correction_flags = 0;
 
 	return MX_SUCCESSFUL_RESULT;
@@ -617,7 +617,6 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 	double exposure_time, exposure_period;
 	double photon_energy;
 	long dimension[1];
-	void *value = NULL;
 	char trigger_mode[20];
 	mx_status_type mx_status;
 
@@ -640,16 +639,16 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 
 	dimension[0] = 1;
 
-	*((double *) value) = photon_energy;
-
 	mx_status = mxd_eiger_put_value( ad, eiger,
 			"detector", "config/photon_energy",
-			MXFT_DOUBLE, 1, dimension, value );
+			MXFT_DOUBLE, 1, dimension, (void *) &photon_energy );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/* Get the trigger mode and sequence parameters. */
+
+	sp = &(ad->sequence_parameters);
 
 	/* FIXME: Haven't figured out how to make use of
 	 * 'inte' trigger mode yet.
@@ -661,7 +660,7 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 		case MXT_SQ_ONE_SHOT:
 			num_frames = 1;
 			exposure_time = sp->parameter_array[0];
-			exposure_period = -1.0;
+			exposure_period = exposure_time;
 			strlcpy( trigger_mode, "ints", sizeof(trigger_mode) );
 			break;
 		case MXT_SQ_MULTIFRAME:
