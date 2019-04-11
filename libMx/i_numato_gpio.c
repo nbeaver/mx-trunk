@@ -1,20 +1,20 @@
 /*
  * Name:    i_numato_gpio.c
  *
- * Purpose: MX driver for the Keithley 2600 series of SourceMeters.
+ * Purpose: MX interface driver for Numato Lab GPIO devices.
  *
  * Author:  William Lavender
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2018-2019 Illinois Institute of Technology
+ * Copyright 2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXI_KEITHLEY2600_DEBUG		TRUE
+#define MXI_NUMATO_GPIO_DEBUG		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,7 +24,6 @@
 #include "mx_driver.h"
 #include "mx_process.h"
 #include "mx_rs232.h"
-#include "mx_gpib.h"
 #include "i_numato_gpio.h"
 
 MX_RECORD_FUNCTION_LIST mxi_numato_gpio_record_function_list = {
@@ -42,7 +41,7 @@ MX_RECORD_FUNCTION_LIST mxi_numato_gpio_record_function_list = {
 
 MX_RECORD_FIELD_DEFAULTS mxi_numato_gpio_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
-	MXI_KEITHLEY2600_STANDARD_FIELDS
+	MXI_NUMATO_GPIO_STANDARD_FIELDS
 };
 
 long mxi_numato_gpio_num_record_fields
@@ -67,15 +66,15 @@ mxi_numato_gpio_create_record_structures( MX_RECORD *record )
 	static const char fname[] =
 		"mxi_numato_gpio_create_record_structures()";
 
-	MX_KEITHLEY2600 *numato_gpio;
+	MX_NUMATO_GPIO *numato_gpio;
 
 	/* Allocate memory for the necessary structures. */
 
-	numato_gpio = (MX_KEITHLEY2600 *) malloc( sizeof(MX_KEITHLEY2600) );
+	numato_gpio = (MX_NUMATO_GPIO *) malloc( sizeof(MX_NUMATO_GPIO) );
 
-	if ( numato_gpio == (MX_KEITHLEY2600 *) NULL ) {
+	if ( numato_gpio == (MX_NUMATO_GPIO *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Cannot allocate memory for an MX_KEITHLEY2600 structure." );
+		"Cannot allocate memory for an MX_NUMATO_GPIO structure." );
 	}
 
 	/* Now set up the necessary pointers. */
@@ -97,113 +96,73 @@ mxi_numato_gpio_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_numato_gpio_open()";
 
-	MX_KEITHLEY2600 *numato_gpio = NULL;
-	MX_INTERFACE *port_interface = NULL;
+	MX_NUMATO_GPIO *numato_gpio = NULL;
 	unsigned long flags;
-	char response[80];
-	char format[80];
-	int num_items;
-	size_t len;
+	mx_bool_type debug_rs232;
 	mx_status_type mx_status;
 
-#if MXI_KEITHLEY2600_DEBUG
+#if MXI_NUMATO_GPIO_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name ));
 #endif
 
-	numato_gpio = (MX_KEITHLEY2600 *) record->record_type_struct;
+	numato_gpio = (MX_NUMATO_GPIO *) record->record_type_struct;
 
-	if ( numato_gpio == (MX_KEITHLEY2600 *) NULL ) {
+	if ( numato_gpio == (MX_NUMATO_GPIO *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"MX_KEITHLEY2600 pointer for record '%s' is NULL.",
+		"MX_NUMATO_GPIO pointer for record '%s' is NULL.",
 			record->name);
 	}
 
-	port_interface = &(numato_gpio->port_interface);
-
 	flags = numato_gpio->numato_gpio_flags;
 
-	/* Connect to the device. */
-
-	switch( port_interface->record->mx_class ) {
-	case MXI_RS232:
-		mx_status = mx_rs232_discard_unread_input(
-			port_interface->record, MXI_KEITHLEY2600_DEBUG );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-		break;
-	case MXI_GPIB:
-		mx_status = mx_gpib_open_device( port_interface->record,
-						port_interface->address );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-	
-		mx_status = mx_gpib_selective_device_clear(
-			port_interface->record, port_interface->address );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-		break;
-	default:
-		return mx_error( MXE_TYPE_MISMATCH, fname,
-		"Interface '%s' for Keithley 2600 record '%s' "
-		"is not an RS-232 or GPIB record.",
-			port_interface->record->name, record->name );
-		break;
+	if ( flags & MXF_NUMATO_GPIO_DEBUG_RS232 ) {
+		debug_rs232 = TRUE;
+	} else {
+		debug_rs232 = FALSE;
 	}
 
-	/* Verify that the Keithley 2600 is responding to commands. */
+	/* Send a couple of newlines to make sure that the Numato
+	 * device is responding.
+	 */
 
-	mx_status = mxi_numato_gpio_command( numato_gpio, "*IDN?",
-					response, sizeof(response), flags );
+	mx_status = mx_rs232_putline( numato_gpio->rs232_record, "\r\n\r\n",
+							NULL, debug_rs232 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Parse the response. */
+	mx_msleep(1000);
 
-	snprintf( format, sizeof(format),
-		"Keithley Instruments Inc., Model %%%ds %%%ds %%%ds",
-			(int) sizeof(numato_gpio->model_name),
-			(int) sizeof(numato_gpio->serial_number),
-			(int) sizeof(numato_gpio->firmware_version) );
+	/* Discard any leftover bytes in the serial port. */
 
-	num_items = sscanf( response, format,
-			numato_gpio->model_name,
-			numato_gpio->serial_number,
-			numato_gpio->firmware_version );
+	mx_status = mx_rs232_discard_unwritten_output(
+				numato_gpio->rs232_record, debug_rs232 );
 
-	if ( num_items != 3 ) {
-		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
-		"The device expected for '%s' on port interface '%s' "
-		"is not a Keithley 2600.  "
-		"Its response to an '*IDN?' command was '%s'.",
-		record->name, port_interface->record->name, response );
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	/* Zap trailing comma (,) characters if present. */
+	mx_status = mx_rs232_discard_unread_input( numato_gpio->rs232_record,
+								 debug_rs232 );
 
-	len = strlen( numato_gpio->model_name );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	if ( (numato_gpio->model_name)[len-1] == ',' ) {
-		(numato_gpio->model_name)[len-1] = '\0';
-	}
+	/* Read the version number of the Numato firmware. */
 
-	len = strlen( numato_gpio->serial_number );
+	mx_status = mxi_numato_gpio_command( numato_gpio, "ver",
+					numato_gpio->version,
+					sizeof(numato_gpio->version),
+					debug_rs232 );
 
-	if ( (numato_gpio->serial_number)[len-1] == ',' ) {
-		(numato_gpio->serial_number)[len-1] = '\0';
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	/*======== Configure global parameters. ========*/
+	/* Read the id number of the Numato device. */
 
-	/* Select ASCII data format. */
-
-	mx_status = mxi_numato_gpio_command( numato_gpio,
-				"format.data = format.ASCII",
-				NULL, 0,
-				numato_gpio->numato_gpio_flags );
+	mx_status = mxi_numato_gpio_command( numato_gpio, "id",
+					numato_gpio->id,
+					sizeof(numato_gpio->id),
+					debug_rs232 );
 
 	return mx_status;
 }
@@ -245,12 +204,12 @@ mxi_numato_gpio_process_function( void *record_ptr,
 
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;
-	MX_KEITHLEY2600 *numato_gpio;
+	MX_NUMATO_GPIO *numato_gpio;
 	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
-	numato_gpio = (MX_KEITHLEY2600 *) record->record_type_struct;
+	numato_gpio = (MX_NUMATO_GPIO *) record->record_type_struct;
 
 	MXW_UNUSED( numato_gpio );
 
@@ -293,162 +252,65 @@ mxi_numato_gpio_process_function( void *record_ptr,
 /*==================================================================*/
 
 MX_EXPORT mx_status_type
-mxi_numato_gpio_command( MX_KEITHLEY2600 *numato_gpio,
+mxi_numato_gpio_command( MX_NUMATO_GPIO *numato_gpio,
 				char *command,
 				char *response,
 				unsigned long max_response_length,
-				unsigned long numato_gpio_flags )
+				mx_bool_type debug_rs232 )
 {
 	static const char fname[] = "mxi_numato_gpio_command()";
 
-	MX_INTERFACE *port_interface = NULL;
+	MX_RECORD *rs232_record = NULL;
 	MX_RS232 *rs232 = NULL;
-	int i, max_attempts;
-	mx_bool_type debug, response_expected;
 	mx_status_type mx_status;
 
-	if ( numato_gpio == (MX_KEITHLEY2600 *) NULL ) {
+	if ( numato_gpio == (MX_NUMATO_GPIO *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_KEITHLEY2600 pointer passed was NULL." );
+		"The MX_NUMATO_GPIO pointer passed was NULL." );
 	}
 
-	port_interface = &(numato_gpio->port_interface);
+	rs232_record = numato_gpio->rs232_record;
 
-	if ( numato_gpio_flags & MXF_KEITHLEY2600_DEBUG_RS232 ) {
-		debug = TRUE;
-	} else {
-		debug = FALSE;
+	if ( rs232_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The rs232_record pointer for Numato GPIO interface '%s' "
+		"is NULL.", numato_gpio->record->name );
 	}
 
-	switch( port_interface->record->mx_class ) {
-	case MXI_RS232:
-		rs232 = (MX_RS232 *)
-			port_interface->record->record_class_struct;
+	rs232 = (MX_RS232 *) rs232_record->record_class_struct;
 
-		break;
-	case MXI_GPIB:
-		break;
-	default:
-		mx_status = mx_error( MXE_TYPE_MISMATCH, fname,
-		    "Interface record '%s' is not an RS-232 or GPIB record.",
-			port_interface->record->name );
-		break;
+	if ( rs232 == (MX_RS232 *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RS232 pointer for RS232 record '%s' used "
+		"by Numato GPIO interface '%s' is NULL.",
+			rs232_record->name, numato_gpio->record->name );
 	}
 
-	max_attempts = 5;
+	if ( debug_rs232 ) {
+		fprintf( stderr, "Sending '%s' to '%s'.\n",
+			command, numato_gpio->record->name );
+	}
 
-	for ( i = 0; i < max_attempts; i++ ) {
+	mx_status = mx_rs232_putline( rs232_record, command,
+					NULL, debug_rs232 );
 
-		if ( debug ) {
-			fprintf( stderr, "Sending '%s' to '%s'.\n",
-				command, numato_gpio->record->name );
-		}
-
-		switch( port_interface->record->mx_class ) {
-		case MXI_RS232:
-			mx_status = mx_rs232_putline( port_interface->record,
-							command, NULL, 0 );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-			break;
-		case MXI_GPIB:
-			mx_status = mx_gpib_putline( port_interface->record,
-							port_interface->address,
-							command, NULL, 0 );
-			break;
-		default:
-			mx_status = mx_error( MXE_TYPE_MISMATCH, fname,
-		    "Interface record '%s' is not an RS-232 or GPIB record.",
-				port_interface->record->name );
-			break;
-		}
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 	
-		/* Infer whether or not a response is expected. */
+	/* Return if no response is expected. */
 
-		if ( ( response == NULL) || ( max_response_length == 0 ) ) {
-			response_expected = FALSE;
-		} else {
-			response_expected = TRUE;
-		}
-
-		if ( response_expected == FALSE ) {
-			return MX_SUCCESSFUL_RESULT;
-		}
-
-		switch( port_interface->record->mx_class ) {
-		case MXI_RS232:
-			mx_status = mx_rs232_getline_with_timeout(
-						port_interface->record,
-						response, max_response_length,
-						NULL, 0, rs232->timeout );
-			break;
-		case MXI_GPIB:
-			mx_status = mx_gpib_getline(
-						port_interface->record,
-						port_interface->address,
-						response, max_response_length,
-						NULL, 0 );
-			break;
-		default:
-			mx_status = mx_error( MXE_TYPE_MISMATCH, fname,
-		    "Interface record '%s' is not an RS-232 or GPIB record.",
-				port_interface->record->name );
-			break;
-		}
-
-		if ( mx_status.code == MXE_SUCCESS ) {
-
-			if ( debug ) {
-				fprintf( stderr, "Received '%s' from '%s'.\n",
-					response, numato_gpio->record->name );
-			}
-
-			break;		/* Exit the for() loop. */
-		} else
-		if ( mx_status.code == MXE_TIMED_OUT ) {
-
-		    switch( port_interface->record->mx_class ) {
-		    case MXI_RS232:
-#if 1
-			(void) mx_resynchronize_record(
-					port_interface->record );
-#else
-			(void) mx_rs232_putline( port_interface->record,
-						"\r\n", NULL, 0x1 );
-			mx_msleep(500);
-
-			(void) mx_rs232_getline_with_timeout(
-					port_interface->record,
-					response, max_response_length,
-					NULL, 0x1, rs232->timeout );
-#endif
-			break;
-		    case MXI_GPIB:
-			break;
-		    default:
-			mx_status = mx_error( MXE_TYPE_MISMATCH, fname,
-		    "Interface record '%s' is not an RS-232 or GPIB record.",
-				port_interface->record->name );
-		    }
-		} else {
-			return mx_status;
-		}
-
-		fprintf( stderr, "Retrying command '%s' for '%s': retry = %d\n",
-			command, numato_gpio->record->name, i+1 );
+	if ( ( response == NULL) || ( max_response_length == 0 ) ) {
+		return MX_SUCCESSFUL_RESULT;
 	}
 
-	if ( i >= max_attempts ) {
-		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-		"Did not receive a response to the command '%s' sent "
-		"to '%s' after %d attempts.",
-			command, numato_gpio->record->name, i );
-	}
+	mx_status = mx_rs232_getline_with_timeout( rs232_record,
+						response, max_response_length,
+						NULL, debug_rs232,
+						rs232->timeout );
 
-	return MX_SUCCESSFUL_RESULT;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	return mx_status;
 }
 

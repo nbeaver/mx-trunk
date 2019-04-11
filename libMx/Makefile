@@ -180,7 +180,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	i_mardtb.c i_micro488ex.c i_mmap_vme.c \
 	i_modbus_serial_rtu.c i_modbus_tcp.c \
 	i_network_gpib.c i_network_rs232.c i_newport.c \
-	i_ortec974.c \
+	i_numato_gpio.c i_ortec974.c \
 	i_panasonic_kx_dp702.c i_pcstep.c i_pdi40.c i_pdi45.c \
 	i_pfcu.c i_phidget_old_stepper.c i_picomotor.c \
 	i_pmac.c i_prologix.c i_rtems_vme.c \

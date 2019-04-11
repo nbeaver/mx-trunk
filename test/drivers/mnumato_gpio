@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../motor/mxmotor.static -F ./mnumato_gpio.dat -s ./snumato_gpio.dat $*
+

@@ -270,6 +270,7 @@ extern "C" {
 #define MXI_CTRL_AMPTEK_DP5		467
 #define MXI_CTRL_KEITHLEY2600		468
 #define MXI_CTRL_KEITHLEY199		469
+#define MXI_CTRL_NUMATO_GPIO		470
 
 #define MXI_PIO_PORTIO			600
 #define MXI_PIO_DOS			601
@@ -337,6 +338,7 @@ extern "C" {
 #define MXT_AIN_SYNACCESS_NETBOOTER	10047
 #define MXT_AIN_KEITHLEY199		10048
 #define MXT_AIN_UMX			10049
+#define MXT_AIN_NUMATO_GPIO		10050
 
 /* --- Analog input subclasses -- */
 
@@ -419,6 +421,8 @@ extern "C" {
 #define MXT_DIN_AINPUT			30037
 #define MXT_DIN_FANIN			30038
 #define MXT_DIN_UMX			30039
+#define MXT_DIN_NUMATO_GPIO		30040
+#define MXT_DIN_NUMATO_GPIO_ALL		30041
 
 /* --- Digital output types --- */
 
@@ -464,6 +468,8 @@ extern "C" {
 #define MXT_DOU_RELAY			40039
 #define MXT_DOU_FANOUT			40040
 #define MXT_DOU_UMX			40041
+#define MXT_DOU_NUMATO_GPIO		40042
+#define MXT_DOU_NUMATO_GPIO_ALL		40043
 
 /* --- Motor subclasses --- */
 

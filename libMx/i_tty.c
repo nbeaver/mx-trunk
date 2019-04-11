@@ -7,7 +7,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2008, 2010-2011, 2014, 2018 Illinois Institute of Technology
+ * Copyright 1999-2008, 2010-2011, 2014, 2018-2019
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -257,6 +258,7 @@ mxi_tty_create_record_structures( MX_RECORD *record )
 	record->class_specific_function_list = &mxi_tty_rs232_function_list;
 
 	rs232->record = record;
+	tty->record = record;
 
 	return MX_SUCCESSFUL_RESULT;
 }
