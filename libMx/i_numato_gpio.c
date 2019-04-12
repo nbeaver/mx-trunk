@@ -121,11 +121,31 @@ mxi_numato_gpio_open( MX_RECORD *record )
 		debug_rs232 = FALSE;
 	}
 
-	/* Send a couple of newlines to make sure that the Numato
-	 * device is responding.
+	/* Make sure that the RS232 line terminators are set correctly.  The
+	 * write terminator must be set to 0x0d, while the read terminators
+	 * must be set to 0x3e0d (or '>\r').
 	 */
 
-	mx_status = mx_rs232_putline( numato_gpio->rs232_record, "\r\n\r\n",
+#if 0
+	{
+		MX_RS232 *rs232 = (MX_RS232 *)
+			numato_gpio->rs232_record->record_class_struct;
+
+		rs232->read_terminators = 0x3e0d;
+		rs232->write_terminators = 0x0d;
+
+		mx_status = mx_rs232_convert_terminator_characters(
+						numato_gpio->rs232_record );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+#endif
+	/* Send a <CR> to make sure that any partial commands or junk data
+	 * have been discarded.
+	 */
+
+	mx_status = mx_rs232_putline( numato_gpio->rs232_record, "",
 							NULL, debug_rs232 );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -148,6 +168,8 @@ mxi_numato_gpio_open( MX_RECORD *record )
 		return mx_status;
 
 	/* Read the version number of the Numato firmware. */
+
+	mx_breakpoint();
 
 	mx_status = mxi_numato_gpio_command( numato_gpio, "ver",
 					numato_gpio->version,
@@ -262,6 +284,8 @@ mxi_numato_gpio_command( MX_NUMATO_GPIO *numato_gpio,
 
 	MX_RECORD *rs232_record = NULL;
 	MX_RS232 *rs232 = NULL;
+	char local_buffer[80];
+	size_t length;
 	mx_status_type mx_status;
 
 	if ( numato_gpio == (MX_NUMATO_GPIO *) NULL ) {
@@ -286,6 +310,33 @@ mxi_numato_gpio_command( MX_NUMATO_GPIO *numato_gpio,
 			rs232_record->name, numato_gpio->record->name );
 	}
 
+	/* The Numato GPIO device echoes back everything that we send to it.
+	 * So we will need to readout and throw away that text.  We add 1
+	 * to the end of the length of the text to include the echoed
+	 * <CR> character.
+	 */
+
+#if 0
+	length = strlen( command ) + 1;
+#else
+	length = strlen( command );
+#endif
+
+	if ( length > sizeof(local_buffer) ) {
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"The length (%lu) of the command '%s' (plus <CR>) sent to "
+		"Numato GPIO device '%s' is longer than the length (%lu) of "
+		"the local buffer used for reading out echoed responses.  "
+		"You will need to either shorten the command or else "
+		"increase the size of 'local_buffer' in the source code.  "
+		"Numato commands are short, so you should never see "
+		"this error message.",  length, command,
+			numato_gpio->record->name,
+			sizeof(local_buffer) );
+	}
+
+	/* Now send the command. */
+
 	if ( debug_rs232 ) {
 		fprintf( stderr, "Sending '%s' to '%s'.\n",
 			command, numato_gpio->record->name );
@@ -296,12 +347,17 @@ mxi_numato_gpio_command( MX_NUMATO_GPIO *numato_gpio,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-	
-	/* Return if no response is expected. */
 
-	if ( ( response == NULL) || ( max_response_length == 0 ) ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
+	/* Discard the echoed text. */
+
+	mx_status = mx_rs232_read( rs232_record,
+				local_buffer, length,
+				NULL, debug_rs232 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Now get the response we are looking for. */
 
 	mx_status = mx_rs232_getline_with_timeout( rs232_record,
 						response, max_response_length,

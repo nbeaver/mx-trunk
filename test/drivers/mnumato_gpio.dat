@@ -1,2 +1,2 @@
-numato_port interface rs232 tty "" "" 9600 8 N 1 N 0x3e 0x0d 5.0 0x3000000 /dev/ttyACM1
+numato_port interface rs232 tty "" "" 9600 8 N 1 N 0x3e0d 0x0d 5.0 0x3000000 /dev/ttyACM1
 numato_gpio interface controller numato_gpio "" "" numato_port 0x1
