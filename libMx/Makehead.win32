@@ -441,6 +441,7 @@ MXPUT_OBJS        = $(MXPUT_SRCS:.c=.$(OBJ))
 
 MX_LIB_OBJS += $(MX_LIB_CPP_OBJS)
 
+MX_LIB_OBJS += ..\\tools\\strcasestr.obj
 MX_LIB_OBJS += ..\\tools\\strlcpy.obj ..\\tools\\strlcat.obj
 MX_LIB_OBJS += ..\\tools\\strptime.obj
 MX_LIB_OBJS += ..\\tools\\xdr.obj ..\\tools\\xdr_hyper.obj

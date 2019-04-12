@@ -216,7 +216,7 @@ mxd_eiger_get_value( MX_AREA_DETECTOR *ad,
 	MX_JSON *json = NULL;
 	char response[1024];
 	long *dimension_ptr = NULL;
-	long dimension_zero[0];
+	long dimension_zero[1];
 	char value_type_string[40];
 	long mx_json_datatype;
 	mx_bool_type native_longs_are_64bits;

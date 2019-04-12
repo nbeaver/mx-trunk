@@ -17,6 +17,8 @@
 #ifndef __MX_URL_H__
 #define __MX_URL_H__
 
+#include "mx_unistd.h"
+
 /*----*/
 
 typedef struct {

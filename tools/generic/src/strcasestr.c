@@ -37,8 +37,10 @@
 /* Added MX_EXPORT to the definition of strcasestr() so that it can be used on
  * Win32 by application programs that get it indirectly through libMx.dll.
  *
- * W. Lavender - April 3, 2019
+ * W. Lavender (2019-04-03)
  */
+
+/* Replaced strncasecmp() with mx_strncasecmp().  W. Lavender (2019-04-11) */
 
 #include <stdio.h>
 #include <ctype.h>
@@ -63,7 +65,7 @@ strcasestr(const char *s, const char *find)
 				if ((sc = *s++) == 0)
 					return (NULL);
 			} while ((char)tolower((unsigned char)sc) != c);
-		} while (strncasecmp(s, find, len) != 0);
+		} while (mx_strncasecmp(s, find, len) != 0);
 		s--;
 	}
 	return ((char *)s);

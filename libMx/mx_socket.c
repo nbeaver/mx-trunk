@@ -1940,8 +1940,26 @@ mx_socket_set_non_blocking_mode( MX_SOCKET *mx_socket,
 
 #if defined(OS_WIN32)
 
-#   if ( MX_WINVER >= 0x0500 )
-	/* Windows 2000 and newer */
+#   if ( MX_WINVER >= 0x0600 )
+	/* Windows Vista and newer */
+
+#include "Mstcpip.h"
+
+#if 0
+/* FIXME: For some reason, IOC_VENDOR is not getting defined here in time
+ * to use it in the definition of SIO_KEEPALIVE_VALS.  And playing games
+ * with including other Windows header files here like "ws2def.h" seems to
+ * make it worse.  So in the spirit of kludgyness, I define it here by hand
+ * if it has not already been defined.
+ *
+ * Note that the value of IOC_VENDOR was taken from the directory
+ * C:\Program Files\Microsoft SDKs\Windows\v7.0A\Include
+ */
+
+#if !defined(IOC_VENDOR)
+#  define IOC_VENDOR  0x18000000
+#endif
+#endif
 
 MX_EXPORT mx_status_type
 mx_socket_set_keepalive( MX_SOCKET *mx_socket,
@@ -1952,7 +1970,7 @@ mx_socket_set_keepalive( MX_SOCKET *mx_socket,
 {
 	static const char fname[] = "mx_socket_set_keepalive()";
 
-	tcp_keepalive keepalive_struct;
+	struct tcp_keepalive keepalive_struct;
 	int ioctl_status, last_error_code;
 	DWORD bytes_returned;
 
@@ -1962,8 +1980,8 @@ mx_socket_set_keepalive( MX_SOCKET *mx_socket,
 	}
 
 	keepalive_struct.onoff = enable_keepalive;
-	keepalive_struct.keepalive_time_ms = keepalive_time_ms;
-	keepalive_struct.keepalive_interval_ms = keepalive_interval_ms;
+	keepalive_struct.keepalivetime = keepalive_time_ms;
+	keepalive_struct.keepaliveinterval = keepalive_interval_ms;
 
 	/* keepalive_retry_count is not settable on Vista and after, so
 	 * we skip it.
@@ -1999,7 +2017,21 @@ mx_socket_set_keepalive( MX_SOCKET *mx_socket,
 }
 
 #   else
-#   error mx_socket_set_keepalive() not yet implemented before Windows 2000.
+
+/* For Windows XP and before, we make mx_socket_set_keepalive() into a NOP. */
+
+MX_EXPORT mx_status_type
+mx_socket_set_keepalive( MX_SOCKET *mx_socket,
+			mx_bool_type enable_keepalive,
+			unsigned long keepalive_time_ms,
+			unsigned long keepalive_interval_ms,
+			unsigned long keepalive_retry_count )
+{
+	/* We gloriously do nothing and then return. */
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 #   endif
 
 #elif defined(OS_MACOSX)
