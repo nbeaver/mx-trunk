@@ -292,6 +292,7 @@ mxi_handel_read_buffers( MX_HANDEL *handel,
 	MX_MCS *mcs = NULL;
 	MX_HANDEL_MCS *handel_mcs = NULL;
 	uint16_t *buffer_ptr = NULL;
+	uint16_t buffer_scaler_value;
 	char run_data_name[20];
 	int xia_status, channel, scaler;
 
@@ -362,8 +363,10 @@ mxi_handel_read_buffers( MX_HANDEL *handel,
 
 		for ( scaler = 0; scaler < mcs->current_num_scalers; scaler++ )
 		{
+			buffer_scaler_value = buffer_ptr[ scaler ];
+
 			mcs->data_array[ scaler ][ measurement_number ]
-							= buffer_ptr[ scaler ];
+							= buffer_scaler_value;
 		}
 
 		mx_mutex_unlock( handel->mutex );
