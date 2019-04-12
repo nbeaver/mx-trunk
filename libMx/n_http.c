@@ -637,7 +637,8 @@ mxn_http_server_put( MX_URL_SERVER *url_server,
 		"\r\n"
 		"%s\r\n",
 		filename, hostname, content_type,
-		strlen(sent_data), sent_data );
+		(unsigned long) strlen(sent_data),
+		sent_data );
 
 #if MXN_HTTP_DEBUG_PUT_MESSAGE
 	MX_DEBUG(-2,("%s: http_message = '%s'", fname, http_message));

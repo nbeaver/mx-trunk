@@ -1945,22 +1945,6 @@ mx_socket_set_non_blocking_mode( MX_SOCKET *mx_socket,
 
 #include "Mstcpip.h"
 
-#if 0
-/* FIXME: For some reason, IOC_VENDOR is not getting defined here in time
- * to use it in the definition of SIO_KEEPALIVE_VALS.  And playing games
- * with including other Windows header files here like "ws2def.h" seems to
- * make it worse.  So in the spirit of kludgyness, I define it here by hand
- * if it has not already been defined.
- *
- * Note that the value of IOC_VENDOR was taken from the directory
- * C:\Program Files\Microsoft SDKs\Windows\v7.0A\Include
- */
-
-#if !defined(IOC_VENDOR)
-#  define IOC_VENDOR  0x18000000
-#endif
-#endif
-
 MX_EXPORT mx_status_type
 mx_socket_set_keepalive( MX_SOCKET *mx_socket,
 			mx_bool_type enable_keepalive,
@@ -2211,7 +2195,56 @@ mx_socket_set_keepalive( MX_SOCKET *mx_socket,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+#elif defined(OS_CYGWIN)
+
+/* This case is for platforms that have SO_KEEPALIVE and nothing else.
+ * So the requested keepalive times will be ignored and we are stuck
+ * with whatever the defaults are.
+ */
+
+MX_EXPORT mx_status_type
+mx_socket_set_keepalive( MX_SOCKET *mx_socket,
+			mx_bool_type enable_keepalive,
+			unsigned long keepalive_time_ms,
+			unsigned long keepalive_interval_ms,
+			unsigned long keepalive_retry_count )
+{
+	static const char fname[] = "mx_socket_set_keepalive()";
+
+	int32_t keepalive_on;
+	int sockopt_status, saved_errno;
+
+	if ( mx_socket == (MX_SOCKET *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SOCKET pointer passed was NULL." );
+	}
+
+	if ( enable_keepalive ) {
+		keepalive_on = 1;
+	} else {
+		keepalive_on = 0;
+	}
+
+	sockopt_status = setsockopt( mx_socket->socket_fd,
+				SOL_SOCKET, SO_KEEPALIVE,
+				&keepalive_on, sizeof(keepalive_on) );
+
+	if ( sockopt_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"The attempt to set SO_KEEPALIVE for socket %d failed.  "
+		"Errno = %d, error message = '%s'.",
+			mx_socket->socket_fd,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 #elif 0
+
+/* This case is for platforms with no keepalive functionality at all. */
 
 MX_EXPORT mx_status_type
 mx_socket_set_keepalive( MX_SOCKET *mx_socket,

@@ -241,8 +241,8 @@ mx_json_get_key( MX_JSON *json,
 				"The element size (%ld) for JSON key '%s' "
 				"is larger than the buffer size (%ld) that "
 				"we were given to copy the key value into.",
-					element_size, key_name,
-					max_key_value_bytes );
+					(long) element_size, key_name,
+					(long) max_key_value_bytes );
 			}
 
 			switch ( key_datatype ) {
@@ -366,7 +366,8 @@ mx_json_get_compatible_key( MX_JSON *json,
 	    if ( max_key_value_bytes > sizeof(double_array) ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"max_key_value_types = %ld is bigger than the maximum = %ld",
-			max_key_value_bytes, sizeof(double_array) );
+			(long) max_key_value_bytes,
+			(long) sizeof(double_array) );
 	    }
 	}
 

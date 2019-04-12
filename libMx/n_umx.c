@@ -111,7 +111,7 @@ mxn_umx_server_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s: num_bytes_read = %ld", fname, num_bytes_read ));
+	MX_DEBUG(-2,("%s: num_bytes_read = %ld", fname, (long)num_bytes_read ));
 
 	length = strlen( response );
 

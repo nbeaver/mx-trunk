@@ -324,15 +324,16 @@ mxi_numato_gpio_command( MX_NUMATO_GPIO *numato_gpio,
 
 	if ( length > sizeof(local_buffer) ) {
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-		"The length (%lu) of the command '%s' (plus <CR>) sent to "
-		"Numato GPIO device '%s' is longer than the length (%lu) of "
+		"The length (%ld) of the command '%s' (plus <CR>) sent to "
+		"Numato GPIO device '%s' is longer than the length (%ld) of "
 		"the local buffer used for reading out echoed responses.  "
 		"You will need to either shorten the command or else "
 		"increase the size of 'local_buffer' in the source code.  "
 		"Numato commands are short, so you should never see "
-		"this error message.",  length, command,
+		"this error message.",
+			(long) length, command,
 			numato_gpio->record->name,
-			sizeof(local_buffer) );
+			(long) sizeof(local_buffer) );
 	}
 
 	/* Now send the command. */
