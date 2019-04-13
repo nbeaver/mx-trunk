@@ -27,8 +27,8 @@ typedef struct {
 	long num_measurements_per_buffer;
 
 	unsigned long buffer_length;
-	uint16_t *buffer_a;
-	uint16_t *buffer_b;
+	uint32_t *buffer_a;
+	uint32_t *buffer_b;
 } MX_HANDEL_MCS;
 
 /* Define all of the interface functions. */

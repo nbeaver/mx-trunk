@@ -291,8 +291,8 @@ mxi_handel_read_buffers( MX_HANDEL *handel,
 
 	MX_MCS *mcs = NULL;
 	MX_HANDEL_MCS *handel_mcs = NULL;
-	uint16_t *buffer_ptr = NULL;
-	uint16_t buffer_scaler_value;
+	uint32_t *buffer_ptr = NULL;
+	uint32_t buffer_scaler_value;
 	char run_data_name[20];
 	int xia_status, channel, scaler;
 

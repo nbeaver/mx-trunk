@@ -616,7 +616,7 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 		handel_mcs->buffer_a = malloc( handel_mcs->buffer_length
 						* sizeof(long) );
 
-		if ( handel_mcs->buffer_a == (uint16_t *) NULL ) {
+		if ( handel_mcs->buffer_a == (uint32_t *) NULL ) {
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
 			"Ran out of memory trying to allocate a "
 			"%lu element array of unsigned longs for "
@@ -628,7 +628,7 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 		handel_mcs->buffer_b = malloc( handel_mcs->buffer_length
 						* sizeof(long) );
 
-		if ( handel_mcs->buffer_b == (uint16_t *) NULL ) {
+		if ( handel_mcs->buffer_b == (uint32_t *) NULL ) {
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
 			"Ran out of memory trying to allocate a "
 			"%lu element array of unsigned longs for "
