@@ -34,6 +34,7 @@
 #include "d_handel_mcs.h"
 #include "d_handel_sum.h"
 #include "d_handel_timer.h"
+#include "d_handel_mapping_pixel_next.h"
 
 MX_DRIVER xia_handel_driver_table[] = {
 
@@ -79,6 +80,12 @@ MX_DRIVER xia_handel_driver_table[] = {
 				&mxd_handel_timer_num_record_fields,
 				&mxd_handel_timer_rfield_def_ptr},
 
+{"handel_mapping_pixel_next", -1, MXC_DIGITAL_OUTPUT, MXR_DEVICE,
+				&mxd_handel_mpn_record_function_list,
+				NULL,
+				&mxd_handel_mpn_digital_output_function_list,
+				&mxd_handel_mpn_num_record_fields,
+				&mxd_handel_mpn_rfield_def_ptr},
 
 {"", 0, 0, 0, NULL, NULL, NULL, NULL, NULL}
 };

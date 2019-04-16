@@ -39,9 +39,9 @@ include ../../libMx/Makehead.$(MX_ARCH)
 CFLAGS += -I../../libMx -D__MX_LIBRARY__
 
 XIA_HANDEL_OBJS = xia_handel.$(OBJ) i_handel.$(OBJ) \
-		d_handel_input.$(OBJ) d_handel_mca.$(OBJ) \
-		d_handel_mcs.$(OBJ) d_handel_sum.$(OBJ) \
-		d_handel_timer.$(OBJ)
+		d_handel_input.$(OBJ) d_handel_mapping_pixel_next.$(OBJ) \
+		d_handel_mca.$(OBJ) d_handel_mcs.$(OBJ) \
+		d_handel_sum.$(OBJ) d_handel_timer.$(OBJ)
 
 #--------------------------------------------------------------------------
 
