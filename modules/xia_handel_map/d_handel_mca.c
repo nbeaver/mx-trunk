@@ -26,7 +26,7 @@
 
 #define MXD_HANDEL_MCA_DEBUG_GET_PRESETS	FALSE
 
-#define MXD_HANDEL_MCA_DEBUG_MCA_RECORD_ARRAY	TRUE
+#define MXD_HANDEL_MCA_DEBUG_MCA_RECORD_ARRAY	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

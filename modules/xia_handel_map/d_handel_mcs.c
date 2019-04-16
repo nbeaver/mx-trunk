@@ -21,6 +21,8 @@
 
 #define MXD_HANDEL_MCS_DEBUG_BUSY			TRUE
 
+#define MXD_HANDEL_MCS_DEBUG_OPEN			FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -290,7 +292,7 @@ mxd_handel_mcs_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if 1
+#if MXD_HANDEL_MCS_DEBUG_OPEN
 	MX_DEBUG(-2,("%s: MCA = '%s', mca->record = %p",
 		fname, mca->record->name, mca->record));
 #endif
@@ -312,7 +314,7 @@ mxd_handel_mcs_open( MX_RECORD *record )
 
 	handel_mca->child_mcs_record = record;
 
-#if 1
+#if MXD_HANDEL_MCS_DEBUG_OPEN
 	MX_DEBUG(-2,("%s: record = %p, record->name = '%s'",
 		fname, record, record->name));
 	MX_DEBUG(-2,("%s: handel_mca = %p", fname, handel_mca));

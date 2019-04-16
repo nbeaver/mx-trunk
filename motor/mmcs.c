@@ -60,10 +60,12 @@ motor_mcs_fn( int argc, char *argv[] )
 	int os_status, saved_errno;
 	char *endptr;
 	double measurement_time;
-	unsigned long i, j, channel, measurement, num_scalers, num_measurements;
+	unsigned long i, j, channel_number, measurement_number;
+	unsigned long num_scalers, num_measurements;
 	unsigned long mcs_status;
 	long trigger_mode, raw_trigger_mode;
 	long *scaler_data;
+	long *measurement_data;
 	long **mcs_data;
 	int status;
 	mx_bool_type busy;
@@ -82,6 +84,7 @@ motor_mcs_fn( int argc, char *argv[] )
   "        mcs 'mcs_name' measurement 'measurement_number'\n"
   "        mcs 'mcs_name' saveall 'savefile'\n"
   "        mcs 'mcs_name' save 'channel_number' 'savefile'\n"
+  "        mcs 'mcs_name' savemeas 'measurement_number' 'savefile'\n"
   "        mcs 'mcs_name' get measurement_time\n"
   "        mcs 'mcs_name' set measurement_time 'seconds'\n"
   "        mcs 'mcs_name' get num_measurements\n"
@@ -299,9 +302,10 @@ motor_mcs_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 
-		channel = atol( argv[4] );
+		channel_number = atol( argv[4] );
 
-		mx_status = mx_mcs_read_scaler( mcs_record, channel,
+		mx_status = mx_mcs_read_scaler( mcs_record,
+						channel_number,
 						&num_measurements,
 						&scaler_data );
 
@@ -345,7 +349,63 @@ motor_mcs_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 		fprintf( output,
-			"MCS Save file '%s' successfully written.\n",
+			"MCS scaler save file '%s' successfully written.\n",
+			argv[5] );
+	} else
+	if ( strncmp( "savemeas", argv[3], strlen(argv[3]) ) == 0 ) {
+
+		if ( argc != 6 ) {
+			fprintf( output, "%s\n", usage );
+			return FAILURE;
+		}
+
+		measurement_number = atol( argv[4] );
+
+		mx_status = mx_mcs_read_measurement( mcs_record,
+						measurement_number,
+						&num_scalers,
+						&measurement_data );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+
+		savefile = fopen( argv[5], "w" );
+
+		if ( savefile == NULL ) {
+			saved_errno = errno;
+
+			fprintf( output,
+			"%s: cannot open save file '%s'.  Reason = '%s'\n",
+				cname, argv[5], strerror(saved_errno) );
+
+			return FAILURE;
+		}
+						
+		for ( i = 0; i < num_scalers; i++ ) {
+			fprintf( savefile, "%10ld\n", measurement_data[i]);
+
+			if ( feof(savefile) || ferror(savefile) ) {
+				fprintf( output,
+				"%s: error writing to save file '%s'\n",
+					cname, argv[4] );
+
+				break;		/* Exit the for() loop. */
+			}
+		}
+
+		os_status = fclose( savefile );
+
+		if ( os_status != 0 ) {
+			saved_errno = errno;
+
+			fprintf( output,
+			"%s: cannot close save file '%s'.   Reason = '%s'\n",
+				cname, argv[4], strerror(saved_errno) );
+
+			return FAILURE;
+		}
+		fprintf( output,
+			"MCS measurement save file '%s' successfully written\n",
 			argv[5] );
 	} else
 	if ( strncmp( "readall", argv[3], max( strlen(argv[3]), 5 ) ) == 0 ) {
@@ -364,9 +424,10 @@ motor_mcs_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 
-		channel = atol( argv[4] );
+		channel_number = atol( argv[4] );
 
-		status = motor_mcs_display_plot( mcs_record, mcs, channel );
+		status = motor_mcs_display_plot( mcs_record, mcs,
+							channel_number );
 	} else
 	if ( strncmp( "rawreadall", argv[3], max( strlen(argv[3]), 8 ) ) == 0 ){
 
@@ -384,9 +445,9 @@ motor_mcs_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 
-		channel = atol( argv[4] );
+		channel_number = atol( argv[4] );
 
-		status = motor_mcs_read( mcs_record, mcs, channel );
+		status = motor_mcs_read( mcs_record, mcs, channel_number );
 	} else
 	if ( strncmp( "measurement", argv[3], strlen(argv[3]) ) == 0 ) {
 
@@ -395,9 +456,10 @@ motor_mcs_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 
-		measurement = atol( argv[4] );
+		measurement_number = atol( argv[4] );
 
-		status = motor_mcs_measurement( mcs_record, mcs, measurement );
+		status = motor_mcs_measurement( mcs_record,
+						mcs, measurement_number );
 
 	} else
 	if ( strncmp( "stop", argv[3], strlen(argv[3]) ) == 0 ) {
