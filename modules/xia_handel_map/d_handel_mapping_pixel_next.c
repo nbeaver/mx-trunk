@@ -115,6 +115,8 @@ mxd_handel_mpn_write( MX_DIGITAL_OUTPUT *doutput )
 	int xia_status, ignored;
 	mx_status_type mx_status;
 
+	mx_status = MX_SUCCESSFUL_RESULT;
+
 	/* Check that all of the pointers we need are set up correctly. */
 
 	if ( doutput == (MX_DIGITAL_OUTPUT *) NULL ) {
@@ -124,7 +126,7 @@ mxd_handel_mpn_write( MX_DIGITAL_OUTPUT *doutput )
 
 	if ( doutput->record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_RECORD pointer for MX_DIGITAL_OUTPUT %; is NULL.",
+		"The MX_RECORD pointer for MX_DIGITAL_OUTPUT %p is NULL.",
 			doutput );
 	}
 
@@ -134,7 +136,7 @@ mxd_handel_mpn_write( MX_DIGITAL_OUTPUT *doutput )
 	if ( handel_mpn == (MX_HANDEL_MAPPING_PIXEL_NEXT *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_HANDEL_MAPPING_PIXEL_NEXT pointer for "
-		"digital output '%s' is NULL>" );
+		"digital output '%s' is NULL.", doutput->record->name );
 	}
 
 	if ( handel_mpn->handel_record == (MX_RECORD *) NULL ) {
@@ -153,7 +155,7 @@ mxd_handel_mpn_write( MX_DIGITAL_OUTPUT *doutput )
 			doutput->record->name );
 	}
 
-	MX_DEBUG(-2,("%s: writing value %#ld (%lu)", fname,
+	MX_DEBUG(-2,("%s: writing value %ld (%lu)", fname,
 				doutput->value, doutput->value ));
 
 	ignored = 0;
@@ -170,6 +172,6 @@ mxd_handel_mpn_write( MX_DIGITAL_OUTPUT *doutput )
 			xia_status, mxi_handel_strerror(xia_status) );
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
