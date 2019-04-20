@@ -50,6 +50,10 @@ MX_API mx_status_type mx_json_parse( MX_JSON **json,
 
 MX_API mx_status_type mx_json_delete( MX_JSON *json );
 
+MX_API mx_status_type mx_json_find_key( cJSON *starting_cjson_value,
+					char *key_name,
+					cJSON **found_cjson_value );
+
 MX_API mx_status_type mx_json_get_key( MX_JSON *json,
 					char *key_name,
 					long mx_datatype,

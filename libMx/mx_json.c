@@ -110,25 +110,90 @@ mx_json_delete( MX_JSON *json )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/* FIXME: As we do more work with cJSON, we will probably find that the
- * following mx_json_get_key() function is too simplistic.  It may be too
- * tied to the way that the EIGER detector's JSON is structured.
- *
- * At the moment, what we are doing is the following (2019-03-22) (WML).
- *
- * 1.  Check to see if the top level element is a cJSON object.  If it is,
- *     then start with the object's child.  Otherwise, we use the top
- *     level element as is.
- * 2.  Step through the various cJSON objects going from next to next,
- *     looking for one that has a 'string' element whose name matches
- *     the key we are looking for.
- * 3.  If *datatype matches a known MX type, then try to convert one of
- *     the valuestring, valueint, or valuedouble into that datatype and
- *     assign the new value to the 'value' item of the function signature.
- * 4.  If *datatype is <= 0, then we try to guess(?) the MX datatype,
- *     assign that datatype to the 'datatype' item of the function signature
- *     and then progress like in step 3 above.
- */
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_json_find_key( cJSON *starting_cjson_value,
+		char *key_name,
+		cJSON **found_cjson_value )
+{
+	static const char fname[] = "mx_json_find_key()";
+
+	cJSON *current_cjson_value = NULL;
+
+	if ( starting_cjson_value == (cJSON *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The cJSON starting pointer passed was NULL." );
+	}
+	if ( key_name == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The key_name pointer for starting cJSON pointer %p is NULL.",
+			starting_cjson_value );
+	}
+	if ( found_cjson_value == (cJSON **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The found_cjson_value pointer for "
+		"start cJSON pointer %p is NULL.",
+			starting_cjson_value );
+	}
+
+	*found_cjson_value = NULL;
+
+	/* We walk through the cJSON values until we find a value with
+	 * a matching key.  cJSON values that do not have JSON key names
+	 * are skipped over.
+	 */
+
+	current_cjson_value = starting_cjson_value;
+
+	while (TRUE) {
+	    if ( current_cjson_value->string != (char *) NULL ) {
+		if ( strcmp( key_name, current_cjson_value->string ) == 0 ) {
+			/* If we get here, we found the key. */
+
+			*found_cjson_value = current_cjson_value;
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+	    }
+
+	    if ( current_cjson_value->next != (cJSON *) NULL ) {
+		/* The 'next' value is available. */
+
+		current_cjson_value = current_cjson_value->next;
+	    } else {
+		/* If there is no 'next' value, but this is a JSON
+		 * object value, then we need to check to see if
+		 * there is a child value.
+		 */
+		if ( cJSON_IsObject( current_cjson_value ) ) {
+		    if ( current_cjson_value->child != (cJSON *) NULL ) {
+			/* Use the 'child' value instead of the 'next' value. */
+
+			current_cjson_value = current_cjson_value->child;
+		    } else {
+			/* Both 'next' and 'child' are NULL. */
+
+			break;	/* Exit the while() loop. */
+		    }
+		} else {
+		    /* 'next' is NULL and this is not a JSON object value. */
+
+		    break; /* Exit the while() loop. */
+		}
+	    }
+
+	    if ( current_cjson_value == starting_cjson_value ) {
+		break;		/* Exit the while() loop. */
+	    }
+	}
+
+	/* If we get here, we did not find the key. */
+
+	return mx_error( MXE_NOT_FOUND, fname,
+		"JSON key '%s' was not found for starting cJSON value %p.",
+			key_name, starting_cjson_value );;
+}
 
 /*--------------------------------------------------------------------------*/
 
@@ -141,12 +206,10 @@ mx_json_get_key( MX_JSON *json,
 {
 	static const char fname[] = "mx_json_get_key()";
 
-	cJSON *returned_cjson_ptr = NULL;
-	cJSON *first_cjson_element = NULL;
-	cJSON *current_cjson_element = NULL;
-
+	cJSON *found_cjson_value = NULL;
 	size_t element_size;
 	mx_bool_type native_longs_are_64bits;
+	mx_status_type mx_status;
 
 	/* Do lots of sanity checking. */
 
@@ -176,154 +239,92 @@ mx_json_get_key( MX_JSON *json,
 		"The cJSON pointer for MX_JSON pointer %p is NULL.", json );
 	}
 
-	returned_cjson_ptr = json->cjson;
+	/* Find the requested key. */
 
-	if ( returned_cjson_ptr == (cJSON *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The cJSON pointer for MX JSON object %p is NULL for key '%s'.",
-			json, key_name );
-	}
+	mx_status = mx_json_find_key( json->cjson,
+				key_name, &found_cjson_value );
 
-	/* Is the cJSON element 'returned_cjson_ptr' a cJSON object that
-	 * points to the first element that we want to look at, or is it
-	 * the first element itself?
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if 1
+	MX_DEBUG(-2,("%s: Found JSON key = '%s'.",
+		fname, found_cjson_value->string ));
+#endif
+
+	/* We have found the key that we are looking for.  Now return
+	 * the key value using the datatype that our caller requested.
 	 */
 
-	if ( cJSON_IsObject( returned_cjson_ptr ) ) {
-		if ( returned_cjson_ptr->child == (struct cJSON *) NULL ) {
-			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"The top level cJSON object %p for key '%s' "
-			"of MX_JSON structure %p has a child pointer that "
-			"is NULL.  This means that we have nowhere to look "
-			"for the key data that we want, which leaves us "
-			"unable to proceed.",
-				returned_cjson_ptr, key_name, json );
-		}
-
-		first_cjson_element = returned_cjson_ptr->child;
+	if ( MX_WORDSIZE >= 64 ) {
+		native_longs_are_64bits = TRUE;
 	} else {
-		first_cjson_element = returned_cjson_ptr;
-
-		mx_warning( "returned_cjson_ptr %p for MX_JSON structure %p "
-			"is not a cJSON object that points to the first "
-			"cJSON element that we want to look at.  We are "
-			"optimistically continuing in the hope that "
-			"returned_cjson_ptr is _itself_ the first element "
-			"that we want.", returned_cjson_ptr, json );
+		native_longs_are_64bits = FALSE;
 	}
 
-	/* Now we can walk through the list of keys looking for 
-	 * the key that we want.
-	 */
-
-	current_cjson_element = first_cjson_element;
-
-	while (1) {
-		if ( strcmp( key_name, current_cjson_element->string ) == 0 ) {
-			/* We have found the key that we are looking for.
-			 * Now return the key value using the datatype
-			 * that our caller requested.
-			 */
-
-			if ( MX_WORDSIZE >= 64 ) {
-				native_longs_are_64bits = TRUE;
-			} else {
-				native_longs_are_64bits = FALSE;
-			}
-
-			element_size = mx_get_scalar_element_size(
+	element_size = mx_get_scalar_element_size(
 					key_datatype, native_longs_are_64bits );
 
-			if ( ( key_datatype != MXFT_STRING )
-			  && ( element_size > max_key_value_bytes ) )
-			{
-				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-				"The element size (%ld) for JSON key '%s' "
-				"is larger than the buffer size (%ld) that "
-				"we were given to copy the key value into.",
-					(long) element_size, key_name,
-					(long) max_key_value_bytes );
-			}
-
-			switch ( key_datatype ) {
-			case MXFT_STRING:
-				strlcpy( key_value,
-					current_cjson_element->valuestring,
-					max_key_value_bytes );
-				break;
-			case MXFT_CHAR:
-				*((char *) key_value )
-					= current_cjson_element->valueint;
-				break;
-			case MXFT_UCHAR:
-				*((unsigned char *) key_value )
-					= current_cjson_element->valueint;
-				break;
-			case MXFT_SHORT:
-				*((short *) key_value )
-					= current_cjson_element->valueint;
-				break;
-			case MXFT_USHORT:
-				*((unsigned short *) key_value )
-					= current_cjson_element->valueint;
-				break;
-			case MXFT_BOOL:
-				*((mx_bool_type *) key_value )
-					= current_cjson_element->valueint;
-				break;
-			case MXFT_LONG:
-				*((long *) key_value )
-					= current_cjson_element->valueint;
-				break;
-			case MXFT_ULONG:
-			case MXFT_HEX:
-				*((unsigned long *) key_value )
-					= current_cjson_element->valueint;
-				break;
-			case MXFT_FLOAT:
-				*((float *) key_value )
-					= current_cjson_element->valuedouble;
-				break;
-			case MXFT_DOUBLE:
-				*((double *) key_value )
-					= current_cjson_element->valuedouble;
-				break;
-			case MXFT_INT64:
-				*((int64_t *) key_value )
-					= current_cjson_element->valueint;
-				break;
-			case MXFT_UINT64:
-				*((uint64_t *) key_value )
-					= current_cjson_element->valueint;
-				break;
-			default:
-				return mx_error( MXE_TYPE_MISMATCH, fname,
-				"The requested datatype %ld for JSON key '%s' "
-				"does not match any of the datatypes that "
-				"are supported by this function.",
-					key_datatype, key_name );
-				break;
-			}
-
-			/* We have found the key, so return to our caller. */
-
-			return MX_SUCCESSFUL_RESULT;
-		} else {
-			/* Proceed on to the next key. */
-
-			current_cjson_element = current_cjson_element->next;
-
-			if ( current_cjson_element == (struct cJSON *) NULL ) {
-				/* Oops, there _is_ no next element.  We have
-				 * not succeeded in finding our key.
-				 */
-
-				return mx_error( MXE_NOT_FOUND, fname,
-				"JSON key '%s' was not found for "
-				"JSON structure %p.", key_name, json );
-			}
-		}
+	if ( ( key_datatype != MXFT_STRING )
+	  && ( element_size > max_key_value_bytes ) )
+	{
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The element size (%ld) for JSON key '%s' "
+		"is larger than the buffer size (%ld) that "
+		"we were given to copy the key value into.",
+			(long) element_size, key_name,
+			(long) max_key_value_bytes );
 	}
+
+	switch ( key_datatype ) {
+	case MXFT_STRING:
+		strlcpy( key_value, found_cjson_value->valuestring,
+					max_key_value_bytes );
+		break;
+	case MXFT_CHAR:
+		*((char *) key_value ) = found_cjson_value->valueint;
+		break;
+	case MXFT_UCHAR:
+		*((unsigned char *) key_value ) = found_cjson_value->valueint;
+		break;
+	case MXFT_SHORT:
+		*((short *) key_value ) = found_cjson_value->valueint;
+		break;
+	case MXFT_USHORT:
+		*((unsigned short *) key_value ) = found_cjson_value->valueint;
+		break;
+	case MXFT_BOOL:
+		*((mx_bool_type *) key_value ) = found_cjson_value->valueint;
+		break;
+	case MXFT_LONG:
+		*((long *) key_value ) = found_cjson_value->valueint;
+		break;
+	case MXFT_ULONG:
+	case MXFT_HEX:
+		*((unsigned long *) key_value ) = found_cjson_value->valueint;
+		break;
+	case MXFT_FLOAT:
+		*((float *) key_value ) = found_cjson_value->valuedouble;
+		break;
+	case MXFT_DOUBLE:
+		*((double *) key_value ) = found_cjson_value->valuedouble;
+		break;
+	case MXFT_INT64:
+		*((int64_t *) key_value ) = found_cjson_value->valueint;
+		break;
+	case MXFT_UINT64:
+		*((uint64_t *) key_value ) = found_cjson_value->valueint;
+		break;
+	default:
+		return mx_error( MXE_TYPE_MISMATCH, fname,
+		"The requested datatype %ld for JSON key '%s' "
+		"does not match any of the datatypes that "
+		"are supported by this function.",
+			key_datatype, key_name );
+		break;
+	}
+
+	/* We have found the key, so return to our caller. */
 
 	return MX_SUCCESSFUL_RESULT;
 }
