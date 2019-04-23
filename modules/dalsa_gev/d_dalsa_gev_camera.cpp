@@ -1666,8 +1666,6 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 		}
 	}
 
-	/*---------------------------------------------------------------*/
-
 	if ( flags & MXF_DALSA_GEV_CAMERA_CHECK_NETWORK_CONNECTION ) {
 		mx_status = mxd_dalsa_gev_camera_check_network_connection(
 						vinput, dalsa_gev_camera );
@@ -1675,6 +1673,66 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	}
+
+	/*---------------------------------------------------------------*/
+
+	/* Create an array of raw frame numbers to translate from user
+	 * frame numbers to raw frame numbers.   This mapping allows one
+	 * to easily bypass the skipped frame numbers.
+	 */
+
+	dalsa_gev_camera->raw_frame_number_array = (unsigned long *)
+		malloc( dalsa_gev_camera->num_frame_buffers
+			* sizeof(unsigned long) );
+
+	if ( dalsa_gev_camera->raw_frame_number_array
+					== (unsigned long *) NULL )
+	{
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"The attempt to allocate a %lu element translation table "
+		"to translate from user frame numbers to raw frame numbers "
+		"failed for video input '%s'.",
+			dalsa_gev_camera->num_frame_buffers,
+			record->name );
+	}
+
+	for ( i = 0; i < dalsa_gev_camera->num_frame_buffers; i++ ) {
+		dalsa_gev_camera->raw_frame_number_array[i] = -1L;
+	}
+
+	/* Create an array of 'struct timespec' structures to hold the
+	 * wall clock time when each frame was acquired.
+	 */
+
+	dalsa_gev_camera->frame_timespec = (struct timespec *)
+		calloc( dalsa_gev_camera->num_frame_buffers,
+			sizeof(struct timespec) );
+
+	if ( dalsa_gev_camera->frame_timespec == (struct timespec *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %ld element "
+		"frame time array for video input '%s'.",
+			dalsa_gev_camera->num_frame_buffers,
+			record->name );
+	}
+
+	/* Create the 'frame_buffer_is_unsaved' array. */
+
+	dalsa_gev_camera->frame_buffer_is_unsaved = (mx_bool_type *)
+		calloc( dalsa_gev_camera->num_frame_buffers,
+			sizeof(mx_bool_type) );
+
+	if ( dalsa_gev_camera->frame_buffer_is_unsaved
+						== (mx_bool_type *) NULL )
+	{
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %ld element "
+		"'frame_buffer_is_unsaved' array for video input '%s'.",
+			dalsa_gev_camera->num_frame_buffers,
+			record->name );
+	}
+
+	/*---------------------------------------------------------------*/
 
 	/* Reading the framesize gets a variety of other parameters as well. */
 

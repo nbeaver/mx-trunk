@@ -1419,15 +1419,12 @@ mxd_sapera_lt_camera_open( MX_RECORD *record )
 	if ( sapera_lt_camera->frame_timespec == (struct timespec *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to allocate a %ld element "
-		"frame time array for area detector '%s'.",
+		"frame time array for video input '%s'.",
 			sapera_lt_camera->num_frame_buffers,
 			record->name );
 	}
 
-	/* Create the 'unsaved_frame_buffer_index' array.  This array
-	 * contains the absolute frame number for the image frame most
-	 * recently acquired.
-	 */
+	/* Create the 'frame_buffer_is_unsaved' array. */
 
 	sapera_lt_camera->frame_buffer_is_unsaved = (mx_bool_type *)
 		calloc( sapera_lt_camera->num_frame_buffers,
@@ -1438,7 +1435,7 @@ mxd_sapera_lt_camera_open( MX_RECORD *record )
 	{
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to allocate a %ld element "
-		"'unsaved_frame_buffer_index' array for area detector '%s'.",
+		"'frame_buffer_is_unsaved' array for video input '%s'.",
 			sapera_lt_camera->num_frame_buffers,
 			record->name );
 	}

@@ -84,6 +84,7 @@ typedef struct {
 	unsigned long num_frames_left_to_acquire;
 
 	unsigned long *raw_frame_number_array;
+	struct timespec *frame_timespec;
 	mx_bool_type *frame_buffer_is_unsaved;
 
 	/* End of protected_variables. */
