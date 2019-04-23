@@ -37,7 +37,7 @@
 #include "mx_process.h"
 #include "mx_thread.h"
 #include "mx_array.h"
-#include "mx_atomic.h"
+#include "mx_mutex.h"
 #include "mx_vm_alloc.h"
 #include "mx_net_interface.h"
 #include "mx_image.h"
@@ -616,6 +616,122 @@ mx_gev_get_next_image( GEV_CAMERA_HANDLE handle,
 
 /*---*/
 
+/* mxd_dalsa_gev_camera_handle_acquired_frame() is to be invoked
+ * only from the wait_thread.
+ */
+
+static mx_status_type
+mxd_dalsa_gev_camera_handle_acquired_frame( MX_VIDEO_INPUT *vinput,
+					MX_DALSA_GEV_CAMERA *dalsa_gev_camera,
+					GEV_BUFFER_OBJECT *gev_buffer_object )
+{
+	static const char fname[] =
+		"mxd_dalsa_gev_camera_handle_acquired_frame()";
+
+	unsigned long i, raw_frame_buffer_number;
+	long mx_status_code;
+	mx_bool_type skip_frame;
+	mx_bool_type old_frame_buffer_was_unsaved;
+
+	/* We must protect the process of updating frame counters
+	 * with a mutex.
+	 */
+
+	mx_status_code = mx_mutex_lock( dalsa_gev_camera->frame_counter_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"The attempt to lock image_wait_thread_mutex has failed." );
+	}
+
+	dalsa_gev_camera->raw_last_frame_number++;
+
+	dalsa_gev_camera->raw_total_num_frames++;
+
+#if 1
+	MX_DEBUG(-2,("CAPTURE: Total num frames = %lu",
+		(unsigned long) dalsa_gev_camera->raw_total_num_frames ));
+#endif
+
+	/* Is this a frame that we are supposed to skip? */
+
+	if ( dalsa_gev_camera->raw_last_frame_number
+			< dalsa_gev_camera->num_frames_to_skip )
+	{
+		skip_frame = TRUE;
+	} else {
+		skip_frame = FALSE;
+	}
+
+	if ( skip_frame ) {
+		/* If we are still in the frames that are supposed to be
+		 * skipped, then set 'user_last_frame_number' to indicate
+		 * that no 'useable' frames have been acquired yet.
+		 */
+
+		dalsa_gev_camera->user_last_frame_number = -1L;
+
+		/* If we are skipping this frame, then we are done now. */
+	} else {
+		/* This is a frame that we want to save. */
+
+		dalsa_gev_camera->user_last_frame_number
+			= dalsa_gev_camera->raw_last_frame_number
+				- dalsa_gev_camera->num_frames_to_skip;
+
+		dalsa_gev_camera->user_total_num_frames++;
+
+		/* Save the mapping from user frame number
+		 * to raw frame number.
+		 */
+
+		raw_frame_buffer_number =
+			dalsa_gev_camera->raw_total_num_frames - 1L;
+
+		i = ( dalsa_gev_camera->user_total_num_frames - 1L )
+			% dalsa_gev_camera->num_frame_buffers;
+
+		dalsa_gev_camera->raw_frame_number_array[i]
+					= raw_frame_buffer_number;
+
+		/* Remember whether or not the frame buffer that was just
+		 * overwritten had unsaved data in it.
+		 */
+
+		old_frame_buffer_was_unsaved =
+			dalsa_gev_camera->frame_buffer_is_unsaved[i];
+
+		dalsa_gev_camera->frame_buffer_is_unsaved[i] = TRUE;
+
+		/* Update the number of frames left to acquire. */
+
+		if ( dalsa_gev_camera->num_frames_left_to_acquire > 0 ) {
+			dalsa_gev_camera->num_frames_left_to_acquire--;
+		}
+
+		if ( old_frame_buffer_was_unsaved ) {
+			mx_warning( "Dalsa camera buffer was overwritten." );
+		}
+	}
+
+	/* We are done with protecting the frame counters,
+	 * so we release the mutex.
+	 */
+
+	mx_status_code = mx_mutex_unlock(
+				dalsa_gev_camera->frame_counter_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"The attempt to unlock image_wait_thread_mutex "
+		"after skipping a frame failed." );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
 static mx_status_type
 mxd_dalsa_gev_camera_image_wait_thread_fn( MX_THREAD *thread, void *args )
 {
@@ -626,7 +742,6 @@ mxd_dalsa_gev_camera_image_wait_thread_fn( MX_THREAD *thread, void *args )
 	MX_VIDEO_INPUT *vinput = NULL;
 	MX_DALSA_GEV_CAMERA *dalsa_gev_camera = NULL;
 	MX_DALSA_GEV *dalsa_gev = NULL;
-	long mx_total_num_frames;
 	struct timeval wait_timeval;
 
 	mx_bool_type image_available;
@@ -723,22 +838,20 @@ mxd_dalsa_gev_camera_image_wait_thread_fn( MX_THREAD *thread, void *args )
 		    } else {
 			switch( gev_buffer_object->status ) {
 			case GEV_FRAME_STATUS_RECVD:
-				mx_total_num_frames = mx_atomic_increment32(
-					&(dalsa_gev_camera->total_num_frames) );
 
-				(void) mx_atomic_decrement32(
-					&(dalsa_gev_camera->num_frames_left) );
-#if 1
-				MX_DEBUG(-2,("CAPTURE: Total num frames = %lu",
-					(unsigned long) mx_total_num_frames ));
-#endif
-				break;
+			    /* We have acquired a frame! */
+
+			    mx_status =
+				    mxd_dalsa_gev_camera_handle_acquired_frame(
+					vinput, dalsa_gev_camera,
+					gev_buffer_object );
+			    break;
 			default:
-				mx_warning(
+			    mx_warning(
 				"Gev buffer frame status for '%s' = %#lx",
 					dalsa_gev_camera->record->name,
 				    (unsigned long) gev_buffer_object->status );
-				break;
+			    break;
 			}
 		    }
 		}
@@ -752,6 +865,8 @@ mxd_dalsa_gev_camera_image_wait_thread_fn( MX_THREAD *thread, void *args )
 }
 
 /*---*/
+
+#if 0
 
 static mx_status_type
 mxd_dalsa_gev_camera_image_dead_reckoning_wait_thread_fn( MX_THREAD *thread,
@@ -810,8 +925,8 @@ mxd_dalsa_gev_camera_image_dead_reckoning_wait_thread_fn( MX_THREAD *thread,
 	 */
 
 	while (TRUE) {
-		num_frames_left =
-		    mx_atomic_read32( &(dalsa_gev_camera->num_frames_left) );
+		num_frames_left = mx_atomic_read32(
+			&(dalsa_gev_camera->num_frames_left_to_acquire) );
 
 		if ( num_frames_left <= 0 ) {
 			mx_msleep( 100 );
@@ -842,10 +957,10 @@ mxd_dalsa_gev_camera_image_dead_reckoning_wait_thread_fn( MX_THREAD *thread,
 				} while( comparison < 0 );
 
 				mx_total_num_frames = mx_atomic_increment32(
-					&(dalsa_gev_camera->total_num_frames) );
+				    &(dalsa_gev_camera->raw_total_num_frames) );
 
 				num_frames_left = mx_atomic_decrement32(
-					&(dalsa_gev_camera->num_frames_left) );
+			    &(dalsa_gev_camera->num_frames_left_to_acquire) );
 #if 1
 				/* Note the following statement may be a lie. */
 
@@ -858,6 +973,7 @@ mxd_dalsa_gev_camera_image_dead_reckoning_wait_thread_fn( MX_THREAD *thread,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+#endif
 
 /*--------------------------------------------------------------------------*/
 
@@ -1643,10 +1759,14 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 
 	/* Initialize the frame counters. */
 
-	mx_atomic_write32( &(dalsa_gev_camera->total_num_frames_at_start), 0 );
-	mx_atomic_write32( &(dalsa_gev_camera->total_num_frames), 0 );
-	mx_atomic_write32( &(dalsa_gev_camera->num_frames_left), 0 );
-	mx_atomic_write32( &(dalsa_gev_camera->milliseconds_per_frame), 0 );
+	dalsa_gev_camera->user_total_num_frames_at_start = 0;
+	dalsa_gev_camera->user_last_frame_number = -1L;
+	dalsa_gev_camera->user_total_num_frames = 0;
+	dalsa_gev_camera->raw_total_num_frames_at_start = 0;
+	dalsa_gev_camera->raw_last_frame_number = -1L;
+	dalsa_gev_camera->raw_total_num_frames = 0;
+	dalsa_gev_camera->num_frames_left_to_acquire = 0;
+	dalsa_gev_camera->milliseconds_per_frame = 0;
 
 #if 1
 	MX_DEBUG(-2,("%s: record = %p", fname, record));
@@ -1661,10 +1781,16 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 
 	if ( flags & MXF_DALSA_GEV_CAMERA_USE_DEAD_RECKONING ) {
 
+#if 1
+		mx_status = mx_error( MXE_UNSUPPORTED, fname,
+				"The old dead reckoning code is "
+				"no longer supported." );
+#else
 		mx_status = mx_thread_create(
 				&(dalsa_gev_camera->image_wait_thread),
 		    mxd_dalsa_gev_camera_image_dead_reckoning_wait_thread_fn,
 				record );
+#endif
 	} else {
 		mx_status = mx_thread_create(
 				&(dalsa_gev_camera->image_wait_thread),
@@ -1759,9 +1885,9 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 	unsigned char **frame_buffer_array = NULL;
 	unsigned long num_frames, num_bytes_in_array;
 	double exposure_time, frame_time;
-	int32_t total_num_frames_at_start, milliseconds_per_frame;
 	long gev_status;
 	mx_bool_type debug_dalsa_library;
+	long mx_status_code;
 	mx_status_type mx_status;
 
 	mx_status = mxd_dalsa_gev_camera_get_pointers( vinput,
@@ -1858,6 +1984,8 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 		break;
 	}
 
+	frame_time = frame_time;
+
 	/* Configure the GenICam AcquisitionMode feature for this sequence. */
 
 	char acquisition_mode[40];
@@ -1917,31 +2045,31 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 		break;
 	}
 
+	/* Acquire the frame counter mutex. */
+
+	mx_status_code = mx_mutex_lock( dalsa_gev_camera->frame_counter_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"The attempt to acquire the frame counter mutex failed." );
+	}
+
 	/* Save sequence parameters where the wait thread can find them. */
 
-	total_num_frames_at_start =
-		mx_atomic_read32( &(dalsa_gev_camera->total_num_frames) );
+	dalsa_gev_camera->raw_total_num_frames_at_start =
+				dalsa_gev_camera->raw_total_num_frames;
 
-	mx_atomic_write32( &(dalsa_gev_camera->total_num_frames_at_start),
-				total_num_frames_at_start );
+	dalsa_gev_camera->num_frames_left_to_acquire = num_frames;
 
-	milliseconds_per_frame = mx_round( 1000.0 * frame_time );
+	/* Release the frame counter mutex now. */
 
-	mx_atomic_write32( &(dalsa_gev_camera->milliseconds_per_frame),
-				milliseconds_per_frame );
+	mx_status_code = mx_mutex_unlock(
+			dalsa_gev_camera->frame_counter_mutex );
 
-	/* num_frames_left has to be written last, since the dead reckoning
-	 * version of the wait thread uses the change in value to decide
-	 * that it has to start estimating frame arrival times.
-	 */
-
-	/* We put a memory barrier here to prevent the order of events
-	 * from being changed.
-	 */
-
-	mx_atomic_memory_barrier();
-
-	mx_atomic_write32( &(dalsa_gev_camera->num_frames_left), num_frames );
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"The attempt to release the frame counter mutex failed." );
+	}
 
 	/* Enable image transfer to the image buffers. */
 
@@ -2157,8 +2285,7 @@ mxd_dalsa_gev_camera_get_extended_status( MX_VIDEO_INPUT *vinput )
 		"mxd_dalsa_gev_camera_get_extended_status()";
 
 	MX_DALSA_GEV_CAMERA *dalsa_gev_camera = NULL;
-	int32_t total_num_frames, total_num_frames_at_start;
-	int32_t num_frames_left;
+	long mx_status_code;
 	mx_status_type mx_status;
 
 	mx_status = mxd_dalsa_gev_camera_get_pointers( vinput,
@@ -2167,23 +2294,22 @@ mxd_dalsa_gev_camera_get_extended_status( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Acquire the wait thread mutex to modify frame counters. */
+
+	mx_status_code = mx_mutex_lock( dalsa_gev_camera->frame_counter_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"The attempt to acquire the frame counter mutex failed." );
+	}
+
 	vinput->status = 0;
 
-	total_num_frames = 
-		mx_atomic_read32( &(dalsa_gev_camera->total_num_frames) );
+	vinput->total_num_frames = dalsa_gev_camera->user_total_num_frames;
 
-	total_num_frames_at_start = 
-	    mx_atomic_read32( &(dalsa_gev_camera->total_num_frames_at_start));
+	vinput->last_frame_number = dalsa_gev_camera->user_last_frame_number;
 
-	vinput->total_num_frames = total_num_frames;
-
-	vinput->last_frame_number =
-		total_num_frames - total_num_frames_at_start - 1;
-
-	num_frames_left = mx_atomic_read32(
-				&(dalsa_gev_camera->num_frames_left) );
-
-	if ( num_frames_left > 0 ) {
+	if ( dalsa_gev_camera->num_frames_left_to_acquire > 0 ) {
 		vinput->status |= MXSF_VIN_IS_BUSY;
 	}
 
@@ -2191,6 +2317,16 @@ mxd_dalsa_gev_camera_get_extended_status( MX_VIDEO_INPUT *vinput )
 		vinput->busy = TRUE;
 	} else {
 		vinput->busy = FALSE;
+	}
+
+	/* Release the frame counter mutex now. */
+
+	mx_status_code = mx_mutex_unlock(
+			dalsa_gev_camera->frame_counter_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"The attempt to release the frame counter mutex failed." );
 	}
 
 #if MXD_DALSA_GEV_CAMERA_DEBUG_GET_EXTENDED_STATUS

@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2016 Illinois Institute of Technology
+ * Copyright 2016, 2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,6 +21,7 @@
 #include "mx_record.h"
 #include "mx_driver.h"
 #include "mx_thread.h"
+#include "mx_mutex.h"
 #include "mx_module.h"
 #include "mx_image.h"
 #include "mx_video_input.h"

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2016-2018 Illinois Institute of Technology
+ * Copyright 2016-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -67,12 +67,26 @@ typedef struct {
 
 	MX_THREAD *image_wait_thread;
 
-	/* Note: The following int32_t variables must be read and written
-	 * using only atomic operations.
+	MX_MUTEX *frame_counter_mutex;
+
+	/* Note: The following protected variables must be read and written
+	 * only when protected by the frame_counter_mutex.
 	 */
-	int32_t total_num_frames_at_start;
-	int32_t total_num_frames;
-	int32_t num_frames_left;
+
+	unsigned long user_total_num_frames_at_start;
+	long user_last_frame_number;
+	unsigned long user_total_num_frames;
+
+	unsigned long raw_total_num_frames_at_start;
+	long raw_last_frame_number;
+	unsigned long raw_total_num_frames;
+
+	unsigned long num_frames_left_to_acquire;
+
+	unsigned long *raw_frame_number_array;
+	mx_bool_type *frame_buffer_is_unsaved;
+
+	/* End of protected_variables. */
 
 	/* The following is only used by the dead reckoning version
 	 * of the wait thread.
