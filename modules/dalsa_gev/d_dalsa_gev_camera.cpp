@@ -616,17 +616,17 @@ mx_gev_get_next_image( GEV_CAMERA_HANDLE handle,
 
 /*---*/
 
-/* mxd_dalsa_gev_camera_handle_acquired_frame() is to be invoked
+/* mxd_dalsa_gev_camera_update_frame_counters() is to be invoked
  * only from the wait_thread.
  */
 
 static mx_status_type
-mxd_dalsa_gev_camera_handle_acquired_frame( MX_VIDEO_INPUT *vinput,
+mxd_dalsa_gev_camera_update_frame_counters( MX_VIDEO_INPUT *vinput,
 					MX_DALSA_GEV_CAMERA *dalsa_gev_camera,
 					GEV_BUFFER_OBJECT *gev_buffer_object )
 {
 	static const char fname[] =
-		"mxd_dalsa_gev_camera_handle_acquired_frame()";
+		"mxd_dalsa_gev_camera_update_frame_counters()";
 
 	unsigned long i, raw_frame_buffer_number;
 	long mx_status_code;
@@ -842,7 +842,7 @@ mxd_dalsa_gev_camera_image_wait_thread_fn( MX_THREAD *thread, void *args )
 			    /* We have acquired a frame! */
 
 			    mx_status =
-				    mxd_dalsa_gev_camera_handle_acquired_frame(
+				    mxd_dalsa_gev_camera_update_frame_counters(
 					vinput, dalsa_gev_camera,
 					gev_buffer_object );
 			    break;
@@ -1832,10 +1832,40 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: dalsa_gev_camera->camera_handle = %p",
 			fname, dalsa_gev_camera->camera_handle));
 #endif
+	/* Create a mutex to protect the process of reading and writing
+	 * the image frame counters using 'frame_counter_mutex'.  This
+	 * mutex is used in the following ways.
+	 *
+	 * 1.  The "wait thread" spends most of its time in GevGetNextImage()
+	 *     or my modified mx_gev_get_next_image().  Once Dalsa Gev says
+	 *     that a new image has arrived, the "wait thread" locks the
+	 *     mutex and updates the raw and user frame counters to reflect
+	 *     the current status.
+	 *
+	 * 2.  When mxd_dalsa_gev_camera_arm() runs, it locks the mutex and
+	 *     then updates the frame counters to indicate that a new 
+	 *     imaging sequence is just starting.  This changes the values of
+	 *     user_total_num_frames_at_start, raw_total_num_frames_at_start,
+	 *     and num_frames_left_to_acquire.
+	 *
+	 * 3.  When mxd_dalsa_gev_camera_get_extended_status() runs, it locks
+	 *     the mutex and reads the values of user_total_num_frames,
+	 *     user_last_frame_number, and num_frames_left_to_acquire.
+	 */
+
+	mx_status = mx_mutex_create( &(dalsa_gev_camera->frame_counter_mutex) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Create a thread to receive notifications of the acquisition of
+	 * new frames.  Note that this thread must be created _after_ 
+	 * frame_counter_mutex has been created, since we do not want the
+	 * "wait thread" to try to use frame_counter_mutex before that mutex
+	 * has been created.
+	 */
 
 	flags = dalsa_gev_camera->dalsa_gev_camera_flags;
-
-	/* Create a thread to manage the reading of images from Dalsa Gev. */
 
 	if ( flags & MXF_DALSA_GEV_CAMERA_USE_DEAD_RECKONING ) {
 
