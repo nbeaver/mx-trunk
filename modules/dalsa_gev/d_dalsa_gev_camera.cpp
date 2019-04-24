@@ -864,117 +864,6 @@ mxd_dalsa_gev_camera_image_wait_thread_fn( MX_THREAD *thread, void *args )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*---*/
-
-#if 0
-
-static mx_status_type
-mxd_dalsa_gev_camera_image_dead_reckoning_wait_thread_fn( MX_THREAD *thread,
-								void *args )
-{
-	static const char fname[] =
-		"mxd_dalsa_gev_camera_image_dead_reckoning_wait_thread_fn()";
-
-	MX_RECORD *record = NULL;
-	MX_VIDEO_INPUT *vinput = NULL;
-	MX_DALSA_GEV_CAMERA *dalsa_gev_camera = NULL;
-	int32_t num_frames_left, milliseconds_per_frame;
-	long mx_total_num_frames;
-	MX_CLOCK_TICK clock_ticks_per_frame;
-	MX_CLOCK_TICK start_tick, current_tick, finish_tick;
-	int comparison;
-
-	if ( thread == (MX_THREAD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_THREAD pointer passed was NULL." );
-	}
-	if ( args == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_RECORD pointer passed was NULL." );
-	}
-
-	record = (MX_RECORD *) args;
-
-	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name));
-
-	vinput = (MX_VIDEO_INPUT *) record->record_class_struct;
-
-	if ( vinput == (MX_VIDEO_INPUT *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_VIDEO_INPUT pointer for record '%s' is NULL.",
-			record->name );
-	}
-
-	dalsa_gev_camera = (MX_DALSA_GEV_CAMERA *) record->record_type_struct;
-
-	if ( dalsa_gev_camera == (MX_DALSA_GEV_CAMERA *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_DALSA_GEV_CAMERA pointer for record '%s' is NULL.",
-			record->name );
-	}
-
-	MX_DEBUG(-2,("%s: record = %p", fname, record));
-	MX_DEBUG(-2,("%s: dalsa_gev_camera = %p", fname, dalsa_gev_camera));
-	MX_DEBUG(-2,("%s: dalsa_gev_camera->camera_handle = %p",
-			fname, dalsa_gev_camera->camera_handle));
-
-	/* WARNING: We call this 'dead reckoning' because the following
-	 * is only an estimate of when the new frame will arrive.  If
-	 * for some reason the camera is not sending us actual frames,
-	 * then this logic will not take that into account.
-	 */
-
-	while (TRUE) {
-		num_frames_left = mx_atomic_read32(
-			&(dalsa_gev_camera->num_frames_left_to_acquire) );
-
-		if ( num_frames_left <= 0 ) {
-			mx_msleep( 100 );
-		} else {
-			MX_DEBUG(-2,("%s: starting new sequence for %ld frames",
-				fname, (long) num_frames_left ));
-
-			milliseconds_per_frame = mx_atomic_read32(
-				&(dalsa_gev_camera->milliseconds_per_frame) );
-
-			clock_ticks_per_frame = 
-				mx_convert_seconds_to_clock_ticks(
-					0.001 * milliseconds_per_frame );
-
-			start_tick = mx_current_clock_tick();
-
-			finish_tick = mx_add_clock_ticks( start_tick,
-						clock_ticks_per_frame );
-
-			do {
-				do {
-					mx_msleep( 100 );
-
-					current_tick = mx_current_clock_tick();
-
-					comparison = mx_compare_clock_ticks(
-						current_tick, finish_tick );
-				} while( comparison < 0 );
-
-				mx_total_num_frames = mx_atomic_increment32(
-				    &(dalsa_gev_camera->raw_total_num_frames) );
-
-				num_frames_left = mx_atomic_decrement32(
-			    &(dalsa_gev_camera->num_frames_left_to_acquire) );
-#if 1
-				/* Note the following statement may be a lie. */
-
-				MX_DEBUG(-2,("CAPTURE?: Total num frames = %lu",
-					(unsigned long) mx_total_num_frames ));
-#endif
-			} while( num_frames_left > 0 );
-		}
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-#endif
-
 /*--------------------------------------------------------------------------*/
 
 static mx_status_type
@@ -1112,31 +1001,50 @@ mxd_dalsa_gev_camera_check_network_connection( MX_VIDEO_INPUT *vinput,
 	static const char fname[] =
 		"mxd_dalsa_gev_camera_check_network_connection()";
 
-	unsigned long ipv4_address;
+	unsigned long host_address;
+	unsigned long camera_address;
 	unsigned long dalsa_gev_camera_packet_size;
 	MX_NETWORK_INTERFACE *ni;
 	struct sockaddr_in sa_address_in;
 	unsigned long flags;
 	mx_status_type mx_status;
 
-	ipv4_address = dalsa_gev_camera->camera_object->host.ipAddr;
+	/* Note: All of these addresses are IPv4 only. */
 
-	/* Convert the address to network byte order. */
+	host_address = dalsa_gev_camera->camera_object->host.ipAddr;
 
-	ipv4_address = htonl( ipv4_address );
+	camera_address = dalsa_gev_camera->camera_object->ipAddr;
+
+	/* Convert the addresses to host byte order. */
+
+	host_address = ntohl( host_address );
+
+	camera_address = ntohl( camera_address );
 
 #if MXD_DALSA_GEV_CAMERA_DEBUG_CONFIGURE_NETWORK
 	int ip1, ip2, ip3, ip4;
 
-	ip1 = (int) ( ipv4_address & 0xff );
-	ip2 = (int) ( ( ipv4_address >> 8L ) & 0xff );
-	ip3 = (int) ( ( ipv4_address >> 16L ) & 0xff );
-	ip4 = (int) ( ( ipv4_address >> 24L ) & 0xff );
+	ip1 = (int) ( host_address & 0xff );
+	ip2 = (int) ( ( host_address >> 8L ) & 0xff );
+	ip3 = (int) ( ( host_address >> 16L ) & 0xff );
+	ip4 = (int) ( ( host_address >> 24L ) & 0xff );
 
 	MX_DEBUG(-2,
-	("%s: camera '%s' IP address = '%d.%d.%d.%d (%#lx)",
+	("%s: camera '%s' host address = '%d.%d.%d.%d (%#lx)",
 		fname, vinput->record->name,
-		ip1, ip2, ip3, ip4, (unsigned long) ipv4_address ));
+		ip1, ip2, ip3, ip4, (unsigned long) host_address ));
+
+	/*---*/
+
+	ip1 = (int) ( camera_address & 0xff );
+	ip2 = (int) ( ( camera_address >> 8L ) & 0xff );
+	ip3 = (int) ( ( camera_address >> 16L ) & 0xff );
+	ip4 = (int) ( ( camera_address >> 24L ) & 0xff );
+
+	MX_DEBUG(-2,
+	("%s: camera '%s' camera address = '%d.%d.%d.%d (%#lx)",
+		fname, vinput->record->name,
+		ip1, ip2, ip3, ip4, (unsigned long) camera_address ));
 #endif
 	/*------------------------------------------------------------------*/
 
@@ -1173,7 +1081,7 @@ mxd_dalsa_gev_camera_check_network_connection( MX_VIDEO_INPUT *vinput,
 
 	sa_address_in.sin_family = AF_INET;
 	sa_address_in.sin_port = 0;
-	sa_address_in.sin_addr.s_addr = ipv4_address;
+	sa_address_in.sin_addr.s_addr = host_address;
 
 	mx_status = mx_network_get_interface_from_host_address( &ni,
 					(struct sockaddr *) &sa_address_in );
@@ -1824,7 +1732,6 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 	dalsa_gev_camera->raw_last_frame_number = -1L;
 	dalsa_gev_camera->raw_total_num_frames = 0;
 	dalsa_gev_camera->num_frames_left_to_acquire = 0;
-	dalsa_gev_camera->milliseconds_per_frame = 0;
 
 #if 1
 	MX_DEBUG(-2,("%s: record = %p", fname, record));
@@ -1865,26 +1772,9 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 	 * has been created.
 	 */
 
-	flags = dalsa_gev_camera->dalsa_gev_camera_flags;
-
-	if ( flags & MXF_DALSA_GEV_CAMERA_USE_DEAD_RECKONING ) {
-
-#if 1
-		mx_status = mx_error( MXE_UNSUPPORTED, fname,
-				"The old dead reckoning code is "
-				"no longer supported." );
-#else
-		mx_status = mx_thread_create(
-				&(dalsa_gev_camera->image_wait_thread),
-		    mxd_dalsa_gev_camera_image_dead_reckoning_wait_thread_fn,
-				record );
-#endif
-	} else {
-		mx_status = mx_thread_create(
-				&(dalsa_gev_camera->image_wait_thread),
+	mx_status = mx_thread_create( &(dalsa_gev_camera->image_wait_thread),
 				mxd_dalsa_gev_camera_image_wait_thread_fn,
 				record );
-	}
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -2144,10 +2034,18 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 
 	/* Save sequence parameters where the wait thread can find them. */
 
+	dalsa_gev_camera->user_total_num_frames_at_start =
+				dalsa_gev_camera->user_total_num_frames;
+
+	dalsa_gev_camera->user_last_frame_number = -1L;
+
 	dalsa_gev_camera->raw_total_num_frames_at_start =
 				dalsa_gev_camera->raw_total_num_frames;
 
-	dalsa_gev_camera->num_frames_left_to_acquire = num_frames;
+	dalsa_gev_camera->raw_last_frame_number = -1L;
+
+	dalsa_gev_camera->num_frames_left_to_acquire = num_frames
+					+ dalsa_gev_camera->num_frames_to_skip;
 
 	/* Release the frame counter mutex now. */
 
@@ -2216,6 +2114,18 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 	if ( debug_dalsa_library ) {
 		fprintf( stderr, "%ld ***\n", gev_status );
 	}
+
+#if 1
+	/* FIXME: Dalsa Gev has the functions GevInitImageTransfer() and
+	 * GevStartImageTransfer().  Not 100% sure exactly how to map that
+	 * onto MX's _arm() and _trigger() or to MX's external and internal
+	 * trigger modes.
+	 */
+
+	if ( vinput->trigger_mode & MXF_DEV_EXTERNAL_TRIGGER ) {
+		mx_status = mxd_dalsa_gev_camera_trigger( vinput );
+	}
+#endif
 
 	return mx_status;
 }

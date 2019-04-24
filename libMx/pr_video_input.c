@@ -149,6 +149,7 @@ mx_setup_video_input_process_functions( MX_RECORD *record )
 		case MXLV_VIN_STOP:
 		case MXLV_VIN_TOTAL_NUM_FRAMES:
 		case MXLV_VIN_TRIGGER:
+		case MXLV_VIN_TRIGGER_MODE:
 			record_field->process_function
 					= mx_video_input_process_function;
 			break;
@@ -267,6 +268,10 @@ mx_video_input_process_function( void *record_ptr,
 			mx_status = mx_video_input_get_total_num_frames(
 								record, NULL );
 			break;
+		case MXLV_VIN_TRIGGER_MODE:
+			mx_status = mx_video_input_get_trigger_mode(
+								record, NULL );
+			break;
 		default:
 			MX_DEBUG(-1,(
 			    "%s: *** Unknown MX_PROCESS_GET label value = %ld",
@@ -330,6 +335,10 @@ mx_video_input_process_function( void *record_ptr,
 			break;
 		case MXLV_VIN_TRIGGER:
 			mx_status = mx_video_input_trigger( record );
+			break;
+		case MXLV_VIN_TRIGGER_MODE:
+			mx_status = mx_video_input_set_trigger_mode(
+						record, vinput->trigger_mode );
 			break;
 		default:
 			MX_DEBUG(-1,(
