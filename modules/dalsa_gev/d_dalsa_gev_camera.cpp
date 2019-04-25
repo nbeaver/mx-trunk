@@ -25,8 +25,6 @@
 #define MXD_DALSA_GEV_CAMERA_DEBUG_REGISTER_WRITE		FALSE
 #define MXD_DALSA_GEV_CAMERA_DEBUG_CONFIGURE_NETWORK		TRUE
 
-#define MXD_DALSA_GEV_CAMERA_USE_GEV_INITIALIZE_TRANSFER	FALSE
-
 #define MXD_DALSA_GEV_CAMERA_USE_CUSTOM_GEV_GET_NEXT_IMAGE	TRUE
 
 #include <stdio.h>
@@ -710,7 +708,8 @@ mxd_dalsa_gev_camera_update_frame_counters( MX_VIDEO_INPUT *vinput,
 		}
 
 		if ( old_frame_buffer_was_unsaved ) {
-			mx_warning( "Dalsa camera buffer was overwritten." );
+			mx_warning(
+			    "Dalsa camera buffer [%lu]  was overwritten.", i );
 		}
 	}
 
@@ -1605,7 +1604,7 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 	}
 
 	for ( i = 0; i < dalsa_gev_camera->num_frame_buffers; i++ ) {
-		dalsa_gev_camera->raw_frame_number_array[i] = -1L;
+		dalsa_gev_camera->raw_frame_number_array[i] = ULONG_MAX;
 	}
 
 	/* Create an array of 'struct timespec' structures to hold the
@@ -1859,9 +1858,9 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 	MX_DALSA_GEV_CAMERA *dalsa_gev_camera = NULL;
 	MX_DALSA_GEV *dalsa_gev = NULL;
 	MX_SEQUENCE_PARAMETERS *sp = NULL;
-	void *vector_pointer = NULL;
+	void *frame_buffer_vector_pointer = NULL;
 	unsigned char **frame_buffer_array = NULL;
-	unsigned long num_frames, num_bytes_in_array;
+	unsigned long num_frames, num_bytes_in_frame_buffer_array;
 	double exposure_time, frame_time;
 	long gev_status;
 	mx_bool_type debug_dalsa_library;
@@ -1908,14 +1907,15 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 #endif
 
 	mx_status = mx_array_get_num_bytes( frame_buffer_array,
-						&num_bytes_in_array );
+					&num_bytes_in_frame_buffer_array );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	vector_pointer = mx_array_get_vector( frame_buffer_array );
+	frame_buffer_vector_pointer = mx_array_get_vector( frame_buffer_array );
 
-	memset( vector_pointer, 0, num_bytes_in_array );
+	memset( frame_buffer_vector_pointer, 0,
+		num_bytes_in_frame_buffer_array );
 
 	/* Make sure that the MX image frame buffer is the correct size. */
 
@@ -2061,39 +2061,12 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 
 	MX_DEBUG(-2,("%s: '%s' ARMED.", fname, vinput->record->name ));
 
-#if MXD_DALSA_GEV_CAMERA_USE_GEV_INITIALIZE_TRANSFER
-
-	if ( debug_dalsa_library ) {
-		fprintf( stderr,
-	    "%s: *** GevInitializeTransfer( %p, Asynchronous, %d, %d, %p ) = ",
-	    	fname, dalsa_gev_camera->camera_handle,
-		dalsa_gev_camera->frame_buffer_array_size_in_bytes,
-		dalsa_gev_camera->num_frame_buffers,
-		dalsa_gev_camera->frame_buffer_array );
-	}
-
-	gev_status = GevInitializeTransfer(
-			dalsa_gev_camera->camera_handle,
-			Asynchronous,
-			dalsa_gev_camera->frame_buffer_array_size_in_bytes,
-			dalsa_gev_camera->num_frame_buffers,
-			dalsa_gev_camera->frame_buffer_array );
-
-	if ( gev_status != GEVLIB_OK ) {
-		return mxd_dalsa_gev_camera_api_error( gev_status, fname,
-						"GevInitializeTransfer()");
-	}
-
-	MX_DEBUG(-2,("%s: '%s' GevInitImageTransfer() called.",
-			fname, vinput->record->name ));
-#else	/* Not GevInitializeTransfer() */
-
 	if ( debug_dalsa_library ) {
 		fprintf( stderr,
 	    "%s: *** GevInitImageTransfer( %p, Asynchronous, %lu, %p ) = ",
 	    	fname, dalsa_gev_camera->camera_handle,
 		dalsa_gev_camera->num_frame_buffers,
-		dalsa_gev_camera->frame_buffer_array );
+		frame_buffer_vector_pointer );
 	}
 
 	gev_status = GevInitImageTransfer( dalsa_gev_camera->camera_handle,
@@ -2108,8 +2081,6 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 
 	MX_DEBUG(-2,("%s: '%s' GevInitImageTransfer() called.",
 			fname, vinput->record->name ));
-
-#endif	/* Not GevInitializeTransfer() */
 
 	if ( debug_dalsa_library ) {
 		fprintf( stderr, "%ld ***\n", gev_status );
@@ -2347,9 +2318,12 @@ mxd_dalsa_gev_camera_get_frame( MX_VIDEO_INPUT *vinput )
 	static const char fname[] = "mxd_dalsa_gev_camera_get_frame()";
 
 	MX_DALSA_GEV_CAMERA *dalsa_gev_camera = NULL;
+	unsigned long user_absolute_frame_number;
+	unsigned long user_modulo_frame_number;
+	unsigned long raw_absolute_frame_number;
+	unsigned long raw_modulo_frame_number;
 	void *mx_data_address = NULL;
 	void *dalsa_gev_data_address = NULL;
-	unsigned long i;
 	mx_status_type mx_status;
 
 	mx_status = mxd_dalsa_gev_camera_get_pointers( vinput,
@@ -2358,13 +2332,13 @@ mxd_dalsa_gev_camera_get_frame( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Get the address of the MX image frame buffer. */
+
 	if ( vinput->frame == (MX_IMAGE_FRAME *) NULL ) {
 		return mx_error( MXE_NOT_READY, fname,
 		"No image frames have been acquired yet for camera '%s'.",
 			vinput->record->name );
 	}
-
-	/* Find the MX video input record's image data buffer. */
 
 	mx_data_address = vinput->frame->image_data;
 
@@ -2373,12 +2347,35 @@ mxd_dalsa_gev_camera_get_frame( MX_VIDEO_INPUT *vinput )
 		"The MX data address for the primary image frame buffer "
 		"for camera '%s' is NULL.", vinput->record->name );
 	}
+	
+	/* Get the raw Dalsa frame buffer number from the user frame number. */
 
-	/* Find the DALSA GeV image data buffer for the requested image. */
+	user_absolute_frame_number =
+		dalsa_gev_camera->user_total_num_frames_at_start
+			+ vinput->frame_number;
 
-	i = vinput->frame_number;
+	user_modulo_frame_number =
+	  user_absolute_frame_number % (dalsa_gev_camera->num_frame_buffers);
 
-	dalsa_gev_data_address = dalsa_gev_camera->frame_buffer_array[i];
+	raw_absolute_frame_number =
+	  dalsa_gev_camera->raw_frame_number_array[ user_modulo_frame_number ];
+
+	if ( raw_absolute_frame_number
+			>= dalsa_gev_camera->raw_total_num_frames )
+	{
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"An image frame has not yet been acquired for "
+		"user absolute frame number %ld of video input '%s'.",
+			user_absolute_frame_number, vinput->record->name );
+	}
+
+	raw_modulo_frame_number =
+	  raw_absolute_frame_number % (dalsa_gev_camera->num_frame_buffers);
+
+	/* Get the DALSA GeV image data buffer for the requested image. */
+
+	dalsa_gev_data_address = 
+		dalsa_gev_camera->frame_buffer_array[raw_modulo_frame_number];
 
 	/* Now copy the image data from DALSA to the MX frame buffer. */
 
