@@ -614,17 +614,17 @@ mx_gev_get_next_image( GEV_CAMERA_HANDLE handle,
 
 /*---*/
 
-/* mxd_dalsa_gev_camera_update_frame_counters() is to be invoked
+/* mxd_dalsa_gev_camera_handle_acquired_frame() is to be invoked
  * only from the wait_thread.
  */
 
 static mx_status_type
-mxd_dalsa_gev_camera_update_frame_counters( MX_VIDEO_INPUT *vinput,
+mxd_dalsa_gev_camera_handle_acquired_frame( MX_VIDEO_INPUT *vinput,
 					MX_DALSA_GEV_CAMERA *dalsa_gev_camera,
 					GEV_BUFFER_OBJECT *gev_buffer_object )
 {
 	static const char fname[] =
-		"mxd_dalsa_gev_camera_update_frame_counters()";
+		"mxd_dalsa_gev_camera_handle_acquired_frame()";
 
 	unsigned long i, raw_frame_buffer_number;
 	long mx_status_code;
@@ -700,6 +700,26 @@ mxd_dalsa_gev_camera_update_frame_counters( MX_VIDEO_INPUT *vinput,
 			dalsa_gev_camera->frame_buffer_is_unsaved[i];
 
 		dalsa_gev_camera->frame_buffer_is_unsaved[i] = TRUE;
+
+#if 1
+		MX_DEBUG(-2,("%s: Genicam block id = %lu, status = %lu",
+		    fname, (unsigned long) gev_buffer_object->id,
+		    (unsigned long) gev_buffer_object->status));
+#endif
+
+		/* Record the time when the frame was acquired. */
+
+		/* FIXME: I do not know what the units of timestamp_hi
+		 * and timestamp_low are.  For now I am _guessing_
+		 * that they match the Posix style 'struct timespec',
+		 * but that is just a wild guess.
+		 */
+
+		dalsa_gev_camera->frame_timespec[i].tv_sec
+			= gev_buffer_object->timestamp_hi;
+
+		dalsa_gev_camera->frame_timespec[i].tv_nsec
+			= gev_buffer_object->timestamp_lo;
 
 		/* Update the number of frames left to acquire. */
 
@@ -841,7 +861,7 @@ mxd_dalsa_gev_camera_image_wait_thread_fn( MX_THREAD *thread, void *args )
 			    /* We have acquired a frame! */
 
 			    mx_status =
-				    mxd_dalsa_gev_camera_update_frame_counters(
+				    mxd_dalsa_gev_camera_handle_acquired_frame(
 					vinput, dalsa_gev_camera,
 					gev_buffer_object );
 			    break;
