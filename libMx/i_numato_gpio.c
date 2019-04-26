@@ -121,32 +121,12 @@ mxi_numato_gpio_open( MX_RECORD *record )
 		debug_rs232 = FALSE;
 	}
 
-	/* Make sure that the RS232 line terminators are set correctly.  The
-	 * write terminator must be set to 0x00, while the read terminators
-	 * must be set to 0x3e0d (or '>\r').
-	 */
-
-#if 1
-	{
-		MX_RS232 *rs232 = (MX_RS232 *)
-			numato_gpio->rs232_record->record_class_struct;
-
-		rs232->read_terminators = 0x3e0d;
-		rs232->write_terminators = 0x00;
-
-		mx_status = mx_rs232_convert_terminator_characters(
-						numato_gpio->rs232_record );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-	}
-#endif
 	/* Send a <CR> to make sure that any partial commands or junk data
 	 * have been discarded.
 	 */
 
-	mx_status = mx_rs232_putline( numato_gpio->rs232_record, "",
-							NULL, debug_rs232 );
+	mx_status = mx_rs232_putchar( numato_gpio->rs232_record,
+						0x0d, debug_rs232 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -271,6 +251,13 @@ mxi_numato_gpio_process_function( void *record_ptr,
 
 /*==================================================================*/
 
+/* Communication between our computer and the Numato controller seems
+ * to be somewhat brittle.  It seems to work the best if you send 
+ * characters to it with one putchar() per character and read it
+ * with one getchar() per character.  Things like putline() or getline()
+ * seem to fail.
+ */
+
 MX_EXPORT mx_status_type
 mxi_numato_gpio_command( MX_NUMATO_GPIO *numato_gpio,
 				char *command,
@@ -284,7 +271,7 @@ mxi_numato_gpio_command( MX_NUMATO_GPIO *numato_gpio,
 	MX_RS232 *rs232 = NULL;
 	char c;
 	char local_buffer[80];
-	size_t length;
+	size_t i, length;
 	mx_status_type mx_status;
 
 	if ( numato_gpio == (MX_NUMATO_GPIO *) NULL ) {
@@ -342,31 +329,41 @@ mxi_numato_gpio_command( MX_NUMATO_GPIO *numato_gpio,
 			command, numato_gpio->record->name );
 	}
 
-	mx_status = mx_rs232_write( rs232_record, command, length,
-						NULL, debug_rs232 );
+	/* Send the command one character at a time and receive
+	 * the response one character at a time.
+	 */
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	for ( i = 0; i < length; i++ ) {
+		c = command[i];
 
-	/* Discard the echoed text. */
+		MX_DEBUG(-2,("%s: sending %#x", fname, c));
 
-	mx_status = mx_rs232_read( rs232_record,
-				local_buffer, length,
-				NULL, debug_rs232 );
+		mx_status = mx_rs232_putchar( rs232_record, c, debug_rs232 );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_rs232_getchar_with_timeout( rs232_record, &c,
+						debug_rs232, rs232->timeout );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		MX_DEBUG(-2,("%s: received c = %#x", fname, c));
+	}
 
 	/* Send the line terminator character <CR> to the Numato. */
 
 	c = 0x0d;
+
+	MX_DEBUG(-2,("%s: sending %#x", fname, c));
 
 	mx_status = mx_rs232_putchar( rs232_record, c, debug_rs232 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Read back the returned characters. */
+	/* Discard any 0x0a or 0x0d characters. */
 
 	while( TRUE ) {
 		mx_status = mx_rs232_getchar_with_timeout( rs232_record, &c,
@@ -375,9 +372,89 @@ mxi_numato_gpio_command( MX_NUMATO_GPIO *numato_gpio,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		MX_DEBUG(-2,("%s: c = %#x", fname, c));
+		MX_DEBUG(-2,("%s: received c = %#x", fname, c));
+
+		/* Break out if we see a non-line terminator character. */
+
+		if ( (c != 0x0a) && (c != 0x0d) ) {
+			break;		/* Exit this while() loop. */
+		}
 	}
 
-	return mx_status;
+	/* If the most recently received character is a 0x3e '>' character,
+	 * then the Numato has sent us an empty response to the command
+	 * and we should return now.
+	 */
+
+	if ( c == 0x3e ) {
+		response[0] = '\0';
+
+		if ( debug_rs232 ) {
+			fprintf( stderr, "Received '' from '%s'.\n",
+					numato_gpio->record->name );
+		}
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* Otherwise the most recently received character is the first
+	 * character of the expected response.
+	 */
+
+	response[0] = c;
+
+	/* Read in the rest of the expected response. */
+
+	for ( i = 1; i < max_response_length; i++ ) {
+		mx_status = mx_rs232_getchar_with_timeout( rs232_record, &c,
+						debug_rs232, rs232->timeout );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		MX_DEBUG(-2,("%s: received c = %#x", fname, c));
+
+		/* Break out if we see a line terminator character. */
+
+		if ( (c == 0x0a) || (c == 0x0d) ) {
+			break;		/* Exit this while() loop. */
+		}
+
+		response[i] = c;
+	}
+
+	response[i] = '\0';
+
+	/* Discard any 0x0a or 0x0d characters, until we see 0x3e '>'. */
+
+	while( TRUE ) {
+		mx_status = mx_rs232_getchar_with_timeout( rs232_record, &c,
+						debug_rs232, rs232->timeout );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		MX_DEBUG(-2,("%s: received c = %#x", fname, c));
+
+		/* Break out if we see a non-line terminator character. */
+
+		if ( (c != 0x0a) && (c != 0x0d) ) {
+			break;		/* Exit this while() loop. */
+		}
+	}
+
+	if ( c != 0x3e ) {
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"The response '%s' from Numato controller '%s' did not end "
+		"with a '>' 0x3e character.  Instead, it ended with %#x.",
+			response, numato_gpio->record->name, c );
+	}
+
+	if ( debug_rs232 ) {
+		fprintf( stderr, "Received '%s' from '%s'.\n",
+			response, numato_gpio->record->name );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
