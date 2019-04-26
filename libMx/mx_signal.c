@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2017-2018 Illinois Institute of Technology
+ * Copyright 2017-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -286,8 +286,7 @@ mx_force_core_dump( void )
 
 	mx_info("The attempt to force a core dump did not work!!!.");
 
-	mx_info(
-	"This should not be able to happen, so we are exiting instead...");
+	mx_info("Therefore, we are exiting instead...");
 
 	exit(1);
 }

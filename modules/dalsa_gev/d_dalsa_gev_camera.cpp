@@ -16,10 +16,10 @@
  */
 
 #define MXD_DALSA_GEV_CAMERA_DEBUG_OPEN				TRUE
-#define MXD_DALSA_GEV_CAMERA_DEBUG_ARM				FALSE
+#define MXD_DALSA_GEV_CAMERA_DEBUG_ARM				TRUE
 #define MXD_DALSA_GEV_CAMERA_DEBUG_STOP				FALSE
 #define MXD_DALSA_GEV_CAMERA_DEBUG_GET_FRAME			FALSE
-#define MXD_DALSA_GEV_CAMERA_DEBUG_GET_EXTENDED_STATUS		FALSE
+#define MXD_DALSA_GEV_CAMERA_DEBUG_GET_EXTENDED_STATUS		TRUE
 #define MXD_DALSA_GEV_CAMERA_DEBUG_MX_PARAMETERS		FALSE
 #define MXD_DALSA_GEV_CAMERA_DEBUG_REGISTER_READ		FALSE
 #define MXD_DALSA_GEV_CAMERA_DEBUG_REGISTER_WRITE		FALSE
@@ -631,6 +631,8 @@ mxd_dalsa_gev_camera_handle_acquired_frame( MX_VIDEO_INPUT *vinput,
 	mx_bool_type skip_frame;
 	mx_bool_type old_frame_buffer_was_unsaved;
 
+	mx_breakpoint_helper();
+
 	/* We must protect the process of updating frame counters
 	 * with a mutex.
 	 */
@@ -650,6 +652,12 @@ mxd_dalsa_gev_camera_handle_acquired_frame( MX_VIDEO_INPUT *vinput,
 	MX_DEBUG(-2,("CAPTURE: Total num frames = %lu",
 		(unsigned long) dalsa_gev_camera->raw_total_num_frames ));
 #endif
+
+	/* Update the number of frames left to acquire. */
+
+	if ( dalsa_gev_camera->num_frames_left_to_acquire > 0 ) {
+		dalsa_gev_camera->num_frames_left_to_acquire--;
+	}
 
 	/* Is this a frame that we are supposed to skip? */
 
@@ -720,12 +728,6 @@ mxd_dalsa_gev_camera_handle_acquired_frame( MX_VIDEO_INPUT *vinput,
 
 		dalsa_gev_camera->frame_timespec[i].tv_nsec
 			= gev_buffer_object->timestamp_lo;
-
-		/* Update the number of frames left to acquire. */
-
-		if ( dalsa_gev_camera->num_frames_left_to_acquire > 0 ) {
-			dalsa_gev_camera->num_frames_left_to_acquire--;
-		}
 
 		if ( old_frame_buffer_was_unsaved ) {
 			mx_warning(
@@ -1735,6 +1737,38 @@ mxd_dalsa_gev_camera_open( MX_RECORD *record )
 	    }
 	}
 #endif
+
+	/* Enable image transfer from the camera to the MX image buffers,
+	 * namely, dalsa_gev_camera->frame_buffer_array.  This step causes
+	 * the DALSA GigE Vision framework library to create a thread that
+	 * is used for the copying into dalsa_gev_camera->frame_buffer_array.
+	 */
+
+	if ( debug_dalsa_library ) {
+		fprintf( stderr,
+	    "%s: *** GevInitImageTransfer( %p, Asynchronous, %lu, %p ) = ",
+	    	fname, dalsa_gev_camera->camera_handle,
+		dalsa_gev_camera->num_frame_buffers,
+		dalsa_gev_camera->frame_buffer_array );
+	}
+
+	gev_status = GevInitImageTransfer( dalsa_gev_camera->camera_handle,
+					Asynchronous,
+					dalsa_gev_camera->num_frame_buffers,
+					dalsa_gev_camera->frame_buffer_array );
+
+	if ( gev_status != GEVLIB_OK ) {
+		return mxd_dalsa_gev_camera_api_error( gev_status, fname,
+						"GevInitImageTransfer()");
+	}
+
+	MX_DEBUG(-2,("%s: '%s' GevInitImageTransfer() called.",
+			fname, vinput->record->name ));
+
+	if ( debug_dalsa_library ) {
+		fprintf( stderr, "%d ***\n", gev_status );
+	}
+
 	/* If an area detector driver wants us to skip frames, then it
 	 * must set our 'num_frames_to_skip' variable to a non-zero
 	 * value in the area detector's open() routine.
@@ -1878,7 +1912,9 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 	MX_DALSA_GEV_CAMERA *dalsa_gev_camera = NULL;
 	MX_DALSA_GEV *dalsa_gev = NULL;
 	MX_SEQUENCE_PARAMETERS *sp = NULL;
+#if 0
 	void *frame_buffer_vector_pointer = NULL;
+#endif
 	unsigned char **frame_buffer_array = NULL;
 	unsigned long num_frames, num_bytes_in_frame_buffer_array;
 	double exposure_time, frame_time;
@@ -1886,6 +1922,8 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 	mx_bool_type debug_dalsa_library;
 	long mx_status_code;
 	mx_status_type mx_status;
+
+	mx_breakpoint_helper();
 
 	mx_status = mxd_dalsa_gev_camera_get_pointers( vinput,
 					&dalsa_gev_camera, &dalsa_gev, fname );
@@ -1932,10 +1970,12 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if 0
 	frame_buffer_vector_pointer = mx_array_get_vector( frame_buffer_array );
 
 	memset( frame_buffer_vector_pointer, 0,
 		num_bytes_in_frame_buffer_array );
+#endif
 
 	/* Make sure that the MX image frame buffer is the correct size. */
 
@@ -1998,6 +2038,12 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 		strlcpy( acquisition_mode, "MultiFrame",
 				sizeof(acquisition_mode) );
 		break;
+
+		/* FIXME: Apparently GevQueryTransferStatus() may be useable
+		 * for getting information about the status of transfers in
+		 * newer versions of the GigE Vision framework.  We should
+		 * test that at some point.  Currently using version 2.0.2
+		 */
 	case MXT_SQ_STREAM:
 		strlcpy( acquisition_mode, "Continuous",
 				sizeof(acquisition_mode) );
@@ -2045,6 +2091,10 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 
 	/* Acquire the frame counter mutex. */
 
+#if MXD_DALSA_GEV_CAMERA_DEBUG_ARM
+	MX_DEBUG(-2,("%s: Updating frame counters.", fname));
+#endif
+
 	mx_status_code = mx_mutex_lock( dalsa_gev_camera->frame_counter_mutex );
 
 	if ( mx_status_code != MXE_SUCCESS ) {
@@ -2067,6 +2117,22 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 	dalsa_gev_camera->num_frames_left_to_acquire = num_frames
 					+ dalsa_gev_camera->num_frames_to_skip;
 
+#if MXD_DALSA_GEV_CAMERA_DEBUG_ARM
+	MX_DEBUG(-2,("%s: user_total_num_frames_at_start = %lu",
+		fname, dalsa_gev_camera->user_total_num_frames_at_start));
+	MX_DEBUG(-2,("%s: user_last_frame_number = %ld",
+		fname, dalsa_gev_camera->user_last_frame_number));
+	MX_DEBUG(-2,("%s: raw_total_num_frames_at_start = %lu",
+		fname, dalsa_gev_camera->raw_total_num_frames_at_start));
+	MX_DEBUG(-2,("%s: raw_last_frame_number = %ld",
+		fname, dalsa_gev_camera->raw_last_frame_number));
+	MX_DEBUG(-2,("%s: num_frames = %lu", fname, num_frames));
+	MX_DEBUG(-2,("%s: num_frames_to_skip = %lu",
+		fname, dalsa_gev_camera->num_frames_to_skip));
+	MX_DEBUG(-2,("%s: num_frames_left_to_acquire = %lu",
+		fname, dalsa_gev_camera->num_frames_left_to_acquire));
+#endif
+
 	/* Release the frame counter mutex now. */
 
 	mx_status_code = mx_mutex_unlock(
@@ -2077,34 +2143,7 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 		"The attempt to release the frame counter mutex failed." );
 	}
 
-	/* Enable image transfer to the image buffers. */
-
 	MX_DEBUG(-2,("%s: '%s' ARMED.", fname, vinput->record->name ));
-
-	if ( debug_dalsa_library ) {
-		fprintf( stderr,
-	    "%s: *** GevInitImageTransfer( %p, Asynchronous, %lu, %p ) = ",
-	    	fname, dalsa_gev_camera->camera_handle,
-		dalsa_gev_camera->num_frame_buffers,
-		frame_buffer_vector_pointer );
-	}
-
-	gev_status = GevInitImageTransfer( dalsa_gev_camera->camera_handle,
-					Asynchronous,
-					dalsa_gev_camera->num_frame_buffers,
-					dalsa_gev_camera->frame_buffer_array );
-
-	if ( gev_status != GEVLIB_OK ) {
-		return mxd_dalsa_gev_camera_api_error( gev_status, fname,
-						"GevInitImageTransfer()");
-	}
-
-	MX_DEBUG(-2,("%s: '%s' GevInitImageTransfer() called.",
-			fname, vinput->record->name ));
-
-	if ( debug_dalsa_library ) {
-		fprintf( stderr, "%ld ***\n", gev_status );
-	}
 
 #if 1
 	/* FIXME: Dalsa Gev has the functions GevInitImageTransfer() and
@@ -2134,6 +2173,8 @@ mxd_dalsa_gev_camera_trigger( MX_VIDEO_INPUT *vinput )
 	mx_bool_type debug_dalsa_library;
 	mx_status_type mx_status;
 
+	mx_breakpoint_helper();
+
 	mx_status = mxd_dalsa_gev_camera_get_pointers( vinput,
 					&dalsa_gev_camera, &dalsa_gev, fname );
 
@@ -2162,6 +2203,8 @@ mxd_dalsa_gev_camera_trigger( MX_VIDEO_INPUT *vinput )
 			sp->sequence_type, vinput->record->name );
 		break;
 	}
+
+	num_frames_to_acquire += dalsa_gev_camera->num_frames_to_skip;
 
 	if ( debug_dalsa_library ) {
 		fprintf( stderr, "%s: *** GevStartImageTransfer( %p, %lu ) = ",
@@ -2267,6 +2310,11 @@ mxd_dalsa_gev_camera_abort( MX_VIDEO_INPUT *vinput )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/* FIXME: Apparently GevQueryTransferStatus() may be useable for getting
+ * information about the status of transfers in newer versions of the
+ * GigE Vision framework.  We should test that at some point.
+ */
+
 MX_EXPORT mx_status_type
 mxd_dalsa_gev_camera_get_extended_status( MX_VIDEO_INPUT *vinput )
 {
@@ -2276,6 +2324,8 @@ mxd_dalsa_gev_camera_get_extended_status( MX_VIDEO_INPUT *vinput )
 	MX_DALSA_GEV_CAMERA *dalsa_gev_camera = NULL;
 	long mx_status_code;
 	mx_status_type mx_status;
+
+	mx_breakpoint_helper();
 
 	mx_status = mxd_dalsa_gev_camera_get_pointers( vinput,
 					&dalsa_gev_camera, NULL, fname );
@@ -2323,8 +2373,8 @@ mxd_dalsa_gev_camera_get_extended_status( MX_VIDEO_INPUT *vinput )
 			fname, vinput->total_num_frames));
 	MX_DEBUG(-2,("%s: vinput->last_frame_number = %ld",
 			fname, vinput->last_frame_number));
-	MX_DEBUG(-2,("%s: dalsa_gev_camera->num_frames_left = %ld",
-			fname, (long) num_frames_left));
+	MX_DEBUG(-2,("%s: dalsa_gev_camera->num_frames_left_to_acquire = %ld",
+		fname, (long) dalsa_gev_camera->num_frames_left_to_acquire));
 	MX_DEBUG(-2,("%s: vinput->status = %#lx",
 			fname, vinput->status));
 #endif
@@ -2345,6 +2395,8 @@ mxd_dalsa_gev_camera_get_frame( MX_VIDEO_INPUT *vinput )
 	void *mx_data_address = NULL;
 	void *dalsa_gev_data_address = NULL;
 	mx_status_type mx_status;
+
+	mx_breakpoint_helper();
 
 	mx_status = mxd_dalsa_gev_camera_get_pointers( vinput,
 					&dalsa_gev_camera, NULL, fname );
