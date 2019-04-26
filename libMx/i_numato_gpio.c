@@ -122,17 +122,17 @@ mxi_numato_gpio_open( MX_RECORD *record )
 	}
 
 	/* Make sure that the RS232 line terminators are set correctly.  The
-	 * write terminator must be set to 0x0d, while the read terminators
+	 * write terminator must be set to 0x00, while the read terminators
 	 * must be set to 0x3e0d (or '>\r').
 	 */
 
-#if 0
+#if 1
 	{
 		MX_RS232 *rs232 = (MX_RS232 *)
 			numato_gpio->rs232_record->record_class_struct;
 
 		rs232->read_terminators = 0x3e0d;
-		rs232->write_terminators = 0x0d;
+		rs232->write_terminators = 0x00;
 
 		mx_status = mx_rs232_convert_terminator_characters(
 						numato_gpio->rs232_record );
@@ -168,8 +168,6 @@ mxi_numato_gpio_open( MX_RECORD *record )
 		return mx_status;
 
 	/* Read the version number of the Numato firmware. */
-
-	mx_breakpoint();
 
 	mx_status = mxi_numato_gpio_command( numato_gpio, "ver",
 					numato_gpio->version,
@@ -284,6 +282,7 @@ mxi_numato_gpio_command( MX_NUMATO_GPIO *numato_gpio,
 
 	MX_RECORD *rs232_record = NULL;
 	MX_RS232 *rs232 = NULL;
+	char c;
 	char local_buffer[80];
 	size_t length;
 	mx_status_type mx_status;
@@ -343,8 +342,8 @@ mxi_numato_gpio_command( MX_NUMATO_GPIO *numato_gpio,
 			command, numato_gpio->record->name );
 	}
 
-	mx_status = mx_rs232_putline( rs232_record, command,
-					NULL, debug_rs232 );
+	mx_status = mx_rs232_write( rs232_record, command, length,
+						NULL, debug_rs232 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -358,15 +357,26 @@ mxi_numato_gpio_command( MX_NUMATO_GPIO *numato_gpio,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Now get the response we are looking for. */
+	/* Send the line terminator character <CR> to the Numato. */
 
-	mx_status = mx_rs232_getline_with_timeout( rs232_record,
-						response, max_response_length,
-						NULL, debug_rs232,
-						rs232->timeout );
+	c = 0x0d;
+
+	mx_status = mx_rs232_putchar( rs232_record, c, debug_rs232 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Read back the returned characters. */
+
+	while( TRUE ) {
+		mx_status = mx_rs232_getchar_with_timeout( rs232_record, &c,
+						debug_rs232, rs232->timeout );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		MX_DEBUG(-2,("%s: c = %#x", fname, c));
+	}
 
 	return mx_status;
 }
