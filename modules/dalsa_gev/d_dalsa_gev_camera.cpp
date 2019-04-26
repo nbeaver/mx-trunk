@@ -19,7 +19,7 @@
 #define MXD_DALSA_GEV_CAMERA_DEBUG_ARM				TRUE
 #define MXD_DALSA_GEV_CAMERA_DEBUG_STOP				FALSE
 #define MXD_DALSA_GEV_CAMERA_DEBUG_GET_FRAME			FALSE
-#define MXD_DALSA_GEV_CAMERA_DEBUG_GET_EXTENDED_STATUS		TRUE
+#define MXD_DALSA_GEV_CAMERA_DEBUG_GET_EXTENDED_STATUS		FALSE
 #define MXD_DALSA_GEV_CAMERA_DEBUG_MX_PARAMETERS		FALSE
 #define MXD_DALSA_GEV_CAMERA_DEBUG_REGISTER_READ		FALSE
 #define MXD_DALSA_GEV_CAMERA_DEBUG_REGISTER_WRITE		FALSE
@@ -631,8 +631,6 @@ mxd_dalsa_gev_camera_handle_acquired_frame( MX_VIDEO_INPUT *vinput,
 	mx_bool_type skip_frame;
 	mx_bool_type old_frame_buffer_was_unsaved;
 
-	mx_breakpoint_helper();
-
 	/* We must protect the process of updating frame counters
 	 * with a mutex.
 	 */
@@ -709,7 +707,7 @@ mxd_dalsa_gev_camera_handle_acquired_frame( MX_VIDEO_INPUT *vinput,
 
 		dalsa_gev_camera->frame_buffer_is_unsaved[i] = TRUE;
 
-#if 1
+#if 0
 		MX_DEBUG(-2,("%s: Genicam block id = %lu, status = %lu",
 		    fname, (unsigned long) gev_buffer_object->id,
 		    (unsigned long) gev_buffer_object->status));
@@ -1923,8 +1921,6 @@ mxd_dalsa_gev_camera_arm( MX_VIDEO_INPUT *vinput )
 	long mx_status_code;
 	mx_status_type mx_status;
 
-	mx_breakpoint_helper();
-
 	mx_status = mxd_dalsa_gev_camera_get_pointers( vinput,
 					&dalsa_gev_camera, &dalsa_gev, fname );
 
@@ -2173,8 +2169,6 @@ mxd_dalsa_gev_camera_trigger( MX_VIDEO_INPUT *vinput )
 	mx_bool_type debug_dalsa_library;
 	mx_status_type mx_status;
 
-	mx_breakpoint_helper();
-
 	mx_status = mxd_dalsa_gev_camera_get_pointers( vinput,
 					&dalsa_gev_camera, &dalsa_gev, fname );
 
@@ -2325,8 +2319,6 @@ mxd_dalsa_gev_camera_get_extended_status( MX_VIDEO_INPUT *vinput )
 	long mx_status_code;
 	mx_status_type mx_status;
 
-	mx_breakpoint_helper();
-
 	mx_status = mxd_dalsa_gev_camera_get_pointers( vinput,
 					&dalsa_gev_camera, NULL, fname );
 
@@ -2395,8 +2387,6 @@ mxd_dalsa_gev_camera_get_frame( MX_VIDEO_INPUT *vinput )
 	void *mx_data_address = NULL;
 	void *dalsa_gev_data_address = NULL;
 	mx_status_type mx_status;
-
-	mx_breakpoint_helper();
 
 	mx_status = mxd_dalsa_gev_camera_get_pointers( vinput,
 					&dalsa_gev_camera, NULL, fname );

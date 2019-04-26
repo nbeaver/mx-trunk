@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2016-2018 Illinois Institute of Technology
+ * Copyright 2016-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -75,6 +75,14 @@ mxi_dalsa_gev_get_pointers( MX_RECORD *record,
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+/*------*/
+
+static void
+mxi_dalsa_gev_atexit_handler( void )
+{
+	(void) GevApiUninitialize();
 }
 
 /*------*/
@@ -153,6 +161,9 @@ mxi_dalsa_gev_open( MX_RECORD *record )
 	fprintf(stderr, "%s: debug_dalsa_library = %d\n",
 			fname, debug_dalsa_library );
 #endif
+	/* Register an atexit() handler for the GigE-V Framework. */
+
+	atexit( mxi_dalsa_gev_atexit_handler );
 
 	/* Initialize the GigE-V Framework. */
 
