@@ -283,7 +283,9 @@
 #include "d_digital_fanin.h"
 #include "d_digital_fanout.h"
 #include "d_keithley199_ainput.h"
+#include "d_numato_gpio_ainput.h"
 #include "d_numato_gpio_dinput.h"
+#include "d_numato_gpio_doutput.h"
 
 #include "d_soft_motor.h"
 #include "d_e500.h"
@@ -1600,6 +1602,13 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_keithley199_ainput_num_record_fields,
 				&mxd_keithley199_ainput_rfield_def_ptr},
 
+{"numato_gpio_ainput", MXT_AIN_NUMATO_GPIO, MXC_ANALOG_INPUT, MXR_DEVICE,
+				&mxd_numato_gpio_ainput_record_function_list,
+				NULL,
+			&mxd_numato_gpio_ainput_analog_input_function_list,
+				&mxd_numato_gpio_ainput_num_record_fields,
+				&mxd_numato_gpio_ainput_rfield_def_ptr},
+
 
 {"soft_dinput",    MXT_DIN_SOFTWARE,   MXC_DIGITAL_INPUT,  MXR_DEVICE,
 				&mxd_soft_dinput_record_function_list,
@@ -2038,6 +2047,13 @@ MX_DRIVER mx_type_table[] = {
 			&mxd_numato_gpio_dinput_digital_input_function_list,
 				&mxd_numato_gpio_dinput_num_record_fields,
 				&mxd_numato_gpio_dinput_rfield_def_ptr},
+
+{"numato_gpio_doutput", MXT_DOU_NUMATO_GPIO, MXC_DIGITAL_OUTPUT, MXR_DEVICE,
+				&mxd_numato_gpio_doutput_record_function_list,
+				NULL,
+			&mxd_numato_gpio_doutput_digital_output_function_list,
+				&mxd_numato_gpio_doutput_num_record_fields,
+				&mxd_numato_gpio_doutput_rfield_def_ptr},
 
 #if ( defined(OS_LINUX) && (MX_GLIBC_VERSION >= 2002000L) )
 

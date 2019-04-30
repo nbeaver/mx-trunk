@@ -14,7 +14,7 @@
  *
  */
 
-#define MXI_NUMATO_GPIO_DEBUG		TRUE
+#define MXI_NUMATO_GPIO_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -131,18 +131,11 @@ mxi_numato_gpio_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_msleep(1000);
+	mx_msleep(100);
 
 	/* Discard any leftover bytes in the serial port. */
 
-	mx_status = mx_rs232_discard_unwritten_output(
-				numato_gpio->rs232_record, debug_rs232 );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_rs232_discard_unread_input( numato_gpio->rs232_record,
-								 debug_rs232 );
+	mx_status = mx_rs232_discard_unread_input(numato_gpio->rs232_record, 0);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

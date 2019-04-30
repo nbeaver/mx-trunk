@@ -1,13 +1,11 @@
-numato_port interface rs232 tty "" "" 9600 8 N 1 N 0x3e0d 0x0 5.0 0x3000000 /dev/ttyACM0
-numato_gpio interface controller numato_gpio "" "" numato_port 0x3
+numato_port interface rs232 tty "" "" 9600 8 N 1 N 0x0 0x0 5.0 0x0 /dev/ttyACM0
+numato_gpio interface controller numato_gpio "" "" numato_port 0x0
 #
-#nm_read_all device digital_input numato_gpio_dinput "" "" 0 numato_gpio -1
-#
-din0        device digital_input numato_gpio_dinput "" "" 0 numato_gpio 0
-din1        device digital_input numato_gpio_dinput "" "" 0 numato_gpio 1
+ain0        device analog_input numato_gpio_ainput "" "" 0 1 0 steps 0x0 0 "" numato_gpio 0
+ain1        device analog_input numato_gpio_ainput "" "" 0 1 0 steps 0x0 0 "" numato_gpio 1
 din2        device digital_input numato_gpio_dinput "" "" 0 numato_gpio 2
 din3        device digital_input numato_gpio_dinput "" "" 0 numato_gpio 3
 din4        device digital_input numato_gpio_dinput "" "" 0 numato_gpio 4
-din5        device digital_input numato_gpio_dinput "" "" 0 numato_gpio 5
-din6        device digital_input numato_gpio_dinput "" "" 0 numato_gpio 6
-din7        device digital_input numato_gpio_dinput "" "" 0 numato_gpio 7
+dout5       device digital_output numato_gpio_doutput "" "" 0 numato_gpio 5
+dout6       device digital_output numato_gpio_doutput "" "" 0 numato_gpio 6
+dout7       device digital_output numato_gpio_doutput "" "" 0 numato_gpio 7

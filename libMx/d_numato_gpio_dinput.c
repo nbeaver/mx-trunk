@@ -218,6 +218,7 @@ mxd_numato_gpio_dinput_read( MX_DIGITAL_INPUT *dinput )
 	MX_NUMATO_GPIO_DINPUT *numato_gpio_dinput;
 	MX_NUMATO_GPIO *numato_gpio;
 	long channel;
+	int num_items;
 	char command[80];
 	char response[80];
 	mx_status_type mx_status;
@@ -242,6 +243,15 @@ mxd_numato_gpio_dinput_read( MX_DIGITAL_INPUT *dinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	return mx_status;
+	num_items = sscanf( response, "%lu", &(dinput->value) );
+
+	if ( num_items != 1 ) {
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Did not see the status of digital input '%s' in the "
+		"response '%s' to command '%s'.",
+			dinput->record->name, response, command );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
