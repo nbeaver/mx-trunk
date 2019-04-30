@@ -20,6 +20,7 @@
 /* Values for the 'numato_gpio_flags' field. */
 
 #define MXF_NUMATO_GPIO_DEBUG_RS232		0x1
+#define MXF_NUMATO_GPIO_DEBUG_RS232_VERBOSE	0x2
 
 /*---*/
 
@@ -65,8 +66,7 @@ MX_API mx_status_type mxi_numato_gpio_command(
 					MX_NUMATO_GPIO *numato_gpio,
 					char *command,
 					char *response,
-					unsigned long max_response_length,
-					mx_bool_type debug_rs232 );
+					unsigned long max_response_length );
 
 extern MX_RECORD_FUNCTION_LIST mxi_numato_gpio_record_function_list;
 extern MX_RECORD_FUNCTION_LIST mxi_numato_gpio_record_function_list;

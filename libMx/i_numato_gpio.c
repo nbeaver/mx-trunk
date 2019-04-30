@@ -151,8 +151,7 @@ mxi_numato_gpio_open( MX_RECORD *record )
 
 	mx_status = mxi_numato_gpio_command( numato_gpio, "ver",
 					numato_gpio->version,
-					sizeof(numato_gpio->version),
-					debug_rs232 );
+					sizeof(numato_gpio->version) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -161,8 +160,7 @@ mxi_numato_gpio_open( MX_RECORD *record )
 
 	mx_status = mxi_numato_gpio_command( numato_gpio, "id",
 					numato_gpio->id,
-					sizeof(numato_gpio->id),
-					debug_rs232 );
+					sizeof(numato_gpio->id) );
 
 	return mx_status;
 }
@@ -262,8 +260,7 @@ MX_EXPORT mx_status_type
 mxi_numato_gpio_command( MX_NUMATO_GPIO *numato_gpio,
 				char *command,
 				char *response,
-				unsigned long max_response_length,
-				mx_bool_type debug_rs232 )
+				unsigned long max_response_length )
 {
 	static const char fname[] = "mxi_numato_gpio_command()";
 
@@ -272,6 +269,8 @@ mxi_numato_gpio_command( MX_NUMATO_GPIO *numato_gpio,
 	char c;
 	char local_buffer[80];
 	size_t i, length;
+	unsigned long flags;
+	mx_bool_type debug, debug_verbose;
 	mx_status_type mx_status;
 
 	if ( numato_gpio == (MX_NUMATO_GPIO *) NULL ) {
@@ -296,17 +295,26 @@ mxi_numato_gpio_command( MX_NUMATO_GPIO *numato_gpio,
 			rs232_record->name, numato_gpio->record->name );
 	}
 
+	flags = numato_gpio->numato_gpio_flags;
+
+	if ( flags & MXF_NUMATO_GPIO_DEBUG_RS232 ) {
+		debug = TRUE;
+	} else {
+		debug = FALSE;
+	}
+
+	if ( flags & MXF_NUMATO_GPIO_DEBUG_RS232_VERBOSE ) {
+		debug_verbose = TRUE;
+	} else {
+		debug_verbose = FALSE;
+	}
+
 	/* The Numato GPIO device echoes back everything that we send to it.
-	 * So we will need to readout and throw away that text.  We add 1
-	 * to the end of the length of the text to include the echoed
-	 * <CR> character.
+	 * So we will need to readout and throw away that text.  Line
+	 * terminators are handled separately.
 	 */
 
-#if 0
-	length = strlen( command ) + 1;
-#else
 	length = strlen( command );
-#endif
 
 	if ( length > sizeof(local_buffer) ) {
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
@@ -324,7 +332,7 @@ mxi_numato_gpio_command( MX_NUMATO_GPIO *numato_gpio,
 
 	/* Now send the command. */
 
-	if ( debug_rs232 ) {
+	if ( debug ) {
 		fprintf( stderr, "Sending '%s' to '%s'.\n",
 			command, numato_gpio->record->name );
 	}
@@ -336,29 +344,35 @@ mxi_numato_gpio_command( MX_NUMATO_GPIO *numato_gpio,
 	for ( i = 0; i < length; i++ ) {
 		c = command[i];
 
-		MX_DEBUG(-2,("%s: sending %#x", fname, c));
+		if ( debug_verbose ) {
+			MX_DEBUG(-2,("%s: sending %#x", fname, c));
+		}
 
-		mx_status = mx_rs232_putchar( rs232_record, c, debug_rs232 );
+		mx_status = mx_rs232_putchar( rs232_record, c, debug );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
 		mx_status = mx_rs232_getchar_with_timeout( rs232_record, &c,
-						debug_rs232, rs232->timeout );
+						debug, rs232->timeout );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		MX_DEBUG(-2,("%s: received c = %#x", fname, c));
+		if ( debug_verbose ) {
+			MX_DEBUG(-2,("%s: received %#x", fname, c));
+		}
 	}
 
 	/* Send the line terminator character <CR> to the Numato. */
 
 	c = 0x0d;
 
-	MX_DEBUG(-2,("%s: sending %#x", fname, c));
+	if ( debug_verbose ) {
+		MX_DEBUG(-2,("%s: sending %#x", fname, c));
+	}
 
-	mx_status = mx_rs232_putchar( rs232_record, c, debug_rs232 );
+	mx_status = mx_rs232_putchar( rs232_record, c, debug );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -367,12 +381,14 @@ mxi_numato_gpio_command( MX_NUMATO_GPIO *numato_gpio,
 
 	while( TRUE ) {
 		mx_status = mx_rs232_getchar_with_timeout( rs232_record, &c,
-						debug_rs232, rs232->timeout );
+						debug, rs232->timeout );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		MX_DEBUG(-2,("%s: received c = %#x", fname, c));
+		if ( debug_verbose ) {
+			MX_DEBUG(-2,("%s: received %#x", fname, c));
+		}
 
 		/* Break out if we see a non-line terminator character. */
 
@@ -387,9 +403,13 @@ mxi_numato_gpio_command( MX_NUMATO_GPIO *numato_gpio,
 	 */
 
 	if ( c == 0x3e ) {
-		response[0] = '\0';
+		if ( (response != (char *) NULL)
+		  && (max_response_length > 0) )
+		{
+			response[0] = '\0';
+		}
 
-		if ( debug_rs232 ) {
+		if ( debug ) {
 			fprintf( stderr, "Received '' from '%s'.\n",
 					numato_gpio->record->name );
 		}
@@ -407,12 +427,14 @@ mxi_numato_gpio_command( MX_NUMATO_GPIO *numato_gpio,
 
 	for ( i = 1; i < max_response_length; i++ ) {
 		mx_status = mx_rs232_getchar_with_timeout( rs232_record, &c,
-						debug_rs232, rs232->timeout );
+						debug, rs232->timeout );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		MX_DEBUG(-2,("%s: received c = %#x", fname, c));
+		if ( debug_verbose ) {
+			MX_DEBUG(-2,("%s: received %#x", fname, c));
+		}
 
 		/* Break out if we see a line terminator character. */
 
@@ -429,12 +451,14 @@ mxi_numato_gpio_command( MX_NUMATO_GPIO *numato_gpio,
 
 	while( TRUE ) {
 		mx_status = mx_rs232_getchar_with_timeout( rs232_record, &c,
-						debug_rs232, rs232->timeout );
+							debug, rs232->timeout );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		MX_DEBUG(-2,("%s: received c = %#x", fname, c));
+		if ( debug_verbose ) {
+			MX_DEBUG(-2,("%s: received %#x", fname, c));
+		}
 
 		/* Break out if we see a non-line terminator character. */
 
@@ -450,7 +474,7 @@ mxi_numato_gpio_command( MX_NUMATO_GPIO *numato_gpio,
 			response, numato_gpio->record->name, c );
 	}
 
-	if ( debug_rs232 ) {
+	if ( debug ) {
 		fprintf( stderr, "Received '%s' from '%s'.\n",
 			response, numato_gpio->record->name );
 	}

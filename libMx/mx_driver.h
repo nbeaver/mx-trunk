@@ -422,7 +422,6 @@ extern "C" {
 #define MXT_DIN_FANIN			30038
 #define MXT_DIN_UMX			30039
 #define MXT_DIN_NUMATO_GPIO		30040
-#define MXT_DIN_NUMATO_GPIO_ALL		30041
 
 /* --- Digital output types --- */
 
@@ -469,7 +468,6 @@ extern "C" {
 #define MXT_DOU_FANOUT			40040
 #define MXT_DOU_UMX			40041
 #define MXT_DOU_NUMATO_GPIO		40042
-#define MXT_DOU_NUMATO_GPIO_ALL		40043
 
 /* --- Motor subclasses --- */
 

@@ -1,13 +1,13 @@
 /*
  * Name:    d_numato_gpio_dinput.c
  *
- * Purpose: MX driver to control Keithley 2400 series digital inputs.
+ * Purpose: MX driver for Numato Lab GPIO digital inputs.
  *
  * Author:  William Lavender
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004, 2006, 2010, 2015 Illinois Institute of Technology
+ * Copyright 2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -18,13 +18,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <math.h>
 
 #include "mx_util.h"
+#include "mx_record.h"
 #include "mx_driver.h"
 #include "mx_digital_input.h"
-#include "i_keithley.h"
 #include "i_numato_gpio.h"
 #include "d_numato_gpio_dinput.h"
 
@@ -36,18 +34,16 @@ MX_RECORD_FUNCTION_LIST mxd_numato_gpio_dinput_record_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	mxd_numato_gpio_dinput_open,
-	mxd_numato_gpio_dinput_close
+	mxd_numato_gpio_dinput_open
 };
 
 MX_DIGITAL_INPUT_FUNCTION_LIST
 		mxd_numato_gpio_dinput_digital_input_function_list =
 {
-	NULL,
-	mxd_numato_gpio_dinput_write
+	mxd_numato_gpio_dinput_read
 };
 
-/* Keithley 2400 digital input data structures. */
+/* Numato GPIO digital input data structures. */
 
 MX_RECORD_FIELD_DEFAULTS mxd_numato_gpio_dinput_rf_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
@@ -68,12 +64,12 @@ static mx_status_type
 mxd_numato_gpio_dinput_get_pointers( MX_DIGITAL_INPUT *dinput,
 				MX_NUMATO_GPIO_DINPUT **numato_gpio_dinput,
 				MX_NUMATO_GPIO **numato_gpio,
-				MX_INTERFACE **interface,
 				const char *calling_fname )
 {
 	static const char fname[] = "mxd_numato_gpio_dinput_get_pointers()";
 
-	MX_RECORD *record, *controller_record;
+	MX_RECORD *record = NULL;
+	MX_RECORD *numato_gpio_record = NULL;
 	MX_NUMATO_GPIO_DINPUT *numato_gpio_dinput_ptr;
 	MX_NUMATO_GPIO *numato_gpio_ptr;
 
@@ -95,7 +91,7 @@ mxd_numato_gpio_dinput_get_pointers( MX_DIGITAL_INPUT *dinput,
 
 	if ( numato_gpio_dinput_ptr == (MX_NUMATO_GPIO_DINPUT *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_NUMATO_GPIO_DINPUT pointer for dinput '%s' is NULL.",
+	    "The MX_NUMATO_GPIO_DINPUT pointer for digital input '%s' is NULL.",
 			record->name );
 	}
 
@@ -103,34 +99,25 @@ mxd_numato_gpio_dinput_get_pointers( MX_DIGITAL_INPUT *dinput,
 		*numato_gpio_dinput = numato_gpio_dinput_ptr;
 	}
 
-	controller_record = numato_gpio_dinput_ptr->controller_record;
+	numato_gpio_record = numato_gpio_dinput_ptr->numato_gpio_record;
 
-	if ( controller_record == (MX_RECORD *) NULL ) {
+	if ( numato_gpio_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The 'controller_record' pointer for dinput '%s' is NULL.",
-				record->name );
+	    "The 'numato_gpio_record' pointer for digital input '%s' is NULL.",
+							record->name );
 	}
 
 	numato_gpio_ptr = (MX_NUMATO_GPIO *)
-					controller_record->record_type_struct;
-
-	if ( numato_gpio_ptr == (MX_NUMATO_GPIO *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	"The MX_NUMATO_GPIO pointer for controller record '%s' is NULL.",
-				controller_record->name );
-	}
+					numato_gpio_record->record_type_struct;
 
 	if ( numato_gpio != (MX_NUMATO_GPIO **) NULL ) {
 		*numato_gpio = numato_gpio_ptr;
-	}
 
-	if ( interface != (MX_INTERFACE **) NULL ) {
-		*interface = &(numato_gpio_ptr->port_interface);
-
-		if ( *interface == (MX_INTERFACE *) NULL ) {
+		if ( (*numato_gpio) == (MX_NUMATO_GPIO *) NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_INTERFACE pointer for Keithley 2400 '%s' is NULL.",
-				numato_gpio_ptr->record->name );
+			"The MX_NUMATO_GPIO pointer for Numato GPIO "
+			"record '%s' is NULL.",
+				numato_gpio_record->name );
 		}
 	}
 
@@ -173,6 +160,7 @@ mxd_numato_gpio_dinput_create_record_structures( MX_RECORD *record )
 		= &mxd_numato_gpio_dinput_digital_input_function_list;
 
 	dinput->record = record;
+	numato_gpio_dinput->record = record;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -182,105 +170,77 @@ mxd_numato_gpio_dinput_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_numato_gpio_dinput_open()";
 
-	MX_DIGITAL_INPUT *dinput;
-	MX_NUMATO_GPIO_DINPUT *numato_gpio_dinput;
-	MX_NUMATO_GPIO *numato_gpio;
-	MX_INTERFACE *interface;
-	long gpib_address;
+	MX_DIGITAL_INPUT *dinput = NULL;
+	MX_NUMATO_GPIO_DINPUT *numato_gpio_dinput = NULL;
+	MX_NUMATO_GPIO *numato_gpio = NULL;
+	long channel;
+	unsigned long iomask, iodir;
+	char command[80];
 	mx_status_type mx_status;
 
 	dinput = (MX_DIGITAL_INPUT *) (record->record_class_struct);
 
-	if ( dinput == (MX_DIGITAL_INPUT *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"MX_DIGITAL_INPUT pointer for record '%s' is NULL.",
-			record->name );
-	}
-
 	mx_status = mxd_numato_gpio_dinput_get_pointers( dinput,
-		&numato_gpio_dinput, &numato_gpio, &interface, fname );
+				&numato_gpio_dinput, &numato_gpio, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( interface->record->mx_superclass != MXR_INTERFACE ) {
-		return mx_error( MXE_TYPE_MISMATCH, fname,
-		"Record '%s' used by Keithley 2400 dinput '%s' is not "
-		"an interface record.", interface->record->name, record->name );
+	channel = numato_gpio_dinput->channel_number;
+
+	if ( channel < 0 ) {
+		iomask = 0xff;
+		iodir = 0xff;
+	} else {
+		iomask = (1 << channel);
+		iodir = (1 << channel);
 	}
 
-	switch( interface->record->mx_class ) {
-	case MXI_RS232:
-		break;
-	case MXI_GPIB:
-		gpib_address = interface->address;
+	snprintf( command, sizeof(command), "gpio iomask %02lx", iomask );
 
-		/* Check that the GPIB address is valid. */
-
-		if ( gpib_address < 0 || gpib_address > 30 ) {
-			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"GPIB address %ld for record '%s' is out of allowed range 0-30.",
-				gpib_address, record->name );
-		}
-		break;
-	default:
-		return mx_error( MXE_TYPE_MISMATCH, fname,
-		"Record '%s' is not an RS-232 or GPIB record.",
-			interface->record->name );
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_numato_gpio_dinput_close( MX_RECORD *record )
-{
-	static const char fname[] = "mxd_numato_gpio_dinput_close()";
-
-	MX_DIGITAL_INPUT *dinput;
-	MX_NUMATO_GPIO_DINPUT *numato_gpio_dinput;
-	MX_NUMATO_GPIO *numato_gpio;
-	MX_INTERFACE *interface;
-	mx_status_type mx_status;
-
-	dinput = (MX_DIGITAL_INPUT *) (record->record_class_struct);
-
-	if ( dinput == (MX_DIGITAL_INPUT *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"MX_DIGITAL_INPUT pointer for record '%s' is NULL.",
-			record->name );
-	}
-
-	mx_status = mxd_numato_gpio_dinput_get_pointers( dinput,
-		&numato_gpio_dinput, &numato_gpio, &interface, fname );
+	mx_status = mxi_numato_gpio_command( numato_gpio, command, NULL, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	snprintf( command, sizeof(command), "gpio iodir %02lx", iodir );
+
+	mx_status = mxi_numato_gpio_command( numato_gpio, command, NULL, 0 );
 
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mxd_numato_gpio_dinput_write( MX_DIGITAL_INPUT *dinput )
+mxd_numato_gpio_dinput_read( MX_DIGITAL_INPUT *dinput )
 {
-	static const char fname[] = "mxd_numato_gpio_dinput_write()";
+	static const char fname[] = "mxd_numato_gpio_dinput_read()";
 
 	MX_NUMATO_GPIO_DINPUT *numato_gpio_dinput;
 	MX_NUMATO_GPIO *numato_gpio;
-	MX_INTERFACE *interface;
+	long channel;
 	char command[80];
+	char response[80];
 	mx_status_type mx_status;
 
 	mx_status = mxd_numato_gpio_dinput_get_pointers( dinput,
-		&numato_gpio_dinput, &numato_gpio, &interface, fname );
+				&numato_gpio_dinput, &numato_gpio, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	snprintf( command, sizeof(command), "SOUR2:TTL %lu", dinput->value );
+	channel = numato_gpio_dinput->channel_number;
 
-	mx_status = mxi_keithley_command( dinput->record, interface, command,
-					NULL, 0, NUMATO_GPIO_DINPUT_DEBUG );
+	if ( channel < 0 ) {
+		strlcpy( command, "gpio readall", sizeof(command) );
+	} else {
+		snprintf( command, sizeof(command), "gpio read %ld", channel );
+	}
+
+	mx_status = mxi_numato_gpio_command( numato_gpio, command,
+						response, sizeof(response) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	return mx_status;
 }

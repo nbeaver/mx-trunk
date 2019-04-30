@@ -283,6 +283,7 @@
 #include "d_digital_fanin.h"
 #include "d_digital_fanout.h"
 #include "d_keithley199_ainput.h"
+#include "d_numato_gpio_dinput.h"
 
 #include "d_soft_motor.h"
 #include "d_e500.h"
@@ -2030,6 +2031,13 @@ MX_DRIVER mx_type_table[] = {
 			&mxd_digital_fanout_digital_output_function_list,
 				&mxd_digital_fanout_num_record_fields,
 				&mxd_digital_fanout_rfield_def_ptr},
+
+{"numato_gpio_dinput", MXT_DIN_NUMATO_GPIO, MXC_DIGITAL_INPUT, MXR_DEVICE,
+				&mxd_numato_gpio_dinput_record_function_list,
+				NULL,
+			&mxd_numato_gpio_dinput_digital_input_function_list,
+				&mxd_numato_gpio_dinput_num_record_fields,
+				&mxd_numato_gpio_dinput_rfield_def_ptr},
 
 #if ( defined(OS_LINUX) && (MX_GLIBC_VERSION >= 2002000L) )
 
