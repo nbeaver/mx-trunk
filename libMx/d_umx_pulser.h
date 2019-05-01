@@ -45,6 +45,7 @@ MX_API mx_status_type mxd_umx_pulser_get_parameter(
 MX_API mx_status_type mxd_umx_pulser_set_parameter(
 					MX_PULSE_GENERATOR *pulser );
 MX_API mx_status_type mxd_umx_pulser_setup( MX_PULSE_GENERATOR *pulser );
+MX_API mx_status_type mxd_umx_pulser_get_status( MX_PULSE_GENERATOR *pulser );
 
 extern MX_RECORD_FUNCTION_LIST mxd_umx_pulser_record_function_list;
 extern MX_PULSE_GENERATOR_FUNCTION_LIST mxd_umx_pulser_pulser_function_list;
@@ -57,7 +58,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_umx_pulser_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_UMX_PULSER, umx_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "pulse_number", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "pulser_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_UMX_PULSER, pulser_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \

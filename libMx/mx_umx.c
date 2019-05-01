@@ -87,7 +87,7 @@ mx_umx_command( MX_RECORD *umx_record,
 		}
 
 		mx_status = mx_rs232_putline( rs232_record, command,
-					NULL, (unsigned long) debug_flag );
+					NULL, (unsigned long) 0 );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -115,7 +115,7 @@ mx_umx_command( MX_RECORD *umx_record,
 
 		mx_status = mx_rs232_getline( rs232_record,
 					buffer_ptr, buffer_length,
-					NULL, (unsigned long) debug_flag );
+					NULL, (unsigned long) 0 );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

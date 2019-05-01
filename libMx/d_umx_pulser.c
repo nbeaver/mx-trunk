@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_UMX_PULSER_DEBUG			TRUE
+#define MXD_UMX_PULSER_DEBUG			FALSE
 
 #define MXD_UMX_PULSER_DEBUG_CONF		TRUE
 
@@ -57,7 +57,8 @@ MX_PULSE_GENERATOR_FUNCTION_LIST mxd_umx_pulser_pulser_function_list = {
 	NULL,
 	mxd_umx_pulser_get_parameter,
 	mxd_umx_pulser_set_parameter,
-	mxd_umx_pulser_setup
+	mxd_umx_pulser_setup,
+	mxd_umx_pulser_get_status
 };
 
 /* MX digital output pulser data structures. */
@@ -253,13 +254,19 @@ mxd_umx_pulser_arm( MX_PULSE_GENERATOR *pulser )
 	static const char fname[] = "mxd_umx_pulser_arm()";
 
 	MX_UMX_PULSER *umx_pulser = NULL;
+	MX_RECORD *umx_record = NULL;
+	char command[80];
+	char response[200];
+	mx_bool_type debug_flag;
 	mx_status_type mx_status;
 
 	mx_status = mxd_umx_pulser_get_pointers( pulser,
-						&umx_pulser, NULL, fname );
+					&umx_pulser, &umx_record, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	debug_flag = TRUE;
 
 #if MXD_UMX_PULSER_DEBUG_RUNNING
 	MX_DEBUG(-2,("%s: Pulse generator '%s' armed, "
@@ -293,8 +300,6 @@ mxd_umx_pulser_arm( MX_PULSE_GENERATOR *pulser )
 		pulser->pulse_period = pulser->pulse_width;
 	}
 
-	/* Configure the pulse generator parameters */
-
 	/* If we are not in external trigger mode, then we are done. */
 
 	mx_status = mx_pulse_generator_get_trigger_mode( pulser->record, NULL );
@@ -302,13 +307,23 @@ mxd_umx_pulser_arm( MX_PULSE_GENERATOR *pulser )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if 0
 	if ( (pulser->trigger_mode & MXF_DEV_EXTERNAL_TRIGGER) == 0 ) {
 		return MX_SUCCESSFUL_RESULT;
 	}
+#endif
 
 	/* We are in external trigger mode. */
 
 	/* Start the pulse generator. */
+
+	snprintf( command, sizeof(command),
+		"PUT PGN%ld.PARM 1",
+		umx_pulser->pulser_number );
+
+	mx_status = mx_umx_command( umx_record, command,
+					response, sizeof(response),
+					debug_flag );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -326,13 +341,19 @@ mxd_umx_pulser_trigger( MX_PULSE_GENERATOR *pulser )
 	static const char fname[] = "mxd_umx_pulser_arm()";
 
 	MX_UMX_PULSER *umx_pulser = NULL;
+	MX_RECORD *umx_record = NULL;
+	char command[80];
+	char response[200];
+	mx_bool_type debug_flag;
 	mx_status_type mx_status;
 
 	mx_status = mxd_umx_pulser_get_pointers( pulser,
-						&umx_pulser, NULL, fname );
+					&umx_pulser, &umx_record, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	debug_flag = TRUE;
 
 #if MXD_UMX_PULSER_DEBUG_RUNNING
 	MX_DEBUG(-2,("%s: Pulse generator '%s' triggered, "
@@ -341,6 +362,8 @@ mxd_umx_pulser_trigger( MX_PULSE_GENERATOR *pulser )
 			pulser->trigger_mode ));
 #endif
 
+	/*----*/
+
 	if ( (pulser->trigger_mode & MXF_DEV_INTERNAL_TRIGGER) == 0 ) {
 		return MX_SUCCESSFUL_RESULT;
 	}
@@ -348,6 +371,14 @@ mxd_umx_pulser_trigger( MX_PULSE_GENERATOR *pulser )
 	/* We are in internal trigger mode. */
 
 	/* Start the pulse generator. */
+
+	snprintf( command, sizeof(command),
+		"PUT PGN%ld.PTRG 1",
+		umx_pulser->pulser_number );
+
+	mx_status = mx_umx_command( umx_record, command,
+					response, sizeof(response),
+					debug_flag );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -365,13 +396,19 @@ mxd_umx_pulser_stop( MX_PULSE_GENERATOR *pulser )
 	static const char fname[] = "mxd_umx_pulser_stop()";
 
 	MX_UMX_PULSER *umx_pulser = NULL;
+	MX_RECORD *umx_record = NULL;
+	char command[80];
+	char response[200];
+	mx_bool_type debug_flag;
 	mx_status_type mx_status;
 
 	mx_status = mxd_umx_pulser_get_pointers( pulser,
-						&umx_pulser, NULL, fname );
+					&umx_pulser, &umx_record, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	debug_flag = TRUE;
 
 #if MXD_UMX_PULSER_DEBUG_RUNNING
 	MX_DEBUG(-2,("%s: Stopping pulse generator '%s'.",
@@ -381,9 +418,15 @@ mxd_umx_pulser_stop( MX_PULSE_GENERATOR *pulser )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	pulser->busy = FALSE;
+	snprintf( command, sizeof(command),
+		"PUT PGN%ld.PSTP 1",
+		umx_pulser->pulser_number );
 
-	return MX_SUCCESSFUL_RESULT;
+	mx_status = mx_umx_command( umx_record, command,
+					response, sizeof(response),
+					debug_flag );
+
+	return mx_status;;
 }
 
 /*-----*/
@@ -398,6 +441,7 @@ mxd_umx_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 	MX_PULSE_GENERATOR_FUNCTION_LIST *pulser_flist = NULL;
 	unsigned long flags;
 	int num_items;
+	char command[80];
 	char response[200];
 	mx_bool_type debug_flag;
 	mx_status_type mx_status;
@@ -431,15 +475,17 @@ mxd_umx_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 
 	switch( pulser->parameter_type ) {
 	case MXLV_PGN_NUM_PULSES:
-		mx_status = mx_umx_command( umx_record, "PNUM",
+		snprintf( command, sizeof(command),
+			"GET PGN%ld.PNUM", umx_pulser->pulser_number );
+
+		mx_status = mx_umx_command( umx_record, command,
 						response, sizeof(response),
 						debug_flag );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		num_items = sscanf( response, "PNUM %ld",
-					&(pulser->num_pulses) );
+		num_items = sscanf( response, "$%ld", &(pulser->num_pulses) );
 
 		if ( num_items != 1 ) {
 			return mx_error( MXE_PROTOCOL_ERROR, fname,
@@ -450,15 +496,17 @@ mxd_umx_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 		break;
 
 	case MXLV_PGN_PULSE_WIDTH:
-		mx_status = mx_umx_command( umx_record, "PWID",
+		snprintf( command, sizeof(command),
+			"GET PGN%ld.PWID", umx_pulser->pulser_number );
+
+		mx_status = mx_umx_command( umx_record, command,
 						response, sizeof(response),
 						debug_flag );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		num_items = sscanf( response, "PWID %lg",
-					&(pulser->pulse_width) );
+		num_items = sscanf( response, "$%lg", &(pulser->pulse_width) );
 
 		if ( num_items != 1 ) {
 			return mx_error( MXE_PROTOCOL_ERROR, fname,
@@ -469,15 +517,17 @@ mxd_umx_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 		break;
 
 	case MXLV_PGN_PULSE_PERIOD:
-		mx_status = mx_umx_command( umx_record, "PNUM",
+		snprintf( command, sizeof(command),
+			"GET PGN%ld.PPER", umx_pulser->pulser_number );
+
+		mx_status = mx_umx_command( umx_record, command,
 						response, sizeof(response),
 						debug_flag );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		num_items = sscanf( response, "PPER %lg",
-					&(pulser->pulse_period) );
+		num_items = sscanf( response, "$%lg", &(pulser->pulse_period) );
 
 		if ( num_items != 1 ) {
 			return mx_error( MXE_PROTOCOL_ERROR, fname,
@@ -488,15 +538,17 @@ mxd_umx_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 		break;
 
 	case MXLV_PGN_PULSE_DELAY:
-		mx_status = mx_umx_command( umx_record, "PDLY",
+		snprintf( command, sizeof(command),
+			"GET PGN%ld.PDLY", umx_pulser->pulser_number );
+
+		mx_status = mx_umx_command( umx_record, command,
 						response, sizeof(response),
 						debug_flag );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		num_items = sscanf( response, "PDLY %lg",
-					&(pulser->pulse_delay) );
+		num_items = sscanf( response, "$%lg", &(pulser->pulse_delay) );
 
 		if ( num_items != 1 ) {
 			return mx_error( MXE_PROTOCOL_ERROR, fname,
@@ -507,15 +559,17 @@ mxd_umx_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 		break;
 
 	case MXLV_PGN_FUNCTION_MODE:
-		mx_status = mx_umx_command( umx_record, "PFMO",
+		snprintf( command, sizeof(command),
+			"GET PGN%ld.PFMO", umx_pulser->pulser_number );
+
+		mx_status = mx_umx_command( umx_record, command,
 						response, sizeof(response),
 						debug_flag );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		num_items = sscanf( response, "PFMO %ld",
-					&(pulser->function_mode) );
+		num_items = sscanf( response, "$%ld", &(pulser->function_mode));
 
 		if ( num_items != 1 ) {
 			return mx_error( MXE_PROTOCOL_ERROR, fname,
@@ -548,10 +602,14 @@ mxd_umx_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 	static const char fname[] = "mxd_umx_pulser_set_parameter()";
 
 	MX_UMX_PULSER *umx_pulser = NULL;
+	MX_RECORD *umx_record = NULL;
+	char command[80];
+	char response[200];
+	mx_bool_type debug_flag;
 	mx_status_type mx_status;
 
 	mx_status = mxd_umx_pulser_get_pointers( pulser,
-						&umx_pulser, NULL, fname );
+					&umx_pulser, &umx_record, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -565,40 +623,74 @@ mxd_umx_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 		pulser->parameter_type));
 #endif
 
+	debug_flag = TRUE;
+
 	switch( pulser->parameter_type ) {
-	case MXLV_PGN_NUM_PULSES:
+	case MXLV_PGN_PULSE_PERIOD:
+		snprintf( command, sizeof(command),
+			"PUT PGN%ld.PPER %f",
+			umx_pulser->pulser_number,
+			pulser->pulse_period );
 
-#if MXD_UMX_PULSER_DEBUG
-			MX_DEBUG(-2,("%s: '%s' pulser->num_pulses = %ld",
-				fname, pulser->record->name,
-				pulser->num_pulses));
-#endif
-
+		mx_status = mx_umx_command( umx_record, command,
+					response, sizeof(response),
+					debug_flag );
 		break;
 
 	case MXLV_PGN_PULSE_WIDTH:
-	case MXLV_PGN_PULSE_PERIOD:
+		snprintf( command, sizeof(command),
+			"PUT PGN%ld.PWID %f",
+			umx_pulser->pulser_number,
+			pulser->pulse_width );
 
-#if MXD_UMX_PULSER_DEBUG
-		MX_DEBUG(-2,("%s: '%s' pulser->pulse_width = %g",
-			fname, pulser->record->name, pulser->pulse_width ));
+		mx_status = mx_umx_command( umx_record, command,
+					response, sizeof(response),
+					debug_flag );
+		break;
 
-		MX_DEBUG(-2,("%s: '%s' pulser->pulse_period = %g",
-			fname, pulser->record->name, pulser->pulse_period ));
-#endif
+	case MXLV_PGN_NUM_PULSES:
+		snprintf( command, sizeof(command),
+			"PUT PGN%ld.PNUM %ld",
+			umx_pulser->pulser_number,
+			pulser->num_pulses );
 
-		/* Just save the most recently requested values for use
-		 * by the 'start' command.
-		 */
-
+		mx_status = mx_umx_command( umx_record, command,
+					response, sizeof(response),
+					debug_flag );
 		break;
 
 	case MXLV_PGN_PULSE_DELAY:
+		snprintf( command, sizeof(command),
+			"PUT PGN%ld.PDLY %f",
+			umx_pulser->pulser_number,
+			pulser->pulse_delay );
+
+		mx_status = mx_umx_command( umx_record, command,
+					response, sizeof(response),
+					debug_flag );
 		break;
 
 	case MXLV_PGN_FUNCTION_MODE:
+		snprintf( command, sizeof(command),
+			"PUT PGN%ld.PFMO %ld",
+			umx_pulser->pulser_number,
+			pulser->function_mode );
+
+		mx_status = mx_umx_command( umx_record, command,
+					response, sizeof(response),
+					debug_flag );
 		break;
 
+	case MXLV_PGN_TRIGGER_MODE:
+		snprintf( command, sizeof(command),
+			"PUT PGN%ld.PTMO %ld",
+			umx_pulser->pulser_number,
+			pulser->trigger_mode );
+
+		mx_status = mx_umx_command( umx_record, command,
+					response, sizeof(response),
+					debug_flag );
+		break;
 	default:
 		return
 		    mx_pulse_generator_default_set_parameter_handler( pulser );
@@ -655,6 +747,49 @@ mxd_umx_pulser_setup( MX_PULSE_GENERATOR *pulser )
 		pulser->function_mode,
 		pulser->trigger_mode ));
 #endif
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_umx_pulser_get_status( MX_PULSE_GENERATOR *pulser )
+{
+	static const char fname[] = "mxd_umx_pulser_get_status()";
+
+	MX_UMX_PULSER *umx_pulser = NULL;
+	MX_RECORD *umx_record = NULL;
+	char command[80];
+	char response[200];
+	int num_items;
+	mx_bool_type debug_flag;
+	mx_status_type mx_status;
+
+	mx_status = mxd_umx_pulser_get_pointers( pulser,
+					&umx_pulser, &umx_record, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	debug_flag = TRUE;
+
+	snprintf( command, sizeof(command),
+		"GET PGN%ld.PSTA", umx_pulser->pulser_number );
+
+	mx_status = mx_umx_command( umx_record, command,
+					response, sizeof(response),
+					debug_flag );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	num_items = sscanf( response, "$%lu", &(pulser->status) );
+
+	if ( num_items != 1 ) {
+		return mx_error( MXE_PROTOCOL_ERROR, fname,
+		"The response '%s' to command 'PPER' sent to "
+		"pulse generator '%s' was not understandable.",
+			response, pulser->record->name );
+	}
 
 	return mx_status;
 }
