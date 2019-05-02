@@ -267,7 +267,10 @@ motor_set_fn( int argc, char *argv[] )
 	/* SET PULSER function. */
 
 	} else if ( strncmp( argv[2], "pulser", length2 ) == 0 ) {
+
+#if 0
 		MX_DEBUG(-2,("%s: argc = %d", cname, argc));
+#endif
 
 		if ( argc != 10 ) {
 			fprintf(output,"%s\n", usage);
