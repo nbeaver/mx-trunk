@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000, 2003, 2006-2007 Illinois Institute of Technology
+ * Copyright 2000, 2003, 2006-2007, 2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,9 +28,12 @@ extern "C" {
 #define MX_DATAFMT_BIG_ENDIAN		0x1
 #define MX_DATAFMT_LITTLE_ENDIAN	0x2
 
-#define MX_DATAFMT_IEEE_FLOAT		0x100
-#define MX_DATAFMT_VAX_D_FLOAT		0x200
-#define MX_DATAFMT_VAX_G_FLOAT		0x400
+#define MX_DATAFMT_FLOAT_IEEE_BIG	0x1000
+#define MX_DATAFMT_FLOAT_IEEE_LITTLE	0x2000
+#define MX_DATAFMT_FLOAT_VAX_D		0x4000
+#define MX_DATAFMT_FLOAT_VAX_G		0x8000
+
+#define MX_DATAFMT_FLOAT_DEPRECATED	0xF00
 
 /*---*/
 

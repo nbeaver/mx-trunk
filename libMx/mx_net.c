@@ -6322,6 +6322,8 @@ mx_network_request_data_format( MX_RECORD *server_record,
 		return mx_status;
 	}
 
+	/*----*/
+
 	MX_DEBUG( 2,
     ("%s: local_native_data_format = %#lx, remote_native_data_format = %#lx",
      		fname, local_native_data_format, remote_native_data_format));
@@ -6352,6 +6354,36 @@ mx_network_request_data_format( MX_RECORD *server_record,
 		return mx_status;
 		break;
 	}
+
+	/*----*/
+
+	/* MX 2.1.9 and before defined float order without taking into account
+	 * the possible endianness differences for IEEE float.  If the remote
+	 * server returns a value for 'remote_native_data_format' that contains
+	 * any of the bits set in MXF_DATAFMT_FLOAT_DEPRECATED, then we assume
+	 * the remote server is MX 2.1.9 and below and just _assume_ that it
+	 * IEEE float little-endian.
+	 *
+	 * This was done for the sake of the Android Bionic libraries, which
+	 * apparently sometimes use big-endian integers with little-endian
+	 * float values.
+	 */
+
+	if ( remote_native_data_format & MX_DATAFMT_FLOAT_DEPRECATED ) {
+		/* First mask off the deprecated bits. */
+
+		remote_native_data_format &= (~MX_DATAFMT_FLOAT_DEPRECATED);
+
+		/* Assume that float is IEEE little endian.  This should
+		 * be compatible with most previous servers where the 
+		 * endianness was set the same for both integer and float
+		 * numbers.  Android Bionic is the special snowflake here.
+		 */
+
+		remote_native_data_format |= MX_DATAFMT_FLOAT_IEEE_LITTLE;
+	}
+
+	/*----*/
 
 	/* Try to select a binary data format. */
 

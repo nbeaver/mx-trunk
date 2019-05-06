@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2006-2007 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2006-2007, 2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -15,6 +15,10 @@
  */
 
 #include <stdio.h>
+
+#if defined(__GLIBC__)
+#include <endian.h>
+#endif
 
 #include "mx_util.h"
 #include "mx_stdint.h"
@@ -37,7 +41,7 @@ mx_native_byteorder( void )
 	}
 }
 
-/* mx_native_float_format: A cop-out for now. */
+/*-------- mx_native_float_format: A cop-out for now. --------*/
 
 #if defined( OS_VMS )
 
@@ -45,25 +49,44 @@ MX_EXPORT unsigned long
 mx_native_float_format( void )
 {
 #if defined( __ia64 )
-	return MX_DATAFMT_IEEE_FLOAT;
+	return MX_DATAFMT_IEEE_FLOAT;	/* FIXME */
 #elif defined( __alpha )
-	return MX_DATAFMT_VAX_G_FLOAT;
+	return MX_DATAFMT_FLOAT_VAX_G;
 #elif defined( __vax )
-	return MX_DATAFMT_VAX_D_FLOAT;
+	return MX_DATAFMT_FLOAT_VAX_D;
 #else
 #error Unrecognized VMS platform for mx_native_float_format().
 #endif
 }
 
-#else /* everything else */
+#elif defined( __FLOAT_WORD_ORDER__ )
+    /* __FLOAT_WORD_ORDER__ comes from the GNU C library. */
+
+#  if ( __FLOAT_WORD_ORDER__ == __ORDER_LITTLE_ENDIAN__ )
 
 MX_EXPORT unsigned long
 mx_native_float_format( void )
 {
-	return MX_DATAFMT_IEEE_FLOAT;
+	return MX_DATAFMT_FLOAT_IEEE_LITTLE;
 }
 
+#  elif ( __FLOAT_WORD_ORDER__ == __ORDER_BIG_ENDIAN__ )
+
+MX_EXPORT unsigned long
+mx_native_float_format( void )
+{
+	return MX_DATAFMT_FLOAT_IEEE_BIG;
+}
+
+#  else
+#    error __FLOAT_WORD_ORDER__ is defined, but with an unrecognized value.
+#  endif
+
+#else
+#error mx_native_float_format() not yet implemented for this platform.
 #endif
+
+/*--------*/
 
 MX_EXPORT unsigned long
 mx_native_data_format( void )

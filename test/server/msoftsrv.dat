@@ -26,7 +26,7 @@ z2             device motor soft_motor "" "" 0 -20 -5000000 5000000 0 -1 -1 0.00
 z3             device motor soft_motor "" "" 0 -20 -5000000 5000000 0 -1 -1 0.001 0 um 1000 0 500
 omega          device motor delta_motor "" "" 0 0 -1e+08 1e+08 0 -1 -1 1 0 um rawomega pivot
 time           device motor elapsed_time "" "" 0 0 -2147483648 2147483647 0 -1 -1 1 0 sec 0
-scaler2        device scaler soft_scaler "" "" 0 0 0 timer1 omega 181 omega_g.dat 0
+scaler2        device scaler soft_scaler "" "" 0 0 0 timer1 omega 181 ./omega_g.dat 0
 timer1         device timer soft_timer "" ""
 #
 # The following set of soft CAMAC devices is used in the absence of 
