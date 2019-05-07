@@ -40,6 +40,17 @@ extern "C" {
 #define MXF_SRVAUTH_NONE		1
 #define MXF_SRVAUTH_UNIX_DOMAIN		2
 
+/*----*/
+
+/* Values for the 'socket_multiplexer_type' field in MX_LIST_HEAD. */
+
+#define MXF_SRV_MULTIPLEXER_NONE	0
+#define MXF_SRV_MULTIPLEXER_SELECT	1
+#define MXF_SRV_MULTIPLEXER_POLL	2
+#define MXF_SRV_MULTIPLEXER_EPOLL	3
+
+/*----*/
+
 struct mx_no_auth {
 	int dummy;
 };

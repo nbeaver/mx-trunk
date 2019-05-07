@@ -541,6 +541,8 @@ typedef struct {
 	double poll_callback_interval;		/* in seconds */
 
 	void *module_list;
+
+	unsigned long socket_multiplexer_type;
 } MX_LIST_HEAD;
 
 /* --- Record list handling functions. --- */

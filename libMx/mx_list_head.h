@@ -9,7 +9,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004, 2006-2010, 2012-2018
+ * Copyright 2000-2001, 2003-2004, 2006-2010, 2012-2019
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -255,6 +255,11 @@ extern "C" {
   {-1, -1, "poll_callback_interval", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, \
 	  		offsetof(MX_LIST_HEAD, poll_callback_interval), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {-1, -1, "socket_multiplexer_type", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_SUPERCLASS_STRUCT, \
+			offsetof(MX_LIST_HEAD, socket_multiplexer_type), \
 	{0}, NULL, MXFF_READ_ONLY}
 
 MX_API_PRIVATE mx_status_type mxr_create_list_head( MX_RECORD *record );

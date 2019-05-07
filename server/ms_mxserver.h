@@ -220,14 +220,14 @@ extern mx_status_type mxsrv_ascii_client_handle_put(
 extern void mxsrv_process_sockets( MX_RECORD *record_list,
 				MX_SOCKET_HANDLER_LIST *socket_handler_list );
 
-extern void mxsrv_update_fds( MX_SOCKET_HANDLER_LIST *socket_handler_list );
-
+extern void mxsrv_update_fds( MX_LIST_HEAD *mx_list_head,
+				MX_SOCKET_HANDLER_LIST *socket_handler_list );
 /*---*/
 
 extern void mxsrv_process_sockets_with_select( MX_RECORD *record_list,
 				MX_SOCKET_HANDLER_LIST *socket_handler_list );
 
-extern void mxsrv_update_select_fds(
+extern void mxsrv_update_select_fds( MX_LIST_HEAD *mx_list_head,
 				MX_SOCKET_HANDLER_LIST *socket_handler_list );
 
 /*---*/
@@ -244,7 +244,7 @@ extern void mxsrv_update_select_fds(
 extern void mxsrv_process_sockets_with_epoll( MX_RECORD *record_list,
 				MX_SOCKET_HANDLER_LIST *socket_handler_list );
 
-extern void mxsrv_update_epoll_fds(
+extern void mxsrv_update_epoll_fds( MX_LIST_HEAD *mx_list_head,
 				MX_SOCKET_HANDLER_LIST *socket_handler_list );
 
 #endif /* HAVE_LINUX_EPOLL */

@@ -161,14 +161,21 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 	MX_RECORD_FIELD *field;
 	mx_status_type mx_status, mx_status1, mx_status2;
 
+	list_head = socket_handler->list_head;
+
+	if ( list_head == (MX_LIST_HEAD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_LIST_HEAD pointer for the current database is NULL." );
+	}
+
 	n = socket_handler->handler_array_index;
 
 	if ( socket_handler_list != NULL ) {
 		socket_handler_list->array[n] = NULL;
 
-		/* Update the list of fds to check in select(). */
+		/* Update the list of fds to check. */
 
-		mxsrv_update_select_fds( socket_handler_list );
+		mxsrv_update_fds( list_head, socket_handler_list );
 	}
 
 	/* Announce that the client socket has gone away. */
@@ -176,13 +183,6 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 	if ( n >= 0 ) {
 		mx_info("Client %ld (socket %d) disconnected.",
 			n, (int) socket_handler->mx_socket->socket_fd);
-	}
-
-	list_head = socket_handler->list_head;
-
-	if ( list_head == (MX_LIST_HEAD *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_LIST_HEAD pointer for the current database is NULL." );
 	}
 
 	/* If this handler had any callbacks, find them and delete them.
@@ -1311,9 +1311,9 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 
 	socket_handler_list->num_sockets_in_use++;
 
-	/* Update the list of fds to check in select(). */
+	/* Update the list of fds to check. */
 
-	mxsrv_update_select_fds( socket_handler_list );
+	mxsrv_update_fds( list_head, socket_handler_list );
 
 	/* Announce that a new client has connected. */
 

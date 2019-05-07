@@ -533,6 +533,7 @@ mxserver_main( int argc, char *argv[] )
 	double vc_poll_callback_interval;
 	long delay_microseconds;
 	unsigned long default_data_format;
+	unsigned long multiplexer_type;		/* For sockets */
 	FILE *new_stderr;
 
 	int max_sockets, handler_array_size;
@@ -635,13 +636,15 @@ mxserver_main( int argc, char *argv[] )
 
 	poll_all = FALSE;
 
+	multiplexer_type = MXF_SRV_MULTIPLEXER_SELECT;
+
 #if HAVE_GETOPT
         /* Process command line arguments, if any. */
 
         error_flag = FALSE;
 
         while ((c = getopt(argc, argv,
-		"aA:b:BcC:d:De:E:f:Jkl:L:m:M:n:O:p:P:rsStT:u:v:wxY:Z")) != -1)
+	    "aA:b:BcC:d:De:E:f:Jkl:L:m:M:n:O:p:P:rsStT:u:v:wxX:Y:Z")) != -1)
 	{
                 switch (c) {
 		case 'a':
@@ -783,6 +786,22 @@ mxserver_main( int argc, char *argv[] )
 		case 'x':
 			putenv("MX_DEBUGGER=xterm -e gdb -tui -p %lu");
 			break;
+		case 'X':
+			if ( strcmp( "select", optarg ) == 0 ) {
+				multiplexer_type = MXF_SRV_MULTIPLEXER_SELECT;
+			} else
+			if ( strcmp( "poll", optarg ) == 0 ) {
+				multiplexer_type = MXF_SRV_MULTIPLEXER_POLL;
+			} else
+			if ( strcmp( "epoll", optarg ) == 0 ) {
+				multiplexer_type = MXF_SRV_MULTIPLEXER_EPOLL;
+			} else {
+				fprintf( stderr,
+		"Error: Unsupported socket multiplexer type '%s' requested.\n",
+					optarg );
+				exit(1);
+			}
+			break;
 		case 'Y':
 			/* Directly set the value of MXDIR. */
 
@@ -869,6 +888,8 @@ mxserver_main( int argc, char *argv[] )
 
 	mx_info( "***** MX server %s started *****",
 		mx_get_version_full_string() );
+
+	/* Setup socket event handlers. */
 
 	i_mx_client    = -1;
 	i_ascii_client = -1;
@@ -979,8 +1000,6 @@ mxserver_main( int argc, char *argv[] )
 		socket_handler_list.array[i] = NULL;
 	}
 
-	mxsrv_update_select_fds( &socket_handler_list );
-
 	/* Initialize the MX device drivers. */
 
 	mx_status = mx_initialize_drivers();
@@ -1024,6 +1043,8 @@ mxserver_main( int argc, char *argv[] )
 
 	strlcpy( list_head_struct->program_name,
 			"mxserver", MXU_PROGRAM_NAME_LENGTH );
+
+	list_head_struct->socket_multiplexer_type = multiplexer_type;
 
 	/* Set the default floating point display precision. */
 
@@ -1267,9 +1288,9 @@ mxserver_main( int argc, char *argv[] )
 		}
 	}
 
-	/* Update the select_readfds value in socket_handler_list. */
+	/* Update the sockets to check in socket_handler_list. */
 
-	mxsrv_update_select_fds( &socket_handler_list );
+	mxsrv_update_fds( list_head_struct, &socket_handler_list );
 
 	/* We must have at least one socket in use to act as a server. */
 
@@ -1336,8 +1357,7 @@ mxserver_main( int argc, char *argv[] )
 
 		/* Process incoming MX events. */
 
-		mxsrv_process_sockets_with_select( mx_record_list,
-						&socket_handler_list );
+		mxsrv_process_sockets( mx_record_list, &socket_handler_list );
 
 		/* Check for callbacks. */
 
@@ -1361,5 +1381,99 @@ mxserver_main( int argc, char *argv[] )
 #if ( defined(OS_HPUX) && !defined(__ia64) )
 	return 0;
 #endif
+}
+
+/*-------------------------------------------------------------------------*/
+
+void
+mxsrv_process_sockets( MX_RECORD *mx_record_list,
+			MX_SOCKET_HANDLER_LIST *socket_handler_list )
+{
+	static const char fname[] = "mxsrv_process_sockets()";
+
+	MX_LIST_HEAD *list_head = NULL;
+	mx_status_type mx_status;
+
+	if ( mx_record_list == (MX_RECORD *) NULL ) {
+		mx_status = mx_error( MXE_NULL_ARGUMENT, fname,
+			"The MX record list pointer passed was NULL." );
+
+		exit( mx_status.code );
+	}
+
+	if ( socket_handler_list == (MX_SOCKET_HANDLER_LIST *) NULL ) {
+		mx_status = mx_error( MXE_NULL_ARGUMENT, fname,
+			"The MX_SOCKET_HANDLER_LIST pointer passed was NULL." );
+
+		exit( mx_status.code );
+	}
+
+	list_head = mx_get_record_list_head_struct( mx_record_list );
+
+	if ( list_head == (MX_LIST_HEAD *) NULL ) {
+		mx_status = mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_LIST_HEAD pointer is NULL." );
+
+		exit( mx_status.code );
+	}
+
+	switch( list_head->socket_multiplexer_type ) {
+	case MXF_SRV_MULTIPLEXER_SELECT:
+		mxsrv_process_sockets_with_select( mx_record_list,
+							socket_handler_list );
+		break;
+	case MXF_SRV_MULTIPLEXER_EPOLL:
+		mxsrv_process_sockets_with_epoll( mx_record_list,
+							socket_handler_list );
+		break;
+	default:
+		mx_status = mx_error( MXE_UNSUPPORTED, fname,
+		"Unsupported socket multiplexer type %lu requested.",
+			list_head->socket_multiplexer_type );
+
+		exit( mx_status.code );
+		break;
+	}
+}
+
+/*-------------------------------------------------------------------------*/
+
+void
+mxsrv_update_fds( MX_LIST_HEAD *list_head,
+			MX_SOCKET_HANDLER_LIST *socket_handler_list )
+{
+	static const char fname[] = "mxsrv_update_fds()";
+
+	mx_status_type mx_status;
+
+	if ( list_head == (MX_LIST_HEAD *) NULL ) {
+		mx_status = mx_error( MXE_NULL_ARGUMENT, fname,
+			"The MX_LIST_HEAD pointer passed was NULL." );
+
+		exit( mx_status.code );
+	}
+
+	if ( socket_handler_list == (MX_SOCKET_HANDLER_LIST *) NULL ) {
+		mx_status = mx_error( MXE_NULL_ARGUMENT, fname,
+			"The MX_SOCKET_HANDLER_LIST pointer passed was NULL." );
+
+		exit( mx_status.code );
+	}
+
+	switch( list_head->socket_multiplexer_type ) {
+	case MXF_SRV_MULTIPLEXER_SELECT:
+		mxsrv_update_select_fds( list_head, socket_handler_list );
+		break;
+	case MXF_SRV_MULTIPLEXER_EPOLL:
+		mxsrv_update_epoll_fds( list_head, socket_handler_list );
+		break;
+	default:
+		mx_status = mx_error( MXE_UNSUPPORTED, fname,
+		"Unsupported socket multiplexer type %lu requested.",
+			list_head->socket_multiplexer_type );
+
+		exit( mx_status.code );
+		break;
+	}
 }
 

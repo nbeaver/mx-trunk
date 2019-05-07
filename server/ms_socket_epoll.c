@@ -34,7 +34,8 @@
 /*-------------------------------------------------------------------------*/
 
 void
-mxsrv_update_epoll_fds( MX_SOCKET_HANDLER_LIST *socket_handler_list )
+mxsrv_update_epoll_fds( MX_LIST_HEAD *list_head,
+			MX_SOCKET_HANDLER_LIST *socket_handler_list )
 {
 	static const char fname[] = "mxsrv_update_epoll_fds()";
 
