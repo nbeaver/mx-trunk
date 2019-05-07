@@ -41,7 +41,7 @@ mx_native_byteorder( void )
 	}
 }
 
-/*-------- mx_native_float_format: A cop-out for now. --------*/
+/*-------- mx_native_float_format. --------*/
 
 #if defined( OS_VMS )
 
@@ -49,7 +49,7 @@ MX_EXPORT unsigned long
 mx_native_float_format( void )
 {
 #if defined( __ia64 )
-	return MX_DATAFMT_IEEE_FLOAT;	/* FIXME */
+	return MX_DATAFMT_FLOAT_IEEE_LITTLE;	/* FIXME: Check this! */
 #elif defined( __alpha )
 	return MX_DATAFMT_FLOAT_VAX_G;
 #elif defined( __vax )
@@ -58,6 +58,8 @@ mx_native_float_format( void )
 #error Unrecognized VMS platform for mx_native_float_format().
 #endif
 }
+
+/*-----------------------------------------*/
 
 #elif defined( __FLOAT_WORD_ORDER__ )
     /* __FLOAT_WORD_ORDER__ comes from the GNU C library. */
@@ -81,6 +83,36 @@ mx_native_float_format( void )
 #  else
 #    error __FLOAT_WORD_ORDER__ is defined, but with an unrecognized value.
 #  endif
+
+/*-----------------------------------------*/
+
+#elif 1
+  /* https://stackoverflow.com/questions/35763790/endianness-for-floating-point
+   *
+   * This is for IEEE-754 floating point.  It relies on the knowledge that
+   * a negative power of 2 (like -1.0) has a non-zero most significant byte
+   * and a zero least significant byte.
+   *
+   * This method assumes that anything that is _not_ little-endian, must be
+   * big-endian, which we know is not true.  For example, some ARM platforms
+   * have mixed-endian floating point that looks like this: 45670123.
+   */
+
+MX_EXPORT unsigned long
+mx_native_float_format( void )
+{
+	float float_number = 1.0;
+
+	uint8_t *byte_pointer = (uint8_t *) &float_number;
+
+	if ( byte_pointer[0] == 0 ) {
+		return MX_DATAFMT_FLOAT_IEEE_LITTLE;
+	} else {
+		return MX_DATAFMT_FLOAT_IEEE_BIG;
+	}
+}
+
+/*-----------------------------------------*/
 
 #else
 #error mx_native_float_format() not yet implemented for this platform.

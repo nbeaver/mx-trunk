@@ -22,7 +22,7 @@
 typedef struct {
 	MX_RECORD *record;
 
-	MX_RECORD *numato_gpio_record;;
+	MX_RECORD *numato_gpio_record;
 	long channel_number;
 
 	unsigned long iomask;

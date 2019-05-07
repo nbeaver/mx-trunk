@@ -1940,8 +1940,13 @@ mx_socket_set_non_blocking_mode( MX_SOCKET *mx_socket,
 
 #if defined(OS_WIN32)
 
-#   if ( MX_WINVER >= 0x0600 )
+#   if 0 && ( MX_WINVER >= 0x0600 )
 	/* Windows Vista and newer */
+
+/* NOTE: By policy, MX tries to depend on only things in Winsock 1.1 for
+ * the sake of backward compatibility to the beginning of Win32.  The
+ * following code only works with the ws2_32.lib, so it is disabled for now.
+ */
 
 #include "Mstcpip.h"
 

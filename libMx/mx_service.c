@@ -94,10 +94,10 @@ mx_scm_notify( int notification_type,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#elif 0
+#else
 
-/* If this platform does not have a service control manager,
- * then we just use the following stub.
+/* If this platform does not have a service control manager or we do not
+ * want to use the native one, then we just use the following stub.
  */
 
 MX_EXPORT mx_status_type
@@ -109,7 +109,5 @@ mx_scm_notify( int notification_type,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#else
-#error Service control manager support is not yet implemented for this target.
 #endif
 

@@ -1422,10 +1422,12 @@ mxsrv_process_sockets( MX_RECORD *mx_record_list,
 		mxsrv_process_sockets_with_select( mx_record_list,
 							socket_handler_list );
 		break;
+#if HAVE_LINUX_EPOLL
 	case MXF_SRV_MULTIPLEXER_EPOLL:
 		mxsrv_process_sockets_with_epoll( mx_record_list,
 							socket_handler_list );
 		break;
+#endif
 	default:
 		mx_status = mx_error( MXE_UNSUPPORTED, fname,
 		"Unsupported socket multiplexer type %lu requested.",
@@ -1464,9 +1466,11 @@ mxsrv_update_fds( MX_LIST_HEAD *list_head,
 	case MXF_SRV_MULTIPLEXER_SELECT:
 		mxsrv_update_select_fds( list_head, socket_handler_list );
 		break;
+#if HAVE_LINUX_EPOLL
 	case MXF_SRV_MULTIPLEXER_EPOLL:
 		mxsrv_update_epoll_fds( list_head, socket_handler_list );
 		break;
+#endif
 	default:
 		mx_status = mx_error( MXE_UNSUPPORTED, fname,
 		"Unsupported socket multiplexer type %lu requested.",
