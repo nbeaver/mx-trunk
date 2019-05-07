@@ -29,7 +29,7 @@
  * in order to get strcasestr() from string.h
  */
 
-#if defined(OS_LINUX)
+#if defined(OS_LINUX) || defined(OS_CYGWIN)
 #  define _GNU_SOURCE
 #endif
 

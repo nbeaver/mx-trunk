@@ -62,7 +62,7 @@ mx_native_float_format( void )
 /*-----------------------------------------*/
 
 #elif defined( __FLOAT_WORD_ORDER__ )
-    /* __FLOAT_WORD_ORDER__ comes from the GNU C library. */
+    /* __FLOAT_WORD_ORDER__ appears in GNU CPP 5.5 and above. */
 
 #  if ( __FLOAT_WORD_ORDER__ == __ORDER_LITTLE_ENDIAN__ )
 

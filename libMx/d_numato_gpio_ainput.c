@@ -169,8 +169,8 @@ mxd_numato_gpio_ainput_read( MX_ANALOG_INPUT *ainput )
 {
 	static const char fname[] = "mxd_numato_gpio_ainput_read()";
 
-	MX_NUMATO_GPIO_AINPUT *numato_gpio_ainput;
-	MX_NUMATO_GPIO *numato_gpio;
+	MX_NUMATO_GPIO_AINPUT *numato_gpio_ainput = NULL;
+	MX_NUMATO_GPIO *numato_gpio = NULL;
 	char command[80];
 	char response[80];
 	int num_items;
