@@ -1,3 +1,9 @@
-umx_rs232 interface rs232 tty "" "" 9600 8 N 1 N 0x0d0a 0x0a 10.0 0x0000000 /dev/ttyUSB0
+#  Note: Different Arduino clones use different USB-to-serial chips,
+#        which show up under Linux as different /dev/ttyxxx0 ports.
+#
+#    For Arduino use /dev/ttyACM0    (Atmega16U2)
+#    For OSEPP use /dev/ttyUSB0      (FTDI)
+#
+umx_rs232 interface rs232 tty "" "" 9600 8 N 1 N 0x0d0a 0x0a 10.0 0x0000000 /dev/ttyACM0
 umx       server umx umx_server "" "" umx_rs232
-pulser    device pulse_generator umx_pulser "" "" 1 0.1 10 0 1 0x1 umx 1 0x0
+pgn1      device pulse_generator umx_pulser "" "" 1 0.1 10 0 1 0x1 umx 1 0x0
