@@ -288,6 +288,7 @@
 #include "d_numato_gpio_doutput.h"
 #include "d_umx_ainput.h"
 #include "d_umx_dinput.h"
+#include "d_umx_doutput.h"
 
 #include "d_soft_motor.h"
 #include "d_e500.h"
@@ -2071,6 +2072,13 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_umx_dinput_digital_input_function_list,
 				&mxd_umx_dinput_num_record_fields,
 				&mxd_umx_dinput_rfield_def_ptr},
+
+{"umx_doutput",         MXT_DOU_UMX, MXC_DIGITAL_OUTPUT, MXR_DEVICE,
+				&mxd_umx_doutput_record_function_list,
+				NULL,
+				&mxd_umx_doutput_digital_output_function_list,
+				&mxd_umx_doutput_num_record_fields,
+				&mxd_umx_doutput_rfield_def_ptr},
 
 #if ( defined(OS_LINUX) && (MX_GLIBC_VERSION >= 2002000L) )
 

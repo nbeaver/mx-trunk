@@ -46,6 +46,6 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_umx_ainput_rfield_def_ptr;
   \
   {-1, -1, "ainput_name", MXFT_STRING, NULL, 1, {MXU_RECORD_NAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_UMX_AINPUT,ainput_name),\
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
 #endif /* __D_UMX_AINPUT_H__ */
