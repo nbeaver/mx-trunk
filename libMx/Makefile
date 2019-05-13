@@ -164,7 +164,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_table_motor.c d_tangent_arm.c d_theta_2theta.c d_timer_fanout.c \
 	d_tpg262_pressure.c d_tracker_aio.c d_tracker_dio.c \
 	d_trans_motor.c d_udt_tramp.c d_uglide.c \
-	d_umx_ainput.c d_umx_pulser.c \
+	d_umx_ainput.c d_umx_dinput.c d_umx_pulser.c \
 	d_vme58.c d_vme_dio.c d_vp9000.c d_vsc16_scaler.c d_vsc16_timer.c \
 	d_wago750_modbus_aout.c d_wago750_modbus_dout.c \
 	d_wavelength.c d_wavenumber.c d_wti_nps_relay.c d_xafs_wavenumber.c \
