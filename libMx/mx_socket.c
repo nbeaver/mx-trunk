@@ -2034,6 +2034,7 @@ mx_socket_set_keepalive( MX_SOCKET *mx_socket,
 {
 	static const char fname[] = "mx_socket_set_keepalive()";
 
+	int saved_errno;
 	int sockopt_status, keepalive_on, keepalive_seconds;
 
 	if ( mx_socket == (MX_SOCKET *) NULL ) {
