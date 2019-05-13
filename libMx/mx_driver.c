@@ -286,6 +286,7 @@
 #include "d_numato_gpio_ainput.h"
 #include "d_numato_gpio_dinput.h"
 #include "d_numato_gpio_doutput.h"
+#include "d_umx_ainput.h"
 
 #include "d_soft_motor.h"
 #include "d_e500.h"
@@ -1609,6 +1610,13 @@ MX_DRIVER mx_type_table[] = {
 			&mxd_numato_gpio_ainput_analog_input_function_list,
 				&mxd_numato_gpio_ainput_num_record_fields,
 				&mxd_numato_gpio_ainput_rfield_def_ptr},
+
+{"umx_ainput",         MXT_AIN_UMX, MXC_ANALOG_INPUT, MXR_DEVICE,
+				&mxd_umx_ainput_record_function_list,
+				NULL,
+			&mxd_umx_ainput_analog_input_function_list,
+				&mxd_umx_ainput_num_record_fields,
+				&mxd_umx_ainput_rfield_def_ptr},
 
 
 {"soft_dinput",    MXT_DIN_SOFTWARE,   MXC_DIGITAL_INPUT,  MXR_DEVICE,
