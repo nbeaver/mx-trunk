@@ -25,7 +25,7 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *umx_record;
-	long pulser_number;
+	char pulser_name[MXU_RECORD_NAME_LENGTH+1];
 	unsigned long umx_pulser_flags;
 } MX_UMX_PULSER;
 
@@ -58,9 +58,9 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_umx_pulser_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_UMX_PULSER, umx_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "pulser_number", MXFT_LONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_UMX_PULSER, pulser_number), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+  {-1, -1, "pulser_name", MXFT_STRING, NULL, 1, {MXU_RECORD_NAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_UMX_PULSER, pulser_name), \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
   {-1, -1, "umx_pulser_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \

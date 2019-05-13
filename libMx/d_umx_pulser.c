@@ -318,8 +318,8 @@ mxd_umx_pulser_arm( MX_PULSE_GENERATOR *pulser )
 	/* Start the pulse generator. */
 
 	snprintf( command, sizeof(command),
-		"PUT PGN%ld.PARM 1",
-		umx_pulser->pulser_number );
+		"PUT %s.PARM 1",
+		umx_pulser->pulser_name );
 
 	mx_status = mx_umx_command( umx_record, command,
 					response, sizeof(response),
@@ -373,8 +373,8 @@ mxd_umx_pulser_trigger( MX_PULSE_GENERATOR *pulser )
 	/* Start the pulse generator. */
 
 	snprintf( command, sizeof(command),
-		"PUT PGN%ld.PTRG 1",
-		umx_pulser->pulser_number );
+		"PUT %s.PTRG 1",
+		umx_pulser->pulser_name );
 
 	mx_status = mx_umx_command( umx_record, command,
 					response, sizeof(response),
@@ -419,8 +419,8 @@ mxd_umx_pulser_stop( MX_PULSE_GENERATOR *pulser )
 		return mx_status;
 
 	snprintf( command, sizeof(command),
-		"PUT PGN%ld.PSTP 1",
-		umx_pulser->pulser_number );
+		"PUT %s.PSTP 1",
+		umx_pulser->pulser_name );
 
 	mx_status = mx_umx_command( umx_record, command,
 					response, sizeof(response),
@@ -476,7 +476,7 @@ mxd_umx_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 	switch( pulser->parameter_type ) {
 	case MXLV_PGN_NUM_PULSES:
 		snprintf( command, sizeof(command),
-			"GET PGN%ld.PNUM", umx_pulser->pulser_number );
+			"GET %s.PNUM", umx_pulser->pulser_name );
 
 		mx_status = mx_umx_command( umx_record, command,
 						response, sizeof(response),
@@ -497,7 +497,7 @@ mxd_umx_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 
 	case MXLV_PGN_PULSE_WIDTH:
 		snprintf( command, sizeof(command),
-			"GET PGN%ld.PWID", umx_pulser->pulser_number );
+			"GET %s.PWID", umx_pulser->pulser_name );
 
 		mx_status = mx_umx_command( umx_record, command,
 						response, sizeof(response),
@@ -518,7 +518,7 @@ mxd_umx_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 
 	case MXLV_PGN_PULSE_PERIOD:
 		snprintf( command, sizeof(command),
-			"GET PGN%ld.PPER", umx_pulser->pulser_number );
+			"GET %s.PPER", umx_pulser->pulser_name );
 
 		mx_status = mx_umx_command( umx_record, command,
 						response, sizeof(response),
@@ -539,7 +539,7 @@ mxd_umx_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 
 	case MXLV_PGN_PULSE_DELAY:
 		snprintf( command, sizeof(command),
-			"GET PGN%ld.PDLY", umx_pulser->pulser_number );
+			"GET %s.PDLY", umx_pulser->pulser_name );
 
 		mx_status = mx_umx_command( umx_record, command,
 						response, sizeof(response),
@@ -560,7 +560,7 @@ mxd_umx_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 
 	case MXLV_PGN_FUNCTION_MODE:
 		snprintf( command, sizeof(command),
-			"GET PGN%ld.PFMO", umx_pulser->pulser_number );
+			"GET %s.PFMO", umx_pulser->pulser_name );
 
 		mx_status = mx_umx_command( umx_record, command,
 						response, sizeof(response),
@@ -628,8 +628,8 @@ mxd_umx_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 	switch( pulser->parameter_type ) {
 	case MXLV_PGN_PULSE_PERIOD:
 		snprintf( command, sizeof(command),
-			"PUT PGN%ld.PPER %f",
-			umx_pulser->pulser_number,
+			"PUT %s.PPER %f",
+			umx_pulser->pulser_name,
 			pulser->pulse_period );
 
 		mx_status = mx_umx_command( umx_record, command,
@@ -639,8 +639,8 @@ mxd_umx_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 
 	case MXLV_PGN_PULSE_WIDTH:
 		snprintf( command, sizeof(command),
-			"PUT PGN%ld.PWID %f",
-			umx_pulser->pulser_number,
+			"PUT %s.PWID %f",
+			umx_pulser->pulser_name,
 			pulser->pulse_width );
 
 		mx_status = mx_umx_command( umx_record, command,
@@ -650,8 +650,8 @@ mxd_umx_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 
 	case MXLV_PGN_NUM_PULSES:
 		snprintf( command, sizeof(command),
-			"PUT PGN%ld.PNUM %ld",
-			umx_pulser->pulser_number,
+			"PUT %s.PNUM %ld",
+			umx_pulser->pulser_name,
 			pulser->num_pulses );
 
 		mx_status = mx_umx_command( umx_record, command,
@@ -661,8 +661,8 @@ mxd_umx_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 
 	case MXLV_PGN_PULSE_DELAY:
 		snprintf( command, sizeof(command),
-			"PUT PGN%ld.PDLY %f",
-			umx_pulser->pulser_number,
+			"PUT %s.PDLY %f",
+			umx_pulser->pulser_name,
 			pulser->pulse_delay );
 
 		mx_status = mx_umx_command( umx_record, command,
@@ -672,8 +672,8 @@ mxd_umx_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 
 	case MXLV_PGN_FUNCTION_MODE:
 		snprintf( command, sizeof(command),
-			"PUT PGN%ld.PFMO %ld",
-			umx_pulser->pulser_number,
+			"PUT %s.PFMO %ld",
+			umx_pulser->pulser_name,
 			pulser->function_mode );
 
 		mx_status = mx_umx_command( umx_record, command,
@@ -683,8 +683,8 @@ mxd_umx_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 
 	case MXLV_PGN_TRIGGER_MODE:
 		snprintf( command, sizeof(command),
-			"PUT PGN%ld.PTMO %ld",
-			umx_pulser->pulser_number,
+			"PUT %s.PTMO %ld",
+			umx_pulser->pulser_name,
 			pulser->trigger_mode );
 
 		mx_status = mx_umx_command( umx_record, command,
@@ -773,7 +773,7 @@ mxd_umx_pulser_get_status( MX_PULSE_GENERATOR *pulser )
 	debug_flag = TRUE;
 
 	snprintf( command, sizeof(command),
-		"GET PGN%ld.PSTA", umx_pulser->pulser_number );
+		"GET %s.PSTA", umx_pulser->pulser_name );
 
 	mx_status = mx_umx_command( umx_record, command,
 					response, sizeof(response),
