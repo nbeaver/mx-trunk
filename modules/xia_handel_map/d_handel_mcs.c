@@ -375,18 +375,13 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 
 	switch( handel->mapping_mode ) {
 	case MXF_HANDEL_MAP_MCA_MODE:
+	case MXF_HANDEL_MAP_SCA_MODE:
 		mapping_mode = handel->mapping_mode;
 		break;
 	case MXF_HANDEL_MAP_NORMAL_MODE:
 		mapping_mode = -1.0;
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Normal mode (0) is not supported for XIA MCS '%s'.",
-			mcs->record->name );
-		break;
-	case MXF_HANDEL_MAP_SCA_MODE:
-		mapping_mode = -1.0;
-		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"SCA mode (2) is not yet implemented for XIA MCS '%s'.",
 			mcs->record->name );
 		break;
 	case MXF_HANDEL_MAP_LIST_MODE:
