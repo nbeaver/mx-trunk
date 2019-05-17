@@ -822,10 +822,16 @@ mxd_handel_mcs_get_parameter( MX_MCS *mcs )
 	static const char fname[] = "mxd_handel_mcs_get_parameter()";
 
 	MX_HANDEL_MCS *handel_mcs = NULL;
+	MX_MCA *mca = NULL;
+	MX_HANDEL_MCA *handel_mca = NULL;
+	MX_HANDEL *handel = NULL;
+	char acq_value_name[40];
+	double double_value;
+	int xia_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_handel_mcs_get_pointers( mcs, &handel_mcs,
-					NULL, NULL, NULL, fname );
+					&mca, &handel_mca, &handel, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -841,6 +847,38 @@ mxd_handel_mcs_get_parameter( MX_MCS *mcs )
 	case MXLV_MCS_DARK_CURRENT:
 		break;
 	case MXLV_MCS_TRIGGER_MODE:
+		break;
+	case MXLV_MCS_CURRENT_NUM_SCALERS:
+		switch( handel->mapping_mode ) {
+		case MXF_HANDEL_MAP_MCA_MODE:
+			strlcpy( acq_value_name, "number_mca_channels",
+					sizeof(acq_value_name) );
+			break;
+		case MXF_HANDEL_MAP_SCA_MODE:
+			strlcpy( acq_value_name, "number_of_scas",
+					sizeof(acq_value_name) );
+			break;
+		default:
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Mapping mode %d is not currently supported "
+			"for MCS '%s'.", handel->mapping_mode,
+					mcs->record->name );
+		}
+
+		double_value = 0.0;
+
+		MX_XIA_SYNC( xiaGetAcquisitionValues(
+					handel_mca->detector_channel,
+					acq_value_name, &double_value ) );
+
+		if ( xia_status != XIA_SUCCESS ) {
+			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+			"The attempt to read '%s' for MCS '%s' failed "
+			"with xia_status = %d",
+				acq_value_name, mcs->record->name, xia_status );
+		}
+
+		mcs->current_num_scalers = mx_round( double_value );
 		break;
 	default:
 		return mx_mcs_default_get_parameter_handler( mcs );
