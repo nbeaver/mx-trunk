@@ -871,7 +871,7 @@ mxd_handel_mcs_get_parameter( MX_MCS *mcs )
 			break;
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Mapping mode %d is not currently supported "
+			"Mapping mode %ld is not currently supported "
 			"for MCS '%s'.", handel->mapping_mode,
 					mcs->record->name );
 		}
