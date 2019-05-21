@@ -217,6 +217,10 @@ mxd_network_mcs_finish_record_initialization( MX_RECORD *record )
 		network_mcs->server_record,
 		"%s.dark_current_array", network_mcs->remote_record_name );
 
+	mx_network_field_init( &(network_mcs->data_array_nf),
+		network_mcs->server_record,
+		"%s.data_array", network_mcs->remote_record_name );
+
 	mx_network_field_init( &(network_mcs->external_next_measurement_nf),
 		network_mcs->server_record,
 	    "%s.external_next_measurement", network_mcs->remote_record_name );
@@ -340,8 +344,10 @@ mxd_network_mcs_open( MX_RECORD *record )
 	MX_NETWORK_SERVER *network_server;
 	MX_RECORD *current_record, *list_head_record;
 	char timer_name[ MXU_RECORD_NAME_LENGTH + 1 ];
+	char remote_rf_name[ MXU_RECORD_FIELD_NAME_LENGTH + 1 ];
 	long dimension[1];
 	int current_record_matches, is_a_timer;
+	unsigned long flags;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -387,6 +393,52 @@ mxd_network_mcs_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: network MCS '%s' readout_preference = %ld",
 		fname, record->name, mcs->readout_preference));
 #endif
+
+	snprintf( remote_rf_name, sizeof(remote_rf_name),
+		"%s.maximum_num_scalers", network_mcs->remote_record_name );
+
+	mx_status = mx_get_by_name( network_mcs->server_record,
+				remote_rf_name, MXFT_LONG,
+				&(network_mcs->remote_maximum_num_scalers) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	snprintf( remote_rf_name, sizeof(remote_rf_name),
+	    "%s.maximum_num_measurements", network_mcs->remote_record_name );
+
+	mx_status = mx_get_by_name( network_mcs->server_record,
+				remote_rf_name, MXFT_LONG,
+			    &(network_mcs->remote_maximum_num_measurements) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* If we are communicating with the remote server using a data format
+	 * of MX_NETWORK_DATAFMT_RAW and if the dimensions and native datatypes
+	 * of mcs->data_array in the remote record and the local record agree,
+	 * then mxd_network_mcs_read_all() can just do a raw direct read of
+	 * mcs->data_array from the remote server.
+	 */
+
+	flags = network_mcs->network_mcs_flags;
+
+	network_mcs->read_raw_data_array = FALSE;
+
+	if ( flags & MXF_NETWORK_MCS_FORCE_RAW_DATA_ARRAY ) {
+		network_mcs->read_raw_data_array = TRUE;
+	} else
+	if ( flags & MXF_NETWORK_MCS_AVOID_RAW_DATA_ARRAY ) {
+		network_mcs->read_raw_data_array = FALSE;
+	} else
+	if ( ( network_server->data_format == MX_NETWORK_DATAFMT_RAW )
+	  && ( mcs->maximum_num_scalers ==
+			network_mcs->remote_maximum_num_scalers )
+	  && ( mcs->maximum_num_measurements ==
+			network_mcs->remote_maximum_num_measurements ) )
+	{
+		network_mcs->read_raw_data_array = TRUE;
+	}
 
 	/* If the timer record has not already been found for this record,
 	 * then we must go looking for it.
@@ -644,25 +696,35 @@ mxd_network_mcs_read_all( MX_MCS *mcs )
 {
 	static const char fname[] = "mxd_network_mcs_read_all()";
 
+	MX_NETWORK_MCS *network_mcs = NULL;
 	long i;
+	long dimension[2];
 	mx_status_type mx_status;
 
-	if ( mcs == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"MX_MCS pointer passed was NULL." );
+	mx_status = mxd_network_mcs_get_pointers( mcs, &network_mcs, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( network_mcs->read_raw_data_array == FALSE ) {
+		for ( i = 0; i < mcs->current_num_scalers; i++ ) {
+
+			mcs->scaler_index = i;
+
+			mx_status = mxd_network_mcs_read_scaler( mcs );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+	} else {
+		dimension[0] = network_mcs->remote_maximum_num_scalers;
+		dimension[1] = network_mcs->remote_maximum_num_measurements;
+
+		mx_status = mx_get_array( &(network_mcs->data_array_nf),
+				MXFT_LONG, 1, dimension, mcs->data_array );
 	}
 
-	for ( i = 0; i < mcs->current_num_scalers; i++ ) {
-
-		mcs->scaler_index = i;
-
-		mx_status = mxd_network_mcs_read_scaler( mcs );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-	}
-
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type

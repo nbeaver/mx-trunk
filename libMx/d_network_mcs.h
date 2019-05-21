@@ -22,9 +22,19 @@
 
 /* ===== MX network mcs record data structures ===== */
 
+/* Flag values for network_mcs_flags */
+
+#define MXF_NETWORK_MCS_FORCE_RAW_DATA_ARRAY	0x1
+#define MXF_NETWORK_MCS_AVOID_RAW_DATA_ARRAY	0x2
+
 typedef struct {
 	MX_RECORD *server_record;
 	char remote_record_name[ MXU_RECORD_NAME_LENGTH+1 ];
+	unsigned long network_mcs_flags;
+
+	long remote_maximum_num_scalers;
+	long remote_maximum_num_measurements;
+	mx_bool_type read_raw_data_array;
 
 	MX_NETWORK_FIELD arm_nf;
 	MX_NETWORK_FIELD busy_nf;
@@ -34,6 +44,7 @@ typedef struct {
 	MX_NETWORK_FIELD current_num_scalers_nf;
 	MX_NETWORK_FIELD dark_current_nf;
 	MX_NETWORK_FIELD dark_current_array_nf;
+	MX_NETWORK_FIELD data_array_nf;
 	MX_NETWORK_FIELD external_next_measurement_nf;
 	MX_NETWORK_FIELD external_prescale_nf;
 	MX_NETWORK_FIELD measurement_counts_nf;
@@ -62,7 +73,25 @@ typedef struct {
   {-1, -1, "remote_record_name", MXFT_STRING, \
 	NULL, 1, {MXU_RECORD_NAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NETWORK_MCS, remote_record_name), \
-	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) } ,\
+  \
+  {-1, -1, "network_mcs_flags", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_NETWORK_MCS, network_mcs_flags), \
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {-1, -1, "remote_maximum_num_scalers", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_NETWORK_MCS, remote_maximum_num_scalers), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "remote_maximum_num_measurements", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_NETWORK_MCS, remote_maximum_num_measurements), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "read_raw_data_array", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_NETWORK_MCS, read_raw_data_array), \
+	{0}, NULL, MXFF_READ_ONLY }
 
 /* Define all of the interface functions. */
 

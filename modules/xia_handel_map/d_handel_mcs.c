@@ -584,6 +584,17 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 		xia_status, mxi_handel_strerror(xia_status) );
 	}
 
+	/* Update the number of scaler channels to match the current settings
+	 * for the MCS.
+	 */
+
+	mcs->parameter_type = MXLV_MCS_CURRENT_NUM_SCALERS;
+
+	mx_status = mxd_handel_mcs_get_parameter( mcs );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/* See if we need to change the lengths of the Handel
 	 * 'buffer_a' and 'buffer_b' arrays and reallocate them
 	 * if necessary.
