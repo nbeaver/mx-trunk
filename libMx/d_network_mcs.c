@@ -721,7 +721,7 @@ mxd_network_mcs_read_all( MX_MCS *mcs )
 		dimension[1] = network_mcs->remote_maximum_num_measurements;
 
 		mx_status = mx_get_array( &(network_mcs->data_array_nf),
-				MXFT_LONG, 1, dimension, mcs->data_array );
+				MXFT_LONG, 2, dimension, mcs->data_array );
 	}
 
 	return mx_status;
