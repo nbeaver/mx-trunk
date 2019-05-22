@@ -75,6 +75,8 @@ motor_mcs_fn( int argc, char *argv[] )
   "Usage:  mcs 'mcs_name' count 'measurement_time' 'num_measurements\n"
   "        mcs 'mcs_name' rawcount 'measurement_time' 'num_measurements\n"
   "        mcs 'mcs_name' start [ 'measurement_time' 'num_measurements' ]\n"
+  "        mcs 'mcs_name' arm [ 'measurement_time' 'num_measurements' ]\n"
+  "        mcs 'mcs_name' trigger\n"
   "        mcs 'mcs_name' stop\n"
   "        mcs 'mcs_name' clear\n"
   "        mcs 'mcs_name' readall\n"
@@ -237,6 +239,64 @@ motor_mcs_fn( int argc, char *argv[] )
 
 			mx_msleep(500);
 		}
+	} else
+	if ( strncmp( "trigger", argv[3], strlen(argv[3]) ) == 0 ) {
+
+		if ( argc != 4 ) {
+			fprintf( output, "%s\n", usage );
+			return FAILURE;
+		}
+
+		mx_status = mx_mcs_trigger( mcs_record );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			return FAILURE;
+		} else {
+			return SUCCESS;
+		}
+	} else
+	if ( strncmp( "arm", argv[3], strlen(argv[3]) ) == 0 ) {
+
+		if ( argc == 4 ) {
+			/* A arm was requested without specifying
+			 * a measurement time.
+			 */
+
+			mx_status = mx_mcs_arm( mcs_record );
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+				return FAILURE;
+			} else {
+				return SUCCESS;
+			}
+		}
+		/* If we get here a measurement time _was_ specified. */
+
+		if ( argc != 6 ) {
+			fprintf( output, "%s\n", usage );
+			return FAILURE;
+		}
+
+		measurement_time = atof( argv[4] );
+
+		num_measurements = atol( argv[5] );
+
+		mx_status = mx_mcs_set_measurement_time(
+				mcs_record, measurement_time );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+
+		mx_status = mx_mcs_set_num_measurements(
+				mcs_record, num_measurements );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+
+		mx_status = mx_mcs_arm( mcs_record );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
 	} else
 	if ( strncmp( "saveall", argv[3], max( strlen(argv[3]), 5 ) ) == 0 ) {
 
