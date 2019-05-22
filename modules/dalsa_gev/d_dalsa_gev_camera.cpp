@@ -32,6 +32,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_bit.h"
+#include "mx_inttypes.h"
 #include "mx_process.h"
 #include "mx_thread.h"
 #include "mx_array.h"
@@ -314,7 +315,8 @@ dump_feature_hierarchy( MX_DALSA_GEV_CAMERA *dalsa_gev_camera,
 				"%s: *** GevGetFeatureValueAsString( %p, '%s', "
 				"&feature_type, %lu, feature_value ) = ",
 					fname, dalsa_gev_camera->camera_handle,
-					feature_name, sizeof(feature_value) );
+					feature_name,
+					(unsigned long) sizeof(feature_value) );
 				}
 
 				gev_status = GevGetFeatureValueAsString(
@@ -987,7 +989,7 @@ mxd_dalsa_gev_camera_shadobox_trigger( MX_VIDEO_INPUT *vinput,
 			fprintf( stderr,
 	"%s: *** GevSetFeatureValue( %p, 'ExtendedExposure', %lu, &(%lu) ) = ",
 			fname, dalsa_gev_camera->camera_handle,
-			sizeof(UINT32),
+			(unsigned long) sizeof(UINT32),
 			(unsigned long) extended_exposure_microseconds );
 		}
 
@@ -2780,7 +2782,7 @@ mxd_dalsa_gev_camera_process_function( void *record_ptr,
 				fname, dalsa_gev_camera->camera_handle,
 				dalsa_gev_camera->feature_name,
 				feature_type,
-				sizeof(dalsa_gev_camera->feature_value),
+			(unsigned long) sizeof(dalsa_gev_camera->feature_value),
 				dalsa_gev_camera->feature_value );
 			}
 
