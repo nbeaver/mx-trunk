@@ -13,7 +13,10 @@ POWERPMAC_DIR = /opt/ppmac
 
 POWERPMAC_INCLUDES = -I$(POWERPMAC_DIR)/libppmac \
 			-I$(POWERPMAC_DIR)/rtpmac \
+			-I$(POWERPMAC_DIR)/libopener \
 			-Wno-strict-prototypes
+
+XENOMAI_DIR = /usr/local/xenomai
 
 include ../../libMx/Makehead.$(MX_ARCH)
 
@@ -26,7 +29,8 @@ POWERPMAC_OBJS = powerpmac.$(OBJ) \
 powerpmac.mxo: $(POWERPMAC_OBJS)
 	gcc -shared -rdynamic -Wl,-soname,powerpmac.mxo \
 		-o powerpmac.mxo $(POWERPMAC_OBJS) \
-		-L$(POWERPMAC_DIR)/libppmac -lppmac
+		-L$(POWERPMAC_DIR)/libppmac -lppmac \
+		-L$(XENOMAI_DIR)/lib -lpthread_rt -lxenomai
 
 powerpmac.$(OBJ): powerpmac.c d_powerpmac.h
 	$(COMPILE) $(CFLAGS) powerpmac.c
