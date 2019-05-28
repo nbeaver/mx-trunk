@@ -409,6 +409,7 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 		xia_status, mxi_handel_strerror(xia_status) );
 	}
 
+#if 0
 	/* Tell Handel the number of MCA channels.  (It should already know.) */
 
 	number_mca_channels = mca->current_num_channels;
@@ -423,6 +424,7 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 		mca->current_num_channels, mcs->record->name,
 		xia_status, mxi_handel_strerror(xia_status) );
 	}
+#endif
 
 	/* Tell Handel the number of measurements ("pixels") to take. */
 
@@ -612,6 +614,9 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 		mcs->record->name,
 		xia_status, mxi_handel_strerror(xia_status) );
 	}
+
+	MX_DEBUG(-2,("%s: handel_mcs->buffer_length = %ld",
+		fname, handel_mcs->buffer_length));
 
 	if ( old_buffer_length != handel_mcs->buffer_length ) {
 		/* Free the old buffers. */
@@ -890,6 +895,11 @@ mxd_handel_mcs_get_parameter( MX_MCS *mcs )
 		}
 
 		mcs->current_num_scalers = mx_round( double_value );
+
+		MX_DEBUG(-2,("%s: acq_value_name = '%s'",
+			fname, acq_value_name));
+		MX_DEBUG(-2,("%s: mapping_mode = %f, current_num_scalers = %ld",
+			fname, handel->mapping_mode, mcs->current_num_scalers));
 		break;
 	default:
 		return mx_mcs_default_get_parameter_handler( mcs );
