@@ -352,7 +352,6 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 	MX_MCA *mca = NULL;
 	MX_HANDEL_MCA *handel_mca = NULL;
 	MX_HANDEL *handel = NULL;
-	double number_mca_channels;
 	double mapping_mode, num_map_pixels, num_map_pixels_per_buffer;
 	double pixel_advance_mode, gate_master, sync_master, sync_count;
 	unsigned long old_buffer_length;
@@ -898,7 +897,8 @@ mxd_handel_mcs_get_parameter( MX_MCS *mcs )
 
 		MX_DEBUG(-2,("%s: acq_value_name = '%s'",
 			fname, acq_value_name));
-		MX_DEBUG(-2,("%s: mapping_mode = %f, current_num_scalers = %ld",
+		MX_DEBUG(-2,
+		("%s: mapping_mode = %ld, current_num_scalers = %ld",
 			fname, handel->mapping_mode, mcs->current_num_scalers));
 		break;
 	default:
