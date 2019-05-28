@@ -561,6 +561,17 @@ mxd_network_mcs_arm( MX_MCS *mcs )
 
 	mx_status = mx_put( &(network_mcs->arm_nf), MXFT_BOOL, &arm );
 
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* For certain multichannel scalers, like the 'handel_mcs' driver,
+	 * arming the MCS can change the value of 'current_num_scalers',
+	 * so we must fetch that value now.
+	 */
+
+	mx_status = mx_get( &(network_mcs->current_num_scalers_nf),
+				MXFT_LONG, &(mcs->current_num_scalers) );
+
 	return mx_status;
 }
 
