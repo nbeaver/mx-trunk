@@ -659,6 +659,17 @@ mxd_pilatus_open( MX_RECORD *record )
 	pilatus->gap_time = 0.0;
 	pilatus->exposures_per_frame = 1;
 
+	/* Pilatus external enable mode expects that the exposure time and
+	 * period be set to sensible values by the user, so we arbitrarily
+	 * set them both to 1.  If the user wants the values for these
+	 * variables maintained between runs of the MX server, then the
+	 * user needs to include the 'ext_enable_time' and 'ext_enable_period'
+	 * variables in 'mxautosave's list of variables to save and restore.
+	 */
+
+	pilatus->ext_enable_time = 1.0;
+	pilatus->ext_enable_period = 1.0;
+
 	/* If the 'acknowledgement_interval' field is set to a non-zero value,
 	 * then we use the 'SetAckInt' command to tell 'camserver' to send us
 	 * an acknowledgement every n-th frame.  If the field is 0, then we
@@ -889,7 +900,22 @@ mxd_pilatus_arm( MX_AREA_DETECTOR *ad )
 		}
 	}
 
-	/* Set the exposure sequence parameters. */
+	/* Set the exposure sequence parameters. 
+	 *
+	 * Note: The Pilatus requires us to specify the exposure time
+	 * and period in order to do some image corrections.
+	 *
+	 * For the one shot and strobe sequence types, specifying the
+	 * exposure period is somewhat meaningless, since a given
+	 * trigger pulse only causes one frame to be taken, so we
+	 * set it to exposure_time + 0.007, since the manual says
+	 * "The minimum time between exposure time and exposure
+	 * period must be 7 ms."
+	 *
+	 * For duration mode images, the user is expected to have set
+	 * the times beforehand using the 'ext_enable_time' and the
+	 * 'ext_enable_period' MX fields in the 'pilatus' record.
+	 */
 
 	switch( sp->sequence_type ) {
 	case MXT_SQ_ONE_SHOT:
@@ -900,17 +926,17 @@ mxd_pilatus_arm( MX_AREA_DETECTOR *ad )
 	case MXT_SQ_MULTIFRAME:
 		num_frames = mx_round( sp->parameter_array[0] );
 		exposure_time = sp->parameter_array[1];
-		exposure_period = sp->parameter_array[2];
+		exposure_period = exposure_time + 0.007;
 		break;
 	case MXT_SQ_STROBE:
 		num_frames = mx_round( sp->parameter_array[0] );
 		exposure_time = sp->parameter_array[1];
-		exposure_period = -1.0;
+		exposure_period = exposure_time + 0.007;
 		break;
 	case MXT_SQ_DURATION:
 		num_frames = mx_round( sp->parameter_array[0] );
-		exposure_time = 1.0;		/* Not used. */
-		exposure_period = -1.0;
+		exposure_time = pilatus->ext_enable_time;
+		exposure_period = pilatus->ext_enable_period;
 		break;
 	default:
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
