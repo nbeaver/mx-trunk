@@ -1646,8 +1646,8 @@ mxd_pilatus_get_parameter( MX_AREA_DETECTOR *ad )
 				return mx_status;
 
 			strlcpy( pilatus->detector_server_datafile_directory,
-			    response,
-			    sizeof(pilatus->detector_server_datafile_directory) );
+			  response,
+			  sizeof(pilatus->detector_server_datafile_directory));
 		}
 
 		mx_status = mx_change_filename_prefix(
@@ -1793,7 +1793,7 @@ mxd_pilatus_set_parameter( MX_AREA_DETECTOR *ad )
 				pilatus->local_datafile_root,
 				pilatus->detector_server_datafile_root,
 				pilatus->detector_server_datafile_directory,
-			    sizeof(pilatus->detector_server_datafile_directory) );
+			  sizeof(pilatus->detector_server_datafile_directory));
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
