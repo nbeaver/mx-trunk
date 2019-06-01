@@ -1633,8 +1633,11 @@ mxd_pilatus_get_parameter( MX_AREA_DETECTOR *ad )
 			 * then we cannot send an 'ImgPath' command to the PPU.
 			 * The best we can do in this circumstances is to 
 			 * merely reuse the value that is already in the
-			 * pilatus->detector_server_datafile_directory array.
+			 * ad->datafile_directory field.
 			 */
+
+			MX_DEBUG(-2,("%s: EIP datafile_directory = '%s'",
+				fname, ad->datafile_directory));
 
 			return MX_SUCCESSFUL_RESULT;
 		} else {
@@ -1656,6 +1659,17 @@ mxd_pilatus_get_parameter( MX_AREA_DETECTOR *ad )
 				pilatus->local_datafile_root,
 				ad->datafile_directory,
 				sizeof(ad->datafile_directory) );
+
+		if ( mx_status.code == MXE_ILLEGAL_ARGUMENT ) {
+		  MX_DEBUG(-2,("%s: detector_server_datafile_directory = '%s'",
+			fname, pilatus->detector_server_datafile_directory));
+		  MX_DEBUG(-2,("%s: detector_server_datafile_root = '%s'",
+			fname, pilatus->detector_server_datafile_root));
+		  MX_DEBUG(-2,("%s: local_datafile_root = '%s'",
+			fname, pilatus->local_datafile_root));
+		  MX_DEBUG(-2,("%s: datafile_directory = '%s'",
+			fname, ad->datafile_directory));
+		}
 		break;
 
 	case MXLV_AD_DATAFILE_NAME:
@@ -1794,6 +1808,17 @@ mxd_pilatus_set_parameter( MX_AREA_DETECTOR *ad )
 				pilatus->detector_server_datafile_root,
 				pilatus->detector_server_datafile_directory,
 			  sizeof(pilatus->detector_server_datafile_directory));
+
+		if ( mx_status.code == MXE_ILLEGAL_ARGUMENT ) {
+		  MX_DEBUG(-2,("%s: detector_server_datafile_directory = '%s'",
+			fname, pilatus->detector_server_datafile_directory));
+		  MX_DEBUG(-2,("%s: detector_server_datafile_root = '%s'",
+			fname, pilatus->detector_server_datafile_root));
+		  MX_DEBUG(-2,("%s: local_datafile_root = '%s'",
+			fname, pilatus->local_datafile_root));
+		  MX_DEBUG(-2,("%s: datafile_directory = '%s'",
+			fname, ad->datafile_directory));
+		}
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -2170,9 +2195,9 @@ mxd_pilatus_special_processing_setup( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
-		case MXLV_PILATUS_DETECTOR_SERVER_IMAGE_DIRECTORY:
-		case MXLV_PILATUS_DETECTOR_SERVER_IMAGE_ROOT:
-		case MXLV_PILATUS_LOCAL_IMAGE_ROOT:
+		case MXLV_PILATUS_DETECTOR_SERVER_DATAFILE_DIRECTORY:
+		case MXLV_PILATUS_DETECTOR_SERVER_DATAFILE_ROOT:
+		case MXLV_PILATUS_LOCAL_DATAFILE_ROOT:
 		case MXLV_PILATUS_COMMAND:
 		case MXLV_PILATUS_RESPONSE:
 		case MXLV_PILATUS_SET_ENERGY:
@@ -2228,7 +2253,14 @@ mxd_pilatus_process_function( void *record_ptr,
 			 * written to these fields.
 			 */
 			break;
-		case MXLV_PILATUS_DETECTOR_SERVER_IMAGE_DIRECTORY:
+		case MXLV_PILATUS_DETECTOR_SERVER_DATAFILE_ROOT:
+			/* We can only send a complete datafile directory name
+			 * to the detector server, so we just store the root
+			 * directory name here for use by the next time that
+			 * detector_server_datafile_directory is invoked.
+			 */
+			break;
+		case MXLV_PILATUS_DETECTOR_SERVER_DATAFILE_DIRECTORY:
 
 			if ( pilatus->exposure_in_progress ) {
 
@@ -2240,6 +2272,10 @@ mxd_pilatus_process_function( void *record_ptr,
 				 * pilatus->detector_server_datafile_directory
 				 * array.
 				 */
+
+				MX_DEBUG(-2,
+			("%s: EIP detector_server_datafile_directory = '%s'",
+			fname, pilatus->detector_server_datafile_directory));
 
 				return MX_SUCCESSFUL_RESULT;
 			} else {
@@ -2283,14 +2319,22 @@ mxd_pilatus_process_function( void *record_ptr,
 		break;
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
-		case MXLV_PILATUS_DETECTOR_SERVER_IMAGE_DIRECTORY:
+		case MXLV_PILATUS_DETECTOR_SERVER_DATAFILE_ROOT:
+			/* We can only send a complete datafile directory name
+			 * to the detector server, so we just store the root
+			 * directory name here for use by the next time that
+			 * detector_server_datafile_directory is invoked.
+			 */
+			break;
+		case MXLV_PILATUS_DETECTOR_SERVER_DATAFILE_DIRECTORY:
 
-			/* See if the new directory is contained within
- 			 * the directory pilatus->detector_server_datafile_root.
+			/* See if the new directory is contained within the
+ 			 * directory pilatus->detector_server_datafile_root.
  			 */
 
-			/* Begin by making a copy of detector_server_datafile_root
-			 * with any trailing path separators stripped off.
+			/* Begin by making a copy of the string
+			 * detector_server_datafile_root with any
+			 * trailing path separators stripped off.
 			 */
 
 			strlcpy( directory_temp,

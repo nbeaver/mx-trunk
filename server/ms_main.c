@@ -517,7 +517,7 @@ mxserver_main( int argc, char *argv[] )
 	char os_version_string[40];
 	char ident_string[80];
 	mx_bool_type enable_callbacks;
-	int i, debug_level, start_debugger, saved_errno;
+	int i, debug_level, start_debugger, debug_main_loop, saved_errno;
 	int server_port, default_display_precision, init_hw_flags;
 	int ascii_port, i_mx_client, i_ascii_client;
 	int install_syslog_handler, syslog_number, syslog_options;
@@ -593,6 +593,8 @@ mxserver_main( int argc, char *argv[] )
 
 	start_debugger = FALSE;
 
+	debug_main_loop = FALSE;
+
 	default_display_precision = 8;
 
 	server_port = -1;
@@ -644,7 +646,7 @@ mxserver_main( int argc, char *argv[] )
         error_flag = FALSE;
 
         while ((c = getopt(argc, argv,
-	    "aA:b:BcC:d:De:E:f:Jkl:L:m:M:n:O:p:P:rsStT:u:v:wxX:Y:Z")) != -1)
+	    "aA:b:BcC:d:De:E:f:Jkl:L:m:M:n:NO:p:P:rsStT:u:v:wxX:Y:Z")) != -1)
 	{
                 switch (c) {
 		case 'a':
@@ -729,6 +731,9 @@ mxserver_main( int argc, char *argv[] )
 			break;
 		case 'n':
 			delay_microseconds = atoi( optarg);
+			break;
+		case 'N':
+			debug_main_loop = TRUE;
 			break;
 		case 'O':
 			{
@@ -1312,6 +1317,10 @@ mxserver_main( int argc, char *argv[] )
 	}
 
 	/************ Primary event loop *************/
+
+	if ( debug_main_loop ) {
+		mx_breakpoint();
+	}
 
 	mx_info("mxserver: Ready to accept client connections.");
 

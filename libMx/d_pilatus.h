@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2015-2016, 2018 Illinois Institute of Technology
+ * Copyright 2015-2016, 2018-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -69,9 +69,9 @@ typedef struct {
 	double ext_enable_period;
 } MX_PILATUS;
 
-#define MXLV_PILATUS_DETECTOR_SERVER_IMAGE_DIRECTORY	87801
-#define MXLV_PILATUS_DETECTOR_SERVER_IMAGE_ROOT		87802
-#define MXLV_PILATUS_LOCAL_IMAGE_ROOT			87803
+#define MXLV_PILATUS_DETECTOR_SERVER_DATAFILE_DIRECTORY	87801
+#define MXLV_PILATUS_DETECTOR_SERVER_DATAFILE_ROOT	87802
+#define MXLV_PILATUS_LOCAL_DATAFILE_ROOT		87803
 #define MXLV_PILATUS_COMMAND				87804
 #define MXLV_PILATUS_RESPONSE				87805
 #define MXLV_PILATUS_SET_ENERGY				87806
@@ -92,20 +92,20 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, acknowledgement_interval), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {MXLV_PILATUS_DETECTOR_SERVER_IMAGE_DIRECTORY, \
+  {MXLV_PILATUS_DETECTOR_SERVER_DATAFILE_DIRECTORY, \
 			 -1, "detector_server_datafile_directory", \
 			MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_PILATUS, detector_server_datafile_directory), \
 	{sizeof(char)}, NULL, 0}, \
   \
-  {MXLV_PILATUS_DETECTOR_SERVER_IMAGE_ROOT, \
+  {MXLV_PILATUS_DETECTOR_SERVER_DATAFILE_ROOT, \
 			-1, "detector_server_datafile_root", \
 			MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, detector_server_datafile_root), \
-	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_READ_ONLY)}, \
+	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {MXLV_PILATUS_LOCAL_IMAGE_ROOT, -1, "local_datafile_root", \
+  {MXLV_PILATUS_LOCAL_DATAFILE_ROOT, -1, "local_datafile_root", \
 			MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, local_datafile_root), \
 	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}, \
