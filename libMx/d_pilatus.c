@@ -28,7 +28,7 @@
 
 #define MXD_PILATUS_DEBUG_GRIMSEL			TRUE
 
-#define MS_PILATUS_DEBUG				TRUE
+#define MS_PILATUS_DEBUG				FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -179,7 +179,8 @@ void mstest_pilatus_show_datafile_directory( const char *fname,
 
 void mstest_pilatus_setup( MX_RECORD *mx_record_list ) {}
 
-void mstest_pilatus_show_datafile_directory( const char *, const char * ) {}
+void mstest_pilatus_show_datafile_directory( const char *fname,
+						const char *marker ) {}
 
 #endif
 

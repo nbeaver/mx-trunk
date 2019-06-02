@@ -16,7 +16,7 @@
 
 #define MS_MXSERVER_DEBUG	FALSE
 
-#define MS_PILATUS_DEBUG	TRUE
+#define MS_PILATUS_DEBUG	FALSE
 
 #include <stdio.h>
 #include <string.h>
@@ -1193,10 +1193,12 @@ mxserver_main( int argc, char *argv[] )
 	if ( mx_status.code != MXE_SUCCESS )
 		exit( mx_status.code );
 
+#if MS_PILATUS_DEBUG
 	mstest_pilatus_setup( mx_record_list );
 
 	mstest_pilatus_show_datafile_directory( fname,
 					"after mx_read_database_file" );
+#endif
 
 	/* Perform database initialization steps that cannot be done until
 	 * all the records have been defined.
@@ -1207,8 +1209,10 @@ mxserver_main( int argc, char *argv[] )
 	if ( mx_status.code != MXE_SUCCESS )
 		exit( mx_status.code );
 
+#if MS_PILATUS_DEBUG
 	mstest_pilatus_show_datafile_directory( fname,
 				"after mx_finish_database_initialization" );
+#endif
 
 	/* Initialize the MX log file if the log file control record
 	 * "mx_log" has been defined.
@@ -1226,8 +1230,10 @@ mxserver_main( int argc, char *argv[] )
 	if ( mx_status.code != MXE_SUCCESS )
 		exit( mx_status.code );
 
+#if MS_PILATUS_DEBUG
 	mstest_pilatus_show_datafile_directory( fname,
 					"after mx_initialize_hardware" );
+#endif
 
 #if 0
 	/* List all of the records that have been defined. */
@@ -1345,7 +1351,9 @@ mxserver_main( int argc, char *argv[] )
 		mx_breakpoint();
 	}
 
+#if MS_PILATUS_DEBUG
 	mstest_pilatus_show_datafile_directory( fname, "before main loop" );
+#endif
 
 	mx_info("mxserver: Ready to accept client connections.");
 
