@@ -24,7 +24,7 @@
 
 #define MXD_PILATUS_DEBUG_EXTENDED_STATUS_PARSING	FALSE
 
-#define MXD_PILATUS_DEBUG_PARAMETERS			TRUE
+#define MXD_PILATUS_DEBUG_PARAMETERS			FALSE
 
 #define MXD_PILATUS_DEBUG_GRIMSEL			TRUE
 
@@ -2315,9 +2315,18 @@ mxd_pilatus_process_function( void *record_ptr,
 	mx_status = MX_SUCCESSFUL_RESULT;
 
 #if MXD_PILATUS_DEBUG_PARAMETERS
-	MX_DEBUG(-2,("%s: record '%s', parameter '%s' (%ld), operation %d",
-		fname, record->name, record_field->name,
-		record_field->label_value, operation ));
+	switch( operation ) {
+	case MX_PROCESS_GET:
+		MX_DEBUG(-2,("%s: GET: record '%s', parameter '%s' (%ld)",
+			fname, record->name, record_field->name,
+			record_field->label_value ));
+		break;
+	case MX_PROCESS_PUT:
+		MX_DEBUG(-2,("%s: PUT: record '%s', parameter '%s' (%ld)",
+			fname, record->name, record_field->name,
+			record_field->label_value ));
+		break;
+	}
 #endif
 
 #if MS_PILATUS_DEBUG
