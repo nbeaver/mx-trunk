@@ -24,9 +24,11 @@
 
 #define MXD_PILATUS_DEBUG_EXTENDED_STATUS_PARSING	FALSE
 
-#define MXD_PILATUS_DEBUG_PARAMETERS			FALSE
+#define MXD_PILATUS_DEBUG_PARAMETERS			TRUE
 
 #define MXD_PILATUS_DEBUG_GRIMSEL			TRUE
+
+#define MS_PILATUS_DEBUG				TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -133,6 +135,55 @@ mxd_pilatus_get_pointers( MX_AREA_DETECTOR *ad,
 	}
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*------------------------------------------------------------------*/
+
+/* Debugging code for Pilatus datafile_directory debugging. */
+
+#if MS_PILATUS_DEBUG
+
+MX_RECORD *mxserver_pilatus_record = NULL;
+MX_AREA_DETECTOR *mxserver_pilatus_ad = NULL;
+MX_PILATUS *mxserver_pilatus = NULL;
+
+void mstest_pilatus_setup( MX_RECORD *mx_record_list )
+{
+        mxserver_pilatus_record = mx_get_record( mx_record_list, "pilatus" );
+        if ( mxserver_pilatus_record == (MX_RECORD *) NULL ) {
+            mx_error( MXE_NOT_FOUND,
+		"mstest_pilatus_setup", "'pilatus' not found." );
+            exit(MXE_NOT_FOUND);
+        }
+        mxserver_pilatus_ad = mxserver_pilatus_record->record_class_struct;
+        mxserver_pilatus = mxserver_pilatus_record->record_type_struct;
+}
+
+void mstest_pilatus_show_datafile_directory( const char *fname,
+						const char *marker )
+{
+	MX_DEBUG(-2,
+	("%s: MARKER '%s': mxserver_pilatus_ad->datafile_directory = '%s'",
+		fname, marker, mxserver_pilatus_ad->datafile_directory ));
+	MX_DEBUG(-2,
+	("%s: MARKER: mxserver_pilatus->local_datafile_root = '%s'",
+		fname, mxserver_pilatus->local_datafile_root ));
+	MX_DEBUG(-2,
+	("%s: MARKER: mxserver_pilatus->detector_server_datafile_root = '%s'",
+		fname, mxserver_pilatus->detector_server_datafile_root ));
+	MX_DEBUG(-2,
+    ("%s: MARKER: mxserver_pilatus->detector_server_datafile_directory = '%s'",
+		fname, mxserver_pilatus->detector_server_datafile_directory ));
+}
+
+#else
+
+void mstest_pilatus_setup( MX_RECORD *mx_record_list ) {}
+
+void mstest_pilatus_show_datafile_directory( const char *, const char * ) {}
+
+#endif
+
+/*------------------------------------------------------------------*/
 
 /*---*/
 
@@ -1515,6 +1566,10 @@ mxd_pilatus_get_parameter( MX_AREA_DETECTOR *ad )
 	}
 #endif
 
+#if MS_PILATUS_DEBUG
+	mstest_pilatus_show_datafile_directory( fname, "before" );
+#endif
+
 	switch( ad->parameter_type ) {
 	case MXLV_AD_MAXIMUM_FRAME_NUMBER:
 		break;
@@ -1699,6 +1754,10 @@ mxd_pilatus_get_parameter( MX_AREA_DETECTOR *ad )
 		break;
 	}
 
+#if MS_PILATUS_DEBUG
+	mstest_pilatus_show_datafile_directory( fname, "after" );
+#endif
+
 	return mx_status;
 }
 
@@ -1728,6 +1787,10 @@ mxd_pilatus_set_parameter( MX_AREA_DETECTOR *ad )
 				name_buffer, sizeof(name_buffer)),
 			ad->parameter_type));
 	}
+#endif
+
+#if MS_PILATUS_DEBUG
+	mstest_pilatus_show_datafile_directory( fname, "before" );
 #endif
 
 	switch( ad->parameter_type ) {
@@ -1820,6 +1883,10 @@ mxd_pilatus_set_parameter( MX_AREA_DETECTOR *ad )
 			fname, ad->datafile_directory));
 		}
 
+#if MS_PILATUS_DEBUG
+		mstest_pilatus_show_datafile_directory( fname, "after" );
+#endif
+
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
@@ -1871,6 +1938,10 @@ mxd_pilatus_set_parameter( MX_AREA_DETECTOR *ad )
 			mx_area_detector_default_set_parameter_handler( ad );
 		break;
 	}
+
+#if MS_PILATUS_DEBUG
+	mstest_pilatus_show_datafile_directory( fname, "after" );
+#endif
 
 	return mx_status;
 }
@@ -2242,6 +2313,16 @@ mxd_pilatus_process_function( void *record_ptr,
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 
+#if MXD_PILATUS_DEBUG_PARAMETERS
+	MX_DEBUG(-2,("%s: record '%s', parameter '%s' (%ld), operation %d",
+		fname, record->name, record_field->name,
+		record_field->label_value, operation ));
+#endif
+
+#if MS_PILATUS_DEBUG
+	mstest_pilatus_show_datafile_directory( fname, "before" );
+#endif
+
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
@@ -2418,6 +2499,10 @@ mxd_pilatus_process_function( void *record_ptr,
 			operation, record->name );
 		break;
 	}
+
+#if MS_PILATUS_DEBUG
+	mstest_pilatus_show_datafile_directory( fname, "after" );
+#endif
 
 	return mx_status;
 }

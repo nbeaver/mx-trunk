@@ -16,6 +16,8 @@
 
 #define MS_MXSERVER_DEBUG	FALSE
 
+#define MS_PILATUS_DEBUG	TRUE
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -53,6 +55,11 @@
 #include "mx_security.h"
 
 #include "ms_mxserver.h"
+
+#if MS_PILATUS_DEBUG
+#include "mx_area_detector.h"
+#include "d_pilatus.h"
+#endif
 
 MX_EVENT_HANDLER mxsrv_event_handler_list[] = {
 	{ MXF_SRV_TCP_SERVER_TYPE,
@@ -505,6 +512,11 @@ mxserver_main( int argc, char *argv[] )
 #endif /* HAVE_MAIN_ROUTINE */
 {
 	static const char fname[] = "main()";
+
+#if MS_PILATUS_DEBUG
+	unsigned long mstest_counter = 0;
+	char mstest_string[80];
+#endif
 
 	MX_RECORD *mx_record_list;
 	MX_LIST_HEAD *list_head_struct;
@@ -1181,6 +1193,11 @@ mxserver_main( int argc, char *argv[] )
 	if ( mx_status.code != MXE_SUCCESS )
 		exit( mx_status.code );
 
+	mstest_pilatus_setup( mx_record_list );
+
+	mstest_pilatus_show_datafile_directory( fname,
+					"after mx_read_database_file" );
+
 	/* Perform database initialization steps that cannot be done until
 	 * all the records have been defined.
 	 */
@@ -1189,6 +1206,9 @@ mxserver_main( int argc, char *argv[] )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		exit( mx_status.code );
+
+	mstest_pilatus_show_datafile_directory( fname,
+				"after mx_finish_database_initialization" );
 
 	/* Initialize the MX log file if the log file control record
 	 * "mx_log" has been defined.
@@ -1205,6 +1225,9 @@ mxserver_main( int argc, char *argv[] )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		exit( mx_status.code );
+
+	mstest_pilatus_show_datafile_directory( fname,
+					"after mx_initialize_hardware" );
 
 #if 0
 	/* List all of the records that have been defined. */
@@ -1322,6 +1345,8 @@ mxserver_main( int argc, char *argv[] )
 		mx_breakpoint();
 	}
 
+	mstest_pilatus_show_datafile_directory( fname, "before main loop" );
+
 	mx_info("mxserver: Ready to accept client connections.");
 
 #if defined(DEBUG_DMALLOC)
@@ -1333,6 +1358,15 @@ mxserver_main( int argc, char *argv[] )
 #endif
 
 	for (;;) {
+
+#if MS_PILATUS_DEBUG
+		mstest_counter++;
+
+		snprintf( mstest_string, sizeof(mstest_string),
+			"main loop %lu", mstest_counter );
+
+		mstest_pilatus_show_datafile_directory( fname, mstest_string );
+#endif
 
 		if ( monitor_resources ) {
 			mxsrv_display_resource_usage( FALSE, -1.0 );

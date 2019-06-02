@@ -210,5 +210,10 @@ MX_API mx_status_type mxd_pilatus_command( MX_PILATUS *pilatus,
 					size_t response_buffer_length,
 					unsigned long *pilatus_return_code );
 
+MX_API void mstest_pilatus_setup( MX_RECORD * );
+
+MX_API void mstest_pilatus_show_datafile_directory( const char *fname,
+						const char *marker );
+
 #endif /* __D_PILATUS_H__ */
 
