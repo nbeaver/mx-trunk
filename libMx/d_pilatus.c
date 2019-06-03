@@ -918,7 +918,7 @@ mxd_pilatus_arm( MX_AREA_DETECTOR *ad )
 	MX_PILATUS *pilatus = NULL;
 	MX_SEQUENCE_PARAMETERS *sp = NULL;
 	unsigned long num_frames;
-	double exposure_time, exposure_period, delay_time;
+	double exposure_time, exposure_period, gap_time, delay_time;
 	char command[MXU_PILATUS_COMMAND_LENGTH+1];
 	char response[MXU_PILATUS_COMMAND_LENGTH+1];
 	mx_status_type mx_status;
@@ -973,17 +973,17 @@ mxd_pilatus_arm( MX_AREA_DETECTOR *ad )
 	case MXT_SQ_ONE_SHOT:
 		num_frames = 1;
 		exposure_time = sp->parameter_array[0];
-		exposure_period = -1.0;
+		exposure_period = exposure_time + pilatus->gap_time;
 		break;
 	case MXT_SQ_MULTIFRAME:
 		num_frames = mx_round( sp->parameter_array[0] );
 		exposure_time = sp->parameter_array[1];
-		exposure_period = exposure_time + 0.007;
+		exposure_period = exposure_time + pilatus->gap_time;
 		break;
 	case MXT_SQ_STROBE:
 		num_frames = mx_round( sp->parameter_array[0] );
 		exposure_time = sp->parameter_array[1];
-		exposure_period = exposure_time + 0.007;
+		exposure_period = exposure_time + pilatus->gap_time;
 		break;
 	case MXT_SQ_DURATION:
 		num_frames = mx_round( sp->parameter_array[0] );
@@ -997,6 +997,20 @@ mxd_pilatus_arm( MX_AREA_DETECTOR *ad )
 		break;
 	}
 
+	/* Make sure that the difference between the exposure period and
+	 * the exposure time is greater than or equal to the minimum
+	 * allowed gap time.  The minimum allowed time is different for
+	 * different versions of the Pilatus detector.
+	 */
+
+	gap_time = exposure_period - exposure_time;
+
+	if ( gap_time < pilatus->gap_time ) {
+		exposure_period = exposure_time + pilatus->gap_time;
+	}
+
+	/* Set the number of frames. */
+
 	snprintf( command, sizeof(command), "NImages %lu", num_frames );
 
 	mx_status = mxd_pilatus_command( pilatus, command,
@@ -1005,6 +1019,8 @@ mxd_pilatus_arm( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Set the exposure time. */
+
 	snprintf( command, sizeof(command), "ExpTime %f", exposure_time );
 
 	mx_status = mxd_pilatus_command( pilatus, command,
@@ -1012,19 +1028,6 @@ mxd_pilatus_arm( MX_AREA_DETECTOR *ad )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	/* Compute the exposure period if not explicitly set above. */
-
-	if ( exposure_period < 0.0 ) {
-		if ( pilatus->exposure_period > 0.0 ) {
-			exposure_period = pilatus->exposure_period;
-		} else
-		if ( pilatus->gap_time > 0.0 ) {
-			exposure_period = exposure_time + pilatus->gap_time;
-		} else {
-			exposure_period = exposure_time + 0.0025;
-		}
-	}
 
 	/* Set the exposure period. */
 
@@ -1036,14 +1039,16 @@ mxd_pilatus_arm( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Save the actual exposure period so that it can be requested
+	 * by the user.
+	 */
+
+	pilatus->exposure_period = exposure_period;
+
 	/* Compute and set the exposure delay. */
 
 	if ( pilatus->delay_time > 0.0 ) {
-		if ( pilatus->delay_time > exposure_period ) {
-			delay_time = exposure_period;
-		} else {
-			delay_time = pilatus->delay_time;
-		}
+		delay_time = pilatus->delay_time;
 	} else {
 		delay_time = 0.0;
 	}
@@ -2267,10 +2272,16 @@ mxd_pilatus_special_processing_setup( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
+		case MXLV_PILATUS_COMMAND:
+		case MXLV_PILATUS_DELAY_TIME:
 		case MXLV_PILATUS_DETECTOR_SERVER_DATAFILE_DIRECTORY:
 		case MXLV_PILATUS_DETECTOR_SERVER_DATAFILE_ROOT:
+		case MXLV_PILATUS_EXPOSURE_PERIOD:
+		case MXLV_PILATUS_EXPOSURES_PER_FRAME:
+		case MXLV_PILATUS_GAP_TIME:
 		case MXLV_PILATUS_LOCAL_DATAFILE_ROOT:
-		case MXLV_PILATUS_COMMAND:
+		case MXLV_PILATUS_NUM_IMAGES:
+		case MXLV_PILATUS_REAL_EXPOSURE_TIME:
 		case MXLV_PILATUS_RESPONSE:
 		case MXLV_PILATUS_SET_ENERGY:
 		case MXLV_PILATUS_SET_THRESHOLD:
@@ -2301,6 +2312,7 @@ mxd_pilatus_process_function( void *record_ptr,
 	MX_PILATUS *pilatus;
 	char command[MXU_PILATUS_COMMAND_LENGTH+1];
 	char response[MXU_PILATUS_COMMAND_LENGTH+1];
+	int num_items;
 	int argc;
 	char **argv;
 	char directory_temp[MXU_FILENAME_LENGTH+1];
@@ -2336,6 +2348,100 @@ mxd_pilatus_process_function( void *record_ptr,
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
+		case MXLV_PILATUS_DELAY_TIME:
+			mx_status = mxd_pilatus_command( pilatus, "Delay",
+					response, sizeof(response), NULL );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			num_items = sscanf( response,
+					"Delay time set to: %lg",
+					&(pilatus->delay_time) );
+
+			if ( num_items != 1 ) {
+				return mx_error( MXE_UNPARSEABLE_STRING, fname,
+				"Did not find the delay time in response '%s' "
+				"from Pilatus detector '%s'.",
+					response, record->name );
+			}
+			break;
+		case MXLV_PILATUS_REAL_EXPOSURE_TIME:
+			mx_status = mxd_pilatus_command( pilatus, "ExpTime",
+					response, sizeof(response), NULL );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			num_items = sscanf( response,
+					"Exposure time set to: %lg",
+					&(pilatus->real_exposure_time) );
+
+			if ( num_items != 1 ) {
+				return mx_error( MXE_UNPARSEABLE_STRING, fname,
+				"Did not find the exposure time in "
+				"response '%s' from Pilatus detector '%s'.",
+					response, record->name );
+			}
+			break;
+		case MXLV_PILATUS_EXPOSURE_PERIOD:
+			mx_status = mxd_pilatus_command( pilatus, "ExpPeriod",
+					response, sizeof(response), NULL );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			num_items = sscanf( response,
+					"Exposure period set to: %lg",
+					&(pilatus->exposure_period) );
+
+			if ( num_items != 1 ) {
+				return mx_error( MXE_UNPARSEABLE_STRING, fname,
+				"Did not find the exposure period in "
+				"response '%s' from Pilatus detector '%s'.",
+					response, record->name );
+			}
+			MX_DEBUG(-2,("%s: exposure period = %g",
+				fname, pilatus->exposure_period));
+			break;
+		case MXLV_PILATUS_GAP_TIME:
+			break;
+		case MXLV_PILATUS_NUM_IMAGES:
+			mx_status = mxd_pilatus_command( pilatus, "NImages",
+					response, sizeof(response), NULL );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			num_items = sscanf( response,
+					"N images set to: %lu",
+					&(pilatus->num_images) );
+
+			if ( num_items != 1 ) {
+				return mx_error( MXE_UNPARSEABLE_STRING, fname,
+				"Did not find the number of images in "
+				"response '%s' from Pilatus detector '%s'.",
+					response, record->name );
+			}
+			break;
+		case MXLV_PILATUS_EXPOSURES_PER_FRAME:
+			mx_status = mxd_pilatus_command( pilatus, "NExpFrame",
+					response, sizeof(response), NULL );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			num_items = sscanf( response,
+					"Exposures per frame set to: %lu",
+					&(pilatus->exposures_per_frame) );
+
+			if ( num_items != 1 ) {
+				return mx_error( MXE_UNPARSEABLE_STRING, fname,
+				"Did not find the exposures per frame in "
+				"response '%s' from Pilatus detector '%s'.",
+					response, record->name );
+			}
+			break;
 		case MXLV_PILATUS_COMMAND:
 		case MXLV_PILATUS_RESPONSE:
 		case MXLV_PILATUS_SET_ENERGY:
