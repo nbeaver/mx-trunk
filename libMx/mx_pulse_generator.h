@@ -42,6 +42,9 @@ extern "C" {
 #define MXF_PGN_SQUARE_WAVE	2
 #define MXF_PGN_TRIANGLE_WAVE	3
 #define MXF_PGN_SAWTOOTH_WAVE	4
+#define MXF_PGN_SINE_WAVE	5
+
+#define MXF_PGN_EXT_DURATION    1001
 
 /* If num_pulses is set to MXF_PGN_FOREVER, then the pulse generator
  * will pulse until explicitly stopped.
