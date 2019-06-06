@@ -1799,6 +1799,75 @@ mxi_handel_special_processing_setup( MX_RECORD *record )
 /*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
+mxi_handel_reallocate_buffers( MX_HANDEL *handel,
+				size_t buffer_size )
+{
+	static const char fname[] = "mxi_handel_reallocate_buffers()";
+
+	MX_MCS *mcs_array[MXI_HANDEL_CHANNELS_PER_MODULE];
+	MX_MCS *mcs = NULL;
+	MX_HANDEL_MCS *handel_mcs = NULL;
+	int channel;
+	mx_status_type mx_status;
+
+	if ( handel == (MX_HANDEL *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_HANDEL pointer passed was NULL." );
+	}
+
+	mx_status = mxi_handel_get_mcs_array( handel,
+						handel->num_mcas,
+						mcs_array );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	for ( channel = 0;
+		channel < MXI_HANDEL_CHANNELS_PER_MODULE;
+		channel++ )
+	{
+		mcs = mcs_array[channel];
+
+		handel_mcs = (MX_HANDEL_MCS *) mcs->record->record_type_struct;
+
+		/* Free the old buffers. */
+
+		mx_free( handel_mcs->buffer_a );
+		mx_free( handel_mcs->buffer_b );
+
+		/* Allocate the new buffers. */
+
+		handel_mcs->buffer_a = malloc( handel_mcs->buffer_length
+						* sizeof(long) );
+
+		if ( handel_mcs->buffer_a == (uint32_t *) NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate a "
+			"%lu element array of unsigned longs for "
+			"'buffer_a' belonging to XIA MCS '%s'.",
+				handel_mcs->buffer_length,
+				mcs->record->name );
+		}
+
+		handel_mcs->buffer_b = malloc( handel_mcs->buffer_length
+						* sizeof(long) );
+
+		if ( handel_mcs->buffer_b == (uint32_t *) NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate a "
+			"%lu element array of unsigned longs for "
+			"'buffer_b' belonging to XIA MCS '%s'.",
+				handel_mcs->buffer_length,
+				mcs->record->name );
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
 mxi_handel_start_run( MX_HANDEL *handel,
 			mx_bool_type resume_run )
 {

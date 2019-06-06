@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005, 2007, 2017-2018 Illinois Institute of Technology
+ * Copyright 2005, 2007, 2017-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -73,6 +73,9 @@ MX_API mx_status_type mx_thread_set_stop_request_handler(
 MX_API mx_status_type mx_thread_wait( MX_THREAD *thread,
 					long *thread_exit_status,
 					double max_seconds_to_wait );
+
+MX_API mx_status_type mx_thread_is_alive( MX_THREAD *thread,
+					mx_bool_type *thread_is_alive );
 
 MX_API mx_status_type mx_thread_save_thread_pointer( MX_THREAD *thread );
 

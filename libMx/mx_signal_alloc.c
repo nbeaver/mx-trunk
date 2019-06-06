@@ -14,7 +14,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005-2006, 2008-2009, 2011, 2015-2017
+ * Copyright 2005-2006, 2008-2009, 2011, 2015-2017, 2019
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -38,6 +38,7 @@
 #include "mx_osdef.h"
 #include "mx_util.h"
 #include "mx_unistd.h"
+#include "mx_stdint.h"
 #include "mx_signal.h"
 #include "mx_mutex.h"
 #include "mx_thread.h"

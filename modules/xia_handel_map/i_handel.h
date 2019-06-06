@@ -309,6 +309,11 @@ MX_API mx_status_type mxi_handel_set_preset( MX_HANDEL *handel,
 
 /*------*/
 
+MX_API mx_status_type mxi_handel_reallocate_buffers( MX_HANDEL *handel,
+							size_t buffer_length );
+
+/*------*/
+
 MX_API mx_status_type mxi_handel_show_parameter( MX_HANDEL *handel );
 
 MX_API mx_status_type mxi_handel_show_acquisition_value( MX_HANDEL *handel );

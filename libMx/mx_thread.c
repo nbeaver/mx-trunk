@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005-2007, 2010-2011, 2013, 2015-2018
+ * Copyright 2005-2007, 2010-2011, 2013, 2015-2019
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -23,6 +23,7 @@
 
 #include "mx_util.h"
 #include "mx_unistd.h"
+#include "mx_stdint.h"
 #include "mx_thread.h"
 
 static volatile int mx_threads_are_initialized = FALSE;
@@ -868,6 +869,52 @@ mx_thread_wait( MX_THREAD *thread,
 		}
 
 		*thread_exit_status = (long) dword_exit_status;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT mx_status_type
+mx_thread_is_alive( MX_THREAD *thread,
+		mx_bool_type *thread_is_alive )
+{
+	static const char fname[] = "mx_thread_is_alive()";
+
+	MX_WIN32_THREAD_PRIVATE *thread_private;
+	DWORD wait_status, last_error_code;
+	TCHAR message_buffer[100];
+	mx_status_type mx_status;
+
+	if ( thread_is_alive == (mx_bool_type *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The mx_bool_type pointer passed was NULL." );
+	}
+
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
+		return mx_status;
+
+	wait_status = WaitForSingleObject( thread_private->thread_handle, 0 );
+
+	switch( wait_status ) {
+	case WAIT_TIMEOUT:
+		*thread_is_alive = TRUE;
+		break;
+	case WAIT_OBJECT_0:
+		*thread_is_alive = FALSE;
+		break;
+	default:
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unexpected error code from WaitForSingleObject().  "
+			"Win32 error code = %ld, error_message = '%s'",
+			last_error_code, message_buffer );
+		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

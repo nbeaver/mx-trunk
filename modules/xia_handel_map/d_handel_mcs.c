@@ -408,23 +408,6 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 		xia_status, mxi_handel_strerror(xia_status) );
 	}
 
-#if 0
-	/* Tell Handel the number of MCA channels.  (It should already know.) */
-
-	number_mca_channels = mca->current_num_channels;
-
-	MX_XIA_SYNC( xiaSetAcquisitionValues( -1, "number_mca_channels",
-					(void *) &number_mca_channels ));
-
-	if ( xia_status != XIA_SUCCESS ) {
-		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-		"The attempt to set the number of MCA channels to %lu "
-		"for MCS '%s' failed.  Error code = %d, '%s'.",
-		mca->current_num_channels, mcs->record->name,
-		xia_status, mxi_handel_strerror(xia_status) );
-	}
-#endif
-
 	/* Tell Handel the number of measurements ("pixels") to take. */
 
 	num_map_pixels = mcs->current_num_measurements;
@@ -618,6 +601,13 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 		fname, handel_mcs->buffer_length));
 
 	if ( old_buffer_length != handel_mcs->buffer_length ) {
+#if 1
+		mx_status = mxi_handel_reallocate_buffers( handel,
+						handel_mcs->buffer_length );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+#else
 		/* Free the old buffers. */
 
 		mx_free( handel_mcs->buffer_a );
@@ -648,6 +638,7 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 				handel_mcs->buffer_length,
 				mcs->record->name );
 		}
+#endif
 	}
 
 	/*----*/
