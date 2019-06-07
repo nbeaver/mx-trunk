@@ -314,7 +314,7 @@ mx_get_current_cpu_number( void )
 
 /* This is for the MinGW family of compilers. */
 
-#  if MX_IS_REACTOS
+#if  1 || MX_IS_REACTOS
 MX_EXPORT unsigned long
 mx_get_current_cpu_number( void )
 {
