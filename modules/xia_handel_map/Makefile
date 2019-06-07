@@ -26,6 +26,12 @@ ifeq ($(MX_ARCH),win32)
 	CFLAGS += -I$(XIA_HANDEL_DIR)\\inc
 endif
 
+ifeq ($(MX_ARCH),win32-mingw)
+	XIA_HANDEL_DIR = c:/progra~1/XIA/xmanag~1.0/sdk
+
+	CFLAGS += -I$(XIA_HANDEL_DIR)/inc -Wno-unused-variable
+endif
+
 CFLAGS += -DIS_MX_DRIVER
 
 #--------------------------------------------------------------------------
@@ -72,6 +78,17 @@ $(XIA_HANDEL_MXO): $(XIA_HANDEL_OBJS)
 			-manifest $(XIA_HANDEL_MXO).manifest ; \
 		rm -f $(XIA_HANDEL_MXO).manifest; \
 	fi
+
+endif
+
+#--------------------------------------------------------------------------
+
+ifeq ($(MX_ARCH),win32-mingw)
+
+$(XIA_HANDEL_MXO): $(XIA_HANDEL_OBJS)
+	gcc -shared -o $(XIA_HANDEL_MXO) $(XIA_HANDEL_OBJS) \
+		../../libMx/$(MX_LIBRARY_NAME) \
+		-L$(XIA_HANDEL_DIR)/lib -lhandel
 
 endif
 

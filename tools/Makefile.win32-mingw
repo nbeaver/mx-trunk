@@ -1,7 +1,7 @@
 
 all: ../libMx/mx_private_version.h mx_config \
-	xdr.o xdr_hyper.o getopt.o \
-	strlcpy.o strlcat.o strptime.o mxgnuplt.exe
+	xdr.o xdr_hyper.o getopt.o strcasestr.o \
+	strlcpy.o strlcat.o strptime.o cJSON.o mxgnuplt.exe
 
 include ../libMx/Makefile.version
 
@@ -13,7 +13,7 @@ mx_private_version: ../libMx/Makefile.version \
 				-o mx_private_version
 
 ../libMx/mx_private_version.h: mx_private_version
-	./mx_private_version > ../libMx/mx_private_version.h
+	.\mx_private_version > ../libMx/mx_private_version.h
 
 mx_config: version/src/mx_config.c ../libMx/mx_private_version.h
 	$(CC) -I../libMx -DOS_WIN32 -DMX_ARCH="\"$(MX_ARCH)\"" \
@@ -35,6 +35,11 @@ getopt.o: generic/src/getopt.c
 		-I../libMx -DOS_WIN32 -D__MX_LIBRARY__ \
 		generic/src/getopt.c -o getopt.o
 
+strcasestr.o: generic/src/strcasestr.c
+	gcc -c $(RUN_TIME_LIBRARY_FLAGS) \
+		-I../libMx -DOS_WIN32 -D__MX_LIBRARY__ \
+		generic/src/strcasestr.c -o strcasestr.o
+
 strlcpy.o: generic/src/strlcpy.c
 	gcc -c $(RUN_TIME_LIBRARY_FLAGS) \
 		-I../libMx -DOS_WIN32 -D__MX_LIBRARY__ \
@@ -49,6 +54,12 @@ strptime.o: generic/src/strptime.c
 	gcc -c $(RUN_TIME_LIBRARY_FLAGS) \
 		-I../libMx -DOS_WIN32 -D__MX_LIBRARY__ \
 		generic/src/strptime.c -o strptime.o
+
+cJSON.o: cJSON/cJSON.c cJSON/cJSON.H
+	gcc -c $(RUN_TIME_LIBRARY_FLAGS) \
+		-I../libMx -DOS_WIN32 -D__MX_LIBRARY__ \
+		-DCJSON_EXPORT_SYMBOLS \
+		cJSON/cJSON.c -o cJSON.o
 
 mxgnuplt.o: win32/src/mxgnuplt.c
 	gcc -c $(RUN_TIME_LIBRARY_FLAGS) \

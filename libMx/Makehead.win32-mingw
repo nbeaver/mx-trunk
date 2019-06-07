@@ -38,7 +38,7 @@ GCCFLAGS = -Wall -Werror \
 # Intel x86 with MinGW 4.1.1 under Microsoft Win32.
 #
 CC		= gcc
-CFLAGS		= -g -O $(GCCFLAGS) $(INCLUDES) \
+CFLAGS		+= -g -O $(GCCFLAGS) $(INCLUDES) \
 				-DOS_WIN32 $(EXTRA_FLAGS) -DDEBUG
 
 # Special cases for individual files.
@@ -85,10 +85,12 @@ MXPUT_OBJS        = $(MXPUT_SRCS:.c=.$(OBJ))
 
 #----
 
+MX_LIB_OBJS += ../tools/strcasestr.o
 MX_LIB_OBJS += ../tools/strlcpy.o ../tools/strlcat.o
 MX_LIB_OBJS += ../tools/strptime.o
 MX_LIB_OBJS += ../tools/xdr.o ../tools/xdr_hyper.o
 MX_LIB_OBJS += ../tools/getopt.o
+MX_LIB_OBJS += ../tools/cJSON.o
 
 #
 #---------------------------------------------------
@@ -143,7 +145,7 @@ library_install:
 	install -m 755 ../plotgnu/showdata $(MX_INSTALL_DIR)/bin/showdata.pl
 	install -m 755 ../plotgnu/showplot $(MX_INSTALL_DIR)/bin/showplot.pl
 	install -m 755 ../plotgnu/plot2ps $(MX_INSTALL_DIR)/bin/plot2ps.pl
-	install -m 755 ../tools/mx_config $(MX_INSTALL_DIR)/bin
+	install -m 755 ../tools/mx_config.exe $(MX_INSTALL_DIR)/bin
 
 mx_list_head.$(OBJ): Makefile.version mx_list_head.c mx_version.h
 	$(COMPILE) $(CFLAGS) -DMX_CFLAGS="${CFLAGS}" mx_list_head.c
@@ -151,7 +153,7 @@ mx_list_head.$(OBJ): Makefile.version mx_list_head.c mx_version.h
 #
 #---------------------------------------------------
 #
-MOTOR_NAME	= mxmotor
+MOTOR_NAME	= mxmotor.exe
 
 $(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
 	$(CC) $(CFLAGS) -o $(MOTOR_NAME) $(MOTOR_OBJS) \
@@ -163,7 +165,7 @@ motor_install:
 #
 #---------------------------------------------------
 #
-SERVER_NAME	= mxserver
+SERVER_NAME	= mxserver.exe
 
 $(SERVER_NAME): $(SERVER_OBJS) $(MX_LIBRARY_PATH)
 	$(CC) $(CFLAGS) -o $(SERVER_NAME) $(SERVER_OBJS) \
@@ -179,7 +181,7 @@ server_install:
 #
 #---------------------------------------------------
 #
-AUTOSAVE_NAME	= mxautosave
+AUTOSAVE_NAME	= mxautosave.exe
 
 $(AUTOSAVE_NAME): $(AUTOSAVE_OBJS) $(MX_LIBRARY_PATH)
 	$(CC) $(CFLAGS) -o $(AUTOSAVE_NAME) $(AUTOSAVE_OBJS) \
@@ -193,25 +195,25 @@ autosave_install:
 #
 #---------------------------------------------------
 #
-MXDRIVERINFO_NAME    = mxdriverinfo
+MXDRIVERINFO_NAME    = mxdriverinfo.exe
 
 $(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
 	$(CC) $(CFLAGS) -o $(MXDRIVERINFO_NAME) \
 		$(MXDRIVERINFO_OBJS) $(LIB_DIRS) ../libMx/libMx.a $(LIBRARIES)
 
-MXMONITOR_NAME    = mxmonitor
+MXMONITOR_NAME    = mxmonitor.exe
 
 $(MXMONITOR_NAME): $(MXMONITOR_OBJS) $(MX_LIBRARY_PATH)
 	$(CC) $(CFLAGS) -o $(MXMONITOR_NAME) \
 		$(MXMONITOR_OBJS) $(LIB_DIRS) ../libMx/libMx.a $(LIBRARIES)
 
-MXGET_NAME        = mxget
+MXGET_NAME        = mxget.exe
 
 $(MXGET_NAME): $(MXGET_OBJS) $(MX_LIBRARY_PATH)
 	$(CC) $(CFLAGS) -o $(MXGET_NAME) \
 		$(MXGET_OBJS) $(LIB_DIRS) ../libMx/libMx.a $(LIBRARIES)
 
-MXPUT_NAME        = mxput
+MXPUT_NAME        = mxput.exe
 
 $(MXPUT_NAME): $(MXPUT_OBJS) $(MX_LIBRARY_PATH)
 	$(CC) $(CFLAGS) -o $(MXPUT_NAME) \

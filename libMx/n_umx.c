@@ -1,5 +1,5 @@
 /*
- * Name:     n_spec.c
+ * Name:     n_umx.c
  *
  * Purpose:  Client interface to a UMX microcontroller-based server.
  *
@@ -76,7 +76,7 @@ mxn_umx_server_open( MX_RECORD *record )
 
 	MX_UMX_SERVER *umx_server = NULL;
 	MX_RECORD *rs232_record = NULL;
-	size_t num_bytes_read, length;
+	size_t num_bytes_read;
 	char response[80];
 	mx_status_type mx_status;
 
@@ -112,8 +112,6 @@ mxn_umx_server_open( MX_RECORD *record )
 		return mx_status;
 
 	MX_DEBUG(-2,("%s: num_bytes_read = %ld", fname, (long)num_bytes_read ));
-
-	length = strlen( response );
 
 	MX_DEBUG(-2,("%s: response = '%s'", fname, response));
 
