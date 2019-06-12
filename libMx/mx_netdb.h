@@ -25,13 +25,8 @@
 
 #include "mx_socket.h"
 
-#if defined( _NETDB_H )
-#  define __MX_NEED_ADDRINFO	FALSE
-
-#elif defined( _NETDB_H_ )
-#  define __MX_NEED_ADDRINFO	FALSE
-
-#elif defined( OS_ANDROID )
+#if ( defined( _NETDB_H ) || defined( _NETDB_H_ ) || defined( OS_ANDROID ) \
+	|| defined( OS_VXWORKS ) )
 #  define __MX_NEED_ADDRINFO	FALSE
 #else
 #  define __MX_NEED_ADDRINFO	TRUE
