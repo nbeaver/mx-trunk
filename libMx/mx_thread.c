@@ -24,6 +24,7 @@
 #include "mx_util.h"
 #include "mx_unistd.h"
 #include "mx_stdint.h"
+#include "mx_atomic.h"
 #include "mx_thread.h"
 
 static volatile int mx_threads_are_initialized = FALSE;
@@ -523,6 +524,14 @@ mx_thread_create( MX_THREAD **thread,
 	}
 
 	thread_private->thread_id = thread_id;
+
+	/* Note: We do not know if ResumeThread() contains a memory barrier,
+	 * so it is best if we assume that it does not.  Thus, we must put
+	 * our own memory barrier here to ensure that the writes to 
+	 * thread_private above do not occur in or after ResumeThread().
+	 */
+
+	mx_atomic_memory_barrier();
 
 	/* Allow the thread to start executing. */
 
@@ -1727,6 +1736,16 @@ mx_thread_create( MX_THREAD **thread,
 	thread_arg_struct->thread = *thread;
 	thread_arg_struct->thread_function = thread_function;
 	thread_arg_struct->thread_arguments = thread_arguments;
+
+	/* FIXME: The call to pthread_create() below writes to the variable
+	 * thread_private->thread_id.  And we do not access the thread_id
+	 * member until after we return from mx_thread_create().
+	 *
+	 * Nevertheless, do we still need to put a memory barrier after
+	 * and/or before the call to pthread_create()?
+	 */
+
+	/* Create the thread. */
 
 	status = pthread_create( &(thread_private->thread_id), NULL, 
 				mx_thread_start_function,
