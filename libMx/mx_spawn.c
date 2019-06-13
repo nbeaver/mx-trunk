@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2006, 2009-2010, 2013-2018 Illinois Institute of Technology
+ * Copyright 2006, 2009-2010, 2013-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -898,6 +898,18 @@ mx_abort_after_timeout( double timeout_in_seconds )
 			(TIMERPROC) &abort_timer_proc );
 
 	return;
+}
+
+/*-------------------------------------------------------------------------*/
+
+#elif defined(OS_VXWORKS)
+
+MX_EXPORT void
+mx_abort_after_timeout( double timeout_in_seconds )
+{
+	mx_sleep( timeout_in_seconds );
+
+	abort();
 }
 
 #else

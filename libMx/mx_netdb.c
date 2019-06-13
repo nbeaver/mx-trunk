@@ -33,6 +33,8 @@
  *
  */
 
+#if !defined(OS_VXWORKS)
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -240,3 +242,4 @@ mx_getnameinfo( const struct sockaddr *sa,
 	return 0;
 }
 
+#endif

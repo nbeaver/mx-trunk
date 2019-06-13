@@ -50,6 +50,7 @@
 #     include <sockLib.h>
 #     include <ioLib.h>
 #     include <hostLib.h>
+#     include <netdb.h>
 #  else
 #     include <sys/time.h>
 #  endif
