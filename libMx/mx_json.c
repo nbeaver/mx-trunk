@@ -585,3 +585,116 @@ mx_json_get_compatible_key( MX_JSON *json,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_json_get_string_2d_array( MX_JSON *json,
+			char *key_name,
+			long num_strings,
+			size_t max_string_length,
+			char ***string_array )
+{
+	static const char fname[] = "mx_json_get_string_array()";
+
+	cJSON *found_cjson_value = NULL;
+	cJSON *cjson_value = NULL;
+	char **string_array_ptr = NULL;
+	long dimension_array[2];
+	size_t element_size_array[2];
+	long i;
+	mx_status_type mx_status;
+
+	if ( key_name == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The key_name pointer passed was NULL." );
+	}
+	if ( string_array == (char ***) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The string_array pointer passed was NULL." );
+	}
+	if ( json == (MX_JSON *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_JSON pointer passed was NULL." );
+	}
+	if ( json->cjson == (cJSON *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The cJSON pointer for MX_JSON pointer %p is NULL.", json );
+	}
+
+	/* Find the requested key. */
+
+	mx_status = mx_json_find_key( json->cjson,
+			key_name, &found_cjson_value );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Allocate an MX array to contain the strings from JSON. */
+
+	dimension_array[0] = num_strings;
+	dimension_array[1] = max_string_length;
+
+	element_size_array[0] = sizeof(char);
+	element_size_array[1] = sizeof(char *);
+
+	string_array_ptr = mx_allocate_array( MXFT_STRING,
+					2, dimension_array,
+					element_size_array );
+
+	if ( string_array_ptr == (char **) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Unable to allocate for a %ld element array of strings.",
+		num_strings );
+	}
+
+	*string_array = string_array_ptr;
+
+	cjson_value = found_cjson_value;
+
+	for ( i = 0; i < num_strings; i++ ) {
+		/* Initialize the array element to an empty string. */
+
+		string_array_ptr[i][0] = '\0';
+
+		/* If there are fewer JSON items in the array than we
+		 * expected, then arrange to leave the trailing array
+		 * members as empty strings.
+		 */
+		
+		if ( cjson_value == (cJSON *) NULL ) {
+			continue;
+		}
+
+		/* Copy the item value to the MX string array element.
+		 * We only copy strings, numbers, and bools.
+		 */
+
+		if ( cJSON_IsString( cjson_value ) ) {
+			strlcpy( string_array_ptr[i],
+				cjson_value->valuestring,
+				max_string_length );
+		} else
+		if ( cJSON_IsNumber( cjson_value ) ) {
+			snprintf( string_array_ptr[i],
+				max_string_length,
+				"%g", cjson_value->valuedouble );
+		} else
+		if ( cJSON_IsBool( cjson_value ) ) {
+			snprintf( string_array_ptr[i],
+				max_string_length,
+				"%ld", mx_round( cjson_value->valuedouble ) );
+		}
+
+#if 1
+		MX_DEBUG(-2,("%s: key '%s', string[%ld] = '%s'",
+			fname, key_name, i, string_array_ptr[i] ));
+#endif
+		
+		/* Continue to the next cJSON item. */
+
+		cjson_value = cjson_value->next;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+

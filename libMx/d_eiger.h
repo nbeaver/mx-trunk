@@ -24,6 +24,7 @@
 #define MXU_EIGER_MODULE_NAME_LENGTH		40
 #define MXU_EIGER_KEY_NAME_LENGTH		80
 #define MXU_EIGER_KEY_VALUE_LENGTH		80
+#define MXU_EIGER_KEY_RESPONSE_LENGTH		1024
 
 #define MXU_EIGER_KEY_TYPE_LENGTH		20
 
@@ -44,6 +45,7 @@ typedef struct {
 	char module_name[MXU_EIGER_MODULE_NAME_LENGTH+1];
 	char key_name[MXU_EIGER_KEY_NAME_LENGTH+1];
 	char key_value[MXU_EIGER_KEY_VALUE_LENGTH+1];
+	char key_response[MXU_EIGER_KEY_RESPONSE_LENGTH+1];
 
 	char key_type[MXU_EIGER_KEY_TYPE_LENGTH+1];
 
@@ -52,6 +54,7 @@ typedef struct {
 #define MXLV_EIGER_MONITOR_ENABLED		94001
 #define MXLV_EIGER_KEY_NAME			94002
 #define MXLV_EIGER_KEY_VALUE			94003
+#define MXLV_EIGER_KEY_RESPONSE			94004
 
 #define MXD_EIGER_STANDARD_FIELDS \
   {-1, -1, "url_server_record", MXFT_RECORD, NULL, 0, {0}, \
@@ -102,6 +105,11 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, key_value), \
 	{sizeof(char)}, NULL, 0 }, \
   \
+  {MXLV_EIGER_KEY_RESPONSE, -1, "key_response", MXFT_STRING, NULL, \
+	  				1, {MXU_EIGER_KEY_RESPONSE_LENGTH},\
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, key_response), \
+	{sizeof(char)}, NULL, 0 }, \
+  \
   {-1, -1, "key_type", MXFT_STRING, NULL, 1, {MXU_EIGER_KEY_TYPE_LENGTH},\
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, key_type), \
 	{sizeof(char)}, NULL, MXFF_READ_ONLY }
@@ -115,6 +123,7 @@ MX_API mx_status_type mxd_eiger_special_processing_setup(
 MX_API mx_status_type mxd_eiger_arm( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_eiger_trigger( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_eiger_stop( MX_AREA_DETECTOR *ad );
+MX_API mx_status_type mxd_eiger_abort( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_eiger_get_last_and_total_frame_numbers(
 							MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_eiger_get_status( MX_AREA_DETECTOR *ad );

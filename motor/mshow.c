@@ -790,7 +790,7 @@ motor_show_field( char *record_field_name )
 	char *ptr, *record_name, *field_name;
 	void *pointer_to_value;
 	mx_status_type mx_status;
-	char token_buffer[80];
+	char token_buffer[800];
 	mx_status_type ( *token_constructor )
 		(void *, char *, size_t, MX_RECORD *, MX_RECORD_FIELD *);
 

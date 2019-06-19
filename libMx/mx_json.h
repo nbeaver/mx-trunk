@@ -67,6 +67,12 @@ MX_API mx_status_type mx_json_get_compatible_key( MX_JSON *json,
 					void *key_value,
 					size_t max_key_value_bytes );
 
+MX_API mx_status_type mx_json_get_string_2d_array( MX_JSON *json,
+					char *key_name,
+					long num_strings,
+					size_t max_string_length,
+					char ***string_2d_array );
+
 /*---*/
 
 #ifdef __cplusplus

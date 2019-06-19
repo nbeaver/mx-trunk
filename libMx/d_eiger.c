@@ -62,7 +62,7 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_eiger_ad_function_list = {
 	mxd_eiger_trigger,
 	NULL,
 	mxd_eiger_stop,
-	NULL,
+	mxd_eiger_abort,
 	mxd_eiger_get_last_and_total_frame_numbers,
 	mxd_eiger_get_last_and_total_frame_numbers,
 	mxd_eiger_get_status,
@@ -780,7 +780,7 @@ mxd_eiger_trigger( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_eiger_trigger()";
 
 	MX_EIGER *eiger = NULL;
-	unsigned long trigger;
+	long trigger;
 	long dimension[1];
 	mx_status_type mx_status;
 
@@ -822,6 +822,8 @@ mxd_eiger_stop( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_eiger_stop()";
 
 	MX_EIGER *eiger = NULL;
+	long cancel;
+	long dimension[0];
 	mx_status_type mx_status;
 
 	mx_status = mxd_eiger_get_pointers( ad, &eiger, fname );
@@ -833,6 +835,43 @@ mxd_eiger_stop( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+	dimension[0] = 1;
+
+	cancel = 1;
+
+	mx_status = mxd_eiger_put_value( ad, eiger,
+			"detector", "command/cancel",
+			MXFT_LONG, 1, dimension, (void *) &cancel );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_eiger_abort( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mxd_eiger_abort()";
+
+	MX_EIGER *eiger = NULL;
+	long abort;
+	long dimension[0];
+	mx_status_type mx_status;
+
+	mx_status = mxd_eiger_get_pointers( ad, &eiger, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_EIGER_DEBUG
+	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+		fname, ad->record->name ));
+#endif
+	dimension[0] = 1;
+
+	abort = 1;
+
+	mx_status = mxd_eiger_put_value( ad, eiger,
+			"detector", "command/abort",
+			MXFT_LONG, 1, dimension, (void *) &abort );
 
 	return mx_status;
 }
@@ -865,6 +904,9 @@ mxd_eiger_get_status( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_eiger_get_status()";
 
 	MX_EIGER *eiger = NULL;
+	char status_string[80];
+	long dimension[1];
+	long status_update;
 	mx_status_type mx_status;
 
 	mx_status = mxd_eiger_get_pointers( ad, &eiger, fname );
@@ -876,6 +918,24 @@ mxd_eiger_get_status( MX_AREA_DETECTOR *ad )
 	MX_DEBUG( 2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+	/* Tell the detector to update the detector status. */
+
+	dimension[0] = 1;
+
+	status_update = 1;
+
+	mx_status = mxd_eiger_put_value( ad, eiger,
+			"detector", "command/status_update",
+			MXFT_LONG, 1, dimension, (void *) &status_update );
+
+	/* Now get the updated status. */
+
+	dimension[0] = sizeof(status_string);
+
+	mx_status = mxd_eiger_get_value( ad, eiger,
+			"detector", "status/state",
+			MXFT_STRING, 1, dimension,
+			status_string );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1369,6 +1429,7 @@ mxd_eiger_special_processing_setup( MX_RECORD *record )
 		case MXLV_EIGER_MONITOR_ENABLED:
 		case MXLV_EIGER_KEY_NAME:
 		case MXLV_EIGER_KEY_VALUE:
+		case MXLV_EIGER_KEY_RESPONSE:
 			record_field->process_function
 					= mxd_eiger_process_function;
 			break;
@@ -1444,6 +1505,13 @@ mxd_eiger_process_function( void *record_ptr,
 						eiger->key_name,
 						MXFT_STRING, 1, dimension,
 						eiger->key_value );
+			break;
+		case MXLV_EIGER_KEY_RESPONSE:
+			mx_status = mxd_eiger_get( ad, eiger,
+						eiger->module_name,
+						eiger->key_name,
+						eiger->key_response,
+						sizeof(eiger->key_response) );
 			break;
 		default:
 			MX_DEBUG( 1,(
