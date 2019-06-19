@@ -49,6 +49,8 @@ typedef struct {
 
 	char key_type[MXU_EIGER_KEY_TYPE_LENGTH+1];
 
+	unsigned long total_num_frames_before_arm;
+
 } MX_EIGER;
 
 #define MXLV_EIGER_MONITOR_ENABLED		94001
@@ -112,7 +114,11 @@ typedef struct {
   \
   {-1, -1, "key_type", MXFT_STRING, NULL, 1, {MXU_EIGER_KEY_TYPE_LENGTH},\
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, key_type), \
-	{sizeof(char)}, NULL, MXFF_READ_ONLY }
+	{sizeof(char)}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "total_num_frames_before_arm", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, total_num_frames_before_arm), \
+	{0}, NULL, MXFF_READ_ONLY }
 
 MX_API mx_status_type mxd_eiger_initialize_driver( MX_DRIVER *driver );
 MX_API mx_status_type mxd_eiger_create_record_structures( MX_RECORD *record );

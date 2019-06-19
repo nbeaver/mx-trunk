@@ -14,16 +14,17 @@
  *
  */
 
-#define MXN_HTTP_DEBUG			FALSE
+#define MXN_HTTP_DEBUG				FALSE
 
-#define MXN_HTTP_DEBUG_GET		FALSE
-#define MXN_HTTP_DEBUG_PUT		FALSE
+#define MXN_HTTP_DEBUG_GET			FALSE
+#define MXN_HTTP_DEBUG_PUT			FALSE
 
-#define MXN_HTTP_DEBUG_GET_DETAILS	FALSE
-#define MXN_HTTP_DEBUG_PUT_DETAILS	FALSE
+#define MXN_HTTP_DEBUG_GET_DETAILS		FALSE
+#define MXN_HTTP_DEBUG_PUT_DETAILS		FALSE
 
-#define MXN_HTTP_DEBUG_PUT_MESSAGE	FALSE
-#define MXN_HTTP_DEBUG_PUT_RESPONSE	FALSE
+#define MXN_HTTP_DEBUG_PUT_MESSAGE		FALSE
+#define MXN_HTTP_DEBUG_PUT_RESPONSE		FALSE
+#define MXN_HTTP_DEBUG_PUT_RESPONSE_BODY	TRUE
 
 /* On Linux, we must define _GNU_SOURCE before including any C library header
  * in order to get strcasestr() from string.h
@@ -492,7 +493,7 @@ mxn_http_server_get( MX_URL_SERVER *url_server,
 		if ( blank_ptr == (char *) NULL ) {
 			return mx_error( MXE_NOT_FOUND, fname,
 			"Did not find the end of the HTTP header in "
-			"response '%s'.", response );
+			"response '%s'.", local_response );
 		}
 
 		body_ptr = blank_ptr + strlen("\r\n\r\n");
@@ -577,6 +578,7 @@ mxn_http_server_put( MX_URL_SERVER *url_server,
 	char local_response[500];
 	size_t num_bytes_to_write, num_bytes_written;
 	size_t num_bytes_to_read, num_bytes_read;
+	char *blank_ptr, *body_ptr;
 	int num_items;
 	double wait_timeout;
 	mx_status_type mx_status;
@@ -752,6 +754,38 @@ mxn_http_server_put( MX_URL_SERVER *url_server,
 			MX_DEBUG(-2,("%s: HTTP status code = %lu",
 				fname, *url_status_code ));
 #endif
+		}
+
+		/* If our caller asked us to return any text after the
+		 * HTTP header, then copy that data from the local_response
+		 * buffer to the buffer supplied by our caller.
+		 */
+
+		if ( ( response_data != (char *) NULL )
+		  && ( max_response_data_length > 0 ) )
+		{
+			/* FIXME: The parsing of the HTTP server's response
+			 * is inefficient and crufty.
+			 */
+
+			/* The end of the HTTP header is a blank line. */
+
+			blank_ptr = strstr( local_response, "\r\n\r\n" );
+
+			if ( blank_ptr == (char *) NULL ) {
+				return mx_error( MXE_NOT_FOUND, fname,
+				"Did not find the end of the HTTP header in "
+				"response '%s'.", local_response );
+			}
+
+			body_ptr = blank_ptr + strlen("\r\n\r\n");
+
+#if MXN_HTTP_DEBUG_PUT_RESPONSE_BODY
+			MX_DEBUG(-2,("%s: body_ptr = '%s'.", fname, body_ptr ));
+#endif
+
+			strlcpy( response_data, body_ptr,
+					max_response_data_length );
 		}
 	}
 

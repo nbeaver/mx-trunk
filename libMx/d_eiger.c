@@ -624,6 +624,9 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 	double photon_energy;
 	long dimension[1];
 	char trigger_mode[20];
+	char arm_response[200];
+	int num_items;
+	long image_frame_sequence_id;
 	mx_status_type mx_status;
 
 	mx_status = mxd_eiger_get_pointers( ad, &eiger, fname );
@@ -774,7 +777,34 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 
 	mx_status = mxd_eiger_put_value( ad, eiger,
 			"detector", "command/arm",
-			MXFT_ULONG, 1, dimension, (void *) &arm, NULL, 0 );
+			MXFT_ULONG, 1, dimension, (void *) &arm,
+			arm_response, sizeof(arm_response) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* The EIGER should have sent us a sequence number at the end
+	 * of the HTTP response.
+	 */
+
+	num_items = sscanf( arm_response, "{\"sequence id\": %ld}",
+						&image_frame_sequence_id );
+
+	if ( num_items != 1 ) {
+		return mx_error( MXE_PROTOCOL_ERROR, fname,
+		"The EIGER detector '%s' did not include the image frame "
+		"sequence id in its response '%s' to an 'arm' command.",
+			ad->record->name, arm_response );
+	}
+
+#if 1
+	MX_DEBUG(-2,("%s: image_frame_sequence_id = %ld",
+		fname, image_frame_sequence_id));
+#endif
+
+	eiger->total_num_frames_before_arm = ad->total_num_frames;
+
+	ad->total_num_frames = image_frame_sequence_id - 1L;
 
 	/* Note: If we are in external trigger mode ("exts"), then the
 	 * detector will start taking images once the external trigger
