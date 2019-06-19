@@ -43,7 +43,8 @@ MX_API mx_status_type mxn_http_server_put(
 			MX_URL_SERVER *url_server,
 			char *url, unsigned long *url_status_code,
 			char *content_type,
-			char *sent_data, ssize_t sent_data_length );
+			char *sent_data, ssize_t sent_data_length,
+			char *received_data, size_t max_received_data_length );
 
 extern MX_RECORD_FUNCTION_LIST mxn_http_server_record_function_list;
 extern MX_URL_FUNCTION_LIST mxn_http_server_url_function_list;

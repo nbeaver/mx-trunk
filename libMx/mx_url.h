@@ -45,7 +45,8 @@ typedef struct mx_url_function_list {
 	mx_status_type ( *url_put )( MX_URL_SERVER *url_server, char *url,
 			unsigned long *url_status_code,
 			char *content_type,
-			char *sent_data, ssize_t sent_data_length );
+			char *sent_data, ssize_t sent_data_length,
+			char *response_data, size_t max_response_data_length );
 } MX_URL_FUNCTION_LIST;
 
 /*-------------------------------------------------------------------------*/
@@ -80,7 +81,10 @@ MX_API mx_status_type mx_url_put( MX_RECORD *url_record, char *url,
 					unsigned long *url_status_code,
 					char *content_type,
 					char *sent_data,
-					size_t sent_data_length );
+					size_t sent_data_length,
+					char *response_data,
+					size_t max_response_data_length );
+
 
 #endif /* __MX_URL_H__ */
 

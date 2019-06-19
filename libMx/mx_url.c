@@ -114,7 +114,9 @@ mx_url_put( MX_RECORD *url_record,
 		unsigned long *url_status_code,
 		char *content_type,
 		char *sent_data,
-		size_t sent_data_length )
+		size_t sent_data_length,
+		char *response_data,
+		size_t max_response_data_length )
 {
 	static const char fname[] = "mx_url_put()";
 
@@ -122,7 +124,8 @@ mx_url_put( MX_RECORD *url_record,
 	MX_URL_FUNCTION_LIST *url_flist = NULL;
 	mx_status_type (*put_fn)( MX_URL_SERVER *,
 				char *, unsigned long *,
-				char *, char *, ssize_t ) = NULL;
+				char *, char *, ssize_t,
+		       		char *, size_t ) = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mx_url_get_pointers( url_record,
@@ -146,7 +149,8 @@ mx_url_put( MX_RECORD *url_record,
 
 	mx_status = (*put_fn)( url_server, url,
 				url_status_code, content_type, 
-				sent_data, sent_data_length );
+				sent_data, sent_data_length,
+				response_data, max_response_data_length );
 
 	return mx_status;
 }

@@ -560,7 +560,8 @@ MX_EXPORT mx_status_type
 mxn_http_server_put( MX_URL_SERVER *url_server,
 		char *url, unsigned long *url_status_code,
 		char *content_type,
-		char *sent_data, ssize_t sent_data_length )
+		char *sent_data, ssize_t sent_data_length,
+		char *response_data, size_t max_response_data_length )
 {
 	static const char fname[] = "mxn_http_server_put()";
 
