@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2017 Illinois Institute of Technology
+ * Copyright 2006-2017, 2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1697,6 +1697,10 @@ MX_API mx_status_type mx_area_detector_get_binsize( MX_RECORD *ad_record,
 MX_API mx_status_type mx_area_detector_set_binsize( MX_RECORD *ad_record,
 						long x_binsize,
 						long y_binsize );
+
+MX_API mx_status_type mx_area_detector_get_resolution( MX_RECORD *ad_record,
+						double *x_in_mm,
+						double *y_in_mm );
 
 MX_API mx_status_type mx_area_detector_get_roi( MX_RECORD *ad_record,
 						unsigned long roi_number,

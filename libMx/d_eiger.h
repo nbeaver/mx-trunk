@@ -18,7 +18,10 @@
 #define __D_EIGER_H__
 
 #define MXU_EIGER_SIMPLON_VERSION_LENGTH	20
+#define MXU_EIGER_TRANSFER_MODE_NAME_LENGTH	20
+
 #define MXU_EIGER_DESCRIPTION_LENGTH		40
+#define MXU_EIGER_SOFTWARE_VERSION_LENGTH	40
 #define MXU_EIGER_SERIAL_NUMBER_LENGTH		40
 
 #define MXU_EIGER_MODULE_NAME_LENGTH		40
@@ -28,6 +31,13 @@
 
 #define MXU_EIGER_KEY_TYPE_LENGTH		20
 
+/*--- Values for 'transfer_mode' ---*/
+
+#define MXF_EIGER_TRANSFER_MONITOR	0x1
+#define MXF_EIGER_TRANSFER_STREAM	0x2
+
+/*---*/
+
 typedef struct {
 	MX_RECORD *record;
 
@@ -36,10 +46,15 @@ typedef struct {
 	char simplon_version[MXU_EIGER_SIMPLON_VERSION_LENGTH+1];
 	unsigned long eiger_flags;
 	MX_RECORD *photon_energy_record;
+	char transfer_mode_name[MXU_EIGER_TRANSFER_MODE_NAME_LENGTH+1];
+
+	unsigned long transfer_mode;
 
 	mx_bool_type monitor_enabled;
+	mx_bool_type stream_enabled;
 
 	char description[MXU_EIGER_DESCRIPTION_LENGTH+1];
+	char software_version[MXU_EIGER_SOFTWARE_VERSION_LENGTH+1];
 	char serial_number[MXU_EIGER_SERIAL_NUMBER_LENGTH+1];
 
 	char module_name[MXU_EIGER_MODULE_NAME_LENGTH+1];
@@ -54,9 +69,10 @@ typedef struct {
 } MX_EIGER;
 
 #define MXLV_EIGER_MONITOR_ENABLED		94001
-#define MXLV_EIGER_KEY_NAME			94002
-#define MXLV_EIGER_KEY_VALUE			94003
-#define MXLV_EIGER_KEY_RESPONSE			94004
+#define MXLV_EIGER_STREAM_ENABLED		94002
+#define MXLV_EIGER_KEY_NAME			94003
+#define MXLV_EIGER_KEY_VALUE			94004
+#define MXLV_EIGER_KEY_RESPONSE			94005
 
 #define MXD_EIGER_STANDARD_FIELDS \
   {-1, -1, "url_server_record", MXFT_RECORD, NULL, 0, {0}, \
@@ -80,12 +96,26 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, photon_energy_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY) }, \
   \
+  {-1, -1, "transfer_mode_name", MXFT_STRING, \
+			NULL, 1, {MXU_EIGER_TRANSFER_MODE_NAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, transfer_mode_name), \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_READ_ONLY) }, \
+  \
+  {-1, -1, "transfer_mode", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, transfer_mode), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
   {MXLV_EIGER_MONITOR_ENABLED, -1, "monitor_enabled", MXFT_BOOL, NULL, 0, {0},\
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, monitor_enabled), \
 	{0}, NULL, 0 }, \
   \
   {-1, -1, "description", MXFT_STRING, NULL, 1, {MXU_EIGER_DESCRIPTION_LENGTH},\
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, description), \
+	{sizeof(char)}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "software_version", MXFT_STRING, \
+				NULL, 1, {MXU_EIGER_SOFTWARE_VERSION_LENGTH},\
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, software_version), \
 	{sizeof(char)}, NULL, MXFF_READ_ONLY }, \
   \
   {-1, -1, "serial_number", MXFT_STRING, NULL, \
@@ -133,15 +163,9 @@ MX_API mx_status_type mxd_eiger_abort( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_eiger_get_last_and_total_frame_numbers(
 							MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_eiger_get_status( MX_AREA_DETECTOR *ad );
-MX_API mx_status_type mxd_eiger_readout_frame( MX_AREA_DETECTOR *ad );
-MX_API mx_status_type mxd_eiger_correct_frame( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_eiger_transfer_frame( MX_AREA_DETECTOR *ad );
-MX_API mx_status_type mxd_eiger_load_frame( MX_AREA_DETECTOR *ad );
-MX_API mx_status_type mxd_eiger_save_frame( MX_AREA_DETECTOR *ad );
-MX_API mx_status_type mxd_eiger_copy_frame( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_eiger_get_parameter( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_eiger_set_parameter( MX_AREA_DETECTOR *ad );
-MX_API mx_status_type mxd_eiger_measure_correction( MX_AREA_DETECTOR *ad );
 
 extern MX_RECORD_FUNCTION_LIST mxd_eiger_record_function_list;
 extern MX_AREA_DETECTOR_FUNCTION_LIST mxd_eiger_ad_function_list;

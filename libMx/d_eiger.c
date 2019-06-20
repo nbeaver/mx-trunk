@@ -18,6 +18,8 @@
 
 #define MXD_EIGER_DEBUG_OPEN		TRUE
 
+#define MXD_EIGER_DEBUG_PARAMETERS	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -67,16 +69,16 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_eiger_ad_function_list = {
 	mxd_eiger_get_last_and_total_frame_numbers,
 	mxd_eiger_get_status,
 	NULL,
-	mxd_eiger_readout_frame,
-	mxd_eiger_correct_frame,
+	NULL,
+	NULL,
 	mxd_eiger_transfer_frame,
-	mxd_eiger_load_frame,
-	mxd_eiger_save_frame,
-	mxd_eiger_copy_frame,
+	NULL,
+	NULL,
+	NULL,
 	NULL,
 	mxd_eiger_get_parameter,
 	mxd_eiger_set_parameter,
-	mxd_eiger_measure_correction
+	NULL
 };
 
 MX_RECORD_FIELD_DEFAULTS mxd_eiger_rf_defaults[] = {
@@ -592,6 +594,57 @@ mxd_eiger_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Get the detector software version. */
+
+	dimension[0] = sizeof(eiger->software_version);
+
+	mx_status = mxd_eiger_get_value( ad, eiger,
+					"detector", "config/software_version",
+					MXFT_STRING, 1, dimension,
+					eiger->software_version );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Get the image frame transfer mode. */
+
+	eiger->transfer_mode = 0;
+
+	if ( strcmp( eiger->transfer_mode_name, "monitor" ) == 0 ) {
+		mx_status = mx_process_record_field_by_name( ad->record,
+						"monitor_enabled",
+						NULL, MX_PROCESS_GET, NULL );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+#if 1
+		MX_DEBUG(-2,("%s: eiger->monitor_enabled = %d",
+			fname, (int) eiger->monitor_enabled));
+#endif
+
+		if ( eiger->monitor_enabled ) {
+			eiger->transfer_mode = MXF_EIGER_TRANSFER_MONITOR;
+		} else {
+			eiger->transfer_mode = 0;
+		}
+	} else
+	if ( strcmp( eiger->transfer_mode_name, "stream" ) == 0 ) {
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Stream image transfer mode using ZeroMQ is not yet "
+		"implemented for EIGER detector '%s'.", record->name );
+	} else {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Image transfer mode '%s' is not recognized for "
+		"EIGER detector '%s'.",
+			eiger->transfer_mode_name, record->name );
+	}
+
+#if 1
+	MX_DEBUG(-2,("%s: eiger->transfer_mode = %#lx",
+		fname, eiger->transfer_mode));
+#endif
+
 	/* Get the detector state. */
 
 	dimension[0] = sizeof(response);
@@ -608,6 +661,41 @@ mxd_eiger_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: EIGER '%s' detector state = '%s'.",
 				fname, record->name, response));
 #endif
+
+	/* Fetch the detector parameters that MX will need. */
+
+	mx_status = mx_area_detector_get_maximum_framesize( ad->record,
+								NULL, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_area_detector_get_framesize( ad->record, NULL, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_area_detector_get_image_format( ad->record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_area_detector_get_bytes_per_pixel( ad->record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_area_detector_get_bytes_per_frame( ad->record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_area_detector_get_resolution( ad->record, NULL, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	ad->dictionary = NULL;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -802,9 +890,9 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 		fname, image_frame_sequence_id));
 #endif
 
-	eiger->total_num_frames_before_arm = ad->total_num_frames;
+	eiger->total_num_frames_before_arm = image_frame_sequence_id - 1L;
 
-	ad->total_num_frames = image_frame_sequence_id - 1L;
+	ad->total_num_frames = ad->total_num_frames;
 
 	/* Note: If we are in external trigger mode ("exts"), then the
 	 * detector will start taking images once the external trigger
@@ -978,49 +1066,26 @@ mxd_eiger_get_status( MX_AREA_DETECTOR *ad )
 			MXFT_STRING, 1, dimension,
 			status_string );
 
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if 1
+	MX_DEBUG(-2,("%s: detector '%s', STATUS = '%s'",
+		fname, ad->record->name, status_string));
+#endif
+
+	if ( strcmp( status_string, "idle" ) == 0 ) {
+		ad->status = 0;
+	} else {
+		ad->status = 1;
+	}
+
+#if 1
+	MX_DEBUG(-2,("%s: detector '%s', ad->status = %#lx",
+		fname, ad->record->name, ad->status));
+#endif
+
 	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_eiger_readout_frame( MX_AREA_DETECTOR *ad )
-{
-	static const char fname[] = "mxd_eiger_readout_frame()"; 
-	MX_EIGER *eiger = NULL;
-	mx_status_type mx_status;
-
-	mx_status = mxd_eiger_get_pointers( ad, &eiger, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MXD_EIGER_DEBUG
-	MX_DEBUG(-2,("%s invoked for area detector '%s', frame %ld.",
-		fname, ad->record->name, ad->readout_frame ));
-#endif
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxd_eiger_correct_frame( MX_AREA_DETECTOR *ad )
-{
-	static const char fname[] = "mxd_eiger_correct_frame()";
-
-	MX_EIGER *eiger = NULL;
-	mx_status_type mx_status;
-
-	mx_status = mxd_eiger_get_pointers( ad, &eiger, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MXD_EIGER_DEBUG
-	MX_DEBUG(-2,
-		("%s invoked for area detector '%s', correction_flags=%#lx.",
-		fname, ad->record->name, ad->correction_flags ));
-#endif
-
-	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -1042,63 +1107,13 @@ mxd_eiger_transfer_frame( MX_AREA_DETECTOR *ad )
 		fname, ad->record->name, ad->transfer_frame ));
 #endif
 
+	if ( eiger->transfer_mode & MXF_EIGER_TRANSFER_MONITOR ) {
+		MX_DEBUG(-2,
+	  ("%s: Transferring frame %ld via 'monitor' for EIGER detector '%s'.",
+	   	fname, ad->transfer_frame, ad->record->name ));
+	}
+
 	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_eiger_load_frame( MX_AREA_DETECTOR *ad )
-{
-	static const char fname[] = "mxd_eiger_load_frame()";
-
-	MX_EIGER *eiger = NULL;
-	mx_status_type mx_status;
-
-	eiger = NULL;
-
-	mx_status = mxd_eiger_get_pointers( ad, &eiger, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxd_eiger_save_frame( MX_AREA_DETECTOR *ad )
-{
-	static const char fname[] = "mxd_eiger_save_frame()";
-
-	MX_EIGER *eiger = NULL;
-	mx_status_type mx_status;
-
-	mx_status = mxd_eiger_get_pointers( ad, &eiger, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxd_eiger_copy_frame( MX_AREA_DETECTOR *ad )
-{
-	static const char fname[] = "mxd_eiger_copy_frame()";
-
-	MX_EIGER *eiger = NULL;
-	mx_status_type mx_status;
-
-	mx_status = mxd_eiger_get_pointers( ad, &eiger, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MXD_EIGER_DEBUG
-	MX_DEBUG(-2,
-	("%s invoked for area detector '%s', source = %#lx, destination = %#lx",
-		fname, ad->record->name, ad->copy_frame[0], ad->copy_frame[1]));
-#endif
-
-	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -1109,6 +1124,7 @@ mxd_eiger_get_parameter( MX_AREA_DETECTOR *ad )
 	MX_EIGER *eiger = NULL;
 	long dimension[1];
 	long temp_long;
+	double resolution_in_meters;
 	mx_status_type mx_status;
 
 	mx_status = mxd_eiger_get_pointers( ad, &eiger, fname );
@@ -1116,7 +1132,7 @@ mxd_eiger_get_parameter( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_EIGER_DEBUG
+#if MXD_EIGER_DEBUG_PARAMETERS
 	{
 		char parameter_name_buffer[80];
 
@@ -1142,6 +1158,30 @@ mxd_eiger_get_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_BINSIZE:
+		break;
+
+	case MXLV_AD_RESOLUTION:
+		resolution_in_meters = 0;
+
+		mx_status = mxd_eiger_get_value( ad, eiger,
+				"detector", "config/x_pixel_size",
+				MXFT_DOUBLE, 1, dimension,
+				(void *) &resolution_in_meters );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		ad->resolution[0] = 1000.0 * resolution_in_meters;
+
+		mx_status = mxd_eiger_get_value( ad, eiger,
+				"detector", "config/y_pixel_size",
+				MXFT_DOUBLE, 1, dimension,
+				(void *) &resolution_in_meters );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		ad->resolution[1] = 1000.0 * resolution_in_meters;
 		break;
 
 	case MXLV_AD_CORRECTION_FLAGS:
@@ -1282,7 +1322,7 @@ mxd_eiger_set_parameter( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_EIGER_DEBUG
+#if MXD_EIGER_DEBUG_PARAMETERS
 	{
 		char parameter_name_buffer[80];
 
@@ -1409,43 +1449,6 @@ mxd_eiger_set_parameter( MX_AREA_DETECTOR *ad )
 		mx_status =
 			mx_area_detector_default_set_parameter_handler( ad );
 		break;
-	}
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxd_eiger_measure_correction( MX_AREA_DETECTOR *ad )
-{
-	static const char fname[] =
-		"mxd_eiger_measure_correction()";
-
-	MX_EIGER *eiger = NULL;
-	mx_status_type mx_status;
-
-	mx_status = mxd_eiger_get_pointers( ad, &eiger, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MXD_EIGER_DEBUG
-	MX_DEBUG(-2,("%s invoked for area detector '%s'",
-		fname, ad->record->name ));
-	MX_DEBUG(-2,("%s: type = %ld, time = %g, num_measurements = %ld",
-		fname, ad->correction_measurement_type,
-		ad->correction_measurement_time,
-		ad->num_correction_measurements ));
-#endif
-
-	switch( ad->correction_measurement_type ) {
-	case MXFT_AD_DARK_CURRENT_FRAME:
-	case MXFT_AD_FLAT_FIELD_FRAME:
-		break;
-	default:
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"Correction measurement type %ld is not supported "
-		"for area detector '%s'.",
-			ad->correction_measurement_type, ad->record->name );
 	}
 
 	return mx_status;

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2018 Illinois Institute of Technology
+ * Copyright 2006-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -866,6 +866,59 @@ mx_area_detector_set_binsize( MX_RECORD *record,
 	mx_status = (*set_parameter_fn)( ad );
 
 	return mx_status;
+}
+
+/* The detector resolution is expressed in millimeters per pixel. */
+
+MX_EXPORT mx_status_type
+mx_area_detector_get_resolution( MX_RECORD *record,
+				double *x_in_mm,
+				double *y_in_mm )
+{
+	static const char fname[] = "mx_area_detector_get_resolution()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *get_parameter_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = flist->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn = 
+			mx_area_detector_default_get_parameter_handler;
+	}
+
+	ad->parameter_type = MXLV_AD_RESOLUTION;
+
+	mx_status = (*get_parameter_fn)( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MX_AREA_DETECTOR_DEBUG_FRAME_PARAMETERS
+	MX_DEBUG(-2,("%s: ad '%s' &resolution[0] = %p",
+		fname, record->name, &(ad->resolution)[0]));
+	MX_DEBUG(-2,("%s: ad '%s' &resolution[1] = %p",
+		fname, record->name, &(ad->resolution)[1]));
+
+	MX_DEBUG(-2,("%s: ad '%s' resolution = (%lu,%lu)",
+		fname, record->name, ad->resolution[0], ad->resolution[1] ));
+#endif
+
+	if ( x_in_mm != NULL ) {
+		*x_in_mm = ad->resolution[0];
+	}
+	if ( y_in_mm != NULL ) {
+		*y_in_mm = ad->resolution[1];
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
