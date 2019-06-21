@@ -204,6 +204,16 @@ mxi_tcp232_open_socket( MX_RS232 *rs232, MX_TCP232 *tcp232 )
 		socket_flags |= MXF_SOCKET_QUIET;
 	}
 
+	/* Do we want to see discarded bytes? */
+
+	if ( tcp232->tcp232_flags & MXF_TCP232_SHOW_DISCARDED_BYTES ) {
+		socket_flags |= MXF_SOCKET_SHOW_DISCARDED_BYTES;
+	}
+
+	if ( tcp232->tcp232_flags & MXF_TCP232_SHOW_DISCARDED_BYTES_HEX ) {
+		socket_flags |= MXF_SOCKET_SHOW_DISCARDED_BYTES_HEX;
+	}
+
 	/* If the tcp232 device is currently open, close it. */
 
 	if ( mx_socket_is_open( tcp232->mx_socket ) ) {
@@ -780,11 +790,6 @@ mxi_tcp232_discard_unread_input( MX_RS232 *rs232 )
 		"MX_TCP232 structure for TCP232 port '%s' is NULL.",
 			rs232->record->name);
 	}
-
-	mx_status = mxi_tcp232_open_socket_if_necessary( rs232, tcp232 );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
 
 	mx_status = mx_socket_discard_unread_input( tcp232->mx_socket );
 

@@ -727,7 +727,7 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 	char trigger_mode[20];
 	char arm_response[200];
 	int num_items;
-	long image_frame_sequence_id;
+	long sequence_id;
 	mx_status_type mx_status;
 
 	mx_status = mxd_eiger_get_pointers( ad, &eiger, fname );
@@ -889,7 +889,7 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 	 */
 
 	num_items = sscanf( arm_response, "{\"sequence id\": %ld}",
-						&image_frame_sequence_id );
+						&sequence_id );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_PROTOCOL_ERROR, fname,
@@ -899,11 +899,10 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 	}
 
 #if 1
-	MX_DEBUG(-2,("%s: image_frame_sequence_id = %ld",
-		fname, image_frame_sequence_id));
+	MX_DEBUG(-2,("%s: sequence_id = %ld", fname, sequence_id));
 #endif
 
-	eiger->image_frame_sequence_id = image_frame_sequence_id;
+	eiger->sequence_id = sequence_id;
 
 	ad->total_num_frames = 0;
 	ad->last_frame_number = -1;

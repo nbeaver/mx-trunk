@@ -3192,13 +3192,25 @@ mx_socket_discard_unread_input( MX_SOCKET *mx_socket )
 	unsigned long i, max_attempts, wait_ms, num_chars;
 	unsigned long j, num_blocks, remainder;
 	long num_input_bytes_available;
+	mx_bool_type show_discarded_bytes;
+	mx_bool_type show_discarded_bytes_hex;
 	mx_status_type mx_status;
-
-#if MX_SOCKET_DEBUG
 	unsigned long k;
-#endif
-
 	unsigned long flags;
+
+	flags = mx_socket->socket_flags;
+
+	if ( flags & MXF_SOCKET_SHOW_DISCARDED_BYTES ) {
+		show_discarded_bytes = TRUE;
+	} else {
+		show_discarded_bytes = FALSE;
+	}
+
+	if ( flags & MXF_SOCKET_SHOW_DISCARDED_BYTES_HEX ) {
+		show_discarded_bytes_hex = TRUE;
+	} else {
+		show_discarded_bytes_hex = FALSE;
+	}
 
 	/* If input is available, read until there is no more input.
 	 * If we do this to a socket that is constantly generating
@@ -3233,6 +3245,8 @@ mx_socket_discard_unread_input( MX_SOCKET *mx_socket )
 					% MXU_SOCKET_DISCARD_BUFFER_LENGTH;
 
 		for ( j = 0; j < num_blocks; j++ ) {
+			memset( discard_buffer, 0, sizeof(discard_buffer) );
+
 			mx_status = mx_socket_receive( mx_socket,
 					discard_buffer,
 					MXU_SOCKET_DISCARD_BUFFER_LENGTH,
@@ -3241,16 +3255,27 @@ mx_socket_discard_unread_input( MX_SOCKET *mx_socket )
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 		}
-#if MX_SOCKET_DEBUG
-		fprintf( stderr, "%s:", fname );
 
-		for ( k = 0; k < MXU_SOCKET_DISCARD_BUFFER_LENGTH; k++ ) {
-			fprintf( stderr, " %#02x", discard_buffer[k] &0xff );
+		if ( show_discarded_bytes | show_discarded_bytes_hex ) {
+		    fprintf( stderr, "%s: Discarded ", fname );
 		}
 
-		fprintf( stderr, "\n" );
-#endif
+		if ( show_discarded_bytes ) {
+			fprintf( stderr, "%s\n", discard_buffer );
+		}
+
+		if ( show_discarded_bytes_hex ) {
+
+		    for ( k = 0; k < MXU_SOCKET_DISCARD_BUFFER_LENGTH; k++ ) {
+			fprintf( stderr, " %#02x", discard_buffer[k] &0xff );
+		    }
+
+		    fprintf( stderr, "\n" );
+		}
+
 		if ( remainder > 0 ) {
+			memset( discard_buffer, 0, sizeof(discard_buffer) );
+
 			mx_status = mx_socket_receive( mx_socket,
 					discard_buffer,
 					remainder,
@@ -3258,25 +3283,31 @@ mx_socket_discard_unread_input( MX_SOCKET *mx_socket )
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
-#if MX_SOCKET_DEBUG
-			fprintf( stderr, "%s:", fname );
 
-			for ( k = 0; k < remainder; k++ ) {
-				fprintf( stderr,
-					" %#02x", discard_buffer[k] &0xff );
+			if ( show_discarded_bytes | show_discarded_bytes_hex ) {
+			    fprintf( stderr, "%s: Discarded ", fname );
 			}
 
-			fprintf( stderr, "\n" );
-#endif
+			if ( show_discarded_bytes ) {
+				fprintf( stderr, "%s\n", discard_buffer );
+			}
 
+			if ( show_discarded_bytes_hex ) {
+			    fprintf( stderr, "%s:", fname );
+
+			    for ( k = 0; k < remainder; k++ ) {
+				fprintf( stderr,
+					" %#02x", discard_buffer[k] &0xff );
+			    }
+
+			    fprintf( stderr, "\n" );
+			}
 		}
 
 		mx_msleep( wait_ms );
 	}
 
 	/* Discard anything left in the circular buffer. */
-
-	flags = mx_socket->socket_flags;
 
 	if ( flags & MXF_SOCKET_USE_MX_RECEIVE_BUFFER ) {
 		mx_status = mx_circular_buffer_discard_available_bytes(

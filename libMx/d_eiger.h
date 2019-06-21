@@ -79,7 +79,7 @@ typedef struct {
 
 	char key_type[MXU_EIGER_KEY_TYPE_LENGTH+1];
 
-	unsigned long image_frame_sequence_id;
+	unsigned long sequence_id;
 
 } MX_EIGER;
 
@@ -210,8 +210,8 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, key_type), \
 	{sizeof(char)}, NULL, MXFF_READ_ONLY }, \
   \
-  {-1, -1, "image_frame_sequence_id", MXFT_ULONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, image_frame_sequence_id), \
+  {-1, -1, "sequence_id", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, sequence_id), \
 	{0}, NULL, MXFF_READ_ONLY }
 
 MX_API mx_status_type mxd_eiger_initialize_driver( MX_DRIVER *driver );

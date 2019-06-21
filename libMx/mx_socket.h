@@ -236,6 +236,8 @@ typedef struct {
 #define MXF_SOCKET_QUIET			0x2
 #define MXF_SOCKET_QUIET_CONNECTION		0x4
 #define MXF_SOCKET_USE_MX_RECEIVE_BUFFER	0x8
+#define MXF_SOCKET_SHOW_DISCARDED_BYTES		0x10
+#define MXF_SOCKET_SHOW_DISCARDED_BYTES_HEX	0x20
 
 /* The various mx_..._socket_open_as_...() functions below use the macro
  * MX_SOCKET_DEFAULT_BUFFER_SIZE to request MX to pick a buffer size

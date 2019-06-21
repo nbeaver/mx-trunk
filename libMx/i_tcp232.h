@@ -63,6 +63,8 @@ MX_API mx_status_type mxi_tcp232_flush( MX_RS232 *rs232 );
 #define MXF_TCP232_AUTOMATIC_REOPEN		0x8
 #define MXF_TCP232_USE_MX_SOCKET_RESYNCHRONIZE	0x10
 #define MXF_TCP232_USE_TCP_KEEPALIVE		0x20
+#define MXF_TCP232_SHOW_DISCARDED_BYTES		0x40
+#define MXF_TCP232_SHOW_DISCARDED_BYTES_HEX	0x80
 
 /* Define the data structures used by this type of interface. */
 
