@@ -606,6 +606,18 @@ mxd_eiger_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Get the detector serial number. */
+
+	dimension[0] = sizeof(eiger->detector_number);
+
+	mx_status = mxd_eiger_get_value( ad, eiger,
+					"detector", "config/detector_number",
+					MXFT_STRING, 1, dimension,
+					eiger->detector_number );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/* Get the image frame transfer mode. */
 
 	eiger->transfer_mode = 0;
@@ -664,23 +676,22 @@ mxd_eiger_open( MX_RECORD *record )
 
 	/* Fetch the detector parameters that MX will need. */
 
-	mx_status = mx_area_detector_get_maximum_framesize( ad->record,
-								NULL, NULL );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
 	mx_status = mx_area_detector_get_framesize( ad->record, NULL, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_area_detector_get_image_format( ad->record, NULL );
+	mx_status = mx_area_detector_get_bits_per_pixel( ad->record, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	mx_status = mx_area_detector_get_bytes_per_pixel( ad->record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_area_detector_get_image_format( ad->record, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -694,6 +705,8 @@ mxd_eiger_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	ad->trigger_mode = MXF_DEV_INTERNAL_TRIGGER;
 
 	ad->dictionary = NULL;
 
@@ -890,9 +903,10 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 		fname, image_frame_sequence_id));
 #endif
 
-	eiger->total_num_frames_before_arm = image_frame_sequence_id - 1L;
+	eiger->image_frame_sequence_id = image_frame_sequence_id;
 
-	ad->total_num_frames = ad->total_num_frames;
+	ad->total_num_frames = 0;
+	ad->last_frame_number = -1;
 
 	/* Note: If we are in external trigger mode ("exts"), then the
 	 * detector will start taking images once the external trigger
@@ -1123,7 +1137,6 @@ mxd_eiger_get_parameter( MX_AREA_DETECTOR *ad )
 
 	MX_EIGER *eiger = NULL;
 	long dimension[1];
-	long temp_long;
 	double resolution_in_meters;
 	mx_status_type mx_status;
 
@@ -1152,12 +1165,32 @@ mxd_eiger_get_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_MAXIMUM_FRAMESIZE:
-		break;
-
 	case MXLV_AD_FRAMESIZE:
+		mx_status = mxd_eiger_get_value( ad, eiger,
+				"detector", "config/x_pixels_in_detector",
+				MXFT_ULONG, 1, dimension,
+				(void *) &(ad->framesize[0]) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mxd_eiger_get_value( ad, eiger,
+				"detector", "config/y_pixels_in_detector",
+				MXFT_ULONG, 1, dimension,
+				(void *) &(ad->framesize[1]) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		ad->maximum_framesize[0] = ad->framesize[0];
+		ad->maximum_framesize[1] = ad->framesize[1];
 		break;
 
 	case MXLV_AD_BINSIZE:
+		/* Eiger detectors do not do binning as far as I know. */
+
+		ad->binsize[0] = 1;
+		ad->binsize[1] = 1;
 		break;
 
 	case MXLV_AD_RESOLUTION:
@@ -1208,22 +1241,26 @@ mxd_eiger_get_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_BYTES_PER_PIXEL:
-		mx_status = mxd_eiger_get_value( ad, eiger,
-				"detector", "config/bit_depth_image",
-				MXFT_LONG, 1, dimension,
-				(void *) &temp_long );
+		mx_status = mx_process_record_field_by_name( ad->record,
+						"bit_depth_image",
+						NULL, MX_PROCESS_GET, NULL );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		ad->bytes_per_pixel = mx_round( temp_long / 8L );
+		ad->bytes_per_pixel =
+			mx_round_up( eiger->bit_depth_image / 8L );
 		break;
 
 	case MXLV_AD_BITS_PER_PIXEL:
-		mx_status = mxd_eiger_get_value( ad, eiger,
-				"detector", "config/bit_depth_readout",
-				MXFT_LONG, 1, dimension,
-				(void *) &(ad->bits_per_pixel) );
+		mx_status = mx_process_record_field_by_name( ad->record,
+						"bit_depth_readout",
+						NULL, MX_PROCESS_GET, NULL );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		ad->bits_per_pixel = eiger->bit_depth_readout;
 		break;
 
 	case MXLV_AD_DETECTOR_READOUT_TIME:
@@ -1242,11 +1279,6 @@ mxd_eiger_get_parameter( MX_AREA_DETECTOR *ad )
 
 #if MXD_EIGER_DEBUG
 		MX_DEBUG(-2,("%s: GET sequence_type = %ld",
-			fname, ad->sequence_parameters.sequence_type));
-#endif
-
-#if MXD_EIGER_DEBUG
-		MX_DEBUG(-2,("%s: sequence type = %ld",
 			fname, ad->sequence_parameters.sequence_type));
 #endif
 		break;
@@ -1385,15 +1417,6 @@ mxd_eiger_set_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_USE_SCALED_DARK_CURRENT:
 		break;
 
-	case MXLV_AD_GEOM_CORR_AFTER_FLAT_FIELD:
-		break;
-
-	case MXLV_AD_CORRECTION_FRAME_GEOM_CORR_LAST:
-		break;
-
-	case MXLV_AD_CORRECTION_FRAME_NO_GEOM_CORR:
-		break;
-
 	case MXLV_AD_REGISTER_VALUE:
 		break;
 
@@ -1470,10 +1493,19 @@ mxd_eiger_special_processing_setup( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
-		case MXLV_EIGER_MONITOR_ENABLED:
+		case MXLV_EIGER_BIT_DEPTH_IMAGE:
+		case MXLV_EIGER_BIT_DEPTH_READOUT:
+		case MXLV_EIGER_DCU_BUFFER_FREE:
+		case MXLV_EIGER_ERROR:
+		case MXLV_EIGER_HUMIDITY:
 		case MXLV_EIGER_KEY_NAME:
-		case MXLV_EIGER_KEY_VALUE:
 		case MXLV_EIGER_KEY_RESPONSE:
+		case MXLV_EIGER_KEY_VALUE:
+		case MXLV_EIGER_MONITOR_ENABLED:
+		case MXLV_EIGER_STATE:
+		case MXLV_EIGER_STREAM_ENABLED:
+		case MXLV_EIGER_TIME:
+		case MXLV_EIGER_TEMPERATURE:
 			record_field->process_function
 					= mxd_eiger_process_function;
 			break;
@@ -1504,6 +1536,7 @@ mxd_eiger_process_function( void *record_ptr,
 	char *ptr_second_slash = NULL;
 	char *temp_key_name = NULL;
 	size_t temp_key_length;
+	char local_string_buffer[80];
 	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
@@ -1513,37 +1546,132 @@ mxd_eiger_process_function( void *record_ptr,
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 
-	dimension[0] = sizeof(eiger->key_value);
+	dimension[0] = 0;
 
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
 		case MXLV_EIGER_MONITOR_ENABLED:
+			dimension[0] = sizeof(local_string_buffer);
+
 			mx_status = mxd_eiger_get_value( ad, eiger,
 						"monitor", "config/mode",
 						MXFT_STRING, 1, dimension,
-						eiger->key_value );
+						local_string_buffer );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			if ( strcmp( eiger->key_value, "enabled" ) == 0 ) {
+			if ( strcmp( local_string_buffer, "enabled" ) == 0 ) {
 				eiger->monitor_enabled = TRUE;
 			} else
-			if ( strcmp( eiger->key_value, "disabled" ) == 0 ) {
+			if ( strcmp( local_string_buffer, "disabled" ) == 0 ) {
 				eiger->monitor_enabled = FALSE;
 			} else {
 				return mx_error( MXE_UNPARSEABLE_STRING, fname,
 				"The value '%s' returned by EIGER detector "
 				"'%s' for 'monitor/config/mode' was not "
 				"one of the two expected values: 'enabled' "
-				"or 'disabled'.", eiger->key_value,
+				"or 'disabled'.", local_string_buffer,
 					eiger->record->name );
 			}
+			break;
+		case MXLV_EIGER_STREAM_ENABLED:
+			dimension[0] = sizeof(local_string_buffer);
+
+			mx_status = mxd_eiger_get_value( ad, eiger,
+						"stream", "config/mode",
+						MXFT_STRING, 1, dimension,
+						local_string_buffer );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( strcmp( local_string_buffer, "enabled" ) == 0 ) {
+				eiger->stream_enabled = TRUE;
+			} else
+			if ( strcmp( local_string_buffer, "disabled" ) == 0 ) {
+				eiger->stream_enabled = FALSE;
+			} else {
+				return mx_error( MXE_UNPARSEABLE_STRING, fname,
+				"The value '%s' returned by EIGER detector "
+				"'%s' for 'stream/config/mode' was not "
+				"one of the two expected values: 'enabled' "
+				"or 'disabled'.", local_string_buffer,
+					eiger->record->name );
+			}
+			break;
+		case MXLV_EIGER_BIT_DEPTH_IMAGE:
+			dimension[0] = 1;
+
+			mx_status = mxd_eiger_get_value( ad, eiger,
+					"detector", "config/bit_depth_image",
+					MXFT_LONG, 1, dimension,
+					(void *) &(eiger->bit_depth_image) );
+			break;
+		case MXLV_EIGER_BIT_DEPTH_READOUT:
+			dimension[0] = 1;
+
+			mx_status = mxd_eiger_get_value( ad, eiger,
+					"detector", "config/bit_depth_readout",
+					MXFT_LONG, 1, dimension,
+					(void *) &(eiger->bit_depth_readout) );
+			break;
+		case MXLV_EIGER_STATE:
+			dimension[0] = sizeof(eiger->state);
+
+			mx_status = mxd_eiger_get_value( ad, eiger,
+					"detector", "status/state",
+					MXFT_STRING, 1, dimension,
+					eiger->state );
+			break;
+		case MXLV_EIGER_ERROR:
+			dimension[0] = sizeof(eiger->error);
+
+			mx_status = mxd_eiger_get( ad, eiger,
+					"detector", "status/error",
+					eiger->error, sizeof(eiger->error) );
+			break;
+		case MXLV_EIGER_TIME:
+			dimension[0] = sizeof(local_string_buffer);
+
+			mx_status = mxd_eiger_get_value( ad, eiger,
+					"detector", "status/time",
+					MXFT_STRING, 1, dimension,
+					local_string_buffer );
+
+			MX_DEBUG(-2,("%s: local_string_buffer = '%s'",
+				fname, local_string_buffer));
+			break;
+		case MXLV_EIGER_TEMPERATURE:
+			dimension[0] = 1;
+
+			mx_status = mxd_eiger_get_value( ad, eiger,
+				"detector", "status/board_000/th0_temp",
+					MXFT_DOUBLE, 1, dimension,
+					(void *) &(eiger->temperature) );
+			break;
+		case MXLV_EIGER_HUMIDITY:
+			dimension[0] = 1;
+
+			mx_status = mxd_eiger_get_value( ad, eiger,
+				"detector", "status/board_000/th0_humidity",
+					MXFT_DOUBLE, 1, dimension,
+					(void *) &(eiger->humidity) );
+			break;
+		case MXLV_EIGER_DCU_BUFFER_FREE:
+			dimension[0] = 1;
+
+			mx_status = mxd_eiger_get_value( ad, eiger,
+				"detector", "status/builder/dcu_buffer_free",
+					MXFT_DOUBLE, 1, dimension,
+					(void *) &(eiger->dcu_buffer_free) );
 			break;
 		case MXLV_EIGER_KEY_NAME:
 			break;
 		case MXLV_EIGER_KEY_VALUE:
+			dimension[0] = sizeof(eiger->key_value);
+
 			mx_status = mxd_eiger_get_value( ad, eiger,
 						eiger->module_name,
 						eiger->key_name,
@@ -1551,6 +1679,8 @@ mxd_eiger_process_function( void *record_ptr,
 						eiger->key_value );
 			break;
 		case MXLV_EIGER_KEY_RESPONSE:
+			dimension[0] = sizeof(eiger->key_response);
+
 			mx_status = mxd_eiger_get( ad, eiger,
 						eiger->module_name,
 						eiger->key_name,
@@ -1574,6 +1704,8 @@ mxd_eiger_process_function( void *record_ptr,
 				strlcpy( eiger->key_value, "disabled",
 					sizeof( eiger->key_value ) );
 			}
+
+			dimension[0] = strlen( eiger->key_value ) + 1;
 
 			mx_status = mxd_eiger_put_value( ad, eiger,
 						"monitor", "config/mode",
@@ -1635,6 +1767,8 @@ mxd_eiger_process_function( void *record_ptr,
 					temp_key_length + 1 );
 			break;
 		case MXLV_EIGER_KEY_VALUE:
+			dimension[0] = sizeof(eiger->key_value);
+
 			mx_status = mxd_eiger_put_value( ad, eiger,
 						eiger->module_name,
 						eiger->key_name,

@@ -20,9 +20,12 @@
 #define MXU_EIGER_SIMPLON_VERSION_LENGTH	20
 #define MXU_EIGER_TRANSFER_MODE_NAME_LENGTH	20
 
+#define MXU_EIGER_STATE_LENGTH			80
+#define MXU_EIGER_ERROR_LENGTH			200
+
 #define MXU_EIGER_DESCRIPTION_LENGTH		40
 #define MXU_EIGER_SOFTWARE_VERSION_LENGTH	40
-#define MXU_EIGER_SERIAL_NUMBER_LENGTH		40
+#define MXU_EIGER_DETECTOR_NUMBER_LENGTH	40
 
 #define MXU_EIGER_MODULE_NAME_LENGTH		40
 #define MXU_EIGER_KEY_NAME_LENGTH		80
@@ -53,9 +56,21 @@ typedef struct {
 	mx_bool_type monitor_enabled;
 	mx_bool_type stream_enabled;
 
+	unsigned long bit_depth_image;
+	unsigned long bit_depth_readout;
+
+	char state[MXU_EIGER_STATE_LENGTH+1];
+	char error[MXU_EIGER_ERROR_LENGTH+1];
+
+	uint64_t time;		/* This is converted to POSIX epoch time. */
+
+	double temperature;
+	double humidity;
+	double dcu_buffer_free;
+
 	char description[MXU_EIGER_DESCRIPTION_LENGTH+1];
 	char software_version[MXU_EIGER_SOFTWARE_VERSION_LENGTH+1];
-	char serial_number[MXU_EIGER_SERIAL_NUMBER_LENGTH+1];
+	char detector_number[MXU_EIGER_DETECTOR_NUMBER_LENGTH+1];
 
 	char module_name[MXU_EIGER_MODULE_NAME_LENGTH+1];
 	char key_name[MXU_EIGER_KEY_NAME_LENGTH+1];
@@ -64,15 +79,23 @@ typedef struct {
 
 	char key_type[MXU_EIGER_KEY_TYPE_LENGTH+1];
 
-	unsigned long total_num_frames_before_arm;
+	unsigned long image_frame_sequence_id;
 
 } MX_EIGER;
 
 #define MXLV_EIGER_MONITOR_ENABLED		94001
 #define MXLV_EIGER_STREAM_ENABLED		94002
-#define MXLV_EIGER_KEY_NAME			94003
-#define MXLV_EIGER_KEY_VALUE			94004
-#define MXLV_EIGER_KEY_RESPONSE			94005
+#define MXLV_EIGER_BIT_DEPTH_IMAGE		94003
+#define MXLV_EIGER_BIT_DEPTH_READOUT		94004
+#define MXLV_EIGER_STATE			94005
+#define MXLV_EIGER_ERROR			94006
+#define MXLV_EIGER_TIME				94007
+#define MXLV_EIGER_TEMPERATURE			94008
+#define MXLV_EIGER_HUMIDITY			94009
+#define MXLV_EIGER_DCU_BUFFER_FREE		94010
+#define MXLV_EIGER_KEY_NAME			94011
+#define MXLV_EIGER_KEY_VALUE			94012
+#define MXLV_EIGER_KEY_RESPONSE			94013
 
 #define MXD_EIGER_STANDARD_FIELDS \
   {-1, -1, "url_server_record", MXFT_RECORD, NULL, 0, {0}, \
@@ -109,6 +132,47 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, monitor_enabled), \
 	{0}, NULL, 0 }, \
   \
+  {MXLV_EIGER_STREAM_ENABLED, -1, "stream_enabled", MXFT_BOOL, NULL, 0, {0},\
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, stream_enabled), \
+	{0}, NULL, 0 }, \
+  \
+  {MXLV_EIGER_BIT_DEPTH_IMAGE, -1, "bit_depth_image", \
+					MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, bit_depth_image), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {MXLV_EIGER_BIT_DEPTH_READOUT, -1, "bit_depth_readout", \
+					MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, bit_depth_readout), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {MXLV_EIGER_STATE, -1, "state", MXFT_STRING, \
+	  				NULL, 1, {MXU_EIGER_STATE_LENGTH},\
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, state), \
+	{sizeof(char)}, NULL, MXFF_READ_ONLY }, \
+  \
+  {MXLV_EIGER_ERROR, -1, "error", MXFT_STRING, \
+	  				NULL, 1, {MXU_EIGER_ERROR_LENGTH},\
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, state), \
+	{sizeof(char)}, NULL, MXFF_READ_ONLY }, \
+  \
+  {MXLV_EIGER_TIME, -1, "time", MXFT_UINT64, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, time), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {MXLV_EIGER_TEMPERATURE, -1, "temperature", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, temperature), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {MXLV_EIGER_HUMIDITY, -1, "humidity", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, humidity), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {MXLV_EIGER_DCU_BUFFER_FREE, -1, "dcu_buffer_free", \
+	  					MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, dcu_buffer_free), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
   {-1, -1, "description", MXFT_STRING, NULL, 1, {MXU_EIGER_DESCRIPTION_LENGTH},\
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, description), \
 	{sizeof(char)}, NULL, MXFF_READ_ONLY }, \
@@ -118,9 +182,9 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, software_version), \
 	{sizeof(char)}, NULL, MXFF_READ_ONLY }, \
   \
-  {-1, -1, "serial_number", MXFT_STRING, NULL, \
-	  				1, {MXU_EIGER_SERIAL_NUMBER_LENGTH},\
-	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, serial_number), \
+  {-1, -1, "detector_number", MXFT_STRING, NULL, \
+	  				1, {MXU_EIGER_DETECTOR_NUMBER_LENGTH},\
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, detector_number), \
 	{sizeof(char)}, NULL, MXFF_READ_ONLY }, \
   \
   {-1, -1, "module_name", MXFT_STRING, NULL, 1, {MXU_EIGER_MODULE_NAME_LENGTH},\
@@ -146,8 +210,8 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, key_type), \
 	{sizeof(char)}, NULL, MXFF_READ_ONLY }, \
   \
-  {-1, -1, "total_num_frames_before_arm", MXFT_ULONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, total_num_frames_before_arm), \
+  {-1, -1, "image_frame_sequence_id", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, image_frame_sequence_id), \
 	{0}, NULL, MXFF_READ_ONLY }
 
 MX_API mx_status_type mxd_eiger_initialize_driver( MX_DRIVER *driver );
