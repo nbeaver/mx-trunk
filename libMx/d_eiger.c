@@ -20,6 +20,8 @@
 
 #define MXD_EIGER_DEBUG_PARAMETERS	TRUE
 
+#define MXD_EIGER_DEBUG_TRIGGER_THREAD	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -37,6 +39,8 @@
 #include "mx_socket.h"
 #include "mx_array.h"
 #include "mx_thread.h"
+#include "mx_mutex.h"
+#include "mx_condition_variable.h"
 #include "mx_image.h"
 #include "mx_module.h"
 #include "mx_url.h"
@@ -501,6 +505,302 @@ mxd_eiger_put_value( MX_AREA_DETECTOR *ad,
 	return mx_status;
 }
 
+/*----------------------------------------------------------------*/
+
+static mx_status_type
+mxd_eiger_send_command_to_trigger_thread( MX_EIGER *eiger,
+					int32_t trigger_command )
+{
+	static const char fname[] =
+		"mxd_eiger_send_command_to_trigger_thread()";
+
+	unsigned long mx_status_code;
+	mx_status_type mx_status;
+
+	if ( eiger == (MX_EIGER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_EIGER pointer passed was NULL." );
+	}
+
+#if MXD_EIGER_DEBUG_TRIGGER_THREAD
+	MX_DEBUG(-2,("%s: sending (%d) command to trigger thread.",
+		fname, (int) trigger_command ));
+#endif
+
+	/* Prepare to tell the 'trigger' thread to start a command. */
+
+	mx_status_code = mx_mutex_lock( eiger->trigger_thread_command_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"The attempt to lock the trigger thread command mutex for "
+		"area detector '%s' failed.", eiger->record->name );
+	}
+
+	eiger->trigger_command = trigger_command;
+
+	/* Notify the trigger thread. */
+
+	mx_status = mx_condition_variable_signal(
+			eiger->trigger_thread_command_cv );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* We are done sending our notification. */
+
+	mx_status_code = mx_mutex_unlock(
+				eiger->trigger_thread_command_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"The attempt to unlock the trigger thread command mutex for "
+		"area detector '%s' failed.",
+			eiger->record->name );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*----------------------------------------------------------------*/
+
+static mx_status_type
+mxd_eiger_send_status_to_main_thread( MX_EIGER *eiger,
+					int32_t trigger_status )
+{
+	static const char fname[] = "mxd_eiger_send_status_to_main_thread()";
+
+	unsigned long mx_status_code;
+	mx_status_type mx_status;
+
+	if ( eiger == (MX_EIGER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_EIGER pointer passed was NULL." );
+	}
+
+#if MXD_EIGER_DEBUG_TRIGGER_THREAD
+	MX_DEBUG(-2,("%s: sending (%d) status to main thread.",
+			fname, (int) trigger_status ));
+#endif
+
+	mx_status_code = mx_mutex_lock( eiger->trigger_thread_status_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"The attempt to lock the trigger thread status mutex for "
+		"area detector '%s' failed.",
+			eiger->record->name );
+	}
+
+	eiger->trigger_status = trigger_status;
+
+	/* Notify the main thread. */
+
+	mx_status = mx_condition_variable_signal(
+			eiger->trigger_thread_status_cv );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* We are done sending our notification. */
+
+	mx_status_code = mx_mutex_unlock( eiger->trigger_thread_status_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"The attempt to unlock the trigger thread status mutex for "
+		"area detector '%s' failed.",
+			eiger->record->name );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*----------------------------------------------------------------*/
+
+/* The trigger thread is used to send trigger commands to the detector.
+ * This is because the EIGER sends a response to the trigger command, but
+ * not until the imaging sequence is over.
+ */
+
+static mx_status_type
+mxd_eiger_trigger_thread_fn( MX_THREAD *thread, void *args )
+{
+	static const char fname[] = "mxd_eiger_trigger_thread_fn()";
+
+	MX_RECORD *eiger_record = NULL;
+	MX_AREA_DETECTOR *ad = NULL;
+	MX_EIGER *eiger = NULL;
+	unsigned long trigger_loop_counter;
+	long dimension[1];
+	uint32_t trigger;
+	char response[800];
+	unsigned long mx_status_code;
+	mx_status_type mx_status;
+
+	/*----------------------------------------------------------------*/
+
+	/* Initialize the variables to be used by this thread. */
+
+	if ( thread == (MX_THREAD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_THREAD pointer passed was NULL." );
+	}
+
+	if ( args == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	eiger_record = (MX_RECORD *) args;
+
+#if MXD_EIGER_DEBUG_TRIGGER_THREAD
+	MX_DEBUG(-2,("%s invoked for EIGER detector '%s'.",
+		fname, eiger_record->name ));
+#endif
+
+	ad = (MX_AREA_DETECTOR *) eiger_record->record_class_struct;
+
+	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_AREA_DETECTOR pointer for detector '%s' is NULL.",
+			eiger_record->name );
+	}
+
+	eiger = (MX_EIGER *) eiger_record->record_type_struct;
+
+	if ( eiger == (MX_EIGER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_EIGER pointer for detector '%s' is NULL.",
+			eiger_record->name );
+	}
+
+	/*----------------------------------------------------------------*/
+
+	/* Tell the main thread that we have finished initializing ourself. */
+
+	mx_status_code = mx_mutex_lock( eiger->trigger_thread_init_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"The attempt to lock the trigger thread initialization mutex "
+		"for EIGER detector failed." );
+	}
+
+	eiger->trigger_status = MXS_EIGER_STAT_IDLE;
+
+	mx_status = mx_condition_variable_signal(
+			eiger->trigger_thread_init_cv );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status_code = mx_mutex_unlock( eiger->trigger_thread_init_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"The attempt to unlock the trigger thread initialization mutex "
+		"for EIGER detector '%s' failed.",
+			eiger->record->name );
+	}
+
+	/* NOTE: We should not attempt to use the initialization mutex and cv
+	 * after this point, since the main thread may have deallocated them.
+	 */
+
+	/*  FIXME: Is there a possibility for a race condition here
+	 *  between the release of trigger_thread_init_mutex and
+	 *  the taking of trigger_thread_command_mutex?
+	 */
+
+	/*----------------------------------------------------------------*/
+
+	/* Take ownership of the command mutex. */
+
+	mx_status_code = mx_mutex_lock( eiger->trigger_thread_command_mutex );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"The attempt to lock the trigger thread command mutex "
+		"for EIGER detector '%s' failed.",
+			eiger->record->name );
+	}
+
+	/*----------------------------------------------------------------*/
+
+	trigger_loop_counter = 0;
+
+#if MXD_EIGER_DEBUG_TRIGGER_THREAD
+	MX_DEBUG(-2,("%s %p [%lu]: MCE '%s' entering event loop.",
+		fname, mx_get_current_thread_pointer(),
+		trigger_loop_counter, eiger_record->name ));
+#endif
+
+	while ( TRUE ) {
+		trigger_loop_counter++;
+
+		/* Wait on the command condition variable. */
+
+		while ( eiger->trigger_command == MXS_EIGER_CMD_NONE ) {
+			MX_DEBUG(-2,("%s: MARKER XYZZY", fname));
+
+			mx_status = mx_condition_variable_wait(
+					eiger->trigger_thread_command_cv,
+					eiger->trigger_thread_command_mutex );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
+#if MXD_EIGER_DEBUG_TRIGGER_THREAD
+		MX_DEBUG(-2,("%s %p [%lu]: '%s' command = %ld",
+			fname, mx_get_current_thread_pointer(),
+			trigger_loop_counter, eiger_record->name,
+			(long) eiger->trigger_command));
+#endif
+
+		switch( eiger->trigger_command ) {
+		case MXS_EIGER_CMD_NONE:
+			/* No command was requested, so do not do anything. */
+			break;
+		case MXS_EIGER_CMD_TRIGGER:
+			MX_DEBUG(-2,("%s: TRIGGER requested.",fname));
+
+			dimension[0] = 1;
+
+			trigger = 1;
+
+			mx_status = mxd_eiger_put_value( ad, eiger,
+					"detector", "command/trigger",
+					MXFT_LONG, 1, dimension,
+					(void *) &trigger,
+					response, sizeof(response) );
+
+			mx_status = mxd_eiger_send_status_to_main_thread(
+						eiger, MXS_EIGER_STAT_IDLE );
+			break;
+		default:
+			(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Unsupported command %ld requested "
+			"for area detector '%s' trigger thread.",
+				(long) eiger->trigger_command,
+				eiger_record->name );
+			break;
+		}
+
+		eiger->trigger_command = MXS_EIGER_CMD_NONE;
+
+#if MXD_EIGER_DEBUG_TRIGGER_THREAD
+		MX_DEBUG(-2,("%s %p [%lu]: '%s' status = %ld",
+			fname, mx_get_current_thread_pointer(),
+			trigger_loop_counter, eiger_record->name,
+			(long) eiger->trigger_status));
+#endif
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /*========================================================================*/
 
 MX_EXPORT mx_status_type
@@ -563,6 +863,7 @@ mxd_eiger_open( MX_RECORD *record )
 	MX_EIGER *eiger = NULL;
 	char response[1000];
 	long dimension[1];
+	long mx_status_code;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -624,18 +925,18 @@ mxd_eiger_open( MX_RECORD *record )
 
 	if ( strcmp( eiger->transfer_mode_name, "monitor" ) == 0 ) {
 		mx_status = mx_process_record_field_by_name( ad->record,
-						"monitor_enabled",
+						"monitor_mode",
 						NULL, MX_PROCESS_GET, NULL );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
 #if 1
-		MX_DEBUG(-2,("%s: eiger->monitor_enabled = %d",
-			fname, (int) eiger->monitor_enabled));
+		MX_DEBUG(-2,("%s: eiger->monitor_mode = %d",
+			fname, (int) eiger->monitor_mode));
 #endif
 
-		if ( eiger->monitor_enabled ) {
+		if ( eiger->monitor_mode ) {
 			eiger->transfer_mode = MXF_EIGER_TRANSFER_MONITOR;
 		} else {
 			eiger->transfer_mode = 0;
@@ -710,7 +1011,113 @@ mxd_eiger_open( MX_RECORD *record )
 
 	ad->dictionary = NULL;
 
-	return MX_SUCCESSFUL_RESULT;
+	/*-----------------------------------------------------------------*/
+
+	/* Trigger commands to the EIGER must be done in a separate thread
+	 * since the EIGER does not send a response until the trigger
+	 * sequence is complete.
+	 */
+
+	/* trigger_thread_init_mutex and trigger_thread_init_cv are used
+	 * to verify that the trigger thread has initialized itself.
+	 */
+
+	mx_status = mx_mutex_create( &(eiger->trigger_thread_init_mutex) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_condition_variable_create(
+				&(eiger->trigger_thread_init_cv) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* trigger_thread_command_mutex and trigger_thread_command_cv are used
+	 * to send commands to the trigger thread.
+	 */
+
+	mx_status = mx_mutex_create( &(eiger->trigger_thread_command_mutex) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_condition_variable_create(
+				&(eiger->trigger_thread_command_cv) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* trigger_thread_status_mutex and trigger_thread_status_cv are used
+	 * to check the status of the trogger thread.
+	 */
+
+	mx_status = mx_mutex_create( &(eiger->trigger_thread_status_mutex) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_condition_variable_create(
+				&(eiger->trigger_thread_status_cv) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Initialize the trigger thread status to not initialized. */
+
+	eiger->trigger_command = MXS_EIGER_CMD_NONE;
+	eiger->trigger_status  = MXS_EIGER_STAT_NOT_INITIALIZED;
+
+	/* Prepare to wait for the notification that the trigger thread
+	 * is initialized.
+	 */
+
+	mx_status_code = mx_mutex_lock( eiger->trigger_thread_init_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"The attempt to lock the trigger init mutex before creating "
+		"the trigger thread failed.  This means that internal "
+		"triggering of the detector will be impossible." );
+	}
+
+	/* Now create the trigger thread. */
+
+	mx_status = mx_thread_create( &(eiger->trigger_thread),
+					mxd_eiger_trigger_thread_fn,
+					record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Wait for the notification that the trigger thread is initialized. */
+
+	while ( eiger->trigger_status == MXS_EIGER_STAT_NOT_INITIALIZED )
+	{
+		mx_status = mx_condition_variable_wait(
+				eiger->trigger_thread_init_cv,
+				eiger->trigger_thread_init_mutex );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	/* We now know that the trigger thread has finished initializing
+	 * itself, so we unlock the initialization mutex.
+	 */
+
+	mx_status_code = mx_mutex_unlock( eiger->trigger_thread_init_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"The attempt to lock the trigger init mutex before creating "
+		"the trigger thread failed.  This means that internal "
+		"triggering of the detector will be impossible." );
+	}
+
+	MX_DEBUG(-2,("%s: Trigger thread is ready for use.", fname));
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -921,8 +1328,10 @@ mxd_eiger_trigger( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_eiger_trigger()";
 
 	MX_EIGER *eiger = NULL;
+#if 0
 	long trigger;
 	long dimension[1];
+#endif
 	mx_status_type mx_status;
 
 	eiger = NULL;
@@ -946,6 +1355,7 @@ mxd_eiger_trigger( MX_AREA_DETECTOR *ad )
 
 	/* Otherwise, send the trigger command. */
 
+#if 0
 	dimension[0] = 1;
 
 	trigger = 1;
@@ -953,6 +1363,10 @@ mxd_eiger_trigger( MX_AREA_DETECTOR *ad )
 	mx_status = mxd_eiger_put_value( ad, eiger,
 			"detector", "command/trigger",
 			MXFT_LONG, 1, dimension, (void *) &trigger, NULL, 0 );
+#else
+	mx_status = mxd_eiger_send_command_to_trigger_thread(
+					eiger, MXS_EIGER_CMD_TRIGGER );
+#endif
 
 	return mx_status;
 }
@@ -964,7 +1378,7 @@ mxd_eiger_stop( MX_AREA_DETECTOR *ad )
 
 	MX_EIGER *eiger = NULL;
 	long cancel;
-	long dimension[0];
+	long dimension[1];
 	mx_status_type mx_status;
 
 	mx_status = mxd_eiger_get_pointers( ad, &eiger, fname );
@@ -994,7 +1408,7 @@ mxd_eiger_abort( MX_AREA_DETECTOR *ad )
 
 	MX_EIGER *eiger = NULL;
 	long abort;
-	long dimension[0];
+	long dimension[1];
 	mx_status_type mx_status;
 
 	mx_status = mxd_eiger_get_pointers( ad, &eiger, fname );
@@ -1500,9 +1914,9 @@ mxd_eiger_special_processing_setup( MX_RECORD *record )
 		case MXLV_EIGER_KEY_NAME:
 		case MXLV_EIGER_KEY_RESPONSE:
 		case MXLV_EIGER_KEY_VALUE:
-		case MXLV_EIGER_MONITOR_ENABLED:
+		case MXLV_EIGER_MONITOR_MODE:
 		case MXLV_EIGER_STATE:
-		case MXLV_EIGER_STREAM_ENABLED:
+		case MXLV_EIGER_STREAM_MODE:
 		case MXLV_EIGER_TIME:
 		case MXLV_EIGER_TEMPERATURE:
 			record_field->process_function
@@ -1550,7 +1964,7 @@ mxd_eiger_process_function( void *record_ptr,
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
-		case MXLV_EIGER_MONITOR_ENABLED:
+		case MXLV_EIGER_MONITOR_MODE:
 			dimension[0] = sizeof(local_string_buffer);
 
 			mx_status = mxd_eiger_get_value( ad, eiger,
@@ -1562,10 +1976,10 @@ mxd_eiger_process_function( void *record_ptr,
 				return mx_status;
 
 			if ( strcmp( local_string_buffer, "enabled" ) == 0 ) {
-				eiger->monitor_enabled = TRUE;
+				eiger->monitor_mode = TRUE;
 			} else
 			if ( strcmp( local_string_buffer, "disabled" ) == 0 ) {
-				eiger->monitor_enabled = FALSE;
+				eiger->monitor_mode = FALSE;
 			} else {
 				return mx_error( MXE_UNPARSEABLE_STRING, fname,
 				"The value '%s' returned by EIGER detector "
@@ -1575,7 +1989,7 @@ mxd_eiger_process_function( void *record_ptr,
 					eiger->record->name );
 			}
 			break;
-		case MXLV_EIGER_STREAM_ENABLED:
+		case MXLV_EIGER_STREAM_MODE:
 			dimension[0] = sizeof(local_string_buffer);
 
 			mx_status = mxd_eiger_get_value( ad, eiger,
@@ -1587,10 +2001,10 @@ mxd_eiger_process_function( void *record_ptr,
 				return mx_status;
 
 			if ( strcmp( local_string_buffer, "enabled" ) == 0 ) {
-				eiger->stream_enabled = TRUE;
+				eiger->stream_mode = TRUE;
 			} else
 			if ( strcmp( local_string_buffer, "disabled" ) == 0 ) {
-				eiger->stream_enabled = FALSE;
+				eiger->stream_mode = FALSE;
 			} else {
 				return mx_error( MXE_UNPARSEABLE_STRING, fname,
 				"The value '%s' returned by EIGER detector "
@@ -1695,8 +2109,8 @@ mxd_eiger_process_function( void *record_ptr,
 		break;
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
-		case MXLV_EIGER_MONITOR_ENABLED:
-			if ( eiger->monitor_enabled ) {
+		case MXLV_EIGER_MONITOR_MODE:
+			if ( eiger->monitor_mode ) {
 				strlcpy( eiger->key_value, "enabled",
 					sizeof( eiger->key_value ) );
 			} else {

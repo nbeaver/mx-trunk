@@ -34,6 +34,16 @@
 
 #define MXU_EIGER_KEY_TYPE_LENGTH		20
 
+/*--- Values for 'trigger_command' --- */
+
+#define MXS_EIGER_CMD_NONE		0
+#define MXS_EIGER_CMD_TRIGGER		1
+
+/*--- Values for 'trigger_status' --- */
+
+#define MXS_EIGER_STAT_NOT_INITIALIZED	(-1)
+#define MXS_EIGER_STAT_IDLE		0
+
 /*--- Values for 'transfer_mode' ---*/
 
 #define MXF_EIGER_TRANSFER_MONITOR	0x1
@@ -45,16 +55,33 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *url_server_record;
+	MX_RECORD *url_trigger_record;
 	char hostname[MXU_HOSTNAME_LENGTH+1];
 	char simplon_version[MXU_EIGER_SIMPLON_VERSION_LENGTH+1];
 	unsigned long eiger_flags;
 	MX_RECORD *photon_energy_record;
 	char transfer_mode_name[MXU_EIGER_TRANSFER_MODE_NAME_LENGTH+1];
 
+	MX_THREAD *trigger_thread;
+
+	MX_MUTEX *trigger_thread_init_mutex;
+	MX_CONDITION_VARIABLE *trigger_thread_init_cv;
+
+	MX_MUTEX *trigger_thread_command_mutex;
+	MX_CONDITION_VARIABLE *trigger_thread_command_cv;
+
+	MX_MUTEX *trigger_thread_status_mutex;
+	MX_CONDITION_VARIABLE *trigger_thread_status_cv;
+
+	long trigger_command;
+	long trigger_status;
+
+	double trigger_count_time;
+
 	unsigned long transfer_mode;
 
-	mx_bool_type monitor_enabled;
-	mx_bool_type stream_enabled;
+	mx_bool_type monitor_mode;
+	mx_bool_type stream_mode;
 
 	unsigned long bit_depth_image;
 	unsigned long bit_depth_readout;
@@ -83,8 +110,8 @@ typedef struct {
 
 } MX_EIGER;
 
-#define MXLV_EIGER_MONITOR_ENABLED		94001
-#define MXLV_EIGER_STREAM_ENABLED		94002
+#define MXLV_EIGER_MONITOR_MODE		94001
+#define MXLV_EIGER_STREAM_MODE		94002
 #define MXLV_EIGER_BIT_DEPTH_IMAGE		94003
 #define MXLV_EIGER_BIT_DEPTH_READOUT		94004
 #define MXLV_EIGER_STATE			94005
@@ -100,6 +127,10 @@ typedef struct {
 #define MXD_EIGER_STANDARD_FIELDS \
   {-1, -1, "url_server_record", MXFT_RECORD, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, url_server_record), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+  \
+  {-1, -1, "url_trigger_record", MXFT_RECORD, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, url_trigger_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
   {-1, -1, "hostname", MXFT_STRING, NULL, 1, {MXU_HOSTNAME_LENGTH}, \
@@ -128,12 +159,16 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, transfer_mode), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
-  {MXLV_EIGER_MONITOR_ENABLED, -1, "monitor_enabled", MXFT_BOOL, NULL, 0, {0},\
-	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, monitor_enabled), \
+  {-1, -1, "trigger_count_time", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, trigger_count_time), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {MXLV_EIGER_MONITOR_MODE, -1, "monitor_mode", MXFT_BOOL, NULL, 0, {0},\
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, monitor_mode), \
 	{0}, NULL, 0 }, \
   \
-  {MXLV_EIGER_STREAM_ENABLED, -1, "stream_enabled", MXFT_BOOL, NULL, 0, {0},\
-	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, stream_enabled), \
+  {MXLV_EIGER_STREAM_MODE, -1, "stream_mode", MXFT_BOOL, NULL, 0, {0},\
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, stream_mode), \
 	{0}, NULL, 0 }, \
   \
   {MXLV_EIGER_BIT_DEPTH_IMAGE, -1, "bit_depth_image", \
