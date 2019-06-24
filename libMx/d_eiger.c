@@ -1510,7 +1510,7 @@ mxd_eiger_stop( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_eiger_stop()";
 
 	MX_EIGER *eiger = NULL;
-	long cancel;
+	long disarm;
 	long dimension[1];
 	mx_status_type mx_status;
 
@@ -1525,11 +1525,11 @@ mxd_eiger_stop( MX_AREA_DETECTOR *ad )
 #endif
 	dimension[0] = 1;
 
-	cancel = 1;
+	disarm = 1;
 
 	mx_status = mxd_eiger_put_value( ad, eiger, NULL,
-			"detector", "command/cancel",
-			MXFT_LONG, 1, dimension, (void *) &cancel, NULL, 0 );
+			"detector", "command/disarm",
+			MXFT_LONG, 1, dimension, (void *) &disarm, NULL, 0 );
 
 	return mx_status;
 }
