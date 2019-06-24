@@ -151,6 +151,7 @@ mxd_eiger_get( MX_AREA_DETECTOR *ad,
 	char command_url[200];
 	unsigned long http_status_code;
 	char content_type[80];
+	int i, max_attempts;
 	mx_status_type mx_status;
 
 	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
@@ -192,31 +193,59 @@ mxd_eiger_get( MX_AREA_DETECTOR *ad,
 		eiger->hostname, module_name,
 		eiger->simplon_version, key_name );
 
-	mx_status = mx_url_get( url_record,
+	max_attempts = 3;
+
+	for ( i = 0; i < max_attempts; i++ ) {
+
+	    mx_status = mx_url_get( url_record,
 				command_url,
 				&http_status_code,
 				content_type, sizeof(content_type),
 				response, max_response_length );
 
-	if ( mx_status.code != MXE_SUCCESS )
+	    if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* FIXME: Define some macros for the HTTP status code values. */
+	    /* FIXME: Define some macros for the HTTP status code values. */
 
-	if ( http_status_code != 200 ) {
+	    if ( http_status_code != 200 ) {
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
 		"HTTP status code (%ld) returned for EIGER detector '%s' "
 		"for URL '%s'.",
 			http_status_code, eiger->record->name, command_url );
-	}
+	    }
 
-	if ( strcmp( content_type, "application/json" ) != 0 ) {
+	    if ( strcmp( content_type, "application/json" ) == 0 ) {
+		/* The HTTP GET succeeded as expected, so return now. */
+
+		return MX_SUCCESSFUL_RESULT;
+	    } else
+	    if ( strcmp( content_type, "text/plain; charset=utf-8" ) == 0 ) {
+		/* The EIGER has probably just sent us an unexpected
+		 * empty response message.  Display a warning and go
+		 * back and try again.
+		 */
+
+		mx_warning( "Received an unexpected non-JSON response from "
+		"URL '%s' sent to EIGER detector '%s'.  Response = '%s'.  "
+		"Retrying...",
+			command_url, ad->record->name, response );
+
+		continue;
+	    } else {
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
 		"The HTTP content type '%s' returned for URL '%s' at "
 		"EIGER detector '%s' was not 'application/json'.  "
 		"The body of the response was '%s'.",
 			content_type, command_url, eiger->record->name,
 			response );
+	    }
+	}
+
+	if ( i >= max_attempts ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"%d attempts to GET the url '%s' for EIGER detector '%s' "
+		"have failed.", max_attempts, command_url, ad->record->name );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -590,6 +619,7 @@ mxd_eiger_send_command_to_trigger_thread( MX_EIGER *eiger,
 
 /*----------------------------------------------------------------*/
 
+#if 0
 static mx_status_type
 mxd_eiger_send_status_to_main_thread( MX_EIGER *eiger,
 					int32_t trigger_status )
@@ -641,6 +671,7 @@ mxd_eiger_send_status_to_main_thread( MX_EIGER *eiger,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+#endif
 
 /*----------------------------------------------------------------*/
 
@@ -792,17 +823,16 @@ mxd_eiger_trigger_thread_fn( MX_THREAD *thread, void *args )
 			/* No command was requested, so do not do anything. */
 			break;
 		case MXS_EIGER_CMD_TRIGGER:
-#if 1
+#if 0
 			{
 				/* This section is here for debugging. */
 
 				mx_status = mxd_eiger_get_status( ad );
-
-				MX_DEBUG(-2,
-				("%s: TRIGGER pretrigger STATUS = '%s'",
-					fname, eiger->state ));
 			}
 #endif
+			MX_DEBUG(-2,("%s: TRIGGER pretrigger STATUS = '%s'",
+					fname, eiger->state ));
+
 			dimension[0] = 1;
 			trigger = 1;
 
@@ -819,10 +849,23 @@ mxd_eiger_trigger_thread_fn( MX_THREAD *thread, void *args )
 			MX_HRT_END( trigger_measurement );
 			MX_HRT_RESULTS( trigger_measurement, fname, "trigger" );
 
+#if 1
+			{
+				/* This section is here for debugging. */
+
+				mx_status = mxd_eiger_get_status( ad );
+
+				MX_DEBUG(-2,
+				("%s: TRIGGER posttrigger STATUS = '%s'",
+					fname, eiger->state ));
+			}
+#endif
 			MX_DEBUG(-2,("%s: TRIGGER complete.",fname));
 
+#if 0
 			mx_status = mxd_eiger_send_status_to_main_thread(
 						eiger, MXS_EIGER_STAT_IDLE );
+#endif
 			break;
 		default:
 			(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
