@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2008, 2010-2012, 2014, 2016-2017
+ * Copyright 1999-2008, 2010-2012, 2014, 2016-2017, 2019
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -501,6 +501,12 @@ MX_API mx_status_type mx_rs232_get_echo( MX_RECORD *rs232_record,
 
 MX_API mx_status_type mx_rs232_set_echo( MX_RECORD *rs232_record,
 					mx_bool_type echo_state );
+
+MX_API mx_status_type mx_rs232_get_timeout( MX_RECORD *rs232_record,
+					double *timeout_in_seconds );
+
+MX_API mx_status_type mx_rs232_set_timeout( MX_RECORD *rs232_record,
+					double timeout_in_seconds );
 
 MX_API mx_status_type mx_rs232_flush( MX_RECORD *rs232_record );
 

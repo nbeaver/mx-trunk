@@ -97,6 +97,14 @@ mx_socket_initialize( void )
 	return mx_status;
 }
 
+/* I am not sure what the maximum is for a 'struct timeval' handed to select(),
+ * but the following value works, as long as you are waiting for 68 years or
+ * less.  Note that values like LONG_MAX and (LONG_MAX - 1) cause select()
+ * to return EINVAL at least on Linux.  (W. Lavender, 2019-06-23)
+ */
+
+#define MX_MAX_SOCKET_WAIT_SECONDS	(LONG_MAX - 1000L)
+
 MX_EXPORT mx_status_type
 mx_socket_wait_for_event( MX_SOCKET *mx_socket, double timeout_in_seconds )
 {
@@ -117,6 +125,13 @@ mx_socket_wait_for_event( MX_SOCKET *mx_socket, double timeout_in_seconds )
 	}
 
 	socket_fd = mx_socket->socket_fd;
+
+	if ( timeout_in_seconds > MX_MAX_SOCKET_WAIT_SECONDS ) {
+		timeout_in_seconds = MX_MAX_SOCKET_WAIT_SECONDS;
+	} else
+	if ( timeout_in_seconds < 0.0 ) {
+		timeout_in_seconds = MX_MAX_SOCKET_WAIT_SECONDS;
+	}
 
 	tv_seconds = (unsigned long) timeout_in_seconds;
 

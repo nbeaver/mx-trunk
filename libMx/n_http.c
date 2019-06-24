@@ -327,7 +327,7 @@ mxn_http_server_get( MX_URL_SERVER *url_server,
 	size_t num_bytes_to_write, num_bytes_written;
 	size_t num_bytes_to_read, num_bytes_read;
 	int num_items;
-	double wait_timeout;
+	double wait_timeout_in_seconds;
 	char *ptr, *blank_ptr, *body_ptr;
 	char *content_type_ptr, *end_of_string_ptr;
 	mx_status_type mx_status;
@@ -373,7 +373,7 @@ mxn_http_server_get( MX_URL_SERVER *url_server,
 
 	if ( strcmp( protocol, "http" ) != 0 ) {
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"The MX 'http.mxo' module does not support the use of "
+		"The MX 'http_server' driver does not support the use of "
 		"the '%s' protocol requested by URL '%s'.  "
 		"Only the 'http' protocol is supported.",
 			protocol, url );
@@ -415,11 +415,15 @@ mxn_http_server_get( MX_URL_SERVER *url_server,
 
 	/* Wait a while for a response to arrive. */
 
-	wait_timeout = 5.0;	/* in seconds */
+	mx_status = mx_rs232_get_timeout( rs232_record,
+					&wait_timeout_in_seconds );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	mx_status = mx_rs232_wait_for_input_available( rs232_record,
 						&num_input_bytes_available,
-						wait_timeout );
+						wait_timeout_in_seconds );
 
 	if ( mx_status.code == MXE_SUCCESS ) {
 		/* A response has arrived. */
@@ -428,7 +432,7 @@ mxn_http_server_get( MX_URL_SERVER *url_server,
 		return mx_error( MXE_TIMED_OUT, fname,
 		"Timed out after waiting %g seconds for a response "
 		"from the HTTP server to a GET for '%s'.",
-			wait_timeout, url );
+			wait_timeout_in_seconds, url );
 	} else {
 		return mx_status;
 	}
@@ -580,7 +584,7 @@ mxn_http_server_put( MX_URL_SERVER *url_server,
 	size_t num_bytes_to_read, num_bytes_read;
 	char *blank_ptr, *body_ptr;
 	int num_items;
-	double wait_timeout;
+	double wait_timeout_in_seconds;
 	mx_status_type mx_status;
 
 #if MXN_HTTP_DEBUG_PUT
@@ -624,7 +628,7 @@ mxn_http_server_put( MX_URL_SERVER *url_server,
 
 	if ( strcmp( protocol, "http" ) != 0 ) {
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"The MX 'http.mxo' module does not support the use of "
+		"The MX 'http_server' driver does not support the use of "
 		"the '%s' protocol requested by URL '%s'.  "
 		"Only the 'http' protocol is supported.",
 			protocol, url );
@@ -670,11 +674,15 @@ mxn_http_server_put( MX_URL_SERVER *url_server,
 
 	/* Wait a while for a response to arrive. */
 
-	wait_timeout = 5.0;	/* in seconds */
+	mx_status = mx_rs232_get_timeout( rs232_record,
+					&wait_timeout_in_seconds );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	mx_status = mx_rs232_wait_for_input_available( rs232_record,
 						&num_input_bytes_available,
-						wait_timeout );
+						wait_timeout_in_seconds );
 
 	if ( mx_status.code == MXE_SUCCESS ) {
 		/* A response has arrived. */
@@ -683,7 +691,7 @@ mxn_http_server_put( MX_URL_SERVER *url_server,
 		return mx_error( MXE_TIMED_OUT, fname,
 		"Timed out after waiting %g seconds for a response "
 		"from the HTTP server to a PUT for '%s'.",
-			wait_timeout, url );
+			wait_timeout_in_seconds, url );
 	} else {
 		return mx_status;
 	}

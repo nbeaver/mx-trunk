@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2007, 2010-2012, 2014-2018 Illinois Institute of Technology
+ * Copyright 1999-2007, 2010-2012, 2014-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1479,6 +1479,9 @@ mx_rs232_wait_for_input_available( MX_RECORD *record,
 	} else {
 		if ( wait_timeout_in_seconds < 0.0 ) {
 			wait_forever = TRUE;
+		} else
+		if ( wait_timeout_in_seconds > LONG_MAX ) {
+			wait_forever = TRUE;
 		} else {
 			wait_forever = FALSE;
 
@@ -2197,6 +2200,49 @@ mx_rs232_set_echo( MX_RECORD *record,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_rs232_get_timeout( MX_RECORD *record,
+			double *timeout_in_seconds )
+{
+	static const char fname[] = "mx_rs232_get_timeout()";
+
+	MX_RS232 *rs232;
+	mx_status_type mx_status;
+
+	if ( timeout_in_seconds == (double *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The timeout_in_seconds pointer passed was NULL." );
+	}
+
+	mx_status = mx_rs232_get_pointers( record, &rs232, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	*timeout_in_seconds = rs232->timeout;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_rs232_set_timeout( MX_RECORD *record,
+			double timeout_in_seconds )
+{
+	static const char fname[] = "mx_rs232_set_timeout()";
+
+	MX_RS232 *rs232;
+	mx_status_type mx_status;
+
+	mx_status = mx_rs232_get_pointers( record, &rs232, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	rs232->timeout = timeout_in_seconds;
 
 	return MX_SUCCESSFUL_RESULT;
 }

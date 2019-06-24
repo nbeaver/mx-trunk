@@ -34,6 +34,7 @@
 #include "mx_record.h"
 #include "mx_variable.h"
 #include "mx_driver.h"
+#include "mx_hrt_debug.h"
 #include "mx_atomic.h"
 #include "mx_bit.h"
 #include "mx_socket.h"
@@ -663,6 +664,8 @@ mxd_eiger_trigger_thread_fn( MX_THREAD *thread, void *args )
 	unsigned long mx_status_code;
 	mx_status_type mx_status;
 
+	MX_HRT_TIMING trigger_measurement;
+
 	/*----------------------------------------------------------------*/
 
 	/* Initialize the variables to be used by this thread. */
@@ -756,7 +759,7 @@ mxd_eiger_trigger_thread_fn( MX_THREAD *thread, void *args )
 	trigger_loop_counter = 0;
 
 #if MXD_EIGER_DEBUG_TRIGGER_THREAD
-	MX_DEBUG(-2,("%s %p [%lu]: MCE '%s' entering event loop.",
+	MX_DEBUG(-2,("%s %p [%lu]: Area detector '%s' entering event loop.",
 		fname, mx_get_current_thread_pointer(),
 		trigger_loop_counter, eiger_record->name ));
 #endif
@@ -767,7 +770,7 @@ mxd_eiger_trigger_thread_fn( MX_THREAD *thread, void *args )
 		/* Wait on the command condition variable. */
 
 		while ( eiger->trigger_command == MXS_EIGER_CMD_NONE ) {
-			MX_DEBUG(-2,("%s: MARKER XYZZY", fname));
+			MX_DEBUG(-2,("%s: WAITING FOR COMMAND", fname));
 
 			mx_status = mx_condition_variable_wait(
 					eiger->trigger_thread_command_cv,
@@ -789,17 +792,34 @@ mxd_eiger_trigger_thread_fn( MX_THREAD *thread, void *args )
 			/* No command was requested, so do not do anything. */
 			break;
 		case MXS_EIGER_CMD_TRIGGER:
+#if 1
+			{
+				/* This section is here for debugging. */
+
+				mx_status = mxd_eiger_get_status( ad );
+
+				MX_DEBUG(-2,
+				("%s: TRIGGER pretrigger STATUS = '%s'",
+					fname, eiger->state ));
+			}
+#endif
+			dimension[0] = 1;
+			trigger = 1;
+
 			MX_DEBUG(-2,("%s: TRIGGER requested.",fname));
 
-			dimension[0] = 1;
-
-			trigger = 1;
+			MX_HRT_START( trigger_measurement );
 
 			mx_status = mxd_eiger_put( ad, eiger,
 					eiger->url_trigger_record,
 					"detector", "command/trigger",
 					"{ \"value\" : 1 }",
 					response, sizeof(response) );
+
+			MX_HRT_END( trigger_measurement );
+			MX_HRT_RESULTS( trigger_measurement, fname, "trigger" );
+
+			MX_DEBUG(-2,("%s: TRIGGER complete.",fname));
 
 			mx_status = mxd_eiger_send_status_to_main_thread(
 						eiger, MXS_EIGER_STAT_IDLE );
@@ -1305,8 +1325,16 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 	/* Arm the detector. */
 
 	arm = 1;
-
 	dimension[0] = 1;
+
+#if 1
+	{
+		mx_status = mxd_eiger_get_status( ad );
+
+		MX_DEBUG(-2,("%s: ARM prearm STATUS = '%s'",
+			fname, eiger->state));
+	}
+#endif
 
 	mx_status = mxd_eiger_put_value( ad, eiger, NULL,
 			"detector", "command/arm",
@@ -1338,6 +1366,15 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 
 	ad->total_num_frames = 0;
 	ad->last_frame_number = -1;
+
+#if 1
+	{
+		mx_status = mxd_eiger_get_status( ad );
+
+		MX_DEBUG(-2,("%s: ARM postarm STATUS = '%s'",
+			fname, eiger->state));
+	}
+#endif
 
 	/* Note: If we are in external trigger mode ("exts"), then the
 	 * detector will start taking images once the external trigger
