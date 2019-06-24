@@ -823,16 +823,6 @@ mxd_eiger_trigger_thread_fn( MX_THREAD *thread, void *args )
 			/* No command was requested, so do not do anything. */
 			break;
 		case MXS_EIGER_CMD_TRIGGER:
-#if 0
-			{
-				/* This section is here for debugging. */
-
-				mx_status = mxd_eiger_get_status( ad );
-			}
-#endif
-			MX_DEBUG(-2,("%s: TRIGGER pretrigger STATUS = '%s'",
-					fname, eiger->state ));
-
 			dimension[0] = 1;
 			trigger = 1;
 
@@ -849,17 +839,6 @@ mxd_eiger_trigger_thread_fn( MX_THREAD *thread, void *args )
 			MX_HRT_END( trigger_measurement );
 			MX_HRT_RESULTS( trigger_measurement, fname, "trigger" );
 
-#if 1
-			{
-				/* This section is here for debugging. */
-
-				mx_status = mxd_eiger_get_status( ad );
-
-				MX_DEBUG(-2,
-				("%s: TRIGGER posttrigger STATUS = '%s'",
-					fname, eiger->state ));
-			}
-#endif
 			MX_DEBUG(-2,("%s: TRIGGER complete.",fname));
 
 #if 0
@@ -1098,6 +1077,17 @@ mxd_eiger_open( MX_RECORD *record )
 	ad->trigger_mode = MXF_DEV_INTERNAL_TRIGGER;
 
 	ad->dictionary = NULL;
+
+	/*---*/
+
+	/* Configure the area detector driver to unconditionally report
+	 * the detector as busy for a short time (in seconds) after a start.
+	 */
+
+	mx_status = mx_area_detector_set_busy_start_interval( record, 1.0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/*-----------------------------------------------------------------*/
 
@@ -1824,6 +1814,7 @@ mxd_eiger_get_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_TOTAL_SEQUENCE_TIME:
+		ad->total_sequence_time = 0;
 		break;
 
 	case MXLV_AD_SEQUENCE_TYPE:

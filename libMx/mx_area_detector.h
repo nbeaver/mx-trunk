@@ -319,6 +319,18 @@ typedef struct mx_area_detector_type {
 
 	unsigned long latched_status;
 
+	/* The following fields are used to handle area detectors that do not
+	 * set the "busy" flag immediately after the start of an acquisition
+	 * sequence.
+	 */
+
+	mx_bool_type busy_start_interval_enabled;
+	double busy_start_interval;	/* in seconds */
+	double last_start_time;		/* in seconds */
+
+	MX_CLOCK_TICK busy_start_ticks;
+	MX_CLOCK_TICK last_start_tick;
+
 	/* Saving field numbers makes finding the fields quicker for
 	 * the mx_area_detector_vctest_extended_status() function and
 	 * other related status functions.
@@ -385,13 +397,20 @@ typedef struct mx_area_detector_type {
 	/* 'exposure_time' is used by mx_area_detector_get_exposure_time()
 	 * to extract the exposure time from the MX_SEQUENCE_PARAMETERS
 	 * structure and put it someplace that a remote client can 
-	 * request it from.  'num_exposures' does the same for 
-	 * mx_area_detector_get_num_exposures().
+	 * request it from.  'frame_time' does the same thing for
+	 * mx_area_detector_get_frame_time() and 'num_exposures' does the
+	 * same for mx_area_detector_get_num_exposures().
 	 */
 
 	double exposure_time;
 
+	double frame_time;
+
 	long num_exposures;
+
+	/* The 'frame_rate' in Hz is the reciprocal of the 'frame_time'. */
+
+	double frame_rate;
 
 	/* If 'image_data_available' is TRUE, then it is possible to get
 	 * real image data into the 'image_frame' object using either a
@@ -835,48 +854,53 @@ typedef struct mx_area_detector_type {
 #define MXLV_AD_NUM_SEQUENCE_PARAMETERS		12034
 #define MXLV_AD_SEQUENCE_PARAMETER_ARRAY	12035
 #define MXLV_AD_EXPOSURE_TIME			12036
-#define MXLV_AD_NUM_EXPOSURES			12037
-#define MXLV_AD_IMAGE_DATA_AVAILABLE		12038
-#define MXLV_AD_READOUT_FRAME			12039
-#define MXLV_AD_IMAGE_FRAME_HEADER_LENGTH	12040
-#define MXLV_AD_IMAGE_FRAME_HEADER		12041
-#define MXLV_AD_IMAGE_FRAME_DATA		12042
-#define MXLV_AD_CORRECT_FRAME			12043
-#define MXLV_AD_CORRECTION_FLAGS		12044
-#define MXLV_AD_NUM_FIX_REGIONS			12045
-#define MXLV_AD_FIX_REGION_ARRAY		10246
-#define MXLV_AD_CONSTANT_BIAS_PIXEL_OFFSET	12047
-#define MXLV_AD_TRANSFER_FRAME			12048
-#define MXLV_AD_LOAD_FRAME			12049
-#define MXLV_AD_SAVE_FRAME			12050
-#define MXLV_AD_RAW_LOAD_FRAME			12051
-#define MXLV_AD_RAW_SAVE_FRAME			12052
-#define MXLV_AD_FRAME_FILENAME			12053
-#define MXLV_AD_COPY_FRAME			12054
-#define MXLV_AD_SEQUENCE_START_DELAY		12055
-#define MXLV_AD_TOTAL_ACQUISITION_TIME		12056
-#define MXLV_AD_DETECTOR_READOUT_TIME		12057
-#define MXLV_AD_TOTAL_SEQUENCE_TIME		12058
-#define MXLV_AD_GEOM_CORR_AFTER_FLAT_FIELD	12059
-#define MXLV_AD_BIAS_CORR_AFTER_FLAT_FIELD	12060
-#define MXLV_AD_CORRECTION_FRAME_GEOM_CORR_LAST	12061
-#define MXLV_AD_CORRECTION_FRAME_NO_GEOM_CORR	12062
-#define MXLV_AD_CORRECTION_MEASUREMENT_TYPE	12063
-#define MXLV_AD_CORRECTION_MEASUREMENT_TIME	12064
-#define MXLV_AD_NUM_CORRECTION_MEASUREMENTS	12065
-#define MXLV_AD_CORRECTION_FRAMES_TO_SKIP	12066
-#define MXLV_AD_DEZINGER_CORRECTION_FRAME	12067
-#define MXLV_AD_DEZINGER_THRESHOLD		12068
-#define MXLV_AD_USE_SCALED_DARK_CURRENT		12069
-#define MXLV_AD_REGISTER_NAME			12070
-#define MXLV_AD_REGISTER_VALUE			12071
-#define MXLV_AD_SHUTTER_ENABLE			12072
-#define MXLV_AD_TRANSFER_IMAGE_DURING_SCAN	12073
-#define MXLV_AD_MARK_FRAME_AS_SAVED		12074
-#define MXLV_AD_SHOW_IMAGE_STATISTICS		12075
-#define MXLV_AD_SHOW_IMAGE_FRAME		12076
-#define MXLV_AD_IMAGE_FRAME_EXPOSURE_TIME	12077
-#define MXLV_AD_DARK_FRAME_EXPOSURE_TIME	12078
+#define MXLV_AD_FRAME_TIME			12037
+#define MXLV_AD_NUM_EXPOSURES			12038
+#define MXLV_AD_FRAME_RATE			12039
+#define MXLV_AD_IMAGE_DATA_AVAILABLE		12040
+#define MXLV_AD_READOUT_FRAME			12041
+#define MXLV_AD_IMAGE_FRAME_HEADER_LENGTH	12042
+#define MXLV_AD_IMAGE_FRAME_HEADER		12043
+#define MXLV_AD_IMAGE_FRAME_DATA		12044
+#define MXLV_AD_CORRECT_FRAME			12045
+#define MXLV_AD_CORRECTION_FLAGS		12046
+#define MXLV_AD_NUM_FIX_REGIONS			12047
+#define MXLV_AD_FIX_REGION_ARRAY		10248
+#define MXLV_AD_CONSTANT_BIAS_PIXEL_OFFSET	12049
+#define MXLV_AD_TRANSFER_FRAME			12050
+#define MXLV_AD_LOAD_FRAME			12051
+#define MXLV_AD_SAVE_FRAME			12052
+#define MXLV_AD_RAW_LOAD_FRAME			12053
+#define MXLV_AD_RAW_SAVE_FRAME			12054
+#define MXLV_AD_FRAME_FILENAME			12055
+#define MXLV_AD_COPY_FRAME			12056
+#define MXLV_AD_SEQUENCE_START_DELAY		12057
+#define MXLV_AD_TOTAL_ACQUISITION_TIME		12058
+#define MXLV_AD_DETECTOR_READOUT_TIME		12059
+#define MXLV_AD_TOTAL_SEQUENCE_TIME		12060
+#define MXLV_AD_GEOM_CORR_AFTER_FLAT_FIELD	12061
+#define MXLV_AD_BIAS_CORR_AFTER_FLAT_FIELD	12062
+#define MXLV_AD_CORRECTION_FRAME_GEOM_CORR_LAST	12063
+#define MXLV_AD_CORRECTION_FRAME_NO_GEOM_CORR	12064
+#define MXLV_AD_CORRECTION_MEASUREMENT_TYPE	12065
+#define MXLV_AD_CORRECTION_MEASUREMENT_TIME	12066
+#define MXLV_AD_NUM_CORRECTION_MEASUREMENTS	12067
+#define MXLV_AD_CORRECTION_FRAMES_TO_SKIP	12068
+#define MXLV_AD_DEZINGER_CORRECTION_FRAME	12069
+#define MXLV_AD_DEZINGER_THRESHOLD		12070
+#define MXLV_AD_USE_SCALED_DARK_CURRENT		12071
+#define MXLV_AD_REGISTER_NAME			12072
+#define MXLV_AD_REGISTER_VALUE			12073
+#define MXLV_AD_SHUTTER_ENABLE			12074
+#define MXLV_AD_TRANSFER_IMAGE_DURING_SCAN	12075
+#define MXLV_AD_MARK_FRAME_AS_SAVED		12076
+#define MXLV_AD_SHOW_IMAGE_STATISTICS		12077
+#define MXLV_AD_SHOW_IMAGE_FRAME		12078
+#define MXLV_AD_IMAGE_FRAME_EXPOSURE_TIME	12079
+#define MXLV_AD_DARK_FRAME_EXPOSURE_TIME	12080
+#define MXLV_AD_BUSY_START_INTERVAL_ENABLED	12081
+#define MXLV_AD_BUSY_START_INTERVAL		12082
+#define MXLV_AD_LAST_START_TIME			12083
 
 #define MXLV_AD_AREA_DETECTOR_FLAGS		12100
 #define MXLV_AD_INITIAL_CORRECTION_FLAGS	12101
@@ -1088,8 +1112,16 @@ typedef struct mx_area_detector_type {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, exposure_time),\
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
+  {MXLV_AD_FRAME_TIME, -1, "frame_time", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, frame_time),\
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
   {MXLV_AD_NUM_EXPOSURES, -1, "num_exposures", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, num_exposures),\
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {MXLV_AD_FRAME_RATE, -1, "frame_rate", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, frame_rate),\
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_AD_IMAGE_DATA_AVAILABLE, -1, "image_data_available", \
@@ -1378,7 +1410,22 @@ typedef struct mx_area_detector_type {
 				MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
 		offsetof( MX_AREA_DETECTOR, dark_frame_exposure_time ), \
-	{0}, NULL, MXFF_READ_ONLY }
+	{0}, NULL, MXFF_READ_ONLY }, \
+  {MXLV_AD_BUSY_START_INTERVAL_ENABLED, -1, "busy_start_interval_enabled", \
+	  				MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+	  	offsetof(MX_AREA_DETECTOR, busy_start_interval_enabled), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_AD_BUSY_START_INTERVAL, -1, "busy_start_interval", \
+	  				MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, busy_start_interval), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_AD_LAST_START_TIME, -1, "last_start_time", \
+	  				MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, last_start_time), \
+	{0}, NULL, 0}
 
 #define MX_AREA_DETECTOR_CORRECTION_STANDARD_FIELDS \
   {MXLV_AD_AREA_DETECTOR_FLAGS, -1, "area_detector_flags", \
@@ -1765,8 +1812,14 @@ MX_API mx_status_type mx_area_detector_set_sequence_parameters(
 MX_API mx_status_type mx_area_detector_get_exposure_time( MX_RECORD *ad_record,
 							double *exposure_time );
 
+MX_API mx_status_type mx_area_detector_get_frame_time( MX_RECORD *ad_record,
+							double *frame_time );
+
 MX_API mx_status_type mx_area_detector_get_num_exposures( MX_RECORD *ad_record,
 							long *num_exposures );
+
+MX_API mx_status_type mx_area_detector_get_frame_rate( MX_RECORD *ad_record,
+							double *frame_rate );
 
 MX_API mx_status_type mx_area_detector_set_one_shot_mode(MX_RECORD *ad_record,
 							double exposure_time );
@@ -1871,6 +1924,16 @@ MX_API mx_status_type mx_area_detector_get_extended_status(
 						long *last_frame_number,
 						long *total_num_frames,
 						unsigned long *status_flags );
+
+MX_API mx_status_type mx_area_detector_set_busy_start_interval(
+					MX_RECORD *ad_record,
+					double busy_start_interval_in_seconds );
+
+MX_API mx_status_type mx_area_detector_check_busy_start_interval(
+					MX_RECORD *ad_record,
+					mx_bool_type *busy_start_set );
+
+/*---*/
 
 MX_API mx_status_type mx_area_detector_image_log_show_error(
 						MX_AREA_DETECTOR *ad,

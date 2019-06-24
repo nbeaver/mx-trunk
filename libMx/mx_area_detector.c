@@ -222,6 +222,9 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->abort   = FALSE;
 	ad->busy    = FALSE;
 
+	ad->busy_start_interval_enabled = FALSE;
+	ad->busy_start_interval = -1;
+
 	ad->correction_measurement_in_progress = FALSE;
 
 	ad->current_num_rois = ad->maximum_num_rois;
@@ -1711,8 +1714,7 @@ mx_area_detector_set_sequence_parameters( MX_RECORD *record,
 /*--------*/
 
 MX_EXPORT mx_status_type
-mx_area_detector_get_exposure_time( MX_RECORD *record,
-					double *exposure_time )
+mx_area_detector_get_exposure_time( MX_RECORD *record, double *exposure_time )
 {
 	static const char fname[] = "mx_area_detector_get_exposure_time()";
 
@@ -1739,8 +1741,36 @@ mx_area_detector_get_exposure_time( MX_RECORD *record,
 /*--------*/
 
 MX_EXPORT mx_status_type
-mx_area_detector_get_num_exposures( MX_RECORD *record,
-					long *num_exposures )
+mx_area_detector_get_frame_time( MX_RECORD *record, double *frame_time )
+{
+	static const char fname[] = "mx_area_detector_get_frame_time()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_SEQUENCE_PARAMETERS *sp;
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers( record, &ad, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	sp = &(ad->sequence_parameters);
+
+	mx_status = mx_sequence_get_frame_time( sp, 0, &(ad->frame_time));
+
+	ad->frame_rate = mx_divide_safely( 1.0, ad->frame_time );
+
+	if ( frame_time != (double *) NULL ) {
+		*frame_time = ad->frame_time;
+	}
+
+	return mx_status;
+}
+
+/*--------*/
+
+MX_EXPORT mx_status_type
+mx_area_detector_get_num_exposures( MX_RECORD *record, long *num_exposures )
 {
 	static const char fname[] = "mx_area_detector_get_num_exposures()";
 
@@ -1759,6 +1789,33 @@ mx_area_detector_get_num_exposures( MX_RECORD *record,
 
 	if ( num_exposures != (long *) NULL ) {
 		*num_exposures = ad->num_exposures;
+	}
+
+	return mx_status;
+}
+
+/*--------*/
+
+MX_EXPORT mx_status_type
+mx_area_detector_get_frame_rate( MX_RECORD *record, double *frame_rate )
+{
+	static const char fname[] = "mx_area_detector_get_frame_rate()";
+
+	MX_AREA_DETECTOR *ad;
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers( record, &ad, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_area_detector_get_frame_time( record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( frame_rate != (double *) NULL ) {
+		*frame_rate = ad->frame_rate;
 	}
 
 	return mx_status;
@@ -2300,6 +2357,8 @@ mx_area_detector_arm( MX_RECORD *record )
 		}
 	}
 
+	ad->last_start_tick = mx_current_clock_tick();
+
 	/* Arm the area detector. */
 
 	ad->arm = 1;
@@ -2364,6 +2423,8 @@ mx_area_detector_trigger( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	ad->last_start_tick = mx_current_clock_tick();
 
 	ad->trigger = 1;
 
@@ -2781,17 +2842,28 @@ mx_area_detector_get_status( MX_RECORD *record,
 
 	/*---*/
 
+	if ( ad->busy_start_interval_enabled ) {
+		mx_bool_type busy_start_set;
+
+		mx_status = mx_area_detector_check_busy_start_interval(
+						record, &busy_start_set );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( busy_start_set ) {
+			ad->busy = TRUE;
+			ad->status |= MXSF_AD_ACQUISITION_IN_PROGRESS;
+		}
+	}
+
+	/*---*/
+
 	if ( ad->correction_measurement_in_progress
 	   || ( ad->correction_measurement != NULL ) )
 	{
 		ad->status |= MXSF_AD_CORRECTION_MEASUREMENT_IN_PROGRESS;
 	}
-
-#if 0
-	MX_DEBUG(-2,
-	("%s: last_frame_number = %ld, datafile_last_frame_number = %ld",
-		fname, ad->last_frame_number, ad->datafile_last_frame_number));
-#endif
 
 #if 0
 	{
@@ -2905,6 +2977,25 @@ mx_area_detector_get_extended_status( MX_RECORD *record,
 			}
 		}
 	}
+
+	/*---*/
+
+	if ( ad->busy_start_interval_enabled ) {
+		mx_bool_type busy_start_set;
+
+		mx_status = mx_area_detector_check_busy_start_interval(
+						record, &busy_start_set );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( busy_start_set ) {
+			ad->busy = TRUE;
+			ad->status |= MXSF_AD_ACQUISITION_IN_PROGRESS;
+		}
+	}
+
+	/*---*/
 
 	if ( ad->correction_measurement_in_progress
 	   || ( ad->correction_measurement != NULL ) )
@@ -3034,6 +3125,113 @@ mx_area_detector_image_log_show_error( MX_AREA_DETECTOR *ad,
 		mx_status_code_string( caller_mx_status.code ) );
 
 	fflush( ad->image_log_file );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_set_busy_start_interval( MX_RECORD *record,
+				double busy_start_interval_in_seconds )
+{
+	static const char fname[] =
+			"mx_area_detector_set_busy_start_interval()";
+
+	MX_AREA_DETECTOR *ad;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The motor record pointer passed was NULL." );
+	}
+
+	ad = (MX_AREA_DETECTOR *) record->record_class_struct;
+
+	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_AREA_DETECTOR pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	ad->busy_start_interval = busy_start_interval_in_seconds;
+
+	if ( busy_start_interval_in_seconds < 0.0 ) {
+		ad->busy_start_interval_enabled = FALSE;
+	} else {
+		ad->busy_start_interval_enabled = TRUE;
+
+		ad->busy_start_ticks =
+	    mx_convert_seconds_to_clock_ticks( busy_start_interval_in_seconds );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/* If the difference between the current time and the time of the last start
+ * command is less than the value of 'busy_start_interval', then the flag
+ * busy_start_set will be set to TRUE.
+ *
+ * There exist area detectors that have the misfeature that when you tell them
+ * to start an imaging sequence, there may be a short time after the start of
+ * the acquisition where the controller reports that the MCA is _not_ busy.
+ *
+ * While this may technically be true, it is not useful for higher level logic
+ * that is trying to figure out when a acquisition sequence has completed.
+ * MX handles this by reporting that the area detector is 'busy' for a period
+ * after a start command equal to the value of 'ad->busy_start_interval'
+ * in seconds.  This is only done if the busy start feature is enabled.
+ */
+
+MX_EXPORT mx_status_type
+mx_area_detector_check_busy_start_interval( MX_RECORD *record,
+				mx_bool_type *busy_start_set )
+{
+	static const char fname[] =
+			"mx_area_detector_check_busy_start_interval()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_CLOCK_TICK start_tick, busy_start_ticks;
+	MX_CLOCK_TICK finish_tick, current_tick;
+	int comparison;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The motor record pointer passed was NULL." );
+	}
+	if ( busy_start_set == (mx_bool_type *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The busy_start_set pointer passed was NULL." );
+	}
+
+	ad = (MX_AREA_DETECTOR *) record->record_class_struct;
+
+	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_AREA_DETECTOR pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	if ( ad->busy_start_interval_enabled == FALSE ) {
+		*busy_start_set = FALSE;
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	ad->last_start_time =
+		mx_convert_clock_ticks_to_seconds( ad->last_start_tick );
+
+	start_tick = ad->last_start_tick;
+
+	busy_start_ticks = ad->busy_start_ticks;
+
+	finish_tick = mx_add_clock_ticks( start_tick, busy_start_ticks );
+
+	current_tick = mx_current_clock_tick();
+
+	comparison = mx_compare_clock_ticks( current_tick, finish_tick );
+
+	if ( comparison <= 0 ) {
+		*busy_start_set = TRUE;
+	} else {
+		*busy_start_set = FALSE;
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }

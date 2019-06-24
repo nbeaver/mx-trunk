@@ -935,6 +935,7 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_ARM:
 		case MXLV_AD_BINSIZE:
 		case MXLV_AD_BITS_PER_PIXEL:
+		case MXLV_AD_BUSY_START_INTERVAL:
 		case MXLV_AD_BYTES_PER_FRAME:
 		case MXLV_AD_BYTES_PER_PIXEL:
 		case MXLV_AD_CONSTRUCT_NEXT_DATAFILE_NAME:
@@ -965,6 +966,8 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_FILENAME_LOG:
 		case MXLV_AD_FIX_REGION_ARRAY:
 		case MXLV_AD_FRAME_FILENAME:
+		case MXLV_AD_FRAME_RATE:
+		case MXLV_AD_FRAME_TIME:
 		case MXLV_AD_FRAMESIZE:
 		case MXLV_AD_GET_ROI_FRAME:
 		case MXLV_AD_IMAGE_FORMAT:
@@ -975,6 +978,7 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_IMAGE_FRAME_HEADER_LENGTH:
 		case MXLV_AD_IMAGE_LOG_FILENAME:
 		case MXLV_AD_LAST_FRAME_NUMBER:
+		case MXLV_AD_LAST_START_TIME:
 		case MXLV_AD_LOAD_FRAME:
 		case MXLV_AD_MAXIMUM_FRAME_NUMBER:
 		case MXLV_AD_MAXIMUM_FRAMESIZE:
@@ -1332,8 +1336,16 @@ mx_area_detector_process_function( void *record_ptr,
 			mx_status = mx_area_detector_get_exposure_time(
 								record, NULL );
 			break;
+		case MXLV_AD_FRAME_TIME:
+			mx_status = mx_area_detector_get_frame_time(
+								record, NULL );
+			break;
 		case MXLV_AD_NUM_EXPOSURES:
 			mx_status = mx_area_detector_get_num_exposures(
+								record, NULL );
+			break;
+		case MXLV_AD_FRAME_RATE:
+			mx_status = mx_area_detector_get_frame_rate(
 								record, NULL );
 			break;
 		case MXLV_AD_TRIGGER_MODE:
@@ -1680,6 +1692,10 @@ mx_area_detector_process_function( void *record_ptr,
 		case MXLV_AD_REGISTER_VALUE:
 			mx_status = mx_area_detector_set_register( record,
 			    ad->register_name, ad->register_value );
+			break;
+		case MXLV_AD_BUSY_START_INTERVAL:
+			mx_status = mx_area_detector_set_busy_start_interval(
+					record, ad->busy_start_interval );
 			break;
 		case MXLV_AD_ROI:
 			mx_status = mx_area_detector_set_roi( record,
