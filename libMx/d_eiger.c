@@ -1265,6 +1265,12 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 			exposure_period = sp->parameter_array[2];
 			strlcpy( trigger_mode, "ints", sizeof(trigger_mode) );
 			break;
+		case MXT_SQ_STROBE:
+			num_frames = mx_round( sp->parameter_array[0] );
+			exposure_time = -1.0;
+			exposure_period = -1.0;
+			strlcpy( trigger_mode, "inte", sizeof(trigger_mode) );
+			break;
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"MX sequence type %ld is not supported for internal "
@@ -1309,6 +1315,16 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 
 		break;
 	}
+
+	/* We don't know right now when an externally triggered sequence
+	 * will be finished, so we initialize it to the largest possible
+	 * value.  If we are really using internal triggers 'ints', then
+	 * this will get updated in the trigger function.
+	 */
+
+	eiger->expected_finish_tick = mx_set_clock_tick_to_maximum();
+
+	/*---*/
 
 	dimension[0] = strlen(trigger_mode) + 1;
 
@@ -1423,10 +1439,10 @@ mxd_eiger_trigger( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_eiger_trigger()";
 
 	MX_EIGER *eiger = NULL;
-#if 0
-	long trigger;
-	long dimension[1];
-#endif
+	MX_SEQUENCE_PARAMETERS *sp = NULL;
+	double total_sequence_time_in_seconds;
+	double sequence_time_cutoff_in_seconds;
+	MX_CLOCK_TICK sequence_time_cutoff_in_ticks;
 	mx_status_type mx_status;
 
 	eiger = NULL;
@@ -1448,20 +1464,42 @@ mxd_eiger_trigger( MX_AREA_DETECTOR *ad )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	/* Otherwise, send the trigger command. */
+	/* Compute a time that the sequence should be finished by. */
 
-#if 0
-	dimension[0] = 1;
+	mx_status = mx_area_detector_get_total_sequence_time( ad->record,
+					&total_sequence_time_in_seconds );
 
-	trigger = 1;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	mx_status = mxd_eiger_put_value( ad, eiger,
-			"detector", "command/trigger",
-			MXFT_LONG, 1, dimension, (void *) &trigger, NULL, 0 );
-#else
+	sp = &(ad->sequence_parameters);
+
+	switch( sp->sequence_type ) {
+	case MXT_SQ_ONE_SHOT:
+	case MXT_SQ_MULTIFRAME:
+		sequence_time_cutoff_in_seconds = ad->busy_start_interval
+				+ ( 1.1 * total_sequence_time_in_seconds );
+
+		sequence_time_cutoff_in_ticks =
+	   mx_convert_seconds_to_clock_ticks( sequence_time_cutoff_in_seconds );
+
+		eiger->expected_finish_tick =
+			mx_add_clock_ticks( mx_current_clock_tick(),
+					sequence_time_cutoff_in_ticks );
+		break;
+	case MXT_SQ_STROBE:
+		/* We don't really know how long a strobe sequence will
+		 * _really_ be, so we just set the cutoff time to the
+		 * maximum.
+		 */
+
+		eiger->expected_finish_tick = mx_set_clock_tick_to_maximum();
+		break;
+	}
+	/* Now send the trigger command. */
+
 	mx_status = mxd_eiger_send_command_to_trigger_thread(
 					eiger, MXS_EIGER_CMD_TRIGGER );
-#endif
 
 	return mx_status;
 }
@@ -1557,6 +1595,7 @@ mxd_eiger_get_status( MX_AREA_DETECTOR *ad )
 	char status_string[80];
 	long dimension[1];
 	long status_update;
+	int comparison;
 	mx_status_type mx_status;
 
 	mx_status = mxd_eiger_get_pointers( ad, &eiger, fname );
@@ -1633,6 +1672,23 @@ mxd_eiger_get_status( MX_AREA_DETECTOR *ad )
 				"and 'na'", ad->record->name, status_string );
 
 		ad->status = MXSF_AD_ERROR;
+	}
+
+	if ( ad->status & MXSF_AD_IS_BUSY ) {
+	    if ( mx_clock_tick_is_zero( eiger->expected_finish_tick ) == FALSE )
+	    {
+		comparison = mx_compare_clock_ticks(
+					eiger->expected_finish_tick,
+					mx_current_clock_tick() );
+
+		if ( comparison >= 0 ) {
+			mx_warning( "Stopping detector '%s' due to the "
+				"arrival of the expected finish time.",
+				ad->record->name );
+
+			mx_status = mxd_eiger_stop( ad );
+		}
+	    }
 	}
 
 #if 1

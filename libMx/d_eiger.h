@@ -78,6 +78,8 @@ typedef struct {
 
 	double trigger_count_time;
 
+	MX_CLOCK_TICK expected_finish_tick;
+
 	unsigned long transfer_mode;
 
 	mx_bool_type monitor_mode;

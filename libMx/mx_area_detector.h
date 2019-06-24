@@ -60,8 +60,7 @@ extern "C" {
 #define MXSF_AD_IS_BUSY		( MXSF_AD_ACQUISITION_IN_PROGRESS \
 				| MXSF_AD_CORRECTION_IN_PROGRESS \
 				| MXSF_AD_CORRECTION_MEASUREMENT_IN_PROGRESS \
-				| MXSF_AD_CONTROLLER_ACTION_IN_PROGRESS \
-				| MXSF_AD_ARMED )
+				| MXSF_AD_CONTROLLER_ACTION_IN_PROGRESS )
 
 /*-----------------------------------------------------------------*/
 
