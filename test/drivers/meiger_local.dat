@@ -1,0 +1,12 @@
+#
+xray_energy   variable inline double "" "" 1 1 12358.0
+#
+eiger_port    interface rs232 tcp232 "" "" 9600 8 N 1 N 0x0d0a 0x0d0a 5.0 0x0 127.0.0.1 8080 0x4c
+eiger_server  server url http_server "" "" eiger_port
+#
+#
+eiger_tport   interface rs232 tcp232 "" "" 9600 8 N 1 N 0x0d0a 0x0d0a 1.0e30 0x0 127.0.0.1 8080 0x4c
+eiger_trigger server url http_server "" "" eiger_tport
+#
+#
+eiger device  area_detector eiger "" "" 0 0x0 0x0 "" "" "" "" "" eiger_server eiger_trigger 127.0.0.1:8080 1.6.0 0x0 xray_energy monitor
