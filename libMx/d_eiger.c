@@ -60,7 +60,7 @@ MX_RECORD_FUNCTION_LIST mxd_eiger_record_function_list = {
 	mxd_eiger_open,
 	NULL,
 	NULL,
-	NULL,
+	mxd_eiger_resynchronize,
 	mxd_eiger_special_processing_setup,
 };
 
@@ -1196,6 +1196,52 @@ mxd_eiger_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: Trigger thread is ready for use.", fname));
 
 	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_eiger_resynchronize( MX_RECORD *record )
+{
+	static const char fname[] = "mxd_eiger_resynchronize()";
+
+	MX_AREA_DETECTOR *ad = NULL;
+	MX_EIGER *eiger = NULL;
+	long dimension[1];
+	long restart, initialize;
+	mx_status_type mx_status;
+
+	ad = (MX_AREA_DETECTOR *) record->record_class_struct;
+
+	mx_status = mxd_eiger_get_pointers( ad, &eiger, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s invoked for detector '%s'", fname, record->name ));
+
+	/* Restart the SIMPLON API service. */
+
+	dimension[0] = 1;
+	restart = 1;
+
+	mx_status = mxd_eiger_put_value( ad, eiger, NULL,
+					"system", "command/restart",
+					MXFT_LONG, 1, dimension,
+					(void *) &restart, NULL, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Now reinitialize the detector. */
+
+	dimension[0] = 1;
+	initialize = 1;
+
+	mx_status = mxd_eiger_put_value( ad, eiger, NULL,
+					"detector", "command/initialize",
+					MXFT_LONG, 1, dimension,
+					(void *) &initialize, NULL, 0 );
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type

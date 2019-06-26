@@ -254,6 +254,7 @@ typedef struct {
 MX_API mx_status_type mxd_eiger_initialize_driver( MX_DRIVER *driver );
 MX_API mx_status_type mxd_eiger_create_record_structures( MX_RECORD *record );
 MX_API mx_status_type mxd_eiger_open( MX_RECORD *record );
+MX_API mx_status_type mxd_eiger_resynchronize( MX_RECORD *record );
 MX_API mx_status_type mxd_eiger_special_processing_setup(
 						MX_RECORD *record );
 
