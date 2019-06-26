@@ -14,13 +14,15 @@
  *
  */
 
-#define MXD_EIGER_DEBUG			TRUE
+#define MXD_EIGER_DEBUG			FALSE
 
-#define MXD_EIGER_DEBUG_OPEN		TRUE
+#define MXD_EIGER_DEBUG_OPEN		FALSE
 
-#define MXD_EIGER_DEBUG_PARAMETERS	TRUE
+#define MXD_EIGER_DEBUG_PARAMETERS	FALSE
 
-#define MXD_EIGER_DEBUG_TRIGGER_THREAD	TRUE
+#define MXD_EIGER_DEBUG_TRIGGER_THREAD	FALSE
+
+#define MXD_EIGER_DEBUG_RESPONSE	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -336,7 +338,9 @@ mxd_eiger_get_value( MX_AREA_DETECTOR *ad,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXD_EIGER_DEBUG_RESPONSE
 	MX_DEBUG(-2,("%s: EIGER response = '%s'", fname, response ));
+#endif
 
 	mx_status = mx_json_parse( &json, response);
 
@@ -353,7 +357,7 @@ mxd_eiger_get_value( MX_AREA_DETECTOR *ad,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if 1
+#if MXD_EIGER_DEBUG_RESPONSE
 	MX_DEBUG(-2,("%s: value_type = '%s'", fname, value_type_string));
 #endif
 	if ( strcmp( value_type_string, "string" ) == 0 ) {
@@ -801,7 +805,10 @@ mxd_eiger_trigger_thread_fn( MX_THREAD *thread, void *args )
 		/* Wait on the command condition variable. */
 
 		while ( eiger->trigger_command == MXS_EIGER_CMD_NONE ) {
+
+#if MXD_EIGER_DEBUG_TRIGGER_THREAD
 			MX_DEBUG(-2,("%s: WAITING FOR COMMAND", fname));
+#endif
 
 			mx_status = mx_condition_variable_wait(
 					eiger->trigger_thread_command_cv,
@@ -998,7 +1005,7 @@ mxd_eiger_open( MX_RECORD *record )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-#if 1
+#if 0
 		MX_DEBUG(-2,("%s: eiger->monitor_mode = %d",
 			fname, (int) eiger->monitor_mode));
 #endif
@@ -1020,7 +1027,7 @@ mxd_eiger_open( MX_RECORD *record )
 			eiger->transfer_mode_name, record->name );
 	}
 
-#if 1
+#if 0
 	MX_DEBUG(-2,("%s: eiger->transfer_mode = %#lx",
 		fname, eiger->transfer_mode));
 #endif
@@ -1193,7 +1200,9 @@ mxd_eiger_open( MX_RECORD *record )
 		"triggering of the detector will be impossible." );
 	}
 
+#if MXD_EIGER_DEBUG_TRIGGER_THREAD
 	MX_DEBUG(-2,("%s: Trigger thread is ready for use.", fname));
+#endif
 
 	return mx_status;
 }

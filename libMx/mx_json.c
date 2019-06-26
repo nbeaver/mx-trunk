@@ -14,6 +14,8 @@
  *
  */
 
+#define MX_JSON_DEBUG		FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -247,7 +249,7 @@ mx_json_get_key( MX_JSON *json,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if 1
+#if MX_JSON_DEBUG
 	MX_DEBUG(-2,("%s: Found JSON key = '%s'.",
 		fname, found_cjson_value->string ));
 #endif
@@ -685,7 +687,7 @@ mx_json_get_string_2d_array( MX_JSON *json,
 				"%ld", mx_round( cjson_value->valuedouble ) );
 		}
 
-#if 1
+#if MX_JSON_DEBUG
 		MX_DEBUG(-2,("%s: key '%s', string[%ld] = '%s'",
 			fname, key_name, i, string_array_ptr[i] ));
 #endif

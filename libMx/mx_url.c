@@ -14,13 +14,16 @@
  *
  */
 
-#define MX_URL_DEBUG		TRUE
+#define MX_URL_DEBUG			TRUE
+
+#define MX_URL_DEBUG_WITH_THREAD_ID	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_thread.h"
 #include "mx_url.h"
 
 MX_EXPORT mx_status_type
@@ -89,7 +92,10 @@ mx_url_get( MX_RECORD *url_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MX_URL_DEBUG
+#if MX_URL_DEBUG_WITH_THREAD_ID
+	MX_DEBUG(-2,("%s: [%#lx] url = '%s'", fname,
+		mx_get_thread_id( mx_get_current_thread_pointer() ), url ));
+#elif MX_URL_DEBUG
 	MX_DEBUG(-2,("%s: url = '%s'", fname, url));
 #endif
 
@@ -104,6 +110,27 @@ mx_url_get( MX_RECORD *url_record,
 	mx_status = (*get_fn)( url_server, url, url_status_code,
 				content_type, max_content_type_length,
 				received_data, max_received_data_length );
+
+#if MX_URL_DEBUG_WITH_THREAD_ID
+	if ( url_status_code == NULL ) {
+		MX_DEBUG(-2,("%s: [%#lx] received_data = '%s'", fname,
+			mx_get_thread_id( mx_get_current_thread_pointer() ),
+			received_data));
+	} else {
+		MX_DEBUG(-2,
+		("%s: [%#lx] url status = %lu, received_data = '%s'", fname,
+			mx_get_thread_id( mx_get_current_thread_pointer() ),
+		 	*url_status_code, received_data));
+	}
+#elif MX_URL_DEBUG
+	if ( url_status_code == NULL ) {
+		MX_DEBUG(-2,("%s: received_data = '%s'", fname, received_data));
+	} else {
+		MX_DEBUG(-2,
+		("%s: url status = %lu, received_data = '%s'",
+			fname, *url_status_code, received_data));
+	}
+#endif
 
 	return mx_status;
 }
@@ -134,9 +161,13 @@ mx_url_put( MX_RECORD *url_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MX_URL_DEBUG
-	MX_DEBUG(-2,("%s: url = '%s'", fname, url));
-	MX_DEBUG(-2,("%s: sent_data = '%s'", fname, sent_data));
+#if MX_URL_DEBUG_WITH_THREAD_ID
+	MX_DEBUG(-2,("%s: [%#lx] url = '%s', sent_data = '%s'", fname,
+			mx_get_thread_id( mx_get_current_thread_pointer() ),
+			url, sent_data));
+#elif MX_URL_DEBUG
+	MX_DEBUG(-2,("%s: url = '%s', sent_data = '%s'",
+			fname, url, sent_data));
 #endif
 
 	put_fn = url_flist->url_put;
@@ -151,6 +182,27 @@ mx_url_put( MX_RECORD *url_record,
 				url_status_code, content_type, 
 				sent_data, sent_data_length,
 				response_data, max_response_data_length );
+
+#if MX_URL_DEBUG_WITH_THREAD_ID
+	if ( url_status_code == NULL ) {
+		MX_DEBUG(-2,("%s: [%#lx] response_data = '%s'", fname,
+			mx_get_thread_id( mx_get_current_thread_pointer() ),
+			response_data));
+	} else {
+		MX_DEBUG(-2,
+		("%s: [%#lx] url status = %lu, response_data = '%s'", fname,
+			mx_get_thread_id( mx_get_current_thread_pointer() ),
+		 	*url_status_code, response_data));
+	}
+#elif MX_URL_DEBUG
+	if ( url_status_code == NULL ) {
+		MX_DEBUG(-2,("%s: response_data = '%s'", fname, response_data));
+	} else {
+		MX_DEBUG(-2,
+		("%s: url status = %lu, response_data = '%s'",
+			fname, *url_status_code, response_data));
+	}
+#endif
 
 	return mx_status;
 }
