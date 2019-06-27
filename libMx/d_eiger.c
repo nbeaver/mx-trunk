@@ -492,8 +492,10 @@ mxd_eiger_put_value( MX_AREA_DETECTOR *ad,
 	mx_bool_type bool_value;
 	mx_status_type mx_status;
 
+#if 0
 	MX_DEBUG(-2,("%s invoked for detector '%s'.",
 			fname, eiger->record->name));
+#endif
 
 	/* FIXME: At present, only 1-D strings or one element numbers
 	 * are supported.
@@ -1435,7 +1437,7 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 	{
 		mx_status = mxd_eiger_get_status( ad );
 
-		MX_DEBUG(-2,("%s: ARM prearm STATUS = '%s'",
+		MX_DEBUG(-2,("%s: ARM prearm STATE = '%s'",
 			fname, eiger->state));
 	}
 #endif
@@ -1475,7 +1477,7 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 	{
 		mx_status = mxd_eiger_get_status( ad );
 
-		MX_DEBUG(-2,("%s: ARM postarm STATUS = '%s'",
+		MX_DEBUG(-2,("%s: ARM postarm STATE = '%s'",
 			fname, eiger->state));
 	}
 #endif
@@ -1686,7 +1688,7 @@ mxd_eiger_get_status( MX_AREA_DETECTOR *ad )
 		return mx_status;
 
 #if 1
-	MX_DEBUG(-2,("%s: detector '%s', STATUS = '%s'",
+	MX_DEBUG(-2,("%s: detector '%s', STATE = '%s'",
 		fname, ad->record->name, status_string));
 #endif
 
@@ -1746,7 +1748,7 @@ mxd_eiger_get_status( MX_AREA_DETECTOR *ad )
 	    }
 	}
 
-#if 1
+#if 0
 	MX_DEBUG(-2,("%s: detector '%s', ad->status = %#lx",
 		fname, ad->record->name, ad->status));
 #endif

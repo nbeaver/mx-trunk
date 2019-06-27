@@ -155,6 +155,15 @@ mx_url_put( MX_RECORD *url_record,
 		       		char *, size_t ) = NULL;
 	mx_status_type mx_status;
 
+#if ( MX_URL_DEBUG_WITH_THREAD_ID | MX_URL_DEBUG )
+	char local_response_data[400];
+
+	if ( response_data == (char *) NULL ) {
+		response_data = local_response_data;
+		max_response_data_length = sizeof(local_response_data);
+	}
+#endif
+
 	mx_status = mx_url_get_pointers( url_record,
 					&url_server, &url_flist, fname );
 

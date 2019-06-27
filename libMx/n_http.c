@@ -789,7 +789,8 @@ mxn_http_server_put( MX_URL_SERVER *url_server,
 			body_ptr = blank_ptr + strlen("\r\n\r\n");
 
 #if MXN_HTTP_DEBUG_PUT_RESPONSE_BODY
-			MX_DEBUG(-2,("%s: body_ptr = '%s'.", fname, body_ptr ));
+			MX_DEBUG(-2,("%s: returned body_ptr = '%s'.",
+					fname, body_ptr ));
 #endif
 
 			strlcpy( response_data, body_ptr,
