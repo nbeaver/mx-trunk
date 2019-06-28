@@ -1080,6 +1080,7 @@ mxi_handel_open( MX_RECORD *record )
 	void *void_ptr;
 	long dimension_array[2];
 	size_t size_array[2];
+	int os_status, saved_errno;
 	mx_status_type mx_status;
 
 #if MX_IGNORE_XIA_NULL_STRING
@@ -1143,6 +1144,19 @@ mxi_handel_open( MX_RECORD *record )
 	 */
 
 	handel->mca_record_array = NULL;
+
+	/* Check to see if the XIA .ini file is readable. */
+
+	os_status = access( handel->config_filename, R_OK );
+
+	if ( os_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_PERMISSION_DENIED, fname,
+		"This process does not have the permissions required to "
+		"read the Handel configuration file '%s'.",
+			handel->config_filename );
+	}
 
 	/* Initialize Handel. */
 

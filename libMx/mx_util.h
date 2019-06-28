@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 1999-2018 Illinois Institute of Technology
+ * Copyright 1999-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1010,6 +1010,14 @@ MX_API mx_status_type mx_copy_file( char *original_filename,
 MX_API mx_status_type mx_copy_file_classic( char *original_filename,
 				char *new_filename,
 				int new_file_mode );
+
+MX_API mx_status_type mx_show_file_metadata( char *filename );
+
+MX_API mx_status_type mx_show_fd_metadata( int file_descriptor );
+
+#if defined(OS_WIN32)
+MX_API mx_status_type mx_show_handle_metadata( void *win32_handle );
+#endif
 
 MX_API mx_status_type mx_get_num_lines_in_file( char *filename,
 						size_t *num_lines_in_file );

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2009-2010, 2012-2013, 2015-2018 Illinois Institute of Technology
+ * Copyright 2009-2010, 2012-2013, 2015-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -111,6 +111,30 @@ motor_test_fn( int argc, char *argv[] )
 			mx_win32_show_socket_names();
 #endif
 			return SUCCESS;
+		} else
+		if ( strcmp( argv[2], "show_file_metadata" ) == 0 ) {
+			char *filename = argv[3];
+
+			mx_show_file_metadata( filename );
+
+			return SUCCESS;
+		} else
+		if ( strcmp( argv[2], "show_fd_metadata" ) == 0 ) {
+			int file_descriptor = atoi( argv[3] );
+
+			mx_show_fd_metadata( file_descriptor );
+
+			return SUCCESS;
+#if defined(OS_WIN32)
+		} else
+		if ( strcmp( argv[2], "show_handle_metadata" ) == 0 ) {
+			void *win32_handle = (void *)
+				mx_hex_string_to_unsigned_long( argv[3] );
+
+			mx_show_handle_metadata( win32_handle );
+
+			return SUCCESS;
+#endif
 		} else
 		if ( strcmp( argv[2], "address" ) == 0 ) {
 #if defined(_WIN64)

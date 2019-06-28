@@ -23,7 +23,9 @@ ifeq ($(MX_ARCH),win32)
 	#
 	#XIA_HANDEL_DIR = c:\\progra~1\\XIA\\xmanag~1.1\\sdk
 	#
-	XIA_HANDEL_DIR = c:\\progra~2\\XIA\\xmanag~1.3\\sdk
+	#XIA_HANDEL_DIR = c:\\progra~2\\XIA\\xmanag~1.3\\sdk
+	#
+	XIA_HANDEL_DIR = c:\\progra~2\\XIA\\prospe~1.1\\sdk
 
 	CFLAGS += -I$(XIA_HANDEL_DIR)\\inc
 endif
