@@ -1154,8 +1154,10 @@ mxi_handel_open( MX_RECORD *record )
 
 		return mx_error( MXE_PERMISSION_DENIED, fname,
 		"This process does not have the permissions required to "
-		"read the Handel configuration file '%s'.",
-			handel->config_filename );
+		"read the Handel configuration file '%s'.  "
+		"errno = %d, error message = '%s'.",
+			handel->config_filename,
+			saved_errno, strerror( saved_errno ) );
 	}
 
 	/* Initialize Handel. */
