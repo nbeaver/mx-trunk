@@ -289,6 +289,7 @@ mxi_amptek_dp5_open( MX_RECORD *record )
 	char **intargs_argv = NULL;
 	MX_USB_DEVICE *usb_device = NULL;
 	unsigned long order_number;
+	unsigned long vendor_id, product_id;
 	unsigned long flags;
 	char status_packet[64];
 	mx_status_type mx_status;
@@ -382,6 +383,14 @@ mxi_amptek_dp5_open( MX_RECORD *record )
 			return mx_status;
 		}
 
+		if ( intargs_argc >= 4 ) {
+		  vendor_id = mx_hex_string_to_unsigned_long( intargs_argv[2] );
+		  product_id = mx_hex_string_to_unsigned_long( intargs_argv[3]);
+		} else {
+		  vendor_id = MXT_AMPTEK_DP5_VENDOR_ID;
+		  product_id = MXT_AMPTEK_DP5_PRODUCT_ID;
+		}
+
 		interface_record = mx_get_record( record, intargs_argv[0] );
 
 		if ( interface_record == (MX_RECORD *) NULL ) {
@@ -417,8 +426,7 @@ mxi_amptek_dp5_open( MX_RECORD *record )
 
 			mx_status = mx_usb_find_device_by_order(
 						interface_record, &usb_device,
-						MXT_AMPTEK_DP5_VENDOR_ID,
-						MXT_AMPTEK_DP5_PRODUCT_ID,
+						vendor_id, product_id,
 						order_number,
 						1, 0, 0, FALSE );
 		} else {
@@ -428,8 +436,7 @@ mxi_amptek_dp5_open( MX_RECORD *record )
 
 			mx_status = mx_usb_find_device_by_serial_number(
 						interface_record, &usb_device,
-						MXT_AMPTEK_DP5_VENDOR_ID,
-						MXT_AMPTEK_DP5_PRODUCT_ID,
+						vendor_id, product_id,
 					amptek_dp5->u.usb.serial_number,
 						1, 0, 0, FALSE );
 		}
