@@ -1597,7 +1597,7 @@ mxd_eiger_abort( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_eiger_abort()";
 
 	MX_EIGER *eiger = NULL;
-	long abort;
+	long abort_cmd;
 	long dimension[1];
 	mx_status_type mx_status;
 
@@ -1612,11 +1612,11 @@ mxd_eiger_abort( MX_AREA_DETECTOR *ad )
 #endif
 	dimension[0] = 1;
 
-	abort = 1;
+	abort_cmd = 1;
 
 	mx_status = mxd_eiger_put_value( ad, eiger, NULL,
 			"detector", "command/abort",
-			MXFT_LONG, 1, dimension, (void *) &abort, NULL, 0 );
+			MXFT_LONG, 1, dimension, (void *) &abort_cmd, NULL, 0 );
 
 	return mx_status;
 }
