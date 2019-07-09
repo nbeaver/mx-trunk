@@ -1,6 +1,0 @@
-!load ../fastcam_pcclib.mxo
-#
-pcclib interface controller fastcam_pcclib "" "" 1 
-cam1   device video_input fastcam_pcclib_camera "" "" -1 -1 GREY16 -1 pcclib 1
-#
-ad device area_detector soft_area_detector "" "" 0 0x0 0x0 "" "" "" "" cam1 0x1
