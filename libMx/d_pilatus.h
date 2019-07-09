@@ -111,12 +111,12 @@ typedef struct {
 			-1, "detector_server_datafile_root", \
 			MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, detector_server_datafile_root), \
-	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}, \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_READ_ONLY)}, \
   \
   {MXLV_PILATUS_LOCAL_DATAFILE_ROOT, -1, "local_datafile_root", \
 			MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, local_datafile_root), \
-	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}, \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_READ_ONLY)}, \
   \
   {MXLV_PILATUS_DELAY_TIME, -1, "delay_time", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, delay_time), \
