@@ -169,7 +169,7 @@ mxd_umx_dinput_read( MX_DIGITAL_INPUT *dinput )
 	debug_flag = TRUE;
 
 	snprintf( command, sizeof(command),
-		"GET %s.VAL", umx_dinput->dinput_name );
+		"GET %s.value", umx_dinput->dinput_name );
 
 	mx_status = mx_umx_command( umx_record, command,
 				response, sizeof(response),

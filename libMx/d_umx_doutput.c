@@ -167,7 +167,7 @@ mxd_umx_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 	debug_flag = TRUE;
 
 	snprintf( command, sizeof(command),
-		"PUT %s.VAL %ld",
+		"PUT %s.value %ld",
 		umx_doutput->doutput_name,
 		doutput->value );
 
