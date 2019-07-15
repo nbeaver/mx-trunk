@@ -42,6 +42,9 @@ typedef struct {
 	char detector_server_datafile_root[MXU_FILENAME_LENGTH+1];
 	char local_datafile_root[MXU_FILENAME_LENGTH+1];
 
+	char detector_server_datafile_user[MXU_FILENAME_LENGTH+1];
+	char local_datafile_user[MXU_FILENAME_LENGTH+1];
+
 	double delay_time;
 	double real_exposure_time;
 	double exposure_period;
@@ -74,17 +77,19 @@ typedef struct {
 #define MXLV_PILATUS_DETECTOR_SERVER_DATAFILE_DIRECTORY	87801
 #define MXLV_PILATUS_DETECTOR_SERVER_DATAFILE_ROOT	87802
 #define MXLV_PILATUS_LOCAL_DATAFILE_ROOT		87803
-#define MXLV_PILATUS_DELAY_TIME				87804
-#define MXLV_PILATUS_REAL_EXPOSURE_TIME			87805
-#define MXLV_PILATUS_EXPOSURE_PERIOD			87806
-#define MXLV_PILATUS_GAP_TIME				87807
-#define MXLV_PILATUS_NUM_IMAGES				87808
-#define MXLV_PILATUS_EXPOSURES_PER_FRAME		87809
-#define MXLV_PILATUS_COMMAND				87810
-#define MXLV_PILATUS_RESPONSE				87811
-#define MXLV_PILATUS_SET_ENERGY				87812
-#define MXLV_PILATUS_SET_THRESHOLD			87813
-#define MXLV_PILATUS_TH					87814
+#define MXLV_PILATUS_DETECTOR_SERVER_DATAFILE_USER	87804
+#define MXLV_PILATUS_LOCAL_DATAFILE_USER		87805
+#define MXLV_PILATUS_DELAY_TIME				87806
+#define MXLV_PILATUS_REAL_EXPOSURE_TIME			87807
+#define MXLV_PILATUS_EXPOSURE_PERIOD			87808
+#define MXLV_PILATUS_GAP_TIME				87809
+#define MXLV_PILATUS_NUM_IMAGES				87810
+#define MXLV_PILATUS_EXPOSURES_PER_FRAME		87811
+#define MXLV_PILATUS_COMMAND				87812
+#define MXLV_PILATUS_RESPONSE				87813
+#define MXLV_PILATUS_SET_ENERGY				87814
+#define MXLV_PILATUS_SET_THRESHOLD			87815
+#define MXLV_PILATUS_TH					87816
 
 
 #define MXD_PILATUS_STANDARD_FIELDS \
@@ -117,6 +122,17 @@ typedef struct {
 			MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, local_datafile_root), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_READ_ONLY)}, \
+  \
+  {MXLV_PILATUS_DETECTOR_SERVER_DATAFILE_USER, \
+			-1, "detector_server_datafile_user", \
+			MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, detector_server_datafile_user), \
+	{sizeof(char)}, NULL, 0}, \
+  \
+  {MXLV_PILATUS_LOCAL_DATAFILE_USER, -1, "local_datafile_user", \
+			MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, local_datafile_user), \
+	{sizeof(char)}, NULL, 0}, \
   \
   {MXLV_PILATUS_DELAY_TIME, -1, "delay_time", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, delay_time), \

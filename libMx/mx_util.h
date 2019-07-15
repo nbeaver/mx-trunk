@@ -1034,6 +1034,10 @@ MX_API mx_status_type mx_change_filename_prefix( const char *old_filename,
 						char *new_filename,
 						size_t max_new_filename_length);
 
+MX_API mx_status_type mx_is_subdirectory( const char *parent_directory,
+					const char *possible_subdirectory,
+					int *is_subdirectory );
+
 MX_API mx_status_type mx_construct_file_name_from_file_pattern(
 						char *filename_buffer,
 						size_t filename_buffer_size,

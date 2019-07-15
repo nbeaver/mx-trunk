@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2011, 2013-2017 Illinois Institute of Technology
+ * Copyright 1999-2011, 2013-2017, 2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -907,6 +907,62 @@ mx_change_filename_prefix( const char *old_filename,
 					fname, new_filename_prefix));
 	MX_DEBUG(-2,("%s: new_filename = '%s'", fname, new_filename));
 #endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*=========================================================================*/
+
+MX_EXPORT mx_status_type
+mx_is_subdirectory( const char *parent_directory,
+			const char *possible_subdirectory,
+			int *is_subdirectory )
+{
+	static const char fname[] = "mx_is_subdirectory()";
+
+	char directory_temp[MXU_FILENAME_LENGTH+1];
+	size_t length;
+	char *ptr = NULL;
+
+	if ( parent_directory == (const char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The parent_directory pointer passed was NULL." );
+	}
+	if ( possible_subdirectory == (const char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The possible_subdirectory pointer passed was NULL." );
+	}
+	if ( is_subdirectory == (int *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The is_subdirectory pointer passed was NULL." );
+	}
+
+	/* Begin by making a copy of the string in 'parent_directory'
+	 * with any trailing path separators stripped off.
+	 */
+
+	strlcpy( directory_temp, parent_directory, sizeof(directory_temp) );
+
+	length = strlen( directory_temp );
+
+	if ( ( directory_temp[length-1] == '/' )
+	  || ( directory_temp[length-1] == '\\' ) )
+	{
+		directory_temp[length-1] = '\0';
+
+		length = strlen( directory_temp );
+	}
+
+	/* Is directory_temp found at the start of 'possible_subdirectory'? */
+
+	ptr = strstr( possible_subdirectory, directory_temp );
+
+	if ( (ptr == NULL) || (ptr != possible_subdirectory) )
+	{
+		*is_subdirectory = FALSE;
+	} else {
+		*is_subdirectory = TRUE;
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
