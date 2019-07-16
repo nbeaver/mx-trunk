@@ -16,6 +16,8 @@
 
 #define MXD_PILATUS_DEBUG				FALSE
 
+#define MXD_PILATUS_DEBUG_UPDATE_DATAFILE_NUMBER	FALSE
+
 #define MXD_PILATUS_DEBUG_DIRECTORY_MAPPING		FALSE
 
 #define MXD_PILATUS_DEBUG_SERIAL			FALSE
@@ -403,8 +405,10 @@ mxd_pilatus_update_datafile_number( MX_AREA_DETECTOR *ad,
 	unsigned long datafile_number_field_length = 0;
 	mx_status_type mx_status;
 
+#if MXD_PILATUS_DEBUG_UPDATE_DATAFILE_NUMBER
 	MX_DEBUG(-2,("%s: ***** Record '%s', response = '%s' *****",
 		fname, ad->record->name, response));
+#endif
 
 	if ( strncmp( response, "7 OK ", 5 ) != 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -415,7 +419,9 @@ mxd_pilatus_update_datafile_number( MX_AREA_DETECTOR *ad,
 
 	strlcpy( pathname, response + strlen("7 OK "), sizeof(pathname) );
 
+#if MXD_PILATUS_DEBUG_UPDATE_DATAFILE_NUMBER
 	MX_DEBUG(-2,("%s: pathname = '%s'", fname, pathname));
+#endif
 
 	/* Parse the contents of the pathname. */
 
@@ -431,6 +437,7 @@ mxd_pilatus_update_datafile_number( MX_AREA_DETECTOR *ad,
 					datafile_extension_string,
 					sizeof(datafile_extension_string) );
 
+#if MXD_PILATUS_DEBUG_UPDATE_DATAFILE_NUMBER
 	MX_DEBUG(-2,("%s: datafile_number_found_in_test = %lu",
 		fname, datafile_number_found_in_test));
 	MX_DEBUG(-2,("%s: datafile_number_field_length = %lu",
@@ -443,6 +450,7 @@ mxd_pilatus_update_datafile_number( MX_AREA_DETECTOR *ad,
 		fname, datafile_number_string));
 	MX_DEBUG(-2,("%s: datafile_extension_string = '%s'",
 		fname, datafile_extension_string));
+#endif
 
 	return mx_status;
 }
@@ -950,6 +958,7 @@ mxd_pilatus_arm( MX_AREA_DETECTOR *ad )
 	double exposure_time, exposure_period, gap_time, delay_time;
 	char command[MXU_PILATUS_COMMAND_LENGTH+1];
 	char response[MXU_PILATUS_COMMAND_LENGTH+1];
+	int is_subdirectory;
 	mx_status_type mx_status;
 
 	pilatus = NULL;
@@ -963,6 +972,65 @@ mxd_pilatus_arm( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
+	/* It is possible that someone has changed ImgPath behind our back
+	 * by directly talking to camserver, so we must update our copy of
+	 * the value of detector_server_datafile_directory right now.
+	 */
+
+	mx_status = mx_process_record_field_by_name( ad->record,
+					"detector_server_datafile_directory",
+					NULL, MX_PROCESS_GET, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Is detector_server_datafile_directory within
+	 * detector_server_datafile_user?
+	 */
+
+	mx_status = mx_is_subdirectory(
+			pilatus->detector_server_datafile_user,
+			pilatus->detector_server_datafile_directory,
+				&is_subdirectory );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( is_subdirectory == FALSE ) {
+		return mx_error( MXE_CONFIGURATION_CONFLICT,fname,
+			"Requested directory '%s' for "
+			"'%s.detector_server_datafile_directory' is not a "
+			"subdirectory of '%s' for "
+			"'%s.detector_server_datafile_user'.",
+				pilatus->detector_server_datafile_directory,
+				ad->record->name,
+				pilatus->detector_server_datafile_user,
+				ad->record->name );
+	}
+
+	/* Is datafile_directory within local_datafile_user? */
+
+	mx_status = mx_is_subdirectory( pilatus->local_datafile_user,
+					ad->datafile_directory,
+					&is_subdirectory );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( is_subdirectory == FALSE ) {
+		return mx_error( MXE_CONFIGURATION_CONFLICT,fname,
+			"Requested directory '%s' for "
+			"'%s.datafile_directory' is not a "
+			"subdirectory of '%s' for "
+			"'%s.local_datafile_user'.",
+				ad->datafile_directory,
+				ad->record->name,
+				pilatus->local_datafile_user,
+				ad->record->name );
+	}
+
+	/* The directories are correctly set up, so we can proceed. */
+
 	pilatus->old_pilatus_image_counter = 0;
 
 	sp = &(ad->sequence_parameters);
@@ -2550,6 +2618,8 @@ mxd_pilatus_process_function( void *record_ptr,
 			 */
 			break;
 		case MXLV_PILATUS_DETECTOR_SERVER_DATAFILE_USER:
+			/* Test: Is datafile_user within datafile_root? */
+
 			mx_status = mx_is_subdirectory(
 					pilatus->detector_server_datafile_root,
 					pilatus->detector_server_datafile_user,
@@ -2580,6 +2650,8 @@ mxd_pilatus_process_function( void *record_ptr,
 			}
 			break;
 		case MXLV_PILATUS_DETECTOR_SERVER_DATAFILE_DIRECTORY:
+			/* Test: Is datafile_directory within datafile_user? */
+
 			mx_status = mx_is_subdirectory(
 				pilatus->detector_server_datafile_user,
 				pilatus->detector_server_datafile_directory,
