@@ -32,6 +32,8 @@
 
 #define MXD_PILATUS_DEBUG_GRIMSEL			TRUE
 
+#define MXD_PILATUS_DEBUG_IMGPATH			TRUE
+
 #define MS_PILATUS_DEBUG				FALSE
 
 #include <stdio.h>
@@ -457,6 +459,120 @@ mxd_pilatus_update_datafile_number( MX_AREA_DETECTOR *ad,
 
 /*---*/
 
+static mx_status_type
+mxd_pilatus_get_target_directory_from_grimsel( MX_PILATUS *pilatus )
+{
+	static const char fname[] =
+		"mxd_pilatus_get_target_directory_from_grimsel()";
+
+	FILE *grimsel_file = NULL;
+	char grimsel_filename[] = "/etc/grimsel_dectris.conf";
+	int saved_errno;
+	char buffer[200];
+	int num_items;
+	char sscanf_format[40];
+	char filename_temp[MXU_FILENAME_LENGTH+1];
+	mx_status_type mx_status;
+
+	if ( pilatus == (MX_PILATUS *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_PILATUS pointer passed was NULL." );
+	}
+
+	grimsel_file = fopen( grimsel_filename, "r" );
+
+	if ( grimsel_file == (FILE *) NULL ) {
+		saved_errno = errno;
+
+		switch( saved_errno ) {
+		case EACCES:
+			return mx_error( MXE_PERMISSION_DENIED, fname,
+			"Cannot open Grimsel file '%s' for detector '%s'.",
+				grimsel_filename, pilatus->record->name );
+			break;
+		case ENOENT:
+			return mx_error( MXE_NOT_FOUND, fname,
+			"Grimsel file '%s' was not found for detector '%s'.",
+				grimsel_filename, pilatus->record->name );
+			break;
+		default:
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+				"An error occurred while trying to open "
+				"Grimsel file '%s' for detector '%s'.  "
+				"errno = %d, error message = '%s'.",
+				grimsel_filename, pilatus->record->name,
+				saved_errno, strerror(saved_errno) );
+			break;
+		}
+	}
+
+	/* Loop through the file looking for lines that we care about.*/
+
+	snprintf( sscanf_format, sizeof(sscanf_format),
+			"%%*s %%%ds", MXU_FILENAME_LENGTH );
+
+#if 0
+	MX_DEBUG(-2,("%s: sscanf_format = '%s'", fname, sscanf_format));
+#endif
+
+	while ( 1 ) {
+		mx_fgets( buffer, sizeof(buffer), grimsel_file );
+
+		if ( feof(grimsel_file) ) {
+			(void) fclose( grimsel_file );
+			break;
+		}
+		if ( ferror(grimsel_file) ) {
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+				"An unknown file I/O error occurred while "
+				"trying to read Grimsel file '%s' for "
+				"Pilatus detector '%s'.",
+				grimsel_filename, pilatus->record->name );
+
+			(void) fclose( grimsel_file );
+			break;
+		}
+
+		if (strncmp( buffer, "target", 6 ) == 0) {
+
+			num_items = sscanf( buffer, sscanf_format,
+						filename_temp );
+
+			if ( num_items != 1 ) {
+				return mx_error(
+				MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
+					"Did not find a filename in the "
+					"line '%s' from Grimsel file '%s' "
+					"for detector '%s'.",
+						buffer, grimsel_filename,
+						pilatus->record->name );
+			}
+
+			strlcpy( pilatus->local_datafile_user,
+					filename_temp,
+					sizeof( pilatus->local_datafile_user ));
+
+#if MXD_PILATUS_DEBUG_GRIMSEL
+			MX_DEBUG(-2,("%s: local_datafile_user = '%s'",
+				fname, pilatus->local_datafile_user ));
+#endif
+
+			/* Check that this directory choice is valid
+			 * and set it to the datafile_root if the
+			 * choice is _not_ valid.
+			 */
+
+			mx_status = mx_process_record_field_by_name(
+					pilatus->record, "local_datafile_user",
+					NULL, MX_PROCESS_PUT, NULL );
+		}
+	}
+
+	return mx_status;
+}
+
+/*---*/
+
 MX_EXPORT mx_status_type
 mxd_pilatus_initialize_driver( MX_DRIVER *driver )
 {
@@ -785,140 +901,40 @@ mxd_pilatus_open( MX_RECORD *record )
 	pilatus_flags = pilatus->pilatus_flags;
 	
 	if ( pilatus_flags & MXF_PILATUS_READ_GRIMSEL_DECTRIS_CONF ) {
-		FILE *grimsel_file = NULL;
-		char grimsel_filename[] = "/etc/grimsel_dectris.conf";
-		int saved_errno;
-		char buffer[200];
-		char sscanf_format[40];
-		char filename_temp[MXU_FILENAME_LENGTH+1];
+		mx_status = 
+		    mxd_pilatus_get_target_directory_from_grimsel( pilatus );
 
-		grimsel_file = fopen( grimsel_filename, "r" );
-
-		if ( grimsel_file == (FILE *) NULL ) {
-			saved_errno = errno;
-
-			switch( saved_errno ) {
-			case EACCES:
-				return mx_error( MXE_PERMISSION_DENIED, fname,
-			"Cannot open Grimsel file '%s' for detector '%s'.",
-					grimsel_filename, record->name );
-				break;
-			case ENOENT:
-				return mx_error( MXE_NOT_FOUND, fname,
-			"Grimsel file '%s' was not found for detector '%s'.",
-					grimsel_filename, record->name );
-				break;
-			default:
-				return mx_error( MXE_FILE_IO_ERROR, fname,
-				"An error occurred while trying to open "
-				"Grimsel file '%s' for detector '%s'.  "
-				"errno = %d, error message = '%s'.",
-					grimsel_filename, record->name,
-					saved_errno, strerror(saved_errno) );
-				break;
-			}
-		}
-
-		/* Loop through the file looking for lines that we care about.*/
-
-		snprintf( sscanf_format, sizeof(sscanf_format),
-			"%%*s %%%ds", MXU_FILENAME_LENGTH );
-
-		MX_DEBUG(-2,("%s: sscanf_format = '%s'", fname, sscanf_format));
-
-		while ( 1 ) {
-			mx_fgets( buffer, sizeof(buffer), grimsel_file );
-
-			if ( feof(grimsel_file) ) {
-				(void) fclose( grimsel_file );
-				break;
-			}
-			if ( ferror(grimsel_file) ) {
-				return mx_error( MXE_FILE_IO_ERROR, fname,
-				"An unknown file I/O error occurred while "
-				"trying to read Grimsel file '%s' for "
-				"Pilatus detector '%s'.",
-					grimsel_filename, record->name );
-
-				(void) fclose( grimsel_file );
-				break;
-			}
-
-#if MXD_PILATUS_DEBUG_GRIMSEL
-			MX_DEBUG(-2,("%s: grimsel config '%s'",
-						fname, buffer ));
-#endif
-			if (strncmp( buffer, "ramdisk_mountpoint", 18 ) == 0) {
-
-				num_items = sscanf( buffer, sscanf_format,
-						filename_temp );
-
-				if ( num_items != 1 ) {
-					return mx_error(
-					MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
-					"Did not find a filename in the "
-					"line '%s' from Grimsel file '%s' "
-					"for detector '%s'.",
-						buffer, grimsel_filename,
-						record->name );
-				}
-
-				strlcpy( pilatus->detector_server_datafile_user,
-					filename_temp,
-				sizeof(pilatus->detector_server_datafile_user));
-
-				/* Check that this directory choice is valid
-				 * and set it to the datafile_root if the
-				 * choice is _not_ valid.
-				 */
-
-				mx_status = mx_process_record_field_by_name(
-					record, "detector_server_datafile_user",
-					NULL, MX_PROCESS_PUT, NULL );
-			} else
-			if (strncmp( buffer, "target", 6 ) == 0) {
-
-				num_items = sscanf( buffer, sscanf_format,
-						filename_temp );
-
-				if ( num_items != 1 ) {
-					return mx_error(
-					MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
-					"Did not find a filename in the "
-					"line '%s' from Grimsel file '%s' "
-					"for detector '%s'.",
-						buffer, grimsel_filename,
-						record->name );
-				}
-
-				strlcpy( pilatus->local_datafile_user,
-					filename_temp,
-					sizeof( pilatus->local_datafile_user ));
-
-				/* Check that this directory choice is valid
-				 * and set it to the datafile_root if the
-				 * choice is _not_ valid.
-				 */
-
-				mx_status = mx_process_record_field_by_name(
-					record, "local_datafile_user",
-					NULL, MX_PROCESS_PUT, NULL );
-			}
-		}
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
+
+	/* Initialize detector_server_datafile_user to be the same as
+	 * detector_server_datafile_root.  If mxautosave is running,
+	 * this field will be updated soon by mxautosave.
+	 */
+
+	strlcpy( pilatus->detector_server_datafile_user,
+		pilatus->detector_server_datafile_root,
+		sizeof( pilatus->detector_server_datafile_user ) );
+
+#if 0
+	/* If requested, initialize ImgPath to start as the directory in
+	 * pilatus->detector_server_datafile_root.
+	 */
 
 	if ( pilatus_flags & MXF_PILATUS_INITIALIZE_IMGPATH ) {
 
-		if ( strlen( pilatus->detector_server_datafile_user) == 0 ) {
-			mx_warning( "The detector_server_datafile_user "
+		if ( strlen( pilatus->detector_server_datafile_root) == 0 ) {
+			mx_warning( "The detector_server_datafile_root "
 			"parameter is an empty string for detector '%s'.  "
 			"Skipping...", record->name );
 		} else {
 			int n, max_attempts;
 
-			snprintf( command, sizeof(command), "ImgPath %s",
-				pilatus->detector_server_datafile_user );
-
+#if MXD_PILATUS_DEBUG_IMGPATH
+			MX_DEBUG(-2,("%s: Initializing ImgPath to '%s'",
+				fname, pilatus->detector_server_datafile_root));
+#endif
 			max_attempts = 3;
 
 			/* We attempt multiple times, since sometimes the
@@ -927,9 +943,10 @@ mxd_pilatus_open( MX_RECORD *record )
 			 */
 
 			for ( n = 0; n < max_attempts; n++ ) {
-				mx_status = mxd_pilatus_command(
-					pilatus, command,
-					response, sizeof(response), NULL );
+				mx_status = mx_process_record_field_by_name(
+					pilatus->record,
+					"detector_server_datafile_root",
+					NULL, MX_PROCESS_PUT, NULL );
 
 				if ( mx_status.code == MXE_SUCCESS )
 					break;
@@ -939,8 +956,9 @@ mxd_pilatus_open( MX_RECORD *record )
 			}
 		}
 	}
+#endif
 
-#if MXD_PILATUS_DEBUG
+#if ( 1 || MXD_PILATUS_DEBUG )
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
 #endif
 
@@ -2381,6 +2399,7 @@ mxd_pilatus_special_processing_setup( MX_RECORD *record )
 		case MXLV_PILATUS_LOCAL_DATAFILE_USER:
 		case MXLV_PILATUS_NUM_IMAGES:
 		case MXLV_PILATUS_REAL_EXPOSURE_TIME:
+		case MXLV_PILATUS_RELOAD_GRIMSEL:
 		case MXLV_PILATUS_RESPONSE:
 		case MXLV_PILATUS_SET_ENERGY:
 		case MXLV_PILATUS_SET_THRESHOLD:
@@ -2415,12 +2434,15 @@ mxd_pilatus_process_function( void *record_ptr,
 	int argc;
 	char **argv;
 	int is_subdirectory;
+	unsigned long pilatus_flags;
 	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
 	pilatus = (MX_PILATUS *) record->record_type_struct;
 
+	pilatus_flags = pilatus->pilatus_flags;
+	
 	mx_status = MX_SUCCESSFUL_RESULT;
 
 #if MXD_PILATUS_DEBUG_PARAMETERS
@@ -2723,6 +2745,17 @@ mxd_pilatus_process_function( void *record_ptr,
 			   strlcpy( pilatus->local_datafile_user,
 			      pilatus->local_datafile_root,
 			   sizeof(pilatus->local_datafile_user));
+			}
+			break;
+		case MXLV_PILATUS_RELOAD_GRIMSEL:
+			if ( pilatus_flags &
+				MXF_PILATUS_READ_GRIMSEL_DECTRIS_CONF )
+			{
+				mx_status = 
+			mxd_pilatus_get_target_directory_from_grimsel(pilatus);
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
 			}
 			break;
 		case MXLV_PILATUS_COMMAND:
