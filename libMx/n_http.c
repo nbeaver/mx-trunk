@@ -321,7 +321,7 @@ mxn_http_server_get( MX_URL_SERVER *url_server,
 	char hostname[MXU_HOSTNAME_LENGTH+1];
 	char filename[MXU_FILENAME_LENGTH+1];
 
-	char http_message[500];
+	char http_message[2*MXU_FILENAME_LENGTH+100];
 	unsigned long num_input_bytes_available;
 	char local_response[500];
 	size_t num_bytes_to_write, num_bytes_written;

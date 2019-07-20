@@ -487,6 +487,7 @@ mxd_eiger_put_value( MX_AREA_DETECTOR *ad,
 {
 	static const char fname[] = "mxd_eiger_put_value()";
 
+	char format[80];
 	char key_value[MXU_EIGER_KEY_VALUE_LENGTH+1];
 	char key_body[500];
 	mx_bool_type bool_value;
@@ -556,8 +557,15 @@ mxd_eiger_put_value( MX_AREA_DETECTOR *ad,
 		break;
 	}
 
-	snprintf( key_value, sizeof(key_value),
-		"{ \"value\" : %s }\r\n", key_body );
+	snprintf( format, sizeof(format),
+		"{ \\\"value\\\" : %%%ds )\\\r\\\n",
+			(int) sizeof(key_value) - 1 );
+
+	MX_DEBUG(-2,("%s: format = '%s'", fname, format));
+
+	snprintf( key_value, sizeof(key_value), format, key_body );
+
+	MX_DEBUG(-2,("%s: key_value = '%s'", fname, key_value));
 
 	mx_status = mxd_eiger_put( ad, eiger, url_record,
 			module_name, key_name, key_value,
