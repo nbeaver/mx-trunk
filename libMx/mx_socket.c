@@ -22,6 +22,8 @@
 
 #define MX_SOCKET_DEBUG_RECEIVE			FALSE
 
+#define MX_SOCKET_DEBUG_SEND			TRUE
+
 #include <stdio.h>
 
 #include "mx_osdef.h"
@@ -2554,18 +2556,25 @@ mx_socket_send( MX_SOCKET *mx_socket,
 		default:
 			bytes_left -= bytes_sent;
 
-#if MX_SOCKET_DEBUG
+#if MX_SOCKET_DEBUG_SEND
 			{
 				long n;
 
 				fprintf( stderr, "%s:", fname );
 
 				for ( n = 0; n < bytes_sent; n++ ) {
-					fprintf( stderr, " %#02x",
+					fprintf( stderr, " %#02x ",
 						ptr[n] & 0xff );
 				}
 
-				fprintf( stderr, "   bytes_left = %ld\n",
+				fprintf( stderr, " '" );
+
+				for ( n = 0; n < bytes_sent; n++ ) {
+					fprintf( stderr, "%c",
+						ptr[n] & 0xff );
+				}
+
+				fprintf( stderr, "' --> bytes_left = %ld\n",
 						bytes_left );
 			}
 #endif

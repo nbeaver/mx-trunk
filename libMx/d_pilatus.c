@@ -2164,6 +2164,7 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 	static const char fname[] = "mxd_pilatus_command()";
 
 	MX_AREA_DETECTOR *ad = NULL;
+	MX_RS232 *rs232 = NULL;
 	char command_buffer[1000];
 	char error_status_string[20];
 	char *ptr, *return_code_arg, *error_status_arg;
@@ -2187,15 +2188,12 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 
 	ad = pilatus->record->record_class_struct;
 
+	rs232 = (MX_RS232 *) pilatus->rs232_record->record_class_struct;
+
 	if ( (pilatus->pilatus_flags) & MXF_PILATUS_DEBUG_SERIAL ) {
 		debug_flag = TRUE;
 	} else {
 		debug_flag = FALSE;
-	}
-
-	if ( debug_flag ) {
-		MX_DEBUG(-2,("%s: sending '%s' to '%s'.",
-		fname, command_buffer, pilatus->record->name ));
 	}
 
 	command_length = strlen( command ) + 1;
@@ -2214,10 +2212,28 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 
 	strlcpy( command_buffer, command, sizeof(command_buffer) );
 
+	if ( debug_flag ) {
+		MX_DEBUG(-2,("%s: sending '%s' to '%s'.",
+		fname, command_buffer, pilatus->record->name ));
+	}
+
+	/* Note: For some types of serial interfaces, such as for sockets,
+	 * the line terminators for a command sometimes may be in a different
+	 * packet than the packet that sends the body of the command.  It
+	 * seems that Pilatus does not like this, so we append the line
+	 * terminators to the command buffer and then send the command with
+	 * mx_rs232_write() rather than mx_rs232_putline().  If we do this,
+	 * then the line terminators will probably end up in the same packet
+	 * as the command.  But the TCP standard, does _not_ guarantee this.
+	 */
+
+	strlcat( command_buffer, rs232->write_terminator_array,
+					sizeof(command_buffer) );
+
 	/* Send the command. */
 
-	mx_status = mx_rs232_putline( pilatus->rs232_record,
-					command_buffer, NULL, 0 );
+	mx_status = mx_rs232_write( pilatus->rs232_record,
+			command_buffer, strlen(command_buffer), NULL, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
