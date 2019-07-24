@@ -2201,9 +2201,11 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 	if ( command_length > sizeof(command_buffer) ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 			"The length of the command (%lu bytes) exceeds the "
-			"length of the internal command buffer (%d bytes).  "
-			"command = '%s'.", command_length,
-				(int) sizeof(command_buffer), command );
+			"length of the internal command buffer (%lu bytes).  "
+			"command = '%s'.",
+				(unsigned long) command_length,
+				(unsigned long) sizeof(command_buffer),
+				command );
 	}
 
 	/* Zero out the internal command buffer and copy the command to it. */
