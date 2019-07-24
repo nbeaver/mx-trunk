@@ -207,7 +207,6 @@
 #include "i_amptek_dp5.h"
 #include "i_keithley199.h"
 #include "i_numato_gpio.h"
-#include "i_amptek_dp4.h"
 
 #include "d_ks3512.h"
 #include "d_ks3112.h"
@@ -438,6 +437,7 @@
 #include "d_roentec_rcl_mca.h"
 #include "d_monte_carlo_mca.h"
 #include "d_amptek_dp5_mca.h"
+#include "d_amptek_dp4_mca.h"
 
 #include "d_sis3801.h"
 #include "d_sis3820.h"
@@ -1159,13 +1159,6 @@ MX_DRIVER mx_type_table[] = {
 				NULL,
 				&mxi_numato_gpio_num_record_fields,
 				&mxi_numato_gpio_rfield_def_ptr},
-
-{"amptek_dp4",    MXI_CTRL_AMPTEK_DP4,   MXI_CONTROLLER,    MXR_INTERFACE,
-				&mxi_amptek_dp4_record_function_list,
-				NULL,
-				NULL,
-				&mxi_amptek_dp4_num_record_fields,
-				&mxi_amptek_dp4_rfield_def_ptr},
 
 #if ( defined(OS_LINUX) && (MX_GLIBC_VERSION >= 2002000L) )
 
@@ -3115,6 +3108,14 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_amptek_dp5_mca_mca_function_list,
 				&mxd_amptek_dp5_mca_num_record_fields,
 				&mxd_amptek_dp5_mca_rfield_def_ptr},
+
+{"amptek_dp4_mca", MXT_MCA_AMPTEK_DP4,   MXC_MULTICHANNEL_ANALYZER, MXR_DEVICE,
+				&mxd_amptek_dp4_record_function_list,
+				NULL,
+				&mxd_amptek_dp4_mca_function_list,
+				&mxd_amptek_dp4_num_record_fields,
+				&mxd_amptek_dp4_rfield_def_ptr},
+
 
 
 {"soft_mcs",       MXT_MCS_SOFTWARE,  MXC_MULTICHANNEL_SCALER, MXR_DEVICE,

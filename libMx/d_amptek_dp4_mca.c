@@ -29,56 +29,52 @@
 #include "mx_hrt.h"
 #include "mx_hrt_debug.h"
 #include "mx_process.h"
-#include "mx_rs232.h"
 #include "mx_usb.h"
 #include "mx_mca.h"
-#include "i_amptek_dp4.h"
 #include "d_amptek_dp4_mca.h"
 
 #if MXD_AMPTEK_DP4_DEBUG_TIMING
 #  include "mx_hrt_debug.h"
 #endif
 
-/* Initialize the MCA driver jump table. */
-
-MX_RECORD_FUNCTION_LIST mxd_amptek_dp4_mca_record_function_list = {
-	mxd_amptek_dp4_mca_initialize_driver,
-	mxd_amptek_dp4_mca_create_record_structures,
+MX_RECORD_FUNCTION_LIST mxd_amptek_dp4_record_function_list = {
+	mxd_amptek_dp4_initialize_driver,
+	mxd_amptek_dp4_create_record_structures,
 	mx_mca_finish_record_initialization,
 	NULL,
 	NULL,
-	mxd_amptek_dp4_mca_open,
+	mxd_amptek_dp4_open,
 	NULL,
 	NULL,
 	NULL,
-	mxd_amptek_dp4_mca_special_processing_setup
+	mxd_amptek_dp4_special_processing_setup
 };
 
-MX_MCA_FUNCTION_LIST mxd_amptek_dp4_mca_mca_function_list = {
+MX_MCA_FUNCTION_LIST mxd_amptek_dp4_mca_function_list = {
 	NULL,
-	mxd_amptek_dp4_mca_trigger,
-	mxd_amptek_dp4_mca_stop,
-	mxd_amptek_dp4_mca_read,
-	mxd_amptek_dp4_mca_clear,
-	mxd_amptek_dp4_mca_get_status,
-	mxd_amptek_dp4_mca_get_parameter,
-	mxd_amptek_dp4_mca_set_parameter,
+	mxd_amptek_dp4_trigger,
+	mxd_amptek_dp4_stop,
+	mxd_amptek_dp4_read,
+	mxd_amptek_dp4_clear,
+	mxd_amptek_dp4_get_status,
+	mxd_amptek_dp4_get_parameter,
+	mxd_amptek_dp4_set_parameter,
 };
 
-MX_RECORD_FIELD_DEFAULTS mxd_amptek_dp4_mca_record_field_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxd_amptek_dp4_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_MCA_STANDARD_FIELDS,
 	MXD_AMPTEK_DP4_STANDARD_FIELDS,
 };
 
-long mxd_amptek_dp4_mca_num_record_fields
-		= sizeof( mxd_amptek_dp4_mca_record_field_defaults )
-		  / sizeof( mxd_amptek_dp4_mca_record_field_defaults[0] );
+long mxd_amptek_dp4_num_record_fields
+		= sizeof( mxd_amptek_dp4_record_field_defaults )
+		  / sizeof( mxd_amptek_dp4_record_field_defaults[0] );
 
-MX_RECORD_FIELD_DEFAULTS *mxd_amptek_dp4_mca_rfield_def_ptr
-			= &mxd_amptek_dp4_mca_record_field_defaults[0];
+MX_RECORD_FIELD_DEFAULTS *mxd_amptek_dp4_rfield_def_ptr
+			= &mxd_amptek_dp4_record_field_defaults[0];
 
-static mx_status_type mxd_amptek_dp4_mca_process_function( void *record_ptr,
+static mx_status_type mxd_amptek_dp4_process_function( void *record_ptr,
 						void *record_field_ptr,
 						void *socket_handler_ptr,
 						int operation );
@@ -86,19 +82,20 @@ static mx_status_type mxd_amptek_dp4_mca_process_function( void *record_ptr,
 /* Private functions for the use of the driver. */
 
 static mx_status_type
-mxd_amptek_dp4_mca_get_pointers( MX_MCA *mca,
+mxd_amptek_dp4_get_pointers( MX_MCA *mca,
 			MX_AMPTEK_DP4_MCA **amptek_dp4_mca,
-			MX_AMPTEK_DP4 **amptek_dp4,
 			const char *calling_fname )
 {
-	static const char fname[] = "mxd_amptek_dp4_mca_get_pointers()";
-
-	MX_AMPTEK_DP4_MCA *amptek_dp4_mca_ptr = NULL;
-	MX_RECORD *amptek_dp4_record = NULL;
+	static const char fname[] = "mxd_amptek_dp4_get_pointers()";
 
 	if ( mca == (MX_MCA *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"The MX_MCA pointer passed by '%s' was NULL.",
+			calling_fname );
+	}
+	if ( amptek_dp4_mca == (MX_AMPTEK_DP4_MCA **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_AMPTEK_DP4_MCA pointer passed by '%s' was NULL.",
 			calling_fname );
 	}
 	if ( mca->record == (MX_RECORD *) NULL ) {
@@ -106,40 +103,14 @@ mxd_amptek_dp4_mca_get_pointers( MX_MCA *mca,
 	"The MX_RECORD pointer for the MX_MCA pointer passed by '%s' is NULL.",
 			calling_fname );
 	}
-
-	amptek_dp4_mca_ptr = (MX_AMPTEK_DP4_MCA *)
-				mca->record->record_type_struct;
-
-	if ( amptek_dp4_mca_ptr == (MX_AMPTEK_DP4_MCA *) NULL ) {
+	if ( mca->record->record_type_struct == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_AMPTEK_DP4_MCA pointer for MCA '%s' is NULL.",
-			mca->record->name );
+	"The MX_AMPTEK_DP4_MCA pointer for record '%s' passed by '%s' is NULL.",
+			mca->record->name, calling_fname );
 	}
 
-	if ( amptek_dp4_mca != (MX_AMPTEK_DP4_MCA **) NULL ) {
-		*amptek_dp4_mca = amptek_dp4_mca_ptr;
-	}
-
-	if ( amptek_dp4 != (MX_AMPTEK_DP4 **) NULL ) {
-		amptek_dp4_record = amptek_dp4_mca_ptr->amptek_dp4_record;
-
-		if ( amptek_dp4_record == (MX_RECORD *) NULL ) {
-			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"The amptek_dp4_record pointer for Amptek DP4 "
-			"MCA '%s' is NULL.", mca->record->name );
-		}
-
-		*amptek_dp4 = (MX_AMPTEK_DP4 *)
-				amptek_dp4_record->record_type_struct;
-
-		if ( (*amptek_dp4) == (MX_AMPTEK_DP4 *) NULL ) {
-			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"The MX_AMPTEK_DP4 pointer for Amptek DP4 '%s' "
-			"used by MCA record '%s' is NULL.",
-				amptek_dp4_record->name,
-				mca->record->name );
-		}
-	}
+	(*amptek_dp4_mca) = (MX_AMPTEK_DP4_MCA *)
+				mca->record->record_type_struct;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -147,7 +118,7 @@ mxd_amptek_dp4_mca_get_pointers( MX_MCA *mca,
 /* === */
 
 MX_EXPORT mx_status_type
-mxd_amptek_dp4_mca_initialize_driver( MX_DRIVER *driver )
+mxd_amptek_dp4_initialize_driver( MX_DRIVER *driver )
 {
 	long maximum_num_channels_varargs_cookie;
 	long maximum_num_rois_varargs_cookie;
@@ -164,10 +135,10 @@ mxd_amptek_dp4_mca_initialize_driver( MX_DRIVER *driver )
 
 
 MX_EXPORT mx_status_type
-mxd_amptek_dp4_mca_create_record_structures( MX_RECORD *record )
+mxd_amptek_dp4_create_record_structures( MX_RECORD *record )
 {
 	static const char fname[] =
-			"mxd_amptek_dp4_mca_create_record_structures()";
+			"mxd_amptek_dp4_create_record_structures()";
 
 	MX_MCA *mca;
 	MX_AMPTEK_DP4_MCA *amptek_dp4_mca;
@@ -194,7 +165,7 @@ mxd_amptek_dp4_mca_create_record_structures( MX_RECORD *record )
 	record->record_class_struct = mca;
 	record->record_type_struct = amptek_dp4_mca;
 	record->class_specific_function_list =
-				&mxd_amptek_dp4_mca_mca_function_list;
+				&mxd_amptek_dp4_mca_function_list;
 
 	mca->record = record;
 	amptek_dp4_mca->record = record;
@@ -203,53 +174,94 @@ mxd_amptek_dp4_mca_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_amptek_dp4_mca_open( MX_RECORD *record )
+mxd_amptek_dp4_open( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_amptek_dp4_mca_open()";
+	static const char fname[] = "mxd_amptek_dp4_open()";
 
-	MX_MCA *mca = NULL;
-	MX_AMPTEK_DP4_MCA *amptek_dp4_mca = NULL;
-	MX_AMPTEK_DP4 *amptek_dp4 = NULL;
-	char response[80];
-	int num_items;
+	MX_AMPTEK_DP4_MCA *amptek_dp4 = NULL;
+	MX_RECORD *usb_record = NULL;
+	unsigned long order_number;
+	unsigned long flags;
+	MX_USB_DEVICE *usb_device = NULL;
 	mx_status_type mx_status;
+
+#if MXI_AMPTEK_DP4_DEBUG
+	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name ));
+#endif
+
+	mx_status = MX_SUCCESSFUL_RESULT;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"MX_RECORD pointer passed is NULL." );
+		"The MX_RECORD pointer passed was NULL." );
 	}
 
-	mca = (MX_MCA *) record->record_class_struct;
+	amptek_dp4 = (MX_AMPTEK_DP4_MCA *) record->record_type_struct;
 
-	mx_status = mxd_amptek_dp4_mca_get_pointers( mca,
-					&amptek_dp4_mca, &amptek_dp4, fname );
+	if ( amptek_dp4 == (MX_AMPTEK_DP4_MCA *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"MX_AMPTEK_DP4 pointer for record '%s' is NULL.", record->name);
+	}
+
+	flags = amptek_dp4->amptek_dp4_flags;
+
+	usb_record = amptek_dp4->usb_record;
+
+	if ( usb_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The usb_record pointer for Amptek DP4 '%s' is NULL.",
+			record->name );
+	}
+
+	if ( flags & MXF_AMPTEK_DP4_FIND_BY_ORDER ) {
+
+		/* If we have been requested to find the Amptek DP4
+		 * using the order in which it is found in the
+		 * enumerated devices, then we do that.
+		 *
+		 * WARNING: The order number can change depending
+		 * on which USB port you plugged it into, the order
+		 * in which you plugged usb devices in, and other
+		 * fun things like the phase of the moon.  You are
+		 * much better off using the serial number.
+		 */
+
+		order_number = atol( amptek_dp4->serial_number );
+
+		mx_status = mx_usb_find_device_by_order(
+						usb_record, &usb_device,
+						MXT_AMPTEK_DP4_VENDOR_ID,
+						MXT_AMPTEK_DP4_PRODUCT_ID,
+						order_number,
+						1, 0, 0, FALSE );
+	} else {
+		/* Otherwise, we look for the device using its
+		 * serial number.  (Strongly preferred !)
+		 */
+
+		mx_status = mx_usb_find_device_by_serial_number(
+						usb_record, &usb_device,
+						MXT_AMPTEK_DP4_VENDOR_ID,
+						MXT_AMPTEK_DP4_PRODUCT_ID,
+						amptek_dp4->serial_number,
+						1, 0, 0, FALSE );
+	}
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Read in the currently configured number of MCA channels. */
+	MX_DEBUG(-2,("%s: usb_device = %p", fname, usb_device));
 
-	mx_status = mxi_amptek_dp4_ascii_command( amptek_dp4, "MCAC;",
-					response, sizeof(response),
-					FALSE, amptek_dp4->amptek_dp4_flags );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	num_items = sscanf( response, "MCAC=%ld;", 
-				&(mca->current_num_channels) );
-
-	if ( num_items != 1 ) {
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"Unable to parse the response '%s' to command 'MCAC;' "
-		"for MCA '%s'.",  response, record->name );
-	}
+	/* Verify that the Amptek DP4 is working by sending it a
+	 * 'request status packet' message, which should return the
+	 * actual status data into the array 'status_packet'.
+	 */
 
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mxd_amptek_dp4_mca_special_processing_setup( MX_RECORD *record )
+mxd_amptek_dp4_special_processing_setup( MX_RECORD *record )
 {
 	MX_RECORD_FIELD *record_field;
 	MX_RECORD_FIELD *record_field_array;
@@ -262,15 +274,9 @@ mxd_amptek_dp4_mca_special_processing_setup( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
-		case MXLV_AMPTEK_DP4_STATUS_DATA:
-		case MXLV_AMPTEK_DP4_FAST_COUNTS:
-		case MXLV_AMPTEK_DP4_SLOW_COUNTS:
-		case MXLV_AMPTEK_DP4_GENERAL_PURPOSE_COUNTER:
-		case MXLV_AMPTEK_DP4_ACCUMULATION_TIME:
-		case MXLV_AMPTEK_DP4_HIGH_VOLTAGE:
-		case MXLV_AMPTEK_DP4_TEMPERATURE:
+		case 0:
 			record_field->process_function
-				    = mxd_amptek_dp4_mca_process_function;
+				    = mxd_amptek_dp4_process_function;
 			break;
 		default:
 			break;
@@ -280,47 +286,24 @@ mxd_amptek_dp4_mca_special_processing_setup( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_amptek_dp4_mca_trigger( MX_MCA *mca )
+mxd_amptek_dp4_trigger( MX_MCA *mca )
 {
-	static const char fname[] = "mxd_amptek_dp4_mca_trigger()";
+	static const char fname[] = "mxd_amptek_dp4_trigger()";
 
 	MX_AMPTEK_DP4_MCA *amptek_dp4_mca = NULL;
-	MX_AMPTEK_DP4 *amptek_dp4 = NULL;
-	char command[200];
 	mx_status_type mx_status;
 
-	mx_status = mxd_amptek_dp4_mca_get_pointers( mca,
-					&amptek_dp4_mca, &amptek_dp4, fname );
+	mx_status = mxd_amptek_dp4_get_pointers( mca, &amptek_dp4_mca, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	switch( mca->preset_type ) {
 	case MXF_MCA_PRESET_LIVE_TIME:
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"Preset live time is not supported for MCA '%s'.  You must use "
-		"either preset real time or preset count instead.\n",
-			mca->record->name );
 		break;
 	case MXF_MCA_PRESET_REAL_TIME:
-		snprintf( command, sizeof(command),
-			"PREC=OFF;PRET=OFF;PRER=%f;",
-			mca->preset_real_time );
-
-		mx_status = mxi_amptek_dp4_ascii_command( amptek_dp4,
-						command, NULL, 0, TRUE,
-						amptek_dp4->amptek_dp4_flags );
 		break;
 	case MXF_MCA_PRESET_COUNT:
-		/* FIXME: You must specify values for PRCL and PRCH here. */
-
-		snprintf( command, sizeof(command),
-			"PRER=OFF;PRET=OFF;PREC=%lu;",
-			mca->preset_count );
-
-		mx_status = mxi_amptek_dp4_ascii_command( amptek_dp4,
-						command, NULL, 0, TRUE,
-						amptek_dp4->amptek_dp4_flags );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -329,25 +312,21 @@ mxd_amptek_dp4_mca_trigger( MX_MCA *mca )
 		break;
 	}
 
-	/* Enable the MCA. */
-
-	mx_status = mxi_amptek_dp4_binary_command( amptek_dp4, 0xF0, 2,
-						NULL, NULL, NULL, 0,
-						NULL, 0, NULL, TRUE );
-
 	return mx_status;
 }
 
+#if 0   /*====================== BEGIN ======================*/
+
 MX_EXPORT mx_status_type
-mxd_amptek_dp4_mca_stop( MX_MCA *mca )
+mxd_amptek_dp4_stop( MX_MCA *mca )
 {
-	static const char fname[] = "mxd_amptek_dp4_mca_stop()";
+	static const char fname[] = "mxd_amptek_dp4_stop()";
 
 	MX_AMPTEK_DP4_MCA *amptek_dp4_mca = NULL;
 	MX_AMPTEK_DP4 *amptek_dp4 = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_amptek_dp4_mca_get_pointers( mca,
+	mx_status = mxd_amptek_dp4_get_pointers( mca,
 					&amptek_dp4_mca, &amptek_dp4, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -361,9 +340,9 @@ mxd_amptek_dp4_mca_stop( MX_MCA *mca )
 }
 
 MX_EXPORT mx_status_type
-mxd_amptek_dp4_mca_read( MX_MCA *mca )
+mxd_amptek_dp4_read( MX_MCA *mca )
 {
-	static const char fname[] = "mxd_amptek_dp4_mca_read()";
+	static const char fname[] = "mxd_amptek_dp4_read()";
 
 	MX_AMPTEK_DP4_MCA *amptek_dp4_mca = NULL;
 	MX_AMPTEK_DP4 *amptek_dp4 = NULL;
@@ -378,7 +357,7 @@ mxd_amptek_dp4_mca_read( MX_MCA *mca )
 	unsigned long channel_value;
 #endif
 
-	mx_status = mxd_amptek_dp4_mca_get_pointers( mca,
+	mx_status = mxd_amptek_dp4_get_pointers( mca,
 					&amptek_dp4_mca, &amptek_dp4, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -447,15 +426,15 @@ mxd_amptek_dp4_mca_read( MX_MCA *mca )
 }
 
 MX_EXPORT mx_status_type
-mxd_amptek_dp4_mca_clear( MX_MCA *mca )
+mxd_amptek_dp4_clear( MX_MCA *mca )
 {
-	static const char fname[] = "mxd_amptek_dp4_mca_clear()";
+	static const char fname[] = "mxd_amptek_dp4_clear()";
 
 	MX_AMPTEK_DP4_MCA *amptek_dp4_mca = NULL;
 	MX_AMPTEK_DP4 *amptek_dp4 = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_amptek_dp4_mca_get_pointers( mca,
+	mx_status = mxd_amptek_dp4_get_pointers( mca,
 					&amptek_dp4_mca, &amptek_dp4, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -477,9 +456,9 @@ mxd_amptek_dp4_mca_clear( MX_MCA *mca )
  */
 
 MX_EXPORT mx_status_type
-mxd_amptek_dp4_mca_get_status( MX_MCA *mca )
+mxd_amptek_dp4_get_status( MX_MCA *mca )
 {
-	static const char fname[] = "mxd_amptek_dp4_mca_get_status()";
+	static const char fname[] = "mxd_amptek_dp4_get_status()";
 
 	MX_AMPTEK_DP4_MCA *amptek_dp4_mca = NULL;
 	MX_AMPTEK_DP4 *amptek_dp4 = NULL;
@@ -489,7 +468,7 @@ mxd_amptek_dp4_mca_get_status( MX_MCA *mca )
 	unsigned long flags;
 	mx_status_type mx_status;
 
-	mx_status = mxd_amptek_dp4_mca_get_pointers( mca,
+	mx_status = mxd_amptek_dp4_get_pointers( mca,
 					&amptek_dp4_mca, &amptek_dp4, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -609,9 +588,9 @@ mxd_amptek_dp4_mca_get_status( MX_MCA *mca )
 }
 
 MX_EXPORT mx_status_type
-mxd_amptek_dp4_mca_get_parameter( MX_MCA *mca )
+mxd_amptek_dp4_get_parameter( MX_MCA *mca )
 {
-	static const char fname[] = "mxd_amptek_dp4_mca_get_parameter()";
+	static const char fname[] = "mxd_amptek_dp4_get_parameter()";
 
 	MX_AMPTEK_DP4_MCA *amptek_dp4_mca = NULL;
 	MX_AMPTEK_DP4 *amptek_dp4 = NULL;
@@ -619,7 +598,7 @@ mxd_amptek_dp4_mca_get_parameter( MX_MCA *mca )
 	int num_items;
 	mx_status_type mx_status;
 
-	mx_status = mxd_amptek_dp4_mca_get_pointers( mca,
+	mx_status = mxd_amptek_dp4_get_pointers( mca,
 					&amptek_dp4_mca, &amptek_dp4, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -711,7 +690,7 @@ mxd_amptek_dp4_mca_get_parameter( MX_MCA *mca )
 		break;
 	case MXLV_MCA_INPUT_COUNT_RATE:
 	case MXLV_MCA_OUTPUT_COUNT_RATE:
-		mx_status = mxd_amptek_dp4_mca_get_status( mca );
+		mx_status = mxd_amptek_dp4_get_status( mca );
 		break;
 	default:
 		mx_status = mx_mca_default_get_parameter_handler( mca );
@@ -722,16 +701,16 @@ mxd_amptek_dp4_mca_get_parameter( MX_MCA *mca )
 }
 
 MX_EXPORT mx_status_type
-mxd_amptek_dp4_mca_set_parameter( MX_MCA *mca )
+mxd_amptek_dp4_set_parameter( MX_MCA *mca )
 {
-	static const char fname[] = "mxd_amptek_dp4_mca_set_parameter()";
+	static const char fname[] = "mxd_amptek_dp4_set_parameter()";
 
 	MX_AMPTEK_DP4_MCA *amptek_dp4_mca = NULL;
 	MX_AMPTEK_DP4 *amptek_dp4 = NULL;
 	char ascii_command[80];
 	mx_status_type mx_status, mx_status_2;
 
-	mx_status = mxd_amptek_dp4_mca_get_pointers( mca,
+	mx_status = mxd_amptek_dp4_get_pointers( mca,
 					&amptek_dp4_mca, &amptek_dp4, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -764,7 +743,7 @@ mxd_amptek_dp4_mca_set_parameter( MX_MCA *mca )
 				mca->current_num_channels,
 				mca->record->name );
 
-			mx_status_2 = mxd_amptek_dp4_mca_get_parameter( mca );
+			mx_status_2 = mxd_amptek_dp4_get_parameter( mca );
 
 			MXW_UNUSED( mx_status_2 );
 			break;
@@ -804,15 +783,17 @@ mxd_amptek_dp4_mca_set_parameter( MX_MCA *mca )
 	return mx_status;
 }
 
+#endif  /*====================== END ======================*/
+
 /*-------------------------------------------------------------------------*/
 
 static mx_status_type
-mxd_amptek_dp4_mca_process_function( void *record_ptr,
+mxd_amptek_dp4_process_function( void *record_ptr,
 				void *record_field_ptr,
 				void *socket_handler_ptr,
 				int operation )
 {
-	static const char fname[] = "mxd_amptek_dp4_mca_process_function()";
+	static const char fname[] = "mxd_amptek_dp4_process_function()";
 
 	MX_RECORD *record = NULL;
 	MX_RECORD_FIELD *record_field = NULL;
@@ -833,14 +814,7 @@ mxd_amptek_dp4_mca_process_function( void *record_ptr,
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
-		case MXLV_AMPTEK_DP4_STATUS_DATA:
-		case MXLV_AMPTEK_DP4_FAST_COUNTS:
-		case MXLV_AMPTEK_DP4_SLOW_COUNTS:
-		case MXLV_AMPTEK_DP4_GENERAL_PURPOSE_COUNTER:
-		case MXLV_AMPTEK_DP4_ACCUMULATION_TIME:
-		case MXLV_AMPTEK_DP4_HIGH_VOLTAGE:
-		case MXLV_AMPTEK_DP4_TEMPERATURE:
-			mx_status = mxd_amptek_dp4_mca_get_status( mca );
+		case 0:
 			break;
 		default:
 			MX_DEBUG( 1,(
@@ -851,6 +825,8 @@ mxd_amptek_dp4_mca_process_function( void *record_ptr,
 		break;
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
+		case 0:
+			break;
 		default:
 			MX_DEBUG( 1,(
 			    "%s: *** Unknown MX_PROCESS_PUT label value = %ld",

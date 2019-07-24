@@ -73,7 +73,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_aframe_detector_motor.c d_ainput_as_dinput.c \
 	d_als_dewar_positioner.c \
 	d_am9513_motor.c d_am9513_scaler.c d_am9513_timer.c \
-	d_amptek_dp5_mca.c \
+	d_amptek_dp4_mca.c d_amptek_dp5_mca.c \
 	d_aoutput_as_doutput.c \
 	d_aps_adcmod2_ainput.c d_aps_adcmod2_amplifier.c \
 	d_area_detector_timer.c \
@@ -169,7 +169,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_wago750_modbus_aout.c d_wago750_modbus_dout.c \
 	d_wavelength.c d_wavenumber.c d_wti_nps_relay.c d_xafs_wavenumber.c \
 	i_6821.c i_8255.c i_am9513.c \
-	i_amptek_dp4.c i_amptek_dp5.c i_aps_adcmod2.c \
+	i_amptek_dp5.c i_aps_adcmod2.c \
 	i_bkprecision_912x.c i_camera_link_api.c i_camera_link_rs232.c \
 	i_cm17a.c i_compumotor.c i_cxtilt02.c i_d8.c i_databox.c \
 	i_dg645.c i_dos_com.c i_dos_portio.c i_dsp6001.c \
