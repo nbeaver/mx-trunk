@@ -315,26 +315,18 @@ mxd_amptek_dp4_trigger( MX_MCA *mca )
 	return mx_status;
 }
 
-#if 0   /*====================== BEGIN ======================*/
-
 MX_EXPORT mx_status_type
 mxd_amptek_dp4_stop( MX_MCA *mca )
 {
 	static const char fname[] = "mxd_amptek_dp4_stop()";
 
 	MX_AMPTEK_DP4_MCA *amptek_dp4_mca = NULL;
-	MX_AMPTEK_DP4 *amptek_dp4 = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_amptek_dp4_get_pointers( mca,
-					&amptek_dp4_mca, &amptek_dp4, fname );
+	mx_status = mxd_amptek_dp4_get_pointers( mca, &amptek_dp4_mca, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	mx_status = mxi_amptek_dp4_binary_command( amptek_dp4, 0xF0, 3,
-						NULL, NULL, NULL, 0,
-						NULL, 0, NULL, TRUE );
 
 	return mx_status;
 }
@@ -345,23 +337,23 @@ mxd_amptek_dp4_read( MX_MCA *mca )
 	static const char fname[] = "mxd_amptek_dp4_read()";
 
 	MX_AMPTEK_DP4_MCA *amptek_dp4_mca = NULL;
+#if 0
 	MX_AMPTEK_DP4 *amptek_dp4 = NULL;
 	char *raw_mca_spectrum = NULL;
 	unsigned long *channel_array = NULL;
 	unsigned long i, j;
 	long response_pid1, response_pid2;
-	mx_status_type mx_status;
-
-#if 1
 	unsigned long low_val, mid_val, high_val;
 	unsigned long channel_value;
 #endif
+	mx_status_type mx_status;
 
-	mx_status = mxd_amptek_dp4_get_pointers( mca,
-					&amptek_dp4_mca, &amptek_dp4, fname );
+	mx_status = mxd_amptek_dp4_get_pointers( mca, &amptek_dp4_mca, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if 0   /*====================== BEGIN ======================*/
 
 	memset( amptek_dp4_mca->raw_mca_spectrum, 0,
 		sizeof( amptek_dp4_mca->raw_mca_spectrum ) );
@@ -422,6 +414,8 @@ mxd_amptek_dp4_read( MX_MCA *mca )
 		channel_array[i] = channel_value;
 	}
 
+#endif  /*====================== END ======================*/
+
 	return mx_status;
 }
 
@@ -431,29 +425,15 @@ mxd_amptek_dp4_clear( MX_MCA *mca )
 	static const char fname[] = "mxd_amptek_dp4_clear()";
 
 	MX_AMPTEK_DP4_MCA *amptek_dp4_mca = NULL;
-	MX_AMPTEK_DP4 *amptek_dp4 = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_amptek_dp4_get_pointers( mca,
-					&amptek_dp4_mca, &amptek_dp4, fname );
+	mx_status = mxd_amptek_dp4_get_pointers( mca, &amptek_dp4_mca, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxi_amptek_dp4_binary_command( amptek_dp4,
-						0xF0, 1,
-						NULL, NULL,
-						NULL, 0,
-						NULL, 0,
-						NULL,
-						amptek_dp4->amptek_dp4_flags );
-
 	return mx_status;
 }
-
-/* FIXME: mxd_amptek_dp4_get_status() should become an API function as
- * mx_mca_get_status() or some such.  Other device classes already do this.
- */
 
 MX_EXPORT mx_status_type
 mxd_amptek_dp4_get_status( MX_MCA *mca )
@@ -461,18 +441,14 @@ mxd_amptek_dp4_get_status( MX_MCA *mca )
 	static const char fname[] = "mxd_amptek_dp4_get_status()";
 
 	MX_AMPTEK_DP4_MCA *amptek_dp4_mca = NULL;
-	MX_AMPTEK_DP4 *amptek_dp4 = NULL;
-	uint8_t status_byte_35;
-	char *status_data;
-	unsigned long accumulation_time_msec, real_time_msec;
-	unsigned long flags;
 	mx_status_type mx_status;
 
-	mx_status = mxd_amptek_dp4_get_pointers( mca,
-					&amptek_dp4_mca, &amptek_dp4, fname );
+	mx_status = mxd_amptek_dp4_get_pointers( mca, &amptek_dp4_mca, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if 0   /*====================== BEGIN ======================*/
 
 	/* Send a 'Request Status Packet'. */
 
@@ -583,6 +559,7 @@ mxd_amptek_dp4_get_status( MX_MCA *mca )
 			mca->preset_type, mca->record->name );
 		break;
 	}
+#endif  /*====================== END ======================*/
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -593,16 +570,14 @@ mxd_amptek_dp4_get_parameter( MX_MCA *mca )
 	static const char fname[] = "mxd_amptek_dp4_get_parameter()";
 
 	MX_AMPTEK_DP4_MCA *amptek_dp4_mca = NULL;
-	MX_AMPTEK_DP4 *amptek_dp4 = NULL;
-	char ascii_response[80];
-	int num_items;
 	mx_status_type mx_status;
 
-	mx_status = mxd_amptek_dp4_get_pointers( mca,
-					&amptek_dp4_mca, &amptek_dp4, fname );
+	mx_status = mxd_amptek_dp4_get_pointers( mca, &amptek_dp4_mca, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if 0   /*====================== BEGIN ======================*/
 
 	MX_DEBUG( 2,("%s invoked for MCA '%s', parameter type '%s' (%ld).",
 		fname, mca->record->name,
@@ -696,6 +671,7 @@ mxd_amptek_dp4_get_parameter( MX_MCA *mca )
 		mx_status = mx_mca_default_get_parameter_handler( mca );
 		break;
 	}
+#endif  /*====================== END ======================*/
 
 	return mx_status;
 }
@@ -706,15 +682,14 @@ mxd_amptek_dp4_set_parameter( MX_MCA *mca )
 	static const char fname[] = "mxd_amptek_dp4_set_parameter()";
 
 	MX_AMPTEK_DP4_MCA *amptek_dp4_mca = NULL;
-	MX_AMPTEK_DP4 *amptek_dp4 = NULL;
-	char ascii_command[80];
-	mx_status_type mx_status, mx_status_2;
+	mx_status_type mx_status;
 
-	mx_status = mxd_amptek_dp4_get_pointers( mca,
-					&amptek_dp4_mca, &amptek_dp4, fname );
+	mx_status = mxd_amptek_dp4_get_pointers( mca, &amptek_dp4_mca, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if 0   /*====================== BEGIN ======================*/
 
 	MX_DEBUG(-2,("%s invoked for MCA '%s', parameter type '%s' (%ld).",
 		fname, mca->record->name,
@@ -780,10 +755,10 @@ mxd_amptek_dp4_set_parameter( MX_MCA *mca )
 		break;
 	}
 
+#endif  /*====================== END ======================*/
+
 	return mx_status;
 }
-
-#endif  /*====================== END ======================*/
 
 /*-------------------------------------------------------------------------*/
 
