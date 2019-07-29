@@ -22,7 +22,7 @@
 
 #define MX_SOCKET_DEBUG_RECEIVE			FALSE
 
-#define MX_SOCKET_DEBUG_SEND			TRUE
+#define MX_SOCKET_DEBUG_SEND			FALSE
 
 #include <stdio.h>
 
