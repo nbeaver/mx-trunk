@@ -17,23 +17,27 @@
 #ifndef __D_AMPTEK_DP4_MCA_H__
 #define __D_AMPTEK_DP4_MCA_H__
 
-#define MXU_AMPTEK_DP4_SERIAL_NUMBER_LENGTH 	20
+#define MXU_AMPTEK_DP4_SERIAL_NUMBER_LENGTH 		20
+
+#define MXU_AMPTEK_DP4_CONFIGURATION_DATA_LENGTH	64
 
 /* Values for the 'amptek_dp4_flags' field. */
 
-#define MXF_AMPTEK_DP4_DEBUG_DATA		0x1
+#define MXF_AMPTEK_DP4_DEBUG_DATA			0x1
 
-#define MXF_AMPTEK_DP4_FIND_BY_ORDER		0x20
+#define MXF_AMPTEK_DP4_FIND_BY_ORDER			0x20
 
 /*---*/
 
-#define MXT_AMPTEK_DP4_VENDOR_ID		0x10E9
-#define MXT_AMPTEK_DP4_PRODUCT_ID		0x0700
+#define MXT_AMPTEK_DP4_VENDOR_ID			0x10E9
+#define MXT_AMPTEK_DP4_PRODUCT_ID			0x0700
 
 /* Endpoint number definitions. */
 
 #define MXEP_AMPTEK_DP4_CONTROL				0
-#define MXEP_AMPTEK_DP4_CONFIGURATION_OUT		(-1)	/* output */
+
+#define MXEP_AMPTEK_DP4_CONFIGURATION_OUT		1	/* output */
+
 #define MXEP_AMPTEK_DP4_BUFFER_A_STATUS			1	/* input */
 #define MXEP_AMPTEK_DP4_BUFFER_A_SPECTRUM		2	/* input */
 #define MXEP_AMPTEK_DP4_BUFFER_B_STATUS			3	/* input */
@@ -49,8 +53,11 @@ typedef struct {
 	MX_RECORD *usb_record;
 	char serial_number[ MXU_AMPTEK_DP4_SERIAL_NUMBER_LENGTH + 1 ];
 	unsigned long amptek_dp4_flags;
+	double timeout;
 
 	MX_USB_DEVICE *usb_device;
+
+	char configuration_data[ MXU_AMPTEK_DP4_CONFIGURATION_DATA_LENGTH ];
 } MX_AMPTEK_DP4_MCA;
 
 #define MXLV_AMPTEK_DP4_FOO			87001
@@ -67,7 +74,11 @@ typedef struct {
   \
   {-1, -1, "amptek_dp4_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_AMPTEK_DP4_MCA, amptek_dp4_flags), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+	{0}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
+  {-1, -1, "timeout", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_AMPTEK_DP4_MCA, timeout), \
+	{0}, NULL, MXFF_IN_DESCRIPTION}
 
 MX_API mx_status_type mxd_amptek_dp4_initialize_driver( MX_DRIVER *driver );
 MX_API mx_status_type mxd_amptek_dp4_create_record_structures(

@@ -117,6 +117,29 @@ mxd_amptek_dp4_get_pointers( MX_MCA *mca,
 
 /* === */
 
+static mx_status_type
+mxd_amptek_dp4_get_configuration_packet( MX_AMPTEK_DP4_MCA *amptek_dp4_mca )
+{
+	static const char fname[] = "mxd_amptek_dp4_get_configuration_packet()";
+
+	int num_bytes_read;
+	mx_status_type mx_status;
+
+	MX_DEBUG(-2,("%s invoked for MCA '%s'.",
+		fname, amptek_dp4_mca->record->name ));
+
+	mx_status = mx_usb_bulk_read( amptek_dp4_mca->usb_device,
+				MXEP_AMPTEK_DP4_CONFIGURATION_OUT,
+				amptek_dp4_mca->configuration_data,
+				sizeof( amptek_dp4_mca->configuration_data ),
+				&num_bytes_read,
+				amptek_dp4_mca->timeout );
+
+	return mx_status;
+}
+
+/* === */
+
 MX_EXPORT mx_status_type
 mxd_amptek_dp4_initialize_driver( MX_DRIVER *driver )
 {
@@ -178,11 +201,11 @@ mxd_amptek_dp4_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_amptek_dp4_open()";
 
-	MX_AMPTEK_DP4_MCA *amptek_dp4 = NULL;
+	MX_MCA *mca = NULL;
+	MX_AMPTEK_DP4_MCA *amptek_dp4_mca = NULL;
 	MX_RECORD *usb_record = NULL;
 	unsigned long order_number;
 	unsigned long flags;
-	MX_USB_DEVICE *usb_device = NULL;
 	mx_status_type mx_status;
 
 #if MXI_AMPTEK_DP4_DEBUG
@@ -196,16 +219,23 @@ mxd_amptek_dp4_open( MX_RECORD *record )
 		"The MX_RECORD pointer passed was NULL." );
 	}
 
-	amptek_dp4 = (MX_AMPTEK_DP4_MCA *) record->record_type_struct;
+	mca = (MX_MCA *) record->record_class_struct;
 
-	if ( amptek_dp4 == (MX_AMPTEK_DP4_MCA *) NULL ) {
+	if ( mca == (MX_MCA *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"MX_MCA pointer for record '%s' is NULL.", record->name );
+	}
+
+	amptek_dp4_mca = (MX_AMPTEK_DP4_MCA *) record->record_type_struct;
+
+	if ( amptek_dp4_mca == (MX_AMPTEK_DP4_MCA *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"MX_AMPTEK_DP4 pointer for record '%s' is NULL.", record->name);
 	}
 
-	flags = amptek_dp4->amptek_dp4_flags;
+	flags = amptek_dp4_mca->amptek_dp4_flags;
 
-	usb_record = amptek_dp4->usb_record;
+	usb_record = amptek_dp4_mca->usb_record;
 
 	if ( usb_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -226,10 +256,10 @@ mxd_amptek_dp4_open( MX_RECORD *record )
 		 * much better off using the serial number.
 		 */
 
-		order_number = atol( amptek_dp4->serial_number );
+		order_number = atol( amptek_dp4_mca->serial_number );
 
-		mx_status = mx_usb_find_device_by_order(
-						usb_record, &usb_device,
+		mx_status = mx_usb_find_device_by_order( usb_record,
+						&(amptek_dp4_mca->usb_device),
 						MXT_AMPTEK_DP4_VENDOR_ID,
 						MXT_AMPTEK_DP4_PRODUCT_ID,
 						order_number,
@@ -239,23 +269,18 @@ mxd_amptek_dp4_open( MX_RECORD *record )
 		 * serial number.  (Strongly preferred !)
 		 */
 
-		mx_status = mx_usb_find_device_by_serial_number(
-						usb_record, &usb_device,
+		mx_status = mx_usb_find_device_by_serial_number( usb_record,
+						&(amptek_dp4_mca->usb_device),
 						MXT_AMPTEK_DP4_VENDOR_ID,
 						MXT_AMPTEK_DP4_PRODUCT_ID,
-						amptek_dp4->serial_number,
+						amptek_dp4_mca->serial_number,
 						1, 0, 0, FALSE );
 	}
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s: usb_device = %p", fname, usb_device));
-
-	/* Verify that the Amptek DP4 is working by sending it a
-	 * 'request status packet' message, which should return the
-	 * actual status data into the array 'status_packet'.
-	 */
+	mx_status = mxd_amptek_dp4_get_configuration_packet( amptek_dp4_mca );
 
 	return mx_status;
 }
@@ -447,6 +472,8 @@ mxd_amptek_dp4_get_status( MX_MCA *mca )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, mca->record->name ));
 
 #if 0   /*====================== BEGIN ======================*/
 

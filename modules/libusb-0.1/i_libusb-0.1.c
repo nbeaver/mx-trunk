@@ -852,6 +852,19 @@ mxi_libusb_01_bulk_read( MX_USB_DEVICE *mx_usb_device,
 		if ( num_bytes_read != (int *) NULL ) {
 			*num_bytes_read = usb_result;
 		}
+	} else
+	if ( usb_result == (-110) ) {
+		return mx_error( MXE_TIMED_OUT, fname,
+			"The attempt to perform a bulk read of %d bytes "
+			"from endpoint %#x "
+			"of device (%#lx, %#lx) on USB bus '%s' has "
+			"timed out after %g seconds.",
+				transfer_buffer_length,
+				endpoint_number,
+				mx_usb_device->vendor_id,
+				mx_usb_device->product_id,
+				mx_usb_device->usb->record->name,
+				timeout );
 	} else {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 			"The attempt to perform a bulk read of %d bytes "
