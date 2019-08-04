@@ -26,7 +26,9 @@ CBFLIB_LIBRARY = $(CBFLIB_DIR)\\lib
 
 else ifeq ($(MX_ARCH),linux)
 
-CBFLIB_INCLUDES = -isystem /usr/include/cbf
+CBFLIB_INCLUDES += -isystem /usr/include/cbf
+CBFLIB_INCLUDES += -isystem /usr/include/cbflib
+CBFLIB_INCLUDES += -I /usr/include/hdf5/serial
 
 CBFLIB_LIBRARY = -lcbf
 

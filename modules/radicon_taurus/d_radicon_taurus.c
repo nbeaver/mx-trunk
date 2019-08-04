@@ -2462,7 +2462,7 @@ mxp_radicon_taurus_save_raw_image( MX_AREA_DETECTOR *ad,
 
 	long frame_number;
 	char filename_temp[MXU_FILENAME_LENGTH+1];
-	char raw_image_pathname[MXU_FILENAME_LENGTH+1];
+	char raw_image_pathname[2*MXU_FILENAME_LENGTH+2];
 	unsigned long next_datafile_number;
 	char format_string[20];
 	char next_datafile_number_as_string[20];

@@ -608,7 +608,7 @@ mxo_biocat_6k_toast_compute_6k_destination( MX_BIOCAT_6K_TOAST *toast,
 static mx_status_type
 mxo_biocat_6k_toast_signal( MX_BIOCAT_6K_TOAST *toast, int new_state )
 {
-	char command[40];
+	char command[60];
 	unsigned long flags;
 	mx_bool_type use_gate, use_trigger;
 	mx_status_type mx_status;
