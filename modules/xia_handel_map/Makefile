@@ -11,9 +11,7 @@ ifndef MX_INSTALL_DIR
 endif
 
 ifeq ($(MX_ARCH),linux)
-	XIA_HANDEL_DIR = /usr/local/src/handel-1.2.17
-	#
-	#XIA_HANDEL_DIR = /home/lavender/xia/handel-src-1_1_11
+	XIA_HANDEL_DIR = /opt/handel
 
 	CFLAGS += -I$(XIA_HANDEL_DIR)/inc
 endif
@@ -60,7 +58,7 @@ ifeq ($(MX_ARCH),linux)
 $(XIA_HANDEL_MXO): $(XIA_HANDEL_OBJS)
 	gcc -shared -rdynamic -Wl,-soname,$(XIA_HANDEL_MXO) \
 		-o $(XIA_HANDEL_MXO) $(XIA_HANDEL_OBJS) \
-		-L$(XIA_HANDEL_DIR)/src -lhandel
+		-L$(XIA_HANDEL_DIR)/lib -lhandel -lusb
 
 endif
 
@@ -92,7 +90,7 @@ ifeq ($(MX_ARCH),win32-mingw)
 $(XIA_HANDEL_MXO): $(XIA_HANDEL_OBJS)
 	gcc -shared -o $(XIA_HANDEL_MXO) $(XIA_HANDEL_OBJS) \
 		../../libMx/$(MX_LIBRARY_NAME) \
-		-L$(XIA_HANDEL_DIR)/lib -lhandel
+		-L$(XIA_HANDEL_DIR)/lib -lhandel -lusb
 
 endif
 

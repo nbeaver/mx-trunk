@@ -3479,7 +3479,7 @@ mxp_string_sort( const void *ptr1, const void *ptr2 )
 }
 #endif
 
-#define MXP_HANDEL_PARAMETER_NAME_LENGTH	40
+#define MXP_HANDEL_PARAMETER_NAME_LENGTH	220
 
 /*-------------------------------------------------------------------------*/
 

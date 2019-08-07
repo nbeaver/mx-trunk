@@ -11,7 +11,7 @@ ifndef MX_INSTALL_DIR
 endif
 
 ifeq ($(MX_ARCH),linux)
-	XIA_HANDEL_DIR = /usr/local/src/handel-1.2.17
+	XIA_HANDEL_DIR = /opt/handel
 
 	CFLAGS += -I$(XIA_HANDEL_DIR)/inc
 endif
@@ -43,7 +43,7 @@ ifeq ($(MX_ARCH),linux)
 xia_handel.mxo: $(XIA_HANDEL_OBJS)
 	gcc -shared -rdynamic -Wl,-soname,xia_handel.mxo \
 		-o xia_handel.mxo $(XIA_HANDEL_OBJS) \
-		-L$(XIA_HANDEL_DIR)/src -lhandel
+		-L$(XIA_HANDEL_DIR)/lib -lhandel -lusb
 
 endif
 
