@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2007-2008, 2010 Illinois Institute of Technology
+ * Copyright 2007-2008, 2010, 2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -47,6 +47,9 @@ typedef struct {
 
 	MX_CLOCK_TICK finish_time;
 
+	unsigned long remote_mode_version;
+	unsigned long detector_status;
+
 } MX_MARCCD_SERVER_SOCKET;
 
 #define MXD_MARCCD_SERVER_SOCKET_STANDARD_FIELDS \
@@ -68,7 +71,17 @@ typedef struct {
   		MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_MARCCD_SERVER_SOCKET, local_filename_prefix), \
-	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "remote_mode_version", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_MARCCD_SERVER_SOCKET, remote_mode_version), \
+	{0}, NULL, 0}, \
+  \
+  {-1, -1, "detector_status", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_MARCCD_SERVER_SOCKET, detector_status),\
+	{0}, NULL, 0}
 
 MX_API mx_status_type mxd_marccd_server_socket_initialize_driver(
 							MX_DRIVER *driver );

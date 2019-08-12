@@ -8,7 +8,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008-2010, 2013, 2015-2016, 2018 Illinois Institute of Technology
+ * Copyright 2008-2010, 2013, 2015-2016, 2018-2019
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -276,6 +277,10 @@ mxd_marccd_server_socket_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
 
+#if 1
+	mss->remote_mode_version = 1;
+#endif
+
 	mss->finish_time = mx_set_clock_tick_to_maximum();
 
 	ad->maximum_frame_number = 0;
@@ -494,8 +499,8 @@ mxd_marccd_server_socket_get_extended_status( MX_AREA_DETECTOR *ad )
 			"mxd_marccd_server_socket_get_extended_status()";
 
 	MX_MARCCD_SERVER_SOCKET *mss = NULL;
-	MX_CLOCK_TICK current_time;
-	int comparison;
+	char response[80];
+	unsigned long detector_state;
 	mx_status_type mx_status;
 
 	mx_status = mxd_marccd_server_socket_get_pointers( ad, &mss, fname );
@@ -507,40 +512,104 @@ mxd_marccd_server_socket_get_extended_status( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+	mx_status = mxd_marccd_server_socket_command( mss, "get_state",
+						response, sizeof(response),
+						MXD_MARCCD_DEBUG );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	current_time = mx_current_clock_tick();
+	MX_DEBUG(-2,("%s: 'get_state' response = '%s'", fname, response));
 
-	comparison = mx_compare_clock_ticks( current_time, mss->finish_time );
+	mss->detector_status = mx_hex_string_to_unsigned_long( response );
 
-	if ( comparison < 0 ) {
-		ad->last_frame_number = -1;
-	} else {
-		if ( ad->status & MXSF_AD_ACQUISITION_IN_PROGRESS ) {
+	/* The low order 4 bits of mss->detector_status for remote mode
+	 * version 1 are the same as the detector_state value returned
+	 * for remote mode version 0.  Note that the 'detector_state'
+	 * value is not a bitmask.  Instead, 'detector_state' is just
+	 * a number.  Only 0, 7, and 8 are visible for clients.
+	 */
 
-			/* If we just finished an acquisition cycle,
-			 * then increment the total number of frames.
-			 */
+	detector_state = (mss->detector_status) & 0xf;
 
-			(ad->total_num_frames)++;
+	ad->status = 0;
+
+	switch( detector_state ) {
+	case 0:		/* IDLE */
+		/* In MX, we indicate idle by not setting any of the bits. */
+
+		if ( mss->remote_mode_version == 0 ) {
+			return MX_SUCCESSFUL_RESULT;
 		}
+		break;
+	case 7:		/* ERROR */
 
-		ad->last_frame_number = 0;
+		ad->status = MXSF_AD_ERROR;
 
-		ad->status &= (~MXSF_AD_ACQUISITION_IN_PROGRESS);
+		return mx_error( MXE_PROTOCOL_ERROR, fname,
+			"The most recent command sent to area detector '%s' "
+			"was not understood.", ad->record->name );
+		break;
+	case 8:		/* BUSY */
+
+		ad->status = MXSF_AD_ACQUISITION_IN_PROGRESS;
+		return MX_SUCCESSFUL_RESULT;
 	}
 
-#if MXD_MARCCD_DEBUG
-	MX_DEBUG(-2,
-    ("%s: current_time = (%lu,%lu), finish_time = (%lu,%lu), comparison = %d",
-		fname, current_time.high_order, current_time.low_order,
-		mss->finish_time.high_order, mss->finish_time.low_order,
-		comparison ));
+	/* Only more recent remote mode versions are processed here. */
 
-	MX_DEBUG(-2,
-	("%s: last_frame_number = %ld, total_num_frames = %ld, status = %#lx",
-		fname, ad->last_frame_number, ad->total_num_frames,
-		ad->status));
-#endif
+	if ( mss->remote_mode_version >= 1 ) {
+
+		if ( mss->detector_status & 0x30 ) {
+			ad->status = MXSF_AD_ACQUISITION_IN_PROGRESS;
+		} else
+		if ( mss->detector_status & 0x40 ) {
+			ad->status = MXSF_AD_ERROR;
+
+			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+			"An error occurred for area detector '%s' "
+			"during image acquisition.",  ad->record->name );
+		} else
+		if ( mss->detector_status & 0x300 ) {
+			ad->status = MXSF_AD_ACQUISITION_IN_PROGRESS;
+		} else
+		if ( mss->detector_status & 0x400 ) {
+			ad->status = MXSF_AD_ERROR;
+
+			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+			"An error occurred for area detector '%s' "
+			"during image reading.",  ad->record->name );
+		} else
+		if ( mss->detector_status & 0x3000 ) {
+			ad->status = MXSF_AD_CORRECTION_IN_PROGRESS;
+		} else
+		if ( mss->detector_status & 0x4000 ) {
+			ad->status = MXSF_AD_ERROR;
+
+			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+			"An error occurred for area detector '%s' "
+			"during image correction.",  ad->record->name );
+		} else
+		if ( mss->detector_status & 0x30000 ) {
+			ad->status = MXSF_AD_CONTROLLER_ACTION_IN_PROGRESS;
+		} else
+		if ( mss->detector_status & 0x40000 ) {
+			ad->status = MXSF_AD_ERROR;
+
+			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+			"An error occurred for area detector '%s' "
+			"during image writing.",  ad->record->name );
+		} else
+		if ( mss->detector_status & 0x300000 ) {
+			ad->status = MXSF_AD_CONTROLLER_ACTION_IN_PROGRESS;
+		} else
+		if ( mss->detector_status & 0x400000 ) {
+			ad->status = MXSF_AD_ERROR;
+
+			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+			"An error occurred for area detector '%s' "
+			"during image dezingering.",  ad->record->name );
+		}
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -596,12 +665,16 @@ mxd_marccd_server_socket_readout_frame( MX_AREA_DETECTOR *ad )
 
 	strlcpy( command, "readout,0", sizeof(command) );
 
+	MX_DEBUG(-2,("%s: Before 'readout' command.", fname));
+
 	mx_status = mxd_marccd_server_socket_command( mss, command,
 						response, sizeof(response),
 						MXD_MARCCD_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	MX_DEBUG(-2,("%s: After 'readout' command.", fname));
 
 	num_items = sscanf( response, "%d", &marccd_state );
 
