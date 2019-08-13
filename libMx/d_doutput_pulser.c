@@ -9,7 +9,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2011-2013, 2017-2018 Illinois Institute of Technology
+ * Copyright 2011-2013, 2017-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -43,7 +43,7 @@ MX_RECORD_FUNCTION_LIST mxd_doutput_pulser_record_function_list = {
 MX_PULSE_GENERATOR_FUNCTION_LIST mxd_doutput_pulser_pulser_function_list = {
 	mxd_doutput_pulser_is_busy,
 	mxd_doutput_pulser_arm,
-	NULL,
+	mxd_doutput_pulser_trigger,
 	mxd_doutput_pulser_stop,
 	NULL,
 	mxd_doutput_pulser_get_parameter,
@@ -588,6 +588,12 @@ mxd_doutput_pulser_arm( MX_PULSE_GENERATOR *pulser )
 							doutput_pulser );
 
 	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_doutput_pulser_trigger( MX_PULSE_GENERATOR *pulser )
+{
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
