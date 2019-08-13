@@ -464,6 +464,7 @@
 #include "d_sis3807.h"
 #include "d_sis3801_pulser.h"
 #include "d_pdi45_pulser.h"
+#include "d_relay_pulser.h"
 #include "d_doutput_pulser.h"
 #include "d_gittelsohn_pulser.h"
 #include "d_dg645_pulser.h"
@@ -3307,6 +3308,14 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_pdi45_pulser_pulse_generator_function_list,
 				&mxd_pdi45_pulser_num_record_fields,
 				&mxd_pdi45_pulser_rfield_def_ptr},
+
+{"relay_pulser",   MXT_PGN_RELAY, MXC_PULSE_GENERATOR, MXR_DEVICE,
+				&mxd_relay_pulser_record_function_list,
+				NULL,
+				&mxd_relay_pulser_pulser_function_list,
+				&mxd_relay_pulser_num_record_fields,
+				&mxd_relay_pulser_rfield_def_ptr},
+
 
 {"digital_output_pulser", MXT_PGN_DIGITAL_OUTPUT,
 						MXC_PULSE_GENERATOR, MXR_DEVICE,
