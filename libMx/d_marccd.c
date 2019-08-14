@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008-2010, 2013-2015, 2018 Illinois Institute of Technology
+ * Copyright 2008-2010, 2013-2015, 2018-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1601,6 +1601,8 @@ mxd_marccd_get_v0_state_name( int marccd_state )
 
 	static const char illegal[20] = "illegal";
 
+	marccd_state &= 0xf;
+
 	if ( ( marccd_state < 0 ) || ( marccd_state > num_state_names ) ) {
 		return &illegal[0];
 	}
@@ -1608,9 +1610,9 @@ mxd_marccd_get_v0_state_name( int marccd_state )
 	return &state_name[ marccd_state ][0];
 }
 
-#define MX_MARCCD_UNHANDLED_COMMAND_MESSAGE \
-	mx_warning( "UNHANDLED MarCCD command %d for MarCCD state = %d", \
-		marccd->current_command, current_state )
+#define MX_MARCCD_UNHANDLED_STATE_MESSAGE(m) \
+	mx_warning( "%s: UNHANDLED MarCCD state = %#lx for command '%s'", \
+		(m), (unsigned long) current_state, (m) )
 
 
 static mx_status_type
@@ -1626,11 +1628,16 @@ mxd_marccd_handle_v0_state_value( MX_AREA_DETECTOR *ad,
 
 	if ( marccd->old_state != current_state ) {
 		MX_DEBUG(-2,
-		("State: MarCCD NEW STATE = %d '%s', OLD STATE = '%s'",
-			current_state,
+		("State: MarCCD NEW STATE = %#lx '%s', OLD STATE = %#lx '%s'",
+			(unsigned long) current_state,
 			mxd_marccd_get_v0_state_name(current_state),
+			(unsigned long) marccd->old_state,
 			mxd_marccd_get_v0_state_name(marccd->old_state) ));
 	}
+
+	/* Mask off any status bits that are not V0 status bits. */
+
+	current_state &= 0xf;
 
 	/* Check to see if we have been asked to shut down. */
 
@@ -1657,6 +1664,8 @@ mxd_marccd_handle_v0_state_value( MX_AREA_DETECTOR *ad,
 		case MXF_MARCCD_STATE_IDLE:
 			MX_MARCCD_SHOW_STATE_CHANGE( "MarCCD is idle" );
 
+			marccd->old_command = marccd->current_command;
+
 			ad->status = 0;
 			break;
 		case MXF_MARCCD_STATE_BUSY:
@@ -1665,7 +1674,7 @@ mxd_marccd_handle_v0_state_value( MX_AREA_DETECTOR *ad,
 			ad->status = MXSF_AD_CONTROLLER_ACTION_IN_PROGRESS;
 			break;
 		default:
-			MX_MARCCD_UNHANDLED_COMMAND_MESSAGE;
+			MX_MARCCD_UNHANDLED_STATE_MESSAGE( "none" );
 			break;
 		}
 		break;
@@ -1681,7 +1690,7 @@ mxd_marccd_handle_v0_state_value( MX_AREA_DETECTOR *ad,
 			ad->status = MXSF_AD_ACQUISITION_IN_PROGRESS;
 			break;
 		default:
-			MX_MARCCD_UNHANDLED_COMMAND_MESSAGE;
+			MX_MARCCD_UNHANDLED_STATE_MESSAGE( "start" );
 			break;
 		}
 		break;
@@ -1699,7 +1708,7 @@ mxd_marccd_handle_v0_state_value( MX_AREA_DETECTOR *ad,
 			marccd->current_command = MXF_MARCCD_CMD_NONE;
 			break;
 		default:
-			MX_MARCCD_UNHANDLED_COMMAND_MESSAGE;
+			MX_MARCCD_UNHANDLED_STATE_MESSAGE( "readout" );
 			break;
 		}
 		break;
@@ -1731,7 +1740,7 @@ mxd_marccd_handle_v0_state_value( MX_AREA_DETECTOR *ad,
 "An error occurred while trying to correct a frame for MarCCD device '%s'.",
 				ad->record->name );
 		default:
-			MX_MARCCD_UNHANDLED_COMMAND_MESSAGE;
+			MX_MARCCD_UNHANDLED_STATE_MESSAGE( "correct" );
 			break;
 		}
 		break;
@@ -1763,7 +1772,7 @@ mxd_marccd_handle_v0_state_value( MX_AREA_DETECTOR *ad,
 "An error occurred while trying to write a frame for MarCCD device '%s'.",
 				ad->record->name );
 		default:
-			MX_MARCCD_UNHANDLED_COMMAND_MESSAGE;
+			MX_MARCCD_UNHANDLED_STATE_MESSAGE( "writefile" );
 			break;
 		}
 		break;
@@ -1797,8 +1806,9 @@ mxd_marccd_handle_v1_state_value( MX_AREA_DETECTOR *ad,
 
 	if ( marccd->old_state != current_state ) {
 		MX_DEBUG(-2,
-			("State: MarCCD NEW STATE = %#x, OLD STATE = %#x",
-			current_state, marccd->old_state));
+			("State: MarCCD NEW STATE = %#lx, OLD STATE = %#lx",
+			(unsigned long) current_state,
+			(unsigned long) marccd->old_state));
 
 		MX_DEBUG(-2,
     ("State: dez = %#x, wri = %#x, cor = %#x, rea = %#x, acq = %#x, cmd = %#x",
