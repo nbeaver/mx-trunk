@@ -1756,6 +1756,8 @@ mxd_marccd_handle_v0_state_value( MX_AREA_DETECTOR *ad,
 				MX_MARCCD_SHOW_STATE_CHANGE(
 					"Frame write has completed." );
 
+				marccd->current_command = MXF_MARCCD_CMD_NONE;
+
 				ad->status = 0;
 			}
 			break;
