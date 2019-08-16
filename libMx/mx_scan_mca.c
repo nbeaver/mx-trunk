@@ -273,9 +273,10 @@ mx_scan_get_directory_and_filename( MX_SCAN *scan,
 			}
 		}
 
-		snprintf( filename, max_filename_length, "%s_%s.%s",
+		snprintf( filename, max_filename_length, "%s_%s_%03ld.%s",
 			datafile_filename_ptr,
 			input_device->name,
+			measurement_number,
 			format_name );
 		break;
 	default:
