@@ -58,7 +58,7 @@ typedef struct {
 	MX_RECORD *record;
 
 	unsigned long handel_flags;
-	int handel_log_level;		/* As defined in Handel's md_generic.h
+	unsigned long handel_log_level;	/* As defined in Handel's md_generic.h
 					 *
 					 *  MD_ERROR   = 1
 					 *  MD_WARNING = 2
@@ -171,9 +171,9 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_HANDEL, handel_flags), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }, \
   \
-  {-1, -1, "handel_log_level", MXFT_HEX, NULL, 0, {0}, \
+  {-1, -1, "handel_log_level", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_HANDEL, handel_log_level), \
-	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_READ_ONLY) }, \
   \
   {MXLV_HANDEL_CONFIG_FILENAME, -1, "config_filename", \
 				MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \

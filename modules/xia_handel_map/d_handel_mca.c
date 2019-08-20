@@ -378,7 +378,8 @@ mxd_handel_mca_handel_open( MX_MCA *mca,
 	unsigned long ulong_value;
 	int xia_status, num_items, display_config;
 	unsigned long i, j;
-	long module_channel, detector_channel_alt;
+	long module_channel;
+	unsigned long detector_channel_alt;
 	mx_status_type mx_status;
 
 #if MX_IGNORE_XIA_NULL_STRING
@@ -578,6 +579,8 @@ mxd_handel_mca_handel_open( MX_MCA *mca,
 			mxi_handel_strerror( xia_status ) );
 	}
 
+	detector_channel_alt &= 0xffffffff;	/* Mask to 32 bits. */
+
 	if ( detector_channel_alt != handel_mca->detector_channel ) {
 		return mx_error( MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
 		"The detector channel number %ld from xiaGetModuleItem() "
@@ -709,6 +712,8 @@ mxd_handel_mca_handel_open( MX_MCA *mca,
 			mca->record->name,
 			xia_status, mxi_handel_strerror( xia_status ) );
 	}
+
+	ulong_value &= 0xffffffff;	/* Mask to 32 bits. */
 
 	handel_mca->num_spectrum_bins = (unsigned int) ulong_value;
 
@@ -854,6 +859,10 @@ mxd_handel_mca_open( MX_RECORD *record )
 	 * detect this at runtime by reading the value of 'mapping_mode'
 	 * to see if it exists.
 	 */
+
+	mx_info(
+	  "Testing to see if the firmware for MCA '%s' supports mapping mode.",
+		handel_mca->record->name );
 
 	mapping_mode = 0.0;
 

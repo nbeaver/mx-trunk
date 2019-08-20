@@ -837,6 +837,7 @@ mxi_handel_load_config( MX_HANDEL *handel )
 	MX_RECORD *mca_record;
 	MX_HANDEL_MCA *handel_mca;
 	int i, xia_status;
+	mx_status_type mx_status;
 
 #if MXI_HANDEL_DEBUG_TIMING
 	MX_HRT_TIMING measurement;
@@ -846,6 +847,8 @@ mxi_handel_load_config( MX_HANDEL *handel )
 
 	mx_info("Loading Handel configuration '%s'.",
 				handel->config_filename);
+
+	mx_info("This may take a while...");
 
 #if MXI_HANDEL_DEBUG_TIMING
 	MX_HRT_START( measurement );
@@ -869,6 +872,8 @@ mxi_handel_load_config( MX_HANDEL *handel )
 			xia_status, mxi_handel_strerror( xia_status ) );
 	}
 
+	errno = 0;
+
 #if MXI_HANDEL_DEBUG_TIMING
 	MX_HRT_START( measurement );
 #endif
@@ -880,12 +885,40 @@ mxi_handel_load_config( MX_HANDEL *handel )
 
 	MX_HRT_RESULTS( measurement, fname, "xiaStartSystem()" );
 #endif
+	/* A note on checking the return value from xiaStartSystem().
+	 *
+	 * On Linux, if usb_set_configuration() fails due to the program
+	 * not running as root, then usb_set_configuration() returns a 
+	 * value of (-1) and sets errno to EPERM.  As it happens, the
+	 * (-1) value gets discarded during the process of unwinding the
+	 * stack back up to where we are now.  However, the EPERM errno
+	 * seems to generally remain unscathed on the way back up.  Of
+	 * course, this is not _guaranteed_ to happen, so we merely 
+	 * "suggest" to the user that they _might_ need to run as root.
+	 */
+
 	if ( xia_status != XIA_SUCCESS ) {
-		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
-		    "Unable to start the MCA using Handel "
-		    "configuration file '%s'.  Error code = %d, '%s'",
-		    handel->config_filename,
-			xia_status, mxi_handel_strerror( xia_status ) );
+		if ( errno == EPERM ) {
+			mx_status =  mx_error(
+				MXE_INTERFACE_ACTION_FAILED, fname,
+				"Unable to start the MCA using Handel "
+				"configuration file '%s'.  "
+				"Errno was set to EPERM, so this _may_ "
+				"mean that you need to run this program "
+				"as root.  But this is not "
+				"guaranteed to fix the problem.",
+					handel->config_filename );
+		} else {
+			mx_status =  mx_error(
+				MXE_INTERFACE_ACTION_FAILED, fname,
+				"Unable to start the MCA using Handel "
+				"configuration file '%s'.  "
+				"Error code = %d, '%s'",
+					handel->config_filename,
+					xia_status,
+					mxi_handel_strerror( xia_status ) );
+		}
+		return mx_status;
 	}
 
 	/* Invalidate the old presets for all of the MCAs by setting the
@@ -1191,7 +1224,7 @@ mxi_handel_open( MX_RECORD *record )
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
-		"An attempt to set the Handel log level to %d failed.  "
+		"An attempt to set the Handel log level to %lu failed.  "
 		"Error code = %d, '%s'", handel->handel_log_level,
 			xia_status, mxi_handel_strerror( xia_status ) );
 	}
