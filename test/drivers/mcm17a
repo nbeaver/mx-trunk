@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../motor/mxmotor.static -F ./mcm17a.dat -s ./scm17a.dat -i $*
+

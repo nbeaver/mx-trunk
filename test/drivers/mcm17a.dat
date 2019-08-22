@@ -1,0 +1,4 @@
+serial interface rs232 tty "" "" 9600 8 N 1 N 0x0 0x0 5 0x0 /dev/ttyS0
+x10    interface controller cm17a "" "" serial
+dout1  device digital_output cm17a_doutput "" "" 0 x10 A 1
+dout2  device digital_output cm17a_doutput "" "" 0 x10 A 2
