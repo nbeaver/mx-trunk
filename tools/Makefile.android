@@ -4,7 +4,7 @@
 
 all:   ../libMx/mx_private_version.h mx_config smvspatial.o \
 	strlcpy.o strlcat.o xdr.o xdr_hyper.o \
-	unix/src/editline/libedit.a
+	unix/src/editline/libedit.a cJSON.o
 
 include ../libMx/Makefile.version
 
@@ -74,4 +74,7 @@ xdr_hyper.o: xdr/src/xdr_hyper.c xdr/src/xdr.h xdr/src/xdr_hyper.h
 
 unix/src/editline/libedit.a:
 	( cd unix/src/editline ; $(EDITLINE_MAKECMD) )
+
+cJSON.o: cJSON/cJSON.c cJSON/cJSON.h
+	$(CC) -g -c $(OPTIMIZE) -fPIC cJSON/cJSON.c
 
