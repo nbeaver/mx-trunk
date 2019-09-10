@@ -116,6 +116,8 @@ MXMONITOR_OBJS    = $(MXMONITOR_SRCS:.c=.o)
 MXGET_OBJS        = $(MXGET_SRCS:.c=.o)
 MXPUT_OBJS        = $(MXPUT_SRCS:.c=.o)
 
+MX_LIB_OBJS += ../tools/cJSON.o
+
 #
 # If we are running on OpenBSD, we must add xdr_hyper.o to MX_LIB_OBJS.
 #
@@ -174,6 +176,7 @@ library_install:
 	-mkdir $(MX_INSTALL_DIR)/sbin
 	-mkdir $(MX_INSTALL_DIR)/state
 	/usr/bin/install -c -m 644 mx*.h $(MX_INSTALL_DIR)/include 
+	/usr/bin/install -c -m 644 ../tools/cJSON/cJSON.h $(MX_INSTALL_DIR)/include
 	/usr/bin/install -c -m 644 $(MX_LIBRARY_NAME) $(MX_INSTALL_DIR)/lib 
 	$(LN_SF) $(MX_LIBRARY_NAME) $(MX_INSTALL_DIR)/lib/libMx.so
 	/usr/bin/install -c -m 644 $(MX_LIBRARY_STATIC_NAME) $(MX_INSTALL_DIR)/lib 

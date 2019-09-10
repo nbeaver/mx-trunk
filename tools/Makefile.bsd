@@ -35,7 +35,7 @@ endif
 # Now state the build rules.
 #
 
-all: ../libMx/mx_private_version.h mx_config ${BSD_TOOLS}
+all: ../libMx/mx_private_version.h mx_config ${BSD_TOOLS} cJSON.o
 
 include ../libMx/Makefile.version
 
@@ -65,6 +65,9 @@ mx_config: version/src/mx_config.c ../libMx/mx_private_version.h
 
 unix/src/editline/libedit.a:
 	( cd unix/src/editline ; $(EDITLINE_MAKECMD) )
+
+cJSON.o: cJSON/cJSON.c cJSON/cJSON.h
+	$(CC) -g -c $(OPTIMIZE) -fPIC cJSON/cJSON.c
 
 #
 # xdr_hyper.o will only be built on OpenBSD.

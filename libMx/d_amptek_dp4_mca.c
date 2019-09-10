@@ -809,6 +809,7 @@ mxd_amptek_dp4_process_function( void *record_ptr,
 	mca = (MX_MCA *) record->record_class_struct;
 	amptek_dp4_mca = (MX_AMPTEK_DP4_MCA *) record->record_type_struct;
 
+	MXW_UNUSED( mca );
 	MXW_UNUSED( amptek_dp4_mca );
 
 	mx_status = MX_SUCCESSFUL_RESULT;

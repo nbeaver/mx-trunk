@@ -2109,7 +2109,8 @@ mx_socket_set_keepalive( MX_SOCKET *mx_socket,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#elif defined(OS_LINUX) || defined(OS_ANDROID)
+#elif defined(OS_LINUX) || defined(OS_ANDROID) \
+    || defined(__FreeBSD__)
 
 MX_EXPORT mx_status_type
 mx_socket_set_keepalive( MX_SOCKET *mx_socket,
