@@ -13,7 +13,8 @@ EDITLINE_MAKECMD = \
   make CC=$(EDITLINE_CC) CFLAGS=$(EDITLINE_CFLAGS) RANLIB=$(EDITLINE_RANLIB)
 
 all: ../libMx/mx_private_version.h mx_config \
-		xdr_hyper.o strlcpy.o strlcat.o strptime.o
+		xdr_hyper.o strlcpy.o strlcat.o strptime.o strcasestr.o \
+		cJSON.o
 	( cd unix/src/editline ; $(EDITLINE_MAKECMD) )
 
 include ../libMx/Makefile.version
@@ -50,6 +51,12 @@ strlcat.o: generic/src/strlcat.c
 
 strptime.o: generic/src/strptime.c
 	$(CC) -c -I../libMx -DOS_QNX -D__MX_LIBRARY__ generic/src/strptime.c
+
+strcasestr.o: generic/src/strcasestr.c
+	$(CC) -c -I../libMx -DOS_QNX -D__MX_LIBRARY__ generic/src/strcasestr.c
+
+cJSON.o: cJSON/cJSON.c
+	$(CC) -c -I../libMx -DOS_QNX -D__MX_LIBRARY__ cJSON/cJSON.c
 
 mx_clean:
 	-rm *.o mx_private_version

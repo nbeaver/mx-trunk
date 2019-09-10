@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2015-2018 Illinois Institute of Technology
+ * Copyright 2015-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -138,6 +138,8 @@ mxd_gittelsohn_pulser_command( MX_GITTELSOHN_PULSER *gittelsohn_pulser,
 	mx_bool_type resync_on_error;
 	unsigned long i, max_attempts;
 	mx_status_type mx_status, mx_status_2;
+
+	mx_status = MX_SUCCESSFUL_RESULT;
 
 	if ( gittelsohn_pulser == (MX_GITTELSOHN_PULSER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
