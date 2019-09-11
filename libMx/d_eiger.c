@@ -709,10 +709,10 @@ mxd_eiger_trigger_thread_fn( MX_THREAD *thread, void *args )
 	unsigned long mx_status_code;
 	mx_status_type mx_status;
 
+	MX_HRT_TIMING trigger_measurement;
+
 	MXW_UNUSED( dimension );
 	MXW_UNUSED( trigger );
-
-	MX_HRT_TIMING trigger_measurement;
 
 	/*----------------------------------------------------------------*/
 
