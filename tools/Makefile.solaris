@@ -2,7 +2,8 @@
 # tools/Makefile.solaris
 #
 
-all: ../libMx/mx_private_version.h mx_config unix/src/editline/libedit.a
+all: ../libMx/mx_private_version.h mx_config \
+	unix/src/editline/libedit.a cJSON.o
 
 include ../libMx/Makefile.version
 
@@ -40,6 +41,9 @@ mx_config: version/src/mx_config.c ../libMx/mx_private_version.h
 
 unix/src/editline/libedit.a:
 	( cd unix/src/editline ; $(EDITLINE_MAKECMD) )
+
+cJSON.o: cJSON/cJSON.c cJSON/cJSON.h
+	$(CC) -g -c $(OPTIMIZE) cJSON/cJSON.c
 
 mx_clean:
 	-rm *.o mx_private_version mx_config mx_revision.txt

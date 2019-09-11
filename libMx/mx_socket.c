@@ -2219,6 +2219,66 @@ mx_socket_set_keepalive( MX_SOCKET *mx_socket,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+#elif defined(OS_SOLARIS)
+
+MX_EXPORT mx_status_type
+mx_socket_set_keepalive( MX_SOCKET *mx_socket,
+			mx_bool_type enable_keepalive,
+			unsigned long keepalive_time_ms,
+			unsigned long keepalive_interval_ms,
+			unsigned long keepalive_retry_count )
+{
+	static const char fname[] = "mx_socket_set_keepalive()";
+
+	int32_t keepalive_on;
+	int sockopt_status, saved_errno;
+	unsigned int keepalive_threshold;
+
+	if ( mx_socket == (MX_SOCKET *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SOCKET pointer passed was NULL." );
+	}
+
+	if ( enable_keepalive ) {
+		keepalive_on = 1;
+	} else {
+		keepalive_on = 0;
+	}
+
+	sockopt_status = setsockopt( mx_socket->socket_fd,
+				SOL_SOCKET, SO_KEEPALIVE,
+				&keepalive_on, sizeof(keepalive_on) );
+
+	if ( sockopt_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"The attempt to set SO_KEEPALIVE for socket %d failed.  "
+		"Errno = %d, error message = '%s'.",
+			mx_socket->socket_fd,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	keepalive_threshold = keepalive_time_ms;
+
+	sockopt_status = setsockopt( mx_socket->socket_fd,
+				IPPROTO_TCP, TCP_KEEPALIVE_THRESHOLD,
+				&keepalive_threshold,
+				sizeof(keepalive_threshold) );
+
+	if ( sockopt_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"The attempt to set TCP_KEEPALIVE_THRESHOLD "
+		"for socket %d failed.  Errno = %d, error message = '%s'.",
+			mx_socket->socket_fd,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 #elif ( defined(OS_CYGWIN) || defined(OS_VXWORKS) || defined(OS_QNX) )
 
 /* This case is for platforms that have SO_KEEPALIVE and nothing else.

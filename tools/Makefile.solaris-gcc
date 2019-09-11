@@ -12,7 +12,7 @@ EDITLINE_RANLIB = ranlib
 EDITLINE_MAKECMD = \
   make CC=$(EDITLINE_CC) CFLAGS=$(EDITLINE_CFLAGS) RANLIB=$(EDITLINE_RANLIB)
 
-all: ../libMx/mx_private_version.h mx_config
+all: ../libMx/mx_private_version.h mx_config cJSON.o
 	( cd unix/src/editline ; $(EDITLINE_MAKECMD) )
 
 include ../libMx/Makefile.version
@@ -51,4 +51,7 @@ mx_config: version/src/mx_config.c ../libMx/mx_private_version.h
 		-DMX_INSTALL_DIR="\"$(MX_INSTALL_DIR)\"" \
 		$(python_args) \
 		-o mx_config version/src/mx_config.c
+
+cJSON.o: cJSON/cJSON.c cJSON/cJSON.h
+	$(CC) -g -c $(OPTIMIZE) cJSON/cJSON.c 
 

@@ -109,6 +109,8 @@ AUTOSAVE_OBJS       = $(AUTOSAVE_SRCS:.c=.$(OBJ))
 MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.$(OBJ))
 MXMONITOR_OBJS    = $(MXMONITOR_SRCS:.c=.$(OBJ))
 
+MX_LIB_OBJS += ../tools/cJSON.o
+
 #
 #---------------------------------------------------
 #
@@ -156,6 +158,7 @@ library_install:
 	-mkdir $(MX_INSTALL_DIR)/sbin
 	-mkdir $(MX_INSTALL_DIR)/state
 	$(INSTALL) -m 644 mx*.h $(MX_INSTALL_DIR)/include 
+	$(INSTALL) -m 644 ../tools/cJSON/cJSON.h $(MX_INSTALL_DIR)/include
 	$(INSTALL) -m 644 $(MX_LIBRARY_NAME) $(MX_INSTALL_DIR)/lib 
 	$(INSTALL) -m 644 $(MX_LIBRARY_STATIC_NAME) $(MX_INSTALL_DIR)/lib 
 	-( cd $(MX_INSTALL_DIR)/lib ; rm libMx.so )
