@@ -2279,7 +2279,8 @@ mx_socket_set_keepalive( MX_SOCKET *mx_socket,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#elif ( defined(OS_CYGWIN) || defined(OS_VXWORKS) || defined(OS_QNX) )
+#elif ( defined(OS_CYGWIN) || defined(OS_VXWORKS) || defined(OS_QNX) ) \
+	|| defined(__OpenBSD__)
 
 /* This case is for platforms that have SO_KEEPALIVE and nothing else.
  * So the requested keepalive times will be ignored and we are stuck
