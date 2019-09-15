@@ -4,7 +4,8 @@
 
 all:   ../libMx/mx_private_version.h mx_config smvspatial.o \
 	strlcpy.o strlcat.o \
-	unix/src/editline/libedit.a
+	unix/src/editline/libedit.a \
+	cJSON.o
 
 include ../libMx/Makefile.version
 
@@ -61,4 +62,8 @@ strlcat.o: generic/src/strlcat.c
 
 unix/src/editline/libedit.a:
 	( cd unix/src/editline ; $(EDITLINE_MAKECMD) )
+
+cJSON.o: cJSON/cJSON.c cJSON/cJSON.h
+	$(CC) -c $(OPTIMIZE) -fPIC -I../libMx -DOS_HURD -D__MX_LIBRARY__ \
+		cJSON/cJSON.c
 
