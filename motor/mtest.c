@@ -128,8 +128,14 @@ motor_test_fn( int argc, char *argv[] )
 #if defined(OS_WIN32)
 		} else
 		if ( strcmp( argv[2], "show_handle_metadata" ) == 0 ) {
+
+#  if defined(_WIN64)
+			void *win32_handle = (void *)
+			 ((UINT_PTR) mx_hex_string_to_unsigned_long( argv[3] ));
+#  else
 			void *win32_handle = (void *)
 				mx_hex_string_to_unsigned_long( argv[3] );
+#  endif
 
 			mx_show_handle_metadata( win32_handle );
 
