@@ -14,7 +14,7 @@ endif
 
 ifeq ($(MX_ARCH),win32)
 
-LIBTIFF_DIR = c:\\opt\\tiff-4.0.6
+LIBTIFF_DIR = c:\\opt\\tiff-4.0.10
 LIBTIFF_INCLUDES = -I$(LIBTIFF_DIR)\\libtiff
 LIBTIFF_LIBRARY = $(LIBTIFF_DIR)\\libtiff\\libtiff.lib
 
