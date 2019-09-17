@@ -9,7 +9,8 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2007, 2009-2010, 2012-2016 Illinois Institute of Technology
+ * Copyright 2006-2007, 2009-2010, 2012-2016, 2019
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,7 +25,9 @@
 /* The non-standard build targets are listed first. */
 
 /*=======================================================================*/
-#if defined(OS_WIN32) && (defined(_MSC_VER) || defined(__BORLANDC__))
+#if defined(OS_WIN32) && \
+	( (defined(_MSC_VER) && (_MSC_VER < 1900)) \
+	|| defined(__BORLANDC__) )
 
 typedef __int8			int8_t;
 typedef __int16			int16_t;
