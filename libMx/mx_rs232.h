@@ -86,6 +86,8 @@ extern "C" {
 #define MXF_232_NOWAIT			0x2
 #define MXF_232_IGNORE_NULLS		0x4
 
+#define MXF_232_AUTO_TIMEOUT_RECOVERY	0x1000
+
 #define MXF_232_HIDE_FROM_DEBUG		0x10000000
 
 /* 'rs232_flags' field bit definitions. */

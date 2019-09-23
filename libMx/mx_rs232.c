@@ -93,19 +93,31 @@ mx_rs232_unbuffered_getline( MX_RS232 *rs232,
 
 			if ( tick_comparison > 0 ) {
 
-		    	    if ( rs232->rs232_flags &
-			      MXF_232_SUPPRESS_TIMEOUT_ERROR_MESSAGES )
+			    if ( local_transfer_flags &
+				MXF_232_AUTO_TIMEOUT_RECOVERY )
 			    {
-				error_code = 
-					(MXE_TIMED_OUT | MXE_QUIET);
-			    } else {
-				error_code = MXE_TIMED_OUT;
-			    }
+				buffer[i] = '\0';
 
-			    return mx_error( error_code, fname,
+				mx_warning( "Auto timeout recovery performed "
+				"for RS-232 device '%s'.  buffer = '%s'",
+					rs232->record->name, buffer );
+
+				return MX_SUCCESSFUL_RESULT;
+			    } else {
+		    	    	if ( rs232->rs232_flags &
+			      MXF_232_SUPPRESS_TIMEOUT_ERROR_MESSAGES )
+			        {
+					error_code = 
+						(MXE_TIMED_OUT | MXE_QUIET);
+				    } else {
+					error_code = MXE_TIMED_OUT;
+				    }
+
+				    return mx_error( error_code, fname,
 				"Read from RS-232 port '%s' timed out "
 				"after %g seconds.",
 					rs232->record->name, rs232->timeout );
+			    }
 			}
 
 			mx_status = mx_rs232_num_input_bytes_available(
