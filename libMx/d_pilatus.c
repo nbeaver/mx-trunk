@@ -1829,6 +1829,11 @@ mxd_pilatus_get_parameter( MX_AREA_DETECTOR *ad )
 			  sizeof(pilatus->detector_server_datafile_directory));
 		}
 
+		MX_DEBUG(-2,
+("%s: ***1*** datafile_directory = '%s', detector_server_datafile_directory = '%s'",
+			fname, ad->datafile_directory,
+			pilatus->detector_server_datafile_directory));
+
 		mx_status = mx_change_filename_prefix(
 				pilatus->detector_server_datafile_directory,
 				pilatus->detector_server_datafile_user,
@@ -1986,6 +1991,9 @@ mxd_pilatus_set_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_DATAFILE_DIRECTORY:
+		MX_DEBUG(-2,("%s: ***2*** ad->datafile_directory = '%s'",
+			fname, ad->datafile_directory));
+
 		mx_status = mx_change_filename_prefix(
 				ad->datafile_directory,
 				pilatus->local_datafile_user,
@@ -2170,6 +2178,9 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 	char *ptr, *return_code_arg, *error_status_arg;
 	size_t length, command_length, bytes_to_move;
 	unsigned long return_code;
+	unsigned long n, max_attempts;
+	unsigned long mx_status_code;
+	size_t num_response_bytes;
 	mx_bool_type debug_flag;
 	mx_status_type mx_status;
 
@@ -2248,31 +2259,69 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 	 * read another line for the response we actually want.
 	 */
 
-	while (1) {
-		mx_status = mx_rs232_getline( pilatus->rs232_record,
+	max_attempts = 10;
+
+	for ( n = 0; n < max_attempts; n++ ) {
+
+	    mx_status = mx_rs232_getline_with_timeout( pilatus->rs232_record,
 					response, response_buffer_length,
-					NULL, 0 );
+					&num_response_bytes, 0,
+					rs232->timeout );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+	    mx_status_code &= (~MXE_QUIET);
 
+	    MX_DEBUG(-2,("%s: n = %lu, mx_status_code = %lu, "
+		"num_response_bytes = %ld, response = '%s'",
+		fname, n, mx_status_code, (long) num_response_bytes, response));
+
+	    if ( mx_status_code == MXE_SUCCESS ) {
 		if ( strncmp( response, "7 OK", 4 ) == 0 ) {
 			if ( pilatus->exposure_in_progress ) {
 				pilatus->exposure_in_progress = FALSE;
 				ad->total_num_frames++;
 			}
 		} else {
-			break;	/* Exit the while() loop. */
+			break;	/* Exit the for() loop. */
 		}
+	    } else
+	    if ( mx_status_code == MXE_TIMED_OUT ) {
+		if ( num_response_bytes > 0 ) {
+			/* Make sure that the response is null terminated
+			 * and then break out of the retry loop.
+			 */
+			response[num_response_bytes] = 0;
+
+			break;	/* Exit the for() loop. */
+		}
+		/* If num_response_bytes was 0, then go back and try again. */
+
+	    } else {
+		return mx_status;
+	    }
+	}
+
+	if ( n >= max_attempts ) {
+		return mx_error( MXE_TIMED_OUT, fname,
+		"Pilatus '%s' response to command '%s' timed out after "
+		"%lu retries of %g seconds each for a total of %g seconds.",
+			pilatus->record->name, command_buffer,
+			max_attempts, rs232->timeout,
+			max_attempts * rs232->timeout );
 	}
 
 	/*--- Split off the return code and the error status. ---*/
+
+	MX_DEBUG(-2,("%s: #0 command_buffer = '%s', response = '%s'",
+		fname, command_buffer, response));
 
 	/* 1. Skip over any leading spaces. */
 
 	length = strspn( response, " " );
 
 	return_code_arg = response + length;
+
+	MX_DEBUG(-2,("%s: #1 >> return_code_arg = '%s'",
+		fname, return_code_arg));
 
 	/* 2. Find the end of the return code string and null terminate it. */
 
@@ -2284,6 +2333,8 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 
 	ptr++;
 
+	MX_DEBUG(-2,("%s: #2 >> ptr = '%s'", fname, ptr));
+
 	/* 3. Parse the return code string. */
 
 	return_code = atol( return_code_arg );
@@ -2292,11 +2343,16 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 		*pilatus_return_code = return_code;
 	}
 
+	MX_DEBUG(-2,("%s: #3 >> return_code = %ld", fname, return_code));
+
 	/* 4. Find the start of the error status argument. */
 
 	length = strspn( ptr, " " );
 
 	error_status_arg = ptr + length;
+
+	MX_DEBUG(-2,("%s: #4 >> error_status_arg = '%s'",
+		fname, error_status_arg));
 
 	/* 5. Find the end of the error status argument and null terminate it.*/
 
@@ -2308,6 +2364,8 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 
 	ptr++;
 
+	MX_DEBUG(-2,("%s: #5 >> ptr = '%s'", fname, ptr));
+
 	strlcpy( error_status_string, error_status_arg,
 			sizeof(error_status_string) );
 
@@ -2316,6 +2374,8 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 	length = strspn( ptr, " " );
 
 	ptr += length;
+
+	MX_DEBUG(-2,("%s: #6 >> ptr = '%s'", fname, ptr));
 
 	/* 7. Move the remaining text to the beginning of the response buffer.*/
 
@@ -2330,6 +2390,8 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 	memmove( response, ptr, bytes_to_move );
 
 	response[bytes_to_move] = '\0';
+
+	MX_DEBUG(-2,("%s: #7 >> response = '%s'", fname, response));
 
 	/*---*/
 
@@ -2651,6 +2713,11 @@ mxd_pilatus_process_function( void *record_ptr,
 			}
 			break;
 		case MXLV_PILATUS_DETECTOR_SERVER_DATAFILE_DIRECTORY:
+
+			MX_DEBUG(-2,
+		("%s: PUT pilatus->detector_server_datafile_directory = '%s'",
+			  fname, pilatus->detector_server_datafile_directory));
+
 			/* Test: Is datafile_directory within datafile_user? */
 
 			mx_status = mx_is_subdirectory(
