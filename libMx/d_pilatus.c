@@ -32,9 +32,7 @@
 
 #define MXD_PILATUS_DEBUG_GRIMSEL			TRUE
 
-#define MXD_PILATUS_DEBUG_IMGPATH			TRUE
-
-#define MS_PILATUS_DEBUG				FALSE
+#define MXD_PILATUS_DEBUG_RESPONSE			FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -917,46 +915,13 @@ mxd_pilatus_open( MX_RECORD *record )
 		pilatus->detector_server_datafile_root,
 		sizeof( pilatus->detector_server_datafile_user ) );
 
-#if 0
-	/* If requested, initialize ImgPath to start as the directory in
-	 * pilatus->detector_server_datafile_root.
+	/* Do the equivalent initialization for local_datafile_user
+	 * by setting it to local_datafile_root.
 	 */
 
-	if ( pilatus_flags & MXF_PILATUS_INITIALIZE_IMGPATH ) {
-
-		if ( strlen( pilatus->detector_server_datafile_root) == 0 ) {
-			mx_warning( "The detector_server_datafile_root "
-			"parameter is an empty string for detector '%s'.  "
-			"Skipping...", record->name );
-		} else {
-			int n, max_attempts;
-
-#if MXD_PILATUS_DEBUG_IMGPATH
-			MX_DEBUG(-2,("%s: Initializing ImgPath to '%s'",
-				fname, pilatus->detector_server_datafile_root));
-#endif
-			max_attempts = 3;
-
-			/* We attempt multiple times, since sometimes the
-			 * Pilatus rejects the first attempt as an 
-			 * 'Illegal Path'.
-			 */
-
-			for ( n = 0; n < max_attempts; n++ ) {
-				mx_status = mx_process_record_field_by_name(
-					pilatus->record,
-					"detector_server_datafile_root",
-					NULL, MX_PROCESS_PUT, NULL );
-
-				if ( mx_status.code == MXE_SUCCESS )
-					break;
-			}
-			if ( n >= max_attempts ) {
-				return mx_status;
-			}
-		}
-	}
-#endif
+	strlcpy( pilatus->local_datafile_user,
+		pilatus->local_datafile_root,
+		sizeof( pilatus->local_datafile_user ) );
 
 #if ( 1 || MXD_PILATUS_DEBUG )
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
@@ -1093,7 +1058,7 @@ mxd_pilatus_arm( MX_AREA_DETECTOR *ad )
 	case MXT_SQ_MULTIFRAME:
 		num_frames = mx_round( sp->parameter_array[0] );
 		exposure_time = sp->parameter_array[1];
-		exposure_period = exposure_time + pilatus->gap_time;
+		exposure_period = sp->parameter_array[2];
 		break;
 	case MXT_SQ_STROBE:
 		num_frames = mx_round( sp->parameter_array[0] );
@@ -1829,10 +1794,12 @@ mxd_pilatus_get_parameter( MX_AREA_DETECTOR *ad )
 			  sizeof(pilatus->detector_server_datafile_directory));
 		}
 
+#if 0
 		MX_DEBUG(-2,
 ("%s: ***1*** datafile_directory = '%s', detector_server_datafile_directory = '%s'",
 			fname, ad->datafile_directory,
 			pilatus->detector_server_datafile_directory));
+#endif
 
 		mx_status = mx_change_filename_prefix(
 				pilatus->detector_server_datafile_directory,
@@ -1991,8 +1958,10 @@ mxd_pilatus_set_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_DATAFILE_DIRECTORY:
+#if 0
 		MX_DEBUG(-2,("%s: ***2*** ad->datafile_directory = '%s'",
 			fname, ad->datafile_directory));
+#endif
 
 		mx_status = mx_change_filename_prefix(
 				ad->datafile_directory,
@@ -2166,7 +2135,7 @@ MX_EXPORT mx_status_type
 mxd_pilatus_command( MX_PILATUS *pilatus,
 			char *command,
 			char *response,
-			size_t response_buffer_length,
+			size_t max_response_length,
 			unsigned long *pilatus_return_code )
 {
 	static const char fname[] = "mxd_pilatus_command()";
@@ -2174,6 +2143,9 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 	MX_AREA_DETECTOR *ad = NULL;
 	MX_RS232 *rs232 = NULL;
 	char command_buffer[1000];
+	char local_response_buffer[1000];
+	char *response_ptr;
+	size_t response_length;
 	char error_status_string[20];
 	char *ptr, *return_code_arg, *error_status_arg;
 	size_t length, command_length, bytes_to_move;
@@ -2188,13 +2160,20 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_PILATUS pointer passed was NULL." );
 	}
-	if ( command == (char *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The command pointer passed was NULL." );
-	}
+
+	/* If our caller is not interested in any responses to the command,
+ 	 * it indicates this by passing a 'response' pointer that is NULL.
+ 	 * Even so, we still will need to readout and throw away the response
+ 	 * that the caller is not interested in.  So we must provide a
+ 	 * 'local_response_buffer' to read the unwanted response into.
+ 	 */
+
 	if ( response == (char *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The response pointer passed was NULL." );
+		response_ptr = local_response_buffer;
+		response_length = sizeof(local_response_buffer);
+	} else {
+		response_ptr = response;
+		response_length = max_response_length;
 	}
 
 	ad = pilatus->record->record_class_struct;
@@ -2207,9 +2186,12 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 		debug_flag = FALSE;
 	}
 
-	command_length = strlen( command ) + 1;
+	/* Send the command string, if present. */
 
-	if ( command_length > sizeof(command_buffer) ) {
+	if ( command != (char *) NULL ) {
+	    command_length = strlen( command ) + 1;
+
+	    if ( command_length > sizeof(command_buffer) ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 			"The length of the command (%lu bytes) exceeds the "
 			"length of the internal command buffer (%lu bytes).  "
@@ -2217,39 +2199,45 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 				(unsigned long) command_length,
 				(unsigned long) sizeof(command_buffer),
 				command );
-	}
+	    }
 
-	/* Zero out the internal command buffer and copy the command to it. */
+	    /* Zero out the internal command buffer and copy 
+	     * the command to it.
+	     */
 
-	memset( command_buffer, 0, sizeof(command_buffer) );
+	    memset( command_buffer, 0, sizeof(command_buffer) );
 
-	strlcpy( command_buffer, command, sizeof(command_buffer) );
+	    strlcpy( command_buffer, command, sizeof(command_buffer) );
 
-	if ( debug_flag ) {
+	    if ( debug_flag ) {
 		MX_DEBUG(-2,("%s: sending '%s' to '%s'.",
 		fname, command_buffer, pilatus->record->name ));
-	}
+	    }
 
-	/* Note: For some types of serial interfaces, such as for sockets,
-	 * the line terminators for a command sometimes may be in a different
-	 * packet than the packet that sends the body of the command.  It
-	 * seems that Pilatus does not like this, so we append the line
-	 * terminators to the command buffer and then send the command with
-	 * mx_rs232_write() rather than mx_rs232_putline().  If we do this,
-	 * then the line terminators will probably end up in the same packet
-	 * as the command.  But the TCP standard, does _not_ guarantee this.
-	 */
+	    /* Note: For some types of serial interfaces, such as sockets,
+	     * the line terminators for a command sometimes may be in a
+	     * different packet than the packet that sends the body of the 
+	     * command.  It seems that Pilatus does not like this, so we
+	     * append the line terminators to the command buffer and then
+	     * send the command with the mx_rs232_write() function rather
+	     * than the mx_rs232_putline() function.  If we do this, then
+	     * the line terminators will probably end up in the same packet
+	     * as the command.  But the TCP standard, does _not_ guarantee this.
+	     */
 
-	strlcat( command_buffer, rs232->write_terminator_array,
+	    strlcat( command_buffer, rs232->write_terminator_array,
 					sizeof(command_buffer) );
 
-	/* Send the command. */
+	    /* Send the command. */
 
-	mx_status = mx_rs232_write( pilatus->rs232_record,
+	    mx_status = mx_rs232_write( pilatus->rs232_record,
 			command_buffer, strlen(command_buffer), NULL, 0 );
 
-	if ( mx_status.code != MXE_SUCCESS )
+	    if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	    /* End of command processing. */
+	}
 
 	/* Now read back the response line.
 	 *
@@ -2264,18 +2252,21 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 	for ( n = 0; n < max_attempts; n++ ) {
 
 	    mx_status = mx_rs232_getline_with_timeout( pilatus->rs232_record,
-					response, response_buffer_length,
+					response_ptr, response_length,
 					&num_response_bytes, 0,
 					rs232->timeout );
 
-	    mx_status_code &= (~MXE_QUIET);
+	    mx_status_code = mx_status.code & (~MXE_QUIET);
 
+#if 0
 	    MX_DEBUG(-2,("%s: n = %lu, mx_status_code = %lu, "
 		"num_response_bytes = %ld, response = '%s'",
-		fname, n, mx_status_code, (long) num_response_bytes, response));
+		fname, n, mx_status_code,
+		(long) num_response_bytes, response_ptr));
+#endif
 
 	    if ( mx_status_code == MXE_SUCCESS ) {
-		if ( strncmp( response, "7 OK", 4 ) == 0 ) {
+		if ( strncmp( response_ptr, "7 OK", 4 ) == 0 ) {
 			if ( pilatus->exposure_in_progress ) {
 				pilatus->exposure_in_progress = FALSE;
 				ad->total_num_frames++;
@@ -2289,7 +2280,7 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 			/* Make sure that the response is null terminated
 			 * and then break out of the retry loop.
 			 */
-			response[num_response_bytes] = 0;
+			response_ptr[num_response_bytes] = 0;
 
 			break;	/* Exit the for() loop. */
 		}
@@ -2311,17 +2302,21 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 
 	/*--- Split off the return code and the error status. ---*/
 
-	MX_DEBUG(-2,("%s: #0 command_buffer = '%s', response = '%s'",
-		fname, command_buffer, response));
+#if MXD_PILATUS_DEBUG_RESPONSE
+	MX_DEBUG(-2,("%s: #0 command_buffer = '%s', response_ptr = '%s'",
+		fname, command_buffer, response_ptr));
+#endif
 
 	/* 1. Skip over any leading spaces. */
 
-	length = strspn( response, " " );
+	length = strspn( response_ptr, " " );
 
-	return_code_arg = response + length;
+	return_code_arg = response_ptr + length;
 
+#if MXD_PILATUS_DEBUG_RESPONSE
 	MX_DEBUG(-2,("%s: #1 >> return_code_arg = '%s'",
 		fname, return_code_arg));
+#endif
 
 	/* 2. Find the end of the return code string and null terminate it. */
 
@@ -2333,7 +2328,9 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 
 	ptr++;
 
+#if MXD_PILATUS_DEBUG_RESPONSE
 	MX_DEBUG(-2,("%s: #2 >> ptr = '%s'", fname, ptr));
+#endif
 
 	/* 3. Parse the return code string. */
 
@@ -2343,7 +2340,9 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 		*pilatus_return_code = return_code;
 	}
 
+#if MXD_PILATUS_DEBUG_RESPONSE
 	MX_DEBUG(-2,("%s: #3 >> return_code = %ld", fname, return_code));
+#endif
 
 	/* 4. Find the start of the error status argument. */
 
@@ -2351,8 +2350,10 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 
 	error_status_arg = ptr + length;
 
+#if MXD_PILATUS_DEBUG_RESPONSE
 	MX_DEBUG(-2,("%s: #4 >> error_status_arg = '%s'",
 		fname, error_status_arg));
+#endif
 
 	/* 5. Find the end of the error status argument and null terminate it.*/
 
@@ -2364,49 +2365,80 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 
 	ptr++;
 
+#if MXD_PILATUS_DEBUG_RESPONSE
 	MX_DEBUG(-2,("%s: #5 >> ptr = '%s'", fname, ptr));
+#endif
 
 	strlcpy( error_status_string, error_status_arg,
 			sizeof(error_status_string) );
 
-	/* 6. Find the beginning of the remaining text of the response. */
+	/* If our caller wants to see the response string from the Pilatus,
+ 	 * then we arrange for that here.
+ 	 */
 
-	length = strspn( ptr, " " );
+	if ( response != (char *) NULL ) {
 
-	ptr += length;
+	    /* 6. Find the beginning of the remaining text of the response. */
 
-	MX_DEBUG(-2,("%s: #6 >> ptr = '%s'", fname, ptr));
+	    length = strspn( ptr, " " );
 
-	/* 7. Move the remaining text to the beginning of the response buffer.*/
+	    ptr += length;
 
-	bytes_to_move = strlen( ptr );
+#if MXD_PILATUS_DEBUG_RESPONSE
+	    MX_DEBUG(-2,("%s: #6 >> ptr = '%s'", fname, ptr));
+#endif
 
-	if ( bytes_to_move >= (response_buffer_length + ( ptr-response )) ) {
+	    /* 7. Move the remaining text to the beginning of the
+ 	     * response buffer.
+ 	     */
+
+	    bytes_to_move = strlen( ptr );
+
+	    if ( bytes_to_move >= (response_length + ( ptr-response )) ) {
 		return mx_error( MXE_UNPARSEABLE_STRING, fname,
 		"The string received from Pilatus detector '%s' "
 		"was not null terminated.", pilatus->record->name );
-	}
+	    }
 
-	memmove( response, ptr, bytes_to_move );
+	    memmove( response, ptr, bytes_to_move );
 
-	response[bytes_to_move] = '\0';
+#if MXD_PILATUS_DEBUG_RESPONSE
+	    MX_DEBUG(-2,("%s: #7 >> response = '%s'", fname, response));
+#endif
 
-	MX_DEBUG(-2,("%s: #7 >> response = '%s'", fname, response));
+	    /* 8.  Null out the rest of the response buffer. */
 
-	/*---*/
+	    memset( response + bytes_to_move, '\0',
+			response_length - bytes_to_move );
 
-	if ( strcmp( error_status_string, "OK" ) != 0 ) {
+#if MXD_PILATUS_DEBUG_RESPONSE
+	    MX_DEBUG(-2,("%s: #8 >> response = '%s'", fname, response));
+#endif
+
+	    /*---*/
+
+	    if ( strcmp( error_status_string, "OK" ) != 0 ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 	    "Command '%s' sent to detector '%s' returned an error (%lu) '%s'.",
-			command, pilatus->record->name, return_code, response );
+			command, pilatus->record->name,
+			return_code, response );
+	    }
+
+	    /* End of response processing. */
 	}
 
 	/*---*/
 
 	if (debug_flag) {
+	    if ( response != (char *) NULL ) {
 		MX_DEBUG(-2,("%s: received (%lu %s) '%s' from '%s'.",
 			fname, return_code, error_status_string,
 			response, pilatus->record->name ));
+	    } else {
+		MX_DEBUG(-2,("%s: received (%lu %s) from '%s'.",
+			fname, return_code, error_status_string,
+			pilatus->record->name ));
+	    }
 	}
 
 	return MX_SUCCESSFUL_RESULT;

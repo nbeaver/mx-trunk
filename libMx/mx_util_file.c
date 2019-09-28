@@ -827,7 +827,7 @@ mx_change_filename_prefix( const char *old_filename,
 		"The new_filename pointer passed was NULL." );
 	}
 
-#if 1
+#if 0
 	MX_DEBUG(-2,("%s: old_filename = '%s'", fname, old_filename));
 	MX_DEBUG(-2,("%s: old_filename_prefix = '%s'",
 					fname, old_filename_prefix));
