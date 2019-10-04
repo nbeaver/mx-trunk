@@ -1077,6 +1077,19 @@ mxd_pilatus_arm( MX_AREA_DETECTOR *ad )
 		break;
 	}
 
+#if 1
+	/* FIXME: The minimum gap time should be dependent on
+ 	 * the model of Pilatus detector.
+	 */
+
+	if ( pilatus->gap_time < 0.001 ) {
+		pilatus->gap_time = 0.001;
+
+		MX_DEBUG(-2,("%s: resetting pilatus->gap_time to %g",
+			fname, pilatus->gap_time));
+	}
+#endif
+
 	/* Make sure that the difference between the exposure period and
 	 * the exposure time is greater than or equal to the minimum
 	 * allowed gap time.  The minimum allowed time is different for
@@ -1345,6 +1358,8 @@ mxd_pilatus_get_extended_status( MX_AREA_DETECTOR *ad )
 	long num_frames_in_sequence;
 	mx_status_type mx_status;
 
+	static unsigned long saved_total_num_frames = ULONG_MAX;
+
 	mx_status = mxd_pilatus_get_pointers( ad, &pilatus, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -1448,6 +1463,16 @@ mxd_pilatus_get_extended_status( MX_AREA_DETECTOR *ad )
 			"%s: Unexpected response '%s' seen for detector '%s'",
 				fname, response, ad->record->name );
 		}
+
+#if 1
+		if ( ad->total_num_frames != saved_total_num_frames ) {
+			saved_total_num_frames = ad->total_num_frames;
+
+			MX_DEBUG(-2,
+			(">>>>> %s: ad->total_num_frames = %lu <<<<<",
+				fname, ad->total_num_frames));
+		}
+#endif
 	}
 
 	old_status = ad->status;
@@ -2258,8 +2283,8 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 
 	    mx_status_code = mx_status.code & (~MXE_QUIET);
 
-#if 0
-	    MX_DEBUG(-2,("%s: n = %lu, mx_status_code = %lu, "
+#if 1
+	    MX_DEBUG(-2,("%s: *** n = %lu, mx_status_code = %lu, "
 		"num_response_bytes = %ld, response = '%s'",
 		fname, n, mx_status_code,
 		(long) num_response_bytes, response_ptr));
