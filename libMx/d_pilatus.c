@@ -34,6 +34,8 @@
 
 #define MXD_PILATUS_DEBUG_RESPONSE			FALSE
 
+#define MXD_PILATUS_DEBUG_KILL				TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -1292,13 +1294,22 @@ mxd_pilatus_trigger( MX_AREA_DETECTOR *ad )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-MX_EXPORT mx_status_type
-mxd_pilatus_stop( MX_AREA_DETECTOR *ad )
+/*----*/
+
+static mx_status_type
+mxd_pilatus_kill( MX_AREA_DETECTOR *ad, char *kill_command )
 {
-	static const char fname[] = "mxd_pilatus_stop()";
+	static const char fname[] = "mxd_pilatus_kill()";
 
 	MX_PILATUS *pilatus = NULL;
-	char response[80];
+	MX_RS232 *rs232 = NULL;
+	char buffer[80];
+	unsigned long image_number;
+	long frame_difference;
+	unsigned long n, max_attempts;
+	unsigned long mx_status_code;
+	int num_items;
+	size_t num_response_bytes;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pilatus_get_pointers( ad, &pilatus, fname );
@@ -1306,15 +1317,152 @@ mxd_pilatus_stop( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_PILATUS_DEBUG
-	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
-		fname, ad->record->name ));
+	if ( pilatus->rs232_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The rs232_record pointer for Pilatus record '%s' is NULL.",
+			pilatus->record->name );
+	}
+
+	rs232 = pilatus->rs232_record->record_class_struct;
+
+	if ( rs232 == (MX_RS232 *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	    "The MX_RS232 pointer for RS232 record '%s' used by '%s' is NULL.",
+			pilatus->rs232_record->name,
+			pilatus->record->name );
+	}
+
+#if MXD_PILATUS_DEBUG_KILL
+	MX_DEBUG(-2,("%s invoked for area detector '%s',  kill_command = '%s'",
+		fname, ad->record->name, kill_command ));
+#endif
+	/* Send the kill command. */
+
+#if 0
+	mx_status = mxd_pilatus_command( pilatus, kill_command, NULL, 0, NULL );
+#else
+	mx_status = mx_rs232_putline( pilatus->rs232_record,
+					kill_command, NULL, 0 );
 #endif
 
-	pilatus->exposure_in_progress = FALSE;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	mx_status = mxd_pilatus_command( pilatus, "K",
-				response, sizeof(response), NULL );
+	/* We cannot send any new commands to the Pilatus until it has
+ 	 * acknowledged the kill.  So we have to wait here until we get
+ 	 * a kill response or a timeout.
+	 */
+
+	max_attempts = 10;
+
+	for ( n = 0; n < max_attempts; n++ ) {
+
+	    memset( buffer, 0, sizeof(buffer) );
+
+	    mx_status = mx_rs232_getline_with_timeout(
+				pilatus->rs232_record,
+				buffer, sizeof(buffer),
+				&num_response_bytes, 0,
+				rs232->timeout );
+
+	    mx_status_code = mx_status.code & (~MXE_QUIET);
+
+#if 1
+	    MX_DEBUG(-2,("%s: *** n = %lu, mx_status_code = %lu, "
+		"num_response_bytes = %ld, response = '%s'",
+		fname, n, mx_status_code,
+		(long) num_response_bytes, buffer ));
+#endif
+	    /* --- */
+
+	    if ( mx_status_code == MXE_SUCCESS ) {
+
+		/* Please note that the order of the tests below
+ 		 * sometimes matters.
+ 		 */
+
+		num_items = sscanf( buffer, "15 OK img %lu", &image_number );
+
+		if ( num_items == 1 ) {
+		    /* A new frame has arrived. */
+
+		    frame_difference = image_number - ad->last_frame_number;
+
+		    if ( frame_difference > 0 ) {
+			ad->total_num_frames += frame_difference;
+		    }
+
+		    /* We do _not_ exit the for() loop here, since we still
+		     * need to handle the 13 and 7 error codes that may appear.
+		     */
+
+		} else
+		if ( strcmp( buffer, "13 ERR kill" ) == 0 ) {
+		    /* If the Pilatus was not actually running an imaging
+ 		     * sequence, then we are done here (?)
+ 		     */
+
+		    if ( pilatus->exposure_in_progress == FALSE ) {
+			break;	/* Exit the for() loop. */
+		    }
+
+		} else
+		if ( strncmp( buffer, "7 ERR", 5 ) == 0 ) {
+ 		    /* If it _was_ running a sequence, then we should see
+ 		     * a 7 ERR message followed by a 7 OK message.  We
+ 		     * accept the 7 ERR message, but do not do anything
+ 		     * with it, since we really want to see the 7 OK.
+ 		     */
+		} else
+		if ( strncmp( buffer, "7 OK", 4 ) == 0 ) {
+		    /* We increment total_num_frames and then mark the 
+ 		     * exposure as over.
+ 		     */
+
+		    ad->total_num_frames++;
+
+		    pilatus->exposure_in_progress = FALSE;
+		    break;	/* Exit the for() loop. */
+		} else
+		if ( strncmp( buffer, "1 OK", 4 ) == 0 ) {
+		    /* If 'camcmd k' was sent and an imaging sequence was
+ 		     * not in progress, then we get a '1 OK' status message.
+ 		     */
+
+		    if ( pilatus->exposure_in_progress == FALSE ) {
+			break;	/* Exit the for() loop. */
+		    }
+		} else {
+		    return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		  "Unexpected message seen from detector '%s'.  buffer = '%s'",
+			pilatus->record->name, buffer );
+		}
+	    } else
+	    if ( mx_status_code == MXE_TIMED_OUT ) {
+		/* If an imaging sequence was not running, then the getline
+ 		 * will time out since the Pilatus will not send a response
+ 		 * to the kill command.  If this sequence of events occurs,
+ 		 * then we assume that all is well and return an MXE_SUCCESS
+ 		 * status message.
+ 		 */
+
+		break;		/* Exit the for() loop. */
+	    } else {
+		return mx_status;
+	    }
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*----*/
+
+MX_EXPORT mx_status_type
+mxd_pilatus_stop( MX_AREA_DETECTOR *ad )
+{
+	mx_status_type mx_status;
+
+	mx_status = mxd_pilatus_kill( ad, "K" );
 
 	return mx_status;
 }
@@ -1322,29 +1470,14 @@ mxd_pilatus_stop( MX_AREA_DETECTOR *ad )
 MX_EXPORT mx_status_type
 mxd_pilatus_abort( MX_AREA_DETECTOR *ad )
 {
-	static const char fname[] = "mxd_pilatus_abort()";
-
-	MX_PILATUS *pilatus = NULL;
-	char response[80];
 	mx_status_type mx_status;
 
-	mx_status = mxd_pilatus_get_pointers( ad, &pilatus, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MXD_PILATUS_DEBUG
-	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
-		fname, ad->record->name ));
-#endif
-
-	pilatus->exposure_in_progress = FALSE;
-
-	mx_status = mxd_pilatus_command( pilatus, "camcmd k",
-					response, sizeof(response), NULL );
+	mx_status = mxd_pilatus_kill( ad, "camcmd k" );
 
 	return mx_status;
 }
+
+/*----*/
 
 MX_EXPORT mx_status_type
 mxd_pilatus_get_extended_status( MX_AREA_DETECTOR *ad )
