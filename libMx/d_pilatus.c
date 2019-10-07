@@ -38,6 +38,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <errno.h>
 #include <ctype.h>
 
@@ -1309,7 +1310,7 @@ mxd_pilatus_kill( MX_AREA_DETECTOR *ad, char *kill_command )
 	unsigned long n, max_attempts;
 	unsigned long mx_status_code;
 	int num_items;
-	size_t num_response_bytes;
+	size_t num_response_bytes, buffer_len;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pilatus_get_pointers( ad, &pilatus, fname );
@@ -1381,20 +1382,30 @@ mxd_pilatus_kill( MX_AREA_DETECTOR *ad, char *kill_command )
  		 * sometimes matters.
  		 */
 
-		num_items = sscanf( buffer, "15 OK img %lu", &image_number );
+		buffer_len = strlen( buffer );
 
-		if ( num_items == 1 ) {
-		    /* A new frame has arrived. */
+		if ( strncmp( buffer, "15 OK", 5 ) == 0 ) {
+		    if ( buffer_len <= 6 ) {
+			/* No additional parameters given, so we are done. */
 
-		    frame_difference = image_number - ad->last_frame_number;
-
-		    if ( frame_difference > 0 ) {
-			ad->total_num_frames += frame_difference;
+			break;	/* Exit the for() loop. */
 		    }
+		    num_items = sscanf(buffer, "15 OK img %lu", &image_number);
 
-		    /* We do _not_ exit the for() loop here, since we still
-		     * need to handle the 13 and 7 error codes that may appear.
-		     */
+		    if ( num_items == 1 ) {
+			/* A new frame has arrived. */
+
+			frame_difference = image_number - ad->last_frame_number;
+
+			if ( frame_difference > 0 ) {
+			    ad->total_num_frames += frame_difference;
+			}
+
+			/* We do _not_ exit the for() loop here, since we
+			 * still need to handle the 13 and 7 error codes
+			 * that may appear.
+			 */
+		    }
 
 		} else
 		if ( strcmp( buffer, "13 ERR kill" ) == 0 ) {
@@ -1423,10 +1434,22 @@ mxd_pilatus_kill( MX_AREA_DETECTOR *ad, char *kill_command )
 
 		    pilatus->exposure_in_progress = FALSE;
 		    break;	/* Exit the for() loop. */
+		}
+		else
+		if ( strncmp( buffer,
+			"1 ERR *** Unrecognized command: ", 32 ) == 0 ) {
+		    /* If 'camcmd k' was sent and an imaging sequence was not
+ 		     * in progress, then we may get a '1 ERR' status message.
+ 		     */
+
+		    if ( pilatus->exposure_in_progress == FALSE ) {
+			break;	/* Exit the for() loop. */
+		    }
 		} else
 		if ( strncmp( buffer, "1 OK", 4 ) == 0 ) {
-		    /* If 'camcmd k' was sent and an imaging sequence was
- 		     * not in progress, then we get a '1 OK' status message.
+		    /* Alternately, if 'camcmd k' was sent and an imaging
+ 		     * sequence was not in progress, then we may get a '1 OK'
+ 		     * status message.
  		     */
 
 		    if ( pilatus->exposure_in_progress == FALSE ) {
@@ -1462,7 +1485,7 @@ mxd_pilatus_stop( MX_AREA_DETECTOR *ad )
 {
 	mx_status_type mx_status;
 
-	mx_status = mxd_pilatus_kill( ad, "K" );
+	mx_status = mxd_pilatus_kill( ad, "camcmd k" );
 
 	return mx_status;
 }
@@ -1472,7 +1495,7 @@ mxd_pilatus_abort( MX_AREA_DETECTOR *ad )
 {
 	mx_status_type mx_status;
 
-	mx_status = mxd_pilatus_kill( ad, "camcmd k" );
+	mx_status = mxd_pilatus_kill( ad, "K" );
 
 	return mx_status;
 }
@@ -1591,6 +1614,12 @@ mxd_pilatus_get_extended_status( MX_AREA_DETECTOR *ad )
 
 			mx_status = mxd_pilatus_update_datafile_number(
 					ad, pilatus, response );
+		} else
+		if ( strncmp( response, "1 OK", 4 ) == 0 ) {
+
+			/* FIXME: Sometimes we get a '1 OK' message for	
+ 			 * some unknown reason, so we ignore it.
+ 			 */
 		} else {
 			mx_warning(
 			"%s: Unexpected response '%s' seen for detector '%s'",
@@ -2319,6 +2348,12 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 		"The MX_PILATUS pointer passed was NULL." );
 	}
 
+	/* Initialize internal string buffers to nulls. */
+
+	memset( command_buffer, 0, sizeof(command_buffer) );
+	memset( local_response_buffer, 0, sizeof(local_response_buffer) );
+	memset( error_status_string, 0, sizeof(error_status_string) );
+
 	/* If our caller is not interested in any responses to the command,
  	 * it indicates this by passing a 'response' pointer that is NULL.
  	 * Even so, we still will need to readout and throw away the response
@@ -2359,11 +2394,7 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 				command );
 	    }
 
-	    /* Zero out the internal command buffer and copy 
-	     * the command to it.
-	     */
-
-	    memset( command_buffer, 0, sizeof(command_buffer) );
+	    /* Copy the command to the internal command buffer. */
 
 	    strlcpy( command_buffer, command, sizeof(command_buffer) );
 
