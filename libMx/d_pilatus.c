@@ -2403,6 +2403,24 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 		fname, command_buffer, pilatus->record->name ));
 	    }
 
+	    if ( pilatus->pilatus_flags & MXF_PILATUS_APPEND_PAD_TO_COMMANDS ) {
+
+	    	/* FIXME: Sometimes the tail end of commands sent by me several
+		 * commands ago unexpectedly show up again in the Pilatus's
+		 * command buffer, triggering a 1 ERR *** Unrecognized command:
+		 * error.  My working hypothesis is that somewhere in the
+		 * Pilatus-provided software there is something that is not
+		 * always clearing out an internal buffer.  For now, my
+		 * attempted workaround is to append a bunch of space characters
+		 * onto the end of all the commands I send to the Pilatus.
+		 * Not sure if this will work.
+		 */
+
+		strlcat( command_buffer,
+			"                                        ",
+			sizeof(command_buffer) );
+	    }
+
 	    /* Note: For some types of serial interfaces, such as sockets,
 	     * the line terminators for a command sometimes may be in a
 	     * different packet than the packet that sends the body of the 
