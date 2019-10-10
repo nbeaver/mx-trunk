@@ -1485,7 +1485,7 @@ mxd_pilatus_stop( MX_AREA_DETECTOR *ad )
 {
 	mx_status_type mx_status;
 
-	mx_status = mxd_pilatus_kill( ad, "camcmd k" );
+	mx_status = mxd_pilatus_kill( ad, "K" );
 
 	return mx_status;
 }
@@ -1495,7 +1495,7 @@ mxd_pilatus_abort( MX_AREA_DETECTOR *ad )
 {
 	mx_status_type mx_status;
 
-	mx_status = mxd_pilatus_kill( ad, "K" );
+	mx_status = mxd_pilatus_kill( ad, "camcmd k" );
 
 	return mx_status;
 }
