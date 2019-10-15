@@ -30,7 +30,7 @@ typedef struct {
   {-1, -1, "handel_record", MXFT_RECORD, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof( MX_HANDEL_MAPPING_PIXEL_NEXT, handel_record ), \
-	{0}, NULL, 0 }
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
 
 /* Define all of the interface functions. */
 
