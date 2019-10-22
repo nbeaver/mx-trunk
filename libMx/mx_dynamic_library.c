@@ -11,7 +11,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2007, 2009, 2011-2012, 2014-2016, 2018
+ * Copyright 2007, 2009, 2011-2012, 2014-2016, 2018-2019
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -27,6 +27,7 @@
 #include <stdlib.h>
 
 #include "mx_util.h"
+#include "mx_program_model.h"	/* MX_WORDSIZE comes from here. */
 #include "mx_dynamic_library.h"
 
 MX_EXPORT void *
@@ -124,11 +125,24 @@ mx_dynamic_library_open( const char *filename,
 			mx_error_code |= MXE_QUIET;
 		}
 
+		MX_DEBUG(-2,
+		("%s: MX_PROGRAM_MODEL = %lu, last_error_code = %lu",
+			fname, MX_PROGRAM_MODEL, last_error_code));
+
 		if ( filename == (char *) NULL ) {
 			return mx_error( mx_error_code, fname,
 				"Unable to open main executable.  "
 				"Win32 error code = %ld, error message = '%s'.",
 				last_error_code, message_buffer );
+		} else
+		if ( (MX_PROGRAM_MODEL == MX_PROGRAM_MODEL_LLP64)
+		  && (last_error_code == 193) )
+		{
+			return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"Received Win32 error code 193 when attempting to load "
+			"dynamic library '%s'.  This normally means that "
+			"a 64 bit program is trying to load a 32 bit DLL.",
+				filename );
 		} else {
 			return mx_error( mx_error_code, fname,
 				"Unable to open dynamic library '%s'.  "

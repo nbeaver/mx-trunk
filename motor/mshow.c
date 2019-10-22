@@ -22,6 +22,7 @@
 #include <time.h>
 
 #include "mx_inttypes.h"
+#include "mx_program_model.h"
 #include "mx_amplifier.h"
 #include "mx_analog_input.h"
 #include "mx_analog_output.h"
@@ -1228,6 +1229,11 @@ motor_show_version( void )
 		(_MSC_VER / 100), (_MSC_VER % 100) );
 
 #endif /* _MSC_VER */
+
+/*-------------------------------------------------------------------------*/
+
+	fprintf( output, "Process ID: %lu, Wordsize: %lu\n",
+		mx_process_id(), MX_WORDSIZE );
 
 /*-------------------------------------------------------------------------*/
 
