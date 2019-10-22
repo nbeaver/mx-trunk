@@ -1233,7 +1233,7 @@ motor_show_version( void )
 /*-------------------------------------------------------------------------*/
 
 	fprintf( output, "Process ID: %lu, Wordsize: %lu\n",
-		mx_process_id(), MX_WORDSIZE );
+		mx_process_id(), (unsigned long) MX_WORDSIZE );
 
 /*-------------------------------------------------------------------------*/
 
