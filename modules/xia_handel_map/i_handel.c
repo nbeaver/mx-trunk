@@ -148,10 +148,6 @@ mxi_handel_get_pointers( MX_MCA *mca,
 
 /*-------------------------------------------------------------------------*/
 
-/* mxi_handel_get_master_mcs() is used to find the MCS that started
- * this sequence.
- */
-
 static mx_status_type
 mxi_handel_get_mcs_array( MX_HANDEL *handel,
 				unsigned long num_mcs,
@@ -173,6 +169,8 @@ mxi_handel_get_mcs_array( MX_HANDEL *handel,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The mcs_array pointer passed was NULL." );
 	}
+
+	MX_DEBUG(-2,("%s: **mcs_array = %p", fname, **mcs_array));
 
 	for ( i = 0; i < num_mcs; i++ ) {
 		mcs_array[i] = NULL;
@@ -219,6 +217,8 @@ mxi_handel_get_mcs_array( MX_HANDEL *handel,
 		}
 
 		mcs_array[i] = mcs;
+
+		MX_DEBUG(-2,("%s: mcs_array[%d] = %p", fname, i, mcs_array[i]));
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1864,12 +1864,27 @@ mxi_handel_reallocate_buffers( MX_HANDEL *handel,
 		"The MX_HANDEL pointer passed was NULL." );
 	}
 
-	mx_status = mxi_handel_get_mcs_array( handel,
+	if (1) {
+	    int i;
+
+	    MX_DEBUG(-2,("%s: *** MARKER BEFORE ***",fname));
+
+	    mx_status = mxi_handel_get_mcs_array( handel,
 						handel->num_mcas,
 						mcs_array );
 
-	if ( mx_status.code != MXE_SUCCESS )
+	    MX_DEBUG(-2,("%s: *** MARKER AFTER ***",fname));
+
+	    if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	    MX_DEBUG(-2,("%s: mcs_array = %p", fname, mcs_array));
+
+	    for ( i = 0; i < handel->num_mcas; i++ ) {
+		    MX_DEBUG(-2,("%s: mcs_array[%d] = %p",
+			fname, i, mcs_array[i]));
+	    }
+	}
 
 	for ( channel = 0;
 		channel < MXI_HANDEL_CHANNELS_PER_MODULE;

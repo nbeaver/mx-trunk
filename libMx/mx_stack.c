@@ -909,7 +909,70 @@ mx_stack_traceback( void )
 
 /*--------------------------------------------------------------------------*/
 
-#if 1
+#if defined(OS_WIN32) && defined(_M_AMD64)
+
+/* Warning: mxp_stack_available_cs and mxp_stack_available_cs_initialized
+ * are set up in mx_initialize_runtime().  If you call the following functions
+ * without having called mx_initialize_runtime() first before any other threads
+ * are created, then the following implementations of mx_stack_available()
+ * and mx_stack_check() will not be thread safe.
+ */
+
+static CRITICAL_SECTION mxp_stack_available_cs;
+
+static int mxp_stack_available_cs_initialized = FALSE;
+
+/* Inspired by https://stackoverflow.com/questions/12905316/how-can-i-find-out-how-much-space-is-left-on-stack-of-the-current-thread-using-v
+ */
+
+MX_EXPORT long
+mx_stack_available( void )
+{
+	long stack_available = -1L;
+
+	if ( mxp_stack_available_cs_initialized == FALSE ) {
+		InitializeCriticalSection( &mxp_stack_available_cs );
+		mxp_stack_available_cs_initialized = TRUE;
+	}
+
+	EnterCriticalSection( &mxp_stack_available_cs );
+
+	/* Create an mbi object on the stack. */
+
+	static MEMORY_BASIC_INFORMATION mbi;
+
+	/* Get the page range that includes the pointer to this object
+	 * on the stack.
+	 */
+
+	VirtualQuery( (PVOID) &mbi, &mbi, sizeof(mbi) );
+
+	/* The stack grows down on Windows. */
+
+	stack_available = (UINT_PTR) &mbi - (UINT_PTR) mbi.AllocationBase;
+
+	LeaveCriticalSection( &mxp_stack_available_cs );
+
+	return stack_available;
+}
+
+MX_EXPORT int
+mx_stack_check( void )
+{
+	if ( mx_stack_available() > 0 ) {
+		return TRUE;
+	} else {
+		return FALSE;
+	}
+}
+
+#else
+
+MX_EXPORT long
+mx_stack_available( void )
+{
+	return (-1L);
+}
 
 MX_EXPORT int
 mx_stack_check( void )
@@ -918,4 +981,6 @@ mx_stack_check( void )
 }
 
 #endif
+
+/*--------------------------------------------------------------------------*/
 

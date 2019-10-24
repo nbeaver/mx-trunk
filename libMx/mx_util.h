@@ -411,6 +411,14 @@ MX_API void mx_stack_traceback( void );
 
 MX_API int mx_stack_check( void );
 
+/* An approximate estimate of how much stack is unused.  This _might_
+ * not take into account things like automatic stack expansion or
+ * might not work at all, so don't take it too seriously.  It is just
+ * for helping with debugging.
+ */
+
+MX_API long mx_stack_available( void );
+
 /*--- Heap debugging tools ---*/
 
 /* mx_heap_pointer_is_valid() checks to see if the supplied pointer

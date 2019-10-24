@@ -219,6 +219,10 @@ mx_initialize_runtime( void )
 
 	mx_atomic_initialize();
 
+	/* Initialize stack checking (if it needs it). */
+
+	mx_stack_check();
+
 	/* Initialize JSON support. */
 
 #if !defined(OS_WIN32)

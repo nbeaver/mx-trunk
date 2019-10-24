@@ -66,6 +66,11 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 #CFLAGS += $(OPTIMIZE)
 
 #
+# 3.  Other possible flags, such as runtime checks for stack overflow.
+#
+#CFLAGS += -RTCs
+
+#
 #========================================================================
 #
 # Generally, you should not have to modify anything after this point.
