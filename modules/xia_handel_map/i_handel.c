@@ -170,7 +170,7 @@ mxi_handel_get_mcs_array( MX_HANDEL *handel,
 		"The mcs_array pointer passed was NULL." );
 	}
 
-	MX_DEBUG(-2,("%s: **mcs_array = %p", fname, **mcs_array));
+	MX_DEBUG(-2,("%s: mcs_array = %p", fname, mcs_array));
 
 	for ( i = 0; i < num_mcs; i++ ) {
 		mcs_array[i] = NULL;
@@ -218,7 +218,8 @@ mxi_handel_get_mcs_array( MX_HANDEL *handel,
 
 		mcs_array[i] = mcs;
 
-		MX_DEBUG(-2,("%s: mcs_array[%d] = %p", fname, i, mcs_array[i]));
+		MX_DEBUG(-2,("%s: mcs_array[%lu] = %p",
+			fname, i, mcs_array[i]));
 	}
 
 	return MX_SUCCESSFUL_RESULT;
