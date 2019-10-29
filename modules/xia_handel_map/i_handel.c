@@ -161,6 +161,9 @@ mxi_handel_get_mcs_array( MX_HANDEL *handel,
 	MX_MCS *mcs = NULL;
 	unsigned long i;
 
+	MX_DEBUG(-2,("%s: #1 stack offset = %ld",
+		fname, mx_get_stack_offset( NULL, &i ) ));
+
 	if ( handel == (MX_HANDEL *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_HANDEL pointer passed was NULL." );
@@ -1870,14 +1873,16 @@ mxi_handel_reallocate_buffers( MX_HANDEL *handel,
 
 	    MX_DEBUG(-2,("%s: *** MARKER BEFORE ***",fname));
 
+#if 1
 	    mx_status = mxi_handel_get_mcs_array( handel,
 						handel->num_mcas,
 						mcs_array );
 
-	    MX_DEBUG(-2,("%s: *** MARKER AFTER ***",fname));
-
 	    if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+#endif
+
+	    MX_DEBUG(-2,("%s: *** MARKER AFTER ***",fname));
 
 	    MX_DEBUG(-2,("%s: mcs_array = %p", fname, mcs_array));
 

@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004, 2006, 2008-2010, 2015, 2017-2018
+ * Copyright 2000-2001, 2003-2004, 2006, 2008-2010, 2015, 2017-2019
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -983,4 +983,100 @@ mx_stack_check( void )
 #endif
 
 /*--------------------------------------------------------------------------*/
+
+static const void *mxp_stack_base_ptr = NULL;
+
+static mx_bool_type mxp_stack_grows_up = FALSE;
+
+/* Note: We must call mx_initialize_stack_calc() with the address of
+ * a variable that is actually on the stack!  For example, passing the
+ * address of something like
+ *
+ *     static const char fname[] = "main()";
+ *
+ * will _NOT_ work, since fname is declared 'static', which means that
+ * it is not on the stack.
+ */
+
+MX_EXPORT void
+mx_initialize_stack_calc( const void *stack_base )
+{
+	int stackvar1;
+	int stackvar2;
+
+	mxp_stack_base_ptr = stack_base;
+
+	/* FIXME: The following test probably does not work on all
+	 * conceivable targets.  And even if it works within a given
+	 * stack frame, it may not work between the stack frames of
+	 * a calling function and the called function.  For example,
+	 * S/390 mainframes do not put return addresses on a stack.
+	 * So don't try to push the validity of this function too far.
+	 */
+
+	if ( ( (ptrdiff_t) &stackvar2 ) < ( (ptrdiff_t) &stackvar1 ) ) {
+		mxp_stack_grows_up = FALSE;
+	} else {
+		mxp_stack_grows_up = TRUE;
+	}
+}
+
+MX_EXPORT const void *
+mx_get_stack_base( void )
+{
+	return mxp_stack_base_ptr;
+}
+
+MX_EXPORT int
+mx_stack_grows_up( void )
+{
+	return mxp_stack_grows_up;
+}
+
+/* mx_get_stack_offset() computes the offset of an address on the stack
+ * relative to a specified 'stack_base'.  If 'stack_base' is NULL, then
+ * we perform the offset relative to mxp_stack_base_ptr, which is assumed
+ * to have been set "correctly" at program startup time.  If it was not
+ * set up correctly, then the value reported is almost certainly garbage.
+ *
+ * This function also uses mx_stack_grows_up() to try and make the reported
+ * offset a positive integer.  If we get a negative integer, then either
+ * mx_stack_grows_up() is implemented incorrectly on this architecture or
+ * we have set mxp_stack_base_ptr incorrectly or somehow we have popped
+ * more stuff off of the stack than was initially pushed to it!
+ */
+
+/* Note: If we have just overflowed the stack and then try to call the function
+ * mx_get_stack_offset(), the C runtime library or the operating system itself
+ * may intervene to interrupt the program before we can actually enter
+ * mx_get_stack_offset() itself.  In that case, we suggest making a call to
+ * mx_get_stack_offset() in the caller to the current routine, rather than
+ * the current routine itself.
+ */
+
+MX_EXPORT long
+mx_get_stack_offset( const void *stack_base, const void *stack_address )
+{
+	ptrdiff_t offset;
+
+	if ( stack_base == (void *) NULL ) {
+		if ( mxp_stack_base_ptr == (void *) NULL ) {
+			(void) mx_error( MXE_INITIALIZATION_ERROR, "",
+			"Stack offset reporting has not yet been set up "
+			"for this program." );
+
+			return (-1L);
+		} else {
+			stack_base = mxp_stack_base_ptr;
+		}
+	}
+
+	if ( mxp_stack_grows_up ) {
+		offset = (ptrdiff_t) stack_address - (ptrdiff_t) stack_base;
+	} else {
+		offset = (ptrdiff_t) stack_base - (ptrdiff_t) stack_address;
+	}
+
+	return (long) offset;
+}
 

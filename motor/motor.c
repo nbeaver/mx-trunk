@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2018 Illinois Institute of Technology
+ * Copyright 1999-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -196,7 +196,7 @@ motor_main( int argc, char *argv[] )
 
 #endif /* HAVE_MAIN_ROUTINE */
 {
-	COMMAND *command;
+	COMMAND *command;	/* Used by mx_initialize_stack_calc() below. */
 	int cmd_argc;
 	char **cmd_argv = NULL;
 	char *command_line = NULL;
@@ -220,6 +220,8 @@ motor_main( int argc, char *argv[] )
 #if HAVE_GETOPT
 	int c, error_flag;
 #endif
+	mx_initialize_stack_calc( &command );
+
 	/* Initialize the MX runtime environment. */
 
 	mx_status = mx_initialize_runtime();

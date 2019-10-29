@@ -43,6 +43,13 @@ motor_test_fn( int argc, char *argv[] )
 			mx_stack_traceback();
 			return SUCCESS;
 		} else
+		if ( strcmp( argv[2], "offset" ) == 0 ) {
+
+			MX_DEBUG(-2,("xyzzy: stack offset = %ld", 
+				mx_get_stack_offset( NULL, &mx_status ) ));
+
+			return SUCCESS;
+		} else
 		if ( strcmp( argv[2], "zero" ) == 0 ) {
 			int i = 42;
 			int j = 0;

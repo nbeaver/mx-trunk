@@ -513,12 +513,10 @@ mxserver_main( int argc, char *argv[] )
 {
 	static const char fname[] = "main()";
 
-#if MS_PILATUS_DEBUG
-	unsigned long mstest_counter = 0;
-	char mstest_string[80];
-#endif
+	/* mx_record_list is used by mx_initialize_stack_calc() below. */
 
-	MX_RECORD *mx_record_list;
+	MX_RECORD *mx_record_list = NULL;
+
 	MX_LIST_HEAD *list_head_struct;
 	MX_HANDLE_TABLE *handle_table;
 	unsigned long handle_table_block_size, handle_table_num_blocks;
@@ -556,6 +554,11 @@ mxserver_main( int argc, char *argv[] )
 					MX_EVENT_HANDLER * );
 	mx_status_type mx_status;
 
+#if MS_PILATUS_DEBUG
+	unsigned long mstest_counter = 0;
+	char mstest_string[80];
+#endif
+
 #if HAVE_GETOPT
 	int c, error_flag;
 #endif
@@ -563,6 +566,8 @@ mxserver_main( int argc, char *argv[] )
 #if MS_MXSERVER_DEBUG
 	fprintf( stderr, "MX server main() invoked.\n" );
 #endif
+
+	mx_initialize_stack_calc( mx_record_list );
 
 	/* Initialize the parts of the MX runtime environment that do not
 	 * depend on the presence of an MX database.

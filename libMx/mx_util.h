@@ -419,6 +419,17 @@ MX_API int mx_stack_check( void );
 
 MX_API long mx_stack_available( void );
 
+/*--- Stack reporting tools ---*/
+
+MX_API void mx_initialize_stack_calc( const void *stack_base );
+
+MX_API const void *mx_get_stack_base( void );
+
+MX_API int mx_stack_grows_up( void );
+
+MX_API long mx_get_stack_offset( const void *stack_base,
+				const void *stack_address );
+
 /*--- Heap debugging tools ---*/
 
 /* mx_heap_pointer_is_valid() checks to see if the supplied pointer
