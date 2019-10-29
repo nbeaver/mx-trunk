@@ -36,7 +36,10 @@
 
 #define MXU_HANDEL_MODULE_TYPE_LENGTH	20
 
-#define MXU_HANDEL_MAX_MODULES		4
+/* FIXME: The following two limitations are for early debugging only! */
+
+#define MXU_HANDEL_MAX_MODULES		1
+#define MXU_HANDEL_MAX_MCAS		4
 
 /* The available values for 'mapping_mode' (expressed as an integer). */
 

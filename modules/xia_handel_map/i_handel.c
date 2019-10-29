@@ -161,9 +161,6 @@ mxi_handel_get_mcs_array( MX_HANDEL *handel,
 	MX_MCS *mcs = NULL;
 	unsigned long i;
 
-	MX_DEBUG(-2,("%s: #1 stack offset = %ld",
-		fname, mx_get_stack_offset( NULL, &i ) ));
-
 	if ( handel == (MX_HANDEL *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_HANDEL pointer passed was NULL." );
@@ -174,9 +171,12 @@ mxi_handel_get_mcs_array( MX_HANDEL *handel,
 	}
 
 	MX_DEBUG(-2,("%s: mcs_array = %p", fname, mcs_array));
+	MX_DEBUG(-2,("%s: num_mcs = %lu", fname, num_mcs));
 
 	for ( i = 0; i < num_mcs; i++ ) {
+#if 1
 		mcs_array[i] = NULL;
+#endif
 
 		mca_record = handel->mca_record_array[i];
 
@@ -219,10 +219,12 @@ mxi_handel_get_mcs_array( MX_HANDEL *handel,
 				handel->record->name );
 		}
 
+#if 1
 		mcs_array[i] = mcs;
 
 		MX_DEBUG(-2,("%s: mcs_array[%lu] = %p",
 			fname, i, mcs_array[i]));
+#endif
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -486,9 +488,9 @@ mxi_handel_mcs_monitor_thread_fn( MX_THREAD *thread, void *thread_args )
 		num_mcs = MXI_HANDEL_CHANNELS_PER_MODULE;
 	}
 
+	MX_DEBUG(-2,("%s: handel = %p '%s', num_mcs = %ld",
+		fname, handel, handel->record->name, num_mcs));
 #if 0
-	MX_DEBUG(-2,("%s: handel = %p '%s', handel->num_mcas = %ld",
-		fname, handel, handel->record->name, handel->num_mcas));
 	MX_DEBUG(-2,("%s: handel->mca_record_array = %p",
 		fname, handel->mca_record_array));
 	{
@@ -1341,6 +1343,17 @@ mxi_handel_open( MX_RECORD *record )
 
 	handel->mcas_per_module = 4;	/* FIXME: For the DXP-XMAP. */
 
+#if 1
+	if ( handel->num_mcas > MXU_HANDEL_MAX_MCAS ) {
+		MX_DEBUG(-2,
+	("*** FIXME: THE NUMBER OF MCAs IS LIMITED TO %d FOR TEST PURPOSES ***",
+	 	MXU_HANDEL_MAX_MCAS));
+
+		handel->num_mcas = MXU_HANDEL_MAX_MCAS;
+		handel->num_modules = MXU_HANDEL_MAX_MODULES;
+	}
+#endif
+
 	dimension_array[0] = handel->num_modules;
 	dimension_array[1] = handel->mcas_per_module;
 
@@ -1870,6 +1883,17 @@ mxi_handel_reallocate_buffers( MX_HANDEL *handel,
 
 	if (1) {
 	    int i;
+
+#if 1
+	    if ( handel->num_mcas > 4 ) {
+		    MX_DEBUG(-2,("%s: BOOYAH!", fname));
+
+		    handel->num_mcas = 4;
+	    }
+#endif
+
+	    MX_DEBUG(-2,("%s: handel->num_mcas = %ld",
+				fname, handel->num_mcas));
 
 	    MX_DEBUG(-2,("%s: *** MARKER BEFORE ***",fname));
 
