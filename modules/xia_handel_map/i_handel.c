@@ -27,6 +27,8 @@
 
 #define MXI_HANDEL_DEBUG_MAPPING_PIXEL_NEXT	TRUE
 
+#define MXI_HANDEL_DEBUG_MUTEX			TRUE
+
 #define MXI_HANDEL_CHANNELS_PER_MODULE		4
 
 #include <stdio.h>
@@ -327,6 +329,15 @@ mxi_handel_read_buffers( MX_HANDEL *handel,
 				channel );
 		}
 
+#if 1
+		MX_DEBUG(-2,("%s: mcs = %p, mcs->data_array = %p",
+			fname, mcs, mcs->data_array));
+		MX_DEBUG(-2,("%s: mcs->data_array[0] = %p",
+			fname, mcs->data_array[0] ));
+		MX_DEBUG(-2,("%s: mcs->data_array[0][0] = %lu",
+			fname, mcs->data_array[0][0] ));
+#endif
+
 		handel_mcs = (MX_HANDEL_MCS *) mcs->record->record_type_struct;
 
 		if ( handel_mcs == (MX_HANDEL_MCS *) NULL ) {
@@ -351,12 +362,34 @@ mxi_handel_read_buffers( MX_HANDEL *handel,
 			break;
 		}
 
+#if MXI_HANDEL_DEBUG_MUTEX
+		MX_DEBUG(-2,("%s: about to lock MX mutex %p",
+						fname, handel->mutex ));
+#endif
+
 		mx_mutex_lock( handel->mutex );
+
+#if MXI_HANDEL_DEBUG_MUTEX
+		MX_DEBUG(-2,("%s: locking MX mutex %p succeeded.",
+						fname, handel->mutex ));
+#endif
 
 		xia_status = xiaGetRunData( channel, run_data_name, buffer_ptr);
 
 		if ( xia_status != XIA_SUCCESS ) {
+
+#if MXI_HANDEL_DEBUG_MUTEX
+			MX_DEBUG(-2,
+			("%s: about to unlock MX mutex %p after XIA failure",
+						fname, handel->mutex ));
+#endif
+
 			mx_mutex_unlock( handel->mutex );
+
+#if MXI_HANDEL_DEBUG_MUTEX
+		MX_DEBUG(-2,("%s: unlocking MX mutex %p succeeded after XIA failure.",
+						fname, handel->mutex ));
+#endif
 
 			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 			"The attempt to read XIA '%s' for MCS '%s' failed.  "
@@ -375,7 +408,17 @@ mxi_handel_read_buffers( MX_HANDEL *handel,
 							= buffer_scaler_value;
 		}
 
+#if MXI_HANDEL_DEBUG_MUTEX
+		MX_DEBUG(-2,("%s: about to unlock MX mutex %p",
+						fname, handel->mutex ));
+#endif
+
 		mx_mutex_unlock( handel->mutex );
+
+#if MXI_HANDEL_DEBUG_MUTEX
+		MX_DEBUG(-2,("%s: unlocking MX mutex %p succeeded.",
+						fname, handel->mutex ));
+#endif
 	    }
 	}
 
@@ -1163,6 +1206,10 @@ mxi_handel_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if MXI_HANDEL_DEBUG_MUTEX
+	MX_DEBUG(-2,("%s: created MX mutex %p", fname, handel->mutex));
+#endif
 
 	/*---*/
 
