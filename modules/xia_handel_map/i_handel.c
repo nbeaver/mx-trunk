@@ -182,10 +182,16 @@ mxi_handel_get_mcs_array( MX_HANDEL *handel,
 
 		mca_record = handel->mca_record_array[i];
 
+		MX_DEBUG(-2,("%s: handel->mca_record_array[%lu] = %p",
+			fname, i, mca_record));
+
 		if ( mca_record == (MX_RECORD *) NULL ) {
 			/* Skip over MCA records that are not present. */
 			continue;
 		}
+
+		MX_DEBUG(-2,("%s: (%lu) mca_record = '%s'",
+			fname, i, mca_record->name ));
 
 		handel_mca = (MX_HANDEL_MCA *) mca_record->record_type_struct;
 
@@ -196,7 +202,13 @@ mxi_handel_get_mcs_array( MX_HANDEL *handel,
 				mca_record->name, handel->record->name );
 		}
 
+		MX_DEBUG(-2,("%s: (%lu) handel_mca = %p",
+			fname, i, handel_mca));
+
 		mcs_record = handel_mca->child_mcs_record;
+
+		MX_DEBUG(-2,("%s: (%lu) mcs_record = %p",
+			fname, i, mcs_record));
 
 		/* If mcs_record is NULL, then no child MCS record has
 		 * been set up for this MCA in the MX database.  This
@@ -211,7 +223,12 @@ mxi_handel_get_mcs_array( MX_HANDEL *handel,
 			continue;	
 		}
 
+		MX_DEBUG(-2,("%s: (%lu) mcs_record = '%s'",
+			fname, i, mcs_record->name));
+
 		mcs = (MX_MCS *) mcs_record->record_class_struct;
+
+		MX_DEBUG(-2,("%s: (%lu) mcs = %p", fname, i, mcs));
 
 		if ( mcs == (MX_MCS *) NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1390,7 +1407,7 @@ mxi_handel_open( MX_RECORD *record )
 
 	handel->mcas_per_module = 4;	/* FIXME: For the DXP-XMAP. */
 
-#if 1
+#if 0
 	if ( handel->num_mcas > MXU_HANDEL_MAX_MCAS ) {
 		MX_DEBUG(-2,
 	("*** FIXME: THE NUMBER OF MCAs IS LIMITED TO %d FOR TEST PURPOSES ***",
