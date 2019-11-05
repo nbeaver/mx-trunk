@@ -338,6 +338,14 @@ mxd_handel_mcs_open( MX_RECORD *record )
 	handel->mapping_mode = MXF_HANDEL_MAP_MCA_MODE;
 #endif
 
+#if 1
+	MX_DEBUG(-2,("%s: mcs '%s' = %p", fname, mcs->record->name, mcs));
+	MX_DEBUG(-2,("%s: mcs->data_array = %p", fname, mcs->data_array));
+	MX_DEBUG(-2,("%s: mcs->data_array[0] = %p", fname, mcs->data_array[0]));
+	MX_DEBUG(-2,("%s: mcs->data_array[0][0] = %lu",
+						fname, mcs->data_array[0][0]));
+#endif
+
 	return MX_SUCCESSFUL_RESULT;
 }
 

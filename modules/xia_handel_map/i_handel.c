@@ -347,8 +347,10 @@ mxi_handel_read_buffers( MX_HANDEL *handel,
 		}
 
 #if 1
-		MX_DEBUG(-2,("%s: mcs = %p, mcs->data_array = %p",
-			fname, mcs, mcs->data_array));
+		MX_DEBUG(-2,("%s: mcs = %p", fname, mcs));
+		MX_DEBUG(-2,("%s: mcs = '%s'", fname, mcs->record->name));
+		MX_DEBUG(-2,("%s: mcs->data_array = %p",
+			fname, mcs->data_array));
 		MX_DEBUG(-2,("%s: mcs->data_array[0] = %p",
 			fname, mcs->data_array[0] ));
 		MX_DEBUG(-2,("%s: mcs->data_array[0][0] = %lu",
@@ -380,15 +382,15 @@ mxi_handel_read_buffers( MX_HANDEL *handel,
 		}
 
 #if MXI_HANDEL_DEBUG_MUTEX
-		MX_DEBUG(-2,("%s: about to lock MX mutex %p",
-						fname, handel->mutex ));
+		MX_DEBUG(-2,("%s: thread %#lx about to lock MX mutex %p",
+				fname, mx_get_thread_id(NULL), handel->mutex ));
 #endif
 
 		mx_mutex_lock( handel->mutex );
 
 #if MXI_HANDEL_DEBUG_MUTEX
-		MX_DEBUG(-2,("%s: locking MX mutex %p succeeded.",
-						fname, handel->mutex ));
+		MX_DEBUG(-2,("%s: thread %#lx locking MX mutex %p succeeded.",
+				fname, mx_get_thread_id(NULL), handel->mutex ));
 #endif
 
 		xia_status = xiaGetRunData( channel, run_data_name, buffer_ptr);
@@ -397,15 +399,16 @@ mxi_handel_read_buffers( MX_HANDEL *handel,
 
 #if MXI_HANDEL_DEBUG_MUTEX
 			MX_DEBUG(-2,
-			("%s: about to unlock MX mutex %p after XIA failure",
-						fname, handel->mutex ));
+	("%s: thread %#lx about to unlock MX mutex %p after XIA failure",
+				fname, mx_get_thread_id(NULL), handel->mutex ));
 #endif
 
 			mx_mutex_unlock( handel->mutex );
 
 #if MXI_HANDEL_DEBUG_MUTEX
-		MX_DEBUG(-2,("%s: unlocking MX mutex %p succeeded after XIA failure.",
-						fname, handel->mutex ));
+		MX_DEBUG(-2,
+	("%s: thread %#lx unlocking MX mutex %p succeeded after XIA failure.",
+				fname, mx_get_thread_id(NULL), handel->mutex ));
 #endif
 
 			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
@@ -426,15 +429,15 @@ mxi_handel_read_buffers( MX_HANDEL *handel,
 		}
 
 #if MXI_HANDEL_DEBUG_MUTEX
-		MX_DEBUG(-2,("%s: about to unlock MX mutex %p",
-						fname, handel->mutex ));
+		MX_DEBUG(-2,("%s: thread %#lx about to unlock MX mutex %p",
+				fname, mx_get_thread_id(NULL), handel->mutex ));
 #endif
 
 		mx_mutex_unlock( handel->mutex );
 
 #if MXI_HANDEL_DEBUG_MUTEX
-		MX_DEBUG(-2,("%s: unlocking MX mutex %p succeeded.",
-						fname, handel->mutex ));
+		MX_DEBUG(-2,("%s: thread %#lx unlocking MX mutex %p succeeded.",
+				fname, mx_get_thread_id(NULL), handel->mutex ));
 #endif
 	    }
 	}
@@ -1225,7 +1228,8 @@ mxi_handel_open( MX_RECORD *record )
 		return mx_status;
 
 #if MXI_HANDEL_DEBUG_MUTEX
-	MX_DEBUG(-2,("%s: created MX mutex %p", fname, handel->mutex));
+	MX_DEBUG(-2,("%s: thread %#lx created MX mutex %p",
+			fname, mx_get_thread_id(NULL), handel->mutex));
 #endif
 
 	/*---*/
@@ -1369,7 +1373,7 @@ mxi_handel_open( MX_RECORD *record )
 	 */
 
 	handel->mca_record_array = ( MX_RECORD ** ) malloc(
-					num_mcas * sizeof( MX_RECORD * ) );
+				handel->num_mcas * sizeof( MX_RECORD * ) );
 
 	if ( handel->mca_record_array == ( MX_RECORD ** ) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -1406,17 +1410,6 @@ mxi_handel_open( MX_RECORD *record )
 	/* Allocate a two-dimensional module pointer array. */
 
 	handel->mcas_per_module = 4;	/* FIXME: For the DXP-XMAP. */
-
-#if 0
-	if ( handel->num_mcas > MXU_HANDEL_MAX_MCAS ) {
-		MX_DEBUG(-2,
-	("*** FIXME: THE NUMBER OF MCAs IS LIMITED TO %d FOR TEST PURPOSES ***",
-	 	MXU_HANDEL_MAX_MCAS));
-
-		handel->num_mcas = MXU_HANDEL_MAX_MCAS;
-		handel->num_modules = MXU_HANDEL_MAX_MODULES;
-	}
-#endif
 
 	dimension_array[0] = handel->num_modules;
 	dimension_array[1] = handel->mcas_per_module;
