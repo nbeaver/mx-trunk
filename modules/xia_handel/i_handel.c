@@ -721,7 +721,7 @@ mxi_handel_open( MX_RECORD *record )
 	 */
 
 	handel->mca_record_array = ( MX_RECORD ** ) malloc(
-					num_mcas * sizeof( MX_RECORD * ) );
+				handel->num_mcas * sizeof( MX_RECORD * ) );
 
 	if ( handel->mca_record_array == ( MX_RECORD ** ) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,

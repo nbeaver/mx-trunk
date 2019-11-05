@@ -17,7 +17,8 @@ ifeq ($(MX_ARCH),linux)
 endif
 
 ifeq ($(MX_ARCH),win32)
-	XIA_HANDEL_DIR = c:\\progra~1\\XIA\\xmanag~1.1\\sdk
+	#XIA_HANDEL_DIR = c:\\progra~1\\XIA\\xmanag~1.1\\sdk
+	XIA_HANDEL_DIR = c:\\opt\\handel-1.2.22
 
 	CFLAGS += -I$(XIA_HANDEL_DIR)\\inc
 endif
