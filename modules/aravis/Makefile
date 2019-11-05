@@ -4,6 +4,23 @@
 
 ARAVIS_VERSION = aravis-0.6
 
+ifeq (,$(shell which pkg-config))
+    $(error "Error: pkg-config is not installed.")
+endif
+
+#
+# Note: On Debian 10, pkg-config says that the following pkg-config style
+# packages be installed for aravis-0.6:
+#   glib-2.0, gobject-2.0, gio-2.0, libxml-2.0, gthread-2.0
+#
+# On Debian 10, these requirements are fulfilled by installing the 
+# following Debian packages.  You would think that the Debian packages
+# would make the same requirements as those imposed by the pkg-config
+# system, but they don't.
+#
+#   libglib2.0-dev, libxml2-dev
+#
+
 ARAVIS_INCLUDES  := $(shell pkg-config --cflags ${ARAVIS_VERSION})
 ARAVIS_LIBRARIES := $(shell pkg-config --libs ${ARAVIS_VERSION})
 

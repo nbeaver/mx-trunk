@@ -1,7 +1,7 @@
-*** XPS_C8_drivers.cpp.orig	2018-09-25 02:22:36.785375464 -0500
---- XPS_C8_drivers.cpp	2018-09-25 02:26:44.117374891 -0500
+*** XPS_C8_drivers.cpp.orig	2019-11-05 09:20:11.569353589 -0800
+--- XPS_C8_drivers.cpp	2019-11-05 09:30:12.430816660 -0800
 ***************
-*** 16,22 ****
+*** 16,36 ****
   	#define DLL 
   #endif
   
@@ -9,16 +9,13 @@
   
   #define SIZE_SMALL 1024
   #define SIZE_NOMINAL 1024
---- 16,22 ----
-  	#define DLL 
-  #endif
+  #define SIZE_BIG 2048
+  #define SIZE_HUGE 65536
   
-! #include "XPS_C8_drivers.h" 
+! #define SIZE_EXECUTE_METHOD 1024
   
-  #define SIZE_SMALL 1024
-  #define SIZE_NOMINAL 1024
-***************
-*** 30,36 ****
+  #define SIZE_NAME    100
+  #ifdef __cplusplus
   extern "C"
   {
   #else
@@ -26,7 +23,21 @@
   #endif
   
   #define DLL_VERSION "Library version for XPS-C8 Firmware V2.6.x"
---- 30,36 ----
+--- 16,36 ----
+  	#define DLL 
+  #endif
+  
+! #include "XPS_C8_drivers.h" 
+  
+  #define SIZE_SMALL 1024
+  #define SIZE_NOMINAL 1024
+  #define SIZE_BIG 2048
+  #define SIZE_HUGE 65536
+  
+! #define SIZE_EXECUTE_METHOD (1024+1)
+  
+  #define SIZE_NAME    100
+  #ifdef __cplusplus
   extern "C"
   {
   #else

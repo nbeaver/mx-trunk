@@ -5,7 +5,9 @@
 # libusb-0.1 API that is described at the http://www.libusb.org/ website.
 #
 # Note that libusb-0.1 itself supports a variety of operating systems,
-# but the MX libusb-0.1 module has only been built on Linux so far.
+# but the MX libusb-0.1 module has only been tested on Linux so far.
+#
+# On Debian 10, this MX module requires the libusb-dev package be installed.
 #
 # Supported values of MX_ARCH: linux
 #
