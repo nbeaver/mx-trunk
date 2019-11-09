@@ -24,6 +24,8 @@
 #include "mx_net_interface.h"
 #include "mx_callback.h"
 #include "mx_signal_alloc.h"
+#include "mx_thread.h"
+#include "mx_debugger.h"
 
 int
 motor_test_fn( int argc, char *argv[] )
@@ -74,7 +76,7 @@ motor_test_fn( int argc, char *argv[] )
 
 			mx_info( "Setting up watchpoint." );
 
-			mx_set_watchpoint( &watchpoint,
+			mx_set_watchpoint( &watchpoint, NULL,
 				&watch_test, MXFT_LONG, W_OK, NULL, NULL );
 
 			mx_show_watchpoints();

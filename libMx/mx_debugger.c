@@ -32,8 +32,9 @@
 #include "mx_unistd.h"
 #include "mx_signal.h"
 #include "mx_stdint.h"
-#include "mx_thread.h"
 #include "mx_array.h"
+#include "mx_thread.h"
+#include "mx_debugger.h"
 
 #if ( defined(OS_WIN32) && (_WIN32_WINNT >= 0x0400) ) || defined(OS_MACOSX)
 #  define USE_MX_DEBUGGER_IS_PRESENT	TRUE
@@ -920,8 +921,8 @@ mx_get_numbered_breakpoint( unsigned long breakpoint_number )
 
 #if ( defined(OS_WIN32) && defined(_MSC_VER) )
 
-# if (_MSC_VER < 1200)
-  /* Stubs for Visual C++ 5.0 and before. */
+# if (_MSC_VER < 100)
+  /* Stubs for Visual C++ 5.0 and before. ( = 1200) */
 
 MX_EXPORT int
 mx_set_watchpoint( MX_WATCHPOINT **watchpoint_ptr,
@@ -957,7 +958,11 @@ mx_show_watchpoints( void )
 
 /*------------*/
 
-# else
+# elif 0
+
+/*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
+
+  /* FIXME: The following does not work.  Probably should be removed. */
   /* For Visual C++ 6.0 and above. */
 
 typedef struct {
@@ -1487,6 +1492,474 @@ mx_show_watchpoints( void )
 }
 
   /* For Visual C++ 6.0 and above. */
+
+# else 
+
+/**************************************************************************/
+
+/* Inspired by:
+ *
+ *   https://www.codeproject.com/Articles/28071/Toggle-hardware-data-read-execute-breakpoints-prog
+ *
+ */
+
+typedef struct {
+	HANDLE event_handle;
+	mx_bool_type remove_watchpoint;
+} MX_WIN32_WATCHPOINT_PRIVATE;
+
+/*---*/
+
+/* FIXME: The following was copied from mx_thread.c. */
+
+typedef struct {
+	unsigned thread_id;
+	HANDLE thread_handle;
+	HANDLE stop_event_handle;
+} MX_WIN32_THREAD_PRIVATE;
+
+/*---*/
+
+/* FIXME FIXME FIXME FIXME: Before returning, the spectator thread _MUST_
+ * call the function SetEvent( win32_private->event_handle ).  This is so
+ * that the call to mx_set_watchpoint() can complete.
+ */
+
+static mx_status_type
+mxp_win32_watchpoint_spectator( MX_THREAD *thread, void *args )
+{
+	static const char fname[] = "mxp_win32_watchpoint_spectator()";
+
+	MX_WATCHPOINT *watchpoint = NULL;
+	MX_WIN32_WATCHPOINT_PRIVATE *win32_private = NULL;
+	MX_THREAD *target_thread = NULL;
+	MX_WIN32_THREAD_PRIVATE *target_thread_private = NULL;
+	HANDLE target_thread_handle = NULL;
+	CONTEXT target_context;
+	long last_error_code;
+	TCHAR error_message[100];
+	BOOL os_status;
+	DWORD64 dr7_bits;
+	int debug_reg_index;
+	size_t value_length;
+	void * value_pointer;
+	unsigned long flags, debug_extension_flags;
+	unsigned long  debug_extension_value, debug_extension_mask;
+	unsigned long size_option, size_selector, size_mask;
+
+	watchpoint = (MX_WATCHPOINT *) args;
+
+	win32_private = (MX_WIN32_WATCHPOINT_PRIVATE *)
+				watchpoint->watchpoint_private;
+
+	target_thread = watchpoint->target_thread;
+
+	target_thread_private = ( MX_WIN32_THREAD_PRIVATE * )
+					target_thread->thread_private;
+
+	target_thread_handle = (*target_thread_private).thread_handle;
+
+	/* Suspend the target thread so that we can modify its context. */
+
+	os_status = SuspendThread( target_thread_handle );
+
+	if ( os_status == (DWORD)(-1) ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+					error_message,
+					sizeof(error_message) );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to call SuspendThread() for target "
+		"thread handle %p failed.  "
+		"Win32 error code = %ld, error message = '%s'.",
+			target_thread_handle,
+			last_error_code,
+			error_message );
+	}
+
+	/* We are only interested in the debug registers. */
+
+	target_context.ContextFlags = CONTEXT_DEBUG_REGISTERS;
+
+	os_status = GetThreadContext( target_thread_handle, &target_context );
+
+	if ( os_status == 0 ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+					error_message,
+					sizeof(error_message) );
+
+		(void) ResumeThread( target_thread_handle );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to call GetThreadContext() for target "
+		"thread handle %p failed.  "
+		"Win32 error code = %ld, error message = '%s'.",
+			target_thread_handle,
+			last_error_code,
+			error_message );
+	}
+
+	for ( debug_reg_index = 0; debug_reg_index < 4; debug_reg_index++ ) {
+
+		/* We only can use local breakpoints, since global breakpoints
+		 * are global to the _entire_ _computer_ and not just the
+		 * entire process.  However, we must test for both local and
+		 * global breakpoints just in case Windows itself is using
+		 * them.
+		 */
+
+		dr7_bits = 0x3 >> ( debug_reg_index * 2 );
+
+		if ( ( target_context.Dr7 & dr7_bits ) == 0 ) {
+
+			/* This debug_reg_index is available. */
+			break;
+		}
+	}
+
+	if ( debug_reg_index >= 4 ) {
+		(void) ResumeThread( target_thread_handle );
+
+		return mx_error( MXE_NOT_AVAILABLE, fname,
+		"Cannot set watchpoint %p since all hardware watchpoints "
+		"are already in use.", watchpoint );
+	}
+
+	/* select the address to watch. */
+
+	value_pointer = watchpoint->value_pointer;
+
+#if ( defined(_MSC_VER) && (_MSC_VER >=1900 ) )
+	/* For Visual Studio 2017 and above. */
+
+	switch( debug_reg_index ) {
+	case 0: target_context.Dr0 = (DWORD64) value_pointer; break;
+	case 1: target_context.Dr1 = (DWORD64) value_pointer; break;
+	case 2: target_context.Dr2 = (DWORD64) value_pointer; break;
+	case 3: target_context.Dr3 = (DWORD64) value_pointer; break;
+	}
+#else
+	/* Before Visual Studio 2017 */
+
+#if ( MX_WORDSIZE == 64 )
+	switch( debug_reg_index ) {
+	case 0: target_context.Dr0 = (DWORD64) value_pointer; break;
+	case 1: target_context.Dr1 = (DWORD64) value_pointer; break;
+	case 2: target_context.Dr2 = (DWORD64) value_pointer; break;
+	case 3: target_context.Dr3 = (DWORD64) value_pointer; break;
+	}
+#else
+	switch( debug_reg_index ) {
+	case 0: target_context.Dr0 = (DWORD) value_pointer; break;
+	case 1: target_context.Dr1 = (DWORD) value_pointer; break;
+	case 2: target_context.Dr2 = (DWORD) value_pointer; break;
+	case 3: target_context.Dr3 = (DWORD) value_pointer; break;
+	}
+#endif
+
+#endif
+
+	/* Enable the matching local breakpoint. */
+
+	target_context.Dr7 |= 0x1 >> ( debug_reg_index * 2 );
+
+	/* Select the condition for the breakpoint. */
+
+	flags = watchpoint->flags;
+
+	/* Note: We do not use debug_extension_flags == 0x2, which
+	 * stands for 'break on I/O reads or writes'.  I am not sure
+	 * what that one does.
+	 */
+
+	if ( flags == X_OK ) {
+		/* break on instruction execution only */
+		debug_extension_flags = 0x0;
+	} else
+	if ( flags == W_OK ) {
+		/* break on data writes only */
+		debug_extension_flags = 0x1;
+	} else
+	if ( flags & R_OK ) {
+		/* break on data reads or writes */
+		debug_extension_flags = 0x3;
+	} else {
+		(void) ResumeThread( target_thread_handle );
+
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Illegal flags %#lx requested for watchpoint %p.",
+			flags, watchpoint );
+	}
+
+	debug_extension_value =
+		debug_extension_flags >> ( 16 + debug_reg_index * 2 );
+
+	debug_extension_mask = 0x3 >> ( 16 + debug_reg_index * 2 );
+
+	target_context.Dr7 &= (~debug_extension_mask);
+
+	target_context.Dr7 |= debug_extension_value;
+
+	/* Figure out the size of the memory location in bytes. */
+
+	value_length = 
+		mx_get_scalar_element_size( watchpoint->value_datatype, FALSE );
+
+	switch( value_length ) {
+	case 1:
+		size_option = 0x0;
+		break;
+	case 2:
+		size_option = 0x1;
+		break;
+	case 4:
+		size_option = 0x3;
+		break;
+	case 8:
+		/* This only checks the first 4 bytes of the value.
+		 * Apparently x86 processors do not really handle
+		 * the case of 8 bytes.
+		 */
+		size_option = 0x3;
+		break;
+	default:
+		(void) ResumeThread( target_thread_handle );
+
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"MX scalar element size %ld is not supported.",
+			(long) value_length );
+		break;
+	}
+
+	size_selector = size_option >> ( 18 + debug_reg_index * 2 );
+	size_mask = 0x3 >> ( 18 + debug_reg_index * 2 );
+
+	target_context.Dr7 &= (~size_mask);
+
+	target_context.Dr7 |= size_selector;
+
+	/* Now set the new target thread context. */
+
+	os_status = SetThreadContext( target_thread_handle, &target_context );
+
+	if ( os_status == 0 ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+					error_message,
+					sizeof(error_message) );
+
+		(void) ResumeThread( target_thread_handle );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to call SetThreadContext() for target "
+		"thread handle %p failed.  "
+		"Win32 error code = %ld, error message = '%s'.",
+			target_thread_handle,
+			last_error_code,
+			error_message );
+	}
+
+#if 1
+	MX_DEBUG(-2,
+	("%s: Dr0 = %#lx, Dr1 = %#lx, Dr2 = %#lx, Dr3 = %#lx, Dr7 = %#lx",
+		fname, (unsigned long) target_context.Dr0,
+		(unsigned long) target_context.Dr1,
+		(unsigned long) target_context.Dr2,
+		(unsigned long) target_context.Dr3,
+		(unsigned long) target_context.Dr7 ));
+#endif
+
+	/* Resume the target thread since we are done modifying its context. */
+
+	os_status = ResumeThread( target_thread_handle );
+
+	if ( os_status == 0 ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+					error_message,
+					sizeof(error_message) );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to call ResumeThread() for target "
+		"thread handle %p failed.  "
+		"Win32 error code = %ld, error message = '%s'.",
+			target_thread_handle,
+			last_error_code,
+			error_message );
+	}
+
+	/* We are done so terminate this thread by returning from
+	 * this thread function.
+	 */
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
+MX_EXPORT int
+mx_set_watchpoint( MX_WATCHPOINT **watchpoint_ptr,
+		MX_THREAD *target_thread,
+		void *value_pointer,
+		long value_datatype,
+		unsigned long flags,
+		void *callback_function( MX_WATCHPOINT *, void * ),
+		void *callback_arguments )
+{
+	static const char fname[] = "mx_set_watchpoint()";
+
+	MX_WATCHPOINT *watchpoint;
+	MX_THREAD *spectator_thread = NULL;
+	MX_WIN32_WATCHPOINT_PRIVATE *win32_private = NULL;
+	double timeout_seconds;
+	mx_status_type mx_status; 
+
+	if ( watchpoint_ptr == (MX_WATCHPOINT **) NULL ) {
+		return FALSE;
+	}
+	if ( value_pointer == NULL ) {
+		return FALSE;
+	}
+
+	/* Create a watchpoint if one does not yet exist. */
+
+	if ( *watchpoint_ptr == (MX_WATCHPOINT *) NULL ) {
+		watchpoint = (MX_WATCHPOINT *)
+				calloc( 1, sizeof(MX_WATCHPOINT) );
+
+		if ( watchpoint == (MX_WATCHPOINT *) NULL ) {
+			(void) mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate "
+			"an MX_WATCHPOINT structure." );
+
+			return FALSE;
+		}
+
+		*watchpoint_ptr = watchpoint;
+	} else {
+		watchpoint = *watchpoint_ptr;
+	}
+
+	/* If target_thread is NULL, then we use the current thread
+	 * as the targetted thread.
+	 */
+
+	if ( target_thread == (MX_THREAD *) NULL ) {
+		target_thread = mx_get_current_thread_pointer();
+	}
+
+	/* Initialize the MX_WATCHPOINT structure. */
+
+	watchpoint->target_thread = target_thread;
+	watchpoint->value_pointer = value_pointer;
+	watchpoint->value_datatype = value_datatype;
+	watchpoint->flags = flags;
+	watchpoint->callback_function = callback_function;
+	watchpoint->callback_arguments = callback_arguments;
+
+	win32_private = (MX_WIN32_WATCHPOINT_PRIVATE *)
+			calloc( 1, sizeof(MX_WIN32_WATCHPOINT_PRIVATE) );
+
+	if ( win32_private == (MX_WIN32_WATCHPOINT_PRIVATE *) NULL ) {
+		(void) mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate "
+		"an MX_WIN32_WATCHPOINT_PRIVATE structure." );
+		return FALSE;
+	}
+
+	watchpoint->watchpoint_private = win32_private;
+
+	/* SetThreadContext() only works correctly if the thread it
+	 * is applied to is suspended at the time.  In order to obey
+	 * this restriction, we create a 'spectator thread' which will
+	 * suspend the thread that mx_set_watchpoint() is running in.
+	 * Before doing that, we create a Win32 event object that is
+	 * reset by the spectator thread when it has finished setting
+	 * up the watchpoint.
+	 */
+
+	/* First, create the event. */
+
+	win32_private->event_handle = CreateEvent( 0, 0, 0, 0 );
+
+	win32_private->remove_watchpoint = FALSE;
+
+	/* Create the spectator thread. */
+
+	mx_status = mx_thread_create( &spectator_thread,
+					mxp_win32_watchpoint_spectator,
+					watchpoint );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return FALSE;
+
+	/* Wait for the spectator thread to say that it is done. */
+
+	WaitForSingleObject( win32_private->event_handle, INFINITE );
+
+	CloseHandle( win32_private->event_handle );
+
+	return TRUE;
+}
+
+MX_EXPORT int
+mx_clear_watchpoint( MX_WATCHPOINT *watchpoint ) {
+	int result;
+
+	result = mx_set_watchpoint( &watchpoint, NULL, NULL, 0, 0, NULL, NULL );
+
+	return result;
+}
+
+MX_EXPORT int
+mx_show_watchpoints( void )
+{
+	static const char fname[] = "mx_show_watchpoints()";
+
+	MX_THREAD *our_thread = NULL;
+	MX_THREAD *spectator_thread = NULL;
+	double timeout_seconds;
+	mx_status_type mx_status;
+
+	/* GetThreadContext() only works correctly if the thread it
+	 * is applied to is suspended at the time.  In order to obey
+	 * this restriction, we create a 'spectator thread' which will
+	 * suspend the thread that mx_show_watchpoints() is running in
+	 * and then resume that thread after we have displayed its
+	 * watchpoints.
+	 */
+
+#if 0
+	mx_status = mx_thread_create( &spectator_thread,
+					mxp_win32_show_watchpoint_spectator,
+					mx_win32_get_current_thread_handle );
+#else
+	/* FIXME: The following does not work. */
+
+	mx_status = mx_thread_create( &spectator_thread,
+					NULL,
+					mx_win32_get_current_thread_handle );
+#endif
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return FALSE;
+
+	timeout_seconds = 30.0;
+
+	mx_status = mx_thread_wait( spectator_thread, NULL, timeout_seconds );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return FALSE;
+
+	return TRUE;
+}
+
 # endif
 
 /*-------------------------------------------------------------------------*/
@@ -1578,6 +2051,7 @@ mxp_default_watchpoint_handler( int signum, siginfo_t *info, void *ucontext )
 
 MX_EXPORT int
 mx_set_watchpoint( MX_WATCHPOINT **watchpoint_ptr,
+		MX_THREAD *target_thread,
 		void *value_pointer,
 		long value_datatype,
 		unsigned long flags,
