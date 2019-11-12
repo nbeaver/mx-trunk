@@ -34,6 +34,7 @@
 #include "mx_key.h"
 #include "mx_cfn.h"
 #include "mx_net.h"
+#include "mx_debugger.h"
 
 #if defined(DEBUG_MPATROL)
 #  include <mpatrol/heapdiff.h>

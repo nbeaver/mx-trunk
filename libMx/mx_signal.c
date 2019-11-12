@@ -31,6 +31,7 @@
 #include "mx_signal.h"
 #include "mx_stdint.h"
 #include "mx_thread.h"
+#include "mx_debugger.h"
 
 /*-------------------------------------------------------------------------*/
 

@@ -36,6 +36,7 @@
 #include "mx_memory.h"
 #include "mx_socket.h"
 #include "mx_process.h"
+#include "mx_debugger.h"
 #include "mx_time.h"
 #include "mx_version.h"
 #include "motor.h"

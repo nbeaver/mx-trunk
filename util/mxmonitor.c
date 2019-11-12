@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2007-2014, 2017 Illinois Institute of Technology
+ * Copyright 2007-2014, 2017, 2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,6 +29,7 @@
 #include "mx_net.h"
 #include "mx_callback.h"
 #include "mx_key.h"
+#include "mx_debugger.h"
 #include "n_tcpip.h"
 #include "n_unix.h"
 

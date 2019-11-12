@@ -17,7 +17,7 @@
 #ifndef __MX_DEBUGGER_H__
 #define __MX_DEBUGGER_H__
 
-MX_API void mx_force_core_dump( void );
+#include "mx_thread.h"
 
 /*
  * mx_start_debugger() attempts to start an external debugger such as the
@@ -56,6 +56,8 @@ MX_API int mx_breakpoint_helper( void );
 
 /* mx_breakpoint() inserts a debugger breakpoint into the code.
  * This function is not available on all platforms.
+ *
+ * Note: There is a duplicate of the definition of mx_breakpoint() in mx_util.h
  */
 
 MX_API void mx_breakpoint( void );

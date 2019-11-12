@@ -59,6 +59,7 @@
 #include "mx_process.h"
 #include "mx_callback.h"
 #include "mx_security.h"
+#include "mx_debugger.h"
 
 #include "ms_mxserver.h"
 

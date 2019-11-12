@@ -53,6 +53,7 @@
 #include "mx_virtual_timer.h"
 #include "mx_process.h"
 #include "mx_security.h"
+#include "mx_debugger.h"
 
 #include "ms_mxserver.h"
 

@@ -483,6 +483,12 @@ MX_API int mx_pointer_is_valid( void *pointer, size_t length, int access_mode );
 
 MX_API void mx_force_core_dump( void );
 
+/* This is a duplicate of the definition in mx_debugger.h.  It is here just
+ * so that we do not need to include "mx_debugger.h" everywhere.
+ */
+
+MX_API void mx_breakpoint( void );
+
 /*
  * mx_hex_char_to_unsigned_long() converts a hexadecimal character to an
  * unsigned long integer.  mx_hex_string_to_unsigned_long() does the same

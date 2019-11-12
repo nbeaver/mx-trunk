@@ -29,6 +29,7 @@
 #include "mx_list_head.h"
 #include "mx_dynamic_library.h"
 #include "mx_time.h"
+#include "mx_debugger.h"
 
 #include "mx_callback.h"
 #include "mx_process.h"

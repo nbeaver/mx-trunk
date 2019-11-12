@@ -8,7 +8,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2007, 2009-2012, 2014-2017 Illinois Institute of Technology
+ * Copyright 1999-2007, 2009-2012, 2014-2017, 2019
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -36,6 +37,7 @@
 #include "mx_socket.h"
 #include "mx_net.h"
 #include "mx_syslog.h"
+#include "mx_debugger.h"
 
 #include "ms_autosave.h"
 

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2003-2012, 2014-2015 Illinois Institute of Technology
+ * Copyright 2001, 2003-2012, 2014-2015, 2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -32,6 +32,7 @@
 #include "mx_dirent.h"
 #include "mx_cfn.h"
 #include "mx_cfn_defaults.h"
+#include "mx_debugger.h"
 #include "mx_version.h"
 
 #ifndef SUCCESS
