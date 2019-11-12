@@ -624,6 +624,15 @@ mxd_pilatus_create_record_structures( MX_RECORD *record )
 
 	pilatus->exposure_in_progress = FALSE;
 
+	pilatus->last_return_code = 0;
+	pilatus->previous_return_code = 0;
+
+	memset( pilatus->last_error_status,
+		0, sizeof(pilatus->last_error_status) );
+
+	memset( pilatus->previous_error_status,
+		0, sizeof(pilatus->previous_error_status) );
+
 	return MX_SUCCESSFUL_RESULT;
 }
 

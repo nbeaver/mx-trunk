@@ -82,8 +82,8 @@ typedef struct {
 	unsigned long last_return_code;
 	unsigned long previous_return_code;
 
-	char last_error_status[MXU_PILATUS_ERROR_STATUS_LENGTH];
-	char previous_error_status[MXU_PILATUS_ERROR_STATUS_LENGTH];
+	char last_error_status[MXU_PILATUS_ERROR_STATUS_LENGTH+1];
+	char previous_error_status[MXU_PILATUS_ERROR_STATUS_LENGTH+1];
 } MX_PILATUS;
 
 #define MXLV_PILATUS_DETECTOR_SERVER_DATAFILE_DIRECTORY	87801
@@ -238,12 +238,12 @@ typedef struct {
   {-1, -1, "last_error_status", MXFT_STRING, \
 				NULL, 1, {MXU_PILATUS_ERROR_STATUS_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, last_error_status), \
-	{0}, NULL, 0 }, \
+	{sizeof(char)}, NULL, 0 }, \
   \
   {-1, -1, "previous_error_status", MXFT_STRING, \
 				NULL, 1, {MXU_PILATUS_ERROR_STATUS_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, previous_error_status), \
-	{0}, NULL, 0 }
+	{sizeof(char)}, NULL, 0 }
 
 MX_API mx_status_type mxd_pilatus_initialize_driver( MX_DRIVER *driver );
 MX_API mx_status_type mxd_pilatus_create_record_structures( MX_RECORD *record );
