@@ -23,6 +23,8 @@
 #define MXU_PILATUS_THRESHOLD_STRING_LENGTH	80
 #define MXU_PILATUS_TVX_VERSION_LENGTH		80
 
+#define MXU_PILATUS_ERROR_STATUS_LENGTH		10
+
 /* Values for the 'pilatus_flags' field. */
 
 #define MXF_PILATUS_DEBUG_SERIAL			0x1
@@ -76,6 +78,12 @@ typedef struct {
 
 	double ext_enable_time;
 	double ext_enable_period;
+
+	unsigned long last_return_code;
+	unsigned long previous_return_code;
+
+	char last_error_status[MXU_PILATUS_ERROR_STATUS_LENGTH];
+	char previous_error_status[MXU_PILATUS_ERROR_STATUS_LENGTH];
 } MX_PILATUS;
 
 #define MXLV_PILATUS_DETECTOR_SERVER_DATAFILE_DIRECTORY	87801
@@ -217,6 +225,24 @@ typedef struct {
   \
   {-1, -1, "ext_enable_period", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, ext_enable_period), \
+	{0}, NULL, 0 }, \
+  \
+  {-1, -1, "last_return_code", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, last_return_code), \
+	{0}, NULL, 0 }, \
+  \
+  {-1, -1, "previous_return_code", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, previous_return_code), \
+	{0}, NULL, 0 }, \
+  \
+  {-1, -1, "last_error_status", MXFT_STRING, \
+				NULL, 1, {MXU_PILATUS_ERROR_STATUS_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, last_error_status), \
+	{0}, NULL, 0 }, \
+  \
+  {-1, -1, "previous_error_status", MXFT_STRING, \
+				NULL, 1, {MXU_PILATUS_ERROR_STATUS_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, previous_error_status), \
 	{0}, NULL, 0 }
 
 MX_API mx_status_type mxd_pilatus_initialize_driver( MX_DRIVER *driver );
@@ -252,7 +278,9 @@ MX_API mx_status_type mxd_pilatus_command( MX_PILATUS *pilatus,
 					char *command,
 					char *response,
 					size_t response_buffer_length,
-					unsigned long *pilatus_return_code );
+					unsigned long *pilatus_return_code,
+					char *pilatus_error_status,
+					size_t pilatus_error_status_length );
 
 MX_API void mstest_pilatus_setup( MX_RECORD * );
 
