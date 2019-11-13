@@ -34,6 +34,8 @@
 
 #define MXD_PILATUS_DEBUG_RESPONSE			FALSE
 
+#define MXD_PILATUS_DEBUG_RESPONSE_DETAILS		FALSE
+
 #define MXD_PILATUS_DEBUG_KILL				TRUE
 
 #include <stdio.h>
@@ -140,6 +142,100 @@ mxd_pilatus_get_pointers( MX_AREA_DETECTOR *ad,
   "MX_PILATUS pointer for record '%s' passed by '%s' is NULL.",
 			ad->record->name, calling_fname );
 	}
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*------------------------------------------------------------------*/
+
+static mx_status_type
+mxd_pilatus_parse_status( MX_PILATUS *pilatus,
+			char *response,
+			char **response_body )
+{
+#if MXD_PILATUS_DEBUG_RESPONSE_DETAILS
+	static const char fname[] = "mxd_pilatus_parse_status()";
+#endif
+
+	char *ptr, *return_code_arg, *error_status_arg;
+	size_t length;
+
+#if MXD_PILATUS_DEBUG_RESPONSE_DETAILS
+	MX_DEBUG(-2,("%s: #1 >> response = '%s'", fname, response));
+#endif
+
+	/*--- Split off the return code and the error status. ---*/
+
+	/* 1. Skip over any leading spaces. */
+
+	length = strspn( response, " " );
+
+	return_code_arg = response + length;
+
+	/* 2. Find the end of the return code string and null terminate it. */
+
+	length = strcspn( return_code_arg, " " );
+
+	ptr = return_code_arg + length;
+
+	*ptr = '\0';
+
+	ptr++;
+
+	/* 3. Parse the return code string. */
+
+	pilatus->last_return_code = atol( return_code_arg );
+
+#if MXD_PILATUS_DEBUG_RESPONSE_DETAILS
+	MX_DEBUG(-2,("%s: #2 >> pilatus->last_return_code = %ld",
+		fname, pilatus->last_return_code));
+	MX_DEBUG(-2,("%s: #3 >> ptr = '%s'", fname, ptr));
+#endif
+
+	/* 4. Find the start of the error status argument. */
+
+	length = strspn( ptr, " " );
+
+	error_status_arg = ptr + length;
+
+	/* 5. Find the end of the error status argument and null terminate it.*/
+
+	length = strcspn( error_status_arg, " " );
+
+	ptr = error_status_arg + length;
+
+	*ptr = '\0';
+
+	ptr++;
+
+	/* Preserve the statuses for later examination. */
+
+	strlcpy( pilatus->last_error_status,
+		error_status_arg,
+		sizeof( pilatus->last_error_status ) );
+
+#if MXD_PILATUS_DEBUG_RESPONSE_DETAILS
+	MX_DEBUG(-2,("%s: #4 >> pilatus->last_error_status = '%s'",
+		fname, pilatus->last_error_status));
+#endif
+
+	/* 6. Find the beginning of the remaining text of the response. */
+
+	length = strspn( ptr, " " );
+
+	ptr += length;
+
+#if MXD_PILATUS_DEBUG_RESPONSE_DETAILS
+	MX_DEBUG(-2,("%s: #5 >> response body = '%s'", fname, ptr));
+#endif
+
+	/* 7.  If requested, send back the remaining text
+ 	 *     as the response body.
+ 	 */
+
+	if ( response_body != (char **) NULL ) {
+		*response_body = ptr;
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -625,13 +721,9 @@ mxd_pilatus_create_record_structures( MX_RECORD *record )
 	pilatus->exposure_in_progress = FALSE;
 
 	pilatus->last_return_code = 0;
-	pilatus->previous_return_code = 0;
 
 	memset( pilatus->last_error_status,
 		0, sizeof(pilatus->last_error_status) );
-
-	memset( pilatus->previous_error_status,
-		0, sizeof(pilatus->previous_error_status) );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1377,7 +1469,7 @@ mxd_pilatus_kill( MX_AREA_DETECTOR *ad, char *kill_command )
 
 	    mx_status_code = mx_status.code & (~MXE_QUIET);
 
-#if 1
+#if 0
 	    MX_DEBUG(-2,("%s: *** n = %lu, mx_status_code = %lu, "
 		"num_response_bytes = %ld, response = '%s'",
 		fname, n, mx_status_code,
@@ -2342,11 +2434,9 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 	MX_RS232 *rs232 = NULL;
 	char command_buffer[1000];
 	char local_response_buffer[1000];
-	char *response_ptr;
+	char *ptr, *response_ptr, *response_body;
 	size_t response_length;
-	char *ptr, *return_code_arg, *error_status_arg;
-	size_t length, command_length, bytes_to_move;
-	unsigned long return_code;
+	size_t command_length, bytes_to_move;
 	unsigned long n, max_attempts;
 	unsigned long mx_status_code;
 	size_t num_response_bytes;
@@ -2474,7 +2564,7 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 
 	    mx_status_code = mx_status.code & (~MXE_QUIET);
 
-#if 1
+#if 0
 	    MX_DEBUG(-2,("%s: *** n = %lu, mx_status_code = %lu, "
 		"num_response_bytes = %ld, response = '%s'",
 		fname, n, mx_status_code,
@@ -2516,87 +2606,26 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 			max_attempts * rs232->timeout );
 	}
 
-	/*--- Split off the return code and the error status. ---*/
+	/*--- Parse the return code and the error status. ---*/
+
+	response_body = NULL;
+
+	mx_status = mxd_pilatus_parse_status( pilatus,
+					response_ptr, &response_body );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 #if MXD_PILATUS_DEBUG_RESPONSE
-	MX_DEBUG(-2,("%s: #0 command_buffer = '%s', response_ptr = '%s'",
-		fname, command_buffer, response_ptr));
+	MX_DEBUG(-2,("%s: *** n = %lu, command_buffer = '%s', "
+			"last_return_code = %lu, "
+			"last_error_status = '%s', "
+			"response_body = '%s'",
+		fname, n, command_buffer, pilatus->last_return_code,
+		pilatus->last_error_status, response_body));
 #endif
 
-	/* 1. Skip over any leading spaces. */
-
-	length = strspn( response_ptr, " " );
-
-	return_code_arg = response_ptr + length;
-
-#if MXD_PILATUS_DEBUG_RESPONSE
-	MX_DEBUG(-2,("%s: #1 >> return_code_arg = '%s'",
-		fname, return_code_arg));
-#endif
-
-	/* 2. Find the end of the return code string and null terminate it. */
-
-	length = strcspn( return_code_arg, " " );
-
-	ptr = return_code_arg + length;
-
-	*ptr = '\0';
-
-	ptr++;
-
-#if MXD_PILATUS_DEBUG_RESPONSE
-	MX_DEBUG(-2,("%s: #2 >> ptr = '%s'", fname, ptr));
-#endif
-
-	/* 3. Parse the return code string. */
-
-	return_code = atol( return_code_arg );
-
-	pilatus->previous_return_code = pilatus->last_return_code;
-	pilatus->last_return_code = return_code;
-
-	if ( pilatus_return_code != (unsigned long *) NULL ) {
-		*pilatus_return_code = return_code;
-	}
-
-#if MXD_PILATUS_DEBUG_RESPONSE
-	MX_DEBUG(-2,("%s: #3 >> return_code = %ld", fname, return_code));
-#endif
-
-	/* 4. Find the start of the error status argument. */
-
-	length = strspn( ptr, " " );
-
-	error_status_arg = ptr + length;
-
-#if MXD_PILATUS_DEBUG_RESPONSE
-	MX_DEBUG(-2,("%s: #4 >> error_status_arg = '%s'",
-		fname, error_status_arg));
-#endif
-
-	/* 5. Find the end of the error status argument and null terminate it.*/
-
-	length = strcspn( error_status_arg, " " );
-
-	ptr = error_status_arg + length;
-
-	*ptr = '\0';
-
-	ptr++;
-
-#if MXD_PILATUS_DEBUG_RESPONSE
-	MX_DEBUG(-2,("%s: #5 >> ptr = '%s'", fname, ptr));
-#endif
-
-	/* Preserve the statuses for later examination. */
-
-	strlcpy( pilatus->previous_error_status,
-		pilatus->last_error_status,
-		sizeof( pilatus->previous_error_status ) );
-
-	strlcpy( pilatus->last_error_status,
-		error_status_arg,
-		sizeof( pilatus->last_error_status ) );
+	/*==================================================================*/
 
 	/* If our caller wants to see the response string from the Pilatus,
  	 * then we arrange for that here.
@@ -2604,19 +2633,11 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 
 	if ( response != (char *) NULL ) {
 
-	    /* 6. Find the beginning of the remaining text of the response. */
-
-	    length = strspn( ptr, " " );
-
-	    ptr += length;
-
-#if MXD_PILATUS_DEBUG_RESPONSE
-	    MX_DEBUG(-2,("%s: #6 >> ptr = '%s'", fname, ptr));
-#endif
-
-	    /* 7. Move the remaining text to the beginning of the
+	    /* 7. Move the response body to the beginning of the
  	     * response buffer.
  	     */
+
+	    ptr = response_body;
 
 	    bytes_to_move = strlen( ptr );
 
@@ -2628,18 +2649,10 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 
 	    memmove( response, ptr, bytes_to_move );
 
-#if MXD_PILATUS_DEBUG_RESPONSE
-	    MX_DEBUG(-2,("%s: #7 >> response = '%s'", fname, response));
-#endif
-
 	    /* 8.  Null out the rest of the response buffer. */
 
 	    memset( response + bytes_to_move, '\0',
 			response_length - bytes_to_move );
-
-#if MXD_PILATUS_DEBUG_RESPONSE
-	    MX_DEBUG(-2,("%s: #8 >> response = '%s'", fname, response));
-#endif
 
 	    /*---*/
 
@@ -2647,7 +2660,7 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 	    "Command '%s' sent to detector '%s' returned an error (%lu) '%s'.",
 			command, pilatus->record->name,
-			return_code, response );
+			pilatus->last_return_code, response );
 	    }
 
 	    /* End of response processing. */
@@ -2658,12 +2671,12 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 	if (debug_flag) {
 	    if ( response != (char *) NULL ) {
 		MX_DEBUG(-2,("%s: received (%lu %s) '%s' from '%s'.",
-			fname, return_code,
+			fname, pilatus->last_return_code,
 			pilatus->last_error_status,
 			response, pilatus->record->name ));
 	    } else {
 		MX_DEBUG(-2,("%s: received (%lu %s) from '%s'.",
-			fname, return_code,
+			fname, pilatus->last_return_code,
 			pilatus->last_error_status,
 			pilatus->record->name ));
 	    }
