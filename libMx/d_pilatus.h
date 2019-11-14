@@ -35,6 +35,7 @@
 #define MXF_PILATUS_LOAD_FRAME_AFTER_ACQUISITION	0x1000
 
 #define MXF_PILATUS_APPEND_PAD_TO_COMMANDS		0x10000000
+#define MXF_PILATUS_SHOW_EXPOSURE_IN_PROGRESS_WARNINGS	0x20000000
 
 typedef struct {
 	MX_RECORD *record;
@@ -214,6 +215,10 @@ typedef struct {
   \
   {-1, -1, "camserver_pid", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, camserver_pid), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "exposure_in_progress", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, exposure_in_progress), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
   {-1, -1, "ext_enable_time", MXFT_DOUBLE, NULL, 0, {0}, \

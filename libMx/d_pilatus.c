@@ -1450,6 +1450,12 @@ mxd_pilatus_kill( MX_AREA_DETECTOR *ad, char *kill_command )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Tell other parts of MX that the exposure is over.  However, we must
+	 * still do a little bit more before we quit here.
+	 */
+
+	pilatus->exposure_in_progress = FALSE;
+
 	/* We cannot send any new commands to the Pilatus until it has
  	 * acknowledged the kill.  So we have to wait here until we get
  	 * a kill response or a timeout.
@@ -1919,6 +1925,7 @@ mxd_pilatus_get_parameter( MX_AREA_DETECTOR *ad )
 	char response[MXU_FILENAME_LENGTH + 80];
 	unsigned long pilatus_return_code;
 	unsigned long disk_blocks_available;
+	unsigned long pilatus_flags;
 	int num_items;
 	mx_status_type mx_status;
 
@@ -1926,6 +1933,8 @@ mxd_pilatus_get_parameter( MX_AREA_DETECTOR *ad )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	pilatus_flags = pilatus->pilatus_flags;
 
 #if MXD_PILATUS_DEBUG_PARAMETERS
 	{
@@ -1939,6 +1948,30 @@ mxd_pilatus_get_parameter( MX_AREA_DETECTOR *ad )
 			ad->parameter_type));
 	}
 #endif
+
+	/* If an exposure sequence is currently in progress, then we
+	 * cannot send a command to the PPU.  The best we can do
+	 * in this circumstance is to merely reuse the value that is
+	 * already in the MX_PILATUS structure.
+	 *
+	 * 'pilatus->exposure_in_progress' tells us if an exposure
+	 * is in progress (obviously).
+	 */
+
+	if ( pilatus->exposure_in_progress ) {
+		char name_buffer[MXU_FIELD_NAME_LENGTH+1];
+
+	    if (pilatus_flags & MXF_PILATUS_SHOW_EXPOSURE_IN_PROGRESS_WARNINGS)
+	    {
+		mx_warning( "%s: Exposure in progress.  Returning cached value "
+			"for '%s.%s'", fname, ad->record->name,
+				mx_get_parameter_name_from_type(
+					ad->record, ad->parameter_type,
+					name_buffer, sizeof(name_buffer)) );
+
+		return MX_SUCCESSFUL_RESULT;
+	    }
+	}
 
 #if MXD_PILATUS_DEBUG_DIRECTORY_MAPPING
 	mstest_pilatus_show_datafile_directory( fname, "before" );
@@ -2057,30 +2090,15 @@ mxd_pilatus_get_parameter( MX_AREA_DETECTOR *ad )
 
 	case MXLV_AD_DATAFILE_DIRECTORY:
 
-		if ( pilatus->exposure_in_progress ) {
-			/* If an exposure sequence is currently in progress,
-			 * then we cannot send an 'ImgPath' command to the PPU.
-			 * The best we can do in this circumstances is to 
-			 * merely reuse the value that is already in the
-			 * ad->datafile_directory field.
-			 */
+		mx_status = mxd_pilatus_command( pilatus, "ImgPath",
+				response, sizeof(response),
+				&pilatus_return_code, NULL, 0 );
 
-			MX_DEBUG(-2,("%s: EIP datafile_directory = '%s'",
-				fname, ad->datafile_directory));
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-			return MX_SUCCESSFUL_RESULT;
-		} else {
-			mx_status = mxd_pilatus_command( pilatus, "ImgPath",
-					response, sizeof(response),
-					&pilatus_return_code, NULL, 0 );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			strlcpy( pilatus->detector_server_datafile_directory,
-			  response,
+		strlcpy( pilatus->detector_server_datafile_directory, response,
 			  sizeof(pilatus->detector_server_datafile_directory));
-		}
 
 #if 0
 		MX_DEBUG(-2,
@@ -2778,8 +2796,29 @@ mxd_pilatus_process_function( void *record_ptr,
 	mstest_pilatus_show_datafile_directory( fname, "before" );
 #endif
 
+	/* If an exposure sequence is currently in progress, then we
+	 * cannot send a command to the PPU.  The best we can do
+	 * in this circumstance is to merely reuse the value that is
+	 * already in the MX_PILATUS structure.
+	 *
+	 * 'pilatus->exposure_in_progress' tells us if an exposure
+	 * is in progress (obviously).
+	 */
+
 	switch( operation ) {
 	case MX_PROCESS_GET:
+		if ( pilatus->exposure_in_progress ) {
+
+		    if ( pilatus_flags &
+			MXF_PILATUS_SHOW_EXPOSURE_IN_PROGRESS_WARNINGS )
+		    {
+			mx_warning( "%s: Exposure in progress.  "
+				"Returning cached value for '%s.%s'",
+				fname, record->name, record_field->name );
+		    }
+
+		    return MX_SUCCESSFUL_RESULT;
+		}
 		switch( record_field->label_value ) {
 		case MXLV_PILATUS_DELAY_TIME:
 			mx_status = mxd_pilatus_command( pilatus, "Delay",
@@ -2891,35 +2930,18 @@ mxd_pilatus_process_function( void *record_ptr,
 			break;
 		case MXLV_PILATUS_DETECTOR_SERVER_DATAFILE_DIRECTORY:
 
-			if ( pilatus->exposure_in_progress ) {
+			mx_status = mxd_pilatus_command( pilatus,
+					"ImgPath",
+					response, sizeof(response),
+					NULL, NULL, 0 );
 
-				/* If an exposure sequence is currently in
-				 * progress, then we cannot send an 'ImgPath'
-				 * command to the PPU.  The best we can do
-				 * in this circumstances is to merely reuse
-				 * the value that is already in the
-				 * pilatus->detector_server_datafile_directory
-				 * array.
-				 */
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
-				MX_DEBUG(-2,
-			("%s: EIP detector_server_datafile_directory = '%s'",
-			fname, pilatus->detector_server_datafile_directory));
-
-				return MX_SUCCESSFUL_RESULT;
-			} else {
-				mx_status = mxd_pilatus_command( pilatus,
-						"ImgPath",
-						response, sizeof(response),
-						NULL, NULL, 0 );
-
-				if ( mx_status.code != MXE_SUCCESS )
-					return mx_status;
-
-				strlcpy(
+			strlcpy(
 			  pilatus->detector_server_datafile_directory, response,
 			  sizeof(pilatus->detector_server_datafile_directory) );
-			}
+
 			break;
 		case MXLV_PILATUS_TH:
 			snprintf( command, sizeof(command),
