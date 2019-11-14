@@ -720,6 +720,12 @@ mxd_pilatus_create_record_structures( MX_RECORD *record )
 
 	pilatus->exposure_in_progress = FALSE;
 
+	/* pilatus->max_attempts is the number of times that the MX driver
+	 * tries to read a response from the Pilatus.
+	 */
+
+	pilatus->max_attempts = 3;
+
 	pilatus->last_return_code = 0;
 
 	memset( pilatus->last_error_status,
@@ -1302,6 +1308,11 @@ mxd_pilatus_arm( MX_AREA_DETECTOR *ad )
 	pilatus->old_total_num_frames = ad->total_num_frames;
 	pilatus->old_datafile_number = ad->datafile_number;
 
+#if 1
+	MX_DEBUG(-2,("%s: pilatus->old_total_num_frames = %lu",
+		fname, pilatus->old_total_num_frames));
+#endif
+
 	/* If we are not in external trigger mode, then we are done here. */
 
 	if ( ( ad->trigger_mode & MXF_DEV_EXTERNAL_TRIGGER ) == 0 ) {
@@ -1408,7 +1419,7 @@ mxd_pilatus_kill( MX_AREA_DETECTOR *ad, char *kill_command )
 	char buffer[80];
 	unsigned long image_number;
 	long frame_difference;
-	unsigned long n, max_attempts;
+	unsigned long n;
 	unsigned long mx_status_code;
 	int num_items;
 	size_t num_response_bytes, buffer_len;
@@ -1450,20 +1461,12 @@ mxd_pilatus_kill( MX_AREA_DETECTOR *ad, char *kill_command )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Tell other parts of MX that the exposure is over.  However, we must
-	 * still do a little bit more before we quit here.
-	 */
-
-	pilatus->exposure_in_progress = FALSE;
-
 	/* We cannot send any new commands to the Pilatus until it has
  	 * acknowledged the kill.  So we have to wait here until we get
  	 * a kill response or a timeout.
 	 */
 
-	max_attempts = 10;
-
-	for ( n = 0; n < max_attempts; n++ ) {
+	for ( n = 0; n < pilatus->max_attempts; n++ ) {
 
 	    memset( buffer, 0, sizeof(buffer) );
 
@@ -1563,6 +1566,8 @@ mxd_pilatus_kill( MX_AREA_DETECTOR *ad, char *kill_command )
 			break;	/* Exit the for() loop. */
 		    }
 		} else {
+		    pilatus->exposure_in_progress = FALSE;
+
 		    return mx_error( MXE_UNPARSEABLE_STRING, fname,
 		  "Unexpected message seen from detector '%s'.  buffer = '%s'",
 			pilatus->record->name, buffer );
@@ -1578,9 +1583,13 @@ mxd_pilatus_kill( MX_AREA_DETECTOR *ad, char *kill_command )
 
 		break;		/* Exit the for() loop. */
 	    } else {
+		pilatus->exposure_in_progress = FALSE;
+
 		return mx_status;
 	    }
 	}
+
+	pilatus->exposure_in_progress = FALSE;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1968,9 +1977,9 @@ mxd_pilatus_get_parameter( MX_AREA_DETECTOR *ad )
 				mx_get_parameter_name_from_type(
 					ad->record, ad->parameter_type,
 					name_buffer, sizeof(name_buffer)) );
-
-		return MX_SUCCESSFUL_RESULT;
 	    }
+
+	    return MX_SUCCESSFUL_RESULT;
 	}
 
 #if MXD_PILATUS_DEBUG_DIRECTORY_MAPPING
@@ -2455,7 +2464,7 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 	char *ptr, *response_ptr, *response_body;
 	size_t response_length;
 	size_t command_length, bytes_to_move;
-	unsigned long n, max_attempts;
+	unsigned long n;
 	unsigned long mx_status_code;
 	size_t num_response_bytes;
 	mx_bool_type debug_flag;
@@ -2571,9 +2580,7 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 	 * read another line for the response we actually want.
 	 */
 
-	max_attempts = 10;
-
-	for ( n = 0; n < max_attempts; n++ ) {
+	for ( n = 0; n < pilatus->max_attempts; n++ ) {
 
 	    mx_status = mx_rs232_getline_with_timeout( pilatus->rs232_record,
 					response_ptr, response_length,
@@ -2615,13 +2622,13 @@ mxd_pilatus_command( MX_PILATUS *pilatus,
 	    }
 	}
 
-	if ( n >= max_attempts ) {
+	if ( n >= pilatus->max_attempts ) {
 		return mx_error( MXE_TIMED_OUT, fname,
 		"Pilatus '%s' response to command '%s' timed out after "
 		"%lu retries of %g seconds each for a total of %g seconds.",
 			pilatus->record->name, command_buffer,
-			max_attempts, rs232->timeout,
-			max_attempts * rs232->timeout );
+			pilatus->max_attempts, rs232->timeout,
+			pilatus->max_attempts * rs232->timeout );
 	}
 
 	/*--- Parse the return code and the error status. ---*/

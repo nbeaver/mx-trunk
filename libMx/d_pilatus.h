@@ -80,6 +80,8 @@ typedef struct {
 	double ext_enable_time;
 	double ext_enable_period;
 
+	unsigned long max_attempts;
+
 	unsigned long last_return_code;
 	char last_error_status[MXU_PILATUS_ERROR_STATUS_LENGTH+1];
 } MX_PILATUS;
@@ -227,6 +229,10 @@ typedef struct {
   \
   {-1, -1, "ext_enable_period", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, ext_enable_period), \
+	{0}, NULL, 0 }, \
+  \
+  {-1, -1, "max_attempts", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PILATUS, max_attempts), \
 	{0}, NULL, 0 }, \
   \
   {-1, -1, "last_return_code", MXFT_ULONG, NULL, 0, {0}, \
