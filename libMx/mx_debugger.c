@@ -926,6 +926,7 @@ mx_get_numbered_breakpoint( unsigned long breakpoint_number )
 
 MX_EXPORT int
 mx_set_watchpoint( MX_WATCHPOINT **watchpoint_ptr,
+		MX_THREAD *target_thread,
 		void *value_pointer,
 		long value_datatype,
 		unsigned long flags,
@@ -1356,6 +1357,7 @@ mxp_win32_show_watchpoint_spectator( MX_THREAD *thread, void *args )
 
 MX_EXPORT int
 mx_set_watchpoint( MX_WATCHPOINT **watchpoint_ptr,
+		MX_THREAD *target_thread,
 		void *value_pointer,
 		long value_datatype,
 		unsigned long flags,
@@ -2536,6 +2538,7 @@ mx_show_watchpoints( void )
 
 MX_EXPORT int
 mx_set_watchpoint( MX_WATCHPOINT **watchpoint_ptr,
+		MX_THREAD *target_thread,
 		void *value_pointer,
 		long value_datatype,
 		unsigned long flags,
@@ -2579,6 +2582,7 @@ mx_show_watchpoints( void )
 
 MX_EXPORT int
 mx_set_watchpoint( MX_WATCHPOINT **watchpoint_ptr,
+		MX_THREAD *target_thread,
 		void *value_pointer,
 		long value_datatype,
 		unsigned long flags,
