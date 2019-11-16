@@ -1549,6 +1549,8 @@ mxp_win32_watchpoint_spectator( MX_THREAD *thread, void *args )
 	unsigned long  debug_extension_value, debug_extension_mask;
 	unsigned long size_option, size_selector, size_mask;
 
+	mx_breakpoint();
+
 	watchpoint = (MX_WATCHPOINT *) args;
 
 	win32_private = (MX_WIN32_WATCHPOINT_PRIVATE *)
