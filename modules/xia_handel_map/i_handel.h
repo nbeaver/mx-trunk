@@ -34,6 +34,8 @@
 #define MXF_HANDEL_WRITE_LOG_OUTPUT_TO_FILE		0x2
 #define MXF_HANDEL_DISPLAY_CONFIGURATION_AT_STARTUP	0x4
 
+#define MXF_HANDEL_CREATE_XIAHOME_VARIABLE		0x10
+
 #define MXU_HANDEL_MODULE_TYPE_LENGTH	20
 
 /* FIXME: The following two limitations are for early debugging only! */
