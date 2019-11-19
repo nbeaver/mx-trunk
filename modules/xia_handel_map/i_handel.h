@@ -43,6 +43,14 @@
 #define MXU_HANDEL_MAX_MODULES		1
 #define MXU_HANDEL_MAX_MCAS		4
 
+#if !defined( XIA_PRESET_NONE )
+#  define XIA_PRESET_NONE		0.0
+#  define XIA_PRESET_FIXED_REAL		1.0
+#  define XIA_PRESET_FIXED_LIVE		2.0
+#  define XIA_PRESET_FIXED_EVENTS	3.0
+#  define XIA_PRESET_FIXED_TRIGGERS	4.0
+#endif
+
 /* The available values for 'mapping_mode' (expressed as an integer). */
 
 #define MXF_HANDEL_MAP_NORMAL_MODE	0

@@ -9,7 +9,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003-2006, 2009-2010, 2012 Illinois Institute of Technology
+ * Copyright 2003-2006, 2009-2010, 2012, 2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -37,6 +37,14 @@
 #define MXU_HANDEL_MODULE_TYPE_LENGTH	20
 
 #define MXU_HANDEL_MAX_MODULES		4
+
+#if !defined( XIA_PRESET_NONE )
+#  define XIA_PRESET_NONE		0.0
+#  define XIA_PRESET_FIXED_REAL		1.0
+#  define XIA_PRESET_FIXED_LIVE		2.0
+#  define XIA_PRESET_FIXED_EVENTS	3.0
+#  define XIA_PRESET_FIXED_TRIGGERS	4.0
+#endif
 
 /* Define the data structures used by the Handel driver. */
 
