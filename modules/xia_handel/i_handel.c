@@ -597,6 +597,10 @@ mxi_handel_open( MX_RECORD *record )
 		"MX_HANDEL pointer for record '%s' is NULL.", record->name);
 	}
 
+	if ( handel->handel_flags & MXF_HANDEL_BREAKPOINT_AT_STARTUP ) {
+		mx_breakpoint();
+	}
+
 	display_config = handel->handel_flags &
 			MXF_HANDEL_DISPLAY_CONFIGURATION_AT_STARTUP;
 

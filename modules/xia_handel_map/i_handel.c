@@ -1277,6 +1277,10 @@ mxi_handel_open( MX_RECORD *record )
 		"MX_HANDEL pointer for record '%s' is NULL.", record->name);
 	}
 
+	if ( handel->handel_flags & MXF_HANDEL_BREAKPOINT_AT_STARTUP ) {
+		mx_breakpoint();
+	}
+
 	/* Set up the MX Handel mutex. */
 
 	mx_status = mx_mutex_create( &(handel->mutex) );
