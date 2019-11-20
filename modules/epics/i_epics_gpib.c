@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2006, 2008-2011, 2014-2015
+ * Copyright 2000-2001, 2003-2006, 2008-2011, 2014-2015, 2019
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -271,7 +271,7 @@ mxi_epics_gpib_open( MX_RECORD *record )
 
 	MX_GPIB *gpib;
 	MX_EPICS_GPIB *epics_gpib = NULL;
-	char pvname[MXU_EPICS_PVNAME_LENGTH+1];
+	char pvname[2*MXU_EPICS_PVNAME_LENGTH+20];
 	int32_t format, command;
 	mx_status_type mx_status;
 

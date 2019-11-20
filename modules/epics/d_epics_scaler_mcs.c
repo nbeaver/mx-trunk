@@ -14,7 +14,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2014-2015, 2018 Illinois Institute of Technology
+ * Copyright 2014-2015, 2018-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -408,7 +408,7 @@ mxd_epics_scaler_mcs_open( MX_RECORD *record )
 	MX_MCS *mcs = NULL;
 	MX_EPICS_SCALER_MCS *epics_scaler_mcs = NULL;
 	MX_LIST_HEAD *list_head = NULL;
-	char pvname[MXU_EPICS_PVNAME_LENGTH+1];
+	char pvname[2*MXU_EPICS_PVNAME_LENGTH+20];
 	uint16_t num_channels;
 	int i;
 	mx_status_type mx_status;

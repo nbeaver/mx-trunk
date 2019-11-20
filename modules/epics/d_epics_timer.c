@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006, 2008-2012, 2014 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006, 2008-2012, 2014, 2019
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -162,7 +163,7 @@ mxd_epics_timer_open( MX_RECORD *record )
 	MX_EPICS_TIMER *epics_timer = NULL;
 	double version_number;
 	long i;
-	char pvname[80];
+	char pvname[2*MXU_EPICS_PVNAME_LENGTH+20];
 	char driver_name[80];
 	mx_status_type mx_status;
 

@@ -9,7 +9,8 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2011, 2014-2015 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003-2011, 2014-2015, 2019
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -266,7 +267,7 @@ mxi_epics_rs232_open( MX_RECORD *record )
 
 	MX_RS232 *rs232;
 	MX_EPICS_RS232 *epics_rs232 = NULL;
-	char pvname[MXU_EPICS_PVNAME_LENGTH+1];
+	char pvname[2*MXU_EPICS_PVNAME_LENGTH+20];
 	char output_delimiter;
 	int32_t format;
 	int32_t speed, wordsize, parity, stop_bits, flow_control;

@@ -10,7 +10,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2006, 2008-2009, 2011, 2013-2015, 2018
+ * Copyright 1999-2001, 2003-2006, 2008-2009, 2011, 2013-2015, 2018-2019
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -879,7 +879,7 @@ mxd_epics_motor_get_extended_status( MX_MOTOR *motor )
 
 	MX_EPICS_GROUP epics_group;
 	MX_EPICS_MOTOR *epics_motor = NULL;
-	char pvname[MXU_EPICS_PVNAME_LENGTH+1];
+	char pvname[2*MXU_EPICS_PVNAME_LENGTH+20];
 	char driver_name[60];
 	float version_number;
 	double raw_position;

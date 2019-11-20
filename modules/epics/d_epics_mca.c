@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2003, 2006, 2008-2012, 2014-2015, 2017
+ * Copyright 2002-2003, 2006, 2008-2012, 2014-2015, 2017, 2019
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -415,7 +415,7 @@ mxd_epics_mca_open( MX_RECORD *record )
 	MX_EPICS_MCA *epics_mca = NULL;
 	unsigned long i, flags, connect_flags;
 	double version_number;
-	char pvname[50];
+	char pvname[2*MXU_EPICS_PVNAME_LENGTH+20];
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {

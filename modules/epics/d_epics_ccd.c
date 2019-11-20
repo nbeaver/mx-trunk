@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2009-2011, 2013-2015 Illinois Institute of Technology
+ * Copyright 2009-2011, 2013-2015, 2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -204,7 +204,7 @@ mxd_epics_ccd_open( MX_RECORD *record )
 
 	MX_AREA_DETECTOR *ad;
 	MX_EPICS_CCD *epics_ccd = NULL;
-	char pvname[ MXU_EPICS_PVNAME_LENGTH+1 ];
+	char pvname[ 2*MXU_EPICS_PVNAME_LENGTH+20 ];
 	char epics_string[41];
 	int32_t bits_per_pixel;
 	mx_status_type mx_status;

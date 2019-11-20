@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2011, 2015, 2018 Illinois Institute of Technology
+ * Copyright 2011, 2015, 2018-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -284,7 +284,7 @@ mxd_mbc_noir_trigger_arm( MX_PULSE_GENERATOR *pulser )
 
 	MX_MBC_NOIR_TRIGGER *mbc_noir_trigger;
 	double exposure_seconds;
-	char command[80];
+	char command[200];
 	mx_status_type mx_status;
 
 	mx_status = mxd_mbc_noir_trigger_get_pointers( pulser,
