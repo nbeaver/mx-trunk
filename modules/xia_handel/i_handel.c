@@ -38,6 +38,7 @@
 #include "mx_driver.h"
 #include "mx_stdint.h"
 #include "mx_array.h"
+#include "mx_cfn.h"
 #include "mx_unistd.h"
 #include "mx_mca.h"
 #include "i_handel.h"
@@ -316,6 +317,65 @@ mxi_handel_set_data_available_flags( MX_HANDEL *handel,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*-------------------------------------------------------------------------*/
+
+/* Set the XIAHOME environment variable to point to the directory that
+ * the file handel->config_filename is found in.  If all of the other XIA
+ * configuration files are found in the same directory as config_filename,
+ * then the existence of XIAHOME will help Handel find them.
+ */
+
+static mx_status_type
+mxi_handel_set_xiahome( MX_HANDEL *handel )
+{
+	static const char fname[] = "mxi_handel_set_xiahome()";
+
+	char expanded_filename[MXU_FILENAME_LENGTH+1];
+	char *last_pathname_separator = NULL;
+	mx_status_type mx_status; 
+
+	if ( handel == (MX_HANDEL *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_HANDEL pointer passed was NULL." );
+	}
+
+	/* If config_filename does not contain a value, then we do not
+	 * set XIAHOME either.
+	 */
+
+	if ( strlen( handel->config_filename ) == 0 ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	mx_status = mx_cfn_construct_filename( MX_CFN_CONFIG,
+					handel->config_filename,
+					expanded_filename,
+					sizeof(expanded_filename) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	last_pathname_separator = strrchr( expanded_filename, '/' );
+
+	if ( last_pathname_separator == (char *) '\0' ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The expanded config filename '%s' does not contain a "
+		"pathname separator '/', so we cannot figure out what "
+		"the XIAHOME variable should be set to.",
+			expanded_filename );
+	}
+
+	*last_pathname_separator = '\0';
+
+	mx_setenv( "XIAHOME", expanded_filename );
+
+	mx_info( "XIAHOME set to '%s'.", getenv("XIAHOME") );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
 
 static mx_status_type
 mxi_handel_load_config( MX_HANDEL *handel )
@@ -660,6 +720,17 @@ mxi_handel_open( MX_RECORD *record )
 	xiaGetVersionInfo( NULL, NULL, NULL, version_string );
 
 	mx_info("MX is using Handel %s", version_string);
+
+	/* If requested, set the XIAHOME environment variable to the
+	 * basename of the handel->config_filename variable.
+	 */
+
+	if ( handel->handel_flags & MXF_HANDEL_CREATE_XIAHOME_VARIABLE ) {
+		mx_status = mxi_handel_set_xiahome( handel );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
 	/* Load the detector configuration. */
 

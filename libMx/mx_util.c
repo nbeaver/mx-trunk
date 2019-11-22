@@ -572,9 +572,22 @@ mx_username( char *buffer, size_t max_buffer_length )
 
 /*-------------------------------------------------------------------------*/
 
-#if ( defined(OS_WIN32) && defined(_MSC_VER) && (_MSC_VER >= 1400) )
+#if 0
 
-/* Visual Studio 2005 and later have _putenv_s(). */
+/* Win32: Visual Studio 2005 and later have _putenv_s(). */
+
+/* WARNING: Regrettably we _CANNOT_ use _putenv_s in MX.  If a third party DLL
+ * like XIA Handel uses getenv() to read environment variables like XIAHOME,
+ * it will _not_ see any changes made by _putenv_s().  Regrettably, after a
+ * Win32 program starts up, the environment strings seen by getenv() are
+ * totally unaffected by anything done by _putenv_s().  So we are forced to
+ * stick with _putenv(), since we cannot force third party DLLs to change.
+ *
+ * If this was Linux, there would be ways around this.  But on Windows, there
+ * is no reasonable way around this that I am aware of.  Unfortunate.
+ *
+ * (W. Lavender, 2019-11-21)
+ */
 
 MX_EXPORT int
 mx_setenv( const char *env_name,
