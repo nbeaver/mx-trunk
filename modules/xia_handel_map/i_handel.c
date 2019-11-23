@@ -927,6 +927,16 @@ mxi_handel_set_xiahome( MX_HANDEL *handel )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
+	/* If XIAHOME is already set, then we leave it alone. */
+
+	if ( getenv("XIAHOME") != NULL ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* Construct the pathname for XIAHOME based on the pathname of
+	 * the .ini config file.
+	 */
+
 	mx_status = mx_cfn_construct_filename( MX_CFN_CONFIG,
 					handel->config_filename,
 					expanded_filename,
