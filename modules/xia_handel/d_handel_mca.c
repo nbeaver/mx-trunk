@@ -601,7 +601,16 @@ mxd_handel_mca_handel_open( MX_MCA *mca,
 			xia_status, mxi_handel_strerror( xia_status ) );
 	}
 
-	handel_mca->hardware_scas_are_enabled = TRUE;
+	/* If the maximum number of ROIs is nonzero, then we assume that
+	 * this means that the MCA supports hardware SCAs.  We will test
+	 * this assumption later.
+	 */
+
+	if ( mca->maximum_num_rois > 0 ) {
+		handel_mca->hardware_scas_are_enabled = TRUE;
+	} else {
+		handel_mca->hardware_scas_are_enabled = FALSE;
+	}
 
 	/* Search for an empty slot in the MCA array. */
 
@@ -887,6 +896,9 @@ mxd_handel_mca_open( MX_RECORD *record )
 		MX_HRT_RESULTS( measurement, fname,
 		  "xiaSetAcquisitionValues(..., \"number_of_scas\", ...)" );
 #endif
+		/* The call above to xiaSetAcquisitionValues() implicitly
+		 * tests the assumption that the MCA has hardware SCAs.
+		 */
 
 		if ( xia_status != XIA_SUCCESS ) {
 			(void) mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
