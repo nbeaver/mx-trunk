@@ -31,7 +31,7 @@ xdr_hyper.o: xdr/src/xdr_hyper.c xdr/src/xdr.h xdr/src/xdr_hyper.h
 		-D__MX_LIBRARY__ xdr/src/xdr_hyper.c
 
 cJSON.o: cJSON/cJSON.c cJSON/cJSON.h
-	gcc -c $(CFLAGS) -I../libMx -DOS_CYGWIN -D__MX_LIBRARY__ cJSON/cJSON.c
+	gcc -c $(CFLAGS) -Wno-error -I../libMx -DOS_CYGWIN -D__MX_LIBRARY__ cJSON/cJSON.c
 
 mx_clean:
 	-rm *.o *.exe mx_private_version mx_config
