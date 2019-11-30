@@ -1262,13 +1262,15 @@ mxd_handel_mca_arm( MX_MCA *mca )
 
 	/******* Set the preset type. *******/
 
-	preset_type_as_double = preset_type;
+	if ( handel->bypass_xia_preset_type == FALSE ) {
+		preset_type_as_double = preset_type;
 
-	mx_status = mxi_handel_set_acquisition_values_for_all_channels( handel,
-			"preset_type", &preset_type_as_double, TRUE );
+		mx_status = mxi_handel_set_acquisition_values_for_all_channels(
+			handel, "preset_type", &preset_type_as_double, TRUE );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
 	handel_mca->old_preset_type = preset_type;
 
@@ -1592,6 +1594,10 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 		break;
 
 	case MXLV_MCA_PRESET_TYPE:
+		if ( handel->bypass_xia_preset_type ) {
+			break;
+		}
+
 		mx_status = mxd_handel_mca_get_acquisition_values( mca,
 				"preset_type", &acquisition_value );
 
@@ -2230,6 +2236,10 @@ mxd_handel_mca_set_parameter( MX_MCA *mca )
 		break;
 
 	case MXLV_MCA_PRESET_TYPE:
+		if ( handel->bypass_xia_preset_type ) {
+			break;
+		}
+
 		switch( mca->preset_type ) {
 		case MXF_MCA_PRESET_NONE:
 			handel_preset_type = MXF_HANDEL_MCA_PRESET_NONE;

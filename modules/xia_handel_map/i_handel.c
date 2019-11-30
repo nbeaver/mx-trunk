@@ -790,6 +790,8 @@ mxi_handel_create_record_structures( MX_RECORD *record )
 
 	handel->last_measurement_interval = -1.0;
 
+	handel->bypass_xia_preset_type = FALSE;
+
 #if MXI_HANDEL_DEBUG
 	handel->debug_flag = TRUE;
 #else
@@ -1243,7 +1245,8 @@ mxi_handel_open( MX_RECORD *record )
 	MX_HANDEL *handel;
 	char detector_alias[MAXALIAS_LEN+1];
 	char version_string[80];
-	int xia_status, display_config;
+	unsigned long major, minor, update;
+	int xia_status, display_config, num_items;
 	unsigned int i, j, num_detectors, num_modules;
 	unsigned int num_mcas, total_num_mcas;
 	void *void_ptr;
@@ -1379,6 +1382,19 @@ mxi_handel_open( MX_RECORD *record )
 	xiaGetVersionInfo( NULL, NULL, NULL, version_string );
 
 	mx_info("MX is using Handel %s", version_string);
+
+	num_items = sscanf( version_string, "v%lu.%lu.%lu", 
+				&major, &minor, &update );
+
+	if ( num_items != 3 ) {
+		mx_warning(
+		"Handel version string '%s' is in an unrecognized format.",
+			version_string );
+
+		handel->handel_version = 0;
+	} else {
+		handel->handel_version = 1000000L*major + 1000L*minor + update;
+	}
 
 	/* If requested, set the XIAHOME environment variable to the
 	 * basename of the handel->config_filename variable.

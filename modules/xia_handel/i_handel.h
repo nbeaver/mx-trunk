@@ -62,6 +62,8 @@ typedef struct {
 					 *  MD_DEBUG   = 4
 					 */
 
+	unsigned long handel_version;
+
 	char config_filename[ MXU_FILENAME_LENGTH + 1 ];
 
 	char log_filename[ MXU_FILENAME_LENGTH + 1 ];
@@ -84,6 +86,8 @@ typedef struct {
 	MX_RECORD ***module_array;
 
 	double last_measurement_interval;
+
+	mx_bool_type bypass_xia_preset_type;
 
 	mx_bool_type debug_flag;
 
@@ -113,6 +117,10 @@ typedef struct {
   {-1, -1, "handel_log_level", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_HANDEL, handel_log_level), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {-1, -1, "handel_version", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_HANDEL, handel_version), \
+	{0}, NULL, MXFF_READ_ONLY }, \
   \
   {MXLV_HANDEL_CONFIG_FILENAME, -1, "config_filename", \
 				MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
@@ -164,8 +172,11 @@ typedef struct {
   {-1, -1, "last_measurement_interval", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_HANDEL, last_measurement_interval),\
+	{0}, NULL, 0 }, \
+  \
+  {-1, -1, "bypass_xia_preset_type", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_HANDEL, bypass_xia_preset_type), \
 	{0}, NULL, 0 }
-
 
 MX_API mx_status_type mxi_handel_initialize_driver( MX_DRIVER *driver );
 MX_API mx_status_type mxi_handel_create_record_structures(

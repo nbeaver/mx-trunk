@@ -79,6 +79,8 @@ typedef struct {
 					 *  MD_DEBUG   = 4
 					 */
 
+	unsigned long handel_version;
+
 	char config_filename[ MXU_FILENAME_LENGTH + 1 ];
 
 	char log_filename[ MXU_FILENAME_LENGTH + 1 ];
@@ -101,6 +103,8 @@ typedef struct {
 	MX_RECORD ***module_array;
 
 	double last_measurement_interval;
+
+	mx_bool_type bypass_xia_preset_type;
 
 	/* The hardware uses 'double' for mapping_mode and
 	 * pixel_advance_mode, but in MX we round to the
@@ -188,6 +192,10 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_HANDEL, handel_log_level), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_READ_ONLY) }, \
   \
+  {-1, -1, "handel_version", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_HANDEL, handel_version), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
   {MXLV_HANDEL_CONFIG_FILENAME, -1, "config_filename", \
 				MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_HANDEL, config_filename), \
@@ -238,6 +246,10 @@ typedef struct {
   {-1, -1, "last_measurement_interval", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_HANDEL, last_measurement_interval),\
+	{0}, NULL, 0 }, \
+  \
+  {-1, -1, "bypass_xia_preset_type", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_HANDEL, bypass_xia_preset_type), \
 	{0}, NULL, 0 }, \
   \
   {MXLV_HANDEL_MAPPING_MODE, -1, "mapping_mode", MXFT_LONG, NULL, 0, {0}, \
