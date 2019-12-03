@@ -71,6 +71,21 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 #CFLAGS += -RTCs
 
 #
+# 4.  FIXME: For Visual C++ 2015 and later maybe we can (?) use the
+#     undocumented (?) argument '-d2UndefintOverflow-' to emulate the
+#     GCC/Clang argument '-fwrapv' used for Linux, etc.  This argument
+#     forces signed integer overflow to wrap in the twos-complement
+#     manner.  Note that there is '-' character at the _end_ of the
+#     argument as well as the beginning.
+#
+#     See here for a description:
+#         https://devblogs.microsoft.com/cppblog/new-code-optimizer/
+#
+#     Warning: Untested!  (WML: 2019-12-03)
+#
+#CFLAGS += -d2UndefintOverflow-
+
+#
 #========================================================================
 #
 # Generally, you should not have to modify anything after this point.

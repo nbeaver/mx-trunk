@@ -4119,7 +4119,7 @@ mx_convert_and_copy_scaled_vector(
 	float float_temp;
 	float double_temp;
 
-#if 1
+#if 0
 	MX_DEBUG(-2,("%s: source_vector_pointer = %p, "
 		"source_mx_datatype = %ld, source_num_values = %ld",
 			fname, source_vector_pointer,

@@ -11,6 +11,7 @@ else
 endif
 
 all:
+	( cd array_test ; $(MAKECMD) )
 	( cd attribute_test ; $(MAKECMD) )
 	( cd boot_test ; $(MAKECMD) )
 	( cd coprocess_test ; $(MAKECMD) )
@@ -24,6 +25,7 @@ all:
 	( cd vtimer_test ; $(MAKECMD) )
 
 clean:
+	( cd array_test ; $(MAKECMD) clean )
 	( cd attribute_test ; $(MAKECMD) clean )
 	( cd boot_test ; $(MAKECMD) clean )
 	( cd coprocess_test ; $(MAKECMD) clean )
