@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2000, 2003, 2005-2007, 2012-2017
+ * Copyright 1999-2000, 2003, 2005-2007, 2012-2017, 2019
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -231,6 +231,20 @@ MX_API mx_status_type mx_convert_and_copy_array(
 		long destination_num_dimensions,
 		long *destination_dimension_array,
 		size_t *destination_data_element_size_array );
+
+/*---*/
+
+MX_API mx_status_type mx_convert_and_copy_vector(
+		void *source_vector_pointer,
+		long source_datatype,
+		long source_num_values,
+		void *destination_vector_pointer,
+		long destination_datatype,
+		long destination_num_values,
+		double scale,
+		double offset,
+		double minimum_value,
+		double maximum_value );
 
 /*---*/
 

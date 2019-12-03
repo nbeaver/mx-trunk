@@ -4073,6 +4073,1722 @@ mx_convert_and_copy_array(
 
 /*---------------------------------------------------------------------------*/
 
+/* mx_convert_and_copy_vector() is designed to copy from one one-dimensional
+ * vector to another one-dimensional vector.  It converts from one datatype to
+ * another datatype along the way and also rescales the value.
+ */
+
+MX_EXPORT mx_status_type
+mx_convert_and_copy_vector(
+	void *source_vector_pointer,
+	long source_mx_datatype,
+	long source_num_values,
+	void *destination_vector_pointer,
+	long destination_mx_datatype,
+	long destination_num_values,
+	double scale,
+	double offset,
+	double minimum_value,
+	double maximum_value )
+{
+	static const char fname[] = "mx_convert_and_copy_vector()";
+
+	size_t i;
+	char *char_source_vector;
+	char *char_dest_vector;
+	unsigned char *uchar_source_vector;
+	unsigned char *uchar_dest_vector;
+	short *short_source_vector;
+	short *short_dest_vector;
+	unsigned short *ushort_source_vector;
+	unsigned short *ushort_dest_vector;
+	mx_bool_type *bool_source_vector;
+	mx_bool_type *bool_dest_vector;
+	long *long_source_vector;
+	long *long_dest_vector;
+	unsigned long *ulong_source_vector;
+	unsigned long *ulong_dest_vector;
+	float *float_source_vector;
+	float *float_dest_vector;
+	double *double_source_vector;
+	double *double_dest_vector;
+
+	long long_temp;
+	unsigned long ulong_temp;
+	float float_temp;
+	float double_temp;
+
+#if 1
+	MX_DEBUG(-2,("%s: source_vector_pointer = %p, "
+		"source_mx_datatype = %ld, source_num_values = %ld",
+			fname, source_vector_pointer,
+			source_mx_datatype, source_num_values));
+
+	MX_DEBUG(-2,("%s: destination_vector_pointer = %p, "
+		"destination_mx_datatype = %ld, destination_num_values = %ld",
+			fname, destination_vector_pointer,
+			destination_mx_datatype, destination_num_values));
+#endif
+	/*----*/
+
+	if ( source_vector_pointer == destination_vector_pointer ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The source vector pointer and the destination vector pointer "
+		"have the same address %p, so they are the same vector.",
+			source_vector_pointer );
+	}
+
+	/*----*/
+
+	if ( source_num_values > destination_num_values ) {
+		source_num_values = destination_num_values;
+	}
+
+	/*----*/
+
+	switch( source_mx_datatype ) {
+	case MXFT_STRING:
+			/* Currently string arrays can only be copied to
+			 * other string arrays.
+			 */
+
+			strlcpy( destination_vector_pointer,
+				source_vector_pointer,
+				source_num_values );
+			break;
+
+	case MXFT_CHAR:
+		char_source_vector = (char *) source_vector_pointer;
+
+		switch( destination_mx_datatype ) {
+		case MXFT_CHAR:
+			char_dest_vector = (char *) destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				long_temp = mx_round( char_source_vector[i]
+							* scale + offset );
+
+				if ( long_temp < minimum_value ) {
+					long_temp = minimum_value;
+				} else
+				if ( long_temp > maximum_value ) {
+					long_temp = maximum_value;
+				}
+
+				char_dest_vector[i] = long_temp;
+			}
+			break;
+
+		case MXFT_UCHAR:
+			uchar_dest_vector = (unsigned char *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				ulong_temp = mx_round( char_source_vector[i]
+							* scale + offset );
+
+				if ( ulong_temp < minimum_value ) {
+					ulong_temp = minimum_value;
+				} else
+				if ( ulong_temp > maximum_value ) {
+					ulong_temp = maximum_value;
+				}
+
+				uchar_dest_vector[i] = ulong_temp;
+			}
+			break;
+
+		case MXFT_SHORT:
+			short_dest_vector = (short *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				long_temp = mx_round( char_source_vector[i]
+							* scale + offset );
+
+				if ( long_temp < minimum_value ) {
+					long_temp = minimum_value;
+				} else
+				if ( long_temp > maximum_value ) {
+					long_temp = maximum_value;
+				}
+
+				short_dest_vector[i] = long_temp;
+			}
+			break;
+
+		case MXFT_USHORT:
+			ushort_dest_vector = (unsigned short *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				ulong_temp = mx_round( char_source_vector[i]
+							* scale + offset );
+
+				if ( ulong_temp < minimum_value ) {
+					ulong_temp = minimum_value;
+				} else
+				if ( ulong_temp > maximum_value ) {
+					ulong_temp = maximum_value;
+				}
+
+				ushort_dest_vector[i] = ulong_temp;
+			}
+			break;
+
+		case MXFT_BOOL:
+			bool_dest_vector = (mx_bool_type *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				long_temp = mx_round( char_source_vector[i]
+							* scale + offset );
+
+				if ( long_temp < minimum_value ) {
+					long_temp = minimum_value;
+				} else
+				if ( long_temp > maximum_value ) {
+					long_temp = maximum_value;
+				}
+
+				bool_dest_vector[i] = long_temp;
+			}
+			break;
+
+		case MXFT_LONG:
+			long_dest_vector = (long *) destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				long_temp = mx_round( char_source_vector[i]
+							* scale + offset );
+
+				if ( long_temp < minimum_value ) {
+					long_temp = minimum_value;
+				} else
+				if ( long_temp > maximum_value ) {
+					long_temp = maximum_value;
+				}
+
+				long_dest_vector[i] = long_temp;
+			}
+			break;
+
+		case MXFT_ULONG:
+		case MXFT_HEX:
+			ulong_dest_vector = (unsigned long *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				ulong_temp = mx_round( char_source_vector[i]
+							* scale + offset );
+
+				if ( ulong_temp < minimum_value ) {
+					ulong_temp = minimum_value;
+				} else
+				if ( ulong_temp > maximum_value ) {
+					ulong_temp = maximum_value;
+				}
+
+				ulong_dest_vector[i] = ulong_temp;
+			}
+			break;
+
+		case MXFT_FLOAT:
+			float_dest_vector = (float *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				float_temp = char_source_vector[i]
+						* scale + offset;
+
+				if ( float_temp < minimum_value ) {
+					float_temp = minimum_value;
+				} else
+				if ( float_temp > maximum_value ) {
+					float_temp = maximum_value;
+				}
+
+				float_dest_vector[i] = float_temp;
+			}
+			break;
+
+		case MXFT_DOUBLE:
+			double_dest_vector = (double *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				double_temp = char_source_vector[i]
+						* scale + offset;
+
+				if ( double_temp < minimum_value ) {
+					double_temp = minimum_value;
+				} else
+				if ( double_temp > maximum_value ) {
+					double_temp = maximum_value;
+				}
+
+				double_dest_vector[i] = double_temp;
+			}
+			break;
+
+		default:
+			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		    "MX datatype %ld is not yet implemented for this function.",
+				destination_mx_datatype );
+			break;
+		}
+		break;
+
+	case MXFT_UCHAR:
+		uchar_source_vector = (unsigned char *) source_vector_pointer;
+
+		switch( destination_mx_datatype ) {
+		case MXFT_CHAR:
+			char_dest_vector = (char *) destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				long_temp = mx_round( uchar_source_vector[i]
+							* scale + offset );
+
+				if ( long_temp < minimum_value ) {
+					long_temp = minimum_value;
+				} else
+				if ( long_temp > maximum_value ) {
+					long_temp = maximum_value;
+				}
+
+				char_dest_vector[i] = long_temp;
+			}
+			break;
+
+		case MXFT_UCHAR:
+			uchar_dest_vector = (unsigned char *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				ulong_temp = mx_round( uchar_source_vector[i]
+							* scale + offset );
+
+				if ( ulong_temp < minimum_value ) {
+					ulong_temp = minimum_value;
+				} else
+				if ( ulong_temp > maximum_value ) {
+					ulong_temp = maximum_value;
+				}
+
+				uchar_dest_vector[i] = ulong_temp;
+			}
+			break;
+
+		case MXFT_SHORT:
+			short_dest_vector = (short *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				long_temp = mx_round( uchar_source_vector[i]
+							* scale + offset );
+
+				if ( long_temp < minimum_value ) {
+					long_temp = minimum_value;
+				} else
+				if ( long_temp > maximum_value ) {
+					long_temp = maximum_value;
+				}
+
+				short_dest_vector[i] = long_temp;
+			}
+			break;
+
+		case MXFT_USHORT:
+			ushort_dest_vector = (unsigned short *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				ulong_temp = mx_round( uchar_source_vector[i]
+							* scale + offset );
+
+				if ( ulong_temp < minimum_value ) {
+					ulong_temp = minimum_value;
+				} else
+				if ( ulong_temp > maximum_value ) {
+					ulong_temp = maximum_value;
+				}
+
+				ushort_dest_vector[i] = ulong_temp;
+			}
+			break;
+
+		case MXFT_BOOL:
+			bool_dest_vector = (mx_bool_type *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				long_temp = mx_round( uchar_source_vector[i]
+							* scale + offset );
+
+				if ( long_temp < minimum_value ) {
+					long_temp = minimum_value;
+				} else
+				if ( long_temp > maximum_value ) {
+					long_temp = maximum_value;
+				}
+
+				bool_dest_vector[i] = long_temp;
+			}
+			break;
+
+		case MXFT_LONG:
+			long_dest_vector = (long *) destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				long_temp = mx_round( uchar_source_vector[i]
+							* scale + offset );
+
+				if ( long_temp < minimum_value ) {
+					long_temp = minimum_value;
+				} else
+				if ( long_temp > maximum_value ) {
+					long_temp = maximum_value;
+				}
+
+				long_dest_vector[i] = long_temp;
+			}
+			break;
+
+		case MXFT_ULONG:
+		case MXFT_HEX:
+			ulong_dest_vector = (unsigned long *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				ulong_temp = mx_round( uchar_source_vector[i]
+							* scale + offset );
+
+				if ( ulong_temp < minimum_value ) {
+					ulong_temp = minimum_value;
+				} else
+				if ( ulong_temp > maximum_value ) {
+					ulong_temp = maximum_value;
+				}
+
+				ulong_dest_vector[i] = ulong_temp;
+			}
+			break;
+
+		case MXFT_FLOAT:
+			float_dest_vector = (float *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				float_temp = uchar_source_vector[i]
+						* scale + offset;
+
+				if ( float_temp < minimum_value ) {
+					float_temp = minimum_value;
+				} else
+				if ( float_temp > maximum_value ) {
+					float_temp = maximum_value;
+				}
+
+				float_dest_vector[i] = float_temp;
+			}
+			break;
+
+		case MXFT_DOUBLE:
+			double_dest_vector = (double *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				double_temp = uchar_source_vector[i]
+						* scale + offset;
+
+				if ( double_temp < minimum_value ) {
+					double_temp = minimum_value;
+				} else
+				if ( double_temp > maximum_value ) {
+					double_temp = maximum_value;
+				}
+
+				double_dest_vector[i] = double_temp;
+			}
+			break;
+
+		default:
+			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		    "MX datatype %ld is not yet implemented for this function.",
+				destination_mx_datatype );
+			break;
+		}
+		break;
+
+	case MXFT_SHORT:
+		short_source_vector = (short *) source_vector_pointer;
+
+		switch( destination_mx_datatype ) {
+		case MXFT_CHAR:
+			char_dest_vector = (char *) destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				long_temp = mx_round( short_source_vector[i]
+							* scale + offset );
+
+				if ( long_temp < minimum_value ) {
+					long_temp = minimum_value;
+				} else
+				if ( long_temp > maximum_value ) {
+					long_temp = maximum_value;
+				}
+
+				char_dest_vector[i] = long_temp;
+			}
+			break;
+
+		case MXFT_UCHAR:
+			uchar_dest_vector = (unsigned char *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				ulong_temp = mx_round( short_source_vector[i]
+							* scale + offset );
+
+				if ( ulong_temp < minimum_value ) {
+					ulong_temp = minimum_value;
+				} else
+				if ( ulong_temp > maximum_value ) {
+					ulong_temp = maximum_value;
+				}
+
+				uchar_dest_vector[i] = ulong_temp;
+			}
+			break;
+
+		case MXFT_SHORT:
+			short_dest_vector = (short *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				long_temp = mx_round( short_source_vector[i]
+							* scale + offset );
+
+				if ( long_temp < minimum_value ) {
+					long_temp = minimum_value;
+				} else
+				if ( long_temp > maximum_value ) {
+					long_temp = maximum_value;
+				}
+
+				short_dest_vector[i] = long_temp;
+			}
+			break;
+
+		case MXFT_USHORT:
+			ushort_dest_vector = (unsigned short *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				ulong_temp = mx_round( short_source_vector[i]
+							* scale + offset );
+
+				if ( ulong_temp < minimum_value ) {
+					ulong_temp = minimum_value;
+				} else
+				if ( ulong_temp > maximum_value ) {
+					ulong_temp = maximum_value;
+				}
+
+				ushort_dest_vector[i] = ulong_temp;
+			}
+			break;
+
+		case MXFT_BOOL:
+			bool_dest_vector = (mx_bool_type *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				long_temp = mx_round( short_source_vector[i]
+							* scale + offset );
+
+				if ( long_temp < minimum_value ) {
+					long_temp = minimum_value;
+				} else
+				if ( long_temp > maximum_value ) {
+					long_temp = maximum_value;
+				}
+
+				bool_dest_vector[i] = long_temp;
+			}
+			break;
+
+		case MXFT_LONG:
+			long_dest_vector = (long *) destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				long_temp = mx_round( short_source_vector[i]
+							* scale + offset );
+
+				if ( long_temp < minimum_value ) {
+					long_temp = minimum_value;
+				} else
+				if ( long_temp > maximum_value ) {
+					long_temp = maximum_value;
+				}
+
+				long_dest_vector[i] = long_temp;
+			}
+			break;
+
+		case MXFT_ULONG:
+		case MXFT_HEX:
+			ulong_dest_vector = (unsigned long *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				ulong_temp = mx_round( short_source_vector[i]
+							* scale + offset );
+
+				if ( ulong_temp < minimum_value ) {
+					ulong_temp = minimum_value;
+				} else
+				if ( ulong_temp > maximum_value ) {
+					ulong_temp = maximum_value;
+				}
+
+				ulong_dest_vector[i] = ulong_temp;
+			}
+			break;
+
+		case MXFT_DOUBLE:
+			double_dest_vector = (double *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				double_temp = short_source_vector[i]
+						* scale + offset;
+
+				if ( double_temp < minimum_value ) {
+					double_temp = minimum_value;
+				} else
+				if ( double_temp > maximum_value ) {
+					double_temp = maximum_value;
+				}
+
+				double_dest_vector[i] = double_temp;
+			}
+			break;
+
+		default:
+			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		    "MX datatype %ld is not yet implemented for this function.",
+				destination_mx_datatype );
+			break;
+		}
+		break;
+
+	case MXFT_USHORT:
+		ushort_source_vector = (unsigned short *) source_vector_pointer;
+
+		switch( destination_mx_datatype ) {
+		case MXFT_CHAR:
+			char_dest_vector = (char *) destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				long_temp = mx_round( ushort_source_vector[i]
+							* scale + offset );
+
+				if ( long_temp < minimum_value ) {
+					long_temp = minimum_value;
+				} else
+				if ( long_temp > maximum_value ) {
+					long_temp = maximum_value;
+				}
+
+				char_dest_vector[i] = long_temp;
+			}
+			break;
+
+		case MXFT_UCHAR:
+			uchar_dest_vector = (unsigned char *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				ulong_temp = mx_round( ushort_source_vector[i]
+							* scale + offset );
+
+				if ( ulong_temp < minimum_value ) {
+					ulong_temp = minimum_value;
+				} else
+				if ( ulong_temp > maximum_value ) {
+					ulong_temp = maximum_value;
+				}
+
+				uchar_dest_vector[i] = ulong_temp;
+			}
+			break;
+
+		case MXFT_SHORT:
+			short_dest_vector = (short *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				long_temp = mx_round( ushort_source_vector[i]
+							* scale + offset );
+
+				if ( long_temp < minimum_value ) {
+					long_temp = minimum_value;
+				} else
+				if ( long_temp > maximum_value ) {
+					long_temp = maximum_value;
+				}
+
+				short_dest_vector[i] = long_temp;
+			}
+			break;
+
+		case MXFT_USHORT:
+			ushort_dest_vector = (unsigned short *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				ulong_temp = mx_round( ushort_source_vector[i]
+							* scale + offset );
+
+				if ( ulong_temp < minimum_value ) {
+					ulong_temp = minimum_value;
+				} else
+				if ( ulong_temp > maximum_value ) {
+					ulong_temp = maximum_value;
+				}
+
+				ushort_dest_vector[i] = ulong_temp;
+			}
+			break;
+
+		case MXFT_BOOL:
+			bool_dest_vector = (mx_bool_type *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				long_temp = mx_round( ushort_source_vector[i]
+							* scale + offset );
+
+				if ( long_temp < minimum_value ) {
+					long_temp = minimum_value;
+				} else
+				if ( long_temp > maximum_value ) {
+					long_temp = maximum_value;
+				}
+
+				bool_dest_vector[i] = long_temp;
+			}
+			break;
+
+		case MXFT_LONG:
+			long_dest_vector = (long *) destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				long_temp = mx_round( ushort_source_vector[i]
+							* scale + offset );
+
+				if ( long_temp < minimum_value ) {
+					long_temp = minimum_value;
+				} else
+				if ( long_temp > maximum_value ) {
+					long_temp = maximum_value;
+				}
+
+				long_dest_vector[i] = long_temp;
+			}
+			break;
+
+		case MXFT_ULONG:
+		case MXFT_HEX:
+			ulong_dest_vector = (unsigned long *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				ulong_temp = mx_round( ushort_source_vector[i]
+							* scale + offset );
+
+				if ( ulong_temp < minimum_value ) {
+					ulong_temp = minimum_value;
+				} else
+				if ( ulong_temp > maximum_value ) {
+					ulong_temp = maximum_value;
+				}
+
+				ulong_dest_vector[i] = ulong_temp;
+			}
+			break;
+
+		case MXFT_FLOAT:
+			float_dest_vector = (float *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				float_temp = ushort_source_vector[i]
+						* scale + offset;
+
+				if ( float_temp < minimum_value ) {
+					float_temp = minimum_value;
+				} else
+				if ( float_temp > maximum_value ) {
+					float_temp = maximum_value;
+				}
+
+				float_dest_vector[i] = float_temp;
+			}
+			break;
+
+		case MXFT_DOUBLE:
+			double_dest_vector = (double *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				double_temp = ushort_source_vector[i]
+						* scale + offset;
+
+				if ( double_temp < minimum_value ) {
+					double_temp = minimum_value;
+				} else
+				if ( double_temp > maximum_value ) {
+					double_temp = maximum_value;
+				}
+
+				double_dest_vector[i] = double_temp;
+			}
+			break;
+
+		default:
+			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		    "MX datatype %ld is not yet implemented for this function.",
+				destination_mx_datatype );
+			break;
+		}
+		break;
+
+	case MXFT_BOOL:
+		bool_source_vector = (mx_bool_type *) source_vector_pointer;
+
+		switch( destination_mx_datatype ) {
+		case MXFT_CHAR:
+			char_dest_vector = (char *) destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				long_temp = mx_round( bool_source_vector[i]
+							* scale + offset );
+
+				if ( long_temp < minimum_value ) {
+					long_temp = minimum_value;
+				} else
+				if ( long_temp > maximum_value ) {
+					long_temp = maximum_value;
+				}
+
+				char_dest_vector[i] = long_temp;
+			}
+			break;
+
+		case MXFT_UCHAR:
+			uchar_dest_vector = (unsigned char *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				ulong_temp = mx_round( bool_source_vector[i]
+							* scale + offset );
+
+				if ( ulong_temp < minimum_value ) {
+					ulong_temp = minimum_value;
+				} else
+				if ( ulong_temp > maximum_value ) {
+					ulong_temp = maximum_value;
+				}
+
+				uchar_dest_vector[i] = ulong_temp;
+			}
+			break;
+
+		case MXFT_SHORT:
+			short_dest_vector = (short *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				long_temp = mx_round( bool_source_vector[i]
+							* scale + offset );
+
+				if ( long_temp < minimum_value ) {
+					long_temp = minimum_value;
+				} else
+				if ( long_temp > maximum_value ) {
+					long_temp = maximum_value;
+				}
+
+				short_dest_vector[i] = long_temp;
+			}
+			break;
+
+		case MXFT_USHORT:
+			ushort_dest_vector = (unsigned short *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				ulong_temp = mx_round( bool_source_vector[i]
+							* scale + offset );
+
+				if ( ulong_temp < minimum_value ) {
+					ulong_temp = minimum_value;
+				} else
+				if ( ulong_temp > maximum_value ) {
+					ulong_temp = maximum_value;
+				}
+
+				ushort_dest_vector[i] = ulong_temp;
+			}
+			break;
+
+		case MXFT_BOOL:
+			bool_dest_vector = (mx_bool_type *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				long_temp = mx_round( bool_source_vector[i]
+							* scale + offset );
+
+				if ( long_temp < minimum_value ) {
+					long_temp = minimum_value;
+				} else
+				if ( long_temp > maximum_value ) {
+					long_temp = maximum_value;
+				}
+
+				bool_dest_vector[i] = long_temp;
+			}
+			break;
+
+		case MXFT_LONG:
+			long_dest_vector = (long *) destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				long_temp = mx_round( bool_source_vector[i]
+							* scale + offset );
+
+				if ( long_temp < minimum_value ) {
+					long_temp = minimum_value;
+				} else
+				if ( long_temp > maximum_value ) {
+					long_temp = maximum_value;
+				}
+
+				long_dest_vector[i] = long_temp;
+			}
+			break;
+
+		case MXFT_ULONG:
+		case MXFT_HEX:
+			ulong_dest_vector = (unsigned long *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				ulong_temp = mx_round( bool_source_vector[i]
+							* scale + offset );
+
+				if ( ulong_temp < minimum_value ) {
+					ulong_temp = minimum_value;
+				} else
+				if ( ulong_temp > maximum_value ) {
+					ulong_temp = maximum_value;
+				}
+
+				ulong_dest_vector[i] = ulong_temp;
+			}
+			break;
+
+		case MXFT_FLOAT:
+			float_dest_vector = (float *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				float_temp = bool_source_vector[i]
+						* scale + offset;
+
+				if ( float_temp < minimum_value ) {
+					float_temp = minimum_value;
+				} else
+				if ( float_temp > maximum_value ) {
+					float_temp = maximum_value;
+				}
+
+				float_dest_vector[i] = float_temp;
+			}
+			break;
+
+		case MXFT_DOUBLE:
+			double_dest_vector = (double *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				double_temp = bool_source_vector[i]
+						* scale + offset;
+
+				if ( double_temp < minimum_value ) {
+					double_temp = minimum_value;
+				} else
+				if ( double_temp > maximum_value ) {
+					double_temp = maximum_value;
+				}
+
+				double_dest_vector[i] = double_temp;
+			}
+			break;
+
+		default:
+			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		    "MX datatype %ld is not yet implemented for this function.",
+				destination_mx_datatype );
+			break;
+		}
+		break;
+
+	case MXFT_LONG:
+		long_source_vector = (long *) source_vector_pointer;
+
+		switch( destination_mx_datatype ) {
+		case MXFT_CHAR:
+			char_dest_vector = (char *) destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				long_temp = mx_round( long_source_vector[i]
+							* scale + offset );
+
+				if ( long_temp < minimum_value ) {
+					long_temp = minimum_value;
+				} else
+				if ( long_temp > maximum_value ) {
+					long_temp = maximum_value;
+				}
+
+				char_dest_vector[i] = long_temp;
+			}
+			break;
+
+		case MXFT_UCHAR:
+			uchar_dest_vector = (unsigned char *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				ulong_temp = mx_round( long_source_vector[i]
+							* scale + offset );
+
+				if ( ulong_temp < minimum_value ) {
+					ulong_temp = minimum_value;
+				} else
+				if ( ulong_temp > maximum_value ) {
+					ulong_temp = maximum_value;
+				}
+
+				uchar_dest_vector[i] = ulong_temp;
+			}
+			break;
+
+		case MXFT_SHORT:
+			short_dest_vector = (short *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				long_temp = mx_round( long_source_vector[i]
+							* scale + offset );
+
+				if ( long_temp < minimum_value ) {
+					long_temp = minimum_value;
+				} else
+				if ( long_temp > maximum_value ) {
+					long_temp = maximum_value;
+				}
+
+				short_dest_vector[i] = long_temp;
+			}
+			break;
+
+		case MXFT_USHORT:
+			ushort_dest_vector = (unsigned short *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				ulong_temp = mx_round( long_source_vector[i]
+							* scale + offset );
+
+				if ( ulong_temp < minimum_value ) {
+					ulong_temp = minimum_value;
+				} else
+				if ( ulong_temp > maximum_value ) {
+					ulong_temp = maximum_value;
+				}
+
+				ushort_dest_vector[i] = ulong_temp;
+			}
+			break;
+
+		case MXFT_BOOL:
+			bool_dest_vector = (mx_bool_type *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				long_temp = mx_round( long_source_vector[i]
+							* scale + offset );
+
+				if ( long_temp < minimum_value ) {
+					long_temp = minimum_value;
+				} else
+				if ( long_temp > maximum_value ) {
+					long_temp = maximum_value;
+				}
+
+				bool_dest_vector[i] = long_temp;
+			}
+			break;
+
+		case MXFT_LONG:
+			long_dest_vector = (long *) destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				long_temp = mx_round( long_source_vector[i]
+							* scale + offset );
+
+				if ( long_temp < minimum_value ) {
+					long_temp = minimum_value;
+				} else
+				if ( long_temp > maximum_value ) {
+					long_temp = maximum_value;
+				}
+
+				long_dest_vector[i] = long_temp;
+			}
+			break;
+
+		case MXFT_ULONG:
+		case MXFT_HEX:
+			ulong_dest_vector = (unsigned long *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				ulong_temp = mx_round( long_source_vector[i]
+							* scale + offset );
+
+				if ( ulong_temp < minimum_value ) {
+					ulong_temp = minimum_value;
+				} else
+				if ( ulong_temp > maximum_value ) {
+					ulong_temp = maximum_value;
+				}
+
+				ulong_dest_vector[i] = ulong_temp;
+			}
+			break;
+
+		case MXFT_FLOAT:
+			float_dest_vector = (float *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				float_temp = long_source_vector[i]
+						* scale + offset;
+
+				if ( float_temp < minimum_value ) {
+					float_temp = minimum_value;
+				} else
+				if ( float_temp > maximum_value ) {
+					float_temp = maximum_value;
+				}
+
+				float_dest_vector[i] = float_temp;
+			}
+			break;
+
+		case MXFT_DOUBLE:
+			double_dest_vector = (double *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				double_temp = long_source_vector[i]
+						* scale + offset;
+
+				if ( double_temp < minimum_value ) {
+					double_temp = minimum_value;
+				} else
+				if ( double_temp > maximum_value ) {
+					double_temp = maximum_value;
+				}
+
+				double_dest_vector[i] = double_temp;
+			}
+			break;
+
+		default:
+			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		    "MX datatype %ld is not yet implemented for this function.",
+				destination_mx_datatype );
+			break;
+		}
+		break;
+
+	case MXFT_ULONG:
+	case MXFT_HEX:
+		ulong_source_vector = (unsigned long *) source_vector_pointer;
+
+		switch( destination_mx_datatype ) {
+		case MXFT_CHAR:
+			char_dest_vector = (char *) destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				long_temp = mx_round( ulong_source_vector[i]
+							* scale + offset );
+
+				if ( long_temp < minimum_value ) {
+					long_temp = minimum_value;
+				} else
+				if ( long_temp > maximum_value ) {
+					long_temp = maximum_value;
+				}
+
+				char_dest_vector[i] = long_temp;
+			}
+			break;
+
+		case MXFT_UCHAR:
+			uchar_dest_vector = (unsigned char *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				ulong_temp = mx_round( ulong_source_vector[i]
+							* scale + offset );
+
+				if ( ulong_temp < minimum_value ) {
+					ulong_temp = minimum_value;
+				} else
+				if ( ulong_temp > maximum_value ) {
+					ulong_temp = maximum_value;
+				}
+
+				uchar_dest_vector[i] = ulong_temp;
+			}
+			break;
+
+		case MXFT_SHORT:
+			short_dest_vector = (short *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				long_temp = mx_round( ulong_source_vector[i]
+							* scale + offset );
+
+				if ( long_temp < minimum_value ) {
+					long_temp = minimum_value;
+				} else
+				if ( long_temp > maximum_value ) {
+					long_temp = maximum_value;
+				}
+
+				short_dest_vector[i] = long_temp;
+			}
+			break;
+
+		case MXFT_USHORT:
+			ushort_dest_vector = (unsigned short *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				ulong_temp = mx_round( ulong_source_vector[i]
+							* scale + offset );
+
+				if ( ulong_temp < minimum_value ) {
+					ulong_temp = minimum_value;
+				} else
+				if ( ulong_temp > maximum_value ) {
+					ulong_temp = maximum_value;
+				}
+
+				ushort_dest_vector[i] = ulong_temp;
+			}
+			break;
+
+		case MXFT_BOOL:
+			bool_dest_vector = (mx_bool_type *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				long_temp = mx_round( ulong_source_vector[i]
+							* scale + offset );
+
+				if ( long_temp < minimum_value ) {
+					long_temp = minimum_value;
+				} else
+				if ( long_temp > maximum_value ) {
+					long_temp = maximum_value;
+				}
+
+				bool_dest_vector[i] = long_temp;
+			}
+			break;
+
+		case MXFT_LONG:
+			long_dest_vector = (long *) destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				long_temp = mx_round( ulong_source_vector[i]
+							* scale + offset );
+
+				if ( long_temp < minimum_value ) {
+					long_temp = minimum_value;
+				} else
+				if ( long_temp > maximum_value ) {
+					long_temp = maximum_value;
+				}
+
+				long_dest_vector[i] = long_temp;
+			}
+			break;
+
+		case MXFT_ULONG:
+		case MXFT_HEX:
+			ulong_dest_vector = (unsigned long *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				ulong_temp = mx_round( ulong_source_vector[i]
+							* scale + offset );
+
+				if ( ulong_temp < minimum_value ) {
+					ulong_temp = minimum_value;
+				} else
+				if ( ulong_temp > maximum_value ) {
+					ulong_temp = maximum_value;
+				}
+
+				ulong_dest_vector[i] = ulong_temp;
+			}
+			break;
+
+		case MXFT_FLOAT:
+			float_dest_vector = (float *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				float_temp = ulong_source_vector[i]
+						* scale + offset;
+
+				if ( float_temp < minimum_value ) {
+					float_temp = minimum_value;
+				} else
+				if ( float_temp > maximum_value ) {
+					float_temp = maximum_value;
+				}
+
+				float_dest_vector[i] = float_temp;
+			}
+			break;
+
+		case MXFT_DOUBLE:
+			double_dest_vector = (double *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				double_temp = ulong_source_vector[i]
+						* scale + offset;
+
+				if ( double_temp < minimum_value ) {
+					double_temp = minimum_value;
+				} else
+				if ( double_temp > maximum_value ) {
+					double_temp = maximum_value;
+				}
+
+				double_dest_vector[i] = double_temp;
+			}
+			break;
+
+		default:
+			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		    "MX datatype %ld is not yet implemented for this function.",
+				destination_mx_datatype );
+			break;
+		}
+		break;
+
+	case MXFT_FLOAT:
+		float_source_vector = (float *) source_vector_pointer;
+
+		switch( destination_mx_datatype ) {
+		case MXFT_CHAR:
+			char_dest_vector = (char *) destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				long_temp = mx_round( float_source_vector[i]
+							* scale + offset );
+
+				if ( long_temp < minimum_value ) {
+					long_temp = minimum_value;
+				} else
+				if ( long_temp > maximum_value ) {
+					long_temp = maximum_value;
+				}
+
+				char_dest_vector[i] = long_temp;
+			}
+			break;
+
+		case MXFT_UCHAR:
+			uchar_dest_vector = (unsigned char *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				ulong_temp = mx_round( float_source_vector[i]
+							* scale + offset );
+
+				if ( ulong_temp < minimum_value ) {
+					ulong_temp = minimum_value;
+				} else
+				if ( ulong_temp > maximum_value ) {
+					ulong_temp = maximum_value;
+				}
+
+				uchar_dest_vector[i] = ulong_temp;
+			}
+			break;
+
+		case MXFT_SHORT:
+			short_dest_vector = (short *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				long_temp = mx_round( float_source_vector[i]
+							* scale + offset );
+
+				if ( long_temp < minimum_value ) {
+					long_temp = minimum_value;
+				} else
+				if ( long_temp > maximum_value ) {
+					long_temp = maximum_value;
+				}
+
+				short_dest_vector[i] = long_temp;
+			}
+			break;
+
+		case MXFT_USHORT:
+			ushort_dest_vector = (unsigned short *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				ulong_temp = mx_round( float_source_vector[i]
+							* scale + offset );
+
+				if ( ulong_temp < minimum_value ) {
+					ulong_temp = minimum_value;
+				} else
+				if ( ulong_temp > maximum_value ) {
+					ulong_temp = maximum_value;
+				}
+
+				ushort_dest_vector[i] = ulong_temp;
+			}
+			break;
+
+		case MXFT_BOOL:
+			bool_dest_vector = (mx_bool_type *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				long_temp = mx_round( float_source_vector[i]
+							* scale + offset );
+
+				if ( long_temp < minimum_value ) {
+					long_temp = minimum_value;
+				} else
+				if ( long_temp > maximum_value ) {
+					long_temp = maximum_value;
+				}
+
+				bool_dest_vector[i] = long_temp;
+			}
+			break;
+
+		case MXFT_LONG:
+			long_dest_vector = (long *) destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				long_temp = mx_round( float_source_vector[i]
+							* scale + offset );
+
+				if ( long_temp < minimum_value ) {
+					long_temp = minimum_value;
+				} else
+				if ( long_temp > maximum_value ) {
+					long_temp = maximum_value;
+				}
+
+				long_dest_vector[i] = long_temp;
+			}
+			break;
+
+		case MXFT_ULONG:
+		case MXFT_HEX:
+			ulong_dest_vector = (unsigned long *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				ulong_temp = mx_round( float_source_vector[i]
+							* scale + offset );
+
+				if ( ulong_temp < minimum_value ) {
+					ulong_temp = minimum_value;
+				} else
+				if ( ulong_temp > maximum_value ) {
+					ulong_temp = maximum_value;
+				}
+
+				ulong_dest_vector[i] = ulong_temp;
+			}
+			break;
+
+		case MXFT_FLOAT:
+			float_dest_vector = (float *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				float_temp = float_source_vector[i]
+						* scale + offset;
+
+				if ( float_temp < minimum_value ) {
+					float_temp = minimum_value;
+				} else
+				if ( float_temp > maximum_value ) {
+					float_temp = maximum_value;
+				}
+
+				float_dest_vector[i] = float_temp;
+			}
+			break;
+
+		case MXFT_DOUBLE:
+			double_dest_vector = (double *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				double_temp = float_source_vector[i]
+						* scale + offset;
+
+				if ( double_temp < minimum_value ) {
+					double_temp = minimum_value;
+				} else
+				if ( double_temp > maximum_value ) {
+					double_temp = maximum_value;
+				}
+
+				double_dest_vector[i] = double_temp;
+			}
+			break;
+
+		default:
+			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		    "MX datatype %ld is not yet implemented for this function.",
+				destination_mx_datatype );
+			break;
+		}
+		break;
+
+	case MXFT_DOUBLE:
+		double_source_vector = (double *) source_vector_pointer;
+
+		switch( destination_mx_datatype ) {
+		case MXFT_CHAR:
+			char_dest_vector = (char *) destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				long_temp = mx_round( double_source_vector[i]
+							* scale + offset );
+
+				if ( long_temp < minimum_value ) {
+					long_temp = minimum_value;
+				} else
+				if ( long_temp > maximum_value ) {
+					long_temp = maximum_value;
+				}
+
+				char_dest_vector[i] = long_temp;
+			}
+			break;
+
+		case MXFT_UCHAR:
+			uchar_dest_vector = (unsigned char *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				ulong_temp = mx_round( double_source_vector[i]
+							* scale + offset );
+
+				if ( ulong_temp < minimum_value ) {
+					ulong_temp = minimum_value;
+				} else
+				if ( ulong_temp > maximum_value ) {
+					ulong_temp = maximum_value;
+				}
+
+				uchar_dest_vector[i] = ulong_temp;
+			}
+			break;
+
+		case MXFT_SHORT:
+			short_dest_vector = (short *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				long_temp = mx_round( double_source_vector[i]
+							* scale + offset );
+
+				if ( long_temp < minimum_value ) {
+					long_temp = minimum_value;
+				} else
+				if ( long_temp > maximum_value ) {
+					long_temp = maximum_value;
+				}
+
+				short_dest_vector[i] = long_temp;
+			}
+			break;
+
+		case MXFT_USHORT:
+			ushort_dest_vector = (unsigned short *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				ulong_temp = mx_round( double_source_vector[i]
+							* scale + offset );
+
+				if ( ulong_temp < minimum_value ) {
+					ulong_temp = minimum_value;
+				} else
+				if ( ulong_temp > maximum_value ) {
+					ulong_temp = maximum_value;
+				}
+
+				ushort_dest_vector[i] = ulong_temp;
+			}
+			break;
+
+		case MXFT_BOOL:
+			bool_dest_vector = (mx_bool_type *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				long_temp = mx_round( double_source_vector[i]
+							* scale + offset );
+
+				if ( long_temp < minimum_value ) {
+					long_temp = minimum_value;
+				} else
+				if ( long_temp > maximum_value ) {
+					long_temp = maximum_value;
+				}
+
+				bool_dest_vector[i] = long_temp;
+			}
+			break;
+
+		case MXFT_LONG:
+			long_dest_vector = (long *) destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				long_temp = mx_round( double_source_vector[i]
+							* scale + offset );
+
+				if ( long_temp < minimum_value ) {
+					long_temp = minimum_value;
+				} else
+				if ( long_temp > maximum_value ) {
+					long_temp = maximum_value;
+				}
+
+				long_dest_vector[i] = long_temp;
+			}
+			break;
+
+		case MXFT_ULONG:
+		case MXFT_HEX:
+			ulong_dest_vector = (unsigned long *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				ulong_temp = mx_round( double_source_vector[i]
+							* scale + offset );
+
+				if ( ulong_temp < minimum_value ) {
+					ulong_temp = minimum_value;
+				} else
+				if ( ulong_temp > maximum_value ) {
+					ulong_temp = maximum_value;
+				}
+
+				ulong_dest_vector[i] = ulong_temp;
+			}
+			break;
+
+		case MXFT_FLOAT:
+			float_dest_vector = (float *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				float_temp = double_source_vector[i]
+						* scale + offset;
+
+				if ( float_temp < minimum_value ) {
+					float_temp = minimum_value;
+				} else
+				if ( float_temp > maximum_value ) {
+					float_temp = maximum_value;
+				}
+
+				float_dest_vector[i] = float_temp;
+			}
+			break;
+
+		case MXFT_DOUBLE:
+			double_dest_vector = (double *)
+						destination_vector_pointer;
+
+			for ( i = 0; i < source_num_values; i++ ) {
+				double_temp = double_source_vector[i]
+						* scale + offset;
+
+				if ( double_temp < minimum_value ) {
+					double_temp = minimum_value;
+				} else
+				if ( double_temp > maximum_value ) {
+					double_temp = maximum_value;
+				}
+
+				double_dest_vector[i] = double_temp;
+			}
+			break;
+
+		default:
+			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		    "MX datatype %ld is not yet implemented for this function.",
+				destination_mx_datatype );
+			break;
+		}
+		break;
+
+	default:
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		    "MX datatype %ld is not yet implemented for this function.",
+			source_mx_datatype );
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---------------------------------------------------------------------------*/
+
 #if MX_ARRAY_DEBUG_OVERLAY
 
 /* TEST CODE - TEST CODE - TEST CODE - TEST CODE - TEST CODE */
