@@ -107,7 +107,7 @@ mxd_record_field_motor_get_long( MX_RECORD_FIELD *field, long *long_value )
 
 	field_value_ptr = mx_get_field_value_pointer( field );
 
-	mx_status = mx_convert_and_copy_array( field_value_ptr,
+	mx_status = mx_convert_and_copy_array_old( field_value_ptr,
 						field->datatype,
 						field->num_dimensions,
 						field->dimension,
@@ -125,7 +125,7 @@ mxd_record_field_motor_set_long( MX_RECORD_FIELD *field, long long_value )
 
 	field_value_ptr = mx_get_field_value_pointer( field );
 
-	mx_status = mx_convert_and_copy_array( &long_value,
+	mx_status = mx_convert_and_copy_array_old( &long_value,
 						MXFT_LONG, 0, NULL, NULL,
 						field_value_ptr,
 						field->datatype,
@@ -143,7 +143,7 @@ mxd_record_field_motor_get_double( MX_RECORD_FIELD *field, double *double_value)
 
 	field_value_ptr = mx_get_field_value_pointer( field );
 
-	mx_status = mx_convert_and_copy_array( field_value_ptr,
+	mx_status = mx_convert_and_copy_array_old( field_value_ptr,
 						field->datatype,
 						field->num_dimensions,
 						field->dimension,
@@ -161,7 +161,7 @@ mxd_record_field_motor_set_double( MX_RECORD_FIELD *field, double double_value )
 
 	field_value_ptr = mx_get_field_value_pointer( field );
 
-	mx_status = mx_convert_and_copy_array( &double_value,
+	mx_status = mx_convert_and_copy_array_old( &double_value,
 						MXFT_DOUBLE, 0, NULL, NULL,
 						field_value_ptr,
 						field->datatype,

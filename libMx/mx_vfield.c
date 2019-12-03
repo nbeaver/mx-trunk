@@ -615,7 +615,7 @@ mxv_field_variable_open( MX_RECORD *record )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		mx_status = mx_convert_and_copy_array(
+		mx_status = mx_convert_and_copy_array_old(
 				field_variable->original_value_pointer,
 				field_variable->original_datatype,
 				field_variable->original_num_dimensions,

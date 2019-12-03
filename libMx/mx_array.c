@@ -3155,7 +3155,7 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
  */
 
 MX_EXPORT mx_status_type
-mx_convert_and_copy_array(
+mx_convert_and_copy_array_old(
 	void *source_array_pointer,
 	long source_datatype,
 	long source_num_dimensions,
@@ -3167,7 +3167,7 @@ mx_convert_and_copy_array(
 	long *destination_dimension_array,
 	size_t *destination_data_element_size_array )
 {
-	static const char fname[] = "mx_convert_and_copy_array()";
+	static const char fname[] = "mx_convert_and_copy_array_old()";
 
 	size_t i, num_items_to_copy;
 	size_t source_num_items_to_copy, destination_num_items_to_copy;
@@ -4073,13 +4073,14 @@ mx_convert_and_copy_array(
 
 /*---------------------------------------------------------------------------*/
 
-/* mx_convert_and_copy_vector() is designed to copy from one one-dimensional
- * vector to another one-dimensional vector.  It converts from one datatype to
- * another datatype along the way and also rescales the value.
+/* mx_convert_and_copy_scaled_vector() is designed to copy from one
+ * one-dimensional vector to another one-dimensional vector.  It converts
+ * from one datatype to another datatype along the way and also rescales
+ * the value.
  */
 
 MX_EXPORT mx_status_type
-mx_convert_and_copy_vector(
+mx_convert_and_copy_scaled_vector(
 	void *source_vector_pointer,
 	long source_mx_datatype,
 	long source_num_values,
@@ -4091,7 +4092,7 @@ mx_convert_and_copy_vector(
 	double minimum_value,
 	double maximum_value )
 {
-	static const char fname[] = "mx_convert_and_copy_vector()";
+	static const char fname[] = "mx_convert_and_copy_scaled_vector()";
 
 	size_t i;
 	char *char_source_vector;

@@ -220,7 +220,7 @@ MX_API mx_status_type mx_xdr_data_transfer( int direction,
 
 /*---*/
 
-MX_API mx_status_type mx_convert_and_copy_array(
+MX_API mx_status_type mx_convert_and_copy_array_old(
 		void *source_array_pointer,
 		long source_datatype,
 		long source_num_dimensions,
@@ -234,7 +234,7 @@ MX_API mx_status_type mx_convert_and_copy_array(
 
 /*---*/
 
-MX_API mx_status_type mx_convert_and_copy_vector(
+MX_API mx_status_type mx_convert_and_copy_scaled_vector(
 		void *source_vector_pointer,
 		long source_datatype,
 		long source_num_values,
