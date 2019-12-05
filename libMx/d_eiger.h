@@ -34,6 +34,14 @@
 
 #define MXU_EIGER_KEY_TYPE_LENGTH		20
 
+/*--- Values for 'debug_flags' ---*/
+
+#define MXF_EIGER_DEBUG_COMMANDS		0x1
+#define MXF_EIGER_DEBUG_PARAMETERS		0x2
+#define MXF_EIGER_DEBUG_TRIGGER			0x4
+#define MXF_EIGER_DEBUG_FUNCTIONS		0x8
+#define MXF_EIGER_DEBUG_URL			0x10
+
 /*--- Values for 'trigger_command' --- */
 
 #define MXS_EIGER_CMD_NONE		0
@@ -59,6 +67,7 @@ typedef struct {
 	char hostname[MXU_HOSTNAME_LENGTH+1];
 	char simplon_version[MXU_EIGER_SIMPLON_VERSION_LENGTH+1];
 	unsigned long eiger_flags;
+	unsigned long debug_flags;
 	MX_RECORD *photon_energy_record;
 	char transfer_mode_name[MXU_EIGER_TRANSFER_MODE_NAME_LENGTH+1];
 
@@ -146,6 +155,10 @@ typedef struct {
   \
   {-1, -1, "eiger_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, eiger_flags), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+  \
+  {-1, -1, "debug_flags", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, debug_flags), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
   {-1, -1, "photon_energy_record", MXFT_RECORD, NULL, 0, {0}, \

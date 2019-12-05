@@ -3581,8 +3581,14 @@ mx_get_current_thread( MX_THREAD **thread )
 {
 	static const char fname[] = "mx_get_current_thread()";
 
-	return mx_error( MXE_UNSUPPORTED, fname,
-		"Threads are not supported on this platform." );
+	if ( thread == (MX_THREAD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_THREAD pointer passed was NULL." );
+	}
+
+	*thread = NULL;
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT void

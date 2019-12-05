@@ -14,16 +14,6 @@
  *
  */
 
-#define MXD_EIGER_DEBUG			FALSE
-
-#define MXD_EIGER_DEBUG_OPEN		FALSE
-
-#define MXD_EIGER_DEBUG_PARAMETERS	FALSE
-
-#define MXD_EIGER_DEBUG_TRIGGER_THREAD	FALSE
-
-#define MXD_EIGER_DEBUG_RESPONSE	FALSE
-
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -331,6 +321,18 @@ mxd_eiger_get_value( MX_AREA_DETECTOR *ad,
 
 	/* Get the JSON key value. */
 
+	if ( eiger->debug_flags & MXF_EIGER_DEBUG_COMMANDS ) {
+	    if ( url_record == (MX_RECORD *) NULL ) {
+		MX_DEBUG(-2,
+	       ("%s: EIGER GET => url_record = NULL, module = '%s', key = '%s'",
+			fname, module_name, key_name ));
+	    } else {
+		MX_DEBUG(-2,
+	       ("%s: EIGER GET => url_record = '%s', module = '%s', key = '%s'",
+			fname, url_record->name, module_name, key_name ));
+	    }
+	}
+
 	mx_status = mxd_eiger_get( ad, eiger, url_record,
 			module_name, key_name,
 			response, sizeof(response) );
@@ -338,9 +340,9 @@ mxd_eiger_get_value( MX_AREA_DETECTOR *ad,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_EIGER_DEBUG_RESPONSE
-	MX_DEBUG(-2,("%s: EIGER response = '%s'", fname, response ));
-#endif
+	if ( eiger->debug_flags & MXF_EIGER_DEBUG_COMMANDS ) {
+		MX_DEBUG(-2,("%s: EIGER response <= '%s'", fname, response ));
+	}
 
 	mx_status = mx_json_parse( &json, response);
 
@@ -357,9 +359,6 @@ mxd_eiger_get_value( MX_AREA_DETECTOR *ad,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_EIGER_DEBUG_RESPONSE
-	MX_DEBUG(-2,("%s: value_type = '%s'", fname, value_type_string));
-#endif
 	if ( strcmp( value_type_string, "string" ) == 0 ) {
 		mx_json_datatype = MXFT_STRING;
 	} else
@@ -591,10 +590,10 @@ mxd_eiger_send_command_to_trigger_thread( MX_EIGER *eiger,
 		"The MX_EIGER pointer passed was NULL." );
 	}
 
-#if MXD_EIGER_DEBUG_TRIGGER_THREAD
-	MX_DEBUG(-2,("%s: sending (%d) command to trigger thread.",
-		fname, (int) trigger_command ));
-#endif
+	if ( eiger->debug_flags & MXF_EIGER_DEBUG_TRIGGER ) {
+		MX_DEBUG(-2,("%s: sending (%d) command to trigger thread.",
+			fname, (int) trigger_command ));
+	}
 
 	/* Prepare to tell the 'trigger' thread to start a command. */
 
@@ -648,10 +647,10 @@ mxd_eiger_send_status_to_main_thread( MX_EIGER *eiger,
 		"The MX_EIGER pointer passed was NULL." );
 	}
 
-#if MXD_EIGER_DEBUG_TRIGGER_THREAD
-	MX_DEBUG(-2,("%s: sending (%d) status to main thread.",
-			fname, (int) trigger_status ));
-#endif
+	if ( eiger->debug_flags & MXF_EIGER_DEBUG_TRIGGER ) {
+		MX_DEBUG(-2,("%s: sending (%d) status to main thread.",
+				fname, (int) trigger_status ));
+	}
 
 	mx_status_code = mx_mutex_lock( eiger->trigger_thread_status_mutex );
 
@@ -730,11 +729,6 @@ mxd_eiger_trigger_thread_fn( MX_THREAD *thread, void *args )
 
 	eiger_record = (MX_RECORD *) args;
 
-#if MXD_EIGER_DEBUG_TRIGGER_THREAD
-	MX_DEBUG(-2,("%s invoked for EIGER detector '%s'.",
-		fname, eiger_record->name ));
-#endif
-
 	ad = (MX_AREA_DETECTOR *) eiger_record->record_class_struct;
 
 	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
@@ -749,6 +743,11 @@ mxd_eiger_trigger_thread_fn( MX_THREAD *thread, void *args )
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_EIGER pointer for detector '%s' is NULL.",
 			eiger_record->name );
+	}
+
+	if ( eiger->debug_flags & MXF_EIGER_DEBUG_TRIGGER ) {
+		MX_DEBUG(-2,("%s invoked for EIGER detector '%s'.",
+					fname, eiger_record->name ));
 	}
 
 	/*----------------------------------------------------------------*/
@@ -806,11 +805,11 @@ mxd_eiger_trigger_thread_fn( MX_THREAD *thread, void *args )
 
 	trigger_loop_counter = 0;
 
-#if MXD_EIGER_DEBUG_TRIGGER_THREAD
-	MX_DEBUG(-2,("%s %p [%lu]: Area detector '%s' entering event loop.",
+	if ( eiger->debug_flags & MXF_EIGER_DEBUG_TRIGGER ) {
+	    MX_DEBUG(-2,("%s %p [%lu]: Area detector '%s' entering event loop.",
 		fname, mx_get_current_thread_pointer(),
 		trigger_loop_counter, eiger_record->name ));
-#endif
+	}
 
 	while ( TRUE ) {
 		trigger_loop_counter++;
@@ -819,9 +818,9 @@ mxd_eiger_trigger_thread_fn( MX_THREAD *thread, void *args )
 
 		while ( eiger->trigger_command == MXS_EIGER_CMD_NONE ) {
 
-#if MXD_EIGER_DEBUG_TRIGGER_THREAD
-			MX_DEBUG(-2,("%s: WAITING FOR COMMAND", fname));
-#endif
+			if ( eiger->debug_flags & MXF_EIGER_DEBUG_TRIGGER ) {
+				MX_DEBUG(-2,("%s: WAITING FOR COMMAND", fname));
+			}
 
 			mx_status = mx_condition_variable_wait(
 					eiger->trigger_thread_command_cv,
@@ -831,12 +830,12 @@ mxd_eiger_trigger_thread_fn( MX_THREAD *thread, void *args )
 				return mx_status;
 		}
 
-#if MXD_EIGER_DEBUG_TRIGGER_THREAD
-		MX_DEBUG(-2,("%s %p [%lu]: '%s' command = %ld",
-			fname, mx_get_current_thread_pointer(),
-			trigger_loop_counter, eiger_record->name,
-			(long) eiger->trigger_command));
-#endif
+		if ( eiger->debug_flags & MXF_EIGER_DEBUG_TRIGGER ) {
+			MX_DEBUG(-2,("%s %p [%lu]: '%s' command = %ld",
+				fname, mx_get_current_thread_pointer(),
+				trigger_loop_counter, eiger_record->name,
+				(long) eiger->trigger_command));
+		}
 
 		switch( eiger->trigger_command ) {
 		case MXS_EIGER_CMD_NONE:
@@ -877,12 +876,12 @@ mxd_eiger_trigger_thread_fn( MX_THREAD *thread, void *args )
 
 		eiger->trigger_command = MXS_EIGER_CMD_NONE;
 
-#if MXD_EIGER_DEBUG_TRIGGER_THREAD
-		MX_DEBUG(-2,("%s %p [%lu]: '%s' status = %ld",
-			fname, mx_get_current_thread_pointer(),
-			trigger_loop_counter, eiger_record->name,
-			(long) eiger->trigger_status));
-#endif
+		if ( eiger->debug_flags & MXF_EIGER_DEBUG_TRIGGER ) {
+			MX_DEBUG(-2,("%s %p [%lu]: '%s' status = %ld",
+				fname, mx_get_current_thread_pointer(),
+				trigger_loop_counter, eiger_record->name,
+				(long) eiger->trigger_status));
+		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -948,6 +947,8 @@ mxd_eiger_open( MX_RECORD *record )
 
 	MX_AREA_DETECTOR *ad = NULL;
 	MX_EIGER *eiger = NULL;
+	MX_URL_SERVER *url_server = NULL;
+	MX_URL_SERVER *url_trigger = NULL;
 	char response[1000];
 	long dimension[1];
 	long mx_status_code;
@@ -958,17 +959,40 @@ mxd_eiger_open( MX_RECORD *record )
 		"The MX_RECORD pointer passed was NULL." );
 	}
 
-#if MXD_EIGER_DEBUG_OPEN
-	MX_DEBUG( 2,("%s invoked for area detector '%s'.",
-		fname, record->name ));
-#endif
-
 	ad = (MX_AREA_DETECTOR *) record->record_class_struct;
 
 	mx_status = mxd_eiger_get_pointers( ad, &eiger, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	if ( eiger->debug_flags & MXF_EIGER_DEBUG_FUNCTIONS ) {
+		MX_DEBUG( 2,("%s invoked for area detector '%s'.",
+					fname, record->name ));
+	}
+
+	/* If requested, turn on the debugging flag for the
+	 * MX_URL_SERVER interface.
+	 */
+
+	if ( eiger->debug_flags & MXF_EIGER_DEBUG_URL ) {
+
+		mx_status = mx_url_get_pointers( eiger->url_server_record,
+						&url_server, NULL, fname );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		url_server->url_flags |= MXF_URL_DEBUG;
+
+		mx_status = mx_url_get_pointers( eiger->url_trigger_record,
+						&url_trigger, NULL, fname );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		url_trigger->url_flags |= MXF_URL_DEBUG;
+	}
 
 	/* Get the detector model and type. */
 
@@ -1056,11 +1080,6 @@ mxd_eiger_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-#if MXD_EIGER_DEBUG_OPEN
-	MX_DEBUG(-2,("%s: EIGER '%s' detector state = '%s'.",
-				fname, record->name, response));
-#endif
 
 	/* Fetch the detector parameters that MX will need. */
 
@@ -1213,9 +1232,9 @@ mxd_eiger_open( MX_RECORD *record )
 		"triggering of the detector will be impossible." );
 	}
 
-#if MXD_EIGER_DEBUG_TRIGGER_THREAD
-	MX_DEBUG(-2,("%s: Trigger thread is ready for use.", fname));
-#endif
+	if ( eiger->debug_flags & MXF_EIGER_DEBUG_TRIGGER ) {
+		MX_DEBUG(-2,("%s: Trigger thread is ready for use.", fname));
+	}
 
 	return mx_status;
 }
@@ -1288,10 +1307,11 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_EIGER_DEBUG
-	MX_DEBUG(-2,("%s invoked for area detector '%s'",
-		fname, ad->record->name ));
-#endif
+	if ( eiger->debug_flags & MXF_EIGER_DEBUG_FUNCTIONS ) {
+		MX_DEBUG(-2,("%s invoked for area detector '%s'",
+					fname, ad->record->name ));
+	}
+
 	/* Set the photon energy. */
 
 	mx_status = mx_get_double_variable( eiger->photon_energy_record,
@@ -1520,10 +1540,11 @@ mxd_eiger_trigger( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_EIGER_DEBUG
-	MX_DEBUG(-2,("%s invoked for area detector '%s'",
-		fname, ad->record->name ));
-#endif
+	if ( eiger->debug_flags & MXF_EIGER_DEBUG_FUNCTIONS ) {
+		MX_DEBUG(-2,("%s invoked for area detector '%s'",
+					fname, ad->record->name ));
+	}
+
 	/* If we are in external trigger mode, then explicit EIGER
 	 * 'trigger' commands should not be sent.
 	 */
@@ -1587,10 +1608,11 @@ mxd_eiger_stop( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_EIGER_DEBUG
-	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
-		fname, ad->record->name ));
-#endif
+	if ( eiger->debug_flags & MXF_EIGER_DEBUG_FUNCTIONS ) {
+		MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+					fname, ad->record->name ));
+	}
+
 	dimension[0] = 1;
 
 	disarm = 1;
@@ -1617,10 +1639,11 @@ mxd_eiger_abort( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_EIGER_DEBUG
-	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
-		fname, ad->record->name ));
-#endif
+	if ( eiger->debug_flags & MXF_EIGER_DEBUG_FUNCTIONS ) {
+		MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+					fname, ad->record->name ));
+	}
+
 	dimension[0] = 1;
 
 	abort_cmd = 1;
@@ -1646,10 +1669,10 @@ mxd_eiger_get_last_and_total_frame_numbers( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_EIGER_DEBUG
-	MX_DEBUG( 2,("%s invoked for area detector '%s'.",
-		fname, ad->record->name ));
-#endif
+	if ( eiger->debug_flags & MXF_EIGER_DEBUG_FUNCTIONS ) {
+		MX_DEBUG( 2,("%s invoked for area detector '%s'.",
+					fname, ad->record->name ));
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1671,10 +1694,11 @@ mxd_eiger_get_status( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_EIGER_DEBUG
-	MX_DEBUG( 2,("%s invoked for area detector '%s'.",
-		fname, ad->record->name ));
-#endif
+	if ( eiger->debug_flags & MXF_EIGER_DEBUG_FUNCTIONS ) {
+		MX_DEBUG( 2,("%s invoked for area detector '%s'.",
+					fname, ad->record->name ));
+	}
+
 	/* Tell the detector to update the detector status. */
 
 	dimension[0] = 1;
@@ -1781,10 +1805,11 @@ mxd_eiger_transfer_frame( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_EIGER_DEBUG
-	MX_DEBUG(-2,("%s invoked for area detector '%s', transfer_frame = %ld.",
-		fname, ad->record->name, ad->transfer_frame ));
-#endif
+	if ( eiger->debug_flags & MXF_EIGER_DEBUG_FUNCTIONS ) {
+		MX_DEBUG(-2,
+		("%s invoked for area detector '%s', transfer_frame = %ld.",
+			fname, ad->record->name, ad->transfer_frame ));
+	}
 
 	if ( eiger->transfer_mode & MXF_EIGER_TRANSFER_MONITOR ) {
 		MX_DEBUG(-2,
@@ -1810,8 +1835,7 @@ mxd_eiger_get_parameter( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_EIGER_DEBUG_PARAMETERS
-	{
+	if ( eiger->debug_flags & MXF_EIGER_DEBUG_PARAMETERS ) {
 		char parameter_name_buffer[80];
 
 		MX_DEBUG(-2,("%s: record '%s', parameter '%s'",
@@ -1821,7 +1845,6 @@ mxd_eiger_get_parameter( MX_AREA_DETECTOR *ad )
 					parameter_name_buffer,
 					sizeof(parameter_name_buffer) ) ));
 	}
-#endif
 
 	dimension[0] = 1;
 
@@ -1887,10 +1910,12 @@ mxd_eiger_get_parameter( MX_AREA_DETECTOR *ad )
 
 	case MXLV_AD_IMAGE_FORMAT:
 	case MXLV_AD_IMAGE_FORMAT_NAME:
-#if MXD_EIGER_DEBUG
-		MX_DEBUG(-2,("%s: image format = %ld, format name = '%s'",
-		    fname, ad->image_format, ad->image_format_name));
-#endif
+
+		if ( eiger->debug_flags & MXF_EIGER_DEBUG_FUNCTIONS ) {
+			MX_DEBUG(-2,
+			("%s: image format = %ld, format name = '%s'",
+			fname, ad->image_format, ad->image_format_name));
+		}
 		break;
 
 	case MXLV_AD_BYTE_ORDER:
@@ -1943,10 +1968,10 @@ mxd_eiger_get_parameter( MX_AREA_DETECTOR *ad )
 
 	case MXLV_AD_SEQUENCE_TYPE:
 
-#if MXD_EIGER_DEBUG
-		MX_DEBUG(-2,("%s: GET sequence_type = %ld",
-			fname, ad->sequence_parameters.sequence_type));
-#endif
+		if ( eiger->debug_flags & MXF_EIGER_DEBUG_FUNCTIONS ) {
+			MX_DEBUG(-2,("%s: GET sequence_type = %ld",
+				fname, ad->sequence_parameters.sequence_type));
+		}
 		break;
 
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
@@ -2020,8 +2045,7 @@ mxd_eiger_set_parameter( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_EIGER_DEBUG_PARAMETERS
-	{
+	if ( eiger->debug_flags & MXF_EIGER_DEBUG_PARAMETERS ) {
 		char parameter_name_buffer[80];
 
 		MX_DEBUG(-2,("%s: record '%s', parameter '%s'",
@@ -2031,7 +2055,6 @@ mxd_eiger_set_parameter( MX_AREA_DETECTOR *ad )
 					parameter_name_buffer,
 					sizeof(parameter_name_buffer) ) ));
 	}
-#endif
 
 	switch( ad->parameter_type ) {
 	case MXLV_AD_FRAMESIZE:

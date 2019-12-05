@@ -9,4 +9,4 @@ eiger_tport   interface rs232 tcp232 "" "" 9600 8 N 1 N 0x0d0a 0x0d0a 1.0e30 0x0
 eiger_trigger server url http_server "" "" eiger_tport
 #
 #
-eiger device  area_detector eiger "" "" 0 0x0 0x0 "" "" "" "" "" eiger_server eiger_trigger 164.54.204.182 1.6.0 0x0 xray_energy monitor
+eiger device  area_detector eiger "" "" 0 0x0 0x0 "" "" "" "" "" eiger_server eiger_trigger 164.54.204.182 1.6.0 0x0 0x1f xray_energy monitor

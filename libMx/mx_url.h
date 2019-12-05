@@ -19,6 +19,10 @@
 
 #include "mx_unistd.h"
 
+/*--- Values for 'url_flags' ---*/
+
+#define MXF_URL_DEBUG		0x1
+
 /*----*/
 
 typedef struct {
