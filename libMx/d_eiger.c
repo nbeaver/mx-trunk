@@ -486,7 +486,6 @@ mxd_eiger_put_value( MX_AREA_DETECTOR *ad,
 {
 	static const char fname[] = "mxd_eiger_put_value()";
 
-	char format[80];
 	char key_value[MXU_EIGER_KEY_VALUE_LENGTH+1];
 	char key_body[500];
 	mx_bool_type bool_value;
@@ -556,16 +555,23 @@ mxd_eiger_put_value( MX_AREA_DETECTOR *ad,
 		break;
 	}
 
-	snprintf( format, sizeof(format),
-		"{ \\\"value\\\" : %%%ds )\\\r\\\n",
-			(int) sizeof(key_value) - 1 );
+	strlcpy( key_value, "{ \"value\" : ", sizeof(key_value) );
 
-	MX_DEBUG(-2,("%s: format = '%s'", fname, format));
+	strlcat( key_value, key_body, sizeof(key_value) );
 
-	snprintf( key_value, sizeof(key_value), format, key_body );
+	strlcat( key_value, " }", sizeof(key_value) );
 
-	MX_DEBUG(-2,("%s: key_value = '%s'", fname, key_value));
-
+	if ( eiger->debug_flags & MXF_EIGER_DEBUG_COMMANDS ) {
+	    if ( url_record == (MX_RECORD *) NULL ) {
+		MX_DEBUG(-2,
+("%s: EIGER PUT => url_record = NULL, module = '%s', key = '%s', value = '%s'",
+		  fname, module_name, key_name, key_value ));
+	    } else {
+		MX_DEBUG(-2,
+("%s: EIGER GET => url_record = '%s', module = '%s', key = '%s', value = '%s'",
+		  fname, url_record->name, module_name, key_name, key_value ));
+	    }
+	}
 	mx_status = mxd_eiger_put( ad, eiger, url_record,
 			module_name, key_name, key_value,
 			response, max_response_length );
