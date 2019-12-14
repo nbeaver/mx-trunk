@@ -1,4 +1,0 @@
-#! /bin/sh
-
-../../../motor/mxmotor -F mhdf5.dat -s shdf5.dat $*
-
