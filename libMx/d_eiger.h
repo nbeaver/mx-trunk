@@ -38,9 +38,14 @@
 
 #define MXF_EIGER_DEBUG_COMMANDS		0x1
 #define MXF_EIGER_DEBUG_PARAMETERS		0x2
-#define MXF_EIGER_DEBUG_TRIGGER			0x4
-#define MXF_EIGER_DEBUG_FUNCTIONS		0x8
-#define MXF_EIGER_DEBUG_URL			0x10
+#define MXF_EIGER_DEBUG_FUNCTIONS		0x4
+
+#define MXF_EIGER_DEBUG_ARM			0x10
+#define MXF_EIGER_DEBUG_TRIGGER			0x20
+#define MXF_EIGER_DEBUG_FRAME_NUMBERS		0x40
+#define MXF_EIGER_DEBUG_STATUS			0x80
+
+#define MXF_EIGER_DEBUG_URL			0x1000
 
 /*--- Values for 'trigger_command' --- */
 
@@ -92,6 +97,8 @@ typedef struct {
 	unsigned long transfer_mode;
 
 	mx_bool_type monitor_mode;
+	long monitor_buffer_size;
+
 	mx_bool_type stream_mode;
 
 	unsigned long bit_depth_image;
@@ -121,8 +128,8 @@ typedef struct {
 
 } MX_EIGER;
 
-#define MXLV_EIGER_MONITOR_MODE		94001
-#define MXLV_EIGER_STREAM_MODE		94002
+#define MXLV_EIGER_MONITOR_MODE			94001
+#define MXLV_EIGER_STREAM_MODE			94002
 #define MXLV_EIGER_BIT_DEPTH_IMAGE		94003
 #define MXLV_EIGER_BIT_DEPTH_READOUT		94004
 #define MXLV_EIGER_STATE			94005
@@ -134,6 +141,8 @@ typedef struct {
 #define MXLV_EIGER_KEY_NAME			94011
 #define MXLV_EIGER_KEY_VALUE			94012
 #define MXLV_EIGER_KEY_RESPONSE			94013
+#define MXLV_EIGER_SEQUENCE_ID			94014
+#define MXLV_EIGER_MONITOR_BUFFER_SIZE		94015
 
 #define MXD_EIGER_STANDARD_FIELDS \
   {-1, -1, "url_server_record", MXFT_RECORD, NULL, 0, {0}, \
@@ -260,9 +269,14 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, key_type), \
 	{sizeof(char)}, NULL, MXFF_READ_ONLY }, \
   \
-  {-1, -1, "sequence_id", MXFT_ULONG, NULL, 0, {0}, \
+  {MXLV_EIGER_SEQUENCE_ID, -1, "sequence_id", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, sequence_id), \
-	{0}, NULL, MXFF_READ_ONLY }
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {MXLV_EIGER_MONITOR_BUFFER_SIZE, -1, \
+		"monitor_buffer_size", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, monitor_buffer_size), \
+	{0}, NULL, 0 }
 
 MX_API mx_status_type mxd_eiger_initialize_driver( MX_DRIVER *driver );
 MX_API mx_status_type mxd_eiger_create_record_structures( MX_RECORD *record );

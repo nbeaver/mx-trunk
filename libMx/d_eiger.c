@@ -851,7 +851,9 @@ mxd_eiger_trigger_thread_fn( MX_THREAD *thread, void *args )
 			dimension[0] = 1;
 			trigger = 1;
 
-			MX_DEBUG(-2,("%s: TRIGGER requested.",fname));
+			if ( eiger->debug_flags & MXF_EIGER_DEBUG_TRIGGER ) {
+				MX_DEBUG(-2,("%s: TRIGGER requested.",fname));
+			}
 
 			MX_HRT_START( trigger_measurement );
 
@@ -864,8 +866,9 @@ mxd_eiger_trigger_thread_fn( MX_THREAD *thread, void *args )
 			MX_HRT_END( trigger_measurement );
 			MX_HRT_RESULTS( trigger_measurement, fname, "trigger" );
 
-			MX_DEBUG(-2,("%s: TRIGGER complete.",fname));
-
+			if ( eiger->debug_flags & MXF_EIGER_DEBUG_TRIGGER ) {
+				MX_DEBUG(-2,("%s: TRIGGER complete.",fname));
+			}
 #if 0
 			mx_status = mxd_eiger_send_status_to_main_thread(
 						eiger, MXS_EIGER_STAT_IDLE );
@@ -1313,7 +1316,7 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( eiger->debug_flags & MXF_EIGER_DEBUG_FUNCTIONS ) {
+	if ( eiger->debug_flags & MXF_EIGER_DEBUG_ARM ) {
 		MX_DEBUG(-2,("%s invoked for area detector '%s'",
 					fname, ad->record->name ));
 	}
@@ -1470,14 +1473,12 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 	arm = 1;
 	dimension[0] = 1;
 
-#if 1
-	{
+	if ( eiger->debug_flags & MXF_EIGER_DEBUG_ARM ) {
 		mx_status = mxd_eiger_get_status( ad );
 
 		MX_DEBUG(-2,("%s: ARM prearm STATE = '%s'",
 			fname, eiger->state));
 	}
-#endif
 
 	mx_status = mxd_eiger_put_value( ad, eiger, NULL,
 			"detector", "command/arm",
@@ -1501,23 +1502,21 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 			ad->record->name, arm_response );
 	}
 
-#if 1
-	MX_DEBUG(-2,("%s: sequence_id = %ld", fname, sequence_id));
-#endif
+	if ( eiger->debug_flags & MXF_EIGER_DEBUG_ARM ) {
+		MX_DEBUG(-2,("%s: sequence_id = %ld", fname, sequence_id));
+	}
 
 	eiger->sequence_id = sequence_id;
 
 	ad->total_num_frames = 0;
 	ad->last_frame_number = -1;
 
-#if 1
-	{
+	if ( eiger->debug_flags & MXF_EIGER_DEBUG_ARM ) {
 		mx_status = mxd_eiger_get_status( ad );
 
 		MX_DEBUG(-2,("%s: ARM postarm STATE = '%s'",
 			fname, eiger->state));
 	}
-#endif
 
 	/* Note: If we are in external trigger mode ("exts"), then the
 	 * detector will start taking images once the external trigger
@@ -1675,7 +1674,7 @@ mxd_eiger_get_last_and_total_frame_numbers( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( eiger->debug_flags & MXF_EIGER_DEBUG_FUNCTIONS ) {
+	if ( eiger->debug_flags & MXF_EIGER_DEBUG_FRAME_NUMBERS ) {
 		MX_DEBUG( 2,("%s invoked for area detector '%s'.",
 					fname, ad->record->name ));
 	}
@@ -1728,10 +1727,10 @@ mxd_eiger_get_status( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if 1
-	MX_DEBUG(-2,("%s: detector '%s', STATE = '%s'",
-		fname, ad->record->name, status_string));
-#endif
+	if ( eiger->debug_flags & MXF_EIGER_DEBUG_STATUS ) {
+		MX_DEBUG(-2,("%s: detector '%s', STATE = '%s'",
+			fname, ad->record->name, status_string));
+	}
 
 	/* Parse the status word to see what the current state of
 	 * the detector is.
@@ -1792,6 +1791,9 @@ mxd_eiger_get_status( MX_AREA_DETECTOR *ad )
 #if 0
 	MX_DEBUG(-2,("%s: detector '%s', ad->status = %#lx",
 		fname, ad->record->name, ad->status));
+#endif
+
+#if 1
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
@@ -2196,7 +2198,9 @@ mxd_eiger_special_processing_setup( MX_RECORD *record )
 		case MXLV_EIGER_KEY_NAME:
 		case MXLV_EIGER_KEY_RESPONSE:
 		case MXLV_EIGER_KEY_VALUE:
+		case MXLV_EIGER_MONITOR_BUFFER_SIZE:
 		case MXLV_EIGER_MONITOR_MODE:
+		case MXLV_EIGER_SEQUENCE_ID:
 		case MXLV_EIGER_STATE:
 		case MXLV_EIGER_STREAM_MODE:
 		case MXLV_EIGER_TIME:
@@ -2271,6 +2275,17 @@ mxd_eiger_process_function( void *record_ptr,
 					eiger->record->name );
 			}
 			break;
+		case MXLV_EIGER_MONITOR_BUFFER_SIZE:
+			dimension[0] = 1;
+
+			mx_status = mxd_eiger_get_value( ad, eiger, NULL,
+						"monitor", "config/buffer_size",
+						MXFT_LONG, 1, dimension,
+					(void *) &(eiger->monitor_buffer_size));
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+			break;
 		case MXLV_EIGER_STREAM_MODE:
 			dimension[0] = sizeof(local_string_buffer);
 
@@ -2334,9 +2349,10 @@ mxd_eiger_process_function( void *record_ptr,
 					"detector", "status/time",
 					MXFT_STRING, 1, dimension,
 					local_string_buffer );
-
+#if 0
 			MX_DEBUG(-2,("%s: local_string_buffer = '%s'",
 				fname, local_string_buffer));
+#endif
 			break;
 		case MXLV_EIGER_TEMPERATURE:
 			dimension[0] = 1;
@@ -2406,6 +2422,18 @@ mxd_eiger_process_function( void *record_ptr,
 						"monitor", "config/mode",
 						MXFT_STRING, 1, dimension,
 						eiger->key_value, NULL, 0 );
+			break;
+		case MXLV_EIGER_MONITOR_BUFFER_SIZE:
+			dimension[0] = 1;
+
+			mx_status = mxd_eiger_put_value( ad, eiger, NULL,
+						"monitor", "config/buffer_size",
+						MXFT_LONG, 1, dimension,
+					(void *) &(eiger->monitor_buffer_size),
+						NULL, 0 );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 			break;
 		case MXLV_EIGER_KEY_NAME:
 			/* If the key name has zero slashes in it, then
