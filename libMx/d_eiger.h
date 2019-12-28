@@ -126,6 +126,7 @@ typedef struct {
 
 	unsigned long sequence_id;
 
+	mx_bool_type eiger_armed;
 } MX_EIGER;
 
 #define MXLV_EIGER_MONITOR_MODE			94001
@@ -272,6 +273,10 @@ typedef struct {
   {MXLV_EIGER_SEQUENCE_ID, -1, "sequence_id", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, sequence_id), \
 	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "eiger_armed", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EIGER, eiger_armed), \
+	{0}, NULL, 0 }, \
   \
   {MXLV_EIGER_MONITOR_BUFFER_SIZE, -1, \
 		"monitor_buffer_size", MXFT_LONG, NULL, 0, {0}, \

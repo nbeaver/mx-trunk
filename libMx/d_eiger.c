@@ -946,6 +946,8 @@ mxd_eiger_create_record_structures( MX_RECORD *record )
 	ad->trigger_mode = MXF_DEV_INTERNAL_TRIGGER;
 	ad->initial_correction_flags = 0;
 
+	eiger->eiger_armed = FALSE;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -1301,7 +1303,7 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 
 	MX_EIGER *eiger = NULL;
 	MX_SEQUENCE_PARAMETERS *sp = NULL;
-	unsigned long num_frames, arm;
+	unsigned long num_frames, num_triggers, arm;
 	double exposure_time, exposure_period;
 	double photon_energy;
 	long dimension[1];
@@ -1309,6 +1311,10 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 	char arm_response[200];
 	int num_items;
 	long sequence_id;
+	char name_pattern[MXU_FILENAME_LENGTH+1];
+	char pattern_id_string[MXU_FILENAME_LENGTH+1];
+	long pattern_id_length, pattern_id_offset, num_bytes_to_copy;
+	char *ptr = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_eiger_get_pointers( ad, &eiger, fname );
@@ -1320,24 +1326,6 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 		MX_DEBUG(-2,("%s invoked for area detector '%s'",
 					fname, ad->record->name ));
 	}
-
-	/* Set the photon energy. */
-
-	mx_status = mx_get_double_variable( eiger->photon_energy_record,
-							&photon_energy );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	dimension[0] = 1;
-
-	mx_status = mxd_eiger_put_value( ad, eiger, NULL,
-			"detector", "config/photon_energy",
-			MXFT_DOUBLE, 1, dimension,
-			(void *) &photon_energy, NULL, 0 );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
 
 	/* Get the trigger mode and sequence parameters. */
 
@@ -1352,19 +1340,22 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 		switch( sp->sequence_type ) {
 		case MXT_SQ_ONE_SHOT:
 			num_frames = 1;
+			num_triggers = 1;
 			exposure_time = sp->parameter_array[0];
 			exposure_period = exposure_time;
 			strlcpy( trigger_mode, "ints", sizeof(trigger_mode) );
 			break;
 		case MXT_SQ_MULTIFRAME:
 			num_frames = mx_round( sp->parameter_array[0] );
+			num_triggers = 1;
 			exposure_time = sp->parameter_array[1];
 			exposure_period = sp->parameter_array[2];
 			strlcpy( trigger_mode, "ints", sizeof(trigger_mode) );
 			break;
 		case MXT_SQ_STROBE:
 			num_frames = mx_round( sp->parameter_array[0] );
-			exposure_time = -1.0;
+			num_triggers = num_frames;
+			exposure_time = sp->parameter_array[1];
 			exposure_period = -1.0;
 			strlcpy( trigger_mode, "inte", sizeof(trigger_mode) );
 			break;
@@ -1380,19 +1371,22 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 		switch( sp->sequence_type ) {
 		case MXT_SQ_ONE_SHOT:
 			num_frames = 1;
+			num_triggers = 1;
 			exposure_time = sp->parameter_array[0];
 			exposure_period = -1.0;
 			strlcpy( trigger_mode, "exts", sizeof(trigger_mode) );
 			break;
 		case MXT_SQ_MULTIFRAME:
 			num_frames = mx_round( sp->parameter_array[0] );
+			num_triggers = 1;
 			exposure_time = sp->parameter_array[1];
 			exposure_period = sp->parameter_array[2];
 			strlcpy( trigger_mode, "exts", sizeof(trigger_mode) );
 			break;
 		case MXT_SQ_STROBE:
 			num_frames = mx_round( sp->parameter_array[0] );
-			exposure_time = -1.0;
+			num_triggers = num_frames;
+			exposure_time = sp->parameter_array[1];
 			exposure_period = -1.0;
 			strlcpy( trigger_mode, "exte", sizeof(trigger_mode) );
 			break;
@@ -1432,14 +1426,14 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Set the frame time. */
+	/* Set the number of image frames. */
 
 	dimension[0] = 1;
 
 	mx_status = mxd_eiger_put_value( ad, eiger, NULL,
-			"detector", "config/frame_time",
-			MXFT_DOUBLE, 1, dimension,
-			(void *) &exposure_period, NULL, 0 );
+			"detector", "config/nimages",
+			MXFT_ULONG, 1, dimension,
+			(void *) &num_frames, NULL, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1456,14 +1450,139 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Set the number of image frames. */
+	/* Set the frame time. */
 
 	dimension[0] = 1;
 
 	mx_status = mxd_eiger_put_value( ad, eiger, NULL,
-			"detector", "config/nimages",
+			"detector", "config/frame_time",
+			MXFT_DOUBLE, 1, dimension,
+			(void *) &exposure_period, NULL, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Set the photon energy. */
+
+	mx_status = mx_get_double_variable( eiger->photon_energy_record,
+							&photon_energy );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	dimension[0] = 1;
+
+	mx_status = mxd_eiger_put_value( ad, eiger, NULL,
+			"detector", "config/photon_energy",
+			MXFT_DOUBLE, 1, dimension,
+			(void *) &photon_energy, NULL, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Set the number of image triggers. */
+
+	dimension[0] = 1;
+
+	mx_status = mxd_eiger_put_value( ad, eiger, NULL,
+			"detector", "config/ntrigger",
 			MXFT_ULONG, 1, dimension,
-			(void *) &num_frames, NULL, 0 );
+			(void *) &num_triggers, NULL, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Set the filename pattern for the filewriter.
+	 *
+	 * We start by looking to see if the MX datafile_pattern
+	 * contains contains the Eiger pattern id string "$i".
+	 */
+
+	strlcpy( pattern_id_string, "$id", sizeof(pattern_id_string) );
+
+	pattern_id_length = strlen( pattern_id_string );
+
+	ptr = strstr( ad->datafile_pattern, pattern_id_string );
+
+	if ( ptr != NULL ) {
+		/* ad->datafile_pattern _DOES_ contain $i.  We just
+		 * copy this over to the Eiger name_pattern variable.
+		 */
+
+		if ( ptr < ad->datafile_pattern ) {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Somehow the strstr() function is claiming that the "
+			"start of the Eiger pattern id is _BEFORE_ the start "
+			"of the MX area detector datafile_pattern field, "
+			"which currently has the value '%s'.  It _should_ be "
+			"impossible for this to happen.  If it _does_ happen, "
+			"then please notify Bill Lavender of this.",
+				ad->datafile_pattern );
+		}
+
+		pattern_id_offset = (long) ( ptr - ad->datafile_pattern );
+
+		num_bytes_to_copy = pattern_id_offset + pattern_id_length + 1;
+
+		MX_DEBUG(-2,("%s: ad->datafile_pattern = '%s', ptr = '%s'",
+			fname, ad->datafile_pattern, ptr ));
+		MX_DEBUG(-2,
+			("%s: pattern_id_offset = %ld, pattern_id_length = %ld",
+			fname, pattern_id_offset, pattern_id_length ));
+
+		MX_DEBUG(-2,("%s: num_bytes_to_copy = %ld",
+			fname, num_bytes_to_copy ));
+
+		if ( num_bytes_to_copy >= MXU_FILENAME_LENGTH ) {
+			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+			"The requested MX datafile_pattern string '%s' is "
+			"longer than the maximum size of %d characters.",
+				ad->datafile_pattern, MXU_FILENAME_LENGTH );
+		}
+
+		strlcpy( name_pattern, ad->datafile_pattern,
+				num_bytes_to_copy );
+	} else {
+		/* Copy the current contents of ad->datafile_pattern over
+		 * to the name_pattern string.
+		 */
+
+		strlcpy( name_pattern, ad->datafile_pattern,
+				sizeof( name_pattern ) );
+
+		/* See if '#' appears in the name_pattern string. */
+
+		ptr = strchr( name_pattern,
+				MX_AREA_DETECTOR_DATAFILE_PATTERN_CHAR );
+
+		if ( ptr == NULL ) {
+			/* If '#' does not appear, then we just leave the
+			 * current contents of name_pattern alone.
+			 */
+		} else {
+			/* Otherwise, we overwrite the part of the string
+			 * that starts at '#' with the Eiger pattern id
+			 * string.
+			 */
+
+			pattern_id_offset = (long) ( ptr - name_pattern );
+
+			strlcpy( ptr, pattern_id_string,
+				sizeof( name_pattern ) - pattern_id_offset );
+		}
+	}
+
+	MX_DEBUG(-2,("%s: *** name_pattern = '%s' ***",
+		fname, name_pattern));
+
+	/* Send name_pattern to the Eiger. */
+
+	dimension[0] = strlen( name_pattern );
+
+	mx_status = mxd_eiger_put_value( ad, eiger, NULL,
+					"filewriter", "config/name_pattern",
+					MXFT_STRING, 1, dimension,
+					(void *) name_pattern, NULL, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1522,6 +1641,10 @@ mxd_eiger_arm( MX_AREA_DETECTOR *ad )
 	 * detector will start taking images once the external trigger
 	 * arrives.
 	 */
+
+	/* Mark the detector as armed. */
+
+	eiger->eiger_armed = TRUE;
 
 	return mx_status;
 }
