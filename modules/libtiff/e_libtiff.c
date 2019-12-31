@@ -152,13 +152,15 @@ mxext_libtiff_initialize( MX_EXTENSION *extension )
 
 /*------*/
 
-MX_EXPORT mx_status_type
-mxext_libtiff_read_tiff_file( MX_IMAGE_FRAME **image_frame,
-				char *datafile_name )
+static mx_status_type
+mxext_libtiff_read_from_tiff( MX_IMAGE_FRAME **image_frame,
+					TIFF *tiff,
+					char *datafile_name,
+					long *image_size,
+					void * image_data )
 {
-	static const char fname[] = "mxext_libtiff_read_tiff_file()";
+	static const char fname[] = "mxext_libtiff_read_from_tiff()";
 
-	TIFF *tiff = NULL;
 	uint32_t row_width, column_height;
 	uint16_t samples_per_pixel;
 	uint16_t bits_per_sample;
@@ -183,8 +185,6 @@ mxext_libtiff_read_tiff_file( MX_IMAGE_FRAME **image_frame,
 	mx_status_type mx_status;
 
 	MX_DEBUG(-2,("%s invoked.", fname));
-
-	tiff = TIFFOpen( datafile_name, "r" );
 
 	if ( tiff == (TIFF *) NULL ) {
 		return mx_error( MXE_FILE_IO_ERROR, fname,
@@ -364,6 +364,124 @@ mxext_libtiff_read_tiff_file( MX_IMAGE_FRAME **image_frame,
 	TIFFClose( tiff );
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+/*------*/
+
+static tsize_t
+mxext_libtiff_client_dummy_proc( thandle_t handle, tdata_t data, tsize_t len )
+{
+	return -1;
+}
+
+static tsize_t
+mxext_libtiff_client_read_proc( thandle_t handle, tdata_t data, tsize_t len )
+{
+	return 0;
+}
+
+#if 0
+static tsize_t
+mxext_libtiff_client_write_proc( thandle_t handle, tdata_t data, tsize_t len )
+{
+	return -1;
+}
+#endif
+
+static toff_t
+mxext_libtiff_client_seek_proc( thandle_t handle, toff_t offset, int what )
+{
+	return -1;
+}
+
+static int
+mxext_libtiff_client_close_proc( thandle_t handle )
+{
+	return -1;
+}
+
+static toff_t
+mxext_libtiff_client_size_proc( thandle_t handle )
+{
+	return -1;
+}
+
+static int
+mxext_libtiff_client_map_file_proc( thandle_t handle,
+				tdata_t *data, toff_t *offset )
+{
+	return -1;
+}
+
+static void
+mxext_libtiff_client_unmap_file_proc( thandle_t handle,
+				tdata_t data, toff_t offset )
+{
+	return;
+}
+
+/*------*/
+
+MX_EXPORT mx_status_type
+mxext_libtiff_read_tiff_file( MX_IMAGE_FRAME **image_frame,
+				char *datafile_name )
+{
+	static const char fname[] = "mxext_libtiff_read_tiff_file()";
+
+	TIFF *tiff = NULL;
+	mx_status_type mx_status;
+
+	tiff = TIFFOpen( datafile_name, "r" );
+
+	if ( tiff == (TIFF *) NULL ) {
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"The attempt to read TIFF file '%s' failed.",
+			datafile_name );
+	}
+
+	mx_status = mxext_libtiff_read_from_tiff( image_frame,
+						tiff,
+						datafile_name,
+						NULL,
+						NULL );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	return mx_status;
+}
+
+/*------*/
+
+MX_EXPORT mx_status_type
+mxext_libtiff_read_tiff_array( MX_IMAGE_FRAME **image_frame,
+				long *image_size,
+				void *image_array )
+{
+#if 0
+	static const char fname[] = "mxext_libtiff_read_tiff_file()";
+#endif
+
+	TIFF *tiff = NULL;
+	mx_status_type mx_status;
+
+	tiff = TIFFClientOpen( "", "", *image_frame,
+			mxext_libtiff_client_read_proc,
+			mxext_libtiff_client_dummy_proc,
+			mxext_libtiff_client_seek_proc,
+			mxext_libtiff_client_close_proc,
+			mxext_libtiff_client_size_proc,
+			mxext_libtiff_client_map_file_proc,
+			mxext_libtiff_client_unmap_file_proc );
+
+	mx_status = mxext_libtiff_read_from_tiff( image_frame,
+						tiff,
+						NULL,
+						image_size,
+						image_array );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	return mx_status;
 }
 
 /*------*/
