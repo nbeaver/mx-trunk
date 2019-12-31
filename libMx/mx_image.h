@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2017 Illinois Institute of Technology
+ * Copyright 2006-2017, 2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -276,8 +276,16 @@ typedef struct {
 /*----*/
 
 typedef struct {
-	mx_status_type ( *read ) ( MX_IMAGE_FRAME **frame, char *filename );
-	mx_status_type ( *write ) ( MX_IMAGE_FRAME *frame, char *filename );
+	mx_status_type ( *read_file )( MX_IMAGE_FRAME **frame,
+						char *image_filename );
+	mx_status_type ( *write_file )( MX_IMAGE_FRAME *frame,
+						char *image_filename );
+	mx_status_type ( *read_array )( MX_IMAGE_FRAME **frame,
+						long *image_size,
+						void *image_array );
+	mx_status_type ( *write_array )( MX_IMAGE_FRAME *frame,
+						long image_size,
+						void *image_array );
 } MX_IMAGE_FUNCTION_LIST;
 
 /*----*/
@@ -411,86 +419,97 @@ MX_API mx_status_type mx_image_dump_pixel_range( FILE *output_file,
 /*----*/
 
 MX_API mx_status_type mx_image_get_filesize( MX_IMAGE_FRAME *frame,
-					unsigned long datafile_type,
+					unsigned long image_filetype,
 					size_t *filesize );
 
 /*----*/
 
 MX_API mx_status_type mx_image_read_file( MX_IMAGE_FRAME **frame,
 					MX_DICTIONARY *dictionary,
-					unsigned long datafile_type,
-					char *datafile_name );
+					unsigned long image_filetype,
+					char *image_filename );
 
 MX_API mx_status_type mx_image_write_file( MX_IMAGE_FRAME *frame,
 					MX_DICTIONARY *dictionary,
-					unsigned long datafile_type,
-					char *datafile_name );
+					unsigned long image_filetype,
+					char *image_filename );
+
+MX_API mx_status_type mx_image_read_array( MX_IMAGE_FRAME **frame,
+					MX_DICTIONARY *dictionary,
+					unsigned long image_filetype,
+					long *image_size,
+					void *image_array );
 
 /*----*/
 
 MX_API mx_status_type mx_image_read_none_file( MX_IMAGE_FRAME **frame,
-						char *fake_datafile_name );
+						char *fake_image_filename );
 
 MX_API mx_status_type mx_image_write_none_file( MX_IMAGE_FRAME *frame,
-						char *fake_datafile_name );
+						char *fake_image_filename );
 
 /*----*/
 
 MX_API mx_status_type mx_image_read_pnm_file( MX_IMAGE_FRAME **frame,
-						char *datafile_name );
+						char *image_filename );
 
 MX_API mx_status_type mx_image_write_pnm_file( MX_IMAGE_FRAME *frame,
-						char *datafile_name );
+						char *image_filename );
 
 /*----*/
 
 MX_API mx_status_type mx_image_read_raw_file( MX_IMAGE_FRAME **frame,
-						unsigned long datafile_type,
-						char *datafile_name );
+						unsigned long image_filetype,
+						char *image_filename );
 
 MX_API mx_status_type mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
-						unsigned long datafile_type,
-						char *datafile_name );
+						unsigned long image_filetype,
+						char *image_filename );
 
 /*----*/
 
 MX_API mx_status_type mx_image_read_tiff_file( MX_IMAGE_FRAME **frame,
 						MX_DICTIONARY *dictionary,
-						char *datafile_name );
+						char *image_filename );
 
 MX_API mx_status_type mx_image_write_tiff_file( MX_IMAGE_FRAME *frame,
 						MX_DICTIONARY *dictionary,
-						char *datafile_name );
+						char *image_filename );
+
+MX_API mx_status_type mx_image_read_tiff_array( MX_IMAGE_FRAME **frame,
+						MX_DICTIONARY *dictionary,
+						long *image_size,
+						void *image_array );
 
 /*----*/
 
 MX_API mx_status_type mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
-						unsigned long datafile_type,
-						char *datafile_name );
+						unsigned long image_filetype,
+						char *image_filename );
 
 MX_API mx_status_type mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
-						unsigned long datafile_type,
-						char *datafile_name );
+						unsigned long image_filetype,
+						char *image_filename );
 
 /*----*/
 
 MX_API mx_status_type mx_image_read_marccd_file( MX_IMAGE_FRAME **frame,
-						char *datafile_name );
+						char *image_filename );
 
 /*----*/
 
 MX_API mx_status_type mx_image_read_edf_file( MX_IMAGE_FRAME **frame,
-						char *datafile_name );
+						char *image_filename );
 
 /*----*/
 
 MX_API mx_status_type mx_image_read_cbf_file( MX_IMAGE_FRAME **frame,
 						MX_DICTIONARY *dictionary,
-						char *datafile_name );
+						char *image_filename );
 
 MX_API mx_status_type mx_image_write_cbf_file( MX_IMAGE_FRAME *frame,
 						MX_DICTIONARY *dictionary,
-						char *datafile_name );
+						char *image_filename );
 
 /*----*/
 

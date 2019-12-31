@@ -1942,13 +1942,19 @@ mxd_eiger_transfer_frame( MX_AREA_DETECTOR *ad )
 			fname, ad->record->name, ad->transfer_frame ));
 	}
 
-	if ( eiger->transfer_mode & MXF_EIGER_TRANSFER_MONITOR ) {
-		MX_DEBUG(-2,
-	  ("%s: Transferring frame %ld via 'monitor' for EIGER detector '%s'.",
-	   	fname, ad->transfer_frame, ad->record->name ));
+	if ( (eiger->transfer_mode & MXF_EIGER_TRANSFER_MONITOR) == 0 ) {
+		return MX_SUCCESSFUL_RESULT;
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	MX_DEBUG(-2,
+	  ("%s: Transferring frame %ld via 'monitor' for EIGER detector '%s'.",
+		fname, ad->transfer_frame, ad->record->name ));
+
+	mx_status = mx_image_read_tiff_array( &(ad->image_frame), NULL,
+					&(eiger->transfer_buffer_size),
+					eiger->transfer_buffer );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type

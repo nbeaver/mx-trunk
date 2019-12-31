@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2018 Illinois Institute of Technology
+ * Copyright 2006-2019 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -3398,7 +3398,7 @@ mx_image_dump_pixel_range( FILE *output_file,
 
 MX_EXPORT mx_status_type
 mx_image_get_filesize( MX_IMAGE_FRAME *frame,
-			unsigned long datafile_type,
+			unsigned long image_filetype,
 			size_t *datafile_size )
 {
 	static const char fname[] = "mx_image_get_filesize()";
@@ -3417,7 +3417,7 @@ mx_image_get_filesize( MX_IMAGE_FRAME *frame,
 		"The datafile_size pointer passed was NULL." );
 	}
 
-	mx_status = mx_image_get_file_format_name_from_type( datafile_type,
+	mx_status = mx_image_get_file_format_name_from_type( image_filetype,
 						image_file_format_name,
 						sizeof(image_file_format_name));
 
@@ -3434,7 +3434,7 @@ mx_image_get_filesize( MX_IMAGE_FRAME *frame,
 
 	/*---*/
 
-	switch( datafile_type ) {
+	switch( image_filetype ) {
 	case MXT_IMAGE_FILE_RAW_GREY8:
 	case MXT_IMAGE_FILE_RAW_GREY16:
 	case MXT_IMAGE_FILE_RAW_GREY32:
@@ -3487,19 +3487,19 @@ mx_image_get_filesize( MX_IMAGE_FRAME *frame,
 MX_EXPORT mx_status_type
 mx_image_read_file( MX_IMAGE_FRAME **frame_ptr,
 			MX_DICTIONARY *dictionary,
-			unsigned long datafile_type,
-			char *datafile_name )
+			unsigned long image_filetype,
+			char *image_filename )
 {
 	static const char fname[] = "mx_image_read_file()";
 
 	mx_status_type mx_status;
 
-	switch( datafile_type ) {
+	switch( image_filetype ) {
 	case MXT_IMAGE_FILE_NONE:
-		mx_status = mx_image_read_none_file( frame_ptr, datafile_name );
+		mx_status = mx_image_read_none_file( frame_ptr, image_filename );
 		break;
 	case MXT_IMAGE_FILE_PNM:
-		mx_status = mx_image_read_pnm_file( frame_ptr, datafile_name );
+		mx_status = mx_image_read_pnm_file( frame_ptr, image_filename );
 		break;
 	case MXT_IMAGE_FILE_RAW_GREY8:
 	case MXT_IMAGE_FILE_RAW_GREY16:
@@ -3507,37 +3507,37 @@ mx_image_read_file( MX_IMAGE_FRAME **frame_ptr,
 	case MXT_IMAGE_FILE_RAW_FLOAT:
 	case MXT_IMAGE_FILE_RAW_DOUBLE:
 		mx_status = mx_image_read_raw_file( frame_ptr,
-						datafile_type,
-						datafile_name );
+						image_filetype,
+						image_filename );
 		break;
 	case MXT_IMAGE_FILE_TIFF:
 		mx_status = mx_image_read_tiff_file( frame_ptr,
 						dictionary,
-						datafile_name );
+						image_filename );
 		break;
 	case MXT_IMAGE_FILE_SMV:
 	case MXT_IMAGE_FILE_NOIR:
 		mx_status = mx_image_read_smv_file( frame_ptr,
-						datafile_type,
-						datafile_name );
+						image_filetype,
+						image_filename );
 		break;
 	case MXT_IMAGE_FILE_MARCCD:
 		mx_status = mx_image_read_marccd_file( frame_ptr,
-							datafile_name );
+							image_filename );
 		break;
 	case MXT_IMAGE_FILE_EDF:
-		mx_status = mx_image_read_edf_file( frame_ptr, datafile_name );
+		mx_status = mx_image_read_edf_file( frame_ptr, image_filename );
 		break;
 	case MXT_IMAGE_FILE_CBF:
 		mx_status = mx_image_read_cbf_file( frame_ptr,
 						dictionary,
-						datafile_name );
+						image_filename );
 		break;
 	default:
 		mx_stack_traceback();
 		mx_status = mx_error( MXE_UNSUPPORTED, fname,
 		"Unsupported image file type %lu requested for datafile '%s'.",
-			datafile_type, datafile_name );
+			image_filetype, image_filename );
 	}
 
 	return mx_status;
@@ -3546,8 +3546,8 @@ mx_image_read_file( MX_IMAGE_FRAME **frame_ptr,
 MX_EXPORT mx_status_type
 mx_image_write_file( MX_IMAGE_FRAME *frame,
 			MX_DICTIONARY *dictionary,
-			unsigned long datafile_type,
-			char *datafile_name )
+			unsigned long image_filetype,
+			char *image_filename )
 {
 	static const char fname[] = "mx_image_write_file()";
 
@@ -3575,12 +3575,12 @@ mx_image_write_file( MX_IMAGE_FRAME *frame,
 	mx_image_statistics( frame );
 #endif
 
-	switch( datafile_type ) {
+	switch( image_filetype ) {
 	case MXT_IMAGE_FILE_NONE:
-		mx_status = mx_image_write_none_file( frame, datafile_name );
+		mx_status = mx_image_write_none_file( frame, image_filename );
 		break;
 	case MXT_IMAGE_FILE_PNM:
-		mx_status = mx_image_write_pnm_file( frame, datafile_name );
+		mx_status = mx_image_write_pnm_file( frame, image_filename );
 		break;
 	case MXT_IMAGE_FILE_RAW_GREY8:
 	case MXT_IMAGE_FILE_RAW_GREY16:
@@ -3588,37 +3588,66 @@ mx_image_write_file( MX_IMAGE_FRAME *frame,
 	case MXT_IMAGE_FILE_RAW_FLOAT:
 	case MXT_IMAGE_FILE_RAW_DOUBLE:
 		mx_status = mx_image_write_raw_file( frame,
-						datafile_type,
-						datafile_name );
+						image_filetype,
+						image_filename );
 		break;
 	case MXT_IMAGE_FILE_TIFF:
 		mx_status = mx_image_write_tiff_file( frame,
 						dictionary,
-						datafile_name );
+						image_filename );
 		break;
 	case MXT_IMAGE_FILE_SMV:
 	case MXT_IMAGE_FILE_NOIR:
 		mx_status = mx_image_write_smv_file( frame,
-						datafile_type,
-						datafile_name );
+						image_filetype,
+						image_filename );
 		break;
 	case MXT_IMAGE_FILE_EDF:
 		mx_status = mx_error( MXE_UNSUPPORTED, fname,
 			"Writing EDF format image files for datafile '%s' "
-			"is not currently supported.", datafile_name );
+			"is not currently supported.", image_filename );
 		break;
 	case MXT_IMAGE_FILE_CBF:
 		mx_status = mx_image_write_cbf_file( frame,
 						dictionary,
-						datafile_name );
+						image_filename );
 		break;
 	default:
 		mx_status = mx_error( MXE_UNSUPPORTED, fname,
 		"Unsupported image file type %lu requested for datafile '%s'.",
-			datafile_type, datafile_name );
+			image_filetype, image_filename );
 	}
 
 	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_image_read_array( MX_IMAGE_FRAME **frame_ptr,
+			MX_DICTIONARY *dictionary,
+			unsigned long image_filetype,
+			long *image_size,
+			void *image_array )
+{
+	static const char fname[] = "mx_image_read_array()";
+
+	mx_status_type mx_status;
+
+	switch( image_filetype ) {
+	case MXT_IMAGE_FILE_TIFF:
+		mx_status = mx_image_read_tiff_array( frame_ptr,
+							dictionary,
+							image_size,
+							image_array );
+		break;
+	default:
+		mx_stack_traceback();
+		mx_status = mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Not yet implemented for image file type %lu for array %p",
+			image_filetype, image_array );
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*----*/
@@ -3632,7 +3661,7 @@ mx_image_write_file( MX_IMAGE_FRAME *frame,
  */
 
 MX_EXPORT mx_status_type
-mx_image_read_none_file( MX_IMAGE_FRAME **frame, char *fake_datafile_name )
+mx_image_read_none_file( MX_IMAGE_FRAME **frame, char *fake_image_filename )
 {
 	static const char fname[] = "mx_image_read_none_file()";
 
@@ -3701,7 +3730,7 @@ mx_image_read_none_file( MX_IMAGE_FRAME **frame, char *fake_datafile_name )
 }
 
 MX_EXPORT mx_status_type
-mx_image_write_none_file( MX_IMAGE_FRAME *frame, char *fake_datafile_name )
+mx_image_write_none_file( MX_IMAGE_FRAME *frame, char *fake_image_filename )
 {
 	static const char fname[] = "mx_image_write_none_file()";
 
@@ -3759,7 +3788,7 @@ mx_image_write_none_file( MX_IMAGE_FRAME *frame, char *fake_datafile_name )
  */
 
 MX_EXPORT mx_status_type
-mx_image_read_pnm_file( MX_IMAGE_FRAME **frame, char *datafile_name )
+mx_image_read_pnm_file( MX_IMAGE_FRAME **frame, char *image_filename )
 {
 	static const char fname[] = "mx_image_read_pnm_file()";
 
@@ -3776,19 +3805,19 @@ mx_image_read_pnm_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 		"The MX_IMAGE_FRAME pointer passed was NULL." );
 	}
 
-	if ( datafile_name == (char *) NULL ) {
+	if ( image_filename == (char *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The datafile_name pointer passed was NULL." );
+		"The image_filename pointer passed was NULL." );
 	}
 
 #if MX_IMAGE_DEBUG
 	MX_DEBUG(-2,("%s invoked for datafile '%s'.",
-		fname, datafile_name ));
+		fname, image_filename ));
 #endif
 
 	/* Figure out the size and format of the file from the PNM header. */
 
-	file = fopen( datafile_name, "rb" );
+	file = fopen( image_filename, "rb" );
 
 	if ( file == NULL ) {
 		saved_errno = errno;
@@ -3796,7 +3825,7 @@ mx_image_read_pnm_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 		return mx_error( MXE_NOT_FOUND, fname,
 		"Cannot open PNM image file '%s'.  "
 		"Errno = %d, error message = '%s'",
-			datafile_name,
+			image_filename,
 			saved_errno, strerror(saved_errno) );
 	}
 
@@ -3813,7 +3842,7 @@ mx_image_read_pnm_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 		"Cannot read the first line of PNM image file '%s'.  "
 		"Errno = %d, error message = '%s'",
-			datafile_name,
+			image_filename,
 			saved_errno, strerror(saved_errno) );
 	}
 
@@ -3824,7 +3853,7 @@ mx_image_read_pnm_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 		"File '%s' does not seem to be a PNM file, since the first "
 		"two bytes of the file are not the letter 'P' followed by "
 		"an integer.  Instead, the first line looks like this -> '%s'",
-			datafile_name, buffer );
+			image_filename, buffer );
 	}
 
 #if MX_IMAGE_DEBUG
@@ -3835,7 +3864,7 @@ mx_image_read_pnm_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"PNM file format P%d used by image file '%s' is not supported."
 		"  The only PNM filetypes supported are the raw formats, "
-		"'P5' and 'P6'.", pnm_type, datafile_name );
+		"'P5' and 'P6'.", pnm_type, image_filename );
 	}
 
 	/* The second line should be a comment and should be skipped. */
@@ -3848,7 +3877,7 @@ mx_image_read_pnm_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 		"Cannot read the second line of PNM image file '%s'.  "
 		"Errno = %d, error message = '%s'",
-			datafile_name,
+			image_filename,
 			saved_errno, strerror(saved_errno) );
 	}
 
@@ -3873,7 +3902,7 @@ mx_image_read_pnm_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 			return mx_error( MXE_FILE_IO_ERROR, fname,
 			"Cannot read the third line of PNM image file '%s'.  "
 			"Errno = %d, error message = '%s'",
-				datafile_name,
+				image_filename,
 				saved_errno, strerror(saved_errno) );
 		}
 	}
@@ -3884,7 +3913,7 @@ mx_image_read_pnm_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 		"Did not find the width and height of PNM file '%s'.  "
 		"Instead, we saw this -> '%s'",
-			datafile_name, buffer );
+			image_filename, buffer );
 	}
 
 #if MX_IMAGE_DEBUG
@@ -3902,7 +3931,7 @@ mx_image_read_pnm_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 		"Cannot read the third line of PNM image file '%s'.  "
 		"Errno = %d, error message = '%s'",
-			datafile_name,
+			image_filename,
 			saved_errno, strerror(saved_errno) );
 	}
 
@@ -3912,7 +3941,7 @@ mx_image_read_pnm_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 		"Did not find the maximum integer value of PNM file '%s'.  "
 		"Instead, we saw this -> '%s'",
-			datafile_name, buffer );
+			image_filename, buffer );
 	}
 
 #if MX_IMAGE_DEBUG
@@ -3939,7 +3968,7 @@ mx_image_read_pnm_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Greyscale PNM file '%s' reports that its maximum "
 			"integer value is %lu.  The only supported values "
-			"are 255 and 65535.", datafile_name, maxint );
+			"are 255 and 65535.", image_filename, maxint );
 		}
 		break;
 	case 6:
@@ -3953,7 +3982,7 @@ mx_image_read_pnm_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Color PNM file '%s' reports that its maximum "
 			"integer value is %lu.  The only supported value "
-			"is 255.", datafile_name, maxint );
+			"is 255.", image_filename, maxint );
 		}
 	}
 
@@ -3985,7 +4014,7 @@ mx_image_read_pnm_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 
 			return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
 			"End of file at byte %ld for PNM image file '%s'.",
-				bytes_read, datafile_name );
+				bytes_read, image_filename );
 		}
 		if ( ferror(file) ) {
 			fclose( file );
@@ -3993,7 +4022,7 @@ mx_image_read_pnm_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 			return mx_error( MXE_FILE_IO_ERROR, fname,
 			"An error occurred while reading pixel %ld "
 			"for PNM image file '%s'.",
-				bytes_read, datafile_name );
+				bytes_read, image_filename );
 		}
 
 		fclose( file );
@@ -4001,7 +4030,7 @@ mx_image_read_pnm_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 			"Only %ld image bytes were read from "
 			"PNM image file '%s' when %ld bytes were expected.",
-				bytes_read, datafile_name, bytes_per_frame );
+				bytes_read, image_filename, bytes_per_frame );
 	}
 
 	/* Close the PNM image file. */
@@ -4038,7 +4067,7 @@ mx_image_read_pnm_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 }
 
 MX_EXPORT mx_status_type
-mx_image_write_pnm_file( MX_IMAGE_FRAME *frame, char *datafile_name )
+mx_image_write_pnm_file( MX_IMAGE_FRAME *frame, char *image_filename )
 {
 	static const char fname[] = "mx_image_write_pnm_file()";
 
@@ -4059,14 +4088,14 @@ mx_image_write_pnm_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 		"The MX_IMAGE_FRAME pointer passed was NULL." );
 	}
 
-	if ( datafile_name == (char *) NULL ) {
+	if ( image_filename == (char *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The datafile_name pointer passed was NULL." );
+		"The image_filename pointer passed was NULL." );
 	}
 
 #if MX_IMAGE_DEBUG
 	MX_DEBUG(-2,("%s invoked for datafile '%s'.",
-		fname, datafile_name ));
+		fname, image_filename ));
 
 	MX_DEBUG(-2,("%s: width = %ld, height = %ld", fname,
 		(long) MXIF_ROW_FRAMESIZE(frame),
@@ -4110,7 +4139,7 @@ mx_image_write_pnm_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Unsupported image format %ld requested for datafile '%s'.",
-			(long) MXIF_IMAGE_FORMAT(frame), datafile_name );
+			(long) MXIF_IMAGE_FORMAT(frame), image_filename );
 	}
 
 #if MX_IMAGE_DEBUG
@@ -4134,7 +4163,7 @@ mx_image_write_pnm_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 				dest_step );
 	}
 
-	file = fopen( datafile_name, "wb" );
+	file = fopen( image_filename, "wb" );
 
 	if ( file == NULL ) {
 		saved_errno = errno;
@@ -4142,14 +4171,14 @@ mx_image_write_pnm_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 		"Cannot open PNM image file '%s'.  "
 		"Errno = %d, error message = '%s'",
-			datafile_name,
+			image_filename,
 			saved_errno, strerror(saved_errno) );
 	}
 
 	/* Write the PPM header. */
 
 	fprintf( file, "P%d\n", pnm_type );
-	fprintf( file, "# %s\n", datafile_name );
+	fprintf( file, "# %s\n", image_filename );
 	fprintf( file, "%lu %lu\n",
 		(unsigned long) MXIF_ROW_FRAMESIZE(frame),
 		(unsigned long) MXIF_COLUMN_FRAMESIZE(frame) );
@@ -4204,7 +4233,7 @@ mx_image_write_pnm_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 				"Unsupported image format %ld requested "
 				"for datafile '%s'.",
 				(long) MXIF_IMAGE_FORMAT(frame),
-				datafile_name );
+				image_filename );
 		}
 	}
 
@@ -4212,7 +4241,7 @@ mx_image_write_pnm_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 
 #if MX_IMAGE_DEBUG
 	MX_DEBUG(-2,
-	("%s: PNM file '%s' successfully written.", fname, datafile_name ));
+	("%s: PNM file '%s' successfully written.", fname, image_filename ));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
@@ -4222,8 +4251,8 @@ mx_image_write_pnm_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 
 MX_EXPORT mx_status_type
 mx_image_read_raw_file( MX_IMAGE_FRAME **frame,
-			unsigned long datafile_type,
-			char *datafile_name )
+			unsigned long image_filetype,
+			char *image_filename )
 {
 	static const char fname[] = "mx_image_read_raw_file()";
 
@@ -4246,18 +4275,18 @@ mx_image_read_raw_file( MX_IMAGE_FRAME **frame,
 		"The MX_IMAGE_FRAME pointer passed was NULL." );
 	}
 
-	if ( datafile_name == (char *) NULL ) {
+	if ( image_filename == (char *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The datafile_name pointer passed was NULL." );
+		"The image_filename pointer passed was NULL." );
 	}
 
 #if MX_IMAGE_DEBUG
 	MX_DEBUG(-2,("%s invoked for datafile '%s'.",
-		fname, datafile_name ));
+		fname, image_filename ));
 #endif
 	/* We can get the timestamp from the filesystem. */
 
-	os_status = stat( datafile_name, &file_stat );
+	os_status = stat( image_filename, &file_stat );
 
 	if ( os_status < 0 ) {
 		saved_errno = errno;
@@ -4265,7 +4294,7 @@ mx_image_read_raw_file( MX_IMAGE_FRAME **frame,
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 		"Cannot get file status for image file '%s'.  "
 		"Errno = %d, error message = '%s'",
-			datafile_name, saved_errno,
+			image_filename, saved_errno,
 			strerror( saved_errno ) );
 	}
 
@@ -4293,7 +4322,7 @@ mx_image_read_raw_file( MX_IMAGE_FRAME **frame,
 
 		datafile_byteorder = mx_native_byteorder();
 
-		switch( datafile_type ) {
+		switch( image_filetype ) {
 		case MXT_IMAGE_FILE_RAW_GREY8:
 			image_format = MXT_IMAGE_FORMAT_GREY8;
 			bytes_per_pixel = 1;
@@ -4330,17 +4359,17 @@ mx_image_read_raw_file( MX_IMAGE_FRAME **frame,
 		framesize[1] = framesize[0];
 	}
 
-	if ( image_format != datafile_type ) {
+	if ( image_format != image_filetype ) {
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"The image format %lu of the supplied MX_IMAGE_FRAME "
 		"does not match the requested datafile format %lu for "
 		"the file '%s'.  This is not currently supported.",
-			image_format, datafile_type, datafile_name );
+			image_format, image_filetype, image_filename );
 	}
 
 	/* Open the data file. */
 
-	file = fopen( datafile_name, "rb" );
+	file = fopen( image_filename, "rb" );
 
 	if ( file == NULL ) {
 		saved_errno = errno;
@@ -4348,7 +4377,7 @@ mx_image_read_raw_file( MX_IMAGE_FRAME **frame,
 		return mx_error( MXE_NOT_FOUND, fname,
 		"Cannot open RAW image file '%s'.  "
 		"Errno = %d, error message = '%s'",
-			datafile_name,
+			image_filename,
 			saved_errno, strerror(saved_errno) );
 	}
 
@@ -4393,18 +4422,18 @@ mx_image_read_raw_file( MX_IMAGE_FRAME **frame,
 		if ( feof(file) ) {
 			return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
 		"End of file at image byte offset %ld for SMV image file '%s'.",
-				bytes_read, datafile_name );
+				bytes_read, image_filename );
 		}
 		if ( ferror(file) ) {
 			return mx_error( MXE_FILE_IO_ERROR, fname,
 			"An error occurred at image byte offset %ld "
 			"for SMV image file '%s'.",
-				bytes_read, datafile_name );
+				bytes_read, image_filename );
 		}
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 			"Only %ld image bytes were read from "
 			"SMV image file '%s' when %ld bytes were expected.",
-				bytes_read, datafile_name, bytes_per_frame );
+				bytes_read, image_filename, bytes_per_frame );
 	}
 
 	fclose( file );
@@ -4414,8 +4443,8 @@ mx_image_read_raw_file( MX_IMAGE_FRAME **frame,
 
 MX_EXPORT mx_status_type
 mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
-			unsigned long datafile_type,
-			char *datafile_name )
+			unsigned long image_filetype,
+			char *image_filename )
 {
 	static const char fname[] = "mx_image_write_raw_file()";
 
@@ -4445,9 +4474,9 @@ mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
 		"The MX_IMAGE_FRAME pointer passed was NULL." );
 	}
 
-	if ( datafile_name == (char *) NULL ) {
+	if ( image_filename == (char *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The datafile_name pointer passed was NULL." );
+		"The image_filename pointer passed was NULL." );
 	}
 
 	if ( frame->image_data == NULL ) {
@@ -4458,12 +4487,12 @@ mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
 
 	image_format = MXIF_IMAGE_FORMAT(frame);
 
-	if ( image_format != datafile_type ) {
+	if ( image_format != image_filetype ) {
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"The image format %lu of the supplied MX_IMAGE_FRAME "
 		"does not match the requested datafile format %lu for "
 		"the file '%s'.  This is not currently supported.",
-			image_format, datafile_type, datafile_name );
+			image_format, image_filetype, image_filename );
 	}
 
 	mx_status = MX_SUCCESSFUL_RESULT;
@@ -4473,7 +4502,7 @@ mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
 	MX_HRT_START( fopen_measurement );
 #endif
 
-	file = fopen( datafile_name, "wb" );
+	file = fopen( image_filename, "wb" );
 
 	if ( file == NULL ) {
 
@@ -4489,7 +4518,7 @@ mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
 		mx_status = mx_error( MXE_FILE_IO_ERROR, fname,
 				"Opening file '%s' failed with "
 				"Win32 error code %ld, error message = '%s'.",
-				datafile_name,
+				image_filename,
 				last_error_code, message_buffer );
 #else
 		saved_errno = errno;
@@ -4501,20 +4530,20 @@ mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
 			"to image file '%s'.",
 				mx_username( username_buffer,
 						sizeof(username_buffer) ),
-				datafile_name );
+				image_filename );
 			break;
 
 		case EPERM:
 			mx_status = mx_error( MXE_UNSUPPORTED, fname,
 			"Writing an image to file '%s' is not supported "
-			"by the operating system.", datafile_name );
+			"by the operating system.", image_filename );
 			break;
 
 		default:
 			mx_status = mx_error( MXE_FILE_IO_ERROR, fname,
 			"Cannot open RAW image file '%s'.  "
 			"Errno = %d, error message = '%s'",
-				datafile_name,
+				image_filename,
 				saved_errno, strerror(saved_errno) );
 			break;
 		}
@@ -4537,7 +4566,7 @@ mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
 		case ENOSPC:
 			mx_status = mx_error( MXE_DISK_FULL, fname,
 			"The disk used by file '%s' is full.",
-				datafile_name );
+				image_filename );
 			break;
 
 		default:
@@ -4546,7 +4575,7 @@ mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
 			"than the number (%lu) in the original image.  "
 			"Errno = %d, error message = '%s'",
 				(unsigned long) bytes_written,
-				datafile_name,
+				image_filename,
 				(unsigned long) frame->image_length,
 				saved_errno, strerror(saved_errno) );
 			break;
@@ -4566,7 +4595,7 @@ mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 		"An error occurred while trying to close RAW image file '%s'.  "
 		"Errno = %d, error message = '%s'.",
-			datafile_name,
+			image_filename,
 			saved_errno, strerror(saved_errno) );
 	}
 
@@ -4586,7 +4615,7 @@ mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
 
 #if MX_IMAGE_DEBUG
 	MX_DEBUG(-2,
-	("%s: RAW file '%s' successfully written.", fname, datafile_name ));
+	("%s: RAW file '%s' successfully written.", fname, image_filename ));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
@@ -4661,7 +4690,7 @@ mxp_image_test_for_libtiff( void )
 MX_EXPORT mx_status_type
 mx_image_read_tiff_file( MX_IMAGE_FRAME **frame,
 			MX_DICTIONARY *dictionary,
-			char *datafile_name )
+			char *image_filename )
 {
 	static const char fname[] = "mx_image_read_tiff_file()";
 
@@ -4675,8 +4704,8 @@ mx_image_read_tiff_file( MX_IMAGE_FRAME **frame,
 		"The 'libtiff' module has not been loaded." );
 	}
 
-	mx_status = ( mxp_libtiff_image_function_list->read ) ( frame,
-							datafile_name );
+	mx_status = ( mxp_libtiff_image_function_list->read_file )
+						( frame, image_filename );
 
 	return mx_status;
 }
@@ -4684,7 +4713,7 @@ mx_image_read_tiff_file( MX_IMAGE_FRAME **frame,
 MX_EXPORT mx_status_type
 mx_image_write_tiff_file( MX_IMAGE_FRAME *frame,
 			MX_DICTIONARY *dictionary,
-			char *datafile_name )
+			char *image_filename )
 {
 	static const char fname[] = "mx_image_write_tiff_file()";
 
@@ -4692,7 +4721,7 @@ mx_image_write_tiff_file( MX_IMAGE_FRAME *frame,
 
 #if MX_IMAGE_DEBUG_CHARACTERISTICS
 	MX_DEBUG(-2,("%s invoked for datafile '%s'.",
-		fname, datafile_name ));
+		fname, image_filename ));
 
 	MX_DEBUG(-2,("%s: width = %ld, height = %ld", fname, 
 		(long) MXIF_ROW_FRAMESIZE(frame),
@@ -4722,8 +4751,39 @@ mx_image_write_tiff_file( MX_IMAGE_FRAME *frame,
 		"The 'libtiff' module has not been loaded." );
 	}
 
-	mx_status = ( mxp_libtiff_image_function_list->write ) ( frame,
-							datafile_name );
+	mx_status = ( mxp_libtiff_image_function_list->write_file )
+						( frame, image_filename );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_image_read_tiff_array( MX_IMAGE_FRAME **frame,
+			MX_DICTIONARY *dictionary,
+			long *image_size,
+			void *image_array )
+{
+	static const char fname[] = "mx_image_read_tiff_array()";
+
+	mx_status_type mx_status;
+
+	mx_breakpoint();
+
+	if ( mxp_tiff_availability_checked == FALSE ) {
+		(void) mxp_image_test_for_libtiff();
+	}
+	if ( mxp_tiff_is_available == FALSE ) {
+		return mx_error( MXE_NOT_AVAILABLE, fname,
+		"The 'libtiff' module has not been loaded." );
+	}
+
+	if ( mxp_libtiff_image_function_list->read_array == NULL ) {
+		return mx_error( MXE_NOT_FOUND, fname,
+		"The 'libtiff' module does not have a 'read_array' method." );
+	}
+
+	mx_status = ( mxp_libtiff_image_function_list->read_array )
+					( frame, image_size, image_array );
 
 	return mx_status;
 }
@@ -4949,8 +5009,8 @@ mxp_image_smv_find_header_value( char *buffer, char **header_ptr )
 
 MX_EXPORT mx_status_type
 mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
-			unsigned long datafile_type,
-			char *datafile_name )
+			unsigned long image_filetype,
+			char *image_filename )
 {
 	static const char fname[] = "mx_image_read_smv_file()";
 
@@ -4974,19 +5034,19 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 		"The MX_IMAGE_FRAME pointer passed was NULL." );
 	}
 
-	if ( datafile_name == (char *) NULL ) {
+	if ( image_filename == (char *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The datafile_name pointer passed was NULL." );
+		"The image_filename pointer passed was NULL." );
 	}
 
 #if MX_IMAGE_DEBUG
 	MX_DEBUG(-2,("%s invoked for datafile '%s'.",
-		fname, datafile_name ));
+		fname, image_filename ));
 #endif
 
 	/* Open the data file. */
 
-	file = fopen( datafile_name, "rb" );
+	file = fopen( image_filename, "rb" );
 
 	if ( file == NULL ) {
 		saved_errno = errno;
@@ -4994,7 +5054,7 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 		return mx_error( MXE_NOT_FOUND, fname,
 		"Cannot open SMV image file '%s'.  "
 		"Errno = %d, error message = '%s'",
-			datafile_name,
+			image_filename,
 			saved_errno, strerror(saved_errno) );
 	}
 
@@ -5010,7 +5070,7 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 		"Cannot read the first line of SMV image file '%s'.  "
 		"Errno = %d, error message = '%s'",
-			datafile_name,
+			image_filename,
 			saved_errno, strerror(saved_errno) );
 	}
 
@@ -5019,7 +5079,7 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 		"Data file '%s' does not appear to be an SMV file "
 		"since it does not start with '{\\n', namely, "
 		"a left brace followed by a newline.",
-			datafile_name );
+			image_filename );
 	}
 
 	/* The second line should tell us the length of the header. */
@@ -5032,7 +5092,7 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 		"Cannot find the second line of SMV image file '%s'.  "
 		"Errno = %d, error message = '%s'",
-			datafile_name,
+			image_filename,
 			saved_errno, strerror(saved_errno) );
 	}
 
@@ -5042,7 +5102,7 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 		"The file '%s' does not appear to be an SMV file, since the "
 		"second line of the file does not contain the header length.",
-			datafile_name );
+			image_filename );
 	}
 
 #if MX_IMAGE_DEBUG
@@ -5080,7 +5140,7 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 			"Cannot read the next header line of "
 			"SMV image file '%s'.  "
 			"Errno = %d, error message = '%s'",
-				datafile_name,
+				image_filename,
 				saved_errno, strerror(saved_errno) );
 		}
 
@@ -5113,7 +5173,7 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 				"The BYTE_ORDER statement in the header of "
 				"data file '%s' says that the data file "
 				"byte order has the unrecognized value '%s'.",
-					datafile_name, byte_order_buffer );
+					image_filename, byte_order_buffer );
 			}
 
 		} else
@@ -5125,7 +5185,7 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 				"Header line '%s' from data file '%s' "
 				"appears to contain an incorrectly formatted "
 				"SIZE1 statement.",
-					buffer, datafile_name );
+					buffer, image_filename );
 			}
 		} else
 		if ( strncmp( buffer, "SIZE2=", 6 ) == 0 ) {
@@ -5136,7 +5196,7 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 				"Header line '%s' from data file '%s' "
 				"appears to contain an incorrectly formatted "
 				"SIZE2 statement.",
-					buffer, datafile_name );
+					buffer, image_filename );
 			}
 		} else
 		if ( strncmp( buffer, "BIN=", 4 ) == 0 ) {
@@ -5153,7 +5213,7 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 					"Header line '%s' from data file '%s' "
 					"appears to contain an incorrectly "
 					"formatted BIN statement.",
-						buffer, datafile_name );
+						buffer, image_filename );
 				}
 			}
 		} else
@@ -5165,7 +5225,7 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 				"Header line '%s' from data file '%s' "
 				"appears to contain an incorrectly formatted "
 				"TIME statement.",
-					buffer, datafile_name );
+					buffer, image_filename );
 			}
 		} else
 		if ( strncmp( buffer, "DATE=", 5 ) == 0 ) {
@@ -5184,7 +5244,7 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 				"Header line '%s' from data file '%s' "
 				"appears to contain an incorrectly formatted "
 				"ZEROOFFSET statement.",
-					buffer, datafile_name );
+					buffer, image_filename );
 			}
 
 			bias_offset_in_milli_adus = 
@@ -5222,7 +5282,7 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 			} else {
 				mx_warning( "Unrecognized data type seen "
 				"in line '%s' of the header of SMV file '%s'.",
-					buffer, datafile_name );
+					buffer, image_filename );
 			}
 
 		} else {
@@ -5240,7 +5300,7 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 	if ( datafile_byteorder < 0 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"SMV data file '%s' did not contain a BYTE_ORDER "
-		"statement in its header.", datafile_name );
+		"statement in its header.", image_filename );
 	}
 
 	if ( (framesize[0] < 0) || (framesize[1] < 0) ) {
@@ -5248,7 +5308,7 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 		"The header for SMV file '%s' did not contain one or both "
 		"of the SIZE1 and SIZE2 statements.  These statements "
 		"are used to specify the dimensions of the image and "
-		"must be present.", datafile_name );
+		"must be present.", image_filename );
 	}
 
 	/* --- */
@@ -5274,7 +5334,7 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Unsupported image format %ld was requested for "
 		"SMV data file '%s'.",
-			image_format, datafile_name );
+			image_format, image_filename );
 		break;
 	}
 
@@ -5321,7 +5381,7 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 		"An attempt to seek to the end of the header block "
 		"in image file '%s' failed with errno = %d, "
-		"error message = '%s'", datafile_name,
+		"error message = '%s'", image_filename,
 			saved_errno, strerror( saved_errno ) );
 	}
 
@@ -5334,18 +5394,18 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 		if ( feof(file) ) {
 			return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
 		"End of file at image byte offset %ld for SMV image file '%s'.",
-				bytes_read, datafile_name );
+				bytes_read, image_filename );
 		}
 		if ( ferror(file) ) {
 			return mx_error( MXE_FILE_IO_ERROR, fname,
 			"An error occurred at image byte offset %ld "
 			"for SMV image file '%s'.",
-				bytes_read, datafile_name );
+				bytes_read, image_filename );
 		}
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 			"Only %ld image bytes were read from "
 			"SMV image file '%s' when %ld bytes were expected.",
-				bytes_read, datafile_name, bytes_per_frame );
+				bytes_read, image_filename, bytes_per_frame );
 	}
 
 	/* Close the SMV image file. */
@@ -5418,13 +5478,13 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
             case ENOSPC:						\
                 mx_status = mx_error( MXE_DISK_FULL, fname,		\
                 "The disk used by file '%s' is full.",			\
-                    datafile_name );					\
+                    image_filename );					\
                 break;							\
             default:							\
                 mx_status = mx_error( MXE_FILE_IO_ERROR, fname,		\
                 "An error occurred while writing to SMV file '%s'.  "	\
                 "Errno = %d, error message = '%s'",			\
-                    datafile_name,					\
+                    image_filename,					\
                     saved_errno, strerror(saved_errno) );		\
                 break;							\
             }								\
@@ -5435,8 +5495,8 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 
 MX_EXPORT mx_status_type
 mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
-			unsigned long datafile_type,
-			char *datafile_name )
+			unsigned long image_filetype,
+			char *image_filename )
 {
 	static const char fname[] = "mx_image_write_smv_file()";
 
@@ -5473,16 +5533,16 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 		"The MX_IMAGE_FRAME pointer passed was NULL." );
 	}
 
-	if ( datafile_name == (char *) NULL ) {
+	if ( image_filename == (char *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The datafile_name pointer passed was NULL." );
+		"The image_filename pointer passed was NULL." );
 	}
 
 	image_format = MXIF_IMAGE_FORMAT(frame);
 
 #if MX_IMAGE_DEBUG_CHARACTERISTICS
 	MX_DEBUG(-2,("%s invoked for datafile '%s'.",
-		fname, datafile_name ));
+		fname, image_filename ));
 
 	MX_DEBUG(-2,("%s: width = %ld, height = %ld", fname, 
 		(long) MXIF_ROW_FRAMESIZE(frame),
@@ -5516,12 +5576,12 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Unsupported image format %lu requested for datafile '%s'.",
-			image_format, datafile_name );
+			image_format, image_filename );
 	}
 
 	/* The size of the datafile header depends on the datafile type. */
 
-	switch( datafile_type ) {
+	switch( image_filetype ) {
 	case MXT_IMAGE_FILE_SMV:
 		header_length = 512;
 		break;
@@ -5532,7 +5592,7 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 		return mx_error( MXE_UNSUPPORTED, fname,
 			"Unsupported SMV-style datafile type %lu "
 			"requested for datafile '%s'.",
-			datafile_type, datafile_name );
+			image_filetype, image_filename );
 		break;
 	}
 
@@ -5547,7 +5607,7 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 		"for file '%s', which exceeds the current limit "
 		"of %d bytes.  You must increase the value of "
 		"MXU_IMAGE_SMV_MAX_HEADER_LENGTH and recompile.",
-			header_length, datafile_name,
+			header_length, image_filename,
 			MXU_IMAGE_SMV_MAX_HEADER_LENGTH );
 	}
 
@@ -5563,7 +5623,7 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 
 	/* Open the new datafile. */
 
-	file = fopen( datafile_name, "wb" );
+	file = fopen( image_filename, "wb" );
 
 #if MX_IMAGE_DEBUG_NOIR_FD_LEAK
 	MX_DEBUG(-2,("MARKER #2, num fds = %d",
@@ -5582,12 +5642,12 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 			mx_status = mx_error( MXE_PERMISSION_DENIED, fname,
 			"Cannot write to file '%s' since this process does "
 			"not have the necessary permissions.",
-				datafile_name );
+				image_filename );
 			break;
 		case ERROR_HANDLE_DISK_FULL:
 			mx_status = mx_error( MXE_DISK_FULL, fname,
 			"Cannot write to file '%s' since the disk is full.",
-				datafile_name );
+				image_filename );
 			break;
 		default:
 			mx_win32_error_message( last_error_code,
@@ -5596,7 +5656,7 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 			mx_status = mx_error( MXE_FILE_IO_ERROR, fname,
 				"Opening file '%s' failed with "
 				"Win32 error code %ld, error message = '%s'.",
-				datafile_name,
+				image_filename,
 				last_error_code, message_buffer );
 			break;
 		}
@@ -5610,20 +5670,20 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 			"to image file '%s'.",
 				mx_username( username_buffer,
 						sizeof(username_buffer) ),
-				datafile_name );
+				image_filename );
 			break;
 
 		case EPERM:
 			mx_status = mx_error( MXE_UNSUPPORTED, fname,
 			"Writing an image to file '%s' is not supported "
-			"by the operating system.", datafile_name );
+			"by the operating system.", image_filename );
 			break;
 
 		default:
 			mx_status = mx_error( MXE_FILE_IO_ERROR, fname,
 			"Cannot open SMV image file '%s'.  "
 			"Errno = %d, error message = '%s'",
-				datafile_name,
+				image_filename,
 				saved_errno, strerror(saved_errno) );
 			break;
 		}
@@ -5652,7 +5712,7 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 		case ENOSPC:
 			mx_status = mx_error( MXE_DISK_FULL, fname,
 			"The disk used by file '%s' is full.",
-				datafile_name );
+				image_filename );
 			break;
 
 		default:
@@ -5661,7 +5721,7 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 			"SMV image file '%s' than the expected length (%lu).  "
 			"Errno = %d, error message = '%s'.",
 				(unsigned long) num_items_written,
-				datafile_name,
+				image_filename,
 				(unsigned long) header_length,
 				saved_errno, strerror(saved_errno) );
 			break;
@@ -5686,7 +5746,7 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 		"An attempt to seek to the start of the header block "
 		"for image file '%s' failed with errno = %d, "
-		"error message = '%s'", datafile_name,
+		"error message = '%s'", image_filename,
 			saved_errno, strerror( saved_errno ) );
 	}
 
@@ -5729,7 +5789,7 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 
 	MXP_SMV_CHECK_FPRINTF( fprintf( file, "DIM=2;\n" ) );
 
-	if ( datafile_type == MXT_IMAGE_FILE_NOIR ) {
+	if ( image_filetype == MXT_IMAGE_FILE_NOIR ) {
 		MXP_SMV_CHECK_FPRINTF( fprintf( file, "TYPE=mad;\n" ) );
 	}
 
@@ -5758,7 +5818,7 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 	switch( image_format ) {
 	case MXT_IMAGE_FORMAT_GREY16:
 
-		if ( datafile_type == MXT_IMAGE_FILE_NOIR ) {
+		if ( image_filetype == MXT_IMAGE_FILE_NOIR ) {
 
 			MXP_SMV_CHECK_FPRINTF( fprintf( file,
 				"Data_type=unsigned short int;\n" ) );
@@ -5770,7 +5830,7 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 
 	case MXT_IMAGE_FORMAT_FLOAT:
 
-		if ( datafile_type == MXT_IMAGE_FILE_NOIR ) {
+		if ( image_filetype == MXT_IMAGE_FILE_NOIR ) {
 
 			MXP_SMV_CHECK_FPRINTF( fprintf( file,
 				"Data_type=float IEEE;\n" ) );
@@ -5828,7 +5888,7 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 	 * the header.
 	 */
 
-	if ( datafile_type == MXT_IMAGE_FILE_NOIR ) {
+	if ( image_filetype == MXT_IMAGE_FILE_NOIR ) {
 
 #if MX_IMAGE_DEBUG_NOIR_FD_LEAK
 		MX_DEBUG(-2,("%s: Before write noir, num fds = %d",
@@ -5869,7 +5929,7 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 		"An attempt to seek to the end of the header block "
 		"in image file '%s' failed with errno = %d, "
-		"error message = '%s'", datafile_name,
+		"error message = '%s'", image_filename,
 			saved_errno, strerror( saved_errno ) );
 	}
 
@@ -5892,7 +5952,7 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 		case ENOSPC:
 			mx_status = mx_error( MXE_DISK_FULL, fname,
 			"The disk used by file '%s' is full.",
-				datafile_name );
+				image_filename );
 			break;
 
 		default:
@@ -5902,7 +5962,7 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 			"that were supposed to be written in "
 			"this block.  Errno = %d, error message = '%s'",
 				(unsigned long) num_items_written,
-				datafile_name,
+				image_filename,
 				(unsigned long) frame->image_length,
 				saved_errno, strerror(saved_errno) );
 			break;
@@ -5927,7 +5987,7 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 		"An error occurred while trying to close SMV image file '%s'.  "
 		"Errno = %d, error message = '%s'.",
-			datafile_name,
+			image_filename,
 			saved_errno, strerror(saved_errno) );
 	}
 
@@ -5950,7 +6010,7 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 
 #if MX_IMAGE_DEBUG
 	MX_DEBUG(-2,
-	("%s: SMV file '%s' successfully written.", fname, datafile_name ));
+	("%s: SMV file '%s' successfully written.", fname, image_filename ));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
@@ -6152,7 +6212,7 @@ mx_image_read_marccd_file( MX_IMAGE_FRAME **frame, char *marccd_filename )
 /* Read EDF files from the SOLEIL SWING beamline. */
 
 mx_status_type
-mx_image_read_edf_file( MX_IMAGE_FRAME **frame, char *datafile_name )
+mx_image_read_edf_file( MX_IMAGE_FRAME **frame, char *image_filename )
 {
 	static const char fname[] = "mx_image_read_edf_file()";
 
@@ -6173,21 +6233,21 @@ mx_image_read_edf_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_IMAGE_FRAME pointer passed was NULL." );
 	}
-	if ( datafile_name == (char *) NULL ) {
+	if ( image_filename == (char *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The datafile_name pointer passed was NULL." );
+		"The image_filename pointer passed was NULL." );
 	}
 
 #if MX_IMAGE_DEBUG
 	MX_DEBUG(-2,("%s invoked for datafile '%s'.",
-		fname, datafile_name));
+		fname, image_filename));
 #endif
 	snprintf( header_token_format, sizeof(header_token_format),
 			"%%*s %%*s %%%ds", (int) sizeof(header_token) - 1 );
 
 	/* Open the data file. */
 
-	file = fopen( datafile_name, "rb" );
+	file = fopen( image_filename, "rb" );
 
 	if ( file == NULL ) {
 		saved_errno = errno;
@@ -6195,7 +6255,7 @@ mx_image_read_edf_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 		return mx_error( MXE_NOT_FOUND, fname,
 		"Cannot open EDF image file '%s'.  "
 		"Errno = %d, error message = '%s'",
-			datafile_name,
+			image_filename,
 			saved_errno, strerror(saved_errno) );
 	}
 
@@ -6211,14 +6271,14 @@ mx_image_read_edf_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 		"Cannot read the first line of EDF image file '%s'.  "
 		"Errno = %d, error message = '%s'",
-			datafile_name,
+			image_filename,
 			saved_errno, strerror(saved_errno) );
 	}
 
 	if ( ( buffer[0] != '{' ) || ( buffer[1] != '\n' ) ) {
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 		"Data file '%s' does not appear to be an EDF file.",
-			datafile_name );
+			image_filename );
 	}
 
 	/* Read in the rest of the header. */
@@ -6247,7 +6307,7 @@ mx_image_read_edf_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 			"Cannot read the next header line of "
 			"EDF image file '%s'.  "
 			"Errno = %d, error message = '%s'",
-				datafile_name,
+				image_filename,
 				saved_errno, strerror(saved_errno) );
 		}
 
@@ -6267,7 +6327,7 @@ mx_image_read_edf_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 				"Header line '%s' from data file '%s' "
 				"appears to contain an incorrectly formatted "
 				"EDF_BinarySize statement.",
-					datafile_name, buffer );
+					image_filename, buffer );
 			}
 		} else
 		if ( strncmp( buffer, "EDF_HeaderSize =", 16 ) == 0 ) {
@@ -6279,7 +6339,7 @@ mx_image_read_edf_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 				"Header line '%s' from data file '%s' "
 				"appears to contain an incorrectly formatted "
 				"EDF_HeaderSize statement.",
-					datafile_name, buffer );
+					image_filename, buffer );
 			}
 		} else
 		if ( strncmp( buffer, "ByteOrder =", 11 ) == 0 ) {
@@ -6291,7 +6351,7 @@ mx_image_read_edf_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 				"Header line '%s' from data file '%s' "
 				"appears to contain an incorrectly formatted "
 				"ByteOrder statement.",
-					datafile_name, buffer );
+					image_filename, buffer );
 			}
 
 			if ( strcmp( header_token, "LowByteFirst" ) == 0 ) {
@@ -6304,7 +6364,7 @@ mx_image_read_edf_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 				"The ByteOrder statement in the header of "
 				"data file '%s' says that the data file "
 				"byte order has the unrecognized value '%s'.",
-					datafile_name, header_token );
+					image_filename, header_token );
 			}
 		} else
 		if ( strncmp( buffer, "DataType =", 10 ) == 0 ) {
@@ -6316,7 +6376,7 @@ mx_image_read_edf_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 				"Header line '%s' from data file '%s' "
 				"appears to contain an incorrectly formatted "
 				"DataType statement.",
-					datafile_name, buffer );
+					image_filename, buffer );
 			}
 
 			if ( strcmp( header_token, "UnsignedShort" ) == 0 ) {
@@ -6327,7 +6387,7 @@ mx_image_read_edf_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 				"The DataType statement in the header of "
 				"data file '%s' says that the data type "
 				"has the unrecognized value '%s'.",
-					datafile_name, header_token );
+					image_filename, header_token );
 			}
 		} else
 		if ( strncmp( buffer, "Dim_1 =", 7 ) == 0 ) {
@@ -6339,7 +6399,7 @@ mx_image_read_edf_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 				"Header line '%s' from data file '%s' "
 				"appears to contain an incorrectly formatted "
 				"Dim_1 statement.",
-					datafile_name, buffer );
+					image_filename, buffer );
 			}
 		} else
 		if ( strncmp( buffer, "Dim_2 =", 7 ) == 0 ) {
@@ -6351,7 +6411,7 @@ mx_image_read_edf_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 				"Header line '%s' from data file '%s' "
 				"appears to contain an incorrectly formatted "
 				"Dim_2 statement.",
-					datafile_name, buffer );
+					image_filename, buffer );
 			}
 		} else
 		if ( strncmp( buffer, "Xbin =", 6 ) == 0 ) {
@@ -6363,7 +6423,7 @@ mx_image_read_edf_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 				"Header line '%s' from data file '%s' "
 				"appears to contain an incorrectly formatted "
 				"Xbin statement.",
-					datafile_name, buffer );
+					image_filename, buffer );
 			}
 		} else
 		if ( strncmp( buffer, "Ybin =", 6 ) == 0 ) {
@@ -6375,7 +6435,7 @@ mx_image_read_edf_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 				"Header line '%s' from data file '%s' "
 				"appears to contain an incorrectly formatted "
 				"Ybin statement.",
-					datafile_name, buffer );
+					image_filename, buffer );
 			}
 		}
 	}
@@ -6393,37 +6453,37 @@ mx_image_read_edf_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 	if ( header_length < 0 ) {
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 		"The image header length was not found for EDF file '%s'.",
-			datafile_name );
+			image_filename );
 	}
 	if ( image_length < 0 ) {
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 		"The image length was not found for EDF file '%s'.",
-			datafile_name );
+			image_filename );
 	}
 	if ( datafile_byteorder < 0 ) {
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 		"The datafile byteorder was not found for EDF file '%s'.",
-			datafile_name );
+			image_filename );
 	}
 	if ( image_format < 0 ) {
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 		"The image format was not found for EDF file '%s'.",
-			datafile_name );
+			image_filename );
 	}
 	if ( bytes_per_pixel < 0 ) {
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 	    "The number of bytes per pixel was not found for EDF file '%s'.",
-			datafile_name );
+			image_filename );
 	}
 	if ( (framesize[0] < 0) || (framesize[1] < 0) ) {
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 		"The framesize was not found for EDF file '%s'.",
-			datafile_name );
+			image_filename );
 	}
 	if ( (binsize[0] < 0) || (binsize[1] < 0) ) {
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 		"The binsize was not found for EDF file '%s'.",
-			datafile_name );
+			image_filename );
 	}
 
 	bytes_per_frame = bytes_per_pixel * framesize[0] * framesize[1];
@@ -6464,7 +6524,7 @@ mx_image_read_edf_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 		"An attempt to seek to the end of the header block "
 		"in image file '%s' failed with errno = %d, "
-		"error message = '%s'", datafile_name,
+		"error message = '%s'", image_filename,
 			saved_errno, strerror( saved_errno ) );
 	}
 
@@ -6477,18 +6537,18 @@ mx_image_read_edf_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 		if ( feof(file) ) {
 			return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
 		"End of file at image byte offset %ld for EDF image file '%s'.",
-				bytes_read, datafile_name );
+				bytes_read, image_filename );
 		}
 		if ( ferror(file) ) {
 			return mx_error( MXE_FILE_IO_ERROR, fname,
 			"An error occurred at image byte offset %ld "
 			"for SMV image file '%s'.",
-				bytes_read, datafile_name );
+				bytes_read, image_filename );
 		}
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 			"Only %ld image bytes were read from "
 			"SMV image file '%s' when %ld bytes were expected.",
-				bytes_read, datafile_name, bytes_per_frame );
+				bytes_read, image_filename, bytes_per_frame );
 	}
 
 	/* Close the EDF image file. */
@@ -6591,7 +6651,7 @@ mxp_image_test_for_cbflib( void )
 MX_EXPORT mx_status_type
 mx_image_read_cbf_file( MX_IMAGE_FRAME **frame,
 			MX_DICTIONARY *dictionary,
-			char *datafile_name )
+			char *image_filename )
 {
 	static const char fname[] = "mx_image_read_cbf_file()";
 
@@ -6605,8 +6665,8 @@ mx_image_read_cbf_file( MX_IMAGE_FRAME **frame,
 		"The 'cbflib' module has not been loaded." );
 	}
 
-	mx_status = ( mxp_cbflib_image_function_list->read ) ( frame,
-							datafile_name );
+	mx_status = ( mxp_cbflib_image_function_list->read_file )
+						( frame, image_filename );
 
 	return mx_status;
 }
@@ -6614,7 +6674,7 @@ mx_image_read_cbf_file( MX_IMAGE_FRAME **frame,
 MX_EXPORT mx_status_type
 mx_image_write_cbf_file( MX_IMAGE_FRAME *frame,
 			MX_DICTIONARY *dictionary,
-			char *datafile_name )
+			char *image_filename )
 {
 	static const char fname[] = "mx_image_write_cbf_file()";
 
@@ -6622,7 +6682,7 @@ mx_image_write_cbf_file( MX_IMAGE_FRAME *frame,
 
 #if MX_IMAGE_DEBUG_CHARACTERISTICS
 	MX_DEBUG(-2,("%s invoked for datafile '%s'.",
-		fname, datafile_name ));
+		fname, image_filename ));
 
 	MX_DEBUG(-2,("%s: width = %ld, height = %ld", fname, 
 		(long) MXIF_ROW_FRAMESIZE(frame),
@@ -6652,8 +6712,8 @@ mx_image_write_cbf_file( MX_IMAGE_FRAME *frame,
 		"The 'cbflib' module has not been loaded." );
 	}
 
-	mx_status = ( mxp_cbflib_image_function_list->write ) ( frame,
-							datafile_name );
+	mx_status = ( mxp_cbflib_image_function_list->write_file )
+						( frame, image_filename );
 
 	return mx_status;
 }

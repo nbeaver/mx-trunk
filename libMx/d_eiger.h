@@ -127,6 +127,9 @@ typedef struct {
 	unsigned long sequence_id;
 
 	mx_bool_type eiger_armed;
+
+	long transfer_buffer_size;
+	void *transfer_buffer;
 } MX_EIGER;
 
 #define MXLV_EIGER_MONITOR_MODE			94001
