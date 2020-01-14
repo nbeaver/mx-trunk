@@ -14,7 +14,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 1999-2019 Illinois Institute of Technology
+ * Copyright 1999-2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -192,7 +192,7 @@ typedef struct {
 
 /* mx_socklen_t is used by the third argument of accept(). */
 
-#if defined(OS_VMS)
+#if defined(OS_VMS) || defined(OS_ANDROID)
 #  define mx_socklen_t		unsigned int
 
 #elif defined(__BORLANDC__)

@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004, 2006, 2008-2010, 2015, 2017-2019
+ * Copyright 2000-2001, 2003-2004, 2006, 2008-2010, 2015, 2017-2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -878,7 +878,7 @@ static _Unwind_Reason_Code mxp_stack_traceback_fn( struct _Unwind_Context *ctx,
 								void *d )
 {
 	int *depth = (int *) d;
-	fprintf( stderr, "#%d: program counter at %#x\n",
+	fprintf( stderr, "#%d: program counter at %#lx\n",
 			*depth, _Unwind_GetIP(ctx) );
 	(*depth)++;
 	return _URC_NO_REASON;
