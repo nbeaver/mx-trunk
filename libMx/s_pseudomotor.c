@@ -290,7 +290,11 @@ mxs_pseudomotor_scan_cleanup_after_scan_end( MX_SCAN *scan )
 	MX_RECORD *motor_record;
 	MX_MOTOR *motor;
 	int i;
+#if 0
 	double saved_start_position;
+#else
+	double *destination_array;
+#endif
 	mx_status_type mx_status;
 
 	if ( (scan->record->mx_type != MXS_LIN_RELATIVE ) ) {
@@ -302,6 +306,9 @@ mxs_pseudomotor_scan_cleanup_after_scan_end( MX_SCAN *scan )
 	 */
 
 	mx_info( "Moving motors back to their original positions." );
+
+#if 0
+	/* This version moves motors one at a time. */
 
 	for ( i = 0; i < scan->num_motors; i++ ) {
 		motor_record = (scan->motor_record_array)[i];
@@ -335,7 +342,53 @@ mxs_pseudomotor_scan_cleanup_after_scan_end( MX_SCAN *scan )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	}
+#else
+	/* This version moves motors simultaneously. */
 
-	return MX_SUCCESSFUL_RESULT;
+	destination_array = (double *)
+				malloc( scan->num_motors * sizeof(double) );
+
+	if ( destination_array == (double *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+	    "Ran out of memory allocating a %ld array of motor destinations.",
+			scan->num_motors );
+	}
+
+	for ( i = 0; i < scan->num_motors; i++ ) {
+		motor_record = (scan->motor_record_array)[i];
+
+		if ( motor_record == (MX_RECORD *) NULL ) {
+			mx_free( destination_array );
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RECORD pointer for motor %d used by scan '%s' is NULL.",
+				i, scan->record->name );
+		}
+
+		motor = (MX_MOTOR *) motor_record->record_class_struct;
+
+		if ( motor == (MX_MOTOR *) NULL ) {
+			mx_free( destination_array );
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	    "The MX_MOTOR pointer for motor '%s' used by scan '%s' is NULL.",
+				motor_record->name, scan->record->name );
+		}
+
+		destination_array[i] = motor->save_start_positions;
+	}
+
+	mx_status = mx_motor_array_move_absolute( scan->num_motors,
+						scan->motor_record_array,
+						destination_array, 0 );
+
+	mx_free( destination_array );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_wait_for_motor_array_stop( scan->num_motors,
+						scan->motor_record_array, 0 );
+#endif
+
+	return mx_status;
 }
 
