@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2018-2019 Illinois Institute of Technology
+ * Copyright 2018-2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -58,7 +58,6 @@
 #include "mx_image.h"
 #include "mx_area_detector.h"
 #include "mx_video_input.h"
-#include "mx_http.h"
 #include "e_libcurl.h"
 
 /* FIXME: The following definition of strptime() should not be necessary. */

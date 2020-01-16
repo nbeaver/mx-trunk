@@ -188,8 +188,10 @@ mxs_pseudomotor_scan_motor_record_array_move_special(
 		= "mxs_pseudomotor_scan_motor_record_array_move_special()";
 
 	MX_PSEUDOMOTOR_SCAN *pseudomotor_scan;
+	MX_RECORD *motor_record;
 	MX_MOTOR *motor;
 	long i;
+	double current_position;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked.",fname));
@@ -206,14 +208,33 @@ mxs_pseudomotor_scan_motor_record_array_move_special(
 	if ( pseudomotor_scan->first_step ) {
 		pseudomotor_scan->first_step = FALSE;
 
-		for ( i = 0; i < num_motor_records; i++ ) {
+		if ( (scan->record->mx_type) == MXS_LIN_RELATIVE ) {
+			for ( i = 0; i < num_motor_records; i++ ) {
+				motor_record = (scan->motor_record_array)[i];
 
-			mx_status = mx_motor_save_start_positions(
-					(scan->motor_record_array)[i],
-					linear_scan->start_position[i] );
+				mx_status = mx_motor_get_position(
+					motor_record, &current_position );
 
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+
+				mx_status = mx_motor_save_start_positions(
+					motor_record, current_position );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+			}
+		} else {
+			for ( i = 0; i < num_motor_records; i++ ) {
+				motor_record = (scan->motor_record_array)[i];
+
+				mx_status = mx_motor_save_start_positions(
+						motor_record,
+						linear_scan->start_position[i]);
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+			}
 		}
 	}
 
@@ -238,7 +259,7 @@ mxs_pseudomotor_scan_motor_record_array_move_special(
 	 */
 
 	if ( (scan->record->mx_type) == MXS_LIN_RELATIVE ) {
-		MX_DEBUG(-2,
+		MX_DEBUG( 2,
 		("%s: computing absolute positions from relative positions.",
 		 	fname ));
 
@@ -280,6 +301,8 @@ mxs_pseudomotor_scan_cleanup_after_scan_end( MX_SCAN *scan )
 	 * back to their start positions.
 	 */
 
+	mx_info( "Moving motors back to their original positions." );
+
 	for ( i = 0; i < scan->num_motors; i++ ) {
 		motor_record = (scan->motor_record_array)[i];
 
@@ -301,6 +324,13 @@ mxs_pseudomotor_scan_cleanup_after_scan_end( MX_SCAN *scan )
 
 		mx_status = mx_motor_move_absolute( motor_record,
 						saved_start_position, 0 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Wait until the motor gets back to its start position. */
+
+		mx_status = mx_wait_for_motor_stop( motor_record, 0 );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

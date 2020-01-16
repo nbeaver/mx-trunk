@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2018-2019 Illinois Institute of Technology
+ * Copyright 2018-2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -44,8 +44,6 @@
 typedef struct {
 	MX_DYNAMIC_LIBRARY *libcurl_library;
 
-	MX_HTTP *http;
-	MX_HTTP_FUNCTION_LIST *http_function_list;
 	MX_EXTENSION *extension;
 
 	CURL *curl_handle;

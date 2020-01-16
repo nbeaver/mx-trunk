@@ -692,7 +692,7 @@ mxs_linear_scan_cleanup_after_scan_end( MX_SCAN *scan )
 	mx_status_type (*fptr) (MX_SCAN *);
 	mx_status_type mx_status;
 
-	MX_DEBUG(-2,("%s invoked.", fname));
+	MX_DEBUG( 2,("%s invoked.", fname));
 
 	flist = (MX_LINEAR_SCAN_FUNCTION_LIST *)
 				(scan->record->class_specific_function_list);

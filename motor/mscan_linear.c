@@ -241,7 +241,7 @@ motor_setup_linear_scan_parameters(
 			"\n");
 
 		status = motor_get_long( output, "--> ", TRUE, 2,
-						&scan_type, 1, 5 );
+						&scan_type, 1, 6 );
 
 		if ( status == FAILURE ) {
 			return FAILURE;
