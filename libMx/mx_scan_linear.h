@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2006-2007, 2010, 2016
+ * Copyright 1999-2001, 2003, 2006-2007, 2010, 2016, 2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -57,6 +57,8 @@ typedef struct {
 				double *position,
 				MX_MOTOR_MOVE_REPORT_FUNCTION fptr,
 				unsigned long flags );
+	mx_status_type ( *cleanup_after_scan_end ) (
+				MX_SCAN *scan );
 } MX_LINEAR_SCAN_FUNCTION_LIST;
 
 MX_API_PRIVATE mx_status_type mxs_linear_scan_initialize_driver(

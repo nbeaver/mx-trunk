@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2010, 2013, 2015-2016
+ * Copyright 1999, 2001, 2003-2010, 2013, 2015-2016, 2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -686,7 +686,44 @@ mxs_linear_scan_execute_scan_body( MX_SCAN *scan )
 MX_EXPORT mx_status_type
 mxs_linear_scan_cleanup_after_scan_end( MX_SCAN *scan )
 {
-	return mx_standard_cleanup_after_scan_end( scan );
+	static const char fname[] = "mxs_linear_scan_cleanup_after_scan_end()";
+
+	MX_LINEAR_SCAN_FUNCTION_LIST *flist;
+	mx_status_type (*fptr) (MX_SCAN *);
+	mx_status_type mx_status;
+
+	MX_DEBUG(-2,("%s invoked.", fname));
+
+	flist = (MX_LINEAR_SCAN_FUNCTION_LIST *)
+				(scan->record->class_specific_function_list);
+
+	if ( flist == (MX_LINEAR_SCAN_FUNCTION_LIST *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"MX_LINEAR_SCAN_FUNCTION_LIST pointer for scan '%s' is NULL.",
+			scan->record->name );
+	}
+
+	/* Cleanup scan type specific initialization. */
+
+	fptr = flist->cleanup_after_scan_end;
+
+	/* It is not an error for flist->cleanup_after_scan_end to be NULL,
+	 * this just means that this particular scan type does not need
+	 * to do anything special when a scan is ending.
+	 */
+
+	if ( fptr != NULL ) {
+		mx_status = (*fptr) (scan);
+
+		/* NOTE: Even if the scan specific cleanup fails, we still
+		 * want to perform the standard cleanup, since we want to
+		 * be sure that files are closed, etc.
+		 */
+	}
+
+	mx_status = mx_standard_cleanup_after_scan_end( scan );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type

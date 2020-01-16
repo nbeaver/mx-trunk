@@ -34,7 +34,8 @@ MX_LINEAR_SCAN_FUNCTION_LIST mxs_pseudomotor_linear_scan_function_list = {
 	NULL,
 	mxs_pseudomotor_scan_prepare_for_scan_start,
 	mxs_pseudomotor_scan_compute_motor_positions,
-	mxs_pseudomotor_scan_motor_record_array_move_special
+	mxs_pseudomotor_scan_motor_record_array_move_special,
+	mxs_pseudomotor_scan_cleanup_after_scan_end
 };
 
 /* We have our own private MX_SCAN_FUNCTION_LIST so that we may intercept
@@ -257,5 +258,54 @@ mxs_pseudomotor_scan_motor_record_array_move_special(
 				position, 0 );
 
 	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxs_pseudomotor_scan_cleanup_after_scan_end( MX_SCAN *scan )
+{
+	static const char fname[] =
+		"mxs_pseudomotor_scan_cleanup_after_scan_end()";
+
+	MX_RECORD *motor_record;
+	MX_MOTOR *motor;
+	int i;
+	double saved_start_position;
+	mx_status_type mx_status;
+
+	if ( (scan->record->mx_type != MXS_LIN_RELATIVE ) ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* If this is a 'relative_scan' then we need to move the motors
+	 * back to their start positions.
+	 */
+
+	for ( i = 0; i < scan->num_motors; i++ ) {
+		motor_record = (scan->motor_record_array)[i];
+
+		if ( motor_record == (MX_RECORD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RECORD pointer for motor %d used by scan '%s' is NULL.",
+				i, scan->record->name );
+		}
+
+		motor = (MX_MOTOR *) motor_record->record_class_struct;
+
+		if ( motor == (MX_MOTOR *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	    "The MX_MOTOR pointer for motor '%s' used by scan '%s' is NULL.",
+				motor_record->name, scan->record->name );
+		}
+
+		saved_start_position = motor->save_start_positions;
+
+		mx_status = mx_motor_move_absolute( motor_record,
+						saved_start_position, 0 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 

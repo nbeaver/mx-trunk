@@ -44,6 +44,9 @@ MX_API mx_status_type mxs_pseudomotor_scan_motor_record_array_move_special(
 MX_API mx_status_type mxs_pseudomotor_scan_prepare_for_scan_start(
 							MX_SCAN *scan );
 
+MX_API mx_status_type mxs_pseudomotor_scan_cleanup_after_scan_end(
+							MX_SCAN *scan );
+
 extern MX_LINEAR_SCAN_FUNCTION_LIST mxs_pseudomotor_linear_scan_function_list;
 extern MX_SCAN_FUNCTION_LIST mxs_pseudomotor_scan_function_list;
 
