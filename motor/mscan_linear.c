@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2006, 2009, 2013, 2015-2016
+ * Copyright 1999-2001, 2004-2006, 2009, 2013, 2015-2016, 2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -237,6 +237,7 @@ motor_setup_linear_scan_parameters(
 			"    3.  theta-2 theta scan\n"
 			"    4.  scan slits (obsolete, use 5 instead)\n"
 			"    5.  scan pseudomotors\n"
+			"    6.  scan relative motor positions\n"
 			"\n");
 
 		status = motor_get_long( output, "--> ", TRUE, 2,
@@ -280,6 +281,7 @@ motor_setup_linear_scan_parameters(
 	case MXS_LIN_MOTOR:
 	case MXS_LIN_SLIT:
 	case MXS_LIN_PSEUDOMOTOR:
+	case MXS_LIN_RELATIVE:
 		if ( old_scan == NULL ) {
 			default_long = 1;
 		} else {
@@ -334,6 +336,11 @@ motor_setup_linear_scan_parameters(
 	case MXS_LIN_PSEUDOMOTOR:
 		strlcat( record_description_buffer,
 			"pseudomotor_scan \"\" \"\" ",
+			record_description_buffer_length );
+		break;
+	case MXS_LIN_RELATIVE:
+		strlcat( record_description_buffer,
+			"relative_scan \"\" \"\" ",
 			record_description_buffer_length );
 		break;
 	default:

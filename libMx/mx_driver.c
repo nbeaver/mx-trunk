@@ -3730,6 +3730,13 @@ MX_DRIVER mx_type_table[] = {
 				&mxs_pseudomotor_linear_scan_num_record_fields,
 				&mxs_pseudomotor_linear_scan_def_ptr},
 
+{"relative_scan",   MXS_LIN_RELATIVE,  MXS_LINEAR_SCAN, MXR_SCAN,
+				&mxs_linear_scan_record_function_list,
+				&mxs_linear_scan_scan_function_list,
+				&mxs_pseudomotor_linear_scan_function_list,
+				&mxs_pseudomotor_linear_scan_num_record_fields,
+				&mxs_pseudomotor_linear_scan_def_ptr},
+
 {"file_list_scan", MXS_LST_FILE,      MXS_LIST_SCAN,      MXR_SCAN,
 				&mxs_list_scan_record_function_list,
 				&mxs_list_scan_scan_function_list,

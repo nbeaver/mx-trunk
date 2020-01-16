@@ -1,13 +1,13 @@
 /*
  * Name:    s_pseudomotor.c
  *
- * Purpose: Scan description file for pseudomotor linear scans.
+ * Purpose: Scan description file for pseudomotor and relative linear scans.
  *
  * Author:  William Lavender
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2004, 2006, 2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -169,6 +169,7 @@ mxs_pseudomotor_scan_compute_motor_positions( MX_SCAN *scan,
 	 		+ (linear_scan->step_size[i])
 				* (double)(linear_scan->step_number[i]);
 	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -186,6 +187,7 @@ mxs_pseudomotor_scan_motor_record_array_move_special(
 		= "mxs_pseudomotor_scan_motor_record_array_move_special()";
 
 	MX_PSEUDOMOTOR_SCAN *pseudomotor_scan;
+	MX_MOTOR *motor;
 	long i;
 	mx_status_type mx_status;
 
@@ -226,6 +228,26 @@ mxs_pseudomotor_scan_motor_record_array_move_special(
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+	}
+
+	/* If this is a relative scan, then the computed motors are offsets
+	 * relative to the start position.  However, we must send absolute
+	 * positions to the actual motors, so we add the saved start position
+	 * for each motor to the computed motor positions.
+	 */
+
+	if ( (scan->record->mx_type) == MXS_LIN_RELATIVE ) {
+		MX_DEBUG(-2,
+		("%s: computing absolute positions from relative positions.",
+		 	fname ));
+
+		for ( i = 0; i < num_motor_records; i++ ) {
+			motor = 
+			   (scan->motor_record_array)[i]->record_class_struct;
+
+			(scan->motor_position)[i] +=
+			   ((motor->raw_saved_start_position) * (motor->scale));
+		}
 	}
 
 	/* Now we may finally move the motors. */

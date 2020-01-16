@@ -1,13 +1,13 @@
 /*
  * Name:    s_pseudomotor.h
  *
- * Purpose: Header file for psuedomotor linear scans.
+ * Purpose: Header file for pseudomotor and relative linear scans.
  *
  * Author:  William Lavender
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2002, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2002, 2006, 2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
