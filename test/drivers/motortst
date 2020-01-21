@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../../motor/mxmotor.static -i -F ./motortst.dat -s ./scantst.dat $*
+../../motor/mxmotor.static -i -p motortst -F ./motortst.dat -s ./scantst.dat $*
 

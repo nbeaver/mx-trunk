@@ -47,11 +47,21 @@ MX_API mx_status_type mxs_pseudomotor_scan_prepare_for_scan_start(
 MX_API mx_status_type mxs_pseudomotor_scan_cleanup_after_scan_end(
 							MX_SCAN *scan );
 
+/*---*/
+
 extern MX_LINEAR_SCAN_FUNCTION_LIST mxs_pseudomotor_linear_scan_function_list;
 extern MX_SCAN_FUNCTION_LIST mxs_pseudomotor_scan_function_list;
 
 extern long mxs_pseudomotor_linear_scan_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxs_pseudomotor_linear_scan_def_ptr;
+
+/*---*/
+
+extern MX_LINEAR_SCAN_FUNCTION_LIST mxs_relative_linear_scan_function_list;
+extern MX_SCAN_FUNCTION_LIST mxs_relative_scan_function_list;
+
+extern long mxs_relative_linear_scan_num_record_fields;
+extern MX_RECORD_FIELD_DEFAULTS *mxs_relative_linear_scan_def_ptr;
 
 #endif /* __S_PSEUDOMOTOR_H__ */
 

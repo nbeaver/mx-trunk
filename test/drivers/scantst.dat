@@ -42,3 +42,4 @@ fg_scan                                  scan linear_scan input_scan "" "" 1 1 0
 mylist_e0                                scan list_scan file_list_scan "" "" 1 1 1  e_minus_e0 2  I0 I  0 0 preset_time "0 timer1" sff mylist.out gnuplot $f[0] mylist_e0.dat
 mylist_var                               scan list_scan file_list_scan "" "" 1 1 1  theta 3  I0 I time  0 0 preset_time "0 timer1" sff mylist_var.out gnuplot $f[0] mylist_var.dat
 mylist_xafs                              scan list_scan file_list_scan "" "" 1 1 1  theta 2  I0 I  0 0 preset_time "0 timer1" xafs mylist.out gnuplot $f[0] mylist.dat
+vslit_relscan                            scan linear_scan relative_scan "" "" 1 1 1  vslit_center 1  vslit_center  0 0 preset_time "1 timer1" text junk.out none $f[0]  -5  1  11

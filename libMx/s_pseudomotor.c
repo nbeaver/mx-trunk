@@ -1,7 +1,7 @@
 /*
  * Name:    s_pseudomotor.c
  *
- * Purpose: Scan description file for pseudomotor and relative linear scans.
+ * Purpose: Scan driver for both pseudomotor and relative linear scans.
  *
  * Author:  William Lavender
  *
@@ -26,7 +26,7 @@
 #include "d_slit_motor.h"
 #include "d_trans_motor.h"
 
-/* Initialize the slit scan driver jump table. */
+/* Initialize the pseudomotor scan driver jump table. */
 
 MX_LINEAR_SCAN_FUNCTION_LIST mxs_pseudomotor_linear_scan_function_list = {
 	mxs_pseudomotor_scan_create_record_structures,
@@ -60,6 +60,43 @@ long mxs_pseudomotor_linear_scan_num_record_fields
 
 MX_RECORD_FIELD_DEFAULTS *mxs_pseudomotor_linear_scan_def_ptr
 			= &mxs_pseudomotor_linear_scan_dflts[0];
+
+/***************/
+
+/* Initialize the relative scan driver jump table. */
+
+MX_LINEAR_SCAN_FUNCTION_LIST mxs_relative_linear_scan_function_list = {
+	mxs_pseudomotor_scan_create_record_structures,
+	mxs_pseudomotor_scan_finish_record_initialization,
+	NULL,
+	mxs_pseudomotor_scan_prepare_for_scan_start,
+	mxs_pseudomotor_scan_compute_motor_positions,
+	mxs_pseudomotor_scan_motor_record_array_move_special,
+	mxs_pseudomotor_scan_cleanup_after_scan_end
+};
+
+/* We have our own private MX_SCAN_FUNCTION_LIST so that we may intercept
+ * the prepare_for_scan_start function call before passing control on
+ * to the regular mxs_linear_scan_prepare_for_scan_start function.
+ */
+
+MX_SCAN_FUNCTION_LIST mxs_relative_scan_function_list = {
+	mxs_pseudomotor_scan_prepare_for_scan_start,
+	mxs_linear_scan_execute_scan_body
+};
+
+MX_RECORD_FIELD_DEFAULTS mxs_relative_linear_scan_dflts[] = {
+	MX_RECORD_STANDARD_FIELDS,
+	MX_SCAN_STANDARD_FIELDS,
+	MX_LINEAR_SCAN_STANDARD_FIELDS
+};
+
+long mxs_relative_linear_scan_num_record_fields
+			= sizeof( mxs_relative_linear_scan_dflts )
+			/ sizeof( mxs_relative_linear_scan_dflts[0] );
+
+MX_RECORD_FIELD_DEFAULTS *mxs_relative_linear_scan_def_ptr
+			= &mxs_relative_linear_scan_dflts[0];
 
 /***************/
 
