@@ -3352,11 +3352,9 @@ mx_scan_get_estimated_scan_duration( MX_RECORD *scan_record,
 	static const char fname[] = "mx_scan_get_estimated_scan_duration()";
 
 	MX_SCAN *scan;
-#if 0
 	MX_SCAN_FUNCTION_LIST *flist_ptr;
 	mx_status_type ( *fptr )( MX_SCAN * );
 	mx_status_type mx_status;
-#endif
 
 	if ( scan_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -3371,15 +3369,6 @@ mx_scan_get_estimated_scan_duration( MX_RECORD *scan_record,
 			scan_record->name );
 	}
 
-#if 1
-	scan->estimated_scan_duration = 0.0;
-
-	if ( estimated_scan_duration != (double *) NULL ) {
-		*estimated_scan_duration = scan->estimated_scan_duration;
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-#else
 	flist_ptr = (MX_SCAN_FUNCTION_LIST *)
 			scan_record->superclass_specific_function_list;
 
@@ -3407,7 +3396,6 @@ mx_scan_get_estimated_scan_duration( MX_RECORD *scan_record,
 	}
 
 	return MX_SUCCESSFUL_RESULT;
-#endif
 }
 
 /* --------------- */

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004-2006, 2010, 2015-2016, 2018
+ * Copyright 1999, 2001-2002, 2004-2006, 2010, 2015-2016, 2018, 2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -15,7 +15,7 @@
  *
  */
 
-#define DEBUG_TIMING	FALSE
+#define DEBUG_TIMING	TRUE
 
 #include <stdio.h>
 
@@ -122,8 +122,16 @@ motor_scan_fn( int argc, char *argv[] )
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
 
-		fprintf( output, "Estimated scan duration = %f seconds.\n\n",
+		if ( estimated_scan_duration < 1.0e-9 ) {
+			fprintf( output,
+		"*** WARNING ***: The estimated scan duration was reported "
+			"to be %f seconds, which is probably incorrect.\n\n",
 						estimated_scan_duration );
+		} else {
+			fprintf( output,
+			"Estimated scan duration = %f seconds.\n\n",
+						estimated_scan_duration );
+		}
 	}
 
 	/* Invoke the scan function. */

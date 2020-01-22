@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2018 Illinois Institute of Technology
+ * Copyright 1999-2018, 2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,7 +26,9 @@
 
 #define MX_MOTOR_DEBUG_HOME_SEARCH			FALSE
 
-#define MX_MOTOR_DEBUG_ESTIMATED_MOVE_DURATION		FALSE
+#define MX_MOTOR_DEBUG_SET_ESTIMATED_MOVE_POSITIONS	TRUE
+
+#define MX_MOTOR_DEBUG_ESTIMATED_MOVE_DURATION		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -3088,8 +3090,10 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 	double raw_acceleration, raw_acceleration_distance, acceleration_time;
 	double raw_start_position, raw_end_position;
 	double real_raw_start_position, real_raw_end_position;
-	double acceleration_time_x2, raw_acceleration_distance_x2;
-	double raw_move_distance, raw_distance_at_full_speed;
+	double est_speed, est_acceleration_time, est_acceleration_distance;
+	double est_acceleration_time_x2, est_acceleration_distance_x2;
+	double est_acceleration;
+	double est_move_distance, est_distance_at_full_speed;
 	double x_mid, t_mid;
 	long i;
 	mx_status_type mx_status;
@@ -3352,25 +3356,33 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 			return MX_SUCCESSFUL_RESULT;
 		}
 
-		mx_status = mx_motor_get_speed( motor->record, &raw_speed );
+		mx_status = mx_motor_get_speed( motor->record, &est_speed );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
 		mx_status = mx_motor_get_acceleration_time( motor->record,
-							&acceleration_time );
+						&est_acceleration_time );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
 		mx_status = mx_motor_get_acceleration_distance( motor->record,
-						&raw_acceleration_distance );
+						&est_acceleration_distance );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		acceleration_time_x2 = 2.0 * acceleration_time;
-		raw_acceleration_distance_x2 = 2.0 * raw_acceleration_distance;
+#if MX_MOTOR_DEBUG_ESTIMATED_MOVE_DURATION
+		MX_DEBUG(-2,("%s: est_speed = %g", fname, est_speed));
+		MX_DEBUG(-2,("%s: est_acceleration_time = %g",
+					fname, est_acceleration_time));
+		MX_DEBUG(-2,("%s: est_acceleration_distance = %g",
+					fname, est_acceleration_distance));
+#endif
+
+		est_acceleration_time_x2 = 2.0 * est_acceleration_time;
+		est_acceleration_distance_x2 = 2.0 * est_acceleration_distance;
 
 		/* estimated_move_durations[0] is set to zero on the principle
 		 * that it takes 0 time to get to the starting position.
@@ -3397,18 +3409,23 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 		 */
 
 		for ( i = 1; i < motor->num_estimated_move_positions; i++ ) {
-			raw_move_distance = fabs(
+			est_move_distance = fabs(
 				motor->estimated_move_positions[i]
 				- motor->estimated_move_positions[i-1] );
 
-			raw_distance_at_full_speed = raw_move_distance
-						- raw_acceleration_distance_x2;
+			est_distance_at_full_speed = est_move_distance
+						- est_acceleration_distance_x2;
 
-			if ( raw_distance_at_full_speed >= 0.0 ) {
+#if MX_MOTOR_DEBUG_ESTIMATED_MOVE_DURATION
+			MX_DEBUG(-2,
+		("%s: est_move_distance = %g, est_distance_at_full_speed = %g",
+	 		fname, est_move_distance, est_distance_at_full_speed));
+#endif
+			if ( est_distance_at_full_speed >= 0.0 ) {
 			    motor->estimated_move_durations[i] =
-				mx_divide_safely( raw_distance_at_full_speed,
-							raw_speed )
-				+ acceleration_time_x2;
+				mx_divide_safely( est_distance_at_full_speed,
+							est_speed )
+				+ est_acceleration_time_x2;
 			} else {
 			    /* If we get here, the motor does not get all
 			     * the way to full speed before we have to start 
@@ -3420,16 +3437,27 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 			     * midpoint of the move.
 			     */
 
-			    raw_acceleration =
-				mx_divide_safely(raw_speed, acceleration_time);
+			    est_acceleration =
+			mx_divide_safely(est_speed, est_acceleration_time);
 
-			    x_mid = 0.5 * raw_move_distance;
+			    x_mid = 0.5 * est_move_distance;
 
 			    t_mid = sqrt( mx_divide_safely( 2.0 * x_mid,
-							raw_acceleration ) );
+							est_acceleration ) );
+
+#if MX_MOTOR_DEBUG_ESTIMATED_MOVE_DURATION
+			    MX_DEBUG(-2,
+			("%s: est_acceleration = %g, x_mid = %g, t_mid = %g",
+			 	fname, est_acceleration, x_mid, t_mid));
+#endif
 
 			    motor->estimated_move_durations[i] = 2.0 * t_mid;
 			}
+
+#if MX_MOTOR_DEBUG_ESTIMATED_MOVE_DURATION
+			MX_DEBUG(-2,("%s: estimated_move_durations[%ld] = %g",
+				fname, i, motor->estimated_move_durations[i]));
+#endif
 
 			motor->total_estimated_move_duration
 				+= motor->estimated_move_durations[i];
@@ -3438,6 +3466,8 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 		motor->must_recalculate_estimated_move_duration = FALSE;
 
 #if MX_MOTOR_DEBUG_ESTIMATED_MOVE_DURATION
+		MX_DEBUG(-2,("%s: total_estimated_move_duration = %g",
+				fname, motor->total_estimated_move_duration));
 		MX_DEBUG(-2,
 		("%s: must_recalculate_estimated_move_duration = %d",
 		fname, (int) motor->must_recalculate_estimated_move_duration));
@@ -3796,6 +3826,9 @@ mx_motor_default_set_parameter_handler( MX_MOTOR *motor )
 			motor->estimated_move_durations = new_durations;
 
 #if MX_MOTOR_DEBUG_ESTIMATED_MOVE_DURATION
+			MX_DEBUG(-2,
+			("%s: Created new move position and duration arrays.",
+			 	fname));
 			MX_DEBUG(-2,("%s: motor->estimated_move_positions = %p",
 				fname, motor->estimated_move_positions));
 			MX_DEBUG(-2,("%s: motor->estimated_move_durations = %p",
@@ -5957,6 +5990,12 @@ mx_motor_set_estimated_move_positions( MX_RECORD *motor_record,
 		motor->estimated_move_positions[i] =
 		    mx_divide_safely( position_array[i] - motor->offset,
 						motor->scale );
+#if MX_MOTOR_DEBUG_SET_ESTIMATED_MOVE_POSITIONS
+		MX_DEBUG(-2,
+		("%s: motor '%s', estimated_move_positions[%ld] = %g",
+		 fname, motor_record->name, i,
+		 motor->estimated_move_positions[i]));
+#endif
 	}
 
 	motor->parameter_type = MXLV_MTR_ESTIMATED_MOVE_POSITIONS;

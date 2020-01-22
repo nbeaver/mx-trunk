@@ -19,7 +19,7 @@
 
 #define DEBUG_TIMING		FALSE
 
-#define DEBUG_SCAN_DURATION	FALSE
+#define DEBUG_SCAN_DURATION	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
