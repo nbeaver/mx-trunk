@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2006, 2010, 2015-2016, 2018
+ * Copyright 1999, 2001, 2003-2006, 2010, 2015-2016, 2018, 2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -17,7 +17,7 @@
 
 #define DEBUG_TIMING		FALSE
 
-#define DEBUG_ESTIMATED_TIMES	FALSE
+#define DEBUG_ESTIMATED_TIMES	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -765,6 +765,8 @@ mxs_xafs_scan_get_parameter( MX_SCAN *scan )
 			raw_num_intervals = mx_divide_safely( region_width,
 							region_step_size );
 
+			raw_num_intervals = fabs( raw_num_intervals );
+
 			num_steps = 1 + mx_round( raw_num_intervals );
 
 			region_measurement_duration =
@@ -791,7 +793,7 @@ mxs_xafs_scan_get_parameter( MX_SCAN *scan )
 			}
 
 			for ( n = 0; n < num_steps; n++ ) {
-				motor_positions[i] = region_start
+				motor_positions[n] = region_start
 					+ n * region_step_size;
 			}
 
@@ -838,6 +840,8 @@ mxs_xafs_scan_get_parameter( MX_SCAN *scan )
 
 			raw_num_intervals = mx_divide_safely( region_width,
 							region_step_size );
+
+			raw_num_intervals = fabs( raw_num_intervals );
 
 			num_steps = 1 + mx_round( raw_num_intervals );
 
@@ -942,6 +946,8 @@ mxs_xafs_scan_get_parameter( MX_SCAN *scan )
 				raw_num_intervals = mx_divide_safely(
 							region_width,
 							region_step_size );
+
+				raw_num_intervals = fabs( raw_num_intervals );
 
 				num_steps = 1 + mx_round( raw_num_intervals );
 

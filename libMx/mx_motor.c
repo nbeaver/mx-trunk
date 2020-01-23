@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2018, 2020 Illinois Institute of Technology
+ * Copyright 1999-2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,9 +26,9 @@
 
 #define MX_MOTOR_DEBUG_HOME_SEARCH			FALSE
 
-#define MX_MOTOR_DEBUG_SET_ESTIMATED_MOVE_POSITIONS	TRUE
+#define MX_MOTOR_DEBUG_SET_ESTIMATED_MOVE_POSITIONS	FALSE
 
-#define MX_MOTOR_DEBUG_ESTIMATED_MOVE_DURATION		TRUE
+#define MX_MOTOR_DEBUG_ESTIMATED_MOVE_DURATION		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -5987,9 +5987,8 @@ mx_motor_set_estimated_move_positions( MX_RECORD *motor_record,
 
 	for ( i = 0; i < num_positions; i++ ) {
 
-		motor->estimated_move_positions[i] =
-		    mx_divide_safely( position_array[i] - motor->offset,
-						motor->scale );
+		motor->estimated_move_positions[i] = position_array[i];
+
 #if MX_MOTOR_DEBUG_SET_ESTIMATED_MOVE_POSITIONS
 		MX_DEBUG(-2,
 		("%s: motor '%s', estimated_move_positions[%ld] = %g",
