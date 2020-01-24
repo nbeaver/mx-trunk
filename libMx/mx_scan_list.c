@@ -39,7 +39,9 @@ MX_RECORD_FUNCTION_LIST mxs_list_scan_record_function_list = {
 MX_SCAN_FUNCTION_LIST mxs_list_scan_scan_function_list = {
 	mxs_list_scan_prepare_for_scan_start,
 	mxs_list_scan_execute_scan_body,
-	mx_standard_cleanup_after_scan_end
+	mx_standard_cleanup_after_scan_end,
+	NULL,
+	mxs_list_scan_get_parameter
 };
 
 MX_EXPORT mx_status_type
@@ -1114,3 +1116,48 @@ mxs_list_scan_execute_scan_body( MX_SCAN *scan )
 	return mx_status;
 }
 
+MX_EXPORT mx_status_type
+mxs_list_scan_get_parameter( MX_SCAN *scan )
+{
+	static const char fname[] = "mxs_list_scan_get_parameter()";
+
+	MX_LIST_SCAN *list_scan;
+
+	if ( scan == (MX_SCAN *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SCAN_pointer passed was NULL." );
+	}
+
+	list_scan = (MX_LIST_SCAN *) scan->record->record_class_struct;
+
+	if ( list_scan == (MX_LIST_SCAN *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"MX_LIST_SCAN pointer for scan record '%s' is NULL.",
+			scan->record->name );
+	}
+
+	switch( scan->parameter_type ) {
+	case MXLV_SCN_ESTIMATED_SCAN_DURATION:
+
+		switch( scan->record->mx_type ) {
+		case MXS_LST_FILE:
+			scan->estimated_scan_duration = 123.45;
+
+			MX_DEBUG(-2,("%s: Fake scan time = %g, "
+			"replace this with a real calculation.",
+				fname, scan->estimated_scan_duration));
+			break;
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+		    "Unsupported scan type %ld requested for scan record '%s'.",
+		    		scan->record->mx_type, scan->record->name );
+			break;
+		}
+		break;
+	default:
+		return mx_scan_default_get_parameter_handler( scan );
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}

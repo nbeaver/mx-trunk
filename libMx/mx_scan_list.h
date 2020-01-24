@@ -7,7 +7,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004, 2007, 2010 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2004, 2007, 2010, 2020
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -56,6 +57,7 @@ MX_API_PRIVATE mx_status_type mxs_list_scan_execute_scan_body(
 							MX_SCAN *scan );
 MX_API_PRIVATE mx_status_type mxs_list_scan_cleanup_after_scan_end(
 							MX_SCAN *scan );
+MX_API_PRIVATE mx_status_type mxs_list_scan_get_parameter( MX_SCAN *scan );
 
 extern MX_RECORD_FUNCTION_LIST mxs_list_scan_record_function_list;
 extern MX_SCAN_FUNCTION_LIST mxs_list_scan_scan_function_list;
