@@ -455,6 +455,7 @@ mxs_linear_scan_print_scan_structure( FILE *file, MX_RECORD *record )
 	long i, j;
 	double end_position;
 	const char *motor_units;
+	double estimated_scan_duration;
 	mx_status_type mx_status;
 
 	if ( record != NULL ) {
@@ -525,22 +526,15 @@ mxs_linear_scan_print_scan_structure( FILE *file, MX_RECORD *record )
 			}
 		}
 	}
-#if 1
-	{
-		double estimated_scan_duration;
 
-		mx_status = mx_scan_get_estimated_scan_duration( record,
+	mx_status = mx_scan_get_estimated_scan_duration( record,
 						&estimated_scan_duration );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-		fprintf( file, "\n  Estimated scan duration = %f seconds\n",
+	fprintf( file, "\n  Estimated scan duration = %f seconds\n\n",
 						estimated_scan_duration );
-	}
-#endif
-
-	fprintf( file, "\n" );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -791,6 +785,7 @@ mxs_linear_scan_get_parameter( MX_SCAN *scan )
 		case MXS_LIN_MOTOR:
 		case MXS_LIN_SLIT:
 		case MXS_LIN_PSEUDOMOTOR:
+		case MXS_LIN_RELATIVE:
 			lowest_motor_record =
 				scan->motor_record_array[num_variables - 1];
 			lowest_start_position =

@@ -557,6 +557,8 @@ mxd_slit_motor_get_parameter( MX_MOTOR *motor )
 	MX_SLIT_MOTOR *slit_motor;
 	MX_RECORD *negative_motor_record, *positive_motor_record;
 	double negative_motor_speed, positive_motor_speed;
+	double acceleration_time_1, acceleration_time_2;
+	double acceleration_distance_1, acceleration_distance_2;
 	mx_status_type mx_status;
 
 	mx_status = mxd_slit_motor_get_pointers( motor, &slit_motor,
@@ -606,8 +608,63 @@ mxd_slit_motor_get_parameter( MX_MOTOR *motor )
 			break;
 		}
 		break;
+
+	case MXLV_MTR_ACCELERATION_TIME:
+		/* Report the acceleration time for whichever blade has
+		 * the longest acceleration time.  For many slits, these
+		 * two times will be equal.
+		 */
+
+		mx_status = mx_motor_get_acceleration_time(
+						negative_motor_record,
+						&acceleration_time_1 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_motor_get_acceleration_time(
+						positive_motor_record,
+						&acceleration_time_2 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( acceleration_time_2 > acceleration_time_1 ) {
+			motor->acceleration_time = acceleration_time_2;
+		} else {
+			motor->acceleration_time = acceleration_time_1;
+		}
+		break;
+
+	case MXLV_MTR_ACCELERATION_DISTANCE:
+		/* Report the acceleration distance for whichever blade has
+		 * the longest acceleration distance.  For many slits, these
+		 * two distances will be equal.
+		 */
+
+		mx_status = mx_motor_get_acceleration_distance(
+						negative_motor_record,
+						&acceleration_distance_1 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_motor_get_acceleration_distance(
+						positive_motor_record,
+						&acceleration_distance_2 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( acceleration_distance_2 > acceleration_distance_1 ) {
+			motor->acceleration_distance = acceleration_distance_2;
+		} else {
+			motor->acceleration_distance = acceleration_distance_1;
+		}
+		break;
+
 	default:
-		return mx_motor_default_set_parameter_handler( motor );
+		return mx_motor_default_get_parameter_handler( motor );
 	}
 
 	return mx_status;

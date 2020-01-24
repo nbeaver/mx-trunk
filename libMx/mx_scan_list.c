@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2006, 2008, 2010, 2013, 2015-2016
+ * Copyright 1999, 2001, 2003-2006, 2008, 2010, 2013, 2015-2016, 2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -338,6 +338,7 @@ mxs_list_scan_print_scan_structure( FILE *file, MX_RECORD *record )
 	static const char fname[] = "mxs_list_scan_print_scan_structure()";
 
 	MX_FILE_LIST_SCAN *file_list_scan;
+	double estimated_scan_duration;
 	mx_status_type mx_status;
 
 	if ( record != NULL ) {
@@ -360,6 +361,15 @@ mxs_list_scan_print_scan_structure( FILE *file, MX_RECORD *record )
 
 	fprintf( file, "  Position filename = '%s'\n\n",
 				file_list_scan->position_filename );
+
+	mx_status = mx_scan_get_estimated_scan_duration( record,
+						&estimated_scan_duration );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	fprintf( file, "  Estimated scan duration = %f seconds\n\n",
+						estimated_scan_duration );
 
 	return MX_SUCCESSFUL_RESULT;
 }
