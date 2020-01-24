@@ -17,7 +17,7 @@
 
 #define DEBUG_TIMING		FALSE
 
-#define DEBUG_ESTIMATED_TIMES	TRUE
+#define DEBUG_ESTIMATED_TIMES	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
