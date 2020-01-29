@@ -6,7 +6,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013-2014 Illinois Institute of Technology
+ * Copyright 2013-2014, 2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -58,8 +58,6 @@ MX_API mx_status_type mxd_coordinated_angle_special_processing_setup(
 MX_API mx_status_type mxd_coordinated_angle_move_absolute( MX_MOTOR *motor );
 MX_API mx_status_type mxd_coordinated_angle_get_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_coordinated_angle_soft_abort( MX_MOTOR *motor );
-MX_API mx_status_type mxd_coordinated_angle_get_parameter( MX_MOTOR *motor );
-MX_API mx_status_type mxd_coordinated_angle_set_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_coordinated_angle_get_status( MX_MOTOR *motor );
 
 extern MX_RECORD_FUNCTION_LIST mxd_coordinated_angle_record_function_list;

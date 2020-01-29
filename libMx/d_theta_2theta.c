@@ -9,7 +9,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2006-2007, 2010, 2013-2014
+ * Copyright 2000-2001, 2003, 2006-2007, 2010, 2013-2014, 2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -660,9 +660,7 @@ mxd_theta_2theta_motor_get_parameter( MX_MOTOR *motor )
 		motor->raw_speed = theta_speed;
 
 	} else {
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"Parameter type %ld is not supported by this driver.",
-			motor->parameter_type );
+		return mx_motor_default_get_parameter_handler( motor );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -712,9 +710,7 @@ mxd_theta_2theta_motor_set_parameter( MX_MOTOR *motor )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	} else {
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"Parameter type %ld is not supported by this driver.",
-			motor->parameter_type );
+		return mx_motor_default_set_parameter_handler( motor );
 	}
 
 	return MX_SUCCESSFUL_RESULT;

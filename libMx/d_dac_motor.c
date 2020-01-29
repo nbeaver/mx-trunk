@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2009 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2009, 2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -45,7 +45,11 @@ MX_MOTOR_FUNCTION_LIST mxd_dac_motor_motor_function_list = {
 	mxd_dac_motor_soft_abort,
 	mxd_dac_motor_immediate_abort,
 	mxd_dac_motor_positive_limit_hit,
-	mxd_dac_motor_negative_limit_hit
+	mxd_dac_motor_negative_limit_hit,
+	NULL,
+	NULL,
+	mx_motor_default_get_parameter_handler,
+	mx_motor_default_set_parameter_handler
 };
 
 /* DAC motor data structures. */

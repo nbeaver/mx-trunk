@@ -8,7 +8,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2006, 2008, 2010, 2015
+ * Copyright 1999-2001, 2003, 2006, 2008, 2010, 2015, 2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -50,7 +50,13 @@ MX_MOTOR_FUNCTION_LIST mxd_e662_motor_function_list = {
 	mxd_e662_get_position,
 	mxd_e662_set_position,
 	mxd_e662_soft_abort,
-	mxd_e662_immediate_abort
+	mxd_e662_immediate_abort,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	mx_motor_default_get_parameter_handler,
+	mx_motor_default_set_parameter_handler
 };
 
 /* Physik Instrumente E662 motor data structures. */

@@ -11,7 +11,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2008-2011, 2015-2016 Illinois Institute of Technology
+ * Copyright 1999-2006, 2008-2011, 2015-2016, 2020
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1493,13 +1494,7 @@ mxd_monochromator_get_parameter( MX_MOTOR *motor )
 		break;
 
 	default:
-		return mx_error( MXE_UNSUPPORTED, fname,
-			"Parameter type '%s' (%ld) is not supported by the "
-			"monochromator driver for motor '%s'.",
-			mx_get_field_label_string( motor->record,
-						motor->parameter_type ),
-			motor->parameter_type,
-			motor->record->name );
+		return mx_motor_default_get_parameter_handler( motor );
 	}
 
 #if MXD_MONOCHROMATOR_DEBUG_TIMING
@@ -1634,13 +1629,7 @@ mxd_monochromator_set_parameter( MX_MOTOR *motor )
 		break;
 
 	default:
-		return mx_error( MXE_UNSUPPORTED, fname,
-			"Parameter type '%s' (%ld) is not supported by the "
-			"monochromator driver for motor '%s'.",
-			mx_get_field_label_string( motor->record,
-						motor->parameter_type ),
-			motor->parameter_type,
-			motor->record->name );
+		return mx_motor_default_set_parameter_handler( motor );
 	}
 
 #if MXD_MONOCHROMATOR_DEBUG_TIMING

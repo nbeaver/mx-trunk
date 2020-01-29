@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2006, 2008, 2010-2011 Illinois Institute of Technology
+ * Copyright 2003-2006, 2008, 2010-2011, 2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -55,8 +55,8 @@ MX_MOTOR_FUNCTION_LIST mxd_itc503_motor_motor_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	NULL,
-	NULL,
+	mx_motor_default_get_parameter_handler,
+	mx_motor_default_set_parameter_handler,
 	NULL,
 	NULL,
 	mxd_itc503_motor_get_extended_status

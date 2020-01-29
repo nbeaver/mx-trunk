@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2006, 2008, 2010, 2012-2013
+ * Copyright 2000-2001, 2003, 2006, 2008, 2010, 2012-2013, 2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -1025,9 +1025,7 @@ mxd_pcmotion32_get_parameter( MX_MOTOR *motor )
 		 */
 
 	} else {
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"Parameter type %d is not supported by this driver.",
-			motor->parameter_type );
+		return mx_motor_default_get_parameter_handler( motor );
 	}
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1119,9 +1117,7 @@ mxd_pcmotion32_set_parameter( MX_MOTOR *motor )
 		}
 
 	} else {
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"Parameter type %d is not supported by this driver.",
-			motor->parameter_type );
+		return mx_motor_default_set_parameter_handler( motor );
 	}
 
 	return mx_status;

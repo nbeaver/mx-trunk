@@ -21,7 +21,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2006, 2010, 2012-2013, 2016
+ * Copyright 1999, 2001-2006, 2010, 2012-2013, 2016, 2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -60,7 +60,14 @@ MX_MOTOR_FUNCTION_LIST mxd_am9513_motor_motor_function_list = {
 	mxd_am9513_motor_move_absolute,
 	mxd_am9513_motor_get_position,
 	mxd_am9513_motor_set_position,
-	mxd_am9513_motor_soft_abort
+	mxd_am9513_motor_soft_abort,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	mx_motor_default_get_parameter_handler,
+	mx_motor_default_set_parameter_handler,
 };
 
 /* Am9513 motor data structures. */

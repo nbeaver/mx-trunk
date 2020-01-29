@@ -15,7 +15,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2006, 2010-2011, 2013 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006, 2010-2011, 2013, 2020
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -50,7 +51,13 @@ MX_MOTOR_FUNCTION_LIST mxd_pdi40motor_motor_function_list = {
 	mxd_pdi40motor_get_position,
 	mxd_pdi40motor_set_position,
 	NULL,
-	mxd_pdi40motor_immediate_abort
+	mxd_pdi40motor_immediate_abort,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	mx_motor_default_get_parameter_handler,
+	mx_motor_default_set_parameter_handler
 };
 
 MX_RECORD_FIELD_DEFAULTS mxd_pdi40motor_record_field_defaults[] = {

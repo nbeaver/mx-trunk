@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2006, 2010-2011, 2013
+ * Copyright 1999, 2001, 2003, 2006, 2010-2011, 2013, 2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -48,7 +48,9 @@ MX_MOTOR_FUNCTION_LIST mxd_e500_motor_function_list = {
 	mxd_e500_immediate_abort,
 	mxd_e500_positive_limit_hit,
 	mxd_e500_negative_limit_hit,
-	mxd_e500_raw_home_command
+	mxd_e500_raw_home_command,
+	NULL,
+	mx_motor_default_get_parameter_handler
 };
 
 /* E500 motor data structures. */

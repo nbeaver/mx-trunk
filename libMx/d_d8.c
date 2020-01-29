@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2006, 2010, 2013, 2018
+ * Copyright 1999, 2001, 2003, 2006, 2010, 2013, 2018, 2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -49,7 +49,10 @@ MX_MOTOR_FUNCTION_LIST mxd_d8_motor_motor_function_list = {
 	mxd_d8_motor_immediate_abort,
 	mxd_d8_motor_positive_limit_hit,
 	mxd_d8_motor_negative_limit_hit,
-	mxd_d8_motor_raw_home_command
+	mxd_d8_motor_raw_home_command,
+	NULL,
+	mx_motor_default_get_parameter_handler,
+	mx_motor_default_set_parameter_handler
 };
 
 /* D8 motor data structures. */

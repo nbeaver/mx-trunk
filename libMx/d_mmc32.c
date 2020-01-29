@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2004, 2006, 2010, 2013, 2015
+ * Copyright 1999, 2001, 2003-2004, 2006, 2010, 2013, 2015, 2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -53,8 +53,8 @@ MX_MOTOR_FUNCTION_LIST mxd_mmc32_motor_function_list = {
 	NULL,
 	mxd_mmc32_raw_home_command,
 	NULL,
-	NULL,
-	NULL,
+	mx_motor_default_get_parameter_handler,
+	mx_motor_default_set_parameter_handler,
 	NULL,
 	mxd_mmc32_get_status
 };

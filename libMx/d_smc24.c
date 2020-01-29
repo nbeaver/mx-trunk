@@ -18,7 +18,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2006, 2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -77,7 +77,10 @@ MX_MOTOR_FUNCTION_LIST mxd_smc24_motor_function_list = {
 	mxd_smc24_immediate_abort,
 	mxd_smc24_positive_limit_hit,
 	mxd_smc24_negative_limit_hit,
-	NULL
+	NULL,
+	NULL,
+	mx_motor_default_get_parameter_handler,
+	mx_motor_default_set_parameter_handler
 };
 
 MX_RECORD_FIELD_DEFAULTS mxd_smc24_record_field_defaults[] = {

@@ -10,7 +10,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2003, 2015-2016 Illinois Institute of Technology
+ * Copyright 2002-2003, 2015-2016, 2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -50,8 +50,8 @@ MX_MOTOR_FUNCTION_LIST mxd_adsc_two_theta_motor_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	NULL,
-	NULL,
+	mx_motor_default_get_parameter_handler,
+	mx_motor_default_set_parameter_handler,
 	NULL,
 	mxd_adsc_two_theta_get_status
 };

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2004, 2006, 2010-2011, 2013, 2015-2016
+ * Copyright 2004, 2006, 2010-2011, 2013, 2015-2016, 2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -733,9 +733,7 @@ mxd_spec_motor_get_parameter( MX_MOTOR *motor )
 		break;
 
 	default:
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"Parameter type %ld is not supported by this driver.",
-			motor->parameter_type );
+		return mx_motor_default_get_parameter_handler( motor );
 	}
 
 #if MXD_SPEC_MOTOR_DEBUG
@@ -838,9 +836,7 @@ mxd_spec_motor_set_parameter( MX_MOTOR *motor )
 		break;
 
 	default:
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"Parameter type %ld is not supported by this driver.",
-			motor->parameter_type );
+		return mx_motor_default_set_parameter_handler( motor );
 	}
 
 #if MXD_SPEC_MOTOR_DEBUG

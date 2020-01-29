@@ -8,7 +8,8 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2003, 2006, 2010, 2013 Illinois Institute of Technology
+ * Copyright 2001, 2003, 2006, 2010, 2013, 2020
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -692,9 +693,7 @@ mxd_segmented_move_get_parameter( MX_MOTOR *motor )
 		break;
 
 	default:
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"Parameter type %ld is not supported by this driver.",
-			motor->parameter_type );
+		return mx_motor_default_get_parameter_handler( motor );
 	}
 
 	return mx_status;
@@ -770,9 +769,7 @@ mxd_segmented_move_set_parameter( MX_MOTOR *motor )
 		break;
 
 	default:
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"Parameter type %ld is not supported by this driver.",
-			motor->parameter_type );
+		return mx_motor_default_set_parameter_handler( motor );
 	}
 
 	return mx_status;

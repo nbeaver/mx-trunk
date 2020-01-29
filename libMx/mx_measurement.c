@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004-2007, 2009, 2012, 2014-2016
+ * Copyright 1999-2002, 2004-2007, 2009, 2012, 2014-2016, 2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -58,7 +58,8 @@ MX_MEASUREMENT_TYPE_ENTRY mx_measurement_type_list[] = {
 
 /* --------------- */
 
-MX_EXPORT mx_status_type mx_get_measurement_type_by_name( 
+MX_EXPORT mx_status_type
+mx_get_measurement_type_by_name( 
 	MX_MEASUREMENT_TYPE_ENTRY *measurement_type_list,
 	char *name,
 	MX_MEASUREMENT_TYPE_ENTRY **measurement_type_entry )
@@ -115,7 +116,8 @@ MX_EXPORT mx_status_type mx_get_measurement_type_by_name(
 	}
 }
 
-MX_EXPORT mx_status_type mx_get_measurement_type_by_value( 
+MX_EXPORT mx_status_type
+mx_get_measurement_type_by_value( 
 	MX_MEASUREMENT_TYPE_ENTRY *measurement_type_list,
 	long measurement_type,
 	MX_MEASUREMENT_TYPE_ENTRY **measurement_type_entry )

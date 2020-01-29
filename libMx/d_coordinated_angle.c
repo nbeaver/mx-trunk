@@ -6,7 +6,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2013-2015, 2019 Illinois Institute of Technology
+ * Copyright 2013-2015, 2019-2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -49,8 +49,8 @@ MX_MOTOR_FUNCTION_LIST mxd_coordinated_angle_motor_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	mxd_coordinated_angle_get_parameter,
-	mxd_coordinated_angle_set_parameter,
+	mx_motor_default_get_parameter_handler,
+	mx_motor_default_set_parameter_handler,
 	NULL,
 	mxd_coordinated_angle_get_status
 };
@@ -672,18 +672,6 @@ mxd_coordinated_angle_get_status( MX_MOTOR *motor )
 
 	motor->status = pseudomotor_status;
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_coordinated_angle_get_parameter( MX_MOTOR *motor )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_coordinated_angle_set_parameter( MX_MOTOR *motor )
-{
 	return MX_SUCCESSFUL_RESULT;
 }
 

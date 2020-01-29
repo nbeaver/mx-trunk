@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2007, 2010, 2013-2015
+ * Copyright 1999-2004, 2006-2007, 2010, 2013-2015, 2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -1156,7 +1156,7 @@ mxd_linear_function_get_parameter( MX_MOTOR *motor )
 		}
 		break;
 	default:
-		/* Everything else is not implemented. */
+		return mx_motor_default_get_parameter_handler( motor );
 		break;
 	}
 
@@ -1206,7 +1206,7 @@ mxd_linear_function_set_parameter( MX_MOTOR *motor )
 		}
 		break;
 	default:
-		/* Everything else is not implemented. */
+		return mx_motor_default_set_parameter_handler( motor );
 		break;
 	}
 
