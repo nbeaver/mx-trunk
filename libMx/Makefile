@@ -160,7 +160,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_soft_vinput.c d_sony_snc.c d_sony_visca_ptz.c \
 	d_spec_motor.c d_spec_scaler.c d_spec_timer.c \
 	d_spellman_df3_aio.c d_spellman_df3_dio.c \
-	d_sr570.c d_sr630_ainput.c d_sr630_aoutput.c d_src_mono.c d_stp100.c \
+	d_sr570.c d_sr630_ainput.c d_sr630_aoutput.c d_stp100.c \
 	d_synaccess_netbooter_ainput.c d_synaccess_netbooter_relay.c \
 	d_table_motor.c d_tangent_arm.c d_theta_2theta.c d_timer_fanout.c \
 	d_tpg262_pressure.c d_tracker_aio.c d_tracker_dio.c \

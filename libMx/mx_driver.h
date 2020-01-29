@@ -18,7 +18,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2019 Illinois Institute of Technology
+ * Copyright 1999-2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -526,7 +526,7 @@ extern "C" {
 #define MXT_MTR_BLUICE_DCSS		50049
 #define MXT_MTR_BLUICE_DHS		50050
 #define MXT_MTR_PTZ			50051
-#define MXT_MTR_SRC_MONO		50052
+
 #define MXT_MTR_CRYOJET			50053
 #define MXT_MTR_LINKAM_T9X_TEMPERATURE	50054
 #define MXT_MTR_LINKAM_T9X_MOTOR	50055
