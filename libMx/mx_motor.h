@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2008, 2010, 2013-2018 Illinois Institute of Technology
+ * Copyright 1999-2008, 2010, 2013-2018, 2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -361,6 +361,7 @@ typedef struct {
 	double *estimated_move_positions;
 	double *estimated_move_durations;
 	double total_estimated_move_duration;
+	mx_bool_type bypass_estimated_move_calc;
 
 	mx_bool_type must_recalculate_estimated_move_duration;
 
@@ -880,6 +881,10 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, \
 			offsetof(MX_MOTOR, total_estimated_move_duration), \
 	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {0, -1, "bypass_estimated_move_calc", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, bypass_estimated_move_calc), \
+	{0}, NULL, 0}, \
   \
   \
   \

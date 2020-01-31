@@ -225,6 +225,7 @@ mx_motor_finish_record_initialization( MX_RECORD *motor_record )
 	motor->estimated_move_positions = NULL;
 	motor->estimated_move_durations = NULL;
 	motor->total_estimated_move_duration = -1.0;
+	motor->bypass_estimated_move_calc = FALSE;
 
 	motor->must_recalculate_estimated_move_duration = FALSE;
 
@@ -6066,22 +6067,31 @@ mx_motor_get_total_estimated_move_duration( MX_RECORD *motor_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	motor->parameter_type = MXLV_MTR_TOTAL_ESTIMATED_MOVE_DURATION;
+	if ( motor->bypass_estimated_move_calc ) {
+		/* If this particular motor driver does not calculate
+		 * useful estimated move times, then we can bypass that
+		 * calculation and just return 0.
+		 */
 
-	get_parameter = function_list->get_parameter;
+		motor->total_estimated_move_duration = 0.0;
+	} else {
+		motor->parameter_type = MXLV_MTR_TOTAL_ESTIMATED_MOVE_DURATION;
 
-	if ( get_parameter == NULL ) {
-		get_parameter = mx_motor_default_get_parameter_handler;
+		get_parameter = function_list->get_parameter;
+
+		if ( get_parameter == NULL ) {
+			get_parameter = mx_motor_default_get_parameter_handler;
+		}
+
+		mx_status = (*get_parameter) ( motor );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
-
-	mx_status = (*get_parameter) ( motor );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
 
 	if ( total_estimated_duration != (double *) NULL ) {
 		*total_estimated_duration =
-			motor->total_estimated_move_duration;
+				motor->total_estimated_move_duration;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
