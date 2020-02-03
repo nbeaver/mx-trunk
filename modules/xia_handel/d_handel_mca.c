@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2006, 2008-2012, 2015-2019 Illinois Institute of Technology
+ * Copyright 2001-2006, 2008-2012, 2015-2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -369,6 +369,7 @@ mxd_handel_mca_handel_open( MX_MCA *mca,
 	int xia_status, num_items, display_config;
 	unsigned long i, j;
 	long module_channel, detector_channel_alt;
+	double acquisition_value;
 	mx_status_type mx_status;
 
 #if MX_IGNORE_XIA_NULL_STRING
@@ -769,6 +770,26 @@ mxd_handel_mca_handel_open( MX_MCA *mca,
 		"Cannot allocate a DXP baseline array of %lu unsigned longs",
 			handel_mca->baseline_length );
 	}
+
+	/* See if this is really ancient MCA firmware by asking for the
+	 * value of the 'preset_type' acquisition_value.
+	 */
+
+	if ( handel->bypass_xia_preset_type == FALSE ) {
+		mx_status = mxd_handel_mca_get_acquisition_values( mca,
+				"preset_type", &acquisition_value );
+
+		if ( mx_status.code == MXE_ILLEGAL_ARGUMENT ) {
+			mx_warning("XIA Handel record '%s' is using ancient "
+			"firmware that does not support 'preset_type', so we "
+			"will not try to use 'preset_type' again.",
+				handel->record->name );
+
+			handel->bypass_xia_preset_type = TRUE;
+		}
+	}
+
+	/*---*/
 
 	if ( handel_mca->debug_flag ) {
 		MX_DEBUG(-2,("%s complete for MCA '%s'",
