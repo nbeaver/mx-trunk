@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2007, 2010, 2012-2016, 2019
+ * Copyright 1999-2004, 2006-2007, 2010, 2012-2016, 2019-2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -417,6 +417,7 @@ mx_setup_motor_process_functions( MX_RECORD *record )
 		case MXLV_MTR_ACCELERATION_DISTANCE:
 		case MXLV_MTR_ACCELERATION_FEEDFORWARD_GAIN:
 		case MXLV_MTR_ACCELERATION_TIME:
+		case MXLV_MTR_ACCELERATION_TYPE:
 		case MXLV_MTR_AXIS_ENABLE:
 		case MXLV_MTR_BACKLASH_CORRECTION:
 		case MXLV_MTR_BASE_SPEED:
@@ -579,6 +580,10 @@ mx_motor_process_function( void *record_ptr,
 			break;
 		case MXLV_MTR_ACCELERATION_DISTANCE:
 			mx_status = mx_motor_get_acceleration_distance(
+							record, NULL );
+			break;
+		case MXLV_MTR_ACCELERATION_TYPE:
+			mx_status = mx_motor_get_acceleration_type(
 							record, NULL );
 			break;
 		case MXLV_MTR_COMPUTE_EXTENDED_SCAN_RANGE:

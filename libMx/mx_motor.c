@@ -35,6 +35,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <math.h>
+#include <float.h>
 
 #include "mx_util.h"
 #include "mx_key.h"
@@ -3108,7 +3109,6 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 	case MXLV_MTR_SPEED:
 	case MXLV_MTR_BASE_SPEED:
 	case MXLV_MTR_MAXIMUM_SPEED:
-	case MXLV_MTR_ACCELERATION_TYPE:
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
 	case MXLV_MTR_AXIS_ENABLE:
 	case MXLV_MTR_CLOSED_LOOP:
@@ -3150,6 +3150,10 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 
 	case MXLV_MTR_EXTRA_GAIN:
 		motor->extra_gain = 0.0;
+		break;
+
+	case MXLV_MTR_ACCELERATION_TYPE:
+		motor->acceleration_type = MXF_MTR_ACCEL_TIME;
 		break;
 
 	case MXLV_MTR_ACCELERATION_TIME:
@@ -3423,6 +3427,14 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 	 		fname, est_move_distance, est_distance_at_full_speed));
 #endif
 			if ( est_distance_at_full_speed >= 0.0 ) {
+
+			    if ( fabs(est_speed) < (2*FLT_MIN) ) {
+				/* Give up if est_speed is too small. */
+
+				motor->total_estimated_move_duration = 0.0;
+				return MX_SUCCESSFUL_RESULT;
+			    }
+
 			    motor->estimated_move_durations[i] =
 				mx_divide_safely( est_distance_at_full_speed,
 							est_speed )
@@ -3437,6 +3449,15 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 			     * to the position, velocity, and time at the
 			     * midpoint of the move.
 			     */
+
+			    if ( fabs(est_acceleration_time) < (2*FLT_MIN) ) {
+				/* Give up if est_acceleration_time
+				 * is too small.
+				 */
+
+				motor->total_estimated_move_duration = 0.0;
+				return MX_SUCCESSFUL_RESULT;
+			    }
 
 			    est_acceleration =
 			mx_divide_safely(est_speed, est_acceleration_time);
