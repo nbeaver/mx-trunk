@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2019 Illinois Institute of Technology
+ * Copyright 2019-2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -456,7 +456,7 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 	case MXF_DEV_INTERNAL_TRIGGER:
 		gate_master = 0.0;
 		sync_master = 0.0;
-		pixel_advance_mode = 0.0;
+		pixel_advance_mode = XIA_MAPPING_CTL_GATE;
 		sync_count = 0.0;
 		break;
 	case MXF_DEV_EXTERNAL_TRIGGER:
