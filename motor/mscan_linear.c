@@ -574,6 +574,25 @@ motor_setup_linear_scan_parameters(
 				return FAILURE;
 			}
 
+			if ( scan_type == MXS_LIN_RELATIVE ) {
+				/* For relative scans, we set the limits
+				 * relative to where we are now.
+				 */
+
+				double current_position;
+
+				mx_status = mx_motor_get_position( record,
+							&current_position );
+
+				if ( mx_status.code != MXE_SUCCESS ) {
+					FREE_MOTOR_NAME_ARRAY;
+					return FAILURE;
+				}
+
+				negative_limit -= current_position;
+				positive_limit -= current_position;
+			}
+
 			fprintf(output,
 			    "Software limits for %s are %.*g %s to %.*g %s.\n",
 				record->name,

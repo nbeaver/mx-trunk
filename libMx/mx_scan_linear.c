@@ -809,6 +809,22 @@ mxs_linear_scan_get_parameter( MX_SCAN *scan )
 			break;
 		}
 
+		if ( scan->record->mx_type == MXS_LIN_RELATIVE ) {
+			/* For relative scan estimated motor times, we must
+			 * use the real motor positions.
+			 */
+
+			double current_position;
+
+			mx_status = mx_motor_get_position( lowest_motor_record,
+							&current_position );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			lowest_start_position += current_position;
+		}
+
 #if DEBUG_SCAN_DURATION
 		MX_DEBUG(-2,("%s: num_variables = %ld",
 				fname, num_variables));
