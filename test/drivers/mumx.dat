@@ -6,7 +6,7 @@
 #    For OSEPP use /dev/ttyUSB0      (FTDI)
 #
 umx_rs232 interface rs232 tty "" "" 9600 8 N 1 N 0x0d0a 0x0a 10.0 0x0000000 /dev/ttyACM0
-umx       server umx umx_server "" "" umx_rs232
+umx       server umx umx_server "" "" umx_rs232 0x2
 pgn1      device pulse_generator umx_pulser "" "" 1 0.1 10 0 1 0x1 umx PGN1 0x0
 adc5      device analog_input umx_ainput "" "" 0 1 0 steps 0x0 0 "" umx ADC5
 din23     device digital_input umx_dinput "" "" 0 umx DIN23

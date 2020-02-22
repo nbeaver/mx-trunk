@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2019 Illinois Institute of Technology
+ * Copyright 2019-2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -78,6 +78,7 @@ mxn_umx_server_open( MX_RECORD *record )
 	MX_RECORD *rs232_record = NULL;
 	size_t num_bytes_read;
 	char response[80];
+	unsigned long umx_flags;
 	mx_status_type mx_status;
 
 	mx_status = MX_SUCCESSFUL_RESULT;
@@ -103,17 +104,23 @@ mxn_umx_server_open( MX_RECORD *record )
 
 	/* We should have already received a UMX or ASCII MX server message. */
 
-	mx_status = mx_rs232_getline_with_timeout( rs232_record,
-					response, sizeof(response),
-					&num_bytes_read,
-					MXN_UMX_DEBUG, 5.0 );
+	umx_flags = umx_server->umx_flags;
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( (umx_flags & MXF_UMX_SERVER_SKIP_STARTUP_MESSAGE) == 0 ) {
 
-	MX_DEBUG(-2,("%s: num_bytes_read = %ld", fname, (long)num_bytes_read ));
+		mx_status = mx_rs232_getline_with_timeout( rs232_record,
+						response, sizeof(response),
+						&num_bytes_read,
+						MXN_UMX_DEBUG, 5.0 );
 
-	MX_DEBUG(-2,("%s: response = '%s'", fname, response));
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		MX_DEBUG(-2,("%s: num_bytes_read = %ld",
+			fname, (long)num_bytes_read ));
+
+		MX_DEBUG(-2,("%s: response = '%s'", fname, response));
+	}
 
 	return mx_status;
 }
