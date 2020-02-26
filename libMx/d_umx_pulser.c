@@ -300,12 +300,104 @@ mxd_umx_pulser_arm( MX_PULSE_GENERATOR *pulser )
 		pulser->pulse_period = pulser->pulse_width;
 	}
 
-	/* If we are not in external trigger mode, then we are done. */
+	/* Stop the pulser, just in case it was running. */
 
-	mx_status = mx_pulse_generator_get_trigger_mode( pulser->record, NULL );
+	snprintf( command, sizeof(command),
+			"PUT %s.stop",
+			umx_pulser->pulser_name );
+
+	mx_status = mx_umx_command( umx_record, command,
+					response, sizeof(response),
+					debug_flag );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Set the pulse period. */
+
+	snprintf( command, sizeof(command),
+			"PUT %s.pulse_period %f",
+			umx_pulser->pulser_name,
+			pulser->pulse_period );
+
+	mx_status = mx_umx_command( umx_record, command,
+					response, sizeof(response),
+					debug_flag );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Set the pulse width. */
+
+	snprintf( command, sizeof(command),
+			"PUT %s.pulse_width %f",
+			umx_pulser->pulser_name,
+			pulser->pulse_width );
+
+	mx_status = mx_umx_command( umx_record, command,
+					response, sizeof(response),
+					debug_flag );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Set the pulse delay. */
+
+	snprintf( command, sizeof(command),
+			"PUT %s.pulse_delay %f",
+			umx_pulser->pulser_name,
+			pulser->pulse_delay );
+
+	mx_status = mx_umx_command( umx_record, command,
+					response, sizeof(response),
+					debug_flag );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Set the number of pulses. */
+
+	snprintf( command, sizeof(command),
+			"PUT %s.num_pulses %lu",
+			umx_pulser->pulser_name,
+			pulser->num_pulses );
+
+	mx_status = mx_umx_command( umx_record, command,
+					response, sizeof(response),
+					debug_flag );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Set the function mode. */
+
+	snprintf( command, sizeof(command),
+			"PUT %s.function_mode %lu",
+			umx_pulser->pulser_name,
+			pulser->function_mode );
+
+	mx_status = mx_umx_command( umx_record, command,
+					response, sizeof(response),
+					debug_flag );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Set the trigger mode. */
+
+	snprintf( command, sizeof(command),
+			"PUT %s.trigger_mode %lu",
+			umx_pulser->pulser_name,
+			pulser->trigger_mode );
+
+	mx_status = mx_umx_command( umx_record, command,
+					response, sizeof(response),
+					debug_flag );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* If we are not in external trigger mode, then we are done. */
 
 #if 0
 	if ( (pulser->trigger_mode & MXF_DEV_EXTERNAL_TRIGGER) == 0 ) {
