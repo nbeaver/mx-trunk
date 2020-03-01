@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2004, 2006-2007, 2009, 2011, 2013, 2015-2016, 2018-2019
+ * Copyright 1999, 2001-2004, 2006-2007, 2009, 2011, 2013, 2015-2016, 2018-2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -489,13 +489,31 @@ mxd_soft_motor_constant_velocity_move( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_soft_motor_get_parameter( MX_MOTOR *motor )
 {
-	return mx_motor_default_get_parameter_handler( motor );
+	switch( motor->parameter_type ) {
+	case MXLV_MTR_ACCELERATION_TYPE:
+		motor->acceleration_type = MXF_MTR_ACCEL_RATE;
+		break;
+	default:
+		return mx_motor_default_get_parameter_handler( motor );
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
 mxd_soft_motor_set_parameter( MX_MOTOR *motor )
 {
-	return mx_motor_default_set_parameter_handler( motor );
+	switch( motor->parameter_type ) {
+	case MXLV_MTR_ACCELERATION_TYPE:
+		motor->acceleration_type = MXF_MTR_ACCEL_RATE;
+		break;
+	default:
+		return mx_motor_default_set_parameter_handler( motor );
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
