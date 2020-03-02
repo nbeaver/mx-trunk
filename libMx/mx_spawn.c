@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2006, 2009-2010, 2013-2019 Illinois Institute of Technology
+ * Copyright 2006, 2009-2010, 2013-2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -103,8 +103,8 @@ mx_spawn( char *command_line,
 	if ( fork_pid == (-1) ) {
 		saved_errno = errno;
 
-		return mx_error( MXE_FUNCTION_FAILED, fname,
-		"Attempt to fork() failed.  Errno = %d, error message = '%s'",
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Attempt to fork() failed.  errno = %d, error message = '%s'",
 			saved_errno, strerror( saved_errno ) );
 	}
 

@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2006, 2012, 2014-2017 Illinois Institute of Technology
+ * Copyright 2002-2006, 2012, 2014-2017, 2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <errno.h>
 #include <sys/types.h>
 
 #include "mx_osdef.h"
@@ -130,6 +131,7 @@ main( int argc, char *argv[] )
 	int i, debug_level, num_non_option_arguments;
 	int default_display_precision;
 	int max_receive_speed;
+	int saved_errno;
 	mx_bool_type start_debugger;
 	mx_bool_type echo_state;
 	mx_bool_type network_debugging;
@@ -296,6 +298,15 @@ main( int argc, char *argv[] )
 
 	child_pid = fork();
 
+	if ( child_pid == (-1) ) {
+		saved_errno = errno;
+
+		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"fork() failed.  errno = %d, error message = '%s'",
+			saved_errno, strerror(saved_errno) );
+
+		exit( (int) MXE_OPERATING_SYSTEM_ERROR );
+	} else
 	if ( child_pid == 0 ) {
 		other_pid = original_pid;
 	} else {

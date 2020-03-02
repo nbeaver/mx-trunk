@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2019 Illinois Institute of Technology
+ * Copyright 1999-2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2072,6 +2072,7 @@ mx_set_watchpoint( MX_WATCHPOINT **watchpoint_ptr,
 	int waitpid_child_status;
 	int waitpid_parent_status;
 	int child_exit_status;
+	int saved_errno;
 	struct sigaction sigtrap_action;
 	unsigned long debug_extension_flags;
 	unsigned long value_length, size_option;
@@ -2197,6 +2198,16 @@ mx_set_watchpoint( MX_WATCHPOINT **watchpoint_ptr,
 	parent_process = getpid();
 
 	child_process = fork();
+
+	if ( child_process == (-1) ) {
+		saved_errno = errno;
+
+		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"fork() failed.  errno = %d, error message = '%s'",
+		saved_errno, strerror(saved_errno) );
+
+		return TRUE;
+	}
 
 	if ( child_process == 0 ) {
 		/* We are in the child. */
@@ -2379,7 +2390,7 @@ mx_show_watchpoints( void )
 	int waitpid_child_status;
 	int waitpid_parent_status;
 	int child_exit_status;
-	int i;
+	int i, saved_errno;
 	void *value_pointer[4];
 
 	/* This process itself cannot directly look at its own hardware debug
@@ -2389,6 +2400,16 @@ mx_show_watchpoints( void )
 	parent_process = getpid();
 
 	child_process = fork();
+
+	if ( child_process == (-1) ) {
+		saved_errno = errno;
+
+		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"fork() failed.  errno = %d, error message = '%s'",
+		saved_errno, strerror(saved_errno) );
+
+		return TRUE;
+	}
 
 	if ( child_process == 0 ) {
 		/* We are in the child. */

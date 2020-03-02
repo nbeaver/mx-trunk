@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004, 2010-2011, 2015-2017
+ * Copyright 1999-2001, 2003-2004, 2010-2011, 2015-2017, 2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -111,7 +111,7 @@ mx_coprocess_open( MX_COPROCESS **coprocess,
 	if ( fork_pid == (-1) ) {
 		saved_errno = errno;
 
-		return mx_error( MXE_FUNCTION_FAILED, fname,
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 		"Attempt to fork() failed.  Errno = %d, error message = '%s'",
 			saved_errno, strerror( saved_errno ) );
 	}
