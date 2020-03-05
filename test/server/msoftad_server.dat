@@ -2,4 +2,10 @@
 #video0 device video_input soft_vinput "" "" 640 480 GREY8 -1 1 ""
 #video0 device video_input soft_vinput "" "" 640 480 GREY16 -1 1 ""
 video0 device video_input soft_vinput "" "" 4096 4096 GREY16 -1 1 ""
-ad device area_detector soft_area_detector "" "" 8 0x0 0x0 "" "" "" "" video0 0x1
+ad device area_detector soft_area_detector "" "" 8 0x0 0x0 "" "" "" "" "" video0 trigger 0x1
+#
+# Use a real pulse generator
+#
+umx_rs232  interface rs232 tty "" "" 9600 8 N 1 N 0x0d0a 0x0a 10.0 0x0000000 /dev/ttyACM0
+umx        server umx umx_server "" "" umx_rs232 0x2 
+trigger    device pulse_generator umx_pulser "" "" 0 0 0 0 1 1 umx pgn1 0x0

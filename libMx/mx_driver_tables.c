@@ -328,6 +328,77 @@ mx_get_driver_name( MX_RECORD *record )
 	return driver->name;
 }
 
+MX_EXPORT const char *
+mx_get_driver_class( MX_RECORD *record )
+{
+	static const char fname[] = "mx_get_driver_class()";
+
+	MX_DRIVER *driver_class_object = NULL;
+	long driver_class_number;
+	size_t i, num_driver_classes;
+
+	driver_class_number = record->mx_class;
+
+	/* Walk through the class table looking for this driver. */
+
+	num_driver_classes = sizeof(mx_class_table) / sizeof(mx_class_table[0]);
+
+	for ( i = 0; i < num_driver_classes; i++ ) {
+		driver_class_object = &(mx_class_table[i]);
+
+		if ( driver_class_number == driver_class_object->mx_class ) {
+			break;
+		}
+	}
+
+	if ( i >= num_driver_classes ) {
+		(void) mx_error( MXE_NOT_FOUND, fname,
+		"The MX driver class was not found for record '%s'.  "
+		"This should never happen!", record->name );
+
+		return NULL;
+	}
+
+	return ((const char *) driver_class_object->name );
+}
+
+MX_EXPORT const char *
+mx_get_driver_superclass( MX_RECORD *record )
+{
+	static const char fname[] = "mx_get_driver_superclass()";
+
+	MX_DRIVER *driver_superclass_object = NULL;
+	long driver_superclass_number;
+	size_t i, num_driver_superclasses;
+
+	driver_superclass_number = record->mx_superclass;
+
+	/* Walk through the superclass table looking for this driver. */
+
+	num_driver_superclasses = sizeof(mx_superclass_table)
+					/ sizeof(mx_superclass_table[0]);
+
+	for ( i = 0; i < num_driver_superclasses; i++ ) {
+		driver_superclass_object = &(mx_superclass_table[i]);
+
+		if ( driver_superclass_number ==
+			driver_superclass_object->mx_superclass )
+		{
+			break;
+		}
+	}
+
+	if ( i >= num_driver_superclasses ) {
+		(void) mx_error( MXE_NOT_FOUND, fname,
+		"The MX driver superclass was not found for record '%s'.  "
+		"This should never happen!", record->name );
+
+		return NULL;
+	}
+
+	return ((const char *) driver_superclass_object->name );
+}
+
 /*=====================================================================*/
 
 MX_EXPORT MX_DRIVER *

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2008, 2010, 2012 Illinois Institute of Technology
+ * Copyright 2006-2008, 2010, 2012, 2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,7 +22,10 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *video_input_record;
+	char trigger_record_name[MXU_RECORD_NAME_LENGTH+1];
 	unsigned long initial_trigger_mode;
+
+	MX_RECORD *trigger_record;
 } MX_SOFT_AREA_DETECTOR;
 
 
@@ -31,6 +34,12 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_SOFT_AREA_DETECTOR, video_input_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "trigger_record_name", MXFT_STRING, NULL, \
+	  				1, {MXU_RECORD_NAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_SOFT_AREA_DETECTOR, trigger_record_name), \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {-1, -1, "initial_trigger_mode", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \

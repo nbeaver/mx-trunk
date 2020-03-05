@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2016 Illinois Institute of Technology
+ * Copyright 2006-2016, 2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,9 +22,11 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_driver.h"
 #include "mx_hrt.h"
 #include "mx_motor.h"
 #include "mx_image.h"
+#include "mx_pulse_generator.h"
 #include "mx_video_input.h"
 #include "mx_area_detector.h"
 #include "d_soft_area_detector.h"
@@ -169,7 +171,8 @@ mxd_soft_area_detector_open( MX_RECORD *record )
 
 	MX_AREA_DETECTOR *ad;
 	MX_SOFT_AREA_DETECTOR *soft_area_detector = NULL;
-	MX_RECORD *video_input_record;
+	MX_RECORD *video_input_record = NULL;
+	MX_RECORD *trigger_record = NULL;
 	long i;
 	unsigned long mask;
 	mx_status_type mx_status;
@@ -190,6 +193,42 @@ mxd_soft_area_detector_open( MX_RECORD *record )
 #if MXD_SOFT_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
+
+	ad->trigger_mode =  MXF_DEV_INTERNAL_TRIGGER;
+
+	/* If a trigger record was specified, see if the trigger record
+	 * exists and is of the correct MX class 'pulse_generator'.
+	 */
+
+	soft_area_detector->trigger_record = NULL;
+
+	if ( strlen( soft_area_detector->trigger_record_name ) > 0 ) {
+		trigger_record = mx_get_record( record,
+				soft_area_detector->trigger_record_name );
+
+		if ( trigger_record == (MX_RECORD *)NULL ) {
+			return mx_error( MXE_NOT_FOUND, fname,
+			"The trigger record '%s' requested for area "
+			"detector '%s' does not exist.",
+				soft_area_detector->trigger_record_name,
+				record->name );
+		}
+
+		if ( trigger_record->mx_class != MXC_PULSE_GENERATOR ) {
+			return mx_error( MXE_TYPE_MISMATCH, fname,
+			"Trigger records for area detector '%s' are "
+			"required to be an MX pulse generator record.  "
+			"However, the requested trigger record '%s' is "
+			"actually of MX class '%s'.",
+				record->name,
+				trigger_record->name,
+				mx_get_driver_class( trigger_record ) );
+		}
+
+		soft_area_detector->trigger_record = trigger_record;
+	}
+
+	/* Setup the rest of the area detector parameters. */
 
 	video_input_record = soft_area_detector->video_input_record;
 
@@ -319,6 +358,10 @@ mxd_soft_area_detector_arm( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_soft_area_detector_arm()";
 
 	MX_SOFT_AREA_DETECTOR *soft_area_detector = NULL;
+	MX_SEQUENCE_PARAMETERS *sp = NULL;
+	MX_RECORD *trigger_record = NULL;
+	unsigned long num_frames, num_triggers;
+	double exposure_time, exposure_period;
 	mx_status_type mx_status;
 
 	mx_status = mxd_soft_area_detector_get_pointers( ad,
@@ -331,8 +374,117 @@ mxd_soft_area_detector_arm( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
+	sp = &(ad->sequence_parameters);
+
+	/* If available, configure the area detector trigger. */
+
+	trigger_record = soft_area_detector->trigger_record;
+
+	if ( trigger_record != (MX_RECORD *) NULL ) {
+	    /* Figure out the parameter values that will be needed
+	     * for setting up the pulse generator hardware.
+	     */
+
+	    switch( ad->trigger_mode ) {
+	    case MXF_DEV_INTERNAL_TRIGGER:
+		switch( sp->sequence_type ) {
+		case MXT_SQ_ONE_SHOT:
+			num_frames = 1;
+			num_triggers = 1;
+			exposure_time = sp->parameter_array[0];
+			exposure_period = exposure_time;
+			break;
+		case MXT_SQ_MULTIFRAME:
+			num_frames = mx_round( sp->parameter_array[0] );
+			num_triggers = 1;
+			exposure_time = sp->parameter_array[1];
+			exposure_period = sp->parameter_array[2];
+			break;
+		case MXT_SQ_STROBE:
+			num_frames = mx_round( sp->parameter_array[0] );
+			num_triggers = num_frames;
+			exposure_time = sp->parameter_array[1];
+			exposure_period = -1.0;
+			break;
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"MX sequence type %ld is not supported for internal "
+			"trigger mode by area detector '%s'.",
+				sp->sequence_type, ad->record->name );
+			break;
+		}
+		break;
+	    case MXF_DEV_EXTERNAL_TRIGGER:
+		switch( sp->sequence_type ) {
+		case MXT_SQ_ONE_SHOT:
+			num_frames = 1;
+			num_triggers = 1;
+			exposure_time = sp->parameter_array[0];
+			exposure_period = -1.0;
+			break;
+		case MXT_SQ_MULTIFRAME:
+			num_frames = mx_round( sp->parameter_array[0] );
+			num_triggers = 1;
+			exposure_time = sp->parameter_array[1];
+			exposure_period = sp->parameter_array[2];
+			break;
+		case MXT_SQ_STROBE:
+			num_frames = mx_round( sp->parameter_array[0] );
+			num_triggers = num_frames;
+			exposure_time = sp->parameter_array[1];
+			exposure_period = -1.0;
+			break;
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"MX sequence type %ld is not supported for internal "
+			"trigger mode by area detector '%s'.",
+				sp->sequence_type, ad->record->name );
+			break;
+		}
+		break;
+	    default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Unsupported trigger mode %ld requested for "
+		"area detector '%s'.  The supported modes are internal (1) "
+		"and external (2).", ad->trigger_mode, ad->record->name );
+	    }
+
+	    /* Now it is time to setup the trigger. */
+
+	    mx_status = mx_pulse_generator_setup( trigger_record,
+				    		exposure_period,
+						exposure_time,
+						num_frames,
+						0.0,
+						MXF_PGN_PULSE,
+		    				ad->trigger_mode );
+
+	    if ( mx_status.code != MXE_SUCCESS )
+		    return mx_status;
+	}
+
+	/* Tell the video driver to arm itself. */
 
 	mx_status = mx_video_input_arm(soft_area_detector->video_input_record);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* If the pulse generator will be externally triggered, then
+	 * we tell the pulse generator to start now.  All this _really_
+	 * does is to tell the pulse generator to get ready to receive
+	 * external triggers.
+	 */
+
+	if ( (soft_area_detector->trigger_record != (MX_RECORD *) NULL)
+	  && (ad->trigger_mode == MXF_DEV_EXTERNAL_TRIGGER) )
+	{
+		mx_status = mx_pulse_generator_start(
+				soft_area_detector->trigger_record );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
 	return mx_status;
 }
@@ -343,6 +495,7 @@ mxd_soft_area_detector_trigger( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_soft_area_detector_trigger()";
 
 	MX_SOFT_AREA_DETECTOR *soft_area_detector = NULL;
+	MX_RECORD *trigger_record = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_soft_area_detector_get_pointers( ad,
@@ -355,9 +508,16 @@ mxd_soft_area_detector_trigger( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
+	trigger_record = soft_area_detector->trigger_record;
 
-	mx_status = mx_video_input_trigger(
+	if ( (trigger_record != (MX_RECORD *) NULL)
+	  && (ad->trigger_mode == MXF_DEV_INTERNAL_TRIGGER) )
+	{
+		mx_status = mx_pulse_generator_start( trigger_record );
+	} else {
+		mx_status = mx_video_input_trigger(
 			soft_area_detector->video_input_record );
+	}
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -376,6 +536,7 @@ mxd_soft_area_detector_stop( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_soft_area_detector_stop()";
 
 	MX_SOFT_AREA_DETECTOR *soft_area_detector = NULL;
+	MX_RECORD *trigger_record = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_soft_area_detector_get_pointers( ad,
@@ -390,7 +551,19 @@ mxd_soft_area_detector_stop( MX_AREA_DETECTOR *ad )
 #endif
 	mx_status = mx_video_input_stop(soft_area_detector->video_input_record);
 
-	return mx_status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	trigger_record = soft_area_detector->trigger_record;
+
+	if (trigger_record != (MX_RECORD *) NULL) {
+		mx_status = mx_pulse_generator_stop( trigger_record );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -399,6 +572,7 @@ mxd_soft_area_detector_abort( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_soft_area_detector_abort()";
 
 	MX_SOFT_AREA_DETECTOR *soft_area_detector = NULL;
+	MX_RECORD *trigger_record = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_soft_area_detector_get_pointers( ad,
@@ -414,7 +588,19 @@ mxd_soft_area_detector_abort( MX_AREA_DETECTOR *ad )
 	mx_status = mx_video_input_abort(
 			soft_area_detector->video_input_record );
 
-	return mx_status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	trigger_record = soft_area_detector->trigger_record;
+
+	if (trigger_record != (MX_RECORD *) NULL) {
+		mx_status = mx_pulse_generator_stop( trigger_record );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -424,6 +610,8 @@ mxd_soft_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 			"mxd_soft_area_detector_get_extended_status()";
 
 	MX_SOFT_AREA_DETECTOR *soft_area_detector = NULL;
+	MX_RECORD *trigger_record = NULL;
+	mx_bool_type busy;
 	long vinput_last_frame_number;
 	long vinput_total_num_frames;
 	unsigned long vinput_status;
@@ -455,7 +643,6 @@ mxd_soft_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 	ad->status = 0;
 
 	if ( vinput_status & MXSF_VIN_IS_BUSY ) {
-
 		ad->status |= MXSF_AD_ACQUISITION_IN_PROGRESS;
 	}
 
@@ -465,6 +652,19 @@ mxd_soft_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 		fname, ad->last_frame_number,
 		ad->total_num_frames, ad->status));
 #endif
+
+	trigger_record = soft_area_detector->trigger_record;
+
+	if (trigger_record != (MX_RECORD *) NULL) {
+		mx_status = mx_pulse_generator_is_busy( trigger_record, &busy );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( busy ) {
+			ad->status |= MXSF_AD_ACQUISITION_IN_PROGRESS;
+		}
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }

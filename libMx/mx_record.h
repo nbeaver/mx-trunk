@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2010, 2012-2019 Illinois Institute of Technology
+ * Copyright 1999-2010, 2012-2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -570,6 +570,8 @@ MX_API MX_DRIVER *mx_get_driver_by_type( long record_type );
 
 MX_API MX_DRIVER *mx_get_driver_for_record( MX_RECORD *record );
 MX_API const char *mx_get_driver_name( MX_RECORD *record );
+MX_API const char *mx_get_driver_class( MX_RECORD *record );
+MX_API const char *mx_get_driver_superclass( MX_RECORD *record );
 
 MX_API MX_DRIVER *mx_get_superclass_driver_by_name( char *name );
 MX_API MX_DRIVER *mx_get_class_driver_by_name( char *name );
