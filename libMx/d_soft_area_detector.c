@@ -449,6 +449,8 @@ mxd_soft_area_detector_arm( MX_AREA_DETECTOR *ad )
 		"and external (2).", ad->trigger_mode, ad->record->name );
 	    }
 
+	    MXW_UNUSED(num_triggers);
+
 	    /* Now it is time to setup the trigger. */
 
 	    mx_status = mx_pulse_generator_setup( trigger_record,

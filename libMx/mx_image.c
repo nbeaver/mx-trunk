@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2019 Illinois Institute of Technology
+ * Copyright 2006-2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -3646,6 +3646,8 @@ mx_image_read_array( MX_IMAGE_FRAME **frame_ptr,
 			image_filetype, image_array );
 		break;
 	}
+
+	MXW_UNUSED(mx_status);
 
 	return MX_SUCCESSFUL_RESULT;
 }
