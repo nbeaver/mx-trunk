@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2003, 2006, 2008-2012, 2014-2015, 2017, 2019
+ * Copyright 2002-2003, 2006, 2008-2012, 2014-2015, 2017, 2019-2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -722,6 +722,8 @@ mxd_epics_mca_trigger( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	flags = epics_mca->epics_mca_flags;
+
 	/* Set the 'new_data_available' flag for all of the associated MCAs. */
 
 	for ( i = 0; i < epics_mca->num_associated_mcas; i++ ) {
@@ -780,49 +782,70 @@ mxd_epics_mca_trigger( MX_MCA *mca )
 		break;
 	}
 
-	/* Save a group of EPICS commands to be started all at once. */
-
-	mx_status = mx_epics_start_group( &epics_group );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Do the actual preset changes. */
-
-	mx_status = mx_group_caput( &epics_group, &(epics_mca->preset_live_pv),
+	if ( flags & MXF_EPICS_MCA_DISABLE_SYNCHRONOUS_GROUPS ) {
+		mx_status = mx_caput( &(epics_mca->preset_live_pv),
 				MX_CA_DOUBLE, 1, &preset_live_time );
 
-	if ( mx_status.code != MXE_SUCCESS ) {
-		mx_epics_delete_group( &epics_group );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-		return mx_status;
-	}
-
-	mx_status = mx_group_caput( &epics_group, &(epics_mca->preset_real_pv),
+		mx_status = mx_caput( &(epics_mca->preset_real_pv),
 				MX_CA_DOUBLE, 1, &preset_real_time );
 
-	if ( mx_status.code != MXE_SUCCESS ) {
-		mx_epics_delete_group( &epics_group );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-		return mx_status;
-	}
-
-	mx_status = mx_group_caput( &epics_group, &(epics_mca->pct_pv),
+		mx_status = mx_caput( &(epics_mca->pct_pv),
 				MX_CA_LONG, 1, &preset_counts );
 
-	if ( mx_status.code != MXE_SUCCESS ) {
-		mx_epics_delete_group( &epics_group );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	} else {
+		/* Save a group of EPICS commands to be started all at once. */
 
-		return mx_status;
+		mx_status = mx_epics_start_group( &epics_group );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Do the actual preset changes. */
+
+		mx_status = mx_group_caput( &epics_group,
+				&(epics_mca->preset_live_pv),
+				MX_CA_DOUBLE, 1, &preset_live_time );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			mx_epics_delete_group( &epics_group );
+
+			return mx_status;
+		}
+
+		mx_status = mx_group_caput( &epics_group,
+				&(epics_mca->preset_real_pv),
+				MX_CA_DOUBLE, 1, &preset_real_time );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			mx_epics_delete_group( &epics_group );
+
+			return mx_status;
+		}
+
+		mx_status = mx_group_caput( &epics_group,
+				&(epics_mca->pct_pv),
+				MX_CA_LONG, 1, &preset_counts );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			mx_epics_delete_group( &epics_group );
+
+			return mx_status;
+		}
+
+		/* Send all of the commands in the group. */
+
+		mx_status = mx_epics_end_group( &epics_group );
 	}
 
-	/* Send all of the commands in the group. */
-
-	mx_status = mx_epics_end_group( &epics_group );
-
 	/* Tell the counting to start. */
-
-	flags = epics_mca->epics_mca_flags;
 
 	start = 1;
 
