@@ -78,6 +78,7 @@ mxn_umx_server_open( MX_RECORD *record )
 	MX_RECORD *rs232_record = NULL;
 	size_t num_bytes_read;
 	char response[80];
+	unsigned long attempt, max_attempts;
 	unsigned long umx_flags;
 	mx_status_type mx_status;
 
@@ -99,6 +100,8 @@ mxn_umx_server_open( MX_RECORD *record )
 			record->name );
 	}
 
+	max_attempts = 2;
+
 	/* FIXME: Make sure that the RS232 interface is configured correctly? */
 
 
@@ -107,6 +110,8 @@ mxn_umx_server_open( MX_RECORD *record )
 	umx_flags = umx_server->umx_flags;
 
 	if ( (umx_flags & MXF_UMX_SERVER_SKIP_STARTUP_MESSAGE) == 0 ) {
+
+	    for ( attempt = 0; attempt < max_attempts; attempt++ ) {
 
 		mx_status = mx_rs232_getline_with_timeout( rs232_record,
 						response, sizeof(response),
@@ -120,6 +125,21 @@ mxn_umx_server_open( MX_RECORD *record )
 			fname, (long)num_bytes_read ));
 
 		MX_DEBUG(-2,("%s: response = '%s'", fname, response));
+
+		/* If we have just uploaded new firmware to the Arduino,
+		 * then our first read from it may be an empty string.
+		 * So we must take that into account, and check for
+		 * empty strings.
+		 */
+
+		if ( num_bytes_read > 0 ) {
+			break;    /* We have received a startup message. */
+		}
+
+		mx_msleep(1000);
+	    }
+
+
 	}
 
 	return mx_status;
