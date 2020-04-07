@@ -409,7 +409,7 @@ mxi_tty_open( MX_RECORD *record )
 
 	/* If requested, try to get an exclusive lock for the serial port. */
 
-#if defined(OS_LINUX)
+#if ( defined(OS_LINUX) || defined(OS_MACOSX) )
 
 	if ( rs232->rs232_flags & MXF_232_EXCLUSIVE_LOCK ) {
 
