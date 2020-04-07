@@ -7,7 +7,7 @@
  *
  *-----------------------------------------------------------------------
  *
- * Copyright 1999-2007, 2010, 2018 Illinois Institute of Technology
+ * Copyright 1999-2007, 2010, 2018, 2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -211,7 +211,14 @@ mxi_win32com_open( MX_RECORD *record )
 		"The serial device name '%s' is illegal.", win32com->filename );
 	}
 
-	/* Initialize the WIN32COM driver on this port. */
+	/* Initialize the WIN32COM driver on this port.
+	 *
+	 * Note: The third argument to CreateFile() is the dwShareMode
+	 * argument.  If dwShareMode is set to zero (like it is below),
+	 * then the file is opened exclusive to the HANDEL com_port_handle.
+	 * Thus, it is not necessary to call LockFileEx() to get that
+	 * effect.
+	 */
 
 	com_port_handle = CreateFile( win32com->filename,
 		GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING,
