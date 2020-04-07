@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2008, 2010-2012, 2014, 2016-2017, 2019
+ * Copyright 1999-2008, 2010-2012, 2014, 2016-2017, 2019-2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -95,6 +95,8 @@ extern "C" {
 #define MXF_232_UNBUFFERED_IO			0x1
 #define MXF_232_DO_NOT_CHANGE_PORT_SETTINGS	0x2
 #define MXF_232_ALWAYS_IGNORE_NULLS		0x4
+
+#define MXF_232_EXCLUSIVE_LOCK			0x10
 
 #define MXF_232_FLUSH_AFTER_PUTCHAR		0x100
 #define MXF_232_FLUSH_AFTER_WRITE		0x200

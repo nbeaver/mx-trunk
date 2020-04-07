@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2008, 2010-2011, 2014, 2018-2019
+ * Copyright 1999-2008, 2010-2011, 2014, 2018-2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -15,7 +15,9 @@
  *
  */
 
-#define MXI_TTY_DEBUG	FALSE
+#define MXI_TTY_DEBUG		FALSE
+
+#define MXI_TTY_DEBUG_FLOCK	TRUE
 
 #include <stdio.h>
 
@@ -32,6 +34,7 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/ioctl.h>
+#include <sys/file.h>
 #include <errno.h>
 
 #if HAVE_READV_WRITEV
@@ -307,11 +310,11 @@ mxi_tty_open( MX_RECORD *record )
 
 	MX_RS232 *rs232;
 	MX_TTY *tty = NULL;
-	int status, flags, saved_errno;
+	int os_status, flags, saved_errno;
 	unsigned long do_not_change_port_settings;
 	mx_status_type mx_status;
 
-	MX_DEBUG( 2,("%s invoked.", fname));
+	MX_DEBUG( 2,("%s invoked for record '%s'.", fname, record->name));
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -325,15 +328,12 @@ mxi_tty_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,
-("mxi_tty_open(): Somewhere in here we need to worry about TTY lock files."));
-
 	/* If the tty device is currently open, close it. */
 
 	if ( tty->file_handle >= 0 ) {
-		status = close( tty->file_handle );
+		os_status = close( tty->file_handle );
 
-		if ( status != 0 ) {
+		if ( os_status != 0 ) {
 			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 			"Error while closing previously open TTY device '%s'.",
 				record->name );
@@ -407,6 +407,92 @@ mxi_tty_open( MX_RECORD *record )
 		}
 	}
 
+	/* If requested, try to get an exclusive lock for the serial port. */
+
+#if defined(OS_LINUX)
+
+	if ( rs232->rs232_flags & MXF_232_EXCLUSIVE_LOCK ) {
+
+		int operation;
+
+#if MXI_TTY_DEBUG_FLOCK
+		MX_DEBUG(-2,("%s: Record '%s' getting exclusive lock for '%s'.",
+			fname, record->name, tty->filename ));
+#endif
+
+		/* We use a BSD-style advisory lock using flock() here since
+		 * it is available for a wide variety of MX build targets.
+		 * We will try to get an exclusive lock in a non-blocking way.
+		 */
+
+		operation = (LOCK_EX | LOCK_NB);
+
+		os_status = flock( tty->file_handle, operation );
+
+		saved_errno = errno;
+
+#if MXI_TTY_DEBUG_FLOCK
+		MX_DEBUG(-2,("%s: flock(%s) status = %d, errno = %d",
+			fname, tty->filename, os_status, saved_errno));
+#endif
+
+		if ( os_status < 0 ) {
+
+			switch( saved_errno ) {
+			case EBADF:
+				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+				"File descriptor %d used by rs232 record '%s' "
+				"is not an open file descriptor.",
+					tty->file_handle, record->name );
+				break;
+			case EINTR:
+				return mx_error( MXE_TRY_AGAIN, fname,
+				"The attempt to get an exclusive lock for "
+				"file descriptor %d used by rs232 record '%s' "
+				"was interrupted by a Unix signal.  Trying "
+				"again may succeed.",
+					tty->file_handle, record->name );
+				break;
+			case EINVAL:
+				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+				"flock() operation code %#x for file "
+				"descriptor %d used by rs232 record '%s' "
+				"is illegal.", operation,
+					tty->file_handle, record->name );
+				break;
+			case ENOLCK:
+				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+				"The operating system ran out of memory "
+				"for allocating lock records for file "
+				"descriptor %d used by rs232 record '%s'.",
+					tty->file_handle, record->name );
+				break;
+			case EWOULDBLOCK:
+				mx_status = mx_error(
+				 MXE_NOT_VALID_FOR_CURRENT_STATE, fname,
+				"RS232 port '%s' used by record '%s' is "
+				"already in use by another process.",
+					tty->filename, record->name );
+
+				(void) mxi_tty_close( record );
+				return mx_status;
+				break;
+			default:
+				return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+				"Error when trying to get an exclusive lock "
+				"on file descriptor %d with operation %#x "
+				"for rs232 record '%s'  "
+				"Errno = %d, error text = '%s'",
+				    tty->file_handle, operation, record->name,
+				    saved_errno, strerror(saved_errno) );
+				break;
+			}
+		}
+	}
+#else
+#error RS-232 exclusive locks are not yet implemented for this build target.
+#endif
+
 	/* If blocking was turned off for the open(), turn it back on. */
 
 #if defined(O_NDELAY) && defined(F_SETFL)
@@ -429,9 +515,9 @@ mxi_tty_open( MX_RECORD *record )
 
 		new_flags = old_flags & ~O_NDELAY;
 
-		status = fcntl( tty->file_handle, F_SETFL, new_flags );
+		os_status = fcntl( tty->file_handle, F_SETFL, new_flags );
 
-		if ( status < 0 ) {
+		if ( os_status < 0 ) {
 			saved_errno = errno;
 
 			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
