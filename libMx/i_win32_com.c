@@ -188,6 +188,7 @@ mxi_win32com_open( MX_RECORD *record )
 	MX_RS232 *rs232;
 	MX_WIN32COM *win32com;
 	HANDLE com_port_handle;
+	DWORD share_mode;
 	mx_status_type status;
 
 	MX_DEBUG( 2, ("%s invoked.", fname));
@@ -211,18 +212,19 @@ mxi_win32com_open( MX_RECORD *record )
 		"The serial device name '%s' is illegal.", win32com->filename );
 	}
 
-	/* Initialize the WIN32COM driver on this port.
-	 *
-	 * Note: The third argument to CreateFile() is the dwShareMode
-	 * argument.  If dwShareMode is set to zero (like it is below),
-	 * then the file is opened exclusive to the HANDEL com_port_handle.
-	 * Thus, it is not necessary to call LockFileEx() to get that
-	 * effect.
-	 */
+	/* Do we want exclusive access to the COM port or shared access? */
+
+	if ( rs232->rs232_flags & MXF_232_SHARED ) {
+		share_mode = (FILE_SHARE_READ | FILE_SHARE_WRITE);
+	} else {
+		share_mode = 0;
+	}
+
+	/* Connect to the COM port. */
 
 	com_port_handle = CreateFile( win32com->filename,
-		GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING,
-		FILE_ATTRIBUTE_NORMAL, 0 );
+		GENERIC_READ | GENERIC_WRITE, share_mode,
+		0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0 );
 
 	if ( com_port_handle == INVALID_HANDLE_VALUE ) {
 		DWORD last_error_code;
@@ -245,6 +247,13 @@ mxi_win32com_open( MX_RECORD *record )
 			return mx_error( MXE_PERMISSION_DENIED, fname,
 			"Your account does not have permission to "
 			"read and write the device '%s' for MX interface '%s'.",
+				win32com->filename, record->name );
+			break;
+		case ERROR_SHARING_VIOLATION:
+			status = mx_error(
+			MXE_NOT_VALID_FOR_CURRENT_STATE, fname,
+			"RS232 port '%s' for record '%s' is "
+			"already in use by another process.",
 				win32com->filename, record->name );
 			break;
 		default:
