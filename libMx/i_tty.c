@@ -407,11 +407,14 @@ mxi_tty_open( MX_RECORD *record )
 		}
 	}
 
-	/* If requested, try to get an exclusive lock for the serial port. */
+	/* If MXF_232_SHARED is set, then preserve shared access to the
+	 * serial port (which is the Unix default setting).  Otherwise,
+	 * we attempt to get exclusive access with flock().
+	 */
 
 #if ( defined(OS_LINUX) || defined(OS_MACOSX) )
 
-	if ( rs232->rs232_flags & MXF_232_EXCLUSIVE_LOCK ) {
+	if ( (rs232->rs232_flags & MXF_232_SHARED) == 0 ) {
 
 		int operation;
 
