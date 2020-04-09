@@ -473,7 +473,7 @@ mxi_tty_open( MX_RECORD *record )
 			case EWOULDBLOCK:
 				mx_status = mx_error(
 				 MXE_NOT_VALID_FOR_CURRENT_STATE, fname,
-				"RS232 port '%s' used by record '%s' is "
+				"RS232 port '%s' for record '%s' is "
 				"already in use by another process.",
 					tty->filename, record->name );
 
