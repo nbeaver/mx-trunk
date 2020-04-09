@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2018 Illinois Institute of Technology
+ * Copyright 1999-2018, 2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1769,8 +1769,8 @@ mx_network_buffer_show_value( void *buffer,
 	xdr_buffer_is_array = FALSE;
 	uint32_buffer = NULL;
 
-	/* For GET_ARRAY and PUT_ARRAY in ASCII format, we treat the body
-	 * of the message as a single string.
+	/* For GET_ARRAY and PUT_ARRAY in the archaic version of ASCII format,
+	 * we treat the body of the message as a single string.
 	 */
 
 	if ( data_format == MX_NETWORK_DATAFMT_ASCII ) {
@@ -1785,8 +1785,8 @@ mx_network_buffer_show_value( void *buffer,
 		case mx_server_response(MX_NETMSG_PUT_ARRAY_BY_HANDLE):
 			fprintf( stderr, "%s\n", (char *) buffer );
 
-			/* At this point, we are done.  For ASCII format,
-			 * message types not mentioned above will be
+			/* At this point, we are done.  For the archaic ASCII
+			 * format, message types not mentioned above will be
 			 * handled together with RAW format.
 			 */
 
@@ -5776,7 +5776,8 @@ mx_network_field_get_attribute( MX_NETWORK_FIELD *nf,
 	case MX_NETWORK_DATAFMT_ASCII:
 		return mx_error( MXE_UNSUPPORTED, fname,
 			"Message type MX_NETMSG_GET_ATTRIBUTE is not supported "
-			"for ASCII format network connections." );
+			"for the archaic version of ASCII format "
+			"network connections." );
 		break;
 
 	case MX_NETWORK_DATAFMT_RAW:
@@ -5945,7 +5946,8 @@ mx_network_field_set_attribute( MX_NETWORK_FIELD *nf,
 	case MX_NETWORK_DATAFMT_ASCII:
 		return mx_error( MXE_UNSUPPORTED, fname,
 			"Message type MX_NETMSG_SET_ATTRIBUTE is not supported "
-			"for ASCII format network connections." );
+			"for the archaic version of ASCII format "
+			"network connections." );
 		break;
 
 	case MX_NETWORK_DATAFMT_RAW:
@@ -6270,7 +6272,7 @@ mx_network_request_data_format( MX_RECORD *server_record,
 		  && ( requested_format != MX_NETWORK_DATAFMT_ASCII ) )
 		{
 			/* The server does not support anything other
-			 * than ASCII format.
+			 * than the archaic version of ASCII format.
 			 */
 
 			server->data_format = MX_NETWORK_DATAFMT_ASCII;
@@ -6278,8 +6280,8 @@ mx_network_request_data_format( MX_RECORD *server_record,
 			message_buffer->data_format = MX_NETWORK_DATAFMT_ASCII;
 
 			return mx_error( mx_status.code, fname,
-			"MX server '%s' only supports ASCII data format.",
-				server_record->name );
+			"MX server '%s' only supports the archaic version "
+			"of ASCII data format.", server_record->name );
 		} else {
 			return mx_status;
 		}
@@ -6431,7 +6433,9 @@ mx_network_request_data_format( MX_RECORD *server_record,
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	/* Selecting a binary data format failed, so try ASCII format. */
+	/* Selecting a binary data format failed, so try the
+	 * archaic version of ASCII format.
+	 */
 
 	mx_status = mx_network_set_option( server_record,
 			MX_NETWORK_OPTION_DATAFMT, MX_NETWORK_DATAFMT_ASCII );
