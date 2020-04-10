@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2006, 2010, 2012, 2014, 2017 Illinois Institute of Technology
+ * Copyright 2000-2006, 2010, 2012, 2014, 2017, 2020
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,6 +24,7 @@
 #include "mx_util.h"
 #include "mx_driver.h"
 #include "mx_callback.h"
+#include "mx_array.h"
 #include "mx_mca.h"
 #include "mx_net.h"
 #include "d_network_mca.h"
@@ -889,6 +891,28 @@ mxd_network_mca_get_parameter( MX_MCA *mca )
 
 		dimension_array[0] = mca->current_num_rois;
 		dimension_array[1] = 2;
+
+#if 1
+		{
+			int i;
+
+			mx_show_array_info( mca->roi_array );
+
+			fprintf( stderr, "mca->roi_array = %p\n",
+				mca->roi_array );
+
+			for ( i = 0; i < mca->current_num_rois; i++ ) {
+			    fprintf( stderr," mca->roi_array[%d] = %p\n",
+					i, mca->roi_array[i] );
+#if 0
+			    fprintf( stderr,"  mca->roi_array[%d][0] = %lu\n",
+					i, mca->roi_array[i][0] );
+			    fprintf( stderr,"  mca->roi_array[%d][1] = %lu\n",
+					i, mca->roi_array[i][1] );
+#endif
+			}
+		}
+#endif
 
 		mx_status = mx_get_array( &(network_mca->roi_array_nf),
 					MXFT_ULONG, 2, dimension_array,

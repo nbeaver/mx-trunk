@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2017 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2017, 2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2568,8 +2568,12 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 	  || ( data_element_size_array == NULL )
 	  || ( xdr_buffer == NULL ) )
 	{
-		return mx_error( MXE_NULL_ARGUMENT, fname,
+		mx_status = mx_error( MXE_NULL_ARGUMENT, fname,
 	    "One or more of the pointers passed to this function were NULL." );
+
+		mx_breakpoint();
+
+		return mx_status;
 	}
 	if ( ( num_dimensions > 0 ) && ( dimension_array == NULL ) ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
