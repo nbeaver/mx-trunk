@@ -2564,12 +2564,21 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 	enum xdr_op operation;
 	mx_status_type mx_status;
 
-	if ( ( array_pointer == NULL )
-	  || ( data_element_size_array == NULL )
-	  || ( xdr_buffer == NULL ) )
-	{
+	if ( data_element_size_array == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The data_element_size_array pointer passed was NULL." );
+	}
+	if ( xdr_buffer == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The xdr_buffer pointer passed was NULL." );
+	}
+
+	if ( array_pointer == NULL ) {
 		mx_status = mx_error( MXE_NULL_ARGUMENT, fname,
-	    "One or more of the pointers passed to this function were NULL." );
+		"The array_pointer value passed was NULL.  This is a bug in MX "
+		"and is very likely to cause the program to crash "
+		"at a later point, so we are setting a breakpoint here.  "
+		"You should contact Bill Lavender if you see this message." );
 
 		mx_breakpoint();
 

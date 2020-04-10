@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004-2007, 2010, 2012, 2015-2017
+ * Copyright 1999-2002, 2004-2007, 2010, 2012, 2015-2017, 2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -182,6 +182,7 @@ mx_mca_initialize_driver( MX_DRIVER *driver,
 		return mx_status;
 
 	field->dimension[0] = *maximum_num_rois_varargs_cookie;
+	field->dimension[1] = 2;
 
 	mx_status = mx_find_record_field_defaults( driver,
 						"roi_integral_array", &field );
@@ -203,6 +204,7 @@ mx_mca_initialize_driver( MX_DRIVER *driver,
 		return mx_status;
 
 	field->dimension[0] = *num_soft_rois_varargs_cookie;
+	field->dimension[1] = 2;
 
 	mx_status = mx_find_record_field_defaults( driver,
 					"soft_roi_integral_array", &field );
