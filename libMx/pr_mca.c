@@ -50,6 +50,7 @@ mx_setup_mca_process_functions( MX_RECORD *record )
 		case MXLV_MCA_CHANNEL_ARRAY:
 		case MXLV_MCA_CHANNEL_VALUE:
 		case MXLV_MCA_CLEAR:
+		case MXLV_MCA_COUNTS:
 		case MXLV_MCA_CURRENT_NUM_CHANNELS:
 		case MXLV_MCA_ENERGY_OFFSET:
 		case MXLV_MCA_ENERGY_SCALE:
@@ -121,6 +122,9 @@ mx_mca_process_function( void *record_ptr,
 			mx_status = mx_mca_get_channel( record,
 						mca->channel_number,
 						&ulong_value );
+			break;
+		case MXLV_MCA_COUNTS:
+			mx_status = mx_mca_get_counts( record, NULL );
 			break;
 		case MXLV_MCA_CURRENT_NUM_CHANNELS:
 			mx_status = mx_mca_get_num_channels(
