@@ -26,6 +26,8 @@
 
 #define NETWORK_DEBUG_CALLBACKS			FALSE
 
+#define NETWORK_DEBUG_SHOW_VALUE		FALSE
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -1761,6 +1763,16 @@ mx_network_buffer_show_value( void *buffer,
 	mx_bool_type xdr_buffer_is_array, xdr_array_length_was_patched;
 	mx_bool_type little_endian_byteorder;
 	mx_status_type mx_status;
+
+#if NETWORK_DEBUG_SHOW_VALUE
+	MX_DEBUG(-2,("\n  buffer = %p, data_format = %lu, data_type = %lu, "
+	    "message_type = %lu, message_length = %lu, "
+	    "use_64bit_network_longs = %d\n",
+		buffer, data_format, (unsigned long) data_type,
+		(unsigned long) message_type, (unsigned long) message_length,
+		(int) use_64bit_network_longs ));
+			
+#endif
 
 	/* Initialize some variables. */
 

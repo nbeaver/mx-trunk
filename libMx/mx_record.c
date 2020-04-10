@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2019 Illinois Institute of Technology
+ * Copyright 1999-2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2422,6 +2422,8 @@ mx_print_field_value( FILE *file,
 		"The MX_RECORD_FIELD pointer passed was NULL." );
 	}
 	if ( value_ptr == NULL ) {
+		mx_stack_traceback();
+		mx_breakpoint();
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The value pointer passed was NULL." );
 	}
@@ -2585,8 +2587,6 @@ mx_print_field_array( FILE *file,
 		fprintf( file, "_not_an_array_" );
 		return MX_SUCCESSFUL_RESULT;
 	}
-
-	array_ptr = mx_read_void_pointer_from_memory_location( data_ptr );
 
 	if ( field->flags & MXFF_VARARGS ) {
 		array_ptr = mx_read_void_pointer_from_memory_location(
@@ -2757,8 +2757,7 @@ mx_print_field_array( FILE *file,
 				}
 				fprintf(file, "(");
 
-				ptr_j =
-			mx_read_void_pointer_from_memory_location(ptr_i);
+				ptr_j = &ptr_i[0];
 
 				for ( j = 0; j < j_loop_max; j++ ) {
 					if ( j != 0 ) {
@@ -2813,8 +2812,7 @@ mx_print_field_array( FILE *file,
 				}
 				fprintf(file, "(");
 
-				ptr_j =
-			mx_read_void_pointer_from_memory_location(ptr_i);
+				ptr_j = &ptr_i[0];
 
 				for ( j = 0; j < j_loop_max; j++ ) {
 					if ( j != 0 ) {
@@ -2822,8 +2820,7 @@ mx_print_field_array( FILE *file,
 					}
 					fprintf(file, "(");
 
-					ptr_k =
-			mx_read_void_pointer_from_memory_location(ptr_j);
+					ptr_k = &ptr_j[0];
 
 					for ( k = 0; k < k_loop_max; k++ ) {
 						if ( k != 0 ) {

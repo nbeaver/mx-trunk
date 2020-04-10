@@ -80,11 +80,6 @@ mx_read_void_pointer_from_memory_location( void *ptr )
 
 	result = *( u.ptr_to_ptr_to_void );
 
-#if 0
-	MX_DEBUG( 9, ("readvp: read pointer %p from memory location %p",
-				result, ptr));
-#endif
-
 	return result;
 }
 
@@ -103,11 +98,6 @@ mx_write_void_pointer_to_memory_location( void *memory_location, void *ptr )
 	u.ptr_to_void = memory_location;
 
 	*( u.ptr_to_ptr_to_void ) = ptr;
-
-#if 0
-	MX_DEBUG( 9, ("writevp: wrote pointer %p to memory location %p",
-					ptr, memory_location));
-#endif
 
 	return;
 }
@@ -3110,6 +3100,27 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 		}
 	}
 
+	/* If this is an XDR message with num_dimensions > 1
+	 * _and_ the array was dynamically allocated, then
+	 * we dereference 'array_pointer' once and only once
+	 * during the first pass through mx_xdr_data_transfer().
+	 *
+	 * The idea is that only the top level row pointer will
+	 * have a level of indirection to be handled by
+	 * mx_read_void_pointer_from_memory_location().  For that
+	 * reason, we ensure in the for() loop below that we do
+	 * not do any further indirection after the top level
+	 * row pointers by passing FALSE to the child's copy of
+	 * 'array_is_dynamically_allocated'.
+	 */
+	 
+	if ( array_is_dynamically_allocated ) {
+		array_pointer =
+		    mx_read_void_pointer_from_memory_location( array_pointer );
+	}
+
+	/* Create a memory-based XDR data structure. */
+
 	xdrmem_create( &xdrs,
 			xdr_buffer,
 			(u_int) xdr_buffer_length,
@@ -3120,19 +3131,19 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 		array_row_pointer = (char *) array_pointer
 			    + n * data_element_size_array[num_dimensions - 1];
 
-		if ( array_is_dynamically_allocated ) {
-			array_row_pointer = (char *)
-				mx_read_void_pointer_from_memory_location(
-					array_row_pointer );
-		}
-
 		xdr_ptr = (char *) xdr_buffer + n * xdr_subarray_size;
 
 		buffer_left = xdr_buffer_length - n * xdr_subarray_size;
 
+		/* Note: For dimensions below the top level row, we do not
+		 * want to dereference the row pointer.  To ensure that,
+		 * we pass FALSE to the 'array_is_dynamically_allocated'
+		 * arguments of nested calls to mx_xdr_data_transfer.
+		 */
+
 		mx_status = mx_xdr_data_transfer( direction,
 				array_row_pointer,
-				array_is_dynamically_allocated,
+				FALSE,
 				mx_datatype, num_dimensions - 1,
 				&dimension_array[1], data_element_size_array,
 				xdr_ptr, buffer_left,

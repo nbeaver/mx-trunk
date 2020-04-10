@@ -892,7 +892,7 @@ mxd_network_mca_get_parameter( MX_MCA *mca )
 		dimension_array[0] = mca->current_num_rois;
 		dimension_array[1] = 2;
 
-#if 1
+#if 0
 		{
 			int i;
 
@@ -904,12 +904,6 @@ mxd_network_mca_get_parameter( MX_MCA *mca )
 			for ( i = 0; i < mca->current_num_rois; i++ ) {
 			    fprintf( stderr," mca->roi_array[%d] = %p\n",
 					i, mca->roi_array[i] );
-#if 0
-			    fprintf( stderr,"  mca->roi_array[%d][0] = %lu\n",
-					i, mca->roi_array[i][0] );
-			    fprintf( stderr,"  mca->roi_array[%d][1] = %lu\n",
-					i, mca->roi_array[i][1] );
-#endif
 			}
 		}
 #endif
