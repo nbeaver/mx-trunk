@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2008, 2011-2017, 2019
+ * Copyright 1999-2001, 2004-2008, 2011-2017, 2019-2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -619,6 +619,13 @@ mx_default_test_for_value_changed( MX_RECORD_FIELD *record_field,
 #endif
 
 		array_ptr = mx_get_field_value_pointer(record_field);
+
+		if ( array_ptr == NULL ) {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The field value pointer for field '%s.%s' is NULL.",
+				record_field->record->name,
+				record_field->name );
+		}
 
 		sum = 0.0;
 

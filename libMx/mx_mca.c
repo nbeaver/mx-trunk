@@ -17,6 +17,8 @@
 
 #define DEBUG_MCA_NEW_DATA_AVAILABLE	FALSE
 
+#define DEBUG_MCA_ARRAY_POINTERS	TRUE
+
 #include <stdio.h>
 #include <limits.h>
 
@@ -222,8 +224,15 @@ mx_mca_finish_record_initialization( MX_RECORD *mca_record )
 {
 	static const char fname[] = "mx_mca_finish_record_initialization()";
 
-	MX_MCA *mca;
-	MX_RECORD_FIELD *channel_array_field;
+	MX_MCA *mca = NULL;
+	MX_RECORD_FIELD *channel_array_field = NULL;
+	MX_RECORD_FIELD *roi_array_field = NULL;
+	MX_RECORD_FIELD *roi_integral_array_field = NULL;
+	MX_RECORD_FIELD *soft_roi_array_field = NULL;
+	MX_RECORD_FIELD *soft_roi_integral_array_field = NULL;
+#if DEBUG_MCA_ARRAY_POINTERS
+	void *value_ptr = NULL;
+#endif
 	long i;
 	mx_status_type mx_status;
 
@@ -259,10 +268,12 @@ mx_mca_finish_record_initialization( MX_RECORD *mca_record )
 	mca->channel_value = 0;
 	mca->roi_number = 0;
 
-	/* Since 'channel_array' is a varying length field, but is not
-	 * specified in the record description, we must fix up the
-	 * dimension[0] value for the field by hand.
+	/* Several fields in an MCA record are varying length fields,
+	 * but the length is not specified in the database directly,
+	 * so we must fix this up for them here.
 	 */
+
+	/* 'channel_array' field */
 
 	mx_status = mx_find_record_field( mca_record, "channel_array",
 						&channel_array_field );
@@ -271,6 +282,68 @@ mx_mca_finish_record_initialization( MX_RECORD *mca_record )
 		return mx_status;
 
 	channel_array_field->dimension[0] = (long) mca->maximum_num_channels;
+
+	/* 'roi_array' field */
+
+	mx_status = mx_find_record_field( mca_record, "roi_array",
+						&roi_array_field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if DEBUG_MCA_ARRAY_POINTERS
+	MX_DEBUG(-2,("%s: '%s.roi_array' data_ptr = %p", 
+		fname, mca_record->name, roi_array_field->data_pointer));
+
+	value_ptr = mx_get_field_value_pointer( roi_array_field );
+
+	MX_DEBUG(-2,("%s: value_ptr = %p", fname, value_ptr));
+	MX_DEBUG(-2,("%s: value_ptr[0] = %p",
+			fname, (void *) ((unsigned long *) value_ptr)[0] ));
+#endif
+
+	roi_array_field->dimension[0] = (long) mca->maximum_num_rois;
+	roi_array_field->dimension[1] = 2;
+
+	/* 'roi_integral_array' field */
+
+	mx_status = mx_find_record_field( mca_record, "roi_integral_array",
+						&roi_integral_array_field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if DEBUG_MCA_ARRAY_POINTERS
+	MX_DEBUG(-2,("%s: '%s.roi_integral_array' data_ptr = %p", 
+	    fname, mca_record->name, roi_integral_array_field->data_pointer));
+
+	value_ptr = mx_get_field_value_pointer( roi_integral_array_field );
+
+	MX_DEBUG(-2,("%s: value_ptr = %p", fname, value_ptr));
+#endif
+
+	roi_integral_array_field->dimension[0] = (long) mca->maximum_num_rois;
+
+	/* 'soft_roi_array' field */
+
+	mx_status = mx_find_record_field( mca_record, "soft_roi_array",
+						&soft_roi_array_field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	soft_roi_array_field->dimension[0] = (long) mca->num_soft_rois;
+	soft_roi_array_field->dimension[1] = 2;
+
+	/* 'soft_roi_integral_array' field */
+
+	mx_status = mx_find_record_field( mca_record, "soft_roi_integral_array",
+					&soft_roi_integral_array_field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	soft_roi_integral_array_field->dimension[0] = (long) mca->num_soft_rois;
 
 	/* Save a direct pointer to the 'new_data_available' field.
 	 * This will be used by mx_mca_is_busy() if it decides that
