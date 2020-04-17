@@ -17,6 +17,8 @@
 
 #define MXD_NETWORK_MCA_DEBUG_NEW_DATA_AVAILABLE	FALSE
 
+#define MXD_NETWORK_MCA_DEBUG_VARARGS_ARRAY		TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -120,6 +122,63 @@ mxd_network_mca_get_pointers( MX_MCA *mca,
 }
 
 /* === */
+
+#if MXD_NETWORK_MCA_DEBUG_VARARGS_ARRAY
+static mx_status_type
+mxd_network_mca_check_varargs_arrays( MX_MCA *mca, char *prefix )
+{
+	static const char fname[] = "mxd_network_mca_check_varargs_arrays()";
+
+	if ( mca == (MX_MCA *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_MCA pointer passed is NULL." );
+	}
+	if ( prefix == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The prefix pointer passed was NULL." );
+	}
+	if ( mca->record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RECORD pointer for MX_MCA pointer %p is NULL.", mca );
+	}
+	fprintf( stderr, "<%s> checking '%s' MX_MCA = %p\n",
+		prefix, mca->record->name, mca );
+	fprintf( stderr, "  mca->maximum_num_channels = %lu\n",
+						mca->maximum_num_channels );
+	fprintf( stderr, "  mca->channel_array = %p\n", mca->channel_array );
+	fprintf( stderr, "  mca->channel_array[0] = %lu\n",
+						mca->channel_array[0] );
+	fprintf( stderr, "  mca->maximum_num_rois = %lu\n",
+						mca->maximum_num_rois );
+	if ( mca->maximum_num_rois > 0 ) {
+		fprintf( stderr, "  mca->roi_array = %p\n", mca->roi_array );
+		fprintf( stderr, "  mca->roi_array[0] = %p\n",
+						mca->roi_array[0] );
+		fprintf( stderr, "  mca->roi_array[0][0] = %lu\n",
+						mca->roi_array[0][0] );
+		fprintf( stderr, "  mca->roi_integral_array = %p\n",
+						mca->roi_integral_array );
+		fprintf( stderr, "  mca->roi_integral_array[0] = %lu\n",
+						mca->roi_integral_array[0] );
+	}
+	fprintf( stderr, "  mca->num_soft_rois = %lu\n", mca->num_soft_rois );
+
+	if ( mca->num_soft_rois > 0 ) {
+		fprintf( stderr, "  mca->soft_roi_array = %p\n",
+						mca->soft_roi_array );
+		fprintf( stderr, "  mca->soft_roi_array[0] = %p\n",
+						mca->soft_roi_array[0] );
+		fprintf( stderr, "  mca->soft_roi_array[0][0] = %lu\n",
+						mca->soft_roi_array[0][0] );
+		fprintf( stderr, "  mca->soft_roi_integral_array = %p\n",
+						mca->soft_roi_integral_array );
+		fprintf( stderr, "  mca->soft_roi_integral_array[0] = %lu\n",
+					mca->soft_roi_integral_array[0] );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+#endif
 
 MX_EXPORT mx_status_type
 mxd_network_mca_initialize_driver( MX_DRIVER *driver )
@@ -481,6 +540,10 @@ mxd_network_mca_open( MX_RECORD *record )
 
 		return mx_status;
 	}
+
+#if MXD_NETWORK_MCA_DEBUG_VARARGS_ARRAY
+	mxd_network_mca_check_varargs_arrays( mca, "open" );
+#endif
 
 	/* Set some reasonable defaults. */
 
@@ -883,6 +946,11 @@ mxd_network_mca_get_parameter( MX_MCA *mca )
 					MXFT_LONG, &(mca->preset_type) );
 		break;
 	case MXLV_MCA_ROI_ARRAY:
+
+#if MXD_NETWORK_MCA_DEBUG_VARARGS_ARRAY
+		mxd_network_mca_check_varargs_arrays( mca, "roi_array" );
+#endif
+
 		mx_status = mx_put( &(network_mca->current_num_rois_nf),
 					MXFT_LONG, &(mca->current_num_rois) );
 
@@ -908,11 +976,22 @@ mxd_network_mca_get_parameter( MX_MCA *mca )
 		}
 #endif
 
+#if 0
 		mx_status = mx_get_array( &(network_mca->roi_array_nf),
 					MXFT_ULONG, 2, dimension_array,
 					&(mca->roi_array) );
+#else
+		mx_status = mx_get_array( &(network_mca->roi_array_nf),
+					MXFT_ULONG, 2, dimension_array,
+					mca->roi_array );
+#endif
 		break;
 	case MXLV_MCA_ROI_INTEGRAL_ARRAY:
+
+#if MXD_NETWORK_MCA_DEBUG_VARARGS_ARRAY
+		mxd_network_mca_check_varargs_arrays( mca, "roi_integral_array" );
+#endif
+
 		mx_status = mx_put( &(network_mca->current_num_rois_nf),
 					MXFT_LONG, &(mca->current_num_rois) );
 

@@ -227,9 +227,11 @@ mx_mca_finish_record_initialization( MX_RECORD *mca_record )
 	MX_MCA *mca = NULL;
 	MX_RECORD_FIELD *channel_array_field = NULL;
 	MX_RECORD_FIELD *roi_array_field = NULL;
+#if 0
 	MX_RECORD_FIELD *roi_integral_array_field = NULL;
 	MX_RECORD_FIELD *soft_roi_array_field = NULL;
 	MX_RECORD_FIELD *soft_roi_integral_array_field = NULL;
+#endif
 #if DEBUG_MCA_ARRAY_POINTERS
 	void *value_ptr = NULL;
 #endif
@@ -305,6 +307,7 @@ mx_mca_finish_record_initialization( MX_RECORD *mca_record )
 	roi_array_field->dimension[0] = (long) mca->maximum_num_rois;
 	roi_array_field->dimension[1] = 2;
 
+#if 0
 	/* 'roi_integral_array' field */
 
 	mx_status = mx_find_record_field( mca_record, "roi_integral_array",
@@ -344,6 +347,7 @@ mx_mca_finish_record_initialization( MX_RECORD *mca_record )
 		return mx_status;
 
 	soft_roi_integral_array_field->dimension[0] = (long) mca->num_soft_rois;
+#endif
 
 	/* Save a direct pointer to the 'new_data_available' field.
 	 * This will be used by mx_mca_is_busy() if it decides that
