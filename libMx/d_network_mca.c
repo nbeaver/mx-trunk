@@ -211,14 +211,14 @@ mxd_network_mca_create_record_structures( MX_RECORD *record )
 
 	if ( mca == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Can't allocate memory for MX_MCA structure." );
+		"Cannot allocate memory for an MX_MCA structure." );
 	}
 
 	network_mca = (MX_NETWORK_MCA *) malloc( sizeof(MX_NETWORK_MCA) );
 
 	if ( network_mca == (MX_NETWORK_MCA *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Can't allocate memory for MX_NETWORK_MCA structure." );
+		"Cannot allocate memory for an MX_NETWORK_MCA structure." );
 	}
 
 	/* Now set up the necessary pointers. */
@@ -241,6 +241,8 @@ mxd_network_mca_finish_record_initialization( MX_RECORD *record )
 
 	MX_MCA *mca;
 	MX_NETWORK_MCA *network_mca;
+	long dimension[2];
+	size_t element_size[2];
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -257,14 +259,108 @@ mxd_network_mca_finish_record_initialization( MX_RECORD *record )
 
 	strlcpy(record->network_type_name, "mx", MXU_NETWORK_TYPE_NAME_LENGTH);
 
+	/*---*/
+
 	mca->channel_array = ( unsigned long * )
 		malloc( mca->maximum_num_channels * sizeof( unsigned long ) );
 
 	if ( mca->channel_array == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Ran out of memory allocating an %ld channel data array.",
-			mca->maximum_num_channels );
+		"Ran out of memory allocating a %lu channel data array "
+		"for record '%s'.",
+			mca->maximum_num_channels, record->name );
 	}
+
+	/*---*/
+
+	dimension[0] = mca->maximum_num_rois;
+	dimension[1] = 2;
+
+	element_size[0] = sizeof(unsigned long);
+	element_size[1] = sizeof(unsigned long *);
+
+	mca->roi_array = ( unsigned long ** )
+		mx_allocate_array( MXFT_ULONG, 2, dimension, element_size );
+
+	if ( mca->roi_array == (unsigned long **) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory allocating a %lu by %d roi array "
+		"for record '%s'.",
+			mca->maximum_num_rois, 2, record->name );
+	}
+
+	MX_DEBUG(-2,("%s: '%s' roi_array", fname, record->name));
+
+	mx_show_array_info( mca->roi_array );
+
+	/*---*/
+
+	dimension[0] = mca->maximum_num_rois;
+
+	element_size[0] = sizeof(unsigned long);
+
+	mca->roi_integral_array = ( unsigned long * )
+		mx_allocate_array( MXFT_ULONG, 1, dimension, element_size );
+
+	if ( mca->roi_integral_array == (unsigned long *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory allocating a %lu element "
+		"roi integral_array for record '%s'.",
+			mca->maximum_num_rois, record->name );
+	}
+
+	MX_DEBUG(-2,("%s: '%s' roi_integral_array", fname, record->name));
+
+	mx_show_array_info( mca->roi_integral_array );
+
+	if ( mca->num_soft_rois == 0 ) {
+		mca->soft_roi_array = NULL;
+		mca->soft_roi_integral_array = NULL;
+	} else {
+		/*---*/
+
+		dimension[0] = mca->num_soft_rois;
+		dimension[1] = 2;
+
+		element_size[0] = sizeof(unsigned long);
+		element_size[1] = sizeof(unsigned long *);
+
+		mca->soft_roi_array = ( unsigned long ** )
+		mx_allocate_array( MXFT_ULONG, 2, dimension, element_size );
+
+		if ( mca->soft_roi_array == (unsigned long **) NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory allocating a %lu by %d soft_roi array "
+			"for record '%s'.",
+				mca->num_soft_rois, 2, record->name );
+		}
+
+		MX_DEBUG(-2,("%s: '%s' soft_roi_array", fname, record->name));
+
+		mx_show_array_info( mca->soft_roi_array );
+
+		/*---*/
+
+		dimension[0] = mca->num_soft_rois;
+
+		element_size[0] = sizeof(unsigned long);
+
+		mca->soft_roi_integral_array = ( unsigned long * )
+		mx_allocate_array( MXFT_ULONG, 1, dimension, element_size );
+
+		if ( mca->soft_roi_integral_array == (unsigned long *) NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory allocating a %lu element "
+			"soft_roi integral_array for record '%s'.",
+				mca->num_soft_rois, record->name );
+		}
+
+		MX_DEBUG(-2,("%s: '%s' soft_roi_integral_array", fname, record->name));
+
+		mx_show_array_info( mca->soft_roi_integral_array );
+	}
+
+	/*---*/
 
 	mx_status = mx_mca_finish_record_initialization( record );
 
@@ -975,6 +1071,8 @@ mxd_network_mca_get_parameter( MX_MCA *mca )
 			}
 		}
 #endif
+
+		mx_show_array_info( mca->roi_array );
 
 #if 0
 		mx_status = mx_get_array( &(network_mca->roi_array_nf),
