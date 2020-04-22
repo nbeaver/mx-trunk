@@ -1,0 +1,2 @@
+!load ../galil_gclib.mxo
+galil interface controller galil_gclib "" "" 192.168.137.99 0x0

@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../../motor/mxmotor.static -F ./mgalil.dat -s ./sgalil.dat
+

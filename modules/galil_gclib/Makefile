@@ -22,7 +22,7 @@ XPS_C8_DRIVERS_FLAGS = -g -fPIC
 galil_gclib.mxo: $(NEWPORT_XPS_OBJS)
 	$(CXX) -shared -rdynamic -Wl,-soname,galil_gclib.mxo \
 		-o galil_gclib.mxo $(NEWPORT_XPS_OBJS) \
-		../../libMx/libMx.so
+		-lgclibo -lgclib ../../libMx/libMx.so
 
 endif
 
@@ -37,7 +37,8 @@ CXX = cl
 galil_gclib.mxo: $(NEWPORT_XPS_OBJS) $(VENDOR_OBJS)
 	link /dll /debug /nologo /out:galil_gclib.mxo \
 		/nodefaultlib:libc /nodefaultlib:libcmt \
-		$(NEWPORT_XPS_OBJS)
+		$(NEWPORT_XPS_OBJS) \
+		gclibo.lib gclib.lib \
 		..\\..\\libMx\\$(MX_LIBRARY_NAME)
 
 endif

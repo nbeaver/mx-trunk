@@ -28,10 +28,6 @@
 #include "i_galil_gclib.h"
 #include "d_galil_gclib.h"
 
-/* Vendor include files. */
-
-#include "gclib.h"
-
 /* ============ Motor channels ============ */
 
 MX_RECORD_FUNCTION_LIST mxd_galil_gclib_record_function_list = {

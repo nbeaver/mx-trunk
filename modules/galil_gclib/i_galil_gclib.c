@@ -26,10 +26,6 @@
 #include "i_galil_gclib.h"
 #include "d_galil_gclib.h"
 
-/* Vendor include files. */
-
-#include "gclib.h"
-
 MX_RECORD_FUNCTION_LIST mxi_galil_gclib_record_function_list = {
 	NULL,
 	mxi_galil_gclib_create_record_structures,
@@ -134,6 +130,8 @@ mxi_galil_gclib_open( MX_RECORD *record )
 	static const char fname[] = "mxi_galil_gclib_open()";
 
 	MX_GALIL_GCLIB *galil_gclib = NULL;
+	GReturn gclib_status;
+	char connection_string[MXU_HOSTNAME_LENGTH + 8];
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -149,7 +147,33 @@ mxi_galil_gclib_open( MX_RECORD *record )
 	}
 
 #if MXI_GALIL_GCLIB_DEBUG
+	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name ));
 #endif
+
+	gclib_status = GVersion( galil_gclib->version,
+				sizeof(galil_gclib->version) );
+
+	if ( gclib_status != G_NO_ERROR ) {
+		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+		"The attempt to get the version of Galil gclib for record '%s' "
+		"failed with status = %d.", record->name, (int) gclib_status );
+	}
+
+#if MXI_GALIL_GCLIB_DEBUG
+	MX_DEBUG(-2,("%s: Galil gclib version = '%s'.",
+		fname, galil_gclib->version ));
+#endif
+	snprintf( connection_string, sizeof(connection_string),
+		"%s -d", galil_gclib->hostname );
+
+	gclib_status = GOpen( connection_string, &(galil_gclib->connection) );
+
+	if ( gclib_status != G_NO_ERROR ) {
+		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+		"The attempt to open a Galil controller connection for "
+		"record '%s' at '%s' failed with status = %d.",
+		record->name, galil_gclib->hostname, (int) gclib_status );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }

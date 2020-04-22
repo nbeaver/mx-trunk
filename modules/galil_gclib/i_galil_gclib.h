@@ -17,22 +17,40 @@
 #ifndef __I_GALIL_GCLIB_H__
 #define __I_GALIL_GCLIB_H__
 
-/* Flag bits for the 'galil_gclib_flags' variable. */
+/* Vendor include file. */
 
-#define MXF_GALIL_GCLIB_DEBUG_XPS_SOCKET	0x1
+#include "gclibo.h"
+
+#define MXU_GALIL_GCLIB_BUFFER_LENGTH	1024
+
+/* Flag bits for the 'galil_gclib_flags' variable. */
 
 typedef struct {
 	MX_RECORD *record;
 
+	char hostname[MXU_HOSTNAME_LENGTH+1];
 	unsigned long galil_gclib_flags;
+
+	char version[MXU_GALIL_GCLIB_BUFFER_LENGTH+1];
+
+	GCon connection;
+
 	long num_motors;
 	MX_RECORD **motor_record_array;
 } MX_GALIL_GCLIB;
 
 #define MXI_GALIL_GCLIB_STANDARD_FIELDS \
+  {-1, -1, "hostname", MXFT_STRING, NULL, 1, {MXU_HOSTNAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_GALIL_GCLIB, hostname), \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
   {-1, -1, "galil_gclib_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_GALIL_GCLIB, galil_gclib_flags), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "version", MXFT_STRING, NULL, 1, {MXU_GALIL_GCLIB_BUFFER_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_GALIL_GCLIB, version), \
+	{sizeof(char)}, NULL, MXFF_READ_ONLY }
 
 MX_API mx_status_type mxi_galil_gclib_create_record_structures(
 						MX_RECORD *record );
