@@ -1,8 +1,7 @@
 /*
  * Name:    d_newport_xps.c
  *
- * Purpose: MX driver for the Stanford Research Systems NEWPORT_XPS_MOTOR
- *          Analog PID Controller.
+ * Purpose: MX driver for Galil-controlled motors via the gclib library.
  *
  * Author:  William Lavender
  *
