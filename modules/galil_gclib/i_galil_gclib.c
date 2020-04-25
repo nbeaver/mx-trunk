@@ -131,6 +131,7 @@ mxi_galil_gclib_open( MX_RECORD *record )
 
 	MX_GALIL_GCLIB *galil_gclib = NULL;
 	GReturn gclib_status;
+	char buffer[80];
 	char connection_string[MXU_HOSTNAME_LENGTH + 8];
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -163,6 +164,8 @@ mxi_galil_gclib_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: Galil gclib version = '%s'.",
 		fname, galil_gclib->version ));
 #endif
+	/* Make the connection to this controller. */
+
 	snprintf( connection_string, sizeof(connection_string),
 		"%s -d", galil_gclib->hostname );
 
@@ -174,6 +177,32 @@ mxi_galil_gclib_open( MX_RECORD *record )
 		"record '%s' at '%s' failed with status = %d.",
 		record->name, galil_gclib->hostname, (int) gclib_status );
 	}
+
+	/* Print out some information from the controller. */
+
+	gclib_status = GInfo( galil_gclib->connection,
+				buffer, sizeof(buffer) );
+
+	if ( gclib_status != G_NO_ERROR ) {
+		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+		"The attempt to get the connection information for "
+		"Galil controller '%s' failed with status = %d.",
+			record->name, (int) gclib_status );
+	}
+
+	MX_DEBUG(-2,("%s: Connection info = '%s'", fname, buffer ));
+
+	gclib_status = GCommand( galil_gclib->connection,
+			"MG TIME", buffer, sizeof(buffer), 0 );
+
+	if ( gclib_status != G_NO_ERROR ) {
+		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+		"The command 'MG TIME' sent to "
+		"Galil controller '%s' failed with status = %d.",
+			record->name, (int) gclib_status );
+	}
+
+	MX_DEBUG(-2,("%s: MG TIME response = '%s'", fname, buffer ));
 
 	return MX_SUCCESSFUL_RESULT;
 }
