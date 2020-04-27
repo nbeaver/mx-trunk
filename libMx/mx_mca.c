@@ -28,6 +28,10 @@
 #include "mx_callback.h"
 #include "mx_mca.h"
 
+#if DEBUG_MCA_ARRAY_POINTERS
+#include "mx_program_model.h"
+#endif
+
 /*=======================================================================*/
 
 /* This function is a utility function to consolidate all of the pointer
@@ -300,8 +304,29 @@ mx_mca_finish_record_initialization( MX_RECORD *mca_record )
 	value_ptr = mx_get_field_value_pointer( roi_array_field );
 
 	MX_DEBUG(-2,("%s: value_ptr = %p", fname, value_ptr));
+
+#if ( MX_PROGRAM_MODEL == MX_PROGRAM_MODEL_LLP64 )
+	{
+		/* Note: The following is just for a debugging message,
+		 * so I don't really care here that pointers may be
+		 * larger than unsigned longs.
+		 */
+
+		union {
+			void *void_ptr;
+			unsigned long ulong_value;
+		} u;
+
+		u.void_ptr = NULL;
+
+		u.ulong_value = ((unsigned long *) value_ptr)[0];
+
+		MX_DEBUG(-2,("%s: value_ptr[0] = %p", fname, u.void_ptr ));
+	}
+#else
 	MX_DEBUG(-2,("%s: value_ptr[0] = %p",
 			fname, (void *) ((unsigned long *) value_ptr)[0] ));
+#endif
 #endif
 
 	roi_array_field->dimension[0] = (long) mca->maximum_num_rois;
