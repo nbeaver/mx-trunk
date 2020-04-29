@@ -14,7 +14,8 @@
  *
  */
 
-#define MXD_GALIL_GCLIB_MOTOR_DEBUG				TRUE
+#define MXD_GALIL_GCLIB_MOTOR_DEBUG		TRUE
+#define MXD_GALIL_GCLIB_MOTOR_DEBUG_PARAMETERS	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -515,6 +516,9 @@ mxd_galil_gclib_get_parameter( MX_MOTOR *motor )
 
 	MX_GALIL_GCLIB_MOTOR *galil_gclib_motor = NULL;
 	MX_GALIL_GCLIB *galil_gclib = NULL;
+	char command[80], response[80];
+	int num_items;
+	unsigned long ulong_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_galil_gclib_get_pointers( motor, &galil_gclib_motor,
@@ -523,7 +527,7 @@ mxd_galil_gclib_get_parameter( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_GALIL_GCLIB_MOTOR_DEBUG
+#if MXD_GALIL_GCLIB_MOTOR_DEBUG_PARAMETERS
 	MX_DEBUG(-2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
@@ -533,12 +537,203 @@ mxd_galil_gclib_get_parameter( MX_MOTOR *motor )
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
-	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
-		/* Acceleration parameter 0 = acceleration (units/sec**2)
-		 * Acceleration parameter 1 = minimum jerk time (sec)
-		 * Acceleration parameter 2 = maximum jerk time (sec)
-		 */
+		snprintf( command, sizeof(command),
+			"TV%c", galil_gclib_motor->axis_name );
 
+		mx_status = mxi_galil_gclib_command( galil_gclib,
+					command, response, sizeof(response) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		num_items = sscanf( response, "%lg", &(motor->raw_speed) );
+
+		if ( num_items != 1 ) {
+			return mx_error( MXE_UNPARSEABLE_STRING, fname,
+			"Cannot find the motor speed in the response '%s' "
+			"to command '%s' for motor '%s'.",
+				response, command, motor->record->name );
+		}
+		break;
+
+	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
+		/* Acceleration parameter 0 = acceleration (units/sec**2) */
+
+		snprintf( command, sizeof(command),
+			"MG AC%c", galil_gclib_motor->axis_name );
+
+		mx_status = mxi_galil_gclib_command( galil_gclib,
+					command, response, sizeof(response) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		num_items = sscanf( response,
+			"%lg", &(motor->raw_acceleration_parameters[0]) );
+ 
+		if ( num_items != 1 ) {
+			return mx_error( MXE_UNPARSEABLE_STRING, fname,
+			"Cannot find the motor acceeleration in the "
+			"response '%s' to command '%s' for motor '%s'.",
+				response, command, motor->record->name );
+		}
+		break;
+
+	case MXLV_MTR_AXIS_ENABLE:
+	case MXLV_MTR_CLOSED_LOOP:
+		snprintf( command, sizeof(command),
+			"MG MO%c", galil_gclib_motor->axis_name );
+
+		mx_status = mxi_galil_gclib_command( galil_gclib,
+					command, response, sizeof(response) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		num_items = sscanf( response, "%lu", &ulong_value );
+ 
+		if ( num_items != 1 ) {
+			return mx_error( MXE_UNPARSEABLE_STRING, fname,
+			"Cannot find the motor servo state in the "
+			"response '%s' to command '%s' for motor '%s'.",
+				response, command, motor->record->name );
+		}
+
+		if ( ulong_value ) {
+			motor->axis_enable = FALSE;
+			motor->closed_loop = FALSE;
+		} else {
+			motor->axis_enable = TRUE;
+			motor->closed_loop = TRUE;
+		}
+		break;
+
+	case MXLV_MTR_PROPORTIONAL_GAIN:
+		snprintf( command, sizeof(command),
+			"MG _KP%c", galil_gclib_motor->axis_name );
+
+		mx_status = mxi_galil_gclib_command( galil_gclib,
+					command, response, sizeof(response) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		num_items = sscanf( response,
+				"%lg", &(motor->proportional_gain) );
+
+		if ( num_items != 1 ) {
+			return mx_error( MXE_UNPARSEABLE_STRING, fname,
+			"Cannot find the proportional gain in the "
+			"response '%s' to command '%s' for motor '%s'.",
+				response, command, motor->record->name );
+		}
+		break;
+
+	case MXLV_MTR_INTEGRAL_GAIN:
+		snprintf( command, sizeof(command),
+			"MG _KI%c", galil_gclib_motor->axis_name );
+
+		mx_status = mxi_galil_gclib_command( galil_gclib,
+					command, response, sizeof(response) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		num_items = sscanf( response,
+				"%lg", &(motor->integral_gain) );
+
+		if ( num_items != 1 ) {
+			return mx_error( MXE_UNPARSEABLE_STRING, fname,
+			"Cannot find the integral gain in the "
+			"response '%s' to command '%s' for motor '%s'.",
+				response, command, motor->record->name );
+		}
+		break;
+
+	case MXLV_MTR_DERIVATIVE_GAIN:
+		snprintf( command, sizeof(command),
+			"MG _KD%c", galil_gclib_motor->axis_name );
+
+		mx_status = mxi_galil_gclib_command( galil_gclib,
+					command, response, sizeof(response) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		num_items = sscanf( response,
+				"%lg", &(motor->derivative_gain) );
+
+		if ( num_items != 1 ) {
+			return mx_error( MXE_UNPARSEABLE_STRING, fname,
+			"Cannot find the derivative gain in the "
+			"response '%s' to command '%s' for motor '%s'.",
+				response, command, motor->record->name );
+		}
+		break;
+
+	case MXLV_MTR_INTEGRAL_LIMIT:
+		snprintf( command, sizeof(command),
+			"MG _IL%c", galil_gclib_motor->axis_name );
+
+		mx_status = mxi_galil_gclib_command( galil_gclib,
+					command, response, sizeof(response) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		num_items = sscanf( response,
+				"%lg", &(motor->integral_limit) );
+
+		if ( num_items != 1 ) {
+			return mx_error( MXE_UNPARSEABLE_STRING, fname,
+			"Cannot find the integral limit in the "
+			"response '%s' to command '%s' for motor '%s'.",
+				response, command, motor->record->name );
+		}
+		break;
+
+	case MXLV_MTR_VELOCITY_FEEDFORWARD_GAIN:
+		snprintf( command, sizeof(command),
+			"MG _FV%c", galil_gclib_motor->axis_name );
+
+		mx_status = mxi_galil_gclib_command( galil_gclib,
+					command, response, sizeof(response) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		num_items = sscanf( response, "%lu", &ulong_value );
+
+		if ( num_items != 1 ) {
+			return mx_error( MXE_UNPARSEABLE_STRING, fname,
+			"Cannot find the velocity feedforward gain in the "
+			"response '%s' to command '%s' for motor '%s'.",
+				response, command, motor->record->name );
+		}
+
+		motor->velocity_feedforward_gain = (double) ulong_value;
+		break;
+
+	case MXLV_MTR_ACCELERATION_FEEDFORWARD_GAIN:
+		snprintf( command, sizeof(command),
+			"MG _FA%c", galil_gclib_motor->axis_name );
+
+		mx_status = mxi_galil_gclib_command( galil_gclib,
+					command, response, sizeof(response) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		num_items = sscanf( response, "%lu", &ulong_value );
+
+		if ( num_items != 1 ) {
+			return mx_error( MXE_UNPARSEABLE_STRING, fname,
+			"Cannot find the acceleration feedforward gain in the "
+			"response '%s' to command '%s' for motor '%s'.",
+				response, command, motor->record->name );
+		}
+
+		motor->acceleration_feedforward_gain = (double) ulong_value;
 		break;
 
 	default:
@@ -565,7 +760,7 @@ mxd_galil_gclib_set_parameter( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_GALIL_GCLIB_MOTOR_DEBUG
+#if MXD_GALIL_GCLIB_MOTOR_DEBUG_PARAMETERS
 	MX_DEBUG(-2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
@@ -599,7 +794,7 @@ mxd_galil_gclib_set_parameter( MX_MOTOR *motor )
 
 	case MXLV_MTR_AXIS_ENABLE:
 	case MXLV_MTR_CLOSED_LOOP:
-		if ( motor->axis_enable ) {
+		if ( (motor->axis_enable) || (motor->closed_loop) ) {
 			snprintf( command, sizeof(command),
 				"SH%c", galil_gclib_motor->axis_name );
 		} else {
