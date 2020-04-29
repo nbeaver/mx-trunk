@@ -302,10 +302,21 @@ mxi_galil_gclib_command( MX_GALIL_GCLIB *galil_gclib,
 	unsigned long flags;
 	mx_bool_type debug_flag;
 	char *ptr = NULL;
+	char local_response[100];
+	char *buffer_ptr = NULL;
+	size_t buffer_length;
 
 	if ( galil_gclib == (MX_GALIL_GCLIB *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_GALIL_GCLIB pointer passed was NULL." );
+	}
+
+	if ( (response == NULL) || (response_length == 0) ) {
+		buffer_ptr = local_response;
+		buffer_length = sizeof(local_response);
+	} else {
+		buffer_ptr = response;
+		buffer_length = response_length;
 	}
 
 	flags = galil_gclib->galil_gclib_flags;
@@ -322,22 +333,22 @@ mxi_galil_gclib_command( MX_GALIL_GCLIB *galil_gclib,
 	}
 
 	gclib_status = GCommand( galil_gclib->connection,
-			command, response, response_length, 0 );
+			command, buffer_ptr, buffer_length, 0 );
 
 	switch( gclib_status ) {
 	case G_NO_ERROR:
 		break;
 	case G_BAD_RESPONSE_QUESTION_MARK:
-		/* If we get this response, then send a TC (Tell Error Code)
+		/* If we get this status code, then send a TC (Tell Error Code)
 		 * command to the controller to find out more information
 		 * about the error.
 		 */
 
 		gclib_status = GCommand( galil_gclib->connection,
-				"TC1", response, response_length, 0 );
+				"TC1", buffer_ptr, buffer_length, 0 );
 
 		if ( gclib_status == G_NO_ERROR ) {
-			ptr = strchr( response, MX_CR );
+			ptr = strchr( buffer_ptr, MX_CR );
 
 			if ( ptr != NULL ) {
 				*ptr = '\0';
@@ -346,7 +357,7 @@ mxi_galil_gclib_command( MX_GALIL_GCLIB *galil_gclib,
 			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
 			"The command '%s' sent to Galil controller '%s' "
 			"failed with TC error status = '%s'.", command,
-				galil_gclib->record->name, response );
+				galil_gclib->record->name, buffer_ptr );
 			break;
 		} else {
 			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
@@ -366,9 +377,9 @@ mxi_galil_gclib_command( MX_GALIL_GCLIB *galil_gclib,
 		break;
 	}
 
-	if ( debug_flag ) {
+	if ( debug_flag && (buffer_ptr == response) ) {
 		MX_DEBUG(-2,("%s: received '%s' from '%s'.",
-		fname, response, galil_gclib->record->name ));
+		fname, buffer_ptr, galil_gclib->record->name ));
 	}
 
 	return MX_SUCCESSFUL_RESULT;

@@ -333,7 +333,7 @@ mxd_galil_gclib_move_absolute( MX_MOTOR *motor )
 
 	MX_GALIL_GCLIB_MOTOR *galil_gclib_motor = NULL;
 	MX_GALIL_GCLIB *galil_gclib = NULL;
-	char command[80], response[80];
+	char command[80];
 	mx_status_type mx_status;
 
 	mx_status = mxd_galil_gclib_get_pointers( motor, &galil_gclib_motor,
@@ -346,8 +346,7 @@ mxd_galil_gclib_move_absolute( MX_MOTOR *motor )
 			galil_gclib_motor->axis_name,
 			motor->raw_destination.stepper );
 
-	mx_status = mxi_galil_gclib_command( galil_gclib,
-			command, response, sizeof(response) );
+	mx_status = mxi_galil_gclib_command( galil_gclib, command, NULL, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -355,8 +354,7 @@ mxd_galil_gclib_move_absolute( MX_MOTOR *motor )
 	snprintf( command, sizeof(command),
 		"BG%c", galil_gclib_motor->axis_name );
 
-	mx_status = mxi_galil_gclib_command( galil_gclib,
-			command, response, sizeof(response) );
+	mx_status = mxi_galil_gclib_command( galil_gclib, command, NULL, 0 );
 
 	return mx_status;
 }
@@ -412,7 +410,7 @@ mxd_galil_gclib_set_position( MX_MOTOR *motor )
 
 	MX_GALIL_GCLIB_MOTOR *galil_gclib_motor = NULL;
 	MX_GALIL_GCLIB *galil_gclib = NULL;
-	char command[80], response[80];
+	char command[80];
 	mx_status_type mx_status;
 
 	mx_status = mxd_galil_gclib_get_pointers( motor, &galil_gclib_motor,
@@ -425,8 +423,7 @@ mxd_galil_gclib_set_position( MX_MOTOR *motor )
 		"DP%c=%ld", galil_gclib_motor->axis_name,
 		motor->raw_set_position.stepper );
 
-	mx_status = mxi_galil_gclib_command( galil_gclib,
-			command, response, sizeof(response) );
+	mx_status = mxi_galil_gclib_command( galil_gclib, command, NULL, 0 );
 
 	return mx_status;
 }
@@ -440,7 +437,7 @@ mxd_galil_gclib_soft_abort( MX_MOTOR *motor )
 
 	MX_GALIL_GCLIB_MOTOR *galil_gclib_motor = NULL;
 	MX_GALIL_GCLIB *galil_gclib = NULL;
-	char command[80], response[80];
+	char command[80];
 	mx_status_type mx_status;
 
 	mx_status = mxd_galil_gclib_get_pointers( motor, &galil_gclib_motor,
@@ -452,8 +449,7 @@ mxd_galil_gclib_soft_abort( MX_MOTOR *motor )
 	snprintf( command, sizeof(command),
 		"ST%c", galil_gclib_motor->axis_name );
 
-	mx_status = mxi_galil_gclib_command( galil_gclib,
-			command, response, sizeof(response) );
+	mx_status = mxi_galil_gclib_command( galil_gclib, command, NULL, 0 );
 
 	return mx_status;
 }
@@ -467,7 +463,7 @@ mxd_galil_gclib_immediate_abort( MX_MOTOR *motor )
 
 	MX_GALIL_GCLIB_MOTOR *galil_gclib_motor = NULL;
 	MX_GALIL_GCLIB *galil_gclib = NULL;
-	char command[80], response[80];
+	char command[80];
 	mx_status_type mx_status;
 
 	mx_status = mxd_galil_gclib_get_pointers( motor, &galil_gclib_motor,
@@ -479,8 +475,7 @@ mxd_galil_gclib_immediate_abort( MX_MOTOR *motor )
 	snprintf( command, sizeof(command),
 		"AB%c", galil_gclib_motor->axis_name );
 
-	mx_status = mxi_galil_gclib_command( galil_gclib,
-			command, response, sizeof(response) );
+	mx_status = mxi_galil_gclib_command( galil_gclib, command, NULL, 0 );
 
 	return mx_status;
 }
@@ -494,7 +489,7 @@ mxd_galil_gclib_raw_home_command( MX_MOTOR *motor )
 
 	MX_GALIL_GCLIB_MOTOR *galil_gclib_motor = NULL;
 	MX_GALIL_GCLIB *galil_gclib = NULL;
-	char command[80], response[80];
+	char command[80];
 	mx_status_type mx_status;
 
 	mx_status = mxd_galil_gclib_get_pointers( motor, &galil_gclib_motor,
@@ -506,8 +501,7 @@ mxd_galil_gclib_raw_home_command( MX_MOTOR *motor )
 	snprintf( command, sizeof(command),
 		"HM%c", galil_gclib_motor->axis_name );
 
-	mx_status = mxi_galil_gclib_command( galil_gclib,
-			command, response, sizeof(response) );
+	mx_status = mxi_galil_gclib_command( galil_gclib, command, NULL, 0 );
 
 	return mx_status;
 }
@@ -562,7 +556,7 @@ mxd_galil_gclib_set_parameter( MX_MOTOR *motor )
 
 	MX_GALIL_GCLIB_MOTOR *galil_gclib_motor = NULL;
 	MX_GALIL_GCLIB *galil_gclib = NULL;
-	char command[80], response[80];
+	char command[80];
 	mx_status_type mx_status;
 
 	mx_status = mxd_galil_gclib_get_pointers( motor, &galil_gclib_motor,
@@ -590,7 +584,7 @@ mxd_galil_gclib_set_parameter( MX_MOTOR *motor )
 			mx_round( motor->raw_acceleration_parameters[0] ));
 
 		mx_status = mxi_galil_gclib_command( galil_gclib,
-			command, response, sizeof(response) );
+						command, NULL, 0 );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -600,7 +594,7 @@ mxd_galil_gclib_set_parameter( MX_MOTOR *motor )
 			mx_round( motor->raw_acceleration_parameters[0] ));
 
 		mx_status = mxi_galil_gclib_command( galil_gclib,
-			command, response, sizeof(response) );
+						command, NULL, 0 );
 		break;
 
 	case MXLV_MTR_AXIS_ENABLE:
@@ -614,7 +608,7 @@ mxd_galil_gclib_set_parameter( MX_MOTOR *motor )
 		}
 
 		mx_status = mxi_galil_gclib_command( galil_gclib,
-			command, response, sizeof(response) );
+						command, NULL, 0 );
 		break;
 
 	case MXLV_MTR_PROPORTIONAL_GAIN:
@@ -623,7 +617,7 @@ mxd_galil_gclib_set_parameter( MX_MOTOR *motor )
 			motor->proportional_gain );
 
 		mx_status = mxi_galil_gclib_command( galil_gclib,
-			command, response, sizeof(response) );
+						command, NULL, 0 );
 		break;
 
 	case MXLV_MTR_INTEGRAL_GAIN:
@@ -632,7 +626,7 @@ mxd_galil_gclib_set_parameter( MX_MOTOR *motor )
 			motor->integral_gain );
 
 		mx_status = mxi_galil_gclib_command( galil_gclib,
-			command, response, sizeof(response) );
+						command, NULL, 0 );
 		break;
 
 	case MXLV_MTR_DERIVATIVE_GAIN:
@@ -641,7 +635,7 @@ mxd_galil_gclib_set_parameter( MX_MOTOR *motor )
 			motor->derivative_gain );
 
 		mx_status = mxi_galil_gclib_command( galil_gclib,
-			command, response, sizeof(response) );
+						command, NULL, 0 );
 		break;
 
 	case MXLV_MTR_INTEGRAL_LIMIT:
@@ -650,7 +644,7 @@ mxd_galil_gclib_set_parameter( MX_MOTOR *motor )
 			mx_round( motor->integral_limit ));
 
 		mx_status = mxi_galil_gclib_command( galil_gclib,
-			command, response, sizeof(response) );
+						command, NULL, 0 );
 		break;
 
 	case MXLV_MTR_VELOCITY_FEEDFORWARD_GAIN:
@@ -659,7 +653,7 @@ mxd_galil_gclib_set_parameter( MX_MOTOR *motor )
 			mx_round( motor->velocity_feedforward_gain ));
 
 		mx_status = mxi_galil_gclib_command( galil_gclib,
-			command, response, sizeof(response) );
+						command, NULL, 0 );
 		break;
 
 	case MXLV_MTR_ACCELERATION_FEEDFORWARD_GAIN:
@@ -668,7 +662,7 @@ mxd_galil_gclib_set_parameter( MX_MOTOR *motor )
 			mx_round( motor->acceleration_feedforward_gain ));
 
 		mx_status = mxi_galil_gclib_command( galil_gclib,
-			command, response, sizeof(response) );
+						command, NULL, 0 );
 		break;
 
 	default:
@@ -695,7 +689,6 @@ mxd_galil_gclib_simultaneous_start( long num_motor_records,
 	MX_GALIL_GCLIB *galil_gclib = NULL;
 	char destination_command[80];
 	char simultaneous_start_command[500];
-	char response[80];
 	long i;
 	double raw_position;
 	mx_status_type mx_status = MX_SUCCESSFUL_RESULT;
@@ -762,8 +755,7 @@ mxd_galil_gclib_simultaneous_start( long num_motor_records,
 				mx_round( raw_position ) );
 
 		mx_status = mxi_galil_gclib_command( galil_gclib,
-				destination_command,
-				response, sizeof(response) );
+					destination_command, NULL, 0 );
 
 		/* Add this motor to the simultaneous start command. */
 
@@ -773,8 +765,7 @@ mxd_galil_gclib_simultaneous_start( long num_motor_records,
 	/* We finish by sending the simultaneous start command. */
 
 	mx_status = mxi_galil_gclib_command( galil_gclib,
-					simultaneous_start_command,
-					response, sizeof(response) );
+			simultaneous_start_command, NULL, 0 );
 
 	return mx_status;
 }
