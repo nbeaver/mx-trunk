@@ -1007,9 +1007,9 @@ mxd_galil_gclib_get_status( MX_MOTOR *motor )
 	/* FIXME: Maybe we can do better than the following logic. */
 
 	if ( stop_code == 0 ) {
-		motor->status = 0;
-	} else {
 		motor->status = MXSF_MTR_IS_BUSY;
+	} else {
+		motor->status = 0;
 	}
 
 	return mx_status;
