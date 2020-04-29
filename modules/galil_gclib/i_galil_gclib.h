@@ -25,6 +25,8 @@
 
 /* Flag bits for the 'galil_gclib_flags' variable. */
 
+#define MXF_GALIL_GCLIB_DEBUG_COMMANDS	0x1
+
 typedef struct {
 	MX_RECORD *record;
 
@@ -64,6 +66,10 @@ MX_API mx_status_type mxi_galil_gclib_resynchronize( MX_RECORD *record );
 
 MX_API mx_status_type mxi_galil_gclib_special_processing_setup(
 							MX_RECORD *record );
+
+MX_API mx_status_type mxi_galil_gclib_command( MX_GALIL_GCLIB *galil_gclib,
+				char *command,
+				char *response, size_t response_length );
 
 extern MX_RECORD_FUNCTION_LIST mxi_galil_gclib_record_function_list;
 

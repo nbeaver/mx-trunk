@@ -22,6 +22,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_process.h"
+#include "mx_ascii.h"
 #include "mx_motor.h"
 #include "i_galil_gclib.h"
 #include "d_galil_gclib.h"
@@ -131,8 +132,9 @@ mxi_galil_gclib_open( MX_RECORD *record )
 
 	MX_GALIL_GCLIB *galil_gclib = NULL;
 	GReturn gclib_status;
-	char buffer[80];
+	char response[80];
 	char connection_string[MXU_HOSTNAME_LENGTH + 8];
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -178,10 +180,15 @@ mxi_galil_gclib_open( MX_RECORD *record )
 		record->name, galil_gclib->hostname, (int) gclib_status );
 	}
 
+#if MXI_GALIL_GCLIB_DEBUG
+	MX_DEBUG(-2,("%s: galil_gclib->connection = %p",
+		fname, galil_gclib->connection));
+#endif
+
 	/* Print out some information from the controller. */
 
 	gclib_status = GInfo( galil_gclib->connection,
-				buffer, sizeof(buffer) );
+				response, sizeof(response) );
 
 	if ( gclib_status != G_NO_ERROR ) {
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
@@ -190,19 +197,15 @@ mxi_galil_gclib_open( MX_RECORD *record )
 			record->name, (int) gclib_status );
 	}
 
-	MX_DEBUG(-2,("%s: Connection info = '%s'", fname, buffer ));
+	MX_DEBUG(-2,("%s: Connection info = '%s'", fname, response ));
 
-	gclib_status = GCommand( galil_gclib->connection,
-			"MG TIME", buffer, sizeof(buffer), 0 );
+	mx_status = mxi_galil_gclib_command( galil_gclib,
+			"MG TIME", response, sizeof(response) );
 
-	if ( gclib_status != G_NO_ERROR ) {
-		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
-		"The command 'MG TIME' sent to "
-		"Galil controller '%s' failed with status = %d.",
-			record->name, (int) gclib_status );
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	MX_DEBUG(-2,("%s: MG TIME response = '%s'", fname, buffer ));
+	MX_DEBUG(-2,("%s: MG TIME response = '%s'", fname, response ));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -289,3 +292,86 @@ mxi_galil_gclib_process_function( void *record_ptr,
 
 /*--------------------------------------------------------------------------*/
 
+MX_EXPORT mx_status_type
+mxi_galil_gclib_command( MX_GALIL_GCLIB *galil_gclib,
+		char *command, char *response, size_t response_length )
+{
+	static const char fname[] = "mxi_galil_gclib_command()";
+
+	GReturn gclib_status;
+	unsigned long flags;
+	mx_bool_type debug_flag;
+	char *ptr = NULL;
+
+	if ( galil_gclib == (MX_GALIL_GCLIB *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_GALIL_GCLIB pointer passed was NULL." );
+	}
+
+	flags = galil_gclib->galil_gclib_flags;
+
+	if ( flags & MXF_GALIL_GCLIB_DEBUG_COMMANDS ) {
+		debug_flag = TRUE;
+	} else {
+		debug_flag = FALSE;
+	}
+
+	if ( debug_flag ) {
+		MX_DEBUG(-2,("%s: sending '%s' to '%s'.",
+		fname, command, galil_gclib->record->name ));
+	}
+
+	gclib_status = GCommand( galil_gclib->connection,
+			command, response, response_length, 0 );
+
+	switch( gclib_status ) {
+	case G_NO_ERROR:
+		break;
+	case G_BAD_RESPONSE_QUESTION_MARK:
+		/* If we get this response, then send a TC (Tell Error Code)
+		 * command to the controller to find out more information
+		 * about the error.
+		 */
+
+		gclib_status = GCommand( galil_gclib->connection,
+				"TC1", response, response_length, 0 );
+
+		if ( gclib_status == G_NO_ERROR ) {
+			ptr = strchr( response, MX_CR );
+
+			if ( ptr != NULL ) {
+				*ptr = '\0';
+			}
+
+			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+			"The command '%s' sent to Galil controller '%s' "
+			"failed with TC error status = '%s'.", command,
+				galil_gclib->record->name, response );
+			break;
+		} else {
+			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+			"A TC command was sent to '%s' to find out why the "
+			"most recent command failed, but the TC command "
+			"itself failed with gclib_status = %d, so we have "
+			"to give up on trying to figure out why "
+			"there was an error.", galil_gclib->record->name,
+					gclib_status );
+		}
+		break;
+	default:
+		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+		"The command '%s' sent to Galil controller '%s' "
+		"failed with status = %d.", command,
+			galil_gclib->record->name, (int) gclib_status );
+		break;
+	}
+
+	if ( debug_flag ) {
+		MX_DEBUG(-2,("%s: received '%s' from '%s'.",
+		fname, response, galil_gclib->record->name ));
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
