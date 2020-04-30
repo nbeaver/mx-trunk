@@ -252,7 +252,7 @@ mxd_galil_gclib_special_processing_setup( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
-		case 0:
+		case MXLV_GALIL_GCLIB_MOTOR_STOP_CODE:
 			record_field->process_function
 					= mxd_galil_gclib_process_function;
 			break;
@@ -280,6 +280,8 @@ mxd_galil_gclib_process_function( void *record_ptr,
 	MX_GALIL_GCLIB_MOTOR *galil_gclib_motor;
 	MX_RECORD *galil_gclib_record;
 	MX_GALIL_GCLIB *galil_gclib;
+	char command[80], response[80];
+	int num_items;
 	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
@@ -297,8 +299,28 @@ mxd_galil_gclib_process_function( void *record_ptr,
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
-		case 0:
+		case MXLV_GALIL_GCLIB_MOTOR_STOP_CODE:
+			snprintf( command, sizeof(command),
+				"SC%c", galil_gclib_motor->axis_name );
+
+			mx_status = mxi_galil_gclib_command( galil_gclib,
+					command, response, sizeof(response) );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			num_items = sscanf( response, "%lu",
+					&(galil_gclib_motor->stop_code) );
+
+			if ( num_items != 1 ) {
+				return mx_error( MXE_UNPARSEABLE_STRING, fname,
+				"Could not find the stop code in the "
+				"response '%s' to command '%s' for "
+				"Galil motor '%s'.",
+					response, command, record->name );
+			}
 			break;
+
 		default:
 			MX_DEBUG( 1,(
 			    "%s: *** Unknown MX_PROCESS_GET label value = %ld",
@@ -560,7 +582,7 @@ mxd_galil_gclib_get_parameter( MX_MOTOR *motor )
 		/* Acceleration parameter 0 = acceleration (units/sec**2) */
 
 		snprintf( command, sizeof(command),
-			"MG AC%c", galil_gclib_motor->axis_name );
+			"MG _AC%c", galil_gclib_motor->axis_name );
 
 		mx_status = mxi_galil_gclib_command( galil_gclib,
 					command, response, sizeof(response) );
@@ -1003,6 +1025,8 @@ mxd_galil_gclib_get_status( MX_MOTOR *motor )
 			motor->record->name,
 			response, command );
 	}
+
+	galil_gclib_motor->stop_code = stop_code;
 
 	/* FIXME: Maybe we can do better than the following logic. */
 

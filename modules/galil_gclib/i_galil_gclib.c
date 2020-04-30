@@ -88,6 +88,8 @@ mxi_galil_gclib_create_record_structures( MX_RECORD *record )
 	record->class_specific_function_list = NULL;
 
 	galil_gclib->record = record;
+	galil_gclib->error_code = 0;
+	galil_gclib->gclib_status = 0;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -226,7 +228,8 @@ mxi_galil_gclib_special_processing_setup( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
-		case 0:
+		case MXLV_GALIL_GCLIB_ERROR_CODE:
+		case MXLV_GALIL_GCLIB_GCLIB_STATUS:
 			record_field->process_function
 					= mxi_galil_gclib_process_function;
 			break;
@@ -251,6 +254,8 @@ mxi_galil_gclib_process_function( void *record_ptr,
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;
 	MX_GALIL_GCLIB *galil_gclib;
+	char command[80], response[80];
+	int num_items;
 	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
@@ -264,8 +269,33 @@ mxi_galil_gclib_process_function( void *record_ptr,
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
-		case 0:
+		case MXLV_GALIL_GCLIB_ERROR_CODE:
+			strlcpy( command, "TC1", sizeof(command) );
+
+			mx_status = mxi_galil_gclib_command( galil_gclib,
+					command, response, sizeof(response) );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			num_items = sscanf( response, "%lu",
+					&(galil_gclib->error_code) );
+
+			if ( num_items != 1 ) {
+				return mx_error( MXE_UNPARSEABLE_STRING, fname,
+				"Could not find the error code in the "
+				"response '%s' to command '%s' for "
+				"Galil controller '%s'.",
+					response, command, record->name );
+			}
 			break;
+
+		case MXLV_GALIL_GCLIB_GCLIB_STATUS:
+			/* Nothing to do.  We just report the most recently
+			 * recived gclib status.
+			 */
+			break;
+
 		default:
 			MX_DEBUG( 1,(
 			    "%s: *** Unknown MX_PROCESS_GET label value = %ld",
@@ -334,6 +364,8 @@ mxi_galil_gclib_command( MX_GALIL_GCLIB *galil_gclib,
 
 	gclib_status = GCommand( galil_gclib->connection,
 			command, buffer_ptr, buffer_length, 0 );
+
+	galil_gclib->gclib_status = gclib_status;
 
 	switch( gclib_status ) {
 	case G_NO_ERROR:

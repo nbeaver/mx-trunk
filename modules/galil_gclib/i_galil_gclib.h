@@ -35,11 +35,20 @@ typedef struct {
 
 	char version[MXU_GALIL_GCLIB_BUFFER_LENGTH+1];
 
+	unsigned long error_code;
+	long gclib_status;
+
 	GCon connection;
 
+#if 0
 	long num_motors;
 	MX_RECORD **motor_record_array;
+#endif
+
 } MX_GALIL_GCLIB;
+
+#define MXLV_GALIL_GCLIB_ERROR_CODE	0x9201
+#define MXLV_GALIL_GCLIB_GCLIB_STATUS	0x9202
 
 #define MXI_GALIL_GCLIB_STANDARD_FIELDS \
   {-1, -1, "hostname", MXFT_STRING, NULL, 1, {MXU_HOSTNAME_LENGTH}, \
@@ -52,7 +61,15 @@ typedef struct {
   \
   {-1, -1, "version", MXFT_STRING, NULL, 1, {MXU_GALIL_GCLIB_BUFFER_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_GALIL_GCLIB, version), \
-	{sizeof(char)}, NULL, MXFF_READ_ONLY }
+	{sizeof(char)}, NULL, MXFF_READ_ONLY }, \
+  \
+  {MXLV_GALIL_GCLIB_ERROR_CODE, -1, "error_code", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_GALIL_GCLIB, error_code), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {MXLV_GALIL_GCLIB_GCLIB_STATUS, -1, "gclib_status", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_GALIL_GCLIB, gclib_status), \
+	{0}, NULL, MXFF_READ_ONLY }, \
 
 MX_API mx_status_type mxi_galil_gclib_create_record_structures(
 						MX_RECORD *record );
