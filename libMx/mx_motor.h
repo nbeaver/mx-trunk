@@ -223,10 +223,12 @@ typedef struct {
 	double raw_speed;
 	double raw_base_speed;
 	double raw_maximum_speed;
+	double raw_current_speed;
 
 	double speed;
 	double base_speed;
 	double maximum_speed;
+	double current_speed;
 
 	mx_bool_type save_speed;
 	mx_bool_type restore_speed;
@@ -406,37 +408,38 @@ typedef struct {
 #define MXLV_MTR_SPEED					1023
 #define MXLV_MTR_BASE_SPEED				1024
 #define MXLV_MTR_MAXIMUM_SPEED				1025
-#define MXLV_MTR_ACCELERATION_TYPE			1026
-#define MXLV_MTR_RAW_ACCELERATION_PARAMETERS		1027
-#define MXLV_MTR_ACCELERATION_TIME			1028
-#define MXLV_MTR_ACCELERATION_DISTANCE			1029
-#define MXLV_MTR_SPEED_CHOICE_PARAMETERS		1030
-#define MXLV_MTR_SAVE_SPEED				1031
-#define MXLV_MTR_RESTORE_SPEED				1032
-#define MXLV_MTR_SYNCHRONOUS_MOTION_MODE		1033
-#define MXLV_MTR_COMPUTE_EXTENDED_SCAN_RANGE		1034
-#define MXLV_MTR_COMPUTE_PSEUDOMOTOR_POSITION		1035
-#define MXLV_MTR_COMPUTE_REAL_POSITION			1036
-#define MXLV_MTR_GET_REAL_MOTOR_FROM_PSEUDOMOTOR	1037
-#define MXLV_MTR_GET_STATUS				1038
-#define MXLV_MTR_GET_EXTENDED_STATUS			1039
-#define MXLV_MTR_GET_RAW_STATUS				1040
-#define MXLV_MTR_GET_LATCHED_STATUS			1041
-#define MXLV_MTR_BUSY_START_INTERVAL_ENABLED		1042
-#define MXLV_MTR_BUSY_START_INTERVAL			1043
-#define MXLV_MTR_LAST_START_TIME			1044
-#define MXLV_MTR_SAVE_START_POSITIONS			1045
-#define MXLV_MTR_USE_START_POSITIONS			1046
-#define MXLV_MTR_TRIGGERED_MOVE_DESTINATION		1047
-#define MXLV_MTR_TRIGGER_MOVE				1048
-#define MXLV_MTR_TRIGGER_MODE				1049
-#define MXLV_MTR_WINDOW_IS_AVAILABLE			1050
-#define MXLV_MTR_USE_WINDOW				1051
-#define MXLV_MTR_WINDOW					1052
-#define MXLV_MTR_NUM_ESTIMATED_MOVE_POSITIONS		1053
-#define MXLV_MTR_ESTIMATED_MOVE_POSITIONS		1054
-#define MXLV_MTR_ESTIMATED_MOVE_DURATIONS		1055
-#define MXLV_MTR_TOTAL_ESTIMATED_MOVE_DURATION		1056
+#define MXLV_MTR_CURRENT_SPEED				1026
+#define MXLV_MTR_ACCELERATION_TYPE			1027
+#define MXLV_MTR_RAW_ACCELERATION_PARAMETERS		1028
+#define MXLV_MTR_ACCELERATION_TIME			1029
+#define MXLV_MTR_ACCELERATION_DISTANCE			1030
+#define MXLV_MTR_SPEED_CHOICE_PARAMETERS		1031
+#define MXLV_MTR_SAVE_SPEED				1032
+#define MXLV_MTR_RESTORE_SPEED				1033
+#define MXLV_MTR_SYNCHRONOUS_MOTION_MODE		1034
+#define MXLV_MTR_COMPUTE_EXTENDED_SCAN_RANGE		1035
+#define MXLV_MTR_COMPUTE_PSEUDOMOTOR_POSITION		1036
+#define MXLV_MTR_COMPUTE_REAL_POSITION			1037
+#define MXLV_MTR_GET_REAL_MOTOR_FROM_PSEUDOMOTOR	1038
+#define MXLV_MTR_GET_STATUS				1039
+#define MXLV_MTR_GET_EXTENDED_STATUS			1040
+#define MXLV_MTR_GET_RAW_STATUS				1041
+#define MXLV_MTR_GET_LATCHED_STATUS			1042
+#define MXLV_MTR_BUSY_START_INTERVAL_ENABLED		1043
+#define MXLV_MTR_BUSY_START_INTERVAL			1044
+#define MXLV_MTR_LAST_START_TIME			1045
+#define MXLV_MTR_SAVE_START_POSITIONS			1046
+#define MXLV_MTR_USE_START_POSITIONS			1047
+#define MXLV_MTR_TRIGGERED_MOVE_DESTINATION		1048
+#define MXLV_MTR_TRIGGER_MOVE				1049
+#define MXLV_MTR_TRIGGER_MODE				1050
+#define MXLV_MTR_WINDOW_IS_AVAILABLE			1051
+#define MXLV_MTR_USE_WINDOW				1052
+#define MXLV_MTR_WINDOW					1053
+#define MXLV_MTR_NUM_ESTIMATED_MOVE_POSITIONS		1054
+#define MXLV_MTR_ESTIMATED_MOVE_POSITIONS		1055
+#define MXLV_MTR_ESTIMATED_MOVE_DURATIONS		1056
+#define MXLV_MTR_TOTAL_ESTIMATED_MOVE_DURATION		1057
 
 #define MXLV_MTR_VALUE_CHANGE_THRESHOLD			3001
 
@@ -646,6 +649,10 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, raw_maximum_speed),\
 	{0}, NULL, 0}, \
   \
+  {-1, -1, "raw_current_speed", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, raw_current_speed),\
+	{0}, NULL, 0}, \
+  \
   {MXLV_MTR_SPEED, -1, "speed", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, speed),\
 	{0}, NULL, 0}, \
@@ -656,6 +663,10 @@ typedef struct {
   \
   {MXLV_MTR_MAXIMUM_SPEED, -1, "maximum_speed", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, maximum_speed),\
+	{0}, NULL, 0}, \
+  \
+  {MXLV_MTR_CURRENT_SPEED, -1, "current_speed", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, current_speed),\
 	{0}, NULL, 0}, \
   \
   {MXLV_MTR_SAVE_SPEED, -1, "save_speed", MXFT_BOOL, NULL, 0, {0}, \
@@ -1129,6 +1140,9 @@ MX_API mx_status_type mx_motor_get_maximum_speed( MX_RECORD *motor_record,
 
 MX_API mx_status_type mx_motor_set_maximum_speed( MX_RECORD *motor_record,
 						double maximum_speed );
+
+MX_API mx_status_type mx_motor_get_current_speed( MX_RECORD *motor_record,
+						double *current_speed );
 
 MX_API mx_status_type mx_motor_get_raw_speed( MX_RECORD *motor_record,
 						double *raw_speed );

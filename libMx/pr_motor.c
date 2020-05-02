@@ -428,6 +428,7 @@ mx_setup_motor_process_functions( MX_RECORD *record )
 		case MXLV_MTR_COMPUTE_PSEUDOMOTOR_POSITION:
 		case MXLV_MTR_COMPUTE_REAL_POSITION:
 		case MXLV_MTR_CONSTANT_VELOCITY_MOVE:
+		case MXLV_MTR_CURRENT_SPEED:
 		case MXLV_MTR_DERIVATIVE_GAIN:
 		case MXLV_MTR_DESTINATION:
 		case MXLV_MTR_ESTIMATED_MOVE_DURATIONS:
@@ -563,6 +564,10 @@ mx_motor_process_function( void *record_ptr,
 			break;
 		case MXLV_MTR_MAXIMUM_SPEED:
 			mx_status = mx_motor_get_maximum_speed( record, NULL );
+
+			break;
+		case MXLV_MTR_CURRENT_SPEED:
+			mx_status = mx_motor_get_current_speed( record, NULL );
 
 			break;
 		case MXLV_MTR_SYNCHRONOUS_MOTION_MODE:

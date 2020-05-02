@@ -3109,6 +3109,7 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 	case MXLV_MTR_SPEED:
 	case MXLV_MTR_BASE_SPEED:
 	case MXLV_MTR_MAXIMUM_SPEED:
+	case MXLV_MTR_CURRENT_SPEED:
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
 	case MXLV_MTR_AXIS_ENABLE:
 	case MXLV_MTR_CLOSED_LOOP:
@@ -4205,6 +4206,45 @@ mx_motor_set_maximum_speed( MX_RECORD *motor_record, double maximum_speed )
 
 	return status;
 #endif
+}
+
+MX_EXPORT mx_status_type
+mx_motor_get_current_speed( MX_RECORD *motor_record, double *current_speed )
+{
+	static const char fname[] = "mx_motor_get_current_speed()";
+
+	MX_MOTOR *motor;
+	MX_MOTOR_FUNCTION_LIST *fl_ptr;
+	mx_status_type ( *fptr ) ( MX_MOTOR * );
+	mx_status_type status;
+
+	status = mx_motor_get_pointers( motor_record,
+					&motor, &fl_ptr, fname );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	fptr = fl_ptr->get_parameter;
+
+	if ( fptr == NULL ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Getting the current motor speed is not supported "
+		"by the driver for record '%s'.",
+			motor_record->name );
+	}
+
+	motor->parameter_type = MXLV_MTR_CURRENT_SPEED;
+
+	status = ( *fptr ) ( motor );
+
+	motor->current_speed =
+		fabs(motor->scale) * motor->raw_current_speed;
+
+	if ( current_speed != NULL ) {
+		*current_speed = motor->current_speed;
+	}
+
+	return status;
 }
 
 MX_EXPORT mx_status_type

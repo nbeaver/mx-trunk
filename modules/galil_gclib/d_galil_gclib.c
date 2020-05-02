@@ -24,6 +24,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
+#include "mx_inttypes.h"
 #include "mx_process.h"
 #include "mx_motor.h"
 #include "i_galil_gclib.h"
@@ -560,7 +561,7 @@ mxd_galil_gclib_get_parameter( MX_MOTOR *motor )
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
 		snprintf( command, sizeof(command),
-			"TV%c", galil_gclib_motor->axis_name );
+			"MG _SP%c", galil_gclib_motor->axis_name );
 
 		mx_status = mxi_galil_gclib_command( galil_gclib,
 					command, response, sizeof(response) );
@@ -574,6 +575,27 @@ mxd_galil_gclib_get_parameter( MX_MOTOR *motor )
 			return mx_error( MXE_UNPARSEABLE_STRING, fname,
 			"Cannot find the motor speed in the response '%s' "
 			"to command '%s' for motor '%s'.",
+				response, command, motor->record->name );
+		}
+		break;
+
+	case MXLV_MTR_CURRENT_SPEED:
+		snprintf( command, sizeof(command),
+			"TV%c", galil_gclib_motor->axis_name );
+
+		mx_status = mxi_galil_gclib_command( galil_gclib,
+					command, response, sizeof(response) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		num_items = sscanf( response, "%lg",
+				&(motor->raw_current_speed) );
+
+		if ( num_items != 1 ) {
+			return mx_error( MXE_UNPARSEABLE_STRING, fname,
+			"Cannot find the current_motor speed in the "
+			"response '%s' to command '%s' for motor '%s'.",
 				response, command, motor->record->name );
 		}
 		break;
@@ -792,6 +814,14 @@ mxd_galil_gclib_set_parameter( MX_MOTOR *motor )
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
+		snprintf( command, sizeof(command),
+			"SP%c=%lu", galil_gclib_motor->axis_name,
+			mx_round(motor->raw_speed) );
+
+		mx_status = mxi_galil_gclib_command( galil_gclib,
+							command, NULL, 0 );
+		break;
+
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
 		/* Acceleration parameter 0 = acceleration (units/sec**2)
 		 */
@@ -989,6 +1019,8 @@ mxd_galil_gclib_simultaneous_start( long num_motor_records,
 
 /*--------------------------------------------------------------------------*/
 
+#if 0
+
 MX_EXPORT mx_status_type
 mxd_galil_gclib_get_status( MX_MOTOR *motor )
 {
@@ -1039,3 +1071,159 @@ mxd_galil_gclib_get_status( MX_MOTOR *motor )
 	return mx_status;
 }
 
+#else
+
+MX_EXPORT mx_status_type
+mxd_galil_gclib_get_status( MX_MOTOR *motor )
+{
+	static const char fname[] = "mxd_galil_gclib_get_status()";
+
+	MX_GALIL_GCLIB_MOTOR *galil_gclib_motor = NULL;
+	MX_GALIL_GCLIB *galil_gclib = NULL;
+	char command[80], response[500];
+	int num_items, num_header_bytes, num_axes;
+	int header_offset;
+	int general_status_offset, num_general_status_bytes;
+	int coordinated_move_offset, num_coordinated_move_status_bytes;
+	int axis_offset, num_axis_bytes;
+	uint8_t *axis_ptr = NULL;
+	uint16_t axis_status;
+	mx_status_type mx_status;
+
+	mx_status = mxd_galil_gclib_get_pointers( motor, &galil_gclib_motor,
+							&galil_gclib, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Get information about the "data record". */
+
+	snprintf( command, sizeof(command), "QZ" );
+
+	mx_status = mxi_galil_gclib_command( galil_gclib,
+			command, response, sizeof(response) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	num_items = sscanf( response, "%d,%d,%d,%d",
+		&num_axes, &num_general_status_bytes,
+		&num_coordinated_move_status_bytes,
+		&num_axis_bytes );
+
+	if ( num_items != 4 ) {
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Did not find 4 values in the response '%s' "
+		"to command 'QZ' for the Galil motor '%s'.",
+			response, motor->record->name );
+	}
+
+#if 1
+	MX_DEBUG(-2,("%s: num_axes = %d, num_general_status_bytes = %d, "
+		"num_coordinated_move_status_bytes = %d, "
+		"num_axis_bytes = %d.",
+		fname, num_axes, num_general_status_bytes,
+		num_coordinated_move_status_bytes,
+		num_axis_bytes ));
+#endif
+
+	/* Now read out the "data record". */
+
+	snprintf( command, sizeof(command),
+		"QR%c", galil_gclib_motor->axis_name );
+
+	mx_status = mxi_galil_gclib_command( galil_gclib,
+			command, response, sizeof(response) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	num_header_bytes = 4;
+
+	header_offset = 0;
+
+	general_status_offset = header_offset + num_header_bytes;
+
+	coordinated_move_offset =
+		general_status_offset + num_general_status_bytes;
+
+	axis_offset =
+		coordinated_move_offset + num_coordinated_move_status_bytes;
+
+	axis_ptr = (uint8_t *) ( (uint8_t *) response + (uint8_t) axis_offset );
+
+#if 0
+	if ( TRUE ) {
+		int8_t byte_value;
+		int i;
+
+		fprintf( stderr, "  QR response buffer:\n" );
+
+		/* Show the header contents. */
+
+		fprintf( stderr, "\n  header bytes = " );
+
+		for ( i = header_offset; i < num_header_bytes; i++ ) {
+			byte_value = response[i];
+
+			fprintf( stderr, "%#" PRIx8 ", ", byte_value & 0xff );
+		}
+
+		/* Show the number of axes. */
+
+		fprintf( stderr, "\n  num axes = %d", num_axes );
+
+		/* Show the general status bytes. */
+
+		fprintf( stderr, "\n  general status bytes = " );
+
+		for ( i = general_status_offset;
+			i < general_status_offset + num_general_status_bytes;
+			i++ )
+	       	{
+			byte_value = response[i];
+
+			fprintf( stderr, "%#" PRIx8 ", ", byte_value & 0xff );
+		}
+
+		/* Show the coordinated move status bytes. */
+
+		fprintf( stderr, "\n  coordinated move status bytes = " );
+
+		for ( i = coordinated_move_offset;
+	  i < coordinated_move_offset + num_coordinated_move_status_bytes;
+	  		i++ )
+       		{
+			byte_value = response[i];
+
+			fprintf( stderr, "%#" PRIx8 ", ", byte_value & 0xff );
+		}
+
+		/* Show the axis specific information bytes. */
+
+		fprintf( stderr, "\n  axis specific information bytee = " );
+
+		for ( i = axis_offset;
+i < axis_offset + num_axis_bytes;
+		    i++ )
+       		{
+			byte_value = response[i];
+
+			fprintf( stderr, "%#" PRIx8 ", ", byte_value & 0xff );
+		}
+
+		fprintf( stderr, "\n" );
+	}
+#endif
+
+	axis_status = ( ( axis_ptr[0] + ( axis_ptr[1] << 8 ) ) & 0xffff );
+
+	MX_DEBUG(-2,("*** axis_status = %#lx ***",
+		(unsigned long) axis_status));
+
+	motor->status = 1;
+
+	return mx_status;
+}
+
+#endif
