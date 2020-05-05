@@ -1222,21 +1222,20 @@ mxd_galil_gclib_get_extended_status( MX_MOTOR *motor )
 		if ( motor_status_ptr[1] & 0x80 ) {
 			motor->status |= MXSF_MTR_IS_BUSY;
 		}
-#if 0
-		if ( motor_status_ptr[2] & 0x8 ) {
+		if ( (motor_status_ptr[2] & 0x8) == 0 ) {
 			motor->status |= MXSF_MTR_POSITIVE_LIMIT_HIT;
 		}
-		if ( motor_status_ptr[2] & 0x4 ) {
+		if ( (motor_status_ptr[2] & 0x4) == 0 ) {
 			motor->status |= MXSF_MTR_NEGATIVE_LIMIT_HIT;
 		}
-		if ( motor_status_ptr[2] & 0x2 ) {
+		if ( (motor_status_ptr[2] & 0x2) == 0 ) {
 			motor->status |= MXSF_MTR_AT_HOME_SWITCH;
 		}
-#endif
 
 		if ( motor->status & MXSF_MTR_IS_BUSY ) {
 			/* If the motor is moving, then we can get the
-			 * motor position from the QR data record.
+			 * rest of the motion parameters from the
+			 * response to the QR command.
 			 */
 
 			motor->raw_position.stepper = 
