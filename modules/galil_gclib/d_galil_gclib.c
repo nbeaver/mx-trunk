@@ -615,8 +615,20 @@ mxd_galil_gclib_raw_home_command( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Turn on homing mode. */
+
 	snprintf( command, sizeof(command),
 		"HM%c", galil_gclib_motor->motor_name );
+
+	mx_status = mxi_galil_gclib_command( galil_gclib, command, NULL, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Start the home search. */
+
+	snprintf( command, sizeof(command),
+		"BG%c", galil_gclib_motor->motor_name );
 
 	mx_status = mxi_galil_gclib_command( galil_gclib, command, NULL, 0 );
 
