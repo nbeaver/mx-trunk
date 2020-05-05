@@ -18,6 +18,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -90,6 +91,7 @@ mxi_galil_gclib_create_record_structures( MX_RECORD *record )
 	galil_gclib->record = record;
 	galil_gclib->error_code = 0;
 	galil_gclib->gclib_status = 0;
+	galil_gclib->command_file[0] = '\0';
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -228,6 +230,8 @@ mxi_galil_gclib_special_processing_setup( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
+		case MXLV_GALIL_GCLIB_COMMAND:
+		case MXLV_GALIL_GCLIB_COMMAND_FILE:
 		case MXLV_GALIL_GCLIB_ERROR_CODE:
 		case MXLV_GALIL_GCLIB_GCLIB_STATUS:
 			record_field->process_function
@@ -305,6 +309,16 @@ mxi_galil_gclib_process_function( void *record_ptr,
 		break;
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
+		case MXLV_GALIL_GCLIB_COMMAND:
+			mx_status = mxi_galil_gclib_command( galil_gclib,
+				galil_gclib->command,
+				galil_gclib->response,
+				MXU_GALIL_GCLIB_BUFFER_LENGTH );
+			break;
+		case MXLV_GALIL_GCLIB_COMMAND_FILE:
+			mx_status = mxi_galil_gclib_run_command_file(
+				galil_gclib, galil_gclib->command_file );
+			break;
 		default:
 			MX_DEBUG( 1,(
 			    "%s: *** Unknown MX_PROCESS_PUT label value = %ld",
@@ -418,3 +432,74 @@ mxi_galil_gclib_command( MX_GALIL_GCLIB *galil_gclib,
 }
 
 /*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxi_galil_gclib_run_command_file( MX_GALIL_GCLIB *galil_gclib,
+					char *command_filename )
+{
+	static const char fname[] = "mxi_galil_gclib_run_command_file()";
+
+	FILE *command_file = NULL;
+	char command_buffer[500];
+	int saved_errno;
+	mx_status_type mx_status;
+
+	if ( galil_gclib == (MX_GALIL_GCLIB *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_GALIL_GCLIB pointer passed was NULL." );
+	}
+	if ( command_filename == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The command_filename pointer passed was NULL." );
+	}
+
+	command_file = fopen( command_filename, "r" );
+
+	if ( command_file == NULL ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"The attempt to open command file '%s' for Galil controller "
+		"'%s' failed.  errno = %d, error message = '%s'.",
+			command_filename, galil_gclib->record->name,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	while (TRUE) {
+		fgets( command_buffer, sizeof(command_buffer), command_file );
+
+		if ( ferror(command_file) ) {
+			saved_errno = errno;
+
+			fclose(command_file);
+
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"An error occurred while reading from Galil "
+			"command file '%s' for Galil controller '%s'.  "
+			"errno = %d, error message = '%s'.",
+				command_filename, galil_gclib->record->name,
+				saved_errno, strerror(saved_errno) );
+		}
+
+		if ( feof(command_file) ) {
+			/* We have reached the end of the command file,
+			 * so we return now.
+			 */
+
+			fclose(command_file);
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+
+		mx_status = mxi_galil_gclib_command( galil_gclib,
+						command_buffer, NULL, 0 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	return mx_error( MXE_UNKNOWN_ERROR, fname,
+	"Somehow we broke out of a while(TRUE) loop for Galil controller '%s'."
+	"  This should never happen and should be reported.",
+		galil_gclib->record->name );
+}
