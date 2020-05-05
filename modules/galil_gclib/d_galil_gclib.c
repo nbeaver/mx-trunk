@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <ctype.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -59,7 +60,8 @@ MX_MOTOR_FUNCTION_LIST mxd_galil_gclib_motor_function_list = {
 	mxd_galil_gclib_get_parameter,
 	mxd_galil_gclib_set_parameter,
 	NULL,
-	mxd_galil_gclib_get_status
+	NULL,
+	mxd_galil_gclib_get_extended_status
 };
 
 /* GALIL_GCLIB_MOTOR motor data structures. */
@@ -206,6 +208,43 @@ mxd_galil_gclib_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( islower( galil_gclib_motor->motor_name ) ) {
+		galil_gclib_motor->motor_name =
+			toupper( galil_gclib_motor->motor_name );
+	}
+
+	switch( galil_gclib_motor->motor_name ) {
+	case 'A':
+	case 'B':
+	case 'C':
+	case 'D':
+	case 'E':
+	case 'F':
+	case 'G':
+	case 'H':
+		galil_gclib_motor->motor_type = MXT_GALIL_GCLIB_AXIS;
+		break;
+	case 'S':
+	case 'T':
+		galil_gclib_motor->motor_type =
+			MXT_GALIL_GCLIB_COORDINATED_MOTION;
+		break;
+	case 'I':
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"The I block for Galil motor record '%s' cannot be used "
+		"as a motor.", record->name );
+		break;
+	default:
+		galil_gclib_motor->motor_type = MXT_GALIL_GCLIB_ILLEGAL;
+
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Illegal motor name '%c' requested for Galil motor '%s'.  "
+		"The only supported motor names are "
+		"A, B, C, D, E, F, G, H, S, or T.",
+			galil_gclib_motor->motor_name, record->name );
+		break;
+	}
+
 	return mx_status;
 }
 
@@ -253,6 +292,7 @@ mxd_galil_gclib_special_processing_setup( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
+		case MXLV_GALIL_GCLIB_MOTOR_SHOW_QR:
 		case MXLV_GALIL_GCLIB_MOTOR_STOP_CODE:
 			record_field->process_function
 					= mxd_galil_gclib_process_function;
@@ -263,6 +303,54 @@ mxd_galil_gclib_special_processing_setup( MX_RECORD *record )
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
+
+static void
+mxd_galil_gclib_show_qr( MX_GALIL_GCLIB *galil_gclib,
+			MX_GALIL_GCLIB_MOTOR *galil_gclib_motor )
+{
+	static uint8_t old_qr[400] = {0};
+	static uint8_t qr[400];
+	static unsigned long counter = 0;
+	char command[40], response[40];
+	int i;
+	mx_status_type mx_status;
+
+	memset( qr, 0, sizeof(qr) );
+
+	snprintf( command, sizeof(command), "QR%c",
+			galil_gclib_motor->motor_name );
+
+	mx_status = mxi_galil_gclib_command( galil_gclib, command,
+						(char *) qr, sizeof(qr) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return;
+
+	if ( counter == 0 ) {
+		counter++;
+		return;
+	}
+
+	fprintf( stderr, "Counter = %lu\n", counter );
+
+	mx_status = mxi_galil_gclib_command( galil_gclib, "QZ",
+						response, sizeof(response) );
+
+	for ( i = 0; i < sizeof(qr); i++ ) {
+		if ( old_qr[i] != qr[i] ) {
+			fprintf( stderr,
+		"  old[%d] = %#" PRIx8 " ==>  new[%d] = %#" PRIx8 "\n",
+				i, old_qr[i], i, qr[i] );
+		}
+	}
+
+	memcpy( old_qr, qr, sizeof(qr) );
+
+	counter++;
+	return;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -300,9 +388,14 @@ mxd_galil_gclib_process_function( void *record_ptr,
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
+		case MXLV_GALIL_GCLIB_MOTOR_SHOW_QR:
+			mxd_galil_gclib_show_qr( galil_gclib,
+						galil_gclib_motor );
+			break;
+
 		case MXLV_GALIL_GCLIB_MOTOR_STOP_CODE:
 			snprintf( command, sizeof(command),
-				"SC%c", galil_gclib_motor->axis_name );
+				"SC%c", galil_gclib_motor->motor_name );
 
 			mx_status = mxi_galil_gclib_command( galil_gclib,
 					command, response, sizeof(response) );
@@ -367,7 +460,7 @@ mxd_galil_gclib_move_absolute( MX_MOTOR *motor )
 		return mx_status;
 
 	snprintf( command, sizeof(command), "PA%c=%ld",
-			galil_gclib_motor->axis_name,
+			galil_gclib_motor->motor_name,
 			motor->raw_destination.stepper );
 
 	mx_status = mxi_galil_gclib_command( galil_gclib, command, NULL, 0 );
@@ -376,7 +469,7 @@ mxd_galil_gclib_move_absolute( MX_MOTOR *motor )
 		return mx_status;
 
 	snprintf( command, sizeof(command),
-		"BG%c", galil_gclib_motor->axis_name );
+		"BG%c", galil_gclib_motor->motor_name );
 
 	mx_status = mxi_galil_gclib_command( galil_gclib, command, NULL, 0 );
 
@@ -403,7 +496,7 @@ mxd_galil_gclib_get_position( MX_MOTOR *motor )
 		return mx_status;
 
 	snprintf( command, sizeof(command),
-		"TP%c", galil_gclib_motor->axis_name );
+		"TP%c", galil_gclib_motor->motor_name );
 
 	mx_status = mxi_galil_gclib_command( galil_gclib,
 			command, response, sizeof(response) );
@@ -444,7 +537,7 @@ mxd_galil_gclib_set_position( MX_MOTOR *motor )
 		return mx_status;
 
 	snprintf( command, sizeof(command),
-		"DP%c=%ld", galil_gclib_motor->axis_name,
+		"DP%c=%ld", galil_gclib_motor->motor_name,
 		motor->raw_set_position.stepper );
 
 	mx_status = mxi_galil_gclib_command( galil_gclib, command, NULL, 0 );
@@ -471,7 +564,7 @@ mxd_galil_gclib_soft_abort( MX_MOTOR *motor )
 		return mx_status;
 
 	snprintf( command, sizeof(command),
-		"ST%c", galil_gclib_motor->axis_name );
+		"ST%c", galil_gclib_motor->motor_name );
 
 	mx_status = mxi_galil_gclib_command( galil_gclib, command, NULL, 0 );
 
@@ -497,7 +590,7 @@ mxd_galil_gclib_immediate_abort( MX_MOTOR *motor )
 		return mx_status;
 
 	snprintf( command, sizeof(command),
-		"AB%c", galil_gclib_motor->axis_name );
+		"AB%c", galil_gclib_motor->motor_name );
 
 	mx_status = mxi_galil_gclib_command( galil_gclib, command, NULL, 0 );
 
@@ -523,7 +616,7 @@ mxd_galil_gclib_raw_home_command( MX_MOTOR *motor )
 		return mx_status;
 
 	snprintf( command, sizeof(command),
-		"HM%c", galil_gclib_motor->axis_name );
+		"HM%c", galil_gclib_motor->motor_name );
 
 	mx_status = mxi_galil_gclib_command( galil_gclib, command, NULL, 0 );
 
@@ -561,7 +654,7 @@ mxd_galil_gclib_get_parameter( MX_MOTOR *motor )
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
 		snprintf( command, sizeof(command),
-			"MG _SP%c", galil_gclib_motor->axis_name );
+			"MG _SP%c", galil_gclib_motor->motor_name );
 
 		mx_status = mxi_galil_gclib_command( galil_gclib,
 					command, response, sizeof(response) );
@@ -581,7 +674,7 @@ mxd_galil_gclib_get_parameter( MX_MOTOR *motor )
 
 	case MXLV_MTR_CURRENT_SPEED:
 		snprintf( command, sizeof(command),
-			"TV%c", galil_gclib_motor->axis_name );
+			"TV%c", galil_gclib_motor->motor_name );
 
 		mx_status = mxi_galil_gclib_command( galil_gclib,
 					command, response, sizeof(response) );
@@ -604,7 +697,7 @@ mxd_galil_gclib_get_parameter( MX_MOTOR *motor )
 		/* Acceleration parameter 0 = acceleration (units/sec**2) */
 
 		snprintf( command, sizeof(command),
-			"MG _AC%c", galil_gclib_motor->axis_name );
+			"MG _AC%c", galil_gclib_motor->motor_name );
 
 		mx_status = mxi_galil_gclib_command( galil_gclib,
 					command, response, sizeof(response) );
@@ -626,7 +719,7 @@ mxd_galil_gclib_get_parameter( MX_MOTOR *motor )
 	case MXLV_MTR_AXIS_ENABLE:
 	case MXLV_MTR_CLOSED_LOOP:
 		snprintf( command, sizeof(command),
-			"MG MO%c", galil_gclib_motor->axis_name );
+			"MG MO%c", galil_gclib_motor->motor_name );
 
 		mx_status = mxi_galil_gclib_command( galil_gclib,
 					command, response, sizeof(response) );
@@ -654,7 +747,7 @@ mxd_galil_gclib_get_parameter( MX_MOTOR *motor )
 
 	case MXLV_MTR_PROPORTIONAL_GAIN:
 		snprintf( command, sizeof(command),
-			"MG _KP%c", galil_gclib_motor->axis_name );
+			"MG _KP%c", galil_gclib_motor->motor_name );
 
 		mx_status = mxi_galil_gclib_command( galil_gclib,
 					command, response, sizeof(response) );
@@ -675,7 +768,7 @@ mxd_galil_gclib_get_parameter( MX_MOTOR *motor )
 
 	case MXLV_MTR_INTEGRAL_GAIN:
 		snprintf( command, sizeof(command),
-			"MG _KI%c", galil_gclib_motor->axis_name );
+			"MG _KI%c", galil_gclib_motor->motor_name );
 
 		mx_status = mxi_galil_gclib_command( galil_gclib,
 					command, response, sizeof(response) );
@@ -696,7 +789,7 @@ mxd_galil_gclib_get_parameter( MX_MOTOR *motor )
 
 	case MXLV_MTR_DERIVATIVE_GAIN:
 		snprintf( command, sizeof(command),
-			"MG _KD%c", galil_gclib_motor->axis_name );
+			"MG _KD%c", galil_gclib_motor->motor_name );
 
 		mx_status = mxi_galil_gclib_command( galil_gclib,
 					command, response, sizeof(response) );
@@ -717,7 +810,7 @@ mxd_galil_gclib_get_parameter( MX_MOTOR *motor )
 
 	case MXLV_MTR_INTEGRAL_LIMIT:
 		snprintf( command, sizeof(command),
-			"MG _IL%c", galil_gclib_motor->axis_name );
+			"MG _IL%c", galil_gclib_motor->motor_name );
 
 		mx_status = mxi_galil_gclib_command( galil_gclib,
 					command, response, sizeof(response) );
@@ -738,7 +831,7 @@ mxd_galil_gclib_get_parameter( MX_MOTOR *motor )
 
 	case MXLV_MTR_VELOCITY_FEEDFORWARD_GAIN:
 		snprintf( command, sizeof(command),
-			"MG _FV%c", galil_gclib_motor->axis_name );
+			"MG _FV%c", galil_gclib_motor->motor_name );
 
 		mx_status = mxi_galil_gclib_command( galil_gclib,
 					command, response, sizeof(response) );
@@ -760,7 +853,7 @@ mxd_galil_gclib_get_parameter( MX_MOTOR *motor )
 
 	case MXLV_MTR_ACCELERATION_FEEDFORWARD_GAIN:
 		snprintf( command, sizeof(command),
-			"MG _FA%c", galil_gclib_motor->axis_name );
+			"MG _FA%c", galil_gclib_motor->motor_name );
 
 		mx_status = mxi_galil_gclib_command( galil_gclib,
 					command, response, sizeof(response) );
@@ -815,7 +908,7 @@ mxd_galil_gclib_set_parameter( MX_MOTOR *motor )
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
 		snprintf( command, sizeof(command),
-			"SP%c=%lu", galil_gclib_motor->axis_name,
+			"SP%c=%lu", galil_gclib_motor->motor_name,
 			mx_round(motor->raw_speed) );
 
 		mx_status = mxi_galil_gclib_command( galil_gclib,
@@ -827,7 +920,7 @@ mxd_galil_gclib_set_parameter( MX_MOTOR *motor )
 		 */
 
 		snprintf( command, sizeof(command),
-			"AC%c=%lu", galil_gclib_motor->axis_name,
+			"AC%c=%lu", galil_gclib_motor->motor_name,
 			mx_round( motor->raw_acceleration_parameters[0] ));
 
 		mx_status = mxi_galil_gclib_command( galil_gclib,
@@ -837,7 +930,7 @@ mxd_galil_gclib_set_parameter( MX_MOTOR *motor )
 			return mx_status;
 
 		snprintf( command, sizeof(command),
-			"DC%c=%lu", galil_gclib_motor->axis_name,
+			"DC%c=%lu", galil_gclib_motor->motor_name,
 			mx_round( motor->raw_acceleration_parameters[0] ));
 
 		mx_status = mxi_galil_gclib_command( galil_gclib,
@@ -848,10 +941,10 @@ mxd_galil_gclib_set_parameter( MX_MOTOR *motor )
 	case MXLV_MTR_CLOSED_LOOP:
 		if ( (motor->axis_enable) || (motor->closed_loop) ) {
 			snprintf( command, sizeof(command),
-				"SH%c", galil_gclib_motor->axis_name );
+				"SH%c", galil_gclib_motor->motor_name );
 		} else {
 			snprintf( command, sizeof(command),
-				"MO%c", galil_gclib_motor->axis_name );
+				"MO%c", galil_gclib_motor->motor_name );
 		}
 
 		mx_status = mxi_galil_gclib_command( galil_gclib,
@@ -860,7 +953,7 @@ mxd_galil_gclib_set_parameter( MX_MOTOR *motor )
 
 	case MXLV_MTR_PROPORTIONAL_GAIN:
 		snprintf( command, sizeof(command),
-			"KP%c=%g", galil_gclib_motor->axis_name,
+			"KP%c=%g", galil_gclib_motor->motor_name,
 			motor->proportional_gain );
 
 		mx_status = mxi_galil_gclib_command( galil_gclib,
@@ -869,7 +962,7 @@ mxd_galil_gclib_set_parameter( MX_MOTOR *motor )
 
 	case MXLV_MTR_INTEGRAL_GAIN:
 		snprintf( command, sizeof(command),
-			"KI%c=%g", galil_gclib_motor->axis_name,
+			"KI%c=%g", galil_gclib_motor->motor_name,
 			motor->integral_gain );
 
 		mx_status = mxi_galil_gclib_command( galil_gclib,
@@ -878,7 +971,7 @@ mxd_galil_gclib_set_parameter( MX_MOTOR *motor )
 
 	case MXLV_MTR_DERIVATIVE_GAIN:
 		snprintf( command, sizeof(command),
-			"KD%c=%g", galil_gclib_motor->axis_name,
+			"KD%c=%g", galil_gclib_motor->motor_name,
 			motor->derivative_gain );
 
 		mx_status = mxi_galil_gclib_command( galil_gclib,
@@ -887,7 +980,7 @@ mxd_galil_gclib_set_parameter( MX_MOTOR *motor )
 
 	case MXLV_MTR_INTEGRAL_LIMIT:
 		snprintf( command, sizeof(command),
-			"IL%c=%lu", galil_gclib_motor->axis_name,
+			"IL%c=%lu", galil_gclib_motor->motor_name,
 			mx_round( motor->integral_limit ));
 
 		mx_status = mxi_galil_gclib_command( galil_gclib,
@@ -896,7 +989,7 @@ mxd_galil_gclib_set_parameter( MX_MOTOR *motor )
 
 	case MXLV_MTR_VELOCITY_FEEDFORWARD_GAIN:
 		snprintf( command, sizeof(command),
-			"FV%c=%lu", galil_gclib_motor->axis_name,
+			"FV%c=%lu", galil_gclib_motor->motor_name,
 			mx_round( motor->velocity_feedforward_gain ));
 
 		mx_status = mxi_galil_gclib_command( galil_gclib,
@@ -905,7 +998,7 @@ mxd_galil_gclib_set_parameter( MX_MOTOR *motor )
 
 	case MXLV_MTR_ACCELERATION_FEEDFORWARD_GAIN:
 		snprintf( command, sizeof(command),
-			"FA%c=%lu", galil_gclib_motor->axis_name,
+			"FA%c=%lu", galil_gclib_motor->motor_name,
 			mx_round( motor->acceleration_feedforward_gain ));
 
 		mx_status = mxi_galil_gclib_command( galil_gclib,
@@ -998,7 +1091,7 @@ mxd_galil_gclib_simultaneous_start( long num_motor_records,
 		/* Set the new destination for this motor. */
 
 		snprintf( destination_command, sizeof(destination_command),
-			"PR%c=%ld", galil_gclib_motor->axis_name,
+			"PR%c=%ld", galil_gclib_motor->motor_name,
 				mx_round( raw_position ) );
 
 		mx_status = mxi_galil_gclib_command( galil_gclib,
@@ -1006,7 +1099,7 @@ mxd_galil_gclib_simultaneous_start( long num_motor_records,
 
 		/* Add this motor to the simultaneous start command. */
 
-		simultaneous_start_command[i+2] = galil_gclib_motor->axis_name;
+		simultaneous_start_command[i+2] = galil_gclib_motor->motor_name;
 	}
 
 	/* We finish by sending the simultaneous start command. */
@@ -1019,75 +1112,44 @@ mxd_galil_gclib_simultaneous_start( long num_motor_records,
 
 /*--------------------------------------------------------------------------*/
 
-#if 0
+/* Note: In general, you can ask for multiple axes, coordinated motions,
+ * and I/O pins at once.  So you must calculate the offsets for the
+ * information you want depending on how many of the other kinds of
+ * blocks are present.
+ *
+ * However, this function only requests information for one axis or for 
+ * one coordinated motion at a time.  This means that, when present,
+ * the axis status or the coordinated motion status follows immediately
+ * after the 4 byte header.  Note that the multibyte quantities listed
+ * below are in little-endian order.
+ *
+ * For motor_status_ptr below:
+ *   qr[0] to qr[1]   = axis_status
+ *   qr[2]            = axis switches
+ *   qr[3]            = axis stop code
+ *   qr[4] to qr[7]   = axis reference position
+ *   qr[8] to qr[11]  = axis motor position
+ *   qr[12] to qr[15] = axis position error
+ *   qr[16] to qr[19] = axis auxiliary position
+ *   qr[20] to qr[23] = axis velocity
+ *   qr[24] to qr[27] = axis torque
+ *   qr[28] to qr[29] = axis analog input
+ *   qr[30]           = axis hall input status
+ *   qr[31]           = reserved
+ *   qr[32] to qr[35] = axis user defined variable (ZA)
+ */
 
 MX_EXPORT mx_status_type
-mxd_galil_gclib_get_status( MX_MOTOR *motor )
+mxd_galil_gclib_get_extended_status( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_galil_gclib_get_status()";
-
-	MX_GALIL_GCLIB_MOTOR *galil_gclib_motor = NULL;
-	MX_GALIL_GCLIB *galil_gclib = NULL;
-	char command[80], response[80];
-	unsigned long stop_code;
-	int num_items;
-	mx_status_type mx_status;
-
-	mx_status = mxd_galil_gclib_get_pointers( motor, &galil_gclib_motor,
-							&galil_gclib, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	snprintf( command, sizeof(command),
-		"SC%c", galil_gclib_motor->axis_name );
-
-	mx_status = mxi_galil_gclib_command( galil_gclib,
-			command, response, sizeof(response) );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	num_items = sscanf( response, "%lu", &stop_code );
-
-	if ( num_items != 1 ) {
-		return mx_error( MXE_UNPARSEABLE_STRING, fname,
-		"Could not find the motor status (stop code) for motor '%s' "
-		"in the response '%s' to command '%s'.",
-			motor->record->name,
-			response, command );
-	}
-
-	galil_gclib_motor->stop_code = stop_code;
-
-	/* FIXME: Maybe we can do better than the following logic. */
-
-	if ( stop_code == 0 ) {
-		motor->status = MXSF_MTR_IS_BUSY;
-	} else {
-		motor->status = 0;
-	}
-
-	return mx_status;
-}
-
-#else
-
-MX_EXPORT mx_status_type
-mxd_galil_gclib_get_status( MX_MOTOR *motor )
-{
-	static const char fname[] = "mxd_galil_gclib_get_status()";
+	static const char fname[] = "mxd_galil_gclib_get_extended_status()";
 
 	MX_GALIL_GCLIB_MOTOR *galil_gclib_motor = NULL;
 	MX_GALIL_GCLIB *galil_gclib = NULL;
 	char command[80], response[500];
-	int num_items, num_header_bytes, num_axes;
-	int header_offset;
-	int general_status_offset, num_general_status_bytes;
-	int coordinated_move_offset, num_coordinated_move_status_bytes;
-	int axis_offset, num_axis_bytes;
-	uint8_t *axis_ptr = NULL;
-	uint16_t axis_status;
+	int num_items, num_header_bytes, num_axes, num_axis_bytes;
+	int num_general_status_bytes, num_coordinated_move_status_bytes;
+	uint8_t *motor_status_ptr = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_galil_gclib_get_pointers( motor, &galil_gclib_motor,
@@ -1095,6 +1157,18 @@ mxd_galil_gclib_get_status( MX_MOTOR *motor )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if 0
+	if (0) {
+		mxd_galil_gclib_show_qr( galil_gclib, galil_gclib_motor );
+
+		motor->status = 1;
+		return MX_SUCCESSFUL_RESULT;
+	}
+#endif
+	num_header_bytes = 4;
+
+	motor_status_ptr = (uint8_t *) response + num_header_bytes;
 
 	/* Get information about the "data record". */
 
@@ -1130,7 +1204,7 @@ mxd_galil_gclib_get_status( MX_MOTOR *motor )
 	/* Now read out the "data record". */
 
 	snprintf( command, sizeof(command),
-		"QR%c", galil_gclib_motor->axis_name );
+		"QR%c", galil_gclib_motor->motor_name );
 
 	mx_status = mxi_galil_gclib_command( galil_gclib,
 			command, response, sizeof(response) );
@@ -1138,92 +1212,83 @@ mxd_galil_gclib_get_status( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_header_bytes = 4;
+	motor->status = 0;
 
-	header_offset = 0;
-
-	general_status_offset = header_offset + num_header_bytes;
-
-	coordinated_move_offset =
-		general_status_offset + num_general_status_bytes;
-
-	axis_offset =
-		coordinated_move_offset + num_coordinated_move_status_bytes;
-
-	axis_ptr = (uint8_t *) ( (uint8_t *) response + (uint8_t) axis_offset );
-
+	switch( galil_gclib_motor->motor_type ) {
+	case MXT_GALIL_GCLIB_AXIS:
+		if ( motor_status_ptr[0] & 0x1 ) {
+			motor->status |= MXSF_MTR_AXIS_DISABLED;
+		}
+		if ( motor_status_ptr[1] & 0x80 ) {
+			motor->status |= MXSF_MTR_IS_BUSY;
+		}
 #if 0
-	if ( TRUE ) {
-		int8_t byte_value;
-		int i;
-
-		fprintf( stderr, "  QR response buffer:\n" );
-
-		/* Show the header contents. */
-
-		fprintf( stderr, "\n  header bytes = " );
-
-		for ( i = header_offset; i < num_header_bytes; i++ ) {
-			byte_value = response[i];
-
-			fprintf( stderr, "%#" PRIx8 ", ", byte_value & 0xff );
+		if ( motor_status_ptr[2] & 0x8 ) {
+			motor->status |= MXSF_MTR_POSITIVE_LIMIT_HIT;
 		}
-
-		/* Show the number of axes. */
-
-		fprintf( stderr, "\n  num axes = %d", num_axes );
-
-		/* Show the general status bytes. */
-
-		fprintf( stderr, "\n  general status bytes = " );
-
-		for ( i = general_status_offset;
-			i < general_status_offset + num_general_status_bytes;
-			i++ )
-	       	{
-			byte_value = response[i];
-
-			fprintf( stderr, "%#" PRIx8 ", ", byte_value & 0xff );
+		if ( motor_status_ptr[2] & 0x4 ) {
+			motor->status |= MXSF_MTR_NEGATIVE_LIMIT_HIT;
 		}
-
-		/* Show the coordinated move status bytes. */
-
-		fprintf( stderr, "\n  coordinated move status bytes = " );
-
-		for ( i = coordinated_move_offset;
-	  i < coordinated_move_offset + num_coordinated_move_status_bytes;
-	  		i++ )
-       		{
-			byte_value = response[i];
-
-			fprintf( stderr, "%#" PRIx8 ", ", byte_value & 0xff );
+		if ( motor_status_ptr[2] & 0x2 ) {
+			motor->status |= MXSF_MTR_AT_HOME_SWITCH;
 		}
-
-		/* Show the axis specific information bytes. */
-
-		fprintf( stderr, "\n  axis specific information bytee = " );
-
-		for ( i = axis_offset;
-i < axis_offset + num_axis_bytes;
-		    i++ )
-       		{
-			byte_value = response[i];
-
-			fprintf( stderr, "%#" PRIx8 ", ", byte_value & 0xff );
-		}
-
-		fprintf( stderr, "\n" );
-	}
 #endif
 
-	axis_status = ( ( axis_ptr[0] + ( axis_ptr[1] << 8 ) ) & 0xffff );
+		if ( motor->status & MXSF_MTR_IS_BUSY ) {
+			/* If the motor is moving, then we can get the
+			 * motor position from the QR data record.
+			 */
 
-	MX_DEBUG(-2,("*** axis_status = %#lx ***",
-		(unsigned long) axis_status));
+			motor->raw_position.stepper = 
+				motor_status_ptr[8]
+				| ( motor_status_ptr[9] << 8 )
+				| ( motor_status_ptr[10] << 16 )
+				| ( motor_status_ptr[11] << 24 );
+		} else {
+			/* However, if the motor is _not_ moving, then
+			 * the motor position from the QR data record
+			 * is bogus and seems to always have the same
+			 * value.  In this case, we must ask for the
+			 * position directly using the 'TP' command.
+			 */
 
-	motor->status = 1;
+			snprintf( command, sizeof(command),
+				"TP%c", galil_gclib_motor->motor_name );
+
+			mx_status = mxi_galil_gclib_command( galil_gclib,
+					command, response, sizeof(response) );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			num_items = sscanf( response, "%ld",
+					&(motor->raw_position.stepper) );
+
+			if ( num_items != 1 ) {
+				return mx_error( MXE_UNPARSEABLE_STRING, fname,
+				"Could not find the position for motor '%s' "
+				"in the response '%s' to command '%s'.",
+					motor->record->name,
+					response, command );
+			}
+		}
+		break;
+
+	case MXT_GALIL_GCLIB_COORDINATED_MOTION:
+		if ( motor_status_ptr[1] & 0x80 ) {
+			motor->status |= MXSF_MTR_IS_BUSY;
+		}
+		break;
+
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Illegal motor name '%c' requested for Galil motor '%s'.  "
+		"The only supported motor names are "
+		"A, B, C, D, E, F, G, H, S, or T.",
+			galil_gclib_motor->motor_name, motor->record->name );
+		break;
+	}
 
 	return mx_status;
 }
 
-#endif
