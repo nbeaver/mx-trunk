@@ -10,8 +10,9 @@ include ../../libMx/Makehead.$(MX_ARCH)
 
 CFLAGS += -I../../libMx -D__MX_LIBRARY__
 
-NEWPORT_XPS_OBJS = galil_gclib.$(OBJ) \
-		i_galil_gclib.$(OBJ) d_galil_gclib.$(OBJ)
+GALIL_GCLIB_OBJS = galil_gclib.$(OBJ) \
+		i_galil_gclib.$(OBJ) d_galil_gclib_motor.$(OBJ) \
+		d_galil_gclib_aoutput.$(OBJ)
 
 #--------------------------------------------------------------------------
 
@@ -19,9 +20,9 @@ ifeq ($(MX_ARCH),linux)
 
 XPS_C8_DRIVERS_FLAGS = -g -fPIC
 
-galil_gclib.mxo: $(NEWPORT_XPS_OBJS)
+galil_gclib.mxo: $(GALIL_GCLIB_OBJS)
 	$(CXX) -shared -rdynamic -Wl,-soname,galil_gclib.mxo \
-		-o galil_gclib.mxo $(NEWPORT_XPS_OBJS) \
+		-o galil_gclib.mxo $(GALIL_GCLIB_OBJS) \
 		-lgclibo -lgclib ../../libMx/libMx.so
 
 endif
@@ -34,10 +35,10 @@ XPS_C8_DRIVERS_FLAGS = -D_WIN32
 
 CXX = cl
 
-galil_gclib.mxo: $(NEWPORT_XPS_OBJS) $(VENDOR_OBJS)
+galil_gclib.mxo: $(GALIL_GCLIB_OBJS) $(VENDOR_OBJS)
 	link /dll /debug /nologo /out:galil_gclib.mxo \
 		/nodefaultlib:libc /nodefaultlib:libcmt \
-		$(NEWPORT_XPS_OBJS) \
+		$(GALIL_GCLIB_OBJS) \
 		gclibo.lib gclib.lib \
 		..\\..\\libMx\\$(MX_LIBRARY_NAME)
 
@@ -45,18 +46,20 @@ endif
 
 #--------------------------------------------------------------------------
 
-galil_gclib.$(OBJ): galil_gclib.c i_galil_gclib.h d_galil_gclib.h
+galil_gclib.$(OBJ): galil_gclib.c i_galil_gclib.h d_galil_gclib_motor.h \
+			d_galil_gclib_aoutput.h
 	$(COMPILE) $(CFLAGS) galil_gclib.c
 
 i_galil_gclib.$(OBJ): i_galil_gclib.c i_galil_gclib.h
 	$(COMPILE) $(CFLAGS) i_galil_gclib.c
 
-d_galil_gclib.$(OBJ): d_galil_gclib.c d_galil_gclib.h i_galil_gclib.h
-	$(COMPILE) $(CFLAGS) d_galil_gclib.c
+d_galil_gclib_motor.$(OBJ): d_galil_gclib.c d_galil_gclib_motor.h \
+				i_galil_gclib.h
+	$(COMPILE) $(CFLAGS) d_galil_gclib_motor.c
 
-d_galil_gclib_aout.$(OBJ): d_galil_gclib_aout.c \
-				d_galil_gclib_aout.h i_galil_gclib.h
-	$(COMPILE) $(CFLAGS) d_galil_gclib_aout.c
+d_galil_gclib_aoutput.$(OBJ): d_galil_gclib_aoutput.c \
+				d_galil_gclib_aoutput.h i_galil_gclib.h
+	$(COMPILE) $(CFLAGS) d_galil_gclib_aoutput.c
 
 install: galil_gclib.mxo
 	-mkdir $(MX_INSTALL_DIR)/lib/modules

@@ -23,8 +23,8 @@
 #include "mx_module.h"
 #include "mx_motor.h"
 #include "i_galil_gclib.h"
-#include "d_galil_gclib.h"
-#include "d_galil_gclib_aout.h"
+#include "d_galil_gclib_motor.h"
+#include "d_galil_gclib_aoutput.h"
 
 MX_DRIVER galil_gclib_driver_table[] = {
 
