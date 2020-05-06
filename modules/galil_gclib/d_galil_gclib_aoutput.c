@@ -164,8 +164,8 @@ mxd_galil_gclib_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	snprintf( command, sizeof(command), "AO %s,%g",
-				galil_gclib_aoutput->aoutput_name,
+	snprintf( command, sizeof(command), "AO %lu,%g",
+				galil_gclib_aoutput->aoutput_number,
 				aoutput->value );
 
 	mx_status = mxi_galil_gclib_command( galil_gclib,

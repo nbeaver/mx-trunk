@@ -23,7 +23,7 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *galil_gclib_record;
-	char aoutput_name[MXU_GALIL_GCLIB_NAME_LENGTH+1];
+	unsigned long aoutput_number;
 } MX_GALIL_GCLIB_AOUTPUT;
 
 /* Define all of the interface functions. */
@@ -47,10 +47,9 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_galil_gclib_aoutput_rfield_def_ptr;
 		offsetof(MX_GALIL_GCLIB_AOUTPUT, galil_gclib_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "aoutput_name", MXFT_STRING, NULL, 1, {MXU_GALIL_GCLIB_NAME_LENGTH},\
-	MXF_REC_TYPE_STRUCT, \
-		offsetof(MX_GALIL_GCLIB_AOUTPUT, aoutput_name), \
-	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
+  {-1, -1, "aoutput_number", MXFT_ULONG, NULL, 0, {0},\
+	MXF_REC_TYPE_STRUCT, offsetof(MX_GALIL_GCLIB_AOUTPUT, aoutput_number), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
 
 #endif /* __D_GALIL_GCLIB_AOUTPUT_H__ */
 

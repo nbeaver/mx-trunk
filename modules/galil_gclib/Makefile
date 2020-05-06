@@ -12,7 +12,7 @@ CFLAGS += -I../../libMx -D__MX_LIBRARY__
 
 GALIL_GCLIB_OBJS = galil_gclib.$(OBJ) \
 		i_galil_gclib.$(OBJ) d_galil_gclib_motor.$(OBJ) \
-		d_galil_gclib_aoutput.$(OBJ)
+		d_galil_gclib_ainput.$(OBJ) d_galil_gclib_aoutput.$(OBJ)
 
 #--------------------------------------------------------------------------
 
@@ -47,7 +47,7 @@ endif
 #--------------------------------------------------------------------------
 
 galil_gclib.$(OBJ): galil_gclib.c i_galil_gclib.h d_galil_gclib_motor.h \
-			d_galil_gclib_aoutput.h
+			d_galil_gclib_ainput.h d_galil_gclib_aoutput.h
 	$(COMPILE) $(CFLAGS) galil_gclib.c
 
 i_galil_gclib.$(OBJ): i_galil_gclib.c i_galil_gclib.h
@@ -55,6 +55,9 @@ i_galil_gclib.$(OBJ): i_galil_gclib.c i_galil_gclib.h
 
 d_galil_gclib_motor.$(OBJ): d_galil_gclib_motor.h i_galil_gclib.h
 	$(COMPILE) $(CFLAGS) d_galil_gclib_motor.c
+
+d_galil_gclib_ainput.$(OBJ): d_galil_gclib_ainput.c i_galil_gclib.h
+	$(COMPILE) $(CFLAGS) d_galil_gclib_ainput.c
 
 d_galil_gclib_aoutput.$(OBJ): d_galil_gclib_aoutput.c i_galil_gclib.h
 	$(COMPILE) $(CFLAGS) d_galil_gclib_aoutput.c

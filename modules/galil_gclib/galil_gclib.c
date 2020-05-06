@@ -24,6 +24,7 @@
 #include "mx_motor.h"
 #include "i_galil_gclib.h"
 #include "d_galil_gclib_motor.h"
+#include "d_galil_gclib_ainput.h"
 #include "d_galil_gclib_aoutput.h"
 
 MX_DRIVER galil_gclib_driver_table[] = {
@@ -41,6 +42,13 @@ MX_DRIVER galil_gclib_driver_table[] = {
 			&mxd_galil_gclib_motor_motor_function_list,
 			&mxd_galil_gclib_motor_num_record_fields,
 			&mxd_galil_gclib_motor_rfield_def_ptr},
+
+{"galil_gclib_ainput", -1, MXC_ANALOG_INPUT, MXR_DEVICE,
+			&mxd_galil_gclib_ainput_record_function_list,
+			NULL,
+			&mxd_galil_gclib_ainput_analog_input_function_list,
+			&mxd_galil_gclib_ainput_num_record_fields,
+			&mxd_galil_gclib_ainput_rfield_def_ptr},
 
 {"galil_gclib_aoutput", -1, MXC_ANALOG_OUTPUT, MXR_DEVICE,
 			&mxd_galil_gclib_aoutput_record_function_list,
