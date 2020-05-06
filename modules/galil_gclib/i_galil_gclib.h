@@ -21,6 +21,8 @@
 
 #include "gclibo.h"
 
+#define MXU_GALIL_GCLIB_VERSION_LENGTH	40
+
 #define MXU_GALIL_GCLIB_BUFFER_LENGTH	1024
 
 /* Flag bits for the 'galil_gclib_flags' variable. */
@@ -33,7 +35,9 @@ typedef struct {
 	char hostname[MXU_HOSTNAME_LENGTH+1];
 	unsigned long galil_gclib_flags;
 
-	char version[MXU_GALIL_GCLIB_BUFFER_LENGTH+1];
+	char controller_type[MXU_GALIL_GCLIB_VERSION_LENGTH+1];
+	char firmware_revision[MXU_GALIL_GCLIB_VERSION_LENGTH+1];
+	char gclib_version[MXU_GALIL_GCLIB_VERSION_LENGTH+1];
 
 	unsigned long error_code;
 	long gclib_status;
@@ -44,11 +48,6 @@ typedef struct {
 	char command_file[MXU_FILENAME_LENGTH+1];
 
 	GCon connection;
-
-#if 0
-	long num_motors;
-	MX_RECORD **motor_record_array;
-#endif
 
 } MX_GALIL_GCLIB;
 
@@ -67,8 +66,19 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_GALIL_GCLIB, galil_gclib_flags), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "version", MXFT_STRING, NULL, 1, {MXU_GALIL_GCLIB_BUFFER_LENGTH}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_GALIL_GCLIB, version), \
+  {-1, -1, "controller_type", MXFT_STRING, \
+				NULL, 1, {MXU_GALIL_GCLIB_VERSION_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_GALIL_GCLIB, controller_type), \
+	{sizeof(char)}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "firmware_revision", MXFT_STRING, \
+				NULL, 1, {MXU_GALIL_GCLIB_VERSION_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_GALIL_GCLIB, firmware_revision), \
+	{sizeof(char)}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "gclib_version", MXFT_STRING, \
+				NULL, 1, {MXU_GALIL_GCLIB_VERSION_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_GALIL_GCLIB, gclib_version), \
 	{sizeof(char)}, NULL, MXFF_READ_ONLY }, \
   \
   {MXLV_GALIL_GCLIB_ERROR_CODE, -1, "error_code", MXFT_ULONG, NULL, 0, {0}, \

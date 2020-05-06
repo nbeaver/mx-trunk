@@ -136,8 +136,11 @@ mxi_galil_gclib_open( MX_RECORD *record )
 
 	MX_GALIL_GCLIB *galil_gclib = NULL;
 	GReturn gclib_status;
+	char command[80];
 	char response[80];
 	char connection_string[MXU_HOSTNAME_LENGTH + 8];
+	int version_argc;
+	char **version_argv;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -157,8 +160,8 @@ mxi_galil_gclib_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name ));
 #endif
 
-	gclib_status = GVersion( galil_gclib->version,
-				sizeof(galil_gclib->version) );
+	gclib_status = GVersion( galil_gclib->gclib_version,
+				sizeof(galil_gclib->gclib_version) );
 
 	if ( gclib_status != G_NO_ERROR ) {
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
@@ -168,7 +171,7 @@ mxi_galil_gclib_open( MX_RECORD *record )
 
 #if MXI_GALIL_GCLIB_DEBUG
 	MX_DEBUG(-2,("%s: Galil gclib version = '%s'.",
-		fname, galil_gclib->version ));
+		fname, galil_gclib->gclib_version ));
 #endif
 	/* Make the connection to this controller. */
 
@@ -210,6 +213,47 @@ mxi_galil_gclib_open( MX_RECORD *record )
 		return mx_status;
 
 	MX_DEBUG(-2,("%s: MG TIME response = '%s'", fname, response ));
+
+	snprintf( command, sizeof(command),
+		"%c%c", MX_CTRL_R, MX_CTRL_V );
+
+	mx_status = mxi_galil_gclib_command( galil_gclib,
+			command, response, sizeof(response) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_string_split( response, " ", &version_argc, &version_argv );
+
+	MX_DEBUG(-2,("%s: version_argc = %d", fname, version_argc ));
+
+#if 1
+	MX_DEBUG(-2,("MARKER 1"));
+
+	if ( version_argc >= 3 ) {
+		MX_DEBUG(-2,("MARKER 2.1, version_argc = %d", version_argc));
+	} else {
+		MX_DEBUG(-2,("MARKER 2.2, version_argc = %d", version_argc));
+		mx_free( version_argv );
+
+		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+		"Did not find the controller type and firmware revision "
+		"in the response '%s' to command 'ctrl-R ctrl-V' for "
+		"Galil controller '%s'.  Only %d tokens were seen, "
+		"instead of 3 tokens.",
+			response, record->name, version_argc );
+	}
+
+	MX_DEBUG(-2,("MARKER 3"));
+#endif
+
+	strlcpy( galil_gclib->controller_type,
+		version_argv[0], sizeof(galil_gclib->controller_type) );
+
+	strlcpy( galil_gclib->firmware_revision,
+		version_argv[2], sizeof(galil_gclib->firmware_revision) );
+
+	mx_free( version_argv );
 
 	return MX_SUCCESSFUL_RESULT;
 }

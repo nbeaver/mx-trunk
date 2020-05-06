@@ -54,6 +54,10 @@ i_galil_gclib.$(OBJ): i_galil_gclib.c i_galil_gclib.h
 d_galil_gclib.$(OBJ): d_galil_gclib.c d_galil_gclib.h i_galil_gclib.h
 	$(COMPILE) $(CFLAGS) d_galil_gclib.c
 
+d_galil_gclib_aout.$(OBJ): d_galil_gclib_aout.c \
+				d_galil_gclib_aout.h i_galil_gclib.h
+	$(COMPILE) $(CFLAGS) d_galil_gclib_aout.c
+
 install: galil_gclib.mxo
 	-mkdir $(MX_INSTALL_DIR)/lib/modules
 	cp galil_gclib.mxo $(MX_INSTALL_DIR)/lib/modules
