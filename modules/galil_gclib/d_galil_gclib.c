@@ -1124,33 +1124,6 @@ mxd_galil_gclib_simultaneous_start( long num_motor_records,
 
 /*--------------------------------------------------------------------------*/
 
-/* Note: In general, you can ask for multiple axes, coordinated motions,
- * and I/O pins at once.  So you must calculate the offsets for the
- * information you want depending on how many of the other kinds of
- * blocks are present.
- *
- * However, this function only requests information for one axis or for 
- * one coordinated motion at a time.  This means that, when present,
- * the axis status or the coordinated motion status follows immediately
- * after the 4 byte header.  Note that the multibyte quantities listed
- * below are in little-endian order.
- *
- * For motor_status_ptr below:
- *   qr[0] to qr[1]   = axis_status
- *   qr[2]            = axis switches
- *   qr[3]            = axis stop code
- *   qr[4] to qr[7]   = axis reference position
- *   qr[8] to qr[11]  = axis motor position
- *   qr[12] to qr[15] = axis position error
- *   qr[16] to qr[19] = axis auxiliary position
- *   qr[20] to qr[23] = axis velocity
- *   qr[24] to qr[27] = axis torque
- *   qr[28] to qr[29] = axis analog input
- *   qr[30]           = axis hall input status
- *   qr[31]           = reserved
- *   qr[32] to qr[35] = axis user defined variable (ZA)
- */
-
 MX_EXPORT mx_status_type
 mxd_galil_gclib_get_extended_status( MX_MOTOR *motor )
 {
@@ -1159,9 +1132,8 @@ mxd_galil_gclib_get_extended_status( MX_MOTOR *motor )
 	MX_GALIL_GCLIB_MOTOR *galil_gclib_motor = NULL;
 	MX_GALIL_GCLIB *galil_gclib = NULL;
 	char command[80], response[500];
-	int num_items, num_header_bytes, num_axes, num_axis_bytes;
-	int num_general_status_bytes, num_coordinated_move_status_bytes;
-	uint8_t *motor_status_ptr = NULL;
+	int num_items;
+	unsigned long switch_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_galil_gclib_get_pointers( motor, &galil_gclib_motor,
@@ -1170,136 +1142,70 @@ mxd_galil_gclib_get_extended_status( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if 0
-	if (0) {
-		mxd_galil_gclib_show_qr( galil_gclib, galil_gclib_motor );
-
-		motor->status = 1;
-		return MX_SUCCESSFUL_RESULT;
-	}
-#endif
-	num_header_bytes = 4;
-
-	motor_status_ptr = (uint8_t *) response + num_header_bytes;
-
-	/* Get information about the "data record". */
-
-	snprintf( command, sizeof(command), "QZ" );
-
-	mx_status = mxi_galil_gclib_command( galil_gclib,
-			command, response, sizeof(response) );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	num_items = sscanf( response, "%d,%d,%d,%d",
-		&num_axes, &num_general_status_bytes,
-		&num_coordinated_move_status_bytes,
-		&num_axis_bytes );
-
-	if ( num_items != 4 ) {
-		return mx_error( MXE_UNPARSEABLE_STRING, fname,
-		"Did not find 4 values in the response '%s' "
-		"to command 'QZ' for the Galil motor '%s'.",
-			response, motor->record->name );
-	}
-
-#if 1
-	MX_DEBUG(-2,("%s: num_axes = %d, num_general_status_bytes = %d, "
-		"num_coordinated_move_status_bytes = %d, "
-		"num_axis_bytes = %d.",
-		fname, num_axes, num_general_status_bytes,
-		num_coordinated_move_status_bytes,
-		num_axis_bytes ));
-#endif
-
-	/* Now read out the "data record". */
-
-	snprintf( command, sizeof(command),
-		"QR%c", galil_gclib_motor->motor_name );
-
-	mx_status = mxi_galil_gclib_command( galil_gclib,
-			command, response, sizeof(response) );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
 	motor->status = 0;
 
-	switch( galil_gclib_motor->motor_type ) {
-	case MXT_GALIL_GCLIB_AXIS:
-		if ( motor_status_ptr[0] & 0x1 ) {
-			motor->status |= MXSF_MTR_AXIS_DISABLED;
-		}
-		if ( motor_status_ptr[1] & 0x80 ) {
-			motor->status |= MXSF_MTR_IS_BUSY;
-		}
-		if ( (motor_status_ptr[2] & 0x8) == 0 ) {
-			motor->status |= MXSF_MTR_POSITIVE_LIMIT_HIT;
-		}
-		if ( (motor_status_ptr[2] & 0x4) == 0 ) {
-			motor->status |= MXSF_MTR_NEGATIVE_LIMIT_HIT;
-		}
-		if ( (motor_status_ptr[2] & 0x2) == 0 ) {
-			motor->status |= MXSF_MTR_AT_HOME_SWITCH;
-		}
+	/* Ask for axis-specific I/O status using the _TSm command. */
 
-		if ( motor->status & MXSF_MTR_IS_BUSY ) {
-			/* If the motor is moving, then we can get the
-			 * rest of the motion parameters from the
-			 * response to the QR command.
-			 */
+	snprintf( command, sizeof(command),
+		"MG _TS%c", galil_gclib_motor->motor_name );
 
-			motor->raw_position.stepper = 
-				motor_status_ptr[8]
-				| ( motor_status_ptr[9] << 8 )
-				| ( motor_status_ptr[10] << 16 )
-				| ( motor_status_ptr[11] << 24 );
-		} else {
-			/* However, if the motor is _not_ moving, then
-			 * the motor position from the QR data record
-			 * is bogus and seems to always have the same
-			 * value.  In this case, we must ask for the
-			 * position directly using the 'TP' command.
-			 */
+	mx_status = mxi_galil_gclib_command( galil_gclib,
+			command, response, sizeof(response) );
 
-			snprintf( command, sizeof(command),
-				"TP%c", galil_gclib_motor->motor_name );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-			mx_status = mxi_galil_gclib_command( galil_gclib,
-					command, response, sizeof(response) );
+	num_items = sscanf( response, "%lu", &switch_status );
 
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			num_items = sscanf( response, "%ld",
-					&(motor->raw_position.stepper) );
-
-			if ( num_items != 1 ) {
-				return mx_error( MXE_UNPARSEABLE_STRING, fname,
-				"Could not find the position for motor '%s' "
-				"in the response '%s' to command '%s'.",
-					motor->record->name,
-					response, command );
-			}
-		}
-		break;
-
-	case MXT_GALIL_GCLIB_COORDINATED_MOTION:
-		if ( motor_status_ptr[1] & 0x80 ) {
-			motor->status |= MXSF_MTR_IS_BUSY;
-		}
-		break;
-
-	default:
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal motor name '%c' requested for Galil motor '%s'.  "
-		"The only supported motor names are "
-		"A, B, C, D, E, F, G, H, S, or T.",
-			galil_gclib_motor->motor_name, motor->record->name );
-		break;
+	if ( num_items != 1 ) {
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Did not find the motor status in the response '%s' "
+		"to command '%s' for the Galil motor '%s'.",
+			response, command, motor->record->name );
 	}
 
-	return mx_status;
+	if ( switch_status & 0x80 ) {
+		motor->status |= MXSF_MTR_IS_BUSY;
+	}
+	if ( switch_status & 0x40 ) {
+		motor->status |= MXSF_MTR_FOLLOWING_ERROR;
+	}
+	if ( switch_status & 0x20 ) {
+		motor->status |= MXSF_MTR_AXIS_DISABLED;
+		motor->status |= MXSF_MTR_OPEN_LOOP;
+	}
+	/* 0x10 is reserved. */
+	if ( (switch_status & 0x8) == 0 ) {
+		motor->status |= MXSF_MTR_POSITIVE_LIMIT_HIT;
+	}
+	if ( (switch_status & 0x4) == 0 ) {
+		motor->status |= MXSF_MTR_NEGATIVE_LIMIT_HIT;
+	}
+	if ( (switch_status & 0x2) == 0 ) {
+		motor->status |= MXSF_MTR_AT_HOME_SWITCH;  /* FIXME: Verify? */
+	}
+	/* 0x1 is "position latch".  FIXME: Do not know what that is just yet.*/
+
+	/* Get the motor position. */
+
+	snprintf( command, sizeof(command),
+		"TP%c", galil_gclib_motor->motor_name );
+
+	mx_status = mxi_galil_gclib_command( galil_gclib,
+			command, response, sizeof(response) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	num_items = sscanf( response, "%ld", &(motor->raw_position.stepper) );
+
+	if ( num_items != 1 ) {
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Did not find the motor position in the response '%s' "
+		"to command '%s' for the Galil motor '%s'.",
+			response, command, motor->record->name );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
