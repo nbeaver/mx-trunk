@@ -25,8 +25,10 @@
 #include "mx_process.h"
 #include "mx_ascii.h"
 #include "mx_motor.h"
+#include "mx_analog_output.h"
 #include "i_galil_gclib.h"
-#include "d_galil_gclib.h"
+#include "d_galil_gclib_motor.h"
+#include "d_galil_gclib_aoutput.h"
 
 MX_RECORD_FUNCTION_LIST mxi_galil_gclib_record_function_list = {
 	NULL,

@@ -36,18 +36,18 @@ MX_DRIVER galil_gclib_driver_table[] = {
 			&mxi_galil_gclib_rfield_def_ptr},
 
 {"galil_gclib_motor", -1, MXC_MOTOR, MXR_DEVICE,
-			&mxd_galil_gclib_record_function_list,
+			&mxd_galil_gclib_motor_record_function_list,
 			NULL,
-			&mxd_galil_gclib_motor_function_list,
-			&mxd_galil_gclib_num_record_fields,
-			&mxd_galil_gclib_rfield_def_ptr},
+			&mxd_galil_gclib_motor_motor_function_list,
+			&mxd_galil_gclib_motor_num_record_fields,
+			&mxd_galil_gclib_motor_rfield_def_ptr},
 
-{"galil_gclib_aoutput", -1, MXC_MOTOR, MXR_DEVICE,
-			&mxd_galil_gclib_record_function_list,
+{"galil_gclib_aoutput", -1, MXC_ANALOG_OUTPUT, MXR_DEVICE,
+			&mxd_galil_gclib_aoutput_record_function_list,
 			NULL,
-			&mxd_galil_gclib_aoutput_function_list,
-			&mxd_galil_gclib_num_record_fields,
-			&mxd_galil_gclib_rfield_def_ptr},
+			&mxd_galil_gclib_aoutput_analog_output_function_list,
+			&mxd_galil_gclib_aoutput_num_record_fields,
+			&mxd_galil_gclib_aoutput_rfield_def_ptr},
 
 {"", 0, 0, 0, NULL, NULL, NULL, NULL, NULL}
 };

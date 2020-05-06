@@ -53,12 +53,10 @@ galil_gclib.$(OBJ): galil_gclib.c i_galil_gclib.h d_galil_gclib_motor.h \
 i_galil_gclib.$(OBJ): i_galil_gclib.c i_galil_gclib.h
 	$(COMPILE) $(CFLAGS) i_galil_gclib.c
 
-d_galil_gclib_motor.$(OBJ): d_galil_gclib.c d_galil_gclib_motor.h \
-				i_galil_gclib.h
+d_galil_gclib_motor.$(OBJ): d_galil_gclib_motor.h i_galil_gclib.h
 	$(COMPILE) $(CFLAGS) d_galil_gclib_motor.c
 
-d_galil_gclib_aoutput.$(OBJ): d_galil_gclib_aoutput.c \
-				d_galil_gclib_aoutput.h i_galil_gclib.h
+d_galil_gclib_aoutput.$(OBJ): d_galil_gclib_aoutput.c i_galil_gclib.h
 	$(COMPILE) $(CFLAGS) d_galil_gclib_aoutput.c
 
 install: galil_gclib.mxo

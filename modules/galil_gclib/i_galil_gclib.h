@@ -23,6 +23,8 @@
 
 #define MXU_GALIL_GCLIB_VERSION_LENGTH	40
 
+#define MXU_GALIL_GCLIB_NAME_LENGTH	40
+
 #define MXU_GALIL_GCLIB_BUFFER_LENGTH	1024
 
 /* Flag bits for the 'galil_gclib_flags' variable. */
