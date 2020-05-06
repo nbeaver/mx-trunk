@@ -1,3 +1,4 @@
 !load ../galil_gclib.mxo
 galil interface controller galil_gclib "" "" /dev/ttyUSB0 0x1
 a device motor galil_gclib_motor "" "" 0 0 -1000000000 1000000000 0 -1 -1 1 0 ticks galil A
+dac1 device analog_output galil_gclib_aoutput "" "" 0 1 0 units 0x0 galil 1
