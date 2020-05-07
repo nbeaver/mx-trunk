@@ -137,6 +137,7 @@ mxd_galil_gclib_ainput_create_record_structures( MX_RECORD *record )
 			= &mxd_galil_gclib_ainput_analog_input_function_list;
 
         analog_input->record = record;
+	galil_gclib_ainput->record = record;
 
 	/* Raw analog input values are stored as doubles. */
 

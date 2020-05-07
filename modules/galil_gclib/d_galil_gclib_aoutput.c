@@ -134,6 +134,7 @@ mxd_galil_gclib_aoutput_create_record_structures( MX_RECORD *record )
 			= &mxd_galil_gclib_aoutput_analog_output_function_list;
 
         analog_output->record = record;
+	galil_gclib_aoutput->record = record;
 
 	/* Raw analog output values are stored as doubles. */
 
