@@ -49,6 +49,9 @@ typedef struct {
 
 	char command_file[MXU_FILENAME_LENGTH+1];
 
+	char program_download[MXU_GALIL_GCLIB_BUFFER_LENGTH+1];
+	char program_download_file[MXU_FILENAME_LENGTH+1];
+
 	GCon connection;
 
 } MX_GALIL_GCLIB;
@@ -56,8 +59,11 @@ typedef struct {
 #define MXLV_GALIL_GCLIB_ERROR_CODE		0x9201
 #define MXLV_GALIL_GCLIB_GCLIB_STATUS		0x9202
 
-#define MXLV_GALIL_GCLIB_COMMAND		0x9301
-#define MXLV_GALIL_GCLIB_COMMAND_FILE		0x9302
+#define MXLV_GALIL_GCLIB_COMMAND		0x9251
+#define MXLV_GALIL_GCLIB_COMMAND_FILE		0x9252
+
+#define MXLV_GALIL_GCLIB_PROGRAM_DOWNLOAD	0x9261
+#define MXLV_GALIL_GCLIB_PROGRAM_DOWNLOAD_FILE	0x9262
 
 #define MXI_GALIL_GCLIB_STANDARD_FIELDS \
   {-1, -1, "hostname", MXFT_STRING, NULL, 1, {MXU_HOSTNAME_LENGTH}, \
@@ -103,7 +109,17 @@ typedef struct {
   {MXLV_GALIL_GCLIB_COMMAND_FILE, -1, "command_file", \
 		MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_GALIL_GCLIB, command_file), \
-	{0}, NULL, 0 }
+	{0}, NULL, 0 }, \
+  \
+  {MXLV_GALIL_GCLIB_PROGRAM_DOWNLOAD, -1, "program_download", \
+		MXFT_STRING, NULL, 1, {MXU_GALIL_GCLIB_BUFFER_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_GALIL_GCLIB, program_download), \
+	{sizeof(char)}, NULL, 0 }, \
+  \
+  {MXLV_GALIL_GCLIB_PROGRAM_DOWNLOAD_FILE, -1, "program_download_file", \
+		MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_GALIL_GCLIB, program_download_file), \
+	{sizeof(char)}, NULL, 0 }
 		
 
 MX_API mx_status_type mxi_galil_gclib_create_record_structures(
@@ -124,8 +140,16 @@ MX_API mx_status_type mxi_galil_gclib_command( MX_GALIL_GCLIB *galil_gclib,
 				char *response, size_t response_length );
 
 MX_API mx_status_type mxi_galil_gclib_run_command_file(
-						MX_GALIL_GCLIB *galil_gclib,
-						char *filename );
+					MX_GALIL_GCLIB *galil_gclib,
+					char *filename );
+
+MX_API mx_status_type mxi_galil_gclib_program_download(
+					MX_GALIL_GCLIB *galil_gclib,
+					char *galil_program_string );
+
+MX_API mx_status_type mxi_galil_gclib_program_download_file(
+					MX_GALIL_GCLIB *galil_gclib,
+					char *galil_program_filename );
 
 extern MX_RECORD_FUNCTION_LIST mxi_galil_gclib_record_function_list;
 

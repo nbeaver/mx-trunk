@@ -182,7 +182,17 @@ mxi_galil_gclib_open( MX_RECORD *record )
 
 	gclib_status = GOpen( connection_string, &(galil_gclib->connection) );
 
-	if ( gclib_status != G_NO_ERROR ) {
+	switch( gclib_status ) {
+	case G_NO_ERROR:
+		break;
+	case G_TIMEOUT:
+		return mx_error( MXE_TIMED_OUT, fname,
+		"The attempt to open a Galil controller connection for "
+		"record '%s' at '%s' timed out.  Is it possible that "
+		"the Galil controller is turned off or disconnected?",
+			record->name, galil_gclib->hostname );
+		break;
+	default:
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
 		"The attempt to open a Galil controller connection for "
 		"record '%s' at '%s' failed with status = %d.",
@@ -229,7 +239,7 @@ mxi_galil_gclib_open( MX_RECORD *record )
 
 	MX_DEBUG(-2,("%s: version_argc = %d", fname, version_argc ));
 
-#if 1
+#if 0
 	MX_DEBUG(-2,("MARKER 1"));
 
 	if ( version_argc >= 3 ) {
@@ -280,6 +290,8 @@ mxi_galil_gclib_special_processing_setup( MX_RECORD *record )
 		case MXLV_GALIL_GCLIB_COMMAND_FILE:
 		case MXLV_GALIL_GCLIB_ERROR_CODE:
 		case MXLV_GALIL_GCLIB_GCLIB_STATUS:
+		case MXLV_GALIL_GCLIB_PROGRAM_DOWNLOAD:
+		case MXLV_GALIL_GCLIB_PROGRAM_DOWNLOAD_FILE:
 			record_field->process_function
 					= mxi_galil_gclib_process_function;
 			break;
@@ -364,6 +376,14 @@ mxi_galil_gclib_process_function( void *record_ptr,
 		case MXLV_GALIL_GCLIB_COMMAND_FILE:
 			mx_status = mxi_galil_gclib_run_command_file(
 				galil_gclib, galil_gclib->command_file );
+			break;
+		case MXLV_GALIL_GCLIB_PROGRAM_DOWNLOAD:
+			mx_status = mxi_galil_gclib_program_download(
+				galil_gclib, galil_gclib->program_download );
+			break;
+		case MXLV_GALIL_GCLIB_PROGRAM_DOWNLOAD_FILE:
+			mx_status = mxi_galil_gclib_program_download_file(
+			    galil_gclib, galil_gclib->program_download_file );
 			break;
 		default:
 			MX_DEBUG( 1,(
@@ -549,3 +569,66 @@ mxi_galil_gclib_run_command_file( MX_GALIL_GCLIB *galil_gclib,
 	"  This should never happen and should be reported.",
 		galil_gclib->record->name );
 }
+
+MX_EXPORT mx_status_type
+mxi_galil_gclib_program_download( MX_GALIL_GCLIB *galil_gclib,
+				char *program_download_string )
+{
+	static const char fname[] = "mxi_galil_gclib_program_download()";
+
+	GReturn gclib_status;
+
+	if ( galil_gclib == (MX_GALIL_GCLIB *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_GALIL_GCLIB pointer passed was NULL." );
+	}
+	if ( program_download_string == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The program_download string pointer passed was NULL." );
+	}
+
+	gclib_status = GProgramDownload( galil_gclib->connection,
+					program_download_string, NULL );
+
+	if ( gclib_status != G_NO_ERROR ) {
+		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+		"The attempt to download a program to Galil controller '%s' "
+		"failed with status = %d.",
+		galil_gclib->record->name, (int) gclib_status );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxi_galil_gclib_program_download_file( MX_GALIL_GCLIB *galil_gclib,
+				char *program_download_filename )
+{
+	static const char fname[] = "mxi_galil_gclib_program_download_file()";
+
+	GReturn gclib_status;
+
+	if ( galil_gclib == (MX_GALIL_GCLIB *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_GALIL_GCLIB pointer passed was NULL." );
+	}
+	if ( program_download_filename == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The program_download_file pointer passed was NULL." );
+	}
+
+	gclib_status = GProgramDownloadFile( galil_gclib->connection,
+					program_download_filename, NULL );
+
+	if ( gclib_status != G_NO_ERROR ) {
+		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+		"The attempt to download program file '%s' "
+		"to Galil controller '%s' failed with status = %d.",
+			program_download_filename,
+			galil_gclib->record->name,
+			(int) gclib_status );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
