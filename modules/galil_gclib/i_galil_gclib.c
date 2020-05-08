@@ -38,7 +38,7 @@ MX_RECORD_FUNCTION_LIST mxi_galil_gclib_record_function_list = {
 	NULL,
 	mxi_galil_gclib_open,
 	NULL,
-	NULL,
+	mxi_galil_gclib_finish_delayed_initialization,
 	NULL,
 	mxi_galil_gclib_special_processing_setup
 };
@@ -143,6 +143,7 @@ mxi_galil_gclib_open( MX_RECORD *record )
 	char connection_string[MXU_HOSTNAME_LENGTH + 8];
 	int version_argc;
 	char **version_argv;
+	int num_items;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -218,13 +219,49 @@ mxi_galil_gclib_open( MX_RECORD *record )
 
 	MX_DEBUG(-2,("%s: Connection info = '%s'", fname, response ));
 
+	/* Figure out how many motors this controller can control. */
+
 	mx_status = mxi_galil_gclib_command( galil_gclib,
-			"MG TIME", response, sizeof(response) );
+			"QZ", response, sizeof(response) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s: MG TIME response = '%s'", fname, response ));
+	MX_DEBUG(-2,("%s: QZ response = '%s'", fname, response ));
+
+	num_items = sscanf( response, "%lu",
+			&(galil_gclib->maximum_num_motors ) );
+
+	if ( num_items != 1 ) {
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Did not see the maximum number of motor axes for "
+		"Galil controller '%s' in the response '%s' to command 'QZ'.",
+			galil_gclib->record->name, response );
+	}
+
+	galil_gclib->current_num_motors = 0;
+
+	/* Allocate a nulled out array of motor record pointers. */
+	
+	galil_gclib->motor_record_array =
+		calloc( galil_gclib->maximum_num_motors, sizeof(MX_RECORD *) );
+	
+	if ( galil_gclib->motor_record_array == (MX_RECORD **) NULL ) {
+
+		mx_status = mx_error( MXE_OUT_OF_MEMORY, fname,
+		"The attempt to allocate memory for a %lu element array "
+		"of MX_RECORD pointers failed for Galil controller '%s'.",
+			galil_gclib->maximum_num_motors,
+			galil_gclib->record->name );
+
+		galil_gclib->maximum_num_motors = 0;
+
+		return mx_status;
+	}
+
+	/* Find out what model of controller this is
+	 * and its firmware revision.
+	 */
 
 	snprintf( command, sizeof(command),
 		"%c%c", MX_CTRL_R, MX_CTRL_V );
@@ -239,26 +276,6 @@ mxi_galil_gclib_open( MX_RECORD *record )
 
 	MX_DEBUG(-2,("%s: version_argc = %d", fname, version_argc ));
 
-#if 0
-	MX_DEBUG(-2,("MARKER 1"));
-
-	if ( version_argc >= 3 ) {
-		MX_DEBUG(-2,("MARKER 2.1, version_argc = %d", version_argc));
-	} else {
-		MX_DEBUG(-2,("MARKER 2.2, version_argc = %d", version_argc));
-		mx_free( version_argv );
-
-		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
-		"Did not find the controller type and firmware revision "
-		"in the response '%s' to command 'ctrl-R ctrl-V' for "
-		"Galil controller '%s'.  Only %d tokens were seen, "
-		"instead of 3 tokens.",
-			response, record->name, version_argc );
-	}
-
-	MX_DEBUG(-2,("MARKER 3"));
-#endif
-
 	strlcpy( galil_gclib->controller_type,
 		version_argv[0], sizeof(galil_gclib->controller_type) );
 
@@ -266,6 +283,43 @@ mxi_galil_gclib_open( MX_RECORD *record )
 		version_argv[2], sizeof(galil_gclib->firmware_revision) );
 
 	mx_free( version_argv );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxi_galil_gclib_finish_delayed_initialization( MX_RECORD *record )
+{
+	static const char fname[] =
+		"mxi_galil_gclib_finish_delayed_initialization()";
+
+	MX_GALIL_GCLIB *galil_gclib = NULL;
+	MX_RECORD_FIELD *motor_record_array_field = NULL;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	galil_gclib = (MX_GALIL_GCLIB *) record->record_type_struct;
+
+	if ( galil_gclib == (MX_GALIL_GCLIB *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"MX_GALIL_GCLIB pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	mx_status = mx_find_record_field( record, "motor_record_array",
+						&motor_record_array_field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	motor_record_array_field->dimension[0] =
+			galil_gclib->current_num_motors;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -409,11 +463,16 @@ mxi_galil_gclib_command( MX_GALIL_GCLIB *galil_gclib,
 	static const char fname[] = "mxi_galil_gclib_command()";
 
 	GReturn gclib_status;
+	MX_RECORD *motor_record = NULL;
+	MX_RECORD *found_motor_record = NULL;
+	MX_GALIL_GCLIB_MOTOR *galil_gclib_motor = NULL;
+	int i, num_items, error_code;
 	unsigned long flags;
 	mx_bool_type debug_flag;
 	char *ptr = NULL;
 	char local_response[100];
 	char *buffer_ptr = NULL;
+	char raw_motor_name;
 	size_t buffer_length;
 
 	if ( galil_gclib == (MX_GALIL_GCLIB *) NULL ) {
@@ -466,11 +525,108 @@ mxi_galil_gclib_command( MX_GALIL_GCLIB *galil_gclib,
 				*ptr = '\0';
 			}
 
-			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
-			"The command '%s' sent to Galil controller '%s' "
-			"failed with TC error status = '%s'.", command,
+			num_items = sscanf( buffer_ptr, "%d", &error_code );
+
+			if ( num_items != 1 ) {
+				error_code = 0;
+			}
+
+			switch( error_code ) {
+			case 20:	/* Begin not valid with motor off. */
+
+				/* First try to figure out which motor
+				 * was turned off.
+				 */
+
+				num_items = sscanf( command, "BG%c",
+							&raw_motor_name );
+
+				if ( num_items != 1 ) {
+					return mx_error(
+					MXE_NOT_READY, fname,
+					"Galil controller '%s' said that the "
+					"attempt to start a motor move "
+					"failed.  But our attempt to find "
+					"the motor name in the command '%s' "
+					"was unsuccessful.  The name should "
+					"be the single character after "
+					"the letters 'BG' at the start of "
+					"the command.",
+						galil_gclib->record->name,
+						command );
+				}
+
+				motor_record = NULL;
+				found_motor_record = NULL;
+
+				for ( i = 0;
+					i < galil_gclib->current_num_motors;
+					i++ )
+				{
+					motor_record =
+					    galil_gclib->motor_record_array[i];
+
+					if (motor_record == (MX_RECORD *)NULL)
+					{
+						/* Try the next element
+						 * in the array.
+						 */
+						continue;
+					}
+
+					galil_gclib_motor =
+					    (MX_GALIL_GCLIB_MOTOR *)
+					    motor_record->record_type_struct;
+
+					if ( galil_gclib_motor->motor_name
+						== raw_motor_name )
+					{
+					    found_motor_record = motor_record;
+					}
+					break;
+				}
+
+				if ( found_motor_record == (MX_RECORD *) NULL )
+				{
+					return mx_error(
+					MXE_CORRUPT_DATA_STRUCTURE, fname,
+					"Attempted to start raw motor '%c' "
+					"moving for Galil controller '%s', "
+					"but the motor was turned off.  "
+					"However, axis '%c' does not have a "
+					"matching MX record in the MX "
+					"database, so it is not possible to "
+					"turn on this motor.  But, there "
+					"should not have been a way to "
+					"send the move command '%s' either, "
+					"so you should never see this "
+					"error in the first place.",
+						raw_motor_name,
+						galil_gclib->record->name,
+						raw_motor_name,
+						command );
+				}
+
+				/* Then send the error. */
+
+				return mx_error( MXE_NOT_READY, fname,
+				"Attempted to start motor '%s' moving "
+				"when the motor was turned off.  You should "
+				"try enabling the motor by sending the "
+				"number 1 to the '%s.axis_enable' field.  "
+				"After that, try your move again.",
+					found_motor_record->name,
+					found_motor_record->name );
+				break;
+			default:
+				return mx_error( MXE_INTERFACE_ACTION_FAILED,
+				fname, "The command '%s' sent to Galil "
+				"controller '%s' failed with TC error "
+				"code = '%s'.", command,
 				galil_gclib->record->name, buffer_ptr );
-			break;
+
+				break;
+			}
 		} else {
 			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
 			"A TC command was sent to '%s' to find out why the "

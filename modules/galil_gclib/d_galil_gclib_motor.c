@@ -193,6 +193,7 @@ mxd_galil_gclib_motor_open( MX_RECORD *record )
 	MX_MOTOR *motor = NULL;
 	MX_GALIL_GCLIB_MOTOR *galil_gclib_motor = NULL;
 	MX_GALIL_GCLIB *galil_gclib = NULL;
+	unsigned long new_motor_index;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -202,8 +203,8 @@ mxd_galil_gclib_motor_open( MX_RECORD *record )
 
 	motor = (MX_MOTOR *) record->record_class_struct;
 
-	mx_status = mxd_galil_gclib_motor_get_pointers( motor, &galil_gclib_motor,
-							&galil_gclib, fname );
+	mx_status = mxd_galil_gclib_motor_get_pointers( motor,
+				&galil_gclib_motor, &galil_gclib, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -245,6 +246,24 @@ mxd_galil_gclib_motor_open( MX_RECORD *record )
 		break;
 	}
 
+	/* Add the motor to the Galil controller's motor_record_array. */
+
+	new_motor_index = galil_gclib->current_num_motors;
+
+	if ( new_motor_index >= galil_gclib->maximum_num_motors ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"This motor '%s' would be motor number %lu for "
+		"Galil controller '%s', but this Galil controller has "
+		"a maximum of %lu motor axes and coordinated motions.",
+			record->name, new_motor_index,
+			galil_gclib->record->name,
+			galil_gclib->maximum_num_motors );
+	}
+
+	galil_gclib->motor_record_array[ new_motor_index ] = record;
+
+	(galil_gclib->current_num_motors)++;
+
 	return mx_status;
 }
 
@@ -267,8 +286,8 @@ mxd_galil_gclib_motor_resynchronize( MX_RECORD *record )
 
 	motor = (MX_MOTOR *) record->record_class_struct;
 
-	mx_status = mxd_galil_gclib_motor_get_pointers( motor, &galil_gclib_motor,
-							&galil_gclib, fname );
+	mx_status = mxd_galil_gclib_motor_get_pointers( motor,
+				&galil_gclib_motor, &galil_gclib, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -453,8 +472,8 @@ mxd_galil_gclib_motor_move_absolute( MX_MOTOR *motor )
 	char command[80];
 	mx_status_type mx_status;
 
-	mx_status = mxd_galil_gclib_motor_get_pointers( motor, &galil_gclib_motor,
-							&galil_gclib, fname );
+	mx_status = mxd_galil_gclib_motor_get_pointers( motor,
+				&galil_gclib_motor, &galil_gclib, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -489,8 +508,8 @@ mxd_galil_gclib_motor_get_position( MX_MOTOR *motor )
 	int num_items;
 	mx_status_type mx_status;
 
-	mx_status = mxd_galil_gclib_motor_get_pointers( motor, &galil_gclib_motor,
-							&galil_gclib, fname );
+	mx_status = mxd_galil_gclib_motor_get_pointers( motor,
+				&galil_gclib_motor, &galil_gclib, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -530,8 +549,8 @@ mxd_galil_gclib_motor_set_position( MX_MOTOR *motor )
 	char command[80];
 	mx_status_type mx_status;
 
-	mx_status = mxd_galil_gclib_motor_get_pointers( motor, &galil_gclib_motor,
-							&galil_gclib, fname );
+	mx_status = mxd_galil_gclib_motor_get_pointers( motor,
+				&galil_gclib_motor, &galil_gclib, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -557,8 +576,8 @@ mxd_galil_gclib_motor_soft_abort( MX_MOTOR *motor )
 	char command[80];
 	mx_status_type mx_status;
 
-	mx_status = mxd_galil_gclib_motor_get_pointers( motor, &galil_gclib_motor,
-							&galil_gclib, fname );
+	mx_status = mxd_galil_gclib_motor_get_pointers( motor,
+				&galil_gclib_motor, &galil_gclib, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -583,8 +602,8 @@ mxd_galil_gclib_motor_immediate_abort( MX_MOTOR *motor )
 	char command[80];
 	mx_status_type mx_status;
 
-	mx_status = mxd_galil_gclib_motor_get_pointers( motor, &galil_gclib_motor,
-							&galil_gclib, fname );
+	mx_status = mxd_galil_gclib_motor_get_pointers( motor,
+				&galil_gclib_motor, &galil_gclib, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -609,8 +628,8 @@ mxd_galil_gclib_motor_raw_home_command( MX_MOTOR *motor )
 	char command[80];
 	mx_status_type mx_status;
 
-	mx_status = mxd_galil_gclib_motor_get_pointers( motor, &galil_gclib_motor,
-							&galil_gclib, fname );
+	mx_status = mxd_galil_gclib_motor_get_pointers( motor,
+				&galil_gclib_motor, &galil_gclib, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -649,8 +668,8 @@ mxd_galil_gclib_motor_get_parameter( MX_MOTOR *motor )
 	unsigned long ulong_value;
 	mx_status_type mx_status;
 
-	mx_status = mxd_galil_gclib_motor_get_pointers( motor, &galil_gclib_motor,
-							&galil_gclib, fname );
+	mx_status = mxd_galil_gclib_motor_get_pointers( motor,
+				&galil_gclib_motor, &galil_gclib, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -903,8 +922,8 @@ mxd_galil_gclib_motor_set_parameter( MX_MOTOR *motor )
 	char command[80];
 	mx_status_type mx_status;
 
-	mx_status = mxd_galil_gclib_motor_get_pointers( motor, &galil_gclib_motor,
-							&galil_gclib, fname );
+	mx_status = mxd_galil_gclib_motor_get_pointers( motor,
+				&galil_gclib_motor, &galil_gclib, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1127,7 +1146,8 @@ mxd_galil_gclib_motor_simultaneous_start( long num_motor_records,
 MX_EXPORT mx_status_type
 mxd_galil_gclib_motor_get_extended_status( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_galil_gclib_motor_get_extended_status()";
+	static const char fname[] =
+		"mxd_galil_gclib_motor_get_extended_status()";
 
 	MX_GALIL_GCLIB_MOTOR *galil_gclib_motor = NULL;
 	MX_GALIL_GCLIB *galil_gclib = NULL;
@@ -1136,8 +1156,8 @@ mxd_galil_gclib_motor_get_extended_status( MX_MOTOR *motor )
 	unsigned long switch_status;
 	mx_status_type mx_status;
 
-	mx_status = mxd_galil_gclib_motor_get_pointers( motor, &galil_gclib_motor,
-							&galil_gclib, fname );
+	mx_status = mxd_galil_gclib_motor_get_pointers( motor,
+				&galil_gclib_motor, &galil_gclib, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

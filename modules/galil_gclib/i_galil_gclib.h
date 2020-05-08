@@ -54,6 +54,10 @@ typedef struct {
 
 	GCon connection;
 
+	unsigned long maximum_num_motors;
+	unsigned long current_num_motors;
+	MX_RECORD **motor_record_array;
+
 } MX_GALIL_GCLIB;
 
 #define MXLV_GALIL_GCLIB_ERROR_CODE		0x9201
@@ -119,8 +123,19 @@ typedef struct {
   {MXLV_GALIL_GCLIB_PROGRAM_DOWNLOAD_FILE, -1, "program_download_file", \
 		MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_GALIL_GCLIB, program_download_file), \
-	{sizeof(char)}, NULL, 0 }
-		
+	{sizeof(char)}, NULL, 0 }, \
+  \
+  {-1, -1, "maximum_num_motors", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_GALIL_GCLIB, maximum_num_motors), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "current_num_motors", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_GALIL_GCLIB, current_num_motors), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "motor_record_array", MXFT_RECORD, NULL, 1, {MXU_VARARGS_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_GALIL_GCLIB, motor_record_array), \
+	{ sizeof(MX_RECORD *) }, NULL, (MXFF_READ_ONLY | MXFF_VARARGS) }
 
 MX_API mx_status_type mxi_galil_gclib_create_record_structures(
 						MX_RECORD *record );
@@ -131,6 +146,9 @@ MX_API mx_status_type mxi_galil_gclib_finish_record_initialization(
 MX_API mx_status_type mxi_galil_gclib_open( MX_RECORD *record );
 
 MX_API mx_status_type mxi_galil_gclib_resynchronize( MX_RECORD *record );
+
+MX_API mx_status_type mxi_galil_gclib_finish_delayed_initialization(
+							MX_RECORD *record );
 
 MX_API mx_status_type mxi_galil_gclib_special_processing_setup(
 							MX_RECORD *record );
