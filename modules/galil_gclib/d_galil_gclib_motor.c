@@ -637,7 +637,7 @@ mxd_galil_gclib_motor_raw_home_command( MX_MOTOR *motor )
 	/* Turn on homing mode. */
 
 	snprintf( command, sizeof(command),
-		"HM%c", galil_gclib_motor->motor_name );
+		"FE%c", galil_gclib_motor->motor_name );
 
 	mx_status = mxi_galil_gclib_command( galil_gclib, command, NULL, 0 );
 
@@ -1202,7 +1202,9 @@ mxd_galil_gclib_motor_get_extended_status( MX_MOTOR *motor )
 		motor->status |= MXSF_MTR_NEGATIVE_LIMIT_HIT;
 	}
 	if ( (switch_status & 0x2) == 0 ) {
-		motor->status |= MXSF_MTR_AT_HOME_SWITCH;  /* FIXME: Verify? */
+		motor->status |= MXSF_MTR_AT_HOME_SWITCH;
+
+		motor->latched_status |= MXSF_MTR_HOME_SEARCH_SUCCEEDED;
 	}
 	/* 0x1 is "position latch".  FIXME: Do not know what that is just yet.*/
 
