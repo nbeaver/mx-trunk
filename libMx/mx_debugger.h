@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 1999-2019 Illinois Institute of Technology
+ * Copyright 1999-2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -54,7 +54,21 @@ MX_API void mx_wait_for_debugger( void );
 
 MX_API int mx_breakpoint_helper( void );
 
-/* mx_breakpoint() inserts a debugger breakpoint into the code.
+/* mx_raw_breakpoint() triggers a hardware breakpoint.  If an MX program
+ * is not being run from a debugger, then on most platforms calling the
+ * mx_raw_breakpoint() will crash the program with a trap-style exception.
+ *
+ * This function is not available on all platforms.
+ */
+
+MX_API void mx_raw_breakpoint( void );
+
+/* mx_breakpoint() triggers a debugger breakpoint into the code.  If the
+ * debugger is not already running, then mx_breakpoint() will start it.
+ *
+ * On most platforms, MX relies on mx_raw_breakpoint() to actually implement
+ * the hardware breakpoint.  Windows is an exception (of course).
+ *
  * This function is not available on all platforms.
  *
  * Note: There is a duplicate of the definition of mx_breakpoint() in mx_util.h

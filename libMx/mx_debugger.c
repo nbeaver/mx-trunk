@@ -42,6 +42,14 @@
 #  define USE_MX_DEBUGGER_IS_PRESENT	FALSE
 #endif
 
+#if ( defined(__GNUC__) \
+	&& (defined(__i386__) || defined(__x86_64__)) \
+	&& (!defined(OS_SOLARIS)) )
+#  define USE_MX_RAW_BREAKPOINT		TRUE
+#else
+#  define USE_MX_RAW_BREAKPOINT		FALSE
+#endif
+
 /*-------------------------------------------------------------------------*/
 
 static mx_bool_type mxp_just_in_time_debugging_enabled = FALSE;
@@ -119,17 +127,13 @@ mx_breakpoint( void )
 	DebugBreak();
 }
 
-/*----------------*/
-
-#elif ( defined(__GNUC__) \
-	&& (defined(__i386__) || defined(__x86_64__)) \
-	&& (!defined(OS_SOLARIS)) )
+#else
 
 MX_EXPORT void
 mx_breakpoint( void )
 {
 	if ( mxp_debugger_started ) {
-		__asm__("int3");
+		mx_raw_breakpoint();
 	} else {
 		mxp_debugger_started = TRUE;
 
@@ -137,30 +141,47 @@ mx_breakpoint( void )
 	}
 }
 
+#endif
+
+/*-------------------------------------------------------------------------*/
+
+#if defined(OS_WIN32)
+
+MX_EXPORT void
+mx_raw_breakpoint( void )
+{
+	mxp_debugger_started = TRUE;
+
+	DebugBreak();
+}
+
+/*----------------*/
+
+#elif USE_MX_RAW_BREAKPOINT
+
+MX_EXPORT void
+mx_raw_breakpoint( void )
+{
+	__asm__("int3");
+}
+
 /*----------------*/
 
 #else
 
-/* For unsupported platforms, we just "implement" it as
- * a call to mx_breakpoint_helper() above.
+/* For unsupported platforms, we just "implement" mx_raw_breakpoint()
+ * as a call to mx_breakpoint_helper() above.
  */
 
 MX_EXPORT void
-mx_breakpoint( void )
+mx_raw_breakpoint( void )
 {
-	if ( mxp_debugger_started ) {
-		mx_warning( "Calling mx_breakpoint_helper()." );
-
-		mx_breakpoint_helper();
-	} else {
-		mx_warning(
-		"This platform does not directly support mx_breakpoint() "
+	mx_warning( "This platform does not directly support mx_breakpoint() "
 		"and will use mx_breakpoint_helper() instead.  You should "
 		"set a breakpoint for mx_breakpoint_helper() now "
 		"for proper debugging." );
 
-		mx_start_debugger(NULL);
-	}
+	mx_breakpoint_helper();
 }
 
 #endif
