@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <signal.h>
 
 #include "mx_osdef.h"
 
@@ -40,14 +41,6 @@
 #  define USE_MX_DEBUGGER_IS_PRESENT	TRUE
 #else
 #  define USE_MX_DEBUGGER_IS_PRESENT	FALSE
-#endif
-
-#if ( defined(__GNUC__) \
-	&& (defined(__i386__) || defined(__x86_64__)) \
-	&& (!defined(OS_SOLARIS)) )
-#  define USE_MX_RAW_BREAKPOINT		TRUE
-#else
-#  define USE_MX_RAW_BREAKPOINT		FALSE
 #endif
 
 /*-------------------------------------------------------------------------*/
@@ -145,31 +138,162 @@ mx_breakpoint( void )
 
 /*-------------------------------------------------------------------------*/
 
-#if defined(OS_WIN32)
+/* FIXME: The stuff below is inspired by
+ *
+ * https://github.com/nemequ/portable-snippets/blob/master/debug-trap/debug-trap.h
+ *
+ * https://sourceforge.net/p/predef/wiki/Compilers/
+ *
+ * I do not have access to all of these platforms mentioned above to test,
+ * so some of the cases below may not work as is.  Some of the cases below
+ * will probably _never_ be used by MX, but are kept for completeness.
+ */
+
+#if ( defined(_MSC_VER) || defined(__INTEL_COMPILER) )
+
+/* Either Microsoft Visual C++ or the Intel C++ compiler. */
 
 MX_EXPORT void
 mx_raw_breakpoint( void )
 {
-	mxp_debugger_started = TRUE;
-
-	DebugBreak();
+	__debugbreak();
 }
 
 /*----------------*/
 
-#elif USE_MX_RAW_BREAKPOINT
+#elif defined(__ARMCC_VERSION)
+
+/* ARM C/C++ Compiler (!!!) */
 
 MX_EXPORT void
 mx_raw_breakpoint( void )
 {
-	__asm__("int3");
+	__breakpoint(42);
+}
+
+/*----------------*/
+
+#elif ( defined(__ibmxl__) || defined(__xlC__) )
+
+/* IBM XL C/C++ Compiler (!!!) */
+
+#  include <builtins.h>
+
+MX_EXPORT void
+mx_raw_breakpoint( void )
+{
+	__trap(42);
+}
+
+/*----------------*/
+
+#elif ( defined(__DMC__) || defined(_M_IX86) )
+
+/* Digital Mars compiler (unlikely to ever be supported by MX). (!!!) */
+
+MX_EXPORT void
+mx_raw_breakpoint( void )
+{
+	__asm int 3h;
+}
+
+/*----------------*/
+
+#elif ( defined(__i386__) || defined(__x86_64__) )
+
+/* GCC/Clang (Intel x86 family) (***) */
+
+MX_EXPORT void
+mx_raw_breakpoint( void )
+{
+	__asm__ __volatile__( "int3" );
+}
+
+/*----------------*/
+
+#elif defined(__thumb__)
+
+/* GCC/Clang (ARM 32-bit thumb mode) (!!!) */
+
+MX_EXPORT void
+mx_raw_breakpoint( void )
+{
+	__asm__ __volatile__( ".inst 0xde01" );
+}
+
+/*----------------*/
+
+#elif defined(__aarch64__)
+
+/* GCC/Clang (ARM 64-bit mode) (!!!) */
+
+MX_EXPORT void
+mx_raw_breakpoint( void )
+{
+	__asm__ __volatile__( ".inst 0xd4200000" );
+}
+
+/*----------------*/
+
+#elif defined(__arm__)
+
+/* GCC/Clang (ARM 32-bit mode) (!!!) */
+
+MX_EXPORT void
+mx_raw_breakpoint( void )
+{
+	__asm__ __volatile__( ".inst 0xe7f001f0" );
+}
+
+/*----------------*/
+
+#elif ( defined(__alpha__) && !defined(__osf__) )
+
+/* GCC/Clang (DEC alpha) (!!!) */
+
+MX_EXPORT void
+mx_raw_breakpoint( void )
+{
+	__asm__ __volatile__( "bsp" );
+}
+
+/*----------------*/
+
+#elif ( defined(__STDC_HOSTED__) && (__STDC_HOSTED__ == 0) && defined(__GNUC__))
+
+/* GCC/Clang builtin intrinsic for cases not handled above. (!!!) */
+
+MX_EXPORT void
+mx_raw_breakpoint( void )
+{
+	__builtin_trap();
+}
+
+/*----------------*/
+
+#elif defined(SIGTRAP)
+
+/* ANSI C89 compilable.
+ *
+ * Warning: It is not guaranteed on all platforms that raising a SIGTRAP signal
+ *          will cause a trap into a debugger.  On some platforms, it may just
+ *          unconditionally crash your program.  Or do something that is
+ *          even less useful.
+ */
+
+MX_EXPORT void
+mx_raw_breakpoint( void )
+{
+	raise( SIGTRAP );
+
+	/* ... and hope for the best. */
 }
 
 /*----------------*/
 
 #else
 
-/* For unsupported platforms, we just "implement" mx_raw_breakpoint()
+/* For truly unsupported platforms, we just "implement" mx_raw_breakpoint()
  * as a call to mx_breakpoint_helper() above.
  */
 
