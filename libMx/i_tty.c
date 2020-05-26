@@ -409,10 +409,59 @@ mxi_tty_open( MX_RECORD *record )
 
 	/* If MXF_232_SHARED is set, then preserve shared access to the
 	 * serial port (which is the Unix default setting).  Otherwise,
-	 * we attempt to get exclusive access with flock().
+	 * we attempt to get exclusive access with flock() or fcntl().
 	 */
 
-#if ( defined(OS_LINUX) || defined(OS_MACOSX) )
+#if defined(OS_CYGWIN)
+
+	if ( (rs232->rs232_flags & MXF_232_SHARED) == 0 ) {
+
+		struct flock file_lock;
+		int fcntl_status;
+
+		/* For platforms that do not have flock(). */
+
+		file_lock.l_type   = F_WRLCK;
+		file_lock.l_whence = SEEK_SET;
+		file_lock.l_start  = 0;
+		file_lock.l_len    = 0;
+
+		fcntl_status = fcntl( tty->file_handle, F_SETLK, &file_lock );
+
+		if ( fcntl_status == (-1) ) {
+			saved_errno = errno;
+
+			switch( saved_errno ) {
+			case EACCES:
+			case EAGAIN:
+				/* The file is already locked by someone else.
+				 * According to Posix, some platforms return
+				 * EACCES for this, while others return EAGAIN.
+				 * So we have to test for both.
+				 */
+				mx_status = mx_error(
+				 MXE_NOT_VALID_FOR_CURRENT_STATE, fname,
+				"RS232 port '%s' for record '%s' is "
+				"already in use by another process.",
+					tty->filename, record->name );
+
+				(void) mxi_tty_close( record );
+				return mx_status;
+				break;
+
+			default:
+				return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+				"Error when trying to get an exclusive lock "
+				"on file descriptor %d for rs232 record '%s'.  "
+				"Errno = %d, error text = '%s'",
+				    tty->file_handle, record->name,
+				    saved_errno, strerror(saved_errno) );
+				break;
+			}
+		}
+	}
+
+#elif ( defined(OS_LINUX) || defined(OS_MACOSX) )
 
 	if ( (rs232->rs232_flags & MXF_232_SHARED) == 0 ) {
 
@@ -484,7 +533,7 @@ mxi_tty_open( MX_RECORD *record )
 				return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 				"Error when trying to get an exclusive lock "
 				"on file descriptor %d with operation %#x "
-				"for rs232 record '%s'  "
+				"for rs232 record '%s'.  "
 				"Errno = %d, error text = '%s'",
 				    tty->file_handle, operation, record->name,
 				    saved_errno, strerror(saved_errno) );
