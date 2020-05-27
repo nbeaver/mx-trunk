@@ -21,7 +21,7 @@
 
 #define MXD_HANDEL_MCS_DEBUG_BUSY			TRUE
 
-#define MXD_HANDEL_MCS_DEBUG_OPEN			FALSE
+#define MXD_HANDEL_MCS_DEBUG_OPEN			TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -494,10 +494,12 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 	}
 
 #if 1
-	MX_DEBUG(-2,("%s: MCS '%s' trigger_mode = %ld, mapping_mode = %ld, "
+	MX_DEBUG(-2,("%s: MCS '%s' record = %p, mcs = %p, "
+		"trigger_mode = %ld, mapping_mode = %ld, "
 		"handel->pixel_advance_mode = %ld, pixel_advance_mode = %f, "
 		"gate_master = %f, sync_master = %f, sync_count = %f",
-		fname, mcs->record->name, mcs->trigger_mode,
+		fname, mcs->record, mcs,
+		mcs->record->name, mcs->trigger_mode,
 		handel->mapping_mode, handel->pixel_advance_mode,
 		pixel_advance_mode, gate_master, sync_master, sync_count));
 #endif

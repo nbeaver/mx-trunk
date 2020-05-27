@@ -394,7 +394,11 @@ mxi_handel_read_buffers( MX_HANDEL *handel,
 				fname, mx_get_thread_id(NULL), handel->mutex ));
 #endif
 
+		MX_DEBUG(-2,("%s: MARKER 1, mutex = %p", fname, handel->mutex));
+
 		xia_status = xiaGetRunData( channel, run_data_name, buffer_ptr);
+
+		MX_DEBUG(-2,("%s: MARKER 2, mutex = %p", fname, handel->mutex));
 
 		if ( xia_status != XIA_SUCCESS ) {
 
@@ -2076,6 +2080,15 @@ mxi_handel_reallocate_buffers( MX_HANDEL *handel,
 		channel++ )
 	{
 		mcs = mcs_array[channel];
+
+		if ( mcs == (MX_MCS *) NULL ) {
+			/* The MCS record for this channel has not been
+			 * declared in the MX database for this process,
+			 * so we skip over it.
+			 */
+
+			continue;
+		}
 
 		handel_mcs = (MX_HANDEL_MCS *) mcs->record->record_type_struct;
 
