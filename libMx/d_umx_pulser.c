@@ -266,7 +266,7 @@ mxd_umx_pulser_arm( MX_PULSE_GENERATOR *pulser )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	debug_flag = TRUE;
+	debug_flag = FALSE;
 
 #if MXD_UMX_PULSER_DEBUG_RUNNING
 	MX_DEBUG(-2,("%s: Pulse generator '%s' armed, "
@@ -445,7 +445,7 @@ mxd_umx_pulser_trigger( MX_PULSE_GENERATOR *pulser )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	debug_flag = TRUE;
+	debug_flag = FALSE;
 
 #if MXD_UMX_PULSER_DEBUG_RUNNING
 	MX_DEBUG(-2,("%s: Pulse generator '%s' triggered, "
@@ -500,7 +500,7 @@ mxd_umx_pulser_stop( MX_PULSE_GENERATOR *pulser )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	debug_flag = TRUE;
+	debug_flag = FALSE;
 
 #if MXD_UMX_PULSER_DEBUG_RUNNING
 	MX_DEBUG(-2,("%s: Stopping pulse generator '%s'.",
@@ -538,7 +538,7 @@ mxd_umx_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 	mx_bool_type debug_flag;
 	mx_status_type mx_status;
 
-	debug_flag = TRUE;
+	debug_flag = FALSE;
 
 	mx_status = mxd_umx_pulser_get_pointers( pulser,
 					&umx_pulser, &umx_record, fname );
@@ -715,7 +715,7 @@ mxd_umx_pulser_set_parameter( MX_PULSE_GENERATOR *pulser )
 		pulser->parameter_type));
 #endif
 
-	debug_flag = TRUE;
+	debug_flag = FALSE;
 
 	switch( pulser->parameter_type ) {
 	case MXLV_PGN_PULSE_PERIOD:
@@ -862,7 +862,7 @@ mxd_umx_pulser_get_status( MX_PULSE_GENERATOR *pulser )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	debug_flag = TRUE;
+	debug_flag = FALSE;
 
 	snprintf( command, sizeof(command),
 		"GET %s.status", umx_pulser->pulser_name );

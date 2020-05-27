@@ -14,7 +14,7 @@
  *
  */
 
-#define UMX_AINPUT_DEBUG	TRUE
+#define UMX_AINPUT_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
