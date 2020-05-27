@@ -14,7 +14,7 @@
  *
  */
 
-#define MXN_UMX_DEBUG		TRUE
+#define MXN_UMX_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
