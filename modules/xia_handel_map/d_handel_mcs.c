@@ -23,6 +23,10 @@
 
 #define MXD_HANDEL_MCS_DEBUG_OPEN			TRUE
 
+#define MXD_HANDEL_MCS_DEBUG				TRUE
+
+#define MXD_HANDEL_MCS_DEBUG				TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -314,18 +318,6 @@ mxd_handel_mcs_open( MX_RECORD *record )
 
 	handel_mca->child_mcs_record = record;
 
-#if MXD_HANDEL_MCS_DEBUG_OPEN
-	MX_DEBUG(-2,("%s: record = %p, record->name = '%s'",
-		fname, record, record->name));
-	MX_DEBUG(-2,("%s: handel_mca = %p", fname, handel_mca));
-	MX_DEBUG(-2,("%s: handel_mca->record->name = '%s'",
-				fname, handel_mca->record->name));
-	MX_DEBUG(-2,("%s: handel_mca->child_mcs_record = %p",
-				fname, handel_mca->child_mcs_record));
-	MX_DEBUG(-2,("%s: handel_mca->child_mcs_record = '%s'",
-				fname, handel_mca->child_mcs_record->name));
-#endif
-
 	/* Default to external trigger. */
 
 	mcs->trigger_mode = MXF_DEV_EXTERNAL_TRIGGER;
@@ -338,13 +330,29 @@ mxd_handel_mcs_open( MX_RECORD *record )
 	handel->mapping_mode = MXF_HANDEL_MAP_MCA_MODE;
 #endif
 
-#if 1
+#if MXD_HANDEL_MCS_DEBUG_OPEN
+	MX_DEBUG(-2,("%s: MCS '%s' record = %p", fname, record->name, record));
 	MX_DEBUG(-2,("%s: mcs '%s' = %p", fname, mcs->record->name, mcs));
 	MX_DEBUG(-2,("%s: mcs->data_array = %p", fname, mcs->data_array));
 	MX_DEBUG(-2,("%s: mcs->data_array[0] = %p", fname, mcs->data_array[0]));
 	MX_DEBUG(-2,("%s: mcs->data_array[0][0] = %lu",
 						fname, mcs->data_array[0][0]));
+	MX_DEBUG(-2,("%s: handel_mcs = %p", fname, handel_mcs ));
+	MX_DEBUG(-2,("%s: handel_mcs->mca_record = %p, '%s'",
+			fname, handel_mcs->mca_record,
+			handel_mcs->mca_record->name));
+
+	MX_DEBUG(-2,("%s: mca = %p", fname, mca));
+	MX_DEBUG(-2,("%s: handel_mca = %p", fname, handel_mca));
+	MX_DEBUG(-2,("%s: handel_mca->record = %p, '%s'",
+				fname, handel_mca->record,
+				handel_mca->record->name));
+	MX_DEBUG(-2,("%s: handel_mca->child_mcs_record = %p, '%s'",
+				fname, handel_mca->child_mcs_record,
+				handel_mca->child_mcs_record->name));
+
 #endif
+	mx_breakpoint();
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -372,6 +380,11 @@ mxd_handel_mcs_arm( MX_MCS *mcs )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if MXD_HANDEL_MCS_DEBUG
+	MX_DEBUG(-2,("%s: mcs = %p, mcs->record = %p, '%s'",
+		fname, mcs, mcs->record, mcs->record->name));
+#endif
 
 	mx_status = mxd_handel_mcs_stop( mcs );
 
