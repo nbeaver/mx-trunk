@@ -1,0 +1,3 @@
+!load ../xglab_dante.mxo
+#
+dante interface controller dante "" ""

@@ -23,7 +23,7 @@ endif
 
 #--------------------------------------------------------------------------
 
-XGLAB_DANTE_MXO = xglab_dante_map.mxo
+XGLAB_DANTE_MXO = xglab_dante.mxo
 
 all: $(XGLAB_DANTE_MXO)
 

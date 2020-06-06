@@ -40,7 +40,7 @@ MX_RECORD_FUNCTION_LIST mxi_dante_record_function_list = {
 	mxi_dante_open,
 	NULL,
 	NULL,
-	mxi_dante_resynchronize,
+	NULL,
 	mxi_dante_special_processing_setup
 };
 
@@ -62,58 +62,6 @@ static mx_status_type mxi_dante_process_function( void *record_ptr,
 						int operation );
 
 extern const char *mxi_dante_strerror( int xia_status );
-
-static mx_status_type
-mxi_dante_get_pointers( MX_MCA *mca,
-			MX_DANTE_MCA **dante_mca,
-			MX_DANTE **dante,
-			const char *calling_fname )
-{
-	static const char fname[] = "mxi_dante_get_pointers()";
-
-	MX_RECORD *dante_record;
-
-	if ( mca == (MX_MCA *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"The MX_MCA pointer passed by '%s' was NULL.",
-			calling_fname );
-	}
-	if ( dante_mca == (MX_DANTE_MCA **) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"The MX_DANTE_MCA pointer passed by '%s' was NULL.",
-			calling_fname );
-	}
-	if ( dante == (MX_DANTE **) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"The MX_DANTE pointer passed by '%s' was NULL.",
-			calling_fname );
-	}
-	if ( mca->record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	"The MX_RECORD pointer for the MX_MCA pointer passed by '%s' was NULL.",
-			calling_fname );
-	}
-
-	*dante_mca = (MX_DANTE_MCA *) mca->record->record_type_struct;
-
-	dante_record = (*dante_mca)->dante_record;
-
-	if ( dante_record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The dante_record pointer for MCA record '%s' is NULL.",
-			mca->record->name );
-	}
-
-	*dante = (MX_DANTE *) dante_record->record_type_struct;
-
-	if ( (*dante) == (MX_DANTE *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_DANTE pointer for XIA DXP record '%s' is NULL.",
-			dante_record->name );
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
 
 /*-------------------------------------------------------------------------*/
 
@@ -237,16 +185,11 @@ mxi_dante_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_dante_open()";
 
-	MX_MCA *mca = NULL;
-	MX_DANTE_MCA *dante_mca = NULL;
 	MX_DANTE *dante = NULL;
-	mx_status_type mx_status;
+	bool dante_status;
 
-#if MXI_DANTE_DEBUG_TIMING
-	MX_HRT_TIMING measurement;
-
-	MX_HRT_START( measurement );
-#endif
+	uint32_t version_size = 20;
+	char *version = new char[version_size];
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -255,56 +198,33 @@ mxi_dante_open( MX_RECORD *record )
 
 	MX_DEBUG(-2,("%s invoked for '%s'.", fname, record->name));
 
-	mca = (MX_MCA *) record->record_class_struct;
-
-	mx_status = mxi_dante_get_pointers( mca, &dante_mca, &dante, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	return mx_status;
-}
-
-/*-------------------------------------------------------------------------*/
-
-MX_EXPORT mx_status_type
-mxi_dante_resynchronize( MX_RECORD *record )
-{
-	static const char fname[] = "mxi_dante_resynchronize()";
-
-	MX_DANTE *dante;
-	mx_status_type mx_status;
-
-#if MXI_DANTE_DEBUG_TIMING
-	MX_HRT_TIMING measurement;
-#endif
-
-	MX_DEBUG( 2,("%s invoked.", fname));
-
-	if ( record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"MX_RECORD pointer passed is NULL.");
-	}
-
-	dante = (MX_DANTE *) (record->record_type_struct);
+	dante = (MX_DANTE *) record->record_type_struct;
 
 	if ( dante == (MX_DANTE *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"MX_DANTE pointer for record '%s' is NULL.", record->name);
+		"The MX_DANTE pointer for DANTE controller '%s' is NULL.",
+			record->name );
 	}
 
-#if MXI_DANTE_DEBUG_TIMING
-	MX_HRT_START( measurement );
-#endif
+	/* Initialize the DANTE library. */
 
-#if MXI_DANTE_DEBUG_TIMING
-	MX_HRT_END( measurement );
+	dante_status = InitLibrary();
 
-	MX_HRT_RESULTS( measurement, fname, "for record '%s'", record->name );
-#endif
-	mx_status = MX_SUCCESSFUL_RESULT;
+	if ( dante_status == false ) {
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"DANTE InitLibrary() failed." );
+	}
 
-	return mx_status;
+	dante_status = libVersion( version, version_size );
+
+	if ( dante_status == false ) {
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"DANTE libVersion() failed." );
+	}
+
+	MX_DEBUG(-2,("%s: DANTE version = %d", fname, version ));
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*-------------------------------------------------------------------------*/

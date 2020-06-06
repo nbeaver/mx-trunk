@@ -48,7 +48,6 @@ MX_API mx_status_type mxi_dante_create_record_structures(
 MX_API mx_status_type mxi_dante_finish_record_initialization(
 							MX_RECORD *record );
 MX_API mx_status_type mxi_dante_open( MX_RECORD *record );
-MX_API mx_status_type mxi_dante_resynchronize( MX_RECORD *record );
 MX_API mx_status_type mxi_dante_special_processing_setup(
 							MX_RECORD *record );
 

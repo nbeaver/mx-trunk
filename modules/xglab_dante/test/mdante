@@ -1,0 +1,6 @@
+#! /bin/sh
+
+export LD_LIBRARY_PATH=../../../libMx:/opt/DANTE/Library/linux
+
+../../../motor/mxmotor -Fmdante.dat -s sdante.dat
+
