@@ -11,7 +11,9 @@ ifndef MX_INSTALL_DIR
 endif
 
 ifeq ($(MX_ARCH),linux)
-	XGLAB_DANTE_DIR = "/opt/DANTE/Library/Ubuntu\ 18.04\ 64bit/2019-06-25\ 08.58-3.2.4.3-Linux-4.18.0-21-generic-Callback-x64"
+	XGLAB_DANTE_DIR = /opt/DANTE/Library/linux
+#
+#	XGLAB_DANTE_DIR = "/opt/DANTE/Library/Ubuntu\\\ 18.04\\\ 64bit/2019-06-25\\\ 08.58-3.2.4.3-Linux-4.18.0-21-generic-Callback-x64"
 endif
 
 ifeq ($(MX_ARCH),win32)
@@ -29,7 +31,7 @@ include ../../libMx/Makehead.$(MX_ARCH)
 
 ifeq ($(MX_ARCH),linux)
 	CFLAGS = $(GCCFLAGS) -DOS_LINUX -I$(XGLAB_DANTE_DIR)
-	COMPILE = g++ -c
+	COMPILE = g++ -c -fPIC
 endif
 ifeq ($(MX_ARCH),win32)
 	CFLAGS = -DOS_WIN32 -I$(XGLAB_DANTE_DIR)
