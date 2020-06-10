@@ -14,10 +14,15 @@
  *
  */
 
-#define MXI_DANTE_DEBUG			FALSE
+#define MXI_DANTE_DEBUG			TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
+
+/* Vendor include file. */
+
+#include "DLL_DPP_Callback.h"
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -90,6 +95,8 @@ mxi_dante_initialize_driver( MX_DRIVER *driver )
 			driver->name );
 	}
 
+#if 0
+
 	/* Get varargs cookie for 'num_active_detector_channels'. */
 
 	mx_status = mx_find_record_field_defaults_index( driver,
@@ -115,6 +122,7 @@ mxi_dante_initialize_driver( MX_DRIVER *driver )
 		return mx_status;
 
 	field->dimension[0] = num_active_detector_channels_varargs_cookie;
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -232,15 +240,13 @@ mxi_dante_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_dante_special_processing_setup( MX_RECORD *record )
 {
-#if 0
 	static const char fname[] = "mxi_dante_special_processing_setup()";
-#endif
 
 	MX_RECORD_FIELD *record_field;
 	MX_RECORD_FIELD *record_field_array;
 	long i;
 
-	MX_DEBUG(2,("%s invoked.", fname));
+	MX_DEBUG(-2,("%s invoked.", fname));
 
 	record_field_array = record->record_field_array;
 

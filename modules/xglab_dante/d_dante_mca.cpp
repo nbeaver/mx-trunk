@@ -14,10 +14,15 @@
  *
  */
 
-#define MXD_DANTE_MCA_DEBUG			FALSE
+#define MXD_DANTE_MCA_DEBUG			TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
+
+/* Vendor include file. */
+
+#include "DLL_DPP_Callback.h"
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -336,15 +341,13 @@ mxd_dante_mca_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_dante_mca_special_processing_setup( MX_RECORD *record )
 {
-#if 0
 	static const char fname[] = "mxd_dante_mca_special_processing_setup()";
-#endif
 
 	MX_RECORD_FIELD *record_field;
 	MX_RECORD_FIELD *record_field_array;
 	long i;
 
-	MX_DEBUG(2,("%s invoked.", fname));
+	MX_DEBUG(-2,("%s invoked.", fname));
 
 	record_field_array = record->record_field_array;
 
@@ -443,9 +446,6 @@ mxd_dante_mca_read( MX_MCA *mca )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	MX_DEBUG( 2,("%s: dante_mca->use_mca_channel_array = %d",
-		fname, dante_mca->use_mca_channel_array));
 
 	return MX_SUCCESSFUL_RESULT;
 }

@@ -17,7 +17,7 @@ ifeq ($(MX_ARCH),linux)
 endif
 
 ifeq ($(MX_ARCH),win32)
-	XGLAB_DANTE_DIR = c:\\opt\\DANTE\\Library\\Microsoft Visual C++ 2017 x64\\2019-06-24 17.07-3.2.4.3-Callback-x64"
+	XGLAB_DANTE_DIR = "c:\\Users\\mrcat\\Desktop\\DANTE\\Library\\Microsoft Visual C++ 2017 x64\\2019-06-24 17.07-3.2.4.3-Callback-x64"
 	#
 endif
 
@@ -34,7 +34,7 @@ ifeq ($(MX_ARCH),linux)
 	COMPILE = g++ -c -fPIC
 endif
 ifeq ($(MX_ARCH),win32)
-	CFLAGS = -DOS_WIN32 -I$(XGLAB_DANTE_DIR)
+	CFLAGS = -nologo -Zi -WX -DOS_WIN32 -I$(XGLAB_DANTE_DIR) -DDEBUG
 	COMPILE = cl -c
 endif
 
@@ -67,7 +67,7 @@ $(XGLAB_DANTE_MXO): $(XGLAB_DANTE_OBJS)
 	link /dll /debug /nologo /out:$(XGLAB_DANTE_MXO) /nodefaultlib:libc \
 		$(XGLAB_DANTE_OBJS) \
 		..\\..\\libMx\\$(MX_LIBRARY_NAME) \
-		$(XGLAB_DANTE_DIR)\\XGL_DPP.lib
+		$(XGLAB_DANTE_DIR)\\Release\\XGL_DPP.lib
 
 	# For VC2005 or later, embed the manifest in the module.
 

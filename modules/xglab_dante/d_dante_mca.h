@@ -17,6 +17,10 @@
 #ifndef __D_DANTE_MCA_H__
 #define __D_DANTE_MCA_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "mx_mca.h"
 
 typedef struct {
@@ -59,5 +63,9 @@ extern MX_MCA_FUNCTION_LIST mxd_dante_mca_mca_function_list;
 
 extern long mxd_dante_mca_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_dante_mca_rfield_def_ptr;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __D_DANTE_MCA_H__ */
