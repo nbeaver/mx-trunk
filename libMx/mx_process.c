@@ -620,12 +620,24 @@ mx_default_test_for_value_changed( MX_RECORD_FIELD *record_field,
 
 		array_ptr = mx_get_field_value_pointer(record_field);
 
+#if 0
 		if ( array_ptr == NULL ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"The field value pointer for field '%s.%s' is NULL.",
 				record_field->record->name,
 				record_field->name );
 		}
+#else
+		if ( array_ptr == NULL ) {
+			/* If there _is_ no value pointer, then just declare
+			 * that the field value has not changed.
+			 */
+
+			*value_changed_ptr = FALSE;
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+#endif
 
 		sum = 0.0;
 

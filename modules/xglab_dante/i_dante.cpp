@@ -27,6 +27,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
+#include "mx_array.h"
 #include "mx_process.h"
 #include "mx_mca.h"
 #include "i_dante.h"
@@ -43,7 +44,7 @@ MX_RECORD_FUNCTION_LIST mxi_dante_record_function_list = {
 	NULL,
 	NULL,
 	mxi_dante_open,
-	NULL,
+	mxi_dante_close,
 	NULL,
 	NULL,
 	mxi_dante_special_processing_setup
@@ -194,10 +195,17 @@ mxi_dante_open( MX_RECORD *record )
 	static const char fname[] = "mxi_dante_open()";
 
 	MX_DANTE *dante = NULL;
-	bool dante_status;
+	long dimension[3];
+	size_t dimension_sizeof[3];
+	int i, j;
+	unsigned long max_chain_boards;
+	unsigned long flags;
 
-	uint32_t version_size = 20;
-	char *version = new char[version_size];
+	bool dante_status, show_devices;
+	uint32_t version_length;
+	uint16_t number_of_devices;
+	uint16_t board_number, max_identifier_length;
+	char identifier[MXU_DANTE_MAX_IDENTIFIER_LENGTH+1];
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -223,14 +231,150 @@ mxi_dante_open( MX_RECORD *record )
 			"DANTE InitLibrary() failed." );
 	}
 
-	dante_status = libVersion( version, version_size );
+	version_length = MXU_DANTE_MAX_VERSION_LENGTH;
+
+	dante_status = libVersion( dante->dante_version, version_length );
 
 	if ( dante_status == false ) {
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
 			"DANTE libVersion() failed." );
 	}
 
-	MX_DEBUG(-2,("%s: DANTE version = %d", fname, version ));
+	MX_DEBUG(-2,("%s: DANTE version = '%s'", fname, dante->dante_version ));
+
+	/* Find identifiers for all of the devices controlled by
+	 * the current program.
+	 */
+
+	if ( dante->dante_flags & MXF_DANTE_SHOW_DEVICES ) {
+		show_devices = true;
+	} else {
+		show_devices = false;
+	}
+
+	/* Wait a little while for daisy chain synchronization. */
+
+	mx_sleep( 1 );
+
+	/* How many masters are there? */
+
+	dante_status = get_dev_number( number_of_devices );
+
+	dante->num_master_devices = number_of_devices;
+
+	if ( show_devices ) {
+		MX_DEBUG(-2,("%s: number of master devices = %lu",
+			fname, dante->num_master_devices ));
+	}
+
+	/* Prepare for getting the identifiers of all boards available. */
+
+	dante->num_boards_for_chain = (unsigned long *)
+		calloc( dante->num_master_devices, sizeof(unsigned long) );
+
+	if ( dante->num_boards_for_chain == (unsigned long *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %lu element array of "
+		"unsigned longs for the field '%s.num_boards_per_chain'.",
+			dante->num_master_devices, record->name );
+	}
+
+	MX_DEBUG(-2,("%s: dante->num_master_devices = %lu",
+		fname, dante->num_master_devices));
+	MX_DEBUG(-2,("%s: dante->max_boards_per_chain = %lu",
+		fname, dante->max_boards_per_chain));
+
+	dimension[0] = dante->num_master_devices;
+	dimension[1] = dante->max_boards_per_chain;
+	dimension[2] = MXU_DANTE_MAX_IDENTIFIER_LENGTH;
+
+	dimension_sizeof[0] = sizeof(char);
+	dimension_sizeof[1] = sizeof(char *);
+	dimension_sizeof[2] = sizeof(char **);
+
+	dante->board_identifier = (char ***)
+	    mx_allocate_array( MXFT_STRING, 3, dimension, dimension_sizeof );
+
+	if ( dante->board_identifier == (char ***) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a (%lu x %lu) element "
+		"array of board identifiers for record '%s'.",
+			dante->num_master_devices,
+			dante->max_boards_per_chain,
+			record->name );
+	}
+
+	/* How many boards are there for each master? */
+
+	for ( i = 0; i < dante->num_master_devices; i++ ) {
+	    for ( j = 0; j < dante->max_boards_per_chain; j++ ) {
+
+		if ( j == 0 ) {
+			dante->board_identifier[i][j][0] = '\0';
+		}
+
+		board_number = j;
+
+		max_identifier_length = MXU_DANTE_MAX_IDENTIFIER_LENGTH;
+
+		dante_status = get_ids( dante->board_identifier[i][j],
+				board_number, max_identifier_length );
+
+		if ( dante_status == false ) {
+			return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"A call to get_ids() for record '%s' failed.",
+				record->name );
+		}
+
+		if ( show_devices ) {
+			MX_DEBUG(-2,("%s: board[%lu][%lu] = '%s'",
+				fname, dante->board_identifier[i][j] ));
+		}
+	    }
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxi_dante_close( MX_RECORD *record )
+{
+	static const char fname[] = "mxi_dante_close()";
+
+	MX_DANTE *dante = NULL;
+	bool dante_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	MX_DEBUG(-2,("%s invoked for '%s'.", fname, record->name ));
+
+	dante = (MX_DANTE *) record->record_type_struct;
+
+	if ( dante == (MX_DANTE *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_DANTE pointer for DANTE controller '%s' is NULL.",
+			record->name );
+	}
+
+	/* We must shut down the DANTE library before we close the
+	 * MX 'dante' driver.  If we do not do this, then at shutdown
+	 * time the MX program that was using this driver will _hang_
+	 * in a call to exit().
+	 */
+
+	dante_status = CloseLibrary();
+
+	if ( dante_status == false ) {
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"The attempt to shutdown the DANTE library by calling "
+		"CloseLibrary() failed.  But there is not really much "
+		"that we can do at this point of the driver execution." );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
