@@ -23,7 +23,7 @@ extern "C" {
 
 #define MXU_DANTE_MAX_VERSION_LENGTH		20
 
-#define MXU_DANTE_MAX_IDENTIFIER_LENGTH		40
+#define MXU_DANTE_MAX_IDENTIFIER_LENGTH		16
 
 /* The following flags are used by the 'dante_flags' field. */
 

@@ -201,10 +201,11 @@ mxi_dante_open( MX_RECORD *record )
 	unsigned long max_chain_boards;
 	unsigned long flags;
 
-	bool dante_status, show_devices;
+	bool dante_status, show_devices, skip_board;
 	uint32_t version_length;
 	uint16_t number_of_devices;
 	uint16_t board_number, max_identifier_length;
+	uint16_t error_code = DLL_NO_ERROR;
 	char identifier[MXU_DANTE_MAX_IDENTIFIER_LENGTH+1];
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -262,10 +263,12 @@ mxi_dante_open( MX_RECORD *record )
 
 	dante->num_master_devices = number_of_devices;
 
+#if 0
 	if ( show_devices ) {
 		MX_DEBUG(-2,("%s: number of master devices = %lu",
 			fname, dante->num_master_devices ));
 	}
+#endif
 
 	/* Prepare for getting the identifiers of all boards available. */
 
@@ -307,31 +310,77 @@ mxi_dante_open( MX_RECORD *record )
 	/* How many boards are there for each master? */
 
 	for ( i = 0; i < dante->num_master_devices; i++ ) {
-	    for ( j = 0; j < dante->max_boards_per_chain; j++ ) {
+	    dante->num_boards_for_chain[i] = dante->max_boards_per_chain;
+
+	    for ( j = 0; j < dante->num_boards_for_chain[i]; j++ ) {
 
 		if ( j == 0 ) {
 			dante->board_identifier[i][j][0] = '\0';
+
+			skip_board = false;
+		}
+
+		if ( skip_board ) {
+			/* If we are skipping a board, we set the board's
+			 * identifier to an empty string to indicate that
+			 * this board does not exist.
+			 */
+			dante->board_identifier[i][j][0] = '\0';
+			continue;
 		}
 
 		board_number = j;
 
+#if 0
+		MX_DEBUG(-2,("%s: master %lu, board %lu", fname, i, j ));
+#endif
+
+		error_code = DLL_NO_ERROR;
+
 		max_identifier_length = MXU_DANTE_MAX_IDENTIFIER_LENGTH;
+
+		(void) resetLastError();
 
 		dante_status = get_ids( dante->board_identifier[i][j],
 				board_number, max_identifier_length );
 
 		if ( dante_status == false ) {
-			return mx_error( MXE_UNKNOWN_ERROR, fname,
-			"A call to get_ids() for record '%s' failed.",
-				record->name );
+			(void) getLastError( error_code );
+
+			switch( error_code ) {
+			case DLL_NO_ERROR:
+				break;
+			case DLL_ARGUMENT_OUT_OF_RANGE:
+				/* We have reached the end of this chain
+				 * of boards.  Record the number of boards
+				 * for this chain and then move on to the
+				 * next chain.
+				 */
+
+				dante->num_boards_for_chain[i] = j+1;
+				dante->board_identifier[i][j][0] = '\0';
+				skip_board = true;
+				break;
+
+			default:
+				return mx_error( MXE_UNKNOWN_ERROR, fname,
+				"A call to get_ids() for record '%s' failed.  "
+				"DANTE error code = %lu",
+				    record->name, (unsigned long) error_code );
+				break;
+			}
 		}
 
 		if ( show_devices ) {
+		    if ( skip_board == false ) {
 			MX_DEBUG(-2,("%s: board[%lu][%lu] = '%s'",
-				fname, dante->board_identifier[i][j] ));
+				fname, i, j, dante->board_identifier[i][j] ));
+		    }
 		}
 	    }
 	}
+
+	(void) resetLastError();
 
 	return MX_SUCCESSFUL_RESULT;
 }
