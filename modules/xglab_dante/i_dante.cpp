@@ -200,7 +200,7 @@ mxi_dante_open( MX_RECORD *record )
 	MX_DANTE *dante = NULL;
 	long dimension[3];
 	size_t dimension_sizeof[3];
-	int i, j;
+	unsigned long i, j;
 	unsigned long max_chain_boards;
 	unsigned long flags;
 
