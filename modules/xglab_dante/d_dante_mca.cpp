@@ -55,6 +55,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
+#include "mx_process.h"
 #include "mx_mca.h"
 
 #include "i_dante.h"
@@ -449,7 +450,7 @@ mxd_dante_mca_special_processing_setup( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
-		case 0:
+		case MXLV_DANTE_MCA_CONFIGURE:
 			record_field->process_function
 					    = mxd_dante_mca_process_function;
 			break;
@@ -466,7 +467,72 @@ mxd_dante_mca_process_function( void *record_ptr,
 				void *socket_handler_ptr,
 				int operation )
 {
-	return MX_SUCCESSFUL_RESULT;
+	static const char fname[] = "mxd_dante_mca_process_function()";
+
+	MX_RECORD *record;
+	MX_RECORD_FIELD *record_field;
+	MX_DANTE_MCA *dante_mca;
+	mx_status_type mx_status;
+
+	record = (MX_RECORD *) record_ptr;
+	record_field = (MX_RECORD_FIELD *) record_field_ptr;
+	dante_mca = (MX_DANTE_MCA *) record->record_type_struct;
+
+	mx_status = MX_SUCCESSFUL_RESULT;
+
+	switch( operation ) {
+	case MX_PROCESS_GET:
+		switch( record_field->label_value ) {
+		default:
+			break;
+		}
+		break;
+	case MX_PROCESS_PUT:
+		switch( record_field->label_value ) {
+		case MXLV_DANTE_MCA_CONFIGURE:
+			mx_status = mxd_dante_mca_configure( record );
+			break;
+		default:
+			break;
+		}
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Unknown operation code = %d", operation );
+		break;
+	}
+
+	return mx_status;
+}
+
+/*---------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxd_dante_mca_configure( MX_RECORD *record )
+{
+	static const char fname[] = "mxd_dante_mca_configure()";
+
+	MX_MCA *mca = NULL;
+	MX_DANTE_MCA *dante_mca = NULL;
+	MX_DANTE *dante = NULL;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	mca = (MX_MCA *) record->record_class_struct;
+
+	mx_status = mxd_dante_mca_get_pointers( mca,
+						&dante_mca, &dante, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* FIXME: Call into the configuration logic of the interface driver. */
+
+	return mx_status;
 }
 
 /*---------------------------------------------------------------------------*/

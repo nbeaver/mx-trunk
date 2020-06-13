@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <errno.h>
 
 /* Vendor include file. */
 
@@ -27,6 +28,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
+#include "mx_cfn.h"
 #include "mx_array.h"
 #include "mx_process.h"
 #include "mx_mca.h"
@@ -45,7 +47,7 @@ MX_RECORD_FUNCTION_LIST mxi_dante_record_function_list = {
 	NULL,
 	mxi_dante_open,
 	mxi_dante_close,
-	NULL,
+	mxi_dante_finish_delayed_initialization,
 	NULL,
 	mxi_dante_special_processing_setup
 };
@@ -385,10 +387,6 @@ mxi_dante_open( MX_RECORD *record )
 
 	(void) resetLastError();
 
-	MX_DEBUG(-2,("%s: Warning! We have not yet created the function "
-	"needed to load the detector configuration from the XML file "
-	"in a to-be-written 'finish_delayed_initialization' step." ));
-
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -438,6 +436,27 @@ mxi_dante_close( MX_RECORD *record )
 /*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
+mxi_dante_finish_delayed_initialization( MX_RECORD *record )
+{
+	static const char fname[] = "mxi_dante_finish_delayed_initialization()";
+
+	mx_status_type mx_status;
+
+	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name ));
+
+	mx_status = mxi_dante_load_config_file( record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxi_dante_configure( record );
+
+	return mx_status;
+}
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
 mxi_dante_special_processing_setup( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_dante_special_processing_setup()";
@@ -455,7 +474,9 @@ mxi_dante_special_processing_setup( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
-		case 0:
+		case MXLV_DANTE_CONFIGURE:
+		case MXLV_DANTE_LOAD_CONFIG_FILE:
+		case MXLV_DANTE_SAVE_CONFIG_FILE:
 			record_field->process_function
 					    = mxi_dante_process_function;
 			break;
@@ -501,6 +522,15 @@ mxi_dante_process_function( void *record_ptr,
 		break;
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
+		case MXLV_DANTE_CONFIGURE:
+			mx_status = mxi_dante_configure( record );
+			break;
+		case MXLV_DANTE_LOAD_CONFIG_FILE:
+			mx_status = mxi_dante_load_config_file( record );
+			break;
+		case MXLV_DANTE_SAVE_CONFIG_FILE:
+			mx_status = mxi_dante_save_config_file( record );
+			break;
 		default:
 			MX_DEBUG( 1,(
 			    "%s: *** Unknown MX_PROCESS_PUT label value = %ld",
@@ -515,5 +545,155 @@ mxi_dante_process_function( void *record_ptr,
 	}
 
 	return mx_status;
+}
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxi_dante_configure( MX_RECORD *record )
+{
+	static const char fname[] = "mxi_dante_configure()";
+
+	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxi_dante_load_config_file( MX_RECORD *record )
+{
+	static const char fname[] = "mxi_dante_load_config_file()";
+
+	MX_DANTE *dante = NULL;
+	FILE *config_file = NULL;
+	char *ptr = NULL;
+	int saved_errno;
+	char buffer[200];
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	MX_DEBUG(-2,("%s invoked for '%s'.", fname, record->name));
+
+	dante = (MX_DANTE *) record->record_type_struct;
+
+	if ( dante == (MX_DANTE *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_DANTE pointer for DANTE controller '%s' is NULL.",
+			record->name );
+	}
+
+	MX_DEBUG(-2,("%s: DANTE record '%s' will load parameters "
+		"from config file '%s'.",
+			fname, record->name, dante->config_filename ));
+
+	/* NOTE: We are reading the XML by hand, in order to avoid
+	 * having to find an XML library with an appropriate license
+	 * to link to for this.  If we need to do much more XML
+	 * processing in the future, we may want to revisit 
+	 * this choice here.
+	 */
+
+	/* FIXME: fopen() seems to work differently in C++, with the
+	 * result that it is impossible to read strings from the file
+	 * using mx_fgets().  By using mx_cfn_fopen(), we use a copy
+	 * of fopen() in the C library libMx.  That seems to work
+	 * for some reason.  Perhaps some sort of memory corruption
+	 * is occurring?
+	 */
+#if 0
+	config_file = fopen( dante->config_filename, "r" );
+#else
+	config_file = mx_cfn_fopen( MX_CFN_ABSOLUTE,
+			dante->config_filename, "r" );
+#endif
+
+	MX_DEBUG(-2,("%s: config_file = %p", fname, config_file ));
+
+	if ( config_file == (FILE *) NULL ) {
+		saved_errno = errno;
+
+		switch( saved_errno ) {
+		case EACCES:
+			return mx_error( MXE_PERMISSION_DENIED, fname,
+			"You do not have permission to read "
+			"DANTE configuration file '%s' for record '%s'.",
+				dante->config_filename, record->name );
+			break;
+		case ENOENT:
+			return mx_error( MXE_NOT_FOUND, fname,
+			"DANTE configuration file '%s' cannot be found "
+			"for record '%s'.",
+				dante->config_filename, record->name );
+			break;
+		default:
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"Cannot open DANTE configuration file '%s' "
+			"for record '%s'.  Errno = %d, error message = '%s'.",
+				dante->config_filename, record->name,
+				saved_errno, strerror(saved_errno) );
+			break;
+		}
+	}
+
+#if 1
+	while (TRUE) {
+		MX_DEBUG(-2,("%s: About to read buffer.", fname));
+
+		ptr = mx_fgets( buffer, sizeof(buffer), config_file );
+
+		MX_DEBUG(-2,("%s: ptr = %p", fname, ptr));
+
+		if ( ptr == (char *) NULL ) {
+
+			if ( feof(config_file) ) {
+				MX_DEBUG(-2,
+				("%s: Reached end of file.", fname));
+
+				break;	/* Exit the while loop. */
+			}
+
+			if ( ferror(config_file) ) {
+				saved_errno = errno;
+				MX_DEBUG(-2,
+			("%s: Error reading config file '%s' occurred.  "
+			"Errno = %d, error_message = '%s'",
+					fname, dante->config_filename,
+					saved_errno, strerror(saved_errno) ));
+
+				break;	/* Exit the while loop. */
+			}
+		}
+
+		MX_DEBUG(-2,("%s: buffer = '%s'", fname, buffer));
+	}
+#endif
+	/* FIXME: fclose() below crashes, so we ifdef it out for now.
+	 * But we need to really understand why it is crashing, since
+	 * by commenting it out here, we create a memory leak.  This
+	 * might be related to the problem above with fopen().
+	 */
+
+#if 0
+	fclose( config_file );
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxi_dante_save_config_file( MX_RECORD *record )
+{
+	static const char fname[] = "mxi_dante_save_config_file()";
+
+	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name));
+
+	return MX_SUCCESSFUL_RESULT;
 }
 

@@ -30,7 +30,6 @@ typedef struct {
 
 	MX_RECORD *dante_record;
 	char channel_name[MXU_DANTE_MCA_CHANNEL_NAME_LENGTH+1];
-	char config_filename[MXU_FILENAME_LENGTH+1];
 
 	mx_bool_type configure;
 
@@ -65,6 +64,8 @@ typedef struct {
 #endif
 } MX_DANTE_MCA;
 
+#define MXLV_DANTE_MCA_CONFIGURE	23001
+
 #define MXD_DANTE_MCA_STANDARD_FIELDS \
   {-1, -1, "dante_record", MXFT_RECORD, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_DANTE_MCA, dante_record ), \
@@ -75,11 +76,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof( MX_DANTE_MCA, channel_name ), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "config_filename", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
-	MXF_REC_TYPE_STRUCT, offsetof( MX_DANTE_MCA, config_filename ), \
-	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
-  \
-  {-1, -1, "configure", MXFT_BOOL, NULL, 0, {0}, \
+  {MXLV_DANTE_MCA_CONFIGURE, -1, "configure", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_DANTE_MCA, configure ), \
 	{0}, NULL, 0 }, \
   \
@@ -190,6 +187,8 @@ extern MX_MCA_FUNCTION_LIST mxd_dante_mca_mca_function_list;
 
 extern long mxd_dante_mca_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_dante_mca_rfield_def_ptr;
+
+MX_API mx_status_type mxd_dante_mca_configure( MX_RECORD *record );
 
 #ifdef __cplusplus
 }
