@@ -60,6 +60,10 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DANTE, dante_version), \
 	{sizeof(char)}, NULL, 0 }, \
   \
+  {-1, -1, "num_mcas", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DANTE, num_mcas), \
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
   {-1, -1, "num_master_devices", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DANTE, num_master_devices), \
 	{0}, NULL, 0 }, \

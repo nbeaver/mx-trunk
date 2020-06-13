@@ -163,8 +163,7 @@ mxi_dante_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_dante_finish_record_initialization( MX_RECORD *record )
 {
-	static const char fname[] =
-		"mxi_dante_finish_record_initialization()";
+	static const char fname[] = "mxi_dante_finish_record_initialization()";
 
 	MX_DANTE *dante;
 
@@ -176,13 +175,17 @@ mxi_dante_finish_record_initialization( MX_RECORD *record )
 			record->name );
 	}
 
-	/* We cannot allocate the following structures until
-	 * mxi_dante_open() is invoked, so for now we
-	 * initialize these data structures to all zeros.
-	 */
+	/* Allocate space for the array of MCA record pointers. */
 
-	dante->num_mcas = 0;
-	dante->mca_record_array = NULL;
+	dante->mca_record_array = (MX_RECORD **)
+		calloc( dante->num_mcas, sizeof(MX_RECORD *) );
+
+	if ( dante->mca_record_array == (MX_RECORD **) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory in record '%s' trying to allocate space "
+		"for a %lu element array of MCA record pointers.",
+			record->name, dante->num_mcas );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -381,6 +384,10 @@ mxi_dante_open( MX_RECORD *record )
 	}
 
 	(void) resetLastError();
+
+	MX_DEBUG(-2,("%s: Warning! We have not yet created the function "
+	"needed to load the detector configuration from the XML file "
+	"in a to-be-written 'finish_delayed_initialization' step." ));
 
 	return MX_SUCCESSFUL_RESULT;
 }

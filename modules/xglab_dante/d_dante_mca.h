@@ -23,18 +23,33 @@ extern "C" {
 
 #include "mx_mca.h"
 
+#define MXU_DANTE_MCA_CHANNEL_NAME_LENGTH	80
+
 typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *dante_record;
+	char channel_name[MXU_DANTE_MCA_CHANNEL_NAME_LENGTH+1];
+
 	MX_RECORD *child_mcs_record;
+
+	long mca_record_array_index;
+
+#ifdef __cplusplus
+	struct configuration *configuration;
+#endif
 
 } MX_DANTE_MCA;
 
 #define MXD_DANTE_MCA_STANDARD_FIELDS \
   {-1, -1, "dante_record", MXFT_RECORD, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_DANTE_MCA, dante_record ), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "channel_name", MXFT_STRING, NULL, \
+	  		1, {MXU_DANTE_MCA_CHANNEL_NAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof( MX_DANTE_MCA, channel_name ), \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
 MX_API mx_status_type mxd_dante_mca_initialize_driver( MX_DRIVER *driver );
 MX_API mx_status_type mxd_dante_mca_create_record_structures(

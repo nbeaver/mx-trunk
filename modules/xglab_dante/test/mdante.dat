@@ -1,3 +1,4 @@
 !load ../xglab_dante.mxo
 #
-dante interface controller dante "" "" 0x1 8
+dante interface controller dante "" "" 0x1 8 2
+mca1  device mca dante_mca "" "" 4096 0 0 dante SN01906_Ch1

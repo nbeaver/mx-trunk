@@ -305,8 +305,9 @@ mx_mca_finish_record_initialization( MX_RECORD *mca_record )
 
 	MX_DEBUG(-2,("%s: value_ptr = %p", fname, value_ptr));
 
+	if ( value_ptr != NULL ) {
 #if ( MX_PROGRAM_MODEL == MX_PROGRAM_MODEL_LLP64 )
-	{
+	
 		/* Note: The following is just for a debugging message,
 		 * so I don't really care here that pointers may be
 		 * larger than unsigned longs.
@@ -322,11 +323,12 @@ mx_mca_finish_record_initialization( MX_RECORD *mca_record )
 		u.ulong_value = ((unsigned long *) value_ptr)[0];
 
 		MX_DEBUG(-2,("%s: value_ptr[0] = %p", fname, u.void_ptr ));
-	}
+
 #else
-	MX_DEBUG(-2,("%s: value_ptr[0] = %p",
+		MX_DEBUG(-2,("%s: value_ptr[0] = %p",
 			fname, (void *) ((unsigned long *) value_ptr)[0] ));
 #endif
+	}
 #endif
 
 	roi_array_field->dimension[0] = (long) mca->maximum_num_rois;
