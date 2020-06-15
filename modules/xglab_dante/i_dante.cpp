@@ -449,6 +449,11 @@ mxi_dante_finish_delayed_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	mx_status = mxi_dante_show_parameters( record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	mx_status = mxi_dante_configure( record );
 
 	return mx_status;
@@ -561,6 +566,172 @@ mxi_dante_configure( MX_RECORD *record )
 
 /*-------------------------------------------------------------------------*/
 
+static mx_status_type
+mxi_dante_set_parameter_from_string( MX_DANTE_MCA *dante_mca,
+					char *parameter_name,
+					char *parameter_string )
+{
+	static const char fname[] = "mxi_dante_set_parameter_from_string()";
+
+	if ( dante_mca == (MX_DANTE_MCA *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_DANTE_MCA pointer passed was NULL." );
+	}
+
+	struct configuration *configuration = dante_mca->configuration;
+
+	/* Look through the known parameter names */
+
+	if ( strcmp( parameter_name, "fast_filter_thr" ) == 0 ) {
+		configuration->fast_filter_thr = atol( parameter_string );
+
+	} else if ( strcmp( parameter_name, "energy_filter_thr" ) == 0 ) {
+		configuration->energy_filter_thr = atol( parameter_string );
+
+	} else if ( strcmp( parameter_name, "energy_baseline_thr" ) == 0 ) {
+		configuration->energy_baseline_thr = atol( parameter_string );
+
+	} else if ( strcmp( parameter_name, "max_risetime" ) == 0 ) {
+		configuration->max_risetime = atof( parameter_string );
+
+	} else if ( strcmp( parameter_name, "gain" ) == 0 ) {
+		configuration->gain = atof( parameter_string );
+
+	} else if ( strcmp( parameter_name, "peaking_time" ) == 0 ) {
+		configuration->peaking_time = atol( parameter_string );
+
+	} else if ( strcmp( parameter_name, "max_peaking_time" ) == 0 ) {
+		configuration->max_peaking_time = atol( parameter_string );
+
+	} else if ( strcmp( parameter_name, "flat_top" ) == 0 ) {
+		configuration->flat_top = atol( parameter_string );
+
+	} else if ( strcmp( parameter_name, "edge_peaking_time" ) == 0 ) {
+		configuration->edge_peaking_time = atol( parameter_string );
+
+	} else if ( strcmp( parameter_name, "edge_flat_top" ) == 0 ) {
+		configuration->edge_flat_top = atol( parameter_string );
+
+	} else if ( strcmp( parameter_name, "reset_recovery_time" ) == 0 ) {
+		configuration->reset_recovery_time = atol( parameter_string );
+
+	} else if ( strcmp( parameter_name, "zero_peak_freq" ) == 0 ) {
+		configuration->zero_peak_freq = atof( parameter_string );
+
+	} else if ( strcmp( parameter_name, "baseline_samples" ) == 0 ) {
+		configuration->baseline_samples = atol( parameter_string );
+
+	} else if ( strcmp( parameter_name, "inverted_input" ) == 0 ) {
+		long temp_long = atol( parameter_string );
+
+		if ( temp_long == 0 ) {
+			configuration->inverted_input = false;
+		} else {
+			configuration->inverted_input = true;
+		}
+
+	} else if ( strcmp( parameter_name, "time_constant" ) == 0 ) {
+		configuration->time_constant = atof( parameter_string );
+
+	} else if ( strcmp( parameter_name, "base_offset" ) == 0 ) {
+		configuration->base_offset = atol( parameter_string );
+
+	} else if ( strcmp( parameter_name, "overflow_recovery" ) == 0 ) {
+		configuration->overflow_recovery = atol( parameter_string );
+
+	} else if ( strcmp( parameter_name, "reset_threshold" ) == 0 ) {
+		configuration->reset_threshold = atol( parameter_string );
+
+	} else if ( strcmp( parameter_name, "tail_coefficient" ) == 0 ) {
+		configuration->tail_coefficient = atof( parameter_string );
+
+	} else if ( strcmp( parameter_name, "other_param" ) == 0 ) {
+		configuration->other_param = atol( parameter_string );
+
+	} else {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Unrecognized parameter seen for DANTE MCA '%s'.  "
+		"parameter_name = '%s', parameter_string = '%s'.",
+			dante_mca->record->name,
+			parameter_name, parameter_string );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxi_dante_show_parameters( MX_RECORD *record )
+{
+	static const char fname[] = "mxi_dante_show_parameters()";
+
+	MX_DANTE_MCA *dante_mca = (MX_DANTE_MCA *) record->record_type_struct;
+
+	struct configuration *configuration = dante_mca->configuration;
+
+	MX_DEBUG(-2,("%s: dante_mca = '%s'", dante_mca->record->name ));
+
+	MX_DEBUG(-2,("  fast_filter_thr = %lu",
+		configuration->fast_filter_thr ));
+
+	MX_DEBUG(-2,("  energy_filter_thr = %lu",
+		configuration->energy_filter_thr ));
+
+	MX_DEBUG(-2,("  energy_baseline_thr = %lu",
+		configuration->energy_baseline_thr ));
+
+	MX_DEBUG(-2,("  max_risetime = %g", configuration->max_risetime ));
+
+	MX_DEBUG(-2,("  gain = %g", configuration->gain ));
+
+	MX_DEBUG(-2,("  peaking_time = %lu", configuration->peaking_time ));
+
+	MX_DEBUG(-2,("  max_peaking_time = %lu",
+		configuration->max_peaking_time ));
+
+	MX_DEBUG(-2,("  flat_top = %lu", configuration->flat_top ));
+
+	MX_DEBUG(-2,("  edge_peaking_time = %lu",
+		configuration->edge_peaking_time ));
+
+	MX_DEBUG(-2,("  edge_flat_top = %lu", configuration->edge_flat_top ));
+
+	MX_DEBUG(-2,("  reset_recovery_time = %lu",
+		configuration->reset_recovery_time ));
+
+	MX_DEBUG(-2,("  zero_peak_freq = %g", configuration->zero_peak_freq));
+
+	MX_DEBUG(-2,("  baseline_samples = %lu",
+		configuration->baseline_samples ));
+
+	if ( configuration->inverted_input ) {
+		MX_DEBUG(-2,("  inverted_input = true", fname ));
+	} else {
+		MX_DEBUG(-2,("  inverted_input = false", fname ));
+	}
+
+	MX_DEBUG(-2,("  time_constant = %g", configuration->time_constant ));
+
+	MX_DEBUG(-2,("  base_offset = %lu",
+		configuration->base_offset ));
+
+	MX_DEBUG(-2,("  overflow_recovery = %lu",
+		configuration->overflow_recovery ));
+
+	MX_DEBUG(-2,("  reset_threshold = %lu",
+		configuration->reset_threshold ));
+
+	MX_DEBUG(-2,("  tail_coefficient = %g",
+		configuration->tail_coefficient )); 
+
+	MX_DEBUG(-2,("  other_param = %lu", configuration->other_param ));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mxi_dante_load_config_file( MX_RECORD *record )
 {
@@ -568,12 +739,19 @@ mxi_dante_load_config_file( MX_RECORD *record )
 
 	MX_DANTE *dante = NULL;
 	MX_RECORD *current_mca_record = NULL;
+	MX_DANTE_MCA *current_dante_mca = NULL;
 	char current_mca_identifier[MXU_DANTE_MAX_IDENTIFIER_LENGTH+1];
+	MX_RECORD *mca_record = NULL;
+	MX_DANTE_MCA *dante_mca = NULL;
 	char mca_name_format[40];
 	FILE *config_file = NULL;
 	char *ptr = NULL;
-	int saved_errno;
+	char *parameter_name = NULL;
+	char *parameter_string = NULL;
+	long i;
+	int num_items, saved_errno;
 	char buffer[200];
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -594,11 +772,10 @@ mxi_dante_load_config_file( MX_RECORD *record )
 		"from config file '%s'.",
 			fname, record->name, dante->config_filename ));
 
-	/* NOTE: We are reading the XML by hand, in order to avoid
-	 * having to find an XML library with an appropriate license
-	 * to link to for this.  If we need to do much more XML
-	 * processing in the future, we may want to revisit 
-	 * this choice here.
+	/* FIXME???: We are reading the XML by hand, in order to avoid having
+	 * to find an XML library with an appropriate license to link to for
+	 * this.  If we need to do much more XML processing in the future
+	 * elsewhere in MX, we may want to revisit this choice here.
 	 */
 
 	/* FIXME: fopen() seems to work differently in C++, with the
@@ -686,6 +863,8 @@ mxi_dante_load_config_file( MX_RECORD *record )
 	    ptr = strstr( buffer, "<DPP Name" );
 
 	    if ( ptr != (char *) NULL ) {
+		/* This line appears to have an MCA identifier in it. */
+
 		num_items = sscanf( buffer, mca_name_format,
 					current_mca_identifier );
 
@@ -697,7 +876,7 @@ mxi_dante_load_config_file( MX_RECORD *record )
 		    current_mca_record = NULL;
 		    current_dante_mca = NULL;
 
-		    for ( i = 0; i < dante->num_mcas, i++ ) {
+		    for ( i = 0; i < dante->num_mcas; i++ ) {
 			mca_record = dante->mca_record_array[i];
 
 			if ( mca_record == (MX_RECORD *) NULL ) {
@@ -734,14 +913,37 @@ mxi_dante_load_config_file( MX_RECORD *record )
 				"current_dante_mca->channel_name = '%s'.",
 				current_mca_record->name,
 				current_dante_mca->channel_name ));
+
+		    } /* End of the for(i) loop. */
+		}
+	    } else
+	    if ( current_dante_mca == (MX_DANTE_MCA *) NULL ) {
+		MX_DEBUG(-2,("%s: current_dante_mca = NULL", fname));
+
+	    } else {
+		/* See if this line contains an MCA parameter name. */
+
+		/* Look for the first '<' character on the line. */
+
+		parameter_name = strchr( buffer, '<' );
+
+		if ( parameter_name != (char *) NULL ) {
+		    parameter_name++;
+
+		    parameter_string = strchr( buffer, '>' );
+
+		    if ( parameter_string != (char *) NULL ) {
+			parameter_string++;
+
+			mx_status = mxi_dante_set_parameter_from_string(
+					current_dante_mca,
+					parameter_name,
+					parameter_string );
 		    }
-
-		} else {
-		    /* See if this line contains an MCA parameter name. */
-
 		}
 	    }
-	}
+
+	} /* End of the while(TRUE) loop. */
 
 	/* FIXME: fclose() below crashes, so we ifdef it out for now.
 	 * But we need to really understand why it is crashing, since

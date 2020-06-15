@@ -112,6 +112,8 @@ extern MX_RECORD_FUNCTION_LIST mxi_dante_record_function_list;
 extern long mxi_dante_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_dante_rfield_def_ptr;
 
+MX_API mx_status_type mxi_dante_show_parameters( MX_RECORD *record );
+
 MX_API mx_status_type mxi_dante_load_config_file( MX_RECORD *record );
 
 MX_API mx_status_type mxi_dante_save_config_file( MX_RECORD *record );
