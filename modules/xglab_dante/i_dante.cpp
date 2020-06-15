@@ -567,6 +567,9 @@ mxi_dante_load_config_file( MX_RECORD *record )
 	static const char fname[] = "mxi_dante_load_config_file()";
 
 	MX_DANTE *dante = NULL;
+	MX_RECORD *current_mca_record = NULL;
+	char current_mca_identifier[MXU_DANTE_MAX_IDENTIFIER_LENGTH+1];
+	char mca_name_format[40];
 	FILE *config_file = NULL;
 	char *ptr = NULL;
 	int saved_errno;
@@ -640,38 +643,106 @@ mxi_dante_load_config_file( MX_RECORD *record )
 		}
 	}
 
-#if 1
+	/*  Work our way through the XML file, one line at a time. */
+
+	snprintf( mca_name_format, sizeof(mca_name_format),
+		"<DPP Name=\"%%%ds\"", sizeof(current_mca_identifier) );
+
+	current_mca_identifier[0] = '\0';
+
+	current_mca_record = NULL;
+
 	while (TRUE) {
-		MX_DEBUG(-2,("%s: About to read buffer.", fname));
+	    /* Read one line from the XML file. */
 
-		ptr = mx_fgets( buffer, sizeof(buffer), config_file );
+	    MX_DEBUG(-2,("%s: About to read buffer.", fname));
 
-		MX_DEBUG(-2,("%s: ptr = %p", fname, ptr));
+	    ptr = mx_fgets( buffer, sizeof(buffer), config_file );
 
-		if ( ptr == (char *) NULL ) {
+	    MX_DEBUG(-2,("%s: ptr = %p", fname, ptr));
 
-			if ( feof(config_file) ) {
-				MX_DEBUG(-2,
-				("%s: Reached end of file.", fname));
+	    if ( ptr == (char *) NULL ) {
 
-				break;	/* Exit the while loop. */
-			}
+		if ( feof(config_file) ) {
+		    MX_DEBUG(-2,("%s: Reached end of file.", fname));
 
-			if ( ferror(config_file) ) {
-				saved_errno = errno;
-				MX_DEBUG(-2,
-			("%s: Error reading config file '%s' occurred.  "
-			"Errno = %d, error_message = '%s'",
-					fname, dante->config_filename,
-					saved_errno, strerror(saved_errno) ));
-
-				break;	/* Exit the while loop. */
-			}
+		    break;	/* Exit the while loop. */
 		}
 
-		MX_DEBUG(-2,("%s: buffer = '%s'", fname, buffer));
+		if ( ferror(config_file) ) {
+		    saved_errno = errno;
+		    MX_DEBUG(-2,
+			("%s: Error reading config file '%s' occurred.  "
+			"Errno = %d, error_message = '%s'",
+				fname, dante->config_filename,
+				saved_errno, strerror(saved_errno) ));
+
+		    break;	/* Exit the while loop. */
+		}
+	    }
+
+	    MX_DEBUG(-2,("%s: buffer = '%s'", fname, buffer));
+
+	    ptr = strstr( buffer, "<DPP Name" );
+
+	    if ( ptr != (char *) NULL ) {
+		num_items = sscanf( buffer, mca_name_format,
+					current_mca_identifier );
+
+		if ( num_items == 1 ) {
+		    /* current_mca_identifier may contain the name of an MCA.
+		     * So we go look for a match in dante->mca_record_array.
+		     */
+
+		    current_mca_record = NULL;
+		    current_dante_mca = NULL;
+
+		    for ( i = 0; i < dante->num_mcas, i++ ) {
+			mca_record = dante->mca_record_array[i];
+
+			if ( mca_record == (MX_RECORD *) NULL ) {
+			    continue;	/* Cycle the for(i) loop. */
+			}
+
+			dante_mca = (MX_DANTE_MCA *)
+					mca_record->record_type_struct;
+
+			if ( dante_mca == (MX_DANTE_MCA *) NULL ) {
+			    return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			    "The MX_DANTE_MCA pointer for DANTE MCA '%s' "
+			    "is NULL.", mca_record->name );
+			}
+
+			/* Is this MCA the one we are looking for? */
+
+			if ( strcmp( current_mca_identifier,
+					dante_mca->channel_name ) != 0 )
+			{
+			    /* This is not the right MCA, so go on
+			     * to the next one.
+			     */
+
+			    continue;	/* Cycle the for(i) loop. */
+			}
+
+			/* We have found the matching MCA, so save that fact. */
+
+		    	current_mca_record = mca_record;
+			current_dante_mca = dante_mca;
+
+			MX_DEBUG(-2,("%s: current_mca_record = '%s', "
+				"current_dante_mca->channel_name = '%s'.",
+				current_mca_record->name,
+				current_dante_mca->channel_name ));
+		    }
+
+		} else {
+		    /* See if this line contains an MCA parameter name. */
+
+		}
+	    }
 	}
-#endif
+
 	/* FIXME: fclose() below crashes, so we ifdef it out for now.
 	 * But we need to really understand why it is crashing, since
 	 * by commenting it out here, we create a memory leak.  This
