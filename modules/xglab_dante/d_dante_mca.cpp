@@ -72,11 +72,7 @@ MX_RECORD_FUNCTION_LIST mxd_dante_mca_record_function_list = {
 	mxd_dante_mca_create_record_structures,
 	mxd_dante_mca_finish_record_initialization,
 	NULL,
-#if 0
-	mxd_dante_mca_print_structure,
-#else
 	NULL,
-#endif
 	mxd_dante_mca_open,
 	mxd_dante_mca_close,
 	NULL,
@@ -230,30 +226,6 @@ mxd_dante_mca_create_record_structures( MX_RECORD *record )
 
 	dante_mca->mca_record_array_index = -1;
 
-	/* Note: By using "new configuration()" rather than malloc/calloc
-	 * we ensure that the individual fields in the configuration
-	 * structure are initialized to the values listed in the vendor's
-	 * include file.
-	 */
-
-	dante_mca->configuration = new configuration();
-
-#if 0
-	fprintf(stderr, "Booyah!\n");
-
-	fprintf( stderr, "%s: energy_filter_thr = %lu\n",
-	  fname, (unsigned long) dante_mca->configuration->energy_filter_thr);
-
-	fprintf( stderr, "%s: max_risetime = %lu\n",
-	  fname, (unsigned long) dante_mca->configuration->max_risetime);
-
-	fprintf( stderr, "%s: peaking_time = %lu\n",
-	  fname, (unsigned long) dante_mca->configuration->peaking_time);
-
-	fprintf( stderr, "%s: reset_recovery_time = %lu\n",
-	  fname, (unsigned long) dante_mca->configuration->reset_recovery_time);
-#endif
-
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -288,42 +260,6 @@ mxd_dante_mca_finish_record_initialization( MX_RECORD *record )
 
 	return mx_status;
 }
-
-#if 0
-MX_EXPORT mx_status_type
-mxd_dante_mca_print_structure( FILE *file, MX_RECORD *record )
-{
-	static const char fname[] = "mxd_dante_mca_print_structure()";
-
-	MX_MCA *mca;
-	MX_DANTE_MCA *dante_mca = NULL;
-	MX_DANTE *dante = NULL;
-	mx_status_type mx_status;
-
-	if ( record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"MX_RECORD pointer passed is NULL.");
-	}
-
-	mca = (MX_MCA *) (record->record_class_struct);
-
-	mx_status = mxd_dante_mca_get_pointers( mca,
-						&dante_mca, &dante, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	fprintf(file, "MCA parameters for record '%s':\n", record->name);
-
-	fprintf(file, "  MCA type                = DANTE_MCA.\n\n");
-	fprintf(file, "  DANTE controller record = '%s'\n",
-					dante_mca->dante_record->name);
-	fprintf(file, "  maximum # of bins       = %ld\n",
-					mca->maximum_num_channels);
-
-	return MX_SUCCESSFUL_RESULT;
-}
-#endif
 
 MX_EXPORT mx_status_type
 mxd_dante_mca_open( MX_RECORD *record )

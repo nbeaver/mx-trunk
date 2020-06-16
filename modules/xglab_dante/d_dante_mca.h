@@ -60,7 +60,7 @@ typedef struct {
 	long mca_record_array_index;
 
 #ifdef __cplusplus
-	struct configuration *configuration;
+	struct configuration configuration;
 #endif
 } MX_DANTE_MCA;
 
