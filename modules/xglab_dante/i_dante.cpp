@@ -440,19 +440,44 @@ mxi_dante_finish_delayed_initialization( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_dante_finish_delayed_initialization()";
 
+	MX_DANTE *dante = NULL;
+	MX_RECORD *mca_record = NULL;
+	unsigned long i;
 	mx_status_type mx_status;
 
-	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name ));
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	MX_DEBUG(-2,("%s invoked for '%s'.", fname, record->name ));
+
+	dante = (MX_DANTE *) record->record_type_struct;
+
+	if ( dante == (MX_DANTE *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_DANTE pointer for DANTE controller '%s' is NULL.",
+			record->name );
+	}
 
 	mx_status = mxi_dante_load_config_file( record );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxi_dante_show_parameters( record );
+	for ( i = 0; i < dante->num_mcas; i++ ) {
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		mca_record = dante->mca_record_array[i];
+
+		if ( mca_record == (MX_RECORD *) NULL ) {
+			continue;	/* Iterate the for(i) loop. */
+		}
+
+		mx_status = mxi_dante_show_parameters( mca_record );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
 	mx_status = mxi_dante_configure( record );
 
@@ -578,11 +603,18 @@ mxi_dante_set_parameter_from_string( MX_DANTE_MCA *dante_mca,
 		"The MX_DANTE_MCA pointer passed was NULL." );
 	}
 
+	MX_DEBUG(-2,("  '%s' parameter_name = '%s', parameter_string = '%s'.",
+		dante_mca->record->name, parameter_name, parameter_string));
+
 	struct configuration *configuration = &(dante_mca->configuration);
 
 	/* Look through the known parameter names */
 
 	if ( strcmp( parameter_name, "fast_filter_thr" ) == 0 ) {
+		MX_DEBUG(-2,("**** %s: '%s' dante_mca = %p, configuration = %p",
+			fname, dante_mca->record->name,
+			dante_mca, configuration));
+
 		configuration->fast_filter_thr = atol( parameter_string );
 
 	} else if ( strcmp( parameter_name, "energy_filter_thr" ) == 0 ) {
@@ -670,7 +702,9 @@ mxi_dante_show_parameters( MX_RECORD *record )
 
 	struct configuration *configuration = &(dante_mca->configuration);
 
-	MX_DEBUG(-2,("%s: dante_mca = '%s'", dante_mca->record->name ));
+	MX_DEBUG(-2,("**** %s: '%s' dante_mca = %p, configuration = %p",
+		fname, dante_mca->record->name,
+		dante_mca, configuration));
 
 	MX_DEBUG(-2,("  fast_filter_thr = %lu",
 		configuration->fast_filter_thr ));
@@ -751,7 +785,7 @@ mxi_dante_load_config_file( MX_RECORD *record )
 	char *parameter_name = NULL;
 	char *parameter_string = NULL;
 	char *parameter_end = NULL;
-	long i, n;
+	long i;
 	int saved_errno;
 	char buffer[200];
 	mx_status_type mx_status;
@@ -828,7 +862,9 @@ mxi_dante_load_config_file( MX_RECORD *record )
 	snprintf( mca_name_format, sizeof(mca_name_format),
 		" <DPP Name=\"%%%ds\">", sizeof(current_mca_identifier) );
 
+#if 0
 	MX_DEBUG(-2,("%s: mca_name_format = '%s'", fname, mca_name_format));
+#endif
 
 	current_mca_identifier[0] = '\0';
 
@@ -837,16 +873,14 @@ mxi_dante_load_config_file( MX_RECORD *record )
 	while (TRUE) {
 	    /* Read one line from the XML file. */
 
-	    MX_DEBUG(-2,("%s: About to read buffer.", fname));
-
 	    ptr = mx_fgets( buffer, sizeof(buffer), config_file );
-
-	    MX_DEBUG(-2,("%s: ptr = %p", fname, ptr));
 
 	    if ( ptr == (char *) NULL ) {
 
 		if ( feof(config_file) ) {
+#if 0
 		    MX_DEBUG(-2,("%s: Reached end of file.", fname));
+#endif
 
 		    break;	/* Exit the while loop. */
 		}
@@ -863,7 +897,9 @@ mxi_dante_load_config_file( MX_RECORD *record )
 		}
 	    }
 
+#if 0
 	    MX_DEBUG(-2,("%s: buffer = '%s'", fname, buffer));
+#endif
 
 	    ptr = strstr( buffer, "<DPP Name" );
 
@@ -875,26 +911,17 @@ mxi_dante_load_config_file( MX_RECORD *record )
 		if ( identifier_ptr != NULL ) {
 		    identifier_ptr++;
 
-		    MX_DEBUG(-2,("%s: #1 identifier_ptr = '%s'",
-			fname, identifier_ptr));
-
 		    end_ptr = strstr( identifier_ptr, "\"" );
 
 		    if ( end_ptr != NULL ) {
 			*end_ptr = '\0';
 		    }
-
-		    MX_DEBUG(-2,("%s: #2 identifier_ptr = '%s'",
-			fname, identifier_ptr));
 		}
 
 		if ( identifier_ptr != NULL ) {
 		    /* identifier_ptr may contain the name of an MCA.
 		     * So we go look for a match in dante->mca_record_array.
 		     */
-
-		    MX_DEBUG(-2,("%s: identifier_ptr = '%s'",
-			fname, identifier_ptr));
 
 		    current_mca_record = NULL;
 		    current_dante_mca = NULL;
@@ -917,6 +944,7 @@ mxi_dante_load_config_file( MX_RECORD *record )
 
 			/* Is this MCA the one we are looking for? */
 
+#if 0
 			MX_DEBUG(-2,("%s: identifier_ptr = '%s'\n",
 				fname, identifier_ptr));
 
@@ -926,8 +954,7 @@ mxi_dante_load_config_file( MX_RECORD *record )
 					identifier_ptr[n]);
 			}
 
-
-			MX_DEBUG(-2,("\n%s: dante_mca->channel_name = '%s'\n",
+			MX_DEBUG(-2,("%s: dante_mca->channel_name = '%s'\n",
 				fname, dante_mca->channel_name));
 
 			for (n = 0; n < strlen(dante_mca->channel_name); n++ ) {
@@ -937,6 +964,7 @@ mxi_dante_load_config_file( MX_RECORD *record )
 			}
 			fprintf(stderr,"\n" );
 			fflush(stderr);
+#endif
 
 			if ( strcmp( identifier_ptr,
 					dante_mca->channel_name ) != 0 )
@@ -962,8 +990,9 @@ mxi_dante_load_config_file( MX_RECORD *record )
 		}
 	    } else
 	    if ( current_dante_mca == (MX_DANTE_MCA *) NULL ) {
+#if 0
 		MX_DEBUG(-2,("%s: current_dante_mca = NULL", fname));
-
+#endif
 	    } else {
 		/* See if this line contains an MCA parameter name. */
 
@@ -1002,8 +1031,6 @@ mxi_dante_load_config_file( MX_RECORD *record )
 	 * by commenting it out here, we create a memory leak.  This
 	 * might be related to the problem above with fopen().
 	 */
-
-	mx_breakpoint();
 
 #if 0
 	fclose( config_file );

@@ -293,6 +293,10 @@ mxd_dante_mca_open( MX_RECORD *record )
 		return mx_status;
 	}
 
+	/* Initialize the configuration parameters to the values that
+	 * are set as the defaults in the vendor's header file.
+	 */
+
 	/* Search for an empty slot in the MCA array. */
 
 	for ( i = 0; i < dante->num_mcas; i++ ) {
