@@ -47,6 +47,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 
 /* Vendor include file. */
 
@@ -296,6 +297,15 @@ mxd_dante_mca_open( MX_RECORD *record )
 	/* Initialize the configuration parameters to the values that
 	 * are set as the defaults in the vendor's header file.
 	 */
+
+	{
+		struct configuration *test_config = new struct configuration;
+
+		memcpy( &(dante_mca->configuration), test_config,\
+				sizeof(struct configuration) );
+
+		delete test_config;
+	}
 
 	/* Search for an empty slot in the MCA array. */
 
