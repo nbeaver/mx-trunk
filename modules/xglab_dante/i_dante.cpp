@@ -98,12 +98,31 @@ mxi_dante_callback_fn( uint16_t type,
 }
 
 static bool
-mxi_dante_wait_for_callback( uint32_t call_id )
+mxi_dante_wait_for_answer( uint32_t call_id )
 {
+	static const char fname[] = "mxi_dante_wait_for_answer()";
+
+	uint32_t data_number;
+	bool dante_status;
+	int i;
+
 	fprintf( stderr, "Waiting forever...\n" );
 
-	while (TRUE) {
+	for ( i = 0; i < 10; i++ ) {
+#if 1
+		/* For testing purposes, we hotwire things with 
+		 * nonportable site-specific options.
+		 */
+
+		dante_status = getAvailableData("SN01906_Ch1", 0, data_number);
+
+		MX_DEBUG(-2,("%s: dante_status = %lu", fname, dante_status));
+#endif
 		mx_msleep(1000);
+	}
+
+	if ( i >= 10 ) {
+		fprintf( stderr, "Timed out waiting for callback to arrive.\n");
 	}
 
 	return false;
@@ -683,6 +702,8 @@ mxi_dante_configure( MX_RECORD *record )
 					dante_mca->configuration );
 
 		MX_DEBUG(-2,("%s: call_id = %lu", fname, call_id));
+
+		mxi_dante_wait_for_answer( call_id );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
