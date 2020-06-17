@@ -298,14 +298,19 @@ mxd_dante_mca_open( MX_RECORD *record )
 	 * are set as the defaults in the vendor's header file.
 	 */
 
-	{
-		struct configuration *test_config = new struct configuration;
+	struct configuration *test_config = new struct configuration;
 
-		memcpy( &(dante_mca->configuration), test_config,\
-				sizeof(struct configuration) );
+	memcpy( &(dante_mca->configuration), test_config,\
+			sizeof(struct configuration) );
 
-		delete test_config;
-	}
+	delete test_config;
+
+	/* Offset and TimestampDelay are not part of the configuration
+	 * structure, so we initialize them separately here.
+	 */
+
+	dante_mca->offset = 0;
+	dante_mca->timestamp_delay = 0;
 
 	/* Search for an empty slot in the MCA array. */
 

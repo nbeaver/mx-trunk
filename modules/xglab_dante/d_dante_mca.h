@@ -55,6 +55,9 @@ typedef struct {
 	double tail_coefficient;
 	unsigned long other_param;
 
+	unsigned long offset;
+	unsigned long timestamp_delay;
+
 	/*---*/
 
 	MX_RECORD *child_mcs_record;

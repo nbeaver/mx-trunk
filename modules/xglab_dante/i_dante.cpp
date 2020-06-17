@@ -73,6 +73,44 @@ extern const char *mxi_dante_strerror( int xia_status );
 
 /*-------------------------------------------------------------------------*/
 
+static void
+mxi_dante_callback_fn( uint16_t type,
+			uint32_t call_id,
+			uint32_t length,
+			uint32_t *data )
+{
+	static const char fname[] = "mxi_dante_callback_fn()";
+
+	uint32_t i;
+
+	fprintf( stderr,
+	"%s invoked.  type = %lu, call_id = %lu, length = %lu.\ndata = ",
+		fname, type, call_id, length);
+
+	for ( i = 0; i < length; i++ ) {
+		fprintf( stderr, "%lu ", data[i] );
+	}
+
+	fprintf( stderr, "\n" );
+	fflush( stderr );
+
+	return;
+}
+
+static bool
+mxi_dante_wait_for_callback( uint32_t call_id )
+{
+	fprintf( stderr, "Waiting forever...\n" );
+
+	while (TRUE) {
+		mx_msleep(1000);
+	}
+
+	return false;
+}
+
+/*-------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mxi_dante_initialize_driver( MX_DRIVER *driver )
 {
@@ -226,6 +264,21 @@ mxi_dante_open( MX_RECORD *record )
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_DANTE pointer for DANTE controller '%s' is NULL.",
 			record->name );
+	}
+
+	/* Set up an event callback for the DANTE library.  Please notice
+	 * that this _MUST_ be done _before_ the call to InitLibrary().
+	 */
+
+	dante_status = register_callback( mxi_dante_callback_fn );
+
+	if ( dante_status == false ) {
+		getLastError( error_code );
+
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"The attempt to register mxi_dante_callback_fn() as "
+		"an event callback for DANTE has failed with "
+		"error code %lu.",  error_code );
 	}
 
 	/* Initialize the DANTE library. */
@@ -628,6 +681,8 @@ mxi_dante_configure( MX_RECORD *record )
 		call_id = configure( dante_mca->channel_name,
 					dante_mca->board_number,
 					dante_mca->configuration );
+
+		MX_DEBUG(-2,("%s: call_id = %lu", fname, call_id));
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -724,6 +779,16 @@ mxi_dante_set_parameter_from_string( MX_DANTE_MCA *dante_mca,
 	} else if ( strcmp( parameter_name, "other_param" ) == 0 ) {
 		configuration->other_param = atol( parameter_string );
 
+	} else if ( strcmp( parameter_name, "Offset" ) == 0 ) {
+		dante_mca->offset = atol( parameter_string );
+
+	} else if ( strcmp( parameter_name, "TimestampDelay" ) == 0 ) {
+		dante_mca->timestamp_delay = atol( parameter_string );
+
+	} else if ( strncmp( parameter_name, "/DPP", 4 ) == 0 ) {
+		/* We throw away the XML </DPP> at the end
+		 * of each MCA description in the XML file.
+		 */
 	} else {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Unrecognized parameter seen for DANTE MCA '%s'.  "
@@ -804,6 +869,10 @@ mxi_dante_show_parameters( MX_RECORD *record )
 		configuration->tail_coefficient )); 
 
 	MX_DEBUG(-2,("  other_param = %lu", configuration->other_param ));
+
+	MX_DEBUG(-2,("  offset = %lu", dante_mca->offset));
+
+	MX_DEBUG(-2,("  timestamp_delay = %lu", dante_mca->timestamp_delay));
 
 	return MX_SUCCESSFUL_RESULT;
 }
