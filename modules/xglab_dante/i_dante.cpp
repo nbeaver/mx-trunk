@@ -584,7 +584,51 @@ mxi_dante_configure( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_dante_configure()";
 
-	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name));
+	MX_DANTE *dante = NULL;
+	MX_RECORD *mca_record = NULL;
+	MX_DANTE_MCA *dante_mca = NULL;
+	unsigned long i;
+	uint32_t call_id;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	MX_DEBUG(-2,("%s invoked for '%s'.", fname, record->name ));
+
+	dante = (MX_DANTE *) record->record_type_struct;
+
+	if ( dante == (MX_DANTE *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_DANTE pointer for DANTE controller '%s' is NULL.",
+			record->name );
+	}
+
+	for ( i = 0; i < dante->num_mcas; i++ ) {
+
+		mca_record = dante->mca_record_array[i];
+
+		if ( mca_record == (MX_RECORD *) NULL ) {
+			continue;	/* Iterate the for(i) loop. */
+		}
+
+		dante_mca = (MX_DANTE_MCA *) mca_record->record_type_struct;
+
+		if ( dante_mca == (MX_DANTE_MCA *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_DANTE_MCA pointer for MCA record '%s' is NULL.",
+				mca_record->name );
+		}
+
+		MX_DEBUG(-2,("%s: About to configure DANTE MCA '%s'.",
+			fname, mca_record->name ));
+
+		call_id = configure( dante_mca->channel_name,
+					dante_mca->board_number,
+					dante_mca->configuration );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }

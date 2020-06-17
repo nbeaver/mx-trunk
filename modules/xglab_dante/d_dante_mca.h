@@ -30,6 +30,7 @@ typedef struct {
 
 	MX_RECORD *dante_record;
 	char channel_name[MXU_DANTE_MCA_CHANNEL_NAME_LENGTH+1];
+	unsigned long board_number;
 
 	mx_bool_type configure;
 
@@ -75,6 +76,10 @@ typedef struct {
 	  		1, {MXU_DANTE_MCA_CHANNEL_NAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_DANTE_MCA, channel_name ), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "board_number", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof( MX_DANTE_MCA, board_number ), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {MXLV_DANTE_MCA_CONFIGURE, -1, "configure", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_DANTE_MCA, configure ), \
