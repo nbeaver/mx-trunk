@@ -338,6 +338,11 @@ mxi_dante_open( MX_RECORD *record )
 
 	dante_status = get_dev_number( number_of_devices );
 
+	if ( dante_status == false ) {
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"DANTE get_dev_number() failed." );
+	}
+
 	dante->num_master_devices = number_of_devices;
 
 #if 0
@@ -608,7 +613,7 @@ mxi_dante_process_function( void *record_ptr,
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
 	dante = (MX_DANTE *) (record->record_type_struct);
 
-	dante = dante;
+	MXW_UNUSED( dante );
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 
@@ -661,6 +666,8 @@ mxi_dante_configure( MX_RECORD *record )
 	MX_DANTE_MCA *dante_mca = NULL;
 	unsigned long i;
 	uint32_t call_id;
+	uint16_t dante_error_code = DLL_NO_ERROR;
+	bool dante_error_status;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -697,11 +704,31 @@ mxi_dante_configure( MX_RECORD *record )
 		MX_DEBUG(-2,("%s: About to configure DANTE MCA '%s'.",
 			fname, mca_record->name ));
 
+		dante_error_status = resetLastError();
+
 		call_id = configure( dante_mca->channel_name,
 					dante_mca->board_number,
 					dante_mca->configuration );
 
 		MX_DEBUG(-2,("%s: call_id = %lu", fname, call_id));
+
+		if ( call_id == 0 ) {
+			dante_error_status = getLastError( dante_error_code );
+
+			if ( dante_error_status == false ) {
+				return mx_error( MXE_UNKNOWN_ERROR, fname,
+				"After a call to configure() failed for "
+				"record '%s', a call to getLastError() failed "
+				"while trying to find out why configure() "
+				"failed.",  dante_mca->record->name );
+
+			}
+
+			return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"The call to configure() for record '%s' failed "
+			"with DANTE error code %lu.",
+				dante_mca->record->name, dante_error_code );
+		}
 
 		mxi_dante_wait_for_answer( call_id );
 	}
