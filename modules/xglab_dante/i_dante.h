@@ -25,6 +25,8 @@ extern "C" {
 
 #define MXU_DANTE_MAX_IDENTIFIER_LENGTH		16
 
+#define MXU_DANTE_MAX_CALLBACK_DATA_LENGTH	20
+
 /* The following flags are used by the 'dante_flags' field. */
 
 #define MXF_DANTE_SHOW_DEVICES			0x1
@@ -48,7 +50,7 @@ typedef struct {
 	MX_RECORD **mca_record_array;
 
 	unsigned long *num_boards_for_chain;
-	char ***board_identifier;
+	char **board_identifier;
 } MX_DANTE;
 
 #define MXLV_DANTE_LOAD_CONFIG_FILE	22001

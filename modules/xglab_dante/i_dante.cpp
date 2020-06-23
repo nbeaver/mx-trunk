@@ -18,6 +18,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <stdint.h>
 #include <errno.h>
 
@@ -73,6 +74,15 @@ extern const char *mxi_dante_strerror( int xia_status );
 
 /*-------------------------------------------------------------------------*/
 
+/* FIXME: The following set of callback-related functions basically serialize
+ * the handling of callbacks.  If we find ourself needing to deserialize the
+ * handling of callbacks, then we will need to replace the following code.
+ */
+
+static uint32_t mxi_dante_callback_id;
+
+static uint32_t mxi_dante_callback_data[MXU_DANTE_MAX_CALLBACK_DATA_LENGTH];
+
 static void
 mxi_dante_callback_fn( uint16_t type,
 			uint32_t call_id,
@@ -84,15 +94,28 @@ mxi_dante_callback_fn( uint16_t type,
 	uint32_t i;
 
 	fprintf( stderr,
-	"%s invoked.  type = %lu, call_id = %lu, length = %lu.\ndata = ",
+	"%s invoked.  type = %lu, call_id = %lu, length = %lu, ",
 		fname, type, call_id, length);
 
+	if ( length > MXU_DANTE_MAX_CALLBACK_DATA_LENGTH ) {
+		length = MXU_DANTE_MAX_CALLBACK_DATA_LENGTH;
+
+		fprintf( stderr,
+			"Shortening callback data to %lu values.\n", length );
+	}
+
+	memcpy( mxi_dante_callback_data, data, length );
+
+	fprintf( stderr, "mxi_dante_callback_data = " );
+
 	for ( i = 0; i < length; i++ ) {
-		fprintf( stderr, "%lu ", data[i] );
+		fprintf( stderr, "%lu ", mxi_dante_callback_data[i] );
 	}
 
 	fprintf( stderr, "\n" );
 	fflush( stderr );
+
+	mxi_dante_callback_id = 0;
 
 	return;
 }
@@ -106,18 +129,17 @@ mxi_dante_wait_for_answer( uint32_t call_id )
 	bool dante_status;
 	int i;
 
-	fprintf( stderr, "Waiting forever...\n" );
+	mxi_dante_callback_id = call_id;
+
+	fprintf( stderr, "Waiting for callback data...\n" );
 
 	for ( i = 0; i < 10; i++ ) {
-#if 1
-		/* For testing purposes, we hotwire things with 
-		 * nonportable site-specific options.
-		 */
+		if ( mxi_dante_callback_id != call_id ) {
+			fprintf( stderr, "Callback %lu seen.\n", call_id );
 
-		dante_status = getAvailableData("SN01906_Ch1", 0, data_number);
+			return true;
+		}
 
-		MX_DEBUG(-2,("%s: dante_status = %lu", fname, dante_status));
-#endif
 		mx_msleep(1000);
 	}
 
@@ -259,7 +281,7 @@ mxi_dante_open( MX_RECORD *record )
 	MX_DANTE *dante = NULL;
 	long dimension[3];
 	size_t dimension_sizeof[3];
-	unsigned long i, j;
+	unsigned long i, attempt, max_attempts;
 	unsigned long max_chain_boards;
 	unsigned long flags;
 
@@ -269,6 +291,7 @@ mxi_dante_open( MX_RECORD *record )
 	uint16_t board_number, max_identifier_length;
 	uint16_t error_code = DLL_NO_ERROR;
 	char identifier[MXU_DANTE_MAX_IDENTIFIER_LENGTH+1];
+	uint16_t num_boards;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -370,49 +393,25 @@ mxi_dante_open( MX_RECORD *record )
 		fname, dante->max_boards_per_chain));
 
 	dimension[0] = dante->num_master_devices;
-	dimension[1] = dante->max_boards_per_chain;
 	dimension[2] = MXU_DANTE_MAX_IDENTIFIER_LENGTH;
 
 	dimension_sizeof[0] = sizeof(char);
 	dimension_sizeof[1] = sizeof(char *);
-	dimension_sizeof[2] = sizeof(char **);
 
-	dante->board_identifier = (char ***)
-	    mx_allocate_array( MXFT_STRING, 3, dimension, dimension_sizeof );
+	dante->board_identifier = (char **)
+	    mx_allocate_array( MXFT_STRING, 2, dimension, dimension_sizeof );
 
-	if ( dante->board_identifier == (char ***) NULL ) {
+	if ( dante->board_identifier == (char **) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Ran out of memory trying to allocate a (%lu x %lu) element "
+		"Ran out of memory trying to allocate a (%lu) element "
 		"array of board identifiers for record '%s'.",
 			dante->num_master_devices,
-			dante->max_boards_per_chain,
 			record->name );
 	}
 
 	/* How many boards are there for each master? */
 
 	for ( i = 0; i < dante->num_master_devices; i++ ) {
-	    dante->num_boards_for_chain[i] = dante->max_boards_per_chain;
-
-	    for ( j = 0; j < dante->num_boards_for_chain[i]; j++ ) {
-
-		if ( j == 0 ) {
-			dante->board_identifier[i][j][0] = '\0';
-
-			skip_board = false;
-		}
-
-		if ( skip_board ) {
-			/* If we are skipping a board, we set the board's
-			 * identifier to an empty string to indicate that
-			 * this board does not exist.
-			 */
-			dante->board_identifier[i][j][0] = '\0';
-			continue;
-		}
-
-		board_number = j;
-
 #if 0
 		MX_DEBUG(-2,("%s: master %lu, board %lu", fname, i, j ));
 #endif
@@ -423,7 +422,11 @@ mxi_dante_open( MX_RECORD *record )
 
 		(void) resetLastError();
 
-		dante_status = get_ids( dante->board_identifier[i][j],
+		dante->board_identifier[i][0] = '\0';
+
+		board_number = 0;
+
+		dante_status = get_ids( dante->board_identifier[i],
 				board_number, max_identifier_length );
 
 		if ( dante_status == false ) {
@@ -432,18 +435,6 @@ mxi_dante_open( MX_RECORD *record )
 			switch( error_code ) {
 			case DLL_NO_ERROR:
 				break;
-			case DLL_ARGUMENT_OUT_OF_RANGE:
-				/* We have reached the end of this chain
-				 * of boards.  Record the number of boards
-				 * for this chain and then move on to the
-				 * next chain.
-				 */
-
-				dante->num_boards_for_chain[i] = j+1;
-				dante->board_identifier[i][j][0] = '\0';
-				skip_board = true;
-				break;
-
 			default:
 				return mx_error( MXE_UNKNOWN_ERROR, fname,
 				"A call to get_ids() for record '%s' failed.  "
@@ -453,13 +444,41 @@ mxi_dante_open( MX_RECORD *record )
 			}
 		}
 
-		if ( show_devices ) {
-		    if ( skip_board == false ) {
-			MX_DEBUG(-2,("%s: board[%lu][%lu] = '%s'",
-				fname, i, j, dante->board_identifier[i][j] ));
-		    }
+		max_attempts = 5;
+
+		for ( attempt = 0; attempt < max_attempts; attempt++ ) {
+
+			dante_status = get_boards_in_chain(
+				dante->board_identifier[i], num_boards );
+
+			if ( dante_status == false ) {
+				(void) getLastError( error_code );
+
+				switch( error_code ) {
+				case DLL_NO_ERROR:
+				    break;
+				default:
+				    return mx_error( MXE_UNKNOWN_ERROR, fname,
+				  "A call to get_boards_in_chain() for "
+				  "record '%s' failed.  DANTE error code = %lu",
+				    record->name, (unsigned long) error_code );
+				    break;
+				}
+			}
+
+			MX_DEBUG(-2,
+			    ("%s: num_boards = %lu", fname, num_boards));
+
+			mx_msleep(1000);
 		}
-	    }
+
+		dante->num_boards_for_chain[i] = num_boards;
+
+		if ( show_devices ) {
+			MX_DEBUG(-2,("%s: board[%lu] = '%s' (%lu boards)",
+				fname, i, dante->board_identifier[i],
+				dante->num_boards_for_chain[i] ));
+		}
 	}
 
 	(void) resetLastError();
@@ -836,6 +855,10 @@ mxi_dante_set_parameter_from_string( MX_DANTE_MCA *dante_mca,
 	} else if ( strncmp( parameter_name, "/DPP", 4 ) == 0 ) {
 		/* We throw away the XML </DPP> at the end
 		 * of each MCA description in the XML file.
+		 */
+	} else if ( strncmp( parameter_name, "/Devices", 4 ) == 0 ) {
+		/* We throw away the XML </Devices> at the end
+		 * of the XML file.
 		 */
 	} else {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,

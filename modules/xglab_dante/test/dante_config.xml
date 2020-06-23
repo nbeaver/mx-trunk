@@ -1,24 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Devices Name="XGL_Conf_DPP">
-  <DPP Name="Example SN">
-    <fast_filter_thr>null</fast_filter_thr>
-    <energy_filter_thr>null</energy_filter_thr>
-    <max_risetime>null</max_risetime>
-    <gain>null</gain>
-    <peaking_time>null</peaking_time>
-    <flat_top>null</flat_top>
-    <edge_peaking_time>null</edge_peaking_time>
-    <edge_flat_top>null</edge_flat_top>
-    <reset_recovery_time>null</reset_recovery_time>
-    <zero_peak_freq>null</zero_peak_freq>
-    <baseline_samples>null</baseline_samples>
-    <inverted_input>null</inverted_input>
-    <time_constant>null</time_constant>
-    <other_param>null</other_param>
-    <Offset>null</Offset>
-    <TimestampDelay>null</TimestampDelay>
-  </DPP>
-  <DPP Name="SN01906_Ch1">
+  <DPP Name="SN01906">
     <fast_filter_thr>50</fast_filter_thr>
     <energy_filter_thr>100</energy_filter_thr>
     <max_risetime>160</max_risetime>
@@ -34,24 +16,6 @@
     <time_constant>0</time_constant>
     <other_param>0</other_param>
     <Offset>189</Offset>
-    <TimestampDelay>0</TimestampDelay>
-  </DPP>
-  <DPP Name="SN01906_Ch2">
-    <fast_filter_thr>50</fast_filter_thr>
-    <energy_filter_thr>100</energy_filter_thr>
-    <max_risetime>160</max_risetime>
-    <gain>1</gain>
-    <peaking_time>15</peaking_time>
-    <flat_top>7</flat_top>
-    <edge_peaking_time>4</edge_peaking_time>
-    <edge_flat_top>1</edge_flat_top>
-    <reset_recovery_time>300</reset_recovery_time>
-    <zero_peak_freq>5</zero_peak_freq>
-    <baseline_samples>64</baseline_samples>
-    <inverted_input>False</inverted_input>
-    <time_constant>0</time_constant>
-    <other_param>0</other_param>
-    <Offset>86</Offset>
     <TimestampDelay>0</TimestampDelay>
   </DPP>
 </Devices>
