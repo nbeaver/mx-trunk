@@ -538,6 +538,7 @@ mxi_dante_finish_delayed_initialization( MX_RECORD *record )
 
 	MX_DANTE *dante = NULL;
 	MX_RECORD *mca_record = NULL;
+	MX_DANTE_MCA *dante_mca = NULL;
 	unsigned long i;
 	mx_status_type mx_status;
 
@@ -573,6 +574,13 @@ mxi_dante_finish_delayed_initialization( MX_RECORD *record )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+		dante_mca = (MX_DANTE_MCA *) mca_record->record_type_struct;
+		MX_DEBUG(-2,("%s: dante_mca = %p", fname, dante_mca));
+		MX_DEBUG(-2,("%s: spectrum_data = %p",
+				fname, dante_mca->spectrum_data));
+		MX_DEBUG(-2,("%s: spectrum_data[0] = %lu",
+				fname, dante_mca->spectrum_data[0]));
 	}
 
 	mx_status = mxi_dante_configure( record );

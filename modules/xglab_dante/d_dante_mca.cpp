@@ -76,7 +76,7 @@ MX_RECORD_FUNCTION_LIST mxd_dante_mca_record_function_list = {
 	NULL,
 	mxd_dante_mca_open,
 	mxd_dante_mca_close,
-	NULL,
+	mxd_dante_mca_finish_delayed_initialization,
 	NULL,
 	mxd_dante_mca_special_processing_setup
 };
@@ -281,6 +281,9 @@ mxd_dante_mca_open( MX_RECORD *record )
 			"MX_RECORD pointer passed is NULL." );
 	}
 
+	MX_DEBUG(-2,("**** %s invoked for record '%s'. ****",
+			fname, record->name));
+
 	mca = (MX_MCA *) (record->record_class_struct);
 
 	mx_status = mxd_dante_mca_get_pointers( mca, &dante_mca, &dante, fname);
@@ -292,6 +295,40 @@ mxd_dante_mca_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		return mx_status;
+	}
+
+	/*---*/
+
+	dante_mca->spectrum_data = (uint64_t *)
+		calloc( MXU_DANTE_MCA_MAX_SPECTRUM_BINS, sizeof(uint64_t) );
+
+	if ( dante_mca->spectrum_data == (uint64_t *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %d element array "
+		"of 64-bit integers for MCA '%s'.",
+			MXU_DANTE_MCA_MAX_SPECTRUM_BINS, mca->record->name );
+	}
+
+	MX_DEBUG(-2,("%s: dante_mca = %p", fname, dante_mca));
+	MX_DEBUG(-2,
+	("%s: spectrum_data = %p", fname, dante_mca->spectrum_data));
+	MX_DEBUG(-2,("%s: spectrum_data[0] = %lu", fname,
+			(unsigned long) dante_mca->spectrum_data[0]));
+
+	/*---*/
+
+	switch( mca->maximum_num_channels ) {
+	case 1024:
+	case 2048:
+	case 4096:
+		mca->current_num_channels = mca->maximum_num_channels;
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Dante MCA '%s' cannot be configured for %lu channels.  "
+		"The only allowed values are 1024, 2048, and 4096.",
+			mca->record->name, mca->maximum_num_channels );
+		break;
 	}
 
 	/* Initialize the configuration parameters to the values that
@@ -383,6 +420,27 @@ mxd_dante_mca_close( MX_RECORD *record )
 	/* Don't treat it as an error if we did not find an entry
 	 * in mca_record_array.
 	 */
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_dante_mca_finish_delayed_initialization( MX_RECORD *record )
+{
+	static const char fname[] =
+		"mxd_dante_mca_finish_delayed_initialization()";
+
+	MX_DANTE_MCA *dante_mca = NULL;
+
+	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name ));
+
+	dante_mca = (MX_DANTE_MCA *) record->record_type_struct;
+
+	MX_DEBUG(-2,("%s: dante_mca = %p", fname, dante_mca));
+	MX_DEBUG(-2,
+	("%s: spectrum_data = %p", fname, dante_mca->spectrum_data));
+	MX_DEBUG(-2,
+	("%s: spectrum_data[0] = %lu", fname, dante_mca->spectrum_data[0]));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -499,7 +557,9 @@ mxd_dante_mca_arm( MX_MCA *mca )
 
 	MX_DANTE_MCA *dante_mca = NULL;
 	MX_DANTE *dante = NULL;
+	bool dante_status;
 	uint32_t call_id;
+	uint16_t error_code;
 	mx_status_type mx_status;
 
 	mx_status = mxd_dante_mca_get_pointers( mca,
@@ -507,6 +567,14 @@ mxd_dante_mca_arm( MX_MCA *mca )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	MX_DEBUG(-2,("%s: dante_mca = %p", fname, dante_mca));
+	MX_DEBUG(-2,("%s: dante_mca->spectrum_data = %p",
+				fname, dante_mca->spectrum_data));
+	MX_DEBUG(-2,("%s: dante_mca->spectrum_data[0] = %lu",
+				fname, dante_mca->spectrum_data[0]));
+
+	(void) resetLastError();
 
 	/* FIXME: Different MCA modes require different calls. */
 
@@ -524,9 +592,24 @@ mxd_dante_mca_arm( MX_MCA *mca )
 	if ( mxi_dante_callback_data[0] == 1 ) {
 		return MX_SUCCESSFUL_RESULT;
 	} else {
-		return mx_error( MXE_UNKNOWN_ERROR, fname,
-		"start() #2 returned an error for MCA '%s'.",
-			mca->record->name );
+		getLastError( error_code );
+
+		switch( error_code ) {
+		case DLL_ARGUMENT_OUT_OF_RANGE:
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"One of the arguments for start( '%s', %f, %lu ) "
+			"is out of range for MCA '%s'.",
+				dante_mca->channel_name,
+				mca->preset_real_time,
+				mca->current_num_channels,
+				mca->record->name );
+			break;
+		default:
+			return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"start() #2 returned an error for MCA '%s'.  "
+			"error_code = %lu",
+			mca->record->name, error_code );
+		}
 	}
 
 	return mx_status;
@@ -562,6 +645,12 @@ mxd_dante_mca_stop( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	MX_DEBUG(-2,("%s: dante_mca = %p", fname, dante_mca));
+	MX_DEBUG(-2,("%s: dante_mca->spectrum_data = %p",
+				fname, dante_mca->spectrum_data));
+	MX_DEBUG(-2,("%s: dante_mca->spectrum_data[0] = %lu",
+				fname, dante_mca->spectrum_data[0]));
+
 	call_id = stop( dante_mca->channel_name );
 
 	if ( call_id == 0 ) {
@@ -590,9 +679,11 @@ mxd_dante_mca_read( MX_MCA *mca )
 	MX_DANTE *dante;
 	unsigned long i;
 	bool dante_status;
+	uint64_t *spectrum_array = NULL;
 	uint32_t spectrum_id;
 	statistics stats;
 	uint32_t spectrum_size;
+	uint16_t error_code = DLL_NO_ERROR;
 	mx_status_type mx_status;
 
 #if MXI_DANTE_DEBUG_TIMING
@@ -605,16 +696,34 @@ mxd_dante_mca_read( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	(void) resetLastError();
+
+	spectrum_size = mca->current_num_channels;
+
+#if 1
+	spectrum_array = dante_mca->spectrum_data;
+#endif
+	MX_DEBUG(-2,("%s: before getData(), dante_mca = %p", fname, dante_mca));
+	MX_DEBUG(-2,("%s: before getData(), spectrum_array = %p",
+		fname, spectrum_array));
+	MX_DEBUG(-2,("%s: before getData(), spectrum_array[0] = %lu",
+		fname, (unsigned long)spectrum_array[0] ));
+
 	dante_status = getData( dante_mca->channel_name,
 				dante_mca->board_number,
-				dante_mca->spectrum_data,
+				spectrum_array,
 				spectrum_id,
 				stats,
 				spectrum_size );
 
+	MX_DEBUG(-2,("%s: after getData().", fname));
+
 	if ( dante_status == false ) {
+		getLastError( error_code );
+
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
-		"getData() failed for MCA '%s'.", mca->record->name );
+		"getData() failed for MCA '%s'.  Error code = %lu",
+			mca->record->name, error_code );
 	}
 
 	mca->current_num_channels = spectrum_size;
@@ -623,7 +732,7 @@ mxd_dante_mca_read( MX_MCA *mca )
 		mca->maximum_num_channels * sizeof(unsigned long) );
 
 	for ( i = 0; i < mca->current_num_channels; i++ ) {
-		mca->channel_array[i] = dante_mca->spectrum_data[i];
+		mca->channel_array[i] = spectrum_array[i];
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -644,6 +753,12 @@ mxd_dante_mca_clear( MX_MCA *mca )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	MX_DEBUG(-2,("%s: dante_mca = %p", fname, dante_mca));
+	MX_DEBUG(-2,("%s: dante_mca->spectrum_data = %p",
+				fname, dante_mca->spectrum_data));
+	MX_DEBUG(-2,("%s: dante_mca->spectrum_data[0] = %lu",
+				fname, dante_mca->spectrum_data[0]));
 
 	/* FIXME: clear_chain() is not documented. clear() is documented
 	 * but does not exist.
@@ -678,6 +793,12 @@ mxd_dante_mca_busy( MX_MCA *mca )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	MX_DEBUG(-2,("%s: dante_mca = %p", fname, dante_mca));
+	MX_DEBUG(-2,("%s: dante_mca->spectrum_data = %p",
+				fname, dante_mca->spectrum_data));
+	MX_DEBUG(-2,("%s: dante_mca->spectrum_data[0] = %lu",
+				fname, dante_mca->spectrum_data[0]));
 
 	call_id = isRunning_system( dante_mca->channel_name,
 					dante_mca->board_number );
@@ -720,6 +841,12 @@ mxd_dante_mca_get_parameter( MX_MCA *mca )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	MX_DEBUG(-2,("%s: dante_mca = %p", fname, dante_mca));
+	MX_DEBUG(-2,("%s: dante_mca->spectrum_data = %p",
+				fname, dante_mca->spectrum_data));
+	MX_DEBUG(-2,("%s: dante_mca->spectrum_data[0] = %lu",
+				fname, dante_mca->spectrum_data[0]));
 
 #if MXI_DANTE_DEBUG
 	MX_DEBUG(-2,("%s invoked for MCA '%s', parameter type '%s' (%ld).",
@@ -888,6 +1015,12 @@ mxd_dante_mca_set_parameter( MX_MCA *mca )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	MX_DEBUG(-2,("%s: dante_mca = %p", fname, dante_mca));
+	MX_DEBUG(-2,("%s: dante_mca->spectrum_data = %p",
+				fname, dante_mca->spectrum_data));
+	MX_DEBUG(-2,("%s: dante_mca->spectrum_data[0] = %lu",
+				fname, dante_mca->spectrum_data[0]));
 
 #if MXI_DANTE_DEBUG
 	MX_DEBUG(-2,("%s invoked for MCA '%s', parameter type '%s' (%ld).",

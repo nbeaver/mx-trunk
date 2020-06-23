@@ -25,6 +25,8 @@ extern "C" {
 
 #define MXU_DANTE_MCA_CHANNEL_NAME_LENGTH	80
 
+#define MXU_DANTE_MCA_MAX_SPECTRUM_BINS		4096
+
 typedef struct {
 	MX_RECORD *record;
 
@@ -180,6 +182,8 @@ MX_API mx_status_type mxd_dante_mca_print_structure( FILE *file,
 							MX_RECORD *record );
 MX_API mx_status_type mxd_dante_mca_open( MX_RECORD *record );
 MX_API mx_status_type mxd_dante_mca_close( MX_RECORD *record );
+MX_API mx_status_type mxd_dante_mca_finish_delayed_initialization(
+							MX_RECORD *record );
 MX_API mx_status_type mxd_dante_mca_special_processing_setup(
 							MX_RECORD *record );
 
