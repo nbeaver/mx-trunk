@@ -63,6 +63,8 @@ typedef struct {
 	MX_RECORD *child_mcs_record;
 	long mca_record_array_index;
 
+	uint64_t *spectrum_data;
+
 #ifdef __cplusplus
 	struct configuration configuration;
 #endif

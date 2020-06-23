@@ -79,9 +79,9 @@ extern const char *mxi_dante_strerror( int xia_status );
  * handling of callbacks, then we will need to replace the following code.
  */
 
-static uint32_t mxi_dante_callback_id;
+uint32_t mxi_dante_callback_id;
 
-static uint32_t mxi_dante_callback_data[MXU_DANTE_MAX_CALLBACK_DATA_LENGTH];
+uint32_t mxi_dante_callback_data[MXU_DANTE_MAX_CALLBACK_DATA_LENGTH];
 
 static void
 mxi_dante_callback_fn( uint16_t type,
@@ -120,7 +120,7 @@ mxi_dante_callback_fn( uint16_t type,
 	return;
 }
 
-static bool
+int
 mxi_dante_wait_for_answer( uint32_t call_id )
 {
 	static const char fname[] = "mxi_dante_wait_for_answer()";
@@ -137,7 +137,7 @@ mxi_dante_wait_for_answer( uint32_t call_id )
 		if ( mxi_dante_callback_id != call_id ) {
 			fprintf( stderr, "Callback %lu seen.\n", call_id );
 
-			return true;
+			return TRUE;
 		}
 
 		mx_msleep(1000);
@@ -147,7 +147,7 @@ mxi_dante_wait_for_answer( uint32_t call_id )
 		fprintf( stderr, "Timed out waiting for callback to arrive.\n");
 	}
 
-	return false;
+	return FALSE;
 }
 
 /*-------------------------------------------------------------------------*/

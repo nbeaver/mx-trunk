@@ -499,6 +499,7 @@ mxd_dante_mca_arm( MX_MCA *mca )
 
 	MX_DANTE_MCA *dante_mca = NULL;
 	MX_DANTE *dante = NULL;
+	uint32_t call_id;
 	mx_status_type mx_status;
 
 	mx_status = mxd_dante_mca_get_pointers( mca,
@@ -506,6 +507,27 @@ mxd_dante_mca_arm( MX_MCA *mca )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* FIXME: Different MCA modes require different calls. */
+
+	call_id = start( dante_mca->channel_name,
+			mca->preset_real_time, mca->current_num_channels );
+
+	if ( call_id == 0 ) {
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"start() #1 returned an error for MCA '%s'.",
+			mca->record->name );
+	}
+
+	mxi_dante_wait_for_answer( call_id );
+
+	if ( mxi_dante_callback_data[0] == 1 ) {
+		return MX_SUCCESSFUL_RESULT;
+	} else {
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"start() #2 returned an error for MCA '%s'.",
+			mca->record->name );
+	}
 
 	return mx_status;
 }
@@ -531,6 +553,7 @@ mxd_dante_mca_stop( MX_MCA *mca )
 	static const char fname[] = "mxd_dante_mca_stop()";
 
 	MX_DANTE_MCA *dante_mca = NULL;
+	uint32_t call_id;
 	mx_status_type mx_status;
 
 	mx_status = mxd_dante_mca_get_pointers( mca,
@@ -538,6 +561,22 @@ mxd_dante_mca_stop( MX_MCA *mca )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	call_id = stop( dante_mca->channel_name );
+
+	if ( call_id == 0 ) {
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"stop() #1 returned an error for MCA '%s'.",
+		mca->record->name );
+	}
+
+	if ( mxi_dante_callback_data[0] == 1 ) {
+		return MX_SUCCESSFUL_RESULT;
+	} else {
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"stop() #2 returned an error for MCA '%s'.",
+		mca->record->name );
+	}
 
 	return mx_status;
 }
@@ -549,6 +588,11 @@ mxd_dante_mca_read( MX_MCA *mca )
 
 	MX_DANTE_MCA *dante_mca;
 	MX_DANTE *dante;
+	unsigned long i;
+	bool dante_status;
+	uint32_t spectrum_id;
+	statistics stats;
+	uint32_t spectrum_size;
 	mx_status_type mx_status;
 
 #if MXI_DANTE_DEBUG_TIMING
@@ -561,6 +605,27 @@ mxd_dante_mca_read( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	dante_status = getData( dante_mca->channel_name,
+				dante_mca->board_number,
+				dante_mca->spectrum_data,
+				spectrum_id,
+				stats,
+				spectrum_size );
+
+	if ( dante_status == false ) {
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"getData() failed for MCA '%s'.", mca->record->name );
+	}
+
+	mca->current_num_channels = spectrum_size;
+
+	memset( mca->channel_array, 0,
+		mca->maximum_num_channels * sizeof(unsigned long) );
+
+	for ( i = 0; i < mca->current_num_channels; i++ ) {
+		mca->channel_array[i] = dante_mca->spectrum_data[i];
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -571,6 +636,7 @@ mxd_dante_mca_clear( MX_MCA *mca )
 	static const char fname[] = "mxd_dante_mca_clear()";
 
 	MX_DANTE_MCA *dante_mca = NULL;
+	bool clear_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_dante_mca_get_pointers( mca,
@@ -579,7 +645,18 @@ mxd_dante_mca_clear( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	return mx_status;
+	/* FIXME: clear_chain() is not documented. clear() is documented
+	 * but does not exist.
+	 */
+
+	clear_status = clear_chain( dante_mca->channel_name );
+
+	if ( clear_status == false ) {
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"clear() returned an error." );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -589,6 +666,7 @@ mxd_dante_mca_busy( MX_MCA *mca )
 
 	MX_DANTE_MCA *dante_mca = NULL;
 	MX_DANTE *dante = NULL;
+	uint32_t call_id;
 	mx_status_type mx_status;
 
 #if MXD_DANTE_MCA_DEBUG_TIMING
@@ -600,6 +678,26 @@ mxd_dante_mca_busy( MX_MCA *mca )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	call_id = isRunning_system( dante_mca->channel_name,
+					dante_mca->board_number );
+
+	if ( call_id == 0 ) {
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"isRunning() failed for MCA '%s'.",
+			mca->record->name );
+	}
+
+	mxi_dante_wait_for_answer( call_id );
+
+	if ( mxi_dante_callback_data[0] == 0 ) {
+		mca->busy = FALSE;
+	} else {
+		mca->busy = TRUE;
+	}
+
+	MX_DEBUG(-2,("%s: '%s' busy = %lu",
+		fname, mca->record->name, mca->busy));
 
 	return MX_SUCCESSFUL_RESULT;
 }

@@ -53,6 +53,11 @@ typedef struct {
 	char **board_identifier;
 } MX_DANTE;
 
+extern uint32_t mxi_dante_callback_id;
+extern uint32_t mxi_dante_callback_data[MXU_DANTE_MAX_CALLBACK_DATA_LENGTH];
+
+extern int mxi_dante_wait_for_answer( uint32_t callback_id );
+
 #define MXLV_DANTE_LOAD_CONFIG_FILE	22001
 #define MXLV_DANTE_SAVE_CONFIG_FILE	22002
 #define MXLV_DANTE_CONFIGURE		22003
