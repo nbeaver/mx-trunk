@@ -95,13 +95,14 @@ mxi_dante_callback_fn( uint16_t type,
 
 	fprintf( stderr,
 	"%s invoked.  type = %lu, call_id = %lu, length = %lu, ",
-		fname, type, call_id, length);
+		fname, (unsigned long) type,
+		(unsigned long) call_id, (unsigned long) length);
 
 	if ( length > MXU_DANTE_MAX_CALLBACK_DATA_LENGTH ) {
 		length = MXU_DANTE_MAX_CALLBACK_DATA_LENGTH;
 
-		fprintf( stderr,
-			"Shortening callback data to %lu values.\n", length );
+		fprintf( stderr, "Shortening callback data to %lu values.\n",
+					(unsigned long) length );
 	}
 
 	memcpy( mxi_dante_callback_data, data, length );
@@ -109,7 +110,8 @@ mxi_dante_callback_fn( uint16_t type,
 	fprintf( stderr, "mxi_dante_callback_data = " );
 
 	for ( i = 0; i < length; i++ ) {
-		fprintf( stderr, "%lu ", mxi_dante_callback_data[i] );
+		fprintf( stderr, "%lu ",
+		(unsigned long) mxi_dante_callback_data[i] );
 	}
 
 	fprintf( stderr, "\n" );
@@ -125,17 +127,16 @@ mxi_dante_wait_for_answer( uint32_t call_id )
 {
 	static const char fname[] = "mxi_dante_wait_for_answer()";
 
-	uint32_t data_number;
-	bool dante_status;
 	int i;
 
 	mxi_dante_callback_id = call_id;
 
-	fprintf( stderr, "Waiting for callback data...\n" );
+	MX_DEBUG(-2,("%s: Waiting for callback data...", fname));
 
 	for ( i = 0; i < 10; i++ ) {
 		if ( mxi_dante_callback_id != call_id ) {
-			fprintf( stderr, "Callback %lu seen.\n", call_id );
+			MX_DEBUG(-2,("Callback %lu seen.",
+				(unsigned long) call_id ));
 
 			return TRUE;
 		}
@@ -144,7 +145,8 @@ mxi_dante_wait_for_answer( uint32_t call_id )
 	}
 
 	if ( i >= 10 ) {
-		fprintf( stderr, "Timed out waiting for callback to arrive.\n");
+		MX_DEBUG(-2,(
+		"%s: Timed out waiting for callback to arrive.\n", fname ));
 	}
 
 	return FALSE;
@@ -155,13 +157,10 @@ mxi_dante_wait_for_answer( uint32_t call_id )
 MX_EXPORT mx_status_type
 mxi_dante_initialize_driver( MX_DRIVER *driver )
 {
+#if 0
 	static const char fname[] = "mxi_dante_initialize_driver()";
 
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
-	long num_active_detector_channels_varargs_cookie;
-	MX_RECORD_FIELD_DEFAULTS *field;
-	long referenced_field_index;
-	mx_status_type mx_status;
 
 	record_field_defaults = *(driver->record_field_defaults_ptr);
 
@@ -177,35 +176,7 @@ mxi_dante_initialize_driver( MX_DRIVER *driver )
 			driver->name );
 	}
 
-#if 0
-
-	/* Get varargs cookie for 'num_active_detector_channels'. */
-
-	mx_status = mx_find_record_field_defaults_index( driver,
-						"num_active_detector_channels",
-						&referenced_field_index );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_construct_varargs_cookie( referenced_field_index, 0,
-				&num_active_detector_channels_varargs_cookie );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Set varargs cookie for 'active_detector_channel_array'. */
-
-	mx_status = mx_find_record_field_defaults( driver,
-						"active_detector_channel_array",
-						&field );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	field->dimension[0] = num_active_detector_channels_varargs_cookie;
 #endif
-
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -282,15 +253,12 @@ mxi_dante_open( MX_RECORD *record )
 	long dimension[3];
 	size_t dimension_sizeof[3];
 	unsigned long i, attempt, max_attempts;
-	unsigned long max_chain_boards;
-	unsigned long flags;
 
-	bool dante_status, show_devices, skip_board;
+	bool dante_status, show_devices;
 	uint32_t version_length;
 	uint16_t number_of_devices;
 	uint16_t board_number, max_identifier_length;
 	uint16_t error_code = DLL_NO_ERROR;
-	char identifier[MXU_DANTE_MAX_IDENTIFIER_LENGTH+1];
 	uint16_t num_boards;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -320,7 +288,7 @@ mxi_dante_open( MX_RECORD *record )
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
 		"The attempt to register mxi_dante_callback_fn() as "
 		"an event callback for DANTE has failed with "
-		"error code %lu.",  error_code );
+		"error code %lu.", (unsigned long) error_code );
 	}
 
 	/* Initialize the DANTE library. */
@@ -466,8 +434,8 @@ mxi_dante_open( MX_RECORD *record )
 				}
 			}
 
-			MX_DEBUG(-2,
-			    ("%s: num_boards = %lu", fname, num_boards));
+			MX_DEBUG(-2,("%s: num_boards = %lu",
+				fname, (unsigned long) num_boards));
 
 			mx_msleep(1000);
 		}
@@ -695,7 +663,6 @@ mxi_dante_configure( MX_RECORD *record )
 	uint32_t call_id;
 	uint16_t dante_error_code = DLL_NO_ERROR;
 	bool dante_error_status;
-	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -737,7 +704,8 @@ mxi_dante_configure( MX_RECORD *record )
 					dante_mca->board_number,
 					dante_mca->configuration );
 
-		MX_DEBUG(-2,("%s: call_id = %lu", fname, call_id));
+		MX_DEBUG(-2,("%s: call_id = %lu",
+			fname, (unsigned long) call_id));
 
 		if ( call_id == 0 ) {
 			dante_error_status = getLastError( dante_error_code );
@@ -754,7 +722,8 @@ mxi_dante_configure( MX_RECORD *record )
 			return mx_error( MXE_UNKNOWN_ERROR, fname,
 			"The call to configure() for record '%s' failed "
 			"with DANTE error code %lu.",
-				dante_mca->record->name, dante_error_code );
+				dante_mca->record->name,
+				(unsigned long) dante_error_code );
 		}
 
 		mxi_dante_wait_for_answer( call_id );
@@ -895,63 +864,69 @@ mxi_dante_show_parameters( MX_RECORD *record )
 		dante_mca, configuration));
 
 	MX_DEBUG(-2,("  fast_filter_thr = %lu",
-		configuration->fast_filter_thr ));
+		(unsigned long) configuration->fast_filter_thr ));
 
 	MX_DEBUG(-2,("  energy_filter_thr = %lu",
-		configuration->energy_filter_thr ));
+		(unsigned long) configuration->energy_filter_thr ));
 
 	MX_DEBUG(-2,("  energy_baseline_thr = %lu",
-		configuration->energy_baseline_thr ));
+		(unsigned long) configuration->energy_baseline_thr ));
 
 	MX_DEBUG(-2,("  max_risetime = %g", configuration->max_risetime ));
 
 	MX_DEBUG(-2,("  gain = %g", configuration->gain ));
 
-	MX_DEBUG(-2,("  peaking_time = %lu", configuration->peaking_time ));
+	MX_DEBUG(-2,("  peaking_time = %lu",
+		(unsigned long) configuration->peaking_time ));
 
 	MX_DEBUG(-2,("  max_peaking_time = %lu",
-		configuration->max_peaking_time ));
+		(unsigned long) configuration->max_peaking_time ));
 
-	MX_DEBUG(-2,("  flat_top = %lu", configuration->flat_top ));
+	MX_DEBUG(-2,("  flat_top = %lu",
+		(unsigned long) configuration->flat_top ));
 
 	MX_DEBUG(-2,("  edge_peaking_time = %lu",
-		configuration->edge_peaking_time ));
+		(unsigned long) configuration->edge_peaking_time ));
 
-	MX_DEBUG(-2,("  edge_flat_top = %lu", configuration->edge_flat_top ));
+	MX_DEBUG(-2,("  edge_flat_top = %lu",
+		(unsigned long) configuration->edge_flat_top ));
 
 	MX_DEBUG(-2,("  reset_recovery_time = %lu",
-		configuration->reset_recovery_time ));
+		(unsigned long) configuration->reset_recovery_time ));
 
 	MX_DEBUG(-2,("  zero_peak_freq = %g", configuration->zero_peak_freq));
 
 	MX_DEBUG(-2,("  baseline_samples = %lu",
-		configuration->baseline_samples ));
+		(unsigned long) configuration->baseline_samples ));
 
 	if ( configuration->inverted_input ) {
-		MX_DEBUG(-2,("  inverted_input = true", fname ));
+		MX_DEBUG(-2,("%s: inverted_input = true", fname ));
 	} else {
-		MX_DEBUG(-2,("  inverted_input = false", fname ));
+		MX_DEBUG(-2,("%s: inverted_input = false", fname ));
 	}
 
 	MX_DEBUG(-2,("  time_constant = %g", configuration->time_constant ));
 
 	MX_DEBUG(-2,("  base_offset = %lu",
-		configuration->base_offset ));
+		(unsigned long) configuration->base_offset ));
 
 	MX_DEBUG(-2,("  overflow_recovery = %lu",
-		configuration->overflow_recovery ));
+		(unsigned long) configuration->overflow_recovery ));
 
 	MX_DEBUG(-2,("  reset_threshold = %lu",
-		configuration->reset_threshold ));
+		(unsigned long) configuration->reset_threshold ));
 
 	MX_DEBUG(-2,("  tail_coefficient = %g",
 		configuration->tail_coefficient )); 
 
-	MX_DEBUG(-2,("  other_param = %lu", configuration->other_param ));
+	MX_DEBUG(-2,("  other_param = %lu",
+		(unsigned long) configuration->other_param ));
 
-	MX_DEBUG(-2,("  offset = %lu", dante_mca->offset));
+	MX_DEBUG(-2,("  offset = %lu",
+		(unsigned long) dante_mca->offset));
 
-	MX_DEBUG(-2,("  timestamp_delay = %lu", dante_mca->timestamp_delay));
+	MX_DEBUG(-2,("  timestamp_delay = %lu",
+		(unsigned long) dante_mca->timestamp_delay));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -966,10 +941,8 @@ mxi_dante_load_config_file( MX_RECORD *record )
 	MX_DANTE *dante = NULL;
 	MX_RECORD *current_mca_record = NULL;
 	MX_DANTE_MCA *current_dante_mca = NULL;
-	char current_mca_identifier[MXU_DANTE_MAX_IDENTIFIER_LENGTH+1];
 	MX_RECORD *mca_record = NULL;
 	MX_DANTE_MCA *dante_mca = NULL;
-	char mca_name_format[40];
 	FILE *config_file = NULL;
 	char *ptr = NULL;
 	char *identifier_ptr = NULL;
@@ -977,7 +950,7 @@ mxi_dante_load_config_file( MX_RECORD *record )
 	char *parameter_name = NULL;
 	char *parameter_string = NULL;
 	char *parameter_end = NULL;
-	long i;
+	unsigned long i;
 	int saved_errno;
 	char buffer[200];
 	mx_status_type mx_status;
@@ -1050,15 +1023,6 @@ mxi_dante_load_config_file( MX_RECORD *record )
 	}
 
 	/*  Work our way through the XML file, one line at a time. */
-
-	snprintf( mca_name_format, sizeof(mca_name_format),
-		" <DPP Name=\"%%%ds\">", sizeof(current_mca_identifier) );
-
-#if 0
-	MX_DEBUG(-2,("%s: mca_name_format = '%s'", fname, mca_name_format));
-#endif
-
-	current_mca_identifier[0] = '\0';
 
 	current_mca_record = NULL;
 

@@ -31,11 +31,13 @@ include ../../libMx/Makehead.$(MX_ARCH)
 
 ifeq ($(MX_ARCH),linux)
 	CFLAGS = $(GCCFLAGS) -DOS_LINUX -I$(XGLAB_DANTE_DIR)
-	COMPILE = g++ -c -fPIC
+	C_COMPILE = gcc -c -fPIC -DDEBUG
+	CPP_COMPILE = g++ -c -fPIC -DDEBUG
 endif
 ifeq ($(MX_ARCH),win32)
 	CFLAGS = -nologo -Zi -WX -DOS_WIN32 -I$(XGLAB_DANTE_DIR) -DDEBUG
-	COMPILE = cl -c
+	C_COMPILE = cl -c -DDEBUG
+	CPP_COMPILE = cl -c -DDEBUG
 endif
 
 CFLAGS += -DIS_MX_DRIVER
@@ -44,7 +46,7 @@ CFLAGS += -I../../libMx -D__MX_LIBRARY__
 
 XGLAB_DANTE_OBJS = xglab_dante.$(OBJ) i_dante.$(OBJ) d_dante_mca.$(OBJ)
 
-$(info $$COMPILE is [${COMPILE}])
+$(info $$C_COMPILE is [${C_COMPILE}])
 $(info $$CFLAGS is [${CFLAGS}])
 $(info $$XGLAB_DANTE_DIR is [${XGLAB_DANTE_DIR}])
 
@@ -83,13 +85,13 @@ endif
 #--------------------------------------------------------------------------
 
 xglab_dante.$(OBJ): xglab_dante.c i_dante.h d_dante_mca.h
-	$(COMPILE) $(CFLAGS) xglab_dante.c
+	$(C_COMPILE) $(CFLAGS) xglab_dante.c
 
 i_dante.$(OBJ): i_dante.cpp i_dante.h
-	$(COMPILE) $(CFLAGS) i_dante.cpp
+	$(CPP_COMPILE) $(CFLAGS) i_dante.cpp
 
 d_dante_mca.$(OBJ): d_dante_mca.cpp i_dante.h d_dante_mca.h
-	$(COMPILE) $(CFLAGS) d_dante_mca.cpp
+	$(CPP_COMPILE) $(CFLAGS) d_dante_mca.cpp
 
 install: $(XGLAB_DANTE_MXO)
 	-mkdir $(MX_INSTALL_DIR)/lib/modules

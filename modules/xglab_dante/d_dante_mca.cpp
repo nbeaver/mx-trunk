@@ -270,7 +270,7 @@ mxd_dante_mca_open( MX_RECORD *record )
 	MX_MCA *mca;
 	MX_DANTE_MCA *dante_mca = NULL;
 	MX_DANTE *dante = NULL;
-	long i;
+	unsigned long i;
 	mx_status_type mx_status;
 
 #if MXD_DANTE_MCA_DEBUG_TIMING
@@ -484,12 +484,10 @@ mxd_dante_mca_process_function( void *record_ptr,
 
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;
-	MX_DANTE_MCA *dante_mca;
 	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
-	dante_mca = (MX_DANTE_MCA *) record->record_type_struct;
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 
@@ -557,7 +555,6 @@ mxd_dante_mca_arm( MX_MCA *mca )
 
 	MX_DANTE_MCA *dante_mca = NULL;
 	MX_DANTE *dante = NULL;
-	bool dante_status;
 	uint32_t call_id;
 	uint16_t error_code;
 	mx_status_type mx_status;
@@ -608,7 +605,7 @@ mxd_dante_mca_arm( MX_MCA *mca )
 			return mx_error( MXE_UNKNOWN_ERROR, fname,
 			"start() #2 returned an error for MCA '%s'.  "
 			"error_code = %lu",
-			mca->record->name, error_code );
+			mca->record->name, (unsigned long) error_code );
 		}
 	}
 
@@ -677,7 +674,7 @@ mxd_dante_mca_read( MX_MCA *mca )
 
 	MX_DANTE_MCA *dante_mca;
 	MX_DANTE *dante;
-	unsigned long i;
+	long i;
 	bool dante_status;
 	uint64_t *spectrum_array = NULL;
 	uint32_t spectrum_id;
@@ -723,7 +720,7 @@ mxd_dante_mca_read( MX_MCA *mca )
 
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
 		"getData() failed for MCA '%s'.  Error code = %lu",
-			mca->record->name, error_code );
+			mca->record->name, (unsigned long) error_code );
 	}
 
 	mca->current_num_channels = spectrum_size;
@@ -817,8 +814,8 @@ mxd_dante_mca_busy( MX_MCA *mca )
 		mca->busy = TRUE;
 	}
 
-	MX_DEBUG(-2,("%s: '%s' busy = %lu",
-		fname, mca->record->name, mca->busy));
+	MX_DEBUG(-2,("%s: '%s' busy = %d",
+		fname, mca->record->name, (int) mca->busy));
 
 	return MX_SUCCESSFUL_RESULT;
 }
