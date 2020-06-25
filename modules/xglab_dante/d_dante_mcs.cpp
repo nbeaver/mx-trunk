@@ -445,7 +445,8 @@ mxd_dante_mcs_stop( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s invoked for MCS '%s'.  Not yet implemented.", fname));
+	MX_DEBUG(-2,("%s invoked for MCS '%s'.  Not yet implemented.",
+		fname, mcs->record->name));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -490,10 +491,6 @@ mxd_dante_mcs_busy( MX_MCS *mcs )
 	MX_DANTE *dante = NULL;
 	uint32_t call_id;
 	mx_status_type mx_status;
-
-#if MXD_DANTE_MCS_DEBUG_BUSY
-	static mx_bool_type old_busy = FALSE;
-#endif
 
 	mx_status = mxd_dante_mcs_get_pointers( mcs, &dante_mcs,
 					NULL, &dante_mca, &dante, fname );
@@ -547,7 +544,7 @@ mxd_dante_mcs_read_all( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s: '%s' invoked for record '%s'.",
+	MX_DEBUG(-2,("'%s' invoked for record '%s'.",
 		fname, mcs->record->name ));
 
 	spectra_size = mcs->current_num_scalers;
@@ -587,7 +584,7 @@ mxd_dante_mcs_read_all( MX_MCS *mcs )
 	delete[] advstats_maps;
 #endif
 
-	MX_DEBUG(-2,("%s: '%s' complete for record '%s'.",
+	MX_DEBUG(-2,("'%s' complete for record '%s'.",
 		fname, mcs->record->name ));
 
 	return mx_status;
@@ -697,6 +694,8 @@ mxd_dante_mcs_get_last_measurement_number( MX_MCS *mcs )
 					dante_mca->board_number,
 					data_number );
 
+	MXW_UNUSED(dante_status);
+
 	mcs->last_measurement_number = data_number;
 
 	MX_DEBUG(-2,("%s: mcs->last_measurement_number = %ld",
@@ -713,7 +712,6 @@ mxd_dante_mcs_get_total_num_measurements( MX_MCS *mcs )
 
 	MX_DANTE_MCS *dante_mcs = NULL;
 	MX_DANTE *dante = NULL;
-	int32_t total_num_pixels;
 	mx_status_type mx_status;
 
 	mx_status = mxd_dante_mcs_get_pointers( mcs, &dante_mcs,
