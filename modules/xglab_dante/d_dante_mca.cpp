@@ -573,6 +573,8 @@ mxd_dante_mca_arm( MX_MCA *mca )
 
 	(void) resetLastError();
 
+	dante->dante_mode = MXF_DANTE_NORMAL_MODE;
+
 	/* FIXME: Different MCA modes require different calls. */
 
 	call_id = start( dante_mca->channel_name,

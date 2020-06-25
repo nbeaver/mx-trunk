@@ -26,6 +26,10 @@
 
 #include "DLL_DPP_Callback.h"
 
+#ifdef POLLINGLIB
+#error Only the Callback mode library is supported.
+#endif
+
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
@@ -275,6 +279,8 @@ mxi_dante_open( MX_RECORD *record )
 		"The MX_DANTE pointer for DANTE controller '%s' is NULL.",
 			record->name );
 	}
+
+	dante->dante_mode = MXF_DANTE_NORMAL_MODE;
 
 	/* Set up an event callback for the DANTE library.  Please notice
 	 * that this _MUST_ be done _before_ the call to InitLibrary().

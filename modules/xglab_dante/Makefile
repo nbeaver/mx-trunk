@@ -44,7 +44,8 @@ CFLAGS += -DIS_MX_DRIVER
 
 CFLAGS += -I../../libMx -D__MX_LIBRARY__
 
-XGLAB_DANTE_OBJS = xglab_dante.$(OBJ) i_dante.$(OBJ) d_dante_mca.$(OBJ)
+XGLAB_DANTE_OBJS = xglab_dante.$(OBJ) i_dante.$(OBJ) \
+		d_dante_mca.$(OBJ) d_dante_mcs.$(OBJ)
 
 $(info $$C_COMPILE is [${C_COMPILE}])
 $(info $$CFLAGS is [${CFLAGS}])
@@ -84,7 +85,7 @@ endif
 
 #--------------------------------------------------------------------------
 
-xglab_dante.$(OBJ): xglab_dante.c i_dante.h d_dante_mca.h
+xglab_dante.$(OBJ): xglab_dante.c i_dante.h d_dante_mca.h d_dante_mcs.h
 	$(C_COMPILE) $(CFLAGS) xglab_dante.c
 
 i_dante.$(OBJ): i_dante.cpp i_dante.h
@@ -92,6 +93,9 @@ i_dante.$(OBJ): i_dante.cpp i_dante.h
 
 d_dante_mca.$(OBJ): d_dante_mca.cpp i_dante.h d_dante_mca.h
 	$(CPP_COMPILE) $(CFLAGS) d_dante_mca.cpp
+
+d_dante_mcs.$(OBJ): d_dante_mcs.cpp i_dante.h d_dante_mca.h d_dante_mcs.h
+	$(CPP_COMPILE) $(CFLAGS) d_dante_mcs.cpp
 
 install: $(XGLAB_DANTE_MXO)
 	-mkdir $(MX_INSTALL_DIR)/lib/modules

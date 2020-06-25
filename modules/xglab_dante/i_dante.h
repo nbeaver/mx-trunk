@@ -31,6 +31,17 @@ extern "C" {
 
 #define MXF_DANTE_SHOW_DEVICES			0x1
 
+/* The following are operating modes for the Dante MCA as reported
+ * by the 'dante_mode' field.  At present, only normal and mapping mode
+ * are supported.
+ */
+
+#define MXF_DANTE_NORMAL_MODE			1
+#define MXF_DANTE_WAVEFORM_MODE			2
+#define MXF_DANTE_LIST_MODE			3
+#define MXF_DANTE_LIST_WAVE_MODE		4
+#define MXF_DANTE_MAPPING_MODE			5
+
 /* Define the data structures used by the Dante driver. */
 
 typedef struct {
@@ -42,6 +53,8 @@ typedef struct {
 	mx_bool_type load_config_file;
 	mx_bool_type save_config_file;
 	mx_bool_type configure;
+
+	unsigned long dante_mode;
 
 	char dante_version[MXU_DANTE_MAX_VERSION_LENGTH+1];
 	unsigned long num_master_devices;
@@ -92,6 +105,10 @@ extern int mxi_dante_wait_for_answer( uint32_t callback_id );
   {MXLV_DANTE_CONFIGURE, -1, "configure", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DANTE, configure), \
 	{0}, NULL, 0 }, \
+  \
+  {-1, -1, "dante_mode", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DANTE, dante_mode), \
+	{0}, NULL, MXFF_READ_ONLY }, \
   \
   {-1, -1, "dante_version", MXFT_STRING, NULL, \
 				1, {MXU_DANTE_MAX_VERSION_LENGTH}, \

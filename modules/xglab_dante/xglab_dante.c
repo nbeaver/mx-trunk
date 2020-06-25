@@ -21,9 +21,11 @@
 #include "mx_driver.h"
 #include "mx_module.h"
 #include "mx_mca.h"
+#include "mx_mcs.h"
 
 #include "i_dante.h"
 #include "d_dante_mca.h"
+#include "d_dante_mcs.h"
 
 MX_DRIVER xglab_dante_driver_table[] = {
 
@@ -40,6 +42,13 @@ MX_DRIVER xglab_dante_driver_table[] = {
 				&mxd_dante_mca_mca_function_list,
 				&mxd_dante_mca_num_record_fields,
 				&mxd_dante_mca_rfield_def_ptr},
+
+{"dante_mcs",     -1, MXC_MULTICHANNEL_SCALER, MXR_DEVICE,
+				&mxd_dante_mcs_record_function_list,
+				NULL,
+				&mxd_dante_mcs_mcs_function_list,
+				&mxd_dante_mcs_num_record_fields,
+				&mxd_dante_mcs_rfield_def_ptr},
 
 {"", 0, 0, 0, NULL, NULL, NULL, NULL, NULL}
 };
