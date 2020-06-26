@@ -202,7 +202,7 @@ extern MX_MCA_FUNCTION_LIST mxd_dante_mca_mca_function_list;
 extern long mxd_dante_mca_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_dante_mca_rfield_def_ptr;
 
-MX_API mx_status_type mxd_dante_mca_configure( MX_RECORD *record );
+MX_API mx_status_type mxd_dante_mca_configure( MX_DANTE_MCA *dante_mca );
 
 #ifdef __cplusplus
 }

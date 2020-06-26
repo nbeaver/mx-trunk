@@ -2,3 +2,4 @@
 #
 dante interface controller dante "" "" 0x1 8 2 ./dante_config.xml
 mca1  device mca dante_mca "" "" 4096 0 0 dante SN01906 0
+mcs1  device mcs dante_mcs "" "" 4096 100 "" 0 1 "" mca1 0x0

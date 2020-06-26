@@ -17,7 +17,7 @@
 
 #define DEBUG_MCA_NEW_DATA_AVAILABLE	FALSE
 
-#define DEBUG_MCA_ARRAY_POINTERS	TRUE
+#define DEBUG_MCA_ARRAY_POINTERS	FALSE
 
 #include <stdio.h>
 #include <limits.h>

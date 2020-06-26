@@ -387,7 +387,8 @@ typedef struct {
  *
  * Some devices can be configured either for edge triggers (0x1000)
  * or level triggers (0x2000).  Typically this will be (|) OR-ed with
- * the other trigger values above.
+ * the other trigger values above.  Trigger low (0x4000) and trigger
+ * high (0x8000) refer either to edges or levels.
  */
 
 #define MXF_DEV_NO_TRIGGER		0x0
@@ -400,6 +401,8 @@ typedef struct {
 
 #define MXF_DEV_EDGE_TRIGGER		0x1000
 #define MXF_DEV_LEVEL_TRIGGER		0x2000
+#define MXF_DEV_TRIGGER_LOW		0x4000
+#define MXF_DEV_TRIGGER_HIGH		0x8000
 
 /* An MX_RECORD_FUNCTION_LIST structure contains a list of the functions
  * that are the same for all record types.

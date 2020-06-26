@@ -500,9 +500,6 @@ mxd_dante_mca_process_function( void *record_ptr,
 		break;
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
-		case MXLV_DANTE_MCA_CONFIGURE:
-			mx_status = mxd_dante_mca_configure( record );
-			break;
 		default:
 			break;
 		}
@@ -518,32 +515,49 @@ mxd_dante_mca_process_function( void *record_ptr,
 
 /*---------------------------------------------------------------------------*/
 
-MX_EXPORT mx_status_type
-mxd_dante_mca_configure( MX_RECORD *record )
+MX_API mx_status_type
+mxd_dante_mca_configure( MX_DANTE_MCA *dante_mca )
 {
 	static const char fname[] = "mxd_dante_mca_configure()";
 
-	MX_MCA *mca = NULL;
-	MX_DANTE_MCA *dante_mca = NULL;
-	MX_DANTE *dante = NULL;
-	mx_status_type mx_status;
+	uint32_t call_id;
+	uint16_t dante_error_code = DLL_NO_ERROR;
+	bool dante_error_status;
 
-	if ( record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_RECORD pointer passed was NULL." );
+	MX_DEBUG(-2,("%s: About to configure DANTE MCA '%s'.",
+		fname, dante_mca->record->name ));
+
+	dante_error_status = resetLastError();
+
+	call_id = configure( dante_mca->channel_name,
+				dante_mca->board_number,
+				dante_mca->configuration );
+
+	MX_DEBUG(-2,("%s: call_id = %lu",
+		fname, (unsigned long) call_id));
+
+	if ( call_id == 0 ) {
+		dante_error_status = getLastError( dante_error_code );
+
+		if ( dante_error_status == false ) {
+			return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"After a call to configure() failed for "
+			"record '%s', a call to getLastError() failed "
+			"while trying to find out why configure() "
+			"failed.",  dante_mca->record->name );
+
+		}
+
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"The call to configure() for record '%s' failed "
+		"with DANTE error code %lu.",
+			dante_mca->record->name,
+			(unsigned long) dante_error_code );
 	}
 
-	mca = (MX_MCA *) record->record_class_struct;
+	mxi_dante_wait_for_answer( call_id );
 
-	mx_status = mxd_dante_mca_get_pointers( mca,
-						&dante_mca, &dante, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* FIXME: Call into the configuration logic of the interface driver. */
-
-	return mx_status;
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -557,6 +571,7 @@ mxd_dante_mca_arm( MX_MCA *mca )
 	MX_DANTE *dante = NULL;
 	uint32_t call_id;
 	uint16_t error_code;
+	uint32_t new_other_param;
 	mx_status_type mx_status;
 
 	mx_status = mxd_dante_mca_get_pointers( mca,
@@ -571,11 +586,33 @@ mxd_dante_mca_arm( MX_MCA *mca )
 	MX_DEBUG(-2,("%s: dante_mca->spectrum_data[0] = %lu",
 				fname, dante_mca->spectrum_data[0]));
 
+	/* Configure the gating for this MCA. */
+
+	new_other_param = dante_mca->configuration.other_param;
+
+	/* Replace the old gating bits with new gating bits. */
+
+	new_other_param &= 0xfffffffc;
+
+	if ( mca->trigger & MXF_DEV_EXTERNAL_TRIGGER ) {
+		new_other_param &= 0x1;
+	}
+	if ( mca->trigger & MXF_DEV_TRIGGER_HIGH ) {
+		new_other_param &= 0x2;
+	}
+
+	dante_mca->configuration.other_param = new_other_param;
+
+	mx_status = mxd_dante_mca_configure( dante_mca );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Start the MCA in 'normal' mode. */
+
 	(void) resetLastError();
 
 	dante->dante_mode = MXF_DANTE_NORMAL_MODE;
-
-	/* FIXME: Different MCA modes require different calls. */
 
 	call_id = start( dante_mca->channel_name,
 			mca->preset_real_time, mca->current_num_channels );
@@ -635,11 +672,14 @@ mxd_dante_mca_stop( MX_MCA *mca )
 	static const char fname[] = "mxd_dante_mca_stop()";
 
 	MX_DANTE_MCA *dante_mca = NULL;
+	MX_DANTE *dante = NULL;
 	uint32_t call_id;
+	uint16_t dante_error_code = DLL_NO_ERROR;
+	bool dante_error_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_dante_mca_get_pointers( mca,
-						&dante_mca, NULL, fname );
+						&dante_mca, &dante, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -653,17 +693,32 @@ mxd_dante_mca_stop( MX_MCA *mca )
 	call_id = stop( dante_mca->channel_name );
 
 	if ( call_id == 0 ) {
+		dante_error_status = getLastError( dante_error_code );
+
+		if ( dante_error_status == false ) {
+			return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"After a call to stop() failed for record '%s', "
+			"a call to getLastError() failed while trying "
+			"to find out why stop() failed.",
+				dante_mca->record->name );
+		}
+
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
-		"stop() #1 returned an error for MCA '%s'.",
-		mca->record->name );
+		"The call to stop() for record '%s' failed "
+		"with DANTE error code %lu.",
+			mca->record->name,
+			(unsigned long) dante_error_code );
 	}
+
+	mxi_dante_wait_for_answer( call_id );
 
 	if ( mxi_dante_callback_data[0] == 1 ) {
 		return MX_SUCCESSFUL_RESULT;
 	} else {
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
-		"stop() #2 returned an error for MCA '%s'.",
-		mca->record->name );
+		"The callback for stop() for record '%s' returned "
+		"a failure statis in the callback data for some reason.",
+			mca->record->name );
 	}
 
 	return mx_status;

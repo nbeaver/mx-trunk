@@ -336,8 +336,6 @@ mxd_dante_mcs_open( MX_RECORD *record )
 				dante_mca->child_mcs_record->name));
 
 #endif
-	mx_breakpoint();
-
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -354,6 +352,7 @@ mxd_dante_mcs_arm( MX_MCS *mcs )
 	MX_DANTE *dante = NULL;
 	uint32_t call_id;
 	uint16_t error_code;
+	uint32_t new_other_param;
 	mx_status_type mx_status;
 
 	mx_status = mxd_dante_mcs_get_pointers( mcs, &dante_mcs,
@@ -371,6 +370,30 @@ mxd_dante_mcs_arm( MX_MCS *mcs )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Configure the gating for the MCA this MCS depends on. */
+
+	new_other_param = dante_mca->configuration.other_param;
+
+	/* Replace the old gating bits with new gating bits. */
+
+	new_other_param &= 0xfffffffc;
+
+	if ( mca->trigger & MXF_DEV_EXTERNAL_TRIGGER ) {
+		new_other_param &= 0x1;
+	}
+	if ( mca->trigger & MXF_DEV_TRIGGER_HIGH ) {
+		new_other_param &= 0x2;
+	}
+
+	dante_mca->configuration.other_param = new_other_param;
+
+	mx_status = mxd_dante_mca_configure( dante_mca );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Start the MCS in 'mapping' mode. */
 
 	(void) resetLastError();
 
@@ -445,10 +468,9 @@ mxd_dante_mcs_stop( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s invoked for MCS '%s'.  Not yet implemented.",
-		fname, mcs->record->name));
+	mx_status = mxd_dante_mca_stop( mca );
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -530,6 +552,8 @@ mxd_dante_mcs_read_all( MX_MCS *mcs )
 	MX_DANTE_MCA *dante_mca = NULL;
 	MX_DANTE *dante = NULL;
 	bool dante_status;
+	uint16_t dante_error_code = DLL_NO_ERROR;
+	bool dante_error_status;
 	uint16_t *values_map;
 	uint32_t *id_map;
 	double *stats_map;
@@ -547,6 +571,9 @@ mxd_dante_mcs_read_all( MX_MCS *mcs )
 	MX_DEBUG(-2,("'%s' invoked for record '%s'.",
 		fname, mcs->record->name ));
 
+	MX_DEBUG(-2,("%s: before getAllData(), dante_mca = %p",
+			fname, dante_mca));
+
 	spectra_size = mcs->current_num_scalers;
 
 	data_number = mcs->current_num_measurements;
@@ -556,13 +583,44 @@ mxd_dante_mcs_read_all( MX_MCS *mcs )
 	stats_map = new double[data_number * 4];
 	advstats_map = new uint64_t[data_number * 18];
 
+	MX_DEBUG(-2,("%s: before getAllData() channel_name = '%s'",
+			fname, dante_mca->channel_name ));
+	MX_DEBUG(-2,("%s: before getAllData() board_number = %lu",
+			fname, (unsigned long) dante_mca->board_number));
+	MX_DEBUG(-2,("%s: before getAllData() values_map = %p",
+			fname, values_map));
+	MX_DEBUG(-2,("%s: before getAllData() id_map = %p",
+			fname, id_map));
+	MX_DEBUG(-2,("%s: before getAllData() stats_map = %p",
+			fname, stats_map));
+	MX_DEBUG(-2,("%s: before getAllData() advstats_map = %p",
+			fname, advstats_map));
+	MX_DEBUG(-2,("%s: before getAllData() spectra_size = %lu",
+			fname, (unsigned long) spectra_size));
+	MX_DEBUG(-2,("%s: before getAllData() data_number = %lu",
+			fname, (unsigned long) data_number));
+
+	(void) resetLastError();
+
 	dante_status = getAllData( dante_mca->channel_name,
 				dante_mca->board_number,
 				values_map, id_map, stats_map, advstats_map,
 				spectra_size,
 				data_number );
 
+	MX_DEBUG(-2,("%s: after getAllData() dante_status = %d",
+			fname, (int) dante_status));
+
 	if ( dante_status == false ) {
+		dante_error_status = getLastError( dante_error_code );
+
+		if ( dante_error_status == false ) {
+			return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"After a call to getAllData() failed for "
+			"record '%s', a call to getLastError() failed "
+			"while trying to find out why getAllData() "
+			"failed.", mcs->record->name );
+		}
 #if 0
 		delete[] values_map;
 		delete[] id_maps;
@@ -570,9 +628,23 @@ mxd_dante_mcs_read_all( MX_MCS *mcs )
 		delete[] advstats_maps;
 #endif
 
-		return mx_error( MXE_UNKNOWN_ERROR, fname,
-		"getAllData() failed for MCS '%s'.",
-			mcs->record->name );
+		switch( dante_error_code ) {
+		case DLL_ARGUMENT_OUT_OF_RANGE:
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The call to getAllData() for MCS '%s' failed because "
+			"one or more of the parameters to getAllData() were "
+			"outside the valid range.  DANTE error code = %lu.",
+				mcs->record->name,
+				(unsigned long) dante_error_code );
+			break;
+		default:
+			return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"The call to getAllData() failed for MCS '%s' "
+			"with DANTE error code %lu.",
+				mcs->record->name,
+				(unsigned long) dante_error_code );
+			break;
+		}
 	}
 
 	/* FIXME: We have to do something with the data we just read. */
