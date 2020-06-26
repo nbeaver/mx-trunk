@@ -489,6 +489,9 @@ mxd_dante_mca_process_function( void *record_ptr,
 	record = (MX_RECORD *) record_ptr;
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
 
+	MXW_UNUSED( record );
+	MXW_UNUSED( record_field );
+
 	mx_status = MX_SUCCESSFUL_RESULT;
 
 	switch( operation ) {
