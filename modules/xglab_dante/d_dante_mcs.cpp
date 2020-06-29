@@ -399,6 +399,12 @@ mxd_dante_mcs_arm( MX_MCS *mcs )
 
 	dante->dante_mode = MXF_DANTE_MAPPING_MODE;
 
+	MX_DEBUG(-2,("%s: Calling start_map(), channel_name = '%s', "
+	"measurement_time = %f, current_num_measurements = %lu, "
+	"current_num_scalers = %lu",
+		fname, dante_mca->channel_name, mcs->measurement_time,
+		mcs->current_num_measurements, mcs->current_num_scalers ));
+
 	call_id = start_map( dante_mca->channel_name,
 				mcs->measurement_time,
 				mcs->current_num_measurements,
@@ -426,6 +432,8 @@ mxd_dante_mcs_arm( MX_MCS *mcs )
 			break;
 		}
 	}
+
+	MX_DEBUG(-2,("%s complete for MCS '%s'.", fname, mcs->record->name));
 
 	return mx_status;
 }
@@ -571,12 +579,20 @@ mxd_dante_mcs_read_all( MX_MCS *mcs )
 	MX_DEBUG(-2,("'%s' invoked for record '%s'.",
 		fname, mcs->record->name ));
 
+	mx_status = mxd_dante_mcs_get_last_measurement_number( mcs );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s: mcs->last_measurement_number = %ld",
+		fname, mcs->last_measurement_number));
+
 	MX_DEBUG(-2,("%s: before getAllData(), dante_mca = %p",
 			fname, dante_mca));
 
 	spectra_size = mcs->current_num_scalers;
 
-	data_number = mcs->current_num_measurements;
+	data_number = mcs->last_measurement_number + 1;
 
 	values_map = new uint16_t[data_number * 4096];
 	id_map = new uint32_t[data_number];
@@ -671,6 +687,9 @@ mxd_dante_mcs_get_parameter( MX_MCS *mcs )
 	MX_MCA *mca = NULL;
 	MX_DANTE_MCA *dante_mca = NULL;
 	MX_DANTE *dante = NULL;
+	uint32_t number_of_spectra = 0;
+	uint16_t error_code = DLL_NO_ERROR;
+	bool dante_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_dante_mcs_get_pointers( mcs, &dante_mcs,
@@ -685,6 +704,12 @@ mxd_dante_mcs_get_parameter( MX_MCS *mcs )
 		mcs->parameter_type));
 
 	switch( mcs->parameter_type ) {
+	case MXLV_MCS_LAST_MEASUREMENT_NUMBER:
+		mx_status = mxd_dante_mcs_get_last_measurement_number( mcs );
+		break;
+	case MXLV_MCS_TOTAL_NUM_MEASUREMENTS:
+		mx_status = mxd_dante_mcs_get_total_num_measurements( mcs );
+		break;
 	case MXLV_MCS_MEASUREMENT_NUMBER:
 		break;
 	case MXLV_MCS_DARK_CURRENT:
@@ -697,6 +722,7 @@ mxd_dante_mcs_get_parameter( MX_MCS *mcs )
 		return mx_mcs_default_get_parameter_handler( mcs );
 		break;
 	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -738,6 +764,7 @@ mxd_dante_mcs_set_parameter( MX_MCS *mcs )
 		return mx_mcs_default_set_parameter_handler( mcs );
 		break;
 	}
+
 	MX_DEBUG( 2,("%s complete.", fname));
 
 	return MX_SUCCESSFUL_RESULT;
@@ -768,7 +795,7 @@ mxd_dante_mcs_get_last_measurement_number( MX_MCS *mcs )
 
 	MXW_UNUSED(dante_status);
 
-	mcs->last_measurement_number = data_number;
+	mcs->last_measurement_number = ( (long) data_number ) - 1;
 
 	MX_DEBUG(-2,("%s: mcs->last_measurement_number = %ld",
 		fname, mcs->last_measurement_number));
