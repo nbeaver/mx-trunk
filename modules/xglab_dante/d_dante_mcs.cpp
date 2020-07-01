@@ -562,12 +562,13 @@ mxd_dante_mcs_read_all( MX_MCS *mcs )
 	bool dante_status;
 	uint16_t dante_error_code = DLL_NO_ERROR;
 	bool dante_error_status;
-	uint16_t *values_map;
-	uint32_t *id_map;
-	double *stats_map;
-	uint64_t *advstats_map;
-	uint32_t spectra_size;
-	uint32_t data_number;
+	uint16_t *values_array;
+	uint32_t *id_array;
+	double *stats_array;
+	uint64_t *advstats_array;
+	uint32_t spectra_size, chan;
+	uint32_t data_number, meas;
+	unsigned long offset;
 	mx_status_type mx_status;
 
 	mx_status = mxd_dante_mcs_get_pointers( mcs, &dante_mcs,
@@ -592,25 +593,25 @@ mxd_dante_mcs_read_all( MX_MCS *mcs )
 
 	spectra_size = mcs->current_num_scalers;
 
-	data_number = mcs->last_measurement_number + 1;
+	data_number = mcs->last_measurement_number;
 
-	values_map = new uint16_t[data_number * 4096];
-	id_map = new uint32_t[data_number];
-	stats_map = new double[data_number * 4];
-	advstats_map = new uint64_t[data_number * 18];
+	values_array = new uint16_t[data_number * 4096];
+	id_array = new uint32_t[data_number];
+	stats_array = new double[data_number * 4];
+	advstats_array = new uint64_t[data_number * 18];
 
 	MX_DEBUG(-2,("%s: before getAllData() channel_name = '%s'",
 			fname, dante_mca->channel_name ));
 	MX_DEBUG(-2,("%s: before getAllData() board_number = %lu",
 			fname, (unsigned long) dante_mca->board_number));
-	MX_DEBUG(-2,("%s: before getAllData() values_map = %p",
-			fname, values_map));
-	MX_DEBUG(-2,("%s: before getAllData() id_map = %p",
-			fname, id_map));
-	MX_DEBUG(-2,("%s: before getAllData() stats_map = %p",
-			fname, stats_map));
-	MX_DEBUG(-2,("%s: before getAllData() advstats_map = %p",
-			fname, advstats_map));
+	MX_DEBUG(-2,("%s: before getAllData() values_array = %p",
+			fname, values_array));
+	MX_DEBUG(-2,("%s: before getAllData() id_array = %p",
+			fname, id_array));
+	MX_DEBUG(-2,("%s: before getAllData() stats_array = %p",
+			fname, stats_array));
+	MX_DEBUG(-2,("%s: before getAllData() advstats_array = %p",
+			fname, advstats_array));
 	MX_DEBUG(-2,("%s: before getAllData() spectra_size = %lu",
 			fname, (unsigned long) spectra_size));
 	MX_DEBUG(-2,("%s: before getAllData() data_number = %lu",
@@ -618,9 +619,13 @@ mxd_dante_mcs_read_all( MX_MCS *mcs )
 
 	(void) resetLastError();
 
+	if ( data_number < 1 ) {
+		data_number = 1;
+	}
+
 	dante_status = getAllData( dante_mca->channel_name,
 				dante_mca->board_number,
-				values_map, id_map, stats_map, advstats_map,
+				values_array, id_array, stats_array, advstats_array,
 				spectra_size,
 				data_number );
 
@@ -638,10 +643,10 @@ mxd_dante_mcs_read_all( MX_MCS *mcs )
 			"failed.", mcs->record->name );
 		}
 #if 0
-		delete[] values_map;
-		delete[] id_maps;
-		delete[] stats_maps;
-		delete[] advstats_maps;
+		delete[] values_array;
+		delete[] id_array;
+		delete[] stats_array;
+		delete[] advstats_array;
 #endif
 
 		switch( dante_error_code ) {
@@ -663,14 +668,37 @@ mxd_dante_mcs_read_all( MX_MCS *mcs )
 		}
 	}
 
-	/* FIXME: We have to do something with the data we just read. */
+#if 1
+	fprintf(stderr, "Showing values array from bin 80 to 109.\n" );
+
+	uint16_t temp;
+
+	for ( chan = 80; chan < 110; chan++ ) {
+		temp = values_array[chan];
+
+		fprintf( stderr, "%hu ", (unsigned short) temp );
+	}
+	fprintf( stderr, "\n" );
+#endif
+
+	/* Copy out the MCS spectra. */
+
+	for ( meas = 0; meas < data_number; meas++ ) {
+		for ( chan = 0; chan < spectra_size; chan++ ) {
+			offset = meas * spectra_size + chan;
+
+			mcs->data_array[meas][chan] = values_array[offset];
+		}
+	}
 
 #if 0
-	delete[] values_map;
-	delete[] id_maps;
-	delete[] stats_maps;
-	delete[] advstats_maps;
+	delete[] values_array;
+	delete[] id_array;
+	delete[] stats_array;
+	delete[] advstats_array;
 #endif
+
+	mcs->new_data_available = TRUE;
 
 	MX_DEBUG(-2,("'%s' complete for record '%s'.",
 		fname, mcs->record->name ));
@@ -789,13 +817,20 @@ mxd_dante_mcs_get_last_measurement_number( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	data_number = (uint32_t) ULONG_MAX;
+
+	mcs->last_measurement_number = -1;
+
 	dante_status = getAvailableData( dante_mca->channel_name,
 					dante_mca->board_number,
 					data_number );
 
 	MXW_UNUSED(dante_status);
 
-	mcs->last_measurement_number = ( (long) data_number ) - 1;
+	MX_DEBUG(-2,("%s: data_number = %lu",
+		fname, (unsigned long) data_number))
+
+	mcs->last_measurement_number = (long) data_number;
 
 	MX_DEBUG(-2,("%s: mcs->last_measurement_number = %ld",
 		fname, mcs->last_measurement_number));
