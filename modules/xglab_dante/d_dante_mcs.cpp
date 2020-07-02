@@ -715,9 +715,11 @@ mxd_dante_mcs_get_parameter( MX_MCS *mcs )
 	MX_MCA *mca = NULL;
 	MX_DANTE_MCA *dante_mca = NULL;
 	MX_DANTE *dante = NULL;
+#if 0
 	uint32_t number_of_spectra = 0;
 	uint16_t error_code = DLL_NO_ERROR;
 	bool dante_status;
+#endif
 	mx_status_type mx_status;
 
 	mx_status = mxd_dante_mcs_get_pointers( mcs, &dante_mcs,
