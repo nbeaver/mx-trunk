@@ -336,57 +336,6 @@ mxd_dante_mcs_open( MX_RECORD *record )
 				dante_mca->child_mcs_record->name));
 
 #endif
-	dante_mcs->max_value_bytes =
-		mcs->maximum_num_measurements * 4096 * sizeof(uint16_t);
-
-	dante_mcs->max_id_bytes =
-		mcs->maximum_num_measurements * sizeof(uint32_t);
-
-	dante_mcs->max_stats_bytes =
-		mcs->maximum_num_measurements * 4 * sizeof(double);
-
-	dante_mcs->max_advstats_bytes =
-		mcs->maximum_num_measurements * 18 * sizeof(uint64_t);
-
-	/*---*/
-
-	dante_mcs->values_array = (uint16_t *)
-		malloc( dante_mcs->max_value_bytes );
-
-	if ( dante_mcs->values_array == (uint16_t *) NULL ) {
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Ran out of memory trying to allocate a %lu byte values_array "
-		"for MCS '%s'.",  dante_mcs->max_value_bytes,
-			record->name );
-	}
-
-	dante_mcs->id_array = (uint32_t *) malloc( dante_mcs->max_id_bytes );
-
-	if ( dante_mcs->id_array == (uint32_t *) NULL ) {
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Ran out of memory trying to allocate a %lu byte id_array "
-		"for MCS '%s'.",  dante_mcs->max_id_bytes,
-			record->name );
-	}
-
-	dante_mcs->stats_array = (double *) malloc( dante_mcs->max_stats_bytes);
-
-	if ( dante_mcs->stats_array == (double *) NULL ) {
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Ran out of memory trying to allocate a %lu byte stats_array "
-		"for MCS '%s'.",  dante_mcs->max_stats_bytes,
-			record->name );
-	}
-
-	dante_mcs->advstats_array = (uint64_t *)
-		malloc( dante_mcs->max_advstats_bytes );
-
-	if ( dante_mcs->advstats_array == (uint64_t *) NULL ) {
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Ran out of memory trying to allocate a %lu byte "
-		"advstats_array for MCS '%s'.",
-			dante_mcs->max_advstats_bytes, record->name );
-	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -648,18 +597,23 @@ mxd_dante_mcs_read_all( MX_MCS *mcs )
 
 	data_number = mcs->last_measurement_number;
 
+	values_array = new uint16_t[ data_number * 4096 ]();
+	id_array = new uint32_t[ data_number ]();
+	stats_array = new double[ data_number * 4 ]();
+	advstats_array = new uint64_t[ data_number * 18 ]();
+
 	MX_DEBUG(-2,("%s: before getAllData() channel_name = '%s'",
 			fname, dante_mca->channel_name ));
 	MX_DEBUG(-2,("%s: before getAllData() board_number = %lu",
 			fname, (unsigned long) dante_mca->board_number));
 	MX_DEBUG(-2,("%s: before getAllData() values_array = %p",
-			fname, dante_mcs->values_array));
+			fname, values_array));
 	MX_DEBUG(-2,("%s: before getAllData() id_array = %p",
-			fname, dante_mcs->id_array));
+			fname, id_array));
 	MX_DEBUG(-2,("%s: before getAllData() stats_array = %p",
-			fname, dante_mcs->stats_array));
+			fname, stats_array));
 	MX_DEBUG(-2,("%s: before getAllData() advstats_array = %p",
-			fname, dante_mcs->advstats_array));
+			fname, advstats_array));
 	MX_DEBUG(-2,("%s: before getAllData() spectra_size = %lu",
 			fname, (unsigned long) spectra_size));
 	MX_DEBUG(-2,("%s: before getAllData() data_number = %lu",
@@ -669,10 +623,10 @@ mxd_dante_mcs_read_all( MX_MCS *mcs )
 
 	dante_status = getAllData( dante_mca->channel_name,
 				dante_mca->board_number,
-				dante_mcs->values_array,
-				dante_mcs->id_array,
-				dante_mcs->stats_array,
-				dante_mcs->advstats_array,
+				values_array,
+				id_array,
+				stats_array,
+				advstats_array,
 				spectra_size,
 				data_number );
 
@@ -713,7 +667,7 @@ mxd_dante_mcs_read_all( MX_MCS *mcs )
 	fprintf(stderr, "Showing values array from bin 80 to 109.\n" );
 
 	for ( chan = 80; chan < 110; chan++ ) {
-		values_temp = dante_mcs->values_array[chan];
+		values_temp = values_array[chan];
 
 		fprintf( stderr, "%hu ", (unsigned short) values_temp );
 	}
@@ -729,7 +683,7 @@ mxd_dante_mcs_read_all( MX_MCS *mcs )
 			MX_DEBUG(-2,("%s: (%lu, %lu)", fname,
 				(unsigned long) meas, (unsigned long) chan));
 
-			values_temp = dante_mcs->values_array[offset];
+			values_temp = values_array[offset];
 
 			mcs->data_array[meas][chan] = values_temp;
 #if 1
