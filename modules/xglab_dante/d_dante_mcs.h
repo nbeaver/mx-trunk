@@ -28,6 +28,16 @@ typedef struct {
 
 	MX_RECORD *mca_record;
 	unsigned long dante_mcs_flags;
+
+	uint16_t *values_array;
+	uint32_t *id_array;
+	double *stats_array;
+	uint64_t *advstats_array;
+
+	size_t max_value_bytes;
+	size_t max_id_bytes;
+	size_t max_stats_bytes;
+	size_t max_advstats_bytes;
 } MX_DANTE_MCS;
 
 /* Define all of the interface functions. */
