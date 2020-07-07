@@ -11,14 +11,13 @@ ifndef MX_INSTALL_DIR
 endif
 
 ifeq ($(MX_ARCH),linux)
-	XGLAB_DANTE_DIR = /opt/DANTE/Library/linux
-#
-#	XGLAB_DANTE_DIR = "/opt/DANTE/Library/Ubuntu\\\ 18.04\\\ 64bit/2019-06-25\\\ 08.58-3.2.4.3-Linux-4.18.0-21-generic-Callback-x64"
+	XGLAB_DANTE_DIR = /opt/DANTE/3.4.0.3/Library/Callback-x64
 endif
 
 ifeq ($(MX_ARCH),win32)
-	XGLAB_DANTE_DIR = "c:\\Users\\mrcat\\Desktop\\DANTE\\Library\\Microsoft Visual C++ 2017 x64\\2019-06-24 17.07-3.2.4.3-Callback-x64"
-	#
+	XGLAB_DANTE_DIR = "c:\\opt\\DANTE\\3.2.4.3\\Library\\Callback-x64"
+
+#	XGLAB_DANTE_DIR = "c:\\opt\\DANTE\\3.4.0.3\\Library\\Callback-x64"
 endif
 
 #--------------------------------------------------------------------------
