@@ -1,5 +1,5 @@
 /*
- * Name:    i_dante.c
+ * Name:    i_dante.cpp
  *
  * Purpose: MX driver for the XGLab DANTE controller.
  *
@@ -14,7 +14,9 @@
  *
  */
 
-#define MXI_DANTE_DEBUG			TRUE
+#define MXI_DANTE_DEBUG					TRUE
+
+#define MXI_DANTE_DEBUG_FINISH_DELAYED_INITIALIZATION	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -256,7 +258,10 @@ mxi_dante_open( MX_RECORD *record )
 	MX_DANTE *dante = NULL;
 	long dimension[3];
 	size_t dimension_sizeof[3];
-	unsigned long i, attempt, max_attempts;
+	unsigned long i, attempt;
+
+	unsigned long max_init_delay_ms;
+	unsigned long max_attempts;
 
 	bool dante_status, show_devices;
 	uint32_t version_length;
@@ -329,7 +334,14 @@ mxi_dante_open( MX_RECORD *record )
 
 	/* Wait a little while for daisy chain synchronization. */
 
-	mx_sleep( 1 );
+	max_init_delay_ms = mx_round( 1000.0 * dante->max_init_delay );
+
+#if 1
+	MX_DEBUG(-2,("%s: Waiting %f seconds for boards to be found.",
+		fname, dante->max_init_delay));
+#endif
+
+	mx_msleep( max_init_delay_ms );
 
 	/* How many masters are there? */
 
@@ -342,11 +354,9 @@ mxi_dante_open( MX_RECORD *record )
 
 	dante->num_master_devices = number_of_devices;
 
-#if 0
-	if ( show_devices ) {
-		MX_DEBUG(-2,("%s: number of master devices = %lu",
-			fname, dante->num_master_devices ));
-	}
+#if 1
+	MX_DEBUG(-2,("%s: get_dev_number() = %lu",
+		fname, dante->num_master_devices ));
 #endif
 
 	/* Prepare for getting the identifiers of all boards available. */
@@ -385,9 +395,15 @@ mxi_dante_open( MX_RECORD *record )
 
 	/* How many boards are there for each master? */
 
+	max_attempts = mx_round_up( dante->max_board_delay );
+
+#if 1
+	MX_DEBUG(-2,("%s: max_attempts = %lu", fname, max_attempts));
+#endif
+
 	for ( i = 0; i < dante->num_master_devices; i++ ) {
-#if 0
-		MX_DEBUG(-2,("%s: master %lu, board %lu", fname, i, j ));
+#if 1
+		MX_DEBUG(-2,("%s: master %lu", fname, i ));
 #endif
 
 		error_code = DLL_NO_ERROR;
@@ -417,8 +433,6 @@ mxi_dante_open( MX_RECORD *record )
 				break;
 			}
 		}
-
-		max_attempts = 5;
 
 		for ( attempt = 0; attempt < max_attempts; attempt++ ) {
 
@@ -521,7 +535,9 @@ mxi_dante_finish_delayed_initialization( MX_RECORD *record )
 		"The MX_RECORD pointer passed was NULL." );
 	}
 
+#if MXI_DANTE_DEBUG_FINISH_DELAYED_INITIALIZATION
 	MX_DEBUG(-2,("%s invoked for '%s'.", fname, record->name ));
+#endif
 
 	dante = (MX_DANTE *) record->record_type_struct;
 
@@ -550,11 +566,14 @@ mxi_dante_finish_delayed_initialization( MX_RECORD *record )
 			return mx_status;
 
 		dante_mca = (MX_DANTE_MCA *) mca_record->record_type_struct;
+
+#if MXI_DANTE_DEBUG_FINISH_DELAYED_INITIALIZATION
 		MX_DEBUG(-2,("%s: dante_mca = %p", fname, dante_mca));
 		MX_DEBUG(-2,("%s: spectrum_data = %p",
 				fname, dante_mca->spectrum_data));
 		MX_DEBUG(-2,("%s: spectrum_data[0] = %lu",
 				fname, dante_mca->spectrum_data[0]));
+#endif
 	}
 
 	mx_status = mxi_dante_configure( record );
@@ -722,18 +741,21 @@ mxi_dante_set_parameter_from_string( MX_DANTE_MCA *dante_mca,
 		"The MX_DANTE_MCA pointer passed was NULL." );
 	}
 
+#if 0
 	MX_DEBUG(-2,("  '%s' parameter_name = '%s', parameter_string = '%s'.",
 		dante_mca->record->name, parameter_name, parameter_string));
+#endif
 
 	struct configuration *configuration = &(dante_mca->configuration);
 
 	/* Look through the known parameter names */
 
 	if ( strcmp( parameter_name, "fast_filter_thr" ) == 0 ) {
+#if 0
 		MX_DEBUG(-2,("**** %s: '%s' dante_mca = %p, configuration = %p",
 			fname, dante_mca->record->name,
 			dante_mca, configuration));
-
+#endif
 		configuration->fast_filter_thr = atol( parameter_string );
 
 	} else if ( strcmp( parameter_name, "energy_filter_thr" ) == 0 ) {

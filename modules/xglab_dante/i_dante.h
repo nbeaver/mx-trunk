@@ -48,6 +48,9 @@ typedef struct {
 	MX_RECORD *record;
 	unsigned long dante_flags;
 	unsigned long max_boards_per_chain;
+	unsigned long num_mcas;
+	double max_init_delay;
+	double max_board_delay;
 	char config_filename[MXU_FILENAME_LENGTH+1];
 
 	mx_bool_type load_config_file;
@@ -59,7 +62,6 @@ typedef struct {
 	char dante_version[MXU_DANTE_MAX_VERSION_LENGTH+1];
 	unsigned long num_master_devices;
 
-	unsigned long num_mcas;
 	MX_RECORD **mca_record_array;
 
 	unsigned long *num_boards_for_chain;
@@ -86,6 +88,14 @@ extern int mxi_dante_wait_for_answer( uint32_t callback_id );
   \
   {-1, -1, "num_mcas", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DANTE, num_mcas), \
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {-1, -1, "max_init_delay", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DANTE, max_init_delay), \
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {-1, -1, "max_board_delay", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DANTE, max_board_delay), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }, \
   \
   {-1, -1, "config_filename", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \

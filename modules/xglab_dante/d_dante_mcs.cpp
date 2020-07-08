@@ -15,17 +15,15 @@
  *
  */
 
+#define MXD_DANTE_MCS_DEBUG				TRUE
+
 #define MXD_DANTE_MCS_DEBUG_MONITOR_THREAD		TRUE
 
 #define MXD_DANTE_MCS_DEBUG_MONITOR_THREAD_BUFFERS	TRUE
 
 #define MXD_DANTE_MCS_DEBUG_BUSY			TRUE
 
-#define MXD_DANTE_MCS_DEBUG_OPEN			TRUE
-
-#define MXD_DANTE_MCS_DEBUG				TRUE
-
-#define MXD_DANTE_MCS_DEBUG				TRUE
+#define MXD_DANTE_MCS_DEBUG_OPEN			FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -62,7 +60,7 @@ MX_RECORD_FUNCTION_LIST mxd_dante_mcs_record_function_list = {
 
 MX_MCS_FUNCTION_LIST mxd_dante_mcs_mcs_function_list = {
 	mxd_dante_mcs_arm,
-	mxd_dante_mcs_trigger,
+	NULL,
 	mxd_dante_mcs_stop,
 	mxd_dante_mcs_clear,
 	mxd_dante_mcs_busy,
@@ -354,6 +352,7 @@ mxd_dante_mcs_arm( MX_MCS *mcs )
 	uint32_t call_id;
 	uint16_t error_code;
 	uint32_t new_other_param;
+	uint32_t num_spectra_to_acquire;
 	mx_status_type mx_status;
 
 	mx_status = mxd_dante_mcs_get_pointers( mcs, &dante_mcs,
@@ -394,6 +393,20 @@ mxd_dante_mcs_arm( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Mapping mode sequences in external trigger mode start acquiring
+	 * a spectrum "immediately" when start_map() is called.  It does not
+	 * pay attention to the external trigger until it is ready to 
+	 * acquire the second spectrum.  The net result is that the first
+	 * spectrum should be thrown away if we are in external trigger mode.
+	 * Because of that, we must add 1 to the number of spectra to take.
+	 */
+
+	if ( mca->trigger & MXF_DEV_EXTERNAL_TRIGGER ) {
+		num_spectra_to_acquire = mcs->current_num_measurements + 1;
+	} else {
+		num_spectra_to_acquire = mcs->current_num_measurements;
+	}
+
 	/* Start the MCS in 'mapping' mode. */
 
 	(void) resetLastError();
@@ -408,7 +421,7 @@ mxd_dante_mcs_arm( MX_MCS *mcs )
 
 	call_id = start_map( dante_mca->channel_name,
 				mcs->measurement_time,
-				mcs->current_num_measurements,
+				num_spectra_to_acquire,
 				mcs->current_num_scalers );
 
 	if ( call_id == 0 ) {
@@ -416,6 +429,8 @@ mxd_dante_mcs_arm( MX_MCS *mcs )
 		"start_map() #1 returned an error for MCS '%s'.",
 			mcs->record->name );
 	}
+
+	dante_mcs->mcs_armed = TRUE;
 
 	mxi_dante_wait_for_answer( call_id );
 
@@ -439,29 +454,12 @@ mxd_dante_mcs_arm( MX_MCS *mcs )
 	return mx_status;
 }
 
-MX_EXPORT mx_status_type
-mxd_dante_mcs_trigger( MX_MCS *mcs )
-{
-	static const char fname[] = "mxd_dante_mcs_trigger()";
-
-	MX_DANTE *dante = NULL;
-	mx_status_type mx_status;
-
-	mx_status = mxd_dante_mcs_get_pointers( mcs, NULL,
-					NULL, NULL, &dante, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	if ( mcs->trigger_mode == MXF_DEV_INTERNAL_TRIGGER ) {
-
-		/* Manually advance to the next measurement ("pixel"). */
-
-		/* FIXME: How do we do this for DANTE? */
-	}
-
-	return mx_status;
-}
+/* In internal trigger mode, the DANTE MCA system automatically moves to the
+ * next measurement on its own and does not need any action by MX to make this
+ * happen.  In external trigger mode, the external trigger makes the firmware
+ * advance to the next spectrum. So we do not need an mxd_dante_mcs_trigger()
+ * function to do this.
+ */
 
 MX_EXPORT mx_status_type
 mxd_dante_mcs_stop( MX_MCS *mcs )
@@ -469,13 +467,16 @@ mxd_dante_mcs_stop( MX_MCS *mcs )
 	static const char fname[] = "mxd_dante_mcs_stop()";
 
 	MX_MCA *mca = NULL;
+	MX_DANTE_MCS *dante_mcs = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_dante_mcs_get_pointers( mcs, NULL,
+	mx_status = mxd_dante_mcs_get_pointers( mcs, &dante_mcs,
 					&mca, NULL, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	dante_mcs->mcs_armed = FALSE;
 
 	mx_status = mxd_dante_mca_stop( mca );
 
@@ -521,6 +522,7 @@ mxd_dante_mcs_busy( MX_MCS *mcs )
 	MX_DANTE_MCA *dante_mca = NULL;
 	MX_DANTE *dante = NULL;
 	uint32_t call_id;
+	long num_measurements_so_far;
 	mx_status_type mx_status;
 
 	mx_status = mxd_dante_mcs_get_pointers( mcs, &dante_mcs,
@@ -528,6 +530,49 @@ mxd_dante_mcs_busy( MX_MCS *mcs )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	if ( dante_mcs->mcs_armed == FALSE ) {
+		mcs->busy = FALSE;
+
+		MX_DEBUG(-2,("%s: MCS '%s' NOT armed.",
+				fname, mcs->record->name ));
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	MX_DEBUG(-2,("%s: MCS '%s' is ARMED.", fname, mcs->record->name));
+
+	mx_status = mxd_dante_mcs_get_last_measurement_number( mcs );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Have we reached the expected last measurement number yet? */
+
+	num_measurements_so_far = mcs->last_measurement_number;
+
+	MX_DEBUG(-2,("%s: mcs '%s', "
+			"num_measurements_so_far = %ld, "
+			"num_measurements_to_acquire = %lu",
+			fname, mcs->record->name,
+			(long) num_measurements_so_far,
+			mcs->current_num_measurements ));
+
+	if ( (num_measurements_so_far + 1) < mcs->current_num_measurements ) {
+
+		/* More measurements left to acquire. */
+
+		mcs->busy = TRUE;
+
+		MX_DEBUG(-2,("%s: '%s' busy = %d",
+			fname, mcs->record->name, (int) mcs->busy ));
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* All expected measurements have been acquired, so see if the
+	 * hardware is still doing something.
+	 */
 
 	call_id = isRunning_system( dante_mca->channel_name,
 					dante_mca->board_number );
@@ -542,6 +587,8 @@ mxd_dante_mcs_busy( MX_MCS *mcs )
 
 	if ( mxi_dante_callback_data[0] == 0 ) {
 		mcs->busy = FALSE;
+
+		dante_mcs->mcs_armed = FALSE;
 	} else {
 		mcs->busy = TRUE;
 	}
@@ -563,13 +610,14 @@ mxd_dante_mcs_read_all( MX_MCS *mcs )
 	bool dante_status;
 	uint16_t dante_error_code = DLL_NO_ERROR;
 	bool dante_error_status;
+	uint16_t board_number;
 	uint16_t values_temp;
 	uint16_t *values_array;
 	uint32_t *id_array;
 	double *stats_array;
 	uint64_t *advstats_array;
 	uint32_t spectra_size, chan;
-	uint32_t data_number, meas;
+	uint32_t data_number, meas, meas_offset, meas_dest;
 	unsigned long offset;
 	mx_status_type mx_status;
 
@@ -597,6 +645,24 @@ mxd_dante_mcs_read_all( MX_MCS *mcs )
 
 	data_number = mcs->last_measurement_number;
 
+	/* In external trigger mode, the DANTE system acquires an extra
+	 * spectrum at the beginning of the measuring sequence.  This
+	 * extra spectrum is not synchronized to the external trigger
+	 * signal, so we must discard the first spectrum in that case.
+	 */
+
+	if ( mcs->trigger & MXF_DEV_EXTERNAL_TRIGGER ) {
+		meas_offset = 1;
+
+		data_number += meas_offset;
+	} else {
+		meas_offset = 0;
+	}
+
+	board_number = dante_mca->board_number;
+
+	/* Allocate the data arrays. */
+
 	values_array = new uint16_t[ data_number * 4096 ]();
 	id_array = new uint32_t[ data_number ]();
 	stats_array = new double[ data_number * 4 ]();
@@ -622,7 +688,7 @@ mxd_dante_mcs_read_all( MX_MCS *mcs )
 	(void) resetLastError();
 
 	dante_status = getAllData( dante_mca->channel_name,
-				dante_mca->board_number,
+				board_number,
 				values_array,
 				id_array,
 				stats_array,
@@ -665,31 +731,41 @@ mxd_dante_mcs_read_all( MX_MCS *mcs )
 
 #if 1
 	fprintf(stderr, "Showing values array from bin 80 to 109.\n" );
+	{
+		uint32_t chan_start, chan_end;
 
-	for ( chan = 80; chan < 110; chan++ ) {
-		values_temp = values_array[chan];
+		chan_start = meas_offset * spectra_size + 80;
+		chan_end = chan_start + 30;
 
-		fprintf( stderr, "%hu ", (unsigned short) values_temp );
+		for ( chan = chan_start; chan < chan_end; chan++ ) {
+			values_temp = values_array[chan];
+
+			fprintf( stderr, "%hu ", (unsigned short) values_temp );
+		}
 	}
 	fprintf( stderr, "\n" );
 #endif
 
 	/* Copy out the MCS spectra. */
 
-	for ( meas = 0; meas < data_number; meas++ ) {
+	for ( meas = meas_offset; meas < data_number; meas++ ) {
+		meas_dest = meas - meas_offset;
+
 		for ( chan = 0; chan < spectra_size; chan++ ) {
 			offset = meas * spectra_size + chan;
 
+#if 0
 			MX_DEBUG(-2,("%s: (%lu, %lu)", fname,
 				(unsigned long) meas, (unsigned long) chan));
+#endif
 
 			values_temp = values_array[offset];
 
-			mcs->data_array[meas][chan] = values_temp;
+			mcs->data_array[meas_dest][chan] = values_temp;
 #if 1
-			if ( values_temp > 10 ) {
+			if ( values_temp > 1 ) {
 				MX_DEBUG(-2,("%s: data_array[%lu][%lu] = %lu",
-				fname, (unsigned long) meas,
+				fname, (unsigned long) meas_dest,
 				(unsigned long) chan,
 				(unsigned long) mcs->data_array[meas][chan]));
 			}

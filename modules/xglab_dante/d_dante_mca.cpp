@@ -42,7 +42,11 @@
  *
  */
 
-#define MXD_DANTE_MCA_DEBUG			TRUE
+#define MXD_DANTE_MCA_DEBUG					TRUE
+
+#define MXD_DANTE_MCA_DEBUG_POINTERS				FALSE
+
+#define MXD_DANTE_MCA_DEBUG_FINISH_DELAYED_INITIALIZATION	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -309,11 +313,13 @@ mxd_dante_mca_open( MX_RECORD *record )
 			MXU_DANTE_MCA_MAX_SPECTRUM_BINS, mca->record->name );
 	}
 
+#if MXD_DANTE_MCA_DEBUG_POINTERS
 	MX_DEBUG(-2,("%s: dante_mca = %p", fname, dante_mca));
 	MX_DEBUG(-2,
 	("%s: spectrum_data = %p", fname, dante_mca->spectrum_data));
 	MX_DEBUG(-2,("%s: spectrum_data[0] = %lu", fname,
 			(unsigned long) dante_mca->spectrum_data[0]));
+#endif
 
 	/*---*/
 
@@ -427,6 +433,8 @@ mxd_dante_mca_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_dante_mca_finish_delayed_initialization( MX_RECORD *record )
 {
+
+#if MXD_DANTE_MCA_DEBUG_FINISH_DELAYED_INITIALIZATION
 	static const char fname[] =
 		"mxd_dante_mca_finish_delayed_initialization()";
 
@@ -441,6 +449,7 @@ mxd_dante_mca_finish_delayed_initialization( MX_RECORD *record )
 	("%s: spectrum_data = %p", fname, dante_mca->spectrum_data));
 	MX_DEBUG(-2,
 	("%s: spectrum_data[0] = %lu", fname, dante_mca->spectrum_data[0]));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -802,6 +811,7 @@ mxd_dante_mca_clear( MX_MCA *mca )
 	static const char fname[] = "mxd_dante_mca_clear()";
 
 	MX_DANTE_MCA *dante_mca = NULL;
+	uint16_t dante_error_code = DLL_NO_ERROR;
 	bool clear_status;
 	mx_status_type mx_status;
 
@@ -824,8 +834,21 @@ mxd_dante_mca_clear( MX_MCA *mca )
 	clear_status = clear_chain( dante_mca->channel_name );
 
 	if ( clear_status == false ) {
-		return mx_error( MXE_UNKNOWN_ERROR, fname,
-			"clear() returned an error." );
+		(void) getLastError( dante_error_code );
+
+		switch( dante_error_code ) {
+		case DLL_UNSUPPORTED_BY_FIRMWARE:
+			return mx_error(MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
+			"The firmware for DANTE chain '%s' used by MCA '%s' "
+			"is either not loaded or is corrupted.",
+				dante_mca->channel_name, mca->record->name );
+			break;
+		default:
+			return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"clear() returned an error.  DANTE error code = %lu",
+			(unsigned long) dante_error_code );
+			break;
+		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;

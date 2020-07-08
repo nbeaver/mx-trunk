@@ -28,6 +28,8 @@ typedef struct {
 
 	MX_RECORD *mca_record;
 	unsigned long dante_mcs_flags;
+
+	mx_bool_type mcs_armed;
 } MX_DANTE_MCS;
 
 /* Define all of the interface functions. */
@@ -40,7 +42,6 @@ MX_API mx_status_type mxd_dante_mcs_finish_record_initialization(
 MX_API mx_status_type mxd_dante_mcs_open( MX_RECORD *record );
 
 MX_API mx_status_type mxd_dante_mcs_arm( MX_MCS *mcs );
-MX_API mx_status_type mxd_dante_mcs_trigger( MX_MCS *mcs );
 MX_API mx_status_type mxd_dante_mcs_stop( MX_MCS *mcs );
 MX_API mx_status_type mxd_dante_mcs_clear( MX_MCS *mcs );
 MX_API mx_status_type mxd_dante_mcs_busy( MX_MCS *mcs );
@@ -63,7 +64,11 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_dante_mcs_rfield_def_ptr;
   \
   {-1, -1, "dante_mcs_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DANTE_MCS, dante_mcs_flags), \
-	{0}, NULL, MXFF_IN_DESCRIPTION }
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {-1, -1, "mcs_armed", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DANTE_MCS, mcs_armed), \
+	{0}, NULL, MXFF_READ_ONLY }
 
 #ifdef __cplusplus
 }
