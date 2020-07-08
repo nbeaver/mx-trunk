@@ -413,13 +413,13 @@ mxd_dante_mcs_arm( MX_MCS *mcs )
 
 	dante->dante_mode = MXF_DANTE_MAPPING_MODE;
 
-	MX_DEBUG(-2,("%s: Calling start_map(), channel_name = '%s', "
+	MX_DEBUG(-2,("%s: Calling start_map(), identifier = '%s', "
 	"measurement_time = %f, current_num_measurements = %lu, "
 	"current_num_scalers = %lu",
-		fname, dante_mca->channel_name, mcs->measurement_time,
+		fname, dante_mca->identifier, mcs->measurement_time,
 		mcs->current_num_measurements, mcs->current_num_scalers ));
 
-	call_id = start_map( dante_mca->channel_name,
+	call_id = start_map( dante_mca->identifier,
 				mcs->measurement_time,
 				num_spectra_to_acquire,
 				mcs->current_num_scalers );
@@ -503,7 +503,7 @@ mxd_dante_mcs_clear( MX_MCS *mcs )
 	 * but does not exist.
 	 */
 
-	clear_status = clear_chain( dante_mca->channel_name );
+	clear_status = clear_chain( dante_mca->identifier );
 
 	if ( clear_status == false ) {
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
@@ -574,7 +574,7 @@ mxd_dante_mcs_busy( MX_MCS *mcs )
 	 * hardware is still doing something.
 	 */
 
-	call_id = isRunning_system( dante_mca->channel_name,
+	call_id = isRunning_system( dante_mca->identifier,
 					dante_mca->board_number );
 
 	if ( call_id == 0 ) {
@@ -668,8 +668,8 @@ mxd_dante_mcs_read_all( MX_MCS *mcs )
 	stats_array = new double[ data_number * 4 ]();
 	advstats_array = new uint64_t[ data_number * 18 ]();
 
-	MX_DEBUG(-2,("%s: before getAllData() channel_name = '%s'",
-			fname, dante_mca->channel_name ));
+	MX_DEBUG(-2,("%s: before getAllData() identifier = '%s'",
+			fname, dante_mca->identifier ));
 	MX_DEBUG(-2,("%s: before getAllData() board_number = %lu",
 			fname, (unsigned long) dante_mca->board_number));
 	MX_DEBUG(-2,("%s: before getAllData() values_array = %p",
@@ -687,7 +687,7 @@ mxd_dante_mcs_read_all( MX_MCS *mcs )
 
 	(void) resetLastError();
 
-	dante_status = getAllData( dante_mca->channel_name,
+	dante_status = getAllData( dante_mca->identifier,
 				board_number,
 				values_array,
 				id_array,
@@ -898,7 +898,7 @@ mxd_dante_mcs_get_last_measurement_number( MX_MCS *mcs )
 
 	mcs->last_measurement_number = -1;
 
-	dante_status = getAvailableData( dante_mca->channel_name,
+	dante_status = getAvailableData( dante_mca->identifier,
 					dante_mca->board_number,
 					data_number );
 

@@ -1108,20 +1108,20 @@ mxi_dante_load_config_file( MX_RECORD *record )
 					identifier_ptr[n]);
 			}
 
-			MX_DEBUG(-2,("%s: dante_mca->channel_name = '%s'\n",
-				fname, dante_mca->channel_name));
+			MX_DEBUG(-2,("%s: dante_mca->identifier = '%s'\n",
+				fname, dante_mca->identifier));
 
-			for (n = 0; n < strlen(dante_mca->channel_name); n++ ) {
+			for (n = 0; n < strlen(dante_mca->identifier); n++ ) {
 				fprintf( stderr, "%#x (%c) ",
-					dante_mca->channel_name[n],
-					dante_mca->channel_name[n]);
+					dante_mca->identifier[n],
+					dante_mca->identifier[n]);
 			}
 			fprintf(stderr,"\n" );
 			fflush(stderr);
 #endif
 
 			if ( strcmp( identifier_ptr,
-					dante_mca->channel_name ) != 0 )
+					dante_mca->identifier ) != 0 )
 			{
 			    /* This is not the right MCA, so go on
 			     * to the next one.
@@ -1136,9 +1136,9 @@ mxi_dante_load_config_file( MX_RECORD *record )
 			current_dante_mca = dante_mca;
 
 			MX_DEBUG(-2,("%s: current_mca_record = '%s', "
-				"current_dante_mca->channel_name = '%s'.",
+				"current_dante_mca->identifier = '%s'.",
 				fname, current_mca_record->name,
-				current_dante_mca->channel_name ));
+				current_dante_mca->identifier ));
 
 		    } /* End of the for(i) loop. */
 		}

@@ -305,7 +305,7 @@ mxd_dante_mca_open( MX_RECORD *record )
 
 	/* Detect the firmware used by this board. */
 
-	call_id = getFirmware( dante_mca->channel_name,
+	call_id = getFirmware( dante_mca->identifier,
 				dante_mca->board_number );
 
 	if ( call_id == 0 ) {
@@ -567,7 +567,7 @@ mxd_dante_mca_configure( MX_DANTE_MCA *dante_mca )
 
 	dante_error_status = resetLastError();
 
-	call_id = configure( dante_mca->channel_name,
+	call_id = configure( dante_mca->identifier,
 				dante_mca->board_number,
 				dante_mca->configuration );
 
@@ -652,7 +652,7 @@ mxd_dante_mca_arm( MX_MCA *mca )
 
 	dante->dante_mode = MXF_DANTE_NORMAL_MODE;
 
-	call_id = start( dante_mca->channel_name,
+	call_id = start( dante_mca->identifier,
 			mca->preset_real_time, mca->current_num_channels );
 
 	if ( call_id == 0 ) {
@@ -673,7 +673,7 @@ mxd_dante_mca_arm( MX_MCA *mca )
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"One of the arguments for start( '%s', %f, %lu ) "
 			"is out of range for MCA '%s'.",
-				dante_mca->channel_name,
+				dante_mca->identifier,
 				mca->preset_real_time,
 				mca->current_num_channels,
 				mca->record->name );
@@ -728,7 +728,7 @@ mxd_dante_mca_stop( MX_MCA *mca )
 	MX_DEBUG(-2,("%s: dante_mca->spectrum_data[0] = %lu",
 				fname, dante_mca->spectrum_data[0]));
 
-	call_id = stop( dante_mca->channel_name );
+	call_id = stop( dante_mca->identifier );
 
 	if ( call_id == 0 ) {
 		dante_error_status = getLastError( dante_error_code );
@@ -801,7 +801,7 @@ mxd_dante_mca_read( MX_MCA *mca )
 	MX_DEBUG(-2,("%s: before getData(), spectrum_array[0] = %lu",
 		fname, (unsigned long)spectrum_array[0] ));
 
-	dante_status = getData( dante_mca->channel_name,
+	dante_status = getData( dante_mca->identifier,
 				dante_mca->board_number,
 				spectrum_array,
 				spectrum_id,
@@ -857,7 +857,7 @@ mxd_dante_mca_clear( MX_MCA *mca )
 	 * but does not exist.
 	 */
 
-	clear_status = clear_chain( dante_mca->channel_name );
+	clear_status = clear_chain( dante_mca->identifier );
 
 	if ( clear_status == false ) {
 		(void) getLastError( dante_error_code );
@@ -867,7 +867,7 @@ mxd_dante_mca_clear( MX_MCA *mca )
 			return mx_error(MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
 			"The firmware for DANTE chain '%s' used by MCA '%s' "
 			"is either not loaded or is corrupted.",
-				dante_mca->channel_name, mca->record->name );
+				dante_mca->identifier, mca->record->name );
 			break;
 		default:
 			return mx_error( MXE_UNKNOWN_ERROR, fname,
@@ -906,7 +906,7 @@ mxd_dante_mca_busy( MX_MCA *mca )
 	MX_DEBUG(-2,("%s: dante_mca->spectrum_data[0] = %lu",
 				fname, dante_mca->spectrum_data[0]));
 
-	call_id = isRunning_system( dante_mca->channel_name,
+	call_id = isRunning_system( dante_mca->identifier,
 					dante_mca->board_number );
 
 	if ( call_id == 0 ) {
