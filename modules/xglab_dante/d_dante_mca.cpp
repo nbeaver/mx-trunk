@@ -275,6 +275,8 @@ mxd_dante_mca_open( MX_RECORD *record )
 	MX_DANTE_MCA *dante_mca = NULL;
 	MX_DANTE *dante = NULL;
 	unsigned long i;
+	uint32_t call_id;
+	uint16_t dante_error_code = DLL_NO_ERROR;
 	mx_status_type mx_status;
 
 #if MXD_DANTE_MCA_DEBUG_TIMING
@@ -300,6 +302,30 @@ mxd_dante_mca_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS ) {
 		return mx_status;
 	}
+
+	/* Detect the firmware used by this board. */
+
+	call_id = getFirmware( dante_mca->channel_name,
+				dante_mca->board_number );
+
+	if ( call_id == 0 ) {
+		(void) getLastError( dante_error_code );
+
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"Getting the firmware version for MCA '%s' failed "
+		"with DANTE error code %lu.",
+			record->name, (unsigned long) dante_error_code );
+	}
+
+	mxi_dante_wait_for_answer( call_id );
+
+	fprintf( stderr, "getFirmware() callback data = " );
+
+	for ( i = 0; i < 4; i++ ) {
+		fprintf( stderr, "%lu ", mxi_dante_callback_data[i] );
+	}
+
+	fprintf( stderr, "\n" );
 
 	/*---*/
 

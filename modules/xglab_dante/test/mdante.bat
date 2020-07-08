@@ -3,7 +3,7 @@
 rem set DANTE_VER=3.2.4.3
 rem set DANTE_VER=3.4.0.3
 
-set DANTE_VER=3.2.4.3
+set DANTE_VER=3.4.0.3
 
 echo ""
 echo DANTE_VER = %DANTE_VER%
