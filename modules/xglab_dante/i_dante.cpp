@@ -304,11 +304,16 @@ mxi_dante_open( MX_RECORD *record )
 
 	/* Initialize the DANTE library. */
 
+	(void) resetLastError();
+
 	dante_status = InitLibrary();
 
 	if ( dante_status == false ) {
+		(void ) getLastError( error_code );
+
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
-			"DANTE InitLibrary() failed." );
+		"DANTE InitLibrary() failed with error code %lu.",
+			(unsigned long) error_code );
 	}
 
 	version_length = MXU_DANTE_MAX_VERSION_LENGTH;
@@ -316,8 +321,11 @@ mxi_dante_open( MX_RECORD *record )
 	dante_status = libVersion( dante->dante_version, version_length );
 
 	if ( dante_status == false ) {
+		(void ) getLastError( error_code );
+
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
-			"DANTE libVersion() failed." );
+		"DANTE libVersion() failed with error code %lu.",
+			(unsigned long) error_code );
 	}
 
 	MX_DEBUG(-2,("%s: DANTE version = '%s'", fname, dante->dante_version ));
