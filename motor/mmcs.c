@@ -809,6 +809,8 @@ motor_mcs_read( MX_RECORD *mcs_record, MX_MCS *mcs, unsigned long scaler_number)
 	long *scaler_data;
 	mx_status_type mx_status;
 
+	mx_breakpoint();
+
 	/* Read out the acquired data. */
 
 	fprintf( output, "About to read MCS data.\n" );

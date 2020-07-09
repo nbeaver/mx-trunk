@@ -525,6 +525,8 @@ mxd_dante_mcs_busy( MX_MCS *mcs )
 	long num_measurements_so_far;
 	mx_status_type mx_status;
 
+	mx_breakpoint();
+
 	mx_status = mxd_dante_mcs_get_pointers( mcs, &dante_mcs,
 					NULL, &dante_mca, &dante, fname );
 
@@ -650,6 +652,9 @@ mxd_dante_mcs_read_all( MX_MCS *mcs )
 	 * extra spectrum is not synchronized to the external trigger
 	 * signal, so we must discard the first spectrum in that case.
 	 */
+
+	MX_DEBUG(-2,("%s: mcs '%s' trigger = %#lx",
+		fname, mcs->record->name, mcs->trigger));
 
 	if ( mcs->trigger & MXF_DEV_EXTERNAL_TRIGGER ) {
 		meas_offset = 1;
