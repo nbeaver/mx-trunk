@@ -308,9 +308,9 @@ mxd_dante_mcs_open( MX_RECORD *record )
 
 	dante_mca->child_mcs_record = record;
 
-	/* Default to external trigger. */
+	/* Default to internal trigger. */
 
-	mcs->trigger_mode = MXF_DEV_EXTERNAL_TRIGGER;
+	mcs->trigger_mode = MXF_DEV_INTERNAL_TRIGGER;
 
 #if MXD_DANTE_MCS_DEBUG_OPEN
 	MX_DEBUG(-2,("%s: MCS '%s' record = %p", fname, record->name, record));
@@ -551,7 +551,7 @@ mxd_dante_mcs_busy( MX_MCS *mcs )
 
 	/* Have we reached the expected last measurement number yet? */
 
-	num_measurements_so_far = mcs->last_measurement_number;
+	num_measurements_so_far = mcs->last_measurement_number + 1;
 
 	MX_DEBUG(-2,("%s: mcs '%s', "
 			"num_measurements_so_far = %ld, "
@@ -560,7 +560,7 @@ mxd_dante_mcs_busy( MX_MCS *mcs )
 			(long) num_measurements_so_far,
 			mcs->current_num_measurements ));
 
-	if ( (num_measurements_so_far + 1) < mcs->current_num_measurements ) {
+	if ( num_measurements_so_far < mcs->current_num_measurements ) {
 
 		/* More measurements left to acquire. */
 
@@ -912,7 +912,7 @@ mxd_dante_mcs_get_last_measurement_number( MX_MCS *mcs )
 	MX_DEBUG(-2,("%s: data_number = %lu",
 		fname, (unsigned long) data_number))
 
-	mcs->last_measurement_number = (long) data_number;
+	mcs->last_measurement_number = (long) data_number - 1;
 
 	MX_DEBUG(-2,("%s: mcs->last_measurement_number = %ld",
 		fname, mcs->last_measurement_number));
