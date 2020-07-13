@@ -465,6 +465,25 @@ mxi_dante_open( MX_RECORD *record )
 			MX_DEBUG(-2,("%s: num_boards = %lu",
 				fname, (unsigned long) num_boards));
 
+			if ( num_boards > dante->max_boards_per_chain ) {
+				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+				"While setting up DANTE master '%s', we "
+				"Found more boards (%lu) for chain '%s' than "
+				"the maximum number (%lu) that we are prepared "
+				"to handle.  Please increase the size of "
+				"'%s.max_boards_per_chain' in the MX database.",
+					dante->board_identifier[i],
+					(unsigned long) num_boards,
+					dante->max_boards_per_chain,
+					dante->record->name );
+			} else
+			if ( num_boards >= dante->max_boards_per_chain ) {
+				MX_DEBUG(-2,("%s: All boards found for '%s'.",
+				fname, dante->board_identifier[i] ));
+
+				break;
+			}
+
 			mx_msleep(1000);
 		}
 
@@ -966,7 +985,9 @@ mxi_dante_load_config_file( MX_RECORD *record )
 		"The MX_RECORD pointer passed was NULL." );
 	}
 
+#if 0
 	MX_DEBUG(-2,("%s invoked for '%s'.", fname, record->name));
+#endif
 
 	dante = (MX_DANTE *) record->record_type_struct;
 
@@ -1000,7 +1021,9 @@ mxi_dante_load_config_file( MX_RECORD *record )
 			dante->config_filename, "r" );
 #endif
 
+#if 0
 	MX_DEBUG(-2,("%s: config_file = %p", fname, config_file ));
+#endif
 
 	if ( config_file == (FILE *) NULL ) {
 		saved_errno = errno;

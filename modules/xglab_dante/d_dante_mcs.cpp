@@ -525,7 +525,9 @@ mxd_dante_mcs_busy( MX_MCS *mcs )
 	long num_measurements_so_far;
 	mx_status_type mx_status;
 
+#if 0
 	mx_breakpoint();
+#endif
 
 	mx_status = mxd_dante_mcs_get_pointers( mcs, &dante_mcs,
 					NULL, &dante_mca, &dante, fname );
@@ -622,6 +624,8 @@ mxd_dante_mcs_read_all( MX_MCS *mcs )
 	uint32_t data_number, meas, meas_offset, meas_dest;
 	unsigned long offset;
 	mx_status_type mx_status;
+
+	mx_breakpoint();
 
 	mx_status = mxd_dante_mcs_get_pointers( mcs, &dante_mcs,
 					NULL, &dante_mca, &dante, fname );
