@@ -36,16 +36,16 @@
 #include "mx_mutex.h"
 #include "mx_thread.h"
 #include "mx_atomic.h"
-#include "mx_mca.h"
 #include "mx_mcs.h"
+#include "mx_mca.h"
 
 /* Vendor include file. */
 
 #include "DLL_DPP_Callback.h"
 
 #include "i_dante.h"
-#include "d_dante_mca.h"
 #include "d_dante_mcs.h"
+#include "d_dante_mca.h"
 
 /* Initialize the mcs driver jump table. */
 
@@ -379,16 +379,16 @@ mxd_dante_mcs_arm( MX_MCS *mcs )
 
 	new_other_param &= 0xfffffffc;
 
-	if ( mca->trigger & MXF_DEV_EXTERNAL_TRIGGER ) {
+	if ( mca->trigger_mode & MXF_DEV_EXTERNAL_TRIGGER ) {
 		new_other_param &= 0x1;
 	}
-	if ( mca->trigger & MXF_DEV_TRIGGER_HIGH ) {
+	if ( mca->trigger_mode & MXF_DEV_TRIGGER_HIGH ) {
 		new_other_param &= 0x2;
 	}
 
 	dante_mca->configuration.other_param = new_other_param;
 
-	mx_status = mxd_dante_mca_configure( dante_mca );
+	mx_status = mxd_dante_mca_configure( dante_mca, dante_mcs );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -401,7 +401,7 @@ mxd_dante_mcs_arm( MX_MCS *mcs )
 	 * Because of that, we must add 1 to the number of spectra to take.
 	 */
 
-	if ( mca->trigger & MXF_DEV_EXTERNAL_TRIGGER ) {
+	if ( mca->trigger_mode & MXF_DEV_EXTERNAL_TRIGGER ) {
 		num_spectra_to_acquire = mcs->current_num_measurements + 1;
 	} else {
 		num_spectra_to_acquire = mcs->current_num_measurements;
@@ -657,10 +657,10 @@ mxd_dante_mcs_read_all( MX_MCS *mcs )
 	 * signal, so we must discard the first spectrum in that case.
 	 */
 
-	MX_DEBUG(-2,("%s: mcs '%s' trigger = %#lx",
-		fname, mcs->record->name, mcs->trigger));
+	MX_DEBUG(-2,("%s: mcs '%s' trigger_mode = %#lx",
+		fname, mcs->record->name, mcs->trigger_mode ));
 
-	if ( mcs->trigger & MXF_DEV_EXTERNAL_TRIGGER ) {
+	if ( mcs->trigger_mode & MXF_DEV_EXTERNAL_TRIGGER ) {
 		meas_offset = 1;
 
 		data_number += meas_offset;

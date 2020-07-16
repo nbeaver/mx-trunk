@@ -20,12 +20,12 @@
 #include "mx_record.h"
 #include "mx_driver.h"
 #include "mx_module.h"
-#include "mx_mca.h"
 #include "mx_mcs.h"
+#include "mx_mca.h"
 
 #include "i_dante.h"
-#include "d_dante_mca.h"
 #include "d_dante_mcs.h"
+#include "d_dante_mca.h"
 
 MX_DRIVER xglab_dante_driver_table[] = {
 

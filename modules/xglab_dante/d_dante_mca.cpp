@@ -61,9 +61,11 @@
 #include "mx_record.h"
 #include "mx_driver.h"
 #include "mx_process.h"
+#include "mx_mcs.h"
 #include "mx_mca.h"
 
 #include "i_dante.h"
+#include "d_dante_mcs.h"
 #include "d_dante_mca.h"
 
 #if MXD_DANTE_MCA_DEBUG_TIMING
@@ -537,7 +539,7 @@ mxd_dante_mca_process_function( void *record_ptr,
 		}
 		break;
 	case MX_PROCESS_PUT:
-		switch( record_field->label_value ) {
+	switch( record_field->label_value ) {
 		default:
 			break;
 		}
@@ -554,18 +556,53 @@ mxd_dante_mca_process_function( void *record_ptr,
 /*---------------------------------------------------------------------------*/
 
 MX_API mx_status_type
-mxd_dante_mca_configure( MX_DANTE_MCA *dante_mca )
+mxd_dante_mca_configure( MX_DANTE_MCA *dante_mca, MX_DANTE_MCS *dante_mcs )
 {
 	static const char fname[] = "mxd_dante_mca_configure()";
 
+	MX_MCA *mca = NULL;
+	MX_MCS *mcs = NULL;
 	uint32_t call_id;
 	uint16_t dante_error_code = DLL_NO_ERROR;
 	bool dante_error_status;
+	InputMode input_mode;
+	GatingMode gating_mode;
+
+	/* FIXME: We should probably test the consistency of the
+	 * pointers passed to us, but not now.
+	 *
+	 * Note: The MX_DANTE_MCA pointer must not be NULL, but it is OK
+	 * if the MX_DANTE_MCS pointer is NULL.
+	 */
+
+	if ( dante_mca == (MX_DANTE_MCA *) NULL ) {
+		if ( dante_mcs == (MX_DANTE_MCS *) NULL ) {
+			return mx_error( MXE_NULL_ARGUMENT, fname,
+			"The MX_DANTE_MCA pointer and the MX_DANTE_MCS "
+			"pointer are both NULL.  There is nothing we "
+			"can do in this case." );
+		}
+
+		dante_mca = (MX_DANTE_MCA *)
+				dante_mcs->mca_record->record_type_struct;
+	}
+
+	mca = (MX_MCA *) dante_mca->record->record_class_struct;
+
+	if ( dante_mcs == (MX_DANTE_MCS *) NULL ) {
+		mcs = NULL;
+	} else {
+		mcs = (MX_MCS *) dante_mcs->record->record_class_struct;
+	}
+
+	/*---*/
 
 	MX_DEBUG(-2,("%s: About to configure DANTE MCA '%s'.",
 		fname, dante_mca->record->name ));
 
 	dante_error_status = resetLastError();
+
+	/* Configure the standard acquisition parameters. */
 
 	call_id = configure( dante_mca->identifier,
 				dante_mca->board_number,
@@ -595,6 +632,116 @@ mxd_dante_mca_configure( MX_DANTE_MCA *dante_mca )
 
 	mxi_dante_wait_for_answer( call_id );
 
+	/* Tell DANTE that we only want internal triggered mode. */
+
+	if ( mca->trigger_mode & MXF_DEV_EXTERNAL_TRIGGER ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"External triggering mode has been requested for MCA '%s', "
+		"but only 'normal' (single spectrum) mode is available "
+		"for the 'dante_mca' driver.  If you want a single spectrum "
+		"with external triggering, try the 'dante_mcs' driver "
+		"instead and configure that driver to take only "
+		"one measurement.", mca->record->name );
+	}
+
+	/* Configure the front-end stage. */
+
+	if ( mx_strcasecmp( "DC_HighImp", dante_mca->input_mode_name ) == 0 ) {
+		input_mode = DC_HighImp;
+	} else
+	if ( mx_strcasecmp( "DC_LowImp", dante_mca->input_mode_name ) == 0 ) {
+		input_mode = DC_LowImp;
+	} else
+	if ( mx_strcasecmp( "AC_Slow", dante_mca->input_mode_name ) == 0 ) {
+		input_mode = AC_Slow;
+	} else
+	if ( mx_strcasecmp( "AC_Fast", dante_mca->input_mode_name ) == 0 ) {
+		input_mode = AC_Fast;
+	} else {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Illegal front-end input mode '%s' requested for MCA '%s'.  "
+		"The allowed input modes are 'DC_HighImp', 'DC_LowImp', "
+		"'AC_Slow', and 'AC_Fast'.",
+			dante_mca->input_mode_name,
+			dante_mca->record->name );
+	}
+
+	call_id = configure_input( dante_mca->identifier,
+				dante_mca->board_number,
+				input_mode );
+
+	mxi_dante_wait_for_answer( call_id );
+
+	/****** Configure gating. ******/
+
+	/* If we were not passed an MX_DANTE_MCS pointer, then we are
+	 * configuring the MCA for acquiring a single spectrum.  In
+	 * this situation, the only valid MCA mode is internal trigger
+	 * mode with the DANTE gating set to FreeRunning.
+	 */
+
+	if ( dante_mcs == (MX_DANTE_MCS *) NULL ) {
+	    mca->trigger_mode = MXF_DEV_INTERNAL_TRIGGER;
+
+	    gating_mode = FreeRunning;
+	} else {
+	    /* MX_DANTE_MCS was not NULL, so we must configure
+	     * for an MCS mode.
+	     */
+
+	    if ( mcs->trigger_mode & MXF_DEV_INTERNAL_TRIGGER ) {
+		gating_mode = FreeRunning;
+	    } else
+	    if ( mcs->trigger_mode & MXF_DEV_EXTERNAL_TRIGGER ) {
+		if ( mcs->trigger_mode & MXF_DEV_EDGE_TRIGGER ) {
+		    if ( mcs->trigger_mode & MXF_DEV_TRIGGER_HIGH ) {
+			if ( mcs->trigger_mode & MXF_DEV_TRIGGER_LOW ) {
+			    gating_mode = TriggerBoth;
+			} else {
+			    gating_mode = TriggerRising;
+			}
+		    } else
+		    if ( mcs->trigger_mode & MXF_DEV_TRIGGER_LOW ) {
+			gating_mode = TriggerFalling;
+		    } else {
+			/* If edge triggering was requested, but the edge
+			 * to use was not specified, then we assume that
+			 * we should be using a rising trigger.
+			 */
+			gating_mode = TriggerRising;
+		    }
+		} else
+		if ( mcs->trigger_mode & MXF_DEV_LEVEL_TRIGGER ) {
+		    if ( mcs->trigger_mode & MXF_DEV_TRIGGER_HIGH ) {
+			gating_mode = GatedHigh;
+		    } else
+		    if ( mcs->trigger_mode & MXF_DEV_TRIGGER_LOW ) {
+			gating_mode = GatedLow;
+		    } else {
+			/* If level triggering was requested, but the level
+			 * to use was not specified, then we assume that
+			 * we should be using a gated high trigger.
+			 */
+			gating_mode = GatedHigh;
+		    }
+		} else {
+		    return mx_error( MXE_UNSUPPORTED, fname,
+		"Unsupported trigger mode %#lx (%lu) requested for MCS '%s'.",
+		    mcs->trigger_mode, mcs->trigger_mode, mcs->record->name );
+		}
+	    } else {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Unsupported trigger mode %#lx (%lu) requested for MCS '%s'.",
+		    mcs->trigger_mode, mcs->trigger_mode, mcs->record->name );
+	    }
+	}
+
+	call_id = configure_gating( dante_mca->identifier,
+					gating_mode,
+					dante_mca->board_number );
+
+	mxi_dante_wait_for_answer( call_id );
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -609,7 +756,6 @@ mxd_dante_mca_arm( MX_MCA *mca )
 	MX_DANTE *dante = NULL;
 	uint32_t call_id;
 	uint16_t error_code;
-	uint32_t new_other_param;
 	mx_status_type mx_status;
 
 	mx_status = mxd_dante_mca_get_pointers( mca,
@@ -624,24 +770,9 @@ mxd_dante_mca_arm( MX_MCA *mca )
 	MX_DEBUG(-2,("%s: dante_mca->spectrum_data[0] = %lu",
 				fname, dante_mca->spectrum_data[0]));
 
-	/* Configure the gating for this MCA. */
+	/* Configure the MCA for 'normal' mode. */
 
-	new_other_param = dante_mca->configuration.other_param;
-
-	/* Replace the old gating bits with new gating bits. */
-
-	new_other_param &= 0xfffffffc;
-
-	if ( mca->trigger & MXF_DEV_EXTERNAL_TRIGGER ) {
-		new_other_param &= 0x1;
-	}
-	if ( mca->trigger & MXF_DEV_TRIGGER_HIGH ) {
-		new_other_param &= 0x2;
-	}
-
-	dante_mca->configuration.other_param = new_other_param;
-
-	mx_status = mxd_dante_mca_configure( dante_mca );
+	mx_status = mxd_dante_mca_configure( dante_mca, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

@@ -90,7 +90,7 @@ xglab_dante.$(OBJ): xglab_dante.c i_dante.h d_dante_mca.h d_dante_mcs.h
 i_dante.$(OBJ): i_dante.cpp i_dante.h
 	$(CPP_COMPILE) $(CFLAGS) i_dante.cpp
 
-d_dante_mca.$(OBJ): d_dante_mca.cpp i_dante.h d_dante_mca.h
+d_dante_mca.$(OBJ): d_dante_mca.cpp i_dante.h d_dante_mca.h d_dante_mcs.h
 	$(CPP_COMPILE) $(CFLAGS) d_dante_mca.cpp
 
 d_dante_mcs.$(OBJ): d_dante_mcs.cpp i_dante.h d_dante_mca.h d_dante_mcs.h

@@ -38,8 +38,10 @@
 #include "mx_cfn.h"
 #include "mx_array.h"
 #include "mx_process.h"
+#include "mx_mcs.h"
 #include "mx_mca.h"
 #include "i_dante.h"
+#include "d_dante_mcs.h"
 #include "d_dante_mca.h"
 
 #if MXI_DANTE_DEBUG_TIMING
@@ -801,7 +803,7 @@ mxi_dante_configure( MX_RECORD *record )
 				mca_record->name );
 		}
 
-		mx_status = mxd_dante_mca_configure( dante_mca );
+		mx_status = mxd_dante_mca_configure( dante_mca, NULL );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
