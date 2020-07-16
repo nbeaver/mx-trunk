@@ -27,6 +27,13 @@ extern "C" {
 
 #define MXU_DANTE_MAX_CALLBACK_DATA_LENGTH	20
 
+#define MX_DANTE_VERSION( major, minor, update, extra ) \
+	( 1000000 * (major) + 10000 * (minor) + 100 * (update) + (extra) )
+
+#define MX_DANTE_MIN_VERSION			MX_DANTE_VERSION(3,4,0,3)
+
+#define MX_DANTE_MAX_VERSION			MX_DANTE_VERSION(3,4,0,3)
+
 /* The following flags are used by the 'dante_flags' field. */
 
 #define MXF_DANTE_SHOW_DEVICES			0x1
@@ -59,7 +66,8 @@ typedef struct {
 
 	unsigned long dante_mode;
 
-	char dante_version[MXU_DANTE_MAX_VERSION_LENGTH+1];
+	char dante_version_string[MXU_DANTE_MAX_VERSION_LENGTH+1];
+	unsigned long dante_version;
 	unsigned long num_master_devices;
 
 	MX_RECORD **mca_record_array;
@@ -120,10 +128,14 @@ extern int mxi_dante_wait_for_answer( uint32_t callback_id );
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DANTE, dante_mode), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
-  {-1, -1, "dante_version", MXFT_STRING, NULL, \
+  {-1, -1, "dante_version_string", MXFT_STRING, NULL, \
 				1, {MXU_DANTE_MAX_VERSION_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_DANTE, dante_version_string), \
+	{sizeof(char)}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "dante_version", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DANTE, dante_version), \
-	{sizeof(char)}, NULL, 0 }, \
+	{0}, NULL, MXFF_READ_ONLY }, \
   \
   {-1, -1, "num_master_devices", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DANTE, num_master_devices), \

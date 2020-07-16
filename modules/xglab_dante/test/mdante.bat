@@ -5,7 +5,7 @@ rem set DANTE_VER=3.4.0.3
 
 set DANTE_VER=3.4.0.3
 
-echo ""
+echo.
 echo DANTE_VER = %DANTE_VER%
 
 set DANTE_DLL_DIR=c:\opt\DANTE\%DANTE_VER%\Library\Callback-x64\Release

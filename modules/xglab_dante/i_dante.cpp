@@ -260,6 +260,9 @@ mxi_dante_open( MX_RECORD *record )
 	size_t dimension_sizeof[3];
 	unsigned long i, attempt;
 
+	unsigned long major, minor, update, extra;
+	int num_items;
+
 	unsigned long max_init_delay_ms;
 	unsigned long max_attempts;
 
@@ -316,9 +319,12 @@ mxi_dante_open( MX_RECORD *record )
 			(unsigned long) error_code );
 	}
 
+	/* Get the DANTE API version number. */
+
 	version_length = MXU_DANTE_MAX_VERSION_LENGTH;
 
-	dante_status = libVersion( dante->dante_version, version_length );
+	dante_status = libVersion( dante->dante_version_string,
+						version_length );
 
 	if ( dante_status == false ) {
 		(void ) getLastError( error_code );
@@ -328,7 +334,57 @@ mxi_dante_open( MX_RECORD *record )
 			(unsigned long) error_code );
 	}
 
-	MX_DEBUG(-2,("%s: DANTE version = '%s'", fname, dante->dante_version ));
+	num_items = sscanf( dante->dante_version_string, "%lu.%lu.%lu.%lu",
+					&major, &minor, &update, &extra );
+
+	switch( num_items ) {
+	case 3:
+		extra = 0;
+		/* Fall through to case 4 */
+	case 4:
+		break;
+	default:
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Error in parsing the DANTE API version from string '%s'.  "
+		"The DANTE API version is expected to have a format of "
+		"w.x.y.z or w.x.y", dante->dante_version_string );
+		break;
+	}
+
+	dante->dante_version = MX_DANTE_VERSION( major, minor, update, extra );
+
+	MX_DEBUG(-2,("%s: DANTE version = '%s' (%lu)",
+		fname, dante->dante_version_string, dante->dante_version ));
+
+	if ( dante->dante_version < MX_DANTE_MIN_VERSION ) {
+		unsigned long min_ver = MX_DANTE_MIN_VERSION;
+
+		unsigned long min_major = ( min_ver / 1000000L );
+		unsigned long min_minor = ( ( min_ver % 1000000L ) / 10000L );
+		unsigned long min_update = ( ( min_ver % 10000L ) / 100L );
+		unsigned long min_extra = ( min_ver % 100L );
+
+		mx_warning( "The MX 'xglab_dante' module has not been "
+		"tested with versions of DANTE API older than "
+		"%lu.%lu.%lu.%lu.  Things may not work correctly "
+		"for this version.\n",
+			min_major, min_minor, min_update, min_extra);
+	}
+
+	if ( dante->dante_version > MX_DANTE_MAX_VERSION ) {
+		unsigned long max_ver = MX_DANTE_MAX_VERSION;
+
+		unsigned long max_major = ( max_ver / 1000000L );
+		unsigned long max_minor = ( ( max_ver % 1000000L ) / 10000L );
+		unsigned long max_update = ( ( max_ver % 10000L ) / 100L );
+		unsigned long max_extra = ( max_ver % 100L );
+
+		mx_warning( "The MX 'xglab_dante' module has not been "
+		"tested with versions of DANTE API newer than "
+		"%lu.%lu.%lu.%lu.  Things may not work correctly "
+		"for this version.\n",
+			max_major, max_minor, max_update, max_extra);
+	}
 
 	/* Find identifiers for all of the devices controlled by
 	 * the current program.
