@@ -621,11 +621,10 @@ mxd_dante_mcs_read_all( MX_MCS *mcs )
 	double *stats_array;
 	uint64_t *advstats_array;
 	uint32_t spectra_size, chan;
-	uint32_t data_number, meas, meas_offset, meas_dest;
+	uint32_t data_number, meas, meas_dest;
+	uint32_t meas_offset;
 	unsigned long offset;
 	mx_status_type mx_status;
-
-	mx_breakpoint();
 
 	mx_status = mxd_dante_mcs_get_pointers( mcs, &dante_mcs,
 					NULL, &dante_mca, &dante, fname );
@@ -649,7 +648,10 @@ mxd_dante_mcs_read_all( MX_MCS *mcs )
 
 	spectra_size = mcs->current_num_scalers;
 
-	data_number = mcs->last_measurement_number;
+	data_number = mcs->last_measurement_number + 1;
+
+	MX_DEBUG(-2,("%s: data_number = %lu",
+		fname, (unsigned long) data_number ));
 
 	/* In external trigger mode, the DANTE system acquires an extra
 	 * spectrum at the beginning of the measuring sequence.  This
@@ -662,8 +664,6 @@ mxd_dante_mcs_read_all( MX_MCS *mcs )
 
 	if ( mcs->trigger_mode & MXF_DEV_EXTERNAL_TRIGGER ) {
 		meas_offset = 1;
-
-		data_number += meas_offset;
 	} else {
 		meas_offset = 0;
 	}

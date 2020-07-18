@@ -301,9 +301,7 @@ mxd_dante_mca_open( MX_RECORD *record )
 
 	mca->trigger_mode = MXF_DEV_INTERNAL_TRIGGER;
 
-	if ( mx_status.code != MXE_SUCCESS ) {
-		return mx_status;
-	}
+	dante_mca->total_num_measurements = 0;
 
 	/* Detect the firmware used by this board. */
 
@@ -948,6 +946,8 @@ mxd_dante_mca_read( MX_MCA *mca )
 		"getData() failed for MCA '%s'.  Error code = %lu",
 			mca->record->name, (unsigned long) error_code );
 	}
+
+	dante_mca->total_num_measurements++;
 
 	mca->current_num_channels = spectrum_size;
 

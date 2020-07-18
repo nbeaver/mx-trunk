@@ -983,9 +983,9 @@ mxi_dante_show_parameters( MX_RECORD *record )
 		(unsigned long) configuration->baseline_samples ));
 
 	if ( configuration->inverted_input ) {
-		MX_DEBUG(-2,("%s: inverted_input = true", fname ));
+		MX_DEBUG(-2,("  inverted_input = true" ));
 	} else {
-		MX_DEBUG(-2,("%s: inverted_input = false", fname ));
+		MX_DEBUG(-2,("  inverted_input = false" ));
 	}
 
 	MX_DEBUG(-2,("  time_constant = %g", configuration->time_constant ));

@@ -37,6 +37,8 @@ typedef struct {
 	unsigned long board_number;
 	char input_mode_name[MXU_DANTE_MCA_INPUT_MODE_NAME_LENGTH+1];
 
+	unsigned long total_num_measurements;
+
 	mx_bool_type configure;
 
 	unsigned long fast_filter_thr;
@@ -95,6 +97,10 @@ typedef struct {
 	  		1, {MXU_DANTE_MCA_INPUT_MODE_NAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_DANTE_MCA, input_mode_name ), \
 	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {-1, -1, "total_num_measurements", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof( MX_DANTE_MCA, total_num_measurements), \
+	{0}, NULL, MXFF_READ_ONLY }, \
   \
   {MXLV_DANTE_MCA_CONFIGURE, -1, "configure", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_DANTE_MCA, configure ), \
