@@ -102,7 +102,7 @@ mxi_dante_callback_fn( uint16_t type,
 	uint32_t i;
 
 	fprintf( stderr,
-	"%s invoked.  type = %lu, call_id = %lu, length = %lu, ",
+	"\n>>> %s invoked.  type = %lu, call_id = %lu, length = %lu, ",
 		fname, (unsigned long) type,
 		(unsigned long) call_id, (unsigned long) length);
 
@@ -139,7 +139,8 @@ mxi_dante_wait_for_answer( uint32_t call_id )
 
 	mxi_dante_callback_id = call_id;
 
-	MX_DEBUG(-2,("%s: Waiting for callback data...", fname));
+	MX_DEBUG(-2,("%s: Waiting for callback %lu",
+		fname, (unsigned long) call_id));
 
 	for ( i = 0; i < 10; i++ ) {
 		if ( mxi_dante_callback_id != call_id ) {
@@ -1072,12 +1073,14 @@ mxi_dante_load_config_file( MX_RECORD *record )
 	 * for some reason.  Perhaps some sort of memory corruption
 	 * is occurring?
 	 */
-#if 0
-	config_file = fopen( dante->config_filename, "r" );
-#else
-	config_file = mx_cfn_fopen( MX_CFN_ABSOLUTE,
-			dante->config_filename, "r" );
-#endif
+
+	if ( mx_database_is_server( record ) ) {
+		config_file = mx_cfn_fopen( MX_CFN_CONFIG,
+				dante->config_filename, "r" );
+	} else {
+		config_file = mx_cfn_fopen( MX_CFN_ABSOLUTE,
+				dante->config_filename, "r" );
+	}
 
 #if 0
 	MX_DEBUG(-2,("%s: config_file = %p", fname, config_file ));

@@ -252,7 +252,9 @@ mxd_dante_mca_finish_record_initialization( MX_RECORD *record )
 		"The MX_RECORD pointer passed is NULL." );
 	}
 
+#if 0
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name));
+#endif
 
 	mca = (MX_MCA *) record->record_class_struct;
 
@@ -303,6 +305,7 @@ mxd_dante_mca_open( MX_RECORD *record )
 
 	dante_mca->total_num_measurements = 0;
 
+#if 0
 	/* Detect the firmware used by this board. */
 
 	call_id = getFirmware( dante_mca->identifier,
@@ -320,6 +323,7 @@ mxd_dante_mca_open( MX_RECORD *record )
 	mxi_dante_wait_for_answer( call_id );
 
 	fprintf( stderr, "getFirmware() callback data = " );
+#endif
 
 	for ( i = 0; i < 4; i++ ) {
 		fprintf( stderr, "%lu ", mxi_dante_callback_data[i] );
@@ -483,13 +487,17 @@ mxd_dante_mca_finish_delayed_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_dante_mca_special_processing_setup( MX_RECORD *record )
 {
+#if 0
 	static const char fname[] = "mxd_dante_mca_special_processing_setup()";
+#endif
 
 	MX_RECORD_FIELD *record_field;
 	MX_RECORD_FIELD *record_field_array;
 	long i;
 
+#if 0
 	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	record_field_array = record->record_field_array;
 
