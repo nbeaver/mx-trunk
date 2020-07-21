@@ -291,8 +291,10 @@ mxd_dante_mca_open( MX_RECORD *record )
 			"MX_RECORD pointer passed is NULL." );
 	}
 
+#if 0
 	MX_DEBUG(-2,("**** %s invoked for record '%s'. ****",
 			fname, record->name));
+#endif
 
 	mca = (MX_MCA *) (record->record_class_struct);
 
@@ -325,11 +327,13 @@ mxd_dante_mca_open( MX_RECORD *record )
 	fprintf( stderr, "getFirmware() callback data = " );
 #endif
 
+#if 0
 	for ( i = 0; i < 4; i++ ) {
 		fprintf( stderr, "%lu ", mxi_dante_callback_data[i] );
 	}
 
 	fprintf( stderr, "\n" );
+#endif
 
 	/*---*/
 
@@ -603,8 +607,10 @@ mxd_dante_mca_configure( MX_DANTE_MCA *dante_mca, MX_DANTE_MCS *dante_mcs )
 
 	/*---*/
 
+#if 0
 	MX_DEBUG(-2,("%s: About to configure DANTE MCA '%s'.",
 		fname, dante_mca->record->name ));
+#endif
 
 	dante_error_status = resetLastError();
 
@@ -614,8 +620,8 @@ mxd_dante_mca_configure( MX_DANTE_MCA *dante_mca, MX_DANTE_MCS *dante_mcs )
 				dante_mca->board_number,
 				dante_mca->configuration );
 
-	MX_DEBUG(-2,("%s: call_id = %lu",
-		fname, (unsigned long) call_id));
+	MX_DEBUG(-2,("%s: Configuring MCA '%s' with call_id = %lu",
+		fname, dante_mca->record->name, (unsigned long) call_id));
 
 	if ( call_id == 0 ) {
 		dante_error_status = getLastError( dante_error_code );

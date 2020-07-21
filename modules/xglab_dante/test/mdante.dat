@@ -1,5 +1,5 @@
 !load ../xglab_dante.mxo
 #
 dante interface controller dante "" "" 0x1 8 2 2.0 5.0 ./dante_config.xml
-mca1  device mca dante_mca "" "" 4096 0 0 dante SN01906 0 DC_HighImp
-mcs1  device mcs dante_mcs "" "" 4096 100 "" 0 1 "" mca1 0x0
+mca0  device mca dante_mca "" "" 4096 0 0 dante SN01906 0 DC_HighImp
+mcs0  device mcs dante_mcs "" "" 4096 100 "" 0 1 "" mca0 0x0

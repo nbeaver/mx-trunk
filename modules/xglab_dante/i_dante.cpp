@@ -18,6 +18,8 @@
 
 #define MXI_DANTE_DEBUG_FINISH_DELAYED_INITIALIZATION	FALSE
 
+#define MXI_DANTE_DEBUG_CALLBACKS			FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -101,10 +103,13 @@ mxi_dante_callback_fn( uint16_t type,
 
 	uint32_t i;
 
+#if MXI_DANTE_DEBUG_CALLBACKS
 	fprintf( stderr,
-	"\n>>> %s invoked.  type = %lu, call_id = %lu, length = %lu, ",
+	"\n>>> %s invoked.  type = %lu, call_id = %lu, length = %lu, "
+	"mxi_dante_callback_data = ",
 		fname, (unsigned long) type,
 		(unsigned long) call_id, (unsigned long) length);
+#endif
 
 	if ( length > MXU_DANTE_MAX_CALLBACK_DATA_LENGTH ) {
 		length = MXU_DANTE_MAX_CALLBACK_DATA_LENGTH;
@@ -115,8 +120,7 @@ mxi_dante_callback_fn( uint16_t type,
 
 	memcpy( mxi_dante_callback_data, data, length );
 
-	fprintf( stderr, "mxi_dante_callback_data = " );
-
+#if MXI_DANTE_DEBUG_CALLBACKS
 	for ( i = 0; i < length; i++ ) {
 		fprintf( stderr, "%lu ",
 		(unsigned long) mxi_dante_callback_data[i] );
@@ -124,6 +128,7 @@ mxi_dante_callback_fn( uint16_t type,
 
 	fprintf( stderr, "\n" );
 	fflush( stderr );
+#endif
 
 	mxi_dante_callback_id = 0;
 
@@ -139,13 +144,18 @@ mxi_dante_wait_for_answer( uint32_t call_id )
 
 	mxi_dante_callback_id = call_id;
 
+#if MXI_DANTE_DEBUG_CALLBACKS
 	MX_DEBUG(-2,("%s: Waiting for callback %lu",
 		fname, (unsigned long) call_id));
+#endif
 
 	for ( i = 0; i < 10; i++ ) {
 		if ( mxi_dante_callback_id != call_id ) {
+
+#if MXI_DANTE_DEBUG_CALLBACKS
 			MX_DEBUG(-2,("Callback %lu seen.",
 				(unsigned long) call_id ));
+#endif
 
 			return TRUE;
 		}
@@ -609,6 +619,7 @@ mxi_dante_finish_delayed_initialization( MX_RECORD *record )
 	MX_RECORD *mca_record = NULL;
 	MX_DANTE_MCA *dante_mca = NULL;
 	unsigned long i;
+	mx_bool_type show_devices;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -633,6 +644,12 @@ mxi_dante_finish_delayed_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( dante->dante_flags & MXF_DANTE_SHOW_DEVICES ) {
+		show_devices = TRUE;
+	} else {
+		show_devices = FALSE;
+	}
+
 	for ( i = 0; i < dante->num_mcas; i++ ) {
 
 		mca_record = dante->mca_record_array[i];
@@ -641,10 +658,12 @@ mxi_dante_finish_delayed_initialization( MX_RECORD *record )
 			continue;	/* Iterate the for(i) loop. */
 		}
 
-		mx_status = mxi_dante_show_parameters( mca_record );
+		if ( show_devices ) {
+			mx_status = mxi_dante_show_parameters( mca_record );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
 
 		dante_mca = (MX_DANTE_MCA *) mca_record->record_type_struct;
 
@@ -1217,10 +1236,12 @@ mxi_dante_load_config_file( MX_RECORD *record )
 		    	current_mca_record = mca_record;
 			current_dante_mca = dante_mca;
 
+#if 0
 			MX_DEBUG(-2,("%s: current_mca_record = '%s', "
 				"current_dante_mca->identifier = '%s'.",
 				fname, current_mca_record->name,
 				current_dante_mca->identifier ));
+#endif
 
 		    } /* End of the for(i) loop. */
 		}
