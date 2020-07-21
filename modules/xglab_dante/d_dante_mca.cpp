@@ -996,6 +996,8 @@ mxd_dante_mca_read( MX_MCA *mca )
 
 	dante_mca->total_num_measurements++;
 
+	/* Copy the spectrum data to the standard mca->channel_array. */
+
 	mca->current_num_channels = spectrum_size;
 
 	memset( mca->channel_array, 0,
@@ -1004,6 +1006,15 @@ mxd_dante_mca_read( MX_MCA *mca )
 	for ( i = 0; i < mca->current_num_channels; i++ ) {
 		mca->channel_array[i] = spectrum_array[i];
 	}
+
+	/* Save the real time, live time, icr, and ocr that were reported
+	 * in the stats structure by the call to getData().
+	 */
+
+	mca->real_time = 1.0e-6 * (double) stats.real_time;
+	mca->live_time = 1.0e-6 * (double)stats.live_time;
+	mca->input_count_rate = stats.ICR;
+	mca->output_count_rate = stats.OCR;
 
 	return MX_SUCCESSFUL_RESULT;
 }
