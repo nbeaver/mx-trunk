@@ -944,6 +944,7 @@ mx_cfn_fopen( int filename_type,
 
 	char cfn_filename[ MXU_FILENAME_LENGTH + 50 ];
 	FILE *file;
+	int saved_errno;
 
 	if ( filename == NULL ) {
 		errno = EINVAL;
@@ -963,6 +964,14 @@ mx_cfn_fopen( int filename_type,
 	}
 
 	file = fopen( cfn_filename, file_mode );
+
+	saved_errno = errno;
+
+	MX_DEBUG(-2,
+	("mx_cfn_fopen(): cfn_filename = '%s', file = %p, errno = %d",
+	 	cfn_filename, file, saved_errno));
+
+	errno = saved_errno;
 
 	return file;
 }

@@ -421,11 +421,6 @@ mxi_dante_open( MX_RECORD *record )
 
 	dante->num_master_devices = number_of_devices;
 
-#if 1
-	MX_DEBUG(-2,("%s: get_dev_number() = %lu",
-		fname, dante->num_master_devices ));
-#endif
-
 	/* Prepare for getting the identifiers of all boards available. */
 
 	dante->num_boards_for_chain = (unsigned long *)
@@ -943,9 +938,7 @@ mxi_dante_show_parameters( MX_RECORD *record )
 
 	struct configuration *configuration = &(dante_mca->configuration);
 
-	MX_DEBUG(-2,("**** %s: '%s' dante_mca = %p, configuration = %p",
-		fname, dante_mca->record->name,
-		dante_mca, configuration));
+	MX_DEBUG(-2,("**** %s for MCA '%s'", fname, dante_mca->record->name));
 
 	MX_DEBUG(-2,("  fast_filter_thr = %lu",
 		(unsigned long) configuration->fast_filter_thr ));
@@ -1074,16 +1067,13 @@ mxi_dante_load_config_file( MX_RECORD *record )
 	 * is occurring?
 	 */
 
-	if ( mx_database_is_server( record ) ) {
-		config_file = mx_cfn_fopen( MX_CFN_CONFIG,
+	config_file = mx_cfn_fopen( MX_CFN_CONFIG,
 				dante->config_filename, "r" );
-	} else {
-		config_file = mx_cfn_fopen( MX_CFN_ABSOLUTE,
-				dante->config_filename, "r" );
-	}
 
-#if 0
-	MX_DEBUG(-2,("%s: config_file = %p", fname, config_file ));
+	saved_errno = errno;
+#if 1
+	MX_DEBUG(-2,("%s: config_file = %p, errno = %d",
+			fname, config_file, saved_errno ));
 #endif
 
 	if ( config_file == (FILE *) NULL ) {
