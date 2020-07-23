@@ -935,11 +935,22 @@ mx_expand_filename_macros( const char *original_filename,
 	return new_filename;
 }
 
+/* The returned_errno argument is to work around a Win32 "feature"
+ * where the errno variable in a DLL is completely independent
+ * of the errno variable in the EXE or other DLL that called it.
+ *
+ * See here for details:
+ *   https://stackoverflow.com/questions/44898542/shared-errno-variable-between-library-dll-and-application?noredirect=1&lq=1
+ */
+
 MX_EXPORT FILE *
-mx_cfn_fopen( int filename_type,
+mx_cfn_fopen_internal( int filename_type,
 		const char *filename,
-		const char *file_mode )
+		const char *file_mode,
+		int *returned_errno )
 {
+	static const char fname[] = "mx_cfn_fopen_internal()";
+
 	mx_status_type mx_status;
 
 	char cfn_filename[ MXU_FILENAME_LENGTH + 50 ];
@@ -963,15 +974,18 @@ mx_cfn_fopen( int filename_type,
 		return NULL;
 	}
 
+	errno = 0;
+
 	file = fopen( cfn_filename, file_mode );
 
 	saved_errno = errno;
 
-	MX_DEBUG(-2,
-	("mx_cfn_fopen(): cfn_filename = '%s', file = %p, errno = %d",
-	 	cfn_filename, file, saved_errno));
+	if ( returned_errno != (int *) NULL ) {
+		*returned_errno = saved_errno;
+	}
 
-	errno = saved_errno;
+	MX_DEBUG(-2,("%s: cfn_filename = '%s', file = %p, errno = %d",
+	 	fname, cfn_filename, file, saved_errno));
 
 	return file;
 }

@@ -365,12 +365,26 @@ extern "C" {
  * of inlining the function that follows the keyword.  If it wants to.
  * In the fullness of time.
  *
- * The reason that it is a macro is to allow for the possibility of 
- * compilers that either use something other than the C99 'inline'
- * keyword to specify inlining, or that don't support inlining.
+ * Usually you will want to say 'static MX_INLINE'.
  */
 
-#define MX_INLINE	inline
+#if ( defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901l) )
+    /* C99 */
+#   define MX_INLINE	inline
+
+#elif defined( OS_WIN32 )
+#   define MX_INLINE	_inline
+
+#elif defined(__GNUC__)
+#   define MX_INLINE	__inline__
+
+#elif 0
+    /* For use by old compilers that do not implement inline functions. */
+#   define MX_INLINE
+
+#else
+#   error MX_INLINE is not yet implemented for this build target.
+#endif
 
 /*------------------------------------------------------------------------*/
 

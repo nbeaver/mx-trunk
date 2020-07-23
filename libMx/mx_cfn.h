@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2006-2007, 2009, 2011 Illinois Institute of Technology
+ * Copyright 2006-2007, 2009, 2011, 2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -42,9 +42,76 @@ extern "C" {
 #define MX_CFN_ABSOLUTE	12	/* no default */
 #define MX_CFN_MODULE	13	/* lib/modules */
 
-MX_API FILE *mx_cfn_fopen( int filename_type,
-			const char *filename,
-			const char *mode );
+/*-----------------------------------------------------------------------*/
+
+MX_API FILE *mx_cfn_fopen_internal( int filename_type,
+				const char *filename,
+				const char *mode,
+				int *returned_errno );
+
+/* The following ugly macro is necessary for Win32 since errno for a DLL
+ * is completely independent of the errno in the calling EXE or DLL.
+ *
+ * Note that the line (_mx_returned_file); at the end of the macro
+ * essentially becomes the "return value" of the macro.
+ *
+ * See here for details:
+ *   https://stackoverflow.com/questions/44898542/shared-errno-variable-between-library-dll-and-application?noredirect=1&lq=1
+ */
+
+#if 0
+
+#define mx_cfn_fopen(t,f,n) \
+  { \
+    FILE *_mx_returned_file; \
+    int _mx_returned_errno;  \
+      \
+    _mx_returned_file = mx_cfn_open_internal((t),(f),(n),&_mx_returned_errno);\
+      \
+    if ( _mx_returned_file == NULL ) { \
+      errno = _mx_returned_errno; \
+    } else { \
+      errno = 0; \
+    } \
+      \
+    (_mx_returned_file); \
+  }
+
+#elif defined( OS_WIN32 )
+
+/* MX_INLINE is used here to force this function to be in the EXE or DLL
+ * that calls into libMx, instead of being in libMx itself.
+ */
+
+static MX_INLINE
+FILE *mx_cfn_fopen( int filename_type,
+		const char *filename,
+		const char *mode )
+{
+	FILE *returned_file;
+	int returned_errno;
+
+	fprintf( stderr, "mx_cfn_fopen() inline invoked.\n" );
+
+	returned_file = mx_cfn_fopen_internal( filename_type, filename, mode,
+							&returned_errno );
+
+	if ( returned_file == (FILE *) NULL ) {
+		errno = returned_errno;
+	} else {
+		errno = 0;
+	}
+
+	return returned_file;
+}
+
+#else
+   /*---- Not Win32 ----*/
+#define mx_cfn_fopen(t,f,n)	mx_cfn_open_internal( (t),(f),(m),NULL )
+
+#endif
+
+/*-----------------------------------------------------------------------*/
 
 MX_API mx_status_type mx_cfn_construct_filename( int filename_type,
 					const char *original_filename,
