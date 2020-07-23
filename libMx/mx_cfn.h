@@ -107,7 +107,7 @@ FILE *mx_cfn_fopen( int filename_type,
 
 #else
    /*---- Not Win32 ----*/
-#define mx_cfn_fopen(t,f,n)	mx_cfn_open_internal( (t),(f),(m),NULL )
+#define mx_cfn_fopen(t,f,n)	mx_cfn_fopen_internal( (t),(f),(n),NULL )
 
 #endif
 
