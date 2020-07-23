@@ -2692,6 +2692,7 @@ mx_mca_default_get_parameter_handler( MX_MCA *mca )
 	static const char fname[] = "mx_mca_default_get_parameter_handler()";
 
 	unsigned long i, j, channel_value, integral;
+	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked for MCA '%s', parameter type '%s' (%ld).",
 		fname, mca->record->name,
@@ -2764,6 +2765,19 @@ mx_mca_default_get_parameter_handler( MX_MCA *mca )
 		mca->roi_integral_array[i] = integral;
 		break;
 
+	case MXLV_MCA_ROI_INTEGRAL_ARRAY:
+		/* Loop over all the ROIs to get their integrals. */
+
+		for ( i = 0; i < mca->current_num_rois; i++ ) {
+			mx_status =
+			    mx_mca_get_roi_integral( mca->record, i, NULL );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
+		break;
+
 	case MXLV_MCA_SOFT_ROI:
 		i = mca->soft_roi_number;
 
@@ -2821,6 +2835,8 @@ mx_mca_default_get_parameter_handler( MX_MCA *mca )
 		"report the program bug to Bill Lavender.",
 			mca->channel_number, mca->maximum_num_channels );
 		}
+
+		mca->channel_value = mca->channel_array[ mca->channel_number ];
 		break;
 
 	default:
@@ -2847,6 +2863,7 @@ mx_mca_default_set_parameter_handler( MX_MCA *mca )
 	i = mca->roi_number;
 
 	switch( mca->parameter_type ) {
+	case MXLV_MCA_CURRENT_NUM_CHANNELS:
 	case MXLV_MCA_PRESET_TYPE:
 	case MXLV_MCA_PRESET_REAL_TIME:
 	case MXLV_MCA_PRESET_LIVE_TIME:

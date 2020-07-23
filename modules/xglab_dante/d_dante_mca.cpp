@@ -235,6 +235,8 @@ mxd_dante_mca_create_record_structures( MX_RECORD *record )
 
 	dante_mca->mca_record_array_index = -1;
 
+	mca->new_data_available = FALSE;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -304,6 +306,8 @@ mxd_dante_mca_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	mca->current_num_rois = mca->maximum_num_rois;
 
 	mca->trigger_mode = MXF_DEV_INTERNAL_TRIGGER;
 
@@ -799,6 +803,8 @@ mxd_dante_mca_arm( MX_MCA *mca )
 
 	(void) resetLastError();
 
+	mca->new_data_available = FALSE;
+
 	dante->dante_mode = MXF_DANTE_NORMAL_MODE;
 
 	call_id = start( dante_mca->identifier,
@@ -994,6 +1000,8 @@ mxd_dante_mca_read( MX_MCA *mca )
 		}
 	}
 
+	mca->new_data_available = TRUE;
+
 	dante_mca->total_num_measurements++;
 
 	/* Copy the spectrum data to the standard mca->channel_array. */
@@ -1012,7 +1020,7 @@ mxd_dante_mca_read( MX_MCA *mca )
 	 */
 
 	mca->real_time = 1.0e-6 * (double) stats.real_time;
-	mca->live_time = 1.0e-6 * (double)stats.live_time;
+	mca->live_time = 1.0e-6 * (double) stats.live_time;
 	mca->input_count_rate = stats.ICR;
 	mca->output_count_rate = stats.OCR;
 
@@ -1046,6 +1054,8 @@ mxd_dante_mca_clear( MX_MCA *mca )
 	MX_DEBUG(-2,("%s: dante_mca->spectrum_data[0] = %lu",
 				fname, dante_mca->spectrum_data[0]));
 #endif
+
+	mca->new_data_available = FALSE;
 
 	/* FIXME: clear_chain() is not documented. clear() is documented
 	 * but does not exist.
@@ -1163,126 +1173,21 @@ mxd_dante_mca_get_parameter( MX_MCA *mca )
 	MX_HRT_START( measurement );
 #endif
 
-	switch( mca->parameter_type ) {
-	case MXLV_MCA_CHANNEL_NUMBER:
-
 		/* These items are stored in memory and are not retrieved
 		 * from the hardware.
 		 */
 
-#if MXI_DANTE_DEBUG
-		MX_DEBUG(-2,("%s: mca->channel_number = %lu",
-			fname, mca->channel_number));
-#endif
-		break;
-
-	case MXLV_MCA_CURRENT_NUM_CHANNELS:
-
-#if MXI_DANTE_DEBUG
-		MX_DEBUG(-2,("%s: mca->current_num_channels = %ld",
-			fname, mca->current_num_channels));
-#endif
-		break;
-
-	case MXLV_MCA_PRESET_TYPE:
-
-#if MXI_DANTE_DEBUG
-		MX_DEBUG(-2,("%s: mca->preset_type = %ld",
-			fname, mca->preset_type));
-#endif
-		break;
-
-	case MXLV_MCA_PRESET_REAL_TIME:
-
-#if MXI_DANTE_DEBUG_GET_PRESETS
-		MX_DEBUG(-2,("%s: mca->preset_real_time = %g",
-			fname, mca->preset_real_time));
-#endif
-		break;
-
-	case MXLV_MCA_PRESET_LIVE_TIME:
-
-#if MXI_DANTE_DEBUG_GET_PRESETS
-		MX_DEBUG(-2,("%s: mca->preset_live_time = %g",
-			fname, mca->preset_live_time));
-#endif
-		break;
-
-	case MXLV_MCA_PRESET_COUNT:
-
-#if MXI_DANTE_DEBUG_GET_PRESETS
-		MX_DEBUG(-2,("%s: mca->preset_count = %g",
-			fname, mca->preset_count));
-#endif
-		break;
-
-	case MXLV_MCA_CHANNEL_VALUE:
-		mca->channel_value = mca->channel_array[ mca->channel_number ];
-
-#if MXI_DANTE_DEBUG
-		MX_DEBUG(-2,("%s: mca->channel_value = %lu",
-			fname, mca->channel_value));
-#endif
-		break;
-
-	case MXLV_MCA_ROI_ARRAY:
-		break;
-
-	case MXLV_MCA_ROI_INTEGRAL_ARRAY:
-	case MXLV_MCA_ROI_INTEGRAL:
-
-#if MXI_DANTE_DEBUG
-		MX_DEBUG(-2,("%s: Reading roi_integral_array", fname));
-#endif
-		break;
-
-	case MXLV_MCA_ROI:
-
-#if MXI_DANTE_DEBUG
-		MX_DEBUG(-2,("%s: mca->roi[0] = %lu", fname, mca->roi[0]));
-		MX_DEBUG(-2,("%s: mca->roi[1] = %lu", fname, mca->roi[1]));
-#endif
-		break;
-	
+	switch( mca->parameter_type ) {
 	case MXLV_MCA_REAL_TIME:
-
-#if MXI_DANTE_DEBUG
-		MX_DEBUG(-2,("%s: mca->real_time = %g",
-			fname, mca->real_time));
-#endif
-		break;
-
 	case MXLV_MCA_LIVE_TIME:
-
-#if MXI_DANTE_DEBUG
-		MX_DEBUG(-2,("%s: mca->live_time = %g",
-			fname, mca->live_time));
-#endif
-		break;
-
 	case MXLV_MCA_INPUT_COUNT_RATE:
-
-#if MXI_DANTE_DEBUG
-		MX_DEBUG(-2,("%s: $$$ mca->input_count_rate = %g",
-			fname, mca->input_count_rate));
-#endif
-		break;
-
 	case MXLV_MCA_OUTPUT_COUNT_RATE:
 
-#if MXI_DANTE_DEBUG
-		MX_DEBUG(-2,("%s: $$$ mca->output_count_rate = %g",
-			fname, mca->output_count_rate));
-#endif
+		/* These values are set after getData() is called by
+		 * mxd_dante_mca_read(), * so we do not do anything here.
+		 */
+
 		break;
-
-	case MXLV_MCA_COUNTS:
-
-#if MXI_DANTE_DEBUG
-		MX_DEBUG(-2,("%s: mca->counts = %lu", fname, mca->counts));
-#endif
-		break;
-
 	default:
 		return mx_mca_default_get_parameter_handler( mca );
 		break;
@@ -1338,28 +1243,6 @@ mxd_dante_mca_set_parameter( MX_MCA *mca )
 #endif
 
 	switch( mca->parameter_type ) {
-	case MXLV_MCA_CURRENT_NUM_CHANNELS:
-		break;
-
-	case MXLV_MCA_PRESET_TYPE:
-		break;
-
-	case MXLV_MCA_PRESET_REAL_TIME:
-		break;
-
-	case MXLV_MCA_PRESET_LIVE_TIME:
-		break;
-
-	case MXLV_MCA_PRESET_COUNT:
-		break;
-
-
-	case MXLV_MCA_ROI_ARRAY:
-		break;
-
-	case MXLV_MCA_ROI:
-		break;
-
 	default:
 		return mx_mca_default_set_parameter_handler( mca );
 		break;
