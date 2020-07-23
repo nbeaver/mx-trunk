@@ -235,8 +235,6 @@ mxd_dante_mca_create_record_structures( MX_RECORD *record )
 
 	dante_mca->mca_record_array_index = -1;
 
-	mca->new_data_available = FALSE;
-
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -312,6 +310,28 @@ mxd_dante_mca_open( MX_RECORD *record )
 	mca->trigger_mode = MXF_DEV_INTERNAL_TRIGGER;
 
 	dante_mca->total_num_measurements = 0;
+
+	/* Initialize a bunch of parameters to zero. */
+
+	mca->roi[0] = 0;
+	mca->roi[1] = 0;
+	mca->roi_integral = 0;
+	mca->channel_number = 0;
+	mca->channel_value = 0;
+	mca->roi_number = 0;
+	mca->real_time = 0.0;
+	mca->live_time = 0.0;
+	mca->counts = 0;
+	mca->preset_real_time = 0.0;
+	mca->preset_live_time = 0.0;
+	mca->preset_count = 0;
+	mca->last_measurement_interval = -1.0;
+	mca->preset_count_region[0] = 0;
+	mca->preset_count_region[1] = 0;
+	mca->energy_scale = 0.0;
+	mca->energy_offset = 0.0;
+	mca->input_count_rate = 0.0;
+	mca->output_count_rate = 0.0;
 
 #if 0
 	/* Detect the firmware used by this board. */
@@ -803,8 +823,6 @@ mxd_dante_mca_arm( MX_MCA *mca )
 
 	(void) resetLastError();
 
-	mca->new_data_available = FALSE;
-
 	dante->dante_mode = MXF_DANTE_NORMAL_MODE;
 
 	call_id = start( dante_mca->identifier,
@@ -1000,8 +1018,6 @@ mxd_dante_mca_read( MX_MCA *mca )
 		}
 	}
 
-	mca->new_data_available = TRUE;
-
 	dante_mca->total_num_measurements++;
 
 	/* Copy the spectrum data to the standard mca->channel_array. */
@@ -1021,8 +1037,8 @@ mxd_dante_mca_read( MX_MCA *mca )
 
 	mca->real_time = 1.0e-6 * (double) stats.real_time;
 	mca->live_time = 1.0e-6 * (double) stats.live_time;
-	mca->input_count_rate = stats.ICR;
-	mca->output_count_rate = stats.OCR;
+	mca->input_count_rate = (double) stats.ICR;
+	mca->output_count_rate = (double) stats.OCR;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1054,8 +1070,6 @@ mxd_dante_mca_clear( MX_MCA *mca )
 	MX_DEBUG(-2,("%s: dante_mca->spectrum_data[0] = %lu",
 				fname, dante_mca->spectrum_data[0]));
 #endif
-
-	mca->new_data_available = FALSE;
 
 	/* FIXME: clear_chain() is not documented. clear() is documented
 	 * but does not exist.
