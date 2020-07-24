@@ -829,33 +829,63 @@ mxi_dante_configure( MX_RECORD *record )
 
 /*-------------------------------------------------------------------------*/
 
+MX_EXPORT mx_status_type
+mxi_dante_set_configuration_to_defaults(
+		MX_DANTE_CONFIGURATION *mx_dante_configuration )
+{
+	static const char fname[] = "mxi_dante_set_configuration_to_defaults()";
+
+	if ( mx_dante_configuration == (MX_DANTE_CONFIGURATION *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_DANTE_CONFIGURATION pointer passed was NULL." );
+	}
+
+	/* Initialize the configuration parameters to the values that
+	 * are set as the defaults in the vendor's header file.
+	 */
+
+	struct configuration *test_config = new struct configuration;
+
+	memcpy( &(mx_dante_configuration->configuration), test_config,
+					sizeof(struct configuration) );
+
+	delete test_config;
+
+	mx_dante_configuration->offset = 0;
+	mx_dante_configuration->timestamp_delay = 0;
+
+	mx_dante_configuration->input_mode = DC_HighImp;
+	mx_dante_configuration->gating_mode = FreeRunning;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
 static mx_status_type
-mxi_dante_set_parameter_from_string( MX_DANTE_MCA *dante_mca,
+mxi_dante_set_parameter_from_string(
+		MX_DANTE_CONFIGURATION *mx_dante_configuration,
 					char *parameter_name,
 					char *parameter_string )
 {
 	static const char fname[] = "mxi_dante_set_parameter_from_string()";
 
-	if ( dante_mca == (MX_DANTE_MCA *) NULL ) {
+	if ( mx_dante_configuration == (MX_DANTE_CONFIGURATION  *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_DANTE_MCA pointer passed was NULL." );
+		"The MX_DANTE_CONFIGURATION pointer passed was NULL." );
 	}
 
-#if 0
-	MX_DEBUG(-2,("  '%s' parameter_name = '%s', parameter_string = '%s'.",
-		dante_mca->record->name, parameter_name, parameter_string));
-#endif
+	struct configuration *configuration =
+		&(mx_dante_configuration->configuration);
 
-	struct configuration *configuration = &(dante_mca->configuration);
+#if 1
+	MX_DEBUG(-2,("  parameter_name = '%s', parameter_string = '%s'.",
+		parameter_name, parameter_string));
+#endif
 
 	/* Look through the known parameter names */
 
 	if ( strcmp( parameter_name, "fast_filter_thr" ) == 0 ) {
-#if 0
-		MX_DEBUG(-2,("**** %s: '%s' dante_mca = %p, configuration = %p",
-			fname, dante_mca->record->name,
-			dante_mca, configuration));
-#endif
 		configuration->fast_filter_thr = atol( parameter_string );
 
 	} else if ( strcmp( parameter_name, "energy_filter_thr" ) == 0 ) {
@@ -922,10 +952,11 @@ mxi_dante_set_parameter_from_string( MX_DANTE_MCA *dante_mca,
 		configuration->other_param = atol( parameter_string );
 
 	} else if ( strcmp( parameter_name, "Offset" ) == 0 ) {
-		dante_mca->offset = atol( parameter_string );
+		mx_dante_configuration->offset = atol( parameter_string );
 
 	} else if ( strcmp( parameter_name, "TimestampDelay" ) == 0 ) {
-		dante_mca->timestamp_delay = atol( parameter_string );
+		mx_dante_configuration->timestamp_delay =
+						atol( parameter_string );
 
 	} else if ( strncmp( parameter_name, "/DPP", 4 ) == 0 ) {
 		/* We throw away the XML </DPP> at the end
@@ -937,9 +968,7 @@ mxi_dante_set_parameter_from_string( MX_DANTE_MCA *dante_mca,
 		 */
 	} else {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Unrecognized parameter seen for DANTE MCA '%s'.  "
-		"parameter_name = '%s', parameter_string = '%s'.",
-			dante_mca->record->name,
+		"Unrecognized parameter_name = '%s', parameter_string = '%s'.",
 			parameter_name, parameter_string );
 	}
 
@@ -955,7 +984,11 @@ mxi_dante_show_parameters( MX_RECORD *record )
 
 	MX_DANTE_MCA *dante_mca = (MX_DANTE_MCA *) record->record_type_struct;
 
-	struct configuration *configuration = &(dante_mca->configuration);
+	MX_DANTE_CONFIGURATION *mx_dante_configuration =
+				&(dante_mca->mx_dante_configuration);
+
+	struct configuration *configuration =
+				&(mx_dante_configuration->configuration);
 
 	MX_DEBUG(-2,("**** %s for MCA '%s'", fname, dante_mca->record->name));
 
@@ -1049,7 +1082,12 @@ mxi_dante_load_config_file( MX_RECORD *record )
 	unsigned long i;
 	int saved_errno;
 	char buffer[200];
+
+	struct configuration new_configuration;
+
 	mx_status_type mx_status;
+
+	mx_breakpoint();
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -1078,7 +1116,7 @@ mxi_dante_load_config_file( MX_RECORD *record )
 	 * elsewhere in MX, we may want to revisit this choice here.
 	 */
 
-	/* FIXME: fopen() seems to work differently in C++, with the
+	/* FIXME!!!: fopen() seems to work differently in C++, with the
 	 * result that it is impossible to read strings from the file
 	 * using mx_fgets().  By using mx_cfn_fopen(), we use a copy
 	 * of fopen() in the C library libMx.  That seems to work
@@ -1133,7 +1171,7 @@ mxi_dante_load_config_file( MX_RECORD *record )
 	    if ( ptr == (char *) NULL ) {
 
 		if ( feof(config_file) ) {
-#if 0
+#if 1
 		    MX_DEBUG(-2,("%s: Reached end of file.", fname));
 #endif
 
@@ -1152,7 +1190,7 @@ mxi_dante_load_config_file( MX_RECORD *record )
 		}
 	    }
 
-#if 0
+#if 1
 	    MX_DEBUG(-2,("%s: buffer = '%s'", fname, buffer));
 #endif
 
@@ -1173,111 +1211,14 @@ mxi_dante_load_config_file( MX_RECORD *record )
 		    }
 		}
 
+		mx_warning( "FIXME!!! - We are not actually reprogramming "
+			"any of the parameters!!!!!!" );
+
 		if ( identifier_ptr != NULL ) {
 		    /* identifier_ptr may contain the name of an MCA.
 		     * So we go look for a match in dante->mca_record_array.
 		     */
 
-		    current_mca_record = NULL;
-		    current_dante_mca = NULL;
-
-		    for ( i = 0; i < dante->num_mcas; i++ ) {
-			mca_record = dante->mca_record_array[i];
-
-			if ( mca_record == (MX_RECORD *) NULL ) {
-			    continue;	/* Cycle the for(i) loop. */
-			}
-
-			dante_mca = (MX_DANTE_MCA *)
-					mca_record->record_type_struct;
-
-			if ( dante_mca == (MX_DANTE_MCA *) NULL ) {
-			    return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			    "The MX_DANTE_MCA pointer for DANTE MCA '%s' "
-			    "is NULL.", mca_record->name );
-			}
-
-			/* Is this MCA the one we are looking for? */
-
-#if 0
-			MX_DEBUG(-2,("%s: identifier_ptr = '%s'\n",
-				fname, identifier_ptr));
-
-			for (n = 0; n < strlen(identifier_ptr); n++ ) {
-				fprintf( stderr, "%#x (%c) ",
-					identifier_ptr[n],
-					identifier_ptr[n]);
-			}
-
-			MX_DEBUG(-2,("%s: dante_mca->identifier = '%s'\n",
-				fname, dante_mca->identifier));
-
-			for (n = 0; n < strlen(dante_mca->identifier); n++ ) {
-				fprintf( stderr, "%#x (%c) ",
-					dante_mca->identifier[n],
-					dante_mca->identifier[n]);
-			}
-			fprintf(stderr,"\n" );
-			fflush(stderr);
-#endif
-
-			if ( strcmp( identifier_ptr,
-					dante_mca->identifier ) != 0 )
-			{
-			    /* This is not the right MCA, so go on
-			     * to the next one.
-			     */
-
-			    continue;	/* Cycle the for(i) loop. */
-			}
-
-			/* We have found the matching MCA, so save that fact. */
-
-		    	current_mca_record = mca_record;
-			current_dante_mca = dante_mca;
-
-#if 0
-			MX_DEBUG(-2,("%s: current_mca_record = '%s', "
-				"current_dante_mca->identifier = '%s'.",
-				fname, current_mca_record->name,
-				current_dante_mca->identifier ));
-#endif
-
-		    } /* End of the for(i) loop. */
-		}
-	    } else
-	    if ( current_dante_mca == (MX_DANTE_MCA *) NULL ) {
-#if 0
-		MX_DEBUG(-2,("%s: current_dante_mca = NULL", fname));
-#endif
-	    } else {
-		/* See if this line contains an MCA parameter name. */
-
-		/* Look for the first '<' character on the line. */
-
-		parameter_name = strchr( buffer, '<' );
-
-		if ( parameter_name != (char *) NULL ) {
-		    parameter_name++;
-
-		    parameter_string = strchr( buffer, '>' );
-
-		    if ( parameter_string != (char *) NULL ) {
-			*parameter_string = '\0';
-
-			parameter_string++;
-
-			parameter_end = strchr( parameter_string, '<' );
-
-			if ( parameter_end != (char *) NULL ) {
-				*parameter_end = '\0';
-			}
-
-			mx_status = mxi_dante_set_parameter_from_string(
-					current_dante_mca,
-					parameter_name,
-					parameter_string );
-		    }
 		}
 	    }
 

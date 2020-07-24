@@ -401,19 +401,11 @@ mxd_dante_mca_open( MX_RECORD *record )
 	 * are set as the defaults in the vendor's header file.
 	 */
 
-	struct configuration *test_config = new struct configuration;
+	mx_status = mxi_dante_set_configuration_to_defaults(
+				&(dante_mca->mx_dante_configuration) );
 
-	memcpy( &(dante_mca->configuration), test_config,\
-			sizeof(struct configuration) );
-
-	delete test_config;
-
-	/* Offset and TimestampDelay are not part of the configuration
-	 * structure, so we initialize them separately here.
-	 */
-
-	dante_mca->offset = 0;
-	dante_mca->timestamp_delay = 0;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Search for an empty slot in the MCA array. */
 
@@ -601,6 +593,7 @@ mxd_dante_mca_configure( MX_DANTE_MCA *dante_mca, MX_DANTE_MCS *dante_mcs )
 	uint32_t call_id;
 	uint16_t dante_error_code = DLL_NO_ERROR;
 	bool dante_error_status;
+	MX_DANTE_CONFIGURATION *mx_dante_configuration = NULL;
 	InputMode input_mode;
 	GatingMode gating_mode;
 
@@ -633,6 +626,8 @@ mxd_dante_mca_configure( MX_DANTE_MCA *dante_mca, MX_DANTE_MCS *dante_mcs )
 
 	/*---*/
 
+	mx_dante_configuration = &(dante_mca->mx_dante_configuration);
+
 #if 0
 	MX_DEBUG(-2,("%s: About to configure DANTE MCA '%s'.",
 		fname, dante_mca->record->name ));
@@ -644,7 +639,7 @@ mxd_dante_mca_configure( MX_DANTE_MCA *dante_mca, MX_DANTE_MCS *dante_mcs )
 
 	call_id = configure( dante_mca->identifier,
 				dante_mca->board_number,
-				dante_mca->configuration );
+				mx_dante_configuration->configuration );
 
 	MX_DEBUG(-2,("%s: Configuring MCA '%s' with call_id = %lu",
 		fname, dante_mca->record->name, (unsigned long) call_id));
@@ -1037,8 +1032,8 @@ mxd_dante_mca_read( MX_MCA *mca )
 
 	mca->real_time = 1.0e-6 * (double) stats.real_time;
 	mca->live_time = 1.0e-6 * (double) stats.live_time;
-	mca->input_count_rate = (double) stats.ICR;
-	mca->output_count_rate = (double) stats.OCR;
+	mca->input_count_rate = 1.0e3 * (double) stats.ICR;
+	mca->output_count_rate = 1.0e3 * (double) stats.OCR;
 
 	return MX_SUCCESSFUL_RESULT;
 }

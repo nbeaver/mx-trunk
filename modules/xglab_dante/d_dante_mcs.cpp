@@ -371,22 +371,7 @@ mxd_dante_mcs_arm( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Configure the gating for the MCA this MCS depends on. */
-
-	new_other_param = dante_mca->configuration.other_param;
-
-	/* Replace the old gating bits with new gating bits. */
-
-	new_other_param &= 0xfffffffc;
-
-	if ( mca->trigger_mode & MXF_DEV_EXTERNAL_TRIGGER ) {
-		new_other_param &= 0x1;
-	}
-	if ( mca->trigger_mode & MXF_DEV_TRIGGER_HIGH ) {
-		new_other_param &= 0x2;
-	}
-
-	dante_mca->configuration.other_param = new_other_param;
+	mx_warning( "Need to initialize mx_dante_configuration here!" );
 
 	mx_status = mxd_dante_mca_configure( dante_mca, dante_mcs );
 

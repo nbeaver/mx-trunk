@@ -76,6 +76,18 @@ typedef struct {
 	char **board_identifier;
 } MX_DANTE;
 
+#ifdef __cplusplus
+
+typedef struct {
+	struct configuration configuration;
+	unsigned long offset;
+	unsigned long timestamp_delay;
+	InputMode input_mode;
+	GatingMode gating_mode;
+} MX_DANTE_CONFIGURATION;
+
+#endif
+
 extern uint32_t mxi_dante_callback_id;
 extern uint32_t mxi_dante_callback_data[MXU_DANTE_MAX_CALLBACK_DATA_LENGTH];
 
@@ -165,6 +177,11 @@ MX_API mx_status_type mxi_dante_load_config_file( MX_RECORD *record );
 MX_API mx_status_type mxi_dante_save_config_file( MX_RECORD *record );
 
 MX_API mx_status_type mxi_dante_configure( MX_RECORD *record );
+
+#ifdef __cplusplus
+MX_API mx_status_type mxi_dante_set_configuration_to_defaults(
+			MX_DANTE_CONFIGURATION *mx_dante_configuration );
+#endif
 
 #ifdef __cplusplus
 }

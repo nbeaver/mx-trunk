@@ -73,7 +73,7 @@ typedef struct {
 	uint64_t *spectrum_data;
 
 #ifdef __cplusplus
-	struct configuration configuration;
+	MX_DANTE_CONFIGURATION mx_dante_configuration;
 #endif
 } MX_DANTE_MCA;
 
