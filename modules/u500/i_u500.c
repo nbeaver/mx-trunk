@@ -7,7 +7,8 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2004, 2006, 2008-2010, 2012, 2019 Illinois Institute of Technology
+ * Copyright 2004, 2006, 2008-2010, 2012, 2019-2020
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -204,7 +205,7 @@ mxi_u500_create_record_structures( MX_RECORD *record )
 
 	/* Initialize some variables. */
 
-	strcpy( u500->load_program, "" );
+	strlcpy( u500->load_program, "", sizeof(u500->load_program) );
 
 	u500->program_number = -1;
 	u500->unload_program = -1;

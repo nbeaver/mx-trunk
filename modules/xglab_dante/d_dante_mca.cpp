@@ -402,7 +402,7 @@ mxd_dante_mca_open( MX_RECORD *record )
 	 */
 
 	mx_status = mxi_dante_set_configuration_to_defaults(
-				&(dante_mca->mx_dante_configuration) );
+			&(dante_mca->mx_dante_configuration), NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

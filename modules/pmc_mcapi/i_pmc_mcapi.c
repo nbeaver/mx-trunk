@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2005, 2008, 2010, 2012, 2019 Illinois Institute of Technology
+ * Copyright 2004-2005, 2008, 2010, 2012, 2019-2020
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -982,7 +983,8 @@ mxi_pmc_mcapi_translate_error( long mcapi_error_code,
 			"New MCAPI error code was %ld",
 				mcapi_error_code, translate_status );
 		} else if ( buffer_length >= 40 ) {
-			strcpy( buffer, "MCAPI error translation failed." );
+			strlcpy( buffer, "MCAPI error translation failed.",
+							buffer_length );
 		} else {
 			for ( i = 0; i < (buffer_length - 1); i++ ) {
 				buffer[i] = '*';

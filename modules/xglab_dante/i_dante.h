@@ -27,6 +27,8 @@ extern "C" {
 
 #define MXU_DANTE_MAX_CALLBACK_DATA_LENGTH	20
 
+#define MXU_DANTE_MAX_CHAIN_NAME_LENGTH		80
+
 #define MX_DANTE_VERSION( major, minor, update, extra ) \
 	( 1000000 * (major) + 10000 * (minor) + 100 * (update) + (extra) )
 
@@ -79,6 +81,8 @@ typedef struct {
 #ifdef __cplusplus
 
 typedef struct {
+	char chain_name[MXU_DANTE_MAX_CHAIN_NAME_LENGTH+1];
+
 	struct configuration configuration;
 	unsigned long offset;
 	unsigned long timestamp_delay;
@@ -180,7 +184,8 @@ MX_API mx_status_type mxi_dante_configure( MX_RECORD *record );
 
 #ifdef __cplusplus
 MX_API mx_status_type mxi_dante_set_configuration_to_defaults(
-			MX_DANTE_CONFIGURATION *mx_dante_configuration );
+			MX_DANTE_CONFIGURATION *mx_dante_configuration,
+			char *configuration_chain_name );
 #endif
 
 #ifdef __cplusplus
