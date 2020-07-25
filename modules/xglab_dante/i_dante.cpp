@@ -988,11 +988,87 @@ mxi_dante_set_parameter_from_string(
 
 static mx_status_type
 mxi_dante_copy_parameters_to_chain( MX_RECORD *dante_record,
-				MX_DANTE_CONFIGURATION *chain_configuration )
+			MX_DANTE_CONFIGURATION *chain_configuration )
 {
 	static const char fname[] = "mxi_dante_copy_parameters_to_chain()";
 
-	mx_warning( "%s: This function is not yet implemented.", fname );
+	MX_DANTE *dante = NULL;
+	MX_RECORD *mca_record = NULL;
+	MX_DANTE_MCA *dante_mca = NULL;
+	char *chain_name = NULL;
+	unsigned long i;
+
+	if ( dante_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+	if ( chain_configuration == (MX_DANTE_CONFIGURATION *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_DANTE_CONFIGURATION pointer passed for DANTE "
+		"record '%s' was NULL.", dante_record->name );
+	}
+
+	MX_DEBUG(-2,("%s: dante_record = '%s'.", fname, dante_record->name));
+
+	chain_name = chain_configuration->chain_name;
+
+	MX_DEBUG(-2,("%s: Copying DANTE configuration to chain '%s'.",
+		fname, chain_name ));
+
+	dante = (MX_DANTE *) dante_record->record_type_struct;
+
+	if ( dante == (MX_DANTE *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_DANTE pointer for DANTE record '%s' is NULL.",
+			dante_record->name );
+	}
+	if ( dante->mca_record_array == (MX_RECORD **) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The mca_record_array pointer for DANTE record '%s' is NULL.",
+			dante_record->name );
+	}
+
+	for ( i = 0; i < dante->num_mcas; i++ ) {
+		mca_record = dante->mca_record_array[i];
+
+		if ( mca_record == (MX_RECORD *) NULL ) {
+			/* This MCA record slot is not in use, so skip on
+			 * to the next slot.
+			 */
+
+			continue;
+		}
+
+		dante_mca = (MX_DANTE_MCA *) mca_record->record_type_struct;
+
+		if ( dante_mca == (MX_DANTE_MCA *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_DANTE_MCA pointer for DANTE MCA record "
+			"'%s' registered with DANTE record '%s' is NULL.",
+		       		mca_record->name, dante_record->name );
+		}
+
+		/* Is this DANTE MCA part of the specific chain that we
+		 * are looking for?
+		 */
+
+		if ( strcmp( chain_name, dante_mca->identifier ) == 0 ) {
+			/* Yes, it is in the chain we are looking for. */
+
+			MX_DEBUG(-2,("%s: Copying to MCA '%s'.",
+				fname, mca_record->name ));
+
+			/* The configuration does not contain any pointers,
+			 * so it is safe to just copy it with memcpy().
+			 */
+
+			memcpy( &(dante_mca->mx_dante_configuration),
+				chain_configuration,
+				sizeof(dante_mca->mx_dante_configuration) );
+		}
+	}
+
+	MX_DEBUG(-2,("%s complete.", fname));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1214,7 +1290,7 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 		}
 	    }
 
-#if 1
+#if 0
 	    MX_DEBUG(-2,("%s: buffer = '%s'", fname, buffer));
 #endif
 
@@ -1234,9 +1310,6 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 			*end_ptr = '\0';
 		    }
 		}
-
-		mx_warning( "FIXME!!! - We are not actually reprogramming "
-			"any of the parameters!!!!!!" );
 
 		if ( identifier_ptr != NULL ) {
 		    strlcpy( chain_name, identifier_ptr, sizeof(chain_name) );
@@ -1289,6 +1362,9 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 			    if ( mx_status.code != MXE_SUCCESS )
 				    return mx_status;
 			} else {
+			    MX_DEBUG(-2,("%s: *** chain '%s' complete.",
+				fname, chain_name));
+
 			    /* We have reached the end of this chain's
 			     * parameters, so we now look for all MCA
 			     * records that are part of this chain and
@@ -1301,7 +1377,7 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 			    if ( mx_status.code != MXE_SUCCESS )
 				    return mx_status;
 
-			    /* We record the fact that we are not finished
+			    /* We record the fact that we are finished
 			     * with this particular chain's parameters.
 			     */
 
@@ -1310,6 +1386,14 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 		    }
 		}
 	    } else {
+		/* Skip lines we are not interested in. */
+
+		ptr = strstr( buffer, "</Devices" );
+
+		if ( ptr == (char *) NULL ) {
+			continue;
+		}
+
 		/* We are not in a set of chain parameters and we have not
 		 * seen the character that marks the start of a chain,
 		 * so print a warning message and continue on to the
@@ -1332,8 +1416,6 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 #if 0
 	fclose( config_file );
 #endif
-	MX_DEBUG(-2,("%s: TEST complete.",fname));
-	exit(0);
 
 	return MX_SUCCESSFUL_RESULT;
 }
