@@ -19,8 +19,6 @@ GALIL_GCLIB_OBJS = galil_gclib.$(OBJ) \
 
 ifeq ($(MX_ARCH),linux)
 
-XPS_C8_DRIVERS_FLAGS = -g -fPIC
-
 galil_gclib.mxo: $(GALIL_GCLIB_OBJS)
 	$(CXX) -shared -rdynamic -Wl,-soname,galil_gclib.mxo \
 		-o galil_gclib.mxo $(GALIL_GCLIB_OBJS) \
@@ -31,8 +29,6 @@ endif
 #--------------------------------------------------------------------------
 
 ifeq ($(MX_ARCH),win32)
-
-XPS_C8_DRIVERS_FLAGS = -D_WIN32
 
 CXX = cl
 
