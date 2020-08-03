@@ -10,6 +10,8 @@ include ../../libMx/Makehead.$(MX_ARCH)
 
 CFLAGS += -I../../libMx -D__MX_LIBRARY__
 
+CXXFLAGS += -I../../libMx -D__MX_LIBRARY__
+
 ZWO_EFW_OBJS = zwo_efw.$(OBJ) i_zwo_efw.$(OBJ) d_zwo_efw_motor.$(OBJ)
 
 #--------------------------------------------------------------------------
@@ -28,12 +30,12 @@ endif
 
 ifeq ($(MX_ARCH),linux)
 
-COMPILE = $(CC) -c
-
 CFLAGS += -I$(ZWO_EFW_DIR)/include
 
+CXXFLAGS += -I$(ZWO_EFW_DIR)/include
+
 zwo_efw.mxo: $(ZWO_EFW_OBJS)
-	$(CC) -shared -rdynamic -Wl,-soname,zwo_efw.mxo \
+	$(CXX) -shared -rdynamic -Wl,-soname,zwo_efw.mxo \
 		-o zwo_efw.mxo $(ZWO_EFW_OBJS) \
 		-L$(ZWO_EFW_DIR)/lib/Linux/x64 -lEFWFilter ../../libMx/libMx.so
 
@@ -43,7 +45,9 @@ endif
 
 ifeq ($(MX_ARCH),win32)
 
-COMPILE = cl
+CC = cl
+
+CXX = cl
 
 zwo_efw.mxo: $(ZWO_EFW_OBJS) $(VENDOR_OBJS)
 	link /dll /debug /nologo /out:zwo_efw.mxo \
@@ -57,13 +61,13 @@ endif
 #--------------------------------------------------------------------------
 
 zwo_efw.$(OBJ): zwo_efw.c i_zwo_efw.h d_zwo_efw_motor.h
-	$(COMPILE) $(CFLAGS) zwo_efw.c
+	$(CC) -c $(CFLAGS) zwo_efw.c
 
-i_zwo_efw.$(OBJ): i_zwo_efw.h
-	$(COMPILE) $(CFLAGS) i_zwo_efw.c
+i_zwo_efw.$(OBJ): i_zwo_efw.cpp i_zwo_efw.h
+	$(CXX) -c $(CXXFLAGS) i_zwo_efw.cpp
 
-d_zwo_efw_motor.$(OBJ): i_zwo_efw.h d_zwo_efw_motor.h
-	$(COMPILE) $(CFLAGS) d_zwo_efw_motor.c
+d_zwo_efw_motor.$(OBJ): d_zwo_efw_motor.cpp d_zwo_efw_motor.h i_zwo_efw.h 
+	$(CXX) -c $(CXXFLAGS) d_zwo_efw_motor.cpp
 
 install: zwo_efw.mxo
 	-mkdir $(MX_INSTALL_DIR)/lib/modules
