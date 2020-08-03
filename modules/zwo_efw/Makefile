@@ -10,7 +10,7 @@ include ../../libMx/Makehead.$(MX_ARCH)
 
 CFLAGS += -I../../libMx -D__MX_LIBRARY__
 
-ZWO_EFW_OBJS = zwo_efw.$(OBJ) d_zwo_efw_motor.$(OBJ)
+ZWO_EFW_OBJS = zwo_efw.$(OBJ) i_zwo_efw.$(OBJ) d_zwo_efw_motor.$(OBJ)
 
 #--------------------------------------------------------------------------
 
@@ -56,10 +56,13 @@ endif
 
 #--------------------------------------------------------------------------
 
-zwo_efw.$(OBJ): zwo_efw.c d_zwo_efw_motor.h
+zwo_efw.$(OBJ): zwo_efw.c i_zwo_efw.h d_zwo_efw_motor.h
 	$(COMPILE) $(CFLAGS) zwo_efw.c
 
-d_zwo_efw_motor.$(OBJ): d_zwo_efw_motor.h
+i_zwo_efw.$(OBJ): i_zwo_efw.h
+	$(COMPILE) $(CFLAGS) i_zwo_efw.c
+
+d_zwo_efw_motor.$(OBJ): i_zwo_efw.h d_zwo_efw_motor.h
 	$(COMPILE) $(CFLAGS) d_zwo_efw_motor.c
 
 install: zwo_efw.mxo

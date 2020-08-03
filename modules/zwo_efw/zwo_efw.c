@@ -21,9 +21,17 @@
 #include "mx_driver.h"
 #include "mx_module.h"
 #include "mx_motor.h"
+#include "i_zwo_efw.h"
 #include "d_zwo_efw_motor.h"
 
 MX_DRIVER zwo_efw_driver_table[] = {
+
+{"zwo_efw", -1, MXI_CONTROLLER, MXR_INTERFACE,
+			&mxi_zwo_efw_record_function_list,
+			NULL,
+			NULL,
+			&mxi_zwo_efw_num_record_fields,
+			&mxi_zwo_efw_rfield_def_ptr},
 
 {"zwo_efw_motor", -1, MXC_MOTOR, MXR_DEVICE,
 			&mxd_zwo_efw_motor_record_function_list,
