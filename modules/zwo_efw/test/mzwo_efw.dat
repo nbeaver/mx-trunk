@@ -1,0 +1,3 @@
+!load ../zwo_efw.mxo
+zwo_efw interface controller zwo_efw "" "" 0x0
+f1 device motor zwo_efw_motor "" "" 0 0 -1000000000 1000000000 0 -1 -1 1 0 slot zwo_efw 0

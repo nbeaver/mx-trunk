@@ -34,10 +34,18 @@ CFLAGS += -I$(ZWO_EFW_DIR)/include
 
 CXXFLAGS += -I$(ZWO_EFW_DIR)/include
 
+LIBHIDAPI = -lhidapi-hidraw
+
+# if hidapi-hidraw collides with some other MX module's use of hidapi-libusb,
+# then try the following definition to see if the collision goes away.
+#
+#LIBHIDAPI = -lhidapi-libusb
+
 zwo_efw.mxo: $(ZWO_EFW_OBJS)
 	$(CXX) -shared -rdynamic -Wl,-soname,zwo_efw.mxo \
 		-o zwo_efw.mxo $(ZWO_EFW_OBJS) \
-		-L$(ZWO_EFW_DIR)/lib/Linux/x64 -lEFWFilter ../../libMx/libMx.so
+		-L$(ZWO_EFW_DIR)/lib/Linux/x64 -lEFWFilter \
+		$(LIBHIDAPI) ../../libMx/libMx.so
 
 endif
 

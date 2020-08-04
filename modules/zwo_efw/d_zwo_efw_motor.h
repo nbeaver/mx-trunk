@@ -24,6 +24,11 @@
 typedef struct {
 	MX_RECORD *record;
 
+	MX_RECORD *zwo_efw_record;
+	unsigned long filter_index;
+
+	unsigned long filter_id;
+
 #if defined(EFW_FILTER_H)
 	EFW_INFO efw_info;
 #endif
@@ -48,23 +53,16 @@ extern long mxd_zwo_efw_motor_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_zwo_efw_motor_rfield_def_ptr;
 
 #define MXD_ZWO_EFW_MOTOR_STANDARD_FIELDS \
-
-#if 0
-  {-1, -1, "motor_name", MXFT_CHAR, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_ZWO_EFW_MOTOR, motor_name), \
+  {-1, -1, "zwo_efw_record", MXFT_RECORD, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_ZWO_EFW_MOTOR, zwo_efw_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "motor_type", MXFT_ULONG, NULL, 0, {0},\
-	MXF_REC_TYPE_STRUCT, offsetof(MX_ZWO_EFW_MOTOR, motor_type), \
-	{0}, NULL, MXFF_READ_ONLY }, \
+  {-1, -1, "filter_index", MXFT_ULONG, NULL, 0, {0},\
+	MXF_REC_TYPE_STRUCT, offsetof(MX_ZWO_EFW_MOTOR, filter_index), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY) }, \
   \
-  {MXLV_ZWO_EFW_MOTOR_STOP_CODE, -1, "stop_code", MXFT_ULONG, NULL, 0, {0},\
-	MXF_REC_TYPE_STRUCT, offsetof(MX_ZWO_EFW_MOTOR, stop_code), \
-	{0}, NULL, MXFF_READ_ONLY }, \
-  \
-  {MXLV_ZWO_EFW_MOTOR_SHOW_QR, -1, "show_qr", MXFT_BOOL, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_ZWO_EFW_MOTOR, show_qr), \
-	{0}, NULL, 0 }
-#endif
+  {-1, -1, "filter_id", MXFT_ULONG, NULL, 0, {0},\
+	MXF_REC_TYPE_STRUCT, offsetof(MX_ZWO_EFW_MOTOR, filter_id), \
+	{0}, NULL, MXFF_READ_ONLY }
 
 #endif /* __D_ZWO_EFW_MOTOR_H__ */
