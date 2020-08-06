@@ -191,7 +191,9 @@ mxi_zwo_efw_open( MX_RECORD *record )
 
 	id_array_length = EFWGetProductIDs( NULL );
 
+#if MXI_ZWO_EFW_DEBUG
 	MX_DEBUG(-2,("%s: id_array_length = %ld", fname, id_array_length));
+#endif
 
 	id_array = (int *) calloc( id_array_length, sizeof(int) );
 
@@ -215,8 +217,10 @@ mxi_zwo_efw_open( MX_RECORD *record )
 	for ( i = 0; i < num_filter_wheels; i++ ) {
 		zwo_efw->filter_wheel_id_array[i] = id_array[i];
 
+#if MXI_ZWO_EFW_DEBUG
 		MX_DEBUG(-2,("%s: PID '%lu' = %ld",
 			fname, i, zwo_efw->filter_wheel_id_array[i] ));
+#endif
 	}
 
 	mx_free( id_array );

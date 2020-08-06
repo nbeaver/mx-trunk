@@ -15,7 +15,8 @@
  */
 
 #define MXD_ZWO_EFW_MOTOR_DEBUG			TRUE
-#define MXD_ZWO_EFW_MOTOR_DEBUG_PARAMETERS	TRUE
+
+#define MXD_ZWO_EFW_MOTOR_DEBUG_PARAMETERS	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -40,12 +41,13 @@ MX_RECORD_FUNCTION_LIST mxd_zwo_efw_motor_record_function_list = {
 	NULL,
 	NULL,
 	mxd_zwo_efw_motor_open,
+	mxd_zwo_efw_motor_close,
 };
 
 MX_MOTOR_FUNCTION_LIST mxd_zwo_efw_motor_motor_function_list = {
 	NULL,
 	mxd_zwo_efw_motor_move_absolute,
-	mxd_zwo_efw_motor_get_position,
+	NULL,
 	NULL,
 	NULL,
 	NULL,
@@ -209,8 +211,10 @@ mxd_zwo_efw_motor_open( MX_RECORD *record )
 
 	filter_index = zwo_efw_motor->filter_index;
 
+#if MXD_ZWO_EFW_MOTOR_DEBUG
 	MX_DEBUG(-2,("%s: filter '%s', index = %d",
 		fname, record->name, filter_index ));
+#endif
 
 #if 0
 	filter_id = zwo_efw->filter_wheel_id_array[ filter_index ];
@@ -238,8 +242,10 @@ mxd_zwo_efw_motor_open( MX_RECORD *record )
 	}
 #endif
 
+#if MXD_ZWO_EFW_MOTOR_DEBUG
 	MX_DEBUG(-2,("%s: filter '%s' ID = %d",
 		fname, record->name, filter_id));
+#endif
 
 	zwo_efw_motor->filter_id = filter_id;
 
@@ -247,8 +253,10 @@ mxd_zwo_efw_motor_open( MX_RECORD *record )
 
 	efw_error_code = EFWOpen( filter_id );
 
+#if MXD_ZWO_EFW_MOTOR_DEBUG
 	MX_DEBUG(-2,("%s: EFWOpen( %d ) = %d",
 		fname, filter_id, efw_error_code ));
+#endif
 
 	switch( efw_error_code ) {
 	case EFW_SUCCESS:
@@ -282,8 +290,10 @@ mxd_zwo_efw_motor_open( MX_RECORD *record )
 	efw_error_code = EFWGetProperty( filter_id,
 					&(zwo_efw_motor->efw_info) );
 
+#if MXD_ZWO_EFW_MOTOR_DEBUG
 	MX_DEBUG(-2,("%s: EFWGetProperty( %d ) = %d",
 		fname, filter_id, efw_error_code ));
+#endif
 
 	switch( efw_error_code ) {
 	case EFW_SUCCESS:
@@ -317,10 +327,69 @@ mxd_zwo_efw_motor_open( MX_RECORD *record )
 		break;
 	}
 
+#if MXD_ZWO_EFW_MOTOR_DEBUG
 	MX_DEBUG(-2,("%s: ID = %d, slotNum = %d, Name = '%s'",
 		fname, zwo_efw_motor->efw_info.ID,
 		zwo_efw_motor->efw_info.slotNum,
 		zwo_efw_motor->efw_info.Name ));
+#endif
+
+	zwo_efw_motor->num_filters = zwo_efw_motor->efw_info.slotNum;
+
+	return mx_status;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxd_zwo_efw_motor_close( MX_RECORD *record )
+{
+	static const char fname[] = "mxd_zwo_efw_motor_close()";
+
+	MX_MOTOR *motor = NULL;
+	MX_ZWO_EFW_MOTOR *zwo_efw_motor = NULL;
+	MX_ZWO_EFW *zwo_efw = NULL;
+	int filter_id;
+	EFW_ERROR_CODE efw_error_code;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"MX_RECORD pointer passed was NULL." );
+	}
+
+	motor = (MX_MOTOR *) record->record_class_struct;
+
+	mx_status = mxd_zwo_efw_motor_get_pointers( motor,
+				&zwo_efw_motor, &zwo_efw, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	filter_id = zwo_efw_motor->filter_id;
+
+	efw_error_code = EFWClose( filter_id );
+
+#if MXD_ZWO_EFW_MOTOR_DEBUG
+	MX_DEBUG(-2,("%s: EFWClose( %d ) = %d",
+		fname, filter_id, (int) efw_error_code ));
+#endif
+
+	switch( efw_error_code ) {
+	case EFW_SUCCESS:
+		break;
+	case EFW_ERROR_INVALID_ID:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The requested filter ID %d for filter '%s' is not valid.",
+			filter_id, motor->record->name );
+		break;
+	default:
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"An unexpected error has occurred for filter '%s' ( ID %d ).  "
+		"The EFW error code was %d.",
+			motor->record->name, filter_id, (int) efw_error_code );
+		break;
+	}
 
 	return mx_status;
 }
@@ -344,15 +413,40 @@ mxd_zwo_efw_motor_move_absolute( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Make sure that the reported position for the filter wheel
+	 * is the position it is currently at.  We cannot directly
+	 * detect the current position of the filter wheel while it
+	 * is moving, so this is the best we can do.
+	 */
+
+	mx_status = mxd_zwo_efw_motor_get_extended_status( motor );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Now command the move. */
+
 	filter_id = zwo_efw_motor->filter_id;
 
 	efw_destination = motor->raw_destination.stepper;
 
+	if ( (efw_destination < 0)
+	  || (efw_destination >= (int) zwo_efw_motor->num_filters) )
+	{
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The requested filter number of %d for filter '%s' "
+		"is outside the allowed range of 0 to %d.",
+			efw_destination, motor->record->name,
+			(int) zwo_efw_motor->num_filters - 1 );
+	}
+
 	efw_error_code = EFWSetPosition( filter_id, efw_destination );
 
+#if MXD_ZWO_EFW_MOTOR_DEBUG
 	MX_DEBUG(-2,
 	("%s: filter '%s', efw_error_code = %d, efw_destination = %d",
 		fname, motor->record->name, efw_error_code, efw_destination));
+#endif
 
 	switch( efw_error_code ) {
 	case EFW_SUCCESS:
@@ -395,68 +489,6 @@ mxd_zwo_efw_motor_move_absolute( MX_MOTOR *motor )
 			motor->record->name, filter_id, (int) efw_error_code );
 		break;
 	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-/*--------------------------------------------------------------------------*/
-
-MX_EXPORT mx_status_type
-mxd_zwo_efw_motor_get_position( MX_MOTOR *motor )
-{
-	static const char fname[] = "mxd_zwo_efw_motor_get_position()";
-
-	MX_ZWO_EFW_MOTOR *zwo_efw_motor = NULL;
-	MX_ZWO_EFW *zwo_efw = NULL;
-	int filter_id, efw_position;
-	EFW_ERROR_CODE efw_error_code;
-	mx_status_type mx_status;
-
-	mx_status = mxd_zwo_efw_motor_get_pointers( motor,
-				&zwo_efw_motor, &zwo_efw, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	filter_id = zwo_efw_motor->filter_id;
-
-	efw_error_code = EFWGetPosition( filter_id, &efw_position );
-
-	MX_DEBUG(-2,("%s: filter '%s', efw_error_code = %d, efw_position = %d",
-		fname, motor->record->name, efw_error_code, efw_position));
-
-	switch( efw_error_code ) {
-	case EFW_SUCCESS:
-		break;
-	case EFW_ERROR_INVALID_ID:
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"The requested filter ID %d for filter '%s' is not valid.",
-			filter_id, motor->record->name );
-		break;
-	case EFW_ERROR_CLOSED:
-		return mx_error( MXE_INITIALIZATION_ERROR, fname,
-		"Filter '%s' ( ID %d ) is not open.",
-			motor->record->name, filter_id );
-		break;
-	case EFW_ERROR_ERROR_STATE:
-		return mx_error( MXE_CONTROLLER_INTERNAL_ERROR, fname,
-		"Filter '%s' ( ID %d ) is in an error state.",
-			motor->record->name, filter_id );
-		break;
-	case EFW_ERROR_REMOVED:
-		return mx_error( MXE_HARDWARE_CONFIGURATION_ERROR, fname,
-		"Filter '%s' ( ID %d ) has been removed.",
-			motor->record->name, filter_id );
-		break;
-	default:
-		return mx_error( MXE_UNKNOWN_ERROR, fname,
-		"An unexpected error has occurred for filter '%s' ( ID %d ).  "
-		"The EFW error code was %d.",
-			motor->record->name, filter_id, (int) efw_error_code );
-		break;
-	}
-
-	motor->raw_position.stepper = efw_position;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -531,11 +563,12 @@ mxd_zwo_efw_motor_set_parameter( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_zwo_efw_motor_get_extended_status( MX_MOTOR *motor )
 {
-	static const char fname[] =
-		"mxd_zwo_efw_motor_get_extended_status()";
+	static const char fname[] = "mxd_zwo_efw_motor_get_extended_status()";
 
 	MX_ZWO_EFW_MOTOR *zwo_efw_motor = NULL;
 	MX_ZWO_EFW *zwo_efw = NULL;
+	int filter_id, efw_position;
+	EFW_ERROR_CODE efw_error_code;
 	mx_status_type mx_status;
 
 	mx_status = mxd_zwo_efw_motor_get_pointers( motor,
@@ -544,7 +577,59 @@ mxd_zwo_efw_motor_get_extended_status( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	motor->status = 0;
+	filter_id = zwo_efw_motor->filter_id;
+
+	efw_error_code = EFWGetPosition( filter_id, &efw_position );
+
+#if MXD_ZWO_EFW_MOTOR_DEBUG
+	MX_DEBUG(-2,("%s: filter '%s', efw_error_code = %d, efw_position = %d",
+		fname, motor->record->name, efw_error_code, efw_position));
+#endif
+
+	switch( efw_error_code ) {
+	case EFW_SUCCESS:
+		break;
+	case EFW_ERROR_INVALID_ID:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The requested filter ID %d for filter '%s' is not valid.",
+			filter_id, motor->record->name );
+		break;
+	case EFW_ERROR_CLOSED:
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"Filter '%s' ( ID %d ) is not open.",
+			motor->record->name, filter_id );
+		break;
+	case EFW_ERROR_ERROR_STATE:
+		return mx_error( MXE_CONTROLLER_INTERNAL_ERROR, fname,
+		"Filter '%s' ( ID %d ) is in an error state.",
+			motor->record->name, filter_id );
+		break;
+	case EFW_ERROR_REMOVED:
+		return mx_error( MXE_HARDWARE_CONFIGURATION_ERROR, fname,
+		"Filter '%s' ( ID %d ) has been removed.",
+			motor->record->name, filter_id );
+		break;
+	default:
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"An unexpected error has occurred for filter '%s' ( ID %d ).  "
+		"The EFW error code was %d.",
+			motor->record->name, filter_id, (int) efw_error_code );
+		break;
+	}
+
+	if ( efw_position == -1 ) {
+		/* Note that if the filter wheel is moving, we cannot
+		 * detect the current position of the filter wheel,
+		 * so we leave it at the position that it had before
+		 * the current move.
+		 */
+
+		motor->status = MXSF_MTR_IS_BUSY;
+	} else {
+		motor->status = 0;
+
+		motor->raw_position.stepper = efw_position;
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }

@@ -28,6 +28,7 @@ typedef struct {
 	unsigned long filter_index;
 
 	unsigned long filter_id;
+	unsigned long num_filters;
 
 #if defined(EFW_FILTER_H)
 	EFW_INFO efw_info;
@@ -38,9 +39,9 @@ typedef struct {
 MX_API mx_status_type mxd_zwo_efw_motor_create_record_structures(
 						MX_RECORD *record );
 MX_API mx_status_type mxd_zwo_efw_motor_open( MX_RECORD *record );
+MX_API mx_status_type mxd_zwo_efw_motor_close( MX_RECORD *record );
 
 MX_API mx_status_type mxd_zwo_efw_motor_move_absolute( MX_MOTOR *motor );
-MX_API mx_status_type mxd_zwo_efw_motor_get_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_zwo_efw_motor_get_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_zwo_efw_motor_set_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_zwo_efw_motor_get_extended_status(
@@ -63,6 +64,10 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_zwo_efw_motor_rfield_def_ptr;
   \
   {-1, -1, "filter_id", MXFT_ULONG, NULL, 0, {0},\
 	MXF_REC_TYPE_STRUCT, offsetof(MX_ZWO_EFW_MOTOR, filter_id), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "num_filters", MXFT_ULONG, NULL, 0, {0},\
+	MXF_REC_TYPE_STRUCT, offsetof(MX_ZWO_EFW_MOTOR, num_filters), \
 	{0}, NULL, MXFF_READ_ONLY }
 
 #endif /* __D_ZWO_EFW_MOTOR_H__ */
