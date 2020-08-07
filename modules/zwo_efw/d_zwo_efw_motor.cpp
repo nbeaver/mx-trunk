@@ -51,7 +51,7 @@ MX_MOTOR_FUNCTION_LIST mxd_zwo_efw_motor_motor_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	NULL,
+	mxd_zwo_efw_motor_raw_home_command,
 	NULL,
 	mxd_zwo_efw_motor_get_parameter,
 	mxd_zwo_efw_motor_set_parameter,
@@ -123,7 +123,6 @@ mxd_zwo_efw_motor_get_pointers( MX_MOTOR *motor,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*--------------------------------------------------------------------------*/
 /*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
@@ -201,6 +200,8 @@ mxd_zwo_efw_motor_open( MX_RECORD *record )
 		return mx_status;
 
 	debug_flag = zwo_efw->zwo_efw_flags & MXF_ZWO_EFW_DEBUG;
+
+	zwo_efw_motor->home_search_succeeded = FALSE;
 
 	/* Get the ID for this filter wheel. */
 
@@ -498,6 +499,40 @@ mxd_zwo_efw_motor_move_absolute( MX_MOTOR *motor )
 /*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
+mxd_zwo_efw_motor_raw_home_command( MX_MOTOR *motor )
+{
+	static const char fname[] = "mxd_zwo_efw_motor_raw_home_command()";
+
+	MX_ZWO_EFW_MOTOR *zwo_efw_motor = NULL;
+	MX_ZWO_EFW *zwo_efw = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mxd_zwo_efw_motor_get_pointers( motor,
+				&zwo_efw_motor, &zwo_efw, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	zwo_efw_motor->home_search_succeeded = FALSE;
+
+	/* Commanding a move to the filter 0 position has the side effect
+	 * of homing the motor.
+	 */
+
+	mx_status = mx_motor_move_absolute( motor->record, 0,
+						MXF_MTR_NOWAIT );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	motor->home_search_in_progress = TRUE;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
 mxd_zwo_efw_motor_get_parameter( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_zwo_efw_motor_get_parameter()";
@@ -633,9 +668,38 @@ mxd_zwo_efw_motor_get_extended_status( MX_MOTOR *motor )
 
 		motor->status = MXSF_MTR_IS_BUSY;
 	} else {
-		motor->status = 0;
+		/* Filter wheel is not moving. */
+
+		if ( efw_position == 0 ) {
+			/* We are at filter 0, which is the home switch. */
+
+			motor->status = MXSF_MTR_AT_HOME_SWITCH;
+
+			if ( motor->home_search_in_progress ) {
+				zwo_efw_motor->home_search_succeeded = TRUE;
+
+				motor->home_search_in_progress = FALSE;
+			}
+		} else {
+			motor->status = 0;
+
+			if ( motor->home_search_in_progress ) {
+				zwo_efw_motor->home_search_succeeded = FALSE;
+
+				motor->home_search_in_progress = FALSE;
+			}
+		}
 
 		motor->raw_position.stepper = efw_position;
+	}
+
+	if ( zwo_efw_motor->home_search_succeeded ) {
+		motor->status |= MXSF_MTR_HOME_SEARCH_SUCCEEDED;
+	}
+
+	if ( debug_flag ) {
+		MX_DEBUG(-2,("%s: raw_position = %ld, status = %#lx",
+			fname, motor->raw_position.stepper, motor->status ));
 	}
 
 	return MX_SUCCESSFUL_RESULT;
