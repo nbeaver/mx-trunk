@@ -40,6 +40,8 @@ MX_RECORD_FUNCTION_LIST mxd_zwo_efw_motor_record_function_list = {
 	NULL,
 	mxd_zwo_efw_motor_open,
 	mxd_zwo_efw_motor_close,
+	NULL,
+	mxd_zwo_efw_motor_resynchronize
 };
 
 MX_MOTOR_FUNCTION_LIST mxd_zwo_efw_motor_motor_function_list = {
@@ -389,6 +391,23 @@ mxd_zwo_efw_motor_close( MX_RECORD *record )
 			motor->record->name, filter_id, (int) efw_error_code );
 		break;
 	}
+
+	return mx_status;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxd_zwo_efw_motor_resynchronize( MX_RECORD *record )
+{
+	mx_status_type mx_status;
+
+	mx_status = mxd_zwo_efw_motor_close( record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxd_zwo_efw_motor_open( record );
 
 	return mx_status;
 }

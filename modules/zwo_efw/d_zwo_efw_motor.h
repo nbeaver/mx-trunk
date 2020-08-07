@@ -42,6 +42,7 @@ MX_API mx_status_type mxd_zwo_efw_motor_create_record_structures(
 						MX_RECORD *record );
 MX_API mx_status_type mxd_zwo_efw_motor_open( MX_RECORD *record );
 MX_API mx_status_type mxd_zwo_efw_motor_close( MX_RECORD *record );
+MX_API mx_status_type mxd_zwo_efw_motor_resynchronize( MX_RECORD *record );
 
 MX_API mx_status_type mxd_zwo_efw_motor_move_absolute( MX_MOTOR *motor );
 MX_API mx_status_type mxd_zwo_efw_motor_raw_home_command( MX_MOTOR *motor );
