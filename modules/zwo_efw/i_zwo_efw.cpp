@@ -14,8 +14,6 @@
  *
  */
 
-#define MXI_ZWO_EFW_DEBUG	TRUE
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -98,6 +96,7 @@ mxi_zwo_efw_open( MX_RECORD *record )
 	unsigned long i, num_filter_wheels;
 	long id_array_length, id_array_length_2;
 	int *id_array = NULL;
+	mx_bool_type debug_flag;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -113,21 +112,24 @@ mxi_zwo_efw_open( MX_RECORD *record )
 			record->name );
 	}
 
-#if MXI_ZWO_EFW_DEBUG
-	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name ));
+	debug_flag = zwo_efw->zwo_efw_flags & MXF_ZWO_EFW_DEBUG;
 
 	strlcpy( zwo_efw->sdk_version_name, EFWGetSDKVersion(),
 			sizeof(zwo_efw->sdk_version_name) );
-#endif
+
+	if ( debug_flag ) {
+		MX_DEBUG(-2,("%s: SDK version = '%s'",
+			fname, zwo_efw->sdk_version_name));
+	}
 
 	num_filter_wheels = EFWGetNum();
 
 	zwo_efw->maximum_num_filter_wheels = num_filter_wheels;
 
-#if MXI_ZWO_EFW_DEBUG
-	MX_DEBUG(-2,("%s: %s.maximum_num_filter_wheels = %lu'.",
-		fname, record->name, zwo_efw->maximum_num_filter_wheels ));
-#endif
+	if ( debug_flag ) {
+		MX_DEBUG(-2,("%s: %s.maximum_num_filter_wheels = %lu'.",
+		    fname, record->name, zwo_efw->maximum_num_filter_wheels ));
+	}
 
 	zwo_efw->current_num_filter_wheels = 0;
 
@@ -191,9 +193,10 @@ mxi_zwo_efw_open( MX_RECORD *record )
 
 	id_array_length = EFWGetProductIDs( NULL );
 
-#if MXI_ZWO_EFW_DEBUG
-	MX_DEBUG(-2,("%s: id_array_length = %ld", fname, id_array_length));
-#endif
+	if ( debug_flag ) {
+		MX_DEBUG(-2,
+		("%s: id_array_length = %ld", fname, id_array_length));
+	}
 
 	id_array = (int *) calloc( id_array_length, sizeof(int) );
 
@@ -217,10 +220,10 @@ mxi_zwo_efw_open( MX_RECORD *record )
 	for ( i = 0; i < num_filter_wheels; i++ ) {
 		zwo_efw->filter_wheel_id_array[i] = id_array[i];
 
-#if MXI_ZWO_EFW_DEBUG
-		MX_DEBUG(-2,("%s: PID '%lu' = %ld",
-			fname, i, zwo_efw->filter_wheel_id_array[i] ));
-#endif
+		if ( debug_flag ) {
+			MX_DEBUG(-2,("%s: PID '%lu' = %ld",
+				fname, i, zwo_efw->filter_wheel_id_array[i] ));
+		}
 	}
 
 	mx_free( id_array );

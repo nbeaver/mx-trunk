@@ -14,8 +14,6 @@
  *
  */
 
-#define MXD_ZWO_EFW_MOTOR_DEBUG			TRUE
-
 #define MXD_ZWO_EFW_MOTOR_DEBUG_PARAMETERS	FALSE
 
 #include <stdio.h>
@@ -186,6 +184,7 @@ mxd_zwo_efw_motor_open( MX_RECORD *record )
 	MX_ZWO_EFW *zwo_efw = NULL;
 	int filter_index, filter_id;
 	EFW_ERROR_CODE efw_error_code;
+	mx_bool_type debug_flag;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -201,20 +200,16 @@ mxd_zwo_efw_motor_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Get the ID for this filter wheel. */
+	debug_flag = zwo_efw->zwo_efw_flags & MXF_ZWO_EFW_DEBUG;
 
-	/* FIXME? For some reason EFWGetID() was returning 0 instead of
-	 * the integer that EFWGetProductIDs() saw.  So, for now we
-	 * just copy the ID from the array that the 'zwo_efw' driver
-	 * stored.
-	 */
+	/* Get the ID for this filter wheel. */
 
 	filter_index = zwo_efw_motor->filter_index;
 
-#if MXD_ZWO_EFW_MOTOR_DEBUG
-	MX_DEBUG(-2,("%s: filter '%s', index = %d",
-		fname, record->name, filter_index ));
-#endif
+	if ( debug_flag ) {
+		MX_DEBUG(-2,("%s: filter '%s', index = %d",
+			fname, record->name, filter_index ));
+	}
 
 #if 0
 	filter_id = zwo_efw->filter_wheel_id_array[ filter_index ];
@@ -242,10 +237,10 @@ mxd_zwo_efw_motor_open( MX_RECORD *record )
 	}
 #endif
 
-#if MXD_ZWO_EFW_MOTOR_DEBUG
-	MX_DEBUG(-2,("%s: filter '%s' ID = %d",
-		fname, record->name, filter_id));
-#endif
+	if ( debug_flag ) {
+		MX_DEBUG(-2,("%s: filter '%s' ID = %d",
+			fname, record->name, filter_id));
+	}
 
 	zwo_efw_motor->filter_id = filter_id;
 
@@ -253,10 +248,10 @@ mxd_zwo_efw_motor_open( MX_RECORD *record )
 
 	efw_error_code = EFWOpen( filter_id );
 
-#if MXD_ZWO_EFW_MOTOR_DEBUG
-	MX_DEBUG(-2,("%s: EFWOpen( %d ) = %d",
-		fname, filter_id, efw_error_code ));
-#endif
+	if ( debug_flag ) {
+		MX_DEBUG(-2,("%s: EFWOpen( %d ) = %d",
+			fname, filter_id, efw_error_code ));
+	}
 
 	switch( efw_error_code ) {
 	case EFW_SUCCESS:
@@ -290,10 +285,10 @@ mxd_zwo_efw_motor_open( MX_RECORD *record )
 	efw_error_code = EFWGetProperty( filter_id,
 					&(zwo_efw_motor->efw_info) );
 
-#if MXD_ZWO_EFW_MOTOR_DEBUG
-	MX_DEBUG(-2,("%s: EFWGetProperty( %d ) = %d",
-		fname, filter_id, efw_error_code ));
-#endif
+	if ( debug_flag ) {
+		MX_DEBUG(-2,("%s: EFWGetProperty( %d ) = %d",
+			fname, filter_id, efw_error_code ));
+	}
 
 	switch( efw_error_code ) {
 	case EFW_SUCCESS:
@@ -327,12 +322,12 @@ mxd_zwo_efw_motor_open( MX_RECORD *record )
 		break;
 	}
 
-#if MXD_ZWO_EFW_MOTOR_DEBUG
-	MX_DEBUG(-2,("%s: ID = %d, slotNum = %d, Name = '%s'",
-		fname, zwo_efw_motor->efw_info.ID,
-		zwo_efw_motor->efw_info.slotNum,
-		zwo_efw_motor->efw_info.Name ));
-#endif
+	if ( debug_flag ) {
+		MX_DEBUG(-2,("%s: ID = %d, slotNum = %d, Name = '%s'",
+			fname, zwo_efw_motor->efw_info.ID,
+			zwo_efw_motor->efw_info.slotNum,
+			zwo_efw_motor->efw_info.Name ));
+	}
 
 	zwo_efw_motor->num_filters = zwo_efw_motor->efw_info.slotNum;
 
@@ -351,6 +346,7 @@ mxd_zwo_efw_motor_close( MX_RECORD *record )
 	MX_ZWO_EFW *zwo_efw = NULL;
 	int filter_id;
 	EFW_ERROR_CODE efw_error_code;
+	mx_bool_type debug_flag;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -366,14 +362,16 @@ mxd_zwo_efw_motor_close( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	debug_flag = zwo_efw->zwo_efw_flags & MXF_ZWO_EFW_DEBUG;
+
 	filter_id = zwo_efw_motor->filter_id;
 
 	efw_error_code = EFWClose( filter_id );
 
-#if MXD_ZWO_EFW_MOTOR_DEBUG
-	MX_DEBUG(-2,("%s: EFWClose( %d ) = %d",
-		fname, filter_id, (int) efw_error_code ));
-#endif
+	if ( debug_flag ) {
+		MX_DEBUG(-2,("%s: EFWClose( %d ) = %d",
+			fname, filter_id, (int) efw_error_code ));
+	}
 
 	switch( efw_error_code ) {
 	case EFW_SUCCESS:
@@ -405,6 +403,7 @@ mxd_zwo_efw_motor_move_absolute( MX_MOTOR *motor )
 	MX_ZWO_EFW *zwo_efw = NULL;
 	int filter_id, efw_destination;
 	EFW_ERROR_CODE efw_error_code;
+	mx_bool_type debug_flag;
 	mx_status_type mx_status;
 
 	mx_status = mxd_zwo_efw_motor_get_pointers( motor,
@@ -412,6 +411,8 @@ mxd_zwo_efw_motor_move_absolute( MX_MOTOR *motor )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	debug_flag = zwo_efw->zwo_efw_flags & MXF_ZWO_EFW_DEBUG;
 
 	/* Make sure that the reported position for the filter wheel
 	 * is the position it is currently at.  We cannot directly
@@ -442,11 +443,12 @@ mxd_zwo_efw_motor_move_absolute( MX_MOTOR *motor )
 
 	efw_error_code = EFWSetPosition( filter_id, efw_destination );
 
-#if MXD_ZWO_EFW_MOTOR_DEBUG
-	MX_DEBUG(-2,
-	("%s: filter '%s', efw_error_code = %d, efw_destination = %d",
-		fname, motor->record->name, efw_error_code, efw_destination));
-#endif
+	if ( debug_flag ) {
+		MX_DEBUG(-2,
+		("%s: filter '%s', efw_error_code = %d, efw_destination = %d",
+			fname, motor->record->name,
+			efw_error_code, efw_destination));
+	}
 
 	switch( efw_error_code ) {
 	case EFW_SUCCESS:
@@ -569,6 +571,7 @@ mxd_zwo_efw_motor_get_extended_status( MX_MOTOR *motor )
 	MX_ZWO_EFW *zwo_efw = NULL;
 	int filter_id, efw_position;
 	EFW_ERROR_CODE efw_error_code;
+	mx_bool_type debug_flag;
 	mx_status_type mx_status;
 
 	mx_status = mxd_zwo_efw_motor_get_pointers( motor,
@@ -577,14 +580,18 @@ mxd_zwo_efw_motor_get_extended_status( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	debug_flag = zwo_efw->zwo_efw_flags & MXF_ZWO_EFW_DEBUG;
+
 	filter_id = zwo_efw_motor->filter_id;
 
 	efw_error_code = EFWGetPosition( filter_id, &efw_position );
 
-#if MXD_ZWO_EFW_MOTOR_DEBUG
-	MX_DEBUG(-2,("%s: filter '%s', efw_error_code = %d, efw_position = %d",
-		fname, motor->record->name, efw_error_code, efw_position));
-#endif
+	if ( debug_flag ) {
+		MX_DEBUG(-2,
+		("%s: filter '%s', efw_error_code = %d, efw_position = %d",
+			fname, motor->record->name,
+			efw_error_code, efw_position));
+	}
 
 	switch( efw_error_code ) {
 	case EFW_SUCCESS:

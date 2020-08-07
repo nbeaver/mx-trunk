@@ -17,9 +17,11 @@
 #ifndef __I_ZWO_EFW_H__
 #define __I_ZWO_EFW_H__
 
-#define MXF_ZWO_EFW_DEBUG_COMMANDS		0x1
-
 #define MXU_ZWO_EFW_SDK_VERSION_NAME_LENGTH	20
+
+/* Flag bits for the zwo_efw_flags field. */
+
+#define MXF_ZWO_EFW_DEBUG			0x1
 
 typedef struct {
 	MX_RECORD *record;
