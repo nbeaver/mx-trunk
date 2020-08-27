@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2005, 2009-2010, 2014, 2018-2019
+ * Copyright 1999-2003, 2005, 2009-2010, 2014, 2018-2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -37,6 +37,7 @@ typedef struct {
 	MX_EPICS_PV acquiring_pv;
 	MX_EPICS_PV chas_pv;
 	MX_EPICS_PV count_on_start_pv;
+	MX_EPICS_PV current_channel_pv;
 	MX_EPICS_PV dwell_pv;
 	MX_EPICS_PV erase_pv;
 	MX_EPICS_PV nmax_pv;
@@ -77,6 +78,9 @@ MX_API mx_status_type mxd_epics_mcs_read_scaler( MX_MCS *mcs );
 MX_API mx_status_type mxd_epics_mcs_read_measurement( MX_MCS *mcs );
 MX_API mx_status_type mxd_epics_mcs_get_parameter( MX_MCS *mcs );
 MX_API mx_status_type mxd_epics_mcs_set_parameter( MX_MCS *mcs );
+MX_API mx_status_type mxd_epics_mcs_get_last_measurement_number( MX_MCS *mcs );
+MX_API mx_status_type mxd_epics_mcs_get_total_num_measurements( MX_MCS *mcs );
+MX_API mx_status_type mxd_epics_mcs_get_extended_status( MX_MCS *mcs );
 
 extern MX_RECORD_FUNCTION_LIST mxd_epics_mcs_record_function_list;
 extern MX_MCS_FUNCTION_LIST mxd_epics_mcs_mcs_function_list;

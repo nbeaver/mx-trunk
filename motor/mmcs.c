@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005-2006, 2015-2016, 2019
+ * Copyright 1999-2001, 2003, 2005-2006, 2015-2016, 2019-2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -62,6 +62,8 @@ motor_mcs_fn( int argc, char *argv[] )
 	double measurement_time;
 	unsigned long i, j, channel_number, measurement_number;
 	unsigned long num_scalers, num_measurements;
+	long last_measurement_number, total_num_measurements;
+	long old_last_measurement_number;
 	unsigned long mcs_status;
 	long trigger_mode, raw_trigger_mode;
 	long *scaler_data;
@@ -173,6 +175,81 @@ motor_mcs_fn( int argc, char *argv[] )
 			status = motor_mcs_read_all( mcs_record, mcs );
 		} else {
 			status = motor_mcs_display_all( mcs_record, mcs );
+		}
+	} else
+	if ( (strncmp( "stream", argv[3], strlen(argv[3]) ) == 0)
+	  || (strncmp( "rawstream", argv[3], strlen(argv[3]) ) == 0) )
+	{
+		if ( argc != 6 ) {
+			fprintf( output, "%s\n", usage );
+			return FAILURE;
+		}
+
+		measurement_time = atof( argv[4] );
+
+		num_measurements = atol( argv[5] );
+
+		mx_status = mx_mcs_set_measurement_time(
+				mcs_record, measurement_time );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+
+		mx_status = mx_mcs_set_num_measurements(
+				mcs_record, num_measurements );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+
+		mx_status = mx_mcs_start( mcs_record );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+
+		mcs_status = MXSF_MCS_IS_BUSY;
+		old_last_measurement_number = -1L;
+
+		while( mcs_status != 0 ) {
+			if ( mx_kbhit() ) {
+				(void) mx_getch();
+
+				mx_status = mx_mcs_stop( mcs_record );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return FAILURE;
+
+				fprintf( output, "MCS measurement aborted.\n" );
+			}
+
+			mx_status = mx_mcs_get_extended_status(
+					mcs_record,
+					&last_measurement_number,
+					&total_num_measurements,
+					&mcs_status );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+
+			if ( last_measurement_number
+				!= old_last_measurement_number )
+			{
+				fprintf( output,
+	"MCS '%s': *** last measurement number has changed from %ld to %ld.\n",
+					mcs_record->name,
+					old_last_measurement_number,
+					last_measurement_number );
+
+				old_last_measurement_number
+					= last_measurement_number;
+
+				mx_status = mx_mcs_read_all( mcs_record,
+							NULL, NULL, NULL );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return FAILURE;
+			}
+
+			mx_msleep(500);
 		}
 	} else
 	if ( strncmp( "start", argv[3], strlen(argv[3]) ) == 0 ) {

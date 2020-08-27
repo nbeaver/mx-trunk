@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2006, 2009-2010, 2012, 2014-2016, 2018-2019
+ * Copyright 2000-2006, 2009-2010, 2012, 2014-2016, 2018-2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -216,6 +216,11 @@ mx_mcs_finish_record_initialization( MX_RECORD *mcs_record )
 	mcs->current_num_measurements = mcs->maximum_num_measurements;
 
 	mcs->readout_preference = MXF_MCS_PREFER_READ_SCALER;
+
+	mcs->latched_status = 0;
+
+	mcs->busy_start_interval_enabled = FALSE;
+	mcs->busy_start_interval = -1;
 
 	mcs->external_next_measurement_record = NULL;
 	mcs->timer_record = NULL;
@@ -738,6 +743,25 @@ mx_mcs_get_status( MX_RECORD *mcs_record, unsigned long *mcs_status )
 			mcs_record->name );
 	}
 
+	/*---*/
+
+	if ( mcs->busy_start_interval_enabled ) {
+		mx_bool_type busy_start_set;
+
+		mx_status = mx_mcs_check_busy_start_interval( mcs_record,
+							&busy_start_set );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( busy_start_set ) {
+			mcs->busy = TRUE;
+			mcs->status |= MXSF_MCS_IS_BUSY;
+		}
+	}
+
+	/*---*/
+
 	if ( mcs_status != NULL ) {
 		*mcs_status = mcs->status;
 	}
@@ -749,7 +773,218 @@ mx_mcs_get_status( MX_RECORD *mcs_record, unsigned long *mcs_status )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/* mx_mcs_get_extended_status */
+MX_EXPORT mx_status_type
+mx_mcs_get_extended_status( MX_RECORD *record,
+			long *last_measurement_number,
+			long *total_num_measurements,
+			unsigned long *status_flags )
+{
+	static const char fname[] = "mx_mcs_get_extended_status()";
+
+	MX_MCS *mcs;
+	MX_MCS_FUNCTION_LIST *flist;
+	mx_status_type ( *get_last_measurement_number_fn ) ( MX_MCS * );
+	mx_status_type ( *get_total_num_measurements_fn ) ( MX_MCS * );
+	mx_status_type ( *get_status_fn ) ( MX_MCS * );
+	mx_status_type ( *get_extended_status_fn ) ( MX_MCS * );
+	mx_status_type mx_status;
+
+	mx_status = mx_mcs_get_pointers(record, &mcs, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_last_measurement_number_fn = flist->get_last_measurement_number;
+	get_total_num_measurements_fn  = flist->get_total_num_measurements;
+	get_status_fn            = flist->get_status;
+	get_extended_status_fn   = flist->get_extended_status;
+
+	if ( get_extended_status_fn != NULL ) {
+		mx_status = (*get_extended_status_fn)( mcs );
+	} else {
+		if ( get_last_measurement_number_fn == NULL ) {
+			mcs->last_measurement_number = -1;
+		} else {
+			mx_status = (*get_last_measurement_number_fn)( mcs );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
+		if ( get_total_num_measurements_fn == NULL ) {
+			mcs->total_num_measurements = 0;
+		} else {
+			mx_status = (*get_total_num_measurements_fn)( mcs );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
+		if ( get_status_fn == NULL ) {
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Getting the status for MCS '%s' is unsupported.",
+				record->name );
+		} else {
+			mx_status = (*get_status_fn)( mcs );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+	}
+
+	/*---*/
+
+	if ( mcs->busy_start_interval_enabled ) {
+		mx_bool_type busy_start_set;
+
+		mx_status = mx_mcs_check_busy_start_interval(
+						record, &busy_start_set );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( busy_start_set ) {
+			mcs->busy = TRUE;
+			mcs->status |= MXSF_MCS_IS_BUSY;
+		}
+	}
+
+	/* Set the bits from the latched status word in the main status word. */
+
+	mcs->status |= mcs->latched_status;
+
+#if 1 || MX_MCS_DEBUG_STATUS
+	MX_DEBUG(-2,
+	("%s: last_measurement_number = %ld, total_num_measurements = %ld, "
+	 "status = %#lx",
+	    fname, mcs->last_measurement_number, mcs->total_num_measurements,
+	    mcs->status ));
+#endif
+
+	if ( last_measurement_number != NULL ) {
+		*last_measurement_number = mcs->last_measurement_number;
+	}
+	if ( total_num_measurements != NULL ) {
+		*total_num_measurements = mcs->total_num_measurements;
+	}
+	if ( status_flags != NULL ) {
+		*status_flags = mcs->status;
+	}
+
+	return mx_status;
+}
+
+/*---*/
+
+MX_EXPORT mx_status_type
+mx_mcs_set_busy_start_interval( MX_RECORD *record,
+				double busy_start_interval_in_seconds )
+{
+	static const char fname[] = "mx_mcs_set_busy_start_interval()";
+
+	MX_MCS *mcs;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The motor record pointer passed was NULL." );
+	}
+
+	mcs = (MX_MCS *) record->record_class_struct;
+
+	if ( mcs == (MX_MCS *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_MCS pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	mcs->busy_start_interval = busy_start_interval_in_seconds;
+
+	if ( busy_start_interval_in_seconds < 0.0 ) {
+		mcs->busy_start_interval_enabled = FALSE;
+	} else {
+		mcs->busy_start_interval_enabled = TRUE;
+
+		mcs->busy_start_ticks =
+	    mx_convert_seconds_to_clock_ticks( busy_start_interval_in_seconds );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/* If the difference between the current time and the time of the last start
+ * command is less than the value of 'busy_start_interval', then the flag
+ * busy_start_set will be set to TRUE.
+ *
+ * There exist multichannel scalers that have the misfeature that when you
+ * tell them to start an acquisition sequence, there may be a short time after
+ * the start of the acquisition where the controller reports that the MCS
+ * is _not_ busy.
+ *
+ * While this may technically be true, it is not useful for higher level logic
+ * that is trying to figure out when a acquisition sequence has completed.
+ * MX handles this by reporting that the multichannel scaler is 'busy' for
+ * a period after a start command equal to the value of
+ * 'mcs->busy_start_interval' in seconds.  This is only done if the
+ * busy start feature is enabled.
+ */
+
+MX_EXPORT mx_status_type
+mx_mcs_check_busy_start_interval( MX_RECORD *record,
+				mx_bool_type *busy_start_set )
+{
+	static const char fname[] =
+			"mx_mcs_check_busy_start_interval()";
+
+	MX_MCS *mcs;
+	MX_CLOCK_TICK start_tick, busy_start_ticks;
+	MX_CLOCK_TICK finish_tick, current_tick;
+	int comparison;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The motor record pointer passed was NULL." );
+	}
+	if ( busy_start_set == (mx_bool_type *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The busy_start_set pointer passed was NULL." );
+	}
+
+	mcs = (MX_MCS *) record->record_class_struct;
+
+	if ( mcs == (MX_MCS *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_MCS pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	if ( mcs->busy_start_interval_enabled == FALSE ) {
+		*busy_start_set = FALSE;
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	mcs->last_start_time =
+		mx_convert_clock_ticks_to_seconds( mcs->last_start_tick );
+
+	start_tick = mcs->last_start_tick;
+
+	busy_start_ticks = mcs->busy_start_ticks;
+
+	finish_tick = mx_add_clock_ticks( start_tick, busy_start_ticks );
+
+	current_tick = mx_current_clock_tick();
+
+	comparison = mx_compare_clock_ticks( current_tick, finish_tick );
+
+	if ( comparison <= 0 ) {
+		*busy_start_set = TRUE;
+	} else {
+		*busy_start_set = FALSE;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
 
 /* mx_mcs_get_current_num_measurements */
 

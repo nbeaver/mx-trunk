@@ -50,14 +50,17 @@ MX_MCS_FUNCTION_LIST mxd_epics_mcs_mcs_function_list = {
 	mxd_epics_mcs_stop,
 	mxd_epics_mcs_clear,
 	mxd_epics_mcs_busy,
-	NULL,
+	mxd_epics_mcs_busy,
 	mxd_epics_mcs_read_all,
 	mxd_epics_mcs_read_scaler,
 	mxd_epics_mcs_read_measurement,
 	NULL,
 	NULL,
 	mxd_epics_mcs_get_parameter,
-	mxd_epics_mcs_set_parameter
+	mxd_epics_mcs_set_parameter,
+	mxd_epics_mcs_get_last_measurement_number,
+	mxd_epics_mcs_get_total_num_measurements,
+	mxd_epics_mcs_get_extended_status
 };
 
 /* EPICS mcs data structures. */
@@ -516,6 +519,14 @@ mxd_epics_mcs_open( MX_RECORD *record )
 					epics_mcs->common_prefix );
 	}
 
+	if ( epics_mcs->epics_record_version >= 5.0 ) {
+		mx_epics_pvname_init( &(epics_mcs->current_channel_pv),
+			"%sCurrentChannel.VAL", epics_mcs->common_prefix );
+	} else {
+		mx_warning( "CurrentChannel not yet implemented for old "
+				"versions of EPICS." );
+	}
+
 #if 1
 	/* FIXME:
 	 *
@@ -643,8 +654,12 @@ mxd_epics_mcs_busy( MX_MCS *mcs )
 
 	if ( busy ) {
 		mcs->busy = TRUE;
+
+		mcs->status = MXSF_MCS_IS_BUSY;
 	} else {
 		mcs->busy = FALSE;
+
+		mcs->status = 0;
 	}
 
 	return mx_status;
@@ -1339,5 +1354,89 @@ mxd_epics_mcs_set_parameter( MX_MCS *mcs )
 	MX_DEBUG( 2,("%s complete.", fname));
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_epics_mcs_get_last_measurement_number( MX_MCS *mcs )
+{
+	static const char fname[] =
+		"mxd_epics_mcs_get_last_measurement_number()";
+
+	MX_EPICS_MCS *epics_mcs = NULL;
+	int32_t current_channel;
+	mx_status_type mx_status;
+
+	mx_status = mxd_epics_mcs_get_pointers( mcs, &epics_mcs, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_caget( &(epics_mcs->current_channel_pv),
+				MX_CA_LONG, 1, &current_channel );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mcs->last_measurement_number = current_channel - 1L;
+
+	MX_DEBUG(-2,("%s last_measurement_number = %ld",
+		mcs->record->name, mcs->last_measurement_number));
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_epics_mcs_get_total_num_measurements( MX_MCS *mcs )
+{
+	static const char fname[] =
+		"mxd_epics_mcs_get_total_num_measurements()";
+
+	MX_EPICS_MCS *epics_mcs = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mxd_epics_mcs_get_pointers( mcs, &epics_mcs, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* FIXME: We currently just return whatever is already in
+	 * the mcs->total_num_measurements variable.
+	 */
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_epics_mcs_get_extended_status( MX_MCS *mcs )
+{
+	static const char fname[] = "mxd_epics_mcs_get_extended_status()";
+
+	MX_EPICS_MCS *epics_mcs = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mxd_epics_mcs_get_pointers( mcs, &epics_mcs, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxd_epics_mcs_busy( mcs );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxd_epics_mcs_get_last_measurement_number( mcs );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* FIXME: We currently just return whatever is already in
+	 * the mcs->total_num_measurements variable.
+	 */
+
+	snprintf( mcs->extended_status, sizeof(mcs->extended_status),
+		"%ld %lu %lu", mcs->last_measurement_number,
+		mcs->total_num_measurements, mcs->status );
+
+	return mx_status;
 }
 

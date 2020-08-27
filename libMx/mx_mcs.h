@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004-2007, 2009-2010, 2014-2015, 2018-2019
+ * Copyright 1999-2002, 2004-2007, 2009-2010, 2014-2015, 2018-2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -59,6 +59,22 @@ typedef struct {
 	long total_num_measurements;
 	unsigned long status;
 	char extended_status[ MXU_MCS_EXTENDED_STATUS_STRING_LENGTH + 1 ];
+
+	unsigned long latched_status;
+
+	/* The following fields are used to handle multichannel scalers
+	 * that do not set the "busy" flag immediately after the start of
+	 * an acquisition sequence.
+	 */
+
+	mx_bool_type busy_start_interval_enabled;
+	double busy_start_interval;			/* in seconds */
+	double last_start_time;				/* in seconds */
+
+	MX_CLOCK_TICK busy_start_ticks;
+	MX_CLOCK_TICK last_start_tick;
+
+	/*---*/
 
 	long counting_mode;
 	long trigger_mode;
@@ -119,23 +135,27 @@ typedef struct {
 #define MXLV_MCS_TOTAL_NUM_MEASUREMENTS		1014
 #define MXLV_MCS_STATUS				1015
 #define MXLV_MCS_EXTENDED_STATUS		1016
-#define MXLV_MCS_COUNTING_MODE			1017
-#define MXLV_MCS_TRIGGER_MODE			1018
-#define MXLV_MCS_MEASUREMENT_TIME		1019
-#define MXLV_MCS_MEASUREMENT_COUNTS		1020
-#define MXLV_MCS_CURRENT_NUM_SCALERS		1021
-#define MXLV_MCS_CURRENT_NUM_MEASUREMENTS	1022
-#define MXLV_MCS_MEASUREMENT_NUMBER		1023
-#define MXLV_MCS_READOUT_PREFERENCE		1024
-#define MXLV_MCS_SCALER_INDEX			1025
-#define MXLV_MCS_MEASUREMENT_INDEX		1026
-#define MXLV_MCS_DARK_CURRENT			1027
-#define MXLV_MCS_DARK_CURRENT_ARRAY		1028
-#define MXLV_MCS_SCALER_DATA			1029
-#define MXLV_MCS_MEASUREMENT_DATA		1030
-#define MXLV_MCS_SCALER_MEASUREMENT		1031
-#define MXLV_MCS_TIMER_DATA			1032
-#define MXLV_MCS_CLEAR_DEADBAND			1033
+#define MXLV_MCS_LATCHED_STATUS			1017
+#define MXLV_MCS_BUSY_START_INTERVAL_ENABLED	1018
+#define MXLV_MCS_BUSY_START_INTERVAL		1019
+#define MXLV_MCS_LAST_START_TIME		1020
+#define MXLV_MCS_COUNTING_MODE			1021
+#define MXLV_MCS_TRIGGER_MODE			1022
+#define MXLV_MCS_MEASUREMENT_TIME		1023
+#define MXLV_MCS_MEASUREMENT_COUNTS		1024
+#define MXLV_MCS_CURRENT_NUM_SCALERS		1025
+#define MXLV_MCS_CURRENT_NUM_MEASUREMENTS	1026
+#define MXLV_MCS_MEASUREMENT_NUMBER		1027
+#define MXLV_MCS_READOUT_PREFERENCE		1028
+#define MXLV_MCS_SCALER_INDEX			1029
+#define MXLV_MCS_MEASUREMENT_INDEX		1030
+#define MXLV_MCS_DARK_CURRENT			1031
+#define MXLV_MCS_DARK_CURRENT_ARRAY		1032
+#define MXLV_MCS_SCALER_DATA			1033
+#define MXLV_MCS_MEASUREMENT_DATA		1034
+#define MXLV_MCS_SCALER_MEASUREMENT		1035
+#define MXLV_MCS_TIMER_DATA			1036
+#define MXLV_MCS_CLEAR_DEADBAND			1037
 
 #define MX_MCS_STANDARD_FIELDS \
   {MXLV_MCS_MAXIMUM_NUM_SCALERS, -1, "maximum_num_scalers",\
@@ -220,6 +240,24 @@ typedef struct {
 			NULL, 1, {MXU_MCS_EXTENDED_STATUS_STRING_LENGTH}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, extended_status), \
 	{sizeof(char)}, NULL, 0}, \
+  \
+  {MXLV_MCS_LATCHED_STATUS, -1, "latched_status", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, latched_status), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_MCS_BUSY_START_INTERVAL_ENABLED, -1, "busy_start_interval_enabled", \
+	  				MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, busy_start_interval_enabled), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_MCS_BUSY_START_INTERVAL, -1, "busy_start_interval", \
+	  				MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, busy_start_interval), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_MCS_LAST_START_TIME, -1, "last_start_time", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, last_start_time), \
+	{0}, NULL, 0}, \
   \
   {MXLV_MCS_COUNTING_MODE, -1, "counting_mode", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, counting_mode), \
@@ -367,6 +405,14 @@ MX_API mx_status_type mx_mcs_get_extended_status( MX_RECORD *mcs_record,
 					long *last_measurement_number,
 					long *total_num_measurements,
 					unsigned long *mcs_status );
+
+MX_API mx_status_type mx_mcs_set_busy_start_interval( MX_RECORD *mcs_record,
+					double busy_start_interval_in_seconds );
+
+MX_API mx_status_type mx_mcs_check_busy_start_interval( MX_RECORD *mcs_record,
+					mx_bool_type *busy_start_set );
+
+/*---*/
 
 MX_API mx_status_type mx_mcs_get_current_num_measurements(
 					MX_RECORD *mcs_record,

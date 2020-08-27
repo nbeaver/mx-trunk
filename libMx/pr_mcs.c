@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2000-2004, 2006, 2009, 2012, 2015, 2018-2019
+ * Copyright 2000-2004, 2006, 2009, 2012, 2015, 2018-2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -46,6 +46,7 @@ mx_setup_mcs_process_functions( MX_RECORD *record )
 		switch( record_field->label_value ) {
 		case MXLV_MCS_ARM:
 		case MXLV_MCS_BUSY:
+		case MXLV_MCS_BUSY_START_INTERVAL:
 		case MXLV_MCS_CLEAR:
 		case MXLV_MCS_CLEAR_DEADBAND:
 		case MXLV_MCS_COUNTING_MODE:
@@ -56,6 +57,7 @@ mx_setup_mcs_process_functions( MX_RECORD *record )
 		case MXLV_MCS_EXTERNAL_NEXT_MEASUREMENT:
 		case MXLV_MCS_EXTERNAL_PRESCALE:
 		case MXLV_MCS_LAST_MEASUREMENT_NUMBER:
+		case MXLV_MCS_LAST_START_TIME:
 		case MXLV_MCS_MEASUREMENT_COUNTS:
 		case MXLV_MCS_MEASUREMENT_DATA:
 		case MXLV_MCS_MEASUREMENT_INDEX:
@@ -230,6 +232,10 @@ mx_mcs_process_function( void *record_ptr,
 		case MXLV_MCS_CLEAR_DEADBAND:
 			mx_status = mx_mcs_set_parameter( record,
 						MXLV_MCS_CLEAR_DEADBAND );
+			break;
+		case MXLV_MCS_BUSY_START_INTERVAL:
+			mx_status = mx_mcs_set_busy_start_interval( record,
+						mcs->busy_start_interval );
 			break;
 		default:
 			MX_DEBUG( 1,(
