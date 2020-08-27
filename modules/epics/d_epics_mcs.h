@@ -32,6 +32,8 @@ typedef struct {
 	double epics_record_version;
 	long num_measurements_to_read;
 
+	mx_bool_type epics_readall_invoked_already;
+
 	int32_t *scaler_value_buffer;
 
 	MX_EPICS_PV acquiring_pv;
@@ -45,7 +47,7 @@ typedef struct {
 	MX_EPICS_PV nuse_pv;
 	MX_EPICS_PV pltm_pv;
 	MX_EPICS_PV prtm_pv;
-	MX_EPICS_PV read_pv;
+	MX_EPICS_PV readall_pv;
 	MX_EPICS_PV start_pv;
 	MX_EPICS_PV stop_pv;
 	MX_EPICS_PV vers_pv;

@@ -234,6 +234,8 @@ mxd_epics_mcs_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	epics_mcs->epics_readall_invoked_already = FALSE;
+
 	epics_mcs->num_measurements_to_read = -1L;
 
 	/* Initialize MX EPICS data structures whose PV names do not depend
@@ -522,6 +524,9 @@ mxd_epics_mcs_open( MX_RECORD *record )
 	if ( epics_mcs->epics_record_version >= 5.0 ) {
 		mx_epics_pvname_init( &(epics_mcs->current_channel_pv),
 			"%sCurrentChannel.VAL", epics_mcs->common_prefix );
+
+		mx_epics_pvname_init( &(epics_mcs->readall_pv),
+			"%sReadAll.VAL", epics_mcs->common_prefix );
 	} else {
 		mx_warning( "CurrentChannel not yet implemented for old "
 				"versions of EPICS." );
@@ -670,13 +675,25 @@ mxd_epics_mcs_read_all( MX_MCS *mcs )
 {
 	static const char fname[] = "mxd_epics_mcs_read_all()";
 
+	MX_EPICS_MCS *epics_mcs = NULL;
 	long i;
+	int32_t readall;
 	mx_status_type mx_status;
 
-	if ( mcs == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"MX_MCS pointer passed was NULL." );
-	}
+	mx_status = mxd_epics_mcs_get_pointers( mcs, &epics_mcs, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	readall = 1;
+
+	mx_status = mx_caput( &(epics_mcs->readall_pv),
+				MX_CA_INT, 1, &readall );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	epics_mcs->epics_readall_invoked_already = TRUE;
 
 	for ( i = 0; i < mcs->current_num_scalers; i++ ) {
 
@@ -684,9 +701,15 @@ mxd_epics_mcs_read_all( MX_MCS *mcs )
 
 		mx_status = mxd_epics_mcs_read_scaler( mcs );
 
-		if ( mx_status.code != MXE_SUCCESS )
+		if ( mx_status.code != MXE_SUCCESS ) {
+			epics_mcs->epics_readall_invoked_already = FALSE;
+
 			return mx_status;
+		}
 	}
+
+	epics_mcs->epics_readall_invoked_already = FALSE;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -697,7 +720,7 @@ mxd_epics_mcs_read_scaler( MX_MCS *mcs )
 
 	MX_EPICS_MCS *epics_mcs = NULL;
 	unsigned long num_measurements_from_epics;
-	int32_t read_cmd;
+	int32_t readall;
 	long i;
 	long *destination_ptr;
 	int32_t *data_ptr, *source_ptr;
@@ -711,13 +734,23 @@ mxd_epics_mcs_read_scaler( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	read_cmd = 1;
+	if ( epics_mcs->epics_readall_invoked_already == FALSE ) {
+		readall = 1;
 
+		mx_status = mx_caput( &(epics_mcs->readall_pv),
+					MX_CA_INT, 1, &readall );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+#if 0
 	mx_status = mx_caput( &(epics_mcs->read_pv_array[ mcs->scaler_index ]),
 				MX_CA_LONG, 1, &read_cmd );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+#endif
 
 	if ( epics_mcs->epics_mcs_flags
 		& MXF_EPICS_MCS_DO_NOT_SKIP_FIRST_MEASUREMENT )
