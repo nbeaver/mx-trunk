@@ -986,7 +986,41 @@ mx_mcs_check_busy_start_interval( MX_RECORD *record,
 
 /*---*/
 
-/* mx_mcs_get_current_num_measurements */
+MX_EXPORT mx_status_type
+mx_mcs_get_current_num_measurements( MX_RECORD *mcs_record,
+					long *current_num_measurements )
+{
+	static const char fname[] = "mx_mcs_get_current_num_measurements()";
+
+	MX_MCS *mcs = NULL;
+	MX_MCS_FUNCTION_LIST *function_list = NULL;
+	mx_status_type ( *get_parameter_fn ) ( MX_MCS * );
+	mx_status_type mx_status;
+
+	mx_status = mx_mcs_get_pointers( mcs_record,
+					&mcs, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = function_list->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn = mx_mcs_default_get_parameter_handler;
+	}
+
+	mcs->parameter_type = MXLV_MCS_CURRENT_NUM_MEASUREMENTS;
+
+	mx_status = (*get_parameter_fn)( mcs );
+
+	if ( current_num_measurements != NULL ) {
+		*current_num_measurements = mcs->current_num_measurements;
+	}
+
+	return mx_status;
+}
+
+/*---*/
 
 MX_EXPORT mx_status_type
 mx_mcs_read_all( MX_RECORD *mcs_record,
