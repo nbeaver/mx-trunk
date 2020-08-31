@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004, 2006, 2017 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004, 2006, 2017, 2020
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -30,6 +31,8 @@
 #define MXF_KEITHLEY428_BYPASS_ERROR_CHECK	0x1
 #define MXF_KEITHLEY428_BYPASS_GET_STATUS	0x2
 #define MXF_KEITHLEY428_BYPASS_STARTUP_SET	0x4
+
+#define MXF_KEITHLEY428_DEBUG			0x1000
 
 typedef struct {
 	MX_RECORD *record;

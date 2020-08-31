@@ -17,7 +17,8 @@ ZWO_EFW_OBJS = zwo_efw.$(OBJ) i_zwo_efw.$(OBJ) d_zwo_efw_motor.$(OBJ)
 #--------------------------------------------------------------------------
 
 ifeq ($(MX_ARCH),linux)
-	ZWO_EFW_DIR = /opt/libEFWFilter
+	#ZWO_EFW_DIR = /opt/libEFWFilter
+	ZWO_EFW_DIR = /usr/local/libEFWFilter
 endif
 
 #--------------------------------------------------------------------------

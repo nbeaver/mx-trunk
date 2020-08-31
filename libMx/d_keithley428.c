@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004, 2006, 2008, 2010, 2015, 2017-2018
+ * Copyright 1999-2002, 2004, 2006, 2008, 2010, 2015, 2017-2018, 2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -923,6 +923,10 @@ mxd_keithley428_command( MX_KEITHLEY428 *keithley428, char *command,
 	}
 
 	flags = keithley428->keithley_flags;
+
+	if ( flags & MXF_KEITHLEY428_DEBUG ) {
+		debug_flag = TRUE;
+	}
 
 	/* Send the command string. */
 
