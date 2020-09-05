@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2018 Illinois Institute of Technology
+ * Copyright 2018, 2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -381,7 +381,7 @@ mxgpib_find_port_record( MX_RECORD **gpib_record,
 	/* Create a record description for the port. */
 
 	snprintf( description, sizeof(description),
-    "%s interface gpib network_gpib \"\" \"\" 0 0 0x0 0x0 0x1 %s %s",
+    "%s interface gpib network_gpib \"\" \"\" 0 0 0x0 0x0 0x0 0x1 %s %s",
 		gpib_record_name, server_record->name, gpib_record_name );
 
 	mx_status = mx_create_record_from_description( record_list, description,
