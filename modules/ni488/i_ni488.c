@@ -473,7 +473,7 @@ mxi_ni488_open_device( MX_GPIB *gpib, long address )
 
 	MX_NI488 *ni488 = NULL;
 	int dev, ibsta_value, time_duration_code;
-#if 1
+#if 0
 	short device_present;
 #endif
 	mx_status_type mx_status;
@@ -519,7 +519,7 @@ mxi_ni488_open_device( MX_GPIB *gpib, long address )
 			mxi_ni488_gpib_error_text( ibsta_value ) );
 	}
 
-#if 1
+#if 0
 	/* Is there an actual device located at this address? */
 
 	ibsta_value = ibln( ni488->board_descriptor,
