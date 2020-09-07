@@ -20,15 +20,15 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004-2006, 2008, 2010, 2015, 2018
- *   Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2004-2006, 2008, 2010, 2015, 2018, 2020
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXI_NI488_DEBUG		FALSE
+#define MXI_NI488_DEBUG		TRUE
 
 #define MXI_NI488_THREAD_SAFE	FALSE
 
@@ -473,9 +473,10 @@ mxi_ni488_open_device( MX_GPIB *gpib, long address )
 
 	MX_NI488 *ni488 = NULL;
 	int dev, ibsta_value, time_duration_code;
-#if 0
+#if 1
 	short device_present;
 #endif
+	mx_bool_type debug;
 	mx_status_type mx_status;
 
 	mx_status = mxi_ni488_get_pointers( gpib, &ni488, fname );
@@ -484,9 +485,15 @@ mxi_ni488_open_device( MX_GPIB *gpib, long address )
 		return mx_status;
 
 #if MXI_NI488_DEBUG
-	MX_DEBUG(-2,("%s invoked for GPIB board %d, address %d.",
+	MX_DEBUG(-2,("%s invoked for GPIB board %ld, address %ld.",
 		fname, ni488->board_number, address));
 #endif
+
+	if ( gpib->gpib_flags & MXF_GPIB_DEBUG ) {
+		debug = TRUE;
+	} else {
+		debug = FALSE;
+	}
 
 	time_duration_code = mxi_ni488_compute_time_duration_code(
 						gpib->io_timeout[address] );
@@ -498,19 +505,21 @@ mxi_ni488_open_device( MX_GPIB *gpib, long address )
 				gpib->eoi_mode[address],
 				gpib->eos_mode[address] );
 
-	if ( gpib->gpib_flags & MXF_GPIB_DEBUG ) {
-		MX_DEBUG(-2,
-	("%s: ibdev( board_number = %ld, address = %ld, secondary_address=0, "
-	"io_timeout_value=%d, eoi_mode=%ld, eos_mode=%#lx ) = %d",
-				fname, ni488->board_number, address,
-				time_duration_code,
-				gpib->eoi_mode[address],
-				gpib->eos_mode[address], dev ));
-	}
-
 	ni488->device_descriptor[address] = dev;
 
 	ibsta_value = mx_ibsta();
+
+	if ( debug ) {
+		MX_DEBUG(-2,
+		("%s: *** ibdev( board_number = %ld, address = %ld, "
+		"secondary_address=0, io_timeout_value=%d, eoi_mode=%ld, "
+		"eos_mode=%#lx ) = %d, ibsta_value = %#x",
+				fname, ni488->board_number, address,
+				time_duration_code,
+				gpib->eoi_mode[address],
+				gpib->eos_mode[address],
+				dev, ibsta_value ));
+	}
 
 	if ( ( dev == -1 ) || ( ibsta_value & ERR ) ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -519,11 +528,19 @@ mxi_ni488_open_device( MX_GPIB *gpib, long address )
 			mxi_ni488_gpib_error_text( ibsta_value ) );
 	}
 
-#if 0
+#if 1
 	/* Is there an actual device located at this address? */
 
 	ibsta_value = ibln( ni488->board_descriptor,
 				address, NO_SAD, &device_present );
+
+	if ( debug ) {
+		MX_DEBUG(-2,
+		("%s: *** ibln( board_descriptor = %ld, address = %ld, NO_SAD, "
+		"&device_present = %hd ) = %#x",
+			fname, ni488->board_descriptor, address,
+			device_present, ibsta_value ));
+	}
 
 	if ( ibsta_value & ERR ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -537,6 +554,13 @@ mxi_ni488_open_device( MX_GPIB *gpib, long address )
 		/* Close down the nonexistent device? */
 
 		ibsta_value = ibonl( ni488->device_descriptor[address], 0 );
+
+		if ( debug ) {
+			MX_DEBUG(-2,
+			("%s: *** ibonl( device_descriptor = %ld, 0 ) = %#x",
+				fname, ni488->device_descriptor[address],
+				ibsta_value ));
+		}
 
 		if ( ibsta_value & ERR ) {
 			(void) mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -552,7 +576,7 @@ mxi_ni488_open_device( MX_GPIB *gpib, long address )
 			address, ni488->record->name );
 	}
 
-	if ( gpib->gpib_flags & MXF_GPIB_DEBUG ) {
+	if ( debug ) {
 		MX_DEBUG(-2,
 		("%s: device found at GPIB address %ld for interface '%s'.",
 			fname, address, ni488->record->name));
@@ -569,7 +593,10 @@ mxi_ni488_close_device( MX_GPIB *gpib, long address )
 	static const char fname[] = "mxi_ni488_close_device()";
 
 	MX_NI488 *ni488 = NULL;
-	int dev, ibsta_value, value, time_duration_code;
+	int dev, ibsta_value, time_duration_code;
+	int secondary_address, eoi_mode;
+	int read_eos_terminator, write_eos_terminator;
+	mx_bool_type debug;
 	mx_status_type mx_status;
 
 	mx_status = mxi_ni488_get_pointers( gpib, &ni488, fname );
@@ -578,9 +605,15 @@ mxi_ni488_close_device( MX_GPIB *gpib, long address )
 		return mx_status;
 
 #if MXI_NI488_DEBUG
-	MX_DEBUG(-2,("%s invoked for GPIB board %d, address %d.",
+	MX_DEBUG(-2,("%s invoked for GPIB board %ld, address %ld.",
 		fname, ni488->board_number, address));
 #endif
+
+	if ( gpib->gpib_flags & MXF_GPIB_DEBUG ) {
+		debug = TRUE;
+	} else {
+		debug = FALSE;
+	}
 
 	/* Read all of the configuration parameters using ibask(). */
 
@@ -588,7 +621,13 @@ mxi_ni488_close_device( MX_GPIB *gpib, long address )
 
 	/* Get secondary GPIB address. */
 
-	ibsta_value = ibask( dev, IbaSAD, &value );
+	ibsta_value = ibask( dev, IbaSAD, &secondary_address );
+
+	if ( debug ) {
+		MX_DEBUG(-2,("%s: *** ibask( device_descriptor = %d, "
+		"IbaSAD, &secondary_address = %d ) = %#x",
+		fname, dev, secondary_address, ibsta_value));
+	}
 
 	if ( ibsta_value & ERR ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -597,11 +636,17 @@ mxi_ni488_close_device( MX_GPIB *gpib, long address )
 			mxi_ni488_gpib_error_text( ibsta_value ) );
 	}
 
-	gpib->secondary_address[address] = value;
+	gpib->secondary_address[address] = secondary_address;
 
 	/* Get I/O timeout (in_seconds). */
 
 	ibsta_value = ibask( dev, IbaTMO, &time_duration_code );
+
+	if ( debug ) {
+		MX_DEBUG(-2,("%s: *** ibask( device_descriptor = %d, "
+		"IbaTMO, &time_duration_code = %d ) = %#x",
+		fname, dev, time_duration_code, ibsta_value));
+	}
 
 	if ( ibsta_value & ERR ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -615,7 +660,13 @@ mxi_ni488_close_device( MX_GPIB *gpib, long address )
 
 	/* Get EOI mode. */
 
-	ibsta_value = ibask( dev, IbaEOT, &value );
+	ibsta_value = ibask( dev, IbaEOT, &eoi_mode );
+
+	if ( debug ) {
+		MX_DEBUG(-2,("%s: *** ibask( device_descriptor = %d, "
+		"IbaEOT, &eoi_mode = %d ) = %#x",
+		fname, dev, eoi_mode, ibsta_value));
+	}
 
 	if ( ibsta_value & ERR ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -624,11 +675,17 @@ mxi_ni488_close_device( MX_GPIB *gpib, long address )
 			mxi_ni488_gpib_error_text( ibsta_value ) );
 	}
 
-	gpib->eoi_mode[address] = value;
+	gpib->eoi_mode[address] = eoi_mode;
 
 	/* Get read EOS character. */
 
-	ibsta_value = ibask( dev, IbaEOSrd, &value );
+	ibsta_value = ibask( dev, IbaEOSrd, &read_eos_terminator );
+
+	if ( debug ) {
+		MX_DEBUG(-2,("%s: *** ibask( device_descriptor = %d, "
+		"IbaEOSrd, &read_eos_terminator = %d ) = %#x",
+		fname, dev, read_eos_terminator, ibsta_value));
+	}
 
 	if ( ibsta_value & ERR ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -637,11 +694,17 @@ mxi_ni488_close_device( MX_GPIB *gpib, long address )
 			mxi_ni488_gpib_error_text( ibsta_value ) );
 	}
 
-	gpib->read_terminator[address] = (char) value;
+	gpib->read_terminator[address] = (char) read_eos_terminator;
 
 	/* Get write EOS character. */
 
-	ibsta_value = ibask( dev, IbaEOSwrt, &value );
+	ibsta_value = ibask( dev, IbaEOSwrt, &write_eos_terminator );
+
+	if ( debug ) {
+		MX_DEBUG(-2,("%s: *** ibask( device_descriptor = %d, "
+		"IbaEOSwrt, &write_eos_terminator = %d ) = %#x",
+		fname, dev, write_eos_terminator, ibsta_value));
+	}
 
 	if ( ibsta_value & ERR ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -650,9 +713,14 @@ mxi_ni488_close_device( MX_GPIB *gpib, long address )
 			mxi_ni488_gpib_error_text( ibsta_value ) );
 	}
 
-	gpib->write_terminator[address] = (char) value;
+	gpib->write_terminator[address] = (char) write_eos_terminator;
 
-	ibsta_value = ibonl( ni488->device_descriptor[address], 0 );
+	ibsta_value = ibonl( dev, 0 );
+
+	if ( debug ) {
+		MX_DEBUG(-2,("%s: *** ibonl( device_descriptor = %d, 0",
+								fname, dev ));
+	}
 
 	if ( ibsta_value & ERR ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -692,6 +760,15 @@ mxi_ni488_read( MX_GPIB *gpib,
 		"The buffer pointer passed was NULL." );
 	}
 
+	if ( gpib->gpib_flags & MXF_GPIB_DEBUG ) {
+		debug = TRUE;
+	} else
+	if ( flags & MXF_GPIB_DEBUG ) {
+		debug = TRUE;
+	} else {
+		debug = FALSE;
+	}
+
 	mx_status = mxi_ni488_get_device_descriptor( gpib,
 						ni488, address, &dev );
 
@@ -701,8 +778,19 @@ mxi_ni488_read( MX_GPIB *gpib,
 	if ( flags & MXF_GPIB_NOWAIT ) { 	/* Asynchronous read. */
 		ibsta_value = ibrda( dev, buffer, max_bytes_to_read );
 
+		if ( debug ) {
+			MX_DEBUG(-2,("%s: *** ibrda( device_descriptor = %d, "
+			"buffer = '%s', max_bytes_to_read = %ld ) = %#x",
+			fname, dev, buffer, max_bytes_to_read, ibsta_value ));
+		}
 	} else {				/* Synchronous read. */
 		ibsta_value = ibrd( dev, buffer, max_bytes_to_read );
+
+		if ( debug ) {
+			MX_DEBUG(-2,("%s: *** ibrd( device_descriptor = %d, "
+			"buffer = '%s', max_bytes_to_read = %ld ) = %#x",
+			fname, dev, buffer, max_bytes_to_read, ibsta_value ));
+		}
 	}
 
 	if ( bytes_read != NULL ) {
@@ -731,18 +819,9 @@ mxi_ni488_read( MX_GPIB *gpib,
 		}
 	}
 
-	debug = FALSE;
-
-	if ( gpib->gpib_flags & MXF_GPIB_DEBUG ) {
-		debug = TRUE;
-	}
-	if ( flags & MXF_GPIB_DEBUG ) {
-		debug = TRUE;
-	}
-
 	if ( debug ) {
 		MX_DEBUG(-2,
-		("%s: read '%s' from GPIB '%s', board %ld, address %ld",
+		("%s: <<< read '%s' from GPIB '%s', board %ld, address %ld",
 			fname, buffer, gpib->record->name,
 			ni488->board_number, address));
 	}
@@ -779,13 +858,13 @@ mxi_ni488_write( MX_GPIB *gpib,
 		"The buffer pointer passed was NULL." );
 	}
 
-	debug = FALSE;
-
 	if ( gpib->gpib_flags & MXF_GPIB_DEBUG ) {
 		debug = TRUE;
-	}
+	} else
 	if ( flags & MXF_GPIB_DEBUG ) {
 		debug = TRUE;
+	} else {
+		debug = FALSE;
 	}
 
 	if ( debug ) {
@@ -807,8 +886,7 @@ mxi_ni488_write( MX_GPIB *gpib,
 	 * have a line terminator character added at the end, since
 	 * the National Instruments library does not do that for us.
 	 *
-	 * Needless to say, this is a nuisance, but computer programming
-	 * is full of such things.
+	 * Needless to say, this is a nuisance.
 	 */
 
 	write_terminator = gpib->write_terminator[address];
@@ -878,7 +956,7 @@ mxi_ni488_write( MX_GPIB *gpib,
 	}
 
 #if MXI_NI488_DEBUG
-	MX_DEBUG(-2,("%s: writing '%s' to GPIB board %d, address %d",
+	MX_DEBUG(-2,("%s: >>> writing '%s' to GPIB board %ld, address %ld",
 		fname, buffer, ni488->board_number, address));
 #endif
 
@@ -902,12 +980,30 @@ mxi_ni488_write( MX_GPIB *gpib,
 	if ( flags & MXF_GPIB_NOWAIT ) { 	/* Asynchronous write. */
 		ibsta_value = ibwrta( dev, buffer_ptr, local_bytes_to_write );
 
+		if ( debug ) {
+			MX_DEBUG(-2,("%s: *** ibwrta( device_descriptor = %d, "
+			"buffer_ptr = '%s', local_bytes_to_write = %ld ) = %#x",
+				fname, dev, buffer_ptr,
+				local_bytes_to_write, ibsta_value ));
+		}
 	} else {				/* Synchronous write. */
 		ibsta_value = ibwrt( dev, buffer_ptr, local_bytes_to_write );
+
+		if ( debug ) {
+			MX_DEBUG(-2,("%s: *** ibwrt( device_descriptor = %d, "
+			"buffer_ptr = '%s', local_bytes_to_write = %ld ) = %#x",
+				fname, dev, buffer_ptr,
+				local_bytes_to_write, ibsta_value ));
+		}
 	}
 
 	if ( bytes_written != NULL ) {
 		*bytes_written = (size_t) mx_ibcntl();
+
+		if ( debug ) {
+			MX_DEBUG(-2,("%s: *** ibcntl() = %d",
+			fname, (int) *bytes_written ));
+		}
 	}
 
 	/* If we allocated a buffer on the heap, get rid of it now. */
@@ -936,6 +1032,7 @@ mxi_ni488_interface_clear( MX_GPIB *gpib )
 
 	MX_NI488 *ni488 = NULL;
 	int ibsta_value;
+	mx_bool_type debug;
 	mx_status_type mx_status;
 
 	mx_status = mxi_ni488_get_pointers( gpib, &ni488, fname );
@@ -944,11 +1041,22 @@ mxi_ni488_interface_clear( MX_GPIB *gpib )
 		return mx_status;
 
 	if ( gpib->gpib_flags & MXF_GPIB_DEBUG ) {
+		debug = TRUE;
+	} else {
+		debug = FALSE;
+	}
+
+	if ( gpib->gpib_flags & MXF_GPIB_DEBUG ) {
 		MX_DEBUG(-2,("%s invoked for GPIB '%s', board %ld.",
 			fname, gpib->record->name, ni488->board_number));
 	}
 
 	ibsta_value = ibsic( ni488->board_descriptor );
+
+	if ( debug ) {
+		MX_DEBUG(-2,("%s: ibsic( board_descriptor = %ld ) = %#x",
+			fname, ni488->board_descriptor, ibsta_value ));
+	}
 
 	if ( ibsta_value & ERR ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -966,6 +1074,7 @@ mxi_ni488_device_clear( MX_GPIB *gpib )
 
 	MX_NI488 *ni488 = NULL;
 	int ibsta_value;
+	mx_bool_type debug;
 	mx_status_type mx_status;
 
 	mx_status = mxi_ni488_get_pointers( gpib, &ni488, fname );
@@ -974,6 +1083,12 @@ mxi_ni488_device_clear( MX_GPIB *gpib )
 		return mx_status;
 
 	if ( gpib->gpib_flags & MXF_GPIB_DEBUG ) {
+		debug = TRUE;
+	} else {
+		debug = FALSE;
+	}
+
+	if ( debug ) {
 		MX_DEBUG(-2,("%s invoked for GPIB '%s', board %ld.",
 			fname, gpib->record->name, ni488->board_number));
 	}
@@ -981,6 +1096,12 @@ mxi_ni488_device_clear( MX_GPIB *gpib )
 	DevClear( ni488->board_number, NOADDR );
 
 	ibsta_value = mx_ibsta();
+
+	if ( debug ) {
+		MX_DEBUG(-2,
+		("%s: *** DevClear( board_number = %ld, NOADDR ) = %#x",
+			fname, ni488->board_number, ibsta_value ));
+	}
 
 	if ( ibsta_value & ERR ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -996,6 +1117,19 @@ mxi_ni488_device_clear( MX_GPIB *gpib )
 MX_EXPORT mx_status_type
 mxi_ni488_selective_device_clear( MX_GPIB *gpib, long address )
 {
+	static const char fname[] = "mxi_ni488_selective_device_clear()";
+
+	MX_NI488 *ni488 = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mxi_ni488_get_pointers( gpib, &ni488, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s is disabled for GPIB interface '%s'.",
+		fname, gpib->record->name));
+
 	return MX_SUCCESSFUL_RESULT;
 }
 #else
@@ -1006,6 +1140,7 @@ mxi_ni488_selective_device_clear( MX_GPIB *gpib, long address )
 
 	MX_NI488 *ni488 = NULL;
 	int ibsta_value, dev;
+	mx_bool_type debug;
 	mx_status_type mx_status;
 
 	mx_status = mxi_ni488_get_pointers( gpib, &ni488, fname );
@@ -1014,6 +1149,12 @@ mxi_ni488_selective_device_clear( MX_GPIB *gpib, long address )
 		return mx_status;
 
 	if ( gpib->gpib_flags & MXF_GPIB_DEBUG ) {
+		debug = TRUE;
+	} else {
+		debug = FALSE;
+	}
+
+	if ( debug ) {
 		MX_DEBUG(-2,
 		("%s invoked for GPIB '%s', board %ld, address %ld.",
 			fname, gpib->record->name,
@@ -1027,6 +1168,11 @@ mxi_ni488_selective_device_clear( MX_GPIB *gpib, long address )
 		return mx_status;
 
 	ibsta_value = ibclr( dev );
+
+	if ( debug ) {
+		MX_DEBUG(-2,("%s: *** ibclr( device_descriptor = %d ) = %#x",
+		fname, dev, ibsta_value ));
+	}
 
 	if ( ibsta_value & ERR ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -1046,6 +1192,7 @@ mxi_ni488_local_lockout( MX_GPIB *gpib )
 
 	MX_NI488 *ni488 = NULL;
 	int ibsta_value;
+	mx_bool_type debug;
 	mx_status_type mx_status;
 
 	mx_status = mxi_ni488_get_pointers( gpib, &ni488, fname );
@@ -1054,6 +1201,12 @@ mxi_ni488_local_lockout( MX_GPIB *gpib )
 		return mx_status;
 
 	if ( gpib->gpib_flags & MXF_GPIB_DEBUG ) {
+		debug = TRUE;
+	} else {
+		debug = FALSE;
+	}
+
+	if ( debug ) {
 		MX_DEBUG(-2,("%s invoked for GPIB '%s', board %ld.",
 			fname, gpib->record->name, ni488->board_number));
 	}
@@ -1061,6 +1214,11 @@ mxi_ni488_local_lockout( MX_GPIB *gpib )
 	SendLLO( ni488->board_number );
 
 	ibsta_value = mx_ibsta();
+
+	if ( debug ) {
+		MX_DEBUG(-2,("%s *** SendLLO( board_number = %ld ) = %#x",
+		fname, ni488->board_number, ibsta_value));
+	}
 
 	if ( ibsta_value & ERR ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -1079,6 +1237,7 @@ mxi_ni488_remote_enable( MX_GPIB *gpib, long address )
 
 	MX_NI488 *ni488 = NULL;
 	int ibsta_value;
+	mx_bool_type debug;
 	mx_status_type mx_status;
 
 	mx_status = mxi_ni488_get_pointers( gpib, &ni488, fname );
@@ -1087,6 +1246,12 @@ mxi_ni488_remote_enable( MX_GPIB *gpib, long address )
 		return mx_status;
 
 	if ( gpib->gpib_flags & MXF_GPIB_DEBUG ) {
+		debug = TRUE;
+	} else {
+		debug = FALSE;
+	}
+
+	if ( debug ) {
 		MX_DEBUG(-2,
 		("%s invoked for GPIB '%s', board %ld, address %ld.",
 			fname, gpib->record->name,
@@ -1094,6 +1259,11 @@ mxi_ni488_remote_enable( MX_GPIB *gpib, long address )
 	}
 
 	ibsta_value = ibsre( ni488->board_descriptor, 1 );
+
+	if ( debug ) {
+		MX_DEBUG(-2,("%s: *** ibsre( board_descriptor = %ld, 1 ) = %#x",
+			fname, ni488->board_descriptor, ibsta_value ));
+	}
 
 	if ( ibsta_value & ERR ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -1113,6 +1283,7 @@ mxi_ni488_go_to_local( MX_GPIB *gpib, long address )
 
 	MX_NI488 *ni488 = NULL;
 	int ibsta_value, dev;
+	mx_bool_type debug;
 	mx_status_type mx_status;
 
 	mx_status = mxi_ni488_get_pointers( gpib, &ni488, fname );
@@ -1121,6 +1292,12 @@ mxi_ni488_go_to_local( MX_GPIB *gpib, long address )
 		return mx_status;
 
 	if ( gpib->gpib_flags & MXF_GPIB_DEBUG ) {
+		debug = TRUE;
+	} else {
+		debug = FALSE;
+	}
+
+	if ( debug ) {
 		MX_DEBUG(-2,
 		("%s invoked for GPIB '%s', board %ld, address %ld.",
 			fname, gpib->record->name,
@@ -1134,6 +1311,11 @@ mxi_ni488_go_to_local( MX_GPIB *gpib, long address )
 		return mx_status;
 
 	ibsta_value = ibloc( dev );
+
+	if ( debug ) {
+		MX_DEBUG(-2,("%s: *** ibloc( device_descriptor = %d ) = %#x",
+			fname, dev, ibsta_value ));
+	}
 
 	if ( ibsta_value & ERR ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -1152,6 +1334,7 @@ mxi_ni488_trigger( MX_GPIB *gpib, long address )
 
 	MX_NI488 *ni488 = NULL;
 	int ibsta_value, dev;
+	mx_bool_type debug;
 	mx_status_type mx_status;
 
 	mx_status = mxi_ni488_get_pointers( gpib, &ni488, fname );
@@ -1160,6 +1343,12 @@ mxi_ni488_trigger( MX_GPIB *gpib, long address )
 		return mx_status;
 
 	if ( gpib->gpib_flags & MXF_GPIB_DEBUG ) {
+		debug = TRUE;
+	} else {
+		debug = FALSE;
+	}
+
+	if ( debug ) {
 		MX_DEBUG(-2,
 		("%s invoked for GPIB '%s', board %ld, address %ld.",
 			fname, gpib->record->name,
@@ -1173,6 +1362,11 @@ mxi_ni488_trigger( MX_GPIB *gpib, long address )
 		return mx_status;
 
 	ibsta_value = ibtrg( dev );
+
+	if ( debug ) {
+		MX_DEBUG(-2,("%s: *** ibtrg( device_descriptor = %d ) = %#x",
+			fname, dev, ibsta_value ));
+	}
 
 	if ( ibsta_value & ERR ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -1191,6 +1385,7 @@ mxi_ni488_wait_for_service_request( MX_GPIB *gpib, double timeout )
 
 	MX_NI488 *ni488 = NULL;
 	int ibsta_value, dev;
+	mx_bool_type debug;
 	mx_status_type mx_status;
 
 	mx_status = mxi_ni488_get_pointers( gpib, &ni488, fname );
@@ -1199,6 +1394,12 @@ mxi_ni488_wait_for_service_request( MX_GPIB *gpib, double timeout )
 		return mx_status;
 
 	if ( gpib->gpib_flags & MXF_GPIB_DEBUG ) {
+		debug = TRUE;
+	} else {
+		debug = FALSE;
+	}
+
+	if ( debug ) {
 		MX_DEBUG(-2,
 		("%s invoked for GPIB '%s', board %ld, timeout = %g.",
 			fname, gpib->record->name,
@@ -1213,6 +1414,11 @@ mxi_ni488_wait_for_service_request( MX_GPIB *gpib, double timeout )
 		return mx_status;
 
 	ibsta_value = ibwait( 0, 0 );
+
+	if ( debug ) {
+		MX_DEBUG(-2,("%s: *** ibwait( 0, 0 ) = %#x",
+			fname, ibsta_value ));
+	}
 
 	if ( ibsta_value & ERR ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -1232,6 +1438,7 @@ mxi_ni488_serial_poll( MX_GPIB *gpib, long address,
 
 	MX_NI488 *ni488 = NULL;
 	int ibsta_value, dev;
+	mx_bool_type debug;
 	mx_status_type mx_status;
 
 	mx_status = mxi_ni488_get_pointers( gpib, &ni488, fname );
@@ -1245,6 +1452,12 @@ mxi_ni488_serial_poll( MX_GPIB *gpib, long address,
 	}
 
 	if ( gpib->gpib_flags & MXF_GPIB_DEBUG ) {
+		debug = TRUE;
+	} else {
+		debug = FALSE;
+	}
+
+	if ( debug ) {
 		MX_DEBUG(-2,
 		("%s invoked for GPIB '%s', board %ld, address %ld.",
 			fname, gpib->record->name,
@@ -1259,6 +1472,12 @@ mxi_ni488_serial_poll( MX_GPIB *gpib, long address,
 
 	ibsta_value = ibrsp( dev, (char *) serial_poll_byte );
 
+	if ( debug ) {
+		MX_DEBUG(-2,("%s: *** ibrsp( device_descriptor = %d, "
+		"&serial_poll_byte = %uc ) = %#x", fname, dev,
+			*serial_poll_byte, ibsta_value ));
+	}
+
 	if ( ibsta_value & ERR ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 "Serial poll of address %ld for GPIB interface '%s' failed.  GPIB error = '%s'",
@@ -1268,7 +1487,7 @@ mxi_ni488_serial_poll( MX_GPIB *gpib, long address,
 
 #if MXI_NI488_DEBUG
 	MX_DEBUG(-2,
-	("%s: serial poll byte for GPIB board %d, address %d is %#x",
+	("%s: serial poll byte for GPIB board %ld, address %ld is %#x",
 	 	fname, ni488->board_number, address, *serial_poll_byte));
 #endif
 
