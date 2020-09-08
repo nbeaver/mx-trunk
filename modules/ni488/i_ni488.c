@@ -746,7 +746,7 @@ mxi_ni488_read( MX_GPIB *gpib,
 
 	MX_NI488 *ni488 = NULL;
 	char *ptr;
-	int dev, ibsta_value;
+	int dev, ibsta_value, ibcntl_value;
 	mx_bool_type debug;
 	mx_status_type mx_status;
 
@@ -793,8 +793,14 @@ mxi_ni488_read( MX_GPIB *gpib,
 		}
 	}
 
+	ibcntl_value = mx_ibcntl();
+
+	if ( debug ) {
+		MX_DEBUG(-2,("%s: *** ibcntl() = %d", fname, ibcntl_value));
+	}
+
 	if ( bytes_read != NULL ) {
-		*bytes_read = (size_t) mx_ibcntl();
+		*bytes_read = ibcntl_value;
 	}
 
 	if ( ibsta_value & ERR ) {
@@ -891,7 +897,7 @@ mxi_ni488_write( MX_GPIB *gpib,
 
 	write_terminator = gpib->write_terminator[address];
 
-	MX_DEBUG( 2,("%s: write_terminator = %#lx",
+	MX_DEBUG(-2,("%s: write_terminator = %#lx",
 		fname, write_terminator));
 
 	buffer_ptr = NULL;
@@ -903,6 +909,8 @@ mxi_ni488_write( MX_GPIB *gpib,
 		buffer_ptr = buffer;
 		local_bytes_to_write = bytes_to_write;
 	} else {
+		size_t test_bytes_to_write;
+
 		/* We must copy the buffer to a local buffer to add the
 		 * terminator.  It is _not_ safe to write to the caller's
 		 * buffer since we have no way of being sure that the
@@ -944,20 +952,24 @@ mxi_ni488_write( MX_GPIB *gpib,
 			
 		memcpy( buffer_ptr, buffer, bytes_to_write );
 
+		test_bytes_to_write = strlen(buffer_ptr);
+
 		/* Now add the 'secret sauce', that is, the write terminator. */
 
-		buffer_ptr[bytes_to_write] = write_terminator;
+		if ( buffer_ptr[test_bytes_to_write] == '\0' ) {
+			buffer_ptr[test_bytes_to_write] = write_terminator;
 
-		/* For convenience, add a null terminator to make the string
-		 * easier to print for debugging.
-		 */
+			/* For convenience, add a null terminator to make
+			 * the string easier to print for debugging.
+			 */
 
-		buffer_ptr[bytes_to_write + 1] = '\0';
+			buffer_ptr[test_bytes_to_write + 1] = '\0';
+		}
 	}
 
 #if MXI_NI488_DEBUG
 	MX_DEBUG(-2,("%s: >>> writing '%s' to GPIB board %ld, address %ld",
-		fname, buffer, ni488->board_number, address));
+		fname, buffer_ptr, ni488->board_number, address));
 #endif
 
 #if 0

@@ -252,10 +252,10 @@ mxd_keithley428_open( MX_RECORD *record )
 
 	/* Force EOI signalling on. */
 
-	gpib->eoi_mode[ interface->address - 1 ] = 1;
+	gpib->eoi_mode[ interface->address ] = 1;
 
-	gpib->read_terminator[ interface->address - 1 ] = 0x0a;
-	gpib->write_terminator[ interface->address - 1 ] = 0x0;
+	gpib->read_terminator[ interface->address ] = 0x0a;
+	gpib->write_terminator[ interface->address ] = 0x0a;
 
 	/*---*/
 
@@ -278,7 +278,7 @@ mxd_keithley428_open( MX_RECORD *record )
 
 	/* Set the ASCII terminator for the Keithley. */
 
-	read_terminator = gpib->read_terminator[ interface->address - 1 ];
+	read_terminator = gpib->read_terminator[ interface->address ];
 
 	switch( read_terminator ) {
 	case 0x0d0a:
@@ -898,6 +898,15 @@ mxd_keithley428_command( MX_KEITHLEY428 *keithley428, char *command,
 	char *ptr;
 	int i;
 	MX_INTERFACE *interface = NULL;
+	MX_GPIB *gpib = NULL;
+
+	char local_command_buffer[1024];
+#if 0
+	size_t local_command_length;
+	unsigned long ulong_write_terminator;
+
+	mx_bool_type need_write_terminator;
+#endif
 	
 	int local_response_length = 0;
 	char *local_response_ptr = NULL;
@@ -918,7 +927,15 @@ mxd_keithley428_command( MX_KEITHLEY428 *keithley428, char *command,
 
 	if ( interface == (MX_INTERFACE *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_INTERFACE pointer for keithley '%s' was NULL.",
+		"The MX_INTERFACE pointer for Keithley '%s' was NULL.",
+			keithley428->record->name );
+	}
+
+	gpib = (MX_GPIB *) interface->record->record_class_struct;
+
+	if ( gpib == (MX_GPIB *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_GPIB pointer for Keithley '%s' was NULL.",
 			keithley428->record->name );
 	}
 
@@ -928,10 +945,56 @@ mxd_keithley428_command( MX_KEITHLEY428 *keithley428, char *command,
 		debug_flag = TRUE;
 	}
 
+	/* Copy the command string to a local buffer and then add
+	 * line terminators as needed.
+	 */
+
+	strlcpy(local_command_buffer, command, sizeof(local_command_buffer-3));
+
+#if 0
+	need_write_terminator = TRUE;
+
+	if ( need_write_terminator ) {
+		local_command_length = strlen( local_command_buffer );
+
+		ulong_write_terminator =
+			gpib->write_terminator[ interface->address ];
+
+		switch( ulong_write_terminator ) {
+		case 0x0d0a:
+			local_command_buffer[local_command_length] = 0x0d;
+			local_command_buffer[local_command_length+1] = 0x0a;
+			local_command_buffer[local_command_length+2] = 0x0;
+			break;
+		case 0x0a0d:
+			local_command_buffer[local_command_length] = 0x0a;
+			local_command_buffer[local_command_length+1] = 0x0d;
+			local_command_buffer[local_command_length+2] = 0x0;
+			break;
+		case 0x0d:
+			local_command_buffer[local_command_length] = 0x0d;
+			local_command_buffer[local_command_length+1] = 0x0;
+			break;
+		case 0x0a:
+			local_command_buffer[local_command_length] = 0x0a;
+			local_command_buffer[local_command_length+1] = 0x0;
+			break;
+		default:
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Illegal command write terminator %#lx requested "
+			"for Keithley 428 '%s'.  The allowed values are "
+			"0x0d0a, 0x0a0d, 0x0d, or 0x0a.",
+				ulong_write_terminator,
+				keithley428->record->name );
+			break;
+		}
+	}
+#endif
+
 	/* Send the command string. */
 
 	mx_status = mx_gpib_putline( interface->record, interface->address,
-					command, NULL, debug_flag );
+				local_command_buffer, NULL, debug_flag );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
