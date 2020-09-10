@@ -20,6 +20,10 @@
 
 #include "mx_record.h"
 
+/* Flag bits for the 'ni488_flags' field. */
+
+#define MXF_NI488_DEBUG_LOWLEVEL	0x1
+
 /* Define the data structure used by National Instruments GPIB interfaces. */
 
 typedef struct {

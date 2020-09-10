@@ -900,17 +900,6 @@ mxd_keithley428_command( MX_KEITHLEY428 *keithley428, char *command,
 	MX_INTERFACE *interface = NULL;
 	MX_GPIB *gpib = NULL;
 
-	char local_command_buffer[1024];
-#if 0
-	size_t local_command_length;
-	unsigned long ulong_write_terminator;
-
-	mx_bool_type need_write_terminator;
-#endif
-	
-	int local_response_length = 0;
-	char *local_response_ptr = NULL;
-	char local_response_buffer[1024];
 	unsigned long flags;
 	mx_status_type mx_status;
 
@@ -945,81 +934,25 @@ mxd_keithley428_command( MX_KEITHLEY428 *keithley428, char *command,
 		debug_flag = TRUE;
 	}
 
-	/* Copy the command string to a local buffer and then add
-	 * line terminators as needed.
-	 */
-
-	strlcpy(local_command_buffer, command, sizeof(local_command_buffer-3));
-
-#if 0
-	need_write_terminator = TRUE;
-
-	if ( need_write_terminator ) {
-		local_command_length = strlen( local_command_buffer );
-
-		ulong_write_terminator =
-			gpib->write_terminator[ interface->address ];
-
-		switch( ulong_write_terminator ) {
-		case 0x0d0a:
-			local_command_buffer[local_command_length] = 0x0d;
-			local_command_buffer[local_command_length+1] = 0x0a;
-			local_command_buffer[local_command_length+2] = 0x0;
-			break;
-		case 0x0a0d:
-			local_command_buffer[local_command_length] = 0x0a;
-			local_command_buffer[local_command_length+1] = 0x0d;
-			local_command_buffer[local_command_length+2] = 0x0;
-			break;
-		case 0x0d:
-			local_command_buffer[local_command_length] = 0x0d;
-			local_command_buffer[local_command_length+1] = 0x0;
-			break;
-		case 0x0a:
-			local_command_buffer[local_command_length] = 0x0a;
-			local_command_buffer[local_command_length+1] = 0x0;
-			break;
-		default:
-			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Illegal command write terminator %#lx requested "
-			"for Keithley 428 '%s'.  The allowed values are "
-			"0x0d0a, 0x0a0d, 0x0d, or 0x0a.",
-				ulong_write_terminator,
-				keithley428->record->name );
-			break;
-		}
-	}
-#endif
-
 	/* Send the command string. */
 
 	mx_status = mx_gpib_putline( interface->record, interface->address,
-				local_command_buffer, NULL, debug_flag );
+						command, NULL, debug_flag );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* The Keithley 428 always sends a response of some sort, but
-	 * some of them we do not want.  If the response pointer is set
-	 * to NULL, then we redirect the response we are ignoring to
-	 * a local buffer.
+	/* If a response is expected for the command we just sent,
+	 * then read the response.
 	 */
 
-	if ( response == NULL ) {
-		local_response_ptr = local_response_buffer;
-		local_response_length = sizeof(local_response_buffer);
-	} else {
-		local_response_ptr = response;
-		local_response_length = response_buffer_length;
-	}
+	if ( response != NULL ) {
+	    mx_status = mx_gpib_getline(interface->record, interface->address,
+		response, response_buffer_length, NULL, debug_flag );
 
-	/* Get the response. */
-
-	mx_status = mx_gpib_getline(interface->record, interface->address,
-		local_response_ptr, local_response_length, NULL, debug_flag );
-
-	if ( mx_status.code != MXE_SUCCESS )
+	    if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+	}
 
 	/* Do we skip over checking for errors? */
 
