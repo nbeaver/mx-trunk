@@ -473,7 +473,7 @@ mxi_ni488_open_device( MX_GPIB *gpib, long address )
 
 	MX_NI488 *ni488 = NULL;
 	int dev, ibsta_value, time_duration_code;
-#if 1
+#if 0
 	short device_present;
 #endif
 	mx_bool_type debug;
@@ -528,7 +528,7 @@ mxi_ni488_open_device( MX_GPIB *gpib, long address )
 			mxi_ni488_gpib_error_text( ibsta_value ) );
 	}
 
-#if 1
+#if 0
 	/* Is there an actual device located at this address? */
 
 	ibsta_value = ibln( ni488->board_descriptor,
@@ -972,11 +972,11 @@ mxi_ni488_write( MX_GPIB *gpib,
 		fname, buffer_ptr, ni488->board_number, address));
 #endif
 
-#if 0
+#if 1
 	{
 		int i;
 
-		for ( i = 0; i < local_bytes_to_write; i++ ) {
+		for ( i = 0; i < strlen(buffer_ptr); i++ ) {
 			fprintf( stderr, "%#x ", buffer_ptr[i] );
 		}
 		fprintf( stderr, "\n" );
@@ -990,22 +990,22 @@ mxi_ni488_write( MX_GPIB *gpib,
 		return mx_status;
 
 	if ( flags & MXF_GPIB_NOWAIT ) { 	/* Asynchronous write. */
-		ibsta_value = ibwrta( dev, buffer_ptr, local_bytes_to_write );
+		ibsta_value = ibwrta( dev, buffer_ptr, strlen(buffer_ptr) );
 
 		if ( debug ) {
 			MX_DEBUG(-2,("%s: *** ibwrta( device_descriptor = %d, "
-			"buffer_ptr = '%s', local_bytes_to_write = %ld ) = %#x",
+			"buffer_ptr = '%s', strlen(buffer_ptr) = %ld ) = %#x",
 				fname, dev, buffer_ptr,
-				local_bytes_to_write, ibsta_value ));
+				strlen(buffer_ptr), ibsta_value ));
 		}
 	} else {				/* Synchronous write. */
-		ibsta_value = ibwrt( dev, buffer_ptr, local_bytes_to_write );
+		ibsta_value = ibwrt( dev, buffer_ptr, strlen(buffer_ptr) );
 
 		if ( debug ) {
 			MX_DEBUG(-2,("%s: *** ibwrt( device_descriptor = %d, "
-			"buffer_ptr = '%s', local_bytes_to_write = %ld ) = %#x",
+			"buffer_ptr = '%s', strlen(buffer_ptr) = %ld ) = %#x",
 				fname, dev, buffer_ptr,
-				local_bytes_to_write, ibsta_value ));
+				strlen(buffer_ptr), ibsta_value ));
 		}
 	}
 
