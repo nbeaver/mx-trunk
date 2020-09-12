@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2000-2006, 2008, 2010, 2012, 2014-2016, 2018-2019
+ * Copyright 2000-2006, 2008, 2010, 2012, 2014-2016, 2018-2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -228,6 +228,10 @@ mxd_network_mcs_finish_record_initialization( MX_RECORD *record )
 	mx_network_field_init( &(network_mcs->external_prescale_nf),
 		network_mcs->server_record,
 		"%s.external_prescale", network_mcs->remote_record_name );
+
+	mx_network_field_init( &(network_mcs->manual_next_measurement_nf),
+		network_mcs->server_record,
+		"%s.manual_next_measurement", network_mcs->remote_record_name );
 
 	mx_network_field_init( &(network_mcs->measurement_counts_nf),
 		network_mcs->server_record,
@@ -1082,6 +1086,7 @@ mxd_network_mcs_set_parameter( MX_MCS *mcs )
 	long counting_mode, trigger_mode;
 	mx_bool_type external_next_measurement;
 	unsigned long external_prescale;
+	mx_bool_type manual_next_measurement;
 	unsigned long num_measurements, measurement_counts;
 	double measurement_time, dark_current;
 	mx_status_type mx_status;
@@ -1129,6 +1134,19 @@ mxd_network_mcs_set_parameter( MX_MCS *mcs )
 
 		mx_status = mx_put( &(network_mcs->external_prescale_nf),
 					MXFT_ULONG, &external_prescale );
+		break;
+
+	case MXLV_MCS_MANUAL_NEXT_MEASUREMENT:
+		manual_next_measurement = TRUE;
+
+		MX_DEBUG( 2,("%s: sending %d to '%s'",
+			fname, (int) manual_next_measurement,
+			network_mcs->manual_next_measurement_nf.nfname ));
+
+		mx_status = mx_put( &(network_mcs->manual_next_measurement_nf),
+					MXFT_BOOL, &manual_next_measurement );
+
+		mcs->manual_next_measurement = FALSE;
 		break;
 
 	case MXLV_MCS_MEASUREMENT_TIME:

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004, 2010, 2014-2015, 2019
+ * Copyright 2000-2001, 2003-2004, 2010, 2014-2015, 2019-2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -47,6 +47,7 @@ typedef struct {
 	MX_NETWORK_FIELD data_array_nf;
 	MX_NETWORK_FIELD external_next_measurement_nf;
 	MX_NETWORK_FIELD external_prescale_nf;
+	MX_NETWORK_FIELD manual_next_measurement_nf;
 	MX_NETWORK_FIELD measurement_counts_nf;
 	MX_NETWORK_FIELD measurement_data_nf;
 	MX_NETWORK_FIELD measurement_index_nf;

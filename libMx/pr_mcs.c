@@ -58,6 +58,7 @@ mx_setup_mcs_process_functions( MX_RECORD *record )
 		case MXLV_MCS_EXTERNAL_PRESCALE:
 		case MXLV_MCS_LAST_MEASUREMENT_NUMBER:
 		case MXLV_MCS_LAST_START_TIME:
+		case MXLV_MCS_MANUAL_NEXT_MEASUREMENT:
 		case MXLV_MCS_MEASUREMENT_COUNTS:
 		case MXLV_MCS_MEASUREMENT_DATA:
 		case MXLV_MCS_MEASUREMENT_INDEX:
@@ -207,6 +208,9 @@ mx_mcs_process_function( void *record_ptr,
 		case MXLV_MCS_EXTERNAL_PRESCALE:
 			mx_status = mx_mcs_set_external_prescale( record,
 						mcs->external_prescale );
+			break;
+		case MXLV_MCS_MANUAL_NEXT_MEASUREMENT:
+			mx_status = mx_mcs_manual_next_measurement( record );
 			break;
 		case MXLV_MCS_MEASUREMENT_TIME:
 			mx_status = mx_mcs_set_measurement_time( record,

@@ -1531,6 +1531,37 @@ mx_mcs_set_external_prescale( MX_RECORD *mcs_record,
 }
 
 MX_EXPORT mx_status_type
+mx_mcs_manual_next_measurement( MX_RECORD *mcs_record )
+{
+	static const char fname[] = "mx_mcs_manual_next_measurement()";
+
+	MX_MCS *mcs;
+	MX_MCS_FUNCTION_LIST *function_list;
+	mx_status_type ( *set_parameter_fn ) ( MX_MCS * );
+	mx_status_type mx_status;
+
+	mx_status = mx_mcs_get_pointers( mcs_record,
+					&mcs, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	set_parameter_fn = function_list->set_parameter;
+
+	if ( set_parameter_fn == NULL ) {
+		set_parameter_fn = mx_mcs_default_set_parameter_handler;
+	}
+
+	mcs->parameter_type = MXLV_MCS_MANUAL_NEXT_MEASUREMENT;
+
+	mcs->manual_next_measurement = TRUE;
+
+	mx_status = (*set_parameter_fn)( mcs );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
 mx_mcs_get_measurement_time( MX_RECORD *mcs_record, double *measurement_time )
 {
 	static const char fname[] = "mx_mcs_get_measurement_time()";
@@ -2090,6 +2121,18 @@ mx_mcs_default_set_parameter_handler( MX_MCS *mcs )
 		 * stored in the data structure.
 		 */
 
+		break;
+
+	case MXLV_MCS_MANUAL_NEXT_MEASUREMENT:
+		/* Write a warning to the log, but otherwise do
+		 * almost nothing.
+		 */
+
+		mx_warning( "'manual_next_measurement' is not supported "
+		"by the MX '%s' driver used by MCS record '%s'.",
+			mx_get_driver_name( mcs->record ), mcs->record->name );
+
+		mcs->manual_next_measurement = FALSE;
 		break;
 
 	case MXLV_MCS_CLEAR_DEADBAND:
