@@ -48,6 +48,7 @@ typedef struct {
 	MX_EPICS_PV pltm_pv;
 	MX_EPICS_PV prtm_pv;
 	MX_EPICS_PV readall_pv;
+	MX_EPICS_PV software_channel_advance_pv;
 	MX_EPICS_PV start_pv;
 	MX_EPICS_PV stop_pv;
 	MX_EPICS_PV vers_pv;

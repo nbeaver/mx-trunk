@@ -487,6 +487,10 @@ mxd_epics_mcs_open( MX_RECORD *record )
 		mx_epics_pvname_init( &(epics_mcs->stop_pv),
 				"%sStopAll.VAL", epics_mcs->common_prefix );
 
+		mx_epics_pvname_init( &(epics_mcs->software_channel_advance_pv),
+				"%sSoftwareChannelAdvance.VAL",
+						epics_mcs->common_prefix );
+
 	} else {
 
 		mx_epics_pvname_init(&(epics_mcs->acquiring_pv),
@@ -1188,7 +1192,7 @@ mxd_epics_mcs_set_parameter( MX_MCS *mcs )
 	double dwell_time, preset_live_time, dark_current;
 	unsigned long do_not_skip;
 	int32_t stop, current_num_epics_measurements, external_channel_advance;
-	int32_t count_on_start;
+	int32_t count_on_start, software_channel_advance;
 	float preset_real_time;
 	mx_status_type mx_status;
 
@@ -1203,6 +1207,15 @@ mxd_epics_mcs_set_parameter( MX_MCS *mcs )
 		mcs->parameter_type));
 
 	switch( mcs->parameter_type ) {
+	case MXLV_MCS_MANUAL_NEXT_MEASUREMENT:
+		software_channel_advance = 1;
+
+		mx_status = mx_caput( &(epics_mcs->software_channel_advance_pv),
+				MX_CA_LONG, 1, &software_channel_advance );
+
+		mcs->manual_next_measurement = FALSE;
+		break;
+
 	case MXLV_MCS_COUNTING_MODE:
 
 		if ( mcs->counting_mode != MXM_PRESET_TIME ) {
