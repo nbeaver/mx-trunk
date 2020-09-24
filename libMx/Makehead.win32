@@ -83,6 +83,10 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 #
 #     Warning: Untested!  (WML: 2019-12-03)
 #
+#     This link suggests that the -d2UndefintOverflow- flag appears with
+#     Visual C++ 2015 Update 3:
+#         https://stackoverflow.com/questions/33480343/option-to-make-signed-integer-overflow-well-defined-in-visual-c
+#
 #CFLAGS += -d2UndefintOverflow-
 
 #
