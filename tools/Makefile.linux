@@ -36,14 +36,16 @@ EDITLINE_MAKECMD = \
 
 include Include.subversion
 
-# Find the default Python version.
+# Find the default Python version.  We now default to Python 3.
 
-python_version := $(shell python -V 2>&1 | cut -f2 -d' ' | cut -f1-2 -d'.' )
+ifndef MX_PYTHON
+    MX_PYTHON = $(shell python3 -V 2>&1 | cut -f2 -d' ' | cut -c1-3)
+endif
 
-$(info Python is [${python_version}])
+$(info Python is [${MX_PYTHON}])
 
-ifneq ($(python_version),)
-   python_args = -DMX_PYTHON="$(python_version)"
+ifneq ($(MX_PYTHON),)
+   python_args = -DMX_PYTHON="$(MX_PYTHON)"
 endif
 
 #------------------------------------------------------------------------

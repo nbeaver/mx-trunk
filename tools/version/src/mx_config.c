@@ -581,7 +581,7 @@ main( int argc, char **argv )
 
 		int i, option_type, file_status, match_status;
 		char *path_string, *path_string_copy, *path_element;
-		char *search_ptr;
+		char *search_ptr, *mx_python_env_ptr;
 		char filename_match[PATH_MAX+1];
 		DIR *dir;
 		struct dirent *dirent_ptr;
@@ -653,6 +653,13 @@ main( int argc, char **argv )
 			exit(1);
 		}
 
+		mx_python_env_ptr = getenv("MX_PYTHON");
+
+#if 1
+		fprintf( stderr, "mx_python_env_ptr = '%s'\n",
+				mx_python_env_ptr );
+#endif
+
 		search_ptr = path_string_copy;
 
 		for ( i = 0; ; i++ ) {
@@ -671,8 +678,21 @@ main( int argc, char **argv )
 
 			switch( option_type ) {
 			case MXCFG_DEFAULT_OPTION:
-				snprintf(filename_match, sizeof(filename_match),
+				if ( mx_python_env_ptr == NULL ) {
+					snprintf(filename_match,
+					sizeof(filename_match),
+					"%s/python3", path_element );
+				} else
+				if ( mx_python_env_ptr[0] == '2' ) {
+					snprintf(filename_match,
+					sizeof(filename_match),
 					"%s/python", path_element );
+				} else {
+					snprintf(filename_match,
+					sizeof(filename_match),
+					"%s/python%s", path_element,
+					mx_python_env_ptr );
+				}
 
 				errno = 0;
 
@@ -707,7 +727,7 @@ main( int argc, char **argv )
 						name_ptr = dirent_ptr->d_name;
 
 						match_status = mxp_match(
-						  name_ptr, "python*" );
+						  "python*", name_ptr );
 
 						if ( match_status == 1 ) {
 						    printf( "%s ", name_ptr );
