@@ -327,8 +327,8 @@ library_install:
 	install -m 644 $(MX_LIBRARY_STATIC_NAME) $(MX_INSTALL_DIR)/lib
 	( cd $(MX_INSTALL_DIR)/lib ; $(LN_SF) $(MX_LIBRARY_NAME) $(MX_SONAME) )
 	( cd $(MX_INSTALL_DIR)/lib ; $(LN_SF) $(MX_LIBRARY_NAME) libMx.so )
-	touch $(MX_INSTALL_DIR)/etc/mxmotor.dat
-	touch $(MX_INSTALL_DIR)/etc/mxscan.dat
+	-touch $(MX_INSTALL_DIR)/etc/mxmotor.dat
+	-touch $(MX_INSTALL_DIR)/etc/mxscan.dat
 	install -m 755 ../plotgnu/plotgnu.pl $(MX_INSTALL_DIR)/bin
 	install -m 755 ../plotgnu/showdata $(MX_INSTALL_DIR)/bin
 	install -m 755 ../plotgnu/showplot $(MX_INSTALL_DIR)/bin
@@ -371,8 +371,8 @@ server_install:
 	install -m 755 $(SERVER_NAME) $(MX_INSTALL_DIR)/sbin
 	install -m 755 ../scripts/startmxserver $(MX_INSTALL_DIR)/sbin
 	install -m 755 ../scripts/mx $(MX_INSTALL_DIR)/sbin
-	touch $(MX_INSTALL_DIR)/etc/mxserver.dat
-	touch $(MX_INSTALL_DIR)/etc/mxserver.acl
+	-touch $(MX_INSTALL_DIR)/etc/mxserver.dat
+	-touch $(MX_INSTALL_DIR)/etc/mxserver.acl
 
 #
 #---------------------------------------------------
@@ -388,7 +388,7 @@ autosave_install:
 	install -m 755 ../scripts/startmxautosave $(MX_INSTALL_DIR)/sbin
 	install -m 755 ../scripts/mxsave $(MX_INSTALL_DIR)/bin
 	install -m 755 ../scripts/mxrestore $(MX_INSTALL_DIR)/bin
-	touch $(MX_INSTALL_DIR)/etc/mxautosave.dat
+	-touch $(MX_INSTALL_DIR)/etc/mxautosave.dat
 
 #
 #---------------------------------------------------
