@@ -655,7 +655,7 @@ main( int argc, char **argv )
 
 		mx_python_env_ptr = getenv("MX_PYTHON");
 
-#if 1
+#if 0
 		fprintf( stderr, "mx_python_env_ptr = '%s'\n",
 				mx_python_env_ptr );
 #endif
@@ -671,7 +671,7 @@ main( int argc, char **argv )
 
 			search_ptr = NULL;
 
-#if 1
+#if 0
 			fprintf( stderr, "path_element[%d] = '%s'\n",
 				i, path_element );
 #endif
