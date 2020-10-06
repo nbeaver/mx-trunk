@@ -17,7 +17,7 @@
 
 #define MXD_NETWORK_MCA_DEBUG_NEW_DATA_AVAILABLE	FALSE
 
-#define MXD_NETWORK_MCA_DEBUG_VARARGS_ARRAY		TRUE
+#define MXD_NETWORK_MCA_DEBUG_VARARGS_ARRAY		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -289,9 +289,11 @@ mxd_network_mca_finish_record_initialization( MX_RECORD *record )
 			mca->maximum_num_rois, 2, record->name );
 	}
 
+#if 0
 	MX_DEBUG(-2,("%s: '%s' roi_array", fname, record->name));
 
 	mx_show_array_info( mca->roi_array );
+#endif
 
 	/*---*/
 
@@ -309,9 +311,11 @@ mxd_network_mca_finish_record_initialization( MX_RECORD *record )
 			mca->maximum_num_rois, record->name );
 	}
 
+#if 0
 	MX_DEBUG(-2,("%s: '%s' roi_integral_array", fname, record->name));
 
 	mx_show_array_info( mca->roi_integral_array );
+#endif
 
 	if ( mca->num_soft_rois == 0 ) {
 		mca->soft_roi_array = NULL;
@@ -335,9 +339,11 @@ mxd_network_mca_finish_record_initialization( MX_RECORD *record )
 				mca->num_soft_rois, 2, record->name );
 		}
 
+#if 0
 		MX_DEBUG(-2,("%s: '%s' soft_roi_array", fname, record->name));
 
 		mx_show_array_info( mca->soft_roi_array );
+#endif
 
 		/*---*/
 
@@ -355,9 +361,11 @@ mxd_network_mca_finish_record_initialization( MX_RECORD *record )
 				mca->num_soft_rois, record->name );
 		}
 
+#if 0
 		MX_DEBUG(-2,("%s: '%s' soft_roi_integral_array", fname, record->name));
 
 		mx_show_array_info( mca->soft_roi_integral_array );
+#endif
 	}
 
 	/*---*/
@@ -1070,9 +1078,9 @@ mxd_network_mca_get_parameter( MX_MCA *mca )
 					i, mca->roi_array[i] );
 			}
 		}
-#endif
 
 		mx_show_array_info( mca->roi_array );
+#endif
 
 #if 0
 		mx_status = mx_get_array( &(network_mca->roi_array_nf),
