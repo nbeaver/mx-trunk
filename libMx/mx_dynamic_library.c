@@ -125,9 +125,11 @@ mx_dynamic_library_open( const char *filename,
 			mx_error_code |= MXE_QUIET;
 		}
 
+#if 0
 		MX_DEBUG(-2,
 		("%s: MX_PROGRAM_MODEL = %lu, last_error_code = %lu",
 			fname, MX_PROGRAM_MODEL, last_error_code));
+#endif
 
 		if ( filename == (char *) NULL ) {
 			return mx_error( mx_error_code, fname,

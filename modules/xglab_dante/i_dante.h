@@ -86,6 +86,7 @@ typedef struct {
 	struct configuration configuration;
 	unsigned long offset;
 	unsigned long timestamp_delay;
+	unsigned long baseline_offset;
 	InputMode input_mode;
 	GatingMode gating_mode;
 } MX_DANTE_CONFIGURATION;

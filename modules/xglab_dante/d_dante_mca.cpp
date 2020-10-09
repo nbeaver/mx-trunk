@@ -661,11 +661,25 @@ mxd_dante_mca_configure( MX_DANTE_MCA *dante_mca, MX_DANTE_MCS *dante_mcs )
 
 		}
 
-		return mx_error( MXE_UNKNOWN_ERROR, fname,
-		"The call to configure() for record '%s' failed "
-		"with DANTE error code %lu.",
-			dante_mca->record->name,
-			(unsigned long) dante_error_code );
+		switch ( dante_error_code ) {
+		case DLL_WRONG_ID:
+			return mx_error( MXE_NOT_FOUND, fname,
+			"The MX configuration for MCA '%s' said that "
+			"it had board id %lu.  But Dante itself "
+			"did not recognize %lu as a known board id.",
+				dante_mca->record->name,
+				dante_mca->board_number,
+				dante_mca->board_number );
+			break;
+
+		default:
+			return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"The call to configure() for record '%s' failed "
+			"with DANTE error code %lu.",
+				dante_mca->record->name,
+				(unsigned long) dante_error_code );
+			break;
+		}
 	}
 
 	mxi_dante_wait_for_answer( call_id );

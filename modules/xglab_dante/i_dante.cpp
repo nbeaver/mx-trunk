@@ -862,9 +862,10 @@ mxi_dante_set_configuration_to_defaults(
 
 	mx_dante_configuration->offset = 0;
 	mx_dante_configuration->timestamp_delay = 0;
+	mx_dante_configuration->baseline_offset = 0;
 
-	mx_dante_configuration->input_mode = DC_HighImp;
-	mx_dante_configuration->gating_mode = FreeRunning;
+	mx_dante_configuration->input_mode = DC_HighImp;	/* is 0 */
+	mx_dante_configuration->gating_mode = FreeRunning;	/* is 0 */
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -892,6 +893,14 @@ mxi_dante_set_parameter_from_string(
 		parameter_name, parameter_string));
 #endif
 
+	/* Skip over any parameters that are set to 'null' values. */
+
+	if ( strcmp( parameter_string, "null" ) == 0 ) {
+		mx_info( "    Skipping null parameter '%s'.", parameter_name );
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
 	/* Look through the known parameter names */
 
 	if ( strcmp( parameter_name, "fast_filter_thr" ) == 0 ) {
@@ -900,7 +909,9 @@ mxi_dante_set_parameter_from_string(
 	} else if ( strcmp( parameter_name, "energy_filter_thr" ) == 0 ) {
 		configuration->energy_filter_thr = atol( parameter_string );
 
-	} else if ( strcmp( parameter_name, "energy_baseline_thr" ) == 0 ) {
+	} else if ( strncmp( parameter_name, "energy_baseline_thr",
+			  strlen("energy_baseline_thr")  ) == 0 )
+	{
 		configuration->energy_baseline_thr = atol( parameter_string );
 
 	} else if ( strcmp( parameter_name, "max_risetime" ) == 0 ) {
@@ -960,11 +971,19 @@ mxi_dante_set_parameter_from_string(
 	} else if ( strcmp( parameter_name, "other_param" ) == 0 ) {
 		configuration->other_param = atol( parameter_string );
 
+	} else if ( strcmp( parameter_name, "input_mode" ) == 0 ) {
+		mx_dante_configuration->input_mode =
+			(InputMode) atol( parameter_string );
+
 	} else if ( strcmp( parameter_name, "Offset" ) == 0 ) {
 		mx_dante_configuration->offset = atol( parameter_string );
 
 	} else if ( strcmp( parameter_name, "TimestampDelay" ) == 0 ) {
 		mx_dante_configuration->timestamp_delay =
+						atol( parameter_string );
+
+	} else if ( strcmp( parameter_name, "baseline_offset" ) == 0 ) {
+		mx_dante_configuration->baseline_offset =
 						atol( parameter_string );
 
 	} else if ( strncmp( parameter_name, "/DPP", 4 ) == 0 ) {
@@ -976,9 +995,14 @@ mxi_dante_set_parameter_from_string(
 		 * of the XML file.
 		 */
 	} else {
+#if 0
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Unrecognized parameter_name = '%s', parameter_string = '%s'.",
 			parameter_name, parameter_string );
+#else
+		mx_warning( "Skipping unrecognized parameter '%s'.",
+						parameter_name );
+#endif
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1154,6 +1178,9 @@ mxi_dante_show_parameters( MX_RECORD *record )
 
 	MX_DEBUG(-2,("  timestamp_delay = %lu",
 		(unsigned long) dante_mca->timestamp_delay));
+
+	MX_DEBUG(-2,("  baseline_offset = %lu",
+	  (unsigned long) dante_mca->mx_dante_configuration.baseline_offset));
 
 	return MX_SUCCESSFUL_RESULT;
 }
