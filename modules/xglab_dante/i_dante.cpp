@@ -14,8 +14,6 @@
  *
  */
 
-#define MXI_DANTE_DEBUG					TRUE
-
 #define MXI_DANTE_DEBUG_FINISH_DELAYED_INITIALIZATION	FALSE
 
 #define MXI_DANTE_DEBUG_CALLBACKS			FALSE
@@ -867,6 +865,9 @@ mxi_dante_set_configuration_to_defaults(
 	mx_dante_configuration->input_mode = DC_HighImp;	/* is 0 */
 	mx_dante_configuration->gating_mode = FreeRunning;	/* is 0 */
 
+	mx_dante_configuration->configuration_flags = 
+				MXF_DANTE_CONFIGURATION_DEBUG_PARAMETERS;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -880,6 +881,9 @@ mxi_dante_set_parameter_from_string(
 {
 	static const char fname[] = "mxi_dante_set_parameter_from_string()";
 
+	unsigned long flags;
+	mx_bool_type debug_parameters;
+
 	if ( mx_dante_configuration == (MX_DANTE_CONFIGURATION  *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_DANTE_CONFIGURATION pointer passed was NULL." );
@@ -888,15 +892,26 @@ mxi_dante_set_parameter_from_string(
 	struct configuration *configuration =
 		&(mx_dante_configuration->configuration);
 
-#if 1
-	MX_DEBUG(-2,("  parameter_name = '%s', parameter_string = '%s'.",
-		parameter_name, parameter_string));
-#endif
+	flags = mx_dante_configuration->configuration_flags;
+
+	if ( flags & MXF_DANTE_CONFIGURATION_DEBUG_PARAMETERS) {
+		debug_parameters = TRUE;
+	} else {
+		debug_parameters = FALSE;
+	}
+
+	if ( debug_parameters ) {
+		fprintf( stderr, "  parameter '%s', value = '%s'",
+				parameter_name, parameter_string );
+	}
 
 	/* Skip over any parameters that are set to 'null' values. */
 
 	if ( strcmp( parameter_string, "null" ) == 0 ) {
-		mx_info( "    Skipping null parameter '%s'.", parameter_name );
+
+		if ( debug_parameters ) {
+			fprintf( stderr, " ... skipping.\n" );
+		}
 
 		return MX_SUCCESSFUL_RESULT;
 	}
@@ -995,14 +1010,13 @@ mxi_dante_set_parameter_from_string(
 		 * of the XML file.
 		 */
 	} else {
-#if 0
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Unrecognized parameter_name = '%s', parameter_string = '%s'.",
-			parameter_name, parameter_string );
-#else
-		mx_warning( "Skipping unrecognized parameter '%s'.",
-						parameter_name );
-#endif
+		if ( debug_parameters ) {
+			fprintf( stderr, " ... not recognized" );
+		}
+	}
+
+	if ( debug_parameters ) {
+		fprintf( stderr, ".\n" );
 	}
 
 	return MX_SUCCESSFUL_RESULT;

@@ -78,6 +78,10 @@ typedef struct {
 	char **board_identifier;
 } MX_DANTE;
 
+/* Values for 'configuration_flags'. */
+
+#define MXF_DANTE_CONFIGURATION_DEBUG_PARAMETERS	0x1
+
 #ifdef __cplusplus
 
 typedef struct {
@@ -89,6 +93,8 @@ typedef struct {
 	unsigned long baseline_offset;
 	InputMode input_mode;
 	GatingMode gating_mode;
+
+	unsigned long configuration_flags;
 } MX_DANTE_CONFIGURATION;
 
 #endif
