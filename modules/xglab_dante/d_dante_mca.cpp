@@ -281,8 +281,6 @@ mxd_dante_mca_open( MX_RECORD *record )
 	MX_DANTE_MCA *dante_mca = NULL;
 	MX_DANTE *dante = NULL;
 	unsigned long i;
-	uint32_t call_id;
-	uint16_t dante_error_code = DLL_NO_ERROR;
 	mx_status_type mx_status;
 
 #if MXD_DANTE_MCA_DEBUG_TIMING
@@ -335,6 +333,9 @@ mxd_dante_mca_open( MX_RECORD *record )
 
 #if 0
 	/* Detect the firmware used by this board. */
+
+	uint32_t call_id;
+	uint16_t dante_error_code = DLL_NO_ERROR;
 
 	call_id = getFirmware( dante_mca->identifier,
 				dante_mca->board_number );

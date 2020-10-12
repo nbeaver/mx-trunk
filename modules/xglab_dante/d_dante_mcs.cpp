@@ -351,7 +351,6 @@ mxd_dante_mcs_arm( MX_MCS *mcs )
 	MX_DANTE *dante = NULL;
 	uint32_t call_id;
 	uint16_t error_code;
-	uint32_t new_other_param;
 	uint32_t num_spectra_to_acquire;
 	mx_status_type mx_status;
 
@@ -547,7 +546,7 @@ mxd_dante_mcs_busy( MX_MCS *mcs )
 			(long) num_measurements_so_far,
 			mcs->current_num_measurements ));
 
-	if ( num_measurements_so_far < mcs->current_num_measurements ) {
+	if ( num_measurements_so_far < (long) mcs->current_num_measurements ) {
 
 		/* More measurements left to acquire. */
 

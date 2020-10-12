@@ -11,7 +11,7 @@ ifndef MX_INSTALL_DIR
 endif
 
 ifeq ($(MX_ARCH),linux)
-	XGLAB_DANTE_DIR = /opt/DANTE/3.4.0.3/Library/Callback-x64
+	XGLAB_DANTE_DIR = /opt/DANTE/Library/Linux-gcc4.8.5-libc2.17-x64/3.4.0.3-4.8.5-Callback-x64
 endif
 
 ifeq ($(MX_ARCH),win32)
@@ -58,7 +58,7 @@ ifeq ($(MX_ARCH),linux)
 $(XGLAB_DANTE_MXO): $(XGLAB_DANTE_OBJS)
 	gcc -shared -rdynamic -Wl,-soname,$(XGLAB_DANTE_MXO) \
 		-o $(XGLAB_DANTE_MXO) $(XGLAB_DANTE_OBJS) \
-		$(XGLAB_DANTE_DIR)/XGL_DPP.so
+		-L$(XGLAB_DANTE_DIR) -lXGL_DPP
 
 endif
 

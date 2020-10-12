@@ -97,9 +97,11 @@ mxi_dante_callback_fn( uint16_t type,
 			uint32_t length,
 			uint32_t *data )
 {
+#if MXI_DANTE_DEBUG_CALLBACKS
 	static const char fname[] = "mxi_dante_callback_fn()";
 
 	uint32_t i;
+#endif
 
 #if MXI_DANTE_DEBUG_CALLBACKS
 	fprintf( stderr,
@@ -534,8 +536,9 @@ mxi_dante_open( MX_RECORD *record )
 				"the maximum number (%lu) that we are prepared "
 				"to handle.  Please increase the size of "
 				"'%s.max_boards_per_chain' in the MX database.",
-					dante->board_identifier[i],
+					dante->record->name,
 					(unsigned long) num_boards,
+					dante->board_identifier[i],
 					dante->max_boards_per_chain,
 					dante->record->name );
 			} else
@@ -615,7 +618,10 @@ mxi_dante_finish_delayed_initialization( MX_RECORD *record )
 
 	MX_DANTE *dante = NULL;
 	MX_RECORD *mca_record = NULL;
+
+#if MXI_DANTE_DEBUG_FINISH_DELAYED_INITIALIZATION
 	MX_DANTE_MCA *dante_mca = NULL;
+#endif
 	unsigned long i;
 	mx_bool_type show_devices;
 	mx_status_type mx_status;
@@ -663,9 +669,9 @@ mxi_dante_finish_delayed_initialization( MX_RECORD *record )
 				return mx_status;
 		}
 
+#if MXI_DANTE_DEBUG_FINISH_DELAYED_INITIALIZATION
 		dante_mca = (MX_DANTE_MCA *) mca_record->record_type_struct;
 
-#if MXI_DANTE_DEBUG_FINISH_DELAYED_INITIALIZATION
 		MX_DEBUG(-2,("%s: dante_mca = %p", fname, dante_mca));
 		MX_DEBUG(-2,("%s: spectrum_data = %p",
 				fname, dante_mca->spectrum_data));
@@ -1207,10 +1213,6 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 	static const char fname[] = "mxi_dante_load_config_file()";
 
 	MX_DANTE *dante = NULL;
-	MX_RECORD *current_mca_record = NULL;
-	MX_DANTE_MCA *current_dante_mca = NULL;
-	MX_RECORD *mca_record = NULL;
-	MX_DANTE_MCA *dante_mca = NULL;
 	FILE *config_file = NULL;
 	char *ptr = NULL;
 	char *identifier_ptr = NULL;
@@ -1218,7 +1220,6 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 	char *parameter_name = NULL;
 	char *parameter_string = NULL;
 	char *parameter_end = NULL;
-	unsigned long i;
 	int saved_errno;
 	char buffer[200];
 
@@ -1299,8 +1300,6 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 	}
 
 	/*  Work our way through the XML file, one line at a time. */
-
-	current_mca_record = NULL;
 
 	chain_name[0] = '\0';
 
