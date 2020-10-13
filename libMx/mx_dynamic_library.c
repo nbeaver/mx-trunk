@@ -11,7 +11,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2007, 2009, 2011-2012, 2014-2016, 2018-2019
+ * Copyright 2007, 2009, 2011-2012, 2014-2016, 2018-2020
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -29,6 +29,7 @@
 #include "mx_util.h"
 #include "mx_program_model.h"	/* MX_WORDSIZE comes from here. */
 #include "mx_dynamic_library.h"
+#include "mx_unistd.h"
 
 MX_EXPORT void *
 mx_dynamic_library_get_symbol_pointer( MX_DYNAMIC_LIBRARY *library,
@@ -51,6 +52,104 @@ mx_dynamic_library_get_symbol_pointer( MX_DYNAMIC_LIBRARY *library,
 
 #if defined(OS_WIN32)
 
+#include "windows.h"
+
+/* If we receive error code 126 from an attempt to call LoadLibrary(),
+ * then this means that either the library we tried to load cannot 
+ * be found or that the library uses some _other_ library that could
+ * not be found.  We try to distinguish between these here, to make
+ * it clearer to the user what the actual error was.
+ *
+ * FIXME: The following method is probably not 100% reliable.  It
+ * may have a race condition if 'library_filename' is changed or
+ * deleted inbetween the time we got a code 126 and the time when
+ * when we call the investigative function below.  So the function
+ * mxp_win32_investigate_code_126() is really only a "best attempt"
+ * to determine what really happened.
+ *
+ * More reliable solutions would be welcome.
+ */
+
+static mx_status_type
+mxp_win32_investigate_code_126(const char *calling_fname,
+				const char *library_filename )
+{
+	static const char fname[] = "mxp_win32_investigate_code_126()";
+
+	int access_status, saved_errno;
+
+	if ( calling_fname == (const char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"'%s' was called with calling_fname set to NULL.  "
+		"This is a program bug and should never happen.  "
+		"Please report this error.", fname );
+	}
+	if ( library_filename == (const char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The calling function '%s' was passed a NULL argument.  "
+		"This should not be able to happen.", calling_fname );
+	}
+
+	/* Does the file named 'library_filename' actually exist? */
+
+	access_status = _access( library_filename, R_OK );
+
+	if ( access_status != 0 ) {
+		saved_errno = errno;
+
+		switch( saved_errno ) {
+		case ENOENT:
+			return mx_error( MXE_NOT_FOUND, calling_fname,
+			"The requested library '%s' was not found.",
+				library_filename );
+			break;
+		case EACCES:
+			return mx_error( MXE_PERMISSION_DENIED, calling_fname,
+			"You do not have permission to read library '%s'.",
+				library_filename );
+			break;
+		case EINVAL:
+			return mx_error( MXE_ILLEGAL_ARGUMENT, calling_fname,
+			"Windows seems to think that library '%s' has an "
+			"illegal filename.", library_filename );
+			break;
+		default:
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR,
+				calling_fname,
+			"An unexpected error occurred when trying to access "
+			"library'%s'.  errno = %d, error_message = '%s'",
+				library_filename,
+				saved_errno, strerror(saved_errno) );
+			break;
+		}
+	}
+
+	return mx_error( MXE_FUNCTION_FAILED, calling_fname,
+	"The library file '%s' exists, but was not loaded for some reason.  "
+	"The most common reason for this is that some _other_ DLL used by "
+	"the library was not found.\n\n"
+	"Finding out which DLL was not found is not straightforward.\n"
+	"One way to figure this out is to make use of the 'Process Monitor' "
+	"program from the 'Sysinternals' package:\n"
+	"Step 1: Tell 'Process Monitor' to filter on the 'Image Path' name "
+	"of the 'exe' executable that you were trying to run.\n"
+	"Step 2: Then you tell it to 'Add' that filter.\n"
+	"Step 3: Clear existing messages with ctrl-X\n"
+	"Step 4: Run the executable.\n"
+	"Step 5: Search with ctrl-F for the name of the library that you "
+	"were trying to load.\n"
+	"Step 6: Look at messages after the one you found in step 5 to see "
+	"if you find a bunch of 'NAME NOT FOUND' or 'PATH NOT FOUND' messages "
+	"soon after that point.\n"
+	"Step 7: If so, then they probably refer to the name "
+	"of the DLL that is failing to load.\n"
+	"Step 8: Remember to reset the filter afterwards.\n"
+	"Sorry that there isn't a simpler way to figure this out.",
+	library_filename );
+}
+
+/*----*/
+
 /* Calls to LoadLibrary() are reference counted, so if you call
  * LoadLibrary() multiple times on the same DLL, then you must
  * call FreeLibrary() the same number of times before it is really
@@ -60,8 +159,6 @@ mx_dynamic_library_get_symbol_pointer( MX_DYNAMIC_LIBRARY *library,
  * will be invoked instead to get a handle to the .EXE.  In this
  * case, you should _not_ call FreeLibrary() on that.
  */
-
-#include "windows.h"
 
 MX_EXPORT mx_status_type
 mx_dynamic_library_open( const char *filename,
@@ -145,6 +242,15 @@ mx_dynamic_library_open( const char *filename,
 			"dynamic library '%s'.  This normally means that "
 			"a 64 bit program is trying to load a 32 bit DLL.",
 				filename );
+		} else
+		if (last_error_code == 126) {
+			/* In this case, either the mxo file does not exist
+			 * or one of the DLLs the mxo file uses could not
+			 * be found.  We make some attempt to distinguish
+			 * betweeen these two cases.
+			 */
+
+			return mxp_win32_investigate_code_126(fname, filename);
 		} else {
 			return mx_error( mx_error_code, fname,
 				"Unable to open dynamic library '%s'.  "
