@@ -88,11 +88,15 @@ typedef struct {
 	char chain_name[MXU_DANTE_MAX_CHAIN_NAME_LENGTH+1];
 
 	struct configuration configuration;
-	unsigned long offset;
-	unsigned long timestamp_delay;
-	unsigned long baseline_offset;
 	InputMode input_mode;
 	GatingMode gating_mode;
+	unsigned long timestamp_delay;
+	unsigned long baseline_offset;
+	unsigned long offset[2];
+	unsigned long calib_energies_bins[2];
+	double calib_energies[2];
+	unsigned long calib_channels;
+	unsigned long calib_equation;
 
 	unsigned long configuration_flags;
 } MX_DANTE_CONFIGURATION;

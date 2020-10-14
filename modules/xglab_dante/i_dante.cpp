@@ -864,12 +864,24 @@ mxi_dante_set_configuration_to_defaults(
 
 	delete test_config;
 
-	mx_dante_configuration->offset = 0;
+	mx_dante_configuration->input_mode = DC_HighImp;	/* is 0 */
+	mx_dante_configuration->gating_mode = FreeRunning;	/* is 0 */
+
 	mx_dante_configuration->timestamp_delay = 0;
 	mx_dante_configuration->baseline_offset = 0;
 
-	mx_dante_configuration->input_mode = DC_HighImp;	/* is 0 */
-	mx_dante_configuration->gating_mode = FreeRunning;	/* is 0 */
+	mx_dante_configuration->offset[0] = 0;
+	mx_dante_configuration->offset[1] = 0;
+
+	mx_dante_configuration->calib_energies_bins[0] = 0;
+	mx_dante_configuration->calib_energies_bins[1] = 0;
+
+	mx_dante_configuration->calib_energies[0] = 0.0;
+	mx_dante_configuration->calib_energies[1] = 0.0;
+
+	mx_dante_configuration->calib_channels = 0;
+
+	mx_dante_configuration->calib_equation = 0;
 
 	mx_dante_configuration->configuration_flags = 
 				MXF_DANTE_CONFIGURATION_DEBUG_PARAMETERS;
@@ -887,6 +899,7 @@ mxi_dante_set_parameter_from_string(
 {
 	static const char fname[] = "mxi_dante_set_parameter_from_string()";
 
+	int num_items;
 	unsigned long flags;
 	mx_bool_type debug_parameters;
 
@@ -996,9 +1009,6 @@ mxi_dante_set_parameter_from_string(
 		mx_dante_configuration->input_mode =
 			(InputMode) atol( parameter_string );
 
-	} else if ( strcmp( parameter_name, "Offset" ) == 0 ) {
-		mx_dante_configuration->offset = atol( parameter_string );
-
 	} else if ( strcmp( parameter_name, "TimestampDelay" ) == 0 ) {
 		mx_dante_configuration->timestamp_delay =
 						atol( parameter_string );
@@ -1006,6 +1016,41 @@ mxi_dante_set_parameter_from_string(
 	} else if ( strcmp( parameter_name, "baseline_offset" ) == 0 ) {
 		mx_dante_configuration->baseline_offset =
 						atol( parameter_string );
+
+	} else if ( strcmp( parameter_name, "Offset" ) == 0 ) {
+		mx_dante_configuration->offset[0] = atol( parameter_string );
+
+	} else if ( strcmp( parameter_name, "offset_1" ) == 0 ) {
+		mx_dante_configuration->offset[0] = atol( parameter_string );
+
+	} else if ( strcmp( parameter_name, "offset_2" ) == 0 ) {
+		mx_dante_configuration->offset[1] = atol( parameter_string );
+
+	} else if ( strcmp( parameter_name, "calib_energies_bins" ) == 0 ) {
+		num_items = sscanf( parameter_string, "%lu;%lu",
+			&(mx_dante_configuration->calib_energies_bins[0]),
+			&(mx_dante_configuration->calib_energies_bins[1]) );
+
+		if ( num_items != 2 ) {
+			fprintf( stderr, " ... 2 items not seen" );
+		}
+
+	} else if ( strcmp( parameter_name, "calib_energies" ) == 0 ) {
+		num_items = sscanf( parameter_string, "%lg;%lg",
+			&(mx_dante_configuration->calib_energies[0]),
+			&(mx_dante_configuration->calib_energies[1]) );
+
+		if ( num_items != 2 ) {
+			fprintf( stderr, " ... 2 items not seen" );
+		}
+
+	} else if ( strcmp( parameter_name, "calib_channels" ) == 0 ) {
+		mx_dante_configuration->calib_channels =
+					atol( parameter_string );
+
+	} else if ( strcmp( parameter_name, "calib_equation" ) == 0 ) {
+		mx_dante_configuration->calib_equation =
+					atol( parameter_string );
 
 	} else if ( strncmp( parameter_name, "/DPP", 4 ) == 0 ) {
 		/* We throw away the XML </DPP> at the end
@@ -1193,14 +1238,29 @@ mxi_dante_show_parameters( MX_RECORD *record )
 	MX_DEBUG(-2,("  other_param = %lu",
 		(unsigned long) configuration->other_param ));
 
-	MX_DEBUG(-2,("  offset = %lu",
-		(unsigned long) dante_mca->offset));
-
 	MX_DEBUG(-2,("  timestamp_delay = %lu",
-		(unsigned long) dante_mca->timestamp_delay));
+		dante_mca->mx_dante_configuration.timestamp_delay));
 
 	MX_DEBUG(-2,("  baseline_offset = %lu",
 	  (unsigned long) dante_mca->mx_dante_configuration.baseline_offset));
+
+	MX_DEBUG(-2,("  offset = [ %lu, %lu ]",
+		dante_mca->mx_dante_configuration.offset[0],
+		dante_mca->mx_dante_configuration.offset[1] ));
+
+	MX_DEBUG(-2,("  calib_energies_bins = [ %lu, %lu ]",
+		dante_mca->mx_dante_configuration.calib_energies_bins[0],
+		dante_mca->mx_dante_configuration.calib_energies_bins[1] ));
+
+	MX_DEBUG(-2,("  calib_energies = [ %f, %f ]",
+		dante_mca->mx_dante_configuration.calib_energies[0],
+		dante_mca->mx_dante_configuration.calib_energies[1] ));
+
+	MX_DEBUG(-2,("  calib_channels = %lu",
+		dante_mca->mx_dante_configuration.calib_channels));
+
+	MX_DEBUG(-2,("  calib_equation = %lu",
+		dante_mca->mx_dante_configuration.calib_equation));
 
 	return MX_SUCCESSFUL_RESULT;
 }
