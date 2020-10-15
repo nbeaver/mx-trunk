@@ -14,7 +14,7 @@
  *
  */
 
-#define MXI_DANTE_DEBUG_FINISH_DELAYED_INITIALIZATION	FALSE
+#define MXI_DANTE_DEBUG_SHOW_PARAMETERS_FOR_CHAIN	TRUE
 
 #define MXI_DANTE_DEBUG_CALLBACKS			FALSE
 
@@ -602,8 +602,8 @@ mxi_dante_close( MX_RECORD *record )
 	if ( dante_status == false ) {
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
 		"The attempt to shutdown the DANTE library by calling "
-		"CloseLibrary() failed.  But there is not really much "
-		"that we can do at this point of the driver execution." );
+		"CloseLibrary() failed.  Seemingly there is not really "
+		"much that we can do about this.  But please report it." );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -619,21 +619,18 @@ mxi_dante_finish_delayed_initialization( MX_RECORD *record )
 	MX_DANTE *dante = NULL;
 	MX_RECORD *mca_record = NULL;
 
-#if MXI_DANTE_DEBUG_FINISH_DELAYED_INITIALIZATION
-	MX_DANTE_MCA *dante_mca = NULL;
-#endif
 	unsigned long i;
 	mx_bool_type show_devices;
 	mx_status_type mx_status;
+
+	mx_breakpoint();
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_RECORD pointer passed was NULL." );
 	}
 
-#if MXI_DANTE_DEBUG_FINISH_DELAYED_INITIALIZATION
 	MX_DEBUG(-2,("%s invoked for '%s'.", fname, record->name ));
-#endif
 
 	dante = (MX_DANTE *) record->record_type_struct;
 
@@ -648,37 +645,10 @@ mxi_dante_finish_delayed_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( dante->dante_flags & MXF_DANTE_SHOW_DEVICES ) {
-		show_devices = TRUE;
-	} else {
-		show_devices = FALSE;
-	}
+	mx_status = mxi_dante_show_parameters_for_chain( record );
 
-	for ( i = 0; i < dante->num_mcas; i++ ) {
-
-		mca_record = dante->mca_record_array[i];
-
-		if ( mca_record == (MX_RECORD *) NULL ) {
-			continue;	/* Iterate the for(i) loop. */
-		}
-
-		if ( show_devices ) {
-			mx_status = mxi_dante_show_parameters( mca_record );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-		}
-
-#if MXI_DANTE_DEBUG_FINISH_DELAYED_INITIALIZATION
-		dante_mca = (MX_DANTE_MCA *) mca_record->record_type_struct;
-
-		MX_DEBUG(-2,("%s: dante_mca = %p", fname, dante_mca));
-		MX_DEBUG(-2,("%s: spectrum_data = %p",
-				fname, dante_mca->spectrum_data));
-		MX_DEBUG(-2,("%s: spectrum_data[0] = %lu",
-				fname, dante_mca->spectrum_data[0]));
-#endif
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	mx_status = mxi_dante_configure( record );
 
@@ -1268,6 +1238,67 @@ mxi_dante_show_parameters( MX_RECORD *record )
 /*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
+mxi_dante_show_parameters_for_chain( MX_RECORD *record )
+{
+	static const char fname[] = "mxi_dante_show_parameters_for_chain()";
+
+	MX_DANTE *dante = NULL;
+	MX_RECORD *mca_record = NULL;
+
+#if MXI_DANTE_DEBUG_SHOW_PARAMETERS_FOR_CHAIN
+	MX_DANTE_MCA *dante_mca = NULL;
+#endif
+	unsigned long i;
+	mx_bool_type show_devices;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+#if MXI_DANTE_DEBUG_SHOW_PARAMETERS_FOR_CHAIN
+	MX_DEBUG(-2,("%s invoked for '%s'.", fname, record->name ));
+#endif
+
+	dante = (MX_DANTE *) record->record_type_struct;
+
+	if ( dante == (MX_DANTE *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_DANTE pointer for DANTE controller '%s' is NULL.",
+			record->name );
+	}
+
+	for ( i = 0; i < dante->num_mcas; i++ ) {
+
+		mca_record = dante->mca_record_array[i];
+
+		if ( mca_record == (MX_RECORD *) NULL ) {
+			continue;	/* Iterate the for(i) loop. */
+		}
+
+		mx_status = mxi_dante_show_parameters( mca_record );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+#if MXI_DANTE_DEBUG_SHOW_PARAMETERS_FOR_CHAIN
+		dante_mca = (MX_DANTE_MCA *) mca_record->record_type_struct;
+
+		MX_DEBUG(-2,("%s: dante_mca = %p", fname, dante_mca));
+		MX_DEBUG(-2,("%s: spectrum_data = %p",
+				fname, dante_mca->spectrum_data));
+		MX_DEBUG(-2,("%s: spectrum_data[0] = %lu",
+				fname, dante_mca->spectrum_data[0]));
+#endif
+	}
+
+	return mx_status;
+}
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
 mxi_dante_load_config_file( MX_RECORD *dante_record )
 {
 	static const char fname[] = "mxi_dante_load_config_file()";
@@ -1476,6 +1507,8 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 
 			    if ( mx_status.code != MXE_SUCCESS )
 				    return mx_status;
+
+			    mxi_dante_show_parameters_for_chain( dante_record );
 
 			    /* We record the fact that we are finished
 			     * with this particular chain's parameters.
