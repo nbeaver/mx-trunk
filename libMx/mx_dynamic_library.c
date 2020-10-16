@@ -244,10 +244,10 @@ mx_dynamic_library_open( const char *filename,
 				filename );
 		} else
 		if (last_error_code == 126) {
-			/* In this case, either the mxo file does not exist
-			 * or one of the DLLs the mxo file uses could not
-			 * be found.  We make some attempt to distinguish
-			 * betweeen these two cases.
+			/* In this case, either the library does not exist or
+			 * one of the DLLs the library uses could not be found.
+			 * We make some attempt to distinguish betweeen these
+			 * two cases.
 			 */
 
 			return mxp_win32_investigate_code_126(fname, filename);

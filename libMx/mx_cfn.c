@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2006, 2009, 2011-2012, 2014 Illinois Institute of Technology
+ * Copyright 2006, 2009, 2011-2012, 2014, 2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -984,8 +984,10 @@ mx_cfn_fopen_internal( int filename_type,
 		*returned_errno = saved_errno;
 	}
 
+#if 0
 	MX_DEBUG(-2,("%s: cfn_filename = '%s', file = %p, errno = %d",
 	 	fname, cfn_filename, file, saved_errno));
+#endif
 
 	return file;
 }

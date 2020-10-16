@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2019 Illinois Institute of Technology
+ * Copyright 1999-2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1767,6 +1767,32 @@ mx_strncmp_end( const char *s1, const char *s2, size_t compare_length )
 
 	return result;
 }
+
+/*-------------------------------------------------------------------------*/
+
+/* On Windows, the use of mx_fopen() rather than fopen() directly makes sure
+ * that the FILE pointer returned makes use of the stdio variables found
+ * in the libMx DLL.  On most other platforms, mx_fopen() behaves just like
+ * fopen(), since that is what the function is calling directly.
+ *
+ * Certain other plaforms, such as OpenVMS and some RTOSes, have unusual
+ * variants on fopen().  However, we have not yet written the code to handle
+ * these special cases.
+ */
+
+#if 1
+
+MX_EXPORT FILE *
+mx_fopen( const char *pathname, const char *mode )
+{
+	FILE *file = fopen( pathname, mode );
+
+	return file;
+}
+
+#elif 0
+#error mx_fopen() has not yet been implemented for this platform.
+#endif
 
 /*-------------------------------------------------------------------------*/
 

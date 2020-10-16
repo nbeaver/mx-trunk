@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 1999-2019 Illinois Institute of Technology
+ * Copyright 1999-2020 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -689,6 +689,19 @@ MX_API char *strptime( const char *s, const char *format, struct tm *tm );
 MX_API int mx_strncmp_end( const char *s1, const char *s2, size_t n );
 
 #define mx_strcmp_end(s1,s2)  mx_strncmp_end( (s1), (s2), strlen((s2)) )
+
+/*----------------------*/
+
+/* mx_fopen() is a wrapper for fopen() that works around issues with certain
+ * platforms.
+ *
+ * The most common issue is on Windows where each DLL or EXE in a process has
+ * its own separate copies of the stdio-related variables.  mx_fopen() is
+ * located in the libMx library, which means that all calls to mx_fopen()
+ * make use of the libMx versions of the stdio variables.
+ */
+
+MX_API FILE *mx_fopen( const char *pathname, const char *mode );
 
 /* mx_fgets() is a replacement for fgets() that automatically trims off
  * trailing newlines.

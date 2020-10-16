@@ -1314,6 +1314,7 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 	char *parameter_string = NULL;
 	char *parameter_end = NULL;
 	int saved_errno;
+	unsigned long n;
 	char buffer[200];
 
 	MX_DANTE_CONFIGURATION chain_configuration;
@@ -1329,11 +1330,6 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 
 #if 1
 	MX_DEBUG(-2,("%s invoked for '%s'.", fname, dante_record->name));
-#endif
-
-#if 1
-	mxi_dante_close( dante_record );
-	exit(0);
 #endif
 
 	dante = (MX_DANTE *) dante_record->record_type_struct;
@@ -1354,8 +1350,8 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 	 * elsewhere in MX, we may want to revisit this choice here.
 	 */
 
-	/* We use mx_cfn_fopen() since it uses a copy of stdio that runs
-	 * in the context of the libMx library.
+	/* mx_cfn_fopen( MX_CFN_CONFIG, ... ) tells MX that the default
+	 * location of the Dante XML file is in the MX 'etc' directory.
 	 */
 
 	config_file = mx_cfn_fopen( MX_CFN_CONFIG,
@@ -1393,155 +1389,166 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 		}
 	}
 
-	/*  Work our way through the XML file, one line at a time. */
+	/* Loop over the master boards. */
 
-	chain_name[0] = '\0';
+	for ( n = 0; n < dante->num_master_devices; n++ ) {
 
-	while (TRUE) {
-	    /* Read one line from the XML file. */
+	    /*  Work our way through the XML file for a single chain,
+	     *  one line at a time.
+	     */
 
-	    ptr = mx_fgets( buffer, sizeof(buffer), config_file );
+	    chain_name[0] = '\0';
 
-	    if ( ptr == (char *) NULL ) {
+	    while (TRUE) {
+	        /* Read one line from the XML file. */
 
-		if ( feof(config_file) ) {
+	        ptr = mx_fgets( buffer, sizeof(buffer), config_file );
+
+	        if ( ptr == (char *) NULL ) {
+
+		    if ( feof(config_file) ) {
 #if 1
-		    MX_DEBUG(-2,("%s: Reached end of file.", fname));
+			MX_DEBUG(-2,("%s: Reached end of file.", fname));
 #endif
 
-		    break;	/* Exit the while loop. */
-		}
+			break;	/* Exit the while loop. */
+		    }
 
-		if ( ferror(config_file) ) {
-		    saved_errno = errno;
-		    MX_DEBUG(-2,
-			("%s: Error reading config file '%s' occurred.  "
-			"Errno = %d, error_message = '%s'",
-				fname, dante->config_filename,
-				saved_errno, strerror(saved_errno) ));
+		    if ( ferror(config_file) ) {
+			saved_errno = errno;
+			MX_DEBUG(-2,
+	    		("%s: Error reading config file '%s' occurred.  "
+	    		"Errno = %d, error_message = '%s'",
+	    			fname, dante->config_filename,
+	    			saved_errno, strerror(saved_errno) ));
 
-		    break;	/* Exit the while loop. */
-		}
-	    }
+			break;	/* Exit the while loop. */
+		    }
+	        }
 
 #if 1
-	    MX_DEBUG(-2,("%s: buffer = '%s'", fname, buffer));
+	        MX_DEBUG(-2,("%s: buffer = '%s'", fname, buffer));
 #endif
+		continue;	/*!!!!!!!!!*/
 
-	    ptr = strstr( buffer, "<DPP Name" );
+		/* We do not get to here. */
 
-	    if ( ptr != (char *) NULL ) {
-		/* This line appears to have a chain identifier in it. */
+	        ptr = strstr( buffer, "<DPP Name" );
 
-		identifier_ptr = strstr( ptr, "\"" );
+	        if ( ptr != (char *) NULL ) {
+	    	/* This line appears to have a chain identifier in it. */
 
-		if ( identifier_ptr != NULL ) {
-		    identifier_ptr++;
+	    	identifier_ptr = strstr( ptr, "\"" );
 
-		    end_ptr = strstr( identifier_ptr, "\"" );
+	    	if ( identifier_ptr != NULL ) {
+	    	    identifier_ptr++;
 
-		    if ( end_ptr != NULL ) {
-			*end_ptr = '\0';
-		    }
-		}
+	    	    end_ptr = strstr( identifier_ptr, "\"" );
 
-		if ( identifier_ptr != NULL ) {
-		    strlcpy( chain_name, identifier_ptr, sizeof(chain_name) );
+	    	    if ( end_ptr != NULL ) {
+	    		*end_ptr = '\0';
+	    	    }
+	    	}
 
-		    MX_DEBUG(-2,("%s: *** chain '%s' started.",
-			fname, chain_name));
+	    	if ( identifier_ptr != NULL ) {
+	    	    strlcpy( chain_name, identifier_ptr, sizeof(chain_name) );
 
-		    mx_status = mxi_dante_set_configuration_to_defaults(
-				    &chain_configuration, chain_name );
-		}
-	    } else
-	    if ( chain_name[0] != '\0' ) {
-		/* If we are currently processing a chain's configuration
-		 * parameters, see if this is one of the parameters.
-		 */
+	    	    MX_DEBUG(-2,("%s: *** chain '%s' started.",
+	    		fname, chain_name));
 
-		/* Look for the first '<' character on the line. */
+	    	    mx_status = mxi_dante_set_configuration_to_defaults(
+	    			    &chain_configuration, chain_name );
+	    	}
+	        } else
+	        if ( chain_name[0] != '\0' ) {
+	    	/* If we are currently processing a chain's configuration
+	    	 * parameters, see if this is one of the parameters.
+	    	 */
 
-		parameter_name = strchr( buffer, '<' );
+	    	/* Look for the first '<' character on the line. */
 
-		if ( parameter_name != (char *) NULL ) {
-		    parameter_name++;
+	    	parameter_name = strchr( buffer, '<' );
 
-		    parameter_string = strchr( parameter_name, '>' );
-		   
-		    if ( parameter_string != (char *) NULL ) {
-			*parameter_string = '\0';
+	    	if ( parameter_name != (char *) NULL ) {
+	    	    parameter_name++;
 
-			parameter_string++;
+	    	    parameter_string = strchr( parameter_name, '>' );
+	    	   
+	    	    if ( parameter_string != (char *) NULL ) {
+	    		*parameter_string = '\0';
 
-			parameter_end = strchr( parameter_string, '<' );
+	    		parameter_string++;
 
-			if ( parameter_end != (char *) NULL ) {
-			    *parameter_end = '\0';
-			}
+	    		parameter_end = strchr( parameter_string, '<' );
 
-			if ( ( strcmp( parameter_name, "/DPP" ) != 0 )
-			  && ( strcmp( parameter_name, "/Devices" ) != 0 ) )
-			{
-			    /* We have not yet reached the end of this chain's
-			     * parameters, so we continue processing the
-			     * parameters for the current chain.
-			     */
+	    		if ( parameter_end != (char *) NULL ) {
+	    		    *parameter_end = '\0';
+	    		}
 
-			    mx_status = mxi_dante_set_parameter_from_string(
-							&chain_configuration,
-							parameter_name,
-							parameter_string );
+	    		if ( ( strcmp( parameter_name, "/DPP" ) != 0 )
+	    		  && ( strcmp( parameter_name, "/Devices" ) != 0 ) )
+	    		{
+	    		    /* We have not yet reached the end of this chain's
+	    		     * parameters, so we continue processing the
+	    		     * parameters for the current chain.
+	    		     */
 
-			    if ( mx_status.code != MXE_SUCCESS )
-				    return mx_status;
-			} else {
-			    MX_DEBUG(-2,("%s: *** chain '%s' complete.",
-				fname, chain_name));
+	    		    mx_status = mxi_dante_set_parameter_from_string(
+	    						&chain_configuration,
+	    						parameter_name,
+	    						parameter_string );
 
-			    /* We have reached the end of this chain's
-			     * parameters, so we now look for all MCA
-			     * records that are part of this chain and
-			     * copy these parameters to them.
-			     */
+	    		    if ( mx_status.code != MXE_SUCCESS )
+	    			    return mx_status;
+	    		} else {
+	    		    MX_DEBUG(-2,("%s: *** chain '%s' complete.",
+	    			fname, chain_name));
 
-			    mx_status = mxi_dante_copy_parameters_to_chain(
-			    	dante_record, &chain_configuration );
+	    		    /* We have reached the end of this chain's
+	    		     * parameters, so we now look for all MCA
+	    		     * records that are part of this chain and
+	    		     * copy these parameters to them.
+	    		     */
 
-			    if ( mx_status.code != MXE_SUCCESS )
-				    return mx_status;
+	    		    mx_status = mxi_dante_copy_parameters_to_chain(
+	    		    	dante_record, &chain_configuration );
 
-			    mxi_dante_show_parameters_for_chain( dante_record );
+	    		    if ( mx_status.code != MXE_SUCCESS )
+	    			    return mx_status;
 
-			    /* We record the fact that we are finished
-			     * with this particular chain's parameters.
-			     */
+	    		    mxi_dante_show_parameters_for_chain( dante_record );
 
-			    chain_name[0] = '\0';
-			}
-		    }
-		}
-	    } else {
-		/* Skip lines we are not interested in. */
+	    		    /* We record the fact that we are finished
+	    		     * with this particular chain's parameters.
+	    		     */
 
-		ptr = strstr( buffer, "</Devices" );
+	    		    chain_name[0] = '\0';
+	    		}
+	    	    }
+	    	}
+	        } else {
+	    	/* Skip lines we are not interested in. */
 
-		if ( ptr == (char *) NULL ) {
-			continue;
-		}
+	    	ptr = strstr( buffer, "</Devices" );
 
-		/* We are not in a set of chain parameters and we have not
-		 * seen the character that marks the start of a chain,
-		 * so print a warning message and continue on to the
-		 * next line in the file.
-		 */
+	    	if ( ptr == (char *) NULL ) {
+	    		continue;
+	    	}
 
-		mx_warning( "A line was seen in the configuration file "
-		"that does not seem to be part of a chain configuration, "
-		"so we are skipping it.  line = '%s'", buffer );
-	    }
+	    	/* We are not in a set of chain parameters and we have not
+	    	 * seen the character that marks the start of a chain,
+	    	 * so print a warning message and continue on to the
+	    	 * next line in the file.
+	    	 */
 
-	} /* End of the while(TRUE) loop. */
+	    	mx_warning( "A line was seen in the configuration file "
+	    	"that does not seem to be part of a chain configuration, "
+	    	"so we are skipping it.  line = '%s'", buffer );
+	        }
+
+	    } /* End of the while() loop over the XML for a single chain. */
+
+	} /* End of the for() loop over chain masters. */
 
 	/* FIXME: fclose() below crashes, so we ifdef it out for now.
 	 * But we need to really understand why it is crashing, since
@@ -1551,6 +1558,11 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 
 #if 0
 	fclose( config_file );
+#endif
+
+#if 1
+	mxi_dante_close( dante_record );
+	exit(0);
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
