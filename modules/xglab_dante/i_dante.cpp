@@ -269,8 +269,6 @@ mxi_dante_open( MX_RECORD *record )
 	static const char fname[] = "mxi_dante_open()";
 
 	MX_DANTE *dante = NULL;
-	long dimension[3];
-	size_t dimension_sizeof[3];
 	unsigned long i, attempt;
 
 	unsigned long major, minor, update, extra;
@@ -279,7 +277,7 @@ mxi_dante_open( MX_RECORD *record )
 	unsigned long max_init_delay_ms;
 	unsigned long max_attempts;
 
-	bool dante_status, show_devices;
+	bool dante_status;
 	uint32_t version_length;
 	uint16_t number_of_devices;
 	uint16_t board_number, max_identifier_length;
@@ -403,11 +401,13 @@ mxi_dante_open( MX_RECORD *record )
 	 * the current program.
 	 */
 
+#if 0
 	if ( dante->dante_flags & MXF_DANTE_SHOW_DEVICES ) {
 		show_devices = true;
 	} else {
 		show_devices = false;
 	}
+#endif
 
 	/* Wait a little while for daisy chain synchronization. */
 
@@ -608,11 +608,6 @@ mxi_dante_finish_delayed_initialization( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_dante_finish_delayed_initialization()";
 
-	MX_DANTE *dante = NULL;
-	MX_RECORD *mca_record = NULL;
-
-	unsigned long i;
-	mx_bool_type show_devices;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -621,14 +616,6 @@ mxi_dante_finish_delayed_initialization( MX_RECORD *record )
 	}
 
 	MX_DEBUG(-2,("%s invoked for '%s'.", fname, record->name ));
-
-	dante = (MX_DANTE *) record->record_type_struct;
-
-	if ( dante == (MX_DANTE *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_DANTE pointer for DANTE controller '%s' is NULL.",
-			record->name );
-	}
 
 	mx_status = mxi_dante_load_config_file( record );
 
@@ -1239,7 +1226,6 @@ mxi_dante_show_parameters_for_chain( MX_RECORD *record )
 	MX_DANTE_MCA *dante_mca = NULL;
 #endif
 	unsigned long i;
-	mx_bool_type show_devices;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {

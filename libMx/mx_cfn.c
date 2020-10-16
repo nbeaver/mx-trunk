@@ -949,7 +949,9 @@ mx_cfn_fopen_internal( int filename_type,
 		const char *file_mode,
 		int *returned_errno )
 {
+#if 0
 	static const char fname[] = "mx_cfn_fopen_internal()";
+#endif
 
 	mx_status_type mx_status;
 
