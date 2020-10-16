@@ -23,11 +23,9 @@ extern "C" {
 
 #define MXU_DANTE_MAX_VERSION_LENGTH		20
 
-#define MXU_DANTE_MAX_IDENTIFIER_LENGTH		16
-
 #define MXU_DANTE_MAX_CALLBACK_DATA_LENGTH	20
 
-#define MXU_DANTE_MAX_CHAIN_NAME_LENGTH		80
+#define MXU_DANTE_MAX_CHAIN_ID_LENGTH		80
 
 #define MX_DANTE_VERSION( major, minor, update, extra ) \
 	( 1000000 * (major) + 10000 * (minor) + 100 * (update) + (extra) )
@@ -51,9 +49,41 @@ extern "C" {
 #define MXF_DANTE_LIST_WAVE_MODE		4
 #define MXF_DANTE_MAPPING_MODE			5
 
-/* Define the data structures used by the Dante driver. */
+/* Dante chain master structure. */
 
 typedef struct {
+	/* Pointer back to the top level MX_DANTE structure. */
+	struct dante_struct *dante;
+
+	char chain_id[MXU_DANTE_MAX_CHAIN_ID_LENGTH+1];
+	unsigned long num_boards;
+
+	struct {
+		double time;
+		unsigned long energy_bins;
+	} single_spectrum;
+
+	struct {
+		double time;
+		unsigned long points;
+		unsigned long energy_bins;
+	} mapping;
+
+	struct {
+		double time;
+	} timestamp;
+	
+	struct {
+		unsigned long decimation;
+
+		/* Note: The XML file misspells length as 'lenght'. */
+		unsigned long lenght;
+	} wave;
+} MX_DANTE_CHAIN;
+
+/* Top level structure for all Dante chains. */
+
+typedef struct dante_struct {
 	MX_RECORD *record;
 	unsigned long dante_flags;
 	unsigned long max_boards_per_chain;
@@ -71,11 +101,9 @@ typedef struct {
 	char dante_version_string[MXU_DANTE_MAX_VERSION_LENGTH+1];
 	unsigned long dante_version;
 	unsigned long num_master_devices;
+	MX_DANTE_CHAIN *master;
 
 	MX_RECORD **mca_record_array;
-
-	unsigned long *num_boards_for_chain;
-	char **board_identifier;
 } MX_DANTE;
 
 /* Values for 'configuration_flags'. */
@@ -85,7 +113,7 @@ typedef struct {
 #ifdef __cplusplus
 
 typedef struct {
-	char chain_name[MXU_DANTE_MAX_CHAIN_NAME_LENGTH+1];
+	char chain_name[MXU_DANTE_MAX_CHAIN_ID_LENGTH+1];
 
 	struct configuration configuration;
 	InputMode input_mode;

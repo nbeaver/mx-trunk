@@ -431,15 +431,15 @@ mxi_dante_open( MX_RECORD *record )
 
 	dante->num_master_devices = number_of_devices;
 
-	/* Prepare for getting the identifiers of all boards available. */
+	/* Allocate an array of chain master structures. */
 
-	dante->num_boards_for_chain = (unsigned long *)
-		calloc( dante->num_master_devices, sizeof(unsigned long) );
+	dante->master = (MX_DANTE_CHAIN *)
+		calloc( number_of_devices, sizeof(MX_DANTE_CHAIN) );
 
-	if ( dante->num_boards_for_chain == (unsigned long *) NULL ) {
+	if ( dante->master == (MX_DANTE_CHAIN *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to allocate a %lu element array of "
-		"unsigned longs for the field '%s.num_boards_per_chain'.",
+		"MX_DANTE_CHAIN structures for Dante record '%s'.",
 			dante->num_master_devices, record->name );
 	}
 
@@ -447,23 +447,6 @@ mxi_dante_open( MX_RECORD *record )
 		fname, dante->num_master_devices));
 	MX_DEBUG(-2,("%s: dante->max_boards_per_chain = %lu",
 		fname, dante->max_boards_per_chain));
-
-	dimension[0] = dante->num_master_devices;
-	dimension[2] = MXU_DANTE_MAX_IDENTIFIER_LENGTH;
-
-	dimension_sizeof[0] = sizeof(char);
-	dimension_sizeof[1] = sizeof(char *);
-
-	dante->board_identifier = (char **)
-	    mx_allocate_array( MXFT_STRING, 2, dimension, dimension_sizeof );
-
-	if ( dante->board_identifier == (char **) NULL ) {
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Ran out of memory trying to allocate a (%lu) element "
-		"array of board identifiers for record '%s'.",
-			dante->num_master_devices,
-			record->name );
-	}
 
 	/* How many boards are there for each master? */
 
@@ -480,16 +463,16 @@ mxi_dante_open( MX_RECORD *record )
 
 		error_code = DLL_NO_ERROR;
 
-		max_identifier_length = MXU_DANTE_MAX_IDENTIFIER_LENGTH;
+		max_identifier_length = MXU_DANTE_MAX_CHAIN_ID_LENGTH;
 
 		(void) resetLastError();
 
-		dante->board_identifier[i][0] = '\0';
+		dante->master[i].chain_id[0] = '\0';
 
 		board_number = 0;
 
-		dante_status = get_ids( dante->board_identifier[i],
-				board_number, max_identifier_length );
+		dante_status = get_ids( dante->master[i].chain_id,
+					board_number, max_identifier_length );
 
 		if ( dante_status == false ) {
 			(void) getLastError( error_code );
@@ -506,10 +489,15 @@ mxi_dante_open( MX_RECORD *record )
 			}
 		}
 
+#if 1
+		MX_DEBUG(-2,("%s: dante->master[%lu].chain_id = '%s'",
+			fname, i, dante->master[i].chain_id ));
+#endif
+
 		for ( attempt = 0; attempt < max_attempts; attempt++ ) {
 
 			dante_status = get_boards_in_chain(
-				dante->board_identifier[i], num_boards );
+				dante->master[i].chain_id, num_boards );
 
 			if ( dante_status == false ) {
 				(void) getLastError( error_code );
@@ -538,13 +526,13 @@ mxi_dante_open( MX_RECORD *record )
 				"'%s.max_boards_per_chain' in the MX database.",
 					dante->record->name,
 					(unsigned long) num_boards,
-					dante->board_identifier[i],
+					dante->master[i].chain_id,
 					dante->max_boards_per_chain,
 					dante->record->name );
 			} else
 			if ( num_boards >= dante->max_boards_per_chain ) {
 				MX_DEBUG(-2,("%s: All boards found for '%s'.",
-				fname, dante->board_identifier[i] ));
+				fname, dante->master[i].chain_id ));
 
 				break;
 			}
@@ -552,12 +540,16 @@ mxi_dante_open( MX_RECORD *record )
 			mx_msleep(1000);
 		}
 
-		dante->num_boards_for_chain[i] = num_boards;
+		dante->master[i].num_boards = num_boards;
 
+#if 0
 		if ( show_devices ) {
+#else
+		if ( 1 ) {
+#endif
 			MX_DEBUG(-2,("%s: board[%lu] = '%s' (%lu boards)",
-				fname, i, dante->board_identifier[i],
-				dante->num_boards_for_chain[i] ));
+				fname, i, dante->master[i].chain_id,
+				dante->master[i].num_boards ));
 		}
 	}
 
@@ -622,8 +614,6 @@ mxi_dante_finish_delayed_initialization( MX_RECORD *record )
 	unsigned long i;
 	mx_bool_type show_devices;
 	mx_status_type mx_status;
-
-	mx_breakpoint();
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -1299,6 +1289,18 @@ mxi_dante_show_parameters_for_chain( MX_RECORD *record )
 /*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
+mxi_dante_save_config_file( MX_RECORD *record )
+{
+	static const char fname[] = "mxi_dante_save_config_file()";
+
+	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
 mxi_dante_load_config_file( MX_RECORD *dante_record )
 {
 	static const char fname[] = "mxi_dante_load_config_file()";
@@ -1317,7 +1319,7 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 	MX_DANTE_CONFIGURATION chain_configuration;
 	struct configuration new_configuration;
 
-	char chain_name[MXU_DANTE_MAX_CHAIN_NAME_LENGTH+1];
+	char chain_name[MXU_DANTE_MAX_CHAIN_ID_LENGTH+1];
 	mx_status_type mx_status;
 
 	if ( dante_record == (MX_RECORD *) NULL ) {
@@ -1327,6 +1329,11 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 
 #if 1
 	MX_DEBUG(-2,("%s invoked for '%s'.", fname, dante_record->name));
+#endif
+
+#if 1
+	mxi_dante_close( dante_record );
+	exit(0);
 #endif
 
 	dante = (MX_DANTE *) dante_record->record_type_struct;
@@ -1347,12 +1354,8 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 	 * elsewhere in MX, we may want to revisit this choice here.
 	 */
 
-	/* FIXME!!!: fopen() seems to work differently in C++, with the
-	 * result that it is impossible to read strings from the file
-	 * using mx_fgets().  By using mx_cfn_fopen(), we use a copy
-	 * of fopen() in the C library libMx.  That seems to work
-	 * for some reason.  Perhaps some sort of memory corruption
-	 * is occurring?
+	/* We use mx_cfn_fopen() since it uses a copy of stdio that runs
+	 * in the context of the libMx library.
 	 */
 
 	config_file = mx_cfn_fopen( MX_CFN_CONFIG,
@@ -1421,7 +1424,7 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 		}
 	    }
 
-#if 0
+#if 1
 	    MX_DEBUG(-2,("%s: buffer = '%s'", fname, buffer));
 #endif
 
@@ -1549,18 +1552,6 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 #if 0
 	fclose( config_file );
 #endif
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-/*-------------------------------------------------------------------------*/
-
-MX_EXPORT mx_status_type
-mxi_dante_save_config_file( MX_RECORD *record )
-{
-	static const char fname[] = "mxi_dante_save_config_file()";
-
-	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name));
 
 	return MX_SUCCESSFUL_RESULT;
 }
