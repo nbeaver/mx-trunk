@@ -703,6 +703,8 @@ MX_API int mx_strncmp_end( const char *s1, const char *s2, size_t n );
 
 MX_API FILE *mx_fopen( const char *pathname, const char *mode );
 
+MX_API int mx_fclose( FILE *stream );
+
 /* mx_fgets() is a replacement for fgets() that automatically trims off
  * trailing newlines.
  */

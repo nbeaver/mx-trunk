@@ -57,6 +57,7 @@ typedef struct {
 
 	char chain_id[MXU_DANTE_MAX_CHAIN_ID_LENGTH+1];
 	unsigned long num_boards;
+	struct dante_configuration *dante_configuration;
 
 	struct {
 		double time;
@@ -112,8 +113,9 @@ typedef struct dante_struct {
 
 #ifdef __cplusplus
 
-typedef struct {
-	char chain_name[MXU_DANTE_MAX_CHAIN_ID_LENGTH+1];
+typedef struct dante_configuration {
+	MX_DANTE_CHAIN *chain;
+	MX_RECORD *mca_record;
 
 	struct configuration configuration;
 	InputMode input_mode;
@@ -225,8 +227,7 @@ MX_API mx_status_type mxi_dante_configure( MX_RECORD *record );
 
 #ifdef __cplusplus
 MX_API mx_status_type mxi_dante_set_configuration_to_defaults(
-			MX_DANTE_CONFIGURATION *mx_dante_configuration,
-			char *configuration_chain_name );
+			MX_DANTE_CONFIGURATION *mx_dante_configuration );
 #endif
 
 #ifdef __cplusplus

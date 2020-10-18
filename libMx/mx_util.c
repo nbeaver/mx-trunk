@@ -1790,6 +1790,14 @@ mx_fopen( const char *pathname, const char *mode )
 	return file;
 }
 
+MX_EXPORT int
+mx_fclose( FILE *stream )
+{
+	int fclose_status = fclose( stream );
+
+	return fclose_status;
+}
+
 #elif 0
 #error mx_fopen() has not yet been implemented for this platform.
 #endif

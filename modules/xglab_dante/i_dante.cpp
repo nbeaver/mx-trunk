@@ -269,7 +269,16 @@ mxi_dante_open( MX_RECORD *record )
 	static const char fname[] = "mxi_dante_open()";
 
 	MX_DANTE *dante = NULL;
-	unsigned long i, attempt;
+<<<<<<< .mine
+	MX_DANTE_CONFIGURATION *dante_configuration = NULL;
+	long dimension[3];
+	size_t dimension_sizeof[3];
+||||||| .r4632
+	long dimension[3];
+	size_t dimension_sizeof[3];
+=======
+>>>>>>> .r4633
+	unsigned long i, j, attempt;
 
 	unsigned long major, minor, update, extra;
 	int num_items;
@@ -467,6 +476,8 @@ mxi_dante_open( MX_RECORD *record )
 
 		(void) resetLastError();
 
+		dante->master[i].dante = dante;
+
 		dante->master[i].chain_id[0] = '\0';
 
 		board_number = 0;
@@ -499,26 +510,31 @@ mxi_dante_open( MX_RECORD *record )
 			dante_status = get_boards_in_chain(
 				dante->master[i].chain_id, num_boards );
 
-			if ( dante_status == false ) {
-				(void) getLastError( error_code );
+			if ( dante_status != false ) {
+				break;	/* Exit the for(attempt) loop. */
+			}
 
-				switch( error_code ) {
-				case DLL_NO_ERROR:
-				    break;
-				default:
-				    return mx_error( MXE_UNKNOWN_ERROR, fname,
+			(void) getLastError( error_code );
+
+			switch( error_code ) {
+			case DLL_NO_ERROR:
+				break;
+			default:
+				return mx_error( MXE_UNKNOWN_ERROR, fname,
 				  "A call to get_boards_in_chain() for "
 				  "record '%s' failed.  DANTE error code = %lu",
 				    record->name, (unsigned long) error_code );
-				    break;
-				}
+				break;
 			}
 
-			MX_DEBUG(-2,("%s: num_boards = %lu",
-				fname, (unsigned long) num_boards));
+			mx_msleep(1000);
+		}
 
-			if ( num_boards > dante->max_boards_per_chain ) {
-				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		MX_DEBUG(-2,("%s: num_boards = %lu",
+			fname, (unsigned long) num_boards));
+
+		if ( num_boards > dante->max_boards_per_chain ) {
+			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 				"While setting up DANTE master '%s', we "
 				"Found more boards (%lu) for chain '%s' than "
 				"the maximum number (%lu) that we are prepared "
@@ -529,18 +545,38 @@ mxi_dante_open( MX_RECORD *record )
 					dante->master[i].chain_id,
 					dante->max_boards_per_chain,
 					dante->record->name );
-			} else
-			if ( num_boards >= dante->max_boards_per_chain ) {
-				MX_DEBUG(-2,("%s: All boards found for '%s'.",
-				fname, dante->master[i].chain_id ));
-
-				break;
-			}
-
-			mx_msleep(1000);
 		}
 
+		MX_DEBUG(-2,("%s: All boards found for '%s'.",
+		fname, dante->master[i].chain_id ));
+
+		MX_DEBUG(-2,("%s: &(dante->master[%lu]) = %p",
+		fname, i, &(dante->master[i]) ));
+
 		dante->master[i].num_boards = num_boards;
+
+		/* Allocate and initialize the MX_DANTE_CONFIGURATION array
+		 * for this MX_DANTE_CHAIN struct.
+		 */
+
+		dante_configuration = (MX_DANTE_CONFIGURATION *)
+			calloc( num_boards, sizeof(MX_DANTE_CONFIGURATION) );
+
+		if ( dante_configuration == NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Could not allocate a %lu element array of "
+			"MX_DANTE_CONFIGURATION structures for chain_id '%s' "
+			"of Dante record '%s'.",
+				num_boards,
+				dante->master[i].chain_id,
+				dante->record->name );
+		}
+
+		dante->master[i].dante_configuration = dante_configuration;
+
+		for ( j = 0; j < num_boards; j++ ) {
+			dante_configuration[j].chain = &(dante->master[i]);
+		}
 
 #if 0
 		if ( show_devices ) {
@@ -618,11 +654,6 @@ mxi_dante_finish_delayed_initialization( MX_RECORD *record )
 	MX_DEBUG(-2,("%s invoked for '%s'.", fname, record->name ));
 
 	mx_status = mxi_dante_load_config_file( record );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mxi_dante_show_parameters_for_chain( record );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -738,6 +769,8 @@ mxi_dante_configure( MX_RECORD *record )
 	unsigned long i;
 	mx_status_type mx_status;
 
+	mx_breakpoint();
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_RECORD pointer passed was NULL." );
@@ -782,22 +815,13 @@ mxi_dante_configure( MX_RECORD *record )
 
 MX_EXPORT mx_status_type
 mxi_dante_set_configuration_to_defaults(
-		MX_DANTE_CONFIGURATION *mx_dante_configuration,
-		char *configuration_chain_name )
+		MX_DANTE_CONFIGURATION *mx_dante_configuration )
 {
 	static const char fname[] = "mxi_dante_set_configuration_to_defaults()";
 
 	if ( mx_dante_configuration == (MX_DANTE_CONFIGURATION *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_DANTE_CONFIGURATION pointer passed was NULL." );
-	}
-
-	if ( configuration_chain_name == (char *) NULL ) {
-		mx_dante_configuration->chain_name[0] = '\0';
-	} else {
-		strlcpy( mx_dante_configuration->chain_name,
-				configuration_chain_name,
-				sizeof(mx_dante_configuration->chain_name) );
 	}
 
 	/* Initialize the configuration parameters to the values that
@@ -1031,7 +1055,7 @@ mxi_dante_copy_parameters_to_chain( MX_RECORD *dante_record,
 	MX_DANTE *dante = NULL;
 	MX_RECORD *mca_record = NULL;
 	MX_DANTE_MCA *dante_mca = NULL;
-	char *chain_name = NULL;
+	char *chain_id = NULL;
 	unsigned long i;
 
 	if ( dante_record == (MX_RECORD *) NULL ) {
@@ -1046,10 +1070,10 @@ mxi_dante_copy_parameters_to_chain( MX_RECORD *dante_record,
 
 	MX_DEBUG(-2,("%s: dante_record = '%s'.", fname, dante_record->name));
 
-	chain_name = chain_configuration->chain_name;
+	chain_id = chain_configuration->chain->chain_id;
 
 	MX_DEBUG(-2,("%s: Copying DANTE configuration to chain '%s'.",
-		fname, chain_name ));
+		fname, chain_id ));
 
 	dante = (MX_DANTE *) dante_record->record_type_struct;
 
@@ -1088,7 +1112,7 @@ mxi_dante_copy_parameters_to_chain( MX_RECORD *dante_record,
 		 * are looking for?
 		 */
 
-		if ( strcmp( chain_name, dante_mca->identifier ) == 0 ) {
+		if ( strcmp( chain_id, dante_mca->identifier ) == 0 ) {
 			/* Yes, it is in the chain we are looking for. */
 
 			MX_DEBUG(-2,("%s: Copying to MCA '%s'.",
@@ -1116,13 +1140,34 @@ mxi_dante_show_parameters( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_dante_show_parameters()";
 
-	MX_DANTE_MCA *dante_mca = (MX_DANTE_MCA *) record->record_type_struct;
+	MX_DANTE_MCA *dante_mca = NULL;
+	MX_DANTE_CONFIGURATION *mx_dante_configuration = NULL;
+	struct configuration *configuration = NULL;
 
-	MX_DANTE_CONFIGURATION *mx_dante_configuration =
-				&(dante_mca->mx_dante_configuration);
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
 
-	struct configuration *configuration =
-				&(mx_dante_configuration->configuration);
+	dante_mca = (MX_DANTE_MCA *) record->record_type_struct;
+
+	if ( dante_mca == (MX_DANTE_MCA *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_DANTE_MCA pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	mx_dante_configuration = dante_mca->mx_dante_configuration;
+
+	if ( mx_dante_configuration == (MX_DANTE_CONFIGURATION *) NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The MX_DANTE_CONFIGURATION pointer has not yet been "
+		"initialized for Dante MCA record '%s'.  "
+		"Perhaps the startup configuration of MX has not yet finished?",
+			record->name );
+	}
+
+	configuration = &(mx_dante_configuration->configuration);
 
 	MX_DEBUG(-2,("**** %s for MCA '%s'", fname, dante_mca->record->name));
 
@@ -1186,28 +1231,28 @@ mxi_dante_show_parameters( MX_RECORD *record )
 		(unsigned long) configuration->other_param ));
 
 	MX_DEBUG(-2,("  timestamp_delay = %lu",
-		dante_mca->mx_dante_configuration.timestamp_delay));
+		mx_dante_configuration->timestamp_delay));
 
 	MX_DEBUG(-2,("  baseline_offset = %lu",
-	  (unsigned long) dante_mca->mx_dante_configuration.baseline_offset));
+		mx_dante_configuration->baseline_offset));
 
 	MX_DEBUG(-2,("  offset = [ %lu, %lu ]",
-		dante_mca->mx_dante_configuration.offset[0],
-		dante_mca->mx_dante_configuration.offset[1] ));
+		mx_dante_configuration->offset[0],
+		mx_dante_configuration->offset[1] ));
 
 	MX_DEBUG(-2,("  calib_energies_bins = [ %lu, %lu ]",
-		dante_mca->mx_dante_configuration.calib_energies_bins[0],
-		dante_mca->mx_dante_configuration.calib_energies_bins[1] ));
+		mx_dante_configuration->calib_energies_bins[0],
+		mx_dante_configuration->calib_energies_bins[1] ));
 
 	MX_DEBUG(-2,("  calib_energies = [ %f, %f ]",
-		dante_mca->mx_dante_configuration.calib_energies[0],
-		dante_mca->mx_dante_configuration.calib_energies[1] ));
+		mx_dante_configuration->calib_energies[0],
+		mx_dante_configuration->calib_energies[1] ));
 
 	MX_DEBUG(-2,("  calib_channels = %lu",
-		dante_mca->mx_dante_configuration.calib_channels));
+		mx_dante_configuration->calib_channels));
 
 	MX_DEBUG(-2,("  calib_equation = %lu",
-		dante_mca->mx_dante_configuration.calib_equation));
+		mx_dante_configuration->calib_equation));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1286,13 +1331,31 @@ mxi_dante_save_config_file( MX_RECORD *record )
 
 /*-------------------------------------------------------------------------*/
 
+/* Some special values for DPP section numbers. */
+
+#define MX_DPP_IN_EXAMPLE_SECTION	(-1)
+#define MX_DPP_IN_COMMON_SECTION	(-2)
+#define MX_DPP_NOT_IN_SECTION		(-9999)
+
 MX_EXPORT mx_status_type
 mxi_dante_load_config_file( MX_RECORD *dante_record )
 {
 	static const char fname[] = "mxi_dante_load_config_file()";
 
 	MX_DANTE *dante = NULL;
+	MX_DANTE_CHAIN *chain_master = NULL;
+	MX_DANTE_CONFIGURATION *dante_configuration = NULL;
+	MX_RECORD *mca_record = NULL;
+	MX_DANTE_MCA *dante_mca = NULL;
 	FILE *config_file = NULL;
+	unsigned long i;
+	char *section_name_ptr = NULL;
+	char *section_name_end_ptr = NULL;
+	char *master_name_ptr = NULL;
+	char *channel_name_ptr = NULL;
+	long dpp_section = MX_DPP_NOT_IN_SECTION;
+	long channel_number = LONG_MIN;
+	int num_items = -1;
 	char *ptr = NULL;
 	char *identifier_ptr = NULL;
 	char *end_ptr = NULL;
@@ -1300,13 +1363,8 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 	char *parameter_string = NULL;
 	char *parameter_end = NULL;
 	int saved_errno;
-	unsigned long n;
 	char buffer[200];
 
-	MX_DANTE_CONFIGURATION chain_configuration;
-	struct configuration new_configuration;
-
-	char chain_name[MXU_DANTE_MAX_CHAIN_ID_LENGTH+1];
 	mx_status_type mx_status;
 
 	if ( dante_record == (MX_RECORD *) NULL ) {
@@ -1375,17 +1433,61 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 		}
 	}
 
+	/* Work our way through the XML file one line at a time. */
+
+	/* NOTE: It is arguable that we may want to use an external XML
+	 * parser library here.  For now we have chosen to parse the XML by
+	 * hand, but this code is near the upper limit of what we would
+	 * want to do by hand.
+	 *
+	 * As of October 2020, the most likely alternatives are:
+	 *
+	 * libxml2 - an MIT licensed DOM-style parser which covers nearly
+	 *           all of our platforms.
+	 *
+	 * expat - an MIT licensed SAX-style parser which may cover fewer
+	 *         of our platforms than libxml2.
+	 *
+	 * Please note that any external XML library used must NOT change
+	 * the license for MX as a whole from the MIT style MX uses now.
+	 */
+
 	/* Loop over the master boards. */
 
-	for ( n = 0; n < dante->num_master_devices; n++ ) {
+	for ( i = 0; i < dante->num_master_devices; i++ ) {
 
-	    /*  Work our way through the XML file for a single chain,
-	     *  one line at a time.
+	    dpp_section = MX_DPP_NOT_IN_SECTION;
+
+	    chain_master = &(dante->master[i]);
+
+	    dante_configuration = NULL;
+
+	    if ( i == 0 ) {
+		    MX_DEBUG(-2,("%s: &(dante->master[0]) = %p",
+			fname, chain_master));
+	    }
+
+	    /* Verify that the chain_id and num_boards fields have already
+	     * been set in the 'chain_master' structure.
 	     */
 
-	    chain_name[0] = '\0';
+	    if ( chain_master->chain_id[0] == '\0' ) {
+		    return mx_error( MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
+		    "Master %lu of Dante record '%s' has not had its "
+		    "chain id set already.  This should not happen.",
+		    	i, dante->record->name );
+	    }
 
-	    while (TRUE) {
+	    if ( chain_master->num_boards == 0 ) {
+		    return mx_error( MXE_HARDWARE_CONFIGURATION_ERROR, fname,
+		    "Master %lu '%s' of Dante record '%s' says that it has "
+		    "0 boards.  This should not be able to happen, since "
+		    "the master board itself should be included in the "
+		    "count of boards.",
+		    	i, chain_master->chain_id, dante->record->name );
+	    }
+
+	    while (1) {
 	        /* Read one line from the XML file. */
 
 	        ptr = mx_fgets( buffer, sizeof(buffer), config_file );
@@ -1415,47 +1517,286 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 #if 1
 	        MX_DEBUG(-2,("%s: buffer = '%s'", fname, buffer));
 #endif
-		continue;	/*!!!!!!!!!*/
+		/*------------------------------------------------------*/
 
-		/* We do not get to here. */
+		/* Is this the 'xml version' string at the beginning
+		 * of the file?
+		 */
 
-	        ptr = strstr( buffer, "<DPP Name" );
+		ptr = strstr( buffer, "<\?xml version" );
 
-	        if ( ptr != (char *) NULL ) {
-	    	/* This line appears to have a chain identifier in it. */
+		if ( ptr != (char *) NULL ) {
+			/* We have found the xml version line. */
 
-	    	identifier_ptr = strstr( ptr, "\"" );
+			continue; /* Go back to the top of the while(1) loop. */
+#if 0
+			mxi_dante_close(dante_record);
+			exit(0);
+#endif
+		}
 
-	    	if ( identifier_ptr != NULL ) {
-	    	    identifier_ptr++;
+		/*------------------------------------------------------*/
 
-	    	    end_ptr = strstr( identifier_ptr, "\"" );
+		/* Are we at the beginning of a Device? */
 
-	    	    if ( end_ptr != NULL ) {
-	    		*end_ptr = '\0';
-	    	    }
-	    	}
+		ptr = strstr( buffer, "<Devices" );
 
-	    	if ( identifier_ptr != NULL ) {
-	    	    strlcpy( chain_name, identifier_ptr, sizeof(chain_name) );
+		if ( ptr != (char *) NULL ) {
+			/* The Name in the <Devices line does not contain
+			 * information that we are going to use, so we
+			 * just skip over it.
+			 */
 
-	    	    MX_DEBUG(-2,("%s: *** chain '%s' started.",
-	    		fname, chain_name));
+			continue; /* Go back to the top of the while(1) loop.*/
+		}
 
-	    	    mx_status = mxi_dante_set_configuration_to_defaults(
-	    			    &chain_configuration, chain_name );
-	    	}
-	        } else
-	        if ( chain_name[0] != '\0' ) {
-	    	/* If we are currently processing a chain's configuration
-	    	 * parameters, see if this is one of the parameters.
-	    	 */
+		/*------------------------------------------------------*/
+
+		/* Are we at the end of a Device? */
+
+		ptr = strstr( buffer, "</Devices" );
+
+		if ( ptr != (char *) NULL ) {
+			chain_master = NULL;
+
+			/* Break out of the while(1) loop to go on to
+			 * the next master board.
+			 */
+
+			break; /* Leave the while(1) loop. */
+		}
+
+		/*------------------------------------------------------*/
+
+		/* Are we at the end of a DPP section? */
+
+		ptr = strstr( buffer, "</DPP" );
+
+		if ( ptr != (char *) NULL ) {
+			MX_DEBUG(-2,("%s: *** Leaving section %ld ***",
+					fname, dpp_section ));
+
+			dante_configuration = NULL;
+
+			dpp_section = MX_DPP_NOT_IN_SECTION;
+
+			continue; /* Go back to the top of the while(1) loop.*/
+		}
+
+		/*------------------------------------------------------*/
+
+		/* Are we at the beginning of a DPP section? */
+
+		ptr = strstr( buffer, "<DPP" );
+
+		if ( ptr != (char *) NULL ) {
+		    dante_configuration = NULL;
+
+		    if ( strcmp( ptr, "<DPP Name=\"Example SN\">" ) == 0 ) {
+			dpp_section = MX_DPP_IN_EXAMPLE_SECTION;
+		    } else
+		    if ( strcmp( ptr, "<DPP_COMMON_CONFIG>" ) == 0 ) {
+			dpp_section = MX_DPP_IN_COMMON_SECTION;
+		    } else {
+			/* Find the section name. */
+
+			section_name_ptr = strchr( ptr, '\"' );
+
+			if ( section_name_ptr == (char *) NULL ) {
+			    mx_warning(
+			    "DPP section name start not found in '%s'", ptr );
+
+			    /* Go back to the top of the while(1) loop. */
+			    continue;
+			}
+
+			section_name_ptr++;	/* Skip over the '"' char. */
+
+			section_name_end_ptr = strchr( section_name_ptr, '\"' );
+
+			if ( section_name_end_ptr == (char *) NULL ) {
+			    mx_warning(
+			    "DPP section name end not found in '%s'", ptr );
+
+			    /* Go back to the top of the while(1) loop. */
+			    continue;
+			}
+
+			/* Null terminate the section name. */
+
+			*section_name_end_ptr = '\0';
+
+			MX_DEBUG(-2,("%s: section_name_ptr = '%s'",
+					fname, section_name_ptr ));
+
+			/* Parse the section name.  The part before the
+			 * '-' character should be the name of the 
+			 * master device for this chain.  The part after
+			 * the '_' should be 'Chx' where x is the number
+			 * of the section.
+			 */
+
+			master_name_ptr = section_name_ptr;
+
+			channel_name_ptr = strchr( master_name_ptr, '_' );
+
+			if ( channel_name_ptr == (char *) NULL ) {
+			    mx_warning(
+			    "Channel name not found in section name '%s'",
+				section_name_ptr );
+
+			    /* Go back to the top of the while(1) loop. */
+			    continue;
+			}
+
+			*channel_name_ptr = '\0';
+			channel_name_ptr++;
+
+			MX_DEBUG(-2,("%s: section '%s', channel '%s'",
+			fname, master_name_ptr, channel_name_ptr ));
+
+			/* Get the channel number. */
+
+			num_items = sscanf( channel_name_ptr, "Ch%ld",
+					&channel_number );
+
+			if ( num_items != 1 ) {
+			    mx_warning( "Did not find the channel number "
+				"in '%s.", channel_name_ptr );
+
+			    /* Go back to the top of the while(1) loop. */
+			    continue;
+			}
+
+			/* Check that the chain id matches the master id. */
+
+			if ( strcmp(chain_master->chain_id,
+					master_name_ptr) == 0 )
+			{
+			    MX_DEBUG(-2,("%s === Verified in chain '%s'",
+				fname, chain_master->chain_id ));
+			} else {
+			    mx_warning( "We are supposed to be in chain '%s', "
+			    "but the section header says we are in chain '%s'.",
+			    	chain_master->chain_id, master_name_ptr );
+			}
+
+			/* All seems to be well. */
+
+			dpp_section = channel_number - 1;
+
+			/* Setup the link of the MX_DANTE_CONFIGURATION
+			 * pointer to the matching MX_DANTE_MCA structure.
+			 */
+
+			dante_configuration =
+			    &(chain_master->dante_configuration[dpp_section]);
+
+			if ( dante_configuration == NULL ) {
+			    return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			    "The MX_DANTE_CONFIGURATION pointer for DPP "
+			    "section %lu for Dante record '%s' is NULL.",
+			    	dpp_section, dante->record->name );
+			}
+
+			/* We need to find the mca_record_array element
+			 * that matches this DPP section.
+			 */
+
+			mca_record = dante->mca_record_array[ dpp_section ];
+
+			if ( mca_record == (MX_RECORD *) NULL ) {
+			    return mx_error( MXE_INITIALIZATION_ERROR, fname,
+			    "We are attempting to make use of the MCA record "
+			    "in element %lu of the mca_record_array for "
+			    "Dante record '%s'.  But this element has not yet "
+			    "been initialized.",
+				dpp_section, dante->record->name );
+			}
+
+			dante_mca = (MX_DANTE_MCA *)
+					mca_record->record_type_struct;
+
+			if ( dante_mca == (MX_DANTE_MCA *) NULL ) {
+			    return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+				"The MX_DANTE_MCA pointer for "
+				"Dante MCA '%s' is NULL.",
+					mca_record->name );
+			}
+
+			if ( dante_mca->mx_dante_configuration != NULL ) {
+			    return mx_error( MXE_INITIALIZATION_ERROR, fname,
+				"We are attempting to store the "
+				"MX_DANTE_CONFIGURATION pointer for "
+				"DPP section %lu to Dante MCA '%s'.  "
+				"But that pointer seems to already "
+				"be in use.", dpp_section, mca_record->name );
+			}
+
+			dante_mca->mx_dante_configuration = dante_configuration;
+		    }
+
+		    MX_DEBUG(-2,("%s: *** Entering section %ld ***",
+					fname, dpp_section ));
+
+		    continue; /* Go back to the top of the while(1) loop.*/
+		}
+
+		/* Everything from here on in the XML parsing loop
+		 * should be part of one of the identified DPP sections.
+		 * If a valid section number has not been set for here,
+		 * then the structure of the XML config file does not
+		 * match what we expect.
+		 */
+
+		if ( dpp_section <= MX_DPP_NOT_IN_SECTION ) {
+			return mx_error( MXE_NOT_VALID_FOR_CURRENT_STATE, fname,
+			"We are in the part of the XML parsing of "
+			"configuration file '%s' for Dante record '%s' "
+			"where we should be parsing individual parameters, "
+			"but a valid section number has not been set.  "
+			"The section number seen is (%ld).",
+				"xyzzy", dante->record->name, dpp_section );
+		}
+
+		/* We are not interested in the parameters found in
+		 * the fake 'Example SN' DPP, so we skip over them.
+		 */
+
+		if ( dpp_section == MX_DPP_IN_EXAMPLE_SECTION ) {
+
+			continue; /* Go back to the top of the while(1) loop.*/
+		}
+
+		/* Parameters from the DPP_COMMON_CONFIG section 
+		 * are handled separately from the regular DPP
+		 * parameters.
+		 */
+
+		if ( dpp_section == MX_DPP_IN_COMMON_SECTION ) {
+			mx_warning("Skipping common");
+
+			continue; /* Go back to the top of the while(1) loop.*/
+		}
+
+		/* We have reached the section that handles ordinary
+		 * DPP parameters.
+		 */
+
+		if ( dante_configuration == (MX_DANTE_CONFIGURATION *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"An attempt is being made to set the value of "
+			"a parameter for DPP section %lu of "
+			"Dante record '%s', but the dante_configuration "
+			"pointer is NULL, which makes it impossible.",
+				dpp_section, dante->record->name );
+		}
 
 	    	/* Look for the first '<' character on the line. */
 
-	    	parameter_name = strchr( buffer, '<' );
+		parameter_name = strchr( buffer, '<' );
 
-	    	if ( parameter_name != (char *) NULL ) {
+		if ( parameter_name != (char *) NULL ) {
 	    	    parameter_name++;
 
 	    	    parameter_string = strchr( parameter_name, '>' );
@@ -1471,85 +1812,24 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 	    		    *parameter_end = '\0';
 	    		}
 
-	    		if ( ( strcmp( parameter_name, "/DPP" ) != 0 )
-	    		  && ( strcmp( parameter_name, "/Devices" ) != 0 ) )
-	    		{
-	    		    /* We have not yet reached the end of this chain's
-	    		     * parameters, so we continue processing the
-	    		     * parameters for the current chain.
-	    		     */
+			/* Set the value of the parameter we have found. */
 
-	    		    mx_status = mxi_dante_set_parameter_from_string(
-	    						&chain_configuration,
+			mx_status = mxi_dante_set_parameter_from_string(
+	    						dante_configuration,
 	    						parameter_name,
 	    						parameter_string );
 
-	    		    if ( mx_status.code != MXE_SUCCESS )
-	    			    return mx_status;
-	    		} else {
-	    		    MX_DEBUG(-2,("%s: *** chain '%s' complete.",
-	    			fname, chain_name));
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
-	    		    /* We have reached the end of this chain's
-	    		     * parameters, so we now look for all MCA
-	    		     * records that are part of this chain and
-	    		     * copy these parameters to them.
-	    		     */
-
-	    		    mx_status = mxi_dante_copy_parameters_to_chain(
-	    		    	dante_record, &chain_configuration );
-
-	    		    if ( mx_status.code != MXE_SUCCESS )
-	    			    return mx_status;
-
-	    		    mxi_dante_show_parameters_for_chain( dante_record );
-
-	    		    /* We record the fact that we are finished
-	    		     * with this particular chain's parameters.
-	    		     */
-
-	    		    chain_name[0] = '\0';
-	    		}
 	    	    }
 	    	}
-	        } else {
-	    	/* Skip lines we are not interested in. */
-
-	    	ptr = strstr( buffer, "</Devices" );
-
-	    	if ( ptr == (char *) NULL ) {
-	    		continue;
-	    	}
-
-	    	/* We are not in a set of chain parameters and we have not
-	    	 * seen the character that marks the start of a chain,
-	    	 * so print a warning message and continue on to the
-	    	 * next line in the file.
-	    	 */
-
-	    	mx_warning( "A line was seen in the configuration file "
-	    	"that does not seem to be part of a chain configuration, "
-	    	"so we are skipping it.  line = '%s'", buffer );
-	        }
 
 	    } /* End of the while() loop over the XML for a single chain. */
 
 	} /* End of the for() loop over chain masters. */
 
-	/* FIXME: fclose() below crashes, so we ifdef it out for now.
-	 * But we need to really understand why it is crashing, since
-	 * by commenting it out here, we create a memory leak.  This
-	 * might be related to the problem above with fopen().
-	 */
-
-#if 0
-	fclose( config_file );
-#endif
-
-#if 1
-	mxi_dante_close( dante_record );
-	exit(0);
-#endif
+	mx_fclose( config_file );
 
 	return MX_SUCCESSFUL_RESULT;
 }

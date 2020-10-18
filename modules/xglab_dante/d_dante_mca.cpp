@@ -235,6 +235,8 @@ mxd_dante_mca_create_record_structures( MX_RECORD *record )
 
 	dante_mca->mca_record_array_index = -1;
 
+	dante_mca->mx_dante_configuration = NULL;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -280,7 +282,7 @@ mxd_dante_mca_open( MX_RECORD *record )
 	MX_MCA *mca;
 	MX_DANTE_MCA *dante_mca = NULL;
 	MX_DANTE *dante = NULL;
-	unsigned long i;
+	unsigned long i, board_number;
 	mx_status_type mx_status;
 
 #if MXD_DANTE_MCA_DEBUG_TIMING
@@ -398,41 +400,29 @@ mxd_dante_mca_open( MX_RECORD *record )
 		break;
 	}
 
-	/* Initialize the configuration parameters to the values that
-	 * are set as the defaults in the vendor's header file.
+	/* Insert the MCA record into the matching slot number in the
+	 * mca_record_array of the MX_DANTE structure.
 	 */
 
-	mx_status = mxi_dante_set_configuration_to_defaults(
-			&(dante_mca->mx_dante_configuration), NULL );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Search for an empty slot in the MCA array. */
-
-	for ( i = 0; i < dante->num_mcas; i++ ) {
-
-		if ( dante->mca_record_array[i] == NULL ) {
-
-			dante_mca->mca_record_array_index = i;
-
-			dante->mca_record_array[i] = mca->record;
-
-			break;		/* Exit the for() loop. */
-		}
-	}
-
-	if ( i >= dante->num_mcas ) {
+	if ( dante_mca->board_number >= dante->num_mcas ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"There are too many MCA records for DANTE record '%s'.  "
-		"DANTE record '%s' says that there are %ld MCAs, but "
-		"MCA record '%s' would be MCA number %ld.",
-			dante->record->name,
-			dante->record->name,
-			dante->num_mcas,
-			dante_mca->record->name,
-			i+1 );
+		"The requested board number (%lu) for Dante MCA '%s' "
+		"is outside the allowed range from 0 to %ld.",
+			dante_mca->board_number, dante_mca->record->name,
+			dante->num_mcas - 1 );
 	}
+
+	board_number = dante_mca->board_number;
+
+	if ( dante->mca_record_array[ board_number ] != NULL ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"MCA board index %ld for Dante record '%s' "
+		"is already in use by record '%s'.",
+			board_number, dante->record->name,
+		       dante->mca_record_array[ board_number ]->name );
+	}	
+
+	dante->mca_record_array[ board_number ] = mca->record;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -627,7 +617,19 @@ mxd_dante_mca_configure( MX_DANTE_MCA *dante_mca, MX_DANTE_MCS *dante_mcs )
 
 	/*---*/
 
-	mx_dante_configuration = &(dante_mca->mx_dante_configuration);
+	if ( dante_mca->mx_dante_configuration != NULL ) {
+		mx_dante_configuration = dante_mca->mx_dante_configuration;
+	} else {
+		/* If dante_mca->mx_dante_configuration has not yet been
+		 * initialized, then we must try to initialize it now.
+		 */
+
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The dante_mca->mx_dante_configuration pointer has not yet "
+		"been initialized for Dante MCA '%s'.  Perhaps you should "
+		"try again after MX has finished initializing itself.",
+			dante_mca->record->name );
+	}
 
 #if 0
 	MX_DEBUG(-2,("%s: About to configure DANTE MCA '%s'.",
