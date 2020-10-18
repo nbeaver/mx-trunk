@@ -631,7 +631,15 @@ mxd_dante_mca_configure( MX_DANTE_MCA *dante_mca, MX_DANTE_MCS *dante_mcs )
 			dante_mca->record->name );
 	}
 
-#if 0
+	if ( mx_dante_configuration->mca_record == (MX_RECORD *) NULL ) {
+		MX_DEBUG(-2,("%s: Notice: Assigning MCA record '%s' "
+		"to mx_dante_configuration %p.", fname,
+			dante_mca->record->name, mx_dante_configuration));
+
+		mx_dante_configuration->mca_record = dante_mca->record;
+	}
+
+#if 1
 	MX_DEBUG(-2,("%s: About to configure DANTE MCA '%s'.",
 		fname, dante_mca->record->name ));
 #endif

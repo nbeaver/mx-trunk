@@ -761,8 +761,6 @@ mxi_dante_configure( MX_RECORD *record )
 	unsigned long i;
 	mx_status_type mx_status;
 
-	mx_breakpoint();
-
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_RECORD pointer passed was NULL." );
