@@ -282,7 +282,7 @@ mxd_dante_mca_open( MX_RECORD *record )
 	MX_MCA *mca;
 	MX_DANTE_MCA *dante_mca = NULL;
 	MX_DANTE *dante = NULL;
-	unsigned long i, board_number;
+	unsigned long board_number;
 	mx_status_type mx_status;
 
 #if MXD_DANTE_MCA_DEBUG_TIMING

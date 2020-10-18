@@ -269,15 +269,7 @@ mxi_dante_open( MX_RECORD *record )
 	static const char fname[] = "mxi_dante_open()";
 
 	MX_DANTE *dante = NULL;
-<<<<<<< .mine
 	MX_DANTE_CONFIGURATION *dante_configuration = NULL;
-	long dimension[3];
-	size_t dimension_sizeof[3];
-||||||| .r4632
-	long dimension[3];
-	size_t dimension_sizeof[3];
-=======
->>>>>>> .r4633
 	unsigned long i, j, attempt;
 
 	unsigned long major, minor, update, extra;
@@ -564,7 +556,7 @@ mxi_dante_open( MX_RECORD *record )
 
 		if ( dante_configuration == NULL ) {
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
-			"Could not allocate a %lu element array of "
+			"Could not allocate a %d element array of "
 			"MX_DANTE_CONFIGURATION structures for chain_id '%s' "
 			"of Dante record '%s'.",
 				num_boards,
@@ -1046,6 +1038,7 @@ mxi_dante_set_parameter_from_string(
 
 /*-------------------------------------------------------------------------*/
 
+#if 0
 static mx_status_type
 mxi_dante_copy_parameters_to_chain( MX_RECORD *dante_record,
 			MX_DANTE_CONFIGURATION *chain_configuration )
@@ -1132,6 +1125,7 @@ mxi_dante_copy_parameters_to_chain( MX_RECORD *dante_record,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+#endif
 
 /*-------------------------------------------------------------------------*/
 
@@ -1357,8 +1351,6 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 	long channel_number = LONG_MIN;
 	int num_items = -1;
 	char *ptr = NULL;
-	char *identifier_ptr = NULL;
-	char *end_ptr = NULL;
 	char *parameter_name = NULL;
 	char *parameter_string = NULL;
 	char *parameter_end = NULL;
