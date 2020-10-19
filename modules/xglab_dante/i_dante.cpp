@@ -16,6 +16,10 @@
 
 #define MXI_DANTE_DEBUG_SHOW_PARAMETERS_FOR_CHAIN	TRUE
 
+#define MXI_DANTE_DEBUG_SHOW_CONFIG_FILE_BUFFERS	FALSE
+
+#define MXI_DANTE_DEBUG_SECTIONS			FALSE
+
 #define MXI_DANTE_DEBUG_CALLBACKS			FALSE
 
 #include <stdio.h>
@@ -1504,7 +1508,7 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 		    }
 	        }
 
-#if 1
+#if MXI_DANTE_DEBUG_SHOW_CONFIG_FILE_BUFFERS
 	        MX_DEBUG(-2,("%s: buffer = '%s'", fname, buffer));
 #endif
 		/*------------------------------------------------------*/
@@ -1563,8 +1567,10 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 		ptr = strstr( buffer, "</DPP" );
 
 		if ( ptr != (char *) NULL ) {
+#if MXI_DANTE_DEBUG_SECTIONS
 			MX_DEBUG(-2,("%s: *** Leaving section %ld ***",
 					fname, dpp_section ));
+#endif
 
 			dante_configuration = NULL;
 
@@ -1616,8 +1622,10 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 
 			*section_name_end_ptr = '\0';
 
+#if MXI_DANTE_DEBUG_SECTIONS
 			MX_DEBUG(-2,("%s: section_name_ptr = '%s'",
 					fname, section_name_ptr ));
+#endif
 
 			/* Parse the section name.  The part before the
 			 * '-' character should be the name of the 
@@ -1642,8 +1650,10 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 			*channel_name_ptr = '\0';
 			channel_name_ptr++;
 
+#if MXI_DANTE_DEBUG_SECTIONS
 			MX_DEBUG(-2,("%s: section '%s', channel '%s'",
 			fname, master_name_ptr, channel_name_ptr ));
+#endif
 
 			/* Get the channel number. */
 
@@ -1663,8 +1673,10 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 			if ( strcmp(chain_master->chain_id,
 					master_name_ptr) == 0 )
 			{
+#if MXI_DANTE_DEBUG_SECTIONS
 			    MX_DEBUG(-2,("%s === Verified in chain '%s'",
 				fname, chain_master->chain_id ));
+#endif
 			} else {
 			    mx_warning( "We are supposed to be in chain '%s', "
 			    "but the section header says we are in chain '%s'.",
@@ -1726,8 +1738,10 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 			dante_mca->mx_dante_configuration = dante_configuration;
 		    }
 
+#if MXI_DANTE_DEBUG_SECTIONS
 		    MX_DEBUG(-2,("%s: *** Entering section %ld ***",
 					fname, dpp_section ));
+#endif
 
 		    continue; /* Go back to the top of the while(1) loop.*/
 		}
@@ -1764,7 +1778,7 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 		 */
 
 		if ( dpp_section == MX_DPP_IN_COMMON_SECTION ) {
-			mx_warning("Skipping common");
+			mx_warning("Skipping common: '%s'", buffer);
 
 			continue; /* Go back to the top of the while(1) loop.*/
 		}

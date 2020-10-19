@@ -91,7 +91,9 @@ FILE *mx_cfn_fopen( int filename_type,
 	FILE *returned_file;
 	int returned_errno;
 
+#if 0
 	fprintf( stderr, "mx_cfn_fopen() inline invoked.\n" );
+#endif
 
 	returned_file = mx_cfn_fopen_internal( filename_type, filename, mode,
 							&returned_errno );
