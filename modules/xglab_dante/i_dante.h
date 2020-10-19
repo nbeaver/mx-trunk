@@ -225,6 +225,10 @@ MX_API mx_status_type mxi_dante_save_config_file( MX_RECORD *record );
 
 MX_API mx_status_type mxi_dante_configure( MX_RECORD *record );
 
+MX_API mx_status_type mxi_dante_set_data_available_flag_for_chain(
+						MX_RECORD *record,
+						mx_bool_type flag_value );
+
 #ifdef __cplusplus
 MX_API mx_status_type mxi_dante_set_configuration_to_defaults(
 			MX_DANTE_CONFIGURATION *mx_dante_configuration );

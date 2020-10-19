@@ -1316,6 +1316,95 @@ mxi_dante_show_parameters_for_chain( MX_RECORD *record )
 /*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
+mxi_dante_set_data_available_flag_for_chain( MX_RECORD *original_mca_record,
+						mx_bool_type new_flag_value )
+{
+	static const char fname[] =
+		"mxi_dante_set_data_available_flag_for_chain()";
+
+	MX_DANTE_MCA *original_dante_mca = NULL;
+	MX_DANTE_CONFIGURATION *original_dante_configuration = NULL;
+	MX_DANTE_CHAIN *dante_chain = NULL;
+	unsigned long i;
+	MX_RECORD *current_mca_record = NULL;
+	MX_MCA *current_mca = NULL;
+
+	if ( original_mca_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+#if 1
+	MX_DEBUG(-2,("%s invoked for MCA '%s'.",
+			fname, original_mca_record->name));
+#endif
+
+	/* Find the Dante chain that this MCA is part of. */
+
+	original_dante_mca = (MX_DANTE_MCA *)
+				original_mca_record->record_type_struct;
+
+	if ( original_dante_mca == (MX_DANTE_MCA *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_DANTE_MCA pointer for Dante MCA '%s' is NULL.",
+			original_mca_record->name );
+	}
+
+	original_dante_configuration =
+			original_dante_mca->mx_dante_configuration;
+
+	if ( original_dante_configuration == (MX_DANTE_CONFIGURATION *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_DANTE_CONFIGURATION pointer for "
+		"Dante MCA '%s' is NULL.", original_mca_record->name );
+	}
+
+	dante_chain = original_dante_configuration->chain;
+
+	if ( dante_chain == (MX_DANTE_CHAIN *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_DANTE_CHAIN pointer for Dante MCA '%s' is NULL.",
+			original_mca_record->name );
+	}
+
+	/* Walk through the MX_DANTE_CHAIN setting 'new_data_available' flags
+	 * along the way.
+	 */
+
+	for ( i = 0; i < dante_chain->num_boards; i++ ) {
+		current_mca_record =
+			dante_chain->dante_configuration[i].mca_record;
+
+		if ( current_mca_record == (MX_RECORD *) NULL ) {
+			mx_warning( "The MCA record pointer for chain item %lu "
+			"in the MX_DANTE_CHAIN for original MCA '%s' is NULL.",
+				i, original_mca_record->name );
+
+			continue;	/* Go to the next MCA record. */
+		}
+
+		current_mca = (MX_MCA *)
+				current_mca_record->record_class_struct;
+
+		if ( current_mca == (MX_MCA *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_MCA pointer for Dante MCA record '%s' "
+			"is NULL.", current_mca_record->name );
+		}
+
+		current_mca->new_data_available = new_flag_value;
+
+		MX_DEBUG(-2,("%s: 'new_data_available' set to %d for MCA '%s'.",
+			fname, (int) current_mca->new_data_available,
+			current_mca_record->name ));
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
 mxi_dante_save_config_file( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_dante_save_config_file()";
