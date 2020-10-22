@@ -78,9 +78,34 @@ typedef struct {
 		unsigned long decimation;
 
 		/* Note: The XML file misspells length as 'lenght'. */
-		unsigned long lenght;
+		unsigned long length;
 	} wave;
 } MX_DANTE_CHAIN;
+
+typedef struct {
+	struct {
+		double time;
+		unsigned long energy_bins;
+	} single_spectrum;
+
+	struct {
+		double time;
+		unsigned long points;
+		unsigned long energy_bins;
+	} mapping;
+
+	struct {
+		double time;
+	} timestamp;
+
+	struct {
+		unsigned long decimation;
+
+		/* Note: The XML file misspells length as 'lenght'. */
+		unsigned length;
+	} wave;
+
+} MX_DANTE_COMMON_CONFIG;
 
 /* Top level structure for all Dante chains. */
 
@@ -103,6 +128,8 @@ typedef struct dante_struct {
 	unsigned long dante_version;
 	unsigned long num_master_devices;
 	MX_DANTE_CHAIN *master;
+
+	MX_DANTE_COMMON_CONFIG common_config;
 
 	MX_RECORD **mca_record_array;
 } MX_DANTE;

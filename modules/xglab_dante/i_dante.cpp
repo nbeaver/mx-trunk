@@ -448,21 +448,23 @@ mxi_dante_open( MX_RECORD *record )
 			dante->num_master_devices, record->name );
 	}
 
+#if 0
 	MX_DEBUG(-2,("%s: dante->num_master_devices = %lu",
 		fname, dante->num_master_devices));
 	MX_DEBUG(-2,("%s: dante->max_boards_per_chain = %lu",
 		fname, dante->max_boards_per_chain));
+#endif
 
 	/* How many boards are there for each master? */
 
 	max_attempts = mx_round_up( dante->max_board_delay );
 
-#if 1
+#if 0
 	MX_DEBUG(-2,("%s: max_attempts = %lu", fname, max_attempts));
 #endif
 
 	for ( i = 0; i < dante->num_master_devices; i++ ) {
-#if 1
+#if 0
 		MX_DEBUG(-2,("%s: master %lu", fname, i ));
 #endif
 
@@ -496,7 +498,7 @@ mxi_dante_open( MX_RECORD *record )
 			}
 		}
 
-#if 1
+#if 0
 		MX_DEBUG(-2,("%s: dante->master[%lu].chain_id = '%s'",
 			fname, i, dante->master[i].chain_id ));
 #endif
@@ -526,8 +528,10 @@ mxi_dante_open( MX_RECORD *record )
 			mx_msleep(1000);
 		}
 
+#if 0
 		MX_DEBUG(-2,("%s: num_boards = %lu",
 			fname, (unsigned long) num_boards));
+#endif
 
 		if ( num_boards > dante->max_boards_per_chain ) {
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
@@ -543,11 +547,13 @@ mxi_dante_open( MX_RECORD *record )
 					dante->record->name );
 		}
 
+#if 0
 		MX_DEBUG(-2,("%s: All boards found for '%s'.",
 		fname, dante->master[i].chain_id ));
 
 		MX_DEBUG(-2,("%s: &(dante->master[%lu]) = %p",
 		fname, i, &(dante->master[i]) ));
+#endif
 
 		dante->master[i].num_boards = num_boards;
 
@@ -647,7 +653,9 @@ mxi_dante_finish_delayed_initialization( MX_RECORD *record )
 		"The MX_RECORD pointer passed was NULL." );
 	}
 
+#if 0
 	MX_DEBUG(-2,("%s invoked for '%s'.", fname, record->name ));
+#endif
 
 	mx_status = mxi_dante_load_config_file( record );
 
@@ -1455,7 +1463,7 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 		"The MX_RECORD pointer passed was NULL." );
 	}
 
-#if 1
+#if 0
 	MX_DEBUG(-2,("%s invoked for '%s'.", fname, dante_record->name));
 #endif
 
@@ -1485,7 +1493,7 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 				dante->config_filename, "r" );
 
 	saved_errno = errno;
-#if 1
+#if 0
 	MX_DEBUG(-2,("%s: config_file = %p, errno = %d",
 			fname, config_file, saved_errno ));
 #endif
@@ -1545,10 +1553,12 @@ mxi_dante_load_config_file( MX_RECORD *dante_record )
 
 	    dante_configuration = NULL;
 
+#if 0
 	    if ( i == 0 ) {
 		    MX_DEBUG(-2,("%s: &(dante->master[0]) = %p",
 			fname, chain_master));
 	    }
+#endif
 
 	    /* Verify that the chain_id and num_boards fields have already
 	     * been set in the 'chain_master' structure.
